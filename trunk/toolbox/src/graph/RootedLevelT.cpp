@@ -1,14 +1,13 @@
-/* $Id: RootedLevelT.cpp,v 1.7 2003-11-21 22:41:54 paklein Exp $ */
+/* $Id: RootedLevelT.cpp,v 1.8 2005-01-29 18:32:02 paklein Exp $ */
 /* created: paklein (08/05/1996) */
 
 #include "RootedLevelT.h"
 #include "GraphT.h"
 #include "iArrayT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 RootedLevelT::RootedLevelT(void):
 	fNumNodes(0),
 	fLevels(NULL),
@@ -33,20 +32,18 @@ RootedLevelT::~RootedLevelT(void)
 * rooted at the given node */
 void RootedLevelT::MakeRootedLevel(const GraphT& graph, int rootnode)
 {
+	const char caller[] = "RootedLevelT::MakeRootedLevel";
+
 //TEMP - only allocate if size has changed
 	fNumNodes = graph.NumNodes();
 	if (rootnode < 0 || rootnode >= fNumNodes)
-	{
-		cout << "\nRootedLevelT::MakeRootedLevel: incorrect root node number:";
-		cout << rootnode << '\n' << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "incorrect root node number %d", rootnode);
 
 	/* free previous */
 	if (fLevels != NULL) delete[] fLevels;
 
 	fLevels = new int[fNumNodes];
-	if (!fLevels) throw ExceptionT::kOutOfMemory;
+	if (!fLevels) ExceptionT::OutOfMemory(caller);
 
 	/* initialize levels */
 	int* p = fLevels;
@@ -72,7 +69,7 @@ void RootedLevelT::MakeRootedLevel(const GraphT& graph, int rootnode)
 					int edgenode = *edges;
 
 #if __option (extended_errorcheck)
-					if (edgenode < 0 || edgenode >= fNumNodes) throw ExceptionT::kGeneralFail;
+					if (edgenode < 0 || edgenode >= fNumNodes) ExceptionT::GeneralFail(caller);
 #endif
 					/* assign if free */
 					if (fLevels[edgenode] == -1)
@@ -99,7 +96,7 @@ void RootedLevelT::MakeRootedLevel(const GraphT& graph, int rootnode)
 				if (fLevels[i] == fNumLevels-1)
 					cut_nodes[num_cut++] = i;
 			cout << " graph nodes along cut:\n" << cut_nodes.wrap(10) << endl;
-			throw ExceptionT::kGeneralFail;
+			ExceptionT::GeneralFail(caller);
 		}
 		else
 			/* next */
@@ -110,11 +107,8 @@ void RootedLevelT::MakeRootedLevel(const GraphT& graph, int rootnode)
 	p = fLevels;
 	for (int j = 0; j < fNumNodes; j++)
 		if (*p++ == -1)
-		{
-			cout << "\n RootedLevelT::MakeRootedLevel: node " << j << " has no level" << endl;
-			throw ExceptionT::kGeneralFail;
-		}
-	
+			ExceptionT::GeneralFail(caller, "node %d has no level", j);
+
 	/* finalize */
 	ComputeWidths();
 	fRoot = rootnode;
@@ -125,19 +119,17 @@ void RootedLevelT::MakeRootedLevel(const GraphT& graph, int rootnode)
 void RootedLevelT::MakePartialRootedLevel(const GraphT& graph, int rootnode,
 	bool clear)
 {
+	const char caller[] = "RootedLevelT::MakePartialRootedLevel";
+
 //TEMP - only allocate if size has changed
 	fNumNodes = graph.NumNodes();
 	if (rootnode < 0 || rootnode >= fNumNodes)
-	{
-		cout << "\nRootedLevelT::MakeRootedLevel: incorrect root node number:";
-		cout << rootnode << '\n' << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "incorrect root node number %d", rootnode);
 
 	/* free previous */
 	delete[] fLevels;
 	fLevels = new int[fNumNodes];
-	if (!fLevels) throw ExceptionT::kOutOfMemory;
+	if (!fLevels) ExceptionT::OutOfMemory(caller);
 
 	/* restart */
 	if (clear)
@@ -171,7 +163,7 @@ void RootedLevelT::MakePartialRootedLevel(const GraphT& graph, int rootnode,
 					int edgenode = *edges;
 
 #if __option (extended_errorcheck)
-					if (edgenode < 0 || edgenode >= fNumNodes) throw ExceptionT::kGeneralFail;
+					if (edgenode < 0 || edgenode >= fNumNodes) ExceptionT::GeneralFail(caller);
 #endif
 				
 					/* assign if free */
@@ -197,21 +189,23 @@ void RootedLevelT::MakePartialRootedLevel(const GraphT& graph, int rootnode,
 /* return the node numbers on the specified level */
 void RootedLevelT::NodesOnLevel(iArrayT& nodes, int level) const
 {
+	const char caller[] = "RootedLevelT::NodesOnLevel";
+
 	/* no mistakes */
-	if (level > fNumLevels) throw ExceptionT::kGeneralFail;
+	if (level > fNumLevels) ExceptionT::GeneralFail(caller);
 	
 	int count = 0;	
 	for (int i = 0; i < fNumNodes; i++)
 		if (fLevels[i] == level)
 		{
 #if __option (extended_errorcheck)
-			if (count >= fMaxWidth) throw ExceptionT::kGeneralFail;
+			if (count >= fMaxWidth) ExceptionT::GeneralFail(caller);
 #endif
 			fNodesOnLevel[count++] = i;
 		}
 			
 	if (count != Width(level))
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 	
 	/* return value */
 	nodes.Set(count, fNodesOnLevel);
@@ -243,7 +237,8 @@ void RootedLevelT::NodesUsed(iArrayT& nodes_used) const
 void RootedLevelT::InitializePriorities(iArrayT& priorities, int W2) const
 {
 	/* check */
-	if (fNumNodes != priorities.Length()) throw ExceptionT::kGeneralFail;
+	if (fNumNodes != priorities.Length())
+		ExceptionT::GeneralFail("RootedLevelT::InitializePriorities");
 
 	for (int i = 0; i < fNumNodes; i++)
 		priorities[i] += fLevels[i]*W2; //OFFSET
@@ -252,6 +247,8 @@ void RootedLevelT::InitializePriorities(iArrayT& priorities, int W2) const
 /* copy in the labelled branches of the rooted level structure */
 void RootedLevelT::CopyIn(const RootedLevelT& source)
 {
+	const char caller[] = "RootedLevelT::CopyIn";
+
 	/* initialize */
 	if (fNumNodes == 0)
 	{
@@ -260,7 +257,7 @@ void RootedLevelT::CopyIn(const RootedLevelT& source)
 		/* free previous */
 		delete[] fLevels;
 		fLevels = new int[fNumNodes];
-		if (!fLevels) throw ExceptionT::kOutOfMemory;
+		if (!fLevels) ExceptionT::OutOfMemory(caller);
 
 		/* initialize levels */
 		int* p = fLevels;
@@ -268,7 +265,7 @@ void RootedLevelT::CopyIn(const RootedLevelT& source)
 			*p++ = -1;		
 	}
 	else if (fNumNodes != source.fNumNodes)
-		throw ExceptionT::kSizeMismatch;
+		ExceptionT::SizeMismatch(caller);
 	
 	/* store root node */
 	fRoot = source.fRoot;
@@ -282,10 +279,7 @@ void RootedLevelT::CopyIn(const RootedLevelT& source)
 		{
 			/* already has level! */
 			if (*pthis > -1)
-			{
-				cout << "\n RootedLevelT::CopyIn: structures overlap" << endl;
-				throw ExceptionT::kGeneralFail;
-			}
+				ExceptionT::GeneralFail(caller, "structures overlap");
 			else
 				*pthis = *psrc + fNumLevels;
 		}
@@ -307,12 +301,14 @@ void RootedLevelT::CopyIn(const RootedLevelT& source)
 /* compute the number of nodes in each level */
 void RootedLevelT::ComputeWidths(void)
 {
+	const char caller[] = "RootedLevelT::ComputeWidths";
+
 	/* free existing space */
 	if (fWidths != NULL) delete[] fWidths;
 	
 	/* allocate new space */
 	fWidths = new int[fNumLevels];
-	if (!fWidths) throw ExceptionT::kOutOfMemory;
+	if (!fWidths) ExceptionT::OutOfMemory(caller);
 
 	/* clear space */
 	int* p = fWidths;
@@ -327,7 +323,7 @@ void RootedLevelT::ComputeWidths(void)
 		if (level > -1)
 		{
 #if __option (extended_errorcheck)
-			if (level < 0 || level >= fNumLevels) throw ExceptionT::kGeneralFail;
+			if (level < 0 || level >= fNumLevels) ExceptionT::GeneralFail(caller);
 #endif		
 			fWidths[level]++;
 		}
@@ -348,6 +344,6 @@ void RootedLevelT::ComputeWidths(void)
 	{
 		delete[] fNodesOnLevel;
 		fNodesOnLevel = new int[fMaxWidth];
-		if (!fNodesOnLevel) throw ExceptionT::kOutOfMemory;
+		if (!fNodesOnLevel) ExceptionT::OutOfMemory(caller);
 	}
 }
