@@ -1,4 +1,4 @@
-#/* $Id: makefile,v 1.2 2003-09-03 00:02:54 raregue Exp $ */
+#/* $Id: makefile,v 1.3 2003-09-03 00:06:01 raregue Exp $ */
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -23,10 +23,7 @@ HDR_LINK = $(HDR:.h=.h_link)
 # subdirectories
 SUB_DIR = \
 	data_process \
-	coupled_eqs \
-	integration \
-	matrix \
-	shape_funs
+	coupled_eqs 
 
 subdir_driver: subdir_loop
 
