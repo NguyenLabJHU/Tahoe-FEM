@@ -1,4 +1,4 @@
-// $Id: test.java,v 1.12 2002-08-13 10:11:20 paklein Exp $
+// $Id: test.java,v 1.13 2002-08-13 23:33:54 paklein Exp $
 import java.io.*;
 import javax.swing.*;
 import java.awt.event.*;
@@ -11,7 +11,6 @@ public class test extends JPanel implements ActionListener, ChangeListener {
   // looks like an unnamed static function
   static {
 	  System.loadLibrary("testClass");
-	  //System.loadLibrary("toolbox");
 	}
   
   public native void InitCpp();  
@@ -21,6 +20,7 @@ public class test extends JPanel implements ActionListener, ChangeListener {
   public native void SetScope(String s);
   public native void Interact();
   public native void CommandLine();
+  public native void DoCommand(String command, String arguments);
   //public native void Rotate(int x, int y , int z);
 
  
@@ -918,6 +918,9 @@ public class test extends JPanel implements ActionListener, ChangeListener {
     else if (e.getActionCommand().equals("HideCutting")){
       System.out.println("HideCuttingPlane");
     }
+    else if (e.getActionCommand().equals("Update")){
+		DoCommand("Update", "");
+    }
 
     else if (e.getActionCommand().equals("Flip Book")){
       System.out.println("Flip Book");
@@ -951,19 +954,22 @@ public class test extends JPanel implements ActionListener, ChangeListener {
       System.out.println("White BG");
     }    
     else if (e.getActionCommand().equals("Surf")){
-      System.out.println("Surf");
+      DoCommand("Surface", "");
+      DoCommand("Update", "");
     }
     else if (e.getActionCommand().equals("Wire")){
-      System.out.println("Wire");
+      DoCommand("Wire", "");
+      DoCommand("Update", "");
     }
     else if (e.getActionCommand().equals("Points")){
-      System.out.println("Points");
+      DoCommand("Point", "");
+      DoCommand("Update", "");
     }
     else if (e.getActionCommand().equals("Show Axes")){
-      System.out.println("Show Axes");
+      DoCommand("ShowAxes", "");
     }
     else if (e.getActionCommand().equals("Hide Axes")){
-      System.out.println(e.getActionCommand());
+      DoCommand("HideAxes", "");
     }
     else if (e.getActionCommand().equals("Show Color Bar")){
       System.out.println(e.getActionCommand());
@@ -972,16 +978,16 @@ public class test extends JPanel implements ActionListener, ChangeListener {
       System.out.println(e.getActionCommand());
     }
     else if (e.getActionCommand().equals("Show Node Nums")){
-      System.out.println(e.getActionCommand());
+      DoCommand("ShowNodeNum", "");
     }
     else if (e.getActionCommand().equals("Hide Node Nums")){
-      System.out.println(e.getActionCommand());
+      DoCommand("HideNodeNum", "");
     }
     else if (e.getActionCommand().equals("Show Elem Nums")){
-      System.out.println(e.getActionCommand());
+      DoCommand("ShowElemNum", "");
     }
     else if (e.getActionCommand().equals("Hide Elem Nums")){
-      System.out.println(e.getActionCommand());
+      DoCommand("HideElemNum", "");
     }
 
   }
