@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.14 2001-12-10 12:44:08 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.15 2001-12-10 22:57:58 paklein Exp $ */
 
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
@@ -196,6 +196,7 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 			fVisPoints.Allocate(0);
 			fNodeLabelMapper.Allocate(0);
 			fNodeLabelActor.Allocate(0);
+			return true;
 		}	
 	}
 	else if (command.Name() == "ShowAxes")
@@ -257,12 +258,13 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 					renderer->RemoveActor(fAxes[i]);
 					fAxes[i]->Delete();
 				}
-			fAxes.Allocate(0);	
+			fAxes.Allocate(0);
+			return true;
 		}
 	}
 	else
 		/* inherited */
-		iConsoleObjectT::iDoCommand(command, line);
+		return iConsoleObjectT::iDoCommand(command, line);
 }
 
 /* add actors in self to the given renderer */
