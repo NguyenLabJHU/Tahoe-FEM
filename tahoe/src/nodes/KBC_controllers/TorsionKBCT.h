@@ -1,4 +1,4 @@
-/* $Id: TorsionKBCT.h,v 1.2 2003-05-31 18:38:29 paklein Exp $ */
+/* $Id: TorsionKBCT.h,v 1.3 2003-08-18 03:45:17 paklein Exp $ */
 #ifndef _TORSION_KBC_T_H_
 #define _TORSION_KBC_T_H_
 
@@ -31,6 +31,12 @@ public:
 
 	/** compute updated prescibed displacements */
 	virtual void InitStep(void);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
 protected:
 

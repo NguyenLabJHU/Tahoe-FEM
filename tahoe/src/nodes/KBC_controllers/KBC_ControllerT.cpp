@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.cpp,v 1.8 2003-03-31 23:02:50 paklein Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.9 2003-08-18 03:45:16 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "KBC_ControllerT.h"
 
@@ -17,6 +17,7 @@ const bool ArrayT<KBC_ControllerT*>::fByteCopy = true;
 
 /* constructor */
 KBC_ControllerT::KBC_ControllerT(NodeManagerT& node_manager):
+	ParameterInterfaceT("KBC_controller"),
 	fNodeManager(node_manager)
 {
 
