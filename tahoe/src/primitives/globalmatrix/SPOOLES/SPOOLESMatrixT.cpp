@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.6 2002-02-11 01:24:47 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.7 2002-03-04 06:43:16 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT.h"
@@ -361,7 +361,7 @@ void SPOOLESMatrixT::BackSubstitute(dArrayT& result)
 	/* convert matrix to RCV */
 	iArrayT r, c;
 	dArrayT v;
-	GenerateRCV(r, c, v);
+	GenerateRCV(r, c, v, 1.0e-15);
 	
 	/* write matrix */
 	if (fCheckCode == kPrintLHS) {
@@ -431,17 +431,25 @@ void SPOOLESMatrixT::PrintLHS(void) const
 }
 
 /* copy MSR data to RCV */
-void SPOOLESMatrixT::GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v)
+void SPOOLESMatrixT::GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v, double drop_tol)
 {
+	/* count number of values */
+	int num_vals = 0;
+	double *pval = fval.Pointer();
+	for (int i = 0; i < fLocNumEQ; i++) /* diagonals */
+		if (fabs(*pval++) > drop_tol) num_vals++;
+	pval++;
+	for (int i = fLocNumEQ + 1; i < fval.Length(); i++) /* off-diagonals */
+		if (fabs(*pval++) > drop_tol) num_vals++;
+
 	/* overall dimension */
-	int num_vals = fval.Length() - 1; // MSR format has 1 unused value
 	r.Allocate(num_vals);
 	c.Allocate(num_vals);
 	v.Allocate(num_vals);
 
 	/* start of off-diagonal data (MSR) */
-	int*    pcol = fbindx.Pointer(fLocNumEQ + 1);
-	double* pval = fval.Pointer(fLocNumEQ + 1);
+	int* pcol = fbindx.Pointer(fLocNumEQ + 1);
+	pval = fval.Pointer(fLocNumEQ + 1);
 
 	/* output rows in ascending column order */
 	int shift = fStartEQ - 1; //OFFSET
@@ -449,18 +457,24 @@ void SPOOLESMatrixT::GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v)
 	for (int row = 0; row < fLocNumEQ; row++)
 	{
 		/* the diagonal */
-		r[count] = row + shift;
-		c[count] = row + shift;
-		v[count] = fval[row];
-		count++;
+		double& diag = fval[row];
+		if (fabs(diag) > drop_tol) {
+			r[count] = row + shift;
+			c[count] = row + shift;
+			v[count] = diag;
+			count++;
+		}
 
 		int numvals = fbindx[row+1] - fbindx[row]; /* not incl. diagonal */
 		for (int i = 0; i < numvals; i++)
 		{
-			r[count] = row + shift;
-			c[count] = *pcol++;
-			v[count] = *pval++;
-			count++;
+			double& val = *pval++;
+			if (fabs(val) > drop_tol) {
+				r[count] = row + shift;
+				c[count] = *pcol++;
+				v[count] = val;
+				count++;
+			} else pcol++;
 		}
 	}
 	
