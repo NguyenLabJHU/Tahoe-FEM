@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.6 2005-01-14 00:20:30 paklein Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.7 2005-01-20 01:49:49 paklein Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -189,8 +189,11 @@ const dMatrixT& FSSolidMixtureT::c_ijkl(void)
 		fF_growth_inv.Identity(1.0/rel_conc);
 		fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 
+		/* Jacobian of growth */
+		double J_g = pow(rel_conc, fF_growth_inv.Rows());
+
 		/* compute modulus */
-		fModulus.AddScaled(conc[i], fStressFunctions[i]->c_ijkl());
+		fModulus.AddScaled(conc[i]/J_g, fStressFunctions[i]->c_ijkl());
 	}
 
 	return fModulus;
@@ -212,8 +215,11 @@ const dMatrixT& FSSolidMixtureT::c_ijkl(int i)
 	fF_growth_inv.Identity(1.0/rel_conc);
 	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 
-	/* compute stress */
-	fModulus.SetToScaled(conc[i], fStressFunctions[i]->c_ijkl());
+	/* Jacobian of growth */
+	double J_g = pow(rel_conc, fF_growth_inv.Rows());
+
+	/* compute modulus */
+	fModulus.SetToScaled(conc[i]/J_g, fStressFunctions[i]->c_ijkl());
 
 	return fModulus;
 }
@@ -239,8 +245,11 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(void)
 		fF_growth_inv.Identity(1.0/rel_conc);
 		fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 
+		/* Jacobian of growth */
+		double J_g = pow(rel_conc, fF_growth_inv.Rows());
+
 		/* compute stress */
-		fStress.AddScaled(conc[i], fStressFunctions[i]->s_ij());
+		fStress.AddScaled(conc[i]/J_g, fStressFunctions[i]->s_ij());
 	}
 
 	return fStress;
@@ -262,8 +271,11 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(int i)
 	fF_growth_inv.Identity(1.0/rel_conc);
 	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 
+	/* Jacobian of growth */
+	double J_g = pow(rel_conc, fF_growth_inv.Rows());
+
 	/* compute stress */
-	fStress.SetToScaled(conc[i], fStressFunctions[i]->s_ij());
+	fStress.SetToScaled(conc[i]/J_g, fStressFunctions[i]->s_ij());
 
 	return fStress;
 }
