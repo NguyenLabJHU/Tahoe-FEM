@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.42 2004-03-16 05:37:20 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.43 2004-03-18 17:42:45 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -777,7 +777,7 @@ void ModelManagerT::BoundingElements(const ArrayT<StringT>& IDs, iArrayT& elemen
 	bool my_geometry = false;
 	if (!geometry) {
 		my_geometry = true;
-		geometry = GeometryT::NewGeometry(ElementGroupGeometry(IDs[0]), connects[0]->MinorDim());
+		geometry = GeometryT::New(ElementGroupGeometry(IDs[0]), connects[0]->MinorDim());
 	} else { /* check */
 		my_geometry = false;
 		if (geometry->Geometry() != ElementGroupGeometry(IDs[0]) ||
@@ -879,7 +879,7 @@ void ModelManagerT::SurfaceFacets(const ArrayT<StringT>& IDs,
 	bool my_geometry = false;
 	if (!geometry) {
 		my_geometry = true;
-		geometry = GeometryT::NewGeometry(ElementGroupGeometry(IDs[0]), connects[0]->MinorDim());
+		geometry = GeometryT::New(ElementGroupGeometry(IDs[0]), connects[0]->MinorDim());
 	} else { /* check */
 		my_geometry = false;
 		if (geometry->Geometry() != ElementGroupGeometry(IDs[0]) ||
@@ -934,7 +934,7 @@ void ModelManagerT::SurfaceFacets(const ArrayT<StringT>& IDs,
 	bool my_geometry = false;
 	if (!geometry) {
 		my_geometry = true;
-		geometry = GeometryT::NewGeometry(ElementGroupGeometry(IDs[0]), connects[0]->MinorDim());
+		geometry = GeometryT::New(ElementGroupGeometry(IDs[0]), connects[0]->MinorDim());
 	} else { /* check */
 		my_geometry = false;
 		if (geometry->Geometry() != ElementGroupGeometry(IDs[0]) ||
@@ -981,7 +981,7 @@ void ModelManagerT::SurfaceNodes(const ArrayT<StringT>& IDs,
 	bool my_geometry = false;
 	if (!geometry) {
 		my_geometry = true;
-		geometry = GeometryT::NewGeometry(ElementGroupGeometry(IDs[0]), connects[0]->MinorDim());
+		geometry = GeometryT::New(ElementGroupGeometry(IDs[0]), connects[0]->MinorDim());
 	} else { /* check */
 		my_geometry = false;
 		if (geometry->Geometry() != ElementGroupGeometry(IDs[0]) ||
@@ -1181,7 +1181,7 @@ void ModelManagerT::SideSet(const StringT& ID, ArrayT<GeometryT::CodeT>& facet_g
 		GeometryT::CodeT geometry_code = ElementGroupGeometry(elemID);
 	
 		/* geometry object */
-		GeometryBaseT* geometry = GeometryT::NewGeometry(geometry_code, nen);
+		GeometryBaseT* geometry = GeometryT::New(geometry_code, nen);
 
 // NOTE: faster to get all nodes_on_facet data at once. also
 //       would be easier to check dimensions of facets.
