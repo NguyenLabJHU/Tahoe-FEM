@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.22.8.1 2003-09-18 21:03:36 cjkimme Exp $ */
+/* $Id: ParticleT.cpp,v 1.22.8.2 2003-10-02 19:33:11 cjkimme Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -416,6 +416,12 @@ const dArray2DT& ParticleT::InternalForce(int group)
 		ExceptionT::GeneralFail("ParticleT::InternalForce", 
 			"expecting solver group %d not %d", Group(), group);
 	return fForce;
+}
+
+void ParticleT::ReceiveVelocities(const dArray2DT& coarse, const dArray2DT& fine)
+{
+	fCoarseVs = coarse;
+	fFineVs = fine;
 }
 
 /***********************************************************************

@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.15.6.1 2003-09-18 21:03:36 cjkimme Exp $ */
+/* $Id: ParticleT.h,v 1.15.6.2 2003-10-02 19:33:11 cjkimme Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -104,7 +104,9 @@ public:
 	virtual const dArray2DT& InternalForce(int group);
 
 	/** read/write access to the properties map */
-	nMatrixT<int>& PropertiesMap(void) { return fPropertiesMap; };
+	nMatrixT<int>& PropertiesMap(void) { return fPropertiesMap; };\
+	
+	void ReceiveVelocities(const dArray2DT& coarse, const dArray2DT& fine);
 
 protected: /* for derived classes only */
 
@@ -258,6 +260,9 @@ protected:
 	/** constant matrix needed to compute the stiffness */
 	dMatrixT fOneOne;
 	/*@}*/
+	
+	/** Arrays for keeping coarse and fine scale velocities */
+	dArray2DT fCoarseVs, fFineVs;
 
 private:
 

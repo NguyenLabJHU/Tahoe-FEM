@@ -1,4 +1,4 @@
-/* $Id: AtomicConveyorT.cpp,v 1.1.2.1 2003-09-18 21:03:44 cjkimme Exp $ */
+/* $Id: AtomicConveyorT.cpp,v 1.1.2.2 2003-10-02 19:31:28 cjkimme Exp $ */
 #include "AtomicConveyorT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -139,6 +139,8 @@ void AtomicConveyorT::Initialize(ifstreamT& in)
 	fSchedule = fNodeManager.Schedule(scheduleNum);	
 	if (!fSchedule) throw ExceptionT::kBadInputValue;
 	
+	/* constrain the nodes just located with the values just read in */
+	SetBCCards();
 		
 	/* read in left/right BCs. Ramped damping, cutting and pasting of new material */
 	// width of left and right regions
@@ -162,6 +164,11 @@ void AtomicConveyorT::Initialize(ifstreamT& in)
 	if ((fTipRegionHeight <= 0.) || (fTipRegionHeight > fBoxSize[fSD - 1]))
 		ExceptionT::BadInputValue("AtomicConveyorT::Initialize","Bad Tip Region Height\n");
 		
+	int isDynamic;
+	in >> isDynamic; 
+	
+	isDynamic ? qDynamic = true : qDynamic = false;
+		
 	// tolerance in locating precrack.
 	
 	in >> nTipIncs; // how often to locate the precrack
@@ -174,6 +181,7 @@ void AtomicConveyorT::Initialize(ifstreamT& in)
 	if (iElementGroup < 0)
 		ExceptionT::BadInputValue("AtomicConveyorT::Initialize","Bad Element Block ID read\n");	
 
+	
 }
 
 void AtomicConveyorT::InitStep(void)
@@ -229,8 +237,6 @@ void AtomicConveyorT::InitialCondition(void)
 //	int nProcs = fNodeManager.Size();
 //	int thisProc = fNodeManager.Rank();
 //	const ArrayT<int>* pMap = fNodeManager.ProcessorMap();
-	
-	SetBCCards();
 
 }
 
@@ -313,30 +319,45 @@ void AtomicConveyorT::SetBCCards(void)
 	}	
 		
 	/* generate BC cards */
-	fKBC_Cards.Dimension(n_top + n_bottom);
+	fKBC_Cards.Dimension(fSD*(n_top + n_bottom));
 	KBC_CardT* pcard = fKBC_Cards.Pointer();
 	for (int i = 0; i < myTopNodes.Length(); i++)
 	{
 		if (myTopNodes[i] >= 0)
 		{
-			/* set values */
+			/* loading direction */
 			pcard->SetValues(myTopNodes[i], fSD - 1, KBC_CardT::kDsp, 0, fScale);
-
-			/* dummy schedule */
 			pcard->SetSchedule(fSchedule);
 			pcard++;
+			
+			/* Fixed DOFs */
+			pcard->SetValues(myTopNodes[i], fSD - 2, KBC_CardT::kFix, 0, 0.);
+			pcard++;
+			if (fSD == 3)
+			{
+				pcard->SetValues(myTopNodes[i], 0, KBC_CardT::kFix, 0, 0.);
+				pcard++;
+			}
+			
 		} 
 	}
 	for (int i = 0; i < myBottomNodes.Length(); i++)
 	{
 		if (myBottomNodes[i] >= 0)
 		{
-			/* set values */
+			/* loading direction */
 			pcard->SetValues(myBottomNodes[i], fSD - 1, KBC_CardT::kDsp, 0, -fScale);
-
-			/* dummy schedule */
 			pcard->SetSchedule(fSchedule);
 			pcard++;
+			
+			/* Fixed DOFs */
+			pcard->SetValues(myBottomNodes[i], fSD - 2, KBC_CardT::kFix, 0, 0.);
+			pcard++;
+			if (fSD == 3)
+			{
+				pcard->SetValues(myBottomNodes[i], 0, KBC_CardT::kFix, 0, 0.);
+				pcard++;
+			}
 		} 
 	}
 

@@ -1,4 +1,4 @@
-/* $Id: AtomicConveyorT.h,v 1.1.2.1 2003-09-18 21:03:44 cjkimme Exp $ */
+/* $Id: AtomicConveyorT.h,v 1.1.2.2 2003-10-02 19:31:28 cjkimme Exp $ */
 #ifndef _ATOMIC_CONVEYOR_T_H_
 #define _ATOMIC_CONVEYOR_T_H_
 
@@ -120,6 +120,11 @@ protected:
 
 	/** Element group of the crystal */
 	int iElementGroup;
+	
+	/** Flag for dynamic or static simulation. Dynamic controller tracks
+	    crack tip. Static controller just turns off interactions along 
+	    precrack. */
+	bool qDynamic;
 };
 
 } // namespace Tahoe 
