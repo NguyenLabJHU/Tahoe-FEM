@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.19 2003-01-29 07:35:04 paklein Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.20 2003-12-18 22:22:01 ebmarin Exp $ */
 #include "LocalCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -13,6 +13,7 @@
 #include "ifstreamT.h"
 #include "Utils.h"
 #include "SpectralDecompT.h"
+#include "ContinuumElementT.h"
 
 using namespace Tahoe;
 
@@ -417,6 +418,7 @@ void LocalCrystalPlast::ComputeOutput(dArrayT& output)
 {
   // gather element/integ point information
   ElementCardT& element = CurrentElement();
+  int group = ContinuumElement().ElementGroupNumber();
   int elem  = CurrElementNumber();
   int intpt = CurrIP();
 
@@ -436,6 +438,7 @@ void LocalCrystalPlast::ComputeOutput(dArrayT& output)
   // cout << "    fAvgStress = " << endl << fAvgStress << endl;
   if (elem == (NumElements()-1) && intpt == (NumIP()-1))
      cerr << " step # " << fFSMatSupport.StepNumber() 
+          << "    group # " << group
           << "    S_eq_avg = " 
           << sqrt(fsymmatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23 << endl; 
 
@@ -466,7 +469,7 @@ void LocalCrystalPlast::ComputeOutput(dArrayT& output)
 	}
 
       // write texture at IP/ELE
-      fLatticeOrient->WriteTexture(elem, intpt, fNumGrain, step, fangles);
+      fLatticeOrient->WriteTexture(group, elem, intpt, fNumGrain, step, fangles);
     }
 }
 
