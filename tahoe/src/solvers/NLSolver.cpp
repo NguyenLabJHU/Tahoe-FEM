@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.18 2002-12-13 02:42:55 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.19 2002-12-14 03:51:42 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #include "NLSolver.h"
@@ -85,6 +85,14 @@ NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 /* generate the solution for the current time sequence */
 SolverT::SolutionStatusT NLSolver::Solve(int num_iterations)
 {
+	/* write some header information */
+	if (fLHS->CheckCode() != GlobalMatrixT::kNoCheck) {
+		ofstreamT& out = fFEManager.Output();
+		out << " NLSolver::Solve:\n"
+		    << "      group = " << fGroup << '\n'
+		    << " iterations = " << num_iterations << '\n';	
+	}
+
 	try
 	{ 	
 	/* reset iteration count */
