@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.50.2.3 2002-12-16 09:23:51 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.50.2.4 2002-12-18 09:52:56 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -768,8 +768,11 @@ const ArrayT<int>* FEManagerT::PartitionNodes(void) const
 	return fCommManager->PartitionNodes();
 }
 
+//DEV
+#if 0
 void FEManagerT::IncomingNodes(iArrayT& nodes_in ) const {  nodes_in.Free(); }
 void FEManagerT::OutgoingNodes(iArrayT& nodes_out) const { nodes_out.Free(); }
+#endif
 
 void FEManagerT::RecvExternalData(dArray2DT& external_data)
 {
@@ -1081,13 +1084,20 @@ void FEManagerT::WriteParameters(void) const
 /* set the correct fNodeManager type */
 void FEManagerT::SetNodeManager(void)
 {
-	/* construct */
-	fNodeManager = new NodeManagerT(*this);
-	if (!fNodeManager) ExceptionT::OutOfMemory();	
-	fNodeManager->Initialize();			
+	const char caller[] = "FEManagerT::SetNodeManager";
 
-	/* add to console */
-	iAddSub(*fNodeManager);	
+	/* construct */
+	try {
+		if (!fCommManager) ExceptionT::GeneralFail(caller);
+		fNodeManager = new NodeManagerT(*this, *fCommManager);
+		fNodeManager->Initialize();			
+	
+		/* add to console */
+		iAddSub(*fNodeManager);
+	}
+	catch (ExceptionT::CodeT code) {
+		ExceptionT::Throw(code, caller, "exception constructing node manager");
+	}
 }
 
 	/* construct element groups */
