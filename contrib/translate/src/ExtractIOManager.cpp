@@ -143,14 +143,6 @@ void ExtractIOManager::InitializeNodePoints (void)
 void ExtractIOManager::TranslateVariables (void)
 {
   // open files, one per node
-  PrepFiles ();
-
-  // keep user informed
-  int check = 1;
-  if (fNumTS > 100) check = 10;
-  else if (fNumTS > 1000) check = 100;
-  else if (fNumTS > 10000) check = 1000;
-
   StringT temp, ext;
   temp.Append (fNodePoints[fNumNP-1]);
   int digits = temp.Length()-1;
@@ -159,6 +151,14 @@ void ExtractIOManager::TranslateVariables (void)
     case IOBaseT::kTecPlot: ext = "dat"; break;
     case IOBaseT::kTahoe: ext = "txt"; break;
     }
+  PrepFiles (ext, digits);
+
+  // keep user informed
+  int check = 1;
+  if (fNumTS > 100) check = 10;
+  else if (fNumTS > 1000) check = 100;
+  else if (fNumTS > 10000) check = 1000;
+
   // read data
   int numnodes, numdims;
   int numused = fNVUsed.Length();
@@ -193,19 +193,8 @@ void ExtractIOManager::TranslateVariables (void)
     }
 }
 
-void ExtractIOManager::PrepFiles (void) const
+void ExtractIOManager::PrepFiles (StringT& ext, int digits) const
 {
-  StringT ext;
-  switch (fOutputFormat)
-    {
-    case IOBaseT::kTahoe: ext = "txt"; break;
-    case IOBaseT::kTecPlot: return; // no prep
-    }
-
-  StringT temp;
-  temp.Append (fNodePoints[fNumNP-1]);
-  int digits = temp.Length()-1;
-
   for (int i=0; i < fNumNP; i++)
     {
       ofstreamT outfile;
@@ -238,7 +227,10 @@ void ExtractIOManager::OpenFile (ofstreamT& o, int index, int digits, StringT& e
   filename.Append ("_", fNodePoints[index], digits);
   filename.Append (".", ext);
   if (!append)
-    o.open (filename);
+    {
+      remove (filename); // remove any pre-existing file
+      o.open (filename);
+    }
   else
     o.open_append (filename);
   if (!o.is_open())
