@@ -1,4 +1,4 @@
-/* $Id: FEDecomposeT.cpp,v 1.1.2.2 2004-08-07 18:08:25 d-farrell2 Exp $ */
+/* $Id: FEDecomposeT.cpp,v 1.1.2.3 2004-08-07 18:43:23 paklein Exp $ */
 /* created: d-farrell2 (08/03/2004) */
 #include "FEDecomposeT.h"
 
@@ -419,11 +419,13 @@ void FEDecomposeT::Decompose_graph(const StringT& input_file, int size,
 
 /* use METIS by default */
 #ifdef __METIS__
-			if (!CommandLineOption("-no_metis"))
-			{
+			method = 1;
+			for (int i = 0; method = 0 && i < commandlineoptions.Length(); i++)
+				if (commandlineoptions[i] == "-no_metis")
+					method = 0;
+
+			if (method == 1)
 				cout << "\n using METIS. Disable with command-line option \"-no_metis\"" << endl;
-				method = 1;
-			}
 #endif
 			/* graph object */
 			GraphT graph;	
