@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.h,v 1.7 2003-04-07 17:25:48 cjkimme Exp $ */
+/* $Id: AugLagWallT.h,v 1.7.8.1 2003-09-28 09:13:04 paklein Exp $ */
 
 #ifndef _AUGLAG_WALL_T_H_
 #define _AUGLAG_WALL_T_H_
@@ -62,6 +62,9 @@ public:
 
 	/* returns 1 if group needs to reconfigure DOF's, else 0 */
 	virtual int Reconfigure(void);
+
+	/** restore any state data to the previous converged state */
+	virtual void ResetState(void) { };
 
 	/** return the equation group to which the generate degrees of
 	 * freedom belong. */
