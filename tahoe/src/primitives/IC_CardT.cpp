@@ -1,4 +1,4 @@
-/* $Id: IC_CardT.cpp,v 1.3 2001-07-16 20:03:06 paklein Exp $ */
+/* $Id: IC_CardT.cpp,v 1.4 2001-12-17 00:06:26 paklein Exp $ */
 /* created: paklein (07/16/1997)                                          */
 /* Container class for kinematic initial condition data.                  */
 /* Handles mainly I/O and provides access to data via                     */
@@ -78,6 +78,29 @@ void IC_CardT::WriteValues(ostream& out) const
 	out << setw(kIntWidth) << fdof + 1;
 	out << setw(kIntWidth) << fcode;
 	out << setw(d_width)   << fvalue << '\n';
+}
+
+IC_CardT::CodeT IC_CardT::int_to_CodeT (int i_code)
+{
+	/* resolve code */
+	switch (i_code)
+	{
+		case IC_CardT::kDsp:
+			return IC_CardT::kDsp;
+			break;
+		case IC_CardT::kVel:
+			return IC_CardT::kVel;
+			break;
+		case IC_CardT::kAcc:
+			return IC_CardT::kAcc;
+			break;
+		default:
+			cout << "\n IC_CardT::int_to_CodeT: unknown code: "
+			<< i_code << endl;
+			throw eBadInputValue;	
+	}
+	/* dummy */
+	return IC_CardT::kDsp;
 }
 
 /* input operator for codes */

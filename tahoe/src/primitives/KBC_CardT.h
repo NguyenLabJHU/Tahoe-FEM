@@ -1,4 +1,4 @@
-/* $Id: KBC_CardT.h,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* $Id: KBC_CardT.h,v 1.2 2001-12-17 00:05:52 paklein Exp $ */
 /* created: paklein (05/23/1996)                                          */
 
 #ifndef _KBC_CARD_T_H_
@@ -45,6 +45,7 @@ public:
 	void WriteValues(ostream& out) const;
 
 	/* input operator for codes */
+	static CodeT int_to_CodeT (int i);
 	friend istream& operator>>(istream& in, KBC_CardT::CodeT& code);
 	
 protected:
