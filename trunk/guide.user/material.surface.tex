@@ -1,6 +1,8 @@
 %&LaTeX
-% $Id: material.surface.tex,v 1.2 2002-11-06 17:38:22 cjkimme Exp $
+% $Id: material.surface.tex,v 1.3 2003-05-21 23:49:03 cjkimme Exp $
+
 \section{Constitutive models for cohesive surface elements}
+
 This section of the guide describes the constitutive models that may
 be used as material models specifying the traction vector as a function of
 the displacement discontinuity for the cohesive surface elements described in
@@ -42,6 +44,14 @@ elements}
 \hline
 7 & \parbox[c]{4.5in}{\raggedright Yoon, Allen, and Searcy (linear viscoelastic)}\\
 \hline
+8 & \parbox[c]{4.5in}{\raggedright thermomechanical model (not implemented)}\\
+\hline
+9 & \parbox[c]{4.5in}{\raggedright rate-based ductile fracture model }\\
+\hline
+10 & \parbox[c]{4.5in}{\raggedright elastoplastic model for geomaterials}\\
+\hline
+11 & \parbox[c]{4.5in}{\raggedright rigid-plastic model for geomaterials}\\
+\hline
 \end{longtable}
 \end{center}
 \end{table}
@@ -49,7 +59,7 @@ elements}
 \subsubsection{Background}
 \label{sect.material.surface.common}
 
-The Tahoe input for the cohesive surface elements of 
+The Tahoe input for the cohesive surface elements described in  
 Section~\ref{section.CSE.laws} specify the traction-separation relation(s)
 for a given cohesive surface element block by specifying a list of material
 codes ranging from 0 to 7 along with any required model parameters. In
@@ -57,44 +67,51 @@ the following sections,  ``Surface Material $x$'' refers to the constitutive
 relation
 specified by a material code of ``$x$'' for a given element block. 
 In these constitutive models, the displacement discontinuity between two
-opposite crack faces is quantified by the gap vector $\tilde{\mathbf{\Delta}}$
+opposite crack faces is quantified by the gap vector $\boldsymbol{\Delta}$
 whose components $\Delta_t$ and $\Delta_n$ in two dimensions are specified
 for directions along and normal to the midplane between the two crack
 faces. In three dimensions, the components are $\Delta_{t1}$, $\Delta_{t2}$,
 and $\Delta_n$. Each constitutive model described below returns the
-traction vector $\mathbf{T}$ as a function of $\tilde{\mathbf{\Delta}}$ and any
-internal state variables the model has.  Also, many of these models specify 
+traction vector $\mathbf{T}$ as a function of $\boldsymbol{\Delta}$ and any
+internal state variables $\{\mathbf{q}_i\}$ the model has.  
+Also, many of these models specify 
 length scales $\delta_i, i = n,t$ in the normal and tangential directions
-directions (or $\delta_i, i = n,t1,t2$ in three dimensions, normal and 
-two tangential directions), and one defines a dimensionless vector
-$\mathbf{\lambda}$ related to the gap vector $\mathbf{\Delta}$ via
+directions ($i = n,t1,t2$ in 3D), and one defines a dimensionless vector
+$\boldsymbol{\lambda}$ related to the gap vector $\mathbf{\Delta}$ via
 \begin{equation}
-\boldsymbol{\lambda} \equiv (\lambda_t,\lambda_n) 
-= (\frac{\Delta_t}{\delta_t}, \frac{\Delta_n}{\delta_n}).
+\lambda \equiv  \frac{\Delta_i}{\delta_i}.
 \end{equation}
 With this notation many models define the traction
 vector as a function of the $\lambda_i$ or indeed of the
 scalar opening parameter $\lambda \equiv \sqrt{\boldsymbol{\lambda}
 \cdot\boldsymbol{\lambda}}$.
 
+In addition, many of these cohesive models have a penalty stiffness mulitplier
+that stiffens the material under compression in order to improve the poor
+behavior of cohesive surface elements in this regime. The penalty stiffness
+multiplier is a single number multiplying the natural stiffness that would
+be calculated by the cohesive surface model. 
+
 \subsection{Surface Material 0: Xu-Needleman (elastic)}
 \label{sect.material.surface.xu}
+
 This model due to Xu and Needleman \cite{Needleman1994} is based 
 on the universal binding energy
-curve and exhibits completely reversibility; consequently, the traction vector
-can be derived from a potential $\Phi(\mathbf{\Delta})$ via
+curve and exhibits complete reversibility; consequently, the traction vector
+can be derived from a potential $\Phi(\boldsymbol{\Delta})$ via
 \begin{equation}
-\mathbf{T} = \frac{\partial \Phi}{\partial \mathbf{\Delta}}.
+\mathbf{T} = \frac{\partial \Phi}{\partial \boldsymbol{\Delta}}.
 \end{equation}
 For the Xu-Needleman model, $\Phi$ is a function of the dimensionless
-gap vector $boldsymbol{\lambda}$ described above and is given by 
+gap vector $\boldsymbol{\lambda}$ described above and is given by 
 \begin{equation}
-\Phi(\mathbf{\Delta}) = \phi_n (1+e^{-\lambda_n}) (1-r+\lambda_n)\frac{1-q}{r-1}-e^{-\lambda_t^2} ( q+\frac{r-q}{r-1}\lambda_n ).
+\Phi(\boldsymbol{\Delta}) = \phi_n (1+e^{-\lambda_n}) (1-r+\lambda_n)\frac{1-q}{r-1}-e^{-\lambda_t^2} ( q+\frac{r-q}{r-1}\lambda_n ).
 \end{equation}
 Here $\phi_n$ is an input parameter specifying the work to fracture and one has
 the identity
 \begin{equation}
-\phi_n = \int \frac{\partial \phi}{\partial \mathbf{\Delta}}\cdot \delta \mathbf{\Delta}.
+\phi_n = \int \frac{\partial \phi}{\partial \boldsymbol{\Delta}}\cdot \delta 
+\boldsymbol{\Delta}.
 \end{equation}
 Two additional dimensionless parameters appearing in the expression for
 $\Phi$ are $q = \frac{\phi_t}{\phi_n}$
@@ -102,9 +119,9 @@ relating the normal to shear fracture energies and $r = \frac{\Delta_n^*}{\delta
 which defines the normal opening $\Delta_n^*$ after pure shear separation at zero
 normal traction. The exponential decay of this potential implies an infinite range
 of interaction between two crack faces, but the Tahoe implementation of this
-model truncates the potential at a distance $r_{fail} \delta_n$. A plot
+model truncates the potential at a distance $r_{fail}\,\delta_n$. A plot
 of the normal traction as a function of $\Delta_n$ for pure mode I loading
-is shown in Figure . 
+is shown in Figure~\ref{fig:xutdelta} . 
 
 \subsubsection{Input parameters}
 
@@ -138,9 +155,10 @@ and given by
 \begin{equation}
 \phi(\mathbf{\Delta}) = \left\{
 \begin{array}{r@{\quad:\quad}l} 
-\sigma_m \frac{\lambda}{\lambda_1} & \lambda < \lambda_1 \\
-	\sigma_m & \lambda_1 < \lambda < \lambda_2 .\\
-     \sigma_m \frac{1-\lambda}{1-\lambda_2} & \lambda_2 < \lambda < 1
+\sigma_{max} \frac{\lambda}{\Lambda_1} & \lambda < \Lambda_1 \\
+	\sigma_{max} & \Lambda_1 < \lambda < \Lambda_2 .\\
+     \sigma_{max} \frac{1-\lambda}{1-\Lambda_2} & \Lambda_2 < 
+     \lambda < \Lambda_{fail}
 \end{array}
 \right.
 \end{equation} 
@@ -152,13 +170,13 @@ and the traction may be concisely expressed as
 \begin{equation}
 \label{eq.tvt}
 T_i = \frac{\partial \Phi}{\partial \Delta_i} = \frac{\delta_n}{\delta_i} 
-\lambda_i \phi(\lambda).
+\Lambda_i \phi(\lambda).
 \end{equation}
 
 \subsubsection{Input parameters}
 This cohesive model is implemented in two- and three-dimensions, and it should
 be noted that the zero-stiffness plateau in the traction-separation relation
-when $\lambda_1 \neq \lambda_2$ can lead to poorer-than-quadratic or 
+when $\Lambda_1 \neq \Lambda_2$ can lead to poorer-than-quadratic or 
 convergence or no convergence at all in certain problems. 
 An example of the input parameters for the Tvergaard-Hutchinson model 
 follows: 
@@ -169,9 +187,9 @@ follows:
 100.0 # sigma 
 0.01  # dn
 0.01  # dt
-0.1   # lambda_1
-0.9   # lambda_2
-1.0   # lambda_fail (set to 1 if lambda_fail < 1)
+0.1   # Lambda_1
+0.9   # Lambda_2
+1.0   # Lambda_fail (set to 1 if lambda_fail < 1)
 0.    # penetration stiffness multiplier
 \end{inputfile}
 
@@ -204,17 +222,18 @@ This model generalizes the Tvergaard-Hutchinson model
 described in Section~\ref{sect.material.surface.tv} to include the effects of 
 viscous dissipation. Consequently, this model does not exhibit reversability 
 upon unloading, and may not be completely described by a potential. 
-The traction $\mathbf{T}$ is now a function of $\dot{\mathbf{\Delta}}$, 
-the rate of change of the gap vector, as well as a function of $\mathbf{\Delta}$ itself.
+The traction $\mathbf{T}$ is now a function of $\dot{\boldsymbol{\Delta}}$, 
+the rate of change of the gap vector, as well as a function of $\boldsymbol{\Delta}$ itself.
 It may be expressed as 
 \begin{equation}
-\mathbf{T} = \mathbf{T}^{tv} + \eta_0 (1-\lambda) \dot{\mathbf{\Delta}}
+\mathbf{T} = \mathbf{T}^{tv} + \eta_0 (1-\lambda) \dot{\boldsymbol{\Delta}}
 \end{equation}
-where $\mathbf{T}^{tv}$ is the traction as a function of $\mathbf{\Delta}$ specified by
+where $\mathbf{T}^{tv}$ denotes the traction as a function of 
+$\boldsymbol{\Delta}$ specified by
 the Tvergaard-Hutchinson model in Equation~\eqref{eq.tvt}. 
 
 \subsubsection{Input parameters}
-An example of input parameters is shown below:
+Sample input parameters are shown below:
 \begin{inputfile}
 ####### Tvergaard-Hutchinson with viscous dissipations
 3     # surface material code
@@ -237,22 +256,22 @@ by the viscous term in the traction-separation relation.
 \label{sect.material.surface.tij}
 
 This model is due to Tijssens \etal \cite{Tijssens2001},  
-and is intended to model
+and models
 crazing in amorphous polymers. This cohesive law has three distinct regimes
-correspond to elastic deformation until craze initiation, plastic
-deformation corresponding to the lengthening of craze fibrils, and finally
+corresponding to elastic deformation until craze initiation, plastic
+deformation as the craze fibrils lengthen, and finally
 failure as the crazes lose their load-carrying capacity. The elastic
-regime is modeled as linear elastic with a traction separation relation
-given by 
+regime is linear elastic with traction-separation relation 
 \begin{equation}
 T_i = k_i \Delta_i 
 \end{equation}
 where the normal and tangential stiffnesses $k_i; i = n, t$ are 
-parameters of the model. This elastic deformation is assumed to continue
+parameters of the model and summation over repeated indices is not
+implied. Elastic deformation continues
 until the stress state in the bulk material surrounding the cohesive
-layer is satisfies an initiation criterium. For pure mode I loading,
-this criterium reduces to specifying a critical normal traction at
-which the craze initiates. For a more general stress state, the stress
+layer satisfies a yield condition. For mode I loading,
+the yield condition reduces to specifying a critical normal traction for
+craze initiatiation. For more general loading, the stress
 tensor may be sampled in the surrounding bulk, and the initiation criterium
 is given by a function of $T_n$ and the bulk stress tensor $\mathbf{\sigma}$
 \begin{equation}
@@ -278,14 +297,14 @@ the surfaces of the cohesive layer and evolve according to
 Here, $k_B \theta$ is Boltzmann's constant multiplied by the absolute
 temperature (assumed constant throughout the simulation), $K^*$ and the
 $\tau_i$ are input parameters governing the kinetics of craze growth,
-and the $\delta_{it}$ term is included to ensure that $T_t$
+and the Kronecker delta, $\delta_{it}$, is included to ensure that $T_t$
 is an even function of $\Delta_t$. It is assumed that $\tau_n = \sqrt{3} 
 \tau_t$ and $\dot{\Delta}_t^0 = \sqrt{3} \dot{\Delta}_n^0$ in analogy 
 to von Mises' stresses. Also, the normal elastic stiffness 
 $k_n$ is constant while the tangential elastic stiffness $k_t$ softens
 according to 
 \begin{equation}
-k_t = k_{t0} e^{-c_t \Delta_n^{cr}/\Delta^{crit}}.
+k_t = k_{t0}\, e^{-c_t \Delta_n^{cr}/\Delta^{crit}}.
 \end{equation}
 Once the craze width 
 $\Delta_n^{cr}$ reaches a critical opening $\Delta^{crit}$, the craze
@@ -294,8 +313,8 @@ In the Tahoe implementation of this model, the traction is reduced to
 zero over $n_{fail}$ timesteps with tangential and normal stiffnesses
 given by $k_t$ and $k_n$, respectively. The result for pure mode I 
 loading at constant rate yields the traction-separation
-curves shown in Figure. The hardening behavior is seen when 
-$\dot{\Delta}_n < \dot{\Delta}_n^0$, and otherwise softening behavior is 
+curves shown in Figure~\ref{fig:tij}. The hardening behavior is seen when 
+$\dot{\Delta}_n < \dot{\Delta}_n^0$; otherwise softening behavior is 
 observed.
 
 \subsubsection{Input Parameters}
@@ -332,8 +351,9 @@ function $f(\sigma,T_n)$.
 \label{sect.material.surface.ratedep}
 
 This model is a generalization of the Tvergaard-Hutchinson model of 
-Section~\ref{sect.material.surface.tv}; it allows the critical normal
-length scale $\delta_n$ to vary as a function of the normal opening rate
+Section~\ref{sect.material.surface.tv}; its primary distinction is that
+the critical normal
+length scale $\delta_n$ varies as a function of the normal opening rate
 $\dot{\delta}_n$. The material is assumed to yield when it first reaches the
 plateau traction (for pure mode I loading) $\sigma^m$, and at this yield point
 $\delta_n$ is set as a function of rate given by
@@ -348,6 +368,21 @@ length scale has been set for a particular integration point,
 the parameter is finalized there and that point is no longer sensitive to 
 variations in the local opening rate.  
 
+A second distinction between this trilinear model and Tvergaard and
+Hutchinson's is that the traction-separation relation is no longer
+constrained to have a plateau (region of zero stiffness); there is
+an additional parameter $m_p$ allowing nonzero stiffness and better
+numerical performance. The traction on the plateau is determined 
+by $m_p$ via
+\begin{equation}
+\mathbf{T}(\lambda) = \mathbf{T}(\Lambda_1)(1 + m_p (\lambda - \Lambda_1)),
+\end{equation}
+where $\Lambda_1$ has the same meaning as in the Tvergaard-Hutchinson model
+of Section~\ref{sect:material.surface.tv}. Likewise, $\mathbf{T}(\Lambda_1)$
+is idential to that determined by Surface Material 1 since the loading rate
+effects the plastic failure portion of the model and not the elastic 
+loading portion. 
+
 \subsubsection{Input parameters}
 An example of the input parameters for the trilinear, rate-dependent model 
 is  shown below:
@@ -358,15 +393,16 @@ is  shown below:
 100.0 # sigma
 0.25  # rate-independent normal length scale, dn
 0.25  # dt
-0.1   # lambda_1
-0.9   # lambda_2
-1.0   # lambda_fail (set to 1 if lambda_fail < 1)
+0.1   # Lambda_1
+0.9   # Lambda_2
+1.0   # Lambda_fail (set to 1 if lambda_fail < 1)
 0.0   # penalty stiffness multiplier
 1.0   # delta_n^b (intercept of rate function)
 1.0   # delta_n^m (slope or rate functions)
+0.0   # m_p
 \end{inputfile}
 Setting ``delta\_n\_b'' equal to ``d\_n'' and 
-``delta\_n\_m'' to zero in the input 
+``delta\_n\_m'' and ``m\_p'' to zero in the input 
 file reduces this model to the rate-independent Tvergaard-Hutchinson one of 
 Section~\ref{sect.material.surface.tv}.
 
@@ -383,7 +419,7 @@ its behavior is unpredictable unless the TiedNodes controller
 is activated. This co-dependency is used in an attempt to
 remedy some shortcomings of cohesive surface models. To begin with,
 cohesive surface models are in general designed to model the loss of a 
-materials load-carrying capacity across a crack face, yet by necesity
+material's load-carrying capacity across a crack face, yet by necesity
 the traction-separation relation must also specify the response of this
 region of material to loading before this capacity is assumed to have
 been lost. Consequently, there is \it a priori \rm no relation between
@@ -391,19 +427,19 @@ the bulk material and the initial (presumably) elastic loading portion
 of the traction separation relation. The tied nodes KBC Controller constrains
 the two faces separated bridged by a cohesive surface to admit no
 displacement discontinuity across them until an initiation criterium is
-reached, and consequently, the cohesive surface will repsond as bulk
-continuum material until they are ``untied'' at initiation. To this end,
+reached, and consequently, the cohesive surface element is inactive until 
+its nodes are ``untied'' at initiation. To this end,
 the tied potential provides a function 
-TiedPotentialT::InitiationQ that the tied nodes KBC Controller queries
-to determine if a critical traction has been reached for yield to occur
+TiedPotentialT::InitiationQ that 
+determines if a critical traction has been reached for yield to occur
 and for the material to exhibit cohesive failure. Although a minimal
 initiation function is provided and will be described below, this 
 function should in general be re-implemented by the end user. Since
-the cohesive layer responds as a bulk material until the nodes are untied,
+the material response is that of the bulk until the nodes are untied,
 this model should provide greater numerical stability in situations where
 the cohesive layer may reasonably be expected to undergo severe compression
-or other deformations to which a given cohesive law is ill-equipped to
-model. 
+or other deformations for which a cohesive surface element may be 
+ill-equipped. 
 
 Currently, two traction-separation laws may be used after the nodes
 are untied. The first is the Xu-Needleman model of 
@@ -429,12 +465,12 @@ The tied potential input parameters contain a flag that is set to
 zero to choose the Tvergaard-Huthcinson model and to one to choose
 the Xu-Needleman model. Examples of both sets of input will be shown.
 
-Below is shown sample input to choose the Xu-Needleman model:
+Below is shown sample input for a tied Xu-Needleman model:
 \begin{inputfile}
 ####### Tied potential
 6     # surface material code
 0. 1. # normal direction to sample stress to obtain traction
-####### flag for Xu-Needleman
+####### surface material code for Xu-Needleman
 0
 ####### model parameters
 1.0   # q
@@ -445,12 +481,12 @@ Below is shown sample input to choose the Xu-Needleman model:
 10.0  # r_fail
 \end{inputfile}
 
-For the Tvergaard-Hutchinson choice:
+For the tied Tvergaard-Hutchinson model:
 \begin{inputfile}
 ####### Tied potential
 6     # surface material code
 0. 1. # normal direction to sample stress to obtain traction
-####### flag for Tvergaard-Hutchinson
+####### surface material code for Tvergaard-Hutchinson
 1
 ####### model parameters
 100.0 # sigma
@@ -468,10 +504,11 @@ noted that there are no penalty stiffness multipliers for interpenetration,
 and that the mode I formalism currently used overrides any effects in
 the Xu-Needleman specification other than $q = 1$, $r = 0$. 
 
+
 \subsubsection{Output values}
 The tied potentials ouput a single nodal value that reflects a given
-nodes status as tied ($\neq 0$) or untied ($0.$) and may be useful in conjunction
-with visualization software. 
+nodes status as tied ($\neq 0$) or untied ($0.$) and may be useful 
+in conjunction with visualization tools. 
 
 \subsection{Material 7: Yoon, Allen, and Searcy (linear viscoelastic)}
 \label{sect.material.surface.yoon}
@@ -491,12 +528,13 @@ e^{-\frac{t}{\tau_i}})\right) \frac{\partial \lambda(\tau')}{\partial \tau'} \mb
 where the $E_i$ and $\tau_i$ are elastic moduli and relaxation times
 corresponding to relaxation process $i$, and $E_\infty$ is the equilibrium
 elastic modulus as for a Prony series in a standard linear solid. 
-The model as published contains an initiation traction $T_0$, but the 
-Tahoe implementation of this model allows a choice of
+The model as published contains an initiation traction $T_0$, but 
+calculations using the model set $T_0$ to zero, the same convention
+currentely used in Tahoe. There is a choice of
 damage evolution laws where $\dot{\alpha}$ is specified as a function
 of $\lambda$, $\dot{\lambda}$, and $\alpha$ itself. In all the damage
 evolution laws, it is assumed that $\alpha$ does not evolve for closing
-cohesive surface, i.e when $\dot{\lambda}$ is non-negative. 
+cohesive surfaces, i.e when $\dot{\lambda}$ is non-negative. 
 
 The first damage law is given in Reference \cite{Allen2001} as
 \begin{equation}
