@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.30 2003-10-08 17:45:09 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.31 2003-10-08 23:11:21 paklein Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -1121,7 +1121,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 						
 						/* shape functions over the given face */
 						int face = fSideSetElements[i][j];
-						const ParentDomainT& surf_shape = fShapes.FacetShapeFunction(face);
+						const ParentDomainT& surf_shape = fShapes->FacetShapeFunction(face);
 						
 						/* equations for the nodes on the face */
 						fPlasticGradientFaceEqnos[i].RowAlias(j, face_equations);

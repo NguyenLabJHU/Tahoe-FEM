@@ -1,4 +1,4 @@
-// $Id: FEA_FormatT.cpp,v 1.16 2003-10-08 17:44:24 raregue Exp $
+// $Id: FEA_FormatT.cpp,v 1.17 2003-10-08 23:11:23 paklein Exp $
 #include "FEA_FormatT.h"
 
 using namespace Tahoe;
@@ -28,16 +28,17 @@ void FEA_FormatT::SurfShapes	(const ParentDomainT& fSurfShapes, FEA_SurfShapeFun
 	
 	//fNormal.Dimension ( n_sd );
 
-	FEA_SurfShapes.W = fSurfShapes.Weight();; 	// IPWeights() returns double*
+	FEA_SurfShapes.W = fSurfShapes.Weight(); 	// IPWeights() returns double*
 	int nip_surf = fSurfShapes.NumIP();
 	
 	for	(int l=0; l<nip_surf; l++) {
 	
 		fSurfShapes.DomainJacobian(face_coords, l, face_jacobian);
 		FEA_SurfShapes.j[l] = fSurfShapes.SurfaceJacobian(face_jacobian, face_Q); 	// IPDets() returns double*
+
 		//fix this
-		fSurfShapes->SetIP(l);
-		fSurfShapes->GradNa		( FEA_SurfShapes.dNdx[l] 	); 
+//		fSurfShapes.SetIP(l);
+		fSurfShapes.GradNa		( FEA_SurfShapes.dNdx[l] 	); 
 		
 		/* last column is the normal (I think) */
 		face_Q.ColumnAlias(face_Q.Cols()-1, fNormal);
@@ -138,9 +139,9 @@ void FEA_FormatT::GradientSurface (	const ParentDomainT& fSurfShapes ,LocalArray
 {
 	int nip_surf = fSurfShapes.NumIP();
 	for	(int l=0; l<nip_surf; l++) {
-		fSurfShapes->SetIP(l);
-		fSurfShapes->GradU	( u_n, 		GRAD_u_n[l], l );
-		fSurfShapes->GradU 	( u_np1, 	GRAD_u_np1[l], l );
+//		fSurfShapes.SetIP(l);
+		fSurfShapes.GradU	( u_n, 		GRAD_u_n[l], l );
+		fSurfShapes.GradU 	( u_np1, 	GRAD_u_np1[l], l );
 	}
 }
 
