@@ -1,4 +1,4 @@
-/* $Id: J2SSC0HardeningT.h,v 1.3 2002-07-02 19:56:11 cjkimme Exp $ */
+/* $Id: J2SSC0HardeningT.h,v 1.4 2002-07-05 22:28:24 paklein Exp $ */
 
 #ifndef _J2_SS_C0_HARD_T_H_
 #define _J2_SS_C0_HARD_T_H_
@@ -9,13 +9,13 @@
 #include "dArrayT.h"
 #include "C1FunctionT.h"
 
-/* forward declarations */
+#include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ElementCardT;
 class ifstreamT;
-#include "ios_fwd_decl.h"
 
 class J2SSC0HardeningT
 {

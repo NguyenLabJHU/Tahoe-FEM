@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.h,v 1.7 2002-07-02 19:56:11 cjkimme Exp $ */
+/* $Id: J2Simo2D.h,v 1.8 2002-07-05 22:28:24 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 
 #ifndef _J2_SIMO_2D_H_
@@ -12,10 +12,9 @@
 /* direct members */
 #include "LocalArrayT.h"
 
-//class J2Simo2D: public SimoIso2D, public J2SimoLinHardT
-
 namespace Tahoe {
 
+//class J2Simo2D: public SimoIso2D, public J2SimoLinHardT
 class J2Simo2D: public SimoIso2D, public J2SimoC0HardeningT
 {
 public:

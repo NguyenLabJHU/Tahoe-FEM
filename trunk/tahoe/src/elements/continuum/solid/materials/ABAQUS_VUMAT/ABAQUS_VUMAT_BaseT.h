@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.7 2002-07-02 19:55:33 cjkimme Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.8 2002-07-05 22:28:08 paklein Exp $ */
 
 #ifndef _ABAQUS_VUMAT_BASE_T_H_
 #define _ABAQUS_VUMAT_BASE_T_H_
@@ -21,10 +21,9 @@
 /* f2c */
 #include "f2c.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class SpectralDecompT;
 
 /** interface for ABAQUS/Explicit VUMAT's. The class is derived

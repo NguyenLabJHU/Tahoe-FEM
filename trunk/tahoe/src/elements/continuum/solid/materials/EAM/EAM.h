@@ -1,4 +1,4 @@
-/* $Id: EAM.h,v 1.2 2002-07-02 19:55:36 cjkimme Exp $ */
+/* $Id: EAM.h,v 1.3 2002-07-05 22:28:10 paklein Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAM.h                                                                  */
 
@@ -10,10 +10,9 @@
 #include "dArrayT.h"
 #include "dArray2DT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class CBLatticeT;
 class C1FunctionT;
 class iArrayT;

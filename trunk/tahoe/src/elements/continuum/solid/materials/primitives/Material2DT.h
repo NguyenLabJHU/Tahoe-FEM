@@ -1,4 +1,4 @@
-/* $Id: Material2DT.h,v 1.2 2002-07-02 19:56:22 cjkimme Exp $ */
+/* $Id: Material2DT.h,v 1.3 2002-07-05 22:28:27 paklein Exp $ */
 /* created: paklein (02/15/1997)                                          */
 /* Mix-in for 2D materials.                                               */
 
@@ -7,11 +7,11 @@
 
 #include "Environment.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 
 class Material2DT

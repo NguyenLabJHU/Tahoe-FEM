@@ -10,10 +10,9 @@
 #include "dArray2DT.h"
 #include "dSymMatrixT.h"
 
-/* Spherical/circular cubic spline window function */
-
 namespace Tahoe {
 
+/** Spherical/circular cubic spline window function */
 class CubicSplineWindowT: public WindowT
 {
    public:

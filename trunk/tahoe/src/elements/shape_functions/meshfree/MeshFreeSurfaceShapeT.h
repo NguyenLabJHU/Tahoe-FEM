@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSurfaceShapeT.h,v 1.2 2002-07-02 19:56:56 cjkimme Exp $ */
+/* $Id: MeshFreeSurfaceShapeT.h,v 1.3 2002-07-05 22:28:37 paklein Exp $ */
 /* created: paklein (06/03/2000)                                          */
 /* Class to manage CSE integrals, where the dimension of                  */
 /* the field variable is 1 greater than the dimension of the parent       */
@@ -18,10 +18,9 @@
 #include "nVariArray2DT.h"
 #include "nArray2DGroupT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class MeshFreeSupportT;
 class MeshFreeSurfaceSupportT;
 template <class TYPE> class RaggedArray2DT;

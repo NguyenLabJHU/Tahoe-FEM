@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.h,v 1.7 2002-07-02 19:56:45 cjkimme Exp $ */
+/* $Id: DiagonalMatrixT.h,v 1.8 2002-07-05 22:28:34 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _DIAGONAL_MATRIX_H_
@@ -10,10 +10,9 @@
 /* direct members */
 #include "dArrayT.h"
 
-/** diagonal matrix */
-
 namespace Tahoe {
 
+/** diagonal matrix */
 class DiagonalMatrixT: public GlobalMatrixT
 {
 public:

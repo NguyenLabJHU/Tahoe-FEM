@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.h,v 1.3 2002-07-02 19:57:11 cjkimme Exp $ */
+/* $Id: LinearSolver.h,v 1.4 2002-07-05 22:28:41 paklein Exp $ */
 /* created: paklein (05/30/1996) */
 
 #ifndef _LINEAR_SOLVER_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "SolverT.h"
 
-/** solver for linear problems */
-
 namespace Tahoe {
 
+/** solver for linear problems */
 class LinearSolver: public SolverT
 {
 public:

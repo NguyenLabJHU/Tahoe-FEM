@@ -7,7 +7,6 @@
 
 #include "ios_fwd_decl.h"
 
-
 namespace Tahoe {
 
 class PolyCrystalMatT;

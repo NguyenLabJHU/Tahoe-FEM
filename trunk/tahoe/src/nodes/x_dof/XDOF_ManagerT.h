@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.h,v 1.6 2002-07-02 19:56:39 cjkimme Exp $ */
+/* $Id: XDOF_ManagerT.h,v 1.7 2002-07-05 22:28:32 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 
 #ifndef _XDOF_MANAGER_T_H_
@@ -9,10 +9,9 @@
 #include "AutoArrayT.h"
 #include "VariArrayT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class DOFElementT;
 class iArray2DT;
 class dArray2DT;

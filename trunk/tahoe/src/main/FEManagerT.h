@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.15 2002-07-02 19:55:30 cjkimme Exp $ */
+/* $Id: FEManagerT.h,v 1.16 2002-07-05 22:28:07 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -16,11 +16,11 @@
 #include "IOBaseT.h"
 #include "iArray2DT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class ofstreamT;
 class ModelManagerT;

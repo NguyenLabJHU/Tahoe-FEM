@@ -1,4 +1,4 @@
-/* $Id: DPPrimitiveT.h,v 1.6 2002-07-02 19:56:09 cjkimme Exp $ */
+/* $Id: DPPrimitiveT.h,v 1.7 2002-07-05 22:28:24 paklein Exp $ */
 /* created: myip (06/01/1999)                                      */
 /*
  * Base class for Drucker-Prager, nonassociative, small-strain,
@@ -11,11 +11,11 @@
 /* project headers */
 #include "Environment.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class dSymMatrixT;
 

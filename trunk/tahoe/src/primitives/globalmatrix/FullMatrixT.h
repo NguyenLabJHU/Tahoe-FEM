@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.h,v 1.7 2002-07-02 19:56:45 cjkimme Exp $ */
+/* $Id: FullMatrixT.h,v 1.8 2002-07-05 22:28:34 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 
 #ifndef _FULL_MATRIX_T_H_
@@ -10,10 +10,9 @@
 /* direct members */
 #include "LAdMatrixT.h"
 
-/** full matrix */
-
 namespace Tahoe {
 
+/** full matrix */
 class FullMatrixT: public GlobalMatrixT
 {
 public:

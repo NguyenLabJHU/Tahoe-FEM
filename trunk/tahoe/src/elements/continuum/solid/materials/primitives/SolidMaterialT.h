@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.5 2002-07-02 19:56:22 cjkimme Exp $ */
+/* $Id: SolidMaterialT.h,v 1.6 2002-07-05 22:28:27 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 
 #ifndef _STRUCTURAL_MATERIALT_H_
@@ -13,10 +13,9 @@
 #include "dMatrixT.h"
 #include "ThermalDilatationT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class ElementBaseT;
 class dMatrixT;

@@ -1,4 +1,4 @@
-/* $Id: SymmetricNodesT.h,v 1.3 2002-07-02 19:56:35 cjkimme Exp $ */
+/* $Id: SymmetricNodesT.h,v 1.4 2002-07-05 22:28:31 paklein Exp $ */
 
 #ifndef _SYMMETRIC_NODES_T_H_
 #define _SYMMETRIC_NODES_T_H_
@@ -9,10 +9,9 @@
 /* direct members */
 #include "dArray2DT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class dArray2DT;
 class FEManagerT;
 

@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.3 2002-07-02 19:56:22 cjkimme Exp $ */
+/* $Id: SSSolidMatT.h,v 1.4 2002-07-05 22:28:27 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 /* Defines the interface for elastic continuum materials.                 */
 
@@ -8,18 +8,13 @@
 /* base class */
 #include "StructuralMaterialT.h"
 
-/* forward declarations */
-
-namespace Tahoe {
-
-class SmallStrainT;
-
-}
-
 /* direct members */
 #include "dSymMatrixT.h"
 
 namespace Tahoe {
+
+/* forward declarations */
+class SmallStrainT;
 
 class SSSolidMatT: public StructuralMaterialT
 {

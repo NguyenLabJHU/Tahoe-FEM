@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.12 2002-07-02 19:57:09 cjkimme Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.13 2002-07-05 22:28:40 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -10,13 +10,12 @@
 /* direct members */
 #include "LocalArrayT.h" /* needed for inlines */
 
+namespace Tahoe {
+
 /** Interface for element shape functions. Controls domain representation
  * and field representation and spatial derivatives. Integration control
  * is inherited. \note equation numbers refer to equations in the Hughes
  * book and in the class notes. */
-
-namespace Tahoe {
-
 class ShapeFunctionT: public DomainIntegrationT
 {
 public:

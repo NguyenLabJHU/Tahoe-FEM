@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.h,v 1.5 2002-07-02 19:56:35 cjkimme Exp $ */
+/* $Id: K_FieldT.h,v 1.6 2002-07-05 22:28:31 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #ifndef _K_FIELD_T_H_
@@ -13,10 +13,9 @@
 #include "ScheduleT.h"
 #include "dArray2DT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ElementBaseT;
 class IsotropicT;
 class Material2DT;

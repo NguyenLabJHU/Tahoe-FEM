@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.8 2002-07-02 19:55:13 cjkimme Exp $ */
+/* $Id: ElementT.h,v 1.9 2002-07-05 22:27:56 paklein Exp $ */
 
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
@@ -6,10 +6,9 @@
 /* forward declarations */
 #include "ios_fwd_decl.h"
 
-/** class to define element type enumeration. */
-
 namespace Tahoe {
 
+/** class to define element type enumeration. */
 class ElementT
 {
 public:

@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.6 2002-07-02 19:56:22 cjkimme Exp $ */
+/* $Id: FSSolidMatT.h,v 1.7 2002-07-05 22:28:27 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 
 #ifndef _FD_STRUCT_MAT_T_H_
@@ -8,10 +8,9 @@
 #include "StructuralMaterialT.h"
 #include "TensorTransformT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class FiniteStrainT;
 
 /** base class for finite deformation constitutive models. The interface

@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB2D.h,v 1.4 2002-07-02 19:55:56 cjkimme Exp $ */
+/* $Id: OgdenIsoVIB2D.h,v 1.5 2002-07-05 22:28:17 paklein Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* 2D Isotropic VIB using Ogden's spectral formulation                    */
 
@@ -10,10 +10,9 @@
 #include "Material2DT.h"
 #include "VIB.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class CirclePointsT;
 
 class OgdenIsoVIB2D: public OgdenIsotropicT, public Material2DT, public VIB

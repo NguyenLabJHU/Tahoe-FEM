@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.h,v 1.4 2002-07-02 19:55:26 cjkimme Exp $ */
+/* $Id: D2MeshFreeFSSolidT.h,v 1.5 2002-07-05 22:28:04 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 
 #ifndef _D2_EFG_FDELASTIC_T_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "MeshFreeFSSolidT.h"
 
-/* forward declaration */
-
 namespace Tahoe {
 
+/* forward declaration */
 class D2MeshFreeShapeFunctionT;
 class D2VIB2D;
 
@@ -32,7 +31,6 @@ public:
 	/* form the residual force vector */
 	virtual void RHSDriver(void);
 	void ElementRHSDriver(void);
-} // namespace Tahoe 
 #endif
 
 protected:

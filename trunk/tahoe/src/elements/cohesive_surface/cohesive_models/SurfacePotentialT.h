@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.13 2002-07-02 19:55:16 cjkimme Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.14 2002-07-05 22:27:59 paklein Exp $ */
 /* created: paklein (06/20/1999) */
 
 #ifndef _SURFACE_POTENTIAL_T_H_
@@ -8,11 +8,11 @@
 #include "dArrayT.h"
 #include "dMatrixT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class StringT;
 
 /** base class for surface potential. The traction evolves in the local

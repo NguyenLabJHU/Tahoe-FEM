@@ -1,4 +1,4 @@
-/* $Id: SimoShapeFunctionT.h,v 1.6 2002-07-02 19:57:09 cjkimme Exp $ */
+/* $Id: SimoShapeFunctionT.h,v 1.7 2002-07-05 22:28:40 paklein Exp $ */
 
 #ifndef _SIMO_SHAPE_FUNCTION_T_H_
 #define _SIMO_SHAPE_FUNCTION_T_H_
@@ -6,12 +6,11 @@
 /* base class */
 #include "ShapeFunctionT.h"
 
+namespace Tahoe {
+
 /** enhanced modes shape functions. for use in conjunction with element
  * formulation due to Simo, Armero, and Taylor, CMAME \b 110, 359-386, 1993 
  * \note equation numbers refer to the paper. */
-
-namespace Tahoe {
-
 class SimoShapeFunctionT: public ShapeFunctionT
 {
 public:

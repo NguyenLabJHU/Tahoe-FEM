@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.h,v 1.3 2002-07-02 19:56:21 cjkimme Exp $ */
+/* $Id: DiffusionMaterialT.h,v 1.4 2002-07-05 22:28:27 paklein Exp $ */
 /* created: paklein (10/02/1999)                                          */
 /* Defines the interface for materials for diffusion.                     */
 
@@ -14,10 +14,9 @@
 #include "dMatrixT.h"
 #include "dArrayT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class LocalArrayT;
 class DiffusionT;

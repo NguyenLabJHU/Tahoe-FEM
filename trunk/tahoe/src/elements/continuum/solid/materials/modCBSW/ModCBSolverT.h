@@ -1,4 +1,4 @@
-/* $Id: ModCBSolverT.h,v 1.2 2002-07-02 19:56:06 cjkimme Exp $ */
+/* $Id: ModCBSolverT.h,v 1.3 2002-07-05 22:28:22 paklein Exp $ */
 /* created: paklein (05/27/1997)                                          */
 /* Q defines the orientation of the crystals' natural coordinates         */
 /* and the global coordinate frame. Q is defined as:                      */
@@ -15,10 +15,9 @@
 #include "LengthsAndAnglesT.h"
 #include "SWDataT.h" //TEMP
 
-/* forward declaration */
-
 namespace Tahoe {
 
+/* forward declaration */
 class ThermalDilatationT;
 class TwoBodyT;
 class ThreeBodyT;

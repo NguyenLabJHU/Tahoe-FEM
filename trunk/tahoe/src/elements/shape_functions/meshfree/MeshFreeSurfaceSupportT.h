@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSurfaceSupportT.h,v 1.2 2002-07-02 19:56:56 cjkimme Exp $ */
+/* $Id: MeshFreeSurfaceSupportT.h,v 1.3 2002-07-05 22:28:37 paklein Exp $ */
 /* created: paklein (02/22/2000)                                          */
 
 #ifndef _MF_SURFACE_SUPPORT_T_H_
@@ -13,10 +13,9 @@
 #include "VariRaggedArray2DT.h"
 #include "iAutoArrayT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class MeshFreeSupportT;
 class dArray2DT;
 class SurfaceShapeT;

@@ -1,4 +1,4 @@
-/* $Id: TrapezoidIntegrator.h,v 1.2 2002-07-02 19:55:10 cjkimme Exp $ */
+/* $Id: TrapezoidIntegrator.h,v 1.3 2002-07-05 22:27:55 paklein Exp $ */
 /* created: paklein (10/03/1999) */
 
 #ifndef _TRAPEZOID_CONTROLLER_H_
@@ -8,9 +8,7 @@
 #include "nTrapezoid.h"
 #include "eTrapezoid.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
-
 
 namespace Tahoe {
 

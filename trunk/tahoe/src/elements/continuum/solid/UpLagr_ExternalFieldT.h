@@ -1,4 +1,4 @@
-/* $Id: UpLagr_ExternalFieldT.h,v 1.3 2002-07-02 19:55:24 cjkimme Exp $ */
+/* $Id: UpLagr_ExternalFieldT.h,v 1.4 2002-07-05 22:28:03 paklein Exp $ */
 
 #ifndef _UPDATED_LAGR_EX_FIELD_T_H_
 #define _UPDATED_LAGR_EX_FIELD_T_H_
@@ -9,15 +9,14 @@
 /* direct members */
 #include "dRangeArrayT.h"
 
+namespace Tahoe {
+
 /** extension to the updated Lagrangian, finite strain solid
  * elements that reads external field variables from an
  * existing results database. the external data is interpolated
  * to the current time. \note the class currently
  * requires an ExodusII database for the external field
  * variables. */
-
-namespace Tahoe {
-
 class UpLagr_ExternalFieldT: public UpdatedLagrangianT
 {
 public:

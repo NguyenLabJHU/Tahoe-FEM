@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.h,v 1.5 2002-07-02 19:55:29 cjkimme Exp $ */
+/* $Id: UnConnectedRodT.h,v 1.6 2002-07-05 22:28:06 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 
 #ifndef _UNCONN_ROD_T_H_
@@ -7,12 +7,11 @@
 /* base class */
 #include "RodT.h"
 
+namespace Tahoe {
+
 /** Interface for a rod element group that connects itself based on the
  * nodes placed in the group. All the rods in the group are assumed to
  * be identical, ie. only 1 material set may be specified in the input. */
-
-namespace Tahoe {
-
 class UnConnectedRodT: public RodT
 {
 public:

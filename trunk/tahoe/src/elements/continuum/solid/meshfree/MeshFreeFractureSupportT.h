@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.h,v 1.4 2002-07-02 19:55:27 cjkimme Exp $ */
+/* $Id: MeshFreeFractureSupportT.h,v 1.5 2002-07-05 22:28:04 paklein Exp $ */
 /* created: paklein (02/15/2000)                                          */
 
 #ifndef _MESHFREE_FRACTURE_T_H_
@@ -12,10 +12,10 @@
 #include "nVariArray2DT.h"
 #include "dSymMatrixT.h"
 
-/* forward declarations */
 
 namespace Tahoe {
 
+/* forward declarations */
 class StructuralMaterialT;
 class FrontT;
 class SamplingSurfaceT;

@@ -1,4 +1,4 @@
-/* $Id: TimeSequence.h,v 1.2 2002-07-02 19:56:42 cjkimme Exp $ */
+/* $Id: TimeSequence.h,v 1.3 2002-07-05 22:28:33 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #ifndef _TIMESEQ_H_
@@ -6,11 +6,12 @@
 
 #include "Environment.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
+
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 
 class TimeSequence

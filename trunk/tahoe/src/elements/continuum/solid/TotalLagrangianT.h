@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianT.h,v 1.5 2002-07-02 19:55:24 cjkimme Exp $ */
+/* $Id: TotalLagrangianT.h,v 1.6 2002-07-05 22:28:03 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 
 #ifndef _TOTAL_LAGRANGRIAN_T_H_
@@ -46,7 +46,6 @@ protected:
 	virtual void ComputeEffectiveDVA(int formBody,
 		int formMa, double constMa, int formCv, double constCv,
 		int formKd, double constKd);
-} // namespace Tahoe 
 #endif
 
 	/* calculate the internal force contribution ("-k*d") */

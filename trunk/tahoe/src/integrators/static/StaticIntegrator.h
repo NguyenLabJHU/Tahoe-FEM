@@ -1,4 +1,4 @@
-/* $Id: StaticIntegrator.h,v 1.4 2002-07-02 19:55:09 cjkimme Exp $ */
+/* $Id: StaticIntegrator.h,v 1.5 2002-07-05 22:27:55 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _STATIC_CONTROLLER_H_
@@ -10,9 +10,7 @@
 #include "nStaticIntegrator.h"
 #include "eStaticIntegrator.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
-
 
 namespace Tahoe {
 

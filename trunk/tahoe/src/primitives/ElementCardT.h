@@ -1,4 +1,4 @@
-/* $Id: ElementCardT.h,v 1.2 2002-07-02 19:56:41 cjkimme Exp $ */
+/* $Id: ElementCardT.h,v 1.3 2002-07-05 22:28:33 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 /* Empty organizer class - needs manager class to control data.           */
 
@@ -9,11 +9,11 @@
 #include "iArrayT.h"
 #include "dArrayT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class dMatrixT;
 class ElementStorageT;
 

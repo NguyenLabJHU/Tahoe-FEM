@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.h,v 1.11 2002-07-03 16:24:32 paklein Exp $ */
+/* $Id: IOManager_mpi.h,v 1.12 2002-07-05 22:28:07 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #ifndef _IOMANAGER_MPI_H_
@@ -15,10 +15,9 @@
 #include "mpi.h"
 #endif
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class PartitionT;
 class ModelManagerT;
 

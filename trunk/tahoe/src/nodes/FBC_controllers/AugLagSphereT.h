@@ -1,4 +1,4 @@
-/* $Id: AugLagSphereT.h,v 1.4 2002-07-02 19:56:28 cjkimme Exp $ */
+/* $Id: AugLagSphereT.h,v 1.5 2002-07-05 22:28:30 paklein Exp $ */
 /* created: paklein (03/24/1999) */
 
 #ifndef _AUGLAG_SPHERE_T_H_
@@ -8,10 +8,10 @@
 #include "PenaltySphereT.h"
 #include "DOFElementT.h"
 
-/* forward declarations */
 
 namespace Tahoe {
 
+/* forward declarations */
 class XDOF_ManagerT;
 class FieldT;
 

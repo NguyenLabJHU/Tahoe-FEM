@@ -1,4 +1,4 @@
-/* $Id: FBD_EAMGlue.h,v 1.2 2002-07-02 19:55:37 cjkimme Exp $ */
+/* $Id: FBD_EAMGlue.h,v 1.3 2002-07-05 22:28:13 paklein Exp $ */
 /* created: paklein (01/30/2000)                                          */
 /* FBD_EAMGlue.h                                                          */
 /* EAM glue functions in the form used in PRL v##, n##, 1986.             */
@@ -9,10 +9,9 @@
 /* base class */
 #include "EAM.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 
 class FBD_EAMGlue: public EAM

@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.h,v 1.4 2002-07-02 19:55:23 cjkimme Exp $ */
+/* $Id: DiffusionElementT.h,v 1.5 2002-07-05 22:28:02 paklein Exp $ */
 /* created: paklein (10/02/1999)                                          */
 
 #ifndef _DIFFUSE_T_H_
@@ -12,11 +12,11 @@
 #include "LocalArrayT.h"
 #include "dSymMatrixT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ShapeFunctionT;
 class DiffusionMaterialT;
 class StringT;

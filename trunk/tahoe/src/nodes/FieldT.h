@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.3 2002-07-02 19:56:27 cjkimme Exp $ */
+/* $Id: FieldT.h,v 1.4 2002-07-05 22:28:30 paklein Exp $ */
 
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
@@ -16,10 +16,9 @@
 #include "GlobalT.h"
 #include "AutoArrayT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class LocalArrayT;
 class nControllerT;
 class KBC_ControllerT;

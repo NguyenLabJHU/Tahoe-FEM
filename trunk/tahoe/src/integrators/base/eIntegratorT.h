@@ -1,4 +1,4 @@
-/* $Id: eIntegratorT.h,v 1.3 2002-07-02 19:55:07 cjkimme Exp $ */
+/* $Id: eIntegratorT.h,v 1.4 2002-07-05 22:27:53 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _E_CONTROLLERT_H_
@@ -7,12 +7,11 @@
 /* base class */
 #include "IntegratorT.h"
 
+namespace Tahoe {
+
 /** Base class for a general (upto) second order element controller.  
  * This is the interface between the elements and the Controller 
  * class heirarchy. */
-
-namespace Tahoe {
-
 class eIntegratorT: virtual public IntegratorT
 {
 public:

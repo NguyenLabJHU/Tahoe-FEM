@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.h,v 1.13 2002-07-02 19:55:24 cjkimme Exp $ */
+/* $Id: SimoFiniteStrainT.h,v 1.14 2002-07-05 22:28:02 paklein Exp $ */
 
 #ifndef _SIMO_FINITE_STRAIN_T_H_
 #define _SIMO_FINITE_STRAIN_T_H_
@@ -10,10 +10,9 @@
 /* direct members */
 #include "LAdMatrixT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class SimoShapeFunctionT;
 
 /** enhanced strain, finite deformation quad/hex element.

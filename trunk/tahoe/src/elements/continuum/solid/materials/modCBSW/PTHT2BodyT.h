@@ -1,4 +1,4 @@
-/* $Id: PTHT2BodyT.h,v 1.2 2002-07-02 19:56:06 cjkimme Exp $ */
+/* $Id: PTHT2BodyT.h,v 1.3 2002-07-05 22:28:22 paklein Exp $ */
 /* created: paklein (10/11/1997)                                          */
 
 #ifndef _PTHT2_BODY_T_H_
@@ -7,11 +7,11 @@
 /* base class */
 #include "TwoBodyT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 
 class PTHT2BodyT: public TwoBodyT

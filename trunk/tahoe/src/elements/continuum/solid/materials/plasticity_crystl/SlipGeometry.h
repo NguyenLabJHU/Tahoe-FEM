@@ -11,11 +11,9 @@
 #include "dArrayT.h"
 #include "dMatrixT.h"
 
-/* Base Class */
-
-
 namespace Tahoe {
 
+/* Base Class */
 class SlipGeometry
 {
  public:

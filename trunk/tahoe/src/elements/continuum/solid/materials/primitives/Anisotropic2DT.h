@@ -1,4 +1,4 @@
-/* $Id: Anisotropic2DT.h,v 1.2 2002-07-02 19:56:21 cjkimme Exp $ */
+/* $Id: Anisotropic2DT.h,v 1.3 2002-07-05 22:28:27 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 /* Base class for 2D anisotropic materials                                */
 
@@ -10,11 +10,11 @@
 /* direct members */
 #include "dSymMatrixT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class Rotate2DT;
 class dMatrixT;

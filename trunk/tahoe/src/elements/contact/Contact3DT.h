@@ -1,4 +1,4 @@
-/* $Id: Contact3DT.h,v 1.3 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: Contact3DT.h,v 1.4 2002-07-05 22:28:01 paklein Exp $ */
 /* created: paklein (07/17/1999) */
 
 #ifndef _CONTACT3D_T_H_
@@ -11,10 +11,9 @@
 #include "AutoArrayT.h"
 #include "nVariArray2DT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class iGridManager3DT;
 
 class Contact3DT: public ContactT

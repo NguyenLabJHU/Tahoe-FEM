@@ -1,4 +1,4 @@
-/* $Id: ScheduleT.h,v 1.3 2002-07-02 19:56:42 cjkimme Exp $ */
+/* $Id: ScheduleT.h,v 1.4 2002-07-05 22:28:33 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _SCHEDULE_T_H_
@@ -7,11 +7,11 @@
 /* direct members */
 #include "dArrayT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 
 /** the class formerly known as LoadTime. Piecewise linear function */

@@ -1,4 +1,4 @@
-/* $Id: HHTalpha.h,v 1.3 2002-07-02 19:55:05 cjkimme Exp $ */
+/* $Id: HHTalpha.h,v 1.4 2002-07-05 22:27:52 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _HHT_ALPHA_H_
@@ -9,11 +9,11 @@
 /* base class */
 #include "ControllerT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class dArrayT;
 

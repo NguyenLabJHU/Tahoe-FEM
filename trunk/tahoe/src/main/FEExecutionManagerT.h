@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.7 2002-07-02 19:55:30 cjkimme Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.8 2002-07-05 22:28:07 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
@@ -10,10 +10,9 @@
 /* direct members */
 #include "IOBaseT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 template <class TYPE> class ArrayT;
 class iArrayT;
 class OutputSetT;

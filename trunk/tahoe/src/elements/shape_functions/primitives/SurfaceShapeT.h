@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.h,v 1.6 2002-07-02 19:57:09 cjkimme Exp $ */
+/* $Id: SurfaceShapeT.h,v 1.7 2002-07-05 22:28:40 paklein Exp $ */
 /* created: paklein (11/21/1997) */
 
 #ifndef _SURFACE_SHAPE_T_H_
@@ -12,6 +12,8 @@
 #include "Array2DT.h"
 #include "LocalArrayT.h"
 
+namespace Tahoe {
+
 /** Class to manage CSE integrals, where the dimension of
  * the field variable is 1 greater than the dimension of the parent
  * domain. Jump quantities imply jump between any field variable
@@ -23,9 +25,6 @@
  * (2) coords.NumNodes() == fTotalNodes: the facet geometry
  * is assumed to be the average of the coordinates
  * on the upper and lower facets. */
-
-namespace Tahoe {
-
 class SurfaceShapeT: public DomainIntegrationT
 {
 public:

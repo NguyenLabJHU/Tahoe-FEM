@@ -1,4 +1,4 @@
-/* $Id: GlobalT.h,v 1.7 2002-07-02 19:55:30 cjkimme Exp $ */
+/* $Id: GlobalT.h,v 1.8 2002-07-05 22:28:07 paklein Exp $ */
 /* created: paklein (02/03/1999) */
 
 #ifndef _GLOBAL_T_H_
@@ -7,10 +7,9 @@
 #include "Environment.h"
 #include "ios_fwd_decl.h"
 
-/** class to handle "global" enumerated types */
-
 namespace Tahoe {
 
+/** class to handle "global" enumerated types */
 class GlobalT
 {
 public:

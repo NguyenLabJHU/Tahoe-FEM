@@ -1,4 +1,4 @@
-/* $Id: tevp3D.h,v 1.5 2002-07-02 19:56:25 cjkimme Exp $ */
+/* $Id: tevp3D.h,v 1.6 2002-07-05 22:28:29 paklein Exp $ */
 /* Created:  Harold Park (06/25/2001) */
 
 #ifndef _TEVP_3D_H_
@@ -9,10 +9,9 @@
 #include "IsotropicT.h"
 #include "iArrayT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ElementCardT;
 
 /** Thermoelasto-viscoplastic material used to generate shear bands */

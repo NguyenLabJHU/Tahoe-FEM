@@ -1,4 +1,4 @@
-/* $Id: LinearDamageT.h,v 1.7 2002-07-02 19:55:16 cjkimme Exp $ */
+/* $Id: LinearDamageT.h,v 1.8 2002-07-05 22:27:59 paklein Exp $ */
 /* created: paklein (08/26/2000) */
 
 #ifndef _LINEAR_DAMAGE_T_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "SurfacePotentialT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 
 /** linear cohesive law. Tractions evolve with a linear 

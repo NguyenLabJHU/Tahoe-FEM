@@ -1,4 +1,4 @@
-/* $Id: DRSolver.h,v 1.3 2002-07-02 19:57:11 cjkimme Exp $ */
+/* $Id: DRSolver.h,v 1.4 2002-07-05 22:28:41 paklein Exp $ */
 /* created: PAK/CBH (10/03/1996) */
 
 #ifndef _DRSOLVER_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "NLSolver.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class CCSMatrixT;
 
 /** nonlinear solver using dynamic relaxation */

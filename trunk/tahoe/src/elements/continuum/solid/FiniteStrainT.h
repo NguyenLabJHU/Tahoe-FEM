@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.9 2002-07-02 19:55:23 cjkimme Exp $ */
+/* $Id: FiniteStrainT.h,v 1.10 2002-07-05 22:28:02 paklein Exp $ */
 
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
@@ -6,10 +6,9 @@
 /* base class */
 #include "ElasticT.h"
 
-/** Interface for linear strain deformation and field gradients */
-
 namespace Tahoe {
 
+/** Interface for linear strain deformation and field gradients */
 class FiniteStrainT: public ElasticT
 {
   public:

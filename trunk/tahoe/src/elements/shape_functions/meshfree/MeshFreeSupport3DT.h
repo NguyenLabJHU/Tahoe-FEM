@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupport3DT.h,v 1.5 2002-07-02 19:56:56 cjkimme Exp $ */
+/* $Id: MeshFreeSupport3DT.h,v 1.6 2002-07-05 22:28:37 paklein Exp $ */
 /* created: paklein (09/13/1998) */
 
 #ifndef _MF_SUPPORT_3D_T_H_
@@ -7,11 +7,10 @@
 /* base class */
 #include "MeshFreeSupportT.h"
 
-/** Class for support of meshfree methods in three dimensions. See
- * documentation from base class for information about initialization. */
-
 namespace Tahoe {
 
+/** Class for support of meshfree methods in three dimensions. See
+ * documentation from base class for information about initialization. */
 class MeshFreeSupport3DT: public MeshFreeSupportT
 {
 public:

@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.h,v 1.4 2002-07-02 19:56:28 cjkimme Exp $ */
+/* $Id: PenaltyRegionT.h,v 1.5 2002-07-05 22:28:30 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #ifndef _PENALTY_REGION_T_H_
@@ -14,10 +14,9 @@
 #include "iArray2DT.h"
 #include "dMatrixT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ScheduleT;
 
 /** base class for moving rigid, penalty regions. contact nodes

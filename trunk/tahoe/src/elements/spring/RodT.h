@@ -1,4 +1,4 @@
-/* $Id: RodT.h,v 1.12 2002-07-05 17:24:04 hspark Exp $ */
+/* $Id: RodT.h,v 1.13 2002-07-05 22:28:06 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _ROD_T_H_
@@ -13,6 +13,8 @@
 /* templates */
 #include "pArrayT.h"
 
+namespace Tahoe {
+
 /** \note the RodT class doesn't provide complete support for the
  * different time integration schemes implemented using the
  * controller classes. need to add something like the
@@ -20,9 +22,6 @@
  * classes to provide contributions to the global equations
  * which are consistent with the time integration algorithm.
  * PAK (05/30/1999) */
-
-namespace Tahoe {
-
 class RodT: public ElementBaseT
 {
 public:

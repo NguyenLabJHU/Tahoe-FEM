@@ -1,4 +1,4 @@
-// $Id: NOX_Tahoe_Vector.h,v 1.4 2002-07-03 23:11:12 paklein Exp $
+// $Id: NOX_Tahoe_Vector.h,v 1.5 2002-07-05 22:28:43 paklein Exp $
 #ifndef NOX_TAHOE_VECTOR_H
 #define NOX_TAHOE_VECTOR_H
 
@@ -8,10 +8,9 @@
 // base class
 #include "NOX_Abstract_Vector.H"
 
-// forward declarations
-
 namespace Tahoe {
 
+// forward declarations
 class dArrayT;
 
 //! %NOX %Tahoe support.

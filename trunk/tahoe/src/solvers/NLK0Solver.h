@@ -1,4 +1,4 @@
-/* $Id: NLK0Solver.h,v 1.4 2002-07-02 19:57:11 cjkimme Exp $ */
+/* $Id: NLK0Solver.h,v 1.5 2002-07-05 22:28:41 paklein Exp $ */
 /* created: paklein (10/01/1996) */
 
 #ifndef _NL_K0_SOLVER_H_
@@ -10,11 +10,10 @@
 /* direct members */
 #include "CCSMatrixT.h"
 
-/** solver that stores and re-uses the last stiffness matrix
- * which was positive definite. The matrix type must be CCSMatrixT. */
-
 namespace Tahoe {
 
+/** solver that stores and re-uses the last stiffness matrix
+ * which was positive definite. The matrix type must be CCSMatrixT. */
 class NLK0Solver: public NLSolver
 {
 public:

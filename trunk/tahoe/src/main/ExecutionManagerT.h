@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.h,v 1.3 2002-07-02 19:55:30 cjkimme Exp $ */
+/* $Id: ExecutionManagerT.h,v 1.4 2002-07-05 22:28:07 paklein Exp $ */
 /* created: paklein (08/27/1997) */
 
 #ifndef _EXECMAN_T_H_
@@ -10,11 +10,11 @@
 #include "AutoArrayT.h"
 #include "StringT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class StringT;
 

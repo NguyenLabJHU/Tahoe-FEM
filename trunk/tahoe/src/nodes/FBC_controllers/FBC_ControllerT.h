@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.h,v 1.4 2002-07-02 19:56:28 cjkimme Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.5 2002-07-05 22:28:30 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 
 #ifndef _FBC_CONTROLLER_T_H_
@@ -7,11 +7,11 @@
 #include "Environment.h"
 #include "GlobalT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class FEManagerT;
 class SolverT;

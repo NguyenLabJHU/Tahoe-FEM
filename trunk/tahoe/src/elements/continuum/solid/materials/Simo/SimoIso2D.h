@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.h,v 1.4 2002-07-02 19:55:50 cjkimme Exp $ */
+/* $Id: SimoIso2D.h,v 1.5 2002-07-05 22:28:15 paklein Exp $ */
 /* created: paklein (03/04/1997) */
 
 #ifndef _SIMO_ISO_2D_H_
@@ -8,10 +8,9 @@
 #include "SimoIso3D.h"
 #include "Material2DT.h"
 
-/** (2D <-> 3D) translator for the SimoIso3D */
-
 namespace Tahoe {
 
+/** (2D <-> 3D) translator for the SimoIso3D */
 class SimoIso2D: public SimoIso3D, public Material2DT
 {
 public:

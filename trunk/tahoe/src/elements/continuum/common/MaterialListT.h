@@ -1,4 +1,4 @@
-/* $Id: MaterialListT.h,v 1.4 2002-07-02 19:56:05 cjkimme Exp $ */
+/* $Id: MaterialListT.h,v 1.5 2002-07-05 22:28:21 paklein Exp $ */
 /* created: paklein (02/16/1997) */
 
 #ifndef _MATERIAL_LIST_T_H_
@@ -7,11 +7,11 @@
 /* base class */
 #include "pArrayT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ContinuumMaterialT;
 class ifstreamT;
 

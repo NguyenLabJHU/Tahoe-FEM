@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.h,v 1.3 2002-07-02 19:57:11 cjkimme Exp $ */
+/* $Id: ExpCD_DRSolver.h,v 1.4 2002-07-05 22:28:41 paklein Exp $ */
 /* created: paklein (08/19/1998) */
 
 #ifndef _EXPCD_DRSOLVER_H_
@@ -10,11 +10,10 @@
 /* direct members */
 #include "fstreamT.h"
 
-/** nonlinear solver using dynamic relaxation with
- * explicit central difference pseudo-dynamics */
-
 namespace Tahoe {
 
+/** nonlinear solver using dynamic relaxation with
+ * explicit central difference pseudo-dynamics */
 class ExpCD_DRSolver: public SolverT
 {
 public:

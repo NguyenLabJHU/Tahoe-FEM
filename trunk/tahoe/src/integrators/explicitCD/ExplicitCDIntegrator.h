@@ -1,4 +1,4 @@
-/* $Id: ExplicitCDIntegrator.h,v 1.3 2002-07-02 19:55:08 cjkimme Exp $ */
+/* $Id: ExplicitCDIntegrator.h,v 1.4 2002-07-05 22:27:54 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _EXP_CD_CONTROLLER_H_
@@ -13,11 +13,10 @@
 /* forward declarations */
 #include "ios_fwd_decl.h"
 
-/** controller for an explicit 2nd order accurate, central difference
- * time-stepping algorithm */
-
 namespace Tahoe {
 
+/** controller for an explicit 2nd order accurate, central difference
+ * time-stepping algorithm */
 class ExplicitCDIntegrator: public nExplicitCD, public eExplicitCD
 {
 public:

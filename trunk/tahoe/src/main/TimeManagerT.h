@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.h,v 1.4 2002-07-02 19:55:30 cjkimme Exp $ */
+/* $Id: TimeManagerT.h,v 1.5 2002-07-05 22:28:07 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _TIMEMANAGER_T_H_
@@ -15,10 +15,9 @@
 #include "IOBaseT.h"
 #include "TimeSequence.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class FEManagerT;
 class CoordinatorT;

@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.6 2002-07-02 19:57:12 cjkimme Exp $ */
+/* $Id: SolverT.h,v 1.7 2002-07-05 22:28:41 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _SOLVER_H_
@@ -15,10 +15,9 @@
 #include "GlobalMatrixT.h"
 #include "GlobalT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class FEManagerT;
 class iArrayT;
 class iArray2DT;

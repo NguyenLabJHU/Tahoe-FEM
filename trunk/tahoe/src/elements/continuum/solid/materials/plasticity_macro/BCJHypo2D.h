@@ -1,6 +1,4 @@
-/*
-  File: BCJHypo2D.h
-*/
+/* $Id: BCJHypo2D.h,v 1.4 2002-07-05 22:28:26 paklein Exp $ */
 
 #ifndef _BCJ_HYPO_2D_H_
 #define _BCJ_HYPO_2D_H_

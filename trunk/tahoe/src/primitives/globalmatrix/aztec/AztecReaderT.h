@@ -1,4 +1,4 @@
-/* $Id: AztecReaderT.h,v 1.2 2002-07-02 19:56:49 cjkimme Exp $ */
+/* $Id: AztecReaderT.h,v 1.3 2002-07-05 22:28:35 paklein Exp $ */
 /* created: paklein (08/12/1998)                                          */
 /* utility to read Aztec options and parameters.                          */
 /* Option input is in the form:                                           */
@@ -20,10 +20,9 @@
 /* library support options */
 #ifdef __AZTEC__
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 
 class AztecReaderT
