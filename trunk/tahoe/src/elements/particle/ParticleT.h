@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.12 2003-04-16 18:15:49 cjkimme Exp $ */
+/* $Id: ParticleT.h,v 1.13 2003-05-06 17:33:46 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -149,7 +149,7 @@ protected:
 	int fOutputID;
 	
 	/** communications manager */
-	const CommManagerT& fCommManager;
+	CommManagerT& fCommManager;
 
 	/** \name local to global tag map.
 	 * Used for things like neighbor lists */
