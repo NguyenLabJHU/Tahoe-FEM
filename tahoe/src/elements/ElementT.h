@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.4 2002-03-21 22:36:32 creigh Exp $ */
+/* $Id: ElementT.h,v 1.5 2002-03-25 19:50:02 creigh Exp $ */
 
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
@@ -42,7 +42,7 @@ public:
        kSimoFiniteStrain = 29,  /**< enhanced strain element */
 kPenaltyContactElement2D = 30,
              kMultiScale = 31,
-	    kCourseScale = 32,
+	    kCoarseScale = 32,
 	      kFinePhest = 33
 	};
 

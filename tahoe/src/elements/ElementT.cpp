@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.5 2002-03-21 22:36:32 creigh Exp $ */
+/* $Id: ElementT.cpp,v 1.6 2002-03-25 19:50:02 creigh Exp $ */
 
 #include "ElementT.h"
 
@@ -100,8 +100,8 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		case ElementT::kMultiScale:
 			type = ElementT::kMultiScale;
 			break;
-		case ElementT::kCourseScale:
-			type = ElementT::kCourseScale;
+		case ElementT::kCoarseScale:
+			type = ElementT::kCoarseScale;
 			break;
 		case ElementT::kFinePhest:
 			type = ElementT::kFinePhest;
