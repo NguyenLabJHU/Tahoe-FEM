@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.2 2001-12-17 00:15:56 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.3 2002-01-24 02:43:01 paklein Exp $ */
 /* created: paklein (02/15/2000)                                          */
 
 #include "MeshFreeFractureSupportT.h"
@@ -55,11 +55,14 @@ void MeshFreeFractureSupportT::ResetStep(void)
 	/* reset all marked to on */
 	for (int i = 0; i < fSamplingSurfaces.Length(); i++)
 		fSamplingSurfaces[i]->ChangeFlags(kMarked, kON);
-		
-//TEMP - need to reset cutting surfaces and restore all
-//       shape function databases
-cout << "\n MeshFreeFractureSupportT::ResetStep: not fully implemented" << endl;
-throw eGeneralFail;		
+
+	//TEMP - no history
+	if (fFrontList.Length() > 0)
+	{
+		cout << "\n MeshFreeFractureSupportT::ResetStep: not implemented for active\n" 
+		     <<   "     crack fronts: " << fFrontList.Length() << endl;	
+		throw eGeneralFail;			
+	}
 }
 
 /***********************************************************************
