@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.2 2001-09-07 00:54:13 paklein Exp $ */
 /* created: paklein (02/25/1997)                                          */
 
 #include "PenaltyWallT.h"
@@ -75,36 +75,11 @@ void PenaltyWallT::EchoData(ifstreamT& in, ostream& out)
 	PenaltyRegionT::EchoData(in, out);
 
 	/* echo parameters */
-	in >> ftheta;
+	in >> fnormal; fnormal.UnitVector();
 	in >> fmu;    if (fmu < 0.0) throw eBadInputValue;
 
-	out << " Orientation of normal wrt x-axis (degrees). . . = " << ftheta << '\n';
+	out << " Wall normal:\n " << fnormal << '\n';
 	out << " Penalty stiffness . . . . . . . . . . . . . . . = " << fk << '\n';
-
-	/* compute normal, tangent, and Q */
-	ftheta *= Pi/180.0;
-	
-	if (rCoords.MinorDim() == 2)
-	{
-		fnormal[0] = cos(ftheta);
-		fnormal[1] = sin(ftheta);
-
-		fQ(0,0) = fQ(1,1) = cos(ftheta);
-		fQ(1,0) = sin(ftheta);
-		fQ(0,1) =-sin(ftheta);
-	}
-	else // 3D still only has rotation about z-axis
-	{
-		fnormal[0] = cos(ftheta);
-		fnormal[1] = sin(ftheta);
-		fnormal[2] = 0.0;
-
-		fQ = 0.0;
-		fQ(0,0) = fQ(1,1) = cos(ftheta);
-		fQ(1,0) = sin(ftheta);
-		fQ(0,1) =-sin(ftheta);
-		fQ(2,2) = 1.0;
-	}
 }
 
 /* initialize data */
