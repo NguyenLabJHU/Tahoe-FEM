@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.16.2.3 2003-01-05 23:42:22 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.16.2.4 2003-01-13 19:53:09 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -22,7 +22,9 @@
 using namespace Tahoe;
 
 /* constructor */
-ElementSupportT::ElementSupportT(void)
+ElementSupportT::ElementSupportT(void):
+	fCurrentCoordinates(NULL),
+	fInitialCoordinates(NULL)
 {
 #ifndef _SIERRA_TEST_
 	/* clear */
@@ -31,8 +33,6 @@ ElementSupportT::ElementSupportT(void)
 	fNumSD = 3;
 	fTimeStep = 0.;
 	fItNum = 0;
-	fCurrentCoordinates = NULL;
-	fInitialCoordinates = NULL;
 	ieqnos = NULL;
 	iparams = NULL;
 	fparams = NULL;
@@ -77,16 +77,16 @@ void ElementSupportT::SetFEManager(FEManagerT* fe)
 /* (re-)set the NodeManagerT */
 void ElementSupportT::SetNodes(NodeManagerT* nodes)
 {
-
 	fNodes = nodes;
 	if (nodes)
 	{
-		fNumSD = nodes->NumSD();
-		fNumNodes = nodes->NumNodes();
+		fInitialCoordinates = &(nodes->InitialCoordinates());
+		fCurrentCoordinates = &(nodes->CurrentCoordinates());
 	}
 	else
-	{	
-		fNumSD = fNumNodes = 0;
+	{
+		fInitialCoordinates = NULL;
+		fCurrentCoordinates = NULL;
 	}		
 }
 
