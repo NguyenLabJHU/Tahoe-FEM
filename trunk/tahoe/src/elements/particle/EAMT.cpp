@@ -184,10 +184,10 @@ void EAMT::WriteOutput(void)
 	  int property = fPropertiesMap(type_i, type_j);
 	  if (property != current_property)
 	    {
-	      ed_energy = fEAMProperties[property]->getElecDensEnergy();
-	      current_property = property;
-
 	      pair_energy = fEAMProperties[property]->getPairEnergy();
+	      ed_energy = fEAMProperties[property]->getElecDensEnergy();
+
+	      current_property = property;
 	    }
 		
 	  /* global coordinates */
@@ -214,7 +214,7 @@ void EAMT::WriteOutput(void)
 	}
       embedding_i = embed_energy(electron_density_i, NULL, NULL);
 		
-      /* Sum up contributions */
+      /* Sum up contributions to the energy*/
       values_i[ndof] = embedding_i;
       n_values(local_i, ndof) = embedding_i;
       for (int j = 1; j < neighbors.Length(); j++)
@@ -572,7 +572,7 @@ void EAMT::RHSDriver2D(void)
   int formMa = fIntegrator->FormMa(constMa);
   int formKd = fIntegrator->FormKd(constKd);
 
-  //TEMP - interial force not implemented
+  //TEMP - inertial force not implemented
   if (formMa) ExceptionT::GeneralFail(caller, "inertial force not implemented");
 
   /* assembly information */
@@ -586,36 +586,68 @@ void EAMT::RHSDriver2D(void)
   /* EAM properties function pointers */
   int current_property = -1;
   EAMPropertyT::EDEnergyFunction ed_energy = NULL;
-  EAMPropertyT::EDForceFunction ed_force = NULL;
-
+  EAMPropertyT::EDForceFunction  ed_force = NULL;
   EAMPropertyT::PairForceFunction pair_force = NULL;
   EAMPropertyT::EmbedForceFunction embed_force = NULL;
 	
-  double dr = 1.0;
   int row_size = 0, num_rows = 0;
 
-  /* run through neighbor list */
   fForce = 0.0;
   iArrayT neighbors;
+
+  /* Get the \sum_{j=1,neighbor(i)} rho_j (r_ij) */
+  dArrayT sum_rho(fNeighbors.MajorDim());
+  sum_rho = 0.0;
+
+  /* run through neighbor list */
+  for (int i = 0; i < fNeighbors.MajorDim(); i++)
+    {
+      /* row of neighbor list for i */
+      fNeighbors.RowAlias(i, neighbors);
+      /* type */
+      int   tag_i = neighbors[0]; /* self is 1st spot */
+      int  type_i = fType[tag_i];
+      double* f_i = fForce(tag_i);
+      double* x_i = coords(tag_i);
+
+      for (int j = 1; j < neighbors.Length(); j++)
+	{
+	  /* global tag */
+	  int   tag_j = neighbors[j];
+	  int  type_j = fType[tag_j];
+	  double* x_j = coords(tag_j);
+	  int property = fPropertiesMap(type_i, type_j);
+	  if (property != current_property)
+	    {
+	      ed_energy = fEAMProperties[property]->getElecDensEnergy();
+	      current_property = property;
+	    }
+
+	  /* connecting vector */
+	  double r_ij_0 = x_j[0] - x_i[0];
+	  double r_ij_1 = x_j[1] - x_i[1];
+	  double r_ij   = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
+	  
+	  sum_rho[i] += ed_energy(r_ij,NULL,NULL);
+	}
+    }
+
+  fForce = 0.0;
+  /* run through neighbor list */
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
     {
       /* row of neighbor list */
       fNeighbors.RowAlias(i, neighbors);
-
+      
       /* type */
       int   tag_i = neighbors[0]; /* self is 1st spot */
       int  type_i = fType[tag_i];
       double* f_i = fForce(tag_i);
       double* x_i = coords(tag_i);
 		
-      /* Get electron density and its derivatives*/
-      dArrayT electron_density_j;
-      electron_density_j.Dimension(neighbors.Length());
-      double electron_density_i = 0.0;
-
-      dArrayT Delectron_density_j;
-      Delectron_density_j.Dimension(neighbors.Length());
-      double Delectron_density_i = 0.0;
+      /* Get electron density derivative rho'(j) */
+      dArrayT Delec_dens_j(neighbors.Length());
+      Delec_dens_j = 0.0;
 
       for (int j = 1; j < neighbors.Length(); j++)
 	{
@@ -627,23 +659,18 @@ void EAMT::RHSDriver2D(void)
 	  int property = fPropertiesMap(type_i, type_j);
 	  if (property != current_property)
 	    {
-	      ed_energy = fEAMProperties[property]->getElecDensEnergy();
-	      ed_force = fEAMProperties[property]->getElecDensForce();
-
+	      ed_force  = fEAMProperties[property]->getElecDensForce();
 	      current_property = property;
 	    }
 		
 	  /* connecting vector */
 	  double r_ij_0 = x_j[0] - x_i[0];
 	  double r_ij_1 = x_j[1] - x_i[1];
-	  double r = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
+	  double r_ij = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
 		
-	  electron_density_j[j] = ed_energy(r,NULL,NULL);
-	  electron_density_i += electron_density_j[j];
-
-	  Delectron_density_j[j] = ed_force(r,NULL,NULL);
-	  Delectron_density_i += Delectron_density_j[j];
+	  Delec_dens_j[j]  = ed_force(r_ij,NULL,NULL);
 	}
+
       /* Get contribution to the force from embedding and pair forces */
       for (int j = 1; j < neighbors.Length(); j++)
 	{
@@ -657,7 +684,8 @@ void EAMT::RHSDriver2D(void)
 	  int property = fPropertiesMap(type_i, type_j);
 	  if (property != current_property)
 	    {
-	      pair_force = fEAMProperties[property]->getPairForce();
+	      ed_force    = fEAMProperties[property]->getElecDensForce();
+	      pair_force  = fEAMProperties[property]->getPairForce();
 	      embed_force = fEAMProperties[property]->getEmbedForce();
 
 	      current_property = property;
@@ -666,11 +694,11 @@ void EAMT::RHSDriver2D(void)
 	  /* connecting vector */
 	  double r_ij_0 = x_j[0] - x_i[0];
 	  double r_ij_1 = x_j[1] - x_i[1];
-	  double r = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
+	  double r_ij   = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
 			
 	  /* pair interaction force component */
-	  double F = pair_force(r, NULL, NULL);
-	  double Fbyr = formKd*F/r;
+	  double F = pair_force(r_ij, NULL, NULL);
+	  double Fbyr = formKd*F/r_ij;
 
 	  r_ij_0 *= Fbyr;
 	  f_i[0] += r_ij_0;
@@ -681,9 +709,10 @@ void EAMT::RHSDriver2D(void)
 	  f_j[1] +=-r_ij_1;
 
 	  /* embedding force component */
-	  F = embed_force(electron_density_i,NULL,NULL)*Delectron_density_j[j] 
-	    + embed_force(electron_density_j[j],NULL,NULL)*Delectron_density_j[i];
-	  Fbyr = formKd*F/r;
+	  double Delec_dens_i = ed_force(r_ij,NULL,NULL);
+	  F += Delec_dens_i    * embed_force(sum_rho[j],NULL,NULL)+
+	       Delec_dens_j[j] * embed_force(sum_rho[i],NULL,NULL);
+	  Fbyr = formKd*F/r_ij;
 
 	  r_ij_0 *= Fbyr;
 	  f_i[0] += r_ij_0;
@@ -695,9 +724,8 @@ void EAMT::RHSDriver2D(void)
 	}
     }
 
-
-  /* Sum up contribution to force */
-
+    /* assemble */
+    support.AssembleRHS(group, fForce, Field().Equations());
 }
 
 void EAMT::RHSDriver3D(void)
@@ -714,7 +742,7 @@ void EAMT::RHSDriver3D(void)
   int formMa = fIntegrator->FormMa(constMa);
   int formKd = fIntegrator->FormKd(constKd);
 
-  //TEMP - interial force not implemented
+  //TEMP - inertial force not implemented
   if (formMa) ExceptionT::GeneralFail(caller, "inertial force not implemented");
 
   /* assembly information */
@@ -729,16 +757,53 @@ void EAMT::RHSDriver3D(void)
   int current_property = -1;
   EAMPropertyT::EDEnergyFunction ed_energy = NULL;
   EAMPropertyT::EDForceFunction ed_force = NULL;
-
   EAMPropertyT::PairForceFunction pair_force = NULL;
   EAMPropertyT::EmbedForceFunction embed_force = NULL;
 
-  double dr = 1.0;
   int row_size = 0, num_rows = 0;
 
-  /* run through neighbor list */
   fForce = 0.0;
   iArrayT neighbors;
+
+  /* Get the \sum_{j=1,neighbor(i)} rho_j (r_ij) */
+  dArrayT sum_rho(fNeighbors.MajorDim());
+  sum_rho = 0.0;
+
+  /* run through neighbor list */
+  for (int i = 0; i < fNeighbors.MajorDim(); i++)
+    {
+      /* row of neighbor list for i */
+      fNeighbors.RowAlias(i, neighbors);
+      /* type */
+      int   tag_i = neighbors[0]; /* self is 1st spot */
+      int  type_i = fType[tag_i];
+      double* f_i = fForce(tag_i);
+      double* x_i = coords(tag_i);
+
+      for (int j = 1; j < neighbors.Length(); j++)
+	{
+	  /* global tag */
+	  int   tag_j = neighbors[j];
+	  int  type_j = fType[tag_j];
+	  double* x_j = coords(tag_j);
+	  int property = fPropertiesMap(type_i, type_j);
+	  if (property != current_property)
+	    {
+	      ed_energy = fEAMProperties[property]->getElecDensEnergy();
+	      current_property = property;
+	    }
+
+	  /* connecting vector */
+	  double r_ij_0 = x_j[0] - x_i[0];
+	  double r_ij_1 = x_j[1] - x_i[1];
+	  double r_ij   = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
+	  
+	  sum_rho[i] += ed_energy(r_ij,NULL,NULL);
+	}
+    }
+
+  fForce = 0.0;
+  /* run through neighbor list */
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
     {
       /* row of neighbor list */
@@ -750,14 +815,9 @@ void EAMT::RHSDriver3D(void)
       double* f_i = fForce(tag_i);
       double* x_i = coords(tag_i);
 		
-      /* Get electron density and its derivatives*/
-      dArrayT electron_density_j;
-      electron_density_j.Dimension(neighbors.Length());
-      double electron_density_i = 0.0;
-
-      dArrayT Delectron_density_j;
-      Delectron_density_j.Dimension(neighbors.Length());
-      double Delectron_density_i = 0.0;
+      /* Get electron density derivative rho'(j) */
+      dArrayT Delec_dens_j(neighbors.Length());
+      Delec_dens_j = 0.0;
 
       for (int j = 1; j < neighbors.Length(); j++)
 	{
@@ -769,23 +829,18 @@ void EAMT::RHSDriver3D(void)
 	  int property = fPropertiesMap(type_i, type_j);
 	  if (property != current_property)
 	    {
-	      ed_energy = fEAMProperties[property]->getElecDensEnergy();
 	      ed_force = fEAMProperties[property]->getElecDensForce();
-
 	      current_property = property;
 	    }
 		
 	  /* connecting vector */
 	  double r_ij_0 = x_j[0] - x_i[0];
 	  double r_ij_1 = x_j[1] - x_i[1];
-	  double r = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
+	  double r_ij   = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
 		
-	  electron_density_j[j] = ed_energy(r,NULL,NULL);
-	  electron_density_i += electron_density_j[j];
-
-	  Delectron_density_j[j] = ed_force(r,NULL,NULL);
-	  Delectron_density_i += Delectron_density_j[j];
+	  Delec_dens_j[j]  = ed_force(r_ij,NULL,NULL);
 	}
+
 
       /* Get contribution to the force from embedding and pair forces */
       for (int j = 1; j < neighbors.Length(); j++)
@@ -800,6 +855,7 @@ void EAMT::RHSDriver3D(void)
 	  int property = fPropertiesMap(type_i, type_j);
 	  if (property != current_property)
 	    {
+	      ed_force    = fEAMProperties[property]->getElecDensForce();
 	      pair_force = fEAMProperties[property]->getPairForce();
 	      embed_force = fEAMProperties[property]->getEmbedForce();
 
@@ -810,11 +866,11 @@ void EAMT::RHSDriver3D(void)
 	  double r_ij_0 = x_j[0] - x_i[0];
 	  double r_ij_1 = x_j[1] - x_i[1];
 	  double r_ij_2 = x_j[2] - x_i[2];
-	  double r = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
+	  double r_ij   = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
 			
 	  /* pair interaction force component */
-	  double F = pair_force(r, NULL, NULL);
-	  double Fbyr = formKd*F/r;
+	  double F = pair_force(r_ij, NULL, NULL);
+	  double Fbyr = formKd*F/r_ij;
 
 	  r_ij_0 *= Fbyr;
 	  f_i[0] += r_ij_0;
@@ -830,10 +886,10 @@ void EAMT::RHSDriver3D(void)
 
 
 	  /* embedding force component */
-	  F = embed_force(electron_density_i,NULL,NULL)*Delectron_density_j[j] 
-	    + embed_force(electron_density_j[j],NULL,NULL)*Delectron_density_j[i];
-	  
-	  Fbyr = formKd*F/r;
+	  double Delec_dens_i = ed_force(r_ij,NULL,NULL);
+	  F += Delec_dens_i    * embed_force(sum_rho[j],NULL,NULL)+
+	       Delec_dens_j[j] * embed_force(sum_rho[i],NULL,NULL);
+	  Fbyr = formKd*F/r_ij ;
 
 	  r_ij_0 *= Fbyr;
 	  f_i[0] += r_ij_0;
@@ -848,6 +904,9 @@ void EAMT::RHSDriver3D(void)
 	  f_j[2] +=-r_ij_2;
 	}
     }
+
+  /* assemble */
+  support.AssembleRHS(group, fForce, Field().Equations());
 }
 
 /* set neighborlists */
