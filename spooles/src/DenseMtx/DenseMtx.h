@@ -214,7 +214,7 @@ DenseMtx_workspace(
    created -- 98jun05, cca
    ------------------------------------------
 */
-void
+int
 DenseMtx_realEntry (
    DenseMtx   *mtx,
    int        irow,
