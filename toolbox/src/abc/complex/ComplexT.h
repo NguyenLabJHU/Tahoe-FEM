@@ -1,4 +1,4 @@
-/* $ Id $ */
+/* $Id: ComplexT.h,v 1.4 2001-02-01 18:22:28 paklein Exp $ */
 /* created: PAK/AFLP (05/19/1997)                                         */
 /* 	                                                                      */
 
@@ -29,8 +29,8 @@ public:
 	/*
 	 * Conjugate
 	 */
-	friend ComplexT Conjugate( const ComplexT& z );
-	ComplexT Conjugate(void) ;
+	ComplexT& Conjugate(const ComplexT& z);
+	ComplexT& Conjugate(void) ;
 	
 	/*
 	 * Real and Imaginary parts of arrays - must be dimensioned BEFORE call
@@ -132,8 +132,19 @@ inline ComplexT& ComplexT::operator=(int i)
 	return (*this);
 }
 
+/* Conjugate */
+inline ComplexT& ComplexT::Conjugate(const ComplexT& z)
+{
+  fRe = z.fRe;
+  fIm =-z.fIm;
+  return *this;
+}
 
-
+inline ComplexT& ComplexT::Conjugate(void)
+{
+  fIm = -fIm; 
+  return *this;
+}
 
 /* Addition */
 inline ComplexT operator+(const ComplexT& z1, const ComplexT& z2)

@@ -185,20 +185,17 @@ zMatrixT& zMatrixT::Inverse( const zMatrixT& matrix)
 	return(*this);
 }
 
-
-
-zMatrixT& zMatrixT::Conjugate( const zMatrixT& matrix)
+/* conjugate every element in the matrix */
+zMatrixT& zMatrixT::Conjugate(const zMatrixT& matrix)
 {
-	    
-	// dimension  
-	Allocate(matrix.Rows(),matrix.Cols());
+  /* must have same length */
+  if (matrix.Length() != Length()) throw eSizeMismatch;
+
+  ComplexT* pLHS = Pointer();
+  ComplexT* pRHS = matrix.Pointer();
+  int length = Length();
+  for(int i = 0; i < length; i++)
+	(*pLHS++).Conjugate(*pRHS++);
 	
-
-	ComplexT* pthis  = Pointer();
-		
-	for(int i=0;i<Length();i++)
-		 (*pthis++).toZ( matrix[i].Re(), -1*matrix[i].Im() );
-			
-	return (*this);
-
+  return *this;
 }
