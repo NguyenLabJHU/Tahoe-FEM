@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.h,v 1.6 2004-10-26 22:09:37 paklein Exp $ */
+/* $Id: FS_SCNIMF_AxiT.h,v 1.7 2004-10-28 20:30:53 gjwagne Exp $ */
 #ifndef _FS_SCNIMF_AXI_T_H_
 #define _FS_SCNIMF_AXI_T_H_
 
@@ -73,6 +73,9 @@ protected: /* for derived classes only */
 	
 	/** generate labels for output data */
 	virtual void GenerateOutputLabels(ArrayT<StringT>& labels);
+
+	/** assemble particle mass matrix into LHS of global equation system */
+	virtual void AssembleParticleMass(const double rho);
 
 	/** compute B matrices for strain smoothing/nodal integration */
 	virtual void ComputeBMatrices(void);
