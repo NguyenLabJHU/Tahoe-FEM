@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.3.30.2 2004-11-08 23:44:09 thao Exp $ */
+/* $Id: ConveyorT.cpp,v 1.3.30.3 2004-11-08 23:59:44 thao Exp $ */
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
@@ -156,7 +156,8 @@ void ConveyorT::Initialize(ifstreamT& in)
 	cards.Dimension(rightnodes.Length());
 	for (int i=0; i< cards.Length(); i++) {
 		KBC_CardT& card = cards[i];
-		card.SetValues(rightnodes[i], 0, KBC_CardT::kFix, NULL, 0.0); 
+//		card.SetValues(rightnodes[i], 0, KBC_CardT::kFix, NULL, 0.0); 
+		card.SetValues(rightnodes[i], 0, KBC_CardT::kFix, 0, 0.0); 
 	}
 }
 
@@ -361,7 +362,8 @@ void ConveyorT::ReadRestart(ifstreamT& in)
 	cards.Dimension(fShiftedNodes.Length());
 	for (int i=0; i< cards.Length(); i++) {
 		KBC_CardT& card = cards[i];
-		card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, NULL, 0.0);
+//		card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, NULL, 0.0);
+		card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, 0, 0.0);
 	}
 	//TEMP - need to reset the equation system because it was set before
 	//       reading the restart files and does not reflect the equations
