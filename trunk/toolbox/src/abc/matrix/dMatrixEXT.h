@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.h,v 1.4 2002-02-18 08:48:41 paklein Exp $ */
+/* $Id: dMatrixEXT.h,v 1.5 2002-02-25 17:21:12 paklein Exp $ */
 /* created: paklein (03/06/1998) */
 
 #ifndef _DMATRIXEX_T_H_
@@ -18,7 +18,7 @@ public:
 
 	/* constructor */
 	dMatrixEXT(void);
-	dMatrixEXT(int squaredim);
+	explicit dMatrixEXT(int squaredim);
 	dMatrixEXT(int squaredim, double* p);
 
 	/** dimension to a square matrix */
@@ -61,6 +61,15 @@ public:
  	 * \note Aside from dimension checks, this function doesn't really involve
  	 *       the matrix stored in *this. */
 	void BackSubstitute_SVD(const dMatrixT& U, const dArrayT& W, const dMatrixT& V, dArrayT& RHS) const;
+
+	/* assignment operator. Operator will re-dimension matrix as needed.
+	 * \param RHS source
+	 * \return reference to *this */
+	dMatrixT& operator=(const dMatrixT& RHS) { return dMatrixT::operator=(RHS); };
+
+	/* assignment operator. Set all entries in the matrix to value
+	 * \return reference to *this */
+	dMatrixT& operator=(const double value) { return dMatrixT::operator=(value); };
 
 private:
 
