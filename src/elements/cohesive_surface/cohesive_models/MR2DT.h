@@ -42,11 +42,11 @@ public:
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
 	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma);
-   
-    double& Yield_f(const dArrayT& Sig, const dArrayT& qns, double& ff);   
-    dArrayT& qbar_f(const dArrayT& Sig, const dArrayT& qns, dArrayT& qbar);
-    dArrayT& dfdSig_f(const dArrayT& Sig, const dArrayT& qns, dArrayT& dfdSig);
-    dArrayT& dfdq_f(const dArrayT& Sig, const dArrayT& qns, dArrayT& dfdq);    
+    
+    double& Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff);
+    dArrayT& qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar);
+    dArrayT& dfdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdSig);
+    dArrayT& dfdq_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdq);    
     dMatrixT& dQdSig2_f(const dArrayT& qn, dMatrixT& dQdSig2);
     dMatrixT& dQdSigdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dQdSigdq);
     dMatrixT& dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardSig);
@@ -76,6 +76,9 @@ public:
 
 	/** For MR2DT, returns true to compute nodal tractions. */
 	virtual bool NeedsNodalInfo(void);
+	
+	double signof(double& r);
+	
 	virtual int NodalQuantityNeeded(void);
 	//        virtual double ComputeNodalValue(const dArrayT &);
 	//	virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
