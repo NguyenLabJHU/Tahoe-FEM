@@ -5,8 +5,10 @@
 #ifndef _GRAD_MR_SS_KSTV_H_
 #define _GRAD_MR_SS_KSTV_H_
 
+#include "dSymMatrixT.h"
+
 /* base classes */
-#include "MFGP_SSIsotropicMatT.h"
+#include "IsotropicT.h"
 #include "HookeanMatT.h"
 
 namespace Tahoe 
@@ -15,7 +17,7 @@ namespace Tahoe
 /* forward declarations */
 class GRAD_MRSSNLHardT;
 
-class GRAD_MRSSKStV: public MFGP_SSIsotropicMatT, public HookeanMatT
+class GRAD_MRSSKStV: public IsotropicT, public HookeanMatT
 {
   public:
 
@@ -38,7 +40,8 @@ class GRAD_MRSSKStV: public MFGP_SSIsotropicMatT, public HookeanMatT
 	virtual void ResetHistory(void);
 	
 	/* initialize laplacian of strain and lambdaPM, and lambdaPM, all at ip */
-	void Initialize(dSymMatrixT& strain_lapl_ip, dArrayT& lambdaPM_ip, dArrayT& lambdaPM_lapl_ip);
+	void Initialize(ElementCardT& element, int ip, int n_ip, dSymMatrixT& strain_ip, dSymMatrixT& strain_lapl_ip, 
+					dArrayT& lambdaPM_ip, dArrayT& lambdaPM_lapl_ip);
 
 	/** returns elastic strain (3D) */
 	virtual const dSymMatrixT& ElasticStrain(
@@ -112,8 +115,10 @@ protected:
 	virtual void SetModulus(dMatrixT& modulus); 
 	int loccheck;
 	
-	dSymMatrixT	Strain_Lapl_IP;
+	dSymMatrixT	Strain_IP, Strain_Lapl_IP;
     dArrayT lambdaPM, lambdaPM_Lapl;
+    ElementCardT curr_element;
+    int curr_ip, num_ip;
  
 private:
   
@@ -128,7 +133,7 @@ private:
     dMatrixT    fModulusULam1, fModulusULam2;
     dMatrixT    fModulusLamU1, fModulusLamU2;
     dMatrixT    fModulusLamLam1, fModulusLamLam2;
-    double      fYieldFunction; //yield function
+    double      fYieldFunction; 
 
 };
 

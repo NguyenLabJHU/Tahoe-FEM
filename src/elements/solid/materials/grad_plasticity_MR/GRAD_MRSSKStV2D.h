@@ -47,7 +47,7 @@ class GRAD_MRSSKStV2D: public GRAD_MRSSKStV
 	virtual const dSymMatrixT& s_ij(void);
 	
 	/* yield function */
-	virtual const double& Yield_Function(void);
+	virtual const double& YieldF(void);
 	
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

@@ -134,7 +134,7 @@ const dSymMatrixT& GRAD_MRSSKStV2D::s_ij(void)
 }
 
 /* yield function */
-const double& GRAD_MRSSKStV2D::Yield_Function(void)
+const double& GRAD_MRSSKStV2D::YieldF(void)
 {
 	
 	fYieldFunction2D = GRAD_MRSSKStV::YieldF();
@@ -148,8 +148,8 @@ void GRAD_MRSSKStV2D::DefineParameters(ParameterListT& list) const
 	GRAD_MRSSKStV::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStrain);
+	//ParameterT& constraint = list.GetParameter("constraint_2D");
+	//constraint.SetDefault(kPlaneStrain);
 }
 
 /* accept parameter list */
@@ -175,6 +175,4 @@ void GRAD_MRSSKStV2D::TakeParameterList(const ParameterListT& list)
 	fTemp2.Dimension(dSymMatrixT::NumValues(2),1);
 	fTemp3.Dimension(dSymMatrixT::NumValues(2),1);
 	fTemp4.Dimension(dSymMatrixT::NumValues(2),1);
-	// fYieldFunction2D(0.0);  // scalar
-	
 }
