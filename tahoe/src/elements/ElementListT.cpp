@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.62 2003-08-23 16:13:37 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.63 2003-09-24 21:40:15 raregue Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -85,6 +85,10 @@
 
 #ifdef MULTISCALE_ELEMENT_DEV
 #include "StaggeredMultiScaleT.h"
+#endif
+
+#ifdef MULTISCALE_APS_DEV
+#include "APS_AssemblyT.h"
 #endif
 
 #ifdef DORGAN_VOYIADJIS_MARIN_DEV
@@ -222,6 +226,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		out << "    eq. " << ElementT::kLinearDiffusion    << ", linear diffusion element\n";
 		out << "    eq. " << ElementT::kMFCohesiveSurface  << ", meshfree cohesive surface element\n";
 		out << "    eq. " << ElementT::kStaggeredMultiScale << ", Staggered MultiScale Element (for VMS) \n";
+		out << "    eq. " << ElementT::kAPSgrad 			<< ", Strict Anti-plane Shear gradient plasticity \n";
 		out << "    eq. " << ElementT::kACME_Contact       << ", 3D contact using ACME\n";
 		out << "    eq. " << ElementT::kMultiplierContact3D       << ", 3D contact using Lagrange multipliers\n";
 		out << "    eq. " << ElementT::kMultiplierContactElement2D       << ", 2D Lagrange multiplier contact elements\n";
@@ -331,6 +336,29 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "MULTISCALE_ELEMENT_DEV not enabled: %d", code);
+#endif
+			}
+			case ElementT::kAPSgrad:
+			{
+#ifdef MULTISCALE_APS_DEV
+				/* must be using multi-field solver */
+				if (fSupport.Analysis() != GlobalT::kMultiField)				
+					ExceptionT::BadInputValue(caller, "multi field required");
+			
+				/* coarse scale field read above */
+				const FieldT* displ = field;
+
+				/* fine scale field */				
+				StringT plast_name;
+				in >> plast_name;
+				const FieldT* plast = fSupport.Field(plast_name);
+				if (!displ || !plast)
+					ExceptionT::BadInputValue(caller, "error resolving field names");
+			
+				fArray[group] = new APS_AssemblyT(fSupport, *displ, *plast);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "MULTISCALE_APS_DEV not enabled: %d", code);
 #endif
 			}
 			case ElementT::kMeshFreeFDElastic:
