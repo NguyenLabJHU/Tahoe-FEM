@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.49 2005-03-11 20:33:41 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.50 2005-03-12 08:40:25 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -433,6 +433,7 @@ ContinuumElementT::MassTypeT ContinuumElementT::int2MassTypeT(int i)
 	else
 		ExceptionT::GeneralFail("ContinuumElementT::int2MassTypeT", 
 			"could not translate %d", i);	
+	return kNoMass;
 }
 
 /***********************************************************************
