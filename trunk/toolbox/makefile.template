@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.12 2003-01-31 09:50:21 paklein Exp $
+# $Id: makefile.template,v 1.13 2003-03-27 17:49:40 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -87,6 +87,10 @@ include $(MACRO_DIR)/toolbox.extras
 
 # include common target definitions
 include $(MACRO_DIR)/make.targets
+
+# init extras target
+update_config:
+	@ $(ECHO) "nothing to do for update_config in toolbox"
 
 make_build_pch:
 	@cd $(HOME_DIR)/pch; make \
