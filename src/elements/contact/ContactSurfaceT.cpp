@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.15 2001-09-14 00:27:16 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.16 2001-09-14 17:42:14 paklein Exp $ */
 #include "ContactSurfaceT.h"
 
 #include "SurfaceT.h"
@@ -302,7 +302,10 @@ ContactSurfaceT::DetermineMultiplierExtent(void)
             /* inclusive of opposing face */
             const ArrayT<FaceT*>&  faces
                 = node->OpposingFace()->Neighbors();
-			node->OpposingSurface()->TagMultiplierMap(faces);
+			//node->OpposingSurface()->TagMultiplierMap(faces);
+			//casting away const-ness
+			ContactSurfaceT* opposing_surface = (ContactSurfaceT*) node->OpposingSurface();
+			opposing_surface->TagMultiplierMap(faces);
 		}
 	}
 }
