@@ -1,4 +1,4 @@
-/* $Id: RGBaseT.h,v 1.3 2003-03-26 22:57:44 thao Exp $ */
+/* $Id: RGBaseT.h,v 1.4 2003-08-25 18:25:37 thao Exp $ */
 /* created : TDN (1/22/2001) */
 #ifndef _RG_BASE_T_H_
 #define _RG_BASE_T_H_
@@ -56,10 +56,10 @@ class RGBaseT: public FSSolidMatT, public IsotropicT
 	/* return true of model is purely 2D, plain stress */
 	virtual bool PurePlaneStress(void) const { return false;};
 
-     /*material inelastic stress measure*/
+      /*material inelastic stress measure*/
 	virtual bool HasDissipVar(void) const {return false;};
 
- protected:
+protected:
 	/* construct symmetric rank-4 mixed-direction tensor (6.1.44) */
   	void MixedRank4_2D(const dArrayT& a, const dArrayT& b, 
   		dMatrixT& rank4_ab) const;

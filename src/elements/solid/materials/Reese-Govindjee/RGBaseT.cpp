@@ -1,4 +1,4 @@
-/* $Id: RGBaseT.cpp,v 1.4 2003-04-14 22:31:58 thao Exp $ */
+/* $Id: RGBaseT.cpp,v 1.5 2003-08-25 18:25:37 thao Exp $ */
 /* created: TDN (01/22/2000) */
 #include "RGBaseT.h"
 
@@ -17,25 +17,25 @@ void RGBaseT::Initialize(void)
     if (PurePlaneStress()) fndof = 2;
     else fndof = 3;
         
-	int numstress = dSymMatrixT::NumValues(fndof);
-
-	fnstatev = 0;
-	fnstatev += numstress;   /*current C_v*/
-	fnstatev += numstress;   /*last C_vn*/
-
-    /*reserve space for inelastic stress state variables*/
-    if (HasDissipVar())
-	{
-	  fnstatev += numstress; /*material inelastic stress measure*/
-	}
-
-	fstatev.Dimension(fnstatev);
-	double* pstatev = fstatev.Pointer();
+    int numstress = dSymMatrixT::NumValues(fndof);
+    
+    fnstatev = 0;
+    fnstatev += numstress;   /*current C_v*/
+    fnstatev += numstress;   /*last C_vn*/
+    fnstatev ++;             /*localize*/
 	
-	/* assign pointers to current and last blocks of state variable array */
-	fC_v.Set(fndof, pstatev);        
-	pstatev += numstress;
-	fC_vn.Set(fndof, pstatev);
+    /*reserve space for inelastic stress state variables*/
+    if (HasDissipVar()){
+      fnstatev += numstress; /*material inelastic stress measure*/
+    }
+
+    fstatev.Dimension(fnstatev);
+    double* pstatev = fstatev.Pointer();
+    
+    /* assign pointers to current and last blocks of state variable array */
+    fC_v.Set(fndof, pstatev);        
+    pstatev += numstress;
+    fC_vn.Set(fndof, pstatev);
 }
 
 void RGBaseT::Print(ostream& out) const
@@ -106,6 +106,7 @@ void RGBaseT::ResetHistory(void)
 		Load(element, ip);
 	
 		/* assign "last" to "current" */
+		fC_v = fC_vn;
 		
 		/* write to storage */
 		Store(element, ip);
