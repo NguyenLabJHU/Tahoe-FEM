@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: regression.csh.template,v 1.2 2001-09-22 18:29:07 paklein Exp $
+# $Id: regression.csh.template,v 1.3 2001-09-23 18:37:20 paklein Exp $
 
 # username on Tahoe server
 set TAHOE_USER =
@@ -13,16 +13,16 @@ set ADMIN =
 # host name
 set HOST =
 
+# SEACAS
+setenv ACCESS 
+
 ######### hopefully no changes will be required below #########
 
 # set path
-set path=(/bin /usr/bin /usr/local/bin /usr/ccs/bin /usr/sbin /usr/local/ssh /usr/ucb /etc $path)
+set path=(/bin /usr/bin /usr/local/bin /usr/ccs/bin /usr/sbin /usr/local/ssh /usr/ucb /etc /project/local/bin $path)
 
 # mail command
 set MAILCMD = /usr/bin/mail
-
-# SEACAS
-setenv ACCESS 
 
 # CVS
 setenv CVSROOT ${TAHOE_USER}@tahoe.ca.sandia.gov:/usr/local/cvsrep
@@ -69,21 +69,21 @@ if (-e ${W_DIR}/tahoe/tahoe && -e ${W_DIR}/benchmark/comparator/compare) then
     if(! -e ${W_DIR}/benchmark/compare.summary) then
 #       test/s failed - did not complete
 	echo "BENCHMARKs failed"
-		/usr/bin/echo "Subject: TAHOE regression FAIL ${HOST}\nTAHOE regression FAIL" > ${W_DIR}/benchmark/tmp
+		/usr/bin/echo "Subject: TAHOE: regression FAIL ${HOST}\nTAHOE regression FAIL:" `date` > ${W_DIR}/benchmark/tmp
 		/bin/cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.console > ${W_DIR}/benchmark/tmp_mail
     else if(`grep -c "FAIL" ${W_DIR}/benchmark/compare.summary` ) then
 #       test/s failed
 	echo "BENCHMARKs failed"
-		/usr/bin/echo "Subject: TAHOE regression FAIL ${HOST}\nTAHOE regression FAIL" > ${W_DIR}/benchmark/tmp
+		/usr/bin/echo "Subject: TAHOE: regression FAIL ${HOST}\nTAHOE regression FAIL:" `date` > ${W_DIR}/benchmark/tmp
 		/bin/cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.summary > ${W_DIR}/benchmark/tmp_mail
     else
 	echo "BENCHMARKs passed"
-		/usr/bin/echo "Subject: TAHOE regression PASS ${HOST}\nTAHOE regression PASS" > ${W_DIR}/benchmark/tmp
+		/usr/bin/echo "Subject: TAHOE: regression PASS ${HOST}\nTAHOE regression PASS:" `date` > ${W_DIR}/benchmark/tmp
 		/bin/cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.summary > ${W_DIR}/benchmark/tmp_mail
 	endif
 else
 #       make failed
-		/usr/bin/echo "Subject: TAHOE build FAIL ${HOST}\nTAHOE build FAIL" > ${W_DIR}/benchmark/tmp
+		/usr/bin/echo "Subject: TAHOE: build FAIL ${HOST}\nTAHOE build FAIL:" `date` > ${W_DIR}/benchmark/tmp
 		/bin/cat ${W_DIR}/benchmark/tmp ${W_DIR}/make.stderr > ${W_DIR}/benchmark/tmp_mail
 endif
 
