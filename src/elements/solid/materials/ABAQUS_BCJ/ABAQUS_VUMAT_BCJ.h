@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BCJ.h,v 1.2 2003-09-06 08:42:54 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BCJ.h,v 1.3 2003-11-04 17:52:15 cjkimme Exp $ */
 #ifndef _ABAQUS_VUMAT_BCJ_H_
 #define _ABAQUS_VUMAT_BCJ_H_
 
@@ -32,6 +32,8 @@ private:
 		ArrayT<StringT>& output_labels);
 };
 
+} /* namespace Tahoe */
+
 #else /* __F2C__ */
 
 #ifndef __MWERKS__
@@ -39,7 +41,5 @@ private:
 #endif
 
 #endif /* __F2C__ */
-
-} /* namespace Tahoe */
 
 #endif /* _ABAQUS_VUMAT_BCJ_H_ */

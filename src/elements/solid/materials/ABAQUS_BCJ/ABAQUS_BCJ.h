@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BCJ.h,v 1.2 2003-09-06 08:42:54 paklein Exp $ */
+/* $Id: ABAQUS_BCJ.h,v 1.3 2003-11-04 17:52:15 cjkimme Exp $ */
 /* created: paklein (05/09/2000) */
 #ifndef _ABAQUS_BCJ_H_
 #define _ABAQUS_BCJ_H_
@@ -37,6 +37,8 @@ private:
 		ArrayT<StringT>& output_labels);
 };
 
+} /* namespace Tahoe */
+
 #else /* __F2C__ */
 
 #ifndef __MWERKS__
@@ -44,7 +46,5 @@ private:
 #endif
 
 #endif /* __F2C__ */
-
-} /* namespace Tahoe */
 
 #endif /* _ABAQUS_BCJ_H_ */
