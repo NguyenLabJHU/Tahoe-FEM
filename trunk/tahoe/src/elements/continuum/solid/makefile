@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.14 2003-03-04 07:37:05 paklein Exp $
+# $Id: makefile,v 1.15 2003-04-05 20:26:43 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,12 +22,14 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	SolidElementT.o \
 	FiniteStrainT.o \
+	FiniteStrainMF.o \
 	LocalizerT.o \
 	SimoFiniteStrainT.o \
 	SimoQ1P0.o \
 	SmallStrainT.o \
 	TotalLagrangianT.o \
 	UpdatedLagrangianT.o \
+	UpdatedLagrangianMF.o \
 	UpLagr_ExternalFieldT.o
 
 OBJ_LINK = $(OBJ)
@@ -50,12 +52,14 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	SolidElementT.cpp \
 	FiniteStrainT.cpp \
+	FiniteStrainMF.cpp \
 	LocalizerT.cpp \
 	SimoFiniteStrainT.cpp \
 	SimoQ1P0.cpp \
 	SmallStrainT.cpp \
 	TotalLagrangianT.cpp \
 	UpdatedLagrangianT.cpp \
+	UpdatedLagrangianMF.cpp \
 	UpLagr_ExternalFieldT.cpp
 
 ##################### (3) headers
@@ -70,12 +74,14 @@ SRC = \
 HDR = \
 	SolidElementT.h \
 	FiniteStrainT.h \
+	FiniteStrainMF.h \
 	LocalizerT.h \
 	SimoFiniteStrainT.h \
 	SimoQ1P0.h \
 	SmallStrainT.h \
 	TotalLagrangianT.h \
 	UpdatedLagrangianT.h \
+	UpdatedLagrangianMF.h \
 	UpLagr_ExternalFieldT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
