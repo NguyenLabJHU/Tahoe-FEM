@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.19.4.2 2004-04-25 20:54:36 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.19.4.3 2004-04-28 05:33:26 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -185,7 +185,7 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& point_neighb
 	/* solve unknowns */
 	ArrayT<char> cell_type(nel);
 	dArrayT R_i(point_coords.MinorDim());
-	AutoArrayT<int> overlap_cell_i;	
+	AutoArrayT<int> overlap_cell_i;
 	InverseMapT overlap_cell_i_map;
 	overlap_cell_i_map.SetOutOfRange(InverseMapT::MinusOne);
 	AutoArrayT<int> overlap_node_i;
@@ -195,6 +195,7 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& point_neighb
 	nVariArray2DT<int> bond_densities_i_eq_man(0, bond_densities_i_eq, coarse->NumIP());
 	RaggedArray2DT<int> inv_connects_i; 
 	RaggedArray2DT<int> inv_equations_i; 
+	AutoArrayT<int> bondfree_cell_i;
 	for (int i = 0; i < bonds.MajorDim(); i++) /* one bond family at a time */ {
 
 		/* bond vector */
@@ -220,8 +221,12 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& point_neighb
 			fMainOut << tmp.wrap(5) << endl;
 			tmp--;
 		}
+		
+		/* collect list of cells not containing any active bonds */
+		BondFreeElements(ghost_neighbors_i, bondfree_cell_i);
 
 		/* classify element types */
+#if 0
 		cell_type = p_1; /* all full density */
 		for (int j = 0; j < nel; j++) /* no density */ {
 			const iArrayT& nodes = coarse->ElementCard(j).NodesX();
@@ -234,6 +239,10 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& point_neighb
 			if (no_density)
 				cell_type[j] = p_0;
 		}
+#endif
+		cell_type = p_0; /* all zero density */
+		for (int j = 0; j < bondfree_cell_i.Length(); j++) /* full density */
+			cell_type[bondfree_cell_i[j]] = p_1;
 		for (int j = 0; j < overlap_cell_i.Length(); j++) /* unknown density */
 			cell_type[overlap_cell_i[j]] = p_x;
 			
@@ -1176,14 +1185,8 @@ void FEManagerT_bridging::InitProjection(CommManagerT& comm, const iArrayT& node
 	}
 
 	/* collect list of projected nodes */
-	const InterpolationDataT& point_to_node = fDrivenCellData.PointToNode();
-	if (point_to_node.Neighbors().MajorDim() > 0) /* check for meshless bridging */ {
-		const InverseMapT& driven_node_map = point_to_node.Map();
-		driven_node_map.Forward(fProjectedNodes);
-	}
-	else
-		fProjectedNodes.Alias(fDrivenCellData.CellNodes());
-	
+	BridgingScale().CollectProjectedNodes(fDrivenCellData, fProjectedNodes);
+
 	/* generate KBC cards - all degrees of freedom */
 	int ndof = the_field->NumDOF();
 	if (make_inactive)
@@ -2537,6 +2540,54 @@ void FEManagerT_bridging::GhostNodeBonds(const RaggedArray2DT<int>& neighbors,
 	for (int i = 0; i < is_overlap_cell.Length(); i++)
 		if (is_overlap_cell[i] == 't')
 			overlap_cell[num_overlap++] = i;
+
+//NOTE: up to this point, overlap cells are classified as those containing an active ghost
+//      atom bond; while overlap nodes are those nodes whose support includes a ghost atom.
+//      Now, we grow the list of overlap cells to include the entire support of all nodes
+//      whose support contains an active ghost node bond. This must be consistent with the
+//      other version of FEManagerT_bridging::GhostNodeBonds used to collect the entire,
+//      potential overlap region.
+#if 0
+	/* mark overlap nodes - nodes whose support contains an active
+	 * ghost atom bond */
+	int nnd = fNodeManager->NumNodes();	
+	ArrayT<char> is_overlap_node(nnd);
+	is_overlap_node = 'f';
+	num_overlap = 0;
+	for (int i = 0; i < overlap_cell.Length(); i++) {
+		const iArrayT& nodesX = coarse->ElementCard(overlap_cell[i]).NodesX();
+		for (int j = 0; j < nodesX.Length(); j++) {
+			int nd = nodesX[j];
+			if (is_overlap_node[nd] == 'f') {
+				num_overlap++;
+				is_overlap_node[nd] = 't';
+			}
+		}
+	}
+
+	/* loop over all elements looking for overlap nodes */
+	is_overlap_cell = 'f';
+	num_overlap = 0;
+	for (int i = 0; i < nel; i++) {
+		const iArrayT& nodesX = coarse->ElementCard(i).NodesX();
+		bool has_overlap_node = false;
+		for (int j = 0; !has_overlap_node && j < nodesX.Length(); j++)
+			if (is_overlap_node[nodesX[j]] == 't')
+				has_overlap_node = true;
+	
+		if (has_overlap_node) {
+			is_overlap_cell[i] = 't';
+			num_overlap++;
+		}
+	}
+
+	/* collect overlap cells */
+	overlap_cell.Dimension(num_overlap);
+	num_overlap = 0;
+	for (int i = 0; i < is_overlap_cell.Length(); i++)
+		if (is_overlap_cell[i] == 't')
+			overlap_cell[num_overlap++] = i;
+#endif
 }
 
 void FEManagerT_bridging::GhostNodeBonds(const dArrayT& R_i, const dArray2DT& point_coords, 
@@ -2623,7 +2674,8 @@ void FEManagerT_bridging::GhostNodeBonds(const dArrayT& R_i, const dArray2DT& po
 		if (is_overlap_cell[i] == 't')
 			overlap_cell_i[num_overlap++] = i;
 
-	/* mark overlap nodes */
+	/* mark overlap nodes - nodes whose support contains an active
+	 * ghost atom bond */
 	int nnd = fNodeManager->NumNodes();	
 	ArrayT<char> is_overlap_node(nnd);
 	is_overlap_node = 'f';
@@ -2645,6 +2697,91 @@ void FEManagerT_bridging::GhostNodeBonds(const dArrayT& R_i, const dArray2DT& po
 	for (int i = 0; i < is_overlap_node.Length(); i++)
 		if (is_overlap_node[i] == 't')
 			overlap_node_i[num_overlap++] = i;
+
+//NOTE: up to this point, overlap cells are classified as those containing an active ghost
+//      atom bond; while overlap nodes are those nodes whose support includes a ghost atom.
+//      Now, we grow the list of overlap cells to include the entire support of all nodes
+//      whose support contains an active ghost node bond. This must be consistent with the
+//      other version of FEManagerT_bridging::GhostNodeBonds used to collect the entire,
+//      potential overlap region.
+#if 0
+	/* loop over all elements looking for overlap nodes */
+	is_overlap_cell = 'f';	
+	num_overlap = 0;
+	for (int i = 0; i < nel; i++) {
+		const iArrayT& nodesX = coarse->ElementCard(i).NodesX();
+		bool has_overlap_node = false;
+		for (int j = 0; !has_overlap_node && j < nodesX.Length(); j++)
+			if (is_overlap_node[nodesX[j]] == 't')
+				has_overlap_node = true;
+	
+		if (has_overlap_node) {
+			is_overlap_cell[i] = 't';
+			num_overlap++;
+		}
+	}
+
+	/* collect overlap cells */
+	overlap_cell_i.Dimension(num_overlap);
+	num_overlap = 0;
+	for (int i = 0; i < is_overlap_cell.Length(); i++)
+		if (is_overlap_cell[i] == 't')
+			overlap_cell_i[num_overlap++] = i;
+#endif
+}
+
+/* collect list of cells not containing any active bonds */
+void FEManagerT_bridging::BondFreeElements(const RaggedArray2DT<int>& ghost_neighbors_i, 
+	AutoArrayT<int>& bondfree_cell_i) const
+{
+	const char caller[] = "FEManagerT_bridging::BondFreeElements";
+
+	/* the continuum element solving the coarse scale */
+	const ContinuumElementT* coarse = fFollowerCellData.ContinuumElement();
+	if (!coarse) ExceptionT::GeneralFail(caller, "interpolation data not set");
+	int nel = coarse->NumElements();
+	ArrayT<char> is_bond_free(nel);
+	is_bond_free = 't';
+
+	/* mark cells containing projection points */
+	int num_bond_free = nel;
+	const RaggedArray2DT<int>& point_in_cell = fDrivenCellData.PointInCell();
+	for (int i = 0; i < nel; i++)
+		if (point_in_cell.MinorDim(i) > 0) {
+			is_bond_free[i] = 'f';
+			num_bond_free--;
+		}
+
+	/* interpolation data */
+	const iArrayT& interpolating_cell = fFollowerCellData.InterpolatingCell();
+	const InverseMapT& follower_point_map = fFollowerCellData.GlobalToLocal();
+
+	/* process bonds to ghost points */
+	iArrayT neighbors_i;
+	for (int i = 0; i < ghost_neighbors_i.MajorDim(); i++) {
+
+		/* the neighbor list */
+		ghost_neighbors_i.RowAlias(i, neighbors_i);
+			
+		/* search other neighbors for ghosts */
+		for (int j = 1; j < neighbors_i.Length(); j++) {
+
+				/* mark cell */
+				int neighbor_local = follower_point_map.Map(neighbors_i[j]);	
+				int cell = interpolating_cell[neighbor_local];
+				if (is_bond_free[cell] == 't') {
+					is_bond_free[cell] = 'f';
+					num_bond_free--;
+				}
+			}
+		}
+
+	/* collect bond-free cells */
+	bondfree_cell_i.Dimension(num_bond_free);
+	num_bond_free = 0;
+	for (int i = 0; i < is_bond_free.Length(); i++)
+		if (is_bond_free[i] == 't')
+			bondfree_cell_i[num_bond_free++] = i;
 }
 
 /* generate "inverse" connectivities for active elements in the support of active nodes */
