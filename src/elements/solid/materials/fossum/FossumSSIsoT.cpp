@@ -1,5 +1,5 @@
 /* 3-invariant, single-surface dilation/compaction plasticity model
- * with isotropic and kinematic hardeneing
+ * with isotropic and kinematic hardening
  * Implemented 8/02 Craig Foster
  */
 
@@ -59,81 +59,53 @@ FossumSSIsoT::FossumSSIsoT(void):
 	fCalpha(-1.0),   
 	fPsi(1.0),
 	fN(-1.0),
-	fNumIP(NumIP()),
-	fmu(Mu()),
-	flambda(Lambda()),
-//	SSSolidMatT(in, support),
-//	IsotropicT(in),
+	// fmu(Mu()),
+	//flambda(Lambda()),
+//  SSSolidMatT(in, support),
+//  IsotropicT(in),
 
 
-	HookeanMatT(3),
-	fStress(3),
-	fModulus(dSymMatrixT::NumValues(3)),
-	fModulusPerfPlas(dSymMatrixT::NumValues(3)),   
-	fModulusContinuum(dSymMatrixT::NumValues(3)),
-	fModulusContinuumPerfPlas(dSymMatrixT::NumValues(3)),     
-	fElasticStrain(kNSD),
-	fStressCorr(kNSD),
-	fModuliCorr(dSymMatrixT::NumValues(kNSD)),
-	fModuliCorrPerfPlas(dSymMatrixT::NumValues(kNSD)),
-	fDevStress(kNSD),
-	fMeanStress(0.0),
-	fDevStrain(kNSD), 
-	fTensorTemp(dSymMatrixT::NumValues(kNSD)),
-	IdentityTensor2(kNSD),
-	One(kNSD),
-	fBackStress(kNSD),
-	fDeltaAlpha(kNSD),
+    HookeanMatT(3),
+    fStress(3),
+    fStrain(3),
+    fModulus(dSymMatrixT::NumValues(3)),
+    fModulusPerfPlas(dSymMatrixT::NumValues(3)),   
+    fModulusContinuum(dSymMatrixT::NumValues(3)),
+    fModulusContinuumPerfPlas(dSymMatrixT::NumValues(3)),     
+    fElasticStrain(kNSD),
+    fStressCorr(kNSD),
+    fModuliCorr(dSymMatrixT::NumValues(kNSD)),
+    fModuliCorrPerfPlas(dSymMatrixT::NumValues(kNSD)),
+    fDevStress(kNSD),
+    fMeanStress(0.0),
+    fDevStrain(kNSD), 
+    fTensorTemp(dSymMatrixT::NumValues(kNSD)),
+    IdentityTensor2(kNSD),
+    One(kNSD),
+    fBackStress(kNSD),
+    fDeltaAlpha(kNSD),
 
-	/*spectral decomp parameters */
-	spectre(kNSD),
-	m(kNSD),
-	principalEqStress(kNSD),
+    /*spectral decomp parameters */
+    spectre(kNSD),
+    m(kNSD),
+    principalEqStress(kNSD),
 
-	/*viscous paramters*/
-	//fStressInviscid(kNSD),
+    /*viscous paramters*/
+    //fStressInviscid(kNSD),
         fTimeFactor(1.0)
 
 {
-	/* allocate space for principal dirs m */
-	for (int i = 0; i < 3; i++)
-	{
-		m[i].Dimension(kNSD);
-	}
+    /* allocate space for principal dirs m */
+    for (int i = 0; i < 3; i++)
+    {
+        m[i].Dimension(kNSD);
+    }
 
-	/* read parameters -old tahoe 1_x style*/
-	/*
-	in >> fA;      
-	if (fA < 0.0 ) {cout << "Bad value for A\n" << flush; throw ExceptionT::kBadInputValue;}   
-	in >> fB;
-	in >> fC;
-	in >> fTheta; 
-	if (fTheta < 0.0 ) {cout << "Bad value for theta\n" << flush; throw ExceptionT::kBadInputValue;}
-	in >> fR;     
-	if (fR < 0.0 ) {cout << "Bad value for R\n" << flush; throw ExceptionT::kBadInputValue;}  
-	in >> fKappa0;
-	in >> fW;
-	in >> fD1; 
-	in >> fD2;
-	in >> fCalpha; 
-	if (fCalpha < 0.0 ) {cout<< "Bad value for Calpha, Calpha = "<< fCalpha << "\n"<< flush; throw ExceptionT::kBadInputValue;}
-	in >> fPsi;     
-	if (fPsi < 0.0 ) {cout << "Bad value for Psi\n" << flush; throw ExceptionT::kBadInputValue;}
-	in >> fN;
-	if (fN < 0.0) {cout << "Bad value for N\n" << flush; throw ExceptionT::kBadInputValue;}
-	in >> fFluidity;
-        if (fFluidity < 0.0) {cout << "Bad value for fluidity\n" << flush; throw ExceptionT::kBadInputValue;}
-	in >> fFossumDebug;
-        if (fFossumDebug != 0 && fFossumDebug != 1) {cout << "Bad value for fluidity\n" << flush; throw ExceptionT::kBadInputValue;}
-	*/
-
-
-	 
-
-	/* initialize constant tensor */
-	One.Identity();
+    /* initialize constant tensor */
+    One.Identity();
 
 }
+
 
 /* destructor */
 FossumSSIsoT::~FossumSSIsoT(void) { }
@@ -160,6 +132,8 @@ void FossumSSIsoT::DefineParameters(ParameterListT& list) const
   R.AddLimit(0.0, LimitT::LowerInclusive); 
   list.AddParameter(R);
 
+  list.AddParameter(fKappa0, "Initial_cap_position_kappa_0");
+
   list.AddParameter(fW, "Cap_growth_Parameter_W"); 
   list.AddParameter(fD1, "Cap_growth_Parameter_D1");
   list.AddParameter(fD2, "Cap_growth_Parameter_D2");
@@ -184,6 +158,9 @@ void FossumSSIsoT::DefineParameters(ParameterListT& list) const
 /* accept parameter list */
 void FossumSSIsoT::TakeParameterList(const ParameterListT& list)
 {
+
+  fNumIP = NumIP();
+
     /* inherited */
     SSIsotropicMatT::TakeParameterList(list);
     HookeanMatT::TakeParameterList(list);
@@ -193,6 +170,7 @@ void FossumSSIsoT::TakeParameterList(const ParameterListT& list)
     fC = list.GetParameter("Shear_surface_parameter_C");
     fTheta = list.GetParameter("Shear_surface_parameter_theta");
     fR = list.GetParameter("Cap_Ratio_R");
+    fKappa0 = list.GetParameter("Initial_cap_position_kappa_0");
     fW = list.GetParameter("Cap_growth_Parameter_W");
     fD1 = list.GetParameter("Cap_growth_Parameter_D1");
     fD2 = list.GetParameter("Cap_growth_Parameter_D2");
@@ -200,6 +178,11 @@ void FossumSSIsoT::TakeParameterList(const ParameterListT& list)
     fN = list.GetParameter("shear_surface_offset_N");
     fFluidity = list.GetParameter("fluidity_parameter_eta");
     fFossumDebug = list.GetParameter("local_debug_parameter");
+
+    fmu = Mu();
+    flambda = Lambda();
+
+
 }
 
 void FossumSSIsoT::DefineSubs(SubListT& sub_list) const
@@ -397,8 +380,8 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 	/*OUTPUT FOR ALPHA, KAPPA */ 
 	if (element.IsAllocated())
 	{
-		for (i = 0; i < 6 ; i++) output [i] = fBackStress [i];
-		output [6] = fInternal[kkappa];
+		for (i = 0; i < 6 ; i++) output [i] = fBackStress [i] + fDeltaAlpha[i];
+		output [6] = fInternal[kkappa] + fDeltaKappa;
 	}
 	else
 	{       
@@ -426,6 +409,10 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 	/* J3 - 3rd invariant of deviatoric stress */
 	double J3 = fStress.Det();
 	output[9] = J3;
+	
+	/* Clean up - restore full stress state */ 
+	fStress.AddScaled(output[7], One);
+
 
 	if (element.IsAllocated())
 	//if (0)  //to disable localization check
@@ -637,9 +624,7 @@ void FossumSSIsoT::AllocateElement(ElementCardT& element)
 	element.DoubleData()  = 0.0;  // initialize all double types to 0.0
 
 	/* initialize kappa to kappa0 */
-	int i;
-
-	for (i=0; i<fNumIP; i++)
+	for (int i=0; i<fNumIP; i++)
 		element.DoubleData() [3*dSymMatrixT::NumValues(kNSD)*fNumIP + i*kNumInternal] = fKappa0;
 }
 
@@ -696,12 +681,48 @@ void FossumSSIsoT::Update(ElementCardT& element)
 			fInternal[kkappa] += fDeltaKappa;
 			fBackStress += fDeltaAlpha;
 
-			/* plastic strain increment */
-			fPlasticStrain.AddScaled(dgamma, DfdSigma(I1, J2, J3, fInternal[kkappa], principalEqStress, m));
 
-			fKappa0 = fInternal[kkappa];
+			//cout << "fPlasticStrain = \n" << fPlasticStrain << endl;
+
+			/* plastic strain increment */
+			//fPlasticStrain.AddScaled(dgamma, DfdSigma(I1, J2, J3, fInternal[kkappa], principalEqStress, m));
+
+			//cout << "fPlasticStrain = \n" << fPlasticStrain << endl;
+
+			
+			//alt for visco
+			fPlasticStrain = 0.0;
+			//dMatrixT ElasticCompliance(6);
+			//ElasticCompliance.Inverse(HookeanMatT::Modulus());
+
+			//cout << "Modulus = \n" << HookeanMatT::Modulus() << endl;
+			//cout << "ElasticCompliance = \n" << ElasticCompliance << endl;
+			//cout << "fStress = \n" << fStress << endl;
+
+			/* Elastic Strain */
+			double meanStrain = fStress.Trace()/(9.0*Kappa());
+			fStress.Deviatoric();
+			fPlasticStrain = fStress;
+			fPlasticStrain /= (2.0*fmu);
+			
+			fPlasticStrain [0] += meanStrain;
+			fPlasticStrain [1] += meanStrain;
+			fPlasticStrain [2] += meanStrain;
+			//cout << "Elastic Strain = \n" << fPlasticStrain << endl;
+
+			/* subtract elastic strain from total strain */
+			fPlasticStrain *= -1.0;
+			fPlasticStrain += fStrain;
+			
+			//cout << "fStrain = \n" << fStrain << endl;
+			//cout << "fPlasticStrain = \n" << fPlasticStrain << endl;
+
+			/*keep cap from retrcating ????*/
+			fKappa0 = fInternal[kkappa]; 
 		}
 }
+
+
 
 /* resets to the last converged solution */
 void FossumSSIsoT::Reset(ElementCardT& element)
@@ -859,14 +880,22 @@ double FossumSSIsoT::YieldFnFf(double I1)
 /* stress */
 const dSymMatrixT& FossumSSIsoT::s_ij(void)
 {
-	int ip = CurrIP();
-	ElementCardT& element = CurrentElement();
+	
+
+  if (fSSMatSupport->RunState() != GlobalT::kFormRHS)
+    return fStress;
+
+        int ip = CurrIP();
+        ElementCardT& element = CurrentElement();
 	const dSymMatrixT& e_tot = e();
+	fStrain = e();
 	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
 	double yieldFnTol = 1.0e-8;
 
 	/* elastic stress */
 	HookeanStress(e_els, fStress);
+
+  	//cout << "strain =\n" << e_els << endl;     
 
 	/* modify Cauchy stress (return mapping) */
 	//fStress += StressCorrection(e_els, element, ip);
@@ -876,10 +905,13 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 
 	LoadData(element, ip);
 
-	dSymMatrixT backStress_n; //load alpha_n
-	double kappa_n; //load kappa  
-	backStress_n = fBackStress;
-	kappa_n = fInternal[kkappa];
+	dSymMatrixT workingBackStress; //load alpha_n
+	double workingKappa; //load kappa  
+	workingBackStress = fBackStress;
+	workingKappa = fInternal[kkappa];
+
+	//workingStress = fStress;
+
 
 	/*
 	cout << "fStress =\n" << fStress << endl;
@@ -887,41 +919,192 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 	cout << "fInternal[kkappa] = " << fInternal[kkappa] << endl << endl; 
 	*/
 
-	double initialYieldCheck;
 	int &flag = (element.IntegerData())[ip]; 
-	/* if elastic, return elastic stress */
-	initialYieldCheck = YieldCondition(fStress, kappa_n, backStress_n);
-	if ( initialYieldCheck < yieldFnTol)
-	{
-		flag = kIsElastic; 
-		return fStress; 
-	}
-	/* ELSE plastic loading */	
+
+        //stresses and strains from last time step
+	const dSymMatrixT& e_tot_last = e_last();
+	const dSymMatrixT& e_els_last = ElasticStrain(e_tot_last, element, ip);
 	
-	flag = kIsPlastic; 
-  
+	// stress from previous time step
+	dSymMatrixT fStress_last(3);
+	HookeanStress(e_els_last, fStress_last);
+	
+	dSymMatrixT delta_e(3);
+	delta_e.DiffOf(e_tot, e_tot_last);
+	dSymMatrixT elastic_stress_increment(3);
+	HookeanStress(delta_e, elastic_stress_increment);
+
+
+	/* Set up for Newton Iteration with potential local step cuts */
+	double totalIncr = 0.0; /* fraction of total load step taken */
+	double step = 1.0; /*fraction of total step to take */ 
+	int stepIncrease = 0; /* after 4 successful iterations, increase load step */
+
+	/*initialize increment variables */
+	fInternal[kdgamma] = 0.0;
+	fDeltaAlpha = 0.0;
+	fDeltaKappa = 0.0;
+
+
+	    /* assume elastic increment */
+	    fStress.Copy(fStress_last.Pointer());
+	    fStress.AddScaled(step,elastic_stress_increment);
+ 
+	    /*check for yielding */
+	    double initialYieldCheck;
+	    initialYieldCheck = YieldCondition(fStress, workingKappa, workingBackStress);
+	    if ( initialYieldCheck < yieldFnTol)
+	      {
+		flag = kIsElastic;
+		//totalIncr += step;
+	      }
+	    else
+	      {
+		/* ELSE plastic loading */	
+		flag = kIsPlastic; 
+
+	/*spectral decomposition of equivalent stress*/  
 	dSymMatrixT eqTrialStress(kNSD);
-	eqTrialStress.DiffOf(fStress, backStress_n);
+	eqTrialStress.DiffOf(fStress, workingBackStress);
 
-	/*spectral decomposition of equivalent stress*/
-	//SpectralDecompT spectre(kNSD);
 	spectre.SpectralDecomp_Jacobi(eqTrialStress, true);
-
-	//ArrayT<dSymMatrixT> m(3);
-	int i, j;
 		
-	for (i = 0; i < 3; i++)
+	for (int i = 0; i < 3; i++)
 	{
-		//m[i].Dimension(kNSD);
 		m[i].Outer(spectre.Eigenvectors() [i]);
 	}
 
+	principalEqStress = spectre.Eigenvalues();
+	dArrayT iterationVars(7);
+
+	    if(StressPointIteration(initialYieldCheck, iterationVars, workingBackStress, workingKappa))
+	      {
+		//totalIncr += step;
+
+		/*update stress and ISV's */
+		fStress.AddScaled(iterationVars[0],m[0]);
+		fStress.AddScaled(iterationVars[1],m[1]);
+		fStress.AddScaled(iterationVars[2],m[2]);
+
+		fDeltaAlpha.AddScaled(iterationVars[3],m[0]);
+		fDeltaAlpha.AddScaled(iterationVars[4],m[1]);
+		fDeltaAlpha.AddScaled(-iterationVars[3]-iterationVars[4],m[2]);
+
+		fDeltaKappa += iterationVars[5];
+	
+		fInternal[kdgamma] = iterationVars[6];
+
+		//workingBackStress.Copy(fBackStress.Pointer());
+		//workingBackStress += fDeltaAlpha;
+		//workingKappa = fInternal[kkappa] + fDeltaKappa;
+
+		if (fFossumDebug && ip == 0)
+		  {
+		    cout << "fDeltaAlpha = \n " << fDeltaAlpha;
+		    cout << "fDeltaKappa = " << fDeltaKappa << endl;
+		    cout << "fInternal[kdgamma] = " << fInternal[kdgamma] << endl << endl;
+		    //cout << "fDeltaAlpha = " << fDeltaAlpha << endl;
+
+		  }
+
+		/* check for step increase if things are converging well*/
+		/*
+		if (stepIncrease == 4 && totalIncr + step < 1.0)
+		  {
+		    step *= 2.0;
+		    stepIncrease = 0;
+		  }
+		*/
+	      }
+	    else
+	      {
+
+		cout << "FossumSSIsoT::s_ij, failed to find valid solution\n" << flush;
+		throw ExceptionT::kGeneralFail;
+	 
+	      }
+	      }
+	/*
+	cout << "workingStress =\n" << workingStress << endl; 
+	cout << "workingBackStress =\n" << workingBackStress << endl;
+	cout << "workingKappa = " << workingKappa << endl;
+	*/
+
+
+	
+	//fKappa0 = fInternal[kkappa];
+
+	//cout << "fStress = \n" << fStress << endl;
+	//cout << "fBackStress = \n" << fBackStress << endl;
+	//cout << "fInternal[kkappa] = " << fInternal[kkappa] << endl;
+	
+	/*
+	cout << "fStress [0] = " << fStress [0] << endl;
+	cout << "fStress [1] = " << fStress [1] << endl;
+	cout << "fStress [2] = " << fStress [2] << endl;
+	cout << "fStress [3] = " << fStress [3] << endl;
+	cout << "fStress [4] = " << fStress [4] << endl;
+	cout << "fStress [5] = " << fStress [5] << endl;
+	*/
+	
+	//fStressInviscid = fStress;
+
+	/*	if (fFossumDebug && ip == 0)
+	    cout << " fStress Inviscid = \n" << fStress << endl;
+
+	*/
+
+// Rate-Dependence effects. Duvaut-Lions formulation. See Simo and Hughes, p/217
+	
+	if (fFluidity != 0.0) //fluidity param = 0 => inviscid case
+	  {
+	    double dt = fSSMatSupport -> TimeStep(); 
+            //double time_factor = exp(-1*dt/fFluidity);
+
+	    /*Set time factor previously set to 1.0*/
+	    if (fFluidity != 0.0)
+	      fTimeFactor = 1 - exp(-1*dt/fFluidity);
+
+
+
+	    //fStress = time_factor * fStress_last + (1 - time_factor) *fStress
+	    //  + (1 - time_factor)/(dt/fFluidity) * elastic_stress_increment;
+	    //cout << " fStress = \n" << fStress << endl;
+
+            fStress *= fTimeFactor;
+
+	    //cout << " fStress = \n" << fStress << endl;
+	    fStress.AddScaled(1- fTimeFactor, fStress_last);
+
+	    //cout << " fStress = \n" << fStress << endl;
+
+	    fStress.AddScaled(fTimeFactor*fFluidity/dt, elastic_stress_increment);
+
+	    // update isv's
+	    fDeltaAlpha *= fTimeFactor;
+	    fDeltaKappa *= fTimeFactor;
+	  }
+
+	/*
+	if (fFossumDebug && ip == 0)
+	  {
+	    cout << " fStress = \n" << fStress << endl;
+	  }
+	*/
+
+	//cout << " fStress = \n" << fStress << endl;
+	return fStress;
+}
+
+bool FossumSSIsoT::StressPointIteration(double initialYieldCheck, dArrayT& iterationVars, dSymMatrixT workingBackStress, double workingKappa)
+{
+  int ip = CurrIP();
 	/* initialize iteration variables */
 	int newtonCounter = 0, maxIter = 20;
-	dArrayT iterationVars(7), iterationVarsIncr(7), residual(7), residual0(7);
-	dSymMatrixT workingStress(kNSD), workingBackStress(kNSD);
+	dArrayT iterationVarsIncr(7), residual(7), residual0(7);
+	dSymMatrixT workingStress(kNSD);// workingBackStress(kNSD);
 	double I1 = 0.0, J2 = 0.0, J3 = 1.0;
-	double workingKappa;
+	//double workingKappa;
 	//dArrayT principalEqStress;
 	LAdMatrixT dRdX (7); //LAdMatrixT ??????
 
@@ -930,27 +1113,25 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 	residual [6] = initialYieldCheck;// 4.720200e+02;//
 	residual0 = residual;
 
-	/*
+	
 	if (ip == 0 && fFossumDebug)
 	{
-	       cout << "\n\n\n Initial residual = \n";
+	       cout << "\n\n\n Initial residual = ";
 		cout << residual << endl;
 	}
-	*/
+	
 
-	workingStress = fStress;
-	workingBackStress = fBackStress;
-	workingKappa = fInternal[kkappa];
 
-	principalEqStress = spectre.Eigenvalues();
+
+
 	//cout << " principalEqStress = \n" << principalEqStress << endl;
 	//cout << " m0 = \n" << m[0] << endl;
 	//cout << " m1 = \n" << m[1] << endl;
 	//cout << " m2 = \n" << m[2] << endl;
 
-	for (i = 0; i < kNSD; i++) I1 += principalEqStress[i];
+	for (int i = 0; i < kNSD; i++) I1 += principalEqStress[i];
 
-	for (i = 0; i < kNSD; i++)
+	for (int i = 0; i < kNSD; i++)
 	{
 		J2 += 0.5*(principalEqStress[i] - I1/3.0) * (principalEqStress[i] - I1/3.0);
 		J3 *= (principalEqStress[i] - I1/3.0);
@@ -960,15 +1141,15 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 	while(!ResidualIsConverged(residual, residual0))
 	  {
 	    /* check to see if not converging */
-	    if (newtonCounter++ > maxIter)
+	    if (newtonCounter++ > maxIter && fFossumDebug)
 	      {
 		cout << "FossumSSIsoT::s_ij, Newton Iteration failed to converge\n" << flush;
-		throw ExceptionT::kGeneralFail;
+		return false;
 	      }
 
 	    /* form dR/dx */
 	    dRdX = 0.0; 
-	    dRdX = FormdRdX(I1, J2, J3, principalEqStress, workingKappa, workingStress, workingBackStress, iterationVars [6], m);
+	    dRdX = FormdRdX(I1, J2, J3, principalEqStress, workingKappa, fStress, workingBackStress, iterationVars [6], m);
       
        
 	        if (ip == 0 && fFossumDebug)
@@ -1145,15 +1326,16 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 		J2 = 0.0; 
 		J3 = 1.0;
 
-	    for (i = 0; i < kNSD; i++) I1 += principalEqStress[i];
+	    for (int i = 0; i < kNSD; i++) I1 += principalEqStress[i];
 	    
-	    for (i = 0; i < kNSD; i++)
+	    for (int i = 0; i < kNSD; i++)
 		{
 			J2 += 0.5 * (principalEqStress[i] - I1/3.0) * (principalEqStress[i] - I1/3.0);
 			J3 *= (principalEqStress[i] - I1/3.0);
 		}
 
-		workingStress.AddScaled(iterationVarsIncr[0],m[0]);
+	    
+	    workingStress.AddScaled(iterationVarsIncr[0],m[0]);
 		workingStress.AddScaled(iterationVarsIncr[1],m[1]);
 		workingStress.AddScaled(iterationVarsIncr[2],m[2]);
 	
@@ -1161,20 +1343,21 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 		workingBackStress.AddScaled(iterationVarsIncr[4],m[1]);
 		workingBackStress.AddScaled(-iterationVarsIncr[3]-iterationVarsIncr[4],m[2]);
 		workingKappa = fInternal[kkappa] + iterationVars [5];
+	    
 
 		/*form new residual */
 		residual = 0.0;
 
 
-	    for (i = 0; i < kNSD; i++) 
+	    for (int i = 0; i < kNSD; i++) 
 	      {
-		for (j = 0; j < kNSD; j++)
+		for (int j = 0; j < kNSD; j++)
 		  residual [i] += iterationVars[6] *ElasticConstant(i,j) 
 		               *dfdSigmaA(I1, J2, J3, principalEqStress [j], workingKappa);
 		residual [i] += iterationVars [i];
 	      }
 
-	    for (i = kNSD; i < 2*kNSD - 1; i++)
+	    for (int i = kNSD; i < 2*kNSD - 1; i++)
 	      {
 		residual [i] = iterationVars [6] *fCalpha * Galpha(workingBackStress) * dfdDevStressA (I1, J2, J3, principalEqStress [i - kNSD]);
 		residual [i] -= iterationVars [i];
@@ -1187,111 +1370,43 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 
 	    residual [6] = YieldFn(I1, J2, J3, workingKappa);
 
-	    /*
-	    if (ip == 0 && fFossumDebug)
+	    
+	    if (fFossumDebug && ip == 0)
 	      {
-		//cout << "dRdX = \n" << dRdX << endl << flush;
-		//cout << "iterationVars = \n" << iterationVars << endl;
-		//cout << "\nresidual =\n" << residual << endl;
+		cout << "dRdX = \n" << dRdX << endl << flush;
+		cout << "iterationVarsIncr = \n" << iterationVarsIncr << endl;
+		cout << "iterationVars = \n" << iterationVars << endl;
+		cout << "\nresidual =\n" << residual << endl;
 		//cout << "workingKappa = " << workingKappa << endl;
 		//cout << "fKappa0 = " << fKappa0 << endl;
-
-
-
 		
 		double r = 0.0;
 		for (int i = 0; i < 7; i++)
 		  r += residual[i]*residual[i];
 		r = sqrt(r);
-		cout << "r = " << r << endl;
+		//	cout << "r = " << r << endl;
 		
+		//if (ip == 7) cout << endl;
 	      }
-	    */
+	    
 	
 	} //end while loop
 
 
-	/*
-	cout << "workingStress =\n" << workingStress << endl; 
-	cout << "workingBackStress =\n" << workingBackStress << endl;
-	cout << "workingKappa = " << workingKappa << endl;
-	*/
-
-	/*update variables and exit */
-	fStress.AddScaled(iterationVars[0],m[0]);
-	fStress.AddScaled(iterationVars[1],m[1]);
-	fStress.AddScaled(iterationVars[2],m[2]);
-
-	fDeltaAlpha = 0.0;
-	fDeltaAlpha.AddScaled(iterationVars[3],m[0]);
-	fDeltaAlpha.AddScaled(iterationVars[4],m[1]);
-	fDeltaAlpha.AddScaled(-iterationVars[3]-iterationVars[4],m[2]);
-
-	fDeltaKappa = iterationVars[5];
-	
-	fInternal[kdgamma] = iterationVars[6];
-	
-	//fKappa0 = fInternal[kkappa];
-
-	//cout << "fStress = \n" << fStress << endl;
-	//cout << "fBackStress = \n" << fBackStress << endl;
-	//cout << "fInternal[kkappa] = " << fInternal[kkappa] << endl;
-	
-	/*
-	cout << "fStress [0] = " << fStress [0] << endl;
-	cout << "fStress [1] = " << fStress [1] << endl;
-	cout << "fStress [2] = " << fStress [2] << endl;
-	cout << "fStress [3] = " << fStress [3] << endl;
-	cout << "fStress [4] = " << fStress [4] << endl;
-	cout << "fStress [5] = " << fStress [5] << endl;
-	*/
-	
-	//fStressInviscid = fStress;
-
-	if (fFossumDebug && ip == 0)
-	    cout << " fStress Inviscid = \n" << fStress << endl;
-
-// Rate-Dependence effects. Duvaut-Lions formulation. See Simo and Hughes, p/217
-	
-	if (fFluidity != 0.0) //fluidity param = 0 => inviscid case
+	/* Check that failure surface has not been violated, 
+	   i.e. J_2^alpha < N, i.e. G^/alpha >= 0 */
+	double kin_tol = -1.0e-12;
+	if ( Galpha(workingBackStress) < kin_tol)
 	  {
-	    double dt = fSSMatSupport -> TimeStep(); 
-            //double time_factor = exp(-1*dt/fFluidity);
-
-	    const dSymMatrixT& e_tot_last = e_last();
-
-	    //cout << "e_tot_last = \n" << e_tot_last << flush;
-
-	    const dSymMatrixT& e_els_last = ElasticStrain(e_tot_last, element, ip);
-	    
-	    // stress from previous time step
-	    dSymMatrixT fStress_last(3);
-	    HookeanStress(e_els_last, fStress_last);
-
-	    dSymMatrixT delta_e(3);
-	    delta_e.DiffOf(e_tot, e_tot_last);
-	    dSymMatrixT elastic_stress_increment(3);
-	    HookeanStress(delta_e, elastic_stress_increment);
-
-	    //fStress = time_factor * fStress_last + (1 - time_factor) *fStress
-	    //  + (1 - time_factor)/(dt/fFluidity) * elastic_stress_increment;
-            fStress *= fTimeFactor;
-	    fStress.AddScaled(1- fTimeFactor, fStress_last);
-	    fStress.AddScaled((fTimeFactor)*fFluidity/dt, elastic_stress_increment);
-
-	    // update isv's
-	    fDeltaAlpha *= fTimeFactor;
-	    fDeltaKappa *= fTimeFactor;
+	    if (fFossumDebug)
+	    cout << "FossumSSIsoT::s_ij, Back stress growth limit violated.  Spurious solution obtained. Attempting local step cut.\n" << flush;
+	    return false;
 	  }
 
-	if (fFossumDebug && ip == 0)
-	  {
-	    cout << " fStress = \n" << fStress << endl;
-	  }
-
-
-	return fStress;
+	return true;
 }
+
+
 
 bool FossumSSIsoT::ResidualIsConverged(dArrayT& residual, dArrayT& residual0)
 {

@@ -1,5 +1,5 @@
 /* 3-invariant, single-surface dilation/compaction plasticity model
- * with isotropic and kinematic hardeneing
+ * with isotropic and kinematic hardening
  * Implemented 8/02 Craig Foster
  */
 
@@ -143,6 +143,7 @@ private:
   
 	/* return values */
 	dSymMatrixT fStress;
+	dSymMatrixT fStrain;
 	dMatrixT fModulus;
 	dMatrixT fModulusCe;
 	dMatrixT fModulusPerfPlas;
@@ -263,6 +264,7 @@ private:
 	double Xfn(const double kappa);
 	double YieldFnFf(double I1);
 
+	bool StressPointIteration(double initialYieldCheck, dArrayT& iterationVars, dSymMatrixT workingBackStress, double workingKappa);
 	bool ResidualIsConverged(dArrayT& residual, dArrayT& residual0);
 	dArrayT CapKappa(const dArrayT &residual, const LAdMatrixT &dRdX, const double kappa);
 	dArrayT CondenseAndSolve(const LAdMatrixT& dRdX, const dArrayT& residual);
