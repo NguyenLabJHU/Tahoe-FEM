@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.cpp,v 1.2 2001-12-16 23:57:06 paklein Exp $ */
+/* $Id: ExodusOutputT.cpp,v 1.3 2002-01-09 12:16:31 paklein Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "ExodusOutputT.h"
@@ -67,20 +67,20 @@ void ExodusOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 	const iArrayT& blockIDs = fElementSets[ID]->BlockID ();
 	if (e_values.Length() > 0)
 	{
-	  /* separate values by block */
-	  for (int b=0; b < fElementSets[ID]->NumBlocks(); b++)
+		/* separate values by block */
+		for (int b=0; b < blockIDs.Length(); b++)
 	    {
-	        dArray2DT e_block (fElementSets[ID]->NumBlockElements(b), e_values.MinorDim());
-	        ElementBlockValues (ID, b, e_values, e_block);
+			dArray2DT e_block (fElementSets[ID]->NumBlockElements(b), e_values.MinorDim());
+			ElementBlockValues (ID, b, e_values, e_block);
 	      
-	        /* separate values by variable */
-		dArrayT values(e_block.MajorDim());
-		for (int i = 0; i < e_block.MinorDim(); i++)
-		{
-		  e_block.ColumnCopy(i, values);
-		  exo.WriteElementVariable(fElementSets[ID]->PrintStep() + 1, blockIDs[i], 
-					   i + 1, values);
-		}
+			/* separate values by variable */
+			dArrayT values(e_block.MajorDim());
+			for (int i = 0; i < e_block.MinorDim(); i++)
+			{
+				e_block.ColumnCopy(i, values);
+				exo.WriteElementVariable(fElementSets[ID]->PrintStep() + 1, blockIDs[b], 
+					i + 1, values);
+			}
 	    }
 	}
 }
