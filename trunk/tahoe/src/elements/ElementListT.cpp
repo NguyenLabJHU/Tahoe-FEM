@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.70 2003-11-05 20:34:44 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.71 2003-11-10 18:54:46 thao Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -102,14 +102,14 @@
 #ifdef SOLID_ELEMENT_DEV
 #ifdef MATERIAL_FORCE_ELEMENT_DEV
 #include "SmallStrainQ2P1.h"
-#include "UpdatedLagrangianMF.h"
+#include "UpLagMF.h"
 #include "SmallStrainMF.h"
 #include "SSMF.h"
 #include "SSQ2P1MF.h"
 #include "SmallStrainQ1P0.h"
 #include "SSQ1P0MF.h"
-#include "SmallStrainMF2.h"
 #endif /* MATERIAL_FORCE_ELEMENT_DEV */
+
 #ifdef SPLIT_INTEGRATION_DEV
 #include "SplitIntegrationT.h"
 #endif
@@ -696,7 +696,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		case ElementT::kFSMatForce:
 	        {
 #if defined (SOLID_ELEMENT_DEV) && defined (MATERIAL_FORCE_ELEMENT_DEV)
-		        fArray[group] = new UpdatedLagrangianMF(fSupport, *field);
+		        fArray[group] = new UpLagMF(fSupport, *field);
 			break;
 #else
 			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or MATERIAL_FORCE_ELEMENT_DEV not enabled: %d", code);
