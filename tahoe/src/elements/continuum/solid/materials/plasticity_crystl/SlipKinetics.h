@@ -66,8 +66,14 @@ class SlipKinetics
   virtual void RestoreRateSensitivity();
 
  protected:
+  // compute max/min values of power law argument
+  void MaxMinArgPowerLaw(const double &xm);
+
   // power
   double Power(const double &x, const double &y);
+
+  // checking argument of power law
+  void CheckArgumentRange(double &arg, const double &sign);
 
  protected:
   // reference to hardening object
@@ -75,6 +81,10 @@ class SlipKinetics
 
   // material properties array
   dArrayT fMatProp;
+
+  // max & min value of power law argument
+  double fArgMin;
+  double fArgMax;
 };
 
 inline const dArrayT& SlipKinetics::MaterialProperties() const
