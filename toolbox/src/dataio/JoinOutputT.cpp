@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.12 2002-09-12 16:05:35 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.13 2002-09-18 01:33:07 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 #include "JoinOutputT.h"
 
@@ -346,9 +346,12 @@ void JoinOutputT::SetOutput(void)
 				all_connects.BlockRowCopyAt(part_elems[i], num_elem);
 				num_elem += part_elems[i].MajorDim();
 			}
-			
+
+			/* generate dummy block ID for "connectivities" of free set nodes */			
+			StringT sID = "900"; /* NOTE: same convention used by IOManager_mpi::IOManager_mpi for run time assembly */
+			sID.Append(block_ID[0]);
+
 			/* store connectivities in the model manager */
-			StringT sID = block_ID[0];
 			if (!fModel->RegisterElementGroup(sID, all_connects, geometry_code, true)) {
 				cout << "\n JoinOutputT::SetOutput: error registering free set with the model manager: " << sID << endl;
 				throw eDatabaseFail;	
