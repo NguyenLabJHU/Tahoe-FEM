@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.4 2001-09-28 00:18:06 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.5 2001-09-28 16:21:07 paklein Exp $ */
 
 #include "VTKConsoleT.h"
 #include "vtkRenderer.h"
@@ -95,7 +95,7 @@ VTKConsoleT::VTKConsoleT(void)
 
 	}
 
-  /* look for results data */
+/* look for results data */
   int num_time_steps = exo.NumTimeSteps();
   //if (num_time_steps > 0)
   //	{
@@ -142,12 +142,46 @@ VTKConsoleT::VTKConsoleT(void)
 
 
   vtkPoints *points = vtkPoints::New();
- for (int i=0; i<num_nodes; i++) points->InsertPoint(i,coordinates[i]);
+ for (int i=0; i<num_nodes; i++) points->InsertPoint(i,coordinates(i));
+
+ //NOTE: this code is only for a single block of cells
+ //      the data for visualization will be provided one
+ //      group of cells at a time.
+ iArray2DT& connects = connectivities[0];
+
+ /* create array of VTK-style connectivities */
+ iArray2DT vtk_connects(connects.MajorDim(), connects.MinorDim()+1); //has 1 extra entry!!!
+ vtk_connects.BlockColumnCopyAt(connects, 1);
+ vtk_connects.SetColumn(0, connects.MinorDim()); //first value in each row is row size 
+
+ /* release "ownership" of memory */
+ int* p_vtk_connects;
+ vtk_connects.ReleasePointer(&p_vtk_connects);
+
+ /* create VTK integer array */
+ vtkIntArray* intArray = vtkIntArray::New();
+ intArray->SetNumberOfComponents(vtk_connects.MinorDim()); //is this needed???
+ intArray->SetArray(p_vtk_connects, vtk_connects.Length(), 0);
   
-  vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
-    ugrid->Allocate(num_elem_blocks);
-  for (int i=0; i<num_elem_blocks; i++) 
-    ugrid->InsertNextCell(VTK_TETRA, 4, connectivities[i]);
+ /* create VTK array of cells */
+ vtkCellArray* vtk_cell_array = vtkCellArray::New();
+ vtk_cell_array->SetCells(vtk_connects.MajorDim(), intArray);
+
+ //NOTE: do all at once for higher efficiency 
+ //ugrid->Allocate(num_elem_blocks);
+ // for (int i=0; i<num_elem_blocks; i++) 
+ //   ugrid->InsertNextCell(VTK_TETRA, 4, connectivities[i]); 
+ //??TETRA
+
+ //NOTE: the example database has triangles. Generally, you would need
+ //      to determine the cell type from the database, or require that
+ //      the cell type be specified when the data is sent to the visualizer.
+ ArrayT<int> cell_types(vtk_connects.MajorDim());
+ cell_types = VTK_QUAD; // all the cells are the same
+
+ /* insert cells in the grid */
+ vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
+ ugrid->SetCells(cell_types.Pointer(), vtk_cell_array);
 
   vtkScalars *scalars = vtkScalars::New(VTK_DOUBLE);
   for (int i=0; i<num_nodes; i++) scalars->InsertScalar(i,nodal_data[i]);
