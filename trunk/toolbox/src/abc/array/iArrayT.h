@@ -1,4 +1,4 @@
-/* $Id: iArrayT.h,v 1.3 2001-12-17 00:00:52 paklein Exp $ */
+/* $Id: iArrayT.h,v 1.4 2002-03-06 02:04:46 paklein Exp $ */
 /* created: paklein (08/10/1996) */
 
 #ifndef _IARRAY_T_H_
@@ -40,9 +40,6 @@ public:
 	 * \param index returns with the index of the first occurence, if found, -1 otherwise
 	 * \return 1 if value found, 0 otherwise */
 	int HasValue(int value, int& index) const;
-	
-	/* set array value to its position in the array */
-	void SetValueToPosition(void);
 	
 	/** sort values in ascending order */
 	void SortAscending(void);
