@@ -1,7 +1,7 @@
-/* $Id: tahoe.MacOS.pch++,v 1.1 2004-02-05 18:45:18 paklein Exp $ */
+/* $Id: tahoe.MacOS.pch++,v 1.2 2004-02-22 00:19:17 paklein Exp $ */
 #pragma check_header_flags on  
 
-#define _MSL_USING_MW_C_HEADERS 1
+//#define _MSL_USING_MW_C_HEADERS 1
 
 #if __MACH__
 	#if _MSL_USING_MW_C_HEADERS
