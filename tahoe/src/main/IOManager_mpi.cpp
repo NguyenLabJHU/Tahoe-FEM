@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.7 2002-01-07 00:56:22 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.8 2002-01-07 20:37:22 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #include "IOManager_mpi.h"
@@ -459,7 +459,10 @@ void IOManager_mpi::SetAssemblyMap(const iArrayT& inv_global, int shift, const i
 	for (int j = 0; j < n_map; j++)
 	{
 		int dex = inv_global[*p++ - shift];
-		if (dex == -1) throw eGeneralFail;
+		if (dex == -1) {
+			cout << "\n IOManager_mpi::SetAssemblyMap: an error has been detected setting the assembly maps" << endl;
+			throw eGeneralFail;
+		}
 		lg_map[j] = dex;
 	}	
 }
