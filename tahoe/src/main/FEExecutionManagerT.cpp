@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.34.2.1 2002-12-10 17:13:02 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.34.2.2 2002-12-16 09:23:51 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -512,6 +512,8 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 /* testing for distributed execution */
 void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 {
+	const char caller[] = "::RunJob_parallel";
+
 	/* set stream comment marker */
 	in.set_marker('#');
 
@@ -589,7 +591,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		try { Decompose(in, size, method, model_file, format, map_file); }
 		catch (ExceptionT::CodeT code)
 		{
-			cout << " ::RunJob_parallel: exception on decomposition: " << code << endl;
+			cout << "\n " << caller << ": exception on decomposition: " << code << endl;
 			token = 0;
 		}
 		  }
@@ -608,7 +610,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	token = 1;
 	if (!part_in.is_open())
 	{
-		cout << "\n ::RunJob_parallel: could not open file: " << part_file << endl;
+		cout << "\n " << caller << ": could not open file: " << part_file << endl;
 		token = 0;
 	}
 	else
@@ -616,7 +618,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		part_in >> partition;
 		if (partition.ID() != rank)
 		{
-			cout << "\n ::RunJob_parallel: rank and partition ID mismatch" << endl;
+			cout << "\n " << caller << ": rank and partition ID mismatch" << endl;
 			token = 0;
 		}
 		
@@ -639,12 +641,12 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		/* original model file */
 		ModelManagerT model_ALL(cout);
 		if (!model_ALL.Initialize(format, model_file, true))
-			ExceptionT::GeneralFail("FEExecutionManagerT::RunJob_parallel", 
+			ExceptionT::GeneralFail(caller, 
 				"error opening file: %s", (const char*) model_file);
 
-		cout << "\n ::RunJob_parallel: writing partial geometry file: " << partial_file << endl;
+		cout << "\n " << caller << ": writing partial geometry file: " << partial_file << endl;
 		EchoPartialGeometry(partition, model_ALL, partial_file, format);
-		cout << " ::RunJob_parallel: writing partial geometry file: partial_file: "
+		cout << " " << caller << ": writing partial geometry file: partial_file: "
 			 << partial_file << ": DONE" << endl;
 	}
 	
@@ -667,9 +669,6 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		/* echo some lines from input */
 		if (code == ExceptionT::kBadInputValue) Rewind(in_loc, status);
 		token = 0;
-
-		/* write exception codes to out file */
-		ExceptionT::WriteExceptionCodes(out);
 	}
 	
 	if (fComm.Sum(token) != size)
@@ -688,13 +687,13 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		}
 		else fComm.Gather(token, 0);
 		
-		ExceptionT::GeneralFail();
+		ExceptionT::GeneralFail(caller);
 	}
 	
-	/* external IO */
+	/* external IO - only for graph decomposition */
 	token = 1;
 	IOManager_mpi* IOMan = NULL;
-	if (!CommandLineOption("-split_io"))
+	if (partition.DecompType() == PartitionT::kGraph && !CommandLineOption("-split_io"))
 	{
 		try {
 		/* read output map */
@@ -714,8 +713,6 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 			token = 0;
 			status << "\n \"" << in.filename() << "\" exit on exception " << code 
 			       << " setting the external IO" << endl;
-			/* write exception codes to out file */
-			ExceptionT::WriteExceptionCodes(out);		
 		}
 	}
 
@@ -735,7 +732,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		else 
 			fComm.Gather(token, 0);
 		
-		ExceptionT::GeneralFail();
+		ExceptionT::GeneralFail(caller);
 	}
 
 	/* solve */
@@ -748,9 +745,6 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		status << " solution phase. See \"" << out_file << "\" for a list";
 		status << " of the codes.\n";
 		token = 0;
-
-		/* write exception codes to out file */
-		ExceptionT::WriteExceptionCodes(out);		
 	}
 
 	/* free external IO */
@@ -772,7 +766,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		}
 		else fComm.Gather(token, 0);
 		
-		ExceptionT::GeneralFail();
+		ExceptionT::GeneralFail(caller);
 	}
 	t3 = clock(); } // end try
 
@@ -976,7 +970,7 @@ void FEExecutionManagerT::Decompose_atom(ifstreamT& in, int size,
 		part_out.close();
 	}
 
-	/* output map file? */
+	/* output map file? - not needed for PartitionT::DecompTypeT == kAtom */
 #pragma unused(output_map_file)
 }
 

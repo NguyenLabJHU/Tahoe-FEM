@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.30.2.1 2002-12-10 17:13:02 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.30.2.2 2002-12-16 09:23:51 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -104,6 +104,9 @@ public:
 
 	/** the node manager */
 	NodeManagerT* NodeManager(void) const;
+
+	/** the communication manager */
+	CommManagerT* CommManager(void) const;
 
 	/** pointer to an element group */
 	ElementBaseT* ElementGroup(int groupnumber) const;
@@ -261,16 +264,27 @@ public:
 
 	/** debugging */
 	virtual void WriteSystemConfig(ostream& out, int group) const;
-	virtual const iArrayT* NodeMap(void) const { return NULL; }
-	virtual const iArrayT* ElementMap(const StringT& block_ID) const;
 
 	/** \name basic MP info */
 	/*@{*/
 	int Rank(void) const;
 	int Size(void) const;
 	
-	/** the local node to home processor map */
-	const iArrayT& ProcessorMap(void) const;
+	/** the local node to home processor map. Returns the home processor
+	 * for each local node. Returns NULL if there is no map, indicating 
+	 * that the native processor for all nodes is this one. */
+	const ArrayT<int>* ProcessorMap(void) const;
+
+	/** node numbering map. The global id of each local node. Returns
+	 * NULL if there is no map, indicating the local and global node
+	 * numbers are the same. */
+	const ArrayT<int>* NodeMap(void) const;
+
+	/** list of nodes owned by the partition. Returns NULL if there is no list,
+	 * indicating \e all nodes are owned by this partition */
+	const ArrayT<int>* PartitionNodes(void) const;
+
+	virtual const iArrayT* ElementMap(const StringT& block_ID) const;
 
 	/* external nodes functions (parallel execution) */
 	virtual void IncomingNodes(iArrayT& nodes_in) const;
@@ -432,6 +446,7 @@ inline const GlobalT::StateT& FEManagerT::RunState(void) const { return fStatus;
 inline IOBaseT::FileTypeT FEManagerT::OutputFormat(void) const { return fOutputFormat; }
 inline ModelManagerT* FEManagerT::ModelManager (void) const { return fModelManager; }
 inline NodeManagerT* FEManagerT::NodeManager(void) const { return fNodeManager; }
+inline CommManagerT* FEManagerT::CommManager(void) const { return fCommManager; }
 inline IOManager* FEManagerT::OutputManager(void) const { return fIOManager; }
 inline const iArrayT* FEManagerT::ElementMap(const StringT& block_ID) const
 {
