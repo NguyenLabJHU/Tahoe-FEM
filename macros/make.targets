@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.41 2004-03-14 07:08:56 paklein Exp $
+# $Id: make.targets,v 1.42 2004-03-15 19:43:07 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -162,9 +162,30 @@ clean: $(MAKE_CLEAN_XTRAS) $(MOD_MAKE_CLEAN_XTRAS)
 	@ if test -f $(BLD_DIR)/mirror.log; then $(RM) $(BLD_DIR)/mirror.log; fi
 	@ if test -f $(LIBRARY); then $(RM) $(LIBRARY); fi
 	@ if test -d $(BLD_SRC_DIR); then $(RM) -rf $(BLD_SRC_DIR); fi
-	@ if test -d $(INC_DIR); then $(RM) -rf $(INC_DIR); fi
-	@ if test -d $(OBJ_DIR); then $(RM) -rf $(OBJ_DIR); fi
-	@ if test -d $(LIB_DIR); then $(RM) -rf $(LIB_DIR); fi
+	@ if test -d $(INC_DIR); \
+		then \
+			if test -d $(INC_DIR)/CVS; then \
+				cd $(INC_DIR); ls -1 | $(GREP) "\.h$$" | $(XARGS) $(RM); \
+			else \
+				$(RM) -rf $(INC_DIR); \
+			fi; \
+		fi
+	@ if test -d $(OBJ_DIR); \
+		then \
+			if test -d $(OBJ_DIR)/CVS; then \
+				cd $(OBJ_DIR); ls -1 | $(GREP) "\.o$$" | $(XARGS) $(RM); \
+			else \
+				$(RM) -rf $(OBJ_DIR); \
+			fi; \
+		fi
+	@ if test -d $(LIB_DIR); \
+		then \
+			if test -d $(LIB_DIR)/CVS; then \
+				cd $(LIB_DIR); ls -1 | $(GREP) "\.a$$" | $(XARGS) $(RM); \
+			else \
+				$(RM) -rf $(LIB_DIR); \
+			fi; \
+		fi		
 	-@ cd $(MACRO_DIR)/cxx_repository; ls -1 | $(GREP) "\.o$$\|\.DB$$" | $(XARGS) $(RM)
 
 # set-up directories
