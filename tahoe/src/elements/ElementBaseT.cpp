@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.15.2.7 2002-05-16 19:26:28 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.15.2.8 2002-06-02 20:28:47 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -56,8 +56,6 @@ void ElementBaseT::Initialize(void)
 	name.Append(index);
 	name.Append("_element_group");
 	iSetName(name);
-//	iAddVariable("num_elements", *((const int*) &fNumElements));
-//	iAddVariable("num_element_nodes", *((const int*) &fNumElemNodes));
 
 	/* streams */
 	ifstreamT& in = fSupport.Input();

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.8.2.9 2002-05-07 07:24:59 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.8.2.10 2002-06-02 20:28:47 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -61,7 +61,9 @@ public:
 	/** number of elements */
 	int NumElements(void) const { return fElementCards.Length(); };
 
-	/** number of nodes per element */
+	/** number of nodes per element. This size is taken from dimensions of the first
+	 * entry in the ElementBaseT::fConnectivies array, and therefore isn't valid until
+	 * the connectivies have been dimensioned. */
 	int NumElementNodes(void) const;
 
 	/** solver group */
