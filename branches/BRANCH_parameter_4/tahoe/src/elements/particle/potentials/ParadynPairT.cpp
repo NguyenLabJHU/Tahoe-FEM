@@ -1,4 +1,4 @@
-/* $Id: ParadynPairT.cpp,v 1.8.30.2 2004-07-07 15:28:35 paklein Exp $ */
+/* $Id: ParadynPairT.cpp,v 1.8.30.3 2004-07-12 05:12:14 paklein Exp $ */
 #include "ParadynPairT.h"
 
 #include "ifstreamT.h"
@@ -126,7 +126,7 @@ void ParadynPairT::TakeParameterList(const ParameterListT& list)
 	if (!fSupport) ExceptionT::GeneralFail("ParadynPairT::TakeParameterList",
 		"pointer to BasicSupportT not set");
 	StringT path;
-	path.FilePath(fSupport->Input().filename());	
+	path.FilePath(fSupport->InputFile());
 	file.Prepend(path);
 
 	/* read parameters */

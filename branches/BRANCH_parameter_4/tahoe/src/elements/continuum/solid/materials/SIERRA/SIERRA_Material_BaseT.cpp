@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.12.28.1 2004-07-06 06:53:38 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.12.28.2 2004-07-12 05:12:10 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -75,7 +75,8 @@ SIERRA_Material_BaseT::~SIERRA_Material_BaseT(void)
 void SIERRA_Material_BaseT::Initialize(void)
 {
 	const char caller[] = "SIERRA_Material_BaseT::Initialize";
-
+ExceptionT::GeneralFail(caller, "out of date");
+#if 0
 	/* inherited */
 	//FSSolidMatT::Initialize();
 
@@ -142,6 +143,7 @@ void SIERRA_Material_BaseT::Initialize(void)
 	if (fThermal->IsActive())
 		cout << "\n SIERRA_Material_BaseT::Initialize: thermal strains must\n"
 		     <<   "    be handled within the UMAT\n" << endl;
+#endif
 }
 
 /* materials initialization */

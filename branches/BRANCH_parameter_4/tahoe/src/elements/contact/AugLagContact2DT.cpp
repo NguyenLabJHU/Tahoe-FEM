@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.17.2.1 2004-07-06 06:53:13 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.17.2.2 2004-07-12 05:12:05 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 #include "AugLagContact2DT.h"
 
@@ -20,11 +20,14 @@ const int kNumAugLagDOF  = 1;
 AugLagContact2DT::AugLagContact2DT(const ElementSupportT& support, const FieldT& field):
 	Contact2DT(support, field)
 {
+#pragma message("delete me")
+#if 0
 	SetName("contact_2D_multiplier");
 
 	/* regularization parameter */
 	ElementSupport().Input() >> fr;
 	if (fr < 0.0) throw ExceptionT::kBadInputValue;
+#endif
 }
 
 AugLagContact2DT::AugLagContact2DT(const ElementSupportT& support):

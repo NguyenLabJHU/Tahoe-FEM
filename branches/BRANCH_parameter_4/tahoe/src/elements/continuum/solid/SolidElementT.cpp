@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.62.2.4 2004-07-08 16:11:25 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.62.2.5 2004-07-12 05:12:08 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -56,6 +56,8 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	fD(dSymMatrixT::NumValues(NumSD())),
 	fStoreInternalForce(false)
 {
+#pragma message("delete me")
+#if 0
 	SetName("solid_element");
 
 	/* check base class initializations */
@@ -72,6 +74,7 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	    fIntegrator->ImplicitExplicit() == eIntegratorT::kExplicit &&
 	    ElementSupport().Analysis() != GlobalT::kMultiField)
 	    fMassType = kLumpedMass;
+#endif
 }
 
 SolidElementT::SolidElementT(const ElementSupportT& support):

@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.41.2.3 2004-07-07 23:59:40 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.41.2.4 2004-07-12 05:12:12 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -47,6 +47,8 @@ ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 	fActiveParticles(NULL),
 	fTypeMessageID(CommManagerT::kNULLMessageID)
 {
+#pragma message("delete me")
+#if 0
 	SetName("particle");
 
 	/* set matrix format */
@@ -65,6 +67,7 @@ ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 	fReNeighborIncr = (fReNeighborIncr <= 0) ? -1 : fReNeighborIncr;
 
 	fPeriodicSkin = fNeighborDistance;
+#endif
 }
 
 ParticleT::ParticleT(const ElementSupportT& support):

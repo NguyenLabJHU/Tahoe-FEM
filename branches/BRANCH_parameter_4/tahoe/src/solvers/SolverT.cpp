@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.21.2.3 2004-07-10 08:06:31 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.21.2.4 2004-07-12 05:12:20 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -249,10 +249,19 @@ ParameterInterfaceT* SolverT::NewSub(const StringT& list_name) const
 #ifdef __AZTEC__
 		choice->AddSub(ParameterContainerT("Aztec_matrix"));
 #endif
+
 #ifdef __SPOOLES__
 		choice->AddSub(ParameterContainerT("SPOOLES_matrix"));
 #endif
-	
+
+#ifdef __PSPASES__
+		choice->AddSub(ParameterContainerT("PSPASES_matrix"));
+#endif	
+
+#ifdef __SUPERLU__
+		choice->AddSub(ParameterContainerT("SuperLU_matrix"));
+#endif	
+
 		return choice;
 	}
 	else /* inherited */
@@ -489,7 +498,7 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 	const char caller[] = "SolverT::SetGlobalMatrix";
 
 	/* streams */
-	ifstreamT&  in = fFEManager.Input();
+//	ifstreamT&  in = fFEManager.Input();
 	ofstreamT& out = fFEManager.Output();
 
 	/* resolve matrix type */
@@ -513,6 +522,84 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 	}
 	else if (params.Name() == "full_matrix")
 		fLHS = new FullMatrixT(out, check_code);
+	else if (params.Name() == "SPOOLES_matrix")
+	{
+#ifdef __SPOOLES__
+		/* global system properties */
+		GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
+
+		/* solver options */
+		bool pivoting = true; //NOTE: SPOOLES v2.2 does not seem to solve non-symmetric
+			                      //      systems correctly in parallel if pivoting is disabled
+		bool symmetric;
+		if (type == GlobalT::kDiagonal || type == GlobalT::kSymmetric)
+			symmetric = true;
+		else if (type == GlobalT::kNonSymmetric)
+			symmetric = false;
+		else
+			ExceptionT::GeneralFail(caller, "unexpected system type: %d", type);
+
+#ifdef __TAHOE_MPI__
+		/* constuctor */
+		if (fFEManager.Size() > 1)
+		{
+#ifdef __SPOOLES_MPI__
+			fLHS = new SPOOLESMatrixT_mpi(out, check_code, symmetric, pivoting, fFEManager.Communicator());
+#else /* __SPOOLES_MPI__ */
+			ExceptionT::GeneralFail(caller, "SPOOLES MPI not installed");
+#endif /* __SPOOLES_MPI__ */
+		}
+		else
+			fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting);
+#else /* __TAHOE_MPI__ */
+		/* constuctor */
+		fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting);
+#endif /* __TAHOE_MPI__ */
+#else /* __SPOOLES__ */
+		ExceptionT::GeneralFail(caller, "SPOOLES not installed");
+#endif /* __SPOOLES__ */
+	}
+	else if (params.Name() == "SuperLU_matrix")
+	{
+		if (fFEManager.Size() == 1) /* serial */
+		{
+#ifdef __SUPERLU__
+			/* global system properties */
+			GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
+
+			bool symmetric;
+			if (type == GlobalT::kDiagonal || type == GlobalT::kSymmetric)
+				symmetric = true;
+			else if (type == GlobalT::kNonSymmetric)
+				symmetric = false;
+			else
+				ExceptionT::GeneralFail(caller, "unexpected system type: %d", type);
+
+			/* construct */
+			fLHS = new SuperLUMatrixT(out, check_code, symmetric);
+#else /* no __SUPERLU__ */
+			ExceptionT::GeneralFail(caller, "SuperLU not installed");
+#endif /* __SUPERLU__*/
+		}
+		else /* parallel */
+		{
+#ifdef __SUPERLU_DIST__
+			/* construct */
+			fLHS = new SuperLU_DISTMatrixT(out, check_code, fFEManager.Communicator());
+#else /* no __SUPERLU_DIST__ */
+			ExceptionT::GeneralFail(caller, "SuperLU_DIST not installed");
+#endif /* __SUPERLU_DIST__*/
+		}
+	}
+	else if (params.Name() == "PSPASES_matrix")
+	{
+#ifdef __PSPASES__
+		/* construct */
+		fLHS = new PSPASESMatrixT(out, check_code, fFEManager.Communicator());
+#else
+		ExceptionT::GeneralFail(caller, " PSPASES solver not installed");
+#endif /* __PSPASES__ */
+	}
 	else
 		ExceptionT::GeneralFail(caller, "unrecognized matrix type \"%s\"", params.Name().Pointer());
 		
@@ -527,90 +614,6 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 #else
 			ExceptionT::GeneralFail(caller, "Aztec solver not installed: %d", fMatrixType);
 #endif /* __AZTEC__ */
-			break;
-		}
-
-		case kPSPASES:
-		{
-#ifdef __PSPASES__
-			/* construct */
-			fLHS = new PSPASESMatrixT(out, check_code, fFEManager.Communicator());
-#else
-			ExceptionT::GeneralFail(caller, " PSPASES solver not installed: %d", fMatrixType);
-#endif /* __PSPASES__ */
-			break;
-		}
-
-		case kSuperLU:
-		{
-			if (fFEManager.Size() == 1) /* serial */
-			{
-#ifdef __SUPERLU__
-				/* global system properties */
-				GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
-
-				bool symmetric;
-				if (type == GlobalT::kDiagonal || type == GlobalT::kSymmetric)
-					symmetric = true;
-				else if (type == GlobalT::kNonSymmetric)
-					symmetric = false;
-				else
-					ExceptionT::GeneralFail(caller, "unexpected system type: %d", type);
-
-				/* construct */
-				fLHS = new SuperLUMatrixT(out, check_code, symmetric);
-#else /* no __SUPERLU__ */
-				ExceptionT::GeneralFail(caller, "SuperLU not installed: %d", fMatrixType);
-#endif /* __SUPERLU__*/
-			}
-			else /* parallel */
-			{
-#ifdef __SUPERLU_DIST__
-			/* construct */
-			fLHS = new SuperLU_DISTMatrixT(out, check_code, fFEManager.Communicator());
-#else /* no __SUPERLU_DIST__ */
-			ExceptionT::GeneralFail(caller, "SuperLU_DIST not installed: %d", fMatrixType);
-#endif /* __SUPERLU_DIST__*/
-			}
-			break;
-		}
-		case kSPOOLES:
-		{
-#ifdef __SPOOLES__
-			/* global system properties */
-			GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
-
-			/* solver options */
-			bool pivoting = true; //NOTE: SPOOLES v2.2 does not seem to solve non-symmetric
-			                      //      systems correctly in parallel if pivoting is disabled
-			bool symmetric;
-			if (type == GlobalT::kDiagonal || type == GlobalT::kSymmetric)
-				symmetric = true;
-			else if (type == GlobalT::kNonSymmetric)
-				symmetric = false;
-			else
-				ExceptionT::GeneralFail(caller, "unexpected system type: %d", type);
-
-#ifdef __TAHOE_MPI__
-			/* constuctor */
-			if (fFEManager.Size() > 1)
-			{
-#ifdef __SPOOLES_MPI__
-				fLHS = new SPOOLESMatrixT_mpi(out, check_code, symmetric, pivoting, fFEManager.Communicator());
-#else /* __SPOOLES_MPI__ */
-				ExceptionT::GeneralFail(caller, "SPOOLES MPI not installed: %d", matrix_type);
-#endif /* __SPOOLES_MPI__ */
-			}
-			else
-				fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting);
-#else /* __TAHOE_MPI__ */
-			/* constuctor */
-			fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting);
-
-#endif /* __TAHOE_MPI__ */
-#else /* __SPOOLES__ */
-			ExceptionT::GeneralFail(caller, "SPOOLES not installed: %d", matrix_type);
-#endif /* __SPOOLES__ */
 			break;
 		}
 		default:

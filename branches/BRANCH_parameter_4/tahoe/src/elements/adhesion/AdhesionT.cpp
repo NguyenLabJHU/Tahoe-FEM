@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.18.2.1 2004-07-06 06:53:07 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.18.2.2 2004-07-12 05:12:02 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -36,6 +36,8 @@ AdhesionT::AdhesionT(const ElementSupportT& support, const FieldT& field):
 	fFace2_man(0, true, NumSD()),
 	fGrad_d_man(0, fGrad_d)
 {
+#pragma message("delete me")
+#if 0
 	SetName("adhesion");
 	
 	/* register dynamically resized arrays */
@@ -85,6 +87,7 @@ AdhesionT::AdhesionT(const ElementSupportT& support, const FieldT& field):
 			cout << "\n AdhesionT::Initialize: unrecognized function: " << code << endl;
 			throw ExceptionT::kBadInputValue;	
 	}
+#endif
 }
 
 AdhesionT::AdhesionT(const ElementSupportT& support):

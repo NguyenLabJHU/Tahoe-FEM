@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.cpp,v 1.12.2.1 2004-07-07 15:28:38 paklein Exp $ */
+/* $Id: SWDiamondT.cpp,v 1.12.2.2 2004-07-12 05:12:15 paklein Exp $ */
 /* created: paklein (03/19/1997) */
 #include "SWDiamondT.h"
 
@@ -29,6 +29,8 @@ SWDiamondT::SWDiamondT(const ElementSupportT& support, const FieldT& field):
 	fLocd_2Body(LocalArrayT::kDisp, 2, NumDOF()),
 	fHessian_3Body(3)
 {
+ExceptionT::GeneralFail("SWDiamondT::SWDiamondT", "out of date");
+#if 0
 	/* check base class initializations */
 	if (NumSD() != knsd) throw ExceptionT::kGeneralFail;
 
@@ -54,6 +56,7 @@ SWDiamondT::SWDiamondT(const ElementSupportT& support, const FieldT& field):
 	
 	//TEMP
 	ReadMaterialData(ElementSupport().Input());	
+#endif
 }
 
 /* initialization */

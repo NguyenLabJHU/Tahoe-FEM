@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.46.2.2 2004-07-07 15:27:53 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.46.2.3 2004-07-12 05:12:01 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -66,6 +66,8 @@ ElementBaseT::~ElementBaseT(void) {	}
 /* allocates space and reads connectivity data */
 void ElementBaseT::Initialize(void)
 {
+#pragma message("delete me")
+#if 0
 	/* set console variables */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	int index = fSupport.ElementGroupNumber(this) + 1;
@@ -91,6 +93,7 @@ void ElementBaseT::Initialize(void)
 	int neq = NumElementNodes()*NumDOF();
 	fLHS.Dimension(neq);	
 	fRHS.Dimension(neq);
+#endif
 }
 
 /* set the active elements */

@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.65.2.5 2004-07-08 16:10:39 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.65.2.6 2004-07-12 05:12:16 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -126,12 +126,12 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 				ext.ToLower();
 				bool run_XML = (ext == ".xml");
 				if (run_XML)
-					RunJob_serial_XML(in, status);
+					RunJob_serial_XML(in.filename(), status);
 				else
 					ExceptionT::GeneralFail(caller, "expecting file extension \".xml\": %s", ext.Pointer());
 			} else {
 				cout << "\n RunJob_parallel: " << in.filename() << endl;
-				RunJob_parallel(in, status);
+				RunJob_parallel(in.filename(), status);
 			}
 			break;
 		}
@@ -145,7 +145,7 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 			CommunicatorT comm(fComm, (rank == 0) ? rank : CommunicatorT::kNoColor);
 			
 			/* decompose on rank 0 */
-			if (rank == 0) RunDecomp_serial(in, status, comm);
+			if (rank == 0) RunDecomp_serial(in.filename(), status, comm);
 
 			/* synch */
 			fComm.Barrier();
@@ -161,7 +161,7 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 			CommunicatorT comm(fComm, (rank == 0) ? rank : CommunicatorT::kNoColor);
 
 			/* join using rank 0 */
-			if (rank == 0) RunJoin_serial(in, status);
+			if (rank == 0) RunJoin_serial(in.filename(), status);
 
 			/* synch */
 			fComm.Barrier();
@@ -311,11 +311,10 @@ void FEExecutionManagerT::ParseInput(const StringT& path, ParameterListT& params
 
 	/* parameter source */
 	//TEMP - parameters currently needed to construct an FEManagerT
-	ifstreamT input;
 	ofstreamT output;
 	CommunicatorT comm;
 	//TEMP
-	FEManagerT fe_man(input, output, comm, fCommandLineOptions);
+	FEManagerT fe_man(path, output, comm, fCommandLineOptions);
 
 	/* list input to Tahoe */
 	ParameterListT* input_list = raw_list.List(fe_man.Name().Pointer());
@@ -440,7 +439,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 
 		/* construct continuum solver */
 		continuum_in >> job_char;
-		FEManagerT_bridging continuum(continuum_in, continuum_out, fComm, fCommandLineOptions, bridge_continuum_in);
+		FEManagerT_bridging continuum(continuum_in.filename(), continuum_out, fComm, fCommandLineOptions, bridge_continuum_in);
 //		continuum.Initialize();
 ExceptionT::Stop(caller, "not updated");
 
@@ -456,7 +455,7 @@ ExceptionT::Stop(caller, "not updated");
 		{
 			/* construct atomistic solver */
 			atom_in >> job_char;
-			FEManagerT_bridging atoms(atom_in, atom_out, fComm, fCommandLineOptions, bridge_atom_in);
+			FEManagerT_bridging atoms(atom_in.filename(), atom_out, fComm, fCommandLineOptions, bridge_atom_in);
 //			atoms.Initialize();
 ExceptionT::Stop(caller, "not updated");
 
@@ -469,7 +468,7 @@ ExceptionT::Stop(caller, "not updated");
 			if (multi == 0)
 				RunStaticBridging_staggered(continuum, atoms, log_out);	
 			else if (multi == 1)
-				RunStaticBridging_monolithic(in, continuum, atoms, log_out);	
+				RunStaticBridging_monolithic(in.filename(), continuum, atoms, log_out);	
 			else
 				ExceptionT::BadInputValue(caller, "expecting 1|0 for multi-solver: %d", multi);
 		}
@@ -703,18 +702,18 @@ void FEExecutionManagerT::RunStaticBridging_staggered(FEManagerT_bridging& conti
 	}
 }
 
-void FEExecutionManagerT::RunStaticBridging_monolithic(ifstreamT& in, FEManagerT_bridging& continuum, FEManagerT_bridging& atoms, ofstream& log_out) const
+void FEExecutionManagerT::RunStaticBridging_monolithic(const StringT& input_file, FEManagerT_bridging& continuum, FEManagerT_bridging& atoms, ofstream& log_out) const
 {
 	const char caller[] = "FEExecutionManagerT::RunStaticBridging_monolithic";
 	    
 	/* manager for multiple FEManagerT's */
 	CommunicatorT multi_comm;
 	StringT multi_out_file;
-	multi_out_file.Root(in.filename());
+	multi_out_file.Root(input_file);
 	multi_out_file.Append(".out");
 	ofstreamT multi_out;
 	multi_out.open(multi_out_file);
-	MultiManagerT multi_manager(in, multi_out, multi_comm, &atoms, &continuum);
+	MultiManagerT multi_manager(input_file, multi_out, multi_comm, &atoms, &continuum);
 	multi_manager.Initialize();
 
 	/* time managers */
@@ -1213,7 +1212,7 @@ void FEExecutionManagerT::RunWriteDescription(int doc_type) const
 {
 	try {
 //TEMP - parameters currently needed to construct an FEManagerT
-	ifstreamT input;
+	StringT input;
 	ofstreamT output;
 	CommunicatorT comm;
 //TEMP
@@ -1275,14 +1274,13 @@ void FEExecutionManagerT::JobOrBatch(ifstreamT& in, ostream& status)
 		ExecutionManagerT::JobOrBatch(in, status);
 }
 
-void FEExecutionManagerT::RunJob_serial_XML(ifstreamT& in,
-	ostream& status) const
+void FEExecutionManagerT::RunJob_serial_XML(const StringT& input_file, ostream& status) const
 {
 	const char* caller = "FEExecutionManagerT::RunJob_serial_XML";
 
 	/* output stream */
 	StringT outfilename;
-	outfilename.Root(in.filename());
+	outfilename.Root(input_file);
 	outfilename.Append(".out");
 	ofstreamT out;
 	out.open(outfilename);
@@ -1308,7 +1306,7 @@ void FEExecutionManagerT::RunJob_serial_XML(ifstreamT& in,
 
 		/* generate validated parameter list */
 		ParameterListT valid_list;
-		ParseInput(in.filename(), valid_list, true, true, true);
+		ParseInput(input_file, valid_list, true, true, true);
 
 		/* write the validated list as formatted text */
 		if (true) {
@@ -1321,7 +1319,7 @@ void FEExecutionManagerT::RunJob_serial_XML(ifstreamT& in,
 		}
 
 		/* construction */
-		FEManagerT analysis1(in, out, fComm, fCommandLineOptions);
+		FEManagerT analysis1(input_file, out, fComm, fCommandLineOptions);
 		analysis1.TakeParameterList(valid_list);
 		t1 = clock();
 
@@ -1345,13 +1343,10 @@ void FEExecutionManagerT::RunJob_serial_XML(ifstreamT& in,
 	/* job failure */
 	catch (ExceptionT::CodeT code)
 	{
-		status << "\n \"" << in.filename() << "\" exit on exception during the\n";
+		status << "\n \"" << input_file << "\" exit on exception during the\n";
 		if (phase == 0)
 		{
 			status << " construction phase. Check the input file for errors." << endl;
-		
-			/* echo some lines from input */
-			if (code == ExceptionT::kBadInputValue) Rewind(in, status);
 		}
 		else
 		{
@@ -1371,7 +1366,7 @@ void FEExecutionManagerT::RunJob_serial_XML(ifstreamT& in,
 	time(&stoptime);
 
 	/* output timing */
-	status << "\n     Filename: " << in.filename() << '\n';
+	status << "\n     Filename: " << input_file << '\n';
 	status <<   "   Start time: " << ctime(&starttime);
 	status <<   " Construction: " << double(t1 - t0)/CLOCKS_PER_SEC << " sec.\n";
 	status <<   "     Solution: " << double(t2 - t1)/CLOCKS_PER_SEC << " sec.\n";
@@ -1387,7 +1382,7 @@ void FEExecutionManagerT::RunJob_serial_XML(ifstreamT& in,
 }	
 
 /* generate decomposition files */
-void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status,CommunicatorT& comm, int size) const
+void FEExecutionManagerT::RunDecomp_serial(const StringT& input_file, ostream& status,CommunicatorT& comm, int size) const
 {
 	/* look for size */
 	int index;
@@ -1450,9 +1445,6 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status,Commun
 		fstreamT::ClearLine(cin);
 	}
 
-	/* set stream comment marker */
-	in.set_marker('#');
-
 	/* time markers */
 	clock_t t0 = 0, t1 = 0;
 
@@ -1465,11 +1457,11 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status,Commun
 
 		/* path to parameters file */
 		StringT path;
-		path.FilePath(in.filename());
+		path.FilePath(input_file);
 		
 		/* generate validated parameter list */
 		ParameterListT valid_list;
-		ParseInput(in.filename(), valid_list, true, false, false);
+		ParseInput(input_file, valid_list, true, false, false);
 		
 		/* extract model file and file format */
 		int i_format = valid_list.GetParameter("geometry_format");
@@ -1481,7 +1473,7 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status,Commun
 		model_file.Prepend(path);
 
 		/* set output map and and generate decomposition */
-		Decompose(in, size, method, comm, model_file, format);
+		Decompose(input_file, size, method, comm, model_file, format);
 		t1 = clock();
 	}
 
@@ -1497,18 +1489,15 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status,Commun
 	time(&stoptime);
 
 	/* output timing */
-	status << "\n     Filename: " << in.filename() << '\n';
+	status << "\n     Filename: " << input_file << '\n';
 	status <<   "   Start time: " << ctime(&starttime);
 	status <<   "Decomposition: " << double(t1 - t0)/CLOCKS_PER_SEC << " sec.\n";
 	status <<   "    Stop time: " << ctime(&stoptime);	
 }
 
 /* join parallel results files */
-void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status, int size) const
+void FEExecutionManagerT::RunJoin_serial(const StringT& input_file, ostream& status, int size) const
 {
-	/* set stream comment marker */
-	in.set_marker('#');
-
 	/* time markers */
 	clock_t t0 = 0, t1 = 0;
 
@@ -1521,11 +1510,11 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status, int siz
 
 		/* path to parameters file */
 		StringT path;
-		path.FilePath(in.filename());
+		path.FilePath(input_file);
 
 		/* generate validated parameter list */
 		ParameterListT valid_list;
-		ParseInput(in.filename(), valid_list, true, false, false);
+		ParseInput(input_file, valid_list, true, false, false);
 		
 		/* model file parameters */
 		int i_format = valid_list.GetParameter("geometry_format");
@@ -1570,12 +1559,12 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status, int siz
 		const ParameterT* title_param = valid_list.Parameter("title");
 		if (title_param)
 			title = *title_param;
-		StringT input = in.filename();
+		StringT input = input_file;
 		OutputBaseT* output = IOBaseT::NewOutput(program, version, title, input, 
 			results_format, cout);
 
 		/* construct joiner */
-		JoinOutputT output_joiner(in.filename(), model_file, model_format, 
+		JoinOutputT output_joiner(input_file, model_file, model_format, 
 			results_format, output, size);
 
 		/* join files */
@@ -1599,19 +1588,16 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status, int siz
 	time(&stoptime);
 
 	/* output timing */
-	status << "\n     Filename: " << in.filename() << '\n';
+	status << "\n     Filename: " << input_file << '\n';
 	status <<   "   Start time: " << ctime(&starttime);
 	status <<   "         Join: " << double(t1 - t0)/CLOCKS_PER_SEC << " sec.\n";
 	status <<   "    Stop time: " << ctime(&stoptime);	
 }
 
 /* testing for distributed execution */
-void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
+void FEExecutionManagerT::RunJob_parallel(const StringT& input_file, ostream& status) const
 {
 	const char caller[] = "::RunJob_parallel";
-
-	/* set stream comment marker */
-	in.set_marker('#');
 
 	/* get rank and size */
 	int rank = Rank();
@@ -1626,7 +1612,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 
 	/* output stream */
 	StringT out_file;
-	out_file.Root(in.filename());
+	out_file.Root(input_file);
 	out_file.Append(".p", rank);
 	out_file.Append(".out");
 	ofstreamT out;
@@ -1638,7 +1624,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	
 	/* generate validated parameter list */
 	ParameterListT valid_list;
-	ParseInput(in.filename(), valid_list, true, false, false);
+	ParseInput(input_file, valid_list, true, false, false);
 	if (true) /* write the validated list as formatted text */ {
 		DotLine_FormatterT pp_format;
 		pp_format.SetTabWidth(4);
@@ -1655,7 +1641,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 
 	/* name translation */
 	StringT path;
-	path.FilePath(in.filename());
+	path.FilePath(input_file);
 	model_file.ToNativePathName();      
 	model_file.Prepend(path);
 
@@ -1668,7 +1654,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		CommunicatorT comm(fComm, (rank == 0) ? rank : CommunicatorT::kNoColor);
 
 		/* decompose on rank 0 */
-		if (rank == 0) RunDecomp_serial(in, status, comm, fComm.Size());
+		if (rank == 0) RunDecomp_serial(input_file, status, comm, fComm.Size());
 	
 		/* synch */
 		fComm.Barrier();	
@@ -1683,7 +1669,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	part_file.Root(model_file);
 	part_file.Append(".n", size);
 	part_file.Append(".part", rank);
-	ifstreamT part_in(in.comment_marker(), part_file);
+	ifstreamT part_in('#', part_file);
 	token = 1;
 	if (!part_in.is_open())
 	{
@@ -1733,12 +1719,12 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	token = 1;
 
 	/* construct solver */
-	FEManagerT_mpi FEman(in, out, fComm, fCommandLineOptions, &partition, FEManagerT_mpi::kRun);
+	FEManagerT_mpi FEman(input_file, out, fComm, fCommandLineOptions, &partition, FEManagerT_mpi::kRun);
 	try { 
 		FEman.TakeParameterList(valid_list); 
 	}
 	catch (ExceptionT::CodeT code) {
-		status << "\n \"" << in.filename() << "\" exit on exception " << code << " during the\n";
+		status << "\n \"" << input_file << "\" exit on exception " << code << " during the\n";
 		status << " construction phase. Check the input file for errors." << endl;
 		token = 0;
 	}
@@ -1769,7 +1755,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	{
 		try {
 			/* set-up local IO */
-			IOMan = new IOManager_mpi(in, fComm, *(FEman.OutputManager()), FEman.Partition(), model_file, format);
+			IOMan = new IOManager_mpi(input_file, fComm, *(FEman.OutputManager()), FEman.Partition(), model_file, format);
 			if (!IOMan) throw ExceptionT::kOutOfMemory;
 		
 			/* set external IO */
@@ -1779,7 +1765,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		catch (ExceptionT::CodeT code)
 		{
 			token = 0;
-			status << "\n \"" << in.filename() << "\" exit on exception " << code 
+			status << "\n \"" << input_file << "\" exit on exception " << code 
 			       << " setting the external IO" << endl;
 		}
 	}
@@ -1809,7 +1795,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	try { FEman.Solve(); }
 	catch (ExceptionT::CodeT code)
 	{
-		status << "\n \"" << in.filename() << "\" exit on exception " << code << " during the\n";
+		status << "\n \"" << input_file << "\" exit on exception " << code << " during the\n";
 		status << " solution phase. See \"" << out_file << "\" for a list";
 		status << " of the codes.\n";
 		token = 0;
@@ -1852,7 +1838,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	time(&stoptime);
 
 	/* output timing */
-	status << "\n     Filename: " << in.filename() << '\n';
+	status << "\n     Filename: " << input_file << '\n';
 	status <<   "   Start time: " << ctime(&starttime);
 	status <<   "Decomposition: " << double(t1 - t0)/CLOCKS_PER_SEC << " sec.\n";
 	status <<   " Construction: " << double(t2 - t1)/CLOCKS_PER_SEC << " sec.\n";
@@ -1914,18 +1900,18 @@ void FEExecutionManagerT::GetModelFile(ifstreamT& in, StringT& model_file,
 }
 #endif
 
-void FEExecutionManagerT::Decompose(ifstreamT& in, int size, int decomp_type, CommunicatorT& comm,
+void FEExecutionManagerT::Decompose(const StringT& input_file, int size, int decomp_type, CommunicatorT& comm,
 	const StringT& model_file, IOBaseT::FileTypeT format) const
 {	
 	/* dispatch */
 	switch (decomp_type)
 	{
 		case PartitionT::kGraph:
-			Decompose_graph(in, size, comm, model_file, format);
+			Decompose_graph(input_file, size, comm, model_file, format);
 			break;
 
 		case PartitionT::kAtom:
-			Decompose_atom(in, size, model_file, format);
+			Decompose_atom(input_file, size, model_file, format);
 			break;
 			
 		case PartitionT::kSpatial:
@@ -1937,7 +1923,7 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size, int decomp_type, Co
 	}
 }
 
-void FEExecutionManagerT::Decompose_atom(ifstreamT& in, int size,
+void FEExecutionManagerT::Decompose_atom(const StringT& input_file, int size,
 	const StringT& model_file, IOBaseT::FileTypeT format) const
 {
 #pragma unused(in)
@@ -2039,10 +2025,10 @@ void FEExecutionManagerT::Decompose_atom(ifstreamT& in, int size,
 	}
 }
 
-void FEExecutionManagerT::Decompose_spatial(ifstreamT& in, int size,
+void FEExecutionManagerT::Decompose_spatial(const StringT& input_file, int size,
 	const StringT& model_file, IOBaseT::FileTypeT format) const
 {
-#pragma unused(in)
+#pragma unused(input_file)
 #pragma unused(size)
 #pragma unused(model_file)
 #pragma unused(format)
@@ -2050,7 +2036,7 @@ void FEExecutionManagerT::Decompose_spatial(ifstreamT& in, int size,
 }
 
 /* graph-based decomposition */
-void FEExecutionManagerT::Decompose_graph(ifstreamT& in, int size,
+void FEExecutionManagerT::Decompose_graph(const StringT& input_file, int size,
 	CommunicatorT& comm, const StringT& model_file, IOBaseT::FileTypeT format) const
 {
 	const char caller[] = "FEExecutionManagerT::Decompose_graph";
@@ -2060,17 +2046,17 @@ void FEExecutionManagerT::Decompose_graph(ifstreamT& in, int size,
 	{
 		/* echo stream */
 		StringT decomp_file;
-		decomp_file.Root(in.filename());
+		decomp_file.Root(input_file);
 		decomp_file.Append(".out");
 		ofstreamT decomp_out;
 		decomp_out.open(decomp_file);
 		
 		/* generate validated parameter list */
 		ParameterListT valid_list;
-		ParseInput(in.filename(), valid_list, true, false, false);
+		ParseInput(input_file, valid_list, true, false, false);
 
 		/* construct global problem */
-		FEManagerT_mpi global_FEman(in, decomp_out, comm, fCommandLineOptions, NULL, FEManagerT_mpi::kDecompose);
+		FEManagerT_mpi global_FEman(input_file, decomp_out, comm, fCommandLineOptions, NULL, FEManagerT_mpi::kDecompose);
 		try { 
 			global_FEman.TakeParameterList(valid_list); 
 		}
@@ -2228,7 +2214,7 @@ void FEExecutionManagerT::Decompose_graph(ifstreamT& in, int size,
 				part_file.Root(model_file);
 				part_file.Append(".n", size);
 				part_file.Append(".part", i);
-				ifstreamT part_in(in.comment_marker(), part_file);
+				ifstreamT part_in('#', part_file);
 				
 				part_in >> partition[i];
 				partition[i].SetScope(PartitionT::kLocal);

@@ -1,4 +1,4 @@
-/* $Id: UpLagAdaptiveT.cpp,v 1.5.2.1 2004-07-06 06:53:19 paklein Exp $ */
+/* $Id: UpLagAdaptiveT.cpp,v 1.5.2.2 2004-07-12 05:12:08 paklein Exp $ */
 #include "UpLagAdaptiveT.h"
 
 /* requires cohesive surface elements */
@@ -29,7 +29,8 @@ UpLagAdaptiveT::UpLagAdaptiveT(const ElementSupportT& support, const FieldT& fie
 void UpLagAdaptiveT::Initialize(void)
 {
 	const char caller[] = "UpLagAdaptiveT::Initialize";
-
+ExceptionT::GeneralFail(caller, "out of date");
+#if 0
 	/* inherited */
 	UpdatedLagrangianT::Initialize();
 	
@@ -105,6 +106,7 @@ void UpLagAdaptiveT::Initialize(void)
 	fNodalValues.Dimension(fCSENodesUsed.Length(), dSymMatrixT::NumValues(NumSD()));
 	fNodalValues = 0.0;
 	fNodalExtrapolation.Dimension(NumElementNodes(), dSymMatrixT::NumValues(NumSD()));
+#endif
 }
 
 /* initialize current time increment */

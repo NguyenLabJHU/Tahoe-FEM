@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.18.2.2 2004-07-07 15:28:32 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.18.2.3 2004-07-12 05:12:11 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #include "MeshFreeSSSolidT.h"
 
@@ -465,12 +465,12 @@ void MeshFreeSSSolidT::WriteField(void)
 	fMFShapes->NodalField(DOFs, u, Du, nodes);
 
 	/* write data */
-	ifstreamT& in = ElementSupport().Input();
+	const StringT& input_file = ElementSupport().InputFile();
 	
 	/* output filenames */
 	StringT s_u, s_Du;
-	s_u.Root(in.filename());
-	s_Du.Root(in.filename());
+	s_u.Root(input_file);
+	s_Du.Root(input_file);
 	
 	s_u.Append(".u.", ElementSupport().StepNumber());
 	s_Du.Append(".Du.", ElementSupport().StepNumber());

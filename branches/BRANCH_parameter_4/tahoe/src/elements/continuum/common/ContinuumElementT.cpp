@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.40.2.3 2004-07-08 07:50:13 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.40.2.4 2004-07-12 05:12:07 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -48,11 +48,13 @@ ContinuumElementT::ContinuumElementT(const ElementSupportT& support,
 	fGeometryCode(GeometryT::kNone)
 {
 	SetName("continuum_element");
+#if 0
 	ifstreamT& in = ElementSupport().Input();
 		
 	/* control parameters */
 	in >> fGeometryCode; //TEMP - should actually come from the geometry database
 	in >> fNumIP;
+#endif
 }
 
 /* constructor */

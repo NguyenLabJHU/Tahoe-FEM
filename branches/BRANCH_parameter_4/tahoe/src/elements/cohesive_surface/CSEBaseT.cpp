@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.32.2.3 2004-07-08 16:11:27 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.32.2.4 2004-07-12 05:12:04 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
@@ -525,7 +525,7 @@ void CSEBaseT::TakeParameterList(const ParameterListT& list)
 	if (fOutputArea == 1)
 	{
 		/* generate file name */
-		StringT name = (ElementSupport().Input()).filename();
+		StringT name = ElementSupport().InputFile();
 		name.Root();
 		name.Append(".grp", ElementSupport().ElementGroupNumber(this) + 1);
 		name.Append(".fracture");

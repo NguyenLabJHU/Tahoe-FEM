@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.cpp,v 1.10.2.1 2004-07-07 15:28:52 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.cpp,v 1.10.2.2 2004-07-12 05:12:20 paklein Exp $ */
 /* created: paklein (08/19/1998) */
 #include "ExpCD_DRSolver.h"
 
@@ -18,6 +18,8 @@ ExpCD_DRSolver::ExpCD_DRSolver(FEManagerT& fe_manager, int group):
 	fTolerance(0.0),
 	fdt(1.0)
 {
+ExceptionT::GeneralFail("ExpCD_DRSolver::ExpCD_DRSolver", "out of date");
+#if 0
 	/* check matrix type */
 	if (fMatrixType != kDiagonalMatrix)
 	{
@@ -91,6 +93,7 @@ throw ExceptionT::kGeneralFail;
 	if (fTolerance < 0.0 || fTolerance > 1.0) throw ExceptionT::kBadInputValue;
 	if (fMass_scaling < kSmall) throw ExceptionT::kBadInputValue;
 	if (fDamp_scaling < kSmall) throw ExceptionT::kBadInputValue;
+#endif
 }
 
 /* (re-)configure the global equation system */

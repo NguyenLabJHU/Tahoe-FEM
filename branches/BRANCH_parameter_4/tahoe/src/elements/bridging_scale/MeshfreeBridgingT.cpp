@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.6.2.1 2004-07-07 15:27:54 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.6.2.2 2004-07-12 05:12:03 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
 #include "ifstreamT.h"
@@ -23,6 +23,8 @@ MeshfreeBridgingT::MeshfreeBridgingT(const ElementSupportT& support, const Field
 	BridgingScaleT(support, field, solid),
 	fMLS(NULL)
 {
+ExceptionT::GeneralFail("MeshfreeBridgingT::MeshfreeBridgingT", "out of date");
+#if 0
 	/* solid element class needs to store the internal force vector */
 	SolidElementT& solid_tmp = const_cast<SolidElementT&>(fSolid);
 	solid_tmp.SetStoreInternalForce(true);
@@ -50,6 +52,7 @@ MeshfreeBridgingT::MeshfreeBridgingT(const ElementSupportT& support, const Field
 	/* MLS solver */
 	fMLS = new MLSSolverT(NumSD(), 1, window_type, window_params);
 	fMLS->Initialize();
+#endif
 }
 
 /* destructor */
@@ -135,7 +138,7 @@ void MeshfreeBridgingT::InitProjection(CommManagerT& comm, const iArrayT& points
 			if (write_support_size)
 			{
 				StringT file;
-				file.Root(ElementSupport().Input().filename());
+				file.Root(ElementSupport().InputFile());
 				file.Append(".MLS", cell_nodes[i]+1);
 				file.Append(".out");
 
@@ -519,7 +522,7 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 		bool write_support_size = true;
 		if (write_support_size) {
 			StringT file;
-			file.Root(ElementSupport().Input().filename());
+			file.Root(ElementSupport().InputFile());
 			file.Append(".support.out");
 
 			dArray2DT coords_used(points_used.Length(), point_coordinates.MinorDim());
@@ -538,7 +541,7 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 		bool write_num_neighbors = true;
 		if (write_num_neighbors) {
 			StringT file;
-			file.Root(ElementSupport().Input().filename());
+			file.Root(ElementSupport().InputFile());
 			file.Append(".neighbors.out");
 
 			/* nodal coordinates */

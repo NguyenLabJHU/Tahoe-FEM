@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.12.2.1 2004-07-06 06:53:13 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.12.2.2 2004-07-12 05:12:05 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 #include "PenaltyContact3DT.h"
 
@@ -40,6 +40,8 @@ PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support, const Field
 	fM2(NumSD(), fElDisp.Length()),
 	fV1(fElDisp.Length())
 {
+#pragma message("delete me")
+#if 0
 	SetName("contact_3D_penalty");
 
 	const char caller[] = "PenaltyContact3DT::PenaltyContact3DT";
@@ -88,6 +90,7 @@ PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support, const Field
 	
 	/* set console access */
 	iAddVariable("penalty_parameter", fK);
+#endif
 }
 
 PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support):

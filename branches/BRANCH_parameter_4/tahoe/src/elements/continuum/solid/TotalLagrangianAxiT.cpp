@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianAxiT.cpp,v 1.3.2.3 2004-07-07 21:50:41 paklein Exp $ */
+/* $Id: TotalLagrangianAxiT.cpp,v 1.3.2.4 2004-07-12 05:12:08 paklein Exp $ */
 #include "TotalLagrangianAxiT.h"
 
 #include "ifstreamT.h"
@@ -244,7 +244,7 @@ void TotalLagrangianAxiT::FormKd(double constK)
 			
 			/* file path */
 			StringT path;
-			path.FilePath(ElementSupport().Input().filename());
+			path.FilePath(ElementSupport().InputFile());
 			
 			/* write info for neighborhood nodes */
 			for (int i = 0; i < nodes_u.Length(); i++) {

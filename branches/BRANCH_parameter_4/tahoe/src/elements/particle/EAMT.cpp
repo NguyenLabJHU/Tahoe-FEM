@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.61.2.4 2004-07-08 16:11:53 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.61.2.5 2004-07-12 05:12:12 paklein Exp $ */
 #include "EAMT.h"
 
 #include "ofstreamT.h"
@@ -1874,51 +1874,6 @@ void EAMT::ExtractProperties(const ParameterListT& list, const ArrayT<StringT>& 
 	for (int i = 0; i < properties.Length(); i++)
 		properties[i] = fEAMProperties[i];
 }
-
-/* construct the list of properties from the given input stream */
-void EAMT::EchoProperties(ifstreamT& in, ofstreamT& out)
-{
-  /* read potentials : one potential corresponds to one type, 
-                       cannot mix different potentials here*/
-#if 0
-  int num_potentials = -1;
-  in >> num_potentials;  
-
-  fEAMProperties.Dimension(num_potentials); 
-  fEAMProperties = NULL;
-  for (int i = 0; i < fEAMProperties.Length(); i++)
-    {
-      int type_of_file;
-      in >> type_of_file;
-
-      StringT file;
-      in >> file;
-      file.ToNativePathName();
-      
-      StringT path;
-      path.FilePath(in.filename());	
-      file.Prepend(path);
-      
-      fEAMProperties[i] = new ParadynEAMT(ElementSupport(), file);
-    }
-
-  /* echo particle properties */
-  out << "\n Particle properties:\n\n";
-  out << " Number of properties. . . . . . . . . . . . . . = " 
-      << fEAMProperties.Length() << '\n';
-  for (int i = 0; i < fEAMProperties.Length(); i++)
-    {
-      out << " Property: " << i+1 << '\n';
-      fEAMProperties[i]->Write(out);
-    }
-#endif
-	
-  /* copy into base class list */
-  fParticleProperties.Dimension(fEAMProperties.Length());
-  for (int i = 0; i < fEAMProperties.Length(); i++)
-    fParticleProperties[i] = fEAMProperties[i];
-}
-
 
 void EAMT::GetRho2D(const dArray2DT& coords,dArray2DT& rho)
 {

@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.h,v 1.1.6.1 2004-07-06 06:54:46 paklein Exp $ */
+/* $Id: BasicSupportT.h,v 1.1.6.2 2004-07-12 05:12:19 paklein Exp $ */
 #ifndef _TAHOE_SUPPORT_T_H_
 #define _TAHOE_SUPPORT_T_H_
 
@@ -160,8 +160,8 @@ public:
 
 	/** \name input/output */
 	/*@{*/
-	/** the parameters stream */
-	ifstreamT& Input(void) const;
+	/** the parameters file */
+	const StringT& InputFile(void) const;
 
 	/** the echo file */
 	ofstreamT& Output(void) const;
@@ -245,7 +245,7 @@ private:
 	int fNumNodes;
 	double fTimeStep;
 	int fIterationNumber;
-	ifstreamT *ifst;
+	StringT *ifst;
 	ofstreamT *ofst;	
 	dArray2DT *fInitialCoordinates;
 	dArray2DT *fCurrentCoordinates;

@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.h,v 1.11.30.1 2004-07-06 06:54:37 paklein Exp $ */
+/* $Id: TimeManagerT.h,v 1.11.30.2 2004-07-12 05:12:16 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _TIMEMANAGER_T_H_
 #define _TIMEMANAGER_T_H_
@@ -36,8 +36,11 @@ public:
 	/** constructor */
 	TimeManagerT(FEManagerT& FEM);
 
+	/** set to initial conditions */
+	void InitialCondition(void);
+
 	/** initialization */
-	void Initialize(void);
+//	void Initialize(void);
 
 	/* run through the time sequences */
 	void Top(void);
@@ -158,12 +161,12 @@ private:
 	
 	/** will be IntegratorT::kExplicit if all integrators are explicit
 	 * otherwise will be IntegratorT::kImplicit */
-//	IntegratorT::ImpExpFlagT fImpExp;
-//DELETE ME
+	IntegratorT::ImpExpFlagT fImpExp;
 
-/* functions for time shifters */
 private:
 
+	/** \name functions for time shifters */
+	/*@{*/
 	/* to allow LinearHHTalpha to adjust the time.  LinearHHTalpha must
 	 * call ResetTime when finished.  MUST call ResetTime before the next call
 	 * to Step */
@@ -171,6 +174,7 @@ private:
 	
 	/* reset the time back to what it was before the calls to IncrementTime */
 	void ResetTime(void);
+	/*@}*/
 };
 
 /* inlines */

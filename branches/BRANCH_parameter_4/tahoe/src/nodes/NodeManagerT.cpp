@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.48.2.3 2004-07-08 07:50:21 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.48.2.4 2004-07-12 05:12:18 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -121,6 +121,8 @@ const ScheduleT* NodeManagerT::Schedule(int num) const
 /* initialize data */
 void NodeManagerT::Initialize(void)
 {
+#pragma message("delete me")
+#if 0
 	/* get streams */
 	ifstreamT& in = fFEManager.Input();
 	ostream&   out = fFEManager.Output();
@@ -135,6 +137,7 @@ void NodeManagerT::Initialize(void)
 
 	/* history nodes */
 	EchoHistoryNodes(in, out);
+#endif
 }
 
 /* register data for output */

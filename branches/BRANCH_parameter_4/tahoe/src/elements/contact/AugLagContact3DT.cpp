@@ -1,4 +1,4 @@
-/* $Id: AugLagContact3DT.cpp,v 1.4.2.1 2004-07-06 06:53:13 paklein Exp $ */
+/* $Id: AugLagContact3DT.cpp,v 1.4.2.2 2004-07-12 05:12:05 paklein Exp $ */
 #include "AugLagContact3DT.h"
 
 #include <math.h>
@@ -44,6 +44,8 @@ AugLagContact3DT::AugLagContact3DT(const ElementSupportT& support, const FieldT&
 	fM2(NumSD(), fElDisp.Length()),
 	fV1(fElDisp.Length())
 {
+#pragma message("delete me")
+#if 0
 	SetName("contact_3D_multiplier");
 
 	/* regularization parameter */
@@ -90,6 +92,7 @@ AugLagContact3DT::AugLagContact3DT(const ElementSupportT& support, const FieldT&
 	*p++ = 0;
 	*p++ = 0;
 	*p   = 1;
+#endif
 }
 
 AugLagContact3DT::AugLagContact3DT(const ElementSupportT& support):
