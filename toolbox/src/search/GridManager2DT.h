@@ -1,4 +1,4 @@
-/* $Id: GridManager2DT.h,v 1.7.2.1 2002-12-16 09:03:00 paklein Exp $ */
+/* $Id: GridManager2DT.h,v 1.7.2.2 2003-01-14 15:35:59 paklein Exp $ */
 /* created: paklein (12/06/1997) */
 #ifndef _GRIDMANAGER2D_T_H_
 #define _GRIDMANAGER2D_T_H_
@@ -470,7 +470,13 @@ AutoArrayT<sTYPE>** GridManager2DT<sTYPE>::FetchGrid(double* coords)
 	int iy = int((coords[1] - fymin)/fdy);
 	
 	/* range check */
-	if (ix < 0 || ix >= fnx || iy < 0 || iy >= fny ) throw ExceptionT::kGeneralFail;		
+	if (ix < 0 || ix >= fnx || iy < 0 || iy >= fny ) {
+		const char caller[] = "GridManager2DT<sTYPE>::FetchGrid";
+		cout << "\n " << caller << ": point out of range\n"
+		     << "  1: (" << fxmin << " < " << coords[0] << " < " << fxmax << ")\n"
+		     << "  2: (" << fymin << " < " << coords[1] << " < " << fymax << ")\n" << endl;
+		ExceptionT::GeneralFail(caller);
+	}
 	
 	/* stored column major */
 	return fGrid.Pointer(ix*fny + iy);

@@ -1,4 +1,4 @@
-/* $Id: iGridManager3DT.h,v 1.5.2.1 2002-12-16 09:03:00 paklein Exp $ */
+/* $Id: iGridManager3DT.h,v 1.5.2.2 2003-01-14 15:35:59 paklein Exp $ */
 /* created: paklein (12/09/1997) */
 #ifndef _I_GRIDMANAGER3D_T_H_
 #define _I_GRIDMANAGER3D_T_H_
@@ -29,6 +29,9 @@ public:
 
 	/** reconfigure grid with stored coordinate data */
 	void Reset(void);
+
+	/** return the coordinate array */
+	const dArray2DT& Coordinates(void) const { return fCoords; };
 
 protected:
 
