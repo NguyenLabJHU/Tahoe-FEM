@@ -135,6 +135,11 @@ void OutPutLatticeT::SetTypes(const iArrayT& types)
 	fOutput->SetTypes(types); 
 }
 
+void OutPutLatticeT::SetParts(const iArrayT& parts)
+{
+  //	fOutput->SetParts(parts); 
+}
+
 /* register the output for an element set. returns the output ID */
 int OutPutLatticeT::AddElementSet(const OutputSetT& output_set)
 {

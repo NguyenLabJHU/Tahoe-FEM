@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: AsperityT.h,v 1.1 2003-06-06 16:05:02 saubry Exp $ */
+/* $Id: AsperityT.h,v 1.2 2003-06-06 23:11:36 saubry Exp $ */
 
 #ifndef _ASPERITY_T_H_
 #define _ASPERITY_T_H_
@@ -45,6 +45,7 @@ class AsperityT : public VolumeT
 
   void CalculateBounds(iArrayT per,CrystalLatticeT* pcl);
   void CalculateType();
+  void CalculatePart();
 
   iArrayT GetNCells();
   dArray2DT GetLength();
@@ -52,10 +53,12 @@ class AsperityT : public VolumeT
  private: 
 
     dArray2DT ComputeMinMax(); 
-    int RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat);
-    int RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat);
+    int RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
+			iArrayT* temp_parts, int temp_nat);
+    int RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,
+			iArrayT* temp_parts, int temp_nat);
 
-    void ComputeCircleParameters();
+    double ComputeCircleParameters();
 };
 
 inline iArrayT AsperityT::GetNCells(){return ncells;};

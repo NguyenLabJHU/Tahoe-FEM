@@ -94,6 +94,11 @@ dArray2DT MeshAtom::Length()
   return Shape->GetLength();
 }
 
+iArrayT MeshAtom::NumberOFCells()
+{
+  return Shape->GetNCells();
+}
+
 
 iArrayT* MeshAtom::ReturnAtomID()
 {
@@ -143,7 +148,7 @@ void MeshAtom::BuildIOFile(StringT& program_name,
 
   IOLattice->SetBounds(*(Shape->GetAtomBounds()));
   IOLattice->SetTypes(*(Shape->GetAtomTypes()));
-
+ 
   IOLattice->AddElementSet(*Set);
   
   IOLattice->WriteGeometry();

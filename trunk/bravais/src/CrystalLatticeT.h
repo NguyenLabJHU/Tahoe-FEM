@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: CrystalLatticeT.h,v 1.9 2002-11-14 01:47:33 saubry Exp $ */
+/* $Id: CrystalLatticeT.h,v 1.10 2003-06-06 23:11:36 saubry Exp $ */
 
 #ifndef _CRYSTAL_LATTICE_T_H_
 #define _CRYSTAL_LATTICE_T_H_
@@ -55,6 +55,7 @@ public:
 	double GetDensity();
 
 	dArray2DT AxisRotation(dArray2DT A);
+	dArrayT VectorRotation(dArrayT v);
 };
 
 #endif

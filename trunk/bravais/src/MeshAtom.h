@@ -63,6 +63,7 @@ class MeshAtom {
   // Access to mesh
   double Volume_of_Mesh();
   dArray2DT Length();
+  iArrayT NumberOFCells();
 
   iArrayT*   ReturnAtomID();
   dArray2DT* ReturnCoordinates();
@@ -77,9 +78,6 @@ class MeshAtom {
 		   IOBaseT::FileTypeT output_format,
 		   iArrayT per);
   
-
-				
-
 };
 
 } // namespace Tahoe 
