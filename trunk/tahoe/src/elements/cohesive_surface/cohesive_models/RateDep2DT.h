@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.h,v 1.2 2002-02-25 19:37:42 cjkimme Exp $ */
+/* $Id: RateDep2DT.h,v 1.3 2002-04-16 21:19:33 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #ifndef _RATE_DEP_2D_T_H_
@@ -33,10 +33,10 @@ public:
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state);
+	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma);
 
 	/** tangent stiffness */
-	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state);
+	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);
 
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump_u, const ArrayT<double>& state);
@@ -62,8 +62,8 @@ public:
 
 	virtual bool NeedsNodalInfo(void);
 	virtual int NodalQuantityNeeded(void);
-        virtual double ComputeNodalValue(const dArrayT &);
-	virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
+//        virtual double ComputeNodalValue(const dArrayT &);
+//	virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
 	virtual int ElementGroupNeeded(void);
 
 protected:
@@ -90,9 +90,9 @@ private:
 	                  * and the initial stiffness of the cohesive potential */
 	const double& fTimeStep;
 	int fGroup;
-	//bool initiationQ;
+	bool fNeedsStress;
 	double L_2_b, L_2_m;/* fitting constants for rate dependence of L_2 */
-	
+	double fslope; /*slope of the 'plateau' of the Tverg-Hutch potential in units of fsigma_max */
 };
 
 #endif /* _RATE_DEP_2D_T_H_ */
