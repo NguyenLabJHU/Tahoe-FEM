@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.11 2005-02-15 18:13:06 raregue Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.12 2005-02-16 22:53:22 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 #include "SSMatSupportT.h"
@@ -194,10 +194,11 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 			// check for localization
 			// compute modulus 
 			//const dMatrixT& modulus = c_ijkl();
-			const dMatrixT& modulus = c_perfplas_ijkl();
+			//const dMatrixT& modulus = c_perfplas_ijkl();
 			//const dMatrixT& modulus = c_ep_ijkl();
 
 			/* localization condition checker */
+			/*
 			DetCheckT checker(stress, modulus, Ce);
 			AutoArrayT <dArrayT> normals;
 			AutoArrayT <dArrayT> slipdirs;
@@ -205,6 +206,8 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 			slipdirs.Dimension(3);
 			output[3] = 0.0;
 			if(checker.IsLocalized_SS(normals,slipdirs)) output[3] = 1.0;
+			*/
+			output[3] = 0.0;
 		  }
 	}
 	else

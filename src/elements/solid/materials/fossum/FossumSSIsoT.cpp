@@ -402,8 +402,8 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 	fStress.AddScaled(output[7], One);
 
 
-	if (element.IsAllocated())
-	//if (0)  //to disable localization check
+	//if (element.IsAllocated())
+	if (0)  //to disable localization check
 	{
 		const iArrayT& flags = element.IntegerData();
 		if (flags[CurrIP()] == kIsPlastic)
