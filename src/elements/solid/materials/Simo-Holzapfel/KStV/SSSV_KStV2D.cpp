@@ -1,4 +1,4 @@
-/* $Id: SSSV_KStV2D.cpp,v 1.8 2003-11-04 18:10:41 thao Exp $ */
+/* $Id: SSSV_KStV2D.cpp,v 1.9 2004-01-21 23:08:38 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSSV_KStV2D.h"
 #include "SSMatSupportT.h"
@@ -134,7 +134,7 @@ const dSymMatrixT& SSSV_KStV2D::S_IJ(void)
 
 const dMatrixT& SSSV_KStV2D::c_ijkl(void)
 {        
- 	double dt = fSSMatSupport.TimeStep();
+ 	double dt = fSSMatSupport->TimeStep();
 	double taudtS = dt/ftauS;
 	double taudtB = dt/ftauB;
 
@@ -176,7 +176,7 @@ const dMatrixT& SSSV_KStV2D::c_ijkl(void)
 
 const dSymMatrixT& SSSV_KStV2D::s_ij(void)
 {
-	double dt = fSSMatSupport.TimeStep();
+	double dt = fSSMatSupport->TimeStep();
 	double taudtS = dt/ftauS;
 	double taudtB = dt/ftauB;
 
@@ -214,7 +214,7 @@ const dSymMatrixT& SSSV_KStV2D::s_ij(void)
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
 
-	if(fSSMatSupport.RunState() == GlobalT::kFormRHS)
+	if (fSSMatSupport->RunState() == GlobalT::kFormRHS)
 	{
 		mu = fMu[kNonEquilibrium];
 		kappa = fKappa[kNonEquilibrium];
