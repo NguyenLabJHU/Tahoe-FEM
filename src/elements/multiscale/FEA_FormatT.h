@@ -17,7 +17,8 @@ class	FEA_FormatT {
 
 		void Shapes				(	ShapeFunctionT *fShapes, FEA_ShapeFunctionT &FEA_Shapes 				);
 		void SurfShapeGradient	(	int n_en, const ParentDomainT&, FEA_SurfShapeFunctionT&, 
-									LocalArrayT&, const ParentDomainT&, ShapeFunctionT*, LocalArrayT&, LocalArrayT&, 
+									LocalArrayT&, const ParentDomainT&, LocalArrayT&,
+									ShapeFunctionT& , LocalArrayT&, LocalArrayT&, 
 									FEA_dMatrixT&, FEA_dMatrixT& );
 		void Na					(	int n_en, ShapeFunctionT *fShapes, FEA_ShapeFunctionT &FEA_Shapes 		);
 		void Gradients 			(	ShapeFunctionT*,LocalArrayT&,LocalArrayT&,FEA_dMatrixT&,FEA_dMatrixT&	);

@@ -1,4 +1,4 @@
-// $Id: FEA_FormatT.cpp,v 1.19 2003-10-09 21:46:13 raregue Exp $
+// $Id: FEA_FormatT.cpp,v 1.20 2003-10-10 00:47:12 paklein Exp $
 #include "FEA_FormatT.h"
 
 using namespace Tahoe;
@@ -19,10 +19,11 @@ void FEA_FormatT::Shapes	(ShapeFunctionT *fShapes, FEA_ShapeFunctionT &FEA_Shape
 
 //---------------------------------------------------------------------
 
-void FEA_FormatT::SurfShapeGradient	(int n_en, const ParentDomainT& fSurfShapes, 
+void FEA_FormatT::SurfShapeGradient	(int n_en, const ParentDomainT& surf_shapes, 
 								FEA_SurfShapeFunctionT &FEA_SurfShapes, 
 								LocalArrayT& face_coords, const ParentDomainT& parent,
-								ShapeFunctionT *fShapes,
+								LocalArrayT& volume_coords,
+								ShapeFunctionT& shapes,
 								LocalArrayT &u_np1,LocalArrayT &u_n, 
 								FEA_dMatrixT &GRAD_u_np1, FEA_dMatrixT &GRAD_u_n )
 {
@@ -30,7 +31,7 @@ void FEA_FormatT::SurfShapeGradient	(int n_en, const ParentDomainT& fSurfShapes,
 	dMatrixT face_Q(2);
 	dArrayT fNormal(2);
 	
-	int nip_surf = fSurfShapes.NumIP();
+	int nip_surf = surf_shapes.NumIP();
 	
 	//fNormal.Dimension ( n_sd );
 	
@@ -38,31 +39,39 @@ void FEA_FormatT::SurfShapeGradient	(int n_en, const ParentDomainT& fSurfShapes,
 	bool ismapped;
 	dArrayT Na;
 	dArray2DT DNa;
-	LocalArrayT nodal_coords;
 	
-	FEA_SurfShapes.W = fSurfShapes.Weight(); 	// IPWeights() returns double*
+	FEA_SurfShapes.W = surf_shapes.Weight(); 	// IPWeights() returns double*
 	
 	for	(int l=0; l<nip_surf; l++) 
 	{
-		fSurfShapes.DomainJacobian(face_coords, l, face_jacobian);
-		FEA_SurfShapes.j[l] = fSurfShapes.SurfaceJacobian(face_jacobian, face_Q); 	// IPDets() returns double*
+		surf_shapes.DomainJacobian(face_coords, l, face_jacobian);
+		FEA_SurfShapes.j[l] = surf_shapes.SurfaceJacobian(face_jacobian, face_Q); 	// IPDets() returns double*
 			
 		/* last column is the normal (I think) */
 		face_Q.ColumnAlias(face_Q.Cols()-1, fNormal);
 		FEA_SurfShapes.normal[l] = fNormal;
 		
-		fSurfShapes.Interpolate(face_coords, interp_ip, l);
-		//nodal_coords=??;
-		ismapped = parent.MapToParentDomain(nodal_coords, interp_ip, interp_ip_mapped);
-		fShapes->GradU	( u_n, 		GRAD_u_n[l], interp_ip_mapped, Na, DNa);
-		fShapes->GradU 	( u_np1, 	GRAD_u_np1[l], interp_ip_mapped, Na, DNa );
+		surf_shapes.Interpolate(face_coords, interp_ip, l);
+		ismapped = parent.MapToParentDomain(volume_coords, interp_ip, interp_ip_mapped);
+		shapes.GradU	( u_n, 		GRAD_u_n[l], interp_ip_mapped, Na, DNa);
+		shapes.GradU 	( u_np1, 	GRAD_u_np1[l], interp_ip_mapped, Na, DNa );
 		
+		const double* DNa_x = surf_shapes.DShape(l,0);
+		const double* DNa_y = surf_shapes.DShape(l,1);
+		const double* Na = surf_shapes.Shape(l); 
 		for (int a=0; a<n_en; a++) 
 		{
-			FEA_SurfShapes.dNdx[l][0][a] = fSurfShapes.DShape(l,0);
-			FEA_SurfShapes.dNdx[l][1][a] = fSurfShapes.DShape(l,1);
-			FEA_SurfShapes.N[l][a] = fSurfShapes.Shape(l); 
-		}					
+			dMatrixT& dN_dx = FEA_SurfShapes.dNdx[l];
+			dN_dx(0,a) = DNa_x[a];
+			dN_dx(1,a) = DNa_y[a];
+
+			dArrayT& N = FEA_SurfShapes.N[l];
+			N[a] = Na[a]; 
+		}
+		
+//		FEA_SurfShapes.N[l] = surf_shapes.Shape(l); 
+//		FEA_SurfShapes.dNdx[l].SetRow(0, surf_shapes.DShape(l,0));
+//		FEA_SurfShapes.dNdx[l].SetRow(1, surf_shapes.DShape(l,1));
 	}
 	
 }

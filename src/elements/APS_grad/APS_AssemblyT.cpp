@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.33 2003-10-09 21:46:51 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.34 2003-10-10 00:47:09 paklein Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -1034,7 +1034,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 	iArrayT displ_eq, plast_eq;
 
 	/* work space for integration over faces */
-	LocalArrayT face_coords(LocalArrayT::kInitCoords);
+	LocalArrayT face_coords(LocalArrayT::kInitCoords, 2, NumSD());
 	ElementSupport().RegisterCoordinates(face_coords);
 	iArrayT face_nodes, face_equations;
 	dMatrixT face_jacobian(NumSD(), NumSD()-1);
@@ -1127,11 +1127,13 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 						fPlasticGradientFaceEqnos[i].RowAlias(j, face_equations);
 						
 						Convert.SurfShapeGradient	( n_en_surf, surf_shape, fFEA_SurfShapes, face_coords,
-													parent, fShapes, u, u_n, fgrad_u_surf, fgrad_u_surf_n );
+													parent, fInitCoords, *fShapes, u, u_n, fgrad_u_surf, fgrad_u_surf_n );
 						//Convert.GradientSurface ( fShapes, surf_shape, u, u_n, fgrad_u_surf, fgrad_u_surf_n );
 						APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgrad_gamma_p, fstate ); 
 						fEquation_d -> Form_LHS_Kd_Surf ( fKdd, fFEA_SurfShapes, face_equations );
 						fEquation_d -> Form_RHS_F_int_Surf ( fFd_int, np1, fPlasticGradientWght[i], face_equations );
+
+						//ElementSupport().AssembleRHS(curr_group, force_on_face_nodes, face_equations);
 					}
 				}
 			}

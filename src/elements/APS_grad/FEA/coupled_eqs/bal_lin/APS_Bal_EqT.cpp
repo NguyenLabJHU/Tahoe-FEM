@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.cpp,v 1.16 2003-10-09 21:46:52 raregue Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.17 2003-10-10 00:47:10 paklein Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -99,7 +99,7 @@ void APS_Bal_EqT::Form_LHS_Kd_Surf	( dMatrixT &Kd, FEA_SurfShapeFunctionT &SurfS
 		{
 		for (int i=0; i<face_equations.Length(); i++)
 			for (int j=0; j<face_equations.Length(); j++)
-				Kd_eldof[face_equations[i]][face_equations[j]] = Kd_surfdof[i][j];				
+				Kd_eldof(face_equations[i],face_equations[j]) = Kd_surfdof(i,j);
 		}
 		Kd += Kd_eldof;
 }
