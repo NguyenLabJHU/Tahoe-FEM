@@ -1,4 +1,4 @@
-/* $Id: SecantMethodT.h,v 1.5 2004-09-29 23:19:06 paklein Exp $ */
+/* $Id: SecantMethodT.h,v 1.6 2004-12-19 17:50:43 paklein Exp $ */
 /* created: paklein (12/01/1998) */
 #ifndef _SECANT_METHOD_T_H_
 #define _SECANT_METHOD_T_H_
@@ -54,9 +54,7 @@ private:
 	/* solution data */
 	double ferr0;   // reference error
 	int    fcount;  // number of iterations
-
-	
-
+	int    fLastReplaced; /**< 1 or 2, indicating last data point replaced */
 };
 
 } /* namespace Tahoe */
