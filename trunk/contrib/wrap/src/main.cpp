@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.1 2003-07-26 18:02:06 paklein Exp $ */
+/* $Id: main.cpp,v 1.2 2003-11-21 22:49:52 paklein Exp $ */
 #include "ModelManagerT.h"
 #include "iArray2DT.h"
 #include "OutputBaseT.h"
@@ -13,6 +13,7 @@ int main (int argc, char* argv[])
 
 	const char caller[] = "wrap";
 
+#if 0
 	//hard code the input
 	StringT file = "/Volumes/Uster/USERS/tahoe/bin/conveyor/geometry/beam.CSE.0.geom";
 	ArrayT<StringT> left_ID(2);
@@ -21,12 +22,35 @@ int main (int argc, char* argv[])
 	ArrayT<StringT> right_ID(2);
 	right_ID[0] = "4";
 	right_ID[1] = "6";
+#endif
 
 	/* resolve input file name */
-	cout << " file name: ";
-	//cin >> file;
+	StringT file;
+	cout << " file path: ";
+	cin >> file;
 	file.ToNativePathName();
-	IOBaseT::FileTypeT file_type =  IOBaseT::name_to_FileTypeT(file);
+	IOBaseT::FileTypeT file_type = IOBaseT::name_to_FileTypeT(file);
+
+	/* left-right node set pairs */
+	int num_pairs = 0;
+	cout << " number of left-right node set pairs: ";
+	cin >> num_pairs;
+	if (num_pairs < 1) return 0;
+	ArrayT<StringT> left_ID(num_pairs), right_ID(num_pairs);
+	for (int i = 0; i < num_pairs; i++)
+	{
+		cout << "  left(" << i+1 << "): ";
+		cin >> left_ID[i];
+		cout << " right(" << i+1 << "): ";
+		cin >> right_ID[i];
+		
+		/* verify */
+		cout << "(left, right) = (" << left_ID[i] << "," << right_ID[i] << ")\n";
+		cout << " continue (y/n) ? ";
+		char ans;
+		cin >> ans;
+		if (ans == 'n' || ans == 'N') i--;
+	}
 
 	/* open database */
 	ModelManagerT model(cout);
@@ -45,7 +69,7 @@ int main (int argc, char* argv[])
 	
 	/* find nodes on coordinate bounds */
 	AutoArrayT<int> n_min, n_max;
-	double* px = coords.Pointer();
+	const double* px = coords.Pointer();
 	int nsd = coords.MinorDim();
 	for (int i = 0; i < coords.MajorDim(); i++)
 	{
