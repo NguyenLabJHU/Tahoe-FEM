@@ -1,4 +1,4 @@
-/* $Id: LimitT.cpp,v 1.8 2003-11-04 01:21:25 paklein Exp $ */
+/* $Id: LimitT.cpp,v 1.9 2004-01-21 17:17:40 paklein Exp $ */
 #include "LimitT.h"
 
 /* array behavior */
@@ -304,7 +304,7 @@ bool LimitT::CheckOnly(const ValueT& value) const
 		case Enumeration:
 		{
 			/* type check */
-			if (value.Type() != Enumeration)
+			if (value.Type() != Enumeration && value.Type() != String)
 				ExceptionT::GeneralFail(caller, "type mismatch");
 
 			const StringT& sa = value;

@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.11 2003-08-18 15:54:10 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.12 2004-01-21 17:17:40 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -61,7 +61,11 @@ public:
 	 * be converted to ParameterListT::Group's. */
 	void SetInline(bool is_inline);
 
+	/** flag which controls if duplicate names can be added with ParameterListT::AddList */
 	bool DuplicateListNames(void) const { return fDuplicateListNames; };
+
+	/** set flag which controls if duplicate names can be added with ParameterListT::AddList.
+	 * If false, ParameterListT::AddList will return false if the name has already been added. */
 	void SetDuplicateListNames(bool dup) { fDuplicateListNames = dup; };
 	/*@}*/
 	
