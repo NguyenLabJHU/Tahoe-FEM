@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.28 2004-07-27 23:39:06 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.29 2004-07-28 16:37:05 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -9,7 +9,14 @@
 /* base classes */
 #include "ElementBaseT.h"
 #include "StringT.h"
+#include "Traction_CardT.h"
+#include "ShapeFunctionT.h"
+
+#include "ifstreamT.h"
 #include "ofstreamT.h"
+
+#include "iAutoArrayT.h"
+#include "ScheduleT.h"
 
 /* direct members */
 #include "LocalArrayT.h"
@@ -63,8 +70,6 @@ public:
 									kNUM_FMAT_TERMS	}; // MAT for material here, not matrix
 
 	/** constructor */
-//	APS_AssemblyT(	const ElementSupportT& support, const FieldT& displ, 
-//					const FieldT& gammap);
 	APS_AssemblyT(	const ElementSupportT& support );				
 
 	/** destructor */
@@ -184,8 +189,8 @@ private:
 	/** \name  values read from input in the constructor */
 	/*@{*/
 	/** element geometry */
-	GeometryT::CodeT fGeometryCode_displ, fGeometryCodeSurf_displ, fGeometryCode_plast, fGeometryCodeSurf_plast;
-
+	GeometryT::CodeT fGeometryCode_displ, fGeometryCodeSurf_displ, 
+			fGeometryCode_plast, fGeometryCodeSurf_plast;
 	int fGeometryCode_displ_int, fGeometryCodeSurf_displ_int;
 
 	/** number of integration points */
@@ -198,7 +203,6 @@ private:
 	LocalArrayT u;		//total out-of-plane displacement
 	LocalArrayT u_n; 	//total out-of-plane displacement from previous increment
 	LocalArrayT del_u;	//the Newton-R update i.e. del_u = u - u_n (u_{n+1}^{k+1} implied)
-	LocalArrayT DDu;    //coarse scale accelleration (used for body force)
 	LocalArrayT gamma_p;		//plastic gradient
 	LocalArrayT gamma_p_n;
 	LocalArrayT del_gamma_p;	//the Newton-R update
@@ -236,8 +240,6 @@ private:
 	 * current coordinates */
 	ShapeFunctionT* fShapes_displ;
 	ShapeFunctionT* fShapes_plast;
-	
-	//dArrayT fNormal;
 	
 	// shape functions in FEA class type
 	FEA_ShapeFunctionT fFEA_Shapes_displ, fFEA_Shapes_plast;
@@ -340,14 +342,10 @@ private:
 
 	//##########################################################################################
 	//############## Attributes from ContinuumElementT.h needed for cut and paste ##############
-	//############## methods in Traction_and_Body_Force.cpp (i.e. methods now in this class) ### 
+	//############## methods in APS_Traction.cpp (i.e. methods now in this class) ### 
 	//##########################################################################################
 
 public:
-
-	enum MassTypeT {kNoMass = 0, /**< do not compute mass matrix */
-            kConsistentMass = 1, /**< variationally consistent mass matrix */
-                kLumpedMass = 2  /**< diagonally lumped mass */ };
 
 	/** reference to element shape functions */
 	const ShapeFunctionT& ShapeFunction(void) const;
@@ -357,32 +355,11 @@ protected:
 	/** extract natural boundary condition information */
 	void TakeNaturalBC(const ParameterListT& list);
 	
-	 	/** apply traction boundary conditions to the coarse scale equations */
-		void ApplyTractionBC(void);
+	 /** apply traction boundary conditions to displacement equations */
+	void ApplyTractionBC(void);
 
-		/** add contribution from the body force */
-		void AddBodyForce(LocalArrayT& body_force) const;
-	
-		/** element body force contribution 
-	 * \param mass_type mass matrix type of ContinuumElementT::MassTypeT
-	 * \param constM pre-factor for the element integral
-	 * \param nodal nodal values. Pass NULL for no nodal values: [nen] x [ndof]
-	 * \param ip_values integration point source terms. Pass NULL for no integration
-	 *        point values : [nip] x [ndof] */
-	void FormMa(MassTypeT mass_type, double constM, const LocalArrayT* nodal_values, 
-				const dArray2DT* ip_values);
-	 		
-	void EchoTractionBC(ifstreamT& in, ostream& out);
-	// could also break up. Input and defaults(per output format) are
-	// shared but the output of what each code means is class-dependent
-	void EchoBodyForce(ifstreamT& in, ostream& out);
-
-  	/** update traction BC data for the coarse scale equations */
+  	/** update traction BC data for displacement equations */
 	void SetTractionBC(void);
-
-	/* body force vector */
-	const ScheduleT* fBodySchedule; /**< body force schedule */
-	dArrayT fBody; /**< body force vector   */
 
 	/* traction data */
 	ArrayT<Traction_CardT> fTractionList;

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2003-12-06 08:01:17 paklein Exp $
+# $Id: makefile,v 1.7 2004-07-28 16:37:05 raregue Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,7 +21,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 	APS_AssemblyT.o \
-	APS_Traction_and_Body_Force.o
+	APS_Traction.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -42,7 +42,7 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 	APS_AssemblyT.cpp \
-	APS_Traction_and_Body_Force.cpp
+	APS_Traction.cpp
 
 ##################### (3) headers
 #

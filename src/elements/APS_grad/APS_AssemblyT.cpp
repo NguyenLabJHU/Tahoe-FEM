@@ -1,18 +1,10 @@
-/* $Id: APS_AssemblyT.cpp,v 1.53 2004-07-28 00:17:31 paklein Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.54 2004-07-28 16:37:05 raregue Exp $ */
 #include "APS_AssemblyT.h"
-
-#include "ShapeFunctionT.h"
-#include "Traction_CardT.h"
-
-#include "ifstreamT.h"
-#include "ofstreamT.h"
 
 #include "APS_MatlT.h"
 #include "Shear_MatlT.h"
 
 #include "OutputSetT.h"
-#include "iAutoArrayT.h"
-#include "ScheduleT.h"
 #include "ParameterContainerT.h"
 #include "CommunicatorT.h"
 
@@ -21,21 +13,16 @@ using namespace Tahoe;
 //---------------------------------------------------------------------
 
 /* constructor */
-//APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ, 
-//							const FieldT& gammap):
 APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support):
 	ElementBaseT(support), //pass the displacement field to the base class
 	u(LocalArrayT::kDisp),
 	u_n(LocalArrayT::kLastDisp),
-	DDu(LocalArrayT::kAcc),
 	gamma_p(LocalArrayT::kDisp),
 	gamma_p_n(LocalArrayT::kLastDisp),
 	fInitCoords_displ(LocalArrayT::kInitCoords),
 	fCurrCoords_displ(LocalArrayT::kCurrCoords),
 	fInitCoords_plast(LocalArrayT::kInitCoords),
 	fCurrCoords_plast(LocalArrayT::kCurrCoords),
-	fBodySchedule(NULL),
-	fBody(NumDOF()),
 	fTractionBCSet(0),
 	fDispl(NULL),
 	fPlast(NULL),
@@ -119,7 +106,7 @@ void APS_AssemblyT::RHSDriver(void)
 {
 	int curr_group = ElementSupport().CurrentGroup();
 
-	/* traction boundary conditions acting on the coarse scale equations */
+	/* traction boundary conditions acting on displacement equations */
 	if (curr_group == fDispl->Group()) 
 		ApplyTractionBC();
 
@@ -177,11 +164,11 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
 	{
 #pragma message("correct initialization for staggered solution")
 	
-		/* ElementBaseT handles equation array for the coarse scale */
+		/* ElementBaseT handles equation array for displacements */
 		if (ElementSupport().CurrentGroup() == fDispl->Group())
 			ElementBaseT::Equations(eq_d, eq_eps);
 
-		/* fine scale equations */
+		/* plasticity equation */
 		if (ElementSupport().CurrentGroup() == fPlast->Group())
 		{
 			/* collect local equation numbers */
@@ -338,17 +325,17 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
 	const char caller[] = "APS_AssemblyT::AddNodalForce";
 
-	/* coarse, fine, or neither */
-	bool is_coarse = false;
+	/* displ, plast, or neither */
+	bool is_displ = false;
 	dArrayT* element_force = NULL;
 	int num_force = 0;
 	if (field.Name() == fDispl->Name()) {
-		is_coarse = true;
+		is_displ = true;
 		element_force = &fFd_int;
 		num_force = fDispl->NumDOF();
 		}
 	else if (field.Name() == fPlast->Name()) {
-		is_coarse = false;
+		is_displ = false;
 		element_force = &fFeps_int;
 		num_force = fPlast->NumDOF();
 		}
@@ -359,11 +346,6 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 	double delta_t = ElementSupport().TimeStep();
 	time = ElementSupport().Time();
 	step_number = ElementSupport().StepNumber();
-
- 	/* has (coarse scale) body forces */
-	int formBody = 0;
-	if (fBodySchedule && fBody.Magnitude() > kSmall)
-		formBody = 1;
 
 	/* temp for nodal force */
 	dArrayT nodalforce;
@@ -419,32 +401,19 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); // variables at time-step n+1
 		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n,fgamma_p_n, fgamma_p_surf_n, fgrad_gamma_p_n, fstate_n );	// variables at time-step n	 
 
-			/* calculate coarse scale nodal force */
-			if (is_coarse)
+			/* calculate displacement nodal force */
+			if (is_displ)
 			{
-				/* residual and tangent for coarse scale */
+				/* residual and tangent for displacement field */
 				fEquation_d->Construct ( fNumIPSurf_displ, n_en_surf, fFEA_Shapes_displ, fFEA_Shapes_plast, fBalLinMomMaterial, 
 										fPlastMaterial, np1, n, step_number, delta_t );
 				fEquation_d->Form_LHS_Keps_Kd ( fKdeps, fKdd );
 				fEquation_d->Form_RHS_F_int ( fFd_int, np1 );
 				fFd_int *= -1.0;  
-
-				/* add body force */
-				if (formBody) {
-//					double density = fBalLinMomMaterial->Retrieve(Iso_MatlT::kDensity);
-					double density = 1.0;
-					DDu = 0.0;
-					AddBodyForce(DDu);
-				
-					/* add body force to fRHS */
-					fRHS = 0.0;
-					FormMa(kConsistentMass, -density, &DDu, NULL);
-					fFd_int += fRHS;
-				}
 			}
-			else /* fine scale nodal force */
+			else /* plasticity nodal force */
 			{
-				/* residual and tangent for fine scale */
+				/* residual and tangent for plastic gradient field */
 				fEquation_eps->Construct ( fFEA_Shapes_displ, fFEA_Shapes_plast, fPlastMaterial, np1, n, 
 											step_number, delta_t, FEA::kBackward_Euler );
 				fEquation_eps->Form_LHS_Keps_Kd ( fKepseps, fKepsd );
@@ -546,15 +515,15 @@ void APS_AssemblyT::RegisterOutput(void)
 	ArrayT<StringT> n_labels(num_node_output);
 	count = 0;
 
-	/* labels from fine scale */
-	const ArrayT<StringT>& fine_labels = fPlast->Labels();
-	for (int i = 0; i < fine_labels.Length(); i++)
-		n_labels[count++] = fine_labels[i];
+	/* labels from plastic gradient */
+	const ArrayT<StringT>& plast_labels = fPlast->Labels();
+	for (int i = 0; i < plast_labels.Length(); i++)
+		n_labels[count++] = plast_labels[i];
 
-	/* labels from coarse scale */
-	const ArrayT<StringT>& coarse_labels = fDispl->Labels();
-	for (int i = 0; i < coarse_labels.Length(); i++)
-		n_labels[count++] = coarse_labels[i];
+	/* labels from displacement */
+	const ArrayT<StringT>& displ_labels = fDispl->Labels();
+	for (int i = 0; i < displ_labels.Length(); i++)
+		n_labels[count++] = displ_labels[i];
 
 	/* labels from strains and stresses at the nodes */
 	for (int i = 0; i < knumstrain+knumstress; i++)
@@ -676,7 +645,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 {
 	const char caller[] = "APS_AssemblyT::RHSDriver_staggered";
 	if (fDispl->Group() == fPlast->Group())
-		ExceptionT::GeneralFail(caller, "coarse and fine group must be different: %d == %d",
+		ExceptionT::GeneralFail(caller, "displacement and plastic gradient groups must be different: %d == %d",
 			fDispl->Group(), fPlast->Group());
 
 	int curr_group = ElementSupport().CurrentGroup();
@@ -689,12 +658,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 	double delta_t = ElementSupport().TimeStep();
 	time = ElementSupport().Time();
 	step_number = ElementSupport().StepNumber();
-
- 	/* has (coarse scale) body forces */
-	int formBody = 0;
-	if (fBodySchedule && fBody.Magnitude() > kSmall)
-		formBody = 1;
-
+	
 	/* loop over elements */
 	int e,l;
 	Top();
@@ -760,26 +724,17 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 				fEquation_d->Form_LHS_Keps_Kd ( fKdeps, fKdd );
 				fEquation_d->Form_RHS_F_int ( fFd_int, np1 );
 
-				/** Set coarse LHS */
+				/** Set displacement LHS */
 				fLHS = fKdd;
 
-				/** Compute coarse RHS */
+				/** Compute displacement RHS */
 				fKdeps.Multx ( del_gamma_p_vec, fRHS );
 				fRHS += fFd_int; 
 				fRHS *= -1.0; 
 
-				/** Compute Traction B.C. and Body Forces */
+				/** Compute Traction B.C. */
 				Get_Fd_ext ( fFd_ext );
 				fRHS += fFd_ext;
-				
-				/* add body forces */
-				if (formBody) {
-//					//double density = fBalLinMomMaterial->Retrieve(Iso_MatlT::kDensity);
-					double density = 1.0;
-					DDu = 0.0;
-					AddBodyForce(DDu);
-					FormMa(kConsistentMass, -density, &DDu, NULL);				
-				}
 			
 				/* add to global equations */
 				ElementSupport().AssembleLHS ( fDispl->Group(), fLHS, CurrentElement().Equations() );
@@ -819,12 +774,12 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 				/** Set LHS */
 				fLHS = fKepseps;	
 		
-				/** Compute fine RHS (or Fint_bar_II in FAXed notes)  */
+				/** Compute plasticity RHS  */
 				fKepsd.Multx ( del_u_vec, fRHS );
 				fRHS += fFeps_int; 
 				fRHS *= -1.0; 
 		
-				/* fine scale equation numbers */
+				/* plastic gradient equation numbers */
 				const iArrayT& plast_eq = fElementCards_plast[e].Equations();
 
 				/* add to global equations */
@@ -843,7 +798,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 {
 	const char caller[] = "APS_AssemblyT::RHSDriver_monolithic";
 	if (fDispl->Group() != fPlast->Group())
-		ExceptionT::GeneralFail(caller, "coarse and fine group must be the same: %d != %d",
+		ExceptionT::GeneralFail(caller, "displacement and plastic gradient groups must be the same: %d != %d",
 			fDispl->Group(), fPlast->Group());
 
 	int curr_group = ElementSupport().CurrentGroup();
@@ -865,11 +820,6 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 	dMatrixT face_Q(NumSD());
 	LocalArrayT face_gamma_p(LocalArrayT::kDisp, n_en_surf, NumSD());
 	fPlast->RegisterLocal(face_gamma_p);
-
- 	/* has (coarse scale) body forces */
-	int formBody = 0;
-	if (fBodySchedule && fBody.Magnitude() > kSmall)
-		formBody = 1;
 
 	/* loop over elements */
 	int e,l;
@@ -936,7 +886,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		}
 		else { //-- Still Iterating
 		
-			/* residual and tangent for coarse scale */
+			/* residual and tangent for displacements */
 			fEquation_d->Construct ( fNumIPSurf_displ, n_en_surf, fFEA_Shapes_displ, fFEA_Shapes_plast, fBalLinMomMaterial, 
 									fPlastMaterial, np1, n, step_number, delta_t );
 			fEquation_d->Form_LHS_Keps_Kd ( fKdeps, fKdd );
@@ -980,22 +930,8 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 					}
 				}
 			}
-			
-			
-			/* add body force */
-			if (formBody) {
-//				double density = fBalLinMomMaterial->Retrieve(Iso_MatlT::kDensity);
-				double density = 1.0;
-				DDu = 0.0;
-				AddBodyForce(DDu);
-				
-				/* add body force to fRHS */
-				fRHS = 0.0;
-				FormMa(kConsistentMass, -density, &DDu, NULL);
-				fFd_int += fRHS;
-			}
 
-			/* residual and tangent for fine scale */
+			/* residual and tangent for plasticity */
 			fEquation_eps->Construct ( fFEA_Shapes_displ, fFEA_Shapes_plast, fPlastMaterial, np1, n, step_number, 
 										delta_t, FEA::kBackward_Euler );
 			fEquation_eps->Form_LHS_Keps_Kd ( fKepseps, fKepsd );
@@ -1031,8 +967,8 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 void APS_AssemblyT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	ParameterInterfaceT::DefineParameters(list);
-	
+	ElementBaseT::DefineParameters(list);
+
 	/* displacement field */
 	list.AddParameter(ParameterT::Word, "displ_field_name");
 	
@@ -1076,12 +1012,12 @@ void APS_AssemblyT::DefineParameters(ParameterListT& list) const
 	
 	// number of side sets
 	list.AddParameter(num_sidesets, "num_sidesets");
-	
-	int num_sidesets_tmp=5; //dummy memory??
-	//fSideSetID.Dimension(num_sidesets_tmp);
-	//fPlasticGradientWght.Dimension(num_sidesets_tmp);
 
 	//doesn't appear to work
+	/*
+	int num_sidesets_tmp=5; //dummy memory??
+	fPlasticGradientWght.Dimension(num_sidesets_tmp);
+	
  	list.AddParameter(ParameterT::Word, "fSideSetID[0]");
  	list.AddParameter(fPlasticGradientWght[0], "fPlasticGradientWght[0]");
  	
@@ -1096,6 +1032,7 @@ void APS_AssemblyT::DefineParameters(ParameterListT& list) const
  	
  	list.AddParameter(ParameterT::Word, "fSideSetID[4]");
  	list.AddParameter(fPlasticGradientWght[4], "fPlasticGradientWght[4]");
+ 	*/
 
 }
 
@@ -1106,9 +1043,7 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 	const char caller[] = "APS_AssemblyT::TakeParameterList";
 	
 	/* inherited */
-	ParameterInterfaceT::TakeParameterList(list);
-	/* inherited */
-	//ElementBaseT::TakeParameterList(list);
+	ElementBaseT::TakeParameterList(list);
 
 	/* get form of tangent */
 	GlobalT::SystemTypeT type = TangentType();
@@ -1172,6 +1107,7 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 	fMaterial_Data[kkappa0_3] = list.GetParameter("kappa0_3");
 	
 	num_sidesets = list.GetParameter("num_sidesets");
+	num_sidesets = 0;
 	
 	/* prescribed plastic gradient at surface */
 	fSideSetID.Dimension(num_sidesets);
@@ -1185,6 +1121,7 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 	ModelManagerT& model = ElementSupport().ModelManager();
 
 	// get sideset info for plastic gradient field
+	/*
 	fSideSetID[0] = list.GetParameter("fSideSetID[0]");
 	fPlasticGradientWght[0] = list.GetParameter("fPlasticGradientWght[0]");
 	fSideSetID[1] = list.GetParameter("fSideSetID[1]");
@@ -1195,6 +1132,7 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 	fPlasticGradientWght[3] = list.GetParameter("fPlasticGradientWght[3]");
 	fSideSetID[4] = list.GetParameter("fSideSetID[4]");
 	fPlasticGradientWght[4] = list.GetParameter("fPlasticGradientWght[4]");
+	*/
 
 	int n_en_surf=0;
 	ArrayT<GeometryT::CodeT> facet_geom;
@@ -1282,17 +1220,16 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 	n_el = NumElements();	
 	n_sd_surf = n_sd;
 
-	/* set local arrays for coarse scale */
+	/* set local arrays for displacement field */
 	int dum=1;
 	u.Dimension (n_en_displ, dum);
 	u_n.Dimension (n_en_displ, dum);
-	DDu.Dimension (n_en_displ, dum);
 	del_u.Dimension (n_en_displ, dum);
 	del_u_vec.Dimension (n_en_displ);
 	fDispl->RegisterLocal(u);
 	fDispl->RegisterLocal(u_n);
 
-	/* set local arrays for fine scale */
+	/* set local arrays for plastic gradient field */
 	gamma_p.Dimension (n_en_plast, n_sd);
 	gamma_p_n.Dimension (n_en_plast, n_sd);
 	del_gamma_p.Dimension (n_en_plast, n_sd);
@@ -1349,9 +1286,8 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 
 	Select_Equations ( BalLinMomT::kAPS_Bal_Eq, iPlastModelType );
 	dum=knumstrain+knumstress;
-	fEquation_eps->Initialize ( n_ip_plast, n_sd, n_en_displ, n_en_plast, knum_d_state, dum, ElementSupport().StepNumber() );
-	//step_number_last_iter = 0; 
-	//step_number_last_iter = ElementSupport().StepNumber();  // This may crash or not work
+	fEquation_eps->Initialize ( n_ip_plast, n_sd, n_en_displ, n_en_plast, 
+					knum_d_state, dum, ElementSupport().StepNumber() );
 
 	/* FEA Allocation */
 	dum=1;
