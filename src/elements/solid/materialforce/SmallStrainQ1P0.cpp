@@ -1,4 +1,4 @@
-/* $Id: SmallStrainQ1P0.cpp,v 1.1 2003-08-22 16:59:20 thao Exp $ */
+/* $Id: SmallStrainQ1P0.cpp,v 1.2 2003-08-30 03:31:24 thao Exp $ */
 #include "SmallStrainQ1P0.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -118,6 +118,7 @@ void SmallStrainQ1P0::SetLocalArrays(void)
   SmallStrainT::SetLocalArrays();
   fLocDispTranspose.Dimension(fLocDisp.Length());
 }
+
 /* compute the measures of strain/deformation over the element */
 void SmallStrainQ1P0::SetGlobalShape(void)
 {

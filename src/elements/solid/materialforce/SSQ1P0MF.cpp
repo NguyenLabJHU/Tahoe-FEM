@@ -1,4 +1,4 @@
-/* $Id: SSQ1P0MF.cpp,v 1.1 2003-08-22 16:59:20 thao Exp $ */
+/* $Id: SSQ1P0MF.cpp,v 1.2 2003-08-30 03:31:24 thao Exp $ */
 #include "SSQ1P0MF.h"
 
 #include "OutputSetT.h"
@@ -24,6 +24,7 @@ using namespace Tahoe;
 /* constructor */
 SSQ1P0MF::SSQ1P0MF(const ElementSupportT& support, const FieldT& field):
   SmallStrainQ1P0(support, field),
+  fGradUTemp(2),
   MFSupportT(support) {}
 	
 void SSQ1P0MF::Initialize(void)
@@ -33,22 +34,35 @@ void SSQ1P0MF::Initialize(void)
   int nsd = (NumSD() == 2) ? 4 : 3;
    
   /*dimension workspace*/
-  fEshelby.Dimension(NumSD());
+  fEshelby.Dimension(3);
   fCauchy.Dimension(nsd);
 
   fBodyForce.Dimension(NumSD()*NumElementNodes());
   fip_body.Dimension(NumSD());
     
   fGradU_List.Dimension(NumIP());
-  for (int i = 0; i< NumIP(); i++)
-    fGradU_List[i].Dimension(NumSD());
+  for (int i = 0; i< NumIP(); i++) 
+    fGradU_List[i].Dimension(3);
 }
 
 void SSQ1P0MF::SetGlobalShape(void)
 {
   SmallStrainQ1P0::SetGlobalShape();
   for (int i = 0; i < NumIP(); i++)
-    fShapes->GradU(fLocDisp, fGradU_List[i],i);
+  {
+    const dSymMatrixT& strain = fStrain_List[i];
+    dMatrixT& gradU = fGradU_List[i];
+    if (NumSD() == 2){
+      gradU = 0.0;
+      fShapes->GradU(fLocDisp,fGradUTemp,i);
+      gradU(0,0) = strain(0,0);
+      gradU(1,1) = strain(1,1);
+      gradU(0,1) = fGradUTemp(0,1);
+      gradU(1,0) = fGradUTemp(1,0);
+      gradU(2,2) = strain[3];
+    }
+    else fShapes->GradU(fLocDisp,gradU,i);
+  }
 }
 
 /***************************outputs managers***********************************/
@@ -239,6 +253,9 @@ void SSQ1P0MF::MatForceVolMech(dArrayT& elem_val)
         *pbody++ -= fBody[j]*loadfactor*density;
   }
 
+  /*calculate volumetric contribution to strain energy: p*theta*/
+  MeanVolEnergy();
+
   /*intialize shape function data*/
   const double* jac = fShapes->IPDets();
   const double* weight = fShapes->IPWeights();
@@ -267,14 +284,18 @@ void SSQ1P0MF::MatForceVolMech(dArrayT& elem_val)
 	    fip_body[1] += (*pQaU++) * (*pbody++);
       }	 
 
-      /*form negative of Eshelby stress -SIG_IJ = C_IK S_KJ - Psi Delta_IJ*/
-     
-      fEshelby(0,0) = gradU(0,0)*fCauchy(0,0) + gradU(1,0)*fCauchy(1,0) - energy;
+      /*form mixed negative of Eshelby stress 
+	p*theta = vol_avg(1/3 trace[u_i,k sigma_ij])
+	-sig_ik = dev(u_i,k sigma_ij) + p*theta delta_ik - Psi delta_ik       */   
+
+      fEshelby = 0.0;
+      fEshelby(0,0) = gradU(0,0)*fCauchy(0,0) + gradU(1,0)*fCauchy(1,0); 
       fEshelby(0,1) = gradU(0,0)*fCauchy(0,1) + gradU(1,0)*fCauchy(1,1);
       fEshelby(1,0) = gradU(0,1)*fCauchy(0,0) + gradU(1,1)*fCauchy(1,0);
-      fEshelby(1,1) = gradU(0,1)*fCauchy(0,1) + gradU(1,1)*fCauchy(1,1) - energy;
-
-      //      cout <<"\nfEshelby: "<<fEshelby;
+      fEshelby(1,1) = gradU(0,1)*fCauchy(0,1) + gradU(1,1)*fCauchy(1,1);
+      fEshelby(2,2) = gradU(2,2)*fCauchy[3];
+      double trace = fthird*(fEshelby(0,0)+fEshelby(1,1)+fEshelby(2,2));
+      fEshelby.PlusIdentity(fptheta-trace-energy);
 
       double* pDQaX = DQa(0); 
       double* pDQaY = DQa(1);
@@ -283,9 +304,9 @@ void SSQ1P0MF::MatForceVolMech(dArrayT& elem_val)
       {
 	/*add nEshelby volume integral contribution*/
        	*(pforce++) += (fEshelby[0]*(*pDQaX) + fEshelby[2]*(*pDQaY)
-	       + (gradU[0]*fip_body[0]+gradU[1]*fip_body[1])*(*pQa))*(*jac)*(*weight);
-	    *(pforce++) += (fEshelby[1]*(*pDQaX++) + fEshelby[3]*(*pDQaY++)
-	       + (gradU[2]*fip_body[0]+gradU[3]*fip_body[1])*(*pQa++))*(*jac)*(*weight); 
+			+ (gradU[0]*fip_body[0]+gradU[1]*fip_body[1])*(*pQa))*(*jac)*(*weight);
+	*(pforce++) += (fEshelby[1]*(*pDQaX++) + fEshelby[3]*(*pDQaY++)
+			+ (gradU[2]*fip_body[0]+gradU[3]*fip_body[1])*(*pQa++))*(*jac)*(*weight); 
       }
     }
     else if (NumSD() ==3)
@@ -684,6 +705,30 @@ Q[2]*ip_tract[0]+Q[5]*ip_tract[1]+Q[8]*ip_tract[2];
 }
 
 /****************utitlity function******************************/
+void SSQ1P0MF::MeanVolEnergy(void)
+{
+  fptheta = 0.0;
+  /*intialize shape function data*/
+  const double* jac = fShapes->IPDets();
+  const double* weight = fShapes->IPWeights();
+
+  fShapes->TopIP();
+  while(fShapes->NextIP())
+  {
+    /*gather material data*/
+    double energy = fCurrSSMat->StrainEnergyDensity();
+    fCauchy = fCurrSSMat->s_ij();
+    const dMatrixT& gradU = DisplacementGradient();
+
+    double S00 = gradU(0,0)*fCauchy(0,0) + gradU(1,0)*fCauchy(1,0); 
+    double S11 = gradU(0,1)*fCauchy(0,1) + gradU(1,1)*fCauchy(1,1);
+    double S22 = gradU(2,2)*fCauchy[3];
+    double trace = fthird*(S00+S11+S22);
+    fptheta += trace*(*weight++)*(*jac++);  
+  }
+  fptheta *= fElemVol_inv;
+}
+
 void SSQ1P0MF::Extrapolate(void)
 {
   const char caller[] = "SSQ1P0MF::Extrapolate";   
@@ -733,4 +778,5 @@ void SSQ1P0MF::Extrapolate(void)
         fGlobalVal(i,j) /= fGlobalMass[i];
   //  cout << "\nfGlobalVal: "<<fGlobalVal;
 }
+
 

@@ -1,4 +1,4 @@
-/* $Id: SmallStrainQ1P0.h,v 1.1 2003-08-22 16:59:20 thao Exp $ */
+/* $Id: SmallStrainQ1P0.h,v 1.2 2003-08-30 03:31:24 thao Exp $ */
 #ifndef _SMALL_STRAIN_Q1P0_H_
 #define _SMALL_STRAIN_Q1P0_H_
 
@@ -58,10 +58,10 @@ class SmallStrainQ1P0: public SmallStrainT
 	dArrayT fTheta_List_last;
 	dArrayT fPressure_List;   /*Dilation at each ip for each element*/ 
 
+	double fElemVol_inv;
 	const double fthird;
 
  private:	
-	double fElemVol_inv;    /*inverse of element volume*/
 
 	/*Bbar*/
 	dMatrixT fBbar;
