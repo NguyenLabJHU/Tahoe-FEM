@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.5 2001-05-31 00:46:06 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.6 2001-06-04 22:48:09 paklein Exp $ */
 /* created: paklein (07/09/1996)                                          */
 
 #include "NLSolver.h"
@@ -195,6 +195,9 @@ NLSolver::IterationStatusT NLSolver::DoConverged(void)
 
 void NLSolver::DoNotConverged(void)
 {
+	/* message */
+	cout << "\n NLSolver::DoNotConverged: resetting step, cutting load set" << endl;
+
 	/* step back to last converged */
 	fFEManager.ResetStep();
 	
