@@ -1,14 +1,17 @@
-/* $Id: TiedNodesT.cpp,v 1.2 2002-04-10 21:20:54 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.3 2002-04-13 15:40:31 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
+#include "ElementBaseT.h"
+#include "FEManagerT.h"
 
 /* constructor */
 TiedNodesT::TiedNodesT(NodeManagerT& node_manager):
 	KBC_ControllerT(node_manager),
 	fEqnos(NULL),
 	fKinematics(0),
-	fDummySchedule(1.0)
+	fDummySchedule(1.0),
+	fFEManager(node_manager.FEManager())
 {
 
 }
@@ -219,7 +222,31 @@ void TiedNodesT::AddKinematics(dArray2DT& u)
 bool TiedNodesT::ChangeStatus(void)
 {
 //TEMP - no check implemented
-	return false;
+
+  bool changeQ;
+  ElementBaseT* surroundingGroup = fFEManager.ElementGroup(0);
+
+  if (!surroundingGroup)
+    {
+      cout <<" Group 0 doesn't exist \n";
+      throw eGeneralFail;
+    }
+  surroundingGroup->SendOutput(3);
+  dArray2DT fNodalQs = fNodeManager.OutputAverage();
+
+  for (int i = 0; i < fNodePairs.MajorDim();i++)
+    {
+
+      if (fNodalQs.RowSum(fNodePairs(i,0)) + fNodalQs.RowSum(fNodePairs(i,1)) > 1000) 
+	{ 
+	  fPairStatus[i] = kFree;
+	  //fKBC_Cards[i].SetValues(i,1,KBC_CardT::kFix,0,1.);
+	  changeQ = true;
+	}
+    }
+
+  return changeQ;
+
 }
 
 /**********************************************************************
