@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeSupport2DT.h,v 1.1 2004-08-13 23:59:55 raregue Exp $ */
+/* $Id: D3MeshFreeSupport2DT.h,v 1.2 2004-10-30 20:51:19 raregue Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D3_MF_SUPPORT_2D_T_H_
 #define _D3_MF_SUPPORT_2D_T_H_

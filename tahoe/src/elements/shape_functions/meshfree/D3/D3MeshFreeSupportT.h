@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeSupportT.h,v 1.1 2004-08-13 23:59:55 raregue Exp $ */
+/* $Id: D3MeshFreeSupportT.h,v 1.2 2004-10-30 20:51:19 raregue Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D3_MF_SUPPORT_T_H_
 #define _D3_MF_SUPPORT_T_H_
@@ -34,7 +34,7 @@ public:
 	 * \param phi returns with the shape function values of neighbors at node: [nnd]
 	 * \param Dphi returns with neighbors shape function derivatives at node: [nsd] x [nnd]
 	 * \param DDphi returns with neighbors shape function second derivatives at node: [nstr] x [nnd]
-	 * \param DDDphi returns with neighbors shape function second derivatives at node: [?nstr] x [nnd] */	
+	 * \param DDDphi returns with neighbors shape function second derivatives at node: [nsd*nsd] x [nnd] */	
 	void LoadNodalData(int node, iArrayT& neighbors, dArrayT& phi,
 		dArray2DT& Dphi, dArray2DT& DDphi, dArray2DT& DDDphi);
 
@@ -45,7 +45,7 @@ public:
 	 * \param phi returns with the shape function values of neighbors at the integration points: [nip] x [nnd]
 	 * \param Dphi returns with neighbor shape function derivatives: [nip] x [nsd] x [nnd]
 	 * \param DDphi returns with neighbor shape function second derivatives: [nip] x [nstr] x [nnd]
-	 * \param DDDphi returns with neighbor shape function second derivatives: [nip] x [?nstr] x [nnd] */
+	 * \param DDDphi returns with neighbor shape function third derivatives: [nip] x [nsd*nsd] x [nnd] */
 	void LoadElementData(int element, iArrayT& neighbors,
 		dArray2DT& phi, ArrayT<dArray2DT>& Dphi, ArrayT<dArray2DT>& DDphi, ArrayT<dArray2DT>& DDDphi);
 
@@ -59,7 +59,7 @@ public:
 
 	/** shape function third derivatives for NeighborsAt the last call to 
 	 * SetFieldAt or SetFieldUsing
-	 * \return 2D array dimension: [nstr] x [nnd] */
+	 * \return 2D array dimension: [nsd*nsd] x [nnd] */
 	const dArray2DT& DDDFieldAt(void) const;
 
 protected:

@@ -1,8 +1,9 @@
-/* $Id: D3MeshFreeShapeFunctionT.h,v 1.2 2004-08-19 18:02:36 raregue Exp $ */
+/* $Id: D3MeshFreeShapeFunctionT.h,v 1.3 2004-10-30 20:51:19 raregue Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D3_MF_SHAPE_T_H_
 #define _D3_MF_SHAPE_T_H_
 
+#include "MFGP_ToolsT.h"
 /* base class */
 #include "D2MeshFreeShapeFunctionT.h"
 
@@ -57,7 +58,7 @@ protected:
 inline void D3MeshFreeShapeFunctionT::GradGradGradU(const LocalArrayT& nodal,
 	dMatrixT& gradgradgrad_U) const
 {
-	//fDomain->??(nodal, fDDDNaU[fCurrIP], gradgradgrad_U);	
+	fDomain->JacobianD3(nodal, fDDDNaU[fCurrIP], gradgradgrad_U);	
 }
 
 } // namespace Tahoe 
