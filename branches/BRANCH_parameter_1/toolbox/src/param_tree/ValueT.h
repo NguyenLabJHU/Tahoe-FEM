@@ -1,4 +1,4 @@
-/* $Id: ValueT.h,v 1.5 2003-04-22 18:32:16 paklein Exp $ */
+/* $Id: ValueT.h,v 1.5.2.1 2003-04-28 08:43:50 paklein Exp $ */
 #ifndef _VALUE_T_H_
 #define _VALUE_T_H_
 
@@ -18,6 +18,7 @@ public:
 		Integer,
 		Double,
 		String,
+		Boolean,
 		Enumeration /**< string-integer pair */
 	};
 
@@ -26,6 +27,7 @@ public:
 	ValueT(int a);
 	ValueT(double x);
 	ValueT(const StringT& s);
+	ValueT(bool b);
 
 	/** enumeration. Enumerations are string-integer pairs. For all operators
 	 * below, enumerations cast to both integers and strings. */
@@ -56,6 +58,7 @@ public:
 	/*@{*/
 	ValueT& operator=(int a);
 	ValueT& operator=(double x);
+	ValueT& operator=(bool b);
 	ValueT& operator=(const StringT& s);
 	ValueT& operator=(const ValueT& rhs);
 
@@ -67,6 +70,7 @@ public:
 	/*@{*/
 	operator const int&() const;
 	operator const double&() const;
+	operator const bool&() const;
 	operator const StringT&() const;
 	/*@}*/
 
@@ -80,8 +84,10 @@ protected:
 	int fInteger;
 	double fDouble;
 	StringT fString;
+	bool fBoolean;
 	/*@}*/
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _VALUE_T_H_ */
