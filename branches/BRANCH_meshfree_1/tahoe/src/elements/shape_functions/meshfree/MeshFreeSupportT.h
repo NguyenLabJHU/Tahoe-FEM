@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.h,v 1.1.1.1.4.1 2001-06-19 00:54:46 paklein Exp $ */
+/* $Id: MeshFreeSupportT.h,v 1.1.1.1.4.2 2001-06-19 08:58:44 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #ifndef _MF_SUPPORT_T_H_
@@ -154,8 +154,9 @@ private:
 		dArray2DT& Dphi);
 
 	/* compute nodal support parameters */
-	void SetSupport_SphericalSearch(void);
-	void SetSupport_Connectivities(void); // faster, but not strictly correct
+	void SetSupport_Spherical_Search(void);
+	void SetSupport_Spherical_Connectivities(void); // faster, but not strictly correct
+	void SetSupport_Cartesian_Connectivities(void); // faster, but not strictly correct
 	void SetNodesUsed(void);
 
 	/* swap data */
