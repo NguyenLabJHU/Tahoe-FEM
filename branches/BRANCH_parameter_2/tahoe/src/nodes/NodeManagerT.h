@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.23.2.1 2004-01-28 01:34:12 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.23.2.2 2004-02-05 18:47:16 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -297,7 +297,8 @@ protected:
 
 	/** \name steps of NodeManagerT::Initialize */
 	/*@{*/
-	virtual void EchoCoordinates(ifstreamT& in, ostream& out);
+	void SetCoordinates(void);
+//	virtual void EchoCoordinates(ifstreamT& in, ostream& out);
 	virtual void EchoFields(ifstreamT& in, ostream& out);
 	virtual void EchoHistoryNodes(ifstreamT& in, ostream &out);
 	/*@}*/

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.23 2003-12-02 17:13:36 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.23.2.1 2004-02-05 18:47:13 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -82,12 +82,6 @@ public:
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
 
-	/** strain-displacement options.
-	 * \note This really belongs in SmallStrainT; however, will be here for
-	 * not to allow input files to be unchanged. */
-	enum StrainOptionT {kStandardB = 0, /**< standard strain-displacement matrix */
-	                  kMeanDilBbar = 1  /**< mean dilatation for near incompressibility */ };
-
 	/** set storage flag for internal force */
 	void SetStoreInternalForce(bool do_store) { fStoreInternalForce = do_store; };
 
@@ -103,9 +97,6 @@ public:
 	/*@}*/
 
 protected:
-
-	/** stream extraction operator */
-	friend istream& operator>>(istream& in, SolidElementT::StrainOptionT& type);
 
 	/** construct list of materials from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);
@@ -183,11 +174,8 @@ protected:
 
 protected:
 
-	/** \name class parameters */
-	/*@{*/
+	/** mass type */
 	MassTypeT     fMassType;	
-	StrainOptionT fStrainDispOpt;
-	/*@}*/
 
 	/* propagation direction for wave speeds */
 	dArrayT fNormal;

@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.19.2.1 2004-01-21 19:09:58 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.19.2.2 2004-02-05 18:47:13 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -18,12 +18,7 @@ FiniteStrainT::FiniteStrainT(const ElementSupportT& support, const FieldT& field
 	fCurrShapes(NULL),
 	fFSMatSupport(NULL)
 {
-	/* disable any strain-displacement options */
-	if (fStrainDispOpt != kStandardB)
-	{
-		cout << "\n FiniteStrainT::FiniteStrainT: no strain-displacement options\n" << endl;
-		fStrainDispOpt = kStandardB;
-	}
+
 }
 
 /* destructor */

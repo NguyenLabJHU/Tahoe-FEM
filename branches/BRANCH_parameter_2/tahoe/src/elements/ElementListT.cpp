@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.78 2004-01-14 22:04:41 rdorgan Exp $ */
+/* $Id: ElementListT.cpp,v 1.78.2.1 2004-02-05 18:47:12 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -957,6 +957,45 @@ void ElementListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrder
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* ElementListT::NewSub(const StringT& list_name) const
 {
+	/* try to construct element */
+	ElementBaseT* element = NewElement(list_name);
+	if (element)
+		return element;
+	else /* inherited */	
+		return ParameterInterfaceT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void ElementListT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	/* dimension */
+	const ArrayT<ParameterListT>& subs = list.Lists();
+	Dimension(subs.Length());
+	for (int i = 0; i < Length(); i++) {
+
+		/* construct element */
+		ElementBaseT* element = NewElement(subs[i].Name());
+		if (!element)
+			ExceptionT::GeneralFail("ElementListT::TakeParameterList", "could not construct \"%s\"");
+		
+		/* initialize */
+		element->TakeParameterList(subs[i]);
+		
+		/* store */
+		fArray[i] = element;
+	}
+}
+
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
+
+/* return a pointer to a new element group or NULL if the request cannot be completed */
+ElementBaseT* ElementListT::NewElement(const StringT& list_name) const
+{
 	if (false) /* dummy */
 		return NULL;
 
@@ -987,7 +1026,7 @@ ParameterInterfaceT* ElementListT::NewSub(const StringT& list_name) const
 		return new SmallStrainT(fSupport);
 #endif
 
-	/* inherited */	
+	/* default */	
 	else
-		return ParameterInterfaceT::NewSub(list_name);
+		return NULL;
 }

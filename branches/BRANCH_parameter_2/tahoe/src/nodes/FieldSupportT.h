@@ -1,4 +1,4 @@
-/* $Id: FieldSupportT.h,v 1.5 2003-08-18 03:46:37 paklein Exp $ */
+/* $Id: FieldSupportT.h,v 1.5.16.1 2004-02-05 18:47:16 paklein Exp $ */
 #ifndef _FIELD_SUPPORT_T_H_
 #define _FIELD_SUPPORT_T_H_
 
@@ -24,6 +24,15 @@ public:
 
 	/** constructor */
 	FieldSupportT(const FEManagerT& fe, NodeManagerT& nodes);
+
+	/** \name accessors to higher levels */
+	/*@{*/
+	/** the top-level */
+	const FEManagerT& FEManager(void) const { return fFEManager; };
+
+	/** the nodes */
+	const NodeManagerT& NodeManager(void) const { return fNodeManager; };
+	/*@}*/
 
 	/** \name assembly functions */
 	/*@{*/
