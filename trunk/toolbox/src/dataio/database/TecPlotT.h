@@ -1,4 +1,4 @@
-/* $Id: TecPlotT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: TecPlotT.h,v 1.2 2001-07-06 17:08:33 sawimme Exp $ */
 /* created: saw (06.06.2000)                                              */
 
 #ifndef _TECPLOT_T_H_
@@ -30,6 +30,7 @@ void WriteFEZone (ostream& out, const StringT& title, int numnodes, int numelems
 // write data can only be call once if using point format
 // but may be called repeatly, in proper order, for block format
 void WriteData (ostream& out, const dArray2DT& data) const;
+ void WriteData (ostream& out, const ArrayT<double>& data, const int rows, const int cols) const;
 
 // only used with WriteFEZone
 void WriteConnectivity (ostream& out, GeometryT::CodeT code, const iArray2DT& connects) const;

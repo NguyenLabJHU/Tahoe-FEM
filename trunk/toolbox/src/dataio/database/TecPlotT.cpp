@@ -1,4 +1,4 @@
-/* $Id: TecPlotT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: TecPlotT.cpp,v 1.2 2001-07-06 17:08:33 sawimme Exp $ */
 /* created: saw (06.06.2000)                                              */
 /* version 7.5                                                            */
 /* rules:                                                                 */
@@ -112,6 +112,31 @@ for (int i=0; i < temp.Length(); i++)
 	  if ((i+1)%100 == 0 || i == temp.Length() - 1) out << '\n';
 	}
 }
+}
+
+// write data should not be called using the  point format
+// but may be called repeatly, in proper order, for block format
+void TecPlotT::WriteData (ostream& out, const ArrayT<double>& data, const int rows, const int cols) const
+{
+  if (fPoint)
+    {
+      fOut << "\n\nTecPlot::WriteData, This function should not be used to write Point format data\n";
+      throw eGeneralFail;
+    }
+  else
+    {
+      // keep row length under 4000 characters
+      for (int i=0, j=0; j < cols; j++)
+	{
+	  double *p = data.Pointer(j);
+	  for (int k=0; k < rows; k++, i++)
+	    {
+	      out << *p << " ";
+	      if ((i+1)%100 == 0 || i == data.Length() - 1) out << '\n';
+	      p += cols;
+	    }
+	}
+    }
 }
 
 // only used with WriteFEZone
