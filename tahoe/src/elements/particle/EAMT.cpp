@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.34 2003-06-06 01:02:03 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.35 2003-06-24 23:59:57 saubry Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -1521,11 +1521,6 @@ void EAMT::EchoProperties(ifstreamT& in, ofstreamT& out)
     {
       int type_of_file;
       in >> type_of_file;
-      if (type_of_file == 2) 
-	{
-	  cout << "More than one potential. Not implemented yet.\n";
-	  exit(0);
-	}
 
       StringT file;
       in >> file;
@@ -1535,7 +1530,7 @@ void EAMT::EchoProperties(ifstreamT& in, ofstreamT& out)
       path.FilePath(in.filename());	
       file.Prepend(path);
       
-      fEAMProperties[i] = new ParadynEAMT(type_of_file,file);
+      fEAMProperties[i] = new ParadynEAMT(file);
     }
 
   /* echo particle properties */
