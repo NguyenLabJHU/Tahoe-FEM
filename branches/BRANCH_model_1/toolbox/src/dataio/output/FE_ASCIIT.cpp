@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.cpp,v 1.2.2.5 2001-11-06 17:06:43 sawimme Exp $ */
+/* $Id: FE_ASCIIT.cpp,v 1.2.2.6 2001-11-06 20:22:51 sawimme Exp $ */
 /* created: sawimme (05/20/1999)                                          */
 
 #include "FE_ASCIIT.h"
@@ -264,8 +264,6 @@ void FE_ASCIIT::WriteOutputData(ostream& out, int ID, const dArray2DT& n_values,
 		const iArray2DT* conn = fElementSets[ID]->Connectivities (b);
 		nodes_used += -conn->Min(); // offset from global to local
 		dArray2DT local_vars (nodes_used.Length(), n_values.MinorDim());
-		cout << n_values.MajorDim() << " " << nodes_used[0] << " " 
-		     << nodes_used[nodes_used.Length() - 1] << endl;
 		local_vars.RowCollect (nodes_used, n_values);
 		WriteNodeValues(out, nodes_used, local_vars);
 	      }

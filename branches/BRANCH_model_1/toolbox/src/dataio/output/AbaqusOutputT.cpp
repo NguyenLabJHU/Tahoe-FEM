@@ -1,4 +1,4 @@
-/* $Id: AbaqusOutputT.cpp,v 1.2.2.2 2001-11-06 14:25:43 sawimme Exp $ */
+/* $Id: AbaqusOutputT.cpp,v 1.2.2.3 2001-11-06 20:22:51 sawimme Exp $ */
 /* created: sawimme (05/31/2000)                                          */
 
 #include "AbaqusOutputT.h"
@@ -86,6 +86,7 @@ const dArray2DT& e_values)
 
   // break up variables by block
   const iArrayT& blockids = fElementSets[ID]->BlockID();
+  int elstart = 1;
   for (int ec=0; ec < fElementSets[ID]->NumBlocks(); ec++)
     {
       const iArray2DT* connects = fElementSets[ID]->Connectivities(ec);
@@ -134,10 +135,35 @@ const dArray2DT& e_values)
       
       if (e_labels.Length() > 0)
 	{
+	  // set labels
 	  iArrayT ekeys (e_labels.Length());
 	  SetRecordKey (aba, e_labels, ekeys);
 	  
+	  // collect by block
+	  dArray2DT blockvals (fElementSets[ID]->NumBlockElements(ec), e_values.MinorDim());
+	  ElementBlockValues (ID, ec, e_values, blockvals);
+
+	  // collect element IDs used
+	  iArrayT els_used (fElementSets[ID]->NumBlockElements(ec));
+	  els_used.SetValueToPosition();
+	  els_used += elstart;
+
+	  for (int e=0; e < ekeys.Length(); e++)
+	    {
+	      aba.WriteOutputDefinition (ekeys[e], setname, code, numelemnodes);
+
+	      // if stress or strain variable, define num direct and num shear components 
+	      if (ekeys[e] == aba.VariableKey ("S") || ekeys[e] == aba.VariableKey ("E"))
+		aba.WriteElementVariables (e, ekeys, blockvals, els_used, numdir, numshear);
+	      else
+		{
+		  int index = aba.VariableKeyIndex (ekeys[e]);
+		  int dimension = aba.VariableDimension (index);
+		  aba.WriteElementVariables (e, ekeys, blockvals, els_used, dimension, 0);
+		}
+	    }
 	}
+      elstart += fElementSets[ID]->NumBlockElements(ec);
     }
   
   // write end increment
