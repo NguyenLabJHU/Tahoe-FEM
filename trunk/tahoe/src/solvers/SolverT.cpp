@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.13 2003-01-27 07:00:31 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.14 2003-02-28 02:07:16 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -390,7 +390,7 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 		{
 #ifdef __AZTEC__
 			/* construct */
-			fLHS = new AztecMatrixT(in, out, check_code);
+			fLHS = new AztecMatrixT(in, out, check_code, fFEManager.Communicator());
 #else
 			cout << "\n SolverT::SetGlobalMatrix: Aztec solver not installed: ";
 			cout << fMatrixType << endl;

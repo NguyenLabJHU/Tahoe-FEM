@@ -1,4 +1,4 @@
-/* $Id: AztecBaseT.h,v 1.4 2002-07-05 22:28:35 paklein Exp $ */
+/* $Id: AztecBaseT.h,v 1.5 2003-02-28 02:07:17 paklein Exp $ */
 /* created: paklein (07/28/1998) */
 
 #ifndef _AZTEC_BASE_T_H_
@@ -14,13 +14,16 @@
 
 namespace Tahoe {
 
+/* forward declarations */
+class CommunicatorT;
+
 /** low-level interface to the Aztec iterative solver */
 class AztecBaseT
 {
 public:
 
 	/** constuctor */
-	AztecBaseT(ostream& msg);
+	AztecBaseT(ostream& msg, CommunicatorT& comm);
 	
 	/* destructor */
 	virtual ~AztecBaseT(void);
@@ -78,6 +81,9 @@ protected:
 
 	/** output stream for messages */
 	ostream& fMessage;
+
+	/** multiprocessor communicator */
+	CommunicatorT& fCommunicator;
 
 	/* number of update rows */
 	int Start_update; //1,...
