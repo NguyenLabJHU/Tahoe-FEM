@@ -2,7 +2,8 @@
 
 C_FILES = b_ax.c \
 order.c \
-moveai.c
+moveai.c \
+moveav.c
 
 F2C_OPTS = -I/usr/local/lam/include -c -w
 

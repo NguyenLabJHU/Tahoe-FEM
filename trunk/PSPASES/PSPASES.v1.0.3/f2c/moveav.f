@@ -39,12 +39,15 @@ C/* constitutes an implicit agreement to these terms.  These terms and        */
 C/* conditions are subject to change at any time without prior notice.        */
 C/*                                                                           */
 C/*****************************************************************************/
-C/* $Id: moveav.f,v 1.1 2004-12-10 20:28:27 paklein Exp $ */
+C/* $Id: moveav.f,v 1.2 2004-12-12 21:47:49 paklein Exp $ */
 C/*****************************************************************************/
 
       subroutine moveav(N,dd,pp,lgblk,myid,rowdista,mynnodes,
      +                  order,aptrs,ainds,avals,pavals,wrkint,
-     +                  maxnzpercol,ranmasks,comm)
+     +                  maxnzpercol,ranmasks,comm,
+     +                  gorder, whichsnode, tainds,
+     +                  sendvals,
+     +                  i2, nsend2)
 
       implicit none
 
@@ -57,8 +60,17 @@ C/*****************************************************************************/
       integer N,dd,pp,lgblk,myid,mynnodes,maxnzpercol,comm
       double precision avals(*),pavals(*)
 
-      integer, allocatable :: gorder(:),whichsnode(:),tainds(:)
-      double precision, allocatable :: sendvals(:)
+C      integer, allocatable :: gorder(:),whichsnode(:),tainds(:)
+      integer gorder, whichsnode, tainds
+      integer i2
+      dimension gorder(0:N-1)
+      dimension whichsnode(0:mynnodes-1)
+      dimension tainds(2*i2)
+
+C     double precision, allocatable :: sendvals(:)
+      double precision sendvals
+      integer nsend2
+      dimension sendvals(0:nsend2-1)
 
       integer proc,pgrsize,ierr,bmaskr,bmaskc,row,col
       integer i,j,k,l,m,ptr_r,fptr_r,ptr_c,itainds
@@ -77,7 +89,7 @@ C/*****************************************************************************/
 
       pgrsize = ishft(1,ishft(dd,-1))
 
-      allocate(gorder(0:N-1),stat=is1)
+C     allocate(gorder(0:N-1),stat=is1)
       if(is1.ne.0) then
         print *,'Error in allocate'
         call mpi_abort(comm,1,ierr)
@@ -97,13 +109,14 @@ C/*****************************************************************************/
         wrkint(pscv+proc) = 0
       end do
 
-      allocate(whichsnode(0:mynnodes-1),stat=is1)
+C     allocate(whichsnode(0:mynnodes-1),stat=is1)
       if(is1.ne.0) then
         print *,'Error in allocate'
         call mpi_abort(comm,1,ierr)
       end if
       i = aptrs(1,mynnodes-1)+aptrs(2,mynnodes-1)-1
-      allocate(tainds(2*i),stat=is1)
+
+C     allocate(tainds(2*i),stat=is1)
       if(is1.ne.0) then
         print *,'Error in allocate'
         call mpi_abort(comm,1,ierr)
@@ -151,7 +164,7 @@ C/*****************************************************************************/
 
       end do 
 
-      deallocate(gorder)
+C     deallocate(gorder)
 
       wrkint(psdv) = 0
       do proc=1,pp-1
@@ -161,7 +174,7 @@ C/*****************************************************************************/
       nsend = wrkint(psdv+pp-1)+wrkint(pscv+pp-1)
       wrkint(pscv+pp-1) = 0
 
-      allocate(sendvals(0:nsend-1),stat=is1)
+C     allocate(sendvals(0:nsend-1),stat=is1)
       if(is1.ne.0) then
         print *,'Error in allocate'
         call mpi_abort(comm,1,ierr)
@@ -185,8 +198,8 @@ C/*****************************************************************************/
 
       end do 
 
-      deallocate(whichsnode)
-      deallocate(tainds)
+C     deallocate(whichsnode)
+C     deallocate(tainds)
 
       call mpi_alltoall(wrkint(pscv),1,MPI_INTEGER,wrkint(prcv),
      +                  1,MPI_INTEGER,comm,ierr)
@@ -201,7 +214,7 @@ C/*****************************************************************************/
      +                   wrkint(prcv),wrkint(prdv),
      +                   MPI_DOUBLE_PRECISION,comm,ierr)
 
-      deallocate(sendvals)
+C     deallocate(sendvals)
 
       end
 

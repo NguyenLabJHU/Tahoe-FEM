@@ -20,3 +20,6 @@ Things that needed to be addressed when running the code through f2c
     fabs(), .i.e, if (fabs(a) > fabs(b)) don't seem to work properly.
 
 (6) C doesn't initialize the contents of dynamically allocated space to 0.
+
+Potential issues:
+(1) lbit_shift translated from ishft in moveai.c. What does this do?
