@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.48 2002-06-10 18:55:10 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.49 2002-06-12 19:04:08 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -35,6 +35,13 @@
 #include "vtkActor.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkSphereSource.h"
+#include "vtkCellPicker.h"
+#include "vtkTextSource.h"
+#include "vtkActorCollection.h"
+#include "vtkRendererCollection.h"
+
+
+AutoArrayT<vtkActor*> VTKConsoleT::pickedPoints;
 
 VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   fArguments(arguments),
@@ -147,7 +154,14 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
 
 	pointPicker = vtkPointPicker::New();
 	pointPicker->SetTolerance(0.01);
+
+	cellPicker = vtkCellPicker::New();
+	cellPicker->SetTolerance(0.01);
+
 	
+	//iren->SetPicker(cellPicker);
+	//iren->SetEndPickMethod(PickCells,(void *)iren);  
+
 	iren->SetPicker(pointPicker);
 	iren->SetEndPickMethod(PickPoints,(void *)iren);  
 	//iren->SetDesiredUpdateRate(30.0);
@@ -222,6 +236,19 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 {
   if (command.Name() == "Interactive")
     {
+      vtkRendererCollection* renderers = renWin->GetRenderers();
+      renderers->InitTraversal();
+      vtkRenderer* temp = renderers->GetNextItem();
+      for (int j = 0; j < renderers->GetNumberOfItems(); j++){
+	for (int i =0; i< pickedPoints.Length(); i++){
+	  temp->RemoveActor(pickedPoints[i]);
+	}      
+	renderers->GetNextItem();
+      }
+      
+      //for (int i = 0; i < pickedPoints.Length(); i++)
+      //pickedPoints[i]->Delete();
+	
       renWin->Render();
       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
       cout << "pick point with mouse and type 'p' to display scalar value" << endl;
@@ -832,25 +859,35 @@ void VTKConsoleT::SetFrameLayout(int num_x, int num_y)
 	  }
 }
 
+void VTKConsoleT::PickCells(void *arg)
+{
+  vtkRenderWindowInteractor *iren = (vtkRenderWindowInteractor *)arg;
+  vtkCellPicker *cellPicker = (vtkCellPicker *)iren->GetPicker(); 
+  if (cellPicker->GetCellId() != -1){
+    cout << "Cell: " << cellPicker->GetCellId()+1 << endl;
+    //  cout << "Value: " << (cellPicker->GetDataSet()->GetCellData()->GetScalars()->GetComponent(cellPicker->GetCellId(),0)) << endl;
+  }
+  else
+    cout << "Invalid Cell" << endl;
+  
+}
+
 /* prints out picked point and scalar value */
 void VTKConsoleT::PickPoints(void *arg)
 {
+
   vtkRenderWindowInteractor *iren = (vtkRenderWindowInteractor *)arg;
   vtkPointPicker *pointPicker = (vtkPointPicker *)iren->GetPicker();
- 
   vtkPolyDataMapper* sphereMapper = vtkPolyDataMapper::New();
   vtkActor* sphereActor = vtkActor::New();  
   vtkSphereSource *sphere = vtkSphereSource::New();
   sphere->SetThetaResolution(8); sphere->SetPhiResolution(8);
-  sphere->SetRadius(0.01);
+  sphere->SetRadius(.01);
   sphereMapper->SetInput(sphere->GetOutput());
   sphereActor->SetMapper(sphereMapper);
-  sphereActor->SetPosition(pointPicker->GetSelectionPoint());
   sphereActor->GetProperty()->SetColor(1,1,1);
   sphereActor->VisibilityOn();
   sphereActor->PickableOff();
-  //fFrames(0,0)->Renderer()->AddActor(sphereActor);
- 
   
   
   if (pointPicker->GetPointId() != -1){
@@ -858,9 +895,15 @@ void VTKConsoleT::PickPoints(void *arg)
       float* values = pointPicker->GetDataSet()->GetPointData()->GetScalars()->GetTuple(pointPicker->GetPointId()); 
       float* coords = pointPicker->GetDataSet()->GetPoint(pointPicker->GetPointId());
       int num_values = pointPicker->GetDataSet()->GetPointData()->GetScalars()->GetNumberOfComponents(); 
+    
+      sphereActor->SetPosition(coords);
+      pointPicker->GetRenderer()->AddActor(sphereActor);
+      pickedPoints.Append(sphereActor);
+
       cout <<"Point: " << pointPicker->GetPointId()+1 << endl;
       cout <<"Coordinates: " << "(" << coords[0] << ", " << coords[1] << ", " << coords[2] << ")" << endl;
       cout <<"Value: " << (pointPicker->GetDataSet()->GetPointData()->GetScalars()->GetComponent(pointPicker->GetPointId(), 0)) << endl;
+      
     }
     
     else
