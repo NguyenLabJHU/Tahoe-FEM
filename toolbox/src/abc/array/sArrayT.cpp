@@ -37,7 +37,7 @@ int sArrayT::HasValue (const StringT& value, int& index) const
 {
   index  = -1;
   StringT* p = Pointer();
-  for (int i = 0; i < Length(); i++)
+  for (int i = 0; i < Length() && index < 0; i++, p++)
     {
       int length = p->StringLength();
       int vlength = value.StringLength();
