@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.54 2003-07-09 23:19:42 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.55 2003-07-09 23:30:42 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -633,6 +633,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			break;
 #else
 			ExceptionT::BadInputValue(caller, "DORGAN_VOYIADJIS_MARIN_DEV not enabled: %d", code);
+#endif			
 			}
 			case ElementT::kTest:
 			{
