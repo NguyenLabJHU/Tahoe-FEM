@@ -1,4 +1,4 @@
-/* $Id: GreenwoodWilliamson.cpp,v 1.8 2002-05-02 22:51:04 dzeigle Exp $ */
+/* $Id: GreenwoodWilliamson.cpp,v 1.9 2002-05-06 14:47:28 dzeigle Exp $ */
 
 #include "GreenwoodWilliamson.h"
 #include <math.h>
@@ -153,6 +153,7 @@ double GreenwoodWilliamson::DFunction(double x) const
 			}
 		
 			value = term[2]/term[3];
+	
 		}
 	}
 	else
