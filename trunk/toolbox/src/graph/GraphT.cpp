@@ -1,4 +1,4 @@
-/* $Id: GraphT.cpp,v 1.13 2003-06-03 18:56:19 cjkimme Exp $ */
+/* $Id: GraphT.cpp,v 1.14 2003-06-03 21:43:03 cjkimme Exp $ */
 #include "GraphT.h"
 
 #include <time.h>
@@ -142,7 +142,7 @@ void GraphT::MakeGraph(void)
 		}
 	}
 	
-#if 0
+#if 1
 	const iArray2DT* currEquiv;
 	fEquivalentData.Top();
 	while ( fEquivalentData.Next(currEquiv) )
@@ -171,8 +171,16 @@ void GraphT::MakeGraph(void)
 					    	row_j.Dimension(edgedata.MinorDim(r_j - fShift));
 					    	row_j.Copy(edgedata(r_j - fShift));
 							
-							edgedata.AppendUnique(r_j - fShift, row_i);
-							edgedata.AppendUnique(r_i - fShift, row_j);
+							/* Loop over all entries to eliminate references to self */
+							int *rz = row_i.Pointer();
+							for (int z = 0; z < row_i.Length(); z++, rz++)
+								if (*rz != r_j)
+									edgedata.AppendUnique(r_j - fShift, *rz);
+									
+							rz = row_j.Pointer();
+							for (int z = 0; z < row_j.Length(); z++, rz++)
+								if (*rz != r_i)
+									edgedata.AppendUnique(r_i - fShift, *rz);
 						}
 					}
 				}
@@ -203,11 +211,13 @@ void GraphT::MakeGraph(void)
 					    	row_i.Copy(edgedata(r_i - fShift));
 					    	row_j.Dimension(edgedata.MinorDim(r_j - fShift));
 					    	row_j.Copy(edgedata(r_j - fShift));
-					    
+									
 					    	for (int z = 0; z < row_i.Length(); z++)
-								edgedata.AppendUnique(row_i[z] - fShift,r_j);
+					    		if (r_j != row_i[z])
+									edgedata.AppendUnique(row_i[z] - fShift,r_j);
 							for (int z = 0; z < row_j.Length(); z++)
-								edgedata.AppendUnique(row_j[z] - fShift,r_i);
+								if (r_i != row_j[z])
+									edgedata.AppendUnique(row_j[z] - fShift,r_i);
 						}
 					}
 				}
