@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeSupportT.h,v 1.2 2004-10-30 20:51:19 raregue Exp $ */
+/* $Id: D3MeshFreeSupportT.h,v 1.3 2004-12-24 20:33:55 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D3_MF_SUPPORT_T_H_
 #define _D3_MF_SUPPORT_T_H_
@@ -24,6 +24,13 @@ public:
 	D3MeshFreeSupportT(const ParentDomainT* domain, const dArray2DT& coords,
 		const iArray2DT& connects, const iArrayT& nongridnodes);
 
+	//************************************************************************************//
+	// kyonten
+	/** construct object sufficient for calling methods inherited from ParameterInterfaceT
+	 * to collect the class parameters, but not for doing any meshfree calculations */
+	D3MeshFreeSupportT(void);
+	//************************************************************************************//
+	
 	/** determine nodal support parameters based window function parameters */
 	virtual void InitNeighborData(void);
 
@@ -61,6 +68,24 @@ public:
 	 * SetFieldAt or SetFieldUsing
 	 * \return 2D array dimension: [nsd*nsd] x [nnd] */
 	const dArray2DT& DDDFieldAt(void) const;
+	
+	//*****************************************************************//
+	// kyonten: to inherit the ParameterInterfaceT from D2MeshFreeSupportT
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+	//*****************************************************************//
 
 protected:
 

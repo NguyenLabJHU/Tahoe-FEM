@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeSupport2DT.cpp,v 1.2 2004-10-30 20:51:19 raregue Exp $ */
+/* $Id: D3MeshFreeSupport2DT.cpp,v 1.3 2004-12-24 20:33:55 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D3MeshFreeSupport2DT.h"
 
@@ -20,7 +20,12 @@ D3MeshFreeSupport2DT::D3MeshFreeSupport2DT(const ParentDomainT* domain,
 	const dArray2DT& coords, const iArray2DT& connects, const iArrayT& nongridnodes):
 	D3MeshFreeSupportT(domain, coords, connects, nongridnodes)
 {
+	SetName("D3_meshfree_support_2D");
+}
 
+D3MeshFreeSupport2DT::D3MeshFreeSupport2DT(void) 
+{
+	SetName("D3_meshfree_support_2D");
 }
 
 /* cutting facet functions */

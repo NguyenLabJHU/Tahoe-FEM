@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeSupportT.cpp,v 1.3 2004-10-30 20:51:19 raregue Exp $ */
+/* $Id: D3MeshFreeSupportT.cpp,v 1.4 2004-12-24 20:33:55 kyonten Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D3MeshFreeSupportT.h"
@@ -28,6 +28,7 @@ D3MeshFreeSupportT::D3MeshFreeSupportT(const ParentDomainT* domain, const dArray
 	const iArray2DT& connects, const iArrayT& nongridnodes):
 	D2MeshFreeSupportT(domain, coords, connects, nongridnodes)
 {
+	SetName("D3_meshfree_support"); //kyonten
 	/* only EFG solver is different for D3 */
 	if (fMeshfreeType == kEFG)
 	{
@@ -35,6 +36,20 @@ D3MeshFreeSupportT::D3MeshFreeSupportT(const ParentDomainT* domain, const dArray
 		throw ExceptionT::kBadInputValue;
 	}
 }
+
+//*********************************************//
+// kyonten
+D3MeshFreeSupportT::D3MeshFreeSupportT(void) 
+{
+	SetName("D3_meshfree_support_2D");
+	/* only EFG solver is different for D3 */
+	if (fMeshfreeType == kEFG)
+	{
+		cout << "\n D3MeshFreeSupportT::D3MeshFreeSupportT: no EFG implemented" << endl;
+		throw ExceptionT::kBadInputValue;
+	}
+}
+//*********************************************//
 
 /* steps to initialization - modifications to the support size must
 * occur before setting the neighbor data */
@@ -200,6 +215,37 @@ const dArray2DT& D3MeshFreeSupportT::DDDFieldAt(void) const
 {	
 	return fRKPM->DDDphi();  //kyonten (uncommented)
 }
+
+//*****************************************************************//
+// kyonten
+/* describe the parameters needed by the interface */
+void D3MeshFreeSupportT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	D2MeshFreeSupportT::DefineParameters(list);
+}
+
+/* information about subordinate parameter lists */
+void D3MeshFreeSupportT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	D2MeshFreeSupportT::DefineSubs(sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* D3MeshFreeSupportT::NewSub(const StringT& name) const
+{
+	/* inherited */
+	return D2MeshFreeSupportT::NewSub(name);
+}
+
+/* accept parameter list */
+void D3MeshFreeSupportT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	D2MeshFreeSupportT::TakeParameterList(list);
+}
+//*****************************************************************//
 
 /*************************************************************************
 * Protected
