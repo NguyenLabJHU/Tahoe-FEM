@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.h,v 1.2.32.1 2004-07-09 01:10:10 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.h,v 1.2.32.2 2004-07-12 06:45:01 paklein Exp $ */
 #ifndef _MF_PENALTY_CONTACT2D_T_H_
 #define _MF_PENALTY_CONTACT2D_T_H_
 
@@ -49,6 +49,10 @@ protected:
 	 * strikers. Also, since the connectivities will be oddly-shaped,
 	 * they will not be registered with the ModelManagerT. */
 //	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
+
+	/** Echo contact bodies and striker nodes. After the read section, should 
+	 * have valid nodes/facet connectivities for the local database. */
+	virtual void ExtractContactGeometry(const ParameterListT& list);
 
 	/** set "internal" data. This implementation is bsed on Contact2DT::SetActiveInteractions,
 	 * but modified to account for compute the current coordinates using the
