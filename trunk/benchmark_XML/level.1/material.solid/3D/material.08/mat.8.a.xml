@@ -32,9 +32,10 @@
                     <String value="1"/>
                 </block_ID_list>
                 <small_strain_material_3D>
-                    <small_strain_StVenant density="1.0">
+                    <small_strain_J2_StVenant density="1.0">
                         <E_and_nu Poisson_ratio="0.25" Young_modulus="100.0"/>
-                    </small_strain_StVenant>
+                        <linear_function a="0.01" b="0.25"/>
+                    </small_strain_J2_StVenant>
                 </small_strain_material_3D>
             </small_strain_element_block>
         </small_strain>
