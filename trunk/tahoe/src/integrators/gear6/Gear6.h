@@ -1,5 +1,5 @@
-#ifndef _GEAR6_H_
-#define _GEAR6_H_
+#ifndef _GEAR_06_H_
+#define _GEAR_06_H_
 
 #include "Environment.h"
 
@@ -32,4 +32,4 @@ public:
 
 } // namespace Tahoe
 
-#endif /* _GEAR6_H_ */
+#endif /* _GEAR_06_H_ */

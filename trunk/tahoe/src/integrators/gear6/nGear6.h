@@ -1,9 +1,10 @@
-#ifndef _N_GEAR6_H_
-#define _N_GEAR6_H_
+#ifndef _N_GEAR_06_H_
+#define _N_GEAR_06_H_
 
 /* base class */
 #include "Gear6.h"
 #include "nControllerT.h"
+#include "dArray2DT.h"
 
 namespace Tahoe {
 
@@ -38,20 +39,7 @@ public:
 	/** return the field array needed by nControllerT::MappedCorrector. */
 	virtual const dArray2DT& MappedCorrectorField(BasicFieldT& field) const;
 
-protected:  	
-	
-	/** recalculate time stepping constants */
-	virtual void nComputeParameters(void);
-	
 private:
-
-	/* \name predictor constants*/
-	double dpred_v;
-	double dpred_a;
-	double vpred_a;
-	
-	/* corrector constant, also used for consistent BC*/  	
-	double vcorr_a;
 
 	/* Gear constants */
 	double F02; 
@@ -61,12 +49,11 @@ private:
 	double F52;
 
 	/* higher order derivatives */
-	//dArray2DT fD3;
-	//dArray2DT fD4; 
-	//dArray2DT fD5;
-	  	  	
+	dArray2DT fD3;
+	dArray2DT fD4;
+	dArray2DT fD5;
 };
 
 } // namespace Tahoe
 
-#endif /* _N_GEAR6_H_ */
+#endif /* _N_GEAR_06_H_ */
