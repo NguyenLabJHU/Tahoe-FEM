@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.3 2004-05-13 16:24:14 paklein Exp $
+# $Id: makefile,v 1.4 2004-05-20 15:10:25 paklein Exp $
 #
 # type "make clean" to remove test results
 #
@@ -8,7 +8,8 @@
 SUB_DIR = \
 	force.controller \
 	contact_simple  \
-	torsion
+	torsion \
+	K.field
 
 all:
 	@echo "make clean to remove test results"
