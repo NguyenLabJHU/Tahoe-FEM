@@ -19,13 +19,13 @@ class MFGP_Con_EqT : public MFGP_PlastT
 public:
 	
 	/* constructor */
- 	MFGP_Con_EqT ( int&, MeshFreeShapeFunctionT&, MeshFreeShapeFunctionT&, GRAD_MRSSKStV&,
+ 	MFGP_Con_EqT ( int&, D3MeshFreeShapeFunctionT&, D3MeshFreeShapeFunctionT&, GRAD_MRSSKStV&,
 				int &fTime_Step, double fdelta_t = 0.0);
  	
  	/* destructor */
  	~MFGP_Con_EqT ( void );
 								
-	void 	Initialize 	( int&, MeshFreeShapeFunctionT&, MeshFreeShapeFunctionT&, GRAD_MRSSKStV&,  
+	void 	Initialize 	( int&, D3MeshFreeShapeFunctionT&, D3MeshFreeShapeFunctionT&, GRAD_MRSSKStV&,  
 						int &fTime_Step, double fdelta_t = 0.0); 
   	void 	Form_LHS_Ku_Klambda	( dMatrixT &Ku, dMatrixT &Klambda ); 
   	void 	Form_RHS_F_int		( dArrayT &F_int ); 

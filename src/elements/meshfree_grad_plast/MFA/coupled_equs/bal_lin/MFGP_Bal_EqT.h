@@ -1,4 +1,4 @@
-// $Id: MFGP_Bal_EqT.h,v 1.3 2004-08-10 23:14:07 raregue Exp $
+// $Id: MFGP_Bal_EqT.h,v 1.4 2004-08-14 00:05:28 raregue Exp $
 #ifndef _MFGP_BAL_EQ_T_H_ 
 #define _MFGP_BAL_EQ_T_H_ 
 
@@ -18,14 +18,14 @@ class MFGP_Bal_EqT	: public MFGP_BalLinMomT
 	public:
 
 		/* constructor */
-		MFGP_Bal_EqT 	( int&, MeshFreeShapeFunctionT&, MeshFreeShapeFunctionT&, 
+		MFGP_Bal_EqT 	( int&, D3MeshFreeShapeFunctionT&, D3MeshFreeShapeFunctionT&, 
 						GRAD_MRSSKStV&,  
 						int &fTime_Step, double fdelta_t = 0.0);
 		
 		/* destructor */				
 		~MFGP_Bal_EqT 	( void );
 
-		void 	Initialize 	( int&, MeshFreeShapeFunctionT&, MeshFreeShapeFunctionT&, 
+		void 	Initialize 	( int&, D3MeshFreeShapeFunctionT&, D3MeshFreeShapeFunctionT&, 
 							GRAD_MRSSKStV&, 
 							int &fTime_Step, double fdelta_t = 0.0); 
 

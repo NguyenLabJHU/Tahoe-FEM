@@ -5,7 +5,7 @@
 #define _MFGP_BALLINMOM_T_H_ 
 
 #include "StringT.h"
-#include "GRAD_MR_Plast_MatT.h" //include the Gradient plas model
+#include "GRAD_MRSSKStV.h" //include the Gradient plas model
 #include "MFGP_MFA.h"
 
 namespace Tahoe 
@@ -24,7 +24,7 @@ public:
 	virtual ~MFGP_BalLinMomT ( void );
 
 	/** Pure virtual functions */
-	virtual void Initialize (int&, MeshFreeShapeFunctionT&, MeshFreeShapeFunctionT&, GRAD_MRSSKStV&, 
+	virtual void Initialize (int&, D3MeshFreeShapeFunctionT&, D3MeshFreeShapeFunctionT&, GRAD_MRSSKStV&, 
 							int	&fTime_Step, double fdelta_t = 0.0) =0;
 	virtual void Form_LHS_Klambda_Ku ( dMatrixT &Klambda, dMatrixT &Ku ) =0; 
   	virtual void Form_RHS_F_int	( dArrayT  &F_int  ) =0; 

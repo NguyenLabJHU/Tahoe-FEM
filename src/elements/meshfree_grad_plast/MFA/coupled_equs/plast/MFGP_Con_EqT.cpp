@@ -4,7 +4,7 @@
 using namespace Tahoe;
 
 /* constructor */
-MFGP_Con_EqT::MFGP_Con_EqT (int &curr_ip, MeshFreeShapeFunctionT &Shapes_displ, MeshFreeShapeFunctionT &Shapes_plast, 
+MFGP_Con_EqT::MFGP_Con_EqT (int &curr_ip, D3MeshFreeShapeFunctionT &Shapes_displ, D3MeshFreeShapeFunctionT &Shapes_plast, 
 							GRAD_MRSSKStV &GRAD_MR_Plast_Mat, 
 							int &fTime_Step, double fdelta_t) 
 {
@@ -15,7 +15,7 @@ MFGP_Con_EqT::MFGP_Con_EqT (int &curr_ip, MeshFreeShapeFunctionT &Shapes_displ, 
 MFGP_Con_EqT::~MFGP_Con_EqT(void) { }
 
 /* set dims, derivs, and variables needed */
-void MFGP_Con_EqT::Initialize (int &curr_ip, MeshFreeShapeFunctionT &Shapes_displ, MeshFreeShapeFunctionT &Shapes_plast, 
+void MFGP_Con_EqT::Initialize (int &curr_ip, D3MeshFreeShapeFunctionT &Shapes_displ, D3MeshFreeShapeFunctionT &Shapes_plast, 
 							GRAD_MRSSKStV &GRAD_MR_Plast_Mat,					
 							int &fTime_Step, double fdelta_t) 
 {
@@ -36,11 +36,9 @@ void MFGP_Con_EqT::Initialize (int &curr_ip, MeshFreeShapeFunctionT &Shapes_disp
 
 	delta_t = fdelta_t;
 	
-	Data_Pro_Displ.Initialize ( Shapes_displ.Derivatives_U(curr_ip), Shapes_displ.DDDerivatives_U(curr_ip) );
-	//Data_Pro_Displ.Construct ( Shapes_displ.Dphi );
+	Data_Pro_Displ.Initialize ( Shapes_displ.Derivatives_U(curr_ip), Shapes_displ.DDDerivatives_U(curr_ip) );//??
 	
-	Data_Pro_Plast.Initialize ( Shapes_displ.IPShapeU(curr_ip), Shapes_displ.DDerivatives_U(curr_ip)	);
-	//Data_Pro_Plast.Construct ( Shapes_plast.Dphi	);
+	Data_Pro_Plast.Initialize ( Shapes_displ.IPShapeU(curr_ip), Shapes_displ.DDerivatives_U(curr_ip)	);//??
 
 	stress = GRAD_MR_Plast.s_ij();
 	yield = GRAD_MR_Plast.YieldF();
