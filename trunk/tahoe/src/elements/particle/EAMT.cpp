@@ -1520,28 +1520,19 @@ void EAMT::EchoProperties(ifstreamT& in, ofstreamT& out)
   fEAMProperties = NULL;
   for (int i = 0; i < fEAMProperties.Length(); i++)
     {
-      ParticlePropertyT::TypeT property;
-      in >> property;
-      switch (property)
-	{
-	case ParticlePropertyT::kParadynEAM:
-	  {
-	    StringT file;
-	    in >> file;
-	    file.ToNativePathName();
+      int type_of_file;
+      in >> type_of_file;
+      cout << type_of_file;
 
-	    StringT path;
-	    path.FilePath(in.filename());	
-	    file.Prepend(path);
-	  
-	    fEAMProperties[i] = new ParadynEAMT(file);
-	    break;
-	  }
-	default:
-	  ExceptionT::BadInputValue("EAMT::ReadProperties", 
-				    "unrecognized property type: %d", 
-                                     property);
-	}
+      StringT file;
+      in >> file;
+      file.ToNativePathName();
+      
+      StringT path;
+      path.FilePath(in.filename());	
+      file.Prepend(path);
+      
+      fEAMProperties[i] = new ParadynEAMT(type_of_file,file);
     }
 
   /* echo particle properties */
