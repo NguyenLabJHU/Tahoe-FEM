@@ -1,5 +1,5 @@
 %&LaTeX
-% $Id: ICandBC.tex,v 1.5 2002-10-30 00:34:02 paklein Exp $
+% $Id: ICandBC.tex,v 1.6 2002-10-30 00:58:42 paklein Exp $
 
 \section{Initial conditions and boundary conditions}
 \label{set.ICandBC}
@@ -294,5 +294,5 @@ An example specification of two-dimensional, traction boundary conditions appear
 0.0  1.0   
 0.0  1.0
 \end{inputfile}
-The example shows a single specification. As shown in Table~\ref{tab.BC.type}, the format of the \textit{side ID} specification depends on the geometry database format. In the example, a single integer is used to define the element edges where the boundary conditions are applied. This format would be appropriate for geometry database types that support definition of side sets. Two traction vectors, each with two components, are given indicating that the element edges specified by the \textit{side ID} have two nodes per edge. The traction vectors are specified with respect to the global Cartesian coordinate frame, meaning the values for each vector correspond to $\cbrkt{t_x, t_y}$.
+The example shows a single specification. As shown in Table~\ref{tab.BC.type}, the format of the \textit{side ID} specification depends on the geometry database format. In the example, a single integer is used to define the element edges where the boundary conditions are applied. This format would be appropriate for geometry database types that support definition of side sets. Two traction vectors, each with two components, are given indicating that the element edges specified by the \textit{side ID} have two nodes per edge. The traction vectors are specified with respect to the global Cartesian coordinate frame, meaning the values for each vector correspond to $\cbrkt{t_x, t_y}$. A traction vector must be provided for each node of the element face. The number of nodes on each face for a given element geometry and the canonical order of the nodes on each face is described in Section~\ref{sect.integration.domains}. The traction is interpolated over the face from the nodal values using the standard finite element shape functions.
 
