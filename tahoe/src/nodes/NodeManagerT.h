@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.14 2003-04-07 17:25:46 cjkimme Exp $ */
+/* $Id: NodeManagerT.h,v 1.15 2003-04-08 23:04:04 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -70,7 +70,12 @@ public:
 	int NumEquations(int group) const;
 	int NumNodes(void) const;
 	int NumSD(void) const;
+	
+	/** the total number of fields */
 	int NumFields(void) const { return fFields.Length(); };
+	
+	/** the number of fields in the given group */
+	int NumFields(int group) const;
 	
 	/** return a const pointer to the field with the specified name. returns NULL
 	 * if a field with the given name is not found. */

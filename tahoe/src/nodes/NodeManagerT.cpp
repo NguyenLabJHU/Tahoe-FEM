@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.25 2003-04-07 17:25:46 cjkimme Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.26 2003-04-08 23:04:04 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -79,6 +79,15 @@ int NodeManagerT::NumEquations(int group) const
 	if (neq == 0) neq += XDOF_ManagerT::NumEquations(group);
 				
 	return neq; 
+}
+
+int NodeManagerT::NumFields(int group) const 
+{
+	int num_fields = 0;
+	for (int i = 0; i < fFields.Length(); i++)
+		if (fFields[i]->Group() == group)
+			num_fields++;
+	return num_fields; 
 }
 
 /* return a pointer to the specified load time function */
