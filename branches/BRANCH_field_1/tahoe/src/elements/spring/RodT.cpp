@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.5.2.1 2002-04-29 02:45:12 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.5.2.2 2002-04-29 17:20:43 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "RodT.h"
@@ -250,7 +250,7 @@ void RodT::ReadMaterialData(ifstreamT& in)
 		if (!fMaterialsList[matnum]) throw(eOutOfMemory);
 	
 		/* set thermal LTf pointer */
-		int LTfnum = fMaterialsList[matnum]->ThermalLTfNumber();
+		int LTfnum = fMaterialsList[matnum]->ThermalScheduleNumber();
 		if (LTfnum > 0)
 			fMaterialsList[matnum]->SetThermalSchedule(ElementSupport().Schedule(LTfnum));	
 	}

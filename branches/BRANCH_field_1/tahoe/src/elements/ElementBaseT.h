@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.8.2.2 2002-04-26 02:24:16 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.8.2.3 2002-04-29 17:20:42 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -33,7 +33,6 @@ class iAutoArrayT;
 class dArray2DT;
 class StringT;
 class FieldT;
-class ElementSupportT;
 
 /** base class for element types. Initialization of the element classes
  * is accomplished by first setting the time integration controller with
@@ -78,6 +77,24 @@ public:
 
 	/** the source */
 	const ElementSupportT& ElementSupport(void) const { return fSupport; };
+
+	/** field information */
+	const FieldT& Field(void) const { return fField; };
+
+	/** return a const reference to the run state flag */
+	const GlobalT::StateT& RunState(void) const { return fSupport.RunState(); };
+
+	/** the iteration number for the current time increment */
+	const int& IterationNumber(void) const;
+
+	/** return a pointer to the specified LoadTime function */
+	const ScheduleT* Schedule(int num) const { return fSupport.Schedule(num); };
+
+	/** return the number of spatial dimensions */
+	int NumSD(void) const { return fSupport.NumSD(); };
+
+	/** return the number of degrees of freedom per node */
+	int NumDOF(void) const { return fField.NumDOF(); };
 	/*@}*/
 
 	/** set the time integration controller */
@@ -184,27 +201,6 @@ public:
 	virtual void WeightNodalCost(iArrayT& weight) const;
 
 protected: /* for derived classes only */
-
-	/** \name information for sub-classes */
-	/*@{*/
-	/** field information */
-	const FieldT& Field(void) const { return fField; };
-	
-	/** return a const reference to the run state flag */
-	const GlobalT::StateT& RunState(void) const { return fSupport.RunState(); };
-
-	/** the iteration number for the current time increment */
-	const int& IterationNumber(void) const;
-
-	/** return a pointer to the specified LoadTime function */
-	const ScheduleT* Schedule(int num) const { return fSupport.Schedule(num); };
-
-	/** return the number of spatial dimensions */
-	int NumSD(void) const { return fSupport.NumSD(); };
-
-	/** return the number of degrees of freedom per node */
-	int NumDOF(void) const { return fField.NumDOF(); };
-	/*@}*/
 
 	/* get local element data, X for geometry, U for
 	 * field variables */
