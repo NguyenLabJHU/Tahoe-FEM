@@ -1,5 +1,5 @@
-/* $Id: J2SSKStV.h,v 1.2 2001-07-03 01:35:31 paklein Exp $ */
-/* created: paklein (06/18/1997)                                          */
+/* $Id: J2SSKStV.h,v 1.3 2002-04-17 23:58:18 paklein Exp $ */
+/* created: paklein (06/18/1997) */
 
 #ifndef _J2_SS_KSTV_H_
 #define _J2_SS_KSTV_H_
@@ -8,12 +8,14 @@
 #include "SSStructMatT.h"
 #include "IsotropicT.h"
 #include "HookeanMatT.h"
-#include "J2SSLinHardT.h"
+//#include "J2SSLinHardT.h"
+#include "J2SSC0HardeningT.h"
 
 class J2SSKStV: public SSStructMatT,
 				public IsotropicT,
 				public HookeanMatT,
-				public J2SSLinHardT
+//				public J2SSLinHardT
+				public J2SSC0HardeningT
 {
 public:
 
