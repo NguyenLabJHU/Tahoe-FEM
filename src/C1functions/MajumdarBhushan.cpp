@@ -1,4 +1,4 @@
-/* $Id: MajumdarBhushan.cpp,v 1.3 2003-06-12 18:56:03 dzeigle Exp $ */
+/* $Id: MajumdarBhushan.cpp,v 1.4 2003-06-18 21:50:27 dzeigle Exp $ */
 #include "MajumdarBhushan.h"
 #include <math.h>
 #include <iostream.h>
@@ -86,15 +86,17 @@ double MajumdarBhushan::DFunction(double x) const
 	if (((fD>1.0) && (fD<2.0)) && (fS>0.0) && (fC>0.0))
 	{			
 		ErrorFunc f;
-			
-		double c0 = fD/(3.0-2.0*fD);
-		double c1 = (2.0-fD)/(2.0*fD);
+		
+		double h = 0.5*(2.0-fD)/fD;
 		double ratio = x/(fS*sqrt(2.0));
+		double hec = h*(1.0-f.Function(ratio));
 			
-		double amax = c1*(1.0-f.Function(ratio));
-		double amin = fC;
-			
-		value = pow(amax,fD/2.0)*c0*(pow(amax,1.5-fD)-pow(amin,1.5-fD));
+		if (fD==1.5)
+		{
+			value = pow(hec,0.75)*log(hec/fC); 
+		}
+		else
+			value = pow(hec,0.5*fD)*(pow(hec,1.5-fD)-pow(fC,1.5-fD));
 	}
 	else
 	{
@@ -129,15 +131,25 @@ double MajumdarBhushan::DDFunction(double x) const
 	{
 		ErrorFunc f;
 		
-		double ratio = x/(fS*sqrt(2.0)), c0 = fD/(3.0-2.0*fD);
-		double amin = fC;
-		double amax = ((2.0-fD)/(2.0*fD))*(1.0-f.Function(ratio));
-		double damax = ((2.0-fD)/(fS*fD*sqrt(2.0*PI)))*exp(-ratio*ratio);
+		double ratio = x/(fS*sqrt(2.0));
+		double h = 0.5*(2.0-fD)/fD;
+		double erfc = 1.0-f.Function(ratio);
 		
-		double v1 = (3.0-fD)*pow(amax,0.5*(1.0-fD));
-		double v2 = fD*(pow(amin,1.5-fD)*pow(amax,0.5*fD-1.0));
+		if (fD==1.5)
+		{
+			double hec = h*erfc;
+			double numer = h*exp(-ratio*ratio)*(-4.0+3.0*log(fC/hec));
+			double denom = 2.0*fS*sqrt(2.0*PI)*pow(hec,0.25);
+			
+			value = numer/denom;
+		}
+		else
+		{
+			double c0 = pow(fC,-fD)*exp(-ratio*ratio)*pow(h,-0.5*fD)*pow(erfc,-1.0-0.5*fD);
+			double c1 = (fD-3.0)*pow(fC,fD)*pow(h*erfc,1.5)+fD*pow(fC,1.5)*pow(h*erfc,fD);
 		
-		value = c0*0.5*damax*(v1-v2);		
+			value = c0*c1/(fS*sqrt(2.0*PI));	
+		}	
 	}
 	else
 	{
@@ -227,17 +239,18 @@ dArrayT& MajumdarBhushan::MapDFunction(const dArrayT& in, dArrayT& out) const
 		if (((fD>1.0) && (fD<2.0)) && (fS>0.0) && (fC>0.0))
 		{
 			r = *pl++;
-			
 			ErrorFunc f;
-			
-			double c0 = fD/(3.0-2.0*fD);
-			double c1 = (2.0-fD)/(2.0*fD);
+		
+			double h = 0.5*(2.0-fD)/fD;
 			double ratio = r/(fS*sqrt(2.0));
+			double hec = h*(1.0-f.Function(ratio));
 			
-			double amax = c1*(1.0-f.Function(ratio));
-			double amin = fC;
-			
-			value = pow(amax,fD/2.0)*c0*(pow(amax,1.5-fD)-pow(amin,1.5-fD));
+			if (fD==1.5)
+			{
+				value = pow(hec,0.75)*log(hec/fC); 
+			}
+			else
+				value = pow(hec,0.5*fD)*(pow(hec,1.5-fD)-pow(fC,1.5-fD));
 		}
 		else
 		{
@@ -279,15 +292,25 @@ dArrayT& MajumdarBhushan::MapDDFunction(const dArrayT& in, dArrayT& out) const
 			r = *pl++;
 			ErrorFunc f;
 		
-			double ratio = r/(fS*sqrt(2.0)), c0 = fD/(3.0-2.0*fD);
-			double amin = fC;
-			double amax = ((2.0-fD)/(2.0*fD))*(1.0-f.Function(ratio));
-			double damax = ((2.0-fD)/(fS*fD*sqrt(2.0*PI)))*exp(-ratio*ratio);
+			double ratio = r/(fS*sqrt(2.0));
+			double h = 0.5*(2.0-fD)/fD;
+			double erfc = 1.0-f.Function(ratio);
 		
-			double v1 = (3.0-fD)*pow(amax,0.5*(1.0-fD));
-			double v2 = fD*(pow(amin,1.5-fD)*pow(amax,0.5*fD-1.0));
+			if (fD==1.5)
+			{
+				double hec = h*erfc;
+				double numer = h*exp(-ratio*ratio)*(-4.0+3.0*log(fC/hec));
+				double denom = 2.0*fS*sqrt(2.0*PI)*pow(hec,0.25);
+			
+				value = numer/denom;
+			}
+			else
+			{
+				double c0 = pow(fC,-fD)*exp(-ratio*ratio)*pow(h,-0.5*fD)*pow(erfc,-1.0-0.5*fD);
+				double c1 = (fD-3.0)*pow(fC,fD)*pow(h*erfc,1.5)+fD*pow(fC,1.5)*pow(h*erfc,fD);
 		
-			value = c0*0.5*damax*(v1-v2);		
+				value = c0*c1/(fS*sqrt(2.0*PI));	
+			}		
 		}
 		else
 		{

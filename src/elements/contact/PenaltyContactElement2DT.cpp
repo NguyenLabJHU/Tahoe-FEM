@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.39 2003-06-12 18:56:05 dzeigle Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.40 2003-06-18 21:50:29 dzeigle Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -80,7 +80,12 @@ void PenaltyContactElement2DT::Initialize(void)
                 double mb_mod = parameters[kEPrime];
                 double mb_f = parameters[kFractalDimension];
                 double mb_c = parameters[kAreaFraction];
-                double material_coeff=(4.0/3.0)*sqrt(2.0*PI)*mb_mod*pow(mb_g,mb_f-1);
+                double material_coeff;
+                if (mb_f==1.5)
+                	material_coeff=sqrt(PI*mb_g)*mb_mod;
+                else
+                	material_coeff=(4.0/3.0)*sqrt(2.0*PI)*mb_mod*pow(mb_g,mb_f-1)*mb_f/(3.0-2.0*mb_f);
+                double area_coeff = 0.5/mb_f;
 				parameters[kPenalty] *= material_coeff; // overwrite pen value
 				fPenaltyFunctions[LookUp(i,j,num_surfaces)]
                                         = new MajumdarBhushan(mb_f,mb_s,mb_c);
@@ -309,8 +314,9 @@ void PenaltyContactElement2DT::RHSDriver(void)
 			double mb_f = parameters[kFractalDimension];
 			double mb_c = parameters[kAreaFraction];
 
-			MajumdarBhushan MBArea(mb_f,mb_s,mb_c); 	
-		  	fRealArea[s] += (MBArea.Function(gap)*weights[i]);
+			MajumdarBhushan MBArea(mb_f,mb_s,mb_c); 
+			double area_coeff = 0.5/mb_f;
+		  	fRealArea[s] += (area_coeff*MBArea.Function(gap)*weights[i]);
 		  }
 		}
 	  } 
