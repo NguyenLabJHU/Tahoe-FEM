@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.16.2.1 2002-12-16 09:34:41 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.16.2.2 2002-12-18 09:52:22 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -6,6 +6,7 @@
 
 #ifndef _SIERRA_TEST_
 #include "FEManagerT.h"
+#include "CommManagerT.h"
 #include "NodeManagerT.h"
 #include "eControllerT.h"
 #include "nControllerT.h"
@@ -451,21 +452,27 @@ int ElementSupportT::Rank(void) const
 #endif 
 }
 
-void ElementSupportT::IncomingNodes(iArrayT& nodes_in) const
+const ArrayT<int>* ElementSupportT::ExternalNodes(void) const
 {
 #ifndef _SIERRA_TEST_
-	FEManager().IncomingNodes(nodes_in);
+	if (fCommManager)
+		return fCommManager->ExternalNodes();
+	else
+		return NULL;
 #else
-#pragma unused(nodes_in)
+	return NULL;
 #endif
 }
 
-void ElementSupportT::OutgoingNodes(iArrayT& nodes_out) const
+const ArrayT<int>* ElementSupportT::BorderNodes(void) const
 {
 #ifndef _SIERRA_TEST_
-	FEManager().OutgoingNodes(nodes_out);
+	if (fCommManager)
+		return fCommManager->BorderNodes();
+	else
+		return NULL;
 #else
-#pragma unused(nodes_out)
+	return NULL;
 #endif
 }
 
