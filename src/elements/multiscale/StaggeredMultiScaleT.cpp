@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.20 2002-12-26 18:01:34 creigh Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.21 2003-01-03 03:32:14 paklein Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -151,6 +151,10 @@ void StaggeredMultiScaleT::Initialize(void)
 	fFint_II.Dimension 	( n_en_x_n_df );
 
 	fFEA_Shapes.Construct( fNumIP,n_sd,n_en );
+	
+	/* storage for integration point stresses */
+	fIPStress.Dimension(n_e, fNumIP*dSymMatrixT::NumValues(n_sd));
+	fIPStress = 0.0;
 
 	cout << "############################# Initialize#: \n"; 
 }
@@ -189,12 +193,16 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 	cout << "############################# ITERATION#: " << loop_num << "\n";
 #endif
 
+	/* stress output work space */
+	int n_stress = dSymMatrixT::NumValues(NumSD());
+	dArray2DT   ip_stress_all;
+	dSymMatrixT ip_stress;
+
 	/** Time Step Increment */
 	double delta_t = ElementSupport().TimeStep();
 	iArrayT fine_eq;
 
 	/* loop over elements */
-
 	int e=0;
 	Top();
 	while (NextElement())
@@ -246,6 +254,15 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 
 			//fKa_I.Random(1);
 			//fKb_I.Random(2);
+			
+			/* copy/store stresses */
+			ip_stress_all.Set(fNumIP, n_stress, fIPStress(CurrElementNumber()));
+			fEquation_I ->Sigma(fSigma);
+			for (int i = 0; i < fNumIP; i++)
+			{
+				ip_stress.Set(NumSD(), ip_stress_all(i));
+				ip_stress.FromMatrix(fSigma[i]);
+			}
 
 #if (DEBUG==ALL || DEBUG==COARSE) // Debugging Code
 
@@ -255,7 +272,6 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 				cout << "  fKb_I = \n" << fKb_I << "\n\n";
 				cout << "  fFint_I = \n" << fFint_I << "\n\n";
 
-			  fEquation_I -> Sigma ( fSigma );
 				fSigma.Print("Sigma");
 			}
 
@@ -511,14 +527,33 @@ void StaggeredMultiScaleT::RegisterOutput(void)
 	for (int i = 0; i < block_ID.Length(); i++)
 		block_ID[i] = fBlockData[i].ID();
 
-	/* output per element (none for now) */
-	ArrayT<StringT> e_labels;
-	
-	/* output per node */
-	int num_node_output = fCoarse.NumDOF() + fFine.NumDOF();
-	ArrayT<StringT> n_labels(num_node_output);
-	
+	/* output per element - stresses at the integration points */
+	int n_stress = dSymMatrixT::NumValues(NumSD());
+	ArrayT<StringT> e_labels(fNumIP*n_stress);
+
+	/* over integration points */
+	const char* slabels2D[] = {"s11", "s22", "s12"};
+	const char* slabels3D[] = {"s11", "s22", "s33", "s23", "s13", "s12"};
+	const char**    slabels = (NumSD() == 2) ? slabels2D : slabels3D;
 	int count = 0;
+	for (int j = 0; j < fNumIP; j++)
+	{
+		StringT ip_label;
+		ip_label.Append("ip", j+1);
+			
+		/* over stress components */
+		for (int i = 0; i < n_stress; i++)
+		{
+			e_labels[count].Clear();
+			e_labels[count].Append(ip_label, ".", slabels[i]);
+			count++;
+		}
+	}		
+
+	/* output per node */
+	int num_node_output = fCoarse.NumDOF() + fFine.NumDOF() + n_stress;
+	ArrayT<StringT> n_labels(num_node_output);
+	count = 0;
 
 	/* labels from fine scale */
 	const ArrayT<StringT>& fine_labels = fFine.Labels();
@@ -530,6 +565,9 @@ void StaggeredMultiScaleT::RegisterOutput(void)
 	for (int i = 0; i < coarse_labels.Length(); i++)
 		n_labels[count++] = coarse_labels[i];
 
+	/* labels from stresses at the nodes */
+	for (int i = 0; i < n_stress; i++)
+		n_labels[count++] = slabels[i];
 
 	/* set output specifier */
 	OutputSetT output_set(fGeometryCode, block_ID, fConnectivities, n_labels, e_labels, false);
@@ -548,9 +586,37 @@ void StaggeredMultiScaleT::WriteOutput(void)
 	/* my nodes used */
 	const iArrayT& nodes_used = output_set.NodesUsed();
 
+	/* smooth stresses to nodes */
+	int n_stress = dSymMatrixT::NumValues(NumSD());
+	ElementSupport().ResetAverage(n_stress);
+	dArray2DT ip_stress_all;
+	dSymMatrixT ip_stress;
+	dArray2DT nd_stress(NumElementNodes(), n_stress);
+	Top();
+	while (NextElement())
+	{
+		/* extrapolate */
+		nd_stress = 0.0;
+		ip_stress_all.Set(fNumIP, n_stress, fIPStress(CurrElementNumber()));
+		fShapes->TopIP();
+		while (fShapes->NextIP())
+		{
+			ip_stress.Set(NumSD(), ip_stress_all(fShapes->CurrIP()));
+			fShapes->Extrapolate(ip_stress, nd_stress);
+		}
+	
+		
+		/* accumulate - extrapolation done from ip's to corners => X nodes */
+		ElementSupport().AssembleAverage(CurrentElement().NodesX(), nd_stress);
+	}
+
+	/* get nodally averaged values */
+	dArray2DT extrap_values;
+	ElementSupport().OutputUsedAverage(extrap_values);
+
 	/* temp space for group displacements */
-	int num_node_output = fCoarse.NumDOF() + fFine.NumDOF();
-	dArray2DT disp(nodes_used.Length(), num_node_output);
+	int num_node_output = fCoarse.NumDOF() + fFine.NumDOF() + n_stress;
+	dArray2DT n_values(nodes_used.Length(), num_node_output);
 
 	/* collect nodal values */
 	const dArray2DT& ua = fFine[0];
@@ -558,17 +624,20 @@ void StaggeredMultiScaleT::WriteOutput(void)
 	for (int i = 0; i < nodes_used.Length(); i++)
 	{
 		int node = nodes_used[i];
-		double* row = disp(i);
+		double* row = n_values(i);
 		for (int j = 0; j < ua.MinorDim(); j++)
 			*row++ = ua(node,j);
 
 		for (int j = 0; j < ub.MinorDim(); j++)
 			*row++ = ub(node,j);
+
+		double* p_stress = extrap_values(i);
+		for (int j = 0; j < n_stress; j++)
+			*row++ = p_stress[j];
 	}
 
 	/* send */
-	dArray2DT e_values;
-	ElementSupport().WriteOutput(fOutputID, disp, e_values);
+	ElementSupport().WriteOutput(fOutputID, n_values, fIPStress);
 }
 
 //---------------------------------------------------------------------

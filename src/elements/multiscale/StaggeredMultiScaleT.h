@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.h,v 1.9 2002-12-17 08:57:51 paklein Exp $ */ 
+/* $Id: StaggeredMultiScaleT.h,v 1.10 2003-01-03 03:32:14 paklein Exp $ */ 
 #ifndef _STAGGERED_MULTISCALE_T_H_ 
 #define _STAGGERED_MULTISCALE_T_H_ 
 //DEVELOPMENT
@@ -200,8 +200,15 @@ private:
 	iArray2DT fiState;
 	/*@}*/
 	
+	/** \name output */
+	/*@{*/
 	/** output ID */
 	int fOutputID;
+	
+	/** integration point stresses. Calculated and stored during 
+	 * StaggeredMultiScaleT::RHSDriver */
+	dArray2DT fIPStress;
+	/*@}*/
 };
 
 } // namespace Tahoe 
