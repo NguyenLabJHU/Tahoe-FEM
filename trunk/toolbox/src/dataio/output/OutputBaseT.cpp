@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.17 2003-09-10 00:14:17 paklein Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.18 2003-09-20 23:25:38 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 #include "OutputBaseT.h"
 #include "OutputSetT.h"
@@ -211,6 +211,8 @@ void OutputBaseT::WriteGeometryFile(const StringT& file_name,
 void OutputBaseT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 	const dArray2DT& e_values)
 {
+	const char caller[] = "OutputBaseT::WriteOutput";
+
 #pragma unused(time)
 #pragma unused(ID)
 #pragma unused(n_values)
@@ -218,25 +220,54 @@ void OutputBaseT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 
 	/* checks */
 	if (ID < 0 || ID >= fElementSets.Length())
-	{
-		cout << "\n OutputBaseT::WriteOutput: set ID " << ID
-		     << " is out of range {" << 0 << "," << fElementSets.Length()
-		     << "}" << endl;
-		throw ExceptionT::kOutOfRange;
-	}
+		ExceptionT::GeneralFail(caller, "%d out of range: 0 < ID < %d", ID, fElementSets.Length());
+
+	/* dimension checks */
+	const OutputSetT& set = OutputSet(ID);
+	if (set.NumNodes() != n_values.MajorDim()) 
+		ExceptionT::SizeMismatch(caller, "expecting %d not %d nodes in set ID %d", set.NumNodes(), n_values.MajorDim(), ID);
+	if (set.NumNodeValues() != n_values.MinorDim()) 
+		ExceptionT::SizeMismatch(caller, "expecting %d not %d nodal values in set ID %d", set.NumNodes(), n_values.MinorDim(), ID);
+	if (e_values.MinorDim() > 0 && set.NumElements() != e_values.MajorDim()) 
+		ExceptionT::SizeMismatch(caller, "expecting %d not %d elements in set ID %d", set.NumElements(), e_values.MajorDim(), ID);
+	if (set.NumElementValues() != e_values.MinorDim()) 
+		ExceptionT::SizeMismatch(caller, "expecting %d not %d element values in set ID %d", set.NumElementValues(), e_values.MinorDim(), ID);
 
 	/* set block ID to string names if possible 
 	   else to the global block index position */
 	CreateElementBlockIDs ();
 
 	if (!fCoordinates)
-	{
-		cout << "\n OutputBaseT::WriteOutput: pointer to coordinates not set" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "pointer to coordinates not set");
 
 	/* increment the print step */
 	fElementSets[ID]->IncrementPrintStep();
+}
+
+/* send data for output */
+void OutputBaseT::WriteOutput(double time, int ID, const ArrayT<int>& nodes, const dArray2DT& n_values, 
+		const ArrayT<int>& elements, const dArray2DT& e_values)
+{
+	/* get the output set */
+	const OutputSetT& set = OutputSet(ID);
+	
+	/* assembly map */
+	InverseMapT node_to_index;
+	node_to_index.SetMap(set.NodesUsed());
+
+	/* collect nodal values */
+	dArray2DT n_out(set.NumNodes(), set.NumNodeValues());
+	n_out = 0.0;
+	for (int i = 0; i < nodes.Length(); i++)
+		n_out.SetRow(node_to_index.Map(nodes[i]), n_values(i));
+
+	/* collect element values */
+	dArray2DT e_out(set.NumElements(), set.NumElementValues());
+	e_out = 0.0;
+	e_out.RowCollect(elements, e_values);
+	
+	/* write output */
+	WriteOutput(time, ID, n_values, e_values);
 }
 
 /*************************************************************************
