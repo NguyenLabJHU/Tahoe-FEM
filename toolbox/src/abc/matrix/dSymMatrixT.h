@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.h,v 1.7 2002-07-05 22:26:19 paklein Exp $ */
+/* $Id: dSymMatrixT.h,v 1.8 2002-10-04 01:36:34 thao Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _DSYM_MATRIX_T_H_
@@ -67,6 +67,10 @@ public:
 	 *             T:T = T_ij T_ij
 	 */
 	double ScalarProduct(void) const;
+	/* 
+	 *             A:B = A_ij B_ij
+	 */
+	double ScalarProduct(const dSymMatrixT& matrix) const;
 	
 	/* the second invariant */
 	double Invariant2(void) const;

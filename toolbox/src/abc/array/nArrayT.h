@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.14 2002-09-12 16:40:16 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.15 2002-10-04 01:36:33 thao Exp $ */
 /* created: paklein (05/23/1997) */
 
 #ifndef _NARRAY_T_H_
@@ -150,6 +150,7 @@ public:
 	void AddCombination(const nTYPE& a, const nArrayT& A,
 	                    const nTYPE& b, const nArrayT& B);
 	void AddCombination(const nArrayT& a, const ArrayT<nArrayT<nTYPE>*>& A);
+	void AddCombination(const nTYPE& a, const nArrayT& A);
 
 	/** fill the array with random numbers in the range [-1 1] */
 	void Random(int seed = 1);
@@ -1162,6 +1163,27 @@ void nArrayT<nTYPE>::AddCombination(const nTYPE& a, const nArrayT& A,
 		temp  = b;
 		temp *= *pB++;
 		*pthis++ += temp;
+	}
+}
+
+template <class nTYPE>
+void nArrayT<nTYPE>::AddCombination(const nTYPE& a, const nArrayT& A)
+{
+/* dimension checks */
+#if __option (extended_errorcheck)
+	if (fLength != A.fLength) throw eSizeMismatch;
+#endif
+
+	nTYPE* pthis = Pointer();
+	nTYPE* pA    = A.Pointer();
+
+	register nTYPE temp;
+	
+	for (int i = 0; i < fLength; i++)
+	{
+		temp  = a;
+		temp *= *pA++;
+		*pthis += temp;
 	}
 }
 
