@@ -1,9 +1,12 @@
-3
+2
 0
-1 1 1
+3 6
 FCC
 3.52
 BOX
+3
+ROT
+45
 #
 
 nsd
@@ -12,7 +15,38 @@ dimensions: nsd numbers
 latticetype
 alat
 shape
-rotation vector
+format output (see below)
+# or rotation angle in degree
 
-Test of FCC lattice in 3D
+Test of rotation in 2D
 
+
+	switch (i)
+	{
+		case 0:
+			return IOBaseT::kTahoe;
+		case 1:
+			return IOBaseT::kTahoeII;
+		case 2:			
+			return IOBaseT::kTecPlot;
+		case 3:
+			return IOBaseT::kEnSight;
+		case 4:
+			return IOBaseT::kEnSightBinary;
+		case 5:
+			return IOBaseT::kExodusII;
+		case 6:
+			return IOBaseT::kAbaqus;
+		case 7:
+			return IOBaseT::kAbaqusBinary;
+   	        case 8:
+	                return IOBaseT::kAVS;
+	        case 9:
+	                return IOBaseT::kAVSBinary;
+	       case 10:
+	                return IOBaseT::kPatranNeutral;
+	       case 11:
+	                return IOBaseT::kTahoeResults;
+	       case 12:
+	                return IOBaseT::kParaDyn;
+        }
