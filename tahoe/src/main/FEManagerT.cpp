@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.63.2.2 2003-09-28 09:19:02 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.63.2.3 2003-10-15 23:56:25 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -579,9 +579,11 @@ void FEManagerT::GetUnknowns(int group, int order, dArrayT& unknowns) const
 
 GlobalT::RelaxCodeT FEManagerT::RelaxSystem(int group) const
 {
-	GlobalT::RelaxCodeT relax = GlobalT::kNoRelax;
+	/* state */
+	SetStatus(GlobalT::kRelaxSystem);
 	
 	/* check node manager */
+	GlobalT::RelaxCodeT relax = GlobalT::kNoRelax;
 	relax = GlobalT::MaxPrecedence(relax, fNodeManager->RelaxSystem(group));
 		
 	/* check element groups - must touch all of them to reset */
