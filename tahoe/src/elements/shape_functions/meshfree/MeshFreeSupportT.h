@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.h,v 1.9 2003-01-27 07:00:30 paklein Exp $ */
+/* $Id: MeshFreeSupportT.h,v 1.10 2004-01-27 01:21:11 cjkimme Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #ifndef _MF_SUPPORT_T_H_
@@ -34,7 +34,7 @@ class iNodeT;
  * This class sits between the shape function and the MLS solver. This
  * class feeds the MLS solver coordinates and meshfree parameters for
  * a given field point and can store the resulting shape functions and
- * derivative. Shape functions and there derivatives can subsequently
+ * derivative. Shape functions and their derivatives can subsequently
  * be retrieved from storage or calculated as needed.
  *
  * Initialization of the class involves 2 steps:
@@ -61,7 +61,7 @@ public:
 	 * \param connects integration cell connectivities 
 	 * \param nongridnodes index of paricles not included in the connectivities
 	 * \param in input stream for class and window function parameters */
-	MeshFreeSupportT(const ParentDomainT& domain, const dArray2DT& coords,
+	MeshFreeSupportT(const ParentDomainT* domain, const dArray2DT& coords,
 		const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in);
 
 	/** destructor */
@@ -140,7 +140,7 @@ public:
      * \return 1 if successful, 0 otherwise */
 	int SetFieldAt(const dArrayT& x, const dArrayT* shift = NULL);
 
-	/** set field at x using the specified neighboring partivles.
+	/** set field at x using the specified neighboring particles.
 	 * \param x arbitrary field point
 	 * \param nodes list of neighboring particles.
      * \return 1 if successful, 0 otherwise */
@@ -248,8 +248,10 @@ protected:
 	/* nodal coordinates */
 	const dArray2DT& fCoords;
 
-	/* parent integration domain */
-	const ParentDomainT& fDomain;
+	/* parent integration domain and its data */
+	const ParentDomainT* fDomain;
+	int fSD;
+	int fIP;
 
 	/* MLS solvers */
 	OrthoMLSSolverT* fEFG;

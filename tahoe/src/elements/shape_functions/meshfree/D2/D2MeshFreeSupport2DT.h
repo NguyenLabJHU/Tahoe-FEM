@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupport2DT.h,v 1.5 2002-07-02 19:57:02 cjkimme Exp $ */
+/* $Id: D2MeshFreeSupport2DT.h,v 1.6 2004-01-27 01:21:14 cjkimme Exp $ */
 /* created: paklein (10/23/1999) */
 
 #ifndef _D2_MF_SUPPORT_2D_T_H_
@@ -23,7 +23,7 @@ public:
 	 * \param connects integration cell connectivities 
 	 * \param nongridnodes index of paricles not included in the connectivities
 	 * \param in input stream for class and window function parameters */
-	D2MeshFreeSupport2DT(const ParentDomainT& domain, const dArray2DT& coords,
+	D2MeshFreeSupport2DT(const ParentDomainT* domain, const dArray2DT& coords,
 		const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in);
 
 	/** set cutting field facets. 

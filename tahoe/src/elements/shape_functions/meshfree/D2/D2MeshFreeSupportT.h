@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.h,v 1.6 2002-07-05 22:28:38 paklein Exp $ */
+/* $Id: D2MeshFreeSupportT.h,v 1.7 2004-01-27 01:21:14 cjkimme Exp $ */
 /* created: paklein (10/23/1999) */
 
 #ifndef _D2_MF_SUPPORT_T_H_
@@ -25,7 +25,7 @@ public:
 	 * \param connects integration cell connectivities 
 	 * \param nongridnodes index of paricles not included in the connectivities
 	 * \param in input stream for class and window function parameters */
-	D2MeshFreeSupportT(const ParentDomainT& domain, const dArray2DT& coords,
+	D2MeshFreeSupportT(const ParentDomainT* domain, const dArray2DT& coords,
 		const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in);
 
 	/** determine nodal support parameters based window function parameters */

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupport2DT.cpp,v 1.9 2003-11-21 22:47:14 paklein Exp $ */
+/* $Id: MeshFreeSupport2DT.cpp,v 1.10 2004-01-27 01:21:11 cjkimme Exp $ */
 /* created: paklein (09/10/1998)                                          */
 /* MLS shape function support for 2D                                      */
 
@@ -19,7 +19,7 @@ static    int Max(int a, int b) { return (a > b) ? a : b; };
 static double Max(double a, double b) { return (a > b) ? a : b; };
 
 /* constructor */
-MeshFreeSupport2DT::MeshFreeSupport2DT(const ParentDomainT& domain, const dArray2DT& coords,
+MeshFreeSupport2DT::MeshFreeSupport2DT(const ParentDomainT* domain, const dArray2DT& coords,
 	const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in):
 	MeshFreeSupportT(domain, coords, connects, nongridnodes, in)
 {
