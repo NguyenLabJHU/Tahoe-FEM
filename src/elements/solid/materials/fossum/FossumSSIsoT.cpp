@@ -1,4 +1,4 @@
-/* $Id: FossumSSIsoT.cpp,v 1.5 2002-11-14 17:06:19 paklein Exp $ */
+/* $Id: FossumSSIsoT.cpp,v 1.6 2002-11-14 21:05:39 cfoster Exp $ */
 /* DEVELOPMENT */
 /* 3-invariant, single-surface dilation/compaction plasticity model
  * with isotropic and kinematic hardeneing
@@ -1332,13 +1332,12 @@ const dMatrixT& FossumSSIsoT::c_ijkl(void)
   //fModulus.SumOf(HookeanMatT::Modulus(),
   // ModuliCorrection(CurrentElement(), CurrIP()));
   int i,j;
-  dMatrixT elasticModulus(6), elasticCompliance(6);
-  dMatrixT generalizedModulus(13), generalizedCompliance(13);
+  dMatrixT elasticCompliance(6);
   dMatrixT d2fdSigmadSigma(6), d2fdqdq(7), dhdq(7);
   dMatrixT  d2fdSigmadq(6,7), dhdSigma(7,6);
   dMatrixT Ce = HookeanMatT::Modulus();
   dArrayT hq(7), dfdq(7);
-dSymMatrixT dfdSigma(3), dfdAlpha(3);
+  dSymMatrixT dfdSigma(3), dfdAlpha(3);
 
   ElementCardT& element = CurrentElement();
   int ip = CurrIP();
@@ -1396,10 +1395,7 @@ dSymMatrixT dfdSigma(3), dfdAlpha(3);
 	  }
 
 	/*form generalized modulus */
-
-
        elasticCompliance.Inverse(Ce);
-       generalizedCompliance = 0.0;
        
        d2fdSigmadSigma = D2fdSigmadSigma(I1, J2, J3, fInternal[kkappa], principalEqStress, m);
        d2fdSigmadq = D2fdSigmadq(I1, J2, J3, fInternal[kkappa], principalEqStress, m);
@@ -1419,16 +1415,31 @@ dSymMatrixT dfdSigma(3), dfdAlpha(3);
        for(i = 0; i < 6; i++)
          dfdSigmaArray[i] = dfdSigma[i];
 
+
        dMatrixT xi_q(7), xi_q_inverse(7);
-       xi_q_inverse = 0.0;
-       xi_q_inverse.PlusIdentity(1.0);
+       xi_q_inverse.Identity();
        xi_q_inverse.AddScaled(-1*fInternal[kdgamma],dhdq);
        xi_q.Inverse(xi_q_inverse);
+
+       /* double shears */
+       for(i = 3; i < 6; i++)
+	 {       
+	   //dfdSigmaArray[i] *= 2;
+	   //dfdq [i] *= 2;
+           hq [i] *= 2;
+           for (j = 0; j < 6; j++)
+	     {
+	       dhdSigma (i,j) *= 2;
+	       d2fdSigmadq(j,i) *= 2;
+	     } 
+	 }
+
+
+
 
        dMatrixT xi_sigma(6), xi_sigma_inverse(6), work1(6), work2(6);
        xi_sigma_inverse = elasticCompliance;
        xi_sigma_inverse.AddScaled(fInternal[kdgamma], d2fdSigmadSigma);
-       //double shears??
        work2.MultAB(d2fdSigmadq,xi_q);
        work1.MultAB(work2,dhdq);
        xi_sigma_inverse.AddScaled(fInternal[kdgamma]*fInternal[kdgamma],
@@ -1440,6 +1451,20 @@ dSymMatrixT dfdSigma(3), dfdAlpha(3);
        work.MultAB(d2fdSigmadq, xi_q);
        work.Multx(hq, bigA );
        bigA.AddScaled(1.0/fInternal[kdgamma], dfdSigma);
+
+
+ /* double shears */
+       for(i = 3; i < 6; i++)
+	 {       
+	   dfdSigmaArray[i] *= 2;
+	   dfdq [i] *= 2;
+           bigA [i] *= 2;
+           for (j = 0; j < 6; j++)
+	     {
+	       dhdSigma (j,i) *= 2;
+	       //d2fdSigmadAlpha(j,i) *= 2;
+	     } 
+	 }
 
 
        dArrayT bigB(6), work6(6);
@@ -1454,13 +1479,23 @@ dSymMatrixT dfdSigma(3), dfdAlpha(3);
        bigB = dfdSigma;
        work76.MultTx(dfdq, work6);
        bigB.AddScaled(fInternal[kdgamma], work6);
-       bigB *= 1/denom;
+       bigB *= 1.0/denom;
  
+       /* half shears */
+       for(i = 3; i < 6; i++)
+           bigA [i] *= .5;
+
+
+       //cout << "dfdq =\n" << dfdq << endl << endl;
+       //cout << "dhdq =\n" << hq << endl << endl;
+       //cout << "xi_q =\n" << xi_q << endl << endl;
+       //cout << "denom =\n" << denom << endl << endl;
+       //cout << "A =\n" << bigA << endl << endl;
+       //cout << "B =\n" << bigB << endl << endl;
+
        dMatrixT work66(6), rtMatrix(6);
        work66.Outer(bigA,bigB);
        rtMatrix.Identity();
-
-       //cout << "rtMatrix =\n" << rtMatrix << endl << endl;
 
        rtMatrix.AddScaled(-fInternal[kdgamma], work66);
 
