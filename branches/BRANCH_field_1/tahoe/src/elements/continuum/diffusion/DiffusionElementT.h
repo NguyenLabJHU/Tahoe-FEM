@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.h,v 1.2.8.1 2002-04-26 02:24:18 paklein Exp $ */
+/* $Id: DiffusionElementT.h,v 1.2.8.2 2002-04-30 00:07:08 paklein Exp $ */
 /* created: paklein (10/02/1999)                                          */
 
 #ifndef _DIFFUSE_T_H_
@@ -36,7 +36,7 @@ public:
 //	virtual void SetController(eControllerT* controller);
 
 	/* compute nodal force */
-	virtual void AddNodalForce(int node, dArrayT& force);
+	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
 
 	/* returns the stored energy */
 	virtual double InternalEnergy(void);

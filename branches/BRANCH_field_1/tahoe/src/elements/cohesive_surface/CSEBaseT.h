@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.4.8.1 2002-04-28 22:26:21 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.4.8.2 2002-04-30 00:07:06 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #ifndef _CSE_BASE_T_H_
@@ -60,7 +60,7 @@ public:
 	virtual void ResetStep(void);
 
 	/* solution calls */
-	virtual void AddNodalForce(int node, dArrayT& force);
+	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
 
 	/* returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void); //not implemented

@@ -1,10 +1,10 @@
-/* $Id: ElementSupportT.cpp,v 1.1.2.1 2002-04-27 01:32:26 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.1.2.2 2002-04-30 00:07:04 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "FEManagerT.h"
 #include "NodeManagerPrimitive.h"
 
 /* constructor */
-inline ElementSupportT::ElementSupportT(void)
+ElementSupportT::ElementSupportT(void)
 {
 	/* clear */
 	SetFEManager(NULL);
@@ -39,11 +39,24 @@ void ElementSupportT::SetNodes(NodeManagerPrimitive* nodes)
 	if (nodes)
 	{		
 		fNumSD = nodes->NumSD();
+		fNumNodes = nodes->NumNodes();
 	}
 	else /* clear */
 	{
 		fNumSD = 0;
+		fNumNodes = 0;
 	}
+}
+
+/* Tahoe version string */
+const StringT& ElementSupportT::Version(void) const
+{
+	return FEManager().Version();
+}
+
+bool ElementSupportT::PrintInput(void) const
+{
+	return FEManager().PrintInput();
 }
 
 const dArray2DT& ElementSupportT::InitialCoordinates(void) const
@@ -72,15 +85,74 @@ const int& ElementSupportT::IterationNumber(int group) const
 	return FEManager().IterationNumber(group); 
 }
 
+const char* ElementSupportT::Exception(int exception) const
+{
+	return FEManager().Exception(exception);
+}
+
 int ElementSupportT::ElementGroupNumber(const ElementBaseT* element) const
 { 
 	return FEManager().ElementGroupNumber(element); 
+}
+
+double ElementSupportT::Time(void) const
+{
+	return FEManager().Time();
+}
+
+const double& ElementSupportT::TimeStep(void) const
+{
+	return FEManager().TimeStep();
+}
+
+const int& ElementSupportT::StepNumber(void) const
+{
+	return FEManager().StepNumber();
+}
+
+const int& ElementSupportT::NumberOfSteps(void) const
+{
+	return FEManager().NumberOfSteps();
+}
+
+/* the element group at the specified index in the element list */
+ElementBaseT& ElementSupportT::ElementGroup(int index) const
+{
+	ElementBaseT* element = FEManager().ElementGroup(index);
+	if (!element) throw eGeneralFail;
+	return *element;
+}
+
+/* geometry information */
+ModelManagerT& ElementSupportT::Model(void) const
+{
+	ModelManagerT* model = FEManager().ModelManager();
+	if (!model) throw eGeneralFail;
+	return *model;
 }
 
 /* XDOF support */
 XDOF_ManagerT& ElementSupportT::XDOF_Manager(void) const
 {
 	return Nodes();
+}
+
+/* node number map. returns NULL if there is not map */
+const iArrayT* ElementSupportT::NodeMap(void) const
+{
+	return FEManager().NodeMap();
+}
+
+/* return a pointer to the field */
+const FieldT* ElementSupportT::Field(const char* name) const
+{
+	return Nodes().Field(name);
+}
+	
+/* element number map for the given block ID */
+const iArrayT* ElementSupportT::ElementMap(const StringT& block_ID) const
+{
+	return FEManager().ElementMap(block_ID);
 }
 
 /* MP */
@@ -103,12 +175,21 @@ void ElementSupportT::RecvExternalData(dArray2DT& external_data) const
 	FEManager().RecvExternalData(external_data);
 }
 
-void ElementSupportT::AssembleLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& eqnos) const
+void ElementSupportT::AssembleLHS(int group, const ElementMatrixT& elMat, 
+	const nArrayT<int>& eqnos) const
 {
 	FEManager().AssembleLHS(group, elMat, eqnos);
 }
 
-void ElementSupportT::AssembleRHS(int group, const dArrayT& elRes, const nArrayT<int>& eqnos) const
+void ElementSupportT::AssembleLHS(int group, const ElementMatrixT& elMat, 
+	const nArrayT<int>& row_eqnos,
+	const nArrayT<int>& col_eqnos) const
+{
+	FEManager().AssembleLHS(group, elMat, row_eqnos, col_eqnos);
+}
+
+void ElementSupportT::AssembleRHS(int group, const dArrayT& elRes, 
+	const nArrayT<int>& eqnos) const
 {
 	FEManager().AssembleRHS(group, elRes, eqnos);
 }
@@ -125,6 +206,12 @@ void ElementSupportT::AssembleAverage(const iArrayT& nodes, const dArray2DT& val
 	Nodes().AssembleAverage(nodes, vals);
 }
 
+/* average assembled values */
+const dArray2DT& ElementSupportT::OutputAverage(void) const
+{
+	return Nodes().OutputAverage();
+}
+
 /* return averaged values for the nodes with assembled values */
 void ElementSupportT::OutputUsedAverage(dArray2DT& average_values) const
 {
@@ -139,6 +226,17 @@ ifstreamT& ElementSupportT::Input(void) const
 ofstreamT& ElementSupportT::Output(void) const
 {
 	return FEManager().Output();
+}
+
+int ElementSupportT::RegisterOutput(const OutputSetT& output_set) const
+{
+	return FEManager().RegisterOutput(output_set);
+}
+
+void ElementSupportT::WriteOutput(int ID, const dArray2DT& n_values, 
+	const dArray2DT& e_values) const
+{
+	FEManager().WriteOutput(ID, n_values, e_values);
 }
 
 /***********************************************************************

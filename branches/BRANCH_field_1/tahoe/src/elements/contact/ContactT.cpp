@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.6.2.1 2002-04-28 22:26:18 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.6.2.2 2002-04-30 00:07:07 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 
 #include "ContactT.h"
@@ -68,8 +68,9 @@ void ContactT::Initialize(void)
 }
 
 /* solution calls */
-void ContactT::AddNodalForce(int node, dArrayT& force)
+void ContactT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
+#pragma unused(field)
 #pragma unused(node)
 #pragma unused(force)
 //not implemented

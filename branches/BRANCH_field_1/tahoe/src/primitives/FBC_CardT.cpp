@@ -1,4 +1,4 @@
-/* $Id: FBC_CardT.cpp,v 1.5.2.1 2002-04-24 01:29:28 paklein Exp $ */
+/* $Id: FBC_CardT.cpp,v 1.5.2.2 2002-04-30 00:07:13 paklein Exp $ */
 /* created: paklein (06/15/1996) */
 
 #include "FBC_CardT.h"
@@ -7,9 +7,8 @@
 #include <iomanip.h>
 
 #include "Constants.h"
-
+#include "NodeManagerPrimitive.h" // needed for schedule information
 #include "fstreamT.h"
-#include "NodeManagerT.h"
 #include "ScheduleT.h"
 
 /* copy behavior for arrays FBC_CardT's */

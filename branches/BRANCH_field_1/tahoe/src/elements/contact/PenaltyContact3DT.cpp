@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.2.2.1 2002-04-28 22:26:19 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.2.2.2 2002-04-30 00:07:07 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 
 #include "PenaltyContact3DT.h"
@@ -8,9 +8,7 @@
 #include <iomanip.h>
 
 #include "fstreamT.h"
-#include "FEManagerT.h"
 #include "eControllerT.h"
-#include "NodeManagerT.h"
 
 /* vector functions */
 inline static void CrossProduct(const double* A, const double* B, double* AxB)

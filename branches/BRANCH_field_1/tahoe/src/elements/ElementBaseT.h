@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.8.2.3 2002-04-29 17:20:42 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.8.2.4 2002-04-30 00:07:04 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -113,7 +113,7 @@ public:
 	/** accumulate the residual force on the specified node
 	 * \param node test node
 	 * \param force array into which to assemble to the residual force */
-	virtual void AddNodalForce(int node, dArrayT& force) = 0;
+	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force) = 0;
 
 	/** initialize current time increment */
 	virtual void InitStep(void);

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.32.2.3 2002-04-26 02:24:21 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.32.2.4 2002-04-30 00:07:11 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -197,21 +197,23 @@ void FEManagerT::Solve(void)
 }
 
 /* signal that references to external data are stale - i.e. equ numbers */
-void FEManagerT::Reinitialize(void)
+void FEManagerT::Reinitialize(int group)
 {
+#if 0
 	/* node */
 	fNodeManager->Reinitialize();
 	
 	/* elements */
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
 		fElementGroups[i]->Reinitialize();
+#endif
 
 	/* reset equation structure */
-	SetEquationSystem();		
+	SetEquationSystem(group);		
 }
 
 /* manager messaging */
-ScheduleT* FEManagerT::Schedule(int num) const
+const ScheduleT* FEManagerT::Schedule(int num) const
 {
 	return fTimeManager->Schedule(num);
 }
@@ -326,15 +328,17 @@ void FEManagerT::ResetStep(void)
 	/* time */
 	fTimeManager->ResetStep();
 
-	/* nodes */
-	fNodeManager->ResetStep();
+	/* nodes - ALL groups */
+	for (int i = 0; i < NumGroups(); i++)
+		fNodeManager->ResetStep(i);
 	
 	/* elements */
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
 		fElementGroups[i]->ResetStep();
 		
-	/* solver */
-	fSolutionDriver->ResetStep();
+	/* solver - ALL groups */
+	for (int i = 0; i < NumGroups(); i++)
+		fSolvers[i]->ResetStep();
 }
 
 const double& FEManagerT::Time(void) const { return fTimeManager->Time(); }
@@ -348,6 +352,7 @@ const int& FEManagerT::IterationNumber(int group) const
 	return fSolvers[group]->IterationNumber(); 
 }
 
+#if 0
 void FEManagerT::SetLocalEqnos(const iArray2DT& nodes,
 	iArray2DT& eqnos) const
 {
@@ -358,47 +363,51 @@ void FEManagerT::RegisterLocal(LocalArrayT& array) const
 {
 	fNodeManager->RegisterLocal(array);
 }
+#endif
 
 /* solution messaging */
-void FEManagerT::FormLHS(void) const
+void FEManagerT::FormLHS(int group) const
 {
 	/* state */
 	SetStatus(GlobalT::kFormLHS);
 	
 	/* nodal contributions - from F(x) BC's */
-	fNodeManager->FormLHS();
+	fNodeManager->FormLHS(group);
 
 	/* element contributions */
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
-		fElementGroups[i]->FormLHS();
+		if (fElementGroups[i]->Group() == group)
+			fElementGroups[i]->FormLHS();
 }
 
-void FEManagerT::FormRHS(void) const
+void FEManagerT::FormRHS(int group) const
 {
 	/* state */
 	SetStatus(GlobalT::kFormRHS);
 
 	/* nodal force contribution - F(t) */
-	fController->FormNodalForce(fNodeManager);
+	//fController->FormNodalForce(fNodeManager);
+	fNodeManager->FormRHS(group);
 
 	/* element contribution */
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
-		fElementGroups[i]->FormRHS();
+		if (fElementGroups[i]->Group() == group)
+			fElementGroups[i]->FormRHS();
 		
 	/* output system info (debugging) */
-	if (fSolutionDriver->Check() == GlobalMatrixT::kPrintRHS)
-		WriteSystemConfig(fMainOut);
+	if (fSolvers[group]->Check() == GlobalMatrixT::kPrintRHS)
+		WriteSystemConfig(fMainOut, group);
 }
 
 /* collect the internal force on the specified node */
-void FEManagerT::InternalForceOnNode(int node, dArrayT& force) const
+void FEManagerT::InternalForceOnNode(const FieldT& field, int node, dArrayT& force) const
 {
 	/* initialize */
 	force = 0.0;
 
 	/* element contribution */
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
-		fElementGroups[i]->AddNodalForce(node, force);
+		fElementGroups[i]->AddNodalForce(field, node, force);
 }
 
 void FEManagerT::InitStep(void) const
@@ -409,8 +418,9 @@ void FEManagerT::InitStep(void) const
 	/* set the default value for the output time stamp */
 	fIOManager->SetOutputTime(Time());
 
-	/* nodes */
-	fNodeManager->InitStep();
+	/* nodes - ALL groups*/
+	for (int i = 0; i < NumGroups(); i++)
+		fNodeManager->InitStep(i);
 
 	/* elements */
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
@@ -425,8 +435,9 @@ void FEManagerT::CloseStep(void) const
 	/* write output BEFORE closing nodes and elements */
 	fTimeManager->CloseStep();
 
-	/* nodes */
-	fNodeManager->CloseStep();
+	/* nodes - ALL groups */
+	for (int i = 0; i < NumGroups(); i++)
+		fNodeManager->CloseStep(i);
 
 	/* elements */
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
@@ -436,26 +447,27 @@ void FEManagerT::CloseStep(void) const
 	WriteRestart();
 }
 
-void FEManagerT::Update(const dArrayT& update)
+void FEManagerT::Update(int group, const dArrayT& update)
 {
-	fNodeManager->Update(update);
+	fNodeManager->Update(group, update);
 }
 
-void FEManagerT::GetUnknowns(int order, dArrayT& unknowns) const
+void FEManagerT::GetUnknowns(int group, int order, dArrayT& unknowns) const
 {
-	fNodeManager->GetUnknowns(order, unknowns);
+	fNodeManager->GetUnknowns(group, order, unknowns);
 }
 
-GlobalT::RelaxCodeT FEManagerT::RelaxSystem(void) const
+GlobalT::RelaxCodeT FEManagerT::RelaxSystem(int group) const
 {
 	GlobalT::RelaxCodeT relax = GlobalT::kNoRelax;
 	
 	/* check node manager */
-	relax = GlobalT::MaxPrecedence(relax, fNodeManager->RelaxSystem());
+	relax = GlobalT::MaxPrecedence(relax, fNodeManager->RelaxSystem(group));
 		
 	/* check element groups - must touch all of them to reset */
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
-		relax = GlobalT::MaxPrecedence(relax, fElementGroups[i]->RelaxSystem());
+		if (fElementGroups[i]->Group() == group)
+			relax = GlobalT::MaxPrecedence(relax, fElementGroups[i]->RelaxSystem());
 
 	return relax;
 }
@@ -517,7 +529,7 @@ void FEManagerT::WriteOutput(double time, IOBaseT::OutputModeT mode)
 		fIOManager->SetOutputTime(time);
 
 		/* nodes */
-		fNodeManager->WriteOutput(mode);
+		fNodeManager->WriteOutput();
 
 		/* elements */
 		for (int i = 0; i < fElementGroups.Length(); i++)
@@ -655,10 +667,12 @@ int FEManagerT::ElementGroupNumber(const ElementBaseT* pgroup) const
 	return groupnum;
 }
 
+#if 0
 int FEManagerT::GlobalEquationNumber(int nodenum, int dofnum) const
 {
 	return fNodeManager->GlobalEquationNumber(nodenum, dofnum);
 }
+#endif
 
 void FEManagerT::IncomingNodes(iArrayT& nodes_in ) const {  nodes_in.Free(); }
 void FEManagerT::OutgoingNodes(iArrayT& nodes_out) const { nodes_out.Free(); }
@@ -696,16 +710,18 @@ GlobalT::EquationNumberScopeT FEManagerT::EquationNumberScope(int group) const
 	return fSolvers[group]->EquationNumberScope();
 }
 
-int FEManagerT::GetGlobalEquationStart(void) const
+int FEManagerT::GetGlobalEquationStart(int group) const
 {
+#pragma unused(group)
+
 	/* no other equations */
 	return 1;
 }
 
-int FEManagerT::GetGlobalNumEquations(void) const
+int FEManagerT::GetGlobalNumEquations(int group) const
 {
 	/* no other equations */
-	return fNodeManager->NumEquations();
+	return fNodeManager->NumEquations(group);
 }
 
 /* access to controllers */
@@ -716,7 +732,7 @@ eControllerT* FEManagerT::eController(int index) const
 	eControllerT* e_controller = (eControllerT*) fControllers[index];
 		//NOTE: cast should be safe for all cases
 #else
-	eControllerT* e_controller = dynamic_cast<eControllerT*>(fController[index]);
+	eControllerT* e_controller = dynamic_cast<eControllerT*>(fControllers[index]);
 	if (!e_controller) throw eGeneralFail;
 #endif
 
@@ -739,9 +755,9 @@ nControllerT* FEManagerT::nController(int index) const
 
 void FEManagerT::SetTimeStep(double dt) const
 {
-	if (!fController) throw eGeneralFail;
-
-	fController->SetTimeStep(dt);
+	//TEMP - for ALL controllers
+	for (int i = 0; i < fControllers.Length(); i++)
+		fControllers[i]->SetTimeStep(dt);
 }
 
 /* returns 1 of ALL element groups have interpolant DOF's */
@@ -751,7 +767,7 @@ int FEManagerT::InterpolantDOFs(void) const
 }
 
 /* debugging */
-void FEManagerT::WriteSystemConfig(ostream& out) const
+void FEManagerT::WriteSystemConfig(ostream& out, int group) const
 {
 	int old_precision = out.precision();
 	out.precision(DBL_DIG);
@@ -761,15 +777,18 @@ void FEManagerT::WriteSystemConfig(ostream& out) const
 
 	/* nodal data */
 	const dArray2DT& coords = fNodeManager->InitialCoordinates();
-	const dArray2DT&   disp = fNodeManager->Displacements();
+	ArrayT<FieldT*> fields;
+	fNodeManager->CollectFields(group, fields);
 
 	/* dimensions */
 	int nnd = coords.MajorDim();
 	int nsd = coords.MinorDim();
-	int ndf = disp.MinorDim();
+	int ndf = 0;
+	for (int i = 0; i < fields.Length(); i++)
+		ndf += fields[i]->NumDOF();
 
 	/* force vector */
-	const dArrayT& RHS = fSolutionDriver->RHS();
+	const dArrayT& RHS = fSolvers[group]->RHS();
 
 	/* header */
 	out << "\n time = " << Time() << '\n';
@@ -780,14 +799,21 @@ void FEManagerT::WriteSystemConfig(ostream& out) const
 		out << setw(kIntWidth - 2) << "eq[" << i0 + 1 << "]";
 	for (int i1 = 0; i1 < nsd; i1++)
 		out << setw(d_width - 2) << "x[" << i1 + 1 << "]";
-	for (int i2 = 0; i2 < ndf; i2++)
-		out << setw(d_width - 2) << "d[" << i2 + 1 << "]";
+
+	/* loop over fields */
+	for (int i = 0; i < fields.Length(); i++)
+	{
+		const ArrayT<StringT>& labels = fields[i]->Labels();
+		for (int j = 0; j < labels.Length(); j++)
+			out << setw(d_width) << labels[j];
+	}
+
 	for (int i3 = 0; i3 < ndf; i3++)
 		out << setw(d_width - 2) << "f[" << i3 + 1 << "]";
 	out << '\n';
 
 	/* loop over nodes */
-	int shift = ActiveEquationStart();
+	int shift = ActiveEquationStart(group);
 	int num_eq = RHS.Length();
 	iArrayT eq(ndf);
 	for (int i = 0; i < nnd; i++)
@@ -798,20 +824,27 @@ void FEManagerT::WriteSystemConfig(ostream& out) const
 		/* mapped node number */
 		out << setw(kIntWidth) << ((node_map != NULL) ? (*node_map)[i] : i) + 1;
 		
-		/* (local) equation numbers */
-		for (int i0 = 0; i0 < ndf; i0++)
-		{
-			eq[i0] = GlobalEquationNumber(i, i0);
-			out << setw(kIntWidth) << eq[i0];
-		}
+		/* (local) equation numbers - loop over fields */
+		int i0 = 0;
+		for (int k = 0; k < fields.Length(); k++)
+			for (int j = 0; j < fields[k]->NumDOF(); j++)
+			{
+				eq[i0] = fields[k]->EquationNumber(i,j);
+				out << setw(kIntWidth) << eq[i0];
+				i0++;
+			}
 			
 		/* coordinates */
 		for (int i1 = 0; i1 < nsd; i1++)
 			out << setw(d_width) << coords(i, i1);
 
-		/* displacement */
-		for (int i2 = 0; i2 < ndf; i2++)
-			out << setw(d_width) << disp(i, i2);
+		/* displacements - loop over fields */
+		for (int k = 0; k < fields.Length(); k++)
+		{
+			const dArray2DT& u = (*fields[k])[0]; /* displacement */
+			for (int j = 0; j < u.MinorDim(); j++)
+				out << setw(d_width) << u(i,j);
+		}
 
 		/* force */
 		for (int i3 = 0; i3 < ndf; i3++)
@@ -936,49 +969,11 @@ void FEManagerT::WriteParameters(void) const
 /* set the correct fNodeManager type */
 void FEManagerT::SetNodeManager(void)
 {
-	switch (fAnalysisCode)
-	{
-		case GlobalT::kLinStaticHeat:
-		case GlobalT::kLinStatic:
-			fNodeManager = new NodeManagerT(*this);
-			break;
-		case GlobalT::kLinTransHeat:
-			fNodeManager = new DuNodeManager(*this);
-			break;
-		case GlobalT::kNLStatic:
-		case GlobalT::kDR:
-			fNodeManager = new FDNodeManager(*this);
-			break;
-		case GlobalT::kLinDynamic:
-		case GlobalT::kLinExpDynamic:
-		case GlobalT::kPML:
-			fNodeManager = new DynNodeManager(*this);
-			break;
-		case GlobalT::kNLDynamic:
-		case GlobalT::kNLExpDynamic:
-			fNodeManager = new FDDynNodeManagerT(*this);
-			break;
-		default:
-			cout << "FEManagerT::SetNodeManager: unknown analysis type." << endl;
-			throw eBadInputValue;
-	}
-	
-	if (!fNodeManager) throw eOutOfMemory;
-	
+	/* construct */
+	fNodeManager = new NodeManagerPrimitive(*this);
+	if (!fNodeManager) throw eOutOfMemory;	
 	fNodeManager->Initialize();			
 
-	/* cast to eControllerT */
-#ifdef __NO_RTTI__
-	nControllerT* n_controller = (nControllerT*) fController;
-		//NOTE: cast should be safe for all cases
-#else
-	nControllerT* n_controller = dynamic_cast<nControllerT*>(fController);
-	if (!n_controller) throw eGeneralFail;
-#endif
-	
-	/* set controller */
-	fNodeManager->SetController(n_controller);
-	
 	/* add to console */
 	iAddSub(*fNodeManager);	
 }
@@ -986,22 +981,12 @@ void FEManagerT::SetNodeManager(void)
 	/* construct element groups */
 void FEManagerT::SetElementGroups(void)
 {
-	/* cast to eControllerT */
-#ifdef __NO_RTTI__
-	eControllerT* e_controller = (eControllerT*) fController;
-		//NOTE: cast should be safe for all cases
-#else
-	eControllerT* e_controller = dynamic_cast<eControllerT*>(fController);
-	if (!e_controller) throw eGeneralFail;
-#endif
-	
 	/* echo element data */
 	int num_groups;
 	fMainIn >> num_groups;
 	if (num_groups < 1) throw eBadInputValue;
 	fElementGroups.Allocate(num_groups);
-	fElementGroups.EchoElementData(fMainIn, fMainOut,
-		e_controller);
+	fElementGroups.EchoElementData(fMainIn, fMainOut);
 		
 	/* set console */
 	for (int i = 0; i < fElementGroups.Length(); i++)
@@ -1019,15 +1004,15 @@ void FEManagerT::SetSolver(void)
 			int index = -1;
 			int type = -1;
 			fMainIn >> index >> type;
-			index--
+			index--;
 			if (fSolvers[index] != NULL) {
 				cout << "\n FEManagerT::SetSolver: solver at index "
 				     << index+1 << " is already set" << endl;
-				throw eBadInputValue
+				throw eBadInputValue;
 			}
 	
 			/* construct solver */
-			fSolvers[index] = New_Solver(type);
+			fSolvers[index] = New_Solver(type, i);
 		}
 	}
 	else /* support for legacy analysis codes */
@@ -1046,11 +1031,11 @@ void FEManagerT::SetSolver(void)
 			case GlobalT::kLinStaticHeat:
 			case GlobalT::kLinTransHeat:
 			case GlobalT::kPML:
-				fSolvers[0] = New_Solver(SolverT::kLinear);
+				fSolvers[0] = New_Solver(SolverT::kLinear, 0);
 				break;
 
 			case GlobalT::kDR:
-				fSolvers[0] = New_Solver(SolverT::kDR);
+				fSolvers[0] = New_Solver(SolverT::kDR, 0);
 				break;
 
 			case GlobalT::kNLStatic:
@@ -1060,7 +1045,7 @@ void FEManagerT::SetSolver(void)
 			{
 				int NL_solver_code;
 				fMainIn >> NL_solver_code;
-				fSolvers[0] = New_Solver(NL_solver_code);
+				fSolvers[0] = New_Solver(NL_solver_code, 0);
 				break;
 			}
 			default:
@@ -1068,13 +1053,16 @@ void FEManagerT::SetSolver(void)
 				throw eBadInputValue;
 		}
 	}
-
-	/* reset equation structure */
-	SetEquationSystem();
 	
-	/* add solvers to console */
+	/* initialize */
 	for (int i = 0; i < fSolvers.Length(); i++)
-		iAddSub(*(fSolver[i]));
+	{
+		/* reset equation structure */
+		SetEquationSystem(i);
+
+		/* console hierarchy */
+		iAddSub(*(fSolvers[i]));	
+	}
 }
 
 void FEManagerT::ReadParameters(InitCodeT init)
@@ -1125,7 +1113,7 @@ void FEManagerT::ReadParameters(InitCodeT init)
 
 	/* read number of equation groups */	
 	int num_groups = -1;
-	if (fAnalysisCode != kMultiField)
+	if (fAnalysisCode != GlobalT::kMultiField)
 		fMainIn >> num_groups;
 	/* support for legacy analysis */
 	else
@@ -1146,7 +1134,7 @@ void FEManagerT::SetController(void)
 	fMainOut << "\n T i m e   I n t e g r a t o r s:\n";
 	
 	/* no predefined integrators */
-	if (fAnalysisCode == kMultiField)
+	if (fAnalysisCode == GlobalT::kMultiField)
 	{
 		/* construct from stream */
 		ifstreamT& in = Input();
@@ -1158,7 +1146,7 @@ void FEManagerT::SetController(void)
 		for (int i = 0; i < fControllers.Length(); i++)
 		{
 			int dex = -1;
-			TimeManageT::CodeT code;
+			TimeManagerT::CodeT code;
 			in >> dex >> code;
 			
 			ControllerT* controller = fTimeManager->New_Controller(code);
@@ -1176,7 +1164,7 @@ void FEManagerT::SetController(void)
 		fControllers.Dimension(1);
 		
 		/* set by analysis type */
-		ControllerT controller = NULL;
+		ControllerT* controller = NULL;
 		switch (fAnalysisCode)
 		{
 			case GlobalT::kLinStatic:
@@ -1371,125 +1359,138 @@ void FEManagerT::WriteRestart(const StringT* file_name) const
 * (3) set numbering scope
 * (4) collect equations and send to solver
 * (5) signal solver for final configuration */
-void FEManagerT::SetEquationSystem(void)
+void FEManagerT::SetEquationSystem(int group)
 {
-	/* check */
-	if (!fSolutionDriver)
-	{
-		cout << "\n FEManagerT::SetEquationSystem: invalid solution manager" << endl;
-		throw eGeneralFail;
-	}
-
 	/* equation number scope */
-	GlobalT::EquationNumberScopeT equation_scope = fSolutionDriver->EquationNumberScope();
+	GlobalT::EquationNumberScopeT equation_scope = 
+		fSolvers[group]->EquationNumberScope();
 
 	/* assign (local) equation numbers */
-	fNodeManager->SetEquationNumbers();
-	fGlobalEquationStart = GetGlobalEquationStart();
-	fActiveEquationStart = (equation_scope == GlobalT::kGlobal) ? fGlobalEquationStart : 1;
-	fGlobalNumEquations  = GetGlobalNumEquations();
+	fNodeManager->SetEquationNumbers(group);
+	fGlobalEquationStart[group] = GetGlobalEquationStart(group);
+	fActiveEquationStart[group] = (equation_scope == GlobalT::kGlobal) ? 
+		fGlobalEquationStart[group] : 1;
+	fGlobalNumEquations[group]  = GetGlobalNumEquations(group);
 
 	/* renumber locally */
-	if (fSolutionDriver->RenumberEquations())
+	if (fSolvers[group]->RenumberEquations())
 	{
 		/* lists of connectivities */
 		AutoArrayT<const iArray2DT*> connects_1;
 		AutoArrayT<const RaggedArray2DT<int>*> connects_2;
 	
 		/* collect nodally generated DOF's */
-		fNodeManager->ConnectsU(connects_1, connects_2);
+		fNodeManager->ConnectsU(group, connects_1, connects_2);
 	
 		/* collect element groups */
 		for (int i = 0 ; i < fElementGroups.Length(); i++)
-			fElementGroups[i]->ConnectsU(connects_1, connects_2);		
+			if (fElementGroups[i]->Group() == group)
+				fElementGroups[i]->ConnectsU(connects_1, connects_2);		
 	
 		/* renumber equations */
-		fNodeManager->RenumberEquations(connects_1, connects_2);
+		fNodeManager->RenumberEquations(group, connects_1, connects_2);
 	}
 
 	/* set equation number scope */
-	fNodeManager->SetEquationNumberScope(equation_scope);
+	fNodeManager->SetEquationNumberScope(group, equation_scope);
 	
 	/* collect interaction equations and send to solver */
-	SendEqnsToSolver();
+	SendEqnsToSolver(group);
 	
 	/* final step in solver configuration */
-	fSolutionDriver->Initialize(fGlobalNumEquations, fNodeManager->NumEquations(),
-		fActiveEquationStart);
+	fSolvers[group]->Initialize(
+		fGlobalNumEquations[group], 
+		fNodeManager->NumEquations(group),
+		fActiveEquationStart[group]);
 }
 
-void FEManagerT::SendEqnsToSolver(void) const
+void FEManagerT::SendEqnsToSolver(int group) const
 {
 	/* dynamic arrays */
 	AutoArrayT<const iArray2DT*> eq_1;
 	AutoArrayT<const RaggedArray2DT<int>*> eq_2;
 	
 	/* collect equation sets */
-	fNodeManager->Equations(eq_1, eq_2);
+	fNodeManager->Equations(group, eq_1, eq_2);
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
-		fElementGroups[i]->Equations(eq_1, eq_2);
+		if (fElementGroups[i]->Group() == group)
+			fElementGroups[i]->Equations(eq_1, eq_2);
 
 	/* send lists to solver */
 	for (int j = 0; j < eq_1.Length(); j++)
-		fSolutionDriver->ReceiveEqns(*(eq_1[j]));
+		fSolvers[group]->ReceiveEqns(*(eq_1[j]));
 
 	for (int k = 0; k < eq_2.Length(); k++)
-		fSolutionDriver->ReceiveEqns(*(eq_2[k]));
+		fSolvers[group]->ReceiveEqns(*(eq_2[k]));
 }
 
-SolverT* FEManagerT::New_Solver(int code) const
+SolverT* FEManagerT::New_Solver(int code, int group)
 {
 	/* construct solver */
 	SolverT* solver = NULL;
 	switch (code)
 	{
 		case SolverT::kLinear:
-			solver = new LinearSolver(*this);
+			solver = new LinearSolver(*this, group);
 			break;
 
 		case SolverT::kDR:
-			solver = new DRSolver(*this);
+			solver = new DRSolver(*this, group);
 			break;
 	
-		case SolverT::kNewtonSolver:			
-			solver = new NLSolver(*this);	
+		case SolverT::kNewtonSolver:
+			solver = new NLSolver(*this, group);
 			break;
 
-		case SolverT::kK0_NewtonSolver:				
-			solver = new NLK0Solver(*this);
+		case SolverT::kK0_NewtonSolver:
+			solver = new NLK0Solver(*this, group);
 			break;
 
-		case SolverT::kModNewtonSolver:				
-			solver = new NLSolverX(*this);
+		case SolverT::kModNewtonSolver:
+			solver = new NLSolverX(*this, group);
 			break;
 
-		case SolverT::kExpCD_DRSolver:				
-			solver = new ExpCD_DRSolver(*this);
+		case SolverT::kExpCD_DRSolver:
+			solver = new ExpCD_DRSolver(*this, group);
 			break;
 
 		case SolverT::kNewtonSolver_LS:				
-			solver = new NLSolver_LS(*this);
+			solver = new NLSolver_LS(*this, group);
 			break;
 
 		case SolverT::kPCGSolver_LS:				
-			solver = new PCGSolver_LS(*this);
+			solver = new PCGSolver_LS(*this, group);
 			break;
 
 		case SolverT::kiNewtonSolver_LS:				
-			solver = new iNLSolver_LS(*this);
+			solver = new iNLSolver_LS(*this, group);
 			break;
 
-		case SolverT::kNOX:				
+		case SolverT::kNOX:
+		{
 #ifdef __NOX__
-			solver = new NOXSolverT(*this);
+			//TEMP - need to figure out which set of DOF's to send to the solver.
+			//       This gets complicated since each group could have more than
+			//       one time integrator, which sets the order of the DOF. For now,
+			//       grab the controller from the first field in this group and
+			//       let its integrator decide.
+			
+			/* all fields in the group */
+			ArrayT<FieldT*> fields;
+			fNodeManager->CollectFields(group, fields);
+			if (fields.Length() < 1) throw eGeneralFail;
+			
+			const nControllerT& controller = fields[0]->nController();
+			solver = new NOXSolverT(*this, group, controller.OrderOfUnknown());
 			break;
 #else
 			cout << "\n FEManagerT::New_Solver: NOX not installed: " << SolverT::kNOX << endl;
 			throw eGeneralFail;
-#endif			
+#endif	
+		}		
 		default:			
 			cout << "\n FEManagerT::New_Solver: unknown nonlinear solver code: ";
-			cout << NL_solver_code << endl;
+			cout << code << endl;
 			throw eBadInputValue;
 	}
 

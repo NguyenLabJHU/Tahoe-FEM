@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.8.2.1 2002-04-28 22:26:21 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.8.2.2 2002-04-30 00:07:06 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -221,9 +221,10 @@ void CSEBaseT::ResetStep(void)
 }
 
 /* solution calls */
-void CSEBaseT::AddNodalForce(int node, dArrayT& force)
+void CSEBaseT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
 //TEMP
+#pragma unused(field)
 #pragma unused(node)
 #pragma unused(force)
 	//not implemented

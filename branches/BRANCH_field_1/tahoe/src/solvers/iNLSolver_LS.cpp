@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.cpp,v 1.6.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* $Id: iNLSolver_LS.cpp,v 1.6.2.2 2002-04-30 00:07:14 paklein Exp $ */
 /* created: paklein (01/01/2001) */
 
 #include "iNLSolver_LS.h"
@@ -108,7 +108,7 @@ bool iNLSolver_LS::iDoCommand(const CommandSpecT& command, StringT& line)
 		{
 			/* compute new residual */
 			fRHS = 0.0;
-			fFEManager.FormRHS();
+			fFEManager.FormRHS(Group());
 			cout << "residual norm = " << fRHS.Magnitude() << endl;
 			return true;
 		}
@@ -251,7 +251,7 @@ NLSolver::IterationStatusT iNLSolver_LS::DoIterate(int max_count)
 				InitIterationOutput();
 	
 				fRHS = 0.0;
-				fFEManager.FormRHS();
+				fFEManager.FormRHS(Group());
 	
 				/* initial error */
 				double error = Residual(fRHS);

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.15.2.2 2002-04-26 02:24:16 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.15.2.3 2002-04-30 00:07:04 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -96,13 +96,11 @@ GlobalT::SystemTypeT ElementBaseT::TangentType(void) const
 	return GlobalT::kSymmetric;
 }
 
-#if 0
 /* the iteration number for the current time increment */
 const int& ElementBaseT::IterationNumber(void) const
 {
-	return fFEManager.IterationNumber();
+	return ElementSupport().IterationNumber(Group());
 }
-#endif
 
 /* solution calls */
 void ElementBaseT::FormLHS(void)

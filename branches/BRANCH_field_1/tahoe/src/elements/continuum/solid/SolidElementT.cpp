@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.21.2.2 2002-04-27 01:32:27 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.21.2.3 2002-04-30 00:07:08 paklein Exp $ */
 /* created: paklein (05/28/1996) */
 
 #include "SolidElementT.h"
@@ -10,8 +10,6 @@
 #include "Constants.h"
 
 #include "fstreamT.h"
-#include "FEManagerT.h"
-#include "NodeManagerT.h"
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"
 #include "eControllerT.h"
@@ -42,8 +40,8 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	/* check base class initializations */
 	if (NumDOF() != NumSD()) throw eGeneralFail;
 
-	ifstreamT& in  = ElementSupport().Input();
-	ostream&    out = ElementSupport().Output();
+	ifstreamT& in = ElementSupport().Input();
+	ostream&  out = ElementSupport().Output();
 	
 	/* control parameters */
 	in >> fMassType;		
@@ -91,12 +89,15 @@ void SolidElementT::Initialize(void)
 }
 
 /* solution calls */
-void SolidElementT::AddNodalForce(int node, dArrayT& force)
+void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
+	/* not my field */
+	if (&field != &(Field())) return;
+
 	/* quick exit */
-        bool hasnode = false;
+	bool hasnode = false;
 	for (int i=0; i < fBlockData.Length() && !hasnode; i++)
-	  if (fConnectivities[i]->HasValue(node)) hasnode = true;
+		if (fConnectivities[i]->HasValue(node)) hasnode = true;
 	if (!hasnode) return;
 
 	/* set components and weights */

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.8.2.1 2002-04-28 22:26:21 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.8.2.2 2002-04-30 00:07:06 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -346,9 +346,10 @@ GlobalT::RelaxCodeT MeshFreeCSEAnisoT::RelaxSystem(void)
 }
 
 /* solution calls */
-void MeshFreeCSEAnisoT::AddNodalForce(int node, dArrayT& force)
+void MeshFreeCSEAnisoT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
 //TEMP - not implemented
+#pragma unused(field)
 #pragma unused(node)
 #pragma unused(force)
 }

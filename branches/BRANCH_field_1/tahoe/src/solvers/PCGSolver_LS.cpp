@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.4.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.4.2.2 2002-04-30 00:07:14 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 
 #include "PCGSolver_LS.h"
@@ -77,7 +77,7 @@ PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
 /* (re-)configure the global equation system */
 void PCGSolver_LS::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 {
-	/* inherited */
+		/* inherited */
 	NLSolver::Initialize(tot_num_eq, loc_num_eq, start_eq);
 
 	/* allocate work space */
@@ -96,7 +96,7 @@ double PCGSolver_LS::SolveAndForm(bool newtangent)
 	if (fNumIteration == 0 || fPreconditioner)
 	{
 		fLHS->Clear();
-		fFEManager.FormLHS();
+		fFEManager.FormLHS(Group());
 		fPreconditioner = 0;
 	}
 
@@ -109,7 +109,7 @@ double PCGSolver_LS::SolveAndForm(bool newtangent)
 								
 	/* compute new residual */
 	fRHS = 0.0;
-	fFEManager.FormRHS();
+	fFEManager.FormRHS(Group());
 	
 	/* combine residual magnitude with update magnitude */
 	/* e = a1 |R| + a2 |delta_d|                        */
@@ -318,9 +318,9 @@ double PCGSolver_LS::GValue(double step)
 	s_current = step;
 	
 	/* compute residual */
-	fFEManager.Update(fRHS);
+	fFEManager.Update(Group(), fRHS);
 	fRHS = 0.0;
-	try { fFEManager.FormRHS(); }
+	try { fFEManager.FormRHS(Group()); }
 	catch (int error)
 	{
 		cout << "\n PCGSolver_LS::GValue: caught exception" << endl;

@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LS.cpp,v 1.2.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* $Id: NLSolver_LS.cpp,v 1.2.2.2 2002-04-30 00:07:14 paklein Exp $ */
 /* created: paklein (08/18/1999) */
 
 #include "NLSolver_LS.h"
@@ -53,7 +53,7 @@ double NLSolver_LS::SolveAndForm(bool newtangent)
 	if (newtangent)
 	{
 		fLHS->Clear();
-		fFEManager.FormLHS();
+		fFEManager.FormLHS(Group());
 	}
 	
 	/* store residual */
@@ -67,7 +67,7 @@ double NLSolver_LS::SolveAndForm(bool newtangent)
 								
 	/* compute new residual */
 	fRHS = 0.0;
-	fFEManager.FormRHS();
+	fFEManager.FormRHS(Group());
 
 	/* combine residual magnitude with update magnitude */
 	/* e = a1 |R| + a2 |delta_d|                        */
@@ -232,9 +232,9 @@ double NLSolver_LS::GValue(double step)
 	s_current = step;
 	
 	/* compute residual */
-	fFEManager.Update(fRHS);
+	fFEManager.Update(Group(), fRHS);
 	fRHS = 0.0;
-	try { fFEManager.FormRHS(); }
+	try { fFEManager.FormRHS(Group()); }
 
 	catch (int error)
 	{

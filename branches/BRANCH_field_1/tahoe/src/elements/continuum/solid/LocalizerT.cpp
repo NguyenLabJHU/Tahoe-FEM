@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.cpp,v 1.3.4.1 2002-04-26 02:24:18 paklein Exp $ */
+/* $Id: LocalizerT.cpp,v 1.3.4.2 2002-04-30 00:07:08 paklein Exp $ */
 /* created: paklein (02/19/1998) */
 
 #include "LocalizerT.h"
@@ -9,7 +9,6 @@
 
 #include "fstreamT.h"
 #include "Constants.h"
-#include "FEManagerT.h"
 #include "StructuralMaterialT.h"
 #include "MaterialList2DT.h"
 #include "MaterialList3DT.h"

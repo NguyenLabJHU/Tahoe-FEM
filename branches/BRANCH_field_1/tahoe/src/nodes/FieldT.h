@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.1.2.4 2002-04-25 01:31:28 paklein Exp $ */
+/* $Id: FieldT.h,v 1.1.2.5 2002-04-30 00:07:12 paklein Exp $ */
 
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
@@ -37,7 +37,7 @@ public:
 	          kInit = 0, /**< uninitialized equation number */
 		kPrescribed =-1, /**< dof has prescribed value */ 
 	      kExternal =-2  /**< node is external */ };
-	
+
 	/** constructor */
 	FieldT(const StringT& name, int ndof, nControllerT& controller);
 	

@@ -1,4 +1,4 @@
-/* $Id: RodT.h,v 1.4.2.1 2002-04-29 02:45:12 paklein Exp $ */
+/* $Id: RodT.h,v 1.4.2.2 2002-04-30 00:07:11 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _ROD_T_H_
@@ -41,7 +41,7 @@ public:
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
 	/* NOT implemented. Returns an zero force vector */
-	virtual void AddNodalForce(int node, dArrayT& force);
+	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
 			
 	/* returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void);

@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.cpp,v 1.2.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* $Id: LinearSolver.cpp,v 1.2.2.2 2002-04-30 00:07:14 paklein Exp $ */
 /* created: paklein (05/30/1996) */
 
 #include "LinearSolver.h"
@@ -51,7 +51,7 @@ void LinearSolver::Run(void)
 			fFEManager.InitStep();
 
 			/* form the residual force vector */
-			fFEManager.FormRHS();
+			fFEManager.FormRHS(Group());
 					
 			/* solve equation system */
 			if (fFormLHS)
@@ -60,7 +60,7 @@ void LinearSolver::Run(void)
 				fLHS->Clear();
 	
 				/* form the stiffness matrix */
-				fFEManager.FormLHS();
+				fFEManager.FormLHS(Group());
 				
 				/* flag not to reform */
 				fFormLHS = 0;
@@ -70,10 +70,10 @@ void LinearSolver::Run(void)
 			if (!fLHS->Solve(fRHS)) throw eBadJacobianDet;
 
 			/* update displacements */
-			fFEManager.Update(fRHS);		
+			fFEManager.Update(Group(), fRHS);		
 			
 			/* relaxation */
-			GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem();
+			GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
 				
 			/* relax for configuration change */
 			if (relaxcode == GlobalT::kRelax) fFormLHS = 1;
@@ -85,7 +85,7 @@ void LinearSolver::Run(void)
 			/* trigger set of new equations */
 			if (relaxcode == GlobalT::kReEQ ||
 			    relaxcode == GlobalT::kReEQRelax)
-				fFEManager.Reinitialize();
+				fFEManager.Reinitialize(Group());
 				
 			/* finalize */
 			fFEManager.CloseStep();

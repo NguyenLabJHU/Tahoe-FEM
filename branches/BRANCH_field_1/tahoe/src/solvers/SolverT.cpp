@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.4.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.4.2.2 2002-04-30 00:07:14 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "SolverT.h"
@@ -365,7 +365,7 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 		case kProfileSolver:
 		{
 			/* global system properties */
-			GlobalT::SystemTypeT type = fFEManager.GlobalSystemType();
+			GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
 		
 			if (type == GlobalT::kNonSymmetric)
 				fLHS = new CCNSMatrixT(out, check_code);
@@ -417,7 +417,7 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 		{
 #ifdef __SPOOLES__
 			/* global system properties */
-			GlobalT::SystemTypeT type = fFEManager.GlobalSystemType();
+			GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
 
 			/* solver options */
 			bool pivoting = true; //NOTE: SPOOLES v2.2 does not seem to solve non-symmetric

@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.cpp,v 1.2.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* $Id: NLSolverX.cpp,v 1.2.2.2 2002-04-30 00:07:14 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #include "NLSolverX.h"
 
@@ -74,7 +74,7 @@ void NLSolverX::Run(void)
 		
 			/* form the first residual force vector */
 			fRHS = 0.0;
-			fFEManager.FormRHS();	
+			fFEManager.FormRHS(Group());	
 			double      error = fRHS.Magnitude();
 			double last_error = error;
 			
@@ -126,7 +126,7 @@ void NLSolverX::Run(void)
 					if (0 && error > fMinResRatio*last_error && !fFormNewTangent)
 					{
 						fLastUpdate *= -1.0;
-						fFEManager.Update(fLastUpdate);
+						fFEManager.Update(Group(), fLastUpdate);
 					}
 
 					fFormNewTangent = 1;				
@@ -183,7 +183,7 @@ double NLSolverX::SolveAndForm(bool newtangent)
 	if (newtangent)
 	{
 		fLHS->Clear();
-		fFEManager.FormLHS();
+		fFEManager.FormLHS(Group());
 	}
 		 		
 	/* solve equation system */
@@ -191,14 +191,14 @@ double NLSolverX::SolveAndForm(bool newtangent)
 	//double updatemag = fRHS.Magnitude(); //for alternate error measures
 
 	/* update system */
-	fFEManager.Update(fRHS);
+	fFEManager.Update(Group(), fRHS);
 	
 	/* keep last update for reset */
 	fLastUpdate = fRHS;
 							
 	/* compute new residual */
 	fRHS = 0.0;
-	fFEManager.FormRHS();
+	fFEManager.FormRHS(Group());
 
 	/* combine residual magnitude with update magnitude */
 	/* e = a1 |R| + a2 |delta_d|                        */
@@ -223,7 +223,7 @@ NLSolver::IterationStatusT NLSolverX::Relax(int newtancount)
 		
 	/* form the first residual force vector */
 	fRHS = 0.0;
-	fFEManager.FormRHS();	
+	fFEManager.FormRHS(Group());	
 	double      error = fRHS.Magnitude();
 	double last_error = error;
 		
@@ -307,13 +307,13 @@ cout << fQuickConvCount << "/" << fQuickSeriesTol << endl;
 	}
 
 	/* allow for multiple relaxation */
-	GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem();
+	GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
 	while (relaxcode != GlobalT::kNoRelax)
 	{	
 		/* reset global equations */
 		if (relaxcode == GlobalT::kReEQ ||
 		    relaxcode == GlobalT::kReEQRelax)
-			fFEManager.Reinitialize();
+			fFEManager.Reinitialize(Group());
 						
 		/* new equilibrium */
 		if (relaxcode == GlobalT::kRelax ||
@@ -322,7 +322,7 @@ cout << fQuickConvCount << "/" << fQuickSeriesTol << endl;
 			if (Relax() == kFailed)
 				return kFailed;
 	   		else
-				relaxcode = fFEManager.RelaxSystem();
+				relaxcode = fFEManager.RelaxSystem(Group());
 		}
 		else
 			relaxcode = GlobalT::kNoRelax;

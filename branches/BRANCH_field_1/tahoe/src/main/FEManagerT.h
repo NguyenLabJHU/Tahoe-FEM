@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.13.2.4 2002-04-26 02:24:21 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.13.2.5 2002-04-30 00:07:11 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -61,7 +61,7 @@ public:
 	void Solve(void);
 
 	/* signal that references to external data are stale - ie eq numbers */
-	void Reinitialize(void);
+	void Reinitialize(int group);
 	
 	/** \name accessors */
 	/*@{*/
@@ -138,12 +138,12 @@ public:
 	const StringT& Title(void) const { return fTitle; };
 
 	/* local reordering */
-	void SetLocalEqnos(const iArray2DT& nodes, iArray2DT& eqnos) const;
-	void RegisterLocal(LocalArrayT& array) const;
+//	void SetLocalEqnos(const iArray2DT& nodes, iArray2DT& eqnos) const;
+//	void RegisterLocal(LocalArrayT& array) const;
 	
 	/* solution messaging */
-	void FormLHS(void) const;
-	void FormRHS(void) const;
+	void FormLHS(int group) const;
+	void FormRHS(int group) const;
 	
 	/** collect the internal force on the specified node */
 	void InternalForceOnNode(const FieldT& field, int node, dArrayT& force) const;
@@ -153,29 +153,23 @@ public:
 	virtual void CloseStep(void) const;
 
 	/** send update of the solution to the NodeManagerT */
-	virtual void Update(const dArrayT& update);
+	virtual void Update(int group, const dArrayT& update);
 
 	/** return the current values of the unknowns 
+	 * \param group equation group 
 	 * \param order time derivative of the unknowns to collect. Must be
 	 *        in range
 	 * \param unknowns destination for the current values field values
 	 *        for unprescribed degrees of freedom */
-	virtual void GetUnknowns(int order, dArrayT& unknowns) const;
+	virtual void GetUnknowns(int group, int order, dArrayT& unknowns) const;
 
 	/* system relaxation */
-	virtual GlobalT::RelaxCodeT RelaxSystem(void) const;
+	virtual GlobalT::RelaxCodeT RelaxSystem(int group) const;
 
 	/** \name assembly methods 
 	 * methods for assembling contributions to the global equations systems */
 	/*@{*/
 	void AssembleLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& eqnos) const;
-	
-	
-	
-	
-	
-	
-	
 	void AssembleLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 		const nArrayT<int>& col_eqnos) const;
 	void OverWriteLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& eqnos) const;
@@ -239,7 +233,7 @@ public:
 	int InterpolantDOFs(void) const;
 
 	/** debugging */
-	virtual void WriteSystemConfig(ostream& out) const;
+	virtual void WriteSystemConfig(ostream& out, int group) const;
 	virtual const iArrayT* NodeMap(void) const { return NULL; }
 	virtual const iArrayT* ElementMap(const StringT& block_ID) const;
 
@@ -297,12 +291,12 @@ protected:
 	 * (3) set numbering scope
 	 * (4) collect equations and send to solver
 	 * (5) signal solver for final configuration */
-	virtual void SetEquationSystem(void);
-	virtual int GetGlobalEquationStart(void) const;
-	virtual int GetGlobalNumEquations(void) const;
+	virtual void SetEquationSystem(int group);
+	virtual int GetGlobalEquationStart(int group) const;
+	virtual int GetGlobalNumEquations(int group) const;
 	
 	/* collect element equations and send to solver */
-	void SendEqnsToSolver(void) const;
+	void SendEqnsToSolver(int group) const;
 
 private:
 
@@ -312,8 +306,10 @@ private:
 	FEManagerT& operator=(FEManagerT&) const;
 	/*@}*/
 
-	/** construct a solver of the specified type. */
-	SolverT* New_Solver(int code) const;
+	/** construct a solver of the specified type. This function cannot be
+	 * const because a non-const reference to the FEManagerT is passed to
+	 * the solvers. */
+	SolverT* New_Solver(int code, int group);
 	
 protected:
 
