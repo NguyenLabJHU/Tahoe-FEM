@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.cpp,v 1.12.4.1 2004-11-12 00:28:48 thao Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.12.4.2 2004-11-12 01:23:48 thao Exp $ */
 /* created: paklein (09/05/2000) */
 #include "KBC_ControllerT.h"
 
@@ -6,6 +6,7 @@
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 
 using namespace Tahoe;
 

@@ -1,11 +1,11 @@
-/* $Id: K_FieldT.cpp,v 1.19.4.1 2004-11-12 00:28:48 thao Exp $ */
+/* $Id: K_FieldT.cpp,v 1.19.4.2 2004-11-12 01:23:48 thao Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "ifstreamT.h"
-
+#include "ofstreamT.h"
 #include "ElementsConfig.h"
 #ifdef CONTINUUM_ELEMENT
 #include "MaterialListT.h"
