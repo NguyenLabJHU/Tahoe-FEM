@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.26 2004-08-06 07:25:25 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.27 2004-09-23 00:54:26 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -665,8 +665,8 @@ void SCNIMFT::ComputeBMatrices(void)
 		/* copy face coordinates with local ordering */
 		fDualFacets.RowAlias(i,keys);
 		facet_coords.SetLocal(keys);
-		for (int ii = 0; ii < fNumIP; ii++)
-		{
+		for (int ii = 0; ii < fNumIP; ii++) {
+		
 			/* jacobian of the coordinate transformation */
 			domain.DomainJacobian(facet_coords, ii, jacobian);
 			double jw = ip_weight[ii]*domain.SurfaceJacobian(jacobian);
@@ -674,103 +674,102 @@ void SCNIMFT::ComputeBMatrices(void)
 			/* integration point coordinates */
 			domain.Interpolate(facet_coords, ip_coords, ii);			
 
-		if (!fNodalShapes->SetFieldAt(ip_coords, NULL)) // shift = 0 or not ?
-			ExceptionT::GeneralFail("SCNIMFT::ComputeBMatrices","Shape Function evaluation"
-				"failed at Delone edge %d\n",i);
+			if (!fNodalShapes->SetFieldAt(ip_coords, NULL)) // shift = 0 or not ?
+				ExceptionT::GeneralFail("SCNIMFT::ComputeBMatrices","Shape Function evaluation"
+					"failed at Delone edge %d\n",i);
 				
-		const dArrayT& phiValues = fNodalShapes->FieldAt();			
+			const dArrayT& phiValues = fNodalShapes->FieldAt();			
 		
-		iArrayT ip_cover(fNodalShapes->Neighbors());	
-		int n_ip_cover = ip_cover.Length();	
-		iArrayT ip_cover_key(n_ip_cover);
-		ip_cover_key.SetValueToPosition();
-		ip_cover_key.SortAscending(ip_cover);
+			iArrayT ip_cover(fNodalShapes->Neighbors());	
+			int n_ip_cover = ip_cover.Length();	
+			iArrayT ip_cover_key(n_ip_cover);
+			ip_cover_key.SetValueToPosition();
+			ip_cover_key.SortAscending(ip_cover);
 
-		LinkedListT<int>& supp_0 = nodeWorkSpace[n_0];
-		LinkedListT<int>& supp_1 = nodeWorkSpace[n_1];
-		LinkedListT< dArrayT >& bVectors_0 = facetWorkSpace[n_0];
-		LinkedListT< dArrayT >& bVectors_1 = facetWorkSpace[n_1];
-		int s_0 = -1;
-		int s_1 = -1;
-		/* Simultaneously loop over support of the two nodes that are endpoints of the
-		 * current Delone edge and the nodes in the support of the midpoint of this
-		 * edge. If a node covering the integration point is not in the support of n_0 
-		 * or n_1, insert that covering node into the sorted list.
-		 */
-		 
-		int* c = ip_cover.Pointer();
-		int* c_j = ip_cover_key.Pointer();
-		
-		supp_0.Top(); bVectors_0.Top();
-		supp_1.Top(); bVectors_1.Top();
-		next_0 = supp_0.CurrentValue();
-		next_1 = supp_1.CurrentValue();
-		for (int j = 0; j < n_ip_cover; j++, c++, c_j++) {
-		
-			facetIntegral = facetNormal;
-			facetIntegral *= fDualAreas[i]*phiValues[*c_j]*jw;	
+			LinkedListT<int>& supp_0 = nodeWorkSpace[n_0];
+			LinkedListT<int>& supp_1 = nodeWorkSpace[n_1];
+			LinkedListT< dArrayT >& bVectors_0 = facetWorkSpace[n_0];
+			LinkedListT< dArrayT >& bVectors_1 = facetWorkSpace[n_1];
+			int s_0 = -1;
+			int s_1 = -1;
+			/* Simultaneously loop over support of the two nodes that are endpoints of the
+			 * current Delone edge and the nodes in the support of the midpoint of this
+			 * edge. If a node covering the integration point is not in the support of n_0 
+			 * or n_1, insert that covering node into the sorted list.
+			 */
+			 
+			int* c = ip_cover.Pointer();
+			int* c_j = ip_cover_key.Pointer();
 			
-			if (next_0)
-				traverseQ_0 = *next_0 <= *c;
-			else
-				traverseQ_0 = false;
-					
-			// advance supp_0 and supp_1 until they are greater than or equal to current node
-			while (traverseQ_0 && supp_0.Next(s_0) && bVectors_0.Next()) {
-				next_0 = supp_0.PeekAhead(); 
-				if (!next_0)
-					traverseQ_0 = false;
-				else
-					if (*next_0 > *c)
-						traverseQ_0 = false;
-			}
-				
-			if (s_0 != *c) { // means we're not at the end of the linked list
-				supp_0.InsertAtCurrent(*c);
-				bVectors_0.InsertAtCurrent(zeroFacet);
-				s_0 = *c;
-				if (supp_0.AtTop()) { // if we're inserting at the front, LinkedListT's behavior requires more work
-					supp_0.Next(); 
-					bVectors_0.Next();
-				}
-			}
-				
-			currentI = facetIntegral.Pointer();
-			currentB = bVectors_0.CurrentValue()->Pointer();
-			for (int k = 0; k < fSD; k++)
-				*currentB++ += *currentI++;
-				
-			if (next_1)
-				traverseQ_1 = *next_1 <= *c;
-			else
-				traverseQ_1 = false;
-				
-			// advance supp_0 and supp_1 until they are greater than or equal to current node
-			while (traverseQ_1 && supp_1.Next(s_1) && bVectors_1.Next()) {
-				next_1 = supp_1.PeekAhead(); 
-				if (!next_1)
-					traverseQ_1 = false;
-				else
-					if (*next_1 > *c)
-						traverseQ_1 = false;
-			}		
-								
-			if (s_1 != *c) {
-				supp_1.InsertAtCurrent(*c);
-				bVectors_1.InsertAtCurrent(zeroFacet);
-				s_1 = *c;
-				if (supp_1.AtTop()) { // if we're inserting at the front, LinkedListT's behavior requires more work
-					supp_1.Next(); 
-					bVectors_1.Next();
-				}
-			}
-				 
-			currentI = facetIntegral.Pointer();
-			currentB =  bVectors_1.CurrentValue()->Pointer();
-			for (int k = 0; k < fSD; k++)
-				*currentB++ -= *currentI++; //NB change in sign; facet normal is inverted!
-		}
+			supp_0.Top(); bVectors_0.Top();
+			supp_1.Top(); bVectors_1.Top();
+			next_0 = supp_0.CurrentValue();
+			next_1 = supp_1.CurrentValue();
+			for (int j = 0; j < n_ip_cover; j++, c++, c_j++) {
 		
+				facetIntegral = facetNormal;
+				facetIntegral *= phiValues[*c_j]*jw;	
+				
+				if (next_0)
+					traverseQ_0 = *next_0 <= *c;
+				else
+					traverseQ_0 = false;
+						
+				// advance supp_0 and supp_1 until they are greater than or equal to current node
+				while (traverseQ_0 && supp_0.Next(s_0) && bVectors_0.Next()) {
+					next_0 = supp_0.PeekAhead(); 
+					if (!next_0)
+						traverseQ_0 = false;
+					else
+						if (*next_0 > *c)
+							traverseQ_0 = false;
+				}
+					
+				if (s_0 != *c) { // means we're not at the end of the linked list
+					supp_0.InsertAtCurrent(*c);
+					bVectors_0.InsertAtCurrent(zeroFacet);
+					s_0 = *c;
+					if (supp_0.AtTop()) { // if we're inserting at the front, LinkedListT's behavior requires more work
+						supp_0.Next(); 
+						bVectors_0.Next();
+					}
+				}
+					
+				currentI = facetIntegral.Pointer();
+				currentB = bVectors_0.CurrentValue()->Pointer();
+				for (int k = 0; k < fSD; k++)
+					*currentB++ += *currentI++;
+				
+				if (next_1)
+					traverseQ_1 = *next_1 <= *c;
+				else
+					traverseQ_1 = false;
+					
+				// advance supp_0 and supp_1 until they are greater than or equal to current node
+				while (traverseQ_1 && supp_1.Next(s_1) && bVectors_1.Next()) {
+					next_1 = supp_1.PeekAhead(); 
+					if (!next_1)
+						traverseQ_1 = false;
+					else
+						if (*next_1 > *c)
+							traverseQ_1 = false;
+				}		
+									
+				if (s_1 != *c) {
+					supp_1.InsertAtCurrent(*c);
+					bVectors_1.InsertAtCurrent(zeroFacet);
+					s_1 = *c;
+					if (supp_1.AtTop()) { // if we're inserting at the front, LinkedListT's behavior requires more work
+						supp_1.Next(); 
+						bVectors_1.Next();
+					}
+				}
+					 
+				currentI = facetIntegral.Pointer();
+				currentB =  bVectors_1.CurrentValue()->Pointer();
+				for (int k = 0; k < fSD; k++)
+					*currentB++ -= *currentI++; //NB change in sign; facet normal is inverted!
+			}
 		}
 	}
 	
@@ -792,66 +791,64 @@ void SCNIMFT::ComputeBMatrices(void)
 			/* integration point coordinates */
 			domain.Interpolate(facet_coords, ip_coords, ii);			
 
-		if (!fNodalShapes->SetFieldAt(ip_coords, NULL)) // shift = 0 or not ?
-			ExceptionT::GeneralFail("SCNIMFT::ComputeBMatrices","Shape Function evaluation"
-				"failed at Delone edge %d\n",i);
-				
-		const dArrayT& phiValues = fNodalShapes->FieldAt();			
-				
-		iArrayT ip_cover(fNodalShapes->Neighbors());	
-		int n_ip_cover = ip_cover.Length();	
-		iArrayT ip_cover_key(n_ip_cover);
-		ip_cover_key.SetValueToPosition();
-		ip_cover_key.SortAscending(ip_cover);
-		
-		LinkedListT<int>& supp_0 = nodeWorkSpace[n_0];
-		LinkedListT< dArrayT >& bVectors_0 = facetWorkSpace[n_0];
-		int s_0;
-		
-		/* Merge support of the boundary node with covering of integration point
-		 */
-		int* c = ip_cover.Pointer();
-		int* c_j = ip_cover_key.Pointer();
-		
-		supp_0.Top(); bVectors_0.Top();
-		next_0 = supp_0.CurrentValue();
-		for (int j = 0; j < n_ip_cover; j++, c++, c_j++) {
-			facetIntegral = facetNormal;
-			facetIntegral *= fBoundaryIntegrationWeights[i]*phiValues[*c_j]*jw;		
-		
-			if (next_0)
-				traverseQ_0 = *next_0 <= *c;
-			else
-				traverseQ_0 = false;
+			if (!fNodalShapes->SetFieldAt(ip_coords, NULL)) // shift = 0 or not ?
+				ExceptionT::GeneralFail("SCNIMFT::ComputeBMatrices","Shape Function evaluation"
+					"failed at Delone edge %d\n",i);
 					
-			// advance supp_0 and supp_1 until they are greater than or equal to current node
-			while (traverseQ_0 && supp_0.Next(s_0) && bVectors_0.Next()) {
-				next_0 = supp_0.PeekAhead(); 
-				if (!next_0)
-					traverseQ_0 = false;
+			const dArrayT& phiValues = fNodalShapes->FieldAt();			
+					
+			iArrayT ip_cover(fNodalShapes->Neighbors());	
+			int n_ip_cover = ip_cover.Length();	
+			iArrayT ip_cover_key(n_ip_cover);
+			ip_cover_key.SetValueToPosition();
+			ip_cover_key.SortAscending(ip_cover);
+			
+			LinkedListT<int>& supp_0 = nodeWorkSpace[n_0];
+			LinkedListT< dArrayT >& bVectors_0 = facetWorkSpace[n_0];
+			int s_0;
+			
+			/* Merge support of the boundary node with covering of integration point
+			 */
+			int* c = ip_cover.Pointer();
+			int* c_j = ip_cover_key.Pointer();
+			
+			supp_0.Top(); bVectors_0.Top();
+			next_0 = supp_0.CurrentValue();
+			for (int j = 0; j < n_ip_cover; j++, c++, c_j++) {
+				facetIntegral = facetNormal;
+				facetIntegral *= phiValues[*c_j]*jw;		
+			
+				if (next_0)
+					traverseQ_0 = *next_0 <= *c;
 				else
-					if (*next_0 > *c)
+					traverseQ_0 = false;
+						
+				// advance supp_0 and supp_1 until they are greater than or equal to current node
+				while (traverseQ_0 && supp_0.Next(s_0) && bVectors_0.Next()) {
+					next_0 = supp_0.PeekAhead(); 
+					if (!next_0)
 						traverseQ_0 = false;
-			}
-				
-			if (s_0 != *c) { // means we're not at the end of the linked list
-				supp_0.InsertAtCurrent(*c);
-				bVectors_0.InsertAtCurrent(zeroFacet);
-				s_0 = *c;
-				if (supp_0.AtTop()) { // if we're inserting at the front, LinkedListT's behavior requires more work
-					supp_0.Next(); 
-					bVectors_0.Next();
+					else
+						if (*next_0 > *c)
+							traverseQ_0 = false;
 				}
+					
+				if (s_0 != *c) { // means we're not at the end of the linked list
+					supp_0.InsertAtCurrent(*c);
+					bVectors_0.InsertAtCurrent(zeroFacet);
+					s_0 = *c;
+					if (supp_0.AtTop()) { // if we're inserting at the front, LinkedListT's behavior requires more work
+						supp_0.Next(); 
+						bVectors_0.Next();
+					}
+				}
+					
+				currentI = facetIntegral.Pointer();
+				currentB =  bVectors_0.CurrentValue()->Pointer();
+				for (int k = 0; k < fSD; k++)
+					*currentB++ += *currentI++;
 			}
-				
-			currentI = facetIntegral.Pointer();
-			currentB =  bVectors_0.CurrentValue()->Pointer();
-			for (int k = 0; k < fSD; k++)
-				*currentB++ += *currentI++;
-		}
-	
 		}	
-
 	}
 	
 	// scale integrals by volumes of Voronoi cells
