@@ -1,4 +1,4 @@
-/* $Id: PolyBasis2DT.cpp,v 1.4 2003-11-21 22:47:21 paklein Exp $ */
+/* $Id: PolyBasis2DT.cpp,v 1.5 2004-10-30 20:54:28 raregue Exp $ */
 /* created: paklein (12/13/1999)                                          */
 
 #include "PolyBasis2DT.h"
@@ -66,6 +66,13 @@ void PolyBasis2DT::SetBasis(const dArray2DT& coords, int order)
 					fDDP[0] = 0.0;
 					fDDP[1] = 0.0;
 					fDDP[2] = 0.0;
+					if (order > 2) // kyonten
+					{
+						fDDDP[0] = 0.0;
+						fDDDP[1] = 0.0;
+						fDDDP[2] = 0.0;
+						fDDDP[3] = 0.0;
+					}
 				}
 			}
 			break;
@@ -107,6 +114,13 @@ void PolyBasis2DT::SetBasis(const dArray2DT& coords, int order)
 				fDDP[0] = 0.0;
 				fDDP[1] = 0.0;
 				fDDP[2] = 0.0;
+			}
+			if (order > 2) // kyonten
+			{
+				fDDDP[0] = 0.0;
+				fDDDP[1] = 0.0;
+				fDDDP[2] = 0.0;
+				fDDDP[3] = 0.0;
 			}
 			break;
 		}

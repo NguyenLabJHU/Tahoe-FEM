@@ -1,4 +1,4 @@
-/* $Id: PolyBasis3DT.cpp,v 1.4 2003-11-21 22:47:21 paklein Exp $ */
+/* $Id: PolyBasis3DT.cpp,v 1.5 2004-10-30 20:54:28 raregue Exp $ */
 /* created: paklein (04/19/2000)                                          */
 
 #include "PolyBasis3DT.h"
@@ -28,6 +28,8 @@ int PolyBasis3DT::BasisDimension(void) const
 			return 4;
 		case 2:
 			return 10;
+		case 3:
+			return 10; //???
 		default:
 			throw ExceptionT::kOutOfRange;
 	}
@@ -66,6 +68,19 @@ void PolyBasis3DT::SetBasis(const dArray2DT& coords, int order)
 					fDDP[3] = 0.0;
 					fDDP[4] = 0.0;
 					fDDP[5] = 0.0;
+					if (order > 2) // kyonten
+					{
+						fDDDP[0] = 0.0;
+						fDDDP[1] = 0.0;
+						fDDDP[2] = 0.0;
+						fDDDP[3] = 0.0;
+						fDDDP[4] = 0.0;
+						fDDDP[5] = 0.0;
+						fDDDP[6] = 0.0;
+						fDDDP[7] = 0.0;
+						fDDDP[8] = 0.0;
+						fDDDP[9] = 0.0;
+					}
 				}
 			}
 			break;
@@ -126,6 +141,19 @@ void PolyBasis3DT::SetBasis(const dArray2DT& coords, int order)
 				fDDP[3] = 0.0;
 				fDDP[4] = 0.0;
 				fDDP[5] = 0.0;
+			}
+			if (order > 2) // kyonten
+			{
+				fDDDP[0] = 0.0;
+				fDDDP[1] = 0.0;
+				fDDDP[2] = 0.0;
+				fDDDP[3] = 0.0;
+				fDDDP[4] = 0.0;
+				fDDDP[5] = 0.0;
+				fDDDP[6] = 0.0;
+				fDDDP[7] = 0.0;
+				fDDDP[8] = 0.0;
+				fDDDP[9] = 0.0;
 			}
 			break;
 		}

@@ -1,4 +1,4 @@
-/* $Id: BasisT.cpp,v 1.2 2002-07-02 19:57:05 cjkimme Exp $ */
+/* $Id: BasisT.cpp,v 1.3 2004-10-30 20:54:28 raregue Exp $ */
 /* created: paklein (12/10/1999)                                          */
 /* base class for basis functions                                         */
 
@@ -14,6 +14,10 @@ BasisT::BasisT(int complete, int nsd):
 	fNumSD(nsd),
 	fDP(fNumSD),
 	fDDP(dSymMatrixT::NumValues(fNumSD)),
+	//fDDDP(fNumSD*dSymMatrixT::NumValues(fNumSD)), // kyonten
+	fDDDP(fNumSD*fNumSD), // kyonten
+	// DDDp(nsd*nsd) is a special case. In 3D case out of
+	// 27 components, only 9 are needed
 	fArray2DGroup1(0, 0)
 {
 	fArray2DGroup1.Register(fP);
@@ -23,6 +27,9 @@ BasisT::BasisT(int complete, int nsd):
 
 	for (int j = 0; j < fDDP.Length(); j++)
 		fArray2DGroup1.Register(fDDP[j]);
+		
+	for (int k = 0; k < fDDDP.Length(); k++) // kyonten
+		fArray2DGroup1.Register(fDDDP[k]);	
 }
 
 /***********************************************************************
