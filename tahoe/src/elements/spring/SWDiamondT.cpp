@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.cpp,v 1.5.2.2 2002-04-30 00:07:10 paklein Exp $ */
+/* $Id: SWDiamondT.cpp,v 1.5.2.3 2002-05-03 07:16:31 paklein Exp $ */
 /* created: paklein (03/19/1997) */
 
 #include "SWDiamondT.h"
@@ -34,7 +34,7 @@ SWDiamondT::SWDiamondT(const ElementSupportT& support, const FieldT& field):
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
 
 	/* set base class data */
-	fNumElemEqnos = 3*NumDOF();
+//	fNumElemEqnos = 3*NumDOF();
 
 	/* allocate memory */
 	fK_3Body.Allocate(3*NumDOF());

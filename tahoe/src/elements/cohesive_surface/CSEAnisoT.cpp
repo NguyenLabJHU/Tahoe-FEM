@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.18.2.1 2002-04-28 22:26:20 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.18.2.2 2002-05-03 07:16:25 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -71,11 +71,12 @@ void CSEAnisoT::Initialize(void)
 		fCurrShapes->Initialize();
  		
 		/* allocate work space */
-		fnsd_nee_1.Allocate(NumSD(), fNumElemEqnos);
-		fnsd_nee_2.Allocate(NumSD(), fNumElemEqnos);
+		int nee = NumElementNodes()*NumDOF();
+		fnsd_nee_1.Allocate(NumSD(), nee);
+		fnsd_nee_2.Allocate(NumSD(), nee);
 		fdQ.Allocate(NumSD());
 		for (int k = 0; k < NumSD(); k++)
-			fdQ[k].Allocate(NumSD(), fNumElemEqnos);
+			fdQ[k].Allocate(NumSD(), nee);
 	}
 	else
 		fCurrShapes = fShapes;
@@ -658,6 +659,11 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	/* nothing to output */
 	if (n_out == 0 && e_out == 0) return;
 
+	/* dimensions */
+	int  nsd = NumSD();
+	int ndof = NumDOF();
+	int  nen = NumElementNodes();
+
 	/* reset averaging workspace */
 	ElementSupport().ResetAverage(n_out);
 
@@ -666,26 +672,26 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	e_values = 0.0;
 
 	/* work arrays */
-	dArray2DT nodal_space(NumElementNodes(), n_out);
-	dArray2DT nodal_all(NumElementNodes(), n_out);
+	dArray2DT nodal_space(nen, n_out);
+	dArray2DT nodal_all(nen, n_out);
 	dArray2DT coords, disp;
 	dArray2DT jump, T;
 	dArray2DT matdat;	
 
 	/* ip values */
-	LocalArrayT loc_init_coords(LocalArrayT::kInitCoords, NumElementNodes(), NumSD());
-	LocalArrayT loc_disp(LocalArrayT::kDisp, NumElementNodes(), NumDOF());
+	LocalArrayT loc_init_coords(LocalArrayT::kInitCoords, nen, nsd);
+	LocalArrayT loc_disp(LocalArrayT::kDisp, nen, ndof);
 	ElementSupport().RegisterCoordinates(loc_init_coords);
 	Field().RegisterLocal(loc_disp);
 	dArrayT ipmat(n_codes[MaterialData]);
 	
 	/* set shallow copies */
 	double* pall = nodal_space.Pointer();
-	coords.Set(NumElementNodes(), n_codes[NodalCoord], pall) ; pall += coords.Length();
-	disp.Set(NumElementNodes(), n_codes[NodalDisp], pall)    ; pall += disp.Length();
-	jump.Set(NumElementNodes(), n_codes[NodalDispJump], pall); pall += jump.Length();
-	T.Set(NumElementNodes(), n_codes[NodalTraction], pall)   ; pall += T.Length();
-	matdat.Set(NumElementNodes(), n_codes[MaterialData], pall);
+	coords.Set(nen, n_codes[NodalCoord], pall) ; pall += coords.Length();
+	disp.Set(nen, n_codes[NodalDisp], pall)    ; pall += disp.Length();
+	jump.Set(nen, n_codes[NodalDispJump], pall); pall += jump.Length();
+	T.Set(nen, n_codes[NodalTraction], pall)   ; pall += T.Length();
+	matdat.Set(nen, n_codes[MaterialData], pall);
 
 	/* element work arrays */
 	dArrayT element_values(e_values.MinorDim());
@@ -693,16 +699,16 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	dArrayT centroid;
 	if (e_codes[Centroid])
 	{
-		centroid.Set(NumSD(), pall); 
-		pall += NumSD();
+		centroid.Set(nsd, pall); 
+		pall += nsd;
 	}
 	double phi_tmp, area;
 	double& phi = (e_codes[CohesiveEnergy]) ? *pall++ : phi_tmp;
 	dArrayT traction;
 	if (e_codes[Traction])
 	{
-		traction.Set(NumDOF(), pall); 
-		pall += NumDOF();
+		traction.Set(ndof, pall); 
+		pall += ndof;
 	}
 
 	/* node map of facet 1 */

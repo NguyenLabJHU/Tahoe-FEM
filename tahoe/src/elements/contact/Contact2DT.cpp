@@ -1,4 +1,4 @@
-/* $Id: Contact2DT.cpp,v 1.2.2.1 2002-04-28 22:26:18 paklein Exp $ */
+/* $Id: Contact2DT.cpp,v 1.2.2.2 2002-05-03 07:16:26 paklein Exp $ */
 /* created: paklein (05/26/1999) */
 
 #include "Contact2DT.h"
@@ -37,8 +37,9 @@ void Contact2DT::Initialize(void)
 	ContactT::Initialize();
 	
 	/* dimension */
-	fNEEvec.Allocate(fNumElemEqnos);
-	fNEEmat.Allocate(fNumElemEqnos);
+	int neq = NumElementNodes()*NumDOF();
+	fNEEvec.Allocate(neq);
+	fNEEmat.Allocate(neq);
 	SetShapeFunctionArrays();	
 }
 
@@ -237,9 +238,11 @@ void Contact2DT::SetConnectivities(void)
 void Contact2DT::SetShapeFunctionArrays(void)
 {
 	/* allocate workspace - displacement DOF's only */
-	fdv1T.Allocate(fNumElemEqnos, NumSD());
-	fdv2T.Allocate(fNumElemEqnos, NumSD());
-	fdtanT.Allocate(fNumElemEqnos, NumSD());
+	int neq = NumElementNodes()*NumDOF();
+	int nsd = NumSD();
+	fdv1T.Allocate(neq, nsd);
+	fdv2T.Allocate(neq, nsd);
+	fdtanT.Allocate(neq, nsd);
 
 	/* derivative arrays */
 	fdv1T = 0.0;

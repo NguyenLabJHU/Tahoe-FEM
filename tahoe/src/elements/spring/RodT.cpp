@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.5.2.3 2002-04-30 00:07:11 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.5.2.4 2002-05-03 07:16:32 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "RodT.h"
@@ -40,9 +40,6 @@ void RodT::Initialize(void)
 {
 	/* inherited */
 	ElementBaseT::Initialize();
-
-	/* dimensions */
-	fNumElemEqnos = NumElementNodes()*NumDOF();
 
 	/* set local arrays */
 	fLocInitCoords.Allocate(NumElementNodes(), NumSD());

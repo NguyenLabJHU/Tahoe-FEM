@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.8.2.2 2002-04-30 00:07:06 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.8.2.3 2002-05-03 07:16:25 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -87,8 +87,9 @@ void CSEBaseT::Initialize(void)
 
 	/* work space */
 	fNodes1.Allocate(num_facet_nodes);
-	fNEEvec.Allocate(fNumElemEqnos);
-	fNEEmat.Allocate(fNumElemEqnos);
+	int nee = NumElementNodes()*NumDOF();
+	fNEEvec.Allocate(nee);
+	fNEEmat.Allocate(nee);
 
 	/* echo output codes (one at a time to allow comments) */
 	fNodalOutputCodes.Allocate(NumNodalOutputCodes);
