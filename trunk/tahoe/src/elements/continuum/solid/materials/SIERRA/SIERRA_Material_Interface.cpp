@@ -1,14 +1,15 @@
-/* $Id: SIERRA_Material_Interface.cpp,v 1.3 2003-03-09 04:42:31 paklein Exp $ */
+/* $Id: SIERRA_Material_Interface.cpp,v 1.4 2003-03-09 21:58:50 paklein Exp $ */
 #include "SIERRA_Material_Interface.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
 
 /* retrieve a named value */
-void FORTRAN_NAME(get_real_constant)(double* destination, const double* all_values, 
+void FORTRAN_NAME(get_real_constant)(double* destination, const int* mat_vals, 
 	const char* value_name)
 {
-	int index = SIERRA_Material_DB::RealIndex(value_name);
-	*destination = all_values[index];
+	/* fetch material */
+	SIERRA_Material_Data* mat = SIERRA_Material_DB::Material(*mat_vals);
+	*destination = mat->Property(value_name);
 }
 
 /* retrieve the index for the value for the given material */

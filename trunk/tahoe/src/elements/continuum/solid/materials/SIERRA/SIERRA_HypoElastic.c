@@ -1,4 +1,4 @@
-/* $Id: SIERRA_HypoElastic.c,v 1.3 2003-03-09 04:42:31 paklein Exp $ */
+/* $Id: SIERRA_HypoElastic.c,v 1.4 2003-03-09 21:58:50 paklein Exp $ */
 #include "SIERRA_Material_Interface.h"
 #include <stdio.h>
 
@@ -6,16 +6,16 @@
 void SIERRA_HypoElastic_reg(void);
 
 /* parameter check function */
-void SIERRA_HypoElastic_check(double* parameters);
+void SIERRA_HypoElastic_check(int* matvals);
 
 /* state variable init function */
 void SIERRA_HypoElastic_init(int* nelem, double* dt, int* nsv, 
-	double* state_old, double* state_new, double* matvals, int* ncd);
+	double* state_old, double* state_new, int* matvals, int* ncd);
 
 /* calculation function */
 void SIERRA_HypoElastic_calc(int* nelem, double* dt,
 	double* vars_input, int* ivars_size, double* stress_old, double* stress_new, 
-	int* nsv, double* state_old, double* state_new, double* matvals, int* ncd);
+	int* nsv, double* state_old, double* state_new, int* matvals, int* ncd);
 
 /*******/
 
@@ -43,12 +43,12 @@ void SIERRA_HypoElastic_reg(void)
 	FORTRAN_NAME(register_input_var)("rot_strain_inc", model_name);
 }
 
-void SIERRA_HypoElastic_check(double* parameters)
+void SIERRA_HypoElastic_check(int* matvals)
 {
 	/* fetch material properties */
 	double bulk_modulus, two_mu;
-	FORTRAN_NAME(get_real_constant)(&bulk_modulus, parameters, "BULK_MODULUS");
-	FORTRAN_NAME(get_real_constant)(&two_mu, parameters,"TWO_MU");
+	FORTRAN_NAME(get_real_constant)(&bulk_modulus, matvals, "BULK_MODULUS");
+	FORTRAN_NAME(get_real_constant)(&two_mu, matvals,"TWO_MU");
 	
 	if (bulk_modulus < 0.0 || two_mu < 0.0) {
 		printf("{kappa, 2 mu} = {%g, %g}\n", bulk_modulus, two_mu);
@@ -58,7 +58,7 @@ void SIERRA_HypoElastic_check(double* parameters)
 
 /* function to do material initialization */
 void SIERRA_HypoElastic_init(int* nelem, double* dt, int* nsv, 
-	double* state_old, double* state_new, double* matvals, int* ncd)
+	double* state_old, double* state_new, int* matvals, int* ncd)
 {
 #pragma unused(dt)
 #pragma unused(matvals)
@@ -80,7 +80,7 @@ void SIERRA_HypoElastic_init(int* nelem, double* dt, int* nsv,
 /* function to do material computations */
 void SIERRA_HypoElastic_calc(int* nelem, double* dt,
 	double* vars_input, int* ivars_size, double* stress_old, double* stress_new, 
-	int* nsv, double* state_old, double* state_new, double* matvals, int* ncd)
+	int* nsv, double* state_old, double* state_new, int* matvals, int* ncd)
 {
 #pragma unused(dt)
 #pragma unused(ncd)
