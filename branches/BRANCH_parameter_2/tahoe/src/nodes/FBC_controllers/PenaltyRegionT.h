@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.h,v 1.6.12.1 2004-03-31 16:20:14 paklein Exp $ */
+/* $Id: PenaltyRegionT.h,v 1.6.12.2 2004-04-01 08:35:05 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #ifndef _PENALTY_REGION_T_H_
@@ -37,12 +37,6 @@ public:
 
 	/** constructor */
 	PenaltyRegionT(void);
-
-	/** set the associated field */
-	virtual void SetField(const FieldT& field);
-
-	/* initialize data */
-	virtual void Initialize(void);
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;

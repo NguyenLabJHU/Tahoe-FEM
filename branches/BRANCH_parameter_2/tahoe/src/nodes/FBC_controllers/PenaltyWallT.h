@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.h,v 1.9.12.1 2004-03-27 04:17:29 paklein Exp $ */
+/* $Id: PenaltyWallT.h,v 1.9.12.2 2004-04-01 08:35:05 paklein Exp $ */
 /* created: paklein (02/25/1997) */
 #ifndef _PENATLY_WALL_T_H_
 #define _PENATLY_WALL_T_H_
@@ -16,15 +16,8 @@ class PenaltyWallT: public PenaltyRegionT
 {
 public:
 
-	/* constructor */
-	PenaltyWallT(FEManagerT& fe_manager, int group, const iArray2DT& eqnos,
-		const dArray2DT& coords, const dArray2DT& disp, const dArray2DT* vels);
-
-	/* input processing */
-	virtual void EchoData(ifstreamT& in, ostream& out);
-
-	/* initialize data */
-	virtual void Initialize(void);
+	/** constructor */
+	PenaltyWallT(void);
 
 	/** tangent
 	 * \param sys_type "maximum" tangent type needed by the solver. The GlobalT::SystemTypeT
