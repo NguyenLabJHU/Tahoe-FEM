@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.19 2002-08-15 23:41:26 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.20 2002-08-17 00:03:08 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -32,20 +32,9 @@ BridgingScaleT::BridgingScaleT(const ElementSupportT& support,
 	fGlobal(support.Output(),1),
 	fMass(ShapeFunction().ParentDomain().NumNodes()),
 	fConnect(solid.NumElements(), solid.NumElementNodes()),
-	//fWtemp(support.NumNodes(),ShapeFunction().ParentDomain().NumNodes()),
-	//fW(support.NumNodes(),ShapeFunction().ParentDomain().NumNodes())
+	fConnectInv(solid.NumElements(), solid.NumElementNodes()),
 	fWtempU(ShapeFunction().ParentDomain().NumNodes(), NumDOF()),
-	fWtempV(ShapeFunction().ParentDomain().NumNodes(), NumDOF()),
-	fWtempA(ShapeFunction().ParentDomain().NumNodes(), NumDOF()),
-	//fWU(ShapeFunction().ParentDomain().NumNodes()),
-	fWV(ShapeFunction().ParentDomain().NumNodes()),
-	fWA(ShapeFunction().ParentDomain().NumNodes()),
-	//fError(ShapeFunction().ParentDomain().NumNodes()),
-  	//fFineScaleU(ShapeFunction().ParentDomain().NumNodes()),
-	//fCoarseScaleU(ShapeFunction().ParentDomain().NumNodes()),
-	//fTotalU(ShapeFunction().ParentDomain().NumNodes()),
 	fMassInv(ShapeFunction().ParentDomain().NumNodes())
-	//	fProjection(support.NumNodes())
 {
 
 }
@@ -106,13 +95,13 @@ void BridgingScaleT::Initialize(void)
 	                cell_coords.SetLocal(fSolid.ElementCard(i).NodesX());
 
 			/* get global connectivity matrix */
-		        fConnect.SetRow(i,fSolid.ElementCard(i).NodesX());
-
+		        fConnect.SetRow(i, fSolid.ElementCard(i).NodesX());
+			fConnectInv.SetRow(i, fSolid.ElementCard(i).NodesX());
 			/* inverse map from global node numbers to local node numbers */
 			for (int j = 0; j < fSolid.NumElementNodes(); j++)
 			{
-			    int x = fConnect(i,j);
-			    fConnect(i,j) = node1[x];
+			    int x = fConnectInv(i,j);
+			    fConnectInv(i,j) = node1[x];
 			}
 
 			/* centroid and radius */
@@ -317,123 +306,84 @@ void BridgingScaleT::ComputeCoarseScaleFields(void)
   const FieldT& field = Field();
   iArrayT atoms, elemconnect(parent.NumNodes());
   const dArray2DT& displacements = field[0];
-  dArrayT map, shape(parent.NumNodes()), temp(NumSD()), disp, vel, acc;
-  dMatrixT tempmass(parent.NumNodes()); 
-  dMatrixT Nd(parent.NumNodes(), NumSD()), Nv(parent.NumNodes(), NumSD()), Na(parent.NumNodes(), NumSD());
+  fFineScaleU = displacements;
+  dArrayT map, shape(parent.NumNodes()), temp(NumSD()), disp;
+  dMatrixT tempmass(parent.NumNodes()), Nd(parent.NumNodes(), NumSD()), wglobal(fTotalNodes, NumSD());
   /* set global matrices for bridging scale calculations */
-  fGlobal.AddEquationSet(fConnect);
+  fGlobal.AddEquationSet(fConnectInv);
   fGlobal.Initialize(fTotalNodes,fTotalNodes,1); // hard wired for serial calculations
   fGlobal.Clear();
+  wglobal = 0.0;
 
   for (int i = 0; i < fParticlesInCell.MajorDim(); i++)
   {
-      fElMat = 0.0, fWtempU = 0.0, fWtempV = 0.0, fWtempA = 0.0;
+      fElMat = 0.0, fWtempU = 0.0;
       fParticlesInCell.RowAlias(i,atoms);
       fInverseMapInCell.RowAlias(i,map);
-      fConnect.RowAlias(i,elemconnect);
+      fConnectInv.RowAlias(i,elemconnect);
       for (int j = 0; j < fParticlesInCell.MinorDim(i); j++)
       {
 	  // still need to access individual atomic masses!!!
 	  displacements.RowAlias(atoms[j],disp);
-//	  velocities.RowAlias(atoms[j],vel);
-//	  accelerations.RowAlias(atoms[j],acc);
 	  temp.CopyPart(0, map, NumSD()*j, NumSD());
 	  parent.EvaluateShapeFunctions(temp,shape);
 	  tempmass.Outer(shape,shape);
 	  fElMat += tempmass;
 	  Nd.Outer(shape, disp);
-//	  Nv.Outer(shape, vel);
-//	  Na.Outer(shape, acc);
 	  fWtempU += Nd;
-//	  fWtempV += Nv;
-//	  fWtempA += Na;
       }
       
       /* Assemble local equations to global equations for LHS */
       fGlobal.Assemble(fElMat, elemconnect);
 
-      //ComputeU(displacements, velocities, accelerations);
-  }
-  cout << "Global = \n" << fGlobal << endl;
-}
-
-void BridgingScaleT::ComputeFineScaleFields(void)
-{
-  /* computes fine scale field solutions after coarse scale fields are known */
-  const ParentDomainT& parent = ShapeFunction().ParentDomain();
-  const FieldT& field = Field();
-  const dArray2DT& displacements = field[0];
-  const dArray2DT& velocities = field[1];
-  const dArray2DT& accelerations = field[2];
-  dArrayT map, shape1(parent.NumNodes()), shape2(parent.NumNodes());
-  dArrayT map1(NumSD()), map2(NumSD());
-  iArrayT disp1;
-  dArray2DT disp(fParticlesInCell.MaxMinorDim(),NumDOF()), vel(fParticlesInCell.MaxMinorDim(),NumDOF());
-  dArray2DT acc(fParticlesInCell.MaxMinorDim(),NumDOF());
-  double mult;
-  
-	/* arrays with changing dimensions */
-  	dArrayT ErrorU, FineScaleU, CoarseScaleU, TotalU, ErrorV, FineScaleV;
-  	dArrayT CoarseScaleV, TotalV, ErrorA, FineScaleA, CoarseScaleA, TotalA;
-	nArrayGroupT<double> dArrayT_group(25);
-  	dArrayT_group.Register(ErrorU);
-  	dArrayT_group.Register(FineScaleU);
-  	dArrayT_group.Register(CoarseScaleU);
-  	dArrayT_group.Register(TotalU);
-  	dArrayT_group.Register(ErrorV);
-  	dArrayT_group.Register(FineScaleV);
-  	dArrayT_group.Register(CoarseScaleV);
-  	dArrayT_group.Register(TotalV);
-  	dArrayT_group.Register(ErrorA);
-  	dArrayT_group.Register(FineScaleA);
-  	dArrayT_group.Register(CoarseScaleA);
-  	dArrayT_group.Register(TotalA);
-  
-  for (int i = 0; i < fParticlesInCell.MajorDim(); i++)
-  {
-      /* resize array group */
-      dArrayT_group.Dimension(fParticlesInCell.MinorDim(i), false);
-  
-      fInverseMapInCell.RowAlias(i,map);
-      fParticlesInCell.RowAlias(i,disp1);
-      disp.RowCollect(disp1,displacements);
-      vel.RowCollect(disp1,velocities);
-      acc.RowCollect(disp1,accelerations);
-      dMatrixT Projection(fParticlesInCell.MinorDim(i));
-      ErrorU = 0.0, FineScaleU = 0.0, CoarseScaleU = 0.0, TotalU = 0.0, Projection = 0.0;
-      ErrorA = 0.0, FineScaleA = 0.0, CoarseScaleA = 0.0, TotalA = 0.0;
-      ErrorV = 0.0, FineScaleV = 0.0, CoarseScaleV = 0.0, TotalV = 0.0;
-
-      for (int j = 0; j < fParticlesInCell.MinorDim(i); j++)
+      /* Assemble local equations to global equations for RHS */
+      for (int i = 0; i < parent.NumNodes(); i++)
       {
-	map1 = map[j];
-	parent.EvaluateShapeFunctions(map1,shape1);
-	ErrorU[j] = dArrayT::Dot(shape1,fWU);
-	ErrorV[j] = dArrayT::Dot(shape1,fWV);
-	ErrorA[j] = dArrayT::Dot(shape1,fWA);
-	FineScaleU[j] = disp(j,0) - ErrorU[j];
-	FineScaleV[j] = vel(j,0) - ErrorV[j];
-	FineScaleA[j] = acc(j,0) - ErrorA[j];
-	for (int k = 0; k < fParticlesInCell.MinorDim(i); k++)
-	{
-	  // still need to access individual atomic masses
-	  map2 = map[k];
-	  parent.EvaluateShapeFunctions(map2,shape2);
-	  mult = fMassInv.MultmBn(shape1,shape2);
-	  Projection(j,k) += mult;
-	}
+	for (int j = 0; j < NumSD(); j++)
+	  wglobal(elemconnect[i] - 1,j) += fWtempU(i,j);
       }
-      Projection.Multx(disp,CoarseScaleU);
-      Projection.Multx(vel,CoarseScaleV);
-      Projection.Multx(acc,CoarseScaleA);
-      TotalU += CoarseScaleU;
-      TotalU += FineScaleU;
-      TotalV += CoarseScaleV;
-      TotalV += FineScaleV;
-      TotalA += CoarseScaleA;
-      TotalA += FineScaleA;
   }
-  cout << "FineScaleU = \n" << disp << endl;
-  cout << "FineScaleV = \n" << TotalU << endl;
-  cout << "FineScaleA = \n" << CoarseScaleU << endl;
+  
+  /* Solve for global coarse scale (FEM) displacements */
+  if (NumSD() == 1)
+    {
+      wglobal.ColumnAlias(0, fWx);
+      fGlobal.Solve(fWx);
+    }
+  else if (NumSD() == 2)
+    {
+      wglobal.ColumnAlias(0, fWx);
+      wglobal.ColumnAlias(1, fWy);
+      fGlobal.Solve(fWx);
+      fGlobal.Solve(fWy);
+    }
+
+  /* Compute resulting fine scale fields = MD - FE */
+  dArrayT wx(parent.NumNodes()), wy(parent.NumNodes());
+  double nwx, nwy;
+
+  for (int i = 0; i < fParticlesInCell.MajorDim(); i++)
+    {
+      fParticlesInCell.RowAlias(i,atoms);
+      fInverseMapInCell.RowAlias(i,map);
+      wx.CopyPart(0, fWx, i*NumSD(), parent.NumNodes());
+      for (int j = 0; j < fParticlesInCell.MinorDim(i); j++)
+	{
+	  displacements.RowAlias(atoms[j],disp);
+	  temp.CopyPart(0, map, NumSD()*j, NumSD());
+	  parent.EvaluateShapeFunctions(temp,shape);
+	  nwx = dArrayT::Dot(shape,wx);
+	  int which = atoms[j];
+	  double fsx = disp[0] - nwx;
+	  fFineScaleU(which,0) = fsx;
+	  if (NumSD() == 2)
+	    {
+	      wy.CopyPart(0, fWy, i*parent.NumNodes(), parent.NumNodes());
+	      nwy = dArrayT::Dot(shape,wy);
+	      double fsy = disp[1] - nwy;
+	      fFineScaleU(which,1) = fsy; 
+	    }
+	}
+    }
+  cout << "fine scale = \n" << fFineScaleU << endl; 
 }
