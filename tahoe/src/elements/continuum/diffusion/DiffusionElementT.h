@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.h,v 1.11.2.1 2004-02-11 16:38:59 paklein Exp $ */
+/* $Id: DiffusionElementT.h,v 1.11.2.2 2004-03-04 20:12:14 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSE_T_H_
 #define _DIFFUSE_T_H_
@@ -107,7 +107,19 @@ protected:
 	/*@{*/
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+
+	/** extract element block info from parameter list */
+	virtual void CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const;
+
+	/** extract the list of material parameters */
+	virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
 
 private:
 
@@ -140,8 +152,8 @@ protected:
 	 * an integration point at a time and stored. */
   	ArrayT<dArrayT> fGradient_list;
 
-	/** parameters */
-	static const int NumOutputCodes;
+	/* parameters */
+	static const int NumNodalOutputCodes;
 
 private:
 

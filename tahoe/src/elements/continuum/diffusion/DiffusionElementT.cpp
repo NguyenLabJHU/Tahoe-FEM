@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.19.2.1 2004-02-11 16:38:59 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.19.2.2 2004-03-04 20:12:14 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -13,6 +13,7 @@
 #include "ShapeFunctionT.h"
 #include "eIntegratorT.h"
 #include "iAutoArrayT.h"
+#include "ParameterContainerT.h"
 
 /* materials */
 #include "DiffusionMaterialT.h"
@@ -22,7 +23,11 @@
 using namespace Tahoe;
 
 /* initialize static data */
-const int DiffusionElementT::NumOutputCodes = 3;
+const int DiffusionElementT::NumNodalOutputCodes = 3;
+static const char* NodalOutputNames[] = {
+	"coordinates",
+	"displacement",
+	"material_output"};
 
 /* parameters */
 const int kDiffusionNDOF = 1;
@@ -192,7 +197,7 @@ void DiffusionElementT::PrintControlData(ostream& out) const
 void DiffusionElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 {
 	/* allocate */
-	fNodalOutputCodes.Dimension(NumOutputCodes);
+	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
 
 	/* read in at a time to allow comments */
 	for (int i = 0; i < fNodalOutputCodes.Length(); i++)
@@ -209,7 +214,7 @@ void DiffusionElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw ExceptionT::kBadInputValue;
 
 	/* control parameters */
-	out << " Number of nodal output codes. . . . . . . . . . = " << NumOutputCodes << '\n';
+	out << " Number of nodal output codes. . . . . . . . . . = " << NumNodalOutputCodes << '\n';
 	out << "    [" << fNodalOutputCodes[iNodalCoord   ] << "]: initial nodal coordinates\n";
 	out << "    [" << fNodalOutputCodes[iNodalDisp    ] << "]: nodal displacements\n";
 	out << "    [" << fNodalOutputCodes[iMaterialData ] << "]: nodal material output parameters\n";
@@ -513,7 +518,7 @@ MaterialSupportT* DiffusionElementT::NewMaterialSupport(MaterialSupportT* p) con
 MaterialListT* DiffusionElementT::NewMaterialList(const StringT& name, int size)
 {
 	/* no match */
-	if (name != "diffusion_materials") 
+	if (name != "diffusion_material") 
 		return NULL;
 
 	if (size > 0)
@@ -620,7 +625,128 @@ void DiffusionElementT::DefineSubs(SubListT& sub_list) const
 	/* inherited */
 	ContinuumElementT::DefineSubs(sub_list);
 
-	sub_list.AddSub("diffusion_materials");
+	/* nodal output codes (optional) */
+	sub_list.AddSub("diffusion_element_nodal_output", ParameterListT::ZeroOrOnce);
+
+	/* element block/material specification */
+	sub_list.AddSub("diffusion_element_block", ParameterListT::OnePlus);
+}
+
+/* return the description of the given inline subordinate parameter list */
+ParameterInterfaceT* DiffusionElementT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "diffusion_element_nodal_output")
+	{
+		ParameterContainerT* node_output = new ParameterContainerT(list_name);
+		
+		/* all false by default */
+		for (int i = 0; i < NumNodalOutputCodes; i++)
+			node_output->AddParameter(ParameterT::Boolean, NodalOutputNames[i], ParameterListT::ZeroOrOnce);
+
+		return node_output;
+	}
+	else if (list_name == "diffusion_element_block")
+	{
+		ParameterContainerT* block = new ParameterContainerT(list_name);
+		
+		/* list of element block ID's (defined by ElementBaseT) */
+		block->AddSub("block_ID_list", ParameterListT::Once);
+	
+		/* choice of materials lists (inline) */
+		block->AddSub("diffusion_material", ParameterListT::Once);
+	
+		/* set this as source of subs */
+		block->SetSubSource(this);
+		
+		return block;
+	}
+	else /* inherited */
+		return ContinuumElementT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void DiffusionElementT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ContinuumElementT::TakeParameterList(list);
+
+	/* dimensions */
+	int nsd = NumSD();
+	int nen = NumElementNodes();
+	int nip = NumIP();
+	fD.Dimension(nsd);
+	fq.Dimension(nsd);
+	fB.Dimension(nsd, nen);
+	fGradient_list.Dimension(nip);
+	for (int i = 0; i < fGradient_list.Length(); i++)
+		fGradient_list[i].Dimension(nsd);
+	
+	/* nodal output codes */
+	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
+	fNodalOutputCodes = 0;
+	const ParameterListT* node_output = list.List("diffusion_element_nodal_output");
+	if (node_output)
+		for (int i = 0; i < NumNodalOutputCodes; i++)
+		{
+			/* look for entry */
+			const ParameterT* nodal_value = node_output->Parameter(NodalOutputNames[i]);
+			if (nodal_value) {
+				bool do_write = *nodal_value;
+				if (do_write)
+					fNodalOutputCodes[i] = 1;
+			}
+		}	
+}
+
+/* extract element block info from parameter list */
+void DiffusionElementT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const
+{
+	/* collect {block_ID, material_index} pairs */
+	int num_blocks = list.NumLists("diffusion_element_block");
+	AutoArrayT<StringT> block_ID_tmp;
+	AutoArrayT<int> mat_index_tmp;
+	ParameterListT material_list; /* collected material parameters */
+	for (int i = 0; i < num_blocks; i++) {
+
+		/* block information */	
+		const ParameterListT& block = list.GetList("diffusion_element_block", i);
+
+		/* collect block ID's */
+		const ArrayT<ParameterListT>& IDs = block.GetList("block_ID_list").Lists();
+		for (int j = 0; j < IDs.Length(); j++) {
+			block_ID_tmp.Append(IDs[j].GetParameter("value"));
+			mat_index_tmp.Append(i);
+		}
+	}
+	
+	/* transfer */
+	block_ID.Swap(block_ID_tmp);
+	mat_index.Swap(mat_index_tmp);
+}
+
+/* extract the list of material parameters */
+void DiffusionElementT::CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const
+{
+	const char caller[] = "DiffusionElementT::CollectMaterialInfo";
+	
+	/* initialize */
+	mat_params.Clear();
+
+	/* set materials list name */
+	mat_params.SetName("diffusion_material");
+	
+	/* collected material parameters */
+	int num_blocks = all_params.NumLists("diffusion_element_block");
+	for (int i = 0; i < num_blocks; i++) {
+
+		/* block information */	
+		const ParameterListT& block = all_params.GetList("diffusion_element_block", i);
+		
+		/* collect material parameters */
+		const ParameterListT& mat_list = block.GetList(mat_params.Name());
+		const ArrayT<ParameterListT>& mat = mat_list.Lists();
+		mat_params.AddList(mat[0]);
+	}
 }
 
 /***********************************************************************

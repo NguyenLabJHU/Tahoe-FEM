@@ -1,4 +1,4 @@
-/* $Id: DiffusionMatListT.h,v 1.8 2004-01-10 04:41:07 paklein Exp $ */
+/* $Id: DiffusionMatListT.h,v 1.8.2.1 2004-03-04 20:12:16 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSE_MAT_LIST_T_H_
 #define _DIFFUSE_MAT_LIST_T_H_
@@ -10,6 +10,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class DiffusionMatSupportT;
+class DiffusionMaterialT;
 
 /** list of materials for diffusion analysis */
 class DiffusionMatListT: public MaterialListT
@@ -39,7 +40,13 @@ public:
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+
+	/** construct the specified material or NULL if the request cannot be completed */
+	DiffusionMaterialT* NewDiffusionMaterial(const StringT& name) const;
 	
 private:
 
