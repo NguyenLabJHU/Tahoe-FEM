@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.71.12.1 2004-04-08 07:33:48 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.71.12.2 2004-04-28 02:58:36 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1431,6 +1431,9 @@ void FEManagerT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT&
 
 		/* nonlinear PCG solver */
 		sub_sub_list.AddSub("PCG_solver");
+
+		/* nonlinear solver with line search*/
+		sub_sub_list.AddSub("nonlinear_solver_LS");
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
