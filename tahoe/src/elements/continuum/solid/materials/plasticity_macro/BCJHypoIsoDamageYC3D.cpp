@@ -1,4 +1,4 @@
-/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.4 2002-10-20 22:49:09 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.4.2.1 2002-10-28 06:49:24 paklein Exp $ */
 #include "BCJHypoIsoDamageYC3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -7,7 +7,6 @@
 #include "BCJKineticEqn.h"
 
 #include "ContinuumElementT.h"
-
 
 using namespace Tahoe;
 
@@ -35,8 +34,8 @@ const int kNumOutput = 8;
 static const char* Labels[kNumOutput] = {"EQPe","EQPh","EQXie","EQXih",
                                          "VMISES","ALPHA","KAPPA","VVF"};
 
-BCJHypoIsoDamageYC3D::BCJHypoIsoDamageYC3D(ifstreamT& in, const FiniteStrainT& element) :
-  BCJHypo3D(in, element),  
+BCJHypoIsoDamageYC3D::BCJHypoIsoDamageYC3D(ifstreamT& in, const FDMatSupportT& support) :
+  BCJHypo3D(in, support),  
   fVoidGrowthModel (NULL)
 {
   // re-assigning values to base class variables
@@ -82,7 +81,7 @@ const dSymMatrixT& BCJHypoIsoDamageYC3D::s_ij()
   LoadElementData(element, intpt);
 
   // compute state, stress and moduli 
-  if (fStatus == GlobalT::kFormRHS)
+  if (MaterialSupport().RunState() == GlobalT::kFormRHS)
     {
       // reset iteration counter to check NLCSolver
       if (CurrIP() == 0) fIterCount = 0;

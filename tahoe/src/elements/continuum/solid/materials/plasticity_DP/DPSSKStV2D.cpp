@@ -1,16 +1,14 @@
-/* $Id: DPSSKStV2D.cpp,v 1.7 2002-07-02 19:56:09 cjkimme Exp $ */
-/* created: myip (06/01/1999)                                             */
-
+/* $Id: DPSSKStV2D.cpp,v 1.7.8.1 2002-10-28 06:49:18 paklein Exp $ */
+/* created: myip (06/01/1999) */
 #include "DPSSKStV2D.h"
 #include "ElementCardT.h"
 #include "StringT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
-DPSSKStV2D::DPSSKStV2D(ifstreamT& in, const SmallStrainT& element):
-	DPSSKStV(in, element),
+/* constructor */
+DPSSKStV2D::DPSSKStV2D(ifstreamT& in, const SSMatSupportT& support):
+	DPSSKStV(in, support),
 	Material2DT(in, kPlaneStrain),
 	fStress2D(2),
 	fModulus2D(dSymMatrixT::NumValues(2)),

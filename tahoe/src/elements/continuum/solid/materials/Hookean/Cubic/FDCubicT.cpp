@@ -1,14 +1,12 @@
-/* $Id: FDCubicT.cpp,v 1.3 2002-07-02 19:55:39 cjkimme Exp $ */
-/* created: paklein (06/11/1997)                                          */
-
+/* $Id: FDCubicT.cpp,v 1.3.8.1 2002-10-28 06:48:50 paklein Exp $ */
+/* created: paklein (06/11/1997) */
 #include "FDCubicT.h"
-
-/* constructor */
 
 using namespace Tahoe;
 
-FDCubicT::FDCubicT(ifstreamT& in, const FiniteStrainT& element):
-	FDHookeanMatT(in, element),
+/* constructor */
+FDCubicT::FDCubicT(ifstreamT& in, const FDMatSupportT& support):
+	FDHookeanMatT(in, support),
 	CubicT(in)
 {
 

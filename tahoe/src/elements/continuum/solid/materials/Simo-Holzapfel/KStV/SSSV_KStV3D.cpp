@@ -1,6 +1,5 @@
-/* $Id: SSSV_KStV3D.cpp,v 1.5 2002-10-20 22:48:52 paklein Exp $ */
-/* created:   TDN (5/31/2001) */
-
+/* $Id: SSSV_KStV3D.cpp,v 1.5.2.1 2002-10-28 06:49:08 paklein Exp $ */
+/* created: TDN (5/31/2001) */
 #include "SSSV_KStV3D.h"
 
 #include <math.h>
@@ -10,8 +9,8 @@
 
 using namespace Tahoe;
 
-SSSV_KStV3D::SSSV_KStV3D(ifstreamT& in, const SmallStrainT& element):
-	SSSimoViscoT(in, element),
+SSSV_KStV3D::SSSV_KStV3D(ifstreamT& in, const SSMatSupportT& support):
+	SSSimoViscoT(in, support),
 	fStress(3),
 	fModulus(6),
 	fMu(2),

@@ -9,9 +9,9 @@ namespace Tahoe {
 
 /* forward declaration */
 class ElasticT;
-class SmallStrainT;
-class FiniteStrainT;
-class MultiScaleT;
+class SSMatSupportT;
+class FDMatSupportT;
+//class MultiScaleT;
 
 class SolidMatList1DT: public StructuralMatListT, public MaterialT
 {
@@ -33,9 +33,9 @@ private:
 private:
 
 	const ElasticT&      fElementGroup;
-	const SmallStrainT*  fSmallStrain;
-	const FiniteStrainT* fFiniteStrain;
-	const MultiScaleT*   fMultiScale;
+	const SSMatSupportT* fSSMatSupport;
+	const FDMatSupportT* fFDMatSupport;
+//	const MultiScaleT*   fMultiScale;
 };
 
 } // namespace Tahoe 

@@ -1,21 +1,16 @@
-/* $Id: GradCrystalPlast2D.cpp,v 1.3 2002-07-02 19:56:14 cjkimme Exp $ */
-/*
-  File: GradCrystalPlast2D.cpp
-*/
-
+/* $Id: GradCrystalPlast2D.cpp,v 1.3.8.1 2002-10-28 06:49:22 paklein Exp $ */
 #include "GradCrystalPlast2D.h"
 #include "Utils.h"
 
 #include "ifstreamT.h"
 
-/* spatial dimensions of the problem */
-
 using namespace Tahoe;
 
+/* spatial dimensions of the problem */
 const int kNSD = 2;
 
-GradCrystalPlast2D::GradCrystalPlast2D(ifstreamT& in, const FiniteStrainT& element) :
-  GradCrystalPlast (in, element),  
+GradCrystalPlast2D::GradCrystalPlast2D(ifstreamT& in, const FDMatSupportT& support) :
+  GradCrystalPlast (in, support),  
   Material2DT      (in, Material2DT::kPlaneStrain),
   f2Ds_ij    (kNSD),
   f2Dc_ijkl  (dSymMatrixT::NumValues(kNSD))

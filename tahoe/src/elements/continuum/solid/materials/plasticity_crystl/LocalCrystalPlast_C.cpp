@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast_C.cpp,v 1.7 2002-10-20 22:49:07 paklein Exp $ */
+/* $Id: LocalCrystalPlast_C.cpp,v 1.7.2.1 2002-10-28 06:49:22 paklein Exp $ */
 #include "LocalCrystalPlast_C.h"
 #include "LatticeOrient.h"
 #include "VoceHardening.h"
@@ -7,20 +7,18 @@
 #include "Utils.h"
 #include "ContinuumElementT.h"
 
-/* spatial dimensions of the problem */
-
 using namespace Tahoe;
 
+/* spatial dimensions of the problem */
 const int kNSD = 3; 
-
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
 const int kNumOutput = 2;
 static const char* Labels[kNumOutput] = {"VM_stress", "Hardness"};
 
-LocalCrystalPlast_C::LocalCrystalPlast_C(ifstreamT& in, const FiniteStrainT& element) :
-  LocalCrystalPlast(in, element),
+LocalCrystalPlast_C::LocalCrystalPlast_C(ifstreamT& in, const FDMatSupportT& support) :
+  LocalCrystalPlast(in, support),
   fLocInitX (ContinuumElement().InitialCoordinates()),
   //fNNodes   (element.NumElemNodes()),
   fNNodes   (fLocInitX.NumberOfNodes()),

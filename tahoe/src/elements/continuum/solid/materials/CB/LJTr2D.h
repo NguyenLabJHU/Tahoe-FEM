@@ -1,7 +1,5 @@
-/* $Id: LJTr2D.h,v 1.3 2002-07-02 19:55:34 cjkimme Exp $ */
-/* created: paklein (07/01/1996)                                          */
-/* Plane stress hexagonal lattice with LJ potential                       */
-
+/* $Id: LJTr2D.h,v 1.3.8.1 2002-10-28 06:48:47 paklein Exp $ */
+/* created: paklein (07/01/1996) */
 #ifndef _LJTR2D_H_
 #define _LJTR2D_H_
 
@@ -11,15 +9,15 @@
 /* direct members */
 #include "dArray2DT.h"
 
-
 namespace Tahoe {
 
+/** plane stress hexagonal lattice with LJ potential */
 class LJTr2D: public NL_E_RotMat2DT
 {
 public:
 
 	/* constructor */
-	LJTr2D(ifstreamT& in, const FiniteStrainT& element);
+	LJTr2D(ifstreamT& in, const FDMatSupportT& support);
 	
 	/* print parameters */
 	virtual void Print(ostream& out) const;

@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlast.h,v 1.5 2002-07-02 19:56:14 cjkimme Exp $ */
+/* $Id: GradCrystalPlast.h,v 1.5.8.1 2002-10-28 06:49:21 paklein Exp $ */
 #ifndef _GRAD_CRYSTAL_PLAST_H_
 #define _GRAD_CRYSTAL_PLAST_H_
 
@@ -10,14 +10,13 @@
 #include "dArray2DT.h"
 #include "LocalArrayT.h"
 
-
 namespace Tahoe {
 
 class GradCrystalPlast : public LocalCrystalPlast
 {
  public:
   // constructor
-  GradCrystalPlast(ifstreamT& in, const FiniteStrainT& element);
+  GradCrystalPlast(ifstreamT& in, const FDMatSupportT& support);
 
   // destructor
   ~GradCrystalPlast();

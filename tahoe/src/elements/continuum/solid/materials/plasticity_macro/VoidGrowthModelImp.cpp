@@ -1,16 +1,12 @@
-/*
-  File: VoidGrowthModelImp.cpp
-*/
-
+// $Id: VoidGrowthModelImp.cpp,v 1.2.8.1 2002-10-28 06:49:25 paklein Exp $
 #include "VoidGrowthModelImp.h"
 
 #include <iostream.h>
 #include "ifstreamT.h"
 
-// base class
-
 using namespace Tahoe;
 
+// base class
 VoidGrowthModelImp::VoidGrowthModelImp():
   fm (0.0)
 { }
@@ -20,7 +16,9 @@ VoidGrowthModelImp::~VoidGrowthModelImp() { }
 
 // derived class: CocksVGModel
 CocksVGModel::CocksVGModel(EVPFDBaseT& macro)
-{ }
+{ 
+#pragma unused(macro)
+}
 
 CocksVGModel::~CocksVGModel() { }
 
@@ -58,7 +56,9 @@ void CocksVGModel::Print(ostream& out) const
 
 //derived class: DuvaCrowVGModel
 DuvaCrowVGModel::DuvaCrowVGModel(EVPFDBaseT& macro)
-{ }  
+{ 
+#pragma unused(macro)
+}  
 
 DuvaCrowVGModel::~DuvaCrowVGModel() { }
 
@@ -96,7 +96,9 @@ void DuvaCrowVGModel::Print(ostream& out) const
 
 //derived class: SofronisVGModel
 SofronisVGModel::SofronisVGModel(EVPFDBaseT& macro)
-{ }  
+{ 
+#pragma unused(macro)
+}  
 
 SofronisVGModel::~SofronisVGModel() { }
 

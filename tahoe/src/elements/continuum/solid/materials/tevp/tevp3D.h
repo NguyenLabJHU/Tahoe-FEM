@@ -1,6 +1,5 @@
-/* $Id: tevp3D.h,v 1.7 2002-10-05 20:04:20 paklein Exp $ */
-/* Created:  Harold Park (06/25/2001) */
-
+/* $Id: tevp3D.h,v 1.7.6.1 2002-10-28 06:49:32 paklein Exp $ */
+/* created:  Harold Park (06/25/2001) */
 #ifndef _TEVP_3D_H_
 #define _TEVP_3D_H_
 
@@ -19,7 +18,7 @@ class tevp3D: public FDStructMatT, public IsotropicT
 {
  public:
   /* constructor */
-  tevp3D(ifstreamT& in, const FiniteStrainT& element);
+  tevp3D(ifstreamT& in, const FDMatSupportT& support);
   
   /* materials initialization */
   virtual bool NeedsPointInitialization(void) const { return true; }
@@ -117,7 +116,7 @@ class tevp3D: public FDStructMatT, public IsotropicT
   dMatrixT fModulus;
   double fStrainEnergyDensity;   // How do I define this for this material?
   /* execution stage */
-  const GlobalT::StateT& fRunState;  
+//  const GlobalT::StateT& fRunState;  
 
 /* element level internal variables */
   dArrayT fInternal;             // Internal variables
@@ -127,14 +126,14 @@ class tevp3D: public FDStructMatT, public IsotropicT
                             // timestep (S11, S22, S33, S32, S31, S21)
  private:
 
-  const double& fDt;           // Timestep
+	double fDt;           // Timestep
 
   /* work space */
   dMatrixT fFtot;              // Total deformation gradient (3D)
   dSymMatrixT fDtot;         // Symmetric version of rate of deformation
   dMatrixT fGradV;             // Velocity gradient (3D)
-  const LocalArrayT& fLocVel;  // Nodal velocities
-  const LocalArrayT& fLocDisp; // Nodal displacements (not necessary)
+  const LocalArrayT* fLocVel;  // Nodal velocities
+//  const LocalArrayT& fLocDisp; // Nodal displacements (not necessary)
   dMatrixT fF_temp;            // Deformation gradient to work with
   dMatrixT fSpin;              // Spin tensor
   int fCriticalStrain;         // Checks if critical strain criteria is met

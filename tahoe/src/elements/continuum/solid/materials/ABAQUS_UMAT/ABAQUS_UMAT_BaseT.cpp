@@ -1,6 +1,5 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.8 2002-10-20 22:48:35 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.8.2.1 2002-10-28 06:48:45 paklein Exp $ */
 /* created: paklein (05/14/2000) */
-
 #include "ABAQUS_UMAT_BaseT.h"
 
 #ifdef __F2C__
@@ -14,13 +13,12 @@
 #include "SpectralDecompT.h"
 #include "ThermalDilatationT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
-ABAQUS_UMAT_BaseT::	ABAQUS_UMAT_BaseT(ifstreamT& in, const FiniteStrainT& element):
-	FDStructMatT(in, element),
-	fRunState(ContinuumElement().RunState()),
+/* constructor */
+ABAQUS_UMAT_BaseT::	ABAQUS_UMAT_BaseT(ifstreamT& in, const FDMatSupportT& support):
+	FDStructMatT(in, support),
+//	fRunState(ContinuumElement().RunState()),
 	fTangentType(GlobalT::kSymmetric),
 	fModulus(dSymMatrixT::NumValues(NumSD())),
 	fStress(NumSD()),
@@ -294,7 +292,7 @@ const dMatrixT& ABAQUS_UMAT_BaseT::c_ijkl(void)
 const dSymMatrixT& ABAQUS_UMAT_BaseT::s_ij(void)
 {
 	/* call UMAT */
-	if (fRunState == GlobalT::kFormRHS)
+	if (MaterialSupport().RunState() == GlobalT::kFormRHS)
 	{
 		const ElementSupportT& support = ContinuumElement().ElementSupport();
 		double  t = support.Time();

@@ -1,6 +1,5 @@
-/* $Id: J2SSKStV.h,v 1.5 2002-10-05 20:04:17 paklein Exp $ */
+/* $Id: J2SSKStV.h,v 1.5.6.1 2002-10-28 06:49:19 paklein Exp $ */
 /* created: paklein (06/18/1997) */
-
 #ifndef _J2_SS_KSTV_H_
 #define _J2_SS_KSTV_H_
 
@@ -10,7 +9,6 @@
 #include "HookeanMatT.h"
 //#include "J2SSLinHardT.h"
 #include "J2SSC0HardeningT.h"
-
 
 namespace Tahoe {
 
@@ -23,7 +21,7 @@ class J2SSKStV: public SSStructMatT,
 public:
 
 	/* constructor */
-	J2SSKStV(ifstreamT& in, const SmallStrainT& element);
+	J2SSKStV(ifstreamT& in, const SSMatSupportT& support);
 
 	/* initialization */
 	virtual void Initialize(void);

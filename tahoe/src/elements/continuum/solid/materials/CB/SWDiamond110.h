@@ -1,12 +1,10 @@
-/* $Id: SWDiamond110.h,v 1.3 2002-07-02 19:55:34 cjkimme Exp $ */
-/* created: paklein (08/25/1996)                                          */
-
+/* $Id: SWDiamond110.h,v 1.3.8.1 2002-10-28 06:48:47 paklein Exp $ */
+/* created: paklein (08/25/1996) */
 #ifndef _SWDIAMOND110_H_
 #define _SWDIAMOND110_H_
 
 /* base class */
 #include "SWMaterial2D.h"
-
 
 namespace Tahoe {
 
@@ -15,7 +13,7 @@ class SWDiamond110: public SWMaterial2D
 public:
 
 	/* constructor */
-	SWDiamond110(ifstreamT& in, const FiniteStrainT& element);
+	SWDiamond110(ifstreamT& in, const FDMatSupportT& support);
 
 	/* print name */
 	virtual void PrintName(ostream& out) const;

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp_C.cpp,v 1.4 2002-10-20 22:49:07 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp_C.cpp,v 1.4.2.1 2002-10-28 06:49:22 paklein Exp $ */
 #include "LocalCrystalPlastFp_C.h"
 #include "LatticeOrient.h"
 #include "CrystalElasticity.h"
@@ -8,20 +8,18 @@
 #include "Utils.h"
 #include "ContinuumElementT.h"
 
-/* spatial dimensions of the problem */
-
 using namespace Tahoe;
 
+/* spatial dimensions of the problem */
 const int kNSD = 3; 
-
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
 const int kNumOutput = 3;
 static const char* Labels[kNumOutput] = {"VM_stress", "IterNewton", "IterState"};
 
-LocalCrystalPlastFp_C::LocalCrystalPlastFp_C(ifstreamT& in, const FiniteStrainT& element) :
-  LocalCrystalPlastFp(in, element),
+LocalCrystalPlastFp_C::LocalCrystalPlastFp_C(ifstreamT& in, const FDMatSupportT& support) :
+  LocalCrystalPlastFp(in, support),
   fLocInitX (ContinuumElement().InitialCoordinates()),
   //fNNodes   (fLocInitX.NumberOfNodes()),  /* what is it wrong here? */
   //fLNa      (1, fNNodes),

@@ -1,4 +1,4 @@
-/* $Id: FDSimoViscoBaseT.h,v 1.3 2002-10-20 22:48:51 paklein Exp $ */
+/* $Id: FDSimoViscoBaseT.h,v 1.3.2.1 2002-10-28 06:49:07 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #ifndef _FD_SIMO_VISCO_BASE_H_
@@ -18,7 +18,7 @@ class FDSimoViscoBaseT: public FDStructMatT
 	public:
 
 	/*constructor*/
-	FDSimoViscoBaseT(ifstreamT& in, const FiniteStrainT& element);
+	FDSimoViscoBaseT(ifstreamT& in, const FDMatSupportT& support);
 
 	/** return the pressure associated with the last call to 
 	 * StructuralMaterialT::s_ij. \note NOT IMPLEMENTED */

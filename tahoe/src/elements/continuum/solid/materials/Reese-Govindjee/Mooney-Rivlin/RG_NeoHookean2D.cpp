@@ -1,4 +1,4 @@
-/* $Id: RG_NeoHookean2D.cpp,v 1.3 2002-10-20 22:48:46 paklein Exp $ */
+/* $Id: RG_NeoHookean2D.cpp,v 1.3.2.1 2002-10-28 06:49:04 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
@@ -11,8 +11,8 @@
 
 using namespace Tahoe;
 
-RG_NeoHookean2D::RG_NeoHookean2D(ifstreamT& in, const FiniteStrainT& element):
-          RG_VDSplit2D(in, element),
+RG_NeoHookean2D::RG_NeoHookean2D(ifstreamT& in, const FDMatSupportT& support):
+          RG_VDSplit2D(in, support),
 	  fMu(2),
 	  fKappa(2)
 {

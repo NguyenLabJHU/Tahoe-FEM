@@ -1,3 +1,4 @@
+/* $Id: GradJ2SSNonlinHard.cpp,v 1.6.2.1 2002-10-28 06:49:20 paklein Exp $ */
 #include "GradJ2SSNonlinHard.h"
 
 #include "iArrayT.h"
@@ -28,8 +29,8 @@ static const char* Labels[kNumOutput] = {
 	"YldCrit"};  // Yield criteria
 
 /* constructor */
-GradJ2SSNonlinHard::GradJ2SSNonlinHard(ifstreamT& in, const SmallStrainT& element):
-	SSStructMatT (in, element),
+GradJ2SSNonlinHard::GradJ2SSNonlinHard(ifstreamT& in, const SSMatSupportT& support):
+	SSStructMatT (in, support),
 	IsotropicT   (in),
 	HookeanMatT  (kNSD),
 	fStatus      (ContinuumElement().RunState()),

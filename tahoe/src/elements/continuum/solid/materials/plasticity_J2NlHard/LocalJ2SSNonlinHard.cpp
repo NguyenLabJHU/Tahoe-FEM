@@ -1,3 +1,4 @@
+/* $Id: LocalJ2SSNonlinHard.cpp,v 1.5.2.1 2002-10-28 06:49:20 paklein Exp $ */
 #include "LocalJ2SSNonlinHard.h"
 
 #include "iArrayT.h"
@@ -25,8 +26,8 @@ static const char* Labels[kNumOutput] = {
         "IsoHard"};  // isotropic hardening
 
 /* constructor */
-LocalJ2SSNonlinHard::LocalJ2SSNonlinHard(ifstreamT& in, const SmallStrainT& element):
-	SSStructMatT (in, element),
+LocalJ2SSNonlinHard::LocalJ2SSNonlinHard(ifstreamT& in, const SSMatSupportT& support):
+	SSStructMatT (in, support),
 	IsotropicT   (in),
 	HookeanMatT  (kNSD),
 	fStatus      (ContinuumElement().RunState()),

@@ -1,4 +1,4 @@
-/* $Id: BCJHypo3D.h,v 1.5 2002-07-02 19:56:18 cjkimme Exp $ */
+/* $Id: BCJHypo3D.h,v 1.5.8.1 2002-10-28 06:49:24 paklein Exp $ */
 #ifndef _BCJ_HYPO_3D_H_
 #define _BCJ_HYPO_3D_H_
 
@@ -11,7 +11,6 @@
 #include "dMatrixT.h"
 #include "SpectralDecompT.h"
 
-
 namespace Tahoe {
 
 class ifstreamT;
@@ -23,7 +22,7 @@ class BCJHypo3D : public EVPFDBaseT
 {
  public:
   // constructor
-  BCJHypo3D(ifstreamT& in, const FiniteStrainT& element);
+  BCJHypo3D(ifstreamT& in, const FDMatSupportT& support);
 
   // destructor
   ~BCJHypo3D();

@@ -1,5 +1,5 @@
-/* $Id: SSSimoViscoT.h,v 1.3 2002-10-20 22:48:51 paklein Exp $ */
-/* created:   TDN (5/31/2001) */
+/* $Id: SSSimoViscoT.h,v 1.3.2.1 2002-10-28 06:49:07 paklein Exp $ */
+/* created: TDN (5/31/2001) */
 #ifndef _SS_SIMO_VISCO_H_
 #define _SS_SIMO_VISCO_H_
  
@@ -17,7 +17,7 @@ class SSSimoViscoT: public SSStructMatT
 	public:
 
 	/*constructor*/
-	SSSimoViscoT(ifstreamT& in, const SmallStrainT& element);
+	SSSimoViscoT(ifstreamT& in, const SSMatSupportT& support);
 
 	/** return the pressure associated with the last call to 
 	 * StructuralMaterialT::s_ij. \note NOT IMPLEMENTED */

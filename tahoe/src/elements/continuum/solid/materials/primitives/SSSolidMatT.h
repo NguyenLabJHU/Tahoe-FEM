@@ -1,7 +1,5 @@
-/* $Id: SSSolidMatT.h,v 1.4 2002-07-05 22:28:27 paklein Exp $ */
-/* created: paklein (06/09/1997)                                          */
-/* Defines the interface for elastic continuum materials.                 */
-
+/* $Id: SSSolidMatT.h,v 1.4.8.1 2002-10-28 06:49:28 paklein Exp $ */
+/* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
 
@@ -14,14 +12,15 @@
 namespace Tahoe {
 
 /* forward declarations */
-class SmallStrainT;
+class SSMatSupportT;
 
+/** defines the interface for small strain continuum materials */
 class SSSolidMatT: public StructuralMaterialT
 {
 public:
 
-	/* constructor */
-	SSSolidMatT(ifstreamT& in, const SmallStrainT& element);
+	/** constructor */
+	SSSolidMatT(ifstreamT& in, const SSMatSupportT& support);
 
 	/* I/O functions */
 	virtual void PrintName(ostream& out) const;
@@ -70,11 +69,11 @@ private:
 
 private:
 
-	/* small strain element */
-	const SmallStrainT& fSmallStrain;
+	/** small strain material support */
+	const SSMatSupportT& fSSMatSupport;
 	
 	/* nodal displacements */
-	const LocalArrayT& fLocDisp;
+//	const LocalArrayT& fLocDisp;
 
 	/* work space */
 	dSymMatrixT	fStrainTemp; // elastic strain (w/o thermal)

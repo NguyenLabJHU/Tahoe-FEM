@@ -1,7 +1,5 @@
-/* $Id: EAMFCC2D.h,v 1.5 2002-07-05 22:28:10 paklein Exp $ */
-/* created: paklein (12/09/1996)                                          */
-/* Plane strain EAM material                                              */
-
+/* $Id: EAMFCC2D.h,v 1.5.8.1 2002-10-28 06:48:48 paklein Exp $ */
+/* created: paklein (12/09/1996) */
 #ifndef _EAMFCC2D_H_
 #define _EAMFCC2D_H_
 
@@ -13,17 +11,18 @@ namespace Tahoe {
 /* forward declarations */
 class EAMFCC3DSym;
 
+/** plane strain EAM material */
 class EAMFCC2D: public NL_E_Mat2DT
 {
 public:
 
-	/* plane codes - for crystal axes rotated wrt global axes */
+	/** plane codes - for crystal axes rotated wrt global axes */
 	enum PlaneCodeT {kFCC001 = 0,
                      kFCC101 = 1,
                      kFCC111 = 2};
 
 	/* constructor */
-	EAMFCC2D(ifstreamT& in, const FiniteStrainT& element, PlaneCodeT plane_code);
+	EAMFCC2D(ifstreamT& in, const FDMatSupportT& support, PlaneCodeT plane_code);
 
 	/* destructor */
 	virtual ~EAMFCC2D(void);

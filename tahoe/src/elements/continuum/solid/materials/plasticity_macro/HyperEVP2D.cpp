@@ -1,20 +1,15 @@
-/* $Id: HyperEVP2D.cpp,v 1.3 2002-07-02 19:56:19 cjkimme Exp $ */
-/*
-  File: HyperEVP2D.cpp
-*/
-
+/* $Id: HyperEVP2D.cpp,v 1.3.8.1 2002-10-28 06:49:24 paklein Exp $ */
 #include "HyperEVP2D.h"
 #include "ifstreamT.h"
 #include "Utils.h"
 
-/* spatial dimension of problem */
-
 using namespace Tahoe;
 
+/* spatial dimension of problem */
 const int kNSD = 2;
 
-HyperEVP2D::HyperEVP2D(ifstreamT& in, const FiniteStrainT& element) :
-  HyperEVP3D  (in, element),  
+HyperEVP2D::HyperEVP2D(ifstreamT& in, const FDMatSupportT& support) :
+  HyperEVP3D  (in, support),  
   Material2DT (in, Material2DT::kPlaneStrain),
   f2Ds_ij   (kNSD),
   f2Dc_ijkl (dSymMatrixT::NumValues(kNSD))

@@ -1,3 +1,4 @@
+/* $Id: LocalJ2SSNonlinHard.h,v 1.5.6.1 2002-10-28 06:49:21 paklein Exp $ */
 #ifndef _LOCAL_J2_SS_NONLIN_HARD_H_
 #define _LOCAL_J2_SS_NONLIN_HARD_H_
 
@@ -25,7 +26,7 @@ class LocalJ2SSNonlinHard: public SSStructMatT,
 public:
 
 	/* constructor */
-	LocalJ2SSNonlinHard(ifstreamT& in, const SmallStrainT& element);
+	LocalJ2SSNonlinHard(ifstreamT& in, const SSMatSupportT& support);
 
 	/* initialization */
 	virtual void Initialize(void);

@@ -1,14 +1,12 @@
-/* $Id: ABAQUS_BCJ.cpp,v 1.4 2002-10-20 22:48:35 paklein Exp $ */
-/* created: paklein (05/09/2000)                                          */
-
+/* $Id: ABAQUS_BCJ.cpp,v 1.4.2.1 2002-10-28 06:48:45 paklein Exp $ */
+/* created: paklein (05/09/2000) */
 #include "ABAQUS_BCJ.h"
 
 #ifdef __F2C__
 
-/* function prototype */
-
 using namespace Tahoe;
 
+/* function prototype */
 extern "C" {
 int umat_(doublereal *stress, doublereal *statev, doublereal
 	*ddsdde, doublereal *sse, doublereal *spd, doublereal *scd,
@@ -31,8 +29,8 @@ int cycdmg7_([full argument list]);
 #endif
 
 /* constructor */
-ABAQUS_BCJ::ABAQUS_BCJ(ifstreamT& in, const FiniteStrainT& element):
-	ABAQUS_UMAT_BaseT(in, element)
+ABAQUS_BCJ::ABAQUS_BCJ(ifstreamT& in, const FDMatSupportT& support):
+	ABAQUS_UMAT_BaseT(in, support)
 {
 
 }

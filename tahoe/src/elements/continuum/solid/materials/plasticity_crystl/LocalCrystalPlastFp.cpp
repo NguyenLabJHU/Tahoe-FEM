@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.9 2002-10-20 22:49:07 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.9.2.1 2002-10-28 06:49:22 paklein Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -14,10 +14,9 @@
 #include "Utils.h"
 #include "ContinuumElementT.h"
 
-/* spatial dimensions of the problem */
-
 using namespace Tahoe;
 
+/* spatial dimensions of the problem */
 const int kNSD = 3;
 
 /* useful constant */
@@ -31,8 +30,8 @@ static const char* Labels[kNumOutput] = {"VM_stress", "IterNewton", "IterState"}
 const bool XTAL_MESSAGES = true;
 const int IPprnt = 1;
 
-LocalCrystalPlastFp::LocalCrystalPlastFp(ifstreamT& in, const FiniteStrainT& element) :
-  PolyCrystalMatT(in, element),  
+LocalCrystalPlastFp::LocalCrystalPlastFp(ifstreamT& in, const FDMatSupportT& support) :
+  PolyCrystalMatT(in, support),  
 
   // penalty parameter for detFp
   fPenalty (1.0e+0),

@@ -1,7 +1,5 @@
-/* $Id: VIB3D.cpp,v 1.5 2002-10-20 22:48:57 paklein Exp $ */
-/* created: paklein (04/20/1997)                                          */
-/* Base class for general 3D probabolistic Cauchy-Born materials.         */
-
+/* $Id: VIB3D.cpp,v 1.5.2.1 2002-10-28 06:49:11 paklein Exp $ */
+/* created: paklein (04/20/1997) */
 #include "VIB3D.h"
 
 #include <math.h>
@@ -20,12 +18,11 @@
 #include "IcosahedralPtsT.h"
 #include "FCCPtsT.h"
 
-/* constructors */
-
 using namespace Tahoe;
 
-VIB3D::VIB3D(ifstreamT& in, const FiniteStrainT& element):
-	NL_E_MatT(in, element),
+/* constructors */
+VIB3D::VIB3D(ifstreamT& in, const FDMatSupportT& support):
+	NL_E_MatT(in, support),
 	VIB_E_MatT(in, 3)
 {
 	/* construct point generator */

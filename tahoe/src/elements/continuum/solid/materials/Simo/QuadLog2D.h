@@ -1,7 +1,5 @@
-/* $Id: QuadLog2D.h,v 1.3 2002-07-02 19:55:50 cjkimme Exp $ */
-/* created: paklein (06/28/1997)                                          */
-/* (2D <-> 3D) translator for the QuadLog3D.                              */
-
+/* $Id: QuadLog2D.h,v 1.3.8.1 2002-10-28 06:49:05 paklein Exp $ */
+/* created: paklein (06/28/1997) */
 #ifndef _QUAD_LOG_2D_
 #define _QUAD_LOG_2D_
 
@@ -9,15 +7,15 @@
 #include "QuadLog3D.h"
 #include "Material2DT.h"
 
-
 namespace Tahoe {
 
+/** (2D <-> 3D) translator for the QuadLog3D */
 class QuadLog2D: public QuadLog3D, public Material2DT
 {
 public:
 
 	/* constructor */
-	QuadLog2D(ifstreamT& in, const FiniteStrainT& element);
+	QuadLog2D(ifstreamT& in, const FDMatSupportT& support);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.16 2002-10-20 22:49:07 paklein Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.16.2.1 2002-10-28 06:49:22 paklein Exp $ */
 #include "LocalCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -15,12 +15,10 @@
 #include "ContinuumElementT.h"
 #include "SpectralDecompT.h"
 
-/* spatial dimensions of the problem */
-
 using namespace Tahoe;
 
+/* spatial dimensions of the problem */
 const int kNSD = 3;
-
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
@@ -31,8 +29,8 @@ static const char* Labels[kNumOutput] = {"VM_stress", "IterNewton", "IterState"}
 const bool XTAL_MESSAGES = false;
 const int IPprnt = 1;
 
-LocalCrystalPlast::LocalCrystalPlast(ifstreamT& in, const FiniteStrainT& element) :
-  PolyCrystalMatT(in, element),  
+LocalCrystalPlast::LocalCrystalPlast(ifstreamT& in, const FDMatSupportT& support) :
+  PolyCrystalMatT(in, support),  
 
   // elastic deformation gradients
   fFeTr (kNSD,kNSD),

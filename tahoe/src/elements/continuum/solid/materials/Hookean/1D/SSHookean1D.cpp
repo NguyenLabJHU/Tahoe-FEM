@@ -1,10 +1,11 @@
+/* $Id: SSHookean1D.cpp,v 1.4.2.1 2002-10-28 06:48:49 paklein Exp $ */
 #include "SSHookean1D.h"
 
 using namespace Tahoe;
 
 /* constructor */
-SSHookean1D::SSHookean1D(ifstreamT& in, const SmallStrainT& element):
-	SSHookeanMatT(in, element),
+SSHookean1D::SSHookean1D(ifstreamT& in, const SSMatSupportT& support):
+	SSHookeanMatT(in, support),
 	IsotropicT(in)
 {
 

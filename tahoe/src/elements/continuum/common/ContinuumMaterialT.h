@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.h,v 1.6.8.1 2002-10-26 16:24:59 paklein Exp $ */
+/* $Id: ContinuumMaterialT.h,v 1.6.8.2 2002-10-28 06:49:27 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _CONTINUUM_MATERIAL_T_H_
 #define _CONTINUUM_MATERIAL_T_H_
@@ -32,6 +32,9 @@ public:
 
 	/** form of tangent matrix. \return symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
+
+	/** reference to the material support */
+	const MaterialSupportT& MaterialSupport(void) { return fMaterialSupport; };
 
 	/** reference to the host element */
 	const ContinuumElementT& ContinuumElement(void) const;

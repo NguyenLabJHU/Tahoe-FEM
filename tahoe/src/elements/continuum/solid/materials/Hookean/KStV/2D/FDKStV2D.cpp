@@ -1,15 +1,13 @@
-/* $Id: FDKStV2D.cpp,v 1.5 2002-07-02 19:55:46 cjkimme Exp $ */
-/* created: paklein (06/10/1997)                                          */
-
+/* $Id: FDKStV2D.cpp,v 1.5.8.1 2002-10-28 06:48:55 paklein Exp $ */
+/* created: paklein (06/10/1997) */
 #include "FDKStV2D.h"
 #include "ThermalDilatationT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
-FDKStV2D::FDKStV2D(ifstreamT& in, const FiniteStrainT& element):
-	FDKStV(in, element),
+/* constructor */
+FDKStV2D::FDKStV2D(ifstreamT& in, const FDMatSupportT& support):
+	FDKStV(in, support),
 	Material2DT(in)
 {
 	/* account for thickness */
