@@ -30,6 +30,9 @@ public:
 	/* initialization */
 	virtual void Initialize(void);
 
+	/* form of tangent matrix (symmetric by default) */
+	virtual GlobalT::SystemTypeT TangentType(void) const;
+
 	/* update internal variables */
 	virtual void UpdateHistory(void);
 
