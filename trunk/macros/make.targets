@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.11 2001-10-29 23:13:38 paklein Exp $
+# $Id: make.targets,v 1.12 2001-12-10 22:15:18 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -88,17 +88,26 @@ $(TARGET): $(OPT_LIB) $(LIBRARY)
 
 # include object list and create archive
 $(LIBRARY): $(LIB_DIR)/lib.junk
-	@ $(ECHO) " building archive..."
-	@ $(MAKE) build_library \
+	@ $(MAKE) $(BUILD_LIBRARY) \
 	"OBJECT_LIST = $(HOME_DIR)/object_list" \
 	"AR = $(AR)" \
 	"ARFLAGS = $(ARFLAGS)" \
+	"RANLIB = $(RANLIB)" \
+	"RANLIBFLAGS = $(RANLIBFLAGS)" \
 	"LIBRARY = $(LIBRARY)" \
 	"ECHO = $(ECHO)"
 
 # create archive
-build_library:
-	@ cd $(OBJ_DIR); $(AR) $(ARFLAGS) $(LIBRARY) $(OBJ)	
+BUILD_LIBRARY_AR:
+	@ $(ECHO) " building archive..."; \
+	cd $(OBJ_DIR); $(AR) $(ARFLAGS) $(LIBRARY) $(OBJ)	
+
+BUILD_LIBRARY_RANLIB:
+	@ cd $(OBJ_DIR); \
+	$(ECHO) " building archive..."; \
+	$(AR) $(ARFLAGS) $(LIBRARY) $(OBJ); \
+	$(ECHO) " running ranlib..."; \
+	$(RANLIB) $(RANLIBFLAGS) $(LIBRARY)
 
 # initialization
 init:

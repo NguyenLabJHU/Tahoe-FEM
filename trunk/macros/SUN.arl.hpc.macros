@@ -1,4 +1,4 @@
-# $Id: SUN.arl.hpc.macros,v 1.1 2001-09-21 19:45:38 sawimme Exp $
+# $Id: SUN.arl.hpc.macros,v 1.2 2001-12-10 22:15:17 paklein Exp $
 #
 # SUN: Forte 6.2
 #      - /opt/SUNWspro/WS6U2
@@ -33,3 +33,6 @@ ECHO        = /usr/bin/echo
 CAT         = cat
 INC_FLAGS   = -I/opt/SUNWspro/WS6U2/include/CC
 
+# command needed build library
+#BUILD_LIBRARY = BUILD_LIBRARY_RANLIB
+BUILD_LIBRARY = BUILD_LIBRARY_AR

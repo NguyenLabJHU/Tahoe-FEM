@@ -1,4 +1,4 @@
-# $Id: CARMEL.macros,v 1.1 2001-03-19 23:30:46 paklein Exp $
+# $Id: CARMEL.macros,v 1.2 2001-12-10 22:15:16 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__MPI__
 MPI_LFLAGS = -lmpi
@@ -28,3 +28,7 @@ LN          = ln -sf
 ECHO        = echo
 CAT         = cat
 INC_FLAGS   = -I/usr/include/cxx -I/usr/local/cplant/current/include
+
+# command needed build library
+#BUILD_LIBRARY = BUILD_LIBRARY_RANLIB
+BUILD_LIBRARY = BUILD_LIBRARY_AR
