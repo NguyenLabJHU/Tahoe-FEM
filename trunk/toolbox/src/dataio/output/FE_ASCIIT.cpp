@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.cpp,v 1.7 2002-02-12 02:11:18 paklein Exp $ */
+/* $Id: FE_ASCIIT.cpp,v 1.8 2002-02-18 08:59:17 paklein Exp $ */
 /* created: sawimme (05/20/1999) */
 
 #include "FE_ASCIIT.h"
@@ -138,7 +138,7 @@ void FE_ASCIIT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 		     << fElementSets[ID]->ID() << '\n';
 		out << " Output ID . . . . . . . . . . . . . . . . . . . = "
 		     << ID << '\n';
-		out << " Number of Blocks. . . . . . . . . . . . . . . . = "
+		out << " Number of blocks. . . . . . . . . . . . . . . . = "
 		     << fElementSets[ID]->NumBlocks() << '\n';
 		if (fElementSets[ID]->Changing())
 		{
@@ -163,9 +163,9 @@ void FE_ASCIIT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 	SetStreamPrefs(out);
 	if (!fInitRun[ID])
 	{
-		/* initialize geometry file */
+		/* initialize output file */
 		out.open(dat_file);
-		out << "\n O U T P U T   D A T A :\n\n";
+		InitResultsFile(out, ID);
 	
 		/* set flag */
 		fInitRun[ID] = true;
@@ -182,14 +182,14 @@ void FE_ASCIIT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 
 	/* print header */
 	out << "\n Group number. . . . . . . . . . . . . . . . . . = "
-	    << fElementSets[ID]->ID() << '\n';
+        << fElementSets[ID]->ID() << '\n';
 	out << " Output ID . . . . . . . . . . . . . . . . . . . = "
-	    << ID << '\n';
+		<< ID << '\n';	
 	out << " Print Step. . . . . . . . . . . . . . . . . . . = "
 	    << fElementSets[ID]->PrintStep() << '\n';
 	out << " Time. . . . . . . . . . . . . . . . . . . . . . = "
 	    << time << '\n';
-	out << " Number of Blocks. . . . . . . . . . . . . . . . = "
+	out << " Number of blocks. . . . . . . . . . . . . . . . = "
 	    << fElementSets[ID]->NumBlocks() << '\n';
 
 	/* write data */
@@ -199,6 +199,74 @@ void FE_ASCIIT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 /*************************************************************************
 * Private
 *************************************************************************/
+
+/* initialize the results file */
+void FE_ASCIIT::InitResultsFile(ostream& out, int ID)
+{
+	/* output set */
+	OutputSetT& set = *fElementSets[ID];
+
+	/* dimensions section */
+	out << "\n S U M M A R Y :\n\n";
+	out << " Group number. . . . . . . . . . . . . . . . . . = "
+        << fElementSets[ID]->ID() << '\n';
+	out << " Output ID . . . . . . . . . . . . . . . . . . . = "
+		<< ID << '\n';	
+	out << " Number of nodal values. . . . . . . . . . . . . = "
+	    << set.NumNodeValues() << '\n';
+	if (set.NumNodeValues() > 0)
+	{
+		out << " Labels:\n";
+		int count = 0;
+		const ArrayT<StringT>& n_labels = set.NodeOutputLabels();
+		for (int i = 0; i < n_labels.Length(); i++)
+		{
+			/* wrap */
+			if (count++ == 5) {
+				out << '\n';
+				count = 0;
+			}
+			out << setw(10) << n_labels[i];
+		}
+		out << '\n';
+	}
+	out << " Number of element values. . . . . . . . . . . . = "
+	    << set.NumElementValues() << '\n';
+	if (set.NumElementValues() > 0)
+	{
+		out << " Labels:\n";
+		int count = 0;
+		const ArrayT<StringT>& e_labels = set.ElementOutputLabels();
+		for (int i = 0; i < e_labels.Length(); i++)
+		{
+			/* wrap */
+			if (count++ == 5) {
+				out << '\n';
+				count = 0;
+			}
+			out << setw(10) << e_labels[i];
+		}
+		out << '\n';
+	}
+	out << " Number of blocks. . . . . . . . . . . . . . . . = "
+	    << set.NumBlocks() << '\n';
+	out << " Changing geometry . . . . . . . . . . . . . . . = "
+	    << set.Changing() << '\n';
+
+	/* write block information */
+	out << '\n';
+	for (int i = 0; i < fElementSets[ID]->NumBlocks(); i++)
+	{
+		/* block ID */
+		const StringT& block_ID = set.BlockID(i);		
+		out << " Block ID. . . . . . . . . . . . . . . . . . . . = " << block_ID << '\n';
+		out << " Number of nodes . . . . . . . . . . . . . . . . = " << set.BlockNodesUsed(block_ID).Length() << '\n';
+		out << " Number of elements. . . . . . . . . . . . . . . = " << set.NumBlockElements(block_ID) << '\n';
+	}
+
+	/* result section header */
+	out << "\n O U T P U T   D A T A :\n";
+}
 
 void FE_ASCIIT::WriteGeometryData(ostream& out, int ID)
 {
@@ -213,24 +281,23 @@ void FE_ASCIIT::WriteGeometryData(ostream& out, int ID)
 		coord_labels[i].Append(i+1);
 	}
 
+	/* collect set coordinates */
+	const iArrayT& nodes_used = fElementSets[ID]->NodesUsed();
+	dArray2DT set_coords(nodes_used.Length(), fCoordinates->MinorDim());
+	set_coords.RowCollect(nodes_used, *fCoordinates);
+
+	/* write coords */
+	out << "\n Nodal coordinates:\n";	
+	WriteNodeHeader(out, set_coords.MajorDim(), coord_labels);
+	WriteNodeValues(out, nodes_used, set_coords);
+	
 	const ArrayT<StringT>& blockIDs = fElementSets[ID]->BlockID();
 	for (int b=0; b < fElementSets[ID]->NumBlocks(); b++)
 	  {
-	    /* write coordinates */
-	    const iArrayT& nodes_used = fElementSets[ID]->BlockNodesUsed(blockIDs[b]);
-	    dArray2DT local_coordinates(nodes_used.Length(), nsd);
-	    local_coordinates.RowCollect(nodes_used, *fCoordinates);
-	
-	    out << "\n Nodal coordinates:\n";	
-	    out << " Block number . . . .  . . . . . . . . . . . . . = "
-		<< blockIDs[b] << '\n';
-	    WriteNodeHeader(out, local_coordinates.MajorDim(), coord_labels);
-	    WriteNodeValues(out, nodes_used, local_coordinates);
-	
 	    /* write connectivities */
 	    const iArray2DT* c = fElementSets[ID]->Connectivities(blockIDs[b]);
 	    out << "\n Connectivities:\n";
-	    out << " Block number . . . .  . . . . . . . . . . . . . = "
+	    out << " Block ID . . . .  . . . . . . . . . . . . . . . = "
 		<< blockIDs[b] << '\n';
 	    out << " Number of elements .  . . . . . . . . . . . . . = "
 		<< c->MajorDim() << '\n';
@@ -256,32 +323,32 @@ void FE_ASCIIT::WriteGeometryData(ostream& out, int ID)
 void FE_ASCIIT::WriteOutputData(ostream& out, int ID, const dArray2DT& n_values,
 	const dArray2DT& e_values)
 {
+	/* write node header */
+	out << "\n Nodal data:\n";	
+//	out << " Block number . . . .  . . . . . . . . . . . . . = " << fElementSets[ID]->ID() << '\n';
+	const ArrayT<StringT>& node_labels = fElementSets[ID]->NodeOutputLabels();
+
+	/* write node vars */
+	if (n_values.MajorDim () > 0)
+	{
+//NOTE do not divide nodal data by element blocks
+//			iArrayT nodes_used;
+//			dArray2DT blockvals;
+//			NodalBlockValues (ID, b, n_values, blockvals, nodes_used);
+
+		const iArrayT& nodes_used = fElementSets[ID]->NodesUsed();
+		WriteNodeHeader(out, nodes_used.Length(), node_labels);
+		WriteNodeValues(out, nodes_used, n_values);
+	}
+	else
+		WriteNodeHeader(out, 0, node_labels);
+
 	const ArrayT<StringT>& blockIDs = fElementSets[ID]->BlockID();
 	for (int b=0; b < fElementSets[ID]->NumBlocks(); b++)
 	  {
-	    /* write node header */
-	    out << "\n Nodal data:\n";	
-	    out << " Block number . . . .  . . . . . . . . . . . . . = "
-		<< blockIDs[b] << '\n';
-	    const ArrayT<StringT>& node_labels = fElementSets[ID]->NodeOutputLabels();
-
-	    /* write node vars */
-	    if (n_values.MajorDim () > 0)
-		{
-			iArrayT nodes_used;
-			dArray2DT blockvals;
-			NodalBlockValues (ID, b, n_values, blockvals, nodes_used);
-
-			WriteNodeHeader(out, nodes_used.Length(), node_labels);
-			WriteNodeValues(out, nodes_used, blockvals);
-		}
-		else
-			WriteNodeHeader(out, 0, node_labels);
-
-
 	    /* write element header */
 	    out << "\n Element data:\n";
-	    out << " Block number . . . .  . . . . . . . . . . . . . = "
+	    out << " Block ID . . . . . .  . . . . . . . . . . . . . = "
 		<< blockIDs[b] << '\n';
 	    const ArrayT<StringT>& elem_labels = fElementSets[ID]->ElementOutputLabels();
 

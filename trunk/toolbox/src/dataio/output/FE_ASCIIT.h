@@ -1,5 +1,5 @@
-/* $Id: FE_ASCIIT.h,v 1.3 2002-02-09 19:20:20 paklein Exp $ */
-/* created: sawimme (05/20/1999)                                          */
+/* $Id: FE_ASCIIT.h,v 1.4 2002-02-18 08:59:17 paklein Exp $ */
+/* created: sawimme (05/20/1999) */
 
 #ifndef _FE_ASCII_T_H_
 #define _FE_ASCII_T_H_
@@ -10,6 +10,7 @@
 /* direct members */
 #include <fstream.h>
 
+/** text file output */
 class FE_ASCIIT: public OutputBaseT
 {
 public:
@@ -34,6 +35,9 @@ public:
 		const dArray2DT& e_values);
 
 private:
+
+	/** initialize the results file */
+	void InitResultsFile(ostream& out, int ID);
 
 	/** set-by-set geometry output */
 	void WriteGeometryData(ostream& out, int ID);
