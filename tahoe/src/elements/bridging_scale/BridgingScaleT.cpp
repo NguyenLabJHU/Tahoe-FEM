@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.21 2002-08-17 19:28:33 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.22 2002-08-19 17:59:57 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -215,8 +215,10 @@ void BridgingScaleT::RegisterOutput(void)
 	set_ID.Append(ElementSupport().ElementGroupNumber(this) + 1);
 
 	/* register output at solid nodes */
+#if 0
 	OutputSetT output_set_solid(set_ID, GeometryT::kPoint, fSolidNodesUsed, n_labels);
 	fSolidOutputID = ElementSupport().RegisterOutput(output_set_solid);
+#endif
 
 	/* register output at particles */
 	OutputSetT output_set_particle(set_ID, GeometryT::kPoint, fParticlesUsed, n_labels);
@@ -299,7 +301,7 @@ void BridgingScaleT::CoarseFineU(void)
   const FieldT& field = Field();
   iArrayT atoms, elemconnect(parent.NumNodes());
   const dArray2DT& displacements = field[0];
-  fFineScaleU = displacements;
+  fFineScaleU.Dimension(fParticlesUsed.MajorDim(), displacements.MinorDim());
   dArrayT map, shape(parent.NumNodes()), temp(NumSD()), disp;
   dMatrixT tempmass(parent.NumNodes()), Nd(parent.NumNodes(), NumSD()), wglobal(fTotalNodes, NumSD());
   /* set global matrices for bridging scale calculations */
