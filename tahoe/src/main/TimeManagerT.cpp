@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.19.6.3 2004-03-09 08:56:29 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.19.6.4 2004-03-22 18:39:06 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 
@@ -168,15 +168,14 @@ bool TimeManagerT::Step(void)
 
 void TimeManagerT::ResetStep(void)
 {
+	const char caller[] = "TimeManagerT::ResetStep";
+
 	/* check that time has not been shifted */
-	if (fIsTimeShifted) throw ExceptionT::kGeneralFail;
+	if (fIsTimeShifted) ExceptionT::GeneralFail(caller);
 
 	/* too far */
 	if (fStepNum == 0)
-	{
-		cout << "\n TimeManagerT::ResetStep: already at the start time"<< endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		 ExceptionT::GeneralFail(caller, "already at the start time");
 	/* return to previous time */
 	else
 	{		
@@ -226,11 +225,8 @@ ScheduleT* TimeManagerT::Schedule(int num) const
 {
 	/* range check */
 	if (num < 0 || num >= fSchedule.Length())
-	{
-		cout << "\n TimeManagerT::Schedule: function number " << num << " is out of\n"
-		     <<   "     range {" << 0 << "," << fSchedule.Length() - 1 << "}" << endl;
-		throw ExceptionT::kOutOfRange;
-	}
+		ExceptionT::OutOfRange("TimeManagerT::Schedule", "schedule %d is out of range {0,%d}",
+			num, fSchedule.Length() - 1);
 
 	return fSchedule[num];
 }
