@@ -25,7 +25,6 @@ class	FEA_FormatT {
 								LocalArrayT& face_gamma_p, FEA_dVectorT& fgamma_p_surf, iArrayT& face_nodes   );
 		void Na					(	int n_en, ShapeFunctionT *fShapes, FEA_ShapeFunctionT &FEA_Shapes 		);
 		void Gradients 			(	ShapeFunctionT*,LocalArrayT&,LocalArrayT&,FEA_dMatrixT&,FEA_dMatrixT&	);
-		//void GradientSurface 	(	ShapeFunctionT*, const ParentDomainT& ,LocalArrayT&,LocalArrayT&,FEA_dMatrixT&,FEA_dMatrixT&	);
 		//void Gradients 		(	ShapeFunctionT*,LocalArrayT&,LocalArrayT&,FEA_dVectorT&,FEA_dVectorT&	);
 		void Displacements 		(	LocalArrayT &u_mat, dArrayT &u_vec 										);
 		void Interpolate 		(	ShapeFunctionT*,LocalArrayT&,LocalArrayT&,FEA_dVectorT&,FEA_dVectorT&  	);
