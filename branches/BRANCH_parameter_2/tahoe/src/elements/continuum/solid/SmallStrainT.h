@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.13.2.2 2004-02-05 18:47:13 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.13.2.3 2004-02-11 16:39:00 paklein Exp $ */
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
 
@@ -75,9 +75,9 @@ class SmallStrainT: public SolidElementT
 
 	/** return a pointer to a new material list. Recipient is responsible for freeing 
 	 * the pointer. 
-	 * \param nsd number of spatial dimensions
+	 * \param name list identifier
 	 * \param size length of the list */
-	virtual MaterialListT* NewMaterialList(int nsd, int size);
+	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
 
 	/** construct list of materials from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);

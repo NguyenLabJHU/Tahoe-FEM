@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList2DT.cpp,v 1.1.2.2 2004-02-10 07:17:54 paklein Exp $ */
+/* $Id: SSSolidMatList2DT.cpp,v 1.1.2.3 2004-02-11 16:39:01 paklein Exp $ */
 #include "SSSolidMatList2DT.h"
 #include "SSMatSupportT.h"
 
@@ -340,7 +340,8 @@ void SSSolidMatList2DT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	SolidMatListT::TakeParameterList(list);
 
-	/* construct materials */
+	/* construct materials - NOTE: subs have been defined as a choice, but
+	 * here we construct as many materials as are passed in */
 	AutoArrayT<SSSolidMatT*> materials;
 	const ArrayT<ParameterListT>& subs = list.Lists();
 	for (int i = 0; i < subs.Length(); i++) {

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.45.2.2 2004-02-05 18:47:16 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.45.2.3 2004-02-11 16:39:02 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -274,7 +274,7 @@ IntegratorT::ImpExpFlagT NodeManagerT::ImplicitExplicit(int group) const
 const FieldT* NodeManagerT::Field(const char* name) const
 {
 	for (int i = 0; i < fFields.Length(); i++)
-		if (fFields[i] && fFields[i]->Name() == name)
+		if (fFields[i] && fFields[i]->FieldName() == name)
 			return fFields[i];
 
 	/* not found */

@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList2DT.h,v 1.1.2.2 2004-02-10 07:17:54 paklein Exp $ */
+/* $Id: SSSolidMatList2DT.h,v 1.1.2.3 2004-02-11 16:39:01 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #ifndef _SS_MATLIST_2D_T_H_
 #define _SS_MATLIST_2D_T_H_
@@ -42,8 +42,6 @@ public:
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
-
-protected:
 
 	/** construct the specified material or NULL if the request cannot be completed */
 	SSSolidMatT* NewSSSolidMat(const StringT& list_name) const;

@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.35 2004-01-10 17:15:05 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.35.2.1 2004-02-11 16:38:58 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -423,6 +423,18 @@ void ContinuumElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
 {
 	/* inherited */
 	ElementBaseT::EchoConnectivityData(in, out);
+
+	/* construct group communicator */
+	const CommunicatorT& comm = ElementSupport().Communicator();
+	int color = (NumElements() > 0) ? 1 : CommunicatorT::kNoColor;
+	fGroupCommunicator = new CommunicatorT(comm, color, comm.Rank());
+}
+
+/* define the elements blocks for the element group */
+void ContinuumElementT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index)
+{
+	/* inherited */
+	ElementBaseT::DefineElements(block_ID, mat_index);
 
 	/* construct group communicator */
 	const CommunicatorT& comm = ElementSupport().Communicator();
@@ -856,8 +868,13 @@ void ContinuumElementT::PrintControlData(ostream& out) const
 
 void ContinuumElementT::ReadMaterialData(ifstreamT& in)
 {
-	const char caller[] = "ContinuumElementT::ReadMaterialData";
+#pragma message("delete me")
+#pragma unused(in)
 
+	const char caller[] = "ContinuumElementT::ReadMaterialData";
+	ExceptionT::GeneralFail(caller);
+
+#if 0
 	/* construct material list */
 	int size;
 	in >> size;
@@ -872,6 +889,7 @@ void ContinuumElementT::ReadMaterialData(ifstreamT& in)
 		if (fBlockData[i].MaterialID() < 0 || fBlockData[i].MaterialID() >= size)
 			ExceptionT::BadInputValue(caller, "material number %d for element block %d is out of range",
 				fBlockData[i].MaterialID()+1, i+1);
+#endif
 }
 
 /* use in conjunction with ReadMaterialData */
@@ -1168,6 +1186,14 @@ void ContinuumElementT::DefineInlineSub(const StringT& sub, ParameterListT::List
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
 {
+	/* create non-const this */
+	ContinuumElementT* non_const_this = const_cast<ContinuumElementT*>(this);
+
+	/* try material list */
+	MaterialListT* material_list = non_const_this->NewMaterialList(list_name, 0);
+	if (material_list)
+		return material_list;
+
 	/* body force */
 	if (list_name == "body_force")
 	{
