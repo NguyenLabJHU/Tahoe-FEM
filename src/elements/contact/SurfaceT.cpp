@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.21 2002-01-27 18:51:03 paklein Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.22 2002-01-27 23:06:34 paklein Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -153,15 +153,13 @@ void SurfaceT::InputSideSets
 
 	/* read side set */
 	StringT block_ID;
-	iArray2DT temp = model->SideSet (ss_ID[0]);
-	if (model->IsSideSetLocal(ss_ID[0]))
-	{
-	    side_set = temp;
+	side_set = model->SideSet(ss_ID[0]);
+	if (side_set.MajorDim() > 0 && model->IsSideSetLocal(ss_ID[0]))
 	    block_ID = model->SideSetGroupID(ss_ID[0]);
+	else {
+		iArray2DT temp = side_set;
+		model->SideSetGlobalToLocal(temp, side_set, block_ID);
 	}
-	else
-		model->SideSetGlobalToLocal(block_ID, side_set, temp);
-	temp.Free();
 	
 	/* global node numbers of faces from element group */
 	/* allocates to number of nodes per face */
