@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.cpp,v 1.8.12.1 2003-09-28 09:11:50 paklein Exp $ */
+/* $Id: SimoQ1P0.cpp,v 1.8.12.2 2003-11-08 02:08:37 paklein Exp $ */
 #include "SimoQ1P0.h"
 
 #include "ShapeFunctionT.h"
@@ -120,7 +120,7 @@ void SimoQ1P0::WriteRestart(ostream& out) const
 	UpdatedLagrangianT::WriteRestart(out);
 	
 	/* read restart data */
-	out << fElementVolume;
+	out << fElementVolume << '\n';
 }
 
 /***********************************************************************
