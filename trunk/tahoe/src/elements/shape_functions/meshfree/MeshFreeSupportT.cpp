@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.29 2004-08-06 20:22:32 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.30 2004-09-03 20:23:59 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "MeshFreeSupportT.h"
 
@@ -607,11 +607,13 @@ const dArray2DT& MeshFreeSupportT::DFieldAt(void) const
 /* write MLS statistics */
 void MeshFreeSupportT::WriteStatistics(ostream& out) const
 {
-	/* neighbor count data */
+	out << "\n MLS shape function data:\n";
+
+	/* nodal neighbor count data */
+	if (true) {
 	int min = fnNeighborData.MinMinorDim(0);
 	int max = fnNeighborData.MaxMinorDim();
 	int used = fNodesUsed.Length();
-	out << "\n MLS shape function data:\n";
 	out << " Minimum number of nodal neighbors . . . . . . . = " << min << '\n';
 	out << " Maximum number of nodal neighbors . . . . . . . = " << max << '\n';
 	out << " Average number of nodal neighbors . . . . . . . = ";
@@ -640,11 +642,12 @@ void MeshFreeSupportT::WriteStatistics(ostream& out) const
 	    << setw(kIntWidth) << "count" << '\n';
 	for (int k = 0; k < counts.Length(); k++)
 		out << setw(kIntWidth) << k
-	    	<< setw(kIntWidth) << counts[k] << '\n';	
+	    	<< setw(kIntWidth) << counts[k] << '\n';
+	}
 
 	/* nodal support data */
 	int d_width = OutputWidth(out, fNodalParameters.Pointer());
-	out << " Support size distribution (unscaled):\n";
+	out << "\n Support size distribution (unscaled):\n";
 	out << setw(d_width) << "min"
 	    << setw(d_width) << "max"
 	    << setw(d_width) << "avg" << '\n';
@@ -675,6 +678,49 @@ void MeshFreeSupportT::WriteStatistics(ostream& out) const
 			out << setw(d_width) << ((count > 0) ? sum/count : 0.0) << '\n';
 		else
 			out << setw(d_width) << 0.0 << '\n';
+		out << '\n';
+	}
+
+	/* element neighbor count data */
+	if (true) {
+	int min = feNeighborData.MinMinorDim(0);
+	int max = feNeighborData.MaxMinorDim();
+
+	/* collect neighbor distribution */
+	iArrayT counts(max + 1);
+	counts = 0;
+
+	/* skip nodes */
+	int used = 0;
+	if (fSkipElement.Length() == feNeighborData.MajorDim())
+	{
+		for (int j = 0; j < feNeighborData.MajorDim(); j++)
+			if (!fSkipElement[j]) {
+				counts[feNeighborData.MinorDim(j)]++;
+				used++;
+			}
+	}	
+	else
+	{
+		used = feNeighborData.MajorDim();
+		for (int j = 0; j < feNeighborData.MajorDim(); j++)
+			counts[feNeighborData.MinorDim(j)]++;		
+	}
+
+	out << " Minimum number of element neighbors . . . . . . . = " << min << '\n';
+	out << " Maximum number of element neighbors . . . . . . . = " << max << '\n';
+	out << " Average number of element neighbors . . . . . . . = ";
+	if (used != 0)
+		out << feNeighborData.Length()/used << '\n';
+	else
+		out << "-\n";
+
+	out << " Element neighbor number distribution:\n";
+	out << setw(kIntWidth) << "number"
+	    << setw(kIntWidth) << "count" << '\n';
+	for (int k = 0; k < counts.Length(); k++)
+		out << setw(kIntWidth) << k
+	    	<< setw(kIntWidth) << counts[k] << '\n';
 	}
 
 	/* memory requirements */
