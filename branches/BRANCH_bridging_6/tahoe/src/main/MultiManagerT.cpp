@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.9.16.6 2004-05-22 03:07:09 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.9.16.7 2004-05-25 23:06:38 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -106,13 +106,15 @@ void MultiManagerT::Initialize(InitCodeT)
 	/* correct overlap */
 	if (fCorrectOverlap) {
 	
-		fCBTikhonov = fK2= -99;
+		fCBTikhonov = fK2 = -99;
 		int nip = -99;
+		double r = -99; /* augmented lagrangian regularization */
 		in >> fCBTikhonov
 		   >> fK2
-		   >> nip;
-		if (fCBTikhonov < 0.0 || fK2 < 0.0)
-			ExceptionT::GeneralFail(caller, "regularization must be >= 0.0: %g, %g", fCBTikhonov, fK2);
+		   >> nip
+		   >> r;
+		if (fCBTikhonov < 0.0 || fK2 < 0.0 || r < 0.0)
+			ExceptionT::GeneralFail(caller, "regularization must be >= 0.0: %g, %g, %g", fCBTikhonov, fK2, r);
 	
 		const dArray2DT& fine_init_coords = fine_node_manager.InitialCoordinates();
 		const ParticlePairT* particle_pair = fFine->ParticlePair();
@@ -125,7 +127,7 @@ void MultiManagerT::Initialize(InitCodeT)
 		else if (fCorrectOverlap == 3)
 			fCoarse->CorrectOverlap_3(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2, nip);
 		else if (fCorrectOverlap == 4)
-			fCoarse->CorrectOverlap_4(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2, nip);
+			fCoarse->CorrectOverlap_4(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2, r, nip);
 		else
 			ExceptionT::GeneralFail(caller, "unrecognized overlap correction method %d", fCorrectOverlap);
 	}
