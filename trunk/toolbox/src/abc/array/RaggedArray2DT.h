@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.15 2003-11-21 23:31:56 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.16 2003-11-21 23:35:57 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 #ifndef _RAGGED_ARRAY_2D_T_H_
 #define _RAGGED_ARRAY_2D_T_H_
@@ -705,7 +705,7 @@ inline TYPE& RaggedArray2DT<TYPE>::operator()(int row, int col)
 template <class TYPE>
 inline const TYPE& RaggedArray2DT<TYPE>::operator()(int row, int col) const
 {
-	TYPE* prow = fPtrs[row];
+	const TYPE* prow = fPtrs[row];
 	return prow[col];
 }
 
