@@ -1,4 +1,4 @@
-/* $Id: Chain1D.cpp,v 1.1.2.1 2004-04-15 21:10:19 paklein Exp $ */
+/* $Id: Chain1D.cpp,v 1.1.2.2 2004-04-16 03:20:55 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Chain1D.h"
 #include "ElementsConfig.h"
@@ -65,6 +65,10 @@ Chain1D::Chain1D(ifstreamT& in, const FSMatSupportT& support):
 	/* construct the bond tables */
 	fLattice1D = new Lattice1DT(nshells);
 	fLattice1D->Initialize();
+
+	/* construct default bond density array */
+	fFullDensity.Dimension(fLattice1D->NumberOfBonds());
+	fFullDensity = 1.0;
 	
 	/* check */
 	if (fNearestNeighbor < kSmall)
@@ -128,14 +132,23 @@ void Chain1D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 	/* fetch function pointers */
 	PairPropertyT::ForceFunction force = fPairProperty->getForceFunction();
 	PairPropertyT::StiffnessFunction stiffness = fPairProperty->getStiffnessFunction();
-	
-	moduli = 0.0; 
+
+	/* bond density */
+	const double* density = fFullDensity.Pointer();
 	int nb = fLattice1D->NumberOfBonds();
+	const ElementCardT* element = MaterialSupport().CurrentElement();
+	if (element && element->IsAllocated()) {
+		const dArrayT& d_array = element->DoubleData();
+		density = d_array.Pointer(CurrIP()*nb);
+	}
+
+	/* sum over bonds */	
+	moduli = 0.0; 
 	double R4byV = fNearestNeighbor*fNearestNeighbor*fNearestNeighbor*fNearestNeighbor/fAtomicVolume;
 	for (int i = 0; i < nb; i++)
 	{
 		double ri = bond_length[i]*fNearestNeighbor;
-		double coeff = (stiffness(ri, NULL, NULL) - force(ri, NULL, NULL)/ri)/ri/ri;
+		double coeff = (*density++)*(stiffness(ri, NULL, NULL) - force(ri, NULL, NULL)/ri)/ri/ri;
 		fLattice1D->BondComponentTensor4(i, fBondTensor4);
 		moduli.AddScaled(R4byV*coeff, fBondTensor4);
 	}
@@ -152,14 +165,23 @@ void Chain1D::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 
 	/* fetch function pointer */
 	PairPropertyT::ForceFunction force = fPairProperty->getForceFunction();
-	
-	PK2 = 0.0;
+
+	/* bond density */
+	const double* density = fFullDensity.Pointer();
 	int nb = fLattice1D->NumberOfBonds();
+	const ElementCardT* element = MaterialSupport().CurrentElement();
+	if (element && element->IsAllocated()) {
+		const dArrayT& d_array = element->DoubleData();
+		density = d_array.Pointer(CurrIP()*nb);
+	}
+	
+	/* sum over bonds */
+	PK2 = 0.0;
 	double R2byV = fNearestNeighbor*fNearestNeighbor/fAtomicVolume;
 	for (int i = 0; i < nb; i++)
 	{
 		double ri = bond_length[i]*fNearestNeighbor;
-		double coeff = force(ri, NULL, NULL)/ri;
+		double coeff = (*density++)*force(ri, NULL, NULL)/ri;
 		fLattice1D->BondComponentTensor2(i, fBondTensor2);
 		PK2.AddScaled(R2byV*coeff, fBondTensor2);
 	}
@@ -174,12 +196,21 @@ double Chain1D::ComputeEnergyDensity(const dSymMatrixT& E)
 	/* fetch function pointer */
 	PairPropertyT::EnergyFunction energy = fPairProperty->getEnergyFunction();
 
-	double tmpSum  = 0.;	
+	/* bond density */
+	const double* density = fFullDensity.Pointer();
 	int nb = fLattice1D->NumberOfBonds();
+	const ElementCardT* element = MaterialSupport().CurrentElement();
+	if (element && element->IsAllocated()) {
+		const dArrayT& d_array = element->DoubleData();
+		density = d_array.Pointer(CurrIP()*nb);
+	}
+
+	/* sum over bonds */
+	double tmpSum  = 0.;	
 	for (int i = 0; i < nb; i++)
 	{
 		double r = bond_length[i]*fNearestNeighbor;
-		tmpSum += energy(r, NULL, NULL);
+		tmpSum += (*density++)*energy(r, NULL, NULL);
 	}
 	tmpSum /= fAtomicVolume;
 	
