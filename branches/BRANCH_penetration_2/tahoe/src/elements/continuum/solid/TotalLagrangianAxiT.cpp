@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianAxiT.cpp,v 1.2.12.3 2004-04-21 18:58:19 paklein Exp $ */
+/* $Id: TotalLagrangianAxiT.cpp,v 1.2.12.4 2004-05-03 23:53:46 paklein Exp $ */
 #include "TotalLagrangianAxiT.h"
 
 #include "ShapeFunctionT.h"
@@ -259,12 +259,16 @@ if (CurrIP() == 3) {
 				node_file.Append(".dat");
 				node_file.Prepend(path);
 				
-				/* open stream */
+				/* (re-)open stream */
 				ofstreamT out;
 				if (fOutputInit)
 					out.open_append(node_file);				
-				else
+				else {
 					out.open(node_file);					
+
+					/* Tecplot style data headers */				
+					out << "VARIABLES = \"step\" \"time\" \"J\" \"Na_r\" \"Na_z\" \"v_r\" \"v_z\" \"c_d\" \"c_s1\" \"c_s2\"" << endl;
+				}					
 					
 				/* write output */
 				int d_width = OutputWidth(out, &time);
