@@ -1,4 +1,4 @@
-# $Id: toolbox.extras,v 1.1 2002-03-06 00:27:29 paklein Exp $
+# $Id: toolbox.extras,v 1.2 2002-03-19 18:17:24 paklein Exp $
 #
 # additional make commands for the toolbox module
 #
@@ -9,6 +9,7 @@ default:
 	@ $(ECHO) " additional targets for (un-)installing optional modules:"
 	@ $(ECHO) "    touch_SEACAS - Sandia tools"
 	@ $(ECHO) "       touch_MPI - support for parallel execution"
+	@ $(ECHO) "     touch_METIS - domain decomposition using METIS"
 
 touch_SEACAS:
 	@ $(ECHO) "removing object files depending on SEACAS"
@@ -20,4 +21,9 @@ touch_MPI:
 	@ $(ECHO) "removing object files depending on MPI"
 	-@ $(RM) $(SRC_DIR)/parallel/CommunicatorT.o
 	@ $(ECHO) "NOTE: dependent modules must also be up to date"
-	
+
+touch_METIS:
+	@ $(ECHO) "removing object files depending on METIS"
+	-@ $(RM) $(SRC_DIR)/graph/GraphBaseT.o
+	@ $(ECHO) "NOTE: dependent modules must also be up to date"
+
