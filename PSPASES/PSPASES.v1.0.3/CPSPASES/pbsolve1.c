@@ -1,4 +1,4 @@
-/* $Id: pbsolve1.c,v 1.1 2005-01-03 05:55:34 paklein Exp $ */
+/* $Id: pbsolve1.c,v 1.2 2005-01-03 05:57:44 paklein Exp $ */
 /* pbsolve1.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -60,12 +60,16 @@ static integer c__11 = 11;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: pbsolve1.c,v 1.1 2005-01-03 05:55:34 paklein Exp $ +/ */
+/* /+ $Id: pbsolve1.c,v 1.2 2005-01-03 05:57:44 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
 	return b >= 0 ? a << b : (integer)((uinteger)a >> -b);
 };
+
+static integer max(integer a, integer b) {
+	return (a > b) ? a : b;
+}
 
 /*<    >*/
 /* Subroutine */ int pbsolve1_(integer *mysnodes, integer *nsupnode, integer *
