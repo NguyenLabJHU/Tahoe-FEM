@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSKStV1D.cpp,v 1.1 2004-07-20 23:16:49 rdorgan Exp $ */
+/* $Id: GradJ2SSKStV1D.cpp,v 1.2 2004-07-21 21:23:45 rdorgan Exp $ */
 #include "GradJ2SSKStV1D.h"
 #include "GradSSMatSupportT.h"
 #include "ElementCardT.h"
@@ -37,13 +37,6 @@ GradJ2SSKStV1D::GradJ2SSKStV1D(void):
 	fGradientModulus_hq    (1)
 {
 
-}
-
-/* initialization */
-void GradJ2SSKStV1D::Initialize(void)
-{
-	/* inherited */
-	HookeanMatT::Initialize();
 }
 
 /* update internal variables */
@@ -132,14 +125,18 @@ const dSymMatrixT& GradJ2SSKStV1D::s_ij(void)
 	int iteration = fGradSSMatSupport->GroupIterationNumber();
 	if (iteration > -1) /* elastic iteration */
 		fStress += StressCorrection(e_els, element, Young(), fk_r, fc_r, NumIP(), ip);
+
 	return fStress;	
 }
 
 /* yield criteria moduli */
 double GradJ2SSKStV1D::yc()
 {
+	/* stress tensor (loads element data and sets fStress) */
+	s_ij();
+
 	/* yield condition */
-	return YCModuli(CurrentElement(), Young(), fk_r, fc_r, NumIP(), CurrIP());
+	return YCModuli(fStress, CurrentElement(), Young(), fk_r, fc_r, NumIP(), CurrIP());
 }
 
 /* returns the strain energy density for the specified strain */
@@ -169,32 +166,45 @@ void GradJ2SSKStV1D::ComputeOutput(dArrayT& output)
 	/* stress tensor (loads element data and sets fStress) */
 	s_ij();
 
-	/* 1D -> 3D */
-	fStress_3D = 0.;
-	fStress_3D[0] = fStress[0];
-
-	/* pressure */
-	output[2] = fStress_3D.Trace()/3.0;
-
-	/* deviatoric Von Mises stress */
-	fStress_3D.Deviatoric();
-	double J2 = fStress_3D.Invariant2();
-	J2 = (J2 < 0.0) ? 0.0 : J2;
-	output[1] = sqrt(3.0*J2);
-
+	/* total strain */
+	output[0] = e()[0];
+	
 	const ElementCardT& element = CurrentElement();
 	if (element.IsAllocated())
 	{
 		/* plastic strain */
-		output[0] = fInternal[kalpha];
+		output[1] = fInternal[kalpha];
 		
 		/* status flags */
 		const iArrayT& flags = element.IntegerData();
 		if (flags[CurrIP()] == kIsPlastic) // output with update
-			output[0] += fInternal[kdgamma];
+			output[1] += fInternal[kdgamma];
+
+		/* isotropic hardening */
+		output[2] = fInternal[kdgamma];
+
+		/* gradient isotropic hardening */
+		output[3] = fInternal[kdgradgamma];
+
+		/* Laplacian isotropic hardening */
+		output[4] = fInternal[kdlapgamma];
 	}
 	else
-		output[0] = 0.0;
+	{
+		output[1] = 0.0;
+		output[2] = 0.0;
+		output[3] = 0.0;
+		output[4] = 0.0;
+	}
+
+	/* isotropic hardening conjugate force */
+	output[5] = K(output[2]);
+
+	/* gradient isotropic hardening conjugate force */
+	output[6] = Grad1R(output[2], output[3], output[4]);
+
+	/* Laplacian isotropic hardening conjugate force */
+	output[7] = Grad2R(output[2], output[3], output[4]);
 }
 
 /* implementation of the ParameterInterfaceT interface */

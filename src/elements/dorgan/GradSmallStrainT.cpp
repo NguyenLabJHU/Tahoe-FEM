@@ -97,6 +97,14 @@ void GradSmallStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		const iArray2DT& connects_lambda = fConnectivities_PMultiplier[i];
 		int fNumElements = connects.MajorDim();
 
+#if 0
+	cout << "  fNumElements: " << fNumElements << endl;
+	cout << "  fNumElementNodes_Disp: " << fNumElementNodes_Disp << endl;
+	cout << "  fNumElementNodes_PMultiplier: " << fNumElementNodes_PMultiplier << endl;
+	cout << "  fNumDOF_Disp: " << fNumDOF_Disp << endl;
+	cout << "  fNumDOF_PMultiplier: " << fNumDOF_PMultiplier << endl;
+	cout << "  fNumEQ_Total: " << fNumEQ_Total << endl;
+#endif	
 		/* dimension */
 		fEqnos[i].Dimension   (fNumElements, fNumEQ_Total);
 		iArray2DT fEqnos_Disp (fNumElements, fNumElementNodes_Disp *fNumDOF_Disp );
@@ -444,6 +452,10 @@ void GradSmallStrainT::SetLocalArrays(void)
 	/* register local arrays */
 	fPMultiplier->RegisterLocal(fLocPMultiplier);
 	fPMultiplier->RegisterLocal(fLocLastPMultiplier);
+
+	//	cout << "NumElementNodes(): " << NumElementNodes() << endl;
+	//	cout << "fPMultiplier->NumDOF(): " << fPMultiplier->NumDOF() << endl;
+	//	cout << "fLocPMultiplier.Length(): " << fLocPMultiplier.Length() << endl;
 }
 
 /* initialization functions */
@@ -481,6 +493,9 @@ void GradSmallStrainT::SetGlobalShape(void)
 
 	/* inherited */
 	SmallStrainT::SetGlobalShape();
+
+	cout << "fNodesPMultiplier.Length(): " << fNodesPMultiplier.Length() << endl;
+	cout << "fLocPMultiplier.Length(): " << fLocPMultiplier.Length() << endl;
 
 	/* collect element values of PMultiplier */
 	fConnectivities_All.RowAlias(CurrElementNumber(), fNodesPMultiplier);
@@ -634,27 +649,24 @@ void GradSmallStrainT::FormStiffness(double constK)
 		/********DEBUG*******/
 		if (fprint_Stiffness)
 		{
-			cout<<"            ip: "             << CurrIP()                                           <<endl;
-          		cout<<"                 PMultiplier    : " << fPMultiplier_List[CurrIP()]                              <<endl;
-            		cout<<"                 del_PMultiplier: " << fPMultiplier_List[CurrIP()] - fPMultiplier_last_List[CurrIP()] <<endl;
-			cout<<"                 odm_bh_ij : " << (fCurrMaterial_Grad->odm_hb_ij())[0]                <<endl;
-			cout<<"                 odm_hb_ij : " << (fCurrMaterial_Grad->odm_bh_ij())[0]                <<endl;
-			cout<<"                 gm_hh    : " << fCurrMaterial_Grad->gm_hh()                        <<endl;
-			cout<<"                 gm_hp    : " << fCurrMaterial_Grad->gm_hp()                        <<endl;
-			cout<<"                 gm_hq    : " << fCurrMaterial_Grad->gm_hq()                        <<endl;
-			cout<<"                 h        : " << fh                                                 <<endl;
-			cout<<"                 p        : " << fp                                                 <<endl;
-			cout<<"                 q        : " << fq                                                 <<endl;
-			cout<<"                 B        : " << fB                                                 <<endl;
-			//			for (int i = 0; i < fNumElementNodes_PMultiplier*fNumDOF_PMultiplier; i++)
-			//				cout<<"                 h[" << i << "]     : " << fh[i]                                <<endl;
-			//			for (int i = 0; i < fNumElementNodes_PMultiplier*fNumDOF_PMultiplier; i++)
-			//				cout<<"                 p[" << i << "]     : " << fp[i]                                <<endl;
-			//			for (int i = 0; i < fNumElementNodes_PMultiplier*fNumDOF_PMultiplier; i++)
-			//				cout<<"                 q[" << i << "]     : " << fq[i]                                <<endl;
-			//			for (int i = 0; i < fNumElementNodes_Disp; i++)
-			//				cout<<"                 B[" << i << "]     : " << fB[i]                                <<endl;
-			cout<<"                 scale    : " << scale                                              <<endl;
+			cout<<"            ip: "             << CurrIP()                                                 <<endl;
+			cout<<"                 strain         : " << (fStrain_List[CurrIP()])[0]                        <<endl;
+			cout<<"                 stress         : " << (fCurrMaterial_Grad->s_ij())[0]                    <<endl;
+			cout<<"                 yc             : " << fCurrMaterial_Grad->yc()                           <<endl;
+			cout<<"                 PMultiplier    : " << fPMultiplier_List[CurrIP()]                        <<endl;
+			cout<<"                 del_PMultiplier: " << fPMultiplier_List[CurrIP()] - fPMultiplier_last_List[CurrIP()] <<endl;
+			cout<<"                 GradPMultiplier: " << fGradPMultiplier_List[CurrIP()]                    <<endl;
+			cout<<"                 LapPMultiplier : " << fLapPMultiplier_List[CurrIP()]                     <<endl;
+			cout<<"                 odm_bh_ij      : " << (fCurrMaterial_Grad->odm_hb_ij())[0]               <<endl;
+			cout<<"                 odm_hb_ij      : " << (fCurrMaterial_Grad->odm_bh_ij())[0]               <<endl;
+			cout<<"                 gm_hh          : " << fCurrMaterial_Grad->gm_hh()                        <<endl;
+			cout<<"                 gm_hp          : " << fCurrMaterial_Grad->gm_hp()                        <<endl;
+			cout<<"                 gm_hq          : " << fCurrMaterial_Grad->gm_hq()                        <<endl;
+			cout<<"                 h              : " << fh                                                 <<endl;
+			cout<<"                 p              : " << fp                                                 <<endl;
+			cout<<"                 q              : " << fq                                                 <<endl;
+			cout<<"                 B              : " << fB                                                 <<endl;
+			cout<<"                 scale          : " << scale                                              <<endl;
 		}
 		/*******************/
 	}
@@ -697,23 +709,23 @@ void GradSmallStrainT::FormStiffness(double constK)
 		{
 			cout<<"                 K("<< i << ",j): ";
 			for (int j=0; j < fNumElementNodes_Disp * fNumDOF_Disp; j++)
-				cout << fK_bb(j)[i] << "     ";
+				cout << fK_bb(j)[i] << "  ";
 			for (int j=0; j < fNumElementNodes_PMultiplier * fNumDOF_PMultiplier; j++)
-				cout << fK_bh(j)[i] << "         ";
+				cout << fK_bh(j)[i] << "      ";
 			cout << endl;
 		}
 		for (int i=0; i < fNumElementNodes_PMultiplier * fNumDOF_PMultiplier; i++)
 		{
 			cout<<"                 K("<< i << ",j): ";
 			for (int j=0; j < fNumElementNodes_Disp * fNumDOF_Disp; j++)
-				cout << fK_hb(j)[i] << "     ";
+				cout << fK_hb(j)[i] << "  ";
 			for (int j=0; j < fNumElementNodes_PMultiplier * fNumDOF_PMultiplier; j++)
 			{
 				cout << fK_hh(j)[i] << "+";
 				if (fK_ct(j)[i] != 0)
-					cout << "cst" << "     ";
+					cout << "cst" << "  ";
 				else
-					cout << "0.0" << "     ";
+					cout << "0.0" << "  ";
 			}
 			cout << endl;
 		}
@@ -781,23 +793,24 @@ void GradSmallStrainT::FormKd(double constK)
 		/********DEBUG*******/
 		if (fprint_Kd)
 		{
-			cout<<"            ip: "             << CurrIP()                                           <<endl;
-                        cout<<"                 PMultiplier    : " << fPMultiplier_List[CurrIP()]                              <<endl;
-                        cout<<"                 del_PMultiplier: " << fPMultiplier_List[CurrIP()] - fPMultiplier_last_List[CurrIP()] <<endl;
-			cout<<"                 odm_bh_ij : " << (fCurrMaterial_Grad->odm_hb_ij())[0]                <<endl;
-			cout<<"                 odm_hb_ij : " << (fCurrMaterial_Grad->odm_bh_ij())[0]                <<endl;
-			cout<<"                 gm_hh    : " << fCurrMaterial_Grad->gm_hh()                        <<endl;
-			cout<<"                 gm_hp    : " << fCurrMaterial_Grad->gm_hp()                        <<endl;
-			cout<<"                 gm_hq    : " << fCurrMaterial_Grad->gm_hq()                        <<endl;
-			cout<<"                 h        : " << fh                                                 <<endl;
-			cout<<"                 p        : " << fp                                                 <<endl;
-			cout<<"                 q        : " << fq                                                 <<endl;
-			cout<<"                 B        : " << fB                                                 <<endl;
-			cout<<"                 scale    : " << scale                                              <<endl;
-			for (int i=0; i < neq_Disp; i++)
-				cout<<"                 RHS_Disp["<< i << "] : " << scale*fNEEvec[i] << endl;
-			for (int i=0; i < neq_PMultiplier; i++)
-				cout<<"                 RHS_PMultiplier["<< i << "]: " << -scale*yield*fhT[i] << endl;
+			cout<<"            ip: "                   << CurrIP()                                           <<endl;
+			cout<<"                 strain         : " << (fStrain_List[CurrIP()])[0]                        <<endl;
+			cout<<"                 stress         : " << (fCurrMaterial_Grad->s_ij())[0]                    <<endl;
+			cout<<"                 yc             : " << fCurrMaterial_Grad->yc()                           <<endl;
+			cout<<"                 PMultiplier    : " << fPMultiplier_List[CurrIP()]                        <<endl;
+			cout<<"                 del_PMultiplier: " << fPMultiplier_List[CurrIP()] - fPMultiplier_last_List[CurrIP()] <<endl;
+			cout<<"                 GradPMultiplier: " << fGradPMultiplier_List[CurrIP()]                    <<endl;
+			cout<<"                 LapPMultiplier : " << fLapPMultiplier_List[CurrIP()]                     <<endl;
+			cout<<"                 odm_bh_ij      : " << (fCurrMaterial_Grad->odm_hb_ij())[0]               <<endl;
+			cout<<"                 odm_hb_ij      : " << (fCurrMaterial_Grad->odm_bh_ij())[0]               <<endl;
+			cout<<"                 gm_hh          : " << fCurrMaterial_Grad->gm_hh()                        <<endl;
+			cout<<"                 gm_hp          : " << fCurrMaterial_Grad->gm_hp()                        <<endl;
+			cout<<"                 gm_hq          : " << fCurrMaterial_Grad->gm_hq()                        <<endl;
+			cout<<"                 h              : " << fh                                                 <<endl;
+			cout<<"                 p              : " << fp                                                 <<endl;
+			cout<<"                 q              : " << fq                                                 <<endl;
+			cout<<"                 B              : " << fB                                                 <<endl;
+			cout<<"                 scale          : " << scale                                              <<endl;
 		}
 		/*******************/
 	}

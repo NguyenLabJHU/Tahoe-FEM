@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSKStV1D.h,v 1.1 2004-07-20 23:16:49 rdorgan Exp $ */
+/* $Id: GradJ2SSKStV1D.h,v 1.2 2004-07-21 21:23:45 rdorgan Exp $ */
 #ifndef _GRAD_J2_SS_KSTV_1D_H_
 #define _GRAD_J2_SS_KSTV_1D_H_
 
@@ -19,9 +19,6 @@ public:
 	/** constructor */
 	GradJ2SSKStV1D(void);
 
-	/* initialization */
-	virtual void Initialize(void);
-	
 	/** \name flags */
 	/*@{*/
 	virtual bool HasHistory(void) const { return true; };
