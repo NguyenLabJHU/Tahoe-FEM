@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.22 2004-10-14 18:57:25 paklein Exp $ */
+/* $Id: nArray2DT.h,v 1.23 2005-02-01 16:53:13 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #ifndef _NARRAY2D_T_H_
 #define _NARRAY2D_T_H_
@@ -1013,14 +1013,16 @@ void nArray2DT<nTYPE>::BlockRowCopyAt(const nArray2DT& source, int start, int nr
 	/* quick exit */
 	if (source.Length() == 0) return;
 
+	/* number of rows to copy */
+	nrows = (nrows == -1) ? source.MajorDim() : nrows;
+
 #if __option(extended_errorcheck)
 	/* dimensions check */
 	if (fMinorDim != source.fMinorDim) ExceptionT::SizeMismatch();
-	if (start + source.fMajorDim > fMajorDim) ExceptionT::OutOfRange();
+	if (start + nrows > fMajorDim) ExceptionT::OutOfRange();
 #endif
 
 	/* copy */
-	nrows = (nrows == -1) ? source.MajorDim() : nrows;
 	MemCopy((*this)(start), source.Pointer(), nrows*source.MinorDim());
 }
 
