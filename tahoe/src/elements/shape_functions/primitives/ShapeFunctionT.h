@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.3 2001-05-17 19:18:15 ebmarin Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.3.4.1 2001-06-19 23:01:58 paklein Exp $ */
 /* created: paklein (06/26/1996)                                          */
 /* interface for element shape functions. controls domain representation  */
 /* and field representation and spatial derivatives. integration control  */
@@ -21,15 +21,12 @@ public:
 	enum StrainOptionT {kStandardB = 0,
 	                  kMeanDilBbar = 1};
 
-/* constructors */
+	/* constructors */
 	ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP, const LocalArrayT& coords,
 		int B_option);
 	ShapeFunctionT(const ShapeFunctionT& link, const LocalArrayT& coords);
 		// synchronized during integration and shared parent domain,
 		// but different coordinates.
-
-	/* accessors */
-//	int NumDOF(void) const;	
 
 	/* type of the domain coordinates */
 	LocalArrayT::TypeT DomainCoordType(void) const;
@@ -128,9 +125,6 @@ private:
 	/* work space */
 	dArrayT fv1, fv2;
 };
-
-/* inlines */
-//inline int ShapeFunctionT::NumDOF(void) const { return fNumDOF; }
 
 /* type of the domain coordinates */
 inline LocalArrayT::TypeT ShapeFunctionT::DomainCoordType(void) const
