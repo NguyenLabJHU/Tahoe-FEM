@@ -1,6 +1,0 @@
-@
-# $Id: run.batch,v 1.3 2004-06-25 01:27:57 paklein Exp $
-material.solid/run.batch
-material.surface/run.batch
-stress.smoothing/run.batch
-
