@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.22 2004-09-09 23:54:55 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.23 2004-11-19 23:40:31 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 
@@ -17,6 +17,7 @@ using namespace Tahoe;
 PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
 	NLSolver(fe_manager, group),
 	fRestart_count(-1),
+	fOutputFlag(kAtRestart),
 	fSearchIterations(3),
 	fOrthogTolerance(0.25),
 	fMaxStepSize(2.5)
@@ -54,6 +55,12 @@ void PCGSolver_LS::DefineParameters(ParameterListT& list) const
 	restart.AddLimit(0, LimitT::LowerInclusive);
 	list.AddParameter(restart);
 
+	/* output flag */
+	ParameterT output_flag(ParameterT::Enumeration, "output_flag");
+	output_flag.AddEnumeration("all_iterations", kAllIterations);
+	output_flag.AddEnumeration("at_restart", kAtRestart);
+	output_flag.SetDefault(fOutputFlag);
+
 	/* line search iterations */
 	ParameterT line_search_iterations(fSearchIterations, "line_search_iterations");
 	line_search_iterations.SetDefault(fSearchIterations);
@@ -81,6 +88,8 @@ void PCGSolver_LS::TakeParameterList(const ParameterListT& list)
 	fSearchIterations = list.GetParameter("line_search_iterations");
 	fOrthogTolerance = list.GetParameter("line_search_tolerance");
 	fMaxStepSize = list.GetParameter("max_step");
+	int output_flag = list.GetParameter("output_flag");
+	fOutputFlag = (output_flag == kAllIterations) ? kAllIterations : kAtRestart;
 
 	/* redefining inherited parameters */
 	fReformTangentIterations = fRestart;
@@ -174,6 +183,9 @@ void PCGSolver_LS::CGSearch(void)
 		/* output control */
 		fVerbose = 0;
 	}
+
+	/* override */
+	if (fOutputFlag == kAllIterations) fVerbose = 1;
 
 	/* check recalculation of LHS */
 	if (fRestart_count == (fRestart - 1))
