@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.36 2005-01-25 23:13:22 raregue Exp $ */
+/* $Id: DetCheckT.cpp,v 1.37 2005-02-08 22:42:48 cfoster Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -103,7 +103,13 @@ int DetCheckT::IsLocalized(dArrayT& normal)
 
 bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 							AutoArrayT <dArrayT> &slipdirs)
-//							AutoArrayT <dArrayT> &slipdirs, double detA)
+{
+  double dummy =1.0;
+  return IsLocalized_SS( normals, slipdirs, dummy);
+}
+
+bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
+							AutoArrayT <dArrayT> &slipdirs, double detA)
 {
   int nsd =fs_jl.Rows();
 	dArrayT normal(nsd), slipdir(nsd);
@@ -111,7 +117,7 @@ bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 	dMatrixEXT A(nsd); //acoustic tensor 
 	/* for eigen analysis */
 	dArrayT realev(3), imev(3), altnormal_i(3), altnormal_ii(3);
-	double detA;
+	//double detA;
 	
 	if (fs_jl.Rows() == 2)
 	{
@@ -172,8 +178,8 @@ bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 		return check;
 	}
 	else
-		return DetCheck3D_SS(normals,slipdirs);
-		//return DetCheck3D_SS(normals,slipdirs, detA);
+		//return DetCheck3D_SS(normals,slipdirs);
+		return DetCheck3D_SS(normals,slipdirs, detA);
 }
 
 
@@ -280,12 +286,12 @@ int DetCheckT::DetCheck2D(dArrayT& normal)
 /* 3D determinant check function */
 /* assumes small strain formulation */
 bool DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
-							AutoArrayT <dArrayT> &slipdirs)
-//							AutoArrayT <dArrayT> &slipdirs, double detAmin)
+//							AutoArrayT <dArrayT> &slipdirs)
+							AutoArrayT <dArrayT> &slipdirs, double detAmin)
 {
 	int i,j,k,l,m,n; // counters 
 	
-	double detAmin;
+	//double detAmin;
 	
 	/* calculated normal at particular angle increment */
 	dArrayT normal(3);
