@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.33 2004-07-15 08:25:57 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.34 2004-09-07 19:07:57 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
@@ -405,17 +405,17 @@ void CSEBaseT::TakeParameterList(const ParameterListT& list)
 {
 	const char caller[] = "CSEBaseT::TakeParameterList";
 
+	/* element geometry - need to set geometry before calling inherited method */
+	const ParameterListT& geom = list.GetListChoice(*this, "surface_geometry");
+	fGeometryCode = GeometryT::string2CodeT(geom.Name());
+	fNumIntPts = geom.GetParameter("num_ip");
+
 	/* inherited */
 	ElementBaseT::TakeParameterList(list);
 
 	/* take parameters */
 	fCloseSurfaces = list.GetParameter("close_surfaces");
 	fOutputArea = list.GetParameter("output_area");
-
-	/* element geometry */
-	const ParameterListT& geom = list.GetListChoice(*this, "surface_geometry");
-	fGeometryCode = GeometryT::string2CodeT(geom.Name());
-	fNumIntPts = geom.GetParameter("num_ip");
 
 	/* nodal output codes */
 	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
