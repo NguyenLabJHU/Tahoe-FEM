@@ -1,4 +1,4 @@
-/* $Id: J2SimoC0HardeningT.h,v 1.2 2001-06-04 23:40:18 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.h,v 1.3 2001-10-24 02:20:04 paklein Exp $ */
 /* created: paklein (05/01/2001) */
 
 #ifndef _J2_SIMO_C0_HARD_T_H_
@@ -60,17 +60,32 @@ protected:
 
 	/** write parameters */
 	void Print(ostream& out) const;
+
+	/** write material model name */
 	void PrintName(ostream& out) const;
 	
-	/** compute trial elastic state - return reference to isochoric,
-	 * trial elastic stretch */
-	const dSymMatrixT& TrialElasticState(const dMatrixT& F_total,
+	/** compute trial elastic state.
+	 * \param F_mechanical mechanical part of the deformation gradient
+	 * \param f_relative relative deformation gradient mapping F_mechanical
+	 *        from the beginning to the end of the current time increment
+	 * \param element reference to the current element information
+	 * \param ip current integration point 
+	 * \return reference to isochoric, trial elastic stretch */
+	const dSymMatrixT& TrialElasticState(const dMatrixT& F_mechanical,
 		const dMatrixT& f_relative, ElementCardT& element, int ip);
+
+	/** determine elastic or plastic loading for the current step. Returns 1 if the 
+	 * trial elastic strain state lies outside of the yield surface. Operates on the
+	 * deformation state computed/stored with the last call to 
+	 * J2SimoC0HardeningT::TrialElasticState
+	 * \param element reference to the current element information
+	 * \param ip current integration point */
+	int PlasticLoading(ElementCardT& element, int ip);
 			
-	/** return the correction to stress vector computed by the mapping the
-	 * stress back to the yield surface */
-	const dSymMatrixT& StressCorrection(const dMatrixT& F_total,
-		const dMatrixT& f_relative, ElementCardT& element, int ip);
+	/** apply return mapping. Return the correction to stress vector computed by 
+	 * the mapping the stress back to the yield surface. Operates on the material
+	 * state set with the last call to J2SimoC0HardeningT::PlasticLoading */
+	const dSymMatrixT& StressCorrection(ElementCardT& element, int ip);
 
 	/** return the correction to moduli due to plasticity (if any)
 	 *
@@ -84,6 +99,8 @@ protected:
 
 	/** element level data */
 	void Update(ElementCardT& element);
+
+	/** reset element level data */
 	void Reset(ElementCardT& element);
 
 	/* hardening functions and their 1st derivatives */
@@ -94,16 +111,11 @@ protected:
 
 private:
 
-	/** initialize intermediate state from F_n (for ) */
-	void InitIntermediate(const dMatrixT& F_total, const dMatrixT& f_relative);
+	/** initialize intermediate state from F_n */
+	void InitIntermediate(const dMatrixT& F_mechanical, const dMatrixT& f_relative);
 
 	/** load element data for the specified integration point */
 	void LoadData(const ElementCardT& element, int ip);
-
-	/** returns 1 if the trial elastic strain state lies outside of the
-	 * yield surface - assumes trial elastic state has been set first */
-	int PlasticLoading(const dMatrixT& F_total, const dMatrixT& f_relative,
-		ElementCardT& element, int ip);
 
 	/** evaluate single parameters yield function */
 	double YieldCondition(const dSymMatrixT& stress, double alpha) const;
