@@ -1,4 +1,4 @@
-# $Id: DARWIN-3.3.LAM.macros,v 1.1.2.1 2002-12-08 20:54:57 paklein Exp $
+# $Id: DARWIN-3.3.LAM.macros,v 1.1.2.2 2003-01-07 16:36:46 paklein Exp $
 #
 # macros for Mac OS X using the GNU distribution provided with
 # the Apple Developer tools in addition to the LAM implementation
@@ -16,7 +16,7 @@ COMP_C      = mpicc
 COMP_CC     = mpic++
 COMP_F      = mpif77
 DEFINES     = -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -D__GCC_3__
-MORE_CFLAGS = -O -DNDEBUG -g
+MORE_CFLAGS = -DNDEBUG -g
 #MORE_CFLAGS = -g
 MY_CFLAGS   = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(MY_CFLAGS)
@@ -28,7 +28,7 @@ AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = ranlib
 RANLIBFLAGS =
-MAKE_OPTS   = -s
+MAKE_OPTS   =
 RM          = rm
 RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf
