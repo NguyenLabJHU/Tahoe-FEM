@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.17 2002-12-11 23:13:15 cjkimme Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.18 2002-12-17 08:58:18 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -679,6 +679,9 @@ void ElementSupportT::WriteOutput(int ID, const dArray2DT& n_values,
 #endif
 }
 
-
-
-
+#ifndef _SIERRA_TEST_
+const OutputSetT& ElementSupportT::OutputSet(int ID) const
+{
+	return FEManager().OutputSet(ID);
+}
+#endif
