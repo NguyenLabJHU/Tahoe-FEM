@@ -1,4 +1,4 @@
-/* $Id: PointPlots.cpp,v 1.12 2003-02-25 14:34:36 sawimme Exp $ */
+/* $Id: PointPlots.cpp,v 1.13 2003-02-25 15:05:37 sawimme Exp $ */
 #include "PointPlots.h"
 #include "ExceptionT.h"
 #include "TecPlotT.h"
@@ -144,7 +144,7 @@ void PointPlots::TranslateVariables (void)
 	    break;
 	  }
 	default:
-	  throw ExceptionT::kGeneralFail;
+	  ExceptionT::GeneralFail ("PointPlots::TranslateVariables","Unacceptable output format %i", fOutputFormat);
 	}
 
       // so far, all output formats use this format
@@ -168,9 +168,5 @@ void PointPlots::OpenFile (ofstreamT& o, int index, int digits, StringT& ext) co
   remove (filename);
   o.open (filename);
   if (!o.is_open())
-    {
-      fMessage << "\nPointPlots::OpenFile cannot open file: "
-	       << filename << "\n\n";
-      throw ExceptionT::kGeneralFail;
-    }
+    ExceptionT::GeneralFail ("PointPlots::OpenFile","Cannot open file %s", filename.Pointer());
 }
