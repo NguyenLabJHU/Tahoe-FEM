@@ -1,4 +1,4 @@
-/* $Id: SolidMatList1DT.cpp,v 1.6 2003-01-29 07:34:58 paklein Exp $ */
+/* $Id: SolidMatList1DT.cpp,v 1.6.6.1 2003-05-05 22:45:31 hspark Exp $ */
 #include "SolidMatList1DT.h"
 #include "SolidMatSupportT.h"
 #include "fstreamT.h"
@@ -6,6 +6,8 @@
 /* 1D material types codes */
 /* Add small strain linear elastic material here */
 #include "SSHookean1D.h"
+
+using namespace Tahoe;
 
 /* constructor */
 SolidMatList1DT::SolidMatList1DT(int length, const SolidMatSupportT& support):

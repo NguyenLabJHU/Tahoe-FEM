@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.39.2.4 2003-04-29 21:49:47 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.39.2.5 2003-05-05 22:45:33 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -453,7 +453,7 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 			K_AC.MultAB(K_G_NG, G_Interpolation);
 			K_CA.Transpose(K_AC);
 #endif
-		
+
 			/* loop until both solved */
 			int group_num = 0;
 			double atoms_res, continuum_res, combined_res_0 = 0.0;
@@ -563,7 +563,7 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms, ofstream& log_out) const
 {
 	const char caller[] = "FEExecutionManagerT::RunDynamicBridging";
-	    
+	
 	/* configure ghost nodes */
 	int group = 0;
 	StringT bridging_field = "displacement";
@@ -584,7 +584,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		/* set to initial condition */
 		atoms.InitialCondition();
 		continuum.InitialCondition();
-
+		
 		/* read restart information */
 		atoms.ReadRestart();
 		continuum.ReadRestart();
@@ -593,15 +593,13 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
                 int nfesteps = continuum_time->NumberOfSteps();
                 double mddt = atom_time->TimeStep();
                 double fedt = continuum_time->TimeStep();
-                int ratio = fedt/mddt;		// # of MD timesteps per FE timestep (assume is an integer)
-                cout << "number of fe steps = " << nfesteps << endl;
-                cout << "md time step = " << mddt << endl;
-                cout << "fe time step = " << fedt << endl;
+                double d_ratio = fedt/mddt;		
+                int ratio = int((2.0*d_ratio + 1.0)/2.0);
                 cout << "time step ratio = " << ratio << endl;
 
                 /* running status flag */
                 ExceptionT::CodeT error = ExceptionT::kNoError;		
-                        
+				
                 /* now loop over continuum and atoms after initialization */
                 for (int i = 0; i < nfesteps; i++)	// FE loop
                 {
@@ -610,7 +608,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
                         atom_time->Step();	
                         
                         /* initialize step */
-                        if (error == ExceptionT::kNoError) error = atoms.InitStep();
+                        if (1 || error == ExceptionT::kNoError) error = atoms.InitStep();
                         
                         /* solve atoms */
                         if (1 || error == ExceptionT::kNoError) {
@@ -622,10 +620,13 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
                         if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();    
                     }
                     continuum_time->Step();
-                        
+					
                     /* initialize step */
-                    if (error == ExceptionT::kNoError) error = continuum.InitStep();
+                    if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
                     
+					/* apply solution to continuum - need to put this somewhere */
+					continuum.ProjectField(bridging_field, *atoms.NodeManager());
+					
                     /* solve continuum */
                     if (1 || error == ExceptionT::kNoError) {
                             continuum.ResetCumulativeUpdate(group);
