@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.26 2004-05-06 18:54:44 cjkimme Exp $ */
+/* $Id: FieldT.cpp,v 1.27 2004-05-10 17:18:02 paklein Exp $ */
 #include "FieldT.h"
 
 #include "fstreamT.h"
@@ -476,7 +476,7 @@ void FieldT::SetLocalEqnos(const RaggedArray2DT<int>& nodes,
 #if __option(extended_errorcheck)
 	const char caller[] = "FieldT::SetLocalEqnos";
 	if (nodes.MajorDim() != eqnos.MajorDim()) ExceptionT::SizeMismatch(caller);
-	if (which_dofs.Length() != nodes.MajorDim()) ExpceptionT::SizeMismatch(caller);
+	if (which_dofs.Length() != nodes.MajorDim()) ExceptionT::SizeMismatch(caller);
 #endif
 	
 	int numel = nodes.MajorDim();
