@@ -1,4 +1,4 @@
-/* $Id: J2SSC0HardeningT.cpp,v 1.5.20.1 2004-06-08 16:01:34 paklein Exp $ */
+/* $Id: J2SSC0HardeningT.cpp,v 1.5.20.2 2004-06-08 22:27:33 paklein Exp $ */
 #include "J2SSC0HardeningT.h"
 
 #include <iostream.h>
@@ -213,7 +213,8 @@ void J2SSC0HardeningT::DefineInlineSub(const StringT& sub, ParameterListT::ListO
 		/* function types */
 		sub_sub_list.AddSub("linear_function");
 		sub_sub_list.AddSub("cubic_spline");
-		sub_sub_list.AddSub("linear_exponential");
+		//sub_sub_list.AddSub("linear_exponential");
+#pragma message("more function types?")
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
