@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.8 2004-07-30 15:14:12 paklein Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.9 2004-08-04 22:00:23 cjkimme Exp $ */
 #include "FS_SCNIMFT.h"
 
 //#define VERIFY_B
@@ -13,12 +13,13 @@
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "BasicFieldT.h"
+#include "ParameterContainerT.h"
 
 #include "MeshFreeNodalShapeFunctionT.h"
 #include "ContinuumMaterialT.h"
 #include "SolidMaterialT.h"
 #include "FSSolidMatT.h"
-#include "SolidMatSupportT.h"
+#include "FSMatSupportT.h"
 
 /* materials lists */
 #include "FSSolidMatList1DT.h"
@@ -519,33 +520,28 @@ void FS_SCNIMFT::bVectorToMatrix(double *bVector, dMatrixT& BJ)
 	}
 }
 
-void FS_SCNIMFT::ReadMaterialData(void)
+void FS_SCNIMFT::CollectMaterialInfo(const ParameterListT& all_params,
+				  ParameterListT& mat_params) const
 {
-	/* base class */
-	SCNIMFT::ReadMaterialData();
+	const char caller[] = "FS_SCNIMFT::CollectMaterialInfo";
 
-	/* offset to class needs flags */
-	fNeedsOffset = fMaterialNeeds[0].Length();
-	
-	/* set material needs */
-	for (int i = 0; i < fMaterialNeeds.Length(); i++) {
-		/* needs array */
-		ArrayT<bool>& needs = fMaterialNeeds[i];
+	/* initialize */
+	mat_params.Clear();
 
-		/* resize array */
-		needs.Resize(needs.Length() + 2, true);
+        int num_blocks = all_params.NumLists("fd_connectivity_element_block");
+	for (int i = 0; i < num_blocks; i++) {
+	  
+	  const ParameterListT& block = all_params.GetList("fd_connectivity_element_block",i);
 
-		/* casts are safe since class contructs materials list */
-		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
-		FSSolidMatT* mat = (FSSolidMatT*) pcont_mat;
+	  if (i == 0) {
+	    const ParameterListT& mat_list_params = block.GetListChoice(*this, "large_strain_material_choice");
+	    mat_params.SetName(mat_list_params.Name());
+	  }
 
-		/* collect needs */
-		needs[fNeedsOffset] = mat->Need_F();
-		needs[fNeedsOffset + 1] = mat->Need_F_last();
-		
-		/* consistency */
-		needs[0] = needs[0] || needs[fNeedsOffset];
-		needs[2] = needs[2] || needs[fNeedsOffset + 1];
+	  /* collect material parameters */
+	  const ParameterListT& mat_list = block.GetList(mat_params.Name());
+	  const ArrayT<ParameterListT>& mat = mat_list.Lists();
+	  mat_params.AddList(mat[0]);
 	}
 }
 
@@ -558,6 +554,8 @@ MaterialListT* FS_SCNIMFT::NewMaterialList(const StringT& name, int size)
 		nsd = 2;
 	else if (name == "large_strain_material_3D")
 		nsd = 3;
+
+	cout << "name = " << name << " size = " << size << "\n";
 	
 	/* no match */
 	if (nsd == -1) return NULL;
@@ -568,6 +566,8 @@ MaterialListT* FS_SCNIMFT::NewMaterialList(const StringT& name, int size)
 		 	fFSMatSupport = new FSMatSupportT(nsd, 1);      
 		 	if (!fFSMatSupport)
 		 		ExceptionT::GeneralFail("FS_SCNIMFT::NewMaterialList","Could not instantiate material support\n");
+			fFSMatSupport->SetFEManager(&ElementSupport().FEManager());
+			cout << "'Twas instantiated\n";
 		 }
 
 		if (nsd == 2)
@@ -601,6 +601,8 @@ void FS_SCNIMFT::DefineSubs(SubListT& sub_list) const
 	/* inherited */
 	SCNIMFT::DefineSubs(sub_list);
 
+	/* element blocks for underyling connectivity -- TEMP */
+	sub_list.AddSub("fd_connectivity_element_block");
 }
 
 /* return the description of the given inline subordinate parameter list */
@@ -620,6 +622,19 @@ void FS_SCNIMFT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* FS_SCNIMFT::NewSub(const StringT& name) const
 {
-	/* inherited */
-	return ElementBaseT::NewSub(name);
+   if  (name == "fd_connectivity_element_block") {
+    
+	  ParameterContainerT* block = new ParameterContainerT(name);
+
+	  block->AddSub("block_ID_list",ParameterListT::Once);
+
+	  block->AddSub("large_strain_material_choice", ParameterListT::Once, true);
+
+	  block->SetSubSource(this);
+
+	  return block;
+
+  }
+  else /* inherited */
+	return SCNIMFT::NewSub(name);
 }

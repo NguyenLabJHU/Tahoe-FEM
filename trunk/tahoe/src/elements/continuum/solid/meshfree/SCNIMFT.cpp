@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.22 2004-08-02 22:26:04 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.23 2004-08-04 22:00:23 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -10,6 +10,7 @@
 #include "eIntegratorT.h"
 #include "OutputSetT.h"
 #include "ElementSupportT.h"
+//#include "BasicSupportT.h"
 #include "ModelManagerT.h"
 #include "iGridManagerT.h"
 #include "iNodeT.h"
@@ -18,6 +19,7 @@
 #include "BasicFieldT.h"
 #include "ParentDomainT.h"
 #include "ParameterUtils.h"
+#include "ParameterContainerT.h"
 
 #include "MeshFreeSupport2DT.h"
 #include "MeshFreeNodalShapeFunctionT.h"
@@ -42,9 +44,11 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support, const FieldT& field):
 	fSD(ElementSupport().NumSD()),
 	fMaterialList(NULL),
 	fForce_man(0, fForce, field.NumDOF()),
-	//fFakeGeometry(NULL),
 	fVoronoi(NULL),
-	fNumIP(1)
+	fNodalShapes(NULL),
+	qComputeVoronoiCell(false),
+	fNumIP(1),
+	vCellFile("vcell.out")
 {
 	SetName("mfparticle");
 
@@ -54,12 +58,14 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support, const FieldT& field):
 
 SCNIMFT::SCNIMFT(const ElementSupportT& support):
 	ElementBaseT(support),
-	//fFakeGeometry(NULL),
-	fVoronoi(NULL),
+	fSD(0),
 	fMaterialList(NULL),
+	fForce_man(0, fForce, fSD),
+	fVoronoi(NULL),
 	fNodalShapes(NULL),
 	qComputeVoronoiCell(false),
-	fNumIP(1)	
+	fNumIP(1),
+	vCellFile("vcell.out")
 {
 	SetName("mfparticle");
 
@@ -83,23 +89,30 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 {
 	const char caller[] = "SCNIMFT::TakeParameterList";
 	
+	/* What dimension? */
+	fSD = ElementSupport().NumSD();
+
 	/* number of integration points used for surface integrals */
 	fNumIP = list.GetParameter("num_ip");
-	
-	/* construct meshfree support before calling inherited method because
-	 * support class needed to construct shape functions */
-	fMFSupport = new MeshFreeSupport2DT;
-	fMFSupport->TakeParameterList(list.GetList("meshfree_support_2D"));
 
+	qComputeVoronoiCell = list.GetParameter("compute_voronoi");
+	
 	/* get parameters needed to construct shape functions */
 	fMeshfreeParameters = list.List("meshfree_support_2D");
+	
+	/* access to the model database */
+	ModelManagerT& model = ElementSupport().ModelManager();
 
 	/* extract particle ID's */
-	const ParameterListT& particle_ID_params = list.GetList("particle_ID_list");
+	const ParameterListT& particle_ID_params = list.GetList("mf_particle_ID_list");
 	ArrayT<StringT> particle_ID_list;
 	StringListT::Extract(particle_ID_params, particle_ID_list);
+
 	//get nodes from ModelManagerT
-	
+	model.ManyNodeSets(particle_ID_list, fNodes);
+
+	cout << "fNodes.Length() = " << fNodes.Length() << " fSD = " << fSD << "\n";
+
 	/* inherited */
 	ElementBaseT::TakeParameterList(list);
 
@@ -112,11 +125,14 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	/* write parameters */
 	ostream& out = ElementSupport().Output();
 
+	// Do the heavy lifting for the Voronoi Diagram now
+	cout << "fDeloneVertices " << fDeloneVertices.MajorDim() << " X " << fDeloneVertices.MinorDim() << "\n";
+
 	if (qComputeVoronoiCell) {
 #ifndef __QHULL__
 	        ExceptionT::GeneralFail(caller,"Requires the QHull library\n");
 #else 
-		// Do the heavy lifting for the Voronoi Diagram now
+
 		fVoronoi = new CompGeomT(fDeloneVertices);
 		fVoronoi->ComputeVoronoiDiagram();
 		cout << " Computed\n";cout.flush();
@@ -139,7 +155,6 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 		fNumClippedFacets = fVoronoi->NumClippedFacets();
 		fSelfDuals.Alias(fVoronoi->SelfDualFacets());
 		fNumSelfDuals = fVoronoi->NumSelfDualFacets();
-
 	
   		// Write output to file
 		ofstreamT vout(vCellFile);
@@ -147,6 +162,7 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 		if (vout.is_open())	 {
 			VoronoiDiagramToFile(vout);
 			vout.close();
+			cout << " Wrote datafile \n";
 		} else 
   			cout  << " Unable to save data to file " << vCellFile << ". Ignoring error \n"; 
 #endif
@@ -154,13 +170,21 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	else  {	// read in Voronoi information from a file
 		ifstreamT vin('#', vCellFile);
 
+		cout << "vCellFile = " << vCellFile << "\n";
+
 		if (!vin.is_open())
 		  ExceptionT::GeneralFail(caller,"Unable to open file for reading");
 	    
+		cout << "Reading datafile ...\n";
+
 		VoronoiDiagramFromFile(vin);  
+
+		cout << "Read datafile \n";
 	    
 		vin.close();
 	}
+
+	cout << "Done with CG stuff. There are " << fVoronoiVertices.MajorDim() << " voronoi Vertices \n";
 	
 	/* shape functions */
 	/* only support single list of integration cells for now */
@@ -168,8 +192,10 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	       ExceptionT::GeneralFail(caller,"Multiple ElementConnectivities not yet supported\n");
 	}
 
+	cout << ElementSupport().InitialCoordinates().MajorDim() << " X " << ElementSupport().InitialCoordinates().MinorDim() << "\n";
+
 	/* construct shape functions */
-	fNodalShapes = new MeshFreeNodalShapeFunctionT(ElementSupport().NumSD(),
+	fNodalShapes = new MeshFreeNodalShapeFunctionT(fSD,
 		ElementSupport().InitialCoordinates(), *fElementConnectivities[0], 
 		fVoronoiVertices, *fMeshfreeParameters);
 	if (!fNodalShapes) throw ExceptionT::kOutOfMemory;
@@ -179,6 +205,11 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 
 	/* MLS stuff */
 	fNodalShapes->SetSupportSize();
+
+	/* construct meshfree support before calling inherited method because
+	 * support class needed to construct shape functions */
+	//	fMFSupport = new MeshFreeSupport2DT;
+	//      fMFSupport->TakeParameterList(list.GetList("meshfree_support_2D"));
 
 	/* exchange nodal parameters (only Dmax for now) */
 	const ArrayT<int>* p_nodes_in = ElementSupport().ExternalNodes();
@@ -208,12 +239,6 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	/* set nodal neighborhoods */
 	fNodalShapes->SetNeighborData();
 	
-	//dArray2DT params(fNodes.Length(), 3);
-	//params.SetColumn(0,0.);
-	//params.SetColumn(1,0.);
-	//params.SetColumn(2,0.);
-	//fNodalShapes->SetNodalParameters(fNodes, params);
-	
 	/* final MLS initializations */
 	fNodalShapes->WriteStatistics(ElementSupport().Output());
 	
@@ -239,16 +264,16 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	}
 	
 	/** Material Data */
-	ReadMaterialData();
+	ParameterListT mat_params;
+	CollectMaterialInfo(list, mat_params);
+	fMaterialList = NewMaterialList(mat_params.Name(), mat_params.NumLists());
+	cout << " Thar be the material list\n";
+	if (!fMaterialList)
+	  ExceptionT::GeneralFail(caller,"could not construct material list \"%s\"", mat_params.Name().Pointer());
+	fMaterialList->TakeParameterList(mat_params);
+
+	cout << "params been gotten\n";
 	
-	//TEMP - only works for one material right now, else would have to check
-	//       for the material active within the integration cell (element)
-	/*if (HasActiveCracks() && fMaterialList->Length() != 1)
-	{	
-		cout << "\n MeshFreeSSSolidT::Initialize: can only have 1 material in the group\n";
-		cout <<   "     with active cracks" << endl;
-		throw ExceptionT::kBadInputValue;
-	}*/
 }
 
 /* form of tangent matrix */
@@ -406,36 +431,29 @@ bool SCNIMFT::ChangingGeometry(void) const
 }
 
 /* echo element connectivity data */
-void SCNIMFT::EchoConnectivityData(ifstreamT& in, ostream& out)
+void SCNIMFT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index) 
 {
-#pragma unused(out)
-	const char caller[] = "SCNIMFT::EchoConnectivityData";
+	const char caller[] = "SCNIMFT::DefineElements";
 	
 	/* access to the model database */
 	ModelManagerT& model = ElementSupport().ModelManager();
 
-	/* read node set ids */
-	ArrayT<StringT> ids;
-	model.NodeSetList(in, ids);
-	model.ManyNodeSets(ids, fNodes);
+	cout << "block_ID " << block_ID.Length() << " " << block_ID[0] << "\n";
 
-	// temporarily, read in connectivies of the element group. I need this
-	// to piggyback on the search that finds the support of each node
-	iArrayT matnums;
-	model.ElementBlockList(in, ids, matnums);
-	if (ids.Length() != 1)
-		ExceptionT::GeneralFail(caller,"Not helping my kludge by having more than one element block\n");
-	
 	fElementConnectivities.Dimension(1);
-	model.ReadConnectivity(ids[0]);
+
+	// NB THIS IS SPECIALIZED TO ONLY ONE ELEMENT BLOCK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	model.ReadConnectivity(block_ID[0]);
 
 	/* set pointer to connectivity list */
-	fElementConnectivities[0] = model.ElementGroupPointer(ids[0]);
+	fElementConnectivities[0] = model.ElementGroupPointer(block_ID[0]);
+	
+	cout << "Gotten ye connectivity\n";
 	
 	/* get nodes and facets on the boundary */
 	GeometryBaseT::CodeT facetType;
 	iArrayT facet_numbers, element_numbers;
-	model.SurfaceFacets(ids, facetType, fBoundaryConnectivity, fBoundaryNodes, 
+	model.SurfaceFacets(block_ID, facetType, fBoundaryConnectivity, fBoundaryNodes, 
 		facet_numbers, element_numbers, NULL);
 	fBoundaryIsTriangulated = (fSD == 2) ? (facetType == GeometryT::kLine) :
 		(facetType == GeometryT::kTriangle);
@@ -444,18 +462,13 @@ void SCNIMFT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	/* don't need this information */
 	facet_numbers.Free();
 	element_numbers.Free();
-	    
-	/* store block data  ASSUMING bth block is material number b*/
-	//fBlockData[0].Set(new_id, 0, elem_count, 0); 
-	  
-	/* set up ElementCards and equation arrays */
-	//fElementCards.Dimension(elem_count);
-	//fEqnos.Dimension(1);
-	//fEqnos[0].Dimension(elem_count,fSD);
 
 	// Get nodal coordinates to use in Initialize
-	fDeloneVertices.Dimension(fNodes.Length(), model.NumDimensions());
+	fDeloneVertices.Dimension(fNodes.Length(), fSD);
 	fDeloneVertices.RowCollect(fNodes, model.Coordinates());
+
+	cout << fDeloneVertices.MajorDim() << " x " << fDeloneVertices.MinorDim() << " for the verts\n";
+
 }
 
 /* collecting element group equation numbers */
@@ -491,42 +504,6 @@ void SCNIMFT::AssembleParticleMass(const double rho)
 	
 	/* assemble all */
 	ElementSupport().AssembleLHS(Group(), fForce, Field().Equations());
-}
-
-void SCNIMFT::ReadMaterialData()
-{
-	const char caller[] = "SCNIMFT::ReadMaterialData";
-
-	/* construct material list */
-	ParameterListT mat_params;
-	mat_params.Clear();
-	fMaterialList = NewMaterialList(mat_params.Name(), mat_params.NumLists());
-	if (!fMaterialList) ExceptionT::OutOfMemory(caller);
-
-	/* read */
-	fMaterialList->TakeParameterList(mat_params);
-	
-	fMaterialNeeds.Dimension(fMaterialList->Length());
-	for (int i = 0; i < fMaterialNeeds.Length(); i++) {
-		/* allocate */
-		ArrayT<bool>& needs = fMaterialNeeds[i];
-		needs.Dimension(3);
-
-		/* casts are safe since class contructs materials list */
-		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
-		SolidMaterialT* mat = (SolidMaterialT*) pcont_mat;
-
-		/* collect needs */
-		needs[0] = mat->NeedDisp();
-		needs[1] = mat->NeedVel();
-		needs[2] = mat->NeedLastDisp();
-	}
-	
-	/* check range */
-	/*for (int i = 0; i < fBlockData.Length(); i++)
-		if (fBlockData[i].MaterialID() < 0 || fBlockData[i].MaterialID() >= size)
-			ExceptionT::BadInputValue(caller, "material number %d for element block %d is out of range",
-				fBlockData[i].MaterialID()+1, i+1);*/
 }
 
 int SCNIMFT::GlobalToLocalNumbering(iArrayT& nodes)
@@ -685,26 +662,26 @@ void SCNIMFT::ComputeBMatrices(void)
 	ParentDomainT domain(GeometryT::kLine, fNumIP, nfn);
 	domain.Initialize();
 	LocalArrayT facet_coords(LocalArrayT::kInitCoords, nfn, nsd);
+	facet_coords.SetGlobal(fVoronoiVertices);
+	iArrayT keys;
 	dArrayT ip_coords(nsd);
-	dMatrixT jacobian(nsd);
+	dMatrixT jacobian(nsd, 1);
 	const double* ip_weight = domain.Weight();
 
-	dArrayT /*facetCentroid(fSD), */ facetNormal(fSD), facetIntegral(fSD);
+	dArrayT facetNormal(fSD), facetIntegral(fSD);
 	double* currentB, *currentI;
 	int n_0, n_1;
 	bool traverseQ_0, traverseQ_1;
 	int *next_0, *next_1;
 	for (int i = 0; i < fDeloneEdges.MajorDim(); i++) {
-//		facetCentroid = 0.; 
 		n_0 = fDeloneEdges(i,0);
-		n_1 = fDeloneEdges(i,1);
-//		facetCentroid.Set(fSD, fDualFacetCentroids(i)); 
+		n_1 = fDeloneEdges(i,1); 
 		facetNormal.DiffOf(fDeloneVertices(n_1), fDeloneVertices(n_0));
 		facetNormal.UnitVector();
 
-/////////////////////////////
 		/* copy face coordinates with local ordering */
-		//facet_coords...
+		fDualFacets.RowAlias(i,keys);
+		facet_coords.SetLocal(keys);
 		for (int ii = 0; ii < fNumIP; ii++)
 		{
 			/* jacobian of the coordinate transformation */
@@ -720,11 +697,11 @@ void SCNIMFT::ComputeBMatrices(void)
 				
 		const dArrayT& phiValues = fNodalShapes->FieldAt();			
 		
-		iArrayT centroid_cover(fNodalShapes->Neighbors());	
-		int n_centroid_cover = centroid_cover.Length();	
-		iArrayT centroid_cover_key(n_centroid_cover);
-		centroid_cover_key.SetValueToPosition();
-		centroid_cover_key.SortAscending(centroid_cover);
+		iArrayT ip_cover(fNodalShapes->Neighbors());	
+		int n_ip_cover = ip_cover.Length();	
+		iArrayT ip_cover_key(n_ip_cover);
+		ip_cover_key.SetValueToPosition();
+		ip_cover_key.SortAscending(ip_cover);
 
 		LinkedListT<int>& supp_0 = nodeWorkSpace[n_0];
 		LinkedListT<int>& supp_1 = nodeWorkSpace[n_1];
@@ -734,18 +711,18 @@ void SCNIMFT::ComputeBMatrices(void)
 		int s_1 = -1;
 		/* Simultaneously loop over support of the two nodes that are endpoints of the
 		 * current Delone edge and the nodes in the support of the midpoint of this
-		 * edge. If a node covering the centroid is not in the support of n_0 or n_1,
-		 * insert that covering node into the sorted list.
+		 * edge. If a node covering the integration point is not in the support of n_0 
+		 * or n_1, insert that covering node into the sorted list.
 		 */
 		 
-		int* c = centroid_cover.Pointer();
-		int* c_j = centroid_cover_key.Pointer();
+		int* c = ip_cover.Pointer();
+		int* c_j = ip_cover_key.Pointer();
 		
 		supp_0.Top(); bVectors_0.Top();
 		supp_1.Top(); bVectors_1.Top();
 		next_0 = supp_0.CurrentValue();
 		next_1 = supp_1.CurrentValue();
-		for (int j = 0; j < n_centroid_cover; j++, c++, c_j++) {
+		for (int j = 0; j < n_ip_cover; j++, c++, c_j++) {
 		
 			facetIntegral = facetNormal;
 			facetIntegral *= fDualAreas[i]*phiValues[*c_j]*jw;	
@@ -812,21 +789,17 @@ void SCNIMFT::ComputeBMatrices(void)
 		}
 		
 		}
-///////////////////////////////////
-
 	}
 	
 	/** Loop over remaining edges */
 	for (int i = 0; i < fNonDeloneEdges.Length(); i++) {
-//		facetCentroid = 0.; 
 		n_0 = fNonDeloneEdges[i];
-//		facetCentroid.Set(fSD, fNonDeloneCentroids(i)); 
 		facetNormal.Set(fSD, fNonDeloneNormals(i));
 		facetNormal.UnitVector();
 		
-/////////////////////
 		/* copy face coordinates with local ordering */
-		//facet_coords...
+		fSelfDualFacets.RowAlias(i,keys);
+		facet_coords.SetLocal(keys);
 		for (int ii = 0; ii < fNumIP; ii++)
 		{
 			/* jacobian of the coordinate transformation */
@@ -842,11 +815,11 @@ void SCNIMFT::ComputeBMatrices(void)
 				
 		const dArrayT& phiValues = fNodalShapes->FieldAt();			
 				
-		iArrayT centroid_cover(fNodalShapes->Neighbors());	
-		int n_centroid_cover = centroid_cover.Length();	
-		iArrayT centroid_cover_key(n_centroid_cover);
-		centroid_cover_key.SetValueToPosition();
-		centroid_cover_key.SortAscending(centroid_cover);
+		iArrayT ip_cover(fNodalShapes->Neighbors());	
+		int n_ip_cover = ip_cover.Length();	
+		iArrayT ip_cover_key(n_ip_cover);
+		ip_cover_key.SetValueToPosition();
+		ip_cover_key.SortAscending(ip_cover);
 		
 		LinkedListT<int>& supp_0 = nodeWorkSpace[n_0];
 		LinkedListT< dArrayT >& bVectors_0 = facetWorkSpace[n_0];
@@ -854,12 +827,12 @@ void SCNIMFT::ComputeBMatrices(void)
 		
 		/* Merge support of the boundary node with covering of integration point
 		 */
-		int* c = centroid_cover.Pointer();
-		int* c_j = centroid_cover_key.Pointer();
+		int* c = ip_cover.Pointer();
+		int* c_j = ip_cover_key.Pointer();
 		
 		supp_0.Top(); bVectors_0.Top();
 		next_0 = supp_0.CurrentValue();
-		for (int j = 0; j < n_centroid_cover; j++, c++, c_j++) {
+		for (int j = 0; j < n_ip_cover; j++, c++, c_j++) {
 			facetIntegral = facetNormal;
 			facetIntegral *= fBoundaryIntegrationWeights[i]*phiValues[*c_j]*jw;		
 		
@@ -895,7 +868,6 @@ void SCNIMFT::ComputeBMatrices(void)
 		}
 	
 		}	
-/////////////////////
 
 	}
 	
@@ -994,7 +966,7 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
     	v1 = fVoronoiVertices(fDualFacets(i,0));
     	v2 = fVoronoiVertices(fDualFacets(i,1));
     	fDualAreas[i] = sqrt((v1[0]-v2[0])*(v1[0]-v2[0])+(v1[1]-v2[1])*(v1[1]-v2[1]));
-    	vout << fDualAreas[i] << " ";
+    	vout << fDualAreas[i] << " " << fDualFacets(i,0) << " " << fDualFacets(i,1) << " ";
     	for (int j = 0; j < fSD; j++) {
 			fDualFacetCentroids(i,j) = .5*(v1[j] + v2[j]);
 			vout << fDualFacetCentroids(i,j) << " ";
@@ -1007,6 +979,7 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
     fNonDeloneNormals.Dimension(fNumSelfDuals, fSD);
     fNonDeloneCentroids.Dimension(fNumSelfDuals, fSD);
     fBoundaryIntegrationWeights.Dimension(fNumSelfDuals);
+    fSelfDualFacets.Dimension(fNumSelfDuals, 2);
     vout << fNumSelfDuals << "\n";
     int ctr = 0;
     for (int i = 0; i < fSelfDuals.Length(); i++)
@@ -1027,12 +1000,14 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
     	for (int j = 0; j < fSelfDuals[i].Length(); j++) {
 			thisFacet = &fVoronoiFacetIndices[fBoundaryNodes[i]][fSelfDuals[i][j]];
 			thisFacetLength = thisFacet->Length();
-			for (int l = 0; l < fSD; l++)
-	 	 		pt[l] = 0.;
+			ptArray = 0.;
+			// vout << thisFacetLength << " "; Comment this out until I lift restriction to 2D
 			for (int k = 0; k < thisFacetLength; k++) {
 	  			v1 = fVoronoiVertices(fVoronoiCells[fBoundaryNodes[i]][(*thisFacet)[k]]);
 	  			for (int l = 0; l < fSD; l++)
-	    			pt[l] += v1[l];
+	    			  pt[l] += v1[l];
+				fSelfDualFacets(ctr,k) =  fVoronoiCells[fBoundaryNodes[i]][(*thisFacet)[k]]; 
+				vout << fSelfDualFacets(ctr,k) << " ";
 			}
 			for (int l = 0; l < fSD; l++) {
 	  			pt[l] /= thisFacetLength;
@@ -1143,12 +1118,13 @@ void SCNIMFT::VoronoiDiagramFromFile(ifstreamT& vin)
 	fDeloneEdges.Dimension(nDelone, 2);
 	fDualAreas.Dimension(nDelone);
 	fDualFacetCentroids.Dimension(nDelone, 2);
+	fDualFacets.Dimension(nDelone, 2);
 	
 	for (int i = 0; i < nDelone; i++)
 		vin >> fDeloneEdges(i,0) >> fDeloneEdges(i,1);
 		
 	for (int i = 0; i < nDelone; i++) {
-		vin >> fDualAreas[i];
+	        vin >> fDualAreas[i] >> fDualFacets(i,0) >> fDualFacets(i,1);
 		for (int j = 0; j < fSD; j++)
 			vin >> fDualFacetCentroids(i,j);
 	}
@@ -1159,13 +1135,17 @@ void SCNIMFT::VoronoiDiagramFromFile(ifstreamT& vin)
 	fNonDeloneNormals.Dimension(nCentroids,fSD);
 	fNonDeloneCentroids.Dimension(nCentroids,fSD);
 	fBoundaryIntegrationWeights.Dimension(nCentroids);
+
+	fSelfDualFacets.Dimension(nCentroids, 2);
 	
 	for (int i = 0; i < nCentroids; i++)
 		vin >> fNonDeloneEdges[i];	
 
-	for (int i = 0; i < nCentroids; i++)
+	for (int i = 0; i < nCentroids; i++) {
+	  vin >> fSelfDualFacets(i,0) >> fSelfDualFacets(i,1);
 		for (int j = 0; j < fSD; j++)
 			vin >> fNonDeloneCentroids(i,j);
+	}
 			
 	for (int i = 0; i < nCentroids; i++)
 		for (int j = 0; j < fSD; j++)
@@ -1188,7 +1168,7 @@ void SCNIMFT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(compute_voronoi);
 	
 	ParameterT voronoi_file(vCellFile, "voronoi_file");
-	voronoi_file.SetDefault("vcell.out");
+	voronoi_file.SetDefault(vCellFile);
 	list.AddParameter(voronoi_file);
 
 	ParameterT num_ip(fNumIP, "num_ip");	
@@ -1205,8 +1185,9 @@ void SCNIMFT::DefineSubs(SubListT& sub_list) const
 	/* parameters for the meshfree support */
 	sub_list.AddSub("meshfree_support_2D");
 
-	/* list of node set ID's */
-	sub_list.AddSub("particle_ID_list");
+	/* list of node set ID's defining which nodes get integrated */
+	sub_list.AddSub("mf_particle_ID_list",ParameterListT::OnePlus);
+
 }
 
 /* return the description of the given inline subordinate parameter list */
@@ -1220,8 +1201,14 @@ void SCNIMFT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& o
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* SCNIMFT::NewSub(const StringT& name) const
 {
-	if (name == "meshfree_support_2D")
-		return new MeshFreeSupport2DT;	
-	else /* inherited */
-		return ElementBaseT::NewSub(name);
+  SCNIMFT* non_const_this = const_cast<SCNIMFT*>(this);
+
+  /* try material list */
+  MaterialListT* material_list = non_const_this->NewMaterialList(name, 0);
+  if (material_list)
+    return material_list;
+  else if (name == "meshfree_support_2D")
+    return new MeshFreeSupport2DT;	
+  else /* inherited */
+    return ElementBaseT::NewSub(name);
 }

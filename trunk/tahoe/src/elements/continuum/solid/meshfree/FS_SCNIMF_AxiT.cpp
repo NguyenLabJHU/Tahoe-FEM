@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.3 2004-07-29 23:42:06 cjkimme Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.4 2004-08-04 22:00:23 cjkimme Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 //#define VERIFY_B
@@ -13,11 +13,14 @@
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "BasicFieldT.h"
+#include "ParentDomainT.h"
+#include "ParameterContainerT.h"
 
 #include "MeshFreeNodalShapeFunctionT.h"
 #include "ContinuumMaterialT.h"
 #include "SolidMaterialT.h"
 #include "FSSolidMatT.h"
+#include "FSSolidMatList3DT.h"
 #include "SolidMatSupportT.h"
 
 /* materials list */
@@ -40,7 +43,9 @@ FS_SCNIMF_AxiT::FS_SCNIMF_AxiT(const ElementSupportT& support, const FieldT& fie
 }
 
 FS_SCNIMF_AxiT::FS_SCNIMF_AxiT(const ElementSupportT& support):
-	SCNIMFT(support)
+	SCNIMFT(support),
+	fFSMatSupport(NULL),
+	circumferential_B()
 {
 	SetName("fd_mfparticle_axi");
 }
@@ -572,44 +577,39 @@ void FS_SCNIMF_AxiT::bVectorToMatrix(double *bVector, dMatrixT& BJ)
 	}
 }
 
-void FS_SCNIMF_AxiT::ReadMaterialData()
+void FS_SCNIMF_AxiT::CollectMaterialInfo(const ParameterListT& all_params,
+				  ParameterListT& mat_params) const
 {
-	/* base class */
-	SCNIMFT::ReadMaterialData();
+	const char caller[] = "FS_SCNIMFT::CollectMaterialInfo";
 
-	/* offset to class needs flags */
-	fNeedsOffset = fMaterialNeeds[0].Length();
-	
-	/* set material needs */
-	for (int i = 0; i < fMaterialNeeds.Length(); i++)
-	{
-		/* needs array */
-		ArrayT<bool>& needs = fMaterialNeeds[i];
+	/* initialize */
+	mat_params.Clear();
 
-		/* resize array */
-		needs.Resize(needs.Length() + 2, true);
+        int num_blocks = all_params.NumLists("large_strain_element_block");
+	for (int i = 0; i < num_blocks; i++) {
+	  
+	  const ParameterListT& block = all_params.GetList("large_strain_element_block",i);
 
-		/* casts are safe since class contructs materials list */
-		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
-		FSSolidMatT* mat = (FSSolidMatT*) pcont_mat;
+	  if (i == 0) {
+	    const ParameterListT& mat_list_params = block.GetListChoice(*this, "large_strain_material_choice");
+	    mat_params.SetName(mat_list_params.Name());
+	  }
 
-		/* collect needs */
-		needs[fNeedsOffset] = mat->Need_F();
-		needs[fNeedsOffset + 1] = mat->Need_F_last();
-		
-		/* consistency */
-		needs[0] = needs[0] || needs[fNeedsOffset];
-		needs[2] = needs[2] || needs[fNeedsOffset + 1];
+	  /* collect material parameters */
+	  const ParameterListT& mat_list = block.GetList(mat_params.Name());
+	  const ArrayT<ParameterListT>& mat = mat_list.Lists();
+	  mat_params.AddList(mat[0]);
 	}
 }
+
 
 /* return a pointer to a new material list */
 MaterialListT* FS_SCNIMF_AxiT::NewMaterialList(const StringT& name, int size)
 {
 	/* resolve number of spatial dimensions */
 	int nsd = -1;
-	if (name == "large_strain_material_2D")
-		nsd = 2;
+	if (name == "large_strain_material_3D")
+		nsd = 3;
 	
 	/* no match */
 	if (nsd == -1) return NULL;
@@ -621,14 +621,10 @@ MaterialListT* FS_SCNIMF_AxiT::NewMaterialList(const StringT& name, int size)
 		 	if (!fFSMatSupport)
 		 		ExceptionT::GeneralFail("FS_SCNIMFT::NewMaterialList","Could not instantiate material support\n");
 		 }
-
-		if (nsd == 2)
-			return new FSSolidMatList2DT(size, *fFSMatSupport);
-	}
-	else {
-	 	if (nsd == 2)
-			return new FSSolidMatList2DT;
-	}
+	 
+		return new FSSolidMatList3DT(size, *fFSMatSupport);
+	} else 
+	  return new FSSolidMatList3DT;
 	
 	/* no match */
 	return NULL;
@@ -670,31 +666,52 @@ void FS_SCNIMF_AxiT::ComputeBMatrices(void)
 		circumferentialWorkSpace[i].AppendArray(l_supp_i, zeroSingle);
 	}
 	
-	dArrayT facetCentroid(fSD), facetNormal(fSD), facetIntegral(fSD);
+	/* integration */
+	int nfn = 2;
+	int nsd = 2;
+	ParentDomainT domain(GeometryT::kLine, fNumIP, nfn);
+	domain.Initialize();
+	LocalArrayT facet_coords(LocalArrayT::kInitCoords, nfn, nsd);
+	facet_coords.SetGlobal(fVoronoiVertices);
+	iArrayT keys;
+	dArrayT ip_coords(nsd);
+	dMatrixT jacobian(nsd, 1);
+	const double* ip_weight = domain.Weight();
+
+	dArrayT facetNormal(fSD), facetIntegral(fSD);
 	double* currentB, *currentI;
 	int n_0, n_1;
 	bool traverseQ_0, traverseQ_1;
 	int *next_0, *next_1;
 	for (int i = 0; i < fDeloneEdges.MajorDim(); i++)
 	{
-		facetCentroid = 0.; 
 		n_0 = fDeloneEdges(i,0);
 		n_1 = fDeloneEdges(i,1);
-		facetCentroid.Set(fSD, fDualFacetCentroids(i)); 
 		facetNormal.DiffOf(fDeloneVertices(n_1), fDeloneVertices(n_0));
 		facetNormal.UnitVector();
 		
-		if (!fNodalShapes->SetFieldAt(facetCentroid, NULL)) // shift = 0 or not ?
-			ExceptionT::GeneralFail(caller,"Shape Function evaluation"
+		fDualFacets.RowAlias(i,keys);
+		facet_coords.SetLocal(keys);
+		for (int ii = 0; ii < fNumIP; ii++) {
+
+		  /* jacobian of the coordinate transformation */
+		  domain.DomainJacobian(facet_coords, ii, jacobian);
+		  double jw = ip_weight[ii]*domain.SurfaceJacobian(jacobian);
+		  
+		  /* integration point coordinates */
+		  domain.Interpolate(facet_coords, ip_coords, ii);
+
+		  if (!fNodalShapes->SetFieldAt(ip_coords, NULL)) // shift = 0 or not ?
+		    ExceptionT::GeneralFail(caller,"Shape Function evaluation"
 				"failed at Delone edge %d\n",i);
 				
 		const dArrayT& phiValues = fNodalShapes->FieldAt();			
 		
-		iArrayT centroid_cover(fNodalShapes->Neighbors());	
-		int n_centroid_cover = centroid_cover.Length();	
-		iArrayT centroid_cover_key(n_centroid_cover);
-		centroid_cover_key.SetValueToPosition();
-		centroid_cover_key.SortAscending(centroid_cover);
+		iArrayT ip_cover(fNodalShapes->Neighbors());	
+		int n_ip_cover = ip_cover.Length();	
+		iArrayT ip_cover_key(n_ip_cover);
+		ip_cover_key.SetValueToPosition();
+		ip_cover_key.SortAscending(ip_cover);
 
 		LinkedListT<int>& supp_0 = nodeWorkSpace[n_0];
 		LinkedListT<int>& supp_1 = nodeWorkSpace[n_1];
@@ -710,14 +727,14 @@ void FS_SCNIMF_AxiT::ComputeBMatrices(void)
 		 * insert that covering node into the sorted list.
 		 */
 		 
-		int* c = centroid_cover.Pointer();
-		int* c_j = centroid_cover_key.Pointer();
+		int* c = ip_cover.Pointer();
+		int* c_j = ip_cover_key.Pointer();
 		
 		supp_0.Top(); bVectors_0.Top(); circumf_0.Top();
 		supp_1.Top(); bVectors_1.Top(); circumf_1.Top();
 		next_0 = supp_0.CurrentValue();
 		next_1 = supp_1.CurrentValue();
-		for (int j = 0; j < n_centroid_cover; j++, c++, c_j++)
+		for (int j = 0; j < n_ip_cover; j++, c++, c_j++)
 		{
 			facetIntegral = facetNormal;
 			facetIntegral *= fDualAreas[i]*phiValues[*c_j];	
@@ -792,28 +809,39 @@ void FS_SCNIMF_AxiT::ComputeBMatrices(void)
 			for (int k = 0; k < fSD; k++)
 				*currentB++ -= *currentI++; //NB change in sign; facet normal is inverted!
 		}
+		}
 	}
 	
 	/** Loop over remaining edges */
 	for (int i = 0; i < fNonDeloneEdges.Length(); i++)
 	{
-		facetCentroid = 0.; 
 		n_0 = fNonDeloneEdges[i];
-		facetCentroid.Set(fSD, fNonDeloneCentroids(i)); 
 		facetNormal.Set(fSD, fNonDeloneNormals(i));
 		facetNormal.UnitVector();
+
+		/* copy face coordinates with local ordering */
+		fSelfDualFacets.RowAlias(i,keys);
+		facet_coords.SetLocal(keys);
+		for (int ii = 0; ii < fNumIP; ii++) {
+		  
+		  /* jacobian of the coordinate transformation */
+		  domain.DomainJacobian(facet_coords, ii, jacobian);
+		  double jw = ip_weight[ii]*domain.SurfaceJacobian(jacobian);
+
+		  /* integration point coordinates */
+		  domain.Interpolate(facet_coords, ip_coords, ii);
 		
-		if (!fNodalShapes->SetFieldAt(facetCentroid, NULL)) // shift = 0 or not ?
+		if (!fNodalShapes->SetFieldAt(ip_coords, NULL)) // shift = 0 or not ?
 			ExceptionT::GeneralFail(caller,"Shape Function evaluation"
 				"failed at Delone edge %d\n",i);
 				
 		const dArrayT& phiValues = fNodalShapes->FieldAt();			
 				
-		iArrayT centroid_cover(fNodalShapes->Neighbors());	
-		int n_centroid_cover = centroid_cover.Length();	
-		iArrayT centroid_cover_key(n_centroid_cover);
-		centroid_cover_key.SetValueToPosition();
-		centroid_cover_key.SortAscending(centroid_cover);
+		iArrayT ip_cover(fNodalShapes->Neighbors());	
+		int n_ip_cover = ip_cover.Length();	
+		iArrayT ip_cover_key(n_ip_cover);
+		ip_cover_key.SetValueToPosition();
+		ip_cover_key.SortAscending(ip_cover);
 		
 		LinkedListT<int>& supp_0 = nodeWorkSpace[n_0];
 		LinkedListT< dArrayT >& bVectors_0 = facetWorkSpace[n_0];
@@ -822,12 +850,12 @@ void FS_SCNIMF_AxiT::ComputeBMatrices(void)
 		
 		/* Merge support of the boundary node with covering of integration point
 		 */
-		int* c = centroid_cover.Pointer();
-		int* c_j = centroid_cover_key.Pointer();
+		int* c = ip_cover.Pointer();
+		int* c_j = ip_cover_key.Pointer();
 		
 		supp_0.Top(); bVectors_0.Top(); circumf_0.Top();
 		next_0 = supp_0.CurrentValue();
-		for (int j = 0; j < n_centroid_cover; j++, c++, c_j++)
+		for (int j = 0; j < n_ip_cover; j++, c++, c_j++)
 		{
 			facetIntegral = facetNormal;
 			facetIntegral *= fBoundaryIntegrationWeights[i]*phiValues[*c_j];		
@@ -867,6 +895,7 @@ void FS_SCNIMF_AxiT::ComputeBMatrices(void)
 			for (int k = 0; k < fSD; k++)
 				*currentB++ += *currentI++;
 		}
+		}
 	}
 	
 	// scale integrals by volumes of Voronoi cells
@@ -882,14 +911,14 @@ void FS_SCNIMF_AxiT::ComputeBMatrices(void)
 	
 	// calculate Psi/R terms. These are evaluated nodally, so this additional loop
 	// is required
-	dArrayT phis;
+	dArrayT phis, nodal_init_coords;
 	for (int i = 0; i < fDeloneVertices.MajorDim(); i++) {
-		facetCentroid.Set(fSD, fDeloneVertices(i)); // This is the nodal coordinate.
-		double R_i = facetCentroid[0];
+		nodal_init_coords.Set(fSD, fDeloneVertices(i)); // This is the nodal coordinate.
+		double R_i = nodal_init_coords[0];
 		
 		if (R_i >! kZeroTol)
 		{
-			if (!fNodalShapes->SetFieldAt(facetCentroid, NULL)) 
+			if (!fNodalShapes->SetFieldAt(nodal_init_coords, NULL)) 
 				ExceptionT::GeneralFail(caller,"Shape Function evaluation"
 					"failed at node %d\n",i);
 					
@@ -901,7 +930,7 @@ void FS_SCNIMF_AxiT::ComputeBMatrices(void)
 		}
 		else
 		{
-			if (!fNodalShapes->SetDerivativesAt(facetCentroid))
+			if (!fNodalShapes->SetDerivativesAt(nodal_init_coords))
 				ExceptionT::GeneralFail(caller,"Shape Function derivate evaluation"
 					"failed at node %d\n",i);
 			
@@ -990,15 +1019,17 @@ void FS_SCNIMF_AxiT::ComputeBMatrices(void)
 void FS_SCNIMF_AxiT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	ElementBaseT::DefineParameters(list);
-
+	SCNIMFT::DefineParameters(list);
 }
 
 /* information about subordinate parameter lists */
 void FS_SCNIMF_AxiT::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
-	ElementBaseT::DefineSubs(sub_list);
+	SCNIMFT::DefineSubs(sub_list);
+	
+	/* element blocks for underlying connectivity -- TEMP */
+	sub_list.AddSub("fd_axi_connectivity_block");
 
 }
 
@@ -1010,7 +1041,7 @@ void FS_SCNIMF_AxiT::DefineInlineSub(const StringT& name, ParameterListT::ListOr
 		order = ParameterListT::Choice;
 		
 		/* list of choices */
-		sub_lists.AddSub("large_strain_material_2D");
+		sub_lists.AddSub("large_strain_material_3D");
 	} else /* inherited */
 		SCNIMFT::DefineInlineSub(name, order, sub_lists);
 }
@@ -1018,6 +1049,19 @@ void FS_SCNIMF_AxiT::DefineInlineSub(const StringT& name, ParameterListT::ListOr
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* FS_SCNIMF_AxiT::NewSub(const StringT& name) const
 {
-	/* inherited */
-	return ElementBaseT::NewSub(name);
+   if  (name == "fd_axi_connectivity_block") {
+    
+	  ParameterContainerT* block = new ParameterContainerT(name);
+
+	  block->AddSub("mfparticle_block_ID_list",ParameterListT::Once);
+
+	  block->AddSub("large_strain_material_choice", ParameterListT::Once, true);
+
+	  block->SetSubSource(this);
+
+	  return block;
+
+  }
+  else /* inherited */
+	return SCNIMFT::NewSub(name);
 }
