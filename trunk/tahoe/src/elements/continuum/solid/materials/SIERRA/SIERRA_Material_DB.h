@@ -1,10 +1,11 @@
-/* $Id: SIERRA_Material_DB.h,v 1.4 2003-03-09 21:58:50 paklein Exp $ */
+/* $Id: SIERRA_Material_DB.h,v 1.5 2004-07-29 18:33:02 paklein Exp $ */
 #ifndef _SIERRA_MAT_DB_H_
 #define _SIERRA_MAT_DB_H_
 
 /* direct members */
 #include "MapT.h"
 #include "StringT.h"
+#include "C1FunctionT.h"
 
 namespace Tahoe {
 
@@ -39,6 +40,9 @@ public:
 	static SIERRA_Material_Data* Material(int id);
 	/*@}*/
 
+	/** evaluate the given function */
+	static double Evaluate(const StringT& name, double arg);
+
 private:
 
 	/** constructor */
@@ -59,11 +63,22 @@ private:
 	/** map of material ID to data card */
 	MapT<int, SIERRA_Material_Data*> fMaterialDataByID;
 
+	/** map of name to function */
+	MapT<StringT, C1FunctionT*> fFunctionEval;
+
 	/** singleton to store parameters for Sierra materials */
 	static SIERRA_Material_DB* the_SIERRA_Material_DB;
 };
 
 /* inlines */
+/* return a reference to the singleton */
+inline SIERRA_Material_DB& SIERRA_Material_DB::the_DB(void)
+{
+	if (!the_SIERRA_Material_DB)
+		ExceptionT::GeneralFail("SIERRA_Material_DB::the_DB", "DB not instantiated");
+	return *the_SIERRA_Material_DB;
+}
+
 inline SIERRA_Material_Data* SIERRA_Material_DB::Material(const StringT& name)
 {
 	/* get from DB */
@@ -74,14 +89,6 @@ inline SIERRA_Material_Data* SIERRA_Material_DB::Material(int id)
 {
 	/* get from DB */
 	return the_DB().fMaterialDataByID[id];
-}
-
-/* return a reference to the singleton */
-inline SIERRA_Material_DB& SIERRA_Material_DB::the_DB(void)
-{
-	if (!the_SIERRA_Material_DB)
-		ExceptionT::GeneralFail("SIERRA_Material_DB::the_DB", "DB not instantiated");
-	return *the_SIERRA_Material_DB;
 }
 
 } /* namespace Tahoe */

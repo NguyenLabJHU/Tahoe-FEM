@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Interface.h,v 1.6 2003-04-23 16:55:45 paklein Exp $ */
+/* $Id: SIERRA_Material_Interface.h,v 1.7 2004-07-29 18:33:02 paklein Exp $ */
 #ifndef __SIERRA_MAT_INTERFACE_H__
 #define __SIERRA_MAT_INTERFACE_H__
 
@@ -11,6 +11,10 @@ extern "C" {
 
 /** \name retrieving parameter information */
 /*@{*/ 
+/** register a named value */
+extern void FORTRAN_NAME(register_real_constant)(double* value, const int* mat_vals, 
+	const char* value_name, int value_name_len);
+
 /** retrieve a named value */
 extern void FORTRAN_NAME(get_real_constant)(double* destination, const int* mat_vals, 
 	const char* value_name, int value_name_len);
@@ -58,6 +62,9 @@ typedef void (*Sierra_function_material_calc)(int* nelem, double* dt,
  */
 typedef void (*Sierra_function_material_init)(int* nelem, double* dt, int* nsv, 
 	double* state_old, double* state_new, int* matvals, int* ncd);
+
+/** function to compute tangent moduli (not used) */
+typedef void (*Sierra_pc_elastic_moduli_func)(void);
 /*@}*/
 
 /** \name registration functions */
@@ -86,7 +93,20 @@ extern void FORTRAN_NAME(register_input_var)(const char* variable_name, const ch
 
 /** register the XML commands that specify material parameters */
 extern void FORTRAN_NAME(register_parser_line)(int* XML_command_id, const char* material_name, int material_name_len);
+
+/** register function to compute tangent moduli */
+extern void FORTRAN_NAME(register_pc_elastic_moduli_func)(Sierra_pc_elastic_moduli_func pc_func, const char* func_name, int func_name_len);
+
+/** register function evaluation */
+extern void FORTRAN_NAME(register_func_eval)(const int* matvals, const char* func_name, int func_name_len);
 /*@}*/
+
+/** evaluate function */
+extern void FORTRAN_NAME(apub_fortran_fctn_eval)(const int* matvals, const double* arg, double* out,
+	const char* func_name, int func_name_len);
+
+/** error reporting */
+extern void FORTRAN_NAME(report_error)(int* code, const char* error_string, int error_string_len);
 
 /** convert a fortran character array into a C string */
 extern void f2c_string(const char* f_string, int f_string_len, char* buffer, int buffer_len);

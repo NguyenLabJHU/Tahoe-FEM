@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Data.h,v 1.4 2003-03-09 21:58:50 paklein Exp $ */
+/* $Id: SIERRA_Material_Data.h,v 1.5 2004-07-29 18:33:02 paklein Exp $ */
 #ifndef _SIERRA_MAT_DATA_H_
 #define _SIERRA_MAT_DATA_H_
 
@@ -28,6 +28,9 @@ public:
 	
 	/** function to do material initialization */
 	void SetInitFunction(Sierra_function_material_init init) { fInitFunction = init; };
+
+	/** function to compute elastic moduli */
+	void SetPCFunction(Sierra_pc_elastic_moduli_func func) { fPCFunction = func; };
 
 	/** register parser line ID */
 	void AddXMLCommandID(int ID) { fXMLCommandID.AppendUnique(ID); };
@@ -111,6 +114,9 @@ private:
 	
 	/** function to do material initialization */
 	Sierra_function_material_init fInitFunction;
+	
+	/** function to compute elastic moduli */
+	Sierra_pc_elastic_moduli_func fPCFunction;
 	/*@}*/
 	
 	/** list of XML command ids. The first command is the one defining the material

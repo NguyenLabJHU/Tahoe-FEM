@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Interface.cpp,v 1.7 2003-05-05 00:58:29 paklein Exp $ */
+/* $Id: SIERRA_Material_Interface.cpp,v 1.8 2004-07-29 18:33:02 paklein Exp $ */
 #include "SIERRA_Material_Interface.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -8,7 +8,18 @@ using namespace Tahoe;
 const int kStringBufferSize = 255;
 static char StringBuffer[kStringBufferSize];
 
-/* retrieve a named value */
+/* register a named value */
+void FORTRAN_NAME(register_real_constant)(double* value, const int* mat_vals, 
+	const char* value_name, int value_name_len)
+{
+	/* fetch material */
+	SIERRA_Material_Data* mat = SIERRA_Material_DB::Material(*mat_vals);
+	
+	/* add value - no check on success */
+	f2c_string(value_name, value_name_len, StringBuffer, kStringBufferSize);
+	mat->AddProperty(StringBuffer, *value);
+}
+
 void FORTRAN_NAME(get_real_constant)(double* destination, const int* mat_vals, 
 	const char* value_name, int value_name_len)
 {
@@ -84,6 +95,25 @@ void FORTRAN_NAME(register_init_func)(Sierra_function_material_init init_func,
 	mat->SetInitFunction(init_func);
 }
 
+/* register function to compute tangent moduli */
+void FORTRAN_NAME(register_pc_elastic_moduli_func)(Sierra_pc_elastic_moduli_func pc_func, 
+	const char* func_name, int func_name_len)
+{
+	f2c_string(func_name, func_name_len, StringBuffer, kStringBufferSize);
+	SIERRA_Material_Data* mat = SIERRA_Material_DB::Material(StringBuffer);
+	mat->SetPCFunction(pc_func);
+}
+
+/* register function evaluation */
+void FORTRAN_NAME(register_func_eval)(const int* matvals, const char* func_name, int func_name_len)
+{
+#pragma unused(matvals)
+#pragma unused(func_name)
+#pragma unused(func_name_len)
+//NOTE: nothing to do. Function information is retrieved during the call to
+//     apub_fortran_fctn_eval.
+}
+
 /* register the number of state variables */
 void FORTRAN_NAME(register_num_state_vars)(int* nsv, 
 	const char* material_name, int material_name_len)
@@ -109,6 +139,23 @@ void FORTRAN_NAME(register_parser_line)(int* XML_command_id, const char* materia
 	f2c_string(material_name, material_name_len, StringBuffer, kStringBufferSize);
 	SIERRA_Material_Data* mat = SIERRA_Material_DB::Material(StringBuffer);
 	mat->AddXMLCommandID(*XML_command_id);
+}
+
+/* evaluate function */
+void FORTRAN_NAME(apub_fortran_fctn_eval)(const int* matvals, const double* arg, double* out,
+	const char* func_name, int func_name_len)
+{
+	/* fetch material */
+	f2c_string(func_name, func_name_len, StringBuffer, kStringBufferSize);
+	*out = SIERRA_Material_DB::Evaluate(func_name, *arg);
+}
+
+/* error reporting */
+void FORTRAN_NAME(report_error)(int* code, const char* error_string, int error_string_len)
+{
+	f2c_string(error_string, error_string_len, StringBuffer, kStringBufferSize);
+	ExceptionT::GeneralFail("SIERRA_Material_Interface::report_error", "code %d: \"%s\"",
+		*code, StringBuffer);
 }
 
 /* convert a fortran character array into a C string */
