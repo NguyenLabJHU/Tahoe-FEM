@@ -1,4 +1,4 @@
-/* $Id: BondLatticeT.cpp,v 1.4.42.2 2004-06-16 00:31:50 paklein Exp $ */
+/* $Id: BondLatticeT.cpp,v 1.4.42.3 2004-06-16 18:43:26 paklein Exp $ */
 /* created: paklein (01/07/1997) */
 #include "BondLatticeT.h"
 #include <math.h>
@@ -77,10 +77,10 @@ void BondLatticeT::ComputeDeformedLengths(const dSymMatrixT& strain)
 		fStrain = strain;
 	
 	/* compute stretch tensor */
-	dMatrixT& fStretch = fLatDimMatrix;
-	fStrain.ToMatrix(fStretch);
-	fStretch *= 2.0;
-	fStretch.PlusIdentity(1.0);
+	dMatrixT& stretch = fLatDimMatrix;
+	fStrain.ToMatrix(stretch);
+	stretch *= 2.0;
+	stretch.PlusIdentity(1.0);
 
 	/* loop over all bonds */
 	for (int bond = 0; bond < fBonds.MajorDim(); bond++)
@@ -89,7 +89,7 @@ void BondLatticeT::ComputeDeformedLengths(const dSymMatrixT& strain)
 		fBonds.RowAlias(bond, fBondSh);
 		
 		/* using symmetry in C */
-		fStretch.MultTx(fBondSh, fBondDp);
+		stretch.MultTx(fBondSh, fBondDp);
 		
 		/* deformed length */
 		fDefLength[bond] = sqrt(dArrayT::Dot(fBondSh, fBondDp));

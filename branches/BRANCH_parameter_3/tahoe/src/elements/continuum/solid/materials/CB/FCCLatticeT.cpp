@@ -1,4 +1,4 @@
-/* $Id: FCCLatticeT.cpp,v 1.2.42.2 2004-06-16 07:13:38 paklein Exp $ */
+/* $Id: FCCLatticeT.cpp,v 1.2.42.3 2004-06-16 18:43:26 paklein Exp $ */
 #include "FCCLatticeT.h"
 #include "ParameterContainerT.h"
 
@@ -92,7 +92,7 @@ void FCCLatticeT::TakeParameterList(const ParameterListT& list)
 		code = kEulerAngles;
 		ExceptionT::GeneralFail(caller, "orientation \"%s\" not implemented", orientation.Name().Pointer());
 	}
-	else
+	else if (orientation.Name() != "FCC_natural")
 		ExceptionT::GeneralFail(caller, "unrecognized orientation \"%s\"", orientation.Name().Pointer());
 	
 	/* set Q */

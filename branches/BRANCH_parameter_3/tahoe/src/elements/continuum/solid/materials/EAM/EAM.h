@@ -1,4 +1,4 @@
-/* $Id: EAM.h,v 1.3.56.1 2004-06-16 00:31:52 paklein Exp $ */
+/* $Id: EAM.h,v 1.3.56.2 2004-06-16 18:43:27 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #ifndef _EAM_H_
 #define _EAM_H_
@@ -26,13 +26,13 @@ public:
 	* \param nsd number of spatial dimensions needed for the stress and modulus calculations.
 	*        This can be different from the dimensions of lattice, i.e., for 2D plane strain
 	*        calculations nsd = 2, but the lattice will have 3 dimensions. */
-	EAM(CBLatticeT& lattice, int nsd);
+	EAM(CBLatticeT& lattice);
 
 	/* destructor */
 	virtual ~EAM(void);
 
-	/* set "glue" functions */
-	void SetGlueFunctions(void);
+	/** set "glue" functions and dimension work space */
+	void Initialize(int nsd, int numbonds);
 
 	/* compute unit strain energy density:
 	 *

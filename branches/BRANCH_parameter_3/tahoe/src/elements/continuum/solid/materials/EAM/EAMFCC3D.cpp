@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.cpp,v 1.4.50.2 2004-06-16 07:13:35 paklein Exp $ */
+/* $Id: EAMFCC3D.cpp,v 1.4.50.3 2004-06-16 18:43:27 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D.h"
 
@@ -243,19 +243,25 @@ void EAMFCC3D::TakeParameterList(const ParameterListT& list)
 {
 	const char caller[] = "EAMFCC3D::TakeParameterList";
 
-	/* inherited */
-	FCCLatticeT::TakeParameterList(list);
+	/* NOTE: initialization is a bit convoluted because fEAM has information needed
+	 * in the call to FCCLatticeT::TakeParameterList, when the lattice vectors are
+	 * computed, while fEAM can't dimension its internal work space until the vectors
+	 * are set. Therefore, the procedure is:
+	 * (1) construct fEAM and set fLatticeParameter
+	 * (2) call FCCLatticeT::TakeParameterList which sets the bond vectors
+	 * (3) dimension fEAM with the number of bond vectors
+	 */
 
 	/* construct glue */
 	int nsd = list.GetParameter("dimensions");
 	const char glue_name[] = "EAM_FCC_glue_choice";
 	const ParameterListT& glue = list.GetListChoice(*this, glue_name);
 	if (glue.Name() == "Ercolessi-Adams_Al")
-		fEAM = new ErcolessiAdamsAl(*this, nsd);
+		fEAM = new ErcolessiAdamsAl(*this);
 	else if (glue.Name() == "Voter-Chen_Al")
-		fEAM = new VoterChenAl(*this, nsd);
+		fEAM = new VoterChenAl(*this);
 	else if (glue.Name() == "Voter-Chen_Cu")
-		fEAM = new VoterChenCu(*this, nsd);
+		fEAM = new VoterChenCu(*this);
 	else if (glue.Name() == "Paradyn_EAM")
 	{
 		/* data file */
@@ -273,71 +279,19 @@ void EAMFCC3D::TakeParameterList(const ParameterListT& list)
 		if (!data.is_open())
 			ExceptionT::GeneralFail(caller, "could not open file \"%s\"", data_file.Pointer());
 
-		fEAM = new FBD_EAMGlue(*this, nsd, data);
+		fEAM = new FBD_EAMGlue(*this, data);
 	}
 	else
 		ExceptionT::GeneralFail(caller, "unrecognized glue function \"%s\"",
 			glue.Name().Pointer());
 
-	/* initialize glue functions */
-	fEAM->SetGlueFunctions();
-
 	/* lattice parameter and cell volume */
 	fLatticeParameter = fEAM->LatticeParameter();
 	fCellVolume = fLatticeParameter*fLatticeParameter*fLatticeParameter;
+
+	/* inherited - lattice parameter needs to be set first */
+	FCCLatticeT::TakeParameterList(list);
+
+	/* initialize glue functions */
+	fEAM->Initialize(nsd, NumberOfBonds());
 }
-
-/**********************************************************************
- * Private
- **********************************************************************/
-
-#if 0
-/* Set glue functions */
-void EAMFCC3D::SetGlueFunctions(const ParameterListT& params)
-{
-	switch (EAMcode)
-	{
-		case kErcolessiAdamsAl:
-			fEAM = new ErcolessiAdamsAl(*this, nsd);
-			break;
-			
-		case kVoterChenAl:
-			fEAM = new VoterChenAl(*this, nsd);
-			break;
-	
-		case kVoterChenCu:
-			fEAM = new VoterChenCu(*this, nsd);
-			break;
-	
-		case kFoilesBaskesDaw:
-		{
-			/* data file */
-			StringT data_file;
-			in >> data_file;
-			data_file.ToNativePathName();
-
-			/* path to source file */
-			StringT path;
-			path.FilePath(in.filename());
-			data_file.Prepend(path);
-
-			ifstreamT data(data_file);
-			if (!data.is_open())
-			{
-				cout << "\n EAMFCC3D::SetGlueFunctions: could not open file: "
-				     << data_file << endl;
-				throw ExceptionT::kBadInputValue;
-			}
-			fEAM = new FBD_EAMGlue(*this, nsd, data);
-			break;
-		}
-		default:
-		
-			cout << "\nEAMFCC3D::EAMFCC3D: unknown EAM code: " << EAMcode << endl;
-			throw ExceptionT::kBadInputValue;
-	}
-	
-	if (!fEAM) throw ExceptionT::kOutOfMemory;
-	fEAM->SetGlueFunctions();
-}
-#endif

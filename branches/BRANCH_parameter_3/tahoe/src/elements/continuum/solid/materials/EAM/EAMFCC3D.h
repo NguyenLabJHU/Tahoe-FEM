@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.h,v 1.3.56.2 2004-06-16 07:13:35 paklein Exp $ */
+/* $Id: EAMFCC3D.h,v 1.3.56.3 2004-06-16 18:43:27 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #ifndef _EAMFCC3D_H_
 #define _EAMFCC3D_H_
@@ -61,11 +61,6 @@ protected:
 	/* initialize bond table values */
 	virtual void LoadBondTable(void);
 
-private:
-
-	/* Set glue functions */
-	//void SetGlueFunctions(const ParameterListT& params);
-	 	   	    	
 protected:   	    	
 
 	double	fLatticeParameter;
