@@ -1,4 +1,4 @@
-/* $Id: extract_1D.cpp,v 1.2 2004-12-06 16:30:50 rjones Exp $ */
+/* $Id: extract_1D.cpp,v 1.3 2004-12-19 17:13:28 paklein Exp $ */
 #include "ModelManagerT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -21,7 +21,11 @@ int main(int argc, char** argv)
 
 	/* check command line arguments */
 	if (argc < 4) {
-		cout << "\n usage: " << caller << " [force file] [displacement file] [output file]\n" << endl;
+		cout << "\n usage: " << caller << " [force file] [displacement file] [output file]\n\n"
+		     << "[output file] = [name][ _X | _Y | _Z ].[ fvsd | fvst ]\n"
+		     << "The name of the output file is used to determine which component of the force\n"
+			 << "and displacement to extract, as well as whether the force is tabulated over time\n"
+			 << "time or distance.\n";
 		return 1;
 	}
 
@@ -35,7 +39,7 @@ int main(int argc, char** argv)
 	char dir[3];
         strcpy(dir,"_Z");
 	if     (strstr(argv[3],"_X"))  strcpy(dir,"_X");
-	else if(strstr(argv[3],"_Y"))  strcpy(dir,"_X"); 
+	else if(strstr(argv[3],"_Y"))  strcpy(dir,"_Y"); 
 	else if(strstr(argv[3],"_Z"))  strcpy(dir,"_Z");
 	cout << " dir "  << dir << endl;
 
