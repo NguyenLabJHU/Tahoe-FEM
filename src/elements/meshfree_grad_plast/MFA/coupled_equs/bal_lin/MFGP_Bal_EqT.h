@@ -1,4 +1,4 @@
-// $Id: MFGP_Bal_EqT.h,v 1.11 2004-10-21 21:52:02 kyonten Exp $
+// $Id: MFGP_Bal_EqT.h,v 1.12 2004-10-24 17:35:40 kyonten Exp $
 #ifndef _MFGP_BAL_EQ_T_H_ 
 #define _MFGP_BAL_EQ_T_H_ 
 
@@ -36,24 +36,21 @@ class MFGP_Bal_EqT
 							int& fTime_Step, double fdelta_t = 0.0); 
 
   		void Form_LHS_Klambda_Ku(dMatrixT& Klambda, dMatrixT& Ku); // add delta_t for dynamics
-  		void Form_RHS_F_int(dArrayT& F_int ); 
+  		void Form_RHS_F_int(dArrayT& F_int); 
 		void Form_B_List(void);  // Strain Displacement Matricies
  		void Form_C_List(GRAD_MRSSKStV *GRAD_MR_Plast_Mat);  // Constant List
 
 
 	protected:
-		dMatrixT B1_d, B3_d; 
-		dMatrixT B4_lam, phi_lam; 
+		dMatrixT B1, B3, B4, psi_lam;  
   		dMatrixT Cuu1, Cuu2, Culam1, Culam2;
   		dMatrixT Clamu1, Clamu2, Clamlam1, Clamlam2;
   		
 	protected:
-
 		//MFGP_MFA_Data_Processor_DisplT *fData_Pro_Displ;
 		//MFGP_MFA_Data_Processor_PlastT *fData_Pro_Plast;
 		MFGP_MFA_Data_Processor_DisplT Data_Pro_Displ;
 		MFGP_MFA_Data_Processor_PlastT Data_Pro_Plast;
-
 
 		double delta_t;
 		int time_step;
@@ -61,8 +58,8 @@ class MFGP_Bal_EqT
 		dSymMatrixT stress;
 		dMatrixT moduli;
 
-		int ip, n_rows_vector, n_rows_matrix, n_cols_matrix, n_sd, n_str, n_en_displ, n_en_plast, n_sd_x_n_sd, 
-			n_sd_x_n_en_displ, n_sd_x_n_en_plast, Time_Integration_Scheme;
+		int ip, n_rows_matrix, n_cols_matrix, n_sd, n_str, n_en_displ, n_en_plast, 
+			n_sd_x_n_en_displ, n_sd_x_n_en_plast;
   
 };
 

@@ -42,8 +42,7 @@ public:
 	
 protected:
 
-	  	dMatrixT B1_d, B3_d; 
-		dMatrixT B4_lam, phi_lam; 
+	  	dMatrixT B1, B3, B4, phi_lam;  
 	  	dMatrixT Cuu1, Cuu2, Culam1, Culam2;
   		dMatrixT Clamu1, Clamu2;
   		dMatrixT Clamlam1, Clamlam2;
@@ -58,8 +57,8 @@ protected:
 		MFGP_MFA_Data_Processor_DisplT Data_Pro_Displ; 
 		MFGP_MFA_Data_Processor_PlastT Data_Pro_Plast; 
 
-		int ip, n_rows, n_cols, n_sd, n_en_displ, n_en_plast, n_sd_x_n_sd, n_sd_x_n_en_plast, n_sd_x_n_en_displ;
-		int time_step, n_state, n_str, Time_Integration_Scheme;
+		int ip, n_rows, n_cols, n_sd, n_en_displ, n_en_plast, n_sd_x_n_en_plast, n_sd_x_n_en_displ;
+		int time_step, n_state, n_str;
 
 		double delta_t;
 };
