@@ -1,4 +1,4 @@
-/* $Id: ParameterT.h,v 1.10 2004-01-21 17:10:28 paklein Exp $ */
+/* $Id: ParameterT.h,v 1.11 2004-02-18 16:29:10 paklein Exp $ */
 #ifndef _PARAMETER_T_H_
 #define _PARAMETER_T_H_
 
@@ -36,8 +36,11 @@ public:
 	/** destructor */
 	~ParameterT(void);
 
-	/** parameter name */
+	/** \name parameter name */
+	/*@{*/
 	const StringT& Name(void) const { return fName; };
+	void SetName(const StringT& name) { fName = name; };
+	/*@{*/
 
 	/** \name limits */
 	/*@{*/
