@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.7 2001-09-05 00:26:04 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.7.2.1 2001-10-11 20:04:38 sawimme Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "ElementBaseT.h"
@@ -334,35 +334,56 @@ void ElementBaseT::EchoConnectivityData(ifstreamT& in, ostream& out)
 /* resolve input format types */
 void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 {	
-	/* number of blocks in element data */
-	int num_blocks = 0;
-	in >> num_blocks;
-	out << " Number of connectivity data blocks. . . . . . . = " << num_blocks << '\n';
-	if (num_blocks < 1) throw eBadInputValue;
+	/* read from parameter file */
+        iArrayT indexes, matnums;
+	ModelManagerT* model = fFEManager.ModelManager();
+	model->ElementBlockList (in, indexes, matnums);
 
 	/* allocate block map */
+	int num_blocks = indexes.Length();
 	fBlockData.Allocate(num_blocks, kBlockDataSize);
 
-	switch (fFEManager.InputFormat())
-	{
-		case IOBaseT::kTahoe:
-			ReadConnectivity_ASCII(in, out, num_blocks);
-			break;
+	/* read from parameter file */
+	int elem_count = 0;
+	int nen;
+	for (int b=0; b < num_blocks; b++)
+	  {
+	    /* check number of nodes */
+	    int num_elems, num_nodes;
+	    model->ElementGroupDimensions (indexes[b], num_elems, num_nodes);
+	    if (b == 0)
+	      nen = num_nodes;
+	    else if (nen != num_nodes)
+	      {
+		cout << "\n ElementBaseT::ReadConnectivity: minor dimension "
+		     << num_nodes << " of block " << b+1 << '\n';
+		cout <<   "     does not match dimension of previous blocks "
+		     << nen << endl;
+		throw eBadInputValue;
+	      }
+	    
+	    /* store block data */
+	    fBlockData (b, kID) = indexes[b] + 1; // use global index as ID value
+	    fBlockData (b, kStartNum) = elem_count;
+	    fBlockData (b, kBlockDim) = num_elems;
+	    fBlockData (b, kBlockMat) = matnums[b] - 1; // offset
+
+	    /* increment element count */
+	    elem_count += num_elems;
+	  }
 	
-		case IOBaseT::kTahoeII:
-			ReadConnectivity_TahoeII(in, out, num_blocks);
-			break;
+	/* write to single list */
+	if (num_blocks == 1)
+	  fConnectivities = model->ElementGroup (fBlockData (0, kID) - 1);
+	else
+	  {
+	    /* allocate */
+	    fConnectivities.Allocate (elem_count, nen);
 
-		case IOBaseT::kExodusII:
-			ReadConnectivity_ExodusII(in, out, num_blocks);
-			break;
-
-		default:
-
-			cout << "\n ElementBaseT::EchoConnectivityData: unsuported input format: ";
-			cout << fFEManager.InputFormat() << endl;
-			throw eGeneralFail;
-	}
+	    /* by-block */
+	    for (int i=0; i < fBlockData.MajorDim(); i++)
+	      fConnectivities.BlockRowCopyAt (model->ElementGroup (indexes[i]), fBlockData (i, kStartNum));
+	  }
 
 	/* set dimensions */
 	fNumElements  = fConnectivities.MajorDim();
@@ -573,7 +594,7 @@ void ElementBaseT::SetElementCards(void)
 			nodes.MinMax(min, max);
 			if (min < 0 || max >= numberofnodes)
 			{
-				cout << "\n ElementBaseT::ReadConnectivity: nodes {" << min + 1
+				cout << "\n ElementBaseT::SetElementCards: nodes {" << min + 1
 				     << "," << max + 1 << "} in element " << count + 1 << "\n";
 				cout <<   "     (" << j + 1 << " in block " <<  i + 1 << ") of group "
 				     << fFEManager.ElementGroupNumber(this) + 1 << " are out of range" << endl;
@@ -589,273 +610,6 @@ void ElementBaseT::SetElementCards(void)
 /***********************************************************************
 * Private
 ***********************************************************************/
-
-/* read element connectivity data, resolve material pointers
-* and set the local equation numbers */
-void ElementBaseT::ReadConnectivity_ASCII(ifstreamT& in, ostream& out,
-	int num_blocks)
-{
-	/* temp space for connectivity data */
-	ArrayT<iArray2DT> connects(num_blocks);
-
-	int elem_count = 0;
-	int nen;
-	for (int block = 0; block < num_blocks; block++)
-	{
-		int block_material;
-		in >> block_material;
-		block_material--;
-		out << "                   material number: " << block_material + 1<< '\n';
-		out << "                  element block ID: " << block + 1  << endl;
-		
-		/* external connectivity file */
-		ifstreamT in2(in.comment_marker());
-		ifstreamT* pin;
-
-		/* read up to next alphanumeric character */
-		char nextchar = in.next_char();
-	
-		/* check next character */
-		if (isdigit(nextchar))
-			/* inline */
-			pin = &in;	
-		else
-		{
-			/* read connectivity filename */
-			StringT connectfile;
-			in  >> connectfile;
-			out << "                     external file: " << connectfile << '\n';
-			connectfile.ToNativePathName();
-
-			/* path to source file */
-			StringT path;
-			path.FilePath(in.filename());
-			connectfile.Prepend(path);
-
-			/* open separate stream */
-			in2.open(connectfile);
-			in2.set_marker(in.comment_marker());
-			if (!in2.is_open())
-			{
-			    cout << "\n ElementBaseT::ReadConnectivity_ASCII: could not open file: ";
-			    cout << connectfile << endl;
-				throw eBadInputValue;
-			}
-
-			/* set stream */
-			pin = &in2;
-		}
-
-		/* get block dimensions */
-		int block_size, block_nen;
-		(*pin) >> block_size >> block_nen;
-
-		/* get number of element nodes */
-		if (block == 0)
-			nen = block_nen;
-		else if (nen != block_nen)
-		{
-			cout << "\n ElementBaseT::ReadConnectivity: minor dimension "
-			     << block_nen << " of block " << block + 1 << '\n';
-			cout <<   "     does not match dimension of previous blocks "
-			     << nen << endl;
-			throw eBadInputValue;
-		}
-
-		/* store block data */
-		fBlockData(block, kID)       = block;
-		fBlockData(block, kStartNum) = elem_count;
-		fBlockData(block, kBlockDim) = block_size;
-		fBlockData(block, kBlockMat) = block_material;
-
-		/* allocate */
-		iArray2DT& block_connects = connects[block];
-		block_connects.Allocate(block_size, nen);
-
-		/* read data */
-		iArrayT nodes;
-		for (int i = 0; i < block_size; i++)
-		{
-			int elnum;
-			(*pin) >> elnum;
-			elnum--;
-			
-			/* alias */
-			block_connects.RowAlias(elnum, nodes);
-					
-			/* correct offset */
-			elnum += elem_count;
-		
-			/* read connectivity */
-			(*pin) >> nodes;
-		}
-
-		/* increment element count */
-		elem_count += block_size;
-	}
-	
-	/* write to single list */
-	if (num_blocks == 1)
-		fConnectivities.Swap(connects[0]);
-	else
-	{
-		/* allocate */
-		fConnectivities.Allocate(elem_count, nen);
-	
-		/* by-block */
-		for (int i = 0; i < fBlockData.MajorDim(); i++)
-			fConnectivities.BlockRowCopyAt(connects[i], fBlockData(i, kStartNum));
-	}
-	
-	/* correct offset */
-	fConnectivities--;
-}
-
-void ElementBaseT::ReadConnectivity_TahoeII(ifstreamT& in, ostream& out,
-	int num_blocks)
-{
-	/* temp space for connectivity data */
-	ArrayT<iArray2DT> connects(num_blocks);
-
-	/* open database */
-	ModelFileT model_file;
-	if (model_file.OpenRead(fFEManager.ModelFile()) != ModelFileT::kOK)
-	{
-		cout << "\n ElementBaseT::ReadConnectivity_TahoeII: error opening file: "
-		     << fFEManager.ModelFile() << endl;
-		throw eGeneralFail;
-	}		
-
-	int elem_count = 0;
-	int nen;
-	for (int block = 0; block < num_blocks; block++)
-	{
-		int matnum, block_ID;
-		in >> matnum >> block_ID;
-		matnum--;
-		out << "                   material number: " << matnum + 1 << '\n';
-		out << "                  element block ID: " << block_ID   << endl;
-
-		/* read block connectivity */
-		if (model_file.GetElementSet(block_ID, connects[block]) !=
-		    ModelFileT::kOK)
-		{
-			cout << "\n ElementBaseT::ReadConnectivity_TahoeII: error on reading elements" << endl;
-			throw eBadInputValue;
-		}
-
-		/* get number of element nodes */
-		if (block == 0)
-			nen = connects[block].MinorDim();
-		else if (nen != connects[block].MinorDim())
-		{
-			cout << "\n ElementBaseT::ReadConnectivity: minor dimension "
-			     << connects[block].MinorDim() << " of block " << block + 1 << '\n';
-			cout <<   "     does not match dimension of previous blocks "
-			     << nen << endl;
-			throw eBadInputValue;
-		}
-
-		/* store block data */
-		fBlockData(block, kID)       = block_ID;
-		fBlockData(block, kStartNum) = elem_count;
-		fBlockData(block, kBlockDim) = connects[block].MajorDim();
-		fBlockData(block, kBlockMat) = matnum;
-	
-	/* increment element count */
-	elem_count += connects[block].MajorDim();
-	}    	
-
-	/* write to single list */
-	if (num_blocks == 1)
-		fConnectivities.Swap(connects[0]);
-	else
-	{
-		/* allocate */
-		fConnectivities.Allocate(elem_count, nen);
-	
-		/* by-block */
-		for (int i = 0; i < fBlockData.MajorDim(); i++)
-			fConnectivities.BlockRowCopyAt(connects[i], fBlockData(i, kStartNum));
-	}
-	
-	/* correct offset */
-	fConnectivities--;
-}
-
-void ElementBaseT::ReadConnectivity_ExodusII(ifstreamT& in, ostream& out,
-	int num_blocks)
-{
-	/* temp space for connectivity data */
-	ArrayT<iArray2DT> connects(num_blocks);
-
-	/* open database */
-	ExodusT database(out);
-	if (!database.OpenRead(fFEManager.ModelFile()))
-	{
-		cout << "\n ElementBaseT::ReadConnectivity_ExodusII: error opening file: "
-		     << fFEManager.ModelFile() << endl;
-		throw eGeneralFail;
-	}		
-
-	int elem_count = 0;
-	int nen = 0;
-	for (int block = 0; block < num_blocks; block++)
-	{
-		int matnum, block_ID;
-		in >> matnum >> block_ID;
-		matnum--;
-		out << "                   material number: " << matnum + 1 << '\n';
-		out << "                  element block ID: " << block_ID   << endl;
-
-		/* get dimensions */
-		int num_elems, num_elem_nodes;
-		database.ReadElementBlockDims(block_ID, num_elems, num_elem_nodes);
-
-		/* set number of element nodes */
-		if (nen == 0)
-			nen = num_elem_nodes;
-		/* non-empty set with wrong dimensions */
-		else if (num_elems > 0 && nen != num_elem_nodes)
-		{
-			cout << "\n ElementBaseT::ReadConnectivity: minor dimension "
-			     << num_elem_nodes << " of block " << block + 1 << '\n';
-			cout <<   "     does not match dimension of previous blocks "
-			     << nen << endl;
-			throw eBadInputValue;
-		}
-
-		/* store block data */
-		fBlockData(block, kID)       = block_ID;
-		fBlockData(block, kStartNum) = elem_count;
-		fBlockData(block, kBlockDim) = num_elems;
-		fBlockData(block, kBlockMat) = matnum;
-
-		/* read block connectivity */
-		GeometryT::CodeT geometry_code;
-		connects[block].Allocate(num_elems, num_elem_nodes);
-		database.ReadConnectivities(block_ID, geometry_code, connects[block]);
-	
-	/* increment element count */
-	elem_count += num_elems;
-	}    	
-
-	/* write to single list */
-	if (num_blocks == 1)
-		fConnectivities.Swap(connects[0]);
-	else
-	{
-		/* allocate */
-		fConnectivities.Allocate(elem_count, nen);
-	
-		/* by-block */
-		for (int i = 0; i < fBlockData.MajorDim(); i++)
-			fConnectivities.BlockRowCopyAt(connects[i], fBlockData(i, kStartNum));
-	}
-	
-	/* correct offset */
-	fConnectivities--;
-}
 
 /* return the default number of element nodes */
 int ElementBaseT::DefaultNumElemNodes(void) const { return 0; }
