@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.14.2.1 2004-02-07 20:00:12 hspark Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.14.2.2 2004-03-05 15:06:49 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -14,6 +14,8 @@
 #include "BridgingScaleT.h"
 #include "ParticleT.h"
 #include "dSPMatrixT.h"
+#include "EAMFCC3D.h"
+#include "ShapeFunctionT.h"
 
 using namespace Tahoe;
 
@@ -590,6 +592,76 @@ nMatrixT<int>& FEManagerT_bridging::PropertiesMap(int element_group)
 		ExceptionT::GeneralFail("FEManagerT_bridging::PropertiesMap",
 			"group %d is not a particle group", element_group);
 	return particle->PropertiesMap();
+}
+
+/* calculate EAM total electron density at ghost atoms */
+double FEManagerT_bridging::ElecDensity(ifstreamT& in, const iArrayT& ghostatoms)
+{
+	/* try constructing an EAMFCC3D here - need to construct new EAMFCC3D for each ghost atom? */
+	EAMFCC3D eam(in, 4, 3, 54);
+	StringT field = "displacement";
+	const ContinuumElementT* continuum = fFollowerCellData.ContinuumElement();
+	const ElementCardT& element_card1 = continuum->ElementCard(0);
+	const iArrayT& nodes1 = element_card1.NodesU();
+	int nen = nodes1.Length();	// number of nodes per element
+	const ShapeFunctionT& shape = continuum->ShapeFunction();	// access element shape functions
+
+	/* get the field */
+	const FieldT* the_field = fNodeManager->Field(field);
+	LocalArrayT loc_field(LocalArrayT::kDisp, nen, the_field->NumDOF());
+	int nsd = the_field->NumDOF();
+	loc_field.SetGlobal((*the_field)[0]); /* displacement only */
+	
+	const iArrayT& cell = fFollowerCellData.InterpolatingCell();
+	RaggedArray2DT<double>& inversemap = fFollowerCellData.PointInCellCoords(); 
+	const RaggedArray2DT<int>& point_in_cell = fFollowerCellData.PointInCell();
+	const InverseMapT& global_to_local = fFollowerCellData.GlobalToLocal();
+	dArrayT Na, sourcea, sourceb(nsd);
+	dMatrixT fgrad(nsd), eye(nsd), green(nsd);
+	eye.Identity(1.0);
+	dArray2DT DNa;
+	
+	/* loop over all elements which contain atoms/ghost atoms */
+	for (int i = 0; i < inversemap.MajorDim(); i++)
+	{
+		int np = inversemap.MinorDim(i);
+		int np1 = point_in_cell.MinorDim(i);
+		if (np > 0)
+		{
+			const int* points = point_in_cell(i);	// global # of atom in cell
+			const double* inverse = inversemap(i);	// parent domain shape function values
+			inversemap.RowAlias(i, sourcea);
+			for (int j = 0; j < np1; j++)
+			{
+				int point_dex = global_to_local.Map(points[j]);
+			
+				/* determine the element the ghost atom lies in */
+				const ElementCardT& element_card = continuum->ElementCard(cell[point_dex]);
+				const iArrayT& nodes = element_card.NodesU();
+
+				/* collect local displacements */
+				loc_field.SetLocal(nodes);
+			
+				/* obtain parent coordinates */
+				sourceb.CopyPart(0, sourcea, j*nsd, nsd);
+				
+				/* calculate gradient of displacement field */
+				shape.GradU(loc_field, fgrad, sourceb, Na, DNa);
+				
+				/* calculate deformation gradient = 1 + GradU */
+				fgrad+=eye;
+
+				/* calculate green strain = .5*(F^{T}F-I) */
+				green.MultATB(fgrad, fgrad, 0);
+				green-=eye;
+				green*=.5;
+				
+				/* calculate/store electron density/embedding force for each ghost atom */
+
+			}
+		}
+	}
+
 }
 
 /*************************************************************************

@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.40 2004-01-29 01:03:29 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.40.2.1 2004-03-05 15:06:44 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -259,7 +259,7 @@ void BridgingScaleT::InterpolateField(const StringT& field, int order, const Poi
 	
 	/* dimension return value */
 	point_values.Dimension(weights.MajorDim(), the_field->NumDOF());
-
+	
 	/* loop over points */
 	for (int i = 0; i < point_values.MajorDim(); i++)
 	{

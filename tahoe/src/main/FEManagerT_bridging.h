@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.9 2004-01-29 01:03:32 hspark Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.9.2.1 2004-03-05 15:06:49 hspark Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -146,6 +146,9 @@ public:
 	/** return the properties map for the given element group. The element group must be
 	 * a particle type; otherwise, an exception will be thrown. */
 	nMatrixT<int>& PropertiesMap(int element_group);
+
+	/** calculate EAM total electron density at ghost atoms */
+	double ElecDensity(ifstreamT& in, const iArrayT& ghostatoms);
 
 protected:
 

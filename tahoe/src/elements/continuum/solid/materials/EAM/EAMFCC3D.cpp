@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.cpp,v 1.4.36.2 2004-02-28 02:58:45 hspark Exp $ */
+/* $Id: EAMFCC3D.cpp,v 1.4.36.3 2004-03-05 15:06:45 hspark Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAMFCC3D.cpp                                                           */
 
@@ -27,7 +27,7 @@ EAMFCC3D::EAMFCC3D(ifstreamT& in, int EAMcode, int numspatialdim, int numbonds):
 {
 	/* set EAM solver functions */
 	SetGlueFunctions(in);
-	
+
 	/* lattice parameter and cell volume */
 	if (!fEAM)
 		fLatticeParameter = fEAM_particle->LatticeParameter();
@@ -113,6 +113,29 @@ void EAMFCC3D::Print(ostream& out) const
 	out << "    eq. " << kVoterChenCu      << ", Voter & Chen Cu\n";   	
 	out << "    eq. " << kFoilesBaskesDaw  << ", Foiles, Baskes, Daw\n";   	
 	out << "    eq. " << kEAMParticle      << ", Foiles, Baskes, Daw(Particle)\n";
+}
+
+/* compute electron density at ghost atom */
+double EAMFCC3D::ElectronDensity(const dSymMatrixT& strain)
+{
+	double ed;
+
+	/* compute deformed lattice geometry */
+	ComputeDeformedLengths(strain);
+
+	/* get electron density */
+	if (!fEAM)
+	{
+		int blah = 0;
+		//ed = fEAM_particle->TotalElectronDensity();
+	}
+	else
+	{
+		int blah = 0;
+		//ed = fEAM->TotalElectronDensity();	
+	}
+	
+	return ed;
 }
 
 /**********************************************************************

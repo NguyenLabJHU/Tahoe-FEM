@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.52 2004-01-23 19:47:37 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.52.2.1 2004-03-05 15:06:46 hspark Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -249,7 +249,7 @@ void EAMT::WriteOutput(void)
 
   int current_property_i = -1;
   int current_property_j = -1;
-      
+		
   /* Loop i : run through neighbor list */
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
     {
@@ -1479,14 +1479,14 @@ void EAMT::RHSDriver3D(void)
       /* get electron density */
       fElectronDensity = 0.0;
       GetRho3D(coords,fElectronDensity);
-	  
+
       /* exchange electron density information */
       comm_manager.AllGather(fElectronDensityMessageID, fElectronDensity);
-      
+	  
       /* get embedding force */
       fEmbeddingForce = 0.0;
       GetEmbForce(coords,fElectronDensity,fEmbeddingForce);
-      
+	 
 	  /* exchange embedding energy information */
       comm_manager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
     }
@@ -1918,6 +1918,7 @@ void EAMT::GetEmbForce(const dArray2DT& coords,const dArray2DT rho,
   iArrayT neighbors;
   Emb = 0.0;
   
+  /* CURRENTLY DOES NOT LOOP OVER GHOST ATOMS!! */
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
     {
       fNeighbors.RowAlias(i, neighbors);
