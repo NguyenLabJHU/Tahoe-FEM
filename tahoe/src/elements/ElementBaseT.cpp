@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.7.2.2 2001-10-15 19:38:30 sawimme Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.7.2.3 2001-10-25 20:23:38 sawimme Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "ElementBaseT.h"
@@ -272,13 +272,16 @@ int ElementBaseT::ElementBlockID(int element) const
 void ElementBaseT::WeightNodalCost(iArrayT& weight) const
 {
 	int base_weight = 1;
-	int* p = fConnectivities.Pointer();
-	int n = fConnectivities.Length();
-	for (int i = 0; i < n; i++)
-	{
+	for (int b=0; b < fBlockData.MajorDim(); b++)
+	  {
+	    const iArray2DT* conn = fConnectivities[b];
+	    int *p = conn->Pointer();
+	    for (int i = 0; i < conn->Length(); i++)
+	      {
 		if (weight[*p] < base_weight) weight[*p] = base_weight;
 		p++;
-	}
+	      }
+	  }
 }
 
 /***********************************************************************
@@ -340,6 +343,7 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 	/* allocate block map */
 	int num_blocks = indexes.Length();
 	fBlockData.Allocate(num_blocks, kBlockDataSize);
+	fConnectivities.Allocate (num_blocks);
 
 	/* read from parameter file */
 	int elem_count = 0;
@@ -368,35 +372,31 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 
 	    /* increment element count */
 	    elem_count += num_elems;
+
+	    /* set pointer to connectivity list */
+	    fConnectivities [b] = model->ElementGroupPointer(indexes[b]);
 	  }
 	
-	/* write to single list */
-	if (num_blocks == 1)
-	  fConnectivities = model->ElementGroup (fBlockData (0, kID) - 1);
-	else
-	  {
-	    /* allocate */
-	    fConnectivities.Allocate (elem_count, nen);
-
-	    /* by-block */
-	    for (int i=0; i < fBlockData.MajorDim(); i++)
-	      fConnectivities.BlockRowCopyAt (model->ElementGroup (indexes[i]), fBlockData (i, kStartNum));
-	  }
-
 	/* set dimensions */
-	fNumElements  = fConnectivities.MajorDim();
-	fNumElemNodes = fConnectivities.MinorDim();
+	fNumElements  = elem_count;
+	fNumElemNodes = nen;
 	
 	/* connectivity returned empty */
 	if (fNumElemNodes == 0)
 	{
 		fNumElemNodes = DefaultNumElemNodes();
-		fConnectivities.Allocate(0, fNumElemNodes);
+		fConnectivities.Allocate(0);
 	}
 
 	/* derived dimensions */	
 	fNumElemEqnos = fNumElemNodes*fNumDOF;
-	fEqnos.Allocate(fNumElements, fNumElemEqnos);
+	fEqnos.Allocate (num_blocks);
+	int count = 0;
+	for (int be=0; be < num_blocks; be++)
+	  {
+	    fEqnos[be].Allocate(fBlockData (be, kStartNum) - count, fNumElemEqnos);
+	    count = fBlockData (be, kStartNum);
+	  }
 
 	/* set pointers in element cards */
 	SetElementCards();
@@ -444,17 +444,32 @@ void ElementBaseT::WriteConnectivity(ostream& out) const
 * returns the number of nodes used by the element group */
 int ElementBaseT::MakeLocalConnects(iArray2DT& localconnects)
 {
+       int num_blocks = fBlockData.MajorDim();
+
+       iArrayT mins (num_blocks);
+       iArrayT maxes (num_blocks);
+       for (int i=0; i < fBlockData.MajorDim(); i++)
+	 {
+	   mins[i] = fConnectivities[i]->Min();
+	   maxes[i] = fConnectivities[i]->Max();
+	 }
+
 	/* compressed number range */
-	int min   = fConnectivities.Min();
-	int range = fConnectivities.Max() - min + 1;
+	int min   = mins.Min();
+	int range = maxes.Max() - min + 1;
 
 	/* local map */
 	iArrayT node_map(range);
 
 	/* determine used nodes */
 	node_map = 0;
-	for (int i = 0; i < fConnectivities.Length(); i++)
-		node_map[fConnectivities[i] - min] = 1;
+	for (int b=0; b < num_blocks; b++)
+	  {
+	    const iArray2DT* conn = fConnectivities[b];
+	    int *pc = conn->Pointer();
+	    for (int i = 0; i < conn->Length(); i++)
+	      node_map[*pc++ - min] = 1;
+	  }
 
 	/* set node map */
 	int localnum = 0;
@@ -463,26 +478,47 @@ int ElementBaseT::MakeLocalConnects(iArray2DT& localconnects)
 		    node_map[j] = localnum++;
 
 	/* connectivities with local node numbering */
-localconnects.Allocate(fNumElements, fNumElemNodes);
-for (int k = 0; k < localconnects.Length(); k++)
-	   localconnects[k] = node_map[fConnectivities[k] - min];
+	localconnects.Allocate(fNumElements, fNumElemNodes);
+	int *plocal = localconnects.Pointer();
+	for (int b=0; b < num_blocks; b++)
+	  {
+	    const iArray2DT* conn = fConnectivities[b];
+	    int *pc = conn->Pointer();
+	    for (int i = 0; i < conn->Length(); i++)
+	      *plocal++ = node_map [*pc++ - min];
+	  }
 
 	return localnum;
 }
 
 void ElementBaseT::NodesUsed(ArrayT<int>& nodes_used) const
 {
+       int num_blocks = fBlockData.MajorDim();
+
+       iArrayT mins (num_blocks);
+       iArrayT maxes (num_blocks);
+       for (int i=0; i < fBlockData.MajorDim(); i++)
+	 {
+	   mins[i] = fConnectivities[i]->Min();
+	   maxes[i] = fConnectivities[i]->Max();
+	 }
+
 	/* compressed number range */
-	int min   = fConnectivities.Min();
-	int range = fConnectivities.Max() - min + 1;
+	int min   = mins.Min();
+	int range = maxes.Max() - min + 1;
 
 	/* local map */
 	iArrayT node_map(range);
 
 	/* determine used nodes */
 	node_map = 0;
-	for (int i = 0; i < fConnectivities.Length(); i++)
-		node_map[fConnectivities[i] - min] = 1;
+	for (int b=0; b < num_blocks; b++)
+	  {
+	    const iArray2DT* conn = fConnectivities[b];
+	    int *pc = conn->Pointer();
+	    for (int i = 0; i < conn->Length(); i++)
+	      node_map[*pc++ - min] = 1;
+	  }
 
 	/* collect list */
 	nodes_used.Allocate(node_map.Count(1));
@@ -574,18 +610,20 @@ void ElementBaseT::SetElementCards(void)
 	{
 		int dim = fBlockData(i, kBlockDim);
 		int mat = fBlockData(i, kBlockMat);
+		const iArray2DT* blockconn = fConnectivities[i];
+		iArray2DT& blockeqnos = fEqnos[i];
 
 		for (int j = 0; j < dim; j++)
 		{
-			ElementCardT& element_card = fElementCards[count];
+			ElementCardT& element_card = fElementCards[count++];
 	
 			/* material number */
 			element_card.SetMaterialNumber(mat);
 
 			/* set pointers */
 			iArrayT& nodes = element_card.NodesX();
-			fConnectivities.RowAlias(count, nodes);
-			fEqnos.RowAlias(count, element_card.Equations());
+			blockconn->RowAlias(dim, nodes);
+			blockeqnos.RowAlias(dim, element_card.Equations());
 			
 			/* check node numbers */
 			int min, max;
@@ -593,14 +631,11 @@ void ElementBaseT::SetElementCards(void)
 			if (min < 0 || max >= numberofnodes)
 			{
 				cout << "\n ElementBaseT::SetElementCards: nodes {" << min + 1
-				     << "," << max + 1 << "} in element " << count + 1 << "\n";
+				     << "," << max + 1 << "} in element " << dim + 1 << "\n";
 				cout <<   "     (" << j + 1 << " in block " <<  i + 1 << ") of group "
 				     << fFEManager.ElementGroupNumber(this) + 1 << " are out of range" << endl;
 				throw eBadInputValue;
 			}		
-	
-			/* next */
-			count++;
 		}
 	}
 }
