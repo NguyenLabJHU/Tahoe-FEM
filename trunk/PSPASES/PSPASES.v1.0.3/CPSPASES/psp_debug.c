@@ -1,4 +1,4 @@
-/* $Id: psp_debug.c,v 1.4 2005-01-15 00:22:29 paklein Exp $ */
+/* $Id: psp_debug.c,v 1.5 2005-01-15 05:37:45 paklein Exp $ */
 #include <stdio.h>
 #include "pspases_f2c.h"
 #include "mpi.h"
@@ -13,6 +13,7 @@ void dsyrk_(char *UL, char *NT, integer *N, integer *K,
 int myMPI_Isend(void* buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm, MPI_Request *request);
 int myMPI_Send(void* buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm);
 int myMPI_Get_count(MPI_Status *status, MPI_Datatype datatype, int *count);
+int myMPI_Waitall(int count, MPI_Request* request, MPI_Status* status);
 
 static const char* type_names[] = {"UNKNOWN", "MPI_BYTE", "MPI_INT", "MPIT_DOUBLE"};
 const char* t2s(MPI_Datatype datatype) {
@@ -89,5 +90,26 @@ int myMPI_Get_count(MPI_Status *status, MPI_Datatype datatype, int *count)
 	printf(", count = %d\n", *count);
 	fflush(stdout);
 
+	return ret;
+}
+
+int myMPI_Waitall(int count, MPI_Request* request, MPI_Status* status)
+{
+	int ret, i;
+
+	printf("MPI_Waitall: count = %d\n", count);
+	for (i = 0; i < count; i++)
+		if (request[i] == MPI_REQUEST_NULL)
+			printf("MPI_Waitall: request[%d] = NULL\n", i);
+		else
+			printf("MPI_Waitall: request[%d] = %x\n", i, request[i]);
+
+	/* call */	
+	ret = MPI_Waitall(count, request, status);
+
+	for (i = 0; i < count; i++)
+		printf("MPI_Waitall: status[%d]: source = %d, tag = %d\n", i,
+			status[i].MPI_SOURCE, status[i].MPI_TAG);
+	
 	return ret;
 }
