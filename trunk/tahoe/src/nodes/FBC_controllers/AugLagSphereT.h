@@ -1,4 +1,4 @@
-/* $Id: AugLagSphereT.h,v 1.10 2004-07-15 08:31:15 paklein Exp $ */
+/* $Id: AugLagSphereT.h,v 1.11 2004-12-16 07:12:28 paklein Exp $ */
 /* created: paklein (03/24/1999) */
 #ifndef _AUGLAG_SPHERE_T_H_
 #define _AUGLAG_SPHERE_T_H_
@@ -33,8 +33,16 @@ public:
 	virtual void ReadRestart(istream& in);
 	virtual void WriteRestart(ostream& out) const;
 
+	/** initialize current time increment */
+	virtual void InitStep(void);
+
 	/* finalize step */
 	virtual void CloseStep(void);
+
+	/** returns true if the internal force has been changed since
+	 * the last time step. This is when the contact forces are
+	 * recomputed for when solving using Uzawa. */
+	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 
 	/** tangent
 	 * \param sys_type "maximum" tangent type needed by the solver. The GlobalT::SystemTypeT
@@ -67,6 +75,12 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+	
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
@@ -85,6 +99,22 @@ private:
 	/* contact DOF tags and DOF's */
 	iArrayT fContactDOFtags;
 	dArrayT fLastDOF;
+
+	/** \name parameters and data used with Uzawa method */
+	/*@{*/
+	/** do Uzawa iterations (1st order updates during AugLagWallT::RelaxSystem)
+	 * otherwise solve concurrently */
+	bool fUzawa;
+
+	int fPrimalIterations;
+	double fPenetrationTolerance;
+
+	/** augmented multiplier (only used for Uzawa) */
+	dArrayT fDOF;
+	
+	/** runtime flag */
+	bool fRecomputeForce;
+	/*@}*/
 };
 
 } /* namespace Tahoe */
