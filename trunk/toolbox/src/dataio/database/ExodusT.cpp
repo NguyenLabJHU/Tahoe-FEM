@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.3 2001-02-20 00:04:44 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.4 2001-02-27 00:16:26 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -671,6 +671,14 @@ void ExodusT::ReadElementVariable(int step, int block_ID, int index,
 	dArrayT& fValues) const
 {
 	if (exoid < 0) throw eGeneralFail;
+	
+	/* check dimensions */
+	int num_elems, num_elem_nodes;
+	ReadElementBlockDims(block_ID, num_elems, num_elem_nodes);
+	if (num_elems != fValues.Length()) throw eSizeMismatch;
+
+	/* don't read from empty block */
+	if (num_elems == 0) return;
 
 	/* the time_step must correspond to the time_value of the printed increment
 	 * index corresponds to the variable name list */
@@ -1194,135 +1202,3 @@ void ExodusT::Clear(void) { throw eGeneralFail; }
 void ExodusT::Try(const char* caller, int code, bool do_warning) const { throw eGeneralFail; }
 #pragma warn_unusedarg reset
 #endif /* __ACCESS__ */
-
-#if 0 /* dummies for ExodusII functions */
-
-/* routines for file initialization i/o */
-int ex_create(const char*, int, int*, int*) { return -1; }
-int ex_open(const char*, int, int*, int*, float*) { return -1; }
-int ex_close(int) { return -1; }
-void ex_err(char*, char*, int) { }
-void ex_opts(int) { }
-int ex_update(int) { return -1; }
-
-int ex_put_init(int, const char*, int, int, int, int, int, int) { return -1; }
-int ex_get_init(int, char*, int*, int*, int*, int*, int*, int*) { return -1; }
-
-int ex_put_qa(int,int, char*[][4]) { return -1; }
-int ex_get_qa(int, char*[][4]) { return -1; }
-
-int ex_put_info(int, int, char*[]) { return -1; }
-int ex_get_info(int, char*[]) { return -1; }
-
-/* routines for model description i/o */
-
-int ex_put_coord(int, void*, void*, void*) { return -1; }
-int ex_get_coord(int, void*, void*, void*) { return -1; }
-
-int ex_put_coord_names(int, char*[]) { return -1; }
-int ex_get_coord_names(int, char*[]) { return -1; }
-
-int ex_put_map(int, int*) { return -1; }
-int ex_get_map(int, int*) { return -1; }
-
-int ex_put_elem_block(int, int, const char*, int, int, int) { return -1; }
-int ex_get_elem_block(int, int, char*, int*, int*, int*) { return -1; }
-
-int ex_get_elem_blk_ids(int, int*) { return -1; }
-
-int ex_put_elem_conn(int, int, int*) { return -1; }
-int ex_get_elem_conn(int, int, int*) { return -1; }
-
-int ex_put_elem_attr(int, int, void*) { return -1; }
-int ex_get_elem_attr(int, int, void*) { return -1; }
-
-int ex_put_node_set_param(int, int, int, int) { return -1; }
-int ex_get_node_set_param(int, int, int*, int*) { return -1; }
-
-int ex_put_node_set(int, int, int*) { return -1; }
-int ex_get_node_set(int, int, int*) { return -1; }
-
-int ex_put_node_set_dist_fact(int, int, void*) { return -1; }
-int ex_get_node_set_dist_fact(int, int, void*) { return -1; }
-
-int ex_get_node_set_ids(int, int*) { return -1; }
-
-int ex_put_concat_node_sets(int, int*, int*, int*, int*, int*, int*, void*) { return -1; }
-int ex_get_concat_node_sets(int, int*, int*, int*, int*, int*, int*, void*) { return -1; }
-
-int ex_put_side_set_param(int, int, int, int) { return -1; }
-int ex_get_side_set_param(int, int, int*, int*) { return -1; }
-
-int ex_put_side_set(int, int, int*, int*) { return -1; }
-int ex_get_side_set(int, int, int*, int*) { return -1; }
-int ex_put_side_set_dist_fact(int, int, void*) { return -1; }
-int ex_get_side_set_dist_fact(int, int, void*) { return -1; }
-int ex_get_side_set_ids(int, int*) { return -1; }
-int ex_get_side_set_node_list(int, int, int*, int*) { return -1; }
-
-int ex_put_prop_names(int, int, int, char**) { return -1; }
-int ex_get_prop_names(int, int, char**) { return -1; }
-
-int ex_put_prop(int, int, int, char*, int) { return -1; }
-int ex_get_prop(int, int, int, char*, int*) { return -1; }
-
-int ex_put_prop_array(int, int, char*, int*) { return -1; }
-int ex_get_prop_array(int, int, char*, int*) { return -1; }
-
-int ex_put_concat_side_sets(int, int*, int*, int*, int*, int*, int*, int*,
-	void* ) { return -1; }
-int ex_get_concat_side_sets(int, int*, int*, int*, int*, int*, int*, int*,
-	void* ) { return -1; }
-int ex_cvt_nodes_to_sides(int, int*, int*, int*, int*, int*, int*, int*) { return -1; }
-
-/* routines for analysis results i/o */
-
-int ex_put_var_param(int, const char*, int) { return -1; }
-int ex_get_var_param(int, char*, int*) { return -1; }
-
-int ex_put_var_names(int, const char*, int, char*[]) { return -1; }
-int ex_get_var_names(int, char*, int, char*[]) { return -1; }
-
-int ex_put_var_name(int, const char*, int, char*) { return -1; }
-int ex_get_var_name(int, char*, int, char*) { return -1; }
-
-int ex_put_elem_var_tab(int, int, int, int*) { return -1; }
-int ex_get_elem_var_tab(int, int, int, int*) { return -1; }
-
-int ex_put_glob_vars(int, int, int, void*) { return -1; }
-int ex_get_glob_vars(int, int, int, void*) { return -1; }
-
-int ex_get_glob_var_time(int, int, int, int, void*) { return -1; }
-
-int ex_put_nodal_var(int, int, int, int, void*) { return -1; }
-int ex_get_nodal_var(int, int, int, int, void*) { return -1; }
-
-int ex_get_nodal_var_time(int, int, int, int, int, void*) { return -1; }
-
-int ex_put_elem_var(int, int, int, int, int, void*) { return -1; }
-int ex_get_elem_var(int, int, int, int, int, void*) { return -1; }
-
-int ex_get_elem_var_time(int, int, int, int, int, void*) { return -1; }
-
-int ex_put_time(int, int, void*) { return -1; }
-int ex_get_time(int, int, void*) { return -1; }
-
-int ex_get_all_times(int, void*) { return -1; }
-
-int ex_inquire(int, int, int*, void*, char*) { return -1; }
-int ex_put_elem_num_map(int, int*) { return -1; }
-int ex_get_elem_num_map(int, int*) { return -1; }
-
-int ex_put_node_num_map(int, int*) { return -1; }
-int ex_get_node_num_map(int, int*) { return -1; }
-
-int ex_put_map_param(int, int, int) { return -1; }
-int ex_get_map_param(int, int*, int*) { return -1; }
-
-int ex_put_elem_map(int, int, int*) { return -1; }
-int ex_get_elem_map(int, int, int*) { return -1; }
-
-int ex_put_node_map(int, int, int*) { return -1; }
-int ex_get_node_map(int, int, int*) { return -1; }
-
-#endif /* dummy definitions */
