@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.9 2005-01-25 23:16:52 raregue Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.10 2005-02-02 22:18:38 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 #include "SSMatSupportT.h"
@@ -71,6 +71,13 @@ const dMatrixT& DPSSKStVLoc::c_ijkl(void)
 	return fModulus;
 }
 
+/* elastic modulus */
+const dMatrixT& DPSSKStVLoc::ce_ijkl(void)
+{
+	fModulusCe = HookeanMatT::Modulus();
+	return fModulusCe;
+}
+
 /* elastoplastic modulus */
 const dMatrixT& DPSSKStVLoc::c_ep_ijkl(void)
 {
@@ -112,21 +119,28 @@ const dSymMatrixT& DPSSKStVLoc::s_ij(void)
 
 /*
 * Test for localization using "current" values for Cauchy
-* stress and the spatial tangent moduli. Returns 1 if the
+* stress and the spatial tangent moduli. Returns true if the
 * determinant of the acoustic tensor is negative and returns
-* the normal for which the determinant is minimum. Returns 0
-* of the determinant is positive.
+* the normals and slipdirs. Returns false if the determinant is positive.
 */
-// not used
-// see ComputeOutput
-int DPSSKStVLoc::IsLocalized(dArrayT& normal)
+bool DPSSKStVLoc::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
 {
-	//DetCheckT checker(fStress, fModulus, fModulusCe);
-	DetCheckT checker(fStress, c_ep_ijkl(), fModulusCe);	
-	checker.SetfStructuralMatSupport(*fSSMatSupport);
+	/* stress tensor */
+	const dSymMatrixT& stress = s_ij();
+			
+	/* elasto-plastic tangent modulus */
+	//const dMatrixT& modulus = c_perfplas_ijkl();
+	//const dMatrixT& modulus = c_ep_ijkl();
+	const dMatrixT& modulus = c_ijkl();
+	
+	/* elastic modulus */
+	const dMatrixT& modulus_e = ce_ijkl();
 
-	int loccheck = checker.IsLocalized(normal);
-	return loccheck;
+	/* localization condition checker */
+	DetCheckT checker(stress, modulus, modulus_e);
+	normals.Dimension(NumSD());
+	slipdirs.Dimension(NumSD());
+	return checker.IsLocalized_SS(normals,slipdirs);
 }
 
 
