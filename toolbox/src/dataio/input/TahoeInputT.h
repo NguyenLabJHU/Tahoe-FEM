@@ -1,4 +1,4 @@
-/* $Id: TahoeInputT.h,v 1.10 2002-01-27 18:38:12 paklein Exp $ */
+/* $Id: TahoeInputT.h,v 1.11 2002-03-04 06:25:30 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _TAHOEINPUT_T_H_
@@ -27,9 +27,17 @@ class TahoeInputT : public InputBaseT
 
   virtual int NumNodes (void) const;
   virtual int NumDimensions (void) const;
-  virtual void ReadNodeMap (iArrayT& nodemap);
-  virtual void ReadCoordinates (dArray2DT& coords);
-  virtual void ReadCoordinates (dArray2DT& coords, iArrayT& nodemap);
+
+	/** ids for all nodes. ids for all nodes in the coordinate list. ids may not be
+	 * compact or ordered */
+	virtual void ReadNodeID(iArrayT& node_id); 
+
+	/** read coordinates */
+	virtual void ReadCoordinates(dArray2DT& coords);
+	
+	/** read coordinates and ids. ids for all nodes in the coordinate list. 
+	 * ids may not be compact or ordered */
+	virtual void ReadCoordinates(dArray2DT& coords, iArrayT& node_id);
 
   virtual int NumGlobalElements (void) const;
   virtual int NumElements (const StringT& name);

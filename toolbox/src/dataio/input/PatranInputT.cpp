@@ -1,4 +1,4 @@
-/* $Id: PatranInputT.cpp,v 1.9 2002-02-28 16:13:57 sawimme Exp $ */
+/* $Id: PatranInputT.cpp,v 1.10 2002-03-04 06:25:30 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "PatranInputT.h"
@@ -86,9 +86,9 @@ int  PatranInputT::NumNodeSets (void) const
   return count;
 }
 
-void PatranInputT::ReadNodeMap (iArrayT& nodemap)
+void PatranInputT::ReadNodeID(iArrayT& node_id)
 {
-  if (!fPatran.ReadGlobalNodeMap (nodemap)) throw eDatabaseFail;
+  if (!fPatran.ReadGlobalNodeMap(node_id)) throw eDatabaseFail;
 }
 
 void PatranInputT::ReadCoordinates (dArray2DT& coords)
@@ -97,10 +97,10 @@ void PatranInputT::ReadCoordinates (dArray2DT& coords)
     throw eDatabaseFail;
 }
 
-void PatranInputT::ReadCoordinates (dArray2DT& coords, iArrayT& nodemap)
+void PatranInputT::ReadCoordinates (dArray2DT& coords, iArrayT& node_id)
 {
-  ReadCoordinates (coords);
-  ReadNodeMap (nodemap);
+  ReadCoordinates(coords);
+  ReadNodeID(node_id);
 }
 
 int PatranInputT::NumElements (const StringT& name)
@@ -157,7 +157,7 @@ void PatranInputT::ReadConnectivity (const StringT& name, iArray2DT& connects)
 
   /* convert from discontinuous to continuous numbering */
   iArrayT map (NumNodes());
-  ReadNodeMap (map);
+  ReadNodeID(map);
 
   int *pc = connects.Pointer();
   for (int i=0; i < connects.Length(); i++, pc++)
@@ -194,7 +194,7 @@ void PatranInputT::ReadNodeSet (const StringT& name, iArrayT& nodes)
   // offset and map to start numbering at zero
   // account for discontinuous numbering
   iArrayT map;
-  ReadNodeMap (map);
+  ReadNodeID(map);
   for (int n=0; n < nodes.Length(); n++)
     {
       int index;

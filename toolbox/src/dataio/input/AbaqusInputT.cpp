@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.cpp,v 1.11 2002-02-22 15:46:42 sawimme Exp $ */
+/* $Id: AbaqusInputT.cpp,v 1.12 2002-03-04 06:25:30 paklein Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #include "AbaqusInputT.h"
@@ -49,10 +49,10 @@ void AbaqusInputT::NodeSetNames (ArrayT<StringT>& nodenames) const
   fData.NodeSetNames (nodenames);
 }
 
-void AbaqusInputT::ReadNodeMap (iArrayT& nodemap)
+void AbaqusInputT::ReadNodeID (iArrayT& node_id)
 {
-  if (nodemap.Length() != fNumNodes) throw eSizeMismatch;
-  fData.NodeMap (nodemap);
+	if (node_id.Length() != fNumNodes) throw eSizeMismatch;
+	fData.NodeMap(node_id);
 }
 
 void AbaqusInputT::ReadCoordinates (dArray2DT& coords)
@@ -81,15 +81,15 @@ void AbaqusInputT::ReadNodeSet (const StringT& name, iArrayT& nodes)
 
   // offset and map to start numbering at zero
   // account for discontinuous numbering
-  iArrayT map (fNumNodes);
-  ReadNodeMap (map);
-  MapOffset (nodes, map);
+  iArrayT map(fNumNodes);
+  ReadNodeID(map);
+  MapOffset(nodes, map);
 }
 
-void AbaqusInputT::ReadCoordinates (dArray2DT& coords, iArrayT& nodemap)
+void AbaqusInputT::ReadCoordinates (dArray2DT& coords, iArrayT& node_id)
 {
-  ReadNodeMap (nodemap);
-  ReadCoordinates (coords);
+	ReadNodeID(node_id);
+	ReadCoordinates(coords);
 }
 
 void AbaqusInputT::ReadAllElementMap (iArrayT& elemmap)
@@ -122,7 +122,7 @@ void AbaqusInputT::ReadConnectivity (const StringT& name, iArray2DT& connects)
   fData.ResetFile ();
   
   iArrayT map (fNumNodes);
-  ReadNodeMap (map);
+  ReadNodeID (map);
   //cout << "map length " << map.Length() << endl;
 
   iArrayT n;

@@ -1,4 +1,4 @@
-/* $Id: TahoeInputT.cpp,v 1.8 2002-01-27 18:38:12 paklein Exp $ */
+/* $Id: TahoeInputT.cpp,v 1.9 2002-03-04 06:25:30 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "TahoeInputT.h"
@@ -102,11 +102,11 @@ int TahoeInputT::NumDimensions (void) const
   return dims;
 }
 
-void TahoeInputT::ReadNodeMap (iArrayT& nodemap)
+void TahoeInputT::ReadNodeID(iArrayT& node_id)
 {
-  if (nodemap.Length() != NumNodes()) throw eSizeMismatch;
-  nodemap.SetValueToPosition ();
-  nodemap++;
+	if (node_id.Length() != NumNodes()) throw eSizeMismatch;
+	node_id.SetValueToPosition ();
+	node_id++;
 }
 
 void TahoeInputT::ReadCoordinates (dArray2DT& coords)
@@ -117,10 +117,10 @@ void TahoeInputT::ReadCoordinates (dArray2DT& coords)
     throw eDatabaseFail;
 }
 
-void TahoeInputT::ReadCoordinates (dArray2DT& coords, iArrayT& nodemap)
+void TahoeInputT::ReadCoordinates (dArray2DT& coords, iArrayT& node_id)
 {
-  ReadCoordinates (coords);
-  ReadNodeMap (nodemap);
+	ReadCoordinates(coords);
+	ReadNodeID(node_id);
 }
 
 int TahoeInputT::NumGlobalElements (void) const
