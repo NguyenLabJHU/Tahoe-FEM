@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.4 2003-08-14 04:58:04 paklein Exp $ */
+/* $Id: main.cpp,v 1.5 2003-11-21 22:48:26 paklein Exp $ */
 #include "Environment.h"
 #include "ofstreamT.h"
 
@@ -13,7 +13,7 @@
 #include "house.h"
 
 /* prototypes */
-void define_parameters(ParameterInterfaceT& root, const char* out_path);
+void define_parameters(ParameterInterfaceT& root, XML_Attribute_FormatterT::DocTypeT doc_type, const char* out_path);
 void validate_list(ParameterInterfaceT& root, ParameterListT& list, 
 	const char* file_path);
 
@@ -29,10 +29,14 @@ int main(int argc, char** argv)
 #endif
 
 	/* dump a parameter description */
+	house house1;
 	StringT dtd_path;
 	dtd_path.Append(cwd, "house.dtd");
-	house house1;
-	define_parameters(house1, dtd_path);
+	define_parameters(house1, XML_Attribute_FormatterT::DTD, dtd_path);
+
+	StringT xsd_path;
+	xsd_path.Append(cwd, "house.xsd");
+	define_parameters(house1, XML_Attribute_FormatterT::XSD, xsd_path);
 
 	/* read and validate input from source */
 	StringT source_path;
@@ -55,7 +59,7 @@ int main(int argc, char** argv)
 	StringT valid_path;
 	valid_path.Append(cwd, "house_valid.xml");
 	ofstreamT valid_out(valid_path);
-	XML_Attribute_FormatterT att_format;
+	XML_Attribute_FormatterT att_format(XML_Attribute_FormatterT::DTD);
 	att_format.InitParameterFile(valid_out);
 	att_format.WriteParameterList(valid_out, list1);
 	att_format.CloseParameterFile(valid_out);
@@ -67,7 +71,7 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-void define_parameters(ParameterInterfaceT& root, const char* out_path)
+void define_parameters(ParameterInterfaceT& root, XML_Attribute_FormatterT::DocTypeT doc_type, const char* out_path)
 {
 	ParameterTreeT tree;
 	tree.BuildDescription(root);
@@ -75,7 +79,7 @@ void define_parameters(ParameterInterfaceT& root, const char* out_path)
 	/* write description */
 	ofstreamT out;
 	out.open(out_path);
-	XML_Attribute_FormatterT attribute;
+	XML_Attribute_FormatterT attribute(doc_type);
 	attribute.InitDescriptionFile(out);
 	
 	const ArrayT<ParameterListT*>& branches = tree.Branches();
