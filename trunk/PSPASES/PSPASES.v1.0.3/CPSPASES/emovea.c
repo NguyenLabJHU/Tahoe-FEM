@@ -1,4 +1,4 @@
-/* $Id: emovea.c,v 1.1 2004-12-30 20:41:45 paklein Exp $ */
+/* $Id: emovea.c,v 1.2 2004-12-30 20:43:40 paklein Exp $ */
 /* emovea.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -62,7 +62,7 @@ static integer c__5 = 5;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: emovea.c,v 1.1 2004-12-30 20:41:45 paklein Exp $ +/ */
+/* /+ $Id: emovea.c,v 1.2 2004-12-30 20:43:40 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -341,7 +341,7 @@ static int max(integer a, integer b) {
 	}
 /*<    >*/
 
-	mpi_Alltoall(&wrkint[psci], 1, MPI_INT, 
+	MPI_Alltoall(&wrkint[psci], 1, MPI_INT, 
 	             &wrkint[prci], 1, MPI_INT, *comm);
 
 /*<       wrkint(prdi) = 0 >*/
