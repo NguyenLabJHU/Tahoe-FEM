@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.25 2003-10-09 23:26:19 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.25.2.1 2003-10-16 12:49:21 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -101,6 +101,10 @@ void ParticleT::Initialize(void)
 	out << " Re-neighboring interval . . . . . . . . . . . . = " << fReNeighborIncr << '\n';
 
 	/* periodic boundary conditions */
+	fPeriodicBounds.Dimension(NumSD(), 2);
+	fPeriodicBounds = 0.0;
+	fStretchSchedule.Dimension(NumSD());
+	fStretchSchedule = NULL;
 	out << " Periodic boundary conditions:\n";
 	out << setw(kIntWidth) << "dir"
 	    << setw(d_width) << "min"
@@ -111,15 +115,31 @@ void ParticleT::Initialize(void)
 		out << setw(kIntWidth) << i+1;
 		int has_periodic = 0;
 		in >> has_periodic;
-		if (has_periodic) {
+		if (has_periodic > 0) {
 			double x_min = 0.0, x_max = 0.0;
 			in >> x_min >> x_max;
 			out << setw(d_width) << x_min << setw(d_width) << x_max << '\n';
 			if (x_min > x_max)
 				ExceptionT::BadInputValue(caller, "x_min > x_max: %g < %g", x_min, x_max);
 
+			/* store */
+			fPeriodicBounds(i,0) = x_min;
+			fPeriodicBounds(i,1) = x_max;
+
 			/* send to CommManagerT */
 			ElementSupport().CommManager().SetPeriodicBoundaries(i, x_min, x_max);
+			
+			/* read stretch schedule */
+			if (has_periodic > 1) {
+				int schedule = -99;
+				in >> schedule;
+				schedule--;
+				fStretchSchedule[i] = ElementSupport().Schedule(schedule);
+				
+				/* check - expecting f(0) = 1 */
+				if (fabs(fStretchSchedule[i]->Value(0.0) - 1.0) > kSmall)
+					ExceptionT::BadInputValue(caller, "schedule %d does not have value 1 at time 0", schedule+1);
+			}
 		}
 		else out << setw(d_width) << "-" << setw(d_width) << "-" << '\n';
 	}
@@ -244,9 +264,28 @@ GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
 	/* check damping regions */
 	//fDampingCounters++;
 
+	/* reset periodic bounds given stretching */
+	bool has_moving = false;
+	CommManagerT& comm_manager = ElementSupport().CommManager();
+	for (int i = 0; i < NumSD(); i++)
+	{
+		const ScheduleT* stretch = fStretchSchedule[i];
+		if (stretch)
+		{
+			has_moving = true;
+			double scale = stretch->Value();
+			double x_min = scale*fPeriodicBounds(i,0);
+			double x_max = scale*fPeriodicBounds(i,1);
+	
+			/* redefine bounds */
+			comm_manager.SetPeriodicBoundaries(i, x_min, x_max);
+		}
+	}
+
 	/* generate contact element data */
 	fReNeighborCounter++;
-	if ((fReNeighborDisp > 0.0 && fDmax > fReNeighborDisp) || 
+	if (has_moving ||
+	    (fReNeighborDisp > 0.0 && fDmax > fReNeighborDisp) || 
 		(fReNeighborIncr != -1 && fReNeighborCounter >= fReNeighborIncr))
 	{
 		/* output stream */
