@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.27 2003-04-22 19:02:05 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.28 2003-05-27 07:04:18 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -112,8 +112,8 @@ protected:
 	iArrayT fNumStateVariables;
 	pArrayT<SurfacePotentialT*> fSurfPots;
 #ifndef _SIERRA_TEST_
-	pArrayT<TiedPotentialBaseT**> fTiedPots;
-	TiedPotentialBaseT* tiedpot;
+	ArrayT<TiedPotentialBaseT*> fTiedPots;
+//	TiedPotentialBaseT* tiedpot;
 	bool qRetieNodes;
 
 	/** state variable storage array. 

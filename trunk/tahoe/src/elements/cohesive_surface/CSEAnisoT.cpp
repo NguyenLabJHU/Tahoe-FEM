@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.47 2003-04-22 19:02:05 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.48 2003-05-27 07:04:18 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -107,7 +107,7 @@ void CSEAnisoT::Initialize(void)
 	{
 		/* shape functions wrt. current coordinates (linked parent domains) */
 		fCurrShapes = new SurfaceShapeT(*fShapes, fLocCurrCoords);
-		if (!fCurrShapes) throw ExceptionT::kOutOfMemory;
+		if (!fCurrShapes) ExceptionT::OutOfMemory(caller);
 		fCurrShapes->Initialize();
  		
 		/* allocate work space */
@@ -132,6 +132,7 @@ void CSEAnisoT::Initialize(void)
 	in >> numprops;
 	
 	fTiedPots.Dimension(numprops);
+	fTiedPots = NULL;
 #else
 	int numprops;
 	numprops = 1;
@@ -153,7 +154,7 @@ void CSEAnisoT::Initialize(void)
 		num--;
 
 		/* check for repeated number */
-		if (fSurfPots[num] != NULL) throw ExceptionT::kBadInputValue;
+		if (fSurfPots[num] != NULL) ExceptionT::BadInputValue(caller, "surface property %d is already defined", num+1);
 
 		switch (code)
 		{
@@ -276,12 +277,7 @@ void CSEAnisoT::Initialize(void)
 			case SurfacePotentialT::kTiedPotential:
 			{	
 				if (NumDOF() == 2)
-				{
-					if (freeNodeQ.Length() != 0)
-						ExceptionT::GeneralFail(caller,"only 1 TiedNodes potential can be extant");
-				
 					fSurfPots[num] = new TiedPotentialT(in);
-				}
 				else
 					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
 				//Fall through
@@ -292,19 +288,15 @@ void CSEAnisoT::Initialize(void)
 				{
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
 				if (NumDOF() == 2)
-				{
-					if (freeNodeQ.Length() != 0)
-						ExceptionT::GeneralFail(caller,"only 1 TiedNodes potential can be extant");
-				
 					fSurfPots[num] = new MR_RP2DT(in);
-				}
 				else
 					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
 #else
 				ExceptionT::BadInputValue(caller, "COHESIVE_SURFACE_ELEMENT_DEV not enabled: %d", code);
 #endif
 				}
-				
+
+#if 0
 				// Common allocation for tied potentials. 
 				SurfacePotentialT* surfpot = fSurfPots[num];
 				fTiedPots[num] = new TiedPotentialBaseT*;
@@ -340,7 +332,8 @@ void CSEAnisoT::Initialize(void)
 			  		otherInds[0] = 4; otherInds[1] = 5; otherInds[2] = 6; otherInds[3] = 7;
 			  		otherInds[4] = 0; otherInds[5] = 1; otherInds[6] = 2; otherInds[7] = 3;
 			  	}
-				
+#endif
+			
 				break;
 			}
 #endif // ndef _SIERRA_TEST_
@@ -350,11 +343,55 @@ void CSEAnisoT::Initialize(void)
 #endif
 				throw ExceptionT::kBadInputValue;
 		}
-		if (!fSurfPots[num]) throw ExceptionT::kOutOfMemory;
+		if (!fSurfPots[num]) ExceptionT::OutOfMemory(caller);
+		
+		/* check for tied potential */
+		SurfacePotentialT* surfpot = fSurfPots[num];
+		TiedPotentialBaseT* tiedpot = dynamic_cast<TiedPotentialBaseT*>(surfpot);
+		if (tiedpot)
+		{
+			/* only one tied potential allowed */
+			if (freeNodeQ.Length() != 0) ExceptionT::GeneralFail(caller, "only 1 TiedNodes potential can be extant");
+				
+			/* common allocation for tied potentials */
+			iTiedFlagIndex = surfpot->NumStateVariables()-1;
+			freeNodeQ.Dimension(NumElements(),NumElementNodes());
+			freeNodeQ = 0.;
+			freeNodeQ_last = freeNodeQ;
+					 
+			/* initialize things if a potential needs more info than the gap vector */
+			if (tiedpot->NeedsNodalInfo()) {
+				fCalcNodalInfo = true;
+				fNodalInfoCode = tiedpot->NodalQuantityNeeded();
+				iBulkGroups = tiedpot->BulkGroups();
+			}
+			
+			/* re-tying */
+			if (tiedpot->NodesMayRetie())
+				qRetieNodes = true;
+			else 
+				qRetieNodes = false;
+				
+			/* utility array for stress smoothing over tied node pairs */
+			otherInds.Dimension(NumElementNodes());
+			if (NumSD() == 2)
+			{
+				otherInds[0] = 3; otherInds[1] = 2; otherInds[2] = 1; otherInds[3] = 0;
+			} 
+			else if (NumSD() == 3)
+			{
+				otherInds[0] = 4; otherInds[1] = 5; otherInds[2] = 6; otherInds[3] = 7;
+				otherInds[4] = 0; otherInds[5] = 1; otherInds[6] = 2; otherInds[7] = 3;
+			}
+			else 
+				ExceptionT::GeneralFail(caller, "tied nodes for 2D/3D only not %dD", NumSD());
+
+			/* store */
+			fTiedPots[num] = tiedpot;
+		}		
 		
 		/* get number of state variables */
-		fNumStateVariables[num] = fSurfPots[num]->NumStateVariables();
-		  
+		fNumStateVariables[num] = fSurfPots[num]->NumStateVariables(); 
 	}
 
 #ifndef _SIERRA_TEST_
@@ -530,11 +567,13 @@ void CSEAnisoT::ReadRestart(double* incomingData)
 #endif
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 {
+	const char caller[] = "CSEAnisoT::LHSDriver";
+
 	/* matrix format */
 	dMatrixT::SymmetryFlagT format = (fRotate) ?
 		dMatrixT::kWhole : dMatrixT::kUpperOnly;
@@ -550,6 +589,12 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 
+	/* work space for collecting element variables */
+	LocalArrayT nodal_values(LocalArrayT::kUnspecified);
+	dArray2DT elementVals;
+	dArrayT localFrameIP, tensorIP;
+	iArrayT ndIndices;
+
 	AutoArrayT<double> state2;
 	dArrayT state;
 	Top();
@@ -563,11 +608,7 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 		int num_state = fNumStateVariables[element.MaterialNumber()];
 		state2.Dimension(num_state);
 #ifndef _SIERRA_TEST_
-		TiedPotentialBaseT* tiedpot;
-		if (fTiedPots[element.MaterialNumber()] != NULL)
-			tiedpot = *fTiedPots[element.MaterialNumber()];
-		else
-			tiedpot = NULL;
+		TiedPotentialBaseT* tiedpot = fTiedPots[element.MaterialNumber()];
 #endif
 
 		/* get ref geometry (1st facet only) */
@@ -581,23 +622,22 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 		fLHS = 0.0;
 
 		bool nodalReleaseQ = false;
-		LocalArrayT fNodalValues(LocalArrayT::kUnspecified);
 #ifndef _SIERRA_TEST_
 		if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
 		{
-		  	iArrayT ndIndices = element.NodesX();
+		  	ndIndices = element.NodesX();
 		  	int numElemNodes = ndIndices.Length();
-		  	dArray2DT elementVals(numElemNodes,fNodalQuantities.MinorDim());
-		  	fNodalValues.Dimension(numElemNodes,fNodalQuantities.MinorDim());
+			elementVals.Dimension(numElemNodes,fNodalQuantities.MinorDim());
+		  	nodal_values.Dimension(numElemNodes,fNodalQuantities.MinorDim());
 		  	for (int iIndex = 0; iIndex < numElemNodes; iIndex++) 
 			{
 				elementVals.SetRow(iIndex,0.);
 			 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[iIndex]));
 			 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[otherInds[iIndex]]));
 			}
-		  	fNodalValues.SetGlobal(elementVals);
+		  	nodal_values.SetGlobal(elementVals);
 		  	ndIndices.SetValueToPosition();
-		  	fNodalValues.SetLocal(ndIndices);
+		  	nodal_values.SetLocal(ndIndices);
 		}
 #endif
 
@@ -624,7 +664,7 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 				j0 = j = fShapes->Jacobian(fQ);
 
 			/* check */
-			if (j0 <= 0.0 || j <= 0.0) throw ExceptionT::kBadJacobianDet;
+			if (j0 <= 0.0 || j <= 0.0) ExceptionT::BadJacobianDet(caller);
 		
 			/* gap vector and gradient (facet1 to facet2) */
 			const dArrayT&    delta = fShapes->InterpolateJumpU(fLocCurrCoords);
@@ -635,13 +675,18 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 			
 			/* Interpolate nodal info to IPs */
 			/* stress tensor in local frame */
-			dSymMatrixT localFrameIP(NumSD());
 #ifndef _SIERRA_TEST_
 			if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
 			{
-				dArrayT tensorIP(fNodalValues.MinorDim());
-			    fShapes->Interpolate(fNodalValues,tensorIP);			    
-				localFrameIP.MultQBQT(fQ,dSymMatrixT(NumSD(),tensorIP.Pointer()));
+				tensorIP.Dimension(nodal_values.MinorDim());
+				localFrameIP.Dimension(nodal_values.MinorDim());
+			    fShapes->Interpolate(nodal_values, tensorIP);
+			    if (tiedpot->RotateNodalQuantity()) {
+					dSymMatrixT s_rot(NumSD(), localFrameIP.Pointer());
+					s_rot.MultQBQT(fQ, dSymMatrixT(NumSD(), tensorIP.Pointer()));
+				}
+				else
+					localFrameIP = tensorIP;
 			}
 #endif
 
@@ -682,6 +727,8 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 
 void CSEAnisoT::RHSDriver(void)
 {
+	const char caller[] = "CSEAnisoT::RHSDriver";
+
 	/* time-integration parameters */
 	double constKd = 1.0;
 #ifndef _SIERRA_TEST_
@@ -743,6 +790,12 @@ void CSEAnisoT::RHSDriver(void)
 	/* fracture surface area */
 	fFractureArea = 0.0;
 
+	/* work space for collecting element variables */
+	LocalArrayT nodal_values(LocalArrayT::kUnspecified);
+	dArray2DT elementVals;
+	dArrayT localFrameIP, tensorIP;
+	iArrayT ndIndices;
+
 	int block_count = 0, block_dex = 0;
 	dArrayT state;
 	Top();
@@ -775,31 +828,24 @@ void CSEAnisoT::RHSDriver(void)
 
 #ifndef _SIERRA_TEST_
 			bool nodalReleaseQ = false;
-			LocalArrayT fNodalValues(LocalArrayT::kUnspecified);
-			TiedPotentialBaseT* tiedpot;
-			if (fTiedPots[element.MaterialNumber()] != NULL)
-				tiedpot = *fTiedPots[element.MaterialNumber()];
-			else
-				tiedpot = NULL;
+			TiedPotentialBaseT* tiedpot = fTiedPots[element.MaterialNumber()];
 
 			int currElNum = CurrElementNumber();
-			iArrayT ndIndices;
-			int numElemNodes;
 			if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
 			{
 				ndIndices = element.NodesX();
-			  	numElemNodes = ndIndices.Length();
-			  	dArray2DT elementVals(numElemNodes,fNodalQuantities.MinorDim()); 	
-			  	fNodalValues.Dimension(numElemNodes,fNodalQuantities.MinorDim());
+			  	int numElemNodes = ndIndices.Length();
+				elementVals.Dimension(numElemNodes,fNodalQuantities.MinorDim()); 	
+			  	nodal_values.Dimension(numElemNodes,fNodalQuantities.MinorDim());
 			  	for (int iIndex = 0; iIndex < numElemNodes; iIndex++) 
 				{
 					elementVals.SetRow(iIndex,0.);
 				 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[iIndex]));
 				 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[otherInds[iIndex]]));
 				}
-			  	fNodalValues.SetGlobal(elementVals);
+			  	nodal_values.SetGlobal(elementVals);
 			  	ndIndices.SetValueToPosition();
-			  	fNodalValues.SetLocal(ndIndices);
+			  	nodal_values.SetLocal(ndIndices);
 			}
 #endif
 			
@@ -827,11 +873,7 @@ void CSEAnisoT::RHSDriver(void)
 					j0 = j = fShapes->Jacobian(fQ);
 				
 				/* check */
-				if (j0 <= 0.0 || j <= 0.0)
-				{
-					cout << "\n CSEAnisoT::RHSDriver: jacobian error" << endl;
-					throw ExceptionT::kBadJacobianDet;
-				}
+				if (j0 <= 0.0 || j <= 0.0) ExceptionT::BadJacobianDet(caller);
 	
 				/* gap vector from facet1 to facet2 */
 				const dArrayT& delta = fShapes->InterpolateJumpU(fLocCurrCoords);
@@ -841,28 +883,34 @@ void CSEAnisoT::RHSDriver(void)
 					
 				/* Interpolate nodal info to IPs */
 				/* stress tensor in local frame */
-				dSymMatrixT localFrameIP(NumSD());
 #ifndef _SIERRA_TEST_
 				if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
 				{
-					dArrayT tensorIP(fNodalValues.MinorDim());
-				    fShapes->Interpolate(fNodalValues,tensorIP);			    
-					localFrameIP.MultQBQT(fQ,dSymMatrixT(NumSD(),tensorIP.Pointer()));
+					int numElemNodes = ndIndices.Length();
+					tensorIP.Dimension(nodal_values.MinorDim());
+					localFrameIP.Dimension(nodal_values.MinorDim());					
+				    fShapes->Interpolate(nodal_values, tensorIP);
+				    if (tiedpot->RotateNodalQuantity()) {
+				    	dSymMatrixT s_rot(NumSD(), localFrameIP.Pointer());
+						s_rot.MultQBQT(fQ,dSymMatrixT(NumSD(), tensorIP.Pointer()));
+					}
+					else
+						localFrameIP = tensorIP;
 					
-					if (state[iTiedFlagIndex] == kTiedNode && 
-						tiedpot->InitiationQ(localFrameIP.Pointer()))
+					if (state[iTiedFlagIndex] == TiedPotentialBaseT::kTiedNode && 
+						tiedpot->InitiationQ(localFrameIP))
 					{
 						for (int i = 0; i < numElemNodes; i++) 
 							freeNodeQ(currElNum,i) = 1.;
 						nodalReleaseQ = true;
-						state[iTiedFlagIndex] = kReleaseNextStep;
+						state[iTiedFlagIndex] = TiedPotentialBaseT::kReleaseNextStep;
 					}
 					else
 						/* see if nodes need to be retied */
-						if (qRetieNodes && state[iTiedFlagIndex] == kFreeNode && 
-							tiedpot->RetieQ(localFrameIP.Pointer(), state, fdelta))
+						if (qRetieNodes && state[iTiedFlagIndex] == TiedPotentialBaseT::kFreeNode && 
+							tiedpot->RetieQ(localFrameIP, state, fdelta))
 						{
-							state[iTiedFlagIndex] = kTieNextStep;
+							state[iTiedFlagIndex] = TiedPotentialBaseT::kTieNextStep;
 							for (int i = 0; i < numElemNodes; i++)
 								freeNodeQ(currElNum,i) = 0.;
 						}
@@ -1023,6 +1071,11 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 
+	dArray2DT elementVals;
+	LocalArrayT nodal_values(LocalArrayT::kUnspecified);
+	dArrayT localFrameIP, tensorIP;
+	iArrayT ndIndices;
+
 	AutoArrayT<double> state;
 	Top();
 	while (NextElement())
@@ -1071,29 +1124,24 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			if (e_codes[Centroid]) centroid = 0.0;
 			if (e_codes[Traction]) traction = 0.0;
 
-			LocalArrayT fNodalValues(LocalArrayT::kUnspecified);
 			bool nodalReleaseQ = false;
 #ifndef _SIERRA_TEST_
-			TiedPotentialBaseT* tiedpot;
-			if (fTiedPots[element.MaterialNumber()] != NULL)
-				tiedpot = *fTiedPots[element.MaterialNumber()];
-			else
-				tiedpot = NULL;
+			TiedPotentialBaseT* tiedpot = fTiedPots[element.MaterialNumber()];
 			if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
 			{
 			  	int numElemNodes = element.NodesX().Length();
-			  	dArray2DT elementVals(numElemNodes,fNodalQuantities.MinorDim());
-			  	iArrayT ndIndices = element.NodesX();
-			  	fNodalValues.Dimension(numElemNodes,fNodalQuantities.MinorDim());
+			  	elementVals.Dimension(numElemNodes,fNodalQuantities.MinorDim());
+				ndIndices = element.NodesX();
+			  	nodal_values.Dimension(numElemNodes,fNodalQuantities.MinorDim());
 			  	for (int iIndex = 0; iIndex < numElemNodes; iIndex++) 
 				{
 					elementVals.SetRow(iIndex,0.);
 				 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[iIndex]));
 				 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[otherInds[iIndex]]));
 				}
-				fNodalValues.SetGlobal(elementVals);
+				nodal_values.SetGlobal(elementVals);
 				ndIndices.SetValueToPosition();
-			  	fNodalValues.SetLocal(ndIndices);
+			  	nodal_values.SetLocal(ndIndices);
 			}
 #endif
 
@@ -1127,13 +1175,18 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 					/* Interpolate nodal info to IPs */
 					/* stress tensor in local frame */
-					dSymMatrixT localFrameIP(NumSD());
 #ifndef _SIERRA_TEST_
 					if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
 					{
-						dArrayT tensorIP(fNodalValues.MinorDim());
-					    fShapes->Interpolate(fNodalValues,tensorIP);			    
-						localFrameIP.MultQBQT(fQ,dSymMatrixT(NumSD(),tensorIP.Pointer()));
+						tensorIP.Dimension(nodal_values.MinorDim());
+						localFrameIP.Dimension(nodal_values.MinorDim());
+					    fShapes->Interpolate(nodal_values, tensorIP);
+					    if (tiedpot->RotateNodalQuantity()) {		    
+					    	dSymMatrixT s_rot(NumSD(), localFrameIP.Pointer());
+							s_rot.MultQBQT(fQ, dSymMatrixT(NumSD(), tensorIP.Pointer()));
+						}
+						else
+							localFrameIP = tensorIP;
 					}
 #endif
 
