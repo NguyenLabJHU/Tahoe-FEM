@@ -1,4 +1,4 @@
-// $Id: ParameterFileManagerT.cpp,v 1.6 2003-09-05 22:08:31 paklein Exp $
+// $Id: ParameterFileManagerT.cpp,v 1.7 2004-11-19 22:57:24 paklein Exp $
 #include "ParameterFileManagerT.h"
 #include "ExceptionT.h"
 #include "ifstreamT.h"
@@ -176,7 +176,7 @@ void ParameterFileManagerT::NodeSetsMapped (sArrayT& names, ArrayT<CSEConstants:
     meths[i] = int2NodeMapMethodT (temp[i]);
 }
 
-void ParameterFileManagerT::SideSetsMapped (sArrayT& names)
+void ParameterFileManagerT::SideSetsMapped(sArrayT& names)
 {
   names.Free();
   ifstreamT in ('#', fInFile);

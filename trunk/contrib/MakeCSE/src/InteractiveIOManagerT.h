@@ -8,7 +8,7 @@ namespace Tahoe {
 class InteractiveIOManagerT : public MakeCSE_IOManager
 {
  public:
-  InteractiveIOManagerT (void);
+  InteractiveIOManagerT(const ModelManagerT& model);
   void Initialize (void); /**< Query user about parameters */
   
   void InputFormat (IOBaseT::FileTypeT &format, StringT& name);
@@ -33,6 +33,10 @@ class InteractiveIOManagerT : public MakeCSE_IOManager
   void ReadID_Parameter (const sArrayT& q, sArrayT& names, iArrayT& vals); /** read mapped node sets and their methods */
 
  private:
+ 
+	/** model being operated on */
+	const ModelManagerT& fModel;
+ 
   ofstreamT fEchoInput; /**< input file to write based on interactive answers */
   bool fEcho; /**< are we creating fEchoInput */
 

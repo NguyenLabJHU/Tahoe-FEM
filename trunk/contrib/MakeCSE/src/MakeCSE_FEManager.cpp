@@ -1,4 +1,4 @@
-// $Id: MakeCSE_FEManager.cpp,v 1.9 2003-09-10 21:31:30 paklein Exp $
+// $Id: MakeCSE_FEManager.cpp,v 1.10 2004-11-19 22:57:24 paklein Exp $
 // created: 11/10/99 SAW
 #include "MakeCSE_FEManager.h"
 #include "ExceptionT.h"
@@ -19,7 +19,8 @@ MakeCSE_FEManager::MakeCSE_FEManager (ostream& out) :
   fCSEMakerBoss (out, fEdger),
   fModel (out),
   fParameters (NULL),
-  fOutput(NULL)
+  fOutput(NULL),
+  fNodeBoss(NULL)
 {
 }
 
@@ -34,19 +35,31 @@ MakeCSE_FEManager::~MakeCSE_FEManager (void)
 
 void MakeCSE_FEManager::InitializeInput (ifstreamT& in, bool interactive)
 {
-  IOBaseT::FileTypeT format;
-  StringT name;
-  if (interactive)
-    {
-      fMainOut << " No input file, interactive session.\n\n";
-	  fParameters = new InteractiveIOManagerT ();
-      fParameters->Initialize ();
-      fModel.Initialize ();
-      format = fModel.DatabaseFormat();
-      name = fModel.DatabaseName();
-      fParameters->InputFormat (format, name); // echo the format
-    }
-  else 
+	IOBaseT::FileTypeT format;
+	StringT name;
+	if (interactive)
+	{
+		fMainOut << " No input file, interactive session.\n\n";
+
+		/* initialize model file */
+	  	IOBaseT::InputFormats(cout);
+		cout << "\n Enter the Model Format Type: ";
+		cin >> format;
+		cout << "\n Enter the Model File Name: ";
+		cin >> name;
+		name.ToNativePathName();
+		if (!fModel.Initialize (format, name, true))
+			ExceptionT::GeneralFail("MakeCSE_FEManager::InitializeInput",
+				"could not initialize file \"%s\"", name.Pointer());
+		fstreamT::ClearLine(cin); /* clear to end of line */
+
+		fParameters = new InteractiveIOManagerT (fModel);
+		fParameters->Initialize ();
+		format = fModel.DatabaseFormat();
+		name = fModel.DatabaseName();
+		fParameters->InputFormat (format, name); // echo the format
+	}
+	else 
     {
       fMainOut << " Reading from Input file . . . . . . . . . . . . = " 
 	  << in.filename() << '\n';
