@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.cpp,v 1.3 2004-03-14 01:26:56 paklein Exp $ */
+/* $Id: PSPASESMatrixT.cpp,v 1.4 2004-03-14 01:51:21 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "PSPASESMatrixT.h"
 
@@ -64,13 +64,15 @@ void PSPASESMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	/* free space */
 	int option_0 = 0;
 	if (fIsFactorized) PSPACEC(&fNcomm, &option_0);
+
+	/* inherited - initialize MSR data */
+	GlobalMatrixT::Initialize(tot_num_eq, loc_num_eq, start_eq);
+
+	fIsFactorized = 0;
 	if (fIsSymFactorized) {
 		PSPACEC(&fYcomm, &option_0);
 		fIsSymFactorized = 0;
 	}
-
-	/* inherited - initialize MSR data */
-	GlobalMatrixT::Initialize(tot_num_eq, loc_num_eq, start_eq);
 
 	/* exchange number of equations per processor */
 	iArrayT num_eq(fComm.Size());
@@ -137,15 +139,15 @@ void PSPASESMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eq
 	ElementMatrixT::FormatT format = elMat.Format();
 
 	/* two cases: element matrix is diagonal, or it's not. */
+	int end_update = fStartEQ + fLocNumEQ - 1;
 	if (format == ElementMatrixT::kDiagonal)
 	{
 		/* diagonal entries only */
 		const double *pelMat = elMat.Pointer();
 		int inc = elMat.Rows() + 1; /* offset between diag entries are */
 		int nee = eqnos.Length();
-		int end_update = fStartEQ + fLocNumEQ - 1;		
 		for (int i = 0; i < nee; ++i) {
-			int eq = eqnos[eqdex];
+			int eq = eqnos[i];
 			if (eq >= fStartEQ && eq <= end_update) /* active eqn */ {
 				eq--;
 				double* a = (*this)(eq,eq);
@@ -172,7 +174,7 @@ void PSPASESMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eq
 					int reqno = eqnos[row];
 					if (reqno >= fStartEQ && reqno <= end_update) /* active eqn */ {
 						reqno--;
-						double* a (*this)(reqno,ceqno);
+						double* a = (*this)(reqno,ceqno);
 						if (a)
 							*a += 0.5*(elMat(row,col) + elMat(col,row));
 						else
@@ -267,11 +269,23 @@ void PSPASESMatrixT::PrintLHS(bool force) const
 /* precondition matrix */
 void PSPASESMatrixT::Factorize(void)
 {
+	const char caller[] = "PSPASESMatrixT::Factorize";
+
 	/* MPI communicator */
 	MPI_Comm comm = fComm.Comm();
 
+//TEMP
+cout << caller << ": is_sym_fact = " << fIsSymFactorized << endl;
+cout << caller << ":     is_fact = " << fIsFactorized << endl;
+
 	/* compute symbolic factorization */
 	if (!fIsSymFactorized) {
+
+//TEMP
+cout << caller << ": doing symbolic factorization" << endl;
+
+		/* make time stamp */
+		fComm.Log(CommunicatorT::kLow, caller, "start symbolic factorization");
 	
 		/* compute fill-reducing ordering */
 		PSPACEO(frowdist.Pointer(), faptrs.Pointer(), fainds.Pointer(), 
@@ -282,15 +296,27 @@ void PSPASESMatrixT::Factorize(void)
 			forder.Pointer(), fsizes.Pointer(), fioptions_PSPACEY.Pointer(), fdoptions_PSPACEY.Pointer(), 
 			&fYcomm, &comm);
 
+		/* make time stamp */
+		fComm.Log(CommunicatorT::kLow, caller, "end symbolic factorization");
+
 		fIsSymFactorized = 1;
 	}
 
 	/* compute numerical factorization */
 	if (!fIsFactorized) {
 
+//TEMP
+cout << caller << ": doing numerical factorization" << endl;
+
+		/* make time stamp */
+		fComm.Log(CommunicatorT::kLow, caller, "start numerical factorization");
+
 		/* compute numerical factorization */
 		DPSPACEN(frowdist.Pointer(), faptrs.Pointer(), fainds.Pointer(),
 			favals.Pointer(), &fYcomm, &fNcomm, &comm);
+
+		/* make time stamp */
+		fComm.Log(CommunicatorT::kLow, caller, "end numerical factorization");
 
 		fIsFactorized = 1;
 	}
@@ -301,13 +327,8 @@ void PSPASESMatrixT::BackSubstitute(dArrayT& result)
 {
 	const char caller[] = "PSPASESMatrixT::BackSubstitute";
 
-	/* check */
-	if (fTotNumEQ != fLocNumEQ)
-		ExceptionT::GeneralFail(caller, "total equations (%d) != local equations (%d)",
-			fTotNumEQ, fLocNumEQ);
-
 	/* flag should not be set */
-	if (fIsFactorized) ExceptionT::GeneralFail(caller);
+	if (!fIsFactorized) ExceptionT::GeneralFail(caller);
 
 	/* MPI communicator */
 	MPI_Comm comm = fComm.Comm();
