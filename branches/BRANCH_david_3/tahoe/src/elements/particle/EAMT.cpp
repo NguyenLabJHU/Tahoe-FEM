@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.63 2004-12-09 09:19:45 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.63.4.1 2004-12-28 02:55:21 d-farrell2 Exp $ */
 #include "EAMT.h"
 
 #include "ofstreamT.h"
@@ -20,7 +20,7 @@ static int iEmb  = 1;
 
 /* parameters */
 const int kMemoryHeadRoom = 15; /* percent */
-const int kNumOutput = 7;
+const int kNumOutput = 8;
 static const char* OutputNames[kNumOutput] = {
 	"displacement",
 	"potential_energy",
@@ -28,7 +28,8 @@ static const char* OutputNames[kNumOutput] = {
 	"stress",
 	"strain",
 	"slip_vector",	
-	"centrosymmetry"
+	"centrosymmetry",
+	"coordination_number"
 };
 
 /* constructor */
@@ -354,6 +355,13 @@ void EAMT::WriteOutput(void)
 		csp.Dimension(non);
 		Calc_CSP(fNearestNeighbors, csp);
 	}
+	
+	// calculate coordination number
+	iArrayT cnarray;
+	if (fOutputFlags[kCN]) {
+		cnarray.Dimension(non);
+		Calc_CN(fNearestNeighbors, cnarray);
+	}
 
 	/* slip vector, stress, and strain */
 	dArray2DT s_values;
@@ -408,6 +416,10 @@ void EAMT::WriteOutput(void)
 		/* centrosymmetry */
 		if (fOutputFlags[kCS])
 			n_values(local_i, offsets[kCS]) = csp[local_i];
+		
+		// coordination number
+		if (fOutputFlags[kCN])
+			n_values(local_i, offsets[kCN]) = cnarray[local_i];
     }
 
 	/* send */
@@ -880,6 +892,7 @@ void EAMT::SetOutputCount(const iArrayT& flags, iArrayT& counts) const
 	if (flags[kPE]) counts[kPE] = 1;
 	if (flags[kKE]) counts[kKE] = 1;
 	if (flags[kCS]) counts[kCS] = 1;
+	if (flags[kCN]) counts[kCN] = 1;
 	if (flags[kStress]) counts[kStress] = dSymMatrixT::NumValues(NumSD());
 	if (flags[kStrain]) counts[kStrain] = dSymMatrixT::NumValues(NumSD());
 	if (flags[kSlipVector]) counts[kSlipVector] = NumDOF();
@@ -925,6 +938,10 @@ void EAMT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 	/* centrosymmetry */
 	if (fOutputFlags[kCS])
 		labels[offsets[kCS]] = "CS";
+	
+	// coordination number
+	if (fOutputFlags[kCN])
+		labels[offsets[kCN]] = "CN";
 	
 	/* slip vector */
 	if (fOutputFlags[kSlipVector]) {
