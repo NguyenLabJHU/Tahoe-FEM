@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.17 2003-10-31 20:55:16 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.18 2004-03-14 00:10:46 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -19,6 +19,7 @@
 #include "AztecMatrixT.h"
 #include "SLUMatrix.h"
 #include "SPOOLESMatrixT.h"
+#include "PSPASESMatrixT.h"
 
 #ifdef __TAHOE_MPI__
 #include "SPOOLESMatrixT_mpi.h"
@@ -554,6 +555,19 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 			cout << fMatrixType << endl;
 			throw ExceptionT::kGeneralFail;		
 #endif /* __AZTEC__ */
+			break;
+		}
+
+		case kPSPASES:
+		{
+#ifdef __PSPASES__
+			/* construct */
+			fLHS = new PSPASESMatrixT(out, check_code, fFEManager.Communicator());
+#else
+			cout << "\n SolverT::SetGlobalMatrix: PSPASES solver not installed: ";
+			cout << fMatrixType << endl;
+			throw ExceptionT::kGeneralFail;		
+#endif /* __PSPASES__ */
 			break;
 		}
 

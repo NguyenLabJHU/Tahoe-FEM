@@ -1,4 +1,4 @@
-/* $Id: SLUMatrix.cpp,v 1.7 2004-01-05 07:10:18 paklein Exp $ */
+/* $Id: SLUMatrix.cpp,v 1.8 2004-03-14 00:10:38 paklein Exp $ */
 /* created: rbridson (06/30/2000) */
 #include "SLUMatrix.h"
 
@@ -20,10 +20,6 @@
 #include "iArray2DT.h"
 #include "RaggedArray2DT.h"
 #include "ElementMatrixT.h"
-
-/***************************************************************************
- * Public
- ***************************************************************************/
 
 using namespace Tahoe;
 
