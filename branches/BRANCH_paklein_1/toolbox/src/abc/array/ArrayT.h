@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.11.2.1 2002-10-17 01:48:44 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.11.2.2 2002-10-18 01:20:35 paklein Exp $ */
 /* created: paklein (06/19/1996) */
 
 #ifndef _ARRAY_T_H_
@@ -102,12 +102,41 @@ public:
 	/** reference to the last element in the array. Array must be at
 	 * least length 1 */
 	TYPE& Last(void) const;
-		
+
+	/** \name assignment operators */
+	/*@{*/		
 	/** set all elements in the array to the given value */
 	ArrayT<TYPE>& operator=(const TYPE& value);
 
 	/** create a deep copy of the source array. */
 	ArrayT<TYPE>& operator=(const ArrayT<TYPE>& RHS);
+	/*@}*/		
+
+	/** \name equality operators 
+	 * Assumes TYPE has a suitably defined operator==. */
+	/*@{*/
+	/** element-by-element comparison */
+	bool operator==(const ArrayT<TYPE>& RHS);
+
+	/** element-by-element comparison assuming pRHS is as long as *this */
+	bool operator==(const TYPE* pRHS);
+	
+	/** all values the same */
+	bool operator==(const TYPE& value);
+	/*@}*/
+
+	/** \name inequality operators 
+	 * Assumes TYPE has a suitably defined operator==. */
+	/*@{*/
+	/** element-by-element comparison */
+	bool operator!=(const ArrayT<TYPE>& RHS);
+
+	/** element-by-element comparison assuming pRHS is as long as *this */
+	bool operator!=(const TYPE* pRHS);
+	
+	/** all values the same */
+	bool operator!=(const TYPE& value);
+	/*@}*/
 
 	/** copy contents of the array. The valid portion of the source array is
 	 * assumed to be at least as long as the length of this array */ 
@@ -483,6 +512,71 @@ inline ArrayT<TYPE>& ArrayT<TYPE>::operator=(const ArrayT<TYPE>& RHS)
 		MemCopy(fArray, RHS.fArray, fLength);	
 	}
 	return *this;
+}
+
+/* element-by-element comparison */
+template <class TYPE>
+inline bool ArrayT<TYPE>::operator==(const ArrayT<TYPE>& RHS)
+{
+	if (fLength != RHS.fLength)
+		return false;
+	else
+		return operator==(RHS.Pointer());
+}
+
+/* element-by-element comparison assuming pRHS is as long as *this */
+template <class TYPE>
+inline bool ArrayT<TYPE>::operator==(const TYPE* pRHS)
+{
+	if (fArray == pRHS) /* also catches this is empty && pRHS == NULL */
+		return true;
+	else if (fLength == 0)
+		return false;
+	else
+	{
+		TYPE* p = fArray;
+		for (int i = 0; i < fLength; i++)
+			if (*p++ != *pRHS++)
+				return false;
+	}
+	return true;
+}
+	
+/* all values the same */
+template <class TYPE>
+inline bool ArrayT<TYPE>::operator==(const TYPE& value)
+{
+	if (fLength == 0)
+		return false;
+	else
+	{
+		TYPE* p = fArray;
+		for (int i = 0; i < fLength; i++)
+			if (*p++ != value)
+				return false;
+	}
+	return true;
+}
+
+/* element-by-element comparison */
+template <class TYPE>
+inline bool ArrayT<TYPE>::operator!=(const ArrayT<TYPE>& RHS)
+{
+	return !(operator!=(RHS));
+}
+
+/* element-by-element comparison assuming pRHS is as long as *this */
+template <class TYPE>
+inline bool ArrayT<TYPE>::operator!=(const TYPE* pRHS)
+{
+	return !(operator!=(pRHS));
+}
+	
+/* all values the same */
+template <class TYPE>
+inline bool ArrayT<TYPE>::operator!=(const TYPE& value)
+{
+	return !(operator!=(value));
 }
 
 template <class TYPE>
