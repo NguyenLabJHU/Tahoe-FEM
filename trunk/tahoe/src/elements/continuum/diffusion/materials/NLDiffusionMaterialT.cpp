@@ -1,6 +1,7 @@
-/* $Id: NLDiffusionMaterialT.cpp,v 1.1 2003-06-09 06:51:44 paklein Exp $ */
+/* $Id: NLDiffusionMaterialT.cpp,v 1.2 2003-06-09 13:37:38 paklein Exp $ */
 #include "NLDiffusionMaterialT.h"
 #include "DiffusionMatSupportT.h"
+#include "ifstreamT.h"
 
 using namespace Tahoe;
 
