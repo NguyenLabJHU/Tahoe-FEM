@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.6.2.1 2002-04-28 22:26:18 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.6.2.2 2002-05-03 07:16:26 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 
 #include "AugLagContact2DT.h"
@@ -31,15 +31,15 @@ void AugLagContact2DT::Initialize(void)
 	Contact2DT::Initialize();
 
 	/* reset base class parameters */
-	fNumElemEqnos = NumElementNodes()*NumDOF() + 1; // 1 additional dof
+	int neq = NumElementNodes()*NumDOF() + 1; // 1 additional dof
 
 	/* re-size element results */
-	fLHS.Allocate(fNumElemEqnos); // or make new variables?
-	fRHS.Allocate(fNumElemEqnos);
+	fLHS.Allocate(neq); // or make new variables?
+	fRHS.Allocate(neq);
 
 	/* dynamic work space managers for element arrays */
 	fXDOFConnectivities_man.SetWard(0, fXDOFConnectivities, NumElementNodes() + 1);		
-	fXDOFEqnos_man.SetWard(0, fXDOFEqnos, fNumElemEqnos);
+	fXDOFEqnos_man.SetWard(0, fXDOFEqnos, neq);
 
 	/* only 1 tag set for the group */
 	iArrayT numDOF(1);
@@ -262,10 +262,11 @@ void AugLagContact2DT::LHSDriver(void)
 	const dArrayT force(constr.MajorDim(),constr.Pointer());
 
 	/* loop over active elements */
+	int neq = NumElementNodes()*NumDOF() + 1;
 	dArrayT tangent(NumSD());
 	iArrayT eqnos;
-	dMatrixT uLHS(fNumElemEqnos - kNumAugLagDOF);
-	dArrayT  uRHS(fNumElemEqnos - kNumAugLagDOF, fRHS.Pointer());
+	dMatrixT uLHS(neq - kNumAugLagDOF);
+	dArrayT  uRHS(neq - kNumAugLagDOF, fRHS.Pointer());
 	for (int i = 0; i < fXDOFConnectivities.MajorDim(); i++)
 	{
 		int* pelem = fXDOFConnectivities(i);
@@ -303,13 +304,13 @@ void AugLagContact2DT::LHSDriver(void)
 			/* compute  d h/d d_i*/
 			uRHS.AddScaled(-h/(magtan*magtan),fNEEvec);
 
-			fColtemp1.Set(fNumElemEqnos - 1, fdv1T(0));
-			fColtemp2.Set(fNumElemEqnos - 1, fdv2T(1));
+			fColtemp1.Set(neq - 1, fdv1T(0));
+			fColtemp2.Set(neq - 1, fdv2T(1));
 			uRHS.AddCombination(-fv2[1]/magtan,fColtemp1,
 				                -fv1[0]/magtan,fColtemp2);
 			
-			fColtemp1.Set(fNumElemEqnos - 1, fdv1T(1));
-			fColtemp2.Set(fNumElemEqnos - 1, fdv2T(0));
+			fColtemp1.Set(neq - 1, fdv1T(1));
+			fColtemp2.Set(neq - 1, fdv2T(0));
 			uRHS.AddCombination(fv2[0]/magtan, fColtemp1,
 				                fv1[1]/magtan, fColtemp2);
 
@@ -343,7 +344,7 @@ void AugLagContact2DT::LHSDriver(void)
 			fLHS.AddBlock(0, 0, uLHS);
 			
 			/* augmented Lagrangian DOF */
-			int dex = fNumElemEqnos - 1;
+			int dex = neq - 1;
 			fLHS.SetRow(dex, fRHS);
 			fLHS.SetCol(dex, fRHS);
 			
@@ -355,7 +356,7 @@ void AugLagContact2DT::LHSDriver(void)
 			fLHS = 0.0;
 		
 			/* augmented Lagrangian DOF */
-			int dex = fNumElemEqnos - 1;
+			int dex = neq - 1;
 			fLHS(dex,dex) = -1.0/fr;							
 		}
 		
@@ -379,11 +380,11 @@ void AugLagContact2DT::RHSDriver(void)
 	const dArray2DT& constr = ElementSupport().XDOF_Manager().XDOF(this, 0);
 	const dArrayT force(constr.MajorDim(), constr.Pointer()); // general for all
 	                                                          // value of kNumAugLagDOF
-
 	/* loop over active elements */
+	int neq = NumElementNodes()*NumDOF() + 1;
 	dArrayT tangent(NumSD());
 	iArrayT eqnos;
-	dArrayT uRHS(fNumElemEqnos - kNumAugLagDOF,fRHS.Pointer());
+	dArrayT uRHS(neq - kNumAugLagDOF, fRHS.Pointer());
 	for (int i = 0; i < fXDOFConnectivities.MajorDim(); i++)
 	{
 		int* pelem = fXDOFConnectivities(i);
@@ -423,18 +424,18 @@ void AugLagContact2DT::RHSDriver(void)
 			uRHS.AddScaled(-g*h/(magtan*magtan),fNEEvec);
 						
 			/* d_area */
-			fColtemp1.Set(fNumElemEqnos - 1, fdv1T(0));
-			fColtemp2.Set(fNumElemEqnos - 1, fdv2T(1));
+			fColtemp1.Set(neq - 1, fdv1T(0));
+			fColtemp2.Set(neq - 1, fdv2T(1));
 			uRHS.AddCombination(-g*fv2[1]/magtan, fColtemp1,
 				                -g*fv1[0]/magtan, fColtemp2);
 			
-			fColtemp1.Set(fNumElemEqnos - 1, fdv1T(1));
-			fColtemp2.Set(fNumElemEqnos - 1, fdv2T(0));
+			fColtemp1.Set(neq - 1, fdv1T(1));
+			fColtemp2.Set(neq - 1, fdv2T(0));
 			uRHS.AddCombination(g*fv2[0]/magtan, fColtemp1,
 				                g*fv1[1]/magtan, fColtemp2);
 				
 			/* augmented Lagrangian DOF */				
-			fRHS[fNumElemEqnos - 1] = h;					
+			fRHS[neq - 1] = h;					
 		}
 		/* gap */
 		else
@@ -443,7 +444,7 @@ void AugLagContact2DT::RHSDriver(void)
 			fRHS = 0.0;
 
 			/* augmented Lagrangian DOF */				
-			fRHS[fNumElemEqnos - 1] = -force[i]/fr;							
+			fRHS[neq - 1] = -force[i]/fr;							
 		}
 
 		//NOTE: Contact force is the negative of the element

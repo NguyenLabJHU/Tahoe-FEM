@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.17.2.2 2002-04-27 01:32:27 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.17.2.3 2002-05-03 07:16:28 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -146,21 +146,22 @@ void SimoFiniteStrainT::Initialize(void)
 	}
 
 	/* dimension work space */
-	fGradNa.Allocate(NumSD(), NumElementNodes());
+	int nen = NumElementNodes();
+	fGradNa.Allocate(NumSD(), nen);
 	fGradNa_enh.Allocate(NumSD(), fNumModeShapes);
 	fRHS_enh.Allocate(NumSD()*fNumModeShapes);
 	fB_enh.Allocate(dSymMatrixT::NumValues(NumSD()), NumSD()*fNumModeShapes);
 	fWP_enh.Allocate(NumSD(), fNumModeShapes);
 	
 	/* stiffness work space */
-	fStressStiff_11.Allocate(NumElementNodes());
-	fStressStiff_12.Allocate(NumElementNodes(), fNumModeShapes);
-	fStressStiff_21.Allocate(fNumModeShapes, NumElementNodes());
+	fStressStiff_11.Allocate(nen);
+	fStressStiff_12.Allocate(nen, fNumModeShapes);
+	fStressStiff_21.Allocate(fNumModeShapes, nen);
 	fStressStiff_22.Allocate(fNumModeShapes, fNumModeShapes);
 	
 	fK22.Allocate(fNumModeShapes*NumDOF());	
-	fK12.Allocate(NumElementNodes()*NumDOF(), fNumModeShapes*NumDOF());
-	fK21.Allocate(fNumModeShapes*NumDOF(), NumElementNodes()*NumDOF());
+	fK12.Allocate(nen*NumDOF(), fNumModeShapes*NumDOF());
+	fK21.Allocate(fNumModeShapes*NumDOF(), nen*NumDOF());
 	
 	/* solve all dof's together */
 	if (fModeSolveMethod == kMonolithic)
@@ -169,7 +170,7 @@ void SimoFiniteStrainT::Initialize(void)
 		fK11.Allocate(fLHS.Rows());
 	
 		/* resize work arrays */
-		fRHS.Allocate(fNumElemEqnos + fCurrElementModes.Length());
+		fRHS.Allocate(nen*NumDOF() + fCurrElementModes.Length());
 		fLHS.Allocate(fRHS.Length());
 		
 		/* XDOF support */
@@ -291,7 +292,8 @@ void SimoFiniteStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 			iArray2DT& eqnos = fEqnos[i];
 		
 			/* resize equations array - displacement DOF's + element modes */
-			eqnos.Allocate(connects.MajorDim(), fNumElemEqnos + fCurrElementModes.Length());
+			int neq = NumElementNodes()*NumDOF();
+			eqnos.Allocate(connects.MajorDim(), neq + fCurrElementModes.Length());
 		
 			/* set displacement equations */
 			Field().SetLocalEqnos(connects, eqnos);
@@ -302,9 +304,9 @@ void SimoFiniteStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 
 			/* fill columns with xdof equations */
 			iArrayT tmp(xdof_eqnos.MajorDim());
-			for (int i = fNumElemEqnos; i < eqnos.MinorDim(); i++)
+			for (int i = neq; i < eqnos.MinorDim(); i++)
 			{
-				xdof_eqnos.ColumnCopy(i - fNumElemEqnos, tmp);
+				xdof_eqnos.ColumnCopy(i - neq, tmp);
 				eqnos.SetColumn(i, tmp);
 			}
 
@@ -388,7 +390,7 @@ void SimoFiniteStrainT::ResetDOF(dArray2DT& DOF, int tag_set) const
 }
 
 /* the equation group */
-int SimoFiniteStrainT::Group(void) const { return Group(); }
+int SimoFiniteStrainT::Group(void) const { return FiniteStrainT::Group(); }
 
 /***********************************************************************
 * Protected
@@ -851,8 +853,9 @@ void SimoFiniteStrainT::FormKd_monolithic(double constK)
 	dMatrixT WP(NumSD(), fStressStiff_11.Rows(), fNEEvec.Pointer());
 	
 	/* partition residual force vector */
-	dArrayT RHS(fNumElemEqnos, fRHS.Pointer());
-	dArrayT RHS_enh(fCurrElementModes.Length(), fRHS.Pointer(fNumElemEqnos));
+	int neq = NumElementNodes()*NumDOF();
+	dArrayT RHS(neq, fRHS.Pointer());
+	dArrayT RHS_enh(fCurrElementModes.Length(), fRHS.Pointer(neq));
 
 	/* integration rule */
 	const double* Det    = fShapes->IPDets();

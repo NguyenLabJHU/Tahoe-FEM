@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.6.8.1 2002-04-28 22:26:21 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.6.8.2 2002-05-03 07:16:25 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEIsoT.h"
@@ -238,6 +238,10 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	/* nothing to output */
 	if (n_out == 0 && e_out == 0) return;
 
+	int nsd = NumSD();
+	int ndof = NumDOF();
+	int nen = NumElementNodes();
+
 	/* reset averaging workspace */
 	ElementSupport().ResetAverage(n_out);
 
@@ -246,27 +250,27 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	e_values = 0.0;
 
 	/* work arrays */
-	dArray2DT nodal_space(NumElementNodes(), n_out);
-	dArray2DT nodal_all(NumElementNodes(), n_out);
+	dArray2DT nodal_space(nen, n_out);
+	dArray2DT nodal_all(nen, n_out);
 	dArray2DT coords, disp;
 	dArray2DT jump, Tmag;
 
 	/* ip values */
 	dArrayT ipjump(1), ipTmag(1);
-	LocalArrayT loc_init_coords(LocalArrayT::kInitCoords, NumElementNodes(), NumSD());
-	LocalArrayT loc_disp(LocalArrayT::kDisp, NumElementNodes(), NumDOF());
+	LocalArrayT loc_init_coords(LocalArrayT::kInitCoords, nen, nsd);
+	LocalArrayT loc_disp(LocalArrayT::kDisp, nen, ndof);
 	ElementSupport().RegisterCoordinates(loc_init_coords);
 	Field().RegisterLocal(loc_disp);
 
 	/* set shallow copies */
 	double* pall = nodal_space.Pointer();
-	coords.Set(NumElementNodes(), n_codes[NodalCoord], pall);
+	coords.Set(nen, n_codes[NodalCoord], pall);
 	pall += coords.Length();
-	disp.Set(NumElementNodes(), n_codes[NodalDisp], pall);
+	disp.Set(nen, n_codes[NodalDisp], pall);
 	pall += disp.Length();
-	jump.Set(NumElementNodes(), n_codes[NodalDispJump], pall);
+	jump.Set(nen, n_codes[NodalDispJump], pall);
 	pall += jump.Length();
-	Tmag.Set(NumElementNodes(), n_codes[NodalTraction], pall);
+	Tmag.Set(nen, n_codes[NodalTraction], pall);
 
 	/* element work arrays */
 	dArrayT element_values(e_values.MinorDim());
@@ -274,8 +278,8 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	dArrayT centroid;
 	if (e_codes[Centroid])
 	{
-		centroid.Set(NumSD(), pall); 
-		pall += NumSD();
+		centroid.Set(nsd, pall); 
+		pall += nsd;
 	}
 	double e_tmp, area;
 	double& phi = (e_codes[CohesiveEnergy]) ? *pall++ : e_tmp;

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.21.2.4 2002-04-30 08:22:01 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.21.2.5 2002-05-03 07:16:27 paklein Exp $ */
 /* created: paklein (05/28/1996) */
 
 #include "SolidElementT.h"
@@ -859,6 +859,11 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 	/* nothing to output */
 	if (n_out == 0 && e_out == 0) return;
+	
+	/* dimensions */
+	int nsd = NumSD();
+	int ndof = NumDOF();
+	int nen = NumElementNodes();
 
 	/* reset averaging workspace */
 	ElementSupport().ResetAverage(n_out);
@@ -867,26 +872,26 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	e_values.Allocate(NumElements(), e_out);
 
 	/* nodal work arrays */
-	dArray2DT nodal_space(NumElementNodes(), n_out);
-	dArray2DT nodal_all(NumElementNodes(), n_out);
+	dArray2DT nodal_space(nen, n_out);
+	dArray2DT nodal_all(nen, n_out);
 	dArray2DT coords, disp;
 	dArray2DT nodalstress, princstress, matdat;
 	dArray2DT energy, speed;
 
 	/* ip values */
-	dSymMatrixT cauchy(NumSD());
+	dSymMatrixT cauchy(nsd);
 	dArrayT ipmat(n_codes[iMaterialData]), ipenergy(1);
-	dArrayT ipspeed(NumSD()), ipprincipal(NumSD());
+	dArrayT ipspeed(nsd), ipprincipal(nsd);
 
 	/* set shallow copies */
 	double* pall = nodal_space.Pointer();
-	coords.Set(NumElementNodes(), n_codes[iNodalCoord], pall)      ; pall += coords.Length();
-	disp.Set(NumElementNodes(), n_codes[iNodalDisp], pall)         ; pall += disp.Length();
-	nodalstress.Set(NumElementNodes(), n_codes[iNodalStress], pall); pall += nodalstress.Length();
-	princstress.Set(NumElementNodes(), n_codes[iPrincipal], pall)  ; pall += princstress.Length();
-	energy.Set(NumElementNodes(), n_codes[iEnergyDensity], pall)   ; pall += energy.Length();
-	speed.Set(NumElementNodes(), n_codes[iWaveSpeeds], pall)       ; pall += speed.Length();
-	matdat.Set(NumElementNodes(), n_codes[iMaterialData], pall);
+	coords.Set(nen, n_codes[iNodalCoord], pall)      ; pall += coords.Length();
+	disp.Set(nen, n_codes[iNodalDisp], pall)         ; pall += disp.Length();
+	nodalstress.Set(nen, n_codes[iNodalStress], pall); pall += nodalstress.Length();
+	princstress.Set(nen, n_codes[iPrincipal], pall)  ; pall += princstress.Length();
+	energy.Set(nen, n_codes[iEnergyDensity], pall)   ; pall += energy.Length();
+	speed.Set(nen, n_codes[iWaveSpeeds], pall)       ; pall += speed.Length();
+	matdat.Set(nen, n_codes[iMaterialData], pall);
 
 	/* element work arrays */
 	dArrayT element_values(e_values.MinorDim());
@@ -894,8 +899,8 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	dArrayT centroid, ip_centroid, ip_mass;
 	if (e_codes[iCentroid])
 	{
-		centroid.Set(NumSD(), pall); pall += NumSD();
-		ip_centroid.Allocate(NumSD());
+		centroid.Set(nsd, pall); pall += nsd;
+		ip_centroid.Allocate(nsd);
 	}
 	if (e_codes[iMass]) {
 		ip_mass.Set(NumIP(), pall); 
@@ -908,8 +913,8 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	dArrayT linear_momentum, ip_velocity;
 	if (e_codes[iLinearMomentum])
 	{
-		linear_momentum.Set(NumDOF(), pall); pall += NumDOF();
-		ip_velocity.Allocate(NumDOF());
+		linear_momentum.Set(ndof, pall); pall += ndof;
+		ip_velocity.Allocate(ndof);
 	}
 	dArray2DT ip_stress;
 	if (e_codes[iIPStress])

@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.6.2.1 2002-04-29 02:45:12 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.6.2.2 2002-05-03 07:16:32 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 
 #include "UnConnectedRodT.h"
@@ -188,20 +188,21 @@ void UnConnectedRodT::ConfigureElementData(void)
 	iArray2DT& rod_eqnos = fEqnos[0];
 
 	/* allocate memory */
-	int nen = connects->MajorDim();
-	fElementCards.Allocate(nen);
-	rod_eqnos.Allocate(nen, fNumElemEqnos);
+	int nen = connects->MinorDim();
+	int nel = connects->MajorDim();
+	fElementCards.Allocate(nel);
+	rod_eqnos.Allocate(nel, nen*NumDOF());
 
 	/* set 2 body element data */
 	int block_index = 0;
-	for (int i = 0; i < nen; i++)	
+	for (int i = 0; i < nel; i++)	
 	{
 		/* element card */
 		ElementCardT& card = fElementCards[i];
 	
 		/* node and equation numbers */			
 		card.NodesX().Set(NumElementNodes(), (*connects)(i));
-		card.Equations().Set(fNumElemEqnos, rod_eqnos(i));
+		card.Equations().Set(rod_eqnos.MinorDim(), rod_eqnos(i));
 		
 		/* material number */
 		card.SetMaterialNumber(fBlockData[block_index].MaterialID());

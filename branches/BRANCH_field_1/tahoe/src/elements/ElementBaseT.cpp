@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.15.2.5 2002-04-30 08:21:58 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.15.2.6 2002-05-03 07:16:22 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -24,8 +24,8 @@ ElementBaseT::ElementBaseT(const ElementSupportT& support, const FieldT& field):
 	fField(field),
 //	fNodes(NULL),
 	fController(NULL),
-	fNumElemNodes(0),
-	fNumElemEqnos(0),
+//	fNumElemNodes(0),
+//	fNumElemEqnos(0),
 //	fNumElements(0),
 	fElementCards(0),
 	fLHS(ElementMatrixT::kSymmetric)
@@ -57,7 +57,7 @@ void ElementBaseT::Initialize(void)
 	name.Append("_element_group");
 	iSetName(name);
 //	iAddVariable("num_elements", *((const int*) &fNumElements));
-	iAddVariable("num_element_nodes", *((const int*) &fNumElemNodes));
+//	iAddVariable("num_element_nodes", *((const int*) &fNumElemNodes));
 
 	/* streams */
 	ifstreamT& in = fSupport.Input();
@@ -70,8 +70,9 @@ void ElementBaseT::Initialize(void)
 	EchoConnectivityData(in, out);
 
 	/* dimension */
-	fLHS.Allocate(fNumElemEqnos);	
-	fRHS.Allocate(fNumElemEqnos);
+	int neq = NumElementNodes()*NumDOF();
+	fLHS.Allocate(neq);	
+	fRHS.Allocate(neq);
 }
 
 /* initial condition/restart functions
@@ -389,22 +390,29 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 	    /* set pointer to connectivity list */
 	    fConnectivities[b] = model.ElementGroupPointer(elem_ID[b]);
 	}
+
+	/* connectivities came back empty */
+	if (nen == 0) nen = DefaultNumElemNodes();
+	for (int i = 0; i < fConnectivities.Length(); i++)
+		if (fConnectivities[i]->MinorDim() == 0)
+		{
+			/* not really violating const-ness */
+			iArray2DT* connects = const_cast<iArray2DT*>(fConnectivities[i]);
+			connects->Dimension(0, nen);
+		}
 	  
 	/* set dimensions */
 //	fNumElements  = elem_count;
+//	fNumElemNodes = nen;
 	fElementCards.Allocate(elem_count);
-	fNumElemNodes = nen;
-	
-	/* connectivity returned empty */
-	if (fNumElemNodes == 0) fNumElemNodes = DefaultNumElemNodes();
 
 	/* derived dimensions */	
-	fNumElemEqnos = fNumElemNodes*NumDOF();
+	int neq = nen*NumDOF();
 	fEqnos.Allocate (num_blocks);
 	for (int be=0; be < num_blocks; be++)
 	  {
 	    int numblockelems = fConnectivities[be]->MajorDim();
-	    fEqnos[be].Allocate(numblockelems, fNumElemEqnos);
+	    fEqnos[be].Allocate(numblockelems, neq);
 	  }
 
 	/* set pointers in element cards */
@@ -422,7 +430,8 @@ void ElementBaseT::WriteConnectivity(ostream& out) const
 		/* write header */
 		out << setw(kIntWidth) << "no.";
 		out << setw(kIntWidth) << "mat.";
-		for (int j = 1; j <= ((fNumElemNodes < 9) ? fNumElemNodes : 8); j++)
+		int nen = NumElementNodes();
+		for (int j = 1; j <= ((nen < 9) ? nen : 8); j++)
 		{
 			int numwidth = (j < 10) ? 1 : ((j < 100) ? 2 : 3);		
 			out << setw(kIntWidth - (numwidth + 1)) << "n[";
@@ -431,7 +440,7 @@ void ElementBaseT::WriteConnectivity(ostream& out) const
 		out << endl;
 				
 		/* write material number and connectivity */
-		iArrayT nodesX(fNumElemNodes);
+		iArrayT nodesX(nen);
 		for (int i = 0; i < NumElements(); i++)
 		{
 			const ElementCardT& elcard = fElementCards[i];
@@ -487,7 +496,7 @@ int ElementBaseT::MakeLocalConnects(iArray2DT& localconnects)
 		    node_map[j] = localnum++;
 
 	/* connectivities with local node numbering */
-	localconnects.Allocate(NumElements(), fNumElemNodes);
+	localconnects.Allocate(NumElements(), NumElementNodes());
 	int *plocal = localconnects.Pointer();
 	for (int b=0; b < num_blocks; b++)
 	{

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.8.2.2 2002-04-27 01:32:29 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.8.2.3 2002-05-03 07:16:30 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 
 #include "MeshFreeFSSolidT.h"
@@ -374,9 +374,6 @@ bool MeshFreeFSSolidT::NextElement(void)
 		fB_wrap.SetDimensions(fB.Rows(), NumSD()*nen);
 		fGradNa_wrap.SetDimensions(fGradNa.Rows(), nen);
 		fDNa_x_wrap.Dimension(NumSD(), nen);
-
-		/* reset base class dimensions */
-		fNumElemEqnos = nen*NumDOF();
 	}
 
 	return OK;

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.8.2.6 2002-04-30 08:21:59 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.8.2.7 2002-05-03 07:16:22 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -64,7 +64,7 @@ public:
 	int NumElements(void) const { return fElementCards.Length(); };
 
 	/** number of nodes per element */
-	int NumElementNodes(void) const { return fNumElemNodes; };
+	int NumElementNodes(void) const;
 
 	/** solver group */
 	int Group(void) const { return fField.Group(); };
@@ -274,7 +274,7 @@ protected:
 	/* derived data */
 //	int	fNumSD;
 //	int	fNumDOF;
-	int	fNumElemEqnos;
+//	int	fNumElemEqnos;
 //	GlobalT::AnalysisCodeT fAnalysisCode;
 	
 	/* element-by-element info */
@@ -303,7 +303,7 @@ private:
 	const ElementSupportT& fSupport;
 	const FieldT& fField;
 
-	int fNumElemNodes;
+//	int fNumElemNodes;
 	/*@}*/
 };
 
@@ -327,5 +327,18 @@ inline ElementCardT& ElementBaseT::ElementCard(int card) const { return fElement
 /* called by FormRHS and FormLHS */
 inline void ElementBaseT::LHSDriver(void) { }
 inline void ElementBaseT::RHSDriver(void) { }
+
+/* number of nodes per element */
+inline int ElementBaseT::NumElementNodes(void) const
+{
+#if __option(extended_errorcheck)
+	if (fConnectivities.Length() > 0 && fConnectivities[0])
+		return fConnectivities[0]->MinorDim();
+	else
+		return 0;
+#else
+	return fConnectivities[0]->MinorDim();
+#endif
+}
 
 #endif /* _ELEMENTBASE_T_H_ */

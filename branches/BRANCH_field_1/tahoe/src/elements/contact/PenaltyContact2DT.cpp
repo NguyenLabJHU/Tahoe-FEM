@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact2DT.cpp,v 1.2.2.1 2002-04-28 22:26:19 paklein Exp $ */
+/* $Id: PenaltyContact2DT.cpp,v 1.2.2.2 2002-05-03 07:16:26 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 
 #include "PenaltyContact2DT.h"
@@ -102,13 +102,13 @@ void PenaltyContact2DT::LHSDriver(void)
 			/* compute  d h/d d_i*/
 			fRHS.AddScaled(-h/(magtan*magtan), fNEEvec);
 
-			fColtemp1.Set(fNumElemEqnos, fdv1T(0));
-			fColtemp2.Set(fNumElemEqnos, fdv2T(1));
+			fColtemp1.Set(fdv1T.Rows(), fdv1T(0));
+			fColtemp2.Set(fdv2T.Rows(), fdv2T(1));
 			fRHS.AddCombination(-fv2[1]/magtan,fColtemp1,
 				                -fv1[0]/magtan,fColtemp2);
 			
-			fColtemp1.Set(fNumElemEqnos, fdv1T(1));
-			fColtemp2.Set(fNumElemEqnos, fdv2T(0));
+			fColtemp1.Set(fdv1T.Rows(), fdv1T(1));
+			fColtemp2.Set(fdv2T.Rows(), fdv2T(0));
 			fRHS.AddCombination(fv2[0]/magtan,fColtemp1,
 				                fv1[1]/magtan,fColtemp2);
 
@@ -214,13 +214,13 @@ void PenaltyContact2DT::RHSDriver(void)
 			fRHS.AddScaled(-dphi*h/(magtan*magtan), fNEEvec);
 						
 			/* d_area */
-			fColtemp1.Set(fNumElemEqnos,fdv1T(0));
-			fColtemp2.Set(fNumElemEqnos,fdv2T(1));
+			fColtemp1.Set(fdv1T.Rows(), fdv1T(0));
+			fColtemp2.Set(fdv2T.Rows(), fdv2T(1));
 			fRHS.AddCombination(-dphi*fv2[1]/magtan, fColtemp1,
 				                -dphi*fv1[0]/magtan, fColtemp2);
 			
-			fColtemp1.Set(fNumElemEqnos,fdv1T(1));
-			fColtemp2.Set(fNumElemEqnos,fdv2T(0));
+			fColtemp1.Set(fdv1T.Rows(), fdv1T(1));
+			fColtemp2.Set(fdv2T.Rows(), fdv2T(0));
 			fRHS.AddCombination(dphi*fv2[0]/magtan, fColtemp1,
 				                dphi*fv1[1]/magtan, fColtemp2);
 					

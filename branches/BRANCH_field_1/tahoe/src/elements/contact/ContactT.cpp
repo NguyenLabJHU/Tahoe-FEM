@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.6.2.2 2002-04-30 00:07:07 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.6.2.3 2002-05-03 07:16:26 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 
 #include "ContactT.h"
@@ -300,7 +300,7 @@ void ContactT::SetWorkSpace(void)
 
 	/* set managed equation numbers array */
 	fEqnos.Allocate(1);
-	fEqnos_man.SetWard(0, fEqnos[0], fNumElemEqnos);
+	fEqnos_man.SetWard(0, fEqnos[0], NumElementNodes()*NumDOF());
 
 	/* make pseudo-element list to link surfaces in case
 	 * bodies are not otherwise interacting (for the bandwidth

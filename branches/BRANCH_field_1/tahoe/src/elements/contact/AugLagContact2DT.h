@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.h,v 1.4.2.1 2002-04-28 22:26:18 paklein Exp $ */
+/* $Id: AugLagContact2DT.h,v 1.4.2.2 2002-05-03 07:16:26 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 
 #ifndef _AUGLAG_CONTACT2D_T_H_
@@ -49,7 +49,7 @@ public:
 	virtual int Reconfigure(void);
 
 	/* the group */
-	virtual int Group(void) const { return ElementBaseT::Group(); }
+	virtual int Group(void) const { return Contact2DT::Group(); }
 	/*@}*/
 
 	/* element level reconfiguration for the current solution */
