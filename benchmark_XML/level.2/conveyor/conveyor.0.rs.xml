@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tahoe author="paklein" geometry_file="./geometry/test.wrap.geom"
     output_format="Tahoe"
-	restart_output_inc="2500"
+    restart_file="conveyor.0.rs2500of3000"
     title="conveyor test" xmlns:x0="http://www.w3.org/2001/XMLSchema">
-    <time num_steps="3000" output_inc="1500" time_step="0.01">
+    <time num_steps="500" output_inc="500" time_step="0.01">
         <schedule_function>
             <piecewise_linear>
                 <OrderedPair x="0.0" y="0.0"/>
