@@ -1,4 +1,4 @@
-/* $Id: SmallStrainMF2.cpp,v 1.1 2003-05-15 05:16:53 thao Exp $ */
+/* $Id: SmallStrainMF2.cpp,v 1.2 2003-05-15 22:11:07 thao Exp $ */
 #include "SmallStrainMF2.h"
 
 #include "OutputSetT.h"
@@ -563,7 +563,7 @@ void SmallStrainMF2::MatForceDissip(dArrayT& elem_val, const dArray2DT& internal
 {
   bool print = false;
   int pos = fElementCards.Position();
-  if (pos == 1 && 0) 
+  if (pos == 1&&0) 
     print = true;
   
   /*obtain dimensions*/
@@ -606,6 +606,13 @@ void SmallStrainMF2::MatForceDissip(dArrayT& elem_val, const dArray2DT& internal
       /*integrate material force*/
       const dArrayT& internalstress = fCurrSSMat->InternalStressVars();
       double* pstress = internalstress.Pointer();
+      
+      if (print)
+      {
+	cout<<"\nIP: "<<CurrIP();
+	cout<<"\ninternalstress: "<<internalstress;
+      }
+
       double xval = ScalarProduct(pstress, pGradX, finternaldof);
       double yval = ScalarProduct(pstress, pGradY, finternaldof);
 
@@ -917,7 +924,7 @@ void SmallStrainMF2::Extrapolate(void)
   /*assume all materials within elemblock have the same internal dissipation variables*/
   ContinuumMaterialT* pmat0 = (*fMaterialList)[CurrentElement().MaterialNumber()];
   fCurrSSMat = dynamic_cast<SSSolidMatT*>(pmat0);
-  if (!fCurrSSMat) ExceptionT::GeneralFail(caller);
+  if (!fCurrSSMat) throw ExceptionT::kGeneralFail;
 
   finternaldof = fCurrSSMat->InternalDOF();
   int varsets = finternaldof.Length();
@@ -938,7 +945,12 @@ void SmallStrainMF2::Extrapolate(void)
   {
     ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
     fCurrSSMat = dynamic_cast<SSSolidMatT*>(pmat);
-    if (!fCurrSSMat) ExceptionT::GeneralFail(caller);
+    if (!fCurrSSMat) throw ExceptionT::kGeneralFail;
+
+    bool print = false;
+    int pos = fElementCards.Position();
+    if (pos == 1&&0) 
+      print = true;
 
     felem_val = 0.0;
     felem_mass = 0.0;
@@ -950,6 +962,13 @@ void SmallStrainMF2::Extrapolate(void)
     while(fShapes->NextIP())
     {
 	const dArrayT& internalstrains = fCurrSSMat->InternalStrainVars();
+	
+	if (print)
+	{
+	  cout<<"\nIP: "<<fShapes->CurrIP();
+	  cout<<"\ninternalstrains: "<<internalstrains;
+	}
+
 	if (internalstrains.Length()!=fnumval) ExceptionT::GeneralFail(caller);
         const double* pQbU = fShapes->IPShapeU();
 	
@@ -1056,7 +1075,7 @@ double SmallStrainMF2::ScalarProduct(double* pa, double* pb, const iArrayT& dims
 {
   bool print = false;
   int pos = fElementCards.Position();
-  if (pos == 1 && 0) 
+  if (pos == 1&&0) 
     print = true;
   
   int varsets = dims.Length();
@@ -1068,13 +1087,28 @@ double SmallStrainMF2::ScalarProduct(double* pa, double* pb, const iArrayT& dims
     {
       case 1:{ 
 	val += pa[0]*pb[0];
+        if (print)
+	  cout<<"\ncase1: "
+	      <<"\npa0: "<<pa[0]
+	      <<"\npb0: "<<pb[0]
+	      <<"\nval: "<<val;
 	break;}
       case 4:{
 	val +=pa[0]*pb[0]+pa[1]*pb[1]+2.0*pa[2]*pb[2];
+        if (print)
+	  cout<<"\ncase2: "
+	      <<"\npa0: "<<pa[0]
+	      <<"\npb0: "<<pb[0]
+	      <<"\nval: "<<val;
 	break;}
       case 6:{
        	val +=pa[0]*pb[0] + pa[1]*pb[1] + pa[2]*pb[2] +
 	 2.0*(pa[3]*pb[3] + pa[4]*pb[4]+ pa[5]*pb[5]);
+        if (print)
+	  cout<<"\ncase3: "
+	      <<"\npa0: "<<pa[0]
+	      <<"\npb0: "<<pb[0]
+	      <<"\nval: "<<val;
 	break;}
       default:
 	throw ExceptionT::kGeneralFail;

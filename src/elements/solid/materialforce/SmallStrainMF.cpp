@@ -1,4 +1,4 @@
-/* $Id: SmallStrainMF.cpp,v 1.9 2003-05-15 05:26:08 thao Exp $ */
+/* $Id: SmallStrainMF.cpp,v 1.10 2003-05-15 22:11:07 thao Exp $ */
 #include "SmallStrainMF.h"
 
 #include "OutputSetT.h"
@@ -637,7 +637,7 @@ void SmallStrainMF::MatForceDissip(dArrayT& elem_val, const dArrayT& statev)
     nodal_val.Allocate(ndof);
     nodal_val = 0.0;
   }
- fgrad_viscstretch.Dimension(nsd*numstress);
+  fgrad_viscstretch.Dimension(nsd*numstress);
 
   elem_val = 0;
 
@@ -743,6 +743,7 @@ void SmallStrainMF::MatForceDissip(dArrayT& elem_val, const dArrayT& statev)
       *********************************************************/
 
       /*integrate material force*/
+
       double* pelem_val = elem_val.Pointer();
       for (int i = 0; i<nen; i++)
       {
@@ -802,6 +803,7 @@ void SmallStrainMF::MatForceDissip(dArrayT& elem_val, const dArrayT& statev)
     weight++;
     pviscstress += numstress;
   }
+/*  if (print) cout << "\nelem_val: "<< elem_val;*/
 }
 
 void SmallStrainMF::MatForceSurfMech(dArrayT& global_val)
