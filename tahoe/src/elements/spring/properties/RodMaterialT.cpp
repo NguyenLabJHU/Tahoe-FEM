@@ -1,4 +1,4 @@
-/* $Id: RodMaterialT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: RodMaterialT.cpp,v 1.2 2001-10-25 07:15:00 paklein Exp $ */
 /* created: paklein (11/20/1996)                                          */
 
 #include "RodMaterialT.h"
@@ -22,8 +22,7 @@ RodMaterialT::~RodMaterialT(void)
 /* print parameters */
 void RodMaterialT::Print(ostream& out) const
 {
-#pragma unused(out)
-	//nothing to print
+	fThermal->Print(out);	
 }
 
 /* print parameters */
