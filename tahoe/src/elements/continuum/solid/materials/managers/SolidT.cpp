@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.40 2005-01-07 21:23:16 kyonten Exp $ */
+/* $Id: SolidT.cpp,v 1.41 2005-02-24 23:00:17 thao Exp $ */
 /* created: paklein (03/10/2001) */
 #include "SolidT.h"
 #include "ExceptionT.h"
@@ -180,6 +180,9 @@ SolidT::TypeT SolidT::int2TypeT(int i)
 
 		case SolidT::kFCCEAM:
 			return SolidT::kFCCEAM;
+
+		case SolidT::kBischoff_Arruda_WLC:
+			return SolidT::kBischoff_Arruda_WLC;
 
 		default:
 			ExceptionT::BadInputValue("SolidT::int2TypeT", "unknown code %d", i);

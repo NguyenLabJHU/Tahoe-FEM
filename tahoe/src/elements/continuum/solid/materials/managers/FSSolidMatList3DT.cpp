@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.12 2005-01-21 18:13:11 paklein Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.13 2005-02-24 23:00:17 thao Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -38,6 +38,10 @@
 #ifdef VISCOELASTIC_MATERIALS_DEV
 #include "FDSV_KStV3D.h"
 #include "RGSplit3D.h"
+#endif
+
+#ifdef FINITE_ANISOTROPY
+#include "WLC.h"
 #endif
 
 #ifdef ELASTIC_OGDEN_MATERIAL_DEV
@@ -177,6 +181,10 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 		sub_lists.AddSub("Reese-Govindjee_split");
 #endif
 
+#ifdef FINITE_ANISOTROPY
+                sub_lists.AddSub("Bischoff-Arruda_WLC");
+#endif
+
 #ifdef ABAQUS_MATERIAL
 #ifdef ABAQUS_BCJ_MATERIAL_DEV
 		sub_lists.AddSub("ABAQUS_UMAT_BCJ");
@@ -308,6 +316,11 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #ifdef VISCOELASTICITY
 	else if (name == "Reese-Govindjee_split")
 		mat= new RGSplitT;
+#endif
+
+#ifdef FINITE_ANISOTROPY
+	else if (name == "Bischoff-Arruda_WLC")
+	  mat= new WLC;
 #endif
 
 #ifdef ABAQUS_MATERIAL
