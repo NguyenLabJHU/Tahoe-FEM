@@ -1,10 +1,11 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.17 2002-01-27 18:51:08 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.18 2002-02-18 09:25:55 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #include "FEExecutionManagerT.h"
 
 #include <iostream.h>
 #include <time.h>
+#include <ctype.h>
 
 #include "fstreamT.h"
 
@@ -160,6 +161,48 @@ bool FEExecutionManagerT::AddCommandLineOption(const char* str)
 	return ExecutionManagerT::AddCommandLineOption(option);
 }
 
+/* remove the command line option to the list */
+bool FEExecutionManagerT::RemoveCommandLineOption(const char* str)
+{
+	StringT option(str);
+	if (option == "-decomp")
+	{
+		int index;
+		if (CommandLineOption("-decomp", index))
+		{
+			/* check for following number option */
+			if (fCommandLineOptions.Length() > index+1) {
+				const StringT& opt = fCommandLineOptions[index+1];
+				if (strlen(opt) > 1 && isdigit(opt[1]))
+					RemoveCommandLineOption(opt);
+			}
+			
+			/* remove decomp */
+			return ExecutionManagerT::RemoveCommandLineOption(option);
+		}
+		return false;
+	}
+	else if (option == "-join")
+	{
+		int index;
+		if (CommandLineOption("-join", index))
+		{
+			/* check for following number option */
+			if (fCommandLineOptions.Length() > index+1) {
+				const StringT& opt = fCommandLineOptions[index+1];
+				if (strlen(opt) > 1 && isdigit(opt[1]))
+					RemoveCommandLineOption(opt);
+			}
+			
+			/* remove decomp */
+			return ExecutionManagerT::RemoveCommandLineOption(option);		
+		}
+		return false;
+	} 
+	else /* inherited */
+		return ExecutionManagerT::RemoveCommandLineOption(option);
+}
+
 /**********************************************************************
 * Private
 **********************************************************************/
@@ -259,25 +302,41 @@ out   << "    Stop time: " << ctime(&stoptime);
 /* generate decomposition files */
 void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
 {
-	/* prompt for decomp size */
 	int size = 0;
-	int count = 0;
-	while (count == 0 || (count < 5 && size < 2))
+	int index;
+	if (!CommandLineOption("-decomp", index)) 
+		throw eGeneralFail;
+	else {
+		if (fCommandLineOptions.Length() > index+1)
+		{
+			const char* opt = fCommandLineOptions[index+1];
+			if (strlen(opt) > 1 && isdigit(opt[1]))
+				size = atoi(opt+1);
+		}
+	}
+	
+	/* prompt for size */
+	if (size == 0) 
 	{
-		count++;
+		/* prompt for decomp size */
+		int count = 0;
+		while (count == 0 || (count < 5 && size < 2))
+		{
+			count++;
 
-		/* number of partitions */					
-		cout << "\n Enter number of partitions > 1 (0 to quit): ";
+			/* number of partitions */					
+			cout << "\n Enter number of partitions > 1 (0 to quit): ";
 #if (defined __SGI__ && defined __MPI__)
-		cout << '\n';
+			cout << '\n';
 #endif
-		cin >> size;
+			cin >> size;
 		
-		/* clear to end of line */
-		char line[255];
-		cin.getline(line, 254);
+			/* clear to end of line */
+			char line[255];
+			cin.getline(line, 254);
 		
-		if (size == 0) break;
+			if (size == 0) break;
+		}
 	}
 	if (size < 2) return;
 
@@ -352,20 +411,39 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 		
 		/* model file parameters */
 		StringT model_file;
-		IOBaseT::FileTypeT format;
-		fe_man.ModelManager()->Format(format, model_file);
+		IOBaseT::FileTypeT model_format;
+		fe_man.ModelManager()->Format(model_format, model_file);
+		IOBaseT::FileTypeT results_format = fe_man.OutputFormat();
+		if (results_format == IOBaseT::kTahoe ||
+		    results_format == IOBaseT::kTahoeII)
+			results_format = IOBaseT::kTahoeResults;
+
+		int size = 0;
+		int index;
+		if (!CommandLineOption("-join", index)) 
+			throw eGeneralFail;
+		else {
+			if (fCommandLineOptions.Length() > index+1)
+			{
+				const char* opt = fCommandLineOptions[index+1];
+				if (strlen(opt) > 1 && isdigit(opt[1]))
+					size = atoi(opt+1);
+			}
+		}
 
 		/* prompt for decomp size */
-		int size;
-		cout << "\n Enter number of partitions > 1 (0 to quit): ";
+		if (size == 0)
+		{
+			cout << "\n Enter number of partitions > 1 (0 to quit): ";
 #if (defined __SGI__ && defined __MPI__)
-		cout << '\n';
+			cout << '\n';
 #endif					
-		cin >> size;
+			cin >> size;
 
-		/* clear to end of line */
-		char line[255];
-		cin.getline(line, 254);		
+			/* clear to end of line */
+			char line[255];
+			cin.getline(line, 254);
+		}
 
 		if (size < 2) return;
 		
@@ -374,10 +452,12 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 		StringT version = fe_man.Version();
 		StringT title   = fe_man.Title();
 		StringT input   = in.filename();
-		OutputBaseT* output = IOManager::NewOutput(program, version, title, input, format, cout);
+		OutputBaseT* output = IOManager::NewOutput(program, version, title, input, 
+			results_format, cout);
 		
 		/* construct joiner */
-		JoinOutputT output_joiner(in.filename(), model_file, format, format, output, size);
+		JoinOutputT output_joiner(in.filename(), model_file, model_format, 
+			results_format, output, size);
 		
 		/* join files */
 		output_joiner.Join();
@@ -570,6 +650,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	}
 	
 	/* external IO */
+	token = 1;
 	IOManager_mpi* IOMan = NULL;
 	if (!CommandLineOption("-split_io"))
 	{
@@ -594,6 +675,27 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 			/* write exception codes to out file */
 			FEman.WriteExceptionCodes(out);		
 		}
+	}
+
+	check_sum = 0;
+	if (MPI_Allreduce(&token, &check_sum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD)
+		!= MPI_SUCCESS) throw eMPIFail;
+	if (check_sum != size)
+	{
+		/* gather tokens to rank 0 */
+		iArrayT tokens;
+		if (rank == 0) tokens.Allocate(size);
+		if (MPI_Gather(&token, 1, MPI_INT, tokens.Pointer(), 1, MPI_INT, 0, MPI_COMM_WORLD)
+			!= MPI_SUCCESS) throw eMPIFail;
+		if (rank == 0)
+		{
+			status << "\n The following processes exit on exception during construction:\n";
+			for (int i = 0; i < tokens.Length(); i++)
+				if (tokens[i] != 1)
+					status << setw(kIntWidth) << i << '\n';
+			status.flush();
+		}
+		throw eGeneralFail;
 	}
 
 	/* solve */
