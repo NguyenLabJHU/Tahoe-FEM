@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.8 2002-07-20 08:03:42 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.9 2002-07-21 00:19:14 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -72,25 +72,26 @@ void BridgingScaleT::Initialize(void)
 	AutoFill2DT<int> auto_fill(fSolid.NumElements(), 10, 10);
 	dArrayT x_atom, centroid;
 	LocalArrayT cell_coords(LocalArrayT::kCurrCoords, fSolid.NumElementNodes(), NumSD());
-	cell_coords.SetGlobal(curr_coords);
-
+	cell_coords.SetGlobal(curr_coords); // Sets address of cell_coords
+	// SetGlobal sets source for SetLocal which copies the relevant data 
 	iGridManagerT grid(10, 100, curr_coords, &atoms_used);
 	grid.Reset();
 	for (int i = 0; i < fSolid.NumElements(); i++) {
 	
-			/* domain coordinates */
-			cell_coords.SetLocal(fSolid.ElementCard(i).NodesX());
-	
+			/* gives domain (global) nodal coordinates */
+	                cell_coords.SetLocal(fSolid.ElementCard(i).NodesX()); 
 			/* centroid and radius */
 			double radius = parent.AverageRadius(cell_coords, centroid);
-			
 			/* candidate particles */
 			const AutoArrayT<iNodeT>& hits = grid.HitsInRegion(centroid.Pointer(), 1.01*radius);
+			//hits contains atom #'s of atoms within search region.  Atom #'s converted
+			//to coordinates below by x_atom.Set()
+			//cout << hits.Length() << endl; // returns all atoms currently...Exhaustive search?
 			for (int j = 0; j < hits.Length(); j++)
 			{
 				x_atom.Set(NumSD(), hits[j].Coords());
-				if (parent.PointInDomain(cell_coords, x_atom))
-					auto_fill.Append(i, hits[j].Tag());
+				if (parent.PointInDomain(cell_coords, x_atom)) 
+				        auto_fill.Append(i, hits[j].Tag());
 			}
 	}
 
@@ -110,8 +111,34 @@ void BridgingScaleT::Initialize(void)
 		     <<   "     the total number of particles " << atoms_used.Length() << endl;
 	}
 
-	// (2) compute the inverse map (shape functions)
-	//bool try = parent.MapToParentDomain(coords,point,mapped);
+	// (2) compute the inverse map using list fParticlesInCell
+	LocalArrayT cell_coord(LocalArrayT::kCurrCoords, fSolid.NumElementNodes(), NumSD());
+	cell_coord.SetGlobal(curr_coords); // Sets address of cell_coords
+	iArrayT atom_nums;
+	dArrayT mapped(NumSD()), point(NumSD());
+	dArray2DT atom_coords(NumSD(),fParticlesInCell.MaxMinorDim());
+	AutoFill2DT<double> inverse(fParticlesInCell.MajorDim(),10,10);
+	for (int i = 0; i < fParticlesInCell.MajorDim(); i++) {
+
+	                fParticlesInCell.RowAlias(i,atom_nums);
+	                atom_coords.RowCollect(atom_nums,curr_coords);
+			/* gives domain (global) nodal coordinates */
+	                cell_coord.SetLocal(fSolid.ElementCard(i).NodesX()); 
+
+	                for (int j = 0; j < fParticlesInCell.MinorDim(i); j++) 
+			{
+			    //need a ColumnAlias function in nArray2DT similar to RowAlias!
+			    point[0] = atom_coords(0,j);
+			    if (parent.MapToParentDomain(cell_coord,point,mapped))
+				inverse.Append(i,mapped);   
+			}
+	}
+        fInverseMapInCell.Copy(inverse);
+	dArrayT temp(fInverseMapInCell.Length(), fInverseMapInCell.Pointer());
+	out << " Inverse maps in cell:\n"
+	    << setw(kDoubleWidth) << "no." << '\n';
+	fInverseMapInCell.WriteNumbered(out);
+	out.flush();	
 }
 
 void BridgingScaleT::Equations(AutoArrayT<const iArray2DT*>& eq_1,

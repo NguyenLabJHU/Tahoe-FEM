@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.5 2002-07-19 01:28:21 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.6 2002-07-21 00:19:14 hspark Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -110,6 +110,10 @@ protected:
 
 	/** list of particles per element: [n_cell] x [n_part_i] */
 	RaggedArray2DT<int> fParticlesInCell;
+	
+	/** take fParticlesInCell, now have list of inverse mappings per element:
+	 *  [n_cell] x [n_inversemap_i] */
+	RaggedArray2DT<double> fInverseMapInCell;
 
 	/* output control */
 	iArrayT	fNodalOutputCodes;
