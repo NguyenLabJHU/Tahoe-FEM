@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.10 2001-09-24 20:37:25 rjones Exp $
+# $Id: makefile,v 1.11 2002-01-23 00:01:53 rjones Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,6 +6,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
+	PenaltyContactElement2DT.o \
 	AdhesionContact2DT.o \
 	MultiplierContact2DT.o \
 	MultiplierContact3DT.o \
@@ -38,6 +39,7 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
+	PenaltyContactElement2DT.cpp \
 	AdhesionContact2DT.cpp \
 	MultiplierContact2DT.cpp \
 	MultiplierContact3DT.cpp \
@@ -65,6 +67,7 @@ SRC = \
 
 # headers
 HDR = \
+	PenaltyContactElement2DT.h \
 	AdhesionContact2DT.h \
 	MultiplierContact2DT.h \
 	MultiplierContact3DT.h \

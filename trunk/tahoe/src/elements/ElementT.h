@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.1 2001-08-20 06:45:05 paklein Exp $ */
+/* $Id: ElementT.h,v 1.2 2002-01-23 00:01:51 rjones Exp $ */
 
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
@@ -40,7 +40,8 @@ public:
    kTotLagrExternalField = 26, /**< experimental/temporary for loosely coupled problems */
    kNonsingularContinuum = 27, /**< nonsingular continuum element */ 
     kMultiplierContact2D = 28,
-       kSimoFiniteStrain = 29  /**< enhanced strain element */
+       kSimoFiniteStrain = 29,  /**< enhanced strain element */
+      kPenaltyContactElement2D = 30
 	};
 
 	/** stream extraction operator */ 
