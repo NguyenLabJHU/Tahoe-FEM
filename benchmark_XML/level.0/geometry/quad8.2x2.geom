@@ -16,9 +16,10 @@
 4   5
 5   1
 6   1
-1   # number of side sets
+2   # number of side sets
 # [ID] [element set ID] [ns]
 1   1   2
+2   1   2
 # end dimensions
 *nodesets
 *set
@@ -45,6 +46,10 @@
 2   # number of sides
 3  3
 4  3
+*set
+2   # number of sides
+1  1
+2  1
 *elements
 *set
 4  # number of elements
