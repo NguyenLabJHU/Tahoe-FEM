@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.37 2002-10-23 04:52:05 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.38 2002-10-23 18:00:16 paklein Exp $ */
 #include "VTKBodyT.h"
 
 /* tahoe toolbox headers */
@@ -83,7 +83,6 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	iAddCommand(CommandSpecT("HideElementNumbers"));
 	iAddCommand(CommandSpecT("ShowAxes"));
 	iAddCommand(CommandSpecT("HideAxes"));
-// 	iAddCommand(CommandSpecT("ShowGlyphs"));
 	iAddCommand(CommandSpecT("HideCuttingPlane"));
 	iAddCommand(CommandSpecT("ShowContours"));
 	iAddCommand(CommandSpecT("HideContours"));
@@ -104,14 +103,6 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 // 	command = fBodyData->iCommand("HideContours");
 // 	if (!command) throw eGeneralFail;
 // 	iAddCommand(*command);
-
-// 	command = fBodyData->iCommand("ShowGlyphs");
-// 	if (!command) throw eGeneralFail;
-// 	iAddCommand(*command);
-	command = fBodyData->iCommand("HideGlyphs");
-	if (!command) throw eGeneralFail;
-	iAddCommand(*command);
-
 	
 	CommandSpecT cut("ShowCuttingPlane", false);
 	ArgSpecT oX(ArgSpecT::double_, "oX");
@@ -158,6 +149,9 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	color.SetDefault(true);
 	color.SetPrompt("color glyphs by values or not (true/false)");
 	glyph.AddArgument(color);
+	ArgSpecT field(ArgSpecT::string_, "field");
+	field.SetPrompt("vector field name");
+	glyph.AddArgument(field);
 	iAddCommand(glyph);
 	
 	CommandSpecT scale_glyph("ScaleGlyphs");
@@ -165,6 +159,10 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	scale_factor.SetPrompt("Glyph scaling factor");
 	scale_glyph.AddArgument(scale_factor);
 	iAddCommand(scale_glyph);
+
+	command = fBodyData->iCommand("HideGlyphs");
+	if (!command) throw eGeneralFail;
+	iAddCommand(*command);
 
 	CommandSpecT pick("Pick", false);
 	ArgSpecT nodeNumber(ArgSpecT::int_, "node");
@@ -256,11 +254,8 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 // 	else if (command.Name() == "HideContours")
 // 		return fBodyData->iDoCommand(command, line);
 
-// 	else if (command.Name() == "ShowGlyphs")
-// 		return fBodyData->iDoCommand(command, line);
 	else if (command.Name() == "HideGlyphs")
 		return fBodyData->iDoCommand(command, line);
-
 
 	else if (command.Name() == "ShowNodeNumbers")
 	{
@@ -646,11 +641,13 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 		if (temp == "head") warpArrows = false;
 		command.Argument("filter").GetValue(filter);
 		command.Argument("scale").GetValue(scale);
-		command.Argument("color").GetValue(color);
+		command.Argument("color").GetValue(color);	
 		ArrayT<VTKUGridT*> fUGrids = fBodyData->UGrids();
 	    
 		/* glyph vector */
-		vtkFloatArray* vector_field = fBodyData->VectorField("D");
+		StringT field;
+		command.Argument("field").GetValue(field);
+		vtkFloatArray* vector_field = fBodyData->VectorField(field);
 
 		/* found requested field */
 		if (vector_field) {
@@ -659,7 +656,10 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 			return true;
 		}
 		else /* no such field */ 
+		{
+			cout << " Did not find field: \"" << field << '\"' << endl;
 			return false;
+		}
 	}
 	else if (command.Name() == "ShowCuttingPlane")
 	  {

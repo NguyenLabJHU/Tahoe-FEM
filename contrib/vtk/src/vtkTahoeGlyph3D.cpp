@@ -38,6 +38,9 @@ vtkTahoeGlyph3D::vtkTahoeGlyph3D()
   this->GeneratePointIds = 0;
   this->PointIdsName = NULL;
   this->SetPointIdsName("InputPointIds");
+
+	/* initialize input vectors to nothing */
+  	this->inVectors = NULL;
 }
 
 vtkTahoeGlyph3D::~vtkTahoeGlyph3D()
@@ -86,7 +89,10 @@ void vtkTahoeGlyph3D::Execute()
 
   pd = input->GetPointData();
   inScalars = pd->GetScalars();
-  inVectors = pd->GetVectors();
+  
+  /* only reset vectors if not already defined */
+  if (!inVectors) inVectors = pd->GetVectors();
+  
   inNormals = pd->GetNormals();
 
   vtkDataArray* temp = 0;
