@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.25 2003-01-29 07:35:08 paklein Exp $ */
+/* $Id: DetCheckT.cpp,v 1.25.6.1 2003-05-05 22:45:32 hspark Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -15,10 +15,10 @@
 //#include "ContinuumElementT.h"
 #include "SolidMatSupportT.h"
 
+using namespace Tahoe;
+
 /* initialize static variables */
 bool DetCheckT::fFirstPass = true;
-
-using namespace Tahoe;
 
 /* constants */
 const double Pi = acos(-1.0);

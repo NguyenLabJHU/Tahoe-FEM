@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.3.2.2 2003-04-07 23:04:59 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.3.2.3 2003-05-05 22:45:33 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -13,6 +13,8 @@
 #include "BridgingScaleT.h"
 #include "ParticleT.h"
 #include "dSPMatrixT.h"
+
+using namespace Tahoe;
 
 /* constructor */
 FEManagerT_bridging::FEManagerT_bridging(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
