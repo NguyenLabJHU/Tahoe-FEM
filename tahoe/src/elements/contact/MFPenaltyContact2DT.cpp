@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.11 2005-01-19 09:01:34 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.12 2005-01-20 00:21:33 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
@@ -165,8 +165,8 @@ void MFPenaltyContact2DT::RHSDriver(void)
 		if (fMeshFreeSupport)
 			fMeshFreeSupport->LoadNodalData(striker_node, neighbors, Na, DNa);
 		else /* SCNI */ {
-			fSCNI_Support.RowAlias(striker_node, neighbors);
-			fSCNI_Phi.RowAlias(striker_node, Na);
+			fSCNI_Support.RowAlias(striker_meshfree_index, neighbors);
+			fSCNI_Phi.RowAlias(striker_meshfree_index, Na);
 		}	
 		SetDerivativeArrays(Na);
 
