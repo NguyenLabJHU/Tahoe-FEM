@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.cpp,v 1.13.20.2 2004-06-09 06:25:37 paklein Exp $ */
+/* $Id: J2Simo2D.cpp,v 1.13.20.3 2004-06-09 16:32:57 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 #include "J2Simo2D.h"
 #include "StringT.h"
@@ -19,6 +19,12 @@ J2Simo2D::J2Simo2D(ifstreamT& in, const FSMatSupportT& support):
 	fF_temp(2),
 	fFmech_2D(2),
 	ffrel_2D(2)	
+{
+
+}
+
+J2Simo2D::J2Simo2D(void):
+	ParameterInterfaceT("Simo_J2_2D")
 {
 
 }
