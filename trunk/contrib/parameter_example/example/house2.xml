@@ -1,0 +1,23 @@
+<?xml version = "1.0" encoding = "UTF-8"?>
+<!DOCTYPE house SYSTEM "file:///Volumes/Uster/USERS/paklein/Code/protected-tahoe/BRANCH_parameter_1/contrib/parameter_example/example/house.dtd">
+<house style = "ranch" zipcode = "94117">
+	<roof style = "slate"/>  
+	<driveway length = "31.0" surface = "asphalt"/>  
+	<garage length = "15.0" opener = "true" width = "12.0">
+		<window width = "5.11"/>
+	</garage>  
+	<garage/>  
+	<lawn/>
+	<storm_shelter height = "9.5" length = "12.5" width = "9.75" first_aid_kit = "true"/>  
+	<closet has_shelf = "true" length = "5" width = "5"/>  
+	<closet length = "4" width = "4"/>  
+	<bedroom floor = "2" length = "12" width = "10">
+		<window height = "8.0" width = "4.0"/>
+		<window/>
+		<window/>
+		<window/>
+		<window/>
+	</bedroom>  
+	<bedroom floor = "2" length = "8" width = "8"/>
+	<closet length = "2" width = "3" has_shelf = "true"/>  
+</house>
