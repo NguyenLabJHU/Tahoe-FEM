@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.19 2003-05-23 22:46:12 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.20 2003-06-11 06:30:51 paklein Exp $ */
 /* created: paklein (05/23/1997) */
 #ifndef _NARRAY_T_H_
 #define _NARRAY_T_H_
@@ -128,7 +128,9 @@ public:
 	 *		this += scale*RHS;
 	 */		
 	void SetToScaled(const nTYPE& scale, const nArrayT& RHS);
+	void SetToScaled(const nTYPE& scale, const nTYPE* RHS);
 	void AddScaled(const nTYPE& scale, const nArrayT& RHS);
+	void AddScaled(const nTYPE& scale, const nTYPE* RHS);
 
 	/** sum and difference of nArrayT's */
 	void SumOf(const nArrayT& A, const nArrayT& B);
@@ -1000,39 +1002,48 @@ nTYPE nArrayT<nTYPE>::Distance(const nArrayT<nTYPE>& A1,
 *
 *  Note: returns a reference to (*this) for chaining operations */		
 template <class nTYPE>
-void nArrayT<nTYPE>::SetToScaled(const nTYPE& scale, const nArrayT& RHS)
+inline void nArrayT<nTYPE>::SetToScaled(const nTYPE& scale, const nArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
 	if (fLength != RHS.fLength) ExceptionT::SizeMismatch();
 #endif
+	SetToScaled(scale, RHS.Pointer());
+}
 
+template <class nTYPE>
+void nArrayT<nTYPE>::SetToScaled(const nTYPE& scale, const nTYPE* RHS)
+{
 	nTYPE* pthis = Pointer();
-	nTYPE* pRHS  = RHS.Pointer();
 	nTYPE temp;
 	for (int i = 0; i < fLength; i++)
 	{
 		temp  = scale;
-		temp *= *pRHS++;	//multi-step needed incase pthis == pRHS
+		temp *= *RHS++;	//multi-step needed incase pthis == RHS
 		*pthis++ = temp;
 	}
 }
 
 template <class nTYPE>
-void nArrayT<nTYPE>::AddScaled(const nTYPE& scale, const nArrayT& RHS)
+inline void nArrayT<nTYPE>::AddScaled(const nTYPE& scale, const nArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
 	if (fLength != RHS.fLength) ExceptionT::SizeMismatch();
 #endif
 
+	AddScaled(scale, RHS.Pointer());
+}
+
+template <class nTYPE>
+void nArrayT<nTYPE>::AddScaled(const nTYPE& scale, const nTYPE* RHS)
+{
 	nTYPE* pthis = Pointer();
-	nTYPE* pRHS  = RHS.Pointer();
 	nTYPE temp;
 	for (int i = 0; i < fLength; i++)
 	{
 		temp  = scale;
-		temp *= *pRHS++;
+		temp *= *RHS++;
 		*pthis++ += temp;
 	}
 }
