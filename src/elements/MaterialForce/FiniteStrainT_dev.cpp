@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT_dev.cpp,v 1.1 2003-02-11 23:31:10 thao Exp $ */
+/* $Id: FiniteStrainT_dev.cpp,v 1.2 2003-02-12 00:36:50 thao Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ScheduleT.h"
@@ -294,10 +294,15 @@ void FiniteStrainT::AssembleMatForce(const dArrayT& elem_val,
 				     const nArrayT<int>& ndnos)
 {
   int num_entries = global_val.Length();
-  for(int i = 0; i<ndnos.Length(); i++)
+  int nen = ndnos.Length();
+  int nsd = elem_val.Length()/nen;
+  int first_node = 1; //Q:assume first node number is 1
+  for(int i = 0; i < nen; i++)
   {
     int node = ndnos[i];
-    global_val[node] += elem_val[i];
+    double* p = global_val.Pointer()+(node-first_node);
+    for (int j = 0; j<nsd; j++)
+      (*p++) += elem_val[i*nsd+j];
   }
 }
 
@@ -555,14 +560,15 @@ void FiniteStrainT::MatForceDissip(FSSolidMatT* CurrMaterial,dArrayT& MatForce,
       const double* pDQaX = DQa(0);
       const double* pDQaY = DQa(1);
       Grad_iInStretch = 0;
+
+      /*Interpolate grad of iverse inelastic stretch to ip*/
       double* pGradX = Grad_iInStretch.Pointer();
       double* pGradY = pGradX+numstress;
-      
-      /*Interpolate grad of iverse inelastic stretch to ip*/
       for (int i = 0; i<nen; i++)
       {
 	dSymMatrixT& nodal_val = Nodal_iInStretch[i];
-	pGradX[0] += (*pDQaX)*nodal_val[0];
+
+        pGradX[0] += (*pDQaX)*nodal_val[0];
 	pGradX[1] += (*pDQaX)*nodal_val[1];
 	pGradX[2] += (*pDQaX++)*nodal_val[2];
 	
@@ -588,13 +594,14 @@ void FiniteStrainT::MatForceDissip(FSSolidMatT* CurrMaterial,dArrayT& MatForce,
       const double* pDQaY = DQa(1);
       const double* pDQaZ = DQa(2);
       Grad_iInStretch = 0;
+      /*Interpolate grad of iverse inelastic stretch to ip*/
       double* pGradX = Grad_iInStretch.Pointer();
       double* pGradY = pGradX+numstress;
       double* pGradZ = pGradY+numstress;
-      /*Interpolate grad of iverse inelastic stretch to ip*/
       for (int i = 0; i<nen; i++)
-      {
+      {	
 	dSymMatrixT& nodal_val = Nodal_iInStretch[i];
+
 	pGradX[0] += (*pDQaX)*nodal_val[0];
 	pGradX[1] += (*pDQaX)*nodal_val[1];
 	pGradX[2] += (*pDQaX)*nodal_val[2];
