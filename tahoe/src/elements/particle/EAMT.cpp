@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.53 2004-03-04 08:54:26 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.53.4.1 2004-03-17 18:28:20 paklein Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -271,7 +271,7 @@ void EAMT::WriteOutput(void)
       CParamStart->Next=NULL;
       CParamStart->value=0.0;
       Strain=0;
-      SlipVector=0;
+      SlipVector=0.0;
       vs_i=0.0;
 #endif /* NO_PARTICLE_STRESS_OUTPUT */
 
