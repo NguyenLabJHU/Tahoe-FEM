@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.10 2002-01-05 10:08:37 paklein Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.11 2002-01-23 19:42:15 sawimme Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -295,8 +295,8 @@ void TranslateIOManager::InitializeTime (void)
       if (fNumTS < 100)
 	for (int b=0; b < fNumTS; b++)
 	  cout << "    " << b+1 << ". " << fTimeSteps[b] << "\n";
-      cout << "\n1. Translate All\n";
-      cout << "2. Translate Specified\n";
+      cout << "\n1. Translate All Time Steps\n";
+      cout << "2. Translate Specified Time Steps\n";
       cout << "3. Translate Specified Range\n";
       cout << "4. Translate Every nth step\n";
       cout << "5. Translate None (just geometry)\n";
@@ -430,6 +430,11 @@ void TranslateIOManager::WriteNodes (void)
 {
   int numnodes, dof;
   fModel.CoordinateDimensions (numnodes, dof);
+  if (numnodes < 1) 
+    {
+      cout << "\n No nodes found!   Num Nodes = " << numnodes << "\n\n";
+      throw eDatabaseFail;
+    }
   fNodeMap.Allocate (numnodes);
   fModel.AllNodeMap (fNodeMap);
   fOutput->SetCoordinates (fModel.Coordinates(), &fNodeMap);
@@ -445,8 +450,8 @@ void TranslateIOManager::WriteNodeSets (void)
 
   int selection;
   cout << "\n Number of Node Sets: " << num << endl;
-  cout << "\n1. Translate All\n";
-  cout << "2. Translate Some\n";
+  cout << "\n1. Translate All Element Groups\n";
+  cout << "2. Translate Some Groups\n";
   cout << "3. Translate None\n";
   cout << "\n selection: ";
   cin >> selection;
