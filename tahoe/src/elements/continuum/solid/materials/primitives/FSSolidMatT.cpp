@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.3 2001-09-15 01:18:58 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.4 2001-10-24 02:13:20 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 
 #include "FSSolidMatT.h"
@@ -14,13 +14,26 @@ FSSolidMatT::FSSolidMatT(ifstreamT& in, const FiniteStrainT& element):
 	fFiniteStrain(element),
 	fQ(NumSD()),
 	fF_therm_inv(NumSD()),
+	fF_therm_inv_last(NumSD()),
 	fF_mechanical(NumSD())
 {
 	/* no thermal strain */
 	fF_therm_inv.Identity();
+	fF_therm_inv_last.Identity();
 	
 	/* initialize */
 	fF_mechanical.Identity();
+}
+
+/* initialization */
+void FSSolidMatT::Initialize(void)
+{
+	/* inherited */
+	StructuralMaterialT::Initialize();
+
+	/* set multiplicative thermal transformation */
+	SetInverseThermalTransformation(fF_therm_inv);
+	fF_therm_inv_last = fF_therm_inv;
 }
 
 /* test for localization using "current" values for Cauchy
@@ -53,8 +66,7 @@ void FSSolidMatT::PrintName(ostream& out) const
 	out << "    Large strain\n";
 }
 
-/* apply pre-conditions at the current time step: compute
-* thermal dilatation correction */
+/* initialize current step. compute thermal dilatation */
 void FSSolidMatT::InitStep(void)
 {
 	/* inherited */
@@ -62,6 +74,13 @@ void FSSolidMatT::InitStep(void)
 
 	/* set multiplicative thermal transformation */
 	SetInverseThermalTransformation(fF_therm_inv);
+}
+
+/* close current step. store thermal dilatation */
+void FSSolidMatT::CloseStep(void)
+{
+	/* store the thermal dilatation used for the current time step */
+	fF_therm_inv_last = fF_therm_inv;
 }
 
 /* deformation gradients */
@@ -112,14 +131,40 @@ const dMatrixT& FSSolidMatT::F_mechanical(int ip)
 }
 
 /* deformation gradient from end of previous step */
-const dMatrixT& FSSolidMatT::F_last(void) const
+const dMatrixT& FSSolidMatT::F_total_last(void) const
 {
 	return fFiniteStrain.DeformationGradient_last();
 }
 
-const dMatrixT& FSSolidMatT::F_last(int ip) const
+const dMatrixT& FSSolidMatT::F_total_last(int ip) const
 {
 	return fFiniteStrain.DeformationGradient_last(ip);
+}
+
+const dMatrixT& FSSolidMatT::F_mechanical_last(void)
+{
+	/* has thermal strain */
+	if (fThermal->IsActive())
+	{
+		fF_mechanical.MultAB(fFiniteStrain.DeformationGradient_last(), 
+			fF_therm_inv_last);
+		return fF_mechanical;
+	}
+	else /* no thermal strain */
+		return fFiniteStrain.DeformationGradient_last();
+}
+
+const dMatrixT& FSSolidMatT::F_mechanical_last(int ip)
+{
+	/* has thermal strain */
+	if (fThermal->IsActive())
+	{
+		fF_mechanical.MultAB(fFiniteStrain.DeformationGradient_last(ip), 
+			fF_therm_inv_last);
+		return fF_mechanical;
+	}
+	else /* no thermal strain */
+		return fFiniteStrain.DeformationGradient_last(ip);
 }
 
 /***********************************************************************
