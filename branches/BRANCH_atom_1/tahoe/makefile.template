@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.13 2002-10-04 23:35:34 paklein Exp $
+# $Id: makefile.template,v 1.13.8.1 2003-01-07 17:06:00 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -25,7 +25,7 @@ ARCH =
 # see macros directory for choices $(ARCH).macros
 
 # default target name - root of library name or executable name
-TARGET  = tahoe
+TARGET  = tahoe.atom
 LIBRARY = $(HOME_DIR)/lib/lib$(TARGET).a
 
 # path to main, needed if primary target is an executable (not 
@@ -44,7 +44,7 @@ MACRO_DIR = $(HOME_DIR)/../macros
 
 ##### any additional user C, C++, fortran, or linker flags
 MY_CFLAGS  =
-MY_CCFLAGS =
+#MY_CCFLAGS = --load-pch $(TB_DIR)/pch
 MY_FFLAGS  =
 MY_LFLAGS  =
 
@@ -81,7 +81,7 @@ TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 #AZ_LFLAGS   = -L$(AZ_DIR)/lib -l$(AZ_LIB_NAME)
 
 #### SPOOLES
-#SPOOLES_DIR      = $(HOME_DIR)/../spooles
+#SPOOLES_DIR      = $(HOME_DIR)/../../spooles
 #SPOOLES_INC      = -I$(SPOOLES_DIR)/inc
 #SPOOLES_CFLAGS   = $(SPOOLES_INC) -D__SPOOLES__
 #SPOOLES_LIB_NAME = spooles
@@ -97,7 +97,7 @@ TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 #SPOOLESMT_LFLAGS   = -L$(SPOOLESMT_DIR)/lib -l$(SPOOLESMT_LIB_NAME)
 
 #### SPOOLES MPI
-#SPOOLESMPI_DIR      = $(HOME_DIR)/../spoolesMPI
+#SPOOLESMPI_DIR      = $(HOME_DIR)/../../spoolesMPI
 #SPOOLESMPI_INC      = -I$(SPOOLESMPI_DIR)/inc
 #SPOOLESMPI_CFLAGS   = $(SPOOLESMPI_INC) -D__SPOOLES_MPI__
 #SPOOLESMPI_LIB_NAME = spoolesMPI
@@ -137,13 +137,34 @@ TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 # extra macros for specific modules
 include $(MACRO_DIR)/tahoe.extras
 
-# "make build" extras - target brought up to date before other makefile
-# targets associated with "make build". To activate, uncomment the line
-# defining MAKE_BUILD_XTRAS, and add any commands below make_build_extras.
-# This two part approach is for backward compatibility betweem make.targets
+# extras - targets brought up to date before other makefile
+# targets associated with "make init", "make build", and "make clean". 
+# To activate, uncomment the line defining MAKE_[]_XTRAS, and add any commands 
+# below to the associated make_[]extras target.
+# This two part approach is for backward compatibility between make.targets
 # and older versions of makefile.template
+MAKE_INIT_XTRAS  = update_config
 #MAKE_BUILD_XTRAS = make_build_extras
-make_build_extras:
+MAKE_CLEAN_XTRAS = clean_config
 
 # include common target definitions
 include $(MACRO_DIR)/make.targets
+
+# init extras target
+update_config:
+	@ if test -f $(SRC_DIR)/config/MaterialsConfig.make; then rm $(SRC_DIR)/config/MaterialsConfig.make; fi
+	@ if test -f $(SRC_DIR)/config/ElementsConfig.make;  then rm $(SRC_DIR)/config/ElementsConfig.make;  fi
+	@ cd config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl MaterialsConfig.conf $(SRC_DIR)/config
+	@ cd config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl ElementsConfig.conf  $(SRC_DIR)/config
+	@ cd config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   MaterialsConfig.conf $(SRC_DIR)/config
+	@ cd config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   ElementsConfig.conf  $(SRC_DIR)/config
+
+# build extras target
+make_build_extras:
+
+# clean extras target - clean config files out of src/config
+clean_config:
+	@ if test -f $(SRC_DIR)/config/MaterialsConfig.h; then rm $(SRC_DIR)/config/MaterialsConfig.h; fi
+	@ if test -f $(SRC_DIR)/config/MaterialsConfig.make; then rm $(SRC_DIR)/config/MaterialsConfig.make; fi
+	@ if test -f $(SRC_DIR)/config/ElementsConfig.h; then rm $(SRC_DIR)/config/ElementsConfig.h; fi
+	@ if test -f $(SRC_DIR)/config/ElementsConfig.make; then rm $(SRC_DIR)/config/ElementsConfig.make; fi
