@@ -1,9 +1,11 @@
-/* $Id: SolidMatListT.cpp,v 1.8 2003-07-29 21:17:49 rdorgan Exp $ */
+/* $Id: SolidMatListT.cpp,v 1.9 2003-07-29 23:41:15 cjkimme Exp $ */
 #include "SolidMatListT.h"
 #include "SolidMaterialT.h"
 #include "SSMatSupportT.h"
 #include "FSMatSupportT.h"
+#ifdef GRADJ2SS_MATERIALS_DEV
 #include "GradSSMatSupportT.h"
+#endif
 
 using namespace Tahoe;
 
@@ -32,9 +34,10 @@ SolidMatListT::SolidMatListT(int length, const SolidMatSupportT& support):
 
 	/* cast to finite strain support */
 	fFSMatSupport = dynamic_cast<const FSMatSupportT*>(&fSolidMatSupport);
-	
+#ifdef GRADJ2SS_MATERIALS_DEV
 	/* cast to gradient enhanced small strain support */
 	fGradSSMatSupport = dynamic_cast<const GradSSMatSupportT*>(&fSolidMatSupport);
+#endif
 
 	/* must have at least one */
 	if (!fSSMatSupport && !fFSMatSupport && !fGradSSMatSupport)
