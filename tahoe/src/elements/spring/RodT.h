@@ -1,4 +1,4 @@
-/* $Id: RodT.h,v 1.8 2002-07-02 19:55:29 cjkimme Exp $ */
+/* $Id: RodT.h,v 1.9 2002-07-02 20:59:14 hspark Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _ROD_T_H_
@@ -81,11 +81,16 @@ protected: /* for derived classes only */
 
 private: /* MD related computational functions */
 
-	void ComputeKE(void);
-	void ComputePE(void);
-	void ComputeTotalE(void);
-	void ComputeTemperature(void);
-	void ComputePressure(void);
+	void ComputeInstKE(void);
+	void ComputeAvgKE(void);
+	void ComputeInstPE(void);
+	void ComputeAvgPE(void);
+	void ComputeInstTotalE(void);
+	void ComputeAvgTotalE(void);
+	void ComputeInstTemperature(void);
+	void ComputeAvgTemperature(void);
+	void ComputeInstPressure(void);
+	void ComputeAvgPressure(void);
 
 protected:
 
@@ -115,11 +120,12 @@ private:
 
 	/* MD related variables */
 	double fKb;
-	double fKE, fPE, fTotalE;
-	double fTemp;
-	double fPressure;
+	double fInstKE, fInstPE, fInstTotalE, fInstTemp, fInstPressure;
+	double fAvgKE, fAvgPE, fAvgTotalE, fAvgTemp, fAvgPressure;
+	double fSumKE, fSumPE, fSumTotalE, fSumTemp, fSumPressure;
 	LocalArrayT fLocVel;
 
+	const int& fStepNumber;
 };
 
 } // namespace Tahoe 
