@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.32.2.1 2003-05-24 14:39:14 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.32.2.2 2003-05-25 16:14:35 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -581,8 +581,6 @@ void BridgingScaleT::BridgingFields(const StringT& field, const PointInCellDataT
 {
 #pragma unused(field)
 
-	cout << "femdisp = " << fedisp << endl;
-	cout << "mddisp = " << mddisp << endl;
 	/* projected part of the mesh */
 	const iArrayT& cell_nodes = cell_data.CellNodes();
 	const iArray2DT& cell_connects = cell_data.CellConnectivities();
