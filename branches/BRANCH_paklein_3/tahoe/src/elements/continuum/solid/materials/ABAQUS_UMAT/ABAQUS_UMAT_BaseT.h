@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.7.2.2 2003-11-24 17:56:37 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.7.2.3 2003-12-03 19:52:53 paklein Exp $ */
 /* created: paklein (05/09/2000) */
 #ifndef _ABAQUS_UMAT_BASE_T_H_
 #define _ABAQUS_UMAT_BASE_T_H_
@@ -6,6 +6,8 @@
 /* base classes */
 #include "ABAQUS_BaseT.h"
 #include "FSSolidMatT.h"
+#include "IsotropicT.h"
+#include "Material2DT.h"
 
 /* library support options */
 #ifdef __F2C__
@@ -26,7 +28,11 @@ namespace Tahoe {
 /* forward declarations */
 class SpectralDecompT;
 
-class ABAQUS_UMAT_BaseT: protected ABAQUS_BaseT, public FSSolidMatT
+class ABAQUS_UMAT_BaseT: 
+	protected ABAQUS_BaseT, 
+	public FSSolidMatT, 
+	public IsotropicT,
+	public Material2DT
 {
 public:
 
@@ -121,6 +127,9 @@ private:
 protected:
 
 	GlobalT::SystemTypeT fTangentType;
+
+	/** properties array */
+	nArrayT<doublereal> fProperties;
 	
 private:
 
@@ -139,9 +148,6 @@ private:
 	dSymMatrixT fStress;             // return value
 	dArrayT fIPCoordinates;          // integration point coordinates
 	double fPressure; /**< pressure for the most recent calculation of the stress */
-
-	/* properties array */
-	nArrayT<doublereal> fProperties;
 	
 	/* material output data */
 	iArrayT fOutputIndex;

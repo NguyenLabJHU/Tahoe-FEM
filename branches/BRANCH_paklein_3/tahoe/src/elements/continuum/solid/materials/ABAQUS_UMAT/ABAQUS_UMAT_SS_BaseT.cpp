@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.1.2.4 2003-12-03 01:44:07 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.1.2.5 2003-12-03 19:52:53 paklein Exp $ */
 #include "ABAQUS_UMAT_SS_BaseT.h"
 
 #ifdef __F2C__
@@ -60,6 +60,7 @@ void ABAQUS_UMAT_SS_BaseT::Print(ostream& out) const
 {
 	/* inherited */
 	SSSolidMatT::Print(out);
+	IsotropicT::Print(out);
 	
 	/* write properties array */
 	out << " Number of ABAQUS UMAT internal variables. . . . = " << nstatv << '\n';

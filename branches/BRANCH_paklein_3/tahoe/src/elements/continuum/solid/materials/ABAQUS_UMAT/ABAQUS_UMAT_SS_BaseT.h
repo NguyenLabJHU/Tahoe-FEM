@@ -1,10 +1,12 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.1.2.2 2003-11-24 17:56:37 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.1.2.3 2003-12-03 19:52:53 paklein Exp $ */
 #ifndef _ABAQUS_UMAT_SS_BASE_T_H_
 #define _ABAQUS_UMAT_SS_BASE_T_H_
 
 /* base classes */
 #include "ABAQUS_BaseT.h"
 #include "SSSolidMatT.h"
+#include "IsotropicT.h"
+#include "Material2DT.h"
 
 /* library support options */
 #ifdef __F2C__
@@ -22,8 +24,13 @@
 
 namespace Tahoe {
 
-/** wrapper for using ABAQUS UMAT's with small strain elements */
-class ABAQUS_UMAT_SS_BaseT: protected ABAQUS_BaseT, public SSSolidMatT
+/** wrapper for using ABAQUS UMAT's with small strain elements. Derived classes
+ * are responsible for setting IsotropicT and Material2DT properties. */
+class ABAQUS_UMAT_SS_BaseT: 
+	protected ABAQUS_BaseT, 
+	public SSSolidMatT, 
+	public IsotropicT, 
+	public Material2DT
 {
 public:
 
@@ -112,6 +119,9 @@ protected:
 	
 	GlobalT::SystemTypeT fTangentType;
 
+	/** properties array */
+	nArrayT<doublereal> fProperties;
+
 private:
 
 	//debugging
@@ -129,9 +139,6 @@ private:
 	dSymMatrixT fStress;             // return value
 	dArrayT fIPCoordinates;          // integration point coordinates
 	double fPressure; /**< pressure for the most recent calculation of the stress */
-
-	/* properties array */
-	nArrayT<doublereal> fProperties;
 	
 	/* material output data */
 	iArrayT fOutputIndex;
