@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.71.12.5 2004-06-29 16:16:54 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.71.12.6 2004-07-01 05:01:13 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -70,7 +70,8 @@ FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm)
 	fActiveEquationStart(0),
 	fGlobalNumEquations(0),
 	fCurrentGroup(-1),
-	fAnalysisCode(GlobalT::kNoAnalysis)
+	fAnalysisCode(GlobalT::kNoAnalysis),
+	fInitCode(kFull)
 {
 	/* console name */
 	iSetName("FE_manager");
@@ -113,6 +114,7 @@ FEManagerT::~FEManagerT(void)
 	fStatus = GlobalT::kNone;	
 }
 
+#if 0
 /* initialize members */
 void FEManagerT::Initialize(InitCodeT init)
 {
@@ -197,7 +199,7 @@ void FEManagerT::Initialize(InitCodeT init)
 	SetSolver();
 	if (verbose) cout << "    FEManagerT::Initialize: solver" << endl;
 }	
-
+#endif
 /* solve all the time sequences */
 void FEManagerT::Solve(void)
 {
@@ -1345,6 +1347,9 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	/* check that all solvers hit at least once */
 	if (solver_list.Length() != fSolvers.Length())
 		ExceptionT::BadInputValue(caller, "must have at least one phase per solver");
+
+//TEMP - don't allocate the global equation system
+if (fInitCode == kAllButSolver) return;
 
 	/* set equation systems */
 	SetSolver();

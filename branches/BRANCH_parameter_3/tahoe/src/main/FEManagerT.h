@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.41.12.3 2004-06-16 00:31:23 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.41.12.4 2004-07-01 05:01:13 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -63,7 +63,7 @@ public:
 	virtual ~FEManagerT(void);
 
 	/** initialize members */
-	virtual void Initialize(InitCodeT init = kFull);
+//	virtual void Initialize(InitCodeT init = kFull);
 	
 	/** solve all the time sequences */
 	void Solve(void);
@@ -367,9 +367,6 @@ public:
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
 
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
@@ -381,6 +378,9 @@ public:
 	/** return the description of the given inline subordinate parameter list */
 	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
 		SubListT& sub_sub_list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
@@ -434,6 +434,13 @@ private:
 	/*@}*/
 		
 protected:
+
+	/** temporary flag to control how much of the FEManagerT is constructed
+	 * during FEManagerT::TakeParameterListT. This value will be initialized
+	 * to FEManagerT::kFull. Derived classes should redefine the value before
+	 * FEManagerT::TakeParameterListT is called. This will be eliminated when
+	 * procedure for initializing the global equation system is revised. */
+	InitCodeT fInitCode;
 
 	/** \name I/O streams */
 	/*@{*/
