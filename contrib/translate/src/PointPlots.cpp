@@ -15,17 +15,35 @@ void PointPlots::Translate (const StringT& program, const StringT& version, cons
 {
   fModel.Initialize ();
   SetOutput (program, version, title);
-  InitializeQuadVariables ();
-  cout << "\n One file will be written per time step.\n";
-  InitializeTime();
-  if (fNumTS < 1)
+
+  bool again = true;
+  while (again)
     {
-      fMessage << "\n No time steps found.";
-      return;
+      if (fWrite)
+	cout << "\n Enter the root of the output files: ";
+      fIn >> fOutputName;
+      cout << "\n Output Format: " << fOutputFormat << " File: " << fOutputName << endl;
+
+      InitializeQuadVariables ();
+      cout << "\n One file will be written per time step.\n";
+      InitializeTime();
+      if (fNumTS < 1)
+	{
+	  fMessage << "\n No time steps found.";
+	  return;
+	}
+      StringT name;
+      InitializeElements(fElementGroup, name);
+      TranslateVariables ();
+
+      again = false;
+      StringT answer;
+      if (write)
+	cout << "\n Do you want to extract more variables (y/n) ?";
+      cin >> answer;
+      if (answer[0] == 'Y' || answer[0] == 'y')
+	again = true;
     }
-  StringT name;
-  InitializeElements(fElementGroup, name);
-  TranslateVariables ();
 }
 
 /**************** PRIVATE **********************/
@@ -40,10 +58,6 @@ void PointPlots::SetOutput (const StringT& program, const StringT& version, cons
       cout << "\n Enter the Output Format: ";
     }
   fIn >> fOutputFormat;
-  if (fWrite)
-    cout << "\n Enter the root of the output files: ";
-  fIn >> fOutputName;
-  cout << "\n Output Format: " << fOutputFormat << " File: " << fOutputName << endl;
 }
 
 void PointPlots::TranslateVariables (void)
