@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.cpp,v 1.8.2.3 2002-04-29 17:19:28 paklein Exp $ */
+/* $Id: XDOF_ManagerT.cpp,v 1.8.2.4 2002-05-03 07:13:38 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 /* base class which defines the interface for a manager */
 /* of DOF's comprised of FE DOF's plus constrain DOF's */
@@ -87,6 +87,23 @@ const dArray2DT& XDOF_ManagerT::XDOF(const DOFElementT* group, int tag_set) cons
 /**********************************************************************
 * Protected
 **********************************************************************/
+
+/* return the number of XDOF equations in the specified group */
+int XDOF_ManagerT::NumEquations(int group) const
+{
+	int neq = 0;
+	for (int j = 0; j < fDOFElements.Length(); j++)
+		if (fDOFElements[j]->Group() == group)
+		{
+			int num_sets = fNumTagSets[j];
+			for (int k = 0; k < num_sets; k++)
+			{
+				int dex = TagSetIndex(fDOFElements[j], k);
+				neq += fXDOF_Eqnos.Length(); /* all active */
+			}
+		}
+	return neq;
+}
 
 /* prompt element groups to reset tags */
 bool XDOF_ManagerT::ResetTags(int group)

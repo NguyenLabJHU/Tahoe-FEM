@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.h,v 1.2.4.2 2002-04-26 02:24:24 paklein Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.2.4.3 2002-05-03 07:13:37 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 
 #ifndef _FBC_CONTROLLER_T_H_
@@ -37,7 +37,7 @@ public:
 	virtual ~FBC_ControllerT(void);
 
 	/* set the controller */
-	virtual void SetController(eControllerT* controller);
+	virtual void SetController(const eControllerT* controller);
 
 	/* initialize data - called immediately after construction */
 	virtual void Initialize(void) = 0;
@@ -87,7 +87,7 @@ protected:
 	int fGroup;
 
 	/* element controller */
-	eControllerT* fController;
+	const eControllerT* fController;
 };
 
 #endif /* _FBC_CONTROLLER_T_H_ */
