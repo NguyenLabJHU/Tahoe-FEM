@@ -1,4 +1,4 @@
-/* $Id: GlobalT.h,v 1.12 2004-01-05 07:15:23 paklein Exp $ */
+/* $Id: GlobalT.h,v 1.13 2005-03-11 20:37:19 paklein Exp $ */
 /* created: paklein (02/03/1999) */
 
 #ifndef _GLOBAL_T_H_
@@ -33,7 +33,7 @@ public:
 		   };
 		
 	/** stream extraction operator */
-	friend istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code);
+//	friend istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code);
 
 	/** solver codes */
 	enum SolverTypeT {kNewtonSolver = 0, /**< standard Newton solver */
@@ -108,6 +108,14 @@ public:
 	enum EquationNumberScopeT {
 		kLocal  = 0, /**< equations numbered per processor */
 		kGlobal = 1  /**< equations numbered over entire system */};
+
+	/** amount of runtime logging information */
+	enum LoggingT {
+		kVerbose = 0,
+		kModerate = 1,
+		kSilent = 2
+	};
+	static LoggingT int2LoggingT(int i);
 };
 
 /* inlines */
