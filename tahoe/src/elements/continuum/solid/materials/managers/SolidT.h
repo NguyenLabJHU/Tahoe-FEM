@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.13 2002-05-31 07:09:51 thao Exp $ */
+/* $Id: SolidT.h,v 1.14 2002-06-20 01:18:58 thao Exp $ */
 /* created: paklein (03/10/2001)                                          */
 
 #ifndef _MATERIAL_T_H_
@@ -46,11 +46,10 @@ kBCJHypoIsoDmgYC = 47,
 kLocXtalPlastFp_C = 56,
  kGrdXtalPlastFp = 57,
    kOgdenViscVIB = 60,
-         kSKStVT = 61,
-       kMaxwellT = 62,
+     kSSStandard = 61,
+     kFDStandard = 62,
      kABAQUS_BCJ = 80,
 kABAQUS_VUMAT_BCJ = 90,
-   kOgdenViscVIBold = 99
 		};
 	/* stream extraction operator */ 
 	friend istream& operator>>(istream& in, SolidT::SolidT& code);

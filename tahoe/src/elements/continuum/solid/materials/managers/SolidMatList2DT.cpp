@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.18 2002-06-08 20:20:40 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.19 2002-06-20 01:18:58 thao Exp $ */
 /* created: paklein (02/14/1997) */
 
 #include "SolidMatList2DT.h"
@@ -37,8 +37,8 @@
 #include "ABAQUS_VUMAT_BCJ.h"
 #include "QuadLogOgden2DT.h"
 #include "OgdenViscVIB2D.h"
-#include "SKStVT2D.h"
-#include "MaxwellT2D.h"
+#include "SSStandard2DT.h"
+#include "FDStandard2DT.h"
 #include "tevp2D.h"
 #include "povirk2D.h"
 
@@ -50,8 +50,6 @@
 #include "GradCrystalPlast2D.h"
 #include "LocalCrystalPlastFp2D.h"
 #include "GradCrystalPlastFp2D.h"
-
-//#include "OgdenViscVIB2Dold.h"
 
 /* constructor */
 SolidMatList2DT::SolidMatList2DT(int length, const ElasticT& element_group):
@@ -437,20 +435,20 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 			}
-			case kSKStVT:
+			case kSSStandard:
 			{
 				/* check */
 				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
 			
-				fArray[matnum] = new SKStVT2D(in, *fSmallStrain);
+				fArray[matnum] = new SSStandard2DT(in, *fSmallStrain);
 				fHasHistory = true;
 				break;
 			}
-			case kMaxwellT:
+			case kFDStandard:
 			{
 				/* check */
-				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
-				fArray[matnum] = new MaxwellT2D(in, *fSmallStrain);
+				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+				fArray[matnum] = new FDStandard2DT(in, *fFiniteStrain);
 				fHasHistory = true;
 				break;
 			}
@@ -488,17 +486,6 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 
 #endif //TEMP
 
-#if 0
-			case kOgdenViscVIBold:
-			{
-				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
-
-				fArray[matnum] = new OgdenViscVIB2Dold(in, *fFiniteStrain);
-				fHasHistory = true;
-				break;
-			}
-#endif
 			default:
 			
 				cout << "\n SolidMatList2DT::ReadMaterialData: unknown material code: ";
