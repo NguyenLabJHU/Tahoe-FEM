@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.12 2002-02-18 09:45:12 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.13 2002-02-21 09:01:32 paklein Exp $ */
 
 #include "ComparatorT.h"
 
@@ -345,7 +345,7 @@ bool ComparatorT::PassOrFail(const StringT& file_1, const StringT& file_2,
 			/* read element data */
 			ArrayT<StringT> b_element_labels;
 			dArray2DT b_element_data;
-			int b_block_ID;
+			StringT b_block_ID;
 			if (!ReadElementData(bench_in, b_element_labels, b_element_data, b_block_ID)) {
 				cout << "error reading element data from: " << bench_in.filename() << '\n';
 				return false;
@@ -353,7 +353,7 @@ bool ComparatorT::PassOrFail(const StringT& file_1, const StringT& file_2,
 
 			ArrayT<StringT> c_element_labels;
 			dArray2DT c_element_data;
-			int c_block_ID;
+			StringT c_block_ID;
 			if (!ReadElementData(current_in, c_element_labels, c_element_data, c_block_ID)) {
 				cout << "error reading element data from: " << current_in.filename() << '\n';
 				return false;
@@ -437,16 +437,17 @@ bool ComparatorT::ReadNodalData(ifstreamT& in, ArrayT<StringT>& labels, dArray2D
 }
 
 /* read block of element data */
-bool ComparatorT::ReadElementData(ifstreamT& in, ArrayT<StringT>& labels, dArray2DT& data, int& block_ID) const
+bool ComparatorT::ReadElementData(ifstreamT& in, ArrayT<StringT>& labels, dArray2DT& data, StringT& block_ID) const
 {
 	/* advance nodal data */
 	StringT str;
 	if (!in.FindString("Element data:", str)) return false;
 
 	/* get dimensions */
-	int num_nodes, num_values;
+	int num_nodes, num_values, i_block_ID;
 	if (!in.FindString("Block ID", str)) return false;
 	str.Tail('=', block_ID);
+
 	if (!in.FindString("Number of elements", str)) return false;
 	str.Tail('=', num_nodes);
 	if (!in.FindString("Number of values", str)) return false;
