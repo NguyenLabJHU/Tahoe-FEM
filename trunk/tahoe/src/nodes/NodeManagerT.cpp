@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.55 2004-12-21 17:24:45 thao Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.56 2004-12-22 00:48:28 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -44,7 +44,7 @@
 #include "SetOfNodesKBCT.h"
 #include "TorsionKBCT.h"
 #include "ConveyorT.h"
-#include "ConveyorSymT.h"
+//#include "ConveyorSymT.h"
 
 using namespace Tahoe;
 
@@ -1442,11 +1442,13 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 			ConveyorT* kbc = new ConveyorT(fFieldSupport, field);
 			return kbc;
 		}
+#if 0
                 case KBC_ControllerT::kConveyorSym:
                 {
                         ConveyorSymT* kbc = new ConveyorSymT(fFieldSupport, field);
                         return kbc;
                 }
+#endif
 		default:
 			ExceptionT::BadInputValue("NodeManagerT::NewKBC_Controller", 
 				"KBC controller code %d is not supported", code);
