@@ -1,4 +1,4 @@
-/* $Id: iGridManagerT.cpp,v 1.8 2003-01-27 06:42:48 paklein Exp $ */
+/* $Id: iGridManagerT.cpp,v 1.9 2004-03-18 01:15:39 paklein Exp $ */
 /* created: paklein (09/13/1998) */
 #include "iGridManagerT.h"
 #include "iGridManager1DT.h"
@@ -174,10 +174,39 @@ double iGridManagerT::CellSpan(int cell_span) const
 /* grid statistics */
 void iGridManagerT::WriteStatistics(ostream& out) const
 {
-        if (fGrid1D)
+	if (fGrid1D)
 		fGrid1D->WriteStatistics(out);
 	else if (fGrid2D)
 		fGrid2D->WriteStatistics(out);
 	else
 		fGrid3D->WriteStatistics(out);
+}
+
+/* dump grid contents to output stream */
+void iGridManagerT::DumpGrid(ostream& out) const
+{
+	/* the grid */
+	const ArrayT<AutoArrayT<iNodeT>*>* pgrid = NULL;
+	if (fGrid1D)
+		pgrid = &(fGrid1D->Grid());
+	else if (fGrid2D)
+		pgrid = &(fGrid2D->Grid());
+	else
+		pgrid = &(fGrid3D->Grid());
+	const ArrayT<AutoArrayT<iNodeT>*>& grid = *pgrid;
+	
+	out << "\nGrid Contents:\n";
+	out << "number of cells = " << grid.Length() << '\n';
+	for (int i = 0; i < grid.Length(); i++) {
+		out << i << ":";
+		const AutoArrayT<iNodeT>* plist = grid[i];
+		if (plist) {
+			const AutoArrayT<iNodeT>& list = *plist;
+			for (int j = 0; j < list.Length(); j++) {
+				const iNodeT& node = list[j];
+				out << " " << node.Tag();
+			}
+		}
+		out << '\n';
+	}
 }

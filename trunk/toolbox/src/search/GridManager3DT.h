@@ -1,4 +1,4 @@
-/* $Id: GridManager3DT.h,v 1.9 2003-11-21 22:42:07 paklein Exp $ */
+/* $Id: GridManager3DT.h,v 1.10 2004-03-18 01:15:39 paklein Exp $ */
 /* created: paklein (12/06/1997) */
 #ifndef _GRIDMANAGER3D_T_H_
 #define _GRIDMANAGER3D_T_H_
@@ -55,6 +55,9 @@ public:
 
 	/* grid statistics */
 	void WriteStatistics(ostream& out) const;
+
+	/** the grid */
+	const ArrayT<AutoArrayT<sTYPE>*>& Grid(void) const { return fGrid; };
 
 protected:
 
