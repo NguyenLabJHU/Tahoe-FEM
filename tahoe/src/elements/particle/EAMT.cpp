@@ -167,8 +167,7 @@ void EAMT::WriteOutput(void)
 		coords.RowAlias(tag_i, x_i);
 
 		/** Get Electron Density  **/
-		dArrayT electron_density_j;
-		electron_density_j.Dimension(neighbors.Length());
+		double electron_density_i = 0.0;;
 		for (int j = 1; j < neighbors.Length(); j++)
 		{
 			/* tags */
@@ -191,7 +190,7 @@ void EAMT::WriteOutput(void)
 			double r = r_ij.Magnitude();
 			
 			/* split interaction energy */
-			electron_density_j[j] = ed_energy(r, NULL, NULL);
+			electron_density_i += ed_energy(r, NULL, NULL);
 		}
 		
 		
@@ -203,7 +202,7 @@ void EAMT::WriteOutput(void)
 		    embed_energy= fParadynProperties[property]->getEmbedEnergy();
 		    current_property = property;
 		  }
-		embedding_i = embed_energy(electron_density_j[i], NULL, NULL);
+		embedding_i = embed_energy(electron_density_i, NULL, NULL);
 
 
 		/** Get Pair Energy **/
@@ -284,8 +283,8 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 
 	/* pair properties function pointers */
 	int current_property = -1;
-	ParadynT::PairForceFunction force_function = NULL;
-	ParadynT::PairStiffnessFunction stiffness_function = NULL;
+	ParadynT::PairForceFunction pair_force = NULL;
+	ParadynT::PairStiffnessFunction pair_stiffness = NULL;
 
 	/* work space */
 	dArrayT r_ij(NumDOF(), fRHS.Pointer());
@@ -329,8 +328,8 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 				int property = fPropertiesMap(type_i, type_j);
 				if (property != current_property)
 				{
-					force_function = fParadynProperties[property]->getPairForce();
-					stiffness_function = fParadynProperties[property]->getPairStiffness();
+					pair_force = fParadynProperties[property]->getPairForce();
+					pair_stiffness = fParadynProperties[property]->getPairStiffness();
 					current_property = property;
 				}
 
@@ -343,8 +342,8 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 				r_ji.SetToScaled(-1.0, r_ij);
 
 				/* interaction functions */
-				double F = force_function(r, NULL, NULL);
-				double K = stiffness_function(r, NULL, NULL);
+				double F = pair_force(r, NULL, NULL);
+				double K = pair_stiffness(r, NULL, NULL);
 				double Fbyr = F/r;
 
 				/* 1st term */
@@ -420,8 +419,8 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 
 		/* pair properties function pointers */
 		int current_property = -1;
-		ParadynT::PairForceFunction force_function = NULL;
-		ParadynT::PairStiffnessFunction stiffness_function = NULL;
+		ParadynT::PairForceFunction pair_force = NULL;
+		ParadynT::PairStiffnessFunction pair_stiffness = NULL;
 
 		/* run through neighbor list */
 		fForce = 0.0;
@@ -450,8 +449,8 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				int property = fPropertiesMap(type_i, type_j);
 				if (property != current_property)
 				{
-					force_function = fParadynProperties[property]->getPairForce();
-					stiffness_function = fParadynProperties[property]->getPairStiffness();
+					pair_force = fParadynProperties[property]->getPairForce();
+					pair_stiffness = fParadynProperties[property]->getPairStiffness();
 					current_property = property;
 				}
 		
@@ -463,8 +462,8 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				double r = r_ij.Magnitude();
 			
 				/* interaction functions */
-				double F = force_function(r, NULL, NULL);
-				double K = stiffness_function(r, NULL, NULL);
+				double F = pair_force(r, NULL, NULL);
+				double K = pair_stiffness(r, NULL, NULL);
 				K = (K < 0.0) ? 0.0 : K;
 
 				double Fbyr = F/r;
@@ -494,8 +493,8 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 
 		/* pair properties function pointers */
 		int current_property = -1;
-		ParadynT::PairForceFunction force_function = NULL;
-		ParadynT::PairStiffnessFunction stiffness_function = NULL;
+		ParadynT::PairForceFunction pair_force = NULL;
+		ParadynT::PairStiffnessFunction pair_stiffness = NULL;
 
 		/* work space */
 		dArrayT r_ij(NumDOF(), fRHS.Pointer());
@@ -530,8 +529,8 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				int property = fPropertiesMap(type_i, type_j);
 				if (property != current_property)
 				{
-					force_function = fParadynProperties[property]->getPairForce();
-					stiffness_function = fParadynProperties[property]->getPairStiffness();
+					pair_force = fParadynProperties[property]->getPairForce();
+					pair_stiffness = fParadynProperties[property]->getPairStiffness();
 					current_property = property;
 				}
 		
@@ -544,8 +543,8 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				r_ji.SetToScaled(-1.0, r_ij);
 			
 				/* interaction functions */
-				double F = constK*force_function(r, NULL, NULL);
-				double K = constK*stiffness_function(r, NULL, NULL);
+				double F = constK*pair_force(r, NULL, NULL);
+				double K = constK*pair_stiffness(r, NULL, NULL);
 				double Fbyr = F/r;
 
 				/* 1st term */
@@ -601,7 +600,7 @@ void EAMT::RHSDriver2D(void)
 
 	/* pair properties function pointers */
 	int current_property = -1;
-	ParadynT::PairForceFunction force_function = NULL;
+	ParadynT::PairForceFunction pair_force = NULL;
 	const double* Paradyn_table = NULL;
 	double dr = 1.0;
 	int row_size = 0, num_rows = 0;
@@ -634,7 +633,7 @@ void EAMT::RHSDriver2D(void)
 			if (property != current_property)
 			{
 				if (!fParadynProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
-					force_function = fParadynProperties[property]->getPairForce();
+					pair_force = fParadynProperties[property]->getPairForce();
 				current_property = property;
 			}
 		
@@ -657,7 +656,7 @@ void EAMT::RHSDriver2D(void)
 				F = c[4] + pp*(c[5] + pp*c[6]);
 			}
 			else
-				F = force_function(r, NULL, NULL);
+				F = pair_force(r, NULL, NULL);
 			double Fbyr = formKd*F/r;
 
 			r_ij_0 *= Fbyr;
@@ -745,20 +744,7 @@ void EAMT::RHSDriver3D(void)
 			double r = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
 			
 			/* interaction force */
-			double F;
-			if (Paradyn_table)
-			{
-				double pp = r*dr;
-				int kk = int(pp);
-				int max_row = num_rows-2;
-				kk = (kk < max_row) ? kk : max_row;
-				pp -= kk;
-				pp = (pp < 1.0) ? pp : 1.0;				
-				const double* c = Paradyn_table + kk*row_size;
-				F = c[4] + pp*(c[5] + pp*c[6]);
-			}
-			else
-				F = force_function(r, NULL, NULL);
+			double F = force_function(r, NULL, NULL);
 			double Fbyr = formKd*F/r;
 
 			r_ij_0 *= Fbyr;
@@ -793,11 +779,15 @@ void EAMT::SetConfiguration(void)
 	
 	ofstreamT& out = ElementSupport().Output();
 	out << "\n Neighbor statistics:\n";
-	out << " Total number of neighbors . . . . . . . . . . . = " << fNeighbors.Length() << '\n';
-	out << " Minimum number of neighbors . . . . . . . . . . = " << fNeighbors.MinMinorDim(0) << '\n';
-	out << " Maximum number of neighbors . . . . . . . . . . = " << fNeighbors.MaxMinorDim() << '\n';
+	out << " Total number of neighbors . . . . . . . . . . . = " 
+	    << fNeighbors.Length() << '\n';
+	out << " Minimum number of neighbors . . . . . . . . . . = " 
+	    << fNeighbors.MinMinorDim(0) << '\n';
+	out << " Maximum number of neighbors . . . . . . . . . . = " 
+	    << fNeighbors.MaxMinorDim() << '\n';
 	if (fNeighbors.MajorDim() > 0)
-	out << " Average number of neighbors . . . . . . . . . . = " << double(fNeighbors.Length())/fNeighbors.MajorDim() << '\n';
+	out << " Average number of neighbors . . . . . . . . . . = " 
+	    << double(fNeighbors.Length())/fNeighbors.MajorDim() << '\n';
 	else
 	out << " Average number of neighbors . . . . . . . . . . = " << 0 << '\n';
 
