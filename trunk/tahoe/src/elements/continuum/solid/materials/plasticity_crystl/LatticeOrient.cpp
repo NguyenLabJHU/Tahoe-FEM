@@ -101,8 +101,10 @@ void LatticeOrient::AssignEulerAngles(int kcode, int nelem, int nint,
         for (int ig = 0; ig < ngrn; ig++)
           {
              dArrayT& angles = euler[ie](ip,ig);
-             fTextOut << angles[0] << "  " << angles[1] << "  " << angles[2] 
-                      << "    " << ie << "   " << ip << "   " << ig << endl;
+             fTextOut << angles[0]/pi180 << "  " 
+                      << angles[1]/pi180 << "  " 
+                      << angles[2]/pi180 << "    " 
+                      << ie << "   " << ip << "   " << ig << endl;
           }   
 }
 
