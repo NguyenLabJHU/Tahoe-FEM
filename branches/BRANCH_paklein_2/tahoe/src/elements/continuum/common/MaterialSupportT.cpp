@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.cpp,v 1.2.8.2 2002-10-28 06:49:15 paklein Exp $ */
+/* $Id: MaterialSupportT.cpp,v 1.2.8.3 2002-10-30 09:18:11 paklein Exp $ */
 #include "MaterialSupportT.h"
 #include "ContinuumElementT.h"
 
@@ -54,5 +54,35 @@ const LocalArrayT* MaterialSupportT::LocalArray(LocalArrayT::TypeT t) const
 
 		default:
 			return NULL;
+	}
+}
+
+/* interpolate the given field to the current integration point */
+bool MaterialSupportT::Interpolate(const LocalArrayT& u, dArrayT& u_ip) const
+{
+	if (!fContinuumElement) 
+	{
+		u_ip = 0.0;
+		return false;
+	}
+	else
+	{
+		fContinuumElement->IP_Interpolate(u, u_ip);
+		return true;
+	}
+}
+
+/* interpolate the given field to the given integration point */
+bool MaterialSupportT::Interpolate(const LocalArrayT& u, dArrayT& u_ip, int ip) const
+{
+	if (!fContinuumElement) 
+	{
+		u_ip = 0.0;
+		return false;
+	}
+	else
+	{
+		fContinuumElement->IP_Interpolate(u, u_ip, ip);
+		return true;
 	}
 }

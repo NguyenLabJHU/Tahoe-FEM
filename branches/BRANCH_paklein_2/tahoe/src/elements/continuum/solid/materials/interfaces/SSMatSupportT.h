@@ -1,4 +1,4 @@
-/* $Id: SSMatSupportT.h,v 1.1.2.1 2002-10-28 06:49:15 paklein Exp $ */
+/* $Id: SSMatSupportT.h,v 1.1.2.2 2002-10-30 09:18:11 paklein Exp $ */
 #ifndef _FD_MAT_SUPPORT_T_H_
 #define _FD_MAT_SUPPORT_T_H_
 
@@ -7,7 +7,7 @@
 
 /* direct members */
 #include "dArrayT.h"
-#include "dMatrixT.h"
+#include "dSymMatrixT.h"
 
 namespace Tahoe {
 
@@ -36,6 +36,12 @@ public:
 	/*@{*/
 	const dSymMatrixT& LinearStrain_last(void) const;
 	const dSymMatrixT& LinearStrain_last(int ip) const;
+
+	/** set source for the strain */
+	void SetLinearStrain(const ArrayT<dSymMatrixT>* strain_List);
+
+	/** set source for the strain from the end of the previous time step */
+	void SetLinearStrain_last(const ArrayT<dSymMatrixT>* strain_last_List);
 	/*@}*/
 
 	/** \name host code information */
@@ -58,13 +64,38 @@ public:
 
   	/** \name return values */
 	/*@{*/
-  	ArrayT<dSymMatrixT> fStrain_List;
-  	ArrayT<dSymMatrixT> fStrain_last_List;
+  	const ArrayT<dSymMatrixT>* fStrain_List;
+  	const ArrayT<dSymMatrixT>* fStrain_last_List;
 	/*@}*/
 
   	/** pointer to the small strain element */
 	const SmallStrainT* fSmallStrain;	
 };
+
+/* inlines */
+const dSymMatrixT& SSMatSupportT::LinearStrain(void) const
+{
+	if (!fStrain_List) throw ExceptionT::kGeneralFail;
+	return (*fStrain_List)[CurrIP()]; 
+}
+
+const dSymMatrixT& SSMatSupportT::LinearStrain(int ip) const
+{
+	if (!fStrain_List) throw ExceptionT::kGeneralFail;
+	return (*fStrain_List)[ip]; 
+}
+
+const dSymMatrixT& SSMatSupportT::LinearStrain_last(void) const
+{
+	if (!fStrain_last_List) throw ExceptionT::kGeneralFail;
+	return (*fStrain_last_List)[CurrIP()]; 
+}
+
+const dSymMatrixT& SSMatSupportT::LinearStrain_last(int ip) const
+{
+	if (!fStrain_last_List) throw ExceptionT::kGeneralFail;
+	return (*fStrain_last_List)[ip]; 
+}
 
 } /* namespace Tahoe */
 #endif /* _FD_MAT_SUPPORT_T_H_ */

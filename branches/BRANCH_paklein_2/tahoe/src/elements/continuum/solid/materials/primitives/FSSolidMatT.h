@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.8.6.1 2002-10-28 06:49:27 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.8.6.2 2002-10-30 09:18:13 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -7,11 +7,13 @@
 #include "StructuralMaterialT.h"
 #include "TensorTransformT.h"
 
+/* direct members */
+#include "FDMatSupportT.h"
+
 namespace Tahoe {
 
 /* forward declarations */
 class FiniteStrainT;
-class FDMatSupportT;
 
 /** base class for finite deformation constitutive models. The interface
  * provides access to the element-computed deformation as well as
@@ -161,9 +163,9 @@ protected:
 	 * allows access to all const functions of the finite strain element
 	 * class that are not currently supported with wrappers. \note this
 	 * method is not guaranteed to be supported. If no FiniteStrainT is
-	 * available, this function will throw an exception.
-	 * \return a const reference to the supporting element group */
-	const FiniteStrainT& FiniteStrain(void) const;
+	 * available, this function will return NULL.
+	 * \return a const pointer to the supporting element group */
+	const FiniteStrainT* FiniteStrain(void) const { return fFDMatSupport.FiniteStrain(); };
 
 private:
 
