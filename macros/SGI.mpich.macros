@@ -1,4 +1,4 @@
-# $Id: SGI.mpich.macros,v 1.2 2001-01-25 18:17:00 paklein Exp $
+# $Id: SGI.mpich.macros,v 1.3 2001-01-29 06:59:35 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__MPI__
 MPI_LFLAGS = 
@@ -20,7 +20,7 @@ LFLAGS      = $(MPI_LFLAGS) -lm -w
 AR          = ar
 ARFLAGS     = -cruv
 MAKE_OPTS   = -sP
-RM          = rm
+RM          = rm -rf
 LN          = ln -sf
 INC_FLAGS   = -I/usr/include/CC -I/usr/local/mpich/include
 # parallel builds
