@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.20 2002-10-20 22:48:32 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.21 2002-11-09 01:48:36 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -80,6 +80,10 @@ public:
 	/** return the number of equation groups */
 	int NumGroups(void) const { return fSolvers.Length(); };
 
+	/** the current group. When performing operations over a group, this 
+	 * returns the group being operated on. At other times it will return -1. */
+	const int& CurrentGroup(void) const { return fCurrentGroup; }
+
 	/** returns true for verbose echo of input */
 	bool PrintInput(void) const;
 
@@ -155,6 +159,10 @@ public:
 	/** iteration number for the solution of the given group over the
 	 * current time increment */	
 	const int& IterationNumber(int group) const;
+
+	/** return the iteration number of the current group. Returns -1
+	 * if no group is current. */
+	int IterationNumber(void) const;
 
 	/* solution messaging */
 	void FormLHS(int group) const;
@@ -382,6 +390,7 @@ protected:
 	/*@{*/
 	GlobalT::StateT fStatus; /**< state */
 	int fRestartCount; 	     /**< restart output counter */
+	int fCurrentGroup;       /**< current group being operated on */
 	/*@}*/
 	
 	/** \name equation system
@@ -407,6 +416,15 @@ inline const iArrayT* FEManagerT::ElementMap(const StringT& block_ID) const
 {
 #pragma unused(block_ID)
 	return NULL;
+}
+
+inline int FEManagerT::IterationNumber(void) const
+{
+	int curr_group = CurrentGroup();
+	if (curr_group > 0)
+		return IterationNumber(curr_group);
+	else
+		return -1;
 }
 
 inline int FEManagerT::GlobalEquationStart(int group) const { return fGlobalEquationStart[group]; }
