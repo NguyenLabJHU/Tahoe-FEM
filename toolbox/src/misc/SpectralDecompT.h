@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.h,v 1.5 2001-06-13 00:09:27 paklein Exp $ */
+/* $Id: SpectralDecompT.h,v 1.6 2001-06-23 00:49:16 thao Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -86,6 +86,7 @@ void DecompAndModPrep(const dSymMatrixT& rank2, bool perturb_repeated)
 	 * using the eigenvectors from the most recent decomposition
 	 * \param eigs derivative of eigenvalues for the reconstruction */
 	const dMatrixT& EigsToRank4(const dSymMatrixT& eigs);
+	const dMatrixT& NonSymEigsToRank4(const dMatrixT& eigs);
 
 	/** set rank 4 spatial tensor. needed for computing moduli using 
 	 * Simo's spectral formulation. must be called before any call to 
