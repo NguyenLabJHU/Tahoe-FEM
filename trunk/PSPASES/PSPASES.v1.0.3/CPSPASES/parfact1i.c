@@ -1,4 +1,4 @@
-/* $Id: parfact1i.c,v 1.1 2005-01-04 17:16:06 paklein Exp $ */
+/* $Id: parfact1i.c,v 1.2 2005-01-04 17:43:02 paklein Exp $ */
 /* parfact1i.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -64,7 +64,7 @@ static integer c__2 = 2;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: parfact1i.c,v 1.1 2005-01-04 17:16:06 paklein Exp $ +/ */
+/* /+ $Id: parfact1i.c,v 1.2 2005-01-04 17:43:02 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -553,6 +553,7 @@ L45:
 		printf("%d: not enough space for ibuflen = %d", *myid, i__1);
 		MPI_Abort(*comm, 23);
 	}
+	ibuf_s__--; /* adjust pointer */
 
 /*<       pibufr = loc(ibuf_s(ibuflen+1)) >*/
 /*    pibufr = loc_(&ibuf_s__[ibuflen + 1]); */
