@@ -1,4 +1,4 @@
-/* $Id: TecPlotT.cpp,v 1.3 2001-09-10 20:30:23 sawimme Exp $ */
+/* $Id: TecPlotT.cpp,v 1.4 2002-03-04 06:22:10 paklein Exp $ */
 /* created: saw (06.06.2000)                                              */
 /* version 7.5                                                            */
 /* rules:                                                                 */
@@ -80,8 +80,8 @@ case GeometryT::kHexahedron: out << "BRICK "; break;
 case GeometryT::kTetrahedron: out << "TETRAHEDRON "; break;
 default:
 {
-	cout << "\n\nTecPlotT::WriteFEZone, unknown geometry code "
-	     << code << endl;
+	cout << "\n\nTecPlotT::WriteFEZone, unknown geometry code \"" << GeometryT::ToString(code) << "\" ("
+	     << code << ')' << endl;
 	throw eGeneralFail;
 }
 }
