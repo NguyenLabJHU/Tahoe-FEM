@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.cpp,v 1.13 2001-06-27 18:16:21 rjones Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.14 2001-07-09 21:39:36 rjones Exp $ */
 
 #include "ContactSearchT.h"
 
@@ -71,7 +71,7 @@ if (parameters.Length() != 0) cout << " searching surface " << i << " with " << 
  	}
 	delete fGrid;
   }
-  return 1; // HACK will be a status code
+  return 1; // implies contact has changed, HACK will be a status code
 }
 
 
@@ -157,6 +157,7 @@ dArrayT& parameters)
     		if (!(node->OpposingSurface()) ) {
 		/* checks : opposing normals, gap, local coords */
 			found = face->Projection(node,parameters) ;
+			if (found) node->AssignOriginalFace(*face);
 		}
 	}
   }
@@ -177,23 +178,34 @@ bool ContactSearchT::UpdateProjection (void)
         for (j = 0; j < nodes.Length(); j++) {
                 ContactNodeT* node = nodes[j];
                 const SurfaceT* osurface = node->OpposingSurface();
+		found = 0;
                 if (osurface) {
                         tag = osurface->Tag();
                         dArrayT& parameters = fSearchParameters(i,tag);
                         found = 
 			  node->OpposingFace()->Projection(node,parameters);
                         if (!found) {
+			  /* neighborhood face patch */
 			  const ArrayT<FaceT*>& neighbor_faces 
-				= node->OpposingFace()->Neighbors();
+				= node->OriginalOpposingFace()->Neighbors();
 			  k = 0;
+			  /* look in neighborhood of original face */
 			  while (!found && k < neighbor_faces.Length() ) {
 				found = 
 				 neighbor_faces[k]->Projection(node,parameters);
 				k++;
+#if 0
+				if (found) cout << " surface " << i
+					<< " node " << j << 
+					<< " changed face "<<'\n';
+#endif
 			  }
 			}
+			if (!found) node->ResetStatus();
+			if (!found) cout << "Warning :"
+				<< " node that had a projection "
+				<< " has none now....\n";
                 }
-		found = 0;
         }
   }
   return 1;

@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.8 2001-06-27 18:16:21 rjones Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.9 2001-07-09 21:39:36 rjones Exp $ */
 
 
 #ifndef _CONTACT_SURFACE_T_H_
@@ -52,6 +52,9 @@ class ContactSurfaceT : public SurfaceT
 	inline ArrayT<ContactNodeT*>& PreviousContactNodes(void) 
 		{return fPreviousContactNodes;}
 #endif
+	bool ContactSurfaceT::IsInConnectivity
+		(int primary_local_node, int secondary_global_node) const;
+
 #if 0
 	void PrintContactArea(ofstream& out) const;
 #endif

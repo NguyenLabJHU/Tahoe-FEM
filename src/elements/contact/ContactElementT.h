@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.8 2001-06-28 23:57:14 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.9 2001-07-09 21:39:36 rjones Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -67,6 +67,10 @@ public:
 				kSmithFerranteA,
 				kSmithFerranteB,
 				kEnfNumParameters};
+	iArrayT fOutputFlags;
+	enum OutputFlagsT {kGaps = 0,
+			kNormals,
+			kNumOutputFlags};
 	
 
 protected:

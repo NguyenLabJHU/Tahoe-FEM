@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.10 2001-06-27 18:16:21 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.11 2001-07-09 21:39:36 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include "SurfaceT.h"
@@ -60,13 +60,13 @@ ContactSurfaceT::SetPotentialConnectivity(void)
           face = node->OpposingFace();
           /* connectivities for potential interactions, based on search tol */
           if (face) {
-//	    node_face_counts[i] = 1;
             /* all nodes in associated primary faces */
             for (j = 0; j <  fNodeNeighbors.MinorDim(i) ; j++) {
                 face = fNodeNeighbors(i)[j]; 
                 node_face_counts[i] += face->Connectivity().Length();
             }
-            /* inclusive of opposing face */
+            /* all nodes in opposing neighbor faces */
+	    /* inclusive of opposing face */
             const ArrayT<FaceT*>&  faces 
 		= node->OpposingFace()->Neighbors();
             for (j = 0; j < faces.Length() ; j++) {
@@ -99,9 +99,7 @@ ContactSurfaceT::SetPotentialConnectivity(void)
 		  count++;
 		}
             }
-//            node_face_connectivity[count] 
-//		= fGlobalNodes[i]; // node
-//	    count++;
+            /* all nodes in opposing neighbor faces */
 	    /* inclusive of opposing face */
 	    const iArrayT& opp_global_nodes
 		= node->OpposingSurface()->GlobalNodes();
@@ -116,8 +114,25 @@ ContactSurfaceT::SetPotentialConnectivity(void)
 		  count++;
                 }
 	    }
+	    if (count != node_face_counts[i]) {
+		cout <<"Error in ContactSurface::SetPotentialConnectivities\n";
+		cout <<" count " << count <<" "<<  node_face_counts[i] <<'\n';
+		throw;
+	    }
 	  }
         }
+}
+
+bool 
+ContactSurfaceT::IsInConnectivity
+(int primary_local_node, int secondary_global_node) const
+{
+	int ln = primary_local_node;
+	for (int i = 0 ; i < fConnectivities.MinorDim(ln); i++){
+		if (fConnectivities(ln)[i] == secondary_global_node)
+			return 1;
+	}
+	return 0;
 }
 
 void

@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.14 2001-06-12 22:14:32 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.15 2001-07-09 21:39:36 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -108,8 +108,39 @@ void ContactElementT::WriteOutput(IOBaseT::OutputModeT mode)
 #pragma unused(mode)
 	/* contact statistics */
 	ostream& out = fFEManager.Output();
-	out << "\n Contact tracking: group " << fFEManager.ElementGroupNumber(this) + 1 << '\n';
-	out << " Time                           = " << fFEManager.Time() << '\n';
+	out << "\n Contact tracking: group " 
+		<< fFEManager.ElementGroupNumber(this) + 1 << '\n';
+	out << " Time                           = " 	
+		<< fFEManager.Time() << '\n';
+
+	/* output files */
+	StringT filename;
+	filename.Root(fFEManager.Input().filename());
+	filename.Append(".", fFEManager.StepNumber());
+	filename.Append("of", fFEManager.NumberOfSteps());
+
+	for(int s = 0; s < fSurfaces.Length(); s++) {
+	    const ContactSurfaceT& surface = fSurfaces[s];
+
+	   if (fOutputFlags[kGaps]) {
+		StringT gap_out;
+		gap_out = gap_out.Append(filename,".gap");
+   		gap_out = gap_out.Append(s);
+		ofstream gap_file (gap_out);
+		surface.PrintGap(gap_file);
+	   }
+
+	   if (fOutputFlags[kNormals]) {
+		StringT normal_out;
+		normal_out = normal_out.Append(filename,".normal");
+		normal_out = normal_out.Append(s);
+		ofstream normal_file (normal_out);
+		surface.PrintNormals(normal_file);
+	   }
+
+//    		surface.PrintContactArea(cout);
+  }
+
 }
 
 /* compute specified output parameter and send for smoothing */
@@ -211,7 +242,7 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	    << num_surfaces << '\n';
 	if (num_surfaces < 1) throw eBadInputValue;
 
-	/* read contact surfaces */
+	/* surfaces */
 	fSurfaces.Allocate(num_surfaces); 
 	for (int i = 0; i < fSurfaces.Length(); i++)
 	{
@@ -236,6 +267,13 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		surface.AllocateContactNodes();
 	}
 
+	/* print flags */
+	fOutputFlags.Allocate(kNumOutputFlags);
+	for (int i = 0; i < fOutputFlags.Length(); i++) {
+		in >> fOutputFlags[i];
+	}
+
+	/* parameters */
 	fSearchParameters.Allocate(num_surfaces);
 	fEnforcementParameters.Allocate(num_surfaces);
 

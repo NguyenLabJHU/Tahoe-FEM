@@ -1,4 +1,4 @@
-/* $Id: ContactNodeT.h,v 1.5 2001-06-27 18:16:21 rjones Exp $ */
+/* $Id: ContactNodeT.h,v 1.6 2001-07-09 21:39:36 rjones Exp $ */
 
 
 #ifndef _CONTACT_NODE_T_H_
@@ -24,25 +24,40 @@ class ContactNodeT
 	/* print data */
 	void PrintData(ostream& out);
 
+	enum ContactNodeStatusT { kNoProjection = -1,
+				  kProjection,
+				  kContact};
+
 	/* clear opposing data */
 	inline void ClearOpposing(void) 
-		{ fOpposingSurface = NULL; fOpposingFace= NULL; fGap = 1.0e8;}
+		{ fStatus = kNoProjection; fOpposingSurface = NULL; 
+		fOpposingFace= NULL; fGap = 1.0e8;}
 
 	/* assign opposing point on surface */
 	bool AssignOpposing
 		(const SurfaceT& opposing_surface, 
 		const FaceT& opposing_face,
 		double* xi, double g) ;
+
+	inline void AssignOriginalFace(const FaceT& opposing_face)
+		{ fOriginalOpposingFace = &opposing_face; }
+
 	void UpdateOpposing(double* xi, double g);
 
+	inline void ResetStatus(void)
+		{fStatus = kNoProjection; fGap = 1.0e8;}
+				  
   protected:
         /* data */
 	SurfaceT&  fSurface;
 	int        fNodeTag; // need to protect the value of the tag?
 	const SurfaceT*  fOpposingSurface ; 
+	const FaceT*     fOriginalOpposingFace ; 
 	const FaceT*     fOpposingFace ; 
 	double     fxi[2] ;
 	double     fGap ;
+	int	   fStatus;
+	
 
   public:
         /* access functions */ 
@@ -58,12 +73,16 @@ class ContactNodeT
 		{return fSurface.Tangent2(fNodeTag);}
         inline const SurfaceT* OpposingSurface(void) const
 		{return fOpposingSurface;}
+        inline const FaceT* OriginalOpposingFace(void) const 
+		{return fOriginalOpposingFace;}
         inline const FaceT* OpposingFace(void) const 
 		{return fOpposingFace;}
         inline const double* OpposingLocalCoordinates(void) const
 		{return fxi;}
         inline const double Gap(void) const 		
 		{return fGap;}
+        inline const int Status(void) const 		
+		{return fStatus;}
 
 
   private:
