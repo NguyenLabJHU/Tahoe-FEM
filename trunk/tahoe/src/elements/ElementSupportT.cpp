@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.24 2003-05-28 23:26:42 cjkimme Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.25 2003-08-25 21:41:49 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -477,8 +477,21 @@ int ElementSupportT::Rank(void) const
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	return FEManager().Rank();
 #else
-	return 1;
+	return 0;
 #endif 
+}
+
+/* low-level communicator */
+const CommunicatorT& ElementSupportT::Communicator(void) const
+{
+	if (!fCommManager) 
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+		ExceptionT::GeneralFail("ElementSupportT::Communicator", "pointer not set");
+#else
+		ExceptionT::GeneralFail("ElementSupportT::Communicator", "not supported");
+#endif
+
+	return fCommManager->Communicator();
 }
 
 const ArrayT<int>* ElementSupportT::ExternalNodes(void) const
