@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.25 2003-03-17 22:05:26 creigh Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.26 2003-03-28 21:49:45 creigh Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -110,6 +110,7 @@ StaggeredMultiScaleT::StaggeredMultiScaleT(const ElementSupportT& support, const
 
 	in >> fMaterial_Data[k__E];
 	in >> fMaterial_Data[k__Pr];
+	/* in >> */ fMaterial_Data[k__Density] = 1.0;
 	in >> fMaterial_Data[k__f];
 	in >> fMaterial_Data[k__V];
 	in >> fMaterial_Data[k__Y];
@@ -128,6 +129,7 @@ StaggeredMultiScaleT::StaggeredMultiScaleT(const ElementSupportT& support, const
 
 	Echo_Input_Data();
 
+	
 	/* allocate the global stack object (once) */
 	extern FEA_StackT* fStack;
 	if (!fStack) fStack = new FEA_StackT;

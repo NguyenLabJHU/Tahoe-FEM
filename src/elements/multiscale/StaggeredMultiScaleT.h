@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.h,v 1.14 2003-03-17 22:05:26 creigh Exp $ */ 
+/* $Id: StaggeredMultiScaleT.h,v 1.15 2003-03-28 21:49:45 creigh Exp $ */ 
 //DEVELOPMENT
 #ifndef _STAGGERED_MULTISCALE_T_H_ 
 #define _STAGGERED_MULTISCALE_T_H_ 
@@ -56,6 +56,7 @@ class StaggeredMultiScaleT: public ElementBaseT
 									k__H,
 									k__Pi,
 									k__Rho,
+									k__Density,
 									kNUM_FMAT_TERMS	};		// MAT for material here, not matrix
 
 	enum iMat_T 	{ 
