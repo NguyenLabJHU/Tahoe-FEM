@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupport2DT.cpp,v 1.6 2002-07-02 19:56:56 cjkimme Exp $ */
+/* $Id: MeshFreeSupport2DT.cpp,v 1.7 2002-09-12 17:50:10 paklein Exp $ */
 /* created: paklein (09/10/1998)                                          */
 /* MLS shape function support for 2D                                      */
 
@@ -8,7 +8,7 @@
 #include <string.h>
 
 #include "ExceptionCodes.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 

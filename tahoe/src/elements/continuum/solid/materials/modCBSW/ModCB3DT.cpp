@@ -1,4 +1,4 @@
-/* $Id: ModCB3DT.cpp,v 1.3 2002-07-02 19:56:06 cjkimme Exp $ */
+/* $Id: ModCB3DT.cpp,v 1.4 2002-09-12 17:50:03 paklein Exp $ */
 /* created: paklein (10/14/1998)                                          */
 
 #include "ModCB3DT.h"
@@ -6,7 +6,7 @@
 #include <math.h>
 #include <iostream.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 
 #include "fstreamT.h"
 #include "ModCBSolverT.h"

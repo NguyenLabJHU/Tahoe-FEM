@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.9 2002-07-02 19:56:45 cjkimme Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.10 2002-09-12 17:50:08 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 
 #include "CCNSMatrixT.h"
@@ -8,7 +8,7 @@
 #include <iomanip.h>
 #include <string.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "dMatrixT.h"
 #include "dArrayT.h"
 #include "iArrayT.h"

@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.cpp,v 1.9 2002-08-15 08:59:35 paklein Exp $ */
+/* $Id: ExecutionManagerT.cpp,v 1.10 2002-09-12 17:49:56 paklein Exp $ */
 /* created: paklein (08/27/1997) */
 #include "ExecutionManagerT.h"
 
@@ -7,7 +7,7 @@
 #include <time.h>
 
 #include "fstreamT.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 #include "StringT.h"
 #include "CommunicatorT.h"
@@ -339,7 +339,8 @@ int ExecutionManagerT::OpenWithPrompt(const char* prompt, const char* skipname,
 		/* check program option */
 		else if (newfilename[0] == '-')
 		{
-			AddCommandLineOption(newfilename);
+			if (AddCommandLineOption(newfilename))
+				cout << " added command line option: \"" << newfilename << '\"' << endl;
 		}	
 		/* attempt open file */
 		else

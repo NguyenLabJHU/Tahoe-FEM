@@ -1,4 +1,4 @@
-/* $Id: AztecBaseT.cpp,v 1.3 2002-07-02 19:56:49 cjkimme Exp $ */
+/* $Id: AztecBaseT.cpp,v 1.4 2002-09-12 17:50:09 paklein Exp $ */
 /* created: paklein (07/28/1998) */
 
 #include "AztecBaseT.h"
@@ -13,7 +13,7 @@
 #include <iomanip.h>
 
 #include "ExceptionCodes.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "az_aztec.h"
 
 #ifdef __NEW_THROWS__

@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.cpp,v 1.3 2002-07-02 19:55:36 cjkimme Exp $ */
+/* $Id: EAMFCC3DMatT.cpp,v 1.4 2002-09-12 17:49:57 paklein Exp $ */
 /* created: paklein (10/25/1998)                                          */
 /* Plane strain EAM material                                              */
 
@@ -7,7 +7,7 @@
 #include <math.h>
 #include <iostream.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 
 #include "fstreamT.h"
 #include "EAMFCC3DSym.h"

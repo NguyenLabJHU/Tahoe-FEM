@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupport2DT.cpp,v 1.4 2002-07-02 19:57:02 cjkimme Exp $ */
+/* $Id: D2MeshFreeSupport2DT.cpp,v 1.5 2002-09-12 17:50:11 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupport2DT.h"
@@ -7,7 +7,7 @@
 #include <string.h>
 
 #include "ExceptionCodes.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 

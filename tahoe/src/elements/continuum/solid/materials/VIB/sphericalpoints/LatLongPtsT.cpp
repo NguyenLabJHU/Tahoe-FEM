@@ -1,4 +1,4 @@
-/* $Id: LatLongPtsT.cpp,v 1.2 2002-07-02 19:56:00 cjkimme Exp $ */
+/* $Id: LatLongPtsT.cpp,v 1.3 2002-09-12 17:50:02 paklein Exp $ */
 /* created: paklein (10/31/1997)                                          */
 /* Base class for spherical point generators.                             */
 
@@ -7,7 +7,7 @@
 #include <math.h>
 #include <iostream.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 #include "fstreamT.h"
 

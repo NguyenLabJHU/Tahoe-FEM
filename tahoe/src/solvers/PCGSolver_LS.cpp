@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.6 2002-07-02 19:57:12 cjkimme Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.7 2002-09-12 17:50:12 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 
 #include "PCGSolver_LS.h"
@@ -7,7 +7,7 @@
 #include <math.h>
 
 #include "fstreamT.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 
 #include "FEManagerT.h"

@@ -1,10 +1,10 @@
-/* $Id: FullMatrixT.cpp,v 1.8 2002-07-02 19:56:45 cjkimme Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.9 2002-09-12 17:50:08 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 
 #include "FullMatrixT.h"
 #include <iostream.h>
 #include <iomanip.h>
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "dArrayT.h"
 #include "iArrayT.h"
 #include "ElementMatrixT.h"

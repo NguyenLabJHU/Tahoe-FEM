@@ -1,10 +1,10 @@
-/* $Id: NLHHTalpha.cpp,v 1.4 2002-07-02 19:55:05 cjkimme Exp $ */
+/* $Id: NLHHTalpha.cpp,v 1.5 2002-09-12 17:49:50 paklein Exp $ */
 /* created: paklein (10/11/1996) */
 
 #include "NLHHTalpha.h"
 
 #include <iostream.h>
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "TimeManagerT.h"

@@ -1,10 +1,10 @@
-/* $Id: ElementMatrixT.cpp,v 1.2 2002-07-02 19:56:42 cjkimme Exp $ */
+/* $Id: ElementMatrixT.cpp,v 1.3 2002-09-12 17:50:06 paklein Exp $ */
 /* created: paklein (03/17/1998)                                          */
 
 #include "ElementMatrixT.h"
 #include <iostream.h>
 #include <iomanip.h>
-#include "Constants.h"
+#include "toolboxConstants.h"
 
 /* constructors */
 

@@ -1,4 +1,4 @@
-/* $Id: PenaltySphereT.cpp,v 1.3 2002-07-02 19:56:28 cjkimme Exp $ */
+/* $Id: PenaltySphereT.cpp,v 1.4 2002-09-12 17:50:05 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltySphereT.h"
@@ -6,7 +6,7 @@
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "FEManagerT.h"
 #include "fstreamT.h"
 #include "eControllerT.h"

@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.24 2002-08-21 07:26:01 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.25 2002-09-12 17:49:56 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -8,7 +8,7 @@
 
 #include "fstreamT.h"
 #include "Environment.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 
 #if defined(__MWERKS__) && __option(profile)
@@ -322,7 +322,6 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
 			/* clear to end of line */
 			char line[255];
 			cin.getline(line, 254);
-		
 			if (size == 0) break;
 		}
 	}

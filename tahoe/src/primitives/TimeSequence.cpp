@@ -1,11 +1,11 @@
-/* $Id: TimeSequence.cpp,v 1.2 2002-07-02 19:56:42 cjkimme Exp $ */
+/* $Id: TimeSequence.cpp,v 1.3 2002-09-12 17:50:07 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "TimeSequence.h"
 
 #include "fstreamT.h"
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 
 /* constructor */

@@ -1,11 +1,11 @@
-/* $Id: MeshFreeSurfaceSupportT.cpp,v 1.2 2002-07-02 19:56:56 cjkimme Exp $ */
+/* $Id: MeshFreeSurfaceSupportT.cpp,v 1.3 2002-09-12 17:50:10 paklein Exp $ */
 /* created: paklein (02/22/2000)                                          */
 /* supporting functions for cohesive elements in a meshfree domain        */
 
 #include "MeshFreeSurfaceSupportT.h"
 
 #include "ExceptionCodes.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 
 #include "SurfaceShapeT.h"
 #include "MeshFreeSupportT.h"

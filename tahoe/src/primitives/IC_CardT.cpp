@@ -1,11 +1,11 @@
-/* $Id: IC_CardT.cpp,v 1.9 2002-07-05 17:18:39 paklein Exp $ */
+/* $Id: IC_CardT.cpp,v 1.10 2002-09-12 17:50:06 paklein Exp $ */
 /* created: paklein (07/16/1997) */
 #include "IC_CardT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 #include "fstreamT.h"
 

@@ -7,7 +7,7 @@
 #include "ifstreamT.h"
 #include "StringT.h"
 #include "ExceptionCodes.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 
 #include "LocalArrayT.h"
 #include "dArrayT.h"

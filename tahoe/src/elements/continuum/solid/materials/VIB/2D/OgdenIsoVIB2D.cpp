@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB2D.cpp,v 1.4 2002-07-02 19:55:56 cjkimme Exp $ */
+/* $Id: OgdenIsoVIB2D.cpp,v 1.5 2002-09-12 17:49:59 paklein Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* 2D Isotropic VIB using Ogden's spectral formulation                    */
 
@@ -6,7 +6,7 @@
 
 #include <math.h>
 #include <iostream.h>
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "C1FunctionT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"

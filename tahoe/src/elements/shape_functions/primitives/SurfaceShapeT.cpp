@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.cpp,v 1.5 2002-07-02 19:57:09 cjkimme Exp $ */
+/* $Id: SurfaceShapeT.cpp,v 1.6 2002-09-12 17:50:11 paklein Exp $ */
 /* created: paklein (11/21/1997)                                          */
 /* Class to manage CSE integrals, where the dimension of                  */
 /* the field variable is 1 greater than the dimension of the parent       */
@@ -11,7 +11,7 @@
 
 #include "SurfaceShapeT.h"
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 
 /* vector functions */

@@ -1,4 +1,4 @@
-/* $Id: SLUMatrix.cpp,v 1.3 2002-07-02 19:56:46 cjkimme Exp $ */
+/* $Id: SLUMatrix.cpp,v 1.4 2002-09-12 17:50:08 paklein Exp $ */
 /* created: rbridson (06/30/2000)                                         */
 /* Implementation of interface to SuperLU solver library.                 */
 
@@ -12,7 +12,7 @@
 #include <iostream.h>
 #include <fstream.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 
 /* types that we use in these methods */

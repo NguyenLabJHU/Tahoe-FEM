@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.cpp,v 1.8 2002-07-02 19:57:12 cjkimme Exp $ */
+/* $Id: iNLSolver_LS.cpp,v 1.9 2002-09-12 17:50:12 paklein Exp $ */
 /* created: paklein (01/01/2001) */
 
 #include "iNLSolver_LS.h"
@@ -7,7 +7,7 @@
 #include <math.h>
 
 #include "fstreamT.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 #include "FEManagerT.h"
 #include "iConsoleT.h"

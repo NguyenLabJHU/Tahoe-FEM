@@ -1,4 +1,4 @@
-/* $Id: VIB3D.cpp,v 1.3 2002-07-02 19:55:58 cjkimme Exp $ */
+/* $Id: VIB3D.cpp,v 1.4 2002-09-12 17:50:00 paklein Exp $ */
 /* created: paklein (04/20/1997)                                          */
 /* Base class for general 3D probabolistic Cauchy-Born materials.         */
 
@@ -7,7 +7,7 @@
 #include <math.h>
 #include <iostream.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 
 #include "fstreamT.h"
