@@ -1,4 +1,4 @@
-// $Id: MakeCSE_FEManager.cpp,v 1.7 2003-09-05 22:08:31 paklein Exp $
+// $Id: MakeCSE_FEManager.cpp,v 1.8 2003-09-05 23:11:47 paklein Exp $
 // created: 11/10/99 SAW
 #include "MakeCSE_FEManager.h"
 #include "ExceptionT.h"
@@ -24,7 +24,8 @@ MakeCSE_FEManager::MakeCSE_FEManager (ostream& out) :
   fEdger (out),
   fCSEMakerBoss (out, fEdger),
   fModel (out),
-  fParameters (NULL)
+  fParameters (NULL),
+  fOutput(NULL)
 {
 }
 
@@ -34,6 +35,7 @@ MakeCSE_FEManager::~MakeCSE_FEManager (void)
 	for (int i=0; i < fElementGroups.Length(); i++)
     	delete fElementGroups[i];
     delete fParameters;
+	delete fOutput;
 }
 
 void MakeCSE_FEManager::InitializeInput (ifstreamT& in, bool interactive)
@@ -43,7 +45,7 @@ void MakeCSE_FEManager::InitializeInput (ifstreamT& in, bool interactive)
   if (interactive)
     {
       fMainOut << " No input file, interactive session.\n\n";
-      fParameters = new InteractiveIOManagerT ();
+	  fParameters = new InteractiveIOManagerT ();
       fParameters->Initialize ();
       fModel.Initialize ();
       format = fModel.DatabaseFormat();

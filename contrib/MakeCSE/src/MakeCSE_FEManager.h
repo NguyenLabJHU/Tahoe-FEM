@@ -1,9 +1,5 @@
-// file: FEManager.h
-
-// MakeCSE version
-
+// $Id: MakeCSE_FEManager.h,v 1.4 2003-09-05 23:11:47 paklein Exp $
 // created: 11/10/99 SAW
-
 #ifndef _MakeCSE_FE_MANAGER_H_
 #define _MakeCSE_FE_MANAGER_H_
 
