@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.27 2004-07-27 20:05:45 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.28 2004-07-27 23:39:06 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -270,10 +270,10 @@ private:
 	FEA_FormatT Convert;
 
 	/** the displacement field */
-	const FieldT& fDispl;
+	const FieldT* fDispl;
 	
 	/** the plastic gradient field */
-	const FieldT& fPlast;	
+	const FieldT* fPlast;	
 
 	/** \name state variable storage *
 	 * State variables are handled ABAQUS-style. For every iteration, the state 

@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.51 2004-07-27 21:12:43 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.52 2004-07-27 23:39:06 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -37,8 +37,8 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support):
 	fBodySchedule(NULL),
 	fBody(NumDOF()),
 	fTractionBCSet(0),
-	//fDispl(NULL),
-	//fPlast(NULL),
+	fDispl(NULL),
+	fPlast(NULL),
 	fKdd(ElementMatrixT::kNonSymmetric),
 	fKdd_face(ElementMatrixT::kNonSymmetric),
 	fKdeps(ElementMatrixT::kNonSymmetric),
@@ -120,11 +120,11 @@ void APS_AssemblyT::RHSDriver(void)
 	int curr_group = ElementSupport().CurrentGroup();
 
 	/* traction boundary conditions acting on the coarse scale equations */
-	if (curr_group == fDispl.Group()) 
+	if (curr_group == fDispl->Group()) 
 		ApplyTractionBC();
 
 	/* choose solution method */
-	if (fDispl.Group() == fPlast.Group())
+	if (fDispl->Group() == fPlast->Group())
 	  RHSDriver_monolithic();
 	 else
 	  RHSDriver_staggered();
@@ -135,10 +135,10 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
 	AutoArrayT<const RaggedArray2DT<int>*>& eq_eps)
 {
 	/* doing monolithic solution */
-	if (fDispl.Group() == fPlast.Group())
+	if (fDispl->Group() == fPlast->Group())
 	{
-		int ndof_plast = fPlast.NumDOF();
-		int ndof_displ = fDispl.NumDOF();
+		int ndof_plast = fPlast->NumDOF();
+		int ndof_displ = fDispl->NumDOF();
 	
 		/* loop over connectivity blocks */
 		fEqnos_displ.Dimension(fEqnos.Length());
@@ -158,8 +158,8 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
 			plast_eq.Dimension(nel, n_en_plast*ndof_plast);
 			
 			/* get equation numbers */
-			fDispl.SetLocalEqnos(connects_displ, displ_eq);
-			fPlast.SetLocalEqnos(connects_plast, plast_eq);
+			fDispl->SetLocalEqnos(connects_displ, displ_eq);
+			fPlast->SetLocalEqnos(connects_plast, plast_eq);
 			
 			/* write into one array */
 			fEqnos[i].BlockColumnCopyAt(displ_eq, 0);
@@ -178,11 +178,11 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
 #pragma message("correct initialization for staggered solution")
 	
 		/* ElementBaseT handles equation array for the coarse scale */
-		if (ElementSupport().CurrentGroup() == fDispl.Group())
+		if (ElementSupport().CurrentGroup() == fDispl->Group())
 			ElementBaseT::Equations(eq_d, eq_eps);
 
 		/* fine scale equations */
-		if (ElementSupport().CurrentGroup() == fPlast.Group())
+		if (ElementSupport().CurrentGroup() == fPlast->Group())
 		{
 			/* collect local equation numbers */
 			//fPlast.SetLocalEqnos(fConnectivities_plast, fEqnos_plast);
@@ -196,9 +196,9 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
 	{
 		iArray2DT& faces = fPlasticGradientFaces[i];
 		iArray2DT& eqnos = fPlasticGradientFaceEqnos[i];
-		eqnos.Dimension(faces.MajorDim(), faces.MajorDim()*fDispl.NumDOF());
+		eqnos.Dimension(faces.MajorDim(), faces.MajorDim()*fDispl->NumDOF());
 	
-		fDispl.SetLocalEqnos(faces, eqnos);
+		fDispl->SetLocalEqnos(faces, eqnos);
 	}
 }
 
@@ -291,8 +291,8 @@ void APS_AssemblyT::Select_Equations (const int &iBalScale,const int &iPlastScal
  * given group. */
 bool APS_AssemblyT::InGroup(int group) const
 {
-	return group == fDispl.Group() ||
-	       group == fPlast.Group();
+	return group == fDispl->Group() ||
+	       group == fPlast->Group();
 }
 
 //---------------------------------------------------------------------
@@ -342,15 +342,15 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 	bool is_coarse = false;
 	dArrayT* element_force = NULL;
 	int num_force = 0;
-	if (field.Name() == fDispl.Name()) {
+	if (field.Name() == fDispl->Name()) {
 		is_coarse = true;
 		element_force = &fFd_int;
-		num_force = fDispl.NumDOF();
+		num_force = fDispl->NumDOF();
 		}
-	else if (field.Name() == fPlast.Name()) {
+	else if (field.Name() == fPlast->Name()) {
 		is_coarse = false;
 		element_force = &fFeps_int;
-		num_force = fPlast.NumDOF();
+		num_force = fPlast->NumDOF();
 		}
 	else
 		return;
@@ -542,17 +542,17 @@ void APS_AssemblyT::RegisterOutput(void)
 	}		
 
 	/* output per node */
-	int num_node_output = fDispl.NumDOF() + fPlast.NumDOF() + knumstrain + knumstress + knum_d_state;
+	int num_node_output = fDispl->NumDOF() + fPlast->NumDOF() + knumstrain + knumstress + knum_d_state;
 	ArrayT<StringT> n_labels(num_node_output);
 	count = 0;
 
 	/* labels from fine scale */
-	const ArrayT<StringT>& fine_labels = fPlast.Labels();
+	const ArrayT<StringT>& fine_labels = fPlast->Labels();
 	for (int i = 0; i < fine_labels.Length(); i++)
 		n_labels[count++] = fine_labels[i];
 
 	/* labels from coarse scale */
-	const ArrayT<StringT>& coarse_labels = fDispl.Labels();
+	const ArrayT<StringT>& coarse_labels = fDispl->Labels();
 	for (int i = 0; i < coarse_labels.Length(); i++)
 		n_labels[count++] = coarse_labels[i];
 
@@ -621,7 +621,7 @@ void APS_AssemblyT::WriteOutput(void)
 	ElementSupport().OutputUsedAverage(extrap_values);
 
 	/* temp space for group displacements */
-	int num_node_output = fDispl.NumDOF() + fPlast.NumDOF() + knumstrain + knumstress + knum_d_state;
+	int num_node_output = fDispl->NumDOF() + fPlast->NumDOF() + knumstrain + knumstress + knum_d_state;
 	dArray2DT n_values(nodes_used.Length(), num_node_output);
 
 	/* collect nodal values */
@@ -675,9 +675,9 @@ void 	APS_AssemblyT::Get_Fd_ext ( dArrayT &fFd_ext )
 void APS_AssemblyT::RHSDriver_staggered(void)
 {
 	const char caller[] = "APS_AssemblyT::RHSDriver_staggered";
-	if (fDispl.Group() == fPlast.Group())
+	if (fDispl->Group() == fPlast->Group())
 		ExceptionT::GeneralFail(caller, "coarse and fine group must be different: %d == %d",
-			fDispl.Group(), fPlast.Group());
+			fDispl->Group(), fPlast->Group());
 
 	int curr_group = ElementSupport().CurrentGroup();
 
@@ -746,7 +746,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 
 		/* which field */
 	  	//SolverGroup 1 (gets field 1) <-- u (obtained by a rearranged Equation_d)
-		if ( curr_group == fDispl.Group()  )	
+		if ( curr_group == fDispl->Group()  )	
 		{
 
 			if (bStep_Complete) {
@@ -782,13 +782,13 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 				}
 			
 				/* add to global equations */
-				ElementSupport().AssembleLHS ( fDispl.Group(), fLHS, CurrentElement().Equations() );
-				ElementSupport().AssembleRHS ( fDispl.Group(), fRHS, CurrentElement().Equations() );
+				ElementSupport().AssembleLHS ( fDispl->Group(), fLHS, CurrentElement().Equations() );
+				ElementSupport().AssembleRHS ( fDispl->Group(), fRHS, CurrentElement().Equations() );
 			}
 		}
 
 		// SolverGroup 2 (gets field 2) <-- gamma_p (obtained by a rearranged Equation_eps)
-		else if (curr_group == fPlast.Group() )	
+		else if (curr_group == fPlast->Group() )	
 		{
 
 			if (bStep_Complete) { 
@@ -828,8 +828,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 				const iArrayT& plast_eq = fElementCards_plast[e].Equations();
 
 				/* add to global equations */
-				ElementSupport().AssembleLHS ( fPlast.Group(), fLHS, plast_eq );
-				ElementSupport().AssembleRHS ( fPlast.Group(), fRHS, plast_eq );
+				ElementSupport().AssembleLHS ( fPlast->Group(), fLHS, plast_eq );
+				ElementSupport().AssembleRHS ( fPlast->Group(), fRHS, plast_eq );
 			}
 
 		}
@@ -842,9 +842,9 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 void APS_AssemblyT::RHSDriver_monolithic(void)
 {
 	const char caller[] = "APS_AssemblyT::RHSDriver_monolithic";
-	if (fDispl.Group() != fPlast.Group())
+	if (fDispl->Group() != fPlast->Group())
 		ExceptionT::GeneralFail(caller, "coarse and fine group must be the same: %d != %d",
-			fDispl.Group(), fPlast.Group());
+			fDispl->Group(), fPlast->Group());
 
 	int curr_group = ElementSupport().CurrentGroup();
 
@@ -864,7 +864,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 	dMatrixT face_jacobian(NumSD(), NumSD()-1);
 	dMatrixT face_Q(NumSD());
 	LocalArrayT face_gamma_p(LocalArrayT::kDisp, n_en_surf, NumSD());
-	fPlast.RegisterLocal(face_gamma_p);
+	fPlast->RegisterLocal(face_gamma_p);
 
  	/* has (coarse scale) body forces */
 	int formBody = 0;
@@ -1131,13 +1131,14 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 	const StringT& plastic_grad_field_name = list.GetParameter("plastic_grad_field_name");
 	fPlast = ElementSupport().Field(plastic_grad_field_name);
 	if (!fPlast)
-		ExceptionT::GeneralFail(caller, "could not resolve \"%s\" plastic_grad_field", plastic_grad_field_name.Pointer());
+		ExceptionT::GeneralFail(caller, "could not resolve \"%s\" plastic_grad_field", 
+		plastic_grad_field_name.Pointer());
 
 	fGeometryCode_displ_int = list.GetParameter("GeometryCode_displ");
-	fGeometryCode_displ = fGeometryCode_displ_int;
+	fGeometryCode_displ = GeometryT::int2CodeT(fGeometryCode_displ_int);
 	fNumIP_displ = list.GetParameter("NumIP_displ");
 	fGeometryCodeSurf_displ_int = list.GetParameter("GeometryCodeSurf_displ");
-	fGeometryCodeSurf_displ = fGeometryCodeSurf_displ_int;
+	fGeometryCodeSurf_displ = GeometryT::int2CodeT(fGeometryCodeSurf_displ_int);
 	fNumIPSurf_displ = list.GetParameter("NumIPSurf_displ");
 	n_en_displ = list.GetParameter("n_en_displ");
 	n_en_plast = list.GetParameter("n_en_plast");
@@ -1172,14 +1173,6 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 	
 	num_sidesets = list.GetParameter("num_sidesets");
 	
-	/* allocate the global stack object (once) */
-	extern FEA_StackT* fStack;
-	if (!fStack) fStack = new FEA_StackT;
-	
-	int num_sidesets_tmp=5; //dummy memory??
-	//fSideSetID.Dimension(num_sidesets_tmp);
-	//fPlasticGradientWght.Dimension(num_sidesets_tmp);
-
 	/* prescribed plastic gradient at surface */
 	fSideSetID.Dimension(num_sidesets);
 	fSideSetElements.Dimension(num_sidesets);
@@ -1296,8 +1289,8 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 	DDu.Dimension (n_en_displ, dum);
 	del_u.Dimension (n_en_displ, dum);
 	del_u_vec.Dimension (n_en_displ);
-	fDispl.RegisterLocal(u);
-	fDispl.RegisterLocal(u_n);
+	fDispl->RegisterLocal(u);
+	fDispl->RegisterLocal(u_n);
 
 	/* set local arrays for fine scale */
 	gamma_p.Dimension (n_en_plast, n_sd);
@@ -1305,8 +1298,8 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 	del_gamma_p.Dimension (n_en_plast, n_sd);
 	n_en_plast_x_n_sd = n_en_plast*n_sd;
 	del_gamma_p_vec.Dimension (n_en_plast_x_n_sd);
-	fPlast.RegisterLocal(gamma_p);
-	fPlast.RegisterLocal(gamma_p_n);
+	fPlast->RegisterLocal(gamma_p);
+	fPlast->RegisterLocal(gamma_p_n);
 
 	/* set shape functions */
 	// u
@@ -1350,7 +1343,9 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 	for (int i= 0; i < fElementCards.Length(); i++)
 		fElementCards[i].Set(fiState.MinorDim(), fiState(i), fdState.MinorDim(), fdState(i));
 		                     
-	/* construct the black boxs */  
+	/* allocate the global stack object (once) */
+	extern FEA_StackT* fStack;
+	if (!fStack) fStack = new FEA_StackT;
 
 	Select_Equations ( BalLinMomT::kAPS_Bal_Eq, iPlastModelType );
 	dum=knumstrain+knumstress;
