@@ -1,4 +1,4 @@
-/* $Id: nLinearHHTalpha.cpp,v 1.10 2003-05-20 10:28:44 paklein Exp $ */
+/* $Id: nLinearHHTalpha.cpp,v 1.11 2003-05-22 08:25:44 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 #include "nLinearHHTalpha.h"
 #include "dArrayT.h"
@@ -31,8 +31,10 @@ void nLinearHHTalpha::Dimension(const BasicFieldT& field)
 		ExceptionT::GeneralFail("nLinearHHTalpha::Dimension", "only single field allowed");
 
 	/* dimension saved values from t_n (need by HHT-alpha) */
-	dn = field[0];
-	vn = field[1];
+	dn.Dimension(field[0]);
+	dn = 0.0;
+	vn.Dimension(field[1]);
+	vn = 0.0;
 }
 
 /* consistent BC's - updates predictors and acceleration only */
