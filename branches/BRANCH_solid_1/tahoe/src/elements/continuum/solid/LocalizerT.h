@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.h,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* $Id: LocalizerT.h,v 1.1.1.1.2.1 2001-06-22 14:14:26 paklein Exp $ */
 /* created: paklein (02/19/1998)                                          */
 /* Continuum elements with strain localization. Localization              */
 /* tracking and special treatment for localized elements                  */
@@ -7,7 +7,7 @@
 #define _LOCALIZER_T_H_
 
 /* base class */
-#include "UpLag_FDElasticT.h"
+#include "UpdatedLagrangianT.h"
 
 /* direct members */
 #include "fstreamT.h"
@@ -15,7 +15,7 @@
 #include "AutoArrayT.h"
 #include "dMatrixEXT.h"
 
-class LocalizerT: public UpLag_FDElasticT
+class LocalizerT: public UpdatedLagrangianT
 {
 public:
 
