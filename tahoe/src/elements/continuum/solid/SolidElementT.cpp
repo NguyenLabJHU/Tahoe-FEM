@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.10 2001-06-06 16:45:46 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.11 2001-06-18 16:49:42 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #include "SolidElementT.h"
@@ -471,6 +471,14 @@ void SolidElementT::SetShape(void)
 	if (!fShapes) throw eOutOfMemory;
 
 	fShapes->Initialize();
+
+//TEMP	
+#if 1
+	cout << "\n SolidElementT::SetShape: printing shape functions" << endl;
+	ofstreamT shape_out("shape.out");
+	fShapes->Print(shape_out);
+	//throw;
+#endif
 }
 
 /* form shape functions and derivatives */
@@ -980,8 +988,11 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				mass += ip_w*density;
 			
 				/* moment */
-				fShapes->IPCoords(ip_centroid);
-				centroid.AddScaled(ip_w*density, ip_centroid);
+				if (e_codes[iCentroid])
+				{
+					fShapes->IPCoords(ip_centroid);
+					centroid.AddScaled(ip_w*density, ip_centroid);
+				}
 			}
 			
 			/* kinetic energy/linear momentum */
