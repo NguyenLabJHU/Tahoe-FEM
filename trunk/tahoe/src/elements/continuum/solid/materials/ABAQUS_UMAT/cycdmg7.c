@@ -951,4 +951,9 @@ L400:
     return 0;
 } /* umat_ */
 
+#else
+static void dummy(void)
+{
+	int a = 1;
+}
 #endif /* __F2C__ */

@@ -1,4 +1,4 @@
-/* $Id: RodT.h,v 1.3 2001-12-17 00:15:58 paklein Exp $ */
+/* $Id: RodT.h,v 1.4 2002-01-06 06:58:37 cbhovey Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _ROD_T_H_
@@ -54,8 +54,8 @@ public:
 	virtual void SendOutput(int kincode);
 
 	/* Element type parameters */
-	static const int kRodTndof = 2; /* number of degrees of freedom per node */
-	static const int  kRodTnsd = 2; /* number of spatial dimensions */
+	static const int kRodTndof; /* number of degrees of freedom per node */
+	static const int  kRodTnsd; /* number of spatial dimensions */
 	 			  	
 protected: /* for derived classes only */
 	 	

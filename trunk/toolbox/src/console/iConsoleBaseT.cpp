@@ -1,11 +1,15 @@
-/* $Id: iConsoleBaseT.cpp,v 1.8 2002-01-03 23:06:13 paklein Exp $ */
+/* $Id: iConsoleBaseT.cpp,v 1.9 2002-01-06 06:57:52 cbhovey Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleBaseT.h"
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
 
+#ifdef _MSC_VER
+#include <strstrea.h>
+#else
 #include <strstream.h>
+#endif
 #include <iomanip.h>
 #include <ctype.h>
 
@@ -358,7 +362,11 @@ bool iConsoleBaseT::ResolveValue(CommandSpecT& command, int index, StringT& line
 		}
 
 		/* resolve */
+#ifdef _MSC_VER
+		istrstream s((char *) first);
+#else
 		istrstream s((const char *) first);
+#endif
 		try { found_arg = arg.ReadValue(s); }
 		catch (int) { return false; }
 		
@@ -696,7 +704,7 @@ bool iConsoleBaseT::AddVariable(const StringT& name, VariableType type,
 bool iConsoleBaseT::Operate(bool& variable, VariableOperator op, StringT& line) const
 {
 	if (op != kEQ)
-		return kFail;
+		return false;
 	else
 	{
 		int count;
@@ -865,7 +873,7 @@ bool iConsoleBaseT::Operate(double& variable, VariableOperator op, StringT& line
 bool iConsoleBaseT::Operate(StringT& variable, VariableOperator op, StringT& line) const
 {
 	if (op != kEQ && op != kPlusEQ)
-		return kFail;
+		return false;
 	else
 	{
 		int count;

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.8 2001-12-17 00:11:58 paklein Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.9 2002-01-06 06:58:41 cbhovey Exp $ */
 /*
   File: LocalCrystalPlast.cpp
 */
@@ -467,7 +467,7 @@ void LocalCrystalPlast::ComputeOutput(dArrayT& output)
   const int& step = ContinuumElement().FEManager().StepNumber();
   const int& nsteps = ContinuumElement().FEManager().NumberOfSteps();
 
-  if (fmod(step, fODFOutInc) == 0 || step == nsteps)
+  if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
     {
       for (int igrn = 0; igrn < fNumGrain; igrn++)
 	{

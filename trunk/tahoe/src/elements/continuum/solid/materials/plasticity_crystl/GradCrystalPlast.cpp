@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlast.cpp,v 1.2 2001-07-03 01:35:34 paklein Exp $ */
+/* $Id: GradCrystalPlast.cpp,v 1.3 2002-01-06 06:58:41 cbhovey Exp $ */
 /*
   File: GradCrystalPlast.cpp
 */
@@ -353,7 +353,7 @@ void GradCrystalPlast::ComputeOutput(dArrayT& output)
   const int& step = ContinuumElement().FEManager().StepNumber();
   const int& nsteps = ContinuumElement().FEManager().NumberOfSteps();
 
-  if (fmod(step, fODFOutInc) == 0 || step == nsteps)
+  if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
   {
     // elastic deformation gradient
     DeltaFPInverse(fDGamma);

@@ -12,7 +12,7 @@
 
 static doublereal c_b17 = .5;
 
-/* $Id: vumatadiab.c,v 1.4 2001-07-25 16:07:42 paklein Exp $ */
+/* $Id: vumatadiab.c,v 1.5 2002-01-06 06:58:41 cbhovey Exp $ */
 
 /* 23456789012345678901234567890123456789012345678901234567890123456789012 */
 /* revision a  2000/12/6  correct problems */
@@ -610,4 +610,9 @@ L20:
     return 0;
 } /* vumat_ */
 
+#else
+static void dummy(void)
+{
+	int a = 1;
+}
 #endif /* __F2C__ */

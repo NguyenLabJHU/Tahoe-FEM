@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.10 2001-12-17 00:12:00 paklein Exp $ */
+/* $Id: DetCheckT.cpp,v 1.11 2002-01-06 06:58:42 cbhovey Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "DetCheckT.h"
@@ -637,7 +637,7 @@ detA0=A0.Det();
    detA0 = A0.ScalarProduct()*A0.ScalarProduct();
 
 
-if (( fabs(imev[1] <tol)) || fabs(0.001*imev[1]/realev[1])<tol)
+if (( fabs(imev[1]) <tol) || fabs(0.001*imev[1]/realev[1])<tol)
     {
     tempmatrix.eigenvector3x3(tempmatrix, realev[1], numev, normal1, altnormal, altnormal2);
   A1.formacoustictensor(A1, C, normal1);
@@ -647,7 +647,7 @@ detA1=A1.Det();
 else
  detA1 = A1.ScalarProduct()*A1.ScalarProduct();
 
-if (( fabs(imev[2] <tol)) || fabs(0.001*imev[2]/realev[2])<tol)
+if (( fabs(imev[2]) <tol) || fabs(0.001*imev[2]/realev[2])<tol)
     {
     tempmatrix.eigenvector3x3(tempmatrix, realev[2], numev, normal2, altnormal, altnormal2);
  A2.formacoustictensor(A2, C, normal2);
