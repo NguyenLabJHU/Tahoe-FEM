@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.32.2.13 2002-06-08 02:55:56 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.32.2.14 2002-06-08 05:43:50 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -219,7 +219,7 @@ void FEManagerT::Solve(void)
 					break;
 				}
 				default:
-					cout << "FEManagerT::Solve: no recovery for error: " << Exception(error) << endl;
+					cout << "\n FEManagerT::Solve: no recovery for error: " << Exception(error) << endl;
 					seq_OK = false;
 			}
 		}
