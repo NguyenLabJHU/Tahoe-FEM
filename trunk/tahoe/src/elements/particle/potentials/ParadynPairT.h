@@ -1,10 +1,9 @@
-/* $Id: ParadynPairT.h,v 1.3 2002-12-05 07:07:45 paklein Exp $ */
+/* $Id: ParadynPairT.h,v 1.4 2002-12-05 07:50:45 paklein Exp $ */
 #ifndef _PARADYN_PAIR_T_H_
 #define _PARADYN_PAIR_T_H_
 
 /* base class */
 #include "PairPropertyT.h"
-#include "ParadynT.h"
 
 /* direct members */
 #include "StringT.h"
@@ -19,7 +18,7 @@ class dArrayT;
  * potential parameters are read from the given file, from which
  * a cubic spline is calculated which is then used to evaluate
  * the potential and its derivatives. */
-class ParadynPairT: public PairPropertyT, protected ParadynT
+class ParadynPairT: public PairPropertyT
 {
 public:
 
@@ -59,6 +58,13 @@ private:
 	static double Force(double r_ab, double* data_a, double* data_b);
 	static double Stiffness(double r_ab, double* data_a, double* data_b);
 	/*@}*/
+
+	/** compute the coefficients. Translated from the Paradyn routine interpolate_pair.F
+	 * by Steve Plimpton, SNL-NM.
+	 * \param f function values at evenly spaced intervals 
+	 * \param dx intervals between data points
+	 * \param coeff destination of coefficient. Allocated during the function call. */
+	static void ComputeCoefficients(const ArrayT<double>& f, double dx, dArray2DT& coeff);
 
 private:
 
