@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: bbediff,v 1.1 2004-03-11 17:38:01 paklein Exp $
+# $Id: bbediff,v 1.2 2004-03-16 23:04:25 paklein Exp $
 # Compare files using BBEdit's "Find Differences..."
 
 # need 2 arguments
 if (scalar(@ARGV) != 2) {
 	print STDOUT "usage: bbediff [file1] [file2]\n";
+	exit;
 }
 
 # get file path
