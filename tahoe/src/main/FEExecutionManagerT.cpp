@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.30 2002-12-02 09:50:13 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.31 2002-12-02 17:16:39 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -912,31 +912,30 @@ void FEExecutionManagerT::Decompose_atom(ifstreamT& in, int size,
 	const ArrayT<StringT>& IDs = model.ElementGroupIDs();
 	ArrayT<const iArray2DT*> connects_1(IDs.Length());
 	model.ElementGroupPointers(IDs, connects_1);
-
-	/* partition information */
-	ArrayT<PartitionT> partition(size);
 	ArrayT<const RaggedArray2DT<int>*> connects_2;
-	for (int i = 0; i < partition.Length(); i++)
+
+	/* set partition information and write partial geometry files*/
+	for (int i = 0; i < size; i++)
 	{
+		/* partition data */
+		PartitionT partition;
+
 		/* mark nodes */
-		partition[i].Set(partition.Length(), i, part_map, connects_1, connects_2);
+		partition.Set(size, i, part_map, connects_1, connects_2);
 		
 		/* set elements */
 		const ArrayT<StringT>& elem_ID = model.ElementGroupIDs();
-		partition[i].InitElementBlocks(elem_ID);
+		partition.InitElementBlocks(elem_ID);
 		for (int j = 0; j < elem_ID.Length(); j++)
 		{
 			const iArray2DT& elems = model.ElementGroup(elem_ID[j]);
-			partition[i].SetElements(elem_ID[j], elems);
+			partition.SetElements(elem_ID[j], elems);
 		}
-	}
 
-	/* write partial geometry files */
-	for (int i = 0; i < partition.Length(); i++)
-	{
 		/* set to local scope */
-		partition[i].SetScope(PartitionT::kLocal);
+		partition.SetScope(PartitionT::kLocal);
 	
+		/* output file name */
 		StringT geom_file, suffix;
 		suffix.Suffix(model_file);
 		geom_file.Root(model_file);
@@ -945,7 +944,7 @@ void FEExecutionManagerT::Decompose_atom(ifstreamT& in, int size,
 		geom_file.Append(suffix);
 				
 		cout << "     Writing partial model file: " << geom_file << endl;
-		try { EchoPartialGeometry(partition[i], model, geom_file, format); }
+		try { EchoPartialGeometry(partition, model, geom_file, format); }
 		catch (ExceptionT::CodeT error)
 		{
 			ExceptionT::Throw(error, caller, "exception writing file: %s", (const char*) geom_file);
@@ -954,12 +953,12 @@ void FEExecutionManagerT::Decompose_atom(ifstreamT& in, int size,
 		/* partition information */
 		StringT part_file;
 		part_file.Root(model_file);
-		part_file.Append(".n", partition.Length());
+		part_file.Append(".n", size);
 		part_file.Append(".part", i);
 
 		ofstream part_out(part_file);
 		part_out << "# data for partition: " << i << '\n';
-		part_out << partition[i] << '\n';
+		part_out << partition << '\n';
 		part_out.close();
 	}
 
