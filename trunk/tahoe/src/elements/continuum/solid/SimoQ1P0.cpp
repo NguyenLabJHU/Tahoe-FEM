@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.cpp,v 1.9 2003-12-10 06:45:33 paklein Exp $ */
+/* $Id: SimoQ1P0.cpp,v 1.10 2004-01-05 07:27:58 paklein Exp $ */
 #include "SimoQ1P0.h"
 
 #include "ShapeFunctionT.h"
@@ -82,13 +82,15 @@ void SimoQ1P0::CloseStep(void)
 }
 	
 /* restore last converged state */
-void SimoQ1P0::ResetStep(void)
+GlobalT::RelaxCodeT SimoQ1P0::ResetStep(void)
 {
 	/* inherited */
-	UpdatedLagrangianT::ResetStep();
+	GlobalT::RelaxCodeT relax = UpdatedLagrangianT::ResetStep();
 	
 	/* store converged solution */
 	fElementVolume = fElementVolume_last;
+
+	return relax;
 }
 
 /* read restart information from stream */
@@ -111,7 +113,7 @@ void SimoQ1P0::WriteRestart(ostream& out) const
 	UpdatedLagrangianT::WriteRestart(out);
 	
 	/* read restart data */
-	out << fElementVolume;
+	out << fElementVolume << '\n';
 }
 
 /***********************************************************************
