@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.h,v 1.5 2002-07-05 22:28:30 paklein Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.5.8.1 2002-10-30 09:17:08 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 
 #ifndef _FBC_CONTROLLER_T_H_
@@ -31,7 +31,7 @@ public:
 	          kPenaltySphere = 1,
                kAugLagSphere = 2,
             kMFPenaltySphere = 3,
-                 kAugLagWall = 4}; //sphere for meshfree
+                 kAugLagWall = 4};
 
 	/* constructor */
 	FBC_ControllerT(FEManagerT& fe_manager, int group);
