@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.34 2003-10-10 00:47:09 paklein Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.35 2003-10-10 13:36:01 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -40,6 +40,7 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	fDispl(displ),
 	fPlast(gammap),
 	fKdd(ElementMatrixT::kNonSymmetric),
+	fKdd_face(ElementMatrixT::kNonSymmetric),
 	fKdeps(ElementMatrixT::kNonSymmetric),
 	fKepsd(ElementMatrixT::kNonSymmetric),
 	fKepseps(ElementMatrixT::kNonSymmetric),
@@ -289,6 +290,9 @@ void APS_AssemblyT::Initialize(void)
 	fFd_ext.Dimension 		( n_en );
 	fFeps_int.Dimension 	( n_en_x_n_sd );
 	fFeps_ext.Dimension 	( n_en_x_n_sd );
+	
+	fKdd_face.Dimension 		( n_en_surf, n_en_surf );
+	fFd_int_face.Dimension 		( n_en_surf );
 
 	fFEA_Shapes.Construct	( fNumIP,n_sd,n_en );
 	fFEA_SurfShapes.Construct	( fNumIPSurf,n_sd_surf,n_en_surf );
@@ -1104,8 +1108,9 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 										step_number, delta_t );
 			fEquation_d -> Form_LHS_Keps_Kd ( fKdeps, fKdd );
 			fEquation_d -> Form_RHS_F_int ( fFd_int, np1 );
+			fFd_int *= -1.0;
 			
-			// add on contribution from sidesets								
+			// add contribution from sidesets								
 			for (int i = 0; i < num_sidesets; i++)
 			{
 				for (int j = 0; j < fSideSetElements[i].Length(); j++)
@@ -1128,18 +1133,17 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 						
 						Convert.SurfShapeGradient	( n_en_surf, surf_shape, fFEA_SurfShapes, face_coords,
 													parent, fInitCoords, *fShapes, u, u_n, fgrad_u_surf, fgrad_u_surf_n );
-						//Convert.GradientSurface ( fShapes, surf_shape, u, u_n, fgrad_u_surf, fgrad_u_surf_n );
 						APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgrad_gamma_p, fstate ); 
-						fEquation_d -> Form_LHS_Kd_Surf ( fKdd, fFEA_SurfShapes, face_equations );
-						fEquation_d -> Form_RHS_F_int_Surf ( fFd_int, np1, fPlasticGradientWght[i], face_equations );
+						fEquation_d -> Form_LHS_Kd_Surf ( fKdd_face, fFEA_SurfShapes );
+						fEquation_d -> Form_RHS_F_int_Surf ( fFd_int_face, np1, fPlasticGradientWght[i] );
 
-						//ElementSupport().AssembleRHS(curr_group, force_on_face_nodes, face_equations);
+						ElementSupport().AssembleRHS(curr_group, fFd_int_face, face_equations);
+						ElementSupport().AssembleLHS(curr_group, fKdd_face, face_equations);
 					}
 				}
 			}
 			
-			fFd_int *= -1.0;
-
+			
 			/* add body force */
 			if (formBody) {
 //				double density = fBalLinMomMaterial->Retrieve(Iso_MatlT::kDensity);

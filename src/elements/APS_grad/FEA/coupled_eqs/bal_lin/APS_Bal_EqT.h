@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.h,v 1.11 2003-10-09 16:40:57 raregue Exp $
+// $Id: APS_Bal_EqT.h,v 1.12 2003-10-10 13:36:02 raregue Exp $
 #ifndef _APS_BALEQ_T_H_ 
 #define _APS_BALEQ_T_H_ 
 
@@ -89,8 +89,8 @@ class APS_Bal_EqT	: public BalLinMomT
 
   		void 	Form_LHS_Keps_Kd	( dMatrixT &Keps, dMatrixT &Kd ); // add delta_t for dynamics
   		void 	Form_RHS_F_int		( dArrayT  &F_int, APS_VariableT &npt ); 
-  		void 	Form_LHS_Kd_Surf	( dMatrixT &Kd, FEA_SurfShapeFunctionT &SurfShapes, iArrayT& face_equations); // add delta_t for dynamics
-  		void 	Form_RHS_F_int_Surf	( dArrayT  &F_int, APS_VariableT &npt, double &wght, iArrayT& face_equations  ); 
+  		void 	Form_LHS_Kd_Surf	( dMatrixT &Kd_face, FEA_SurfShapeFunctionT &SurfShapes); // add delta_t for dynamics
+  		void 	Form_RHS_F_int_Surf	( dArrayT  &F_int_face, APS_VariableT &npt, double &wght  ); 
 		void 	Form_B_List 		( void );  // Strain Displacement Matricies
 		void 	Form_VB_List 		( void );  // Strain Matricies
 		void 	Form_V_S_List 		( APS_VariableT &npt );  // vectors

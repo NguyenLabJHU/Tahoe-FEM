@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.cpp,v 1.17 2003-10-10 00:47:10 paklein Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.18 2003-10-10 13:36:02 raregue Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -76,7 +76,7 @@ void APS_Bal_EqT::Form_RHS_F_int ( dArrayT &F_int, APS_VariableT &npt )
 
 //---------------------------------------------------------------------
 
-void APS_Bal_EqT::Form_LHS_Kd_Surf	( dMatrixT &Kd, FEA_SurfShapeFunctionT &SurfShapes, iArrayT& face_equations )  
+void APS_Bal_EqT::Form_LHS_Kd_Surf	( dMatrixT &Kd_face, FEA_SurfShapeFunctionT &SurfShapes )  
 {	
 		Data_Pro_Surf.Construct ( SurfShapes.dNdx	);
 		Data_Pro_Surf.Insert_N_surf  ( SurfShapes.N );
@@ -90,23 +90,13 @@ void APS_Bal_EqT::Form_LHS_Kd_Surf	( dMatrixT &Kd, FEA_SurfShapeFunctionT &SurfS
 
  		V[knueps].Dot( B_d_surf[kB_surf], VB_d[knuB] ); 
  		
- 		dMatrixT Kd_surfdof(n_en_surf), Kd_eldof(n_en);
-		Kd_surfdof	= SurfIntegral.of( VB_d[kN], C[kMu], VB_d[knuB] );
-		Kd_surfdof	*= -1.0;
-		
-		//put Kd_tmp in proper eqnos of Kd
-		if (face_equations.Length() == 2)
-		{
-		for (int i=0; i<face_equations.Length(); i++)
-			for (int j=0; j<face_equations.Length(); j++)
-				Kd_eldof(face_equations[i],face_equations[j]) = Kd_surfdof(i,j);
-		}
-		Kd += Kd_eldof;
+		Kd_face	= SurfIntegral.of( VB_d[kN], C[kMu], VB_d[knuB] );
+		Kd_face	*= -1.0;
 }
 
 //---------------------------------------------------------------------
 
-void APS_Bal_EqT::Form_RHS_F_int_Surf ( dArrayT &F_int, APS_VariableT &npt, double &wght, iArrayT& face_equations  ) 
+void APS_Bal_EqT::Form_RHS_F_int_Surf ( dArrayT &F_int_face, APS_VariableT &npt, double &wght  ) 
 {
 		V[keps](0) = C[km1];
 		V[keps](0) *= wght;
@@ -119,18 +109,9 @@ void APS_Bal_EqT::Form_RHS_F_int_Surf ( dArrayT &F_int, APS_VariableT &npt, doub
 		V[knueps].Dot( V[kV_Temp2], S[knuepsgradu] );
 		V[knueps].Dot( V[keps], S[knuepseps] );
 
-		dArrayT F_int_surfdof(n_en_surf), F_int_eldof(n_en);
-		F_int_surfdof = SurfIntegral.of( VB_d[kN], C[kMu], S[knuepsgradu] ); 
-		F_int_surfdof *= -1.0;
-		F_int_surfdof += SurfIntegral.of( VB_d[kN], C[kMu], S[knuepseps] );
-		
-		//put components of F_int_tmp in proper eqnos of F_int
-		if (face_equations.Length() == 2)
-		{
-		for (int i=0; i<face_equations.Length(); i++)
-			F_int_eldof[face_equations[i]] = F_int_surfdof[i];
-		}
-		F_int += F_int_eldof;
+		F_int_face = SurfIntegral.of( VB_d[kN], C[kMu], S[knuepsgradu] ); 
+		F_int_face *= -1.0;
+		F_int_face += SurfIntegral.of( VB_d[kN], C[kMu], S[knuepseps] );
 }
 
 

@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.18 2003-10-09 16:40:56 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.19 2003-10-10 13:36:01 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -219,9 +219,9 @@ private:
 	/*@}*/
 
 	/* Data Storage */
-	ElementMatrixT fKdd, fKdeps;
+	ElementMatrixT fKdd, fKdeps, fKdd_face;
 	ElementMatrixT fKepsd, fKepseps;
-	dArrayT 	fFd_int;
+	dArrayT 	fFd_int, fFd_int_face;
 	dArrayT 	fFd_ext;
 	dArrayT		fFeps_int;
 	dArrayT		fFeps_ext;
