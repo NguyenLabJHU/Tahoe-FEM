@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.cpp,v 1.9.16.2 2004-03-02 17:46:22 paklein Exp $ */
+/* $Id: IsotropicT.cpp,v 1.9.16.3 2004-03-24 19:47:59 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "IsotropicT.h"
 
@@ -90,27 +90,24 @@ void IsotropicT::DefineSubs(SubListT& sub_list) const
 	sub_list.AddSub("modulus_definition_choice", ParameterListT::Once, true);
 }
 
-/* return the description of the given inline subordinate parameter list */
-void IsotropicT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
-{
-	if (sub == "modulus_definition_choice")
-	{
-		order = ParameterListT::Choice;
-		
-		sub_sub_list.AddSub("E_and_nu");
-		sub_sub_list.AddSub("bulk_and_shear");
-	}
-	else /* inherited */
-		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
-}
-
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* IsotropicT::NewSub(const StringT& list_name) const
 {
-	if (list_name == "E_and_nu")
+	if (list_name == "modulus_definition_choice")
 	{
-		ParameterContainerT* E_and_nu = new ParameterContainerT("E_and_nu");
+		ParameterContainerT* choice = new ParameterContainerT(list_name);
+		choice->SetSubSource(this);
+
+		/* set the choices */		
+		choice->SetListOrder(ParameterListT::Choice);
+		choice->AddSub("E_and_nu");
+		choice->AddSub("bulk_and_shear");
+	
+		return choice;
+	}
+	else if (list_name == "E_and_nu")
+	{
+		ParameterContainerT* E_and_nu = new ParameterContainerT(list_name);
 		
 		ParameterT E(ParameterT::Double, "Young_modulus");
 		E.AddLimit(0.0, LimitT::Lower);
@@ -125,7 +122,7 @@ ParameterInterfaceT* IsotropicT::NewSub(const StringT& list_name) const
 	}
 	else if (list_name == "bulk_and_shear")
 	{
-		ParameterContainerT* bulk_and_shear = new ParameterContainerT("bulk_and_shear");
+		ParameterContainerT* bulk_and_shear = new ParameterContainerT(list_name);
 		
 		ParameterT kappa(ParameterT::Double, "bulk_modulus");
 		kappa.AddLimit(0.0, LimitT::Lower);
