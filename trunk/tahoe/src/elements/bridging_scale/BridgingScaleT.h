@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.12 2002-08-13 17:30:53 hspark Exp $ */
+/* $Id: BridgingScaleT.h,v 1.13 2002-08-14 02:30:34 hspark Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -129,6 +129,7 @@ protected:
 	dMatrixT fWtempU, fWtempV, fWtempA;
 
 	int fTotalNodes;
+	iArray2DT fConnect;
 
 	/* output control */
 	iArrayT	fNodalOutputCodes;
