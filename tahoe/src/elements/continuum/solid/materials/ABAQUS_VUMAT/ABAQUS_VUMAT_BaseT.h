@@ -1,11 +1,10 @@
-/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.18 2004-08-01 01:02:09 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.19 2004-08-01 20:41:58 paklein Exp $ */
 #ifndef _ABAQUS_VUMAT_BASE_T_H_
 #define _ABAQUS_VUMAT_BASE_T_H_
 
 /* base class */
 #include "ABAQUS_BaseT.h"
-#include "FSSolidMatT.h"
-#include "IsotropicT.h"
+#include "FSIsotropicMatT.h"
 
 /* library support options */
 #ifdef __F2C__
@@ -14,9 +13,6 @@
 #include "StringT.h"
 #include "iArrayT.h"
 #include "dArray2DT.h"
-
-//TEMP - debugging
-#include <fstream.h>
 
 /* f2c */
 #include "f2c.h"
@@ -29,12 +25,12 @@ class SpectralDecompT;
 /** interface for ABAQUS/Explicit VUMAT's. The class is derived
  * from IsotropicT because the VUMAT interface assumes elastic
  * response is approximately isotropic */
-class ABAQUS_VUMAT_BaseT: protected ABAQUS_BaseT, public FSSolidMatT, public IsotropicT
+class ABAQUS_VUMAT_BaseT: protected ABAQUS_BaseT, public FSIsotropicMatT
 {
 public:
 
 	/* constructor */
-	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FSMatSupportT& support);
+	ABAQUS_VUMAT_BaseT(void);
 
 	/* destructor */
 	~ABAQUS_VUMAT_BaseT(void);
@@ -48,9 +44,6 @@ public:
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
-	/* initialization */
-	virtual void Initialize(void);
-
 	/* materials initialization */
 	virtual bool NeedsPointInitialization(void) const; // false by default
 	virtual void PointInitialize(void);                // per ip
@@ -61,9 +54,6 @@ public:
 
 	/** \name spatial description */
 	/*@{*/
-	/** spatial tangent modulus */
-	virtual const dMatrixT& c_ijkl(void);
-
 	/** Cauchy stress */
 	virtual const dSymMatrixT& s_ij(void);
 
@@ -72,10 +62,6 @@ public:
 	 * for more information. */
 	virtual double Pressure(void) const { return fPressure; };
 	/*@}*/
-
-	/* material description */
-	virtual const dMatrixT& C_IJKL(void);  // material tangent moduli
-	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
 
 	/* returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);
@@ -90,6 +76,15 @@ public:
 	/* set material output */
 	virtual void SetOutputVariables(iArrayT& variable_index,
 		ArrayT<StringT>& output_labels) = 0;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
@@ -114,29 +109,29 @@ private:
 		doublereal*, doublereal*, doublereal*, doublereal*, doublereal*, doublereal*,
                 doublereal*, doublereal*, doublereal*, doublereal*, doublereal*, doublereal*,
                 doublereal*) = 0;
-	
+protected:
+
+	GlobalT::SystemTypeT fTangentType;
+
+	/** properties array */
+	nArrayT<doublereal> fProperties;
+
 private:
 
-	//debugging
-	ofstream flog;
-	
+	/** if true, writes debugging info to output */
+	bool fDebug;
+
 	/* material name */
 	StringT fVUMAT_name;
-	GlobalT::SystemTypeT fTangentType;
 	//other options:
 	//  strain type
 	//  orientation (*ORIENTATION)
 	//  expansion   (*EXPANSION)
 
 	/* work space */
-	dMatrixT    fModulus;            // return value
-	dSymMatrixT fStress;             // return value
-	dArrayT fIPCoordinates;          // integration point coordinates
+	dArrayT fIPCoordinates; /**< integration point coordinates */
 	double fPressure; /**< pressure for the most recent calculation of the stress */
 
-	/* properties array */
-	nArrayT<doublereal> fProperties;
-	
 	/* material output data */
 	iArrayT fOutputIndex;
 	ArrayT<StringT> fOutputLabels;

@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.3 2004-07-22 21:10:04 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.4 2004-08-01 20:42:03 paklein Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -160,7 +160,15 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 #endif
 
 #ifdef VISCOELASTICITY
-	sub_lists.AddSub("Reese-Govindjee_split");
+		sub_lists.AddSub("Reese-Govindjee_split");
+#endif
+
+#ifdef ABAQUS_MATERIAL
+#ifdef ABAQUS_BCJ_MATERIAL_DEV
+		sub_lists.AddSub("ABAQUS_UMAT_BCJ");
+		sub_lists.AddSub("ABAQUS_VUMAT_BCJ");
+		sub_lists.AddSub("ABAQUS_UMAT_BCJ_iso-damage");
+#endif
 #endif
 	}
 	else /* inherited */
@@ -259,6 +267,17 @@ FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& name) const
 #ifdef VISCOELASTICITY
 	else if (name == "Reese-Govindjee_split")
 		mat= new RGSplitT;
+#endif
+
+#ifdef ABAQUS_MATERIAL
+#ifdef ABAQUS_BCJ_MATERIAL_DEV
+	else if (name == "ABAQUS_UMAT_BCJ")
+		mat= new ABAQUS_BCJ;
+	else if (name == "ABAQUS_VUMAT_BCJ")
+		mat= new ABAQUS_VUMAT_BCJ;
+	else if (name == "ABAQUS_UMAT_BCJ_iso-damage")
+		mat= new ABAQUS_BCJ_ISO;
+#endif
 #endif
 
 	/* set support */
