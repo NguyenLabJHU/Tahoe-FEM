@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.12 2003-03-08 01:54:48 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.13 2003-09-06 08:43:48 paklein Exp $ */
 /* created: paklein (05/14/2000) */
 #include "ABAQUS_UMAT_BaseT.h"
 
@@ -989,4 +989,5 @@ void ABAQUS_UMAT_BaseT::Store_UMAT_Modulus(void)
 	}
 	else throw ExceptionT::kGeneralFail;	
 }
+
 #endif /* __F2C__ */

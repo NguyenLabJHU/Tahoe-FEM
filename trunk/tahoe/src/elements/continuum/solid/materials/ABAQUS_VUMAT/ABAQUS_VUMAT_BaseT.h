@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.11 2003-01-29 07:34:36 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.12 2003-09-06 08:43:51 paklein Exp $ */
 #ifndef _ABAQUS_VUMAT_BASE_T_H_
 #define _ABAQUS_VUMAT_BASE_T_H_
 
@@ -208,6 +208,14 @@ inline GlobalT::SystemTypeT ABAQUS_VUMAT_BaseT::TangentType(void) const
 	return fTangentType;
 }
 
-} // namespace Tahoe 
+#else /* __F2C__ */
+
+#ifndef __MWERKS__
+#error "ABAQUS_VUMAT_BaseT requires __F2C__"
+#endif
+
 #endif /* __F2C__ */
+
+} /* namespace Tahoe */
+
 #endif /* _ABAQUS_VUMAT_BASE_T_H_ */
