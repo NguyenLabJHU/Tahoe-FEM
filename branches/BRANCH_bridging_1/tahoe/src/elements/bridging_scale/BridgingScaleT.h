@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.22 2003-01-29 07:34:28 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.22.2.1 2003-02-10 02:18:03 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -11,7 +11,8 @@
 namespace Tahoe {
 
 /* forward declarations */
-class RodT;
+class PointInCellDataT;
+//class RodT;
 
 /** base class for elements using shape functions */
 class BridgingScaleT: public ElementBaseT
@@ -20,25 +21,24 @@ public:
 
 	/** constructor */
 	BridgingScaleT(const ElementSupportT& support, const FieldT& field,
-		const RodT& particle,
+//		const RodT& particle,
 		const SolidElementT& solid);
 
-	/** destructor */
-	virtual ~BridgingScaleT(void);
-
-	/* accessors */
-	const ShapeFunctionT& ShapeFunction(void) const;
-
-	/** element coordinates.
-	 * \return initial nodal coordinates of current element: [nen] x [nsd] */
-	const LocalArrayT& InitialCoordinates() const;
-	
-	/** element displacements.
-	 * \return nodal displacements of current element: [nen] x [ndof] */
-	const LocalArrayT& Displacements() const;
+	/** map points into cells in the group's connectivities.
+	 * Map points into the initial or current configuration of the mesh. Only
+	 * one of the two pointers must be passed as NULL.
+	 * \param points_used indecies of points in the coordinate lists which should be
+	 *        mapped into cells
+	 * \param init_coords point to the initial coordinates array if available
+	 * \param curr_coords point to the initial coordinates array if available
+	 * \param point_in_cell destination for map data
+	 */
+	void MaptoCells(const iArrayT& points_used, const dArray2DT* init_coords, 
+		const dArray2DT* curr_coords, PointInCellDataT& cell_data);
 
 	/** initialization. called immediately after constructor */
-	virtual void Initialize(void);
+//	virtual void Initialize(void);
+
 
 	/** collecting element group equation numbers. This call from the FEManagerT
 	 * is a signal to the element group that the equation system is up to date
@@ -74,6 +74,17 @@ public:
 
 protected:
 
+	/** continuum shape functions */
+	const ShapeFunctionT& ShapeFunction(void) const;
+
+	/** element coordinates.
+	 * \return initial nodal coordinates of current element: [nen] x [nsd] */
+	const LocalArrayT& InitialCoordinates() const;
+	
+	/** element displacements.
+	 * \return nodal displacements of current element: [nen] x [ndof] */
+	const LocalArrayT& Displacements() const;
+
 	/** echo element connectivity data. No connectivities need to be read */
 	virtual void EchoConnectivityData(ifstreamT&, ostream&) {};
 
@@ -101,10 +112,12 @@ private:
 
 protected:
 
+#if 0
 	/** "element" group calculating particle solution */
 	const RodT& fParticle;
 	iArray2DT fParticlesUsed;
-	
+#endif
+
 	/** continuum group solving displacements */
 	const SolidElementT& fSolid;
 	iArray2DT fSolidNodesUsed;
