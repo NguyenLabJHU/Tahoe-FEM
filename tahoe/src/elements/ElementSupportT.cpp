@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.6 2002-10-23 00:18:01 cjkimme Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.7 2002-10-25 00:06:50 cjkimme Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -13,6 +13,8 @@
 #include "LocalArrayT.h"
 #include "dArrayT.h"
 #include "iArrayT.h"
+#include "dMatrixT.h"
+#include "ElementMatrixT.h"
 #endif
 
 /* constructor */
@@ -356,19 +358,21 @@ void ElementSupportT::SetEqnos(int *conn, const int& nElem, const int& nElemNode
 	const int& nNodes)
 {
 	ieqnos = new iArrayT();
-	ieqnos->Allocate(nElem*nElemNodes*3);
+	ieqnos->Dimension(nElem*nElemNodes*3);
 	int *iptr, ioff;
 	iptr = ieqnos->Pointer();
 	for (int i = 0; i < nElem*nElemNodes; i++)
 	{
-		ioff = (*conn++)*3; 
-		for (int k = 0; k < 3; k++)
+		ioff = (*conn++)*fNumSD; 
+		for (int k = 0; k < fNumSD; k++)
 			*iptr++ = ioff++;
 	}
 	
-	/* Allocate vector for residual while we're here */
+	/* Allocate left- and right-hand sides while we're here */
 	fResidual = new dArrayT();
-	fResidual->Allocate(3*nNodes);
+	fResidual->Dimension(fNumSD*nNodes);
+	fStiffness = new dMatrixT(ElementMatrixT::kNonSymmetric);
+	fStiffness->Dimension(fNumSD*nNodes);
 }
 
 #endif
@@ -451,6 +455,14 @@ void ElementSupportT::AssembleLHS(int group, const ElementMatrixT& elMat,
 #pragma unused(group)
 #pragma unused(elMat)
 #pragma unused(eqnos)
+	double *fp = elMat.Pointer();
+	int *ip = ieqnos->Pointer() + group*elMat.Rows();
+	
+	for (int i = 0;i < elMat.Length();i++)
+		(*fStiffness)[*ip++] += *fp++;
+	fp = fStiffness->Pointer();
+	for (int i = 0;i < fResidual->Length(); i++)
+		cout <<"i = "<<i<<" "<<*fp++<<"\n";
 #endif
 }
 

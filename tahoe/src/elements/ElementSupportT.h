@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.7 2002-10-23 00:18:01 cjkimme Exp $ */
+/* $Id: ElementSupportT.h,v 1.8 2002-10-25 00:06:50 cjkimme Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -24,7 +24,7 @@ class XDOF_ManagerT;
 class FieldT;
 class eControllerT;
 #else
-class iArrayT;
+class dMatrixT;
 #endif
 class GroupAverageT;
 class ElementMatrixT;
@@ -114,6 +114,8 @@ public:
 	void SetEqnos(int *conn, const int& nelem, const int& nElemNodes, const int&nNodes);
 
 	dArrayT& Residual(void) const { return *fResidual; };
+	
+	dMatrixT& Stiffness(void) const { return *fStiffness; };
 
 #endif // def _SIERRA_TEST_
 
@@ -299,6 +301,7 @@ private:
 
 	dArray2DT *fInitialCoordinates, *fCurrentCoordinates;
 	dArrayT *fResidual;
+	dMatrixT *fStiffness;
 
 	int fItNum, fElem;
 	
