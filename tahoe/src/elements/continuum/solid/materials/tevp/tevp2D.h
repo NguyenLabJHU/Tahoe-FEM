@@ -1,4 +1,4 @@
-/* $Id: tevp2D.h,v 1.5 2001-05-11 14:11:09 hspark Exp $ */
+/* $Id: tevp2D.h,v 1.6 2001-05-15 20:32:45 hspark Exp $ */
 /* Thermoelasto-viscoplastic material used to generate shear bands */
 /* Created:  Harold Park (04/04/2001) */
 /* Last Updated:  Harold Park (05/10/2001) */
@@ -58,29 +58,19 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   
   /* accessor functions to be inlined - these should return the value from
    * the previous timestep */
-  double GetTimeStep(void) const;   // Returns the current timestep
-  double GetTime(void) const;       // Returns the total time elapsed
-  double GetEbtot(void) const;      
-  double GetCtcon(void) const;
-  double GetXxii(void) const;
-  dArrayT GetPP(void) const;
-  dMatrixT GetDmat(void) const;     // Return the elastic modulus tensor
-  dArrayT GetSmlp(void) const;
 
  private:
   /* computational functions */
 
   /* deformation gradient, rate of deformation, spin */
   void ComputeGradients(void);
-  double ComputeEbtot(void);     
+  void ComputeEbtotXxiiCtcon(void);     
   // Computes the incremental effective strain
-  double ComputeXxii(void);
-  double ComputeCtcon(void);
-  dArrayT& ComputePP(void); 
+  void ComputePP(void); 
   double ComputeEcc(void);
-  dMatrixT& ComputeDmat(void);   // Original elastic coefficient tensor
+  void ComputeDmat(void);   // Original elastic coefficient tensor
   dArrayT& ComputeEP_tan(void);  // Modulus correction
-  dArrayT& ComputeSmlp(void);
+  void ComputeSmlp(void);
   enum LoadingStatusT {kIsPlastic = 0, kIsElastic = 1, kReset = 3};
   // Should LoadingStatusT be protected?
   void AllocateElement(ElementCardT& element); // If element/IP goes plastic
@@ -98,9 +88,9 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
 
   /* Output values/internal variable functions below - these functions
    * should ONLY be called AFTER the stress and modulus have been computed */
-  double ComputeTemperature(const ElementCardT& element, int ip);
+  double ComputeTemperature(void);
   double ComputeEffectiveStress(void);
-  double ComputeEffectiveStrain(const ElementCardT& element, int ip);
+  double ComputeEffectiveStrain(void);
   int CheckCriticalStrain(const ElementCardT& element, int ip);
   int CheckIfPlastic(const ElementCardT& element, int ip);
   /* load element data for the specified integration point */
@@ -176,16 +166,6 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   const ShapeFunctionT& fShapes;   // Needed to compute velocity gradient
 
 };
-
-/* inline functions / accessor functions */
-inline double tevp2D::GetTimeStep(void) const { return fDt; }
-inline double tevp2D::GetTime(void) const { return fTime; }
-inline double tevp2D::GetEbtot(void) const { return fEbtot; }
-inline double tevp2D::GetCtcon(void) const { return fCtcon; }
-inline double tevp2D::GetXxii(void) const { return fXxii; }
-inline dArrayT tevp2D::GetPP(void) const { return fPP; }
-inline dMatrixT tevp2D::GetDmat(void) const { return fDmat; }
-inline dArrayT tevp2D::GetSmlp(void) const { return fSmlp; }
 
 #endif /* _TEVP_2D_H_ */
 				
