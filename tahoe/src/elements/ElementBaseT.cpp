@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.2 2001-02-13 17:58:26 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "ElementBaseT.h"
@@ -25,7 +25,7 @@ ElementBaseT::ElementBaseT(FEManagerT& fe_manager):
 	fNumElemNodes(0),
 	fNumElemEqnos(0),
 	fNumElements(0),
-	fElementCards(0, false),
+	fElementCards(0),
 	fLHS(ElementMatrixT::kSymmetric)
 {
 	/* get pointer to the node manager */
