@@ -1,4 +1,4 @@
-/* $Id: fortran_names.h,v 1.1 2003-03-09 04:27:57 paklein Exp $ */
+/* $Id: fortran_names.h,v 1.2 2003-03-09 04:40:18 paklein Exp $ */
 #ifndef _FORTRAN_NAMES_H_
 #define _FORTRAN_NAMES_H_
 /*
@@ -53,6 +53,10 @@
 #else
 #define FORTRAN_NAME(n_)	n_/**/__
 #endif
+
+/* Metrowerks - assume GNU linkage */
+#elif defined(__MWERKS__)
+#define FORTRAN_NAME(n_)	n_ ## __
 
 #else
 #error "don't know Fortran function/subroutine naming convention for this system!"
