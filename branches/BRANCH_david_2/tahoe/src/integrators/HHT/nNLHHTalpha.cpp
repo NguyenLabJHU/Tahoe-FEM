@@ -1,4 +1,4 @@
-/* $Id: nNLHHTalpha.cpp,v 1.13 2004-07-15 08:30:28 paklein Exp $ */
+/* $Id: nNLHHTalpha.cpp,v 1.13.4.1 2004-11-08 02:15:57 d-farrell2 Exp $ */
 /* created: paklein (10/17/1996) */
 #include "nNLHHTalpha.h"
 #include "dArrayT.h"
@@ -73,18 +73,32 @@ void nNLHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 				"unknown BC code: %d", KBC.Code());
 	}
 }		
-
-/* rredictors - map ALL */
-void nNLHHTalpha::Predictor(BasicFieldT& field)
+#pragma message ("roll up redundancy after it works")
+// predictors - map ALL, unless limit arguments are specified
+void nNLHHTalpha::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
-	/* displacement predictor */
-	field[0].AddCombination(dpred_v, field[1], dpred_a, field[2]);
-
-	/* velocity predictor */
-	field[1].AddScaled(vpred_a, field[2]);
-	
-	/* acceleration predictor */
-	field[2] = 0.0;
+	if (fieldend == -1) // operate on full arrays
+	{
+		/* displacement predictor */
+		field[0].AddCombination(dpred_v, field[1], dpred_a, field[2]);
+		
+		/* velocity predictor */
+		field[1].AddScaled(vpred_a, field[2]);
+		
+		/* acceleratior predictor */
+		field[2] = 0.0;	
+	}
+	else // operate on restricted contiguous block of the arrays
+	{
+		/* displacement predictor */
+		field[0].AddCombination(dpred_v, field[1], dpred_a, field[2], fieldstart, fieldend);
+		
+		/* velocity predictor */
+		field[1].AddScaled(vpred_a, field[2], fieldstart, fieldend);
+		
+		/* acceleratior predictor */
+		field[2] = 0.0;	
+	}
 }		
 
 /* corrector. Maps ALL degrees of freedom forward. */

@@ -1,4 +1,4 @@
-/* $Id: nTrapezoid.cpp,v 1.10 2003-11-21 22:47:46 paklein Exp $ */
+/* $Id: nTrapezoid.cpp,v 1.10.34.1 2004-11-08 02:16:03 d-farrell2 Exp $ */
 /* created: paklein (10/03/1999) */
 #include "nTrapezoid.h"
 #include "dArrayT.h"
@@ -51,15 +51,26 @@ void nTrapezoid::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 				"unknown BC code: %d", KBC.Code());
 	}
 }		
-
-/* predictors - map ALL */
-void nTrapezoid::Predictor(BasicFieldT& field)
+#pragma message ("roll up redundancy after it works")
+// predictors - map ALL, unless limit arguments are specified
+void nTrapezoid::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
-	/* displacement predictor */
-	field[0].AddScaled(dpred_v, field[1]);
-	
-	/* velocity predictor */
-	field[1] = 0.0;
+	if (fieldend == -1) // operate on full arrays
+	{	
+		/* displacement predictor */
+		field[0].AddScaled(dpred_v, field[1]);
+		
+		/* velocity predictor */
+		field[1] = 0.0;	
+	}
+	else // operate on restricted contiguous block of the arrays
+	{
+		/* displacement predictor */
+		field[0].AddScaled(dpred_v, field[1], fieldstart, fieldend);
+		
+		/* velocity predictor */
+		field[1] = 0.0;	
+	}
 }		
 
 /* correctors - map ALL */

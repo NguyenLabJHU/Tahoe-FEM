@@ -1,4 +1,4 @@
-/* $Id: nGear6.cpp,v 1.12 2004-07-15 08:30:43 paklein Exp $ */
+/* $Id: nGear6.cpp,v 1.12.4.1 2004-11-08 02:16:01 d-farrell2 Exp $ */
 #include "nGear6.h"
 #include "iArrayT.h"
 #include "dArrayT.h"
@@ -80,9 +80,9 @@ void nGear6::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 			ExceptionT::BadInputValue(caller, "unknown BC code: %d", KBC.Code() );
 	}
 }		
-
+#pragma message("nGear6::Predictor, not implemented with limits yet, declaration changed to match others")
 /* predictors - map ALL */
-void nGear6::Predictor(BasicFieldT& field)
+void nGear6::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
 	/* check */
 	if (field.Order() != 5)

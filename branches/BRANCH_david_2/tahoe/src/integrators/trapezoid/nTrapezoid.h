@@ -1,4 +1,4 @@
-/* $Id: nTrapezoid.h,v 1.8 2003-01-29 07:35:18 paklein Exp $ */
+/* $Id: nTrapezoid.h,v 1.8.60.1 2004-11-08 02:16:03 d-farrell2 Exp $ */
 /* created: paklein (10/03/1999) */
 #ifndef _N_TRAPEZOID_H_
 #define _N_TRAPEZOID_H_
@@ -23,8 +23,8 @@ public:
 	/** pseudo-boundary conditions for external nodes */
 	virtual KBC_CardT::CodeT ExternalNodeCondition(void) const;
 
-	/** predictor. Maps ALL degrees of freedom forward. */
-	virtual void Predictor(BasicFieldT& field);
+	/** predictor. Maps ALL degrees of freedom forward Unless specified otherwise */
+	virtual void Predictor(BasicFieldT& field, int fieldstart = 0, int fieldend = -1);
 
 	/** corrector. Maps ALL degrees of freedom forward. */
 	virtual void Corrector(BasicFieldT& field, const dArray2DT& update);

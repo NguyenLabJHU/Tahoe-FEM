@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.6 2004-09-28 15:35:37 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.6.2.1 2004-11-08 02:16:06 d-farrell2 Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -159,6 +159,13 @@ public:
 	void AllGather(int id, nArray2DT<int>& values);
 	/*@}*/
 
+	// some accessors
+	int GetPartStartNum(void) { return fPartStartNum;};
+	int GetPartEndNum(void) { return fPartEndNum;};
+	int GetPartFieldStart(void) { return fPartFieldStart;};
+	int GetPartFieldEnd(void) { return fPartFieldEnd;};
+	
+
 private:
 
 	/** collect partition nodes */
@@ -261,6 +268,10 @@ private:
 
 	/** dummy array for double exchanges */
 	iArray2DT fiExchange;
+	
+	// some 'constants' for the index decomposition
+	int fPartStartNum, fPartEndNum, fPartFieldStart, fPartFieldEnd;
+	
 	/*@}*/
 };
 

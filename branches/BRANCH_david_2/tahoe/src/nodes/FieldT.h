@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.21.4.2 2004-10-28 00:38:16 d-farrell2 Exp $ */
+/* $Id: FieldT.h,v 1.21.4.3 2004-11-08 02:16:07 d-farrell2 Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -128,6 +128,9 @@ public:
 	
 	/** apply predictor to all degrees of freedom */
 	void InitStep(void);
+	
+	/** apply predictor to all degrees of freedom */
+	void InitStep(int fieldstart, int fieldend);
 
 	/** \name form tangent and force contributions */
 	/*@{*/
