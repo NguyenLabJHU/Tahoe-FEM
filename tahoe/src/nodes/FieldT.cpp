@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.24.2.5 2004-02-19 19:59:19 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.24.2.6 2004-02-26 08:57:18 paklein Exp $ */
 #include "FieldT.h"
 
 #include "fstreamT.h"
@@ -9,6 +9,7 @@
 #include "LocalArrayT.h"
 #include "FieldSupportT.h"
 #include "ParameterContainerT.h"
+#include "ParameterUtils.h"
 #include "ModelManagerT.h"
 
 using namespace Tahoe;
@@ -693,12 +694,6 @@ void FieldT::DefineParameters(ParameterListT& list) const
 	/* field name */
 	list.AddParameter(ParameterT::String, "field_name");
 
-	/* degrees of freedom */
-	ParameterT ndof(ParameterT::Integer, "ndof");
-	ndof.SetDescription("number of unknown per node");
-	ndof.AddLimit(0, LimitT::LowerInclusive);
-	list.AddParameter(ndof);
-
 	/* solution group */
 	ParameterT solver_group(ParameterT::Integer, "solution_group");
 	solver_group.AddLimit(1, LimitT::LowerInclusive);
@@ -725,6 +720,9 @@ void FieldT::DefineSubs(SubListT& sub_list) const
 	/* inherited */
 	ParameterInterfaceT::DefineSubs(sub_list);
 
+	/* degrees of freedom - prescribe number or labels */
+	sub_list.AddSub("ndof_specification", ParameterListT::Once, true);
+
 	/* initial conditions */
 	sub_list.AddSub("initial_condition", ParameterListT::Any);
 
@@ -746,7 +744,17 @@ void FieldT::DefineSubs(SubListT& sub_list) const
 void FieldT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
 	SubListT& sub_sub_list) const
 {
-	if (sub == "KBC_controllers")
+	if (sub == "ndof_specification")
+	{
+		order = ParameterListT::Choice;
+
+		/* just give an integer */
+		sub_sub_list.AddSub("dof_count");		
+
+		/* provide a list labels */
+		sub_sub_list.AddSub("dof_labels");		
+	}
+	else if (sub == "KBC_controllers")
 	{
 		order = ParameterListT::Choice;
 		
@@ -789,7 +797,22 @@ ParameterInterfaceT* FieldT::NewSub(const StringT& list_name) const
 	if (FBC_code != FBC_ControllerT::kNone)
 		return fFieldSupport.NewFBC_Controller(*non_const_this, FBC_code);
 
-	if (list_name == "initial_condition")
+	if (list_name == "dof_count")
+	{
+		ParameterContainerT* dof_count = new ParameterContainerT(list_name);
+
+		ParameterT ndof(ParameterT::Integer, "ndof");
+		ndof.SetDescription("number of unknown per node");
+		ndof.AddLimit(0, LimitT::LowerInclusive);
+		dof_count->AddParameter(ndof);
+
+		return dof_count;
+	}
+	else if (list_name == "dof_labels")
+	{
+		return new StringListT("dof_labels");
+	}
+	else if (list_name == "initial_condition")
 	{
 		ParameterContainerT* ic = new ParameterContainerT(list_name);
 		
@@ -855,6 +878,8 @@ ParameterInterfaceT* FieldT::NewSub(const StringT& list_name) const
 /* accept parameter list */
 void FieldT::TakeParameterList(const ParameterListT& list)
 {
+	const char caller[] = "FieldT::TakeParameterList";
+
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
 
@@ -862,7 +887,24 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 	const StringT& field_name = list.GetParameter("field_name");
 
 	/* number of degrees of freedom per node */
-	int ndof = list.GetParameter("ndof");
+	const ParameterListT* ndof_spec = list.ResolveListChoice(*this, "ndof_specification");
+	if (!ndof_spec) ExceptionT::BadInputValue(caller, "\"ndof_specification\" not found in \"%s\"", list.Name().Pointer());
+	ArrayT<StringT> labels;
+	int ndof = 0;
+	if (ndof_spec->Name() == "dof_count")
+		ndof = ndof_spec->GetParameter("ndof");
+	else if (ndof_spec->Name() == "dof_labels")
+	{
+		/* labels */
+		const ArrayT<ParameterListT>& dof_labels = ndof_spec->Lists();
+		ndof = dof_labels.Length();
+		labels.Dimension(ndof);
+		for (int i = 0; i < ndof; i++)
+			labels[i] = dof_labels[i].GetParameter("value");
+	}
+	else
+		ExceptionT::GeneralFail(caller, "not expecting \"%s\" for \"ndof_specification\" in \"%s\"",
+			ndof_spec->Name().Pointer(), list.Name().Pointer());
 
 	/* solution group */
 	fGroup = list.GetParameter("solution_group");
@@ -874,11 +916,12 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 	
 	/* cast to nodal interface */
 	fnIntegrator = TB_DYNAMIC_CAST(const nIntegratorT*, fIntegrator);
-	if (!fnIntegrator) ExceptionT::GeneralFail("FieldT::TakeParameterList");
+	if (!fnIntegrator) ExceptionT::GeneralFail(caller);
 
 	/* configure the field */
 	int order = fIntegrator->Order();
 	Initialize(field_name, ndof, order);
+	if (labels.Length() > 0) SetLabels(labels);
 	
 	/* construct controllers and count numbers of IC, KBC, and FBC */
 	int num_IC = 0;
