@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.4 2001-07-20 17:03:52 hspark Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.5 2001-07-23 23:13:22 hspark Exp $ */
 
 #ifndef _ABAQUS_VUMAT_BASE_T_H_
 #define _ABAQUS_VUMAT_BASE_T_H_
@@ -171,6 +171,8 @@ private:
 	nMatrixT<doublereal> fdfgrd1;
 	nArrayT<doublereal>  fcoords;
 	nMatrixT<doublereal> fRelSpin;
+	nArrayT<doublereal>  fUOld2;
+	nArrayT<doublereal>  fUNew2;
 
 	/* VUMAT stored array arguments */
 	nArrayT<doublereal> fstress;
