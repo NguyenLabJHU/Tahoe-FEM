@@ -1,4 +1,4 @@
-/* $Id: ParameterContainerT.cpp,v 1.1 2003-11-01 21:10:37 paklein Exp $ */
+/* $Id: ParameterContainerT.cpp,v 1.2 2004-01-21 17:05:40 paklein Exp $ */
 #include "ParameterContainerT.h"
 
 using namespace Tahoe;
@@ -6,7 +6,8 @@ using namespace Tahoe;
 /* constructor */
 ParameterContainerT::ParameterContainerT(const StringT& name):
 	ParameterListT(name),
-	ParameterInterfaceT(name)
+	ParameterInterfaceT(name),
+	fSubSource(NULL)
 {
 
 }
@@ -28,6 +29,40 @@ void ParameterContainerT::AddSub(const StringT& name, ParameterListT::Occurrence
 void ParameterContainerT::AddSub(const SubListDescriptionT& sub)
 {
 	fSubs.AddSub(sub);
+}
+
+/* set source for subs not defined by the container */
+void ParameterContainerT::SetSubSource(const ParameterInterfaceT* sub_source) 
+{
+	if (sub_source == this)
+		ExceptionT::GeneralFail("ParameterContainerT::SetSubSource", 
+			"the sub source for %s cannot be self", Name().Pointer());
+	fSubSource = sub_source; 
+};
+
+/* a pointer to the ParameterInterfaceT of the given subordinate*/
+ParameterInterfaceT* ParameterContainerT::NewSub(const StringT& list_name) const
+{
+	/* inherited (get from self) */
+	ParameterInterfaceT* sub = ParameterInterfaceT::NewSub(list_name);
+	
+	/* get from sub source */
+	if (!sub && fSubSource)
+		sub = fSubSource->NewSub(list_name);
+		
+	return sub;
+}
+
+/* return the description of the given inline subordinate parameter list. */
+void ParameterContainerT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	/* inherited (get from self) */
+	ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
+
+	/* if list is empty, try sub source */
+	if (fSubSource && sub_sub_list.Length() == 0)
+		fSubSource->DefineInlineSub(sub, order, sub_sub_list);
 }
 
 /*************************************************************************
