@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.cpp,v 1.1.1.1 2001-01-29 08:20:21 paklein Exp $ */
+/* $Id: ExecutionManagerT.cpp,v 1.2 2001-04-27 10:50:11 paklein Exp $ */
 /* created: paklein (08/27/1997)                                          */
 /* Manages input file driven jobs.                                        */
 /* MUST overload private:RunJob().                                        */
@@ -94,7 +94,7 @@ void ExecutionManagerT::Run_serial(void)
 		file.ToNativePathName();
 	
 		/* open stream */
-		ifstreamT input(file);
+		ifstreamT input('#', file);
 		if (!input.is_open())
 		{
 			cout << "\n ExecutionManagerT::Run_serial: unable to open file: \""
@@ -111,7 +111,7 @@ void ExecutionManagerT::Run_serial(void)
 		while (1)
 		{
 			/* prompt for input filename and open stream */
-			ifstreamT input;		
+			ifstreamT input('#');
 			if (!input.open("Enter input file name", "quit", lastfilename)) break;
 			
 			/* keep last file name */
@@ -284,13 +284,11 @@ void ExecutionManagerT::RunBatch(ifstreamT& in, ostream& status)
 	/* mark status */
 	status << "\n Processing batch file: " << in.filename() << '\n';
 
-	/* clear whitespace */
-	//in.next_char();
-
 	/* open status stream */
 	StringT statusfilename;
-	ofstreamT stat;	
-	stat.open(statusfilename.DefaultName(in.filename(),".bat",".stat", -1));
+	statusfilename.Root(in.filename());
+	statusfilename.Append(".stat");
+	ofstreamT stat(statusfilename);	
 	
 	/* start day/date info */
 	time_t starttime;
@@ -303,9 +301,16 @@ void ExecutionManagerT::RunBatch(ifstreamT& in, ostream& status)
 	/* repeat to end of file */
 	while (in.good())
 	{
-		/* open new input stream */
+		/* file path format */
 		nextinfilename.ToNativePathName();
-		ifstreamT nextin(nextinfilename);
+
+		/* path to source file */
+		StringT path;
+		path.FilePath(in.filename());
+	
+		/* open new input stream */
+		nextinfilename.Prepend(path);
+		ifstreamT nextin('#', nextinfilename);
 	
 		/* process if valid */
 		if (nextin.is_open())
