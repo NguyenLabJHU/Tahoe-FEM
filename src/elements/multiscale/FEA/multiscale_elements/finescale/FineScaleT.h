@@ -12,7 +12,7 @@ class FineScaleT
 {
 public:
 
-	enum Eqn_TypeT 		{ kVMS_BCJ, kPOWER_LAW, kPHEN };
+	enum Eqn_TypeT 		{ kVMS_BCJ, kVMS_EZ, kPOWER_LAW, kPHEN };
 
 	FineScaleT ( void ) { }
 	virtual ~FineScaleT ( void ) { }

@@ -42,6 +42,7 @@ class FEA_dMatrixT: public ArrayT <dMatrixT>
 		void FEA_Delete		 (void);  
 		void Print  (void)  const;
 		void Print  (char*) const;
+		void print  (char*) const;
 		void Random (int seed=1);
 		void Random (double high_val, double low_val=0, int seed=1);
 
@@ -54,6 +55,10 @@ class FEA_dMatrixT: public ArrayT <dMatrixT>
 		void Inverse   		(const FEA_dMatrixT& fea_matrix);
 		void SumOf     		(const FEA_dMatrixT &a, const FEA_dMatrixT &b);
 		void DiffOf    		(const FEA_dMatrixT &a, const FEA_dMatrixT &b);
+		void Symmetrize   (const FEA_dMatrixT &a );
+		void Symmetrize   (void);
+		void Sym					(const FEA_dMatrixT &a ) { Symmetrize(a); } 
+		void Sym					(void) { Symmetrize(); } 
 		void Identity 		(double value=1.0);
 		void PlusIdentity (double value=1.0);
 		void Determinant	(FEA_dScalarT &det);

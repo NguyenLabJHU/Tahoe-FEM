@@ -24,7 +24,7 @@ class VMS_BCJT : public FineScaleT
   	enum B_T { 
 								kB, 
 						   	kB_1hat,   
-						   	kB00_2hat,   
+						   	kB00_tau_2bar,   
 							 	kB01_tau_3hat,
 							 	kB02_tau_3hat,
 							 	kB03_3hat,
@@ -125,6 +125,7 @@ class VMS_BCJT : public FineScaleT
 						   	kC_biH,
 							 	kZ_sharp,
 							 	kZI,
+						   	kOI,
 							 	kN_1hat0,
 							 	kP_O_N1hat,
 								kAa12T_2bar,

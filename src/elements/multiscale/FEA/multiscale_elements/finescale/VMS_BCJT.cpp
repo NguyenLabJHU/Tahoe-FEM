@@ -60,8 +60,8 @@ void VMS_BCJT::Construct (FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, VM
 
 void VMS_BCJT::Form_LHS_Ka_Kb ( dMatrixT &Ka, dMatrixT &Kb )
 {
- /* del(grad_wa) 		*/ 	Ka  = Integral.of( B[kB_1hat], B[kB00_2hat] );  	
-												Kb  = Integral.of( B[kB_1hat], B[kB00_2hat] ); 
+ /* del(grad_wa) 		*/ 	Ka  = Integral.of( B[kB_1hat], B[kB00_tau_2bar] );  	
+												Kb  = Integral.of( B[kB_1hat], B[kB00_tau_2bar] ); 
 
  /* del(Dm+1) 			*/ 	if (Time_Integration_Scheme != FEA::kBackward_Euler)
 													Ka += Integral.of( B[kB_1hat], B[kB_IIA] );   	
@@ -69,11 +69,15 @@ void VMS_BCJT::Form_LHS_Ka_Kb ( dMatrixT &Ka, dMatrixT &Kb )
  /* del(Dm) 				*/ 	if (Time_Integration_Scheme != FEA::kForward_Euler)
 													Ka += Integral.of( B[kB_1hat], B[kB_IIB] ); 		
 
- /* del(DEV(S-Zeta) */	Ka += Integral.of( B[kB_1hat], delta_t, S[kBeta4b], T4[kN_1hat0], B[kB_H_bar_prime_a] ); 	
- 												Kb += Integral.of( B[kB_1hat], delta_t, S[kBeta4b], T4[kN_1hat0], B[kB_H_bar_prime_b] ); 
- /* del(Kappa)  		*/ 	Ka += Integral.of( B[kB_1hat], delta_t*C[kBeta3]*0.5*C[kc_zeta]*C[kMu]*C[kh], T4[kN_1hat0], B[kB21_2hat] ); 
- /* del(N) 				  */	Ka += Integral.of( B[kB_1hat], delta_t, S[kAlpha], T4[kP_O_N1hat], B[kB_H_bar_prime_a] ); 						
-												Kb += Integral.of( B[kB_1hat], delta_t, S[kAlpha], T4[kP_O_N1hat], B[kB_H_bar_prime_b] ); 
+ /* del(DEV(S-Zeta) */	Ka -= Integral.of( B[kB_1hat], delta_t, S[kBeta4b], T4[kN_1hat0], B[kB_H_bar_prime_a] ); 	
+ 												Kb -= Integral.of( B[kB_1hat], delta_t, S[kBeta4b], T4[kN_1hat0], B[kB_H_bar_prime_b] ); 
+ /* del(Kappa)  		*/ 	//Ka += Integral.of( B[kB_1hat], delta_t*C[kBeta3]*0.5*C[kc_zeta]*C[kMu]*C[kh], T4[kN_1hat0], B[kB21_2hat] ); 
+ /* del(N) 				  */	Ka -= Integral.of( B[kB_1hat], delta_t, S[kAlpha], T4[kP_O_N1hat], B[kB_H_bar_prime_a] ); 						
+												Kb -= Integral.of( B[kB_1hat], delta_t, S[kAlpha], T4[kP_O_N1hat], B[kB_H_bar_prime_b] ); 
+
+ /* del(j)          */  Ka += Integral.of( B[kB_1hat], T4[kOI], B[kB_1hat] );
+ 												Kb += Integral.of( B[kB_1hat], T4[kOI], B[kB_1hat] );
+
 }
 
 //---------------------------------------------------------------------
@@ -115,22 +119,23 @@ void VMS_BCJT::Form_B_List (void)
 
     // Generic B 
 		
-	 	Data_Pro.grad_u   			( B[kB], FEA::kSymmetric 					); // <-- Not used in VMS_BCJ
-	 	Data_Pro.grad_u       	( B[kB_1hat], FEA::kNonSymmetric 	); 
+	 	Data_Pro.grad_u   	( B[kB], FEA::kSymmetric 					); // <-- Not used in VMS_BCJ
+	 	Data_Pro.grad_u     ( B[kB_1hat], FEA::kNonSymmetric 	); 
 
     // del (grad_wa)
 	
-	 	Data_Pro.grad_u_A    		( A[kXI], B[kB00_2hat] 	  ); 
+	 	Data_Pro.A_grad_u_T ( A[kXI], B[kB00_tau_2bar] ); 
+		B[kB00_tau_2bar] *= -1.0;
 	
 		if (Time_Integration_Scheme != FEA::kBackward_Euler) {
 							
 			// del(Dm+1)
 		
-	 		Data_Pro.A_grad_u_T_B 		( A[kFbT], 		A[kDa_mp1],  	B[kB01_tau_3hat] 	);
-	 		Data_Pro.A_grad_u_B 			( A[kA02], 		A[kA03],  		B[kB02_tau_3hat] 	);
+	 		Data_Pro.A_grad_u_T_B ( A[kFbT], 		A[kDa_mp1],  	B[kB01_tau_3hat] 	);
+	 		Data_Pro.A_grad_u_B 	( A[kA02], 		A[kA03],  		B[kB02_tau_3hat] 	);
 
-	 		Data_Pro.A_grad_u_B 			( A[kA04], 		A[kA05],  		B[kB03_3hat] 			);
-	 		Data_Pro.A_grad_u_B 			( A[kDa_mp1], A[kFb],   		B[kB04_3hat] 			);
+	 		Data_Pro.A_grad_u_B 	( A[kA04], 		A[kA05],  		B[kB03_3hat] 			);
+	 		Data_Pro.A_grad_u_B 	( A[kDa_mp1], A[kFb],   		B[kB04_3hat] 			);
 
 			B[kB_IIA]  = B[kB01_tau_3hat]; 
 			B[kB_IIA] += B[kB02_tau_3hat]; 
@@ -143,8 +148,8 @@ void VMS_BCJT::Form_B_List (void)
 
 			// del(Dm) 
 		
-	 		Data_Pro.A_grad_u_T_B 		( A[kFbT], 		A[kDa_m],  		B[kB05_tau_3hat] 	);
-	 		Data_Pro.A_grad_u_B 			( A[kDa_m], 	A[kFb],   		B[kB06_3hat] 			);
+	 		Data_Pro.A_grad_u_T_B	( A[kFbT], 		A[kDa_m],  		B[kB05_tau_3hat] 	);
+	 		Data_Pro.A_grad_u_B 	( A[kDa_m], 	A[kFb],   		B[kB06_3hat] 			);
 
 			B[kB_IIB]  = B[kB05_tau_3hat]; 
 			B[kB_IIB] += B[kB06_3hat]; 
@@ -158,16 +163,21 @@ void VMS_BCJT::Form_B_List (void)
 		// del ( Cb )     	Notes:  14. - 17. 
 	
 	 	Data_Pro.A_grad_u_B 	( A[kA1],   A[kFb],   B[kBa_cb_3hat] 			);
-	 	Data_Pro.A_grad_u_B 	( A[kFb],  	A[kFb],	  B[kBb_cb_3hat] 			);
-	 	Data_Pro.A_grad_u_B 	( A[kFbT],  A[kA1T],  B[kBa_cb_tau_3hat] 	);
-	 	Data_Pro.A_grad_u_B 	( A[kFbT],  A[kFb],  	B[kBb_cb_tau_3hat] 	);
+	 	Data_Pro.A_grad_u_B 	( A[kFbT],  A[kFb],	  B[kBb_cb_3hat] 			);
+	 	Data_Pro.A_grad_u_T_B ( A[kFbT],  A[kA1T],  B[kBa_cb_tau_3hat] 	);
+	 	Data_Pro.A_grad_u_T_B ( A[kFbT],  A[kFb],  	B[kBb_cb_tau_3hat] 	);
+		B[kBa_cb_3hat]			*= -1.0; 	
+		B[kBa_cb_tau_3hat]	*= -1.0; 	
 	  	
 		// del ( Cb^-1 )		Notes:  18. - 21. 
 	
 	 	Data_Pro.A_grad_u_B 	( A[kA2],   A[kA3],   B[kBa_cbi_3hat] 			);
 	 	Data_Pro.A_grad_u_B 	( A[kA3T],  A[kA3],	  B[kBb_cbi_3hat] 			);
-	 	Data_Pro.A_grad_u_B 	( A[kA3T],  A[kA2T],  B[kBa_cbi_tau_3hat] 	);
-	 	Data_Pro.A_grad_u_B 	( A[kA3T],  A[kA3],  	B[kBb_cbi_tau_3hat] 	);
+	 	Data_Pro.A_grad_u_T_B ( A[kA3T],  A[kA2T],  B[kBa_cbi_tau_3hat] 	);
+	 	Data_Pro.A_grad_u_T_B ( A[kA3T],  A[kA3],  	B[kBb_cbi_tau_3hat] 	);
+		B[kBb_cbi_3hat]			*= -1.0; 	
+		B[kBb_cbi_tau_3hat]	*= -1.0; 	
+
 
 	  // del ( S )				Notes:	12. - 13.
 		
@@ -236,9 +246,6 @@ void VMS_BCJT::Form_B_List (void)
 		B[kB_H_bar_prime_a] += B[kB_Temp4];
 
 		//	Notes:	line 10. term a.
-		T4[kT4_Temp0]  = 	T4[kC_bib];
-		T4[kT4_Temp0] *=  -C[kOneThird]; 
-		T4[kT4_Temp0].PlusIdentity(); 
 		B[kB_Temp1].MultAB	( T4[kT4_Temp0], B[kB_H_bar_b] );
 
 	 
@@ -259,7 +266,7 @@ void VMS_BCJT::Form_B_List (void)
 
 		// del ( Kappa )
 
-	 	Data_Pro.grad_u_A  ( A[kF], B[kB21_2hat] 	  ); 
+	 	//Data_Pro.grad_u_A  ( A[kF], B[kB21_2hat] 	  ); 
 
 
 }
@@ -445,6 +452,7 @@ void VMS_BCJT::Form_T4_List (void)  // These matricies are all 9x9 (not 3x3 like
   Data_Pro.A_o_B 	( A[kCbi], 		A[kH], 					T4[kC_biH] 		);
   Data_Pro.A_o_B 	( A[kZeta], 	A[kF_sharpT], 	T4[kZ_sharp] 	);
   Data_Pro.A_o_1 	( A[kZeta], 									T4[kZI] 			);
+  Data_Pro.A_o_1 	( A[kXI], 										T4[kOI] 			);
   Data_Pro.A_o_B 	( A[kN_1hat],	A[kN], 					T4[kN_1hat0] 	);
 
   Data_Pro.II_minus_A_o_B ( A[kN_1hat],	A[kN_1hat],	T4[kP_O_N1hat] ); // 4th Order Orthogonal Projector 

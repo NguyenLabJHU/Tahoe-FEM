@@ -114,6 +114,35 @@ void FEA_dMatrixT::Print(char *c) const
 	cout << "\n";
 }
 
+//------------------------------------------------------------
+
+void FEA_dMatrixT::print(char *c) const
+{
+	int _ncl=0;		 int _nch=n_cols-1;
+	int _nrl=0;		 int _nrh=n_rows-1;
+
+	if (fLength==0)
+		cout << "...ERROR >> FEA_dMatrixT::Print() : "<<c<<" Unallocated \n\n";
+
+	for (int l=0; l<n_ip; l++) {
+
+  	cout << "\n "<<c<<" Matrix evaluated at "<<fLength<<" inegration points (ip): \n"; 
+
+		printf("  "); 
+		for (int j=_ncl; j<=_nch; j++) { if (j!=_nch) printf("%9d",j);  if(j==_nch) printf("%9d\n",j); }
+
+		for (int i=_nrl; i<=_nrh; i++) {
+    	printf("%3d |",i);
+    	for (int j=_ncl; j<=_nch; j++) {
+        if ( j<=_nch )  printf(" %8.1e", (*this)[l](i,j) );
+        if ( j==_nch )  printf("\n"); 
+    	}
+		}
+	}
+
+	printf("\n");
+}
+
 //----------------------------------------------------
 
 void FEA_dMatrixT::Random (int seed) 
@@ -195,7 +224,22 @@ void FEA_dMatrixT::DiffOf(const FEA_dMatrixT &a, const FEA_dMatrixT &b) {
   if (fLength==0) FEA_Dimension (a);
 	for (int i=0; i<fLength; i++) 
     (*this)[i].DiffOf(a[i],b[i]); 
-	
+}
+
+//----------------------------------------------------
+
+void FEA_dMatrixT::Symmetrize (const FEA_dMatrixT &a) 
+{
+	for (int i=0; i<fLength; i++)
+    (*this)[i].Symmetrize(a[i]); 
+}
+
+//----------------------------------------------------
+
+void FEA_dMatrixT::Symmetrize (void) 
+{
+	for (int i=0; i<fLength; i++)
+    (*this)[i].Symmetrize(); 
 }
 
 //----------------------------------------------------

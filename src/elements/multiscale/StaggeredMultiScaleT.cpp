@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.12 2002-12-09 01:50:06 creigh Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.13 2002-12-12 21:42:46 creigh Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -11,6 +11,8 @@
 #include "E_Pr_MatlT.h"
 #include "Iso_MatlT.h"
 #include "BCJ_MatlT.h"
+
+#include "ofstreamT.h"
 
 using namespace Tahoe;
 
@@ -128,7 +130,8 @@ void StaggeredMultiScaleT::Initialize(void)
 		                     
 	/* construct the black boxs */  
 
-	Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_BCJ ); 
+	//Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_BCJ ); 
+	Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_EZ ); 
 	
 	/* FEA Allocation */
 
@@ -146,6 +149,8 @@ void StaggeredMultiScaleT::Initialize(void)
 	fFint_II.Dimension 	( n_en_x_n_df );
 
 	fFEA_Shapes.Construct( fNumIP,n_sd,n_en );
+
+	cout << "############################# Initialize#: \n"; 
 }
 
 //---------------------------------------------------------------------
@@ -156,7 +161,18 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 	/* which equations are being solved? */
 	int curr_group = ElementSupport().CurrentGroup();
 
-	//cout << "############### In RHS Driver ############### \n";
+	static int loop_num=0;
+	static int current_group=0;
+	static ofstreamT myout("matrix");
+
+	if (curr_group!=current_group) { // new group
+		loop_num =0;
+		current_group = curr_group;
+	}
+
+  loop_num++;
+	//loop_num =  ElementSupportT().IterationNumber();
+	cout << "############################# ITERATION#: " << loop_num << "\n";
 
 	/** Time Step Increment */
 	double delta_t = ElementSupport().TimeStep();
@@ -172,8 +188,8 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 		SetLocalU (ua);			 SetLocalU (ua_n);
 		SetLocalU (ub);			 SetLocalU (ub_n);
 
-#if 1	// Debugging Code
-		if (e==1) {
+#if 0	// Debugging Code
+		if ( e==1 && loop_num==1 ) {
 			cout << "ua = \n" << ua << "\n\n";
 			cout << "ub = \n" << ub << "\n\n";
 			cout << "ua_n = \n" << ua_n << "\n\n";
@@ -215,11 +231,11 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 #if 1	// Debugging Code
 			cout << "|||||||||||||||||| COARSE ||||||||||||||||| Elmt number = "<<e<<"\n";
 
-			if (e==1) {
+			//if ( e==1 && loop_num==1 ) {
 				cout << "  fKa_I = \n" << fKa_I << "\n\n";
 				cout << "  fKb_I = \n" << fKb_I << "\n\n";
 				cout << "  fFint_I = \n" << fFint_I << "\n\n";
-			}
+			//}
 
 #endif
 
@@ -246,10 +262,20 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 #if  1	// Debugging Code
 			cout << ".................. FINE ................. Elmt number = "<<e<<"\n";
 
-			if (e==1) {
-				cout << "  fKa_II = \n" << fKa_II << "\n\n";
-				cout << "  fKb_II = \n" << fKb_II << "\n\n";
-				cout << "  fFint_II = \n" << fFint_II << "\n\n";
+			FEA_dMatrixT KAII(1, fKa_II.Rows(), fKa_II.Cols() );
+			FEA_dMatrixT KBII(1, fKb_II.Rows(), fKb_II.Cols() );
+
+			if (e==1 && loop_num==1 ) {
+			//if (e==1) {
+			cout << ">>>>>>>>>>>>> e = "<<e<<"   loop_num =" <<loop_num<<"\n";
+
+      	KAII[0] = fKa_II;
+				KAII.print("Ka_II");
+
+      	KBII[0] = fKb_II;
+				KBII.print("Kb_II");
+
+			  myout << fKa_II;
 			}
 #endif
 
@@ -281,7 +307,7 @@ void StaggeredMultiScaleT::LHSDriver(GlobalT::SystemTypeT)
 
 }
 
-//---------------------------------------------------------------------
+//--------------------------------------------------------------------
 
 void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &iFineScale )
 {
@@ -320,20 +346,20 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 		case FineScaleT::kVMS_BCJ :
 			fEquation_II 	= new VMS_BCJT;
 			fFineMaterial = new BCJ_MatlT;																	// Tantalum 
-			fFineMaterial -> Assign (		BCJ_MatlT::kE, 			1.0 				); 	// 1.68e11 
-			fFineMaterial -> Assign ( 	BCJ_MatlT::kPr, 		0.30 				); 	// .34 
+			fFineMaterial -> Assign (		BCJ_MatlT::kE, 			1.68e+11 		); 	// 1.68e11 (Pa) 
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kPr, 		0.34 				); 	// .34 
 			fFineMaterial -> Assign ( 	BCJ_MatlT::kl, 			0.001 			); 
 			fFineMaterial -> Assign ( 	BCJ_MatlT::kc_zeta, 0.001 			); 
-			fFineMaterial -> Assign ( 	BCJ_MatlT::kf, 			1.0 				); 	// 1.6e-5
-			fFineMaterial -> Assign ( 	BCJ_MatlT::kV, 			1.0 				); 	// 9.78e6 
-			fFineMaterial -> Assign ( 	BCJ_MatlT::kY, 			1.0 				); 	// 2.59e7
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kf, 			1.60e-05 		); 	// 1.6e-5
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kV, 			9.78e+06 		); 	// 9.78e6 
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kY, 			2.59e+07 		); 	// 2.59e7
 			fFineMaterial -> E_Nu_2_Lamda_Mu	( BCJ_MatlT::kE,			BCJ_MatlT::kPr,	
 																					BCJ_MatlT::kLamda, 	BCJ_MatlT::kMu 	);
 			break;
 
-		case FineScaleT::kPOWER_LAW :
-			//fEquation_II 	= new POWER_LAWT;
-			fFineMaterial = new BCJ_MatlT;
+		case FineScaleT::kVMS_EZ : 
+			fEquation_II 	= new VMS_EZT;
+			fFineMaterial = new Iso_MatlT; // <-- not used
 			break;
 
 		case FineScaleT::kPHEN :
