@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2004-06-23 17:04:36 raregue Exp $
+# $Id: makefile,v 1.1 2004-06-23 17:04:38 raregue Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -19,7 +19,12 @@ include $(MACRO_DIR)/$(ARCH).macros
 #    (3) comment the OBJ, OBJ_LINK, and DEP macros in the
 #        section (1.2).
 #
-OBJ = MLSSolverGPT.o
+OBJ = \
+	BasisGPT.o \
+	PolyBasis1DGPT.o \
+	PolyBasis2DGPT.o \
+	PolyBasis3DGPT.o
+#
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #
@@ -36,7 +41,11 @@ DEP = $(OBJ:.o=.d)
 # (2) If there are sources in this directory list them in the
 #     SRC macro; otherwise, comment the SRC macro.
 #
-SRC = MLSSolverGPT.cpp
+SRC = \
+	BasisGPT.cpp \
+	PolyBasis1DGPT.cpp \
+	PolyBasis2DGPT.cpp \
+	PolyBasis3DGPT.cpp
 #
 ##################### (3) headers
 #
@@ -47,7 +56,12 @@ SRC = MLSSolverGPT.cpp
 # If there are no header files in this directory comment both the
 # HDR and HDR_LINK macro   
 #
-HDR = MLSSolverGPT.h
+HDR = \
+	BasisGPT.h \
+	PolyBasis1DGPT.h \
+	PolyBasis2DGPT.h \
+	PolyBasis3DGPT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 #
 ##################### (4) sub-directories
@@ -57,19 +71,15 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (2) uncomment the subdir_driver macro
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
-SUB_DIR = \
-	basis \
-	windows
-
-subdir_driver: subdir_loop
-
+#SUB_DIR = \
+#subdir_driver: subdir_loop
+#
 #
 # (4.2) If there are no sub-directories in this directory:
 #    (1) comment the SUB_DIR and subdir_driver in section (4.1)
 #    (2) uncomment the subdir_driver macro below
 #
-#SUB_DIR =
-#subdir_driver: 
+subdir_driver: 
 
 #####################
 
