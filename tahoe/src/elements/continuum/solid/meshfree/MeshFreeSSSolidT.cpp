@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.17.18.5 2004-05-11 15:57:29 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.17.18.6 2004-05-12 17:51:36 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #include "MeshFreeSSSolidT.h"
 
@@ -273,7 +273,7 @@ void MeshFreeSSSolidT::TakeParameterList(const ParameterListT& list)
 	fMFFractureSupport->TakeParameterList(list.GetList("meshfree_fracture_support"));
 
 	/* get parameters needed to construct shape functions */
-	fMeshfreeParameters = list.ResolveListChoice(this, "meshfree_support_choice");
+	fMeshfreeParameters = list.ResolveListChoice(*this, "meshfree_support_choice");
 
 	/* inherited */
 	SmallStrainT::TakeParameterList(list);
@@ -379,10 +379,11 @@ void MeshFreeSSSolidT::SetShape(void)
 			fConnectivities.Length());
 
 	/* constructors */
+	if (!fMeshfreeParameters) ExceptionT::GeneralFail(caller, "shape function parameters not set");	
 	fMFShapes = new MeshFreeShapeFunctionT(GeometryCode(), NumIP(),
 		fLocInitCoords, ElementSupport().InitialCoordinates(), *fConnectivities[0], 
 		fMFFractureSupport->OffGridNodes(),
-		fElementCards.Position(), /*const ParameterListT& mf_support_params*/);
+		fElementCards.Position(), *fMeshfreeParameters);
 	
 	/* echo parameters */
 	fMFShapes->WriteParameters(ElementSupport().Output());
