@@ -3,7 +3,7 @@
 #include "ifstreamT.h"
 #include "ExceptionT.h"
 #include <math.h>
-#include <iostream.h>
+//#include <iostream.h>
 #include <stdlib.h>
 
 using namespace Tahoe;
@@ -18,6 +18,7 @@ static const int fn = 4;
 WLC::WLC(void):
 	ParameterInterfaceT("Bischoff-Arruda_WLC"){}
 
+#if 0
 /* print parameters */
 void WLC::Print(ostream& out) const
 {
@@ -38,7 +39,7 @@ void WLC::Print(ostream& out) const
 	out << "\n gamma: "<< fgamma
 		<< "\t beta: " << fbeta;
 }
-
+#endif
 
 double WLC::StrainEnergyDensity(void)
 {
@@ -330,6 +331,9 @@ const dSymMatrixT& WLC::s_ij(void)
 
 void WLC::DefineParameters(ParameterListT& list) const
 {
+	/* inherited */
+	FSSolidMatT::DefineParameters(list);
+
 	/* common limit */
 	LimitT positive(0.0, LimitT::Lower);
 
@@ -390,6 +394,9 @@ void WLC::DefineParameters(ParameterListT& list) const
 
 void WLC::TakeParameterList(const ParameterListT& list)
 {
+	/* inherited */
+	FSSolidMatT::TakeParameterList(list);
+
 	/* dimension work space */
 	fC.Dimension(NumSD());
 	fStretch.Dimension(3);
@@ -424,7 +431,10 @@ void WLC::TakeParameterList(const ParameterListT& list)
 	f_e3[1] = list.GetParameter("unit_cell_orientation_b_y");
 	f_e3[2] = list.GetParameter("unit_cell_orientation_b_z");
 
-	/*bulk paramters*/
+	fR0 = sqrt(fl1*fl1+fl2*fl2+fl3*fl3)*0.5;
+	fL = fR0*fR0/(2*fA);
+
+	/* bulk parameters */
 	fgamma = list.GetParameter("bulk_response_gamma");
 	fbeta = list.GetParameter("bulk_response_beta");
 	

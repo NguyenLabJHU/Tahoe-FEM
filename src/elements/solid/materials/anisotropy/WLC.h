@@ -1,3 +1,4 @@
+/* $Id: WLC.h,v 1.3 2005-02-25 18:56:32 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #ifndef _WLC_
@@ -15,7 +16,7 @@ class WLC: public FSSolidMatT
 	WLC(void);
 
 	/* print parameters */
-	virtual void Print(ostream& out) const;
+//	virtual void Print(ostream& out) const;
 	
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
