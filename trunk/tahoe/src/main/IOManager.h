@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.4 2001-09-07 13:22:32 sawimme Exp $ */
+/* $Id: IOManager.h,v 1.5 2001-09-28 01:32:12 paklein Exp $ */
 /* created: sawimme (10/12/1999)                                          */
 
 #ifndef _IOMANAGER_H_
@@ -92,7 +92,6 @@ protected:
 	/* echo interactive data to input file */
 	ofstream fEchoInput;
 	bool fEcho;
-	bool fExternTahoeII;
 	
 private:
 
