@@ -1,6 +1,5 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.14 2003-09-09 00:48:53 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.14.2.1 2003-12-09 18:23:37 paklein Exp $ */
 /* created: paklein (09/13/2000) */
-
 #include "SPOOLESMatrixT.h"
 
 /* library support options */
@@ -14,10 +13,9 @@
 #include "SPOOLESMT.h"
 #endif
 
-/* message file name */
-
 using namespace Tahoe;
 
+/* log file */
 const char SPOOLES_FILE[] = "SPOOLES.out";
 
 /* constuctor */
@@ -30,14 +28,13 @@ SPOOLESMatrixT::SPOOLESMatrixT(ostream& out, int check_code,
 	fSolveCount(0)	
 {
 	fMSRBuilder = new MSRBuilderT(fSymmetric);
-	if (!fMSRBuilder) throw ExceptionT::kOutOfMemory;
+	if (!fMSRBuilder) ExceptionT::OutOfMemory("SPOOLESMatrixT::SPOOLESMatrixT");
 }
 
 SPOOLESMatrixT::SPOOLESMatrixT(const SPOOLESMatrixT& source):
 	GlobalMatrixT(source)
 {
-	cout << "\n SPOOLESMatrixT::SPOOLESMatrixT: not implemented" << endl;
-	throw ExceptionT::kGeneralFail;
+	ExceptionT::GeneralFail("SPOOLESMatrixT::SPOOLESMatrixT", "not implemented");
 }
 
 /* destructor */
