@@ -1,5 +1,6 @@
-/* $Id: ContactNodeT.h,v 1.14 2002-07-05 22:28:01 paklein Exp $ */
+/* $Id: ContactNodeT.h,v 1.15 2002-11-14 15:43:59 rjones Exp $ */
 
+// DEVELOPMENT
 
 #ifndef _CONTACT_NODE_T_H_
 #define _CONTACT_NODE_T_H_

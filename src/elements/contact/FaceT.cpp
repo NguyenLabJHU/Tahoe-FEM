@@ -1,4 +1,6 @@
-/* $Id: FaceT.cpp,v 1.7 2002-10-20 22:48:21 paklein Exp $ */
+/* $Id: FaceT.cpp,v 1.8 2002-11-14 15:43:59 rjones Exp $ */
+
+// DEVELOPMENT
 
 #include "FaceT.h"
 

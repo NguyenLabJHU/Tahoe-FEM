@@ -1,5 +1,8 @@
-/* $Id: MultiplierContactElement2DT.cpp,v 1.12 2002-10-20 22:48:21 paklein Exp $ */
+/* $Id: MultiplierContactElement2DT.cpp,v 1.13 2002-11-14 15:43:59 rjones Exp $ */
 // created by : rjones 2001
+
+// DEVELOPMENT
+
 #include "MultiplierContactElement2DT.h"
 
 #include <math.h>

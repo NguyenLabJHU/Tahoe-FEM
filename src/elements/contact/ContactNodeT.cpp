@@ -1,4 +1,7 @@
-/*  $Id: ContactNodeT.cpp,v 1.15 2002-07-02 19:55:19 cjkimme Exp $ */
+/*  $Id: ContactNodeT.cpp,v 1.16 2002-11-14 15:43:59 rjones Exp $ */
+
+// DEVELOPMENT
+
 #include "ContactNodeT.h"
 
 #include "FaceT.h"

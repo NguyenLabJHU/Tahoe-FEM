@@ -1,4 +1,6 @@
-/* $Id: vector2D.h,v 1.7 2002-07-05 22:28:01 paklein Exp $ */
+/* $Id: vector2D.h,v 1.8 2002-11-14 15:44:00 rjones Exp $ */
+
+// DEVELOPMENT
 
 #ifndef _VECTOR_2D_H_
 #define _VECTOR_2D_H_

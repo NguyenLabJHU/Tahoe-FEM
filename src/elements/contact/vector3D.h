@@ -1,4 +1,6 @@
-/* $Id: vector3D.h,v 1.6 2002-07-02 19:55:20 cjkimme Exp $ */
+/* $Id: vector3D.h,v 1.7 2002-11-14 15:44:00 rjones Exp $ */
+
+// DEVELOPMENT
 
 #ifndef _VECTOR_3D_H_
 #define _VECTOR_3D_H_

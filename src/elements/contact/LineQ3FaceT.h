@@ -1,4 +1,6 @@
-/* $Id: LineQ3FaceT.h,v 1.7 2002-07-05 22:28:01 paklein Exp $ */
+/* $Id: LineQ3FaceT.h,v 1.8 2002-11-14 15:43:59 rjones Exp $ */
+
+// DEVELOPMENT
 
 #ifndef _LINEQ3_FACE_T_H_
 #define _LINEQ3_FACE_T_H_

@@ -1,4 +1,6 @@
-/* $Id: TriaL3FaceT.h,v 1.6 2002-07-05 22:28:01 paklein Exp $ */
+/* $Id: TriaL3FaceT.h,v 1.7 2002-11-14 15:44:00 rjones Exp $ */
+
+// DEVELOPMENT
 
 #ifndef _TRIAL3_FACE_T_H_
 #define _TRIAL3_FACE_T_H_

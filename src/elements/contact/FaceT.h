@@ -1,4 +1,7 @@
-/* $Id: FaceT.h,v 1.25 2002-09-12 17:45:02 paklein Exp $ */
+/* $Id: FaceT.h,v 1.26 2002-11-14 15:43:59 rjones Exp $ */
+
+// DEVELOPMENT
+
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
 
