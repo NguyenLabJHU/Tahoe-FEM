@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.cpp,v 1.6 2002-04-16 21:19:33 cjkimme Exp $  */
+/* $Id: RateDep2DT.cpp,v 1.6.2.1 2002-05-07 07:23:41 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "RateDep2DT.h"
@@ -120,6 +120,7 @@ double RateDep2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 /* traction vector given displacement jump vector */	
 const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
 {
+#pragma unused(sigma)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
@@ -192,6 +193,7 @@ const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state
 /* potential stiffness */
 const dMatrixT& RateDep2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
 {
+#pragma unused(sigma)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;

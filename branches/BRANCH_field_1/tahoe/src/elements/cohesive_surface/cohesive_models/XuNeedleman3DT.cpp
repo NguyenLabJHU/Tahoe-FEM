@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.cpp,v 1.7 2002-04-16 21:19:33 cjkimme Exp $ */
+/* $Id: XuNeedleman3DT.cpp,v 1.7.2.1 2002-05-07 07:23:41 paklein Exp $ */
 /* created: paklein (06/23/1999)*/
 
 #include "XuNeedleman3DT.h"
@@ -93,6 +93,7 @@ double XuNeedleman3DT::Potential(const dArrayT& jump_u, const ArrayT<double>& st
 /* traction vector given displacement jump vector */	
 const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
 {
+#pragma unused(sigma)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
@@ -161,6 +162,7 @@ const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 /* potential stiffness */
 const dMatrixT& XuNeedleman3DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
 {
+#pragma unused(sigma)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;

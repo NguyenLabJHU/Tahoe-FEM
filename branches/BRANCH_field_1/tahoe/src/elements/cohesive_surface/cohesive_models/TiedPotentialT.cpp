@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.1 2002-04-17 15:40:13 cjkimme Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.1.2.1 2002-05-07 07:23:41 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -209,6 +209,7 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 /* potential stiffness */
 const dMatrixT& TiedPotentialT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
 {
+#pragma unused(sigma)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
