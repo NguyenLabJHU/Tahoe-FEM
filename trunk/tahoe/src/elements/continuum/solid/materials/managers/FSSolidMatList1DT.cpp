@@ -1,8 +1,9 @@
-/* $Id: FSSolidMatList1DT.cpp,v 1.2 2004-07-15 08:28:28 paklein Exp $ */
+/* $Id: FSSolidMatList1DT.cpp,v 1.3 2004-07-16 16:22:51 paklein Exp $ */
 #include "FSSolidMatList1DT.h"
 #include "FSMatSupportT.h"
 
 #include "SolidMaterialsConfig.h"
+#include "FSSolidMatT.h"
 
 #ifdef __DEVELOPMENT__
 #include "DevelopmentMaterialsConfig.h"
