@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.11 2001-10-03 17:37:29 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.12 2001-10-03 20:50:50 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "vtkRenderer.h"
@@ -65,6 +65,8 @@ VTKConsoleT::VTKConsoleT(void)
   iAddCommand("Flip_book");
   iAddCommand("Change_background_color");
   iAddCommand("Select_frame_number");
+  iAddCommand("Show_axes");
+  iAddCommand("Hide_axes");
  
 
    StringT file = "../../example_files/heat/heat.io0.exo";
@@ -257,6 +259,7 @@ VTKConsoleT::VTKConsoleT(void)
   ldm = vtkLabeledDataMapper::New();
   pointLabels = vtkActor2D::New();
   cam = vtkCamera::New();
+  axes = vtkCubeAxesActor2D::New();
   
   renWin->AddRenderer(renderer);
  
@@ -268,16 +271,6 @@ VTKConsoleT::VTKConsoleT(void)
   lut->SetAlphaRange(alphaRange1,alphaRange2);
   lut->SetNumberOfColors(numColors);
   lut->Build();
-
-//   // x,y,z axes
-//       vtkCubeAxesActor2D *axes = vtkCubeAxesActor2D::New();
-//       axes->SetInput(ugrid);
-//       axes->SetCamera(renderer->GetActiveCamera());
-//     //  axes->SetLabelFormat("%6.4g");
-//       axes->ShadowOn();
-//       axes->SetFlyModeToOuterEdges();
-//       axes->SetFontFactor(0.8);
-//       axes->GetProperty()->SetColor(1,0,1);
   
   ugridMapper->SetInput(ugrid);
   ugridMapper->SetScalarRange(scalarRange1,scalarRange2);
@@ -369,6 +362,19 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       cin >> output_file;
       char line[255];
       cin.getline(line, 254);
+      cout << "Save image at: \n 1: current view\n 2: default view: ";
+      cin >> sfbTest;
+      cin.getline(line, 254);
+	if (sfbTest == 2) {
+	  cam->SetFocalPoint(0,0,0);
+	  cam->SetPosition(0,0,1);
+	  cam->ComputeViewPlaneNormal();
+	  cam->SetViewUp(0,1,0);
+	  cam->OrthogonalizeViewUp();
+	  renderer->SetActiveCamera(cam);
+	  renderer->ResetCamera();
+	  renWin->Render();
+	}
 	
       renSrc->SetInput(renderer);
        renSrc->WholeWindowOn();
@@ -476,7 +482,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       cin >> timeStep;
       char line[255];
       cin.getline(line, 254);
-      cout << "Save images at: \n 1: current view\n 2: default view: ";
+      cout << "Show images at: \n 1: current view\n 2: default view: ";
       cin >> sfbTest;
       cin.getline(line, 254);
 	
@@ -489,6 +495,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 	  cam->OrthogonalizeViewUp();
 	  renderer->SetActiveCamera(cam);
 	  renderer->ResetCamera();
+	  renWin->Render();
 	}
 
       for (int j = 0; j<num_time_steps; j++){
@@ -526,6 +533,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 	cam->OrthogonalizeViewUp();
 	renderer->SetActiveCamera(cam);
 	renderer->ResetCamera();
+	renWin->Render();
       }	
       
       for (int j = 0; j<num_time_steps; j++){
@@ -612,6 +620,34 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       iren->Start();
       return true;   
  
+    }
+  
+  else if (command == "Show_axes")
+  {
+
+  // x,y,z axes
+      
+      axes->SetInput(ugrid);
+     axes->SetCamera(renderer->GetActiveCamera());
+    //  axes->SetLabelFormat("%6.4g");
+      axes->ShadowOn();
+      axes->SetFlyModeToClosestTriad();
+      axes->SetFontFactor(3.8);
+      axes->GetProperty()->SetColor(1,0,1);
+      axes->ZAxisVisibilityOff();
+      axes->VisibilityOn();
+      renderer->AddActor2D(axes);
+      renWin->Render();
+      iren->Start();
+      return true;
+  }
+
+  else if (command == "Hide_axes")
+    {
+      axes->VisibilityOff();
+      renWin->Render();
+      iren->Start();
+      return true;
     }
 
   else
