@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.12 2001-04-30 19:30:19 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.13 2001-04-30 21:27:16 rjones Exp $ */
 
 #include "LineL2FaceT.h"
 #include "FaceT.h"
@@ -10,6 +10,9 @@
 /* vector functions */
 #include "vector2D.h"
 
+/* parameters */
+dArray2DT LineL2FaceT::fIntegrationPoints;
+
 LineL2FaceT::LineL2FaceT
 (SurfaceT& surface, dArray2DT& surface_coordinates, 
 int number_of_face_nodes, int* connectivity):
@@ -17,12 +20,14 @@ int number_of_face_nodes, int* connectivity):
 	number_of_face_nodes,connectivity)
 {
 	fNumVertexNodes = 2;
-        fIntegrationPoints.Allocate(2,1);
-        double* ip;
-        ip = fIntegrationPoints(0);
-        ip[0] = -1.0 ;
-        ip = fIntegrationPoints(1);   
-        ip[0] =  1.0 ; 
+	if (!fIntegrationPoints.IsAllocated()){
+        	fIntegrationPoints.Allocate(2,1);
+        	double* ip;
+        	ip = fIntegrationPoints(0);
+        	ip[0] = -1.0 ;
+        	ip = fIntegrationPoints(1);   
+        	ip[0] =  1.0 ; 
+	}
 
 }
 

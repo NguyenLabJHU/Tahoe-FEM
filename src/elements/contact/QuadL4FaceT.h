@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.h,v 1.10 2001-04-30 19:30:20 rjones Exp $ */
+/* $Id: QuadL4FaceT.h,v 1.11 2001-04-30 21:27:17 rjones Exp $ */
 
 #ifndef _QUADL4_FACE_T_H_
 #define _QUADL4_FACE_T_H_
@@ -60,7 +60,7 @@ private:
         double* fx[4];
 	
 	/* integration points */
-	dArray2DT fIntegrationPoints;//SHOULD BE STATIC
+	static dArray2DT fIntegrationPoints;//SHOULD BE STATIC
 };
 
 inline void

@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.12 2001-04-30 19:30:20 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.13 2001-04-30 21:27:17 rjones Exp $ */
 
 #include "QuadL4FaceT.h"
 #include "FaceT.h"
@@ -12,8 +12,10 @@
 #include "vector3D.h"
 
 /* parameters */
-const double kTol_Quad = 0.00000001;
-const double kTol_One  = 1.00000001;
+static const double kTol_Quad = 0.00000001;
+static const double kTol_One  = 1.00000001;
+
+dArray2DT QuadL4FaceT::fIntegrationPoints;
 
 QuadL4FaceT::QuadL4FaceT
 (SurfaceT& surface, dArray2DT& surface_coordinates, 
@@ -22,16 +24,18 @@ int number_of_face_nodes, int* connectivity):
 	number_of_face_nodes,connectivity)
 {
 	fNumVertexNodes = 4;
-	fIntegrationPoints.Allocate(4,2);
-	double* ip;
-	ip = fIntegrationPoints(0);	
-	ip[0] = -1.0 ; ip[1] = -1.0;
-	ip = fIntegrationPoints(1);	
-	ip[0] =  1.0 ; ip[1] = -1.0;
-	ip = fIntegrationPoints(2);	
-	ip[0] =  1.0 ; ip[1] =  1.0;
-	ip = fIntegrationPoints(3);	
-	ip[0] = -1.0 ; ip[1] =  1.0;
+	if (!fIntegrationPoints.IsAllocated()) {
+		fIntegrationPoints.Allocate(4,2);
+		double* ip;
+		ip = fIntegrationPoints(0);	
+		ip[0] = -1.0 ; ip[1] = -1.0;
+		ip = fIntegrationPoints(1);	
+		ip[0] =  1.0 ; ip[1] = -1.0;
+		ip = fIntegrationPoints(2);	
+		ip[0] =  1.0 ; ip[1] =  1.0;
+		ip = fIntegrationPoints(3);	
+		ip[0] = -1.0 ; ip[1] =  1.0;
+	}
 }
 
 QuadL4FaceT::~QuadL4FaceT (void)

@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.h,v 1.11 2001-04-30 19:30:19 rjones Exp $ */
+/* $Id: LineL2FaceT.h,v 1.12 2001-04-30 21:27:16 rjones Exp $ */
 
 #ifndef _LINEL2_FACE_T_H_
 #define _LINEL2_FACE_T_H_
@@ -57,7 +57,7 @@ private:
 	double*  fx[2];
 	
 	/* integration points */  
-	dArray2DT fIntegrationPoints;// SHOULD BE STATIC
+	static dArray2DT fIntegrationPoints;// SHOULD BE STATIC
 
 };
 
