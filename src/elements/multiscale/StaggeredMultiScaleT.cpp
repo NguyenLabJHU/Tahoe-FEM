@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.13 2002-12-12 21:42:46 creigh Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.14 2002-12-17 00:21:29 creigh Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -155,24 +155,37 @@ void StaggeredMultiScaleT::Initialize(void)
 
 //---------------------------------------------------------------------
 
+
 /* form group contribution to the stiffness matrix and RHS */
 void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!	
 {
-	/* which equations are being solved? */
+ 
 	int curr_group = ElementSupport().CurrentGroup();
 
+#define OFF      0
+#define DISPL    1 
+#define COARSE   2 
+#define FINE     3 
+#define ALL      4 
+
+#define DEBUG OFF 
+
+#if (DEBUG)
+	int debug_iteration=1;
 	static int loop_num=0;
 	static int current_group=0;
-	static ofstreamT myout("matrix");
+	//static ofstreamT myout("matrix");
 
 	if (curr_group!=current_group) { // new group
-		loop_num =0;
+		//loop_num =0;
 		current_group = curr_group;
 	}
 
   loop_num++;
 	//loop_num =  ElementSupportT().IterationNumber();
+	
 	cout << "############################# ITERATION#: " << loop_num << "\n";
+#endif
 
 	/** Time Step Increment */
 	double delta_t = ElementSupport().TimeStep();
@@ -188,8 +201,9 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 		SetLocalU (ua);			 SetLocalU (ua_n);
 		SetLocalU (ub);			 SetLocalU (ub_n);
 
-#if 0	// Debugging Code
-		if ( e==1 && loop_num==1 ) {
+#if (DEBUG==DISPL || DEBUG==ALL) // Debugging Code
+		if ( e==1 && loop_num==debug_iteration ) {
+			cout << "|||||||||||||||||| DISPL ||||||||||||||||| Elmt number = "<<e<<"\n";
 			cout << "ua = \n" << ua << "\n\n";
 			cout << "ub = \n" << ub << "\n\n";
 			cout << "ua_n = \n" << ua_n << "\n\n";
@@ -228,14 +242,17 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 			fEquation_I -> Form_LHS_Ka_Kb ( fKa_I, fKb_I );
 			fEquation_I -> Form_RHS_F_int ( fFint_I );
 
-#if 1	// Debugging Code
-			cout << "|||||||||||||||||| COARSE ||||||||||||||||| Elmt number = "<<e<<"\n";
+			//fKa_I.Random(1);
+			//fKb_I.Random(2);
 
-			//if ( e==1 && loop_num==1 ) {
+#if (DEBUG==ALL || DEBUG==COARSE) // Debugging Code
+
+			if ( e==1 && loop_num==debug_iteration ) {
+				cout << "|||||||||||||||||| COARSE ||||||||||||||||| Elmt number = "<<e<<"\n";
 				cout << "  fKa_I = \n" << fKa_I << "\n\n";
 				cout << "  fKb_I = \n" << fKb_I << "\n\n";
 				cout << "  fFint_I = \n" << fFint_I << "\n\n";
-			//}
+			}
 
 #endif
 
@@ -259,15 +276,18 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 			fEquation_II -> Form_LHS_Ka_Kb ( fKa_II, 	fKb_II );
 			fEquation_II -> Form_RHS_F_int ( fFint_II );
 
-#if  1	// Debugging Code
+#if (DEBUG==ALL || DEBUG==FINE) // Debugging Code
+
+			if (e==1 && loop_num==debug_iteration ) {
+
 			cout << ".................. FINE ................. Elmt number = "<<e<<"\n";
-
-			FEA_dMatrixT KAII(1, fKa_II.Rows(), fKa_II.Cols() );
-			FEA_dMatrixT KBII(1, fKb_II.Rows(), fKb_II.Cols() );
-
-			if (e==1 && loop_num==1 ) {
-			//if (e==1) {
 			cout << ">>>>>>>>>>>>> e = "<<e<<"   loop_num =" <<loop_num<<"\n";
+			cout << "fKa_II = \n" << fKa_II << "\n";
+			cout << "fKb_II = \n" << fKb_II << "\n";
+
+			/* // Use for printing on 8.5 x 11
+				FEA_dMatrixT KAII(1, fKa_II.Rows(), fKa_II.Cols() );
+				FEA_dMatrixT KBII(1, fKb_II.Rows(), fKb_II.Cols() );
 
       	KAII[0] = fKa_II;
 				KAII.print("Ka_II");
@@ -276,6 +296,7 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 				KBII.print("Kb_II");
 
 			  myout << fKa_II;
+				*/
 			}
 #endif
 
