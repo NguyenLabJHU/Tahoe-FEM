@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.12.2.2 2002-12-27 23:20:58 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.12.2.3 2003-01-05 23:42:04 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -23,15 +23,7 @@ ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field
 	fEqnos(kMemoryHeadRoom),
 	fForce_list_man(0, fForce_list)
 {
-	/* input stream */
-	ifstreamT& in = ElementSupport().Input();
 
-	/* read parameters */
-	in >> fNeighborDistance;
-
-	/* checks */
-	if (fNeighborDistance < kSmall) 
-		ExceptionT::BadInputValue("ParticlePairT::ParticlePairT");
 }
 
 /* collecting element group equation numbers */
