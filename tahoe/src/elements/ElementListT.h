@@ -1,6 +1,5 @@
-/* $Id: ElementListT.h,v 1.5 2003-01-29 07:34:26 paklein Exp $ */
+/* $Id: ElementListT.h,v 1.5.12.1 2003-06-14 18:46:24 paklein Exp $ */
 /* created: paklein (04/20/1998) */
-
 #ifndef _ELEMENTLIST_T_H_
 #define _ELEMENTLIST_T_H_
 
@@ -32,20 +31,33 @@ public:
 	/** constructor */
 	ElementListT(void);
 
-	/* echo data from the I/O streams */
+	/** destructor */
+	~ElementListT(void);
+
+	/** echo data from the I/O streams */
 	void EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe);
 	
-	/* returns true of ALL element groups have interpolant DOF's */
+	/** returns true of ALL element groups have interpolant DOF's */
 	bool InterpolantDOFs(void) const;
 
-	/* returns true if contact group present */
+	/** returns true if contact group present */
 	bool HasContact(void) const;
+
+	/** change the active element groups.
+	 * \param mask list with length of the \e total number of element
+	 *        groups with true|false determining whether the element
+	 *        group is active. */
+	void SetActiveElementGroupMask(const ArrayT<bool>& mask);
 
 private:
 
-	/* data needed for element contructors */
+	/** data needed for element contructors */
 	ElementSupportT fSupport;
+
+	/** cached pointers to element groups */
+	ArrayT<ElementBaseT*> fAllElementGroups;
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _ELEMENTLIST_T_H_ */
