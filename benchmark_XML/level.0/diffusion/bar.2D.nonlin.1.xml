@@ -18,7 +18,7 @@
         </field>
     </nodes>
     <element_list>
-        <diffusion field_name="temperature">
+        <nonlinear_diffusion field_name="temperature">
             <quadrilateral/>
             <diffusion_element_nodal_output displacement="1" material_output="1"/>
             <diffusion_element_block>
@@ -26,10 +26,20 @@
                     <String value="1"/>
                 </block_ID_list>
                 <diffusion_material>
-                    <linear_diffusion_material conductivity="1.0" density="1.0" specific_heat="1.0"/>
+                    <nonlinear_diffusion_material conductivity="1.0"
+                        density="1.0" specific_heat="1.0">
+                        <conductivity_function>
+                            <linear_function intercept="1.0" slope="-1.0"/>
+                        </conductivity_function>
+                        <specificheat_function>
+                            <linear_function intercept="1.0" slope="0.0"/>
+                        </specificheat_function>
+                    </nonlinear_diffusion_material>
                 </diffusion_material>
             </diffusion_element_block>
-        </diffusion>
+        </nonlinear_diffusion>
     </element_list>
-    <linear_solver matrix_type="profile"/>
+    <nonlinear_solver abs_tolerance="1.0e-10"
+        divergence_tolerance="10.0" matrix_type="profile"
+        max_iterations="5" rel_tolerance="1.0e-12"/>
 </tahoe>

@@ -1,11 +1,12 @@
-# $Id: makefile,v 1.1.1.1 2004-03-04 06:42:09 paklein Exp $
+# $Id: makefile,v 1.2 2004-03-06 17:24:28 paklein Exp $
 #
 # type "make clean" to remove test results
 #
 
 # list of subdirectories
 SUB_DIR = \
-	2D.elastostatic
+	2D.elastostatic \
+	diffusion
 
 all:
 	@echo "make clean to remove test results"
