@@ -21,5 +21,8 @@ Things that needed to be addressed when running the code through f2c
 
 (6) C doesn't initialize the contents of dynamically allocated space to 0.
 
+(7) because some functions are called recursively, the local variables
+	cannot be declared static, which is the default with f2c
+
 Potential issues:
 (1) lbit_shift translated from ishft in moveai.c. What does this do?
