@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.1.2.4 2004-03-04 06:45:30 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.1.2.5 2004-03-04 20:11:54 paklein Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -675,17 +675,17 @@ void FSSolidMatList2DT::TakeParameterList(const ParameterListT& list)
 }
 
 /* construct the specified material or NULL if the request cannot be completed */
-FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& list_name) const
+FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& name) const
 {
 	FSSolidMatT* mat = NULL;
 
-	if (list_name == "large_strain_cubic_2D")
+	if (name == "large_strain_cubic_2D")
 		mat = new FDCubic2DT;
-	else if (list_name == "large_strain_StVenant_2D")
+	else if (name == "large_strain_StVenant_2D")
 		mat = new FDKStV2D;
 
 	/* set support */
-	mat->SetFSMatSupport(fFSMatSupport);
+	if (mat) mat->SetFSMatSupport(fFSMatSupport);
 
 	return mat;
 

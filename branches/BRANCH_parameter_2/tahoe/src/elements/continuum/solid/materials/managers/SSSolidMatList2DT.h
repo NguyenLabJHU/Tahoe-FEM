@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList2DT.h,v 1.1.2.3 2004-02-11 16:39:01 paklein Exp $ */
+/* $Id: SSSolidMatList2DT.h,v 1.1.2.4 2004-03-04 20:11:54 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #ifndef _SS_MATLIST_2D_T_H_
 #define _SS_MATLIST_2D_T_H_
@@ -44,7 +44,7 @@ public:
 	/*@}*/
 
 	/** construct the specified material or NULL if the request cannot be completed */
-	SSSolidMatT* NewSSSolidMat(const StringT& list_name) const;
+	SSSolidMatT* NewSSSolidMat(const StringT& name) const;
 
 private:
 
