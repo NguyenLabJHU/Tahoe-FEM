@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.9 2002-03-07 18:43:07 cjkimme Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.10 2002-04-16 21:19:33 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -68,7 +68,7 @@ double Tijssens2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state)
+const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
@@ -107,23 +107,28 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 	      state[1] = state[0] = 0.;
 	  }
 	  else
-	  {
-	   
-	    
+	  { 
 	    /*NormalTraction*/
+	    if (state[1] < kSmall) 
+	      state[1] = 1.1*fsigma_c;
 	    double Tnp1 = state[1];
 	    SecantMethodT secant(20);
+	    double du_nd = du_n/fTimeStep;//.000001;
 
-	    secant.Reset(fsigma_c,-state[1]-fk_n*(du_n-fTimeStep*fDelta_0),1.5*state[1],.5*state[1]-fk_n*(du_n-fTimeStep*fDelta_0*exp(-fastar*(fsigma_c-Tnp1))));
+	    secant.Reset(fsigma_c,-state[1]-fk_n*fTimeStep*(du_nd-fDelta_0),1.5*state[1],.5*state[1]-fk_n*fTimeStep*(du_nd-fDelta_0*exp(-fastar*(fsigma_c-Tnp1))));
 	    Tnp1 = secant.NextGuess();
-	    while (!secant.NextPoint(Tnp1,Tnp1-state[1]-(fk_n*(du_n-fTimeStep*fDelta_0*exp(-fastar*(fsigma_c-Tnp1))))))
+	    while (!secant.NextPoint(Tnp1,Tnp1-state[1]-(fk_n*fTimeStep*(du_nd-fDelta_0*exp(-fastar*(fsigma_c-Tnp1))))))
 	      Tnp1 = secant.NextGuess();
 
 	    double du_c = fTimeStep*fDelta_0*exp(-fastar*(fsigma_c-Tnp1));
-	    state[1] += fk_n*(du_n-du_c);
+	    state[1] += fk_n*(du_nd*fTimeStep-du_c);
 
 	    state[5] += du_c;
 	    state[6] += state[1]*du_n;
+
+	    //	    cout << "In Traction " << Tnp1 << " " << du_c << "\n";
+
+	    // cout << " Local rate " << du_n << " " << du_c << " " << du_n-du_c << "\n";
 
 	    /* Tangential traction *//*
 	    Tnp1 = state[0];
@@ -147,11 +152,13 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 	state[2] = jump_u[0];
 	state[3] = jump_u[1];
 
+	//	cout << "Traction " << fTraction[0] << " " << fTraction[1] << "\n";
+
 	return fTraction;
 }
 
 /* potential stiffness */
-const dMatrixT& Tijssens2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state)
+const dMatrixT& Tijssens2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
@@ -185,6 +192,8 @@ const dMatrixT& Tijssens2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doubl
 	  {
 	      /*Normal stiffness*/
 	      double du_n = jump_u[1]-state[3];
+	      if (state[1] < kSmall)
+		state[1] = 1.1 * fsigma_c;
 	      double Tnp1 = state[1];
 	      SecantMethodT secant(20);
 	      
@@ -221,6 +230,8 @@ const dMatrixT& Tijssens2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doubl
 	      double fk_t = fk_t0*exp(-fc_1*state[5]/fDelta_n_ccr);
 	      fStiffness[0] = fk_t;
 	  }
+
+	//	cout << "Stiffness " << fStiffness[0] << " " << fStiffness[3] <<" \n";
 
 	return fStiffness;
 
@@ -306,7 +317,7 @@ int Tijssens2DT::NodalQuantityNeeded(void)
         return 2; 
 }
 
-double Tijssens2DT::ComputeNodalValue(const dArrayT& nodalRow) 
+/*double Tijssens2DT::ComputeNodalValue(const dArrayT& nodalRow) 
 {
         return (nodalRow[0]+nodalRow[1])/3;
 }
@@ -314,7 +325,7 @@ double Tijssens2DT::ComputeNodalValue(const dArrayT& nodalRow)
 void Tijssens2DT::UpdateStateVariables(const dArrayT& IPdata, ArrayT<double>& state)
 {
         state[7] = IPdata[0];
-}
+}*/
 
 int Tijssens2DT::ElementGroupNeeded(void) 
 {

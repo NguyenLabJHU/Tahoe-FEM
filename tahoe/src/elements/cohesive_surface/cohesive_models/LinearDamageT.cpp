@@ -1,4 +1,4 @@
-/* $Id: LinearDamageT.cpp,v 1.6 2001-12-17 00:15:51 paklein Exp $ */
+/* $Id: LinearDamageT.cpp,v 1.7 2002-04-16 21:19:33 cjkimme Exp $ */
 /* created: paklein (08/21/2000) */
 
 #include "LinearDamageT.h"
@@ -69,7 +69,7 @@ double LinearDamageT::Potential(const dArrayT& jump_u, const ArrayT<double>& sta
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, ArrayT<double>& state)
+const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != fTraction.Length()) throw eSizeMismatch;
@@ -119,7 +119,7 @@ const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 }
 
 /* potential stiffness */
-const dMatrixT& LinearDamageT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state)
+const dMatrixT& LinearDamageT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != fTraction.Length()) throw eSizeMismatch;

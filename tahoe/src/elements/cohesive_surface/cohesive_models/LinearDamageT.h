@@ -1,4 +1,4 @@
-/* $Id: LinearDamageT.h,v 1.5 2001-11-02 19:35:43 cjkimme Exp $ */
+/* $Id: LinearDamageT.h,v 1.6 2002-04-16 21:19:33 cjkimme Exp $ */
 /* created: paklein (08/26/2000) */
 
 #ifndef _LINEAR_DAMAGE_T_H_
@@ -36,10 +36,10 @@ public:
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump, ArrayT<double>& state);
+	virtual const dArrayT& Traction(const dArrayT& jump, ArrayT<double>& state, const dArrayT& sigma);
 
 	/** tangent stiffness */
-	virtual const dMatrixT& Stiffness(const dArrayT& jump, const ArrayT<double>& state);
+	virtual const dMatrixT& Stiffness(const dArrayT& jump, const ArrayT<double>& state, const dArrayT& sigma);
 
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump, const ArrayT<double>& state);

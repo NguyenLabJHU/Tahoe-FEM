@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.cpp,v 1.3 2001-12-17 00:15:51 paklein Exp $ */
+/* $Id: ViscTvergHutch2DT.cpp,v 1.4 2002-04-16 21:19:33 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "ViscTvergHutch2DT.h"
@@ -85,7 +85,7 @@ double ViscTvergHutch2DT::Potential(const dArrayT& jump_u, const ArrayT<double>&
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state)
+const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
@@ -136,7 +136,7 @@ const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>
 }
 
 /* potential stiffness */
-const dMatrixT& ViscTvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state)
+const dMatrixT& ViscTvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
