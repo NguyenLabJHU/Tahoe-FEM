@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.15 2003-05-04 22:56:18 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.16 2003-09-04 23:55:24 paklein Exp $ */
 /* created: paklein (06/19/1996) */
 #ifndef _ARRAY_T_H_
 #define _ARRAY_T_H_
@@ -53,7 +53,15 @@ public:
 	 * \param TYPEPtr pointer to a block of memory with a dimension of at
 	 *        least length. It is assumed that this memory will remain valid
 	 *        for the lifetime of this array */
+	void Alias(int length, TYPE* TYPEPtr);
+
+	/** \deprecated replaced by ArrayT::Alias on 09/04/2003 */
 	void Set(int length, TYPE* TYPEPtr);
+
+	/** create shallow copy of the source array. Any memory previously owned 
+	 * by the array will be freed and previous content is lost. The source array
+	 * is assumed to stay valid for the lifetime of this array. */
+	void Alias(const ArrayT<TYPE>& RHS);
 
 	/** set the array size to the given length. No change occurs if the array
 	 * is already the specified length. The previous contents of the array is
@@ -140,11 +148,6 @@ public:
 	/** copy contents of the array. The valid portion of the source array is
 	 * assumed to be at least as long as the length of this array */ 
 	void Copy(const TYPE* pRHS);
-
-	/** create shallow copy of the source array. Any memory previously owned 
-	 * by the array will be freed and previous content is lost. The source array
-	 * is assumed to stay valid for the lifetime of this array. */
-	void Alias(const ArrayT<TYPE>& RHS);
 	
 	/** copy source into this array. The length of this array, accounting for
 	 * the offset must be long enough to accept the contents of the source.
@@ -340,7 +343,7 @@ inline void ArrayT<TYPE>::MemMove(TYPE* to, const TYPE* from, int length)
 
 /* set fields */
 template <class TYPE>
-inline void ArrayT<TYPE>::Set(int length, TYPE* TYPEPtr)
+inline void ArrayT<TYPE>::Alias(int length, TYPE* TYPEPtr)
 {
 	/* release memory if allocated */
 	if (fDelete)
@@ -351,6 +354,16 @@ inline void ArrayT<TYPE>::Set(int length, TYPE* TYPEPtr)
 	fLength = length;
 	fArray  = TYPEPtr;	
 }
+
+/* shallow copy/conversion */
+template <class TYPE>
+inline void ArrayT<TYPE>::Alias(const ArrayT<TYPE>& RHS)
+{
+	Alias(RHS.Length(), RHS.Pointer());
+}
+
+template <class TYPE>
+inline void ArrayT<TYPE>::Set(int length, TYPE* TYPEPtr) { Alias(length, TYPEPtr); }
 
 /* allocate an array of the specified size.*/
 template <class TYPE>
@@ -657,13 +670,6 @@ void ArrayT<TYPE>::TakePointer(int length, TYPE* array)
 	fArray  = array;
 	fLength = length;
 	fDelete = 1;
-}
-
-/* shallow copy/conversion */
-template <class TYPE>
-inline void ArrayT<TYPE>::Alias(const ArrayT<TYPE>& RHS)
-{
-	Set(RHS.Length(), RHS.Pointer());
 }
 
 /* binary I/O */
