@@ -1,4 +1,4 @@
-/* $Id: LJSpringT.cpp,v 1.4 2002-11-30 16:33:42 paklein Exp $ */
+/* $Id: LJSpringT.cpp,v 1.4.50.1 2004-06-19 04:33:22 hspark Exp $ */
 /* created: paklein (5/28/1996) */
 #include "LJSpringT.h"
 
@@ -8,7 +8,7 @@
 #include "Environment.h"
 #include "ExceptionT.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "ThermalDilatationT.h"
 
 using namespace Tahoe;

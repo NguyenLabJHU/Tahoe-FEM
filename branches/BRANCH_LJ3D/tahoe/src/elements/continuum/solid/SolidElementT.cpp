@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.59 2004-04-09 00:30:11 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.59.2.1 2004-06-19 04:33:06 hspark Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -7,7 +7,8 @@
 
 #include "toolboxConstants.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"
 #include "eIntegratorT.h"

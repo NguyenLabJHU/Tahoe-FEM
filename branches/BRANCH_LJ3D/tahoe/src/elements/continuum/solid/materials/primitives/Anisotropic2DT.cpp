@@ -1,4 +1,4 @@
-/* $Id: Anisotropic2DT.cpp,v 1.3 2002-10-20 22:49:11 paklein Exp $ */
+/* $Id: Anisotropic2DT.cpp,v 1.3.52.1 2004-06-19 04:33:15 hspark Exp $ */
 /* created: paklein (06/11/1997)                                          */
 /* Base class for 2D anisotropic materials                                */
 
@@ -7,7 +7,7 @@
 #include <iostream.h>
 
 #include "Rotate2DT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 
 /* constructors */
 

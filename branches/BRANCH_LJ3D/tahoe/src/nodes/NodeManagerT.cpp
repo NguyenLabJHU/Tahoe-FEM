@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.46 2004-04-09 02:03:15 hspark Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.46.2.1 2004-06-19 04:33:26 hspark Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -7,7 +7,7 @@
 #include <limits.h>
 #include <ctype.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "FEManagerT.h"
 #include "IOManager.h"
 #include "ModelManagerT.h"

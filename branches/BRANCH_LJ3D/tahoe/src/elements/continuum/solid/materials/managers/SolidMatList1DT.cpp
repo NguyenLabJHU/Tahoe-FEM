@@ -1,7 +1,7 @@
-/* $Id: SolidMatList1DT.cpp,v 1.16 2004-01-14 22:04:44 rdorgan Exp $ */
+/* $Id: SolidMatList1DT.cpp,v 1.16.20.1 2004-06-19 04:33:14 hspark Exp $ */
 #include "SolidMatList1DT.h"
 #include "SolidMatSupportT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 
 /* 1D material types codes */
 /* Add small strain linear elastic material here */

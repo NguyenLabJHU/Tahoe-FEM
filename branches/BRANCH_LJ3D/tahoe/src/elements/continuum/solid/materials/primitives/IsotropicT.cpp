@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.cpp,v 1.9 2003-08-16 01:31:48 rdorgan Exp $ */
+/* $Id: IsotropicT.cpp,v 1.9.34.1 2004-06-19 04:33:15 hspark Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "IsotropicT.h"
@@ -6,7 +6,7 @@
 #include <iostream.h>
 
 #include "dMatrixT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 
 /* constructor */
 

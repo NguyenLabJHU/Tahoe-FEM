@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.24 2004-03-18 17:43:05 paklein Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.24.8.1 2004-06-19 04:33:20 hspark Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -583,7 +583,7 @@ bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& 
 	else if (dim == 2)
 	{
 		/* convergence tolerance */
-	        double tol = 1.0e-10;  // originally 10-10;
+		double tol = 1.0e-10;  // originally 10-10;
 
 		/* initial guess */
 		mapped[0] = 0.0;
@@ -643,7 +643,7 @@ bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& 
     else if (dim == 3)
     {
 		/* convergence tolerance */
-		double tol = 1.0e-14;
+		double tol = 1.0e-10;
 
 		/* initial guess */
 		mapped[0] = 0.0;
@@ -652,7 +652,7 @@ bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& 
 	
 		/* evaluate shape functions, derivatives at point */
 		EvaluateShapeFunctions(mapped, Na_p, DNa_p);
-      
+	  
 		/* compute initial residual */
 		double residual[3];
 		residual[0] = point[0];

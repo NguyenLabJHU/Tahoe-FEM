@@ -1,7 +1,8 @@
-/* $Id: FieldT.cpp,v 1.25 2004-02-17 18:00:50 cjkimme Exp $ */
+/* $Id: FieldT.cpp,v 1.25.16.1 2004-06-19 04:33:26 hspark Exp $ */
 #include "FieldT.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "nIntegratorT.h"
 #include "KBC_ControllerT.h"
 #include "FBC_ControllerT.h"

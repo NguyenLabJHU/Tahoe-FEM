@@ -1,10 +1,10 @@
-/* $Id: SolidMaterialT.cpp,v 1.10 2004-01-10 04:41:25 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.10.20.1 2004-06-19 04:33:15 hspark Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
 #include <iostream.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "dArrayT.h"
 #include "dSymMatrixT.h"
 #include "LocalArrayT.h"

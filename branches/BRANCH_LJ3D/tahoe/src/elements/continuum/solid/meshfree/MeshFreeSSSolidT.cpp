@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.17 2004-01-05 07:16:47 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.17.20.1 2004-06-19 04:33:16 hspark Exp $ */
 /* created: paklein (09/11/1998) */
 #include "MeshFreeSSSolidT.h"
 
@@ -6,7 +6,8 @@
 #include <iomanip.h>
 #include <math.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
 #include "MeshFreeShapeFunctionT.h"

@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.12 2003-11-21 22:47:04 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.12.22.1 2004-06-19 04:33:16 hspark Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2MeshFreeFSSolidT.h"
 #include "SolidMaterialsConfig.h"
@@ -7,7 +7,8 @@
 #include <iomanip.h>
 #include <math.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
 #include "D2MeshFreeShapeFunctionT.h"

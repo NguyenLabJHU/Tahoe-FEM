@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.23 2004-03-04 08:54:29 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.23.14.1 2004-06-19 04:33:19 hspark Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -8,7 +8,8 @@
 #include "ExceptionT.h"
 #include "toolboxConstants.h"
 #include "dArray2DT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 
 /* variable length memory managers */
 #include "nVariArray2DT.h"

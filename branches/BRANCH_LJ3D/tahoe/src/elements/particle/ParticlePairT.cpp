@@ -1,14 +1,13 @@
-/* $Id: ParticlePairT.cpp,v 1.34 2004-04-09 02:03:01 hspark Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.34.2.1 2004-06-19 04:33:18 hspark Exp $ */
 
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "eIntegratorT.h"
 #include "InverseMapT.h"
 #include "CommManagerT.h"
 #include "dSPMatrixT.h"
 #include "ofstreamT.h"
-#include "ifstreamT.h"
 #include "ModelManagerT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -1097,7 +1096,6 @@ void ParticlePairT::RHSDriver3D(void)
 			f_j[2] +=-r_ij_2;
 		}
 	}
-
 }
 
 /* set neighborlists */

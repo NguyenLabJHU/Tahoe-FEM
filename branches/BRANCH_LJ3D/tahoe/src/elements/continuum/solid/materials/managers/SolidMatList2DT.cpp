@@ -1,8 +1,8 @@
-/* $Id: SolidMatList2DT.cpp,v 1.46 2004-01-05 07:18:21 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.46.20.1 2004-06-19 04:33:14 hspark Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "SolidMaterialsConfig.h"
 
 #ifdef __DEVELOPMENT__

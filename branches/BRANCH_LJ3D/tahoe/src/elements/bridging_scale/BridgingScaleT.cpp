@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.43.2.1 2004-04-10 20:56:36 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.43.2.2 2004-06-19 04:33:02 hspark Exp $ */
 
 #include "BridgingScaleT.h"
 
@@ -6,7 +6,8 @@
 #include <iomanip.h>
 
 #include "ShapeFunctionT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "iAutoArrayT.h"
 #include "OutputSetT.h"
 #include "AutoFill2DT.h"

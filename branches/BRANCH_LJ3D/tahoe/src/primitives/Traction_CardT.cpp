@@ -1,4 +1,4 @@
-/* $Id: Traction_CardT.cpp,v 1.6 2004-04-02 16:48:31 jzimmer Exp $ */
+/* $Id: Traction_CardT.cpp,v 1.6.4.1 2004-06-19 04:33:29 hspark Exp $ */
 /* created: paklein (05/29/1996) */
 #include "Traction_CardT.h"
 
@@ -7,7 +7,7 @@
 
 #include "toolboxConstants.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "dArray2DT.h"
 #include "ScheduleT.h"
 #include "ElementSupportT.h"

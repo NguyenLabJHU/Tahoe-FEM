@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.cpp,v 1.15 2003-01-27 23:14:24 paklein Exp $ */
+/* $Id: ExecutionManagerT.cpp,v 1.15.48.1 2004-06-19 04:33:24 hspark Exp $ */
 /* created: paklein (08/27/1997) */
 #include "ExecutionManagerT.h"
 
@@ -6,7 +6,8 @@
 #include <iomanip.h>
 #include <time.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
 #include "StringT.h"

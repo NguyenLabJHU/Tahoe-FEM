@@ -1,4 +1,4 @@
-/* $Id: PenaltySphereT.cpp,v 1.9 2003-10-04 19:14:05 paklein Exp $ */
+/* $Id: PenaltySphereT.cpp,v 1.9.30.1 2004-06-19 04:33:27 hspark Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltySphereT.h"
 
@@ -7,7 +7,7 @@
 
 #include "toolboxConstants.h"
 #include "FEManagerT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "eIntegratorT.h"
 
 using namespace Tahoe;

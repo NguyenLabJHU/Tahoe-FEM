@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.45 2004-02-09 08:23:31 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.45.16.1 2004-06-19 04:33:01 hspark Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -7,7 +7,8 @@
 #include <ctype.h>
 
 #include "ModelManagerT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "toolboxConstants.h"
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
