@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList3DT.cpp,v 1.1.4.2 2004-06-08 22:27:32 paklein Exp $ */
+/* $Id: SSSolidMatList3DT.cpp,v 1.1.4.3 2004-06-09 23:16:38 paklein Exp $ */
 #include "SSSolidMatList3DT.h"
 #include "SSMatSupportT.h"
 
@@ -294,6 +294,11 @@ void SSSolidMatList3DT::TakeParameterList(const ParameterListT& list)
 		if (mat) {
 			materials.Append(mat);
 			mat->TakeParameterList(sub);
+
+			/* set flags */
+			if (mat->HasHistory()) fHasHistory = true;	
+			if (mat->HasThermalStrain()) fHasThermal = true;
+			if (mat->HasLocalization()) fHasLocalizers = true;
 		}
 	}
 

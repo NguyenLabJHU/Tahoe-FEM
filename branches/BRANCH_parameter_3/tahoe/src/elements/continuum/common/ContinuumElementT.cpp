@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.39.14.3 2004-04-09 05:24:36 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.39.14.4 2004-06-09 23:16:37 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -974,7 +974,7 @@ void ContinuumElementT::ReadMaterialData(ifstreamT& in)
 /* use in conjunction with ReadMaterialData */
 void ContinuumElementT::WriteMaterialData(ostream& out) const
 {
-	fMaterialList->WriteMaterialData(out);
+#pragma message("delete me")
 
 	/* flush buffer */
 	out.flush();
@@ -1345,11 +1345,12 @@ bool ContinuumElementT::CheckMaterialOutput(void) const
 		/* output not compatible */
 		if (!OK)	
 		{
+#pragma message("report names")
 			cout << "\n ContinuumElementT::CheckMaterialOutput: incompatible output\n"
 			    <<    "     between materials " << i+1 << " and " << j+1 << ":\n";
-			(*fMaterialList)[i]->PrintName(cout);
+//			(*fMaterialList)[i]->PrintName(cout);
 			cout << '\n';
-			(*fMaterialList)[j]->PrintName(cout);
+//			(*fMaterialList)[j]->PrintName(cout);
 			cout << endl;
 			return false;
 		}

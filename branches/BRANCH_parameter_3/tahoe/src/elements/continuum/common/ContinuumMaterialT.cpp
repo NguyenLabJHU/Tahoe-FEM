@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.cpp,v 1.9.18.1 2004-04-08 07:32:30 paklein Exp $ */
+/* $Id: ContinuumMaterialT.cpp,v 1.9.18.2 2004-06-09 23:16:37 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "ContinuumMaterialT.h"
 #include "MaterialSupportT.h"
@@ -99,12 +99,6 @@ void ContinuumMaterialT::CloseStep(void) { }
 void ContinuumMaterialT::UpdateHistory(void) { }
 void ContinuumMaterialT::ResetHistory(void) { }
 
-/* print parameters */
-void ContinuumMaterialT::Print(ostream& out) const
-{
-	PrintName(out);
-}
-
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0
 * by default */
@@ -139,12 +133,3 @@ bool ContinuumMaterialT::CompatibleOutput(const ContinuumMaterialT& m1,
 		return true;
 	}
 }	
-
-/***********************************************************************
-* Protected
-***********************************************************************/
-
-void ContinuumMaterialT::PrintName(ostream& out) const
-{
-	out << " Material name:\n";
-}
