@@ -1,4 +1,4 @@
-/* $Id: SSSV_KStV2D.cpp,v 1.3 2003-04-12 22:07:53 thao Exp $ */
+/* $Id: SSSV_KStV2D.cpp,v 1.4 2003-04-14 17:31:27 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSSV_KStV2D.h"
 #include "SSMatSupportT.h"
@@ -142,8 +142,8 @@ const dMatrixT& SSSV_KStV2D::c_ijkl(void)
 	falphaB = exp(-0.5*taudtB);
 
     /*equilibrium component*/
-	double& mu = fMu[kEquilibrium];
-	double& kappa = fKappa[kEquilibrium];
+	double mu = fMu[kEquilibrium];
+	double kappa = fKappa[kEquilibrium];
 
     /*deviatoric part*/
 	fModulus = 0.0;
@@ -192,8 +192,8 @@ const dSymMatrixT& SSSV_KStV2D::s_ij(void)
     fStrain3D[5] = strain[2];
 	
 	/*equilibrium components*/
-	double& mu = fMu[kEquilibrium];
-	double& kappa = fKappa[kEquilibrium];
+	double mu = fMu[kEquilibrium];
+	double kappa = fKappa[kEquilibrium];
 
 	double I1 = strain[0]+strain[1]; 
 
@@ -204,11 +204,18 @@ const dSymMatrixT& SSSV_KStV2D::s_ij(void)
 	/*deviatoric part*/
 	fStress3D = fStrain3D;
 	fStress3D *= 2.0*mu;
+        cout << "\ndevstrain: "<<fStrain3D;
+	cout << "\nI1: "<<I1;
+	cout << "\n mu: "<< mu;
+	cout << "\n kappa: "<<kappa;
+	cout << "\ndev_infty: "<<fStress3D;
 
 	/*volumetric part*/
 	fStress3D[0] += kappa*I1;
 	fStress3D[1] += kappa*I1;
     fStress3D[2] += kappa*I1;
+
+    cout << "\nmean : "<<kappa*I1;
 	/*non-equilibrium components*/
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
@@ -247,6 +254,8 @@ const dSymMatrixT& SSSV_KStV2D::s_ij(void)
         
 		Store(element,CurrIP());
 	}
+        cout << "\nfdevQ: "<<fdevQ;
+	cout << "\nfmeanQ: "<<fmeanQ;
 	fStress3D += fdevQ;
 
 	fStress3D[0] += fmeanQ[0];

@@ -1,4 +1,4 @@
-/* $Id: SSSV_KStV3D.cpp,v 1.3 2003-04-12 22:07:53 thao Exp $ */
+/* $Id: SSSV_KStV3D.cpp,v 1.4 2003-04-14 17:31:27 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSSV_KStV3D.h"
 #include "SSMatSupportT.h"
@@ -135,8 +135,8 @@ const dMatrixT& SSSV_KStV3D::c_ijkl(void)
 	falphaB = exp(-0.5*taudtB);
 
     /*equilibrium component*/
-	double& mu = fMu[kEquilibrium];
-	double& kappa = fKappa[kEquilibrium];
+	double mu = fMu[kEquilibrium];
+	double kappa = fKappa[kEquilibrium];
 
     /*deviatoric part*/
 	fModulus = 0.0;
@@ -185,8 +185,8 @@ const dSymMatrixT& SSSV_KStV3D::s_ij(void)
     fe = e();
 	
 	/*equilibrium components*/
-	double& mu = fMu[kEquilibrium];
-	double& kappa = fKappa[kEquilibrium];
+	double mu = fMu[kEquilibrium];
+	double kappa = fKappa[kEquilibrium];
 
 	double I1 = fe[0]+fe[1]+fe[2]; 
 
