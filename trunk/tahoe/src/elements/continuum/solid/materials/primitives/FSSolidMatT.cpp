@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.14 2004-08-01 20:40:42 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.15 2005-01-25 23:09:05 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
 #include "FSMatSupportT.h"
@@ -373,9 +373,10 @@ void FSSolidMatT::Compute_E(dSymMatrixT& E) const
 /* left stretch tensor */
 void FSSolidMatT::Compute_b(const dMatrixT& F, dSymMatrixT& b) const
 {
-	int nsd = NumSD();
+	const char caller[] = "FSSolidMatT::Compute_b";
+	int nsd = F.Rows();
 #if __option(extended_errorcheck)
-	if (F.Rows() != nsd || F.Cols() != nsd || b.Rows() != nsd) ExceptionT::SizeMismatch();	
+	if (F.Cols() != nsd || b.Rows() != nsd) ExceptionT::SizeMismatch(caller);	
 #endif
 	if (nsd == 2)
 	{
@@ -401,15 +402,16 @@ void FSSolidMatT::Compute_b(const dMatrixT& F, dSymMatrixT& b) const
 		a[5] = f[0]*f[1] + f[3]*f[4] + f[6]*f[7];
 	}
 	else
-		ExceptionT::GeneralFail("FSSolidMatT::Compute_b", "unsupported dimension %d", nsd);
+		ExceptionT::GeneralFail(caller, "unsupported dimension %d", nsd);
 }
 
 /* right stretch tensor */
 void FSSolidMatT::Compute_C(const dMatrixT& F, dSymMatrixT& C) const
 {
-	int nsd = NumSD();
+	const char caller[] = "FSSolidMatT::Compute_C";
+	int nsd = F.Rows();
 #if __option(extended_errorcheck)
-	if (F.Rows() != nsd || F.Cols() != nsd || C.Rows() != nsd) ExceptionT::SizeMismatch();	
+	if (F.Cols() != nsd || C.Rows() != nsd) ExceptionT::SizeMismatch(caller);	
 #endif
 	if (nsd == 2)
 	{
@@ -435,15 +437,16 @@ void FSSolidMatT::Compute_C(const dMatrixT& F, dSymMatrixT& C) const
 		c[5] = f[0]*f[3] + f[1]*f[4] + f[2]*f[5];
 	}
 	else
-		ExceptionT::GeneralFail("FSSolidMatT::Compute_C", "unsupported dimension %d", nsd);
+		ExceptionT::GeneralFail(caller, "unsupported dimension %d", nsd);
 }
 
 /* Green-Lagrangian strain */
 void FSSolidMatT::Compute_E(const dMatrixT& F, dSymMatrixT& E) const
 {
-	int nsd = NumSD();
+	const char caller[] = "FSSolidMatT::Compute_E";
+	int nsd = F.Rows();
 #if __option(extended_errorcheck)
-	if (F.Rows() != nsd || F.Cols() != nsd || E.Rows() != nsd) ExceptionT::SizeMismatch();	
+	if (F.Cols() != nsd || E.Rows() != nsd) ExceptionT::SizeMismatch(caller);
 #endif
 	if (nsd == 2)
 	{
@@ -471,14 +474,15 @@ void FSSolidMatT::Compute_E(const dMatrixT& F, dSymMatrixT& E) const
 	else if (nsd == 1)
 		E[0] = 0.5*(F[0]*F[0] - 1.0);
 	else
-		ExceptionT::GeneralFail("FSSolidMatT::Compute_E", "unsupported dimension %d", nsd);
+		ExceptionT::GeneralFail(caller, "unsupported dimension %d", nsd);
 }
 
 /* return the acoustical tensor and wave speeds */
 const dSymMatrixT& FSSolidMatT::AcousticalTensor(const dArrayT& normal)
 {
+	const char caller[] = "FSSolidMatT::AcousticalTensor";
 #if __option(extended_errorcheck)
-	if (fQ.Rows() != normal.Length()) throw ExceptionT::kSizeMismatch;
+	if (fQ.Rows() != normal.Length()) ExceptionT::SizeMismatch(caller);
 #endif
 
 	/* collect matrices */
@@ -493,7 +497,7 @@ const dSymMatrixT& FSSolidMatT::AcousticalTensor(const dArrayT& normal)
 	else if (normal.Length() == 3)
 		ComputeQ_3D(C_, S_, F_, normal, fQ);
 	else
-		ExceptionT::GeneralFail("FSSolidMatT::AcousticalTensor");
+		ExceptionT::GeneralFail(caller);
 
 	return fQ;
 }
