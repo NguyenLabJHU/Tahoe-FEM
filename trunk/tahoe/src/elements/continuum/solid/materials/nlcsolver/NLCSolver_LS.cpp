@@ -1,12 +1,7 @@
-/*
-  File: NLCSolver_LS.cpp
-*/
-
+/* $Id: NLCSolver_LS.cpp,v 1.5 2002-09-12 17:47:53 paklein Exp $ */
 #include "NLCSolver_LS.h"
 #include "Utils.h"
-#include "math_utils.h"
 #include "ExceptionCodes.h"
-
 
 using namespace Tahoe;
 
@@ -86,7 +81,7 @@ void NLCSolver_LS::ComputeTrialPoint(dArrayT& X)
     }
 
   // check if value of tempLambda is NaN or <= 1.e-150 
-  if ( is_NaN(tempLambda) || (fabs(tempLambda) <= 1.e-150 && fRejectionCount > 0) )
+//  if ( is_NaN(tempLambda) || (fabs(tempLambda) <= 1.e-150 && fRejectionCount > 0) )
   //if ( is_NaN(tempLambda) )
     {
       //writeMessage("NLCSolver_LS::ComputeTrialPoint: lambda = NaN");
