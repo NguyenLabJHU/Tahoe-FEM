@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.14.2.5 2003-02-23 02:40:26 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.14.2.6 2003-03-29 17:24:53 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -102,8 +102,10 @@ void ParticlePairT::WriteOutput(void)
 		parition_nodes->Length() : 
 		ElementSupport().NumNodes();
 
+	/* map from partition node index */
+	const InverseMapT* inverse_map = fCommManager.PartitionNodes_inv();
+
 	/* output arrays length number of active nodes */
-//	int num_particles = fNeighbors.MajorDim();
 	dArray2DT n_values(non, num_output), e_values;
 	n_values = 0.0;
 
@@ -120,17 +122,28 @@ void ParticlePairT::WriteOutput(void)
 	const dArray2DT* velocities = NULL;
 	if (field.Order() > 0) velocities = &(field[1]);
 
+	/* collect displacements */
+	dArrayT vec, values_i;
+	for (int i = 0; i < non; i++) {
+		int   tag_i = (parition_nodes) ? (*parition_nodes)[i] : i;
+		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
+
+		/* values for particle i */
+		n_values.RowAlias(local_i, values_i);
+
+		/* copy in */
+		vec.Set(ndof, values_i.Pointer());
+		displacement.RowCopy(tag_i, vec);
+	}
+
 	/* collect mass per particle */
 	dArrayT mass(fNumTypes);
 	for (int i = 0; i < fNumTypes; i++)
 		mass[i] = fPairProperties[fPropertiesMap(i,i)]->Mass();
-
-	/* map from partition node index */
-	const InverseMapT* inverse_map = fCommManager.PartitionNodes_inv();
 	
 	/* run through neighbor list */
 	iArrayT neighbors;
-	dArrayT x_i, x_j, r_ij(ndof), vec, values_i;
+	dArrayT x_i, x_j, r_ij(ndof);
 	for (int i = 0; i < fNeighbors.MajorDim(); i++)
 	{
 		/* row of neighbor list */
@@ -143,10 +156,6 @@ void ParticlePairT::WriteOutput(void)
 		
 		/* values for particle i */
 		n_values.RowAlias(local_i, values_i);
-		
-		/* displacements */
-		vec.Set(ndof, values_i.Pointer());
-		displacement.RowCopy(tag_i, vec);
 		
 		/* kinetic energy */
 		if (velocities)
