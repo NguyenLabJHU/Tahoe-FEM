@@ -1,4 +1,4 @@
-/* $Id: HexahedronT.h,v 1.5 2004-05-12 22:20:15 paklein Exp $ */
+/* $Id: HexahedronT.h,v 1.6 2005-01-30 00:38:53 paklein Exp $ */
 /* created: paklein (10/22/1997) */
 #ifndef _HEXADHEDRON_T_H_
 #define _HEXADHEDRON_T_H_
@@ -61,6 +61,19 @@ public:
 	 * \param coords list of coordinates defining the domain
 	 * \param point test point coordinates */
 	virtual bool PointInDomain(const LocalArrayT& coords, const dArrayT& point) const;
+
+	/** \name nodal subdomains, see GeometryBaseT for more information
+	/*@{*/
+	/** subdomain geometry */
+	virtual GeometryT::CodeT NodalSubDomainGeometry(void) const;
+
+	/** number of nodes defining the nodal subdomain */
+	virtual int NodalSubDomainNumPoints(void) const;
+	
+	/** compute the coordinates of the points defining the nodal subdomain */
+	virtual void NodalSubDomainCoordinates(const LocalArrayT& coords, int node,
+		LocalArrayT& subdomain_coords) const;
+	/*@}*/
 };
 
 } // namespace Tahoe 

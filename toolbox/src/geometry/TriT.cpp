@@ -1,4 +1,4 @@
-/* $Id: TriT.cpp,v 1.6 2004-05-12 17:50:35 paklein Exp $ */
+/* $Id: TriT.cpp,v 1.7 2005-01-30 00:38:53 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "TriT.h"
 #include "QuadT.h"
@@ -444,4 +444,77 @@ bool TriT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
 		if (a == nen) a = 0;
 	}
 	return in_domain;
+}
+
+/* subdomain geometry */
+GeometryT::CodeT TriT::NodalSubDomainGeometry(void) const
+{
+	/* limited support */
+	if (fNumNodes != 3)
+		ExceptionT::GeneralFail("TriT::NodalSubDomainGeometry",
+			"unsupported number of nodes %d", fNumNodes);
+
+	return GeometryT::kQuadrilateral;
+}
+
+/* number of nodes defining the nodal subdomain */
+int TriT::NodalSubDomainNumPoints(void) const
+{
+	/* limited support */
+	if (fNumNodes != 3)
+		ExceptionT::GeneralFail("TriT::NodalSubDomainGeometry",
+			"unsupported number of nodes %d", fNumNodes);
+
+	return 4;
+}
+	
+/* compute the coordinates of the points defining the nodal subdomain */
+void TriT::NodalSubDomainCoordinates(const LocalArrayT& coords, int node,
+	LocalArrayT& subdomain_coords) const
+{
+	const char caller[] = "TriT::NodalSubDomainCoordinates";
+
+#if __option(extended_errorcheck)
+	/* limited support */
+	if (fNumNodes != 3)
+		ExceptionT::GeneralFail(caller, "unsupported number of nodes %d", fNumNodes);
+
+	/* checks */
+	if (coords.NumberOfNodes() != fNumNodes || 
+		coords.MinorDim() != 2 ||
+		node < 0 || node >= fNumNodes ||
+		subdomain_coords.MinorDim() != 2 ||
+		subdomain_coords.NumberOfNodes() != TriT::NodalSubDomainNumPoints())
+		ExceptionT::SizeMismatch(caller);
+#endif
+
+	/* tri domain */
+	int next_node[3] = {1,2,0};
+	int back_node[3] = {2,0,1};
+
+	/* quad domain */
+	int next_node_quad[4] = {1,2,3,0};
+	int back_node_quad[4] = {3,0,1,2};
+	int diag_node_quad[4] = {2,3,0,1};
+
+	const double* px = coords(0);
+	const double* py = coords(1);
+	
+	int back = back_node[node];
+	int back_quad = back_node_quad[node];
+	subdomain_coords(back_quad,0) = 0.5*(px[node] + px[back]);
+	subdomain_coords(back_quad,1) = 0.5*(py[node] + py[back]);
+
+	subdomain_coords(node,0) = px[node];
+	subdomain_coords(node,1) = py[node];
+	
+	int next = next_node[node];
+	int next_quad = next_node_quad[node];
+	subdomain_coords(next_quad,0) = 0.5*(px[node] + px[next]);
+	subdomain_coords(next_quad,1) = 0.5*(py[node] + py[next]);
+
+	int diag = diag_node_quad[node];
+	double one_third = 1.0/3.0;
+	subdomain_coords(diag,0) = one_third*(px[0] + px[1] + px[2]);
+	subdomain_coords(diag,1) = one_third*(py[0] + py[1] + py[2]);
 }

@@ -1,4 +1,4 @@
-/* $Id: HexahedronT.cpp,v 1.6 2004-05-16 00:59:30 paklein Exp $ */
+/* $Id: HexahedronT.cpp,v 1.7 2005-01-30 00:38:53 paklein Exp $ */
 /* created: paklein (10/22/1997) */
 #include "HexahedronT.h"
 #include <math.h>
@@ -1086,4 +1086,125 @@ bool HexahedronT::PointInDomain(const LocalArrayT& coords, const dArrayT& point)
 	}
 	
 	return in_domain;
+}
+
+/* subdomain geometry */
+GeometryT::CodeT HexahedronT::NodalSubDomainGeometry(void) const
+{
+	/* limited support */
+	if (fNumNodes != 8)
+		ExceptionT::GeneralFail("HexahedronT::NodalSubDomainGeometry",
+			"unsupported number of nodes %d", fNumNodes);
+
+	return GeometryT::kHexahedron;
+}
+
+/* number of nodes defining the nodal subdomain */
+int HexahedronT::NodalSubDomainNumPoints(void) const
+{
+	/* limited support */
+	if (fNumNodes != 8)
+		ExceptionT::GeneralFail("HexahedronT::NodalSubDomainGeometry",
+			"unsupported number of nodes %d", fNumNodes);
+
+	return 8;
+}
+	
+/* compute the coordinates of the points defining the nodal subdomain */
+void HexahedronT::NodalSubDomainCoordinates(const LocalArrayT& coords, int node,
+	LocalArrayT& subdomain_coords) const
+{
+	const char caller[] = "HexahedronT::NodalSubDomainCoordinates";
+
+#if __option(extended_errorcheck)
+	/* limited support */
+	if (fNumNodes != 8)
+		ExceptionT::GeneralFail(caller, "unsupported number of nodes %d", fNumNodes);
+
+	/* checks */
+	if (coords.NumberOfNodes() != fNumNodes || 
+		coords.MinorDim() != 3 ||
+		node < 0 || node >= fNumNodes ||
+		subdomain_coords.MinorDim() != 3 ||
+		subdomain_coords.NumberOfNodes() != HexahedronT::NodalSubDomainNumPoints())
+		ExceptionT::SizeMismatch(caller);
+#endif
+
+	int me[8] = {0,1,2,3,4,5,6,7};
+	int x[8] = {1,0,3,2,5,4,7,6};
+	int y[8] = {3,2,1,0,7,6,5,4};
+	int z[8] = {4,5,6,7,0,1,2,3};
+	int xy[8] = {2,3,0,1,6,7,4,5};
+	int zx[8] = {5,4,7,6,1,0,3,2};
+	int zy[8] = {7,6,5,4,3,2,1,0};
+	int xyz[8] = {6,7,4,5,2,3,0,1};
+	
+	int* seq[8][8] = {
+		{me, x, xy, y, z, zx, xyz, zy},
+		{me, y, xy, x, z, zy, xyz, zx},
+		{me, x, xy, y, z, zx, xyz, zy},
+		{me, y, xy, x, z, zy, xyz, zx},
+		{me, y, xy, x, z, zy, xyz, zx},
+		{me, x, xy, y, z, zx, xyz, zy},
+		{me, y, xy, x, z, zy, xyz, zx},
+		{me, x, xy, y, z, zx, xyz, zy}
+	};
+
+	const double* px = coords(0);
+	const double* py = coords(1);
+	const double* pz = coords(2);
+
+	int** seq_node = seq[node];
+	int lnd;
+
+	/* self */
+	lnd = seq_node[0][node];
+	subdomain_coords(lnd,0) = px[node];
+	subdomain_coords(lnd,1) = py[node];
+	subdomain_coords(lnd,2) = pz[node];
+
+	/* edge-center */
+	lnd = seq_node[1][node];
+	subdomain_coords(lnd,0) = 0.5*(px[node] + px[lnd]);
+	subdomain_coords(lnd,1) = 0.5*(py[node] + py[lnd]);
+	subdomain_coords(lnd,2) = 0.5*(pz[node] + pz[lnd]);
+
+	/* face-center */
+	lnd = seq_node[2][node];
+	int n1 = seq_node[1][node];
+	int n3 = seq_node[3][node];
+	subdomain_coords(lnd,0) = 0.25*(px[node] + px[lnd] + px[n1] + px[n3]);
+	subdomain_coords(lnd,1) = 0.25*(py[node] + py[lnd] + py[n1] + py[n3]);
+	subdomain_coords(lnd,2) = 0.25*(pz[node] + pz[lnd] + pz[n1] + pz[n3]);
+
+	/* edge-center */
+	lnd = seq_node[3][node];
+	subdomain_coords(lnd,0) = 0.5*(px[node] + px[lnd]);
+	subdomain_coords(lnd,1) = 0.5*(py[node] + py[lnd]);
+	subdomain_coords(lnd,2) = 0.5*(pz[node] + pz[lnd]);
+
+	/* edge-center */
+	lnd = seq_node[4][node];
+	subdomain_coords(lnd,0) = 0.5*(px[node] + px[lnd]);
+	subdomain_coords(lnd,1) = 0.5*(py[node] + py[lnd]);
+	subdomain_coords(lnd,2) = 0.5*(pz[node] + pz[lnd]);
+
+	/* face-center */
+	lnd = seq_node[5][node];
+	int n4 = seq_node[4][node];
+	subdomain_coords(lnd,0) = 0.25*(px[node] + px[lnd] + px[n1] + px[n4]);
+	subdomain_coords(lnd,1) = 0.25*(py[node] + py[lnd] + py[n1] + py[n4]);
+	subdomain_coords(lnd,2) = 0.25*(pz[node] + pz[lnd] + pz[n1] + pz[n4]);
+
+	/* body-center */
+	lnd = seq_node[6][node];
+	subdomain_coords(lnd,0) = 0.125*(px[0] + px[1] + px[2] + px[3] + px[4] + px[5] + px[6] + px[7]);
+	subdomain_coords(lnd,1) = 0.125*(py[0] + py[1] + py[2] + py[3] + py[4] + py[5] + py[6] + py[7]);
+	subdomain_coords(lnd,2) = 0.125*(pz[0] + pz[1] + pz[2] + pz[3] + pz[4] + pz[5] + pz[6] + pz[7]);
+
+	/* face-center */
+	lnd = seq_node[7][node];
+	subdomain_coords(lnd,0) = 0.25*(px[node] + px[lnd] + px[n3] + px[n4]);
+	subdomain_coords(lnd,1) = 0.25*(py[node] + py[lnd] + py[n3] + py[n4]);
+	subdomain_coords(lnd,2) = 0.25*(pz[node] + pz[lnd] + pz[n3] + pz[n4]);
 }
