@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.14 2002-03-06 00:27:29 paklein Exp $
+# $Id: makefile.template,v 1.15 2002-09-12 16:45:47 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -43,6 +43,12 @@ MACRO_DIR = $(HOME_DIR)/../macros
 
 ############################### build options ###########################
 # uncomment macros for installed models
+
+##### any additional user C, C++, fortran, or linker flags
+MY_CFLAGS  =
+MY_CCFLAGS =
+MY_FFLAGS  =
+MY_LFLAGS  =
 
 ##### toolbox
 #TB_DIR      = $(HOME_DIR)/../toolbox
@@ -122,6 +128,11 @@ MACRO_DIR = $(HOME_DIR)/../macros
 
 # extra macros for specific modules
 #include $(MACRO_DIR)/$(TARGET).extras
+
+# "make build" extras - target brought up to date before other makefile
+# targets associated with "make build"
+#MAKE_BUILD_XTRAS = make_build_extras
+make_build_extras:
 
 # include common target definitions
 include $(MACRO_DIR)/make.targets
