@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.9 2001-08-06 20:55:11 rjones Exp $ */
+/* $Id: ElementListT.cpp,v 1.10 2001-08-09 15:12:11 rjones Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
@@ -296,10 +296,32 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
                                 break;
 
                         case kMultiplierContact2D:
-                                fArray[group]
-                                    = new MultiplierContact2DT(fFEManager);
-                                break;
+			{
+#ifdef __NO_RTTI__
+				if (fFEManager.Analysis() 
+				  != GlobalT::kAugLagStatic) throw eGeneralFail;
+				XDOF_FDNodesT* XDOF_man	
+				  = (XDOF_FDNodesT*) fFEManager.NodeManager();
+#else
+				XDOF_FDNodesT* XDOF_man 
+				  = dynamic_cast<XDOF_FDNodesT*>
+				  (fFEManager.NodeManager());
+				if (!XDOF_man)
+				{
+				cout<< "\n ElementListT::EchoElementData: "
+				      << "failed to cast node manager to "
+			              << "XDOF_FDNodesT\n"
+				      << "     as needed with analysis code: " 
+				      << kMultiplierContact2D << endl;
+				throw eBadInputValue;
+				}
+#endif /* __NO_RTTI__ */
 
+				fArray[group]
+				= new MultiplierContact2DT
+				          (fFEManager,XDOF_man);
+				break;
+			}
                         case kAdhesionContact2D:
                                 fArray[group]
                                     = new AdhesionContact2DT(fFEManager);
