@@ -1,4 +1,4 @@
-/* $Id: FDHookeanMatT.cpp,v 1.2 2001-07-03 01:35:03 paklein Exp $ */
+/* $Id: FDHookeanMatT.cpp,v 1.3 2001-08-21 19:13:56 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "FDHookeanMatT.h"
@@ -18,6 +18,7 @@ FDHookeanMatT::FDHookeanMatT(ifstreamT& in, const FiniteStrainT& element):
 void FDHookeanMatT::Initialize(void)
 {
 	/* inherited */
+	FDStructMatT::Initialize();
 	HookeanMatT::Initialize();
 }
 
