@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.h,v 1.3 2002-03-04 06:33:36 paklein Exp $ */
+/* $Id: ExodusOutputT.h,v 1.4 2002-06-25 14:17:06 sawimme Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #ifndef _EXODUSOUTPUT_T_H_
@@ -39,6 +39,10 @@ private:
 	void AssembleQA (ArrayT<StringT>& qa) const; /**< create QA records */
 	void WriteCoordinates (ExodusT& exo, const iArrayT& nodes_used); /**< write coordinates */
 	void WriteConnectivity (int ID, ExodusT& exo, const iArrayT& nodes_used); /**< write connectivity blocks for this output set */
+
+ private:
+	iArrayT fNodeSetIntIDs; /**< integer ID values for node sets */
+	iArrayT fSideSetIntIDs; /**< integer ID values for side sets */
 };
 
 #endif

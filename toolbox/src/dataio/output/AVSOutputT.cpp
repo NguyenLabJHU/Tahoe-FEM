@@ -20,6 +20,7 @@ void AVSOutputT::WriteGeometry (void)
   AVST avs (fout, fBinary);
 
   int num_sets = fElementSets.Length();
+  CreateElementBlockIDs ();
   for (int e=0; e < num_sets; e++)
     if (fElementSets[e]->NumNodes() > 0)
       {
@@ -84,7 +85,7 @@ StringT AVSOutputT::CreateFileName (int index) const
   if (fSequence > 0) var.Append (".sq", fSequence + 1);
   
   /* tack on output set */
-  var.Append (".io", fCurrentSetID);
+  var.Append (".io", fElementBlockIDs[index][0]);
 
   /* tack on print increment */
   var.Append (".ps", fElementSets[index]->PrintStep() + 1);
@@ -131,7 +132,7 @@ void AVSOutputT::WriteConnectivity (ostream &avsout, AVST &avs, int index, iArra
       LocalConnectivity (nodes_used, *connects, localconn);
       localconn++;
 
-      avs.WriteCells (avsout, fElementSets[index]->Geometry(), localconn, fCurrentSetID + i + 1, firstelemID);
+      avs.WriteCells (avsout, fElementSets[index]->Geometry(), localconn, fElementBlockIDs[index][i], firstelemID);
       firstelemID += connects->MajorDim();
     }
 }
