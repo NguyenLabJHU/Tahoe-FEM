@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.4.2.6 2001-10-16 22:11:06 sawimme Exp $ */
+/* $Id: ModelManagerT.h,v 1.4.2.7 2001-10-18 21:48:33 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -89,24 +89,30 @@ class ModelManagerT
   void ModelManagerT::ReadTractionSetData (ifstreamT& in, int& blockindex, int& setsize);
   void ModelManagerT::ReadTractionSideSet (ifstreamT& in, int& blockindex, iArray2DT& localsides);
 
-
-  /* access */
+  /* access node data */
   void CoordinateDimensions (int& length, int& dof) const;
   const dArray2DT& CoordinateReference (void) const; /* return coords */
   const dArray2DT& Coordinates (void); /* reads coordinates if not yet read and returns coords */
   void ReadCoordinates (void); /* reads coordinates, assumes coords reference is set separately */
 
+  /* use to determine if 3D coordinates with 2D elements
+     Patran, Abaqus, EnSight, etc. always store coordinates in 3D */
+  bool AreElements2D (void) const;
+
+  /* access element data */
   int NumElementGroups (void) const;
   void ElementGroupNames (ArrayT<StringT>& names) const;
   int ElementGroupIndex (const StringT& name) const;
   void ElementGroupDimensions (int index, int& numelems, int& numelemnodes) const;
   GeometryT::CodeT ElementGroupGeometry (int index) const;
-  const iArray2DT& ElementGroup (int index);
+  const iArray2DT& ElementGroup (int index); /* read elements if not yet read and returns elements */
 
+  /* access map data, data is not offset */
   void AllNodeMap (iArrayT& map);
   void AllElementMap (iArrayT& map);
   void ElementMap (StringT& name, iArrayT& map);
 
+  /* access node set data */
   int NumNodeSets (void) const;
   void NodeSetNames (ArrayT<StringT>& names) const;
   int NodeSetIndex (const StringT& name) const;
@@ -114,6 +120,7 @@ class ModelManagerT
   const iArrayT& NodeSet (int index);
   void ManyNodeSets (const iArrayT& indexes, iArrayT& nodes);
 
+  /* access side set data */
   int NumSideSets (void) const;
   void SideSetNames (ArrayT<StringT>& names) const;
   int SideSetIndex (const StringT& name) const;
@@ -127,13 +134,38 @@ class ModelManagerT
   /* modifiers */
   void AddNodes (const dArray2DT& newcoords, iArrayT& new_node_tags, int& newtotalnumnodes);
   void DuplicateNodes (const iArrayT& nodes, iArrayT& new_node_tags, int& newtotalnumnodes);
+  void AdjustCoordinatesto2D (void);
 
   /* This closes link to InputBaseT, it does not clear data */
   void CloseModel (void);
 
   /* checks to see if external file or actual data */
   ifstreamT& OpenExternal (ifstreamT& in, ifstreamT& in2, ostream& out, bool verbose, const char* fail) const;
+
+  /* access time steps */
+  int NumTimeSteps (void);
+  void TimeSteps (dArrayT& steps);
   
+  /* access node variables */
+  int NumNodeVariables (void);
+  void NodeLabels (ArrayT<StringT>& labels);
+  void AllNodeVariables (int stepindex, dArray2DT& values); /* for all node points */
+  void NodeVariables (int stepindex, StringT& elsetname, dArray2DT& values); /* for nodes in element set */
+  void NodeSetVariables (int stepindex, StringT& nsetname, dArray2DT& values); /* for nodes in node set */
+
+  /* access element variables */
+  int NumElementVariables (void);
+  void ElementLabels (ArrayT<StringT>& labels);
+  void AllElementVariables (int stepindex, dArray2DT& values); /* for all elements */
+  void ElementVariables (int stepindex, StringT& elsetname, dArray2DT& values); /* for element set */
+
+  /* access quadrature variables */
+  int NumElementQuadPoints (StringT& elsetname);
+  int NumQuadratureVariables (void);
+  void QuadratureLabels (ArrayT<StringT>& labels);
+  void AllQuadratureVariables (int stepindex, dArray2DT& values); /* for all elements */
+  void QuadratureVariables (int stepindex, StringT& elsetname, dArray2DT& values); /* for element set */
+
  private:
   void ScanModel (const StringT& database);
   bool ScanElements (void);
@@ -178,7 +210,29 @@ inline void ModelManagerT::Format (IOBaseT::FileTypeT& format, StringT& name) co
   format = fFormat;
   name = fInputName;
 }
+
 inline int ModelManagerT::NumElementGroups (void) const { return fNumElementSets; }
 inline int ModelManagerT::NumNodeSets (void) const { return fNumNodeSets; }
 inline int ModelManagerT::NumSideSets (void) const { return fNumSideSets; }
+
+inline int ModelManagerT::NumTimeSteps (void) { return fInput->NumTimeSteps(); }
+inline void ModelManagerT::TimeSteps (dArrayT& steps) { fInput->ReadTimeSteps (steps); }
+
+inline int ModelManagerT::NumNodeVariables (void) { return fInput->NumNodeVariables (); }
+inline void ModelManagerT::NodeLabels (ArrayT<StringT>& labels) { fInput->ReadNodeLabels (labels); }
+inline void ModelManagerT::AllNodeVariables (int stepindex, dArray2DT& values) { fInput->ReadAllNodeVariables (stepindex, values); }
+inline void ModelManagerT::NodeVariables (int stepindex, StringT& elsetname, dArray2DT& values) { fInput->ReadNodeVariables (stepindex, elsetname, values); }
+inline void ModelManagerT::NodeSetVariables (int stepindex, StringT& nsetname, dArray2DT& values) { fInput->ReadNodeSetVariables (stepindex, nsetname, values); }
+
+inline int ModelManagerT::NumElementVariables (void) { return fInput->NumElementVariables (); }
+inline void ModelManagerT::ElementLabels (ArrayT<StringT>& labels) { fInput->ReadElementLabels (labels); }
+inline void ModelManagerT::AllElementVariables (int stepindex, dArray2DT& values) { fInput->ReadAllElementVariables (stepindex, values); }
+inline void ModelManagerT::ElementVariables (int stepindex, StringT& elsetname, dArray2DT& values) { fInput->ReadElementVariables (stepindex, elsetname, values); }
+
+inline int ModelManagerT::NumElementQuadPoints (StringT& name) { return fInput->NumElementQuadPoints(name); }
+inline int ModelManagerT::NumQuadratureVariables (void) { return fInput->NumQuadratureVariables (); }
+inline void ModelManagerT::QuadratureLabels (ArrayT<StringT>& labels) { fInput->ReadQuadratureLabels (labels); }
+inline void ModelManagerT::AllQuadratureVariables (int stepindex, dArray2DT& values) { fInput->ReadAllQuadratureVariables (stepindex, values); }
+inline void ModelManagerT::QuadratureVariables (int stepindex, StringT& elsetname, dArray2DT& values) { fInput->ReadQuadratureVariables (stepindex, elsetname, values); }
+
 #endif
