@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile_RP2DT.cpp,v 1.5 2003-09-04 23:57:55 paklein Exp $  */
+/* $Id: InelasticDuctile_RP2DT.cpp,v 1.6 2003-09-10 00:46:11 paklein Exp $  */
 #include "InelasticDuctile_RP2DT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -45,7 +45,10 @@ const int   kBCJ_phi_dex = 3;
 const int kMaterialOutputCode = 6;
 
 /* local iteration tolerances */
-const int   max_iter = 25;
+const int max_iter = 25;
+
+//TEMP - enable local debugging code
+#define DEBUG 1
 
 /* constructor */
 InelasticDuctile_RP2DT::InelasticDuctile_RP2DT(ifstreamT& in, const double& time_step, const double& area,
@@ -211,13 +214,12 @@ const dArrayT& InelasticDuctile_RP2DT::Traction(const dArrayT& jump_u, ArrayT<do
 		{
 			dArrayT state_temp;
 			state_temp.Alias(fState);
-		
-			//TEMP
-			fOut << " state_in = " << state_temp.no_wrap() << '\n';
-
-			//TEMP
-			fOut << "D_t_rate = " << (jump_u[0] - fDelta[0])/fTimeStep << '\n';
-			fOut << "D_n_rate = " << (jump_u[1] - fDelta[1])/fTimeStep << '\n';
+//TEMP
+#ifdef DEBUG
+fOut << " state_in = " << state_temp.wrap(5) << '\n';
+fOut << "D_t_rate = " << (jump_u[0] - fDelta[0])/fTimeStep << '\n';
+fOut << "D_n_rate = " << (jump_u[1] - fDelta[1])/fTimeStep << '\n';
+#endif
 
 			double kappa = state[k_dex_kappa];
 			double phi_s = state[k_dex_phi_s];
@@ -257,8 +259,10 @@ const dArrayT& InelasticDuctile_RP2DT::Traction(const dArrayT& jump_u, ArrayT<do
 			double phi_s_in = fphi_s;
 			while ((t_free || n_free) && count++ < max_iter && error > fabs_tol && error/error0 > frel_tol) 
 			{
-				//TEMP
-				fOut << "error/error0 = " << error/error0 << endl;
+//TEMP
+#ifdef DEBUG
+fOut << "error/error0 = " << error/error0 << endl;
+#endif
 			
 				/* compute Jacobian */
 				Jacobian(fState, jump_u, fTraction, fdq, fK);		
@@ -354,26 +358,15 @@ const dArrayT& InelasticDuctile_RP2DT::Traction(const dArrayT& jump_u, ArrayT<do
 			fDelta = jump_u;
 			state = fState;
 
-			//TEMP
-			fOut << "t_free = " << t_free << '\n';
-			fOut << "n_free = " << n_free << '\n';
-
-			//TEMP
-			fOut << "traction = " << fTraction.no_wrap() << '\n';
-
-			//TEMP
-			fOut << "state_out = " << state_temp.no_wrap() << '\n';
+//TEMP
+#ifdef DEBUG
+fOut << "t_free = " << t_free << '\n';
+fOut << "n_free = " << n_free << '\n';
+fOut << "traction = " << fTraction.no_wrap() << '\n';
+fOut << "state_out = " << state_temp.wrap(5) << '\n';
+#endif
 		}
 	}	
-
-#if 0
-dArrayT tmp;
-tmp.Alias(state);
-cout << "F:   T = " << fTraction.no_wrap() << '\n';
-cout << "F: fdq = " << fdq.no_wrap() << '\n';
-cout << "F: jmp = " << jump_u.no_wrap() << '\n';
-cout << "F:  st = \n" << tmp << '\n';
-#endif
 
 	return fTraction;
 }
@@ -606,6 +599,11 @@ void InelasticDuctile_RP2DT::Rates(const ArrayT<double>& q, const dArrayT& D,
 	double   arg_dq = (fabs(T_eff)/k2 - (kappa + fY))/fV;
 	double arg_dD_t = (fabs(T_t)/k2 - (kappa + fY))/fV;
 
+	//TEMP
+	if (arg_dD_t > 0.0)  {
+		int a = 10;
+	}
+
 	/* damage rates */
 	dq[0] = feps_0*sign_T_eff*sinh(arg_dq);
 	dq[1] = (dq[0] > 0.0) ? dq[0] : 0.0;
@@ -615,7 +613,8 @@ void InelasticDuctile_RP2DT::Rates(const ArrayT<double>& q, const dArrayT& D,
 	dD[1] = fw_0*dq[0]/(k1*k1);
 	
 	/* what's active */
-	active[2] = (arg_dq > kSmall) ? 1.0 : 0.0; /* phi evolution */
+	//active[2] = (arg_dq > kSmall) ? 1.0 : 0.0; /* phi evolution */
+	active[2] = (T_eff > 0.0 && arg_dq > kSmall) ? 1.0 : 0.0; /* phi evolution */
 	active[0] = (arg_dD_t > kSmall) ? 1.0 : 0.0; /* T_t evolution */
 	active[1] = active[2]; /* T_n evolution */
 }
