@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.80 2004-01-31 07:20:42 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.81 2004-02-02 23:48:35 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -39,6 +39,7 @@
 #include "UpdatedLagrangianT.h"
 #include "UpLagAdaptiveT.h"
 #include "TotalLagrangianT.h"
+#include "TotalLagrangianAxiT.h"
 #include "LocalizerT.h"
 #include "SimoFiniteStrainT.h"
 #include "SimoQ1P0.h"
@@ -331,6 +332,15 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			{
 #ifdef CONTINUUM_ELEMENT
 				fArray[group] = new TotalLagrangianT(fSupport, *field);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
+			case ElementT::kTotLagHyperElasticAxi:
+			{
+#ifdef CONTINUUM_ELEMENT
+				fArray[group] = new TotalLagrangianAxiT(fSupport, *field);
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);

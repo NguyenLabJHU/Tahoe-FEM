@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.37 2004-01-31 07:20:42 paklein Exp $ */
+/* $Id: ElementT.cpp,v 1.38 2004-02-02 23:48:35 paklein Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -24,6 +24,9 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			break;
 		case ElementT::kHyperElastic:
 			type = ElementT::kHyperElastic;
+			break;
+		case ElementT::kHyperElasticAxi:
+			type = ElementT::kHyperElasticAxi;
 			break;
 		case ElementT::kLocalizing:
 			type = ElementT::kLocalizing;
@@ -70,6 +73,9 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			break;
 		case ElementT::kTotLagHyperElastic:
 			type = ElementT::kTotLagHyperElastic;
+			break;
+		case ElementT::kTotLagHyperElasticAxi:
+			type = ElementT::kTotLagHyperElasticAxi;
 			break;
 		case ElementT::kMeshFreeElastic:
 			type = ElementT::kMeshFreeElastic;
@@ -126,6 +132,9 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			break;	
 		case ElementT::kSimoQ1P0:
 			type = ElementT::kSimoQ1P0;
+			break;	
+		case ElementT::kSimoQ1P0Axi:
+			type = ElementT::kSimoQ1P0Axi;
 			break;	
 		case ElementT::kAdhesion:
 			type = ElementT::kAdhesion;
