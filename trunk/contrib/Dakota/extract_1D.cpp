@@ -1,4 +1,4 @@
-/* $Id: extract_1D.cpp,v 1.3 2004-12-19 17:13:28 paklein Exp $ */
+/* $Id: extract_1D.cpp,v 1.4 2004-12-19 17:18:41 paklein Exp $ */
 #include "ModelManagerT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -92,8 +92,8 @@ int main(int argc, char** argv)
 	//TEMP
 	cout << "num_steps = " << num_steps << endl;
 
-	bool time = 0;
-	if(strstr(argv[3],".fvst")) { time = 1;  cout << "f vs t\n";}
+	bool plot_fvst = false;
+	if(strstr(argv[3],".fvst")) { plot_fvst = true;  cout << "f vs t\n";}
 	else if(strstr(argv[3],".fvsd")) cout << "f vs d\n";
 	
 	for (int i = 0; i < num_steps; i++)
@@ -110,7 +110,7 @@ int main(int argc, char** argv)
 		disp_values.ColumnCopy(D_X_index, d_x);
 
 		/* output */
-		if (time) out << time  << ' ' << f_d_x.Sum() << '\n';
+		if (plot_fvst) out << time  << ' ' << f_d_x.Sum() << '\n';
 	  	else      out << d_x.Max() << ' ' << f_d_x.Sum() << '\n';
 	}
 	out.flush();
