@@ -1,4 +1,4 @@
-/* $Id: ios_fwd_decl.h,v 1.9 2003-11-10 22:14:13 cjkimme Exp $ */
+/* $Id: ios_fwd_decl.h,v 1.10 2004-11-12 20:58:32 paklein Exp $ */
 /* created: paklein (08/11/1999) */
 /* Include this header instead of writing forward declarations */
 /* explicitly. Some compilers do not allow forward declarations */
@@ -18,7 +18,7 @@ using namespace std; // can put this here now that namespace std is added
 // SUNWspro 5.0
 #include <iostream.h>
 #include <fstream.h>
-#elif defined(__GNU__) && defined (__PGI__)
+#elif defined(__GNUC__) && defined (__PGI__)
 //PAK(02/28/2001): this header does not seem to work
 //#include <iosfwd.h>
 #include <iostream.h>
