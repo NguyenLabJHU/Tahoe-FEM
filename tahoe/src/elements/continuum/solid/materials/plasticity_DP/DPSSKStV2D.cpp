@@ -1,30 +1,38 @@
-/* $Id: DPSSKStV2D.cpp,v 1.3 2001-07-11 17:04:52 cfoster Exp $ */
-/* created: myip (06/01/1999)                                      */
+/* $Id: DPSSKStV2D.cpp,v 1.4 2001-07-11 22:02:34 paklein Exp $ */
+/* created: myip (06/01/1999)                                             */
 
 #include "DPSSKStV2D.h"
 #include "ElementCardT.h"
 #include "StringT.h"
 
 /* constructor */
-DPSSKStV2D::DPSSKStV2D(ifstreamT& in, const ElasticT& element):
+DPSSKStV2D::DPSSKStV2D(ifstreamT& in, const SmallStrainT& element):
 	DPSSKStV(in, element),
 	Material2DT(in, kPlaneStrain),
 	fStress2D(2),
 	fModulus2D(dSymMatrixT::NumValues(2)),
 	fTotalStrain3D(3)
 {
+	/* account for thickness */
+	fDensity *= fThickness;
+}
 
+/* initialization */
+void DPSSKStV2D::Initialize(void)
+{
+	/* inherited */
+	HookeanMatT::Initialize();
 }
 
 /* returns elastic strain (3D) */
-const dSymMatrixT& DPSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain, 
+const dSymMatrixT& DPSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain,
 	const ElementCardT& element, int ip)
 {
-  /* 2D -> 3D (plane strain) */
-  fTotalStrain3D.ExpandFrom2D(totalstrain);
+	/* 2D -> 3D (plane strain) */
+	fTotalStrain3D.ExpandFrom2D(totalstrain);
 
-  /* inherited */
-  return DPSSKStV::ElasticStrain(fTotalStrain3D, element, ip);
+	/* inherited */
+	return DPSSKStV::ElasticStrain(fTotalStrain3D, element, ip);
 }
 
 /* print parameters */
@@ -57,7 +65,7 @@ const dSymMatrixT& DPSSKStV2D::s_ij(void)
 {
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(DPSSKStV::s_ij());
-	fStress2D *= fThickness;  
+	fStress2D *= fThickness;
 	return fStress2D;
 }
 
@@ -66,7 +74,3 @@ double DPSSKStV2D::StrainEnergyDensity(void)
 {
 	return fThickness*DPSSKStV::StrainEnergyDensity();
 }
-
-/***********************************************************************
- * Protected
- ***********************************************************************/
