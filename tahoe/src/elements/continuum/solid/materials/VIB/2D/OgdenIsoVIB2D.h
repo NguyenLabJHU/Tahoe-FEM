@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB2D.h,v 1.5 2002-07-05 22:28:17 paklein Exp $ */
+/* $Id: OgdenIsoVIB2D.h,v 1.6 2002-10-04 20:46:04 thao Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* 2D Isotropic VIB using Ogden's spectral formulation                    */
 
@@ -41,7 +41,7 @@ protected:
 		dSymMatrixT& eigenmod);
 
 	/* return true of model is purely 2D, plain stress */
-	virtual bool PurePlainStress(void) const { return true; };
+	virtual bool PurePlaneStress(void) const { return true; };
 
 	/* strained lengths in terms of the Lagrangian stretch eigenvalues */
 	void ComputeLengths(const dArrayT& eigs);
