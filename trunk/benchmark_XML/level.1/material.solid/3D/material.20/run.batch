@@ -1,5 +1,7 @@
 @
-# $Id: run.batch,v 1.1 2004-06-19 23:26:47 paklein Exp $
+# $Id: run.batch,v 1.2 2005-02-20 20:18:59 paklein Exp $
 mat.20.a.xml
 mat.20.b.xml
+mat.20.c.xml
+mat.20.d.xml
 
