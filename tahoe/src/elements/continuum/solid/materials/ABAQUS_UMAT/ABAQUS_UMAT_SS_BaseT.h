@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.1.2.1 2003-11-24 00:47:29 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.1.2.2 2003-11-24 17:56:37 paklein Exp $ */
 #ifndef _ABAQUS_UMAT_SS_BASE_T_H_
 #define _ABAQUS_UMAT_SS_BASE_T_H_
 
@@ -107,7 +107,11 @@ private:
 		doublereal*, doublereal*, doublereal*, doublereal*,
 		integer*, integer*, integer*, integer*, integer*,
 		integer*, ftnlen) = 0;
+
+protected:
 	
+	GlobalT::SystemTypeT fTangentType;
+
 private:
 
 	//debugging
@@ -115,7 +119,6 @@ private:
 	
 	/* material name */
 	StringT fUMAT_name;
-	GlobalT::SystemTypeT fTangentType;
 	//other options:
 	//  strain type
 	//  orientation (*ORIENTATION)

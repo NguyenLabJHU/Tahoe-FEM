@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.13.2.3 2003-11-24 00:47:29 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.13.2.4 2003-11-24 17:56:37 paklein Exp $ */
 /* created: paklein (05/14/2000) */
 #include "ABAQUS_UMAT_BaseT.h"
 
@@ -34,9 +34,65 @@ ABAQUS_UMAT_BaseT::ABAQUS_UMAT_BaseT(ifstreamT& in, const FSMatSupportT& support
 {
 	const char caller[] = "ABAQUS_UMAT_BaseT::ABAQUS_UMAT_BaseT";
 
-	/* read ABAQUS-format input */
+	/* UMAT dimensions */
+	ndi = 0;
+	nshr = 0;
+	ntens = 0;
 	nstatv = 0;
-	Read_ABAQUS_Input(in, fUMAT_name, fProperties, nstatv);
+
+	/* read ABAQUS-format input */
+	bool nonsym = false;
+	Read_ABAQUS_Input(in, fUMAT_name, fProperties, nstatv, nonsym);
+	if (nonsym)
+		fTangentType = GlobalT::kNonSymmetric;
+
+	/* spectral decomp */
+	fDecomp = new SpectralDecompT(NumSD());
+	if (!fDecomp) ExceptionT::OutOfMemory(caller);
+
+#if DEBUG
+flog.open("UMAT.log");
+flog.precision(DBL_DIG);
+flog.setf(ios::showpoint);
+flog.setf(ios::right, ios::adjustfield);
+flog.setf(ios::scientific, ios::floatfield);
+#endif
+}
+
+/* destructor */
+ABAQUS_UMAT_BaseT::~ABAQUS_UMAT_BaseT(void)
+{
+	delete fDecomp;
+	fDecomp = NULL;
+}
+
+/* print parameters */
+void ABAQUS_UMAT_BaseT::Print(ostream& out) const
+{
+	/* inherited */
+	FSSolidMatT::Print(out);
+	
+	/* write properties array */
+	out << " Number of ABAQUS UMAT internal variables. . . . = " << nstatv << '\n';
+	out << " Number of ABAQUS UMAT properties. . . . . . . . = " << fProperties.Length() << '\n';
+	PrintProperties(out);
+}
+
+/* disable multiplicative thermal strains */
+void ABAQUS_UMAT_BaseT::Initialize(void)
+{
+	const char caller[] = "ABAQUS_UMAT_BaseT::Initialize";
+
+	/* inherited */
+	FSSolidMatT::Initialize();
+
+	/* notify */
+	if (fThermal->IsActive())
+		cout << "\n ABAQUS_UMAT_BaseT::Initialize: thermal strains must\n"
+		     <<   "    be handled within the UMAT\n" << endl;
+	
+	/* disable thermal transform */
+	//SetFmodMult(NULL);	
 	
 	/* UMAT dimensions */
 	ndi = 3; // always 3 direct components
@@ -89,7 +145,6 @@ ABAQUS_UMAT_BaseT::ABAQUS_UMAT_BaseT(ifstreamT& in, const FSMatSupportT& support
 	fstrain_last.Set(ntens, parg);   parg += ntens;
 	fsse_pd_cd_last.Set(3, parg);    parg += 3;
 	fstatv_last.Set(nstatv, parg);
-	
 
 	/* UMAT array arguments */
 	fddsdde.Dimension(ntens);
@@ -103,54 +158,7 @@ ABAQUS_UMAT_BaseT::ABAQUS_UMAT_BaseT(ifstreamT& in, const FSMatSupportT& support
 	fdfgrd1.Dimension(3); // always 3
 	fdfgrd1.Identity();
 	fcoords.Dimension(nsd);
-
-	/* spectral decomp */
-	fDecomp = new SpectralDecompT(NumSD());
-	if (!fDecomp) ExceptionT::OutOfMemory(caller);
-
-#if DEBUG
-flog.open("UMAT.log");
-flog.precision(DBL_DIG);
-flog.setf(ios::showpoint);
-flog.setf(ios::right, ios::adjustfield);
-flog.setf(ios::scientific, ios::floatfield);
-#endif
 }
-
-/* destructor */
-ABAQUS_UMAT_BaseT::~ABAQUS_UMAT_BaseT(void)
-{
-	delete fDecomp;
-	fDecomp = NULL;
-}
-
-/* print parameters */
-void ABAQUS_UMAT_BaseT::Print(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::Print(out);
-	
-	/* write properties array */
-	out << " Number of ABAQUS UMAT internal variables. . . . = " << nstatv << '\n';
-	out << " Number of ABAQUS UMAT properties. . . . . . . . = " << fProperties.Length() << '\n';
-	PrintProperties(out);
-}
-
-/* disable multiplicative thermal strains */
-void ABAQUS_UMAT_BaseT::Initialize(void)
-{
-	/* inherited */
-	FSSolidMatT::Initialize();
-
-	/* notify */
-	if (fThermal->IsActive())
-		cout << "\n ABAQUS_UMAT_BaseT::Initialize: thermal strains must\n"
-		     <<   "    be handled within the UMAT\n" << endl;
-	
-	/* disable thermal transform */
-	//SetFmodMult(NULL);	
-}
-
 
 /* materials initialization */
 bool ABAQUS_UMAT_BaseT::NeedsPointInitialization(void) const { return true; }
@@ -286,9 +294,32 @@ const dMatrixT& ABAQUS_UMAT_BaseT::c_ijkl(void)
 		}
 	}
 	else if (fTangentType == GlobalT::kNonSymmetric)
-		ExceptionT::GeneralFail(caller, "index mapping for nonsymmetric tangent is not implemented");
+	{
+		if (nsd == 2)
+			ExceptionT::GeneralFail(caller, "index mapping for 2D nonsymmetric tangent is not implemented");
+		else
+		{
+			/* dimension check */
+			if (ntens != 6) ExceptionT::SizeMismatch(caller, "ntens %d != 6", ntens);
+
+			int tahoe2abaqus[6] = {0,1,2,5,4,3};
+			double* mod_tahoe = fModulus.Pointer();
+			for (int i = 0; i < 6; i++)
+			{
+				doublereal* mod_abaqus = fmodulus.Pointer(ntens*tahoe2abaqus[i]);
+				for (int j = 0; j < 6; j++)
+					*mod_tahoe++ = double(mod_abaqus[tahoe2abaqus[j]]);
+			}
+		}
+	}
 	else 
 		ExceptionT::GeneralFail(caller);
+
+#if DEBUG
+flog << setw(10) << "element: " << MaterialSupport().CurrElementNumber()+1 << '\n';
+flog << setw(10) << "     ip: " << CurrIP()+1 << '\n';
+flog << setw(10) << "modulus:\n" << fModulus << endl;
+#endif
 
 	return fModulus;
 }
@@ -491,7 +522,7 @@ void ABAQUS_UMAT_BaseT::Call_UMAT(double t, double dt, int step, int iter)
 
 #ifdef DEBUG
 int d_width = OutputWidth(flog, stress);
-flog << " THE INPUT\n";
+flog << "\n THE INPUT\n";
 flog << setw(10) << "   time: " << setw(d_width) << time[0]  << '\n';
 flog << setw(10) << "   iter: " << MaterialSupport().IterationNumber() << '\n';
 flog << setw(10) << "element: " << MaterialSupport().CurrElementNumber()+1 << '\n';
@@ -512,7 +543,7 @@ flog << fstatv.wrap(5) << '\n';
 #ifdef DEBUG
 flog << " THE OUTPUT\n";
 flog << setw(10) << " stress: " << fstress.no_wrap() << '\n';
-flog << setw(10) << " state:\n" << '\n';
+flog << setw(10) << " state:\n";
 flog << fstatv.wrap(5) << endl;
 #endif
 
@@ -623,7 +654,8 @@ void ABAQUS_UMAT_BaseT::Store_UMAT_Modulus(void)
 		/* store everything */
 		fmodulus = fddsdde;
 	}
-	else throw ExceptionT::kGeneralFail;	
+	else 
+		ExceptionT::GeneralFail("ABAQUS_UMAT_BaseT::Store_UMAT_Modulus");
 }
 
 #endif /* __F2C__ */
