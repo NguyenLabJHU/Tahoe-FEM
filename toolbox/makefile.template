@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.13 2003-03-27 17:49:40 paklein Exp $
+# $Id: makefile.template,v 1.14 2003-04-22 18:32:57 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -48,6 +48,14 @@ MACRO_DIR = $(HOME_DIR)/../macros
 #MY_FFLAGS  =
 #MY_LFLAGS  =
 
+##### expat XML parsing library
+#EXPAT_DEFINES  = -D__EXPAT__
+#EXPAT_INC      = -I/usr/local/include
+#EXPAT_CFLAGS   = $(EXPAT_INC) $(EXPAT_DEFINES)
+#EXPAT_LIB_NAME = expat
+#EXPAT_LIB      = /usr/local/lib/lib$(EXPAT_LIB_NAME).a
+#EXPAT_LFLAGS   = -L/usr/local/lib -l$(EXPAT_LIB_NAME)
+
 ##### F2C 1.4.3
 #F2C_DIR      = $(HOME_DIR)/../f2c
 #F2C_INC      = -I$(F2C_DIR)/inc
@@ -83,7 +91,12 @@ include $(MACRO_DIR)/toolbox.extras
 
 # "make build" extras - target brought up to date before other makefile
 # targets associated with "make build"
-#MAKE_BUILD_XTRAS = make_build_pch
+MAKE_INIT_XTRAS        = update_config
+MAKE_HEADERS_XTRAS     = dummy
+MAKE_DEPEND_INIT_XTRAS = dummy
+MAKE_CLEAN_XTRAS       = dummy
+MAKE_BUILD_XTRAS       = dummy
+#MAKE_BUILD_XTRAS       = make_build_pch
 
 # include common target definitions
 include $(MACRO_DIR)/make.targets
@@ -92,9 +105,13 @@ include $(MACRO_DIR)/make.targets
 update_config:
 	@ $(ECHO) "nothing to do for update_config in toolbox"
 
+# build precompiled header file
 make_build_pch:
 	@cd $(HOME_DIR)/pch; make \
 	"COMP_CC = $(COMP_CC)" \
 	"CFLAGS_CC = $(CFLAGS_CC)" \
 	"INC_DIR = $(INC_DIR)" \
 	"MAKE_DEPEND = $(MAKE_DEPEND) $(DEPEND_PATH)"
+
+dummy:
+	-@date
