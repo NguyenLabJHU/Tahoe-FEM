@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.cpp,v 1.3 2001-06-23 00:53:45 thao Exp $ */
+/* $Id: dMatrixT.cpp,v 1.4 2001-09-04 06:46:37 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "dMatrixT.h"
@@ -19,13 +19,11 @@ dMatrixT::dMatrixT(int numrows, int numcols, double* p):
 	nMatrixT<double>(numrows, numcols, p) { }
 dMatrixT::dMatrixT(const dMatrixT& source): nMatrixT<double>(source) { }
 
-/* matrix inverse functions - only implemented for (2 x 2)
-* and (3 x 3) matrices */
+/* matrix inverse functions */
 dMatrixT& dMatrixT::Inverse(const dMatrixT& matrix)
 {
-	/* dimension check */
-	if (fRows != fCols ||
-	   (fRows != 2 && fRows != 3)) throw eSizeMismatch;
+	/* must be square */
+	if (fRows != fCols) throw eSizeMismatch;
 	
 	/* (2 x 2) */
 	if (fRows == 2)
@@ -44,7 +42,7 @@ dMatrixT& dMatrixT::Inverse(const dMatrixT& matrix)
 		fArray[3] =	A0/det;		
 	}
 	/* (3 x 3) */
-	else
+	else if (fRows == 3)
 	{
 		double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12, z13;
 		double z14, z15, z16, z17, z18, z19, z20, z21, z22, z23, z24, z25;	
@@ -118,6 +116,51 @@ dMatrixT& dMatrixT::Inverse(const dMatrixT& matrix)
 		*pthis++ = z8;
 		*pthis++ = z7;
 		*pthis   = z6;
+	}
+	else /* general procedure */
+	{
+		/* copy in */
+		if (Pointer() != matrix.Pointer()) *this = matrix;
+
+		double* a = Pointer();
+		for (int n = 0; n < fCols; n++)
+		{
+			if(a[n] != 0.0) /* check diagonal */
+			{
+				double d = 1.0/a[n];
+
+				double* a_n = a;
+				for (int j = 0; j < fRows; j++)
+					*a_n++ *= -d;
+
+				double* a_ji = Pointer();
+				double* a_ni = Pointer(n);
+				for (int i = 0; i < fCols; i++)
+				{
+            		if(n != i)
+            		{
+            			a_n = a;
+            			for (int j = 0; j < fRows; j++)
+            			{
+                			if(n != j) *a_ji += *(a_ni)*(*a_n);
+                			a_ji++;
+                			a_n++;
+                		}
+					}
+					else a_ji += fRows;
+					
+            		*a_ni *= d;
+            		a_ni += fRows;
+				}
+          		a[n] = d;          		
+          		a += fRows;
+			}
+			else
+			{
+				cout << "\n dMatrixT::Inverse: zero pivot in row " << n << endl;
+				throw eGeneralFail;
+			}
+		}
 	}
 
 	return *this;
