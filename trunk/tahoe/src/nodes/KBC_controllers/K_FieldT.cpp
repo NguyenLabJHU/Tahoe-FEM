@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.16 2004-01-05 07:12:44 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.17 2004-01-06 00:42:57 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
@@ -34,6 +34,7 @@ K_FieldT::K_FieldT(NodeManagerT& node_manager):
 	fNearTipGroupNum(-1),
 	fNearTipOutputCode(-1),
 	fTipColumnNum(-1),
+	fTrackingCode(kMaximum),
 	fMaxGrowthDistance(-1),
 	fMaxGrowthSteps(-1)
 {
