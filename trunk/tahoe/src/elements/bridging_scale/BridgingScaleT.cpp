@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.32 2003-05-21 23:48:07 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.33 2003-05-23 22:55:08 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -184,9 +184,12 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 }
 
 /* initialize interpolation data */
-void BridgingScaleT::InitInterpolation(const iArrayT& points_used, 
-	PointInCellDataT& cell_data) const
+void BridgingScaleT::InitInterpolation(const iArrayT& points_used, const dArray2DT* init_coords, 
+	const dArray2DT* curr_coords, PointInCellDataT& cell_data)
 {
+	/* initialize the point-in-cell data */
+	MaptoCells(points_used, init_coords, curr_coords, cell_data);
+
 	/* dimension return value */
 	dArray2DT& weights = cell_data.InterpolationWeights();
 	weights.Dimension(points_used.Length(), fSolid.NumElementNodes());
@@ -274,8 +277,19 @@ void BridgingScaleT::InterpolateField(const StringT& field, const PointInCellDat
 }
 
 /* compute the projection matrix */
-void BridgingScaleT::InitProjection(const PointInCellDataT& cell_data)
+void BridgingScaleT::InitProjection(const iArrayT& points_used, const dArray2DT* init_coords, 
+	const dArray2DT* curr_coords, PointInCellDataT& cell_data)
 {
+	/* initialize point-in-cell data */
+	MaptoCells(points_used, init_coords, curr_coords, cell_data);
+
+	/* compute interpolation data */
+	InitInterpolation(points_used, init_coords, curr_coords, cell_data);
+
+	/* collect nodes in non-empty cells and generate cell connectivities 
+	 * in local numbering*/
+	cell_data.GenerateCellConnectivities();
+
 	/* projected part of the mesh */
 	const iArrayT& cell_nodes = cell_data.CellNodes();
 	const iArray2DT& cell_connects = cell_data.CellConnectivities();
@@ -338,11 +352,9 @@ out << "\n mass matrix =\n" << fGlobalMass << endl;
 }
 
 /* project the point values onto the mesh */
-void BridgingScaleT::ProjectField(const StringT& field, const PointInCellDataT& cell_data,
-	const dArray2DT& values, dArray2DT& projection)
+void BridgingScaleT::ProjectField(const PointInCellDataT& cell_data,
+	const dArray2DT& point_values, dArray2DT& projection)
 {
-#pragma unused(field)
-
 	/* projected part of the mesh */
 	const iArrayT& cell_nodes = cell_data.CellNodes();
 	const iArray2DT& cell_connects = cell_data.CellConnectivities();
@@ -353,14 +365,14 @@ void BridgingScaleT::ProjectField(const StringT& field, const PointInCellDataT& 
 	const InverseMapT& global_to_local = cell_data.GlobalToLocal();
 	
 	/* initialize return value */
-	projection.Dimension(cell_nodes.Length(), values.MinorDim());
+	projection.Dimension(cell_nodes.Length(), point_values.MinorDim());
 	projection = 0.0;
 	
 	/* loop over mesh */
 	int cell_dex = 0;
 	iArrayT cell_eq;
 	dArrayT Na, point_value;
-	dMatrixT Nd(cell_connects.MinorDim(), values.MinorDim());
+	dMatrixT Nd(cell_connects.MinorDim(), point_values.MinorDim());
 	for (int i = 0; i < point_in_cell.MajorDim(); i++)
 	{
 		int np = point_in_cell.MinorDim(i);
@@ -377,7 +389,7 @@ void BridgingScaleT::ProjectField(const StringT& field, const PointInCellDataT& 
 				weights.RowAlias(point_dex, Na);
 
 				/* source values of the point */
-				values.RowAlias(point, point_value);
+				point_values.RowAlias(point, point_value);
 			
 				/* rhs during projection - calculating part of w */
 				Nd.Outer(Na, point_value, 1.0, dMatrixT::kAccumulate);
@@ -412,9 +424,9 @@ out << "\n residual =\n" << projection << endl;
 	u_tmp.Free();
 
 	/* initialize return values */
-	fFineScale.Dimension(values);
+	fFineScale.Dimension(point_values);
 	fFineScale = 0.0;
-	fCoarseScale.Dimension(values);
+	fCoarseScale.Dimension(point_values);
 	fCoarseScale = 0.0;
 
 	cell_dex = 0;
@@ -445,7 +457,7 @@ out << "\n residual =\n" << projection << endl;
 					fCoarseScale(point, k) = cell_projection.DotColumn(k, Na);
 
 					/* error = source - projection = q-Nw*/
-					fFineScale(point, k) = values(point, k) - fCoarseScale(point, k);
+					fFineScale(point, k) = point_values(point, k) - fCoarseScale(point, k);
 				}
 			}
 		}
@@ -455,7 +467,7 @@ out << "\n residual =\n" << projection << endl;
 /* Project point values onto mesh, write into displacement field.  Used to compute initial
    displacements from point values to mesh. */
 void BridgingScaleT::InitialProject(const StringT& field, const PointInCellDataT& cell_data,
-	const dArray2DT& values, dArray2DT& projection, dArray2DT& projectedu)
+	const dArray2DT& point_values, dArray2DT& projection, dArray2DT& projectedu)
 {
 #pragma unused(field)
 
@@ -469,14 +481,14 @@ void BridgingScaleT::InitialProject(const StringT& field, const PointInCellDataT
 	const InverseMapT& global_to_local = cell_data.GlobalToLocal();
 	
 	/* initialize return value */
-	projection.Dimension(cell_nodes.Length(), values.MinorDim());
+	projection.Dimension(cell_nodes.Length(), point_values.MinorDim());
 	projection = 0.0;
 	
 	/* loop over mesh */
 	int cell_dex = 0;
 	iArrayT cell_eq;
 	dArrayT Na, point_value;
-	dMatrixT Nd(cell_connects.MinorDim(), values.MinorDim());
+	dMatrixT Nd(cell_connects.MinorDim(), point_values.MinorDim());
 	for (int i = 0; i < point_in_cell.MajorDim(); i++)
 	{
 		int np = point_in_cell.MinorDim(i);
@@ -493,7 +505,7 @@ void BridgingScaleT::InitialProject(const StringT& field, const PointInCellDataT
 				weights.RowAlias(point_dex, Na);
 
 				/* source values of the point */
-				values.RowAlias(point, point_value);
+				point_values.RowAlias(point, point_value);
 			
 				/* rhs during projection - calculating part of w */
 				Nd.Outer(Na, point_value, 1.0, dMatrixT::kAccumulate);
@@ -527,12 +539,11 @@ out << "\n residual =\n" << projection << endl;
 	}
 	u_tmp.Free();
 
-	/* initialize return values */
-	fFineScale.Dimension(values);
+	fFineScale.Dimension(point_values);
 	fFineScale = 0.0;
-	fCoarseScale.Dimension(values);
+	fCoarseScale.Dimension(point_values);
 	fCoarseScale = 0.0;
-	projectedu.Dimension(values);
+	projectedu.Dimension(point_values);
 	projectedu = 0.0;
 
 	cell_dex = 0;
@@ -564,7 +575,7 @@ out << "\n residual =\n" << projection << endl;
 					fCoarseScale(point, k) = cell_projection.DotColumn(k, Na);
 
 					/* error = source - projection = q-Nw*/
-					fFineScale(point, k) = values(point, k) - fCoarseScale(point, k);
+					fFineScale(point, k) = point_values(point, k) - fCoarseScale(point, k);
 					
 					/* calculate totalu as function of fine scale and projected u (Nw) */
 					projectedu(point,k) = fCoarseScale(point,k) + fFineScale(point,k);
@@ -745,8 +756,8 @@ void BridgingScaleT::WriteOutput(void)
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* initialize local arrays */
 void BridgingScaleT::SetLocalArrays(void)
