@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.25 2004-08-05 16:39:50 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.26 2004-08-06 07:25:25 paklein Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -89,6 +89,13 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	
 	/* What dimension? */
 	fSD = ElementSupport().NumSD();
+
+	/* resolve path to Voronoi file */
+	StringT path;
+	path.FilePath(ElementSupport().InputFile());
+	vCellFile = list.GetParameter("voronoi_file");
+	vCellFile.ToNativePathName();
+	vCellFile.Prepend(path);
 
 	/* number of integration points used for surface integrals */
 	fNumIP = list.GetParameter("num_ip");
