@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.2 2001-01-29 07:36:00 paklein Exp $ */
+/* $Id: nArray2DT.h,v 1.3 2001-03-08 00:17:15 paklein Exp $ */
 /* created: paklein (07/09/1996)                                          */
 /* nArrayT with subdimension - row major storage                          */
 
@@ -352,13 +352,17 @@ template <class nTYPE>
 void nArray2DT<nTYPE>::SetLocal(const ArrayT<int>& rows,
 	nArrayT<nTYPE>& sublist) const
 {
+#if __option(extended_errorcheck)
+	/* dimension checks */
+	if (rows.Length()*fMinorDim != sublist.Length())
+		throw eSizeMismatch;
+#endif
+
 //NOTE: could unroll loops for speed with
 //      fMinorDim = 1,2,3
-
 	int	 sublength = rows.Length();
 	int*	 prows = rows.Pointer();
 	nTYPE* pSub = sublist.Pointer();	
-		
 	for (int i = 0; i < sublength; i++)
 	{
 		nTYPE* parray = (*this)(prows[i]);
@@ -368,7 +372,6 @@ void nArray2DT<nTYPE>::SetLocal(const ArrayT<int>& rows,
 			*psub = *parray++;
 			psub += sublength;
 		}
-		
 		pSub++;	
 	}
 }

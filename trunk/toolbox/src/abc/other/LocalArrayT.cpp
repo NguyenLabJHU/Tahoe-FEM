@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.cpp,v 1.1.1.1 2001-01-25 20:56:24 paklein Exp $ */
+/* $Id: LocalArrayT.cpp,v 1.2 2001-03-08 00:18:58 paklein Exp $ */
 /* created: paklein (07/10/1996)                                          */
 
 #include "LocalArrayT.h"
@@ -115,6 +115,7 @@ void LocalArrayT::SetLocal(const ArrayT<int>& keys)
 {
 #if __option (extended_errorcheck)
 	if (!fGlobal) throw eGeneralFail;
+	if (keys.Length() != fNumNodes) throw eSizeMismatch;
 #endif
 
 	fGlobal->SetLocal(keys,*this);
