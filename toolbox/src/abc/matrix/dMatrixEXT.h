@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.h,v 1.2 2001-09-20 23:52:05 cfoster Exp $ */
+/* $Id: dMatrixEXT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
 /* created: paklein (03/06/1998)                                          */
 /* dMatrixT plus special matrix functions                                 */
 
@@ -32,14 +32,6 @@ public:
 	/* return the {eigenvalue,eigenvector} pair corresponding
 	 * to the approximate eigenvalue that is passed in */
 	void Eigenvector(double& eig_guess, dArrayT& eigenvector) const;
-
-	/* returns eigenvalues of a general matrix by first putting it in 
-	 * Hessian form */
-	void eigvalfinder (dMatrixEXT& matrix, dArrayT& realev, dArrayT& imev);
-        void eigenvalue3x3(dMatrixEXT& J, dArrayT& reroot, dArrayT& imroot);
-	void eigenvector3x3(dMatrixEXT& J, double value, int numvector,  dArrayT& vector, dArrayT& vector2, dArrayT& vector3);
-        /*forms acoustic tensor from rank 4 tangent modulus, normal */
-	void formacoustictensor(dMatrixEXT& A, double C [3] [3] [3] [3], dArrayT& normal);
 
 private:
 
@@ -86,16 +78,6 @@ private:
 	double pythag(double a, double b);
 	int tqli(double d[], double e[], int n);
 
-	/* Numerical recipe, puts general matrix in Hessian form */
-	void elmhes(dMatrixEXT& a,int n);
-
-        /* numerical recipe, finds eigenvalues of Hessian matrix
-	 *real part of each value is in wr, imaginary in wi */
-	void hqr(dMatrixEXT& a, int n, dArrayT& wr, dArrayT& wi);
-
-
-
-	//int rankcheck3x3 (dMatrixEXT& matrix, double det);
 private:
 
 	/* work vectors length fRows (== fCols) */

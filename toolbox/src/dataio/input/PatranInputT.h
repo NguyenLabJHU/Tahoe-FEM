@@ -1,4 +1,4 @@
-/* $Id: PatranInputT.h,v 1.4 2001-09-21 13:48:51 sawimme Exp $ */
+/* $Id: PatranInputT.h,v 1.3 2001-09-04 14:46:38 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _PATRANINPUT_T_H_
@@ -34,7 +34,6 @@ class PatranInputT : public InputBaseT
   virtual int  NumGlobalElements (void) const;
   virtual int  NumElements (StringT& name);
   virtual int  NumElementNodes (StringT& name);
-  virtual int  NumElementQuadPoints (StringT& name);
   virtual void ReadAllElementMap (iArrayT& elemmap);
   virtual void ReadGlobalElementMap (StringT& name, iArrayT& elemmap);
   virtual void ReadGlobalElementSet (StringT& name, iArrayT& set);
@@ -89,11 +88,6 @@ inline int PatranInputT::NumNodes (void) const
 { return fPatran.NumNodes(); }
 inline int PatranInputT::NumDimensions (void) const
 { return fPatran.NumDimensions(); }
-inline int PatranInputT::NumElementQuadPoints (StringT& name)
-{
-#pragma unused (name)
-  return (0);
-}
 inline int PatranInputT::NumGlobalElements (void) const
 { return fPatran.NumElements (); }
 inline bool PatranInputT::AreSideSetsLocal (void) const

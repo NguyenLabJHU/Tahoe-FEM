@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.h,v 1.5 2001-09-21 06:09:10 paklein Exp $ */
+/* $Id: dMatrixT.h,v 1.4 2001-09-04 06:46:37 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _DMATRIX_T_H_
@@ -63,10 +63,6 @@ public:
 	/* trace of the matrix.  
 	 * \note The matrix must be square. */
 	double Trace(void) const;
-
-	/** returns the scalar inner product of a tensor with itself
-	 * define as T:T = T_ij T_ij */
-	double ScalarProduct(void) const { return Dot(*this, *this); };
 
 	/* 2D/3D dimension transformations */
 	void Rank2ExpandFrom2D(const dMatrixT& mat2D); /* fill with zeroes */

@@ -1,4 +1,4 @@
-/* $Id: IOManager.cpp,v 1.9 2001-09-28 01:32:12 paklein Exp $ */
+/* $Id: IOManager.cpp,v 1.8 2001-09-07 14:19:54 sawimme Exp $ */
 /* created: sawimme (10/12/1999)                                          */
 /* this class creates InputBaseT and OutputBaseT pointers                 */
 
@@ -215,7 +215,7 @@ OutputBaseT* IOManager::SetOutput(const StringT& program_name,
 	    break;
 	  case IOBaseT::kTahoe:
 	  case IOBaseT::kTahoeII:
-	    output = new FE_ASCIIT(fLog, true, outstrings);
+	    output = new FE_ASCIIT(fLog, fExternTahoeII, outstrings);
 	    break;
 	  case IOBaseT::kEnSight:
 	    output = new EnSightOutputT (fLog, outstrings, kdigits, false);

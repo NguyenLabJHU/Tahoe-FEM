@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.14 2001-09-24 20:37:23 rjones Exp $ */
+/* $Id: ElementListT.cpp,v 1.13 2001-08-29 07:11:28 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
@@ -100,10 +100,10 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 		out << "    eq. " << ElementT::kMFCohesiveSurface  << ", meshfree cohesive surface element\n";
 
 		out << "    eq. " << ElementT::kACME_Contact       << ", 3D contact using ACME\n";
-		out << "    eq. " << ElementT::kMultiplierContact3D       << ", 3D contact using Lagrange multipliers\n";
+		out << "    eq. " << ElementT::kMultiplierContact3D       << ", 3D contact using quadrature-based elements\n";
 		out << "    eq. " << ElementT::kAdhesionContact2D       << ", 2D adhesion contact elements\n";
 		
-		out << "    eq. " << ElementT::kMultiplierContact2D       << ", 2D contact using Lagrange multipliers\n";
+		out << "    eq. " << ElementT::kMultiplierContact2D       << ", 2D contact using quadrature-based elements w friction\n";
 		
 		/* check */
 		if (group < 0 || group >= Length())

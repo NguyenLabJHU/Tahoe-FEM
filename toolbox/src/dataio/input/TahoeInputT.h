@@ -1,4 +1,4 @@
-/* $Id: TahoeInputT.h,v 1.5 2001-09-21 13:48:51 sawimme Exp $ */
+/* $Id: TahoeInputT.h,v 1.4 2001-09-04 16:35:46 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _TAHOEINPUT_T_H_
@@ -34,7 +34,6 @@ class TahoeInputT : public InputBaseT
   virtual int NumGlobalElements (void) const;
   virtual int NumElements (StringT& name);
   virtual int NumElementNodes (StringT& name);
-  virtual int  NumElementQuadPoints (StringT& name);
   virtual void ReadAllElementMap (iArrayT& elemmap);
   virtual void ReadGlobalElementMap (StringT& name, iArrayT& elemmap);
   virtual void ReadGlobalElementSet (StringT& name, iArrayT& set);
@@ -79,11 +78,6 @@ class TahoeInputT : public InputBaseT
 inline bool TahoeInputT::AreSideSetsLocal (void) const
 { return true; }
 
-inline int TahoeInputT::NumElementQuadPoints (StringT& name)
-{
-#pragma unused (name)
-  return (0);
-}
 inline void TahoeInputT::QARecords (ArrayT<StringT>& records)
 {
 //TEMP

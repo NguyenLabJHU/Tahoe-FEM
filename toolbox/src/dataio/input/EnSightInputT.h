@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.h,v 1.4 2001-09-21 13:48:51 sawimme Exp $ */
+/* $Id: EnSightInputT.h,v 1.3 2001-09-04 14:46:37 sawimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #ifndef _ENSIGHTINPUT_T_H_
@@ -45,7 +45,6 @@ public:
   virtual int  NumGlobalElements (void) const;
   virtual int  NumElements (StringT& name);
   virtual int  NumElementNodes (StringT& name);
-  virtual int  NumElementQuadPoints (StringT& name);
   virtual void ReadAllElementMap (iArrayT& elemmap);
   virtual void ReadGlobalElementMap (StringT& name, iArrayT& elemmap);
   virtual void ReadGlobalElementSet (StringT& name, iArrayT& set);
@@ -104,11 +103,6 @@ inline void EnSightInputT::SideSetNames (ArrayT<StringT>& sidenames) const
 { sidenames.Free (); }
 inline void EnSightInputT::NodeSetNames (ArrayT<StringT>& nodenames) const
 { nodenames.Free (); }
-inline int EnSightInputT::NumElementQuadPoints (StringT& name)
-{
-#pragma unused (name)
-  return (0);
-}
 inline int EnSightInputT::NumSideSets (void) const { return 0; }
 inline int EnSightInputT::NumNodeSets (void) const { return 0; }
 inline int EnSightInputT::NumDimensions (void) const { return 3; }

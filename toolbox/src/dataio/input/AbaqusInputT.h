@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.h,v 1.6 2001-09-21 13:48:51 sawimme Exp $ */
+/* $Id: AbaqusInputT.h,v 1.5 2001-09-10 15:42:00 sawimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #ifndef _ABAQUSINPUT_T_H_
@@ -43,7 +43,6 @@ class AbaqusInputT : public InputBaseT
   int  NumGlobalElements (void) const;
   int  NumElements (StringT& name);
   int  NumElementNodes (StringT& name);
-  int  NumElementQuadPoints (StringT& name);
   void ReadAllElementMap (iArrayT& elemmap);
   void ReadGlobalElementMap (StringT& name, iArrayT& elemmap);
   void ReadGlobalElementSet (StringT& name, iArrayT& map);
@@ -126,7 +125,6 @@ inline  void AbaqusInputT::ReadSideSetGlobal (StringT& setname, iArray2DT& sides
 inline int AbaqusInputT::NumDimensions (void) const { return 3; }
 inline int AbaqusInputT::NumElements (StringT& name) { return fData.NumElements (name); }
 inline int AbaqusInputT::NumElementNodes (StringT& name) { return fData.NumElementNodes (name); }
-inline int AbaqusInputT::NumElementQuadPoints (StringT& name) { return fData.NumElementQuadPoints (name); }
 inline int AbaqusInputT::NumQuadratureVariables (void) const { return fData.NumQuadratureVariables (); }
 inline int AbaqusInputT::NumNodeVariables (void) const { return fData.NumNodeVariables (); }
 inline int AbaqusInputT::NumElementVariables (void) const { return fData.NumElementVariables (); }

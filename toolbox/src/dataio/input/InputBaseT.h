@@ -1,4 +1,4 @@
-/* $Id: InputBaseT.h,v 1.5 2001-09-21 13:48:51 sawimme Exp $ */
+/* $Id: InputBaseT.h,v 1.4 2001-09-04 14:46:38 sawimme Exp $ */
 /* created: sawimme (08/12/1999) */
 
 #ifndef _INPUTBASE_T_H_
@@ -67,7 +67,6 @@ public:
   virtual int  NumGlobalElements (void) const = 0; /* for all element sets */
   virtual int  NumElements (StringT& name) = 0; /* for the set specified */
   virtual int  NumElementNodes (StringT& name) = 0; /* typically for the first element in the set */
-  virtual int  NumElementQuadPoints (StringT& name) = 0; /* typically for the first element in the set */
   virtual void ReadAllElementMap (iArrayT& elemmap) = 0; /* all elements, not offset, can be discontinuous */
   virtual void ReadGlobalElementMap (StringT& name, iArrayT& elemmap) = 0; /* set elements, not offset, can be discontinuous */
   virtual void ReadGlobalElementSet (StringT& name, iArrayT& set) = 0; /* offset, continuous */
