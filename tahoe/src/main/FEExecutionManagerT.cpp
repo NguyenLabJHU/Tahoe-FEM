@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.41 2003-05-21 23:48:15 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.42 2003-05-22 01:29:33 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -34,7 +34,9 @@
 /* needed for bridging calculations FEExecutionManagerT::RunBridging */
 #ifdef BRIDGING_ELEMENT
 #include "FEManagerT_bridging.h"
+#ifdef __DEVELOPMENT__
 #include "FEManagerT_THK.h"
+#endif
 #include "TimeManagerT.h"
 #include "NodeManagerT.h"
 #include "dSPMatrixT.h"
@@ -141,11 +143,15 @@ if (CommandLineOption("-thk")) mode = kTHK;
 		}
 		case kTHK:
 		{
+#ifdef __DEVELOPMENT__
 			cout << "\n RunTHK: " << in.filename() << endl;
 			if (fComm.Size() > 1) ExceptionT::GeneralFail(caller, "RunTHK for SERIAL ONLY");
 
 			RunTHK(in, status);
 			break;
+#else
+			ExceptionT::BadInputValue(caller, "development module needed to run THK");
+#endif
 		}
 		default:
 			ExceptionT::GeneralFail("FEExecutionManagerT::RunJob", "unknown mode: %d", mode);
@@ -774,6 +780,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 }
 #endif
 
+#ifdef __DEVELOPMENT__
 #ifdef BRIDGING_ELEMENT
 void FEExecutionManagerT::RunTHK(ifstreamT& in, ostream& status) const
 {
@@ -873,7 +880,8 @@ void FEExecutionManagerT::RunTHK(ifstreamT& in, ostream& status) const
 	const char caller[] = "FEExecutionManagerT::RunTHK";
 	ExceptionT::GeneralFail(caller, "BRIDGING_ELEMENT not enabled");
 }
-#endif
+#endif /* BRIDGING_ELEMENT */
+#endif /* __DEVELOPMENT__ */
 
 /* standard serial driver */
 void FEExecutionManagerT::RunJob_serial(ifstreamT& in,

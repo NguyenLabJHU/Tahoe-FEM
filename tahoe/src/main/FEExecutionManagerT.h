@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.14 2003-05-21 23:48:15 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.15 2003-05-22 01:29:33 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
@@ -82,8 +82,10 @@ private:
 	/** multi-Tahoe, bridging scale test */
 	void RunBridging(ifstreamT& in, ostream& status) const;
 
+#ifdef __DEVELOPMENT__
 	/** time history kernel tests */
 	void RunTHK(ifstreamT& in, ostream& status) const;
+#endif
 	/*@}*/
 
 #ifdef BRIDGING_ELEMENT
