@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_22.cpp,v 1.1.2.1 2004-06-07 13:56:42 paklein Exp $ */
+/* $Id: FEManagerT_bridging_22.cpp,v 1.1.2.2 2004-06-07 23:22:14 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -6,6 +6,7 @@
 #include "NodeManagerT.h"
 #include "CommManagerT.h"
 
+#include "ifstreamT.h"
 #include "BridgingScaleT.h"
 #include "ParticleT.h"
 #include "ParticlePairT.h"
@@ -254,14 +255,15 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 		K_scale = k_penalty;
 
 		/* solve bond densities */
-		double scale_jump = 2.0;
+		double scale_jump = 1.0; /* total jump is actually 1 + scale_jump */
 		double constraint_tol = 2.0e-02;
 		double abs_tol = 1.0e-10;
 		double rel_tol = 1.0e-10;
 		double div_tol = 1.0e+32;		
 		double error_0, error;
-		int max_iter = 25;
-		int check_iter = 8;
+		int max_iter = 25; /* maximum number of iterations */
+		int fast_iter = 3; /* 'fast' solution to trigger bigger scale jump */
+		int check_iter = 8; /* number of iterations at which the residual should have dropped to < 1.0 */
 		bool more_continuation = true;
 		bool do_line_search = false;
 		while (more_continuation) /* continuation */		
@@ -449,11 +451,15 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 			
 				more_continuation = false;
 				if (p_i.Length() > 0) {
+					
+					/* increase scaling jump */
+					if (iter < fast_iter && iter > 1 && scale_jump < 200.0)
+						scale_jump *= 2.0;
 				
 					double min = p_i[0];
 					double max = p_i[0];
 					for (int j = 0; j < p_i.Length(); j++) {
-					
+
 						/* find limits */
 						double& p = p_i[j];
 						min = (p < min) ? p : min;
@@ -462,22 +468,28 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 						/* tighter constraints */
 						if (p < -constraint_tol || p - 1.0 > constraint_tol) {
 							more_continuation = true;
-							K_scale[j] *= scale_jump;
+							K_scale[j] *= (1.0 + scale_jump);
 						}
 					}
 					
 					/* report */
-					cout << "{max, min} = " << "{" << min << ", " << max <<"}"<< endl;
+					cout << "{max, min, scale_jump} = " << "{" << min << ", " << max << ", " << scale_jump <<"}"<< endl;
 				}
 			}
 			else /* did not converge */
 			{
-				/* restore solution */
-				K_scale = K_scale_last;
-				p_i.CopyIn(0, last_solution);
+				/* exit */
+				if (scale_jump < 1.0e-10)
+					ExceptionT::GeneralFail(caller, "scale_jump is small 1.0 + %g", scale_jump);
+				else
+				{
+					/* restore solution */
+					K_scale = K_scale_last;
+					p_i.CopyIn(0, last_solution);
 				
-				/* reduce scaling jump */
-				scale_jump = 1.0 + (scale_jump - 1.0)*0.5;
+					/* reduce scaling jump */
+					scale_jump *= 0.5;
+				}
 			}
 
 			//cout << "{bounds, num_continuation} = {" << ", " << num_continuation << "}" << endl;
