@@ -1,4 +1,4 @@
-/* $Id: J2QLLinHardT.cpp,v 1.5 2001-06-04 23:40:17 paklein Exp $ */
+/* $Id: J2QLLinHardT.cpp,v 1.5.2.1 2001-06-06 16:27:21 paklein Exp $ */
 /* created: paklein (10/26/2000)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -171,7 +171,7 @@ const dMatrixT& J2QLLinHardT::c_ijkl(void)
 	     fabs(fEigs[1] - 1.0) < kSmall &&
 	     fabs(fEigs[2] - 1.0) < kSmall )
 	{
-		IsotropicT::ComputeModuli(fModulus, Mu(), Lambda());
+		IsotropicT::ComputeModuli(fModulus);
 	}
 	/* compute moduli */
 	else

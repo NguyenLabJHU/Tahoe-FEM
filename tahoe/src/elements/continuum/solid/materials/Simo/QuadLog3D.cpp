@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.cpp,v 1.3 2001-05-04 19:12:46 paklein Exp $ */
+/* $Id: QuadLog3D.cpp,v 1.3.2.1 2001-06-06 16:31:42 paklein Exp $ */
 /* created: paklein (06/27/1997)                                          */
 /* Hyperelastic material governed by quadratic logarithmic potential.     */
 
@@ -105,7 +105,7 @@ void QuadLog3D::ComputeModuli(const dSymMatrixT& b, dMatrixT& moduli)
 	     fabs(fEigs[1] - 1.0) < kSmall &&
 	     fabs(fEigs[2] - 1.0) < kSmall )
 	{
-		IsotropicT::ComputeModuli(moduli, Mu(), Lambda());
+		IsotropicT::ComputeModuli(moduli);
 	}
 	/* compute moduli */
 	else
