@@ -1,0 +1,104 @@
+# $Id: makefile.template,v 1.1 2003-01-31 09:46:40 paklein Exp $
+# INSTALLATION INSTRUCTIONS
+#
+# (0) copy makefile.template to a local makefile.
+# (1) set HOME_DIR to the full path to this makefile.
+# (2) set MACRO_DIR to the full path to directory
+#     containing the machine specific compiler macros.
+# (3) select ARCH from those in the macros directory.
+# (4) select installed "build options".
+# (5) "make init" to (re-)initialize headers and file
+#     dependencies.
+# (6) "make build" to (re-)compiler binaries.
+
+# full path to current directory
+HOME_DIR =
+
+# working directories:
+OBJ_DIR = $(HOME_DIR)/obj
+INC_DIR = $(HOME_DIR)/inc
+SRC_DIR = $(HOME_DIR)/src
+LIB_DIR = $(HOME_DIR)/lib
+
+# build architecture
+ARCH =
+# see macros directory for choices $(ARCH).macros
+
+# default target name - root of library name or executable name
+TARGET  = development
+LIBRARY = $(HOME_DIR)/lib/lib$(TARGET).a
+
+# path to main, needed if primary target is an executable (not 
+# a library)
+MAIN    = $(SRC_DIR)/main/main.o
+
+# target of "make build", i.e., the library $(LIBRARY) or
+# the executable $(TARGET)
+BUILD   = $(LIBRARY)
+
+# full path to compiler macros
+MACRO_DIR = $(HOME_DIR)/../macros
+
+############################### build options ###########################
+# uncomment macros for installed models
+
+##### any additional user C, C++, fortran, or linker flags
+#MY_CFLAGS  =
+#MY_CCFLAGS = --load-pch $(TB_DIR)/pch
+#MY_FFLAGS  =
+#MY_LFLAGS  =
+
+##### toolbox and tahoe
+TB_DIR      = $(HOME_DIR)/../toolbox
+TAHOE_DIR   = $(HOME_DIR)/../tahoe
+TB_INC      = -I$(TB_DIR)/inc -I$(TAHOE_DIR)/inc
+TB_CFLAGS   = $(TB_INC)
+TB_LIB_NAME    = toolbox
+TAHOE_LIB_NAME = tahoe
+TB_LIB      = $(TAHOE_DIR)/lib/lib$(TAHOE_LIB_NAME).a $(TB_DIR)/lib/lib$(TB_LIB_NAME).a
+TB_LFLAGS   = -L$(TAHOE_DIR)/lib -l$(TAHOE_LIB_NAME) -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
+
+##### F2C 1.4.3
+#F2C_DIR      = $(HOME_DIR)/../f2c
+#F2C_INC      = -I$(F2C_DIR)/inc
+#F2C_CFLAGS   = $(F2C_INC) -D__F2C__
+#F2C_LIB_NAME = f2c_
+#F2C_LIB      = $(F2C_DIR)/lib/lib$(F2C_LIB_NAME).a
+#F2C_LFLAGS   = -L$(F2C_DIR)/lib -l$(F2C_LIB_NAME)
+
+############################### build options ###########################
+
+# extra macros for specific modules
+#include $(MACRO_DIR)/development.extras
+
+# extras - targets brought up to date before other makefile
+# targets associated with "make init", "make build", and "make clean". 
+# To activate, uncomment the line defining MAKE_[]_XTRAS, and add any commands 
+# below to the associated make_[]extras target.
+# This two part approach is for backward compatibility between make.targets
+# and older versions of makefile.template
+MAKE_INIT_XTRAS  = update_config
+#MAKE_BUILD_XTRAS = make_build_extras
+MAKE_CLEAN_XTRAS = clean_config
+
+# include common target definitions
+include $(MACRO_DIR)/make.targets
+
+# init extras target
+update_config:
+	@ if test -f $(SRC_DIR)/config/DevelopmentElementsConfig.make; then rm $(SRC_DIR)/config/DevelopmentElementsConfig.make; fi
+	@ cd config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl DevelopmentElementsConfig.conf $(SRC_DIR)/config
+	@ cd config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   DevelopmentElementsConfig.conf $(SRC_DIR)/config
+	@ if test -f $(SRC_DIR)/config/DevelopmentMaterialsConfig.make; then rm $(SRC_DIR)/config/DevelopmentMaterialsConfig.make; fi
+	@ cd config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl DevelopmentMaterialsConfig.conf $(SRC_DIR)/config
+	@ cd config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   DevelopmentMaterialsConfig.conf $(SRC_DIR)/config
+
+# build extras target
+make_build_extras:
+
+# clean extras target - clean config files out of src/config
+clean_config:
+	@ if test -f $(SRC_DIR)/config/DevelopmentElementsConfig.h; then rm $(SRC_DIR)/config/DevelopmentElementsConfig.h; fi
+	@ if test -f $(SRC_DIR)/config/DevelopmentElementsConfig.make; then rm $(SRC_DIR)/config/DevelopmentElementsConfig.make; fi
+	@ if test -f $(SRC_DIR)/config/DevelopmentMaterialsConfig.h; then rm $(SRC_DIR)/config/DevelopmentMaterialsConfig.h; fi
+	@ if test -f $(SRC_DIR)/config/DevelopmentMaterialsConfig.make; then rm $(SRC_DIR)/config/DevelopmentMaterialsConfig.make; fi

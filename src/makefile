@@ -1,34 +1,33 @@
-# $Id: makefile,v 1.5 2003-01-31 09:46:47 paklein Exp $
+# $Id: makefile,v 1.1 2003-01-31 09:46:44 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
 include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
-OBJ = \
-	BEMelement.o
-
-OBJ_LINK = $(OBJ)
-DEP = $(OBJ:.o=.d)
-#OBJ = dummy
-#OBJ_LINK =
-#DEP = /dev/null
+#OBJ = 
+#OBJ_LINK = $(OBJ)
+#DEP = $(OBJ:.o=.d)
+OBJ = dummy
+OBJ_LINK =
+DEP = /dev/null
 
 # sources
-SRC = \
-	BEMelement.cpp
+#SRC = 
 
 # headers
-HDR = \
-	BEMelement.h
-
-HDR_LINK = $(HDR:.h=.h_link)
+#HDR = 
+#HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
-SUB_DIR = 
-#subdir_driver: subdir_loop
+SUB_DIR = \
+	config \
+	elements \
+	C1functions
+
+subdir_driver: subdir_loop
 # SUB_DIR is empty
-subdir_driver: 
+#subdir_driver: 
 
 # instructions for subdirectories
 include $(MACRO_DIR)/subdir.targets

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.23 2003-01-31 09:46:45 paklein Exp $
+# $Id: makefile,v 1.1 2003-01-31 09:46:49 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,8 +6,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	GreenwoodWilliamson.o \
-	ConHypGeom.o
+	PMLMatT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -17,13 +16,11 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	GreenwoodWilliamson.cpp \
-	ConHypGeom.cpp
+	PMLMatT.cpp
 
 # headers
 HDR = \
-	GreenwoodWilliamson.h \
-	ConHypGeom.h
+	PMLMatT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

@@ -1,36 +1,31 @@
-# $Id: makefile,v 1.23 2003-01-31 09:46:45 paklein Exp $
+# $Id: makefile,v 1.1 2003-01-31 09:46:46 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
 include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
-OBJ = \
-	GreenwoodWilliamson.o \
-	ConHypGeom.o
-
-OBJ_LINK = $(OBJ)
-DEP = $(OBJ:.o=.d)
-#OBJ = dummy
-#OBJ_LINK =
-#DEP = /dev/null
+#OBJ = 
+#OBJ_LINK = $(OBJ)
+#DEP = $(OBJ:.o=.d)
+OBJ = dummy
+OBJ_LINK =
+DEP = /dev/null
 
 # sources
-SRC = \
-	GreenwoodWilliamson.cpp \
-	ConHypGeom.cpp
+#SRC =
 
 # headers
 HDR = \
-	GreenwoodWilliamson.h \
-	ConHypGeom.h
+	DevelopmentElementsConfig.h \
+	DevelopmentMaterialsConfig.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
-SUB_DIR =  
+SUB_DIR = 
 #subdir_driver: subdir_loop
-#SUB_DIR is empty
+# SUB_DIR is empty
 subdir_driver: 
 
 # instructions for subdirectories

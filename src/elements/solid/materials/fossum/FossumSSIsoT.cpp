@@ -1,4 +1,4 @@
-/* $Id: FossumSSIsoT.cpp,v 1.7 2002-12-05 23:50:21 cfoster Exp $ */
+/* $Id: FossumSSIsoT.cpp,v 1.8 2003-01-31 09:46:54 paklein Exp $ */
 /* DEVELOPMENT */
 /* 3-invariant, single-surface dilation/compaction plasticity model
  * with isotropic and kinematic hardeneing
@@ -56,7 +56,7 @@ FossumSSIsoT::FossumSSIsoT(ifstreamT& in, const SSMatSupportT& support):
   fmu          (Mu()),
   flambda      (Lambda()),
 
-  SSStructMatT(in, support),
+  SSSolidMatT(in, support),
   IsotropicT(in),
   HookeanMatT(3),
   fStress(3),
@@ -107,7 +107,7 @@ FossumSSIsoT::~FossumSSIsoT(void) { }
 /* write parameters to stream */
 void FossumSSIsoT::Print(ostream& out) const
 {
-  SSStructMatT::Print(out);
+  SSSolidMatT::Print(out);
   IsotropicT::Print(out);
 
   out << "Material parameter for F_f A.............. = " << fA << endl; 
@@ -126,7 +126,7 @@ void FossumSSIsoT::Print(ostream& out) const
 
 void FossumSSIsoT::PrintName(ostream& out) const
 {
-  SSStructMatT::PrintName(out);
+  SSSolidMatT::PrintName(out);
 
   out << "Fossum plasticity model: a 3-invariant, single-surface dilation\\\n";
   out << "compaction plasticity model w/ isotropic and kinematic hardening\n"; 

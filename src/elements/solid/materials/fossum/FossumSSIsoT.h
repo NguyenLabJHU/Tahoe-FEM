@@ -1,4 +1,4 @@
-/* $Id: FossumSSIsoT.h,v 1.5 2002-11-14 17:06:19 paklein Exp $ */
+/* $Id: FossumSSIsoT.h,v 1.6 2003-01-31 09:46:54 paklein Exp $ */
 /* DEVELOPMENT */
 /* 3-invariant, single-surface dilation/compaction plasticity model
  * with isotropic and kinematic hardeneing
@@ -7,8 +7,8 @@
 #ifndef _FOSSUM_SS_ISOT_H_
 #define _FOSSUM_SS_ISOT_H_
 
-#include "StructuralMaterialT.h"
-#include "SSStructMatT.h"
+#include "SolidMaterialT.h"
+#include "SSSolidMatT.h"
 #include "HookeanMatT.h"
 #include "SSHookeanMatT.h"
 
@@ -32,7 +32,7 @@ class ElementCardT;
  * with isotropic and kinematic hardeneing
  * Implemented 8/02 Craig Foster
  */
-class FossumSSIsoT: public SSStructMatT,
+class FossumSSIsoT: public SSSolidMatT,
                     public IsotropicT,
                     public HookeanMatT
 {
@@ -102,7 +102,7 @@ virtual void ResetHistory(void);
         virtual const dSymMatrixT& s_ij(void);
 
 	/** return the pressure associated with the last call to 
-	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
 	 * for more information. */
 	virtual double Pressure(void) const { return fStress.Trace()/3.0; };
 

@@ -1,8 +1,8 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.21 2003-01-03 03:32:14 paklein Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.22 2003-01-31 09:46:52 paklein Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
-#include "eControllerT.h"
+//#include "eIntegratorT.h"
 #include "ShapeFunctionT.h"
 #include "ifstreamT.h"
 

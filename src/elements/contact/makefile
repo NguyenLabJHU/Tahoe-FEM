@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.14 2003-01-27 07:00:25 paklein Exp $
+# $Id: makefile,v 1.15 2003-01-31 09:46:51 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,27 +6,25 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	PenaltyContactElement2DT.o \
-	PenaltyContactElement3DT.o \
-	MultiplierContactElement2DT.o \
-	MultiplierContact3DT.o \
 	ContactElementT.o \
+	ContactFaceT.o \
+	ContactLineL2FaceT.o \
+	ContactLineQ3FaceT.o \
+	ContactNodeT.o \
+	ContactQuadL4FaceT.o \
 	ContactSearchT.o \
 	ContactSurfaceT.o \
-	ContactNodeT.o \
-	SurfaceT.o \
 	FaceT.o \
 	LineL2FaceT.o \
 	LineQ3FaceT.o \
+	MultiplierContact3DT.o \
+	MultiplierContactElement2DT.o \
+	PenaltyContactElement2DT.o \
+	PenaltyContactElement3DT.o \
 	QuadL4FaceT.o \
-	TriaL3FaceT.o \
-	ACME_Contact3DT.o \
-	AugLagContact2DT.o \
-	ContactT.o \
-	Contact2DT.o \
-	Contact3DT.o \
-	PenaltyContact2DT.o \
-	PenaltyContact3DT.o
+	SurfaceT.o \
+	TriaL3FaceT.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -35,54 +33,46 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	PenaltyContactElement2DT.cpp \
-	PenaltyContactElement3DT.cpp \
-	MultiplierContactElement2DT.cpp \
-	MultiplierContact3DT.cpp \
 	ContactElementT.cpp \
+	ContactFaceT.cpp \
+	ContactLineL2FaceT.cpp \
+	ContactLineQ3FaceT.cpp \
+	ContactNodeT.cpp \
+	ContactQuadL4FaceT.cpp \
 	ContactSearchT.cpp \
 	ContactSurfaceT.cpp \
-	ContactNodeT.cpp \
-	SurfaceT.cpp \
 	FaceT.cpp \
 	LineL2FaceT.cpp \
 	LineQ3FaceT.cpp \
+	MultiplierContact3DT.cpp \
+	MultiplierContactElement2DT.cpp \
+	PenaltyContactElement2DT.cpp \
+	PenaltyContactElement3DT.cpp \
 	QuadL4FaceT.cpp \
-	TriaL4FaceT.o \
-	ACME_Contact3DT.cpp \
-	AugLagContact2DT.cpp \
-	ContactT.cpp \
-	Contact2DT.cpp \
-	Contact3DT.cpp \
-	PenaltyContact2DT.cpp \
-	PenaltyContact3DT.cpp
+	SurfaceT.cpp \
+	TriaL3FaceT.cpp
 
 # headers
 HDR = \
-	PenaltyContactElement2DT.h \
-	PenaltyContactElement3DT.h \
-	MultiplierContactElement2DT.h \
-	MultiplierContact3DT.h \
-	ContactSurfaceT.h \
 	ContactElementT.h \
+	ContactFaceT.h \
+	ContactLineL2FaceT.h \
+	ContactLineQ3FaceT.h \
+	ContactNodeT.h \
+	ContactQuadL4FaceT.h \
 	ContactSearchT.h \
 	ContactSurfaceT.h \
-	ContactNodeT.h \
-	SurfaceT.h \
 	FaceT.h \
 	LineL2FaceT.h \
 	LineQ3FaceT.h \
+	MultiplierContact3DT.h \
+	MultiplierContactElement2DT.h \
+	PenaltyContactElement2DT.h \
+	PenaltyContactElement3DT.h \
 	QuadL4FaceT.h \
-	TriaL3FaceT.h \
-	vector2D.h \
-	vector3D.h \
-	ACME_Contact3DT.h \
-	AugLagContact2DT.h \
-	ContactT.h \
-	Contact2DT.h \
-	Contact3DT.h \
-	PenaltyContact2DT.h \
-	PenaltyContact3DT.h
+	SurfaceT.h \
+	TriaL3FaceT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
