@@ -1,18 +1,5 @@
-/* $Id: AutoArrayT.h,v 1.8 2002-03-04 01:38:09 paklein Exp $ */
-/* created: paklein (12/05/1997)                                          */
-/* Array that automatically increases its dimensions when                 */
-/* elements are inserted using Append() or AppendUnique.                  */
-/* NOTE: currently the class only supports automatic expansion            */
-/* of the memory space. a strategy for both expansion and                 */
-/* contraction might be:                                                  */
-/* at size b                                                              */
-/* mem size is (1 + headroom) b                                           */
-/* min size is b/(1 + headroom) = mem size/(1 + headroom)^2               */
-/* when b > mem size -> allocate (1 + headroom) b                         */
-/* when b < mem size -> allocate b/(1 + headroom)                         */
-/* need to resolve when size reduction is active. working space           */
-/* is often [0 b], and don't want memory operation at Reset()             */
-
+/* $Id: AutoArrayT.h,v 1.9 2002-06-26 01:00:57 paklein Exp $ */
+/* created: paklein (12/05/1997) */
 #ifndef _AUTO_ARRAY_T_H_
 #define _AUTO_ARRAY_T_H_
 
@@ -22,19 +9,33 @@
 /** array class with "smart" memory management. An allocation headroom
  * can be specified to make the allocated array larger than the logical
  * size of the array. This allows the array to change dimension without
- * always requiring calls to memory allocation routines */
+ * always requiring calls to memory allocation routines.
+ * \note currently the class only supports automatic expansion
+ * of the memory space. a strategy for both expansion and
+ * contraction might be:
+ * at size b
+ * mem size is (1 + headroom) b
+ * min size is b/(1 + headroom) = mem size/(1 + headroom)^2
+ * when b > mem size -> allocate (1 + headroom) b
+ * when b < mem size -> allocate b/(1 + headroom)
+ * need to resolve when size reduction is active. working space
+ * is often [0 b], and don't want memory operation at Reset() */
 template <class TYPE>
 class AutoArrayT: public ArrayT<TYPE>
 {
 public:
 
-	/* constructors */
+	/** \name constructors */
+	/*@{*/
 	AutoArrayT(void);
 	explicit AutoArrayT(int headroom);
 	AutoArrayT(int length, int headroom);
 	AutoArrayT(const ArrayT<TYPE>& source);
 	AutoArrayT(const ArrayT<TYPE>& source, int headroom);
+	/*@}*/
 
+	/** \name dimensioning methods */
+	/*@{*/
 	/** set the array size to the given length. No change occurs if the array
 	 * is already the specified length. The previous contents of the array is
 	 * not preserved. To preserve the array contents while changing the dimension
@@ -55,48 +56,77 @@ public:
 	/* free memory (if allocated) and set size to zero */
 	void Free(void);
 
-	/* (re-)set size of the memory headroom - new headroom
+	/** (re-)set size of the memory headroom - new headroom
 	 * not used until the next memory allocation */
 	void SetHeadRoom(int headroom);
+	/*@}*/
 
-	/* assignment operators - dimensions must be correct */
-	AutoArrayT<TYPE>& operator=(const AutoArrayT<TYPE>& RHS); //CW was jumping to ArrayT<>::op=
+	/** \name assignment operators */
+	/*@{*/
+	AutoArrayT<TYPE>& operator=(const AutoArrayT<TYPE>& RHS);
 	AutoArrayT<TYPE>& operator=(const ArrayT<TYPE>& RHS);
 	AutoArrayT<TYPE>& operator=(const TYPE& value);
+	/*@}*/
 	
-	/* add to the end of the logical size */
+	/** \name add to the end of the logical size */
+	/*@{*/
 	void Append(const ArrayT<TYPE>& source);
 	void Append(const TYPE& value);
+	/*@}*/
 	
-	/* delete/insert values at - error if out of range */
+	/** \name delete/insert values
+	 * Methods to operate on specific locations in the logical size. 
+     * Error if out of range. */
+	/*@{*/
 	void InsertAt(const TYPE& value, int position);
 	void DeleteAt(int position);
+	/*@}*/
 
-	/* returns 1 if the value is already present - NOTE: "==" must be defined
+	/** returns 1 if the value is already present - NOTE: "==" must be defined
 	 * for TYPE */
 	bool HasValue(const TYPE& value) const;
 	
-	/* returns the index of the value, -1 if not present - NOTE: requires "==" */
+	/** returns the index of the value, -1 if not present - NOTE: requires "==" */
 	int PositionOf(const TYPE& value) const;
 	
-	/* add only if not already in the list - returns 1 if */
-	/* value added 0 if not - NOTE: "==" must be defined */
-	/* for TYPE */
+	/** \name appending unique values
+	 * add only if not already in the list - returns 1 if
+     * value added 0 if not - NOTE: "==" must be defined
+	 * for TYPE */
+	/*@{*/
+	/** append value if not matching any other entries with operator==(). */
 	bool AppendUnique(const TYPE& value);
-	int AppendUnique(const ArrayT<TYPE>& source); // returns the number of appended
 	
-	/* make *this into the union of the current contents and the values
+	/** append unique using the given comparator function.
+	 * \param value potential new value in array
+	 * \param comparator function that returns true if a and b are not unique */
+	bool AppendUnique(const TYPE& value, bool (*comp)(const TYPE& a, const TYPE& b));
+
+	/** append unique values from the list using operator==(). 
+	 * \return the number of appended values */
+	int AppendUnique(const ArrayT<TYPE>& source);
+	/*@}*/
+	
+	/** make *this into the union of the current contents and the values
 	 * in the argument */
 	void Union(const ArrayT<TYPE>& source);	
 	
-	/* copy logical size - OK as long as RHS >= *this in length */
+	/** copy logical size - OK as long as RHS >= *this in length */
 	void CopyInto(ArrayT<TYPE>& RHS) const;
 
-	/* Top/Next loop control */
+	/** \name Top/Next loop control */
+	/*@{*/
 	void Top(void);
-	bool Next(TYPE** value);  // returns false when end of list encountered
-	bool Next(void);          // just increment internal counter
-	bool InRange(void) const; // returns list status without incrementing
+	
+	/** returns false when end of list encountered */
+	bool Next(TYPE** value);  
+
+	/** just increment internal counter */
+	bool Next(void);
+	
+	/** returns list status without incrementing */
+	bool InRange(void) const;
+	/*@}*/
 
 	/** returns the current position in the list */
 	const int& Position(void) const;
@@ -108,27 +138,29 @@ public:
 	 * to the element in that position */
 	TYPE& Current(int position);
 	
-	/* stack-like operations */
+	/** \name stack-like operations */
+	/*@{*/
 	void Push(const TYPE& value);
 	void Pop(void);
+	/*@}*/
 
   private:
   
-  	/* size plus headroom */
+  	/** size plus headroom */
   	int WithHeadRoom(int length) { return (length*(100 + fHeadRoom))/100; };
   	
 private:
 	
-	// Size of allocated memory. fLength used to store
-	// the logical size, ie. the number of initialized
-	// elements in the array
+	/** size of allocated memory. fLength used to store
+     * the logical size, ie. the number of initialized
+     * elements in the array. */
 	int fMemSize;
 
-	// percent of overallocation to cut-down on calls
-	// for memory allocation
+	/** percent of overallocation to cut-down on calls
+     * for memory allocation. */
 	int fHeadRoom;
 	
-	// for Top/Next loops
+	/** for Top/Next loops */
 	int	fCurrElement;
 };
 
@@ -473,6 +505,21 @@ bool AutoArrayT<TYPE>::AppendUnique(const TYPE& value)
 	TYPE* pthis = fArray;
 	for (int i = 0; i < fLength; i++)
 		if (*pthis++ == value)
+			return false;
+			
+	/* append value on fall through */
+	Append(value);			
+	return true;
+}
+
+/* append unique using the given comparator function */
+template <class TYPE>
+bool AutoArrayT<TYPE>::AppendUnique(const TYPE& value, bool (*comp)(const TYPE& a, const TYPE& b))
+{
+	/* scan logical size for duplicates */
+	TYPE* pthis = fArray;
+	for (int i = 0; i < fLength; i++)
+		if ((*comp)(*pthis++, value))
 			return false;
 			
 	/* append value on fall through */
