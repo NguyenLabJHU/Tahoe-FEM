@@ -1,4 +1,4 @@
-/* $Id: Aztec_fe.cpp,v 1.2 2002-03-22 19:04:18 paklein Exp $ */
+/* $Id: Aztec_fe.cpp,v 1.3 2002-03-25 16:44:41 paklein Exp $ */
 /* created: paklein (08/01/1998) */
 
 #include "Aztec_fe.h"
@@ -171,7 +171,7 @@ int Aztec_fe::SetMSRData(int** update, int** bindx, double** val,
 #endif
 
 //DEBUG
-#if 1
+#if 0
 cout << "\n Aztec_fe::SetMSRData: MSR data written to message file" << endl;
 fMSRBuilder->WriteMSRData(fMessage, fupdate, fbindx);
 #endif
