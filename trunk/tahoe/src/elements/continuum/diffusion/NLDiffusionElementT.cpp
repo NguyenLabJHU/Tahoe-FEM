@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.cpp,v 1.6 2004-07-15 08:26:18 paklein Exp $ */
+/* $Id: NLDiffusionElementT.cpp,v 1.7 2004-08-14 05:19:19 paklein Exp $ */
 #include "NLDiffusionElementT.h"
 
 #include <iostream.h>
@@ -167,24 +167,23 @@ void NLDiffusionElementT::RHSDriver(void)
 	int formCv = fIntegrator->FormCv(constCv);
 	int formKd = fIntegrator->FormKd(constKd);
 
+	/* block info - needed for source terms */
+	int block_dex = 0;
+	int block_count = 0;
+	dArray2DT ip_source;
+	const ElementBlockDataT* block_data = fBlockData.Pointer(block_dex);
+	const dArray2DT* block_source = Field().Source(block_data->ID());
+
 	/* body forces */
 	int formBody = 0;
-	if (fBodySchedule && fBody.Magnitude() > kSmall)
-	{	
+	if ((fBodySchedule && fBody.Magnitude() > kSmall) || block_source) {	
 		formBody = 1;
 		if (!formCv) constCv = 1.0; // correct value ??
 	}
 
-	/* block info - needed for source terms */
-	int block_dex = 0;
-	const ElementBlockDataT* block_data = fBlockData.Pointer(block_dex);
-	const dArray2DT* block_source = Field().Source(block_data->ID());
-	dArray2DT ip_source;
-	if (block_source) ip_source.Dimension(NumIP(), 1);
-	int block_count = 0;
-
 	int nen = NumElementNodes();
 	double dt = ElementSupport().TimeStep();
+	double by_dt = (fabs(dt) > kSmall) ? 1.0/dt : 0.0; /* for dt -> 0 */
 	Top();
 	while (NextElement())
 	{
@@ -196,13 +195,7 @@ void NLDiffusionElementT::RHSDriver(void)
 		}
 		
 		/* convert heat increment/volume to rate */
-		if (block_source) {
-			block_source->RowCopy(block_count, ip_source);
-			if (fabs(dt) > kSmall)
-				ip_source /= dt;
-			else /* for dt -> 0 */
-				ip_source = 0.0;
-		}
+		if (block_source) ip_source.Alias(NumIP(), 1, (*block_source)(block_count));
 		block_count++;
 		
 		/* initialize */
@@ -231,17 +224,20 @@ void NLDiffusionElementT::RHSDriver(void)
 			fShapes->TopIP();
 			while (fShapes->NextIP())
 			{					
+				/* capacity */
+				double pc = fCurrMaterial->Capacity();
+
 				/* interpolate nodal values to ip */
 				fShapes->InterpolateU(fLocVel, fDOFvec);
 					
 				/* ip sources */
-				if (block_source) fDOFvec -= ip_source(fShapes->CurrIP());
+				if (block_source) fDOFvec.AddScaled(-by_dt/pc, ip_source(fShapes->CurrIP()));
 
 				/* accumulate in element residual force vector */				
 				double*	res = fRHS.Pointer();
 				const double* Na = fShapes->IPShapeU();
 				
-				double temp = -constCv*(*Weight++)*(*Det++)*fCurrMaterial->Capacity();
+				double temp = -constCv*(*Weight++)*(*Det++)*pc;
 				for (int lnd = 0; lnd < nen; lnd++)
 					*res++ += temp*(*Na++)*fDOFvec[0];
 			}

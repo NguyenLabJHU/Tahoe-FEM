@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.21 2004-07-15 08:26:18 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.22 2004-08-14 05:19:19 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -223,27 +223,30 @@ void DiffusionElementT::RHSDriver(void)
 	int formCv = fIntegrator->FormCv(constCv);
 	int formKd = fIntegrator->FormKd(constKd);
 
+	/* block info - needed for source terms */
+	int block_dex = 0;
+	int block_count = 0;
+	dArray2DT ip_source;
+	const ElementBlockDataT* block_data = fBlockData.Pointer(block_dex);
+	const dArray2DT* block_source = Field().Source(block_data->ID());
+	if (block_source) ip_source.Dimension(NumIP(), 1);
+
 	/* body forces */
 	int formBody = 0;
-	if (fBodySchedule && fBody.Magnitude() > kSmall)
-	{	
+	if ((fBodySchedule && fBody.Magnitude() > kSmall) || block_source) {	
 		formBody = 1;
 		if (!formCv) constCv = 1.0; // correct value ??
 	}
 
-	/* block info - needed for source terms */
-	int block_dex = 0;
-	const ElementBlockDataT* block_data = fBlockData.Pointer(block_dex);
-	const dArray2DT* block_source = Field().Source(block_data->ID());
-	dArray2DT ip_source;
-	if (block_source) ip_source.Dimension(NumIP(), 1);
-	int block_count = 0;
-
 	bool axisymmetric = Axisymmetric();
 	double dt = ElementSupport().TimeStep();
+	double by_dt = (fabs(dt) > kSmall) ? 1.0/dt: 0.0; /* for dt -> 0 */
 	Top();
 	while (NextElement())
 	{
+		/* capacity */
+		double pc = fCurrMaterial->Capacity();
+
 		/* reset block info (skip empty) */
 		while (block_count == block_data->Dimension()) {
 			block_data = fBlockData.Pointer(++block_dex);
@@ -251,13 +254,10 @@ void DiffusionElementT::RHSDriver(void)
 			block_count = 0;
 		}
 		
-		/* convert heat increment/volume to rate */
+		/* convert heat increment/volume to unit of fLocVel (T/s) */
 		if (block_source) {
 			block_source->RowCopy(block_count, ip_source);
-			if (fabs(dt) > kSmall)
-				ip_source /= dt;
-			else /* for dt -> 0 */
-				ip_source = 0.0;
+			ip_source *= by_dt/pc;
 		}
 		block_count++;
 		
@@ -281,7 +281,8 @@ void DiffusionElementT::RHSDriver(void)
 			else fLocVel = 0.0;
 			if (formBody) AddBodyForce(fLocVel);
 
-			FormMa(kConsistentMass, -constCv*fCurrMaterial->Capacity(), axisymmetric,
+			/* add internal contribution */
+			FormMa(kConsistentMass, -constCv*pc, axisymmetric,
 				&fLocVel,
 				(block_source) ? &ip_source : NULL);			  		
 		}
