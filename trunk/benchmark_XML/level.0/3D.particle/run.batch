@@ -1,0 +1,8 @@
+@
+# $Id: run.batch,v 1.1 2004-04-14 22:42:11 paklein Exp $
+mdEAM_Fix_3D.xml
+mdEAM_Gold_Per_3D.xml
+mdEAM_Per_3D.xml
+mdLJ2_Gold_Free_3D.xml
+mdLJ2_Gold_Per_3D.xml
+
