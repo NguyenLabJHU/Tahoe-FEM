@@ -1,4 +1,4 @@
-/* $Id: roof.cpp,v 1.1.2.2 2003-05-03 09:08:27 paklein Exp $ */
+/* $Id: roof.cpp,v 1.1.2.3 2003-05-04 22:13:39 paklein Exp $ */
 #include "roof.h"
 
 roof::roof(void):
@@ -19,7 +19,7 @@ void roof::DefineParameters(ParameterListT& list) const
 	list.AddParameter(the_style);
 }
 
-void roof::SetParameters(const ParameterListT& list)
+void roof::TakeParameterList(const ParameterListT& list)
 {
 	list.GetParameter("style", enum2int<style>(style_));
 }

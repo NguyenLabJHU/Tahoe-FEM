@@ -1,4 +1,4 @@
-/* $Id: window.h,v 1.1.2.1 2003-05-03 09:08:27 paklein Exp $ */
+/* $Id: window.h,v 1.1.2.2 2003-05-04 22:13:39 paklein Exp $ */
 #ifndef _WINDOW_H_
 #define _WINDOW_H_
 
@@ -11,12 +11,13 @@ class window: public ParameterInterfaceT
 {
 public:
 
+	/** constructor */
 	window(void);
 
 	/** \name implementation of ParameterInterfaceT */
 	/*@{*/
 	virtual void DefineParameters(ParameterListT& list) const;
-	virtual void SetParameters(const ParameterListT& list);
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 private:

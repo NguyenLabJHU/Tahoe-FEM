@@ -1,4 +1,4 @@
-/* $Id: storm_shelter.h,v 1.1.2.1 2003-05-03 09:08:27 paklein Exp $ */
+/* $Id: storm_shelter.h,v 1.1.2.2 2003-05-04 22:13:39 paklein Exp $ */
 #ifndef _STORM_SHELTER_H_
 #define _STORM_SHELTER_H_
 
@@ -11,12 +11,13 @@ class storm_shelter: public basement
 {
 public:
 
+	/** constructor */
 	storm_shelter(void);
 
 	/** \name implementation of ParameterInterfaceT */
 	/*@{*/
 	virtual void DefineParameters(ParameterListT& list) const;
-	virtual void SetParameters(const ParameterListT& list);
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 private:

@@ -1,4 +1,4 @@
-/* $Id: roof.h,v 1.1.2.2 2003-05-03 09:08:27 paklein Exp $ */
+/* $Id: roof.h,v 1.1.2.3 2003-05-04 22:13:39 paklein Exp $ */
 #ifndef _ROOF_H_
 #define _ROOT_H_
 
@@ -22,7 +22,7 @@ public:
 	/** \name implementation of ParameterInterfaceT */
 	/*@{*/
 	virtual void DefineParameters(ParameterListT& list) const;
-	virtual void SetParameters(const ParameterListT& list);
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 private:

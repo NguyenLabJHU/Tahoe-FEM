@@ -1,4 +1,4 @@
-/* $Id: bedroom.cpp,v 1.1.2.3 2003-05-03 17:45:23 paklein Exp $ */
+/* $Id: bedroom.cpp,v 1.1.2.4 2003-05-04 22:13:39 paklein Exp $ */
 #include "bedroom.h"
 #include "window.h"
 
@@ -23,10 +23,10 @@ void bedroom::DefineParameters(ParameterListT& list) const
 	list.AddParameter(floor, "floor");
 }
 
-void bedroom::SetParameters(const ParameterListT& list)
+void bedroom::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	room::SetParameters(list);
+	room::TakeParameterList(list);
 
 	/* extract parameter values */
 	list.GetParameter("floor", floor);
@@ -40,7 +40,7 @@ void bedroom::SetParameters(const ParameterListT& list)
 		if (sub_lists[i].Name() == "window")
 		{
 			windows_[num_windows] = new window;
-			windows_[num_windows]->SetParameters(sub_lists[i]);
+			windows_[num_windows]->TakeParameterList(sub_lists[i]);
 			num_windows++;
 		}
 }

@@ -1,4 +1,4 @@
-/* $Id: room.cpp,v 1.1.2.2 2003-05-03 09:08:27 paklein Exp $ */
+/* $Id: room.cpp,v 1.1.2.3 2003-05-04 22:13:39 paklein Exp $ */
 #include "room.h"
 
 room::room(const StringT& name):
@@ -25,10 +25,10 @@ void room::DefineParameters(ParameterListT& list) const
 	list.AddParameter(the_width);
 }
 
-void room::SetParameters(const ParameterListT& list)
+void room::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	ParameterInterfaceT::SetParameters(list);
+	ParameterInterfaceT::TakeParameterList(list);
 	
 	list.GetParameter("length", length);
 	list.GetParameter("width", width);

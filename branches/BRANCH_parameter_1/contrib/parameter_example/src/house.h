@@ -1,4 +1,4 @@
-/* $Id: house.h,v 1.1.2.3 2003-05-03 09:08:27 paklein Exp $ */
+/* $Id: house.h,v 1.1.2.4 2003-05-04 22:13:39 paklein Exp $ */
 #ifndef _HOUSE_H_
 #define _HOUSE_H_
 
@@ -38,7 +38,7 @@ public:
 	/** \name implementation of ParameterInterfaceT */
 	/*@{*/
 	virtual void DefineParameters(ParameterListT& list) const;
-	virtual void SetParameters(const ParameterListT& list);
+	virtual void TakeParameterList(const ParameterListT& list);
 
 	virtual void SubNames(ArrayT<StringT>& names, ArrayT<ParameterListT::OccurrenceT>& occur,
 		ArrayT<bool>& is_inline) const;
@@ -57,11 +57,15 @@ private:
 
 private:
 
-	/** \name fixed components */
+	/** \name required, fixed simple parameters */
 	/*@{*/
 	/** house style as enumerated type */
 	style style_;
 	int zipcode_;
+	/*@}*/
+
+	/** \name required, fixed nested classes */
+	/*@{*/
 	roof roof_;
 	driveway driveway_;
 	garage garage1_;
@@ -70,9 +74,15 @@ private:
 
 	/** \name variable components */
 	/*@{*/
-	ArrayT<room*> rooms_;
+	/** optional component appears at most once */
 	lawn* lawn_;
+
+	/** optional component appears at most once which is one of a choice of basement subclasses */
 	basement* basement_;
+
+	/** optional list of component that must have at least ony entry taken from a choice of
+	 * subclasses of room */
+	ArrayT<room*> rooms_;
 	/*@}*/
 };
 

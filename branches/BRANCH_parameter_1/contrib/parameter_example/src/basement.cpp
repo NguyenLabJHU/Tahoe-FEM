@@ -1,4 +1,4 @@
-/* $Id: basement.cpp,v 1.1.2.2 2003-05-03 17:45:23 paklein Exp $ */
+/* $Id: basement.cpp,v 1.1.2.3 2003-05-04 22:13:39 paklein Exp $ */
 #include "basement.h"
 
 basement::basement(const StringT& name):
@@ -30,7 +30,7 @@ void basement::DefineParameters(ParameterListT& list) const
 	list.AddParameter(width);
 }
 
-void basement::SetParameters(const ParameterListT& list)
+void basement::TakeParameterList(const ParameterListT& list)
 {
 #pragma unused(list)
 
