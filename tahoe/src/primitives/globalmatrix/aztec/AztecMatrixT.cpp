@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.22 2005-02-26 19:30:34 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.23 2005-04-05 16:07:07 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 #include "AztecMatrixT.h"
 
@@ -20,20 +20,18 @@
 using namespace Tahoe;
 
 /* constructor */
-AztecMatrixT::AztecMatrixT(ifstreamT& in, ostream& out, int check_code,
-	CommunicatorT& comm):
-	GlobalMatrixT(out, check_code),
-	fInput(in)
+AztecMatrixT::AztecMatrixT(ostream& out, int check_code, CommunicatorT& comm, 
+	const ParameterListT& parameters):
+	GlobalMatrixT(out, check_code)
 {
 	/* set and verify Aztec data structures */
-	fAztec = new Aztec_fe(fInput, out, comm);
+	fAztec = new Aztec_fe(parameters, out, comm);
 	if (!fAztec) throw ExceptionT::kOutOfMemory;
 }	
 
 /* copy constructor */
 AztecMatrixT::AztecMatrixT(const AztecMatrixT& source):
-	GlobalMatrixT(source),
-	fInput(source.fInput)
+	GlobalMatrixT(source)
 {
 #pragma unused(source)
 	cout << "\n AztecMatrixT::AztecMatrixT: not implemented" << endl;
