@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.4.4.2 2002-10-19 17:43:54 paklein Exp $ */
+/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.4.4.3 2002-10-20 18:07:47 paklein Exp $ */
 /* created: paklein (06/03/2000)                                          */
 
 #include "MeshFreeSurfaceShapeT.h"
@@ -90,7 +90,7 @@ void MeshFreeSurfaceShapeT::NeighborCounts(ArrayT<int>& counts) const
 {
 	const ArrayT<int>& counts_1 = fMFSurfaceSupport->NeighborCounts(0);
 	const ArrayT<int>& counts_2 = fMFSurfaceSupport->NeighborCounts(1);
-	counts.Allocate(counts_1.Length());
+	counts.Dimension(counts_1.Length());
 	for (int i = 0; i < counts.Length(); i++)
 		counts[i] = counts_1[i] + counts_2[i];
 }
@@ -279,8 +279,8 @@ void MeshFreeSurfaceShapeT::Construct(void)
 	int num_ip = fRefSurfaceShape.NumIP();
 
 	/* shape function derivatives array */
-	fDphi.Allocate(num_ip);
-	fDphi_tmp.Allocate(num_ip);
+	fDphi.Dimension(num_ip);
+	fDphi_tmp.Dimension(num_ip);
 
 	fneighbors_man.SetWard(0, fneighbors);
 	fphi_man.SetWard(0, fjump_phi, 0);
@@ -288,11 +288,11 @@ void MeshFreeSurfaceShapeT::Construct(void)
 		fDphi_man.Register(fDphi[ii]);
 
 	/* shape function and derivatives tables */
-	fgrad_d.Allocate(num_ip);
-	fgrad_dTgrad_d.Allocate(num_ip);
+	fgrad_d.Dimension(num_ip);
+	fgrad_dTgrad_d.Dimension(num_ip);
 
 	/* shape function jacobian derivative tables (current ip) */
-	fdx_dsdu.Allocate(fFieldDim-1);
+	fdx_dsdu.Dimension(fFieldDim-1);
 
 	/* register with dynamic workspace managers */
 	for (int i = 0; i < num_ip; i++)
@@ -305,19 +305,19 @@ void MeshFreeSurfaceShapeT::Construct(void)
 		fMatrixManager_1.Register(fdx_dsdu[k]);
 
 	/* return value */
-	fInterp.Allocate(fFieldDim);
+	fInterp.Dimension(fFieldDim);
 	
 	/* coordinate transformations */	
-	fRefJacobian.Allocate(fFieldDim, fFieldDim-1);
-	fJacobian.Allocate(fFieldDim, fFieldDim-1);
-	fJ_tmp.Allocate(fFieldDim, fFieldDim-1);
-	fJ_1.Allocate(fFieldDim, fFieldDim);
-	fJ_2.Allocate(fFieldDim, fFieldDim);
+	fRefJacobian.Dimension(fFieldDim, fFieldDim-1);
+	fJacobian.Dimension(fFieldDim, fFieldDim-1);
+	fJ_tmp.Dimension(fFieldDim, fFieldDim-1);
+	fJ_1.Dimension(fFieldDim, fFieldDim);
+	fJ_2.Dimension(fFieldDim, fFieldDim);
 	
 	/* work space */
 	fVectorManager_1.SetWard(0, fu_vec);
 
-	fnnd_vec.Allocate(fFieldDim-1);
+	fnnd_vec.Dimension(fFieldDim-1);
 	for (int j = 0; j < fnnd_vec.Length(); j++)
 		fVectorManager_2.Register(fnnd_vec[j]);
 	

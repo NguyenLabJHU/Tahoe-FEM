@@ -1,4 +1,4 @@
-/* $Id: D2OrthoMLSSolverT.cpp,v 1.4.4.1 2002-10-17 04:22:36 paklein Exp $ */
+/* $Id: D2OrthoMLSSolverT.cpp,v 1.4.4.2 2002-10-20 18:07:49 paklein Exp $ */
 /* created: paklein (10/17/1999)                                          */
 
 #include "D2OrthoMLSSolverT.h"
@@ -37,16 +37,16 @@ void D2OrthoMLSSolverT::Initialize(void)
 	int dim = dSymMatrixT::NumValues(fNumSD);
 
 	/* b (2.11 b) derivatives */
-	fDDb.Allocate(dim, m);
+	fDDb.Dimension(dim, m);
 
 	/* monomial derivatives */
-	fDDp.Allocate(dim, m);
+	fDDp.Dimension(dim, m);
 
 	/* (orthogonal) basis functions derivatives */
-	fDDq.Allocate(dim, m);
+	fDDq.Dimension(dim, m);
 
 	/* rows of alpha derivatives */
-	fDDa.Allocate(dim, m-1);
+	fDDa.Dimension(dim, m-1);
 	
 	/* register variable length arrays */
 	for (int i = 0; i < dim; i++)

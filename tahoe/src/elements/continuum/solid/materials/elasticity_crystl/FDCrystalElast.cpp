@@ -1,4 +1,4 @@
-/* $Id: FDCrystalElast.cpp,v 1.5.4.1 2002-10-17 04:38:10 paklein Exp $ */
+/* $Id: FDCrystalElast.cpp,v 1.5.4.2 2002-10-20 18:07:33 paklein Exp $ */
 
 #include "FDCrystalElast.h"
 
@@ -109,7 +109,7 @@ const dSymMatrixT& FDCrystalElast::s_ij()
   // recover local data
   LoadCrystalData(element, intpt);
 
-  array1.Allocate(1);
+  array1.Dimension(1);
 
   // compute elastic moduli and stress due to thermal strain
   if (fStatus == GlobalT::kFormRHS)
@@ -158,7 +158,7 @@ int FDCrystalElast::NumOutputVariables() const {return kNumOutput;}
 void FDCrystalElast::OutputLabels(ArrayT<StringT>& labels) const
 {
   // allocate space for labels
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   // copy labels
   for (int i = 0; i < kNumOutput; i++)
@@ -188,12 +188,12 @@ void FDCrystalElast::ComputeOutput(dArrayT& output)
   output[2] = fsEigs[1];
 
   // normal to slip plane crystal orientation
-  fVecNormC.Allocate(3);
+  fVecNormC.Dimension(3);
   fVecNormC[0] = 1.; fVecNormC[1] = 1.; fVecNormC[2] = 0.; 
   fVecNormC.UnitVector();
 
   // normal to slip plane specimen orientation
-  fVecNorm.Allocate(3);
+  fVecNorm.Dimension(3);
   fRotMat.Multx(fVecNormC, fvector1);
   fRe.Multx(fvector1, fVecNorm);
 

@@ -1,4 +1,4 @@
-/* $Id: DomainIntegrationT.cpp,v 1.3.4.1 2002-10-17 04:21:56 paklein Exp $ */
+/* $Id: DomainIntegrationT.cpp,v 1.3.4.2 2002-10-20 18:07:50 paklein Exp $ */
 /* created: paklein (09/04/1998)                                          */
 /* class to manage the parent domain including construction for           */
 /* shared parent domains, integration point iterations, and some          */
@@ -43,7 +43,7 @@ DomainIntegrationT::DomainIntegrationT(const DomainIntegrationT& link):
 		/* surface shapefunctions */
 		fSurfShapes.Alias(link.fSurfShapes);
 
-		fDelete.Allocate(fSurfShapes.Length());
+		fDelete.Dimension(fSurfShapes.Length());
 		fDelete = 0;
 	}
 }
@@ -80,8 +80,8 @@ void DomainIntegrationT::SetSurfaceShapes(void)
 {
 	/* memory */
 	int num_facets = NumFacets();
-	fSurfShapes.Allocate(num_facets);
-	fDelete.Allocate(num_facets);
+	fSurfShapes.Dimension(num_facets);
+	fDelete.Dimension(num_facets);
 	
 	/* surface shape information */
 	ArrayT<GeometryT::CodeT> facet_geom;

@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.cpp,v 1.6.4.1 2002-10-17 04:28:54 paklein Exp $ */
+/* $Id: LocalizerT.cpp,v 1.6.4.2 2002-10-20 18:07:16 paklein Exp $ */
 /* created: paklein (02/19/1998) */
 
 #include "LocalizerT.h"
@@ -71,7 +71,7 @@ void LocalizerT::Initialize(void)
 	UpdatedLagrangianT::Initialize();
 
 	/* dimension */
-	fKloc.Allocate(NumElementNodes()*NumDOF());
+	fKloc.Dimension(NumElementNodes()*NumDOF());
 	
 	/* echo group-specific input data */
 	EchoData(ElementSupport().Input(), ElementSupport().Output());
@@ -136,8 +136,8 @@ void LocalizerT::Initialize(void)
 	fnoRBeqs = eq_temp;
 
 	/* dimension eigenvalue solver */
-	fEigSolver.Allocate(fnoRBeqs.Length());
-	fEigs.Allocate(fnoRBeqs.Length());
+	fEigSolver.Dimension(fnoRBeqs.Length());
+	fEigs.Dimension(fnoRBeqs.Length());
 }
 
 /* finalize time increment */
@@ -470,7 +470,7 @@ void LocalizerT::EchoData(ifstreamT& in, ostream& out)
 	if (numlocelems > 0)
 	{
 		/* read element list */
-		fLocCheckList.Allocate(numlocelems);
+		fLocCheckList.Dimension(numlocelems);
 		for (int i = 0; i < numlocelems; i++)
 		{
 			int temp;

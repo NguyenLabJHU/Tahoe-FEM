@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.4.4.1 2002-10-17 04:22:36 paklein Exp $ */
+/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.4.4.2 2002-10-20 18:07:48 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeShapeFunctionT.h"
@@ -63,7 +63,7 @@ int D2MeshFreeShapeFunctionT::SetDerivativesAt(const dArrayT& x, AutoArrayT<int>
 	
 		/* copy nodal neighor data */
 		fNeighbors.Alias(fMFSupport->NeighborsAt());
-		nodes.Allocate(fNeighbors.Length());
+		nodes.Dimension(fNeighbors.Length());
 		nodes = fNeighbors;
 		
 		/* set next calls to GradU */
@@ -101,9 +101,9 @@ void D2MeshFreeShapeFunctionT::NodalField(const dArray2DT& DOF, dArray2DT& field
 	int nxx = dSymMatrixT::NumValues(nsd);
 	
 	/* allocate output space */
-	field.Allocate(nnd, ndf);
-	Dfield.Allocate(nnd, ndf*nsd);
-	DDfield.Allocate(nnd, ndf*nxx);
+	field.Dimension(nnd, ndf);
+	Dfield.Dimension(nnd, ndf*nsd);
+	DDfield.Dimension(nnd, ndf*nxx);
 
 	/* MLS nodal data */
 	iArrayT   neighbors;

@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.22.4.1 2002-10-17 04:38:19 paklein Exp $ */
+/* $Id: DetCheckT.cpp,v 1.22.4.2 2002-10-20 18:07:41 paklein Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "DetCheckT.h"
@@ -215,7 +215,7 @@ int DetCheckT::DetCheck2D(dArrayT& normal)
 		return 0;
 	else
 	{
-		normal.Allocate(2);
+		normal.Dimension(2);
 
 		/* angle in [0, Pi] */
 		if (angle > Pi) angle -= Pi;

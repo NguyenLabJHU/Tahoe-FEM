@@ -1,4 +1,4 @@
-/* $Id: EVPFDBaseT.cpp,v 1.8.4.1 2002-10-17 04:38:18 paklein Exp $ */
+/* $Id: EVPFDBaseT.cpp,v 1.8.4.2 2002-10-20 18:07:40 paklein Exp $ */
 #include "EVPFDBaseT.h"
 #include "NLCSolver.h"
 #include "NLCSolver_LS.h"
@@ -129,7 +129,7 @@ void EVPFDBaseT::PointInitialize()
 		ElementCardT& element = CurrentElement();	
 
 		// construct element
-		element.Allocate(i_size, d_size);
+		element.Dimension(i_size, d_size);
 		element.IntegerData() = kIsInit;
 		element.DoubleData()  = 0.0;		
 

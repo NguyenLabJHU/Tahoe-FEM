@@ -1,4 +1,4 @@
-/* $Id: tevp3D.cpp,v 1.12.2.1 2002-10-17 04:38:21 paklein Exp $ */
+/* $Id: tevp3D.cpp,v 1.12.2.2 2002-10-20 18:07:42 paklein Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (06/25/2001) */
 
@@ -298,7 +298,7 @@ int tevp3D::NumOutputVariables(void) const { return kNumOutput; }
 void tevp3D::OutputLabels(ArrayT<StringT>& labels) const
 {
   /* set size */
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   /* copy labels - WHY? */
   for (int i = 0; i < kNumOutput; i++)
@@ -611,7 +611,7 @@ void tevp3D::AllocateElement(ElementCardT& element)
                                       // S11, S22, S33, S23, S13, S21
   d_size += kVoigt * fNumIP;           // 6 3D symmetric components (S11, S22, S33, S23, S13, S12)
   /* construct new plastic element */
-  element.Allocate(i_size, d_size);
+  element.Dimension(i_size, d_size);
 
   /* first set of flags for plasticity criterion */
   for (int ip = 0; ip < fNumIP; ip++)

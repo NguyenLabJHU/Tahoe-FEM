@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp_C.cpp,v 1.3.4.1 2002-10-17 04:38:17 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp_C.cpp,v 1.3.4.2 2002-10-20 18:07:38 paklein Exp $ */
 #include "LocalCrystalPlastFp_C.h"
 #include "LatticeOrient.h"
 #include "CrystalElasticity.h"
@@ -33,9 +33,9 @@ LocalCrystalPlastFp_C::LocalCrystalPlastFp_C(ifstreamT& in, const FiniteStrainT&
   fNNodes = fLocInitX.NumberOfNodes();
 
   // allocate arrays
-  fLNa.Allocate(1, fNNodes);
-  fLDNa.Allocate(NumSD(), fNNodes);
-  fGDNa.Allocate(NumSD(), fNNodes);
+  fLNa.Dimension(1, fNNodes);
+  fLDNa.Dimension(NumSD(), fNNodes);
+  fGDNa.Dimension(NumSD(), fNNodes);
 
   // set shape functions and their derivatives in parent domain (at center)
   SetLocalShape_C(fLNa, fLDNa);
@@ -250,7 +250,7 @@ int LocalCrystalPlastFp_C::NumOutputVariables() const {return kNumOutput;}
 void LocalCrystalPlastFp_C::OutputLabels(ArrayT<StringT>& labels) const
 {
   // allocate space for labels
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 	  
   // copy labels
   for (int i = 0; i < kNumOutput; i++)

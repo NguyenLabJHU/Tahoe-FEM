@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.cpp,v 1.2.6.1 2002-10-17 04:28:51 paklein Exp $ */
+/* $Id: YoonAllen3DT.cpp,v 1.2.6.2 2002-10-20 18:07:12 paklein Exp $ */
 
 #include "YoonAllen3DT.h"
 
@@ -28,9 +28,9 @@ YoonAllen3DT::YoonAllen3DT(ifstreamT& in, const double& time_step):
 	in >> fE_infty; if (fE_infty < 0) throw ExceptionT::kBadInputValue;
 	in >> fNumRelaxTimes; if (fNumRelaxTimes < 0) throw ExceptionT::kBadInputValue;
 
-	ftau.Allocate(fNumRelaxTimes);
-	fE_t.Allocate(fNumRelaxTimes);
-	fexp_tau.Allocate(fNumRelaxTimes);
+	ftau.Dimension(fNumRelaxTimes);
+	fE_t.Dimension(fNumRelaxTimes);
+	fexp_tau.Dimension(fNumRelaxTimes);
 
 	for (int i = 0;i < fNumRelaxTimes; i++)
 	{
@@ -476,7 +476,7 @@ int YoonAllen3DT::NumOutputVariables(void) const { return 3; }
 
 void YoonAllen3DT::OutputLabels(ArrayT<StringT>& labels) const
 {
-	labels.Allocate(3);
+	labels.Dimension(3);
 	labels[0] = "lambda";
 	labels[1] = "lambda_dot";
 	labels[2] = "alpha";

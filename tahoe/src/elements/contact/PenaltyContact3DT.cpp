@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.4.4.1 2002-10-17 04:28:52 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.4.4.2 2002-10-20 18:07:13 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 
 #include "PenaltyContact3DT.h"
@@ -167,7 +167,7 @@ void PenaltyContact3DT::RHSDriver(void)
 	fnum_contact = 0;
 	fh_max = 0.0;
 
-	fDists.Allocate(fConnectivities[0]->MajorDim());
+	fDists.Dimension(fConnectivities[0]->MajorDim());
 	int* pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)

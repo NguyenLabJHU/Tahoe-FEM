@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlast.cpp,v 1.7.4.1 2002-10-17 04:38:17 paklein Exp $ */
+/* $Id: GradCrystalPlast.cpp,v 1.7.4.2 2002-10-20 18:07:38 paklein Exp $ */
 
 #include "GradCrystalPlast.h"
 #include "SlipGeometry.h"
@@ -64,33 +64,33 @@ GradCrystalPlast::GradCrystalPlast(ifstreamT& in, const FiniteStrainT& element) 
   // allocate space for ...
   // ... Fe values at integration points
   for (int i = 0; i < NumIP(); i++) {
-    fFeIP[i].Allocate(kNSD,kNSD);
-    fFeTrIP[i].Allocate(kNSD,kNSD);
+    fFeIP[i].Dimension(kNSD,kNSD);
+    fFeTrIP[i].Dimension(kNSD,kNSD);
   }
 
   // ... Fe values at nodal points
-  fFeNodes.Allocate(fNumNodes);
-  fFeTrNodes.Allocate(fNumNodes);
+  fFeNodes.Dimension(fNumNodes);
+  fFeTrNodes.Dimension(fNumNodes);
   for (int i = 0; i < fNumNodes; i++) {
-    fFeNodes[i].Allocate(kNSD,kNSD);
-    fFeTrNodes[i].Allocate(kNSD,kNSD);
+    fFeNodes[i].Dimension(kNSD,kNSD);
+    fFeTrNodes[i].Dimension(kNSD,kNSD);
   }
 
   // ... spatial gradients of Fe (note: kNSD instead of NumSD())
   for (int i = 0; i < kNSD; i++) {
-    fGradFe[i].Allocate(kNSD,kNSD);
-    fGradFeTr[i].Allocate(kNSD,kNSD);
+    fGradFe[i].Dimension(kNSD,kNSD);
+    fGradFeTr[i].Dimension(kNSD,kNSD);
   }
 
   // ... current coordinates
-  fLocCurrX.Allocate(fLocInitX.NumberOfNodes(), NumSD());
+  fLocCurrX.Dimension(fLocInitX.NumberOfNodes(), NumSD());
 
   // ... d(Curvature)/d(DGamma) (Moduli computation)
-  fdKe.Allocate(NumIP());
+  fdKe.Dimension(NumIP());
   for (int i = 0; i < NumIP(); i++) {
-    fdKe[i].Allocate(fNumSlip);
+    fdKe[i].Dimension(fNumSlip);
     for (int j = 0; j < fNumSlip; j++)
-      fdKe[i][j].Allocate(kNSD,kNSD);
+      fdKe[i][j].Dimension(kNSD,kNSD);
   }
 }
 
@@ -258,7 +258,7 @@ int GradCrystalPlast::NumOutputVariables() const {return kNumOutput;}
 void GradCrystalPlast::OutputLabels(ArrayT<StringT>& labels) const
 {
   // allocate space for labels
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   // copy labels
   for (int i = 0; i < kNumOutput; i++)

@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.9.4.2 2002-10-18 17:41:54 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.9.4.3 2002-10-20 18:07:10 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -52,7 +52,7 @@ void CSEIsoT::Initialize(void)
 	/* construct props */
 	int numpots;
 	in >> numpots;
-	fSurfPots.Allocate(numpots);
+	fSurfPots.Dimension(numpots);
 	for (int i = 0; i < fSurfPots.Length(); i++)
 	{
 		int num, code;
@@ -247,7 +247,7 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	ElementSupport().ResetAverage(n_out);
 
 	/* allocate element results space */
-	e_values.Allocate(NumElements(), e_out);
+	e_values.Dimension(NumElements(), e_out);
 	e_values = 0.0;
 
 	/* work arrays */

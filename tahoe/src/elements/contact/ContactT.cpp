@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.8.4.2 2002-10-19 17:53:13 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.8.4.3 2002-10-20 18:07:13 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -153,7 +153,7 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	if (num_surfaces < 1) throw ExceptionT::kBadInputValue;
 
 	/* read contact bodies */
-	fSurfaces.Allocate(num_surfaces);
+	fSurfaces.Dimension(num_surfaces);
 	for (int i = 0; i < fSurfaces.Length(); i++)
 	{
 		int spec_mode;
@@ -264,7 +264,7 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	}
 	
 	/* allocate striker coords */
-	fStrikerCoords.Allocate(fStrikerTags.Length(), NumSD());
+	fStrikerCoords.Dimension(fStrikerTags.Length(), NumSD());
 	
 	/* set connectivity name */
 	ModelManagerT& model = ElementSupport().Model();
@@ -277,22 +277,22 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		throw ExceptionT::kGeneralFail;
 
 	/* set up fConnectivities */
-	fConnectivities.Allocate(1);
+	fConnectivities.Dimension(1);
 	fConnectivities[0] = model.ElementGroupPointer(name);
 
 	/* set up fBlockData to store block ID */
-	fBlockData.Allocate(1);
+	fBlockData.Dimension(1);
 	fBlockData[0].Set(name, 0, fConnectivities[0]->MajorDim(), -1);
 
 	/* set managed equation numbers array */
-	fEqnos.Allocate(1);
+	fEqnos.Dimension(1);
 	fEqnos_man.SetWard(0, fEqnos[0], nen*NumDOF());
 }
 
 void ContactT::SetWorkSpace(void)
 {
 	/* allocate map to active strikers data */
-	fActiveMap.Allocate(fStrikerCoords.MajorDim());
+	fActiveMap.Dimension(fStrikerCoords.MajorDim());
 	fActiveMap = -1;
 
 	/* make pseudo-element list to link surfaces in case
@@ -301,7 +301,7 @@ void ContactT::SetWorkSpace(void)
 	int num_surfaces = fSurfaces.Length();
 	if (num_surfaces > 1)
 	{
-		fSurfaceLinks.Allocate(num_surfaces - 1, 2);
+		fSurfaceLinks.Dimension(num_surfaces - 1, 2);
 		for (int i = 0; i < num_surfaces - 1; i++)
 		{
 			fSurfaceLinks(i,0) = (fSurfaces[i  ])[0];
@@ -345,7 +345,7 @@ void ContactT::InputNodesOnFacet(ifstreamT& in, iArray2DT& facets)
 	if (num_facets < 0) throw ExceptionT::kBadInputValue;
 	
 	/* dimension */
-	facets.Allocate(num_facets, fNumFacetNodes);
+	facets.Dimension(num_facets, fNumFacetNodes);
 	
 	/* read */
 	in >> facets;
@@ -450,7 +450,7 @@ void ContactT::StrikersFromSurfaces(void)
 			node_count++;
 
 	/* collect */
-	fStrikerTags.Allocate(node_count);
+	fStrikerTags.Dimension(node_count);
 	pcount = counts.Pointer();
 	int* pstrike = fStrikerTags.Pointer();
 	for (int k = 0; k < num_nodes; k++)

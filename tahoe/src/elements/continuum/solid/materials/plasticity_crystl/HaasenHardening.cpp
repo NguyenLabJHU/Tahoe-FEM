@@ -26,37 +26,37 @@ HaasenHardening::HaasenHardening(PolyCrystalMatT& poly) :
 
   // allocate space for ...
   // ... material properties and initial values of hard variables 
-  fMatProp.Allocate(kNumMatProp);
-  fInitHardValues.Allocate(kNumInitValues);
+  fMatProp.Dimension(kNumMatProp);
+  fInitHardValues.Dimension(kNumInitValues);
 
   // ... coeffs in hardening laws
-  fAaa.Allocate(fNumHardVar);
-  fC0aa.Allocate(fNumHardVar);
-  fCaa.Allocate(fNumHardVar);
-  fDa.Allocate(fNumHardVar);
+  fAaa.Dimension(fNumHardVar);
+  fC0aa.Dimension(fNumHardVar);
+  fCaa.Dimension(fNumHardVar);
+  fDa.Dimension(fNumHardVar);
 
   // ... hardening variables at t and t_n
-  fDDtot.Allocate(fNumHardVar);
-  fDDimm.Allocate(fNumHardVar);
-  fXaa.Allocate(fNumHardVar);
-  fDDtot_n.Allocate(fNumHardVar);
-  fDDimm_n.Allocate(fNumHardVar);
-  fXaa_n.Allocate(fNumHardVar);
+  fDDtot.Dimension(fNumHardVar);
+  fDDimm.Dimension(fNumHardVar);
+  fXaa.Dimension(fNumHardVar);
+  fDDtot_n.Dimension(fNumHardVar);
+  fDDimm_n.Dimension(fNumHardVar);
+  fXaa_n.Dimension(fNumHardVar);
 
   // ... accumulated slip shear strain at t and t_n
-  fGamma.Allocate(fNumHardVar);
-  fGamma_n.Allocate(fNumHardVar);
+  fGamma.Dimension(fNumHardVar);
+  fGamma_n.Dimension(fNumHardVar);
 
   // ... nondirectional hardness and effective stress
-  fTauIso.Allocate(fNumHardVar);
-  fTauEff.Allocate(fNumHardVar);
+  fTauIso.Dimension(fNumHardVar);
+  fTauEff.Dimension(fNumHardVar);
 
   // ... slip interaction and latent hardening matrices
-  fFab.Allocate(fNumHardVar);
-  fLatentMatx.Allocate(fNumHardVar);
+  fFab.Dimension(fNumHardVar);
+  fLatentMatx.Dimension(fNumHardVar);
 
   // ... workspace
-  farray.Allocate(fNumHardVar);
+  farray.Dimension(fNumHardVar);
  
   // input material properties for hardening law
   in >> fMatProp[0];   // Burger's vector "b" [m]

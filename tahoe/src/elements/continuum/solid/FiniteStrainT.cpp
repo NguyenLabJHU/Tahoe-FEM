@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.12.2.1 2002-10-17 04:28:54 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.12.2.2 2002-10-20 18:07:15 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -43,8 +43,8 @@ void FiniteStrainT::Initialize(void)
 	{
 		int nip = NumIP();
 		int nsd = NumSD();
-		fF_all.Allocate(nip*nsd*nsd);
-		fF_List.Allocate(nip);
+		fF_all.Dimension(nip*nsd*nsd);
+		fF_List.Dimension(nip);
 		for (int i = 0; i < nip; i++)
 			fF_List[i].Set(nsd, nsd, fF_all.Pointer(i*nsd*nsd));
 	}
@@ -54,8 +54,8 @@ void FiniteStrainT::Initialize(void)
 	{
 		int nip = NumIP();
 		int nsd = NumSD();
-		fF_last_all.Allocate(nip*nsd*nsd);
-		fF_last_List.Allocate(nip);
+		fF_last_all.Dimension(nip*nsd*nsd);
+		fF_last_List.Dimension(nip);
 		for (int i = 0; i < nip; i++)
 			fF_last_List[i].Set(nsd, nsd, fF_last_all.Pointer(i*nsd*nsd));
 	}

@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.14.6.1 2002-10-17 04:28:50 paklein Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.14.6.2 2002-10-20 18:07:11 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -285,7 +285,7 @@ int Tijssens2DT::NumOutputVariables(void) const { return 4; }
 
 void Tijssens2DT::OutputLabels(ArrayT<StringT>& labels) const
 {
-	labels.Allocate(4);
+	labels.Dimension(4);
 	labels[0] = "sigma_m";
 	labels[1] = "Delta_t_c";
 	labels[2] = "Delta_n_c";

@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BCJ.cpp,v 1.3 2002-07-02 19:55:31 cjkimme Exp $ */
+/* $Id: ABAQUS_BCJ.cpp,v 1.3.4.1 2002-10-20 18:07:22 paklein Exp $ */
 /* created: paklein (05/09/2000)                                          */
 
 #include "ABAQUS_BCJ.h"
@@ -69,14 +69,14 @@ void ABAQUS_BCJ::SetOutputVariables(iArrayT& variable_index,
 	int num_output = 4;
 
 	/* number of output */
-	variable_index.Allocate(num_output);
+	variable_index.Dimension(num_output);
 	variable_index[0] = 6;
 	variable_index[1] = 7;
 	variable_index[2] = 8;
 	variable_index[3] = 13;
 	
 	/* labels */
-	output_labels.Allocate(num_output);
+	output_labels.Dimension(num_output);
 	output_labels[0] = "kappa";
 	output_labels[1] = "temp";
 	output_labels[2] = "pl_strn";

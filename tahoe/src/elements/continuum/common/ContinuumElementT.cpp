@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.22.2.2 2002-10-19 17:56:33 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.22.2.3 2002-10-20 18:07:15 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -110,7 +110,7 @@ void ContinuumElementT::Initialize(void)
 	ElementBaseT::Initialize();
 	
 	/* allocate work space */
-	fNEEvec.Allocate(NumElementNodes()*NumDOF());
+	fNEEvec.Dimension(NumElementNodes()*NumDOF());
 
 	/* initialize local arrays */
 	SetLocalArrays();
@@ -405,8 +405,8 @@ istream& operator>>(istream& in, ContinuumElementT::MassTypeT& mtype)
 void ContinuumElementT::SetLocalArrays(void)
 {
 	/* dimension */
-	fLocInitCoords.Allocate(NumElementNodes(), NumSD());
-	fLocDisp.Allocate(NumElementNodes(), NumDOF());
+	fLocInitCoords.Dimension(NumElementNodes(), NumSD());
+	fLocDisp.Dimension(NumElementNodes(), NumDOF());
 
 	/* set source */
 	ElementSupport().RegisterCoordinates(fLocInitCoords);
@@ -1050,15 +1050,15 @@ void ContinuumElementT::CurrElementInfo(ostream& out) const
 	/* inherited */
 	ElementBaseT::CurrElementInfo(out);
 	dArray2DT temp;
-	temp.Allocate(fLocInitCoords.NumberOfNodes(), fLocInitCoords.MinorDim());
+	temp.Dimension(fLocInitCoords.NumberOfNodes(), fLocInitCoords.MinorDim());
 	
 	out <<   " initial coords:\n";
-	temp.Allocate(fLocInitCoords.NumberOfNodes(), fLocInitCoords.MinorDim());
+	temp.Dimension(fLocInitCoords.NumberOfNodes(), fLocInitCoords.MinorDim());
 	fLocInitCoords.ReturnTranspose(temp);
 	temp.WriteNumbered(out);
 
 	out <<   " displacements:\n";
-	temp.Allocate(fLocDisp.NumberOfNodes(), fLocDisp.MinorDim());
+	temp.Dimension(fLocDisp.NumberOfNodes(), fLocDisp.MinorDim());
 	fLocDisp.ReturnTranspose(temp);
 	temp.WriteNumbered(out);
 }
@@ -1131,12 +1131,12 @@ void ContinuumElementT::SetTractionBC(void)
 		int nnd = loc_nodes.Length();
 		
 		iArrayT& nodes = BC_card.Nodes();
-		nodes.Allocate(nnd);
+		nodes.Dimension(nnd);
 		nodes.Collect(loc_nodes, fElementCards[elem].NodesX());
 		
 		/* set global equation numbers */
 		iArrayT& eqnos = BC_card.Eqnos();
-		eqnos.Allocate(ndof*nnd);
+		eqnos.Dimension(ndof*nnd);
 		
 		/* get from node manager */
 		nd_tmp.Set(1, nnd, nodes.Pointer());

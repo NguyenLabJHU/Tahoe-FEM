@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.cpp,v 1.11.2.1 2002-10-17 04:54:06 paklein Exp $ */
+/* $Id: ExecutionManagerT.cpp,v 1.11.2.2 2002-10-20 18:07:20 paklein Exp $ */
 /* created: paklein (08/27/1997) */
 #include "ExecutionManagerT.h"
 
@@ -30,7 +30,7 @@ ExecutionManagerT::ExecutionManagerT(int argc, char* argv[], char job_char, char
 	if (fJobCharPutBack != 1 && fJobCharPutBack != 0) throw ExceptionT::kBadInputValue;
 
 	/* store command line arguments */
-	fCommandLineOptions.Allocate(argc);
+	fCommandLineOptions.Dimension(argc);
 	for (int i = 0; i < fCommandLineOptions.Length(); i++)
 		fCommandLineOptions[i] = argv[i];
 

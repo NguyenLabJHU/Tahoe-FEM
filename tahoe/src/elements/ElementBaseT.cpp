@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.21.4.1 2002-10-17 04:28:47 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.21.4.2 2002-10-20 18:07:08 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -59,8 +59,8 @@ void ElementBaseT::Initialize(void)
 
 	/* dimension */
 	int neq = NumElementNodes()*NumDOF();
-	fLHS.Allocate(neq);	
-	fRHS.Allocate(neq);
+	fLHS.Dimension(neq);	
+	fRHS.Dimension(neq);
 }
 
 /* initial condition/restart functions
@@ -303,7 +303,7 @@ void ElementBaseT::NodesUsed(ArrayT<int>& nodes_used) const
 	  }
 
 	/* collect list */
-	nodes_used.Allocate(node_map.Count(1));
+	nodes_used.Dimension(node_map.Count(1));
 	int dex = 0;
 	int*  p = node_map.Pointer();
 	for (int j = 0; j < node_map.Length(); j++)
@@ -356,11 +356,11 @@ void ElementBaseT::EchoConnectivityData(ifstreamT& in, ostream& out)
 
 	/* derived dimensions */
 	int neq = NumElementNodes()*NumDOF();
-	fEqnos.Allocate(fBlockData.Length());
+	fEqnos.Dimension(fBlockData.Length());
 	for (int be=0; be < fEqnos.Length(); be++)
 	  {
 	    int numblockelems = fConnectivities[be]->MajorDim();
-	    fEqnos[be].Allocate(numblockelems, neq);
+	    fEqnos[be].Dimension(numblockelems, neq);
 	  }
 
 	/* set pointers in element cards */
@@ -383,7 +383,7 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 
 	/* allocate block map */
 	int num_blocks = elem_ID.Length();
-	fBlockData.Allocate(num_blocks);
+	fBlockData.Dimension(num_blocks);
 	fConnectivities.Allocate (num_blocks);
 
 	/* read from parameter file */
@@ -432,7 +432,7 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 		}
 	  
 	/* set dimensions */
-	fElementCards.Allocate(elem_count);
+	fElementCards.Dimension(elem_count);
 }
 
 /* resolve output formats */
@@ -522,7 +522,7 @@ int ElementBaseT::MakeLocalConnects(iArray2DT& localconnects)
 		    node_map[j] = localnum++;
 
 	/* connectivities with local node numbering */
-	localconnects.Allocate(NumElements(), NumElementNodes());
+	localconnects.Dimension(NumElements(), NumElementNodes());
 	int *plocal = localconnects.Pointer();
 	for (int b=0; b < num_blocks; b++)
 	{
@@ -605,7 +605,7 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 	if (node_map)
 	{
 		const iArrayT& nodes_X = CurrentElement().NodesX();
-		temp.Allocate(nodes_X.Length());
+		temp.Dimension(nodes_X.Length());
 		for (int i = 0; i < nodes_X.Length(); i++)
 			temp[i] = (*node_map)[nodes_X[i]];
 	}
@@ -618,7 +618,7 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 	if (node_map)
 	{
 		const iArrayT& nodes_U = CurrentElement().NodesU();
-		temp.Allocate(nodes_U.Length());
+		temp.Dimension(nodes_U.Length());
 		for (int i = 0; i < nodes_U.Length(); i++)
 			temp[i] = (*node_map)[nodes_U[i]];
 	}
@@ -644,7 +644,7 @@ void ElementBaseT::SetElementCards(void)
     }
 
 	/* allocate */
-	//fElementCards.Allocate(fNumElements);
+	//fElementCards.Dimension(fNumElements);
 
 	/* loop over blocks to set pointers */
 	int numberofnodes = fField.NumNodes();

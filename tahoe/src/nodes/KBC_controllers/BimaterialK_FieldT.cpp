@@ -1,4 +1,4 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.7.4.1 2002-10-17 04:42:20 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.7.4.2 2002-10-20 18:07:43 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #include "BimaterialK_FieldT.h"
@@ -45,12 +45,12 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 	if (!fLTf2) throw ExceptionT::kBadInputValue;
 
 	/* coordinates of the crack tip */
-	fInitTipCoords.Allocate(nsd);
+	fInitTipCoords.Dimension(nsd);
 	in >> fInitTipCoords;
 	fLastTipCoords = fTipCoords = fInitTipCoords;
 
 	/* crack extension parameters */
-	fGrowthDirection.Allocate(nsd);
+	fGrowthDirection.Dimension(nsd);
 	in >> fGrowthDirection; fGrowthDirection.UnitVector();
 
 	/* near tip group */
@@ -111,7 +111,7 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 		fID_List.Alias(fID_List_1);
 	else
 	{
-		fID_List.Allocate(fID_List_1.Length() + fID_List_2.Length());
+		fID_List.Dimension(fID_List_1.Length() + fID_List_2.Length());
 		fID_List.CopyIn(0, fID_List_1);
 		fID_List.CopyIn(fID_List_1.Length(), fID_List_2);
 		fID_List_1.Set(fID_List_1.Length(), fID_List.Pointer());
@@ -125,7 +125,7 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 		fNodes.Alias(fNodes_1);
 	else
 	{
-		fNodes.Allocate(fNodes_1.Length() + fNodes_2.Length());
+		fNodes.Dimension(fNodes_1.Length() + fNodes_2.Length());
 		fNodes.CopyIn(0, fNodes_1);
 		fNodes.CopyIn(fNodes_1.Length(), fNodes_2);
 		fNodes_1.Set(fNodes_1.Length(), fNodes.Pointer());
@@ -133,7 +133,7 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 	}
 
 	/* generate BC cards */
-	fKBC_Cards.Allocate(fNodes.Length()*nsd);
+	fKBC_Cards.Dimension(fNodes.Length()*nsd);
 	KBC_CardT* pcard = fKBC_Cards.Pointer();
 	for (int i = 0; i < fNodes.Length(); i++)
 		for (int j = 0; j < nsd; j++)
@@ -147,8 +147,8 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 		}	
 
 	/* allocate displacement field factors */
-	fK1Disp.Allocate(fNodes.Length(), nsd);
-	fK2Disp.Allocate(fNodes.Length(), nsd);
+	fK1Disp.Dimension(fNodes.Length(), nsd);
+	fK2Disp.Dimension(fNodes.Length(), nsd);
 	if (fNodes_1.Length() == 0)
 	{
 		fK1Disp_2.Alias(fK1Disp);

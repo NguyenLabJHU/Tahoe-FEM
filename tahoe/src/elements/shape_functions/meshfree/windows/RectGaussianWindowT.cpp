@@ -1,4 +1,4 @@
-/* $Id: RectGaussianWindowT.cpp,v 1.2.4.1 2002-10-17 04:22:38 paklein Exp $ */
+/* $Id: RectGaussianWindowT.cpp,v 1.2.4.2 2002-10-20 18:07:49 paklein Exp $ */
 
 #include "RectGaussianWindowT.h"
 #include "ExceptionT.h"
@@ -156,8 +156,8 @@ int RectGaussianWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, 
 
   /* allocate */
   int nsd = x.Length();
-  fNSD.Allocate(nsd);
-  fNSDsym.Allocate(nsd);
+  fNSD.Dimension(nsd);
+  fNSDsym.Dimension(nsd);
 
   /* work space */
   dArrayT x_node, param_node;

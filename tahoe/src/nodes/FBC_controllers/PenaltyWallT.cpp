@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.6.4.1 2002-10-17 04:45:25 paklein Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.6.4.2 2002-10-20 18:07:43 paklein Exp $ */
 /* created: paklein (02/25/1997)                                          */
 
 #include "PenaltyWallT.h"
@@ -120,8 +120,8 @@ void PenaltyWallT::Initialize(void)
 	PenaltyRegionT::Initialize();
 
 	/* memory relative displacements */
-	fp_i.Allocate(fNumContactNodes, rCoords.MinorDim());
-	fv_i.Allocate(fNumContactNodes, rCoords.MinorDim());	
+	fp_i.Dimension(fNumContactNodes, rCoords.MinorDim());
+	fv_i.Dimension(fNumContactNodes, rCoords.MinorDim());	
 }
 
 /**********************************************************************

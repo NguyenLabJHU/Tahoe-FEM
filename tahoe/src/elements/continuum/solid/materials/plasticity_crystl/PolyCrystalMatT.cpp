@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.cpp,v 1.10.4.1 2002-10-17 04:38:17 paklein Exp $ */
+/* $Id: PolyCrystalMatT.cpp,v 1.10.4.2 2002-10-20 18:07:38 paklein Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -123,7 +123,7 @@ void PolyCrystalMatT::PointInitialize(void)
 		ElementCardT& element = CurrentElement();
 		
 		// allocate space
-		element.Allocate(i_size, d_size);
+		element.Dimension(i_size, d_size);
 		element.IntegerData() = kIsInit;
 		element.DoubleData()  = 0.0;
 
@@ -207,16 +207,16 @@ void PolyCrystalMatT::SetSlipSystems()
   fNumSlip = fSlipGeometry->NumSlip();
 
   // allocate space for Schmidt tensor in crystal/sample coords
-  fZc.Allocate(fNumSlip);
-  fZ.Allocate(fNumSlip);
+  fZc.Dimension(fNumSlip);
+  fZ.Dimension(fNumSlip);
   for (int i = 0; i < fNumSlip; i++) {
-    fZc[i].Allocate(3,3);
-    fZ[i].Allocate(3,3);
+    fZc[i].Dimension(3,3);
+    fZ[i].Dimension(3,3);
   }
 
   // allocate space for slip shearing rate and resolve shear stress
-  fDGamma.Allocate(fNumSlip);
-  fTau.Allocate(fNumSlip);
+  fDGamma.Dimension(fNumSlip);
+  fTau.Dimension(fNumSlip);
 
   // copy Schmidt tensor in crystal coords
   fZc = fSlipGeometry->GetSchmidtTensor();
@@ -239,18 +239,18 @@ void PolyCrystalMatT::SetLatticeOrientation()
   int numint = NumIP();
 
   // allocate array for euler angles at integration point
-  fangles.Allocate(fNumGrain);
+  fangles.Dimension(fNumGrain);
   for (int i = 0; i < fNumGrain; i++)
-    fangles[i].Allocate(3);
+    fangles[i].Dimension(3);
 
   // allocate array to hold crystal orientations
-  fEuler.Allocate(numelem);
+  fEuler.Dimension(numelem);
   for (int i = 0; i< numelem; i++)
     {
-      fEuler[i].Allocate(numint, fNumGrain);
+      fEuler[i].Dimension(numint, fNumGrain);
       for (int j = 0; j < numint; j++)
 	for (int k = 0; k < fNumGrain; k++)
-	  fEuler[i](j,k).Allocate(3);
+	  fEuler[i](j,k).Dimension(3);
     }
 
   // assign orientation angles to each IP/ELEM

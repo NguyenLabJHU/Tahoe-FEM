@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.26 2002-09-12 17:43:41 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.26.4.1 2002-10-20 18:07:09 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -254,8 +254,8 @@ void BridgingScaleT::WriteOutput(IOBaseT::OutputModeT mode)
 void BridgingScaleT::SetLocalArrays(void)
 {
 	/* dimension */
-	fLocInitCoords.Allocate(NumElementNodes(), NumSD());
-	fLocDisp.Allocate(NumElementNodes(), NumDOF());
+	fLocInitCoords.Dimension(NumElementNodes(), NumSD());
+	fLocDisp.Dimension(NumElementNodes(), NumDOF());
 
 	/* set source */
 	ElementSupport().RegisterCoordinates(fLocInitCoords);
@@ -278,15 +278,15 @@ void BridgingScaleT::CurrElementInfo(ostream& out) const
 	/* inherited */
 	ElementBaseT::CurrElementInfo(out);
 	dArray2DT temp;
-	temp.Allocate(fLocInitCoords.NumberOfNodes(), fLocInitCoords.MinorDim());
+	temp.Dimension(fLocInitCoords.NumberOfNodes(), fLocInitCoords.MinorDim());
 	
 	out <<   " initial coords:\n";
-	temp.Allocate(fLocInitCoords.NumberOfNodes(), fLocInitCoords.MinorDim());
+	temp.Dimension(fLocInitCoords.NumberOfNodes(), fLocInitCoords.MinorDim());
 	fLocInitCoords.ReturnTranspose(temp);
 	temp.WriteNumbered(out);
 
 	out <<   " displacements:\n";
-	temp.Allocate(fLocDisp.NumberOfNodes(), fLocDisp.MinorDim());
+	temp.Dimension(fLocDisp.NumberOfNodes(), fLocDisp.MinorDim());
 	fLocDisp.ReturnTranspose(temp);
 	temp.WriteNumbered(out);
 }

@@ -1,4 +1,4 @@
-/* $Id: TvergHutch3DT.cpp,v 1.2.6.1 2002-10-17 04:28:50 paklein Exp $ */
+/* $Id: TvergHutch3DT.cpp,v 1.2.6.2 2002-10-20 18:07:12 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch3DT.h"
@@ -248,7 +248,7 @@ void TvergHutch3DT::Print(ostream& out) const
 int TvergHutch3DT::NumOutputVariables(void) const { return 1; }
 void TvergHutch3DT::OutputLabels(ArrayT<StringT>& labels) const
 {
-	labels.Allocate(1);
+	labels.Dimension(1);
 	labels[0] = "lambda";
 }
 

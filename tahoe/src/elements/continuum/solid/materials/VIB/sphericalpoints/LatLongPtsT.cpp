@@ -1,4 +1,4 @@
-/* $Id: LatLongPtsT.cpp,v 1.3.4.1 2002-10-17 04:38:10 paklein Exp $ */
+/* $Id: LatLongPtsT.cpp,v 1.3.4.2 2002-10-20 18:07:32 paklein Exp $ */
 /* created: paklein (10/31/1997)                                          */
 /* Base class for spherical point generators.                             */
 
@@ -26,8 +26,8 @@ LatLongPtsT::LatLongPtsT(ifstreamT& in)
 	if (fNphi < 1 || fNtheta < 1) throw ExceptionT::kBadInputValue;
 	
 	int Ntot = fNtheta*fNphi + 2;  //2 extra for the z-axis caps
-	fPoints.Allocate(Ntot,3);
-	fJacobians.Allocate(Ntot);
+	fPoints.Dimension(Ntot,3);
+	fJacobians.Dimension(Ntot);
 }
 
 /*

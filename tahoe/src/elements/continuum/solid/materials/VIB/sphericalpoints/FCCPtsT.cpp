@@ -1,4 +1,4 @@
-/* $Id: FCCPtsT.cpp,v 1.3.4.1 2002-10-17 04:38:10 paklein Exp $ */
+/* $Id: FCCPtsT.cpp,v 1.3.4.2 2002-10-20 18:07:32 paklein Exp $ */
 /* created: paklein (03/26/1999)                                          */
 /* FCC lattice of points                                                  */
 
@@ -33,7 +33,7 @@ FCCPtsT::FCCPtsT(int num_shells, double bond_length):
 	}	
 
 	/* set weights */
-	fJacobians.Allocate(num_bonds);
+	fJacobians.Dimension(num_bonds);
 	fJacobians = 1;
 }
 

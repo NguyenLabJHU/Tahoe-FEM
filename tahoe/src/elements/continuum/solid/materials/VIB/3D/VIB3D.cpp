@@ -1,4 +1,4 @@
-/* $Id: VIB3D.cpp,v 1.4.4.1 2002-10-17 04:38:07 paklein Exp $ */
+/* $Id: VIB3D.cpp,v 1.4.4.2 2002-10-20 18:07:31 paklein Exp $ */
 /* created: paklein (04/20/1997)                                          */
 /* Base class for general 3D probabolistic Cauchy-Born materials.         */
 
@@ -81,7 +81,7 @@ void VIB3D::SetAngles(double phi, double theta)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Allocate(numpoints);
+	Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fSphere->Jacobians();

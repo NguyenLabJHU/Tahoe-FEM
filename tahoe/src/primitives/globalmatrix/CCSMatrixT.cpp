@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.12.4.1 2002-10-17 04:47:07 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.12.4.2 2002-10-20 18:07:45 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 
 #include "CCSMatrixT.h"
@@ -67,7 +67,7 @@ void CCSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	if (fDiags != NULL) delete[] fDiags;
 	iArrayT i_memory;
 	try {
-		i_memory.Allocate(fLocNumEQ);
+		i_memory.Dimension(fLocNumEQ);
 		i_memory.ReleasePointer(&fDiags);
 	}	
 	catch (ExceptionT::CodeT error)
@@ -94,7 +94,7 @@ void CCSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	if (fMatrix != NULL) delete[] fMatrix;
 	dArrayT d_memory;
 	try {
-		d_memory.Allocate(fNumberOfTerms);
+		d_memory.Dimension(fNumberOfTerms);
 		d_memory.ReleasePointer(&fMatrix);
 	}	
 	catch (ExceptionT::CodeT error)

@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.23.4.1 2002-10-17 04:28:58 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.23.4.2 2002-10-20 18:07:18 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -87,7 +87,7 @@ void RodT::Initialize(void)
 	/* initialize and allocate velocity array IF dynamic (MD) calculation*/
 	const FieldT& field = Field();
 	if (field.Order() > 0) {
-	  fLocVel.Allocate(NumElementNodes(), NumDOF());
+	  fLocVel.Dimension(NumElementNodes(), NumDOF());
 	  Field().RegisterLocal(fLocVel);
 	}
 }
@@ -366,7 +366,7 @@ void RodT::ReadMaterialData(ifstreamT& in)
 	/* allocate space */
 	int	nummaterials;
 	in >> nummaterials;
-	fMaterialsList.Allocate(nummaterials);
+	fMaterialsList.Dimension(nummaterials);
 
 	/* read data */
 	for (int i = 0; i < nummaterials; i++)

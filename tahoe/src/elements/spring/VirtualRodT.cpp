@@ -1,4 +1,4 @@
-/* $Id: VirtualRodT.cpp,v 1.5 2002-09-12 17:49:55 paklein Exp $ */
+/* $Id: VirtualRodT.cpp,v 1.5.4.1 2002-10-20 18:07:19 paklein Exp $ */
 /* created: paklein (05/01/1997) */
 
 #include "VirtualRodT.h"
@@ -63,7 +63,7 @@ void VirtualRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	if (numtriplets > 0)
 	{
 		/* memory */
-		fVNodeTriplets.Allocate(numtriplets, 3);
+		fVNodeTriplets.Dimension(numtriplets, 3);
 	
 		/* read data */
 		fVNodeTriplets.ReadNumbered(in);

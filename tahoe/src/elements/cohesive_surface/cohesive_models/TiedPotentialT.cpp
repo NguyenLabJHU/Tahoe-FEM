@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.5.6.1 2002-10-17 04:28:50 paklein Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.5.6.2 2002-10-20 18:07:11 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -307,7 +307,7 @@ int TiedPotentialT::NumOutputVariables(void) const { return 1; }
 
 void TiedPotentialT::OutputLabels(ArrayT<StringT>& labels) const
 {
-	labels.Allocate(1);
+	labels.Dimension(1);
 	labels[0] = "state[1]";
 }
 
@@ -355,7 +355,7 @@ bool TiedPotentialT::InitiationQ(const double* sigma)
 /*void TiedPotentialT::AllocateSpace(int MajorDim, int MinorDim) 
 {
   	
-  	nodal_stresses.Allocate(MajorDim,MinorDim);
+  	nodal_stresses.Dimension(MajorDim,MinorDim);
   	
 }*/
 

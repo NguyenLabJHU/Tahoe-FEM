@@ -1,4 +1,4 @@
-/* $Id: ElementCardT.cpp,v 1.9.4.1 2002-10-17 04:47:06 paklein Exp $ */
+/* $Id: ElementCardT.cpp,v 1.9.4.2 2002-10-20 18:07:44 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementCardT.h"
@@ -87,7 +87,7 @@ void ElementCardT::ReadRestart(istream& in)
 	in >> i_size >> d_size;
 	
 	/* allocate space */
-	Allocate(i_size,d_size);
+	Dimension(i_size,d_size);
 
 	/* read data */
 	in >> (*fData);
@@ -110,7 +110,7 @@ void ElementCardT::WriteRestart(ostream& out) const
 }
 
 /* element storage accessors/modifiers */
-void ElementCardT::Allocate(int i_size, int d_size)
+void ElementCardT::Dimension(int i_size, int d_size)
 {
 	/* nothing to do */
 	if (IntegerData().Length() == i_size &&

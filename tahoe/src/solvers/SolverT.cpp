@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.7.4.1 2002-10-17 04:14:24 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.7.4.2 2002-10-20 18:07:51 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "SolverT.h"
@@ -103,7 +103,7 @@ void SolverT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 {	
 	try {
 		/* allocate rhs vector */
-		fRHS.Allocate(loc_num_eq);
+		fRHS.Dimension(loc_num_eq);
 		fRHS = 0.0;
 		
 		/* set global equation matrix type */

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.15.4.1 2002-10-17 04:38:17 paklein Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.15.4.2 2002-10-20 18:07:38 paklein Exp $ */
 #include "LocalCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -93,15 +93,15 @@ LocalCrystalPlast::LocalCrystalPlast(ifstreamT& in, const FiniteStrainT& element
   // allocate additional space for Schmidt tensors
   for (int i = 0; i < fNumSlip; i++)
     {
-      fP[i].Allocate(3);
+      fP[i].Dimension(3);
     }
 
   // allocate additional space for temp arrays
   for (int i = 0; i < fNumSlip; i++)
     {
-      fA[i].Allocate(kNSD);
-      fB[i].Allocate(kNSD);
-      farray[i].Allocate(kNSD,kNSD);
+      fA[i].Dimension(kNSD);
+      fB[i].Dimension(kNSD);
+      farray[i].Dimension(kNSD,kNSD);
     }
 
   // set 2nd order unit tensor (sym matrix)
@@ -295,7 +295,7 @@ void LocalCrystalPlast::FormLHS(const dArrayT& dgamma, dMatrixT& lhs)
   ArrayT<dMatrixT> array(fNumSlip);
   for (int i = 0; i < fNumSlip; i++)
     {
-      array[i].Allocate(kNSD,kNSD);
+      array[i].Dimension(kNSD,kNSD);
     }
   dDFpidDGamma(dgamma, array);
   for (int i = 0; i < fNumSlip; i++)
@@ -409,7 +409,7 @@ int LocalCrystalPlast::NumOutputVariables() const {return kNumOutput;}
 void LocalCrystalPlast::OutputLabels(ArrayT<StringT>& labels) const
 {
   // allocate space for labels
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   // copy labels
   for (int i = 0; i < kNumOutput; i++)

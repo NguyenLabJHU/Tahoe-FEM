@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.cpp,v 1.7.6.1 2002-10-17 04:28:51 paklein Exp $ */
+/* $Id: ViscTvergHutch2DT.cpp,v 1.7.6.2 2002-10-20 18:07:12 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "ViscTvergHutch2DT.h"
@@ -373,7 +373,7 @@ void ViscTvergHutch2DT::Print(ostream& out) const
 int ViscTvergHutch2DT::NumOutputVariables(void) const { return 2; }
 void ViscTvergHutch2DT::OutputLabels(ArrayT<StringT>& labels) const
 {
-	labels.Allocate(2);
+	labels.Dimension(2);
 	labels[0] = "lambda";
 	labels[1] = "dw_visc";
 }

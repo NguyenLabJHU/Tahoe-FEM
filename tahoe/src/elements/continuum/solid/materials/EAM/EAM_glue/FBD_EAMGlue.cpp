@@ -1,4 +1,4 @@
-/* $Id: FBD_EAMGlue.cpp,v 1.2.4.1 2002-10-17 04:37:50 paklein Exp $ */
+/* $Id: FBD_EAMGlue.cpp,v 1.2.4.2 2002-10-20 18:07:24 paklein Exp $ */
 /* created: paklein (01/30/2000)                                          */
 /* FBD_EAMGlue.cpp                                                        */
 
@@ -37,8 +37,8 @@ FBD_EAMGlue::FBD_EAMGlue(CBLatticeT& lattice, ifstreamT& in):
 	dArray2DT table;
 	
 	/* embedding energy */
-	tmp.Allocate(np);
-	table.Allocate(np, 2);
+	tmp.Dimension(np);
+	table.Dimension(np, 2);
 	in >> tmp;
 	table.SetColumn(1, tmp);
 	double p = 0.0;
@@ -51,8 +51,8 @@ FBD_EAMGlue::FBD_EAMGlue(CBLatticeT& lattice, ifstreamT& in):
 	if (!fEmbeddingEnergy) throw ExceptionT::kOutOfMemory;
 	
 	/* phi function */
-	tmp.Allocate(nr);
-	table.Allocate(nr, 2);
+	tmp.Dimension(nr);
+	table.Dimension(nr, 2);
 	in >> tmp;
 	tmp *= sqrt(27.2*0.529);
 	

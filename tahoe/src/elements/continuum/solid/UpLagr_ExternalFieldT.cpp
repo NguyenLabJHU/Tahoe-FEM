@@ -1,4 +1,4 @@
-/* $Id: UpLagr_ExternalFieldT.cpp,v 1.6.2.1 2002-10-17 04:28:55 paklein Exp $ */
+/* $Id: UpLagr_ExternalFieldT.cpp,v 1.6.2.2 2002-10-20 18:07:16 paklein Exp $ */
 #include "UpLagr_ExternalFieldT.h"
 
 #include "fstreamT.h"
@@ -40,7 +40,7 @@ void UpLagr_ExternalFieldT::Initialize(void)
 	/* read variable labels */
 	int num_variables = -1;
 	in >> num_variables; if (num_variables < 0) throw ExceptionT::kBadInputValue;
-	fExternalFieldLabels.Allocate(num_variables);
+	fExternalFieldLabels.Dimension(num_variables);
 	for (int i = 0; i < num_variables; i++)
 		in >> fExternalFieldLabels[i];
 	
@@ -65,7 +65,7 @@ void UpLagr_ExternalFieldT::Initialize(void)
 		exo.ReadLabels(labels, ExodusT::kNode);
 		
 		/* index list */
-		fFieldVariableIndex.Allocate(fExternalFieldLabels.Length());
+		fFieldVariableIndex.Dimension(fExternalFieldLabels.Length());
 		fFieldVariableIndex = -1;
 
 		/* resolve location of each field component */
@@ -103,23 +103,23 @@ void UpLagr_ExternalFieldT::Initialize(void)
 	fTimeSteps.SetValues(time_steps);
 
 	/* get node number map */
-	fNodeMap.Allocate(exo.NumNodes());
+	fNodeMap.Dimension(exo.NumNodes());
 	exo.ReadNodeMap(fNodeMap);
 	fNodeMap--; /* offset to internal numbering */
 
 	/* allocate global assembly array */
-	fExternalField.Allocate(ElementSupport().NumNodes(), fExternalFieldLabels.Length());
+	fExternalField.Dimension(ElementSupport().NumNodes(), fExternalFieldLabels.Length());
 //NOTE: This is going to be a big waste of space if this element group
 //      only involves a small fraction of the total number of nodes in
 //      the model, but it makes it much easier to retrieve the values
 //      like other field variables.
 
 	/* allocate local array */
-	fLocExternalField.Allocate(NumElementNodes(), fExternalFieldLabels.Length());
+	fLocExternalField.Dimension(NumElementNodes(), fExternalFieldLabels.Length());
 	fLocExternalField.SetGlobal(fExternalField);
 	
 	/* allocate space for reading nodal values */
-	fNodalValues.Allocate(exo.NumNodes());
+	fNodalValues.Dimension(exo.NumNodes());
 }
 
 /* interpolate external field to the current time step */

@@ -1,4 +1,4 @@
-/* $Id: MixedSWDiamondT.cpp,v 1.3.4.1 2002-10-17 04:28:57 paklein Exp $ */
+/* $Id: MixedSWDiamondT.cpp,v 1.3.4.2 2002-10-20 18:07:18 paklein Exp $ */
 /* created: paklein (03/22/1997) */
 
 #include "MixedSWDiamondT.h"
@@ -67,7 +67,7 @@ void MixedSWDiamondT::ReadMaterialData(ifstreamT& in)
 	
 	in >> numsets;	if (numsets < 1) throw ExceptionT::kBadInputValue;
 
-	fSWDataList.Allocate(numsets);
+	fSWDataList.Dimension(numsets);
 
 	for (int i = 0; i < numsets; i++)
 		fSWDataList[i].Read(in);	
@@ -168,7 +168,7 @@ void MixedSWDiamondT::EchoNodeTags(istream& in, ostream& out)
 	int numtypes = fSWDataList.Length();
 
 	/* allocate memory */
-	fNodeTypes.Allocate(numnodes);
+	fNodeTypes.Dimension(numnodes);
 
 	/* header */
 	out << "\n Node type tags : \n";

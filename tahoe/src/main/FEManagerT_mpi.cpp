@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.21.4.1 2002-10-17 04:54:07 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.21.4.2 2002-10-20 18:07:20 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -786,8 +786,8 @@ void FEManagerT_mpi::SetNodeManager(void)
 	
 		/* communication ID list */
 		const iArrayT& commID = fPartition->CommID();
-		fRecvRequest.Allocate(commID.Length());
-		fSendRequest.Allocate(commID.Length());
+		fRecvRequest.Dimension(commID.Length());
+		fSendRequest.Dimension(commID.Length());
 	}
 #endif /* __MPI__ */
 }
@@ -900,15 +900,15 @@ void FEManagerT_mpi::AllocateBuffers(int minor_dim, ArrayT<dArray2DT>& recv,
 	send.Free();
 
 	/* allocate buffers */
-	recv.Allocate(commID.Length());
-	send.Allocate(commID.Length());
+	recv.Dimension(commID.Length());
+	send.Dimension(commID.Length());
 	for (int i = 0; i < commID.Length(); i++)
 	{
 		const iArrayT& nodes_in = *(fPartition->NodesIn(commID[i]));
-		recv[i].Allocate(nodes_in.Length(), minor_dim);
+		recv[i].Dimension(nodes_in.Length(), minor_dim);
 		
 		const iArrayT& nodes_out = *(fPartition->NodesOut(commID[i]));
-		send[i].Allocate(nodes_out.Length(), minor_dim);
+		send[i].Dimension(nodes_out.Length(), minor_dim);
 	}
 }
 
@@ -939,22 +939,22 @@ void FEManagerT_mpi::AllocateBuffers(int minor_dim, ArrayT<iArray2DT>& recv,
 	send.Free();
 
 	/* allocate buffers */
-	recv.Allocate(commID.Length());
-	send.Allocate(commID.Length());
+	recv.Dimension(commID.Length());
+	send.Dimension(commID.Length());
 	for (int i = 0; i < commID.Length(); i++)
 	{
 		const iArrayT& nodes_in = *(fPartition->NodesIn(commID[i]));
-		recv[i].Allocate(nodes_in.Length(), minor_dim);
+		recv[i].Dimension(nodes_in.Length(), minor_dim);
 		
 		const iArrayT& nodes_out = *(fPartition->NodesOut(commID[i]));
-		send[i].Allocate(nodes_out.Length(), minor_dim);
+		send[i].Dimension(nodes_out.Length(), minor_dim);
 	}
 }
 
 /* collect computation effort for each node */
 void FEManagerT_mpi::WeightNodalCost(iArrayT& weight) const
 {
-	weight.Allocate(fNodeManager->NumNodes());
+	weight.Dimension(fNodeManager->NumNodes());
 	weight = 1;
 	fNodeManager->WeightNodalCost(weight);
 	for (int i = 0 ; i < fElementGroups.Length(); i++)

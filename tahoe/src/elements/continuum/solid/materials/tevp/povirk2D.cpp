@@ -1,4 +1,4 @@
-/* $Id: povirk2D.cpp,v 1.5.2.1 2002-10-17 04:38:21 paklein Exp $ */
+/* $Id: povirk2D.cpp,v 1.5.2.2 2002-10-20 18:07:41 paklein Exp $ */
 /* Created:  Harold Park (09/10/2001) */
 #include "povirk2D.h"
 
@@ -271,7 +271,7 @@ int povirk2D::NumOutputVariables(void) const { return kNumOutput; }
 void povirk2D::OutputLabels(ArrayT<StringT>& labels) const
 {
   /* set size */
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   /* copy labels - WHY? */
   for (int i = 0; i < kNumOutput; i++)
@@ -523,7 +523,7 @@ void povirk2D::AllocateElement(ElementCardT& element)
                                       // Sig11, Sig12=Sig21, Sig22 and Sig33
   d_size += kNSD * fNumIP;           // 3 2D symmetric components (Sig11, Sig12, Sig22)
   /* construct new plastic element */
-  element.Allocate(i_size, d_size);
+  element.Dimension(i_size, d_size);
 
   /* first set of flags for plasticity criterion */
   for (int ip = 0; ip < fNumIP; ip++)

@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp.cpp,v 1.9.4.1 2002-10-17 04:38:17 paklein Exp $ */
+/* $Id: GradCrystalPlastFp.cpp,v 1.9.4.2 2002-10-20 18:07:38 paklein Exp $ */
 #include "GradCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -61,19 +61,19 @@ GradCrystalPlastFp::GradCrystalPlastFp(ifstreamT& in, const FiniteStrainT& eleme
   // allocate space for ...
   // ... Fp values at integration points
   for (int i = 0; i < NumIP(); i++)
-    fFpIP[i].Allocate(kNSD,kNSD);
+    fFpIP[i].Dimension(kNSD,kNSD);
 
   // ... Fp values at nodal points
-  fFpNodes.Allocate(fNumNodes);
+  fFpNodes.Dimension(fNumNodes);
   for (int i = 0; i < fNumNodes; i++) 
-    fFpNodes[i].Allocate(kNSD,kNSD);
+    fFpNodes[i].Dimension(kNSD,kNSD);
 
   // ... spatial gradients of Fp (note: kNSD instead of NumSD())
   for (int i = 0; i < kNSD; i++)
-    fGradFp[i].Allocate(kNSD,kNSD);
+    fGradFp[i].Dimension(kNSD,kNSD);
 
   // ... current coordinates
-  fLocCurrX.Allocate(fLocInitX.NumberOfNodes(), NumSD());
+  fLocCurrX.Dimension(fLocInitX.NumberOfNodes(), NumSD());
 
   // create Gradient Tool object
   fGradTool = new GradientTools(NumIP(), fNumNodes, NumSD());
@@ -273,7 +273,7 @@ int GradCrystalPlastFp::NumOutputVariables() const {return kNumOutput;}
 void GradCrystalPlastFp::OutputLabels(ArrayT<StringT>& labels) const
 {
   // allocate space for labels
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   // copy labels
   for (int i = 0; i < kNumOutput; i++)

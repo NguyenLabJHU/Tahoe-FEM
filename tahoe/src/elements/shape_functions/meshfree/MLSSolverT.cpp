@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.cpp,v 1.8.4.1 2002-10-17 04:22:34 paklein Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.8.4.2 2002-10-20 18:07:47 paklein Exp $ */
 /* created: paklein (12/08/1999)                                          */
 
 #include "MLSSolverT.h"
@@ -99,24 +99,24 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 	
 	/* dimension arrays */
 	int m = fBasis->BasisDimension();
-	fb.Allocate(m);
+	fb.Dimension(m);
 	for (int j = 0; j < fDb.Length(); j++)
-		fDb[j].Allocate(m);
+		fDb[j].Dimension(m);
 	for (int jj = 0; jj < fDDb.Length(); jj++)
-		fDDb[jj].Allocate(m);
+		fDDb[jj].Dimension(m);
 
-	fMinv.Allocate(m);
+	fMinv.Dimension(m);
 	for (int i = 0; i < fDM.Length(); i++)
-		fDM[i].Allocate(m);
+		fDM[i].Dimension(m);
 	for (int ii = 0; ii < fDDM.Length(); ii++)
-		fDDM[ii].Allocate(m);
+		fDDM[ii].Dimension(m);
 
 	/* work space */
-	fMtemp.Allocate(m);
-	fbtemp1.Allocate(m);
-	fbtemp2.Allocate(m);
-	fbtemp3.Allocate(m);
-	fbtemp4.Allocate(m);
+	fMtemp.Dimension(m);
+	fbtemp1.Dimension(m);
+	fbtemp2.Dimension(m);
+	fbtemp3.Dimension(m);
+	fbtemp4.Dimension(m);
 }
 	
 /* destructor */

@@ -1,4 +1,4 @@
-/* $Id: MFPenaltySphereT.cpp,v 1.4.4.1 2002-10-17 04:45:25 paklein Exp $ */
+/* $Id: MFPenaltySphereT.cpp,v 1.4.4.2 2002-10-20 18:07:42 paklein Exp $ */
 /* created: paklein (04/17/2000) */
 
 #include "MFPenaltySphereT.h"
@@ -43,8 +43,8 @@ void MFPenaltySphereT::Initialize(void)
 	PenaltySphereT::Initialize();
 	
 	/* allocate workspace */
-	fCoords.Allocate(fNumContactNodes, rCoords.MinorDim());
-	fCurrCoords.Allocate(fNumContactNodes, rEqnos.MinorDim());
+	fCoords.Dimension(fNumContactNodes, rCoords.MinorDim());
+	fCurrCoords.Dimension(fNumContactNodes, rEqnos.MinorDim());
 	
 	/* collect coordinates */
 	fCoords.RowCollect(fContactNodes, rCoords);

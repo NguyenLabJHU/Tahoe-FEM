@@ -1,4 +1,4 @@
-/* $Id: OrthoMLSSolverT.cpp,v 1.4.4.1 2002-10-17 04:22:35 paklein Exp $ */
+/* $Id: OrthoMLSSolverT.cpp,v 1.4.4.2 2002-10-20 18:07:48 paklein Exp $ */
 /* created: paklein (07/03/1998)                                          */
 
 #include "OrthoMLSSolverT.h"
@@ -36,20 +36,20 @@ void OrthoMLSSolverT::Initialize(void)
 	int m = NumberOfMonomials(fComplete);
 
 	/* b (2.11 b) and derivatives */
-	fb.Allocate(m);
-	fDb.Allocate(fNumSD, m);
+	fb.Dimension(m);
+	fDb.Dimension(fNumSD, m);
 
 	/* monomials and derivatives */
-	fp.Allocate(m);
-	fDp.Allocate(fNumSD, m);
+	fp.Dimension(m);
+	fDp.Dimension(fNumSD, m);
 
 	/* (orthogonal) basis functions (2.4) and derivatives */
-	fq.Allocate(m);
-	fDq.Allocate(fNumSD, m);
+	fq.Dimension(m);
+	fDq.Dimension(fNumSD, m);
 
 	/* rows of alpha and derivatives */
-	fa.Allocate(m-1);
-	fDa.Allocate(fNumSD, m-1);
+	fa.Dimension(m-1);
+	fDa.Dimension(fNumSD, m-1);
 	
 	/* register variable length arrays */
 	fArrayGroup.Register(fw);
@@ -160,7 +160,7 @@ void OrthoMLSSolverT::ComputeOrtho(dMatrixT& mat) const
 {
 	/* dimension output matrix */
 	int m = fq.Length();
-	mat.Allocate(m);
+	mat.Dimension(m);
 
 	for (int i = 0; i < m; i++)
 		for (int j = 0; j < m; j++)
@@ -181,7 +181,7 @@ void OrthoMLSSolverT::ComputeDOrtho(int deriv, dMatrixT& mat) const
 {
 	/* dimension output matrix */
 	int m = fq.Length();
-	mat.Allocate(m);
+	mat.Dimension(m);
 
 	for (int i = 0; i < m; i++)
 		for (int j = 0; j < m; j++)

@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.cpp,v 1.8.4.1 2002-10-17 04:22:38 paklein Exp $ */
+/* $Id: GaussianWindowT.cpp,v 1.8.4.2 2002-10-20 18:07:49 paklein Exp $ */
 
 #include "GaussianWindowT.h"
 #include "ExceptionT.h"
@@ -115,8 +115,8 @@ int GaussianWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n,
 {
 	/* allocate */
 	int nsd = x.Length();
-	fNSD.Allocate(nsd);
-	fNSDsym.Allocate(nsd);
+	fNSD.Dimension(nsd);
+	fNSDsym.Dimension(nsd);
 	
 	/* work space */
 	dArrayT x_node, param_node;

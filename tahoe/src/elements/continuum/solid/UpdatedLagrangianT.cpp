@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.9.2.2 2002-10-19 17:54:58 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.9.2.3 2002-10-20 18:07:16 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpdatedLagrangianT.h"
 
@@ -42,8 +42,8 @@ void UpdatedLagrangianT::Initialize(void)
 	FiniteStrainT::Initialize();
 
 	/* dimension */
-	fGradNa.Allocate(NumSD(), NumElementNodes());
-	fStressStiff.Allocate(NumElementNodes());
+	fGradNa.Dimension(NumSD(), NumElementNodes());
+	fStressStiff.Dimension(NumElementNodes());
 }
 
 /***********************************************************************
@@ -57,7 +57,7 @@ void UpdatedLagrangianT::SetLocalArrays(void)
 	FiniteStrainT::SetLocalArrays();
 
 	/* allocate and set source */
-	fLocCurrCoords.Allocate(NumElementNodes(), NumSD());
+	fLocCurrCoords.Dimension(NumElementNodes(), NumSD());
 	ElementSupport().RegisterCoordinates(fLocCurrCoords);
 }
 

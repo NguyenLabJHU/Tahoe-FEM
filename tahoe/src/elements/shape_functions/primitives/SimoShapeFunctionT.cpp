@@ -1,4 +1,4 @@
-/* $Id: SimoShapeFunctionT.cpp,v 1.6.2.1 2002-10-17 04:21:56 paklein Exp $ */
+/* $Id: SimoShapeFunctionT.cpp,v 1.6.2.2 2002-10-20 18:07:50 paklein Exp $ */
 
 #include "SimoShapeFunctionT.h"
 #include "LocalArrayT.h"
@@ -70,26 +70,26 @@ SimoShapeFunctionT::SimoShapeFunctionT(GeometryT::CodeT geometry_code,
 	/* allocate derivatives of bubble modes */
 	int num_bubble_modes = NumSD();
 	int num_derivatives  = NumSD();
-	fDNaX_bubble.Allocate(NumIP());
-	fDNa_bubble.Allocate(NumIP());
+	fDNaX_bubble.Dimension(NumIP());
+	fDNa_bubble.Dimension(NumIP());
 	for (int i = 0; i < NumIP(); i++)
 	{
-		fDNaX_bubble[i].Allocate(num_derivatives, num_bubble_modes);
-		fDNa_bubble[i].Allocate(num_derivatives, num_bubble_modes);
+		fDNaX_bubble[i].Dimension(num_derivatives, num_bubble_modes);
+		fDNa_bubble[i].Dimension(num_derivatives, num_bubble_modes);
 	}
 	
 	/* 3D incompressible mode */	
 	if (fHas3DIncompressibleMode)
 	{
 		/* derivatives of 1 mode */
-		fDNaX_inc.Allocate(NumIP(), num_derivatives);
+		fDNaX_inc.Dimension(NumIP(), num_derivatives);
 	}
 	
 	/* allocate work space */
-	fNa_0.Allocate(fCoords.NumberOfNodes());
-	fDNa_0.Allocate(NumSD(), fCoords.NumberOfNodes());
-	fJ.Allocate(NumSD());
-	fJ_0_inv.Allocate(NumSD());
+	fNa_0.Dimension(fCoords.NumberOfNodes());
+	fDNa_0.Dimension(NumSD(), fCoords.NumberOfNodes());
+	fJ.Dimension(NumSD());
+	fJ_0_inv.Dimension(NumSD());
 }
 
 /* initialization class. */

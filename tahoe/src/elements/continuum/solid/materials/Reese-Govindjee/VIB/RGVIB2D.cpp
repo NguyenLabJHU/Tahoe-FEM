@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.cpp,v 1.4 2002-10-14 18:28:07 thao Exp $ */
+/* $Id: RGVIB2D.cpp,v 1.4.2.1 2002-10-20 18:07:27 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include <math.h>
@@ -93,7 +93,7 @@ int RGVIB2D::NumOutputVariables() const {return kNumOutputVar;}
 void RGVIB2D::OutputLabels(ArrayT<StringT>& labels) const
 {
   //allocates space for labels
-        labels.Allocate(kNumOutputVar);
+        labels.Dimension(kNumOutputVar);
 
         //copy labels
         for (int i = 0; i< kNumOutputVar; i++)

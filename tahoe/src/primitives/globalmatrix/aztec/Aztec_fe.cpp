@@ -1,4 +1,4 @@
-/* $Id: Aztec_fe.cpp,v 1.5.4.1 2002-10-17 04:47:09 paklein Exp $ */
+/* $Id: Aztec_fe.cpp,v 1.5.4.2 2002-10-20 18:07:47 paklein Exp $ */
 /* created: paklein (08/01/1998) */
 
 #include "Aztec_fe.h"
@@ -87,7 +87,7 @@ void Aztec_fe::Solve(const dArrayT& initguess, dArrayT& rhs2result)
 	if (rhs2result.Length() != fupdate.Length()) throw ExceptionT::kSizeMismatch;
 
 	/* allocate initial guess */
-	finitguess.Allocate(InitGuessLength());
+	finitguess.Dimension(InitGuessLength());
 	
 	/* set initial guess */	
 	if (&initguess == &finitguess)
@@ -148,7 +148,7 @@ int Aztec_fe::SetMSRData(int** update, int** bindx, double** val,
 	int& is_sorted)
 {
 	/* set update vector - global numbering */
-	fupdate.Allocate(N_update);
+	fupdate.Dimension(N_update);
 	int* pupdate = fupdate.Pointer();
 	int n_update = Start_update; //OFFSET
 	for (int i = 0; i < N_update; i++)
@@ -180,7 +180,7 @@ fMSRBuilder->WriteMSRData(fMessage, fupdate, fbindx);
 #endif
 	
 	/* allocate the matrix and initialize to 0.0 */
-	fval.Allocate(fbindx.Length());
+	fval.Dimension(fbindx.Length());
 	fval = 0.0;
 	
 	/* set pointers */
@@ -209,8 +209,8 @@ void Aztec_fe::ReadOptionsParameters(ifstreamT& in)
 //TEMP - num_options strictly can't be AZ_OPTIONS_SIZE, should
 //       get this limit from AztecReaderT
 	
-	AZ_options_dex.Allocate(num_options);
-	AZ_options.Allocate(num_options);
+	AZ_options_dex.Dimension(num_options);
+	AZ_options.Dimension(num_options);
 	for (int i = 0; i < num_options; i++)
 	{
 		/* read */
@@ -230,8 +230,8 @@ void Aztec_fe::ReadOptionsParameters(ifstreamT& in)
 //TEMP - num_params strictly can't be AZ_PARAMS_SIZE, should
 //       get this limit from AztecReaderT
 
-	AZ_params_dex.Allocate(num_params);
-	AZ_params.Allocate(num_params);
+	AZ_params_dex.Dimension(num_params);
+	AZ_params.Dimension(num_params);
 	for (int j = 0; j < num_params; j++)
 	{
 		/* read */
@@ -250,9 +250,9 @@ void Aztec_fe::GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v)
 {
 	/* overall dimension */
 	int num_vals = fval.Length() - 1; // MSR format has 1 unused value
-	r.Allocate(num_vals);
-	c.Allocate(num_vals);
-	v.Allocate(num_vals);
+	r.Dimension(num_vals);
+	c.Dimension(num_vals);
+	v.Dimension(num_vals);
 
 	/* start of off-diagonal data (MSR) */
 	int*    pcol = fbindx.Pointer(N_update + 1);

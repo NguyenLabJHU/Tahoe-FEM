@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.8.2.1 2002-10-17 04:28:54 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.8.2.2 2002-10-20 18:07:15 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -51,7 +51,7 @@ void DiffusionElementT::Initialize(void)
 	ContinuumElementT::Initialize();
 
 	/* allocate */
-	fB.Allocate(NumSD(), NumElementNodes());
+	fB.Dimension(NumSD(), NumElementNodes());
 
 	/* setup for material output */
 	if (fNodalOutputCodes[iMaterialData])
@@ -164,7 +164,7 @@ void DiffusionElementT::PrintControlData(ostream& out) const
 void DiffusionElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 {
 	/* allocate */
-	fNodalOutputCodes.Allocate(NumOutputCodes);
+	fNodalOutputCodes.Dimension(NumOutputCodes);
 
 	/* read in at a time to allow comments */
 	for (int i = 0; i < fNodalOutputCodes.Length(); i++)
@@ -194,7 +194,7 @@ void DiffusionElementT::SetLocalArrays(void)
 	ContinuumElementT::SetLocalArrays();
 
 	/* allocate */
-	fLocVel.Allocate(NumElementNodes(), NumDOF());
+	fLocVel.Dimension(NumElementNodes(), NumDOF());
 
 	/* nodal velocities */
 	if (fController->Order() == 1)
@@ -206,7 +206,7 @@ void DiffusionElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iAr
 	iArrayT& counts) const
 {
 	/* initialize */
-	counts.Allocate(flags.Length());
+	counts.Dimension(flags.Length());
 	counts = 0;
 
 	if (flags[iNodalCoord] == mode)
@@ -558,7 +558,7 @@ void DiffusionElementT::GenerateOutputLabels(const iArrayT& n_codes,
 	ArrayT<StringT>& e_labels) const
 {
 	/* allocate node labels */
-	n_labels.Allocate(n_codes.Sum());
+	n_labels.Dimension(n_codes.Sum());
 	int count = 0;	
 
 	if (n_codes[iNodalDisp])

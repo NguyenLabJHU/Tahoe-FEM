@@ -1,4 +1,4 @@
-/* $Id: RGBaseT.cpp,v 1.1.2.1 2002-10-17 04:38:00 paklein Exp $ */
+/* $Id: RGBaseT.cpp,v 1.1.2.2 2002-10-20 18:07:26 paklein Exp $ */
 /* created: TDN (01/22/2000) */
 
 #include "RGBaseT.h"
@@ -20,7 +20,7 @@ RGBaseT::RGBaseT(ifstreamT& in, const FiniteStrainT& element):
 	fnstatev += numstress;   /*current C_v*/
 	fnstatev += numstress;   /*last C_vn*/
 	
-	fstatev.Allocate(fnstatev);
+	fstatev.Dimension(fnstatev);
 	double* pstatev = fstatev.Pointer();
 
 	/* assign pointers to current and last blocks of 
@@ -55,7 +55,7 @@ void  RGBaseT::PointInitialize(void)
 	if (CurrIP() == 0)
 	{
 		ElementCardT& element = CurrentElement();
-		element.Allocate(0, fnstatev*NumIP());
+		element.Dimension(0, fnstatev*NumIP());
 	
 		/* initialize internal variables to identity*/
 		for (int ip = 0; ip < NumIP(); ip++)

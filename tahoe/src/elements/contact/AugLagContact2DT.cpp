@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.9.2.1 2002-10-17 04:28:52 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.9.2.2 2002-10-20 18:07:13 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 
 #include "AugLagContact2DT.h"
@@ -37,8 +37,8 @@ void AugLagContact2DT::Initialize(void)
 	int neq = NumElementNodes()*NumDOF() + 1; // 1 additional dof
 
 	/* re-size element results */
-	fLHS.Allocate(neq); // or make new variables?
-	fRHS.Allocate(neq);
+	fLHS.Dimension(neq); // or make new variables?
+	fRHS.Dimension(neq);
 
 	/* dynamic work space managers for element arrays */
 	fXDOFConnectivities_man.SetWard(0, fXDOFConnectivities, NumElementNodes() + 1);		
@@ -74,7 +74,7 @@ void AugLagContact2DT::SetDOFTags(void)
 	fLastDOF = constraints;
 
 	/* resize DOF tags array */
-	fContactDOFtags.Allocate(fActiveStrikers.Length());
+	fContactDOFtags.Dimension(fActiveStrikers.Length());
 
 	/* write list of active strikers */
 	iArrayT tmp;

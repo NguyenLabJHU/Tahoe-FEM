@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.17.4.1 2002-10-17 04:22:34 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.17.4.2 2002-10-20 18:07:47 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -102,7 +102,7 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 		
 		/* just one nodal field parameter */
 		fnodal_param_man.SetMinorDimension(1);
-		fNodalParameters.Allocate(fCoords.MajorDim(), 1);
+		fNodalParameters.Dimension(fCoords.MajorDim(), 1);
 		fNodalParameters = -1;
 	}
 	else if (fMeshfreeType == kRKPM)
@@ -123,7 +123,7 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 			case kGaussian:
 			{
 				/* 3 parameter */
-				window_params.Allocate(3);
+				window_params.Dimension(3);
 				in >> window_params[0]; // support size scaling
 				in >> window_params[1]; // sharpening factor
 				in >> window_params[2]; // cut-off factor
@@ -134,7 +134,7 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 				/* parameters = dilation scaling in each direction
 				 *             + sharpening factor
 				 *             + cut-off factor */
-				window_params.Allocate(fDomain.NumSD() + 2);
+				window_params.Dimension(fDomain.NumSD() + 2);
 				
 				/* allow for line-by-line comments */
 				for (int i = 0; i < window_params.Length(); i++)
@@ -147,7 +147,7 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 				/* parameters = dilation scaling in each direction
 				 *             + sharpening factor
 				 *             + cut-off factor */
-				window_params.Allocate(fDomain.NumSD() + 2);
+				window_params.Dimension(fDomain.NumSD() + 2);
 				
 				/* allow for line-by-line comments */
 				for (int i = 0; i < window_params.Length(); i++)
@@ -172,9 +172,9 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 		fnodal_param_man.SetMinorDimension(fRKPM->NumberOfSupportParameters());
 		
 		/* allocate work space */
-		fVolume.Allocate(fCoords.MajorDim());
+		fVolume.Dimension(fCoords.MajorDim());
 		fVolume = 1.0;
-		fNodalParameters.Allocate(fCoords.MajorDim(), fRKPM->NumberOfSupportParameters());
+		fNodalParameters.Dimension(fCoords.MajorDim(), fRKPM->NumberOfSupportParameters());
 		fNodalParameters = -1;
 	}
 	else
@@ -274,7 +274,7 @@ void MeshFreeSupportT::SetSkipNodes(const iArrayT& skip_nodes)
 		fSkipNode.Free();
 	else
 	{
-		fSkipNode.Allocate(fCoords.MajorDim());
+		fSkipNode.Dimension(fCoords.MajorDim());
 		fSkipNode = 0;
 		for (int i = 0; i < skip_nodes.Length(); i++)
 			fSkipNode[skip_nodes[i]] = 1;
@@ -287,7 +287,7 @@ void MeshFreeSupportT::SetSkipElements(const iArrayT& skip_elements)
 		fSkipElement.Free();
 	else
 	{
-		fSkipElement.Allocate(fConnects.MajorDim());
+		fSkipElement.Dimension(fConnects.MajorDim());
 		fSkipElement = 0;
 		for (int i = 0; i < skip_elements.Length(); i++)
 			fSkipElement[skip_elements[i]] = 1;
@@ -328,7 +328,7 @@ void MeshFreeSupportT::SetSupportParameters(const iArrayT& node, const dArray2DT
 	/* make sure grid is set - not a good place for this */
 	if (!fGrid)
 	{
-		fNodesUsed.Allocate(fCoords.MajorDim());
+		fNodesUsed.Dimension(fCoords.MajorDim());
 		fNodesUsed.SetValueToPosition();
 		SetSearchGrid();
 	}
@@ -837,7 +837,7 @@ void MeshFreeSupportT::SetNodeNeighborData(const dArray2DT& coords)
 	int nsd      = coords.MinorDim();
 	
 	/* initialize neighbor counts */
-	fnNeighborCount.Allocate(numnodes);
+	fnNeighborCount.Dimension(numnodes);
 	fnNeighborCount = 0;
 
 	/* work space */
@@ -884,7 +884,7 @@ void MeshFreeSupportT::SetNodeNeighborData(const dArray2DT& coords)
 		int count = neighbors.Length();
 		if (count > (*pthis).MinorDim())
 		{
-			(*pnext).Allocate(numnodes, count + kListSizeinc);
+			(*pnext).Dimension(numnodes, count + kListSizeinc);
 					
 			/* copy and swap */
 			SwapData(fnNeighborCount, &pthis, &pnext);
@@ -904,7 +904,7 @@ void MeshFreeSupportT::SetNodeNeighborData(const dArray2DT& coords)
 
 	/* space for nodal calculations */
 	int maxsize = fnNeighborData.MaxMinorDim();
-	fndShapespace.Allocate(maxsize*(1 + nsd));
+	fndShapespace.Dimension(maxsize*(1 + nsd));
 }
 
 void MeshFreeSupportT::SetNodeNeighborData_2(const dArray2DT& coords)
@@ -917,7 +917,7 @@ void MeshFreeSupportT::SetNodeNeighborData_2(const dArray2DT& coords)
 	int nsd      = coords.MinorDim();
 	
 	/* initialize neighbor counts */
-	fnNeighborCount.Allocate(numnodes);
+	fnNeighborCount.Dimension(numnodes);
 	fnNeighborCount = 0;
 
 	/* work space */
@@ -1026,7 +1026,7 @@ void MeshFreeSupportT::SetNodeNeighborData_2(const dArray2DT& coords)
 		
 	/* space for nodal calculations */
 	int maxsize = fnNeighborData.MaxMinorDim();
-	fndShapespace.Allocate(maxsize*(1 + nsd));
+	fndShapespace.Dimension(maxsize*(1 + nsd));
 }
 
 /* generate lists of all nodes that fall within Dmax of the
@@ -1040,7 +1040,7 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 	int nip      = fDomain.NumIP();
 	
 	/* initialize neighbor counts */
-	feNeighborCount.Allocate(numelems);
+	feNeighborCount.Dimension(numelems);
 	feNeighborCount = 0;
 
 	/* work space */
@@ -1093,7 +1093,7 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 		fDomain.Interpolate(loccoords, x_ip_table);
 	
 		/* collect unique list of neighboring nodes */
-		nodeset.Allocate(0);
+		nodeset.Dimension(0);
 		for (int j = 0; j < nen; j++)
 		{
 			int node = pelem[j];
@@ -1133,7 +1133,7 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 			int newsize = Max(setlength,(*pthis).MinorDim() + kListSizeinc);
 
 			/* allocate */		
-			(*pnext).Allocate(numelems, newsize);
+			(*pnext).Dimension(numelems, newsize);
 
 			/* copy and swap */
 			SwapData(feNeighborCount, &pthis, &pnext);		
@@ -1163,7 +1163,7 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 		
 	/* space element calculation */
 	int maxsize = feNeighborData.MaxMinorDim();
-	felShapespace.Allocate(nip*maxsize*(1 + nsd));
+	felShapespace.Dimension(nip*maxsize*(1 + nsd));
 }
 
 /* generate lists of all nodes that fall within Dmax of the
@@ -1177,7 +1177,7 @@ void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 	int nip      = fDomain.NumIP();
 	
 	/* initialize neighbor counts */
-	feNeighborCount.Allocate(numelems);
+	feNeighborCount.Dimension(numelems);
 	feNeighborCount = 0;
 
 	/* work space */
@@ -1230,7 +1230,7 @@ void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 		fDomain.Interpolate(loccoords, x_ip_table);
 	
 		/* collect unique list of neighboring nodes */
-		nodeset.Allocate(0);
+		nodeset.Dimension(0);
 		for (int j = 0; j < nen; j++)
 		{
 			int node = pelem[j];
@@ -1339,7 +1339,7 @@ void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 		
 	/* space element calculation */
 	int maxsize = feNeighborData.MaxMinorDim();
-	felShapespace.Allocate(nip*maxsize*(1 + nsd));
+	felShapespace.Dimension(nip*maxsize*(1 + nsd));
 }
 
 /* (re-)compute some/all nodal shape functions and derivatives */
@@ -1385,7 +1385,7 @@ void MeshFreeSupportT::SetNodalShapeFunctions(void)
 	}
 	
 	/* clear */
-	fResetNodes.Allocate(0);
+	fResetNodes.Dimension(0);
 }
 
 /* compute all integration point shape functions and derivatives */
@@ -1429,7 +1429,7 @@ void MeshFreeSupportT::SetElementShapeFunctions(void)
 	     << lim << endl;		
 
 	/* clear */
-	fResetElems.Allocate(0);	
+	fResetElems.Dimension(0);	
 }
 
 /*************************************************************************
@@ -1728,8 +1728,8 @@ void MeshFreeSupportT::SetSupport_Spherical_Search(void)
 				fGrid->HitsInRegion(target, tol);
 
 			/* set valid neighborhood */
-			dists.Allocate(0);
-			nodes.Allocate(0);
+			dists.Dimension(0);
+			nodes.Dimension(0);
 		
 			/* collect visible nodes */
 			num_neighbors = inodes.Length();
@@ -1939,7 +1939,7 @@ void MeshFreeSupportT::SetNodesUsed(void)
 
 	/* count nodes used */
 	int numused = used.Count(1);
-	fNodesUsed.Allocate(numused);
+	fNodesUsed.Dimension(numused);
 		
 	/* collect node numbers (ascending order) */	
 	int* pnused = fNodesUsed.Pointer();
@@ -2006,8 +2006,8 @@ int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes
 	AutoArrayT<int> out_nodes; // make as class workspace?
 
 	/* initialize */
-	nodes.Allocate(0);
-	out_nodes.Allocate(0);
+	nodes.Dimension(0);
+	out_nodes.Dimension(0);
 				
 	/* run through nodes */
 	dArrayT x_node, nodal_params;
