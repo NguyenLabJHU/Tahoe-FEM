@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.1.1.1 2001-01-25 20:56:22 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.2 2001-04-27 10:45:02 paklein Exp $ */
 /* created: paklein (06/19/1996)                                          */
 /* Base class for handling memory allocation for arrays of TYPE           */
 
@@ -262,9 +262,12 @@ void ArrayT<TYPE>::Allocate(int length)
 		/* old data is lost if it has new length */
 		if (fDelete) delete[] fArray;
 	
-		fDelete = 1;
+		/* (try) allocate new memory */
+		fArray = New(length);
+		
+		/* set dimensions */
 		fLength = length;
-		fArray = New(fLength);
+		fDelete = 1;
 	}
 }
 

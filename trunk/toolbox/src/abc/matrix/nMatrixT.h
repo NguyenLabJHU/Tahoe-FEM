@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.2 2001-02-13 17:53:04 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.3 2001-04-27 10:45:03 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 /* 2 dimensional matrix mathematics template object.                      */
 
@@ -190,6 +190,9 @@ inline nMatrixT<nTYPE>::~nMatrixT(void)
 template <class nTYPE>
 inline void nMatrixT<nTYPE>::Allocate(int numrows, int numcols)
 {
+	/* zero dimensions */
+	fRows = fCols = 0;
+
 	/* inherited */
 	nArrayT<nTYPE>::Allocate(numrows*numcols);
 
