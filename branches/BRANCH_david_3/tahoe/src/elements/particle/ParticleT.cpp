@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.46 2004-12-09 09:19:45 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.46.4.1 2004-12-28 02:41:10 d-farrell2 Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -1134,6 +1134,31 @@ void ParticleT::Calc_CSP(const RaggedArray2DT<int> &NearestNeighbors, dArrayT& c
    csp[local_i] = csp_i;
   //cout << i << "   " << csp << endl;
   } /* end of i loop */
+}
+
+void ParticleT::Calc_CN(const RaggedArray2DT<int>& NearestNeighbors, iArrayT& cnarray)
+{
+	const char caller[] = "ParticleT::Calc_CN";
+  	iArrayT neighbors;
+  	
+  	/* multi-processor information */
+  	CommManagerT& comm_manager = ElementSupport().CommManager();
+  	const InverseMapT* inverse_map = comm_manager.PartitionNodes_inv();
+  	const dArray2DT& coords = ElementSupport().CurrentCoordinates();
+	
+  	/* row of neighbor list */
+  	for (int i = 0; i < NearestNeighbors.MajorDim(); i++)
+  	{
+   		NearestNeighbors.RowAlias(i,neighbors);
+   		int tag_i = neighbors[0];
+   		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
+		
+   		int cn_i_temp = neighbors.Length();
+   		int cn_i = cn_i_temp - 2;  // correct 
+   		// put coordination number into global s_values array
+   		cnarray[local_i] = cn_i;
+//  		cout << i << "   " << cn_i << endl;
+  	}
 }
 
 void ParticleT::SetRefNN(RaggedArray2DT<int> &NearestNeighbors,RaggedArray2DT<int> &RefNearestNeighbors)
