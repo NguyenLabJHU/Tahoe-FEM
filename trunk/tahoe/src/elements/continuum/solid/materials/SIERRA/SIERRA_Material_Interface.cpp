@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Interface.cpp,v 1.4 2003-03-09 21:58:50 paklein Exp $ */
+/* $Id: SIERRA_Material_Interface.cpp,v 1.5 2003-03-10 23:30:56 paklein Exp $ */
 #include "SIERRA_Material_Interface.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -38,7 +38,7 @@ void FORTRAN_NAME(get_var_index)(int* index, int* num_workset_elem, const char* 
 	if (vars[0] != variable_name)
 		ExceptionT::GeneralFail(caller, "variable not found: %s", variable_name);
 	else
-		*index = 0;
+		*index = 1; // FORTRAN numbering!
 }
 
 /* register the material model */
