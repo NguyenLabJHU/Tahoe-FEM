@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.8 2003-01-27 07:00:26 paklein Exp $ */
+/* $Id: ParticlePairT.h,v 1.9 2003-03-31 23:12:22 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -26,6 +26,10 @@ public:
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
+	/** class initialization. Among other things, element work space
+	 * is allocated and connectivities are read. */
+	virtual void Initialize(void);
+
 	/** \name connectivities.
 	 * See ElementBaseT::ConnectsX and ElementBaseT::ConnectsU for more
 	 * information about what these are used for */
@@ -42,6 +46,12 @@ public:
 	 * ParticleT::fGlobalTag. The values per node are those specified
 	 * by ParticlePairT::GenerateOutputLabels. */
 	virtual void WriteOutput(void);
+
+	/** compute the part of the stiffness matrix associated with rows of the given 
+	 * particles. This is the mixed part of the stiffness matrix involving free
+	 * particles and ghost particles which have prescribed motion. */
+	virtual void FormStiffness(const InverseMapT& col_to_col_eq_row_map,
+		const iArray2DT& col_eq, dSPMatrixT& stiffness);
 
 protected:
 
@@ -83,6 +93,9 @@ private:
 	/*@{*/
 	dArrayT fForce_list;
 	VariArrayT<double> fForce_list_man;
+
+	/** constant matrix needed to compute the stiffness */
+	dMatrixT fOneOne;
 	/*@}*/
 };
 
