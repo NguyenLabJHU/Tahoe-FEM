@@ -1,4 +1,4 @@
-/* $Id: LocalJ2SSNonlinHard.h,v 1.9 2004-07-22 21:10:18 paklein Exp $ */
+/* $Id: LocalJ2SSNonlinHard.h,v 1.10 2004-08-01 00:57:46 paklein Exp $ */
 #ifndef _LOCAL_J2_SS_NONLIN_HARD_H_
 #define _LOCAL_J2_SS_NONLIN_HARD_H_
 
@@ -27,6 +27,9 @@ public:
 
 	/* form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
+
+	/** material has history variables */
+	virtual bool HasHistory(void) const { return true; };
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);
