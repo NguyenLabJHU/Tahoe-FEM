@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.19 2005-01-05 01:25:50 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.20 2005-01-28 23:22:04 raregue Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -11,6 +11,7 @@
 /* direct members */
 #include "dMatrixT.h"
 #include "ThermalDilatationT.h"
+#include "DetCheckT.h"
 
 namespace Tahoe {
 
@@ -45,6 +46,17 @@ public:
 	/*@{*/
 	/** spatial tangent modulus */
 	virtual const dMatrixT& c_ijkl(void) = 0;
+	
+	/** spatial elastic modulus */
+	//virtual const dMatrixT& ce_ijkl(void) = 0;
+	virtual const dMatrixT& ce_ijkl(void)
+	{
+		dMatrixT dummymat;
+		dummymat.Dimension(NumSD()+NumSD());
+		//dummymat.Dimension(dSymMatrixT::NumValues(3));
+		dummymat = 0.0;
+		return dummymat;
+	}
 
 	/** Cauchy stress */
 	virtual const dSymMatrixT& s_ij(void) = 0;
@@ -132,6 +144,13 @@ public:
 	 * \return 1 if the determinant of the acoustical tensor is negative
 	 * or 0 if the determinant is positive. */
 	virtual int IsLocalized(dArrayT& normal);
+	
+	/** test for localization assuming small strains. check for bifurcation using current
+	 * Cauchy stress and the spatial tangent moduli.
+	 * \param normal orientation of the localization if localized
+	 * \return true if the determinant of the acoustical tensor is negative
+	 * or fals if the determinant is positive. */
+	virtual bool IsLocalized_SS(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -187,6 +206,7 @@ inline int SolidMaterialT::HasThermalStrain(void) const { return fThermal->IsAct
 inline int SolidMaterialT::ThermalStrainSchedule(void) const { return fThermal->ScheduleNum(); }
 inline void SolidMaterialT::SetThermalSchedule(const ScheduleT* LTfPtr) { fThermal->SetSchedule(LTfPtr); }
 inline double SolidMaterialT::ThermalElongation(void) const { return fThermal->PercentElongation(); }
+
 
 } // namespace Tahoe 
 #endif /* _STRUCTURAL_MATERIALT_H_ */
