@@ -50,6 +50,7 @@ VoceGradHardening::VoceGradHardening(PolyCrystalMatT& poly):
   //fTauKin.Dimension(fNumHardVar);
   fTauIso_n.Dimension(fNumHardVar);
   fTauKin.Dimension(poly.NumSlip());
+  fTauInc.Dimension(poly.NumSlip());
 
   // input material properties for hardening law
   in >> fMatProp[0];   // h0 
@@ -133,8 +134,9 @@ void VoceGradHardening::ExplicitUpdateHard()
   //scale /= fMatProp[0];
   //double scale = 100.0*fMatProp[3]*fMatProp[3]/(2.*fMatProp[4]); // mu*c_s^2/(2*c_x)
   //double beta = 3.125e4;
-  double beta = fMatProp[7]/fMatProp[8]*fMatProp[6]/fMatProp[5];
-  double scale = beta*fMatProp[3]/fMatProp[4];
+  //double beta = fMatProp[7]/fMatProp[8]*fMatProp[6]/fMatProp[5];
+  //double scale = beta*fMatProp[3]/fMatProp[4];
+  double scale = fMatProp[3]*fMatProp[7]/fMatProp[8];
 
   double c   = fdt * fMatProp[0];
   double g_s = fTauIsoSat - fMatProp[1];
@@ -159,8 +161,9 @@ void VoceGradHardening::ImplicitUpdateHard()
   //scale /= fMatProp[0];
   //double scale = 100.0*fMatProp[3]*fMatProp[3]/(2.*fMatProp[4]); // mu*c_s^2/(2*c_x)
   //double beta = 3.125e4;
-  double beta = fMatProp[7]/fMatProp[8]*fMatProp[6]/fMatProp[5];
-  double scale = beta*fMatProp[3]/fMatProp[4];
+  //double beta = fMatProp[7]/fMatProp[8]*fMatProp[6]/fMatProp[5];
+  //double scale = beta*fMatProp[3]/fMatProp[4];
+  double scale = fMatProp[3]*fMatProp[7]/fMatProp[8];
 
   double c   = 0.5 * fdt * fMatProp[0];
   double g_s = fTauIsoSat - fMatProp[1];
@@ -199,8 +202,9 @@ void VoceGradHardening::ImplicitSolveHard()
   //scale /= fMatProp[0];
   //double scale = 100.0*fMatProp[3]*fMatProp[3]/(2.*fMatProp[4]); // mu*c_s^2/(2*c_x)
   //double beta = 3.125e4;
-  double beta = fMatProp[7]/fMatProp[8]*fMatProp[6]/fMatProp[5];
-  double scale = beta*fMatProp[3]/fMatProp[4];
+  //double beta = fMatProp[7]/fMatProp[8]*fMatProp[6]/fMatProp[5];
+  //double scale = beta*fMatProp[3]/fMatProp[4];
+  double scale = fMatProp[3]*fMatProp[7]/fMatProp[8];
 
   double c   = fdt * fMatProp[0];
   double g_s = fTauIsoSat - fMatProp[1];
@@ -286,7 +290,7 @@ void VoceGradHardening::InternalHardQnts()
   for (int i = 0; i < fDGamma.Length(); i++)
     {
       fInternal[kShearRate] += fabs(fDGamma[i]);
-      fInternal[kWorkRate]  += fabs(fTauKin[i])*fabs(fDGamma[i]);
+      fInternal[kWorkRate]  += fabs(fTauInc[i])*fabs(fDGamma[i]);
     }
   fInternal[kShearRate] /= fdt;
   fInternal[kWorkRate]  /= fdt;

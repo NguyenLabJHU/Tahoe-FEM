@@ -18,7 +18,7 @@ class SlipGeometry
 {
  public:
   // enum variable to select crystal structure
-  enum CrystalType { kFCC=1, kBCC=2, kHCP=3 };
+  enum CrystalType { kFCC=1, kBCC=2, kHCP=3, kFCC24=4 };
 
   // constructor
   SlipGeometry(int numslip);
@@ -28,6 +28,8 @@ class SlipGeometry
 
   // accesors
   int NumSlip() const;
+  const ArrayT<dArrayT>& GetSlipVectorS() const;
+  const ArrayT<dArrayT>& GetSlipVectorM() const;
   const ArrayT<dMatrixT>& GetSchmidtTensor() const;
 
   // print crystal structure type
@@ -57,6 +59,10 @@ class SlipGeometry
 };
 
 inline int SlipGeometry::NumSlip() const { return fNumSlip; } 
+inline const ArrayT<dArrayT>& SlipGeometry::GetSlipVectorS() const
+  { return fVecS; }
+inline const ArrayT<dArrayT>& SlipGeometry::GetSlipVectorM() const
+  { return fVecM; }
 inline const ArrayT<dMatrixT>& SlipGeometry::GetSchmidtTensor() const
   { return fZ; }
 
@@ -66,7 +72,7 @@ class FCCGeometry: public SlipGeometry
 {
  public:
  // constructor
-  FCCGeometry(int numslip);
+  FCCGeometry();
 
   // destructor
   ~FCCGeometry(); 
@@ -83,7 +89,7 @@ class BCCGeometry: public SlipGeometry
 {
  public:
   // constructor
-  BCCGeometry(int numslip);
+  BCCGeometry();
 
   // destructor
   ~BCCGeometry();
@@ -100,7 +106,7 @@ class HCPGeometry: public SlipGeometry
 {
  public:
   // constructor
-  HCPGeometry(int numslip);
+  HCPGeometry();
 
   // destructor
   ~HCPGeometry();
@@ -110,6 +116,23 @@ class HCPGeometry: public SlipGeometry
 
  private:
   // build HCP slip system vectors from Miller indices
+  void SetSlipVectors();
+};
+
+class FCCGeometry24: public SlipGeometry
+{
+ public:
+ // constructor
+  FCCGeometry24();
+
+  // destructor
+  ~FCCGeometry24();
+
+  // print crystal structure name
+  virtual void PrintName(ostream& out) const;
+
+ private:
+  // build FCC24 slip system vectors from Miller indices
   void SetSlipVectors();
 };
 
