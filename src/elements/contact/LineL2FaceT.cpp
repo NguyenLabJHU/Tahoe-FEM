@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.17 2001-06-12 22:14:32 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.18 2001-06-27 18:16:21 rjones Exp $ */
 
 #include "LineL2FaceT.h"
 #include "FaceT.h"
@@ -196,6 +196,7 @@ LineL2FaceT::Projection
 
         const double* nm = node->Normal();
         /* check normal opposition */
+//cout << node->Tag() << " dot " << Dot(nm,fnormal) ;
         if ( Dot(nm,fnormal) < 0.0 ) {
           const double* x0 = node->Position();
           /* compute local coordinates */
@@ -208,19 +209,23 @@ LineL2FaceT::Projection
           a1 = Dot(a,t1); b1 = Dot(b,t1);
 	  double xi;
 	  xi = (x1 - a1)/b1;
+//cout << " xi " << xi ;
           if( CheckLocalCoordinates(xi,tol_xi) ) {
             double x3 = Dot(x0,nm);
             double a3 = Dot(a,nm);
             double b3 = Dot(b,nm);
             /* compute gap */
             double g =  a3 + b3*xi - x3;
+//cout << " g " << g ;
             if (CheckGap(g,tol_g) ) {
                 /*assign opposite (chooses closest)*/
                 bool isbetter = node->AssignOpposing(fSurface,*this,&xi,g);
+//cout << " YES \n";
                 return isbetter;
             }
           }
         }
+//cout << '\n';
         return 0;
 
 

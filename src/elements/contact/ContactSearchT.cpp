@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.cpp,v 1.12 2001-06-12 22:14:32 rjones Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.13 2001-06-27 18:16:21 rjones Exp $ */
 
 #include "ContactSearchT.h"
 
@@ -6,6 +6,7 @@
 #include "iGridManagerT.h"
 #include "AutoArrayT.h"
 #include "iNodeT.h"
+#include "ContactElementT.h"
 
 /* parameters */
 const int    kMaxNumGrid    = 50;
@@ -33,7 +34,6 @@ bool ContactSearchT::SetInteractions(void)
   Initialize();
 
   /* loop over pairs of surfaces */
-  // HACK should be dependent on parameters
   for (int i = 0 ; i < fSurfaces.Length() ; i++) {
 	ContactSurfaceT& surface1 = fSurfaces[i]; // "node" surface
 	/* construct search grid */
@@ -49,13 +49,15 @@ bool ContactSearchT::SetInteractions(void)
 	grid_nodes.Allocate(coordinates.MajorDim());
 	grid_nodes.SetValueToPosition();
 	iArrayT n_grid(surface1.NumSD());
-	n_grid = ngrid;
+	n_grid = ngrid; //n_grid = 1; //HACK<<<<<
 	/* not optimized for thin bodies */
 	fGrid = new iGridManagerT (n_grid, coordinates, &grid_nodes);
 	if (!fGrid) throw eOutOfMemory;
 	
 	/* (re-)set grid boundaries */
 	fGrid->Reset();
+	cout << "\nContact Search Grid Statistics for surface " << i <<'\n';
+	fGrid->WriteStatistics(cout);
 		
 	for (int j = 0 ; j < fSurfaces.Length() ; j++) {
 		ContactSurfaceT& surface2  = fSurfaces[j]; // "face" surface
@@ -133,6 +135,8 @@ dArrayT& parameters)
   /* loop over faces */
   const ArrayT<FaceT*>&  faces = face_surface.Faces();
   ArrayT<ContactNodeT*>& nodes = node_surface.ContactNodes();
+  /* search tolerance */
+  double tol_g = parameters[ContactElementT::kGapTol];
   for (int i = 0; i < face_surface.NumFaces(); i++) {
 	const FaceT* face = faces[i];
 	/* face centroid*/
@@ -140,10 +144,15 @@ dArrayT& parameters)
         /* face "radius"*/
         radius = kFaceTolerance * (face->ComputeRadius());
 	/* get nodes in neighborhood */
+	radius = (radius > tol_g) ? radius : tol_g;
         const AutoArrayT<iNodeT>&
           close_nodes = fGrid->HitsInRegion(centroid, radius);
 	for (int j = 0; j < close_nodes.Length(); j++) {
 		ContactNodeT* node = nodes[close_nodes[j].Tag()];	
+#if 0
+	for (int j = 0; j < nodes.Length(); j++) {
+		ContactNodeT* node = nodes[j];	
+#endif
 		/* take first one FOR NOW */
     		if (!(node->OpposingSurface()) ) {
 		/* checks : opposing normals, gap, local coords */
@@ -174,15 +183,14 @@ bool ContactSearchT::UpdateProjection (void)
                         found = 
 			  node->OpposingFace()->Projection(node,parameters);
                         if (!found) {
-#if 0
-			  neigbor_faces = opposing_face->NeighborFaces();
+			  const ArrayT<FaceT*>& neighbor_faces 
+				= node->OpposingFace()->Neighbors();
+			  k = 0;
 			  while (!found && k < neighbor_faces.Length() ) {
-				face = neighbor_faces[k] ;
 				found = 
-				  neigbor_face->Projection(node,parameters);
-
+				 neighbor_faces[k]->Projection(node,parameters);
+				k++;
 			  }
-#endif
 			}
                 }
 		found = 0;

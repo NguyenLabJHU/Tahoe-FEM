@@ -1,4 +1,4 @@
-/* $Id: ContactNodeT.h,v 1.4 2001-04-24 18:17:37 rjones Exp $ */
+/* $Id: ContactNodeT.h,v 1.5 2001-06-27 18:16:21 rjones Exp $ */
 
 
 #ifndef _CONTACT_NODE_T_H_
@@ -46,6 +46,8 @@ class ContactNodeT
 
   public:
         /* access functions */ 
+	inline const int Tag(void) const
+		{return fNodeTag;}
 	inline const double* Position(void) const
 		{return fSurface.Position(fNodeTag);}
 	inline const double* Normal(void) const

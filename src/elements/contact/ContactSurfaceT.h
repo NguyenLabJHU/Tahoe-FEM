@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.7 2001-06-12 22:14:32 rjones Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.8 2001-06-27 18:16:21 rjones Exp $ */
 
 
 #ifndef _CONTACT_SURFACE_T_H_
@@ -58,6 +58,7 @@ class ContactSurfaceT : public SurfaceT
 	void PrintContactArea(ostream& out) const;
 	void PrintGap(ostream& out) const;
 	void PrintGap(ofstream& out) const;
+	void PrintNormals(ofstream& out) const;
 
   protected:
         /* nodal arrays */

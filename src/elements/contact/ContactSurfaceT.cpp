@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.9 2001-06-13 21:06:22 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.10 2001-06-27 18:16:21 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include "SurfaceT.h"
@@ -146,26 +146,51 @@ ContactSurfaceT::PrintContactArea(ostream& out) const
 void
 ContactSurfaceT::PrintGap(ostream& out) const
 {
-	out << "Surface " << this->Tag() << '\n';
+	out << "#Surface " << this->Tag() << '\n';
 
 	for (int n = 0 ; n < fContactNodes.Length(); n++) {
+	    // HACK this tolerance should agree with the one in Projection
+	    // for 2d these should be sorted
+	    if (fContactNodes[n]->Gap() < 1.e7) {
 		for (int i = 0; i < fNumSD; i++) {
 			out << fContactNodes[n]->Position()[i] << " ";
 		}
 		out << fContactNodes[n]->Gap() << '\n';
+	    }
 	}
 }
 
 void
 ContactSurfaceT::PrintGap(ofstream& out) const
 {
-        out << "Surface " << this->Tag() << '\n';
+        out << "#Surface " << this->Tag() << '\n';
+
+        for (int n = 0 ; n < fContactNodes.Length(); n++) {
+            // HACK this tolerance should agree with the one in Projection
+            // for 2d these should be sorted
+            if (fContactNodes[n]->Gap() < 1.e7) {
+                for (int i = 0; i < fNumSD; i++) {
+                        out << fContactNodes[n]->Position()[i] << " ";
+                }
+                out << fContactNodes[n]->Gap() << '\n';
+	    }
+        }
+}
+
+
+void
+ContactSurfaceT::PrintNormals(ofstream& out) const
+{
+        out << "#Surface " << this->Tag() << '\n';
 
         for (int n = 0 ; n < fContactNodes.Length(); n++) {
                 for (int i = 0; i < fNumSD; i++) {
                         out << fContactNodes[n]->Position()[i] << " ";
                 }
-                out << fContactNodes[n]->Gap() << '\n';
+                for (int i = 0; i < fNumSD; i++) {
+                        out << fContactNodes[n]->Normal()[i] << " ";
+                }
+		out << '\n';
         }
 }
 
