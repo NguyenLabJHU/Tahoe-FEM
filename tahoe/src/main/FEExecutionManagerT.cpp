@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.69 2004-07-25 06:44:12 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.69.2.1 2004-08-02 18:35:49 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -557,6 +557,10 @@ void FEExecutionManagerT::RunDecomp_serial(const StringT& input_file, ostream& s
 		/* name translation */
 		model_file.ToNativePathName();      
 		model_file.Prepend(path);
+
+		// call FEManagerT::New to construct an FEManagerT
+		
+		// call FEManagerT::Decompose
 
 		/* set output map and and generate decomposition */
 		Decompose(input_file, size, method, comm, model_file, format);
