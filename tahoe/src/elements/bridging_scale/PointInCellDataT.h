@@ -1,10 +1,11 @@
-/* $Id: PointInCellDataT.h,v 1.1.2.3 2003-02-12 02:48:54 paklein Exp $ */
+/* $Id: PointInCellDataT.h,v 1.1.2.4 2003-02-13 01:12:25 paklein Exp $ */
 #ifndef _POINT_IN_CELL_DATA_T_H_
 #define _POINT_IN_CELL_DATA_T_H_
 
 /* direct members */
 #include "RaggedArray2DT.h"
 #include "iArray2DT.h"
+#include "dArray2DT.h"
 #include "InverseMapT.h"
 
 namespace Tahoe {
