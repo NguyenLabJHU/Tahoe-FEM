@@ -1,0 +1,44 @@
+#!/bin/csh
+
+# This is a sample test run for all three drivers with four different format
+# files. For detailed description of input parameters for each of the driver, 
+# just run each executable without any parameters on one processor (you will
+# have to run using mpirun or poe, though).
+
+#----------- EDIT this ----------------------------------
+## for SGI, Cray
+#set mbegin="mpirun -np 4"
+#set mend=" "
+## for IBM
+set mbegin="poe"
+set mend="-procs 4"
+
+#----------- Following need not be changed --------------
+echo " "
+echo "*-*-*-*-*-*-*-*-*-* Test Using  cpspases_test *-*-*-*-*-*-*-*-*-*"
+echo " "
+$mbegin cpspases_test ../matrices/nos1.bin $mend
+sleep 1
+echo " "
+echo "*-*-*-*-*-*-*-*-*-* Test Using fcpspases_test *-*-*-*-*-*-*-*-*-*"
+echo " "
+$mbegin fcpspases_test ../matrices/fort50.fcc $mend
+sleep 1
+
+###### The 16 16 5 numbers are specific to nos4.hb.rsa. If you want to test
+###### another matrix using this script, then change the numbers. See their
+###### meaning by running the executable as "$mbegin frpspases_test $mend".
+echo " "
+echo "*-*-*-* Test Using frpspases_test (Harwell-Boeing Format) *-*-*-*"
+echo " "
+$mbegin frpspases_test ../matrices/nos4.hb.rsa 0 16 16 5 $mend
+sleep 1
+
+###### The 16 16 5 numbers are specific to nos4.hb.rsa. If you want to test
+###### another matrix using this script, then change the numbers. See their
+###### meaning by running the executable as "$mbegin frpspases_test $mend".
+echo " "
+echo "*-*-* Test Using frpspases_test (Rutherford-Boeing Format)  *-*-*"
+echo " "
+$mbegin frpspases_test ../matrices/nos1.rb.rsa 1 16 16 5 $mend
+echo " "

@@ -1,0 +1,216 @@
+
+C/*****************************************************************************/
+C/*                                                                           */
+C/*   (C) Copyright IBM Corporation, 1997                                     */
+C/*   (C) Copyright Regents of the University of Minnesota, 1997              */
+C/*                                                                           */
+C/*   PSPASES : Scalable Parallel Direct Solver Library for Sparse            */
+C/*             Symmetric Positive Definite Linear Systems.                   */
+C/*             (version 1.0)                                                 */
+C/*                                                                           */
+C/* ---------                                                                 */
+C/*                                                                           */
+C/* ParMETIS and METIS, which are supplied with the PSPASES package as        */
+C/* the default ordering libraries, are solely owned by the University of     */
+C/* Minnesota and this notice does not apply to them.                         */
+C/*                                                                           */
+C/* ---------                                                                 */
+C/*                                                                           */
+C/*   Written by Mahesh Joshi, U of MN, Anshul Gupta, IBM Corp, and George    */
+C/*   Karypis, U of MN.                                                       */
+C/*                                                                           */
+C/*****************************************************************************/
+C/*                                                                           */
+C/* This code is meant to be used solely for educational, research, and       */
+C/* benchmarking purposes by non-profit institutions and US government        */
+C/* agencies only.  Use by any other organization requires prior written      */
+C/* permission from both IBM Corporation and the University of Minnesota.     */
+C/* The software may not be sold or redistributed.  One may make copies       */
+C/* of the software or modify it for their use provided that the copies,      */
+C/* modified or otherwise, are not sold or distributed, are used under the    */
+C/* same terms and conditions, and this notice and any part of the source     */
+C/* code that follows this notice are not separated.                          */
+C/*                                                                           */
+C/* As unestablished research software, this code is provided on an           */
+C/* ``as is'' basis without warranty of any kind, either expressed or         */
+C/* implied, including but not limited to implied warranties of               */
+C/* merchantability and fitness for a particular purpose.  IBM does not       */
+C/* warrant that the functions contained in this software will meet the       */
+C/* user's requirements or that the operation of its routines will be         */
+C/* uninterrupted or error-free.  Acceptance and use of this program          */
+C/* constitutes the user's understanding that he/she will have no recourse    */
+C/* to IBM for any actual or consequential damages, including, but not        */
+C/* limited to, lost profits or savings, arising out of the use or inability  */
+C/* to use these libraries.  Even if the user informs IBM of the possibility  */
+C/* of such damages, IBM expects the user to accept the risk of any such      */
+C/* harm, or the user shall not attempt to use these libraries for any        */
+C/* purpose.                                                                  */
+C/*                                                                           */
+C/* The downloading, compiling, or executing any part of this software        */
+C/* constitutes an implicit agreement to these terms.  These terms and        */
+C/* conditions are subject to change at any time without prior notice.        */
+C/*                                                                           */
+C/*****************************************************************************/
+C/* $Id: README.INSTALL,v 1.1.1.1 2004-10-07 16:05:25 paklein Exp $ */
+C/*****************************************************************************/
+
+-------------------------------------
+FILES included in the distribution :
+-------------------------------------
+
+DOC/                : User's manual (pspases-manual.ps).
+Makefile
+Makefile.in         
+PSPASES/            : PSPASES source code.
+README.INSTALL      : This file!
+README.USAGE        : Usage notes and matrix mormat descriptions.
+TEST/               : Test code illustrating example usage of various functions.
+matrices/           : Test matrices and some format conversion codes.
+metis/              : METIS source code.
+parMetis/           : ParMETIS source code.
+version             : Version Info for this distribution.
+
+-------------------------
+How to Make the library ?
+-------------------------
+
+ 1. Get the compressed tar file pspases.v1.0.tar.gz from URL :
+    http://www.cs.umn.edu/~mahesh/pspases
+ 2. Uncompress and untar the file. 
+    ("gunzip -c pspases.v1.0.tar.gz | tar -xvf -")
+ 3. do "cd PSPASES.v1.0"
+ 4. Edit Makefile.in to make appropriate changes as indicated in the file.
+ 5. do "make >& make.log".
+
+ 6. This will create :
+      libpspases.a in PSPASES.v1.0/PSPASES directory.
+      libparmetis.a in PSPASES.v1.0/parMetis directory.
+      libmetis.a in PSPASES.v1.0/metis directory.
+
+--------------------------------------------------
+How to test if library has been built properly ?
+--------------------------------------------------
+
+ 1. cd PSPASES.v1.0/TEST
+
+ 2. Make appropriate changes to Makefile to reflect appropriate compiler 
+    and linker, flags, and the location of BLAS library. Sometimes (e.g. 
+    on SGI), you will need to indicate the MPI library that will be used.
+
+ 3. do "make".
+
+ 4. This will create three drivers. for different formats of input files;
+      cpspases_test  : For reading .bin format files,
+      fcpspases_test : For reading .fcc format files,
+      frpspases_test : For reading .rsa format files.
+
+    NOTE:
+      There are four different formats accepted : 
+      .fcc : full compressed column format - also the PSPASES internal 
+	     format for ordering and symbolic phases (ASCII format). 
+      .bin : binary full compressed column format. 
+      .rsa : (HB) Harwell-Boeing Real Symmetric Assembled compressed 
+                  column format. 
+             (RB) Rutherford-Boeing Real Symmetric Assembled compressed 
+                  column format. 
+
+      For details of each format, read the README.USAGE file. There are
+      two conversion subroutines provided in matrices directory, to convert
+      from .fcc to .bin, and .rsa to .fcc formats. Issuing "make" in matrices
+      directory will create fcc2bin and rsa2fcc files (You may need to edit
+      the Makefile in that directory first).
+
+ 4. Edit and run the "testrun" shellscript, which will test all these drivers 
+    for the sample matrices provided in PSPASES.v1.0/matrices directory.
+
+ 5. If the results obtained for each of the runs in the "testrun" script, 
+    look similar to the following, with a very small max |B-AX| error, 
+    then the library has been installed properly.
+
+ ------- TEST OUTPUT for the fcpspases_test run in the "testrun" script.
+
+*-*-*-*-*-*-*-*-*-* Test Using fcpspases_test *-*-*-*-*-*-*-*-*-*
+ 
+ 
+ * Testing ../matrices/fort50.fcc                                          
+ Dimension =  21901  #processors =  4
+ Parameters: blk  =  64  nrhs =  1  br =  1
+             symm =  0  sort =  0  serialorder = 0
+ 
+ 
+ -------> Testing PSPACEO+PSPACEY
+ 
+ calling  PSPACEO (Compute fill-reducing Ordering)..
+ calling  PSPACEY (sYmbolic Factorization)..
+ 
+                                      Max       Min       Sum
+  Memory Consumed by PSPCOMM =      3.066     2.966    12.127 MB
+  More Factor Memory Needed  =      4.048     3.681    15.431 MB
+  Total Factor Memory Needed =      7.078     6.648    27.558 MB
+ 
+  NNZ_Lower_Triangle_of_A =  0.870E+05  NNZ_L          =   0.4994E+06
+  Tree_Opcount_Imbalance  =   1.10      Factor_Opcount =   0.2502E+08
+ 
+  Order Time                 =      0.898 sec
+  sYmbolic Time              =      0.100 sec
+ 
+ calling  PSPACEC (Cleanup option = 0 )..
+ 
+ -------> Testing PSPACEO+PSPACEY+DPSPACEN+DPSPACET
+ 
+ calling  PSPACEO (Compute fill-reducing Ordering)..
+ calling  PSPACEY (sYmbolic Factorization)..
+ 
+                                      Max       Min       Sum
+  Memory Consumed by PSPCOMM =      3.066     2.966    12.127 MB
+  More Factor Memory Needed  =      4.048     3.681    15.431 MB
+  Total Factor Memory Needed =      7.078     6.648    27.558 MB
+ 
+  NNZ_Lower_Triangle_of_A =  0.870E+05  NNZ_L          =   0.4994E+06
+  Tree_Opcount_Imbalance  =   1.10      Factor_Opcount =   0.2502E+08
+ 
+  Order Time                 =      0.680 sec
+  sYmbolic Time              =      0.099 sec
+ 
+ calling DPSPACEN (Numerical Factorization)..
+ 
+  DPSPACEN Time              =      0.210 sec
+  Numerical Factor Perf      =    119.137 MFLOPS
+ 
+ calling  PSPACEC (Cleanup option = 1 )..
+ calling DPSPACET (Triangular Systems Solution)..
+ 
+  DPSPACET Time              =      0.083 sec
+  Triangular Solution Perf   =     24.163 MFLOPS
+ 
+  Total Solver Time          =      1.072 sec
+ 
+ calling  PSPACEC (Cleanup option = 0 )..
+ all stages of PSPASES are done! checking B-AX ..
+ max |B - AX| =  8.88178419700125232E-16
+ 
+ -------> Testing DPSPACEF+DPSPACET
+ 
+ calling DPSPACEF (Ordering+sYmbolic+Numerical)..
+ 
+                                      Max       Min       Sum
+  Memory Consumed by PSPCOMM =      3.127     2.960    12.300 MB
+ 
+  NNZ_Lower_Triangle_of_A =  0.870E+05  NNZ_L          =   0.4994E+06
+  Tree_Opcount_Imbalance  =   1.10      Factor_Opcount =   0.2502E+08
+ 
+  DPSPACEF Time (Ftime)      =      1.049 sec
+  Factor_Opcount / Ftime     =     23.848 MFLOPS
+ 
+ calling  PSPACEC (Cleanup option = 1 )..
+ calling DPSPACET (Triangular Systems Solution)..
+ 
+  DPSPACET Time              =      0.104 sec
+  Triangular Solution Perf   =     19.163 MFLOPS
+ 
+  Total Solver Time          =      1.153 sec
+ 
+ calling  PSPACEC (Cleanup option = 0 )..
+ all stages of PSPASES are done! checking B-AX ..
+ max |B - AX| =  8.88178419700125232E-16
+ 

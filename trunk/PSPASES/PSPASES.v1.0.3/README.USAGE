@@ -1,0 +1,203 @@
+
+C/*****************************************************************************/
+C/*                                                                           */
+C/*   (C) Copyright IBM Corporation, 1997                                     */
+C/*   (C) Copyright Regents of the University of Minnesota, 1997              */
+C/*                                                                           */
+C/*   README.USAGE  (for PSPASES)                                             */
+C/*                                                                           */
+C/*   Written by Mahesh Joshi, U of MN.                                       */
+C/*                                                                           */
+C/*****************************************************************************/
+C/* $Id: README.USAGE,v 1.1.1.1 2004-10-07 16:05:25 paklein Exp $ */
+C/*****************************************************************************/
+
+Contents:
+  Section 1 : General Usage Notes (To resolve some FAQs)
+  Section 2 : Notations
+  Section 3 : Format for .fcc files
+  Section 4 : Format for .bin files
+  Section 5 : Format for .rsa files
+
+*******************************************************************************
+SECTION 1 : GENERAL USAGE NOTES (To resolve some FAQs).
+*******************************************************************************
+
+1. Numbering of row and column indices must start at 0.
+
+2. PSPASES is a purely parallel code. Hence, it can be used only on more than
+   one processors. Its behavior for nproc = 1, is not tested.
+
+3. Recommended range of system dimensions to see benefits of using PSPASES 
+   is >= 5000.
+
+4. For large matrices, it might be a good idea to get the memory estimate
+   of the code first, by calling PSPACEO followed by PSPACEY. If your machine
+   has the required memory available, then you can use either the DPSPACEF
+   followed by DPSPACET combination, or the PSPACEO -> PSPACEY -> DPSPACEN
+   -> DPSPACET combination, to solve the system.
+
+5. PSPASES performance depends on the performance of the BLAS library
+   being used. If vanilla BLAS (provided via Netlib) are used, the performance
+   can be very poor. It is advisable to use BLAS tuned for the machine
+   you are using.
+
+6. PSPASES makes it easier for the user to do multiple numerical factorizations
+   for given symbolic factor, or multiple solves for given numerical factor. 
+   The concept of communicator (explained in the manual), allows user to 
+   easily pass information from one PSPASES subroutine to another 
+   (such as passing symbolic factor information from PSPACEY to DPSPACEN, or 
+   passing numerical factor information from DPSPACEN/DPSPACEF to DPSPACET). 
+   The internal memory space associated with communicators can be freed with 
+   PSPACEC calls. It is recommended that you keep only the required 
+   communicators in memory and free the rest. For example, if you are doing
+
+7. The driver code supplied with PSPASES (in TEST subdirectory) supports four 
+   different formats of input matrix files: .fcc, .bin, .rsa (HB), and 
+   .rsa (RB). Following sections describe each of these formats.
+
+*******************************************************************************
+SECTION 2 : Notations (Read this BEFORE next sections!)
+*******************************************************************************
+
+<N>       = dimension of the matrix.
+<nnz_i>   = number of nonzeros in a full row "i" ( 0 <= i < N ).
+<ki>      = <nnz_i> - 1.
+<ind_i_j> = column index for j'th nonzero in "i"th row/column ( 0 <= j < ki ).
+<val_i_j> = real value of the nonzero corresponding to <ind_i_j>.
+<nnzA>    = total number of nonzeros in full A (not the lower/upper triangular 
+            part only).
+
+
+*******************************************************************************
+SECTION 3 : Format for .fcc files :
+*******************************************************************************
+
+NOTE : 
+
+1. fort50.fcc is in this format.
+
+-------------- .fcc file format --------------------------------------------
+<N>
+<nnz_0> <val_0_0> <ind_0_0> <val_0_1> <ind_0_1> .... <val_0_k0> <ind_0_k0>
+<nnz_1> <val_1_0> <ind_1_0> <val_1_1> <ind_1_1> .... <val_1_k1> <ind_1_k1>
+.
+.
+.
+<nnz_N-1> <val_N-1_0> <ind_N-1_0> <val_N-1_1> <ind_N-1_1> .. 
+          <val_N-1_kN-1> <ind_N-1_kN-1>
+----------------------------------------------------------------------------
+
+example :
+
+ matrix
+
+ (Note: this is only an artificially contrived matrix, it need not be
+        positive definite.)
+
+               0    1    2    3    4    5
+             ------------------------------
+          0 | 5.0       0.1       0.2  0.3
+          1 |      5.0            0.4
+          2 | 0.1       5.0            0.6
+          3 |                5.0
+          4 | 0.2  0.4            5.0
+          5 | 0.3       0.6            5.0
+
+
+  ------------- matrix.fcc (must be a Full Symmetric Format)
+  6
+  4  5.0 0  0.1 2  0.2 4  0.3 5
+  2  5.0 1  0.4 4
+  3  0.1 0  5.0 2  0.6 5
+  1  5.0 3
+  3  0.2 0  0.4 1  5.0 4
+  3  0.3 0  0.6 2  5.0 5
+  ------------- 
+
+ aptrs, ainds, avals arrays (refer to PSPASES manual for definitions) :
+
+ (given here for single processor for better understanding of the binary 
+  format, but PSPASES should not be used for a single processor).
+
+ nnzA = 16
+
+  i          0  1  2  3  4  5
+  aptrs_1_i  1  5  7  10 11 14
+  aptrs_2_i  4  2  3  1  3  3
+
+  i          1   2   3   4   5   6   7   8   9   10  11  12  13  14  15  16
+  ainds_i    0   2   4   5   1   4   0   2   5   3   0   1   4   0   2   5
+  avals_i    5.0 0.1 0.2 0.3 5.0 0.4 0.1 5.0 0.6 5.0 0.2 0.4 5.0 0.3 0.6 5.0
+
+
+*******************************************************************************
+SECTION 4 : Format for .bin files :
+*******************************************************************************
+NOTES : 
+
+1. This format is recommended for fast reading of the matrix on machines where
+   overall execution time (including the read time) is critical, and when you 
+   are planning to use the same matrix in more than one runs. 
+
+2. Converting a .fcc file to .bin file is very easy, once aptrs, ainds, and 
+   avals arrays are well understood. Utility code fcc2bin.c is provided for 
+   this conversion purpose.
+
+3. fort50.bin is in this format. It is a binary data file and hence cannot be
+   viewed directly. 
+
+4. Make sure that the size of the type "int4", defined in the beginning of 
+   pspases_testc.c driver, is the same as the size of integers written into the
+   .bin file. This is required for the driver to read in correct values. If it 
+   is not the case, then make appropriate changes to the "int4" type. 
+   Currently, the use of INT8 macro definition is used to read a .bin file 
+   written using 4-byte integers, on a Cray machine which has sizeof(int)=8 
+   and sizeof(short) = 4.
+    This problem should not arise for reading and writing double precision
+   values, because most of the platforms use 8-bytes for double precision
+   floating point numbers.
+
+-------------- .bin file format --------------------------------------------
+N
+aptrs_1_0 aptrs_2_0 
+aptrs_1_1 aptrs_2_1 
+aptrs_1_2 aptrs_2_2 
+aptrs_1_3 aptrs_2_3 
+......... 
+aptrs_1_N-1 aptrs_2_N-1
+ainds_1 ainds_2 ainds_3 .... ainds_nnzA
+avals_1 avals_2 avals_3 .... avals_nnzA
+----------------------------------------------------------------------------
+
+example :
+
+  For the example matrix of pervious section : 
+  (shown in ascii here, but actual file will be binary data corresponding to 
+  the numbers shown):
+
+  ------------- matrix.bin 
+  6 
+  1 4 
+  5 2 
+  7 3 
+  10 1 
+  11 3 
+  14 3 
+  0 2 4 5 1 4 0 2 5 3 0 1 4 0 2 5
+  5.0 0.1 0.2 0.3 5.0 0.4 0.1 5.0 0.6 5.0 0.2 0.4 5.0 0.3 0.6 5.0
+  -------------
+
+*******************************************************************************
+SECTION 5 : Format for .rsa files :
+*******************************************************************************
+
+  Most of the sparse matrices available today can be found in one of the
+  two popular formats: Harwell-Boeing Format (HB) or Rutherford-Boeing (RB) 
+  Format. The PSPASES home page (http://www.cs.umn.edu/~mjoshi/pspases) has
+  links to the postscript documents specifying these formats. Please read
+  those documents. The driver code (pspases_testfr.f) provided with this
+  distribution reads matrices in these formats. It accepts matrices in the 
+  Real Symmetric Assmbled (RSA/rsa) compressed column format. 
+
+*******************************************************************************
