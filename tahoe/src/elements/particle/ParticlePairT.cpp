@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.31 2004-03-04 08:54:26 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.32 2004-03-16 06:58:51 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -228,7 +228,7 @@ void ParticlePairT::WriteOutput(void)
  		CParamStart->value = 0.0;
 		Strain = 0;
 		vs_i = 0.0;
-		SlipVector = 0;
+		SlipVector = 0.0;
 #endif
 		
 		/* kinetic energy */
