@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.h,v 1.5 2001-12-10 12:44:08 paklein Exp $ */
+/* $Id: VTKBodyDataT.h,v 1.6 2001-12-13 02:57:59 paklein Exp $ */
 #ifndef _VTK_BODY_DATA_T_H_
 #define _VTK_BODY_DATA_T_H_
 
@@ -36,7 +36,6 @@ public:
 	const StringT& SourceFile(void) const { return fInFile; };
   
 #if 0
-	void SetLookupTable(void);
 	void ChangeDataColor(int);
 #endif 
 
@@ -60,6 +59,9 @@ public:
 
 	/** return current step number */
 	int CurrentStepNumber(void) const { return currentStepNum; };
+
+	/** return current variable number */
+	int CurrentVariableNumber(void) const { return currentVarNum; };
 	
 	/** return tbe number of nodal variables */
 	int NumNodeVariables(void) const { return fScalars.MinorDim(); };
@@ -67,15 +69,12 @@ public:
 	/** return a reference to the nodal labels */
 	const ArrayT<StringT>& NodeLabels(void) const { return fNodeLabels; };
  
- 	/** show node numbers */
-// 	void ShowNodeNumbers(vtkRenderer* renderer);
-
- 	/** show node numbers */
-//	void HideNodeNumbers(vtkRenderer* renderer);
-
 	/** return array of unstructured grid displays */
 	const ArrayT<VTKUGridT*>& UGrids(void) { return fUGrids; };
  
+ 	/** execute console command. \return true is executed normally */
+	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
+
  private:
  
 	/** array type conversion */
@@ -83,6 +82,12 @@ public:
 	
 	/** set run time variables to defaults */
 	void DefaultValues(void);
+
+	/** load data for the current time step into the VTKBodyDataT::fScalars
+	 * and the VTKBodyDataT::fVectors arrays. If the data is already stored,
+	 * nothing is done. If the data is not already stored, it is read from
+	 * the database file. */
+	void LoadData(int step);
 	  
  private:
 
@@ -99,6 +104,7 @@ public:
 	/** vector data per node. 
 	 * dimension: [time_steps] : [num_nodes] x [ndof] */
 	ArrayT<vtkFloatArray*> fVectors; 
+	int vec_dim;
 
 	/** array of unstructured grid displays */
 	ArrayT<VTKUGridT*> fUGrids;
@@ -113,6 +119,7 @@ public:
 	double alphaRange1, alphaRange2;
 	double scale_factor;
 	int numColors;
+	double opacity;
 };
 
 /* type conversion */

@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.h,v 1.1 2001-12-10 12:44:09 paklein Exp $ */
+/* $Id: VTKUGridT.h,v 1.2 2001-12-13 02:57:59 paklein Exp $ */
 #ifndef _VTK_U_GRID_T_H_
 #define _VTK_U_GRID_T_H_
 
@@ -17,6 +17,7 @@ class vtkWarpVector;
 class vtkFloatArray;
 class vtkIdTypeArray;
 class vtkLookupTable;
+class vtkScalarsToColors;
 
 /* toolbox forward declarations */
 class iArray2DT;
@@ -30,6 +31,9 @@ class VTKUGridT
 	enum TypeT {kElementSet = 0,
                    kNodeSet = 1,
                    kSideSet = 2};
+
+	/** representation */
+	enum RepresentationT {kWire, kSurface, kPoint};
 
 	/** constructor */
 	VTKUGridT(TypeT my_type, int id, int nsd); 
@@ -73,6 +77,17 @@ class VTKUGridT
   	/** return the unstructured grid */
   	vtkUnstructuredGrid* UGrid(void) { return fUGrid; };
   
+   	/** return the look up table for the specified ugrid */
+ 	vtkScalarsToColors* GetLookupTable(void);
+ 
+ 	/** set grid representation.
+ 	 * \param code grid representation */
+ 	bool SetRepresentation(RepresentationT rep);
+ 
+ 	/** set the grid opacity.
+ 	 * \param opacity ranges from 0 to 1 for transparent to opaque */
+	void SetOpacity(double opacity);
+ 
  private:
 
  	/** type of the unstructured grid set */

@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.h,v 1.12 2001-12-12 15:52:58 paklein Exp $ */
+/* $Id: VTKBodyT.h,v 1.13 2001-12-13 02:57:59 paklein Exp $ */
 
 #ifndef _VTK_BODY_T_H_
 #define _VTK_BODY_T_H_
@@ -60,6 +60,9 @@ class VTKBodyT: public iConsoleObjectT
 
  	/** hide node numbers */
  	//void HideNodeNumbers(vtkRenderer* renderer);
+ 	
+ 	/** change the plot variable */
+	bool ChangeVars(const StringT& var);
 
  private:
 

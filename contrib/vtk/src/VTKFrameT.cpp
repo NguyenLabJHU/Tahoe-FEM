@@ -1,9 +1,11 @@
-/* $Id: VTKFrameT.cpp,v 1.17 2001-12-10 12:44:08 paklein Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.18 2001-12-13 02:57:59 paklein Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
+#include "VTKUGridT.h"
+
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
@@ -35,7 +37,8 @@ VTKFrameT::VTKFrameT(VTKConsoleT& console):
 	fConsole(console),
 	fRenderer(NULL),
 	fLabelMapper(NULL),
-	fLabelActor(NULL)
+	fLabelActor(NULL),
+	scalarBar(NULL)
 {
 	/* set up display classes */
 	fRenderer = vtkRenderer::New();
@@ -54,14 +57,24 @@ VTKFrameT::VTKFrameT(VTKConsoleT& console):
 	if (!com_spec) throw eGeneralFail;
 	iAddCommand(*com_spec);
 
+	com_spec = fConsole.iCommand("FlipBook");
+	if (!com_spec) throw eGeneralFail;
+	iAddCommand(*com_spec);
+
+	com_spec = fConsole.iCommand("Save");
+	if (!com_spec) throw eGeneralFail;
+	iAddCommand(*com_spec);
+
   /* own console commands */
 //  iAddCommand(CommandSpecT("Reset_to_Default_Values"));
   iAddCommand(CommandSpecT("ResetView"));
-  iAddCommand(CommandSpecT("Save"));
   iAddCommand(CommandSpecT("ShowNodeNumbers"));
   iAddCommand(CommandSpecT("HideNodeNumbers"));
-//  iAddCommand(CommandSpecT("Color_bar_on"));
-//  iAddCommand(CommandSpecT("Color_bar_off"));
+  iAddCommand(CommandSpecT("ShowAxes"));
+  iAddCommand(CommandSpecT("HideAxes"));
+
+	iAddCommand(CommandSpecT("ShowColorBar"));
+	iAddCommand(CommandSpecT("HideColorBar"));
 
   CommandSpecT rotate("Rotate", false);
   ArgSpecT rot_x(ArgSpecT::double_, "x");
@@ -78,20 +91,38 @@ VTKFrameT::VTKFrameT(VTKConsoleT& console):
   rotate.AddArgument(rot_z);
   iAddCommand(rotate);
 
-  iAddCommand(CommandSpecT("Zoom"));
-  iAddCommand(CommandSpecT("Change_background_color"));
-  iAddCommand(CommandSpecT("ChangeDataColor"));
-//  iAddCommand(CommandSpecT("Select_time_step"));
-  iAddCommand(CommandSpecT("Choose_variable"));
+  CommandSpecT zoom("Zoom");
+  ArgSpecT factor(ArgSpecT::double_);
+  factor.SetPrompt("zoom factor");
+  zoom.AddArgument(factor);
+  iAddCommand(zoom);
+  
+  CommandSpecT change_bg("ChangeBackgroundColor");
+  change_bg.SetPrompter(this);
+  ArgSpecT bg_color(ArgSpecT::int_);
+  bg_color.SetPrompt("background color");
+  change_bg.AddArgument(bg_color);
+  iAddCommand(change_bg);
+
+//  iAddCommand(CommandSpecT("ChangeDataColor"));
+
+  CommandSpecT choosevar("ChooseVariable");
+  choosevar.SetPrompter(this);
+  ArgSpecT varnum(ArgSpecT::int_);
+  varnum.SetPrompt("variable number");
+  choosevar.AddArgument(varnum);
+  iAddCommand(choosevar);
 
   ArgSpecT body_num(ArgSpecT::int_);
   body_num.SetPrompt("body number");
 
   CommandSpecT add_body("AddBody");
   add_body.AddArgument(body_num);
+  add_body.SetPrompter(this);
   iAddCommand(add_body);
 
   CommandSpecT rem_body("RemoveBody");
+  add_body.SetPrompter(this);
   rem_body.AddArgument(body_num);
   iAddCommand(rem_body);
 }
@@ -101,6 +132,9 @@ VTKFrameT::~VTKFrameT(void)
 {
 	/* free display classes */
   	fRenderer->Delete();
+  	
+  	/* scalar bar */
+  	if (scalarBar) scalarBar->Delete();
   	
   	/* frame label */
 	if (fLabelMapper) fLabelMapper->Delete();
@@ -221,6 +255,64 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
       return fConsole.iDoCommand(command, line);
   else if (command.Name() == "SelectTimeStep")
       return fConsole.iDoCommand(command, line);
+  else if (command.Name() == "FlipBook")
+      return fConsole.iDoCommand(command, line);
+  else if (command.Name() == "Save")
+      return fConsole.iDoCommand(command, line);
+  else if (command.Name() == "ShowColorBar")
+  {
+  	if (bodies.Length() == 0)
+		return false;
+	else if (scalarBar)
+	{
+		cout << "hide scalar bar first" << endl;
+		return false;
+	}
+	else
+  	{
+  		/* use the first body */
+  		VTKBodyDataT* body_data = bodies[0].BodyData();
+  		
+  		/* get grids */
+  		const ArrayT<VTKUGridT*>& ugrids = body_data->UGrids();
+  		if (ugrids.Length() == 0) return false;
+  	
+		/* new scalar bar */
+  		scalarBar = vtkScalarBarActor::New();
+
+		/* get lut from first grid */
+		scalarBar->SetLookupTable(ugrids[0]->GetLookupTable());
+
+		const StringT& var_name = (body_data->NodeLabels())[body_data->CurrentVariableNumber()];
+		scalarBar->SetTitle(var_name);
+		
+		scalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
+		scalarBar->GetPositionCoordinate()->SetValue(0.1,0.01);
+		scalarBar->SetOrientationToHorizontal();
+		scalarBar->SetWidth(0.8); 
+		scalarBar->SetHeight(0.17);
+		
+		fRenderer->AddActor(scalarBar);
+		Render();
+		return true;
+  	}
+  } 
+  else if (command.Name() == "HideColorBar")
+  {
+	if (!scalarBar)
+	{
+		cout << "show scalar bar first" << endl;
+		return false;
+	}
+	else
+  	{
+		fRenderer->RemoveActor(scalarBar);		
+		scalarBar->Delete();
+		scalarBar = NULL;
+		Render();
+		return true;
+	}  
+  }      
   else if (command.Name() == "AddBody")
     {
       int body;
@@ -270,29 +362,7 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 	  cout << "body number out of range" << endl;
 	  return false;
 	}
-    }
-    
-//   else if (command == "Reset_to_Default_Values")
-//     {
-//       // source_file = "../../example_files/heat/data_file1.vtk";
-//       numColors = 256;
-//       hueRange1 = 0; hueRange2 = 0.6667;
-//       valRange1 = 1; valRange2 = 1;
-//       satRange1 = 1; satRange2 = 1;
-//       alphaRange1 = 1; alphaRange2 = 1;
-//       // scalarRange1 = 6; scalarRange2 = 17;
-//       //  ugridMapper->SetScalarRange(scalarRange1,scalarRange2);
-//       lut->SetHueRange(hueRange1, hueRange2);
-//       lut->SetSaturationRange(satRange1,satRange2);
-//       lut->SetValueRange(valRange1,valRange2);
-//       lut->SetAlphaRange(alphaRange1,alphaRange2);
-//       lut->SetNumberOfColors(numColors);
-      
-//       renWin->Render();
-//       // iren->Start();
-//       return true;
-//     }
-
+  }
   else if (command.Name() == "ResetView")
     {
       ResetView();
@@ -346,19 +416,52 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 			return true;
     	}    
 	}
-  else if (command.Name() == "Color_bar_off")
+  	else if (command.Name() == "ShowAxes")
     {
- //     fRenderer->RemoveActor(bodies[0]->SBActor());
-      Render();
-      return true;
-    }
-  else if (command.Name() == "Color_bar_on")
-    {
-//      fRenderer->AddActor(bodies[0]->SBActor());
-      Render();
+    	if (bodies.Length() == 0)
+    		return false;
+    	else
+    	{
+    		/* command spec */
+    		CommandSpecT* show = bodies[0].iCommand("ShowAxes");
+    		if (!show)
+    		{
+    			cout << "command not found" << endl;
+    			return false;
+    		}
+    	
+    		/* labels ON */
+    		StringT tmp;
+    		for (int i = 0; i < bodies.Length(); i++)
+    			bodies[i].iDoCommand(*show, tmp);
 
-      return true;
+			Render();
+			return true;
+    	}    
     }
+	else if (command.Name() == "HideAxes")
+    {
+    	if (bodies.Length() == 0)
+    		return false;
+    	else
+    	{
+    		/* command spec */
+    		CommandSpecT* hide = bodies[0].iCommand("HideAxes");
+    		if (!hide)
+    		{
+    			cout << "command not found" << endl;
+    			return false;
+    		}
+    	
+    		/* labels OFF */
+    		StringT tmp;
+    		for (int i = 0; i < bodies.Length(); i++)
+    			bodies[i].iDoCommand(*hide, tmp);
+
+			Render();
+			return true;
+    	}    
+	}
   else if (command.Name() == "ChangeDataColor")
     {
     	cout << "not updated" << endl;
@@ -390,72 +493,56 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 	}
   else if (command.Name() == "Zoom")
     {
-
-      cout << "Zoom by what magnitude?: ";
-      cin >> zoom;
-      char line[255];
-      cin.getline(line, 254);
-      fRenderer->GetActiveCamera()->Zoom(zoom);
+    	double factor;
+    	command.Argument(0).GetValue(factor);
+      fRenderer->GetActiveCamera()->Zoom(factor);
       Render();
       return true;
     }
 	 
-  else if (command.Name() =="Change_background_color")
-    {
-      int bgColor;
-      do {
-	cout << "choose background color:\n 1: black\n 2: white\n 3: red\n 4: green\n 5: blue\n";
-	cin >> bgColor;
-	char line[255];
-	cin.getline(line, 254);
-      } while (bgColor != 1 && bgColor !=2 && bgColor != 3 && bgColor !=4 && bgColor !=5);
-      
-      switch (bgColor) {
-      case 1: 
-	fRenderer->SetBackground(0,0,0);
-	break;
-      case 2:
-	fRenderer->SetBackground(1,1,1);
-	break;
-      case 3:
-	fRenderer->SetBackground(1,0,0);
-	break;
-      case 4:
-	fRenderer->SetBackground(0,1,0);
-	break;
-      default:
-	fRenderer->SetBackground(0,0,1);
-	break;
-      }
-      Render();
-      return true;
-    }
-
-  else if (command.Name() == "Select_time_step")
-    {
-      int step;
-      cout << "choose frame number from 0 to " << bodies[0]->NumTimeSteps()-1 <<" to be displayed: ";
-      cin >> step;
-      for (int i = 0; i < bodies.Length(); i++)
-	     bodies[i]->SelectTimeStep(step);
-      char line[255];
-      cin.getline(line, 254);
-      Render();
-      return true; 
-    }
-  else if (command.Name() == "Choose_variable")
+	else if (command.Name() =="ChangeBackgroundColor")
 	{
-		cout << "choose variable number from 0 to " << bodies[0]->NumNodeVariables()-1 <<" to be displayed\n";
-		const ArrayT<StringT>& labels = bodies[0]->NodeLabels();
-		for (int i = 0; i < labels.Length(); i++)
-			cout << setw(5) << i << ": " << labels[i] << '\n';
-		cout << " variable: ";
-		cin >> varNum;
-		char line[255];
-		cin.getline(line, 254);
+		int bg_color;
+		command.Argument().GetValue(bg_color);
+            
+		switch (bg_color) {
+			case 1: 
+				fRenderer->SetBackground(0,0,0);
+				break;
+      		case 2:
+				fRenderer->SetBackground(1,1,1);
+				break;
+			case 3:
+				fRenderer->SetBackground(1,0,0);
+				break;
+			case 4:
+				fRenderer->SetBackground(0,1,0);
+				break;
+			case 5:
+				fRenderer->SetBackground(0,0,1);
+				break;
+      		default:
+      			return false;
+		}
+		Render();
+		return true;
+	}
+  else if (command.Name() == "ChooseVariable")
+	{
+		int varNum;
+		command.Argument(0).GetValue(varNum);
 		const StringT& var = (bodies[0]->NodeLabels())[varNum];
 		for (int i = 0; i < bodies.Length(); i++)
-			bodies[i]->ChangeVars(var); // will not return true if body does not have the var
+			bodies[i].ChangeVars(var); // will not return true if body does not have the var
+		
+		/* reset color bar name */
+		if (scalarBar)	
+		{
+  			VTKBodyDataT* body_data = bodies[0].BodyData();
+			const StringT& var_name = (body_data->NodeLabels())[body_data->CurrentVariableNumber()];
+			scalarBar->SetTitle(var_name);
+		}
+			
 		Render();
 		return true;
     }
@@ -478,6 +565,16 @@ void VTKFrameT::ValuePrompt(const CommandSpecT& command, int index, ostream& out
     {
       out << "body to remove (0," << bodies.Length()-1 << ")\n";
     }
+  else if (command.Name() == "ChooseVariable")
+    {
+		const ArrayT<StringT>& labels = bodies[0]->NodeLabels();
+		for (int i = 0; i < labels.Length(); i++)
+			out << setw(5) << i << ": " << labels[i] << '\n';
+    }
+  else if (command.Name() == "ChangeBackgroundColor")
+  {
+	out << "choose background color:\n 1: black\n 2: white\n 3: red\n 4: green\n 5: blue\n";
+  }
   else /* inherited */
     iConsoleObjectT::ValuePrompt(command, index, out);
 }

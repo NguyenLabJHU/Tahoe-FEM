@@ -1,16 +1,18 @@
-/* $Id: VTKConsoleT.cpp,v 1.33 2001-12-10 12:44:08 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.34 2001-12-13 02:57:59 paklein Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
-#include "vtkRenderer.h"
+#include "VTKBodyT.h"
+#include "VTKBodyDataT.h"
+
+//#include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRendererSource.h"
 #include "vtkTIFFWriter.h"
-#include "vtkPostScriptWriter.h"
-#include "vtkScalarBarActor.h"
-#include "vtkDataSetMapper.h"
-#include "vtkRenderLargeImage.h"
+//#include "vtkPostScriptWriter.h"
+//#include "vtkDataSetMapper.h"
+//#include "vtkRenderLargeImage.h"
 
 #include <iostream.h>
 #include <iomanip.h>
@@ -19,8 +21,6 @@
 #include "iArray2DT.h"
 #include "dArrayT.h"
 #include "GeometryT.h"
-#include "VTKBodyT.h"
-#include "VTKBodyDataT.h"
 
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
@@ -44,6 +44,7 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   iAddCommand(addbody);
 
   CommandSpecT removebody("RemoveBody");
+  removebody.SetPrompter(this);
   ArgSpecT bodynum(ArgSpecT::int_);
   bodynum.SetPrompt("body number to remove");
   removebody.AddArgument(bodynum);
@@ -75,16 +76,22 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   save_flip.AddArgument(save_file);
   iAddCommand(save_flip);
 	
-	CommandSpecT flipbook("FlipBook");
-	ArgSpecT delay(ArgSpecT::double_);
+	CommandSpecT flipbook("FlipBook", false);
+	ArgSpecT delay(ArgSpecT::double_, "delay");
+	delay.SetDefault(0.0);
 	delay.SetPrompt("frame delay in seconds");
+	ArgSpecT step(ArgSpecT::int_, "step");
+	step.SetDefault(1);
+	step.SetPrompt("time step increment");
 	flipbook.AddArgument(delay);
+	flipbook.AddArgument(step);
 	iAddCommand(flipbook);
 
 	CommandSpecT select_step("SelectTimeStep");
-	ArgSpecT step(ArgSpecT::int_);
-	step.SetPrompt("time step");
-	select_step.AddArgument(step);
+	select_step.SetPrompter(this);
+	ArgSpecT stepnum(ArgSpecT::int_);
+	stepnum.SetPrompt("time step");
+	select_step.AddArgument(stepnum);
 	iAddCommand(select_step);
 
 	/* display objects */
@@ -261,19 +268,37 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 	{
     	if (fBodies.Length() == 0) return false;
     
-		double timeStep;
-		command.Argument(0).GetValue(timeStep);
+		double delay;
+		int step;
+		command.Argument("delay").GetValue(delay);
+		command.Argument("step").GetValue(step);
       
 		/* assume all the bodies have the same number of steps as body 0 */
-		for (int j = 0; j<fBodies[0]->NumTimeSteps(); j++){
+		int j;
+		for (j = 0; j<fBodies[0]->NumTimeSteps(); j += step){
 			/* time delay */
 			clock_t start_time, cur_time;
 			start_time = clock();
-			while((clock() - start_time) < timeStep * CLOCKS_PER_SEC) { }
+			while((clock() - start_time) < delay * CLOCKS_PER_SEC) { }
 			for (int i = 0; i < fBodies.Length(); i++)
 				fBodies[i]->SelectTimeStep(j);
 			renWin->Render();
-      }
+      	}
+      	
+      	/* make sure to hit last frame */
+      	if (j != fBodies[0]->NumTimeSteps())
+      	{
+			/* time delay */
+			clock_t start_time, cur_time;
+			start_time = clock();
+			while((clock() - start_time) < delay * CLOCKS_PER_SEC) { }
+      	
+      		j = fBodies[0]->NumTimeSteps() - 1;
+			for (int i = 0; i < fBodies.Length(); i++)
+				fBodies[i]->SelectTimeStep(j);
+			renWin->Render();      	
+      	}
+      	
       return true;
     }
   else if (command.Name() == "SaveFlipBook")
@@ -288,8 +313,8 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
       image->WholeWindowOn();
       
       /* construct TIFF writer */
-      // vtkTIFFWriter* writer = vtkTIFFWriter::New();
-      vtkPostScriptWriter* writer = vtkPostScriptWriter::New();
+      vtkTIFFWriter* writer = vtkTIFFWriter::New();
+      //vtkPostScriptWriter* writer = vtkPostScriptWriter::New();
       writer->SetInput(image->GetOutput());
       
 		/* assume all the bodies have the same number of steps as body 0 */
@@ -354,8 +379,8 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 	  image->WholeWindowOn();
       
       /* construct TIFF writer */
-	  //vtkTIFFWriter* writer = vtkTIFFWriter::New();
-      vtkPostScriptWriter* writer = vtkPostScriptWriter::New();
+	  vtkTIFFWriter* writer = vtkTIFFWriter::New();
+      //vtkPostScriptWriter* writer = vtkPostScriptWriter::New();
       writer->SetInput(image->GetOutput());
       
       StringT ext;
