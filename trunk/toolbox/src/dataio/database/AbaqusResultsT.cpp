@@ -4,6 +4,7 @@
 */
 
 #include "AbaqusResultsT.h"
+#include <time.h>
 
 /* these variables are nodal and have a node number before the value list */
 AbaqusResultsT::AbaqusResultsT (ostream& message) :
@@ -13,9 +14,6 @@ AbaqusResultsT::AbaqusResultsT (ostream& message) :
   fStartCount (0),
   fEndCount (0),
   fModalCount (0),
-  fVarDimension (NVT),
-  fVarType (NVT),
-  fVarArrayColumn (NVT),
   fBinary (false),
   fBufferDone (0),
   fBufferSize (0),
@@ -24,11 +22,11 @@ AbaqusResultsT::AbaqusResultsT (ostream& message) :
   fNumElementSets (0),
   fNumNodeVars (0),
   fNumElemVars (0),
-  fNumQuadVars (0)
+  fNumQuadVars (0),
+  fMarker ("*"),
+  fOutVersion ("5.8-1")
 {
-  fVarDimension = BAD;
-  fVarType = kNone;
-  fVarArrayColumn = -1;
+  SetVariableNames ();
 }
 
 void AbaqusResultsT::Initialize (char *filename)
@@ -63,8 +61,65 @@ void AbaqusResultsT::Initialize (char *filename)
     }
 }
 
-void AbaqusResultsT::Close (void)
+void AbaqusResultsT::Create (char* filename, bool binary, int numelems, int numnodes, double elemsize)
 {
+  fOut.open (filename);
+  if (!fOut)
+    {
+      fMessage << "\n\nAbaqusResultsT::Create unable to open file " << filename << "\n\n";
+      throw eDatabaseFail;
+    }
+  fFileName = filename;
+  fBinary = binary;
+  if (fBinary)
+    fBufferSize = 512 * sizeof (double);
+  else
+    fBufferSize = 80;
+  fBufferDone = 0;
+
+  time_t now;
+  time (&now);
+  char date[40], time[20];
+  strftime (time, 40, "%X", localtime (&now));
+  strftime (date, 40, "%d-%b-%Y", localtime (&now));
+
+  // write version record
+  int length = 9;
+  StringT temp;
+  WriteASCII (fMarker);
+  Write (length);
+  Write (VERSION);
+  Write (fOutVersion);
+  temp = date;
+  Write (temp, 2);
+  temp = time;
+  Write (temp);
+  Write (numelems);
+  Write (numnodes);
+  Write (elemsize);
+  fOut.flush();
+}
+ 
+void AbaqusResultsT::OpenWrite (char *filename, bool binary, int bufferwritten)
+{
+  fOut.open (filename);
+  if (!fOut)
+    {
+      fMessage << "\n\nAbaqusResultsT::OpenWRite unable to open file " << filename << "\n\n";
+      throw eDatabaseFail;
+    }
+  fFileName = filename;
+  fBinary = binary;
+  if (fBinary)
+    fBufferSize = 512 * sizeof (double);
+  else
+    fBufferSize = 80;
+  fBufferDone = bufferwritten;
+}
+
+int AbaqusResultsT::Close (void)
+{
+  int bufferdone = fBufferDone;
   fIn.close ();
   fFileName.Free ();
   fBufferDone = 0;
@@ -78,9 +133,8 @@ void AbaqusResultsT::Close (void)
   fStartCount = 0;
   fEndCount = 0;
   fModalCount = 0;
-  fVarDimension = BAD;
-  fVarType = kNone;
-  fVarArrayColumn = -1;
+  for (int i=0; i < NVT; i++)
+    fVariableTable[i].SetIOData (0, AbaqusVariablesT::kNotUsed, -1);
   fNumNodeVars = 0;
   fNumElemVars = 0;
   fNumQuadVars = 0;
@@ -92,6 +146,7 @@ void AbaqusResultsT::Close (void)
   fModeSteps.Free ();
   fNodeSetNames.Free ();
   fElementSetNames.Free ();
+  return bufferdone;
 }
 
 void AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, int &nummodes)
@@ -107,8 +162,6 @@ void AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
   error = ReadNextRecord (key);
   while (error == OKAY)
     {
-      //cout << fCurrentLength << " " << key << endl;
-      //if (count++ == 10) exit(0);
       switch (key)
 	{
 	case ELEMENT: ScanElement (); break;
@@ -175,19 +228,18 @@ void AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
 	  }
 	case OUTPUTDEFINE: 
 	  {
+	    StringT outsetname;
 	    if (fStartCount == 1)
-	      ReadOutputDefinitions (outputmode);
+	      ReadOutputDefinitions (outputmode, outsetname);
 	    break;
 	  }
 	}
       
-      /* scan variable records */
+      /* scan variable records, but only for the first time step */
       if (fStartCount == 1)
-	{
-	  VariableKeyT k = IntToVariableKey (key);
-	  if (k != kNone)
-	    ScanVariable (k, outputmode, location);
-	}
+	/* if the record key is a variable, scan for variable within */
+	if (VariableKeyIndex (key) > 0)
+	  ScanVariable (key, outputmode, location);
 
       error = ReadNextRecord (key);
     }
@@ -195,9 +247,6 @@ void AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
   numnodes = fNumNodes;
   numtimesteps = fStartCount;
   nummodes = fModalCount;
-
-  //cout << " NumNodeSets: " << fNumNodeSets 
-  //<< "\n NumElemSets: " << fNumElementSets << "\n\n";
 }
 
 void AbaqusResultsT::ElementSetNames (ArrayT<StringT>& names) const
@@ -209,10 +258,7 @@ void AbaqusResultsT::ElementSetNames (ArrayT<StringT>& names) const
 void AbaqusResultsT::NodeSetNames (ArrayT<StringT>& names) const
 {
   for (int i=0; i < fNumNodeSets; i++)
-    {
-      //cout << i << " " << fNumNodeSets << " " << fNodeSetNames[i] << endl;
-      names[i] = fNodeSetNames[i];
-    }
+    names[i] = fNodeSetNames[i];
 }
 
 void AbaqusResultsT::NodeMap (iArrayT& n) const
@@ -227,7 +273,6 @@ int AbaqusResultsT::NumNodesInSet (StringT& name)
 
   while (strncmp (setname.Pointer(), name.Pointer(), name.Length()) != 0)
     {
-      //cout << setname << " " << name << endl;
       AdvanceTo (NODESET);
       if (!Read (setname, 1))
 	throw eDatabaseFail;
@@ -288,7 +333,6 @@ int AbaqusResultsT::NumElements (StringT& name)
       AdvanceTo (ELEMENTSET);
       if (!Read (setname, 1))
 	throw eDatabaseFail;
-      //cout << setname << ". " << name << "." << endl;
     }
 
   int num = fCurrentLength;
@@ -441,46 +485,111 @@ void AbaqusResultsT::TimeData (int index, int &number, double &time) const
   time = fTimeSteps [index];
 }
 
-void AbaqusResultsT::NodeVariables (ArrayT<VariableKeyT>& keys, iArrayT& dims) const
+void AbaqusResultsT::NodeVariables (iArrayT& keys, iArrayT& dims) const
 {
   int c = 0;
   for (int i=0; i < NVT; i++)
-    if (fVarType[i] == kNodeVar)
-      for (int j=0; j < fVarDimension[i]; j++)
-	{
-	  keys[c] = VariableKey (i);
-	  dims[c] = fVarDimension[i];
-	  c++;
-	}
+    if (fVariableTable[i].Type() == AbaqusVariablesT::kNode)
+      {
+	int dimension = fVariableTable[i].Dimension();
+	for (int j=0; j < dimension; j++)
+	  {
+	    keys[c] = fVariableTable[i].Key();
+	    dims[c] = dimension;
+	    c++;
+	  }
+      }
 }
 
-void AbaqusResultsT::ElementVariables (ArrayT<VariableKeyT>& keys, iArrayT& dims) const
+void AbaqusResultsT::ElementVariables (iArrayT& keys, iArrayT& dims) const
 {
   int c = 0;
   for (int i=0; i < NVT; i++)
-    if (fVarType[i] == kElemVar)
-      for (int j=0; j < fVarDimension[i]; j++)
-	{
-	  keys[c] = VariableKey (i);
-	  dims[c] = fVarDimension[i];
-	  c++;
-	}
+    if (fVariableTable[i].Type() == AbaqusVariablesT::kElement)
+      {
+	int dimension = fVariableTable[i].Dimension();
+	for (int j=0; j < dimension; j++)
+	  {
+	    keys[c] = fVariableTable[i].Key();
+	    dims[c] = dimension;
+	    c++;
+	  }
+      }
 }
 
-void AbaqusResultsT::QuadratureVariables (ArrayT<VariableKeyT>& keys, iArrayT& dims) const
+void AbaqusResultsT::QuadratureVariables (iArrayT& keys, iArrayT& dims) const
 {
   int c = 0;
   for (int i=0; i < NVT; i++)
-    if (fVarType[i] == kQuadVar)
-      for (int j=0; j < fVarDimension[i]; j++)
-	{
-	  keys[c] = VariableKey (i);
-	  dims[c] = fVarDimension[i];
-	  c++;
-	}
+    if (fVariableTable[i].Type() == AbaqusVariablesT::kQuadrature)
+      {
+	int dimension = fVariableTable[i].Dimension();
+	for (int j=0; j < dimension; j++)
+	  {
+	    keys[c] = fVariableTable[i].Key();
+	    dims[c] = dimension;
+	    c++;
+	  }
+      }
 }
 
-void AbaqusResultsT::ReadVariables (VariableType vt, int step, dArray2DT& values, StringT& name)
+void AbaqusResultsT::VariablesUsed (StringT& name, AbaqusVariablesT::TypeT vt, iArrayT& used)
+{
+  used = 0;
+  iArrayT done (fVariableTable.Length());
+  done = 0;
+
+  /* examine the first time step/inc, variables should be same for all steps/incs */
+  ResetFile ();
+  int inc;
+  double time;
+  if (fModeIncs.Length() > 0)
+    NextMode (inc, time);
+  else
+    NextTimeSteps (inc, time);
+  
+  int key;
+  int ID, objnum, intpt, secpt, location, outputmode;
+  StringT outsetname;
+  while (ReadNextRecord (key) == OKAY)
+    {
+      switch (key)
+	{
+	case ENDINCREMENT:
+	case MODAL:
+	  return;
+	case ELEMENTHEADER:
+	  ReadElementHeader (objnum, intpt, secpt, location);
+	  break;
+	case OUTPUTDEFINE:
+	  ReadOutputDefinitions (outputmode, outsetname);
+	  break;
+	default:
+	  {
+	    /* is this the setname we are interested in */
+	    int l = (name.Length() < outsetname.Length()) ? name.Length() : outsetname.Length();
+	    if (strncmp (outsetname.Pointer(), name.Pointer(), l-1) == 0)
+	      {
+		/* make sure it is a variable */
+		int index = VariableKeyIndex (key);
+		if (index > 0 && index < done.Length() && done[index] < 1)
+		  {
+		    /* make sure the variable is of the type we are interested in */
+		    if (CorrectType (outputmode, objnum, intpt, location, vt, ID))
+		      {
+			int offset = fVariableTable[index].IOIndex();
+			int dim = fVariableTable[index].Dimension();
+			for (int bj=0; bj < dim; bj++)
+			  used [offset + bj] = fVariableTable[index].Dimension();
+		      }
+		  }
+	      }
+	  }
+	}
+    }
+}
+
+void AbaqusResultsT::ReadVariables (AbaqusVariablesT::TypeT vt, int step, dArray2DT& values, StringT& name)
 {
   bool subset = true;
   if (name.Length() < 2) subset = false;
@@ -488,7 +597,7 @@ void AbaqusResultsT::ReadVariables (VariableType vt, int step, dArray2DT& values
   int numquadpts = 0;
   switch (vt)
     {
-    case kNodeVar:
+    case AbaqusVariablesT::kNode:
       {
 	if (subset)
 	  {
@@ -502,8 +611,8 @@ void AbaqusResultsT::ReadVariables (VariableType vt, int step, dArray2DT& values
 	  }
 	break;
       }
-    case kElemVar:
-    case kQuadVar:
+    case AbaqusVariablesT::kElement:
+    case AbaqusVariablesT::kQuadrature:
       {
 	if (subset)
 	  {
@@ -540,6 +649,7 @@ void AbaqusResultsT::ReadVariables (VariableType vt, int step, dArray2DT& values
 
   int key;
   int ID, objnum, intpt, secpt, location, outputmode;
+  StringT outsetname;
   while (ReadNextRecord (key) == OKAY)
     {
       switch (key)
@@ -551,38 +661,40 @@ void AbaqusResultsT::ReadVariables (VariableType vt, int step, dArray2DT& values
 	  ReadElementHeader (objnum, intpt, secpt, location);
 	  break;
 	case OUTPUTDEFINE:
-	  ReadOutputDefinitions (outputmode);
+	  ReadOutputDefinitions (outputmode, outsetname);
 	  break;
 	default:
 	  {
-	    if (CorrectType (outputmode, objnum, intpt, location, vt, ID))
+	    /* make sure it is a variable */
+	    if (VariableKeyIndex(key) > 0)
 	      {
-		VariableKeyT k = IntToVariableKey (key);
-		if (VariableWrittenWithNodeNumber (k)) 
-		  if (!Read (ID)) throw eDatabaseFail;
-		
-		bool save = true;
-		int row;
-		set.HasValue (ID, row);
-		if (row < 0 || row > set.Length())
-		  save = false;
-
-		// modify row by 
-		if (vt == kQuadVar)
-		  row = row*numquadpts + intpt - 1;
-
-		if (save)
+		/* is the record found, one that you want to read */
+		if (CorrectType (outputmode, objnum, intpt, location, vt, ID))
 		  {
-		    dArrayT v (fCurrentLength);
-		    int num = fCurrentLength;
-		    for (int i=0; i < num; i++)
-		      if (!Read (v[i])) throw eDatabaseFail;
-
-		    int index = VariableKeyIndex (k);
-		    int offset = fVarArrayColumn [index];
-		    //cout << ID << " " << intpt << " " << k << " ";
-		    //cout << row << " " << values.MinorDim() << " " << offset << endl;
-		    values.CopyPart (row*values.MinorDim() + offset, v, 0, v.Length()); 
+		    if (VariableWrittenWithNodeNumber (key)) 
+		      if (!Read (ID)) throw eDatabaseFail;
+		    
+		    bool save = true;
+		    int row;
+		    set.HasValue (ID, row);
+		    if (row < 0 || row > set.Length())
+		      save = false;
+		    
+		    // modify row by 
+		    if (vt == AbaqusVariablesT::kQuadrature)
+		      row = row*numquadpts + intpt - 1;
+		    
+		    if (save)
+		      {
+			int num = fCurrentLength;
+			dArrayT v (num);
+			for (int i=0; i < num; i++)
+			  if (!Read (v[i])) throw eDatabaseFail;
+			
+			int index = VariableKeyIndex (key);
+			int offset = fVariableTable[index].IOIndex();
+			values.CopyPart (row*values.MinorDim() + offset, v, 0, num); 
+		      }
 		  }
 	      }
 	  }
@@ -592,138 +704,36 @@ void AbaqusResultsT::ReadVariables (VariableType vt, int step, dArray2DT& values
 
 const char *AbaqusResultsT::VariableName (int index) const
 {
-  AbaqusResultsT::VariableKeyT key = VariableKey (index);
-  switch (key)
-    {
-    case kTEMP: return "TEMP";
-    case kLOADS: return "LOADS";
-    case kFLUXS: return "FLUXS";
-    case kSDV: return "SDV";
-    case kCOORD: return "COORD";
-    case kS: return "S";
-    case kSINV: return "SINV";
-    case kE: return "E";
-    case kPE: return "PE";
-    case kCE: return "CE";
-    case kIE: return "IE";
-    case kEE: return "EE";
-    case kU: return "U";
-    case kV: return "V";
-    case kA: return "A";
-    case kNCOORD: return "COORD";
-    case kSP: return "SP";
-    case kEP: return "EP";
-    case kNEP: return "NEP";
-    case kLEP: return "LEP";
-    case kERP: return "ERP";
-    case kEEP: return "EEP";
-    case kIEP: return "IEP";
-    case kTHEP: return "THEP";
-    case kPEP: return "PEP";
-    case kCEP: return "CEP";
-    }
-  return "Unknown";
+  if (index < 0 || index >= NVT)
+    return "Unknown";
+  else
+    return fVariableTable[index].Name();
 }
 
-AbaqusResultsT::VariableKeyT AbaqusResultsT::VariableKey (int index) const
+int AbaqusResultsT::VariableKey (const char* name) const
 {
-  switch (index)
+  for (int i=0; i < NVT; i++)
     {
-    case 0:  return kTEMP;	
-    case 1:  return kLOADS;
-    case 2:  return kFLUXS;
-    case 3:  return kSDV;   
-    case 4:  return kCOORD;
-    case 5:  return kS;     
-    case 6:  return kSINV;      
-    case 7:  return kE;         
-    case 8:  return kPE;        
-    case 9:  return kCE;    
-    case 10: return kIE;        
-    case 11: return kEE;        
-    case 12: return kU;     
-    case 13: return kV;
-    case 14: return kA;
-    case 15: return kNCOORD;
-    case 16: return kSP;    
-    case 17: return kEP;    
-    case 18: return kNEP;   
-    case 19: return kLEP;   
-    case 20: return kERP;   
-    case 21: return kEEP;   
-    case 22: return kIEP;   
-    case 23: return kTHEP;  
-    case 24: return kPEP;   
-    case 25: return kCEP;   
+      const StringT& n = fVariableTable[i].Name();
+      if (strncmp (name, n.Pointer(), n.Length() - 1) == 0)
+	return fVariableTable[i].Key();
     }
-  return kNone;
+  return -1;
 }
 
-AbaqusResultsT::VariableKeyT AbaqusResultsT::IntToVariableKey (int key) const
+int AbaqusResultsT::VariableKey (int index) const
 {
-  switch (key)
-    {
-    case kTEMP: return kTEMP;	
-    case kLOADS: return kLOADS;
-    case kFLUXS: return kFLUXS;
-    case kSDV: return kSDV;
-    case kCOORD: return kCOORD;
-    case kS: return kS;	
-    case kSINV: return kSINV;
-    case kE: return kE;	
-    case kPE: return kPE;	
-    case kCE: return kCE;	
-    case kIE: return kIE;	
-    case kEE: return kEE;	
-    case kU: return kU;	
-    case kV: return kV;
-    case kA: return kA;
-    case kNCOORD: return kNCOORD;
-    case kSP: return kSP;	
-    case kEP: return kEP;	
-    case kNEP: return kNEP;
-    case kLEP: return kLEP;
-    case kERP: return kERP;
-    case kEEP: return kEEP;
-    case kIEP: return kIEP;
-    case kTHEP: return kTHEP;
-    case kPEP: return kPEP;
-    case kCEP: return kCEP;
-    }
-  return kNone;
+  if (index < 0 || index >= NVT)
+    return -1;
+  else
+    return fVariableTable[index].Key();
 }
 
-int AbaqusResultsT::VariableKeyIndex (AbaqusResultsT::VariableKeyT key) const
+int AbaqusResultsT::VariableKeyIndex (int key) const
 {
-  switch (key)
-    {
-    case kTEMP:   return 0;
-    case kLOADS:  return 1; 
-    case kFLUXS:  return 2; 
-    case kSDV:    return 3; 
-    case kCOORD:  return 4; 
-    case kS:      return 5; 
-    case kSINV:   return 6; 
-    case kE:      return 7; 
-    case kPE:     return 8; 
-    case kCE:     return 9; 
-    case kIE:     return 10;
-    case kEE:     return 11;
-    case kU:      return 12;
-    case kV:      return 13;
-    case kA:	  return 14;
-    case kNCOORD: return 15;
-    case kSP:     return 16;
-    case kEP:     return 17;
-    case kNEP:    return 18;
-    case kLEP:    return 19;
-    case kERP:    return 20;
-    case kEEP:    return 21;
-    case kIEP:    return 22;
-    case kTHEP:   return 23;
-    case kPEP:    return 24;
-    case kCEP:    return 25;
-    }
+  for (int i=0; i < NVT; i++)
+    if (key == fVariableTable[i].Key())
+      return i;
   return -1;
 }
 
@@ -750,21 +760,16 @@ bool AbaqusResultsT::NextElement (int &number, GeometryT::CodeT &type, iArrayT &
   if (!Read (number) || !Read (name, 1) )
     throw eDatabaseFail;
 
-  //cout << number << " " << name << endl;
-
   int numintpts;
   if (TranslateElementName (name.Pointer(), type, numintpts) == BAD) 
     {
       fMessage << "\nAbaqusResultsT::NextElement Unable to translate element name.\n\n";
       throw eDatabaseFail;
     }
-  //cout << type << " " << numintpts << endl;
 
   int numnodes = fCurrentLength;
-  //cout << numnodes << endl;
   nodes.Allocate (numnodes);
   nodes = 300;
-  //cout << nodes << endl;
   for (int i=0; i < numnodes; i++)
     {
       int temp;
@@ -773,6 +778,247 @@ bool AbaqusResultsT::NextElement (int &number, GeometryT::CodeT &type, iArrayT &
       nodes[i] = temp;
     }
   return true;
+}
+
+void AbaqusResultsT::WriteConnectivity (GeometryT::CodeT code, int startnumber, const iArray2DT& connects)
+{
+  StringT name;
+  int numelemnodes;
+  GetElementName (code, connects.MinorDim(), numelemnodes, name);
+
+  int length = 4 + numelemnodes;
+  for (int i=0; i < connects.MajorDim(); i++)
+    {
+      WriteASCII (fMarker);
+      Write (length);
+      Write (ELEMENT);
+      Write (startnumber + i);
+      Write (name);
+      for (int j=0; j < numelemnodes; j++)
+	Write (connects (i,j));
+    }
+}
+
+void AbaqusResultsT::WriteCoordinates (const iArrayT& nodes_used, const dArray2DT& coords)
+{
+  int length = 3 + coords.MinorDim();
+  int *pn = nodes_used.Pointer();
+  for (int i=0; i < nodes_used.Length(); i++)
+    {
+      WriteASCII (fMarker);
+      Write (length);
+      Write (NODE);
+      Write (*pn);
+      double *pc = coords (*pn++ - 1);
+      for (int j=0; j < coords.MinorDim(); j++)
+	Write (*pc++);
+    }
+}
+
+void AbaqusResultsT::WriteElementSet (const StringT& name, const iArrayT& elms)
+{
+  AbaqusResultsT::GeneralKeys key = ELEMENTSET;
+  int headerlength = 3;
+  int num_vals_in_record = 80 - headerlength;
+  int *pe = elms.Pointer();
+  for (int i=0; i < elms.Length(); i++)
+    {
+      if (i%num_vals_in_record == 0)
+	{
+	  int length = num_vals_in_record;
+	  if (elms.Length() - i < num_vals_in_record)
+	    length = elms.Length() - i;
+	  if (i > 0)
+	    {
+	      key = ELEMSETCONT;
+	      headerlength = 2;
+	      num_vals_in_record = 80 - headerlength;
+	    }
+	  WriteASCII (fMarker);
+	  Write (length + headerlength);
+	  Write (key);
+	  if (key == ELEMENTSET)
+	    Write (name);
+	}
+      Write (*pe++);
+    }
+}
+
+void AbaqusResultsT::WriteNodeSet (const StringT& name, const iArrayT& nodes)
+{
+  AbaqusResultsT::GeneralKeys key = NODESET;
+  int headerlength = 3;
+  int num_vals_in_record = 80 - headerlength;
+  int *pe = nodes.Pointer();
+  for (int i=0; i < nodes.Length(); i++)
+    {
+      if (i%num_vals_in_record == 0)
+	{
+	  int length = num_vals_in_record;
+	  if (nodes.Length() - i < num_vals_in_record)
+	    length = nodes.Length() - i;
+	  if (i > 0)
+	    {
+	      key = NODESETCONT;
+	      headerlength = 2;
+	      num_vals_in_record = 80 - headerlength;
+	    }
+	  WriteASCII (fMarker);
+	  Write (length + headerlength);
+	  Write (key);
+	  if (key == NODESET)
+	    Write (name);
+	}
+      Write (*pe++);
+    }
+}
+
+void AbaqusResultsT::WriteActiveDOF (const iArrayT& active)
+{
+  int length = active.Length() + 2;
+  WriteASCII (fMarker);
+  Write (length);
+  Write (ACTIVEDOF);
+  for (int i=0; i < active.Length(); i++)
+    Write (active[i]);
+}
+
+void AbaqusResultsT::WriteHeading (const StringT& heading)
+{
+  if (heading.Length() <= 1) return;
+  int length = 10 + 2;
+  WriteASCII (fMarker);
+  Write (length);
+  Write (HEADING);
+  Write (heading, 10);
+}
+
+void AbaqusResultsT::WriteStartIncrement (int step, int inc, double totaltime, 
+     double time, double timeincrement, AbaqusResultsT::AnalysisTypeT atype)
+{
+  double creep = 0, amplitude = 0, factor = 0, freq = 0;
+  int perturb = 1, length = 23;
+  WriteASCII (fMarker);
+  Write (length);
+  Write (STARTINCREMENT);
+  Write (totaltime);
+  Write (time);
+  Write (creep);
+  Write (amplitude);
+  Write (atype);
+  Write (step);
+  Write (inc);
+  Write (perturb);
+  Write (factor);
+  Write (freq);
+  Write (timeincrement);
+  StringT attribute ("default load case");
+  Write (attribute, 10);
+}
+
+void AbaqusResultsT::WriteOutputDefinition (int key, const StringT& setname, GeometryT::CodeT code, int numelemnodes)
+{
+#pragma unused(setname)
+
+  WriteASCII (fMarker);
+  Write (5);
+  Write (OUTPUTDEFINE);
+
+  int index = VariableKeyIndex (key);
+  if (fVariableTable[index].Point() != AbaqusVariablesT::kNodePoint)
+    {
+      StringT ename;
+      int num_output_nodes;
+      GetElementName (code, numelemnodes, num_output_nodes, ename);
+      Write (ename);
+    }
+  else
+    Write (0);
+}
+
+void AbaqusResultsT::WriteNodeVariables (int& i, const iArrayT& key, const dArray2DT& values, const iArrayT& nodes_used, int numdir, int numshear)
+{
+  // determine record length
+  int count = 0;
+  for (int j=i; j < key.Length(); j++)
+    if (key[j] == key[i])
+      count ++;
+  int length = 2 + count;
+  
+  // account for node number
+  if (VariableWrittenWithNodeNumber (key[i])) length++;
+
+  // write data for this variable
+  int index = VariableKeyIndex (key[i]);
+  for (int n=0; n < nodes_used.Length(); n++)
+    {
+      // for element integration point data (assume node averaged)
+      if (fVariableTable[index].Point() != AbaqusVariablesT::kNodePoint)
+	WriteElementHeader (key[i], nodes_used[n], 0, 0, kElementNodeAveraged, numdir, numshear, 0, 0);
+      
+      // write record
+      WriteASCII (fMarker);
+      Write (length);
+      if (VariableWrittenWithNodeNumber (key[i])) Write (nodes_used[n]);
+      for (int m=i; m < i + count; m++)
+	Write (values (n, m));
+    }
+
+  i += count - 1;
+}
+
+void AbaqusResultsT::WriteElementVariables (int& i, const iArrayT& key, const dArray2DT& values, const iArrayT& els_used, int numdir, int numshear)
+{
+  // determine record length
+  int count = 0;
+  for (int j=i; j < key.Length(); j++)
+    if (key[j] == key[i])
+      count ++;
+  int length = 2 + count;
+  
+  // write data for this variable
+  int index = VariableKeyIndex (key[i]);
+  for (int n=0; n < els_used.Length(); n++)
+    {
+      // all element variables must have element header
+      // no element data originates at node points
+      if (fVariableTable[index].Point() != AbaqusVariablesT::kNodePoint)
+	WriteElementHeader (key[i], els_used[n], 0, 0, kElementWhole, numdir, numshear, 0, 0);
+      else
+	throw eDatabaseFail;
+      
+      // write record
+      WriteASCII (fMarker);
+      Write (length);
+      Write (els_used[n]);
+      for (int m=i; m < i + count; m++)
+	Write (values (n, m));
+    }
+
+  i += count - 1;
+}
+
+void AbaqusResultsT::WriteEndIncrement (void)
+{
+  int length = 2;
+  WriteASCII (fMarker);
+  Write (length);
+  Write (ENDINCREMENT);
+  if (!fBinary)
+    {
+      iArrayT size (2);
+      size [0] = fBufferSize - fBufferDone + 1;
+      size [1] = fBufferSize + 1;
+      for (int j=0; j < 2; j++)
+	{
+	  StringT space (size[j]);
+	  for (int i=0; i < space.Length() - 1; i++)
+	    space[i] = ' ';
+	  space [space.Length() - 1] = '\0';
+	  WriteASCII (space);
+	}
+    }
+  fOut.flush();
 }
 
 void AbaqusResultsT::VersionNotes (ArrayT<StringT>& records)
@@ -791,7 +1037,6 @@ void AbaqusResultsT::VersionNotes (ArrayT<StringT>& records)
 
 void AbaqusResultsT::ResetFile (void)
 {
-  //printf ("\nRewinding File\n");
   fIn.close ();
   fIn.open (fFileName);
 
@@ -807,7 +1052,6 @@ void AbaqusResultsT::ResetFile (void)
 
 bool AbaqusResultsT::ReadVersion (void)
 {
-  //  cout << "ReadVersion: " << fCurrentLength << endl;
   StringT version, date, time;
   int numelems, numnodes;
   double elemleng;
@@ -817,12 +1061,7 @@ bool AbaqusResultsT::ReadVersion (void)
       fMessage << "\nAbaqusResultsT::ScanFile Unable to read version record\n\n";
       return false;
     }
-  //cout << "ReadVersion: " << fCurrentLength << endl;
 
-  /*cout << "\n Version: " << version << "\n    Date: "
-    << date << "\n    Time: " << time << "\n NumElem: "
-    << numelems << "\n NumNode: " << numnodes 
-    << "\n ElemLen: " << elemleng << "\n\n";*/
   if (strncmp (version.Pointer(), "5.8", 3) != 0 &&
       strncmp (version.Pointer(), "6.1", 3) != 0 &&
       strncmp (version.Pointer(), "6.2", 3) != 0 )
@@ -868,9 +1107,8 @@ void AbaqusResultsT::ScanElement (void)
   fElementNumber.Append (number);
 }
 
-void AbaqusResultsT::ReadOutputDefinitions (int &outputmode)
+void AbaqusResultsT::ReadOutputDefinitions (int &outputmode, StringT& setname)
 {
-  StringT setname, elemname;
   if (!Read (outputmode)|| !Read (setname, 1) )
     throw eDatabaseFail;
 }
@@ -881,39 +1119,46 @@ void AbaqusResultsT::ReadElementHeader (int &objnum, int& intpt, int& secpt, int
     throw eDatabaseFail;
 }
 
-void AbaqusResultsT::ScanVariable (AbaqusResultsT::VariableKeyT key, int outputmode, int location)
+void AbaqusResultsT::ScanVariable (int key, int outputmode, int location)
 {
   int index = VariableKeyIndex (key);
   if (index < 0)
     {
-      fMessage << "\nAbaqusResultsT::ScanVariable Unable to map variable key\n\n";
+      fMessage << "\nAbaqusResultsT::ScanVariable Unable to map variable key: "
+	       << key << "\n\n";
       throw eDatabaseFail;
     }
-  if (fVarDimension [index] != BAD) return;
 
+  /* quick exit, if we have already done this variable */
+  if (fVariableTable[index].Dimension () != AbaqusVariablesT::kNotUsed &&
+      fVariableTable[index].Type() != AbaqusVariablesT::kNotUsed &&
+      fVariableTable[index].IOIndex() != AbaqusVariablesT::kNotUsed) return;
+
+  int dim, ioindex;
+  AbaqusVariablesT::TypeT t;
   switch (outputmode)
     {
     case kElementOutput:
       {
-	fVarDimension [index] = fCurrentLength;
+	dim = fCurrentLength;
 	switch (location)
 	  {
-	  case 0:  /* quadrature point */
-	    fVarType [index] = kQuadVar;
-	    fVarArrayColumn [index] = fNumQuadVars;
-	    fNumQuadVars += fVarDimension [index];
+	  case kElementQuadrature:  /* quadrature point */
+	    t = AbaqusVariablesT::kQuadrature;
+	    ioindex = fNumQuadVars;
+	    fNumQuadVars += dim;
 	    break;
-	  case 1: /* centroid of element */
-	  case 5: /* whole element */
-	    fVarType [index] = kElemVar;
-	    fVarArrayColumn [index] = fNumElemVars;
-	    fNumElemVars += fVarDimension [index];
+	  case kElementCentroidal: /* centroid of element */
+	  case kElementWhole: /* whole element */
+	    t = AbaqusVariablesT::kElement;
+	    ioindex = fNumElemVars;
+	    fNumElemVars += dim;
 	    break;
-	  case 2: /* node data */
-	  case 4: /* nodal averaged */
-	    fVarType [index] = kNodeVar;
-	    fVarArrayColumn [index] = fNumNodeVars;
-	    fNumNodeVars += fVarDimension [index];
+	  case kElementNodal: /* node data */
+	  case kElementNodeAveraged: /* nodal averaged */
+	    t = AbaqusVariablesT::kNode;
+	    ioindex = fNumNodeVars;
+	    fNumNodeVars += dim;
 	    break;
 	  default:
 	    {
@@ -922,18 +1167,14 @@ void AbaqusResultsT::ScanVariable (AbaqusResultsT::VariableKeyT key, int outputm
 	      throw eDatabaseFail;
 	    }
 	  }
-	/*printf ("  Variable: %i %s %i\n", key, 
-	  VariableName (index), fVarDimension [index]);*/
 	break;
       }
     case kNodalOutput:
       {
-	fVarDimension [index] = fCurrentLength - 1;
-	fVarType [index] = kNodeVar;
-	fVarArrayColumn [index] = fNumNodeVars;
-	fNumNodeVars += fVarDimension [index];
-	/*printf ("  Variable: %i %s %i\n", key, 
-	  VariableName (index), fVarDimension [index]);*/
+	dim = fCurrentLength - 1;
+	t = AbaqusVariablesT::kNode;
+	ioindex = fNumNodeVars;
+	fNumNodeVars += dim;
 	break;
       }
     default:
@@ -943,26 +1184,41 @@ void AbaqusResultsT::ScanVariable (AbaqusResultsT::VariableKeyT key, int outputm
 	throw eDatabaseFail;
       }
     }
+
+  fVariableTable[index].SetIOData (dim, t, ioindex);
+}
+
+void AbaqusResultsT::WriteElementHeader (int key, int number, int intpt, int secpt, 
+					 AbaqusResultsT::ElementVarType flag, int numdirect, 
+					 int numshear, int numdir, int numsecforc)
+{
+  int index = VariableKeyIndex (key);
+  int rebarname = 0;
+  WriteASCII ("*");
+  Write (11);
+  Write (ELEMENTHEADER);
+  Write (number);
+  Write (intpt);
+  Write (secpt);
+  Write (flag);
+  Write (rebarname);
+  Write (numdirect);
+  Write (numshear);
+  Write (numdir);
+  Write (numsecforc);
 }
 
 /* this function tells the variable read function if there is an additional
    integer data, ususally a node number, in the variable record */
-bool AbaqusResultsT::VariableWrittenWithNodeNumber (AbaqusResultsT::VariableKeyT key) const
+bool AbaqusResultsT::VariableWrittenWithNodeNumber (int key) const
 {
-  switch (key)
-    {
-    case kLOADS: // load type not node number, but same idea
-    case kFLUXS: // flux type not node number, but same idea
-    case kU: 
-    case kV:
-    case kA:
-    case kNCOORD:
-      return true;
-    }
+  int index = VariableKeyIndex (key);
+  if (index > 0 && index < NVT)
+    return fVariableTable[index].NodeNumberFlag();
   return false;
 }
 
-bool AbaqusResultsT::CorrectType (int outputmode, int objnum, int intpt, int location, VariableType vt, int& ID) const
+bool AbaqusResultsT::CorrectType (int outputmode, int objnum, int intpt, int location, AbaqusVariablesT::TypeT vt, int& ID) const
 {
   switch (outputmode)
     {
@@ -971,7 +1227,7 @@ bool AbaqusResultsT::CorrectType (int outputmode, int objnum, int intpt, int loc
 	{
 	case 0: /* quadrature point */
 	  {
-	    if (vt == kQuadVar) 
+	    if (vt == AbaqusVariablesT::kQuadrature) 
 	      {
 		ID = objnum;
 		return true;
@@ -981,7 +1237,7 @@ bool AbaqusResultsT::CorrectType (int outputmode, int objnum, int intpt, int loc
 	case 1: /* centroid of element */
 	case 5: /* whole element */
 	  {
-	    if (vt == kElemVar) 
+	    if (vt == AbaqusVariablesT::kElement) 
 	      {
 		ID = objnum;
 		return true;
@@ -990,7 +1246,7 @@ bool AbaqusResultsT::CorrectType (int outputmode, int objnum, int intpt, int loc
 	  }
 	case 2: /* node data */
 	  {
-	    if (vt == kNodeVar) 
+	    if (vt == AbaqusVariablesT::kNode) 
 	      {
 		ID = intpt;
 		return true;
@@ -999,7 +1255,7 @@ bool AbaqusResultsT::CorrectType (int outputmode, int objnum, int intpt, int loc
 	  }
 	case 4: /* nodeal averaged */
 	  {
-	    if (vt == kNodeVar) 
+	    if (vt == AbaqusVariablesT::kNode) 
 	      {
 		ID = objnum;
 		return true;
@@ -1009,7 +1265,7 @@ bool AbaqusResultsT::CorrectType (int outputmode, int objnum, int intpt, int loc
 	}
     case kNodalOutput:
       {
-	if (vt == kNodeVar) return true;
+	if (vt == AbaqusVariablesT::kNode) return true;
 	break;
       }
     }
@@ -1149,6 +1405,59 @@ int AbaqusResultsT::TranslateShell (char *name, GeometryT::CodeT &type, int &num
   return BAD;
 }
 
+void AbaqusResultsT::GetElementName (GeometryT::CodeT geometry_code, int elemnodes, int& num_output_nodes, StringT& elem_name) const
+{
+  switch (geometry_code)
+    {
+    case GeometryT::kPoint:
+      {
+	elem_name = "MASS";	
+	num_output_nodes = 1;
+	break;
+      }
+    case GeometryT::kTriangle:
+      {
+	elem_name =  "CPE";
+	num_output_nodes = (elemnodes < 6) ? 3 : 6;
+	elem_name.Append (num_output_nodes);
+	break;
+      }
+    case GeometryT::kQuadrilateral:
+      {
+	elem_name =  "CPE";
+	num_output_nodes = (elemnodes < 8) ? 4 : 8;
+	elem_name.Append (num_output_nodes);
+	break;
+      }
+    case GeometryT::kHexahedron:
+      {
+	elem_name = "C3D";
+	num_output_nodes = (elemnodes < 20) ? 8 : 20;
+	elem_name.Append (num_output_nodes);
+	break;
+      }
+    case GeometryT::kTetrahedron:
+      {
+	elem_name =  "C3D";
+	num_output_nodes = (elemnodes < 10) ? 4 : 10;
+	elem_name.Append (num_output_nodes);
+	break;
+      }
+    case GeometryT::kPentahedron:
+      {
+	elem_name = "C3D";
+	num_output_nodes = (elemnodes < 15) ? 6 : 15;
+	elem_name.Append (num_output_nodes);
+	break;
+      }
+    default:
+      {
+	fMessage << "\n AbaqusResultsT::GetElementName: cannot find name from geometry code: " << geometry_code << endl;
+	throw eDatabaseFail;
+      }
+    }
+}
+
 void AbaqusResultsT::AdvanceTo (int target)
 {
   int key = 0, error = OKAY;
@@ -1180,7 +1489,7 @@ bool AbaqusResultsT::SkipAttributes (void)
 	{
 	  for (int i=fBufferDone; i < fBufferSize; i++)
 	    {
-	      if (fBuffer[fBufferDone++] == '*')
+	      if (fBuffer[fBufferDone++] == fMarker[0])
 		{
 		  fCurrentLength = 0;
 		  return true;
@@ -1199,18 +1508,13 @@ int AbaqusResultsT::ReadNextRecord (int& key)
   if (!fIn.good() || fIn.eof()) return END;
 
   int length;
-  if (!Read (length) || !Read (key)) 
-    {
-      //fMessage << "\nAbaqusResultsT::ReadNextRecord Cannot Read Next Record.\n";
-      return BAD;
-    }
+  if (!Read (length) || !Read (key)) return BAD;
   fCurrentLength += length;
   return OKAY;
 }
 
 bool AbaqusResultsT::Read (StringT& s, int n)
 {
-  char c;
   ArrayT<char> temp (n * sizeof (double) + 1);
   char *ps = temp.Pointer();
   for (int i=0; i < n; i++)
@@ -1226,7 +1530,6 @@ bool AbaqusResultsT::Read (StringT& s, int n)
       else
 	{
 	  if (!CheckBufferSize (fIn, 9)) return false;
-	      
 	  char c = fBuffer [fBufferDone++];
 	  if (c != 'A') return false;
 
@@ -1321,14 +1624,14 @@ bool AbaqusResultsT::Read (double& d)
 
 bool AbaqusResultsT::CheckBufferSize (istream& in, int numchars)
 {
+#pragma unused(in)
   if (fBinary) 
     return true;
 
-  //cout << "Checking Buffer " << fBufferDone << " " << fBufferSize << " " << numchars << endl;
   if (fBufferSize == 0 || (fBufferSize - fBufferDone) < numchars)
     {
-      //cout << "Updating Buffer" << endl;
       char temp [200];
+      temp[0] = '\0';
       if (fBufferSize > 0) 
 	strcpy (&temp[0], fBuffer.Pointer (fBufferDone));
       char nextline [90];
@@ -1336,7 +1639,6 @@ bool AbaqusResultsT::CheckBufferSize (istream& in, int numchars)
       
       strcat (temp, &nextline[0]);
       fBuffer = temp;
-      //cout << "Buffer = " << fBuffer << ".end." << endl;
       fBufferSize = fBuffer.Length()-1;
       fBufferDone = 0;
       if (fBufferSize < numchars) return false;
@@ -1360,3 +1662,191 @@ void AbaqusResultsT::CheckBufferSize (istream& in)
     in.read (reinterpret_cast<char *> (&fBufferSize), sizeof (int));
 }
 
+void AbaqusResultsT::Write (int i)
+{
+  if (fBinary)
+    {
+      CheckBufferSize (fOut);
+      fOut.write (reinterpret_cast<char *> (&i), sizeof (double));
+      fBufferDone += sizeof (double);
+    }
+  else
+    {
+      StringT s ("I ");
+      StringT itext;
+      itext.Append (i);
+      s.Append (itext.Length() - 1);
+      s.Append (itext);
+      WriteASCII (s);
+    }
+}
+
+void AbaqusResultsT::Write (double d)
+{
+  if (fBinary)
+    {
+      CheckBufferSize (fOut);
+      fOut.write (reinterpret_cast<char *> (&d), sizeof (double));
+      fBufferDone += sizeof (double);
+    }
+  else
+    {
+      double temp = d;
+      StringT s ("D ");
+      if (temp < 0)
+	{
+	  s = "D-";
+	  temp = temp *-1;
+	}
+
+      int whole, exponent = 0;
+      if (temp != 0)
+	{
+	  while (temp > 10)
+	    {
+	      temp = temp/10;
+	      exponent++;
+	    }
+	  while (temp < 1)
+	    {
+	      temp = temp*10;
+	      exponent--;
+	    }
+	}
+      whole = (int) temp;
+      temp = temp - whole;
+
+      // append whole number
+      s.Append (whole);
+
+      // append fraction
+      s.Append (".");
+      for (int i=0; i < dprecision; i++)
+	{
+	  temp = temp *10;
+	  int nextdigit = (int) temp;
+	  s.Append (nextdigit);
+	  temp = temp - nextdigit;
+	}
+      
+      // append exponent
+      if (exponent < 0)
+	{
+	  if (exponent < -99) exponent = -99;
+	  exponent = exponent *-1;
+	  s.Append ("D-");
+	}
+      else
+	s.Append ("D+");
+      s.Append (exponent, 2);
+
+      WriteASCII (s);
+    }
+}
+
+void AbaqusResultsT::Write (const StringT& s, int blocks)
+{
+  char *ps = s.Pointer();
+  if (fBinary)
+    {
+      CheckBufferSize (fOut);
+      fOut.write (ps, sizeof (double)*blocks);
+      fBufferDone += sizeof (double)*blocks;
+    }
+  else
+    {
+      for (int i=0, j=0; i < blocks; i++, j+= 8)
+	{
+	  StringT w = "A";
+	  int copylength = 8;
+	  if (j+8 > s.Length() - 1)
+	    copylength = s.Length() - j - 1;
+	  if (copylength < 0)
+	    copylength = 0;
+	  for (int k=j; k < j + copylength; k++)
+	    w.Append (s[k]);
+	  for (int m=copylength; m < 8; m++)
+	    w.Append (' ');
+	  WriteASCII (w);
+	}
+    }
+}
+
+void AbaqusResultsT::WriteASCII (const StringT& s)
+{
+  if (fBinary) return;
+  
+  if (fBufferDone + s.Length() < fBufferSize)
+    {
+      fOut << s;
+      fBufferDone += s.Length() - 1;
+    }
+  else
+    {
+      for (int i=0; i < s.Length() - 1; i++)
+	{
+	  if (fBufferDone == fBufferSize)
+	    {
+	      fOut << '\n';
+	      fBufferDone = 0;
+	    }
+	  fOut << s[i];
+	  fBufferDone++;
+	}
+    }
+}
+
+void AbaqusResultsT::CheckBufferSize (ostream& out)
+{
+  if (!fBinary) return;
+
+  // FORTRAN footer
+  if (fBufferDone == fBufferSize)
+    {
+      out.write (reinterpret_cast<char *> (&fBufferSize), sizeof (int));
+      fBufferDone = 0;
+    }
+
+  // FORTRAN header
+  if (fBufferDone == 0)
+    out.write (reinterpret_cast<char *> (&fBufferSize), sizeof (int));
+}
+
+void AbaqusResultsT::SetVariableNames (void)
+{
+  fVariableTable.Allocate (NVT);
+  
+  int i=0;
+  /* Record Type, Record Key, First Attribute is a Node Number, Origin of Data */
+  fVariableTable[i++].Set ("S", 11, false, AbaqusVariablesT::kElementIntegration);
+  fVariableTable[i++].Set ("SP", 401, false, AbaqusVariablesT::kElementIntegration);
+  fVariableTable[i++].Set ("SINV", 12, false, AbaqusVariablesT::kElementIntegration);
+  fVariableTable[i++].Set ("MISES", 75, false, AbaqusVariablesT::kElementIntegration);
+  fVariableTable[i++].Set ("ALPHA", 86, false, AbaqusVariablesT::kElementIntegration);
+  fVariableTable[i++].Set ("ALPHAP", 402, false, AbaqusVariablesT::kElementIntegration);
+  fVariableTable[i++].Set ("E", 21, false, AbaqusVariablesT::kElementIntegration);
+  fVariableTable[i++].Set ("EP", 409, false, AbaqusVariablesT::kElementIntegration);
+  fVariableTable[i++].Set ("LE", 89, false, AbaqusVariablesT::kElementIntegration);
+  fVariableTable[i++].Set ("DG", 30, false, AbaqusVariablesT::kElementIntegration);
+  fVariableTable[i++].Set ("EE", 25, false, AbaqusVariablesT::kElementIntegration);
+  fVariableTable[i++].Set ("IE", 24, false, AbaqusVariablesT::kElementIntegration);
+  fVariableTable[i++].Set ("PE", 22, false, AbaqusVariablesT::kElementIntegration);
+  fVariableTable[i++].Set ("ENER", 14, false, AbaqusVariablesT::kElementIntegration);
+  fVariableTable[i++].Set ("SDV", 5, false, AbaqusVariablesT::kElementIntegration);
+  fVariableTable[i++].Set ("TEMP", 2, false, AbaqusVariablesT::kElementIntegration);
+  fVariableTable[i++].Set ("FV", 9, false, AbaqusVariablesT::kElementIntegration);
+  fVariableTable[i++].Set ("UVARM", 87, false, AbaqusVariablesT::kElementIntegration);
+  	   
+  fVariableTable[i++].Set ("LOADS", 3, false, AbaqusVariablesT::kElementWhole);
+  	   
+  fVariableTable[i++].Set ("U", 101, true, AbaqusVariablesT::kNodePoint);
+  fVariableTable[i++].Set ("V", 102, true, AbaqusVariablesT::kNodePoint);
+  fVariableTable[i++].Set ("A", 103, true, AbaqusVariablesT::kNodePoint);
+  fVariableTable[i++].Set ("NT", 201, true, AbaqusVariablesT::kNodePoint);
+
+  if (i != NVT)
+    {
+      fMessage << "AbaqusResultsT::SetVariableNames, incorrect allocation\n\n";
+      throw eDatabaseFail;
+    }
+}
