@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.h,v 1.1.2.2 2002-10-18 01:26:41 paklein Exp $ */
+/* $Id: AdhesionT.h,v 1.1.2.3 2002-10-18 17:42:45 paklein Exp $ */
 #ifndef _ADHESION_T_H_
 #define _ADHESION_T_H_
 
@@ -16,6 +16,7 @@
 #include "nArrayGroupT.h"
 #include "nVariMatrixT.h"
 #include "nArray2DGroupT.h"
+#include "nMatrixGroupT.h"
 
 namespace Tahoe {
 
@@ -100,10 +101,6 @@ protected:
 	/** generate face-interaction data - return true if configuration has
 	 * changed since the last call */
 	bool SetConfiguration(void);
-
-	/* steps in setting configuration */
-	virtual bool SetActiveInteractions(void) = 0; // "internal" data
-	virtual void SetConnectivities(void) = 0; // "external" data - interface to FEManager
 
 	/** \name surface input methods 
 	 * \note All these methods have been adapted from ContactT. */
@@ -196,13 +193,19 @@ protected:
 	dArray2DT fIPNorm2;
 	
 	/** work space vector: [element DOF] */
-	dArrayT fNEEvec; 
+	dArrayT fNEE_vec; 
+
+	/** work space matrix: [element DOF] x [element DOF] */
+	dMatrixT fNEE_mat;
 	/*@}*/
 
 	/** \name dynamic resizing */
 	/*@{*/
 	/** manager of vectors length number element equations */
 	nArrayGroupT<double> fNEE_vec_man;
+
+	/** manager of matricies dimension number element equations */
+	nMatrixGroupT<double> fNEE_mat_man;
 	
 	/** memory manager for AdhesionT::fGrad_d */
 	nVariMatrixT<double> fGrad_d_man;

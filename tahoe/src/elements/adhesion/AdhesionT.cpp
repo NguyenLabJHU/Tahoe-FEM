@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.1.2.2 2002-10-18 01:26:41 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.1.2.3 2002-10-18 17:42:45 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -22,12 +22,16 @@ AdhesionT::AdhesionT(const ElementSupportT& support, const FieldT& field):
 	fGrid(kAvgCellNodes, -1, fFaceCentroids, NULL),
 	fAdhesion(NULL),
 	fNEE_vec_man(0),
+	fNEE_mat_man(0),
 	fFace2_man(0, NumSD()),
 	fGrad_d_man(0, fGrad_d)
 {
 	/* register dynamically resized arrays */
 	fNEE_vec_man.Register(fRHS);
-	fNEE_vec_man.Register(fNEEvec);
+	fNEE_vec_man.Register(fNEE_vec);
+
+	fNEE_mat_man.Register(fLHS);
+	fNEE_mat_man.Register(fNEE_mat);
 
 	fFace2_man.Register(fIPCoords2);
 	fFace2_man.Register(fIPNorm2);
@@ -164,7 +168,124 @@ void AdhesionT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 /* form group contribution to the stiffness matrix */
 void AdhesionT::LHSDriver(void)
 {
+	/* time-stepping parameters */
+	double constK = 0.0;
+	int     formK = fController->FormK(constK);
+	if (!formK) return;
+	
+	/* dimensions */
+	int nsd = NumSD();
 
+	/* work space */
+	iArrayT nodes1, nodes2, equations;
+	dArrayT ipx1, ipx2, v_12(nsd);
+	dArrayT n1, n2, Na;
+	dMatrixT Q1(nsd), Q2(nsd), shNaMat;
+	AutoArrayT<double> j2w2_list, jump;
+
+	/* loop over active face pairs */
+	for (int i = 0; i < fSurface1.Length(); i++)
+	{
+		/* surface index */
+		int s1 = fFaceIndex(fSurface1[i], kSurface);
+		int s2 = fFaceIndex(fSurface2[i], kSurface);
+	
+		/* local face index */
+		int i1 = fFaceIndex(fSurface1[i], kLocalIndex);
+		int i2 = fFaceIndex(fSurface2[i], kLocalIndex);
+		
+		/* face node numbers */
+		fSurfaces[s1].RowAlias(i1, nodes1);
+		fSurfaces[s2].RowAlias(i2, nodes2);
+
+		/* local coordinate arrays */
+		LocalArrayT& coords1 = fLocCurrCoords[s1];	
+		LocalArrayT& coords2 = fLocCurrCoords[s2];
+		coords1.SetLocal(nodes1);	
+		coords2.SetLocal(nodes2);	
+	
+		/* surface shape functions */
+		SurfaceShapeT& shape1 = *fShapes[s1];
+		SurfaceShapeT& shape2 = *fShapes[s2];
+
+		/* resize working arrays for the pair */
+		fNEE_vec_man.Dimension(fFaceEquations.MinorDim(i), false);
+		fNEE_mat_man.Dimension(fFaceEquations.MinorDim(i), false);
+		fLHS = 0.0;
+		jump.Dimension(fFaceConnectivities.MinorDim(i));
+		fGrad_d_man.SetDimensions(jump.Length(), nsd);
+
+		/* resize working arrays for face 2 */
+		int nip2 = shape2.NumIP();
+		j2w2_list.Dimension(nip2);
+		fFace2_man.SetMajorDimension(nip2, false);
+
+		/* double-loop over integration points */
+		shape1.TopIP();
+		while (shape1.NextIP())
+		{
+			/* integration point coordinates */
+			ipx1 = shape1.IPCoords();
+			double j1w1 = shape1.Jacobian(Q1)*shape1.IPWeight();
+			Q1.ColumnAlias(nsd-1, n1);
+			
+			/* face 1 shape functions */
+			Na.Set(shape1.NumFacetNodes(), jump.Pointer());
+			shape1.Shapes(Na);
+			Na *= -1.0;
+
+			shape2.TopIP();
+			while (shape2.NextIP())
+			{
+				/* data for face 2 */
+				int ip2 = shape2.CurrIP();
+				fIPCoords2.RowAlias(ip2, ipx2);
+				fIPNorm2.RowAlias(ip2, n2);
+				double& j2w2 = j2w2_list[ip2];
+			
+				/* calculate once and store */
+				if (ip2 == 0)
+				{
+					ipx2 = shape2.IPCoords();
+					j2w2 = shape2.Jacobian(Q2)*shape2.IPWeight();
+					Q2.ColumnAlias(nsd-1, n2);
+				}
+			
+				/* gap vector from face 1 to face 2 */
+				v_12.DiffOf(ipx2, ipx1);
+				double d = v_12.Magnitude();
+			
+				if (fabs(d) > kSmall &&
+				    dArrayT::Dot(v_12, ipx1) > 0.0 &&
+				    dArrayT::Dot(v_12, ipx2) < 0.0)
+				{
+					double k  = j1w1*j2w2*constK;			
+					double k2 = k*(fAdhesion->DFunction(d))/d;
+					double k1 = (k*fAdhesion->DDFunction(d) - k2)/(d*d);
+					
+					/* face 2 shape functions */
+					Na.Set(shape2.NumFacetNodes(), jump.Pointer(shape1.NumFacetNodes()));
+					shape2.Shapes(Na);
+					
+					/* form d_jump/du */
+					shNaMat.Set(1, jump.Length(), jump.Pointer());
+					fGrad_d.Expand(shNaMat, nsd);
+
+					/* accumulate */
+					fGrad_d.MultTx(v_12, fNEE_vec);
+					fNEE_mat.Outer(fNEE_vec, fNEE_vec);
+					fLHS.AddScaled(k1, fNEE_mat);
+				
+					fNEE_mat.MultATB(fGrad_d, fGrad_d);
+					fLHS.AddScaled(k2, fNEE_mat);
+				}
+			}
+		}
+		
+		/* assemble */
+		fFaceEquations.RowAlias(i, equations);
+		ElementSupport().AssembleRHS(Group(), fRHS, equations);
+	}
 }
 
 /* form group contribution to the residual */
@@ -181,7 +302,7 @@ void AdhesionT::RHSDriver(void)
 	/* work space */
 	iArrayT nodes1, nodes2, equations;
 	dArrayT ipx1, ipx2, v_12(nsd);
-	dArrayT n1, n2;
+	dArrayT n1, n2, Na;
 	dMatrixT Q1(nsd), Q2(nsd), shNaMat;
 	AutoArrayT<double> j2w2_list, jump;
 
@@ -231,7 +352,9 @@ void AdhesionT::RHSDriver(void)
 			Q1.ColumnAlias(nsd-1, n1);
 			
 			/* face 1 shape functions */
-			//jump
+			Na.Set(shape1.NumFacetNodes(), jump.Pointer());
+			shape1.Shapes(Na);
+			Na *= -1.0;
 
 			shape2.TopIP();
 			while (shape2.NextIP())
@@ -262,15 +385,16 @@ void AdhesionT::RHSDriver(void)
 					double dphi =-j1w1*j2w2*constKd*(fAdhesion->DFunction(d));
 					
 					/* face 2 shape functions */
-					//jump
+					Na.Set(shape2.NumFacetNodes(), jump.Pointer(shape1.NumFacetNodes()));
+					shape2.Shapes(Na);
 					
 					/* form d_jump/du */
 					shNaMat.Set(1, jump.Length(), jump.Pointer());
 					fGrad_d.Expand(shNaMat, nsd);
 				
 					/* accumulate */
-					fGrad_d.MultTx(v_12, fNEEvec);
-					fRHS.AddScaled(dphi/d, fNEEvec);
+					fGrad_d.MultTx(v_12, fNEE_vec);
+					fRHS.AddScaled(dphi/d, fNEE_vec);
 				}
 			}
 		}
