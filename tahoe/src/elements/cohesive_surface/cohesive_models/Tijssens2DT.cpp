@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.10.2.1 2002-04-28 22:26:22 paklein Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.10.2.2 2002-05-07 07:23:41 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -68,6 +68,7 @@ double Tijssens2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state
 /* traction vector given displacement jump vector */	
 const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
 {
+#pragma unused(sigma)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
@@ -156,6 +157,7 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 /* potential stiffness */
 const dMatrixT& Tijssens2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
 {
+#pragma unused(sigma)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;

@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.11 2002-04-16 21:19:33 cjkimme Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.11.2.1 2002-05-07 07:23:41 paklein Exp $ */
 /* created: paklein (06/20/1999) */
 
 #ifndef _SURFACE_POTENTIAL_T_H_
@@ -49,8 +49,13 @@ public:
 	 * involves only setting the array to zero. */
 	virtual void InitStateVariables(ArrayT<double>& state);
 	
-	/** dissipated energy */
+	/** dissipated energy. Total amount of energy dissipated reaching
+	 * the current state. */
 	virtual double FractureEnergy(const ArrayT<double>& state) = 0;
+
+	/** incremental heat. The amount of energy per unit undeformed area
+	 * released as heat over the current increment */
+	virtual double IncrementalHeat(const dArrayT& jump, const ArrayT<double>& state);
 
 	/** potential energy */
 	virtual double Potential(const dArrayT& jump, const ArrayT<double>& state) = 0;
