@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.76.2.4 2004-08-04 22:34:48 d-farrell2 Exp $ */
+/* $Id: FEManagerT.cpp,v 1.76.2.5 2004-08-07 18:08:25 d-farrell2 Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -592,15 +592,15 @@ void FEManagerT::Update(int group, const dArrayT& update)
 	 * like it only outputs a time value, and does some error checking */
 	if (Size() > 1) // if comm size > 1 use parallel stuff
 	{
-		/* give a heart beat */
+		// give a heart beat
 		const char caller[] = "FEManagerT::Update";
 		
-		/* give heartbeat */
+		// give heartbeat
 		TimeStamp(caller);
 		
-		/* check sum */
+		// check sum
 		if (fComm.Sum(ExceptionT::kNoError) != 0) 
-			ExceptionT::BadHeartBeat(caller); /* must trigger try block in FEManagerT::SolveStep */
+			ExceptionT::BadHeartBeat(caller); // must trigger try block in FEManagerT::SolveStep
 	}
 	fNodeManager->Update(group, update);
 }
@@ -1856,7 +1856,7 @@ ExceptionT::CodeT FEManagerT::InitialCondition(void)
 			
 		/* solve the current time step */
 		if (error == ExceptionT::kNoError) error = SolveStep();
-			
+		
 		/* close the current time step */
 		if (error == ExceptionT::kNoError) error = CloseStep();
 
