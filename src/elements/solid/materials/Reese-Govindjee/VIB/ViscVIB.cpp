@@ -1,4 +1,4 @@
-/* $Id: ViscVIB.cpp,v 1.2 2003-05-21 04:34:42 thao Exp $ */
+/* $Id: ViscVIB.cpp,v 1.3 2003-05-21 06:42:37 thao Exp $ */
 /* created: TDN (1/19/2000) */
 
 #include <math.h>
@@ -52,11 +52,11 @@ ViscVIB::ViscVIB(ifstreamT& in, int nsd, int numstress, int nummoduli):
 		}
 	        case C1FunctionT::kQuadratic:
 		{
-		        double AE, AIN;
-			in >> AE;        
-			fPotential_E = new ParabolaT(AE);
-			in >> AIN;
-			fPotential_I = new ParabolaT(AIN);
+		        double AE, AIN, BE,BIN;
+			in >> AE >> BE;        
+			fPotential_E = new ParabolaT(AE, BE);
+			in >> AIN >> BIN;
+			fPotential_I = new ParabolaT(AIN, BIN);
 			break;
 		}
 		default:
