@@ -1,4 +1,4 @@
-/* $Id: SSSV_KStV2D.cpp,v 1.2 2003-04-05 20:38:08 thao Exp $ */
+/* $Id: SSSV_KStV2D.cpp,v 1.3 2003-04-12 22:07:53 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSSV_KStV2D.h"
 #include "SSMatSupportT.h"
@@ -15,7 +15,7 @@ static const char* Labels[kNumOutputVar] = {"Dvisc","Iep_v", "IIe_v"};
 
 SSSV_KStV2D::SSSV_KStV2D(ifstreamT& in, const SSMatSupportT& support):
 	SSSimoViscoT(in, support),
-	fStress(2),
+        fStress(2),
 	fModulus(3),
 	fModMat(3),
 	fStrain3D(3),
@@ -38,6 +38,8 @@ SSSV_KStV2D::SSSV_KStV2D(ifstreamT& in, const SSMatSupportT& support):
 
 	in >> mu_NEQ;
 	in >> kappa_NEQ;
+
+        IsotropicT::Set_mu_kappa(mu_EQ, kappa_EQ);
 }	
 
 void SSSV_KStV2D::Print(ostream& out) const

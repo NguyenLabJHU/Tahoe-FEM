@@ -1,19 +1,18 @@
-/* $Id: SSSV_KStV3D.h,v 1.2 2003-04-05 20:38:08 thao Exp $ */
+/* $Id: SSSV_KStV3D.h,v 1.3 2003-04-12 22:07:53 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_SV_KStV_3D_H_
 #define _SS_SV_KStV_3D_H_
 
 #include "SSSimoViscoT.h"
-
+#include "IsotropicT.h"
 namespace Tahoe {
 
 /* forward declarations */
 class ifstreamT;
-class IsotropicT;
 
 /** base class for standard solid Kirchhoff St. Venant constitutive models 
  * constitutive law */
-class SSSV_KStV3D: public SSSimoViscoT
+class SSSV_KStV3D: public SSSimoViscoT, public IsotropicT
 {
 	public:
 	
@@ -54,9 +53,7 @@ class SSSV_KStV3D: public SSSimoViscoT
         /*stress/modulus*/ 
         dMatrixT fModulus; 
         dSymMatrixT fStress; 
-
 	    dMatrixT fModMat;
-
 	/*relaxation times*/ 
         double ftauS; 
         double ftauB; 

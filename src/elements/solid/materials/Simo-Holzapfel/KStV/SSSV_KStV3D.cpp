@@ -1,4 +1,4 @@
-/* $Id: SSSV_KStV3D.cpp,v 1.2 2003-04-05 20:38:08 thao Exp $ */
+/* $Id: SSSV_KStV3D.cpp,v 1.3 2003-04-12 22:07:53 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSSV_KStV3D.h"
 #include "SSMatSupportT.h"
@@ -37,6 +37,8 @@ SSSV_KStV3D::SSSV_KStV3D(ifstreamT& in, const SSMatSupportT& support):
 
 	in >> mu_NEQ;
 	in >> kappa_NEQ;
+	
+	IsotropicT::Set_mu_kappa(mu_EQ, kappa_EQ);
 }	
 
 void SSSV_KStV3D::Print(ostream& out) const
