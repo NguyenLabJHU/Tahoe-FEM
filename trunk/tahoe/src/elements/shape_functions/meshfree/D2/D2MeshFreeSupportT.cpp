@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.cpp,v 1.13 2004-12-27 20:17:17 paklein Exp $ */
+/* $Id: D2MeshFreeSupportT.cpp,v 1.14 2005-02-05 01:57:25 kyonten Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupportT.h"
@@ -37,7 +37,7 @@ D2MeshFreeSupportT::D2MeshFreeSupportT(const ParentDomainT* domain, const dArray
 // kyonten
 D2MeshFreeSupportT::D2MeshFreeSupportT(void) 
 {
-	SetName("D2_meshfree_support_2D");
+	SetName("D2_meshfree_support");
 }
 //*********************************************//
 
