@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.23 2004-10-04 18:40:51 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.24 2005-01-07 02:15:05 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "CCSMatrixT.h"
 
@@ -128,6 +128,7 @@ void CCSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	fEqnos.Clear();
 	fRaggedEqnos.Clear();
 	
+	/* set flag */
 	fIsFactorized = false;
 }
 
