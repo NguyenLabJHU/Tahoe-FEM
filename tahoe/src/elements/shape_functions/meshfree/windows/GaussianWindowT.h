@@ -1,16 +1,18 @@
-/* $Id: GaussianWindowT.h,v 1.4 2001-06-18 17:04:18 hspark Exp $ */
+/* $Id: GaussianWindowT.h,v 1.5 2001-06-18 18:21:27 paklein Exp $ */
 
 #ifndef _GAUSSIAN_WINDOW_T_H_
 #define _GAUSSIAN_WINDOW_T_H_
 
 /* base class */
 #include "WindowT.h"
+
+/* direct members */
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "dSymMatrixT.h"
 
 /** Spherical/circular Gaussian window function */
-class GaussianWindowT
+class GaussianWindowT: public WindowT
 {
   public:
 
@@ -23,7 +25,7 @@ class GaussianWindowT
 	/** shared parameters
 	 * \return 1 since the function varies from node to node only
 	 * depending on the support radius. */
-	virtual int NumberOfParameters(void) const { return 1; };
+	virtual int NumberOfNodalParameters(void) const { return 1; };
 	
 	virtual void WriteParameters(ostream& out) const;
 
@@ -41,7 +43,7 @@ class GaussianWindowT
 
 	/* multiple points */
 	virtual void Covers(const dArray2DT& x_n, const dArrayT& x, 
-			    const dArray2DT& param_n, const ArrayT<bool>& covers);
+			    const dArray2DT& param_n, ArrayT<bool>& covers);
 	
 	//etc...
 	
