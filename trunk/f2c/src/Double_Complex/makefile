@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1.1.1 2001-01-30 19:28:16 paklein Exp $
+# $Id: makefile,v 1.2 2001-01-31 04:11:28 paklein Exp $
 # object directory makefile - compilation instructions
 
 .SUFFIXES: .c .cpp .C .f .F .o .d .h .h_link
@@ -104,7 +104,8 @@ objects: all.depend
 update_objects: $(OBJ)
 
 library:
-	@ $(AR) $(ARFLAGS) $(LIBRARY) $(OBJ_LINK)
+	@ echo "\\" >> $(LIBRARY)
+	@ echo "\t$(OBJ_LINK)\c" >> $(LIBRARY)
 	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = library"
 
 $(SUB_DIR): dummy
@@ -118,26 +119,31 @@ dummy:
 .c.o:
 	@ echo "    $(COMP_C): "$<; \
 	$(COMP_C) $(CFLAGS_C) $<
+	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
 	@echo "#touch" > $(LIB_DIR)/lib.junk
 
 .cpp.o:
 	@ echo "    $(COMP_CC): "$<; \
 	$(COMP_CC) $(CFLAGS_CC) $<
+	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
 	@echo "#touch" > $(LIB_DIR)/lib.junk
 
 .C.o:
 	@ echo "    $(COMP_CC): "$<; \
 	$(COMP_CC) $(CFLAGS_CC) $<
+	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
 	@echo "#touch" > $(LIB_DIR)/lib.junk
 
 .f.o:
 	@ echo "    $(COMP_F): "$<; \
 	$(COMP_F) $(CFLAGS_F) $<
+	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
 	@echo "#touch" > $(LIB_DIR)/lib.junk
 
 .F.o:
 	@ echo "    $(COMP_F): "$<; \
 	$(COMP_F) $(CFLAGS_F) $<
+	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
 	@echo "#touch" > $(LIB_DIR)/lib.junk
 
 .h.h_link:
