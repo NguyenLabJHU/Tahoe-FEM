@@ -1,4 +1,4 @@
-/* $Id: ExtractIOManager.cpp,v 1.12 2002-10-28 14:19:02 sawimme Exp $ */
+/* $Id: ExtractIOManager.cpp,v 1.13 2003-02-20 21:28:17 sawimme Exp $ */
 #include "ExtractIOManager.h"
 
 #include "ExceptionT.h"
@@ -15,7 +15,7 @@ ExtractIOManager::ExtractIOManager (ostream& out, istream& in, bool write) :
 void ExtractIOManager::Translate (const StringT& program, const StringT& version, const StringT& title)
 {
   // set input
-  fModel.Initialize ();
+  SetInput ();
   
   cout << "\n" << setw (10) << fModel.NumNodeVariables () << " Node Variables\n";
   cout << setw (10) << fModel.NumElementVariables () << " Element Variables\n";
