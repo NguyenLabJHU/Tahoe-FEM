@@ -1,4 +1,4 @@
-/* $Id: MFGP_MaterialSupportT.h,v 1.1 2005-01-06 22:39:43 kyonten Exp $ */
+/* $Id: MFGP_MaterialSupportT.h,v 1.2 2005-01-14 00:12:25 raregue Exp $ */
 #ifndef _MFGP_MATERIAL_SUPPORT_T_H_
 #define _MFGP_MATERIAL_SUPPORT_T_H_
 
@@ -9,6 +9,7 @@
 #include "LocalArrayT.h"
 #include "AutoArrayT.h"
 #include "ElementCardT.h"
+#include "dSymMatrixT.h"
 
 namespace Tahoe {
 
