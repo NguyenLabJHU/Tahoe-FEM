@@ -38,7 +38,7 @@ int LU_MPI_driver(int msg_lvl, const char* message_file, int matrix_type,
 char            buffer[128] ;
 Chv             *rootchv ;
 ChvManager      *chvmanager ;
-DenseMtx        *mtxX, *mtxY, *newY, mtxX_tmp;
+DenseMtx        *mtxX, *mtxY, *newY, *mtxX_tmp;
 SubMtxManager   *mtxmanager, *solvemanager;
 FrontMtx        *frontmtx ;
 InpMtx          *mtxA, *newA ;
