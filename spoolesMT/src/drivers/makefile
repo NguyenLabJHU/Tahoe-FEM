@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1.1.1 2001-07-24 17:32:21 strohban Exp $
+# $Id: makefile,v 1.2 2005-04-05 16:04:19 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,7 +6,12 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	LU_MT_driver.o
+	LU_MT_driver.o \
+	LU_MT_driver_factorize.o \
+	LU_MT_driver_free.o \
+	LU_MT_driver_init.o \
+	LU_MT_driver_solve.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -15,11 +20,15 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	LU_MT_driver.c
+	LU_MT_driver.c \
+	LU_MT_driver_factorize.c \
+	LU_MT_driver_free.c \
+	LU_MT_driver_init.c \
+	LU_MT_driver_solve.c
 
 # headers
-#HDR = 
-#HDR_LINK = $(HDR:.h=.h_link)
+HDR = 
+HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
 SUB_DIR = 
