@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.cpp,v 1.6 2001-09-06 01:03:28 rjones Exp $ */
+/* $Id: XDOF_ManagerT.cpp,v 1.7 2001-09-10 23:26:19 rjones Exp $ */
 /* created: paklein (06/01/1998) */
 /* base class which defines the interface for a manager */
 /* of DOF's comprised of FE DOF's plus constrain DOF's */
@@ -251,44 +251,54 @@ void XDOF_ManagerT::CheckEquationNumbers(ostream& out, iArray2DT& eqnos)
 				iArrayT elem;
 				iArrayT eq_u;
 				int nen = connects.MinorDim();
+				int x_node = 0;
 				for (int j = 0; j < connects.MajorDim(); j++)
 				{
 					connects.RowAlias(j, elem);
-					if (elem[nen-1] + 1 <= eqnos.MajorDim()) /* eqnos has disp DOF's */
-					{
+					if (elem[nen-1] < 0 ) 
+					{ 	/* no xdof exists for this u node */
+						out << "\n XDOF_ManagerT: found u node w/o xdof: ";
+                        out << elem[nen-1] << endl;
+
+					}
+					else if (elem[nen-1] + 1 <= eqnos.MajorDim()) 
+					{	/* xdof node is the u node range */
 						cout << "\n XDOF_ManagerT: expecting external DOF tag in final slot: ";
 						cout << elem[nen-1] << endl;
 						throw eGeneralFail;
-					}
+					} else {
 		
-					/* get equations from 1st node in connect */
-					eqnos.RowAlias(elem[0], eq_u); // connects are 1,...
+						/* get equations from 1st node in connect */
+						eqnos.RowAlias(elem[0], eq_u); // connects are 1,...
 
-					/* find highest equation of the node */
-					int max_eq = eq_u.Max();
-					if (max_eq < 0)
-					{
-						cout << "\n XDOF_ManagerT: no active equations found with contact tag ";
-						cout << elem[nen-1] << '\n';
-						cout << " connectivity: ";
-						cout << elem.no_wrap() << '\n';
-						cout << endl;
-						throw eGeneralFail;
+						/* find highest equation of the node */
+						int max_eq = eq_u.Max();
+						if (max_eq < 0)
+						{	/* xdof has been assigned to a node with ess.bcs*/
+							out << "\n XDOF_ManagerT: no active u equations found with xdof tag ";
+							out << elem[nen-1] << '\n';
+							out << " connectivity: ";
+							out << elem.no_wrap() << '\n';
+							out << endl;
+						} else {
+
+							/* swap */
+							eq_u.ChangeValue(max_eq, XDOF_eqnos(x_node,0));
+							XDOF_eqnos(x_node,0) = max_eq;
+		
+							out << setw(kIntWidth) << elem[0];
+							out << setw(kIntWidth) << elem[nen-1];
+							if (++col == num_cols)
+							{
+								out << '\n';
+								col = 0;
+							}
+							else
+							out << setw(kIntWidth) << " ";
+	
+						}
+						x_node++;
 					}
-
-					/* swap */
-					eq_u.ChangeValue(max_eq, XDOF_eqnos(j,0));
-					XDOF_eqnos(j,0) = max_eq;
-
-					out << setw(kIntWidth) << elem[0];
-					out << setw(kIntWidth) << elem[nen-1];
-					if (++col == num_cols)
-					{
-						out << '\n';
-						col = 0;
-					}
-					else
-						out << setw(kIntWidth) << " ";
 				}
 			}
 			else
