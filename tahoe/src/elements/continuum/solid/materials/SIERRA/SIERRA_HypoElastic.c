@@ -1,4 +1,4 @@
-/* $Id: SIERRA_HypoElastic.c,v 1.5 2003-03-10 23:30:56 paklein Exp $ */
+/* $Id: SIERRA_HypoElastic.c,v 1.6 2003-03-11 16:10:26 paklein Exp $ */
 #include "SIERRA_Material_Interface.h"
 #include <stdio.h>
 
@@ -107,15 +107,15 @@ void SIERRA_HypoElastic_calc(int* nelem, double* dt,
 	{
 		/* compute updated stress */
 		stress_new[0] = stress_old[0] + dstrain[0]*kappa_plus_4_mu_by_3 + (dstrain[1] + dstrain[2])*kappa_minus_2_mu_by_3;
-		stress_new[1] = stress_old[1] + dstrain[1]*kappa_plus_4_mu_by_3 + (dstrain[2] + dstrain[3])*kappa_minus_2_mu_by_3;
-		stress_new[2] = stress_old[2] + dstrain[2]*kappa_plus_4_mu_by_3 + (dstrain[3] + dstrain[0])*kappa_minus_2_mu_by_3;
+		stress_new[1] = stress_old[1] + dstrain[1]*kappa_plus_4_mu_by_3 + (dstrain[0] + dstrain[2])*kappa_minus_2_mu_by_3;
+		stress_new[2] = stress_old[2] + dstrain[2]*kappa_plus_4_mu_by_3 + (dstrain[0] + dstrain[1])*kappa_minus_2_mu_by_3;
 
 		stress_new[3] = stress_old[3] + two_mu*dstrain[3];
 		stress_new[4] = stress_old[4] + two_mu*dstrain[4];
 		stress_new[5] = stress_old[5] + two_mu*dstrain[5];
 		
 		/* compute updated strain energy density */
-		state_new[0] += state_old[0] 
+		state_new[0] = state_old[0] 
 			+ stress_new[0]*dstrain[0] + stress_new[1]*dstrain[1] + stress_new[2]*dstrain[2]
        + 2.0*(stress_new[3]*dstrain[3] + stress_new[4]*dstrain[4] + stress_new[5]*dstrain[5]);
 
