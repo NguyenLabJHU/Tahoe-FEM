@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.30.2.1 2002-12-05 21:46:13 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.30.2.2 2002-12-10 17:05:04 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -503,7 +503,7 @@ void ModelManagerT::ReadCoordinates(void)
 {
 	/* not yet loaded */
 	if (fCoordinates.MajorDim() != fCoordinateDimensions[0] ||
-	    fCoordinates.MajorDim() != fCoordinateDimensions[1])
+	    fCoordinates.MinorDim() != fCoordinateDimensions[1])
 	{
 		if (fFormat == IOBaseT::kTahoe)
 		{
