@@ -33,7 +33,7 @@ CellFromMeshT::~CellFromMeshT(void)
 }
 
 void CellFromMeshT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, RaggedArray2DT<dArrayT>& bVectors,
-									 dArrayT& cellVolumes, RaggedArray2DT<double>& circumferential_B)
+									 dArrayT& cellVolumes, dArray2DT& cellCentroids, RaggedArray2DT<double>& circumferential_B)
 {
 #pragma unused(cellSupports)
 #pragma unused(bVectors)

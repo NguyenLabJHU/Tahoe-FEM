@@ -60,7 +60,7 @@ protected: /* for derived classes only */
 	
 	/** compute B matrices for strain smoothing/nodal integration */
 	virtual void ComputeBMatrices(RaggedArray2DT<int>& nodalCellSupports, RaggedArray2DT<dArrayT>& bVectorArray,
-								  dArrayT& cellVolumes, RaggedArray2DT<double>& circumferential_B);
+								  dArrayT& cellVolumes, dArray2DT& cellCentroids, RaggedArray2DT<double>& circumferential_B);
 	
 	/** write out Voronoi diagram data. This function is only called when qhull is used
 		to compute the clipped Voronoi diagram. */

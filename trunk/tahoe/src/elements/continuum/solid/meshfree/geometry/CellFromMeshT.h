@@ -1,4 +1,4 @@
-/* $Id: CellFromMeshT.h,v 1.1 2005-01-25 02:24:04 cjkimme Exp $ */
+/* $Id: CellFromMeshT.h,v 1.2 2005-01-25 18:22:11 cjkimme Exp $ */
 #ifndef _CELL_FROM_MESH_T_H_
 #define _CELL_FROM_MESH_T_H_
 
@@ -31,7 +31,7 @@ public:
 	
 	/** compute B matrices for strain smoothing/nodal integration */
 	virtual void ComputeBMatrices(RaggedArray2DT<int>& nodalCellSupports, RaggedArray2DT<dArrayT>& bVectorArray,
-									dArrayT& cellVolumes, RaggedArray2DT<double>& circumferential_B);
+									dArrayT& cellVolumes, dArray2DT& cellCentroids, RaggedArray2DT<double>& circumferential_B);
 	
 protected:
 	
