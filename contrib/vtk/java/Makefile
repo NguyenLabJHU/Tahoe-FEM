@@ -23,8 +23,8 @@ JAVA_H = test.h
 # macros for Sun-troi
 COMP_CC = CC
 CC_FLAGS = -c -I/usr/java/include -I/usr/java/include/solaris
-LD       = CC
-LD_FLAGS = -shared
+LD       = ld
+LD_FLAGS = -G
 DSO_EXT  = so
 
 all: $(JAVA_OBJ) java_native cpp_dso
