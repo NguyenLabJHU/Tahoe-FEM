@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.24 2003-09-28 09:08:40 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.23 2003-09-04 23:55:26 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _NMATRIX_T_H_
 #define _NMATRIX_T_H_
@@ -47,7 +47,6 @@ public:
 	/** \name convert to a shallow object */
 	/*@{*/
 	void Alias(int numrows, int numcols, nTYPE* p);
-	void Alias(int dim, nTYPE* p) { Alias(dim, dim, p); };
 	void Alias(const nMatrixT& RHS);
 	/*@}*/
 

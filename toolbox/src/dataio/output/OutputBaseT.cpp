@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.19 2003-09-21 15:48:13 paklein Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.19.2.1 2003-09-25 17:29:29 cjkimme Exp $ */
 /* created: sawimme (05/18/1999) */
 #include "OutputBaseT.h"
 #include "OutputSetT.h"
@@ -18,10 +18,10 @@ OutputBaseT::OutputBaseT(ostream& out, const ArrayT<StringT>& out_strings):
 	IOBaseT(out),
 	fCoordinates(NULL),
 	fNodeID(NULL),
-	fSequence(0),
 	fBounds(NULL),
 	fTypes(NULL),
-	fParts(NULL)
+	fParts(NULL),
+	fSequence(0)
 {
 	if (out_strings.Length() > 3)
 	{
@@ -211,12 +211,13 @@ void OutputBaseT::WriteGeometryFile(const StringT& file_name,
 void OutputBaseT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 	const dArray2DT& e_values)
 {
-	const char caller[] = "OutputBaseT::WriteOutput";
-
+#ifdef __MWERKS__
 #pragma unused(time)
 #pragma unused(ID)
 #pragma unused(n_values)
 #pragma unused(e_values)
+#endif
+	const char caller[] = "OutputBaseT::WriteOutput";
 
 	/* checks */
 	if (ID < 0 || ID >= fElementSets.Length())

@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.cpp,v 1.13 2002-10-20 22:36:54 paklein Exp $ */
+/* $Id: EnSightInputT.cpp,v 1.13.8.1 2003-09-25 17:29:28 cjkimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #include "EnSightInputT.h"
@@ -43,7 +43,7 @@ bool EnSightInputT::Open (const StringT& file)
 void EnSightInputT::ElementGroupNames (ArrayT<StringT>& groupnames) const
 {
   ifstream in (fGeometryFile);
-  int id = -1;
+//  int id = -1;
   bool nodemap, elementmap;
   int numnodes, numelems, numelemnodes;
   fData.ReadGeometryHeader(in, nodemap, elementmap);

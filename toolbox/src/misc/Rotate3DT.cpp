@@ -1,4 +1,4 @@
-/* $Id: Rotate3DT.cpp,v 1.4 2002-09-12 16:40:20 paklein Exp $ */
+/* $Id: Rotate3DT.cpp,v 1.4.10.1 2003-09-25 17:29:32 cjkimme Exp $ */
 /* This class provides the functionality to do 3D coordinate */
 /* transformations.                                          */
 
@@ -20,23 +20,23 @@ const double Pi = acos(-1.0);
 /*
 * constructor
 */
-Rotate3DT::Rotate3DT(void): fAngleDeg(0.0), fDir(kMatrixDim),fAngle(0.0), 
+Rotate3DT::Rotate3DT(void): fDir(kMatrixDim),fAngleDeg(0.0),fAngle(0.0), 
+			    fQ(kMatrixDim), fVec(kMatrixDim),
 			    fPhiDeg(0.0),fThetaDeg(0.0),fPsiDeg(0.0),
-			    fPhi(0.0),fTheta(0.0),fPsi(0.0),
-			    fQ(kMatrixDim), fVec(kMatrixDim)
+			    fPhi(0.0),fTheta(0.0),fPsi(0.0)
 {
 
 }
 
-Rotate3DT::Rotate3DT(dArrayT u,double angle): fAngleDeg(angle), fDir(kMatrixDim), 
+Rotate3DT::Rotate3DT(dArrayT u,double angle): fDir(kMatrixDim),fAngleDeg(angle), 
 					      fAngle(0.0),fQ(kMatrixDim),fVec(kMatrixDim),
-					      fPhi(0.0),fTheta(0.0),fPsi(0.0),
-                                              fPhiDeg(0.0),fThetaDeg(0.0),fPsiDeg(0.0)
+					      fPhiDeg(0.0), fThetaDeg(0.0),fPsiDeg(0.0),
+					      fPhi(0.0),fTheta(0.0),fPsi(0.0)
 {
   SetAngle(u,fAngleDeg);
 }
 
-Rotate3DT::Rotate3DT(double phi,double theta,double psi): fAngleDeg(0.0), fDir(kMatrixDim), 
+Rotate3DT::Rotate3DT(double phi,double theta,double psi): fDir(kMatrixDim),fAngleDeg(0.0),
 					    fAngle(0.0),fQ(kMatrixDim),fVec(kMatrixDim),
 					    fPhiDeg(phi),fThetaDeg(theta),fPsiDeg(psi),					    
 					    fPhi(0.0),fTheta(0.0),fPsi(0.0)

@@ -1,4 +1,4 @@
-/* $Id: ModBessel.cpp,v 1.8 2002-10-20 22:38:48 paklein Exp $ */
+/* $Id: ModBessel.cpp,v 1.8.8.1 2003-09-25 17:29:20 cjkimme Exp $ */
 /* created: dzeigle (4/18/2002) */
 
 #include "ModBessel.h"
@@ -139,7 +139,8 @@ dArrayT& ModBessel::MapDDFunction(const dArrayT& in,  dArrayT& out) const
 	cout << "\n Second derivative of the Bessel Function of the 3rd Kind not tabulated!\n";
 	for (int i = 0; i < in.Length(); i++)
 	{
-		double r = *pl++;				
+//		double r = *pl++;				
+		*pl++;
 		*pddU++ = 0.0;
 	}
 	return out;

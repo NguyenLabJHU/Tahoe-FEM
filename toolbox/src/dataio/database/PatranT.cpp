@@ -1,4 +1,4 @@
-/* $Id: PatranT.cpp,v 1.20 2003-03-31 22:53:50 paklein Exp $ */
+/* $Id: PatranT.cpp,v 1.20.6.1 2003-09-25 17:29:27 cjkimme Exp $ */
 /* created sawimme (05/17/2001) */
 
 #include "PatranT.h"
@@ -227,7 +227,7 @@ bool PatranT::ReadConnectivity (const StringT& title, PatranT::NamedTypes& named
     }
   
   int count = 0, num_nodes;
-  int *pc = connects.Pointer();
+//  int *pc = connects.Pointer();
   int ID, IV, KC;
   ifstream in (file_name);
   iArrayT temp (connects.MinorDim());
@@ -506,7 +506,9 @@ bool PatranT::WriteHeader (ostream& out, int numnodes, int numelems, const Strin
 
 bool PatranT::WriteCoordinates (ostream& out, const dArray2DT& coords, int firstnodeID) const
 {
+#ifdef __MWERKS__
 #pragma unused(out)
+#endif
   iArrayT map (coords.MajorDim());
   map.SetValueToPosition ();
   map += firstnodeID;
@@ -553,8 +555,10 @@ bool PatranT::WriteCoordinates (ostream& out, const dArray2DT& coords, const iAr
 
 bool PatranT::WriteElements (ostream& out, const iArray2DT& elems, const ArrayT<PatranT::ElementTypes>& elemtypes, int firstelemID) const
 {
+#ifdef __MWERKS__
 #pragma unused(out)
 #pragma unused(elemtypes)
+#endif
   iArrayT map (elems.MajorDim());
   map.SetValueToPosition ();
   map += firstelemID;

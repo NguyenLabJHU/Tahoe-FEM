@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.h,v 1.14 2002-07-05 22:26:26 paklein Exp $ */
+/* $Id: ExodusInputT.h,v 1.14.10.1 2003-09-25 17:29:28 cjkimme Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _EXODUSINPUT_T_H_
@@ -129,7 +129,9 @@ inline int ExodusInputT::NumDimensions (void) const
 
 inline int ExodusInputT::NumElementQuadPoints (const StringT& name)
 {
+#ifdef __MWERKS__
 #pragma unused (name)
+#endif
   return (0);
 }
 inline int ExodusInputT::NumNodesInSet (const StringT& name)
@@ -164,7 +166,9 @@ inline int ExodusInputT::NumQuadratureVariables (void) const
 
 inline void ExodusInputT::QuadratureVariablesUsed (const StringT& name, iArrayT& used)
 {
+#ifdef __MWERKS__
 #pragma unused (name)
+#endif
   used = 0;
 }
 
@@ -179,27 +183,35 @@ inline void ExodusInputT::ReadQuadratureLabels (ArrayT<StringT>& qlabels) const
 
 inline void ExodusInputT::ReadAllQuadratureVariable (int step, int varindex, dArrayT& values)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (varindex)
+#endif
   values.Free();
 }
 inline void ExodusInputT::ReadQuadratureVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
 #pragma unused (varindex)
+#endif
   values.Free();
 }
 inline void ExodusInputT::ReadAllQuadratureVariables (int step, dArray2DT& vals)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
+#endif
   vals.Free ();
 }
 
 inline void ExodusInputT::ReadQuadratureVariables (int step, const StringT& name, dArray2DT& vals)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
+#endif
   vals.Free ();
 }
 

@@ -1,4 +1,4 @@
-/* $Id: AutoFill2DT.h,v 1.11 2003-02-22 02:53:43 kaplan Exp $ */
+/* $Id: AutoFill2DT.h,v 1.11.6.1 2003-09-25 17:29:23 cjkimme Exp $ */
 /* created: paklein (01/19/1999) */
 #ifndef _AUTO_ARRAY2D_T_H_
 #define _AUTO_ARRAY2D_T_H_
@@ -174,8 +174,8 @@ AutoFill2DT<TYPE>::AutoFill2DT(void):
 	fMajorDim(0),
 	fHeadRoom(0),
 	fMaxMinorDim(0),
-	fLastChunkMajorDim(0),
-	fChunkMajorDim(0)
+	fChunkMajorDim(0),
+	fLastChunkMajorDim(0)
 {
 
 }
@@ -187,9 +187,9 @@ AutoFill2DT<TYPE>::AutoFill2DT(int majordim, int numchunks, int headroom, int ma
 	fMaxMinorDim(0),
 	fCounts(fMajorDim),
 	fChunkMinorDim(numchunks),
-	fChunks(numchunks),
+	fChunkMajorDim(0),
 	fLastChunkMajorDim(0),
-	fChunkMajorDim(0)
+	fChunks(numchunks)
 {
 	/* check */
 	if (fMajorDim < 0 ||

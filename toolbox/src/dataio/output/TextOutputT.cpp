@@ -1,4 +1,4 @@
-/* $Id: TextOutputT.cpp,v 1.1 2003-09-10 00:14:17 paklein Exp $ */
+/* $Id: TextOutputT.cpp,v 1.1.2.1 2003-09-25 17:29:29 cjkimme Exp $ */
 /* created: sawimme (05/20/1999) */
 #include "TextOutputT.h"
 
@@ -239,7 +239,7 @@ void TextOutputT::InitResultsFile(ostream& out, int ID)
 	if (set.NumNodeValues() > 0)
 	{
 		out << " Labels:\n";
-		int count = 0;
+		//int count = 0;
 		const ArrayT<StringT>& n_labels = set.NodeOutputLabels();
 		for (int i = 0; i < n_labels.Length(); i++)
 			out << '\t' << n_labels[i] << '\n';
@@ -249,7 +249,7 @@ void TextOutputT::InitResultsFile(ostream& out, int ID)
 	if (set.NumElementValues() > 0)
 	{
 		out << " Labels:\n";
-		int count = 0;
+		//int count = 0;
 		const ArrayT<StringT>& e_labels = set.ElementOutputLabels();
 		for (int i = 0; i < e_labels.Length(); i++)
 			out << '\t' << e_labels[i] << '\n';

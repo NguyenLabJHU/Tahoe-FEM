@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.h,v 1.12 2002-07-05 22:26:26 paklein Exp $ */
+/* $Id: EnSightInputT.h,v 1.12.10.1 2003-09-25 17:29:28 cjkimme Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _ENSIGHTINPUT_T_H_
@@ -135,7 +135,9 @@ inline void EnSightInputT::NodeSetNames (ArrayT<StringT>& nodenames) const
 { nodenames.Free (); }
 inline int EnSightInputT::NumElementQuadPoints (const StringT& name)
 {
+#ifdef __MWERKS__
 #pragma unused (name)
+#endif
   return (0);
 }
 inline int EnSightInputT::NumSideSets (void) const { return 0; }
@@ -143,72 +145,96 @@ inline int EnSightInputT::NumNodeSets (void) const { return 0; }
 inline int EnSightInputT::NumDimensions (void) const { return 3; }
 inline int EnSightInputT::NumNodesInSet (const StringT& name) 
 { 
+#ifdef __MWERKS__
 #pragma unused(name)
+#endif
 	return 0; 
 }
 inline void EnSightInputT::ReadNodeSet (const StringT& name, iArrayT& nodes)
 {
+#ifdef __MWERKS__
 #pragma unused (name)
+#endif
   nodes.Free ();
 }
 inline bool EnSightInputT::AreSideSetsLocal (void) const { return true; }
 inline int  EnSightInputT::NumSidesInSet (const StringT& setname) const
 {
+#ifdef __MWERKS__
 #pragma unused (setname)
+#endif
   return 0;
 }
 inline StringT EnSightInputT::SideSetGroupName (const StringT& setname) const
 {
+#ifdef __MWERKS__
 #pragma unused (setname)
+#endif
   StringT name ("");
   return name; 
 }
 inline void EnSightInputT::ReadSideSetLocal (const StringT& setname, iArray2DT& sides) const
 {
+#ifdef __MWERKS__
 #pragma unused (setname)
+#endif
   sides.Free ();
 }
 inline void EnSightInputT::ReadSideSetGlobal (const StringT& setname, iArray2DT& sides) const
 {
+#ifdef __MWERKS__
 #pragma unused (setname)
+#endif
   sides.Free ();
 }
 inline int EnSightInputT::NumQuadratureVariables (void) const { return 0; }
 inline void EnSightInputT::QuadratureVariablesUsed (const StringT& name, iArrayT& used)
 {
+#ifdef __MWERKS__
 #pragma unused (name)
+#endif
   used = 0;
 }
 inline void EnSightInputT::ReadQuadratureLabels (ArrayT<StringT>& qlabels) const
 { qlabels.Free (); }
 inline void EnSightInputT::ReadNodeSetVariables (int step, const StringT& nsetname, dArray2DT& nvalues)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (nsetname)
+#endif
   nvalues.Free();
 }
 inline void EnSightInputT::ReadAllQuadratureVariable (int step, int varindex, dArrayT& values)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (varindex)
+#endif
   values.Free();
 }
 inline void EnSightInputT::ReadQuadratureVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
 #pragma unused (varindex)
+#endif
   values.Free();
 }
 inline void EnSightInputT::ReadAllQuadratureVariables (int step, dArray2DT& qvalues)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
+#endif
   qvalues.Free();
 }
 inline void EnSightInputT::ReadQuadratureVariables (int step, const StringT& name, dArray2DT& qvalues)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
+#endif
   qvalues.Free();
 }
 
