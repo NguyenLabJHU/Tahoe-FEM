@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.64 2003-10-02 21:05:04 hspark Exp $ */
+/* $Id: ElementListT.cpp,v 1.65 2003-10-20 23:32:22 cjkimme Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -23,6 +23,7 @@
 #ifdef COHESIVE_SURFACE_ELEMENT
 #include "CSEIsoT.h"
 #include "CSEAnisoT.h"
+#include "CSESymAnisoT.h"
 #include "MeshFreeCSEAnisoT.h"
 #include "ThermalSurfaceT.h"
 #endif
@@ -446,6 +447,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				out << "    eq. " << CSEBaseT::Isotropic   << ", isotropic\n";
 				out << "    eq. " << CSEBaseT::Anisotropic << ", anisotropic\n";
 				out << "    eq. " << CSEBaseT::NoRotateAnisotropic << ", fixed-frame anisotropic\n";
+				out << "    eq. " << CSEBaseT::ModeIAnisotropic << ", anisotropic mode I\n";
 
 				if (CSEcode == CSEBaseT::Isotropic)
 					fArray[group] = new CSEIsoT(fSupport, *field);	
@@ -453,6 +455,8 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 					fArray[group] = new CSEAnisoT(fSupport, *field, true);
 				else if (CSEcode == CSEBaseT::NoRotateAnisotropic)
 					fArray[group] = new CSEAnisoT(fSupport, *field, false);
+				else if (CSEcode == CSEBaseT::ModeIAnisotropic)
+					fArray[group] = new CSESymAnisoT(fSupport, *field, true);
 				else
 				{
 					ExceptionT::BadInputValue(caller, "unknown CSE formulation: %d", CSEcode);

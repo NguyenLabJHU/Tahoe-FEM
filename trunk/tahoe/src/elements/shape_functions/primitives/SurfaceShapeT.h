@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.h,v 1.8 2002-10-20 22:49:46 paklein Exp $ */
+/* $Id: SurfaceShapeT.h,v 1.9 2003-10-20 23:32:57 cjkimme Exp $ */
 /* created: paklein (11/21/1997) */
 
 #ifndef _SURFACE_SHAPE_T_H_
@@ -39,7 +39,7 @@ public:
 	 *        of face nodes or the total number of nodes. The class
 	 *        handles each case accordingly. */
 	SurfaceShapeT(GeometryT::CodeT geometry_code, int num_ip, int num_nodes,
-		int field_dim, const LocalArrayT& coords);
+		int num_nodes_per_facet, int field_dim, const LocalArrayT& coords);
 		
 	/** constructor. 
 	 * \param link shared parent domain and "synch-ed" CurrIP and shared
@@ -154,8 +154,9 @@ private:
 private:
 
 	/* dimensions */
-	int fTotalNodes;   // twice the facet nodes
+	int fTotalNodes;   // fNumFacets x fNumFacetNodes
 	int fNumFacetNodes;// number nodes on each facet
+	int fNumFacets; 
 	int fFieldDim;
 
 	/* surface coordinates */
