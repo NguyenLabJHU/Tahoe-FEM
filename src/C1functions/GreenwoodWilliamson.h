@@ -1,4 +1,4 @@
-/* $Id: GreenwoodWilliamson.h,v 1.3 2002-02-05 15:26:56 dzeigle Exp $ */
+/* $Id: GreenwoodWilliamson.h,v 1.4 2002-04-24 17:52:32 dzeigle Exp $ */
 
 #ifndef _GREENWOOD_WILLIAMSON_H_
 #define _GREENWOOD_WILLIAMSON_H_
@@ -13,7 +13,12 @@ public:
 	/*
 	 * Constructor
 	 */
-	GreenwoodWilliamson(double MU, double SIGMA);
+	GreenwoodWilliamson(double POWER, double MU, double SIGMA);
+	
+	/*
+	 * Destructor
+	 */
+	~GreenwoodWilliamson();
 
 	/*
 	 * I/O
@@ -27,7 +32,6 @@ public:
 	virtual double Function(double x) const;
 	virtual double DFunction(double x) const;
 	virtual double DDFunction(double x) const;
-	virtual double ContactArea(double x) const;
 
 	/*
 	 * Returning values in groups - derived classes should define
@@ -39,16 +43,17 @@ public:
 	virtual dArrayT& MapFunction(const dArrayT& in, dArrayT& out) const;
 	virtual dArrayT& MapDFunction(const dArrayT& in, dArrayT& out) const;
 	virtual dArrayT& MapDDFunction(const dArrayT& in, dArrayT& out) const;
-	virtual dArrayT& MapContactArea(const dArrayT& in, dArrayT& out) const;
 
 private:
 
 	/* potential parameters */
+	double fP;
 	double fM;
 	double fS;
 };
 
 #endif /* _GREENWOOD_WILLIAMSON_H_ */
+
 
 
 

@@ -1,40 +1,31 @@
-/* $Id: GreenwoodWilliamson.cpp,v 1.5 2002-02-05 15:26:56 dzeigle Exp $ */
+/* $Id: GreenwoodWilliamson.cpp,v 1.6 2002-04-24 17:52:32 dzeigle Exp $ */
 
 #include "GreenwoodWilliamson.h"
 #include <math.h>
 #include <iostream.h>
 #include "ExceptionCodes.h"
 #include "dArrayT.h"
-#include "ModBessel.h"
-#include "ConHyperGeom.h"
-#include "GenHyperGeom.h"
 #include "ErrorFunc.h"
+#include "Gamma.h"
+#include "Kummer.h"
+#include "ModBessel.h"
+
 
 /* constants */
 const double PI = 2.0*acos(0.0);
 
-/* functions */
-static double dom1int(double s, double h, double mean, double stdev)
-{
-	double xval=pow((s-mean)/stdev,2.0);
-	double phi=(exp(-0.5*xval))/(stdev*sqrt(2.0*PI));
-	
-	return (pow((s-h),1.5)*phi);
-}
-
-static double ddom1intdh(double s, double h, double mean, double stdev)
-{
-	double xval=pow((s-mean)/stdev,2.0);
-	double phi=(exp(-0.5*xval))/(stdev*sqrt(2.0*PI));
-	
-	return (-1.5*sqrt(s-h)*phi);
-}
-
 /*
 * constructors
 */
-GreenwoodWilliamson::GreenwoodWilliamson(double MU, double SIGMA):
-	fM(MU), fS(SIGMA) { }
+GreenwoodWilliamson::GreenwoodWilliamson(double POWER, double MU, double SIGMA):
+fP(POWER), fM(MU), fS(SIGMA) { }
+
+/*
+* destructors
+*/
+GreenwoodWilliamson::~GreenwoodWilliamson()
+{
+}
 
 /*
 * I/O
@@ -42,9 +33,10 @@ GreenwoodWilliamson::GreenwoodWilliamson(double MU, double SIGMA):
 void GreenwoodWilliamson::Print(ostream& out) const
 {
 	/* parameters */
-	out << " Potential parameters:\n";
+	out << " GreenwoodWilliamson parameters:\n";
 	out << "      MU = " << fM << '\n';
 	out << "      SIGMA = " << fS << '\n';
+	out << "      POWER = " << fP << '\n';
 }
 
 void GreenwoodWilliamson::PrintName(ostream& out) const
@@ -57,320 +49,210 @@ void GreenwoodWilliamson::PrintName(ostream& out) const
 */
 double GreenwoodWilliamson::Function(double x) const
 {
-	cout << "*** ERROR! Greenwood and Williamson potential unavailable.";
-	return (-1.0e10*x);
+	double value=-1.0e10;
+	
+	if (fP==1.0)
+	{
+		if (fS==0)
+		{
+			cout << "\n*** Bad SIGMA value in GreenwoodWilliamson.cpp.\n";
+			throw eBadInputValue;
+		}
+		else
+		{
+			if ((x>fM) || (x<fM))
+			{
+				ErrorFunc f;
+				double expo, errval;
+			
+				expo = 0.5*(fM-x)*(fM-x)/(fS*fS);
+				errval = f.Function((fM-x)/(sqrt(2.0)*fS));
+			
+				value = 0.5*(fM+exp(-expo)*sqrt(2.0/PI)*fS-x+(fM-x)*errval);
+			}
+			else if (x==fM)
+				value = fS/(sqrt(2.0*PI));
+			
+		}
+	}
+	else if (fP==1.5)
+	{
+		cout << "*** ERROR! Greenwood and Williamson load potential unavailable.";
+		throw eBadInputValue;
+	}
+	else
+	{
+		cout << "\n*** Bad POWER value in GreenwoodWilliamson.cpp.\n";
+		throw eBadInputValue;
+	}
+	
+	return value;
 }
 
 double GreenwoodWilliamson::DFunction(double x) const
 {
-	double xval, diff, yval;
+	double value=-10.0;
 	
-	if (fS==0)
+	if (fP==1.0)
 	{
-		cout << "\n*** Bad SIGMA value in GreenwoodWilliamson.cpp.\n";
+		cout << "*** ERROR! Greenwood and Williamson area gradient unavailable.";
 		throw eBadInputValue;
+	}
+	else if (fP==1.5)
+	{
+		if (x>fM)
+		{
+			double term[3], k1, k3, k5, coef, expo;
+			ModBessel f1(0.25), f3(0.75), f5(1.25);
+		
+			for (int i=0; i<3; i++)	// clear entries
+				term[i] = 0.0;
+			
+			coef = -1.0/(8.0*fS*sqrt(PI*(x-fM)));
+			expo = (fM-x)*(fM-x)/((2*fS)*(2*fS));
+			k1 = f1.Function(expo);
+			k3 = f3.Function(expo);
+			k5 = f5.Function(expo);
+		
+			term[0] = -(fM-x)*(fM-x)*(k3 + k5);
+			term[1] = 2.0*(fM*fM+2.0*fS*fS-2*fM*x+x*x)*k1+term[0];
+			term[2] = exp(-expo)*(fM-x)*term[1];
+		
+			value = coef*term[2];
+		}
+		else if (x==fM)
+		{
+			Gamma g;
+		
+			value = fS*sqrt(fS)*g.Function(5.0/4.0)/(sqrt(PI)*pow(2.0,0.25));
+		}
+		else if (x<fM)
+		{
+			double term[4], expo, m5, m7, gn, gp;
+			Gamma h;
+			Kummer f5(5.0/4.0,0.5), f7(7.0/4.0,1.5);
+		
+			for (int i=0; i<4; i++)	// clear entries
+				term[i] = 0.0;
+			
+			expo = 0.5*(fM-x)*(fM-x)/(fS*fS);
+			m5 = f5.Function(expo);
+			m7 = f7.Function(expo);
+			gn = h.Function(-0.25);
+			gp = h.Function(0.25);
+		
+			term[0] = -2.0*sqrt(2.0)*fS*gp*m5;
+			term[1] = 3.0*(fM-x)*gn*m7;
+			term[2] = exp(-expo)*sqrt(PI*fS*(fM-x))*(term[0]+term[1]);
+			term[3] = 2.0*pow(2.0,0.25)*sqrt(fM-x)*gp*gn;
+		
+			if (term[3]==0)
+			{
+				cout << "**Error! - Zero denominator in GreenwoodWilliamson. **\n";
+				throw eBadInputValue;
+			}
+		
+			value = term[2]/term[3];
+		}
 	}
 	else
 	{
-		diff = x - fM;
-		xval = pow(diff/(2.0*fS),2.0);
-		
-		if (diff > 0)
-		{
-			ModBessel k1(0.25), k3(0.75), k5(1.25);
-			double f0 = sqrt(diff/PI)*exp(-xval)/(8.0*fS);
-			double f1 = 2.0*(pow(diff,2.0) + 2.0*pow(fS,2.0))*k1.Function(xval);
-			double f2 = -pow(diff,2.0)*(k3.Function(xval) + k5.Function(xval));
-	
-			yval = f0*(f1 + f2);
-		}
-		else if (diff == 0)
-			yval = 0.906402*pow(fS,1.5)/(pow(2.0,0.25)*sqrt(PI)); 
-		else
-		{	/* decompose "negative domain": [h,mu] + [mu,inf]	*/
-			/*													*/
-			/* no closed form solution; use Gaussian quadrature */
-			/* on the function:									*/
-			/*			(s-h)^(1.5) phi(s)						*/
-			double dom1=0.0;
-			double a = x;
-			double b = fM;
-			double x1, x2, x3, x4;
-			double A1, A2, A3, A4;
-			double temp1, temp2, temp3, temp4, temp5, temp6;
-			double temp7, temp8, temp9, temp10, temp11;
-			double ap2, ap3, ap4;
-			double bp2, bp3;
-			double x1p2, x1p3;
-			double x2p2, x2p3;
-			double x3p2;
-			double x4p2, x4p3;
-			
-			x1 = (35.0*a-sqrt(525.0+70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
-			x2 = (35.0*a+sqrt(525.0+70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
-			x3 = (35.0*a-sqrt(525.0-70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
-			x4 = (35.0*a+sqrt(525.0-70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
-			
-			ap2 = pow(a,2.0);
-			ap3 = pow(a,3.0);
-			ap4 = pow(a,4.0);
-			bp2 = pow(b,2.0);
-			bp3 = pow(b,3.0);
-			x1p2 = pow(x1,2.0);
-			x1p3 = pow(x1,3.0);
-			x2p2 = pow(x2,2.0);
-			x2p3 = pow(x2,3.0);
-			x3p2 = pow(x3,2.0);
-			x4p2 = pow(x4,2.0);
-			x4p3 = pow(x4,3.0);
-			
-			temp1 = 12.0*a*x2*(x2-x3)*(x2-x4)*(x3-x4)*x4;
-			temp2 = 4.0*ap3*(2.0*x2p3-2.0*x2*x3p2+x4*x3p2-x4p3);
-			temp3 = ap4*(-6.0*x2p2+6.0*x2*x3+3.0*x4*(x4-x3));
-			temp4 = 6.0*ap2*x3*(-2.0*x2p3+2.0*x2p2*x3+x4p2*(x4-x3));
-			temp5 = -12.0*x2*(x2-x3)*(x2-x4)*(x3-x4)*x4;
-			temp6 = 3*bp3*(2.0*x2p2-2.0*x2*x3+(x3-x4)*x4);
-			temp7 = 6.0*b*x3*(2.0*x2p3-2.0*x2p2*x3+(x3-x4)*x4p2);
-			temp8 = bp2*(-8.0*x2p3+8.0*x2*x3p2-4.0*x3p2*x4+4.0*x4p3);
-			temp9 = (x2-x3)*(x2-x4)*(x3-x4)*x4;
-			temp10 = x1p2*(2.0*x2p2-2.0*x2*x3+(x3-x4)*x4);
-			temp11 = x1*(-2.0*x2p2*x3-x3p2*x4+x4p3+x2*(2.0*x3p2+x3*x4-x4p2));
-			A1 = (temp1+temp2+temp3+temp4+b*(temp5+temp6+temp7+temp8))/(12.0*(x1-x2)*(temp9+temp10+temp11));
-			
-			temp1 = -12.0*a*x1*(x1-x3)*(x1-x4)*(x3-x4)*x4;
-			temp2 = 3.0*ap4*(2.0*x1p2-2.0*x1*x3+(x3-x4)*x4);
-			temp3 = 6.0*ap2*x3*(2.0*x1p3-2.0*x1p2*x3+(x3-x4)*x4p2);
-			temp4 = ap3*(-8.0*x1p3+8.0*x1*x3p2-4.0*x3p2*x4+4.0*x4p3);
-			temp5 = 12.0*x1*(x1-x3)*(x1-x4)*(x3-x4)*x4;
-			temp6 = 4*bp2*(2.0*x1p3-2.0*x1*x3p2+x3p2*x4-x4p3);
-			temp7 = bp3*(-6.0*x1p2+6.0*x1*x3+3.0*x4*(x4-x3));
-			temp8 = 6.0*b*x3*(-2.0*x1p3+2.0*x1p2*x3+x4p2*(x4-x3));
-			temp9 = (x2-x3)*(x2-x4)*(x3-x4)*x4;
-			temp10 = x1p2*(2.0*x2p2-2.0*x2*x3+(x3-x4)*x4);
-			temp11 = x1*(-2.0*x2p2*x3-x3p2*x4+x4p3+x2*(2.0*x3p2+x3*x4-x4p2));
-			A2 = (temp1+temp2+temp3+temp4+b*(temp5+temp6+temp7+temp8))/(12.0*(x1-x2)*(temp9+temp10+temp11));
-			
-			temp1 = 12.0*a*x1*x2*(x1-x4)*(x2-x4)*x4;
-			temp2 = -3.0*ap4*(2.0*x1*x2-x1*x4-x2*x4+x4p2);
-			temp3 = 4.0*ap3*(x1p2*(2.0*x2-x4)+x1*x2*(2.0*x2-x4)-x2p2*x4+x4p3);
-			temp4 = -6*ap2*(x1*x4p2*(x4-x2)+x2*x4p2*(x4-x2)+x1p2*(2.0*x2p2-x4p2));
-			temp5 = -12.0*x1*x2*(x1-x4)*(x2-x4)*x4;
-			temp6 = 3.0*bp3*(2.0*x1*x2-x1*x4-x2*x4+x4p2);
-			temp7 = -4.0*bp2*(x1p2*(2.0*x2-x4)+x1*x2*(2.0*x2-x4)-x2p2*x4+x4p3);
-			temp8 = 6.0*b*(x1*x4p2*(x4-x2)+x2*x4p2*(x4-x2)+x1p2*(2.0*x2p2-x4p2));
-			temp9 = (x2-x3)*(x2-x4)*(x3-x4)*x4;
-			temp10 = x1p2*(2.0*x2p2-2.0*x2*x3+x4*(x3-x4));
-			temp11 = x1*(-2.0*x2p2*x3-x3p2*x4+x4p3+x2*(2.0*x3p2+x3*x4-x4p2));
-			A3 = (temp1+temp2+temp3+temp4+b*(temp5+temp6+temp7+temp8))/(12.0*x3*(temp9+temp10+temp11));
-			
-			temp1 = -12.0*a*x1*x2*(x1-x3)*(x2-x3)-3.0*ap4*(x1+x2-x3);
-			temp2 = -6.0*x3*ap2*(x1p2+x1*(x2-x3)+x2*(x2-x3));
-			temp3 = 4.0*ap3*(x1p2+x1*x2+x2p2-x3p2);
-			temp4 = 12.0*x1*x2*(x1-x3)*(x2-x3)+3.0*bp3*(x1+x2-x3);
-			temp5 = 6.0*b*x3*(x1p2+x1*x2+x2p2-x1*x3-x2*x3);
-			temp6 = -4.0*bp2*(x1p2+x1*x2+x2p2-x3p2);
-			temp7 = (x2-x3)*(x2-x4)*(x3-x4)*x4;
-			temp8 = x1p2*(2.0*x2p2-2.0*x2*x3+(x3-x4)*x4);
-			temp9 = x1*(-2.0*x2p2*x3-x3p2*x4+x4p3+x2*(2.0*x3p2+x3*x4-x4p2));
-			A4 = (temp1+temp2+temp3+b*(temp4+temp5+temp6))/(12.0*(temp7+temp8+temp9));
-			
-			dom1 = A1*dom1int(x1,x,fM,fS)+A2*dom1int(x2,x,fM,fS)+A3*dom1int(x3,x,fM,fS)+A4*dom1int(x4,x,fM,fS);
-
-			double dom2 = 0.0;
-			ConHyperGeom fCHG3(-0.75,0.5), fCHG1(-0.25,1.5);
-			GenHyperGeom fGHG(0.5,1.0,1.75,2.25);
-			
-			temp1 = sqrt(fM-x)/(5.0*fS*sqrt(2.0*PI));
-			temp2 = 5.0*pow(2.0,0.25)*pow(fS,1.5)/sqrt(fM-x);
-			temp3 = fS*0.906402*fCHG3.Function(-2.0*xval);
-			temp4 = sqrt(2.0)*(fM-x)*0.919063*fCHG1.Function(-2.0*xval);
-			temp5 = -2.0*pow((fM-x),2.0)*fGHG.Function(-2.0*xval);
-			dom2 = temp1*(temp2*(temp3+temp4)+temp5);
-
-			yval = dom1+dom2;
-		}
+		cout << "\n*** Bad POWER value in GreenwoodWilliamson.cpp.\n";
+		throw eBadInputValue;
 	}
-		return yval;
+	
+	return value;
 }
 
 double GreenwoodWilliamson::DDFunction(double x) const
 {
-	double xval, diff, yval;
+	double value = -10.0;
 	
-	if (fS==0)
+	if (fP==1.0)
 	{
-		cout << "\n*** Bad SIGMA value in GreenwoodWilliamson.cpp.\n";
+		cout << "*** ERROR! Greenwood and Williamson area gradient unavailable.";
 		throw eBadInputValue;
+	}
+	else if (fP==1.5)
+	{
+		if (x>fM)
+		{
+			double term[8], coef, expo, k1, k3, k5, k7, k9, kn1, kn3, sqmux;
+			ModBessel f1(0.25), f3(0.75), f5(1.25), f7(1.75), f9(2.25);
+			ModBessel fn1(-0.25), fn3(-0.75);
+		
+			for (int i=0; i<8; i++)	// clear entries
+				term[i] = 0.0;
+			
+			coef = 1.0/(16.0*sqrt(PI*(x-fM))*fS*(x-fM));
+			sqmux = fM*fM+2.0*fS*fS-2.0*fM*x+x*x;
+			expo = (fM-x)*(fM-x)/((2*fS)*(2*fS));
+			k1 = f1.Function(expo);
+			k3 = f3.Function(expo);
+			k5 = f5.Function(expo);
+			k7 = f7.Function(expo);
+			k9 = f9.Function(expo);
+			kn1 = fn1.Function(expo);
+			kn3 = fn3.Function(expo);
+		
+			term[0] =- (fM-x)*(fM-x)*(kn1+k1+k7+k9)/(fS*fS);
+			term[1] = -16.0*k1+8.0*(k3+k5);
+			term[2] = 2.0*sqmux*(kn3+k5)/(fS*fS);
+			term[3] = -0.5*(fM-x)*(fM-x)*(x-fM)*(term[1]+term[2]+term[0]);
+			term[4] = -(fM-x)*(fM-x)*(2.0*sqmux*k1-k3-k5)/(fS*fS);
+			term[5] = 2.0*(x-fM)*(2.0*sqmux*k1-(fM-x)*(fM-x)*(k3+k5));
+			term[6] = (fM-x)*(2*sqmux*k1-(fM-x)*(fM-x)*(k3+k5));
+			term[7] = exp(-expo)*(term[6]+term[5]+term[4]+term[3]);
+		
+			value = coef*term[7];
+		}
+		else if (x==fM)
+		{
+			Gamma g;
+		
+			value = -3.0*sqrt(fS*PI)/(pow(2.0,5.0/4.0)*g.Function(0.25));
+		}
+		else if (x<fM)
+		{
+			double term[4], expo, m5, m7, m9, m11,sqmux, gn, gp;
+			Kummer f5(5.0/4.0,0.5), f7(7.0/4.0,1.5), f9(9.0/4.0,1.5), f11(11.0/4.0,2.5);
+			Gamma h;
+		
+			for (int i=0; i<4; i++)	// clear entries
+				term[i] = 0.0;
+			
+			sqmux = fM*fM-fS*fS-2.0*fM*x+x*x;
+			expo = 0.5*(fM-x)*(fM-x)/(fS*fS);
+			m5 = f5.Function(expo);
+			m7 = f7.Function(expo);
+			m9 = f9.Function(expo);
+			m11 = f11.Function(expo);
+			gn = h.Function(-0.25);
+			gp = h.Function(0.25);
+		
+			term[0] = -(fM-x)*(-20.0*fS*gp*m9+7.0*sqrt(2.0)*(fM-x)*gn*m11);
+			term[1] = 8.0*fS*(x-fM)*gp*m5+6.0*sqrt(2.0)*sqmux*gn*m7;
+			term[2] = exp(-expo)*fS*sqrt(PI*(fM-x))*(term[1]+term[0]);
+			term[3] = pow(2.0,11.0/4.0)*pow(fS,2.5)*sqrt(fM-x)*gn*gp;
+		
+			if (term[3]==0)
+			{
+				cout << "**Error! - Zero denominator in GreenwoodWilliamson. **\n";
+				throw eBadInputValue;
+			}
+		
+			value = term[2]/term[3];
+		}
 	}
 	else
 	{
-		diff = x - fM;
-		xval = pow(diff/(2.0*fS),2.0);
-		
-		if (diff > 0)
-		{
-			ModBessel k1(0.25), k3(0.75), k5(1.25), kn1(-0.25), k7(1.75), kn3(-0.75), k9(2.25);
-			double f0 = sqrt(fS*(x-fM))*exp(-xval);
-			double f1 = 2.0*(pow(x-fM,2.0) + 2.0*pow(fS,2.0))*k1.Function(xval);
-			double f2 = -pow(x-fM,2.0)*(k3.Function(xval) + k5.Function(xval));
-			
-			double df0 = -exp(-xval)*(pow(x-fM,2.0)-pow(fS,2.0))/(2.0*pow(fS,1.5)*sqrt(x-fM));
-			double df1 = (x-fM)*(4.0*k1.Function(xval)-(2.0*xval+1.0)*(kn3.Function(xval)+k5.Function(xval)));
-			double df2sum = kn1.Function(xval)+k1.Function(xval)+k7.Function(xval)+k9.Function(xval);
-			double df2 = (x-fM)*(-2.0*(k3.Function(xval)+k5.Function(xval))+xval*df2sum);
-	
-			yval = df0*(f1+f2)+f0*(df1+df2);
-		}
-		else if (diff == 0)
-			yval = -3.0*1.22542*sqrt(fS/PI)/pow(2.0,1.75);
-		else
-		{	/* decompose "negative domain": [h,mu] + [mu,inf]	*/
-			/*													*/
-			/* no closed form solution; use Gaussian quadrature */
-			/* on the function:									*/
-			/*			(s-h)^(1.5) phi(s)						*/
-			double dom1=0.0;
-			double a = x;
-			double b = fM;
-			double x1, x2, x3, x4;
-			double A1, A2, A3, A4;
-			double temp1, temp2, temp3, temp4, temp5, temp6;
-			double temp7, temp8, temp9, temp10, temp11;
-			double ap2, ap3, ap4;
-			double bp2, bp3;
-			double x1p2, x1p3;
-			double x2p2, x2p3;
-			double x3p2;
-			double x4p2, x4p3;
-			
-			x1 = (35.0*a-sqrt(525.0+70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
-			x2 = (35.0*a+sqrt(525.0+70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
-			x3 = (35.0*a-sqrt(525.0-70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
-			x4 = (35.0*a+sqrt(525.0-70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
-			
-			ap2 = pow(a,2.0);
-			ap3 = pow(a,3.0);
-			ap4 = pow(a,4.0);
-			bp2 = pow(b,2.0);
-			bp3 = pow(b,3.0);
-			x1p2 = pow(x1,2.0);
-			x1p3 = pow(x1,3.0);
-			x2p2 = pow(x2,2.0);
-			x2p3 = pow(x2,3.0);
-			x3p2 = pow(x3,2.0);
-			x4p2 = pow(x4,2.0);
-			x4p3 = pow(x4,3.0);
-			
-			temp1 = 12.0*a*x2*(x2-x3)*(x2-x4)*(x3-x4)*x4;
-			temp2 = 4.0*ap3*(2.0*x2p3-2.0*x2*x3p2+x4*x3p2-x4p3);
-			temp3 = ap4*(-6.0*x2p2+6.0*x2*x3+3.0*x4*(x4-x3));
-			temp4 = 6.0*ap2*x3*(-2.0*x2p3+2.0*x2p2*x3+x4p2*(x4-x3));
-			temp5 = -12.0*x2*(x2-x3)*(x2-x4)*(x3-x4)*x4;
-			temp6 = 3*bp3*(2.0*x2p2-2.0*x2*x3+(x3-x4)*x4);
-			temp7 = 6.0*b*x3*(2.0*x2p3-2.0*x2p2*x3+(x3-x4)*x4p2);
-			temp8 = bp2*(-8.0*x2p3+8.0*x2*x3p2-4.0*x3p2*x4+4.0*x4p3);
-			temp9 = (x2-x3)*(x2-x4)*(x3-x4)*x4;
-			temp10 = x1p2*(2.0*x2p2-2.0*x2*x3+(x3-x4)*x4);
-			temp11 = x1*(-2.0*x2p2*x3-x3p2*x4+x4p3+x2*(2.0*x3p2+x3*x4-x4p2));
-			A1 = (temp1+temp2+temp3+temp4+b*(temp5+temp6+temp7+temp8))/(12.0*(x1-x2)*(temp9+temp10+temp11));
-			
-			temp1 = -12.0*a*x1*(x1-x3)*(x1-x4)*(x3-x4)*x4;
-			temp2 = 3.0*ap4*(2.0*x1p2-2.0*x1*x3+(x3-x4)*x4);
-			temp3 = 6.0*ap2*x3*(2.0*x1p3-2.0*x1p2*x3+(x3-x4)*x4p2);
-			temp4 = ap3*(-8.0*x1p3+8.0*x1*x3p2-4.0*x3p2*x4+4.0*x4p3);
-			temp5 = 12.0*x1*(x1-x3)*(x1-x4)*(x3-x4)*x4;
-			temp6 = 4*bp2*(2.0*x1p3-2.0*x1*x3p2+x3p2*x4-x4p3);
-			temp7 = bp3*(-6.0*x1p2+6.0*x1*x3+3.0*x4*(x4-x3));
-			temp8 = 6.0*b*x3*(-2.0*x1p3+2.0*x1p2*x3+x4p2*(x4-x3));
-			temp9 = (x2-x3)*(x2-x4)*(x3-x4)*x4;
-			temp10 = x1p2*(2.0*x2p2-2.0*x2*x3+(x3-x4)*x4);
-			temp11 = x1*(-2.0*x2p2*x3-x3p2*x4+x4p3+x2*(2.0*x3p2+x3*x4-x4p2));
-			A2 = (temp1+temp2+temp3+temp4+b*(temp5+temp6+temp7+temp8))/(12.0*(x1-x2)*(temp9+temp10+temp11));
-			
-			temp1 = 12.0*a*x1*x2*(x1-x4)*(x2-x4)*x4;
-			temp2 = -3.0*ap4*(2.0*x1*x2-x1*x4-x2*x4+x4p2);
-			temp3 = 4.0*ap3*(x1p2*(2.0*x2-x4)+x1*x2*(2.0*x2-x4)-x2p2*x4+x4p3);
-			temp4 = -6*ap2*(x1*x4p2*(x4-x2)+x2*x4p2*(x4-x2)+x1p2*(2.0*x2p2-x4p2));
-			temp5 = -12.0*x1*x2*(x1-x4)*(x2-x4)*x4;
-			temp6 = 3.0*bp3*(2.0*x1*x2-x1*x4-x2*x4+x4p2);
-			temp7 = -4.0*bp2*(x1p2*(2.0*x2-x4)+x1*x2*(2.0*x2-x4)-x2p2*x4+x4p3);
-			temp8 = 6.0*b*(x1*x4p2*(x4-x2)+x2*x4p2*(x4-x2)+x1p2*(2.0*x2p2-x4p2));
-			temp9 = (x2-x3)*(x2-x4)*(x3-x4)*x4;
-			temp10 = x1p2*(2.0*x2p2-2.0*x2*x3+x4*(x3-x4));
-			temp11 = x1*(-2.0*x2p2*x3-x3p2*x4+x4p3+x2*(2.0*x3p2+x3*x4-x4p2));
-			A3 = (temp1+temp2+temp3+temp4+b*(temp5+temp6+temp7+temp8))/(12.0*x3*(temp9+temp10+temp11));
-			
-			temp1 = -12.0*a*x1*x2*(x1-x3)*(x2-x3)-3.0*ap4*(x1+x2-x3);
-			temp2 = -6.0*x3*ap2*(x1p2+x1*(x2-x3)+x2*(x2-x3));
-			temp3 = 4.0*ap3*(x1p2+x1*x2+x2p2-x3p2);
-			temp4 = 12.0*x1*x2*(x1-x3)*(x2-x3)+3.0*bp3*(x1+x2-x3);
-			temp5 = 6.0*b*x3*(x1p2+x1*x2+x2p2-x1*x3-x2*x3);
-			temp6 = -4.0*bp2*(x1p2+x1*x2+x2p2-x3p2);
-			temp7 = (x2-x3)*(x2-x4)*(x3-x4)*x4;
-			temp8 = x1p2*(2.0*x2p2-2.0*x2*x3+(x3-x4)*x4);
-			temp9 = x1*(-2.0*x2p2*x3-x3p2*x4+x4p3+x2*(2.0*x3p2+x3*x4-x4p2));
-			A4 = (temp1+temp2+temp3+b*(temp4+temp5+temp6))/(12.0*(temp7+temp8+temp9));
-			
-			dom1 = A1*ddom1intdh(x1,x,fM,fS)+A2*ddom1intdh(x2,x,fM,fS)+A3*ddom1intdh(x3,x,fM,fS)+A4*ddom1intdh(x4,x,fM,fS);
-
-			double dom2 = 0.0;
-			ConHyperGeom fCHGn1(-0.25,1.5), fCHG1(0.25,1.5), fCHG3(0.75,2.5);
-			GenHyperGeom fGHG1(0.5,1.0,1.75,2.25), fGHG3(1.5,2.0,2.75,3.25);
-			
-			temp1 = 105.0*pow(fS,1.5)/sqrt(fM-x);
-			temp2 = 12.0*pow(fS,2.0)*0.919063*fCHGn1.Function(-2.0*xval);
-			temp3 = -9.0*sqrt(2.0)*fS*0.906402*fCHG1.Function(-2.0*xval);
-			temp4 = 2.0*(x-fM)*0.919063*fCHG3.Function(-2.0*xval);
-			temp5 = 630.0*pow(2.0,0.25)*(x-fM)*pow(fS,2.0)*fGHG1.Function(-2.0*xval);
-			temp6 = -32.0*pow(2.0,0.25)*pow((x-fM),3.0)*fGHG3.Function(-2.0*xval);
-			temp7 = 630.0*pow(2.0,0.75)*sqrt(PI)*pow(fS,3.0);
-			dom2 = (-sqrt(fM-x)*(temp1*(temp2+(x-fM)*(temp3+temp4))+temp5+temp6))/temp7;
-
-			yval = dom1+dom2;
-		}
-	}
-		return yval;
-}
-
-double GreenwoodWilliamson::ContactArea(double x) const
-{
-	double xval, diff, yval;
-	
-	if (fS==0)
-	{
-		cout << "\n*** Bad SIGMA value in GreenwoodWilliamson.cpp.\n";
+		cout << "\n*** Bad POWER value in GreenwoodWilliamson.cpp.\n";
 		throw eBadInputValue;
 	}
-	else
-	{
-		diff = x - fM;
-		xval = pow(diff/(sqrt(2.0)*fS),2.0);
-		
-		if (diff > 0)
-		{
-			ErrorFunc Erf(1.0);
-			double f0 = 2.0*fS+exp(xval)*diff*sqrt(2.0*PI)*(Erf.Function(sqrt(xval))-1.0);
 	
-			yval = exp(-xval)*f0/(2.0*sqrt(2.0*PI));
-		}
-		else if (diff == 0)
-			yval = fS/sqrt(2.0*PI);
-		else
-		{	/* decompose "negative domain": [h,mu] + [mu,inf]	*/
-			ErrorFunc Erf(1.0);
-			double dom1;
-			
-			double g0 = fS*(exp(-xval)-1.0)/sqrt(2.0*PI);
-			double g1 = 0.5*diff*Erf.Function(-sqrt(xval));
-			dom1 = g0+g1;
-
-			double dom2 = (fS*sqrt(2.0)-diff*sqrt(PI))/(2.0*sqrt(PI));
-
-			yval = dom1+dom2;
-		}
-	}
-		return yval;
+	return value;
 }
+
 
 
 /*
@@ -387,11 +269,47 @@ dArrayT& GreenwoodWilliamson::MapFunction(const dArrayT& in, dArrayT& out) const
 
 	double* pl   = in.Pointer();
 	double* pddU = out.Pointer();
+	double r, value = -10.0;
 	
 	for (int i = 0; i < in.Length(); i++)
 	{
-		cout << "*** ERROR! Greenwood and Williamson potential unavailable.";
-		*pddU++ = -1.0e10;
+		r = *pl++;
+		
+		if (fP==1)
+		{
+			if (fS==0)
+			{
+				cout << "\n*** Bad SIGMA value in GreenwoodWilliamson.cpp.\n";
+				throw eBadInputValue;
+			}
+			else
+			{
+				if ((r>fM) || (r<fM))
+				{
+					ErrorFunc f;
+					double expo, errval;
+			
+					expo = 0.5*(fM-r)*(fM-r)/(fS*fS);
+					errval = f.Function((fM-r)/(sqrt(2.0)*fS));
+			
+					value = 0.5*(fM+exp(-expo)*sqrt(2.0/PI)*fS-r+(fM-r)*errval);
+				}
+				else if (r==fM)
+					value = fS/(sqrt(2.0*PI));
+			}
+		}
+		else if (fP==1.5)
+		{
+			cout << "*** ERROR! Greenwood and Williamson potential load unavailable.";
+			throw eBadInputValue;
+		}
+		else
+		{
+			cout << "\n*** Bad POWER value in GreenwoodWilliamson.cpp.\n";
+			throw eBadInputValue;
+		}
+			
+		*pddU++ = value;
 	}
 	return(out);
 }
@@ -403,138 +321,81 @@ dArrayT& GreenwoodWilliamson::MapDFunction(const dArrayT& in, dArrayT& out) cons
 
 	double* pl = in.Pointer();
 	double* pU = out.Pointer();
+	double r, value=-10.0;
 	
 	for (int i = 0; i < in.Length(); i++)
-	{
-		double xval, diff, yval;
-	
-		if (fS==0)
+	{	
+		if (fP==1.0)
 		{
-			cout << "\n*** Bad SIGMA value in GreenwoodWilliamson.cpp.\n";
+			cout << "*** ERROR! Greenwood and Williamson area gradient unavailable.";
 			throw eBadInputValue;
+		}
+		else if (fP==1.5)
+		{
+			r = *pl++;
+			
+			if (r>fM)
+			{
+				double term[3], k1, k3, k5, coef, expo;
+				ModBessel f1(0.25), f3(0.75), f5(1.25);
+		
+				for (int i=0; i<3; i++)	// clear entries
+					term[i] = 0.0;
+			
+				coef = -1.0/(8.0*fS*sqrt(PI*(r-fM)));
+				expo = (fM-r)*(fM-r)/((2*fS)*(2*fS));
+				k1 = f1.Function(expo);
+				k3 = f3.Function(expo);
+				k5 = f5.Function(expo);
+		
+				term[0] = -(fM-r)*(fM-r)*(k3 + k5);
+				term[1] = 2.0*(fM*fM+2.0*fS*fS-2*fM*r+r*r)*k1+term[0];
+				term[2] = exp(-expo)*(fM-r)*term[1];
+		
+				value = coef*term[2];
+			}
+			else if (r==fM)
+			{
+				Gamma g;
+		
+				value = fS*sqrt(fS)*g.Function(5.0/4.0)/(sqrt(PI)*pow(2.0,0.25));
+			}
+			else if (r<fM)
+			{
+				double term[4], expo, m5, m7, gn, gp;
+				Gamma h;
+				Kummer f5(5.0/4.0,0.5), f7(7.0/4.0,1.5);
+		
+				for (int i=0; i<4; i++)	// clear entries
+					term[i] = 0.0;
+			
+				expo = 0.5*(fM-r)*(fM-r)/(fS*fS);
+				m5 = f5.Function(expo);
+				m7 = f7.Function(expo);
+				gn = h.Function(-0.25);
+				gp = h.Function(0.25);
+		
+				term[0] = -2.0*sqrt(2.0)*fS*gp*m5;
+				term[1] = 3.0*(fM-r)*gn*m7;
+				term[2] = exp(-expo)*sqrt(PI)*sqrt(fS*(fM-r))*(term[0]+term[1]);
+				term[3] = 2.0*pow(2.0,0.25)*sqrt(fM-r)*gp*gn;
+		
+				if (term[3]==0)
+				{
+					cout << "**Error! - Zero denominator in GreenwoodWilliamson. **\n";
+					throw eBadInputValue;
+				}
+		
+				value = term[2]/term[3];
+			}
 		}
 		else
 		{
-			diff = *pl++ - fM;
-			xval = pow(diff/(2.0*fS),2.0);
-		
-			if (diff > 0)
-			{
-				ModBessel k1(0.25), k3(0.75), k5(1.25);
-				double f0 = sqrt(fS*(*pl++-fM))*exp(-xval);
-				double f1 = 2.0*(pow(*pl++-fM,2.0) + 2.0*pow(fS,2.0))*k1.Function(xval);
-				double f2 = -pow(*pl++-fM,2.0)*(k3.Function(xval) + k5.Function(xval));
-		
-				yval = f0*(f1 + f2);
-			}
-			else if (diff == 0)
-				yval = 6.09752*pow(fS,3.0); 
-			else
-			{	/* decompose "negative domain": [h,mu] + [mu,inf]	*/
-				/*													*/
-				/* no closed form solution; use Gaussian quadrature */
-				/* on the function:									*/
-				/*			(s-h)^(1.5) phi(s)						*/
-				double dom1=0.0;
-				double a = *pl++;
-				double b = fM;
-				double x1, x2, x3, x4;
-				double A1, A2, A3, A4;
-				double temp1, temp2, temp3, temp4, temp5, temp6;
-				double temp7, temp8, temp9, temp10, temp11;
-				double ap2, ap3, ap4;
-				double bp2, bp3;
-				double x1p2, x1p3;
-				double x2p2, x2p3;
-				double x3p2;
-				double x4p2, x4p3;
-			
-				x1 = (35.0*a-sqrt(525.0+70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
-				x2 = (35.0*a+sqrt(525.0+70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
-				x3 = (35.0*a-sqrt(525.0-70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
-				x4 = (35.0*a+sqrt(525.0-70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
-			
-				ap2 = pow(a,2.0);
-				ap3 = pow(a,3.0);
-				ap4 = pow(a,4.0);
-				bp2 = pow(b,2.0);
-				bp3 = pow(b,3.0);
-				x1p2 = pow(x1,2.0);
-				x1p3 = pow(x1,3.0);
-				x2p2 = pow(x2,2.0);
-				x2p3 = pow(x2,3.0);
-				x3p2 = pow(x3,2.0);
-				x4p2 = pow(x4,2.0);
-				x4p3 = pow(x4,3.0);
-			
-				temp1 = 12.0*a*x2*(x2-x3)*(x2-x4)*(x3-x4)*x4;
-				temp2 = 4.0*ap3*(2.0*x2p3-2.0*x2*x3p2+x4*x3p2-x4p3);
-				temp3 = ap4*(-6.0*x2p2+6.0*x2*x3+3.0*x4*(x4-x3));
-				temp4 = 6.0*ap2*x3*(-2.0*x2p3+2.0*x2p2*x3+x4p2*(x4-x3));
-				temp5 = -12.0*x2*(x2-x3)*(x2-x4)*(x3-x4)*x4;
-				temp6 = 3*bp3*(2.0*x2p2-2.0*x2*x3+(x3-x4)*x4);
-				temp7 = 6.0*b*x3*(2.0*x2p3-2.0*x2p2*x3+(x3-x4)*x4p2);
-				temp8 = bp2*(-8.0*x2p3+8.0*x2*x3p2-4.0*x3p2*x4+4.0*x4p3);
-				temp9 = (x2-x3)*(x2-x4)*(x3-x4)*x4;
-				temp10 = x1p2*(2.0*x2p2-2.0*x2*x3+(x3-x4)*x4);
-				temp11 = x1*(-2.0*x2p2*x3-x3p2*x4+x4p3+x2*(2.0*x3p2+x3*x4-x4p2));
-				A1 = (temp1+temp2+temp3+temp4+b*(temp5+temp6+temp7+temp8))/(12.0*(x1-x2)*(temp9+temp10+temp11));
-				
-				temp1 = -12.0*a*x1*(x1-x3)*(x1-x4)*(x3-x4)*x4;
-				temp2 = 3.0*ap4*(2.0*x1p2-2.0*x1*x3+(x3-x4)*x4);
-				temp3 = 6.0*ap2*x3*(2.0*x1p3-2.0*x1p2*x3+(x3-x4)*x4p2);
-				temp4 = ap3*(-8.0*x1p3+8.0*x1*x3p2-4.0*x3p2*x4+4.0*x4p3);
-				temp5 = 12.0*x1*(x1-x3)*(x1-x4)*(x3-x4)*x4;
-				temp6 = 4*bp2*(2.0*x1p3-2.0*x1*x3p2+x3p2*x4-x4p3);
-				temp7 = bp3*(-6.0*x1p2+6.0*x1*x3+3.0*x4*(x4-x3));
-				temp8 = 6.0*b*x3*(-2.0*x1p3+2.0*x1p2*x3+x4p2*(x4-x3));
-				temp9 = (x2-x3)*(x2-x4)*(x3-x4)*x4;
-				temp10 = x1p2*(2.0*x2p2-2.0*x2*x3+(x3-x4)*x4);
-				temp11 = x1*(-2.0*x2p2*x3-x3p2*x4+x4p3+x2*(2.0*x3p2+x3*x4-x4p2));
-				A2 = (temp1+temp2+temp3+temp4+b*(temp5+temp6+temp7+temp8))/(12.0*(x1-x2)*(temp9+temp10+temp11));
-			
-				temp1 = 12.0*a*x1*x2*(x1-x4)*(x2-x4)*x4;
-				temp2 = -3.0*ap4*(2.0*x1*x2-x1*x4-x2*x4+x4p2);
-				temp3 = 4.0*ap3*(x1p2*(2.0*x2-x4)+x1*x2*(2.0*x2-x4)-x2p2*x4+x4p3);
-				temp4 = -6*ap2*(x1*x4p2*(x4-x2)+x2*x4p2*(x4-x2)+x1p2*(2.0*x2p2-x4p2));
-				temp5 = -12.0*x1*x2*(x1-x4)*(x2-x4)*x4;
-				temp6 = 3.0*bp3*(2.0*x1*x2-x1*x4-x2*x4+x4p2);
-				temp7 = -4.0*bp2*(x1p2*(2.0*x2-x4)+x1*x2*(2.0*x2-x4)-x2p2*x4+x4p3);
-				temp8 = 6.0*b*(x1*x4p2*(x4-x2)+x2*x4p2*(x4-x2)+x1p2*(2.0*x2p2-x4p2));
-				temp9 = (x2-x3)*(x2-x4)*(x3-x4)*x4;
-				temp10 = x1p2*(2.0*x2p2-2.0*x2*x3+x4*(x3-x4));
-				temp11 = x1*(-2.0*x2p2*x3-x3p2*x4+x4p3+x2*(2.0*x3p2+x3*x4-x4p2));
-				A3 = (temp1+temp2+temp3+temp4+b*(temp5+temp6+temp7+temp8))/(12.0*x3*(temp9+temp10+temp11));
-			
-				temp1 = -12.0*a*x1*x2*(x1-x3)*(x2-x3)-3.0*ap4*(x1+x2-x3);
-				temp2 = -6.0*x3*ap2*(x1p2+x1*(x2-x3)+x2*(x2-x3));
-				temp3 = 4.0*ap3*(x1p2+x1*x2+x2p2-x3p2);
-				temp4 = 12.0*x1*x2*(x1-x3)*(x2-x3)+3.0*bp3*(x1+x2-x3);
-				temp5 = 6.0*b*x3*(x1p2+x1*x2+x2p2-x1*x3-x2*x3);
-				temp6 = -4.0*bp2*(x1p2+x1*x2+x2p2-x3p2);
-				temp7 = (x2-x3)*(x2-x4)*(x3-x4)*x4;
-				temp8 = x1p2*(2.0*x2p2-2.0*x2*x3+(x3-x4)*x4);
-				temp9 = x1*(-2.0*x2p2*x3-x3p2*x4+x4p3+x2*(2.0*x3p2+x3*x4-x4p2));
-				A4 = (temp1+temp2+temp3+b*(temp4+temp5+temp6))/(12.0*(temp7+temp8+temp9));
-			
-				dom1 = A1*dom1int(x1,*pl++,fM,fS)+A2*dom1int(x2,*pl++,fM,fS)+A3*dom1int(x3,*pl++,fM,fS)+A4*dom1int(x4,*pl++,fM,fS);
-
-				double dom2 = 0.0;
-				ConHyperGeom fCHG3(-0.75,0.5), fCHG1(-0.25,1.5);
-				GenHyperGeom fGHG(0.5,1.0,1.75,2.25);
-			
-				temp1 = sqrt(fM-*pl++)/(5.0*fS*sqrt(2.0*PI));
-				temp2 = 5.0*pow(2.0,0.25)*pow(fS,1.5)/sqrt(fM-*pl++);
-				temp3 = fS*0.906402*fCHG3.Function(-2.0*xval);
-				temp4 = sqrt(2.0)*(fM-*pl++)*0.919063*fCHG1.Function(-2.0*xval);
-				temp5 = -2.0*pow((fM-*pl++),2.0)*fGHG.Function(-2.0*xval);
-				dom2 = temp1*(temp2*(temp3+temp4)+temp5);
-
-				yval = dom1+dom2;
-			}
+			cout << "\n*** Bad POWER value in GreenwoodWilliamson.cpp.\n";
+			throw eBadInputValue;
 		}
 		
-		*pU++ = yval;
+		*pU++ = value;
 	}
 	return(out);
 }
@@ -546,196 +407,97 @@ dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) con
 
 	double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
+	double r, value=-1.0e10;
 	
 	for (int i = 0; i < in.Length(); i++)
 	{
-		double xval, diff, yval;
-	
-		if (fS==0)
+		if (fP==1.0)
 		{
-			cout << "\n*** Bad SIGMA value in GreenwoodWilliamson.cpp.\n";
+			cout << "*** ERROR! Greenwood and Williamson area gradient unavailable.";
 			throw eBadInputValue;
+		}
+		else if (fP==1.5)
+		{
+			r = *pl++;
+			
+			if (r>fM)
+			{
+				double term[8], coef, expo, k1, k3, k5, k7, k9, kn1, kn3, sqmur;
+				ModBessel f1(0.25), f3(0.75), f5(1.25), f7(1.75), f9(2.25);
+				ModBessel fn1(-0.25), fn3(-0.75);
+		
+				for (int i=0; i<8; i++)	// clear entries
+					term[i] = 0.0;
+				
+				coef = 1.0/(16.0*sqrt(PI*(r-fM))*fS*(r-fM));
+				sqmur = fM*fM+2.0*fS*fS-2.0*fM*r+r*r;
+				expo = (fM-r)*(fM-r)/((2*fS)*(2*fS));
+				k1 = f1.Function(expo);
+				k3 = f3.Function(expo);
+				k5 = f5.Function(expo);
+				k7 = f7.Function(expo);
+				k9 = f9.Function(expo);
+				kn1 = fn1.Function(expo);
+				kn3 = fn3.Function(expo);
+		
+				term[0] =- (fM-r)*(fM-r)*(kn1+k1+k7+k9)/(fS*fS);
+				term[1] = -16.0*k1+8.0*(k3+k5);
+				term[2] = 2.0*sqmur*(kn3+k5)/(fS*fS);
+				term[3] = -0.5*(fM-r)*(fM-r)*(r-fM)*(term[1]+term[2]+term[0]);
+				term[4] = -(fM-r)*(fM-r)*(2.0*sqmur*k1-k3-k5)/(fS*fS);
+				term[5] = 2.0*(r-fM)*(2.0*sqmur*k1-(fM-r)*(fM-r)*(k3+k5));
+				term[6] = (fM-r)*(2*sqmur*k1-(fM-r)*(fM-r)*(k3+k5));
+				term[7] = exp(-expo)*(term[6]+term[5]+term[4]+term[3]);
+		
+				value = coef*term[7];
+			}
+			else if (r==fM)
+			{
+				Gamma g;
+		
+				value = -3.0*sqrt(fS*PI)/(pow(2.0,5.0/4.0)*g.Function(0.25));
+			}
+			else if (r<fM)
+			{
+				double term[4], expo, m5, m7, m9, m11,sqmur, gn, gp;
+				Kummer f5(5.0/4.0,0.5), f7(7.0/4.0,1.5), f9(9.0/4.0,1.5), f11(11.0/4.0,2.5);
+				Gamma h;
+		
+				for (int i=0; i<4; i++)	// clear entries
+					term[i] = 0.0;
+			
+				sqmur = fM*fM-fS*fS-2.0*fM*r+r*r;
+				expo = 0.5*(fM-r)*(fM-r)/(fS*fS);
+				m5 = f5.Function(expo);
+				m7 = f7.Function(expo);
+				m9 = f9.Function(expo);
+				m11 = f11.Function(expo);
+				gn = h.Function(-0.25);
+				gp = h.Function(0.25);
+		
+				term[0] = -(fM-r)*(-20.0*fS*gp*m9+7.0*sqrt(2.0)*(fM-r)*gn*m11);
+				term[1] = 8.0*fS*(r-fM)*gp*m5+6.0*sqrt(2.0)*sqmur*gn*m7;
+				term[2] = exp(-expo)*fS*sqrt(PI*(fM-r))*(term[1]+term[0]);
+				term[3] = pow(2.0,11.0/4.0)*pow(fS,2.5)*sqrt(fM-r)*gn*gp;
+		
+				if (term[3]==0)
+				{
+					cout << "**Error! - Zero denominator in GreenwoodWilliamson. **\n";
+					throw eBadInputValue;
+				}
+		
+				value = term[2]/term[3];
+			}
 		}
 		else
 		{
-			diff = *pl++ - fM;
-			xval = pow(diff/(2.0*fS),2.0);
-		
-			if (diff > 0)
-			{
-				ModBessel k1(0.25), k3(0.75), k5(1.25), kn1(-0.25), k7(1.75), kn3(-0.75), k9(2.25);
-				double f0 = sqrt(fS*(*pl++-fM))*exp(-xval);
-				double f1 = 2.0*(pow(*pl++-fM,2.0) + 2.0*pow(fS,2.0))*k1.Function(xval);
-				double f2 = -pow(*pl++-fM,2.0)*(k3.Function(xval) + k5.Function(xval));
-			
-				double df0 = -exp(-xval)*(pow(*pl++-fM,2.0)-pow(fS,2.0))/(2.0*pow(fS,1.5)*sqrt(*pl++-fM));
-				double df1 = (*pl++-fM)*(4.0*k1.Function(xval)-(2.0*xval+1.0)*(kn3.Function(xval)+k5.Function(xval)));
-				double df2sum = kn1.Function(xval)+k1.Function(xval)+k7.Function(xval)+k9.Function(xval);
-				double df2 = (*pl++-fM)*(-2.0*(k3.Function(xval)+k5.Function(xval))+xval*df2sum);
-	
-				yval = df0*(f1+f2)+f0*(df1+df2);
-			}
-			else if (diff == 0)
-				yval = -3.0*1.22542*sqrt(fS/PI)/pow(2.0,1.75);
-			else
-			{	/* decompose "negative domain": [h,mu] + [mu,inf]	*/
-				/*													*/
-				/* no closed form solution; use Gaussian quadrature */
-				/* on the function:									*/
-				/*			(s-h)^(1.5) phi(s)						*/
-				double dom1=0.0;
-				double a = *pl++;
-				double b = fM;
-				double x1, x2, x3, x4;
-				double A1, A2, A3, A4;
-				double temp1, temp2, temp3, temp4, temp5, temp6;
-				double temp7, temp8, temp9, temp10, temp11;
-				double ap2, ap3, ap4;
-				double bp2, bp3;
-				double x1p2, x1p3;
-				double x2p2, x2p3;
-				double x3p2;
-				double x4p2, x4p3;
-				
-				x1 = (35.0*a-sqrt(525.0+70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
-				x2 = (35.0*a+sqrt(525.0+70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
-				x3 = (35.0*a-sqrt(525.0-70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
-				x4 = (35.0*a+sqrt(525.0-70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
-				
-				ap2 = pow(a,2.0);
-				ap3 = pow(a,3.0);
-				ap4 = pow(a,4.0);
-				bp2 = pow(b,2.0);
-				bp3 = pow(b,3.0);
-				x1p2 = pow(x1,2.0);
-				x1p3 = pow(x1,3.0);
-				x2p2 = pow(x2,2.0);
-				x2p3 = pow(x2,3.0);
-				x3p2 = pow(x3,2.0);
-				x4p2 = pow(x4,2.0);
-				x4p3 = pow(x4,3.0);
-			
-				temp1 = 12.0*a*x2*(x2-x3)*(x2-x4)*(x3-x4)*x4;
-				temp2 = 4.0*ap3*(2.0*x2p3-2.0*x2*x3p2+x4*x3p2-x4p3);
-				temp3 = ap4*(-6.0*x2p2+6.0*x2*x3+3.0*x4*(x4-x3));
-				temp4 = 6.0*ap2*x3*(-2.0*x2p3+2.0*x2p2*x3+x4p2*(x4-x3));
-				temp5 = -12.0*x2*(x2-x3)*(x2-x4)*(x3-x4)*x4;
-				temp6 = 3*bp3*(2.0*x2p2-2.0*x2*x3+(x3-x4)*x4);
-				temp7 = 6.0*b*x3*(2.0*x2p3-2.0*x2p2*x3+(x3-x4)*x4p2);
-				temp8 = bp2*(-8.0*x2p3+8.0*x2*x3p2-4.0*x3p2*x4+4.0*x4p3);
-				temp9 = (x2-x3)*(x2-x4)*(x3-x4)*x4;
-				temp10 = x1p2*(2.0*x2p2-2.0*x2*x3+(x3-x4)*x4);
-				temp11 = x1*(-2.0*x2p2*x3-x3p2*x4+x4p3+x2*(2.0*x3p2+x3*x4-x4p2));
-				A1 = (temp1+temp2+temp3+temp4+b*(temp5+temp6+temp7+temp8))/(12.0*(x1-x2)*(temp9+temp10+temp11));
-			
-				temp1 = -12.0*a*x1*(x1-x3)*(x1-x4)*(x3-x4)*x4;
-				temp2 = 3.0*ap4*(2.0*x1p2-2.0*x1*x3+(x3-x4)*x4);
-				temp3 = 6.0*ap2*x3*(2.0*x1p3-2.0*x1p2*x3+(x3-x4)*x4p2);
-				temp4 = ap3*(-8.0*x1p3+8.0*x1*x3p2-4.0*x3p2*x4+4.0*x4p3);
-				temp5 = 12.0*x1*(x1-x3)*(x1-x4)*(x3-x4)*x4;
-				temp6 = 4*bp2*(2.0*x1p3-2.0*x1*x3p2+x3p2*x4-x4p3);
-				temp7 = bp3*(-6.0*x1p2+6.0*x1*x3+3.0*x4*(x4-x3));
-				temp8 = 6.0*b*x3*(-2.0*x1p3+2.0*x1p2*x3+x4p2*(x4-x3));
-				temp9 = (x2-x3)*(x2-x4)*(x3-x4)*x4;
-				temp10 = x1p2*(2.0*x2p2-2.0*x2*x3+(x3-x4)*x4);
-				temp11 = x1*(-2.0*x2p2*x3-x3p2*x4+x4p3+x2*(2.0*x3p2+x3*x4-x4p2));
-				A2 = (temp1+temp2+temp3+temp4+b*(temp5+temp6+temp7+temp8))/(12.0*(x1-x2)*(temp9+temp10+temp11));
-			
-				temp1 = 12.0*a*x1*x2*(x1-x4)*(x2-x4)*x4;
-				temp2 = -3.0*ap4*(2.0*x1*x2-x1*x4-x2*x4+x4p2);
-				temp3 = 4.0*ap3*(x1p2*(2.0*x2-x4)+x1*x2*(2.0*x2-x4)-x2p2*x4+x4p3);
-				temp4 = -6*ap2*(x1*x4p2*(x4-x2)+x2*x4p2*(x4-x2)+x1p2*(2.0*x2p2-x4p2));
-				temp5 = -12.0*x1*x2*(x1-x4)*(x2-x4)*x4;
-				temp6 = 3.0*bp3*(2.0*x1*x2-x1*x4-x2*x4+x4p2);
-				temp7 = -4.0*bp2*(x1p2*(2.0*x2-x4)+x1*x2*(2.0*x2-x4)-x2p2*x4+x4p3);
-				temp8 = 6.0*b*(x1*x4p2*(x4-x2)+x2*x4p2*(x4-x2)+x1p2*(2.0*x2p2-x4p2));
-				temp9 = (x2-x3)*(x2-x4)*(x3-x4)*x4;
-				temp10 = x1p2*(2.0*x2p2-2.0*x2*x3+x4*(x3-x4));
-				temp11 = x1*(-2.0*x2p2*x3-x3p2*x4+x4p3+x2*(2.0*x3p2+x3*x4-x4p2));
-				A3 = (temp1+temp2+temp3+temp4+b*(temp5+temp6+temp7+temp8))/(12.0*x3*(temp9+temp10+temp11));
-			
-				temp1 = -12.0*a*x1*x2*(x1-x3)*(x2-x3)-3.0*ap4*(x1+x2-x3);
-				temp2 = -6.0*x3*ap2*(x1p2+x1*(x2-x3)+x2*(x2-x3));
-				temp3 = 4.0*ap3*(x1p2+x1*x2+x2p2-x3p2);
-				temp4 = 12.0*x1*x2*(x1-x3)*(x2-x3)+3.0*bp3*(x1+x2-x3);
-				temp5 = 6.0*b*x3*(x1p2+x1*x2+x2p2-x1*x3-x2*x3);
-				temp6 = -4.0*bp2*(x1p2+x1*x2+x2p2-x3p2);
-				temp7 = (x2-x3)*(x2-x4)*(x3-x4)*x4;
-				temp8 = x1p2*(2.0*x2p2-2.0*x2*x3+(x3-x4)*x4);
-				temp9 = x1*(-2.0*x2p2*x3-x3p2*x4+x4p3+x2*(2.0*x3p2+x3*x4-x4p2));
-				A4 = (temp1+temp2+temp3+b*(temp4+temp5+temp6))/(12.0*(temp7+temp8+temp9));
-			
-				dom1 = A1*ddom1intdh(x1,*pl++,fM,fS)+A2*ddom1intdh(x2,*pl++,fM,fS)+A3*ddom1intdh(x3,*pl++,fM,fS)+A4*ddom1intdh(x4,*pl++,fM,fS);
-	
-				double dom2 = 0.0;
-				ConHyperGeom fCHGn1(-0.25,1.5), fCHG1(0.25,1.5), fCHG3(0.75,2.5);
-				GenHyperGeom fGHG1(0.5,1.0,1.75,2.25), fGHG3(1.5,2.0,2.75,3.25);
-			
-				temp1 = 105.0*pow(fS,1.5)/sqrt(fM-*pl++);
-				temp2 = 12.0*pow(fS,2.0)*0.919063*fCHGn1.Function(-2.0*xval);
-				temp3 = -9.0*sqrt(2.0)*fS*0.906402*fCHG1.Function(-2.0*xval);
-				temp4 = 2.0*(*pl++-fM)*0.919063*fCHG3.Function(-2.0*xval);
-				temp5 = 630.0*pow(2.0,0.25)*(*pl++-fM)*pow(fS,2.0)*fGHG1.Function(-2.0*xval);
-				temp6 = -32.0*pow(2.0,0.25)*pow((*pl++-fM),3.0)*fGHG3.Function(-2.0*xval);
-				temp7 = 630.0*pow(2.0,0.75)*sqrt(PI)*pow(fS,3.0);
-				dom2 = (-sqrt(fM-*pl++)*(temp1*(temp2+(*pl++-fM)*(temp3+temp4))+temp5+temp6))/temp7;
-
-				yval = dom1+dom2;
-			}
+			cout << "\n*** Bad POWER value in GreenwoodWilliamson.cpp.\n";
+			throw eBadInputValue;
 		}
-	
-		*pdU++ = yval;
+		
+		*pdU++ = value;
 	}
 	return(out);
 }
 
-dArrayT& GreenwoodWilliamson::MapContactArea(const dArrayT& in, dArrayT& out) const
-{
-	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
-
-	double* pl  = in.Pointer();
-	double* pdU = out.Pointer();
-	
-	for (int i = 0; i < in.Length(); i++)
-	{	
-		double xval, diff, yval;
-	
-		if (fS==0)
-		{
-			cout << "\n*** Bad SIGMA value in GreenwoodWilliamson.cpp.\n";
-			throw eBadInputValue;
-		}
-		else
-		{
-			diff = *pl++ - fM;
-			xval = pow(diff/(sqrt(2.0)*fS),2.0);
-		
-			if (diff > 0)
-			{
-				ErrorFunc Erf(1.0);
-				double f0 = 2.0*fS+exp(xval)*diff*sqrt(2.0*PI)*(Erf.Function(sqrt(xval))-1.0);
-		
-				yval = exp(-xval)*f0/(2.0*sqrt(2.0*PI));
-			}
-			else if (diff == 0)
-				yval = fS/sqrt(2.0*PI);
-			else
-			{	/* decompose "negative domain": [h,mu] + [mu,inf]	*/
-				ErrorFunc Erf(1.0);
-				double dom1;
-			
-				double g0 = fS*(exp(-xval)-1.0)/sqrt(2.0*PI);
-				double g1 = 0.5*diff*Erf.Function(-sqrt(xval));
-				dom1 = g0+g1;
-
-				double dom2 = (fS*sqrt(2.0)-diff*sqrt(PI))/(2.0*sqrt(PI));
-	
-				yval = dom1+dom2;
-			}
-		}	
-		*pdU++ = yval;
-	}
-	return(out);
-}
 
