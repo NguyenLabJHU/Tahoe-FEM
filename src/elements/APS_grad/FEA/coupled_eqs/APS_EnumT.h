@@ -1,4 +1,4 @@
-// $Id: APS_EnumT.h,v 1.4 2003-09-22 20:53:14 raregue Exp $
+// $Id: APS_EnumT.h,v 1.5 2003-09-29 23:28:51 raregue Exp $
 #ifndef _APS_ENUM_H_ 
 #define _APS_ENUM_H_ 
 
@@ -20,6 +20,7 @@ class APS
     				//grad_u must be treated as a matrix given the GradU operation in ShapeFunctionT	
 					//kgrad_u, 
 					kgammap, 
+					kstate,
 	                kNUM_APS_VECTOR_VARS }; // <-- Keep this one last !!
 	                
 	enum VarT_matrix {  

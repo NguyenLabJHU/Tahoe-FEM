@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.8 2003-09-23 19:31:42 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.9 2003-09-29 23:28:49 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -48,6 +48,7 @@ class APS_AssemblyT: public ElementBaseT
 									k__gamma0_dot,
 									k__m1,
 									k__m2,
+									k__kappa0,
 									kNUM_FMAT_TERMS	}; // MAT for material here, not matrix
 
 	/** constructor */
@@ -148,7 +149,7 @@ private:
 	/** Gradients with respect to reference coodinates */
 	FEA_dMatrixT fgrad_gamma_p, fgrad_gamma_p_n, fVars_matrix, fgrad_u, fgrad_u_n;
 	//FEA_dVectorT fgrad_u, fgrad_u_n, fgamma_p, fgamma_p_n, fVars_vector;
-	FEA_dVectorT fgamma_p, fgamma_p_n, fVars_vector;
+	FEA_dVectorT fgamma_p, fgamma_p_n, fVars_vector, fstate, fstate_n;
 
 	/** \name  values read from input in the constructor */
 	/*@{*/

@@ -1,4 +1,4 @@
-// $Id: APS_MatlT.h,v 1.1 2003-07-10 17:26:55 raregue Exp $
+// $Id: APS_MatlT.h,v 1.2 2003-09-29 23:28:55 raregue Exp $
 #ifndef _APS_MATLT_
 #define _APS_MATLT_
 
@@ -21,6 +21,7 @@ class APS_MatlT : public APS_MaterialT
 						km2,	 					
 						kl,
 		 				kH,
+		 				kkappa0,
 		        		kNUM_APS_MATL_PARAMS };
 
 		void Allocate (void) { n_mp = kNUM_APS_MATL_PARAMS; Parameter.Dimension ( n_mp ); }

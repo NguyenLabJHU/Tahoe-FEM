@@ -1,4 +1,4 @@
-// $Id: PlastT.h,v 1.3 2003-09-21 22:14:41 raregue Exp $
+// $Id: PlastT.h,v 1.4 2003-09-29 23:28:53 raregue Exp $
 #ifndef _PLAST_T_H_ 
 #define _PLAST_T_H_ 
 
@@ -28,7 +28,7 @@ public:
 						int	&fTime_Step, double  fdelta_t = 0.0, int Integration_Scheme = FEA::kBackward_Euler ) = 0; 
 	virtual void Form_LHS_Keps_Kd	(	dMatrixT &Keps, dMatrixT &Kd	)	= 0; 
 	virtual void Form_RHS_F_int	(	dArrayT &F_int	) = 0;
-	virtual void Initialize	(	int &in_ip, int &in_sd, int &in_en, int Initial_Time_Step ) = 0;
+	virtual void Initialize	(	int &in_ip, int &in_sd, int &in_en, int &in_state, int Initial_Time_Step ) = 0;
 
 	virtual void Get ( StringT &Name, FEA_dMatrixT &tensor ) =0;
 	virtual void Get ( StringT &Name, FEA_dVectorT &vector ) =0;
