@@ -11,7 +11,8 @@ static double Max(double a, double b) { return (a > b) ? a : b; };
 CubicSplineWindowT::CubicSplineWindowT(double dilation_scaling):
 	fDilationScaling(dilation_scaling)
 {
-	if (fDilationScaling < 0.0) throw ExceptionT::kBadInputValue;
+	if (fDilationScaling < 0.0) 
+		ExceptionT::BadInputValue("CubicSplineWindowT::CubicSplineWindowT");
 }
 
 /* "synchronization" of nodal field parameters. */
@@ -22,11 +23,7 @@ void CubicSplineWindowT::SynchronizeSupportParameters(dArray2DT& params_1,
 	if (params_1.Length() != params_2.Length() ||
 	    params_1.MinorDim() != NumberOfSupportParameters() ||
 	    params_2.MinorDim() != NumberOfSupportParameters())
-	{
-		cout << "\n CubicSplineWindowT::SynchronizeSupportParameters: nodal\n"
-		     << " parameters dimension mismatch" << endl;
-		throw ExceptionT::kSizeMismatch;
-	}
+		ExceptionT::SizeMismatch("CubicSplineWindowT::SynchronizeSupportParameters");
 		
 	/* "synchronize" means take max of dmax */
 	double* p1 = params_1.Pointer();
@@ -68,7 +65,7 @@ bool CubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, cons
 		/* distance */
 		Dw.DiffOf(x_n, x);
 		double dist = Dw.Magnitude();
-		double a = param_n[0]*fDilationScaling;
+		double a = 0.5*param_n[0]*fDilationScaling; /* window defined over -2 < x < 2 */
 		double r = dist/a;
 		if (r > 2.0) {
 			w = 0.0;
@@ -143,7 +140,7 @@ int CubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, c
 bool CubicSplineWindowT::Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT& param_n) const
 {
 	double dist = dArrayT::Distance(x, x_n);
-	return (dist/(param_n[0]*fDilationScaling) < 2.0);
+	return (dist/(param_n[0]*fDilationScaling) < 1.0);
 }
 
 int CubicSplineWindowT::Covers(const dArray2DT& x_n, const dArrayT& x, 
@@ -154,7 +151,7 @@ int CubicSplineWindowT::Covers(const dArray2DT& x_n, const dArrayT& x,
 	for (int i = 0; i < numwindowpoints; i++)
 	{
 		double dist = dArrayT::Distance(x, x_n);
-		if (dist/(param_n[0]*fDilationScaling) < 2.0) {
+		if (dist/(param_n[0]*fDilationScaling) < 1.0) {
 			count++;
 			covers[i] = true;
 		} 
@@ -171,7 +168,7 @@ double CubicSplineWindowT::SphericalSupportSize(const dArrayT& param_n) const
 #if __option(extended_errorcheck)
 	if (param_n.Length() != 1) ExceptionT::GeneralFail("CubicSplineWindowT::SphericalSupportSize");
 #endif
-	return 2.0*fDilationScaling*param_n[0];
+	return 1.0*fDilationScaling*param_n[0];
 }
 
 /* rectangular support size */
@@ -192,7 +189,7 @@ void CubicSplineWindowT::SphericalSupportSize(const dArray2DT& param_n, ArrayT<d
 
 	dArrayT tmp;
 	tmp.Alias(support_size);
-	tmp.SetToScaled(2.0*fDilationScaling, param_n);
+	tmp.SetToScaled(1.0*fDilationScaling, param_n);
 }
 
 /* rectangular support sizes in batch */
