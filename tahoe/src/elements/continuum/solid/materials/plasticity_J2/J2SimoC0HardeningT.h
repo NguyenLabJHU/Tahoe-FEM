@@ -1,4 +1,4 @@
-/* $Id: J2SimoC0HardeningT.h,v 1.1 2001-05-05 19:28:34 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.h,v 1.2 2001-06-04 23:40:18 paklein Exp $ */
 /* created: paklein (05/01/2001) */
 
 #ifndef _J2_SIMO_C0_HARD_T_H_
@@ -32,6 +32,12 @@ public:
 	~J2SimoC0HardeningT(void);
 
 protected:
+
+	/** elastic/plastic flag values */
+	enum LoadStateT {
+		kNotInit =-1,
+	  kIsPlastic = 0,
+	  kIsElastic = 1};
 
 	/** number of stored variables */
 	static const int kNumInternal;
@@ -80,6 +86,12 @@ protected:
 	void Update(ElementCardT& element);
 	void Reset(ElementCardT& element);
 
+	/* hardening functions and their 1st derivatives */
+	double   H(double) const { return 0.0; }; // no kinematic hardening yet
+	double  dH(double) const { return 0.0; };
+	double   K(double a) const;
+	double  dK(double a) const;
+
 private:
 
 	/** initialize intermediate state from F_n (for ) */
@@ -96,12 +108,6 @@ private:
 	/** evaluate single parameters yield function */
 	double YieldCondition(const dSymMatrixT& stress, double alpha) const;
 
-	/* hardening functions and their 1st derivatives */
-	double   H(double) const { return 0.0; }; // no kinematic hardening yet
-	double  dH(double) const { return 0.0; };
-	double   K(double a) const;
-	double  dK(double a) const;
-
 	/* construct isotropic hardening function */
 	void ConstructHardeningFunction(ifstreamT& in);
 
@@ -111,8 +117,6 @@ protected:
 	dArrayT     fInternal; //internal variables
 	dSymMatrixT fb_bar;    //isochoric, elastic part of b
 	dSymMatrixT fbeta_bar; //stress surface "center", kinematic hardening
-
-private:
 
 	/** number of integration points */
 	int fNumIP;

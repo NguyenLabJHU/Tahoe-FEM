@@ -1,4 +1,4 @@
-/* $Id: J2SimoC0HardeningT.cpp,v 1.3 2001-06-03 21:06:28 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.cpp,v 1.4 2001-06-04 23:40:18 paklein Exp $ */
 /* created: paklein (05/01/2001) */
 
 #include "J2SimoC0HardeningT.h"
@@ -14,11 +14,6 @@
 /* hardening functions */
 #include "CubicSplineT.h"
 #include "LinearExponentialT.h"
-	
-/* elastic/plastic flag values */
-const int kNotInit   =-1;
-const int kIsPlastic = 0;
-const int kIsElastic = 1;
 
 const double sqrt23    = sqrt(2.0/3.0);
 const double kYieldTol = 1.0e-10;
@@ -367,6 +362,12 @@ void J2SimoC0HardeningT::Update(ElementCardT& element)
 		/* plastic update */
 		if (Flags[ip] ==  kIsPlastic)
 		{
+			/* mark internal state as up to date */
+			Flags[ip] = kIsElastic;
+			/* NOTE: ComputeOutput writes the updated internal variables
+			 *       for output even during iteration output, which is
+			 *       called before UpdateHistory */
+
 			/* factors */
 			double alpha = fInternal[kalpha];
 			double dgamma = fInternal[kdgamma];
@@ -391,10 +392,16 @@ void J2SimoC0HardeningT::Reset(ElementCardT& element)
 	//Update without advancing the simulation
 	if (!element.IsAllocated()) throw eGeneralFail;
 
+	/* get flags */
+	iArrayT& Flags = element.IntegerData();
+
 	for (int ip = 0; ip < fNumIP; ip++)
 	{
 		/* fetch element data */
 		LoadData(element, ip);
+
+		/* reset loading state */
+		Flags[ip] = kIsElastic;
 
 		/* clear plastic increment */		
 		fInternal[kdgamma] = 0.0;

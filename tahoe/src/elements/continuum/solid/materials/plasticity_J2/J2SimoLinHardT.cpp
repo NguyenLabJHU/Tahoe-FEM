@@ -1,4 +1,4 @@
-/* $Id: J2SimoLinHardT.cpp,v 1.3 2001-05-05 19:26:29 paklein Exp $ */
+/* $Id: J2SimoLinHardT.cpp,v 1.4 2001-06-04 23:40:18 paklein Exp $ */
 /* created: paklein (06/19/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -300,6 +300,12 @@ void J2SimoLinHardT::Update(ElementCardT& element)
 		/* plastic update */
 		if (Flags[ip] ==  kIsPlastic)
 		{
+			/* mark internal state as up to date */
+			Flags[ip] = kIsElastic;
+			/* NOTE: ComputeOutput writes the updated internal variables
+			 *       for output even during iteration output, which is
+			 *       called before UpdateHistory */
+
 			/* factors */
 			double alpha = fInternal[kalpha];
 			double dgamma = fInternal[kdgamma];
@@ -324,10 +330,16 @@ void J2SimoLinHardT::Reset(ElementCardT& element)
 	//Update without advancing the simulation
 	if (!element.IsAllocated()) throw eGeneralFail;
 
+	/* get flags */
+	iArrayT& Flags = element.IntegerData();
+
 	for (int ip = 0; ip < fNumIP; ip++)
 	{
 		/* fetch element data */
 		LoadData(element, ip);
+		
+		/* reset loading state */
+		Flags[ip] = kIsElastic;
 
 		/* clear plastic increment */		
 		fInternal[kdgamma] = 0.0;
