@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.8 2004-07-22 08:20:19 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.9 2005-03-11 20:36:48 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
 #include "ifstreamT.h"
@@ -102,7 +102,7 @@ void MeshfreeBridgingT::InitProjection(CommManagerT& comm, const iArrayT& points
 			/* set flag */
 			cell_nodes_OK[i] = 1;
 		}
-		else if (ElementSupport().PrintInput()) /* report nodes that could not be fit */
+		else if (ElementSupport().Logging() != GlobalT::kSilent) /* report nodes that could not be fit */
 		{
 			/* write support size of the neighborhood nodes */
 			bool write_support_size = true;
@@ -202,7 +202,7 @@ void MeshfreeBridgingT::InitProjection(CommManagerT& comm, const iArrayT& points
 	}
 	
 	/* verbose output */
-	if (ElementSupport().PrintInput())
+	if (ElementSupport().Logging() == GlobalT::kVerbose)
 	{
 		/* stream */
 		ostream& out = ElementSupport().Output();
@@ -347,6 +347,22 @@ void MeshfreeBridgingT::CollectProjectedNodes(const PointInCellDataT& cell_data,
 	driven_node_map.Forward(nodes);
 }
 
+/* write projection-interpolation matrix from projection_data into cell_data */
+void MeshfreeBridgingT::ComputeProjectionInterpolation(
+	const PointInCellDataT& cell_data,
+	const PointInCellDataT& projection_data,
+	const iArrayT& projection_source,
+	const iArrayT& projection_dest) const
+{
+#pragma unused(cell_data)
+#pragma unused(projection_data)
+#pragma unused(projection_source)
+#pragma unused(projection_dest)
+
+	ExceptionT::GeneralFail("MeshfreeBridgingT::ComputeProjectionInterpolation",
+		"under construction");
+}
+
 /* information about subordinate parameter lists */
 void MeshfreeBridgingT::DefineSubs(SubListT& sub_list) const
 {
@@ -391,7 +407,10 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 	const char caller[] = "MeshfreeBridgingT::BuildNodalNeighborhoods";
 
 	/* map all the points into cells */
-	MaptoCells(points_used, init_coords, curr_coords, cell_data);	
+//	MaptoCells(points_used, init_coords, curr_coords, cell_data);	
+
+	/* init all data structures for interpolating values to the points */
+	InitInterpolation(points_used, init_coords, curr_coords, cell_data);
 
 	/* set map of node used to rows in neighbor data */
 	cell_data.CollectCellNodes();
@@ -507,7 +526,7 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 	nodal_neighbors.Copy(auto_fill);
 	
 	/* verbose output */
-	if (ElementSupport().PrintInput())
+	if (ElementSupport().Logging() == GlobalT::kVerbose)
 	{
 		/* stream */
 		ostream& out = ElementSupport().Output();

@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.49 2004-07-22 13:31:26 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.50 2005-03-11 20:36:47 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -66,7 +66,7 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 	grid.Reset();
 
 	/* verbose output */
-	if (ElementSupport().PrintInput()) {
+	if (ElementSupport().Logging() == GlobalT::kVerbose) {
 		grid.WriteStatistics(out);
 		grid.DumpGrid(out);
 	}
@@ -121,7 +121,7 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 	found_in_cell.Free();
 	
 	/* verbose output */
-	if (ElementSupport().PrintInput()) {
+	if (ElementSupport().Logging() == GlobalT::kVerbose) {
 		iArrayT tmp(point_in_cell.Length(), point_in_cell.Pointer());
 		out << "\n Particles in cells:\n"
 		    << setw(kIntWidth) << "no." << '\n';
@@ -162,7 +162,7 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 	inverse.Free();
 	
 	/* verbose output */
-	if (ElementSupport().PrintInput()) {
+	if (ElementSupport().Logging() == GlobalT::kVerbose) {
 
 		int nsd = NumSD();
 		out << "\n Mapped coordinates of particles in elements:\n";
@@ -569,6 +569,22 @@ void BridgingScaleT::CollectProjectedCells(const PointInCellDataT& cell_data, iA
 /* return list of projected nodes */
 void BridgingScaleT::CollectProjectedNodes(const PointInCellDataT& cell_data, iArrayT& nodes) const {
 	nodes = cell_data.CellNodes();
+}
+
+/* write projection-interpolation matrix from projection_data into cell_data */
+void BridgingScaleT::ComputeProjectionInterpolation(
+	const PointInCellDataT& cell_data,
+	const PointInCellDataT& projection_data,
+	const iArrayT& projection_source,
+	const iArrayT& projection_dest) const
+{
+#pragma unused(cell_data)
+#pragma unused(projection_data)
+#pragma unused(projection_source)
+#pragma unused(projection_dest)
+
+	ExceptionT::GeneralFail("BridgingScaleT::ComputeProjectionInterpolation",
+		"not implemented. Requires explicit matrix inverse");
 }
 
 /* Project point values onto mesh, write into displacement field.  Used to compute initial
