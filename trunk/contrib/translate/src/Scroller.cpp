@@ -1,4 +1,4 @@
-/* $Id: Scroller.cpp,v 1.3 2005-01-11 17:57:01 paklein Exp $ */
+/* $Id: Scroller.cpp,v 1.4 2005-03-14 20:01:07 paklein Exp $ */
 #include "Scroller.h"
 #include "ExceptionT.h"
 #include "OutputSetT.h"
@@ -10,7 +10,8 @@ Scroller::Scroller(ostream& out, istream& in, bool write):
 	TranslateIOManager(out, in, write),
 	fOutputID(-1),
 	fCleavagePlane(0.0),
-	fDirection(0)
+	fDirection(0),
+	fOutputIncrement(1)
 {
 
 }
@@ -80,10 +81,10 @@ if (fDirection != 1)
 	int incr = time_steps.Length()/10;
 	incr = (incr < 1) ? 1 : incr;
 	AutoArrayT<int> keep_block(nel,0), keep_all(nel,0);
-	for (int j = 0; j < time_steps.Length(); j++) 
+	for (int j = fOutputIncrement-1; j < time_steps.Length(); j+= fOutputIncrement) 
 	{
 		/* progress */
-		if ((j+1)%incr == 0)
+		if ((j+1)%incr == 0 || fOutputIncrement > 1)
 			cout << "step " << j+1 << endl;
 	
 	    /* read node values (across all blocks) */
@@ -261,6 +262,17 @@ void Scroller::SetInput(void)
 			fMeshSize = dx;
 	}
 	fPeriodicLength = fXRight - fXLeft + fMeshSize;
+	
+	/* output increment */
+	cout << "\n filter output steps (y/n): ";
+	char filter = 'n';
+	fIn >> filter;
+	if (fEcho) fEchoOut << filter << "\n";
+	if (filter == 'y' || filter == 'Y') {
+		cout << "\n Output increment (1 <= increment <= " << fModel.NumTimeSteps() << "): ";
+		fIn >> fOutputIncrement;
+		if (fEcho) fEchoOut << fOutputIncrement << "\n";
+	}
 }
 
 /************************************************************************
