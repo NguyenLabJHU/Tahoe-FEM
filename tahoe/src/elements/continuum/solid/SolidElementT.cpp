@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.7 2001-06-03 21:03:50 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.8 2001-06-03 21:31:39 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #include "SolidElementT.h"
@@ -76,7 +76,7 @@ void SolidElementT::Initialize(void)
 //}
 
 	/* setup for material output */
-	if (fNodalOutputCodes[iMaterialData])
+	if (fNodalOutputCodes[iMaterialData] || fElementOutputCodes[iIPMaterialData])
 	{
 		/* check compatibility of output */
 		if (!CheckMaterialOutput())
@@ -89,6 +89,7 @@ void SolidElementT::Initialize(void)
 		{
 			cout << "\n SolidElementT::Initialize: there are no material outputs" << endl;
 			fNodalOutputCodes[iMaterialData] = IOBaseT::kAtNever;
+			fElementOutputCodes[iIPMaterialData] = IOBaseT::kAtNever;
 		}
 	}	
 }
