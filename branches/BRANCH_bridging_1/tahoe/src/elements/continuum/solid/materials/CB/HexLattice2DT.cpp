@@ -1,4 +1,4 @@
-/* $Id: HexLattice2DT.cpp,v 1.1.2.1 2003-02-19 01:12:59 paklein Exp $ */
+/* $Id: HexLattice2DT.cpp,v 1.1.2.2 2003-02-21 02:03:16 paklein Exp $ */
 #include "HexLattice2DT.h"
 
 using namespace Tahoe;
@@ -63,7 +63,7 @@ void HexLattice2DT::LoadBondTable(void)
 	shells[4] = bonddata5;
 
   	if (fBonds.MajorDim() != fNumBonds ||
-     	fBonds.MinorDim() != 2) ExceptionT::kGeneralFail;
+     	fBonds.MinorDim() != 2) ExceptionT::GeneralFail();
 
 	int bond = 0;
 	for (int i = 0; i < fNumShells; i++)

@@ -1,4 +1,4 @@
-/* $Id: FCCLatticeT.cpp,v 1.1.2.1 2003-02-21 01:16:32 paklein Exp $ */
+/* $Id: FCCLatticeT.cpp,v 1.1.2.2 2003-02-21 02:03:16 paklein Exp $ */
 #include "FCCLatticeT.h"
 
 using namespace Tahoe;
@@ -84,7 +84,7 @@ void FCCLatticeT::LoadBondTable(void)
 	shells[4] = bonddata5;
 
   	if (fBonds.MajorDim() != fNumBonds ||
-     	fBonds.MinorDim() != 3) ExceptionT::kGeneralFail;
+     	fBonds.MinorDim() != 3) ExceptionT::GeneralFail();
 
 	int bond = 0;
 	for (int i = 0; i < fNumShells; i++)
