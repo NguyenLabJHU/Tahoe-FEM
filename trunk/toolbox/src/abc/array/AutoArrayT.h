@@ -1,4 +1,4 @@
-/* $Id: AutoArrayT.h,v 1.18 2004-04-23 20:21:53 paklein Exp $ */
+/* $Id: AutoArrayT.h,v 1.19 2004-08-05 16:25:30 paklein Exp $ */
 /* created: paklein (12/05/1997) */
 #ifndef _AUTO_ARRAY_T_H_
 #define _AUTO_ARRAY_T_H_
@@ -153,7 +153,7 @@ public:
   private:
   
   	/** size plus headroom */
-  	int WithHeadRoom(int length) { return (length*(100 + fHeadRoom))/100; };
+  	int WithHeadRoom(int length) { return int(length*(1.0 + double(fHeadRoom)/100.0)); };
   	
 private:
 	

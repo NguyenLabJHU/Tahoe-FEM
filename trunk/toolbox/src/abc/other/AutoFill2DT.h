@@ -1,4 +1,4 @@
-/* $Id: AutoFill2DT.h,v 1.13 2003-11-21 22:41:39 paklein Exp $ */
+/* $Id: AutoFill2DT.h,v 1.14 2004-08-05 16:25:34 paklein Exp $ */
 /* created: paklein (01/19/1999) */
 #ifndef _AUTO_ARRAY2D_T_H_
 #define _AUTO_ARRAY2D_T_H_
@@ -544,7 +544,7 @@ void AutoFill2DT<TYPE>::Dimension(int chunk, int maxminordim, int headroom)
 	/* determine new memory size */
 	int memsize;
 	if (headroom > 0)
-		memsize  = (maxminordim*(100 + headroom))/100;
+		memsize  = int(maxminordim*(1.0 + double(headroom)/100.0));
 	else
 		memsize = maxminordim;
 	
