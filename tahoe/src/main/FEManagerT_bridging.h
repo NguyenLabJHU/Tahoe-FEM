@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.11.4.5 2004-04-06 01:01:33 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.11.4.6 2004-04-07 06:22:06 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -20,6 +20,7 @@ class ParticlePairT;
 class BridgingScaleT;
 class KBC_PrescribedT;
 class dSPMatrixT;
+class LAdMatrixT; //TEMP
 
 /** extension of FEManagerT for bridging scale calculations */
 class FEManagerT_bridging: public FEManagerT
@@ -228,9 +229,14 @@ protected:
 	 * \param overlap_node_map map of global node number to index in sum_R_N for nodes in the
 	 *        overlap region
 	 */
+#if 0
 	void Compute_df_dp(const dArrayT& R, double V_0, const ContinuumElementT& coarse, 
 		const iArrayT& overlap_cell, const InverseMapT& overlap_node_map, const dArray2DT& rho, 
 		dArrayT& f_a, double smoothing, dArray2DT& df_dp, dArray2DT& ddf_dpdp) const;
+#endif
+	void Compute_df_dp(const dArrayT& R, double V_0, const ContinuumElementT& coarse, 
+		const iArrayT& overlap_cell, const InverseMapT& overlap_node_map, const dArray2DT& rho, 
+		dArrayT& f_a, double smoothing, dArray2DT& df_dp, LAdMatrixT& ddf_dpdp) const;
 	/*@}*/
 
 private:
