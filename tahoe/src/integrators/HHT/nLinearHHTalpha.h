@@ -1,4 +1,4 @@
-/* $Id: nLinearHHTalpha.h,v 1.8 2003-01-29 07:35:14 paklein Exp $ */
+/* $Id: nLinearHHTalpha.h,v 1.9 2003-05-20 10:28:44 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 #ifndef _N_LINEARHHT_A_H_
 #define _N_LINEARHHT_A_H_
@@ -19,6 +19,9 @@ public:
 
 	/** constructor */
 	nLinearHHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder);
+
+	/** declare field dimensions to the integrator */
+	virtual void Dimension(const BasicFieldT& field);
 
 	/** consistent BC's */
 	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC);
@@ -73,7 +76,9 @@ private:
 	/* consistent BC */
 	double	dalpha_a;
 	double	valpha_a;
-		
+
+	//TEMP - only support one field
+	const BasicFieldT* fField;
 };
 
 } // namespace Tahoe 

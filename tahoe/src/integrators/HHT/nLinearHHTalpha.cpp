@@ -1,4 +1,4 @@
-/* $Id: nLinearHHTalpha.cpp,v 1.9 2003-04-16 20:34:00 cjkimme Exp $ */
+/* $Id: nLinearHHTalpha.cpp,v 1.10 2003-05-20 10:28:44 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 #include "nLinearHHTalpha.h"
 #include "dArrayT.h"
@@ -12,9 +12,27 @@ using namespace Tahoe;
 
 /* constructor */
 nLinearHHTalpha::nLinearHHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder):
-	HHTalpha(in, out, auto2ndorder)
+	HHTalpha(in, out, auto2ndorder),
+	fField(NULL)
 {
 
+}
+
+/* register field with the integrator */
+void nLinearHHTalpha::Dimension(const BasicFieldT& field)
+{
+	/* inherited */
+	nIntegratorT::Dimension(field);
+
+	//TEMP - can only handle single field
+	if (!fField) 
+		fField = &field;
+	else if (fField != &field)
+		ExceptionT::GeneralFail("nLinearHHTalpha::Dimension", "only single field allowed");
+
+	/* dimension saved values from t_n (need by HHT-alpha) */
+	dn = field[0];
+	vn = field[1];
 }
 
 /* consistent BC's - updates predictors and acceleration only */
@@ -34,7 +52,10 @@ void nLinearHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		{
 			double d_alpha = (1.0 + falpha)*KBC.Value() - falpha*dn(node,dof);
 
-			a  = (d_alpha - d)/dalpha_a;
+			if (fabs(dalpha_a) > kSmall) /* for dt -> 0.0 */
+				a = (d_alpha - d)/dalpha_a;
+			else
+				a = 0.0;
 			d  = d_alpha;
 			v += valpha_a*a;
 		
@@ -44,7 +65,10 @@ void nLinearHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		{
 			double v_alpha = (1.0 + falpha)*KBC.Value() - falpha*vn(node,dof);
 	
-			a  = (v_alpha - v)/valpha_a;
+			if (fabs(valpha_a) > kSmall) /* for dt -> 0.0 */
+				a = (v_alpha - v)/valpha_a;
+			else
+				a = 0.0;
 			v  = v_alpha;
 			d += dalpha_a*a;
 	
