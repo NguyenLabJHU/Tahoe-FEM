@@ -1,4 +1,4 @@
-/* $Id: GreenwoodWilliamson.cpp,v 1.9 2002-05-06 14:47:28 dzeigle Exp $ */
+/* $Id: GreenwoodWilliamson.cpp,v 1.10 2002-05-13 19:19:23 dzeigle Exp $ */
 
 #include "GreenwoodWilliamson.h"
 #include <math.h>
@@ -49,7 +49,9 @@ void GreenwoodWilliamson::PrintName(ostream& out) const
 */
 double GreenwoodWilliamson::Function(double x) const
 {
-	double value=-1.0e10;
+	double value=0.0;
+
+	x /= fS;
 	
 	if (fP==1.0)
 	{
@@ -86,13 +88,15 @@ double GreenwoodWilliamson::Function(double x) const
 		throw eBadInputValue;
 	}
 	
-	return value;
+	return (-value);
 }
 
 double GreenwoodWilliamson::DFunction(double x) const
 {
-	double value=-10.0;
+	double value=0.0;
 	
+	x /= fS;
+
 	if (fP==1.0)
 	{
 		cout << "*** ERROR! Greenwood and Williamson area gradient unavailable.";
@@ -162,12 +166,16 @@ double GreenwoodWilliamson::DFunction(double x) const
 		throw eBadInputValue;
 	}
 	
-	return value;
+	return (-value);
+
+
 }
 
 double GreenwoodWilliamson::DDFunction(double x) const
 {
-	double value = -10.0;
+	double value = 0.0;
+
+	x /= fS;
 	
 	if (fP==1.0)
 	{
@@ -251,7 +259,7 @@ double GreenwoodWilliamson::DDFunction(double x) const
 		throw eBadInputValue;
 	}
 	
-	return value;
+	return (-value);
 }
 
 
@@ -274,7 +282,7 @@ dArrayT& GreenwoodWilliamson::MapFunction(const dArrayT& in, dArrayT& out) const
 	
 	for (int i = 0; i < in.Length(); i++)
 	{
-		r = *pl++;
+		r = (*pl++)/fS;
 		
 		if (fP==1)
 		{
@@ -333,7 +341,7 @@ dArrayT& GreenwoodWilliamson::MapDFunction(const dArrayT& in, dArrayT& out) cons
 		}
 		else if (fP==1.5)
 		{
-			r = *pl++;
+			r = (*pl++)/fS;
 			
 			if (r>fM)
 			{
@@ -396,7 +404,7 @@ dArrayT& GreenwoodWilliamson::MapDFunction(const dArrayT& in, dArrayT& out) cons
 			throw eBadInputValue;
 		}
 		
-		*pU++ = value;
+		*pU++ = (-value);
 	}
 	return(out);
 }
@@ -419,7 +427,7 @@ dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) con
 		}
 		else if (fP==1.5)
 		{
-			r = *pl++;
+			r = (*pl++)/fS;
 			
 			if (r>fM)
 			{
@@ -496,7 +504,7 @@ dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) con
 			throw eBadInputValue;
 		}
 		
-		*pdU++ = value;
+		*pdU++ = (-value);
 	}
 	return(out);
 }
