@@ -1,4 +1,4 @@
-# $Id: CA-CPLANT.macros,v 1.10 2003-01-27 07:33:59 paklein Exp $
+# $Id: CA-CPLANT.macros,v 1.11 2003-02-08 17:33:14 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpi
@@ -15,10 +15,10 @@ TR          = $(MACRO_DIR)/cxx_repository
 MORE_CFLAGS = -O3 -DNDEBUG 
 #MORE_CFLAGS = -g 
 DEFINES     = -D__DEC__ -D__CPLANT__ -D__CA_CPLANT__
-MY_CFLAGS   = -c -I$(INC_DIR) -I/usr/local/mpich/include -msg_display_number $(DEFINES) $(MORE_CFLAGS)
-CFLAGS_C    = $(MPI_CFLAGS) $(MY_CFLAGS) -msg_disable 161
-CFLAGS_CC   = $(MPI_CFLAGS) $(MY_CFLAGS) -ptr $(TR) -msg_disable 161
-CFLAGS_F    = $(MPI_CFLAGS) $(MY_CFLAGS)
+LOC_CFLAGS  = -c -I$(INC_DIR) -I/usr/local/mpich/include -msg_display_number $(DEFINES) $(MORE_CFLAGS)
+CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS) -msg_disable 161
+CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -ptr $(TR) -msg_disable 161
+CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = $(MPI_LFLAGS) -lm -ptr $(TR) -L/usr/local/lam/lib
 AR          = ar

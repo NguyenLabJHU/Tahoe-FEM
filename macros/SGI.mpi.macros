@@ -1,4 +1,4 @@
-# $Id: SGI.mpi.macros,v 1.13 2003-01-27 07:33:59 paklein Exp $
+# $Id: SGI.mpi.macros,v 1.14 2003-02-08 17:33:14 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpi
@@ -12,10 +12,10 @@ COMP_CC     = CC
 COMP_F      = f77
 MORE_CFLAGS = -O3 -OPT:Olimit=10000 -DNDEBUG 
 #MORE_CFLAGS = -g
-MY_CFLAGS   = -c -mips4 -D__SGI__ -I$(INC_DIR) $(MORE_CFLAGS)
-CFLAGS_C    = $(MPI_CFLAGS) $(MY_CFLAGS) -woff 1110,1116
-CFLAGS_CC   = $(MPI_CFLAGS) $(MY_CFLAGS) -ptused -woff 1110,1155,1174,1188,1682,3303 -LANG:exceptions=ON -LANG:ansi-for-init-scope=ON
-CFLAGS_F    = $(MPI_CFLAGS) $(MY_CFLAGS)
+LOC_CFLAGS  = -c -mips4 -D__SGI__ -I$(INC_DIR) $(MORE_CFLAGS)
+CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS) -woff 1110,1116
+CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -ptused -woff 1110,1155,1174,1188,1682,3303 -LANG:exceptions=ON -LANG:ansi-for-init-scope=ON
+CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 F2C_LFLAG   = -lftn
 LINK        = $(COMP_CC)
 LFLAGS      = $(MPI_LFLAGS) $(F2C_LFLAG) -lm -w

@@ -1,4 +1,4 @@
-# $Id: PGI.linux.macros,v 1.6 2003-01-27 07:33:59 paklein Exp $
+# $Id: PGI.linux.macros,v 1.7 2003-02-08 17:33:14 paklein Exp $
 # linux with Portland Group compilers
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpich
@@ -12,10 +12,10 @@ COMP_F      = pgf77
 DEFINES     = -D__GNU__ -D__PGI__ -DNON_UNIX_STDIO
 MORE_CFLAGS = -O2 -DNDEBUG
 #MORE_CFLAGS = -g
-MY_CFLAGS   = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
-CFLAGS_C    = $(MPI_CFLAGS) $(MY_CFLAGS)
-CFLAGS_CC   = $(MPI_CFLAGS) $(MY_CFLAGS) -tlocal --display_error_number --diag_suppress 111
-CFLAGS_F    = $(MPI_CFLAGS) $(MY_CFLAGS)
+LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
+CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS)
+CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -tlocal --display_error_number --diag_suppress 111
+CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = $(MPI_LFLAGS)
 AR          = ar

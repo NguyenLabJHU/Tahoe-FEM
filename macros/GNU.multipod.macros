@@ -1,4 +1,4 @@
-# $Id: GNU.multipod.macros,v 1.4 2003-01-27 07:33:59 paklein Exp $
+# $Id: GNU.multipod.macros,v 1.5 2003-02-08 17:33:14 paklein Exp $
 # GNU
 MAKE        = make
 MAKE_DEPEND = /home/panchram/makedepend1
@@ -9,11 +9,11 @@ COMP_F      = g77
 DEFINES     = -D__GNU__ -DNON_UNIX_STDIO
 MORE_CFLAGS = -O3 -DNDEBUG
 #MORE_CFLAGS = -g
-#MY_CFLAGS   = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -Wunused -Wuninitialized
-MY_CFLAGS   = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
-CFLAGS_C    = $(MY_CFLAGS)
-CFLAGS_CC   = $(MY_CFLAGS)
-CFLAGS_F    = $(MY_CFLAGS)
+#LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -Wunused -Wuninitialized
+LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
+CFLAGS_C    = $(LOC_CFLAGS)
+CFLAGS_CC   = $(LOC_CFLAGS)
+CFLAGS_F    = $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = 
 AR          = ar

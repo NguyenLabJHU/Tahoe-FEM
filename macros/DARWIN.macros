@@ -1,4 +1,4 @@
-# $Id: DARWIN.macros,v 1.8 2003-01-27 07:33:59 paklein Exp $
+# $Id: DARWIN.macros,v 1.9 2003-02-08 17:33:14 paklein Exp $
 # GNU
 MAKE        = make
 MAKE_DEPEND = /usr/X11R6/bin/makedepend
@@ -10,10 +10,10 @@ COMP_F      = g77
 DEFINES     = -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -D__GCC_3__
 MORE_CFLAGS = -O -DNDEBUG -g
 #MORE_CFLAGS = -g
-MY_CFLAGS   = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
-CFLAGS_C    = $(MY_CFLAGS)
-CFLAGS_CC   = $(MY_CFLAGS)
-CFLAGS_F    = $(MY_CFLAGS)
+LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
+CFLAGS_C    = $(LOC_CFLAGS)
+CFLAGS_CC   = $(LOC_CFLAGS)
+CFLAGS_F    = $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = -Xlinker -Y -Xlinker 50
 AR          = ar
