@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.6 2002-06-08 20:20:13 paklein Exp $ */
+/* $Id: ElementT.h,v 1.7 2002-06-17 17:15:06 rjones Exp $ */
 
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
@@ -45,7 +45,8 @@ public:
 kPenaltyContactElement2D = 30,
              kMultiScale = 31,
 	    kCoarseScale = 32,
-	      kFinePhest = 33
+	      kFinePhest = 33,
+kPenaltyContactElement3D = 34
 	};
 
 	/** stream extraction operator */ 
