@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.cpp,v 1.2 2001-08-15 18:36:21 paklein Exp $ */
+/* $Id: XDOF_ManagerT.cpp,v 1.3 2001-08-27 17:14:05 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 /* base class which defines the interface for a manager */
 /* of DOF's comprised of FE DOF's plus constrain DOF's */
@@ -11,7 +11,12 @@
 #include "dArray2DT.h"
 
 /* constructor */
-XDOF_ManagerT::XDOF_ManagerT(void) { }
+XDOF_ManagerT::XDOF_ManagerT(void): 
+	fNumTags(0),
+	fStartTag(-1) 
+{ 
+
+}
 
 /* destructor */
 XDOF_ManagerT::~XDOF_ManagerT(void)
@@ -29,6 +34,14 @@ XDOF_ManagerT::~XDOF_ManagerT(void)
 /* add element group to list */
 void XDOF_ManagerT::Register(DOFElementT* group, const iArrayT& numDOF)
 {
+	/* check start tag */
+	if (fStartTag == -1)
+	{
+		cout << "\n XDOF_ManagerT::Register: start tag has not been set: "
+		     << fStartTag << endl;
+		throw eGeneralFail;
+	}
+
 	/* can only register once */
 	if (!fDOFElements.AppendUnique(group)) 
 	{
@@ -46,6 +59,13 @@ void XDOF_ManagerT::Register(DOFElementT* group, const iArrayT& numDOF)
 		fXDOF_Eqnos.Append(new iArray2DT(0, numDOF[i]));
 		fXDOFs.Append(new dArray2DT(0, numDOF[i]));
 	}
+	
+	/* reset number of tags */
+	int group_num = fDOFElements.Length() - 1;
+	if (group_num == 0)	fNumTags = fStartTag;
+
+	/* set contact configuration */	
+	ConfigureElementGroup(group_num, fNumTags);
 }
 
 /* get equation numbers for the specified constraint tags */
@@ -64,6 +84,50 @@ const dArray2DT& XDOF_ManagerT::XDOF(const DOFElementT* group, int tag_set) cons
 /**********************************************************************
 * Protected
 **********************************************************************/
+
+/* prompt element groups to reset tags */
+bool XDOF_ManagerT::ResetTags(void)
+{
+	if (fDOFElements.Length() > 0)
+	{
+		/* query (all) groups to reconfigure */
+		int relax = 0;
+		for (int j = 0; j < fDOFElements.Length(); j++)
+		{
+			if (fDOFElements[j]->Reconfigure() == 1)
+				relax = 1;
+		}
+	
+		if (relax)
+		{
+			/* check */
+			if (fStartTag == -1)
+			{
+				cout << "\n XDOF_ManagerT::ResetTags: start tag has not been set: "
+				     << fStartTag << endl;
+				throw eGeneralFail;
+			}
+		
+			/* reset */
+			fNumTags = fStartTag;
+		
+			/* loop over DOF element groups */
+			for (int i = 0; i < fDOFElements.Length(); i++)
+			{
+				/* reset contact configs */
+				ConfigureElementGroup(i, fNumTags);
+				
+				/* restore values */
+				fDOFElements[i]->ResetDOF(*fXDOFs[i], 0);
+			}
+			return true;
+		}
+		else
+			return false;
+	}
+	else	
+		return false;
+}
 
 /* call groups to reset external DOF's */
 void XDOF_ManagerT::Reset(void)
@@ -154,6 +218,9 @@ void XDOF_ManagerT::CheckEquationNumbers(ostream& out, iArray2DT& eqnos)
 //      that equation isn't exactly the first one. Check this and
 //      swap equations with any of the displacement DOF's connected
 //      to the aug. lag. DOF.
+
+	/* quick exit */
+	if (fDOFElements.Length() == 0) return;
 
 	out << "\n XDOF_ManagerT::CheckEquationNumbers: swapped node/tag's:\n\n";
 
