@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.19 2002-12-01 19:53:38 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.20 2002-12-03 18:56:19 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -445,6 +445,7 @@ void CSEBaseT::SendOutput(int kincode)
 /* print element group data */
 void CSEBaseT::PrintControlData(ostream& out) const
 {
+#ifndef _SIERRA_TEST_
 	/* inherited */
 	ElementBaseT::PrintControlData(out);
 
@@ -457,6 +458,9 @@ void CSEBaseT::PrintControlData(ostream& out) const
 	out << " Number of integration points. . . . . . . . . . = " << fNumIntPts     << '\n';
 	out << " Initial surface closure flag. . . . . . . . . . = " << fCloseSurfaces << '\n';
 	out << " Output fracture surface area. . . . . . . . . . = " << fOutputArea    << '\n';
+#else
+#pragma unused(out)
+#endif
 }
 
 /* read element connectivity data */
