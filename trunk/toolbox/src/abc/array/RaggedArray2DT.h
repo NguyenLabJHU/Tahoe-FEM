@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.18 2004-03-19 02:23:37 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.19 2004-04-21 07:34:57 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 #ifndef _RAGGED_ARRAY_2D_T_H_
 #define _RAGGED_ARRAY_2D_T_H_
@@ -155,6 +155,7 @@ public:
 	/*@{*/
 	TYPE* Pointer(void);
 	const TYPE* Pointer(void) const;
+	const ArrayT<int>& Data(void) const { return fData; };
 	/*@}*/
 
 	/** free memory */
