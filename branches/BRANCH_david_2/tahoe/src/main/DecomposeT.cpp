@@ -1,4 +1,4 @@
-/* $Id: DecomposeT.cpp,v 1.3 2004-09-28 16:08:05 paklein Exp $ */
+/* $Id: DecomposeT.cpp,v 1.3.2.1 2004-10-28 00:38:14 d-farrell2 Exp $ */
 #include "DecomposeT.h"
 
 #include "ofstreamT.h"
@@ -108,7 +108,7 @@ void DecomposeT::CheckDecompose(const StringT& input_file, int size, int decomp_
 			Decompose_graph(input_file, size, comm, model_file, format, commandlineoptions);
 			break;
 
-		case PartitionT::kAtom:
+		case PartitionT::kIndex:
 			Decompose_atom(input_file, size, model_file, format, commandlineoptions);
 			break;
 			
@@ -196,7 +196,7 @@ void DecomposeT::CheckDecompose(const StringT& input_file, int size, int decomp_
 		partition.SetScope(PartitionT::kLocal);
 		
 		/* set decomposition type */
-		partition.SetDecompType(PartitionT::kAtom);
+		partition.SetDecompType(PartitionT::kIndex);
 	
 		/* output file name */
 		StringT geom_file, suffix;

@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.71 2004-09-28 15:35:37 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.71.2.1 2004-10-28 00:38:14 d-farrell2 Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -631,7 +631,7 @@ void FEExecutionManagerT::RunDecomp_serial(const StringT& input_file, ostream& s
 	{
 		cout << "\n Select partitioning method:\n"
 		     << '\t' << PartitionT::kGraph   << ": graph\n"
-		     << '\t' << PartitionT::kAtom    << ": atom\n"
+		     << '\t' << PartitionT::kIndex    << ": atom\n"
 		     << '\t' << PartitionT::kSpatial << ": spatial\n";
 		cout << "\n method: "; 
 #if (defined __SGI__ && defined __TAHOE_MPI__)
