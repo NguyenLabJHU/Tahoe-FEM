@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.11 2003-02-08 16:00:25 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.12 2003-03-02 18:55:11 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -16,7 +16,8 @@ using namespace Tahoe;
 /* constructor */
 ContactT::ContactT(const ElementSupportT& support, const FieldT& field, int numfacetnodes):
 	ElementBaseT(support, field),
-	fNumFacetNodes(numfacetnodes)
+	fNumFacetNodes(numfacetnodes),
+	fnum_contact(-1), fh_max(1)
 {
 
 }
@@ -57,6 +58,14 @@ void ContactT::Initialize(void)
 	
 	/* set initial contact configuration */
 	SetContactConfiguration();	
+}
+
+/* initialize current time increment. Reset the contact tracking data. */
+void ContactT::InitStep(void)
+{
+	/* reset tracking data */
+	fnum_contact = -1;
+	fh_max = 1;
 }
 
 /* solution calls */
@@ -100,6 +109,15 @@ void ContactT::WriteOutput(void)
 			out << '\n';
 		}
 		out << endl;
+	}
+
+	/* write tracking data */
+	if (fnum_contact != -1) {
+		out << " Number of contact interactions = " << fnum_contact << '\n';
+		out << " Maximum penetration depth      = " << fh_max << '\n';
+	} else { /* not set */
+		out << " Number of contact interactions = --\n";
+		out << " Maximum penetration depth      = --\n";	
 	}
 }
 
