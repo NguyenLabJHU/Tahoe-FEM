@@ -1,5 +1,5 @@
-/* $Id: SSQ2P1MF.cpp,v 1.3 2003-08-22 16:59:20 thao Exp $ */
-#include "SSQ2P1MF.h"
+/* $Id: SSQ1P0MF.cpp,v 1.1 2003-08-22 16:59:20 thao Exp $ */
+#include "SSQ1P0MF.h"
 
 #include "OutputSetT.h"
 #include "Traction_CardT.h"
@@ -22,13 +22,13 @@
 using namespace Tahoe;
 
 /* constructor */
-SSQ2P1MF::SSQ2P1MF(const ElementSupportT& support, const FieldT& field):
-  SmallStrainQ2P1(support, field),
+SSQ1P0MF::SSQ1P0MF(const ElementSupportT& support, const FieldT& field):
+  SmallStrainQ1P0(support, field),
   MFSupportT(support) {}
 	
-void SSQ2P1MF::Initialize(void)
+void SSQ1P0MF::Initialize(void)
 {
-  SmallStrainQ2P1::Initialize();
+  SmallStrainQ1P0::Initialize();
   
   int nsd = (NumSD() == 2) ? 4 : 3;
    
@@ -44,16 +44,16 @@ void SSQ2P1MF::Initialize(void)
     fGradU_List[i].Dimension(NumSD());
 }
 
-void SSQ2P1MF::SetGlobalShape(void)
+void SSQ1P0MF::SetGlobalShape(void)
 {
-  SmallStrainQ2P1::SetGlobalShape();
+  SmallStrainQ1P0::SetGlobalShape();
   for (int i = 0; i < NumIP(); i++)
     fShapes->GradU(fLocDisp, fGradU_List[i],i);
 }
 
 /***************************outputs managers***********************************/
 /* register self for output */
-void SSQ2P1MF::RegisterOutput(void)
+void SSQ1P0MF::RegisterOutput(void)
 {
   /* inherited */
   SolidElementT::RegisterOutput();
@@ -87,7 +87,7 @@ void SSQ2P1MF::RegisterOutput(void)
 }
 
 /* send output */
-void SSQ2P1MF::WriteOutput(void)
+void SSQ1P0MF::WriteOutput(void)
 {
   /* inherited */
   SolidElementT::WriteOutput();
@@ -105,9 +105,9 @@ void SSQ2P1MF::WriteOutput(void)
 
 /**********************Material Force Driver**************/
 /*driver*/
-void SSQ2P1MF::ComputeMatForce(dArray2DT& output)
+void SSQ1P0MF::ComputeMatForce(dArray2DT& output)
 {
-  const char caller[] = "SSQ2P1MF::ComputeMatForce";
+  const char caller[] = "SSQ1P0MF::ComputeMatForce";
 
   /*obtain dimensions*/
   int nnd = fNumGroupNodes;
@@ -210,9 +210,9 @@ void SSQ2P1MF::ComputeMatForce(dArray2DT& output)
   WriteSummary(output);
 }
 
-void SSQ2P1MF::MatForceVolMech(dArrayT& elem_val)
+void SSQ1P0MF::MatForceVolMech(dArrayT& elem_val)
 {   
-  const char caller[] = "SSQ2P1MF::MatForceVolMech";
+  const char caller[] = "SSQ1P0MF::MatForceVolMech";
   int nen = NumElementNodes();
   int elem = CurrElementNumber();
   elem_val = 0;
@@ -345,7 +345,7 @@ void SSQ2P1MF::MatForceVolMech(dArrayT& elem_val)
   }
 }
 
-void SSQ2P1MF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch)
+void SSQ1P0MF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch)
 {
   
   /*obtain dimensions*/
@@ -442,7 +442,7 @@ void SSQ2P1MF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretc
   }
 }
 
-void SSQ2P1MF::MatForceSurfMech(dArrayT& global_val)
+void SSQ1P0MF::MatForceSurfMech(dArrayT& global_val)
 {
 
   if (fTractionList.Length() > 0)
@@ -684,9 +684,9 @@ Q[2]*ip_tract[0]+Q[5]*ip_tract[1]+Q[8]*ip_tract[2];
 }
 
 /****************utitlity function******************************/
-void SSQ2P1MF::Extrapolate(void)
+void SSQ1P0MF::Extrapolate(void)
 {
-  const char caller[] = "SSQ2P1MF::Extrapolate";   
+  const char caller[] = "SSQ1P0MF::Extrapolate";   
   
   Top();
   while (NextElement())
@@ -694,7 +694,7 @@ void SSQ2P1MF::Extrapolate(void)
     ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
     fCurrSSMat = dynamic_cast<SSSolidMatT*>(pmat);
     if (!fCurrSSMat) throw ExceptionT::kGeneralFail;
-    SmallStrainQ2P1::SetGlobalShape();
+    SmallStrainQ1P0::SetGlobalShape();
 
     felem_val = 0.0;
     felem_mass = 0.0;
