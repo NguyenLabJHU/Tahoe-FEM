@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.33 2005-03-09 19:10:10 paklein Exp $
+# $Id: tahoe-manager,v 1.34 2005-03-09 20:39:21 rjones Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -103,6 +103,12 @@ $ tahoe = "tahoe.ca.sandia.gov";
 # default configuration file
 $config_file = "./.tahoe_config";
 
+# if TAHOE_HOME is set, change to that location
+if(defined($dir = findENV("TAHOE_HOME") ) ) {
+	print "* changing to directory TAHOE_HOME = $dir \n";
+        chdir($dir);
+}
+
 # initialization
 $count = 0;
 initialize();
@@ -178,7 +184,7 @@ while (scalar(@req_missing) > 0) {
 	@req_missing = get_missing_modules();
 }
 
-print ">   tahoe name: $tahoe_name\n";
+print "\n>   tahoe name: $tahoe_name\n";
 print ">   connection: $connection\n";
 if ($proxy !~ "NONE") {
 	print ">        proxy: $proxy\n";
@@ -1430,3 +1436,11 @@ sub intersection {
 	}
 	return @complement;
 }
+##############################################################################
+sub findENV {
+	foreach my $key (sort(keys %ENV)) {
+        	if ($key eq $_[0]) { print "$ENV{$key}\n"; return $ENV{$key}; }       
+	}
+	return undef;
+}
+
