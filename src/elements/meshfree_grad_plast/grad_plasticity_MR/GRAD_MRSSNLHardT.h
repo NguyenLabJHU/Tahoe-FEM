@@ -8,8 +8,8 @@
  *	Note: all calculations are peformed in 3D.
  */
 
-#ifndef _GRAD_MR_SS_LIN_HARD_T_H_
-#define _GRAD_MR_SS_LIN_HARD_T_H_
+#ifndef _GRAD_MR_SS_NL_HARD_T_H_
+#define _GRAD_MR_SS_NL_HARD_T_H_
 
 /* base class */
 #include "GRAD_MRPrimitiveT.h"
@@ -18,7 +18,6 @@
 #include "dSymMatrixT.h"
 #include "dMatrixT.h"
 #include "dArrayT.h"
-#include "LAdMatrixT.h" //for solving Ax=b linear system of equations
 
 namespace Tahoe 
 {
@@ -46,27 +45,26 @@ public:
 	/* return correction to stress vector computed by mapping the
 	 * stress back to the yield surface, if needed */
 	const dSymMatrixT& StressCorrection(const dSymMatrixT& trialstrain,
-	    const dSymMatrixT& del2_trialstrain, double dlam, double del2_dlam,  
+	    const dSymMatrixT& del2_trialstrain, double& dlam, double& del2_dlam,  
 		ElementCardT& element, int ip); // dlam and del2_dlam at the ip
 		
 	virtual const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain, 
-	        const dSymMatrixT& del2_totalstrain, double dlam, double del2_dlam,
-	        const ElementCardT& element, int ip);
+	        const dSymMatrixT& del2_totalstrain, const ElementCardT& element, int ip);
 		
 	double& Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff);
     dArrayT& h_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& hh);
-    dArrayT& g_f(const dArrayT& Sig, const dArrayT& qn, double lsp_v, double lsp_s, dArrayT& gg);
-    dArrayT& nn_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& nn);
-    dArrayT& rr_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& rr);
-    dArrayT& dm_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& mm);       
+    dArrayT& g_f(const dArrayT& Sig, const dArrayT& qn, const dArrayT& ls, dArrayT& gg);
+    dArrayT& n_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& nn);
+    dArrayT& r_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& rr);
+    dArrayT& m_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& mm);       
     dMatrixT& dmdSig_f(const dArrayT& qn, dMatrixT& dmdSig);
     dMatrixT& dmdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dmdq);
     dMatrixT& dhdSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dhdSig);
-    dMatrixT& dgdSig_f(const dArrayT& Sig, const dArrayT& qn, double lsp_v, double lsp_s, dMatrixT& dgdSig);
+    dMatrixT& dgdSig_f(const dArrayT& Sig, const dArrayT& qn, const dArrayT& ls, dMatrixT& dgdSig);
     dMatrixT& dhdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dhdq);
-    dMatrixT& dgdq_f(const dArrayT& Sig, const dArrayT& qn, double lsp_v, double lsp_s, dMatrixT& dqbardq);
+    dMatrixT& dhdm_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dhdm);
+    dMatrixT& dgdq_f(const dArrayT& Sig, const dArrayT& qn, const dArrayT& ls, dMatrixT& dqbardq);
     
-    LAdMatrixT dRR; //set up matrix A for solving Ax=b system
     /* utility function */
 	double signof(double& r);
 
@@ -80,6 +78,10 @@ public:
         /* Modulus for checking discontinuous bifurcation */
 
 	const dMatrixT& ModuliDisc(const ElementCardT& element, int ip);
+	
+	/* return yield condition, f */
+	
+	const double& YieldFunction(const ElementCardT & element, int ip);
 
 	/* return a pointer to a new plastic element object constructed with
 	 * the data from element */
@@ -100,18 +102,17 @@ public:
 	/* returns 1 if the trial elastic strain state lies outside of the 
 	 * yield surface */
 	int PlasticLoading(const dSymMatrixT& trialstrain, const dSymMatrixT& del2_trialstrain, 
-                       double dlam, double del2_lam, ElementCardT& element,int ip);
+                        ElementCardT& element, int ip);
 
 	/* computes the deviatoric stress corresponding to the given element
 	 * and elastic strain.  The function returns a reference to the
 	 * stress in fDevStress */
 	dSymMatrixT& DeviatoricStress(const dSymMatrixT& trialstrain, 
-	          const dSymMatrixT& del2_trialstrain, double dlam, double del2_dlam 
-		const ElementCardT& element);
+	          const dSymMatrixT& del2_trialstrain, const ElementCardT& element);
 
 	/* computes the hydrostatic (mean) stress. */
 	double MeanStress(const dSymMatrixT& trialstrain, const dSymMatrixT& del2_trialstrain, 
-	       double dlam, double del2_dlam, const ElementCardT& element);
+	       const ElementCardT& element);
 
   private:
 
@@ -139,7 +140,7 @@ public:
   
   	/* return values */
   	dSymMatrixT	fElasticStrain;
-  	dSymMatrixT fGradElasticStrain
+  	dSymMatrixT fGradElasticStrain;
   	dSymMatrixT	fStressCorr;
   	dMatrixT	fModuli;
     dMatrixT    fModuliDisc;

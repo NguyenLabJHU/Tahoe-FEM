@@ -12,7 +12,7 @@
 #include <iostream.h>
 #include <math.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "dSymMatrixT.h"
 
 
