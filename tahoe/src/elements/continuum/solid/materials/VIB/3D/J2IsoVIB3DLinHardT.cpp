@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB3DLinHardT.cpp,v 1.9.20.2 2004-06-09 23:17:46 paklein Exp $ */
+/* $Id: J2IsoVIB3DLinHardT.cpp,v 1.9.20.3 2004-06-11 01:38:14 paklein Exp $ */
 /* created: paklein (10/12/1998) */
 #include "J2IsoVIB3DLinHardT.h"
 
@@ -52,7 +52,7 @@ static const char* Labels[kNumOutput] = {"s_max", "s_min", "VM stress", "alpha"}
 J2IsoVIB3DLinHardT::J2IsoVIB3DLinHardT(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("isotropic_VIB_J2_3D"),
 	IsoVIB3D(in, support),
-	J2PrimitiveT(in),
+//	J2PrimitiveT(in),
 
 //TEMP
 	fEigs(kNSD),
@@ -451,9 +451,25 @@ void J2IsoVIB3DLinHardT::AllocateElement(ElementCardT& element)
 	element.DoubleData()  = 0.0;
 }
 
+/* describe the parameters needed by the interface */
+void J2IsoVIB3DLinHardT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	IsoVIB3D::DefineParameters(list);
+	J2PrimitiveT::DefineParameters(list);
+}
+
+/* accept parameter list */
+void J2IsoVIB3DLinHardT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	IsoVIB3D::TakeParameterList(list);
+	J2PrimitiveT::TakeParameterList(list);
+}
+
 /***********************************************************************
-* Private
-***********************************************************************/
+ * Private
+ ***********************************************************************/
 
 /* compute F_total and f_relative */
 void J2IsoVIB3DLinHardT::ComputeGradients(void)

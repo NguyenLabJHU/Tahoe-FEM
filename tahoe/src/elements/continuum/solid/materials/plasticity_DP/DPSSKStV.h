@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.h,v 1.11.4.2 2004-06-09 23:17:54 paklein Exp $ */
+/* $Id: DPSSKStV.h,v 1.11.4.3 2004-06-11 01:38:16 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_H_
 #define _DP_SS_KSTV_H_
@@ -7,31 +7,41 @@
 #include "SSSolidMatT.h"
 #include "IsotropicT.h"
 #include "HookeanMatT.h"
-#include "DPSSLinHardT.h"
 
 namespace Tahoe {
 
+/* forward declarations */
+class DPSSLinHardT;
+
 class DPSSKStV: public SSSolidMatT,
 				public IsotropicT,
-				public HookeanMatT,
-				public DPSSLinHardT
+				public HookeanMatT
 {
   public:
 
-	/* constructor */
+	/** constructor */
 	DPSSKStV(ifstreamT& in, const SSMatSupportT& support);
+	DPSSKStV(void);
 
-	/* initialization */
-	virtual void Initialize(void);
+	/** constructor */
+	~DPSSKStV(void);
 
 	/* form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
+
+	/** model has history variables */
+	virtual bool HasHistory(void) const { return true; };
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);
 
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
+
+	/** returns elastic strain (3D) */
+	virtual const dSymMatrixT& ElasticStrain(
+                const dSymMatrixT& totalstrain, 
+				const ElementCardT& element, int ip);
 
 	/** \name spatial description */
 	/*@{*/
@@ -58,6 +68,9 @@ class DPSSKStV: public SSSolidMatT,
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
@@ -74,6 +87,9 @@ protected:
  	virtual void SetModulus(dMatrixT& modulus); 
  
 private:
+
+	/** Drucker-Prager plasticity with linear hardening */
+	DPSSLinHardT* fDP;
   
   	/* return values */
   	dSymMatrixT	fStress;

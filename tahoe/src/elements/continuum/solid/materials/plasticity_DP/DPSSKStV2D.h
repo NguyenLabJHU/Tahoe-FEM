@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV2D.h,v 1.9.4.2 2004-06-09 23:17:55 paklein Exp $ */
+/* $Id: DPSSKStV2D.h,v 1.9.4.3 2004-06-11 01:38:16 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_2D_H_
 #define _DP_SS_KSTV_2D_H_
@@ -12,11 +12,9 @@ class DPSSKStV2D: public DPSSKStV
 {
   public:
 
-	/* constructor */
+	/** constructor */
 	DPSSKStV2D(ifstreamT& in, const SSMatSupportT& support);
-
-	/* initialization */
-	virtual void Initialize(void);
+	DPSSKStV2D(void);
 
 	/* returns elastic strain (3D) */
 	virtual const dSymMatrixT& ElasticStrain(
@@ -33,6 +31,9 @@ class DPSSKStV2D: public DPSSKStV
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
   private:

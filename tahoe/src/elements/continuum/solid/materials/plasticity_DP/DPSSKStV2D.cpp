@@ -1,8 +1,9 @@
-/* $Id: DPSSKStV2D.cpp,v 1.9.4.2 2004-06-09 23:17:54 paklein Exp $ */
+/* $Id: DPSSKStV2D.cpp,v 1.9.4.3 2004-06-11 01:38:16 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV2D.h"
 #include "ElementCardT.h"
 #include "StringT.h"
+#include "DPSSLinHardT.h"
 
 using namespace Tahoe;
 
@@ -17,11 +18,10 @@ DPSSKStV2D::DPSSKStV2D(ifstreamT& in, const SSMatSupportT& support):
 
 }
 
-/* initialization */
-void DPSSKStV2D::Initialize(void)
+DPSSKStV2D::DPSSKStV2D(void):
+	ParameterInterfaceT("small_strain_StVenant_DP_2D")
 {
-	/* inherited */
-	HookeanMatT::Initialize();
+
 }
 
 /* returns elastic strain (3D) */
@@ -33,7 +33,6 @@ const dSymMatrixT& DPSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain,
 
 	/* inherited */
 	return DPSSKStV::ElasticStrain(fTotalStrain3D, element, ip);
-
 }
 
 /* moduli */
@@ -61,4 +60,16 @@ void DPSSKStV2D::DefineParameters(ParameterListT& list) const
 	/* 2D option must be plain stress */
 	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStrain);
+}
+
+/* accept parameter list */
+void DPSSKStV2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	DPSSKStV::TakeParameterList(list);
+
+	/* dimension work space */
+	fStress2D.Dimension(2);
+	fModulus2D.Dimension(dSymMatrixT::NumValues(2));
+	fTotalStrain3D.Dimension(3);
 }

@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB3DLinHardT.h,v 1.6.46.1 2004-06-09 23:17:46 paklein Exp $ */
+/* $Id: J2IsoVIB3DLinHardT.h,v 1.6.46.2 2004-06-11 01:38:14 paklein Exp $ */
 /* created: paklein (10/12/1998) */
 #ifndef _J2_ISOVIB3D_T_H_
 #define _J2_ISOVIB3D_T_H_
@@ -58,7 +58,16 @@ public:
 	virtual int NumOutputVariables(void) const;
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
-	
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/* returns the trial stretch */
