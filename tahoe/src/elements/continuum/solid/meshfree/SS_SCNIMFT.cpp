@@ -1,4 +1,4 @@
-/* $Id: SS_SCNIMFT.cpp,v 1.17 2005-03-01 08:26:29 paklein Exp $ */
+/* $Id: SS_SCNIMFT.cpp,v 1.18 2005-03-01 17:50:47 cjkimme Exp $ */
 
 #include "SS_SCNIMFT.h"
 
@@ -54,9 +54,6 @@ SS_SCNIMFT::~SS_SCNIMFT(void)
 void SS_SCNIMFT::WriteOutput(void)
 {
 	const char caller[] = "SS_SCNIMFT::WriteOutput";
-
-//TEMP
-if (NumDOF() != 2) ExceptionT::GeneralFail(caller, "2D only: %d", NumDOF());
 
 	/* dimensions */
 	int nsd  = NumSD();
