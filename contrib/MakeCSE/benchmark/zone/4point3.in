@@ -1,9 +1,9 @@
 %
 *VERBOSE        1
 
-*INPUTFORMAT 1
+*INPUT 1
 ../geometry/b4point3.geom
-*OUTPUTFORMAT 1
+*OUTPUT 1
 *ZONE
          2         6
 

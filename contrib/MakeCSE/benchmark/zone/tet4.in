@@ -2,10 +2,10 @@
 *VERBOSE 
 1
 
-*outputformat
+*output
 1
 
-*inputformat
+*input
 1 ../geometry/tet4.geom
 
 *zone

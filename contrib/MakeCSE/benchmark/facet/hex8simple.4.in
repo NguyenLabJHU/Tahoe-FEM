@@ -2,10 +2,10 @@
 *VERBOSE 
 1
 
-*OUTPUTFORMAT
+*OUTPUT
 1
 
-*inputformat
+*input
 1 ../geometry/hex8simple.4.geom
 
 *facet

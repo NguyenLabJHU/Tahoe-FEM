@@ -5,10 +5,10 @@
 *VERBOSE
 1	# write node set translation to log file
 
-*OUTPUTFORMAT
+*OUTPUT
 1	# output file format
 
-*inputformat
+*input
 1 ../geometry/quad8tria6.geom
 
 

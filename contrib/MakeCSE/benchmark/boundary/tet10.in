@@ -8,10 +8,10 @@
 *VERBOSE
 1	# write node set translation to log file
 
-*outputformat
+*output
 1	# output file format
 
-*inputformat
+*input
 1 ../geometry/tet10.geom
 
 

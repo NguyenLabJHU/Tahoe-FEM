@@ -2,13 +2,13 @@
 *blocktonodeset
 3
 
-*inputformat
+*input
 1 ../geometry/c3grain.geom
 
 *VERBOSE
 1	# write extra to log file
 
-*outputformat
+*output
 1	# output file format
 
 *Boundary

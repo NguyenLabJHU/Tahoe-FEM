@@ -1,9 +1,9 @@
 %
 *VERBOSE        1
 
-*INPUTFORMAT 1
+*INPUT 1
 ../geometry/analyticalsym.geom
-*OUTPUTFORMAT 1
+*OUTPUT 1
 *FACET
          1         1        10
 *MAPNODESET
