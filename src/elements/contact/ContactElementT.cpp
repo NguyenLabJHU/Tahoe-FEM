@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.43 2003-11-20 18:14:51 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.44 2003-11-20 22:57:40 rjones Exp $ */
 #include "ContactElementT.h"
 
 #include <math.h>
@@ -204,13 +204,15 @@ int ContactElementT::Reconfigure(void)
 void ContactElementT::SetDOFTags(void)
 { 
 	bool changed = fContactSearch->SetInteractions();
+	
+	// last step before losing the mutliplier values
 
 	/* Initialize */
 	for (int i = 0; i < fSurfaces.Length(); i++) {
+		fSurfaces[i].InitializeMultiplierMap();
+
 		/* form potential connectivity for step */
  		fSurfaces[i].SetPotentialConnectivity();
-
-		fSurfaces[i].InitializeMultiplierMap();
 	}
 
 	/* Tag potentially active nodes */
@@ -238,7 +240,9 @@ void ContactElementT::GenerateElementData(void)
 { 
 	for (int i = 0; i < fSurfaces.Length(); i++) {
 		/* hand off location of multipliers */
-		const dArray2DT& multipliers = ElementSupport().XDOF_Manager().XDOF(this, i);
+		const dArray2DT& multipliers 
+			= ElementSupport().XDOF_Manager().XDOF(this, i);
+
 		fSurfaces[i].AliasMultipliers(multipliers);
 
 		/* form potential connectivity for step */
@@ -249,8 +253,6 @@ void ContactElementT::GenerateElementData(void)
 /* set DOF values to the last converged solution, this is called after SetDOF */
 void ContactElementT::ResetDOF(dArray2DT& XDOF, int tag_set) const
 {
-//	fSurfaces[tag_set].PrintMultipliers(cout);
-
 	fSurfaces[tag_set].ResetMultipliers(XDOF);
 }
 

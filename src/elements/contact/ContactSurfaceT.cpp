@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.38 2003-11-20 18:14:51 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.39 2003-11-20 22:57:40 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
@@ -44,6 +44,7 @@ ContactSurfaceT::Initialize
 
 	if (fNumMultipliers) {
 		fMultiplierMap.Dimension(fGlobalNodes.Length());
+		fMultiplierMap = -1;
 		fLastMultiplierMap.Dimension(fGlobalNodes.Length());
 		fDisplacementMultiplierNodePairs.Dimension(fGlobalNodes.Length(),2);
 		/* fill real node column */
@@ -204,16 +205,20 @@ ContactSurfaceT::SetMultiplierConnectivity(void)
 	}
 }
 
-/* Iinitialize Multiplier Map */
+/* Initialize Multiplier Map */
 void
 ContactSurfaceT::InitializeMultiplierMap(void)
 {
+	/* set last muliplier array to local node map and store values */
+	fLastMultiplierMap.Copy(fMultiplierMap.Pointer()); 
+
+	// this may not be the most efficient way of duplicating the values
+	fLastMultiplierValues.Dimension(fMultiplierValues);
+	fLastMultiplierValues.Copy(fMultiplierValues.Pointer());
+
 	/* initialize */
 	fMultiplierMap = -1;
 
-	/* set last muliplier array to local node map and store values */
-	fLastMultiplierMap.Copy(fMultiplierMap.Pointer()); 
-	fLastMultiplierValues.Copy(fMultiplierValues.Pointer());
 }
 
 /* tag MultiplierMap for potential contacting nodes (after SetPot.Conn.) */
@@ -284,6 +289,8 @@ ContactSurfaceT::ResetMultipliers(dArray2DT& multiplier_values)
         {
                 int old_map = fLastMultiplierMap[i];
                 int new_map = fMultiplierMap[i];
+				//cout << old_map << " --> " << new_map ;
+				//cout << " value: " << fLastMultiplierValues[old_map] << "\n";
                 if (old_map > -1 && new_map > -1)
 					multiplier_values[new_map] = fLastMultiplierValues[old_map];
         }

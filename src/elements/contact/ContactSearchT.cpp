@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.cpp,v 1.26 2003-07-17 20:32:50 rjones Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.27 2003-11-20 22:57:40 rjones Exp $ */
 #include "ContactSearchT.h"
 
 #include "ContactSurfaceT.h"
@@ -37,6 +37,7 @@ bool ContactSearchT::SetInteractions(void)
   /* loop over surfaces */
   for (i = 0 ; i < fSurfaces.Length() ; i++) {
 	ContactSurfaceT& surface = fSurfaces[i];
+
 	/* update surface geometry */
 	surface.UpdateConfiguration();
 
