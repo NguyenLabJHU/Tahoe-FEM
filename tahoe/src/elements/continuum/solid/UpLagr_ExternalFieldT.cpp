@@ -1,4 +1,4 @@
-/* $Id: UpLagr_ExternalFieldT.cpp,v 1.1 2001-07-14 01:16:40 paklein Exp $ */
+/* $Id: UpLagr_ExternalFieldT.cpp,v 1.2 2001-07-14 01:27:46 paklein Exp $ */
 
 #include "UpLagr_ExternalFieldT.h"
 #include "fstreamT.h"
@@ -190,10 +190,6 @@ void UpLagr_ExternalFieldT::InitStep(void)
 			AssembleField(i, beta, fNodalValues);
 		}
 	}
-	
-	//TEMP
-	ofstreamT& out = FEManager().Output();
-	fExternalField.WriteNumbered(out);
 }
 
 /***********************************************************************
