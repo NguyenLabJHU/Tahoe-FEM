@@ -1,4 +1,4 @@
-/* $Id: LinearDamageT.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: LinearDamageT.h,v 1.2 2001-04-04 22:11:18 paklein Exp $ */
 /* created: paklein (08/26/2000)                                          */
 
 #ifndef _LINEAR_DAMAGE_T_H_
@@ -19,6 +19,7 @@ public:
 		iArrayT& i_store, dArrayT& d_store);
 
 	/* surface potential */
+	virtual double FractureEnergy(void);	
 	virtual double Potential(const dArrayT& jump_u);
 	
 	/* traction vector given displacement jump vector */	

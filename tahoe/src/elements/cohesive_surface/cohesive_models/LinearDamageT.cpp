@@ -1,4 +1,4 @@
-/* $Id: LinearDamageT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: LinearDamageT.cpp,v 1.2 2001-04-04 22:11:18 paklein Exp $ */
 /* created: paklein (08/21/2000)                                          */
 
 #include "LinearDamageT.h"
@@ -33,6 +33,11 @@ LinearDamageT::LinearDamageT(ifstreamT& in, const dArrayT& init_traction,
 }
 
 /* surface potential */
+double LinearDamageT::FractureEnergy(void)
+{
+	return 0.5*fInitTraction.Magnitude()*fd_c_n;
+}
+
 double LinearDamageT::Potential(const dArrayT& jump_u)
 {
 #pragma unused(jump_u)
