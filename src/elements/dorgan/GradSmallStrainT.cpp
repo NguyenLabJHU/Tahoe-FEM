@@ -25,6 +25,9 @@
 
 using namespace Tahoe;
 
+#define DISABLE_NODE
+//#undef DISABLE_NODE
+
 /* parameters */
 const double kYieldTol    = 1.0e-10;
 
@@ -77,11 +80,6 @@ GradSmallStrainT::~GradSmallStrainT(void)
 {  
 	delete fGradSSMatSupport;
 	delete fShapes_PMultiplier;
-	
-#if 1
-	for (int i = 0; i < fFixedPMultiplier.Length(); i++)
-		delete fFixedPMultiplier[i];
-#endif
 }
 
 void GradSmallStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -410,7 +408,7 @@ void GradSmallStrainT::DefineElements(const ArrayT<StringT>& block_ID, const Arr
 		vertex_nodes[1] = 1;
 
 		fConnectivities_All.Dimension(NumElements(), num_vertex_nodes);
-#if 1
+#ifdef DISABLE_NODE
 		fFixedPMultiplier.Dimension(fConnectivities.Length());
 		fFixedPMultiplier = NULL;
 #endif
@@ -429,7 +427,7 @@ void GradSmallStrainT::DefineElements(const ArrayT<StringT>& block_ID, const Arr
 			/* next block */
 			count += connects.MajorDim();
 
-#if 1
+#ifdef DISABLE_NODE
 			/* prescribe fixed multiplier field at center node */
 			FieldT* non_constPMultiplier = const_cast<FieldT*>(fPMultiplier);
 
@@ -445,7 +443,7 @@ void GradSmallStrainT::DefineElements(const ArrayT<StringT>& block_ID, const Arr
 			int dex = 0;
 			for (int j = 0; j < fNumDOF_PMultiplier; j++)
 				for (int i = 0; i < connects.MajorDim(); i++)
-					KBC_cards[dex++].SetValues(connects[2], j, KBC_CardT::kFix, NULL, 0.0);
+					KBC_cards[dex++].SetValues(connects(i,2), j, KBC_CardT::kFix, NULL, 0.0);
 #endif
 	
 #pragma message("define fixed multipliers")
