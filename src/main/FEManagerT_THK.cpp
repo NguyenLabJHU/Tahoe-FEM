@@ -1,21 +1,23 @@
-/* $Id: FEManagerT_THK.cpp,v 1.17 2004-07-22 08:50:22 paklein Exp $ */
-
+/* $Id: FEManagerT_THK.cpp,v 1.18 2004-07-25 06:42:53 paklein Exp $ */
 #include "FEManagerT_THK.h"
 #ifdef BRIDGING_ELEMENT
 
 #include "ifstreamT.h"
 #include "ModelManagerT.h"
 #include "NodeManagerT.h"
+#include "TimeManagerT.h"
 #include "FieldT.h"
 #include "StringT.h"
 #include "ParticlePairT.h"
-#include <iostream.h>
-#include <fstream.h>
-#include <math.h>
 #include "RaggedArray2DT.h"
 #include "iGridManagerT.h"
 #include "iAutoArrayT.h"
 #include "iNodeT.h"
+#include "ParameterUtils.h"
+
+#include <iostream.h>
+#include <fstream.h>
+#include <math.h>
 
 using namespace Tahoe;
 
@@ -24,58 +26,27 @@ const double root32 = sqrt(3.0)/2.0;    // for neighbor searching tolerance
 
 /* constructor */
 FEManagerT_THK::FEManagerT_THK(const StringT& input, ofstreamT& output, CommunicatorT& comm,
-	const ArrayT<StringT>& argv, ifstreamT& bridging_input):
+	const ArrayT<StringT>& argv):
 	FEManagerT_bridging(input, output, comm, argv)
 {
-
-}
-
-/* initialize members */
-void FEManagerT_THK::Initialize(InitCodeT init)
-{
-ExceptionT::GeneralFail("FEManagerT_THK::Initialize", "out of date");
-#if 0
-	/* inherited */
-	FEManagerT_bridging::Initialize(init);
-	
-	ModelManagerT* model = FEManagerT::ModelManager();
-	int nsd = model->NumDimensions();
-
-	if (nsd == 2)
-		Initialize2D();
-	else if (nsd == 3)
-		Initialize3D();
-	else
-	{
-		const char caller[] = "FEManagerT_THK::Initialize";
-		ExceptionT::GeneralFail(caller, "1D BRIDGING SCALE NOT ENABLED");
-	}
-#endif
+	SetName("tahoe_THK");
 }
 
 /* 2D Bridging Scale Initialization */
 void FEManagerT_THK::Initialize2D(void)
 {
-ExceptionT::GeneralFail("FEManagerT_THK::Initialize2D", "out of date");
-#if 0
 	ModelManagerT* model = FEManagerT::ModelManager();
 
 	// read other parameters and initialize data
-	ifstreamT& in = Input();
-	in >> fNcrit;
 	int num_neighbors = 2 * fNcrit + 1;   // maximum number of neighbors per atom in 2D
-		  
-	/* obtain list of atoms on which BC's will be applied in FEManagerT_THK */
-	ArrayT<StringT> id_list;
 
 	/* read node set indexes */
-	model->NodeSetList(in, id_list);
-	int numsets = id_list.Length();		// number of MD THK boundary node sets
+	int numsets = fTHKNodes.Length();		// number of MD THK boundary node sets
  
 	/* collect sets - currently assuming exactly 2 MD THK boundaries in 2D */
 	/* further assumes bottom is first node set, top is second node set */
-	fBottomatoms = model->NodeSet(id_list[0]);
-	fTopatoms = model->NodeSet(id_list[1]);
+	fBottomatoms = model->NodeSet(fTHKNodes[0]);
+	fTopatoms = model->NodeSet(fTHKNodes[1]);
 	fBottomrow.Dimension(fBottomatoms.Length());
 	fBottomrow.SetValueToPosition();
 	fToprow.Dimension(fTopatoms.Length());
@@ -88,9 +59,6 @@ ExceptionT::GeneralFail("FEManagerT_THK::Initialize2D", "out of date");
 	fTop.Dimension(num_nodes_top, num_neighbors);
 	fTop = -1;  // -1 -> no neighbor
 
-	double lparam;
-	in >> lparam;    // Read lattice parameter in from input file
-	
 	NodeManagerT* node = FEManagerT::NodeManager();
 	const dArray2DT& initcoords = node->InitialCoordinates();  // init coords for all atoms
 	dArrayT bacoordst, bacoordsb, currcoordst, currcoordsb;   // boundary atom coordinates
@@ -116,45 +84,29 @@ ExceptionT::GeneralFail("FEManagerT_THK::Initialize2D", "out of date");
 	}
 	
 	/* compute theta tables */
-	StringT path;
-	path.FilePath(in.filename());
-	StringT data_file;
-	in >> data_file;
-	data_file.ToNativePathName();
-	data_file.Prepend(path);
-	ComputeThetaTables2D(data_file);
-#endif
+	ComputeThetaTables2D(fThetaFile);
 }
 
 /* Bridging Scale 3D Initialization */
 void FEManagerT_THK::Initialize3D(void)
 {
-ExceptionT::GeneralFail("FEManagerT_THK::Initialize3D", "out of date");
-#if 0
 	/* Implement 3D version of initialize here */
 	/* Find neighbors of top 2 planes of atoms */
 	ModelManagerT* model = FEManagerT::ModelManager();
-	double lparam;
 	int nsd = model->NumDimensions();
 
 	// read other parameters and initialize data
-	ifstreamT& in = Input();
-	in >> fNcrit;
 	int num_neighborsx = 2 * fNcrit + 1;	// assume same number of neighbors in both x and y directions
 	int num_neighborsy = 2 * fNcrit + 1;
 	fNeighbors = num_neighborsx * num_neighborsy;
-	
-	/* obtain list of atoms on which BC's will be applied in FEManagerT_THK */
-	ArrayT<StringT> id_list;
-        
+
 	/* read node set indexes */
-	model->NodeSetList(in, id_list);
-	int numsets = id_list.Length();		// number of MD THK boundary node sets
+	int numsets = fTHKNodes.Length();		// number of MD THK boundary node sets
  
 	/* collect sets - currently assuming exactly 2 MD THK boundaries in 3D */
 	/* further assumes bottom is first node set, top is second node set */
-	fBottomatoms = model->NodeSet(id_list[0]);
-	fTopatoms = model->NodeSet(id_list[1]);
+	fBottomatoms = model->NodeSet(fTHKNodes[0]);
+	fTopatoms = model->NodeSet(fTHKNodes[1]);
 	fBottomrow.Dimension(fBottomatoms.Length());
 	fBottomrow.SetValueToPosition();
 	fToprow.Dimension(fTopatoms.Length());
@@ -164,9 +116,7 @@ ExceptionT::GeneralFail("FEManagerT_THK::Initialize3D", "out of date");
 	fBottom = -1;  // -1 -> no neighbor
 	fTop.Dimension(fTopatoms.Length(), fNeighbors);
 	fTop = -1;  // -1 -> no neighbor
-	
-	in >> lparam;
-	
+
 	NodeManagerT* node = FEManagerT::NodeManager();
 	const dArray2DT& initcoords = node->InitialCoordinates();  // init coords for all atoms
 	iArrayT asdf(initcoords.MajorDim());
@@ -184,7 +134,7 @@ ExceptionT::GeneralFail("FEManagerT_THK::Initialize3D", "out of date");
 	{
 		initcoords.RowAlias(fBottomatoms[i], acoord1);
 		/* candidate points for row0 bottom atoms */
-		const AutoArrayT<iNodeT>& hitsa = grid.HitsInRegion(acoord1.Pointer(), 1.05*sqrt(2.0)*lparam);
+		const AutoArrayT<iNodeT>& hitsa = grid.HitsInRegion(acoord1.Pointer(), 1.05*sqrt(2.0)*fLatticeParameter);
 	
 		for (int j = 0; j < hitsa.Length(); j++)
 		{			
@@ -196,7 +146,7 @@ ExceptionT::GeneralFail("FEManagerT_THK::Initialize3D", "out of date");
 			mag1 = sqrt(xmag*xmag+ymag*ymag+zmag*zmag);
 						
 			/* Get row0 neighbors */
-			if (fabs(acoord1[2]-ncoord1[2]) < tol && mag1 < 1.03*sqrt(2.0)*lparam)	
+			if (fabs(acoord1[2]-ncoord1[2]) < tol && mag1 < 1.03*sqrt(2.0)*fLatticeParameter)	
 			{
 				/* now sort into x by y array for THK BC application */
 				blah2 = 0;
@@ -204,8 +154,8 @@ ExceptionT::GeneralFail("FEManagerT_THK::Initialize3D", "out of date");
 				{
 					for (int l = -fNcrit; l<= fNcrit; l++)
 					{
-						xdist1 = fabs(-ncoord1[0]+acoord1[0]+lparam*k);
-						ydist1 = fabs(-ncoord1[1]+acoord1[1]+lparam*l);
+						xdist1 = fabs(-ncoord1[0]+acoord1[0]+fLatticeParameter*k);
+						ydist1 = fabs(-ncoord1[1]+acoord1[1]+fLatticeParameter*l);
 						if (xdist1 < tol && ydist1 < tol)
 							fBottom(i,blah2) = hitsa[j].Tag();
 						blah2++;
@@ -220,7 +170,7 @@ ExceptionT::GeneralFail("FEManagerT_THK::Initialize3D", "out of date");
 	{
 		initcoords.RowAlias(fTopatoms[i], acoord2);
 		/* candidate points for row0 top atoms */
-		const AutoArrayT<iNodeT>& hitsa = grid.HitsInRegion(acoord2.Pointer(), 1.05*sqrt(2.0)*lparam);
+		const AutoArrayT<iNodeT>& hitsa = grid.HitsInRegion(acoord2.Pointer(), 1.05*sqrt(2.0)*fLatticeParameter);
 	
 		for (int j = 0; j < hitsa.Length(); j++)
 		{			
@@ -232,7 +182,7 @@ ExceptionT::GeneralFail("FEManagerT_THK::Initialize3D", "out of date");
 			mag1 = sqrt(xmag*xmag+ymag*ymag+zmag*zmag);
 						
 			/* Get row0 neighbors */
-			if (fabs(acoord2[2]-ncoord2[2]) < tol && mag1 < 1.03*sqrt(2.0)*lparam)	
+			if (fabs(acoord2[2]-ncoord2[2]) < tol && mag1 < 1.03*sqrt(2.0)*fLatticeParameter)	
 			{
 				/* now sort into x by y array for THK BC application */
 				blah2 = 0;
@@ -240,8 +190,8 @@ ExceptionT::GeneralFail("FEManagerT_THK::Initialize3D", "out of date");
 				{
 					for (int l = -fNcrit; l<= fNcrit; l++)
 					{
-						xdist1 = fabs(-ncoord2[0]+acoord2[0]+lparam*k);
-						ydist1 = fabs(-ncoord2[1]+acoord2[1]+lparam*l);
+						xdist1 = fabs(-ncoord2[0]+acoord2[0]+fLatticeParameter*k);
+						ydist1 = fabs(-ncoord2[1]+acoord2[1]+fLatticeParameter*l);
 						if (xdist1 < tol && ydist1 < tol)
 							fTop(i,blah2) = hitsa[j].Tag();
 						blah2++;
@@ -252,30 +202,7 @@ ExceptionT::GeneralFail("FEManagerT_THK::Initialize3D", "out of date");
 	}
 	
 	/* Compute Theta tables - may need to pass multiple data files as arguments */
-	StringT path;
-	path.FilePath(in.filename());
-	StringT data_file;
-	in >> data_file;
-	data_file.ToNativePathName();
-	data_file.Prepend(path);
-	ComputeThetaTables3D(data_file);
-#endif
-}
-
-/* initialize the current time increment for all groups */
-ExceptionT::CodeT FEManagerT_THK::InitStep(void)
-{
-	/* inherited */
-	ExceptionT::CodeT result = FEManagerT_bridging::InitStep();
-	return result;
-}
-
-/* close the current time increment for all groups */
-ExceptionT::CodeT FEManagerT_THK::CloseStep(void)
-{
-	/* inherited */
-	ExceptionT::CodeT result = FEManagerT_bridging::CloseStep();
-	return result;
+	ComputeThetaTables3D(fThetaFile);
 }
 
 /* return iArrayT of boundary and ghost atom numbers - 3D version */
@@ -314,10 +241,8 @@ void FEManagerT_THK::BAPredictAndCorrect(double timestep, dArray2DT& badisp, dAr
 }
 
 /* calculate external force on MD boundary atoms for 2D disp/force formulation */
-const dArray2DT& FEManagerT_THK::THKForce(const dArray2DT& badisp)
+const dArray2DT& FEManagerT_THK::THKForce(const StringT& bridging_field, const dArray2DT& badisp)
 {
-	StringT bridging_field = "displacement";
-	
 	/* badisp is in format bottom displacements first, then top */
 	fTHKforce.Dimension(badisp.MajorDim(), 2);  
 
@@ -444,10 +369,8 @@ const dArray2DT& FEManagerT_THK::THKForce(const dArray2DT& badisp)
 }
 
 /* calculate impedance force using 3D disp/force formulation */
-const dArray2DT& FEManagerT_THK::THKDisp(const dArray2DT& badisp)
+const dArray2DT& FEManagerT_THK::THKDisp(const StringT& bridging_field, const dArray2DT& badisp)
 {
-	StringT bridging_field = "displacement";
-	
 	/* badisp is in format bottom displacements first, then top */
 	/* COULD DIMENSION ONCE IN INTERPOLATIONNODES3D() */
 	fTHKforce.Dimension(badisp.MajorDim(), 3);  
@@ -519,7 +442,7 @@ const dArray2DT& FEManagerT_THK::THKDisp(const dArray2DT& badisp)
 	InverseMapT topnodes0, bottomnodes0;
 	topnodes0.SetMap(fTopatoms);	// Set global to local map for top atoms plane 0
 	bottomnodes0.SetMap(fBottomatoms);	// Set global to local map for bottom atoms plane 0
-	int count, dex2, dex;
+	int count, dex;
 
 	/* calculate THK force for top/bottom plane0 atoms */
 	for (int i = 0; i < fBottom.MajorDim(); i++)
@@ -611,6 +534,58 @@ const dArray2DT& FEManagerT_THK::THKDisp(const dArray2DT& badisp)
 
 }
 
+/* describe the parameters needed by the interface */
+void FEManagerT_THK::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	FEManagerT_bridging::DefineParameters(list);
+
+	/* time-history kernel parameters */
+	list.AddParameter(ParameterT::Integer, "N_crit");
+	list.AddParameter(ParameterT::Double, "lattice_parameter");
+	list.AddParameter(ParameterT::Word, "theta_file");
+}
+
+/* information about subordinate parameter lists */
+void FEManagerT_THK::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	FEManagerT_bridging::DefineSubs(sub_list);
+
+	/* nodes affected by THK boundary conditions */
+	sub_list.AddSub("THK_nodes_ID_list");
+}
+
+/* accept parameter list */
+void FEManagerT_THK::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	FEManagerT_bridging::TakeParameterList(list);
+
+	/* extract THK parameters */
+	fNcrit = list.GetParameter("N_crit");
+	fLatticeParameter = list.GetParameter("lattice_parameter");
+	fThetaFile = list.GetParameter("theta_file");
+	fThetaFile.ToNativePathName();
+	StringT path;
+	path.FilePath(InputFile());
+	fThetaFile.Prepend(path);
+
+	/* nodes affected by THK boundary conditions */
+	const ParameterListT& id_list = list.GetList("THK_nodes_ID_list");
+	StringListT::Extract(id_list, fTHKNodes);
+
+	/* initialize */
+	int nsd = NodeManager()->NumSD();
+	if (nsd == 2)
+		Initialize2D();
+	else if (nsd == 3)
+		Initialize3D();
+	else
+		ExceptionT::GeneralFail("FEManagerT_THK::Initialize", 
+			"%d dimensions not unsupported", nsd);
+}
+
 /*************************************************************************
  * Private
  *************************************************************************/
@@ -618,8 +593,6 @@ const dArray2DT& FEManagerT_THK::THKDisp(const dArray2DT& badisp)
 /* compute theta tables for 2D disp/force formulation */
 void FEManagerT_THK::ComputeThetaTables2D(const StringT& data_file)
 {
-ExceptionT::GeneralFail("FEManagerT_THK::ComputeThetaTables2D", "out of date");
-#if 0
 	const char caller[] = "FEManagerT_THK::ComputeThetaTables2D";
 	ifstreamT data(data_file);
 	if (!data.is_open())
@@ -632,13 +605,13 @@ ExceptionT::GeneralFail("FEManagerT_THK::ComputeThetaTables2D", "out of date");
 	data >> n_sum;
 	
 	/* dimension work space */
-	ifstreamT& in = Input();
-	double tstep, totaltime, looptime;  // timestep
-	in >> fN_times;
-	in >> tstep;
-	totaltime = fN_times * tstep;   // total time of simulation
+	const TimeManagerT* time_manager = TimeManager();
+	fN_times = time_manager->NumberOfSteps();
+	double tstep = time_manager->TimeStep(); // timestep
+	double totaltime = fN_times * tstep; // total time of simulation
 	
 	/* determine correct loop time for theta and time history variables */
+	double looptime = 0.0;
 	if (totaltime <= 3.0)  // assume that t_crit = 3.0 in normalized time
 		looptime = totaltime;
 	else
@@ -724,14 +697,11 @@ ExceptionT::GeneralFail("FEManagerT_THK::ComputeThetaTables2D", "out of date");
 			count++;
 		}
 	}
-#endif
 }
 
 /* compute theta tables for 3D disp/disp formulation */
 void FEManagerT_THK::ComputeThetaTables3D(const StringT& data_file)
 {
-ExceptionT::GeneralFail("FEManagerT_THK::ComputeThetaTables3D", "out of date");
-#if 0
 	const char caller[] = "FEManagerT_THK::ComputeThetaTables3D";
 	ifstreamT data(data_file);
 	if (!data.is_open())
@@ -744,13 +714,13 @@ ExceptionT::GeneralFail("FEManagerT_THK::ComputeThetaTables3D", "out of date");
 	data >> n_sum;
 	
 	/* dimension work space */
-	ifstreamT& in = Input();
-	double tstep, totaltime, looptime;  // timestep
-	in >> fN_times;
-	in >> tstep;
-	totaltime = fN_times * tstep;   // total time of simulation
-	
+	const TimeManagerT* time_manager = TimeManager();
+	fN_times = time_manager->NumberOfSteps();
+	double tstep = time_manager->TimeStep(); // timestep
+	double totaltime = fN_times * tstep; // total time of simulation
+
 	/* determine correct loop time for theta and time history variables */
+	double looptime = 0.0;
 	if (totaltime <= 2.0)  // assume that t_crit = 12.0 in normalized time
 		looptime = totaltime;
 	else
@@ -839,7 +809,6 @@ ExceptionT::GeneralFail("FEManagerT_THK::ComputeThetaTables3D", "out of date");
 			count++;
 		}
 	}
-#endif
 }
 
 #endif /* BRIDGING_ELEMENT */

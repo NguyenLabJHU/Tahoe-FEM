@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.h,v 1.10 2004-07-15 08:29:05 paklein Exp $ */
+/* $Id: FEManagerT_THK.h,v 1.11 2004-07-25 06:42:54 paklein Exp $ */
 
 #ifndef _FE_MANAGER_THK_H_
 #define _FE_MANAGER_THK_H_
@@ -23,27 +23,8 @@ public:
 
 	/** constructor */
 	FEManagerT_THK(const StringT& input, ofstreamT& output, CommunicatorT& comm,
-		const ArrayT<StringT>& argv, ifstreamT& bridging_input);
+		const ArrayT<StringT>& argv);
 
-	/** initialize members */
-	virtual void Initialize(InitCodeT init = kFull);
-
-	/** 2D Bridging Scale Initialization */
-	void Initialize2D(void);
-
-	/** 3D Bridging Scale Initialization */
-	void Initialize3D(void);
-
-	/** \name solution steps. 
-	 * See FEManagerT for more information */
-	/*@{*/
-	/** initialize the current time increment for all groups */
-	virtual ExceptionT::CodeT InitStep(void);
-
-	/** close the current time increment for all groups */
-	virtual ExceptionT::CodeT CloseStep(void);
-	/*@}*/
-	
 	/** return array containing atom numbers of boundary and ghost atoms - 2D version **/
 	const iArrayT& InterpolationNodes2D(void);
 	
@@ -55,12 +36,30 @@ public:
 	void BAPredictAndCorrect(double timestep, dArray2DT& badisp, dArray2DT& bavel, dArray2DT& baacc);
 	
 	/** calculate THK force on boundary atoms for 2D disp/force formulation **/
-	const dArray2DT& THKForce(const dArray2DT& badisp);
+	const dArray2DT& THKForce(const StringT& bridging_field, const dArray2DT& badisp);
 
 	/** calculate THK disp for ghost atoms for 3D disp/disp formulation **/
-	const dArray2DT& THKDisp(const dArray2DT& badisp);
+	const dArray2DT& THKDisp(const StringT& bridging_field, const dArray2DT& badisp);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 private:
+
+	/** 2D Bridging Scale Initialization */
+	void Initialize2D(void);
+
+	/** 3D Bridging Scale Initialization */
+	void Initialize3D(void);
 
 	/** compute theta tables for 2D disp/force formulation */
 	void ComputeThetaTables2D(const StringT& data_file);
@@ -70,7 +69,15 @@ private:
 
 private:
 
-	int fNcrit, fN_times, fNumstep_crit, fNeighbors;
+	/** \name input parameters */
+	/*@{*/
+	int fNcrit;
+	double fLatticeParameter;
+	StringT fThetaFile;
+	ArrayT<StringT> fTHKNodes;
+	/*@}*/
+
+	int fN_times, fNumstep_crit, fNeighbors;
 	iArray2DT fTop, fBottom;
 	dArray2DT fTHKforce, fGaussdisp, fTHKdisp, fInitdisp;
 	iArray2DT fTop20, fTop21, fTop30, fTop31, fBottom20, fBottom21, fBottom30, fBottom31;
