@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.44 2004-04-22 15:25:44 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.45 2004-04-27 07:24:02 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -90,22 +90,48 @@ bool ModelManagerT::RegisterElementGroup (const StringT& ID, iArray2DT& conn,
 	if (!CheckID (fElementNames, ID, "Element Group")) return false;
   
   	/* element group parameters */
-	fElementNames.Append (ID);
-	fElementLengths.Append (conn.MajorDim());
-	fElementNodes.Append (conn.MinorDim());
-	fElementCodes.Append (code);
+	fElementNames.Append(ID);
+	fElementLengths.Append(conn.MajorDim());
+	fElementNodes.Append(conn.MinorDim());
+	fElementCodes.Append(code);
 
-	iArray2DT* set = NULL;
-	if (!keep || !conn.IsAllocated()) /* make copy */
-		set = new iArray2DT(conn);
+	iArray2DT* set = new iArray2DT;
+	nVariArray2DT<int>* set_man = new nVariArray2DT<int>(0, *set, conn.MinorDim());
+	if (!keep || !conn.IsAllocated()) /* make copy */ 
+	{
+		set_man->SetMajorDimension(conn.MajorDim(), false);
+		*set = conn;
+	}
 	else /* take memory */
 	{
-		set = new iArray2DT;
-		set->Swap(conn);
+		set_man->Swap(conn);
 		conn.Alias(*set);
 	}
-	fElementSets.Append(set);
 
+	/* store */
+	fElementSets.Append(set);
+	fElementSets_man.Append(set_man);
+
+	return true;
+}
+
+bool ModelManagerT::RegisterElementGroup(const StringT& ID, GeometryT::CodeT code, int numelemnodes)
+{
+	if (!CheckID (fElementNames, ID, "Element Group")) return false;
+
+  	/* element group parameters */
+	fElementNames.Append(ID);
+	fElementLengths.Append(0);
+	fElementNodes.Append(numelemnodes);
+	fElementCodes.Append(code);
+
+	/* set up memory manager */
+	iArray2DT* set = new iArray2DT;
+	nVariArray2DT<int>* set_man = new nVariArray2DT<int>(0, *set, numelemnodes);
+	fElementSets.Append(set);
+	fElementSets_man.Append(set_man);
+
+	/* OK */
 	return true;
 }
 
@@ -583,13 +609,6 @@ GeometryT::CodeT ModelManagerT::ElementGroupGeometry (const StringT& ID) const
 	if (index == kNotFound) 
 		ExceptionT::OutOfRange("ModelManagerT::ElementGroupGeometry", "ID not found: %s", ID.Pointer()); 
 	return fElementCodes[index];	
-
-//why accept a bad index?
-#if 0
-  if (index == kNotFound)
-    return GeometryT::kNone;
-  return fElementCodes[index];
-#endif
 }
 
 const iArray2DT& ModelManagerT::ElementGroup (const StringT& ID)
@@ -627,7 +646,7 @@ void ModelManagerT::ReadConnectivity (const StringT& ID)
 			ExceptionT::DatabaseFail(caller, "elements not registered yet");
 		
 		/* allocate space */
-		fElementSets[index]->Dimension(fElementLengths[index], fElementNodes[index]);
+		fElementSets_man[index]->Dimension(fElementLengths[index], fElementNodes[index]);
 
 		/* do read */
 		try { Input("ReadConnectivity").ReadConnectivity (ID, *fElementSets[index]); }
@@ -1395,25 +1414,6 @@ void ModelManagerT::AdjustCoordinatesto2D (void)
   RegisterNodes (temp, true);
 }
 
-bool ModelManagerT::RegisterVariElements (const StringT& ID, nVariArray2DT<int>& conn, 
-					  GeometryT::CodeT code, int numelemnodes,
-					  int headroom)
-{
-  if (!CheckID (fElementNames, ID, "Element Group")) return false;
-  
-  fElementNames.Append (ID);
-  fElementLengths.Append (0);
-  fElementNodes.Append (numelemnodes);
-  fElementCodes.Append (code);
-
-  int index = fElementSets.Length();
-  iArray2DT* set = new iArray2DT;
-  fElementSets.Append(set);
-
-  conn.SetWard (headroom, *fElementSets[index], numelemnodes);
-  return true;
-}
-
 /* call this function after the connectivity has been changed by outside classes */
 void ModelManagerT::UpdateElementGroup(const StringT& ID, iArray2DT& connects, bool keep)
 {
@@ -1422,13 +1422,33 @@ void ModelManagerT::UpdateElementGroup(const StringT& ID, iArray2DT& connects, b
 	if (index == kNotFound) ExceptionT::OutOfRange(caller, "element ID not found: %s", ID.Pointer());
 	if (!fElementSets[index]) ExceptionT::GeneralFail(caller, "internal error");
 	
-	if (!keep || !connects.IsAllocated())
-		*fElementSets[index] = connects;
-	else
+	/* store updated connectivities */
+	if (!keep || !connects.IsAllocated()) 
 	{
-		fElementSets[index]->Swap(connects);
+		fElementSets_man[index]->Dimension(connects.MajorDim(), connects.MinorDim());
+		*fElementSets[index] = connects;
+	}
+	else 
+	{
+		fElementSets_man[index]->Swap(connects);
 		connects.Alias(*fElementSets[index]);
 	}
+
+	/* update dimensions */
+	fElementLengths[index] = fElementSets[index]->MajorDim();
+	fElementNodes[index] = fElementSets[index]->MinorDim();
+}
+
+/* change the number of elements in the element group */
+void ModelManagerT::ResizeElementGroup(const StringT& ID, int num_elements)
+{
+	const char caller[] = "ModelManagerT::ResizeElementGroup";
+	int index = ElementGroupIndex(ID);
+	if (index == kNotFound) ExceptionT::OutOfRange(caller, "element ID not found: %s", ID.Pointer());
+	if (!fElementSets[index]) ExceptionT::GeneralFail(caller, "internal error");
+
+	/* update dimensions */
+	fElementSets_man[index]->SetMajorDimension(num_elements, -1, true);
 	fElementLengths[index] = fElementSets[index]->MajorDim();
 	fElementNodes[index] = fElementSets[index]->MinorDim();
 }
@@ -1483,8 +1503,8 @@ void ModelManagerT::AddElement (const StringT& ID, const iArray2DT& connects,
   fElementLengths[index] += newelems;
   numelems = fElementLengths[index];
 
-  /* reallocate */
-  fElementSets[index]->Resize (newelems);
+  /* dimension */
+  fElementSets_man[index]->SetMajorDimension(newelems, false);
 
   /* copy in */
   const int *pc = connects.Pointer();
@@ -1618,24 +1638,30 @@ bool ModelManagerT::ScanElements (void)
 	/* check if input has been initialized */
 	if (!fInput) return false;
 	
-  int num_elem_sets = fInput->NumElementGroups ();
-  fElementLengths.Dimension (num_elem_sets);
-  fElementNodes.Dimension (num_elem_sets);
-  fElementNames.Dimension (num_elem_sets);
-  fElementCodes.Dimension (num_elem_sets);
-  fElementSets.Dimension (num_elem_sets);
-  fElementSets = NULL;
+	int num_elem_sets = fInput->NumElementGroups();
+	fElementLengths.Dimension(num_elem_sets);
+	fElementNodes.Dimension(num_elem_sets);
+	fElementNames.Dimension(num_elem_sets);
+	fElementCodes.Dimension(num_elem_sets);
+	fElementSets.Dimension(num_elem_sets);
+	fElementSets = NULL;
+	fElementSets_man.Dimension(num_elem_sets);
+	fElementSets_man = NULL;
+
 	if (num_elem_sets > 0)
 	{
-		fInput->ElementGroupNames (fElementNames);
-		for (int e=0; e < num_elem_sets; e++)
+		fInput->ElementGroupNames(fElementNames);
+		for (int e = 0; e < num_elem_sets; e++)
 		{
-			fElementLengths[e] = fInput->NumElements (fElementNames[e]);
-			fElementNodes[e] = fInput->NumElementNodes (fElementNames[e]);
-			fInput->ReadGeometryCode (fElementNames[e], fElementCodes[e]);
+			fElementLengths[e] = fInput->NumElements(fElementNames[e]);
+			fElementNodes[e] = fInput->NumElementNodes(fElementNames[e]);
+			fInput->ReadGeometryCode(fElementNames[e], fElementCodes[e]);
 			
 			/* create empty set */
 			fElementSets[e] = new iArray2DT;
+			
+			/* set up memory manager */
+			fElementSets_man[e] = new nVariArray2DT<int>(0, *(fElementSets[e]), fElementNodes[e]);
 		}
 	}
 	return true;
@@ -1763,4 +1789,8 @@ void ModelManagerT::Clear(void)
 	for (int i = 0; i < fSideSets.Length(); i++)
 		delete fSideSets[i];
 	fSideSets.Dimension(0);
+
+	for (int i = 0; i < fElementSets_man.Length(); i++)
+		delete fElementSets_man[i];
+	fElementSets_man.Dimension(0);
 }

@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.29 2004-04-22 15:25:44 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.30 2004-04-27 07:24:02 paklein Exp $ */
 /* created: sawimme July 2001 */
 #ifndef _MODELMANAGER_T_H_
 #define _MODELMANAGER_T_H_
@@ -360,13 +360,6 @@ class ModelManagerT
 	/** adjust the DOF of the coordinate array from 3D to 2D by dropping the 3rd coordiante value */
 	void AdjustCoordinatesto2D (void);
 
-	/** call this function to register an element group that will be managed by nVariArray2DT
-	 * use this registration method with caution. The values for the element set fElementLength
-	 * and fElementNodes will not be up to date 
-	 * The nVariArray2DT<int>::SetWard function is called */
-	bool RegisterVariElements (const StringT& ID, nVariArray2DT<int>& conn, 
-		GeometryT::CodeT code, int numelemnodes, int headroom);
-
 	/** replace the coordinate list */
 	void UpdateNodes(dArray2DT& coordinates, bool keep) { RegisterNodes(coordinates, keep); };
 
@@ -384,6 +377,9 @@ class ModelManagerT
 	 *        memory in conn. conn will be passed back as an alias. Otherwise
 	 *        the data in conn will be copied. */
 	void UpdateElementGroup(const StringT& ID, iArray2DT& conn, bool keep);
+
+	/** change the number of elements in the element group */
+	void ResizeElementGroup(const StringT& ID, int num_elements);
 
 	/** update the nodes in an existing node set */
 	void UpdateNodeSet(const StringT& ID, iArrayT& node_set, bool keep);
@@ -438,6 +434,12 @@ class ModelManagerT
    *        element block identifiers.
    * \param code geometry code of elements in set */
   bool RegisterElementGroup (ifstreamT& in, const StringT& ID, GeometryT::CodeT code);
+
+  /** create an element group. Create an element group with the given ID, geometry code,
+   * and number of element nodes. Return true if the group was registered, or false if
+   * registration fails for any reason. The group is initialized with zero elements. The
+   * group can be dimensioned with a call to ResizeElementGroup. */
+  bool RegisterElementGroup(const StringT& ID, GeometryT::CodeT code, int numelemnodes);
 
   /** external node set registration. 
    * register data not found in model file, data is copied into a storage array
@@ -671,6 +673,9 @@ class ModelManagerT
   
   /** memory manager for the coordinate array */
   nVariArray2DT<double> fCoordinates_man;
+  
+  /** memory managers for the connectivities */
+  AutoArrayT<nVariArray2DT<int>* > fElementSets_man;
 };
 
 /* return a reference to the input class */
