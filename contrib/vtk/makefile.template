@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.3 2001-09-19 19:09:59 paklein Exp $
+# $Id: makefile.template,v 1.4 2001-09-21 01:03:08 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -51,10 +51,10 @@ TB_LIB      = $(TB_DIR)/lib/lib$(TB_LIB_NAME).a
 TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 
 #### VTK graphics library
-#VTK_DIR    = /scr/paklein/vtk3.2
-#VTK_INC    = -I$(VTK_DIR)/common -I$(VTK_DIR) -I$(VTK_DIR)/graphics -I$(VTK_DIR)/imaging -I$(VTK_DIR)/contrib
-#VTK_CFLAGS = $(VTK_INC) -D__VTK__
-#TK_LFLAGS = $(VTK_DIR)/patented/libVTKPatented.a $(VTK_DIR)/imaging/libVTKImaging.a $(VTK_DIR)/graphics/libVTKGraphics.a $(VTK_DIR)/common/libVTKCommon.a $(VTK_DIR)/patented/libVTKPatented${VTK_LIB_EXT} ${VTK_HOME}/imaging/libVTKImaging.a $(VTK_DIR)/graphics/libVTKGraphics.a $(VTK_DIR)/common/libVTKCommon.a
+VTK_DIR    = /scr/paklein/vtk3.2
+VTK_INC    = $(X_INC_FLAGS) -I$(VTK_DIR)/common -I$(VTK_DIR) -I$(VTK_DIR)/graphics -I$(VTK_DIR)/imaging -I$(VTK_DIR)/contrib
+VTK_CFLAGS = $(X_CFLAGS) $(THREAD_CFLAGS) $(VTK_INC) -D__VTK__
+VTK_LFLAGS = -L$(VTK_DIR)/patented -lVTKPatented -L$(VTK_DIR)/imaging -lVTKImaging -L$(VTK_DIR)/graphics -lVTKGraphics -L$(VTK_DIR)/common -lVTKCommon $(X_LIBS) $(THREAD_LIBS)
 
 ##### SEACAS/ACCESS software
 #AX_INC    = -I$(ACCESS)/inc
