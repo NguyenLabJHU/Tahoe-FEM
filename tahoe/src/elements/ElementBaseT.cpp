@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.37 2003-06-09 06:37:07 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.38 2003-08-08 00:46:48 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -73,6 +73,14 @@ void ElementBaseT::Initialize(void)
 	int neq = NumElementNodes()*NumDOF();
 	fLHS.Dimension(neq);	
 	fRHS.Dimension(neq);
+}
+
+/* set the active elements */
+void ElementBaseT::SetStatus(const ArrayT<StatusT>& status)
+{
+	if (status.Length() != NumElements()) ExceptionT::SizeMismatch();
+	for (int i = 0; i < fElementCards.Length(); i++)
+		fElementCards[i].Flag() = status[i];
 }
 
 /* initial condition/restart functions
