@@ -1,4 +1,4 @@
-/* $Id: GlobalT.h,v 1.5.2.2 2002-04-24 01:29:23 paklein Exp $ */
+/* $Id: GlobalT.h,v 1.5.2.3 2002-04-26 02:24:21 paklein Exp $ */
 /* created: paklein (02/03/1999) */
 
 #ifndef _GLOBAL_T_H_
@@ -14,6 +14,7 @@ public:
 
 	/** types of analysis */
 	enum AnalysisCodeT {
+	         kNoAnalysis = 0,
 		      kLinStatic = 1,
 		     kLinDynamic = 2,
 		       kNLStatic = 3,

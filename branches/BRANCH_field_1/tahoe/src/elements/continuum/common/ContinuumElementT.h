@@ -1,9 +1,5 @@
-/* $Id: ContinuumElementT.h,v 1.8.2.1 2002-04-22 07:06:04 paklein Exp $ */
-/* created: paklein (10/22/1996)                                          */
-/* Interface for a general continuum element type, meaning the presence   */
-/* of shape functions, and the implied presence of a continuum mechanics  */
-/* object, although no member exists since the continuum specifics are too */
-/* dependent on derived class specifics.                                  */
+/* $Id: ContinuumElementT.h,v 1.8.2.2 2002-04-26 02:24:17 paklein Exp $ */
+/* created: paklein (10/22/1996) */
 
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -25,15 +21,15 @@ class StringT;
 class ContinuumElementT: public ElementBaseT
 {
 public:
-	/** constructor.
-	 * \param fe_manager used for system parameters */
-	ContinuumElementT(FEManagerT& fe_manager);
+
+	/** constructor */
+	ContinuumElementT(const ElementSupportT& support, const FieldT& field);
 
 	/** destructor */
 	virtual ~ContinuumElementT(void);
 		
 	/** number of element integration points */
-	int NumIP(void) const;
+	int NumIP(void) const { return fNumIP;} ;
 	
 	/** reference to element shape functions */
 	const ShapeFunctionT& ShapeFunction(void) const;
@@ -209,11 +205,6 @@ private:
 
 protected:
 
-	/* control data */
-	GeometryT::CodeT fGeometryCode;
-	int	fNumIP;
-	int fOutputID;
-
 	/* materials */
 	MaterialListT* fMaterialList;  /**< list of materials */
 	
@@ -222,8 +213,8 @@ protected:
 	iArrayT	fElementOutputCodes;
 	  	
 	/* body force vector */
-	int	    fBodyForceLTf; /**< body force schedule */
-	dArrayT fBody;	  	   /**< body force vector   */
+	const ScheduleT* fBodySchedule; /**< body force schedule */
+	dArrayT fBody; /**< body force vector   */
 
 	/* traction data */
 	ArrayT<Traction_CardT> fTractionList;
@@ -239,7 +230,18 @@ protected:
 	/* work space */
 	dArrayT fNEEvec; /**< work space vector: [element DOF] */
 	dArrayT fDOFvec; /**< work space vector: [nodal DOF]   */
-	dArrayT fNSDvec; /**< work space vector: [nodal dim]   */
+//	dArrayT fNSDvec; /**< work space vector: [nodal dim]   */
+
+private:
+
+	/** number of integration points */
+	int	fNumIP;
+
+	/** output ID */
+	int fOutputID;
+
+	/* control data */
+	GeometryT::CodeT fGeometryCode;
 };
 
 /* inlines */
@@ -249,8 +251,6 @@ inline GeometryT::CodeT ContinuumElementT::GeometryCode(void) const
 { return fGeometryCode; }
 
 /* accessors */
-inline int ContinuumElementT::NumIP(void) const { return fNumIP; }
-
 inline const ShapeFunctionT& ContinuumElementT::ShapeFunction(void) const
 {
 #if __option(extended_errorcheck)

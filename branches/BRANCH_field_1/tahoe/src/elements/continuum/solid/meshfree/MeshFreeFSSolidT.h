@@ -1,9 +1,5 @@
-/* $Id: MeshFreeFSSolidT.h,v 1.3 2001-07-03 01:34:55 paklein Exp $ */
-/* created: paklein (09/16/1998)                                          */
-/* large deformation elasticity with MLS shapefunctions for the           */
-/* field (displacement) representation                                    */
-/* NOTE: clean up code governing when crack growth algorithm              */
-/* is used, initiation criteria, etc. (PAK 09/28/1999)                    */
+/* $Id: MeshFreeFSSolidT.h,v 1.3.4.1 2002-04-26 02:24:20 paklein Exp $ */
+/* created: paklein (09/16/1998) */
 
 #ifndef _EFG_FDELASTIC_T_H_
 #define _EFG_FDELASTIC_T_H_
@@ -15,13 +11,17 @@
 /* direct members */
 #include "nVariMatrixT.h"
 
+/** large deformation elasticity with MLS shapefunctions for the
+ * field (displacement) representation
+ * \note clean up code governing when crack growth algorithm
+ * is used, initiation criteria, etc. (PAK 09/28/1999) */
 class MeshFreeFSSolidT: public TotalLagrangianT,
 	public MeshFreeFractureSupportT
 {
 public:
 
 	/* constructor */
-	MeshFreeFSSolidT(FEManagerT& fe_manager);
+	MeshFreeFSSolidT(const ElementSupportT& support, const FieldT& field);
 	
 	/* data initialization */
 	virtual void Initialize(void);

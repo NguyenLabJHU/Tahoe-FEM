@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.h,v 1.2.4.1 2002-04-22 07:06:06 paklein Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.2.4.2 2002-04-26 02:24:24 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 
 #ifndef _FBC_CONTROLLER_T_H_
@@ -31,7 +31,7 @@ public:
                  kAugLagWall = 4}; //sphere for meshfree
 
 	/* constructor */
-	FBC_ControllerT(FEManagerT& fe_manager);
+	FBC_ControllerT(FEManagerT& fe_manager, int group);
 
 	/* destructor */
 	virtual ~FBC_ControllerT(void);
@@ -80,7 +80,11 @@ public:
 	
 protected:
 
+	/** the Boss */
 	FEManagerT& fFEManager;
+
+	/** equation group */
+	int fGroup;
 
 	/* element controller */
 	eControllerT* fController;

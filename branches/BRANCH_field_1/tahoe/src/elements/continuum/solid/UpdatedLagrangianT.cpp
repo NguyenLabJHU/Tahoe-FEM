@@ -1,5 +1,5 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.3 2001-07-10 07:29:55 paklein Exp $ */
-/* created: paklein (07/03/1996)                                          */
+/* $Id: UpdatedLagrangianT.cpp,v 1.3.4.1 2002-04-26 02:24:18 paklein Exp $ */
+/* created: paklein (07/03/1996) */
 
 #include "UpdatedLagrangianT.h"
 
@@ -9,15 +9,14 @@
 
 #include "fstreamT.h"
 #include "Constants.h"
-#include "FEManagerT.h"
 #include "StructuralMaterialT.h"
 #include "ShapeFunctionT.h"
 
 /* constructor */
-UpdatedLagrangianT::UpdatedLagrangianT(FEManagerT& fe_manager):
-	FiniteStrainT(fe_manager),
+UpdatedLagrangianT::UpdatedLagrangianT(const ElementSupportT& support, const FieldT& field):
+	FiniteStrainT(support, field),
 	fCurrShapes(NULL),
-	fCauchyStress(fNumSD),
+	fCauchyStress(NumSD()),
 	fLocCurrCoords(LocalArrayT::kCurrCoords)
 {
 	/* disable any strain-displacement options */
@@ -28,8 +27,8 @@ UpdatedLagrangianT::UpdatedLagrangianT(FEManagerT& fe_manager):
 	}
 
 	/* consistency check */
-	if (fAnalysisCode == GlobalT::kLinStatic ||
-	    fAnalysisCode == GlobalT::kLinDynamic)
+	if (ElementSupport().Analysis() == GlobalT::kLinStatic ||
+	    ElementSupport().Analysis() == GlobalT::kLinDynamic)
 	{
 		cout << "\nUpLag_FDElasticT::UpdatedLagrangianT: no current coordinates required\n" << endl;
 		fLocCurrCoords.SetType(LocalArrayT::kInitCoords);
@@ -50,9 +49,9 @@ void UpdatedLagrangianT::Initialize(void)
 	FiniteStrainT::Initialize();
 
 	/* dimension */
-	fGradNa.Allocate(fNumSD, fNumElemNodes);
-	fStressStiff.Allocate(fNumElemNodes);
-	fTemp2.Allocate(fNumElemNodes*fNumDOF);
+	fGradNa.Allocate(NumSD(), NumElementNodes());
+	fStressStiff.Allocate(NumElementNodes());
+	fTemp2.Allocate(NumElementNodes()*NumDOF());
 }
 
 /***********************************************************************
@@ -66,8 +65,8 @@ void UpdatedLagrangianT::SetLocalArrays(void)
 	FiniteStrainT::SetLocalArrays();
 
 	/* allocate and set source */
-	fLocCurrCoords.Allocate(fNumElemNodes, fNumSD);
-	fFEManager.RegisterLocal(fLocCurrCoords);
+	fLocCurrCoords.Allocate(NumElementNodes(), NumSD());
+	ElementSupport().RegisterCoordinates(fLocCurrCoords);
 }
 
 /* initialization functions */
@@ -142,7 +141,7 @@ void UpdatedLagrangianT::FormStiffness(double constK)
 	}
 						
 	/* stress stiffness into fLHS */
-	fLHS.Expand(fStressStiff, fNumDOF);
+	fLHS.Expand(fStressStiff, NumDOF());
 }
 
 //DEV - Rayleigh damping should be added to the constitutive level

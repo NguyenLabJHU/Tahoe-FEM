@@ -1,7 +1,5 @@
-/* $Id: LocalizerT.h,v 1.2 2001-07-03 01:34:50 paklein Exp $ */
-/* created: paklein (02/19/1998)                                          */
-/* Continuum elements with strain localization. Localization              */
-/* tracking and special treatment for localized elements                  */
+/* $Id: LocalizerT.h,v 1.2.4.1 2002-04-26 02:24:18 paklein Exp $ */
+/* created: paklein (02/19/1998) */
 
 #ifndef _LOCALIZER_T_H_
 #define _LOCALIZER_T_H_
@@ -20,7 +18,7 @@ class LocalizerT: public UpdatedLagrangianT
 public:
 
 	/* constructors */
-	LocalizerT(FEManagerT& fe_manager);
+	LocalizerT(const ElementSupportT& support, const FieldT& field);
 
 	/* set work space */
 	virtual void Initialize(void);

@@ -1,14 +1,14 @@
-/* $Id: FBC_ControllerT.cpp,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
-/* created: paklein (11/17/1997)                                          */
-/* Base class for all force BC controllers                                */
+/* $Id: FBC_ControllerT.cpp,v 1.1.1.1.8.1 2002-04-26 02:24:24 paklein Exp $ */
+/* created: paklein (11/17/1997) */
 
 #include "FBC_ControllerT.h"
 
 #include <iostream.h>
 
 /* constructor */
-FBC_ControllerT::FBC_ControllerT(FEManagerT& fe_manager):
+FBC_ControllerT::FBC_ControllerT(FEManagerT& fe_manager, int group):
 	fFEManager(fe_manager),
+	fGroup(group),
 	fController(NULL)
 {
 

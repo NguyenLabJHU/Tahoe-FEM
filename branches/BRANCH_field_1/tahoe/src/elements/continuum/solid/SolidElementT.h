@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.8 2002-04-02 23:32:59 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.8.2.1 2002-04-26 02:24:18 paklein Exp $ */
 /* created: paklein (05/28/1996) */
 
 #ifndef _ELASTIC_T_H_
@@ -45,7 +45,7 @@ public:
       	};
 
 	/** constructor */
-	SolidElementT(FEManagerT& fe_manager);
+	SolidElementT(const ElementSupportT& support, const FieldT& field);
 
 	/* accessors */
 	const LocalArrayT& LastDisplacements(void) const;

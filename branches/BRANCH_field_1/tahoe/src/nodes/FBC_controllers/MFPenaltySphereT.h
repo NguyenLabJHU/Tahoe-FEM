@@ -1,4 +1,4 @@
-/* $Id: MFPenaltySphereT.h,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
+/* $Id: MFPenaltySphereT.h,v 1.1.1.1.8.1 2002-04-26 02:24:24 paklein Exp $ */
 /* created: paklein (04/17/2000)                                          */
 
 #ifndef _MF_PENALTY_SPHERE_T_H_
@@ -15,7 +15,7 @@ class MFPenaltySphereT: public PenaltySphereT
 public:
 
 	/* constructor */
-	MFPenaltySphereT(FEManagerT& fe_manager, const iArray2DT& eqnos,
+	MFPenaltySphereT(FEManagerT& fe_manager, int group, const iArray2DT& eqnos,
 		const dArray2DT& coords, const dArray2DT* vels);
 
 	/* input processing */

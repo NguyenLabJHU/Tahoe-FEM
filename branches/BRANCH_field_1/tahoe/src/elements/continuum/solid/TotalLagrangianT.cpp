@@ -1,5 +1,5 @@
-/* $Id: TotalLagrangianT.cpp,v 1.5 2001-09-15 01:13:12 paklein Exp $ */
-/* created: paklein (09/07/1998)                                          */
+/* $Id: TotalLagrangianT.cpp,v 1.5.4.1 2002-04-26 02:24:18 paklein Exp $ */
+/* created: paklein (09/07/1998) */
 
 #include "TotalLagrangianT.h"
 
@@ -9,17 +9,16 @@
 
 #include "fstreamT.h"
 #include "Constants.h"
-#include "FEManagerT.h"
 #include "StructuralMaterialT.h"
 #include "MaterialListT.h"
 #include "ShapeFunctionT.h"
 
 /* constructor */
-TotalLagrangianT::TotalLagrangianT(FEManagerT& fe_manager):
-	FiniteStrainT(fe_manager),
-	fStressMat(fNumSD),
-	fTempMat1(fNumSD),
-	fTempMat2(fNumSD)
+TotalLagrangianT::TotalLagrangianT(const ElementSupportT& support, const FieldT& field):
+	FiniteStrainT(support, field),
+	fStressMat(NumSD()),
+	fTempMat1(NumSD()),
+	fTempMat2(NumSD())
 {
 	/* disable any strain-displacement options */
 	if (fStrainDispOpt != 0)
@@ -37,9 +36,9 @@ void TotalLagrangianT::Initialize(void)
 	FiniteStrainT::Initialize();
 
 	/* dimension */
-	fGradNa.Allocate(fNumSD, fNumElemNodes);
-	fStressStiff.Allocate(fNumElemNodes);
-	fTemp2.Allocate(fNumElemNodes*fNumDOF);
+	fGradNa.Allocate(NumSD(), NumElementNodes());
+	fStressStiff.Allocate(NumElementNodes());
+	fTemp2.Allocate(NumElementNodes()*NumDOF());
 }
 
 /***********************************************************************
@@ -110,7 +109,7 @@ void TotalLagrangianT::FormStiffness(double constK)
 	}
 						
 	/* stress stiffness into fLHS */
-	fLHS.Expand(fStressStiff, fNumDOF);
+	fLHS.Expand(fStressStiff, NumDOF());
 }
 
 //DEV - Rayleigh damping should be added to the constitutive level
@@ -182,7 +181,7 @@ void TotalLagrangianT::FormKd(double constK)
 //      have not been optimized to compute PK2 directly.	
 
 	/* matrix alias to fTemp */
-	dMatrixT fWP(fNumSD, fStressStiff.Rows(), fNEEvec.Pointer());
+	dMatrixT fWP(NumSD(), fStressStiff.Rows(), fNEEvec.Pointer());
 
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();

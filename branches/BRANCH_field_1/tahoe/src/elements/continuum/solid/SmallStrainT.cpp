@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.3 2002-04-16 16:35:59 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.3.2.1 2002-04-26 02:24:18 paklein Exp $ */
 
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
@@ -6,8 +6,8 @@
 #include "MaterialListT.h"
 
 /* constructor */
-SmallStrainT::SmallStrainT(FEManagerT& fe_manager):
-	ElasticT(fe_manager),
+SmallStrainT::SmallStrainT(const ElementSupportT& support, const FieldT& field):
+	ElasticT(support, field),
 	fNeedsOffset(-1),
 	fGradU(NumSD())
 {

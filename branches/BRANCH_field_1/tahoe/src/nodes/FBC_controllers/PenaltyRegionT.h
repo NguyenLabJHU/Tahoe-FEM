@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.h,v 1.2.4.2 2002-04-25 01:32:44 paklein Exp $ */
+/* $Id: PenaltyRegionT.h,v 1.2.4.3 2002-04-26 02:24:24 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #ifndef _PENALTY_REGION_T_H_
@@ -34,7 +34,7 @@ public:
 			};
 
 	/* constructor */
-	PenaltyRegionT(FEManagerT& fe_manager, const iArray2DT& eqnos,
+	PenaltyRegionT(FEManagerT& fe_manager, int group, const iArray2DT& eqnos,
 		const dArray2DT& coords, const dArray2DT* vels);
 
 	/* input processing */

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.13.2.3 2002-04-25 01:28:56 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.13.2.4 2002-04-26 02:24:21 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -63,18 +63,22 @@ public:
 	/* signal that references to external data are stale - ie eq numbers */
 	void Reinitialize(void);
 	
-	/* accessors */
+	/** \name accessors */
+	/*@{*/
 	ifstreamT& Input(void) const;
 	ofstreamT& Output(void) const;
 	GlobalT::AnalysisCodeT Analysis(void) const;
-	bool PrintInput(void) const;
-
 	GlobalT::SystemTypeT GlobalSystemType(int group) const;
-
 	const GlobalT::StateT& RunState(void) const;
 
 	/** get schedule function */
 	const ScheduleT* Schedule(int num) const;
+
+	/** return the number of equation groups */
+	int NumGroups(void) const { return fSolvers.Length(); };
+	/*@}*/
+
+	bool PrintInput(void) const;
 
 //NOTE - NEED THESE?
 //	int NumberOfLTf(void) const;
@@ -90,9 +94,6 @@ public:
 
 	/** return the global equation number */
 	int EquationNumber(int field, int node, int dof) const;
-
-	/** return the number of equation groups */
-	int NumGroups(void) const { return fSolvers.Length(); };
 
 	/** the global number of the first equation on this processor, regardless of
 	 * the FEManagerT::EquationNumberScope for that group. */
@@ -128,7 +129,7 @@ public:
 	void SetTimeStep(double dt) const;
 	int SequenceNumber(void) const;
 	int NumSequences(void) const;
-	const int& IterationNumber(void) const;
+	const int& IterationNumber(int group) const;
 
 	/* I/O info */
 	const StringT& Version(void) const;
@@ -168,6 +169,13 @@ public:
 	 * methods for assembling contributions to the global equations systems */
 	/*@{*/
 	void AssembleLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& eqnos) const;
+	
+	
+	
+	
+	
+	
+	
 	void AssembleLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 		const nArrayT<int>& col_eqnos) const;
 	void OverWriteLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& eqnos) const;
@@ -185,7 +193,7 @@ public:
 	/** register an output set to write output data. See OutputSetT for more information.
 	 * \return the ID for the output set. This value is needed to send data to the
 	 *         correct destination with a subsequent call to FEManagerT::WriteOutput */
-	virtual int RegisterOutput(const OutputSetT& output_set);
+	virtual int RegisterOutput(const OutputSetT& output_set) const;
 
 	/** return a reference to the output set with the given output ID
 	 * \param ID ID of the output set that was returned when the set was
