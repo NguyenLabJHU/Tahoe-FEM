@@ -1,4 +1,4 @@
-/* $Id: Hex2D.h,v 1.2.46.1 2004-04-24 19:57:32 paklein Exp $ */
+/* $Id: Hex2D.h,v 1.2.46.2 2004-05-01 18:57:06 paklein Exp $ */
 #ifndef _HEX_2D_H_
 #define _HEX_2D_H_
 
@@ -79,6 +79,10 @@ private:
 	
 	/** dummy full bond density array */
 	dArrayT fFullDensity;
+	
+	/** flag to indicate whether stress calculation for output should include
+	 * the full bond density */
+	bool fFullDensityForStressOutput;
 };
 
 } /* namespace Tahoe */
