@@ -1,4 +1,4 @@
-/* $Id: GeometryT.h,v 1.4 2004-03-16 19:25:55 paklein Exp $ */
+/* $Id: GeometryT.h,v 1.5 2004-03-16 19:32:30 paklein Exp $ */
 /* created: paklein (10/10/1999) */
 
 #ifndef _GEOMETRY_T_H_
@@ -13,6 +13,7 @@ namespace Tahoe {
 /* forward declarations */
 class GeometryBaseT;
 class ParameterInterfaceT;
+class StringT;
 
 /** class to define enumerations for element geometries and
  * associated operations */
