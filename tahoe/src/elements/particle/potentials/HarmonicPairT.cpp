@@ -1,4 +1,4 @@
-/* $Id: HarmonicPairT.cpp,v 1.2.4.1 2003-02-13 05:24:04 paklein Exp $ */
+/* $Id: HarmonicPairT.cpp,v 1.2.4.2 2003-02-21 01:18:54 paklein Exp $ */
 #include "HarmonicPairT.h"
 
 using namespace Tahoe;
@@ -46,6 +46,15 @@ PairPropertyT::StiffnessFunction HarmonicPairT::getStiffnessFunction(void)
 
 	/* return function pointer */
 	return HarmonicPairT::Stiffness;
+}
+
+/* write properties to output */
+void HarmonicPairT::Write(ostream& out) const
+{
+	/* inherited */
+	PairPropertyT::Write(out);
+	out << " Equilibrium bond length . . . . . . . . . . . . = " << fR0 << '\n';
+	out << " Potential well curvature. . . . . . . . . . . . = " << fK << '\n';	
 }
 
 /***********************************************************************

@@ -1,4 +1,4 @@
-/* $Id: ParticlePropertyT.cpp,v 1.1.4.1 2003-02-19 01:14:46 paklein Exp $ */
+/* $Id: ParticlePropertyT.cpp,v 1.1.4.2 2003-02-21 01:18:54 paklein Exp $ */
 #include "ParticlePropertyT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -22,7 +22,7 @@ ParticlePropertyT::ParticlePropertyT(void):
 void ParticlePropertyT::Write(ostream& out) const
 {
 	out << " Mass. . . . . . . . . . . . . . . . . . . . . . = " << fMass << '\n';
-	out << " Interation range. . . . . . . . . . . . . . . . = " << fRange << '\n';
+	out << " Interaction range . . . . . . . . . . . . . . . = " << fRange << '\n';
 }
 
 namespace Tahoe {
