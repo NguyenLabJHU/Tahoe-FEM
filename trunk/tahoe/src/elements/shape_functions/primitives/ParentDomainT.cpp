@@ -1,5 +1,5 @@
-/* $Id: ParentDomainT.cpp,v 1.9 2002-07-20 00:33:20 hspark Exp $ */
-/* created: paklein (07/03/1996)                                          */
+/* $Id: ParentDomainT.cpp,v 1.10 2002-07-20 08:02:46 paklein Exp $ */
+/* created: paklein (07/03/1996) */
 
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -628,4 +628,23 @@ bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& 
 #pragma unused(point)
 #pragma unused(mapped)
 	return true;
+}
+
+/* calculate a characteristic domain size */
+double ParentDomainT::AverageRadius(const LocalArrayT& coords, dArrayT& avg) const
+{
+	/* coordinate averages */
+	coords.Average(avg);
+	
+	/* find max distance to centroid */
+	double radius = 0;
+	for (int i = 0; i < coords.NumberOfNodes(); i++) {
+		double dist = 0;
+		for (int j = 0; j < coords.MinorDim(); j++) {
+			double dx = coords(i,j) - avg[j];
+			dist += dx*dx;
+		}	
+		radius = (dist > radius) ? dist : radius;
+	}
+	return sqrt(radius);
 }
