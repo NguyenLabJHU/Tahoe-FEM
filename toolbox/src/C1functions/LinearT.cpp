@@ -1,4 +1,4 @@
-/* $Id: LinearT.cpp,v 1.7 2004-03-06 17:28:32 paklein Exp $ */
+/* $Id: LinearT.cpp,v 1.8 2004-03-17 17:54:49 paklein Exp $ */
 /* created: paklein (03/25/1999) */
 #include "LinearT.h"
 #include <iostream.h>
@@ -58,28 +58,16 @@ dArrayT& LinearT::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
-
-//	double* pl = in.Pointer();
-//	double* pU = out.Pointer();
-	
 	out = fA;
-
-    	return out;
-
+	return out;
 }
 
 dArrayT& LinearT::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
-
-//	double* pl = in.Pointer();
-//	double* pU = out.Pointer();
-	
 	out = 0.0;
-
-    	return out;
-
+	return out;
 }
 
 void LinearT::DefineParameters(ParameterListT& list) const
