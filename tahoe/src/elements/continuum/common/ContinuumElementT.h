@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.8.2.3 2002-05-03 09:51:21 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.8.2.4 2002-05-11 20:56:53 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _CONTINUUM_ELEMENT_T_H_
@@ -125,10 +125,13 @@ public:
 	
 protected:
 
-	/* mass types */
+	/** mass types */
 	enum MassTypeT {kNoMass = 0, /**< do not compute mass matrix */
             kConsistentMass = 1, /**< variationally consistent mass matrix */
                 kLumpedMass = 2  /**< diagonally lumped mass */ };
+
+	/** stream extraction operator */
+	friend istream& operator>>(istream& in, ContinuumElementT::MassTypeT& type);
 
 	/** allocate and initialize local arrays */
 	virtual void SetLocalArrays(void);
@@ -153,8 +156,15 @@ protected:
 	/** add contribution from the body force */
 	void AddBodyForce(LocalArrayT& body_force) const;
 	
-	/** element body force contribution */
-	void FormMa(int mass_type, double constM, const LocalArrayT& body_force);
+	/** element body force contribution 
+	 * \param mass_type mass matrix type of ContinuumElementT::MassTypeT
+	 * \param constM pre-factor for the element integral
+	 * \param nodal nodal values. Pass NULL for no nodal values: [nen] x [ndof]
+	 * \param ip_values integration point source terms. Pass NULL for no integration
+	 *        point values : [nip] x [ndof] */
+	void FormMa(MassTypeT mass_type, double constM, 
+		const LocalArrayT* nodal_values,
+		const dArray2DT* ip_values);
 	 		
 	/** write element group parameters to out */
 	virtual void PrintControlData(ostream& out) const;
@@ -194,7 +204,8 @@ protected:
 private:
 
 	/* construct output labels array */
-	virtual void GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_labels, 
+	virtual void GenerateOutputLabels(
+		const iArrayT& n_codes, ArrayT<StringT>& n_labels, 
 		const iArrayT& e_codes, ArrayT<StringT>& e_labels) const = 0;
 
 	/** update traction BC data */
