@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.15 2004-02-22 00:19:50 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.15.2.1 2004-02-25 07:55:27 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -25,7 +25,11 @@ FEManagerT_bridging::FEManagerT_bridging(ifstreamT& input, ofstreamT& output, Co
 	fBridgingScale(NULL),
 	fSolutionDriver(NULL)
 {
-
+/* class requires RTTI */
+#ifdef __NO_RTTI__
+#pragma message("requires RTTI")
+ExceptionT::GeneralFail("FEManagerT_bridging::FEManagerT_bridging", "requires RTTI");
+#endif
 }
 
 /* send update of the solution to the NodeManagerT */
@@ -439,15 +443,15 @@ void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& atoms, iArrayT& ac
 }
 
 /* initialize data for the driving field */
-void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& field, 
+void FEManagerT_bridging::InitProjection(CommManagerT& comm, const iArrayT& nodes, const StringT& field, 
 	NodeManagerT& node_manager, bool make_inactive)
 {
-	const char caller[] = "FEManagerT_bridging::SetExactSolution";
+	const char caller[] = "FEManagerT_bridging::InitProjection";
 	fMainOut << "\n Number of projection points . . . . . . . . . . = " << nodes.Length() << '\n';
 
 	/* initialize the projection (using reference coordinates) */
 	const dArray2DT& init_coords = node_manager.InitialCoordinates();
-	BridgingScale().InitProjection(nodes, &init_coords, NULL, fDrivenCellData);
+	BridgingScale().InitProjection(comm, nodes, &init_coords, NULL, fDrivenCellData);
 
 	/* get the associated field */
 	FieldT* the_field = fNodeManager->Field(field);
