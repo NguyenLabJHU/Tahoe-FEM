@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.37 2003-03-31 23:14:40 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.38 2003-04-05 19:51:55 thao Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 #include "fstreamT.h"
@@ -67,6 +67,11 @@
 #include "RGSplit3D.h"
 #include "SSSV_KStV2D.h"
 #include "FDSV_KStV2D.h"
+#endif
+
+#ifdef VISCOELASTICITY
+#include "SSLinearVE2D.h"
+#include "RGSplitT.h"
 #endif
 
 #ifdef ELASTIC_OGDEN_MATERIAL_DEV
@@ -364,6 +369,32 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "FOSSUM_MATERIAL not enabled: %d", matcode);
+#endif
+			}
+			case kSSLinearVE:
+			{
+#ifdef VISCOELASTICITY
+				/* check */
+				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
+			
+				fArray[matnum] = new SSLinearVE2D(in, *fSSMatSupport);
+				fHasHistory = true;
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "VISCOELASTICITY not enabled: %d", matcode);
+#endif
+			}
+			case kRGSplitVE:
+			{
+#ifdef VISCOELASTICITY
+				/* check */
+				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
+			
+				fArray[matnum] = new RGSplitT(in, *fFSMatSupport);
+				fHasHistory = true;
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "VISCOELASTICITY not enabled: %d", matcode);
 #endif
 			}
 			case kThermoViscoPlastic:
