@@ -1,10 +1,11 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.1.2.6 2003-02-12 23:43:14 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.1.2.7 2003-02-13 01:12:26 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #include "ModelManagerT.h"
 #include "NodeManagerT.h"
 #include "BridgingScaleT.h"
 #include "KBC_PrescribedT.h"
 #include "KBC_CardT.h"
+#include "ofstreamT.h"
 
 /* constructor */
 FEManagerT_bridging::FEManagerT_bridging(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,

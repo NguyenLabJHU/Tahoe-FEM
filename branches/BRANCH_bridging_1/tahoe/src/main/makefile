@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2002-12-05 08:31:13 paklein Exp $
+# $Id: makefile,v 1.5.4.1 2003-02-13 01:12:26 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -10,6 +10,7 @@ OBJ = \
 	FEExecutionManagerT.o \
 	FEManagerT.o \
 	FEManagerT_mpi.o \
+	FEManagerT_bridging.o \
 	GlobalT.o \
 	IOManager.o \
 	IOManager_mpi.o \
@@ -29,6 +30,7 @@ SRC = \
 	FEExecutionManagerT.cpp \
 	FEManagerT.cpp \
 	FEManagerT_mpi.cpp \
+	FEManagerT_bridging.cpp \
 	GlobalT.cpp \
 	IOManager.cpp \
 	IOManager_mpi.cpp \
@@ -42,6 +44,7 @@ HDR = \
 	FEExecutionManagerT.h \
 	FEManagerT.h \
 	FEManagerT_mpi.h \
+	FEManagerT_bridging.h \
 	GlobalT.h \
 	IOManager.h \
 	IOManager_mpi.h \
