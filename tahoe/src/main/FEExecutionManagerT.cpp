@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.76 2005-02-04 22:11:42 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.77 2005-04-06 15:43:39 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -45,8 +45,10 @@
 #include "FEManagerT_bridging.h"
 #include "MultiManagerT.h"
 #ifdef __DEVELOPMENT__
+#include "DevelopmentElementsConfig.h"
 #include "BridgingScaleManagerT.h"
 #include "FEManagerT_THK.h"
+#include "ThermomechanicalCouplingManagerT.h"
 #endif
 #include "TimeManagerT.h"
 #include "NodeManagerT.h"
@@ -296,7 +298,7 @@ void FEExecutionManagerT::RunWriteDescription(int doc_type) const
 	MultiManagerT multi(input, output, comm, fCommandLineOptions, task);
 	tree.BuildDescription(multi);
 
-#ifdef __DEVELOPMENT__
+#ifdef BRIDGING_ELEMENT_DEV
 
 	FEManagerT_THK thk(input, output, comm, fCommandLineOptions, task);
 	tree.BuildDescription(thk);
@@ -304,7 +306,10 @@ void FEExecutionManagerT::RunWriteDescription(int doc_type) const
 	BridgingScaleManagerT bridging_multi(input, output, comm, fCommandLineOptions, task);
 	tree.BuildDescription(bridging_multi);
 
-#endif /* __DEVELOPMENT__ */
+	ThermomechanicalCouplingManagerT thermo_multi(input, output, comm, fCommandLineOptions, task);
+	tree.BuildDescription(thermo_multi);
+
+#endif /* BRIDGING_ELEMENT_DEV */
 #endif /* BRIDGING_ELEMENT */
 
 	/* write description */

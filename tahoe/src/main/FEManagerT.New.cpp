@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.New.cpp,v 1.3 2005-04-04 17:22:15 rjones Exp $ */
+/* $Id: FEManagerT.New.cpp,v 1.4 2005-04-06 15:43:39 paklein Exp $ */
 #include "FEManagerT.h"
 
 /* element configuration header */
@@ -8,6 +8,7 @@
 #include "MultiManagerT.h"
 #include "FEManagerT_bridging.h"
 #ifdef __DEVELOPMENT__
+#include "DevelopmentElementsConfig.h"
 #include "BridgingScaleManagerT.h"
 #include "FEManagerT_THK.h"
 #include "ThermomechanicalCouplingManagerT.h"
@@ -46,7 +47,7 @@ FEManagerT* FEManagerT::New(const StringT& name, const StringT& input_file, ofst
 	}
 	else if (name == "tahoe_bridging_scale")
 	{
-#if defined(BRIDGING_ELEMENT) && defined(__DEVELOPMENT__)
+#if defined(BRIDGING_ELEMENT) && defined(BRIDGING_ELEMENT_DEV)
 		return new BridgingScaleManagerT(input_file, output, comm, argv, task);
 #else
 		ExceptionT::GeneralFail(caller, "\"%s\" requires BRIDGING_ELEMENT and __DEVELOPMENT__",
@@ -56,7 +57,7 @@ FEManagerT* FEManagerT::New(const StringT& name, const StringT& input_file, ofst
 	}
 	else if (name == "tahoe_thermomechanical_coupling")
 	{
-#if defined(BRIDGING_ELEMENT) && defined(__DEVELOPMENT__)
+#if defined(BRIDGING_ELEMENT) && defined(BRIDGING_ELEMENT_DEV)
 		return new ThermomechanicalCouplingManagerT(input_file, output, comm, argv, task);
 #else
 		ExceptionT::GeneralFail(caller, "\"%s\" requires BRIDGING_ELEMENT and __DEVELOPMENT__",
@@ -66,7 +67,7 @@ FEManagerT* FEManagerT::New(const StringT& name, const StringT& input_file, ofst
 	}
 	else if (name == "tahoe_THK")
 	{
-#if defined(BRIDGING_ELEMENT) && defined(__DEVELOPMENT__)
+#if defined(BRIDGING_ELEMENT) && defined(BRIDGING_ELEMENT_DEV)
 		return new FEManagerT_THK(input_file, output, comm, argv, task);
 #else
 		ExceptionT::GeneralFail(caller, "\"%s\" requires BRIDGING_ELEMENT and __DEVELOPMENT__",
