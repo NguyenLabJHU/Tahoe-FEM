@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.cpp,v 1.13 2003-09-10 00:14:57 paklein Exp $ */
+/* $Id: IOBaseT.cpp,v 1.14 2003-11-20 19:46:29 cjkimme Exp $ */
 /* created: sawimme (09/28/1999) */
 #include "IOBaseT.h"
 
@@ -247,7 +247,7 @@ OutputBaseT* IOBaseT::NewOutput(const StringT& program_name,
 		   << output_format << endl;
 	      log  << "\n IOBaseT::SetOutput unknown output format:"
 		    << output_format << endl;
-	      throw ExceptionT::kBadInputValue;
+	      throw ExceptionT::kGeneralFail;
 	    }
 	}
 	} /* end try */  
