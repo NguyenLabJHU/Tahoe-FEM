@@ -1,4 +1,4 @@
-# $Id: subdir.targets,v 1.14 2004-08-10 05:27:12 paklein Exp $
+# $Id: subdir.targets,v 1.15 2005-03-05 07:27:27 paklein Exp $
 
 MACROS = \
 "INC_DIR = $(INC_DIR)" \
@@ -45,14 +45,14 @@ update_objects: $(OBJ)
 library:
 	@ $(PRINTF) " $(OBJ_LINK) " >> $(LIBRARY)
 	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = library"
-	
+
 subdir_loop:
 	@ for n in $(SUB_DIR); do \
 		if test -d $$n; then \
 			$(PRINTF) " cd $$n\n"; \
 			cd $$n; \
 			$(MAKE) $(COMMAND) $(MACROS) "CURR_DIR = $(CURR_DIR)/$$n" \
-			|| exit 1; \
+			|| $(MAKE) exit_on_error "COMMAND = $(COMMAND)" "CURR_DIR = $(CURR_DIR)/$$n" || exit 1; \
 			cd $(CURR_DIR); \
 		else \
 			if test $$n != "NONE"; then \
@@ -61,7 +61,14 @@ subdir_loop:
 				exit 1; \
 			fi; \
 		fi; \
-	done	
+	done
+
+exit_on_error:
+	@ $(PRINTF) "***\n"
+	@ $(PRINTF) "*** ERROR: target \"$(COMMAND)\"\n"
+	@ $(PRINTF) "*** ERROR: directory $(CURR_DIR)\n"
+	@ $(PRINTF) "***\n"
+	@ exit 1
 
 dummy:
 
