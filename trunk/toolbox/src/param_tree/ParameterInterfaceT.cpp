@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.4 2003-08-14 01:22:03 paklein Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.5 2003-08-14 05:10:36 paklein Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
 
@@ -175,35 +175,4 @@ ParameterInterfaceT* ParameterInterfaceT::NewSub(const StringT& list_name) const
 {
 #pragma unused(list_name)
 	return NULL;
-}
-
-//TEMP
-SubListT::~SubListT(void)
-{
-	cout << "~SubListT: " << Pointer() << endl;
-}
-
-//TEMP
-SubListDescriptionT::~SubListDescriptionT(void)
-{
-	cout << "~SubListDescriptionT: " << this << '\n';
-	cout << "                Name: " << &fName << '\n';
-	cout << "        Name.Pointer: " << fName.Pointer() << '\n';
-}
-
-SubListDescriptionT::SubListDescriptionT(const SubListDescriptionT& source):
-	fName(source.fName),
-	fOccurrence(source.fOccurrence),
-	fIsInline(source.fIsInline)
-{
-
-}
-
-/* assignment operator */
-SubListDescriptionT& SubListDescriptionT::operator=(const SubListDescriptionT& rhs)
-{
-	fName = rhs.fName;
-	fOccurrence = rhs.fOccurrence;
-	fIsInline = rhs.fIsInline;
-	return *this;
 }

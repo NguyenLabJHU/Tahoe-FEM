@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.h,v 1.6 2003-08-14 04:48:36 paklein Exp $ */
+/* $Id: ParameterInterfaceT.h,v 1.7 2003-08-14 05:10:36 paklein Exp $ */
 #ifndef _PARAMETER_INTERFACE_T_H_
 #define _PARAMETER_INTERFACE_T_H_
 
@@ -101,9 +101,6 @@ public:
 	SubListDescriptionT(const SubListDescriptionT& source);
 	/*@}*/
 
-	//TEMP
-	~SubListDescriptionT(void);
-
 	/** \name read/write accessors */
 	/*@{*/
 	const StringT& Name(void) const { return fName; };
@@ -132,9 +129,6 @@ public:
 	/** constructor */
 	SubListT(void) {};
 
-	//TEMP
-	~SubListT(void);
-
 	/** \name add a sublist */
 	/*@{*/
 	void AddSub(const StringT& name, 
@@ -151,6 +145,23 @@ inline SubListDescriptionT::SubListDescriptionT(const StringT& name,
 	fIsInline(is_inline)
 {
 
+}
+
+inline SubListDescriptionT::SubListDescriptionT(const SubListDescriptionT& source):
+	fName(source.fName),
+	fOccurrence(source.fOccurrence),
+	fIsInline(source.fIsInline)
+{
+
+}
+
+/* assignment operator */
+inline SubListDescriptionT& SubListDescriptionT::operator=(const SubListDescriptionT& rhs)
+{
+	fName = rhs.fName;
+	fOccurrence = rhs.fOccurrence;
+	fIsInline = rhs.fIsInline;
+	return *this;
 }
 
 /* add a sublist */
