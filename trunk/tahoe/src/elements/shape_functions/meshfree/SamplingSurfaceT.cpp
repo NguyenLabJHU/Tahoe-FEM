@@ -1,4 +1,4 @@
-/* $Id: SamplingSurfaceT.cpp,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* $Id: SamplingSurfaceT.cpp,v 1.2 2001-02-13 17:57:19 paklein Exp $ */
 /* created: paklein (10/19/2000)                                          */
 
 #include "SamplingSurfaceT.h"
@@ -70,7 +70,7 @@ void SamplingSurfaceT::SetSamplingPoints(const dArray2DT& facet_coords,
 	fLocFacetCoords.SetGlobal(fFacetCoords);
 	
 	/* set neighbor data */
-	AutoArrayT<int> all_neighbors(20, true);
+	AutoArrayT<int> all_neighbors(20);
 	AutoArrayT<int> neighbors;
 	iArrayT facet_nodes;
 	iArrayT neighbor_count(fNumFacets*fNumSamples);
