@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.19 2002-11-21 01:13:32 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.20 2002-11-25 07:21:31 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -189,16 +189,27 @@ public:
 	virtual void SendOutput(int kincode) = 0;
 	/*@}*/
 	
-	/** collecting element connectivities. The element group should collect
+	/** \name connectivities
+	 * Element groups are queries for connectivities for two reasons:
+	 * -# ConnectsU are used when reordering equation numbers for minimizing
+	 *    the matrix profile for certain kinds of linear solvers
+	 * -# ConnectsX are used to compute a load-balanced domain decomposition.
+	 *    Note: an experimental version of FEManagerT_mpi::Decompose also used
+	 *    ConnectsU to compute the domain decomposition, but this is not usually
+	 *    the case. 
+	 */
+	/*@{*/
+	/** collecting element connectivities for geometry. The element group should collect
 	 * the connectivities defining the geometry of the elements and \em append
 	 * them to the AutoArrayT that is passed in. */
 	virtual void ConnectsX(AutoArrayT<const iArray2DT*>& connects) const;
 
-	/** collecting element connectivities. The element group should collect
+	/** collecting element connectivities for the field. The element group should collect
 	 * the connectivities defining the field variables over the elements and 
 	 * \em append them to the AutoArrayT that is passed in. */
 	virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 	             AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
+	/*@}*/
 		
 	/** prepare for a sequence of time steps */
 	virtual void InitialCondition(void);
@@ -336,19 +347,23 @@ private:
 	
 protected:
 
-	/* element controller */
+	/** time integrator */
 	const eControllerT* fController;
 
-	/* element-by-element info */
+	/** element-by-element info */
 	AutoArrayT<ElementCardT> fElementCards;
 	
-	/* grouped element arrays */
+	/** \name grouped element arrays */
+	/*@{*/
 	ArrayT<const iArray2DT*> fConnectivities;		
 	ArrayT<iArray2DT> fEqnos;			
+	/*@}*/
 	
-	/* element tangent matrix and force vector */								
+	/** \name element tangent matrix and force vector */								
+	/*@{*/
 	ElementMatrixT fLHS;
 	dArrayT        fRHS;
+	/*@}*/
 	
 	/** data for multiple connectivity blocks. Each row contains the
 	 * information for a block of connectivities. The content of each
