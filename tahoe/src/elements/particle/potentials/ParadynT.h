@@ -34,6 +34,7 @@ public:
 	 * virtual function call is needed to return a pointer to a static
 	 * member function, which is then called many times. */
 	/*@{*/
+
 	typedef double (*PairEnergyFunction)(double r_ab, double* data_a, double* data_b);
 	typedef double (*EmbedEnergyFunction)(double rho_ab, double* data_a, double* data_b);
 	typedef double (*EDEnergyFunction)(double r_ab, double* data_a, double* data_b);
@@ -45,23 +46,24 @@ public:
 	typedef double (*PairStiffnessFunction)(double r_ab, double* data_a, double* data_b);
 	typedef double (*EmbedStiffnessFunction)(double rho_ab, double* data_a, double* data_b);
 	typedef double (*EDStiffnessFunction)(double r_ab, double* data_a, double* data_b);
+	
 
 	/** \name return interaction functions */
 	/*@{*/
 	/** return a pointer to the energy function */
-	virtual PairEnergyFunction getPairEnergy(void);
-	virtual EmbedEnergyFunction getEmbedEnergy(void);
-	virtual EDEnergyFunction getElecDensEnergy(void);
+	ParadynT::PairEnergyFunction getPairEnergy(void);
+	ParadynT::EmbedEnergyFunction getEmbedEnergy(void);
+	ParadynT::EDEnergyFunction getElecDensEnergy(void);
 
 	/** return a pointer to the force function */
-	virtual PairForceFunction getPairForce(void);
-        virtual EmbedForceFunction getEmbedForce(void);
-	virtual EDForceFunction getElecDensForce(void);
+	ParadynT::PairForceFunction getPairForce(void);
+        ParadynT::EmbedForceFunction getEmbedForce(void);
+	ParadynT::EDForceFunction getElecDensForce(void);
 
 	/** return a pointer to the stiffness function */
-	virtual PairEnergyFunction getPairStiffness(void);
-	virtual EmbedEnergyFunction getEmbedStiffness(void);
-	virtual EDEnergyFunction getElecDensStiffness(void);
+	ParadynT::PairEnergyFunction getPairStiffness(void);
+	ParadynT::EmbedEnergyFunction getEmbedStiffness(void);
+	ParadynT::EDEnergyFunction getElecDensStiffness(void);
 
 	/** return Paradyn-style coefficients table.
 	 * returns false if no table is available. */
