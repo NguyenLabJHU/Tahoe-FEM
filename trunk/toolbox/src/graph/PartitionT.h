@@ -1,4 +1,4 @@
-/* $Id: PartitionT.h,v 1.4 2002-01-09 12:11:57 paklein Exp $ */
+/* $Id: PartitionT.h,v 1.5 2002-01-11 23:47:12 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 
 #ifndef _PARTITION_T_H_
@@ -60,6 +60,7 @@ public:
 	void SetScope(NumberScopeT scope);
 
 	int NumElementBlocks(void) const;
+	const iArrayT& BlockID(void) const { return fElementBlockID; };
 	void InitElementBlocks(const iArrayT& blockID);	
 	void SetElements(int blockID, const iArray2DT& connects);
 
