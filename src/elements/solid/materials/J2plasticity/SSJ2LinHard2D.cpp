@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHard2D.cpp,v 1.6 2003-08-12 17:04:35 thao Exp $ */
+/* $Id: SSJ2LinHard2D.cpp,v 1.7 2003-08-13 00:15:34 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Plane Strain linearly                */
 /* isotropically elasto plastic material model subject to the Huber-von Mises yield             */
@@ -29,32 +29,45 @@ static const char* Labels[kNumOutput] = {"alpha", "VM", "press"};
 
 /* constructor */
 SSJ2LinHard2D::SSJ2LinHard2D(ifstreamT& in, const SSMatSupportT& support):
-	SSJ2LinHardBaseT(in, support),
-        fStress(4),
-	fModulus(dSymMatrixT::NumValues(4)){}
+	SSJ2LinHardBase2D(in, support),
+	fStress(2),
+	fModulus(dSymMatrixT::NumValues(2)),
+	fStress3D(3),
+	fModulus3D(dSymMatrixT::NumValues(3)){}
 
 
 /*computes free energy density*/
 double SSJ2LinHard2D::StrainEnergyDensity(void)
 {
     double energy = 0.0;
-    fDevStrain = e();
+    const dSymMatrixT& strain = e();
 
     ElementCardT& element = CurrentElement();
     Load(element, CurrIP());
     
-    double I1 = fDevStrain.Trace();
-    fDevStrain.PlusIdentity(-fthird*I1);
+    double I1 = strain.Trace();
+    fDevStrain = 0.0;
+    fDevStrain[0] = strain[0] -fthird*I1;
+    fDevStrain[1] = strain[1] -fthird*I1;
+    fDevStrain[2] -= fthird*I1;
+    fDevStrain[5] = strain[2];
     
     fDevStrain -= fPlasticStrain;
     
-    fStress = fDevStrain;
-    fStress *= 2.0*fMu;
-    fStress.PlusIdentity(fKappa*I1);
+    fStress3D = fDevStrain;
+    fStress3D *= 2.0*fMu;
+    fStress3D.PlusIdentity(fKappa*I1);
 
-    fDevStrain.PlusIdentity(fthird*I1);
+    fDevStrain[0] += fthird*I1;
+    fDevStrain[1] += fthird*I1;
+    fDevStrain[2] += fthird*I1;
+    
+    /*    fStress[0] = fStress3D[0];
+    fStress[1] = fStress3D[1];
+    fStress[2] = fStress3D[5];*/
 
-    energy = 0.5*fStress.ScalarProduct(fDevStrain);
+    /*    energy = 0.5*fStress.ScalarProduct(strain);*/
+    energy += 0.5*fStress3D.ScalarProduct(fDevStrain);
     energy += 0.5*falpha[0]*dK()*falpha[0];
     energy += 0.5*fBeta.ScalarProduct(fPlasticStrain);
     return energy;		
@@ -64,42 +77,42 @@ const dMatrixT& SSJ2LinHard2D::c_ijkl(void)
 {
         s_ij();
      
-	/*elastic moduli*/
-	fModulus= 0.0;
-	fModulus(0,0) = fModulus(1,1) = fModulus(3,3) = fKappa+4.0*fMu*fthird;
-	fModulus(0,1) = fModulus(0,3) = fKappa-2.0*fMu*fthird;
-	fModulus(1,0) = fModulus(1,3) = fKappa-2.0*fMu*fthird;
-	fModulus(3,0) = fModulus(3,1) = fKappa-2.0*fMu*fthird;
-	fModulus(2,2) = fMu;
+    /*deviatoric part*/
+	fModulus3D = 0.0;
+	fModulus3D(0,0) = fModulus3D(1,1) =  fModulus3D(2,2) = 2.0*fMu*(1.0 - fthird);
+	fModulus3D(3,3) = fModulus3D(4,4) =  fModulus3D(5,5) = fMu;
+	fModulus3D(0,1) = fModulus3D(0,2) =  fModulus3D(1,2) = -2.0*fMu*fthird;
+	fModulus3D(1,0) = fModulus3D(2,0) =  fModulus3D(2,1) = -2.0*fMu*fthird;
 
-       	int iteration = fSSMatSupport.IterationNumber();
-       	if (iteration > -1) /* elastic iteration */
-        fModulus += ModuliCorrection();
+    /*volumetric part*/
+	fModulus3D(0,0) += fKappa; fModulus3D(1,1) += fKappa; fModulus3D(2,2) += fKappa;
+	fModulus3D(0,1) += fKappa; fModulus3D(0,2) += fKappa; fModulus3D(1,2) += fKappa;
+	fModulus3D(1,0) += fKappa; fModulus3D(2,0) += fKappa; fModulus3D(2,1) += fKappa;
 
-	/*     	const dMatrixT modcorr = ModuliCorrection();
+	int iteration = fSSMatSupport.IterationNumber();
+	if (iteration > -1) /* elastic iteration */
+	  fModulus3D += ModuliCorrection();
 	
-       	fModulus(0,0) += modcorr(0,0); fModulus(1,1) += modcorr(1,1);
-	fModulus(3,3) += modcorr(2,2);
-	fModulus(0,1) += modcorr(0,1); fModulus(0,3) += modcorr(0,2);
-	fModulus(1,0) += modcorr(1,0); fModulus(1,3) += modcorr(1,2);
-	fModulus(3,0) += modcorr(2,0); fModulus(3,1) += modcorr(2,1);
-	fModulus(2,2) += modcorr(5,5);*/
+	fModulus = 0.0;
+	fModulus(0,0) = fModulus3D(0,0); fModulus(1,1) = fModulus3D(1,1);
+	fModulus(0,1) = fModulus3D(0,1); fModulus(1,0) = fModulus3D(1,0);	
+	fModulus(2,2) = fModulus3D(5,5);
+	fModulus(0,2) = fModulus3D(0,5); fModulus(1,2) = fModulus3D(1,5);
+	fModulus(2,0) = fModulus3D(5,0); fModulus(2,1) = fModulus3D(5,1);
 
 	return fModulus;
-}
-
-double SSJ2LinHard2D::Pressure(void) const
-{
-    /*make sure to call s_ij() before calling Pressure;*/
-    return (fthird*fStress.Trace());
 }
 
 /* stress */
 const dSymMatrixT& SSJ2LinHard2D::s_ij(void)
 {
-    fDevStrain = e();
-    double I1 = fDevStrain.Trace();
-    fDevStrain.PlusIdentity(-fthird*I1);
+    const dSymMatrixT& strain = e();
+    double I1 = strain.Trace();
+    fDevStrain = 0.0;
+    fDevStrain[0] = strain[0] - fthird*I1;
+    fDevStrain[1] = strain[1] - fthird*I1;
+    fDevStrain[2] = -fthird*I1;
+    fDevStrain[5] = strain[2];
         
     ElementCardT& element = CurrentElement();
     Load(element, CurrIP());	
@@ -107,18 +120,20 @@ const dSymMatrixT& SSJ2LinHard2D::s_ij(void)
     fDevStrain -= fPlasticStrain_n;
     
     /* deviatoric part of trial stress */
-    fStress = fDevStrain;
-    fStress *= 2.0*fMu;
-
+    fStress3D = fDevStrain;
+    fStress3D *= 2.0*fMu;
     /* modify trial stress (return mapping) */
+
     int iteration = fSSMatSupport.IterationNumber();
-    if (iteration > -1) /* elastic iteration */
-      fStress += StressCorrection(fStress);
+    if (iteration > -1)  
+      fStress3D += StressCorrection(fStress3D);
     Store(element,CurrIP());
 	
     /*add volumetric component*/
-    fStress.PlusIdentity(fKappa*I1);
+    fStress3D.PlusIdentity(fKappa*I1);
     
+    fStress[0] = fStress3D[0]; fStress[1] = fStress3D[1]; fStress[2] = fStress3D[5];
+
     return fStress;	
 }
 
@@ -138,11 +153,15 @@ const dArrayT& SSJ2LinHard2D::InternalStrainVars(void)
 	*pvar++ = fPlasticStrain[1];
 	*pvar++ = fPlasticStrain[2];
 	*pvar++ = fPlasticStrain[3];
+	*pvar++ = fPlasticStrain[4];
+	*pvar++ = fPlasticStrain[5];
         
       	*pvar++ = fPlasticStrain[0];
 	*pvar++ = fPlasticStrain[1];
 	*pvar++ = fPlasticStrain[2];
 	*pvar++ = fPlasticStrain[3];
+	*pvar++ = fPlasticStrain[4];
+	*pvar = fPlasticStrain[5];
 
         return(fInternalStrainVars);
 }
@@ -153,14 +172,18 @@ const dArrayT& SSJ2LinHard2D::InternalStressVars(void)
         ElementCardT& element = CurrentElement();
         Load(element, CurrIP());
         
-	fDevStrain = e();
-	double I1 = fDevStrain.Trace();
-	fDevStrain.PlusIdentity(-fthird*I1);
+	const dSymMatrixT& strain = e();
+	double I1 = strain.Trace();
+	fDevStrain = 0.0;
+	fDevStrain[0] = strain[0]-fthird*I1;
+	fDevStrain[1] = strain[1]-fthird*I1;
+	fDevStrain[2] -= fthird*I1;
+	fDevStrain[5] = strain[2];
 	fDevStrain -= fPlasticStrain;
 
-	fStress = fDevStrain;
-	fStress *= 2.0*fMu;
-	fStress.PlusIdentity(fKappa*I1);
+	fStress3D = fDevStrain;
+	fStress3D *= 2.0*fMu;
+	fStress3D.PlusIdentity(fKappa*I1);
 	
 	double* pvar = fInternalStressVars.Pointer();
 
@@ -170,11 +193,15 @@ const dArrayT& SSJ2LinHard2D::InternalStressVars(void)
 	*pvar++ = -fBeta[1];
 	*pvar++ = -fBeta[2];
 	*pvar++ = -fBeta[3];
+	*pvar++ = -fBeta[4];
+	*pvar++ = -fBeta[5];
 
-	*pvar++ = fStress[0];
-	*pvar++ = fStress[1];
-	*pvar++ = fStress[2];
-	*pvar++ = fStress[3];
+	*pvar++ = fStress3D[0];
+	*pvar++ = fStress3D[1];
+	*pvar++ = fStress3D[2];
+	*pvar++ = fStress3D[3];
+	*pvar++ = fStress3D[4];
+	*pvar = fStress3D[5];
 
         return(fInternalStressVars);
 }
@@ -192,23 +219,32 @@ void SSJ2LinHard2D::OutputLabels(ArrayT<StringT>& labels) const
 
 void SSJ2LinHard2D::ComputeOutput(dArrayT& output)
 {
-
 	/* stress tensor (loads element data and sets fStress) */
-	ElementCardT& element = CurrentElement();
-	Load(element, CurrIP());	
+        /*non-equilibrium components*/
+        ElementCardT& element = CurrentElement();
+        Load(element, CurrIP());
+        
+	const dSymMatrixT& strain = e();
+	double I1 = strain.Trace();
+	fDevStrain = 0.0;
+	fDevStrain[0] = strain[0]-fthird*I1;
+	fDevStrain[1] = strain[1]-fthird*I1;
+	fDevStrain[2] -= fthird*I1;
+	fDevStrain[5] = strain[2];
+	fDevStrain -= fPlasticStrain;
 
-        fDevStrain = e();
-	double I1 = fDevStrain.Trace();
-	output[2] = fKappa*I1;
+	fStress3D = fDevStrain;
+	fStress3D *= 2.0*fMu;
+	fStress3D.PlusIdentity(fKappa*I1);	
 
-	fDevStrain.PlusIdentity(-fthird*I1);
- 	fDevStrain -= fPlasticStrain;
-
-	fStress = fDevStrain;
-	fStress *= 2.0*fMu;
-
+	/* pressure */
+	output[2] = fStress3D.Trace()/3.0;
+	
 	/* deviatoric Von Mises stress */
-	double J2 = 0.5*fStress.ScalarProduct();
+	fStress3D.Deviatoric();
+	double J2 = fStress3D.Invariant2();
+	J2 = (J2 < 0.0) ? 0.0 : J2;
 	output[1] = sqrt(3.0*J2);
+
         output[0] = falpha[0];
 }

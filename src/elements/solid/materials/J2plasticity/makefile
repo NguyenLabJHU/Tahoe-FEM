@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2003-05-12 23:38:36 thao Exp $
+# $Id: makefile,v 1.2 2003-08-13 00:15:35 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,8 +20,10 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = SSJ2LinHard2D.o \
+	SSJ2LinHard3Dplane.o \
 	SSJ2LinHardT.o \
-	SSJ2LinHardBaseT.o  
+	SSJ2LinHardBaseT.o \
+	SSJ2LinHardBase2D.o  
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -42,8 +44,10 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = SSJ2LinHard2D.cpp \
+	SSJ2LinHard3Dplane.cpp \
 	SSJ2LinHardT.cpp \
-	SSJ2LinHardBaseT.cpp  
+	SSJ2LinHardBaseT.cpp \
+	SSJ2LinHardBase2D.cpp  
 
 ##################### (3) headers
 #
@@ -55,8 +59,10 @@ SRC = SSJ2LinHard2D.cpp \
 # HDR and HDR_LINK macro   
 #
 HDR = SSJ2LinHard2D.h \
+	SSJ2LinHard3Dplane.h \
 	SSJ2LinHardT.h \
-	SSJ2LinHardBaseT.h  
+	SSJ2LinHardBaseT.h \
+	SSJ2LinHardBase2D.h  
 
 HDR_LINK = $(HDR:.h=.h_link)
 
