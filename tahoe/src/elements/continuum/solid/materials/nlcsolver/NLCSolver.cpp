@@ -252,13 +252,13 @@ void NLCSolver::TestForConvergence(const dArrayT& X)
   else if (StepTest(X))
     {
       fConverged = true;
-      //      if (NLCS_MESSAGES)
+      if (NLCS_MESSAGES)
 	cout << "RELATIVE STEP CHANGE WITHIN TOLERANCE, POSSIBLE FAILURE." << endl;
     }
   else if (fConsecutiveMaxSteps >= fMaxConsecutiveMaxSteps)
     {
       fFailed = true;
-      //      if (NLCS_MESSAGES)
+      if (NLCS_MESSAGES)
       {
 	cout << "TOOK MAXIMUM STEP " << fConsecutiveMaxSteps << " TIMES." << endl;
 	cout << "FUNCTION MAY BE UNBOUNDED BELOW OR HAVE AN ASYMPTOTE." << endl;
@@ -267,13 +267,13 @@ void NLCSolver::TestForConvergence(const dArrayT& X)
   else if (fIterationCount > fMaxIterations)
     {
       fFailed = true;
-      //      if (NLCS_MESSAGES)
+      if (NLCS_MESSAGES)
 	cout << "EXCEEDED MAXIMUM NUMBER OF ITERATIONS, ITERATION FAILED." << endl;
     }
   else if (GradTest(X))
     {
       fConverged = true;
-      //      if (NLCS_MESSAGES)
+      if (NLCS_MESSAGES)
 	cout << "RELATIVE GRADIENT WITHIN TOLERANCE, POSSIBLE FAILURE." << endl;
     }
   else if (!fConverged)
