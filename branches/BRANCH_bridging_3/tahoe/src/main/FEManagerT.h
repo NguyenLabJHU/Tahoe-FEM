@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.37.10.1 2003-10-16 12:56:14 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.37.10.2 2003-10-21 19:00:59 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -285,6 +285,7 @@ public:
 
 	/** debugging */
 	virtual void WriteSystemConfig(ostream& out, int group) const;
+	virtual void RegisterSystemOutput(int group);
 
 	/** \name basic MP info */
 	/*@{*/
@@ -496,6 +497,14 @@ protected:
 	iArrayT fGlobalEquationStart;
 	iArrayT fActiveEquationStart;
 	iArrayT fGlobalNumEquations;
+	/*@}*/
+	
+	/** \name system output (SO) information with check code 4 */
+	/*@{*/
+	bool fSO_DivertOutput;
+	iArrayT fSO_OutputID;
+	iArray2DT fSO_Connects;
+
 	/*@}*/
 };
 
