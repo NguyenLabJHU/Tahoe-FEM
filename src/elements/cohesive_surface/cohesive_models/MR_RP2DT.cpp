@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.cpp,v 1.22 2003-06-09 07:21:25 paklein Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.23 2003-06-11 21:07:04 manzari Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -281,8 +281,8 @@ else
 	             AA_inv(i,j) *= dlam;
 	            } 
 	            if(i>1 & j >1) {
-	             AA_inv(i,j)  = -I_mat(i-2,j-2);
-	             AA_inv(i,j) *= 1.;
+	             AA_inv(i,j)  = I_mat(i-2,j-2);
+	             AA_inv(i,j) *= -1.;
 	             AA_inv(i,j) += dlam*A_qq(i-2,j-2);
 	            } 
 	          }
