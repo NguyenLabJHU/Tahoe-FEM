@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.cpp,v 1.4 2003-11-21 22:45:50 paklein Exp $ */
+/* $Id: CSESymAnisoT.cpp,v 1.5 2003-11-25 20:00:35 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSESymAnisoT.h"
 
@@ -850,6 +850,12 @@ void CSESymAnisoT::ReadConnectivity(void)
 
 	/* allocate block map */
 	int num_blocks = sideSet_ID.Length();
+	
+	if (num_blocks != 1)
+	{
+		ExceptionT::GeneralFail("CSESymAnisoT::ReadConnectivitiy","Multiple element blocks not implemented\n");
+	}
+	
 	fBlockData.Dimension(num_blocks);
 	fConnectivities.Allocate(num_blocks);
 
@@ -868,6 +874,12 @@ void CSESymAnisoT::ReadConnectivity(void)
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	    model.SideSet(sideSet_ID[b], ssArray, facetNodes, faces);
 	    num_elems = faces.MajorDim();
+	    if (num_elems == 0) // empty side sets are possible and should be allowed
+	    {
+	    	ssArray.Dimension(1);
+	    	ssArray[0] = NumSD() == 2 ? GeometryT::kLine : GeometryT::kQuadrilateral;
+	    	faces.Dimension(0, DefaultNumElemNodes());
+	    }
 	    num_nodes = faces.MinorDim();
 #else
 		num_elems = fSupport.NumElements();
