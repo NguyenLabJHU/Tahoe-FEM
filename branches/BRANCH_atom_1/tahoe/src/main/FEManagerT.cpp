@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.50.2.6 2003-01-11 01:18:41 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.50.2.7 2003-01-13 19:59:13 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -851,6 +851,7 @@ void FEManagerT::WriteSystemConfig(ostream& out, int group) const
 
 	/* header */
 	out << "\n time = " << Time() << '\n';
+	out <<   " nodes = " << nnd << '\n';
 	int d_width = OutputWidth(out, coords.Pointer());
 	out << setw(kIntWidth) << "node"
 	    << setw(kIntWidth) << "mapped";
@@ -1449,6 +1450,22 @@ void FEManagerT::ReadRestart(const StringT* file_name)
 			     << rs_file << endl;
 			throw ExceptionT::kBadInputValue;
 		}
+		
+		/* relax system with new configuration */
+		for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
+		{
+			/* check group */
+			GlobalT::RelaxCodeT relax_code = RelaxSystem(fCurrentGroup);
+			
+			/* reset the equation system */
+			if (relax_code == GlobalT::kReEQ || relax_code == GlobalT::kReEQRelax)
+		    	SetEquationSystem(fCurrentGroup);
+
+			/* will not resolve the group */
+			if (relax_code == GlobalT::kRelax || relax_code == GlobalT::kReEQRelax)
+				cout << "\n FEManagerT::ReadRestart: will not resolve group " << fCurrentGroup+1 << endl;
+		}
+		fCurrentGroup = -1;
 	}
 }
 
