@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.5.2.3 2004-03-20 16:43:13 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.5.2.4 2004-04-06 00:59:20 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
 #include "ifstreamT.h"
@@ -124,7 +124,6 @@ void MeshfreeBridgingT::InitProjection(CommManagerT& comm, const iArrayT& points
 			bool write_support_size = true;
 			if (write_support_size)
 			{
-				StringT junk = "N/A";
 				StringT file;
 				file.Root(ElementSupport().Input().filename());
 				file.Append(".MLS", cell_nodes[i]+1);
@@ -471,7 +470,6 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 		/* support sizes for each source point */
 		bool write_support_size = true;
 		if (write_support_size) {
-			StringT junk = "N/A";
 			StringT file;
 			file.Root(ElementSupport().Input().filename());
 			file.Append(".support.out");
@@ -491,7 +489,6 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 		/* number of neighbors for each projected node */
 		bool write_num_neighbors = true;
 		if (write_num_neighbors) {
-			StringT junk = "N/A";
 			StringT file;
 			file.Root(ElementSupport().Input().filename());
 			file.Append(".neighbors.out");
