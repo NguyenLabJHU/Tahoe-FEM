@@ -1,4 +1,4 @@
-/* $Id: MakeCrystalT.cpp,v 1.6 2002-07-26 20:55:44 jzimmer Exp $ */
+/* $Id: MakeCrystalT.cpp,v 1.7 2002-07-26 23:05:58 jzimmer Exp $ */
 
 
 /* Build a mesh of atoms with a format-independent output
@@ -87,26 +87,39 @@ void MakeCrystalT::Run() {
   in >> shape;
   cout << "Shape of the domain:" << shape <<  "\n";
 
+  dArrayT rot_vec(nsd);
+  rot_vec = 0.0;
+
+  StringT input = "example";
+
   StringT misc;
   in >> misc;
  
-  dArrayT rot_vec(nsd);
-  rot_vec = 0.0;
-  if(misc=="ROT") 
-   {
-    if(nsd==2) 
-      {
-        in >> rot_vec[0] >> rot_vec[1];
-        cout << "Rotation Vector: " << rot_vec[0] << "  " 
-	     <<  rot_vec[1] << "\n";
-      }
-    else if (nsd==3)
-      {
-        in >> rot_vec[0] >> rot_vec[1] >> rot_vec[2];
-        cout << "Rotation Vector: " << rot_vec[0] << "  " 
-             <<  rot_vec[1] << "  " << rot_vec[2] << "\n";
-      }
-   }
+  while(misc!="#")
+  { 
+     if(misc=="ROT") 
+     {
+        if(nsd==2) 
+        {
+           in >> rot_vec[0] >> rot_vec[1];
+           cout << "Rotation Vector: " << rot_vec[0] 
+		<< "  " <<  rot_vec[1] << "\n";
+        }
+        else if (nsd==3)
+        {
+           in >> rot_vec[0] >> rot_vec[1] >> rot_vec[2];
+           cout << "Rotation Vector: " << rot_vec[0] 
+		<< "  " <<  rot_vec[1] << "  " << rot_vec[2] 
+		<< "\n";
+        }
+     }
+     else if(misc=="OUTPUT") 
+     {
+        in >> input;
+     }
+
+     in >> misc;
+  }
 
   in.close();
   
@@ -118,7 +131,6 @@ void MakeCrystalT::Run() {
   for (int i=0; i<nsd; i++)   
     latticeparameter[i] = alat;
 
-  
 
   MeshAtom mesh_atom(latticetype,nsd,b,latticeparameter,
 		     shape,whichunit,len_cell,rot_vec);
@@ -126,7 +138,6 @@ void MakeCrystalT::Run() {
   StringT program = "bravais";
   StringT version = "v1.0";
   StringT title = "Lattice for Atoms";
-  StringT input = "example";
 
   int nb_atoms;
   cout << "\nCreating mesh of atom...\n";
