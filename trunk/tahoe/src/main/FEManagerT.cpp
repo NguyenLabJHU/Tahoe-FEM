@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.30 2002-03-22 02:25:48 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.31 2002-04-02 23:34:06 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -31,7 +31,7 @@
 /* controllers */
 #include "StaticController.h"
 #include "LinearStaticController.h"
-#include "Trapezoid.h"
+#include "TrapezoidController.h"
 #include "LinearHHTalpha.h"
 #include "NLHHTalpha.h"
 #include "ExplicitCDController.h"
@@ -46,6 +46,7 @@
 #include "NLSolver_LS.h"
 #include "PCGSolver_LS.h"
 #include "iNLSolver_LS.h"
+#include "NOXSolverT.h"
 
 /* File/Version Control */
 const char* kCurrentVersion = "v3.4.1";
@@ -433,9 +434,9 @@ void FEManagerT::Update(const dArrayT& update)
 	fNodeManager->Update(update);
 }
 
-void FEManagerT::ActiveDisplacements(dArrayT& activedisp) const
+void FEManagerT::GetUnknowns(int order, dArrayT& unknowns) const
 {
-	fNodeManager->ActiveDisplacements(activedisp);
+	fNodeManager->GetUnknowns(order, unknowns);
 }
 
 GlobalT::RelaxCodeT FEManagerT::RelaxSystem(void) const
@@ -1061,7 +1062,15 @@ void FEManagerT::SetSolver(void)
 				case SolverT::kiNewtonSolver_LS:				
 					fSolutionDriver = new iNLSolver_LS(*this);
 					break;
-			
+
+				case SolverT::kNOX:				
+#ifdef __NOX__
+					fSolutionDriver = new NOXSolverT(*this);
+					break;
+#else
+					cout << "\n FEManagerT::SetSolver: NOX not installed: " << SolverT::kNOX << endl;
+					throw eGeneralFail;
+#endif			
 				default:			
 					cout << "\n FEManagerT::SetSolver: unknown nonlinear solver code: ";
 					cout << NL_solver_code << endl;
@@ -1075,7 +1084,7 @@ void FEManagerT::SetSolver(void)
 			throw eBadInputValue;
 	}
 
-	if (!fSolutionDriver) throw eOutOfMemory;
+	if (!fSolutionDriver) throw eGeneralFail;
 
 	/* reset equation structure */
 	SetEquationSystem();
@@ -1157,19 +1166,17 @@ void FEManagerT::SetController(void)
 		}
 		case GlobalT::kLinTransHeat:
 		{
-			fController = new Trapezoid(fMainOut);
+			fController = new TrapezoidController(fMainOut);
 			break;
 		}
 		case GlobalT::kLinDynamic:
 		{
-			fController = new LinearHHTalpha(*fTimeManager, fMainIn, fMainOut,
-				kHHTalphaAuto_O2);
+			fController = new LinearHHTalpha(*fTimeManager, fMainIn, fMainOut, true);
 			break;
 		}
 		case GlobalT::kNLDynamic:
 		{
-			fController = new NLHHTalpha(*fTimeManager, fMainIn, fMainOut,
-				kHHTalphaAuto_O2);
+			fController = new NLHHTalpha(*fTimeManager, fMainIn, fMainOut, true);
 			break;
 		}
 		case GlobalT::kLinExpDynamic:

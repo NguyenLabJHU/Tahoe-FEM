@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.11 2002-03-22 02:25:48 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.12 2002-04-02 23:34:06 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -127,11 +127,15 @@ public:
 	virtual void InitStep(void) const;
 	virtual void CloseStep(void) const;
 
-	/* solution update */
+	/** send update of the solution to the NodeManagerT */
 	virtual void Update(const dArrayT& update);
 
-	/* intermediate updates at the current time step */	
-	void ActiveDisplacements(dArrayT& activedisp) const;
+	/** return the current values of the unknowns 
+	 * \param order time derivative of the unknowns to collect. Must be
+	 *        in range
+	 * \param unknowns destination for the current values field values
+	 *        for unprescribed degrees of freedom */
+	virtual void GetUnknowns(int order, dArrayT& unknowns) const;
 
 	/* system relaxation */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void) const;
@@ -196,9 +200,13 @@ public:
 	virtual void SendRecvExternalData(const iArray2DT& all_out_data, iArray2DT& external_data);
 	virtual void Wait(void);
 
-	/* access to controllers */
+	/** \name access to controllers */
+	/*@{*/
+	ControllerT* Controller(void) { return fController; };
+	const ControllerT* Controller(void) const { return fController; };
 	eControllerT* eController(void) const;
 	nControllerT* nController(void) const;
+	/*@}*/
 
 	/* returns 1 of ALL element groups have interpolant DOF's */
 	int InterpolantDOFs(void) const;
@@ -208,9 +216,11 @@ public:
 	virtual const iArrayT* NodeMap(void) const { return NULL; }
 	virtual const iArrayT* ElementMap(const StringT& block_ID) const;
 
-	/* basic MP support */
+	/** \name basic MP info */
+	/*@{*/
 	virtual int Rank(void) const { return 0; }
 	virtual int Size(void) const { return 1; }
+	/*@}*/
 
 	/* interactive */
 	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
