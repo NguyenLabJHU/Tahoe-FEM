@@ -357,6 +357,8 @@ void VMF_Virtual_Work_EqT::Get ( StringT &Name, FEA_dScalarT &scalar )
 {
 	if ( Name == "J" )
 		scalar = S[kJ];
+	else if ( Name == "Jb" )
+		scalar = S[kJ];
 	else if ( Name == "Rho_Mag_Eb" )
 		scalar = S[kRho_Mag_Eb];
 	else

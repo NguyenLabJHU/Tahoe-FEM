@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.h,v 1.18 2003-04-23 23:34:20 creigh Exp $ */ 
+/* $Id: StaggeredMultiScaleT.h,v 1.19 2003-05-13 23:14:09 creigh Exp $ */ 
 //DEVELOPMENT
 #ifndef _STAGGERED_MULTISCALE_T_H_ 
 #define _STAGGERED_MULTISCALE_T_H_ 
@@ -238,6 +238,9 @@ private:
 
 	ArrayT < FEA_dMatrix_ArrayT >  Render_Tensor; // ( n_el x num variables to render (n_rv)
 	ArrayT < FEA_dScalar_ArrayT >  Render_Scalar; // ( n_el x num variables to render (n_rv)
+
+	int iDesired_Force_Node_Num, iDesired_Force_Direction;
+	dArrayT fForces_at_Node;
 
 	//-- Room for expansion w/o changing input decks
 	int num_extra_integer_vars;

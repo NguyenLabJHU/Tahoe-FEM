@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.30 2003-05-09 19:05:49 paklein Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.31 2003-05-13 23:14:09 creigh Exp $ */
 #include "StaggeredMultiScaleT.h"
 
 #include "ShapeFunctionT.h"
@@ -47,6 +47,8 @@ StaggeredMultiScaleT::StaggeredMultiScaleT(const ElementSupportT& support, const
 	render_settings_file_name(32),
 	surface_file_name(32),
 	write_file_name(32),
+	iDesired_Force_Node_Num(0),
+	iDesired_Force_Direction(0),
 	bStep_Complete(0)
 {
 	int i;
@@ -152,15 +154,24 @@ StaggeredMultiScaleT::StaggeredMultiScaleT(const ElementSupportT& support, const
 	Extra_Integer_Vars.Dimension (  num_extra_integer_vars ); 
 	for (i=0; i<num_extra_integer_vars; i++) 
 		in >> Extra_Integer_Vars[i];
-	
+
+	if 	(num_extra_integer_vars >= 1) 
+		bLogical_Switches[k__Del_Curl_sE] = Extra_Integer_Vars[0];
+
+	if 	(num_extra_integer_vars >= 3) {
+		iDesired_Force_Node_Num 	= Extra_Integer_Vars[1];
+		iDesired_Force_Direction 	= Extra_Integer_Vars[2];
+		iDesired_Force_Node_Num--; 
+		iDesired_Force_Direction--; 
+	}
+
 	//-- Extra Double Parameters for Future Developments (no need to modify input decks)
 	in >> num_extra_double_vars; 
-	Extra_Double_Vars.Dimension (  num_extra_double_vars ); 
+	Extra_Double_Vars.Dimension ( num_extra_double_vars ); 
 	for (i=0; i<num_extra_double_vars; i++) 
 		in >> Extra_Double_Vars[i];
 	
 	Echo_Input_Data();
-
 	
 	/* allocate the global stack object (once) */
 	extern FEA_StackT* fStack;
@@ -253,6 +264,12 @@ void StaggeredMultiScaleT::Echo_Input_Data(void) {
 	cout << "iMaterial_Data[k__IH_Type] " 			<< iMaterial_Data[k__IH_Type]					<< endl;
 	cout << "fMaterial_Data[k__K] " 						<< fMaterial_Data[k__K]								<< endl;
 	cout << "fMaterial_Data[k__H] "							<< fMaterial_Data[k__H]								<< endl;
+
+	for (i=0; i<num_extra_integer_vars; i++) 
+		cout << "Extra Integer Variable Number "<<i<<" = "<< Extra_Integer_Vars[i] << endl;
+
+	for (i=0; i<num_extra_double_vars; i++) 
+		cout << "Extra Double Variable Number "<<i<<" = "<< Extra_Double_Vars[i] << endl;
 
 }
 
@@ -370,6 +387,10 @@ void StaggeredMultiScaleT::Initialize(void)
 	fIPVariable.Dimension (n_el, fNumIP*dSymMatrixT::NumValues(n_sd));
 	fIPVariable = 0.0;
 
+	/* allocate storage for nodal forces */
+	fForces_at_Node.Dimension ( n_sd );
+
+	/* render switch */
 	if (render_switch)
 		Init_Render();
 
@@ -894,7 +915,15 @@ GlobalT::SystemTypeT StaggeredMultiScaleT::TangentType(void) const
 	return GlobalT::kNonSymmetric; 
 }
 
-//---------------------------------------------------------------------
+//#############################################################################
+//#############################################################################
+//#############################################################################
+//#############################################################################
+//############################### NODAL FORCE  ################################
+//#############################################################################
+//#############################################################################
+//#############################################################################
+//#############################################################################
 
 /* accumulate the residual force on the specified node */
 void StaggeredMultiScaleT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
@@ -975,7 +1004,7 @@ void StaggeredMultiScaleT::AddNodalForce(const FieldT& field, int node, dArrayT&
 				fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, step_number, delta_t );
 				fEquation_I -> Form_LHS_Ka_Kb ( fKa_I, fKb_I );
 				fEquation_I -> Form_RHS_F_int ( fFint_I );
-				fFint_I *= -1.0;
+				fFint_I *= -1.0;  
 
 				/* add body force */
 				if (formBody) {
@@ -1015,6 +1044,7 @@ void StaggeredMultiScaleT::AddNodalForce(const FieldT& field, int node, dArrayT&
 			}			
 		}
 	}
+	cout << "F_int = \n" << fFint_I << endl;
 }
 
 //---------------------------------------------------------------------
@@ -1107,7 +1137,15 @@ void StaggeredMultiScaleT::RegisterOutput(void)
 	fOutputID = ElementSupport().RegisterOutput(output_set);
 }
 
-//---------------------------------------------------------------------
+//#############################################################################
+//#############################################################################
+//#############################################################################
+//#############################################################################
+//############################### WRITE OUTPUT ################################
+//#############################################################################
+//#############################################################################
+//#############################################################################
+//#############################################################################
 
 void StaggeredMultiScaleT::WriteOutput(void)
 {
@@ -1199,9 +1237,14 @@ void StaggeredMultiScaleT::WriteOutput(void)
 	
 	for (k=0; k<num_scalars_to_render; k++) 
 		var_plot_file << Render_Scalar[Elmt2Write][k][ElmtIP2Write] << " ";
-	
-	var_plot_file << endl; 
 
+	cout << "FLAG 3 "<<endl;
+	cout << "Node Forces "<< fForces_at_Node << endl;
+
+	if  (iDesired_Force_Direction > -1 && 	iDesired_Force_Node_Num > -1)
+		var_plot_file << fForces_at_Node[iDesired_Force_Direction] << " "; 
+
+	var_plot_file <<endl; 
 
 	//--------------------- Rendering access (here for now)
 
@@ -1331,16 +1374,19 @@ void 	StaggeredMultiScaleT::Init_Render ( void )
 void 	StaggeredMultiScaleT::Get_Fext_I ( dArrayT &fFext_I )
 {
 	fFext_I = 0.0;
-
-	//#############################################################################
-	//#############################################################################
-	//### Code Goes Here to apply Traction b.c. and Body Forces ###################
-	//#############################################################################
-	//#############################################################################
-	
 }
 
 
+//#############################################################################
+//#############################################################################
+//#############################################################################
+//#############################################################################
+//###################### Actual Solver Routines Below  ########################
+//#############################################################################
+//#############################################################################
+//#############################################################################
+//#############################################################################
+	
 /*************************************************************************
  * Private
  *************************************************************************/
@@ -1424,13 +1470,18 @@ void StaggeredMultiScaleT::RHSDriver_staggered(void)
 
 			if (bStep_Complete) { //-- Done iterating, get result data from converged upon displacements 
 
-				//fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n );
 				fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, step_number, delta_t );
 
 				for (v=0; v<num_tensors_to_render; v++ ) 
 					fEquation_I -> Get ( Render_Tensor_Names[v], Render_Tensor[e][v] ); 
 				for (v=0; v<num_scalars_to_render; v++ ) 
 					fEquation_I -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
+
+				if (iDesired_Force_Node_Num != -1)
+					AddNodalForce(fCoarse, iDesired_Force_Node_Num, fForces_at_Node);
+
+				cout << "FLAG 2 "<<endl;
+				cout << "Node Forces "<< fForces_at_Node << endl;
 
 				//-- Store/Register data in classic tahoe manner 
 				out_variable_all.Set(fNumIP, n_stress, fIPVariable(CurrElementNumber()));
