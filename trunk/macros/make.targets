@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.5 2001-02-22 23:38:44 paklein Exp $
+# $Id: make.targets,v 1.6 2001-07-19 17:57:46 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -17,6 +17,7 @@ OPT_CFLAGS = \
 	$(AZ_CFLAGS) \
 	$(BLAS_CFLAGS) \
 	$(AX_CFLAGS) \
+	$(METIS_CFLAGS) \
 	$(F2C_CFLAGS)
 
 OPT_LFLAGS = \
@@ -27,6 +28,7 @@ OPT_LFLAGS = \
 	$(AZ_LFLAGS) \
 	$(BLAS_LFLAGS) \
 	$(AX_LFLAGS) \
+	$(METIS_LFLAGS) \
 	$(F2C_LFLAGS)
 
 OPT_LIB = \
@@ -34,6 +36,7 @@ OPT_LIB = \
 	$(F2C_LIB) \
 	$(BLAS_LIB) \
 	$(AZ_LIB) \
+	$(METIS_LIB) \
 	$(SPOOLES_LIB) \
 	$(SPOOLESMPI_LIB) \
 	$(ACME_LIB)
@@ -43,6 +46,7 @@ OPT_INC = \
 	$(F2C_INC) \
 	$(BLAS_INC) \
 	$(AZ_INC) \
+	$(METIS_INC) \
 	$(SPOOLES_INC) \
 	$(SPOOLESMPI_INC) \
 	$(ACME_INC) \
