@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.29 2003-10-02 21:05:04 hspark Exp $ */
+/* $Id: ElementT.cpp,v 1.30 2003-10-02 21:59:53 hspark Exp $ */
 
 #include "ElementT.h"
 
@@ -163,6 +163,7 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		    break;
 		case ElementT::kPenaltyContactDrag:
 		    type = ElementT::kPenaltyContactDrag;
+			break;
 		case ElementT::kTotLagSplitIntegration:
 		    type = ElementT::kTotLagSplitIntegration;
 		    break;
