@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.cpp,v 1.4 2001-09-04 14:46:37 sawimme Exp $ */
+/* $Id: AbaqusInputT.cpp,v 1.5 2001-09-06 20:13:26 sawimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #include "AbaqusInputT.h"
@@ -73,13 +73,13 @@ void AbaqusInputT::ReadNodeSet (StringT& name, iArrayT& nodes)
 
   // offset and map to start numbering at zero
   // account for discontinuous numbering
-  iArrayT map;
+  iArrayT map (fNumNodes);
   ReadNodeMap (map);
   for (int n=0; n < nodes.Length(); n++)
     {
       int index;
       map.HasValue (nodes[n], index);
-      if (index < 0 || index >= nodes.Length()) throw eOutOfRange;
+      if (index < 0 || index >= map.Length()) throw eOutOfRange;
       nodes[n] = index;
     }
 }
@@ -108,13 +108,13 @@ void AbaqusInputT::ReadGlobalElementSet (StringT& name, iArrayT& set)
 
   // offset and map to start numbering at zero
   // account for discontinuous numbering
-  iArrayT map;
+  iArrayT map (fNumElements);
   ReadAllElementMap (map);
   for (int n=0; n < set.Length(); n++)
     {
       int index;
       map.HasValue (set[n], index);
-      if (index < 0 || index >= set.Length()) throw eOutOfRange;
+      if (index < 0 || index >= map.Length()) throw eOutOfRange;
       set[n] = index;
     }
 }
@@ -125,17 +125,34 @@ void AbaqusInputT::ReadConnectivity (StringT& name, iArray2DT& connects)
   ReadGlobalElementMap (name, ellist);
   fData.ResetFile ();
   
-  iArrayT map;
+  iArrayT map (fNumNodes);
   ReadNodeMap (map);
+  //cout << "map length " << map.Length() << endl;
 
   iArrayT n;
   int el;
   int cm = connects.MinorDim();
   GeometryT::CodeT code;
+  GeometryT::CodeT firstcode;
   for (int i=0, j=0; i < fNumElements; i++)
     {
       fData.NextElement (el, code, n);
-      if (ellist.HasValue (el))
+
+      /* check element type */
+      if (i==0) 
+	firstcode = code;
+      else if (code != firstcode) 
+	{
+	  fout << "AbaqusInputT::ReadConnectivity, geo code does not match\n";
+	  fout << "Group " << name << " firstcode = " << firstcode << " code= " << code;
+	  fout << "\nElement " << el << "\n\n";
+	  throw eDatabaseFail;
+	}
+
+      //cout << n << endl;
+      int kdex;
+      ellist.HasValue (el, kdex);
+      if (kdex > -1 && kdex < connects.MajorDim())
 	{
 	  // offset and map to start numbering at zero
 	  // account for discontinuous numbering
@@ -143,11 +160,14 @@ void AbaqusInputT::ReadConnectivity (StringT& name, iArray2DT& connects)
 	    {
 	      int index;
 	      map.HasValue (n[k], index);
-	      if (index < 0 || index >= n.Length()) throw eOutOfRange;
+	      if (index < 0 || index >= map.Length()) throw eOutOfRange;
 	      n[k] = index;
 	    }
 	  connects.CopyPart (j, n, 0, cm);
 	  j += cm;
+
+	  // quick escape
+	  if (j == connects.Length()) return;
 	}
     }
 }
