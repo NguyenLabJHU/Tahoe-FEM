@@ -23,6 +23,7 @@ class ExtractIOManager : public TranslateIOManager
  private:
   int fOutputFormat;
 
+  int fCoords;
   int fNumNP;
   iArrayT fNodePoints;
   iArrayT fNodePointIndex;

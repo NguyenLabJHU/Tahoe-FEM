@@ -2,6 +2,7 @@
 #include "PointPlots.h"
 #include "TecPlotT.h"
 #include "AVST.h"
+#include <stdio.h>
 
 PointPlots::PointPlots (ostream& out) :
   TranslateIOManager (out)
