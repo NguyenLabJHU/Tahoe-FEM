@@ -1,4 +1,4 @@
-/* $Id: SetOfNodesKBCT.h,v 1.1 2003-05-28 17:44:52 cjkimme Exp $ */
+/* $Id: SetOfNodesKBCT.h,v 1.2 2003-05-30 23:18:58 cjkimme Exp $ */
 #ifndef _SET_OF_NODES_KBC_T_H_
 #define _SET_OF_NODES_KBC_T_H_
 
@@ -39,10 +39,16 @@ protected:
 
 protected:
 
-	/** temperature evolution controlled by a schedule */
+	/** data for schedule for the KBC */
 	const ScheduleT* fSchedule;
 	int fScheduleNum;
 	double fScale;
+	
+	/** nodes in spatial regions that are being controlled */
+	iArrayT fNodes;
+	
+	/** re-check for nodes in region every this many timesteps */
+	int nIncs;
 
 };
 
