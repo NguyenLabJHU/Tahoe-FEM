@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.25 2004-11-08 02:13:36 d-farrell2 Exp $ */
+/* $Id: nArrayT.h,v 1.26 2004-11-15 04:16:18 d-farrell2 Exp $ */
 /* created: paklein (05/23/1997) */
 #ifndef _NARRAY_T_H_
 #define _NARRAY_T_H_
@@ -145,6 +145,7 @@ public:
 	 */		
 	void SetToScaled(const nTYPE& scale, const nArrayT& RHS);
 	void SetToScaled(const nTYPE& scale, const nTYPE* RHS);
+	void SetToScaled(const nTYPE& scale, const nArrayT& RHS, int istart, int iend);
 	void AddScaled(const nTYPE& scale, const nArrayT& RHS);
 	void AddScaled(const nTYPE& scale, const nTYPE* RHS);
 	void AddScaled(const nTYPE& scale, const nArrayT& RHS, int istart, int iend);
@@ -1054,6 +1055,29 @@ void nArrayT<nTYPE>::SetToScaled(const nTYPE& scale, const nTYPE* RHS)
 	{
 		temp  = scale;
 		temp *= *RHS++;	//multi-step needed incase pthis == RHS
+		*pthis++ = temp;
+	}
+}
+//// DEF added to split assignments
+template <class nTYPE>
+inline void nArrayT<nTYPE>::SetToScaled(const nTYPE& scale, const nArrayT& RHS, int istart, int iend)
+{
+/* dimension checks */
+#if __option (extended_errorcheck)
+	if (fLength != RHS.fLength) ExceptionT::SizeMismatch();
+#endif
+	nTYPE* pthis = Pointer();
+	nTYPE temp;
+	const nTYPE* pRHS = RHS.Pointer();
+	
+	// now adjust the pointers to the start
+	pthis += istart;
+	pRHS += istart;
+	
+	for (int i = istart; i < iend; i++)
+	{
+		temp  = scale;
+		temp *= *pRHS++;	//multi-step needed incase pthis == RHS
 		*pthis++ = temp;
 	}
 }
