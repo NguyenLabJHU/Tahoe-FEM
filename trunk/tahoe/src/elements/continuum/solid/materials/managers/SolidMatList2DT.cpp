@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.40 2003-06-03 23:45:12 manzari Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.41 2003-06-09 06:59:33 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 #include "fstreamT.h"
@@ -762,10 +762,10 @@ bool SolidMatList2DT::HasPlaneStress(void) const
 		/* get pointer to Material2DT */
 		const ContinuumMaterialT* cont_mat = fArray[i];
 		const Material2DT* mat_2D = dynamic_cast<const Material2DT*>(cont_mat);
-		if (!mat_2D) throw ExceptionT::kGeneralFail;
-
-		/* test */
-		if (mat_2D->ConstraintOption() == Material2DT::kPlaneStress) return true;
+		
+		/* assume materials that don't have Material2DT are plane strain */
+		if (mat_2D && mat_2D->ConstraintOption() == Material2DT::kPlaneStress) 
+			return true;
 	}
 	return false;
 }
