@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHard2D.cpp,v 1.2 2003-05-15 05:18:14 thao Exp $ */
+/* $Id: SSJ2LinHard2D.cpp,v 1.3 2003-05-15 22:11:29 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Plane Strain linearly                */
 /* isotropically elasto plastic material model subject to the Huber-von Mises yield             */
@@ -188,12 +188,12 @@ const dArrayT& SSJ2LinHard2D::InternalStressVars(void)
 	*pvar++ = -fBeta[4];
 	*pvar++ = -fBeta[5];
 
-	*pvar++ = fStress[0];
-	*pvar++ = fStress[1];
-	*pvar++ = fStress[2];
-	*pvar++ = fStress[3];
-	*pvar++ = fStress[4];
-	*pvar = fStress[5];
+	*pvar++ = fStress3D[0];
+	*pvar++ = fStress3D[1];
+	*pvar++ = fStress3D[2];
+	*pvar++ = fStress3D[3];
+	*pvar++ = fStress3D[4];
+	*pvar = fStress3D[5];
 
         return(fInternalStressVars);
 }

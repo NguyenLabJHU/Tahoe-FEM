@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardBaseT.cpp,v 1.3 2003-05-15 06:31:23 thao Exp $ */
+/* $Id: SSJ2LinHardBaseT.cpp,v 1.4 2003-05-15 22:11:29 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -52,8 +52,8 @@ SSJ2LinHardBaseT::SSJ2LinHardBaseT(ifstreamT& in, const SSMatSupportT& support):
 	fInternalDOF[0] = 1;
 	fInternalDOF[1] = numstress;
 	fInternalDOF[2] = numstress;
-        fInternalStressVars.Dimension(numstress+1);
-        fInternalStrainVars.Dimension(numstress+1);
+        fInternalStressVars.Dimension(2*numstress+1);
+        fInternalStrainVars.Dimension(2*numstress+1);
 
 	/*allocates storage for history variables*/
 	fnstatev = 0;
