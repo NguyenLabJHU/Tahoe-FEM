@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.h,v 1.17 2002-07-02 19:55:20 cjkimme Exp $ */
+/* $Id: QuadL4FaceT.h,v 1.18 2002-07-05 22:28:01 paklein Exp $ */
 
 #ifndef _QUADL4_FACE_T_H_
 #define _QUADL4_FACE_T_H_
@@ -6,19 +6,14 @@
 /* base class */
 #include "FaceT.h"
 
-/* direct members */
 
-/* forward declarations */
+namespace Tahoe {
 
-/*  connectivity
+/**  connectivity
  *  4--3
  *  |  |    (outward normal out-of-plane)
  *  1--2
  */
-
-
-namespace Tahoe {
-
 class QuadL4FaceT : public FaceT
 {
 public:

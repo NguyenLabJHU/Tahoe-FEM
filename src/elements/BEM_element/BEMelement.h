@@ -1,4 +1,4 @@
-/* $Id: BEMelement.h,v 1.3 2002-07-02 19:55:13 cjkimme Exp $ */
+/* $Id: BEMelement.h,v 1.4 2002-07-05 22:27:57 paklein Exp $ */
 /* created: AFLP (02/28/1998) */
 
 #ifndef _BEM_ELEMENT_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "ElementBaseT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class StringT;
 
 class BEMelement: public ElementBaseT

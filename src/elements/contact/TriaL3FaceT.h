@@ -1,4 +1,4 @@
-/* $Id: TriaL3FaceT.h,v 1.5 2002-07-02 19:55:20 cjkimme Exp $ */
+/* $Id: TriaL3FaceT.h,v 1.6 2002-07-05 22:28:01 paklein Exp $ */
 
 #ifndef _TRIAL3_FACE_T_H_
 #define _TRIAL3_FACE_T_H_
@@ -6,19 +6,13 @@
 /* base class */
 #include "FaceT.h"
 
-/* direct members */
+namespace Tahoe {
 
-/* forward declarations */
-
-/*  connectivity
+/**  connectivity
  *  4--3
  *  |  |    (outward normal out-of-plane)
  *  1--2
  */
-
-
-namespace Tahoe {
-
 class TriaL3FaceT : public FaceT
 {
 public:

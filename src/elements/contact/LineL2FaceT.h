@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.h,v 1.20 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: LineL2FaceT.h,v 1.21 2002-07-05 22:28:01 paklein Exp $ */
 
 #ifndef _LINEL2_FACE_T_H_
 #define _LINEL2_FACE_T_H_
@@ -6,17 +6,11 @@
 /* base class */
 #include "FaceT.h"
 
-/* direct members */
-
-/* forward declarations */
-
-/*  connectivity
- * L  1--2  R  (outward normal up)
- */
-
-
 namespace Tahoe {
 
+/**  connectivity
+ * L  1--2  R  (outward normal up)
+ */
 class LineL2FaceT : public FaceT
 {
 public:

@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.25 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: ContactElementT.h,v 1.26 2002-07-05 22:28:01 paklein Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -21,10 +21,10 @@
 #include "ContactSurfaceT.h"
 #include "ContactSearchT.h"
 
-/* forward declarations */
 
 namespace Tahoe {
 
+/* forward declarations */
 class XDOF_ManagerT;
 
 /**
@@ -33,7 +33,6 @@ of smaller entities called ContactSurfaceT's. The connectivities generated
 by this element are variable size and can change from time step to time step.
 ...what else would you like to know?
 */
-
 class ContactElementT: public ElementBaseT, public DOFElementT
 {
 public:

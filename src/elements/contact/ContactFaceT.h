@@ -1,4 +1,4 @@
-/* $Id: ContactFaceT.h,v 1.2 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: ContactFaceT.h,v 1.3 2002-07-05 22:28:01 paklein Exp $ */
 
 #ifndef _CONTACT_FACE_T_H_
 #define _CONTACT_FACE_T_H_
@@ -7,10 +7,9 @@
 #include "iArrayT.h"
 #include "ContactSurfaceT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class FaceT;
 class dMatrixT;
 

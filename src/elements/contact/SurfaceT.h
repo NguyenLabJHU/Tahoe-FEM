@@ -1,17 +1,7 @@
-/* $Id: SurfaceT.h,v 1.16 2002-07-02 19:55:20 cjkimme Exp $ */
+/* $Id: SurfaceT.h,v 1.17 2002-07-05 22:28:01 paklein Exp $ */
 
 #ifndef _SURFACE_T_H_
 #define _SURFACE_T_H_
-
-/* forward declarations */
-#include "ios_fwd_decl.h"
-
-namespace Tahoe {
-
-class ifstreamT;
-class ElementSupportT;
-
-}
 
 /* direct members */
 #include "iArrayT.h"
@@ -23,7 +13,12 @@ class ElementSupportT;
 #include "FaceT.h"
 #include "GeometryT.h"
 
+
 namespace Tahoe {
+
+/* forward declarations */
+class ifstreamT;
+class ElementSupportT;
 
 class SurfaceT
 {

@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.23 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.24 2002-07-05 22:28:01 paklein Exp $ */
 
 #ifndef _CONTACT_SURFACE_T_H_
 #define _CONTACT_SURFACE_T_H_
@@ -11,19 +11,18 @@
 #include "dArray2DT.h"
 #include "nMatrixT.h"
 
-/* forward declarations */
 
 namespace Tahoe {
 
+/* forward declarations */
 class ofstreamT;
 class ContactNodeT;
 
-/* 
+/** 
 a ContactSurface will only have one opposing face per
 node and be considered "smooth" i.e. the full boundary 
 surface of a cube will be made up of 6 surfaces
 */
-
 class ContactSurfaceT : public SurfaceT
 {
   public:
@@ -101,7 +100,6 @@ class ContactSurfaceT : public SurfaceT
 #if 0
 	/* for frictional slip */
 	ArrayT <ContactNodeT*>  fPreviousContactNodes;
-} // namespace Tahoe 
 #endif
 	/* Multiplier Data, which is variable size */
 	dArray2DT fMultiplierValues; 

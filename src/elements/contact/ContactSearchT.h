@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.h,v 1.7 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: ContactSearchT.h,v 1.8 2002-07-05 22:28:01 paklein Exp $ */
 
 #ifndef _CONTACT_SEARCH_T_H_
 #define _CONTACT_SEARCH_T_H_
@@ -10,10 +10,9 @@
 #include "iArrayT.h"
 #include "iGridManagerT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class FEManagerT;
 class ContactSurfaceT;
 

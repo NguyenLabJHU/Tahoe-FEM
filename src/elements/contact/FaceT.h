@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.23 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: FaceT.h,v 1.24 2002-07-05 22:28:01 paklein Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
@@ -10,11 +10,9 @@
 #include "ArrayT.h"
 #include "GeometryT.h"
 
-
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class SurfaceT;
 class ContactNodeT;
 class iArrayT;

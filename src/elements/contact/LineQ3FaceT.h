@@ -1,4 +1,4 @@
-/* $Id: LineQ3FaceT.h,v 1.6 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: LineQ3FaceT.h,v 1.7 2002-07-05 22:28:01 paklein Exp $ */
 
 #ifndef _LINEQ3_FACE_T_H_
 #define _LINEQ3_FACE_T_H_
@@ -6,17 +6,11 @@
 /* base class */
 #include "FaceT.h"
 
-/* direct members */
-
-/* forward declarations */
-
-/*  connectivity
- * L  1-3-2  R  (outward normal up)
- */
-
-
 namespace Tahoe {
 
+/**  connectivity
+ * L  1-3-2  R  (outward normal up)
+ */
 class LineQ3FaceT : public FaceT
 {
 public:

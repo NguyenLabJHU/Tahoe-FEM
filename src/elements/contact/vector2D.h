@@ -1,4 +1,4 @@
-/* $Id: vector2D.h,v 1.6 2002-07-02 19:55:20 cjkimme Exp $ */
+/* $Id: vector2D.h,v 1.7 2002-07-05 22:28:01 paklein Exp $ */
 
 #ifndef _VECTOR_2D_H_
 #define _VECTOR_2D_H_
@@ -85,7 +85,6 @@ inline static void Permutation(dMatrixT& p_mat)
 	p_mat[0][0] = 0.0; p_mat[0][1] =-1.0;
 	p_mat[1][0] = 1.0; p_mat[1][1] = 0.0;
 };
-} // namespace Tahoe 
 #endif
 
 
