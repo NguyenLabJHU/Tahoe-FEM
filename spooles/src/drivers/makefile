@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.3 2001-02-22 23:42:38 paklein Exp $
+# $Id: makefile,v 1.4 2004-09-07 06:40:19 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,7 +6,12 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	LU_serial_driver.o
+	LU_serial_driver.o \
+	LU_serial_driver_init.o \
+	LU_serial_driver_factorize.o \
+	LU_serial_driver_solve.o \
+	LU_serial_driver_free.o	
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -15,11 +20,15 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	LU_serial_driver.c
+	LU_serial_driver.c \
+	LU_serial_driver_init.c \
+	LU_serial_driver_factorize.c \
+	LU_serial_driver_solve.c \
+	LU_serial_driver_free.c	
 
 # headers
-#HDR = 
-#HDR_LINK = $(HDR:.h=.h_link)
+HDR = LU_serial_driver.h LU_serial_driver_int.h
+HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
 SUB_DIR = 
