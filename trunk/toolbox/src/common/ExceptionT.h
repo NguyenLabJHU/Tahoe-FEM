@@ -1,4 +1,4 @@
-/* $Id: ExceptionT.h,v 1.4 2002-11-13 16:49:31 paklein Exp $ */
+/* $Id: ExceptionT.h,v 1.5 2002-11-22 01:55:28 paklein Exp $ */
 /* created: paklein (06/04/1996) */
 #ifndef _EXCEPTION_T_H_
 #define _EXCEPTION_T_H_
@@ -37,44 +37,71 @@ class ExceptionT
 	/** \name code to throw an exception, so you don't have to. This method writes
 	 * some information about the exception to cout and then throws the appropriate
 	 * ExceptionT::CodeT.
-	 * \param caller the function that threw the exception
-	 * \param message additional message to write */
+	 * \param caller the method throwing the exception, or NULL to skip.
+	 * \param fmt format additional message to write, as would be passed to printf, sprintf, etc,
+	 *        or NULL to skip */
 	/*@{*/
-	static void GeneralFail(const char* caller = NULL, const char* message = NULL);
-	static void Stop(const char* caller = NULL, const char* message = NULL);
-	static void OutOfMemory(const char* caller = NULL, const char* message = NULL);
-	static void OutOfRange(const char* caller = NULL, const char* message = NULL);
-	static void SizeMismatch(const char* caller = NULL, const char* message = NULL);
-	static void BadInputValue(const char* caller = NULL, const char* message = NULL);
-	static void BadJacobianDet(const char* caller = NULL, const char* message = NULL);
-	static void MPIFail(const char* caller = NULL, const char* message = NULL);
-	static void DatabaseFail(const char* caller = NULL, const char* message = NULL);
-	static void BadHeartBeat(const char* caller = NULL, const char* message = NULL);
+	static void GeneralFail(const char* caller = NULL);
+	static void GeneralFail(const char* caller, const char* fmt, ...);
 
-	/** general throw */
-	static void Throw(ExceptionT::CodeT code, const char* caller, const char* message);
+	static void Stop(const char* caller = NULL);
+	static void Stop(const char* caller, const char* fmt, ...);
+
+	static void OutOfMemory(const char* caller = NULL);
+	static void OutOfMemory(const char* caller, const char* fmt, ...);
+
+	static void OutOfRange(const char* caller = NULL);
+	static void OutOfRange(const char* caller, const char* fmt, ...);
+
+	static void SizeMismatch(const char* caller = NULL);
+	static void SizeMismatch(const char* caller, const char* fmt, ...);
+
+	static void BadInputValue(const char* caller = NULL);
+	static void BadInputValue(const char* caller, const char* fmt, ...);
+
+	static void BadJacobianDet(const char* caller = NULL);
+	static void BadJacobianDet(const char* caller, const char* fmt, ...);
+
+	static void MPIFail(const char* caller = NULL);
+	static void MPIFail(const char* caller, const char* fmt, ...);
+
+	static void DatabaseFail(const char* caller = NULL);
+	static void DatabaseFail(const char* caller, const char* fmt, ...);
+
+	static void BadHeartBeat(const char* caller = NULL);
+	static void BadHeartBeat(const char* caller, const char* fmt, ...);
+
+	static void Throw(ExceptionT::CodeT code, const char* caller = NULL);
+	static void Throw(ExceptionT::CodeT code, const char* caller, const char* fmt, ...);
 	/*@}*/
 
 	/** number of exception codes */
 	static int NumExceptions;
 
   private:
+
+	/** general throw
+	 * \param code the exception being thrown
+	 * \param caller the method throwing the exception, or NULL to skip.
+	 * \param message message string, or NULL to skip */
+	static void Throw_(ExceptionT::CodeT code, const char* caller, const char* message);
   
   	/** exception strings. One extra string to return "unknown". */
   	static const char* fExceptionStrings[12];
 };
 
 /* inline */
-inline void ExceptionT::GeneralFail(const char* caller, const char* message)    { Throw(kGeneralFail, caller, message);    }
-inline void ExceptionT::Stop(const char* caller, const char* message)           { Throw(kStop, caller, message);           }
-inline void ExceptionT::OutOfMemory(const char* caller, const char* message)    { Throw(kOutOfMemory, caller, message);    }
-inline void ExceptionT::OutOfRange(const char* caller, const char* message)     { Throw(kOutOfRange, caller, message);     }
-inline void ExceptionT::SizeMismatch(const char* caller, const char* message)   { Throw(kSizeMismatch, caller, message);   }
-inline void ExceptionT::BadInputValue(const char* caller, const char* message)  { Throw(kBadInputValue, caller, message);  }
-inline void ExceptionT::BadJacobianDet(const char* caller, const char* message) { Throw(kBadJacobianDet, caller, message); }
-inline void ExceptionT::MPIFail(const char* caller, const char* message)        { Throw(kMPIFail, caller, message);        }
-inline void ExceptionT::DatabaseFail(const char* caller, const char* message)   { Throw(kDatabaseFail, caller, message);   }
-inline void ExceptionT::BadHeartBeat(const char* caller, const char* message)   { Throw(kBadHeartBeat, caller, message);   }
+inline void ExceptionT::Throw(ExceptionT::CodeT code, const char* caller) { Throw_(code, caller, NULL); }
+inline void ExceptionT::GeneralFail(const char* caller)    { Throw_(kGeneralFail, caller, NULL);    }
+inline void ExceptionT::Stop(const char* caller)           { Throw_(kStop, caller, NULL);           }
+inline void ExceptionT::OutOfMemory(const char* caller)    { Throw_(kOutOfMemory, caller, NULL);    }
+inline void ExceptionT::OutOfRange(const char* caller)     { Throw_(kOutOfRange, caller, NULL);     }
+inline void ExceptionT::SizeMismatch(const char* caller)   { Throw_(kSizeMismatch, caller, NULL);   }
+inline void ExceptionT::BadInputValue(const char* caller)  { Throw_(kBadInputValue, caller, NULL);  }
+inline void ExceptionT::BadJacobianDet(const char* caller) { Throw_(kBadJacobianDet, caller, NULL); }
+inline void ExceptionT::MPIFail(const char* caller)        { Throw_(kMPIFail, caller, NULL);        }
+inline void ExceptionT::DatabaseFail(const char* caller)   { Throw(kDatabaseFail, caller, NULL);   }
+inline void ExceptionT::BadHeartBeat(const char* caller)   { Throw(kBadHeartBeat, caller, NULL);   }
 
 } /* namespace Tahoe */
 #endif /* _EXCEPTION_CODES_H_ */
