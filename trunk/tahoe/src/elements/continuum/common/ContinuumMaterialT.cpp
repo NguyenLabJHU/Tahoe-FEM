@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.cpp,v 1.3 2001-07-03 01:35:40 paklein Exp $ */
+/* $Id: ContinuumMaterialT.cpp,v 1.4 2001-10-24 02:11:24 paklein Exp $ */
 /* created: paklein (11/20/1996)                                          */
 
 #include "ContinuumMaterialT.h"
@@ -60,6 +60,9 @@ GlobalT::SystemTypeT ContinuumMaterialT::TangentType(void) const
 
 /* apply pre-conditions at the current time step */
 void ContinuumMaterialT::InitStep(void) { }
+
+/* finalize the current time step */
+void ContinuumMaterialT::CloseStep(void) { }
 
 /* update/reset internal variables */
 void ContinuumMaterialT::UpdateHistory(void) { }
