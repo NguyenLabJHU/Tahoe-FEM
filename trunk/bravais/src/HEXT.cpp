@@ -28,7 +28,7 @@ HEXT::HEXT(int nlsd,int nuca,dArrayT alat,
       vBasis(0,0) = 0.0;
       vBasis(1,0) = 0.0;
 
-      vBasis(0,1) =-0.5;
+      vBasis(0,1) = 0.5;
       vBasis(1,1) = 0.5;
 
 
@@ -46,7 +46,7 @@ HEXT::HEXT(int nlsd,int nuca,dArrayT alat,
   if (nlsd==3) 
     {
 
-      if(nuca != 3) {cout << "Wrong nuca\n"; throw eSizeMismatch;}
+      if(nuca != 2) {cout << "Wrong nuca\n"; throw eSizeMismatch;}
 
       vBasis(0,0) = 0.0;
       vBasis(1,0) = 0.0;
@@ -55,11 +55,6 @@ HEXT::HEXT(int nlsd,int nuca,dArrayT alat,
       vBasis(0,1) =-0.5;
       vBasis(1,1) = 0.5;
       vBasis(2,1) = 0.0;
-
-
-      vBasis(0,2) = 0.0;
-      vBasis(1,2) = 0.0;
-      vBasis(2,2) = 1.0;
 
       // Define basis vectors
       vAxis(0,0) = vLatticeParameters[0];

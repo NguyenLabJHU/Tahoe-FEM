@@ -16,6 +16,7 @@
 #include "BCCT.h"
 #include "DIAT.h"
 #include "HEXT.h"
+#include "CORUNT.h"
 
 #include "VolumeT.h"
 #include "BoxT.h"
@@ -41,6 +42,8 @@ MeshAtomT::MeshAtomT(StringT which_latticetype,int nsd,int nuca,
     Crystal = new DIAT(nsd,nuca,latticeparameter,irot,mat_rot,angle);
   else if(which_latticetype == "HEX")
     Crystal = new HEXT(nsd,nuca,latticeparameter,irot,mat_rot,angle);
+  else if(which_latticetype == "CORUN")
+    Crystal = new CORUNT(nsd,nuca,latticeparameter,irot,mat_rot,angle);
   else
     {
       throw eBadInputValue;

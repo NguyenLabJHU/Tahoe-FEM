@@ -22,6 +22,7 @@
 #include "BCCT.h"
 #include "DIAT.h"
 #include "HEXT.h"
+#include "CORUNT.h"
 
 #include "OutputSetT.h"
 #include "OutputBaseT.h"
@@ -120,7 +121,12 @@ void MakeCrystalT::Run()
   else if (latticetype=="HEX") 
     {
       if(nsd == 2) b=2;
-      if(nsd == 3) b=3;
+      if(nsd == 3) b=2;
+    }
+ else if (latticetype=="CORUN") 
+    {
+      if(nsd == 2) b=16;
+      if(nsd == 3) b=20;
     }
   else if (latticetype=="CUB") 
     {
@@ -129,7 +135,7 @@ void MakeCrystalT::Run()
     }
   else 
     {
-      out << "Lattice type has to be CUB, FCC, BCC, DIA or HEX...\n";
+      out << "Lattice type has to be CUB, FCC, BCC, DIA, CORUN or HEX...\n";
       throw eBadInputValue;
     }
 	

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8 2003-06-06 23:21:51 saubry Exp $
+# $Id: makefile,v 1.9 2003-07-02 23:02:14 saubry Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -18,6 +18,7 @@ OBJ = \
 	BCCT.o \
 	DIAT.o \
 	HEXT.o \
+	CORUNT.o\
 	OutPutLatticeT.o \
 	MeshAtomT.o \
 	MakeCrystalT.o
@@ -42,6 +43,7 @@ SRC = \
 	BCCT.cpp \
 	DIAT.cpp \
 	HEXT.cpp \
+	CORUNT.cpp\
 	OutPutLatticeT.cpp \
 	MeshAtomT.cpp \
 	MakeCrystalT.cpp
@@ -59,6 +61,7 @@ HDR = \
 	BCCT.h \
 	DIAT.h \
 	HEXT.h \
+	CORUNT.h\
 	OutPutLatticeT.h \
 	MeshAtomT.h \
 	MakeCrystalT.h

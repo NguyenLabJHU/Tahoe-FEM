@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.26 2003-06-24 17:53:20 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.27 2003-07-02 23:02:14 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -63,8 +63,9 @@ BoxT::BoxT(int dim, iArrayT cel,
 
   for(int i=0;i<nSD;i++)
     {
-      length(i,0) = -cel[i]*lattice_parameter[i]*0.5;
-      length(i,1) =  (cel[i]-1.0)*lattice_parameter[i]*0.5;
+      double dist = ncells[i]*lattice_parameter[i]*0.5;
+      length(i,0) = -dist;
+      length(i,1) = length(i,0) + (dist - length(i,0));
     }
 }
 
@@ -118,9 +119,10 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
   temp_atom.Dimension(temp_nat,nlsd);
 
   if(pcl->GetRotMeth() == 0)
-    nATOMS = RotateAtomInBox(pcl,&temp_atom,temp_nat);
-  else
     nATOMS = RotateBoxOfAtom(pcl,&temp_atom,temp_nat);
+  else
+    nATOMS = RotateAtomInBox(pcl,&temp_atom,temp_nat);
+
 
   // Get atoms coordinates
   atom_ID.Dimension(nATOMS);
@@ -457,8 +459,8 @@ int BoxT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat
 
   if (nSD==2) 
     {
-      for (int p=-ncells[1];p<ncells[1]+1;p++) 
-	for (int q=-ncells[0];q<ncells[0]+1;q++) 
+      for (int p=0;p<ncells[1];p++) 
+	for (int q=0;q<ncells[0];q++) 
 	  {
 	    dArrayT c(nlsd);
 	    c[0] = (double)q; c[1] = (double)p;
@@ -483,9 +485,9 @@ int BoxT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat
     }
   else if (nSD==3) 
     {
-      for (int p=-ncells[2];p<ncells[2]+1;p++) 
-	for (int q=-ncells[1];q<ncells[1]+1;q++) 
-	  for (int r=-ncells[0];r<ncells[0]+1;r++) 
+      for (int p=0;p<ncells[2];p++) 
+	for (int q=0;q<ncells[1];q++) 
+	  for (int r=0;r<ncells[0];r++) 
 	    {
 	      dArrayT c(nlsd);
 	      c[0] = (double)r; c[1] = (double)q; c[2] = (double)p;
