@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.60 2004-08-02 23:54:07 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.61 2004-08-03 06:13:53 paklein Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "APS_MatlT.h"
@@ -47,8 +47,6 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support):
 /* destructor */
 APS_AssemblyT::~APS_AssemblyT(void) 
 {  
-	delete fDispl;
-	delete fPlast;
 	delete fEquation_d; 
 	delete fEquation_eps; 
 	delete fShapes_displ;
