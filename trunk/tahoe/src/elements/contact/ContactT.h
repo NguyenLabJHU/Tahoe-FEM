@@ -1,4 +1,4 @@
-/* $Id: ContactT.h,v 1.9 2003-08-23 16:15:35 paklein Exp $ */
+/* $Id: ContactT.h,v 1.10 2003-11-05 20:34:47 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #ifndef _CONTACT_T_H_
 #define _CONTACT_T_H_
@@ -153,14 +153,14 @@ protected:
 
 	/** link surfaces in ConnectsU needed for graph */
 	iArray2DT fSurfaceLinks;
-	
-private:
 
 	/** \name dynamic work space managers for element arrays */
 	/*@{*/
 	nVariArray2DT<int> fConnectivities_man;		
 	nVariArray2DT<int> fEqnos_man;
 	/*@}*/
+	
+private:
 
 	/** \name tracking data. Parameters should be set using ContactT::SetTrackingData
 	 * and are written during ContactT::WriteOutput. */
