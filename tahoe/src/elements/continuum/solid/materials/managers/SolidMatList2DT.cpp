@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.42 2003-08-13 00:20:30 thao Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.43 2003-09-06 07:12:12 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 #include "fstreamT.h"
@@ -88,8 +88,10 @@
 #endif
 
 #ifdef ABAQUS_MATERIAL
+#ifdef ABAQUS_BCJ_MATERIAL_DEV
 #include "ABAQUS_BCJ.h"
 #include "ABAQUS_VUMAT_BCJ.h"
+#endif
 #endif
 
 #ifdef THERMO_VISCO_PLASTIC_MATERIAL
@@ -582,7 +584,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			case kABAQUS_BCJ:
 			{
 #ifdef __F2C__
-#ifdef ABAQUS_MATERIAL
+#if defined(ABAQUS_MATERIAL) && defined(ABAQUS_BCJ_MATERIAL_DEV)
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 
@@ -590,7 +592,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "ABAQUS_MATERIAL not enabled: %d", matcode);
+				ExceptionT::BadInputValue(caller, "ABAQUS_MATERIAL or ABAQUS_BCJ_MATERIAL_DEV not enabled: %d", matcode);
 #endif
 #else
 				ExceptionT::BadInputValue(caller, "model requires f2c support: %d", kABAQUS_BCJ);
@@ -599,7 +601,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			case kABAQUS_VUMAT_BCJ:
 			{
 #ifdef __F2C__
-#ifdef ABAQUS_MATERIAL
+#if defined(ABAQUS_MATERIAL) && defined(ABAQUS_BCJ_MATERIAL_DEV)
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 
@@ -607,7 +609,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "ABAQUS_MATERIAL not enabled: %d", matcode);
+				ExceptionT::BadInputValue(caller, "ABAQUS_MATERIAL or ABAQUS_BCJ_MATERIAL_DEV not enabled: %d", matcode);
 #endif
 #else
 				ExceptionT::BadInputValue(caller, "model requires f2c support: %d", kABAQUS_BCJ);
