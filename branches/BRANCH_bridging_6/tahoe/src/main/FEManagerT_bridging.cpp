@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.19.4.3 2004-04-28 05:33:26 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.19.4.4 2004-05-12 22:23:16 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -342,7 +342,9 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& point_neighb
 				
 //				Compute_df_dp(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i_map, p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
 				error = sqrt(dArrayT::Dot(df_dp_i,df_dp_i));
-				cout << setw(kIntWidth) << iter << ": e/e_0 = " << error/error_0 << endl;
+				cout << "iteration = " << iter 
+				     << "\n e/e_0 = " << error/error_0 
+				     << "\n||fa|| = " << sqrt(dArrayT::Dot(f_a, f_a)) << endl;
 
 			} /* end try */
 
@@ -413,6 +415,13 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& point_neighb
 		point_map.SetValueToPosition();
 		WriteOutput(file, coords, point_map, n_values, bond_labels);			
 	}
+	
+	/* bound bond densities [0,1] */
+	for (int i = 0; i < bond_densities.Length(); i++)
+		if (bond_densities[i] > 1.0)
+			bond_densities[i] = 1.0;
+		else if (bond_densities[i] < 0.0)
+			bond_densities[i] = 0.0;
 
 	/* write unknowns into the state variable space */
 	ContinuumElementT* non_const_coarse = const_cast<ContinuumElementT*>(coarse);
