@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.4 2001-08-22 00:20:22 paklein Exp $ */
+/* $Id: OutputSetT.h,v 1.5 2001-08-23 01:04:16 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #ifndef _OUTPUTSET_T_H_
@@ -39,7 +39,7 @@ class OutputSetT
 {
 public:
 
-	/* generate output data record.
+	/** generate output data record.
 	 * \param ID identifier to denote the class generating the OutputSetT
 	 * \param geometry_code GeometryT::CodeT defining the geometry associated
 	 *        with the connectivities.
