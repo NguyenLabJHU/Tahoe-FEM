@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.13 2005-01-19 08:56:44 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.14 2005-02-13 22:19:10 paklein Exp $ */
 #include "ConveyorT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -1054,14 +1054,14 @@ void ConveyorT::MarkElements(void)
 		//TEMP
 		if (!element_group->InGroup(fField.Group())) ExceptionT::GeneralFail(caller);
 	
-		ArrayT<ElementBaseT::StatusT> status(nel);
+		ArrayT<ElementCardT::StatusT> status(nel);
 		for (int j = 0; j < nel; j++)
 		{
 			/* element info */
 			ElementCardT& card = element_group->ElementCard(j);
 		
 			/* copy status */
-			status[j] = (ElementBaseT::StatusT) card.Flag();
+			status[j] = card.Flag();
 		
 			/* collect local coordinates */
 			curr_coords.SetLocal(card.NodesX());
@@ -1080,9 +1080,9 @@ void ConveyorT::MarkElements(void)
 			
 			/* goes end to end */
 			if (x_max - x_min > fX_PeriodicLength/2.0)
-				status[j] = ElementBaseT::kOFF;
+				status[j] = ElementCardT::kOFF;
 			else if (x_min > X_R_on) /* in reactivation zone */
-				status[j] = ElementBaseT::kON;
+				status[j] = ElementCardT::kON;
 		}
 		
 		ContinuumElementT* cont_elem = TB_DYNAMIC_CAST(ContinuumElementT*, element_group);
@@ -1117,14 +1117,14 @@ void ConveyorT::CreatePrecrack(void)
 	//TEMP
 	if (!element_group->InGroup(fField.Group())) ExceptionT::GeneralFail(caller);
 	
-	ArrayT<ElementBaseT::StatusT> status(nel);
+	ArrayT<ElementCardT::StatusT> status(nel);
 	for (int j = 0; j < nel; j++)
 	{
 		/* element info */
 		ElementCardT& card = element_group->ElementCard(j);
 		
 		/* copy status */
-		status[j] = (ElementBaseT::StatusT) card.Flag();
+		status[j] = card.Flag();
 		
 		/* collect local coordinates */
 		curr_coords.SetLocal(card.NodesX());
@@ -1142,7 +1142,7 @@ void ConveyorT::CreatePrecrack(void)
 		}
 			
 		/* goes end to end */
-		if (X_check_OK && Y_check_OK) status[j] = ElementBaseT::kOFF;
+		if (X_check_OK && Y_check_OK) status[j] = ElementCardT::kOFF;
 	}
 		
 	/* reset element status */

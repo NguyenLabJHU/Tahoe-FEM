@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.15 2004-07-15 08:29:39 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.16 2005-02-13 22:19:55 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 #include "MeshFreeElementSupportT.h"
 
@@ -210,11 +210,11 @@ int MeshFreeElementSupportT::MarkActiveCells(AutoArrayT<ElementCardT>& elem_card
 		/* mark cell */
 		if (active)
 		{
-			elem_cards[i].Flag() = 1;
+			elem_cards[i].Flag() = ElementCardT::kON;
 			active_count++;
 		}
 		else
-			elem_cards[i].Flag() = 0;
+			elem_cards[i].Flag() = ElementCardT::kOFF;
 	}
 	return active_count;
 }
