@@ -1,7 +1,5 @@
-/* $Id: ExplicitCDIntegrator.h,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
-/* created: paklein (03/23/1997)                                          */
-/* Integrator for an explicit 2nd order accurate, central difference      */
-/* time-stepping algorithm.                                               */
+/* $Id: ExplicitCDIntegrator.h,v 1.2 2002-04-02 23:19:23 paklein Exp $ */
+/* created: paklein (03/23/1997) */
 
 #ifndef _EXP_CD_CONTROLLER_H_
 #define _EXP_CD_CONTROLLER_H_
@@ -15,16 +13,18 @@
 /* forward declarations */
 #include "ios_fwd_decl.h"
 
+/** controller for an explicit 2nd order accurate, central difference
+ * time-stepping algorithm */
 class ExplicitCDIntegrator: public nExplicitCD, public eExplicitCD
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	ExplicitCDIntegrator(ostream& out);
 	  	
 protected:  	
 	
-	/* recalculate time stepping constants */
+	/** recalculate time stepping constants */
 	virtual void ComputeParameters(void);
 };
 

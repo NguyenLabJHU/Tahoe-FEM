@@ -1,4 +1,4 @@
-/* $Id: nLinearHHTalpha.cpp,v 1.2 2001-08-27 17:12:11 paklein Exp $ */
+/* $Id: nLinearHHTalpha.cpp,v 1.3 2002-04-02 23:19:20 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "nLinearHHTalpha.h"
@@ -9,7 +9,7 @@
 #include "KBC_CardT.h"
 
 /* constructor */
-nLinearHHTalpha::nLinearHHTalpha(ifstreamT& in, ostream& out, int auto2ndorder):
+nLinearHHTalpha::nLinearHHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder):
 	HHTalpha(in, out, auto2ndorder),
 	nControllerT(2)
 {

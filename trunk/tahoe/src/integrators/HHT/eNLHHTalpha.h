@@ -1,5 +1,5 @@
-/* $Id: eNLHHTalpha.h,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
-/* created: paklein (10/17/1996)                                          */
+/* $Id: eNLHHTalpha.h,v 1.2 2002-04-02 23:19:20 paklein Exp $ */
+/* created: paklein (10/17/1996) */
 
 #ifndef _E_NL_HHT_A_H_
 #define _E_NL_HHT_A_H_
@@ -11,25 +11,30 @@ class eNLHHTalpha: public eLinearHHTalpha
 {
 public:
 
-	/* constructor */
-	eNLHHTalpha(ifstreamT& in, ostream& out, int auto2ndorder = kHHTalphaAuto_O2);
+	/** constructor */
+	eNLHHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder);
 
-	/* components of the internal force vector */
+ 	/** \name elements of the residual
+	 * components of the internal force vector */
+	/*@{*/
 	virtual int FormMa(double& constMa) const;
 	virtual int FormCv(double& constCv) const;
 	virtual int FormKd(double& constKd) const;
+	/*@}*/
 
 protected:  	
 	
-	/* recalculate constants */
+	/** recalculate constants */
 	virtual void eComputeParameters(void);
 
 private:
-	
-	/* element residual force coefficients */
+
+	/** \name element residual force coefficients */
+	/*@{*/	
 	double 	fconstMa;
 	double	fconstCv;
 	double	fconstKd;
+	/*@}*/	
 	
 };
 

@@ -1,4 +1,4 @@
-/* $Id: eStaticIntegrator.cpp,v 1.2 2001-08-27 17:12:15 paklein Exp $ */
+/* $Id: eStaticIntegrator.cpp,v 1.3 2002-04-02 23:19:24 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "eStaticIntegrator.h"
@@ -7,13 +7,6 @@
 
 /* constructor */
 eStaticIntegrator::eStaticIntegrator(void) { }
-
-/* time integration parameters */
-eIntegratorT::StatDynFlagT eStaticIntegrator::StaticDynamic(void) const { return kStatic; }
-eIntegratorT::ImpExpFlagT eStaticIntegrator::ImplicitExplicit(void) const { return kImplicit; }
-
-/* return order time discretization */
-int eStaticIntegrator::Order(void) const { return 0; }
 
 /* returns 1 if the algorithm requires M, C, or K and sets const equal
 * to the coefficient for the linear combination of components in the

@@ -1,4 +1,4 @@
-/* $Id: nNLHHTalpha.h,v 1.3 2002-03-25 16:42:26 paklein Exp $ */
+/* $Id: nNLHHTalpha.h,v 1.4 2002-04-02 23:19:20 paklein Exp $ */
 /* created: paklein (10/17/1996) */
 
 #ifndef _N_NL_HHT_A_H_
@@ -13,8 +13,8 @@ class nNLHHTalpha: public virtual HHTalpha, public nControllerT
 {
 public:
 
-	/* constructor */
-	nNLHHTalpha(ifstreamT& in, ostream& out, int auto2ndorder = kHHTalphaAuto_O2);
+	/** constructor */
+	nNLHHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder);
 
 	/* consistent BC's - updates predictors and acceleration only */
 	virtual void ConsistentKBC(const KBC_CardT& KBC);
