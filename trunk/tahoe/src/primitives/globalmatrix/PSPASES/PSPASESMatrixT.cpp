@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.cpp,v 1.1 2004-03-14 00:09:40 paklein Exp $ */
+/* $Id: PSPASESMatrixT.cpp,v 1.2 2004-03-14 01:08:09 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "PSPASESMatrixT.h"
 
@@ -8,6 +8,8 @@
 #include "CommunicatorT.h"
 #include "ElementMatrixT.h"
 #include "MSRBuilderT.h"
+
+#include "cpspases.h"
 
 using namespace Tahoe;
 
@@ -64,7 +66,7 @@ void PSPASESMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	if (fIsFactorized) PSPACEC(&fNcomm, &option_0);
 	if (fIsSymFactorized) {
 		PSPACEC(&fYcomm, &option_0);
-		fIsSymFactorized;
+		fIsSymFactorized = 0;
 	}
 
 	/* inherited - initialize MSR data */
