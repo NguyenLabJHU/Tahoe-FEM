@@ -1,4 +1,4 @@
-/* $Id: HexahedronT.cpp,v 1.8 2005-03-02 02:27:14 paklein Exp $ */
+/* $Id: HexahedronT.cpp,v 1.9 2005-03-02 17:37:30 paklein Exp $ */
 /* created: paklein (10/22/1997) */
 #include "HexahedronT.h"
 #include <math.h>
@@ -1049,10 +1049,16 @@ bool HexahedronT::PointInDomain(const LocalArrayT& coords, const dArrayT& point)
 		double ab_0 = coords(facet_nodes[1], 0) - coords(facet_nodes[0], 0);
 		double ab_1 = coords(facet_nodes[1], 1) - coords(facet_nodes[0], 1);
 		double ab_2 = coords(facet_nodes[1], 2) - coords(facet_nodes[0], 2);
+		double ab_max = (fabs(ab_0) > fabs(ab_1)) ? fabs(ab_0) : fabs(ab_1);
+		ab_max = (fabs(ab_2) > ab_max) ? fabs(ab_2) : ab_max;
 
 		double ac_0 = coords(facet_nodes[3], 0) - coords(facet_nodes[0], 0);
 		double ac_1 = coords(facet_nodes[3], 1) - coords(facet_nodes[0], 1);
 		double ac_2 = coords(facet_nodes[3], 2) - coords(facet_nodes[0], 2);
+		double ac_max = (fabs(ac_0) > fabs(ac_1)) ? fabs(ac_0) : fabs(ac_1);
+		ac_max = (fabs(ac_2) > ac_max) ? fabs(ac_2) : ac_max;
+
+		double L_ref = (ab_max > ac_max) ? ab_max : ac_max;
 
 		double ap_0 = point[0] - coords(facet_nodes[0], 0);
 		double ap_1 = point[1] - coords(facet_nodes[0], 1);
@@ -1063,7 +1069,7 @@ bool HexahedronT::PointInDomain(const LocalArrayT& coords, const dArrayT& point)
 		double ac_ab_1 = ac_2*ab_0 - ac_0*ab_2;
 		double ac_ab_2 = ac_0*ab_1 - ac_1*ab_0;			
 		double triple_product = ac_ab_0*ap_0 + ac_ab_1*ap_1 + ac_ab_2*ap_2;
-		in_domain = triple_product > -kSmall;
+		in_domain = (triple_product/(L_ref*L_ref*L_ref)) > -kSmall;
 
 		/* facet 2 */
 		if (in_domain) {
@@ -1071,11 +1077,17 @@ bool HexahedronT::PointInDomain(const LocalArrayT& coords, const dArrayT& point)
 			ab_0 = coords(facet_nodes[3], 0) - coords(facet_nodes[2], 0);
 			ab_1 = coords(facet_nodes[3], 1) - coords(facet_nodes[2], 1);
 			ab_2 = coords(facet_nodes[3], 2) - coords(facet_nodes[2], 2);
-
+			ab_max = (fabs(ab_0) > fabs(ab_1)) ? fabs(ab_0) : fabs(ab_1);
+			ab_max = (fabs(ab_2) > ab_max) ? fabs(ab_2) : ab_max;
+		
 			ac_0 = coords(facet_nodes[1], 0) - coords(facet_nodes[2], 0);
 			ac_1 = coords(facet_nodes[1], 1) - coords(facet_nodes[2], 1);
 			ac_2 = coords(facet_nodes[1], 2) - coords(facet_nodes[2], 2);
-
+			ac_max = (fabs(ac_0) > fabs(ac_1)) ? fabs(ac_0) : fabs(ac_1);
+			ac_max = (fabs(ac_2) > ac_max) ? fabs(ac_2) : ac_max;
+			
+			L_ref = (ab_max > ac_max) ? ab_max : ac_max;
+			
 			ap_0 = point[0] - coords(facet_nodes[2], 0);
 			ap_1 = point[1] - coords(facet_nodes[2], 1);
 			ap_2 = point[2] - coords(facet_nodes[2], 2);
@@ -1085,7 +1097,7 @@ bool HexahedronT::PointInDomain(const LocalArrayT& coords, const dArrayT& point)
 			ac_ab_1 = ac_2*ab_0 - ac_0*ab_2;
 			ac_ab_2 = ac_0*ab_1 - ac_1*ab_0;			
 			triple_product = ac_ab_0*ap_0 + ac_ab_1*ap_1 + ac_ab_2*ap_2;
-			in_domain = triple_product > -kSmall;
+			in_domain = (triple_product/(L_ref*L_ref*L_ref)) > -kSmall;
 		}
 		
 		facet_nodes += 4;

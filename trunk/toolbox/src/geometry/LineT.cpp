@@ -1,4 +1,4 @@
-/* $Id: LineT.cpp,v 1.9 2005-03-02 02:27:14 paklein Exp $ */
+/* $Id: LineT.cpp,v 1.10 2005-03-02 17:37:30 paklein Exp $ */
 /* created: paklein (04/25/1999) */
 #include "LineT.h"
 
@@ -318,17 +318,10 @@ bool LineT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
 		ExceptionT::GeneralFail("LineT::PointInDomain", "expecting only 2 points: %d", coords.NumberOfNodes());
 #endif
 
-	if (coords[1] > coords[0]) {
-		if (point[0] >= coords[0] && point[0] <= coords[1])
-			return true;
-		else
-			return false;
-	} else {
-		if (point[0] >= coords[1] && point[0] <= coords[0])
-			return true;
-		else
-			return false;
-	}
+	double v_01 = coords[1] - coords[0];
+	double v_0p =  point[0] - coords[0];
+	double v_1p =  point[0] - coords[1];
+	return (v_1p/v_01) < kSmall && (-v_0p/v_01) < kSmall;
 }
 
 /* return the integration point whose domain contains the given point in the parent domain coordinates */

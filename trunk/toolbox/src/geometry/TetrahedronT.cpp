@@ -1,4 +1,4 @@
-/* $Id: TetrahedronT.cpp,v 1.8 2005-03-02 02:27:14 paklein Exp $ */
+/* $Id: TetrahedronT.cpp,v 1.9 2005-03-02 17:37:30 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "TetrahedronT.h"
 #include "QuadT.h"
@@ -437,14 +437,19 @@ bool TetrahedronT::PointInDomain(const LocalArrayT& coords, const dArrayT& point
 	int* facet_nodes = dat4;
 	for (int i = 0; in_domain && i < 4; i++)
 	{
-		/* facet 1 */
 		double ab_0 = coords(facet_nodes[1], 0) - coords(facet_nodes[0], 0);
 		double ab_1 = coords(facet_nodes[1], 1) - coords(facet_nodes[0], 1);
 		double ab_2 = coords(facet_nodes[1], 2) - coords(facet_nodes[0], 2);
+		double ab_max = (fabs(ab_0) > fabs(ab_1)) ? fabs(ab_0) : fabs(ab_1);
+		ab_max = (fabs(ab_2) > ab_max) ? fabs(ab_2) : ab_max;
 
 		double ac_0 = coords(facet_nodes[2], 0) - coords(facet_nodes[0], 0);
 		double ac_1 = coords(facet_nodes[2], 1) - coords(facet_nodes[0], 1);
 		double ac_2 = coords(facet_nodes[2], 2) - coords(facet_nodes[0], 2);
+		double ac_max = (fabs(ac_0) > fabs(ac_1)) ? fabs(ac_0) : fabs(ac_1);
+		ac_max = (fabs(ac_2) > ac_max) ? fabs(ac_2) : ac_max;
+
+		double L_ref = (ab_max > ac_max) ? ab_max : ac_max;
 
 		double ap_0 = point[0] - coords(facet_nodes[0], 0);
 		double ap_1 = point[1] - coords(facet_nodes[0], 1);
@@ -455,7 +460,7 @@ bool TetrahedronT::PointInDomain(const LocalArrayT& coords, const dArrayT& point
 		double ac_ab_1 = ac_2*ab_0 - ac_0*ab_2;
 		double ac_ab_2 = ac_0*ab_1 - ac_1*ab_0;			
 		double triple_product = ac_ab_0*ap_0 + ac_ab_1*ap_1 + ac_ab_2*ap_2;
-		in_domain = triple_product >= 0.0;
+		in_domain = (triple_product/(L_ref*L_ref*L_ref)) > -kSmall;
 
 		/* next face */		
 		facet_nodes += 3;
