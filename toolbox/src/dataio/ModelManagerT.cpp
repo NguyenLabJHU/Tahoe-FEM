@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.4 2001-09-06 17:25:19 sawimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.5 2001-10-15 17:47:09 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -494,7 +494,10 @@ bool ModelManagerT::ScanSideSets (void)
     {
       fSideSetDimensions[i] = fInput->NumSidesInSet (fSideSetNames[i]);
       if (fSideSetIsLocal[i])
-	fInput->SideSetGroupIndex (fSideSetNames[i]);
+	{
+	  StringT name = fInput->SideSetGroupName (fSideSetNames[i]);
+	  fSideSetGroupIndex = ElementGroupIndex (name);
+	}
     }
   return true;
 }
