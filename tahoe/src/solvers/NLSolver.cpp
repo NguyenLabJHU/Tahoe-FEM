@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.25 2003-09-03 23:46:46 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.25.2.1 2003-12-09 19:52:54 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -17,6 +17,7 @@ using namespace Tahoe;
 NLSolver::NLSolver(FEManagerT& fe_manager):
 	SolverT(fe_manager),
 	fMaxIterations(-1),
+	fMinIterations(-1),
 	fZeroTolerance(0.0),
 	fTolerance(0.0),
 	fDivTolerance(-1.0),
@@ -31,6 +32,7 @@ NLSolver::NLSolver(FEManagerT& fe_manager):
 
 	/* console variables */
 	iAddVariable("max_iterations", fMaxIterations);
+	iAddVariable("min_iterations", fMinIterations);
 	iAddVariable("abs_tolerance", fZeroTolerance);
 	iAddVariable("rel_tolerance", fTolerance);
 	iAddVariable("div_tolerance", fDivTolerance);
@@ -50,6 +52,7 @@ NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 	ifstreamT& in = fFEManager.Input();
 	
 	in >> fMaxIterations;
+	in >> fMinIterations;
 	in >> fZeroTolerance;
 	in >> fTolerance;
 	in >> fDivTolerance;
@@ -65,6 +68,7 @@ NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 	
 	out << "\n O p t i m i z a t i o n   P a r a m e t e r s :\n\n";
 	out << " Maximum number of iterations. . . . . . . . . . = " << fMaxIterations  << '\n';
+	out << " Minimum number of iterations. . . . . . . . . . = " << fMinIterations  << '\n';
 	out << " Absolute convergence tolerance. . . . . . . . . = " << fZeroTolerance  << '\n';	
 	out << " Relative convergence tolerance. . . . . . . . . = " << fTolerance      << '\n';	
 	out << " Divergence tolerance. . . . . . . . . . . . . . = " << fDivTolerance   << '\n';	
@@ -98,6 +102,7 @@ NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 	
 	/* console variables */
 	iAddVariable("max_iterations", fMaxIterations);
+	iAddVariable("min_iterations", fMinIterations);
 	iAddVariable("abs_tolerance", fZeroTolerance);
 	iAddVariable("rel_tolerance", fTolerance);
 	iAddVariable("div_tolerance", fDivTolerance);
@@ -292,6 +297,7 @@ void NLSolver::DefineParameters(ParameterListT& list) const
 
 	/* additional parameters */
 	list.AddParameter(fMaxIterations, "max_iterations");
+	list.AddParameter(fMinIterations, "min_iterations", ParameterListT::ZeroOrOnce);
 	list.AddParameter(fZeroTolerance, "abs_tolerance");
 	list.AddParameter(fTolerance, "rel_tolerance");
 	list.AddParameter(fDivTolerance, "divergence_tolerance");
@@ -405,14 +411,6 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 			status = kContinue;
 		}
 	}
-	/* iteration limit hit */
-	else if (fNumIteration > fMaxIterations)
-	{
-		cout << setw(kIntWidth) << fNumIteration 
-		     << ": Relative error = " << setw(d_width) << error/fError0 << '\n';	
-		cout << "\n NLSolver::ExitIteration: max iterations hit" << endl;
-		status = kFailed;
-	}
 	/* interpret error */
 	else
 	{
@@ -427,6 +425,11 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 			cout << "\n NLSolver::ExitIteration: diverging solution detected" << endl;			
 			status = kFailed;
 		}
+		/* required number of iterations */
+		else if (fNumIteration < fMinIterations-1)
+		{
+			status = kContinue;
+		}
 		/* converged */
 		else if (relerror < fTolerance || error < fZeroTolerance)
 		{
@@ -436,6 +439,14 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 	
 			fFEManager.Output() << "\n Converged at time = " << fFEManager.Time() << endl;
 			status = kConverged;
+		}
+		/* iteration limit hit */
+		else if (fNumIteration > fMaxIterations)
+		{
+			cout << setw(kIntWidth) << fNumIteration 
+			     << ": Relative error = " << setw(d_width) << error/fError0 << '\n';	
+			cout << "\n NLSolver::ExitIteration: max iterations hit" << endl;
+			status = kFailed;
 		}
 		/* continue iterations */
 		else

@@ -1,4 +1,4 @@
-/* $Id: NLSolver.h,v 1.8 2003-08-14 05:31:46 paklein Exp $ */
+/* $Id: NLSolver.h,v 1.8.2.1 2003-12-09 19:52:54 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NL_SOLVER_H_
@@ -80,6 +80,7 @@ protected:
 	/** \name error management parameters */	
 	/*@{*/
 	int    fMaxIterations;  /**< maximum number of iterations per step */
+	int    fMinIterations;  /**< minimum number of iterations per step */
 	double fZeroTolerance;  /**< absolute convergence tolerance */
 	double fTolerance;		/**< relative convergence tolerance */
 	double fDivTolerance;   /**< tolerance for a diverging solution */
