@@ -1,4 +1,4 @@
-/* $Id: FCC3D.h,v 1.2 2003-03-31 23:14:38 paklein Exp $ */
+/* $Id: FCC3D.h,v 1.2.32.1 2004-02-28 00:04:28 paklein Exp $ */
 #ifndef _FCC_3D_H_
 #define _FCC_3D_H_
 
@@ -61,8 +61,8 @@ private:
 	dArrayT  fBondTensor2;
 	/*@}*/
 
-	/** reference volume */
-	double fCellVolume;
+	/** atomic volume */
+	double fAtomicVolume;
 };
 
 } /* namespace Tahoe */
