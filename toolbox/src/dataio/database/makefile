@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8 2001-12-16 23:52:41 paklein Exp $
+# $Id: makefile,v 1.9 2002-08-01 16:35:05 saubry Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -12,7 +12,8 @@ OBJ = \
 	ExodusT.o \
 	ModelFileT.o \
 	TecPlotT.o \
-	PatranT.o
+	PatranT.o \
+	ParaDynT.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -27,7 +28,8 @@ SRC = \
 	ExodusT.cpp \
 	ModelFileT.cpp \
 	TecPlotT.cpp \
-	PatranT.cpp
+	PatranT.cpp \
+	ParaDynT.cpp
 
 # headers
 HDR = \
@@ -38,7 +40,8 @@ HDR = \
 	ExodusT.h \
 	ModelFileT.h \
 	TecPlotT.h \
-	PatranT.h
+	PatranT.h \
+	ParaDynT.h
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
