@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.6 2002-03-25 19:50:02 creigh Exp $ */
+/* $Id: ElementT.cpp,v 1.6.2.1 2002-05-04 20:22:02 paklein Exp $ */
 
 #include "ElementT.h"
 
@@ -48,6 +48,9 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			break;
 		case ElementT::kCohesiveSurface:
 			type = ElementT::kCohesiveSurface;
+			break;
+		case ElementT::kThermalSurface:
+			type = ElementT::kThermalSurface;
 			break;
 		case ElementT::kPenaltyContact:
 			type = ElementT::kPenaltyContact;

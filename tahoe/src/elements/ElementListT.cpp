@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.20.2.4 2002-05-03 09:53:31 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.20.2.5 2002-05-04 20:22:02 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
@@ -8,6 +8,7 @@
 #include "StringT.h"
 #include "ElementT.h"
 #include "ElementSupportT.h"
+#include "GeometryT.h"
 
 /* elements */
 #include "ElementBaseT.h"
@@ -24,7 +25,7 @@
 #include "BEMelement.h"
 #include "CSEIsoT.h"
 #include "CSEAnisoT.h"
-#include "GeometryT.h"
+#include "ThermalSurfaceT.h"
 #include "SimoFiniteStrainT.h"
 #include "MultiScaleT.h"
 #include "CoarseScaleT.h"
@@ -139,6 +140,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		out << "    eq. " << ElementT::kVirtualRod         << ", self-connecting rods with periodic BC's\n";   	
 		out << "    eq. " << ElementT::kVirtualSWDC        << ", diamond cubic lattice with periodic BC's\n";   	
 		out << "    eq. " << ElementT::kCohesiveSurface    << ", cohesive surface element\n";   	
+		out << "    eq. " << ElementT::kThermalSurface    << ", thermal surface element\n";   	
 		out << "    eq. " << ElementT::kPenaltyContact     << ", penalty contact\n";
 		out << "    eq. " << ElementT::kAugLagContact2D    << ", augmented Lagrangian contact\n";
 		out << "    eq. " << ElementT::kTotLagHyperElastic << ", hyperelastic (total Lagrangian)\n";
@@ -260,6 +262,11 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				}
 				break;
 			}
+
+			case ElementT::kThermalSurface:
+				fArray[group] = new ThermalSurfaceT(fSupport, *field);	
+				break;
+
 			case ElementT::kPenaltyContact:
 			{
 				int nsd = fSupport.NumSD();
