@@ -1,0 +1,17 @@
+# $Id: INTEL_CC.macros,v 1.1 2003-10-03 01:00:40 paklein Exp $
+.SUFFIXES: .c .cpp .f .F
+
+# compiler macros
+COMP_C   = mpicc 
+COMP_CC  = mpiCC 
+COMP_F   = mpif77
+C_FLAGS  = -D__INTEL_CC__
+CC_FLAGS = -D__INTEL_CC__
+F_FLAGS  = -D__INTEL_CC__
+
+LINK_C     = $(COMP_C) 
+LINK_CC    = $(COMP_CC)
+LINK_F     = $(COMP_F)
+L_FLAGS_C  = -lIEPCF90 -lF90 -lm
+L_FLAGS_CC = -lIEPCF90 -lF90 -lm
+L_FLAGS_F  =
