@@ -1,4 +1,4 @@
-// $Id: VMS_EnumT.h,v 1.2 2003-02-03 04:40:25 paklein Exp $
+// $Id: VMS_EnumT.h,v 1.3 2003-09-16 16:41:24 raregue Exp $
 #ifndef _VMS_ENUM_H_ 
 #define _VMS_ENUM_H_ 
 
@@ -17,16 +17,16 @@ class VMS
   public:
 
     enum VarT {  	
-						      kGRAD_u, 
-						      kGRAD_ua, 
+					kGRAD_u, 
+					kGRAD_ua, 
                  	kGRAD_ub, 
                  	kgrad_u, 
                  	kgrad_ua, 
                  	kgrad_ub, 
-		 							kF,
-	         				kFi, 
-	         				kFa, 
-	         				kFai, 
+		 			kF,
+	         		kFi, 
+	         		kFa, 
+	         		kFai, 
                  	kFb, 
                  	kFbi,
 	                kNUM_VMS_VARS }; // <-- Keep this one last !!

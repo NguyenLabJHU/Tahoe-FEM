@@ -1,4 +1,4 @@
-// $Id: VMS_BCJT.cpp,v 1.16 2003-07-01 04:53:20 creigh Exp $
+// $Id: VMS_BCJT.cpp,v 1.17 2003-09-16 16:41:26 raregue Exp $
 #include "FEA.h" 
 #include "VMS.h" 
 
@@ -34,7 +34,7 @@ void VMS_BCJT::Initialize (int &in_ip,int &in_sd,int &in_en, int Initial_Time_St
 	NP[kIdentity].Identity( );
 
 	S[kIV_Alpha_n] 	= 0.0; 		//-- Initialize for flow rule 
-	S[kIV_Alpha] 		= 0.0;   	
+	S[kIV_Alpha] 	= 0.0;   	
 
 	time_step = Initial_Time_Step;
 }

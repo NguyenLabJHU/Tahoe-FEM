@@ -1,4 +1,4 @@
-// $Id: FineScaleT.h,v 1.11 2003-04-23 23:34:25 creigh Exp $
+// $Id: FineScaleT.h,v 1.12 2003-09-16 16:41:26 raregue Exp $
 #ifndef _FINESCALE_T_H_ 
 #define _FINESCALE_T_H_ 
 
@@ -27,8 +27,8 @@ public:
 
 	virtual void Get ( StringT &Name, FEA_dMatrixT &tensor ) =0;
 	virtual void Get ( StringT &Name, FEA_dScalarT &scalar ) =0;
-  virtual void Get ( int scalar_code, FEA_dScalarT &scalar ) =0; 
-  virtual void Get ( int tensor_code, FEA_dMatrixT &tensor,int tensor_order ) =0; 
+  	virtual void Get ( int scalar_code, FEA_dScalarT &scalar ) =0; 
+  	virtual void Get ( int tensor_code, FEA_dMatrixT &tensor,int tensor_order ) =0; 
 
 	int  Back_Stress_Type, Iso_Hard_Type;
 	bool bControl_Eb, bDiagnosis_Variables, bDel_Curl_sE;

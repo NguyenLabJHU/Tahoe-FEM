@@ -1,4 +1,4 @@
-// $Id: VMS.h,v 1.7 2003-04-23 23:34:23 creigh Exp $
+// $Id: VMS.h,v 1.8 2003-09-16 16:41:24 raregue Exp $
 #ifndef _VMS_H_
 #define _VMS_H_
 
@@ -14,6 +14,7 @@
 	#include "VMS_EZ4T.h"
 	#include "VMS_EZ5T.h"
 #endif
+
 	#include "VMF_Virtual_Work_EqT.h"
   
 #endif

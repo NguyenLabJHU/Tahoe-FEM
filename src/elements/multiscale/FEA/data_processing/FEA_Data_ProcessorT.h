@@ -1,4 +1,4 @@
-// $Id: FEA_Data_ProcessorT.h,v 1.6 2003-04-23 23:34:21 creigh Exp $
+// $Id: FEA_Data_ProcessorT.h,v 1.7 2003-09-16 16:41:20 raregue Exp $
 #ifndef _FEA_DATAPROCESSRT_H_
 #define _FEA_DATAPROCESSRT_H_
 
@@ -14,7 +14,7 @@ class FEA_Data_ProcessorT
 		 FEA_Data_ProcessorT 			(); 
 		~FEA_Data_ProcessorT 			(); 
 		FEA_Data_ProcessorT 			( FEA_dMatrixT &fdNdx );
-		void Construct 						( FEA_dMatrixT &fdNdx ); 
+		void Construct 					( FEA_dMatrixT &fdNdx ); 
 
 		void Mass_B						(int n_ed, FEA_dMatrixT &B);
 		void Insert_N					(FEA_dVectorT &fN) { N = fN; }
@@ -69,7 +69,7 @@ class FEA_Data_ProcessorT
 		void Form_Order_Reduction_Map	( void );
 		void Form_Order_Reduction_Map	( int in_sd ) { n_sd = in_sd; Form_Order_Reduction_Map(); }
 
-    nMatrixT<int> Map;		
+    	nMatrixT<int> Map;		
 	  FEA_dMatrixT dN;	
 	  FEA_dVectorT  N;	
 	  FEA_dMatrixT 	I;
