@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.17 2001-10-24 00:52:08 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.18 2001-10-24 18:20:36 paklein Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -31,7 +31,7 @@
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 #include "dArrayT.h"
-#include <GeometryT.h> 
+#include "GeometryT.h"
 
 VTKConsoleT::VTKConsoleT(void)
 {
@@ -314,8 +314,6 @@ VTKConsoleT::VTKConsoleT(void)
 	  fFrames[p].cam = vtkCamera::New();
 	  fFrames[p].axes = vtkCubeAxesActor2D::New();
 
-
-  
 	  /* color mapping stuff */
 	  fFrames[p].lut->SetHueRange(fFrames[p].hueRange1,fFrames[p].hueRange2);
 	  fFrames[p].lut->SetSaturationRange(fFrames[p].satRange1,fFrames[p].satRange2);

@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.2 2001-10-24 00:52:08 recampb Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.3 2001-10-24 18:20:36 paklein Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -31,7 +31,7 @@
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 #include "dArrayT.h"
-#include <GeometryT.h> 
+#include "GeometryT.h"
 
 /* constructor */
 VTKFrameT::VTKFrameT(void)//: fAge(0)
