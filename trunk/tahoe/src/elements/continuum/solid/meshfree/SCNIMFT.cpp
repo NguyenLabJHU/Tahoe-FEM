@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.42 2005-01-03 18:04:26 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.43 2005-01-14 00:04:12 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -67,6 +67,7 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support, const FieldT& field):
 	fVoronoi(NULL),
 	fNodalShapes(NULL),
 	qComputeVoronoiCell(false),
+	qJustVoronoiDiagram(false),
 	fNumIP(1),
 	vCellFile("voronoidiagram")
 {
@@ -124,6 +125,7 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	fNumIP = list.GetParameter("num_ip");
 
 	qComputeVoronoiCell = list.GetParameter("compute_voronoi");
+	qJustVoronoiDiagram = list.GetParameter("just_voronoi_diagram");
 	
 	/* get parameters needed to construct shape functions */
 	fMeshfreeParameters = list.ListChoice(*this, "meshfree_support_choice");
@@ -152,6 +154,9 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	/* write parameters */
 	ostream& out = ElementSupport().Output();
 
+	if (qJustVoronoiDiagram)
+	  qComputeVoronoiCell = true;
+
 	// Do the heavy lifting for the Voronoi Diagram now
 	if (qComputeVoronoiCell) {
 #ifndef __QHULL__
@@ -175,8 +180,15 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 		if (vout.is_open())	 {
 			VoronoiDiagramToFile(vout);
 			vout.close();
-		} else 
+			if (qJustVoronoiDiagram)
+			  ExceptionT::GeneralFail(caller,"Thank you. Computation Successful.\n");
+		} else {
   			cout  << " Unable to save data to file " << vCellFile << ". Ignoring error \n"; 
+			if (qJustVoronoiDiagram)
+			  ExceptionT::GeneralFail(caller,"Sorry. Unable to write to file.\n");
+		}
+
+	
 #endif
 	} 
 	else  {	// read in Voronoi information from a file
@@ -1525,6 +1537,10 @@ void SCNIMFT::DefineParameters(ParameterListT& list) const
 	ParameterT num_ip(fNumIP, "num_ip");	
 	num_ip.SetDefault(fNumIP);
 	list.AddParameter(num_ip);
+
+	ParameterT just_voronoi_diagram(qJustVoronoiDiagram,"just_voronoi_diagram");
+	just_voronoi_diagram.SetDefault(qJustVoronoiDiagram);
+	list.AddParameter(just_voronoi_diagram);
 }
 
 /* information about subordinate parameter lists */

@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.23 2004-12-22 22:38:58 cjkimme Exp $ */
+/* $Id: SCNIMFT.h,v 1.24 2005-01-14 00:04:12 cjkimme Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -263,7 +263,7 @@ protected:
 #else
 	void* fVoronoi;
 #endif
-	bool qComputeVoronoiCell;
+	bool qComputeVoronoiCell, qJustVoronoiDiagram;
 	StringT vCellFile;
 	
 	int fNumIP;
