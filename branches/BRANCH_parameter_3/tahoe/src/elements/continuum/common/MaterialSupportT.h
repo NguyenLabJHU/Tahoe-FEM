@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.h,v 1.10.16.1 2004-06-14 04:56:27 paklein Exp $ */
+/* $Id: MaterialSupportT.h,v 1.10.16.2 2004-06-16 00:27:44 paklein Exp $ */
 #ifndef _MATERIAL_SUPPORT_T_H_
 #define _MATERIAL_SUPPORT_T_H_
 
@@ -61,9 +61,9 @@ public:
 	 * no element information in available. The ContinuumElementT
 	 * pointer is set using MaterialSupportT::SetContinuumElement. */
 	const ContinuumElementT* ContinuumElement(void) const;
-	
-	/** set the source for element cards */
-	void SetElementCards(AutoArrayT<ElementCardT>* element_cards);
+
+	/** solver iteration number for the group set with MaterialSupportT::SetGroup */
+	const int& GroupIterationNumber(void) const;
 
 	/** return the number of elements. If the element cards pointer
 	 * is not set with MaterialSupportT::SetElementCards, this will return 0 */
@@ -103,6 +103,12 @@ public:
 
 	/** set pointer local array */
 	virtual void SetLocalArray(const LocalArrayT& array);
+
+	/** set the source for element cards */
+	void SetElementCards(AutoArrayT<ElementCardT>* element_cards);
+
+	/** set solver group */
+	void SetGroup(int group) { fGroup = group; };
 	/*@}*/
 
   private:
@@ -131,6 +137,9 @@ public:
   	/** pointer to the continuum element */
   	const ContinuumElementT* fContinuumElement;
 
+	/** solver group for MaterialSupportT::fContinuumElement */
+	int fGroup;
+
 	/** \name pointers to local arrays */
 	/*@{*/
 	const LocalArrayT* fInitCoords;
@@ -142,6 +151,12 @@ public:
 inline const ContinuumElementT* MaterialSupportT::ContinuumElement(void) const
 {
 	return fContinuumElement;
+}
+
+/* solver iteration number for the group set with MaterialSupportT::SetGroup */
+inline const int& MaterialSupportT::GroupIterationNumber(void) const {
+	if (fGroup == -1) ExceptionT::GeneralFail("", "solver group not set");
+	return IterationNumber(fGroup); /* inherited */
 }
 
 /* set the source for element cards */

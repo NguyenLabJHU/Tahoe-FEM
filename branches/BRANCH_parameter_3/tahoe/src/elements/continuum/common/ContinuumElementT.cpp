@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.39.14.5 2004-06-14 04:56:27 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.39.14.6 2004-06-16 00:27:43 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -1285,9 +1285,10 @@ MaterialSupportT* ContinuumElementT::NewMaterialSupport(MaterialSupportT* p) con
 	p->SetContinuumElement(this);
 	p->SetElementCards(const_cast<AutoArrayT<ElementCardT>* >(&fElementCards));
 	p->SetCurrIP(CurrIP());
+	p->SetGroup(Group());
 
 	/* ElementSupportT sources */
-	const ElementSupportT& e_support = ElementSupport();
+//	const ElementSupportT& e_support = ElementSupport();
 //	p->SetRunState(e_support.RunState());
 //	p->SetStepNumber(e_support.StepNumber());
 //	p->SetIterationNumber(e_support.IterationNumber(Group()));
