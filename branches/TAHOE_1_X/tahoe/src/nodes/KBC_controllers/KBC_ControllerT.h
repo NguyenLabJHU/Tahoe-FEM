@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.21 2003-10-20 23:21:53 cjkimme Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.21.32.1 2004-11-12 00:28:48 thao Exp $ */
 /* created: paklein (09/05/2000) */
 #ifndef _KBC_CONTROLLER_T_H_
 #define _KBC_CONTROLLER_T_H_
@@ -70,8 +70,8 @@ public:
 
 	/** \name restart functions */
 	/*@{*/
-	virtual void ReadRestart(istream& in);
-	virtual void WriteRestart(ostream& out) const;
+	virtual void ReadRestart(ifstreamT& in);
+	virtual void WriteRestart(ofstreamT& out) const;
 	/*@}*/
 
 	/** \name solution steps

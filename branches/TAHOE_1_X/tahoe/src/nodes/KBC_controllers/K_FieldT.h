@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.h,v 1.8 2004-01-05 07:12:44 paklein Exp $ */
+/* $Id: K_FieldT.h,v 1.8.28.1 2004-11-12 00:28:48 thao Exp $ */
 /* created: paklein (09/05/2000) */
 
 #ifndef _K_FIELD_T_H_
@@ -45,8 +45,8 @@ public:
 	 * should read/write any data that overrides the default
 	 * values */
 	virtual void InitialCondition(void);
-	virtual void ReadRestart(istream& in);
-	virtual void WriteRestart(ostream& out) const;
+	virtual void ReadRestart(ifstreamT& in);
+	virtual void WriteRestart(ofstreamT& out) const;
 
 	/* initialize/finalize/reset step */
 	virtual void InitStep(void);
