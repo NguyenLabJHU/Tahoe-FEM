@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.29 2003-04-07 17:26:49 cjkimme Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.30 2003-05-20 10:38:45 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -348,13 +348,16 @@ void FEManagerT_mpi::SetElementGroups(void)
 }
 
 /* (re-)set system to initial conditions */
-void FEManagerT_mpi::InitialCondition(void)
+ExceptionT::CodeT FEManagerT_mpi::InitialCondition(void)
 {
 	/* inherited */
-	FEManagerT::InitialCondition();
+	ExceptionT::CodeT error = FEManagerT::InitialCondition();
 	
 	/* set I/O */
-	if (fExternIOManager) fExternIOManager->NextTimeSequence(SequenceNumber());
+	if (error == ExceptionT::kNoError && fExternIOManager) 
+		fExternIOManager->NextTimeSequence(SequenceNumber());
+		
+	return error;
 }
 
 /* global number of first local equation */
