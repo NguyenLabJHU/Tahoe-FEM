@@ -1,4 +1,4 @@
-/* $Id: LAdMatrixT.cpp,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: LAdMatrixT.cpp,v 1.2 2001-05-31 19:28:47 pecore Exp $ */
 /* created: paklein (12/05/1996)                                          */
 /* Matrix2D with some linear algebra functions                            */
 
@@ -217,3 +217,248 @@ void LAdMatrixT::LinearSolve2(dArrayT& RHS)
 		RHS[row] = sum/(*this)(row,row);
 	}
 }
+
+
+
+
+int LAdMatrixT::BiCGStab(dArrayT& x ,const dArrayT& RHS ,const double M , int max_iter , double tol)
+{
+/* dimension checks */
+#if __option (extended_errorcheck)
+	if (RHS.Length() != fRows) throw eSizeMismatch;
+#endif
+
+
+ 	double resid;
+ 	double rho_1, rho_2, alpha, beta, omega;
+    dArrayT p(fRows) , phat(fRows), s(fRows), shat(fRows), t(fRows), v(fRows);
+	dArrayT r(fRows) , rtilde(fRows), t1(fRows), t2(fRows);
+
+    double normb = RHS.Magnitude();
+    
+    //r = b - A * x;
+    (*this).Multx(x,r);
+    r *= -1.0;
+    r += RHS;
+    
+    rtilde = r;
+    
+    if (normb == 0.0)
+    normb = 1;
+    
+    if ((resid = r.Magnitude()/ normb) <= tol)
+    {
+    	tol = resid;
+    	max_iter = 0;
+    	return 0;
+    }
+
+  	for (int i = 1; i <= max_iter; i++) 
+  	{
+    	rho_1 = Dot(rtilde, r);
+    	if (rho_1 == 0) 
+    	{
+    		tol = r.Magnitude() / normb;
+      		return 2;
+    	}
+
+        if (i == 1)
+      		p = r;
+    	else 
+    	{
+      		beta = (rho_1/rho_2) * (alpha/omega);      		
+ 	     	//p = r + beta * (p - omega * v);
+ 	     	t1 = v;
+	      	t1 *= -1.0*omega;
+	      	t1 += p;
+	      	t1 *= beta;
+ 	     	t1 += r;
+	      	p = t1;
+    	}
+    	
+    	//phat = M.solve(p);
+    	//assume M := M*Identity
+    	phat = p;
+    	phat /= M;
+   		//v = A * phat;
+   		(*this).Multx(phat,v);
+   		
+    	alpha = rho_1 / Dot(rtilde, v);
+    	
+    	//s = r - alpha * v;
+    	s.SetToCombination(1, r,-1.0*alpha,v);
+
+    	
+   		if ((resid = s.Magnitude()/normb) < tol) 
+   		{
+      		//x += alpha*phat;
+      		t1 = phat;
+      		t1 *= alpha;
+      		x += t1;
+      		
+      		tol = resid;
+      		return 0;
+    	}
+
+    	//shat = M.solve(s);
+    	//assume M := M*identity
+    	shat = s;
+    	shat /=M;
+     	(*this).Multx(shat,t);
+   	 	omega = Dot(t,s) / Dot(t,t);
+ 
+ 
+    	//x += alpha * phat + omega * shat;
+    	x.AddCombination(alpha , phat ,omega , shat);
+    	
+    	//r = s - omega * t;
+		r.SetToCombination(1.0, s,-1.0*omega,t);
+
+
+    	rho_2 = rho_1;
+    	if ((resid = r.Magnitude() / normb) < tol) 
+    	{
+      		tol = resid;
+     		max_iter = i;
+      		return 0;
+    	}
+   		if (omega == 0) 
+   		{
+      		tol = r.Magnitude() / normb;
+      		return 3;
+    	}
+	}// end iteration loop
+	
+  tol = resid;
+  return 1;
+
+	
+}
+
+
+int LAdMatrixT::BiCGStab(dArrayT& x ,const dArrayT& RHS ,const dArrayT& M , int max_iter , double tol)
+{
+/* dimension checks */
+#if __option (extended_errorcheck)
+	if (RHS.Length() != fRows) throw eSizeMismatch;
+	if (  M.Length() != fRows) throw eSizeMismatch;
+#endif
+
+	int j;
+ 	
+ 	double resid;
+ 	double rho_1, rho_2, alpha, beta, omega;
+    dArrayT p(fRows) , phat(fRows), s(fRows), shat(fRows), t(fRows), v(fRows);
+	dArrayT r(fRows) , rtilde(fRows), t1(fRows), t2(fRows);
+
+    double normb = RHS.Magnitude();
+    
+    //r = b - A * x;
+    (*this).Multx(x,r);
+    r *= -1.0;
+    r += RHS;
+    
+    rtilde = r;
+    
+    if (normb == 0.0)
+    normb = 1;
+    
+    if ((resid = r.Magnitude()/ normb) <= tol)
+    {
+    	tol = resid;
+    	max_iter = 0;
+    	return 0;
+    }
+
+  	for (int i = 1; i <= max_iter; i++) 
+  	{
+    	rho_1 = Dot(rtilde, r);
+    	if (rho_1 == 0) 
+    	{
+    		tol = r.Magnitude() / normb;
+      		return 2;
+    	}
+
+        if (i == 1)
+      		p = r;
+    	else 
+    	{
+      		beta = (rho_1/rho_2) * (alpha/omega);      		
+ 	     	//p = r + beta * (p - omega * v);
+ 	     	t1 = v;
+	      	t1 *= -1.0*omega;
+	      	t1 += p;
+	      	t1 *= beta;
+ 	     	t1 += r;
+	      	p = t1;
+    	}
+    	
+    	//phat = M.solve(p);
+    	//assume M = diagonal
+    	for (  j = 0; j <  M.Length(); j++) 
+    		phat[j] = p[j]/M[j];
+    		
+   		//v = A * phat;
+   		(*this).Multx(phat,v);
+   		
+    	alpha = rho_1 / Dot(rtilde, v);
+    	
+    	//s = r - alpha * v;
+    	s.SetToCombination(1, r,-1.0*alpha,v);
+
+    	
+   		if ((resid = s.Magnitude()/normb) < tol) 
+   		{
+      		//x += alpha*phat;
+      		t1 = phat;
+      		t1 *= alpha;
+      		x += t1;
+      		
+      		tol = resid;
+      		return 0;
+    	}
+
+    	//shat = M.solve(s);
+    	//assume M = diagonal
+    	for ( j = 0; j <  M.Length(); j++) 
+    		shat[j] = s[j]/M[j];
+    	
+    	
+     	(*this).Multx(shat,t);
+   	 	omega = Dot(t,s) / Dot(t,t);
+ 
+ 
+    	//x += alpha * phat + omega * shat;
+    	x.AddCombination(alpha , phat ,omega , shat);
+    	
+    	//r = s - omega * t;
+		r.SetToCombination(1.0, s,-1.0*omega,t);
+
+
+    	rho_2 = rho_1;
+    	if ((resid = r.Magnitude() / normb) < tol) 
+    	{
+      		tol = resid;
+     		max_iter = i;
+      		return 0;
+    	}
+   		if (omega == 0) 
+   		{
+      		tol = r.Magnitude() / normb;
+      		return 3;
+    	}
+	}// end iteration loop
+	
+  tol = resid;
+  return 1;
+
+	
+}
+
+
+
+
+
+
+
+
