@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.9 2001-04-24 16:57:40 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.10 2001-04-24 18:17:38 rjones Exp $ */
 
 #include "LineL2FaceT.h"
 #include "FaceT.h"
@@ -63,7 +63,7 @@ LineL2FaceT::NodeNormal(int local_node_number, double& normal) const
 }
 
 void
-LineL2FaceT::FaceNormal(void)
+LineL2FaceT::CalcFaceNormal(void)
 {
         /* right to left */
 	double t1[2];

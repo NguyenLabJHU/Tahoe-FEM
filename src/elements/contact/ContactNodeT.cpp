@@ -1,4 +1,4 @@
-/*  $Id: ContactNodeT.cpp,v 1.4 2001-04-24 00:33:21 rjones Exp $ */
+/*  $Id: ContactNodeT.cpp,v 1.5 2001-04-24 18:17:37 rjones Exp $ */
 #include "ContactNodeT.h"
 
 #include "SurfaceT.h"
@@ -30,12 +30,12 @@ ContactNodeT::PrintData(ostream& out)
 
 bool
 ContactNodeT::AssignOpposing
-(const SurfaceT* opposing_surface, const FaceT* opposing_face,
+(const SurfaceT& opposing_surface, const FaceT& opposing_face,
 double* xi, double g)
 {
 	if ( g < fGap ) { // this is a little naive
-        	fOpposingSurface = opposing_surface ;
-        	fOpposingFace    = opposing_face ;
+        	fOpposingSurface = &opposing_surface ;
+        	fOpposingFace    = &opposing_face ;
         	fxi[0] = xi[0] ;
 		if (fOpposingSurface->NumSD() == 3 ) 
 			{fxi[1] = xi[1] ; }

@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.cpp,v 1.7 2001-04-24 16:57:40 rjones Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.8 2001-04-24 18:17:38 rjones Exp $ */
 
 #include "ContactSearchT.h"
 
@@ -45,7 +45,7 @@ bool ContactSearchT::SetInteractions(void)
 	ngrid = (ngrid > kMaxNumGrid) ? kMaxNumGrid : ngrid;
 	
 	/* construct a search grid */
-	dArray2DT& coordinates = surface1.Coordinates();
+	const dArray2DT& coordinates = surface1.Coordinates();
 	grid_nodes.Allocate(coordinates.MajorDim());
 	grid_nodes.SetValueToPosition();
 	iArrayT n_grid(surface1.NumSD());
@@ -98,9 +98,6 @@ void ContactSearchT::Initialize(void)
 	/* update surface geometry */
 	surface.UpdateConfiguration();
 
-	/* update face normals */
-	ArrayT<FaceT*>& faces = surface.Faces();
-	for (j = 0; j < faces.Length(); j++) { faces[j]->FaceNormal(); }
   }
 
   bool found = 0;
@@ -132,7 +129,7 @@ dArrayT& parameters)
 {
   bool found = 0;
   /* loop over faces */
-  ArrayT<FaceT*>&        faces = face_surface.Faces();
+  const ArrayT<FaceT*>&  faces = face_surface.Faces();
   ArrayT<ContactNodeT*>& nodes = node_surface.ContactNodes();
   for (int i = 0; i < face_surface.NumFaces(); i++) {
 	const FaceT* face = faces[i];

@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.10 2001-04-24 16:57:40 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.11 2001-04-24 18:17:38 rjones Exp $ */
 
 #include "QuadL4FaceT.h"
 #include "FaceT.h"
@@ -64,7 +64,7 @@ QuadL4FaceT::NodeNormal(int local_node_number,double& normal) const
 }
 
 void
-QuadL4FaceT::FaceNormal(void)
+QuadL4FaceT::CalcFaceNormal(void)
 { /* compute face average normal */
 	double e1[3], e2[3], e3[3], e4[3], v1[3], v2[3];
 	Add(fx[0],fx[1],e1);
@@ -169,9 +169,8 @@ QuadL4FaceT::Projection
 	    /* compute gap */
 	    double g =  a3 + b3*xi[0] + c3*xi[1]+ d3*xi[0]*xi[1] - x3;
 	    if (CheckGap(g,tol_g) ) {
-		const FaceT* face = this;
 		/*assign opposite (chooses closest)*/
-		bool isbetter = node->AssignOpposing(&fSurface,face,xi,g);
+		bool isbetter = node->AssignOpposing(fSurface,*this,xi,g);
 		return isbetter;
 	    }
 	  }

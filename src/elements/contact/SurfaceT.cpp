@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.10 2001-04-24 00:33:22 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.11 2001-04-24 18:17:38 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -371,6 +371,10 @@ void SurfaceT::UpdateConfiguration ()
 
   /* update averaged outward normals (and tangents) */
   ComputeSurfaceBasis();
+
+  /* update face normals */
+  for (int j = 0; j < fFaces.Length(); j++) { fFaces[j]->CalcFaceNormal(); }
+
 
   PrintKinematicData(cout);
 }

@@ -1,4 +1,4 @@
-/* $Id: SurfaceT.h,v 1.8 2001-04-24 00:33:22 rjones Exp $ */
+/* $Id: SurfaceT.h,v 1.9 2001-04-24 18:17:38 rjones Exp $ */
 
 #ifndef _SURFACE_T_H_
 #define _SURFACE_T_H_
@@ -46,22 +46,21 @@ class SurfaceT
 
 	/* access functions */
 	inline const int Tag(void) const {return fTag;}
-	inline const int NumNodes(void) {return fGlobalNodes.Length();}
-	inline const int NumFaces(void) {return fFaces.Length();}
-	inline const int NumSD(void) {return fNumSD;}
-	inline iArrayT&   GlobalNodes(void) {return fGlobalNodes;}
-	inline dArray2DT& Coordinates(void) {return fCoordinates;}
-	inline ArrayT<FaceT*>& Faces(void) {return fFaces;}
+	inline const int NumNodes(void) const {return fGlobalNodes.Length();}
+	inline const int NumFaces(void) const {return fFaces.Length();}
+	inline const int NumSD(void) const {return fNumSD;}
+	inline const iArrayT&   GlobalNodes(void) const {return fGlobalNodes;}
+	inline const dArray2DT& Coordinates(void) const {return fCoordinates;}
+	inline const ArrayT<FaceT*>& Faces(void)  const  {return fFaces;}
 //inline ArrayT<FaceT*>& NeighborFaces(void) {return fFaces;}
-	inline const double* Position(int i) {return fCoordinates(i);}
-	inline const double* Normal(int i)   {return fNormals(i);}
-	inline const double* Tangent1(int i) {return fTangent1s(i);}
-	inline const double* Tangent2(int i) {return fTangent2s(i);}
-
+	inline const double* Position(int i) const {return fCoordinates(i);}
+	inline const double* Normal(int i) const   {return fNormals(i);}
+	inline const double* Tangent1(int i) const {return fTangent1s(i);}
+	inline const double* Tangent2(int i) const {return fTangent2s(i);}
 	/* these are predicated on the surfaces being homogeneous */
-	inline int NumNodesPerFace(void)
+	inline int NumNodesPerFace(void) const
 		{return fFaces[0]->NumNodes();}
-	inline GeometryT::CodeT GeometryType(void)
+	inline GeometryT::CodeT GeometryType(void) const
 		{return fFaces[0]->GeometryType();}
 
 

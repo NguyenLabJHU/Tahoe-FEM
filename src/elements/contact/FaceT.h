@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.10 2001-04-24 16:57:40 rjones Exp $ */
+/* $Id: FaceT.h,v 1.11 2001-04-24 18:17:38 rjones Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
@@ -40,7 +40,7 @@ public:
         virtual void ComputeNormal
 		(dArrayT& local_coordinates,double& normal) const =0; 
         virtual void NodeNormal(int local_node_number,double& normal) const =0; 
-	virtual void FaceNormal(void)=0; 
+	virtual void CalcFaceNormal(void)=0; 
 	virtual void LocalBasis
 		(double* normal, double* tangent1, double* tangent2) const=0;
 #if 0
