@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.45 2003-08-20 23:15:31 pgandhi Exp $ */
+/* $Id: EAMT.cpp,v 1.45.6.1 2003-10-15 22:18:25 bsun Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -26,6 +26,7 @@ const int kMemoryHeadRoom = 15; /* percent */
 EAMT::EAMT(const ElementSupportT& support, const FieldT& field):
   ParticleT(support, field),
   fNeighbors(kMemoryHeadRoom),
+  NearestNeighbors(kMemoryHeadRoom),
   fEqnos(kMemoryHeadRoom),
   fForce_list_man(0, fForce_list),
   fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1),
@@ -125,7 +126,8 @@ void EAMT::WriteOutput(void)
   /* dimensions */
   int ndof = NumDOF();
   int num_output = ndof + 2; /* displacement + PE + KE */
-
+  num_output++; /*includes centrosymmetry*/
+  num_output+=ndof; /*some more for slip vector*/
   /* number of nodes */
   const ArrayT<int>* parition_nodes = fCommManager.PartitionNodes();
   int non = (parition_nodes) ? parition_nodes->Length() : ElementSupport().NumNodes();
@@ -137,7 +139,7 @@ void EAMT::WriteOutput(void)
   int num_stresses=vs_i.NumValues(ndof);
   //dArray2DT vsvalues(non, num_stresses);
   num_output +=num_stresses; 
-
+  num_output += num_stresses; //another for the strain
   /* output arrays length number of active nodes */
   dArray2DT n_values(non, num_output), e_values;
 
@@ -216,7 +218,8 @@ void EAMT::WriteOutput(void)
   fForce = 0.0;
 
   iArrayT neighbors;
-  dArrayT x_i, x_j, r_ij(ndof);
+  dArrayT x_i, x_j, r_ij(ndof), SlipVector(ndof);
+  dMatrixT Strain(ndof);
 
   int current_property_i = -1;
   int current_property_j = -1;
@@ -226,6 +229,14 @@ void EAMT::WriteOutput(void)
     {
       /* row of neighbor list */
       fNeighbors.RowAlias(i, neighbors);
+
+      Strain=0;
+      SlipVector=0;
+     
+      /*linked list for holding vector pair magnitudes*/
+      CSymmParamNode *CParamStart=new CSymmParamNode;
+      CParamStart->Next=NULL;
+      CParamStart->value=0.0;
 
       /* tags */
       int   tag_i = neighbors[0]; /* self is 1st spot */
@@ -352,12 +363,25 @@ void EAMT::WriteOutput(void)
 	}
 
 
-		 /*copy stress into array*/
-		 for (int cc = 0; cc < num_stresses; cc++) {
-			int ndex = ndof+2+cc;
-		   	values_i[ndex] += vs_i[cc];
-		 }		   
+      /*copy stress into array*/
+      for (int cc = 0; cc < num_stresses; cc++) {
+	int ndex = ndof+2+cc;
+	values_i[ndex] += vs_i[cc];
+      }
 
+
+		   
+      CalcValues(i, coords, CParamStart, &Strain, &SlipVector, &NearestNeighbors);
+      int valuep=0;
+      Strain /=2;
+      for(int n=0; n<ndof;n++)
+	for(int m=n;m<ndof;m++)
+	  n_values(local_i,ndof+2+num_stresses+valuep++)=Strain(n,m);
+      for(int n=0; n<ndof; n++)
+	n_values(local_i, ndof+2+num_stresses+num_stresses+n)=SlipVector[n];
+      
+      /*given the list of vector pair magnitudes, returns first seven*/
+      n_values(local_i,num_output-1)=GenCSymmValue(CParamStart, ndof);
     
     }	
 
@@ -695,12 +719,13 @@ void EAMT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 
   /* displacement labels */
   const char* disp[3] = {"D_X", "D_Y", "D_Z"};
-	
+  const char* SV[3] = {"SV_X", "SV_Y", "SV_Z"};
   int num_labels =
     ndof // displacements
     + 2;     // PE and KE
 	int num_stress=0;
 	const char* stress[6];
+	const char* strain[6];
 	if (ndof==3){
 	  num_stress=6;
 	  stress[0]="s11";
@@ -720,7 +745,30 @@ void EAMT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 	   num_stress=1;
 	  stress[0] = "s11";
 	  }
+	if (ndof==3){
+	  
+	  strain[0]="st11";
+	  strain[1]="st12";
+	  strain[2]="st13";
+	  strain[3]="st22";
+	  strain[4]="st23";
+	  strain[5]="st33";
+	  }
+	  else if (ndof==2) {
+	   
+	  strain[0]="st11";
+	  strain[1]="st12";
+	  strain[2]="st22";
+	  }
+	  else if (ndof==1) {
+
+	  strain[0] = "st11";
+	  }
+
 	num_labels+=num_stress;
+	num_labels++; //another label for the centrosymmetry
+	num_labels+=num_stress; //another for the strain
+	num_labels+=ndof; /*and another for the slip vector*/
 
   labels.Dimension(num_labels);
   int dex = 0;
@@ -731,6 +779,11 @@ void EAMT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 
 	for (int ns =0 ; ns<num_stress; ns++)
 	  labels[dex++]=stress[ns];
+	for (int ns =0 ; ns<num_stress; ns++)
+	  labels[dex++]=strain[ns];
+	for (int i=0; i<ndof; i++)
+	  labels[dex++]=SV[i];
+	labels[dex++]= "CS";
 }
 
 /* form group contribution to the stiffness matrix */
@@ -1527,6 +1580,7 @@ void EAMT::SetConfiguration(void)
   const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
   if (fActiveParticles) 
     part_nodes = fActiveParticles;
+  GenerateNeighborList(part_nodes, NearestNeighborDistance, NearestNeighbors, true, true);
   GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
 	
   ofstreamT& out = ElementSupport().Output();
@@ -1615,6 +1669,9 @@ void EAMT::EchoProperties(ifstreamT& in, ofstreamT& out)
       
       fEAMProperties[i] = new ParadynEAMT(file);
     }
+
+  in >> latticeParameter;
+  NearestNeighborDistance=latticeParameter*.79;
 
   /* echo particle properties */
   out << "\n Particle properties:\n\n";

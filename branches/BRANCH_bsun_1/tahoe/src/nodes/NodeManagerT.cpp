@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.38 2003-10-04 19:14:01 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.38.2.1 2003-10-15 22:18:28 bsun Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -1819,6 +1819,8 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 
 FBC_ControllerT* NodeManagerT::NewFBC_Controller(FieldT& field, int code)
 {
+  const char caller[] = "NodeManagerT::NewFBC_Controller";
+
 	/* displacement field */
 	const dArray2DT& disp = field[0];
 
@@ -1861,15 +1863,16 @@ FBC_ControllerT* NodeManagerT::NewFBC_Controller(FieldT& field, int code)
 			break;
 
 		default:
-			ExceptionT::BadInputValue("NodeManagerT::NewFBC_Controller",
-				"FBC controller code %d is not supported", code);
+			ExceptionT::BadInputValue(caller, "FBC controller code %d is not supported", code);
 	}
 	
 	/* set time integrator */
 	if (fbc) {
-		const nIntegratorT& n_cont = field.nIntegrator();
-		const eIntegratorT* e_cont = dynamic_cast<const eIntegratorT*>(&n_cont);
-		fbc->SetController(e_cont);
+		const nIntegratorT& n_integrator = field.nIntegrator();
+		const IntegratorT* integrator = &n_integrator;
+		const eIntegratorT* e_integrator = dynamic_cast<const eIntegratorT*>(integrator);
+		if (!e_integrator) ExceptionT::GeneralFail(caller, "could not resolve eIntegratorT");
+		fbc->SetController(e_integrator);
 	}
 	
 	return fbc;

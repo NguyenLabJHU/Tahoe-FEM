@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.50 2003-10-02 21:05:17 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.50.2.1 2003-10-15 22:18:27 bsun Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -447,7 +447,9 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 	continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
 	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), make_inactive);
 
-#if 0
+#undef DO_COUPLING
+
+#ifdef DO_COUPLING
 	/* cross coupling matricies */
 	int neq_A = atoms.NodeManager()->Field(bridging_field)->NumEquations();
 	int neq_C = continuum.NodeManager()->Field(bridging_field)->NumEquations();
@@ -492,9 +494,9 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 			const iArray2DT& atom_phase_status = atoms.SolverPhasesStatus();
 			const iArray2DT& continuum_phase_status = continuum.SolverPhasesStatus();
 
-#if 0
+#ifdef DO_COUPLING
 			/* set cross-coupling */
-			atoms.Form_G_NG_Stiffness(bridging_field, K_G_NG);
+			atoms.Form_G_NG_Stiffness(bridging_field, 0, K_G_NG);
 			K_AC.MultAB(K_G_NG, G_Interpolation);
 			K_CA.Transpose(K_AC);
 #endif
@@ -519,16 +521,16 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 					error = atoms.SolveStep();
 				}
 
-#if 0
+#ifdef DO_COUPLING
 				/* set cross-coupling */
-				atoms.Form_G_NG_Stiffness(bridging_field, K_G_NG);
+				atoms.Form_G_NG_Stiffness(bridging_field, 0, K_G_NG);
 				K_AC.MultAB(K_G_NG, G_Interpolation);
 				K_CA.Transpose(K_AC);
 #endif
 					
 				/* apply solution to continuum */
 				continuum.ProjectField(bridging_field, *atoms.NodeManager(), order1);
-#if 0
+#ifdef DO_COUPLING
 				K_CA.Multx(atoms.CumulativeUpdate(group_num), F_C);
 				F_C *= -1.0;
 				continuum.SetExternalForce(group_num, F_C);
@@ -546,7 +548,7 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 				int order = 0;  // displacement only for static case
 				continuum.InterpolateField(bridging_field, order, field_at_ghosts);
 				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order, field_at_ghosts);
-#if 0
+#ifdef DO_COUPLING
 				K_AC.Multx(continuum.CumulativeUpdate(group_num), F_A);
 				F_A *= -1.0;
 				atoms.SetExternalForce(group_num, F_A);
