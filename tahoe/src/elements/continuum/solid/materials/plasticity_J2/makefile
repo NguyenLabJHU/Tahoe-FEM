@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2001-05-05 19:28:34 paklein Exp $
+# $Id: makefile,v 1.7 2001-05-07 05:37:33 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -47,7 +47,7 @@ HDR = \
 	J2SSKStV.h \
 	J2SSKStV2D.h \
 	J2SSLinHardT.h \
-	J2SimoC0HardeningT.h \
+	J2SimoC0HardeningT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
