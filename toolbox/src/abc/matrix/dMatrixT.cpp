@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.cpp,v 1.6 2002-02-27 16:47:12 paklein Exp $ */
+/* $Id: dMatrixT.cpp,v 1.7 2002-03-02 19:33:17 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "dMatrixT.h"
@@ -249,58 +249,8 @@ dMatrixT& dMatrixT::Symmetrize(const dMatrixT& matrix)
 	return *this;
 }
 
-/* tranposition */
-dMatrixT& dMatrixT::Transpose(const dMatrixT& matrix)
-{
-#if __option (extended_errorcheck)	
-	if (fRows != matrix.fCols ||
-	    fCols != matrix.fRows) throw eSizeMismatch;
-#endif
-
-	/* selve transposition */
-	if (fArray == matrix.fArray) return Transpose();
-
-	double *pthis = fArray;
-	double *pm    = matrix.fArray;
-	for (int i = 0; i < matrix.fRows; i++)
-	{
-		double* pmj = pm++;
-	
-		for (int j = 0; j < matrix.fCols; j++)
-		{
-			*pthis++ = *pmj;
-			    pmj += matrix.fRows;
-		}
-	}
-	
-	return *this;
-}
-
-dMatrixT& dMatrixT::Transpose(void)
-{
-	register double temp;
-
-	for (int i = 0; i < fRows - 1; i++)
-	{
-		double* prow = (*this)(i+1) + i;
-		double* pcol = (*this)(i) + i + 1;
-	
-		for (int j = i + 1; j < fCols; j++)
-		{
-			temp  = *prow;
-			*prow = *pcol;
-			*pcol = temp;
-			
-			pcol++;
-			prow += fRows;
-		}
-	}
-
-	return *this;
-}
 //Created by TDN: 03/4/01.  Multiplies a symmetric matrix A with nonsymmetric matrix B.
 //Used to calculate Calg.
-
 void dMatrixT::MultSymAB(const dSymMatrixT& A, const dMatrixT& B)
 {
 	/* dimension checks */

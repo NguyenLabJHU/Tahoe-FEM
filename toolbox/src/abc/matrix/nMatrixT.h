@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.9 2002-02-18 08:48:41 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.10 2002-03-02 19:33:17 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 /* 2 dimensional matrix mathematics template object.                      */
 
@@ -84,6 +84,15 @@ public:
 	 * in the upper triangle of the matrix.  Setting IsUpper = 0,
 	 * copies the data from the lower triangle */
 	void CopySymmetric(int IsUpper = 1);
+
+	/** set this to the matrix transpose.
+	 * \param matrix source matrix to transpose
+	 * \return reference to *this */
+	nMatrixT<nTYPE>& Transpose(const nMatrixT<nTYPE>& matrix);
+
+	/** set this its matrix transpose.
+	 * \return reference to *this */
+	nMatrixT<nTYPE>& Transpose(void);
 	
 	/* matrix-matrix multiplication - operates on this using a and b.
 	 * Operations allowed on entire matrices only, ie no apparent
@@ -582,6 +591,55 @@ void nMatrixT<nTYPE>::CopySymmetric(int IsUpper)
 				fArray[row*fCols + col] = fArray[dex++];
 		}
 	}
+}
+
+/* tranposition */
+template <class nTYPE>
+nMatrixT<nTYPE>& nMatrixT<nTYPE>::Transpose(const nMatrixT<nTYPE>& matrix)
+{
+#if __option (extended_errorcheck)	
+	if (fRows != matrix.fCols ||
+	    fCols != matrix.fRows) throw eSizeMismatch;
+#endif
+
+	/* selve transposition */
+	if (fArray == matrix.fArray) return Transpose();
+
+	nTYPE *pthis = fArray;
+	nTYPE *pm    = matrix.fArray;
+	for (int i = 0; i < matrix.fRows; i++)
+	{
+		nTYPE* pmj = pm++;
+		for (int j = 0; j < matrix.fCols; j++)
+		{
+			*pthis++ = *pmj;
+			    pmj += matrix.fRows;
+		}
+	}
+	return *this;
+}
+
+template <class nTYPE>
+nMatrixT<nTYPE>& nMatrixT<nTYPE>::Transpose(void)
+{
+	register nTYPE temp;
+	for (int i = 0; i < fRows - 1; i++)
+	{
+		nTYPE* prow = (*this)(i+1) + i;
+		nTYPE* pcol = (*this)(i) + i + 1;
+	
+		for (int j = i + 1; j < fCols; j++)
+		{
+			temp  = *prow;
+			*prow = *pcol;
+			*pcol = temp;
+			
+			pcol++;
+			prow += fRows;
+		}
+	}
+
+	return *this;
 }
 
 /*
