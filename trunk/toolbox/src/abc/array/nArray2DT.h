@@ -1,6 +1,5 @@
-/* $Id: nArray2DT.h,v 1.7 2001-10-16 21:00:15 paklein Exp $ */
-/* created: paklein (07/09/1996)                                          */
-/* nArrayT with subdimension - row major storage                          */
+/* $Id: nArray2DT.h,v 1.8 2001-12-10 12:38:59 paklein Exp $ */
+/* created: paklein (07/09/1996) */
 
 #ifndef _NARRAY2D_T_H_
 #define _NARRAY2D_T_H_
@@ -8,6 +7,7 @@
 /* base class */
 #include "nArrayT.h"
 
+/** nArrayT with subdimension. Row major storage */
 template <class nTYPE>
 class nArray2DT: public nArrayT<nTYPE>
 {
