@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.9 2002-06-30 03:08:05 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.10 2002-07-01 01:09:05 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -206,10 +206,10 @@ void RodT::LHSDriver(void)
 
 			/* 1st term */
 			fLHS.Outer(fRHS, fRHS);
-			fLHS *= constK*(dU/l - ddU)/(l*l);
+			fLHS *= constK*(ddU - dU/l)/(l*l);
 		
 			/* 2nd term */
-			fLHS.AddScaled(-constK*dU/l, fOneOne);
+			fLHS.AddScaled(constK*dU/l, fOneOne);
 		} 
 		else 
 			fLHS = 0.0;
@@ -267,7 +267,7 @@ if (formMa) {
 		double dU = fCurrMaterial->DPotential(l, l0);
 
 		/* particle forces (extra -1 since moved to the RHS) */
-		f0.SetToScaled(-constKd*dU/l, fBond);
+		f0.SetToScaled(constKd*dU/l, fBond);
 		f1.SetToScaled(-1.0, f0);
 
 		/* add to global equations */
