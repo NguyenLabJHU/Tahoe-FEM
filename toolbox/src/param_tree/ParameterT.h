@@ -1,4 +1,4 @@
-/* $Id: ParameterT.h,v 1.8 2003-04-26 19:12:06 paklein Exp $ */
+/* $Id: ParameterT.h,v 1.8.2.1 2003-04-27 22:16:09 paklein Exp $ */
 #ifndef _PARAMETER_T_H_
 #define _PARAMETER_T_H_
 
@@ -46,6 +46,9 @@ public:
 	void AddLimit(int a, LimitT::BoundT bound);
 	void AddLimit(double x, LimitT::BoundT bound);
 	void AddLimit(const StringT& s, LimitT::BoundT bound);
+
+	/** define a valid string-value pair */
+	void AddEnumeration(const StringT& name, int value);
 
 	/** add list of limits */
 	void AddLimits(const ArrayT<LimitT>& limits);
@@ -113,6 +116,11 @@ inline void ParameterT::AddLimit(double x, LimitT::BoundT bound)
 inline void ParameterT::AddLimit(const StringT& s, LimitT::BoundT bound)
 {
 	LimitT limit(s, bound);
+	AddLimit(limit);
+}
+inline void ParameterT::AddEnumeration(const StringT& name, int value)
+{
+	LimitT limit(name, value);
 	AddLimit(limit);
 }
 
