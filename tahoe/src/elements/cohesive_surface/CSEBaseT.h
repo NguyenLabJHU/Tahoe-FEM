@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.18.2.2 2004-03-17 17:57:02 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.18.2.3 2004-03-24 01:59:56 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -113,8 +113,12 @@ protected:
 
 	/** \name construction of connectivities */
 	/*@{*/
-	/** define the elements blocks for the element group */
-	virtual void DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index);
+	/** extract element block info from parameter list to be used. Method is
+	 * used in conjunction with ElementBaseT::DefineElements to initialize
+	 * the element group connectivities. CSEBaseT::CollectBlockInfo first calls
+	 * ElementBaseT::CollectBlockInfo and generates corrected connectivities
+	 * for improper higher order elements. */
+	virtual void CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const;
 	/*@}*/
 
 	/** print element group data */
@@ -185,12 +189,12 @@ protected:
 	static const int NumNodalOutputCodes;
 	static const int NumElementOutputCodes;
 	
-	/** output connectivities. For low-order element types, there will
-	 * be the same as ElementBaseT::fConnectivities. These will be
+	/** output connectivities. For low-order element types, these will
+	 * be the same as in ElementBaseT::fBlockData. These will be
 	 * different if the connectivities needed for the element calculations
 	 * is not compatible with the element topologies supported by
 	 * most database types or post-processors */
-	ArrayT<const iArray2DT*> fOutput_Connectivities;
+	ArrayT<StringT> fOutputBlockID;	 
 };
 
 } // namespace Tahoe 

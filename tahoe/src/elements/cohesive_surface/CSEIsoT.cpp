@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.18.4.2 2004-03-18 17:51:45 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.18.4.3 2004-03-24 01:59:56 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -156,8 +156,8 @@ void CSEIsoT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& or
 		order = ParameterListT::Choice;
 		
 		/* function types */
-		sub_sub_list.AddSub("Lennard_Jones_6-12");
-		sub_sub_list.AddSub("Smith_Ferrante");
+		sub_sub_list.AddSub("Lennard-Jones_6-12");
+		sub_sub_list.AddSub("Smith-Ferrante");
 	}
 	else /* inherited */
 		CSEBaseT::DefineInlineSub(sub, order, sub_sub_list);
@@ -213,7 +213,7 @@ void CSEIsoT::TakeParameterList(const ParameterListT& list)
 
 		/* resolve material choice */
 		const ParameterListT* surf_pot_params = block.ResolveListChoice(*this, "surface_potential");
-		if (surf_pot_params)
+		if (!surf_pot_params)
 			ExceptionT::BadInputValue(caller, "could not resolve \"surface_potential\"");
 
 		/* construct material */

@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.30.2.4 2004-03-22 18:40:19 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.30.2.5 2004-03-24 01:59:56 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
@@ -390,12 +390,14 @@ void CSEBaseT::RegisterOutput(void)
 	GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	ArrayT<StringT> block_ID(fBlockData.Length());
-	for (int i = 0; i < block_ID.Length(); i++)
-		block_ID[i] = fBlockData[i].ID();
+
+	/* collect output connectivities */
+	ModelManagerT& model = ElementSupport().Model();
+	ArrayT<const iArray2DT*> output_connects;		
+	model.ElementGroupPointers(fOutputBlockID, output_connects);
 
 	/* set output specifier */
-	OutputSetT output_set(geo_code, block_ID, fOutput_Connectivities, n_labels, e_labels, false);
+	OutputSetT output_set(geo_code, fOutputBlockID, output_connects, n_labels, e_labels, false);
 
 	/* register and get output ID */
 	fOutputID = ElementSupport().RegisterOutput(output_set);
@@ -672,30 +674,38 @@ void CSEBaseT::PrintControlData(ostream& out) const
 }
 
 /* define the elements blocks for the element group */
-void CSEBaseT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index)
+void CSEBaseT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  
+	ArrayT<int>& mat_index) const
 {
-	const char caller[] = "CSEBaseT::DefineElements";
+	const char caller[] = "CSEBaseT::CollectBlockInfo";
 	
 	/* inherited */
-	ElementBaseT::DefineElements(block_ID, mat_index);
+	ElementBaseT::CollectBlockInfo(list, block_ID, mat_index);
+
+	/* quick exit */
+	if (block_ID.Length() == 0) return;
 
 	/* write output over the original connectivities */
-	fOutput_Connectivities = fConnectivities;
+	CSEBaseT* non_const_this = (CSEBaseT*) this;
+	non_const_this->fOutputBlockID = block_ID;
+
+	/* geometry information */
+	ModelManagerT& model = ElementSupport().Model();
+	int nel, nen = 0;
+	for (int i = 0; nen == 0 && i < block_ID.Length(); i++)
+		model.ElementGroupDimensions (block_ID[i], nel, nen);
 
 	/* check for higher order elements */
 	int nsd = NumSD();
-	int nen = NumElementNodes();
 	if ((nsd == 2 && nen != 4 && nen != 6) || 
 	    (nsd == 3 && nen != 8 && nen != 16))
 	{
 #ifndef _FRACTURE_INTERFACE_LIBRARY_	
 		/* message */
 		ostream& out = ElementSupport().Output();
-		cout << "\n CSEBaseT::ReadConnectivity: detected higher order elements\n";
-		out  << "\n CSEBaseT::ReadConnectivity: detected higher order elements\n";
+		cout << "\n " << caller << ": detected higher order elements\n";
+		out  << "\n " << caller << ": detected higher order elements\n";
 #endif
-		/* the geometry manager */
-		ModelManagerT& model = ElementSupport().Model();
 
 		/* nen: 8 -> 6 */
 		int map_2D[] = {0, 1, 2, 3, 4, 6}; 
@@ -707,12 +717,11 @@ void CSEBaseT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>
 		iArrayT map((nsd == 2) ? 6 : 16, (nsd == 2) ? map_2D : map_3D); 
 
 		/* loop over connectivity blocks */
-		for (int b = 0; b < fBlockData.Length(); b++)
+		for (int b = 0; b < block_ID.Length(); b++)
 		{
 			/* send new connectivities to model manager */
-			ElementBlockDataT& block_data = fBlockData[b];
-			const StringT& id = block_data.ID();
-			StringT new_id = id;
+			StringT& new_id = block_ID[b];
+			StringT old_id = new_id;
 			new_id.Append(b+1, 3);
 			
 			/* see if new_id is already present */
@@ -721,14 +730,13 @@ void CSEBaseT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>
 			{
 #ifndef _FRACTURE_INTERFACE_LIBRARY_	
 				/* message */
-		     	cout << "     translating element block ID " << id << endl;	     	
-		     	out  << "     translating element block ID " << id << endl;
+		     	cout << "     translating element block ID " << old_id << endl;	     	
+		     	out  << "     translating element block ID " << old_id << endl;
 #endif
 				/* translate */
-				const iArray2DT& source = *(fOutput_Connectivities[b]);
+				const iArray2DT& source = model.ElementGroup(fOutputBlockID[b]);
 				iArray2DT dest(source.MajorDim(), map.Length());
-				for (int i = 0; i < dest.MajorDim(); i++)
-				{
+				for (int i = 0; i < dest.MajorDim(); i++) {
 					int* a = dest(i);
 					const int* b = source(i);
 					for (int j = 0; j < map.Length(); j++)
@@ -736,10 +744,6 @@ void CSEBaseT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>
 				}
 
 				/* send new connectivities to model manager */
-				ElementBlockDataT& block_data = fBlockData[b];
-				const StringT& id = block_data.ID();
-				StringT new_id = id;
-				new_id.Append(b+1, 3);
 				if (!model.RegisterElementGroup (new_id, dest, GeometryT::kNone, true))
 					ExceptionT::GeneralFail(caller, "could not register element block ID \"%s\"",
 						new_id.Pointer());
@@ -747,17 +751,9 @@ void CSEBaseT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_	
 			/* message */
-			cout << "     block ID " << id << " replaced by ID " << new_id << endl;		
-			out  << "     block ID " << id << " replaced by ID " << new_id << endl;
+			cout << "     block ID " << old_id << " replaced by ID " << new_id << endl;		
+			out  << "     block ID " << old_id << " replaced by ID " << new_id << endl;
 #endif
-			/* set pointer to connectivity list */
-			fConnectivities[b] = model.ElementGroupPointer(new_id);
-			
-			/* reset block data */
-			int start = block_data.StartNumber();
-			int dim = block_data.Dimension();
-			int material = block_data.MaterialID();
-			block_data.Set(new_id, start, dim, material);
 		}
 	}
 }
