@@ -25,6 +25,14 @@
 	#endif
 #endif /* CW_F2C_MAC */
 
+#ifdef NON_UNIX_STDIO
+#ifdef CW_F2C_MAC
+#define f2c_access Mac_f2c_access
+#else
+#define f2c_access access
+#endif
+#endif
+
 /* FORTRAN says integer, logical, and real should occupy
  * the same amount of space. double precision and complex
  * should occupy twice this space. */

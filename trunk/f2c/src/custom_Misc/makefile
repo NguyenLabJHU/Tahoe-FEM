@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.3 2001-02-06 03:10:31 paklein Exp $
+# $Id: makefile,v 1.4 2001-02-08 18:28:42 paklein Exp $
 # object directory makefile - compilation instructions
 
 .SUFFIXES: .c .cpp .C .f .F .o .d .h .h_link
@@ -6,7 +6,9 @@
 # objects
 OBJ = \
 	lsame.o \
-	xerbla.o
+	xerbla.o \
+	Mac_f2c_access.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -16,7 +18,8 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	lsame.c \
-	xerbla.c
+	xerbla.c \
+	Mac_f2c_access.c
 
 # headers
 #HDR = 
