@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.21 2005-01-29 01:28:40 raregue Exp $ */
+/* $Id: SolidMaterialT.h,v 1.22 2005-02-10 17:59:56 raregue Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -45,6 +45,9 @@ public:
 	/*@{*/
 	/** spatial tangent modulus */
 	virtual const dMatrixT& c_ijkl(void) = 0;
+	
+	/** spatial elastic modulus */
+	virtual const dMatrixT& ce_ijkl(void) = 0;
 
 	/** Cauchy stress */
 	virtual const dSymMatrixT& s_ij(void) = 0;
