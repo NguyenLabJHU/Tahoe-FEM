@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.cpp,v 1.3 2001-05-04 19:18:40 paklein Exp $ */
+/* $Id: SpectralDecompT.cpp,v 1.4 2001-06-07 03:00:28 paklein Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -115,7 +115,7 @@ void SpectralDecompT::SpectralDecomp(const dSymMatrixT& rank2, bool perturb_repe
 }
 
 /* compute spectral decomposition using Jacobi iterations */
-void SpectralDecompT::SpectralDecomp_new(const dSymMatrixT& rank2, bool perturb_repeated)
+void SpectralDecompT::SpectralDecomp_Jacobi(const dSymMatrixT& rank2, bool perturb_repeated)
 {
 	bool sort_descending = false;
 	rank2.Eigensystem(fEigs, fEvecMatrix, sort_descending);
@@ -172,18 +172,15 @@ void SpectralDecompT::SpectralDecomp_new(const dSymMatrixT& rank2, bool perturb_
 	if (perturb_repeated) PerturbRepeated(fEigs);
 }
 
-void SpectralDecompT::DecompAndModPrep(const dSymMatrixT& rank2, bool perturb_repeated)
+void SpectralDecompT::ModulusPrep(const dSymMatrixT& rank2)
 {
-	/* set spectral decomposition */
-	//SpectralDecomp(rank2, perturb_repeated);
-	SpectralDecomp_new(rank2, perturb_repeated);
-	
 	/* modulus tensors */
 	if (rank2.Rows() == 2)
 		fc_b = 0.0;
 		//TEMP
 		//Set_I4_Tensor2D(rank2, fc_b);
 		//fc_b.ReducedIndexI();
+//DEV - what's going on here?
 	else
 	{
 		Set_I4_Tensor3D(rank2, fc_b);
@@ -224,7 +221,7 @@ void SpectralDecompT::PolarDecomp(const dMatrixT& F, dMatrixT& R, dSymMatrixT& U
 	
 	/* spectral decomposition */
 	//SpectralDecomp(U, perturb_repeated);
-	SpectralDecomp_new(U, perturb_repeated);
+	SpectralDecomp_Jacobi(U, perturb_repeated);
 
 	/* eigenvalues to stretches */
 	if (fEigs[0] <= 0.0) throw eBadJacobianDet; fEigs[0] = sqrt(fEigs[0]);
@@ -248,6 +245,60 @@ void SpectralDecompT::PolarDecomp(const dMatrixT& F, dMatrixT& R, dSymMatrixT& U
 	
 	/* U */
 	U = EigsToRank2(fEigs);
+}
+
+/* function to perturb repeated roots */
+bool SpectralDecompT::PerturbRepeated(dArrayT& values) const
+{
+	/* check */
+	if (values.Length() != 2 && values.Length() != 3)
+	{
+		cout << "\n SpectralDecompT::PerturbRepeated: expecting array length 2 or 3" << endl;
+		throw eGeneralFail;
+	}
+
+	/* perturb repeated values */
+	bool perturbed = false;
+	if (values.Length() == 2 && fabs(values[0] - values[1]) < kSameRoot)
+	{
+		values[0] *= (1.0 + kpert);
+		values[1] /= (1.0 + kpert);
+		perturbed = true;
+	}
+	else
+	{
+		if (fabs(values[0] - values[1]) < kSameRoot)
+		{
+			values[0] *= (1.0 + kpert);
+			values[1] /= (1.0 + kpert);
+			if (fabs(values[0] - values[2]) < kSameRoot)
+				values[0] /= (1.0 + kpert);
+			else if (fabs(values[1] - values[2]) < kSameRoot)
+				values[1] *= (1.0 + kpert);
+			perturbed = true;
+		}
+		else if (fabs(values[0] - values[2]) < kSameRoot)
+		{
+			values[0] *= (1.0 + kpert);
+			values[2] /= (1.0 + kpert);
+			if (fabs(values[0] - values[1]) < kSameRoot)
+				values[0] /= (1.0 + kpert);
+			else if (fabs(values[2] - values[1]) < kSameRoot)
+				values[2] *= (1.0 + kpert);
+			perturbed = true;
+		}
+		else if (fabs(values[1] - values[2]) < kSameRoot)
+		{
+			values[1] *= (1.0 + kpert);
+			values[2] /= (1.0 + kpert);
+			if (fabs(values[1] - values[0]) < kSameRoot)
+				values[1] /= (1.0 + kpert);
+			else if (fabs(values[2] - values[0]) < kSameRoot)
+				values[2] *= (1.0 + kpert);
+			perturbed = true;
+		}
+	}
+	return perturbed;
 }
 
 const dMatrixT& SpectralDecompT::EigsToRank4(const dSymMatrixT& eigs)
@@ -520,7 +571,7 @@ const dMatrixT& SpectralDecompT::SpatialTensor3D(const dSymMatrixT& b, int A)
 
 	/* I_b - b (x) b */
 	double k1 = 1.0/dA;
-	fSpatTensor.AddScaled(k1,fc_b);
+	fSpatTensor.AddScaled(k1, fc_b);
 
 	/* I - (1-m_A) (x) (1-m_A) */	
 	fRank2.SetToCombination(1.0, f_I_Rank2, -1.0, fm[A]);
@@ -536,7 +587,7 @@ const dMatrixT& SpectralDecompT::SpatialTensor3D(const dSymMatrixT& b, int A)
 
 	/* m_A (x) m_A */
 	fRank4.Outer(fm[A],fm[A]);
-double k4 = (fEigs[A]/dA)*(b.Trace() - 4.0*fEigs[A]);
+	double k4 = (fEigs[A]/dA)*(b.Trace() - 4.0*fEigs[A]);
 	fSpatTensor.AddScaled(k4,fRank4);
 
 	return fSpatTensor;
@@ -630,50 +681,3 @@ void SpectralDecompT::SchmidtDecompose(const dSymMatrixT& rank2,
                            -l2/l, n2xn2,
                             -1.0, n0xn0);
 }	
-
-/* function to perturb repeated roots */
-void SpectralDecompT::PerturbRepeated(dArrayT& roots)
-{
-	if (roots.Length() != 2 && roots.Length() != 3)
-	{
-		cout << "\n SpectralDecompT::PerturbRepeated: expecting array length 2 or 3" << endl;
-		throw eGeneralFail;
-	}
-
-	/* perturb repeated roots */
-	if (roots.Length() == 2 && fabs(fEigs[0] - fEigs[1]) < kSameRoot)
-	{
-		fEigs[0] *= (1.0 + kpert);
-		fEigs[1] /= (1.0 + kpert);
-	}
-	else
-	{
-		if (fabs(fEigs[0] - fEigs[1]) < kSameRoot)
-		{
-			fEigs[0] *= (1.0 + kpert);
-			fEigs[1] /= (1.0 + kpert);
-			if (fabs(fEigs[0] - fEigs[2]) < kSameRoot)
-				fEigs[0] /= (1.0 + kpert);
-			else if (fabs(fEigs[1] - fEigs[2]) < kSameRoot)
-				fEigs[1] *= (1.0 + kpert);
-		}
-		else if (fabs(fEigs[0] - fEigs[2]) < kSameRoot)
-		{
-			fEigs[0] *= (1.0 + kpert);
-			fEigs[2] /= (1.0 + kpert);
-			if (fabs(fEigs[0] - fEigs[1]) < kSameRoot)
-				fEigs[0] /= (1.0 + kpert);
-			else if (fabs(fEigs[2] - fEigs[1]) < kSameRoot)
-				fEigs[2] *= (1.0 + kpert);
-		}
-		else if (fabs(fEigs[1] - fEigs[2]) < kSameRoot)
-		{
-			fEigs[1] *= (1.0 + kpert);
-			fEigs[2] /= (1.0 + kpert);
-			if (fabs(fEigs[1] - fEigs[0]) < kSameRoot)
-				fEigs[1] /= (1.0 + kpert);
-			else if (fabs(fEigs[2] - fEigs[0]) < kSameRoot)
-				fEigs[2] *= (1.0 + kpert);
-		}
-	}
-}

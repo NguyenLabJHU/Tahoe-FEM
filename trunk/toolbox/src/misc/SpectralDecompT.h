@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.h,v 1.3 2001-05-04 19:18:40 paklein Exp $ */
+/* $Id: SpectralDecompT.h,v 1.4 2001-06-07 03:00:28 paklein Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -16,41 +16,93 @@ class SpectralDecompT
 {
 public:
 
-	/* constructor */
+//DEV - soon to be gone
+void SpectralDecomp_new(const dSymMatrixT& rank2, bool perturb_repeated) { SpectralDecomp_Jacobi(rank2, perturb_repeated); };
+void DecompAndModPrep(const dSymMatrixT& rank2, bool perturb_repeated)
+{
+	SpectralDecomp_Jacobi(rank2, perturb_repeated);
+	ModulusPrep(rank2);
+};
+//DEV
+
+	/** constructor. \param nsd number of spatial dimensions */
 	SpectralDecompT(int nsd);
 		
-	/* compute spectral decomposition of rank2
-     * NOTE: Repeated eigenvalues are NOT perturbed */
+	/** spectral decomposition.
+	 * decomposition computed in closed form using Cardano's equations
+     * \param rank2 tensor to decompose 
+     * \param perturb_repeated flag to control perturbation of repeated roots */
 	void SpectralDecomp(const dSymMatrixT& rank2, bool perturb_repeated);
+
+	/** spectral decomposition.
+	 * decomposition computed in closed form using Cardano's equations
+     * \param rank2 tensor to decompose
+     * \param eigs given eigenvalues of rank2
+     * \param perturb_repeated flag to control perturbation of repeated roots */
 	void SpectralDecomp(const dSymMatrixT& rank2, const dArrayT& eigs, bool perturb_repeated);
-	void DecompAndModPrep(const dSymMatrixT& rank2, bool perturb_repeated); //before forming rank4's
 
-	/* compute spectral decomposition (using Jacobi iterations in 3D) */
-	void SpectralDecomp_new(const dSymMatrixT& rank2, bool perturb_repeated);
+	/** spectral decomposition.
+	 * decomposition computed in using Jacobi iterations 
+     * \param rank2 tensor to decompose
+     * \param perturb_repeated flag to control perturbation of repeated roots
+     * after computing the decomposition "exactly" */
+	void SpectralDecomp_Jacobi(const dSymMatrixT& rank2, bool perturb_repeated);
 
-	/* compute the polar decomposition of F = RU, where R^T R = 1 and U = U^T */
+	/** compute the polar decomposition of F = RU.
+	 * \param F given deformation gradient
+	 * \param R rotation tensor satisfying R^T R = 1
+	 * \param U stretching part of the decomposition
+     * \param perturb_repeated flag to control perturbation of repeated roots */
 	void PolarDecomp(const dMatrixT& F, dMatrixT& R, dSymMatrixT& U, bool perturb_repeated);
 
-	/* from last decomposition */
+	/** eigenvalues from the most recent decomposition */
 	const dArrayT& Eigenvalues(void) const;
+
+	/** eigenvectors from the most recent decomposition */
 	const ArrayT<dArrayT>& Eigenvectors(void) const;
-	const dMatrixT& Eigenmatrix(void) const; // eigenvectors in columns
+
+	/** eigenmatrix from the most recent decomposition.
+	 * matrix has eigen vectors in columns */
+	const dMatrixT& Eigenmatrix(void) const;
+
+	/** perturb repeated values.
+	 * \param roots source array must be length 2 or 3
+	 * \return true if any values were perturbed, false otherwise */
+	bool PerturbRepeated(dArrayT& values) const;
+	
+	/** perturb internal roots.
+	 * \return true if roots were perturbed, false otherwise */
+	bool PerturbRoots(void) { return PerturbRepeated(fEigs); };
 
 	/* rank-1 tensors of the principal stretches from last decomp */
 	const dSymMatrixT& Rank1_Principal(int A) const;
 
-	/* return the tensor for the given eigenvalues */
+	/** tensor reconstruction.
+	 * using the eigenvectors from the most recent decomposition
+	 * \param eigs eigenvalues for the reconstruction */
 	const dSymMatrixT& EigsToRank2(const dArrayT& eigs);
+
+	/** tensor reconstruction.
+	 * using the eigenvectors from the most recent decomposition
+	 * \param eigs derivative of eigenvalues for the reconstruction */
 	const dMatrixT& EigsToRank4(const dSymMatrixT& eigs);
 
-	/* principal spatial tensor for eigenvalue A */
+	/** set rank 4 spatial tensor. needed for computing moduli using 
+	 * Simo's spectral formulation. must be called before any call to 
+	 * SpatialTensor and after a spectral decomposition of rank2.
+	 * \param rank2 source tensor */
+	void ModulusPrep(const dSymMatrixT& rank2);
+
+	/** principal spatial tensor.
+	 * \param b source stretch tensor
+	 * \param A eigenvalue number */
 	const dMatrixT& SpatialTensor(const dSymMatrixT& b, int A);
 
 	/* access to fixed forms */
 	const dSymMatrixT& I_rank2() const;
 	const dMatrixT&    I_rank4() const;
 	const dMatrixT&   Ib_rank4() const;
-//NOTE: Ib_rank4 is a misleading name. Is really (I_b - b(x)b)
+	//NOTE: Ib_rank4 is a misleading name. Is really (I_b - b(x)b)
 
 	/* 4th rank mixed index tensor */
 	void Set_I4_Tensor3D(const dSymMatrixT& mat, dMatrixT& rank4);
@@ -82,9 +134,6 @@ private:
 	void SchmidtDecompose(const dSymMatrixT& rank2,
 	                 double l3, dSymMatrixT& n2xn2,
 	                 double l , dSymMatrixT& n0xn0, dSymMatrixT& n1xn1);
-
-	/* function to perturb repeated roots */
-	void PerturbRepeated(dArrayT& roots);
 
 protected:
 	
