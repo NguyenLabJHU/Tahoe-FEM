@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.28 2002-03-21 19:30:41 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.29 2002-03-25 16:11:42 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -28,7 +28,6 @@ ContactElementT::ContactElementT
     ElementBaseT(fe_manager),
     LHS(ElementMatrixT::kNonSymmetric),
     tmp_LHS(ElementMatrixT::kNonSymmetric),
-    opp_LHS(ElementMatrixT::kNonSymmetric),
     fContactSearch(NULL),
     fXDOF_Nodes(NULL)
 {
@@ -43,7 +42,6 @@ ContactElementT::ContactElementT
     fXDOF_Nodes(xdof_nodes),
     LHS(ElementMatrixT::kNonSymmetric),
     tmp_LHS(ElementMatrixT::kNonSymmetric),
-    opp_LHS(ElementMatrixT::kNonSymmetric),
     fContactSearch(NULL)
 {
     fNumEnfParameters = num_enf_params;
@@ -119,21 +117,25 @@ void ContactElementT::SetWorkspace(void)
    	RHS_man.SetWard    (kMaxNumFaceDOF,RHS);
    	tmp_RHS_man.SetWard(kMaxNumFaceDOF,tmp_RHS);
    	LHS_man.SetWard    (kMaxNumFaceDOF,LHS);
-   	opp_LHS_man.SetWard(kMaxNumFaceDOF,opp_LHS);
    	tmp_LHS_man.SetWard(kMaxNumFaceDOF,tmp_LHS);
    	N1_man.SetWard     (kMaxNumFaceDOF,N1);
    	N2_man.SetWard     (kMaxNumFaceDOF,N2);
    	N1n_man.SetWard    (kMaxNumFaceDOF,N1n);
    	N2n_man.SetWard    (kMaxNumFaceDOF,N2n);
-   	eqnums_man.SetWard (kMaxNumFaceDOF,eqnums,fNumSD);
-   	opp_eqnums_man.SetWard(kMaxNumFaceDOF,opp_eqnums,fNumSD);
+   	eqnums1_man.SetWard(kMaxNumFaceDOF,eqnums1,fNumSD);
+   	eqnums2_man.SetWard(kMaxNumFaceDOF,eqnums2,fNumSD);
    	weights_man.SetWard(kMaxNumFaceNodes,weights);
 	
 	if (fXDOF_Nodes) {
-	P1_man.SetWard     (kMaxNumFaceNodes,P1);
-	P2_man.SetWard     (kMaxNumFaceNodes,P2);
-	xRHS_man.SetWard   (kMaxNumFaceNodes,xRHS);
-   	xeqnums_man.SetWard(kMaxNumFaceDOF,xeqnums,fNumMultipliers);
+	P1_man.SetWard     (kMaxNumFaceNodes*fNumMultipliers,P1);
+	P2_man.SetWard     (kMaxNumFaceNodes*fNumMultipliers,P2);
+	P1values_man.SetWard(kMaxNumFaceNodes*fNumMultipliers,P1values);
+	P2values_man.SetWard(kMaxNumFaceNodes*fNumMultipliers,P2values);
+	xRHS_man.SetWard   (kMaxNumFaceNodes*fNumMultipliers,xRHS);
+   	xeqnums1_man.SetWard(kMaxNumFaceDOF,xeqnums1,fNumMultipliers);
+   	xeqnums2_man.SetWard(kMaxNumFaceDOF,xeqnums2,fNumMultipliers);
+   	xconn1_man.SetWard(kMaxNumFaceDOF,xconn1);
+   	xconn2_man.SetWard(kMaxNumFaceDOF,xconn2);
 	}
 }
 
@@ -217,9 +219,6 @@ void ContactElementT::GenerateElementData(void)
 		/* hand off location of multipliers */
 		const dArray2DT& multipliers = fNodes->XDOF(this, i);
 		fSurfaces[i].AliasMultipliers(multipliers);
-
-		/* set multiplier connectivity on faces */
-		fSurfaces[i].SetMultiplierConnectivity();
 
 		/* form potential connectivity for step */
  		fSurfaces[i].SetPotentialConnectivity();

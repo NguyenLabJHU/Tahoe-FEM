@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.21 2002-03-18 19:24:23 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.22 2002-03-25 16:11:42 rjones Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -153,13 +153,13 @@ protected:
 	VariArrayT<double> RHS_man;
 	dArrayT tmp_RHS;
 	VariArrayT<double> tmp_RHS_man;
+	dArrayT xRHS;
+    VariArrayT<double> xRHS_man;
 	/* stiffness */
 	ElementMatrixT LHS; //should be using fLHS
 	nVariMatrixT <double> LHS_man;
 	ElementMatrixT tmp_LHS; //should be using fLHS
 	nVariMatrixT <double> tmp_LHS_man;
-	ElementMatrixT opp_LHS;
-	nVariMatrixT <double> opp_LHS_man;
 	/* shape functions */
 	dMatrixT N1;
 	nVariMatrixT<double> N1_man;
@@ -175,19 +175,27 @@ protected:
 	/* integration points */
 	dArray2DT points; // Maybe should be a pointer and const
 	/* equation numbers */
-	iArray2DT eqnums;
-	nVariArray2DT<int> eqnums_man;
-	iArray2DT opp_eqnums;
-	nVariArray2DT<int> opp_eqnums_man;
-	iArray2DT xeqnums;
-	nVariArray2DT<int> xeqnums_man;
+	iArray2DT eqnums1;
+	nVariArray2DT<int> eqnums1_man;
+	iArray2DT eqnums2;
+	nVariArray2DT<int> eqnums2_man;
+	iArrayT xconn1;
+	VariArrayT<int> xconn1_man;
+	iArrayT xconn2;
+	VariArrayT<int> xconn2_man;
+	iArray2DT xeqnums1;
+	nVariArray2DT<int> xeqnums1_man;
+	iArray2DT xeqnums2;
+	nVariArray2DT<int> xeqnums2_man;
 	/* pressure interpolations */
 	dMatrixT P1;
     nVariMatrixT<double> P1_man;
     dMatrixT P2;
     nVariMatrixT<double> P2_man;
-	dArrayT xRHS;
-    VariArrayT<double> xRHS_man;
+	ArrayT<double*> P1values;
+    VariArrayT<double*> P1values_man;
+    ArrayT<double*> P2values;
+    VariArrayT<double*> P2values_man;
 
 
 

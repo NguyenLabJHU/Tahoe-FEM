@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.18 2001-09-19 15:27:15 rjones Exp $ */
+/* $Id: FaceT.h,v 1.19 2002-03-25 16:11:42 rjones Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
@@ -64,6 +64,9 @@ public:
 		double* x) const =0;
 	virtual double Interpolate
 		(const double* local_coordinates, dArrayT& nodal_values) 
+		const =0;
+	virtual double Interpolate
+		(const double* local_coordinates, ArrayT<double*>& nodal_values) 
 		const =0;
 	virtual void InterpolateVector
 		(const double* local_coordinates, dArray2DT& nodal_vectors, 

@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.17 2002-03-18 19:24:23 rjones Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.18 2002-03-25 16:11:42 rjones Exp $ */
 
 
 #ifndef _CONTACT_SURFACE_T_H_
@@ -35,9 +35,6 @@ class ContactSurfaceT : public SurfaceT
 	/* allocate contact node array */
 	void Initialize(const NodeManagerT* node_manager, int num_multipliers);
 
-	/* multiplier connectivities */
-	void SetMultiplierConnectivity(void);
-
 	/* potential connectivities based on growing/sliding contact */
 	void SetPotentialConnectivity(void);
 
@@ -72,9 +69,9 @@ class ContactSurfaceT : public SurfaceT
 	void AllocateMultiplierTags(void);
 	void ResetMultipliers(dArray2DT& multiplier_values);
 	void MultiplierTags
-		(const iArrayT& local_nodes, iArrayT& multiplier_tags);
+		(const iArrayT& local_nodes, iArrayT& multiplier_tags) const;
 	void MultiplierValues
-		(const iArrayT& local_nodes, ArrayT<double*>& multiplier_values);
+		(const iArrayT& local_nodes, ArrayT<double*>& multiplier_values) const;
 	iArray2DT& DisplacementMultiplierNodePairs(void);
 	inline bool HasMultiplier(int i) 
 		{return fMultiplierMap[i] > -1;} 

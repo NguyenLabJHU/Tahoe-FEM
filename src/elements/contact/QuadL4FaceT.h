@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.h,v 1.14 2001-08-06 20:55:13 rjones Exp $ */
+/* $Id: QuadL4FaceT.h,v 1.15 2002-03-25 16:11:43 rjones Exp $ */
 
 #ifndef _QUADL4_FACE_T_H_
 #define _QUADL4_FACE_T_H_
@@ -61,8 +61,9 @@ public:
         void InterpolatePosition
                 (const double* local_coordinates, double* x) const;
         double Interpolate 
-		(const double* local_coordinates, dArrayT& nodal_values)
-		const;
+		(const double* local_coordinates, dArrayT& nodal_values) const;
+        double Interpolate
+        (const double* local_coordinates, ArrayT<double*>& nodal_values) const ;
         void InterpolateVector 
 		(const double* local_coordinates, dArray2DT& nodal_values, 
 		double* vector) const;

@@ -1,4 +1,4 @@
-/* $Id: LineQ3FaceT.cpp,v 1.6 2001-09-19 15:27:15 rjones Exp $ */
+/* $Id: LineQ3FaceT.cpp,v 1.7 2002-03-25 16:11:42 rjones Exp $ */
 
 #include "LineQ3FaceT.h"
 
@@ -209,6 +209,19 @@ const
         double value = shape_f[0]*nodal_values[0]
                      + shape_f[1]*nodal_values[1] 
                      + shape_f[2]*nodal_values[2];
+	return value;
+}
+
+double
+LineQ3FaceT::Interpolate
+(const double* local_coordinates, ArrayT<double*>& nodal_values)
+const
+{
+	dArrayT shape_f(3);
+        ComputeShapeFunctions (local_coordinates, shape_f);
+        double value = shape_f[0]*(*nodal_values[0])
+                     + shape_f[1]*(*nodal_values[1]) 
+                     + shape_f[2]*(*nodal_values[2]);
 	return value;
 }
 

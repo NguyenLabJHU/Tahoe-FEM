@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.21 2001-09-19 15:27:15 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.22 2002-03-25 16:11:42 rjones Exp $ */
 
 #include "LineL2FaceT.h"
 
@@ -122,13 +122,26 @@ void
 LineL2FaceT::ComputeShapeFunctions
 (const double* local_coordinates, dMatrixT& shape_functions) const
 {
+// Move this to ContactElement ??
 	shape_functions = 0.0;
 	dArrayT shape_f(2);
 	ComputeShapeFunctions(local_coordinates, shape_f);
+	int i = 0, j, k = 0;
+	if (shape_functions.Rows()%shape_functions.Cols() != 0
+	 || shape_functions.Rows()/shape_functions.Cols() != 2) 
+		throw eGeneralFail;
+	while (i < shape_functions.Rows()) {
+		for (j = 0; j < shape_functions.Cols(); j++) {
+			shape_functions(i++,j) = shape_f[k];
+		}
+		k++;
+	}
+#if 0
         shape_functions(0,0) = shape_f[0];
         shape_functions(1,1) = shape_f[0];
         shape_functions(2,0) = shape_f[1];
         shape_functions(3,1) = shape_f[1];
+#endif
 }
 
 void
@@ -179,6 +192,19 @@ LineL2FaceT::Interpolate
                      + shape_f[1]*nodal_values[1];
 	return value;
 }
+
+double
+LineL2FaceT::Interpolate
+(const double* local_coordinates, ArrayT<double*>& nodal_values) const
+{
+    dArrayT shape_f(2);
+        ComputeShapeFunctions (local_coordinates, shape_f);
+        double value = shape_f[0]*(*nodal_values[0])
+                     + shape_f[1]*(*nodal_values[1]);
+    return value;
+}
+
+
 
 void
 LineL2FaceT::InterpolateVector

@@ -1,4 +1,4 @@
-/* $Id: LineQ3FaceT.h,v 1.2 2001-08-06 20:55:13 rjones Exp $ */
+/* $Id: LineQ3FaceT.h,v 1.3 2002-03-25 16:11:42 rjones Exp $ */
 
 #ifndef _LINEQ3_FACE_T_H_
 #define _LINEQ3_FACE_T_H_
@@ -60,6 +60,8 @@ public:
                 (const double* local_coordinates, double* x) const;
         double Interpolate 
 		(const double* local_coordinates, dArrayT& nodal_values) const;
+	    double Interpolate
+        (const double* local_coordinates, ArrayT<double*>& nodal_values) const ;
         void InterpolateVector 
 		(const double* local_coordinates, dArray2DT& nodal_vectors, 
 		double* vector) const;

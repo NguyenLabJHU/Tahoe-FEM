@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.cpp,v 1.18 2002-01-06 06:58:36 cbhovey Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.19 2002-03-25 16:11:42 rjones Exp $ */
 
 #include "ContactSearchT.h"
 
@@ -188,10 +188,11 @@ bool ContactSearchT::UpdateProjection (void)
 				  }
 			}
 			if (!found) node->ResetStatus();
-			if (!found) cout << "Warning :"
+			if (!found) cout << "Warning : "
 				<< surface.GlobalNodes()[j]
-				<< " node that had a projection "
-				<< " has none now....\n";
+				<< " node lost projection during iteration, "
+				<< " a smaller step may be req'd \n";
+
             }
         }
   }

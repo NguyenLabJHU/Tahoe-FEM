@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.19 2002-03-18 19:24:23 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.20 2002-03-25 16:11:42 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
@@ -49,18 +49,6 @@ ContactSurfaceT::Initialize
 	}
 }
 
-void
-ContactSurfaceT::SetMultiplierConnectivity(void)
-{
-#if 0
-    ContactFaceT* face = NULL;
-    for (int i = 0; i < fContactFaces.Length(); i++){
-        face = fContactFaces[i];
-        face->SetMultiplierConnectivity();
-        face->LinkMultiplierValues();
-    }
-#endif
-}
 
 void 
 ContactSurfaceT::SetPotentialConnectivity(void)
@@ -377,7 +365,7 @@ ContactSurfaceT::ResetMultipliers(dArray2DT& multiplier_values)
 
 void
 ContactSurfaceT::MultiplierTags
-(const iArrayT& local_nodes, iArrayT& multiplier_tags)
+(const iArrayT& local_nodes, iArrayT& multiplier_tags) const
 {
 	for (int i = 0; i < local_nodes.Length(); i++)
 	{
@@ -388,7 +376,7 @@ ContactSurfaceT::MultiplierTags
 
 void
 ContactSurfaceT::MultiplierValues
-(const iArrayT& local_nodes, ArrayT<double*>& multiplier_values)
+(const iArrayT& local_nodes, ArrayT<double*>& multiplier_values) const
 {
     for (int i = 0; i < local_nodes.Length(); i++)
     {

@@ -1,4 +1,4 @@
-/* $Id: TriaL3FaceT.h,v 1.3 2002-03-18 23:29:31 rjones Exp $ */
+/* $Id: TriaL3FaceT.h,v 1.4 2002-03-25 16:11:43 rjones Exp $ */
 
 #ifndef _TRIAL3_FACE_T_H_
 #define _TRIAL3_FACE_T_H_
@@ -61,8 +61,9 @@ public:
         void InterpolatePosition
                 (const double* local_coordinates, double* x) const;
         double Interpolate 
-		(const double* local_coordinates, dArrayT& nodal_values)
-		const;
+		(const double* local_coordinates, dArrayT& nodal_values) const;
+        double Interpolate
+        (const double* local_coordinates, ArrayT<double*>& nodal_values) const ;
         void InterpolateVector 
 		(const double* local_coordinates, dArray2DT& nodal_values, 
 		double* vector) const;

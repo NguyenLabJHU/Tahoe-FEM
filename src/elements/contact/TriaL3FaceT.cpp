@@ -1,4 +1,4 @@
-/* $Id: TriaL3FaceT.cpp,v 1.4 2002-03-22 01:44:57 rjones Exp $ */
+/* $Id: TriaL3FaceT.cpp,v 1.5 2002-03-25 16:11:43 rjones Exp $ */
 
 #include "TriaL3FaceT.h"
 
@@ -136,6 +136,20 @@ const
                      + shape_f[2]*nodal_values[2] ;
         return value;
 }
+
+double
+TriaL3FaceT::Interpolate
+(const double* local_coordinates, ArrayT<double*>& nodal_values)
+const
+{
+        dArrayT shape_f(3);
+        ComputeShapeFunctions (local_coordinates, shape_f);
+        double value = shape_f[0]*(*nodal_values[0])
+                     + shape_f[1]*(*nodal_values[1])
+                     + shape_f[2]*(*nodal_values[2]) ;
+        return value;
+}
+
 
 void
 TriaL3FaceT::InterpolateVector

@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.h,v 1.16 2001-09-24 20:37:25 rjones Exp $ */
+/* $Id: LineL2FaceT.h,v 1.17 2002-03-25 16:11:42 rjones Exp $ */
 
 #ifndef _LINEL2_FACE_T_H_
 #define _LINEL2_FACE_T_H_
@@ -59,8 +59,9 @@ public:
 	void InterpolatePosition 
 		(const double* local_coordinates, double* x) const;
 	double Interpolate 
-		(const double* local_coordinates, dArrayT& nodal_values) 
-		const;
+		(const double* local_coordinates, dArrayT& nodal_values) const;
+    double Interpolate
+        (const double* local_coordinates, ArrayT<double*>& nodal_values) const;
 	void InterpolateVector 
 		(const double* local_coordinates, dArray2DT& nodal_vectors, 
 		double* vector) const;

@@ -41,6 +41,38 @@ void MultiplierContactElement2DT::WriteOutput(IOBaseT::OutputModeT mode)
 void MultiplierContactElement2DT::PrintControlData(ostream& out) const
 {
 	ContactElementT::PrintControlData(out);
+    /* write out search parameter matrix */
+    out << " Interaction parameters ............................\n";
+    int num_surfaces = fSearchParameters.Rows();
+    for (int i = 0; i < num_surfaces ; i++)
+    {
+        for (int j = i ; j < num_surfaces ; j++)
+        {
+            dArrayT& search_parameters = fSearchParameters(i,j);
+            dArrayT& enf_parameters = fEnforcementParameters(i,j);
+            /* only print allocated parameter arrays */
+            if (search_parameters.Length() == kSearchNumParameters) {
+              out << "  surface pair: ("  << i << "," << j << ")\n" ;
+              out << "  gap tolerance:      "
+                    << search_parameters[kGapTol] << '\n';
+              out << "  xi tolerance :      "
+                    << search_parameters[kXiTol] << '\n';
+			  out << "  pass flag    :      "
+                    << (int) search_parameters[kPass] << '\n';
+              out << "  consistent tangent: "
+                    << (int) enf_parameters[kConsistentTangent] << '\n';
+              out << "  penalty :           "
+                    << enf_parameters[kPenalty] << '\n';
+              out << "  gap scale :         "
+                    << enf_parameters[kGScale] << '\n';
+              out << "  pressure scale:     "
+                    << enf_parameters[kPScale] << '\n';
+              out << "  pressure tolerance: "
+                    << enf_parameters[kTolP] << '\n';
+			}
+		}
+	}
+
 }
 
 /* called before LHSDriver during iteration process */
@@ -49,17 +81,17 @@ void MultiplierContactElement2DT::SetStatus(void)
   int opp_surf_tag;
   for(int surf_tag = 0; surf_tag < fSurfaces.Length(); surf_tag++) {
 	ContactSurfaceT& surface = fSurfaces[surf_tag];
-	surface.PrintMultipliers(cout);
 	ArrayT<ContactNodeT*>& nodes = surface.ContactNodes();
 	for(int n = 0; n < nodes.Length(); n++){	
 		ContactNodeT* node = nodes[n];
+		node->EnforcementStatus() = kNoP;//initialize
 		if (node->HasMultiplier()){
 			double& pre = node->Pressure(); 
-			if (node->HasProjection()){
-				opp_surf_tag = node->OpposingFace()->Surface().Tag();
+			if (node->HasProjection() ){
+				opp_surf_tag = node->OpposingSurface()->Tag();
+				dArrayT& parameters 
+					= fEnforcementParameters(surf_tag,opp_surf_tag);
 				int ipass = PassType(surf_tag,opp_surf_tag);
-				dArrayT& parameters = 
-				fEnforcementParameters(surf_tag,opp_surf_tag);
 				double tolP = parameters[kTolP];
 				if (ipass == kSecondary) { /* pressure collocation */
 					node->EnforcementStatus() = kPJump;	
@@ -75,10 +107,10 @@ void MultiplierContactElement2DT::SetStatus(void)
 					node->EnforcementStatus() = kPZero;	
 			}
 		}
-		else {
-			node->EnforcementStatus() = kNoP;	
-		}
 	}
+// DEBUG
+	surface.PrintMultipliers(cout);
+	surface.PrintStatus(cout);
   }
 }
 
@@ -93,6 +125,7 @@ void MultiplierContactElement2DT::RHSDriver(void)
 
   bool elem_in_contact = 0;
   int opp_surf_tag=-1, status=-1;
+  int num_nodes;
   ContactNodeT* node;
   double gap, pen, pre, opp_pre=0.0;
 
@@ -101,25 +134,24 @@ void MultiplierContactElement2DT::RHSDriver(void)
 	/* all faces on a surface the same size */
 	const ArrayT<FaceT*>& faces = surface.Faces();
 	const ArrayT<ContactNodeT*>& nodes = surface.ContactNodes();
-	RHS_man.SetLength(surface.NumNodesPerFace()*fNumSD,false);
-	xRHS_man.SetLength(surface.NumNodesPerFace()*fNumMultipliers,false);
-	tmp_RHS_man.SetLength(surface.NumNodesPerFace()*fNumSD,false);
-	N1_man.SetDimensions(surface.NumNodesPerFace()*fNumSD,fNumSD);
-	P1_man.SetDimensions(surface.NumNodesPerFace(),fNumMultipliers);
-	weights_man.SetLength(surface.NumNodesPerFace(),false);
-	eqnums_man.SetMajorDimension(surface.NumNodesPerFace(),false);
-	xeqnums_man.SetMajorDimension(surface.NumNodesPerFace(),false);
+	num_nodes = surface.NumNodesPerFace();
+	RHS_man.SetLength(num_nodes*fNumSD,false);
+	xRHS_man.SetLength(num_nodes*fNumMultipliers,false);
+	tmp_RHS_man.SetLength(num_nodes*fNumSD,false);
+	N1_man.SetDimensions(num_nodes*fNumSD,fNumSD);
+	P1_man.SetDimensions(num_nodes,fNumMultipliers);
+	weights_man.SetLength(num_nodes,false);
+	eqnums1_man.SetMajorDimension(num_nodes,false);
+	xeqnums1_man.SetMajorDimension(num_nodes,false);
+	xconn1_man.SetLength(num_nodes,false);
 		
 	/*form residual for this surface */
 	for (int f = 0;  f < faces.Length(); f++) {
 		const FaceT* face = faces[f];
 		face->Quadrature(points,weights);
 		/* primary face */
-		const iArrayT& conn = face->GlobalConnectivity();
-#if 0
-		const iArrayT& xconn = face->XConnectivity();
-#endif
-        iArrayT xconn;
+		const iArrayT& conn1 = face->GlobalConnectivity();
+		surface.MultiplierTags(face->Connectivity(),xconn1);
 
 		RHS = 0.0;
 		elem_in_contact = 0;
@@ -130,52 +162,56 @@ void MultiplierContactElement2DT::RHSDriver(void)
 			status = node->EnforcementStatus();
 			if (status > kNoP )  {
 				elem_in_contact = 1;
-				opp_surf_tag = node->OpposingFace()->Surface().Tag();
+				const ContactSurfaceT* opp_surf = node->OpposingSurface();
+				opp_surf_tag = opp_surf->Tag();
 				dArrayT& parameters = 
 				fEnforcementParameters(surf_tag,opp_surf_tag);
+
+/* BLM: U dof on primary surface  -------------------------------------*/
 				if (status == kGapZero || status == kPJump){
 					/* pressure */
 					pre = node->Pressure() ;
 					/* gap */
 					gap = node->Gap();
-					/* pressure =  penalty + Lagrange multiplier */
+					/* pressure =  Lagrange multiplier + penalty */
 					if (status == kGapZero) 
 						{ pre += parameters[kPenalty]*gap;}
-
-					/* BLM */
 					face->ComputeShapeFunctions(points(i),N1);
-					//n1.Set(fNumSD,(double*) node->Normal());
 					for (int j =0; j < fNumSD; j++) {n1[j] = node->Normal()[j];}
 					N1.Multx(n1, tmp_RHS);
 					tmp_RHS.SetToScaled(pre*weights[i], tmp_RHS);
 					RHS += tmp_RHS;
 				}
 
-				/* Constraint */
+/* Constraint : X dof on primary surface ----------------------------- */
 				face->ComputeShapeFunctions(points(i),P1);
 				if (status == kGapZero) {
 					P1.SetToScaled(gap*parameters[kGScale], P1);
 				}
 				else if (status == kPJump) {
 					/* calculate pressure on opposing face */
-#if 0
+					const double* opp_xi  = node->OpposingLocalCoordinates();
+					P2values_man.SetLength(opp_surf->
+						NumNodesPerFace()*fNumMultipliers,false);
+					opp_surf->MultiplierValues(
+						node->OpposingFace()->Connectivity(),P2values);	
 					opp_pre = node->OpposingFace()->
-						Interpolate(node->OpposingLocalCoordinates(),pvalues);
-#endif
-					P1.SetToScaled((pre-opp_pre)*parameters[kPScale], P1);
+						Interpolate(opp_xi,P2values);
+					double pj = node->Pressure() - opp_pre;
+					P1.SetToScaled(pj*parameters[kPScale], P1);
 				}
 				else if (status == kPZero) {
-					P1.SetToScaled(pre*parameters[kPScale], P1);
+					P1.SetToScaled(node->Pressure()*parameters[kPScale], P1);
 				}
 				xRHS += P1;
 			}
 		} 
 		/* assemble */
 		if (elem_in_contact) {
-			ElementBaseT::fNodes-> SetLocalEqnos(conn, eqnums);
-			fFEManager.AssembleRHS(RHS, eqnums);
-			ElementBaseT::fNodes-> SetLocalEqnos(xconn, xeqnums);
-			fFEManager.AssembleRHS(xRHS, xeqnums);
+			ElementBaseT::fNodes-> SetLocalEqnos(conn1, eqnums1);
+			fFEManager.AssembleRHS(RHS, eqnums1);
+			ElementBaseT::fNodes-> XDOF_SetLocalEqnos(xconn1, xeqnums1);
+			fFEManager.AssembleRHS(xRHS, xeqnums1);
 		}
 	}
   }
@@ -183,15 +219,11 @@ void MultiplierContactElement2DT::RHSDriver(void)
 
 void MultiplierContactElement2DT::LHSDriver(void)
 { /* form STIFFNESS */
-  /* del g =  (n1.N2 * del u2 -  n1.N1 * del u1) */
-  /* primary (X) primary block */
-  /* primary (X) secondary block */
-
-  bool in_contact;
-  int consistent;
-  int opp_num_nodes;
+  bool elem_in_contact = 0;
+  int opp_surf_tag=-1, status=-1;
+  int consistent, num_nodes, opp_num_nodes;
   ContactNodeT* node;
-  double pen, pre, dpre_dg, gap;
+  double sfac, gap;
   dArrayT l1;
   l1.Allocate(fNumSD);
   double lm2[3];
@@ -211,118 +243,175 @@ void MultiplierContactElement2DT::LHSDriver(void)
   double alpha;
 
 
-  for(int s = 0; s < fSurfaces.Length(); s++) {
-	ContactSurfaceT& surface = fSurfaces[s];
+  for(int surf_tag = 0; surf_tag < fSurfaces.Length(); surf_tag++) {
+	ContactSurfaceT& surface = fSurfaces[surf_tag];
 	/* all faces on a surface the same size */
 	const ArrayT<FaceT*>& faces = surface.Faces();
 	const ArrayT<ContactNodeT*>& nodes = surface.ContactNodes();
-	LHS_man.SetDimensions(surface.NumNodesPerFace()*fNumSD);
-	tmp_LHS_man.SetDimensions(surface.NumNodesPerFace()*fNumSD);
-	N1_man.SetDimensions(surface.NumNodesPerFace()*fNumSD,fNumSD);
-	N1n_man.SetLength(surface.NumNodesPerFace()*fNumSD,false);
+	num_nodes = surface.NumNodesPerFace();
+	LHS_man.SetDimensions(num_nodes*fNumSD);
+	N1_man.SetDimensions(num_nodes*fNumSD,fNumSD);
+	N1n_man.SetLength(num_nodes*fNumSD,false);
 	//if consistent
-	N1nl_man.SetLength(surface.NumNodesPerFace()*fNumSD,false);
-	T1_man.SetDimensions(surface.NumNodesPerFace()*fNumSD,fNumSD);
-	T1n_man.SetLength(surface.NumNodesPerFace()*fNumSD,false);
-	weights_man.SetLength(surface.NumNodesPerFace(),false);
-	eqnums_man.SetMajorDimension(surface.NumNodesPerFace(),false);
+	N1nl_man.SetLength(num_nodes*fNumSD,false);
+	T1_man.SetDimensions(num_nodes*fNumSD,fNumSD);
+	T1n_man.SetLength(num_nodes*fNumSD,false);
+	weights_man.SetLength(num_nodes,false);
+	eqnums1_man.SetMajorDimension(num_nodes,false);
+	xeqnums1_man.SetMajorDimension(num_nodes,false);
 
 	/* form stiffness */
 	for (int f = 0;  f < faces.Length(); f++) {
-		const FaceT* face = faces[f];
-		face->Quadrature(points,weights);
 		/* primary face */
-		const iArrayT& conn = face->GlobalConnectivity();
+		const FaceT* face = faces[f];
+		const iArrayT& conn1 = face->GlobalConnectivity();
+		surface.MultiplierTags(face->Connectivity(),xconn1);
+		ElementBaseT::fNodes-> XDOF_SetLocalEqnos(xconn1, xeqnums1);
+		face->Quadrature(points,weights);
 		/* get equation numbers */
-		ElementBaseT::fNodes-> SetLocalEqnos(conn, eqnums);
+		ElementBaseT::fNodes-> SetLocalEqnos(conn1, eqnums1);
 		LHS = 0.0;
-		in_contact = 0;
+		elem_in_contact = 0;
 		/*loop over (nodal) quadrature points */
 		/*NOTE: these CORRESPOND to local node numbers */
 		for (int i = 0 ; i < weights.Length() ; i++) {
 			node = nodes[face->Node(i)];
-			if (node->OpposingFace()
-			&& node->Status() != ContactNodeT::kNoProjection
-			&& fEnforcementParameters(s,
-			node->OpposingFace()->Surface().Tag()).Length() !=0) {
-				in_contact = 1;
-				gap =  node->Gap();
-				face->ComputeShapeFunctions(points(i),N1);
-				dArrayT& parameters =
-				fEnforcementParameters(s,
-				node->OpposingFace()->Surface().Tag());
-
-				pen = parameters[kPenalty];
-				pre = pen*gap; 
-				dpre_dg = pen;
-
-				consistent = (int) parameters[kConsistentTangent];
+			status = node->EnforcementStatus();
+			if (status > kNoP )  {
+				elem_in_contact = 1;
+				gap = node->Gap();
 				const FaceT* opp_face = node->OpposingFace();
-				opp_num_nodes = opp_face->NumNodes();
-				N2_man.SetDimensions(opp_num_nodes*fNumSD,fNumSD);
-				N2n_man.SetLength(opp_num_nodes*fNumSD,false);
-				opp_LHS_man.SetDimensions(opp_num_nodes*fNumSD);
-				opp_eqnums_man.SetMajorDimension(opp_num_nodes,false);
+                const double* opp_xi  = node->OpposingLocalCoordinates();
+				const ContactSurfaceT* opp_surf = node->OpposingSurface();
+				opp_surf_tag = opp_surf->Tag();
+				dArrayT& parameters =
+                	fEnforcementParameters(surf_tag,opp_surf_tag);
+				consistent = (int) parameters[kConsistentTangent];
+				sfac = parameters[kPenalty];
 
-				const iArrayT& opp_conn = 
-					opp_face->GlobalConnectivity();
-				opp_face->ComputeShapeFunctions
-					(node->OpposingLocalCoordinates(),N2);
-				// n1.Set(fNumSD,node->Normal());
-				for (int j =0; j < fNumSD; j++) {n1[j] = node->Normal()[j];}
-				N1.Multx(n1, N1n);
-				if (consistent) {
-					//l1.Set(fNumSD,node->Tangent1());
-					for (int j =0; j < fNumSD; j++) {l1[j] = node->Tangent1()[j];}
-					node->OpposingFace()->ComputeTangent1(points(i),lm2);
-					alpha = Dot(node->Normal(),lm2) / Dot(l1.Pointer(),  lm2);
-					for (int j =0; j < fNumSD; j++) 
-						{n1alphal1[j] = n1[j] - alpha*l1[j];}
-				}
-				N2.Multx(n1, N2n); 
+				/* pressure shape function matrix */
+				face->ComputeShapeFunctions(points(i),P1);
 
-				/* N1n (x) D g */
-				/* Part:  dx1 (x) dx2 */
-				opp_LHS.Outer(N1n, N2n);
-				opp_LHS.SetToScaled(-dpre_dg*weights[i], opp_LHS);
+/* BLM ============================================================= */
+/* K =  N1n (x) { P1 + pen (n1.N2 * D u2 -  n1.N1 * D u1) }  */
+                if (status == kGapZero || status == kPJump){
+					face->ComputeShapeFunctions(points(i),N1);				
+					for (int j =0; j < fNumSD; j++) {n1[j] = node->Normal()[j];}
+					N1.Multx(n1, N1n);
 
-				/* get equation numbers */
-				ElementBaseT::fNodes-> SetLocalEqnos(opp_conn, opp_eqnums);
-				/* assemble primary-secondary face stiffness */
-				fFEManager.AssembleLHS(opp_LHS, eqnums,opp_eqnums);
+/* primary U (X) primary   P block */
+					tmp_LHS_man.SetDimensions
+						(num_nodes*fNumSD,num_nodes*fNumMultipliers);
+					tmp_LHS.Outer(N1n, P1);
+					fFEManager.AssembleLHS(tmp_LHS, eqnums1,xeqnums1);
 
-				/* Part:  dx1 (x) dx1 */
-				if (consistent) {
-					N1.Multx(n1alphal1, N1nl);
-					tmp_LHS.Outer(N1n, N1nl);
-					tmp_LHS.SetToScaled(dpre_dg*weights[i], tmp_LHS);
-					LHS += tmp_LHS;
+                	if (status == kGapZero){
+						/* get connectivity */
+						const iArrayT& conn2 = opp_face->GlobalConnectivity();
+						/* set-up */
+						opp_num_nodes = opp_face->NumNodes();
+						N2_man.SetDimensions(opp_num_nodes*fNumSD,fNumSD);
+						N2n_man.SetLength(opp_num_nodes*fNumSD,false);
+						eqnums2_man.SetMajorDimension(opp_num_nodes,false);
+						/* kinematic quantities */
+						gap =  node->Gap();
+						opp_face->ComputeShapeFunctions (opp_xi,N2);
+						N2.Multx(n1, N2n); 
 
-					face->ComputeShapeFunctionDerivatives(points(i),T1);
-					double jac = face->ComputeJacobian(points(i));
+/* primary U (X) secondary U block */
+						tmp_LHS_man.SetDimensions
+							(num_nodes*fNumSD,opp_num_nodes*fNumSD);
+						tmp_LHS.Outer(N1n, N2n);
+						tmp_LHS.SetToScaled(-sfac*weights[i], tmp_LHS);
 
-					T1.Multx(n1, T1n);
-					tmp_LHS.Outer(N1n, T1n);
-					tmp_LHS.SetToScaled(pre*alpha*weights[i]/jac, tmp_LHS);
-					LHS += tmp_LHS;
+						/* get equation numbers */
+						ElementBaseT::fNodes-> SetLocalEqnos(conn2, eqnums2);
+						/* assemble primary-secondary face stiffness */
+						fFEManager.AssembleLHS(tmp_LHS, eqnums1,eqnums2);
 
-					T1.MultAB(T1,Perm);
-					tmp_LHS.MultABT(N1, T1);
-					tmp_LHS.SetToScaled(-pre*weights[i], tmp_LHS);
-					LHS += tmp_LHS;
+/* primary U (X) primary   U block */
+						if (consistent) { 
+							tmp_LHS_man.SetDimensions
+								(num_nodes*fNumSD,num_nodes*fNumSD);
+							for (int j =0; j < fNumSD; j++) 
+								{l1[j] = node->Tangent1()[j];}
+							opp_face->ComputeTangent1(points(i),lm2);
+							alpha = Dot(node->Normal(),lm2) 
+							      / Dot(l1.Pointer(),lm2);
+							for (int j =0; j < fNumSD; j++) 
+								{n1alphal1[j] = n1[j] - alpha*l1[j];}
+							N1.Multx(n1alphal1, N1nl);
+							tmp_LHS.Outer(N1n, N1nl);
+							tmp_LHS.SetToScaled(sfac*weights[i], tmp_LHS);
+							LHS += tmp_LHS;
 
-				} else {
-					tmp_LHS.Outer(N1n, N1n);
-					tmp_LHS.SetToScaled(dpre_dg*weights[i], tmp_LHS);
-					LHS += tmp_LHS;
-				}
+							face->ComputeShapeFunctionDerivatives(points(i),T1);
+							double jac = face->ComputeJacobian(points(i));
+
+							T1.Multx(n1, T1n);
+							tmp_LHS.Outer(N1n, T1n);
+							tmp_LHS.SetToScaled
+								(sfac*gap*alpha*weights[i]/jac, tmp_LHS);
+							LHS += tmp_LHS;
+
+							T1.MultAB(T1,Perm);
+							tmp_LHS.MultABT(N1, T1);
+							tmp_LHS.SetToScaled(-sfac*gap*weights[i], tmp_LHS);
+							LHS += tmp_LHS;
+
+						} else {
+							LHS.Outer(N1n, N1n);
+							LHS.SetToScaled(sfac*weights[i], LHS);
+						}
+						fFEManager.AssembleLHS(LHS, eqnums1);
+					}
+				} 
+/* Constraint ====================================================== */
+                if (status == kGapZero) {
+					double gfac = parameters[kGScale];
+/* primary P (X) primary   U block */
+					tmp_LHS_man.SetDimensions
+						(num_nodes*fNumMultipliers,num_nodes*fNumSD);
+					tmp_LHS.Outer(P1, N1n);
+					tmp_LHS.SetToScaled(gfac, tmp_LHS);
+					fFEManager.AssembleLHS(tmp_LHS, xeqnums1,eqnums1);
+/* primary P (X) secondary U block */
+					tmp_LHS_man.SetDimensions
+						(num_nodes*fNumMultipliers,opp_num_nodes*fNumSD);
+					if (consistent) {
+					}
+					tmp_LHS.Outer(P1, N2n);
+					tmp_LHS.SetToScaled(-gfac, tmp_LHS);
+					fFEManager.AssembleLHS(tmp_LHS, xeqnums1,eqnums2);
+                }
+                else if (status == kPJump || status == kPZero) {
+					double pfac = parameters[kPScale];
+/* primary P (X) primary   P block */
+					tmp_LHS_man.SetDimensions
+						(num_nodes*fNumMultipliers,num_nodes*fNumMultipliers);
+					tmp_LHS.Outer(P1, P1);
+					tmp_LHS.SetToScaled(pfac, tmp_LHS);
+					fFEManager.AssembleLHS(tmp_LHS, xeqnums1,xeqnums1);
+                	if (status == kPJump) {
+/* primary P (X) secondary P block */		
+					    xconn2_man.SetLength(num_nodes,false);
+						opp_surf->MultiplierTags
+							(opp_face->Connectivity(),xconn2);
+					    xeqnums2_man.SetMajorDimension(num_nodes,false);
+						ElementBaseT::fNodes-> 
+							XDOF_SetLocalEqnos(xconn2, xeqnums2);
+						P2_man.SetDimensions
+							(opp_num_nodes*fNumMultipliers,fNumMultipliers);
+						opp_face->ComputeShapeFunctions(opp_xi,P2);
+						tmp_LHS_man.SetDimensions (num_nodes*fNumMultipliers,
+							opp_num_nodes*fNumMultipliers);
+						tmp_LHS.Outer(P1, P2);
+						tmp_LHS.SetToScaled(-pfac, tmp_LHS);
+						fFEManager.AssembleLHS(tmp_LHS, xeqnums1,xeqnums2);
+					}
+                }
 			}
 		}
-		/* assemble primary-primary face stiffness */
-		if (in_contact) fFEManager.AssembleLHS(LHS, eqnums);
-
-
-// MORE ....
 	}
-  }
+ }
 }
