@@ -1,4 +1,4 @@
-/* $Id: RodT.h,v 1.9 2002-07-02 20:59:14 hspark Exp $ */
+/* $Id: RodT.h,v 1.10 2002-07-03 00:05:31 hspark Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _ROD_T_H_
@@ -91,6 +91,7 @@ private: /* MD related computational functions */
 	void ComputeAvgTemperature(void);
 	void ComputeInstPressure(void);
 	void ComputeAvgPressure(void);
+	int PrintMDToFile(void);
 
 protected:
 
@@ -124,7 +125,7 @@ private:
 	double fAvgKE, fAvgPE, fAvgTotalE, fAvgTemp, fAvgPressure;
 	double fSumKE, fSumPE, fSumTotalE, fSumTemp, fSumPressure;
 	LocalArrayT fLocVel;
-
+	int fNumNodes;
 	const int& fStepNumber;
 };
 
