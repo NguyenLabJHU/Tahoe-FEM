@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.7 2002-01-05 06:36:47 paklein Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.8 2002-01-07 03:06:02 paklein Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #include "ExodusInputT.h"
@@ -28,8 +28,10 @@ void ExodusInputT::ElementGroupNames (ArrayT<StringT>& groupnames) const
   if (groupnames.Length() != NumElementGroups()) throw eSizeMismatch;
   iArrayT ids (groupnames.Length());
   fData.ElementBlockID (ids);
-  for (int i=0; i < groupnames.Length(); i++)
-    groupnames[i].Append (ids[i]);
+  for (int i=0; i < groupnames.Length(); i++) {
+  	groupnames[i].Clear();
+    groupnames[i].Append(ids[i]);
+    }
 }
 
 void ExodusInputT::SideSetNames (ArrayT<StringT>& sidenames) const
@@ -37,8 +39,10 @@ void ExodusInputT::SideSetNames (ArrayT<StringT>& sidenames) const
   if (sidenames.Length() != NumSideSets ()) throw eSizeMismatch;
   iArrayT sidenums (sidenames.Length());
   fData.SideSetID (sidenums);
-  for (int i=0; i < sidenames.Length(); i++)
-    sidenames[i].Append (sidenums[i]);
+  for (int i=0; i < sidenames.Length(); i++) {
+  	sidenames[i].Clear();
+    sidenames[i].Append(sidenums[i]);
+    }
 }
 
 void ExodusInputT::NodeSetNames (ArrayT<StringT>& nodenames) const
@@ -46,8 +50,10 @@ void ExodusInputT::NodeSetNames (ArrayT<StringT>& nodenames) const
   if (nodenames.Length() != NumNodeSets ()) throw eSizeMismatch;
   iArrayT nodenums (nodenames.Length());
   fData.NodeSetID (nodenums);
-  for (int i=0; i < nodenames.Length(); i++)
-    nodenames[i].Append (nodenums[i]);
+  for (int i=0; i < nodenames.Length(); i++) {
+  	nodenames[i].Clear();
+    nodenames[i].Append(nodenums[i]);
+    }
 }
 
 void ExodusInputT::ReadNodeMap (iArrayT& nodemap)

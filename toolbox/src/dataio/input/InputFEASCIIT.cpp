@@ -1,4 +1,4 @@
-/* $Id: InputFEASCIIT.cpp,v 1.6 2002-01-06 06:57:54 cbhovey Exp $ */
+/* $Id: InputFEASCIIT.cpp,v 1.7 2002-01-07 03:06:02 paklein Exp $ */
 #include "InputFEASCIIT.h"
 #include "ifstreamT.h"
 #include "dArrayT.h"
@@ -74,8 +74,8 @@ void InputFEASCIIT::ElementGroupNames (ArrayT<StringT>& groupnames) const
   if (groupnames.Length() != fBlockID.Length()) throw eSizeMismatch;
   for (int i=0; i < groupnames.Length(); i++)
     {
-      groupnames[i] = "";
-      groupnames[i].Append (fBlockID[i]);
+      groupnames[i].Clear();
+      groupnames[i].Append(fBlockID[i]);
     }
 }
 

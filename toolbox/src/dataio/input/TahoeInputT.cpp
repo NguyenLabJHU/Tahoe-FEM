@@ -1,4 +1,4 @@
-/* $Id: TahoeInputT.cpp,v 1.6 2002-01-05 06:36:48 paklein Exp $ */
+/* $Id: TahoeInputT.cpp,v 1.7 2002-01-07 03:06:02 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "TahoeInputT.h"
@@ -32,8 +32,10 @@ void TahoeInputT::ElementGroupNames (ArrayT<StringT>& groupnames) const
   iArrayT ids (groupnames.Length());
   if (fModel.GetElementSetID (ids) == ModelFileT::kFail)
     throw eDatabaseFail;
-  for (int i=0; i < ids.Length(); i++)
-    groupnames[i].Append (ids[i]);
+  for (int i=0; i < ids.Length(); i++) {
+  	groupnames[i].Clear();
+    groupnames[i].Append(ids[i]);
+    }
 }
 
 void TahoeInputT::SideSetNames (ArrayT<StringT>& sidenames) const
@@ -42,8 +44,10 @@ void TahoeInputT::SideSetNames (ArrayT<StringT>& sidenames) const
   iArrayT nums (sidenames.Length());
   if (fModel.GetSideSetID (nums) == ModelFileT::kFail)
     throw eDatabaseFail;
-  for (int i=0; i < nums.Length(); i++)
-    sidenames[i].Append (nums[i]);
+  for (int i=0; i < nums.Length(); i++) {
+  	sidenames[i].Clear();
+    sidenames[i].Append(nums[i]);
+    }
 }
 
 void TahoeInputT::NodeSetNames (ArrayT<StringT>& nodenames) const
@@ -52,8 +56,10 @@ void TahoeInputT::NodeSetNames (ArrayT<StringT>& nodenames) const
   iArrayT nums (nodenames.Length());
   if (fModel.GetNodeSetID (nums) == ModelFileT::kFail)
     throw eDatabaseFail;
-  for (int i=0; i < nums.Length(); i++)
-    nodenames[i].Append (nums[i]);
+  for (int i=0; i < nums.Length(); i++) {
+  	nodenames[i].Clear();
+    nodenames[i].Append(nums[i]);
+    }
 }
 
 int TahoeInputT::NumElementGroups (void) const
