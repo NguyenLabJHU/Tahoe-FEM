@@ -307,9 +307,10 @@ void MakeCrystalT::Run()
 
 
   //Output in a file
-  /* StringT outputfile = "coord.txt";
+  /*
+  StringT outputcoord = "coord.txt";
   ofstreamT out_coord;
-  out_coord.open(outputfile);
+  out_coord.open(outputcoord);
   
   if(nsd==2)
     {
@@ -324,9 +325,8 @@ void MakeCrystalT::Run()
     }
 
   out_coord.close();
-  */
 
   out << "\nWriting geometry in specified format file...\n";
   mesh_atom.BuildIOFile(program,version,title,input,kformat,per);
-
-} 
+  */
+}
