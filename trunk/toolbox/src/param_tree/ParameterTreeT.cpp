@@ -1,4 +1,4 @@
-/* $Id: ParameterTreeT.cpp,v 1.5 2004-01-27 19:10:43 paklein Exp $ */
+/* $Id: ParameterTreeT.cpp,v 1.6 2004-03-22 18:34:54 paklein Exp $ */
 #include "ParameterTreeT.h"
 #include "ParameterInterfaceT.h"
 
@@ -407,6 +407,7 @@ void ParameterTreeT::BuildBranch(const ParameterInterfaceT& source, ParameterLis
 
 		/* collect information on subordinate lists */
 		source.DefineSubs(sub_list);
+		params.SetListOrder(source.ListOrder());
 	}
 	else /* defining inlined list */
 	{

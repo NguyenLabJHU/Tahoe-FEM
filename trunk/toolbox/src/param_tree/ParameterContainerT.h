@@ -1,4 +1,4 @@
-/* $Id: ParameterContainerT.h,v 1.2 2004-01-21 17:05:40 paklein Exp $ */
+/* $Id: ParameterContainerT.h,v 1.3 2004-03-22 18:34:54 paklein Exp $ */
 #ifndef _PARAMETER_CONTAINER_T_H_
 #define _PARAMETER_CONTAINER_T_H_
 
@@ -53,6 +53,9 @@ public:
      virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
 		SubListT& sub_sub_list) const;
 
+	/** the order of subordinate lists */
+	virtual ParameterListT::ListOrderT ListOrder(void) const;
+
 protected:
 
 	/** \name implementation of the ParameterInterfaceT interface */
@@ -73,6 +76,13 @@ protected:
 	/** source for subs that are not defined by the container */
 	const ParameterInterfaceT* fSubSource;
 };
+
+/* inlines */
+
+/* the order of subordinate lists */
+inline ParameterListT::ListOrderT ParameterContainerT::ListOrder(void) const {
+	return ParameterListT::ListOrder();
+}
 
 } /* namespace Tahoe */
 
