@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.12.2.1 2003-02-06 02:39:45 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.12.2.2 2003-03-29 17:27:13 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
@@ -53,6 +53,14 @@ private:
 
 	/** \name execution modes */
 	/*@{*/
+	/** enum for execution modes */
+	enum ModeT {
+        kJob = 0,
+  kDecompose = 1,
+       kJoin = 2,
+   kBridging = 3
+	};
+	
 	/** standard serial driver */
 	void RunJob_serial(ifstreamT& in, ostream& status) const;
 	
