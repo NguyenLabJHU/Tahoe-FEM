@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tahoe author="paklein" geometry_file="./geometry/test.half.wrap.geom"
+	restart_output_inc="2500"
     title="quasistatic conveyor test" xmlns:x0="http://www.w3.org/2001/XMLSchema">
-    <time max_step_cuts="0" num_steps="2" output_inc="1" time_step="0.1">
+    <time num_steps="3000" output_inc="1500" time_step="0.01">
         <schedule_function>
             <piecewise_linear>
                 <OrderedPair x="0.0" y="0.0"/>
@@ -10,7 +11,7 @@
         </schedule_function>
     </time>
     <nodes>
-        <field field_name="displacement" integrator="static">
+        <field field_name="displacement" integrator="central_difference">
             <dof_labels>
                 <String value="D_X"/>
                 <String value="D_Y"/>
@@ -61,8 +62,7 @@
             </anisotropic_CSE_element_block>
         </anisotropic_symmetry_CSE>
     </element_list>
-    <nonlinear_solver abs_tolerance="1.0e-10"
-        divergence_tolerance="1.0e+10" max_iterations="10" rel_tolerance="1.0e-10">
-        <profile_matrix/>
-    </nonlinear_solver>
+    <linear_solver>
+        <diagonal_matrix/>
+    </linear_solver>
 </tahoe>
