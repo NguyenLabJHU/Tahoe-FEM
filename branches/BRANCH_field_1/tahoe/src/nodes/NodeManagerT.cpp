@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.7.2.5 2002-05-03 09:55:34 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.7.2.6 2002-05-05 23:44:31 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "NodeManagerT.h"
@@ -272,6 +272,19 @@ void NodeManagerT::InitStep(int group)
 	for (int i = 0; i < fFields.Length(); i++)
 		if (fFields[i]->Group() == group)
 			fFields[i]->InitStep();
+
+	/* update current configurations */
+	if (fCoordUpdate && fCoordUpdate->Group() == group)
+	{
+		/* should be allocated */
+		if (!fCurrentCoords) {
+			cout << "\n NodeManagerT::Update: current coords not initialized" << endl;
+			throw eGeneralFail;
+		}
+	
+		/* update */
+		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+	}	
 }
 
 /* compute the nodal contribution to the tangent */
@@ -1315,7 +1328,7 @@ void NodeManagerT::EchoInitialConditions(FieldT& field, ifstreamT& in, ostream& 
 			}
 			
 			int dof = data (i, 0) - 1; // offset
-			int order = data (i, 1);
+			int order = data (i, 1) - 1; // KBC code -> derivative order
 			for (int j=0; j < nodes[i].Length(); j++)
 				cards[dex++].SetValues(*pn++, dof, order, values[i]);
 			}
