@@ -1,4 +1,4 @@
-/* $Id: FCCLatticeT.cpp,v 1.2.50.1 2004-07-06 06:53:23 paklein Exp $ */
+/* $Id: FCCLatticeT.cpp,v 1.2.50.2 2004-07-12 16:06:06 paklein Exp $ */
 #include "FCCLatticeT.h"
 #include "ParameterContainerT.h"
 
@@ -32,11 +32,11 @@ void FCCLatticeT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* FCCLatticeT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* FCCLatticeT::NewSub(const StringT& name) const
 {
-	if (list_name == "FCC_lattice_orientation")
+	if (name == "FCC_lattice_orientation")
 	{
-		ParameterContainerT* orientation = new ParameterContainerT(list_name);
+		ParameterContainerT* orientation = new ParameterContainerT(name);
 		orientation->SetListOrder(ParameterListT::Choice);
 	
 		ParameterContainerT natural("FCC_natural");
@@ -63,7 +63,7 @@ ParameterInterfaceT* FCCLatticeT::NewSub(const StringT& list_name) const
 		return orientation;
 	}
 	else /* inherited */
-		return ParameterInterfaceT::NewSub(list_name);
+		return ParameterInterfaceT::NewSub(name);
 }
 
 /* accept parameter list */

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.12.2.1 2004-07-06 06:54:15 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.12.2.2 2004-07-12 16:06:27 paklein Exp $ */
 /* created: paklein (02/15/2000) */
 #include "MeshFreeFractureSupportT.h"
 
@@ -80,11 +80,11 @@ void MeshFreeFractureSupportT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* MeshFreeFractureSupportT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* MeshFreeFractureSupportT::NewSub(const StringT& name) const
 {
-	if (list_name == "fracture_criterion") {
+	if (name == "fracture_criterion") {
 
-		ParameterContainerT* crit = new ParameterContainerT(list_name);
+		ParameterContainerT* crit = new ParameterContainerT(name);
 
 		/* fracture criterion */
 		ParameterT criterion(ParameterT::Enumeration, "criterion");
@@ -100,9 +100,9 @@ ParameterInterfaceT* MeshFreeFractureSupportT::NewSub(const StringT& list_name) 
 	
 		return crit;
 	}
-	else if (list_name == "cutting_surface") {
+	else if (name == "cutting_surface") {
 
-		ParameterContainerT* cutting_surface = new ParameterContainerT(list_name);
+		ParameterContainerT* cutting_surface = new ParameterContainerT(name);
 		cutting_surface->SetSubSource(this);
 		cutting_surface->AddParameter(ParameterT::Word, "geometry_file");
 		cutting_surface->AddSub("block_ID_list");
@@ -112,16 +112,16 @@ ParameterInterfaceT* MeshFreeFractureSupportT::NewSub(const StringT& list_name) 
 		
 		return cutting_surface;
 	}
-	else if (list_name == "sampling_surface") {
-		ParameterContainerT* sampling_surface = new ParameterContainerT(list_name);
+	else if (name == "sampling_surface") {
+		ParameterContainerT* sampling_surface = new ParameterContainerT(name);
 		sampling_surface->AddParameter(ParameterT::Integer, "num_sampling_points");
 		sampling_surface->AddParameter(ParameterT::Word, "geometry_file");
 		sampling_surface->AddSub("block_ID_list");
 		return sampling_surface;
 	}
-	else if (list_name == "advancing_front") {
+	else if (name == "advancing_front") {
 
-		ParameterContainerT* advancing_front = new ParameterContainerT(list_name);
+		ParameterContainerT* advancing_front = new ParameterContainerT(name);
 		advancing_front->SetSubSource(this);
 
 		/* fracture criterion */
@@ -140,7 +140,7 @@ ParameterInterfaceT* MeshFreeFractureSupportT::NewSub(const StringT& list_name) 
 		return advancing_front;
 	}
 	else /* inherited */
-		return MeshFreeElementSupportT::NewSub(list_name);
+		return MeshFreeElementSupportT::NewSub(name);
 }
 
 /* accept parameter list */

@@ -1,4 +1,4 @@
-/* $Id: FSIsotropicMatT.cpp,v 1.1.6.1 2004-07-06 06:54:06 paklein Exp $ */
+/* $Id: FSIsotropicMatT.cpp,v 1.1.6.2 2004-07-12 16:06:26 paklein Exp $ */
 #include "FSIsotropicMatT.h"
 
 using namespace Tahoe;
@@ -19,14 +19,14 @@ void FSIsotropicMatT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* FSIsotropicMatT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* FSIsotropicMatT::NewSub(const StringT& name) const
 {
 	/* inherited */
-	ParameterInterfaceT* params = FSSolidMatT::NewSub(list_name);
+	ParameterInterfaceT* params = FSSolidMatT::NewSub(name);
 	if (params)
 		return params;
 	else
-		return IsotropicT::NewSub(list_name);
+		return IsotropicT::NewSub(name);
 }
 
 /* accept parameter list */

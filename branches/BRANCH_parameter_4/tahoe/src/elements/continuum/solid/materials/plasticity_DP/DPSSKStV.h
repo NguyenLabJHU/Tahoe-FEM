@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.h,v 1.11.12.1 2004-07-06 06:53:55 paklein Exp $ */
+/* $Id: DPSSKStV.h,v 1.11.12.2 2004-07-12 16:06:21 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_H_
 #define _DP_SS_KSTV_H_
@@ -74,7 +74,7 @@ class DPSSKStV: public SSSolidMatT,
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

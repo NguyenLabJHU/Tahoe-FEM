@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.h,v 1.10.42.1 2004-07-06 06:53:10 paklein Exp $ */
+/* $Id: YoonAllen3DT.h,v 1.10.42.2 2004-07-12 16:05:59 paklein Exp $ */
 /* created: cjkimme (05/28/2002) */
 
 #ifndef _YOON_ALLEN_3D_T_H_
@@ -72,7 +72,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

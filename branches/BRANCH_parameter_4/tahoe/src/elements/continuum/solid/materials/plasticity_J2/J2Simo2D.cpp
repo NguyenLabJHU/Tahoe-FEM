@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.cpp,v 1.13.28.1 2004-07-06 06:53:57 paklein Exp $ */
+/* $Id: J2Simo2D.cpp,v 1.13.28.2 2004-07-12 16:06:22 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 #include "J2Simo2D.h"
 #include "StringT.h"
@@ -230,14 +230,14 @@ void J2Simo2D::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* J2Simo2D::NewSub(const StringT& list_name) const
+ParameterInterfaceT* J2Simo2D::NewSub(const StringT& name) const
 {
 	/* inherited */
-	ParameterInterfaceT* sub = SimoIso2D::NewSub(list_name);
+	ParameterInterfaceT* sub = SimoIso2D::NewSub(name);
 	if (sub)
 		return sub;
 	else
-		return J2SimoC0HardeningT::NewSub(list_name);
+		return J2SimoC0HardeningT::NewSub(name);
 }
 
 /* accept parameter list */

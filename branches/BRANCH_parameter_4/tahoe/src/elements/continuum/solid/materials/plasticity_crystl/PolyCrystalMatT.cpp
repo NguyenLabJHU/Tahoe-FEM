@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.cpp,v 1.15.4.1 2004-07-06 06:54:01 paklein Exp $ */
+/* $Id: PolyCrystalMatT.cpp,v 1.15.4.2 2004-07-12 16:06:24 paklein Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -24,7 +24,7 @@ const int kIsInit = 1;
 /* spatial dimensions of the problem */
 const int kNSD = 3;
 
-PolyCrystalMatT::PolyCrystalMatT(ifstreamT& in, const FSMatSupportT& support) :
+PolyCrystalMatT::PolyCrystalMatT(void) :
 	ParameterInterfaceT("polycrystal_material"),
 //  FDHookeanMatT(in, support),
   fdt           (FSMatSupport().TimeStep()),
@@ -49,7 +49,7 @@ PolyCrystalMatT::PolyCrystalMatT(ifstreamT& in, const FSMatSupportT& support) :
   fcavg_ijkl    (dSymMatrixT::NumValues(kNSD))
 {
 ExceptionT::GeneralFail("PolyCrystalMatT::PolyCrystalMatT", "out of date");
-
+#if 0
   // input file
   StringT filename;
   in >> filename;
@@ -78,6 +78,7 @@ ExceptionT::GeneralFail("PolyCrystalMatT::PolyCrystalMatT", "out of date");
 
   // SetConstitutiveSolver moved to Initialize()
   // it allows to initialize NLCSolver with adequate # variables
+#endif
 }
 
 PolyCrystalMatT::~PolyCrystalMatT()

@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.38.2.4 2004-07-12 08:08:51 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.38.2.5 2004-07-12 16:06:29 paklein Exp $ */
 #include "ParticlePairT.h"
 
 #include "PairPropertyT.h"
@@ -525,39 +525,39 @@ void ParticlePairT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void ParticlePairT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void ParticlePairT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
-	if (sub == "pair_property_choice")
+	if (name == "pair_property_choice")
 	{
 		order = ParameterListT::Choice;
 		
 		/* harmonic pair potential */
-		sub_sub_list.AddSub("harmonic");
+		sub_lists.AddSub("harmonic");
 
 		/* Lennard-Jones 6/12 */
-		sub_sub_list.AddSub("Lennard_Jones");
+		sub_lists.AddSub("Lennard_Jones");
 
 		/* Paradyn pair potential */
-		sub_sub_list.AddSub("Paradyn_pair");
+		sub_lists.AddSub("Paradyn_pair");
 
 		/* Matsui pair potential */
-		sub_sub_list.AddSub("Matsui");
+		sub_lists.AddSub("Matsui");
 	}
 	else /* inherited */
-		ParticleT::DefineInlineSub(sub, order, sub_sub_list);
+		ParticleT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ParticlePairT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* ParticlePairT::NewSub(const StringT& name) const
 {
 	/* try to construct potential */
-	PairPropertyT* pair_property = PairPropertyT::New(list_name, &(ElementSupport()));
+	PairPropertyT* pair_property = PairPropertyT::New(name, &(ElementSupport()));
 	if (pair_property)
 		return pair_property;
-	else if (list_name == "pair_particle_interaction")
+	else if (name == "pair_particle_interaction")
 	{
-		ParameterContainerT* interactions = new ParameterContainerT(list_name);
+		ParameterContainerT* interactions = new ParameterContainerT(name);
 		interactions->SetSubSource(this);
 
 		/* particle type labels */
@@ -570,7 +570,7 @@ ParameterInterfaceT* ParticlePairT::NewSub(const StringT& list_name) const
 		return interactions;
 	}	
 	else /* inherited */
-		return ParticleT::NewSub(list_name);
+		return ParticleT::NewSub(name);
 }
 
 /* accept parameter list */

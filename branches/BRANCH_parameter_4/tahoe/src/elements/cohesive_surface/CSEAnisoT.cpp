@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.62.2.3 2004-07-12 08:08:41 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.62.2.4 2004-07-12 16:05:57 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -290,33 +290,33 @@ void CSEAnisoT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void CSEAnisoT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void CSEAnisoT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
-	if (sub == "cohesive_relation_choice")
+	if (name == "cohesive_relation_choice")
 	{
 		/* choice */
 		order = ParameterListT::Choice;
 		
 		/* function types */
-		sub_sub_list.AddSub("cohesive_relation_2D");
-		sub_sub_list.AddSub("cohesive_relation_3D");
+		sub_lists.AddSub("cohesive_relation_2D");
+		sub_lists.AddSub("cohesive_relation_3D");
 	}
 	else /* inherited */
-		CSEBaseT::DefineInlineSub(sub, order, sub_sub_list);
+		CSEBaseT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT */
-ParameterInterfaceT* CSEAnisoT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* CSEAnisoT::NewSub(const StringT& name) const
 {
 	/* try to construct cohesive relations */
-	SurfacePotentialT* surf_pot = SurfacePotentialT::New(list_name);
+	SurfacePotentialT* surf_pot = SurfacePotentialT::New(name);
 	if (surf_pot)
 		return surf_pot;
 
-	if (list_name == "anisotropic_CSE_element_block")
+	if (name == "anisotropic_CSE_element_block")
 	{
-		ParameterContainerT* block = new ParameterContainerT(list_name);
+		ParameterContainerT* block = new ParameterContainerT(name);
 		
 		/* list of element block ID's (defined by ElementBaseT) */
 		block->AddSub("block_ID_list", ParameterListT::Once);
@@ -329,10 +329,10 @@ ParameterInterfaceT* CSEAnisoT::NewSub(const StringT& list_name) const
 		
 		return block;
 	}
-	else if (list_name == "cohesive_relation_2D")
+	else if (name == "cohesive_relation_2D")
 	{
 		/* choice of 2D cohesive relations */
-		ParameterContainerT* cz = new ParameterContainerT(list_name);
+		ParameterContainerT* cz = new ParameterContainerT(name);
 		cz->SetSubSource(this);
 		cz->SetListOrder(ParameterListT::Choice);
 	
@@ -346,10 +346,10 @@ ParameterInterfaceT* CSEAnisoT::NewSub(const StringT& list_name) const
 
 		return cz;
 	}
-	else if (list_name == "cohesive_relation_3D")
+	else if (name == "cohesive_relation_3D")
 	{
 		/* choice of 2D cohesive relations */
-		ParameterContainerT* cz = new ParameterContainerT(list_name);
+		ParameterContainerT* cz = new ParameterContainerT(name);
 		cz->SetSubSource(this);
 		cz->SetListOrder(ParameterListT::Choice);
 	
@@ -361,7 +361,7 @@ ParameterInterfaceT* CSEAnisoT::NewSub(const StringT& list_name) const
 		return cz;	
 	}
 	else /* inherited */
-		return CSEBaseT::NewSub(list_name);
+		return CSEBaseT::NewSub(name);
 }
 
 /* accept parameter list */

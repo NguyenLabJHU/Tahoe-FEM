@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionMaterialT.cpp,v 1.3.26.1 2004-07-06 06:53:18 paklein Exp $ */
+/* $Id: NLDiffusionMaterialT.cpp,v 1.3.26.2 2004-07-12 16:06:04 paklein Exp $ */
 #include "NLDiffusionMaterialT.h"
 #include "DiffusionMatSupportT.h"
 #include "ParameterContainerT.h"
@@ -75,34 +75,34 @@ void NLDiffusionMaterialT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void NLDiffusionMaterialT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void NLDiffusionMaterialT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
-	if (sub == "NL_diff_mat_function_choice") {
+	if (name == "NL_diff_mat_function_choice") {
 		order = ParameterListT::Choice;
 
-		sub_sub_list.AddSub("linear_function");
-		sub_sub_list.AddSub("power_law");
-		sub_sub_list.AddSub("cubic_spline");
+		sub_lists.AddSub("linear_function");
+		sub_lists.AddSub("power_law");
+		sub_lists.AddSub("cubic_spline");
 	}
 	else /* inherited */
-		DiffusionMaterialT::DefineInlineSub(sub, order, sub_sub_list);
+		DiffusionMaterialT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* NLDiffusionMaterialT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* NLDiffusionMaterialT::NewSub(const StringT& name) const
 {
-	C1FunctionT* function = C1FunctionT::New(list_name);
+	C1FunctionT* function = C1FunctionT::New(name);
 	if (function)
 		return function;
-	else if (list_name == "conductivity_function" || list_name == "specificheat_function") {
-		ParameterContainerT* choice = new ParameterContainerT(list_name);
+	else if (name == "conductivity_function" || name == "specificheat_function") {
+		ParameterContainerT* choice = new ParameterContainerT(name);
 		choice->SetSubSource(this);
 		choice->AddSub("NL_diff_mat_function_choice", ParameterListT::Once, true);
 		return choice;
 	}	
 	else /* inherited */
-		return DiffusionMaterialT::NewSub(list_name);
+		return DiffusionMaterialT::NewSub(name);
 }
 
 /* accept parameter list */

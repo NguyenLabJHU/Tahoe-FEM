@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.cpp,v 1.6.2.3 2004-07-08 16:11:52 paklein Exp $ */
+/* $Id: EAMFCC3D.cpp,v 1.6.2.4 2004-07-12 16:06:08 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D.h"
 
@@ -245,11 +245,11 @@ void EAMFCC3D::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* EAMFCC3D::NewSub(const StringT& list_name) const
+ParameterInterfaceT* EAMFCC3D::NewSub(const StringT& name) const
 {
-	if (list_name == "EAM_FCC_glue_choice")
+	if (name == "EAM_FCC_glue_choice")
 	{
-		ParameterContainerT* choice = new ParameterContainerT(list_name);
+		ParameterContainerT* choice = new ParameterContainerT(name);
 		choice->SetListOrder(ParameterListT::Choice);
 
 		/* choices */
@@ -270,7 +270,7 @@ ParameterInterfaceT* EAMFCC3D::NewSub(const StringT& list_name) const
 		return choice;
 	}
 	else /* inherited */
-		return FCCLatticeT::NewSub(list_name);
+		return FCCLatticeT::NewSub(name);
 }
 
 /* accept parameter list */

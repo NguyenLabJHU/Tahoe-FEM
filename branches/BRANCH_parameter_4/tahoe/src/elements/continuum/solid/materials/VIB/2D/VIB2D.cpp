@@ -1,4 +1,4 @@
-/* $Id: VIB2D.cpp,v 1.9.2.2 2004-07-07 15:28:14 paklein Exp $ */
+/* $Id: VIB2D.cpp,v 1.9.2.3 2004-07-12 16:06:15 paklein Exp $ */
 /* created: paklein (04/09/1997) */
 #include "VIB2D.h"
 
@@ -171,15 +171,15 @@ void VIB2D::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* VIB2D::NewSub(const StringT& list_name) const
+ParameterInterfaceT* VIB2D::NewSub(const StringT& name) const
 {
 	/* inherited */
-	ParameterInterfaceT* sub = NL_E_MatT::NewSub(list_name);
+	ParameterInterfaceT* sub = NL_E_MatT::NewSub(name);
 	if (sub) 
 		return sub;
-	if (list_name == "circle_integration_choice")
+	if (name == "circle_integration_choice")
 	{
-		ParameterContainerT* choice = new ParameterContainerT(list_name);
+		ParameterContainerT* choice = new ParameterContainerT(name);
 		choice->SetListOrder(ParameterListT::Choice);
 
 		/* evenly spaced */
@@ -200,7 +200,7 @@ ParameterInterfaceT* VIB2D::NewSub(const StringT& list_name) const
 		return choice;
 	}
 	else
-		return VIB_E_MatT::NewSub(list_name);
+		return VIB_E_MatT::NewSub(name);
 }
 
 /* describe the parameters needed by the interface */

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.48.2.4 2004-07-12 05:12:18 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.48.2.5 2004-07-12 16:06:35 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -1233,12 +1233,12 @@ void NodeManagerT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* NodeManagerT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* NodeManagerT::NewSub(const StringT& name) const
 {
-	if (list_name == "field")
+	if (name == "field")
 		return new FieldT(fFieldSupport);
 	else
-		return ParameterInterfaceT::NewSub(list_name);
+		return ParameterInterfaceT::NewSub(name);
 }
 
 /* accept parameter list */

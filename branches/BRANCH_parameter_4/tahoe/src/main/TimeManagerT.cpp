@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.21.2.3 2004-07-12 05:12:16 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.21.2.4 2004-07-12 16:06:33 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 
@@ -382,12 +382,12 @@ void TimeManagerT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* TimeManagerT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* TimeManagerT::NewSub(const StringT& name) const
 {
-	if (list_name == "schedule_function")
+	if (name == "schedule_function")
 		return new ScheduleT;
 	else /* inherited */
-		return ParameterInterfaceT::NewSub(list_name);
+		return ParameterInterfaceT::NewSub(name);
 }
 
 /************************************************************************

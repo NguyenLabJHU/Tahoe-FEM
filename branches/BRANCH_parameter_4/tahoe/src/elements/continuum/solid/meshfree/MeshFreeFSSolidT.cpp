@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.19.2.4 2004-07-12 08:08:50 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.19.2.5 2004-07-12 16:06:27 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #include "MeshFreeFSSolidT.h"
 
@@ -226,11 +226,11 @@ void MeshFreeFSSolidT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* MeshFreeFSSolidT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* MeshFreeFSSolidT::NewSub(const StringT& name) const
 {
-	if (list_name == "meshfree_support_choice")
+	if (name == "meshfree_support_choice")
 	{
-		ParameterContainerT* mf_choice = new ParameterContainerT(list_name);
+		ParameterContainerT* mf_choice = new ParameterContainerT(name);
 		mf_choice->SetSubSource(this);
 		mf_choice->SetListOrder(ParameterListT::Choice);
 		
@@ -239,14 +239,14 @@ ParameterInterfaceT* MeshFreeFSSolidT::NewSub(const StringT& list_name) const
 		
 		return mf_choice;
 	}
-	else if (list_name == "meshfree_support_2D")
+	else if (name == "meshfree_support_2D")
 		return new MeshFreeSupport2DT;
-	else if (list_name == "meshfree_support_3D")
+	else if (name == "meshfree_support_3D")
 		return new MeshFreeSupport3DT;
-	else if (list_name == "meshfree_fracture_support")
+	else if (name == "meshfree_fracture_support")
 		return new MeshFreeFractureSupportT;
 	else /* inherited */
-		return TotalLagrangianT::NewSub(list_name);
+		return TotalLagrangianT::NewSub(name);
 }
 
 /* accept parameter list */

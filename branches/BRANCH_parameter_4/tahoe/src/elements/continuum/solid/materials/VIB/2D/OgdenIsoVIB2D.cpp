@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB2D.cpp,v 1.11.28.1 2004-07-06 06:53:42 paklein Exp $ */
+/* $Id: OgdenIsoVIB2D.cpp,v 1.11.28.2 2004-07-12 16:06:15 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "OgdenIsoVIB2D.h"
 
@@ -77,12 +77,12 @@ void OgdenIsoVIB2D::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* OgdenIsoVIB2D::NewSub(const StringT& list_name) const
+ParameterInterfaceT* OgdenIsoVIB2D::NewSub(const StringT& name) const
 {
 	/* inherited */
-	ParameterInterfaceT* sub = OgdenIsotropicT::NewSub(list_name);
+	ParameterInterfaceT* sub = OgdenIsotropicT::NewSub(name);
 	if (sub) return sub;
-	else return VIB::NewSub(list_name);
+	else return VIB::NewSub(name);
 }
 
 /* describe the parameters needed by the interface */

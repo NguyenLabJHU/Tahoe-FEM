@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.19.2.3 2004-07-12 08:08:43 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.19.2.4 2004-07-12 16:06:00 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -118,11 +118,11 @@ void ContactT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ContactT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* ContactT::NewSub(const StringT& name) const
 {
-	if (list_name == "contact_surface") {
+	if (name == "contact_surface") {
 	
-		ParameterContainerT* contact_surface = new ParameterContainerT(list_name);
+		ParameterContainerT* contact_surface = new ParameterContainerT(name);
 		contact_surface->SetListOrder(ParameterListT::Choice);
 		
 		/* surface from side set  */
@@ -137,9 +137,9 @@ ParameterInterfaceT* ContactT::NewSub(const StringT& list_name) const
 	
 		return contact_surface;
 	}
-	else if (list_name == "contact_nodes") {
+	else if (name == "contact_nodes") {
 
-		ParameterContainerT* contact_nodes = new ParameterContainerT(list_name);
+		ParameterContainerT* contact_nodes = new ParameterContainerT(name);
 		contact_nodes->SetListOrder(ParameterListT::Choice);
 		
 		/* strikers from node sets */
@@ -157,7 +157,7 @@ ParameterInterfaceT* ContactT::NewSub(const StringT& list_name) const
 		return contact_nodes;	
 	}
 	else /* inherited */
-		return ElementBaseT::NewSub(list_name);
+		return ElementBaseT::NewSub(name);
 }
 
 /* accept parameter list */

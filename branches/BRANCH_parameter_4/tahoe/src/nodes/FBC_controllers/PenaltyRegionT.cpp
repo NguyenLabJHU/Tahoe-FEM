@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.16.2.2 2004-07-07 15:28:46 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.16.2.3 2004-07-12 16:06:36 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltyRegionT.h"
 
@@ -260,11 +260,11 @@ void PenaltyRegionT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* PenaltyRegionT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* PenaltyRegionT::NewSub(const StringT& name) const
 {
-	if (list_name == "bc_initial_position")
+	if (name == "bc_initial_position")
 	{
-		ParameterContainerT* x_choice = new ParameterContainerT(list_name);
+		ParameterContainerT* x_choice = new ParameterContainerT(name);
 		
 		/* by dimension */
 		x_choice->SetListOrder(ParameterListT::Choice);
@@ -273,9 +273,9 @@ ParameterInterfaceT* PenaltyRegionT::NewSub(const StringT& list_name) const
 	
 		return x_choice;
 	}
-	else if (list_name == "bc_velocity")
+	else if (name == "bc_velocity")
 	{
-		ParameterContainerT* v_choice = new ParameterContainerT(list_name);
+		ParameterContainerT* v_choice = new ParameterContainerT(name);
 		
 		/* by dimension */
 		v_choice->SetListOrder(ParameterListT::Choice);
@@ -284,9 +284,9 @@ ParameterInterfaceT* PenaltyRegionT::NewSub(const StringT& list_name) const
 	
 		return v_choice;
 	}
-	else if (list_name == "motion_control_choice") {
+	else if (name == "motion_control_choice") {
 
-		ParameterContainerT* motion = new ParameterContainerT(list_name);
+		ParameterContainerT* motion = new ParameterContainerT(name);
 
 		/* options */	
 		motion->SetListOrder(ParameterListT::Choice);
@@ -301,7 +301,7 @@ ParameterInterfaceT* PenaltyRegionT::NewSub(const StringT& list_name) const
 		return motion;
 	}
 	else /* inherited */
-		return FBC_ControllerT::NewSub(list_name);
+		return FBC_ControllerT::NewSub(name);
 }
 
 /* accept parameter list */

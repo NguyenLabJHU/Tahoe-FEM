@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.h,v 1.9.54.1 2004-07-06 06:53:39 paklein Exp $ */
+/* $Id: QuadLog3D.h,v 1.9.54.2 2004-07-12 16:06:12 paklein Exp $ */
 /* created: paklein (06/27/1997) */
 #ifndef _QUAD_LOG_3D_H_
 #define _QUAD_LOG_3D_H_
@@ -15,7 +15,6 @@ class QuadLog3D: public FSIsotropicMatT
 public:
 
 	/* constructor */
-	QuadLog3D(ifstreamT& in, const FSMatSupportT& support);
 	QuadLog3D(void);
 	
 	/** \name spatial description */

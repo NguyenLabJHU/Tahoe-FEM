@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidAxiT.cpp,v 1.2.2.5 2004-07-12 08:08:50 paklein Exp $ */
+/* $Id: MeshFreeFSSolidAxiT.cpp,v 1.2.2.6 2004-07-12 16:06:27 paklein Exp $ */
 #include "MeshFreeFSSolidAxiT.h"
 
 #include <iostream.h>
@@ -215,14 +215,14 @@ void MeshFreeFSSolidAxiT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* MeshFreeFSSolidAxiT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* MeshFreeFSSolidAxiT::NewSub(const StringT& name) const
 {
-	if (list_name == "meshfree_support_2D")
+	if (name == "meshfree_support_2D")
 		return new MeshFreeSupport2DT;	
-	else if (list_name == "meshfree_fracture_support")
+	else if (name == "meshfree_fracture_support")
 		return new MeshFreeFractureSupportT;
 	else /* inherited */
-		return TotalLagrangianAxiT::NewSub(list_name);
+		return TotalLagrangianAxiT::NewSub(name);
 }
 
 /* accept parameter list */

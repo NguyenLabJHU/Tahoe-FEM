@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.92.2.4 2004-07-12 08:08:37 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.92.2.5 2004-07-12 16:05:55 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -222,77 +222,77 @@ void ElementListT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void ElementListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
-	if (sub == "element_groups")
+	if (name == "element_groups")
 	{
 		order = ParameterListT::Choice;
 
 #ifdef COHESIVE_SURFACE_ELEMENT
-		sub_sub_list.AddSub("isotropic_CSE");
-		sub_sub_list.AddSub("anisotropic_CSE");
-		sub_sub_list.AddSub("anisotropic_symmetry_CSE");
-		sub_sub_list.AddSub("thermal_CSE");
+		sub_lists.AddSub("isotropic_CSE");
+		sub_lists.AddSub("anisotropic_CSE");
+		sub_lists.AddSub("anisotropic_symmetry_CSE");
+		sub_lists.AddSub("thermal_CSE");
 #endif
 
 #ifdef ADHESION_ELEMENT
-		sub_sub_list.AddSub("adhesion");
+		sub_lists.AddSub("adhesion");
 #endif
 
 #ifdef CONTACT_ELEMENT
-		sub_sub_list.AddSub("contact_2D_penalty");
-		sub_sub_list.AddSub("contact_3D_penalty");
+		sub_lists.AddSub("contact_2D_penalty");
+		sub_lists.AddSub("contact_3D_penalty");
 
-		sub_sub_list.AddSub("contact_2D_multiplier");
-		sub_sub_list.AddSub("contact_3D_multiplier");
+		sub_lists.AddSub("contact_2D_multiplier");
+		sub_lists.AddSub("contact_3D_multiplier");
 
-		sub_sub_list.AddSub("contact_drag_2D_penalty");
-		sub_sub_list.AddSub("contact_drag_3D_penalty");
+		sub_lists.AddSub("contact_drag_2D_penalty");
+		sub_lists.AddSub("contact_drag_3D_penalty");
 #endif
 
 #ifdef CONTACT_ELEMENT
 #ifdef CONTINUUM_ELEMENT /* need meshfree code */
-		sub_sub_list.AddSub("meshfree_contact_2D_penalty");
+		sub_lists.AddSub("meshfree_contact_2D_penalty");
 #endif
 #endif
 
 #ifdef PARTICLE_ELEMENT
-		sub_sub_list.AddSub("particle_pair");
-		sub_sub_list.AddSub("particle_EAM");
+		sub_lists.AddSub("particle_pair");
+		sub_lists.AddSub("particle_EAM");
 #endif
 
 #ifdef CONTINUUM_ELEMENT
-		sub_sub_list.AddSub("diffusion");
-		sub_sub_list.AddSub("nonlinear_diffusion");
-		sub_sub_list.AddSub("small_strain");
-		sub_sub_list.AddSub("updated_lagrangian");
-		sub_sub_list.AddSub("updated_lagrangian_Q1P0");
-		sub_sub_list.AddSub("updated_lagrangian_Q1P0_inv");
-		sub_sub_list.AddSub("total_lagrangian");
-		sub_sub_list.AddSub("small_strain_meshfree");
-		sub_sub_list.AddSub("large_strain_meshfree");
-		sub_sub_list.AddSub("small_strain_axi");
-		sub_sub_list.AddSub("updated_lagrangian_axi");
-		sub_sub_list.AddSub("total_lagrangian_axi");
-		sub_sub_list.AddSub("updated_lagrangian_Q1P0_axi");
-		sub_sub_list.AddSub("updated_lagrangian_Q1P0_inv_axi");
-		sub_sub_list.AddSub("large_strain_meshfree_axi");
+		sub_lists.AddSub("diffusion");
+		sub_lists.AddSub("nonlinear_diffusion");
+		sub_lists.AddSub("small_strain");
+		sub_lists.AddSub("updated_lagrangian");
+		sub_lists.AddSub("updated_lagrangian_Q1P0");
+		sub_lists.AddSub("updated_lagrangian_Q1P0_inv");
+		sub_lists.AddSub("total_lagrangian");
+		sub_lists.AddSub("small_strain_meshfree");
+		sub_lists.AddSub("large_strain_meshfree");
+		sub_lists.AddSub("small_strain_axi");
+		sub_lists.AddSub("updated_lagrangian_axi");
+		sub_lists.AddSub("total_lagrangian_axi");
+		sub_lists.AddSub("updated_lagrangian_Q1P0_axi");
+		sub_lists.AddSub("updated_lagrangian_Q1P0_inv_axi");
+		sub_lists.AddSub("large_strain_meshfree_axi");
 #endif
 	}
 	else /* inherited */
-		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
+		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ElementListT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* ElementListT::NewSub(const StringT& name) const
 {
 	/* try to construct element */
-	ElementBaseT* element = NewElement(list_name);
+	ElementBaseT* element = NewElement(name);
 	if (element)
 		return element;
 	else /* inherited */	
-		return ParameterInterfaceT::NewSub(list_name);
+		return ParameterInterfaceT::NewSub(name);
 }
 
 /* accept parameter list */
@@ -324,91 +324,91 @@ void ElementListT::TakeParameterList(const ParameterListT& list)
  ***********************************************************************/
 
 /* return a pointer to a new element group or NULL if the request cannot be completed */
-ElementBaseT* ElementListT::NewElement(const StringT& list_name) const
+ElementBaseT* ElementListT::NewElement(const StringT& name) const
 {
 	if (false) /* dummy */
 		return NULL;
 
 #ifdef COHESIVE_SURFACE_ELEMENT	
-	else if (list_name == "isotropic_CSE")
+	else if (name == "isotropic_CSE")
 		return new CSEIsoT(fSupport);
 		
-	else if (list_name == "anisotropic_CSE")
+	else if (name == "anisotropic_CSE")
 		return new CSEAnisoT(fSupport);
 
-	else if (list_name == "anisotropic_symmetry_CSE")
+	else if (name == "anisotropic_symmetry_CSE")
 		return new CSESymAnisoT(fSupport);
 
-	else if (list_name == "thermal_CSE")
+	else if (name == "thermal_CSE")
 		return new ThermalSurfaceT(fSupport);
 #endif
 
 #ifdef ADHESION_ELEMENT
-	else if (list_name == "adhesion")
+	else if (name == "adhesion")
 		return new AdhesionT(fSupport);
 #endif
 
 #ifdef CONTACT_ELEMENT
-	else if (list_name == "contact_2D_penalty")
+	else if (name == "contact_2D_penalty")
 		return new PenaltyContact2DT(fSupport);
-	else if (list_name == "contact_3D_penalty")
+	else if (name == "contact_3D_penalty")
 		return new PenaltyContact3DT(fSupport);
 
-	else if (list_name == "contact_2D_multiplier")
+	else if (name == "contact_2D_multiplier")
 		return new AugLagContact2DT(fSupport);
-	else if (list_name == "contact_3D_multiplier")
+	else if (name == "contact_3D_multiplier")
 		return new AugLagContact3DT(fSupport);
 
-	else if (list_name == "contact_drag_2D_penalty")
+	else if (name == "contact_drag_2D_penalty")
 		return new PenaltyContactDrag2DT(fSupport);
-	else if (list_name == "contact_drag_3D_penalty")
+	else if (name == "contact_drag_3D_penalty")
 		return new PenaltyContactDrag3DT(fSupport);
 #endif
 
 #ifdef CONTACT_ELEMENT
 #ifdef CONTINUUM_ELEMENT /* need meshfree code */
-	else if (list_name == "meshfree_contact_2D_penalty")
+	else if (name == "meshfree_contact_2D_penalty")
 		return new MFPenaltyContact2DT(fSupport);
 #endif
 #endif
 
 #ifdef PARTICLE_ELEMENT
-	else if (list_name == "particle_pair")
+	else if (name == "particle_pair")
 		return new ParticlePairT(fSupport);
-	else if (list_name == "particle_EAM")
+	else if (name == "particle_EAM")
 		return new EAMT(fSupport);
 #endif
 
 #ifdef CONTINUUM_ELEMENT
-	else if (list_name == "diffusion")
+	else if (name == "diffusion")
 		return new DiffusionElementT(fSupport);
-	else if (list_name == "nonlinear_diffusion")
+	else if (name == "nonlinear_diffusion")
 		return new NLDiffusionElementT(fSupport);
-	else if (list_name == "small_strain")
+	else if (name == "small_strain")
 		return new SmallStrainT(fSupport);
-	else if (list_name == "updated_lagrangian")
+	else if (name == "updated_lagrangian")
 		return new UpdatedLagrangianT(fSupport);
-	else if (list_name == "updated_lagrangian_Q1P0")
+	else if (name == "updated_lagrangian_Q1P0")
 		return new SimoQ1P0(fSupport);
-	else if (list_name == "updated_lagrangian_Q1P0_inv")
+	else if (name == "updated_lagrangian_Q1P0_inv")
 		return new SimoQ1P0_inv(fSupport);
-	else if (list_name == "total_lagrangian")
+	else if (name == "total_lagrangian")
 		return new TotalLagrangianT(fSupport);
-	else if (list_name == "small_strain_meshfree")
+	else if (name == "small_strain_meshfree")
 		return new MeshFreeSSSolidT(fSupport);
-	else if (list_name == "large_strain_meshfree")
+	else if (name == "large_strain_meshfree")
 		return new MeshFreeFSSolidT(fSupport);
-	else if (list_name == "small_strain_axi")
+	else if (name == "small_strain_axi")
 		return new SmallStrainAxiT(fSupport);
-	else if (list_name == "updated_lagrangian_axi")
+	else if (name == "updated_lagrangian_axi")
 		return new UpdatedLagrangianAxiT(fSupport);
-	else if (list_name == "total_lagrangian_axi")
+	else if (name == "total_lagrangian_axi")
 		return new TotalLagrangianAxiT(fSupport);
-	else if (list_name == "updated_lagrangian_Q1P0_axi")
+	else if (name == "updated_lagrangian_Q1P0_axi")
 		return new SimoQ1P0Axi(fSupport);
-	else if (list_name == "updated_lagrangian_Q1P0_inv_axi")
+	else if (name == "updated_lagrangian_Q1P0_inv_axi")
 		return new SimoQ1P0Axi_inv(fSupport);
-	else if (list_name == "large_strain_meshfree_axi")
+	else if (name == "large_strain_meshfree_axi")
 		return new MeshFreeFSSolidAxiT(fSupport);
 #endif
 

@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.h,v 1.8.26.1 2004-07-06 06:53:15 paklein Exp $ */
+/* $Id: ContinuumMaterialT.h,v 1.8.26.2 2004-07-12 16:06:01 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _CONTINUUM_MATERIAL_T_H_
 #define _CONTINUUM_MATERIAL_T_H_
@@ -25,10 +25,6 @@ class StringT;
 class ContinuumMaterialT: virtual public ParameterInterfaceT
 {
 public:
-
-	/** constructor
-	 * \param support reference to the host element */
-	ContinuumMaterialT(const MaterialSupportT& support);
 
 	/** constructor */
 	ContinuumMaterialT(void);

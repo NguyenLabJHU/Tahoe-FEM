@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.cpp,v 1.8.54.1 2004-07-06 06:53:39 paklein Exp $ */
+/* $Id: QuadLog3D.cpp,v 1.8.54.2 2004-07-12 16:06:12 paklein Exp $ */
 /* created: paklein (06/27/1997) */
 #include "QuadLog3D.h"
 
@@ -8,27 +8,6 @@
 using namespace Tahoe;
 
 /* constructor */
-QuadLog3D::QuadLog3D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("quad_log"),
-	fSpectral(3),
-	fb(3),
-	fStress(3),
-	fModulus(dSymMatrixT::NumValues(3)),
-	fDevOp3(3),
-		
-	/* spectral decomposition */
-	fEigs(3),
-	floge(3),
-	fBeta(3),
-	fEigMod(3)
-{			
-	/* elastic modulis in principal stress space */
-	fDevOp3 = -1.0/3.0;
-	fDevOp3.PlusIdentity();
-	fEigMod = Kappa();
-	fEigMod.AddScaled(2.0*Mu(), fDevOp3);
-}
-
 QuadLog3D::QuadLog3D(void): 
 	ParameterInterfaceT("quad_log"),
 	fSpectral(3)

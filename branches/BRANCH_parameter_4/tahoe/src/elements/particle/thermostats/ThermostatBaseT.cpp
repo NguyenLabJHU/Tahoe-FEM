@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.cpp,v 1.11.26.2 2004-07-07 15:28:36 paklein Exp $ */
+/* $Id: ThermostatBaseT.cpp,v 1.11.26.3 2004-07-12 16:06:31 paklein Exp $ */
 #include "ThermostatBaseT.h"
 
 #include "BasicSupportT.h"
@@ -125,18 +125,18 @@ void ThermostatBaseT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ThermostatBaseT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* ThermostatBaseT::NewSub(const StringT& name) const
 {
-	if (list_name == "thermostat_temperature")
+	if (name == "thermostat_temperature")
 	{
-		ParameterContainerT* temp = new ParameterContainerT(list_name);	
+		ParameterContainerT* temp = new ParameterContainerT(name);	
 		temp->AddParameter(ParameterT::Integer, "schedule");
 		temp->AddParameter(ParameterT::Double, "value");	
 		return temp;
 	}
-	else if (list_name == "particle_pick_choice") 
+	else if (name == "particle_pick_choice") 
 	{
-		ParameterContainerT* pick = new ParameterContainerT(list_name);
+		ParameterContainerT* pick = new ParameterContainerT(name);
 		pick->SetSubSource(this);
 		pick->SetListOrder(ParameterListT::Choice);
 
@@ -146,9 +146,9 @@ ParameterInterfaceT* ThermostatBaseT::NewSub(const StringT& list_name) const
 		pick->AddSub("pick_by_region");
 		return pick;
 	}
-	else if (list_name == "pick_by_list")
+	else if (name == "pick_by_list")
 	{
-		ParameterContainerT* pick = new ParameterContainerT(list_name);
+		ParameterContainerT* pick = new ParameterContainerT(name);
 		
 		/* these nodes or all but these */
 		ParameterT use_or_no(ParameterT::Enumeration, "selection");
@@ -160,9 +160,9 @@ ParameterInterfaceT* ThermostatBaseT::NewSub(const StringT& list_name) const
 		pick->AddSub("node_ID_list");
 		return pick;
 	}
-	else if (list_name == "pick_by_region")
+	else if (name == "pick_by_region")
 	{
-		ParameterContainerT* pick = new ParameterContainerT(list_name);
+		ParameterContainerT* pick = new ParameterContainerT(name);
 		pick->SetDescription("provide bounds for each direction");
 
 		ParameterT search_inc(ParameterT::Integer, "search_increment");
@@ -180,7 +180,7 @@ ParameterInterfaceT* ThermostatBaseT::NewSub(const StringT& list_name) const
 		return pick;
 	}
 	else /* inherited */
-		return ParameterInterfaceT::NewSub(list_name);
+		return ParameterInterfaceT::NewSub(name);
 }
 
 /* accept parameter list */

@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.17.2.4 2004-07-12 08:08:50 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.17.2.5 2004-07-12 16:06:28 paklein Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -571,7 +571,7 @@ void SCNIMFT::ReadMaterialData(ifstreamT& in)
 	if (!fMaterialList) ExceptionT::OutOfMemory(caller);
 
 	/* read */
-	fMaterialList->ReadMaterialData(in);
+//	fMaterialList->ReadMaterialData(in);
 	
 	fMaterialNeeds.Dimension(fMaterialList->Length());
 	for (int i = 0; i < fMaterialNeeds.Length(); i++)
@@ -1251,16 +1251,16 @@ void SCNIMFT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void SCNIMFT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void SCNIMFT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
 	/* inherited */
-	ElementBaseT::DefineInlineSub(sub, order, sub_sub_list);
+	ElementBaseT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* SCNIMFT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* SCNIMFT::NewSub(const StringT& name) const
 {
 	/* inherited */
-	return ElementBaseT::NewSub(list_name);
+	return ElementBaseT::NewSub(name);
 }

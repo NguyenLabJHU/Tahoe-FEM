@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.h,v 1.12.2.1 2004-07-06 06:54:22 paklein Exp $ */
+/* $Id: MeshFreeSupportT.h,v 1.12.2.2 2004-07-12 16:06:32 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #ifndef _MF_SUPPORT_T_H_
 #define _MF_SUPPORT_T_H_
@@ -193,7 +193,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

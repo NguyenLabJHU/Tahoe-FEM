@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.h,v 1.10.6.1 2004-07-06 06:54:01 paklein Exp $ */
+/* $Id: PolyCrystalMatT.h,v 1.10.6.2 2004-07-12 16:06:24 paklein Exp $ */
 #ifndef _POLY_CRYSTAL_MAT_T_H_
 #define _POLY_CRYSTAL_MAT_T_H_
 
@@ -30,7 +30,7 @@ class PolyCrystalMatT : public FDHookeanMatT
 {
  public:
   // constructor
-  PolyCrystalMatT(ifstreamT& in, const FSMatSupportT& support);
+  PolyCrystalMatT(void);
 
   // destructor
   virtual ~PolyCrystalMatT();

@@ -1,4 +1,4 @@
-/* $Id: MFAugLagMultT.h,v 1.2.2.1 2004-07-08 07:48:39 paklein Exp $ */
+/* $Id: MFAugLagMultT.h,v 1.2.2.2 2004-07-12 16:06:36 paklein Exp $ */
 #ifndef _MF_AUG_LAG_MULT_T_H_
 #define _MF_AUG_LAG_MULT_T_H_
 
@@ -120,7 +120,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 	
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

@@ -1,4 +1,4 @@
-/* $Id: YoonAllen2DT.cpp,v 1.14.2.2 2004-07-07 15:27:58 paklein Exp $ */
+/* $Id: YoonAllen2DT.cpp,v 1.14.2.3 2004-07-12 16:05:59 paklein Exp $ */
 #include "YoonAllen2DT.h"
 
 #include <iostream.h>
@@ -618,11 +618,11 @@ void YoonAllen2DT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* YoonAllen2DT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* YoonAllen2DT::NewSub(const StringT& name) const
 {
-	if (list_name == "Prony_series")
+	if (name == "Prony_series")
 	{
-		ParameterContainerT* prony = new ParameterContainerT(list_name);
+		ParameterContainerT* prony = new ParameterContainerT(name);
 		prony->SetListOrder(ParameterListT::Sequence);
 		
 		/* ordered pairs */
@@ -638,9 +638,9 @@ ParameterInterfaceT* YoonAllen2DT::NewSub(const StringT& list_name) const
 
 		return prony;
 	}
-	else if (list_name == "Yoon-Allen_damage_choice")
+	else if (name == "Yoon-Allen_damage_choice")
 	{
-		ParameterContainerT* damage = new ParameterContainerT(list_name);
+		ParameterContainerT* damage = new ParameterContainerT(name);
 		damage->SetListOrder(ParameterListT::Choice);
 	
 		/* common parameters */
@@ -675,7 +675,7 @@ ParameterInterfaceT* YoonAllen2DT::NewSub(const StringT& list_name) const
 		return damage;
 	}
 	else /* inherited */
-		return SurfacePotentialT::NewSub(list_name);
+		return SurfacePotentialT::NewSub(name);
 }
 
 /* accept parameter list */

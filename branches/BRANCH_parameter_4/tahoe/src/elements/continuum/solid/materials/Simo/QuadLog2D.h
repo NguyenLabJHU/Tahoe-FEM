@@ -1,4 +1,4 @@
-/* $Id: QuadLog2D.h,v 1.5.54.1 2004-07-06 06:53:39 paklein Exp $ */
+/* $Id: QuadLog2D.h,v 1.5.54.2 2004-07-12 16:06:12 paklein Exp $ */
 /* created: paklein (06/28/1997) */
 #ifndef _QUAD_LOG_2D_
 #define _QUAD_LOG_2D_
@@ -14,7 +14,6 @@ class QuadLog2D: public QuadLog3D
 public:
 
 	/* constructor */
-	QuadLog2D(ifstreamT& in, const FSMatSupportT& support);
 	QuadLog2D(void);
 
 	/* modulus */

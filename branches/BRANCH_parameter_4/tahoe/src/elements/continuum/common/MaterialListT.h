@@ -1,4 +1,4 @@
-/* $Id: MaterialListT.h,v 1.8.24.2 2004-07-07 21:50:40 paklein Exp $ */
+/* $Id: MaterialListT.h,v 1.8.24.3 2004-07-12 16:06:01 paklein Exp $ */
 /* created: paklein (02/16/1997) */
 #ifndef _MATERIAL_LIST_T_H_
 #define _MATERIAL_LIST_T_H_
@@ -26,9 +26,6 @@ public:
 
 	/* destructor */
 	virtual ~MaterialListT(void) { };
-
-	/** read material data from the input stream */
-	virtual void ReadMaterialData(ifstreamT& in);
 
 	/** apply pre-conditions at the current time step */
 	void InitStep(void);

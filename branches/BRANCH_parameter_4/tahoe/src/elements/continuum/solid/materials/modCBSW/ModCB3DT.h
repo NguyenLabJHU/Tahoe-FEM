@@ -1,4 +1,4 @@
-/* $Id: ModCB3DT.h,v 1.6.54.1 2004-07-06 06:53:54 paklein Exp $ */
+/* $Id: ModCB3DT.h,v 1.6.54.2 2004-07-12 16:06:19 paklein Exp $ */
 /* created: paklein (10/14/1998) */
 #ifndef _MODCB_3D_T_H_
 #define _MODCB_3D_T_H_
@@ -27,7 +27,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

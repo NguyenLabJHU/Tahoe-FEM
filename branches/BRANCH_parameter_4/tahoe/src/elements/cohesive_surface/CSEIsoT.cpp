@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.20.2.3 2004-07-12 08:08:41 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.20.2.4 2004-07-12 16:05:57 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -55,34 +55,34 @@ void CSEIsoT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void CSEIsoT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void CSEIsoT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
-	if (sub == "surface_potential")
+	if (name == "surface_potential")
 	{
 		/* choice */
 		order = ParameterListT::Choice;
 		
 		/* function types */
-		sub_sub_list.AddSub("Lennard-Jones_6-12");
-		sub_sub_list.AddSub("Smith-Ferrante");
+		sub_lists.AddSub("Lennard-Jones_6-12");
+		sub_lists.AddSub("Smith-Ferrante");
 	}
 	else /* inherited */
-		CSEBaseT::DefineInlineSub(sub, order, sub_sub_list);
+		CSEBaseT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT */
-ParameterInterfaceT* CSEIsoT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* CSEIsoT::NewSub(const StringT& name) const
 {
 	/* try surface potential */
-	C1FunctionT* surf_pot = C1FunctionT::New(list_name);
+	C1FunctionT* surf_pot = C1FunctionT::New(name);
 	if (surf_pot)
 		return surf_pot;
 
 	/* other lists */
-	if (list_name == "isotropic_CSE_element_block")
+	if (name == "isotropic_CSE_element_block")
 	{
-		ParameterContainerT* block = new ParameterContainerT(list_name);
+		ParameterContainerT* block = new ParameterContainerT(name);
 		
 		/* list of element block ID's (defined by ElementBaseT) */
 		block->AddSub("block_ID_list", ParameterListT::Once);
@@ -96,7 +96,7 @@ ParameterInterfaceT* CSEIsoT::NewSub(const StringT& list_name) const
 		return block;
 	}		
 	else /* inherited */
-		return CSEBaseT::NewSub(list_name);
+		return CSEBaseT::NewSub(name);
 }
 
 /* accept parameter list */

@@ -1,4 +1,4 @@
-/* $Id: PenaltyCylinderT.cpp,v 1.3.2.1 2004-07-06 06:54:40 paklein Exp $ */
+/* $Id: PenaltyCylinderT.cpp,v 1.3.2.2 2004-07-12 16:06:36 paklein Exp $ */
 #include "PenaltyCylinderT.h"
 #include "FieldT.h"
 #include "eIntegratorT.h"
@@ -81,11 +81,11 @@ void PenaltyCylinderT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* PenaltyCylinderT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* PenaltyCylinderT::NewSub(const StringT& name) const
 {
-	if (list_name == "cylinder_penalty_axis")
+	if (name == "cylinder_penalty_axis")
 	{
-		ParameterContainerT* dir = new ParameterContainerT(list_name);
+		ParameterContainerT* dir = new ParameterContainerT(name);
 		
 		/* by dimension */
 		dir->SetListOrder(ParameterListT::Choice);
@@ -95,7 +95,7 @@ ParameterInterfaceT* PenaltyCylinderT::NewSub(const StringT& list_name) const
 		return dir;
 	}
 	else /* inherited */
-		return PenaltyRegionT::NewSub(list_name);
+		return PenaltyRegionT::NewSub(name);
 }
 
 /* accept parameter list */

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.20.26.2 2004-07-07 15:28:23 paklein Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.20.26.3 2004-07-12 16:06:23 paklein Exp $ */
 #include "LocalCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -31,7 +31,7 @@ const int IPprnt = 1;
 
 LocalCrystalPlast::LocalCrystalPlast(ifstreamT& in, const FSMatSupportT& support) :
 	ParameterInterfaceT("local_crystal_plasticity"),
-	PolyCrystalMatT(in, support),  
+//	PolyCrystalMatT(in, support),  
 
   // elastic deformation gradients
   fFeTr (kNSD,kNSD),

@@ -1,4 +1,4 @@
-/* $Id: Chain1D.h,v 1.2.2.1 2004-07-07 15:28:10 paklein Exp $ */
+/* $Id: Chain1D.h,v 1.2.2.2 2004-07-12 16:06:06 paklein Exp $ */
 #ifndef _CHAIN_1D_H_
 #define _CHAIN_1D_H_
 
@@ -44,11 +44,11 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-		SubListT& sub_sub_list) const;
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

@@ -1,4 +1,4 @@
-/* $Id: FCCLatticeT.h,v 1.2.50.1 2004-07-06 06:53:24 paklein Exp $ */
+/* $Id: FCCLatticeT.h,v 1.2.50.2 2004-07-12 16:06:06 paklein Exp $ */
 #ifndef _FCC_LATTICE_T_H_
 #define _FCC_LATTICE_T_H_
 
@@ -38,7 +38,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

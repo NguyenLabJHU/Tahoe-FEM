@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.cpp,v 1.9.28.1 2004-07-06 06:53:42 paklein Exp $ */
+/* $Id: IsoVIB2D.cpp,v 1.9.28.2 2004-07-12 16:06:15 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoVIB2D.h"
 
@@ -306,12 +306,12 @@ void IsoVIB2D::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* IsoVIB2D::NewSub(const StringT& list_name) const
+ParameterInterfaceT* IsoVIB2D::NewSub(const StringT& name) const
 {
 	/* inherited */
-	ParameterInterfaceT* sub = FSSolidMatT::NewSub(list_name);
+	ParameterInterfaceT* sub = FSSolidMatT::NewSub(name);
 	if (sub) return sub;
-	else return VIB::NewSub(list_name);
+	else return VIB::NewSub(name);
 }
 
 /* accept parameter list */

@@ -1,4 +1,4 @@
-/* $Id: VIB.h,v 1.4.58.1 2004-07-06 06:53:41 paklein Exp $ */
+/* $Id: VIB.h,v 1.4.58.2 2004-07-12 16:06:14 paklein Exp $ */
 /* created: paklein (10/30/1997) */
 #ifndef _VIB_H_
 #define _VIB_H_
@@ -34,11 +34,11 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-		SubListT& sub_sub_list) const;
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

@@ -1,4 +1,4 @@
-/* $Id: MaterialListT.cpp,v 1.5.26.2 2004-07-07 21:50:40 paklein Exp $ */
+/* $Id: MaterialListT.cpp,v 1.5.26.3 2004-07-12 16:06:01 paklein Exp $ */
 /* created: paklein (02/16/1997) */
 #include "MaterialListT.h"
 #include "ContinuumMaterialT.h"
@@ -35,10 +35,4 @@ void MaterialListT::CloseStep(void)
 	/* loop over list */
 	for (int i = 0; i < fLength; i++)
 		fArray[i]->CloseStep();
-}
-
-//TEMP
-#pragma message("delete me")
-void MaterialListT::ReadMaterialData(ifstreamT& in) {
-	ExceptionT::Stop("MaterialListT::ReadMaterialData");
 }

@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.23.2.1 2004-07-06 06:53:55 paklein Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.23.2.2 2004-07-12 16:06:21 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV.h"
 #include "SSMatSupportT.h"
@@ -152,18 +152,18 @@ void DPSSKStV::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* DPSSKStV::NewSub(const StringT& list_name) const
+ParameterInterfaceT* DPSSKStV::NewSub(const StringT& name) const
 {
-	if (list_name == "DP_SS_linear_hardening")
+	if (name == "DP_SS_linear_hardening")
 		return new DPSSLinHardT(0, 0.0, 0.0);
 	else
 	{
 		/* inherited */
-		ParameterInterfaceT* params = SSSolidMatT::NewSub(list_name);
+		ParameterInterfaceT* params = SSSolidMatT::NewSub(name);
 		if (params) 
 			return params;
 		else
-			return IsotropicT::NewSub(list_name);
+			return IsotropicT::NewSub(name);
 	}
 }
 

@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.19.2.2 2004-07-07 15:28:47 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.19.2.3 2004-07-12 16:06:37 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
@@ -217,20 +217,20 @@ void K_FieldT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* K_FieldT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* K_FieldT::NewSub(const StringT& name) const
 {
-	if (list_name == "initial_tip_coordinates" || list_name == "crack_extension_direction")
-		return new VectorParameterT(list_name, 'x', 2);
-	else if (list_name == "K_I" || list_name == "K_II")
+	if (name == "initial_tip_coordinates" || name == "crack_extension_direction")
+		return new VectorParameterT(name, 'x', 2);
+	else if (name == "K_I" || name == "K_II")
 	{
-		ParameterContainerT* K_spec = new ParameterContainerT(list_name);
+		ParameterContainerT* K_spec = new ParameterContainerT(name);
 		K_spec->AddParameter(ParameterT::Double, "K");
 		K_spec->AddParameter(ParameterT::Integer, "schedule");
 		return K_spec;
 	}
-	else if (list_name == "tip_tracking")
+	else if (name == "tip_tracking")
 	{
-		ParameterContainerT* tracking = new ParameterContainerT(list_name);
+		ParameterContainerT* tracking = new ParameterContainerT(name);
 		tracking->SetSubSource(this);
 	
 		/* define tracking data */
@@ -247,9 +247,9 @@ ParameterInterfaceT* K_FieldT::NewSub(const StringT& list_name) const
 
 		return tracking;
 	}
-	else if (list_name == "tip_tracking_method")
+	else if (name == "tip_tracking_method")
 	{
-		ParameterContainerT* method = new ParameterContainerT(list_name);
+		ParameterContainerT* method = new ParameterContainerT(name);
 		method->SetListOrder(ParameterListT::Choice);
 	
 		/* maximum value */
@@ -264,9 +264,9 @@ ParameterInterfaceT* K_FieldT::NewSub(const StringT& list_name) const
 	
 		return method;
 	}
-	else if (list_name == "elastic_properties_choice")
+	else if (name == "elastic_properties_choice")
 	{
-		ParameterContainerT* props = new ParameterContainerT(list_name);
+		ParameterContainerT* props = new ParameterContainerT(name);
 		props->SetListOrder(ParameterListT::Choice);
 		props->SetSubSource(this);
 
@@ -291,10 +291,10 @@ ParameterInterfaceT* K_FieldT::NewSub(const StringT& list_name) const
 	
 		return props;
 	}
-	else if (list_name == "isotropic")
+	else if (name == "isotropic")
 		return new IsotropicT;
 	else /* inherited */
-		return KBC_ControllerT::NewSub(list_name);
+		return KBC_ControllerT::NewSub(name);
 }
 
 /* accept parameter list */

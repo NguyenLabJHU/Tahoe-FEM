@@ -1,4 +1,4 @@
-/* $Id: MFAugLagMultT.cpp,v 1.3.2.2 2004-07-08 16:45:24 paklein Exp $ */
+/* $Id: MFAugLagMultT.cpp,v 1.3.2.3 2004-07-12 16:06:36 paklein Exp $ */
 #include "MFAugLagMultT.h"
 
 #include <iostream.h>
@@ -474,17 +474,17 @@ void MFAugLagMultT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* MFAugLagMultT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* MFAugLagMultT::NewSub(const StringT& name) const
 {
-	if (list_name == "kinematic_BC")
+	if (name == "kinematic_BC")
 	{
 		/* use definition from field */
 		FieldSupportT field_support;
 		FieldT field(field_support);
-		return field.NewSub(list_name);
+		return field.NewSub(name);
 	}
 	else /* inherited */
-		return FBC_ControllerT::NewSub(list_name);
+		return FBC_ControllerT::NewSub(name);
 }
 
 /* accept parameter list */

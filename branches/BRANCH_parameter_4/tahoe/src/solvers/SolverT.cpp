@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.21.2.4 2004-07-12 05:12:20 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.21.2.5 2004-07-12 16:06:40 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -235,11 +235,11 @@ void SolverT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* SolverT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* SolverT::NewSub(const StringT& name) const
 {
-	if (list_name == "matrix_type_choice")
+	if (name == "matrix_type_choice")
 	{
-		ParameterContainerT* choice = new ParameterContainerT(list_name);
+		ParameterContainerT* choice = new ParameterContainerT(name);
 		choice->SetListOrder(ParameterListT::Choice);
 	
 		choice->AddSub(ParameterContainerT("profile_matrix"));
@@ -265,7 +265,7 @@ ParameterInterfaceT* SolverT::NewSub(const StringT& list_name) const
 		return choice;
 	}
 	else /* inherited */
-		return ParameterInterfaceT::NewSub(list_name);
+		return ParameterInterfaceT::NewSub(name);
 }
 
 /* accept parameter list */

@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.cpp,v 1.7.28.2 2004-07-07 15:28:47 paklein Exp $ */
+/* $Id: ScaledVelocityNodesT.cpp,v 1.7.28.3 2004-07-12 16:06:37 paklein Exp $ */
 #include "ScaledVelocityNodesT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -275,11 +275,11 @@ void ScaledVelocityNodesT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ScaledVelocityNodesT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* ScaledVelocityNodesT::NewSub(const StringT& name) const
 {
-	if (list_name == "BC_or_IC")
+	if (name == "BC_or_IC")
 	{
-		ParameterContainerT* bc_or_ic = new ParameterContainerT(list_name);
+		ParameterContainerT* bc_or_ic = new ParameterContainerT(name);
 		bc_or_ic->SetListOrder(ParameterListT::Choice);
 		
 		ParameterContainerT bc("scale_as_BC");
@@ -294,9 +294,9 @@ ParameterInterfaceT* ScaledVelocityNodesT::NewSub(const StringT& list_name) cons
 				
 		return bc_or_ic;
 	}
-	else if (list_name == "node_pick_choice") 
+	else if (name == "node_pick_choice") 
 	{
-		ParameterContainerT* pick = new ParameterContainerT(list_name);
+		ParameterContainerT* pick = new ParameterContainerT(name);
 		pick->SetSubSource(this);
 		pick->SetListOrder(ParameterListT::Choice);
 
@@ -306,9 +306,9 @@ ParameterInterfaceT* ScaledVelocityNodesT::NewSub(const StringT& list_name) cons
 //		pick->AddSub("pick_nodes_by_region");
 		return pick;
 	}
-	else if (list_name == "pick_nodes_by_list")
+	else if (name == "pick_nodes_by_list")
 	{
-		ParameterContainerT* pick = new ParameterContainerT(list_name);
+		ParameterContainerT* pick = new ParameterContainerT(name);
 		
 		/* these nodes or all but these */
 		ParameterT use_or_no(ParameterT::Enumeration, "selection");
@@ -320,9 +320,9 @@ ParameterInterfaceT* ScaledVelocityNodesT::NewSub(const StringT& list_name) cons
 		pick->AddSub("node_ID_list");
 		return pick;
 	}
-	else if (list_name == "pick_nodes_by_region")
+	else if (name == "pick_nodes_by_region")
 	{
-		ParameterContainerT* pick = new ParameterContainerT(list_name);
+		ParameterContainerT* pick = new ParameterContainerT(name);
 		pick->SetDescription("provide bounds for each direction");
 
 		ParameterT search_inc(ParameterT::Integer, "search_increment");
@@ -340,7 +340,7 @@ ParameterInterfaceT* ScaledVelocityNodesT::NewSub(const StringT& list_name) cons
 		return pick;
 	}
 	else /* inherited */
-		return KBC_ControllerT::NewSub(list_name);
+		return KBC_ControllerT::NewSub(name);
 }
 
 /* accept parameter list */

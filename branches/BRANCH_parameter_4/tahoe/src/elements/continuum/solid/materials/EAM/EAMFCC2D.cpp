@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.cpp,v 1.9.2.1 2004-07-06 06:53:26 paklein Exp $ */
+/* $Id: EAMFCC2D.cpp,v 1.9.2.2 2004-07-12 16:06:08 paklein Exp $ */
 /* created: paklein (12/09/1996) */
 #include "EAMFCC2D.h"
 
@@ -48,12 +48,12 @@ void EAMFCC2D::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* EAMFCC2D::NewSub(const StringT& list_name) const
+ParameterInterfaceT* EAMFCC2D::NewSub(const StringT& name) const
 {
-	if (list_name == "FCC_EAM_Cauchy-Born")
+	if (name == "FCC_EAM_Cauchy-Born")
 		return new EAMFCC3DSym;
 	else /* inherited */
-		return NL_E_MatT::NewSub(list_name);
+		return NL_E_MatT::NewSub(name);
 }
 
 /* accept parameter list */

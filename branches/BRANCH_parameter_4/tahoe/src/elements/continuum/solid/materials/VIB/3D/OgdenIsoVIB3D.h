@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB3D.h,v 1.7.54.1 2004-07-06 06:53:44 paklein Exp $ */
+/* $Id: OgdenIsoVIB3D.h,v 1.7.54.2 2004-07-12 16:06:16 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _OGDEN_ISO_VIB_3D_H_
 #define _OGDEN_ISO_VIB_3D_H_
@@ -32,7 +32,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

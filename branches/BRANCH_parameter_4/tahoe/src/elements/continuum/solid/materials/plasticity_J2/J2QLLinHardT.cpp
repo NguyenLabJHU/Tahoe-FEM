@@ -1,4 +1,4 @@
-/* $Id: J2QLLinHardT.cpp,v 1.13.28.1 2004-07-06 06:53:57 paklein Exp $ */
+/* $Id: J2QLLinHardT.cpp,v 1.13.28.2 2004-07-12 16:06:22 paklein Exp $ */
 /* created: paklein (10/26/2000) */
 #include "J2QLLinHardT.h"
 
@@ -54,29 +54,6 @@ static const char* Labels[kNumOutput] = {
 	    "s_min"}; // min principal stress
 
 /* constructor */
-J2QLLinHardT::J2QLLinHardT(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("quad_log_J2"),
-	QuadLog3D(in, support),
-//	J2PrimitiveT(in),
-	fb_elastic(kNSD),
-	fEPModuli(kNSD),
-
-	/* work space */
-	fa_inverse(kNSD),
-	fMatrixTemp1(kNSD),
-	fMatrixTemp2(kNSD),
-	fMatrixTemp3(kNSD),
-	fdev_beta(kNSD),
-	
-	/* deformation gradient stuff */
-	fFtot(kNSD),
-	ffrel(kNSD),
-	fF_temp(kNSD)
-{
-	/* for intermediate config update */
-	fa_inverse.Inverse(fEigMod);
-}
-
 J2QLLinHardT::J2QLLinHardT(void):
 	ParameterInterfaceT("quad_log_J2")
 {

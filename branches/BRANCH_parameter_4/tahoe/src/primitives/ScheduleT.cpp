@@ -1,4 +1,4 @@
-/* $Id: ScheduleT.cpp,v 1.6.2.1 2004-07-06 06:54:47 paklein Exp $ */
+/* $Id: ScheduleT.cpp,v 1.6.2.2 2004-07-12 16:06:39 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ScheduleT.h"
 #include "dArray2DT.h"
@@ -50,31 +50,31 @@ void ScheduleT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void ScheduleT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void ScheduleT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
-	if (sub == "function_choice")
+	if (name == "function_choice")
 	{
 		order = ParameterListT::Choice;
 	
 		/* function types */
-		sub_sub_list.AddSub("piecewise_linear");
-		sub_sub_list.AddSub("cubic_spline");
-		sub_sub_list.AddSub("cosine");
+		sub_lists.AddSub("piecewise_linear");
+		sub_lists.AddSub("cubic_spline");
+		sub_lists.AddSub("cosine");
 	}
 	else /* inherited */
-		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
+		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ScheduleT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* ScheduleT::NewSub(const StringT& name) const
 {
 	/* try to construct C1 function */
-	C1FunctionT* function = C1FunctionT::New(list_name);
+	C1FunctionT* function = C1FunctionT::New(name);
 	if (function)
 		return function;
 	else /* inherited */
-		return ParameterInterfaceT::NewSub(list_name);
+		return ParameterInterfaceT::NewSub(name);
 }
 
 /* accept parameter list */

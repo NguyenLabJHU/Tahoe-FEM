@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.18.2.3 2004-07-12 08:08:39 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.18.2.4 2004-07-12 16:05:56 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -290,17 +290,17 @@ void AdhesionT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* AdhesionT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* AdhesionT::NewSub(const StringT& name) const
 {
 	/* try C1 function */
-	C1FunctionT* function = C1FunctionT::New(list_name);
+	C1FunctionT* function = C1FunctionT::New(name);
 	if (function) 
 		return function;
 
 	/* other subs */
-	if (list_name == "adhesion_potential") {
+	if (name == "adhesion_potential") {
 	
-		ParameterContainerT* adhesion_potential = new ParameterContainerT(list_name);
+		ParameterContainerT* adhesion_potential = new ParameterContainerT(name);
 		adhesion_potential->SetListOrder(ParameterListT::Choice);
 		adhesion_potential->SetSubSource(this);
 	
@@ -311,9 +311,9 @@ ParameterInterfaceT* AdhesionT::NewSub(const StringT& list_name) const
 	
 		return adhesion_potential;
 	}
-	else if (list_name == "adhesion_surface")
+	else if (name == "adhesion_surface")
 	{
-		ParameterContainerT* adhesion_surface = new ParameterContainerT(list_name);
+		ParameterContainerT* adhesion_surface = new ParameterContainerT(name);
 		adhesion_surface->SetListOrder(ParameterListT::Choice);
 		
 		/* schedule function to scale the surface interaction */
@@ -332,7 +332,7 @@ ParameterInterfaceT* AdhesionT::NewSub(const StringT& list_name) const
 		return adhesion_surface;	
 	}
 	else /* inherited */
-		return ElementBaseT::NewSub(list_name);
+		return ElementBaseT::NewSub(name);
 }
 
 /* accept parameter list */
