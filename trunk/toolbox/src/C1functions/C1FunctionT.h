@@ -1,4 +1,4 @@
-/* $Id: C1FunctionT.h,v 1.2 2001-05-05 19:05:21 paklein Exp $ */
+/* $Id: C1FunctionT.h,v 1.3 2001-06-11 01:55:49 paklein Exp $ */
 /* created: paklein (12/04/1996)                                          */
 /* C1FunctionT.h                                                          */
 /* Interface for a twice differentiable function.                         */
@@ -22,7 +22,8 @@ public:
 	                 kGaoKlein = 2,
 	                kQuadratic = 3,
 	              kCubicSpline = 4,
-	        kLinearExponential = 5};
+	        kLinearExponential = 5,
+	          kTriantafyllidis = 6};
 
 	/* constructor */
 	C1FunctionT(void);
