@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile_RP2DT.h,v 1.4 2003-09-04 13:43:31 paklein Exp $ */
+/* $Id: InelasticDuctile_RP2DT.h,v 1.5 2003-09-04 23:57:55 paklein Exp $ */
 #ifndef _INELASTIC_DUCTILE_RP_2D_T_H_
 #define _INELASTIC_DUCTILE_RP_2D_T_H_
 
@@ -143,6 +143,15 @@ private:
 
 	/** critical void volume fraction */
 	double fphi_init;
+
+	/** void volume fraction at failure */
+	double fphi_max;
+	
+	/** absolute tolerance of local iteration */
+	double fabs_tol;
+
+	/** relative tolerance of local iteration */
+	double frel_tol;
 
 	/** strength multiplication */
 //	double fkappa_scale;
