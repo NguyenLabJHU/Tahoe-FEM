@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.30 2003-07-21 15:27:58 fwdelri Exp $ */
+/* $Id: BoxT.cpp,v 1.31 2003-07-23 20:34:22 fwdelri Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -195,6 +195,10 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
   new_coord.Dimension(atom_coord.MajorDim(),nlsd);   
   new_coord = 0.0;
 
+  iArrayT new_type;
+  new_type.Dimension(nATOMS);  
+  new_type = 0;
+
   dArrayT x(atom_coord.MajorDim()); x = 0.0;
   dArrayT y(atom_coord.MajorDim()); y = 0.0;
   dArrayT z(atom_coord.MajorDim()); z = 0.0;
@@ -218,13 +222,17 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
       new_coord(m)[WhichSort[0]] = x[m];
       new_coord(m)[WhichSort[1]] = y[Map[m]];
       if (nlsd == 3)  new_coord(m)[WhichSort[2]] = z[Map[m]];
+      new_type[m] = atom_types[Map[m]];
     } 
 
   // Update sorted atoms
   atom_coord = new_coord;
+  atom_types = new_type;
 
   // Sort 2nd criterium
   new_coord = 0.0;
+  new_type = 0;
+
   iArrayT Ind(atom_coord.MajorDim());
   Ind = 0;
 
@@ -270,6 +278,7 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
 	{
 	  y[p] = aux[m];
 	  if(nlsd == 3) z[p] = aux2[Map2[m]];
+	  new_type[p] = atom_types[Map2[m]];
 	  p++;
 	}
     }
@@ -283,11 +292,14 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
 
   // Update sorted atoms
   atom_coord = new_coord;
+  atom_types = new_type;
 
   // Sort 3nd criterium
   if(nlsd == 3)
   {
     new_coord = 0.0;
+    new_type = 0;
+
     iArrayT Ind(atom_coord.MajorDim());
     Ind = 0;
 
@@ -329,6 +341,7 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
 	for(int m = 0; m < isa; m++)
 	  {
 	    z[p] = aux[m];
+	    new_type[p] = atom_types[m];
 	    p++;
 	  }
       }
@@ -343,6 +356,8 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
 
   // Update sorted atoms
   atom_coord = new_coord;
+  atom_types = new_type;
+
 }
 
 void BoxT::CalculateBounds(iArrayT per,CrystalLatticeT* pcl)
