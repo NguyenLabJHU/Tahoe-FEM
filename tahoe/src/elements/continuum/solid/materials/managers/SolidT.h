@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.24 2003-01-29 07:34:58 paklein Exp $ */
+/* $Id: SolidT.h,v 1.24.2.1 2003-02-19 01:16:19 paklein Exp $ */
 /* created: paklein (03/10/2001) */
 
 #ifndef _MATERIAL_T_H_
@@ -27,7 +27,7 @@ public:
            kJ2QL = 10,
        kDPSSKStV = 11,
          kLJTr2D = 12,
-       kLJFCC111 = 13,
+          kHex2D = 13,
          kFCCEAM = 14,
 kmodCauchyBornDC = 15,
             kVIB = 16,
