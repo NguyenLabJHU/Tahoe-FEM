@@ -1,8 +1,5 @@
-/* $Id: CSEAnisoT.cpp,v 1.7 2001-10-11 00:54:28 paklein Exp $ */
-/* created: paklein (11/19/1997)                                          */
-/* Cohesive surface elements with scalar traction potentials,             */
-/* i.e., the traction potential is a function of the gap magnitude,       */
-/* or effective gap magnitude only.                                       */
+/* $Id: CSEAnisoT.cpp,v 1.8 2001-10-11 23:21:58 paklein Exp $ */
+/* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
 
@@ -22,9 +19,7 @@
 #include "XuNeedleman2DT.h"
 #include "XuNeedleman3DT.h"
 #include "TvergHutch2DT.h"
-
-//TEMP - catch NaN's
-#include "math_utils.h"
+#include "ViscTvergHutch2DT.h"
 
 /* constructor */
 CSEAnisoT::CSEAnisoT(FEManagerT& fe_manager, bool rotate):
@@ -115,6 +110,18 @@ void CSEAnisoT::Initialize(void)
 			{
 				if (fNumDOF == 2)
 					fSurfPots[num] = new TvergHutch2DT(in);
+				else
+				{
+					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: "
+					     << code << endl; 				
+					throw eBadInputValue;
+				}
+				break;
+			}
+			case SurfacePotentialT::kViscTvergaardHutchinson:
+			{
+				if (fNumDOF == 2)
+					fSurfPots[num] = new ViscTvergHutch2DT(in, FEManager().TimeStep());
 				else
 				{
 					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: "
@@ -233,6 +240,7 @@ void CSEAnisoT::LHSDriver(void)
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 
+	AutoArrayT<double> state2;
 	dArrayT state;
 	Top();
 	while (NextElement())
@@ -243,6 +251,7 @@ void CSEAnisoT::LHSDriver(void)
 		/* surface potential */
 		SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
 		int num_state = fNumStateVariables[element.MaterialNumber()];
+		state2.Allocate(num_state);
 	
 		/* get ref geometry (1st facet only) */
 		fNodes1.Collect(facet1, element.NodesX());
@@ -255,7 +264,7 @@ void CSEAnisoT::LHSDriver(void)
 		fLHS = 0.0;
 
 		/* loop over integration points */
-		double* pstate = fStateVariables(CurrElementNumber());
+		double* pstate = fStateVariables_last(CurrElementNumber());
 		fShapes->TopIP();
 		while (fShapes->NextIP())
 		{
@@ -291,7 +300,8 @@ void CSEAnisoT::LHSDriver(void)
 			if (fRotate)
 			{
 				/* traction in local frame */
-				const dArrayT& T = surfpot->Traction(fdelta, state);
+				state2 = state;
+				const dArrayT& T = surfpot->Traction(fdelta, state2);
 
 				/* 1st term */
 				fT.SetToScaled(j0*w*constK, T);
@@ -519,7 +529,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 
-	dArrayT state;
+	AutoArrayT<double> state;
 	Top();
 	while (NextElement())
 	{
@@ -554,6 +564,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	  		/* surface potential */
 			SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
 			int num_state = fNumStateVariables[element.MaterialNumber()];
+			state.Allocate(num_state);
 
 			/* get ref geometry (1st facet only) */
 			fNodes1.Collect(facet1, element.NodesX());
@@ -568,13 +579,11 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			if (e_codes[Traction]) traction = 0.0;
 
 			/* integrate */
-			double* pstate = fStateVariables(CurrElementNumber());
 			fShapes->TopIP();
 			while (fShapes->NextIP())
 			{
-				/* set state variables */
-				state.Set(num_state, pstate);
-				pstate += num_state;
+				double* pstate = fStateVariables_last(CurrElementNumber()) + 
+					fShapes->CurrIP()*num_state;
 			
 				/* element integration weight */
 				double ip_w = fShapes->Jacobian()*fShapes->IPWeight();
@@ -594,6 +603,9 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				/* traction */
 				if (n_codes[NodalTraction] || e_codes[Traction])
 				{
+					/* copy state variables (not integrated) */
+					state.Copy(pstate);
+				
 					/* compute traction in local frame */
 					const dArrayT& tract = surfpot->Traction(fdelta, state);
 				
@@ -609,6 +621,10 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				/* material output data */
 				if (n_codes[MaterialData])
 				{
+					/* copy state variables (not integrated) */
+					state.Copy(pstate);
+
+					/* evaluate */
 					surfpot->ComputeOutput(fdelta, state, ipmat);
 					fShapes->Extrapolate(ipmat, matdat);
 				}
@@ -620,6 +636,9 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				/* cohesive energy */
 				if (e_codes[CohesiveEnergy])
 				{
+					/* copy state variables (not integrated) */
+					state.Copy(pstate);
+
 					/* surface potential */
 					double potential = surfpot->Potential(fdelta, state);
 
