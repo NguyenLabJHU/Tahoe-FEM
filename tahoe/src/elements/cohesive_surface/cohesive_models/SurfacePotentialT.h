@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.23.6.1 2004-03-18 17:51:46 paklein Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.23.6.2 2004-03-30 07:47:01 paklein Exp $ */
 /* created: paklein (06/20/1999) */
 #ifndef _SURFACE_POTENTIAL_T_H_
 #define _SURFACE_POTENTIAL_T_H_
@@ -62,6 +62,9 @@ public:
 
 	/** destructor */
 	virtual ~SurfacePotentialT(void);
+
+	/** set the source of the time step */
+	virtual void SetTimeStep(const double&) {};
 
 	/** return the number of state variables needed by the model */
 	virtual int NumStateVariables(void) const = 0;
