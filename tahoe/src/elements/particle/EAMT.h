@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.8 2003-05-08 00:44:19 saubry Exp $ */
+/* $Id: EAMT.h,v 1.9 2003-05-09 18:37:59 paklein Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -93,7 +93,7 @@ private:
 	void GetEmbForce(const dArray2DT& coords,const dArray2DT rho,
 			 dArray2DT& Emb);
 
-	void EAMT::GetEmbStiff(const dArray2DT& coords,const dArray2DT rho,
+	void GetEmbStiff(const dArray2DT& coords,const dArray2DT rho,
 			       dArray2DT& Emb);
 
 	/** particle pair-properties list */
