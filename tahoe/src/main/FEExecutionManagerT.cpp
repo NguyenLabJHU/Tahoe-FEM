@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.39.2.7 2003-05-07 15:37:09 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.39.2.8 2003-05-07 20:55:37 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -40,6 +40,7 @@
 #include "dSPMatrixT.h"
 #include "FieldT.h"
 #include "IntegratorT.h"
+#include "ElementBaseT.h"
 #endif
 
 using namespace Tahoe;
@@ -709,6 +710,27 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
                 
 	}
 
+}
+
+/* calculate MD internal force as function of total bridging scale displacement u */
+dArray2DT FEExecutionManagerT::InternalForce(dArray2DT& totalu, FEManagerT_bridging atoms) const
+{
+	/* first obtain the MD displacement field */
+	StringT bridging_field = "displacement";
+	FieldT* atomfield = atoms.NodeManager()->Field(bridging_field);
+	dArray2DT mddisp = (*atomfield)[0];	// Permanent MD displacements
+	iArrayT nodes;	// how do you calculate this?
+	int group = 0;	// assume particle group number = 0
+	
+	/* now write total bridging scale displacement u into field */
+	atoms.SetFieldValues(bridging_field, nodes, totalu);
+	
+	/* call FEManagerT_bridging::InternalForce here */
+	//dArray2DT force;  // MD force as a function of total displacement u
+	//force = atoms.InternalForce(group);  //Internal force will particle group, get fForce...
+			
+	/* write actual MD displacements back into field */
+	atoms.SetFieldValues(bridging_field, nodes, mddisp);
 }
 
 #else /* bridging element not enabled */
