@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.cpp,v 1.2 2003-12-02 17:14:53 paklein Exp $ */
+/* $Id: NLDiffusionElementT.cpp,v 1.3 2003-12-10 07:14:24 paklein Exp $ */
 #include "NLDiffusionElementT.h"
 
 #include <iostream.h>
@@ -239,22 +239,6 @@ void NLDiffusionElementT::RHSDriver(void)
 	TractionBC_RHS();
 }
 
-/* current element operations */
-bool NLDiffusionElementT::NextElement(void)
-{
-	/* inherited */
-	bool result = DiffusionElementT::NextElement();
-	
-	/* get material pointer */
-	if (result)
-	{
-		/* cast is safe since class contructs materials list */
-		fCurrNLMaterial = (NLDiffusionMaterialT*) fCurrMaterial;
-	}
-	
-	return result;
-}
-
 /* calculate the internal force contribution ("-k*d") */
 void NLDiffusionElementT::FormKd(double constK)
 {
@@ -280,7 +264,7 @@ void NLDiffusionElementT::FormKd(double constK)
 		B(fShapes->CurrIP(), fB);
 
 		/* compute heat flow */
-		fB.MultTx(fCurrNLMaterial->q_i(), fNEEvec);
+		fB.MultTx(fCurrMaterial->q_i(), fNEEvec);
 
 		/* accumulate */
 		fRHS.AddScaled(-constK*(*Weight++)*(*Det++), fNEEvec);
@@ -331,11 +315,11 @@ void NLDiffusionElementT::FormStiffness(double constK)
 		B(fShapes->CurrIP(), fB);
 	
 		/* nonlinear term */
-		fB.MultTx(fCurrNLMaterial->dq_i_dT(), fNEEvec);
+		fB.MultTx(fCurrMaterial->dq_i_dT(), fNEEvec);
 		fLHS.Outer(fNEEvec, Na, -scale, dMatrixT::kAccumulate);
 
 		/* get D matrix */
-		fD.SetToScaled(scale, fCurrNLMaterial->k_ij());
+		fD.SetToScaled(scale, fCurrMaterial->k_ij());
 							
 		/* multiply b(transpose) * db, taking account of symmetry, */
 		/* and accumulate in elstif */
@@ -348,7 +332,7 @@ void NLDiffusionElementT::FormStiffness(double constK)
 			IP_Interpolate(fLocVel, dfield);
 		
 			/* accumulate */
-			fLHS.Outer(Na, Na, scale*fCurrNLMaterial->dCapacity_dT()*dfield[0], dMatrixT::kAccumulate);
+			fLHS.Outer(Na, Na, scale*fCurrMaterial->dCapacity_dT()*dfield[0], dMatrixT::kAccumulate);
 		}
 	}
 }

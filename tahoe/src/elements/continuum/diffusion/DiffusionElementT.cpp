@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.17 2003-12-02 17:14:53 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.18 2003-12-10 07:14:24 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -542,10 +542,7 @@ void DiffusionElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_value
 //TEMP
 #pragma unused(e_values)
 if (e_out > 0)
-{
-	cout << "\n DiffusionElementT::ComputeOutput: element output not yet supported" << endl;
-	throw ExceptionT::kGeneralFail;
-}
+	ExceptionT::GeneralFail("DiffusionElementT::ComputeOutput", "element output not supported");
 
 	/* dimensions */
 	int nen = NumElementNodes();
@@ -611,9 +608,6 @@ if (e_out > 0)
 	}
 	
 	/* get nodally averaged values */
-	//was:
-	//const iArrayT& node_used = fFEManager.OutputSet(fOutputID).NodesUsed();
-	//fNodes->OutputAverage(node_used, n_values);
 	ElementSupport().OutputUsedAverage(n_values);
 }
 

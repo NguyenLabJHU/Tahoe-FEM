@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionMaterialT.h,v 1.1 2003-06-09 06:51:44 paklein Exp $ */
+/* $Id: NLDiffusionMaterialT.h,v 1.2 2003-12-10 07:14:28 paklein Exp $ */
 #ifndef _NL_DIFFUSION_MATERIALT_H_
 #define _NL_DIFFUSION_MATERIALT_H_
 
@@ -19,6 +19,7 @@ public:
 
 	/** constructor */
 	NLDiffusionMaterialT(ifstreamT& in, const DiffusionMatSupportT& support);
+	NLDiffusionMaterialT(void);
 
 	/** destructor */
 	~NLDiffusionMaterialT(void);
@@ -38,7 +39,7 @@ public:
 	virtual const dArrayT& q_i(void);
 	
 	/** change in heat flux with temperature */
-	const dArrayT& dq_i_dT(void);
+	virtual const dArrayT& dq_i_dT(void);
 
 	/** specific heat */
 	virtual double SpecificHeat(void) const;
@@ -60,9 +61,6 @@ private:
 
 	/** temperature varying conductivity return value */
 	dMatrixT fScaledConductivity;
-
-	/** heat flux variation return value */
-	dArrayT fdq_i;  
 };
 
 } /* namespace Tahoe */
