@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.26 2003-11-21 22:47:59 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.26.4.1 2004-03-22 18:36:47 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -484,10 +484,7 @@ void TiedNodesT::SetBCCards(void)
 		    	for (int j = 0; j < ndof; j++)
 				{
 					/* set values */
-				  pcard->SetValues(fNodePairs(i,0), j, KBC_CardT::kNull, 0,0.);
-	
-					/* dummy schedule */
-				  pcard->SetSchedule(&fDummySchedule);
+				  pcard->SetValues(fNodePairs(i,0), j, KBC_CardT::kNull, &fDummySchedule, 0.0);
 				  pcard++;
 				} 
 		    }

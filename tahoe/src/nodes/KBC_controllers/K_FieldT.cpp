@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.17.2.1 2004-03-03 16:15:56 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.17.2.2 2004-03-22 18:36:47 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
@@ -129,10 +129,7 @@ void K_FieldT::Initialize(ifstreamT& in)
 		for (int j = 0; j < nsd; j++)
 		{
 			/* set values */
-			pcard->SetValues(fNodes[i], j, KBC_CardT::kDsp, 0, 0.0);
-	
-			/* dummy schedule */
-			pcard->SetSchedule(&fDummySchedule);
+			pcard->SetValues(fNodes[i], j, KBC_CardT::kDsp, &fDummySchedule, 0.0);
 			pcard++;
 		}	
 
@@ -552,7 +549,7 @@ void K_FieldT::SetBCCards(void)
 		double d2 = K1*K1disp[1] + K2*K2disp[1];
 	
 		/* set cards */
-		fKBC_Cards[dex++].SetValues(node, 0, KBC_CardT::kDsp, 0, d1);
-		fKBC_Cards[dex++].SetValues(node, 1, KBC_CardT::kDsp, 0, d2);
+		fKBC_Cards[dex++].SetValues(node, 0, KBC_CardT::kDsp, NULL, d1);
+		fKBC_Cards[dex++].SetValues(node, 1, KBC_CardT::kDsp, NULL, d2);
 	}
 }

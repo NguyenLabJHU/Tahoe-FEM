@@ -1,4 +1,4 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.8.34.1 2004-03-03 16:15:56 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.8.34.2 2004-03-22 18:36:47 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "BimaterialK_FieldT.h"
 
@@ -136,10 +136,7 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 		for (int j = 0; j < nsd; j++)
 		{
 			/* set values */
-			pcard->SetValues(fNodes[i], j, KBC_CardT::kDsp, 0, 0.0);
-	
-			/* dummy schedule */
-			pcard->SetSchedule(&fDummySchedule);
+			pcard->SetValues(fNodes[i], j, KBC_CardT::kDsp, &fDummySchedule, 0.0);
 			pcard++;
 		}	
 
