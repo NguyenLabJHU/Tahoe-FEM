@@ -15,7 +15,7 @@
 const double sqrt32 = sqrt(3.0/2.0);
 
 /* printing for debugging */
-const bool BCJ_MESSAGES = false;
+const bool BCJ_MESSAGES = true;
 
 /* spatial dimensions of the problem */
 const int kNSD = 3;
@@ -127,9 +127,7 @@ int BCJHypo3D::NumVariablesPerElement()
   d_size += kNumInternal;    // fDEQP_n, fALPH_n, fKAPP_n
   d_size += kNumInternal;    // fDEQP, fALPH, fKAPP
   d_size += kNumEQValues;    // fEQP_n, fEQP, fEQSig_n, fEQSig, fPresTr
-  d_size += dim * dim;       // fc_ijkl (t)
-  d_size += kNSD*kNSD;       // fFtot_n
-  d_size += kNSD*kNSD;       // fFtot (defined in EVPFDBase class)
+  d_size += dim * dim;       // fc_ijkl(t)
 
   // total # variables per element
   d_size *= NumIP();
@@ -155,7 +153,7 @@ const dSymMatrixT& BCJHypo3D::s_ij()
       // total deformation gradients
       // fFtot_n = fContinuumElement.FEManager().LastDeformationGradient();
       // fFtot = fContinuumElement.FEManager().DeformationGradient();
-      // fFtot_n = DeformationGradient(fLocLastDisp);
+      fFtot_n = DeformationGradient(fLocLastDisp);
       fFtot   = DeformationGradient(fLocDisp);
       //fFtot   = F();
 
@@ -256,9 +254,6 @@ void BCJHypo3D::UpdateHistory()
       // update useful scalar values
       fEQValues[kEQP_n]   = fEQValues[kEQP];
       fEQValues[kEQSig_n] = fEQValues[kEQSig];
-
-      // deformation gradient
-      fFtot_n = fFtot;
     }
 }
 
@@ -281,9 +276,6 @@ void BCJHypo3D::ResetHistory()
       // reset useful scalar values
       fEQValues[kEQP]   = fEQValues[kEQP_n];
       fEQValues[kEQSig] = fEQValues[kEQSig_n];
-
-      // deformation gradient
-      //fFtot = fFtot_n;
     }
 }
 
@@ -459,10 +451,6 @@ void BCJHypo3D::InitializeVariables()
 
 	  // tangent moduli
 	  fc_ijkl = 0.;
-
-          // deformation gradients
-          fFtot_n.Identity();
-          fFtot.Identity();
 	}
     }
 }
@@ -474,7 +462,7 @@ void BCJHypo3D::LoadElementData(ElementCardT& element, int intpt)
   
   // decode
   int dim = dSymMatrixT::NumValues(kNSD);
-  int block = 4*dim + 2*kNumInternal + kNumEQValues + dim*dim + 2*kNSD*kNSD;
+  int block = 4*dim + 2*kNumInternal + kNumEQValues + dim*dim;
   int dex = intpt*block;
 
   fs_ij_n.Set    (kNSD,         &d_array[dex                ]);     
@@ -485,8 +473,6 @@ void BCJHypo3D::LoadElementData(ElementCardT& element, int intpt)
   fInternal.Set  (kNumInternal, &d_array[dex += kNumInternal]); 
   fEQValues.Set  (kNumEQValues, &d_array[dex += kNumInternal]);
   fc_ijkl.Set    (dim,dim,      &d_array[dex += kNumEQValues]);
-  fFtot_n.Set    (kNSD,kNSD,    &d_array[dex += dim*dim     ]);
-  fFtot.Set      (kNSD,kNSD,    &d_array[dex += kNSD*kNSD   ]);
 }
 
 void BCJHypo3D::SolveState()

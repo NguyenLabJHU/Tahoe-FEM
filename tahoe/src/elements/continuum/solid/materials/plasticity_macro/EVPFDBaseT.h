@@ -35,6 +35,9 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
   virtual bool NeedsInitialization() const;
   virtual void Initialize();
 
+  // required parameter flag
+  virtual bool NeedLastDisp() const;
+
   // PVFs defined in derived classes 
   virtual void SetKineticEquation() = 0;
   virtual void InitializeVariables() = 0;
