@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.4.2.1 2001-10-16 22:18:39 sawimme Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.4.2.2 2001-10-29 00:00:16 paklein Exp $ */
 /* created: paklein (09/11/1998)                                          */
 /* small strain elasticity with MLS shapefunctions for the                */
 /* field (displacement) representation                                    */
@@ -311,9 +311,17 @@ void MeshFreeSSSolidT::PrintControlData(ostream& out) const
 /* initialization functions */
 void MeshFreeSSSolidT::SetShape(void)
 {
+	/* only support single list of integration cells for now */
+	if (fConnectivities.Length() > 0) {
+		cout << "\n MeshFreeSSSolidT::SetShape: multiple element blocks within an"
+		     <<   "     element group not supported. Number of blocks: " 
+		     << fConnectivities.Length() << endl;
+		throw eGeneralFail;
+	}
+
 	/* constructors */
 	fMFShapes = new MeshFreeShapeFunctionT(fGeometryCode, fNumIP,
-		fLocInitCoords, fNodes->InitialCoordinates(), fConnectivities, fOffGridNodes,
+		fLocInitCoords, fNodes->InitialCoordinates(), *fConnectivities[0], fOffGridNodes,
 		fElementCards.Position(), fFEManager.Input());
 	if (!fMFShapes) throw eOutOfMemory;
 	
