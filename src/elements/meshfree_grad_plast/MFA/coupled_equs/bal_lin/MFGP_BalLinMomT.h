@@ -19,10 +19,10 @@ public:
 	enum Eqn_TypeT { kMFGP_Bal_Eq };
 
 	/* constructor */
-	MFGP_BalLinMomT ( void );
+	MFGP_BalLinMomT(void);
 	
 	/* destructor */
-	virtual ~MFGP_BalLinMomT ( void );
+	virtual ~MFGP_BalLinMomT(void);
 
 	/** Pure virtual functions */
 	virtual void Initialize (int&, D3MeshFreeShapeFunctionT*, D3MeshFreeShapeFunctionT*, GRAD_MRSSKStV*, 

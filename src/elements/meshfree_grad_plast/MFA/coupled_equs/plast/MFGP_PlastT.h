@@ -19,10 +19,10 @@ public:
 	enum Eqn_TypeT 	{ kMFGP_Con_Eq};
 
 	/* constructor */
-	MFGP_PlastT ( void );
+	MFGP_PlastT(void);
 	
 	/* destructor */
-	virtual ~MFGP_PlastT ( void );
+	virtual ~MFGP_PlastT(void);
 
 	/** Pure virtual functions */
 	virtual void Initialize (  int &curr_ip, D3MeshFreeShapeFunctionT*, D3MeshFreeShapeFunctionT*, GRAD_MRSSKStV*,  

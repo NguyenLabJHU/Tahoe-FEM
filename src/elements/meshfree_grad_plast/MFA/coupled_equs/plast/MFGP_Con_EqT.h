@@ -22,12 +22,10 @@ class MFGP_Con_EqT : public MFGP_PlastT
 public:
 	
 	/* constructors */
-	MFGP_Con_EqT ( void );
- 	MFGP_Con_EqT ( int&, D3MeshFreeShapeFunctionT*, D3MeshFreeShapeFunctionT*, GRAD_MRSSKStV*,
-				int &fTime_Step, double fdelta_t = 0.0);
+	MFGP_Con_EqT(void);
  	
  	/* destructor */
- 	~MFGP_Con_EqT ( void );
+ 	~MFGP_Con_EqT(void);
 								
 	void 	Initialize 	( int&, D3MeshFreeShapeFunctionT*, D3MeshFreeShapeFunctionT*, GRAD_MRSSKStV*,  
 						int &fTime_Step, double fdelta_t = 0.0); 
@@ -54,8 +52,8 @@ public:
 			
 	protected:
 
-		MFGP_MFA_Data_Processor_DisplT Data_Pro_Displ; 
-		MFGP_MFA_Data_Processor_PlastT Data_Pro_Plast; 
+		MFGP_MFA_Data_Processor_DisplT *fData_Pro_Displ; 
+		MFGP_MFA_Data_Processor_PlastT *fData_Pro_Plast; 
 
 		int ip, n_rows, n_cols, n_sd, n_en_displ, n_en_plast, n_sd_x_n_sd, n_sd_x_n_en_plast, n_sd_x_n_en_displ;
 		int time_step, n_state, n_str, Time_Integration_Scheme;

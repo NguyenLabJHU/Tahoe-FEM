@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.3 2004-08-09 23:42:17 raregue Exp $
+# $Id: makefile,v 1.4 2004-08-20 00:20:27 raregue Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -64,8 +64,7 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
 SUB_DIR = \
-	MFA \
-	grad_plasticity_MR
+	MFA
 
 subdir_driver: subdir_loop
 

@@ -4,15 +4,19 @@
 using namespace Tahoe;
 
 /* constructor */
-MFGP_Con_EqT::MFGP_Con_EqT (int &curr_ip, D3MeshFreeShapeFunctionT *Shapes_displ, D3MeshFreeShapeFunctionT *Shapes_plast, 
-							GRAD_MRSSKStV *GRAD_MR_Plast_Mat, 
-							int &fTime_Step, double fdelta_t);
-//{
-	//Initialize (curr_ip, Shapes_displ, Shapes_plast, GRAD_MR_Plast_Mat, fTime_Step, fdelta_t);
-//}
+MFGP_Con_EqT::MFGP_Con_EqT(void):
+	fData_Pro_Displ(NULL),
+	fData_Pro_Plast(NULL)
+{
+
+}
 
 /* destructor */
-MFGP_Con_EqT::~MFGP_Con_EqT(void);
+MFGP_Con_EqT::~MFGP_Con_EqT(void)
+{
+	delete fData_Pro_Displ;
+	delete fData_Pro_Plast;
+}
 
 /* set dims, derivs, and variables needed */
 void MFGP_Con_EqT::Initialize (int &curr_ip, D3MeshFreeShapeFunctionT *Shapes_displ, D3MeshFreeShapeFunctionT *Shapes_plast, 
@@ -36,9 +40,10 @@ void MFGP_Con_EqT::Initialize (int &curr_ip, D3MeshFreeShapeFunctionT *Shapes_di
 
 	delta_t = fdelta_t;
 	
-	Data_Pro_Displ.Initialize ( Shapes_displ->Derivatives_U(curr_ip), Shapes_displ->DDDerivatives_U(curr_ip) );//??
-	
-	Data_Pro_Plast.Initialize ( Shapes_displ->IPShapeU(curr_ip), Shapes_displ->DDerivatives_U(curr_ip) );//??
+	fData_Pro_Displ = new MFGP_MFA_Data_Processor_DisplT;
+	fData_Pro_Displ->Initialize ( Shapes_displ->Derivatives_U(curr_ip), Shapes_displ->DDDerivatives_U(curr_ip) );//??
+	fData_Pro_Plast = new MFGP_MFA_Data_Processor_PlastT;
+	fData_Pro_Plast->Initialize ( Shapes_displ->IPShapeU(curr_ip), Shapes_displ->DDerivatives_U(curr_ip) );//??
 
 	stress = GRAD_MR_Plast_Mat->s_ij();
 	yield = GRAD_MR_Plast_Mat->YieldF();
@@ -98,10 +103,10 @@ void MFGP_Con_EqT::Form_B_List (void)
 		//NTS: check the allocation of phi_lam and B4
 		//B_gradu.Dimension ( dum, n_sd); //B3??	
 		
-		Data_Pro_Displ.Set_B1(B1_d);
-		Data_Pro_Displ.Set_B3(B3_d);
-		Data_Pro_Plast.Set_phi(phi_lam);
- 		Data_Pro_Plast.Set_B4(B4_lam); //B4 is scalar
+		fData_Pro_Displ->Set_B1(B1_d);
+		fData_Pro_Displ->Set_B3(B3_d);
+		fData_Pro_Plast->Set_phi(phi_lam);
+ 		fData_Pro_Plast->Set_B4(B4_lam); //B4 is scalar
 }
 
 

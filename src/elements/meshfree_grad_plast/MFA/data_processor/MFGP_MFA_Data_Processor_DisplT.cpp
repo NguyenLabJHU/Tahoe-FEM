@@ -4,13 +4,13 @@
 using namespace Tahoe;
 
 /* constructor */
-MFGP_MFA_Data_Processor_DisplT::MFGP_MFA_Data_Processor_DisplT( const dArray2DT &fdNdx, const dArray2DT &fd3Ndx3 ) 
+MFGP_MFA_Data_Processor_DisplT::MFGP_MFA_Data_Processor_DisplT( void ) 
 {
-	//Initialize ( fdNdx, fd3Ndx3 );
+
 }
 
 /* destructor */
-MFGP_MFA_Data_Processor_DisplT::~MFGP_MFA_Data_Processor_DisplT();
+MFGP_MFA_Data_Processor_DisplT::~MFGP_MFA_Data_Processor_DisplT(void);
 
 /* initialize local variables */
 void MFGP_MFA_Data_Processor_DisplT::Initialize ( const dArray2DT &fdNdx, const dArray2DT &fd3Ndx3 )  
