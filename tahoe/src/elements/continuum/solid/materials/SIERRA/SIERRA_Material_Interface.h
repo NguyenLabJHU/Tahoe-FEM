@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Interface.h,v 1.4 2003-03-09 21:58:50 paklein Exp $ */
+/* $Id: SIERRA_Material_Interface.h,v 1.5 2003-03-10 23:30:56 paklein Exp $ */
 #ifndef __SIERRA_MAT_INTERFACE_H__
 #define __SIERRA_MAT_INTERFACE_H__
 
@@ -15,7 +15,8 @@ extern "C" {
 extern void FORTRAN_NAME(get_real_constant)(double* destination, const int* mat_vals, 
 	const char* value_name);
 
-/** retrieve the index for the value for the given material */
+/** retrieve the index for the value for the given material. The numbering uses
+ * Fortran conventions, so the first index is 1. */
 extern void FORTRAN_NAME(get_var_index)(int* index, int* num_workset_elem, const char* variable_name, 
 	const char* material_name);
 /*@}*/ 

@@ -1,4 +1,4 @@
-/* $Id: SIERRA_HypoElastic.c,v 1.4 2003-03-09 21:58:50 paklein Exp $ */
+/* $Id: SIERRA_HypoElastic.c,v 1.5 2003-03-10 23:30:56 paklein Exp $ */
 #include "SIERRA_Material_Interface.h"
 #include <stdio.h>
 
@@ -98,9 +98,9 @@ void SIERRA_HypoElastic_calc(int* nelem, double* dt,
 	kappa_minus_2_mu_by_3 = bulk_modulus - two_mu/3.0;
 	kappa_plus_4_mu_by_3 = bulk_modulus + 2.0*two_mu/3.0;
 
-	/* offset to strain variable */
+	/* offset to strain variable - starts at 1 by Fortran numbering convention */
 	FORTRAN_NAME(get_var_index)(&istrain, nelem, "rot_strain_inc", model_name);
-	dstrain = vars_input + istrain;
+	dstrain = vars_input + istrain - 1;
 	
 	/* loop over stress points */
 	for (i = 0; i < *nelem; i++)
