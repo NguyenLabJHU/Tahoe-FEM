@@ -1,4 +1,4 @@
-# $Id: SASS.macros,v 1.2 2003-03-15 16:54:31 paklein Exp $
+# $Id: SASS.macros,v 1.3 2003-09-04 22:38:56 cjkimme Exp $
 #
 ## Load GNU file utilities to get ln -sf to work properly (sunfreeware.com)
 #
@@ -25,7 +25,7 @@ COMP_C      = $(COMP_DIR)/bin/cc
 COMP_CC     = $(COMP_DIR)/bin/CC
 COMP_F      = $(COMP_DIR)/bin/f77
 #
-MORE_CFLAGS = -fast -I/opt/SUNWhpc/include 
+MORE_CFLAGS = -fast 
 #MORE_CFLAGS = -g
 LOC_CFLAGS  = -c -I$(INC_DIR) -D__SUN__ $(MORE_CFLAGS) -D__MPI__
 CFLAGS_C    = $(LOC_CFLAGS)
@@ -33,12 +33,13 @@ CFLAGS_CC   = $(LOC_CFLAGS) -features=rtti -instances=static
 CFLAGS_F    = $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = -L/opt/SUNWhpc/lib -R/opt/SUNWhpc/lib -lmpi
+LFLAGS	    = 
 AR          = ar
 ARFLAGS     = -cruv
 MAKE_OPTS   = 
 RM          = rm
 RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
-LN          = /usr/local/bin/ln -sf
+LN          = /usr/bin/ln -sf
 ECHO        = echo
 CAT         = cat
 PERL        = perl -w
