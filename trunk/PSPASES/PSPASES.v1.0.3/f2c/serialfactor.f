@@ -39,11 +39,12 @@ C/* constitutes an implicit agreement to these terms.  These terms and        */
 C/* conditions are subject to change at any time without prior notice.        */
 C/*                                                                           */
 C/*****************************************************************************/
-C/* $Id: serialfactor.f,v 1.1 2004-12-10 20:28:27 paklein Exp $ */
+C/* $Id: serialfactor.f,v 1.2 2004-12-15 01:14:19 paklein Exp $ */
 C/*****************************************************************************/
 
-      recursive
-     +subroutine FACTOR6(wmem,linds,lptrs,ainds,
+C     recursive
+C    +
+      subroutine FACTOR6(wmem,linds,lptrs,ainds,
      1          aptrs,avals,lvals,tinds,tptrs,sup,rank,ldf,fdim,
      2          myfrontptr,root,wm,mystak,lc,iptrs,
      3          dfopts,ifopts,info)
@@ -90,7 +91,7 @@ C/*****************************************************************************/
         end if
         kid = tinds(tptrs(1,k)+i)
       info = 0 
-        call factor6(wmem(frontptr),linds,lptrs,ainds,aptrs,
+        call factor6_recursive(wmem(frontptr),linds,lptrs,ainds,aptrs,
      1       avals,lvals,tinds,tptrs,sup,rank,ldu,udim,kkk,kid,
      2       wm-frontptr+1,mystak(mystakptr),lc,iptrs,
      3       dfopts,ifopts,info)

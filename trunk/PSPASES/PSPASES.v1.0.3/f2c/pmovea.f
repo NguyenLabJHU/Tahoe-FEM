@@ -39,12 +39,13 @@ C/* constitutes an implicit agreement to these terms.  These terms and        */
 C/* conditions are subject to change at any time without prior notice.        */
 C/*                                                                           */
 C/*****************************************************************************/
-C/* $Id: pmovea.f,v 1.1 2004-12-10 20:28:27 paklein Exp $ */
+C/* $Id: pmovea.f,v 1.2 2004-12-15 01:14:19 paklein Exp $ */
 C/*****************************************************************************/
 
       subroutine pmovea(N,dd,pp,lgblk,myid,mynnodes,order,paptrs,
      +                  painds,pavals,aptrs,tainds,tavals,wrkint,
-     +                  ranmasks,whichsnode,recvsizs,nrsiz,comm)
+     +                  ranmasks,whichsnode,recvsizs,nrsiz,comm,
+     +                  sendinds,sendsizs,sendvals)
 
       implicit none
 
@@ -56,8 +57,11 @@ C/*****************************************************************************/
       integer recvsizs(0:*),nrsiz
       double precision pavals(*),tavals(*)
 
-      integer, allocatable :: sendinds(:),sendsizs(:)
-      double precision, allocatable :: sendvals(:)
+C     integer, allocatable :: sendinds(:),sendsizs(:)
+      integer sendinds(*),sendsizs(*)
+      
+C     double precision, allocatable :: sendvals(:)
+      double precision sendvals(*)
 
       integer proc,pgrsize,ppg,ierr,rsize,bmaskr,row,col
       integer psci,pscs,psdi,psds,ppr,ppc,bmaskc
@@ -95,17 +99,17 @@ C/*****************************************************************************/
       wrkint(psci+pp-1) = 0
       wrkint(pscs+pp-1) = 0
 
-      allocate(sendinds(0:iwillsend_inds-1),stat=is1)
+C     allocate(sendinds(0:iwillsend_inds-1),stat=is1)
       if(is1.ne.0) then
         print *,'Error in allocate'
         call mpi_abort(comm,1,ierr)
       end if
-      allocate(sendvals(0:iwillsend_inds-1),stat=is1)
+C     allocate(sendvals(0:iwillsend_inds-1),stat=is1)
       if(is1.ne.0) then
         print *,'Error in allocate'
         call mpi_abort(comm,1,ierr)
       end if
-      allocate(sendsizs(0:iwillsend_sizs-1),stat=is1)
+C     allocate(sendsizs(0:iwillsend_sizs-1),stat=is1)
       if(is1.ne.0) then
         print *,'Error in allocate'
         call mpi_abort(comm,1,ierr)
@@ -183,9 +187,9 @@ C/*****************************************************************************/
      +                   wrkint(prci),wrkint(prdi),
      +                   MPI_DOUBLE_PRECISION,comm,ierr)
 
-      deallocate(sendinds)
-      deallocate(sendvals)
-      deallocate(sendsizs)
+C     deallocate(sendinds)
+C     deallocate(sendvals)
+C     deallocate(sendsizs)
 
       end
 

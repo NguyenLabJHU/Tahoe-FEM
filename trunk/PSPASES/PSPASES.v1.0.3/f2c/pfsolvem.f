@@ -39,7 +39,7 @@ C/* constitutes an implicit agreement to these terms.  These terms and        */
 C/* conditions are subject to change at any time without prior notice.        */
 C/*                                                                           */
 C/*****************************************************************************/
-C/* $Id: pfsolvem.f,v 1.1 2004-12-10 20:28:27 paklein Exp $ */
+C/* $Id: pfsolvem.f,v 1.2 2004-12-15 01:14:19 paklein Exp $ */
 C/*****************************************************************************/
 
       subroutine pfsolvem(mysnodes,nsupnode,sup,
@@ -750,7 +750,8 @@ c@process opt(3) strict debug(inline)
       end
 
 c@process nosave
-      recursive subroutine comp_sty(root,sanity,tptrs,tinds,rhsc,N,nrhs)
+C     recursive 
+      subroutine comp_sty(root,sanity,tptrs,tinds,rhsc,N,nrhs)
       implicit none
 
       integer N,nrhs,i,j,kid,root,size
@@ -760,10 +761,9 @@ c@process nosave
       size = tptrs(2,root)
       do i = 0,size-1
         kid = tinds(tptrs(1,root)+i)
-        call comp_sty(kid,sanity,tptrs,tinds,rhsc,N,nrhs)
+        call comp_sty_recursive(kid,sanity,tptrs,tinds,rhsc,N,nrhs)
         do j=1,nrhs
          sanity = sanity + rhsc(kid,j)
         end do
       end do
       end
-

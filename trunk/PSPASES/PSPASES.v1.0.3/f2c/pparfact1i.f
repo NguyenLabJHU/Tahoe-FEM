@@ -40,14 +40,16 @@ C/* constitutes an implicit agreement to these terms.  These terms and        */
 C/* conditions are subject to change at any time without prior notice.        */
 C/*                                                                           */
 C/*****************************************************************************/
-C/* $Id: pparfact1i.f,v 1.1 2004-12-10 20:28:27 paklein Exp $ */
+C/* $Id: pparfact1i.f,v 1.2 2004-12-15 01:14:19 paklein Exp $ */
 C/*****************************************************************************/
 
       subroutine PPARFACT1(N,aptrs,ainds,avals,lptrs,linds,lvals,
      1           tptrs,tinds,sup,stak,nstak,root,dd,lgblk,blk,myid,
      2           cinfo,supinds,supindsize,dfopts,ifopts,dimstak,
      3           wsize0,wsize1,ibuflen,dbuflen,iwspace,node,stakptr,
-     4           nptr,lc,iptrs,info,comm) 
+     4           nptr,lc,iptrs,info,comm,
+     5           dbuf_s,wmem,ibuf_s,locinds,
+     6           wmem0,wmem1,dbuf_r,ibuf_r) 
 
       integer N,root,dd,lgblk,blk,myid,nstak(*),supinds(*)
       integer aptrs(2,0:*),ainds(*),lptrs(3,0:*),linds(*)
@@ -61,12 +63,21 @@ C/*****************************************************************************/
 
       parameter (AE_TYPE_I=1,AE_TYPE_D=2)
 
-      double precision, allocatable:: dbuf_s(:),wmem(:)      
+C     double precision, allocatable:: dbuf_s(:),wmem(:)
+      double precision dbuf_s(*),wmem(*)      
+
       double precision wmem0(*),wmem1(*),dbuf_r(*)
-      integer, allocatable:: ibuf_s(:)
-      integer, allocatable:: locinds(:)
+
+C     integer, allocatable:: ibuf_s(:)
+      integer ibuf_s(*)
+      
+C     integer, allocatable:: locinds(:)
+      integer locinds(*)
+
       integer ibuf_r(*)
-      pointer (pdbufr,dbuf_r),(pibufr,ibuf_r),(pw0,wmem0),(pw1,wmem1)
+      
+C     pointer (pdbufr,dbuf_r),(pibufr,ibuf_r),(pw0,wmem0),(pw1,wmem1)
+      integer pdbufr, pibufr, pw0, pw1
 
       integer rsuptr, csuptr, nptr, stakptr, rank, ibufptr, dbufptr
       integer hdim,vdim,dbuflen,halfbuflen,udim,ldu,wsize1,wsize0
@@ -93,8 +104,8 @@ C/*****************************************************************************/
 
       halfbuflen = ishft(ishft(dbuflen-2,-2),1) + 1
 
-      allocate(dbuf_s(dbuflen*2),stat=i)
-      allocate(ibuf_s(ibuflen*2),stat=j)
+C     allocate(dbuf_s(dbuflen*2),stat=i)
+C     allocate(ibuf_s(ibuflen*2),stat=j)
       if (i+j .ne. 0) then
         print *,myid,': Unable to allocate working storage (dbuf+ibuf)'
         call mpi_abort(comm,0,ierr)
@@ -102,7 +113,7 @@ C/*****************************************************************************/
       pdbufr = loc(dbuf_s(dbuflen+1))
       pibufr = loc(ibuf_s(ibuflen+1))
 
-      allocate(wmem(iwspace),stat=i) 
+C     allocate(wmem(iwspace),stat=i) 
       if (i .ne. 0) then
         print *,myid,': Unable to allocate working storage (wmem)'
         call mpi_abort(comm,0,ierr)
@@ -168,7 +179,7 @@ C/*****************************************************************************/
         nrows_u = 0
       end if
 
-      allocate(locinds(0:N-1),stat=i)
+C     allocate(locinds(0:N-1),stat=i)
       if(i.ne.0) then
         print *,'memory allocation error'
         call mpi_abort(comm,0,ierr)
@@ -592,10 +603,10 @@ C/*****************************************************************************/
 
       end do
 
-      deallocate(dbuf_s)
-      deallocate(ibuf_s)
-      deallocate(wmem)
-      deallocate(locinds)
+C     deallocate(dbuf_s)
+C     deallocate(ibuf_s)
+C     deallocate(wmem)
+C     deallocate(locinds)
       return
 
 111   print *,'Bad news in serial factor!'

@@ -39,7 +39,7 @@ C/* constitutes an implicit agreement to these terms.  These terms and        */
 C/* conditions are subject to change at any time without prior notice.        */
 C/*                                                                           */
 C/*****************************************************************************/
-C/* $Id: subpspaces.f,v 1.1 2004-12-10 20:28:27 paklein Exp $ */
+C/* $Id: subpspaces.f,v 1.2 2004-12-15 01:14:19 paklein Exp $ */
 C/*****************************************************************************/
 
 C-------------------------------------------------------------------------------
@@ -137,6 +137,7 @@ C-------------------------------------------------------------------------------
       end
 C-------------------------------------------------------------------------------
       SUBROUTINE MYDC (N,DX,DY)
+      integer N
       double precision dx(*),dy(*)
       do i = 1, n
       dy(i) = dx(i)
@@ -145,6 +146,8 @@ C-------------------------------------------------------------------------------
       end
 C-------------------------------------------------------------------------------
       SUBROUTINE MYDDC (N,DX,DY,DZ)
+      integer N
+      double precision DX, DY, DZ
       call mydc(n,dx,dy)
       call mydc(n,dx,dz)
       return
@@ -228,8 +231,9 @@ c     +				     lptrs(1,is1)+lptrs(2,is1)-1)
       return
       end
 C------------------------------------------------------------------------------
-      recursive
-     +subroutine SYMBOLIC6(aptrs,ainds,lptrs,
+C    recursive
+C    +
+      subroutine symbolic6(aptrs,ainds,lptrs,
      1          linds,sup,myscrach,tptrs,tinds,
      2          nnz,root,scount,lspace,opcount,mystak,lctr,
      3          nnzxtra,opxtra,ssthresh,lsize,info) !Cmj added lsize and info
@@ -262,7 +266,7 @@ C------------------------------------------------------------------------------
 10      continue
       else
       do i = 0, k - 1
-          call symbolic6(aptrs,ainds,lptrs,linds,
+          call symbolic6_recursive(aptrs,ainds,lptrs,linds,
      1       sup,myscrach,tptrs,tinds,nnz,
      2       tinds(tptrs(1,node)+i),scount,lspace,opcount,
      3       mystak(1+istk),lctr,nnzxtra,opxtra,ssthresh,lsize,info) !Cmj
@@ -446,7 +450,7 @@ C------------------------------------------------------------------------------
       return
       end 
 C-------------------------------------------------------------------------------
-      subroutine SMERGE(i1,l1,i2,l2,i3,l3)
+      subroutine smerge(i1,l1,i2,l2,i3,l3)
 
       integer i1,i2,i3,l1(*),l2(*),l3(0:*)
 
@@ -481,7 +485,7 @@ C-------------------------------------------------------------------------------
       return
       end
 C-------------------------------------------------------------------------------
-      subroutine FSOLVE(N,lvals,linds,lptrs,tinds,tptrs,sup,rhs,
+      subroutine FSOLVE fsolve(N,lvals,linds,lptrs,tinds,tptrs,sup,rhs,
      1           nrhs,root,lc,iptrs,w)
 
       integer N,linds(*),lptrs(3,0:*),tinds(*),tptrs(3,0:*)
@@ -506,8 +510,9 @@ C------------------------------------------------------------------------------
       return
       end
 C------------------------------------------------------------------------------
-      recursive
-     +subroutine RBSOLVE(N,root,lvals,linds,lptrs,tinds,
+C     recursive
+C    +
+      subroutine RBSOLVE(N,root,lvals,linds,lptrs,tinds,
      1          tptrs,sup,rhs,nrhs,iptrs,lc,w,ldw,wp)
 
       integer N,root,linds(*),lptrs(3,0:*),tinds(*),tptrs(3,0:*)
@@ -537,7 +542,7 @@ C------------------------------------------------------------------------------
       jloc = ldr * nrhs
       do i = tptrs(1, jbot), tptrs(1, jbot) + tptrs(2,jbot) - 1
         kid = tinds(i)
-        call rbsolve(N,kid,lvals,linds,lptrs,tinds,tptrs,sup,rhs,nrhs,
+        call rbsolve_recursive(N,kid,lvals,linds,lptrs,tinds,tptrs,sup,rhs,nrhs,
      1       iptrs,lc,wp,ldr,wp(jloc))
       end do
       return
@@ -585,8 +590,9 @@ C------------------------------------------------------------------------------
       return
       end
 C------------------------------------------------------------------------------
-      recursive
-     +subroutine RFSOLVE(N,root,lvals,linds,lptrs,tinds,
+C     recursive
+C    +
+      subroutine RFSOLVE(N,root,lvals,linds,lptrs,tinds,
      1          tptrs,sup,rhs,nrhs,iptrs,lc,rank,ldr,w)
 
       integer N,root,linds(*),lptrs(3,0:*),tinds(N),tptrs(3,0:*)
@@ -601,7 +607,7 @@ C------------------------------------------------------------------------------
       call getrhs(N,linds(lptrs(3,jbot)),rank,ldr,nrhs,w,rhs)
       do i = tptrs(1,jbot), tptrs(1,jbot) + tptrs(2,jbot) - 1
         kid = tinds(i)
-        call rfsolve(N,kid,lvals,linds,lptrs,tinds,tptrs,sup,
+        call rfsolve_recursive(N,kid,lvals,linds,lptrs,tinds,tptrs,sup,
      1       rhs,nrhs,iptrs,lc,jrank,ldj,w(jloc))
         call mergerhs(ldr,w,ldj,w(jloc+jrank),nrhs,kid,iptrs,lc)
       end do

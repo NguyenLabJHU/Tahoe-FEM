@@ -40,13 +40,16 @@ C/* constitutes an implicit agreement to these terms.  These terms and        */
 C/* conditions are subject to change at any time without prior notice.        */
 C/*                                                                           */
 C/*****************************************************************************/
-C/* $Id: parfact1i.f,v 1.1 2004-12-10 20:28:27 paklein Exp $ */
+C/* $Id: parfact1i.f,v 1.2 2004-12-15 01:14:19 paklein Exp $ */
 C/*****************************************************************************/
 
       subroutine PARFACT1(N,aptrs,ainds,avals,lptrs,linds,lvals,
      1           tptrs,tinds,sup,stak,nstak,root,dd,lgblk,blk,
      2           myid,cinfo,supinds,supindsize,dfopts,ifopts,
-     3           lc,iptrs,lcsize,wsolvesize,info,comm) !Cmj
+     3           lc,iptrs,lcsize,wsolvesize,info,comm,
+     4           dbuf_s,wmem,ibuf_s,locinds,
+     5           wmem0,wmem1,dbuf_r,ibuf_r,
+     6           dbuflen2,iwspace2,ibuflen2) !Cmj
 
       integer KONSTANT
       parameter(KONSTANT=100000)
@@ -63,12 +66,27 @@ C/*****************************************************************************/
 
       parameter (AE_TYPE_I=1,AE_TYPE_D=2)
 
-      double precision, allocatable:: dbuf_s(:),wmem(:)      
+C     double precision, allocatable:: dbuf_s(:),wmem(:)      
+      double precision dbuf_s, wmem
+      integer dbuflen2, iwspace2
+      dimension dbuf_s(dbuflen2*2)
+      dimension wmem(iwspace2)
+
       double precision wmem0(*),wmem1(*),dbuf_r(*)
-      integer, allocatable:: ibuf_s(:)
-      integer, allocatable:: locinds(:)
+
+C     integer, allocatable:: ibuf_s(:)
+      integer ibuf_s
+      integer ibuflen2
+      dimension ibuf_s(ibuflen2*2)
+
+C     integer, allocatable:: locinds(:)
+      integer locinds
+      dimension locinds(0:N-1)
+
       integer ibuf_r(*)
-      pointer (pdbufr,dbuf_r),(pibufr,ibuf_r),(pw0,wmem0),(pw1,wmem1)
+
+C     pointer (pdbufr,dbuf_r),(pibufr,ibuf_r),(pw0,wmem0),(pw1,wmem1)
+      integer pdbufr, pibufr, pw0, pw1
 
       integer rsuptr, csuptr, nptr, stakptr, rank, ibufptr, dbufptr
       integer hdim,vdim,dbuflen,halfbuflen,udim,ldu,wsize1,wsize0
@@ -231,13 +249,13 @@ C/*****************************************************************************/
 
       ibuflen = max(N+ishft(N,-1)+1, ishft(m,3)+640*(dd + 1))
 
-      allocate(ibuf_s(ibuflen*2),stat=j)
+C     allocate(ibuf_s(ibuflen*2),stat=j)
       if (j .ne. 0) then
         print *,myid,':','Not enough space for ibuflen = ',ibuflen*2
         call mpi_abort(comm,23,ierr)
       end if
-      pibufr = loc(ibuf_s(ibuflen+1))
 
+      pibufr = loc(ibuf_s(ibuflen+1))
       is3 = 1
       iptrs(node+node+2) = 0 
 
@@ -255,20 +273,22 @@ C/*****************************************************************************/
       dbuflen = max(min((dbuflen*3+1)/2,iwspace),KONSTANT)
 
       halfbuflen = ishft(ishft(dbuflen-2,-2),1) + 1
-      allocate(dbuf_s(dbuflen*2),stat=i)
+
+C     allocate(dbuf_s(dbuflen*2),stat=i)
       if (i .ne. 0) then
         print *,myid,': Unable to allocate working storage'
         call mpi_abort(comm,0,ierr)
       end if
+      
       pdbufr = loc(dbuf_s(dbuflen+1))
 
-      allocate(wmem(iwspace),stat=i) 
+C     allocate(wmem(iwspace),stat=i) 
       if (i .ne. 0) then
         print *,myid,': Unable to allocate working storage'
         call mpi_abort(comm,0,ierr)
       end if
-      pw0 = loc(wmem)
 
+      pw0 = loc(wmem)
       ldu = 0
 
       call factor6(wmem0,linds,lptrs,ainds,aptrs,avals, 
@@ -287,13 +307,13 @@ C/*****************************************************************************/
 
       uptr = kk + rank * (ldu + 1)
       if (wsize1 .lt. uptr) then
-      pw1 = loc(wmem)
-      pw0 = loc(wmem(wsize1+1))
+        pw1 = loc(wmem)
+        pw0 = loc(wmem(wsize1+1))
         uptr = uptr - wsize1
       else 
       j = kk + ldu*udim
       if (iwspace-j .ge. wsize1-1) then
-        pw1 = loc(wmem(iwspace-wsize1+1))
+          pw1 = loc(wmem(iwspace-wsize1+1))
       else
           pw1 = loc(wmem(wsize0+1))
         fptr = 1
@@ -328,7 +348,7 @@ C/*****************************************************************************/
         nrows_u = 0
       end if
 
-      allocate(locinds(0:N-1),stat=i)
+C     allocate(locinds(0:N-1),stat=i)
       if(i.ne.0) then
         print *,'memory allocation error'
         call mpi_abort(comm,0,ierr)
@@ -752,10 +772,10 @@ C/*****************************************************************************/
 
       end do
 
-      deallocate(dbuf_s)
-      deallocate(ibuf_s)
-      deallocate(wmem)
-      deallocate(locinds)
+C     deallocate(dbuf_s)
+C     deallocate(ibuf_s)
+C     deallocate(wmem)
+C     deallocate(locinds)
       return
 
 111   print *,'Bad news in serial factor!'
