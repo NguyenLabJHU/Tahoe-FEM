@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.1.2.10 2003-01-13 19:59:43 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.1.2.11 2003-01-14 01:35:58 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -8,6 +8,7 @@
 #include "AutoArrayT.h"
 #include "InverseMapT.h"
 #include "MessageT.h" /* message enum's */
+#include "dArrayT.h"
 
 namespace Tahoe {
 
@@ -159,13 +160,12 @@ private:
 	void GetBounds(const dArray2DT& coords, const iArrayT& local, dArray2DT& bounds) const;
 
 	/** \name not allowed */
+	/*@{*/
 	/** copy constructor */
 	CommManagerT(CommManagerT&);
 
 	/** assignment operator */
 	const CommManagerT& operator=(const CommManagerT&);
-	/*@{*/
-
 	/*@}*/
 
 private:
