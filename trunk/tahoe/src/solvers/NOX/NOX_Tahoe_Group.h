@@ -1,4 +1,4 @@
-/* $Id: NOX_Tahoe_Group.h,v 1.5 2002-07-03 23:11:11 paklein Exp $ */
+/* $Id: NOX_Tahoe_Group.h,v 1.6 2002-07-06 02:13:23 paklein Exp $ */
 #ifndef NOX_TAHOE_GROUP_H
 #define NOX_TAHOE_GROUP_H
 
@@ -55,7 +55,8 @@ public:
   //! See above.
   virtual NOX::Abstract::Group& operator=(const NOX::Abstract::Group& source);
       
-  //@{ \name "Compute" functions.
+   /** \name "Compute" functions */
+  //@{ 
 
   //! Compute and return solution vector, x, where this.x = grp.x() + step * d.
   virtual bool computeX(const Group& grp, const Vector& d, double step);
@@ -156,8 +157,8 @@ public:
   //@}
 
 
-  //@{ \name Creating new Groups.
-
+  /** \name Creating new Groups. */
+  //@{
   /*! 
     \brief Create a new %Group of the same derived type as this one by
     cloning this one, and return a pointer to the new group.  If type
