@@ -1,3 +1,4 @@
+/* $Id: iGridManager1DT.h,v 1.3 2002-11-22 01:53:12 paklein Exp $ */
 #ifndef _I_GRIDMANAGER1D_T_H_
 #define _I_GRIDMANAGER1D_T_H_
 

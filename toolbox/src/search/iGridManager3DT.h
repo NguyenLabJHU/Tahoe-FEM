@@ -1,8 +1,5 @@
-/* $Id: iGridManager3DT.h,v 1.4 2002-07-05 22:26:33 paklein Exp $ */
-/* created: paklein (12/09/1997)                                          */
-/* iNodeT grid. offset specifies the starting number for the iNodeT       */
-/* tags.                                                                  */
-
+/* $Id: iGridManager3DT.h,v 1.5 2002-11-22 01:53:12 paklein Exp $ */
+/* created: paklein (12/09/1997) */
 #ifndef _I_GRIDMANAGER3D_T_H_
 #define _I_GRIDMANAGER3D_T_H_
 
@@ -17,19 +14,20 @@ namespace Tahoe {
 /* forward declarations */
 class iArrayT;
 
+/** 3D iNodeT grid */
 class iGridManager3DT: public GridManager3DT<iNodeT>
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	iGridManager3DT(int nx, int ny, int nz, const dArray2DT& coords,
 		const iArrayT* nodes_used);
 	
-	/* neighbors - returns neighbors coords(n) (SELF not included) */
+	/** neighbors - returns neighbors coords(n) (SELF not included) */
 	void Neighbors(int n, double tol, AutoArrayT<int>& neighbors);
 	void Neighbors(int n, const ArrayT<double>& tol_xyz, AutoArrayT<int>& neighbors);
 
-	/* reconfigure grid with stored coordinate data */
+	/** reconfigure grid with stored coordinate data */
 	void Reset(void);
 
 protected:

@@ -1,4 +1,4 @@
-/* $Id: GridManager1DT.h,v 1.6 2002-10-20 22:39:13 paklein Exp $ */
+/* $Id: GridManager1DT.h,v 1.7 2002-11-22 01:53:11 paklein Exp $ */
 #ifndef _GRIDMANAGER1D_T_H_
 #define _GRIDMANAGER1D_T_H_
 
@@ -42,9 +42,9 @@ public:
 	const sTYPE& Closest(double* target);
 	
 	/* return list of data falling within the defined region */
-	const AutoArrayT<sTYPE>& HitsInRegion(double* coords, double distance);
-	const AutoArrayT<sTYPE>& HitsInRegion(double* coords, int cell_span);
-	const AutoArrayT<sTYPE>& HitsInRegion(double* coords, const ArrayT<double>& dist_xy);
+	const AutoArrayT<sTYPE>& HitsInRegion(const double* coords, double distance);
+	const AutoArrayT<sTYPE>& HitsInRegion(const double* coords, int cell_span);
+	const AutoArrayT<sTYPE>& HitsInRegion(const double* coords, const ArrayT<double>& dist_xy);
 
 	/* the distance covered by the given cell span */
 	double CellSpan(int cell_span) const;
@@ -274,7 +274,7 @@ inline double GridManager1DT<sTYPE>::CellSpan(int cell_span) const
 /* return list of data falling within the defined region */
 template <class sTYPE>
 inline const AutoArrayT<sTYPE>& GridManager1DT<sTYPE>::
-	HitsInRegion(double* coords, int cellspan)
+	HitsInRegion(const double* coords, int cellspan)
 {
 	return HitsInRegion(coords, CellSpan(cellspan));
 }	
@@ -282,7 +282,7 @@ inline const AutoArrayT<sTYPE>& GridManager1DT<sTYPE>::
 /* return list of data falling within the defined region */
 template <class sTYPE>
 const AutoArrayT<sTYPE>& GridManager1DT<sTYPE>::
-	HitsInRegion(double* coords, double distance)
+	HitsInRegion(const double* coords, double distance)
 {
   /* NOT FINISHED CHANGING YET! */
 	/* empty hit list */
@@ -311,7 +311,7 @@ const AutoArrayT<sTYPE>& GridManager1DT<sTYPE>::
 
 template <class sTYPE>
 const AutoArrayT<sTYPE>& GridManager1DT<sTYPE>::
-	HitsInRegion(double* coords, const ArrayT<double>& dist_x)
+	HitsInRegion(const double* coords, const ArrayT<double>& dist_x)
 {
 	/* empty hit list */
 	fHits.Dimension(0);
