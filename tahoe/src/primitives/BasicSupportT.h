@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.h,v 1.4 2005-02-04 22:02:49 paklein Exp $ */
+/* $Id: BasicSupportT.h,v 1.5 2005-03-11 20:38:07 paklein Exp $ */
 #ifndef _TAHOE_SUPPORT_T_H_
 #define _TAHOE_SUPPORT_T_H_
 
@@ -65,6 +65,9 @@ public:
 
 	/** verbose echo */
 	bool PrintInput(void) const;
+
+	/** amount of runtime logging information */
+	GlobalT::LoggingT Logging(void) const;
 
 	/** number of nodes */
 	int NumNodes(void) const;

@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.cpp,v 1.4 2005-02-04 22:02:49 paklein Exp $ */
+/* $Id: BasicSupportT.cpp,v 1.5 2005-03-11 20:38:07 paklein Exp $ */
 #include "BasicSupportT.h"
 
 #include "dArray2DT.h"
@@ -120,6 +120,15 @@ bool BasicSupportT::PrintInput(void) const
 	return false;
 #else
 	return FEManager().PrintInput();
+#endif
+}
+
+GlobalT::LoggingT BasicSupportT::Logging(void) const
+{
+#ifdef _FRACTURE_INTERFACE_LIBRARY_
+	return GlobalT::kSilent;
+#else
+	return FEManager().Logging();
 #endif
 }
 
