@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.8.2.2 2002-12-27 23:20:58 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.8.2.3 2003-01-11 01:14:48 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -105,7 +105,7 @@ protected: /* for derived classes only */
 	 *        is in terms of the tags provided in particle_tags.
 	 * \param double_list if true the neighbor lists will contain two references for
 	 *        every neighbor interaction. For tags A and B, this means B will appear
-	 *        in the neighbor list for A and vice versa. if true, neighbor lists will
+	 *        in the neighbor list for A and vice versa. If false, neighbor lists will
 	 *        only contain neighbors for which A > B.
 	 * \param full_list if double_list is false, passing full_list true will add B to
 	 *        the neighbor list of A regardless of which tag is higher in order to
