@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.15 2002-11-27 01:13:12 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.16 2002-11-27 02:03:51 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -193,9 +193,6 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
 void BoxT::CalculateBounds(iArrayT per,CrystalLatticeT* pcl)
 {
   const dArrayT& vLP = pcl->GetLatticeParameters();
-  //dArray2DT MinMax(nSD,2);
-
-  //MinMax = ComputeMinMax();
 
   atom_bounds.Dimension(nSD,2);
 
