@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.2 2001-02-22 23:21:36 paklein Exp $ */
+/* $Id: main.cpp,v 1.3 2001-04-27 10:50:11 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include <iostream.h>
@@ -76,6 +76,10 @@ static void StartUp(int* argc, char*** argv)
 		cerr = console;
 	}
 #endif /* __MACOS__ */
+
+	/* output build date and time */
+	cout << "\n build: " __TIME__ ", " << __DATE__ << '\n';
+
 #elif defined(__MWERKS__) && defined (macintosh)
 	/* get command-line arguments - MacOS no MPI */
 	*argc = ccommand(argv);
@@ -84,9 +88,6 @@ static void StartUp(int* argc, char*** argv)
 #ifndef _MACOS_
 	cout << "********************* MPI Version *********************" << '\n';
 #endif /* _MACOS_ */
-
-	/* output build date and time */
-	cout << "\n build: " __TIME__ ", " << __DATE__ << '\n';
 
 #if __option (extended_errorcheck)
 	cout << "\n Extended error checking is ON\n";
