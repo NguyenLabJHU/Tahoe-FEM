@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman2DT.cpp,v 1.6 2001-11-02 19:35:43 cjkimme Exp $ */
+/* $Id: XuNeedleman2DT.cpp,v 1.7 2001-12-17 00:15:52 paklein Exp $ */
 /* created: paklein (11/14/1997) */
 
 #include "XuNeedleman2DT.h"
@@ -36,7 +36,11 @@ XuNeedleman2DT::XuNeedleman2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 }
 
 /* surface potential */
-double XuNeedleman2DT::FractureEnergy(const ArrayT<double>& state) { return phi_n; }
+double XuNeedleman2DT::FractureEnergy(const ArrayT<double>& state)
+{
+#pragma unused(state)
+	return phi_n; 
+}
 
 double XuNeedleman2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 {

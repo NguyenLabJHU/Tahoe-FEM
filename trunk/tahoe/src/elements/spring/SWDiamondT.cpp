@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.cpp,v 1.3 2001-06-12 04:07:28 paklein Exp $ */
+/* $Id: SWDiamondT.cpp,v 1.4 2001-12-17 00:15:57 paklein Exp $ */
 /* created: paklein (03/19/1997)                                          */
 
 #include "SWDiamondT.h"
@@ -26,8 +26,6 @@ SWDiamondT::SWDiamondT(FEManagerT& fe_manager):
 	fLocX_3Body(LocalArrayT::kInitCoords, 3, knsd),
 	fLocd_3Body(LocalArrayT::kDisp, 3, kndof),
 	List_3Body(fElementCards),
-	fNodes_3Body(fConnectivities),
-	fEqnos_3Body(fEqnos),
 	fLocX_2Body(LocalArrayT::kInitCoords, 2, knsd),
 	fLocd_2Body(LocalArrayT::kDisp, 2, kndof),
 	fHessian_3Body(3)
@@ -139,10 +137,15 @@ void SWDiamondT::RegisterOutput(void)
 	n_labels[1] = "D_Y";
 	n_labels[2] = "D_Z";		
 
+	/* set block IDs, since fBlockData is nil */
+	iArrayT block_ID (1);
+	block_ID = 1;
+
 	/* set output specifier */
 	int ID = fFEManager.ElementGroupNumber(this) + 1;
-	iArrayT block_ID;
-	OutputSetT output_set(ID, GeometryT::kPoint, block_ID, fOutputConnects,
+	ArrayT<const iArray2DT*> output_connects_list(1);
+	output_connects_list[0] = &fOutputConnects;
+	OutputSetT output_set(ID, GeometryT::kPoint, block_ID, output_connects_list,
 		n_labels, e_labels, false);
 
 	/* register and get output ID */
@@ -414,6 +417,12 @@ void SWDiamondT::ConfigureElementData(void)
 		(List_2Body[j].NodesX()).Set(2, fNodes_2Body(j));		
 		(List_2Body[j].Equations()).Set(neq2body, fEqnos_2Body(j));
 	}
+	
+	/* set base class connectivity and equations data */
+	fConnectivities.Allocate(1);
+	fConnectivities[0] = &fNodes_3Body;
+	fEqnos.Allocate(1);
+	fEqnos[0].Alias(fEqnos_3Body);
 }
 
 /* element list increment */

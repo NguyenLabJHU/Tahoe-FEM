@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.h,v 1.2 2001-04-27 10:52:18 paklein Exp $ */
+/* $Id: SWDiamondT.h,v 1.3 2001-12-17 00:15:57 paklein Exp $ */
 /* created: paklein (03/19/1997)                                          */
 
 #ifndef _SWDIAMOND_T_H_
@@ -140,8 +140,8 @@ protected:
 
 	AutoArrayT<ElementCardT>& List_3Body;
 	
-	iArray2DT&	fNodes_3Body; //will be alias for fNodeNums		
-	iArray2DT&	fEqnos_3Body; //will be alias for fEqnos		
+	iArray2DT fNodes_3Body;
+	iArray2DT fEqnos_3Body;
 
 	/* 2 Body */
 	ElementMatrixT fK_2Body;

@@ -1,8 +1,5 @@
-/* $Id: UnConnectedRodT.h,v 1.2 2001-10-25 07:16:43 paklein Exp $ */
-/* created: paklein (04/05/1997)                                          */
-/* Interface for a rod element group that connects itself based on the    */
-/* nodes placed in the group. All the rods in the group are assumed to    */
-/* be identical, ie. only 1 material set may be specified in the input.   */
+/* $Id: UnConnectedRodT.h,v 1.3 2001-12-17 00:15:59 paklein Exp $ */
+/* created: paklein (04/05/1997) */
 
 #ifndef _UNCONN_ROD_T_H_
 #define _UNCONN_ROD_T_H_
@@ -10,6 +7,9 @@
 /* base class */
 #include "RodT.h"
 
+/** Interface for a rod element group that connects itself based on the
+ * nodes placed in the group. All the rods in the group are assumed to
+ * be identical, ie. only 1 material set may be specified in the input. */
 class UnConnectedRodT: public RodT
 {
 public:
@@ -44,6 +44,14 @@ private:
 	/* configure element list data */
 	void ConfigureElementData(void);
 
+	/* print data */
+	void PrintConnectivityData(ostream& out);
+
+protected:
+
+	/** changing connectivities */
+	//iArray2DT fRodConnectivities;
+
 private:
 
 	/* neighbor resetting increment */
@@ -56,7 +64,7 @@ private:
 	//need to store NodesUsed for reconnection. Not implemented
 	
 	/* runtime data */
-	int fReconnectCount;	
+	int fReconnectCount;
 };
 
 #endif /* _UNCONN_ROD_T_H_ */

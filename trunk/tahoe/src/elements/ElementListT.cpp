@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.15 2001-12-10 23:59:07 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.16 2001-12-17 00:15:49 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
@@ -22,7 +22,6 @@
 #include "VirtualRodT.h"
 #include "VirtualSWDC.h"
 #include "BEMelement.h"
-#include "VariTriT.h" //TEMP
 #include "CSEIsoT.h"
 #include "CSEAnisoT.h"
 #include "GeometryT.h"
@@ -149,10 +148,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 
 			case ElementT::kLocalizing:
 				fArray[group] = new LocalizerT(fFEManager);
-				break;
-
-			case ElementT::kVariTri:
-				fArray[group] = new VariTriT(fFEManager);
 				break;
 
 			case ElementT::kSWDiamond:

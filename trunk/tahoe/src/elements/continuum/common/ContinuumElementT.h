@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.6 2001-08-13 23:24:01 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.7 2001-12-17 00:15:54 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 /* Interface for a general continuum element type, meaning the presence   */
 /* of shape functions, and the implied presence of a continuum mechanics  */
@@ -193,10 +193,6 @@ private:
 	/* construct output labels array */
 	virtual void GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_labels, 
 		const iArrayT& e_codes, ArrayT<StringT>& e_labels) const = 0;
-
-	void EchoTractionBC_ASCII(ifstreamT& in, ostream& out);
-	void EchoTractionBC_TahoeII(ifstreamT& in, ostream& out);
-	void EchoTractionBC_ExodusII(ifstreamT& in, ostream& out);
 
 	/** update traction BC data */
 	void SetTractionBC(void);

@@ -1,4 +1,4 @@
-/* $Id: GlobalT.h,v 1.3 2001-08-27 17:17:29 paklein Exp $ */
+/* $Id: GlobalT.h,v 1.4 2001-12-17 00:13:00 paklein Exp $ */
 /* created: paklein (02/03/1999) */
 
 #ifndef _GLOBAL_T_H_
@@ -18,23 +18,25 @@ public:
 		     kLinDynamic = 2,
 		       kNLStatic = 3,
 		      kNLDynamic = 4,
-		             kDR = 5, // this is really a nonlinear solver method
+		             kDR = 5,  /**< this will be converted to a nonlinear solver method */
 		  kLinExpDynamic = 6,
 		   kNLExpDynamic = 7,
-		kVarNodeNLStatic = 15, // will be gone soon
-		kVarNodeNLExpDyn = 16, // will be gone soon
-		  kLinStaticHeat = 19, // linear static heat conduction
-		   kLinTransHeat = 20}; // linear transient heat conduction
+		  kLinStaticHeat = 19, /**< linear static heat conduction */
+		   kLinTransHeat = 20  /**< linear transient heat conduction */
+		   };
 		
 	/** stream extraction operator */
 	friend istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code);
 	
 	/** deprecated analysis codes */
 	enum OldAnalysisCodeT {
-		       kCBStatic = 8,   // converted to KBC controller: PAK (12/10/2000)
-		   kAugLagStatic = 17,  // moved to general support of element DOF: PAK (08/22/2001)
-	     kNLStaticKfield = 11,  // converted to KBC controller: PAK (09/10/2000)
-		 kNLExpDynKfield = 18}; // converted to KBC controller: PAK (09/10/2000)
+		kVarNodeNLStatic = 15, /**< variables nodes supported through ModelManagerT */
+		kVarNodeNLExpDyn = 16, /**< variables nodes supported through ModelManagerT */
+		        kCBStatic = 8, /**< converted to KBC controller: PAK (12/10/2000) */
+		   kAugLagStatic = 17, /**< moved to general support of element DOF: PAK (08/22/2001) */
+	     kNLStaticKfield = 11, /**< converted to KBC controller: PAK (09/10/2000) */
+		 kNLExpDynKfield = 18  /**< converted to KBC controller: PAK (09/10/2000) */
+		};
 
 // Currently nonlinear <=> large deformation, will probably
 // need to break this into:

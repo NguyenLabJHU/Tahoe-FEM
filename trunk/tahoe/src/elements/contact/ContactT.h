@@ -1,4 +1,4 @@
-/* $Id: ContactT.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: ContactT.h,v 1.2 2001-12-17 00:15:53 paklein Exp $ */
 /* created: paklein (12/11/1997)                                          */
 /* Cohesive surface element group - non-directional cohesive              */
 /* energy function, ie. fails in compression.                             */

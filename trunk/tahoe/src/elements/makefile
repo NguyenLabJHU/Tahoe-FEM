@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2001-08-20 06:45:05 paklein Exp $
+# $Id: makefile,v 1.6 2001-12-17 00:15:49 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -35,8 +35,7 @@ SUB_DIR = \
 	contact \
 	continuum \
 	lattice \
-	rod \
-	variable_elements
+	rod
 subdir_driver: subdir_loop
 # SUB_DIR is empty
 #subdir_driver: 

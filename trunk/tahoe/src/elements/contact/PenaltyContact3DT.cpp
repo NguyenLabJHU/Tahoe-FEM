@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.2 2001-12-17 00:15:53 paklein Exp $ */
 /* created: paklein (02/09/2000)                                          */
 
 #include "PenaltyContact3DT.h"
@@ -126,20 +126,20 @@ void PenaltyContact3DT::LHSDriver(void)
 	int formK = fController->FormK(constK);
 	if (!formK) return;
 
-//TEMP - consistent tangent not implemented
+	//TEMP - consistent tangent not implemented
 	fLHS.Identity(fK);
 	
 	/* loop over active elements */
 	iArrayT eqnos;
-	for (int i = 0; i < fConnectivities.MajorDim(); i++)
+	int* pelem = fConnectivities[0]->Pointer();
+	int rowlength = fConnectivities[0]->MinorDim();
+	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{
-		int* pelem = fConnectivities(i);
-
 		/* contact */
 		if (fDists[i] < 0.0)
 		{
 			/* get equation numbers */
-			fEqnos.RowAlias(i, eqnos);
+			fEqnos[0].RowAlias(i, eqnos);
 			
 			/* assemble */
 			fFEManager.AssembleLHS(fLHS, eqnos);
@@ -167,11 +167,11 @@ void PenaltyContact3DT::RHSDriver(void)
 	fnum_contact = 0;
 	fh_max = 0.0;
 
-	fDists.Allocate(fConnectivities.MajorDim());
-	for (int i = 0; i < fConnectivities.MajorDim(); i++)
+	fDists.Allocate(fConnectivities[0]->MajorDim());
+	int* pelem = fConnectivities[0]->Pointer();
+	int rowlength = fConnectivities[0]->MinorDim();
+	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{
-		int* pelem = fConnectivities(i);
-
 		/* collect element configuration */
 		fElCoord.RowCollect(pelem, init_coords);
 		fElDisp.RowCollect(pelem, disp);
@@ -223,7 +223,7 @@ void PenaltyContact3DT::RHSDriver(void)
 			fRHS.AddScaled(-dphi/mag, fV1);
 								
 			/* get equation numbers */
-			fEqnos.RowAlias(i, eqnos);
+			fEqnos[0].RowAlias(i, eqnos);
 			
 			/* assemble */
 			fFEManager.AssembleRHS(fRHS, eqnos);

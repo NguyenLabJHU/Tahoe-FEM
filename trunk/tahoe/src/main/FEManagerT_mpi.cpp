@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.8 2001-07-19 06:48:06 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.9 2001-12-17 00:12:59 paklein Exp $ */
 /* created: paklein (01/12/2000)                                          */
 
 #include "FEManagerT_mpi.h"
@@ -756,13 +756,16 @@ int FEManagerT_mpi::Size(void) const
 * Protected
 *************************************************************************/
 
-void FEManagerT_mpi::ReadParameters(void)
+void FEManagerT_mpi::ReadParameters(InitCodeT init)
 {
 	//TEMP
 	TimeStamp("FEManagerT_mpi::ReadParameters");
 
 	/* inherited */
-	FEManagerT::ReadParameters();
+	FEManagerT::ReadParameters(init);
+
+	/* collect model file and input format from ModelManager */
+	fModelManager->Format (fInputFormat, fModelFile);
 	
 	/* set for parallel execution */
 	if (fTask == kRun)

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.4 2001-07-19 06:48:06 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.5 2001-12-17 00:12:59 paklein Exp $ */
 /* created: paklein (01/12/2000)                                          */
 
 #ifndef _FE_MANAGER_MPI_H_
@@ -93,7 +93,7 @@ public:
 protected:
 
 	/* initialization functions */
-	virtual void ReadParameters(void);
+	virtual void ReadParameters(InitCodeT init);
 	virtual void SetNodeManager(void);
 	virtual void SetElementGroups(void);  	
 
@@ -133,6 +133,8 @@ private:
 
 	/* external IO */
 	IOManager_mpi* fExternIOManager;
+	IOBaseT::FileTypeT fInputFormat;
+	StringT fModelFile;
 	
 	/* partition information */
 	int fRank;

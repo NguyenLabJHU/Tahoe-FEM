@@ -1,5 +1,5 @@
-/* $Id: ContinuumElementT.cpp,v 1.12 2001-10-24 02:10:01 paklein Exp $ */
-/* created: paklein (10/22/1996)                                          */
+/* $Id: ContinuumElementT.cpp,v 1.13 2001-12-17 00:15:54 paklein Exp $ */
+/* created: paklein (10/22/1996) */
 
 #include "ContinuumElementT.h"
 
@@ -14,8 +14,6 @@
 #include "DomainIntegrationT.h"
 #include "eControllerT.h"
 #include "Traction_CardT.h"
-#include "ExodusT.h"
-#include "ModelFileT.h"
 #include "iAutoArrayT.h"
 #include "OutputSetT.h"
 
@@ -443,7 +441,8 @@ void ContinuumElementT::SurfaceFacets(GeometryT::CodeT& geometry,
 	for (int i = 0; i < border_elems.Length(); i++)
 	{
 		/* element connectivity */
-		int* elem = fConnectivities(border_elems[i]);
+	        const iArrayT& elemnodes = fElementCards[border_elems[i]].NodesX();
+		int* elem = elemnodes.Pointer();
 
 		/* find open sides */
 		int found_open = 0;
@@ -568,7 +567,8 @@ void ContinuumElementT::SurfaceNodes(iArrayT& surface_nodes) const
 	for (int i = 0; i < border_elems.Length(); i++)
 	{
 		/* element connectivity */
-		int* elem = fConnectivities(border_elems[i]);
+	        const iArrayT& elemnodes = fElementCards[border_elems[i]].NodesX();
+		int* elem = elemnodes.Pointer();
 
 		/* find open sides */
 		int found_open = 0;
@@ -1062,28 +1062,145 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 {
 	out << "\n Traction boundary conditions:\n";
 	
-	/* dispatch */
-	switch (fFEManager.InputFormat())
-	{
-		case IOBaseT::kTahoe:
-			EchoTractionBC_ASCII(in, out);
-			break;
+	/* read data from parameter file */
+	int numlines, numsets;
+	ModelManagerT* model = fFEManager.ModelManager();
+	model->ReadNumTractionLines (in, numlines, numsets);
 
-		case IOBaseT::kTahoeII:
-			EchoTractionBC_TahoeII(in, out);
-			break;
+	if (numlines > 0)
+	  {
+	    /* temp space */
+	    iArrayT blockindex (numlines);
+	    ArrayT<iArray2DT> localsides (numlines);
+	    iArrayT LTf (numlines);
+	    ArrayT<Traction_CardT::CoordSystemT> coord_sys (numlines);
+	    ArrayT<dArray2DT> values (numlines);
 
-		case IOBaseT::kExodusII:
-			EchoTractionBC_ExodusII(in, out);
-			break;
+	    /* nodes on element facets */
+	    iArrayT num_facet_nodes;
+	    fShapes->NumNodesOnFacets (num_facet_nodes);
+	    
+	    /* read data by blocks */
+	    int line = 0;
+	    int count = 0;
+	    for (int blockset = 0; blockset < numsets; blockset++)
+	      {
+		/* read num of cards in each block */
+		int setsize = -1;
+		int setindex = -1;
+		model->ReadTractionSetData (in, setindex, setsize);
+		for (int card=0; card < setsize; card++)
+		  {
+		    /* read side set for that card */
+		    blockindex[line] = setindex;
+		    model->ReadTractionSideSet (in, blockindex[line], localsides[line]);
 
-		default:
+		    /* increment count */
+		    int num_sides = localsides[line].MajorDim();
+		    count += num_sides;
 
-			cout << "\n ContinuumElementT::EchoTractionBC: unsupported input format: ";
-			cout << fFEManager.InputFormat() << endl;
-			throw eGeneralFail;
-	}
-	
+		    /* read data for that card */
+		    in >> LTf[line] >> coord_sys[line];
+
+		    /* skip if empty */
+		    int num_nodes;
+		    if (num_sides > 0)
+		      {
+			iArray2DT& side_set = localsides[line];
+
+			/* switch to group numbering */
+			const int* block_data = BlockData (blockindex[line]+1);
+			iArrayT elems (num_sides);
+			side_set.ColumnCopy (0, elems);
+
+
+			/* check */
+			int min, max;
+			elems.MinMax (min, max);
+			if (min < 0 || max > block_data[kBlockDim])
+			  {
+			    cout << "\n ContinuumElementT::EchoTractionBC_TahoeII: node numbers\n";
+			    cout <<   "     {"<< min << "," << max << "} are out of range in ";
+			    cout << " dataline " << line << endl;
+			    throw eBadInputValue;
+			  }
+			/* shift */
+			elems += block_data[kStartNum];
+			side_set.SetColumn (0, elems);
+
+			/* all facets in set must have the same number of nodes */
+			num_nodes = num_facet_nodes [side_set (0,1)];
+			for (int f=0; f < num_sides; f++)
+			  if (num_facet_nodes[side_set(f,1)] != num_nodes)
+			    {
+			      cout << "\n ContinuumElementT::EchoTractionBC_TahoeII: sides specified\n";
+			      cout <<   "     in line " << line << " have differing numbers of nodes";
+			      cout << endl;
+			      throw eBadInputValue;
+			    }
+		      }
+		    else
+		      {
+			/* still check numbef of facet nodes */
+			int min, max;
+			num_facet_nodes.MinMax (min, max);
+			if (min != max)
+			  {
+			    cout << "\n ContinuumElementT::EchoTractionBC_TahoeII: cannot determine number of\n"
+				 <<   "     facet nodes for empty side set at line " << line << endl;
+			    throw eBadInputValue;
+			  }
+			else
+			  num_nodes = min;
+		      }
+
+		    /* read traction values */
+		    dArray2DT& valueT = values[line];
+		    valueT.Allocate (num_nodes, fNumDOF);
+		    in >> valueT;
+		    //NOTE - cannot simply clear to the end of the line with empty side sets
+		    //       because the tractions may be on multiple lines
+
+		    line++;
+		  }
+	      }
+
+	    /* allocate all traction BC cards */
+	    fTractionList.Allocate (count);
+
+	    /* correct numbering offset */
+	    LTf--;
+
+	    if (count > 0)
+	      {
+		out << '\n';
+		out << setw (kIntWidth) << "no.";
+		fTractionList[0].WriteHeader (out, fNumDOF);
+
+		iArrayT loc_node_nums;
+		int dex = 0;
+		for (int ii=0; ii < numlines; ii++)
+		  {
+		    /* set traction BC cards */
+		    iArray2DT& side_set = localsides[ii];
+		    int numsides = side_set.MajorDim();
+		    for (int j=0; j < numsides; j++)
+		      {
+			out << setw (kIntWidth) << j+1;
+
+			/* get facet local node numbers */
+			fShapes->NodesOnFacet (side_set (j, 1), loc_node_nums);
+
+			/* set and echo */
+			fTractionList[dex++].EchoValues (fFEManager, side_set(j,0), side_set (j,1), LTf[ii],
+							 coord_sys[ii], loc_node_nums, values[ii], out);
+		      }
+		    out << endl;
+		  }
+	      }
+	  }
+
+
 	if (fNumSD != fNumDOF)
 	{
 		/* check coordinate system specifications */
@@ -1096,390 +1213,6 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 				     <<   "    for card " << i+1 << endl;
 				throw eBadInputValue;
 			}
-	}
-}
-
-void ContinuumElementT::EchoTractionBC_ASCII(ifstreamT& in, ostream& out)
-{
-	int num_BC;
-	in >> num_BC;		
-	out << " Number of traction BC's . . . . . . . . . . . . = " << num_BC << '\n';
-
-	if (num_BC > 0)
-	{
-		int num_sets = 1;
-		if (fBlockData.MajorDim() > 1) in >> num_sets;
-
-		/* allocate */
-		fTractionList.Allocate(num_BC);
-		fTractionList[0].WriteHeader(out, fNumDOF);
-
-		/* external file */
-		ifstreamT tmp;
-		ifstreamT& in2 = fFEManager.OpenExternal(in, tmp, out, true,
-			"ContinuumElementT::EchoTractionBC_ASCII: could not open file");
-
-		/* echo */
-		int count = 0;
-		for (int k = 0; k < num_sets; k++)
-		{
-			/* block to group element number */
-			int offset = 0;
-			int size = fNumElements;
-			int num = num_BC;
-			int ID;
-			if (fBlockData.MajorDim() > 1)
-			{
-				in2 >> ID >> num;
-				
-				/* correct offset */
-				ID--;
-			
-				/* check */
-				if (count + num > fNumElements)
-				{
-					cout << "\n ContinuumElementT::EchoTractionBC_ASCII: block size " << num << '\n';
-					cout <<   "     exceeds total BC count " << num_BC << endl;
-					throw eBadInputValue;
-				}
-				
-				/* get block data */
-				const int* block_data = BlockData(ID);
-				offset = block_data[kStartNum ];
-				size   = block_data[kBlockDim];
-			}
-			
-			for (int i = 0; i < num; i++)
-			{
-				/* resolve group element number */
-				int elem;
-				in2 >> elem;
-				elem--;
-				if (elem < 0 || elem >= size)
-				{
-					cout << "\n ContinuumElementT::EchoTractionBC_ASCII: element " << elem + 1;
-					if (fBlockData.MajorDim() > 1)
-						cout << " in block " << ID << "\n    ";
-					cout << " is out of range " << size << endl;
-					throw eBadInputValue;
-				}
-				elem += offset;
-				
-				/* echo traction specification */
-				fTractionList[count].EchoValues(fFEManager, *fShapes, elem, fNumDOF, in, out);
-
-				/* next */
-				count++;
-			}
-		}
-		
-		/* check */
-		if (count != num_BC)
-		{
-			cout << "\n ContinuumElementT::EchoTractionBC_ASCII: " << count << " cards read from\n";
-			cout <<   "     file does not equal total " << num_BC << endl;
-			throw eBadInputValue;		
-		}
-		else out.flush();
-		
-		// could check for duplicates
-	}
-}
-
-void ContinuumElementT::EchoTractionBC_TahoeII(ifstreamT& in, ostream& out)
-{
-	/* number of kinematic BC node sets */
-	int num_BC_sets;
-	in >> num_BC_sets;
-	if (num_BC_sets < 0) throw eBadInputValue;
-	out << " Number of traction BC side sets . . . . . . . . = ";
-	out << num_BC_sets << "\n\n";
-
-	if (num_BC_sets > 0)
-	{
-		/* open database */
-		ModelFileT model_file;
-		model_file.OpenRead(fFEManager.ModelFile());
-
-		/* nodes on element facets */
-		iArrayT num_facet_nodes;
-		fShapes->NumNodesOnFacets(num_facet_nodes);
-
-		/* temp space */
-		iArrayT set_ID(num_BC_sets);
-		iArrayT LTf(num_BC_sets);
-		ArrayT<Traction_CardT::CoordSystemT> coord_sys(num_BC_sets);
-		ArrayT<iArray2DT> side_sets(num_BC_sets);
-		ArrayT<dArray2DT> valuesT(num_BC_sets);
-
-		/* echo set specifiers */
-		int count = 0;
-		for (int i = 0; i < num_BC_sets; i++)
-		{
-			in >> set_ID[i] >> LTf[i] >> coord_sys[i];
-			int num_sides;
-			if (model_file.GetSideSetDimensions(set_ID[i], num_sides) !=
-			    ModelFileT::kOK) throw eBadInputValue;
-
-			/* increment total count */
-			count += num_sides;
-
-			/* skip if empty */
-			int num_nodes;
-			if (num_sides > 0)
-			{
-				/* read side set */
-				int block_ID;
-				iArray2DT& side_set = side_sets[i];
-				side_set.Allocate(num_sides, 2);
-				if (model_file.GetSideSet(set_ID[i], block_ID, side_set) !=
-				    ModelFileT::kOK) throw eBadInputValue;
-	
-				/* correct offset */
-				side_set--;
-	
-				/* switch to group numbering */
-				const int* block_data = BlockData(block_ID);
-				iArrayT elems(side_set.MajorDim());
-				side_set.ColumnCopy(0, elems);
-	
-				/* check */
-				int min, max;
-				elems.MinMax(min, max);
-				if (min < 0 || max > block_data[kBlockDim])
-				{
-					cout << "\n ContinuumElementT::EchoTractionBC_TahoeII: node numbers\n";
-					cout <<   "     {"<< min << "," << max << "} are out of range in side";
-					cout << " set ID " << set_ID[i] << endl;
-					throw eBadInputValue;
-				}
-
-				/* shift */
-				elems += block_data[kStartNum];
-				side_set.SetColumn(0, elems);
-
-				/* all facets in set must have the same number of nodes */
-				num_nodes = num_facet_nodes[side_set(0,1)];
-				for (int j = 1; j < num_sides; j++)
-					if (num_facet_nodes[side_set(j,1)] != num_nodes)
-					{
-						cout << "\n ContinuumElementT::EchoTractionBC_TahoeII: sides specified\n";
-						cout <<   "     in ID " << set_ID[i] << " have differing numbers of nodes";
-						cout << endl;
-						throw eBadInputValue;
-					}
-			}
-			else
-			{
-				/* still number of facet nodes */
-				int min, max;
-				num_facet_nodes.MinMax(min, max);
-				if (min != max)
-				{
-					cout << "\n ContinuumElementT::EchoTractionBC_TahoeII: cannot determine number of\n"
-					     <<   "     facet nodes for empty side set with ID " << set_ID[i] << endl;
-					throw eBadInputValue;
-				}
-				else
-					num_nodes = min;
-			}
-				
-			/* read traction BC values */
-			dArray2DT& valueT = valuesT[i];
-			valueT.Allocate(num_nodes, fNumDOF);
-			in >> valueT;
-			//NOTE - cannot simply clear to the end of the line with empty side sets
-			//       because the tractions may be on multiple lines
-		}
-
-		/* allocate all traction BC cards */
-		fTractionList.Allocate(count);
-
-		/* correct numbering offset */
-		LTf--;
-
-		/* echo node sets */
-		iArrayT loc_node_nums;
-		int dex = 0;
-		for (int ii = 0; ii < num_BC_sets; ii++)
-		{
-			const iArray2DT& side_set = side_sets[ii];
-			int num_sides = side_set.MajorDim();
-	
-			/* write header */
-		  	out << " Exodus side set ID. . . . . . . . . . . . . . . = ";
-			out << set_ID[ii] << '\n';
-			out << " Number of traction BC cards . . . . . . . . . . = ";
-			out << num_sides << endl;
-			
-			if (count > 0)
-			{
-				out << '\n';
-				out << setw(kIntWidth) << "no.";
-				fTractionList[0].WriteHeader(out, fNumDOF);
-		
-				/* set traction BC cards */
-				for (int j = 0; j < num_sides; j++)
-				{
-					out << setw(kIntWidth) << j+1;			
-
-					/* get facet local node numbers */
-					fShapes->NodesOnFacet(side_set(j,1), loc_node_nums);
-
-					/* set and echo */
-					fTractionList[dex++].EchoValues(fFEManager, side_set(j,0), side_set(j,1), LTf[ii],
-						coord_sys[ii], loc_node_nums, valuesT[ii], out);
-				}			
-				out << endl;
-			}
-		}
-	}
-}
-
-void ContinuumElementT::EchoTractionBC_ExodusII(ifstreamT& in, ostream& out)
-{
-	/* number of kinematic BC node sets */
-	int num_BC_sets;
-	in >> num_BC_sets;
-	if (num_BC_sets < 0) throw eBadInputValue;
-	out << " Number of traction BC side sets . . . . . . . . = ";
-	out << num_BC_sets << "\n\n";
-
-	if (num_BC_sets > 0)
-	{
-		/* open database */
-		ExodusT database(out);
-		database.OpenRead(fFEManager.ModelFile());
-
-		/* nodes on element facets */
-		iArrayT num_facet_nodes;
-		fShapes->NumNodesOnFacets(num_facet_nodes);
-
-		/* temp space */
-		iArrayT set_ID(num_BC_sets);
-		iArrayT LTf(num_BC_sets);
-		ArrayT<Traction_CardT::CoordSystemT> coord_sys(num_BC_sets);
-		ArrayT<iArray2DT> side_sets(num_BC_sets);
-		ArrayT<dArray2DT> valuesT(num_BC_sets);
-
-		/* echo set specifiers */
-		int count = 0;
-		for (int i = 0; i < num_BC_sets; i++)
-		{
-			in >> set_ID[i] >> LTf[i] >> coord_sys[i];
-			int num_sides = database.NumSidesInSet(set_ID[i]);
-
-			/* increment total count */
-			count += num_sides;
-			
-			/* skip if empty */
-			int num_nodes;
-			if (num_sides > 0)
-			{
-				/* read side set */
-				int block_ID;
-				iArray2DT& side_set = side_sets[i];
-				side_set.Allocate(num_sides, 2);
-				database.ReadSideSet(set_ID[i], block_ID, side_set);
-
-				/* correct offset */
-				side_set--;
-
-				/* switch to group numbering */
-				const int* block_data = BlockData(block_ID);
-				iArrayT elems(side_set.MajorDim());
-				side_set.ColumnCopy(0, elems);
-
-				/* check */
-				int min, max;
-				elems.MinMax(min, max);
-				if (min < 0 || max > block_data[kBlockDim])
-				{
-					cout << "\n ContinuumElementT::EchoTractionBC_Exodus: node numbers\n";
-					cout <<   "     {"<< min << "," << max << "} are out of range in side";
-					cout << " set ID " << set_ID[i] << endl;
-					throw eBadInputValue;
-				}
-
-				/* shift */
-				elems += block_data[kStartNum];
-				side_set.SetColumn(0, elems);
-
-				/* all facets in set must have the same number of nodes */
-				num_nodes = num_facet_nodes[side_set(0,1)];
-				for (int j = 1; j < num_sides; j++)
-					if (num_facet_nodes[side_set(j,1)] != num_nodes)
-					{
-						cout << "\n ContinuumElementT::EchoTractionBC_Exodus: sides specified\n";
-						cout <<   "     in ID " << set_ID[i] << " have differing numbers of nodes";
-						cout << endl;
-						throw eBadInputValue;
-					}
-			}
-			else
-			{
-				/* still number of facet nodes */
-				int min, max;
-				num_facet_nodes.MinMax(min, max);
-				if (min != max)
-				{
-					cout << "\n ContinuumElementT::EchoTractionBC_Exodus: cannot determine number of\n"
-					     <<   "     facet nodes for empty side set with ID " << set_ID[i] << endl;
-					throw eBadInputValue;
-				}
-				else
-					num_nodes = min;
-			}
-				
-			/* read traction BC values */
-			dArray2DT& valueT = valuesT[i];
-			valueT.Allocate(num_nodes, fNumDOF);
-			in >> valueT;
-			//NOTE - cannot simply clear to the end of the line with empty side sets
-			//       because the tractions may be on multiple lines
-		}
-
-		/* allocate all traction BC cards */
-		fTractionList.Allocate(count);
-
-		/* correct numbering offset */
-		LTf--;
-
-		/* echo node sets */
-		iArrayT loc_node_nums;
-		int dex = 0;
-		for (int ii = 0; ii < num_BC_sets; ii++)
-		{
-			const iArray2DT& side_set = side_sets[ii];
-			int num_sides = side_set.MajorDim();
-	
-			/* write header */
-		  	out << " Exodus side set ID. . . . . . . . . . . . . . . = ";
-			out << set_ID[ii] << '\n';
-			out << " Number of traction BC cards . . . . . . . . . . = ";
-			out << num_sides << endl;
-			
-			if (count > 0)
-			{
-				out << '\n';
-				out << setw(kIntWidth) << "no.";
-				fTractionList[0].WriteHeader(out, fNumDOF);
-		
-				/* set traction BC cards */
-				for (int j = 0; j < num_sides; j++)
-				{
-					out << setw(kIntWidth) << j+1;			
-
-					/* get facet local node numbers */
-					fShapes->NodesOnFacet(side_set(j,1), loc_node_nums);
-
-					/* set and echo */
-					fTractionList[dex++].EchoValues(fFEManager, side_set(j,0), side_set(j,1), LTf[ii],
-						coord_sys[ii], loc_node_nums, valuesT[ii], out);
-				}			
-				out << endl;
-			}
-		}
 	}
 }
 
@@ -1500,7 +1233,7 @@ void ContinuumElementT::BoundingElements(iArrayT& elements, iArray2DT& neighbors
 	/* collect list of bounding elements */
 	AutoArrayT<int> borders;
 	iArrayT element;
-	for (int i = 0; i < fConnectivities.MajorDim(); i++)
+	for (int i = 0; i < fNumElements; i++)
 	{
 		all_neighbors.RowAlias(i, element);
 	

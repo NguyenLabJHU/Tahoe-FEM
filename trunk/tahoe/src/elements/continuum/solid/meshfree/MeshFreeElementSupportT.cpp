@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.4 2001-07-13 02:27:27 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.5 2001-12-17 00:15:56 paklein Exp $ */
 /* created: paklein (11/12/1999)                                          */
 
 #include "MeshFreeElementSupportT.h"
@@ -9,8 +9,7 @@
 #include "ElementCardT.h"
 #include "MeshFreeSupportT.h"
 
-#include "ModelFileT.h"
-#include "ExodusT.h"
+#include "ModelManagerT.h"
 
 /* needed for TraceNode */
 #include "FEManagerT.h"
@@ -70,8 +69,7 @@ void MeshFreeElementSupportT::PrintControlData(ostream& out) const
 /* initialization */
 void MeshFreeElementSupportT::InitSupport(ifstreamT& in, ostream& out,
 	AutoArrayT<ElementCardT>& elem_cards, const iArrayT& surface_nodes,
-	int numDOF, int max_node_num, const StringT& model_file,
-	IOBaseT::FileTypeT format)
+	int numDOF, int max_node_num, ModelManagerT* model)
 {
 	/* configure variable length element arrays */
 	fElemNodesEX = &(fMFShapes->ElementNeighbors());
@@ -93,7 +91,7 @@ void MeshFreeElementSupportT::InitSupport(ifstreamT& in, ostream& out,
 	}
 	
 	/* echo FE/meshfree nodes */
-	EchoNodesData(in, out, max_node_num, model_file, format);
+	EchoNodesData(in, out, max_node_num, model);
 
 	/* collect interpolant nodes = (auto) + (FE) - (EFG) */
 	SetAllFENodes(surface_nodes);
@@ -315,136 +313,60 @@ void MeshFreeElementSupportT::WeightNodes(iArrayT& weight) const
 
 /* class specific data */
 void MeshFreeElementSupportT::EchoNodesData(ifstreamT& in, ostream& out, int max_node_num,
-	const StringT& model_file, IOBaseT::FileTypeT format)
+	ModelManagerT* model)
 {
-	/* could echo "sampling points" */
+        /* could echo "sampling points" */
 
-	/* EFG nodes not on the integration grid */
-	int num_offgrid;
-	in >> num_offgrid;
+        /* temp space */
+        iArrayT set_indexes;
+
+        /* EFG nodes not on the integration grid */
+	model->NodeSetList (in, set_indexes);
+	model->ManyNodeSets (set_indexes, fOffGridNodes);
 	out << "\n Number of nodes off the integration grid. . . . = "
-	    <<num_offgrid << '\n';
-	if (num_offgrid > 0)
-	{
-		/* read data */
-		ReadNodesData(in, num_offgrid, model_file, format, fOffGridNodes);
+	    << fOffGridNodes.Length() << '\n';
 
-		/* correct offset */
-		if (fOffGridNodes.Length() > 0) // empty sets
-		{
-			fOffGridNodes--;
-
-			/* check */
-			if (fOffGridNodes.Min() < 0 || fOffGridNodes.Max() >= max_node_num)
-			{
-				cout << "\n MeshFreeElementSupportT::EchoNodesData: off grid EFG node out of range" << endl;
-				throw eBadInputValue;
-			}
-		}
-	}
+	if (fOffGridNodes.Length() > 0) // empty sets
+	  {
+	    /* check */
+	    if (fOffGridNodes.Min() < 0 || fOffGridNodes.Max() >= max_node_num)
+	      {
+		cout << "\n MeshFreeElementSupportT::EchoNodesData: off grid EFG node out of range" << endl;
+		throw eBadInputValue;
+	      }
+	  }
 	
 	/* interpolant nodes */
-	int num_FE;
-	in >> num_FE;
-	out << " Number of interpolant shape function nodes. . . = " << num_FE << '\n';
-	if (num_FE > 0)
-	{
-		/* read data */
-		ReadNodesData(in, num_FE, model_file, format, fFENodes);
+	model->NodeSetList (in, set_indexes);
+	model->ManyNodeSets (set_indexes, fFENodes);
+	out << " Number of interpolant shape function nodes. . . = " 
+	    << fFENodes.Length() << '\n';
 
-		/* correct offset */
-		if (fFENodes.Length() > 0) // empty sets
-		{
-			fFENodes--;
-
-			/* check */
-			if (fFENodes.Min() < 0 || fFENodes.Max() >= max_node_num)
-			{
-				cout << "\n MeshFreeElementSupportT::EchoNodesData: interpolant node out of range" << endl;
-				throw eBadInputValue;
-			}
-		}
-	}
+	if (fFENodes.Length() > 0) // empty sets
+	  {
+	    /* check */
+	    if (fFENodes.Min() < 0 || fFENodes.Max() >= max_node_num)
+	      {
+		cout << "\n MeshFreeElementSupportT::EchoNodesData: interpolant node out of range" << endl;
+		throw eBadInputValue;
+	      }
+	  }
 
 	/* pure EFG nodes */
-	int num_EFG;
-	in >> num_EFG;
-	out << " Number of pure EFG shape function nodes . . . . = " << num_EFG << '\n';
-	if (num_EFG > 0)
-	{
-		/* read data */
-		ReadNodesData(in, num_EFG, model_file, format, fEFGNodes);
+	model->NodeSetList (in, set_indexes);
+	model->ManyNodeSets (set_indexes, fEFGNodes);
+	out << " Number of pure EFG shape function nodes . . . . = " 
+	    << fEFGNodes.Length() << '\n';
 
-		/* correct offset */
-		if (fEFGNodes.Length() > 0) // empty sets
-		{
-			fEFGNodes--;
-
-			/* check */
-			if (fEFGNodes.Min() < 0 || fEFGNodes.Max() > max_node_num)
-			{
-				cout << "\n MeshFreeElementSupportT::EchoNodesData: set EFG node out of range" << endl;
-				throw eBadInputValue;
-			}
-		}
-	}
-}
-
-void MeshFreeElementSupportT::ReadNodesData(ifstreamT& in, int num_id, const StringT& model_file,
-	IOBaseT::FileTypeT format, iArrayT& nodes)
-{
-	/* read contact nodes */
-	switch (format)
-	{
-		case IOBaseT::kTahoe:
-		{
-			nodes.Allocate(num_id);
-			in >> nodes;
-			break;
-		}
-		case IOBaseT::kTahoeII:
-		{
-			/* number of node sets */
-			if (num_id > 0)
-			{
-				/* open database */
-				ModelFileT database;
-				database.OpenRead(model_file);
-
-				/* echo set ID's */
-				iArrayT ID_list(num_id);
-				in >> ID_list;
-				
-				/* collect */
-				if (database.GetNodeSets(ID_list, nodes) != ModelFileT::kOK)
-					throw eBadInputValue;
-			}
-			break;
-		}
-		case IOBaseT::kExodusII:
-		{
-			/* number of node sets */
-			if (num_id > 0)
-			{
-				/* echo set ID's */
-				iArrayT ID_list(num_id);
-				in >> ID_list;
-
-				/* open database */
-				ExodusT database(cout);
-				database.OpenRead(model_file);
-				
-				/* read collect all nodes in sets */
-				database.ReadNodeSets(ID_list, nodes);
-			}				
-			break;
-		}
-		default:
-
-			cout << "\n MeshFreeElementSupportT::ReadNodesData: unsupported input format: ";
-			cout << format << endl;
-			throw eGeneralFail;
-	}
+	if (fEFGNodes.Length() > 0) // empty sets
+	  {
+	    /* check */
+	    if (fEFGNodes.Min() < 0 || fEFGNodes.Max() > max_node_num)
+	      {
+		cout << "\n MeshFreeElementSupportT::EchoNodesData: set EFG node out of range" << endl;
+		throw eBadInputValue;
+	      }
+	  }
 }
 
 /* set nodes which will have nodally exact shapefunctions */

@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.7 2001-07-19 16:08:59 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.8 2001-12-17 00:12:59 paklein Exp $ */
 /* created: paklein (09/21/1997)                                          */
 
 #include "FEExecutionManagerT.h"
@@ -698,11 +698,8 @@ void FEExecutionManagerT::GetModelFile(ifstreamT& in, StringT& model_file,
 	FEManagerT fe_temp(in_temp, out);
 	fe_temp.Initialize(FEManagerT::kParametersOnly);
 
-	/* model file name*/
-	model_file = fe_temp.ModelFile();
-	
-	/* file format */
-	format = fe_temp.InputFormat();
+	ModelManagerT* model = fe_temp.ModelManager();
+	model->Format (format, model_file);
 }
 
 /* initializations for rank 0 */

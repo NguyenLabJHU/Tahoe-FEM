@@ -1,4 +1,4 @@
-/* $Id: GlobalT.cpp,v 1.2 2001-08-27 17:17:29 paklein Exp $ */
+/* $Id: GlobalT.cpp,v 1.3 2001-12-17 00:13:00 paklein Exp $ */
 /* created: paklein (04/01/2000)                                          */
 /* GlobalT.cpp                                                            */
 
@@ -44,11 +44,13 @@ istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code)
 			throw eBadInputValue;
 		}
 		case GlobalT::kVarNodeNLStatic:
-			code = GlobalT::kVarNodeNLStatic;
-			break;
 		case GlobalT::kVarNodeNLExpDyn:
-			code = GlobalT::kVarNodeNLExpDyn;
-			break;
+		{
+			cout << "\n operator>>GlobalT::AnalysisCodeT: analysis code is not longer\n"
+			     <<   "     supported. Support for changing geometry is being re-\n"
+			     <<   "     written: " << i_code << endl;
+			throw eBadInputValue;
+		}
 		case GlobalT::kAugLagStatic:
 		{
 			cout << "\n operator>>GlobalT::AnalysisCodeT: external degrees of freedom no longer\n" 
