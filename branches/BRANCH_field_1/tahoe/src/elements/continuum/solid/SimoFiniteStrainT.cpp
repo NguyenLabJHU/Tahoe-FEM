@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.17.2.1 2002-04-26 02:24:18 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.17.2.2 2002-04-27 01:32:27 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -11,6 +11,7 @@
 #include "MaterialListT.h" //NOTE - only needed for check in Initialize?
 #include "SimoShapeFunctionT.h"
 #include "FieldT.h"
+#include "XDOF_ManagerT.h"
 
 /* constructor */
 SimoFiniteStrainT::SimoFiniteStrainT(const ElementSupportT& support, const FieldT& field):
@@ -169,15 +170,18 @@ void SimoFiniteStrainT::Initialize(void)
 	
 		/* resize work arrays */
 		fRHS.Allocate(fNumElemEqnos + fCurrElementModes.Length());
-		fLHS.Allocate(fRHS.Length());		
+		fLHS.Allocate(fRHS.Length());
+		
+		/* XDOF support */
+		XDOF_ManagerT& xdof_man = ElementSupport().XDOF_Manager();		
 
 		/* register as XDOF group */
 		iArrayT set_dimensions(1);
 		set_dimensions[0] = fNumModeShapes*NumSD();
-		fNodes->XDOF_Register(this, set_dimensions);
+		xdof_man.XDOF_Register(this, set_dimensions);
 		
 		/* element nodes use space from XDOF manager */
-		const dArray2DT& xdof = fNodes->XDOF(this, 0);
+		const dArray2DT& xdof = xdof_man.XDOF(this, 0);
 		fElementModes.Alias(xdof);
 		
 		/* checks */
@@ -276,7 +280,7 @@ void SimoFiniteStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	else
 	{
 		/* equations associated with the element modes */
-		const iArray2DT& xdof_eqnos_all = fNodes->XDOF_Eqnos(this, 0);
+		const iArray2DT& xdof_eqnos_all = ElementSupport().XDOF_Manager().XDOF_Eqnos(this, 0);
 
 		/* loop over connectivity blocks */
 		int element_count = 0;

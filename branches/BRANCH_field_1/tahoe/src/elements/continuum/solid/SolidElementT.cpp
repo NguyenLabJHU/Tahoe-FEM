@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.21.2.1 2002-04-26 02:24:18 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.21.2.2 2002-04-27 01:32:27 paklein Exp $ */
 /* created: paklein (05/28/1996) */
 
 #include "SolidElementT.h"
@@ -63,13 +63,13 @@ void SolidElementT::Initialize(void)
 	/* inherited */
 	ContinuumElementT::Initialize();
 
+	/* checks for dynamic analysis */
+	if (fController->Order() > 0 &&
+	    fController->ImplicitExplicit() == eControllerT::kExplicit)
+	    fMassType = kLumpedMass;
+
 	/* allocate strain-displacement matrix */
 	fB.Allocate(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
-
-	/* override */
-	if (fController->ImplicitExplicit() == eControllerT::kExplicit &&
-	    fMassType != kNoMass &&
-	    fMassType != kLumpedMass) fMassType = kLumpedMass;
 
 	/* setup for material output */
 	if (fNodalOutputCodes[iMaterialData] || fElementOutputCodes[iIPMaterialData])
@@ -89,37 +89,6 @@ void SolidElementT::Initialize(void)
 		}
 	}	
 }
-
-
-//NOTE - note needed anymore
-#if 0
-/* set the controller */
-void SolidElementT::SetController(eControllerT* controller)
-{
-	/* inherited */
-	ContinuumElementT::SetController(controller);
-	
-	/* check consistency */
-	int is_explicit = (fController->ImplicitExplicit() == eControllerT::kExplicit);
-	int is_dynamic  = (fController->Order() > 0);
-
-	/* warning about no mass */
-	if (is_dynamic && is_explicit)
-	{
-		if (fMassType == kNoMass)
-		{
-			cout << "\n SolidElementT::SetController: WARNING: element group ";
-			cout << ElementSupport().ElementGroupNumber(this) + 1 << " has mass type " << kNoMass << endl;
-		}
-		else if (fMassType != kLumpedMass) /* override all others */
-//{
-//cout << "\n SolidElementT::SetController: SKIPPING lumped mass override for explicit dynamics" << endl;		
-		fMassType = kLumpedMass;
-//}
-	}
-}
-#endif
-#pragma message("SolidElementT::SetController: move lumped mass check elsewhere")
 
 /* solution calls */
 void SolidElementT::AddNodalForce(int node, dArrayT& force)
@@ -295,7 +264,7 @@ void SolidElementT::SendOutput(int kincode)
 	SetNodalOutputCodes(IOBaseT::kAtInc, flags, n_counts);
 
 	/* reset averaging workspace */
-	fNodes->ResetAverage(n_counts.Sum());
+	ElementSupport().ResetAverage(n_counts.Sum());
       
 	/* no element output */
 	iArrayT e_counts(fElementOutputCodes.Length());
@@ -888,7 +857,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	if (n_out == 0 && e_out == 0) return;
 
 	/* reset averaging workspace */
-	fNodes->ResetAverage(n_out);
+	ElementSupport().ResetAverage(n_out);
 	
 	/* allocate element results space */
 	e_values.Allocate(NumElements(), e_out);
@@ -1090,7 +1059,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		nodal_all.BlockColumnCopyAt(matdat     , colcount);
 
 		/* accumulate - extrapolation done from ip's to corners => X nodes */
-		fNodes->AssembleAverage(CurrentElement().NodesX(), nodal_all);
+		ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_all);
 		
 		/* element values */
 		if (e_codes[iCentroid]) centroid /= mass;
@@ -1100,7 +1069,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	}
 
 	/* get nodally averaged values */
-	fNodes->OutputUsedAverage(n_values);
+	ElementSupport().OutputUsedAverage(n_values);
 }
 
 /***********************************************************************

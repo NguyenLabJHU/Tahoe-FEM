@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.8.2.1 2002-04-26 02:24:20 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.8.2.2 2002-04-27 01:32:29 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 
 #include "MeshFreeFSSolidT.h"
@@ -58,7 +58,7 @@ void MeshFreeFSSolidT::Initialize(void)
 	fNEEMatrix.Register(fLHS);        // ElementBaseT
 
 	/* dimension */
-	fDNa_x_wrap.SetWard(10, fDNa_x, NumElementNodes());
+	fDNa_x_wrap.SetWard(10, fDNa_x, MeshFreeElementSupportT::NumElementNodes());
 
 	/* set MLS data base (connectivities must be set 1st) */
 	fMFShapes->SetSupportSize();
