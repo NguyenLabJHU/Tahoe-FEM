@@ -60,13 +60,14 @@ public:
     dArrayT& n_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& nn);
     dArrayT& r_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& rr);
     dArrayT& m_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& mm);       
+    dMatrixT& devstress_f(const dArrayT& Sig, dMatrixT& devstress);
     dMatrixT& dmdSig_f(const dArrayT& qn, dMatrixT& dmdSig);
     dMatrixT& dmdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dmdq);
     dMatrixT& dhdSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dhdSig);
     dMatrixT& dgdSig_f(const dArrayT& Sig, const dArrayT& qn, const dArrayT& ls, dMatrixT& dgdSig);
     dMatrixT& dhdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dhdq);
     dMatrixT& dhdm_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dhdm);
-    dMatrixT& dgdq_f(const dArrayT& Sig, const dArrayT& qn, const dArrayT& ls, dMatrixT& dqbardq);
+    dMatrixT& dgdq_f(const dArrayT& Sig, const dArrayT& qn, const dArrayT& ls, dMatrixT& dgdq);
     
     /* utility function */
 	double signof(double& r);
@@ -90,7 +91,13 @@ public:
 	 * the data from element */
 	void AllocateElement(ElementCardT& element);
 
-	enum InternalVariablesT {kchi = 30,  // stress-like internal state variable
+	enum InternalVariablesT {keps11 = 6, //strains
+	                         keps22 = 7,
+	                         keps33 = 8,
+	                         keps23 = 9,
+	                         keps13 = 10,
+	                         keps12 = 11,
+							 kchi = 30,  // stress-like internal state variable
 	                         kc   = 31,
 	                      ktanphi = 32,
 	                      ktanpsi = 33,
