@@ -1,6 +1,5 @@
-/* $Id: MeshFreeSupport3DT.cpp,v 1.3 2001-07-03 01:35:50 paklein Exp $ */
-/* created: paklein (09/13/1998)                                          */
-/* MLS shape function support for 3D                                      */
+/* $Id: MeshFreeSupport3DT.cpp,v 1.4 2002-02-21 02:42:08 paklein Exp $ */
+/* created: paklein (09/13/1998) */
 
 #include "MeshFreeSupport3DT.h"
 
@@ -28,11 +27,19 @@ void MeshFreeSupport3DT::SetCuttingFacets(const dArray2DT& facet_coords,
 	/* inherited */
 	MeshFreeSupportT::SetCuttingFacets(facet_coords, num_facet_nodes);
 
-	if (fNumFacetNodes != 3 && fNumFacetNodes != 4)
+	if (fNumFacetNodes != 0 &&
+	    fNumFacetNodes != 3 && 
+	    fNumFacetNodes != 4)
 	{
 		cout << "\n MeshFreeSupport3DT::SetCuttingFacets: 3D cutting facets must\n"
 		     <<   "     have 3 or 4 nodes: " << fNumFacetNodes << endl;
 		throw eSizeMismatch;
+	}
+	if (fNumFacetNodes == 0 && facet_coords.MajorDim() != 0) {
+		cout << "\n MeshFreeSupport3DT::SetCuttingFacets: found facets nodes = 0 with\n" 
+		     <<   "     non-zero number of facets (" << facet_coords.MajorDim()
+		     << ")" << endl;
+		throw eSizeMismatch;	
 	}
 }	
 
@@ -51,8 +58,8 @@ void MeshFreeSupport3DT::ProcessBoundaries(const dArray2DT& coords,
 	if (coords.MinorDim() != x_node.Length()) throw eSizeMismatch;
 #endif
 
-	/* quick exit */
-	if (!fCutCoords) return;
+	/* quick exit if there are no facets */
+	if (!fCutCoords || fCutCoords->MajorDim() == 0) return;
 
 	double* x = x_node.Pointer();
 	for (int i = 0; i < coords.MajorDim(); i++)
@@ -64,7 +71,7 @@ void MeshFreeSupport3DT::ProcessBoundaries(const dArray2DT& coords,
 int MeshFreeSupport3DT::Visible(const double* x1, const double* x2)
 {
 	/* quick exit */
-	if (!fCutCoords) return 1;	
+	if (!fCutCoords || fCutCoords->MajorDim() == 0) return 1;	
 
 	if (fNumFacetNodes == 3)
 	{
