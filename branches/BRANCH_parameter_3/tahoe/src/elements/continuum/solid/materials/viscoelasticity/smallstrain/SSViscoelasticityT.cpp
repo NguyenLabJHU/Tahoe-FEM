@@ -1,13 +1,11 @@
- /* $Id: SSViscoelasticityT.cpp,v 1.1.40.2 2004-06-09 23:18:12 paklein Exp $ */
+ /* $Id: SSViscoelasticityT.cpp,v 1.1.40.3 2004-06-25 01:29:21 paklein Exp $ */
 #include "SSViscoelasticityT.h"
-#include "fstreamT.h"
 #include "ExceptionT.h"
 
 using namespace Tahoe;
 
-SSViscoelasticityT::SSViscoelasticityT(ifstreamT& in, const SSMatSupportT& support):
-	ParameterInterfaceT("linear_viscoelastic"),
-	SSSolidMatT(in, support)
+SSViscoelasticityT::SSViscoelasticityT(void):
+	ParameterInterfaceT("linear_viscoelastic")
 {
 	int ndof = 3;
 	int numstress = (ndof*(ndof+1))/2;

@@ -1,10 +1,13 @@
+/* $Id: RGSplitT.h,v 1.1.40.2 2004-06-25 01:29:19 paklein Exp $ */
 /* created: TDN (01/22/2001) */
-
 #ifndef _RGSplitT_
 #define _RGSplitT_
 
-/* base classes */
+/* base class */
 #include "RGViscoelasticityT.h"
+
+/* direct members */
+#include "SpectralDecompT.h"
 
 namespace Tahoe {
 
@@ -16,12 +19,10 @@ class RGSplitT: public RGViscoelasticityT
    public:
   
 	/* constructor/destructor */
-	RGSplitT(ifstreamT& in, const FSMatSupportT& support);
+	RGSplitT(void);
 
 	~RGSplitT(void);
 	
-	virtual void Initialize(void);
-
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
 	virtual const dMatrixT& c_ijkl(void);
@@ -34,21 +35,30 @@ class RGSplitT: public RGViscoelasticityT
 	virtual void OutputLabels(ArrayT<StringT>& labels) const; 
 	virtual void ComputeOutput(dArrayT& output);
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
    private:
 	void ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_e, 
 	                   dArrayT& eigenstress, dSymMatrixT& eigenmodulus);
 	void ComputeiKAB(dSymMatrixT& eigenmodulus, double& bulkmodulus);
     
    protected:
+
 	/* return values */
-	dMatrixT	fModulus;
-	dSymMatrixT     fStress;
+	dMatrixT fModulus;
+	dSymMatrixT fStress;
 	
 	/* free energy potential */
 	PotentialT* fPot_EQ;
 	PotentialT* fPot_NEQ;
 
-	const double fthird;
    private:  
 	/* spectral operations */
 	SpectralDecompT fSpectralDecompSpat;
@@ -61,7 +71,8 @@ class RGSplitT: public RGViscoelasticityT
 	dSymMatrixT fbe;
 	dSymMatrixT fb_tr;
 	dMatrixT fF3D;
-
+	dSymMatrixT fC_v_2D;
+	
 	dArrayT     fEigs;
 	dArrayT     fEigs_e;
 	dArrayT     fEigs_bar;

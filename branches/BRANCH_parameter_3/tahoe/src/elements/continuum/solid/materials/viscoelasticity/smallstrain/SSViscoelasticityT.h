@@ -1,4 +1,4 @@
-/* $Id: SSViscoelasticityT.h,v 1.2.36.1 2004-06-09 23:18:12 paklein Exp $ */
+/* $Id: SSViscoelasticityT.h,v 1.2.36.2 2004-06-25 01:29:21 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_VISCO_H_
 #define _SS_VISCO_H_
@@ -8,30 +8,28 @@
 
 namespace Tahoe {
 
-/* forward declarations */
-class ifstreamT;
-
-/*small strain linear viscoelastic constitutive law */
+/** small strain linear viscoelastic constitutive law */
 class SSViscoelasticityT: public SSSolidMatT
 {
 	public:
 
-	/*constructor*/
-	SSViscoelasticityT(ifstreamT& in, const SSMatSupportT& support);
+	/** constructor */
+	SSViscoelasticityT(void);
 
 	/** return the pressure associated with the last call to 
 	 * SolidMaterialT::s_ij. \note NOT IMPLEMENTED */
-	virtual double Pressure(void) const 
-	{
-		cout << "\n SSViscoelasticT::Pressure: not implemented" << endl;
-		throw ExceptionT::kGeneralFail;
+	virtual double Pressure(void) const {
+		ExceptionT::GeneralFail("SSViscoelasticT::Pressure", "not implemented");
 		return 0.0;
 	};
 			
 	/* apply pre-conditions at the current time step */
 	virtual void InitStep(void){SSSolidMatT::InitStep();}
 
-	/*initialize history variable*/
+	/** return true if the material has history variables */
+	virtual bool HasHistory(void) const { return true; };
+
+	/* initialize history variable */
 	virtual bool NeedsPointInitialization(void) const {return true;}; // declare true
 	virtual void PointInitialize(void);                               // assigns storage space
 	

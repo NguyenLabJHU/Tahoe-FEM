@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList3DT.cpp,v 1.1.4.5 2004-06-19 23:28:09 paklein Exp $ */
+/* $Id: SSSolidMatList3DT.cpp,v 1.1.4.6 2004-06-25 01:29:22 paklein Exp $ */
 #include "SSSolidMatList3DT.h"
 #include "SSMatSupportT.h"
 
@@ -55,7 +55,6 @@ SSSolidMatList3DT::SSSolidMatList3DT(int length, const SSMatSupportT& support):
 	SolidMatListT(length, support),
 	fSSMatSupport(&support)
 {
-#pragma message("check spatial dimension of material support")
 	SetName("small_strain_material_3D");
 }
 
@@ -269,6 +268,10 @@ void SSSolidMatList3DT::DefineInlineSub(const StringT& sub, ParameterListT::List
 #ifdef PLASTICITY_DP_MATERIAL
 		sub_sub_list.AddSub("small_strain_StVenant_DP");
 #endif
+
+#ifdef VISCOELASTICITY
+		sub_sub_list.AddSub("linear_viscoelastic");
+#endif
 	}
 	else /* inherited */
 		SolidMatListT::DefineInlineSub(sub, order, sub_sub_list);
@@ -333,6 +336,11 @@ SSSolidMatT* SSSolidMatList3DT::NewSSSolidMat(const StringT& list_name) const
 #ifdef PLASTICITY_DP_MATERIAL
 	else if (list_name == "small_strain_StVenant_DP")
 		mat = new DPSSKStV;
+#endif
+
+#ifdef VISCOELASTICITY
+	else if (list_name == "linear_viscoelastic")
+		mat = new SSLinearVE3D;
 #endif
 
 	/* set support */
