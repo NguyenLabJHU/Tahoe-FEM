@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.h,v 1.1.1.1.2.1 2001-11-06 20:22:52 sawimme Exp $ */
+/* $Id: FE_ASCIIT.h,v 1.1.1.1.2.2 2001-11-06 20:38:33 sawimme Exp $ */
 /* created: sawimme (05/20/1999)                                          */
 
 #ifndef _FE_ASCII_T_H_
@@ -17,7 +17,7 @@ public:
   /** constructor
    * \param out error stream
    * \param external flag to write array data in external files
-   * \param see OutputBaseT::OutputBaseT */
+   * \param out_strings see OutputBaseT::OutputBaseT */
 	FE_ASCIIT(ostream& out, bool external, const ArrayT<StringT>& out_strings);
 
 	/** increment sequence, create new output file series */
@@ -35,7 +35,7 @@ private:
 	/** set-by-set geometry output */
 	void WriteGeometryData(ostream& out, int ID);
 
-	/** set-by-set variable output
+	/** set-by-set variable output */
 	void WriteOutputData(ostream& out, int ID, const dArray2DT& n_values,
 		const dArray2DT& e_values);
 
