@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.h,v 1.3.16.5 2004-04-15 21:15:27 paklein Exp $ */
+/* $Id: MultiManagerT.h,v 1.3.16.6 2004-04-18 01:07:13 paklein Exp $ */
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
 
@@ -102,7 +102,9 @@ private:
 	//InterpolationDataT fFollowerCellTranspose;
 
 	dArray2DT fR_U; /**< coarse scale forces */
+	iArrayT   fR_U_eqnos; /**< equations for assembly for MultiManagerT::fR_U */
 	dArray2DT fR_Q; /**< fine scale forces */
+	iArrayT   fR_Q_eqnos; /**< equations for assembly for MultiManagerT::fR_Q */
 	
 	const FieldT* fFineField;
 	const FieldT* fCoarseField;

@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.9.4.8 2004-04-17 04:47:10 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.9.4.9 2004-04-18 01:07:13 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -117,6 +117,35 @@ void MultiManagerT::Initialize(InitCodeT)
 		if (!particle_pair) ExceptionT::GeneralFail(caller, "could not resolve ParticlePairT");
 		fCoarse->CorrectOverlap(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2);
 	}
+
+//TEMP - debugging
+#if 0
+if (1) {
+	ofstreamT& out = Output();
+	int prec = out.precision();
+	out.precision(12);
+	iArrayT r, c;
+	dArrayT v;
+	
+	/* projection data */
+	const PointInCellDataT& projection_data = fCoarse->ProjectionData();
+	const InterpolationDataT& interp = projection_data.PointToNode();
+	out << "projection:\n" << '\n';
+	interp.ToMatrix(r, c, v);
+	for (int i = 0; i < r.Length(); i++)
+		out << r[i]+1 << " " << c[i]+1 << " " << v[i] << '\n';
+
+	/* interpolation data */
+	const PointInCellDataT& interpolation_data = fCoarse->InterpolationData();
+	interpolation_data.InterpolationDataToMatrix(r, c, v);
+	out << "interpolation:\n" << '\n';
+	for (int i = 0; i < r.Length(); i++)
+		out << r[i]+1 << " " << c[i]+1 << " " << v[i] << '\n';
+
+	out.flush();
+	out.precision(prec);
+}
+#endif
 }
 
 /* (re-)set the equation number for the given group */
@@ -143,6 +172,19 @@ void MultiManagerT::SetEquationSystem(int group, int start_eq_shift)
 		fGlobalNumEquations[group],
 		fGlobalNumEquations[group],
 		1);
+	
+	/* equations for assembly of cross terms */	
+	if (fFineToCoarse) {
+		const iArray2DT& eq = fCoarseField->Equations();
+		fR_U_eqnos.Dimension(eq.Length());
+		for (int i = 0; i < fR_U_eqnos.Length(); i++) {
+			fR_U_eqnos[i] = eq[i];
+			if (fR_U_eqnos[i] > 0)
+				fR_U_eqnos[i] += start_eq_shift + neq1;
+		}
+	}
+	if (fCoarseToFine)
+		fR_Q_eqnos.Alias(fFineField->Equations());
 }
 
 /* initialize the current time increment for all groups */
@@ -263,13 +305,22 @@ void MultiManagerT::FormRHS(int group) const
 
 //TEMP -debugging
 #if 0
-	fFineField = fFine->NodeManager()->Field(bridging_field);
-	if (!fFineField) ExceptionT::GeneralFail(caller, "could not resolve fine scale \"%s\" field", bridging_field.Pointer());
-	fCoarseField = fCoarse->NodeManager()->Field(bridging_field);
+if (1) {
+	const dArray2DT& u_fine = (*fFineField)[0];
+	const dArray2DT& u_coarse = (*fCoarseField)[0];
 
+	ofstreamT& out = Output();
+	int prec = out.precision();
+	out.precision(12);
+	int iteration = fSolvers[group]->IterationNumber();
+	out << "iteration = " << iteration << '\n';
+	out << "u_fine =\n" << u_fine << '\n';
+	out << "f_fine =\n" << resid_fine << '\n';
 
-
-
+	out << "u_coarse =\n" << u_coarse << '\n';
+	out << "f_coarse =\n" << resid_coarse << '\n';
+	out.precision(prec);
+}
 #endif
 
 	/* fine scale contribution to the coarse scale residual */
@@ -280,7 +331,7 @@ void MultiManagerT::FormRHS(int group) const
 		const iArrayT& ghost_atoms = fFine->GhostNodes();
 		const PointInCellDataT& interpolation_data = fCoarse->InterpolationData();
 		fCoarse->MultNTf(interpolation_data, resid_fine, ghost_atoms, R_U);
-		fSolvers[group]->AssembleRHS(R_U, fCoarseField->Equations());
+		fSolvers[group]->AssembleRHS(R_U, fR_U_eqnos);
 	}
 
 	/* mixed contribution to the fine scale residual */
@@ -291,8 +342,21 @@ void MultiManagerT::FormRHS(int group) const
 		R_U += resid_coarse;
 		const PointInCellDataT& projection_data = fCoarse->ProjectionData();
 		fCoarse->MultNTf(projection_data.PointToNode(), R_U, projection_data.CellNodes(), R_Q);	
-		fSolvers[group]->AssembleRHS(R_Q, fFineField->Equations());	
+		fSolvers[group]->AssembleRHS(R_Q, fR_Q_eqnos);	
 	}
+	
+//TEMP - debugging
+#if 0
+if (1) {
+	const dArrayT& rhs = fSolvers[group]->RHS();
+
+	ofstreamT& out = Output();
+	int prec = out.precision();
+	out.precision(12);
+	out << "R =\n" << rhs << '\n';	
+	out.precision(prec);
+}
+#endif
 }
 
 /* send update of the solution to the NodeManagerT */
