@@ -1,4 +1,4 @@
-/* $Id: QuadT.cpp,v 1.7 2004-04-06 00:57:37 paklein Exp $ */
+/* $Id: QuadT.cpp,v 1.8 2004-04-10 23:20:08 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "QuadT.h"
 #include <math.h>
@@ -639,66 +639,41 @@ void QuadT::IPGradientTransform(int ip, dMatrixT& transform) const
 	int nip = transform.Cols();
 	if (nsd != 2) ExceptionT::SizeMismatch(caller);
 
-	//TEMP - only implemented for 4 nodes and 4 integration points
-	if (nip != 4) ExceptionT::GeneralFail("QuadT::IPGradientTransform");
-
-	double a = sqrt(3.0)/2.0;
-	switch (ip) {
-		case 0:
-		{
-			transform[0] = -a;
-			transform[1] = -a;
-			transform[2] = a;
-			transform[3] = 0.0;
-
-			transform[4] = 0.0;
-			transform[5] = 0.0;
-			transform[6] = 0.0;
-			transform[7] = a;
-			break;
-		}
-		case 1:
-		{
-			transform[0] = -a;
-			transform[1] = 0.0;
-			transform[2] = a;
-			transform[3] = -a;
-
-			transform[4] = 0.0;
-			transform[5] = a;
-			transform[6] = 0.0;
-			transform[7] = 0.0;
-			break;
-		}
-		case 2:
-		{
-			transform[0] = 0.0;
-			transform[1] = 0.0;
-			transform[2] = 0.0;
-			transform[3] = -a;
-
-			transform[4] = a;
-			transform[5] = a;
-			transform[6] = -a;
-			transform[7] = 0.0;
-			break;
-		}
-		case 3:
-		{
-			transform[0] = 0.0;
-			transform[1] = -a;
-			transform[2] = 0.0;
-			transform[3] = 0.0;
-
-			transform[4] = a;
-			transform[5] = 0.0;
-			transform[6] = -a;
-			transform[7] = a;
-			break;
-		}	
-		default:
-			ExceptionT::OutOfRange(caller, "bad ip %d", ip);
+	//TEMP - only implemented for 4 or 9 integration points
+	if (nip != 4 && nip != 9) ExceptionT::GeneralFail("QuadT::IPGradientTransform");
+	if (nip == 4) {
+		double a = sqrt(3.0)/2.0;
+		double m0[2*4] = {-a, -a, a, 0.0, 0.0, 0.0, 0.0, a};
+		double m1[2*4] = {-a, 0.0, a, -a, 0.0, a, 0.0, 0.0};
+		double m2[2*4] = {0.0, 0.0, 0.0, -a, a, a, -a, 0.0};
+		double m3[2*4] = {0.0, -a, 0.0, 0.0, a, 0.0, -a, a};
+		double* m[4] = {m0, m1, m2, m3};
+		ArrayT<double*> m_array(4, m);
+		dMatrixT trans(2, 4, m_array[ip]);
+		transform = trans;
 	}
+	else if (nip == 9) {
+
+		double a = 3.0*sqrt(3.0)/2.0;
+		double b = 2.0*sqrt(3.0);
+		double c = sqrt(3.0)/2.0;
+
+		double m0[2*9] = {-a, -a, -c, 0, 0, 0, 0, -c, b, 0, 0, 0, 0, 0, 0, b, 0, 0};
+		double m1[2*9] = {c, 0, a, -a, 0, -c, 0, 0, -b, 0, 0, b, 0, 0, 0, 0, 0, 0};
+		double m2[2*9] = {0, 0, 0, c, a, a, c, 0, 0, 0, 0, -b, -b, 0, 0, 0, 0, 0};
+		double m3[2*9] = {0, c, 0, 0, -c, 0, -a, a, 0, 0, 0, 0, b, 0, 0, -b, 0, 0};
+		double m4[2*9] = {-c, 0, c, 0, 0, 0, 0, 0, 0, -a, 0, 0, 0, -c, 0, 0, 0, b};
+		double m5[2*9] = {0, 0, 0, -c, 0, c, 0, 0, 0, 0, a, 0, 0, 0, c, 0, -b, 0};
+		double m6[2*9] = {0, 0, 0, 0, c, 0, -c, 0, 0, c, 0, 0, 0, a, 0, 0, 0, -b};
+		double m7[2*9] = {0, -c, 0, 0, 0, 0, 0, c, 0, 0, -c, 0, 0, 0, -a, 0, b, 0};
+		double m8[2*9] = {0, 0, 0, 0, 0, 0, 0, 0, 0, -c, c, 0, 0, c, -c, 0, 0, 0};
+		double* m[9] = {m0, m1, m2, m3, m4, m5, m6, m7, m8};
+		ArrayT<double*> m_array(9, m);
+		dMatrixT trans(2, 9, m_array[ip]);
+		transform = trans;
+	}
+	else
+		ExceptionT::GeneralFail(caller, "unsupported number of integration points %d", nip);
 }
 
 /* return the local node numbers for each facet of the element
