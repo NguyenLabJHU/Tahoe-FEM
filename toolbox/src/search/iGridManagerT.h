@@ -1,8 +1,5 @@
-/* $Id: iGridManagerT.h,v 1.6 2002-07-05 22:26:33 paklein Exp $ */
-/* created: paklein (09/13/1998)                                          */
-/* iNodeT grid with unified interface for 1D/2D/3D and lightweight        */
-/* file dependencies                                                      */
-
+/* $Id: iGridManagerT.h,v 1.7 2002-07-20 07:59:51 paklein Exp $ */
+/* created: paklein (09/13/1998) */
 #ifndef _I_GRIDMANAGER_T_H_
 #define _I_GRIDMANAGER_T_H_
 
@@ -23,13 +20,35 @@ class iGridManager2DT;
 class iGridManager3DT;
 template <class TYPE> class AutoArrayT;
 
+/** iNodeT grid with unified interface for 1D/2D/3D and lightweight
+ * file dependencies */
 class iGridManagerT
 {
 public:
 
-	/* constructor */
+	/** \name constructors. The grid isn't actually filled with data
+	 * by the constructor. Data is (re)-filled with a call to
+	 * iGridManagerT::Reset. */
+	/*@{*/
+	/** construct grid with specified grid layout.
+	 * \param n_grid number of grid cells in each coordinate direction
+	 * \param coords coordinates of search objects
+	 * \param nodes_used optional list of subset of coords to include
+	 *        in the search grid */
 	iGridManagerT(const iArrayT& n_grid, const dArray2DT& coords,
 		const iArrayT* nodes_used);
+
+	/** construct grid without explicit grid layout 
+	 * \param avg_cell_nodes approximate average number of points per
+	 *        grid cell assuming a even distribution in space.
+	 * \param max_cells maximum allowable number of cells. -1 for
+	 *        no maximum.
+	 * \param coords coordinates of search objects
+	 * \param nodes_used optional list of subset of coords to include
+	 *        in the search grid */
+	iGridManagerT(int avg_cell_nodes, int max_cells, const dArray2DT& coords,
+		const iArrayT* nodes_used);
+	/*@}*/
 	
 	/* destructor */
 	~iGridManagerT(void);	 	
