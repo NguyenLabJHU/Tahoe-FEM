@@ -26,7 +26,7 @@ public class DynamicTree extends JPanel {
         tree.setShowsRootHandles(true);
 
         JScrollPane scrollPane = new JScrollPane(tree);
-        setLayout(new GridLayout(1,0));
+        setLayout(new GridLayout(2,0));
         add(scrollPane);
     }
 
