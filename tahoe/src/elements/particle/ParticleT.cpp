@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.37 2004-04-19 22:08:07 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.38 2004-04-20 17:01:23 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -193,7 +193,7 @@ void ParticleT::Initialize(void)
 	else
 	  {
 	    in.rewind();
-	    fLatticeParameter = 4.08; //defaults to gold
+	    fLatticeParameter = 0.0; //defaults to nothing
 	  }
 	if (NumSD()==1)
 	{
