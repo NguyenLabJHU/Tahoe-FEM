@@ -1,4 +1,4 @@
-/* $Id: MapT.h,v 1.3 2003-03-08 01:58:19 paklein Exp $ */
+/* $Id: MapT.h,v 1.4 2003-03-09 20:37:19 paklein Exp $ */
 #ifndef _MAP_T_H_
 #define _MAP_T_H_
 
@@ -43,6 +43,14 @@ public:
 	 * dimensioned during the call. */
 	void Descending(ArrayT<value_TYPE>& array) const;
 	/*@}*/
+
+	/** override or reset the function used to compare tree values during calls
+	 * to MapT::operator[]. See BinaryTreeT::SetCompareFunction for more information
+	 * in the function requirements.
+	 */
+	void SetCompareFunction(int (*compare)(
+		const MapNodeT<key_TYPE, value_TYPE>& tree_node, 
+		const MapNodeT<key_TYPE, value_TYPE>& test_node));
 
 private:
 
@@ -120,6 +128,15 @@ void MapT<key_TYPE, value_TYPE>::Descending(ArrayT<value_TYPE>& array) const
 	array.Dimension(tmp.Length());
 	for (int i = 0; i < array.Length(); i++)
 		array[i] = *(tmp[i].fValue);
+}
+
+/* override or reset the compare */
+template <class key_TYPE, class value_TYPE>
+void MapT<key_TYPE, value_TYPE>::SetCompareFunction(int (*compare)(
+	const MapNodeT<key_TYPE, value_TYPE>&, 
+	const MapNodeT<key_TYPE, value_TYPE>&))
+{
+	BinaryTreeT<MapNodeT<key_TYPE, value_TYPE> >::SetCompareFunction(compare);
 }
 
 } /* namespace Tahoe */
