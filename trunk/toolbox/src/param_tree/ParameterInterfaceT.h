@@ -1,9 +1,9 @@
-/* $Id: ParameterInterfaceT.h,v 1.2 2003-04-26 19:10:35 paklein Exp $ */
+/* $Id: ParameterInterfaceT.h,v 1.3 2003-04-27 07:30:12 paklein Exp $ */
 #ifndef _PARAMETER_INTERFACE_T_H_
 #define _PARAMETER_INTERFACE_T_H_
 
 /* direct members */
-#include "ParameterListT.h";
+#include "ParameterListT.h"
 
 namespace Tahoe {
 
