@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.3 2004-07-12 18:09:04 paklein Exp $
+# $Id: makefile.template,v 1.4 2004-07-12 20:37:06 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # NOTE: this is makefile just wraps the configure/build system
@@ -74,7 +74,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 init:
 	cd expat; gunzip $(EXPAT_CURRENT).tar.gz; tar xvf $(EXPAT_CURRENT).tar; gzip $(EXPAT_CURRENT).tar
-	cd expat/$(EXPAT_CURRENT); configure --prefix=$(HOME_DIR) --disable-shared CC=$(COMP_C)
+	cd expat/$(EXPAT_CURRENT); ./configure --prefix=$(HOME_DIR) --disable-shared CC=$(COMP_C)
 	
 build:
 	cd expat/$(EXPAT_CURRENT); make; make install
