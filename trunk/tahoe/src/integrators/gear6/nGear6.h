@@ -9,7 +9,8 @@
 namespace Tahoe {
 
 /** Node controller for an explicit 6th order accurate Gear time integration
- * algorithm. */
+ * algorithm. The BasicFieldT used with this integrator must have
+ * BasicFieldT::Order of 6. */
 class nGear6: public virtual Gear6, public nControllerT
 {
 public:
@@ -41,21 +42,23 @@ public:
 
 private:
 
-	/* Gear constants */
+	/** \name Gear constants */
+	/*@{*/
 	double F02; 
 	double F12;
 	double F32;
 	double F42;
 	double F52;
+	/*@}*/
 
 	/* higher order derivatives */
-	dArray2DT fD3;
-	dArray2DT fD4;
-	dArray2DT fD5;
+//	dArray2DT fD3;
+//	dArray2DT fD4;
+//	dArray2DT fD5;
 
  protected:
 
-	/* recalculate time stepping constants */
+	/** recalculate time stepping constants */
 	virtual void nComputeParameters(void);
 
 };

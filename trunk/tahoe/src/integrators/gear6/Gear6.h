@@ -22,7 +22,7 @@ public:
 	virtual ImpExpFlagT ImplicitExplicit(void) const { return kExplicit; };
 
 	/** return order time discretization */
-	virtual int Order(void) const { return 2; };
+	virtual int Order(void) const { return 6; };
 
 	/** return order field derivative which is treated as the primary 
 	 * unknown value */
