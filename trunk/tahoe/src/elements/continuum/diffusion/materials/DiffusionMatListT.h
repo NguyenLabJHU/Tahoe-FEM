@@ -1,4 +1,4 @@
-/* $Id: DiffusionMatListT.h,v 1.5 2003-06-09 06:53:11 paklein Exp $ */
+/* $Id: DiffusionMatListT.h,v 1.6 2003-12-02 17:14:57 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSE_MAT_LIST_T_H_
 #define _DIFFUSE_MAT_LIST_T_H_
@@ -23,6 +23,7 @@ public:
 
 	/** constructors */
 	DiffusionMatListT(int length, const DiffusionMatSupportT& support);
+	DiffusionMatListT(void);
 
 	/** read material data from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);
@@ -30,7 +31,7 @@ public:
 private:
 
 	/** support for diffusion materials */
-	const DiffusionMatSupportT& fDiffusionMatSupport;
+	const DiffusionMatSupportT* fDiffusionMatSupport;
 };
 
 } // namespace Tahoe 
