@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.17 2002-02-28 16:29:39 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.18 2002-03-04 07:03:45 paklein Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -509,6 +509,7 @@ void TranslateIOManager::WriteNodes (void)
 	fModel.CoordinateDimensions(nnd, nsd);
 	fNodeMap.Dimension(nnd);
 	fModel.AllNodeMap(fNodeMap);
+	fModel.AllNodeIDs(fNodeID);
 	/*fNodeMap--; offset done by model manager */
 	/* Difference between "node map" and "nodes used". 
 	 * 
@@ -536,7 +537,7 @@ void TranslateIOManager::WriteNodes (void)
 	  }
 	  else fCoordinates.Alias(fModel.Coordinates()); */
   
-	fOutput->SetCoordinates (fModel.Coordinates(), &fNodeMap);
+	fOutput->SetCoordinates (fModel.Coordinates(), &fNodeID);
 	cout << "\n Number of Nodes: " << nnd << " dim: " << nsd << endl;
 }
 
