@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.23 2003-08-12 18:51:03 thao Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.24 2003-10-27 19:50:37 paklein Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -10,8 +10,8 @@
 using namespace Tahoe;
 
 namespace Tahoe {
-const bool ArrayT<dSymMatrixT*>::fByteCopy = true; 
-const bool ArrayT<dSymMatrixT>::fByteCopy = false; 
+template<> const bool ArrayT<dSymMatrixT*>::fByteCopy = true; 
+template<> const bool ArrayT<dSymMatrixT>::fByteCopy = false; 
 }
 
 const double kEigenSmall = 1.0e-16;

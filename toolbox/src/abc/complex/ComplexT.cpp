@@ -1,6 +1,5 @@
-/* $Id: ComplexT.cpp,v 1.13 2002-10-20 22:38:52 paklein Exp $ */
+/* $Id: ComplexT.cpp,v 1.14 2003-10-27 19:50:35 paklein Exp $ */
 /* created: PAK/AFLP (05/19/1997) */
-
 #include "ComplexT.h"
 
 #include <math.h>
@@ -9,12 +8,11 @@
 #include "toolboxConstants.h"
 #include "nArrayT.h"
 
-/* array behavior */
-
 using namespace Tahoe;
 
+/* array behavior */
 namespace Tahoe {
-const bool ArrayT<ComplexT>::fByteCopy = true;
+template<> const bool ArrayT<ComplexT>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /*

@@ -1,15 +1,13 @@
-/* $Id: iConsoleObjectT.cpp,v 1.6 2002-07-05 17:16:01 paklein Exp $ */
+/* $Id: iConsoleObjectT.cpp,v 1.7 2003-10-27 19:50:41 paklein Exp $ */
 /* created: paklein (12/21/2000) */
-
 #include "iConsoleObjectT.h"
 #include <ctype.h>
 
-/* array behavior */
-
 using namespace Tahoe;
 
+/* array behavior */
 namespace Tahoe {
-const bool ArrayT<iConsoleObjectT*>::fByteCopy = true;
+template<> const bool ArrayT<iConsoleObjectT*>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* constructor */

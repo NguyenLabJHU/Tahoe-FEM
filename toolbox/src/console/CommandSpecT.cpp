@@ -1,15 +1,13 @@
-/* $Id: CommandSpecT.cpp,v 1.9 2002-10-20 22:38:59 paklein Exp $ */
-
+/* $Id: CommandSpecT.cpp,v 1.10 2003-10-27 19:50:41 paklein Exp $ */
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
 
-/* array copy behavior */
-
 using namespace Tahoe;
 
+/* array copy behavior */
 namespace Tahoe {
-const bool ArrayT<CommandSpecT*>::fByteCopy = true; 
-const bool ArrayT<CommandSpecT>::fByteCopy = false; 
+template<> const bool ArrayT<CommandSpecT*>::fByteCopy = true; 
+template<> const bool ArrayT<CommandSpecT>::fByteCopy = false; 
 } /* namespace Tahoe */
 
 CommandSpecT::CommandSpecT(const StringT& name, bool ordered_args):

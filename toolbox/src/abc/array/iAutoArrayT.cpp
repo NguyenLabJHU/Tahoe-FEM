@@ -1,4 +1,4 @@
-/* $Id: iAutoArrayT.cpp,v 1.6 2002-11-25 07:03:21 paklein Exp $ */
+/* $Id: iAutoArrayT.cpp,v 1.7 2003-10-27 19:50:33 paklein Exp $ */
 /* created: paklein (02/08/1999) */
 #include "iAutoArrayT.h"
 
@@ -10,8 +10,8 @@
 using namespace Tahoe;
 
 namespace Tahoe {
-const bool ArrayT<iAutoArrayT*>::fByteCopy = true; 
-const bool ArrayT<iAutoArrayT>::fByteCopy = false; 
+template<> const bool ArrayT<iAutoArrayT*>::fByteCopy = true; 
+template<> const bool ArrayT<iAutoArrayT>::fByteCopy = false; 
 } /* namespace Tahoe */
 
 /* max and min */
