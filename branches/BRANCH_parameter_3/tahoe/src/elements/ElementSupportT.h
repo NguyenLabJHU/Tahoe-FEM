@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.28.12.1 2004-04-08 07:32:21 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.28.12.2 2004-04-08 15:57:57 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -14,10 +14,6 @@
 namespace Tahoe {
 
 /* forward declarations */
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-class XDOF_ManagerT;
-class eIntegratorT;
-#endif
 class dMatrixT;
 class GroupAverageT;
 class dArrayT;
