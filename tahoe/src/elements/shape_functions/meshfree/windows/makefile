@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-06-21 22:29:51 hspark Exp $
+# $Id: makefile,v 1.5 2001-06-22 22:33:51 hspark Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -8,6 +8,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	GaussianWindowT.o \
         RectangularCubicSplineWindowT.o \
+        CubicSplineWindowT.o \
 	RectangularGaussianWindowT.o
 
 OBJ_LINK = $(OBJ)
@@ -20,6 +21,7 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	GaussianWindowT.cpp \
 	RectangularCubicSplineWindowT.cpp \
+        CubicSplineWindowT.cpp \
 	RectangularGaussianWindowT.cpp
 
 # headers
@@ -27,6 +29,7 @@ HDR = \
 	GaussianWindowT.h \
 	RectangularCubicSplineWindowT.h \
 	RectangularGaussianWindowT.h \
+        CubicSplineWindowT.h \
 	WindowT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
