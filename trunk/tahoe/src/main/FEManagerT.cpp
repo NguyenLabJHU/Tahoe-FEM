@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.13 2001-06-03 21:02:24 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.14 2001-06-29 16:26:42 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "FEManagerT.h"
@@ -532,27 +532,6 @@ void FEManagerT::WriteOutput(double time, IOBaseT::OutputModeT mode)
 		/* elements */
 		for (int i = 0; i < fElementGroups.Length(); i++)
 			fElementGroups[i]->WriteOutput(mode);
-
-//TEMP - skip
-#if 0	
-		cout << "\n FEManagerT::WriteOutput: computing total linear momentum " << endl;
-		dArrayT momentum((fNodeManager->Displacements()).MinorDim());
-		momentum = 0.0;
-		for (int j = 0 ; j < fElementGroups.Length(); j++)
-		{
-			/* get element group */
-			ElementBaseT* pbase = fElementGroups[j];
-			ElasticT* pelastic = dynamic_cast<ElasticT*>(pbase);
-			if (!pelastic) throw eGeneralFail;
-	
-			/* accumulate from elements */
-			pelastic->AddLinearMomentum(momentum);	
-		}
-		
-		fMainOut << "\n momentum = ";
-		momentum.Write(fMainOut);
-		fMainOut << '\n';
-#endif
 	}
 	
 	catch (int error) { 
@@ -954,6 +933,8 @@ void FEManagerT::WriteParameters(void) const
 	fMainOut << "    eq. " << IOBaseT::kEnSight       << ", Ensight 6 ASCII\n";
 	fMainOut << "    eq. " << IOBaseT::kEnSightBinary << ", Ensight 6 binary\n";
 	fMainOut << "    eq. " << IOBaseT::kExodusII      << ", ExodusII\n";
+	fMainOut << "    eq. " << IOBaseT::kAbaqus        << ", ABAQUS ASCII\n";
+	fMainOut << "    eq. " << IOBaseT::kAbaqusBinary  << ", ABAQUS binary\n";
 	fMainOut << " Read restart file code  . . . . . . . . . . . . = " << fReadRestart << '\n';
 	fMainOut << "    eq. 0, do not read restart file\n";
 	fMainOut << "    eq. 1, read restart file\n";
@@ -1193,7 +1174,9 @@ void FEManagerT::ReadParameters(void)
 	    fOutputFormat != IOBaseT::kTecPlot   &&
 	    fOutputFormat != IOBaseT::kEnSight   &&
 	    fOutputFormat != IOBaseT::kEnSightBinary &&
-	    fOutputFormat != IOBaseT::kExodusII) throw eBadInputValue;
+	    fOutputFormat != IOBaseT::kExodusII  &&
+	    fOutputFormat != IOBaseT::kAbaqus  &&
+	    fOutputFormat != IOBaseT::kAbaqusBinary) throw eBadInputValue;
 	if (fReadRestart  != 0 && fReadRestart  != 1) throw eBadInputValue;
 	if (fWriteRestart < 0) throw eBadInputValue;
 	if (fPrintInput   != 0 && fPrintInput   != 1) throw eBadInputValue;	
