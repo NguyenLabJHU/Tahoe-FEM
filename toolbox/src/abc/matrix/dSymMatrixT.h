@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.h,v 1.12 2003-08-06 00:04:07 thao Exp $ */
+/* $Id: dSymMatrixT.h,v 1.13 2003-08-06 16:25:29 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _DSYM_MATRIX_T_H_
@@ -63,7 +63,11 @@ public:
 	/* returns the number of dimensions in the reduced
 	 * index symmetric matrix vectors given the number of spatial
 	 * dimensions.  nsd can only be 2 or 3. */
-	static int NumValues(DimensionT nsd);
+	static int NumValues(DimensionT nsd) {
+		if (nsd < kNone || nsd > k3D_plane) ExceptionT::OutOfRange("dSymMatrixT::NumValues");
+		int map[5] = {0, 1, 3, 6, 4};
+		return map[nsd];	
+	};
 	static void ExpandIndex(DimensionT nsd, int dex, int& dex_1, int& dex_2);
 
 	/* dimensions */
@@ -187,12 +191,6 @@ private:
 /* inlines */
 
 /* dimensions */
-inline int dSymMatrixT::NumValues(DimensionT nsd)
-{
-	if (nsd < kNone || nsd > k3D_plane) ExceptionT::OutOfRange("dSymMatrixT::NumValues");
-	int map[5] = {0, 1, 3, 6, 4};
-	return map[nsd];	
-}
 
 /* assigment operators */
 inline dSymMatrixT& dSymMatrixT::operator=(const dSymMatrixT& RHS)
