@@ -1,4 +1,4 @@
-/* $Id: XML_Attribute_FormatterT.h,v 1.1 2002-11-18 09:57:29 paklein Exp $ */
+/* $Id: XML_Attribute_FormatterT.h,v 1.2 2002-11-21 01:08:37 paklein Exp $ */
 #ifndef _XML_ATTRIBUTE_FORMATTER_T_H_
 #define _XML_ATTRIBUTE_FORMATTER_T_H_
 
@@ -24,7 +24,7 @@ public:
 	XML_Attribute_FormatterT(void);
 	
 	/** DTD settings */
-	void SetDTD(const StringT& dtd_path, const StringT& doc_root);
+	void SetDTD(const StringT& doc_root, const StringT& dtd_path);
 	
 	/** \name writing parameters
 	 * All methods return true if successful. */	
@@ -61,6 +61,18 @@ private:
 	 * \param tags list of tags needed to check for uniqueness of tags
 	 * \return true if successful, false if problems occur, such as repeated tags */
 	bool DoWriteDescription(ostream& out, const ParameterListT& list, BinaryTreeT<StringT>& tags) const;
+
+	/** \name helpful functions for formatting */
+	/*@{*/
+	/** return the length of the longest parameter name */
+	int ParameterWidth(const ParameterListT& list) const;
+
+	/** return the length of the longest list name */
+	int ListWidth(const ParameterListT& list) const;
+
+	/** return the length of the longest reference name */
+	int ReferenceWidth(const ParameterListT& list) const;
+	/*@}*/
 
 private:
 	
