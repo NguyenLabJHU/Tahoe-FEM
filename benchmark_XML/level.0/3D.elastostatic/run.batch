@@ -1,9 +1,10 @@
 @
-# $Id: run.batch,v 1.6 2004-10-05 17:21:49 paklein Exp $
+# $Id: run.batch,v 1.7 2005-03-15 07:12:00 paklein Exp $
 MPS.0.xml
 beam.B_bar.xml
 beam.Newton.xml
 beam.Newton.TotLag.xml
+beam.Newton.TotLag.store.xml
 beam.PCG.xml
 beam.PCG.K.xml
 beam.quasi-Newton.xml
