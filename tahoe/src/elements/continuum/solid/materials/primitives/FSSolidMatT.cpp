@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.19 2005-03-08 06:36:48 raregue Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.20 2005-03-16 20:24:23 cfoster Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
 #include "FSMatSupportT.h"
@@ -151,6 +151,9 @@ const dSymMatrixT& FSSolidMatT::S_IJ(void)
 bool FSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &DetA)
 {
 #pragma unused(normals)
+#pragma unused(slipdirs)
+#pragma unused(DetA)
+
 ExceptionT::GeneralFail("FSSolidMatT::IsLocalized", "broken");
 return false;
 //DEV
@@ -163,6 +166,26 @@ return false;
 #endif
 */
 }
+
+bool FSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+                        AutoArrayT <double> &detAs, AutoArrayT <double>
+                        &dissipations_fact)
+{
+#pragma unused(normals)
+#pragma unused(slipdirs)
+#pragma unused(detAs)
+#pragma unused(dissipations_fact)
+
+ExceptionT::GeneralFail("FSSolidMatT::IsLocalized", "broken");
+return false;
+}
+
+bool FSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
+{
+  double dummyDetA = 0.0;
+  return IsLocalized(normals, slipdirs, dummyDetA);
+}
+
 
 /* initialize current step. compute thermal dilatation */
 void FSSolidMatT::InitStep(void)
