@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.18.6.1 2004-04-08 07:33:48 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.18.6.2 2004-06-07 13:50:38 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -127,8 +127,8 @@ void FEManagerT_bridging::InitGhostNodes(bool include_image_nodes)
 	if (!fSolutionDriver) {
 	
 		/* construct new contoller */
-		fSolutionDriver = new KBC_PrescribedT(*fNodeManager);
-	
+		fSolutionDriver = fNodeManager->NewKBC_Controller(*the_field, KBC_ControllerT::kPrescribed);
+
 		/* add to field */
 		the_field->AddKBCController(fSolutionDriver);
 	}
@@ -463,10 +463,10 @@ void FEManagerT_bridging::InitProjection(CommManagerT& comm, const iArrayT& node
 
 	/* create controller to driver solution */
 	if (!fSolutionDriver) {
-	
+
 		/* construct new contoller */
-		fSolutionDriver = new KBC_PrescribedT(*fNodeManager);
-	
+		fSolutionDriver = fNodeManager->NewKBC_Controller(*the_field, KBC_ControllerT::kPrescribed);
+
 		/* add to field */
 		the_field->AddKBCController(fSolutionDriver);
 	}
