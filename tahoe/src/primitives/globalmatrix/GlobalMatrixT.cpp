@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.3 2001-04-27 10:48:23 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.4 2001-05-01 23:22:56 paklein Exp $ */
 /* created: paklein (03/23/1997)                                          */
 /* Virtual base class for all global matrix objects                       */
 
@@ -118,7 +118,7 @@ void GlobalMatrixT::Solve(dArrayT& result)
  * NOTE: These must be overridden to provide support for these functions.
  *       By default, these all throw exceptions. These could be pure
  *       virtual, but that requires updating all derived matrix types */
-void GlobalMatrixT::OverWrite(const ElementMatrixT& elMat, const iArrayT& eqnos)
+void GlobalMatrixT::OverWrite(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 #pragma unused(elMat)
 #pragma unused(eqnos)
@@ -126,7 +126,7 @@ void GlobalMatrixT::OverWrite(const ElementMatrixT& elMat, const iArrayT& eqnos)
 	throw eGeneralFail;
 }
 
-void GlobalMatrixT::Disassemble(dMatrixT& elMat, const iArrayT& eqnos) const
+void GlobalMatrixT::Disassemble(dMatrixT& elMat, const nArrayT<int>& eqnos) const
 {
 #pragma unused(elMat)
 #pragma unused(eqnos)
@@ -134,7 +134,7 @@ void GlobalMatrixT::Disassemble(dMatrixT& elMat, const iArrayT& eqnos) const
 	throw eGeneralFail;
 }
 
-void GlobalMatrixT::DisassembleDiagonal(dArrayT& diagonals, const iArrayT& eqnos) const
+void GlobalMatrixT::DisassembleDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const
 {
 #pragma unused(diagonals)
 #pragma unused(eqnos)

@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.4 2001-04-30 19:29:23 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.5 2001-05-01 23:22:53 paklein Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList3DT.h"
@@ -19,6 +19,7 @@
 #include "ModCB3DT.h"
 #include "EAMFCC3DMatT.h"
 #include "SimoIso3D.h"
+#include "J2Simo3D.h"
 #include "DPSSKStV.h"
 #include "J2SSKStV.h"
 #include "J2QLLinHardT.h"
@@ -62,7 +63,6 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		/* add to the list of materials */
 		switch (matcode)
 		{
-			case kJ2Simo:
 			case kLJTr2D:
 			case kLJFCC111:
 			case kThermoViscoPlastic:
@@ -100,6 +100,11 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 
 			case kJ2SSKStV:
 				fArray[matnum] = new J2SSKStV(in, fElementGroup);
+				fHasHistory = true;														
+				break;
+
+			case kJ2Simo:
+				fArray[matnum] = new J2Simo3D(in, fElementGroup);
 				fHasHistory = true;														
 				break;
 

@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: CCNSMatrixT.h,v 1.2 2001-05-01 23:22:55 paklein Exp $ */
 /* created: paklein (03/04/1998)                                          */
 /* This is the interface for a non-symmetric matrix stored in             */
 /* Compact Column form.                                                   */
@@ -73,7 +73,9 @@ public:
 	/* assemble the element contribution into the LHS matrix - assumes
 	 * that elMat is square (n x n) and that eqnos is also length n.
 	 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-	virtual void Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos);
+	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
+	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+		const nArrayT<int>& col_eqnos);
 	
 	/* returns 1 if the factorized matrix contains a negative
 	 * pivot.  Matrix MUST be factorized.  Otherwise function

@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.2 2001-05-01 23:22:57 paklein Exp $ */
 /* created: paklein (09/13/2000)                                          */
 /* SPOOLES matrix solver                                                  */
 
@@ -68,7 +68,7 @@ void SPOOLESMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqnos)
 * that elMat is square (n x n) and that eqnos is also length n.
 *
 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos)
+void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 #if __option (extended_errorcheck)
 	if (elMat.Rows() != elMat.Cols()) throw eGeneralFail;
@@ -216,6 +216,93 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos)
 			{
 				cout << "\n SPOOLESMatrixT::Assemble: error with equations:\n";
 				cout << eqnos << endl;
+				throw eGeneralFail;
+			}
+		}
+	}
+}
+
+void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+	const nArrayT<int>& col_eqnos)
+{
+#if __option (extended_errorcheck)
+	/* check dimensions */
+	if (elMat.Rows() != row_eqnos.Length() ||
+	    elMat.Cols() != col_eqnos.Length()) throw eSizeMismatch;
+#endif
+
+	/* element matrix format */
+	ElementMatrixT::FormatT format = elMat.Format();
+	if (format == ElementMatrixT::kDiagonal)
+	{
+		cout << "\n SPOOLESMatrixT::Assemble(m, r, c): cannot assemble diagonal matrix" << endl;
+		throw eGeneralFail;
+	}
+	else
+	{
+		/* assembly mode */
+		if (fSymmetric)
+		{
+			cout << "\n SPOOLESMatrixT::Assemble(m, r, c): cannot assemble symmetric matrix" << endl;
+			throw eGeneralFail;
+		}
+		else
+		{
+			/* equation number limit */
+			int end_update = fStartEQ + fLocNumEQ - 1;
+
+			/* equation numbers -> active element row numbers */
+			fRowDexVec.Allocate(0);
+			for (int j = 0; j < row_eqnos.Length(); j++)
+			{
+				int eq = row_eqnos[j];
+				if (eq >= fStartEQ && eq <= end_update)
+					fRowDexVec.Append(j);
+			}
+
+			/* equation numbers -> active element column numbers */
+			fColDexVec.Allocate(0);
+			for (int j = 0; j < col_eqnos.Length(); j++)
+				if (col_eqnos[j] > 0)
+					fColDexVec.Append(j);
+
+			/* fill element matrix */
+			if (elMat.Format() == ElementMatrixT::kSymmetricUpper)
+				elMat.CopySymmetric();
+
+			/* copy active block */
+			int num_rows = fRowDexVec.Length();
+			int num_cols = fColDexVec.Length();
+			fActiveBlkMan.SetDimensions(num_rows, num_cols);
+			elMat.CopyBlock(fRowDexVec, fColDexVec, fActiveBlk);
+		
+			/* active equation numbers -> global row numbers */
+			for (int r = 0; r < num_rows; r++)
+				fRowDexVec[r] = row_eqnos[fRowDexVec[r]] - 1; //OFFSET
+
+			/* active equation numbers -> global col numbers */
+			for (int c = 0; c < num_cols; c++)
+				fColDexVec[c] = col_eqnos[fColDexVec[c]] - 1; //OFFSET
+	
+			/* row-by-row assembly */
+			fValVec.Allocate(num_cols);
+			int status = 1;
+			for (int i = 0; i < num_rows && status; i++)
+			{
+				/* copy row values */
+				fActiveBlk.CopyRow(i, fValVec);
+	
+				/* assemble */
+				AssembleRow(fRowDexVec[i], num_cols, fColDexVec.Pointer(),
+					fValVec.Pointer(), status);
+			}
+	
+			/* check completion */
+			if (!status)
+			{
+				cout << "\n SPOOLESMatrixT::Assemble: error with equations:\n";
+				cout << " row:\n" << row_eqnos << endl;
+				cout << " col:\n" << col_eqnos << endl;
 				throw eGeneralFail;
 			}
 		}

@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.2 2001-02-28 02:34:13 paklein Exp $ */
+/* $Id: SolverT.h,v 1.3 2001-05-01 23:22:59 paklein Exp $ */
 /* created: paklein (05/23/1996)                                          */
 
 #ifndef _SOLVER_H_
@@ -64,14 +64,16 @@ public:
 	virtual void ResetStep(void);
 	
 	/* assembling the global equation system */
-	void AssembleLHS(const ElementMatrixT& elMat, const iArrayT& eqnos);
-	void OverWriteLHS(const ElementMatrixT& elMat, const iArrayT& eqnos);
-	void DisassembleLHS(dMatrixT& matrix, const iArrayT& eqnos) const;
-	void DisassembleLHSDiagonal(dArrayT& diagonals, const iArrayT& eqnos) const;
+	void AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
+	void AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+		const nArrayT<int>& col_eqnos);
+	void OverWriteLHS(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
+	void DisassembleLHS(dMatrixT& matrix, const nArrayT<int>& eqnos) const;
+	void DisassembleLHSDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const;
 
-	void AssembleRHS(const dArrayT& elRes, const iArrayT& eqnos);
-	void OverWriteRHS(const dArrayT& elRes, const iArrayT& eqnos);
-	void DisassembleRHS(dArrayT& elRes, const iArrayT& eqnos) const;
+	void AssembleRHS(const dArrayT& elRes, const nArrayT<int>& eqnos);
+	void OverWriteRHS(const dArrayT& elRes, const nArrayT<int>& eqnos);
+	void DisassembleRHS(dArrayT& elRes, const nArrayT<int>& eqnos) const;
 
 	/* accessor */
 	const int& IterationNumber(void) const;
@@ -126,22 +128,28 @@ protected:
 /* inlines */
 
 /* assembling the global equation system */
-inline void SolverT::AssembleLHS(const ElementMatrixT& elMat, const iArrayT& eqnos)
+inline void SolverT::AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 	fLHS->Assemble(elMat, eqnos);
 }
 
-inline void SolverT::OverWriteLHS(const ElementMatrixT& elMat, const iArrayT& eqnos)
+inline void SolverT::AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+	const nArrayT<int>& col_eqnos)
+{
+	fLHS->Assemble(elMat, row_eqnos, col_eqnos);
+}
+
+inline void SolverT::OverWriteLHS(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 	fLHS->OverWrite(elMat, eqnos);
 }
 
-inline void SolverT::DisassembleLHS(dMatrixT& matrix, const iArrayT& eqnos) const
+inline void SolverT::DisassembleLHS(dMatrixT& matrix, const nArrayT<int>& eqnos) const
 {
 	fLHS->Disassemble(matrix, eqnos);
 }
 
-inline void SolverT::DisassembleLHSDiagonal(dArrayT& diagonals, const iArrayT& eqnos) const
+inline void SolverT::DisassembleLHSDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const
 {
 	fLHS->DisassembleDiagonal(diagonals, eqnos);
 }

@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.2 2001-02-28 02:36:00 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.3 2001-05-01 23:22:55 paklein Exp $ */
 /* created: paklein (03/07/1998)                                          */
 /* Virtual base class for all global matrix objects                       */
 
@@ -67,7 +67,7 @@ void FullMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 /* assemble the element contribution into the LHS matrix - assumes
 * that elMat is square (n x n) and that eqnos is also length n.
 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-void FullMatrixT::Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos)
+void FullMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 #if __option(extended_errorcheck)
 	/* dimension checking */
@@ -125,8 +125,19 @@ void FullMatrixT::Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos)
 	}
 }
 
+void FullMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+	const nArrayT<int>& col_eqnos)
+{
+#pragma unused(elMat)
+#pragma unused(row_eqnos)
+#pragma unused(col_eqnos)
+
+	cout << "\n FullMatrixT::Assemble(m,r,c): not implemented" << endl;
+	throw eGeneralFail;
+}
+
 /* strong manipulation functions */
-void FullMatrixT::OverWrite(const ElementMatrixT& elMat, const iArrayT& eqnos)
+void FullMatrixT::OverWrite(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 #if __option(extended_errorcheck)
 	/* dimension checking */
@@ -161,7 +172,7 @@ void FullMatrixT::OverWrite(const ElementMatrixT& elMat, const iArrayT& eqnos)
 	}
 }
 
-void FullMatrixT::Disassemble(dMatrixT& elMat, const iArrayT& eqnos) const
+void FullMatrixT::Disassemble(dMatrixT& elMat, const nArrayT<int>& eqnos) const
 {
 #if __option(extended_errorcheck)
 	/* dimension checking */
@@ -200,7 +211,7 @@ void FullMatrixT::Disassemble(dMatrixT& elMat, const iArrayT& eqnos) const
 	}
 }
 
-void FullMatrixT::DisassembleDiagonal(dArrayT& diagonals, const iArrayT& eqnos) const
+void FullMatrixT::DisassembleDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const
 {
 #if __option(extended_errorcheck)
 	/* dimension checking */
