@@ -145,9 +145,8 @@ protected: /* for derived classes only */
 	/** return true if connectivities are changing */
 	virtual bool ChangingGeometry(void) const;
 
-	/** assemble particle mass matrix into LHS of global equation system
-	 * \param mass mass associated with each particle type */
-	void AssembleParticleMass(const dArrayT& mass);
+	/** assemble particle mass matrix into LHS of global equation system */
+	void AssembleParticleMass(const double rho);
 	
 	/** compute B matrices for strain smoothing/nodal integration */
 	virtual void ComputeBMatrices(void);
