@@ -1,4 +1,4 @@
-/* $Id: InputFEASCIIT.cpp,v 1.11 2002-03-04 06:29:09 paklein Exp $ */
+/* $Id: InputFEASCIIT.cpp,v 1.12 2002-03-04 18:02:32 paklein Exp $ */
 
 #include "InputFEASCIIT.h"
 
@@ -670,7 +670,10 @@ bool InputFEASCIIT::ScanResultsFile (ifstreamT& in)
 	int vals;
 	if (!in.FindString ("Nodal data", s) ||
         !in.FindString ("Number of values", s) ||
-        !s.Tail ('=', vals)) return false;
+        !s.Tail ('=', vals)) {
+	  cout << "\n InputFEASCIIT::ScanResultsFile: error scanning nodal values" << endl;
+	  return false;
+	}
 	if (vals > 0) {
 		in >> s >> s; // "index" and "node"
 		for (int v = 0; v < vals; v++)
@@ -687,7 +690,10 @@ bool InputFEASCIIT::ScanResultsFile (ifstreamT& in)
 	    !s.Tail ('=', id) ||
 	    !fBlockID.HasValue (id) ||
 	    !in.FindString ("Number of values", s) ||
-	    !s.Tail ('=', vals)) return false;
+	    !s.Tail ('=', vals)) {
+	  cout << "\n InputFEASCIIT::ScanResultsFile: error scanning element values" << endl;
+	  return false;
+	}
 	if (vals > 0) {
 		in >> s >> s; // "index" and "element"
 		for (int v = 0; v < vals; v++)
