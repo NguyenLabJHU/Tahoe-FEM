@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.8 2005-03-14 22:24:36 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.9 2005-03-16 00:34:50 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -19,17 +19,9 @@ using namespace Tahoe;
 /* constructor */
 SSEnhLocCraigT::SSEnhLocCraigT(const ElementSupportT& support):
 	SmallStrainT(support),
-	//	HookeanMatT(NumDOF()),
-	//ParameterInterfaceT("element_base"), //only needed for MI w/HookeanMatT
-	//isLocalized(false),
-	//isLocalizedTemp(false),
 	fBand(NULL)
-	//	fInitialModulus(1)
-  //fNeedsOffset(-1),
-  //fSSMatSupport(NULL)
 {
 	SmallStrainT::SetName("small_strain_enh_loc_craig");
-	//	HookeanMatT::Dimension(NumDOF());
 }
 
 /* destructor */
@@ -66,34 +58,30 @@ void SSEnhLocCraigT::DefineSubs(SubListT& sub_list) const
 
 void SSEnhLocCraigT::TakeParameterList(const ParameterListT& list)
 {
-	
+  //SmallStrainT::TakeParameterList(list);
 
-
-  SmallStrainT::TakeParameterList(list);
-
-#if 0
   const char caller[] = "SmallStrainT::TakeParameterList";
-
-  /* strain displacement option before calling SolidElementT::TakeParameterList */
+  /* strain displacement option before calling
+     SolidElementT::TakeParameterList */
   int b = list.GetParameter("strain_displacement");
   fStrainDispOpt = (b == kStandardB) ? kStandardB : kMeanDilBbar;
-
+  
   /* inherited */
   SolidElementT::TakeParameterList(list);
-    
+
   /* dimension workspace */
   fGradU.Dimension(NumSD());        
   if (fStrainDispOpt == kMeanDilBbar) {
     fLocDispTranspose.Dimension(fLocDisp.Length());
     fMeanGradient.Dimension(NumSD(), NumElementNodes());
   }        
-
+  
   /* offset to class needs flags */
   fNeedsOffset = fMaterialNeeds[0].Length();
   
   /* set material needs */
   for (int i = 0; i < fMaterialNeeds.Length(); i++)
-    {
+    {      
       /* needs array */
       ArrayT<bool>& needs = fMaterialNeeds[i];
       
@@ -105,8 +93,14 @@ void SSEnhLocCraigT::TakeParameterList(const ParameterListT& list)
       SSSolidMatT* mat = (SSSolidMatT*) pcont_mat;
       
       /* collect needs */
-      needs[fNeedsOffset + kstrain     ] = true;
-      needs[fNeedsOffset + kstrain_last] = true;
+      needs[fNeedsOffset + kstrain     ] = true; //mat->Need_Strain();
+      needs[fNeedsOffset + kstrain_last] = true; //mat->Need_Strain_last();
+
+      /* consistency */
+      needs[kNeedDisp] = needs[kNeedDisp] || needs[fNeedsOffset +
+						   kstrain];
+      needs[KNeedLastDisp] = needs[KNeedLastDisp] || needs[fNeedsOffset
+							   + kstrain_last];
     }
 
   /* what's needed */
@@ -115,31 +109,29 @@ void SSEnhLocCraigT::TakeParameterList(const ParameterListT& list)
   for (int i = 0; i < fMaterialNeeds.Length(); i++) {
     const ArrayT<bool>& needs = fMaterialNeeds[i];
     need_strain = need_strain || needs[fNeedsOffset + kstrain];
-    need_strain_last = need_strain_last || needs[fNeedsOffset + kstrain_last];
+    need_strain_last = need_strain_last || needs[fNeedsOffset +
+						 kstrain_last];
   }
-
-    /* allocate strain list - necessary for this element*/
+  
+  /* allocate strain list */
+  if (need_strain) {
     fStrain_List.Dimension(NumIP());
     for (int i = 0; i < NumIP(); i++)
       fStrain_List[i].Dimension(NumSD());
-    
-
-    /* allocate "last" strain list */
+  }
+  
+  /* allocate "last" strain list */
+  if (need_strain_last) {
     fStrain_last_List.Dimension(NumIP());
     for (int i = 0; i < NumIP(); i++)
       fStrain_last_List[i].Dimension(NumSD());
-#endif
+  }
 
-	/*PARAMETERS FOR ENHANCED STRAIN*/
-	fH_delta_0 = list.GetParameter("Post-Localization_softening_parameter_H_Delta"); 
-	fNoBandDilation = list.GetParameter("Disallow_Dilation_on_Band");
-	fLocalizedFrictionCoeff = list.GetParameter("Localized_Friction_Coefficient");
 
-	/* "INITIALIZE" PARAMETERS */
-	//fInitialModulus = fCurrMaterial->c_ijkl();
-	//can't initialize this here fCurrMaterial not set
-	//fInitialModulus = 0.0;
-
+  /*PARAMETERS FOR ENHANCED STRAIN*/
+  fH_delta_0 = list.GetParameter("Post-Localization_softening_parameter_H_Delta"); 
+  fNoBandDilation = list.GetParameter("Disallow_Dilation_on_Band");
+  fLocalizedFrictionCoeff = list.GetParameter("Localized_Friction_Coefficient");
 }
 
 /* extract the list of material parameters */
@@ -322,6 +314,10 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 
 	k_zeta_zeta *= 1.0/area;
 	k_zeta_zeta += fBand->EffectiveSoftening();
+	/*k_zeta_zeta *= (k_zeta_zeta + fBand->H_delta())/(k_zeta_zeta + (1
+									-
+									fBand-> EffectiveSoftening()) * fBand->H_delta());*/
+
 	//k_zeta_zeta *= -1.0;
 
 	fLHS.Outer(k_d_zeta, k_zeta_d, -1.0/k_zeta_zeta, dMatrixT::kAccumulate);
@@ -472,8 +468,9 @@ double SSEnhLocCraigT::CalculateJumpIncrement()
       //plus amount to get cohesion to zero
       jumpIncrement -= jumpIncrementSign * (fBand->ResidualCohesion())/(fBand-> H_delta());
       
-      fBand->SetEffectiveSoftening(-1.0*fBand->ResidualCohesion()/fabs(jumpIncrement));
-      
+      //fBand->SetEffectiveSoftening(-1.0*fBand->ResidualCohesion()/fabs(jumpIncrement));
+      fBand->SetEffectiveSoftening(0.0);
+      //fBand -> SetEffectiveSoftening(fBand->ResidualCohesion()/trialDeltaResidCohesion);
     }
   else
     {
@@ -752,6 +749,12 @@ bool SSEnhLocCraigT::IsElementLocalized()
 void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipDirs)
 {
 
+  /*
+  normals.Top();
+  while(normals.Next())
+    cout << "normal = \n" << normals.Current() << endl;
+  */
+
   normals.Top();
   slipDirs.Top();
 
@@ -765,7 +768,7 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
   dArrayT slipDir = slipDirs.Current();
   dArrayT perpSlipDir;
 
-  cout << "normal = \n" << normal;
+  // cout << "normal = \n" << normal;
   //cout << "slipDir = \n" << slipDir; 
 
   //make sure slip direction is dilatant
