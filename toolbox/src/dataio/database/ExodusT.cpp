@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.21 2002-11-07 20:25:46 sawimme Exp $ */
+/* $Id: ExodusT.cpp,v 1.22 2003-02-08 15:57:15 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -877,8 +877,9 @@ void ExodusT::GlobalToBlockElementNumbers(int& block_ID, nArrayT<int>& elements)
 		cout << "\n ExodusT::BlockElementNumbers: side set specification error:\n";
 		cout <<   "     element number {min, max} = {" << min << "," << max;
 		cout << "} exceeds the bounds\n";
-		cout <<   "     of element group " << block_ID + 1 << '\n';
-		cout <<   "     Associated element group could not be determined" << endl;
+		cout <<   "     of element block " << block_ID + 1 << '\n';
+		cout <<   "     Associated element block could not be determined\n";
+		cout <<   " NOTE: side sets cannot span more than one element block" << endl;
 		block_ID = -1;
 	}
 }
