@@ -60,6 +60,7 @@ class SlipKinetics
   virtual void SetUpRateSensitivity();
   virtual void ComputeRateSensitivity();
   virtual bool IsMaxRateSensitivity();
+  virtual void RestoreRateSensitivity();
 
  protected:
   // power

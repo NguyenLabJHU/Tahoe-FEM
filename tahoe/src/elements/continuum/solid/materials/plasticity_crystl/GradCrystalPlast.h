@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlast.h,v 1.2 2001-07-03 01:35:34 paklein Exp $ */
+/* $Id: GradCrystalPlast.h,v 1.3 2002-02-01 00:15:49 ebmarin Exp $ */
 /*
   File: GradCrystalPlast.h
 */
@@ -7,6 +7,8 @@
 #define _GRAD_CRYSTAL_PLAST_H_
 
 #include "LocalCrystalPlast.h"
+#include "CrystalElasticity.h"
+#include "GradientTools.h"
 
 #include "ArrayT.h"
 #include "dArray2DT.h"
@@ -21,9 +23,6 @@ class GradCrystalPlast : public LocalCrystalPlast
   // destructor
   ~GradCrystalPlast();
 
-  // initialize arrays
-  void Initialize();
-
   // number of crystal variables to be stored
   virtual int NumVariablesPerElement();
 
@@ -32,12 +31,6 @@ class GradCrystalPlast : public LocalCrystalPlast
 
   // modulus - Taylor average 
   virtual const dMatrixT& c_ijkl();
-
-  // form residual
-  virtual void FormRHS(const dArrayT& dgamma, dArrayT& rhs);
-
-  // form Jacobian
-  virtual void FormLHS(const dArrayT& dgamma, dMatrixT& lhs);
 
   // update/reset crystal state
   virtual void UpdateHistory();
@@ -87,11 +80,7 @@ class GradCrystalPlast : public LocalCrystalPlast
   // dislocation tensor A2e in Bbar configuration
   void LatticeCurvature(ElementCardT& element, int igrn);
 
-  // dFe/dx at integration points
-  void ComputeGradFe(const dArray2DT& GDNa, const ArrayT<dMatrixT>& nodal, ArrayT<dMatrixT>& grad);
-
   void dKedDGamma(ElementCardT& element);
-  virtual void CrystalC_ijkl_Plastic();
   void AddToLHS(dMatrixT& lhs);
   double HardFuncDerivative(double& dgamma, double& taus, double& taux, int kcode);
 
@@ -109,26 +98,18 @@ class GradCrystalPlast : public LocalCrystalPlast
   // nodal coords at current configuration
   LocalArrayT fLocCurrX;
 
+  // pointer to supporting class for gradient evaluations
+  GradientTools* fGradTool;
+
   // elastic deformation gradients at IPs and nodes
   ArrayT<dMatrixT> fFeTrIP;
   ArrayT<dMatrixT> fFeIP;
   ArrayT<dMatrixT> fFeTrNodes;
   ArrayT<dMatrixT> fFeNodes;
 
-  // arrays of shape function and their derivatives
-  dArray2DT fLNa;
-  ArrayT<dArray2DT> fLDNa;    // local derivatives (parental domain)
-  ArrayT<dArray2DT> fGDNa;    // global derivatives (physical domain)
-
-  // matrix for nodal extrapolation (least square smoothing)
-  dArray2DT fNodalExtrap;
-
   // spatial gradients of elastic deformation gradient
   ArrayT<dMatrixT> fGradFeTr;
   ArrayT<dMatrixT> fGradFe;
-
-  // displacement gradient
-  dMatrixT fGradU;
 
   // lattice curvatures and associated stress
   dMatrixT fKe_n;
@@ -146,3 +127,4 @@ class GradCrystalPlast : public LocalCrystalPlast
 };
 
 #endif /* _GRAD_CRYSTAL_PLAST_H_ */
+

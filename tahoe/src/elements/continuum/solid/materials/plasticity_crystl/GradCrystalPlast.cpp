@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlast.cpp,v 1.3 2002-01-06 06:58:41 cbhovey Exp $ */
+/* $Id: GradCrystalPlast.cpp,v 1.4 2002-02-01 00:15:49 ebmarin Exp $ */
 /*
   File: GradCrystalPlast.cpp
 */
@@ -26,17 +26,19 @@ const double sqrt23 = sqrt(2.0/3.0);
 const int kNumOutput = 3;
 static const char* Labels[kNumOutput] = {"VM_stress", "IterNewton", "IterState"};
 
+/* to debug */
+const bool XTAL_MESSAGES = false;
+const int ELprnt = 0;
+
 GradCrystalPlast::GradCrystalPlast(ifstreamT& in, const FiniteStrainT& element) :
   LocalCrystalPlast(in, element),  
   fLocInitX (ContinuumElement().InitialCoordinates()),
   fLocCurrX (LocalArrayT::kCurrCoords),
+  fGradTool (NULL),
   fFeIP     (NumIP()),    
   fFeTrIP   (NumIP()),    
-  fLDNa     (NumIP()),    
-  fGDNa     (NumIP()),    
   fGradFe   (kNSD),
   fGradFeTr (kNSD),
-  fGradU    (NumSD(),NumSD()), 
   fKe_n     (kNSD,kNSD),  
   fKe       (kNSD,kNSD),  
   fXe       (kNSD,kNSD),  
@@ -57,6 +59,9 @@ GradCrystalPlast::GradCrystalPlast(ifstreamT& in, const FiniteStrainT& element) 
   else 
     throwRunTimeError("GradCrystalPlast::GradCrystalPlast: NumSD != 2 or 3");
 
+  // create Gradient Tool object
+  fGradTool = new GradientTools(NumIP(), fNumNodes, NumSD());
+
   // allocate space for ...
   // ... Fe values at integration points
   for (int i = 0; i < NumIP(); i++) {
@@ -71,16 +76,6 @@ GradCrystalPlast::GradCrystalPlast(ifstreamT& in, const FiniteStrainT& element) 
     fFeNodes[i].Allocate(kNSD,kNSD);
     fFeTrNodes[i].Allocate(kNSD,kNSD);
   }
-
-  // ... shape functions and their derivatives
-  fLNa.Allocate(NumIP(), fNumNodes);
-  for (int i = 0; i < NumIP(); i++) {
-    fLDNa[i].Allocate(NumSD(), fNumNodes); 
-    fGDNa[i].Allocate(NumSD(), fNumNodes); 
-  }
-
-  // ... nodal extrapolation matrix
-  fNodalExtrap.Allocate(fNumNodes, NumIP());
 
   // ... spatial gradients of Fe (note: kNSD instead of NumSD())
   for (int i = 0; i < kNSD; i++) {
@@ -101,15 +96,6 @@ GradCrystalPlast::GradCrystalPlast(ifstreamT& in, const FiniteStrainT& element) 
 }
 
 GradCrystalPlast::~GradCrystalPlast() {} 
-
-void GradCrystalPlast::Initialize()
-{
-  // inherited
-  PolyCrystalMatT::Initialize();
-  
-  // shape funtions, their derivatives and extrap matrix in parent domain
-  SetLocalShape(fLNa, fLDNa, fNodalExtrap);
-}
 
 int GradCrystalPlast::NumVariablesPerElement()
 {
@@ -144,9 +130,15 @@ const dSymMatrixT& GradCrystalPlast::s_ij()
   // only one grain per integration point
   int igrn = 0;
 
+  // time step
+  fdt = ContinuumElement().FEManager().TimeStep();
+
   // compute crystal stresses
   if (fStatus == GlobalT::kFormRHS && CurrIP() == 0)
     {
+      if (XTAL_MESSAGES && CurrElementNumber() == ELprnt)
+         cout << " elem # " << CurrElementNumber() << endl;
+
       // state at each integration point (all at once)
       SolveCrystalState();
 
@@ -163,6 +155,15 @@ const dSymMatrixT& GradCrystalPlast::s_ij()
 	      fHardening->fTauKin[i] = dArrayT::Dot(fXe, fZ[i]);
 	    }
 
+          // elasticity matrix in Bbar configuration
+          if (!fElasticity->IsIsotropic())
+             {
+                fElasticity->ComputeModuli(fRank4);
+                FFFFC_3D(fcBar_ijkl, fRank4, fRotMat);
+             }
+          else
+                fElasticity->ComputeModuli(fcBar_ijkl);
+
 	  // compute crystal Cauchy stress
 	  CrystalS_ij();
 
@@ -171,8 +172,12 @@ const dSymMatrixT& GradCrystalPlast::s_ij()
 
 	  // crystal moduli
 	  fc_ijkl = 0.;
-	  CrystalC_ijkl_Elastic();  // elastic part
-	  CrystalC_ijkl_Plastic();  // plastic part
+	  CrystalC_ijkl();
+
+          if (XTAL_MESSAGES && CurrElementNumber() == ELprnt)
+             cout << " IP # " << fIP << endl
+                  << "s_ij \n  " << fs_ij << endl
+                  << "c_ijkl \n" << fc_ijkl << endl;
 	}
     }
 
@@ -195,73 +200,14 @@ const dMatrixT& GradCrystalPlast::c_ijkl()
   // recover local data
   LoadCrystalData(element, intpt, igrn);
       
+  if (XTAL_MESSAGES && CurrElementNumber() == ELprnt) {
+       cout << " GradCrystalPlast::c_ijkl " << endl;
+       cout << " IP # " << intpt << endl
+            << "c_ijkl \n" << fc_ijkl << endl;
+  }
+
   // return crystal moduli
   return fc_ijkl;
-}
-
-void GradCrystalPlast::FormRHS(const dArrayT& dgamma, dArrayT& rhs)
-{
-  // incremental plastic deformation gradient ^ (-1)
-  DeltaFPInverse(dgamma);
-
-  // elastic right Cauchy-Green tensor 
-  fCeBar.MultQTBQ(fDFpi, fCeBarTr);
-
-  // resolved shear stress
-  ResolveShearStress(fCeBar);
-
-  // compute residual
-  for (int i = 0; i < fNumSlip; i++)
-    rhs[i] = dgamma[i] - fdt * fKinetics->Phi(fTau[i], i);
-}
-
-// form Jacobian 
-void GradCrystalPlast::FormLHS(const dArrayT& dgamma, dMatrixT& lhs)
-{
-  // incremental plastic deformation gradient ^ (-1)
-  //  DeltaFPInverse(dgamma);
-  #pragma unused(dgamma)
-
-  // elastic right Cauchy-Green tensor 
-  //  fCeBar.MultQTBQ(fDFpi, fCeBarTr);
-
-  // preliminary computations
-  fdeltaI = 0.5 * fMatProp[1] * (fCeBar.Trace() - 3.) - fMatProp[0] + fMatProp[2];
-  fCeBarTr.ToMatrix(fmatx1);
-  fmatx4.MultATB(fDFpi, fmatx1); 
-
-  // initialize jacobian
-  lhs = 0.;
-
-  // contribution of dTau/dDGamma to lhs(i,j)
-  for (int i = 0; i < fNumSlip; i++)
-    {
-      farray[i].SetToScaled(-1., fZ[i]);
-
-      // dTau/dCe
-      dTaudCe(fZ[i], fP[i], fsymmatx1); 
-
-      for (int j = 0; j < fNumSlip; j++)
-	{
- 	  // dCe/dDGamma
-	  fmatx3.MultAB(fmatx4, fZ[j]);
-	  fsymmatx2.Symmetrize(fmatx3);
-	  fsymmatx2 *= -2.;
-
-	  // dTau/dCe : dCe/dDGamma
-          fsymmatx1.ToMatrix(fmatx1);
-          fsymmatx2.ToMatrix(fmatx2);
-          lhs(i,j) = dArrayT::Dot(fmatx1, fmatx2);
-	}
-    }
-
-  // contribution of dPhi/dTau to lhs(i,i) 
-  for (int i = 0; i < fNumSlip; i++)
-    {
-      double tmp = fdt * fKinetics->DPhiDTau(fTau[i], i);
-      for (int j = 0; j < fNumSlip; j++) lhs(i,j) *= -tmp;
-      lhs(i,i) += 1.;
-    }
 }
 
 void GradCrystalPlast::UpdateHistory()
@@ -540,15 +486,28 @@ void GradCrystalPlast::SolveCrystalState()
   const dArrayT& prop = fHardening->MaterialProperties();
 
   // elastic predictor Fe and initial guess for (dgamma, hardness) 
+  if (XTAL_MESSAGES && CurrElementNumber() == ELprnt)
+         cout << "\n\n***Elastic Predictor Phase" << endl;
+
   for (fIP = 0; fIP < NumIP(); fIP++) 
     {
       // deformation gradient at integration point IP
       //fFtot = DeformationGradient(fLocDisp); //DEV - deprecated
       Compute_Ftot_3D(fFtot, fIP);
+      Compute_Ftot_last_3D(fFtot_n, fIP);
 
       // fetch crystal data
       LoadCrystalData(element, fIP, igrn);
       
+      // elasticity matrix in Bbar configuration
+      if (!fElasticity->IsIsotropic())
+         {
+            fElasticity->ComputeModuli(fRank4);
+            FFFFC_3D(fcBar_ijkl, fRank4, fRotMat);
+         }
+      else
+            fElasticity->ComputeModuli(fcBar_ijkl);
+
       // trial elastic deformation gradient
       fFeTr.MultAB(fFtot, fFpi_n);
 
@@ -574,6 +533,18 @@ void GradCrystalPlast::SolveCrystalState()
       // initial norms for dgamma and hardness
       fnormDGam0[fIP] = fDGamma.Magnitude();
       fnormHard0[fIP] = fHardening->Magnitude();
+
+      if (XTAL_MESSAGES && CurrElementNumber() == ELprnt) {
+         cout << " IP # " << fIP << "\n"
+              << "    fFtot: \n" << fFtot << endl;
+         cout << "    fFeTr: \n" << fFeTr << endl;
+         cout << "    fKe_n: \n" << fKe_n << endl;
+         cout << "    fXe: \n" << fXe << endl;
+         cout << "    fTauKin : \n" << fHardening->fTauKin << endl;
+         cout << "    fDGamma (Fwd): \n" << fDGamma << endl;
+         cout << "    normDGam0 : " << fnormDGam0[fIP] << endl;
+         cout << "    normHard0 : " << fnormHard0[fIP] << endl;
+      }
     }
 
   // iterate for the state in the element (all IP's at once)
@@ -581,11 +552,25 @@ void GradCrystalPlast::SolveCrystalState()
   int iterState;
   for (iterState = 0; iterState < fMaxIterState; iterState++)
     {
+      if (XTAL_MESSAGES && CurrElementNumber() == ELprnt) {
+         cout << "\n\n***Iterate for state" << endl;
+         cout << "   iterState # " << iterState << endl;
+      }
+
       // compute dgamma and Fe at each integration point
       for (int intpt = 0; intpt < NumIP(); intpt++) 
 	{
 	  // fetch crystal data
 	  LoadCrystalData(element, intpt, igrn);
+
+          // elasticity matrix in Bbar configuration
+          if (!fElasticity->IsIsotropic())
+             {
+                fElasticity->ComputeModuli(fRank4);
+                FFFFC_3D(fcBar_ijkl, fRank4, fRotMat);
+             }
+          else
+                fElasticity->ComputeModuli(fcBar_ijkl);
 
 	  // trial elastic right Cauchy-Green tensor
 	  fCeBarTr.MultATA(fFeTr);
@@ -598,6 +583,12 @@ void GradCrystalPlast::SolveCrystalState()
 	      fHardening->fTauKin[i] = dArrayT::Dot(fXe, fZ[i]);
 	    }
 	  
+          if (XTAL_MESSAGES && CurrElementNumber() == ELprnt) {
+             cout << " IP # " << intpt << "\n";
+             cout << "    fFeTr: \n" << fFeTr << endl;
+             cout << "    fTauKin : \n" << fHardening->fTauKin << endl;
+          }
+
 	  // solve for shear deformation on slip systems
 	  SolveForDGamma();
 	  
@@ -612,10 +603,20 @@ void GradCrystalPlast::SolveCrystalState()
 
 	  // norm for dgamma
 	  fnormDGam[intpt] = fDGamma.Magnitude();
+
+          if (XTAL_MESSAGES && CurrElementNumber() == ELprnt) {
+             cout << "    fDGamma (after solve): \n" << fDGamma << endl;
+             cout << "    fDFpi: \n" << fDFpi << endl;
+             cout << "    fFe: \n" << fFe << endl;
+             cout << "    normDGam : " << fnormDGam[intpt] << endl;
+          }
 	}
       
       // elastic curvature
       LatticeCurvature(element, igrn);
+
+      if (XTAL_MESSAGES && CurrElementNumber() == ELprnt) 
+         cout << "\n\n***Compute Hardness" << endl;
 
       // compute hardness
       for (int intpt = 0; intpt < NumIP(); intpt++) 
@@ -633,15 +634,42 @@ void GradCrystalPlast::SolveCrystalState()
 	      fHardening->fTauKin[i] = dArrayT::Dot(fXe, fZ[i]);
 	    }
 
+          if (XTAL_MESSAGES && CurrElementNumber() == ELprnt) {
+             cout << " IP # " << intpt << "\n";
+             cout << "    fXe: \n" << fXe << endl;
+             cout << "    fTauKin : \n" << fHardening->fTauKin << endl;
+          }
 	  // solve for DDss and compute hardness
-	  fHardening->ImplicitSolveHard();
+	  //fHardening->ImplicitSolveHard();
+	  fHardening->ImplicitUpdateHard();
 
 	  // norm for hardness
 	  fnormHard[intpt] = fHardening->Magnitude();
+
+          if (XTAL_MESSAGES && CurrElementNumber() == ELprnt) {
+             //cout << " IP # " << intpt << "\n";
+             //cout << "    fXe: \n" << fXe << endl;
+             //cout << "    fTauKin : \n" << fHardening->fTauKin << endl;
+             cout << "    normHard : " << fnormHard[intpt] << endl;
+          }
 	}
 
       // check state convergence
       stateConverged = CheckConvergenceOfState();
+
+      if (XTAL_MESSAGES && CurrElementNumber() == ELprnt) {
+         cout << "\n\n***Convergence Check: \n"; 
+         cout << " stateConverged: " << stateConverged << endl;
+         for (int i=0; i<NumIP(); i++)
+           cout << " IP # " << i  << endl
+                << "     normHard0 : " << fnormHard0[i] << endl
+                << "     normHard : "  << fnormHard[i] << endl
+                << "     normDGam0 : " << fnormDGam0[i] << endl
+                << "     normDGam : "  << fnormDGam[i] << endl
+                << "     | diff normGam  | = " << fabs(fnormDGam[i]-fnormDGam0[i]) << endl
+                << "     | diff normHard | = " << fabs(fnormHard[i]-fnormHard0[i]) << endl;
+      }
+
       if (stateConverged) break;
 
       // reset norms
@@ -649,9 +677,15 @@ void GradCrystalPlast::SolveCrystalState()
       fnormHard0 = fnormHard;
     }
 
+
   // check if did not converge in max iterations
-  if (!stateConverged)
+  if (!stateConverged) {
+    cout << " elem # " << CurrElementNumber() << endl;
     throwRunTimeError("GradCrystalPlast::SolveCrystalState: Didn't converge in MaxIters");
+  }
+
+  if (XTAL_MESSAGES && CurrElementNumber() == ELprnt)
+      cout << " \n\n STATE CONVERGED " << endl;
 
   // update iteration count for state
   fIterState = max(fIterState, iterState);
@@ -699,8 +733,8 @@ bool GradCrystalPlast::CheckConvergenceOfState() const
     {
       // test = ( fabs(fnormDGam[i]-fnormDGam0[i]) < fTolerState*fadots &&
       //          fabs(fnormHard[i]-fnormHard0[i]) < fTolerState*ftausi );
-      test = ( fabs(fnormDGam[i]-fnormDGam0[i]) < fTolerState*fnormDGam0[i] &&
-	       fabs(fnormHard[i]-fnormHard0[i]) < fTolerState*fnormHard0[i] );
+      test = ( fabs(fnormDGam[i]-fnormDGam0[i]) <= fTolerState*fnormDGam0[i] &&
+	       fabs(fnormHard[i]-fnormHard0[i]) <= fTolerState*fnormHard0[i] );
       i++;
     }
   return test;
@@ -717,7 +751,7 @@ void GradCrystalPlast::LoadCrystalCurvature(ElementCardT& element,
   int blockPerGrn = 7*kNSD*kNSD + strdim + strdim*strdim + 2*fNumSlip
                    + fHardening->NumberOfVariables();
   int dex         = intpt*fNumGrain*blockPerGrn + igrain*blockPerGrn;
-  int blockToKe   = 4*kNSD*kNSD + fNumHard + fNumSlip;
+  int blockToKe   = 4*kNSD*kNSD + fNumSlip;
 
   // current elastic curvature
   fKe.Set (kNSD,kNSD, &d_array[dex += blockToKe]);
@@ -729,19 +763,33 @@ void GradCrystalPlast::ShapeFunctionDeriv()
   fLocCurrX.SetToCombination(1., fLocInitX, 1., fLocDisp);
 
   // derivarives dNa/dXcurr at integration points
-  ComputeGDNa(fLocCurrX, fLDNa, fGDNa);
+  fGradTool->ComputeGDNa(fLocCurrX);
+
+  if (XTAL_MESSAGES && CurrElementNumber() == ELprnt) {
+     cout << "***\n\nShapeFunctionDerivatives" << endl;
+     cout << "\n fLocDisp  (#nodes,#sd) :\n " << fLocDisp  << endl;
+     cout << "\n fLocCurrX (#nodes,#sd) :\n " << fLocCurrX << endl;
+  //   for (int i=0; i<NumIP(); i++) 
+  //      cout << " fGDNa for ip # " << i << endl << fGDNa[i] << endl;
+  }
 }
 
 // dislocation tensor A2e in Bbar configuration
 void GradCrystalPlast::LatticeCurvature(ElementCardT& element, int igrn)
 {
   // extrapolate ipvalues of Fe to nodal points
-  Extrapolate(fFeIP, fFeNodes, fNodalExtrap);
+  fGradTool->ExtrapolateTensor(fFeIP, fFeNodes);
+
+  if (XTAL_MESSAGES && CurrElementNumber() == ELprnt) {
+     cout << "\n\n***Lattice Curvature " << endl;
+     for (int i=0; i<fNumNodes; i++) 
+        cout << " FeNodes at node # " << i << endl << fFeNodes[i] << endl;   
+  }
 
   for(int intpt = 0; intpt < NumIP(); intpt++)
     {
       // gradient of Fe
-      ComputeGradFe(fGDNa[intpt], fFeNodes, fGradFe);
+      fGradTool->GradientOfTensorAtIP(fFeNodes, fGradFe, intpt);
 
       // fetch crystal curvature
       LoadCrystalCurvature(element, intpt, igrn);
@@ -763,21 +811,28 @@ void GradCrystalPlast::LatticeCurvature(ElementCardT& element, int igrn)
 		fKe(2,I) += (-Fe_x(i,0)*Fe(j,1)+Fe_x(i,1)*Fe(j,0))*Fei(I,i);
 	      }
 	  }
+
+      if (XTAL_MESSAGES && CurrElementNumber() == ELprnt) {
+         cout << " IP # " << intpt << "\n";
+         for(int i=0; i<kNSD; i++)
+            cout << "   fGradFe for dir " << i << endl << fGradFe[i] << endl;
+         cout << "    Curvature tensor fKe: \n" << fKe << endl;
+      }
     }
 }
 
 void GradCrystalPlast::dKedDGamma(ElementCardT& element)
 {
   // extrapolate ipvalues of Fe and FeTr to nodal points
-  Extrapolate(fFeIP, fFeNodes, fNodalExtrap);
-  Extrapolate(fFeTrIP, fFeTrNodes, fNodalExtrap);
+  fGradTool->ExtrapolateTensor(fFeIP, fFeNodes);
+  fGradTool->ExtrapolateTensor(fFeTrIP, fFeTrNodes);
 
   // compute derivative of curvature wrt DGamma
   for (int intpt = 0; intpt < NumIP(); intpt++)
     {
       // spatial gradients of Fe and FeTr at intpt
-      ComputeGradFe(fGDNa[intpt], fFeNodes, fGradFe);
-      ComputeGradFe(fGDNa[intpt], fFeTrNodes, fGradFeTr);
+      fGradTool->GradientOfTensorAtIP(fFeNodes, fGradFe, intpt);
+      fGradTool->GradientOfTensorAtIP(fFeTrNodes, fGradFeTr, intpt);
 
       // auxiliar references
       dMatrixT& Fe    = fFeIP[intpt];
@@ -822,92 +877,6 @@ void GradCrystalPlast::dKedDGamma(ElementCardT& element)
 		    }
 		}
 	}
-    }
-}
-
-
-// dFe/dx at integration point
-void GradCrystalPlast::ComputeGradFe(const dArray2DT& GDNa, const ArrayT<dMatrixT>& nodal,
-                                     ArrayT<dMatrixT>& grad)
-{
-  // intialize spatial gradient d()/dx
-  for (int i = 0; i < kNSD; i++) grad[i] = 0.;
-
-  // compute dFe/dx at integration point
-  if (NumSD() == 2)
-    {
-      double* dx1 = GDNa(0);
-      double* dx2 = GDNa(1);
-      
-      for (int i = 0; i < fNumNodes; i++)
-	{
-	  grad[0].AddScaled(*dx1, nodal[i]);
-	  grad[1].AddScaled(*dx2, nodal[i]);
-	  
-	  dx1++; dx2++;
-	}
-    }
-  else // (NumSD() ==3)
-    {
-      double* dx1 = GDNa(0);
-      double* dx2 = GDNa(1);
-      double* dx3 = GDNa(2);
-      
-      for (int i = 0; i < fNumNodes; i++)
-	{
-	  grad[0].AddScaled(*dx1, nodal[i]);
-	  grad[1].AddScaled(*dx2, nodal[i]);
-	  grad[2].AddScaled(*dx3, nodal[i]);
-	  
-	  dx1++; dx2++; dx3++;
-	}
-    }
-}
-
-void GradCrystalPlast::CrystalC_ijkl_Plastic()
-{
-  // compute inverse of fDFpi
-  fDFp.Inverse(fDFpi);
-
-  // shear stress on slip systems
-  ResolveShearStress(fCeBar);
-  
-  // SECOND TERM : (Fe_tr) (dDGamma/dCe_tr) (Fe_tr)^T
-  FormLHS(fDGamma, fLHS);
-  //AddToLHS(fLHS);
-  dMatrixT Jaci = MatrixInversion(fLHS);
-
-  for (int i = 0; i < fNumSlip; i++)
-    {
-      dTaudCe(fZ[i], fP[i], fsymmatx1);
-      fA[i].MultQBQT(fFe, fsymmatx1);
-
-      double tmp = fdt * fKinetics->DPhiDTau(fTau[i], i);
-      fA[i] *= -tmp;
-    }
-
-  for (int i = 0; i < fNumSlip; i++) {
-    fB[i] = 0.;
-    for (int j = 0; j < fNumSlip; j++)
-      fB[i].AddScaled(-Jaci(i,j), fA[j]);
-  }
-
-  // FIRST TERM : (Fe_tr) (dS/dDGamma) (Fe_tr)^T
-  for (int i = 0; i < fNumSlip; i++)
-    {
-      dMatrixT& matx = farray[i];      // dDFpi/dDGamma from FormLHS()
-      fmatx4.MultAB(fDFp, matx);
-      fmatx4 *= 2.;
-      fsymmatx1.Symmetrize(fmatx4);
-      dTaudCe(fmatx4, fsymmatx1, fsymmatx2);
-      fA[i].MultQBQT(fFe, fsymmatx2);
-    }
-	
-  // PLASTIC CONTRIBUTION TO MODULI : 2 * Sum(fA[i] (x) fB[i])
-  for (int i = 0; i < fNumSlip; i++)
-    {
-      fRank4.Outer(fA[i], fB[i]);
-      fc_ijkl.AddScaled(2., fRank4);
     }
 }
 
@@ -985,13 +954,3 @@ double GradCrystalPlast::HardFuncDerivative(double& dgamma, double& taus,
 
   return dHdv;
 }
-
-
-/*to be added to ShapeFunction class:
-
-void ShapeFunctionT::GradU(const LocalArrayT& nodal, dMatrix& gradU, 
-			   int IPnumber) const
-{
-  fDomain->Jacobian(nodal, (*pDNaU)[IPnumber], grad_U);
-}
-*/

@@ -38,6 +38,7 @@ class PowerLawIKinetics: public SlipKinetics
   virtual void SetUpRateSensitivity();
   virtual void ComputeRateSensitivity();
   virtual bool IsMaxRateSensitivity();
+  virtual void RestoreRateSensitivity();
 
  private:
 

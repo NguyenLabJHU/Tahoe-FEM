@@ -49,6 +49,9 @@ class VoceGradHardening : public SlipHardening
   // hardening modulus 
   virtual double HardeningModulus() const;
 
+  // overides accesor to isotropic hardening variable in base class
+  virtual const double IsoHardeningStress (int is) const;
+
   // print hardening data and model name
   virtual void Print(ostream& out) const;
   virtual void PrintName(ostream& out) const;
@@ -61,10 +64,6 @@ class VoceGradHardening : public SlipHardening
   const double HardeningLaw(double tauIso, int kcode);
 
  private:
-  // shear and work rate
-  double fShearRate;
-  double fWorkRate;
-
   // saturation value of hardness
   double fTauIsoSat;
 
@@ -73,6 +72,9 @@ class VoceGradHardening : public SlipHardening
 
   // kinematic hardening stress (GN dislocations)
   // dArrayT fTauKin;  // define in SlipHardening class
+
+  // some internal variables (shear and work rate)
+  dArrayT fInternal;
 };
 
 #endif /* _VOCE_GRAD_HARDENING_H_ */

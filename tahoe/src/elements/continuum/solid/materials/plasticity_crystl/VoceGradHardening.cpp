@@ -9,21 +9,33 @@
 #include "ifstreamT.h"
 
 // number of material properties for hard model 
-const int kNumMatProp = 6;
+const int kNumMatProp    = 7;
 const int kNumInitValues = 1;
+const int kNumInternal   = 4;
 
 // codes for computing hardening law qnts
 const int kFunc  = 0;  // HardFunc 
 const int kdFunc = 1;  // d(HardFunc)/d(tauS)
 
+// codes to access array fInternal
+const int kShearRate_n = 0;
+const int kShearRate   = 1;
+const int kWorkRate_n  = 2;
+const int kWorkRate    = 3;
+
+/* to debug */
+const bool XTAL_MESSAGES = false;
+
 VoceGradHardening::VoceGradHardening(PolyCrystalMatT& poly):
-  SlipHardening(poly)
+  SlipHardening(poly),
+  fInternal (kNumInternal)
 {
   // input file
   ifstreamT& in = poly.Input_x();
 
   // number of hardening variables
-  fNumHardVar = poly.NumSlip();
+  //fNumHardVar = poly.NumSlip();
+  fNumHardVar = 1;
 
   // allocate space for
   // ... material constants and initial hard values
@@ -32,8 +44,9 @@ VoceGradHardening::VoceGradHardening(PolyCrystalMatT& poly):
 
   // ... hardening variables
   fTauIso.Allocate(fNumHardVar);
-  fTauKin.Allocate(fNumHardVar);
+  //fTauKin.Allocate(fNumHardVar);
   fTauIso_n.Allocate(fNumHardVar);
+  fTauKin.Allocate(poly.NumSlip());
 
   // input material properties for hardening law
   in >> fMatProp[0];   // h0 
@@ -42,6 +55,7 @@ VoceGradHardening::VoceGradHardening(PolyCrystalMatT& poly):
   in >> fMatProp[3];   // c_s
   in >> fMatProp[4];   // c_x
   in >> fMatProp[5];   // burger's vector b
+  in >> fMatProp[6];   // factor beta
 
   // input initial value of statistically stored dislocation
   in >> fInitHardValues[0];
@@ -56,17 +70,27 @@ void VoceGradHardening::InitializeHardVariables()
 { 
   // initialize hardening variables at t_0
   fTauIso_n = fInitHardValues[0];
-  ResetHistory();
+  fTauIso   = fInitHardValues[0];
+
+  // initialize internals
+  fInternal = 0.0;
 }
 
 double VoceGradHardening::Magnitude() const { return fTauIso.Magnitude(); }
-const int VoceGradHardening::NumberOfVariables() const { return 2*fNumHardVar; }
+const int VoceGradHardening::NumberOfVariables() const 
+{ 
+  return 2*fNumHardVar + kNumInternal; 
+}
 
 void VoceGradHardening::UpdateHistory()
 {
   // update hardening variables
   fTauIso_n = fTauIso;
   //fTauKin_n = fTauKin;  // keep track of fXe (in GradCrystalPlast)
+
+  // update internals
+  fInternal[kShearRate_n] = fInternal[kShearRate];
+  fInternal[kWorkRate_n]  = fInternal[kWorkRate];
 }
 
 void VoceGradHardening::ResetHistory()
@@ -74,13 +98,18 @@ void VoceGradHardening::ResetHistory()
   // reset hardening variables
   fTauIso = fTauIso_n;
   //fTauKin = fTauKin_n;  // keep track of fXe (in GradCrystalPlast)
+
+  // reset internals
+  fInternal[kShearRate] = fInternal[kShearRate_n];
+  fInternal[kWorkRate]  = fInternal[kWorkRate_n];
 }
 
 void VoceGradHardening::LoadHardData(int dim, int dex, dArrayT& d_array)
 {
-  // recover hardening variables for current element/IP/grain
+  // recover hardening/internal variables for current element/IP/grain
   fTauIso_n.Set (fNumHardVar,  &d_array[dex += dim        ]);
   fTauIso.Set   (fNumHardVar,  &d_array[dex += fNumHardVar]);
+  fInternal.Set (kNumInternal, &d_array[dex += fNumHardVar]);
 }
 
 void VoceGradHardening::ExplicitUpdateHard()
@@ -89,8 +118,24 @@ void VoceGradHardening::ExplicitUpdateHard()
   InternalHardQnts();
 
   // forward Euler estimate for fTauS
+  //double scale = 50.e3*fMatProp[3]*fMatProp[3]/(2.*fMatProp[4]); // mu*c_s^2/(2*c_x)
+  //scale /= fMatProp[0];
+  //double scale = 100.0*fMatProp[3]*fMatProp[3]/(2.*fMatProp[4]); // mu*c_s^2/(2*c_x)
+  //double beta = 3.125e4;
+  double beta = fMatProp[6];
+  double scale = beta*fMatProp[3]/fMatProp[4];
+
+  double c   = fdt * fMatProp[0];
+  double g_s = fTauIsoSat - fMatProp[1];
+  double g_n, g;
+
   for (int i = 0; i < fNumHardVar; i++)
-    fTauIso[i] = fTauIso_n[i] + fdt * HardeningLaw(fTauIso_n[i], kFunc);
+  {
+     g_n = fTauIso_n[i] - fMatProp[1] + 1.e-8;
+     g = g_n + c*(1.0-g_n/g_s)*fInternal[kShearRate] 
+             + c*scale*fInternal[kWorkRate]/g_n; 
+     fTauIso[i] = g + fMatProp[1];
+  }
 }
 
 void VoceGradHardening::ImplicitUpdateHard()
@@ -98,9 +143,31 @@ void VoceGradHardening::ImplicitUpdateHard()
   // preliminary computations
   InternalHardQnts();
 
-  // forward Euler estimate for fTauS
+  // mid-point rule estimate for fTauIso
+  //double scale = 50.e3*fMatProp[3]*fMatProp[3]/(2.*fMatProp[4]); // mu*c_s^2/(2*c_x)
+  //scale /= fMatProp[0];
+  //double scale = 100.0*fMatProp[3]*fMatProp[3]/(2.*fMatProp[4]); // mu*c_s^2/(2*c_x)
+  //double beta = 3.125e4;
+  double beta = fMatProp[6];
+  double scale = beta*fMatProp[3]/fMatProp[4];
+
+  double c   = 0.5 * fdt * fMatProp[0];
+  double g_s = fTauIsoSat - fMatProp[1];
+  double A, B, C, g_n, g;
+
   for (int i = 0; i < fNumHardVar; i++)
-    fTauIso[i] = fTauIso_n[i] + fdt * HardeningLaw(fTauIso[i], kFunc);
+  {
+     g_n = fTauIso_n[i] - fMatProp[1] + 1.e-8;
+     
+     A = 1.0 + c * fInternal[kShearRate] / g_s;
+     B = - g_n - c * ( (1.0-g_n/g_s)*fInternal[kShearRate_n] 
+                       + scale*fInternal[kWorkRate_n]/g_n 
+                       + fInternal[kShearRate] );
+     C = -c*scale*fInternal[kWorkRate]; 
+     g = (- B + sqrt(B*B - 4.0*A*C)) / (2.*A);
+
+     fTauIso[i] = g + fMatProp[1];
+  }
 }
 
 void VoceGradHardening::ImplicitSolveHard()
@@ -111,10 +178,34 @@ void VoceGradHardening::ImplicitSolveHard()
   InternalHardQnts();
 
   // compute DDss
-  fSolver->Solve(fSolverPtr, fTauIso, ierr);
+  //fSolver->Solve(fSolverPtr, fTauIso, ierr);
 
-  if (ierr == 1)
-    throwRunTimeError("VoceGradHardening::SolveImplicitHard: Convergence problems");
+  //if (ierr == 1)
+  //  throwRunTimeError("VoceGradHardening::SolveImplicitHard: Convergence problems");
+
+  // backward Euler estimate for fTauIso
+  //double scale = 50.e3*fMatProp[3]*fMatProp[3]/(2.*fMatProp[4]); // mu*c_s^2/(2*c_x)
+  //scale /= fMatProp[0];
+  //double scale = 100.0*fMatProp[3]*fMatProp[3]/(2.*fMatProp[4]); // mu*c_s^2/(2*c_x)
+  //double beta = 3.125e4;
+  double beta = fMatProp[6];
+  double scale = beta*fMatProp[3]/fMatProp[4];
+
+  double c   = fdt * fMatProp[0];
+  double g_s = fTauIsoSat - fMatProp[1];
+  double A, B, C, g_n, g;
+
+  for (int i = 0; i < fNumHardVar; i++)
+  {
+     g_n = fTauIso_n[i] - fMatProp[1] + 1.e-8;
+     
+     A = 1.0 + c * fInternal[kShearRate] / g_s;
+     B = - g_n - c * fInternal[kShearRate];
+     C = - c * scale * fInternal[kWorkRate]; 
+     g = (- B + sqrt(B*B - 4.0*A*C)) / (2.*A);
+
+     fTauIso[i] = g + fMatProp[1];
+  }
 }
 
 void VoceGradHardening::FormRHS(const dArrayT& tauIso, dArrayT& rhs)
@@ -144,6 +235,13 @@ double VoceGradHardening::HardeningModulus() const
   return  fMatProp[0];
 }
 
+const double VoceGradHardening::IsoHardeningStress(int is) const
+{
+  // one isotropic hardening variable per grain
+  #pragma unused(is)
+  return fTauIso[0];
+}
+
 void VoceGradHardening::Print(ostream& out) const
 {
   // print hardening parameters
@@ -153,6 +251,7 @@ void VoceGradHardening::Print(ostream& out) const
   out << "       c_s . . . . . . . . . . . . . . . . . . . = " << fMatProp[3] << "\n";
   out << "       c_x . . . . . . . . . . . . . . . . . . . = " << fMatProp[4] << "\n";
   out << "       burger's vector (b) . . . . . . . . . . . = " << fMatProp[5] << "\n";
+  out << "       factor beta . . . . . . . . . . . . . . . = " << fMatProp[6] << "\n";
 
   // print hardening solver control data
   fSolver->Print(out);
@@ -169,15 +268,15 @@ void VoceGradHardening::PrintName(ostream& out) const
 void VoceGradHardening::InternalHardQnts()
 {
   // accumulated shear rate and work rate
-  fShearRate = 0.;
-  fWorkRate  = 0.;
+  fInternal[kShearRate] = 0.;
+  fInternal[kWorkRate]  = 0.;
   for (int i = 0; i < fDGamma.Length(); i++)
     {
-      fShearRate += fabs(fDGamma[i]);
-      fWorkRate  += fabs(fTauKin[i])*fabs(fDGamma[i]);
+      fInternal[kShearRate] += fabs(fDGamma[i]);
+      fInternal[kWorkRate]  += fabs(fTauKin[i])*fabs(fDGamma[i]);
     }
-  fShearRate /= fdt;
-  fWorkRate  /= fdt;
+  fInternal[kShearRate] /= fdt;
+  fInternal[kWorkRate]  /= fdt;
 
   // saturation value of hardness
   fTauIsoSat = fMatProp[2];
@@ -186,19 +285,22 @@ void VoceGradHardening::InternalHardQnts()
 const double VoceGradHardening::HardeningLaw(double tauIso, int kcode)
 {
   double coeff = 50.e3*fMatProp[3]*fMatProp[3]/(2.*fMatProp[4]); // mu*c_s^2/(2*c_x)
-  double diff  = tauIso-fMatProp[1];
-  double hard;
+  //double coeff = 100.0*fMatProp[3]*fMatProp[3]/(2.*fMatProp[4]); // mu*c_s^2/(2*c_x)
+  //double coeff = fMatProp[0]*1.0*fMatProp[3]/fMatProp[4]; // h0*Beta*c_s/c_x
+
+  double diff  = tauIso - fMatProp[1] + 1.e-8; 
+  double hard = fMatProp[0] / (fTauIsoSat - fMatProp[1]) * fInternal[kShearRate];
 
   switch(kcode)
     {
     case kFunc:
-      hard = fMatProp[0]*(fTauIsoSat-tauIso)/(fTauIsoSat-fMatProp[1])*fShearRate;
-      if (diff > 0.) hard += coeff/diff*fWorkRate;
+      hard *= (fTauIsoSat - tauIso);
+      if (diff > 0.) hard += coeff/diff*fInternal[kWorkRate];
       break;
 
     case kdFunc:
-      hard = -fMatProp[0]/(fTauIsoSat-fMatProp[1])*fShearRate;
-      if (diff > 0.) hard -= coeff/(diff*diff)*fWorkRate;
+      hard *= -1.0;
+      if (diff > 0.) hard -= coeff/(diff*diff)*fInternal[kWorkRate];
       break;
 
     default:

@@ -12,6 +12,7 @@
 #include "dMatrixT.h"
 
 class PolyCrystalMatT;
+class LocalCrystalPlast;
 
 class VoceHardening : public SlipHardening
 {
@@ -73,9 +74,6 @@ class VoceHardening : public SlipHardening
   // hardness saturation level
   double fTauIsoSat;
 
-  // accumulated shear rate
-  double fShearRate;
-
   // norms of tauIso to check convergence of solution
   double fNormHard0;
   double fNormHard;
@@ -83,6 +81,9 @@ class VoceHardening : public SlipHardening
   // Isotropic hardening stress at t_n
   dArrayT fTauIso_n;
   dArrayT ftauiso_save;
+
+  // some internal variables (accumulated shear rate)
+  dArrayT fInternal;
 
   // workspace
   dArrayT farray;

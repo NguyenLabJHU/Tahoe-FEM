@@ -48,4 +48,8 @@ void SlipKinetics::ComputeRateSensitivity()
 {  }
 
 bool SlipKinetics::IsMaxRateSensitivity()
-{  return false; }
+{  return true; }
+
+void SlipKinetics::RestoreRateSensitivity()
+{  }
+

@@ -43,18 +43,24 @@ class PolyCrystalMatT : public FDHookeanMatT
   // required parameter flag
   virtual bool NeedLastDisp() const;
 
-  	/** required parameter flags */
-	virtual bool Need_F_last(void) const { return true; };
+  /* required parameter flags */
+  virtual bool Need_F_last(void) const { return true; };
 
   // some methods to set/initialize member data
   virtual void SetSlipKinetics() = 0;
   virtual void SetSlipHardening() = 0;
   virtual void InitializeCrystalVariables() = 0;
   virtual int  NumVariablesPerElement() = 0;
+  virtual int  NumberOfUnknowns() const = 0;
 
   // methods invoked from nonlinear constitutive solver
-  virtual void FormRHS(const dArrayT& dgamma, dArrayT& rhs) = 0;
-  virtual void FormLHS(const dArrayT& dgamma, dMatrixT& lhs) = 0;
+  virtual void FormRHS(const dArrayT& array, dArrayT& rhs) = 0;
+  virtual void FormLHS(const dArrayT& array, dMatrixT& lhs) = 0;
+
+  // solve for crystal state / restores/saves solution during subincrementation
+  virtual void IterateOnCrystalState(bool& stateConverged, int subIncr) = 0;
+  virtual void RestoreSavedSolution() = 0;
+  virtual void SaveCurrentSolution() = 0;
 
   // general accesors
   const double& TimeStep() const;
@@ -68,16 +74,15 @@ class PolyCrystalMatT : public FDHookeanMatT
   SlipHardening& GetSlipHardening() const;
 
   // some needed accesors (by slip hardening classes mainly)
-  virtual const dArrayT& GetResolvedShearStress() const = 0;
-  virtual const dArrayT& GetIncrSlipShearStrain() const = 0;
+  const dArrayT& GetResolvedShearStress() const;
+  const dArrayT& GetIncrSlipShearStrain() const;
 
   // print data read
   virtual void Print(ostream& out) const;
 
  protected:
-
-	/* set (material) tangent modulus */
-	virtual void SetModulus(dMatrixT& modulus);
+  /* set (material) tangent modulus */
+  virtual void SetModulus(dMatrixT& modulus);
 
   // print name
   virtual void PrintName(ostream& out) const;
@@ -85,19 +90,32 @@ class PolyCrystalMatT : public FDHookeanMatT
   // allocate all elements at once
   void AllocateElements();
 
- private:
+  // subincrementation procedure to compute crystal state
+  void SolveCrystalState();
 
- 	/** return true if material implementation supports imposed thermal
-	 * strains. This material does not support multiplicative thermal
-	 * strains. FDHookeanMatT has been updated, but this class needs
-	 * another look. */
-	virtual bool SupportsThermalStrain(void) const { return false; };
+  // function to compute 3D deformations regardless of dimensionality of the
+  // problem. For 2D, the out-of-plane direction is x3 and the deformation
+  // is assumed to be plane strain
+  void Compute_Ftot_3D(dMatrixT& F_3D) const;
+  void Compute_Ftot_3D(dMatrixT& F_3D, int ip) const;
+  void Compute_Ftot_last_3D(dMatrixT& F_3D) const;
+  void Compute_Ftot_last_3D(dMatrixT& F_3D, int ip) const;
+
+  // 4th order tensor transformation: Co_ijkl = F_iI F_jJ F_kK f_lL Ci_IJKL
+  void FFFFC_3D(dMatrixT& Co, dMatrixT& Ci, const dMatrixT& F);
+
+ private:
+  /** return true if material implementation supports imposed thermal
+    * strains. This material does not support multiplicative thermal
+    * strains. FDHookeanMatT has been updated, but this class needs
+    * another look. */
+  virtual bool SupportsThermalStrain(void) const { return false; };
 
   // slip system geometry
   void SetSlipSystems();
 
   // read lattice orientation data, construct array fEuler
-  void SetLatticeOrientation() ;
+  void SetLatticeOrientation();
 
   // crystal elasticity
   void SetCrystalElasticity();
@@ -141,7 +159,7 @@ class PolyCrystalMatT : public FDHookeanMatT
   // steps to output texture
   int fODFOutInc;
 
-  // iteration counter for NLCSolver (DGamma) and state
+  // iteration counter for local Newton (NLCSolver) and state
   int fIterCount;
   int fIterState;
 
@@ -162,9 +180,15 @@ class PolyCrystalMatT : public FDHookeanMatT
   // total deformation gradients
   dMatrixT fFtot_n;
   dMatrixT fFtot;
+  dMatrixT fFt;
 
-  // Schmidt tensor in crystal coords
+  // incremental slip shearing rate / resolve shear stres
+  dArrayT fDGamma;
+  dArrayT fTau;
+
+  // Schmidt tensor in crystal/sample coords
   ArrayT<dMatrixT> fZc;
+  ArrayT<dMatrixT> fZ;
 
   // array for Euler angles at integration point
   ArrayT<dArrayT> fangles;
@@ -172,10 +196,15 @@ class PolyCrystalMatT : public FDHookeanMatT
   // huge temporary array to hold all euler angles
   ArrayT<Array2DT<dArrayT> > fEuler; 
 
-  // aggregate Cauchy stress
+  // rotation matrix from Euler angles
+  dMatrixT fRotMat;
+
+  // crystal and aggregate Cauchy stress
+  dSymMatrixT fs_ij;
   dSymMatrixT fsavg_ij;
 
-  // aggregate Moduli
+  // crystal and aggregate Moduli
+  dMatrixT fc_ijkl;
   dMatrixT fcavg_ijkl;
 };
 
@@ -188,5 +217,8 @@ inline const dArrayT& PolyCrystalMatT::MaterialProperties() const { return fMatP
 
 inline SlipKinetics& PolyCrystalMatT::GetSlipKinetics() const { return *fKinetics; }
 inline SlipHardening& PolyCrystalMatT::GetSlipHardening() const { return *fHardening; }
+
+inline const dArrayT& PolyCrystalMatT::GetResolvedShearStress() const { return fTau; }
+inline const dArrayT& PolyCrystalMatT::GetIncrSlipShearStrain() const { return fDGamma; }
 
 #endif /* _POLY_CRYSTAL_MAT_T_H_ */
