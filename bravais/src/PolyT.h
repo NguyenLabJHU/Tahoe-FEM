@@ -20,11 +20,13 @@
     class PolyT : public BoxT 
    {
    	      
-   private:
+   protected:
    
    	//info about the grains in this polycrystalline structure
       int NumberofGrains;
       nArrayT<dArrayT> GrainCenters;
+      double MaxGrainSeparation;
+      dArray2DT SizeofLattice;
       
    
    public:
