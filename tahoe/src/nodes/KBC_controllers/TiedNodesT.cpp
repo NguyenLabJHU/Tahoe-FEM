@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.7.2.3 2002-04-30 01:30:21 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.7.2.4 2002-05-07 18:58:52 cjkimme Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -238,31 +238,36 @@ bool TiedNodesT::ChangeStatus(void)
 {
 //TEMP - no check implemented
 
-  return false;
+	return false;
 
-  bool changeQ;
-  ElementBaseT* surroundingGroup = fFEManager.ElementGroup(0);
-
-  if (!surroundingGroup)
+  	bool changeQ = false;
+	ElementBaseT* surroundingGroup = fFEManager.ElementGroup(0);
+  	if (!surroundingGroup)
     {
-      cout <<" Group 0 doesn't exist \n";
-      throw eGeneralFail;
+      	cout <<" Group 0 doesn't exist \n";
+      	throw eGeneralFail;
     }
-  surroundingGroup->SendOutput(3);
-  dArray2DT fNodalQs = fNodeManager.OutputAverage();
+  	surroundingGroup->SendOutput(3);
+  	dArray2DT fNodalQs = fNodeManager.OutputAverage();
 
-  for (int i = 0; i < fNodePairs.MajorDim();i++) 
+  	for (int i = 0; i < fNodePairs.MajorDim();i++) 
     {
-      
-      if (fNodalQs.RowSum(fNodePairs(i,0)) + fNodalQs.RowSum(fNodePairs(i,1)) > 1000) 
-	{ 
-	  fPairStatus[i] = kFree;
-	  //fKBC_Cards[i].SetValues(i,1,KBC_CardT::kFix,0,1.);
-	  changeQ = true;
-	}
+  
+//	    if (fNodalQs.RowSum(fNodePairs(i,0)) + fNodalQs.RowSum(fNodePairs(i,1)) > 1000) 
+//		{ 
+//	  		fPairStatus[i] = kFree;
+//	  		changeQ = true;
+//		}
+	    dArrayT sigma(fNodalQs.MinorDim(),fNodalQs(fNodePairs(i,0)));
+		if (TiedPotentialT::InitiationQ(sigma))     
+		{ 
+	  		fPairStatus[i] = kFree;
+	  		changeQ = true;
+	  		
+		}
     }
 
-  return changeQ;
+  	return changeQ;
 
 }
 
@@ -309,13 +314,12 @@ void TiedNodesT::CopyKinematics(void)
 			int leader   = fNodePairs(i,1);
 
 			/* kinematics */
-			for (int j = 0; j < fField.Order(); j++)
+			for (int j = 0; j <= fField.Order(); j++)
 			{
 				dArray2DT& u = fField[j];
 
 				/* copy data from the leader */				
 				u.CopyRowFromRow(follower, leader);
-//				u(follower,1) = -u(leader,1);
 			}
 		}
 }
