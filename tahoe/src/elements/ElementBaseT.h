@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.44 2004-11-07 17:07:30 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.45 2005-02-13 22:12:30 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -65,13 +65,6 @@ class SolidElementT;
 class ElementBaseT: public iConsoleObjectT, public ParameterInterfaceT
 {
 public:
-
-	/** element status flags */
-	enum StatusT {kOFF = 0,
-                   kON = 1,
-               kMarked = 2,
-               kMarkON = 3,
-              kMarkOFF = 4};
 
 	/** constructors */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
@@ -140,9 +133,17 @@ public:
 	int NumDOF(void) const;
 	/*@}*/
 
-	/** set the active elements.
-	 * \param array of status flags for all elements in the group */
-	virtual void SetStatus(const ArrayT<StatusT>& status);
+	/** \name element status */
+	/*@{*/
+	/** set element status.
+	 * \param status array of status flags for all elements in the group */
+	virtual void SetStatus(const ArrayT<ElementCardT::StatusT>& status);
+
+	/** get element status.
+	 * \param status returns dimensioned to the number of group elements with
+	 *        the status flag for each elements in the group */
+	virtual void GetStatus(ArrayT<ElementCardT::StatusT>& status) const;
+	/*@}*/
 
 	/** compute LHS-side matrix and assemble to solver.
 	 * \param sys_type "maximum" LHS matrix type needed by the solver. The GlobalT::SystemTypeT
