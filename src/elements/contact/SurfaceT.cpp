@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.18 2001-09-19 15:27:16 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.19 2001-12-17 00:15:53 paklein Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -9,8 +9,6 @@
 #include "IOBaseT.h"
 #include "FEManagerT.h"
 #include "NodeManagerT.h"
-#include "ExodusT.h"
-#include "ModelFileT.h"
 #include "ContinuumElementT.h" // For conversion of side sets to facets.
 #include "FaceT.h"
 #include "LineL2FaceT.h"
@@ -135,90 +133,36 @@ void SurfaceT::InputSideSets
 		     << endl;
 		throw eBadInputValue;
 	}
+
 	/* read side set: element, local face pair */
 	iArray2DT side_set;
 	int block_ID;
-	int input_format = fe_manager.InputFormat();
 	out <<" Surface: "<< fTag ;
-	switch (input_format)
-	{
-		case IOBaseT::kExodusII:
-		{
-			/* ExodusII database info */
-			const StringT& file = fe_manager.ModelFile();
-			ostream& out = fe_manager.Output();
-			ExodusT database(out);
-			if (!database.OpenRead(file))
-			{
-				cout << "\n ContactT::InputSideSets:"
-				     << " error opening file: "
-		     		     << file << endl;
-				throw eGeneralFail;
-			}		
 
-			/* read side set info */
-			int set_ID;
-			in >> set_ID;
-			int num_sides = database.NumSidesInSet(set_ID);
-			side_set.Allocate(num_sides, 2);
-			database.ReadSideSet(set_ID, block_ID, side_set);
+	/* read data from parameter file */
+	iArrayT indexes;
+	bool multidatabasesets = false; /* change to positive and the parameter file format changes */
+	ModelManagerT* model = fe_manager.ModelManager();
+	model->SideSetList (in, indexes, multidatabasesets);
 
-			/* correct offset */
-			side_set--;
+	if (indexes.Length () != 1) 
+	  {
+	    cout << "\n\nContactT::InputSideSets: Model Manager read more than one side set, not programmed for this.\n\n";
+	    throw eBadInputValue;
+	  }
 
-			/* echo dimensions */
-			out << " side set ID: " << set_ID ;
-			out << "  element ID: " << block_ID ;
-			out << "       sides: " << side_set.MajorDim() << '\n'; 
-			break;
-		}
-		case IOBaseT::kTahoe:
-		{	
-			/* read */
-			int num_faces;
-			in >> block_ID >> num_faces;
-			if (num_faces < 0) throw eBadInputValue;
-			side_set.Allocate(num_faces, 2);
-			in >> side_set;
-			
-			/* correct offset */
-			block_ID--;
-			side_set--;
-			break;
-		}
-		case IOBaseT::kTahoeII:
-		{
-			/* open database */
-			ModelFileT database;
-			if (database.OpenRead(fe_manager.ModelFile()) 
-			    != ModelFileT::kOK)
-			{
-				cout << "\n ContactT::InputSideSets:"
-				     << " error opening file: "
-		     		     << fe_manager.ModelFile() << endl;
-				throw eGeneralFail;
-			}		
-
-			/* read side set info */
-			int set_ID;
-			in >> set_ID;			
-			database.GetSideSet(set_ID, block_ID, side_set);
-			
-			/* correct offset */
-			side_set--;
-
-			/* echo dimensions */
-			out << " side set ID: " << set_ID ;
-			out << "  element ID: " << block_ID ;
-			out << "       sides: " << side_set.MajorDim() << '\n';
-			break;
-		}
-		default:		
-			cout << "\n ContactT::InputSideSets:"
-			     << " input format not supported: ";
-			cout << input_format << endl;
-			throw eGeneralFail;
-	}
+	/* read side set */
+	iArray2DT temp = model->SideSet (indexes[0]);
+	int elemindex;
+	if (model->IsSideSetLocal(indexes[0]))
+	  {
+	    side_set = temp;
+	    elemindex = model->SideSetGroupIndex (indexes[0]);
+	  }
+	else
+	  model->SideSetGlobalToLocal (elemindex, side_set, temp);
+	temp.Free();
+	block_ID = elemindex + 1;
 	
 	/* global node numbers of faces from element group */
 	/* allocates to number of nodes per face */
