@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2001-02-22 23:45:14 paklein Exp $
+# $Id: makefile,v 1.6 2002-10-08 21:52:38 sawimme Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -11,7 +11,8 @@ OBJ = \
 	dArray2DT.o \
 	iArrayT.o \
 	iArray2DT.o \
-	iAutoArrayT.o
+	iAutoArrayT.o \
+	sArrayT.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -25,8 +26,8 @@ SRC = \
 	dArray2DT.cpp \
 	iArrayT.cpp \
 	iArray2DT.cpp \
-	iAutoArrayT.cpp
-
+	iAutoArrayT.cpp \
+	sArrayT.cpp
 # headers
 HDR = \
 	ArrayT.h \
@@ -39,6 +40,7 @@ HDR = \
 	iAutoArrayT.h \
 	nArrayT.h \
 	nArray2DT.h \
+	sArrayT.h \
 	RaggedArray2DT.h \
 	VariRaggedArray2DT.h
 HDR_LINK = $(HDR:.h=.h_link)
