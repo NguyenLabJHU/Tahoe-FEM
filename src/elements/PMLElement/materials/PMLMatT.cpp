@@ -1,4 +1,4 @@
-/* $Id: PMLMatT.cpp,v 1.3 2002-07-02 19:55:49 cjkimme Exp $ */
+/* $Id: PMLMatT.cpp,v 1.4 2002-10-05 20:04:13 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "PMLMatT.h"
@@ -10,7 +10,7 @@
 #include "ElementSupportT.h"
 #include "fstreamT.h"
 #include "LinearDecreaseT.h"
-#include "QuadraticDecreaseT.h"
+//#include "QuadraticDecreaseT.h"
 
 
 
