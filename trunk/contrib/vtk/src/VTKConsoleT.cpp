@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.58 2002-10-23 04:52:05 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.59 2002-11-01 02:09:46 paklein Exp $ */
 #include "VTKConsoleT.h"
 
 /* ANSI headers */
@@ -106,11 +106,6 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
 	save.AddArgument(save_file);
 	save.AddArgument(save_format);
 	iAddCommand(save);
-
-	CommandSpecT save_flip("SaveFlipBook");
-	save_flip.AddArgument(save_file);
-	save_flip.AddArgument(save_format);
-	iAddCommand(save_flip);
 	
 	CommandSpecT flipbook("FlipBook", false);
 	ArgSpecT delay(ArgSpecT::double_, "delay");
@@ -122,6 +117,12 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
 	flipbook.AddArgument(delay);
 	flipbook.AddArgument(step);
 	iAddCommand(flipbook);
+
+	CommandSpecT save_flip("SaveFlipBook");
+	save_flip.AddArgument(save_file);
+	save_flip.AddArgument(save_format);
+	save_flip.AddArgument(step);
+	iAddCommand(save_flip);
 
 	CommandSpecT select_step("SelectTimeStep");
 	select_step.SetPrompter(this);
@@ -588,6 +589,9 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
       StringT name, format;
       command.Argument(0).GetValue(name);
       command.Argument(1).GetValue(format);
+      int step;
+      command.Argument(2).GetValue(step);
+      step = (step < 1) ? 1 : step;
             
       vtkRendererSource* image = vtkRendererSource::New();
       image->SetInput(fFrames[0]->Renderer());
@@ -618,7 +622,7 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 		writer->SetInput(image->GetOutput());
       
 		/* assume all the bodies have the same number of steps as body 0 */
-		for (int j = 0; j < fBodies[0]->NumTimeSteps(); j++) {
+		for (int j = 0; j < fBodies[0]->NumTimeSteps(); j += step) {
 	
 			/* update bodies */
 			for (int i = 0; i < fBodies.Length(); i++)
