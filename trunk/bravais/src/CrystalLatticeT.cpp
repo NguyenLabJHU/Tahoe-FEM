@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: CrystalLatticeT.cpp,v 1.17 2003-07-02 23:46:57 saubry Exp $ */
+/* $Id: CrystalLatticeT.cpp,v 1.18 2003-07-21 15:27:58 fwdelri Exp $ */
 #include "CrystalLatticeT.h"
 
 #include <iostream>
@@ -23,6 +23,7 @@ CrystalLatticeT::CrystalLatticeT(int nlsd, int nuca,int which_rot,
   vBasis.Dimension(nLSD,nUCA);
   vLatticeParameters.Dimension(nLSD);
   vAxis.Dimension(nLSD,nLSD);
+  vType.Dimension(nUCA);
 
   WhichRot = which_rot;
   
@@ -86,6 +87,7 @@ CrystalLatticeT::CrystalLatticeT(const CrystalLatticeT& source)
 
   nLSD = source.nLSD;
   nUCA = source.nUCA;
+  sLATTYPE = source.sLATTYPE;
 
   vBasis.Dimension(nLSD,nUCA);
   vBasis = source.vBasis;
@@ -93,6 +95,8 @@ CrystalLatticeT::CrystalLatticeT(const CrystalLatticeT& source)
   vLatticeParameters = source.vLatticeParameters;
   vAxis.Dimension(nLSD,nLSD);
   vAxis = source.vAxis;
+  vType.Dimension(nUCA);
+  vType = source.vType;
 
   WhichRot = source.WhichRot;
   

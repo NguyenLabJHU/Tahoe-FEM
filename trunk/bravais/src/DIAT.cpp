@@ -17,6 +17,9 @@ DIAT::DIAT(int nlsd,int nuca,dArrayT alat,
   for (int i=0; i<nlsd; i++) 
     vLatticeParameters[i] = alat[i];
 
+  // Define lattice type
+  sLATTYPE = "DIA";
+
   if (nlsd==2)
     {
       cout << "Cannot create a 2-dimensional DIA lattice!" << "\n";
@@ -94,6 +97,9 @@ DIAT::DIAT(const DIAT& source) : CrystalLatticeT(source.nLSD,source.nUCA,
  
   for (int i=0; i<source.nLSD; i++) 
     vLatticeParameters[i] = source.vLatticeParameters[i];
+
+  for (int i=0; i<source.nUCA; i++) 
+    vType[i] = source.vType[i];
 
 }
 

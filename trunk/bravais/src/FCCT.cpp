@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: FCCT.cpp,v 1.12 2003-07-14 17:52:01 jzimmer Exp $ */
+/* $Id: FCCT.cpp,v 1.13 2003-07-21 15:27:58 fwdelri Exp $ */
 #include "FCCT.h"
 #include "CrystalLatticeT.h"
 
@@ -19,6 +19,9 @@ FCCT::FCCT(int nlsd,int nuca,dArrayT alat,
 
   for (int i=0; i<nlsd; i++) 
     vLatticeParameters[i] = alat[i]; 
+
+  // Define lattice type
+  sLATTYPE = "FCC";
 
   if (nlsd==2)
     {
@@ -83,6 +86,9 @@ FCCT::FCCT(const FCCT& source) : CrystalLatticeT(source.nLSD,source.nUCA,
 
   for (int i=0; i<source.nLSD; i++) 
     vLatticeParameters[i] = source.vLatticeParameters[i];
+
+  for (int i=0; i<source.nUCA; i++) 
+    vType[i] = source.vType[i];
 }
 
 const dArray2DT& FCCT::GetBasis() 

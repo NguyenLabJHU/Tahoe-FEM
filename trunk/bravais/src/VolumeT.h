@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: VolumeT.h,v 1.11 2003-06-13 17:27:28 saubry Exp $ */
+/* $Id: VolumeT.h,v 1.12 2003-07-21 15:27:58 fwdelri Exp $ */
 
 #ifndef _VOLUME_T_H_
 #define _VOLUME_T_H_
@@ -24,6 +24,7 @@ protected:
 	int nSD;
 	int nATOMS;
 	double volume;
+	StringT sLATTYPE;
 
 	StringT atom_names;
 	iArrayT atom_ID;

@@ -20,6 +20,9 @@ HEXT::HEXT(int nlsd,int nuca,dArrayT alat,
   for (int i=0; i<nlsd; i++) 
     vLatticeParameters[i] = alat[i];
 
+  // Define lattice type
+  sLATTYPE = "HEX";
+
   if (nlsd==2)
     {
       if(nuca != 2) {cout << "Wrong nuca\n"; throw eSizeMismatch;}
@@ -101,6 +104,8 @@ HEXT::HEXT(const HEXT& source) : CrystalLatticeT(source.nLSD,source.nUCA,
   for (int i=0; i<source.nLSD; i++) 
     vLatticeParameters[i] = source.vLatticeParameters[i];
 
+for (int i=0; i<source.nUCA; i++) 
+    vType[i] = source.vType[i];
 }
 
 const dArray2DT& HEXT::GetBasis() 

@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.29 2003-07-15 01:35:08 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.30 2003-07-21 15:27:58 fwdelri Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -16,7 +16,7 @@
 
 BoxT::BoxT(int dim, dArray2DT len,
 	   dArrayT lattice_parameter,
-	   iArrayT which_sort) : VolumeT(dim) 
+	   iArrayT which_sort, StringT slt) : VolumeT(dim) 
 {
   nSD = dim;
   length.Dimension(nSD,2);
@@ -24,6 +24,8 @@ BoxT::BoxT(int dim, dArray2DT len,
 
   WhichSort.Dimension(nSD);
   WhichSort = which_sort;
+
+  sLATTYPE = slt;
 
   for(int i=0;i<nSD;i++)
     {
@@ -46,19 +48,14 @@ BoxT::BoxT(int dim, dArray2DT len,
       length(i,1) = length(i,0) + (dist - length(i,0));
     }
 
+  if (sLATTYPE == "CORUN")
+    length(0,1) = length(0,0) + 3.0*ncells[0]*lattice_parameter[0];
 
-  /*for(int i=0;i<nSD;i++)
-    {
-      length(i,0) = len(i,0);
-      double dist = len(i,1)-len(i,0)+1;
-      length(i,1) = len(i,0) + ncells[i]*lattice_parameter[i];
-    } 
-  */ 
 }
 
 BoxT::BoxT(int dim, iArrayT cel,
 	   dArrayT lattice_parameter,
-	   iArrayT which_sort) : VolumeT(dim) 
+	   iArrayT which_sort, StringT slt) : VolumeT(dim) 
 {
   nSD = dim;
   length.Dimension(nSD,2);
@@ -66,6 +63,8 @@ BoxT::BoxT(int dim, iArrayT cel,
 
   WhichSort.Dimension(nSD);
   WhichSort = which_sort;
+
+  sLATTYPE = slt;
 
   for(int i=0;i<nSD;i++)
       ncells[i] = cel[i];
@@ -76,6 +75,13 @@ BoxT::BoxT(int dim, iArrayT cel,
       length(i,0) = -dist;
       length(i,1) = length(i,0) + (dist - length(i,0));
     }
+
+  if (sLATTYPE == "CORUN")
+    {
+      length(0,0) =-1.5*ncells[0]*lattice_parameter[0];
+      length(0,1) = 1.5*ncells[0]*lattice_parameter[0];
+    }
+
 }
 
 BoxT::BoxT(const BoxT& source) : VolumeT(source.nSD) 
@@ -100,6 +106,8 @@ BoxT::BoxT(const BoxT& source) : VolumeT(source.nSD)
   atom_coord.Dimension(source.nATOMS,source.nSD);
   atom_coord = source.atom_coord;
 
+  atom_types.Dimension(source.nATOMS);
+  atom_types = source.atom_types;
 
   atom_connectivities.Dimension(source.nATOMS,source.nSD);
   atom_connectivities = source.atom_connectivities;
@@ -114,6 +122,7 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
   int natoms=0;
   int temp_nat=0;
   dArray2DT temp_atom;
+  iArrayT temp_type;
 
   if(pcl->GetRotMeth() == 0) 
     {
@@ -126,21 +135,26 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
       if (nlsd==3) temp_nat = 16*nuca*ncells[0]*ncells[1]*ncells[2];
     }
   temp_atom.Dimension(temp_nat,nlsd);
+  temp_type.Dimension(temp_nat);
 
   if(pcl->GetRotMeth() == 0)
-    nATOMS = RotateAtomInBox(pcl,&temp_atom,temp_nat);
+    nATOMS = RotateAtomInBox(pcl,&temp_atom,&temp_type,temp_nat);
   else
-    nATOMS = RotateBoxOfAtom(pcl,&temp_atom,temp_nat);
+    nATOMS = RotateBoxOfAtom(pcl,&temp_atom,&temp_type,temp_nat);
 
 
   // Get atoms coordinates
   atom_ID.Dimension(nATOMS);
   atom_coord.Dimension(nATOMS,nlsd);
+  atom_types.Dimension(nATOMS);
   atom_connectivities.Dimension(nATOMS,1);
 
   for(int m=0; m < nATOMS ; m++) 
     for (int k=0;k< nlsd;k++)
+      {
       atom_coord(m)[k] = temp_atom(m)[k];
+      atom_types[m] = temp_type[m];
+      }
   
   atom_names = "Box";
   for (int p=0;p<nATOMS;p++)
@@ -148,10 +162,6 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
       atom_ID[p] = p;
       atom_connectivities(p)[0] = p;
     }
-
-  // Create types
-  atom_types.Dimension(nATOMS);
-  atom_types = 1;
 
   // Create parts
   atom_parts.Dimension(nATOMS);
@@ -174,9 +184,10 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
 
   // Sort Lattice 
   if(WhichSort  != 0) SortLattice(pcl);
+
 }
 
-void BoxT::SortLattice(CrystalLatticeT* pcl) 
+void BoxT::SortLattice(CrystalLatticeT* pcl)
 {
   int nlsd = pcl->GetNLSD();
   
@@ -362,7 +373,7 @@ void BoxT::CalculateBounds(iArrayT per,CrystalLatticeT* pcl)
 
 //////////////////// PRIVATE //////////////////////////////////
 
-int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat)
+int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,iArrayT* temp_type,int temp_nat)
 {
   int nlsd = pcl->GetNLSD();
   int nuca = pcl->GetNUCA();
@@ -370,11 +381,13 @@ int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat
   const dArrayT& vLP = pcl->GetLatticeParameters();
   const dArray2DT& vB = pcl->GetBasis();
   const dArray2DT& vA = pcl->GetAxis();
+  const iArrayT& vT = pcl->GetType();
 
   double x,y,z;
   double eps = 1.e-6;
 
   int natom= 0;
+  int type= 0;
 
   // Define a slightly shorter box
   double l00,l01,l10,l11;
@@ -402,12 +415,14 @@ int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat
 		  {
 		    x += (c[k] + vB(k,m))*vA(k,0);
 		    y += (c[k] + vB(k,m))*vA(k,1);
+		    type = vT[m];
 		  }
 
 		if(x >= l00 && x <= l01 && y >= l10 && y <= l11 )
 		  {
 		    (*temp_atom)(natom)[0] = x;
 		    (*temp_atom)(natom)[1] = y;
+		    (*temp_type)[natom] = type;
 		    natom++;
 		  }
 	      }
@@ -439,6 +454,7 @@ int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat
 		      x += (c[k] + vB(k,m))*vA(k,0);
 		      y += (c[k] + vB(k,m))*vA(k,1);
 		      z += (c[k] + vB(k,m))*vA(k,2);
+		      type = vT[m];
 		    }
 		  
 		  if(x >= l00 && x <= l01 && y >= l10 && y <= l11 &&
@@ -447,6 +463,7 @@ int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat
 		      (*temp_atom)(natom)[0] = x;
 		      (*temp_atom)(natom)[1] = y;
 		      (*temp_atom)(natom)[2] = z;
+		      (*temp_type)[natom] = type;
 		      natom++;                     
 		    }
 		}
@@ -456,7 +473,7 @@ int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat
   return natom;
 }
 
-int BoxT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat)
+int BoxT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,iArrayT* temp_type,int temp_nat)
 {
   int natom= 0;
 
@@ -465,6 +482,7 @@ int BoxT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat
   const dArrayT& vLP = pcl->GetLatticeParameters();
   const dArray2DT& vA = pcl->GetAxis();
   const dArray2DT& vB = pcl->GetBasis();
+  const iArrayT& vT = pcl->GetType();
 
   if (nSD==2) 
     {
@@ -486,6 +504,7 @@ int BoxT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat
 		  {
 		    (*temp_atom)(natom)[0] += (c[k] + vB(k,m))*vA(k,0);
 		    (*temp_atom)(natom)[1] += (c[k] + vB(k,m))*vA(k,1);
+		    (*temp_type)[natom] = vT[m];
 		  }
 		
 		natom++;
@@ -515,6 +534,7 @@ int BoxT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat
 		      (*temp_atom)(natom)[0] += (c[k] + vB(k,m))*vA(k,0);
 		      (*temp_atom)(natom)[1] += (c[k] + vB(k,m))*vA(k,1);
 		      (*temp_atom)(natom)[2] += (c[k] + vB(k,m))*vA(k,2);
+		      (*temp_type)[natom] = vT[m];
 		    }
 		  
 		  natom++;        

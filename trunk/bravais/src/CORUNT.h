@@ -4,6 +4,7 @@
 
 #include "StringT.h"
 #include "dArrayT.h"
+#include "iArrayT.h"
 #include "dArray2DT.h"
 #include "CrystalLatticeT.h"
 
@@ -23,6 +24,7 @@ public:
         const dArrayT& GetLatticeParameters();
         const dArray2DT& GetBasis();
 	const dArray2DT& GetAxis();
+	const iArrayT& GetType();
 
 };
 
