@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.12 2002-07-02 19:55:28 cjkimme Exp $ */
+/* $Id: RodT.cpp,v 1.13 2002-07-02 20:59:14 hspark Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -24,11 +24,22 @@ const int RodT::kRodTnsd = 2; /* number of spatial dimensions */
 RodT::RodT(const ElementSupportT& support, const FieldT& field):
 	ElementBaseT(support, field),
 	fCurrMaterial(NULL),
-	fKE(0.0),
-	fPE(0.0),
-	fTotalE(0.0),
-	fTemp(0.0),
-	fPressure(0.0),
+	fInstKE(0.0),
+	fInstPE(0.0),
+	fInstTotalE(0.0),
+	fInstTemp(0.0),
+	fInstPressure(0.0),
+	fAvgKE(0.0),
+	fAvgPE(0.0),
+	fAvgTotalE(0.0),
+	fAvgTemp(0.0),
+	fAvgPressure(0.0),
+	fSumKE(0.0),
+	fSumPE(0.0),
+	fSumTotalE(0.0),
+	fSumTemp(0.0),
+	fSumPressure(0.0),
+	fStepNumber(support.StepNumber()),
 	fLocVel(LocalArrayT::kVel)
 {
 	/* set matrix format */
@@ -41,7 +52,7 @@ void RodT::Initialize(void)
 {
 	/* inherited */
 	ElementBaseT::Initialize();
-
+	
 	/* constant matrix needed to calculate stiffness */
 	fOneOne.Dimension(fLHS);
 	dMatrixT one(NumDOF());
@@ -70,6 +81,10 @@ void RodT::Initialize(void)
 		fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
 	else if (type == GlobalT::kDiagonal)
 		fLHS.SetFormat(ElementMatrixT::kDiagonal);
+
+	/* initialize and allocate velocity array */
+	fLocVel.Allocate(NumElementNodes(), NumDOF());
+	Field().RegisterLocal(fLocVel);
 }
 
 /* form of tangent matrix */
@@ -184,15 +199,24 @@ void RodT::CloseStep(void)
   /* inherited */
   ElementBaseT::CloseStep();
   /* set material variables */
-  //fMaterialList->CloseStep();
+  //fMaterialList->CloseStep(); 
   Top();
   while (NextElement())
     {
-      ComputePE();
-      ComputeKE();
-      ComputeTotalE();
-      ComputeTemperature();
-      ComputePressure();
+      /* get velocities */
+      SetLocalU(fLocVel);
+
+      /* compute MD quantities of interest */
+      ComputeInstPE();
+      ComputeAvgPE();
+      ComputeInstKE();
+      ComputeAvgKE();
+      ComputeInstTotalE();
+      ComputeAvgTotalE();
+      ComputeInstTemperature();
+      ComputeAvgTemperature();
+      //ComputeInstPressure();
+      //ComputeAvgPressure();
     }
 }
 
@@ -383,25 +407,33 @@ void RodT::WriteMaterialData(ostream& out) const
 /***********************************************************************
 * Private
 ***********************************************************************/
+/* Below are MD related computational functions */
 
-void RodT::ComputeKE(void)
+void RodT::ComputeInstKE(void)
 {
-  /* computes the kinetic energy of the system of atoms */
-  /* particle mass */
-  double* ke = &fKE;
+  /* computes the instantaneous kinetic energy of the system of atoms */
+  double* ke = &fInstKE;
   double mass = fCurrMaterial->Mass();
   *ke = .5 * mass;
-
+  // NOT FINISHED YET - ISSUES WITH fLocVel
 }
 
-void RodT::ComputePE(void)
+void RodT::ComputeAvgKE(void)
+{
+  double* tempavg = &fAvgKE;
+  double* total = &fSumKE;
+  *total += fInstKE;
+  *tempavg = *total / fStepNumber;
+}
+
+void RodT::ComputeInstPE(void)
 {
   /* computes the potential energy of the system of atoms */
   
   /* coordinates arrays */
   const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
   const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
-  double* pe = &fPE;
+  double* pe = &fInstPE;
 
   /* node numbers */
   const iArrayT& nodes = CurrentElement().NodesX();
@@ -417,20 +449,50 @@ void RodT::ComputePE(void)
   (*pe) += fCurrMaterial->Potential(fBond.Magnitude(), fBond0.Magnitude());
 }
 
-void RodT::ComputeTotalE(void)
+void RodT::ComputeAvgPE(void)
 {
-  /* computes total energy = kinetic energy + potential energy of the system */
-  double *totale = &fTotalE;
-  *totale = fKE + fPE;
+  double* tempavg = &fAvgPE;
+  double* total = &fSumPE;
+  *total += fInstPE;
+  *tempavg = *total / fStepNumber;
 }
 
-void RodT::ComputeTemperature(void)
+void RodT::ComputeInstTotalE(void)
 {
-  /* computes average temperature of the atomic system */
+  /* computes instantaneous total energy = kinetic energy + potential energy of the system */
+  double *totale = &fInstTotalE;
+  *totale = fInstKE + fInstPE;
+}
+
+void RodT::ComputeAvgTotalE(void)
+{
+  double* total = &fSumTotalE;
+  double* tempavg = &fAvgTotalE;
+  *total += fInstTotalE;
+  *tempavg = *total / fStepNumber;
 
 }
 
-void RodT::ComputePressure(void)
+void RodT::ComputeInstTemperature(void)
+{
+  /* computes instantaneous temperature of the atomic system */
+  double* temp = &fInstTemp;
+  *temp = 2 * fInstKE / (fKb * NumSD() * NumDOF());
+}
+
+void RodT::ComputeAvgTemperature(void)
+{
+  double* temp = &fAvgTemp;
+  *temp = 2 * fAvgKE / (fKb * NumSD() * NumDOF());
+}
+
+void RodT::ComputeInstPressure(void)
+{
+  /* computes the instantaneous pressure of the atomic system */
+
+}
+
+void RodT::ComputeAvgPressure(void)
 {
   /* computes the average pressure of the atomic system */
 
