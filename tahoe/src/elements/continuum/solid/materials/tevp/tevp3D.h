@@ -1,4 +1,4 @@
-/* $Id: tevp3D.h,v 1.3 2001-07-03 01:35:45 paklein Exp $ */
+/* $Id: tevp3D.h,v 1.4 2001-07-23 01:38:48 hspark Exp $ */
 /* Created:  Harold Park (06/25/2001) */
 
 #ifndef _TEVP_3D_H_
@@ -75,7 +75,8 @@ class tevp3D: public FDStructMatT, public IsotropicT
                              kSb = 1,   // Effective Stress
                              kEb = 2};  // Effective Strain
   enum ModelT {kTevp = 0,          // Thermo-elasto-viscoplastic
-               kFluid = 1};        // Fluid model
+               kFluid = 1,
+               kCrack = 2};        // Fluid model
 
   /* Output values/internal variable functions below - these functions
    * should ONLY be called AFTER the stress and modulus have been computed */
@@ -84,7 +85,7 @@ class tevp3D: public FDStructMatT, public IsotropicT
   double ComputeEffectiveStress(void);
   double ComputeFluidEffectiveStrain(void);
   double ComputeViscoEffectiveStrain(void);
-  void CheckCriticalStrain(const ElementCardT& element, int ip);
+  void CheckCriticalCriteria(const ElementCardT& element, int ip);
   int CheckIfPlastic(const ElementCardT& element, int ip);
   /* load element data for the specified integration point */
   void LoadData(const ElementCardT& element, int ip); 
@@ -139,6 +140,7 @@ class tevp3D: public FDStructMatT, public IsotropicT
   dArrayT fSmlp;
   dSymMatrixT fSymStress3D; 
   double fJ;                   // Jacobian of deformation gradient
+  double fVisc;                // Original viscosity
 
   /* output variables/internal variables */
   double fTemperature;         // Temperature
