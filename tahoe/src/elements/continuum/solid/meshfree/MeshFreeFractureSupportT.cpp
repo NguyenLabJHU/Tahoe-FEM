@@ -1,5 +1,5 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.4 2002-02-20 09:40:26 paklein Exp $ */
-/* created: paklein (02/15/2000)                                          */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.5 2002-02-20 23:06:30 paklein Exp $ */
+/* created: paklein (02/15/2000) */
 
 #include "MeshFreeFractureSupportT.h"
 
@@ -230,8 +230,8 @@ void MeshFreeFractureSupportT::InitCuttingFacetsAndFronts(ifstreamT& in,
 			     << endl;
 			throw eBadInputValue;
 		}
-		else if (fNumFacetNodes == -1)
-			InitFacetDatabase(num_facet_nodes);
+		else if (fNumFacetNodes == -1)          //NOTE: -1 indicates fNumFacetNodes has not 
+			InitFacetDatabase(num_facet_nodes); //      been initialized, why call this anyway?
 		
 		/* read facet data */
 		int nsd = fMFShapes->NumSD();
@@ -271,6 +271,9 @@ void MeshFreeFractureSupportT::InitCuttingFacetsAndFronts(ifstreamT& in,
 		fda_s = 0.0;
 		fcone = 0.0;
 		fn_s  = 0;
+		
+		/* must initialize */
+		InitFacetDatabase(0);
 	}
 }
 
