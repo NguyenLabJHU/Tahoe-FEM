@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.67 2005-02-13 22:13:26 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.68 2005-03-15 07:15:35 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -48,6 +48,8 @@
 #include "XuNeedleman3DT.h"
 
 using namespace Tahoe;
+
+const double Pi = acos(-1.0);
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* constructor */
@@ -380,7 +382,6 @@ void CSEAnisoT::TakeParameterList(const ParameterListT& list)
 	fddU.Dimension(NumSD());
 
 	/* rotating frame */
-#pragma message("need to keep this flag?")
 	fRotate = list.GetParameter("rotate_frame");
 	if (fRotate) {
 	
@@ -584,8 +585,12 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 			}
 			else
 				j0 = j = fShapes->Jacobian(fQ);
+			if (fAxisymmetric) {
+				fShapes->Interpolate(fLocInitCoords1, fdelta);
+				j0 *= 2.0*Pi*fdelta[0];
+			}
 			fIPArea = w*j0;
-
+					
 			/* check */
 			if (j0 <= 0.0 || j <= 0.0) ExceptionT::BadJacobianDet(caller);
 		
@@ -737,7 +742,7 @@ void CSEAnisoT::RHSDriver(void)
 				pstate += num_state;
 			
 				/* integration weights */
-				double w = fShapes->IPWeight();		
+				double w = fShapes->IPWeight();
 
 				/* coordinate transformations */
 				double j0, j;
@@ -748,6 +753,10 @@ void CSEAnisoT::RHSDriver(void)
 				}
 				else
 					j0 = j = fShapes->Jacobian(fQ);
+				if (fAxisymmetric) {
+					fShapes->Interpolate(fLocInitCoords1, fdelta);
+					j0 *= 2.0*Pi*fdelta[0];				
+				}					
 				fIPArea = w*j0;
 
 				/* check */
@@ -807,8 +816,13 @@ void CSEAnisoT::RHSDriver(void)
 		{
 			/* integrate fracture area */
 			fShapes->TopIP();
-			while (fShapes->NextIP())
+			while (fShapes->NextIP()) {
 				fFractureArea += (fShapes->Jacobian())*(fShapes->IPWeight());
+				if (fAxisymmetric) {
+					fShapes->Interpolate(fLocInitCoords1, fdelta);
+					fFractureArea *= 2.0*Pi*fdelta[0];
+				}
+			}
 		}
 
 		/* next in block */
@@ -1089,6 +1103,10 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			
 				/* element integration weight */
 				double ip_w = fShapes->Jacobian()*fShapes->IPWeight();
+				if (fAxisymmetric) {
+					fShapes->Interpolate(fLocInitCoords1, fdelta);
+					ip_w *= 2.0*Pi*fdelta[0];
+				}
 				area += ip_w;
 
 				/* gap */
@@ -1189,6 +1207,10 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					double* pstate = fStateVariables_last(CurrElementNumber()) + fShapes->CurrIP()*num_state;
 					/* element integration weight */
 					double ip_w = fShapes->Jacobian()*fShapes->IPWeight();
+					if (fAxisymmetric) {
+						fShapes->Interpolate(fLocInitCoords1, fdelta);
+						ip_w *= 2.0*Pi*fdelta[0];
+					}
 					area += ip_w;
 		
 					/* moment */

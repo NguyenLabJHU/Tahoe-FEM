@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.35 2005-02-13 22:13:26 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.36 2005-03-15 07:15:35 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
@@ -34,11 +34,15 @@ static const char* ElementOutputNames[3] = {
 /* constructor */
 CSEBaseT::CSEBaseT(const ElementSupportT& support):
 	ElementBaseT(support),
+	fGeometryCode(GeometryT::kNone),
+	fNumIntPts(-1),
+	fAxisymmetric(false),
+	fCloseSurfaces(false),
+	fOutputArea(false),
 	fLocInitCoords1(LocalArrayT::kInitCoords),
 	fLocCurrCoords(LocalArrayT::kCurrCoords),
 	fFractureArea(0.0),
 	fShapes(NULL),
-	fNumIntPts(-1),
 	fOutputGlobalTractions(false)
 {
 	SetName("CSE_base");	
@@ -47,45 +51,21 @@ CSEBaseT::CSEBaseT(const ElementSupportT& support):
 /* constructor */
 CSEBaseT::CSEBaseT(ElementSupportT& support):
 	ElementBaseT(support),
+	fGeometryCode(GeometryT::kNone),
+	fNumIntPts(-1),
+	fAxisymmetric(false),
+	fCloseSurfaces(false),
+	fOutputArea(false),
 	fLocInitCoords1(LocalArrayT::kInitCoords),
 	fLocCurrCoords(LocalArrayT::kCurrCoords),
 	fFractureArea(0.0),
 	fShapes(NULL),
-	fNumIntPts(-1),
 	fOutputGlobalTractions(false)	
 {
 	SetName("CSE_base");
 
 	int i_code = ElementSupport().ReturnInputInt(ElementSupportT::kGeometryCode);
-	switch (i_code)
-	{
-		case GeometryT::kNone:
-			fGeometryCode= GeometryT::kNone;
-			break;
-		case GeometryT::kPoint:
-			fGeometryCode = GeometryT::kPoint;
-			break;
-		case GeometryT::kLine:
-			fGeometryCode = GeometryT::kLine;
-			break;
-		case GeometryT::kQuadrilateral:
-			fGeometryCode = GeometryT::kQuadrilateral;
-			break;
-		case GeometryT::kTriangle:
-			fGeometryCode = GeometryT::kTriangle;
-			break;
-		case GeometryT::kHexahedron:
-			fGeometryCode = GeometryT::kHexahedron;
-			break;
-		case GeometryT::kTetrahedron:
-			fGeometryCode = GeometryT::kTetrahedron;
-			break;
-		case GeometryT::kPentahedron:
-			fGeometryCode = GeometryT::kPentahedron;
-			break;
-		default:
-			throw ExceptionT::kBadInputValue;	
-	}
+	fGeometryCode = GeometryT::int2CodeT(i_code);
 	fNumIntPts =  ElementSupport().ReturnInputInt(ElementSupportT::kNumIntPts);
 	fCloseSurfaces =  ElementSupport().ReturnInputInt(ElementSupportT::kCloseSurface);
 	fOutputArea =  ElementSupport().ReturnInputInt(ElementSupportT::kOutputArea);
@@ -204,12 +184,9 @@ void CSEBaseT::RegisterOutput(void)
 			break;
 
 		default:	
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-		cout << "\n CSEBaseT::RegisterOutput: could not translate\n";
-		cout << "     geometry code " << fGeometryCode
-			 << " to a pseudo-geometry code for the volume." << endl;
-#endif
-		throw ExceptionT::kGeneralFail;	
+			ExceptionT::GeneralFail("CSEBaseT::RegisterOutput",
+				"could not translate geometry code %d to a pseudo-geometry for the volume",
+				fGeometryCode);
 	}	
 
 	/* nodal output */
@@ -270,7 +247,6 @@ void CSEBaseT::WriteOutput(void)
 
 	/* send to output */
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
-
 }
 
 /* compute specified output parameter and send for smoothing */
@@ -321,12 +297,16 @@ void CSEBaseT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	ElementBaseT::DefineParameters(list);
 
-	ParameterT close_surfaces(ParameterT::Boolean, "close_surfaces");
-	close_surfaces.SetDefault(false);
+	ParameterT axisymmetric(fAxisymmetric, "axisymmetric");
+	axisymmetric.SetDefault(fAxisymmetric);
+	list.AddParameter(axisymmetric);
+
+	ParameterT close_surfaces(fCloseSurfaces, "close_surfaces");
+	close_surfaces.SetDefault(fCloseSurfaces);
 	list.AddParameter(close_surfaces);
 	
-	ParameterT output_area(ParameterT::Boolean, "output_area");
-	output_area.SetDefault(false);
+	ParameterT output_area(fOutputArea, "output_area");
+	output_area.SetDefault(fOutputArea);
 	list.AddParameter(output_area);
 }
 
@@ -404,6 +384,11 @@ ParameterInterfaceT* CSEBaseT::NewSub(const StringT& name) const
 void CSEBaseT::TakeParameterList(const ParameterListT& list)
 {
 	const char caller[] = "CSEBaseT::TakeParameterList";
+
+	/* axisymmetry */
+	fAxisymmetric = list.GetParameter("axisymmetric");
+	if (fAxisymmetric && NumSD() != 2) /* check */
+		ExceptionT::GeneralFail(caller, "expecting 2 dimensions not %d with axisymmetry", NumSD());
 
 	/* element geometry - need to set geometry before calling inherited method */
 	const ParameterListT& geom = list.GetListChoice(*this, "surface_geometry");
