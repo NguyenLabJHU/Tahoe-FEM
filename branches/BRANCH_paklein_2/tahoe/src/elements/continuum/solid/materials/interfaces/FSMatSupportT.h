@@ -1,9 +1,9 @@
-/* $Id: FSMatSupportT.h,v 1.1.2.2 2002-10-30 09:18:11 paklein Exp $ */
+/* $Id: FSMatSupportT.h,v 1.1.2.3 2002-11-13 08:33:10 paklein Exp $ */
 #ifndef _FD_MAT_SUPPORT_T_H_
 #define _FD_MAT_SUPPORT_T_H_
 
 /* base class */
-#include "MaterialSupportT.h"
+#include "StructuralMatSupportT.h"
 
 /* direct members */
 #include "ArrayT.h"
@@ -15,7 +15,7 @@ namespace Tahoe {
 class FiniteStrainT;
 
 /** support for the finite strain Tahoe materials classes */
-class FSMatSupportT: public MaterialSupportT
+class FSMatSupportT: public StructuralMatSupportT
 {
 public:
 
@@ -43,7 +43,10 @@ public:
 	void SetDeformationGradient_last(const ArrayT<dMatrixT>* F_last_List);
 	/*@}*/
 
-	/** \name field gradients */
+	/** \name field gradients
+	 * These functions require the FiniteStrainT pointer be set with
+	 * FSMatSupportT::SetContinuumElement. These functions will all return
+	 * false if the pointer has not been set. */
 	/*@{*/
 	/** compute field gradients with respect to current coordinates at the current integration point.
 	 * Returns true of the operation is supported, false otherwise. */
@@ -71,18 +74,6 @@ public:
 
 	/** set the element group pointer */
 	virtual void SetContinuumElement(const ContinuumElementT* p);
-	
-	/** nodal temperatures. Returns NULL if not available */
-	const LocalArrayT* Temperatures(void) const;
-
-	/** nodal temperatures from the last time step. Returns NULL if 
-	 * not available */
-	const LocalArrayT* LastTemperatures(void) const;
-
-	/** return a pointer the specified local array, or NULL if the array is not
-	 * available. During calls the materials routines these will contain the
-	 * values for the current element. */
-	virtual const LocalArrayT* LocalArray(LocalArrayT::TypeT t) const;
 	/*@}*/
 
   private:
@@ -98,25 +89,25 @@ public:
 };
 
 /* inlines */
-const dMatrixT& FSMatSupportT::DeformationGradient(void) const
+inline const dMatrixT& FSMatSupportT::DeformationGradient(void) const
 {
 	if (!fF_List) throw ExceptionT::kGeneralFail;
 	return (*fF_List)[CurrIP()]; 
 }
 
-const dMatrixT& FSMatSupportT::DeformationGradient(int ip) const 
+inline const dMatrixT& FSMatSupportT::DeformationGradient(int ip) const 
 { 
 	if (!fF_List) throw ExceptionT::kGeneralFail;
 	return (*fF_List)[ip]; 
 }
 
-const dMatrixT& FSMatSupportT::DeformationGradient_last(void) const 
+inline const dMatrixT& FSMatSupportT::DeformationGradient_last(void) const 
 {
 	if (!fF_last_List) throw ExceptionT::kGeneralFail;
 	return (*fF_last_List)[CurrIP()]; 
 }
 
-const dMatrixT& FSMatSupportT::DeformationGradient_last(int ip) const 
+inline const dMatrixT& FSMatSupportT::DeformationGradient_last(int ip) const 
 {
 	if (!fF_last_List) throw ExceptionT::kGeneralFail;
 	return (*fF_last_List)[ip]; 

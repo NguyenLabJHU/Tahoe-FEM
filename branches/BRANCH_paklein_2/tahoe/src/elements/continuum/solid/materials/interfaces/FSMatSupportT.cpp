@@ -1,4 +1,4 @@
-/* $Id: FSMatSupportT.cpp,v 1.1.2.2 2002-10-30 09:18:11 paklein Exp $ */
+/* $Id: FSMatSupportT.cpp,v 1.1.2.3 2002-11-13 08:33:10 paklein Exp $ */
 #include "FSMatSupportT.h"
 #include "FiniteStrainT.h"
 
@@ -6,7 +6,7 @@ using namespace Tahoe;
 
 /* constructor */
 FSMatSupportT::FSMatSupportT(int nsd, int ndof, int nip):
-	MaterialSupportT(nsd, ndof, nip),
+	StructuralMatSupportT(nsd, ndof, nip),
 	fF_List(NULL),
 	fF_last_List(NULL),
 	fFiniteStrain(NULL)
@@ -17,6 +17,9 @@ FSMatSupportT::FSMatSupportT(int nsd, int ndof, int nip):
 /* set source for the deformation gradient */
 void FSMatSupportT::SetDeformationGradient(const ArrayT<dMatrixT>* F_List)
 {
+//NOTE: cannot do dimension checks because source is not initialized
+//      when this is configured 
+#if 0
 	/* checks */
 	if (!F_List) throw ExceptionT::kGeneralFail;
 	if (F_List->Length() != NumIP()) throw ExceptionT::kSizeMismatch;
@@ -24,14 +27,18 @@ void FSMatSupportT::SetDeformationGradient(const ArrayT<dMatrixT>* F_List)
 		if ((*F_List)[0].Rows() != NumSD() || /* only check the first one */
 		    (*F_List)[0].Cols() != NumSD()) 
 		    throw ExceptionT::kSizeMismatch;
+#endif
 	
 	/* keep pointer */
-	F_List = fF_List;
+	fF_List = F_List;
 }
 
 /* set source for the deformation gradient */
 void FSMatSupportT::SetDeformationGradient_last(const ArrayT<dMatrixT>* F_last_List)
 {
+//NOTE: cannot do dimension checks because source is not initialized
+//      when this is configured 
+#if 0
 	/* checks */
 	if (!F_last_List) throw ExceptionT::kGeneralFail;
 	if (F_last_List->Length() != NumIP()) throw ExceptionT::kSizeMismatch;
@@ -39,58 +46,62 @@ void FSMatSupportT::SetDeformationGradient_last(const ArrayT<dMatrixT>* F_last_L
 		if ((*F_last_List)[0].Rows() != NumSD() || /* only check the first one */
 		    (*F_last_List)[0].Cols() != NumSD()) 
 		    throw ExceptionT::kSizeMismatch;
-	
+#endif
+
 	/* keep pointer */
 	fF_last_List = F_last_List;
+}
+
+/* compute field gradients with respect to current coordinates */
+bool FSMatSupportT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u) const
+{
+	if (fFiniteStrain) {
+		fFiniteStrain->ComputeGradient(u, grad_u);
+		return true;
+	}
+	else
+		return false;
+}
+
+/* compute field gradients with respect to current coordinates */
+bool FSMatSupportT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u, int ip) const
+{
+	if (fFiniteStrain) {
+		fFiniteStrain->ComputeGradient(u, grad_u, ip);
+		return true;
+	}
+	else
+		return false;
+}
+
+/* compute field gradients with respect to reference coordinates */	
+bool FSMatSupportT::ComputeGradient_reference(const LocalArrayT& u, dMatrixT& grad_u) const
+{
+	if (fFiniteStrain) {
+		fFiniteStrain->ComputeGradient_reference(u, grad_u);
+		return true;
+	}
+	else
+		return false;
+}
+
+/* compute field gradients with respect to reference coordinates */
+bool FSMatSupportT::ComputeGradient_reference(const LocalArrayT& u, dMatrixT& grad_u, int ip) const
+{	
+	if (fFiniteStrain) {
+		fFiniteStrain->ComputeGradient_reference(u, grad_u, ip);
+		return true;
+	}
+	else
+		return false;
 }
 
 /* set the element group pointer */
 void FSMatSupportT::SetContinuumElement(const ContinuumElementT* p)
 {
 	/* inherited */
-	MaterialSupportT::SetContinuumElement(p);
+	StructuralMatSupportT::SetContinuumElement(p);
 
 	/* cast to finite strain pointer */
 	fFiniteStrain = dynamic_cast<const FiniteStrainT*>(p);
-}
-
-/* return a pointer the specified local array */
-const LocalArrayT* FSMatSupportT::LocalArray(LocalArrayT::TypeT t) const
-{
-	/* quick exit to inherited */
-	if (!fFiniteStrain) return MaterialSupportT::LocalArray(t);
-
-	switch (t)
-	{
-		case LocalArrayT::kLastDisp:
-			return &(fFiniteStrain->LastDisplacements());
-	
-		case LocalArrayT::kVel:
-			return &(fFiniteStrain->Velocities());
-
-		case LocalArrayT::kAcc:
-			return &(fFiniteStrain->Accelerations());
-
-		default:
-			/* inherited */
-			return MaterialSupportT::LocalArray(t);
-	}
-}
-
-/* nodal temperatures */
-const LocalArrayT* FSMatSupportT::Temperatures(void) const
-{
-	if (!fFiniteStrain)
-		return NULL;
-	else
-		return fFiniteStrain->Temperatures();
-}
-
-/* nodal temperatures from the last time step */
-const LocalArrayT* FSMatSupportT::LastTemperatures(void) const
-{
-	if (!fFiniteStrain)
-		return NULL;
-	else
-		return fFiniteStrain->LastTemperatures();
 }

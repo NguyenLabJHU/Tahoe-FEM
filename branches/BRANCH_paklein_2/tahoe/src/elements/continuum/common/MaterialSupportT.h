@@ -1,10 +1,12 @@
-/* $Id: MaterialSupportT.h,v 1.2.8.3 2002-10-30 09:18:11 paklein Exp $ */
+/* $Id: MaterialSupportT.h,v 1.2.8.4 2002-11-13 08:33:10 paklein Exp $ */
 #ifndef _MATERIAL_SUPPORT_T_H_
 #define _MATERIAL_SUPPORT_T_H_
 
 /* direct members */
 #include "GlobalT.h"
 #include "LocalArrayT.h"
+#include "AutoArrayT.h"
+#include "ElementCardT.h"
 
 namespace Tahoe {
 
@@ -60,6 +62,9 @@ public:
 	/** the simulation time increment number */
 	int StepNumber(void) const;
 
+	/** number of steps in the simulation for the current step size */
+	int NumberOfSteps(void) const;
+
 	/** set the source for the run state flag */
 	void SetRunState(const GlobalT::StateT& run_state);
 
@@ -70,13 +75,16 @@ public:
 	void SetIterationNumber(const int& iter);
 
 	/** set source for the current simulation time */
-	void SetTime(double& time);
+	void SetTime(const double& time);
 
 	/** set source for the simulation time increment */
-	void SetTimeStep(double& time_step);
+	void SetTimeStep(const double& time_step);
 
 	/** set source for the simulation time increment number */
-	void SetStepNumber(int& step_number);
+	void SetStepNumber(const int& step_number);
+
+	/** set the source for the number of steps */
+	void SetNumberOfSteps(const int& number_of_steps);
 	/*@}*/
 	
 	/** \name host code information */
@@ -88,11 +96,25 @@ public:
 
 	/** set the element group pointer */
 	virtual void SetContinuumElement(const ContinuumElementT* p);
+	
+	/** set the source for element cards */
+	void SetElementCards(const AutoArrayT<ElementCardT>* element_cards);
 
+	/** return the number of elements. If the element cards pointer
+	 * is not set with MaterialSupportT::SetElementCards, this will return 0 */
 	int NumElements(void) const;
+
+	/** return the current element.  If the element cards pointer
+	 * is not set with MaterialSupportT::SetElementCards, this will return -1 */
 	int CurrElementNumber(void) const;
-	ElementCardT& ElementCard(int card) const;
-	ElementCardT& CurrentElement(void) const;
+
+	/** return the specified card.  If the element cards pointer
+	 * is not set with MaterialSupportT::SetElementCards, this will return NULL */
+	ElementCardT* ElementCard(int card) const;
+
+	/** return the current card.  If the element cards pointer
+	 * is not set with MaterialSupportT::SetElementCards, this will return NULL */
+	ElementCardT* CurrentElement(void) const;
 
 	/** return a pointer the specified local array, or NULL if the array is not
 	 * available. During calls the materials routines these will contain the
@@ -133,7 +155,11 @@ public:
 	const double* fTime;
 	const double* fTimeStep;
 	const int* fStepNumber;
+	const int* fNumberOfSteps;
   	/*@}*/
+
+	/** pointer to element card information */
+	const AutoArrayT<ElementCardT>* fElementCards;	
   
   	/** pointer to the continuum element */
   	const ContinuumElementT* fContinuumElement;
@@ -148,6 +174,48 @@ inline const ContinuumElementT* MaterialSupportT::ContinuumElement(void) const
 inline void MaterialSupportT::SetContinuumElement(const ContinuumElementT* p)
 {
 	fContinuumElement = p;
+}
+
+/* set the source for element cards */
+inline void MaterialSupportT::SetElementCards(const AutoArrayT<ElementCardT>* element_cards)
+{
+	fElementCards = element_cards;
+}
+
+/* return the number of elements */
+inline int MaterialSupportT::NumElements(void) const
+{
+	if (fElementCards) 
+		return fElementCards->Length();
+	else
+		return 0;
+}
+
+/* return the current element */
+inline int MaterialSupportT::CurrElementNumber(void) const
+{
+	if (fElementCards) 
+		return fElementCards->Position();
+	else
+		return -1;
+}
+
+/* return the specified card */
+inline ElementCardT* MaterialSupportT::ElementCard(int card) const
+{
+	if (fElementCards) 
+		return fElementCards->Pointer(card);
+	else
+		return NULL;
+}
+
+/* return the current */
+inline ElementCardT* MaterialSupportT::CurrentElement(void) const
+{
+	if (fElementCards) 
+		return &(fElementCards->Current());
+	else
+		return NULL;
 }
 
 /* run time status */
@@ -187,6 +255,12 @@ inline int MaterialSupportT::StepNumber(void) const
 	else return -1;
 }
 
+inline int MaterialSupportT::NumberOfSteps(void) const
+{
+	if (fNumberOfSteps) return *fNumberOfSteps;
+	else return 0;
+}
+
 inline void MaterialSupportT::SetRunState(const GlobalT::StateT& run_state)
 {
 	fRunState = &run_state;
@@ -202,19 +276,24 @@ inline void MaterialSupportT::SetIterationNumber(const int& iter)
 	fIterationNumber = &iter;
 }
 
-inline void MaterialSupportT::SetTime(double& time)
+inline void MaterialSupportT::SetTime(const double& time)
 {
 	fTime = &time;
 }
 
-inline void MaterialSupportT::SetTimeStep(double& time_step)
+inline void MaterialSupportT::SetTimeStep(const double& time_step)
 {
 	fTimeStep = &time_step;
 }
 
-inline void MaterialSupportT::SetStepNumber(int& step_number)
+inline void MaterialSupportT::SetStepNumber(const int& step_number)
 {
 	fStepNumber = &step_number;
+}
+
+inline void MaterialSupportT::SetNumberOfSteps(const int& number_of_steps)
+{
+	fNumberOfSteps = &number_of_steps;
 }
 
 } /* namespace Tahoe */
