@@ -1,4 +1,4 @@
-// $Id: MFGP_Bal_EqT.cpp,v 1.7 2004-08-20 04:38:54 raregue Exp $
+// $Id: MFGP_Bal_EqT.cpp,v 1.8 2004-08-20 05:02:05 raregue Exp $
 #include "MFGP_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -9,16 +9,20 @@ MFGP_Bal_EqT::MFGP_Bal_EqT(void):
 	fData_Pro_Displ(NULL),
 	fData_Pro_Plast(NULL)
 	*/
-MFGP_Bal_EqT::MFGP_Bal_EqT(void);
+MFGP_Bal_EqT::MFGP_Bal_EqT(void)
+{
+	
+}
 
 /* destructor */
-MFGP_Bal_EqT::~MFGP_Bal_EqT(void);
+MFGP_Bal_EqT::~MFGP_Bal_EqT(void) { }
 /*
 {
 	delete fData_Pro_Displ;
 	delete fData_Pro_Plast;
 }
 */
+
 
 
 void MFGP_Bal_EqT::Initialize (int &curr_ip, D3MeshFreeShapeFunctionT *Shapes_displ, D3MeshFreeShapeFunctionT *Shapes_plast, 
