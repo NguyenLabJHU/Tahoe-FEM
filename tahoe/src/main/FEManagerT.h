@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.46 2004-07-25 06:44:12 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.46.2.1 2004-07-29 14:59:58 d-farrell2 Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -16,6 +16,10 @@
 #include "ElementListT.h"
 #include "IOBaseT.h"
 #include "iArray2DT.h"
+/* direct members, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
+#include "PartitionT.h"
+#include "dArray2DT.h"
+#include "ofstreamT.h"
 
 #include "ios_fwd_decl.h"
 
@@ -45,6 +49,9 @@ class FieldT;
 class CommunicatorT;
 class CommManagerT;
 class GlobalMatrixT;
+/* forward declarations, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
+class IOManager_mpi;
+class ParitionT;
 
 class FEManagerT: public iConsoleObjectT, public ParameterInterfaceT
 {
@@ -63,15 +70,36 @@ public:
 	      kParametersOnly = 1, /**< read top-level parameters only */
 	        kAllButSolver = 2  /**< do everything except initialize the equation system and solvers */
 	        };
+	/** task codes, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
+	enum TaskT {kDecompose = 0,
+	                  kRun = 1};
 
-	/** constructor */
-	FEManagerT(const StringT& input_file, ofstreamT& output, CommunicatorT& comm, const ArrayT<StringT>& argv);
+	/** constructor, does serial and parallel, has new argument task */
+	FEManagerT(const StringT& input_file, ofstreamT& output, CommunicatorT& comm,
+		const ArrayT<StringT>& argv, TaskT task);
+	
+	/* constructor, parallel - partition can be NULL for decomposition, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
+	/* was FEManagerT_mpi */
+	/*FEManagerT(const StringT& input, ofstreamT& output, CommunicatorT& comm,
+	 *	const ArrayT<StringT>& argv, PartitionT* partition, TaskT task);*/
 
 	/** destructor */
 	virtual ~FEManagerT(void);
+	
+	/* domain decomposition (graph is returned), formerly in FEManagerT_mpi.h, DEF 28 July 04 */
+	void Decompose(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int method);
 
+	/* return reference to partition data, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
+	const PartitionT& Partition(void) const;
+	
+	/* set the external IOManager, formerly in FEManagerT_mpi.h, DEF 28 July 04 (needed??) */
+	void SetExternalIO(IOManager_mpi* externIO);
+	
 	/** solve all the time sequences */
 	virtual void Solve(void);
+	
+	/* debugging, formerly in FEManagerT_mpi.h, DEF 28 July 04 (needed??) */
+	virtual const iArrayT* ElementMap(const StringT& block_ID) const;
 	
 	/** \name accessors */
 	/*@{*/
@@ -415,6 +443,33 @@ private:
 	FEManagerT(FEManagerT&);
 	FEManagerT& operator=(FEManagerT&) const;
 	/*@}*/
+	
+	// These last ones were formerly in FEManagerT_mpi.h
+	/** write time stamp to log file */
+	void TimeStamp(const char* message) const;
+
+	/** collect computation effort for each node */
+	void WeightNodalCost(iArrayT& weight) const;
+
+	/** \name decomposition methods */
+	/*@{*/
+	void DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int method);
+	void DoDecompose_2(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int method);
+	/*@}*/
+	
+	/* task */
+	TaskT fTask;
+
+	/* external IO */
+	IOManager_mpi* fExternIOManager;
+	IOBaseT::FileTypeT fInputFormat;
+	StringT fModelFile;
+
+	/* partition information */
+	PartitionT* fPartition;
+	
+	/** log file */
+	ofstreamT flog;
 		
 protected:
 
@@ -544,6 +599,33 @@ inline int FEManagerT::IterationNumber(void) const
 inline int FEManagerT::GlobalEquationStart(int group) const { return fGlobalEquationStart[group]; }
 inline int FEManagerT::ActiveEquationStart(int group) const { return fActiveEquationStart[group]; };
 inline int FEManagerT::GlobalNumEquations(int group) const { return fGlobalNumEquations[group]; }
+
+// inserted inlines formerly in FEManagerT_mpi.h, DEF 28 July 04
+/* return reference to partition data */
+inline const PartitionT& FEManagerT::Partition(void) const
+{
+	if (!fPartition) throw ExceptionT::kGeneralFail;
+	return *fPartition;
+}
+
+/* set the external IOManager */
+inline void FEManagerT::SetExternalIO(IOManager_mpi* externIO)
+{
+	fExternIOManager = externIO;
+}
+
+/* debugging */
+inline const iArrayT* FEManagerT::ElementMap(const StringT& block_ID) const
+{
+	if (fTask == kDecompose)
+		return NULL; // assume no map
+	else
+	{
+		if (!fPartition) throw ExceptionT::kGeneralFail;		
+		return &(fPartition->ElementMap(block_ID));
+	}
+}
+
 
 } // namespace Tahoe 
 #endif /* _FE_MANAGER_H_ */

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.76 2004-07-22 08:26:12 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.76.2.1 2004-07-29 14:59:47 d-farrell2 Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -25,6 +25,18 @@
 #include "SolverT.h"
 #include "ParameterContainerT.h"
 
+// the includes below are from FEManagerT_mpi.cpp DEF 28 July 04
+#include <time.h> 
+#include "AutoArrayT.h"
+#include "RaggedArray2DT.h"
+#include "IOManager_mpi.h"
+#include "GraphT.h"
+#include "IOBaseT.h"
+#include "PartitionT.h"
+
+#include "ModelFileT.h"
+#include "ExodusT.h"
+
 using namespace Tahoe;
 
 /* File/Version Control */
@@ -34,8 +46,9 @@ const char kProgramName[] = "tahoe";
 /* static methods */
 const char* FEManagerT::Version(void) { return kCurrentVersion; }
 
-/* constructor */
-FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output, CommunicatorT& comm, const ArrayT<StringT>& argv):
+// constructor, does serial and parallel, has new argument task
+FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output,
+	CommunicatorT& comm, const ArrayT<StringT>& argv, TaskT task):
 	ParameterInterfaceT("tahoe"),
 	fArgv(argv),
 	fInputFile(input_file),
@@ -77,7 +90,88 @@ FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output, Communicato
 	iAddCommand(write_rs);
 	
 	iAddCommand(CommandSpecT("WriteOutput"));
+	
+	if (Size() > 1)
+	{	
+		fPartition(partition),
+		fTask(task),
+		fExternIOManager(NULL)
+		if (fTask == kRun)
+		{
+			const char caller[] = "FEManagerT::FEManagerT";// perhaps differentiate from serial??
+	
+			/* revise input file name */
+			StringT suffix;
+			suffix.Suffix(fInputFile);
+			fInputFile.Root();
+			fInputFile.Append(".p", Rank());
+			fInputFile.Append(suffix);
+		
+			/* checks */
+			if (!fPartition)
+				ExceptionT::BadInputValue(caller, "partition information required for task %d", kRun);
+			else if (fPartition->ID() != Rank())
+				ExceptionT::MPIFail(caller, "partition ID %d does not match process rank %d",
+					fPartition->ID(), Rank());
+			
+			StringT log_file;
+			log_file.Root(fInputFile);
+			log_file.Append(".log");
+			flog.open(log_file);
+			
+			/* redirect log messages */
+			fComm.SetLog(flog);
+		
+			/* log */
+			TimeStamp(caller);
+		}
+		else if (fTask == kDecompose)
+			fInitCode = kAllButSolver;
+	}
 }
+
+/* constructor, parallel, formerly in FEManagerT.h DEF 28 July 04 */
+/* constructor - partition can be NULL for decomposition */
+/*FEManagerT::FEManagerT(const StringT& input, ofstreamT& output, 
+	CommunicatorT& comm, const ArrayT<StringT>& argv, PartitionT* partition, TaskT task):
+	FEManagerT(input, output, comm, argv),
+	fPartition(partition),
+	fTask(task),
+	fExternIOManager(NULL)
+{	
+	if (fTask == kRun)
+	{
+		const char caller[] = "FEManagerT::FEManagerT";// perhaps differentiate from serial??
+
+		// revise input file name
+		StringT suffix;
+		suffix.Suffix(fInputFile);
+		fInputFile.Root();
+		fInputFile.Append(".p", Rank());
+		fInputFile.Append(suffix);
+
+		// checks
+		if (!fPartition)
+			ExceptionT::BadInputValue(caller, "partition information required for task %d", kRun);
+		else if (fPartition->ID() != Rank())
+			ExceptionT::MPIFail(caller, "partition ID %d does not match process rank %d",
+				fPartition->ID(), Rank());
+		
+		StringT log_file;
+		log_file.Root(fInputFile);
+		log_file.Append(".log");
+		flog.open(log_file);
+		
+		// redirect log messages
+		fComm.SetLog(flog);
+
+		// log
+		TimeStamp(caller);
+	}
+	else if (fTask == kDecompose)
+		fInitCode = kAllButSolver;
+}*/
+
 
 /* destructor */
 FEManagerT::~FEManagerT(void)
@@ -97,6 +191,16 @@ FEManagerT::~FEManagerT(void)
 	
 	fStatus = GlobalT::kNone;	
 }
+/* destructor (needed??, how differentiate between serial/parallel)*/
+/*FEManagerT_mpi::~FEManagerT_mpi(void)
+ *{
+ *	/* log */
+ *	TimeStamp("FEManagerT_mpi::~FEManagerT_mpi");
+ *
+ *	/* restore log messages */
+ *	if (fTask == kRun) fComm.SetLog(cout);
+ *}
+ */
 
 /* solve all the time sequences */
 void FEManagerT::Solve(void)
@@ -474,6 +578,21 @@ ExceptionT::CodeT FEManagerT::CloseStep(void)
 
 void FEManagerT::Update(int group, const dArrayT& update)
 {
+	/* below is some code which will check to see if the other process are still alive
+	 * The question is how best to check if one should do it. Is it even neccesary? looks
+	 * like it only outputs a time value, and does some error checking */
+	if (Size() > 1) // if comm size > 1 use parallel stuff
+	{
+		/* give a heart beat */
+		const char caller[] = "FEManagerT::Update";
+		
+		/* give heartbeat */
+		TimeStamp(caller);
+		
+		/* check sum */
+		if (fComm.Sum(ExceptionT::kNoError) != 0) 
+			ExceptionT::BadHeartBeat(caller); /* must trigger try block in FEManagerT::SolveStep */
+	}
 	fNodeManager->Update(group, update);
 }
 
@@ -497,7 +616,66 @@ GlobalT::RelaxCodeT FEManagerT::RelaxSystem(int group) const
 			relax = GlobalT::MaxPrecedence(relax, (*fElementGroups)[i]->RelaxSystem());
 
 	return relax;
+	if (Size() > 1) // use parallel stuff if comm size > 1
+	{
+		/* gather codes */
+		iArrayT all_relax(Size());
+		fComm.AllGather(relax, all_relax);
+	
+		/* code precedence */
+		for (int i = 0; i < all_relax.Length(); i++)
+			relax = GlobalT::MaxPrecedence(relax, GlobalT::RelaxCodeT(all_relax[i]));
+	
+		/* report */
+		if (relax != GlobalT::kNoRelax)
+		{
+			cout << "\n Relaxation code at time = " << Time() << '\n';
+			cout << setw(kIntWidth) << "proc";	
+			cout << setw(kIntWidth) << "code" << '\n';	
+			for (int i = 0; i < all_relax.Length(); i++)
+			{
+				cout << setw(kIntWidth) << i;	
+				cout << setw(kIntWidth) << all_relax[i];
+				cout << '\n';	
+			}
+		 }
+
+		return relax;
+	 }
 }
+
+/* system relaxation --> need to check the partition size to execute all gather, etc*/
+/* Here is the question, how best to key off which of these to use, use partition, comm ? */
+/*GlobalT::RelaxCodeT FEManagerT_mpi::RelaxSystem(int group) const
+{
+	/* inherited
+	GlobalT::RelaxCodeT relax = FEManagerT::RelaxSystem(group);
+	
+	/* gather codes
+	iArrayT all_relax(Size());
+	fComm.AllGather(relax, all_relax);
+	
+	/* code precedence
+	for (int i = 0; i < all_relax.Length(); i++)
+		relax = GlobalT::MaxPrecedence(relax, GlobalT::RelaxCodeT(all_relax[i]));
+	
+	/* report
+	if (relax != GlobalT::kNoRelax)
+	{
+		cout << "\n Relaxation code at time = " << Time() << '\n';
+		cout << setw(kIntWidth) << "proc";	
+		cout << setw(kIntWidth) << "code" << '\n';	
+		for (int i = 0; i < all_relax.Length(); i++)
+		{
+			cout << setw(kIntWidth) << i;	
+			cout << setw(kIntWidth) << all_relax[i];
+			cout << '\n';	
+		}
+	}
+
+	return relax;
+}*/
+
 
 /* global equation functions */
 void FEManagerT::AssembleLHS(int group, const ElementMatrixT& elMat,
@@ -550,13 +728,16 @@ void FEManagerT::DisassembleRHS(int group, dArrayT& elRes, const nArrayT<int>& e
 	fSolvers[group]->DisassembleRHS(elRes, eqnos);
 }
 
-/* writing results */
+/* writing results original*/
 void FEManagerT::WriteOutput(double time)
 {
 	try
 	{
 		/* state */
 		SetStatus(GlobalT::kWriteOutput);
+		
+		/* set output time for the external IO manager -> from parallel */
+		if (fExternIOManager) fExternIOManager->SetOutputTime(time);
 
 		/* set output time */
 		fIOManager->SetOutputTime(time);
@@ -656,10 +837,28 @@ void FEManagerT::WriteOutput(double time)
 	catch (ExceptionT::CodeT error) { ExceptionT::Throw(error, "FEManagerT::WriteOutput"); }
 }
 
-void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const
+// This below is from FEManagerT_mpi.cpp DEF 28 July 04
+// I kept them separate, since they have other options
+/* initiate the process of writing output from all output sets */
+void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values,
+	const dArray2DT& e_values) const
+{
+	/* output assembly mode */
+	if(fExternIOManager)
+	{
+		/* distribute/assemble/write */
+		fExternIOManager->WriteOutput(ID, n_values, e_values);		
+	}
+	else // do local IO
+	{
+		fIOManager->WriteOutput(ID, n_values, e_values);		
+	}
+}
+
+/*void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const
 {
 	fIOManager->WriteOutput(ID, n_values, e_values);
-}
+}*/
 
 /* write a snapshot */
 void FEManagerT::WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
@@ -754,33 +953,85 @@ const OutputSetT& FEManagerT::OutputSet(int ID) const
 	if (!fIOManager) ExceptionT::GeneralFail("FEManagerT::OutputSet", "I/O manager not initialized");
 	return fIOManager->OutputSet(ID);
 }
+// worried about the recursive calls in original mpi version
+/* (temporarily) direct output away from main out, formerly in FEManagerT_mpi.cpp DEF 28 July 04 */
+void FEManagerT::DivertOutput(const StringT& outfile)
+{ 
+	if (fExternIOManager)
+	{
+		/* external I/O */
+		fExternIOManager->DivertOutput(outfile);	
+
+		/* system output */
+		if (fCurrentGroup != -1) /* resolved group */
+			fSO_DivertOutput[fCurrentGroup]	= true;
+		else /* all groups */
+			fSO_DivertOutput = true;
+	}
+	else if (!fIOManager) ExceptionT::GeneralFail("FEManagerT::DivertOutput", "I/O manager not initialized");
+	else
+	{
+		/* need processor designation for split output */
+		StringT outfile_p = outfile;
+		if (Size() > 1) outfile_p.Append(".p", Rank());		
+		fIOManager->DivertOutput(outfile);
+		
+		/* resolved group */
+		if (fCurrentGroup != -1)
+			fSO_DivertOutput[fCurrentGroup]	= true;
+		else
+			fSO_DivertOutput = true;
+	}
+}
 
 /* (temporarily) direct output away from main out */
-void FEManagerT::DivertOutput(const StringT& outfile)
+/*void FEManagerT::DivertOutput(const StringT& outfile)
 {
-	/* check */
+	// check
 	if (!fIOManager) ExceptionT::GeneralFail("FEManagerT::DivertOutput", "I/O manager not initialized");
 	fIOManager->DivertOutput(outfile);
 	
-	/* resolved group */
+	// resolved group
 	if (fCurrentGroup != -1)
 		fSO_DivertOutput[fCurrentGroup]	= true;
 	else
 		fSO_DivertOutput = true;
-}
-
+}*/
+// same story as divert
 void FEManagerT::RestoreOutput(void)
 {
-	/* check */
+	if (fExternIOManager)
+	{
+		/* external I/O */
+		fExternIOManager->RestoreOutput();
+
+		/* system output */
+		if (fCurrentGroup != -1) /* resolved group */
+			fSO_DivertOutput[fCurrentGroup]	= false;
+		else /* all groups */
+			fSO_DivertOutput = false;
+	}
+	else if (!fIOManager) ExceptionT::GeneralFail("FEManagerT::RestoreOutput", "I/O manager not initialized");
+	else // local IO
+	{
+		fIOManager->RestoreOutput();
+		/* resolved group */
+		if (fCurrentGroup != -1)
+			fSO_DivertOutput[fCurrentGroup]	= false;
+	}
+}
+/*void FEManagerT::RestoreOutput(void)
+{
+	/* check 
 	if (!fIOManager) ExceptionT::GeneralFail("FEManagerT::RestoreOutput", "I/O manager not initialized");
 	fIOManager->RestoreOutput();
 
-	/* resolved group */
+	/* resolved group
 	if (fCurrentGroup != -1)
 		fSO_DivertOutput[fCurrentGroup]	= false;
 	else
 		fSO_DivertOutput = false;
-}
+}*/
 
 /* cross-linking */
 ElementBaseT* FEManagerT::ElementGroup(int groupnumber) const
@@ -827,19 +1078,66 @@ GlobalT::EquationNumberScopeT FEManagerT::EquationNumberScope(int group) const
 	return fSolvers[group]->EquationNumberScope();
 }
 
+/* global number of first local equation */
 int FEManagerT::GetGlobalEquationStart(int group, int start_eq_shift) const
+{
+	if (Size() == 1)
+	{
+		#pragma unused(group)
+		
+		/* no other equations */
+		return 1 + start_eq_shift;
+	}
+	else
+	{
+		/* number of local equations */
+		int num_eq = fNodeManager->NumEquations(group);
+
+		/* collect from all */
+		int size = Size();
+		iArrayT all_num_eq(size);
+		fComm.AllGather(num_eq, all_num_eq);
+
+		/* compute offset to local equations */
+		int offset = 0;
+		for (int i = 0; i < Rank(); i++)
+			offset += all_num_eq[i];
+
+		/* equation start */
+		return offset + 1 + start_eq_shift;
+	}
+}
+
+
+/*int FEManagerT::GetGlobalEquationStart(int group, int start_eq_shift) const
 {
 #pragma unused(group)
 
-	/* no other equations */
+	// no other equations
 	return 1 + start_eq_shift;
-}
+}*/
 
 int FEManagerT::GetGlobalNumEquations(int group) const
 {
-	/* no other equations */
-	return fNodeManager->NumEquations(group);
+	if (Size() == 1)
+	{
+		/* no other equations */
+		return fNodeManager->NumEquations(group);
+	}
+	else
+	{
+		int loc_num_eq = fNodeManager->NumEquations(group);
+		iArrayT all_num_eq(Size());
+		fComm.AllGather(loc_num_eq, all_num_eq);
+		return all_num_eq.Sum();
+	}
 }
+
+/*int FEManagerT::GetGlobalNumEquations(int group) const
+{
+	// no other equations
+	return fNodeManager->NumEquations(group);
+}*/
 
 void FEManagerT::SetTimeStep(double dt) const
 {
@@ -1236,7 +1534,45 @@ if (fInitCode == kAllButSolver) return;
 
 	/* set equation systems */
 	SetSolver();
+	
+	if (Size() > 1) // if parallel
+	{
+		/* collect model file and input format from ModelManager */
+		fInputFormat = fModelManager->DatabaseFormat();
+		fModelFile = fModelManager->DatabaseName();
+	
+		/* correct restart file name */
+		if (fReadRestart) {
+		{
+			StringT suffix;
+			suffix.Suffix(fRestartFile);
+			fRestartFile.Root();
+			fRestartFile.Append(".p", Rank());
+			fRestartFile.Append(suffix);
+		}		
+	}
 }
+
+// because of the inherits, I am not really sure what to do with this
+/* accept parameter list */
+/*void FEManagerT_mpi::TakeParameterList(const ParameterListT& list)
+{
+	// inherited
+	FEManagerT::TakeParameterList(list);
+
+	// collect model file and input format from ModelManager
+	fInputFormat = fModelManager->DatabaseFormat();
+	fModelFile = fModelManager->DatabaseName();
+
+	// correct restart file name
+	if (fReadRestart) {
+		StringT suffix;
+		suffix.Suffix(fRestartFile);
+		fRestartFile.Root();
+		fRestartFile.Append(".p", Rank());
+		fRestartFile.Append(suffix);
+	}
+}*/
 
 /* information about subordinate parameter lists */
 void FEManagerT::DefineSubs(SubListT& sub_list) const
@@ -1343,6 +1679,103 @@ bool FEManagerT::CommandLineOption(const char* str, int& index) const
 	return false;
 }
 
+// The domain decomposition, pulled directly from FEManagerT_mpi.cpp
+/* domain decomposition */
+void FEManagerT::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
+	bool verbose, int method)
+{
+	const char caller[] = "FEManagerT::Decompose";
+
+	//TEMP
+	//TimeStamp("FEManagerT_mpi::Decompose");
+
+	/* check */
+	if (partition.Length() == 1)
+		ExceptionT::GeneralFail(caller, "expecting more than 1 partition");
+
+	/* geometry file must be ascii external */
+	if (fInputFormat != IOBaseT::kTahoeII && fInputFormat != IOBaseT::kExodusII)
+		ExceptionT::BadInputValue(caller, "expecting file format %d or %d, not %d",
+			IOBaseT::kTahoeII, IOBaseT::kExodusII, fInputFormat);
+
+	/* decomposition method */
+	bool use_new_methods = false; //TEMP
+	bool dual_graph = (InterpolantDOFs() == 0);
+	if (dual_graph && use_new_methods)
+		DoDecompose_2(partition, graphU, verbose, method);
+	else
+		DoDecompose_1(partition, graphU, verbose, method);
+
+	if (fInputFormat == IOBaseT::kTahoeII)
+	{
+		/* label element sets in partition data */
+		for (int j = 0; j < partition.Length(); j++)
+		{
+			/* original model file */
+			ModelFileT model_ALL;
+			model_ALL.OpenRead(fModelFile);
+			
+			/* set number of element sets */
+			iArrayT elementID;
+			if (model_ALL.GetElementSetID(elementID) != ModelFileT::kOK) ExceptionT::GeneralFail(caller);
+			ArrayT<StringT> IDlist(elementID.Length());
+			for (int i = 0; i < IDlist.Length(); i++)
+				IDlist[i].Append(elementID[i]);
+			partition[j].InitElementBlocks(IDlist);	
+			for (int i = 0; i < elementID.Length(); i++)
+			{
+				/* get element set */
+				iArray2DT set;
+				if (model_ALL.GetElementSet(elementID[i], set) != ModelFileT::kOK)
+					ExceptionT::GeneralFail(caller);
+					
+				/* correct node numbering offset */
+				set--;	
+				
+				/* set partition */
+				partition[j].SetElements(IDlist[i], set);
+			}
+		}
+	}
+	else if (fInputFormat == IOBaseT::kExodusII)
+	{
+		/* label element sets in partition data */
+		for (int j = 0; j < partition.Length(); j++)
+		{
+			/* original model file */
+			ExodusT model_ALL(cout);
+			model_ALL.OpenRead(fModelFile);
+			
+			/* set number of element sets */
+			iArrayT elementID(model_ALL.NumElementBlocks());
+			model_ALL.ElementBlockID(elementID);
+			ArrayT<StringT> IDlist(elementID.Length());
+			for (int i = 0; i < IDlist.Length(); i++)
+				IDlist[i].Append(elementID[i]);
+			partition[j].InitElementBlocks(IDlist);	
+			for (int i = 0; i < elementID.Length(); i++)
+			{
+				/* get set dimensions */
+				int num_elems;
+				int num_elem_nodes;
+				model_ALL.ReadElementBlockDims(elementID[i], num_elems, num_elem_nodes);
+
+				/* get element set */
+				iArray2DT set(num_elems, num_elem_nodes);
+				GeometryT::CodeT geometry_code;
+				model_ALL.ReadConnectivities(elementID[i], geometry_code, set);
+					
+				/* correct node numbering offset */
+				set--;	
+				
+				/* set partition */
+				partition[j].SetElements(IDlist[i], set);
+			}
+		}
+	}
+	else ExceptionT::GeneralFail(caller);
+}
+
 /*************************************************************************
  * Protected
  *************************************************************************/
@@ -1436,6 +1869,20 @@ void FEManagerT::SetOutput(void)
 		
 	/* register output from nodes */		
 	fNodeManager->RegisterOutput();
+}
+
+// not sure what to do with this guy, because of external IO
+/* (re-)set system to initial conditions */
+ExceptionT::CodeT FEManagerT_mpi::InitialCondition(void)
+{
+	/* inherited */
+	ExceptionT::CodeT error = FEManagerT::InitialCondition();
+	
+	/* set I/O */
+	if (error == ExceptionT::kNoError && fExternIOManager) 
+		fExternIOManager->NextTimeSequence(0);
+		
+	return error;
 }
 
 /* (re-)set system to initial conditions */
@@ -1738,5 +2185,143 @@ CommManagerT* FEManagerT::New_CommManager(void) const
 		ExceptionT::GeneralFail("FEManagerT::New_CommManager", "need ModelManagerT");
 
 	CommManagerT* comm_man = new CommManagerT(fComm, *fModelManager);
+	/* set the partition data */
+	comm_man->SetPartition(fPartition);	
 	return comm_man;
 }
+
+/*************************************************************************
+ * Private -> all below private from FEManager_mpi.cpp
+ *************************************************************************/
+
+/* collect computation effort for each node */
+void FEManagerT::WeightNodalCost(iArrayT& weight) const
+{
+	weight.Dimension(fNodeManager->NumNodes());
+	weight = 1;
+	fNodeManager->WeightNodalCost(weight);
+	for (int i = 0 ; i < fElementGroups->Length(); i++)
+		(*fElementGroups)[i]->WeightNodalCost(weight);
+}
+
+/* write time stamp to log file */
+void FEManagerT::TimeStamp(const char* message) const
+{
+	/* log */
+	fComm.Log(CommunicatorT::kUrgent, message);
+}
+
+/* decomposition methods */
+void FEManagerT::DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph, 
+	bool verbose, int method)
+{
+	/* connectivities for partititioning */
+	AutoArrayT<const iArray2DT*> connects_1;
+	AutoArrayT<const RaggedArray2DT<int>*> connects_2;
+	AutoArrayT<const iArray2DT*> equivalent_nodes;
+
+	/* collect connectivies from all solver groups */
+	for (int i = 0; i < NumGroups(); i++)
+		fNodeManager->ConnectsU(i,connects_1,connects_2, equivalent_nodes);
+	
+	/* collect element groups */
+	for (int s = 0 ; s < fElementGroups->Length(); s++)
+		(*fElementGroups)[s]->ConnectsU(connects_1, connects_2);
+		
+
+	/* initialize graph */
+	GraphT& graphU = graph;
+	for (int r = 0; r < connects_1.Length(); r++)
+		graphU.AddGroup(*(connects_1[r])); 
+
+	for (int k = 0; k < connects_2.Length(); k++)
+		graphU.AddGroup(*(connects_2[k]));
+
+	for (int k = 0; k < equivalent_nodes.Length(); k++)
+		graphU.AddEquivalentNodes(*(equivalent_nodes[k]));
+		
+	/* make graph */
+	clock_t t0 = clock();
+	if (verbose) cout << " FEManagerT_mpi::DoDecompose_1: constructing graph" << endl;
+	graphU.MakeGraph();
+	clock_t t1 = clock();
+	if (verbose)
+		cout << setw(kDoubleWidth) << double(t1 - t0)/CLOCKS_PER_SEC
+		     << " sec: FEManagerT_mpi::DoDecompose_1: construct graph" << endl;
+	
+	/* dual graph partitioning graph */
+	int dual_graph = (InterpolantDOFs() == 0) ? 1 : 0;
+	AutoArrayT<const iArray2DT*> connectsX_1;
+	GraphT graphX;
+	if (dual_graph == 1)
+	{
+		if (verbose) cout << " FEManagerT_mpi::DoDecompose_1: constructing dual graph" << endl;
+		
+		/* collect element groups */
+		for (int s = 0 ; s < fElementGroups->Length(); s++)
+			(*fElementGroups)[s]->ConnectsX(connectsX_1);
+
+		/* initialize graph */
+		for (int r = 0; r < connectsX_1.Length(); r++)
+			graphX.AddGroup(*(connectsX_1[r]));
+		
+		/* make graph */
+		clock_t t0 = clock();		
+		graphX.MakeGraph();
+		clock_t t1 = clock();
+		if (verbose)
+			cout << setw(kDoubleWidth) << double(t1 - t0)/CLOCKS_PER_SEC
+		     << " sec: FEManagerT_mpi::DoDecompose_1: construct X graph" << endl;
+	}
+	
+	/* generate partition */
+	iArrayT config(1); //TEMP - will be scalar soon?
+	config[0] = partition.Length();	
+	iArrayT weight;
+	WeightNodalCost(weight);
+	if (dual_graph == 1)
+		graphX.Partition(config, weight, graphU, partition, true, method);
+	else
+		graphU.Partition(config, weight, partition, true, method);
+}
+
+void FEManagerT::DoDecompose_2(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int
+	method)
+{
+	/* connectivities for partititioning */
+	AutoArrayT<const iArray2DT*> connects_1;
+	AutoArrayT<const RaggedArray2DT<int>*> connects_2;
+
+	/* collect element groups */
+	for (int s = 0 ; s < fElementGroups->Length(); s++)
+		(*fElementGroups)[s]->ConnectsU(connects_1, connects_2);		
+	
+	/* dual graph partitioning graph */
+	AutoArrayT<const iArray2DT*> connectsX_1;
+	
+	/* collect minimal connects */
+	for (int s = 0 ; s < fElementGroups->Length(); s++)
+		(*fElementGroups)[s]->ConnectsX(connectsX_1);
+
+	/* initialize graph */
+	GraphT& graphX = graph;
+	for (int r = 0; r < connectsX_1.Length(); r++)
+		graphX.AddGroup(*(connectsX_1[r]));
+		
+	/* make graph */
+	if (verbose) cout << " FEManagerT_mpi::DoDecompose_2: constructing dual graph" << endl;
+	clock_t t0 = clock();		
+	graphX.MakeGraph();
+	clock_t t1 = clock();
+	if (verbose)
+		cout << setw(kDoubleWidth) << double(t1 - t0)/CLOCKS_PER_SEC
+	     << " sec: FEManagerT_mpi::DoDecompose_2: construct graph" << endl;
+	
+	/* generate partition */
+	iArrayT config(1); //TEMP - will be scalar soon?
+	config[0] = partition.Length();	
+	iArrayT weight;
+	WeightNodalCost(weight);
+	graphX.Partition(config, weight, connects_1, connects_2, partition, true, method);
+}
+
