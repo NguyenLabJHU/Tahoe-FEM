@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.cpp,v 1.6.2.1 2003-04-27 22:15:24 paklein Exp $ */
+/* $Id: ParameterListT.cpp,v 1.6.2.2 2003-04-28 08:41:12 paklein Exp $ */
 #include "ParameterListT.h"
 
 using namespace Tahoe;
@@ -131,6 +131,15 @@ void ParameterListT::GetParameter(const StringT& name, double& a) const
 }
 
 void ParameterListT::GetParameter(const StringT& name, StringT& a) const
+{
+	const char caller[] = "ParameterListT::GetParameter";
+	const ParameterT* parameter = Parameter(name);
+	if (!parameter)
+		ExceptionT::GeneralFail(caller, "parameter \"%s\" not found", name.Pointer());
+	a = *parameter;
+}
+
+void ParameterListT::GetParameter(const StringT& name, bool& a) const
 {
 	const char caller[] = "ParameterListT::GetParameter";
 	const ParameterT* parameter = Parameter(name);
