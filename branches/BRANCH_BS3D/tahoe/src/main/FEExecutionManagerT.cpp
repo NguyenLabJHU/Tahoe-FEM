@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.55.2.3 2004-02-04 23:23:26 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.55.2.4 2004-02-07 20:00:12 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -23,6 +23,7 @@
 #include "FEManagerT_mpi.h"
 #include "IOManager_mpi.h"
 #include "ModelManagerT.h"
+#include "CommManagerT.h"
 #include "StringT.h"
 #include "GraphT.h"
 #include "PartitionT.h"
@@ -689,7 +690,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	const char caller[] = "FEExecutionManagerT::RunDynamicBridging";
 	/* configure ghost nodes */
 	ModelManagerT* model = continuum.ModelManager();
-	int nsd = model->NumDimensions();
+	int nsd = model->NumDimensions();		
 	int group = 0;
 	int order1 = 0;	// For InterpolateField, 3 calls to obtain displacement/velocity/acceleration
 	int order2 = 1;
@@ -718,7 +719,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	continuum.InitInterpolation(boundaryghostatoms, bridging_field, *atoms.NodeManager());
 	//dArrayT mdmass;
 	//atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
-	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);		
+	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);			
 	//nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
 	nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for fracture problem
 	//nMatrixT<int> ghostonmap(4), ghostoffmap(4);    // for planar wave propagation problem
@@ -757,7 +758,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	
 		/* calculate global interpolation matrix ntf */
 		continuum.Ntf(ntf, atoms.NonGhostNodes(), activefenodes);
-			
+				
 		/* compute FEM RHS force as product of ntf and fu */
 		dArrayT fx(ntf.Rows()), fy(ntf.Rows()), fz(ntf.Rows()), tempx(ntf.Cols()), tempy(ntf.Cols()), tempz(ntf.Cols());
 		dArray2DT ntfproduct(ntf.Rows(), nsd);
