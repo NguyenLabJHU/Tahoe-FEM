@@ -39,14 +39,16 @@ C/* constitutes an implicit agreement to these terms.  These terms and        */
 C/* conditions are subject to change at any time without prior notice.        */
 C/*                                                                           */
 C/*****************************************************************************/
-C/* $Id: parsymb.f,v 1.1 2004-12-10 20:28:27 paklein Exp $ */
+C/* $Id: parsymb.f,v 1.2 2004-12-15 01:14:19 paklein Exp $ */
 C/*****************************************************************************/
 
       subroutine parsymb(root,aptrs,ainds,tptrs,tinds,lptrs,
      +                   linds,lindsptr,lvalsptr,nnz,lbal,sizes,
      +                   sup,supinds,supptr,supindsptr,iu,lsize,
      +                   dd,N,myid,lgblk,myidr,myidc,mystak,
-     +                   resdcol,info,cinfo,comm)
+     +                   resdcol,info,cinfo,comm,
+     +                   temp1,temp2,sinds,sptrs,
+     +                   temp3,temp4,svals)
       
       implicit none
 
@@ -80,8 +82,12 @@ C/*****************************************************************************/
       integer firstindex
       integer nuptopl
 
-      integer, allocatable :: temp1(:),temp2(:),sinds(:),sptrs(:)
-      double precision, allocatable :: temp3(:),temp4(:),svals(:)
+C     integer, allocatable :: temp1(:),temp2(:),sinds(:),sptrs(:)
+      integer temp1(*),temp2(*),sinds(*),sptrs(*)
+
+C     double precision, allocatable :: temp3(:),temp4(:),svals(:)
+      double precision temp3(*),temp4(*),svals(*)
+
       integer sizes(0:*),nrecv,maxisizel,maxisizeg,sisize,isize
       integer tsize,siptr,n1,n2,m,ti
 

@@ -5,8 +5,8 @@
 #FC = mpif90
 
 ## for IBM
-CC = /usr/local/lam-XL/bin/mpicc -g -I../PSPASES
-FC = /usr/local/lam-XL/bin/mpif77 -g
+CC = /usr/local/lam-g77-xlf/bin/mpicc -g -I../PSPASES
+FC = xlf -g -I/usr/local/lam/include -qextname
 
 ## for Cray and Origin
 #CC = cc 
@@ -50,7 +50,7 @@ BLAS = -Wl,-framework -Wl,vecLib
 # --------------------- Driver Related Selection ----------------------
 
 ## for IBM
-FLFL =
+FLFL = -L/usr/local/lam-g77-xlf/lib -llammpio -lpmpi -llamf77mpi -lmpi -llam
 CLFL = -L/opt/ibmcmp/xlf/8.1/lib -lxlf90 -Wl,-Y -Wl,50
 
 ## for Cray
@@ -70,12 +70,13 @@ CLFL = -L/opt/ibmcmp/xlf/8.1/lib -lxlf90 -Wl,-Y -Wl,50
 # ---------------------------------------------------------------------
 
 INCLUDE_DIR = -I.
-PSPASESDIR = ../PSPASES
+PSPASESDIR = ../CPSPASES
+PSPASESLIB = cpspases
 PARMETISDIR = ../parMetis
 METISDIR = ../metis
 LIB_DIR = -L$(METISDIR) -L$(PARMETISDIR) -L$(PSPASESDIR)
-LIBS = -lpspases -lparmetis -lmetis -lm $(BLAS) $(EXTLIB)
-LIB_DEP = $(PSPASESDIR)/libpspases.a $(PARMETISDIR)/libparmetis.a $(METISDIR)/libmetis.a
+LIBS = -l$(PSPASESLIB) -lparmetis -lmetis -lm $(BLAS) $(EXTLIB)
+LIB_DEP = $(PSPASESDIR)/lib$(PSPASESLIB).a $(PARMETISDIR)/libparmetis.a $(METISDIR)/libmetis.a
 
 S1 = pspases_testfc.o $(PSTOBJS)
 TARGET1 = fcpspases_test

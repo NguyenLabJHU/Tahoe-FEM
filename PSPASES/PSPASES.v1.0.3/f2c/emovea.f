@@ -40,13 +40,19 @@ C/* constitutes an implicit agreement to these terms.  These terms and        */
 C/* conditions are subject to change at any time without prior notice.        */
 C/*                                                                           */
 C/*****************************************************************************/
-C/* $Id: emovea.f,v 1.1 2004-12-10 20:28:27 paklein Exp $ */
+C/* $Id: emovea.f,v 1.2 2004-12-15 01:14:19 paklein Exp $ */
 C/*****************************************************************************/
 
       subroutine emovea(N,dd,pp,lgblk,myid,mynnodes,rowdist,order,sizes,
      +                  mybeginleaf,pasize,aptrs,ainds,avals,tainds,
      +                  tavals,parent,temparr1,temparr2,wrkint,ranmasks,
-     +                  whichsnode,checksymm,sortinds,comm)
+     +                  whichsnode,checksymm,sortinds,comm,
+     +                  sendinds, sendsizs,
+     +                  recvinds, recvsizs,
+     +                  sendvals, recvvals,
+     +                  tempval,
+     +                  iwillsend_inds2, iwillreceive_inds2, 
+     +                  maxnzpercol2)
 
       implicit none
 
@@ -62,10 +68,27 @@ C/*****************************************************************************/
       integer checksymm,sortinds,whichsnode(0:*)
       double precision avals(*),tavals(*),v
 
-      integer, allocatable :: sendinds(:),sendsizs(:)
-      integer, allocatable :: recvinds(:),recvsizs(:)
-      double precision, allocatable :: sendvals(:),recvvals(:)
-      double precision, allocatable :: tempval(:)
+C     integer, allocatable :: sendinds(:),sendsizs(:)
+      integer sendinds, sendsizs
+      integer iwillsend_inds2
+      dimension sendinds(0:iwillsend_inds2-1)
+      dimension sendsizs(0:iwillsend_inds2-1)
+      
+C     integer, allocatable :: recvinds(:),recvsizs(:)
+      integer recvinds, recvsizs
+      integer iwillreceive_inds2
+      dimension recvinds(0:iwillreceive_inds2-1)
+      dimension recvsizs(0:iwillreceive_inds2-1)
+
+C     double precision, allocatable :: sendvals(:),recvvals(:)
+      double precision sendvals, recvvals
+      dimension sendvals(0:iwillsend_inds2-1)
+      dimension recvvals(0:iwillreceive_inds2-1)
+
+C     double precision, allocatable :: tempval(:)
+      double precision tempval
+      integer maxnzpercol2
+      dimension tempval(0:maxnzpercol2-1)
 
       integer proc,rbits,cbits,pgrsize,pgcsize
       integer ppr,ppc,psi,ppl,ppg,pps,maxnzpercol
@@ -139,17 +162,19 @@ C/*****************************************************************************/
       end do
       wrkint(psci+pp-1) = 0
 
-      allocate(sendinds(0:iwillsend_inds-1),stat=is1)
+C     allocate(sendinds(0:iwillsend_inds-1),stat=is1)
       if(is1.ne.0) then
         print *,'Error in allocate 1'
         call mpi_abort(comm,1,ierr)
       end if
-      allocate(sendsizs(0:iwillsend_inds-1),stat=is1)
+
+C     allocate(sendsizs(0:iwillsend_inds-1),stat=is1)
       if(is1.ne.0) then
         print *,'Error in allocate 2'
         call mpi_abort(comm,1,ierr)
       end if
-      allocate(sendvals(0:iwillsend_inds-1),stat=is1)
+
+C     allocate(sendvals(0:iwillsend_inds-1),stat=is1)
       if(is1.ne.0) then
         print *,'Error in allocate 3'
         call mpi_abort(comm,1,ierr)
@@ -179,17 +204,19 @@ C/*****************************************************************************/
         wrkint(prdi+proc) = wrkint(prdi+proc-1)+wrkint(prci+proc-1)
       end do
 
-      allocate(recvinds(0:iwillreceive_inds-1),stat=is1)
+C     allocate(recvinds(0:iwillreceive_inds-1),stat=is1)
       if(is1.ne.0) then
         print *,'Error in allocate 4'
         call mpi_abort(comm,1,ierr)
       end if
-      allocate(recvsizs(0:iwillreceive_inds-1),stat=is1)
+
+C     allocate(recvsizs(0:iwillreceive_inds-1),stat=is1)
       if(is1.ne.0) then
         print *,'Error in allocate 5'
         call mpi_abort(comm,1,ierr)
       end if
-      allocate(recvvals(0:iwillreceive_inds-1),stat=is1)
+
+C     allocate(recvvals(0:iwillreceive_inds-1),stat=is1)
       if(is1.ne.0) then
         print *,'Error in allocate 6'
         call mpi_abort(comm,1,ierr)
@@ -235,12 +262,12 @@ C/*****************************************************************************/
         temparr2(j) = temparr2(j)+1
       end do
 
-      deallocate(sendinds)
-      deallocate(sendsizs)
-      deallocate(sendvals)
-      deallocate(recvinds)
-      deallocate(recvsizs)
-      deallocate(recvvals)
+C     deallocate(sendinds)
+C     deallocate(sendsizs)
+C     deallocate(sendvals)
+C     deallocate(recvinds)
+C     deallocate(recvsizs)
+C     deallocate(recvvals)
 
       end if 
 
@@ -391,7 +418,7 @@ C/*****************************************************************************/
         order(i) = temparr1(i+rowdist(myid))
       end do
 
-      allocate(tempval(0:maxnzpercol-1),stat=is1)
+C     allocate(tempval(0:maxnzpercol-1),stat=is1)
       if(is1.ne.0) then
         print *,'Error in allocate'
         call mpi_abort(comm,1,ierr)
@@ -412,7 +439,7 @@ C/*****************************************************************************/
         end do
       end do
 
-      deallocate(tempval)
+C     deallocate(tempval)
 
       rbits = ishft(dd,-1)
       cbits = dd-rbits
