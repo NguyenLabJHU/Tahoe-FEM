@@ -3,16 +3,14 @@
 
  Group number. . . . . . . . . . . . . . . . . . = 0
  Output ID . . . . . . . . . . . . . . . . . . . = 0
- Number of nodal values. . . . . . . . . . . . . = 11
+ Number of nodal values. . . . . . . . . . . . . = 9
  Labels:
-	X
-	Y
 	D_X
 	D_Y
 	mass
-	E11
-	E22
-	E12
+	e11
+	e22
+	e12
 	s11
 	s22
 	s12

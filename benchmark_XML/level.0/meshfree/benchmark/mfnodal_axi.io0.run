@@ -3,17 +3,15 @@
 
  Group number. . . . . . . . . . . . . . . . . . = 0
  Output ID . . . . . . . . . . . . . . . . . . . = 0
- Number of nodal values. . . . . . . . . . . . . = 13
+ Number of nodal values. . . . . . . . . . . . . = 11
  Labels:
-	R
-	Z
 	D_X
 	D_Y
-	mass/rho
-	Err
-	Ezz
-	Erz
-	Ett
+	volume
+	err
+	ezz
+	erz
+	ett
 	srr
 	szz
 	srz

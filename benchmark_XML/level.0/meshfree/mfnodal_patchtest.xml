@@ -40,6 +40,7 @@
                     <Double value="0.0"/>
                 </DoubleList>
             </natural_bc>
+            <scni_output displacement="1" mass="1" strain="1" stress="1"/>
             <ss_connectivity_element_block>
                 <block_ID_list>
                     <String value="1"/>
