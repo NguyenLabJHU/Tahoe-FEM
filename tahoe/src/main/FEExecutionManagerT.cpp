@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.53.2.5 2004-03-18 17:54:19 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.53.2.6 2004-03-30 07:51:31 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -1322,19 +1322,30 @@ void FEExecutionManagerT::RunJob_serial_XML(ifstreamT& in,
 			raw_list.SetDuplicateListNames(true);
 			parser.Parse(in.filename(), raw_list);
 
-//TEMP - parameters currently needed to construct an FEManagerT
+			/* parameter source */
+			//TEMP - parameters currently needed to construct an FEManagerT
 			ifstreamT input;
 			ofstreamT output;
 			CommunicatorT comm;
-//TEMP
-
-			/* parameter source */
+			//TEMP
 			FEManagerT fe_man(input, output, comm);
+
+			/* list input to Tahoe */
+			ParameterListT* input_list = raw_list.List(fe_man.Name().Pointer());
+			if (!input_list) ExceptionT::GeneralFail(caller, "list \"%s\" not found", fe_man.Name().Pointer());
+
+			/* echo to XML */
+			StringT echo_path;
+			echo_path.Root(in.filename());
+			echo_path.Append(".echo.xml");
+			ofstreamT echo_out(echo_path);
+			XML_Attribute_FormatterT att_format(XML_Attribute_FormatterT::DTD);
+			att_format.InitParameterFile(echo_out);
+			att_format.WriteParameterList(echo_out, *input_list);
+			att_format.CloseParameterFile(echo_out);		
 
 			/* build validated parameter list */
 			ParameterTreeT tree;
-			ParameterListT* input_list = raw_list.List(fe_man.Name().Pointer());
-			if (!input_list) ExceptionT::GeneralFail(caller, "list \"%s\" not found", fe_man.Name().Pointer());
 			tree.Validate(fe_man, *input_list, valid_list);
 		}
 		
