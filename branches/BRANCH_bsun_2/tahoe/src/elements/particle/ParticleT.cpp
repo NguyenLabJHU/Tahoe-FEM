@@ -136,16 +136,17 @@ void ParticleT::Initialize(void)
 	    << setw(d_width) << "min"
 	    << setw(d_width) << "max" << '\n';
 	ifstreamT& in = ElementSupport().Input();
+	fhas_periodic=0;
 
 	for (int i = 0; i < NumSD(); i++) {
 	
 		out << setw(kIntWidth) << i+1;
 
-		 fhas_periodic = 0;
-		in >> fhas_periodic;
+		 int has_periodic = 0;
+		in >> has_periodic;
 		
-		if (fhas_periodic > 0) {
-
+		if (has_periodic > 0) {
+		  fhas_periodic= fhas_periodic|has_periodic;
 			double x_min = 0.0, x_max = 0.0;
 			in >> x_min >> x_max;
 			out << setw(d_width) << x_min << setw(d_width) << x_max << '\n';
@@ -163,7 +164,7 @@ void ParticleT::Initialize(void)
 
 			
 			/* read stretch schedule */
-			if (fhas_periodic > 1) {
+			if (has_periodic > 1) {
 				int schedule = -99;
 				in >> schedule;
 				schedule--;
@@ -1044,8 +1045,8 @@ void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CPara
   NearestNeighbors->RowAlias(i, neighbors);
   const dArray2DT&  refcoords = ElementSupport().InitialCoordinates();
   int   tag_i = neighbors[0]; /* self is 1st spot */
-  Eta=0;
-  Omega=0;
+  Eta=0.0;
+  Omega=0.0;
 
 
   coords.RowAlias(tag_i, x_i);
@@ -1097,15 +1098,15 @@ void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CPara
 	}
 
     }
-  if(Eta.Det()!=0)
+  if(fabs(Eta.Det())>ksmall)
     {
       dMatrixT EtaInverse = Eta.Inverse();
       F_iI.MultAB(Omega, EtaInverse);
       b_ij.MultABT(F_iI, F_iI);
-      if(b_ij.Det()!=0) {
+      if(fabs(b_ij.Det())>0) {
 	dMatrixT Id(ndof);
-	Id=0;
-	for(int i=0; i<ndof;i++) Id(i,i)=1;
+	Id=0.0;
+	for(int i=0; i<ndof;i++) Id(i,i)=1.0;
 	Strain->DiffOf(Id,b_ij.Inverse());
       }
     }
