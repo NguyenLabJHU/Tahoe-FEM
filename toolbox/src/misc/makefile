@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2002-01-09 18:25:25 paklein Exp $
+# $Id: makefile,v 1.8 2002-07-25 23:45:20 saubry Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -10,7 +10,8 @@ OBJ = \
 	GroupAverageT.o \
 	LocalParabolaT.o \
 	MonitorT.o \
-	Rotate2DT.o \
+        Rotate2DT.o \
+	Rotate3DT.o \
 	SecantMethodT.o \
 	SpectralDecompT.o
 OBJ_LINK = $(OBJ)
@@ -26,6 +27,7 @@ SRC = \
 	LocalParabolaT.cpp \
 	MonitorT.cpp \
 	Rotate2DT.cpp \
+        Rotate3DT.cpp \
 	SecantMethodT.cpp \
 	SpectralDecompT.cpp
 
@@ -36,6 +38,7 @@ HDR = \
 	LocalParabolaT.h \
 	MonitorT.h \
 	Rotate2DT.h \
+	Rotate3DT.h \
 	SecantMethodT.h \
 	SpectralDecompT.h \
 	MapSetT.h
