@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.12 2005-01-20 00:21:33 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.13 2005-01-28 02:45:12 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
@@ -11,6 +11,7 @@
 #include "InverseMapT.h"
 #include "iGridManager2DT.h"
 #include "ModelManagerT.h"
+#include "OutputSetT.h"
 
 /* meshfree element group types */
 #include "MeshFreeSSSolidT.h"
@@ -34,9 +35,67 @@ MFPenaltyContact2DT::MFPenaltyContact2DT(const ElementSupportT& support):
 	fMeshFreeSupport(NULL),
 	fSCNI(NULL),
 	fdvT_man(0, true),
-	fRHS_man(0, fRHS)
+	fRHS_man(0, fRHS),
+	fOutputID(-1),
+	fOutputForce(false)
 {
 	SetName("meshfree_contact_2D_penalty");	
+}
+
+/* register element for output */
+void MFPenaltyContact2DT::RegisterOutput(void)
+{
+	/* inherited */
+	PenaltyContact2DT::RegisterOutput();
+	
+	/* write contact forces */
+	if (fOutputForce) {
+	
+		/* output labels */
+		ArrayT<StringT> n_labels(2*NumSD());
+		n_labels[0] = "D_X";
+		n_labels[1] = "D_Y";
+		n_labels[2] = "F_X";
+		n_labels[3] = "F_Y";
+	
+		/* register output */
+		OutputSetT output_set(GeometryT::kPoint, fNodesUsed2D, n_labels);
+		fOutputID = ElementSupport().RegisterOutput(output_set);	
+	}
+}
+
+/* write output */
+void MFPenaltyContact2DT::WriteOutput(void)
+{
+	/* inherited */
+	PenaltyContact2DT::WriteOutput();
+
+	/* write contact forces */
+	if (fOutputForce) {
+	
+		/* work space */
+		dArray2DT n_values(fForce.MajorDim(), 2*fForce.MinorDim()), disp(fForce.MajorDim(), fForce.MinorDim());
+
+		/* reconstruct displacement field */
+		if (fSCNI) {
+			iArrayT all(fNodesUsed2D.Length());
+			all.SetValueToPosition();
+			fSCNI->InterpolatedFieldAtNodes(all, disp);
+		}
+		else {
+			iArrayT tmp;
+			tmp.Alias(fNodesUsed2D);
+			fElementGroup->NodalDOFs(tmp, disp);
+		}
+
+		/* write in forces */
+		n_values.BlockColumnCopyAt(disp, 0);				
+		n_values.BlockColumnCopyAt(fForce, NumSD());
+		
+		/* write output */
+		dArray2DT e_values;
+		ElementSupport().WriteOutput(fOutputID, n_values, e_values);
+	}
 }
 
 /* describe the parameters needed by the interface */
@@ -47,6 +106,11 @@ void MFPenaltyContact2DT::DefineParameters(ParameterListT& list) const
 
 	/* the meshless element group */
 	list.AddParameter(ParameterT::Integer, "meshless_group");
+	
+	/* write contact forces to output */
+	ParameterT output_force(ParameterT::Boolean, "output_force");
+	output_force.SetDefault(fOutputForce);
+	list.AddParameter(output_force);
 }
 
 /* accept parameter list */
@@ -92,6 +156,19 @@ void MFPenaltyContact2DT::TakeParameterList(const ParameterListT& list)
 
 	/* inherited */
 	PenaltyContact2DT::TakeParameterList(list);
+
+	/* write contact forces */
+	fOutputForce = list.GetParameter("output_force");
+	if (fOutputForce) {
+	
+		/* all meshless nodes */
+		const iArrayT& all_nf_nodes = (fSCNI) ? fSCNI->NodesUsed() : fMeshFreeSupport->NodesUsed();
+
+		/* set work space */
+		fNodesUsed2D.Alias(all_nf_nodes.Length(), 1, all_nf_nodes.Pointer());
+		fForce.Dimension(all_nf_nodes.Length(), NumSD());
+		fNodesUsed_inv.SetMap(all_nf_nodes);
+	}
 }
 
 /***********************************************************************
@@ -129,6 +206,9 @@ void MFPenaltyContact2DT::RHSDriver(void)
 
 	/* check */
 	if (!fSCNI && !fMeshFreeSupport) ExceptionT::GeneralFail(caller, "no meshless support");
+
+	/* initialize output array */
+	if (fOutputForce) fForce = 0.0;
 
 	/* loop over active elements */
 	int nsd = NumSD();
@@ -223,6 +303,16 @@ void MFPenaltyContact2DT::RHSDriver(void)
 
 			/* assemble */
 			ElementSupport().AssembleRHS(Group(), fRHS, eqnos2D);
+			
+			/* accumulate forces for output */
+			if (fOutputForce) {
+				const double* force = fRHS.Pointer(2*2); /* skip face nodes */
+				for (int i = 0; i < neighbors.Length(); i++) {
+					int lnd = fNodesUsed_inv.Map(neighbors[i]);
+					for (int j = 0; j < 2; j++)
+						fForce(lnd,j) += *force++;
+				}
+			}
 		}
 	}
 
@@ -440,8 +530,13 @@ void MFPenaltyContact2DT::ComputeStrikerCoordinates(const ArrayT<int>& strikers)
 	if (strikers.Length() > 0) {
 	
 		/* reconstruct displacement field */
-		if (fSCNI)
-			fSCNI->InterpolatedFieldAtNodes(fSCNI_LocalID, fStrikerCoords);
+		if (fSCNI) {
+			fSCNI_tmp = strikers;
+			if (!fSCNI->GlobalToLocalNumbering(fSCNI_tmp))
+				ExceptionT::GeneralFail("MFPenaltyContact2DT::ComputeStrikerCoordinates", 
+					"SCNI global->local failed");
+			fSCNI->InterpolatedFieldAtNodes(fSCNI_tmp, fStrikerCoords);
+		}
 		else {
 			iArrayT tmp;
 			tmp.Alias(strikers);
