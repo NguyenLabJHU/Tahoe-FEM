@@ -1,4 +1,4 @@
-/* $Id: LennardJonesPairT.cpp,v 1.3 2002-11-28 01:07:10 paklein Exp $ */
+/* $Id: LennardJonesPairT.cpp,v 1.4 2002-11-30 16:35:58 paklein Exp $ */
 #include "LennardJonesPairT.h"
 #include "toolboxConstants.h"
 
@@ -116,7 +116,7 @@ double LennardJonesPairT::Force(double r_ab, double* data_a, double* data_b)
 		double r_7 = r_6*r;
 		double r_13 = r_6*r_7;
 	
-		return 4.0*s_eps*(-12.0*r_13 + 6.0*r_7) - s_dphi_rc;
+		return 4.0*s_eps*(-12.0*r_13 + 6.0*r_7)/s_sigma - s_dphi_rc;
 	}
 }
 
@@ -136,6 +136,6 @@ double LennardJonesPairT::Stiffness(double r_ab, double* data_a, double* data_b)
 		double r_8 = r_6*r*r;
 		double r_14 = r_6*r_8;
 	
-		return 4.0*s_eps*(156.0*r_14 - 42.0*r_8);
+		return 4.0*s_eps*(156.0*r_14 - 42.0*r_8)/s_sigma/s_sigma;
 	}
 }
