@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialBaseT.h,v 1.6 2003-06-09 06:43:54 paklein Exp $ */
+/* $Id: TiedPotentialBaseT.h,v 1.7 2003-12-28 23:37:01 paklein Exp $ */
 /* created: cjkimme (04/15/2002) */
 #ifndef _TIED_POTENTIAL_BASE_T_H_
 #define _TIED_POTENTIAL_BASE_T_H_
@@ -23,7 +23,7 @@ public:
 	TiedPotentialBaseT(void);
 	
 	/** destructor */
-	~TiedPotentialBaseT(void);
+	virtual ~TiedPotentialBaseT(void);
 	
 	/** true if nodal release depends on bulk element groups */
 	virtual bool NeedsNodalInfo(void) const = 0;
