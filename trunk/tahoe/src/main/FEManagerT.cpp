@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.47 2002-12-01 19:56:30 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.48 2002-12-02 10:19:35 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1081,7 +1081,7 @@ void FEManagerT::SetSolver(void)
 	/* no predefined solvers */ 
 	if (fAnalysisCode == GlobalT::kMultiField)
 	{
-		for (int i = 0; i < fSolvers.Length(); i++)
+		for (fCurrentGroup = 0; fCurrentGroup < fSolvers.Length(); fCurrentGroup++)
 		{
 			int index = -1;
 			int type = -1;
@@ -1094,7 +1094,8 @@ void FEManagerT::SetSolver(void)
 			}
 	
 			/* construct solver */
-			fSolvers[index] = New_Solver(type, i);
+			fSolvers[index] = New_Solver(type, fCurrentGroup);
+			fCurrentGroup = -1;
 		}
 	}
 	else /* support for legacy analysis codes */
@@ -1218,14 +1219,16 @@ void FEManagerT::SetSolver(void)
 	}	
 	
 	/* initialize */
-	for (int i = 0; i < fSolvers.Length(); i++)
+	if (fCurrentGroup != -1) throw;
+	for (fCurrentGroup = 0; fCurrentGroup < fSolvers.Length(); fCurrentGroup++)
 	{
 		/* reset equation structure */
-		SetEquationSystem(i);
+		SetEquationSystem(fCurrentGroup);
 
 		/* console hierarchy */
-		iAddSub(*(fSolvers[i]));	
+		iAddSub(*(fSolvers[fCurrentGroup]));	
 	}
+	fCurrentGroup = -1;
 }
 
 void FEManagerT::ReadParameters(InitCodeT init)
@@ -1524,9 +1527,6 @@ void FEManagerT::WriteRestart(const StringT* file_name) const
 * (5) signal solver for final configuration */
 void FEManagerT::SetEquationSystem(int group)
 {
-	/* set current group */
-	fCurrentGroup = group;
-
 	/* equation number scope */
 	GlobalT::EquationNumberScopeT equation_scope = 
 		fSolvers[group]->EquationNumberScope();
@@ -1572,16 +1572,10 @@ void FEManagerT::SetEquationSystem(int group)
 		fGlobalNumEquations[group], 
 		fNodeManager->NumEquations(group),
 		fActiveEquationStart[group]);
-
-	/* reset group flag */
-	fCurrentGroup = -1;
 }
 
-void FEManagerT::SendEqnsToSolver(int group)
+void FEManagerT::SendEqnsToSolver(int group) const
 {
-	/* set current group */
-	fCurrentGroup = group;
-
 	/* dynamic arrays */
 	AutoArrayT<const iArray2DT*> eq_1;
 	AutoArrayT<const RaggedArray2DT<int>*> eq_2;
@@ -1598,9 +1592,6 @@ void FEManagerT::SendEqnsToSolver(int group)
 
 	for (int k = 0; k < eq_2.Length(); k++)
 		fSolvers[group]->ReceiveEqns(*(eq_2[k]));
-
-	/* reset group flag */
-	fCurrentGroup = -1;
 }
 
 SolverT* FEManagerT::New_Solver(int code, int group)

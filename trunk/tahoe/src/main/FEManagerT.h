@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.28 2002-12-01 19:56:30 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.29 2002-12-02 10:19:35 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -321,7 +321,7 @@ protected:
 	virtual int GetGlobalNumEquations(int group) const;
 	
 	/** collect element equations and send to solver */
-	void SendEqnsToSolver(int group);
+	void SendEqnsToSolver(int group) const;
 
 	/** \name solution steps 
 	 * All steps return ExceptionT::kNoError = 0 unless a problem occurs. */
