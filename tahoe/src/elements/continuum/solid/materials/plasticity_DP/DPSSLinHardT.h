@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.h,v 1.6 2001-08-10 19:09:46 paklein Exp $ */
+/* $Id: DPSSLinHardT.h,v 1.7 2001-08-15 00:34:44 paklein Exp $ */
 /* created: myip (06/01/1999)                                      */
 /*  
  * Interface for Druker-Prager, nonassociative, small strain,
@@ -62,17 +62,14 @@ class DPSSLinHardT: public DPPrimitiveT
 	 * the data from element */
 	void AllocateElement(ElementCardT& element);
 
-	enum InternalVariablesT {    kalpha = 0,  // stress-like internal state variable
-	                        kstressnorm = 1,  // norm of stress
-	       	                    kdgamma = 2,  // consistency parameter
-				                kftrial = 3,  // yield function value
-				              kLocCheck = 4,
-				          kLocCheckDisc = 5}; 
+	enum InternalVariablesT {kalpha = 0,  // stress-like internal state variable
+                        kstressnorm = 1,  // norm of stress
+                            kdgamma = 2,  // consistency parameter
+                            kftrial = 3}; // yield function value
 	                        
 	/* element level data */
 	void Update(ElementCardT& element);
 	void Reset(ElementCardT& element);
-	
 
 	/* returns 1 if the trial elastic strain state lies outside of the 
 	 * yield surface */
@@ -89,9 +86,8 @@ class DPSSLinHardT: public DPPrimitiveT
 	/* computes the hydrostatic (mean) stress. */
 	double MeanStress(const dSymMatrixT& trialstrain,
 		const ElementCardT& element);
-	
 
-//  private:
+  private:
 
 	/* load element data for the specified integration point */
 	void LoadData(const ElementCardT& element, int ip);
