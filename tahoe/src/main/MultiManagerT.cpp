@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.17.2.2 2004-08-04 22:35:39 d-farrell2 Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.17.2.3 2004-08-09 20:57:59 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -622,7 +622,7 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 			
 	/* construct continuum solver */
 	StringT continuum_output_file;
-	FEManagerT::TaskT task;
+	TaskT task = kRun;
 	continuum_output_file.Root(continuum_input);
 	continuum_output_file.Append(".out");
 	fCoarseOut.open(continuum_output_file);
