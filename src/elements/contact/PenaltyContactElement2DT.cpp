@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.9 2002-02-06 22:23:04 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.10 2002-02-07 00:31:12 dzeigle Exp $ */
 
 #include "PenaltyContactElement2DT.h"
 
@@ -38,6 +38,10 @@ void PenaltyContactElement2DT::WriteOutput(IOBaseT::OutputModeT mode)
 {
 	/* call base class */
 	ContactElementT::WriteOutput(mode);
+	
+	cout << "\n";
+	for (int i=0; i<fSurfaces.Length(); i++)
+		cout << "real contact area = " << fRealArea[i] << "\n";
 }
 
 /***********************************************************************
@@ -104,6 +108,7 @@ void PenaltyContactElement2DT::RHSDriver(void)
 	N1_man.SetDimensions(surface.NumNodesPerFace()*fNumSD,fNumSD);
 	weights_man.SetLength(surface.NumNodesPerFace(),false);
 	eqnums_man.SetMajorDimension(surface.NumNodesPerFace(),false);
+	fRealArea[s] = 0;
 		
 	/*form residual for this surface */
 	for (int f = 0;  f < faces.Length(); f++) {
@@ -134,7 +139,7 @@ void PenaltyContactElement2DT::RHSDriver(void)
                   GreenwoodWilliamson GW(gw_m,gw_s);
 		  /* First derivative of Greenwood-Williamson represents force */
                   pre  = material_coeff*GW.DFunction(gap);
-                  realArea = area_coeff*GW.ContactArea(gap);
+                  //realArea = area_coeff*GW.ContactArea(gap);
 
 		  face->ComputeShapeFunctions(points(i),N1);
 		  for (int j =0; j < fNumSD; j++) {n1[j] = node->Normal()[j];}
@@ -142,6 +147,7 @@ void PenaltyContactElement2DT::RHSDriver(void)
 		  /* pressure =  penalty + Lagrange multiplier */
 		  tmp_RHS.SetToScaled(pre*weights[i], tmp_RHS);
 		  RHS += tmp_RHS;
+		  fRealArea[s] += (area_coeff*GW.ContactArea(gap)*weights[i]);
 		}
 	  } 
           /* get equation numbers */
