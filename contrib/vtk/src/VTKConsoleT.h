@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.h,v 1.8 2001-10-03 17:37:29 recampb Exp $ */
+/* $Id: VTKConsoleT.h,v 1.9 2001-10-03 20:50:50 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -26,6 +26,7 @@ class vtkLabeledDataMapper;
 class vtkActor2D;
 class vtkScalars;
 class vtkCamera;
+class vtkCubeAxesActor2D;
 
 
 class VTKConsoleT: public iConsoleObjectT
@@ -70,6 +71,7 @@ class VTKConsoleT: public iConsoleObjectT
   vtkScalars *scalars[10000];
   int num_time_steps;
   vtkCamera *cam;
+  vtkCubeAxesActor2D *axes;
 
 };
 
