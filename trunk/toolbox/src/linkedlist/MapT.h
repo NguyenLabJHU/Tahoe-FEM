@@ -1,4 +1,4 @@
-/* $Id: MapT.h,v 1.4 2003-03-09 20:37:19 paklein Exp $ */
+/* $Id: MapT.h,v 1.5 2003-03-09 21:47:24 paklein Exp $ */
 #ifndef _MAP_T_H_
 #define _MAP_T_H_
 
@@ -31,7 +31,7 @@ public:
 	bool Insert(const key_TYPE& key, const value_TYPE& value);
 
 	/** read/write access to values */
-	value_TYPE& operator[](const key_TYPE& key);
+	value_TYPE& operator[](const key_TYPE& key) const;
 	
 	/** \name return as array */
 	/*@{*/
@@ -75,7 +75,7 @@ bool MapT<key_TYPE, value_TYPE>::Insert(const key_TYPE& key, const value_TYPE& v
 
 /* read/write access to values */
 template <class key_TYPE, class value_TYPE>
-value_TYPE& MapT<key_TYPE, value_TYPE>::operator[](const key_TYPE& key)
+value_TYPE& MapT<key_TYPE, value_TYPE>::operator[](const key_TYPE& key) const
 {
 	/* need look up */
 	if (!fLastValue || key != fLastKey) {
@@ -90,12 +90,13 @@ value_TYPE& MapT<key_TYPE, value_TYPE>::operator[](const key_TYPE& key)
 			throw ExceptionT::kOutOfRange;
 		}
 	
-		/* keep key */
-		fLastKey = key;
-	
 		/* retrieve value */
 		const MapNodeT<key_TYPE, value_TYPE>& node = tree_node->Value();
-		fLastValue = node.fValue;
+
+		/* updated cached values in non-const this */
+		MapT<key_TYPE, value_TYPE>* non_const_this = (MapT<key_TYPE, value_TYPE>*)(this);
+		non_const_this->fLastKey = key;
+		non_const_this->fLastValue = node.fValue;
 	}
 
 	/* return */
