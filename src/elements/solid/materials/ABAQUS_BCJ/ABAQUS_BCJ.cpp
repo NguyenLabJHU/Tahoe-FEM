@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BCJ.cpp,v 1.1 2003-09-06 07:09:42 paklein Exp $ */
+/* $Id: ABAQUS_BCJ.cpp,v 1.2 2003-09-06 08:42:54 paklein Exp $ */
 /* created: paklein (05/09/2000) */
 #include "ABAQUS_BCJ.h"
 
@@ -85,4 +85,5 @@ void ABAQUS_BCJ::SetOutputVariables(iArrayT& variable_index,
 	output_labels[2] = "pl_strn";
 	output_labels[3] = "damage";
 }
+
 #endif /* __F2C__ */
