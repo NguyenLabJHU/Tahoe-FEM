@@ -10,11 +10,11 @@ method, \
 	output verbose \
 
 variables, \
-	continuous_design = 2 \
-	cdv_descriptor 'E' 'nu' \
-	cdv_initial_point 75.0 0.33 \
-	cdv_lower_bounds  10.0  -0.99 \
-	cdv_upper_bounds 200.0 0.49
+        continuous_design = 3 \
+        cdv_descriptor 'TAU' 'MUoo' 'MUi' \
+        cdv_initial_point   5.0 0.1  0.1  \
+        cdv_lower_bounds   5.0 0.1  0.1  \
+        cdv_upper_bounds  50.0 1.0  1.0
 
 interface, \
 	application system \
