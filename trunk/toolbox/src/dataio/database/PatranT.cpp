@@ -1,4 +1,4 @@
-/* $Id: PatranT.cpp,v 1.5 2001-09-04 14:38:54 sawimme Exp $ */
+/* $Id: PatranT.cpp,v 1.6 2001-09-06 17:27:10 sawimme Exp $ */
 /* created sawimme (05/17/2001) */
 
 #include "PatranT.h"
@@ -85,29 +85,30 @@ int PatranT::NumNamedComponents (void) const
 
 int PatranT::NumDimensions (void) const
 {
-  int ID, IV, KC;
-  ifstream in (file_name);
-  if (!AdvanceTo (in, kElement, ID, IV, KC))   
+  /*int ID, IV, KC;
+    ifstream in (file_name);
+    if (!AdvanceTo (in, kElement, ID, IV, KC))   
     {
-      fMessage << "PatranT::NumDimensions, no elements found\n";
-      return -1;
+    fMessage << "PatranT::NumDimensions, no elements found\n";
+    return -1;
     }
-  switch (IV)
+    switch (IV)
     {
     case kBarShape:
     case kTriShape:
     case kQuadShape:
-      return 2;
-      break;
+    return 2;
+    break;
     case kTetShape:
     case kWedgeShape:
     case kHexShape:
-      return 3;
-      break;
+    return 3;
+    break;
     }
-  fMessage << "\n PatranT::NumDimensions: Unknown element shape ID=" << ID
-       << " shape= " << IV << "\n";
-  return -1;
+    fMessage << "\n PatranT::NumDimensions: Unknown element shape ID=" << ID
+    << " shape= " << IV << "\n";
+    return -1;*/
+  return 3;
 }
 
 bool PatranT::NamedComponents (ArrayT<StringT>& names) const
