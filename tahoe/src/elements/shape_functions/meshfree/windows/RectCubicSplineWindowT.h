@@ -1,6 +1,6 @@
 
-#ifndef _CUBIC_SPLINE_WINDOW_T_H_
-#define _CUBIC_SPLINE_WINDOW_T_H_
+#ifndef _RECT_CUBIC_SPLINE_WINDOW_T_H_
+#define _RECT_CUBIC_SPLINE_WINDOW_T_H_
 
 /* base class */
 #include "WindowT.h"
@@ -20,7 +20,7 @@ class RectCubicSplineWindowT: public WindowT
 		double cut_off_factor);
 	
 	/** window function name */
-	virtual const char* Name(void) const { return "Cubic Spline"; };
+	virtual const char* Name(void) const { return "Rectangular Cubic Spline"; };
 
 	/** neighbor search type.
 	 * \return search type recommended for construction support size */
@@ -73,4 +73,4 @@ class RectCubicSplineWindowT: public WindowT
 
 };
 
-#endif /* _CUBIC_SPLINE_WINDOW_T_H_ */
+#endif /* _RECT_CUBIC_SPLINE_WINDOW_T_H_ */
