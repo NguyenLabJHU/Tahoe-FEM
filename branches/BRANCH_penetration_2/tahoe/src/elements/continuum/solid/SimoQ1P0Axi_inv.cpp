@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0Axi_inv.cpp,v 1.1.2.2 2004-05-06 00:20:48 paklein Exp $ */
+/* $Id: SimoQ1P0Axi_inv.cpp,v 1.1.2.3 2004-05-07 01:27:26 paklein Exp $ */
 #include "SimoQ1P0Axi_inv.h"
 
 #include "ShapeFunctionT.h"
@@ -472,9 +472,16 @@ void SimoQ1P0Axi_inv::SetMeanGradient(dArray2DT& mean_gradient, double& V, doubl
 	V = 0.0;
 	Gamma = 0.0;
 	for (int i = 0; i < nip; i++) {
-		V += Pi2*fRadius_X[i]*w[i]*det_0[i];
-		double J = det[i]/det_0[i];
-		Gamma += Pi2*fRadius_X[i]*w[i]*det_0[i]/J;
+
+		double R = fRadius_X[i];
+		double r = fRadius_x[i];
+
+		double dV = Pi2*fRadius_X[i]*w[i]*det_0[i];
+		double dv = Pi2*fRadius_x[i]*w[i]*det[i];
+	
+		V += dV;
+		double J = dv/dV;
+		Gamma += dV/J;
 	}
 	Gamma /= V;
 
@@ -487,8 +494,12 @@ void SimoQ1P0Axi_inv::SetMeanGradient(dArray2DT& mean_gradient, double& V, doubl
 	
 		double R = fRadius_X[i];
 		double r = fRadius_x[i];		
-		double dV_by_VGamma = Pi2*R*w[i]*det_0[i]/(V*Gamma);
-		double J = det[i]/det_0[i];
+
+		double dV = Pi2*fRadius_X[i]*w[i]*det_0[i];
+		double dv = Pi2*fRadius_x[i]*w[i]*det[i];
+
+		double J = dv/dV;
+		double dV_by_VGamma = dV/(V*Gamma);
 		
 		mean_gradient.AddScaled(dV_by_VGamma/J, fCurrShapes->Derivatives_U(i));
 		
