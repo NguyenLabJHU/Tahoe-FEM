@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidAxiT.h,v 1.1.22.4 2004-07-12 16:06:27 paklein Exp $ */
+/* $Id: MeshFreeFSSolidAxiT.h,v 1.1.22.5 2004-07-13 19:03:28 paklein Exp $ */
 #ifndef _MESHFREE_FSSOLID_AXI_T_H_
 #define _MESHFREE_FSSOLID_AXI_T_H_
 
@@ -24,6 +24,9 @@ public:
 
 	/** constructor */
 	MeshFreeFSSolidAxiT(const ElementSupportT& support);
+
+	/** destructor */
+	virtual ~MeshFreeFSSolidAxiT(void);
 
 	/* append element equations numbers to the list */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
