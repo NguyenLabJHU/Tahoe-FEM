@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.19 2004-03-14 00:10:42 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.20 2004-03-14 02:51:35 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "SPOOLESMatrixT.h"
 
@@ -65,13 +65,6 @@ GlobalMatrixT* SPOOLESMatrixT::Clone(void) const
 /*************************************************************************
  * Protected
  *************************************************************************/
-
-/* precondition matrix */
-void SPOOLESMatrixT::Factorize(void)
-{
-	/* preconditioning done during solve */
-	fIsFactorized = 0; // undo MSRMatrixT flag set
-}
 	
 /* determine new search direction and put the results in result */
 void SPOOLESMatrixT::BackSubstitute(dArrayT& result)
@@ -82,9 +75,6 @@ void SPOOLESMatrixT::BackSubstitute(dArrayT& result)
 	if (fTotNumEQ != fLocNumEQ)
 		ExceptionT::GeneralFail(caller, "total equations (%d) != local equations (%d)",
 			fTotNumEQ, fLocNumEQ);
-
-	/* flag should not be set */
-	if (fIsFactorized) ExceptionT::GeneralFail(caller);
 
 	/* convert matrix to RCV */
 	iArrayT r, c;

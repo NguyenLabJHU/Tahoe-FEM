@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.12 2003-09-11 21:41:34 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.13 2004-03-14 02:51:35 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT_mpi.h"
@@ -34,9 +34,6 @@ SPOOLESMatrixT_mpi::SPOOLESMatrixT_mpi(ostream& out, int check_code,
 void SPOOLESMatrixT_mpi::BackSubstitute(dArrayT& result)
 {
 	const char caller[] = "SPOOLESMatrixT_mpi::BackSubstitute";
-
-	/* flag should not be set */
-	if (fIsFactorized) throw ExceptionT::kGeneralFail;
 
 	/* convert matrix to RCV */
 	iArrayT r, c;

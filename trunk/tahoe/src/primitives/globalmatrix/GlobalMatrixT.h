@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.h,v 1.13 2003-11-01 16:09:24 paklein Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.14 2004-03-14 02:51:32 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #ifndef _GLOBAL_MATRIX_H_
 #define _GLOBAL_MATRIX_H_
@@ -157,7 +157,7 @@ public:
 protected:
 
 	/** precondition matrix */
-	virtual void Factorize(void) = 0;
+	virtual void Factorize(void) {};
 	
 	/** solution driver */
 	virtual void BackSubstitute(dArrayT& result) = 0;
