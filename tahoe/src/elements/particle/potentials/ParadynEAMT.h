@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.h,v 1.3 2003-06-24 23:46:06 saubry Exp $ */
+/* $Id: ParadynEAMT.h,v 1.4 2004-04-09 02:03:05 hspark Exp $ */
 #ifndef _PARADYN_EAM_T_H_
 #define _PARADYN_EAM_T_H_
 
@@ -40,9 +40,9 @@ public:
 	virtual EDForceFunction getElecDensForce(void);
 
 	/** return a pointer to the stiffness function */
-	virtual PairEnergyFunction getPairStiffness(void);
-	virtual EmbedEnergyFunction getEmbedStiffness(void);
-	virtual EDEnergyFunction getElecDensStiffness(void);
+	virtual PairStiffnessFunction getPairStiffness(void);
+	virtual EmbedStiffnessFunction getEmbedStiffness(void);
+	virtual EDStiffnessFunction getElecDensStiffness(void);
 
 	/** return Paradyn-style coefficients table.
 	 * returns false if no table is available. */
@@ -54,6 +54,9 @@ public:
 	const dArray2DT& PairCoefficients(void) const { return fPairCoeff; };
 	const dArray2DT& EmbedCoefficients(void) const { return fEmbedCoeff; };
 	const dArray2DT& ElectronDensityCoefficients(void) const { return fElectronDensityCoeff; };
+
+	/** add accessor function for lattice parameter */
+	virtual double GetLatticeParameter(void) const { return fLatticeParameter; };
 
 private:
 
