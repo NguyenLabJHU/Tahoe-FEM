@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.24.4.1 2004-11-08 02:16:07 d-farrell2 Exp $ */
+/* $Id: NodeManagerT.h,v 1.24.4.2 2004-11-10 04:13:41 d-farrell2 Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -355,7 +355,7 @@ protected:
 	// some more information, needed for the index decomposition
 	int fCommSize;
 	int fDecomp_Type; // this will be the integer, have to check it against PartitionT::kInex
-	int fPartFieldStart, fPartFieldEnd;  
+	int fPartFieldStart ,fPartFieldEnd;
 	
 private:
 
