@@ -21,6 +21,10 @@
 #include "MaterialListT.h"
 #include "ScheduleT.h"
 
+#ifdef __QHULL__
+#include "CompGeomT.h"
+#endif
+
 namespace Tahoe {
 
 /** forward declarations */
@@ -30,10 +34,6 @@ class dSPMatrixT; //TEMP
 class InverseMapT;
 class ifstreamT;
 class ofstreamT;
-
-#ifdef __QHULL__
-class CompGeomT;
-#endif
 
 /** base class for particle types */
 class SCNIMFT: public ElementBaseT
@@ -100,16 +100,10 @@ public:
 	/*@{*/
 #ifndef __QHULL__
 	/** Basic structure -- hullMap[i][j] gives index of jth vertex of structure i */
-    typedef ArrayT<iArrayT> ConvexHullMap;
+        typedef ArrayT<iArrayT> ConvexHullMap;
 
-    /** Voronoi diagram facet structure is an array of convex hulls  */
-    typedef ArrayT< ConvexHullMap > VoronoiDiagramMap;
-#else	
-	/** Basic structure -- hullMap[i][j] gives index of jth vertex of structure i */
-    typedef CompGeomT::ConvexHullMap ConvexHullMap;
-
-    /** Voronoi diagram facet structure is an array of convex hulls  */
-    typedef CompGeomT::VoronoiDiagramMap VoronoiDiagramMap;
+        /** Voronoi diagram facet structure is an array of convex hulls  */
+        typedef ArrayT< ConvexHullMap > VoronoiDiagramMap;
 #endif
 	/*@}*/
 
@@ -247,12 +241,14 @@ protected:
 
 #ifdef __QHULL__	
 	CompGeomT* fVoronoi;
+	CompGeomT::ConvexHullMap fVoronoiCells;
+	CompGeomT::VoronoiDiagramMap fVoronoiFacetIndices;
 #else
 	void* fVoronoi;
-#endif
-
 	ConvexHullMap fVoronoiCells;
 	VoronoiDiagramMap fVoronoiFacetIndices;
+#endif
+
 	ArrayT<dArrayT> fVoronoiFacetAreas;
 	ArrayT<dArray2DT> fVoronoiFacetNormals;
 	dArrayT fVoronoiCellVolumes;
