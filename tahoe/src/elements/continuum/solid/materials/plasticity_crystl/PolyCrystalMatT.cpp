@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.cpp,v 1.7 2002-03-26 17:48:17 paklein Exp $ */
+/* $Id: PolyCrystalMatT.cpp,v 1.8 2002-03-28 19:08:54 ebmarin Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -352,11 +352,9 @@ void PolyCrystalMatT::SolveCrystalState()
 	{
 	  subIncr = 2 * subIncr - 1;
 	  totSubIncrs = 2 * totSubIncrs;
-          //if (totSubIncrs > pow(2.0,10)) throwRunTimeError
-          //   ("PolyCrystalMatT::SolveCrystalState: totSubIncrs > 2^10");
-          if (totSubIncrs > pow(2.0,10)) {
-             cout << "PolyCrystalMatT::SolveCrystalState: totSubIncrs > 2^10 \n";
-             cout << "  **will throw 'EBadJacobianDet' to force dtime decrease** \n";
+          if (totSubIncrs > 128) {
+             cout << " ... in PolyCrystalMatT::SolveCrystalState: totSubIncrs > 128 \n";
+             cout << " ...... will throw 'EBadJacobianDet' to force dtime decrease \n";
              throw eBadJacobianDet;
           }
           if (subIncr > 1) RestoreSavedSolution();
