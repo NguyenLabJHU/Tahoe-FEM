@@ -20,13 +20,13 @@ void ExtractQuad::Initialize (void)
   int numelems, numelemnodes;
   InitializeElements(fElementGroup, fElementName);
   fModel.ElementGroupDimensions (fElementGroup, numelems, numelemnodes);
-  if (fNumItems < 1)
+  if (numelems < 1)
     {
       fMessage << "\n No elements found.";
       return;
     }
 
-  // change fItems and fItemIndex from elements to quad points
+  // change from elements to quad points
   int numquadpts = fModel.NumElementQuadPoints (fElementName);
   iArrayT elementmap (numelems);
   fModel.ElementMap (fElementName, elementmap);
@@ -37,10 +37,11 @@ void ExtractQuad::Initialize (void)
 
   fItemIndex.SetValueToPosition ();
   for (int i=0, j=0; i < numelems; i++)
-    for (int k=0; k < numquadpts; k++)
+    for (int k=0; k < numquadpts; k++, j++)
       {
+	fItemNames [j] = "";
 	fItemNames [j].Append (elementmap[i]);
-	fItemNames [j].Append ("_", k+1);
+	fItemNames [j].Append ("_qp", k+1);
       }
 }
 

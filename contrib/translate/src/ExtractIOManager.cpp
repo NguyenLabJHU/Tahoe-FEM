@@ -60,12 +60,15 @@ void ExtractIOManager::SetOutput (const StringT& program, const StringT& version
 
 void ExtractIOManager::PrepFiles (iArrayT& varsused, ArrayT<StringT>& labels)
 {
+  if (varsused.Length() != labels.Length()) throw eSizeMismatch;
+
   cout << "\n";
 
   // open files, one per item = node or element or int point
-  fNumDigits = fItemNames[0].Length();
+  fNumDigits = fItemNames[0].StringLength();
   for (int d=1; d < fItemNames.Length(); d++)
-    if (fItemNames[d].Length() > fNumDigits) fNumDigits = fItemNames[d].Length();
+    if (fItemNames[d].StringLength() > fNumDigits) 
+      fNumDigits = fItemNames[d].StringLength();
 
   int numused = varsused.Length() + 1; // account for time variable
   if (fCoords > 0) // account for coordinates as a variable

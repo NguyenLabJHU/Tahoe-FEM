@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.7 2001-11-08 13:49:27 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.8 2001-11-09 14:22:19 sawimme Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -175,10 +175,11 @@ void TranslateIOManager::InitializeElements (int& group, StringT& groupname) con
   for (int h=0; h < num; h++)
     cout << "    " << h+1 << ". " << elemsetnames[h] << "\n";
   cout << "\n You must have one type of element within the group you select.\n";
-  cout << "\n Enter the number of the element group: ";
+  cout << " Enter the number of the element group: ";
   cin >> group;
   if (group < 1 || group > elemsetnames.Length()) throw eOutOfRange;
   groupname = elemsetnames[group-1];
+  group--;
 }
 
 void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
@@ -443,9 +444,6 @@ void TranslateIOManager::WriteElements (void)
   StringT answer;
   for (int e=0; e < num; e++)
     {
-      iArrayT block_ID (1);
-      block_ID = e+1;
-
       // allow user to select element groups
       answer[0] = 'y';
       if (selection == 2)
@@ -456,6 +454,16 @@ void TranslateIOManager::WriteElements (void)
       
       if (answer [0] == 'y' || answer[0] == 'Y')
 	{
+	  iArrayT block_ID (1);
+	  ArrayT<const iArray2DT*> conn (1);
+	  block_ID = e+1;
+	  conn[0] = &(fModel.ElementGroup (e));
+
+	  /* use with newly branched tahoe toolbox */
+	  //OutputSetT set (e, fModel.ElementGroupGeometry (e), block_ID, 
+	  //		  conn, fNodeLabels, fElementLabels, changing);
+
+	  /* old style */
 	  OutputSetT set (e, fModel.ElementGroupGeometry (e), block_ID, 
 			  fModel.ElementGroup (e), fNodeLabels, fElementLabels, changing);
 	  fOutputID[e] = fOutput->AddElementSet (set);
