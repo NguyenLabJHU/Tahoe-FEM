@@ -245,7 +245,7 @@ const sTYPE& GridManager1DT<sTYPE>::Closest(double* target)
 		HitsInRegion(target, distance);
 	
 	} while (fHits.Length() == 0 && (target[0] - distance > fxmin ||
-	                                 target[0] + distance < fxmax);
+	                                 target[0] + distance < fxmax));
 
 	/* grid is empty ! */
 	if (fHits.Length() == 0)
