@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.h,v 1.4 2004-07-22 08:42:46 paklein Exp $ */
+/* $Id: ConveyorT.h,v 1.5 2004-09-09 16:19:03 paklein Exp $ */
 #ifndef _CONVEYOR_T_H_
 #define _CONVEYOR_T_H_
 
@@ -46,6 +46,27 @@ public:
 	/* returns true if the internal force has been changed since
 	 * the last time step */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
+
+	/** \name restart functions */
+	/*@{*/
+	virtual void ReadRestart(ifstreamT& in);
+	virtual void WriteRestart(ofstreamT& out) const;
+	/*@}*/
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
@@ -110,10 +131,13 @@ protected:
 	int fTipElementGroup; /**< number of the element group controlling the tip position */
 	double fTipX_0; /**< initial x-coordinate of the crack tip */
 	double fTipY_0; /**< cleavage plane position */
-	
+
+	TrackingTypeT fTrackingType;
+	double fTipThreshold; /**< threshold value which defines the tip position */
+
+	StringT fTipOutputVariable;
 	int fTipOutputCode; /**< output flag to generate data to locate the tip */
 	int fTipColumnNum;  /**< column of output variable to locate tip */
-	double fTipThreshold; /**< threshold value which defines the tip position */
 	/*@}*/
 
 	/** \name edge damping */
@@ -141,6 +165,9 @@ protected:
 
 	/** width of the dead element zone at either end of the domain. */
 	double fWidthDeadZone;
+
+	double fX_Left_last;  /**< left-most edge of the undeformed mesh */
+	double fX_Right_last; /**< right-most edge of the undeformed mesh */
 	/*@}*/
 
 	/** \name tracking point */
