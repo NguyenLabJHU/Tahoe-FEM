@@ -1,4 +1,4 @@
-# $Id: GNU-GCC3.2.macros,v 1.9 2004-08-10 06:37:02 paklein Exp $
+# $Id: GNU-GCC3.2.macros,v 1.10 2004-08-10 06:46:33 paklein Exp $
 # GNU
 #
 MAKE        = make
@@ -16,7 +16,7 @@ MAKEDEPEND_C         = gcc -MM
 MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES)
 MAKEDEPEND_OUTPUT_C  = -MF
 MAKEDEPEND_CC        = g++ -MM
-MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES)
+MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES) -Wno-deprecated
 MAKEDEPEND_OUTPUT_CC = -MF
 MAKEDEPEND_F         = g77 -MM
 MAKEDEPENDFLAGS_F    = -I$(INC_DIR) $(DEFINES)
