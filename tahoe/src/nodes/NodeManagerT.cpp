@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.18 2002-11-28 16:44:19 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.19 2003-01-21 16:54:17 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -276,10 +276,8 @@ void NodeManagerT::InitStep(int group)
 	if (fCoordUpdate && fCoordUpdate->Group() == group)
 	{
 		/* should be allocated */
-		if (!fCurrentCoords) {
-			cout << "\n NodeManagerT::Update: current coords not initialized" << endl;
-			throw ExceptionT::kGeneralFail;
-		}
+		if (!fCurrentCoords)
+			ExceptionT::GeneralFail("NodeManagerT::InitStep", "current coords not initialized");
 	
 		/* update */
 		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
