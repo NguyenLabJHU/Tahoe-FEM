@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.4 2001-10-05 18:54:09 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.5 2001-10-05 22:31:33 paklein Exp $ */
 /* created: paklein (06/19/1996)                                          */
 /* Base class for handling memory allocation for arrays of TYPE           */
 
@@ -61,8 +61,8 @@ public:
 		
 	/* assignment operators */
 	ArrayT<TYPE>& operator=(const TYPE& value);
-	ArrayT<TYPE>& operator=(const TYPE* pRHS);
 	ArrayT<TYPE>& operator=(const ArrayT<TYPE>& RHS);
+	void Copy(const TYPE* pRHS);
 
 	/* shallow copy/conversion */
 	void Alias(const ArrayT<TYPE>& RHS);
@@ -401,15 +401,10 @@ inline ArrayT<TYPE>& ArrayT<TYPE>::operator=(const ArrayT<TYPE>& RHS)
 }
 
 template <class TYPE>
-inline ArrayT<TYPE>& ArrayT<TYPE>::operator=(const TYPE* pRHS)
+inline void ArrayT<TYPE>::Copy(const TYPE* pRHS)
 {
 	/* no copies to self */
-	if (fArray != pRHS)
-	{
-		/* copy data */
-		MemCopy(fArray, pRHS, fLength);	
-	}
-	return *this;
+	if (fArray != pRHS) MemCopy(fArray, pRHS, fLength);	
 }
 
 /* copy length elements of source beginning at start */

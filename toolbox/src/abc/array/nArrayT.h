@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.7 2001-10-05 18:54:09 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.8 2001-10-05 22:31:33 paklein Exp $ */
 /* created: paklein (05/23/1997) */
 
 #ifndef _NARRAY_T_H_
@@ -48,7 +48,6 @@ public:
 
 	/* assignment operators */
 	nArrayT<nTYPE>& operator=(const nArrayT& RHS); /**< assignment operator. Redimensions the array too match the source. */
-	nArrayT<nTYPE>& operator=(const nTYPE* pRHS);  /**<  assignment operator without range checking or dimensioning */
 	nArrayT<nTYPE>& operator=(const nTYPE& value); /**< set all elements in the array to value */
 
 	/* addition operators */
@@ -345,14 +344,6 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator=(const nArrayT& RHS)
 {
 	/* inherited */
 	ArrayT<nTYPE>::operator=(RHS);
-	return *this;	
-}
-
-template <class nTYPE>
-inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator=(const nTYPE* pRHS)
-{
-	/* inherited */
-	ArrayT<nTYPE>::operator=(pRHS);
 	return *this;	
 }
 
