@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2003-11-01 21:10:37 paklein Exp $
+# $Id: makefile,v 1.8 2005-03-11 20:25:41 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -88,8 +88,7 @@ HDR = \
 	DotLine_FormatterT.h \
 	ParameterTreeT.h \
 	ParameterUtils.h \
-	ParameterContainerT.h \
-	enum2int.h
+	ParameterContainerT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
