@@ -20,7 +20,7 @@
             <kinematic_BC dof="2" node_ID="1"/>
             <kinematic_BC dof="3" node_ID="1"/>
             <torsion rotation_axis="2" rotation_rate="0.5">
-                <point_on_axis v_1="0.5" v_2="0.0" v_3="0.5"/>
+                <point_on_axis x_1="0.5" x_2="0.0" x_3="0.5"/>
                 <node_ID_list>
                     <String value="2"/>
                 </node_ID_list>
