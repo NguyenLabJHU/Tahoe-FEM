@@ -356,16 +356,16 @@ double& MR_RP2DT::Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff)
   tmp11  = Sig[1];
   tmp11 *= qn[2];
   tmp1  -= tmp11;
-  tmp12 = tmp1;
-  tmp12 *=tmp1;
-  tmp2  = Sig[0];
+  tmp12  = tmp1;
+  tmp12 *= tmp1;
+  tmp2   = Sig[0];
   tmp2 *= Sig[0];
   tmp3  = qn[1];
   tmp31 = qn[0];
   tmp31 *= qn[2];
   tmp3 -= tmp31;
   tmp32 = tmp3;
-  tmp32 *=tmp3;
+  tmp32 *= tmp3;
   
   /*ff = Sig[0]*Sig[0] - (qn[1] - Sig[1]*qn[2])*
   (qn[1] - Sig[1]*qn[2]) + 
@@ -763,22 +763,33 @@ double MR_RP2DT::signof(double& r)
 		return fabs(r)/r;
 }
 
-bool MR_RP2DT::InitiationQ(const dArrayT& Sig, const dArrayT& qn, double& ff) 
+bool MR_RP2DT::InitiationQ(const dArrayT& Sig) 
 {
 
-  double tmp1, tmp11, tmp12, tmp2, tmp3, tmp31, tmp32;
+  double tmp1, tmp11, tmp12, tmp2, tmp3, tmp31, tmp32, ff;
   
-  tmp1   = qn[1];
+  double enp = 0.;
+  double esp = 0.;
+  double fchi = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
+  double fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
+  double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
+  
+  /*tmp1   = qn[1];*/
+  tmp1   = fc;
   tmp11  = Sig[1];
-  tmp11 *= qn[2];
+  /*tmp11 *= qn[2];*/
+  tmp11 *= ftan_phi;
   tmp1  -= tmp11;
   tmp12 = tmp1;
   tmp12 *=tmp1;
   tmp2  = Sig[0];
   tmp2 *= Sig[0];
-  tmp3  = qn[1];
-  tmp31 = qn[0];
-  tmp31 *= qn[2];
+  /*tmp3  = qn[1];*/
+  tmp3  = fc;
+  /*tmp31 = qn[0];*/
+  tmp3  = fchi;
+  /*tmp31 *= qn[2];*/
+  tmp31  = ftan_phi;
   tmp3 -= tmp31;
   tmp32 = tmp3;
   tmp32 *=tmp3;

@@ -85,7 +85,7 @@ public:
 	virtual void SetElementGroupsNeeded(iArrayT& iGroups);
 	
 	//  Criteria for activation of the embedded cohesive surface
-	virtual bool InitiationQ(const dArrayT& Sig, const dArrayT& qn, double& ff);
+	virtual bool InitiationQ(const dArrayT& Sig);
 	
 private:
 
