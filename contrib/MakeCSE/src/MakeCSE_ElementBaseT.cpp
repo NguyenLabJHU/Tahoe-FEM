@@ -13,6 +13,7 @@
 #include "CSEConstants.h"
 #include "ModelManagerT.h"
 #include "MakeCSE_IOManager.h"
+#include "OutputBaseT.h"
 
 using namespace Tahoe;
 
@@ -20,8 +21,7 @@ MakeCSE_ElementBaseT::MakeCSE_ElementBaseT (ostream& fMainOut, const StringT& ID
   out (fMainOut),
   fNumElemNodes (0),
   fGeometryCode (GeometryT::kNone),
-  fGroupID (ID),
-  fOutputID (-1)
+  fGroupID (ID)
 {
 }
 
@@ -242,14 +242,6 @@ void MakeCSE_ElementBaseT::Renumber (const iArrayT& map)
     *n = map [*n];
 }
 
-
-void MakeCSE_ElementBaseT::Connectivities (AutoArrayT<const iArray2DT*>& conn, iAutoArrayT& geocodes, iAutoArrayT& change)
-{
-  conn.Append (&fNodeNums);
-  geocodes.Append (fGeometryCode);
-  change.Append (0);
-}
-
 void MakeCSE_ElementBaseT::NodesUsed (iArrayT& nodes_used) const
 {
 	/* compressed number range */
@@ -272,38 +264,22 @@ void MakeCSE_ElementBaseT::NodesUsed (iArrayT& nodes_used) const
 		if (*p++ == 1) nodes_used[dex++] = j + min;
 }
 
-void MakeCSE_ElementBaseT::RegisterOutput (MakeCSE_IOManager& theIO)
+void MakeCSE_ElementBaseT::RegisterOutput (OutputBaseT& output)
 {
   ArrayT<StringT> n_labels;
   ArrayT<StringT> e_labels;
-  //GenerateOutputLabels (codes, n_labels, e_labels);
-
   bool changing = false;
-  //OutputSetT output_set (fGroupID, fGeometryCode, fNodeNums,
-  //			 n_labels, e_labels, changing);
+  ArrayT<StringT> block_ID (1);
+  ArrayT<const iArray2DT*> conns (1);
 
-  //fOutputID = theIO.AddElementSet (output_set);
+  block_ID[0] = fGroupID;
+  conns[0] = &fNodeNums;
+  OutputSetT output_set (fGeometryCode, block_ID, conns, n_labels, e_labels, changing);
+
+  int outID = output.AddElementSet (output_set);
   
-  //for (int s=0; s < fSideSetData.Length(); s++)
-    //theIO.AddSideSet (fSideSetData[s], fSideSetID[s], fOutputID);
-}
-
-void MakeCSE_ElementBaseT::WriteOutput (void) const
-{
-  // send variable data
-  /*iArrayT codes;
-  SetOutputCodes (mode, codes);
-  int num_out = codes.Sum();
-
-  dArray2DT group_n_values;
-  dArray2DT group_e_values (0,0);
-
-  if (num_out > 0)
-    {
-      ;
-    }
-
-    theIO.WriteOutput (fOutputID, group_n_values, group_e_values);*/
+  for (int s=0; s < fSideSetData.Length(); s++)
+    output.AddSideSet (fSideSetData[s], fSideSetID[s], fGroupID);
 }
 
 bool MakeCSE_ElementBaseT::IsElementValid (int e1local) const 

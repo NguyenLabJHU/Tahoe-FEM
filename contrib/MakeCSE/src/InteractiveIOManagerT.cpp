@@ -34,6 +34,17 @@ void InteractiveIOManagerT::InputFormat (IOBaseT::FileTypeT &f, StringT& s)
     fEchoInput << "*INPUT " << f << "\n" << s << "\n";
 }
 
+void InteractiveIOManagerT::OutputFormat (IOBaseT::FileTypeT &f, StringT& s)
+{
+  IOBaseT temp (cout);
+  cout << "\n\n";
+  temp.OutputFormats (cout);
+  cout << "\n Enter the Output Format: ";
+  cin >> f;
+  cout << "\n Enter the root of the output files: ";
+  cin >> s;
+}
+
 bool InteractiveIOManagerT::Verbose (void)
 {
   if (fEcho) fEchoInput << "*VERBOSE 0" << endl;

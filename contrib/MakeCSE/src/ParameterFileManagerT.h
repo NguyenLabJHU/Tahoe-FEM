@@ -12,6 +12,7 @@ class ParameterFileManagerT : public MakeCSE_IOManager
   void Initialize (void); /**< verify file existance */
 
   void InputFormat (IOBaseT::FileTypeT &format, StringT& name); /**< set and echo */
+  void OutputFormat (IOBaseT::FileTypeT &format, StringT& name);
   bool Verbose (void);
   void Facets (sArrayT& names);
   void Zones (sArrayT& names);

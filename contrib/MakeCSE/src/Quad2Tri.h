@@ -12,6 +12,8 @@ namespace Tahoe {
 
 class NodeManagerPrimitive;
 class MakeCSEIOManager;
+class ModelManagerT;
+class dArray2DT;
 
 class Quad2Tri : public MakeCSE_ElementBaseT
 {

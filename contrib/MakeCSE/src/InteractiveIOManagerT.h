@@ -12,6 +12,7 @@ class InteractiveIOManagerT : public MakeCSE_IOManager
   void Initialize (void); /**< Query user about parameters */
   
   void InputFormat (IOBaseT::FileTypeT &format, StringT& name);
+  void OutputFormat (IOBaseT::FileTypeT &format, StringT& name);
   bool Verbose (void);
   void Facets (sArrayT& names);
   void Zones (sArrayT& names);

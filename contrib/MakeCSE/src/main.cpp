@@ -16,8 +16,8 @@ int main (void)
   try
     {
       /* determine input file */
-      const char *program_name = "MakeCSE";
-      const char *program_version = "v5.1 (Oct 2002)";
+      const StringT program_name = "MakeCSE";
+      const StringT program_version = "v5.1 (Oct 2002)";
  
       /* create input/output manager and read input file */
       cout << "\n Welcome to: " << program_name << " " << program_version;
@@ -46,6 +46,9 @@ int main (void)
 
       /* read geometry and parameters */
       maker.InitializeInput (in, interactive);
+
+      /* initialize and register to OutputBaseT */
+      maker.InitializeOutput (in.filename(), program_name, program_version);
 
       /* make cohesive surfaces */
       maker.CreateCSE ();

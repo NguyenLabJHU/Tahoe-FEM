@@ -25,6 +25,7 @@ class MakeCSE_FEManager
   ~MakeCSE_FEManager (void);
 
   void InitializeInput (ifstreamT& in, bool interactive);
+  void InitializeOutput (const StringT& title, const StringT& program_name, const StringT& version);
   void CreateCSE (void);
 
   /* accessors */
@@ -35,19 +36,19 @@ class MakeCSE_FEManager
 
   void NodesUsed (const StringT& groupID, iArrayT& nodes) const;
 
-  void WriteOutput () const;
+  void WriteOutput (void);
 
  private:
-  void SetNodeManager ();
-  void SetElementGroups ();
+  void SetNodeManager (void);
+  void SetElementGroups (void);
 
  private:
   ostream& fMainOut;
   bool fPrintInput;
 
-  MakeCSE_IOManager*    fParameters;
+  MakeCSE_IOManager*   fParameters;
   ModelManagerT        fModel;
-  //OutputBaseT          fOutput;
+  OutputBaseT*         fOutput;
 
   NodeManagerPrimitive* fNodeBoss;
   ArrayT<MakeCSE_ElementBaseT*> fElementGroups;
