@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.39 2004-01-26 19:44:00 cjkimme Exp $
+# $Id: make.targets,v 1.40 2004-03-07 23:01:25 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -157,14 +157,15 @@ clean: $(MAKE_CLEAN_XTRAS) $(MOD_MAKE_CLEAN_XTRAS)
 	@ if test -f $(BLD_DIR)/mirror.log; then $(RM) $(BLD_DIR)/mirror.log; fi
 	@ if test -f $(LIBRARY); then $(RM) $(LIBRARY); fi
 	@ if test -d $(BLD_SRC_DIR); then $(RM) -rf $(BLD_SRC_DIR); fi
+	@ if test -d $(INC_DIR); then $(RM) -rf $(INC_DIR); fi
 	@ if test -d $(OBJ_DIR); then $(RM) -rf $(OBJ_DIR); fi
 	@ if test -d $(LIB_DIR); then $(RM) -rf $(LIB_DIR); fi
 	-@ cd $(MACRO_DIR)/cxx_repository; ls -1 | $(GREP) "\.o$$\|\.DB$$" | $(XARGS) $(RM)
-	-@ cd $(INC_DIR); ls -1 | $(GREP) '\.h$$' | $(XARGS) $(RM)
 
 # set-up directories
 setup:
 	@ if test -f $(LIBRARY); then $(RM) $(LIBRARY); fi
+	@ if [ ! -d $(INC_DIR) ]; then mkdir $(INC_DIR); fi
 	@ if [ ! -d $(BLD_DIR) ]; then mkdir $(BLD_DIR); fi
 	@ if [ ! -d $(OBJ_DIR) ]; then mkdir $(OBJ_DIR); fi
 	@ if [ ! -d $(LIB_DIR) ]; then mkdir $(LIB_DIR); fi
