@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.19 2004-01-05 07:07:19 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.19.2.1 2004-02-24 19:09:43 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 
@@ -15,8 +15,8 @@
 using namespace Tahoe;
 
 /* constructor */
-PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager):
-	NLSolver(fe_manager),
+PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
+	NLSolver(fe_manager, group),
 	fRestart_count(-1)
 {
 	SetName("PCG_solver");
@@ -28,6 +28,7 @@ PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager):
 	iAddVariable("restart_count", fRestart);
 }
 
+#if 0
 PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
 	NLSolver(fe_manager, group),
 	fRestart_count(-1)
@@ -86,6 +87,7 @@ PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
 	iAddVariable("max_step_size", fMaxStepSize);
 	iAddVariable("restart_count", fRestart);
 }
+#endif
 
 /* (re-)configure the global equation system */
 void PCGSolver_LS::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)

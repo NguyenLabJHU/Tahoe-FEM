@@ -1,4 +1,4 @@
-/* $Id: FDKStV.cpp,v 1.5.30.2 2004-02-18 16:33:44 paklein Exp $ */
+/* $Id: FDKStV.cpp,v 1.5.30.3 2004-02-24 19:09:40 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "FDKStV.h"
 
@@ -52,8 +52,8 @@ ParameterInterfaceT* FDKStV::NewSub(const StringT& list_name) const
 void FDKStV::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
+	IsotropicT::TakeParameterList(list); /* need moduli before FDHookeanMatT::TakeParameterList */
 	FDHookeanMatT::TakeParameterList(list);
-	IsotropicT::TakeParameterList(list);
 }
 
 /*************************************************************************

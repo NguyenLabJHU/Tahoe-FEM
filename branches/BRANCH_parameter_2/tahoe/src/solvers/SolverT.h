@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.17.6.1 2004-01-28 01:34:16 paklein Exp $ */
+/* $Id: SolverT.h,v 1.17.6.2 2004-02-24 19:09:43 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -50,11 +50,8 @@ public:
                              kFailed = 2  /**< solution procedure has failed */
                              };
 
-	/** \name constructors */
-	/*@{*/
-	SolverT(FEManagerT& fe_manager);
+	/** constructors */
 	SolverT(FEManagerT& fe_manager, int group);
-	/*@}*/
 
 	/** destructor */
 	virtual ~SolverT(void);
@@ -62,7 +59,7 @@ public:
 	/** factory method. Construct a new instance of a sub-class of SolverT
 	 * with the given ParameterInterfaceT name, or return NULL if the name is
 	 * not recognized. */
-	static SolverT* New(FEManagerT& fe_manager, const char* name);
+	static SolverT* New(FEManagerT& fe_manager, const char* name, int group);
 
 	/** (re-)configure the global equation system */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
@@ -139,6 +136,9 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
@@ -190,7 +190,7 @@ protected:
 	int fMatrixType;
 	int fPrintEquationNumbers;
 	/*@}*/
-	
+
 	/** global equation system */
 	/*@{*/
 	/** global LHS matrix */

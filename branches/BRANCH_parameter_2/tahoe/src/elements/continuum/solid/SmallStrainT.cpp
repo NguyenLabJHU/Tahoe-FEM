@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.13.2.6 2004-02-19 19:59:48 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.13.2.7 2004-02-24 19:09:37 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -150,9 +150,37 @@ void SmallStrainT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	SolidElementT::TakeParameterList(list);
 	
+	/* dimension workspace */
+	fGradU.Dimension(NumSD());	
+
 	/* strain displacement option */
 	int b = list.GetParameter("strain_displacement");
 	fStrainDispOpt = (b == kStandardB) ? kStandardB : kMeanDilBbar;
+
+	/* offset to class needs flags */
+	fNeedsOffset = fMaterialNeeds[0].Length();
+	
+	/* set material needs */
+	for (int i = 0; i < fMaterialNeeds.Length(); i++)
+	{
+		/* needs array */
+		ArrayT<bool>& needs = fMaterialNeeds[i];
+
+		/* resize array */
+		needs.Resize(needs.Length() + 2, true);
+
+		/* casts are safe since class contructs materials list */
+		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
+		SSSolidMatT* mat = (SSSolidMatT*) pcont_mat;
+
+		/* collect needs */
+		needs[fNeedsOffset + kstrain     ] = mat->Need_Strain();
+		needs[fNeedsOffset + kstrain_last] = mat->Need_Strain_last();
+		
+		/* consistency */
+		needs[kNeedDisp] = needs[kNeedDisp] || needs[fNeedsOffset + kstrain];
+		needs[KNeedLastDisp] = needs[KNeedLastDisp] || needs[fNeedsOffset + kstrain_last];
+	}
 
 	/* what's needed */
 	bool need_strain = false;
