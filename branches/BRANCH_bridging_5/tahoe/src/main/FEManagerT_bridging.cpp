@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.16.4.13 2004-04-20 23:04:51 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.16.4.14 2004-04-20 23:34:56 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -209,7 +209,7 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& point_neighb
 			const iArrayT& nodes = coarse->ElementCard(j).NodesX();
 			bool no_density = true;
 			for (int k = 0; no_density && k < nodes.Length(); k++)
-				if (nodes[k] == free_)
+				if (node_type[nodes[k]] == free_)
 					no_density = false;
 			
 			/* no free nodes */
@@ -1916,7 +1916,7 @@ void FEManagerT_bridging::Compute_df_dp(const dArrayT& R, double V_0, const Cont
 				ATA_int.AddScaled(smoothing*jw, ATA);
 			
 				/* add penalized force term */
-				df_dp(i,ip) += k2*pm1_jw;
+				df_dp(overlap_cell_index,ip) += k2*pm1_jw;
 				ddp_i_dpdp(ip,ip) += k2*jw;
 					
 				/* integrate the bond density term over the element */
