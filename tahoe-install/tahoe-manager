@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.22 2005-03-05 07:30:05 paklein Exp $
+# $Id: tahoe-manager,v 1.23 2005-03-05 07:40:26 paklein Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -99,6 +99,7 @@ $ tahoe = "tahoe.ca.sandia.gov";
 $config_file = "./.tahoe_config";
 
 # initialization
+$count = 0;
 initialize();
 
 # loop through arguments and options
@@ -316,9 +317,7 @@ if ($connection =~ "cvs") {
 unless(-d "macros") {
 	if ($connection =~ "cvs") {
 		print "checking out macros...";
-		unlink("cvs.log");
-		my $repo = $module2repo{"macros"};
-		system("cvs -d $tahoe_name\@$tahoe:$repo checkout macros > cvs.log 2>&1");
+		update("macros");
 		print " ok\n";
 	} elsif ($connection =~ "http") {
 	
