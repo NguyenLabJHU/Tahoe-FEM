@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.37 2003-10-10 22:09:38 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.38 2003-10-11 01:29:32 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -198,7 +198,7 @@ void APS_AssemblyT::Initialize(void)
 	n_el = NumElements();
 	
 	n_sd_surf = n_sd;
-	n_en_surf = n_en/2;
+	n_en_surf = 2;
 
 	n_en_x_n_df = n_en*n_df;
 	n_en_x_n_sd = n_en*n_sd;
@@ -1134,13 +1134,15 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 						int face = fSideSetFaces[i][j];
 						const ParentDomainT& surf_shape = fShapes->FacetShapeFunction(face);
 						const ParentDomainT& parent = ShapeFunction().ParentDomain();
+						iArrayT face_local_nodes(2);
+						parent.NodesOnFacet(face, face_local_nodes);
 						
 						/* equations for the nodes on the face */
 						fPlasticGradientFaceEqnos[i].RowAlias(j, face_equations);
 						
 						Convert.SurfShapeGradient	( n_en_surf, surf_shape, fFEA_SurfShapes, face_coords,
 													parent, fInitCoords, *fShapes, u, u_n, fgrad_u_surf, fgrad_u_surf_n,
-													face_gamma_p, fgamma_p_surf );
+													face_gamma_p, fgamma_p_surf, face_local_nodes );
 						APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); 
 						fEquation_d -> Form_LHS_Kd_Surf ( fKdd_face, fFEA_SurfShapes );
 						fEquation_d -> Form_RHS_F_int_Surf ( fFd_int_face, np1, fPlasticGradientWght[i] );

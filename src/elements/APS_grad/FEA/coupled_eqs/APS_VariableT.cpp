@@ -1,4 +1,4 @@
-// $Id: APS_VariableT.cpp,v 1.13 2003-10-10 22:09:40 raregue Exp $
+// $Id: APS_VariableT.cpp,v 1.14 2003-10-11 01:29:34 raregue Exp $
 #include "APS_VariableT.h"
 
 //---------------------------------------------------------------------
@@ -130,7 +130,7 @@ void APS_VariableT::Allocate_and_Compute_Variables(APS::VarT_vector kVariable)
         fVars_vector[APS::kgammap]; 
 				break;
 				
-		case APS::kgammap_surf : // gammap   
+		case APS::kgammap_surf : // gammap_surf
         fVars_vector[APS::kgammap_surf]; 
 				break;		
 				
