@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.59 2005-01-06 18:52:27 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.60 2005-02-04 22:03:55 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -382,6 +382,24 @@ void NodeManagerT::FormRHS(int group)
 	for (int i = 0; i < fFields.Length(); i++)
 		if (fFields[i]->Group() == group)
 			fFields[i]->FormRHS();
+}
+
+/* call to signal end of RHS calculation to allow NodeManagerT to post-process
+ * the total system force */
+void NodeManagerT::EndRHS(int group)
+{
+	for (int i = 0; i < fFields.Length(); i++)
+		if (fFields[i]->Group() == group)
+			fFields[i]->EndRHS();
+}
+
+/* call to signal end of LHS calculation to allow NodeManagerT to post-process
+ * the total system tangent matrix */
+void NodeManagerT::EndLHS(int group)
+{
+	for (int i = 0; i < fFields.Length(); i++)
+		if (fFields[i]->Group() == group)
+			fFields[i]->EndLHS();
 }
 
 /* returns true if the internal force has been changed since
