@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.15 2003-07-11 16:46:02 hspark Exp $ */
+/* $Id: ParticleT.h,v 1.15.8.1 2003-10-06 22:04:53 bsun Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -242,6 +242,23 @@ protected:
 	/** constant matrix needed to compute the stiffness */
 	dMatrixT fOneOne;
 	/*@}*/
+
+
+	/*linked list node for holding elements of the centrosymmetry parameter*/
+	struct CSymmParamNode {
+       	  double value;
+       	  CSymmParamNode *Next;
+	};
+	
+	/*This parameter is defined at input, and is used to determine the nearest neighbors in the neighbor list*/
+	double latticeParameter;
+	double NearestNeighborDistance; 
+	
+	/*insert into linked list*/
+        static void LLInsert (CSymmParamNode *ListStart, double value);
+	/*given linked list, generate centrosymmetry value*/
+	double GenCSymmValue (CSymmParamNode *CSymmParam, int ndof);
+
 
 private:
 

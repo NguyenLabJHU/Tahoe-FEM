@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.23 2003-09-18 21:21:44 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.23.2.1 2003-10-06 22:04:53 bsun Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -823,3 +823,41 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 }
 
 
+
+void ParticleT::LLInsert (CSymmParamNode *ListStart, double value)
+{
+  while(ListStart->Next!=NULL && ListStart->Next->value <value) ListStart=ListStart->Next;
+  CSymmParamNode *newNode = new CSymmParamNode;
+  newNode->Next = ListStart->Next;
+  newNode->value=value;
+  ListStart->Next=newNode;
+
+}
+
+
+
+double ParticleT::GenCSymmValue (CSymmParamNode *CSymmParam, int ndof) 
+{
+  
+  int counter=0;
+  double CSymmValue=0.0;
+  CSymmParamNode *CurrentAlias;
+  /* this loop adds up the first seven vector pairs (the first one is always zero) to form the centrosymmetry value*/
+  while (counter <= 6 && CSymmParam!=NULL ) 
+    {
+      CSymmValue+=CSymmParam->value;  
+      CurrentAlias=CSymmParam;
+      CSymmParam = CSymmParam->Next;
+      delete CurrentAlias;
+      counter++;
+    }
+  //  cout<<counter<<"\n";
+  /*deletes the rest of our data structure*/
+  while (CSymmParam!=NULL) {
+    CurrentAlias=CSymmParam;
+    CSymmParam = CSymmParam->Next;
+    delete CurrentAlias;
+  }
+  CSymmValue /=latticeParameter;
+  return CSymmValue;
+}
