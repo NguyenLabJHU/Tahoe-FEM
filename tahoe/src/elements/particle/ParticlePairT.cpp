@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.18 2003-08-05 01:18:50 pgandhi Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.19 2003-08-05 23:54:48 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -115,9 +115,9 @@ void ParticlePairT::WriteOutput(void)
 
 	////////////////////////////////////////////////////////
 	dSymMatrixT vs_i(ndof), temp(ndof);
-	int num_stresses=vs_i.NumValues(ndof);
+	int num_stresses = vs_i.NumValues(ndof);
 	//dArray2DT vsvalues(non, num_stresses);
-	num_output +=num_stresses;
+	num_output += num_stresses;
 	///////////////////////////////////////////////////// 
 
 	/* output arrays length number of active nodes */
@@ -127,25 +127,14 @@ void ParticlePairT::WriteOutput(void)
 	/* global coordinates */
 	const dArray2DT& coords = ElementSupport().CurrentCoordinates();
 
-	//////////////////////////////////////////////////////
-	/* time integration parameters */
-	double constMa = 0.0;
-	double constKd = 0.0;
-	int formMa = fIntegrator->FormMa(constMa);
-	int formKd = fIntegrator->FormKd(constKd);
-
-	//TEMP - interial force not implemented
-	if (formMa) ExceptionT::GeneralFail(caller, "inertial force not implemented");
-	//////////////////////////////////////////////////
-
 	/* pair properties function pointers */
 	int current_property = -1;
 	PairPropertyT::EnergyFunction energy_function = NULL;	
 	//////////////////////////////////////////////////////
 	PairPropertyT::ForceFunction force_function = NULL;
-	const double* Paradyn_table = NULL;
-	double dr = 1.0;
-	int row_size = 0, num_rows = 0;
+	//const double* Paradyn_table = NULL;
+	//double dr = 1.0;
+	//int row_size = 0, num_rows = 0;
 	//////////////////////////////////////////////////
 
 	/* the field */
@@ -154,11 +143,17 @@ void ParticlePairT::WriteOutput(void)
 	const dArray2DT* velocities = NULL;
 	if (field.Order() > 0) velocities = &(field[1]);
 
+	/* collect mass per particle */
+	dArrayT mass(fNumTypes);
+	for (int i = 0; i < fNumTypes; i++)
+		mass[i] = fPairProperties[fPropertiesMap(i,i)]->Mass();
+
 	/* collect displacements */
 	dArrayT vec, values_i;
 	for (int i = 0; i < non; i++) {
 		int   tag_i = (parition_nodes) ? (*parition_nodes)[i] : i;
 		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
+		int  type_i = fType[tag_i];
 
 		/* values for particle i */
 		n_values.RowAlias(local_i, values_i);
@@ -166,17 +161,21 @@ void ParticlePairT::WriteOutput(void)
 		/* copy in */
 		vec.Set(ndof, values_i.Pointer());
 		displacement.RowCopy(tag_i, vec);
-	}
 
-	/* collect mass per particle */
-	dArrayT mass(fNumTypes);
-	for (int i = 0; i < fNumTypes; i++)
-		mass[i] = fPairProperties[fPropertiesMap(i,i)]->Mass();
+		/* kinetic contribution to the virial */
+		if (velocities) {
+			velocities->RowAlias(tag_i, vec);
+			temp.Outer(vec);
+		 	for (int cc = 0; cc < num_stresses; cc++) {
+				int ndex = ndof+2+cc;
+		   		values_i[ndex] = -mass[type_i]*temp[cc];
+		 	}
+		} 
+	}
 	
 	/* run through neighbor list */
 	iArrayT neighbors;
 	dArrayT x_i, x_j, r_ij(ndof);
-
 
 	for (int i = 0; i < fNeighbors.MajorDim(); i++)
 	{
@@ -187,8 +186,8 @@ void ParticlePairT::WriteOutput(void)
 		int   tag_i = neighbors[0]; /* self is 1st spot */
 		int  type_i = fType[tag_i];
 		///////////////////////////////////////////////////////
-		double* f_i = fForce(tag_i);
-		vs_i.SetToScaled(0.0,vs_i);
+		//double* f_i = fForce(tag_i);
+		vs_i = 0.0;
 		///////////////////////////////////////////////////		
 		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
 		
@@ -211,7 +210,7 @@ void ParticlePairT::WriteOutput(void)
 			int   tag_j = neighbors[j];
 			int  type_j = fType[tag_j];
 			////////////////////////////////////////////////
-			double* f_j = fForce(tag_j);
+			//double* f_j = fForce(tag_j);
 			//////////////////////////////////////////////		
 			
 			/* set pair property (if not already set) */
@@ -220,8 +219,8 @@ void ParticlePairT::WriteOutput(void)
 			{
 				energy_function = fPairProperties[property]->getEnergyFunction();
 				////////////////////////////////////////
-					if (!fPairProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
-					force_function = fPairProperties[property]->getForceFunction();
+				//if (!fPairProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
+				force_function = fPairProperties[property]->getForceFunction();
 				////////////////////////////////////
 				current_property = property;
 			}
@@ -238,27 +237,13 @@ void ParticlePairT::WriteOutput(void)
 			values_i[ndof] += uby2;
 			
 			///////////////////////////////////////////////////////
-	      		/* interaction force */
-			double F;
-			if (Paradyn_table)
-			{
-				double pp = r*dr;
-				int kk = int(pp);
-				int max_row = num_rows-2;
-				kk = (kk < max_row) ? kk : max_row;
-				pp -= kk;
-				pp = (pp < 1.0) ? pp : 1.0;				
-				const double* c = Paradyn_table + kk*row_size;
-				F = c[4] + pp*(c[5] + pp*c[6]);
-			}
-			else
-				F = force_function(r, NULL, NULL);
-
-			double Fbyr = formKd*F/r;
+	      	/* interaction force */
+			double F = force_function(r, NULL, NULL);
+			double Fbyr = F/r;
 			  //f_i=r_ij[nnf1]*Fbyr;
 			  //f_i[nnf1] += f_i[nnf1];			     
 			temp.Outer(r_ij);
-			vs_i.AddScaled( 0.5*Fbyr,temp);
+			vs_i.AddScaled(0.5*Fbyr, temp);
 			/////////////////////////////////////////
 
 			/* second node may not be on processor */
@@ -267,90 +252,28 @@ void ParticlePairT::WriteOutput(void)
 				
 				if (local_j < 0 || local_j >= n_values.MajorDim())
 					cout << caller << ": out of range: " << local_j << '\n';
-				else
+				else {
+
+					/* potential energy */
 					n_values(local_j, ndof) += uby2;
 
+			 		/* accumulate into stress into array */
+		 			for (int cc = 0; cc < num_stresses; cc++) {
+						int ndex = ndof+2+cc;
+		   				n_values(local_j, ndex) += 0.5*Fbyr*temp[cc];		   
+		 			}
+				}
 			}
-
 		}
-		///////////////////////////////////////////////////////	 
-		    if(velocities){
-		      velocities->RowAlias(tag_i, vec);
-		      temp.Outer(vec);
-		      vs_i.AddScaled(-mass[type_i],temp);
-		    } 
-		    /*display stress*/
-		    // cout <<vs_i <<"\n";
-
-		 /*copy stress into array*/		   
-		      //out << tag_i <<" \t";
-		 for(int cc=0; cc < vs_i.NumValues(ndof);cc++){
-		   int ndex=ndof+2+cc;
-		   int dex1,dex2;
-		   vs_i.ExpandIndex(ndof,cc,dex1,dex2);
-		   //vsvalues(tag_i,cc)=vs_i(dex1,dex2);
-		   values_i[ndex]=vs_i(dex1,dex2);		   
+		///////////////////////////////////////////////////////	
+		 /* copy stress into array */
+		 for (int cc = 0; cc < num_stresses; cc++) {
+			int ndex = ndof+2+cc;
+		   	values_i[ndex] += vs_i[cc];
 		 }
-	  
 		 ////////////////////////////////////////
 	}
 
-	/* Temporary to calculate MD quantities and write to file */
-	//ifstreamT& in = ElementSupport().Input();
-	//ModelManagerT& model = ElementSupport().Model();
-	//const ArrayT<StringT> id_list = model.NodeSetIDs();
-	//iArrayT nodelist;
-	//dArray2DT partial;
-	//nodelist = model.NodeSet(id_list[id_list.Length()-1]);
-	//nodelist = model.NodeSet(id_list[3]);  // id_list[3]
-	//partial.Dimension(nodelist.Length(), n_values.MinorDim());
-	//partial.RowCollect(nodelist, n_values);
-	//const StringT& input_file = in.filename();
-	//fsummary_file.Root(input_file);
-	//fsummary_file2.Root(input_file);
-	//fsummary_file.Append(".sum");
-	//fsummary_file2.Append(".full");
-	//if (fopen)
-	//{
-	//	fout.open_append(fsummary_file);
-	//	fout2.open_append(fsummary_file2);
-	//	fout.precision(13);
-	//	fout2.precision(13);
-	//	fout << n_values.ColumnSum(3) 
-	//	     << setw(25) << n_values.ColumnSum(2)
-	//	     << setw(25) << n_values.ColumnSum(3) + n_values.ColumnSum(2)
-	//	     << endl;
-	//	fout2 << partial.ColumnSum(3) 
-	//	     << setw(25) << partial.ColumnSum(2)
-	//	     << setw(25) << partial.ColumnSum(3) + partial.ColumnSum(2)
-	//	     << endl;
-	//}
-	//else
-	//{
-	//	fout.open(fsummary_file);
-	//	fout2.open(fsummary_file2);
-	//	fopen = true;
-	//	fout.precision(13);
-	//	fout2.precision(13);
-	//	fout << "Kinetic Energy"
-	//	     << setw(25) << "Potential Energy"
-	//	     << setw(25) << "Total Energy"
-	//	     << endl;
-	//	fout << n_values.ColumnSum(3) 
-	//	     << setw(25) << n_values.ColumnSum(2)
-	//	     << setw(25) << n_values.ColumnSum(3) + n_values.ColumnSum(2)
-	//	     << endl;
-	//	fout2 << "Kinetic Energy"
-	//	     << setw(25) << "Potential Energy"
-	//	     << setw(25) << "Total Energy"
-	//	     << endl;
-	//	fout2 << partial.ColumnSum(3) 
-	//	     << setw(25) << partial.ColumnSum(2)
-	//	     << setw(25) << partial.ColumnSum(3) + partial.ColumnSum(2)
-	//	     << endl;
-		
-	//}
-	
 	/* send */
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
 }
