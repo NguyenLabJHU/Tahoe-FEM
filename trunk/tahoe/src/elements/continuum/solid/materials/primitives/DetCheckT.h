@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.h,v 1.17 2004-05-12 16:46:14 raregue Exp $ */
+/* $Id: DetCheckT.h,v 1.18 2004-06-02 20:45:03 raregue Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _DETCHECK_T_H_
@@ -53,10 +53,10 @@ public:
 	 * \return 1 if acoustic tensor isn't positive definite,
 	 * and returns the normal to the surface of localization.
 	 * returns 0, otherwise */
-	int IsLocalized_SS(dArrayT& normal);
+	int IsLocalized_SS(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
 	
 	/** set pointer to the calling element group */
-//	void SetElementGroup(const ContinuumElementT& element) { fElement = &element; };
+	//void SetElementGroup(const ContinuumElementT* element) { fElement = *element; };
 
 	/** set pointer to the support of the calling material */
 	void SetfStructuralMatSupport(const SolidMatSupportT& support) { fStructuralMatSupport = &support; };
@@ -72,7 +72,7 @@ private:
 	int SPINLOC_localize(const double *c__, double *thetan, int *loccheck);
 
 	/*3D Small Strain check for localization */
-	int DetCheck3D_SS(dArrayT& normal);
+	int DetCheck3D_SS(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
 
 	/* auxiliary functions to DetCheck3D_SS */
 	void FindApproxLocalMins(double detA [numThetaChecks] [numPhiChecks],

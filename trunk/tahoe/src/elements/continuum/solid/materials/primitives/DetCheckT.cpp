@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.31 2004-05-12 17:06:50 raregue Exp $ */
+/* $Id: DetCheckT.cpp,v 1.32 2004-06-02 20:45:02 raregue Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -64,9 +64,11 @@ bool NormalCompare(const dArrayT& normal1, const dArrayT& normal2, double tol)
 	
 	resid.DiffOf(normal1, normal2);
 	negResid.SumOf(normal1, normal2);
+	
+	double residMag = resid.Magnitude();
+	double negResidMag = negResid.Magnitude();
 
-	return ( resid [0]*resid[0] + resid[1]*resid[1] + resid[2]*resid[2] < tol ||
-		negResid [0]*negResid[0] + negResid[1]*negResid[1] + negResid[2]*negResid[2] < tol);
+	return ( residMag*residMag < tol || negResidMag*negResidMag < tol);
 };
 
 /* As above, but fits form for comparator function in AutoArrayT. 
@@ -100,28 +102,62 @@ int DetCheckT::IsLocalized(dArrayT& normal)
 * R.A.Regueiro's SPINLOC.
 * 3d is a numerical search algorithm after Ortiz, et. al. (1987) */
 
-int DetCheckT::IsLocalized_SS(dArrayT& normal)
+int DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
+							AutoArrayT <dArrayT> &slipdirs)
 {
-	/* clear normal */
-	normal = 0.0;
-
+	dArrayT normal(3), slipdir(3);
+	dTensor4DT C(3,3,3,3);
+	dMatrixEXT A(3); //acoustic tensor 
+	/* for eigen analysis */
+	dArrayT realev(3), imev(3), altnormal_i(3), altnormal_ii(3);
+	
 	if (fs_jl.Rows() == 2)
 	{
+		//this doesn't work for 2D, comment out slip dir calc for now
+		//C.ConvertTangentFrom2DTo4D(C, fc_ijkl);
 		/* call SPINLOC routine */
-		double theta = 0.0;
-		int check = 0; 
+		double theta = 0.0, eigVal;
+		int check = 0, numev = 0; 
+		/* clear normals and slipdirs */
+		normals.Free();
+		slipdirs.Free();
 		SPINLOC_localize(fc_ijkl.Pointer(), &theta, &check);
 		if (check == 1)
 		{
+			//but these are with respect to principal stress axes
 			normal[0] = cos(theta);
-			normal[1] = sin(theta);		
+			normal[1] = sin(theta);	
+			normal[2] = 0.0;
+			normals.Append(normal);
+			/*
+			A = 0.0;
+			A.formacoustictensor(A, C, normal);
+			A.eigvalfinder(A, realev, imev);
+			eigVal = realev[0];
+			if (realev[1] < eigVal) eigVal = realev[1];
+			if (realev[2] < eigVal) eigVal = realev[2];
+			A.eigenvector3x3(A, eigVal, numev, slipdir, altnormal_i, altnormal_ii);
+			slipdirs.Append(slipdir);
+			*/
+			
+			normal[0] = cos(-theta);
+			normal[1] = sin(-theta);	
+			normals.Append(normal);
+			/*
+			A = 0.0;
+			A.formacoustictensor(A, C, normal);
+			A.eigvalfinder(A, realev, imev);
+			eigVal = realev[0];
+			if (realev[1] < eigVal) eigVal = realev[1];
+			if (realev[2] < eigVal) eigVal = realev[2];
+			A.eigenvector3x3(A, eigVal, numev, slipdir, altnormal_i, altnormal_ii);
+			slipdirs.Append(slipdir);
+			*/
 		}
 		return check;
 	}
 	else
-	// not ready yet. remove to run problem to debug
-	return DetCheck3D_SS(normal);
-	//return 7;    
+		return DetCheck3D_SS(normals,slipdirs);
 }
 
 
@@ -227,9 +263,13 @@ int DetCheckT::DetCheck2D(dArrayT& normal)
 
 /* 3D determinant check function */
 /* assumes small strain formulation */
-int DetCheckT::DetCheck3D_SS(dArrayT& normal)
+int DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
+							AutoArrayT <dArrayT> &slipdirs)
 {
 	int i,j,k,l,m,n; // counters 
+	
+	/* calculated normal at particular angle increment */
+	dArrayT normal(3);
 
 	/* principal tensors under analysis */
 	dMatrixEXT A(3), Ae(3), Ainverse(3); //acoustic tensor and inverse
@@ -237,11 +277,12 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 	dMatrixEXT J(3); // det(A)*C*Ainverse
 
 	/* for eigen analysis */
-	dArrayT prevnormal(3), realev(3), imev(3), altnormal(3), altnormal2(3);
+	dArrayT prevnormal(3), realev(3), imev(3), altnormal_i(3), altnormal_ii(3);
 
 	/* for initial sweep */
 	double theta, phi; //horizontal plane angle and polar angle for normal
 	double detA [numThetaChecks] [numPhiChecks]; //determinant of acoustic tensor at each increment
+	double detAe [numThetaChecks] [numPhiChecks]; //determinant of elastic acoustic tensor at each increment
 	int localmin [numThetaChecks] [numPhiChecks]; //1 for local minimum, 0 if not
 
 	/* for refinement of normals */
@@ -249,9 +290,9 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 	int newtoncounter=0; //makes sure Newton iteration doesn't take too long
   
 	/* for choosing normals w/ least determinant */
-	double setTol=1.0e-5; //setTol=1.0e-7 // tolerance for if normals should be in normal set 
+	double setTol=5.0e-3; //setTol=1.0e-7 // tolerance for if normals should be in normal set 
 	double leastmin=2.0*setTol; 
-	double detAe, leastdetAe;
+	double leastdetAe;
 
 	/* determination of slip direction */
 	dArrayT slipdir(3); //normal in direction of slip plane
@@ -261,10 +302,11 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 	/* variables for normalSet output */
 	const int outputPrecision = 10;
 	const int outputFileWidth = outputPrecision + 8;
-	AutoArrayT <dArrayT> normalSet;
+	AutoArrayT <dArrayT> normalSet, slipdirSet;
 
-//	const ElementCardT* element = (fElement) ? &(fElement->CurrentElement()) : NULL;
-//	const ElementSupportT* support = (fElement) ? &(fElement->ElementSupport()) : NULL;
+	//const ElementCardT* element = (fElement) ? &(fElement->CurrentElement()) : NULL;
+	//const ElementSupportT* support = (fElement) ? &(fElement->ElementSupport()) : NULL;
+//??	SetfStructuralMatSupport(support);
   
 	/* Set up output file */
 	normalSet.Free();
@@ -276,18 +318,22 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 	}
 	else normal_out.open_append("normal.info");
   
-	normal_out << "\ntime step    element #    ip#\n"
-			<< ((fStructuralMatSupport) ? fStructuralMatSupport->StepNumber() : 0) << "\n\n"
+	normal_out << "\n\n time step    element #    ip# \n"
+			<< ((fStructuralMatSupport) ? fStructuralMatSupport->StepNumber() : 0) 
+			<< setw(outputFileWidth) 
+			<< ((fStructuralMatSupport) ? fStructuralMatSupport->StepNumber() : 0) 
+			<< setw(outputFileWidth) 
+			<< ((fStructuralMatSupport) ? fStructuralMatSupport->StepNumber() : 0) 
+			<< "\n\n"
 			<< setw(outputFileWidth) << "approx normal0" << setw(outputFileWidth) << "approx normal1" 
-			<<  setw(outputFileWidth) << " approx normal2" <<  setw(outputFileWidth) << "normal0" 
-			<<  setw(outputFileWidth) << "normal1" <<  setw(outputFileWidth) << "normal2" 
+			<< setw(outputFileWidth) << "approx normal2" <<  setw(outputFileWidth) << "normal0" 
+			<< setw(outputFileWidth) << "normal1" <<  setw(outputFileWidth) << "normal2" 
 			<< setw(outputFileWidth) << "detA" <<  setw(outputFileWidth) << "in normalSet?" << endl;
   
 	// initialize variables
 	normal=0.0;
 	A = 0.0;
 	Ae = 0.0;
-	detAe = 1.0;
 	leastdetAe = 1.0;
 	C = 0.0;
 	Ce = 0.0;
@@ -296,13 +342,14 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 	prevnormal = 0.0;
 	realev = 0.0;
 	imev = 0.0;
-	altnormal = 0.0;
-	altnormal2 = 0.0;
+	altnormal_i = 0.0;
+	altnormal_ii = 0.0;
 	slipdir=0.0;	
 	for (m=0; m<numThetaChecks; m++)
 		for (n=0; n<numPhiChecks; n++)
 		{
 			detA [m] [n] = 0.0;
+			detAe [m] [n] = 1.0;
 			localmin [m] [n] = 0;
 		}
   
@@ -315,7 +362,7 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 	FindApproxLocalMins(detA, localmin, C);
   
 	/* sweep angle increments and use Newton iteration to refine minima */
-	int maxcount = 1000;
+	int maxcount = 100;
 	for (i=0; i<numThetaChecks; i++)
 	{
 		for (j=0 ;j<numPhiChecks; j++)
@@ -357,13 +404,13 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 					// initialize acoustic tensor A
 					A = 0.0;
 					A.formacoustictensor(A, C, normal);
-					detA [i] [j]= A.Det();
+					detA [i] [j] = A.Det();
 					Ainverse.Inverse(A);
 		  
 					// form detAe for relative tolerance check
 					Ae = 0.0;
 					Ae.formacoustictensor(Ae, Ce, normal);
-					detAe = Ae.Det();
+					detAe [i] [j] = Ae.Det();
 		  
 					// initialize J
 					J = 0.0;
@@ -387,9 +434,9 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 				 * them. Typically, there are two distinct normals which produce
 				 * the same minimum value. Choose between these later*/
 				//if (detA [i] [j] - leastmin < -setTol && (detA [i] [j] - leastmin)/fabs(leastmin) < -setTol )
-				if ( leastmin < 3.0*setTol )
+				if ( fabs(leastmin) < 3.0*setTol )
 				{
-					if ( detA [i] [j] < setTol || fabs((detA [i] [j])/detAe) < setTol )
+					if ( detA [i] [j] < setTol || fabs( (detA [i] [j])/(detAe [i] [j]) ) < setTol )
 					{
 						//clear auto array
 						normalSet.Free();
@@ -397,7 +444,7 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 						// add normal to auto array and reset leastmin
 						normalSet.Append(normal);
 						leastmin = detA [i] [j];
-						leastdetAe = detAe;
+						leastdetAe = detAe [i] [j];
 
 						/* output to normal.info */
 						normal_out << setw(outputFileWidth) << "Yes - 1st";	
@@ -414,14 +461,16 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 					if ( detA [i] [j] - leastmin < -setTol )
 					{
 						// add normal to auto array and reset leastmin
-						normalSet.Append(normal);
-						leastmin = detA [i] [j];
-						leastdetAe = detAe;
-
-						/* output to normal.info */
-						normal_out << setw(outputFileWidth) << "Yes - not 1st - but is now least min detA";
+						if (normalSet.AppendUnique(normal, NormalCompare))
+						{
+							leastmin = detA [i] [j];
+							leastdetAe = detAe [i] [j];
+							normal_out << setw(outputFileWidth) << " Yes - not 1st - but is now least min detA";							
+						}
+						else
+							normal_out << setw(outputFileWidth) << "Already Exists";
 					}
-					else if ( detA [i] [j] < setTol || fabs((detA [i] [j])/detAe) < setTol )
+					else if ( detA [i] [j] < setTol || fabs( (detA [i] [j])/(detAe [i] [j]) ) < setTol )
 					{
 						// add normal to auto array and output to normal.info
 						if (normalSet.AppendUnique(normal, NormalCompare))
@@ -434,30 +483,45 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 			} //end if localmin  
 		} //end j		  
 	} //end i
-
-	/* output of function */
-	//if (leastmin > setTol)  //no bifurcation occured
+	
+	slipdirSet.Free();
+	normals.Free();
+	slipdirs.Free();
+	
 	if (leastmin/leastdetAe > setTol)  //no bifurcation occured
 	{
-		normal=0.0;
 		return 0;
 	}
-	else               //bifurcation occured
-	{
+	else //bifurcation occured
+	{	
 		//choose normal from set of normals producing least detA
-		normal = ChooseNormalFromNormalSet(normalSet, C); 
+		//normal = ChooseNormalFromNormalSet(normalSet, C);
+		
+		normalSet.Top();
+		int num_normals = normalSet.Length();
+		int count_normals = 0;
+		dArrayT normal_curr(3);
+		
+		/* transfer normals from normalSet to normals (more than 3 unique?, should not be */
+		while (normalSet.Next())
+		{
+			normal_curr = normalSet.Current();
+			normals.Append(normal_curr);
+			normal_out << endl << setw(outputFileWidth) <<  normal_curr[0] << setw(outputFileWidth) << normal_curr[1] 
+					<< setw(outputFileWidth) << normal_curr[2];
+			
+			A = 0.0;
+			A.formacoustictensor(A, C, normal_curr);
+			A.eigvalfinder(A, realev, imev);
+			eigVal = realev[0];
+			if (realev[1] < eigVal) eigVal = realev[1];
+			if (realev[2] < eigVal) eigVal = realev[2];
+			A.eigenvector3x3(A, eigVal, numev, slipdir, altnormal_i, altnormal_ii);
+			slipdirs.Append(slipdir);
+			normal_out << setw(outputFileWidth) <<  slipdir[0] << setw(outputFileWidth) << slipdir[1] 
+					<< setw(outputFileWidth) << slipdir[2];
 
-		//determine slip direction
-		A.formacoustictensor(A, C, normal);
-
-		A.eigvalfinder(A, realev, imev);
-      
-		eigVal = realev[0];
-		if (realev[1] < eigVal) eigVal = realev[1];
-		if (realev[2] < eigVal) eigVal = realev[2];
-      
-		A.eigenvector3x3(A, eigVal, numev, slipdir, altnormal, altnormal2);      
-
+		}	
 		return 1;
 	}
 	
@@ -549,13 +613,13 @@ void DetCheckT::FindApproxLocalMins(double detA [numThetaChecks] [numPhiChecks],
 } // end FindApproxLocalMins
 
 
-/* Finds next iteration of on a normal by by finding Eigenvalues of Matrix
+/* Finds next iteration on a normal by finding Eigenvalues of Matrix
  * J and choosing the best one, i.e. closest in norm to previous vector */
 dArrayT DetCheckT::ChooseNewNormal(dArrayT& prevnormal, dMatrixEXT& J)
 {
 	double tol = 10e-10;
 	dArrayT normal(3), trialNormal(3);
-	dArrayT altnormal(3), altnormal2(3);
+	dArrayT altnormal_i(3), altnormal_ii(3);
 	dArrayT realev(3), imev(3);
 	int numev = 0, i;
 	dMatrixEXT Atrial(3); //trial acoustic tensor
@@ -570,7 +634,7 @@ dArrayT DetCheckT::ChooseNewNormal(dArrayT& prevnormal, dMatrixEXT& J)
 	{  
 		if ( fabs(imev[i])<tol || fabs(0.001*imev[i]/realev[i])<tol )
 		{
-			J.eigenvector3x3(J, realev[i], numev, trialNormal, altnormal, altnormal2);
+			J.eigenvector3x3(J, realev[i], numev, trialNormal, altnormal_i, altnormal_ii);
 			//J.Eigenvector(realev[i], trialNormal);
 			inprod = fabs(trialNormal.Dot(trialNormal, prevnormal));
 			if ( i==0 )
@@ -599,7 +663,7 @@ dArrayT DetCheckT::ChooseNormalFromNormalSet(AutoArrayT <dArrayT> &normalSet, dT
 	dMatrixEXT A(3);
 	dArrayT trialNormal(3), bestNormal(3);
 	double leastmin, detA;
-  
+
 	bestNormal = 0.0;
 
 	normalSet.Top();
