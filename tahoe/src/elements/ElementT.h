@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.28 2003-08-22 20:19:31 thao Exp $ */
+/* $Id: ElementT.h,v 1.28.4.1 2003-09-18 21:03:34 cjkimme Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -49,8 +49,9 @@ kPenaltyContactElement3D = 34,
           kBridgingScale = 35,
                kSimoQ1P0 = 36, /**< Q1P0, finite strain, mixed element */
                kAdhesion = 37, /**< adhesive tractions between surfaces */
-           kParticlePair = 38,  /**< particles with pair interactions */
-                    kEAM = 39,  /**< particles with EAM potental */
+           kParticlePair = 38, /**< particles with pair interactions */
+                    kEAM = 39, /**< particles with EAM potental */
+       kConveyorParticle = 40, /**< steady-state crack propogation particle */ 
      kNonLinearDiffusion = 41,
        kMeshfreeBridging = 45,
 	     kFSMatForce = 60,    /*UpLag with material force calculation*/

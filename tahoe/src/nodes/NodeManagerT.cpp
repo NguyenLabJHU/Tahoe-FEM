@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.36 2003-08-18 03:48:54 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.36.4.1 2003-09-18 21:03:43 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -42,6 +42,8 @@
 #include "SetOfNodesKBCT.h"
 #include "TorsionKBCT.h"
 #include "ConveyorT.h"
+#include "AtomicConveyorT.h"
+#include "ParaDynPrescribedT.h"
 
 using namespace Tahoe;
 
@@ -1803,6 +1805,16 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 		case KBC_ControllerT::kConyevor:
 		{
 			ConveyorT* kbc = new ConveyorT(*this, field);
+			return kbc;
+		}
+		case KBC_ControllerT::kAtomicConveyor:
+		{
+			AtomicConveyorT *kbc = new AtomicConveyorT(*this, field);
+			return kbc;
+		}
+		case KBC_ControllerT::kParaDynPrescribed:
+		{
+			ParaDynPrescribedT *kbc = new ParaDynPrescribedT(*this, field);
 			return kbc;
 		}
 		default:

@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.20 2003-08-18 03:45:16 paklein Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.20.4.1 2003-09-18 21:03:44 cjkimme Exp $ */
 /* created: paklein (09/05/2000) */
 #ifndef _KBC_CONTROLLER_T_H_
 #define _KBC_CONTROLLER_T_H_
@@ -44,7 +44,9 @@ public:
     kScaledVelocityNodes = 7,
           kSetOfNodesKBC = 8,
                 kTorsion = 9,
-               kConyevor = 10
+               kConyevor = 10,
+         kAtomicConveyor = 11,
+      kParaDynPrescribed = 12
                 };
 
 	/** constructor */

@@ -1,4 +1,4 @@
-/* $Id: GaussIsokineticT.h,v 1.2 2003-04-22 01:23:16 cjkimme Exp $ */
+/* $Id: GaussIsokineticT.h,v 1.2.12.1 2003-09-18 21:03:38 cjkimme Exp $ */
 #ifndef _GAUSS_ISOKINETIC_T_H_
 #define _GAUSS_ISOKINETIC_T_H_
 
@@ -15,7 +15,8 @@ namespace Tahoe {
 /* forward declarations */
 class ifstreamT;
 
-/** base class for thermostatting and damping */
+/** Constraint method for constant kinetic energy simulations. See
+    PRL _48_ 1818 and JCP _78_ 3297 for details.  */
 class GaussIsokineticT: public ThermostatBaseT
 {
 public:
@@ -51,4 +52,4 @@ protected:
 
 } /* namespace Tahoe */
 
-#endif /* _THERMOSTAT_BASE_T_H_ */
+#endif /* _GAUSS_ISOKINETIC_T_H_ */

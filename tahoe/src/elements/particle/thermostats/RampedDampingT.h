@@ -1,4 +1,4 @@
-/* $Id: RampedDampingT.h,v 1.2 2003-04-22 01:23:16 cjkimme Exp $ */
+/* $Id: RampedDampingT.h,v 1.2.12.1 2003-09-18 21:03:38 cjkimme Exp $ */
 #ifndef _RAMPED_DAMPING_T_H_
 #define _RAMPED_DAMPING_T_H_
 
@@ -45,18 +45,17 @@ public:
 	
 protected:
 
-	/** \name properties */
+	/** \name Damping function variables */
 	/*@{*/
-	double fBeta;
+	/** values at corners */
+	double fLLval, fURval;
+	
+	/** direction it varies over (only 1D shape function for now)*/
+	int nRampedDOF;
 	/*@}*/
-	
-	/** Number of spatial dimensions */
-	int fSD;
-	
-	bool qNodesInRegion;
 	
 };
 
 } /* namespace Tahoe */
 
-#endif /* _THERMOSTAT_BASE_T_H_ */
+#endif /* _RAMPED_DAMPING_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: From2Dto3DT.cpp,v 1.1 2003-05-28 23:13:07 cjkimme Exp $ */
+/* $Id: From2Dto3DT.cpp,v 1.1.6.1 2003-09-18 21:03:35 cjkimme Exp $ */
 /* created: paklein (06/23/1999)*/
 
 #include "From2Dto3DT.h"
@@ -56,6 +56,7 @@ From2Dto3DT::From2Dto3DT(ifstreamT& in, int code, const double& time_step): Surf
 
 From2Dto3DT::From2Dto3DT(dArrayT& params): SurfacePotentialT(knumDOF)
 {
+#pragma unused(params)
 	ExceptionT::GeneralFail("From2Dto3DT::From2Dto3DT","Constructor not implemented yet");
 //	f2DModel = new XuNeedleman2DT(params);
 }

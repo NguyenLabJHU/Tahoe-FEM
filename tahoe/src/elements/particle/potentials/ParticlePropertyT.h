@@ -1,4 +1,4 @@
-/* $Id: ParticlePropertyT.h,v 1.7 2003-08-07 21:11:35 fwdelri Exp $ */
+/* $Id: ParticlePropertyT.h,v 1.7.4.1 2003-09-18 21:03:37 cjkimme Exp $ */
 #ifndef _PARTICLE_PROPERTY_T_H_
 #define _PARTICLE_PROPERTY_T_H_
 
@@ -17,7 +17,8 @@ public:
     kLennardJonesPair = 1, /**< Jennard-Jones 6/12 pair potential */
          kParadynPair = 2, /**< pair potential in Paradyn (EAM) format */
           kParadynEAM = 3, /**< EAM potentials in Paradyn format */
-	  kMatsuiPair = 4  /**< Matsui pair potential */
+	      kMatsuiPair = 4, /**< Matsui pair potential */
+	            kNull = 5, /**< non-interacting atoms */
 	};
 	
 	

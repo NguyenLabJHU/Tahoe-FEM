@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.19 2003-07-11 16:46:06 hspark Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.19.6.1 2003-09-18 21:03:39 cjkimme Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -615,8 +615,7 @@ bool ParentDomainT::PointInDomain(const LocalArrayT& coords, const dArrayT& poin
 			2, 3, 7, 6,
 			3, 0, 4, 7};
 
-		/* method: check all faces and see of point lies inside, breaking
-		*          each face into 2 triangular facets */
+		/* method: check all faces and see of point lies inside */
 		bool in_domain = true;
 		int* facet_nodes = dat8;
 		for (int i = 0; in_domain && i < 6; i++)
@@ -640,29 +639,6 @@ bool ParentDomainT::PointInDomain(const LocalArrayT& coords, const dArrayT& poin
 			double ac_ab_2 = ac_0*ab_1 - ac_1*ab_0;			
 			double triple_product = ac_ab_0*ap_0 + ac_ab_1*ap_1 + ac_ab_2*ap_2;
 			in_domain = triple_product >= 0.0;
-
-			/* facet 2 */
-			if (in_domain) {
-
-				ab_0 = coords(facet_nodes[3], 0) - coords(facet_nodes[2], 0);
-				ab_1 = coords(facet_nodes[3], 1) - coords(facet_nodes[2], 1);
-				ab_2 = coords(facet_nodes[3], 2) - coords(facet_nodes[2], 2);
-
-				ac_0 = coords(facet_nodes[1], 0) - coords(facet_nodes[2], 0);
-				ac_1 = coords(facet_nodes[1], 1) - coords(facet_nodes[2], 1);
-				ac_2 = coords(facet_nodes[1], 2) - coords(facet_nodes[2], 2);
-
-				ap_0 = point[0] - coords(facet_nodes[2], 0);
-				ap_1 = point[1] - coords(facet_nodes[2], 1);
-				ap_2 = point[2] - coords(facet_nodes[2], 2);
-
-				/* vector triple product */
-				ac_ab_0 = ac_1*ab_2 - ac_2*ab_1;
-				ac_ab_1 = ac_2*ab_0 - ac_0*ab_2;
-				ac_ab_2 = ac_0*ab_1 - ac_1*ab_0;			
-				triple_product = ac_ab_0*ap_0 + ac_ab_1*ap_1 + ac_ab_2*ap_2;
-				in_domain = triple_product >= 0.0;
-			}
 
 			facet_nodes += 4;
 		}

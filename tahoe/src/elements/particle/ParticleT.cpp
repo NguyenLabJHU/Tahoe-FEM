@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.22 2003-05-21 23:48:14 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.22.8.1 2003-09-18 21:03:36 cjkimme Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -22,6 +22,10 @@
 #include "LangevinT.h"
 #include "NoseHooverT.h"
 #include "RampedDampingT.h"
+#include "ConstrainedPressureT.h"
+#include "ConfigurationalT.h"
+#include "NPT_EnsembleT.h"
+#include "AndersenPressureT.h"
 
 using namespace Tahoe;
 
@@ -42,8 +46,13 @@ ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 	fCommManager(support.CommManager()),
 	fDmax(0),
 	fForce_man(0, fForce, field.NumDOF()),
+	fDelDotForce(),
 	fActiveParticles(NULL),
-	fRandom(NULL)
+	fRandom(NULL),
+	QCalcPotStiffness(false),
+	QCalcStress(false),
+	QCalcVirial(false),
+	QPBC(false)
 {
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
@@ -105,6 +114,7 @@ void ParticleT::Initialize(void)
 	out << setw(kIntWidth) << "dir"
 	    << setw(d_width) << "min"
 	    << setw(d_width) << "max" << '\n';
+	bool PBC_allDOFs = true;
 	ifstreamT& in = ElementSupport().Input();
 	for (int i = 0; i < NumSD(); i++) {
 	
@@ -120,9 +130,17 @@ void ParticleT::Initialize(void)
 
 			/* send to CommManagerT */
 			ElementSupport().CommManager().SetPeriodicBoundaries(i, x_min, x_max);
+			
 		}
-		else out << setw(d_width) << "-" << setw(d_width) << "-" << '\n';
+		else 
+		{
+			out << setw(d_width) << "-" << setw(d_width) << "-" << '\n';
+			PBC_allDOFs = false;
+		}
 	}
+	
+	/* set flag */
+	QPBC = PBC_allDOFs;
 	
 	/* read properties information */
 	EchoProperties(in, out);
@@ -227,8 +245,15 @@ void ParticleT::WriteOutput(void)
 /* compute specified output parameter and send for smoothing */
 void ParticleT::SendOutput(int kincode)
 {
-#pragma unused(kincode)
-	//TEMP: for now, do nothing
+	if (kincode == InternalData)
+	{
+		if (!QisDamped || (!QCalcPotStiffness && !QCalcStress))
+			ExceptionT::GeneralFail("ParticleT::SendOutput","There is no configurational thermostat\n");
+		//for (int i = 0; i < nThermostats; i++)
+		//	fThermostats[i]->ConfigurationalOutput();
+	}
+	else
+		ExceptionT::GeneralFail("ParticleT::SendOutput","Not Implemented\n");
 }
 
 /* trigger reconfiguration */
@@ -237,12 +262,16 @@ GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
 	/* inherited */
 	GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
 
+	/* check damping regions */
+	bool PBCsHaveChanged = false;
+	GlobalT::RelaxCodeT barostatRelax;
+	for (int i = 0; i < nThermostats; i++)
+		if (fThermostats[i]->RelaxSystem() == GlobalT::kReEQ)
+			PBCsHaveChanged = true;
+
 	/* compute max distance traveled since last neighboring 
 	 * (across all processes) */
 	fDmax = fCommManager.Communicator().Max(MaxDisplacement());
-
-	/* check damping regions */
-	//fDampingCounters++;
 
 	/* generate contact element data */
 	fReNeighborCounter++;
@@ -258,7 +287,14 @@ GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
 		return GlobalT::MaxPrecedence(relax, GlobalT::kReEQ);
 	}
 	else
-		return relax;
+		if (PBCsHaveChanged)
+		{
+			SetConfiguration();
+			
+			return GlobalT::MaxPrecedence(relax, GlobalT::kReEQ);
+		}
+		else
+			return relax;
 }
 
 /* write restart data to the output stream */
@@ -697,6 +733,10 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 	for (int i = 0; i < nThermostats; i++)
 	{
 		bool QisLangevin = false;
+		int n;
+		in >> n; 
+		n--;
+		if (n != i) ExceptionT::GeneralFail(caller,"Expected to read a value %d for thermostat %d\n",i+1,i+1);
 	
 		ThermostatBaseT::ThermostatT thermostat_i;
 		in >> thermostat_i;
@@ -748,6 +788,86 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 				
 				break;
 			}
+			case ThermostatBaseT::kAndersenPressure:
+			{
+				QisDamped = true;
+				
+				// In every generation, there is a chosen one.
+				if (QCalcVirial)
+					ExceptionT::GeneralFail(caller,"Only one Andersen pressure thermostat allowed\n");
+				
+				// Must have PBCs for a cube 
+				if (!QPBC) // check that every spatial dimension has a PBC
+					ExceptionT::GeneralFail(caller,"Barostat Andersen pressure requires PBCs in all directions\n");
+				else
+				{
+					int nsd = ElementSupport().NumSD();
+					ArrayT<bool> isPeriodic(nsd);
+					dArrayT lengths(nsd);
+					dArray2DT boundaries(nsd,2);
+					
+					ElementSupport().CommManager().PeriodicBoundaries(isPeriodic,boundaries,lengths);
+					
+					if (lengths.Max() != lengths.Min())
+						ExceptionT::GeneralFail(caller,"Barostat Andersen pressure requires PBCs to enforce a cube\n");
+						
+					fThermostats[i] = new AndersenPressureT(in,
+						ElementSupport(), &fVirial, lengths.Max());
+				}
+					
+				QCalcVirial = true;
+					
+				break;
+			}
+			case ThermostatBaseT::kConstrainedPressure:
+			{
+				QisDamped = true;
+				
+				// There can be only one
+				if (QCalcStress)
+					ExceptionT::GeneralFail(caller,"Only one constrained pressure thermostat allowed\n");
+				
+				QCalcStress = true;
+				fDynStress.Dimension(ElementSupport().NumNodes(),2);
+				
+				fThermostats[i] = new ConstrainedPressureT(in,
+					ElementSupport(), fDynStress);
+				
+				break;
+			}
+			case ThermostatBaseT::kConfigurational:
+			{
+				QisDamped = true;
+			    
+				// Hamstring this to only one configurational thermostat for now
+				if (QCalcPotStiffness)
+					ExceptionT::GeneralFail(caller,"Only one configurational thermostat is allowed\n");
+
+				QCalcPotStiffness = true;
+				fDelDotForce.Dimension(ElementSupport().NumNodes());
+
+				fThermostats[i] = new ConfigurationalT(in,
+					ElementSupport(), fDelDotForce);
+
+			    break;
+		    
+			}
+			case ThermostatBaseT::kNPT_Ensemble:
+			{
+				QisDamped = true;
+				
+				// There can be only one
+				if (QCalcStress)
+					ExceptionT::GeneralFail(caller,"Only one constrained pressure thermostat allowed\n");
+				
+				QCalcStress = true;
+				fDynStress.Dimension(ElementSupport().NumNodes(),2);
+				
+				fThermostats[i] = new NPT_EnsembleT(in,
+					ElementSupport(), fDynStress);
+				
+				break;
+			}
 			default:
 			{
 				ExceptionT::BadInputValue(caller,"Damping type does not exist or is not valid");
@@ -780,7 +900,7 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 				ExceptionT::BadInputValue(caller,"Thermostat control type invalid");
 			}
 		}
-		if (thermostat_i != ThermostatBaseT::kDamped)
+		if (thermostat_i != ThermostatBaseT::kDamped && thermostat_i != ThermostatBaseT::kRampedDamping)
 		{
 			int schedNum;
 			double schedVal;

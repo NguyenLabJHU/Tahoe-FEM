@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.9 2003-08-14 06:34:49 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.9.4.1 2003-09-18 21:03:42 cjkimme Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -13,6 +13,8 @@
 #include "BridgingScaleT.h"
 #include "ParticleT.h"
 #include "dSPMatrixT.h"
+
+#include "ParaDynPrescribedT.h"
 
 using namespace Tahoe;
 
@@ -468,6 +470,15 @@ void FEManagerT_bridging::ProjectField(const StringT& field, NodeManagerT& node_
 	/* write values into the field */
 	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
 	SetFieldValues(field, cell_nodes, order, fProjection);
+
+	dArray2DT trick_field;
+	dArray2DT* field_ptr = ParaDynPrescribedT::SendVelocities();
+	
+	/* Do a big copy for now */
+	trick_field = *field_ptr;
+	
+	BridgingScale().ProjectField(fDrivenCellData, trick_field, fProjection);
+
 }
 
 /* project the point values onto the mesh */
@@ -493,7 +504,7 @@ int order)
 void FEManagerT_bridging::BridgingFields(const StringT& field, NodeManagerT& atom_node_manager, 
 	NodeManagerT& fem_node_manager, dArray2DT& totalu)
 {
-	const char caller[] = "FEManagerT_bridging::ProjectField";
+	const char caller[] = "FEManagerT_bridging::BridgingFields";
 
 	/* get the fem and md fields */
 	FieldT* atom_field = atom_node_manager.Field(field);

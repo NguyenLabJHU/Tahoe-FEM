@@ -1,4 +1,4 @@
-/* $Id: LennardJonesPairT.cpp,v 1.7 2003-07-11 16:46:04 hspark Exp $ */
+/* $Id: LennardJonesPairT.cpp,v 1.7.6.1 2003-09-18 21:03:37 cjkimme Exp $ */
 #include "LennardJonesPairT.h"
 #include "toolboxConstants.h"
 #include <iostream.h>
@@ -78,6 +78,19 @@ PairPropertyT::StiffnessFunction LennardJonesPairT::getStiffnessFunction(void)
 	return LennardJonesPairT::Stiffness;
 }
 
+PairPropertyT::ThirdDerivativeFunction LennardJonesPairT::getThirdDerivativeFunction(void)
+{
+	/* copy my data to static */
+	s_eps = f_eps;
+	s_sigma = f_sigma;
+	s_alpha = f_alpha;
+	s_phi_rc = f_phi_rc;
+	s_dphi_rc = f_dphi_rc;
+
+	/* return function pointer */
+	return LennardJonesPairT::ThirdDerivative;
+}
+
 /* write properties to output */
 void LennardJonesPairT::Write(ostream& out) const
 {
@@ -152,3 +165,24 @@ double LennardJonesPairT::Stiffness(double r_ab, double* data_a, double* data_b)
 		return 4.0*s_eps*(156.0*r_14 - 42.0*r_8)/s_sigma/s_sigma;
 	}
 }
+
+double LennardJonesPairT::ThirdDerivative(double r_ab, double* data_a, double* data_b)
+{
+#pragma unused(data_a)
+#pragma unused(data_b)
+
+	double r_c = s_sigma*s_alpha;
+	if (s_alpha > kSmall && r_ab > r_c)
+		return 0.0;
+	else
+	{
+		double r = s_sigma/r_ab;
+
+		double r_6 = r*r*r*r*r*r;
+		double r_9 = r_6*r*r*r;
+		double r_15 = r_6*r_9;
+	
+		return s_eps*(8736.0*r_15 - 1344.0*r_9)/s_sigma/s_sigma/s_sigma;
+	}
+}
+

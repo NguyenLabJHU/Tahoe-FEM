@@ -1,4 +1,4 @@
-/* $Id: LennardJonesPairT.h,v 1.5 2003-03-31 23:09:14 paklein Exp $ */
+/* $Id: LennardJonesPairT.h,v 1.5.16.1 2003-09-18 21:03:37 cjkimme Exp $ */
 #ifndef _LENNARD_JONES_PAIR_T_H_
 #define _LENNARD_JONES_PAIR_T_H_
 
@@ -47,6 +47,9 @@ public:
 
 	/** return a pointer to the stiffness function */
 	virtual StiffnessFunction getStiffnessFunction(void);
+	
+	/** return a pointer to the third derivative function */
+	virtual ThirdDerivativeFunction getThirdDerivativeFunction(void);
 	/*@}*/
 
 	/** write properties to output */
@@ -59,6 +62,7 @@ private:
 	static double Energy(double r_ab, double* data_a, double* data_b);
 	static double Force(double r_ab, double* data_a, double* data_b);
 	static double Stiffness(double r_ab, double* data_a, double* data_b);
+	static double ThirdDerivative(double r_ab, double* data_a, double* data_b);
 	/*@}*/
 
 private:

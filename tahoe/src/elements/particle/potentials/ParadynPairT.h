@@ -1,4 +1,4 @@
-/* $Id: ParadynPairT.h,v 1.5 2003-03-25 01:22:41 saubry Exp $ */
+/* $Id: ParadynPairT.h,v 1.5.16.1 2003-09-18 21:03:37 cjkimme Exp $ */
 #ifndef _PARADYN_PAIR_T_H_
 #define _PARADYN_PAIR_T_H_
 
@@ -40,6 +40,9 @@ public:
 
 	/** return a pointer to the stiffness function */
 	virtual StiffnessFunction getStiffnessFunction(void);
+	
+	/** return a pointer to the third derivative function */
+	virtual ThirdDerivativeFunction getThirdDerivativeFunction(void);
 
 	/** return Paradyn-style coefficients table.
 	 * returns false if no table is available. */
@@ -57,6 +60,7 @@ private:
 	static double Energy(double r_ab, double* data_a, double* data_b);
 	static double Force(double r_ab, double* data_a, double* data_b);
 	static double Stiffness(double r_ab, double* data_a, double* data_b);
+	static double ThirdDerivative(double r_ab, double* data_a, double* data_b);
 	/*@}*/
 
 	/** compute the coefficients. Translated from the Paradyn routine interpolate_pair.F

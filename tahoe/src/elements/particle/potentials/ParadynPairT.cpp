@@ -1,4 +1,4 @@
-/* $Id: ParadynPairT.cpp,v 1.7 2003-05-08 01:07:19 saubry Exp $ */
+/* $Id: ParadynPairT.cpp,v 1.7.10.1 2003-09-18 21:03:37 cjkimme Exp $ */
 #include "ParadynPairT.h"
 #include "toolboxConstants.h"
 #include "ifstreamT.h"
@@ -118,6 +118,18 @@ PairPropertyT::StiffnessFunction ParadynPairT::getStiffnessFunction(void)
 	return ParadynPairT::Stiffness;
 }
 
+PairPropertyT::ThirdDerivativeFunction ParadynPairT::getThirdDerivativeFunction(void)
+{
+	/* copy my data to static */
+	s_nr    = fCoefficients.MajorDim(); 
+	s_1bydr = f_1bydr;
+	s_coeff = fCoefficients.Pointer();
+
+	/* return function pointer */
+	return ParadynPairT::ThirdDerivative;
+}
+
+
 /* return Paradyn-style coefficients table */
 bool ParadynPairT::getParadynTable(const double** coeff, double& dr, int& row_size, int& num_rows) const
 {
@@ -172,6 +184,20 @@ double ParadynPairT::Stiffness(double r_ab, double* data_a, double* data_b)
 	pp = Min(pp, 1.0);
 	double* c = s_coeff + kk*knum_coeff;
 	return c[7] + pp*c[8];
+}
+
+double ParadynPairT::ThirdDerivative(double r_ab, double* data_a, double* data_b)
+{
+#pragma unused(data_a)
+#pragma unused(data_b)
+	
+	double pp = r_ab*s_1bydr;
+	int kk = int(pp);
+	kk = Min(kk, s_nr-2);
+	pp -= kk;
+	pp = Min(pp, 1.0);
+	
+	return *(s_coeff + kk*knum_coeff + 8)*s_1bydr;
 }
 
 /* compute the coefficients */

@@ -1,6 +1,6 @@
-/* $Id: NoseHooverT.h,v 1.3.12.1 2003-09-18 21:03:38 cjkimme Exp $ */
-#ifndef _NOSE_HOOVER_T_H_
-#define _NOSE_HOOVER_T_H_
+/* $Id: NPT_EnsembleT.h,v 1.1.2.1 2003-09-18 21:03:38 cjkimme Exp $ */
+#ifndef _NPT_ENSEMBLE_T_H_
+#define _NPT_ENSEMBLE_T_H_
 
 #include "ios_fwd_decl.h"
 
@@ -9,22 +9,25 @@
 
 /* direct members */
 #include "iArrayT.h"
+#include "ElementSupportT.h"
+#include "dArray2DT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
 class ifstreamT;
 
-/** Feedback method for thermostatting. See PRA _31_ 1695 for details.  */
-class NoseHooverT: public ThermostatBaseT
+/** base class for thermostatting and damping */
+class NPT_EnsembleT: public ThermostatBaseT
 {
 public:
 
 	/** constructor */
-	NoseHooverT(ifstreamT& in, const int& nsd, const double& dt);
+	NPT_EnsembleT(ifstreamT& in, const ElementSupportT& support,
+		const dArray2DT& dynStress);
 
 	/** destructor */
-	virtual ~NoseHooverT(void) {};
+	virtual ~NPT_EnsembleT(void) {};
 	
 	/** augment/overwrite forces with new ones */
 	virtual void ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2DT* velocities,
@@ -44,13 +47,13 @@ protected:
 
 	/** \name properties */
 	/*@{*/
-	double fBetaOrig;
-	double fEta;
-	double fEtaDot;
+	const ElementSupportT& fElementSupport;
+	const dArray2DT& fDynStress;
+	/** Needed to control periodic boundary lengths as volume changes */
 	/*@}*/
 	
 };
 
 } /* namespace Tahoe */
 
-#endif /* _NOSE_HOOVER_T_H_ */
+#endif /* _NPT_ENSEMBLE_T_H_ */
