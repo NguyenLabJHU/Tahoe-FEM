@@ -1,4 +1,4 @@
-/* $Id: BondLatticeT.cpp,v 1.6 2004-07-15 08:26:42 paklein Exp $ */
+/* $Id: BondLatticeT.cpp,v 1.7 2005-02-13 22:23:52 paklein Exp $ */
 /* created: paklein (01/07/1997) */
 #include "BondLatticeT.h"
 #include <math.h>
@@ -22,8 +22,9 @@ void BondLatticeT::Initialize(const dMatrixT* Q)
 	/* dimension work space */
 	int nsd = fBonds.MinorDim();
 	fBondDp.Dimension(nsd);
-	fLatDimMatrix.Dimension(nsd);
+//	fLatDimMatrix.Dimension(nsd);
 	fStrain.Dimension(nsd);
+	fStretch.Dimension(nsd);
 
 	/* transformation */
 	if (Q) 
@@ -70,12 +71,10 @@ void BondLatticeT::ComputeDeformedLengths(const dSymMatrixT& strain)
 		fStrain.ExpandFrom2D(strain);
 	else
 		fStrain = strain;
-	
+
 	/* compute stretch tensor */
-	dMatrixT& stretch = fLatDimMatrix;
-	fStrain.ToMatrix(stretch);
-	stretch *= 2.0;
-	stretch.PlusIdentity(1.0);
+	fStretch.SetToScaled(2.0, fStrain);
+	fStretch.PlusIdentity(1.0);
 
 	/* loop over all bonds */
 	for (int bond = 0; bond < fBonds.MajorDim(); bond++)
@@ -84,7 +83,7 @@ void BondLatticeT::ComputeDeformedLengths(const dSymMatrixT& strain)
 		fBonds.RowAlias(bond, fBondSh);
 		
 		/* using symmetry in C */
-		stretch.MultTx(fBondSh, fBondDp);
+		fStretch.Multx(fBondSh, fBondDp);
 		
 		/* deformed length */
 		fDefLength[bond] = sqrt(dArrayT::Dot(fBondSh, fBondDp));
