@@ -488,7 +488,8 @@ void FEA_dMatrixT::Mag_and_Dir (FEA_dScalarT &mag, FEA_dMatrixT &N)
 { 
 	Magnitude (mag); 
 	N = (*this);
-	N /= mag;
+	if (mag!=0.0)
+		N /= mag;
 }
 
 //----------------------------------------------------
@@ -498,7 +499,8 @@ void FEA_dMatrixT::Direction (FEA_dMatrixT &N)
 	FEA_dScalarT s(n_ip);
 	Magnitude (s); 
 	N = (*this);
-	N /= s;
+	if (s!=0.0)
+		N /= s;
 }
 
 //----------------------------------------------------

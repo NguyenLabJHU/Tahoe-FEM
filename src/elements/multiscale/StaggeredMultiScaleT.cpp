@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.8 2002-12-04 17:09:34 creigh Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.9 2002-12-04 22:54:27 creigh Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -238,9 +238,9 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 		cout << "------------------ FINE ----------------- \n";
 
 			/** Compute N-R matrix equations */
-			fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, FEA::kBackward_Euler );
-			fEquation_II -> Form_LHS_Ka_Kb ( fKa_II, 	fKb_II, delta_t );
-			fEquation_II -> Form_RHS_F_int ( fFint_II, delta_t );
+			fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, delta_t, FEA::kBackward_Euler );
+			fEquation_II -> Form_LHS_Ka_Kb ( fKa_II, 	fKb_II );
+			fEquation_II -> Form_RHS_F_int ( fFint_II );
 
 			if (e==1) {
 				cout << "  fKa_II = \n" << fKa_II << "\n\n";

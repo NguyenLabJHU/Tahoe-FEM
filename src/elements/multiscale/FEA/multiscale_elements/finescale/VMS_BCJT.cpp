@@ -7,9 +7,9 @@
 using namespace Tahoe;
 
 VMS_BCJT::VMS_BCJT	( FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, VMS_VariableT &np1, VMS_VariableT &n, 
-											int Integration_Scheme) 
+											double fdelta_t=0.0, int Integration_Scheme) 
 {
-	Construct (Shapes,BCJ_Matl,np1,n,Integration_Scheme);
+	Construct (Shapes,BCJ_Matl,np1,n,fdelta_t,Integration_Scheme);
 }
 
 /* destructor */
@@ -20,9 +20,10 @@ VMS_BCJT::VMS_BCJT	( FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, VMS_Var
 //---------------------------------------------------------------------
 
 void VMS_BCJT::Construct ( 	FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, VMS_VariableT &np1, VMS_VariableT &n, 
-														int Integration_Scheme) 
+																double fdelta_t=0.0, int Integration_Scheme) 
 {
 	int NUM_TEMP_TERMS = 6;
+	delta_t = fdelta_t;
 	n_ip 		= np1.fVars[VMS::kGRAD_ua].IPs(); 
 	n_rows	= np1.fVars[VMS::kGRAD_ua].Rows(); 
 	n_cols	= np1.fVars[VMS::kGRAD_ua].Cols();
@@ -43,7 +44,7 @@ void VMS_BCJT::Construct ( 	FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, 
 
 	//cout <<"C Constants: "<<C<<"\n\n"; 
 	//B.Print("B Matricies");
-	//A.Print("A Matricies");
+	A.Print("A Matricies");
 	//S.Print("S FEA Scalars");
 	//T4.Print("T4 Matricies");
 
@@ -59,7 +60,7 @@ void VMS_BCJT::Construct ( 	FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, 
  *   The ON swithes in this function are for Alpha and Beta 
  *   contributions respectively */
 
-void VMS_BCJT::Form_LHS_Ka_Kb ( dMatrixT &Ka, dMatrixT &Kb, double delta_t)
+void VMS_BCJT::Form_LHS_Ka_Kb ( dMatrixT &Ka, dMatrixT &Kb )
 {
  	/* del(grad_wa) 		*/ 	Ka  = Integral.of( B[kB_1hat], B[kB00_2hat] );  	
 													Kb  = Integral.of( B[kB_1hat], B[kB00_2hat] ); 
@@ -80,7 +81,7 @@ void VMS_BCJT::Form_LHS_Ka_Kb ( dMatrixT &Ka, dMatrixT &Kb, double delta_t)
 //---------------------------------------------------------------------
 // F internal (F_int) dimensions here won't actually be in terms of Force
 
-void VMS_BCJT::Form_RHS_F_int ( dArrayT &F_int, double delta_t) // Untested
+void VMS_BCJT::Form_RHS_F_int ( dArrayT &F_int ) // Untested
 {
 	FEA_dVectorT Da_mp1_vec	( n_ip, n_sd_x_n_sd ); 
 	FEA_dVectorT Da_m_vec		( n_ip, n_sd_x_n_sd ); 
@@ -285,7 +286,7 @@ VMS_VariableT npt(	n.Get(VMS::kGRAD_ua), n.Get(VMS::kGRAD_ub)	);
 	// cout << "FLAG 0 \n";
 
 	if 			(	Time_Integration_Scheme == FEA::kForward_Euler		)		npt = n;
-	else if (	Time_Integration_Scheme == FEA::kBackward_Euler	)		npt = np1;
+	else if (	Time_Integration_Scheme == FEA::kBackward_Euler		)		npt = np1;
 	else if (	Time_Integration_Scheme == FEA::kCrank_Nicholson	) { npt.SumOf(np1,n); npt *= 0.5; }
 	else 	cout << " ...ERROR >> VMS_BCJT::Form_A_List() : Bad theta value for time stepping \n";
 		
@@ -316,8 +317,8 @@ VMS_VariableT npt(	n.Get(VMS::kGRAD_ua), n.Get(VMS::kGRAD_ub)	);
 	A[kF_sharp].MultAB  		( A[kgrad_ub], 	A[kFb] 	);
 	A[kF_sharpT].Transpose	( A[kF_sharp] );
 
-
-  if ( Time_Integration_Scheme != FEA::kBackward_Euler ) {
+	// B-Euler doesn't need following data since Da_mp1 = .5I thus del(Da_mp1) = 0
+  if ( Time_Integration_Scheme != FEA::kBackward_Euler ) { 
 
 		A[kFa_np1]  = np1.Get 	( VMS::kFa );
 		A[kCa_np1].MultATB  		( A[kFa_np1], A[kFa_np1] 	);
@@ -329,18 +330,26 @@ VMS_VariableT npt(	n.Get(VMS::kGRAD_ua), n.Get(VMS::kGRAD_ub)	);
   	A[kA03].MultAB   				(	A[kFa_np1], A[kFai]			);
   	A[kA04].MultATBT 				(	A[kFai], 		A[kFa_np1]	);
   	A[kA04] 	*= 0.5;
-		A[kF_np1]   = np1.Get 	( VMS::kF );
+		A[kF_np1]  = np1.Get 		( VMS::kF );
   	A[kA05].MultAB   				(	A[kF_np1], 	A[kFai]			);
+    if ( Time_Integration_Scheme == FEA::kForward_Euler ) { // Trapezoidal not yet available
+			A[kDa_m] = 0.0;
+			A[kDa_m].PlusIdentity(0.5); 
+		}
 
 	}
 
-  if ( Time_Integration_Scheme != FEA::kForward_Euler ) {
+	// F-Euler doesn't need following data since Da_m = .5I thus del(Da_m) = 0
+  if ( Time_Integration_Scheme != FEA::kForward_Euler ) { 
 
 		A[kFa_n]    = n.Get			(	VMS::kFa );
 		A[kCa_n].MultATB				( A[kFa_n], A[kFa_n]    );
 		A[kDa_m].MultATBC 			(	A[kFai], 		A[kCa_n], 		A[kFai]	);
 		A[kDa_m] 	*= 0.5;
-
+    if ( Time_Integration_Scheme == FEA::kBackward_Euler ) { // Trapezoidal not yet available
+			A[kDa_mp1] = 0.0;
+			A[kDa_mp1].PlusIdentity(0.5); 
+		}
 	}	
 
   A[kA1].MultAB						(	A[kFbT], 		A[kF_sharp] 	);
@@ -414,20 +423,13 @@ VMS_VariableT npt(	n.Get(VMS::kGRAD_ua), n.Get(VMS::kGRAD_ub)	);
 	S[kJa].Determinant	( A[kFa]	); 
 	S[kJb].Determinant	( A[kFb] 	); 
 
-  //---- XI
+  //--- XI
 	
   A[kXI]  =  A[kN_1hat];
   A[kXI] *=  S[kAlpha];
-
-	if (Time_Integration_Scheme != FEA::kBackward_Euler) 
-  	A[kXI] +=  A[kDa_mp1];
-	else // BE:  Da_mp1 = 1
-  	A[kXI].PlusIdentity(); 
-
-	if (Time_Integration_Scheme != FEA::kForward_Euler) 
-  	A[kXI] -=  A[kDa_m];
-	else // FE:  Da_m = 1
-  	A[kXI].PlusIdentity(-1.0); 
+  A[kXI] *=  delta_t; 
+  A[kXI] +=  A[kDa_mp1];
+ 	A[kXI] -=  A[kDa_m];
 
 }
 
