@@ -35,6 +35,13 @@ EVPFDBaseT::EVPFDBaseT(ifstreamT& in, const ElasticT& element) :
   // input file
   StringT filename;
   in >> filename;
+  
+  // generate relative path in native format
+  filename.ToNativePathName();
+  StringT path;
+  path.FilePath(in.filename());
+  filename.Prepend(path);
+  
   OpenExternal(fInput, filename, "EVPFDBaseT data");
   if (in.skip_comments())
     fInput.set_marker(in.comment_marker());
