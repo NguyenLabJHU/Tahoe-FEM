@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.69.2.2 2004-08-05 23:21:00 d-farrell2 Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.69.2.3 2004-08-07 18:08:25 d-farrell2 Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -574,6 +574,11 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 				part_file.Append(".part", rank);
 				ifstreamT part_in('#', part_file);
 				token = 1;
+				
+				if (part_in.is_open()) 
+				{
+					cout << "\n" << " partition files opened on: " << rank << endl;
+				}
 				if (!part_in.is_open())
 				{
 					cout << "\nû " << caller << ": could not open file: " << part_file << endl;

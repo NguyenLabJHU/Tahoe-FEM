@@ -1,4 +1,4 @@
-/* $Id: FEDecomposeT.cpp,v 1.1.2.1 2004-08-04 22:32:45 d-farrell2 Exp $ */
+/* $Id: FEDecomposeT.cpp,v 1.1.2.2 2004-08-07 18:08:25 d-farrell2 Exp $ */
 /* created: d-farrell2 (08/03/2004) */
 #include "FEDecomposeT.h"
 
@@ -631,12 +631,12 @@ void FEDecomposeT::DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph,
 		
 	/* make graph */
 	clock_t t0 = clock();
-	if (verbose) cout << " FEManagerT_mpi::DoDecompose_1: constructing graph" << endl;
+	if (verbose) cout << " FEDecomposeT::DoDecompose_1: constructing graph" << endl;
 	graphU.MakeGraph();
 	clock_t t1 = clock();
 	if (verbose)
 		cout << setw(kDoubleWidth) << double(t1 - t0)/CLOCKS_PER_SEC
-		     << " sec: FEManagerT_mpi::DoDecompose_1: construct graph" << endl;
+		     << " sec: FEDecomposeT::DoDecompose_1: construct graph" << endl;
 	
 	/* dual graph partitioning graph */
 	int dual_graph = (feman.InterpolantDOFs() == 0) ? 1 : 0;
@@ -644,7 +644,7 @@ void FEDecomposeT::DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph,
 	GraphT graphX;
 	if (dual_graph == 1)
 	{
-		if (verbose) cout << " FEManagerT_mpi::DoDecompose_1: constructing dual graph" << endl;
+		if (verbose) cout << " FEDecomposeT::DoDecompose_1: constructing dual graph" << endl;
 		
 		/* collect element groups */
 			feman.ConnectsX(connectsX_1);
@@ -659,7 +659,7 @@ void FEDecomposeT::DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph,
 		clock_t t1 = clock();
 		if (verbose)
 			cout << setw(kDoubleWidth) << double(t1 - t0)/CLOCKS_PER_SEC
-		     << " sec: FEManagerT_mpi::DoDecompose_1: construct X graph" << endl;
+		     << " sec: FEDecomposeT::DoDecompose_1: construct X graph" << endl;
 	}
 	
 	/* generate partition */
@@ -698,13 +698,13 @@ void FEDecomposeT::DoDecompose_2(ArrayT<PartitionT>& partition, GraphT& graph, b
 		graphX.AddEquivalentNodes(*(equivalent_nodes[k]));
 		
 	/* make graph */
-	if (verbose) cout << " FEManagerT_mpi::DoDecompose_2: constructing dual graph" << endl;
+	if (verbose) cout << " FEDecomposeT::DoDecompose_2: constructing dual graph" << endl;
 	clock_t t0 = clock();		
 	graphX.MakeGraph();
 	clock_t t1 = clock();
 	if (verbose)
 		cout << setw(kDoubleWidth) << double(t1 - t0)/CLOCKS_PER_SEC
-	     << " sec: FEManagerT_mpi::DoDecompose_2: construct graph" << endl;
+	     << " sec: FEDecomposeT::DoDecompose_2: construct graph" << endl;
 	
 	/* generate partition */
 	iArrayT config(1); //TEMP - will be scalar soon?
