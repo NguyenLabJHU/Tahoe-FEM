@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2001-02-22 23:43:28 paklein Exp $
+# $Id: makefile,v 1.7 2004-09-07 06:41:58 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,7 +6,12 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	LU_MPI_driver.o
+	LU_MPI_driver.o \
+	LU_MPI_driver_init.o \
+	LU_MPI_driver_factorize.o \
+	LU_MPI_driver_solve.o \
+	LU_MPI_driver_free.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -15,11 +20,15 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	LU_MPI_driver.c
+	LU_MPI_driver.c \
+	LU_MPI_driver_init.c \
+	LU_MPI_driver_factorize.c \
+	LU_MPI_driver_solve.c \
+	LU_MPI_driver_free.c
 
 # headers
-#HDR = 
-#HDR_LINK = $(HDR:.h=.h_link)
+HDR = LU_MPI_driver.h LU_MPI_driver_int.h
+HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
 SUB_DIR = 
