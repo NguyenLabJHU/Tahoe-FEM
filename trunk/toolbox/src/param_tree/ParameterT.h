@@ -1,4 +1,4 @@
-/* $Id: ParameterT.h,v 1.9 2003-05-04 22:59:53 paklein Exp $ */
+/* $Id: ParameterT.h,v 1.10 2004-01-21 17:10:28 paklein Exp $ */
 #ifndef _PARAMETER_T_H_
 #define _PARAMETER_T_H_
 
@@ -92,6 +92,7 @@ public:
 	void SetDefault(const char* s);
 	void SetDefault(const StringT& s);
 	void SetDefault(bool b);
+	void SetDefault(const ValueT& v);
 
 	/** return a pointer to the default value or NULL if there isn't one */
 	const ValueT* Default(void) const { return fDefault; };

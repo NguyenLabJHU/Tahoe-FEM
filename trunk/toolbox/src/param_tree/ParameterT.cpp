@@ -1,4 +1,4 @@
-/* $Id: ParameterT.cpp,v 1.11 2003-11-04 01:21:25 paklein Exp $ */
+/* $Id: ParameterT.cpp,v 1.12 2004-01-21 17:10:28 paklein Exp $ */
 #include "ParameterT.h"
 
 /* array behavior */
@@ -170,24 +170,17 @@ void ParameterT::SetDefault(int a)
 {
 	const char caller[] = "ParameterT::SetDefault(int)";
 
+	/* delete previous default */
+	delete fDefault;
+
 	switch (fType)
 	{
 		case Integer:
-		{
-			if (fDefault)
-				*fDefault = a;
-			else
-				fDefault = new ValueT(a);
+			fDefault = new ValueT(a);
 			break;
-		}
 		case Boolean:
-		{
-			if (fDefault)
-				*fDefault = bool(a);
-			else
-				fDefault = new ValueT(bool(a));
+			fDefault = new ValueT(bool(a));
 			break;
-		}
 		case Enumeration:
 		{
 			/* look for value in limits */
@@ -195,8 +188,7 @@ void ParameterT::SetDefault(int a)
 			{
 				int i_limit = fLimits[i];
 				if (i_limit == a) {
-					const StringT& s_limit = fLimits[i];
-					SetDefault(s_limit);
+					fDefault = new ValueT(fLimits[i]);
 					return;
 				}
 			}
@@ -206,13 +198,8 @@ void ParameterT::SetDefault(int a)
 			break;
 		}
 		case Double:
-		{
-			if (fDefault)
-				*fDefault = double(a);
-			else
-				fDefault = new ValueT(double(a));
+			fDefault = new ValueT(double(a));
 			break;
-		}
 		default:
 			ExceptionT::TypeMismatch(caller, "no conversion to %s for \"%s\"", TypeName(fType), fName.Pointer());
 	}
@@ -220,26 +207,22 @@ void ParameterT::SetDefault(int a)
 
 void ParameterT::SetDefault(double x)
 {
+	/* delete previous default */
+	delete fDefault;
+
 	if (fType == Double)
-	{
-		if (fDefault)
-			*fDefault = x;
-		else
-			fDefault = new ValueT(x);
-	}
+		fDefault = new ValueT(x);
 	else
 		ExceptionT::TypeMismatch("ParameterT::SetDefault(double)", "no conversion to %s for \"%s\"", TypeName(fType), fName.Pointer());
 }
 
 void ParameterT::SetDefault(bool b)
 {
+	/* delete previous default */
+	delete fDefault;
+
 	if (fType == Boolean)
-	{
-		if (fDefault)
-			*fDefault = b;
-		else
-			fDefault = new ValueT(b);
-	}
+		fDefault = new ValueT(b);
 	else
 		ExceptionT::TypeMismatch("ParameterT::SetDefault(bool)", "no conversion to %s for \"%s\"", TypeName(fType), fName.Pointer());
 }
@@ -248,37 +231,69 @@ void ParameterT::SetDefault(const char* s)
 {
 	const char caller[] = "ParameterT::SetDefault(StringT)";
 
+	/* delete previous default */
+	delete fDefault;
+
 	/* check enumerations */
 	if (fType == Enumeration)
 	{
 		/* look for value in limits */
-		bool found = false;
-		for (int i = 0; !found && i < fLimits.Length(); i++)
+		for (int i = 0; i < fLimits.Length(); i++)
 		{
 			const StringT& s_limit = fLimits[i];
-			found = (s_limit == s);
+			if (s_limit == s) 
+			{
+				fDefault = new ValueT(fLimits[i]);
+				return;
+			}
 		}
 			
-		/* error */
-		if (!found)
-			ExceptionT::GeneralFail(caller, "value \"%s\" does not appear in enumeration \"%s\"", s, fName.Pointer());
+		/* error if not found */
+		ExceptionT::GeneralFail(caller, "value \"%s\" does not appear in enumeration \"%s\"", s, fName.Pointer());
 	}
-
-	/* assign */
-	if (fType == String || fType == Enumeration)
-	{
-		if (fDefault)
-			*fDefault = s;
-		else
-			fDefault = new ValueT(s);
-	}
+	else if (fType == String)
+		fDefault = new ValueT(s);
 	else if (fType == Boolean)
 	{	
-		if (!fDefault) fDefault = new ValueT(Boolean);
+		fDefault = new ValueT(Boolean);
 		fDefault->FromString(s);
 	}
 	else
 		ExceptionT::TypeMismatch(caller, "no conversion to %s for \"%s\"", TypeName(fType), fName.Pointer());
+}
+
+void ParameterT::SetDefault(const ValueT& v)
+{
+	switch (fType)
+	{
+		case Integer:
+			SetDefault(int(v));
+			break;
+		case Double:
+			SetDefault(double(v));
+			break;
+		case String:
+		{
+			const StringT& v_str = v;		
+			SetDefault(v_str);
+			break;
+		}
+		case Boolean:
+			SetDefault(bool(v));
+			break;
+		case Enumeration:
+		{
+			/* try string, otherwise int */
+			const StringT& v_str = v;
+			if (v_str.StringLength() > 0)
+				SetDefault(v_str);
+			else
+				SetDefault(int(v));
+			break;
+		}
+		default:
+			ExceptionT::GeneralFail("ParameterT::SetDefault");
+	}
 }
 
 /* assignment operator */
