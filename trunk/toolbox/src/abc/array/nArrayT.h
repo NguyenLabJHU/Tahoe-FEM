@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.2 2001-02-27 00:12:36 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.3 2001-06-19 00:53:10 paklein Exp $ */
 /* created: paklein (05/23/1997)                                          */
 /* Base class for arrays of TYPE for which the following mathematical     */
 /* operators have been defined:                                           */
@@ -62,6 +62,9 @@ public:
 
 	/* inner product */
 	static nTYPE Dot(const nArrayT<nTYPE>& A1, const nArrayT<nTYPE>& A2);
+	
+	/* distance */
+	static nTYPE Distance(const nArrayT<nTYPE>& A1, const nArrayT<nTYPE>& A2);
 
 	/* max and min */
 	nTYPE Max(void) const;
@@ -878,6 +881,33 @@ nTYPE nArrayT<nTYPE>::Dot(const nArrayT<nTYPE>& A1, const nArrayT<nTYPE>& A2)
 		dot += temp;
 	}
 	return dot;
+}
+
+/* distance */
+template <class nTYPE>
+nTYPE nArrayT<nTYPE>::Distance(const nArrayT<nTYPE>& A1, 
+	const nArrayT<nTYPE>& A2)
+{
+/* dimension check */
+#if __option (extended_errorcheck)
+	if (A1.Length() != A2.Length()) throw eSizeMismatch;
+#endif
+
+	nTYPE* p1 = A1.Pointer();
+	nTYPE* p2 = A2.Pointer();
+	
+	register nTYPE dot = 0.0;
+	register nTYPE temp;
+	
+	int length = A1.Length();
+	for (int i = 0; i < length; i++)
+	{
+		temp  = (*p1++);
+		temp -= (*p2++);
+		temp *= temp;
+		dot += temp;
+	}
+	return sqrt(dot);
 }
 
 /* commonly used operations;
