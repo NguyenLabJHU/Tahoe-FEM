@@ -1,4 +1,4 @@
-/* $Id: PatranInputT.cpp,v 1.3 2001-09-04 14:46:38 sawimme Exp $ */
+/* $Id: PatranInputT.cpp,v 1.4 2001-09-06 17:28:26 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "PatranInputT.h"
@@ -141,7 +141,7 @@ void PatranInputT::ReadGlobalElementSet (StringT& name, iArrayT& set)
     {
       int index;
       map.HasValue (set[n], index);
-      if (index < 0 || index >= set.Length()) throw eOutOfRange;
+      if (index < 0 || index >= map.Length()) throw eOutOfRange;
       set[n] = index;
     }  
 }
@@ -152,9 +152,18 @@ void PatranInputT::ReadConnectivity (StringT& name, iArray2DT& connects)
   if (!fPatran.ReadConnectivity (name, namedtype, connects))
     throw eDatabaseFail;
 
-  /* someday, convert from discontinuous to continuous numbering */
+  /* convert from discontinuous to continuous numbering */
+  iArrayT map (NumNodes());
+  ReadNodeMap (map);
 
-  connects += -1;
+  int *pc = connects.Pointer();
+  for (int i=0; i < connects.Length(); i++, pc++)
+    {
+      int kdex;
+      map.HasValue (*pc, kdex);
+      if (kdex < 0 || kdex >= map.Length()) throw eOutOfRange;
+      *pc = kdex;
+    }
 }
 
 void PatranInputT::ReadGeometryCode (StringT& name, GeometryT::CodeT& code)
@@ -179,7 +188,6 @@ void PatranInputT::ReadNodeSet (StringT& name, iArrayT& nodes)
 {
   if (!fPatran.ReadNodeSet (name, nodes)) throw eDatabaseFail;
 
-
   // offset and map to start numbering at zero
   // account for discontinuous numbering
   iArrayT map;
@@ -188,7 +196,7 @@ void PatranInputT::ReadNodeSet (StringT& name, iArrayT& nodes)
     {
       int index;
       map.HasValue (nodes[n], index);
-      if (index < 0 || index >= nodes.Length()) throw eOutOfRange;
+      if (index < 0 || index >= map.Length()) throw eOutOfRange;
       nodes[n] = index;
     }
 }
