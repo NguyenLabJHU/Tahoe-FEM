@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.30.2.1 2004-03-31 16:14:35 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.30.2.2 2004-04-01 08:35:20 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -39,20 +39,6 @@ ElementSupportT::~ElementSupportT(void)
 {
 #ifdef _FRACTURE_INTERFACE_LIBRARY_
 	delete fGroupAverage;
-#endif
-}
-
-/* the element group at the specified index in the element list */
-ElementBaseT& ElementSupportT::ElementGroup(int index) const
-{
-#ifdef _FRACTURE_INTERFACE_LIBRARY_
-	ExceptionT::GeneralFail("ElementSupportT::ElementGroup", "not supported");
-	ElementBaseT* dummy = NULL;
-	return *dummy;
-#else
-	ElementBaseT* element = FEManager().ElementGroup(index);
-	if (!element) ExceptionT::GeneralFail("ElementSupportT::ElementGroup");
-	return *element;
 #endif
 }
 

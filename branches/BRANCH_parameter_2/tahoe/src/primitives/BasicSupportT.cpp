@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.cpp,v 1.1.2.1 2004-03-31 16:14:38 paklein Exp $ */
+/* $Id: BasicSupportT.cpp,v 1.1.2.2 2004-04-01 08:35:21 paklein Exp $ */
 #include "BasicSupportT.h"
 
 #include "dArray2DT.h"
@@ -85,7 +85,10 @@ void BasicSupportT::SetFEManager(const FEManagerT* fe)
 		fCommManager = fFEManager->CommManager();
 		
 		/* set communicator */
-		fCommunicator = &(fCommManager->Communicator());
+		if (fCommManager)
+			fCommunicator = &(fCommManager->Communicator());
+		else
+			fCommunicator = NULL;
 	}
 #endif
 }
@@ -419,5 +422,19 @@ XDOF_ManagerT& BasicSupportT::XDOF_Manager(void) const
 	return *dummy;
 #else
 	return NodeManager();
+#endif
+}
+
+/* the element group at the specified index in the element list */
+ElementBaseT& BasicSupportT::ElementGroup(int index) const
+{
+#ifdef _FRACTURE_INTERFACE_LIBRARY_
+	ExceptionT::GeneralFail("BasicSupportT::ElementGroup", "not supported");
+	ElementBaseT* dummy = NULL;
+	return *dummy;
+#else
+	ElementBaseT* element = FEManager().ElementGroup(index);
+	if (!element) ExceptionT::GeneralFail("BasicSupportT::ElementGroup");
+	return *element;
 #endif
 }
