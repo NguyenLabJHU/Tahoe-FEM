@@ -1,5 +1,6 @@
-/* $Id: main.cpp,v 1.19 2004-05-10 01:28:48 paklein Exp $ */
+/* $Id: main.cpp,v 1.20 2004-11-16 01:04:35 paklein Exp $ */
 #include "ExceptionT.h"
+
 #include "TranslateIOManager.h"
 #include "ExtractNode.h"
 #include "ExtractElement.h"
@@ -7,6 +8,8 @@
 #include "PointPlots.h"
 #include "MergeResults.h"
 #include "JoinResults.h"
+#include "Scroller.h"
+
 #include "ifstreamT.h"
 #include "StringT.h"
 #include "AutoArrayT.h"
@@ -65,6 +68,7 @@ int main (int c, char* a [])
 	      cout << "5. Merge Results Files \n";
 	      cout << "6. Element Data Extraction to XY Data \n";
 	      cout << "7. Concatentate Results Files \n";
+	      cout << "8. Convert conveyor results to scrolling view \n";
 		  cout << "\n Select type of translation: ";
 	    }
 	  in >> selection;
@@ -129,6 +133,14 @@ int main (int c, char* a [])
 			program = "Concat";
 			version = "v1.0";
 			dataio = new JoinResults(cout, in, write);
+			break;
+		}
+		case 8:
+		{
+			cout << " Convert results to scrolling view.\n\n";
+			program = "Scroller";
+			version = "v1.0";
+			dataio = new Scroller(cout, in, write);
 			break;
 		}
 	    default:
