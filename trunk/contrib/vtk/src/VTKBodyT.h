@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.h,v 1.4 2001-11-01 19:16:43 recampb Exp $ */
+/* $Id: VTKBodyT.h,v 1.5 2001-11-06 02:39:51 recampb Exp $ */
 
 #ifndef _VTK_BODY_T_H_
 #define _VTK_BODY_T_H_
@@ -57,7 +57,7 @@ class VTKBodyT
 int num_time_steps;
   int currentVarNum;
   int currentStepNum;
- StringT outFileName;
+
  private:
   
   /* source file */

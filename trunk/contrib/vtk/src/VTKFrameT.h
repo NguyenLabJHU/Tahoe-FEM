@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.h,v 1.7 2001-11-01 19:16:44 recampb Exp $ */
+/* $Id: VTKFrameT.h,v 1.8 2001-11-06 02:39:51 recampb Exp $ */
 
 #ifndef _VTK_FRAME_T_H_
 #define _VTK_FRAME_T_H_
@@ -13,13 +13,14 @@
 
 /* VTK forward declarations */
 class vtkRenderer;
-class vtkRendererSource;
+//class vtkRendererSource;
 class vtkRenderWindow;
 class vtkRenderWindowInteractor;
 class vtkTIFFWriter;
 
 /* forward declarations */
 class VTKBodyT;
+class VTKConsoleT;
 
 class VTKFrameT: public iConsoleObjectT
 {
@@ -31,8 +32,18 @@ class VTKFrameT: public iConsoleObjectT
   /** destructor */
   ~VTKFrameT(void);
 
-  //VTKBodyT Body(const int bodyNum) { return bodies(bodyNum);};
+  /** return a pointer to the specified frame body */
+  VTKBodyT* Body(int bodyNum) { return bodies[bodyNum]; };
   
+  /** add body to the frame.
+   * returns true if the body was added the frame, false
+   * otherwise */
+  bool AddBody(VTKBodyT* body);
+
+  /** delete body from the frame. returns true if body was found and
+   * and removed, false otherwise. */
+  bool RemoveBody(VTKBodyT* body);
+
   vtkRenderer* getRen(void) {return renderer;};
   //private:
   
@@ -42,21 +53,31 @@ class VTKFrameT: public iConsoleObjectT
   vtkRenderer* Renderer(void) { return renderer; };
 
    virtual bool iDoCommand(const StringT& command, StringT& line);
-   vtkRenderWindow* getRenWin(void) {return fRenWin;};
-   vtkRenderWindowInteractor* getIren(void) {return fIren;};
+   
+   /** set controlling console object */
+   void setConsole(VTKConsoleT* console) { fConsole = console; };
+
+   /** set the renderer window */
+   void setRenWin(vtkRenderWindow* renWin) { fRenWin = renWin; };
+   
+   /** set the window interactor */
+   void setIren(vtkRenderWindowInteractor* iren) {fIren = iren; };
+
    StringT getName(void) {return bodies[0]->inFile;};
    
+ private:
+
+   /** controlling console object */
+   VTKConsoleT* fConsole;
+  
+  vtkRenderer *renderer;
+  //  vtkRendererSource *renSrc;
+  vtkTIFFWriter *writer;
+
   vtkRenderWindow *fRenWin;
   vtkRenderWindowInteractor *fIren;
   AutoArrayT<VTKBodyT*> bodies;
- private:
   
-  vtkRenderer *renderer;
-  vtkRendererSource *renSrc;
-  vtkTIFFWriter *writer;
-
-  
-
 
  /*  vtkIdFilter *ids; */
 /*   vtkSelectVisiblePoints *visPts; */
