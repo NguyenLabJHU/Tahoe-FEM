@@ -1,9 +1,5 @@
-/* $Id: LocalArrayGroupT.h,v 1.2 2002-07-02 19:56:45 cjkimme Exp $ */
-/* created: paklein (09/11/1998)                                          */
-/* Class to manage a list of group of dynamically changing size           */
-/* LocalArrayT's. All arrays must initially be of the same dimension      */
-/* NOTE: all registered arrays will be shallow.                           */
-
+/* $Id: LocalArrayGroupT.h,v 1.2.4.1 2003-01-09 09:26:46 paklein Exp $ */
+/* created: paklein (09/11/1998) */
 #ifndef _LOCALARRAY_GROUP_T_H_
 #define _LOCALARRAY_GROUP_T_H_
 
@@ -13,9 +9,12 @@
 /* direct members */
 #include "LocalArrayT.h"
 
-
 namespace Tahoe {
 
+/** Class to manage a list of group of dynamically changing size
+ * LocalArrayT's. All arrays must initially be of the same dimension
+ * \note all registered arrays will be shallow.
+ */
 class LocalArrayGroupT: private MemoryGroupT<double>
 {
 public:
