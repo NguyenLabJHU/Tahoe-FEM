@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.26 2004-12-26 21:09:42 d-farrell2 Exp $ */
+/* $Id: NodeManagerT.h,v 1.27 2005-01-06 18:52:27 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -283,6 +283,9 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
+	/** describe the parameters needed by the interface*/
+	virtual void DefineParameters(ParameterListT& list) const;
+	
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
