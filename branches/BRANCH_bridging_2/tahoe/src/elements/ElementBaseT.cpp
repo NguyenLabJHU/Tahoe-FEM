@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.34 2003-02-21 22:31:28 cjkimme Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.34.8.1 2003-05-12 16:35:55 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -360,6 +360,14 @@ void ElementBaseT::NodesUsed(ArrayT<int>& nodes_used) const
 	int*  p = node_map.Pointer();
 	for (int j = 0; j < node_map.Length(); j++)
 		if (*p++ == 1) nodes_used[dex++] = j + min;
+}
+
+/* contribution to the nodal residual forces */
+const dArray2DT& ElementBaseT::InternalForce(int group)
+{
+#pragma unused(group)
+	ExceptionT::GeneralFail("ElementBaseT::InternalForce", "not implemented");
+	return ElementSupport().CurrentCoordinates(); /* dummy */
 }
 
 /***********************************************************************
