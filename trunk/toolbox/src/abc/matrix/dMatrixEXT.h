@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.h,v 1.6 2002-02-26 01:46:19 raregue Exp $ */
+/* $Id: dMatrixEXT.h,v 1.7 2002-03-04 17:23:32 raregue Exp $ */
 /* created: paklein (03/06/1998) */
 
 #ifndef _DMATRIXEX_T_H_
@@ -43,8 +43,8 @@ public:
     void eigenvalue3x3(dMatrixEXT& J, dArrayT& reroot, dArrayT& imroot);
 	void eigenvector3x3(dMatrixEXT& J, double value, int numvector,  dArrayT& vector, dArrayT& vector2, dArrayT& vector3);
 	/*forms acoustic tensor from rank 4 tangent modulus, normal */
-	//void formacoustictensor(dMatrixEXT& A, double C [3] [3] [3] [3], dArrayT& normal);
-	void formacoustictensor(dMatrixEXT& A, dTensor4DT& C, dArrayT& normal);
+	void formacoustictensor(dMatrixEXT& A, double C [3] [3] [3] [3], dArrayT& normal);
+	//void formacoustictensor(dMatrixEXT& A, dTensor4DT& C, dArrayT& normal);
 
 
 	/** generate singular value decomposition of *this = U*W*V^T. 

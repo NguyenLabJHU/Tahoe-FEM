@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.cpp,v 1.7 2002-02-26 01:46:19 raregue Exp $ */
+/* $Id: dMatrixEXT.cpp,v 1.8 2002-03-04 17:23:32 raregue Exp $ */
 /* created: paklein (03/06/1998)                                          */
 
 #include "dMatrixEXT.h"
@@ -1104,8 +1104,8 @@ vector3[2]=vector3[2]/norm;
 
 
 /*forms acoustic tensor from rank 4 tangent modulus, normal */
-//void dMatrixEXT::formacoustictensor(dMatrixEXT& A, double C [3] [3] [3] [3], dArrayT& normal)
-void dMatrixEXT::formacoustictensor(dMatrixEXT& A, dTensor4DT& C, dArrayT& normal)
+void dMatrixEXT::formacoustictensor(dMatrixEXT& A, double C [3] [3] [3] [3], dArrayT& normal)
+//void dMatrixEXT::formacoustictensor(dMatrixEXT& A, dTensor4DT& C, dArrayT& normal)
 {
  int k,l,m,n; //counters
 
@@ -1119,8 +1119,8 @@ void dMatrixEXT::formacoustictensor(dMatrixEXT& A, dTensor4DT& C, dArrayT& norma
    for (n=0;n<3;n++){
      for (k=0;k<3;k++){
        for (l=0;l<3;l++){
-		//A (m,n)+=normal[k]*C [k] [m] [n] [l]*normal[l]; 
-		A (m,n)+=normal[k]*C(k,m,n,l)*normal[l]; 
+		A (m,n)+=normal[k]*C [k] [m] [n] [l]*normal[l]; 
+		//A (m,n)+=normal[k]*C(k,m,n,l)*normal[l]; 
        }
      }
    }
