@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.8 2003-01-27 07:00:26 paklein Exp $ */
+/* $Id: ParticlePairT.h,v 1.8.4.1 2003-03-14 01:13:19 cjkimme Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -13,6 +13,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class PairPropertyT;
+class RandomNumberT;
 
 /** base class for particle types */
 class ParticlePairT: public ParticleT
@@ -77,6 +78,13 @@ private:
 
 	/** equation numbers */
 	RaggedArray2DT<int> fEqnos;
+	
+	/** flag for application of damping */
+	bool QisDamped;
+	/** damping coefficient */
+	double fDamping;
+	/** Random number generator */
+	RandomNumberT *fRand;
 
 	/** \name workspace for ParticlePairT::RHSDriver. Used to accumulate the force for
 	 * a single row of ParticlePairT::fNeighbors. */
