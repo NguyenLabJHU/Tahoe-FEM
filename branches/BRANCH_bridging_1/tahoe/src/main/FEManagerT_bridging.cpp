@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.1.2.5 2003-02-12 02:48:54 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.1.2.6 2003-02-12 23:43:14 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #include "ModelManagerT.h"
 #include "NodeManagerT.h"
@@ -56,8 +56,10 @@ void FEManagerT_bridging::InitGhostNodes(void)
 
 	/* echo ghost nodes */
 	if (fPrintInput) {
+		fGhostNodes++;
 		fMainOut << "\n Ghost nodes:\n";
 		fMainOut << fGhostNodes.wrap(5) << '\n';
+		fGhostNodes--;
 	}
 
 	/* mark nodes as ghost */
@@ -92,14 +94,13 @@ void FEManagerT_bridging::SetFieldValues(const StringT& field, const iArrayT& no
 	/* get the associated field */
 	FieldT* the_field = fNodeManager->Field(field);
 
-	/* field's update array */
-	dArray2DT& update = the_field->Update();
-	update = 0.0;
-	for (int i = 0; i < values.MajorDim(); i++)
-		update.SetRow(nodes[i], values(i));
+	/* assume we're writing into the displacement array */
+	dArray2DT& displacement = (*the_field)[0];
+	for (int i = 0; i < values.MajorDim(); i++)	
+		displacement.SetRow(nodes[i], values(i));
 
-	/* apply the update to the field */
-	the_field->ApplyUpdate();
+	/* reset the current configuration */
+	fNodeManager->UpdateCurrentCoordinates();
 
 	//NOTE: write the values into the KBC controller as well?
 }
