@@ -1,4 +1,4 @@
-// $Id: FEA_FormatT.cpp,v 1.21 2003-10-10 13:35:22 raregue Exp $
+// $Id: FEA_FormatT.cpp,v 1.22 2003-10-10 22:08:11 raregue Exp $
 #include "FEA_FormatT.h"
 
 using namespace Tahoe;
@@ -25,7 +25,8 @@ void FEA_FormatT::SurfShapeGradient	(int n_en, const ParentDomainT& surf_shapes,
 								LocalArrayT& volume_coords,
 								ShapeFunctionT& shapes,
 								LocalArrayT &u_np1,LocalArrayT &u_n, 
-								FEA_dMatrixT &GRAD_u_np1, FEA_dMatrixT &GRAD_u_n )
+								FEA_dMatrixT &GRAD_u_np1, FEA_dMatrixT &GRAD_u_n,
+								LocalArrayT& face_gamma_p, FEA_dVectorT& fgamma_p_surf )
 {
 	dMatrixT face_jacobian(2, 1);
 	dMatrixT face_Q(2);
@@ -55,6 +56,8 @@ void FEA_FormatT::SurfShapeGradient	(int n_en, const ParentDomainT& surf_shapes,
 		ismapped = parent.MapToParentDomain(volume_coords, interp_ip, interp_ip_mapped);
 		shapes.GradU	( u_n, 		GRAD_u_n[l], interp_ip_mapped, Na, DNa);
 		shapes.GradU 	( u_np1, 	GRAD_u_np1[l], interp_ip_mapped, Na, DNa );
+		
+		surf_shapes.Interpolate(face_gamma_p, fgamma_p_surf[l], l);
 		
 		const double* DNa_x = surf_shapes.DShape(l,0);
 		const double* DNa_y = surf_shapes.DShape(l,1);
