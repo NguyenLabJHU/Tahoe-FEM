@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.69.2.3 2004-08-07 18:08:25 d-farrell2 Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.69.2.4 2004-08-07 18:44:06 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -474,7 +474,7 @@ void FEExecutionManagerT::RunJob_serial(const StringT& input_file, ostream& stat
 #endif
 void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& status) const
 {
-	const char* caller = "FEExecutionManagerT::RunJob_analysis_XML";
+	const char* caller = "FEExecutionManagerT::RunJob_analysis";
 
 	/* get rank and size */
 	int rank = fComm.Rank();
