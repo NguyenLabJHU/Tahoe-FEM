@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.21 2002-02-28 16:27:52 sawimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.22 2002-03-02 20:15:17 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -766,15 +766,13 @@ void ModelManagerT::ElementIDs (const StringT& ID, iArrayT& ids)
 
 void ModelManagerT::AllNodeMap (iArrayT& map)
 {
-  if (map.Length() != fCoordinateDimensions[0])
-    {
-	cout << "\n ModelManagerT::NodeMap: map array is length " << map.Length()
-	     << ", expecting length " << fCoordinates.MajorDim() << endl;
-	throw eSizeMismatch;	
-    }
-  
-  map.SetValueToPosition ();
-  map --;
+	if (map.Length() != fCoordinateDimensions[0])
+	{
+		cout << "\n ModelManagerT::NodeMap: map array is length " << map.Length()
+             << ", expecting length " << fCoordinates.MajorDim() << endl;
+		throw eSizeMismatch;	
+	}
+	map.SetValueToPosition();
 }
 
 void ModelManagerT::ElementMap (const StringT& ID, iArrayT& map)
@@ -789,8 +787,7 @@ void ModelManagerT::ElementMap (const StringT& ID, iArrayT& map)
 	throw eSizeMismatch;	
       }
       /* default map */
-      map.SetValueToPosition ();
-      map--;
+      map.SetValueToPosition();
     }
   InputBaseT& input = Input ("Element Set");
   input.ReadGlobalElementSet (ID, map);
