@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2001-06-11 02:10:12 paklein Exp $
+# $Id: makefile,v 1.2 2001-06-12 17:31:16 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,7 +7,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	ComparatorT.o \
-	FileCrawlerT.o \
 	main.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -18,13 +17,11 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	ComparatorT.cpp \
-	FileCrawlerT.cpp \
 	main.cpp
 
 # headers
 HDR = \
-	ComparatorT.h \
-	FileCrawlerT.h
+	ComparatorT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
