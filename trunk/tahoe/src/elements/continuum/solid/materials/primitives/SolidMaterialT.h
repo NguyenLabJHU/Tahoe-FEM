@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.9 2003-01-29 07:35:08 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.10 2003-02-18 08:44:19 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -97,6 +97,10 @@ public:
 	virtual bool NeedLastDisp(void) const { return false; };
 	virtual bool NeedVel(void) const      { return false; };
 	/*@}*/
+	
+	/** return the strain in the material. The definition of strain will be
+	 * dependent on the subclass */
+	virtual void Strain(dSymMatrixT& strain) = 0;
 
 	/** returns true if the material has internal forces in the unloaded
 	 * configuration, i.e. thermal strains */
