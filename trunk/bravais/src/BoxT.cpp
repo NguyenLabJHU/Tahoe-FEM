@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.27 2003-07-02 23:02:14 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.28 2003-07-02 23:46:57 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -119,9 +119,9 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
   temp_atom.Dimension(temp_nat,nlsd);
 
   if(pcl->GetRotMeth() == 0)
-    nATOMS = RotateBoxOfAtom(pcl,&temp_atom,temp_nat);
-  else
     nATOMS = RotateAtomInBox(pcl,&temp_atom,temp_nat);
+  else
+    nATOMS = RotateBoxOfAtom(pcl,&temp_atom,temp_nat);
 
 
   // Get atoms coordinates
@@ -384,7 +384,7 @@ int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat
 	    c[0] = (double)q; c[1] = (double)p;
 	    for (int m=0;m<nuca;m++) 
 	      {
-		if ( natom >= temp_nat) {throw eSizeMismatch;}
+		if ( natom >= temp_nat) {cout << "natoms wrong ";throw eSizeMismatch;}
 		
 		x = length(0,0);
 		y = length(1,0);
@@ -464,6 +464,7 @@ int BoxT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat
 	  {
 	    dArrayT c(nlsd);
 	    c[0] = (double)q; c[1] = (double)p;
+
 	    for (int m=0;m<nuca;m++) 
 	      {
 		if (natom > temp_nat) {cout << "natoms wrong";throw eSizeMismatch;}
@@ -512,7 +513,6 @@ int BoxT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat
 	      
 	    }
     }
-  
 
   return natom;
 }

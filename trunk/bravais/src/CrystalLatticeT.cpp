@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: CrystalLatticeT.cpp,v 1.16 2003-06-06 23:11:35 saubry Exp $ */
+/* $Id: CrystalLatticeT.cpp,v 1.17 2003-07-02 23:46:57 saubry Exp $ */
 #include "CrystalLatticeT.h"
 
 #include <iostream>
@@ -77,6 +77,7 @@ CrystalLatticeT::CrystalLatticeT(int nlsd, int nuca,int which_rot,
     {
       // input angle has to be in degrees
       angle_rotation = angle;
+      if ( fabs(angle_rotation) < 1.e-5)  WhichRot = -1; // no rotation
     }
 }
 
