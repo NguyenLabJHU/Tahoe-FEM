@@ -1,4 +1,4 @@
-/* $Id: FrontNodeT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: FrontNodeT.h,v 1.1.1.1.6.1 2002-06-27 18:01:06 cjkimme Exp $ */
 /* created: paklein (03/19/1999)                                          */
 
 #ifndef _FRONT_NODE_T_H_
@@ -6,6 +6,9 @@
 
 /* direct members */
 #include "dArray2DT.h"
+
+
+namespace Tahoe {
 
 class FrontNodeT
 {
@@ -81,4 +84,5 @@ inline const double* FrontNodeT::Direction(int i) const { return fQ(i); }
 inline const dArray2DT& FrontNodeT::SampleCoords(void) const { return ftip_pts; }
 inline const dArray2DT& FrontNodeT::SampleTransForm(void) const { return fQ; }
 
+} // namespace Tahoe 
 #endif /* _FRONT_NODE_T_H_ */

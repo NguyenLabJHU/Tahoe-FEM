@@ -1,4 +1,4 @@
-/* $Id: TecPlotOutputT.h,v 1.2 2001-12-16 23:57:06 paklein Exp $ */
+/* $Id: TecPlotOutputT.h,v 1.2.4.1 2002-06-27 18:01:04 cjkimme Exp $ */
 /* created: sawimme (06/06/2000)                                          */
 
 #ifndef _TECPLOTOUTPUT_T_H_
@@ -8,6 +8,9 @@
 #include "OutputBaseT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class TecPlotT;
 
 class TecPlotOutputT: public OutputBaseT
@@ -38,4 +41,5 @@ private:
 	int fNumDigits;
 };
 
+} // namespace Tahoe 
 #endif

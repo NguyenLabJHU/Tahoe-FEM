@@ -1,4 +1,4 @@
-/* $Id: RootedLevelT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: RootedLevelT.h,v 1.1.1.1.6.1 2002-06-27 18:01:10 cjkimme Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #ifndef _ROOTEDLEVEL_T_H_
@@ -8,6 +8,9 @@
 #include "Constants.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class GraphT;
 class iArrayT;
 
@@ -75,4 +78,5 @@ inline int RootedLevelT::Depth(void) const { return fNumLevels; }
 inline int RootedLevelT::Width(int level) const { return fWidths[level]; }
 inline int RootedLevelT::MaxWidth(void) const { return fMaxWidth; }
 
+} // namespace Tahoe 
 #endif /* _ROOTEDLEVEL_T_H_ */

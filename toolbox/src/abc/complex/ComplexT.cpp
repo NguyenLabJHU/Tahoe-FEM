@@ -1,4 +1,4 @@
-/* $Id: ComplexT.cpp,v 1.7 2002-02-27 16:47:11 paklein Exp $ */
+/* $Id: ComplexT.cpp,v 1.7.4.1 2002-06-27 18:00:46 cjkimme Exp $ */
 /* created: PAK/AFLP (05/19/1997) */
 
 #include "ComplexT.h"
@@ -10,6 +10,9 @@
 #include "nArrayT.h"
 
 /* array behavior */
+
+using namespace Tahoe;
+
 const bool ArrayT<ComplexT>::fByteCopy = true;
 
 /*
@@ -64,6 +67,7 @@ double ComplexT::Angle() const
 	return ( atan2(fIm,fRe) );
 }
 
+namespace Tahoe {
 /* I/O */
 ostream& operator<<(ostream& out, const ComplexT& z)
 {
@@ -79,6 +83,8 @@ istream& operator>>(istream& in, ComplexT& z)
 	return(in);
 }
 
+} // namespace Tahoe
+
 /* other Math functions */
 ComplexT log(const ComplexT& z)
 {
@@ -87,7 +93,7 @@ ComplexT log(const ComplexT& z)
 
 ComplexT& ComplexT::log_of(const ComplexT& z)
 {
-	fRe = log( z.Magnitude() );
+	fRe = std::log( z.Magnitude() );
 	fIm = z.Angle();
 
 	return (*this);

@@ -1,4 +1,4 @@
-/* $Id: GaoKlein.h,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: GaoKlein.h,v 1.1.1.1.6.1 2002-06-27 18:00:40 cjkimme Exp $ */
 /* created: paklein (12/26/1998)                                          */
 /* Cohesive force law:                                                    */
 /* F(dr) = A dr Exp[B/(dr - C)]                                           */
@@ -10,6 +10,9 @@
 
 /* base class */
 #include "C1FunctionT.h"
+
+
+namespace Tahoe {
 
 class GaoKlein: public C1FunctionT
 {
@@ -45,4 +48,5 @@ private:
 	double fL; // unstretched length
 };
 
+} // namespace Tahoe 
 #endif /* _GAO_KLEIN_H_ */

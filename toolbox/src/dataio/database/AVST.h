@@ -8,6 +8,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 template <class TYPE> class ArrayT;
 class StringT;
 class iArray2DT;
@@ -42,4 +45,5 @@ class AVST
   const bool fBinary;
 };
 
+} // namespace Tahoe 
 #endif

@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.16 2002-04-19 17:18:43 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.16.4.1 2002-06-27 18:00:56 cjkimme Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleT.h"
@@ -18,6 +18,9 @@
 #include "ArgSpecT.h"
 
 /* array behavior */
+
+using namespace Tahoe;
+
 const bool ArrayT<iConsoleT::CommandScope>::fByteCopy = true;
 
 /* constructor */

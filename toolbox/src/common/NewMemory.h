@@ -1,4 +1,4 @@
-/* $Id: NewMemory.h,v 1.5 2001-07-22 21:56:55 paklein Exp $ */
+/* $Id: NewMemory.h,v 1.5.6.1 2002-06-27 18:00:55 cjkimme Exp $ */
 
 /* memory allocation function to handle platform dependent
  * differences associated with memory allocation failures and
@@ -29,6 +29,9 @@
 #define MEM_CHECK_METHOD MEM_CHECK_PROC_MEMINFO
 
 /* size parameters */
+
+namespace Tahoe {
+
 const int min_space_check_size = 100; /* skip check for very small arrays */
 const unsigned long min_free_memory = 5*1000000;   /*  ~5MB */
 const unsigned long max_used_memory = 210*1000000; /* 210MB */
@@ -147,4 +150,5 @@ struct sysinfo {
 };
 #endif
 
+} // namespace Tahoe 
 #endif /* _NEW_MEMORY_H_ */

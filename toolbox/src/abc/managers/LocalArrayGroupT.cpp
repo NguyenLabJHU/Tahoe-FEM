@@ -1,4 +1,4 @@
-/* $Id: LocalArrayGroupT.cpp,v 1.1.1.1 2001-01-25 20:56:22 paklein Exp $ */
+/* $Id: LocalArrayGroupT.cpp,v 1.1.1.1.6.1 2002-06-27 18:00:48 cjkimme Exp $ */
 /* created: paklein (09/11/1998)                                          */
 /* Class to manage a list of group of dynamically changing size           */
 /* LocalArrayT's                                                          */
@@ -8,6 +8,9 @@
 #include "LocalArrayT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 LocalArrayGroupT::LocalArrayGroupT(int headroom):
 	MemoryGroupT<double>(headroom),
 	fNumNodes(0),

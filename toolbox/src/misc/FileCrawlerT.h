@@ -1,4 +1,4 @@
-/* $Id: FileCrawlerT.h,v 1.3 2002-06-04 00:44:05 paklein Exp $ */
+/* $Id: FileCrawlerT.h,v 1.3.2.1 2002-06-27 18:01:12 cjkimme Exp $ */
 
 #ifndef _FILE_CRAWLER_T_H_
 #define _FILE_CRAWLER_T_H_
@@ -11,6 +11,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 class StringT;
 
@@ -75,4 +78,5 @@ inline bool FileCrawlerT::CommandLineOption(const char* str) const
 	return CommandLineOption(str, index);
 }
 
+} // namespace Tahoe 
 #endif /* _FILE_CRAWLER_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: VariArrayT.h,v 1.1.1.1 2001-01-25 20:56:22 paklein Exp $ */
+/* $Id: VariArrayT.h,v 1.1.1.1.6.1 2002-06-27 18:00:54 cjkimme Exp $ */
 /* created: paklein (04/18/1998)                                          */
 /* WRAPPER for ArrayT<>'s to add dynamic sizing using                     */
 /* some headroom to cut down calls for memory                             */
@@ -9,6 +9,9 @@
 
 /* base class */
 #include "VariBaseT.h"
+
+
+namespace Tahoe {
 
 template <class TYPE>
 class VariArrayT: public VariBaseT<TYPE>
@@ -110,4 +113,5 @@ inline void VariArrayT<TYPE>::Free(void)
 	fWard->Set(0, NULL);
 }
 
+} // namespace Tahoe 
 #endif /* _VARI_ARRAY_T_H_ */

@@ -1,10 +1,13 @@
-/* $Id: AutoArrayT.h,v 1.9 2002-06-26 01:00:57 paklein Exp $ */
+/* $Id: AutoArrayT.h,v 1.9.2.1 2002-06-27 18:00:44 cjkimme Exp $ */
 /* created: paklein (12/05/1997) */
 #ifndef _AUTO_ARRAY_T_H_
 #define _AUTO_ARRAY_T_H_
 
 /* base class */
 #include "ArrayT.h"
+
+
+namespace Tahoe {
 
 /** array class with "smart" memory management. An allocation headroom
  * can be specified to make the allocated array larger than the logical
@@ -163,6 +166,10 @@ private:
 	/** for Top/Next loops */
 	int	fCurrElement;
 };
+
+} // namespace Tahoe
+
+using namespace Tahoe;
 
 /*************************************************************************
 * Implementation

@@ -1,4 +1,4 @@
-/* $Id: EnSightT.h,v 1.3 2002-01-06 06:57:53 cbhovey Exp $ */
+/* $Id: EnSightT.h,v 1.3.4.1 2002-06-27 18:00:59 cjkimme Exp $ */
 /* created: sawimme (05/13/1999)                                          */
 /* ******EnSight6 Gold Format******                                       */
 
@@ -10,6 +10,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 template <class TYPE> class ArrayT;
 class ifstreamT;
 class StringT;
@@ -88,4 +91,5 @@ private:
 	int      fDOF;
 };
 
+} // namespace Tahoe 
 #endif

@@ -1,4 +1,4 @@
-/* $Id: PartitionT.h,v 1.6 2002-01-27 18:26:26 paklein Exp $ */
+/* $Id: PartitionT.h,v 1.6.4.1 2002-06-27 18:01:09 cjkimme Exp $ */
 /* created: paklein (11/16/1999) */
 
 #ifndef _PARTITION_T_H_
@@ -9,6 +9,9 @@
 #include "StringT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class GraphT;
 class iArray2DT;
 class dArray2DT;
@@ -183,4 +186,5 @@ inline const iArrayT& PartitionT::ElementMap(const StringT& blockID) const
 	return fElementMap[ElementBlockIndex(blockID, "ElementMap")];
 }
 
+} // namespace Tahoe 
 #endif /* _PARTITION_T_H_ */

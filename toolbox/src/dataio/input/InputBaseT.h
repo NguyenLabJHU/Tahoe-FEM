@@ -1,4 +1,4 @@
-/* $Id: InputBaseT.h,v 1.11 2002-03-04 06:25:30 paklein Exp $ */
+/* $Id: InputBaseT.h,v 1.11.4.1 2002-06-27 18:01:01 cjkimme Exp $ */
 /* created: sawimme (08/12/1999) */
 
 #ifndef _INPUTBASE_T_H_
@@ -10,6 +10,9 @@
 
 /* foward declaration */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class iArrayT;
 class iArray2DT;
 class dArrayT;
@@ -149,4 +152,5 @@ public:
 inline InputBaseT::InputBaseT (ostream& out) : IOBaseT (out) { }
 inline InputBaseT::~InputBaseT (void) { }
 
+} // namespace Tahoe 
 #endif

@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.cpp,v 1.8 2002-04-21 06:41:49 paklein Exp $ */
+/* $Id: SpectralDecompT.cpp,v 1.8.4.1 2002-06-27 18:01:12 cjkimme Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -6,6 +6,9 @@
 #include <iostream.h>
 #include <math.h>
 #include <float.h>
+
+
+using namespace Tahoe;
 
 const double kpert     = 1.0e-08; // repeated root perturbation
 const double sqrt1by3  = 1.0/sqrt(3.0);

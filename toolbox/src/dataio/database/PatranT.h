@@ -1,4 +1,4 @@
-/* $Id: PatranT.h,v 1.7 2002-02-14 20:57:29 sawimme Exp $ */
+/* $Id: PatranT.h,v 1.7.4.1 2002-06-27 18:00:59 cjkimme Exp $ */
 /* created: sawimme (05/17/2001)  */
 
 #ifndef _PATRAN_T_H_
@@ -10,6 +10,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class iArrayT;
 class dArray2DT;
 
@@ -126,4 +129,5 @@ class PatranT
 
 inline const StringT& PatranT::Filename (void) const { return file_name; }
 
+} // namespace Tahoe 
 #endif

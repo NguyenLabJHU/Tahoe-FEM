@@ -1,4 +1,4 @@
-/* $Id: FindNeighborT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: FindNeighborT.cpp,v 1.1.1.1.6.1 2002-06-27 18:01:14 cjkimme Exp $ */
 /* created: paklein (03/21/1997)                                          */
 /* FindNeighborT.cpp                                                      */
 
@@ -10,6 +10,9 @@
 #include "iGridManager3DT.h"
 
 /* search grid parameters */
+
+using namespace Tahoe;
+
 const int Grid_x_count = 20;
 const int Grid_y_count = 20;
 const int Grid_z_count = 20;

@@ -1,4 +1,4 @@
-/* $Id: nVariMatrixT.h,v 1.3 2001-05-01 22:53:00 paklein Exp $ */
+/* $Id: nVariMatrixT.h,v 1.3.6.1 2002-06-27 18:00:54 cjkimme Exp $ */
 /* created: paklein (07/05/1998)                                          */
 /* WRAPPER for nMatrixT<>'s to add dynamic re-sizing of the               */
 /* major dimension, using some headroom to cut down calls for             */
@@ -12,6 +12,9 @@
 
 /* direct members */
 #include "nMatrixT.h"
+
+
+namespace Tahoe {
 
 template <class nTYPE>
 class nVariMatrixT: public VariBaseT<nTYPE>
@@ -125,4 +128,5 @@ const nMatrixT<nTYPE>& nVariMatrixT<nTYPE>::TheWard(void) const
 	return(*fWard);
 }
 
+} // namespace Tahoe 
 #endif /* _N_VARI_MATRIX_T_H_ */

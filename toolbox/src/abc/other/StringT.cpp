@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.20 2002-04-07 19:12:28 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.20.4.1 2002-06-27 18:00:50 cjkimme Exp $ */
 /* created: paklein (08/01/1996) */
 
 #include "StringT.h"
@@ -18,6 +18,9 @@
 #endif
 
 /* array behavior */
+
+using namespace Tahoe;
+
 const bool ArrayT<StringT>::fByteCopy = false;
 const bool ArrayT<StringT*>::fByteCopy = true;
 const bool ArrayT<const StringT*>::fByteCopy = true;
@@ -36,6 +39,8 @@ StringT::StringT(int length):
 		*this = "\0";
 }
 
+namespace Tahoe {
+
 /* input initializer */
 istream& operator>>(istream& in, StringT& stringT)
 {
@@ -52,6 +57,8 @@ ostream& operator<<(ostream& out, const StringT& string)
 
 	return(out);
 }
+
+} // namespace Tahoe
 
 /* assignment operator */
 StringT& StringT::operator=(const char* string)

@@ -1,4 +1,4 @@
-/* $Id: PartitionT.cpp,v 1.6 2002-01-27 18:26:26 paklein Exp $ */
+/* $Id: PartitionT.cpp,v 1.6.4.1 2002-06-27 18:01:09 cjkimme Exp $ */
 /* created: paklein (11/16/1999) */
 
 #include "PartitionT.h"
@@ -12,6 +12,9 @@
 #include "StringT.h"
 
 /* parameters */
+
+using namespace Tahoe;
+
 const int kHeadRoom = 20;             // percent
 const char* sPartitionTVersion = "v1.0"; // version marker
 
@@ -336,6 +339,8 @@ int PartitionT::CrossCheck(const PartitionT& that) const
 	return 1;
 }
 
+namespace Tahoe {
+
 /* I/O */
 ostream& operator<<(ostream& out, const PartitionT& partition)
 {
@@ -420,6 +425,8 @@ ostream& operator<<(ostream& out, const PartitionT& partition)
 	}
 
 	return out;
+}
+
 }
 
 /* operator support */
@@ -662,6 +669,8 @@ void PartitionT::SetElementScope(NumberScopeT scope, const StringT& blockID, Arr
 	MapValues(map, shift, elements);
 }
 
+namespace Tahoe {
+
 /* input operator for scope */
 istream& operator>>(istream& in, PartitionT::NumberScopeT& scope)
 {
@@ -686,6 +695,8 @@ istream& operator>>(istream& in, PartitionT::NumberScopeT& scope)
 
 	return in;
 }
+
+} // namespace Tahoe
 
 /************************************************************************
 * Private

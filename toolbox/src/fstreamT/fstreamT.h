@@ -1,4 +1,4 @@
-/* $Id: fstreamT.h,v 1.4 2002-01-09 12:10:09 paklein Exp $ */
+/* $Id: fstreamT.h,v 1.4.4.1 2002-06-27 18:01:08 cjkimme Exp $ */
 /* created: paklein (12/30/2000) */
 
 #ifndef _FSTREAM_T_H_
@@ -8,6 +8,9 @@
 #include "ofstreamT.h"
 
 /** interface for stream utilities */
+
+namespace Tahoe {
+
 class fstreamT
 {
   public:
@@ -26,4 +29,5 @@ class fstreamT
 	static bool Exists(const char* path);
 };
 
+} // namespace Tahoe 
 #endif /* _FSTREAM_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: TecPlotOutputT.cpp,v 1.3 2002-01-27 18:38:14 paklein Exp $ */
+/* $Id: TecPlotOutputT.cpp,v 1.3.4.1 2002-06-27 18:01:04 cjkimme Exp $ */
 /* created: sawimme (06/06/2000)                                          */
 
 #include "TecPlotOutputT.h"
@@ -8,6 +8,9 @@
 #include <fstream.h>
 #include "iArray2DT.h"
 #include "dArray2DT.h"
+
+
+using namespace Tahoe;
 
 TecPlotOutputT::TecPlotOutputT(ostream& out, const ArrayT<StringT>& out_strings, int digits) :
   OutputBaseT(out, out_strings),

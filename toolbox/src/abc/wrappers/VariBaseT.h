@@ -1,4 +1,4 @@
-/* $Id: VariBaseT.h,v 1.2 2002-02-18 08:48:45 paklein Exp $ */
+/* $Id: VariBaseT.h,v 1.2.4.1 2002-06-27 18:00:54 cjkimme Exp $ */
 /* created: paklein (04/18/1998)                                          */
 /* base class for WRAPPERS of ArrayT<>'s, and derivatives,                */
 /* to add dynamic re-sizing using some headroom to cut down               */
@@ -9,6 +9,9 @@
 
 /* direct members */
 #include "ArrayT.h"
+
+
+namespace Tahoe {
 
 template <class TYPE>
 class VariBaseT
@@ -126,4 +129,5 @@ void VariBaseT<TYPE>::SetAlias(ArrayT<TYPE>& array, int length,
 template <class TYPE>
 inline void VariBaseT<TYPE>::Free(void) { fMemory.Free(); }
 
+} // namespace Tahoe 
 #endif /* _VARI_BASE_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: iNodeT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: iNodeT.h,v 1.1.1.1.6.1 2002-06-27 18:01:16 cjkimme Exp $ */
 /* created: paklein (12/07/1997)                                          */
 /* Data cell for the search grid - stores a single integer plus           */
 /* coordinates                                                            */
@@ -7,6 +7,9 @@
 #define _I_NODE_T_H_
 
 #include <time.h> //defines NULL
+
+
+namespace Tahoe {
 
 class iNodeT
 {
@@ -71,4 +74,5 @@ inline int iNodeT::operator==(const iNodeT& RHS) const
 	return (fTag == RHS.fTag);
 }
 
+} // namespace Tahoe 
 #endif /* _I_NODE_T_H_ */

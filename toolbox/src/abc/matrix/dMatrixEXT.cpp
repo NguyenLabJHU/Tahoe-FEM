@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.cpp,v 1.8 2002-03-04 17:23:32 raregue Exp $ */
+/* $Id: dMatrixEXT.cpp,v 1.8.4.1 2002-06-27 18:00:49 cjkimme Exp $ */
 /* created: paklein (03/06/1998)                                          */
 
 #include "dMatrixEXT.h"
@@ -10,6 +10,9 @@
 //#include "nrutil.h"
 
 /* Numerical Recipies macros */
+
+using namespace Tahoe;
+
 static double sqrarg;
 #define SQR(a) ((sqrarg=(a)) == 0.0 ? 0.0 : sqrarg*sqrarg)
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))

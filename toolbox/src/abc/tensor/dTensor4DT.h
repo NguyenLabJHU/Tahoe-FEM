@@ -1,4 +1,4 @@
-/* $Id: dTensor4DT.h,v 1.2 2002-06-26 00:59:55 paklein Exp $ */
+/* $Id: dTensor4DT.h,v 1.2.2.1 2002-06-27 18:00:52 cjkimme Exp $ */
 /* created paklein (05/25/97) */
 
 #ifndef _D_TENSOR4D_T_H_
@@ -9,6 +9,9 @@
 
 /** fourth order tensor class for double's. Most functionality
  * is inherited from the base class Tensor4DT. */
+
+namespace Tahoe {
+
 class dTensor4DT: public Tensor4DT<double>
 {
   public:
@@ -41,4 +44,5 @@ inline dTensor4DT& dTensor4DT::operator=(const double value)
 	return *this;
 }
 
+} // namespace Tahoe 
 #endif /* _D_TENSOR4D_T_H_ */

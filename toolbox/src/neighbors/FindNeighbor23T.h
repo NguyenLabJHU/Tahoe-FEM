@@ -1,4 +1,4 @@
-/* $Id: FindNeighbor23T.h,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: FindNeighbor23T.h,v 1.1.1.1.6.1 2002-06-27 18:01:14 cjkimme Exp $ */
 /* created: paklein (03/21/1997)                                          */
 /* FindNeighbor23T.h                                                      */
 /* Interface for finding 2 and 3 body neighbors                           */
@@ -8,6 +8,9 @@
 
 /* base class */
 #include "FindNeighborT.h"
+
+
+namespace Tahoe {
 
 class FindNeighbor23T: public FindNeighborT
 {
@@ -32,4 +35,5 @@ private:
 	void Set3BodyMapped(iArray2DT& angles) const;
 };
 
+} // namespace Tahoe 
 #endif /* _FIND_NEIGHBOR23T_H_ */

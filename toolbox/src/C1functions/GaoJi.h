@@ -1,4 +1,4 @@
-/* $Id: GaoJi.h,v 1.1 2002-05-28 06:55:01 bhji Exp $ */
+/* $Id: GaoJi.h,v 1.1.2.1 2002-06-27 18:00:39 cjkimme Exp $ */
 /* created: Baohua Ji (25/02/2002)                                            */
 /* Cohesive force law:                                                        */
 /* F(dr) = A B C Ln (1 + dr/B/C)/(1 + x/B/C)^C                                */
@@ -10,6 +10,9 @@
 
 /* base class */
 #include "C1FunctionT.h"
+
+
+namespace Tahoe {
 
 class GaoJi: public C1FunctionT
 {
@@ -46,4 +49,5 @@ private:
 	double fL_0; // unstretched length
 };
 
+} // namespace Tahoe 
 #endif /* _GAO_JI_H_ */

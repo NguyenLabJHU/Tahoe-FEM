@@ -1,4 +1,4 @@
-/* $Id: LocalArrayGroupT.h,v 1.1.1.1 2001-01-25 20:56:22 paklein Exp $ */
+/* $Id: LocalArrayGroupT.h,v 1.1.1.1.6.1 2002-06-27 18:00:48 cjkimme Exp $ */
 /* created: paklein (09/11/1998)                                          */
 /* Class to manage a list of group of dynamically changing size           */
 /* LocalArrayT's. All arrays must initially be of the same dimension      */
@@ -12,6 +12,9 @@
 
 /* direct members */
 #include "LocalArrayT.h"
+
+
+namespace Tahoe {
 
 class LocalArrayGroupT: private MemoryGroupT<double>
 {
@@ -51,4 +54,5 @@ inline bool LocalArrayGroupT::IsRegistered(const LocalArrayT& localarray) const
 inline int LocalArrayGroupT::NumberOfNodes(void) const { return fNumNodes; }
 inline int LocalArrayGroupT::MinorDim(void) const  { return fMinorDim; }
 
+} // namespace Tahoe 
 #endif /* _LOCALARRAY_GROUP_T_H_ */

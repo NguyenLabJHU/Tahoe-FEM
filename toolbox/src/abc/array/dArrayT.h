@@ -1,4 +1,4 @@
-/* $Id: dArrayT.h,v 1.4 2001-10-05 22:31:33 paklein Exp $ */
+/* $Id: dArrayT.h,v 1.4.4.1 2002-06-27 18:00:45 cjkimme Exp $ */
 /* created: paklein (08/11/1996)                                          */
 
 #ifndef _DARRAY_T_H_
@@ -6,6 +6,9 @@
 
 /* base class */
 #include "nArrayT.h"
+
+
+namespace Tahoe {
 
 class dArrayT: public nArrayT<double>
 {
@@ -56,4 +59,5 @@ inline dArrayT& dArrayT::UnitVector(void)
 	return UnitVector(*this);
 }
 
+} // namespace Tahoe 
 #endif /* _DARRAY_T_H_ */

@@ -1,10 +1,13 @@
-/* $Id: ExceptionCodes.h,v 1.2 2001-08-22 19:57:05 sawimme Exp $ */
+/* $Id: ExceptionCodes.h,v 1.2.6.1 2002-06-27 18:00:55 cjkimme Exp $ */
 /* created: paklein (06/04/1996)                                          */
 
 #ifndef _EXCEPTION_CODES_H_
 #define _EXCEPTION_CODES_H_
 
 /* number of exception codes */
+
+namespace Tahoe {
+
 const int eNumExceptions	= 10;
 
 /* exception codes */
@@ -19,4 +22,5 @@ const int eBadJacobianDet	= 7; // ParentDomainT:bad jacobian determinant
 const int eMPIFail          = 8; // general error on MPI call
 const int eDatabaseFail     = 9; // general error reading/writing database
 
+} // namespace Tahoe 
 #endif /* _EXCEPTION_CODES_H_ */

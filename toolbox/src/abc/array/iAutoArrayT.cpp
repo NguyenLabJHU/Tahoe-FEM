@@ -1,4 +1,4 @@
-/* $Id: iAutoArrayT.cpp,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: iAutoArrayT.cpp,v 1.1.1.1.6.1 2002-06-27 18:00:45 cjkimme Exp $ */
 /* created: paklein (02/08/1999)                                          */
 
 #include "iAutoArrayT.h"
@@ -7,6 +7,9 @@
 #include <iomanip.h>
 
 #include "Constants.h"
+
+
+using namespace Tahoe;
 
 /* max and min */
 int iAutoArrayT::Max(void) const

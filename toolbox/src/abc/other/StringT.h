@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.13 2002-04-07 19:12:28 paklein Exp $ */
+/* $Id: StringT.h,v 1.13.4.1 2002-06-27 18:00:51 cjkimme Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #ifndef _STRING_T_H_
@@ -12,6 +12,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 
 class StringT: public ArrayT<char>
@@ -227,5 +230,5 @@ inline char StringT::DirectorySeparator(void)
 	/* UNIX by default */
 	return '/';
 }
-
+}//namespace Tahoe
 #endif /* _STRING_T_H_ */

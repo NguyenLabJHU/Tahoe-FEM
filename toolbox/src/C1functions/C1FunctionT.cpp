@@ -1,4 +1,4 @@
-/* $Id: C1FunctionT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: C1FunctionT.cpp,v 1.1.1.1.6.1 2002-06-27 18:00:39 cjkimme Exp $ */
 /* created: paklein (12/04/1996)                                          */
 /* C1FunctionT.cpp                                                        */
 /* Interface for a twice differentiable function.                         */
@@ -7,6 +7,9 @@
 #include "dArrayT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 C1FunctionT::C1FunctionT(void) { }
 
 /* destructor */

@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.cpp,v 1.12 2002-03-04 06:25:30 paklein Exp $ */
+/* $Id: AbaqusInputT.cpp,v 1.12.4.1 2002-06-27 18:01:00 cjkimme Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #include "AbaqusInputT.h"
@@ -7,6 +7,9 @@
 #include "dArray2DT.h"
 #include "dArrayT.h"
 #include "iAutoArrayT.h"
+
+
+using namespace Tahoe;
 
 AbaqusInputT::AbaqusInputT (ostream& out) :
   InputBaseT (out),

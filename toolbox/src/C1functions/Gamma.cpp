@@ -1,4 +1,4 @@
-/* $Id: Gamma.cpp,v 1.2 2002-04-24 17:52:32 dzeigle Exp $ */
+/* $Id: Gamma.cpp,v 1.2.2.1 2002-06-27 18:00:39 cjkimme Exp $ */
 
 #include "Gamma.h"
 #include <math.h>
@@ -9,6 +9,9 @@
 /*
 * Constructor
 */
+
+using namespace Tahoe;
+
 Gamma::Gamma()
 {
 }

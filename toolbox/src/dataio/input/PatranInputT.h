@@ -1,4 +1,4 @@
-/* $Id: PatranInputT.h,v 1.10 2002-03-04 06:25:30 paklein Exp $ */
+/* $Id: PatranInputT.h,v 1.10.4.1 2002-06-27 18:01:01 cjkimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _PATRANINPUT_T_H_
@@ -9,6 +9,9 @@
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "iArrayT.h"
+
+
+namespace Tahoe {
 
 class PatranInputT : public InputBaseT
 {
@@ -230,4 +233,5 @@ inline void PatranInputT::ReadQuadratureVariables (int step, const StringT& name
 }
 
 
+} // namespace Tahoe 
 #endif

@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.11 2002-03-06 08:18:39 paklein Exp $ */
+/* $Id: nArray2DT.h,v 1.11.4.1 2002-06-27 18:00:45 cjkimme Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NARRAY2D_T_H_
@@ -6,6 +6,9 @@
 
 /* base class */
 #include "nArrayT.h"
+
+
+namespace Tahoe {
 
 /** nArrayT with subdimension. Row major storage */
 template <class nTYPE>
@@ -937,4 +940,5 @@ void nArray2DT<nTYPE>::PrintRow(int row, int rowlength, ostream& out) const
 	out << '\n';
 }
 
+} // namespace Tahoe 
 #endif /* _NARRAY2D_T_H_ */

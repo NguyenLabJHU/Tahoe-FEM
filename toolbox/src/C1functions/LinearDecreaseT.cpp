@@ -1,4 +1,4 @@
-/* $Id: LinearDecreaseT.cpp,v 1.1 2001-12-20 02:42:45 thao Exp $ */
+/* $Id: LinearDecreaseT.cpp,v 1.1.4.1 2002-06-27 18:00:40 cjkimme Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #include "LinearDecreaseT.h"
@@ -7,6 +7,9 @@
 #include "dArrayT.h"
 
 /* constructors */
+
+using namespace Tahoe;
+
 LinearDecreaseT::LinearDecreaseT(double A, double L): 
   fA(A),
   fL(L)

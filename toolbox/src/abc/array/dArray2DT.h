@@ -1,4 +1,4 @@
-/* $Id: dArray2DT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: dArray2DT.h,v 1.1.1.1.6.1 2002-06-27 18:00:45 cjkimme Exp $ */
 /* created: paklein (07/16/1996)                                          */
 
 #ifndef _DARRAY2D_T_H_
@@ -6,6 +6,9 @@
 
 /* base class */
 #include "nArray2DT.h"
+
+
+namespace Tahoe {
 
 /* forward declarations */
 class dArrayT;
@@ -40,4 +43,5 @@ inline dArray2DT& dArray2DT::operator=(const double value)
 	return *this;
 }
 
+} // namespace Tahoe 
 #endif /* _DARRAY2D_T_H */

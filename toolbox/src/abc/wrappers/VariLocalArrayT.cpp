@@ -1,4 +1,4 @@
-/* $Id: VariLocalArrayT.cpp,v 1.1.1.1 2001-01-25 20:56:22 paklein Exp $ */
+/* $Id: VariLocalArrayT.cpp,v 1.1.1.1.6.1 2002-06-27 18:00:54 cjkimme Exp $ */
 /* created: paklein (04/26/1999)                                          */
 /* Wrapper for dynamically re-sizing the number of nodes in               */
 /* a LocalArrayT's.                                                       */
@@ -7,6 +7,9 @@
 #include "LocalArrayT.h"
 
 /* constructors */
+
+using namespace Tahoe;
+
 VariLocalArrayT::VariLocalArrayT(void):
 	fMinorDim(0),
 	fWard(NULL)

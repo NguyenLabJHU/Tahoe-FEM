@@ -1,4 +1,4 @@
-/* $Id: Triantafyllidis.cpp,v 1.1 2001-06-11 01:55:49 paklein Exp $ */
+/* $Id: Triantafyllidis.cpp,v 1.1.6.1 2002-06-27 18:00:41 cjkimme Exp $ */
 
 #include "Triantafyllidis.h"
 #include <math.h>
@@ -7,6 +7,9 @@
 #include "dArrayT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 Triantafyllidis::Triantafyllidis(double A): fA(A) { }
 
 /* I/O */

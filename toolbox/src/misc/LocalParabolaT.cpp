@@ -1,4 +1,4 @@
-/* $Id: LocalParabolaT.cpp,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
+/* $Id: LocalParabolaT.cpp,v 1.1.1.1.6.1 2002-06-27 18:01:12 cjkimme Exp $ */
 /* created: paklein (01/28/1997)                                          */
 /* LocalParabolaT.cpp                                                     */
 /* For a successively fitted parabolic                                    */
@@ -10,6 +10,9 @@
 /*
 * Constructor
 */
+
+using namespace Tahoe;
+
 LocalParabolaT::LocalParabolaT(void)
 {
 	Reset();

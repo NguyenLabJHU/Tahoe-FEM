@@ -1,4 +1,4 @@
-/* $Id: ArgSpecT.h,v 1.2 2001-11-29 00:04:42 recampb Exp $ */
+/* $Id: ArgSpecT.h,v 1.2.4.1 2002-06-27 18:00:56 cjkimme Exp $ */
 
 #ifndef _ARG_SPEC_T_H_
 #define _ARG_SPEC_T_H_
@@ -7,6 +7,9 @@
 #include "StringT.h"
 
 /** definition of command arguments */
+
+namespace Tahoe {
+
 class ArgSpecT
 {
   public:
@@ -122,4 +125,5 @@ class ArgSpecT
 	void* fValue;
 };
 
+} // namespace Tahoe 
 #endif /* _ARG_SPEC_T_H_ */

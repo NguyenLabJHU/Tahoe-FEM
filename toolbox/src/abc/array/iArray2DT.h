@@ -1,4 +1,4 @@
-/* $Id: iArray2DT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: iArray2DT.h,v 1.1.1.1.6.1 2002-06-27 18:00:45 cjkimme Exp $ */
 /* created: paklein (09/23/1996)                                          */
 
 #ifndef _IARRAY2D_T_H_
@@ -6,6 +6,9 @@
 
 /* base class */
 #include "nArray2DT.h"
+
+
+namespace Tahoe {
 
 class iArray2DT: public nArray2DT<int>
 {
@@ -43,4 +46,5 @@ inline iArray2DT& iArray2DT::operator=(const int value)
 	return *this;
 }
 
+} // namespace Tahoe 
 #endif /* _IARRAY2D_T_H_ */

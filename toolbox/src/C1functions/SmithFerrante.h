@@ -1,4 +1,4 @@
-/* $Id: SmithFerrante.h,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: SmithFerrante.h,v 1.1.1.1.6.1 2002-06-27 18:00:41 cjkimme Exp $ */
 /* created: paklein (10/30/1997)                                          */
 /* Cohesive force law:                                                    */
 /* F(dr) = A dr Exp[-dr/B]                                                */
@@ -10,6 +10,9 @@
 
 /* base class */
 #include "C1FunctionT.h"
+
+
+namespace Tahoe {
 
 class SmithFerrante: public C1FunctionT
 {
@@ -52,4 +55,5 @@ private:
 	double fl_0; //equilibrium length
 };
 
+} // namespace Tahoe 
 #endif /* _SMITH_FERRANTE_H_ */

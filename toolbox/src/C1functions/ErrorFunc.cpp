@@ -1,4 +1,4 @@
-/* $Id: ErrorFunc.cpp,v 1.3 2002-04-24 17:52:32 dzeigle Exp $ */
+/* $Id: ErrorFunc.cpp,v 1.3.2.1 2002-06-27 18:00:39 cjkimme Exp $ */
 
 #include "ErrorFunc.h"
 #include <math.h>
@@ -6,6 +6,9 @@
 #include "ExceptionCodes.h"
 #include "dArrayT.h"
 #include "Gamma.h"
+
+
+using namespace Tahoe;
 
 const int ITMAX = 100;
 const double EPS = 3.0e-7;

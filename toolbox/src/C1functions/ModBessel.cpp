@@ -1,4 +1,4 @@
-/* $Id: ModBessel.cpp,v 1.6 2002-04-22 16:06:44 dzeigle Exp $ */
+/* $Id: ModBessel.cpp,v 1.6.2.1 2002-06-27 18:00:40 cjkimme Exp $ */
 /* created: dzeigle (4/18/2002) */
 
 #include "ModBessel.h"
@@ -8,6 +8,9 @@
 #include "dArrayT.h"
 
 /* constants */
+
+using namespace Tahoe;
+
 const int NUSE1 = 7;
 const int NUSE2 = 8;
 const double EPS = 1.0e-16;

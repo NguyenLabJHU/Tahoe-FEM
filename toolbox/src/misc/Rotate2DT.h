@@ -1,4 +1,4 @@
-/* $Id: Rotate2DT.h,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
+/* $Id: Rotate2DT.h,v 1.1.1.1.6.1 2002-06-27 18:01:12 cjkimme Exp $ */
 /* created: paklein (07/21/1996)                                          */
 /* This class provides the functionality to do 2D coordinate              */
 /* transformations.                                                       */
@@ -10,6 +10,9 @@
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
 #include "dArrayT.h"
+
+
+namespace Tahoe {
 
 class Rotate2DT
 {
@@ -110,4 +113,5 @@ inline const dMatrixT& Rotate2DT::RotateMatrixOut(const dMatrixT& matrix)
 	return(fMat);
 }
 
+} // namespace Tahoe 
 #endif /* _ROTATE_T_H_ */

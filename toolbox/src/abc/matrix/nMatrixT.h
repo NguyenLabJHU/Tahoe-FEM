@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.12 2002-04-21 06:40:48 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.12.4.1 2002-06-27 18:00:49 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _NMATRIX_T_H_
@@ -8,6 +8,9 @@
 #include "nArrayT.h"
 
 /** 2 dimensional matrix mathematics template object */
+
+namespace Tahoe {
+
 template <class nTYPE>
 class nMatrixT: public nArrayT<nTYPE>
 {
@@ -1727,4 +1730,5 @@ nTYPE nMatrixT<nTYPE>::DotCol(int colnum,
 	return(sum);
 }
 
+} // namespace Tahoe 
 #endif /* _NMATRIX_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: GaoJi2.h,v 1.1 2002-05-28 06:55:01 bhji Exp $ */
+/* $Id: GaoJi2.h,v 1.1.2.1 2002-06-27 18:00:39 cjkimme Exp $ */
 /* created: Baohua Ji (25/02/2002)                                            */
 /* Cohesive force law:                                                        */
 /* F(dl) = A*x/(1 + (x/B1)^2)^N                                               */
@@ -10,6 +10,9 @@
 
 /* base class */
 #include "C1FunctionT.h"
+
+
+namespace Tahoe {
 
 class GaoJi2: public C1FunctionT
 {
@@ -47,4 +50,5 @@ private:
 //        double B1;
 };
 
+} // namespace Tahoe 
 #endif /* _GAO_JI2_H_ */

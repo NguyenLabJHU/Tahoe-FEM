@@ -1,4 +1,4 @@
-/* $Id: C1FunctionT.h,v 1.6 2002-06-09 00:29:15 paklein Exp $ */
+/* $Id: C1FunctionT.h,v 1.6.2.1 2002-06-27 18:00:39 cjkimme Exp $ */
 /* created: paklein (12/04/1996) */
 
 #ifndef _C2_FUNCTION_T_H_
@@ -8,6 +8,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class dArrayT;
 
 /** interface for a twice differentiable function */
@@ -61,4 +64,5 @@ public:
 	    	   	    	
 };
 
+} // namespace Tahoe 
 #endif /* _C2_FUNCTION_T_H_ */
