@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.23 2003-08-14 05:31:46 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.24 2003-09-02 07:03:14 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -22,7 +22,9 @@ NLSolver::NLSolver(FEManagerT& fe_manager):
 	fDivTolerance(-1.0),
 	fQuickConvCount(0),
 	fIterationOutputCount(0),
-	fVerbose(1)
+	fVerbose(1),
+	fQuickSolveTol(-1),
+	fQuickSeriesTol(-1)
 {
 	SetName("nonlinear_solver");
 
