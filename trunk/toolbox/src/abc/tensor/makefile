@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2001-10-15 17:13:14 paklein Exp $
+# $Id: makefile,v 1.2 2001-10-15 17:20:13 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -23,9 +23,10 @@ SRC = \
 HDR = \
 	TensorT.h \
 	Tensor3DT.h \
-	Tensor4DT.h \	
+	Tensor4DT.h \
 	dTensor3DT.h \
 	dTensor4DT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
