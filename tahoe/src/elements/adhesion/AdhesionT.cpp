@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.15 2003-10-20 23:32:04 cjkimme Exp $ */
+/* $Id: AdhesionT.cpp,v 1.16 2003-11-13 22:16:14 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -203,7 +203,7 @@ void AdhesionT::WriteOutput(void)
 	out << "\n Surface adhesion: group " << ElementSupport().ElementGroupNumber(this) + 1 << '\n';
 	out << " Time                           = " << ElementSupport().Time() << '\n';
 	out << " Active face pairs              = " << fSurface1.Length() << '\n';
-	if (fSurface1.Length() > 0)
+	if (fSurface1.Length() > 0 && ElementSupport().PrintInput())
 	{
 		out << setw(kIntWidth) << "surf 1";
 		out << setw(kIntWidth) << "facet";
