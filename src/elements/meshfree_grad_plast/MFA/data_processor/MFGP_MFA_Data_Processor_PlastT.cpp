@@ -22,8 +22,6 @@ void MFGP_MFA_Data_Processor_PlastT::Initialize ( double &fN, dArray2DT &fd2Ndx2
 
 
 /* shape function of plastic multiplier */
-// dof of lambda = 1 ??
-// could be directly passed from the MLSSolverGP class??
 void MFGP_MFA_Data_Processor_PlastT::Set_phi( dMatrixT &phi ) 
 {
 	int nnd = N.MinorDim(); //??

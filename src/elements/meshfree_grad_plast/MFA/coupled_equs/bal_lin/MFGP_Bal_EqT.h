@@ -1,8 +1,10 @@
-// $Id: MFGP_Bal_EqT.h,v 1.4 2004-08-14 00:05:28 raregue Exp $
+// $Id: MFGP_Bal_EqT.h,v 1.5 2004-08-17 19:29:38 raregue Exp $
 #ifndef _MFGP_BAL_EQ_T_H_ 
 #define _MFGP_BAL_EQ_T_H_ 
 
 #include "MFGP_BalLinMomT.h"
+#include "MFGP_MFA_Data_Processor_DisplT.h"
+#include "MFGP_MFA_Data_Processor_PlastT.h"
 
 namespace Tahoe 
 {

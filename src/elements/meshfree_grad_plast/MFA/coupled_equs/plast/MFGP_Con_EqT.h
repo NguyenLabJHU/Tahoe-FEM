@@ -3,6 +3,9 @@
 #define _MFGP_CON_EQ_T_H_ 
 
 #include "MFGP_PlastT.h"
+#include "MFGP_MFA_Data_Processor_DisplT.h"
+#include "MFGP_MFA_Data_Processor_PlastT.h"
+
 
 namespace Tahoe 
 {

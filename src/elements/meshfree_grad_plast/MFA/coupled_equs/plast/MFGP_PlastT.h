@@ -3,13 +3,14 @@
 #define _MFGP_PLAST_T_H_ 
 
 #include "StringT.h"
-#include "GRAD_MRSSKStV.h"//
-#include "MFGP_MFA.h"
+#include "GRAD_MRSSKStV.h"
+#include "D3MeshFreeShapeFunctionT.h"
+#include "D3MeshFreeSupportT.h"
 
 namespace Tahoe {
 
 /* forward declaration */
-class ShapeFunctionT; //
+class D3MeshFreeShapeFunctionT; 
 
 class MFGP_PlastT
 {

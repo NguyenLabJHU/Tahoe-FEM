@@ -3,7 +3,7 @@
 #define _MFGP_MFA_DATAPROCESSOR_DISPLT_H_
 
 #include "MeshFreeT.h"
-#include "MLSSolverGPT.h"
+#include "MLSSolverT.h"
 
 // Pass nodal info, first and third derivatives
 // of the shape function of displacement to this class. 
@@ -17,12 +17,12 @@ class MFGP_MFA_Data_Processor_DisplT
 	public:
 
 		/* constructor */
-		MFGP_MFA_Data_Processor_DisplT ( dArray2DT &fdNdx, dArray2DT &fd3Ndx3 ); //   ??MLSSolverGPT::SetShapeFunctions(const dArrayT& volume) )
+		MFGP_MFA_Data_Processor_DisplT ( dArray2DT &fdNdx, dArray2DT &fd3Ndx3 );
 		
 		/* destructor */
 		~MFGP_MFA_Data_Processor_DisplT();
 		
-		void Initialize ( dArray2DT &fdNdx, dArray2DT &fd3Ndx3 ); //   ??MLSSolverGPT::SetShapeFunctions(const dArrayT& volume) )
+		void Initialize ( dArray2DT &fdNdx, dArray2DT &fd3Ndx3 );
         
 		void Set_B1 (dMatrixT &B1);
 		void Set_B3 (dMatrixT &B3);

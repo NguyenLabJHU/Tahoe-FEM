@@ -93,8 +93,6 @@ void MFGP_MFA_Data_Processor_DisplT::Set_B1( dMatrixT& B1 )
 
 /* Laplacian of the Displacement Shape Function: [nstr] x [nnd] */ 
 //fDDDphi has ten components; 
-//void MFGP_MFA_Data_Processor_DisplT::Set_B3(MLSSolverGPT::SetShapeFunctions
-//                        (const dArrayT& volume), dMatrixT& B3)
 void MFGP_MFA_Data_Processor_DisplT::Set_B3( dMatrixT& B3 )
 {
 #if __option(extended_errorcheck)

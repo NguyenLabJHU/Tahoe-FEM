@@ -5,8 +5,9 @@
 #define _MFGP_BALLINMOM_T_H_ 
 
 #include "StringT.h"
-#include "GRAD_MRSSKStV.h" //include the Gradient plas model
-#include "MFGP_MFA.h"
+#include "GRAD_MRSSKStV.h"
+#include "D3MeshFreeShapeFunctionT.h"
+#include "D3MeshFreeSupportT.h"
 
 namespace Tahoe 
 {

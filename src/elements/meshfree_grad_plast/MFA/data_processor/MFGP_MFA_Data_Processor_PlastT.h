@@ -3,7 +3,7 @@
 #define _MFGP_MFA_DATAPROCESSOR_PLASTT_H_
 
 #include "MeshFreeT.h"
-#include "MLSSolverGPT.h"
+#include "MLSSolverT.h"
 
 // Pass in nodal info, Laplacian of the plastic multiplier
 // shape function to this class. Form B4
