@@ -1,4 +1,4 @@
-/* $Id: SSSimoViscoT.h,v 1.3.2.1 2002-10-28 06:49:07 paklein Exp $ */
+/* $Id: SSSimoViscoT.h,v 1.3.2.2 2002-11-13 08:44:16 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_SIMO_VISCO_H_
 #define _SS_SIMO_VISCO_H_
@@ -53,9 +53,6 @@ class SSSimoViscoT: public SSStructMatT
 	
 	enum Spring {kEquilibrium = 0, kNonEquilibrium};
 	protected:
-
-	/*Form Residual flag*/
-	const GlobalT::StateT& fRunState;
 	 
 	/*Internal state variables*/	
 	/*fh - denotes the overstress while 
@@ -84,9 +81,6 @@ class SSSimoViscoT: public SSStructMatT
 	/* Internal state variables array*/
 	dArrayT fstatev;
 
-  	/*Time increment*/
- 	const double& fdt; 
-	
 	/*modulus*/
 	dMatrixT fModulus;
 	/*stress*/

@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlast.cpp,v 1.8.2.1 2002-10-28 06:49:21 paklein Exp $ */
+/* $Id: GradCrystalPlast.cpp,v 1.8.2.2 2002-11-13 08:44:24 paklein Exp $ */
 #include "GradCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -10,7 +10,7 @@
 
 #include "ElementCardT.h"
 #include "ifstreamT.h"
-#include "ContinuumElementT.h"
+#include "ContinuumElementT.h" //needed for ip coordinates
 
 using namespace Tahoe;
 
@@ -127,10 +127,10 @@ const dSymMatrixT& GradCrystalPlast::s_ij()
   int igrn = 0;
 
   // time step
-  fdt = ContinuumElement().ElementSupport().TimeStep();
+  fdt = fFDMatSupport.TimeStep();
 
   // compute crystal stresses
-  if (fStatus == GlobalT::kFormRHS && CurrIP() == 0)
+  if (fFDMatSupport.RunState() == GlobalT::kFormRHS && CurrIP() == 0)
     {
       if (XTAL_MESSAGES && CurrElementNumber() == ELprnt)
          cout << " elem # " << CurrElementNumber() << endl;
@@ -283,7 +283,7 @@ void GradCrystalPlast::ComputeOutput(dArrayT& output)
   if (elem == 0 && intpt == 0) fAvgStress = 0.0;
   fAvgStress.AddScaled(1./(NumIP()*NumElements()), fs_ij);
   if (elem == (NumElements()-1) && intpt == (NumIP()-1))
-     cerr << " step # " << ContinuumElement().ElementSupport().StepNumber()
+     cerr << " step # " << fFDMatSupport.StepNumber()
           << "    S_eq_avg = " 
           << sqrt(fsymmatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23 << endl; 
 
@@ -292,8 +292,8 @@ void GradCrystalPlast::ComputeOutput(dArrayT& output)
   output[2] = fIterState;
 
   // compute euler angles
-  const int& step = ContinuumElement().ElementSupport().StepNumber();
-  const int& nsteps = ContinuumElement().ElementSupport().NumberOfSteps();
+  int step   = fFDMatSupport.StepNumber();
+  int nsteps = fFDMatSupport.NumberOfSteps();
 
   if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
   {

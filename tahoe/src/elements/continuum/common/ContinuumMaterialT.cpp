@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.cpp,v 1.6.8.1 2002-10-26 16:24:59 paklein Exp $ */
+/* $Id: ContinuumMaterialT.cpp,v 1.6.8.2 2002-11-13 08:44:29 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "ContinuumMaterialT.h"
 #include "MaterialSupportT.h"
@@ -33,12 +33,22 @@ int ContinuumMaterialT::CurrElementNumber(void) const
 
 ElementCardT& ContinuumMaterialT::ElementCard(int card) const
 {
-	return fMaterialSupport.ElementCard(card);
+	ElementCardT* the_card = fMaterialSupport.ElementCard(card);
+	if (!the_card) {
+		cout << "\n ContinuumMaterialT::ElementCard: not available" << endl;
+		throw ExceptionT::kGeneralFail;
+	}
+	return *the_card;
 }
 
 ElementCardT& ContinuumMaterialT::CurrentElement(void) const
 {
-	return fMaterialSupport.CurrentElement();
+	ElementCardT* the_card = fMaterialSupport.CurrentElement();
+	if (!the_card) {
+		cout << "\n ContinuumMaterialT::CurrentElement: not available" << endl;
+		throw ExceptionT::kGeneralFail;
+	}
+	return *the_card;
 }
 
 /* initialization */

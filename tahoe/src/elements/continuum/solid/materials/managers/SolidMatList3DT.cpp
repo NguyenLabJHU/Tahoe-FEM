@@ -1,11 +1,6 @@
-/* $Id: SolidMatList3DT.cpp,v 1.23.2.1 2002-10-28 06:49:16 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.23.2.2 2002-11-13 08:44:20 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
-#include "ElasticT.h"
-
-//#include "SmallStrainT.h"
-//#include "FiniteStrainT.h"
-
 #include "fstreamT.h"
 
 /* 3D material type codes */
@@ -52,33 +47,10 @@
 using namespace Tahoe;
 
 /* constructors */
-SolidMatList3DT::SolidMatList3DT(int length, const ElasticT& element_group):
-	StructuralMatListT(length),
-	fElementGroup(element_group)
+SolidMatList3DT::SolidMatList3DT(int length, const StructuralMatSupportT& support):
+	StructuralMatListT(length, support)
 {
-#ifdef __NO_RTTI__
-	cout << "\n SolidMatList3DT::SolidMatList3DT: WARNING: environment has no RTTI. Some\n" 
-	     <<   "    consistency checking is disabled" << endl;
-	/* cast and hope for the best */
-//	fSmallStrain = (const SmallStrainT*) &fElementGroup;
-//	fFiniteStrain = (const FiniteStrainT*) &fElementGroup;
-#else
 
-	/* cast to small strain */
-//	fSmallStrain = dynamic_cast<const SmallStrainT*>(&fElementGroup);
-
-	/* cast to small strain */
-//	fFiniteStrain = dynamic_cast<const FiniteStrainT*>(&fElementGroup);
-	
-	/* must have at least one */
-//	if (!fSmallStrain && !fFiniteStrain)
-	if (!fSSMatSupport && !fFDMatSupport)
-	{
-		cout << "\n SolidMatList3DT::SolidMatList3DT: could not cast element group to\n" 
-		     <<   "     SmallStrainT or FiniteStrainT" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-#endif
 }
 
 /* read material data from the input stream */
@@ -501,7 +473,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		int LTfnum = pmat->ThermalStrainSchedule();
 		if (LTfnum > -1)
 		{
-			pmat->SetThermalSchedule(fElementGroup.Schedule(LTfnum));
+			pmat->SetThermalSchedule(fStructuralMatSupport.Schedule(LTfnum));
 			
 			/* set flag */
 			fHasThermal = true;

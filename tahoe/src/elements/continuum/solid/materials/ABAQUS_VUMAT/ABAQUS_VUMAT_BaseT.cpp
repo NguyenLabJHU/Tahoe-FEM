@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.14.2.1 2002-10-28 06:48:46 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.14.2.2 2002-11-13 08:44:11 paklein Exp $ */
 #include "ABAQUS_VUMAT_BaseT.h"
 
 #ifdef __F2C__
@@ -19,7 +19,6 @@ using namespace Tahoe;
 /* constructor */
 ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FDMatSupportT& support):
 	FDStructMatT(in, support),
-//	fRunState(ContinuumElement().RunState()),
 	fTangentType(GlobalT::kSymmetric),
 	fModulus(dSymMatrixT::NumValues(NumSD())),
 	fStress(NumSD()),
@@ -179,8 +178,7 @@ void ABAQUS_VUMAT_BaseT::PointInitialize(void)
 	}
 
 	/* call UMAT - time signals initialization */
-	const ElementSupportT& support = ContinuumElement().ElementSupport();
-	double dt = support.TimeStep();
+	double dt = fFDMatSupport.TimeStep();
 	Call_VUMAT(0.0, dt, 0, 0);
 
 	/* store results as last converged */
@@ -240,11 +238,10 @@ const dSymMatrixT& ABAQUS_VUMAT_BaseT::s_ij(void)
 	/* call VUMAT */
 	if (MaterialSupport().RunState() == GlobalT::kFormRHS)
 	{
-		const ElementSupportT& support = ContinuumElement().ElementSupport();
-		double  t = support.Time();
-		double dt = support.TimeStep();
-		int  step = support.StepNumber();
-		int  iter = support.IterationNumber(ContinuumElement().Group());
+		double  t = fFDMatSupport.Time();
+		double dt = fFDMatSupport.TimeStep();
+		int  step = fFDMatSupport.StepNumber();
+		int  iter = fFDMatSupport.IterationNumber();
 		Call_VUMAT(t, dt, step, iter);
 	}
 	else

@@ -1,4 +1,4 @@
-/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.4.2.1 2002-10-28 06:49:24 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.4.2.2 2002-11-13 08:44:27 paklein Exp $ */
 #include "BCJHypoIsoDamageYC3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -6,7 +6,7 @@
 #include "Utils.h"
 #include "BCJKineticEqn.h"
 
-#include "ContinuumElementT.h"
+//#include "ContinuumElementT.h"
 
 using namespace Tahoe;
 
@@ -267,7 +267,7 @@ void BCJHypoIsoDamageYC3D::ComputeOutput(dArrayT& output)
   //output[8] = fIterCount;
 
   if (BCJ_DMG_MESSAGES && intpt == 0 && CurrElementNumber() == 0)
-     cerr << " step # " << ContinuumElement().ElementSupport().StepNumber()
+     cerr << " step # " << fFDMatSupport.StepNumber()
           << " EQPe  "  << fEQValues[kEQPe] 
           << " EQXie "  << fEQValues[kEQXie]
           << " PRESS "  << -fEQValues[kEQXih]
@@ -395,7 +395,7 @@ void BCJHypoIsoDamageYC3D::IntegrateConstitutiveEqns(bool& converged, int subInc
 
   // check for inelastic process (note: use deviatoric part for this check)
   if ( fEQXieTr > (1.+1.e-6)*fKineticEqn->h(fInternal_n[kDEQPe]/fdt,fInternal_n[kKAPP])
-                   && ContinuumElement().ElementSupport().IterationNumber(ContinuumElement().Group()) > -1 )
+                   && fFDMatSupport.IterationNumber() > -1 )
     {
       // step 5. forward gradient estimate
       if (subIncr == 1) ForwardGradientEstimate();

@@ -1,4 +1,4 @@
-/* $Id: tevp3D.h,v 1.7.6.1 2002-10-28 06:49:32 paklein Exp $ */
+/* $Id: tevp3D.h,v 1.7.6.2 2002-11-13 08:44:30 paklein Exp $ */
 /* created:  Harold Park (06/25/2001) */
 #ifndef _TEVP_3D_H_
 #define _TEVP_3D_H_
@@ -115,10 +115,8 @@ class tevp3D: public FDStructMatT, public IsotropicT
   dSymMatrixT fStress;
   dMatrixT fModulus;
   double fStrainEnergyDensity;   // How do I define this for this material?
-  /* execution stage */
-//  const GlobalT::StateT& fRunState;  
 
-/* element level internal variables */
+  /* element level internal variables */
   dArrayT fInternal;             // Internal variables
   dArrayT fTempKirchoff;      // Store the Kirchoff stress from the previous
                             // timestep (S11, S22, S33, S32, S31, S21)

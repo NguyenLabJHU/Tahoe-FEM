@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.4.6.1 2002-10-28 06:48:45 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.4.6.2 2002-11-13 08:44:10 paklein Exp $ */
 /* created: paklein (05/09/2000) */
 #ifndef _ABAQUS_UMAT_BASE_T_H_
 #define _ABAQUS_UMAT_BASE_T_H_
@@ -129,11 +129,6 @@ private:
 	void Skip_ABAQUS_Comments(ifstreamT& in);
 	void Read_ABAQUS_Word(ifstreamT& in, StringT& word, bool to_upper = true) const;
 	
-protected:
-
-	/* execution stage */
-//	const GlobalT::StateT& fRunState;
-
 private:
 
 	//debugging

@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.cpp,v 1.5.2.1 2002-10-28 06:49:05 paklein Exp $ */
+/* $Id: RGVIB2D.cpp,v 1.5.2.2 2002-11-13 08:44:15 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include <math.h>
@@ -225,7 +225,7 @@ const dSymMatrixT& RGVIB2D::s_ij(void)
         /*load the viscoelastic principal stretches from state variable arrays*/ 
         ElementCardT& element = CurrentElement(); 
         Load(element, CurrIP()); 
-        if (fRunState == GlobalT::kFormRHS) 
+		if (fFDMatSupport.RunState() == GlobalT::kFormRHS) 
 	  { 
                 double Jvn = sqrt(fC_vn.Det()); 
                 if (Jvn < 1.2) 
@@ -332,7 +332,7 @@ void RGVIB2D::ComputeOutput(dArrayT& output)
         double rate_visc_disp = dev_stress.ScalarProduct()*0.5*fietaS+ 
           fconst*mean_stress*fconst*fietaB; 
          
-        output[2] = rate_visc_disp*fdt; 
+        output[2] = rate_visc_disp*fFDMatSupport.TimeStep(); 
          
 }  
 /***********************************************************************
@@ -500,15 +500,16 @@ void RGVIB2D::Calgorithm(const dArrayT& eigenstretch, dArrayT& eigenstress,
 	/*GAB= 1 + dt D/Dep(sigA_Idev/nD+isostress/nV+deta_de*stress)*/
 	dMatrixT GAB(2,2);
 
-	GAB(0,0) = 1+0.5*fdt*fietaS*(s0-sm)*(1+DietaSDep)+
-	             fconst*fdt*fietaB*sm*(1+DietaBDep);
-	GAB(1,1) = 1+0.5*fdt*fietaS*(s1-sm)*(1+DietaSDep)+
-	             fconst*fdt*fietaB*sm*(1+DietaBDep);
+	double dt = fFDMatSupport.TimeStep();
+	GAB(0,0) = 1+0.5*dt*fietaS*(s0-sm)*(1+DietaSDep)+
+	               fconst*dt*fietaB*sm*(1+DietaBDep);
+	GAB(1,1) = 1+0.5*dt*fietaS*(s1-sm)*(1+DietaSDep)+
+	               fconst*dt*fietaB*sm*(1+DietaBDep);
 
-	GAB(0,1) = 0.5*fdt*fietaS*(s0-sm)*(1+DietaSDep)+
-	             fconst*fdt*fietaB*sm*(1+DietaBDep);
-	GAB(1,0) = 0.5*fdt*fietaS*(s1-sm)*(1+DietaSDep)+
-	             fconst*fdt*fietaB*sm*(1+DietaBDep);
+	GAB(0,1) = 0.5*dt*fietaS*(s0-sm)*(1+DietaSDep)+
+	             fconst*dt*fietaB*sm*(1+DietaBDep);
+	GAB(1,0) = 0.5*dt*fietaS*(s1-sm)*(1+DietaSDep)+
+	             fconst*dt*fietaB*sm*(1+DietaBDep);
 
 	dMatrixT DAB(2);
 	DAB.MultAB(fiKAB,GAB);
@@ -572,9 +573,10 @@ void RGVIB2D::ComputeEigs_e(const dArrayT& eigenstretch,
 		ComputeiKAB(Jv,Je,eigenstress,eigenmodulus);
 	    
 		/*calculate the residual*/
-		double res0 = ep_e0 + fdt*(0.5*fietaS*(s0-sm) +
+		double dt = fFDMatSupport.TimeStep();
+		double res0 = ep_e0 + dt*(0.5*fietaS*(s0-sm) +
 					   fconst*fietaB*sm) - ep_tr0;
-		double res1 = ep_e1 + fdt*(0.5*fietaS*(s1-sm) +
+		double res1 = ep_e1 + dt*(0.5*fietaS*(s1-sm) +
 					   fconst*fietaB*sm) - ep_tr1;
 		
 		/*solve for the principal strain increments*/
@@ -639,17 +641,18 @@ void RGVIB2D::ComputeiKAB(double& Jv, double& Je,
 		
 	/*calculates  KAB = 1+dt*D(sigA_Idev/nD+isostress/nV)/Dep_e*/
 
-	KAB(0,0) = 1+0.5*fietaS*fdt*(c0-cm0-DietaSDep_e*(s0-sm))+
-	             fconst*fietaB*fdt*(cm0 - DietaBDep_e*sm);
+	double dt = fFDMatSupport.TimeStep();
+	KAB(0,0) = 1+0.5*fietaS*dt*(c0-cm0-DietaSDep_e*(s0-sm))+
+	             fconst*fietaB*dt*(cm0 - DietaBDep_e*sm);
 
-	KAB(1,1) = 1+0.5*fietaS*fdt*(c1-cm1-DietaSDep_e*(s1-sm))+
-	             fconst*fietaB*fdt*(cm1 - DietaBDep_e*sm);
+	KAB(1,1) = 1+0.5*fietaS*dt*(c1-cm1-DietaSDep_e*(s1-sm))+
+	             fconst*fietaB*dt*(cm1 - DietaBDep_e*sm);
 
-	KAB(0,1) = 0.5*fietaS*fdt*(c01-cm1-DietaSDep_e*(s0-sm))+
-	             fconst*fietaB*fdt*(cm1 - DietaBDep_e*sm);
+	KAB(0,1) = 0.5*fietaS*dt*(c01-cm1-DietaSDep_e*(s0-sm))+
+	             fconst*fietaB*dt*(cm1 - DietaBDep_e*sm);
 
-	KAB(1,0) = 0.5*fietaS*fdt*(c01-cm0-DietaSDep_e*(s1-sm))+
-	             fconst*fietaB*fdt*(cm0 - DietaBDep_e*sm);
+	KAB(1,0) = 0.5*fietaS*dt*(c01-cm0-DietaSDep_e*(s1-sm))+
+	             fconst*fietaB*dt*(cm0 - DietaBDep_e*sm);
 
 	/*	cout <<"\n k1: "<< 0.5*fietaS*fdt*(c0-cm0)+
 		fconst*fietaB*fdt*cm0+

@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.8.2.1 2002-10-28 06:48:45 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.8.2.2 2002-11-13 08:44:10 paklein Exp $ */
 /* created: paklein (05/14/2000) */
 #include "ABAQUS_UMAT_BaseT.h"
 
@@ -8,7 +8,7 @@
 #include <float.h>
 
 #include "fstreamT.h"
-#include "ContinuumElementT.h"
+#include "ContinuumElementT.h" //needed for ip coordinates
 
 #include "SpectralDecompT.h"
 #include "ThermalDilatationT.h"
@@ -18,7 +18,6 @@ using namespace Tahoe;
 /* constructor */
 ABAQUS_UMAT_BaseT::	ABAQUS_UMAT_BaseT(ifstreamT& in, const FDMatSupportT& support):
 	FDStructMatT(in, support),
-//	fRunState(ContinuumElement().RunState()),
 	fTangentType(GlobalT::kSymmetric),
 	fModulus(dSymMatrixT::NumValues(NumSD())),
 	fStress(NumSD()),
@@ -294,11 +293,10 @@ const dSymMatrixT& ABAQUS_UMAT_BaseT::s_ij(void)
 	/* call UMAT */
 	if (MaterialSupport().RunState() == GlobalT::kFormRHS)
 	{
-		const ElementSupportT& support = ContinuumElement().ElementSupport();
-		double  t = support.Time();
-		double dt = support.TimeStep();
-		int  step = support.StepNumber();
-		int  iter = support.IterationNumber(ContinuumElement().Group());
+		double  t = fFDMatSupport.Time();
+		double dt = fFDMatSupport.TimeStep();
+		int  step = fFDMatSupport.StepNumber();
+		int  iter = fFDMatSupport.IterationNumber();
 		Call_UMAT(t, dt, step, iter);
 	}
 	else

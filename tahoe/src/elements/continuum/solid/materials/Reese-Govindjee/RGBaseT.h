@@ -1,6 +1,5 @@
-/* $Id: RGBaseT.h,v 1.3.2.1 2002-10-28 06:48:58 paklein Exp $ */
+/* $Id: RGBaseT.h,v 1.3.2.2 2002-11-13 08:44:14 paklein Exp $ */
 /* created : TDN (1/22/2001) */
-
 #ifndef _RG_BASE_T_H_
 #define _RG_BASE_T_H_
 
@@ -10,7 +9,6 @@
 
 /* direct members */
 #include "SpectralDecompT.h"
-
 
 namespace Tahoe {
 
@@ -67,7 +65,6 @@ class RGBaseT: public FDStructMatT, public IsotropicT
 	/* spectral operations */
 	SpectralDecompT fSpectralDecompSpat;
 	SpectralDecompT fSpectralDecompRef;
-	const GlobalT::StateT& fRunState;
 
 	/*Internal state variables*/
 	dSymMatrixT     fC_v;
@@ -78,9 +75,6 @@ class RGBaseT: public FDStructMatT, public IsotropicT
 	
 	/* internal state variables array*/
 	dArrayT fstatev;
-
-  	/*Time increment*/
-  	const double& fdt;
 };
 }
 

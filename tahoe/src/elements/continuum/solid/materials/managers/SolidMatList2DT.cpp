@@ -1,13 +1,6 @@
-/* $Id: SolidMatList2DT.cpp,v 1.25.2.1 2002-10-28 06:49:16 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.25.2.2 2002-11-13 08:44:20 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
-#include "ElasticT.h"
-
-//#include "MultiScaleT.h"
-//#include "SmallStrainT.h"
-//#include "FiniteStrainT.h"
-//#include "D2MeshFreeFDElasticT.h"
-
 #include "fstreamT.h"
 
 /* 2D material types codes */
@@ -47,7 +40,6 @@
 #include "tevp2D.h"
 #include "povirk2D.h"
 
-
 #include "HyperEVP2D.h"
 #include "BCJHypo2D.h"
 #include "BCJHypoIsoDamageKE2D.h"
@@ -60,37 +52,10 @@
 using namespace Tahoe;
 
 /* constructor */
-SolidMatList2DT::SolidMatList2DT(int length, const ElasticT& element_group):
-	StructuralMatListT(length),
-	fElementGroup(element_group)
+SolidMatList2DT::SolidMatList2DT(int length, const StructuralMatSupportT& support):
+	StructuralMatListT(length, support)
 {
-#ifdef __NO_RTTI__
-	cout << "\n SolidMatList2DT::SolidMatList2DT: WARNING: environment has no RTTI. Some\n" 
-	     <<   "    consistency checking is disabled" << endl;
-	/* cast and hope for the best */
-//	fSmallStrain  = (const SmallStrainT*)  &fElementGroup;
-//	fFiniteStrain = (const FiniteStrainT*) &fElementGroup;
-//	fMultiScale   = (const MultiScaleT*)   &fElementGroup;
-#else
 
-	/* cast to small strain */
-//	fSmallStrain  = dynamic_cast<const SmallStrainT*>(&fElementGroup);
-
-	/* cast to finite strain */
-//	fFiniteStrain = dynamic_cast<const FiniteStrainT*>(&fElementGroup);
-	
-	/* cast to multi scale */
-//	fMultiScale   = dynamic_cast<const MultiScaleT*>(&fElementGroup);
-	
-	/* must have at least one */
-//	if (!fSmallStrain && !fFiniteStrain && !fMultiScale)
-	if (!fSSMatSupport && !fFDMatSupport)
-	{
-		cout << "\n SolidMatList2DT::SolidMatList2DT: could not cast element group to\n" 
-		     <<   "     either SmallStrainT, FiniteStrainT, or MultiScaleT" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-#endif
 }
 
 /* read material data from the input stream */
@@ -567,7 +532,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 		int LTfnum = pmat->ThermalStrainSchedule();
 		if (LTfnum > -1)
 		{
-			pmat->SetThermalSchedule(fElementGroup.Schedule(LTfnum));
+			pmat->SetThermalSchedule(fStructuralMatSupport.Schedule(LTfnum));
 			
 			/* set flag */
 			fHasThermal = true;
