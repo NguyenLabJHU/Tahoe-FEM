@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.3.8.5 2002-04-30 08:22:01 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.3.8.6 2002-05-03 23:05:59 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -522,16 +522,14 @@ void DiffusionElementT::GenerateOutputLabels(const iArrayT& n_codes,
 	n_labels.Allocate(n_codes.Sum());
 	int count = 0;	
 
-#pragma message("get dof labels from field")
 	if (n_codes[iNodalDisp])
 	{
-		if (NumDOF() > 6) throw eGeneralFail;
-		const char* dlabels[] = {"d1", "d2", "d3", "d4", "d5", "d6"};
-		for (int i = 0; i < NumDOF(); i++)
-			n_labels[count++] = dlabels[i];
+		/* labels from the field */
+		const ArrayT<StringT>& labels = Field().Labels();
+		for (int i = 0; i < labels.Length(); i++)
+			n_labels[count++] = labels[i];
 	}
 
-#pragma message("get coordinate labels from field")
 	if (n_codes[iNodalCoord])
 	{
 		const char* xlabels[] = {"x1", "x2", "x3"};

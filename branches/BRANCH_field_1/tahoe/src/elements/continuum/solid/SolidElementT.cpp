@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.21.2.6 2002-05-03 09:52:02 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.21.2.7 2002-05-03 23:05:59 paklein Exp $ */
 /* created: paklein (05/28/1996) */
 
 #include "SolidElementT.h"
@@ -1122,10 +1122,10 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 	int count = 0;
 	if (n_codes[iNodalDisp])
 	{
-		if (NumDOF() > 3) throw eGeneralFail;
-		const char* dlabels[3] = {"D_X", "D_Y", "D_Z"};
-		for (int i = 0; i < NumDOF(); i++)
-			n_labels[count++] = dlabels[i];
+		/* labels from the field */
+		const ArrayT<StringT>& labels = Field().Labels();
+		for (int i = 0; i < labels.Length(); i++)
+			n_labels[count++] = labels[i];
 	}
 
 	if (n_codes[iNodalCoord])
