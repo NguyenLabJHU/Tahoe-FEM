@@ -1,13 +1,7 @@
-/* $Id: TextOutputT.h,v 1.2 2003-10-09 16:33:39 cjkimme Exp $ */
+/* $Id: TextOutputT.h,v 1.3 2003-10-09 17:11:14 cjkimme Exp $ */
 /* created: sawimme (05/20/1999) */
 #ifndef _TEXT_OUTPUT_T_H_
 #define _TEXT_OUTPUT_T_H_
-
-/* uncomment these lines to print to output files root.io?.ps?.run 
- * default is to print to root.io?.run.ps? */
-//#ifndef __USE_CONSTANT_SUFFIX__
-//#define __USE_CONSTANT_SUFFIX__
-//#endif
 
 /* base class */
 #include "OutputBaseT.h"
