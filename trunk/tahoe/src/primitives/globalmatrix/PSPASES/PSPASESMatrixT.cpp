@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.cpp,v 1.6 2004-03-14 06:11:13 paklein Exp $ */
+/* $Id: PSPASESMatrixT.cpp,v 1.7 2004-03-14 07:12:04 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "PSPASESMatrixT.h"
 
@@ -159,10 +159,12 @@ void PSPASESMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eq
 			pelMat += inc;
 		}
 	}
-	else if (format == ElementMatrixT::kNonSymmetric || format == ElementMatrixT::kSymmetricUpper)
+	else if (format == ElementMatrixT::kNonSymmetric || 
+             format == ElementMatrixT::kSymmetric ||
+             format == ElementMatrixT::kSymmetricUpper )
 	{
 		/* fill matrix */
-		if (format == ElementMatrixT::kSymmetricUpper)
+		if (format != ElementMatrixT::kNonSymmetric)
 			elMat.CopySymmetric();
 
 		int nee = eqnos.Length();  // number of equations for element
@@ -170,7 +172,7 @@ void PSPASESMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eq
 		{
 			int ceqno = eqnos[col] - 1;
 			if (ceqno > -1) /* active eqn */ {
-				for (int row = 0; row <= col; ++row) {
+				for (int row = 0; row < nee; ++row) {
 					int reqno = eqnos[row];
 					if (reqno >= fStartEQ && reqno <= end_update) /* active eqn */ {
 						reqno--;
@@ -250,7 +252,8 @@ void PSPASESMatrixT::PrintZeroPivots(void) const
 
 void PSPASESMatrixT::PrintLHS(bool force) const
 {
-#pragma unused(force)
+	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
+
 	fOut << "LHS: {r, c, v}: \n";
 	for (int i = 0; i < fLocNumEQ; i++) {
 	
@@ -274,18 +277,11 @@ void PSPASESMatrixT::Factorize(void)
 	/* MPI communicator */
 	MPI_Comm comm = fComm.Comm();
 
-//TEMP
-cout << caller << ": is_sym_fact = " << fIsSymFactorized << endl;
-cout << caller << ":     is_fact = " << fIsFactorized << endl;
-
 	/* compute symbolic factorization */
 	if (!fIsSymFactorized) {
 
-//TEMP
-cout << caller << ": doing symbolic factorization" << endl;
-
 		/* make time stamp */
-		fComm.Log(CommunicatorT::kLow, caller, "start symbolic factorization");
+		fComm.Log(CommunicatorT::kUrgent, caller, "start symbolic factorization");
 	
 		/* compute fill-reducing ordering */
 		PSPACEO(frowdist.Pointer(), faptrs.Pointer(), fainds.Pointer(), 
@@ -297,7 +293,7 @@ cout << caller << ": doing symbolic factorization" << endl;
 			&fYcomm, &comm);
 
 		/* make time stamp */
-		fComm.Log(CommunicatorT::kLow, caller, "end symbolic factorization");
+		fComm.Log(CommunicatorT::kUrgent, caller, "end symbolic factorization");
 
 		fIsSymFactorized = 1;
 	}
@@ -305,18 +301,15 @@ cout << caller << ": doing symbolic factorization" << endl;
 	/* compute numerical factorization */
 	if (!fIsFactorized) {
 
-//TEMP
-cout << caller << ": doing numerical factorization" << endl;
-
 		/* make time stamp */
-		fComm.Log(CommunicatorT::kLow, caller, "start numerical factorization");
+		fComm.Log(CommunicatorT::kUrgent, caller, "start numerical factorization");
 
 		/* compute numerical factorization */
 		DPSPACEN(frowdist.Pointer(), faptrs.Pointer(), fainds.Pointer(),
 			favals.Pointer(), &fYcomm, &fNcomm, &comm);
 
 		/* make time stamp */
-		fComm.Log(CommunicatorT::kLow, caller, "end numerical factorization");
+		fComm.Log(CommunicatorT::kUrgent, caller, "end numerical factorization");
 
 		fIsFactorized = 1;
 	}
