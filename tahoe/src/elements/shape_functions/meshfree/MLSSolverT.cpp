@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.cpp,v 1.15 2004-07-15 08:29:58 paklein Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.16 2004-09-03 20:24:26 paklein Exp $ */
 /* created: paklein (12/08/1999) */
 #include "MLSSolverT.h"
 
@@ -213,7 +213,7 @@ int MLSSolverT::SetField(const dArray2DT& coords, const dArray2DT& nodal_param,
 	fBasis->SetBasis(fLocCoords, fOrder);
 	
 	/* set moment matrix, inverse, and derivatives */
-	if (!SetMomentMartrix(volume))
+	if (!SetMomentMatrix(volume))
 	{
 		cout << "\n MLSSolverT::SetField: error in momentum matrix: ";
 		return 0;
@@ -270,7 +270,7 @@ void MLSSolverT::Dimension(void)
 }
 
 /* set moment matrix, inverse, and derivatives */
-int MLSSolverT::SetMomentMartrix(const dArrayT& volume)
+int MLSSolverT::SetMomentMatrix(const dArrayT& volume)
 {
 	/* moment matrix */
 	ComputeM(volume);

@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.h,v 1.10 2004-07-15 08:29:59 paklein Exp $ */
+/* $Id: MLSSolverT.h,v 1.11 2004-09-03 20:24:26 paklein Exp $ */
 /* created: paklein (12/08/1999) */
 #ifndef _MLS_SOLVER_T_H_
 #define _MLS_SOLVER_T_H_
@@ -124,7 +124,7 @@ private:
 	void Dimension(void);
 
 	/* set moment matrix, inverse, and derivatives */
-	int SetMomentMartrix(const dArrayT& volume);
+	int SetMomentMatrix(const dArrayT& volume);
 	void ComputeM(const dArrayT& volume);
 	void ComputeDM(const dArrayT& volume);
 	void ComputeDDM(const dArrayT& volume);
