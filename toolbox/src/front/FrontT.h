@@ -1,4 +1,4 @@
-/* $Id: FrontT.h,v 1.3 2002-07-05 22:26:29 paklein Exp $ */
+/* $Id: FrontT.h,v 1.4 2002-09-10 13:42:44 paklein Exp $ */
 /* created: paklein (02/11/2000)                                          */
 /* base class for crack surface objects                                   */
 
@@ -48,7 +48,7 @@ protected:
 	double fcone;
 	double fda;
 	double fda_s; // fraction of fda at which sampling occurs
-	double fnum_pts;
+	int    fnum_pts;
 
 	/* crack front nodes */
 	AutoArrayT<FrontNodeT*> fFrontNodes;
