@@ -1,4 +1,4 @@
-/* $Id: MFAugLagMultT.cpp,v 1.3.2.1 2004-07-08 07:48:39 paklein Exp $ */
+/* $Id: MFAugLagMultT.cpp,v 1.3.2.2 2004-07-08 16:45:24 paklein Exp $ */
 #include "MFAugLagMultT.h"
 
 #include <iostream.h>
@@ -525,7 +525,7 @@ void MFAugLagMultT::TakeParameterList(const ParameterListT& list)
 		fConstrainedDOFs[i]--;
 
 		int typ = KBC_params.GetParameter("type");
-		fCodes[i] = KBC_CardT::KBC_CardT::int2CodeT(typ + 1);
+		fCodes[i] = KBC_CardT::int2CodeT(typ + 1);
 		if (fCodes[i] != KBC_CardT::kFix && fCodes[i] != KBC_CardT::kDsp)
 			ExceptionT::GeneralFail(caller, "code %d must be 0 or 1", i);
 	
@@ -625,3 +625,4 @@ void MFAugLagMultT::ChatWithElementGroup(void) {
 	fNumEqs = fSupportSizes.Sum();
 
 }
+
