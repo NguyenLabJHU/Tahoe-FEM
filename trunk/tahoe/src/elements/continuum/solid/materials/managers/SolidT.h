@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.9 2001-12-20 18:26:22 thao Exp $ */
+/* $Id: SolidT.h,v 1.10 2002-01-31 19:01:43 ebmarin Exp $ */
 /* created: paklein (03/10/2001)                                          */
 
 #ifndef _MATERIAL_T_H_
@@ -40,6 +40,8 @@ kPovirk2D = 31,
    kLocXtalPlast = 50,
  kLocXtalPlast_C = 51,
    kGrdXtalPlast = 52,
+ kLocXtalPlastFp = 55,
+ kGrdXtalPlastFp = 56,
    kOgdenViscVIB = 60,
          kSKStVT = 61,
        kMaxwellT = 62,
