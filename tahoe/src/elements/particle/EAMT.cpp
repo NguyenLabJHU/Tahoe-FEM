@@ -16,6 +16,7 @@ using namespace Tahoe;
 
 static int ipair = 1;
 static int iEmb  = 1;
+static int icheck= 0;
 
 /* parameters */
 const int kMemoryHeadRoom = 15; /* percent */
@@ -59,7 +60,7 @@ void EAMT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 /* class initialization */
 void EAMT::Initialize(void)
 {
-  cout << "ENTER EAMT::Initialize\n";
+  cout << "Initialization Phase\n";
 
   /* inherited */
   ParticleT::Initialize();
@@ -133,7 +134,6 @@ void EAMT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 
 void EAMT::WriteOutput(void)
 {
-  cout << "ENTER EAMT::WriteOutput\n";
   const char caller[] = "EAMT::WriteOutput";
 
   /* inherited */
@@ -298,8 +298,6 @@ void EAMT::WriteOutput(void)
 void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 			 const iArray2DT& col_eq, dSPMatrixT& stiffness)
 {
-  cout << "ENTER EAMT::FormStiffness\n";
-
   const char caller[] = "EAMT::FormStiffness";
 
   /* map should return -1 of out of range */
@@ -630,8 +628,6 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
   /* assemble diagonal stiffness */
   if (formK && sys_type == GlobalT::kDiagonal)
     {
-      cout << "ENTER EAMT::LHSDriver - Diagonal Form\n";
-
       /* assembly information */
       const ElementSupportT& support = ElementSupport();
       int group = Group();
@@ -811,12 +807,10 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 
       /* assemble */
       support.AssembleLHS(group, fForce, Field().Equations());
-      //CheckDiagonalStiffnesses();
+      if(icheck == 1) CheckDiagonalStiffnesses();
     }
   else if (formK)
     {
-      cout << "ENTER EAMT::LHSDriver - Non-Diagonal form\n";
-
       /* assembly information */
       const ElementSupportT& support = ElementSupport();
       int group = Group();
@@ -976,23 +970,26 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		support.AssembleLHS(group, fLHS, pair_eqnos);
 
 		/* check derivatives */
-		D2fDx2_0[tag_i] += fLHS(0,0);
-		D2fDx2_0[tag_j] += fLHS(0+ndof,0+ndof);
+		if (icheck == 1 && ndof == 3)
+		  {
+		    D2fDx2_0[tag_i] += fLHS(0,0);
+		    D2fDx2_0[tag_j] += fLHS(0+ndof,0+ndof);
+		    
+		    D2fDx2_1[tag_i] += fLHS(1,1);
+		    D2fDx2_1[tag_j] += fLHS(1+ndof,1+ndof);
 		
-		D2fDx2_1[tag_i] += fLHS(1,1);
-		D2fDx2_1[tag_j] += fLHS(1+ndof,1+ndof);
-		
-		D2fDx2_2[tag_i] += fLHS(2,2);
-		D2fDx2_2[tag_j] += fLHS(2+ndof,2+ndof);
-		  
-		D2fDx2_3[tag_i] += fLHS(0,1);
-		D2fDx2_3[tag_j] += fLHS(0+ndof,1+ndof);
-		
-		D2fDx2_4[tag_i] += fLHS(0,2);
-		D2fDx2_4[tag_j] += fLHS(0+ndof,2+ndof);
-		  
-		D2fDx2_5[tag_i] += fLHS(1,2);
-		D2fDx2_5[tag_j] += fLHS(1+ndof,2+ndof);
+		    D2fDx2_2[tag_i] += fLHS(2,2);
+		    D2fDx2_2[tag_j] += fLHS(2+ndof,2+ndof);
+		    
+		    D2fDx2_3[tag_i] += fLHS(0,1);
+		    D2fDx2_3[tag_j] += fLHS(0+ndof,1+ndof);
+		    
+		    D2fDx2_4[tag_i] += fLHS(0,2);
+		    D2fDx2_4[tag_j] += fLHS(0+ndof,2+ndof);
+		    
+		    D2fDx2_5[tag_i] += fLHS(1,2);
+		    D2fDx2_5[tag_j] += fLHS(1+ndof,2+ndof);
+		  }
 	      }
 	      
 	      /* Component of force coming from Embedding Energy */
@@ -1053,28 +1050,32 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		  support.AssembleLHS(group, fLHS, pair_eqnos);
 
 		  /* check derivatives */
-		  D2fDx2_0[tag_i] += fLHS(0,0);
-		  D2fDx2_0[tag_j] += fLHS(0+ndof,0+ndof);
+		  if (icheck == 1 && ndof == 3)
+		    {
+		      D2fDx2_0[tag_i] += fLHS(0,0);
+		      D2fDx2_0[tag_j] += fLHS(0+ndof,0+ndof);
+		      
+		      D2fDx2_1[tag_i] += fLHS(1,1);
+		      D2fDx2_1[tag_j] += fLHS(1+ndof,1+ndof);
 		  
-		  D2fDx2_1[tag_i] += fLHS(1,1);
-		  D2fDx2_1[tag_j] += fLHS(1+ndof,1+ndof);
-		  
-		  D2fDx2_2[tag_i] += fLHS(2,2);
-		  D2fDx2_2[tag_j] += fLHS(2+ndof,2+ndof);
-		  
-		  D2fDx2_3[tag_i] += fLHS(0,1);
-		  D2fDx2_3[tag_j] += fLHS(0+ndof,1+ndof);
-		  
-		  D2fDx2_4[tag_i] += fLHS(0,2);
-		  D2fDx2_4[tag_j] += fLHS(0+ndof,2+ndof);
-		  
-		  D2fDx2_5[tag_i] += fLHS(1,2);
-		  D2fDx2_5[tag_j] += fLHS(1+ndof,2+ndof);
+		      D2fDx2_2[tag_i] += fLHS(2,2);
+		      D2fDx2_2[tag_j] += fLHS(2+ndof,2+ndof);
+		      
+		      D2fDx2_3[tag_i] += fLHS(0,1);
+		      D2fDx2_3[tag_j] += fLHS(0+ndof,1+ndof);
+		      
+		      D2fDx2_4[tag_i] += fLHS(0,2);
+		      D2fDx2_4[tag_j] += fLHS(0+ndof,2+ndof);
+		      
+		      D2fDx2_5[tag_i] += fLHS(1,2);
+		      D2fDx2_5[tag_j] += fLHS(1+ndof,2+ndof);
+		    }
 		}
 	    }
 	} 
-      //CheckStiffnesses(D2fDx2_0,D2fDx2_1,D2fDx2_2,
-      //		       D2fDx2_3,D2fDx2_4,D2fDx2_5);  
+      if(icheck == 1)
+	CheckStiffnesses(D2fDx2_0,D2fDx2_1,D2fDx2_2,
+			 D2fDx2_3,D2fDx2_4,D2fDx2_5);  
     }
 }
 
@@ -1097,7 +1098,7 @@ void EAMT::RHSDriver(void)
   ElementSupport().AssembleRHS(Group(), fForce, Field().Equations());
 
   /* check derivatives using numerical derivatives */
-  //CheckDerivatives();
+  //if(icheck == 1) CheckDerivatives();
 }
 
 void EAMT::RHSDriver2D(void)
@@ -1760,14 +1761,7 @@ void EAMT::GetEmbForce(const dArray2DT& coords,const dArray2DT rho,
       int  type_i = fType[tag_i];
 
       emb_force  = fEAMProperties[type_i]->getEmbedForce();
-      
       Emb(tag_i,0) = emb_force(rho(tag_i,0),NULL,NULL); 
-
-      //if(Emb.MinorDim() > 1) 
-      //	{
-      //  for (int j = 1; j < 2*NumDOF(); j++)
-      //    Emb(tag_i,j) = emb_force(rho(tag_i,j),NULL,NULL); 
-      //}
     }  
 }
 
@@ -1974,7 +1968,7 @@ void EAMT::CheckDerivatives()
 
 void EAMT::CheckDiagonalStiffnesses()
 {
-  cout << "ENTER EAMT::NumericalDerivatives3D\n";
+  cout << "ENTER EAMT::NumericalStiffnesses3D - Diagonal \n";
 
   /* assembly information */
   const ElementSupportT& support = ElementSupport();
@@ -2015,7 +2009,7 @@ void EAMT::CheckDiagonalStiffnesses()
 
       /* get embedding force + delta */
       fEmbeddingForce_i = 0.0;
-      GetEmbForce(coords,frho_i,fEmbeddingForce_i);
+      GetNumEmbForce(coords,frho_i,fEmbeddingForce_i);
       /* exchange embedding energy information */
       fCommManager.AllGather(fEmbeddingForce_iMessageID, fEmbeddingForce_i);
 
@@ -2316,7 +2310,7 @@ void EAMT::CheckDiagonalStiffnesses()
 void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 			    dArrayT& d3,dArrayT& d4,dArrayT& d5)
 {
-  cout << "ENTER EAMT::NumericalDerivatives3D\n";
+  cout << "ENTER EAMT::NumericalStiffesses3D - Non Diagonal \n";
 
   /* assembly information */
   const ElementSupportT& support = ElementSupport();
@@ -2328,11 +2322,13 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 
   double delta = 1.e-9;
   iArrayT neighbors;
-  fdFdx  = 0.0;
+
+  fdFdx = 0.0;
 
   /* Embedding Force */
   if(iEmb == 1) 
     {
+      fdFdx = 0.0;
       frho_i = 0.0;
       fEmb_i = 0.0;
       fEmb = 0.0;
@@ -2357,15 +2353,13 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 
       /* get embedding force + delta */
       fEmbeddingForce_i = 0.0;
-      GetEmbForce(coords,frho_i,fEmbeddingForce_i);
+      GetNumEmbForce(coords,frho_i,fEmbeddingForce_i);
       /* exchange embedding energy information */
       fCommManager.AllGather(fEmbeddingForce_iMessageID, fEmbeddingForce_i);
 
       EAMPropertyT::EDForceFunction ed_force_i = NULL;
       EAMPropertyT::EDForceFunction ed_force_j = NULL;
       
-      fdFdx = 0.0;
-
       int current_property_i = -1;
       int current_property_j = -1;
 
@@ -2610,40 +2604,10 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 	      double r_ij_1  = x_j[1] - x_i[1];
 	      double r_ij_2  = x_j[2] - x_i[2];
 	      double r       = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
-	      
-	      double r0_ij_0 =  x_j[0]+delta - x_i[0];
-	      double r0_ij_1 =  x_j[1]       - x_i[1];
-	      double r0_ij_2 =  x_j[2]       - x_i[2];
-	      double r0      = sqrt(r0_ij_0*r0_ij_0 + r0_ij_1*r0_ij_1 + r0_ij_2*r0_ij_2);
-	      
-	      double r1_ij_0 =  x_j[0]       - x_i[0];
-	      double r1_ij_1 =  x_j[1]+delta - x_i[1];
-	      double r1_ij_2 =  x_j[2]       - x_i[2];
-	      double r1      = sqrt(r1_ij_0*r1_ij_0 + r1_ij_1*r1_ij_1 + r1_ij_2*r1_ij_2);
-	      
-	      double r2_ij_0 =  x_j[0]       - x_i[0];
-	      double r2_ij_1 =  x_j[1]       - x_i[1];
-	      double r2_ij_2 =  x_j[2]+delta - x_i[2];
-	      double r2      = sqrt(r2_ij_0*r2_ij_0 + r2_ij_1*r2_ij_1 + r2_ij_2*r2_ij_2);
-	      
-	      double r3_ij_0 =  x_j[0] - x_i[0] -delta;
-	      double r3_ij_1 =  x_j[1] - x_i[1];
-	      double r3_ij_2 =  x_j[2] - x_i[2];
-	      double r3      = sqrt(r3_ij_0*r3_ij_0 + r3_ij_1*r3_ij_1 + r3_ij_2*r3_ij_2);
-
-	      double r4_ij_0 =  x_j[0] - x_i[0];
-	      double r4_ij_1 =  x_j[1] - x_i[1] - delta;
-	      double r4_ij_2 =  x_j[2] - x_i[2];
-	      double r4      = sqrt(r4_ij_0*r4_ij_0 + r4_ij_1*r4_ij_1 + r4_ij_2*r4_ij_2);
-	      
-	      double r5_ij_0 =  x_j[0] - x_i[0];
-	      double r5_ij_1 =  x_j[1] - x_i[1];
-	      double r5_ij_2 =  x_j[2] - x_i[2] - delta;
-	      double r5      = sqrt(r5_ij_0*r5_ij_0 + r5_ij_1*r5_ij_1 + r5_ij_2*r5_ij_2);
 
 	      double z_i = pair_energy_i(r,NULL,NULL);
 	      double z_j = pair_energy_j(r,NULL,NULL);
-
+	      
 	      double zp_i= pair_force_i(r,NULL,NULL);
 	      double zp_j= pair_force_j(r,NULL,NULL);
 
@@ -2660,17 +2624,28 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 	      phip_2 *= r_ij_2/r;
 
 	      /* Component 11 */
+	      double r0_ij_0 =  x_j[0]+delta - x_i[0];
+	      double r0_ij_1 =  x_j[1]       - x_i[1];
+	      double r0_ij_2 =  x_j[2]       - x_i[2];
+	      double r0      = sqrt(r0_ij_0*r0_ij_0 + r0_ij_1*r0_ij_1 + r0_ij_2*r0_ij_2);
+	      
 	      z_i = pair_energy_i(r0,NULL,NULL);
 	      z_j = pair_energy_j(r0,NULL,NULL);
 
 	      zp_i= pair_force_i(r0,NULL,NULL);
 	      zp_j= pair_force_j(r0,NULL,NULL);
  
+	      /* Component 22 */
 	      double phi_i_0 = 0.5*z_i*z_j/r0;
 	      double phip_i_0= 0.5*(zp_i * z_j + z_i * zp_j)/r0 - phi_i_0/r0;
 	      phip_i_0 *= r0_ij_0/r0;
 
-	      /* Component 22 */
+
+	      double r1_ij_0 =  x_j[0]       - x_i[0];
+	      double r1_ij_1 =  x_j[1]+delta - x_i[1];
+	      double r1_ij_2 =  x_j[2]       - x_i[2];
+	      double r1      = sqrt(r1_ij_0*r1_ij_0 + r1_ij_1*r1_ij_1 + r1_ij_2*r1_ij_2);
+	      
 	      z_i = pair_energy_i(r1,NULL,NULL);
 	      z_j = pair_energy_j(r1,NULL,NULL);
 
@@ -2682,7 +2657,13 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 	      double phip_i_1= 0.5*(zp_i * z_j + z_i * zp_j)/r1 - phi_i_1/r1;
 	      phip_i_1 *= r1_ij_1/r1;
 
+
 	      /* Component 33 */
+	      double r2_ij_0 =  x_j[0]       - x_i[0];
+	      double r2_ij_1 =  x_j[1]       - x_i[1];
+	      double r2_ij_2 =  x_j[2]+delta - x_i[2];
+	      double r2      = sqrt(r2_ij_0*r2_ij_0 + r2_ij_1*r2_ij_1 + r2_ij_2*r2_ij_2);
+	      
 	      z_i = pair_energy_i(r2,NULL,NULL);
 	      z_j = pair_energy_j(r2,NULL,NULL);
 
@@ -2691,9 +2672,15 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 
 	      double phi_i_2 = 0.5*z_i*z_j/r2;
 	      double phip_i_2= 0.5*(zp_i * z_j + z_i * zp_j)/r2 - phi_i_2/r2;
-	      phip_i_2 *= r2_ij_1/r2;
+	      phip_i_2 *= r2_ij_2/r2;
+
 
 	      /* Component 12 */
+	      double r3_ij_0 =  x_j[0] - x_i[0] -delta;
+	      double r3_ij_1 =  x_j[1] - x_i[1];
+	      double r3_ij_2 =  x_j[2] - x_i[2];
+	      double r3      = sqrt(r3_ij_0*r3_ij_0 + r3_ij_1*r3_ij_1 + r3_ij_2*r3_ij_2);
+
 	      z_i = pair_energy_i(r3,NULL,NULL);
 	      z_j = pair_energy_j(r3,NULL,NULL);
 
@@ -2704,8 +2691,13 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 	      double phip_i_3= 0.5*(zp_i * z_j + z_i * zp_j)/r3 - phi_i_3/r3;
 	      phip_i_3 *= r3_ij_0/r3; 
 
-	      
+
 	      /* Component 13 */
+	      double r4_ij_0 =  x_j[0] - x_i[0];
+	      double r4_ij_1 =  x_j[1] - x_i[1] - delta;
+	      double r4_ij_2 =  x_j[2] - x_i[2];
+	      double r4      = sqrt(r4_ij_0*r4_ij_0 + r4_ij_1*r4_ij_1 + r4_ij_2*r4_ij_2);
+	      
 	      z_i = pair_energy_i(r4,NULL,NULL);
 	      z_j = pair_energy_j(r4,NULL,NULL);
 
@@ -2718,6 +2710,11 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 
 
 	      /* Component 23 */
+	      double r5_ij_0 =  x_j[0] - x_i[0];
+	      double r5_ij_1 =  x_j[1] - x_i[1];
+	      double r5_ij_2 =  x_j[2] - x_i[2] - delta;
+	      double r5      = sqrt(r5_ij_0*r5_ij_0 + r5_ij_1*r5_ij_1 + r5_ij_2*r5_ij_2);
+
 	      z_i = pair_energy_i(r5,NULL,NULL);
 	      z_j = pair_energy_j(r5,NULL,NULL);
 
@@ -2727,6 +2724,7 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 	      double phi_i_5 = 0.5*z_i*z_j/r5;
 	      double phip_i_5= 0.5*(zp_i * z_j + z_i * zp_j)/r5 - phi_i_5/r5;
 	      phip_i_5 *= r5_ij_2/r5; 
+
 	      /* sum up */
 	      dF_i[0] += (phip_i_0 -phip_0)/delta;
 	      dF_i[1] += (phip_i_1 -phip_1)/delta;
@@ -2739,9 +2737,8 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 	      dF_j[1] += (phip_i_1 -phip_1)/delta;
 	      dF_j[2] += (phip_i_2 -phip_2)/delta;
 	      dF_j[3] += (phip_i_3 -phip_0)/delta;
-	      dF_j[3] += (phip_i_4 -phip_1)/delta;
-	      dF_j[3] += (phip_i_5 -phip_2)/delta;
-
+	      dF_j[4] += (phip_i_4 -phip_1)/delta;
+	      dF_j[5] += (phip_i_5 -phip_2)/delta;
 	    } 
 	}
     }
@@ -2753,29 +2750,18 @@ void EAMT::CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
   ofstreamT outD;
   outD.open(outfile);  
 
-  /* Diagonal */
-  /*for (int i = 0; i < fNeighbors.MajorDim(); i++)
-    {
-      fNeighbors.RowAlias(i, neighbors);
-      int   tag_i = neighbors[0];
-      double* df_i= fdFdx(tag_i);
-
-      outD << i << " " << df_i[0] << " " << d0[tag_i] << " " <<  df_i[0] - d0[tag_i]<< "\n";
-      outD << i << " " << df_i[1] << " " << d1[tag_i] << " " <<  df_i[1] - d1[tag_i]<< "\n";
-      outD << i << " " << df_i[2] << " " << d2[tag_i] << " " <<  df_i[2] - d2[tag_i]<< "\n\n";
-    }
-  */
-
-  /* Upper Diagonal */
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
     {
       fNeighbors.RowAlias(i, neighbors);
       int   tag_i = neighbors[0];
       double* df_i= fdFdx(tag_i);
-
-      outD << i << " " << df_i[3] << " " << d3[tag_i] << " " <<  df_i[3] - d3[tag_i]<< "\n";
-      outD << i << " " << df_i[4] << " " << d4[tag_i] << " " <<  df_i[4] - d4[tag_i]<< "\n";
-      outD << i << " " << df_i[5] << " " << d5[tag_i] << " " <<  df_i[5] - d5[tag_i]<< "\n\n";
+      
+      outD << i << "/  00:  " << df_i[0] << " " << d0[tag_i] << " " <<  df_i[0] - d0[tag_i]<< "\n";
+      outD << i << "/  11:  " << df_i[1] << " " << d1[tag_i] << " " <<  df_i[1] - d1[tag_i]<< "\n";
+      outD << i << "/  22:  " << df_i[2] << " " << d2[tag_i] << " " <<  df_i[2] - d2[tag_i]<< "\n";
+      outD << i << "/  01:  " << df_i[3] << " " << d3[tag_i] << " " <<  df_i[3] - d3[tag_i]<< "\n";
+      outD << i << "/  02:  " << df_i[4] << " " << d4[tag_i] << " " <<  df_i[4] - d4[tag_i]<< "\n";
+      outD << i << "/  12:  " << df_i[5] << " " << d5[tag_i] << " " <<  df_i[5] - d5[tag_i]<< "\n\n";
     }
   
   outD.close();
@@ -2880,5 +2866,24 @@ void EAMT::GetNumRho3D(const dArray2DT& coords,dArray2DT& frho_i)
   }
       
 
+void EAMT::GetNumEmbForce(const dArray2DT& coords,const dArray2DT rho,
+	  	       dArray2DT& Emb)
+{
+  EAMPropertyT::EmbedForceFunction emb_force = NULL;
+  iArrayT neighbors;
+  Emb = 0.0;
+  
+  for (int i = 0; i < fNeighbors.MajorDim(); i++)
+    {
+      fNeighbors.RowAlias(i, neighbors);
+      
+      int   tag_i = neighbors[0]; 
+      int  type_i = fType[tag_i];
 
+      emb_force  = fEAMProperties[type_i]->getEmbedForce();
+      
+      for (int j = 0; j < 2*NumDOF(); j++)
+	Emb(tag_i,j) = emb_force(rho(tag_i,j),NULL,NULL);
+    }  
+}
 

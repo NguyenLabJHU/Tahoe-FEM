@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.10 2003-05-23 17:28:43 saubry Exp $ */
+/* $Id: EAMT.h,v 1.11 2003-05-24 00:15:51 saubry Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -87,7 +87,6 @@ private:
 			  dArray2DT& Emb);
 	void GetEmbForce(const dArray2DT& coords,const dArray2DT rho,
 			 dArray2DT& Emb);
-
 	void GetEmbStiff(const dArray2DT& coords,const dArray2DT rho,
 			       dArray2DT& Emb);
 
@@ -95,8 +94,11 @@ private:
 	void CheckDiagonalStiffnesses();
 	void CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
 			      dArrayT& d3,dArrayT& d4,dArrayT& d5);
-
+	
+	/* check derivatives functions */
 	void GetNumRho3D(const dArray2DT& coords,dArray2DT& frho_i);
+	void GetNumEmbForce(const dArray2DT& coords,const dArray2DT rho,
+			 dArray2DT& Emb);
 
 	/** particle pair-properties list */
 	ArrayT<EAMPropertyT*> fEAMProperties;
