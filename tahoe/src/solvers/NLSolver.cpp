@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.35 2004-12-20 02:21:15 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.36 2005-01-19 08:53:34 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -151,10 +151,16 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 			fFEManager.FormLHS(Group(), fLHS->MatrixType());
 			fLHS_lock = kLocked;
 		
-			/* compare with approxumate LHS */
+			/* compare with approximate LHS */
 			if (fLHS->CheckCode() == GlobalMatrixT::kCheckLHS) {
 				const GlobalMatrixT* approx_LHS = ApproximateLHS(*fLHS);
 				CompareLHS(*fLHS, *approx_LHS);
+
+//TEMP - use the approximate matrix
+GlobalMatrixT* tmp = fLHS;
+fLHS = (GlobalMatrixT*) approx_LHS;
+approx_LHS = tmp;
+
 				delete approx_LHS;
 			}
 		}
