@@ -27,7 +27,7 @@
 
 void MakeCrystalT::Run() {
 
-  // Get name of input "data" file
+  // Get name of input data file
   StringT inputfile;
   cout << "Name of input file?" << "\n";
   cin >> inputfile;
@@ -35,13 +35,17 @@ void MakeCrystalT::Run() {
   ifstreamT in('%');
   in.open(inputfile);
 
-  int nsd; 
+  // Start to read data
+  int nsd=0; 
   in >> nsd;
   cout << "\n\nDimension: " << nsd << "\n";
-
+ 
   int whichunit;
   iArrayT cel(nsd);
   dArray2DT len(nsd,2);
+ 
+  cel = 0;
+  len = 0.0;
 
   in >> whichunit;
   if(whichunit==1)
@@ -76,14 +80,11 @@ void MakeCrystalT::Run() {
 	  cout << "Number of cells read: " << cel[0] << "  " << cel[1] << "  " <<  cel[2] <<  "\n";
 	}
     }
+
   StringT latticetype;
   in >> latticetype;
   cout << "Lattice Type: " << latticetype <<  "\n";
-  
-  int b;
-  double alat;
-  in >> alat;
-
+  int b=0;
   if (latticetype=="FCC") 
     {
       if(nsd == 2) b=2;
@@ -105,78 +106,62 @@ void MakeCrystalT::Run() {
       throw eBadInputValue;
     }
 	
+  double alat=0.0;
+  in >> alat;
   cout << "Lattice parameter: " << alat << "\n";
 
   StringT shape;
   in >> shape;
   cout << "Shape of the domain:" << shape <<  "\n";
 
-  StringT input = "example";
-
-  //output format
+  //read output format
   int intformat = 0;
   in >> intformat;
   IOBaseT::FileTypeT kformat = IOBaseT::int_to_FileTypeT(intformat);
   cout << "Output Format: " << kformat << "\n";
 
   iArrayT per(nsd);
-  if (kformat == 12)
+  if(nsd == 2)
     {
-      if(nsd == 2)
-	{
-	  in >> per[0] >> per[1] ;
-	  cout << "Periodic conditions:\n";
-	  cout << per[0] << "  " << per[1] << "\n";
-	}
-      else if(nsd == 3)
-	{
-	  in >> per[0] >> per[1] >> per[2];
-	  cout << "Periodic conditions:\n";
-	  cout << per[0] << "  " 
-	       << per[1] << "  " 
-	       << per[2] << "\n";
-	}
+      in >> per[0] >> per[1] ;
+      cout << "Periodic conditions:\n";
+      cout << per[0] << "  " << per[1] << "\n";
     }
-
+  else if(nsd == 3)
+    {
+      in >> per[0] >> per[1] >> per[2];
+      cout << "Periodic conditions:\n";
+      cout << per[0] << "  "  << per[1] << "  " << per[2] << "\n";
+    }
 
   //rotation
   double angle = 0.0;
   dArray2DT mat_rot(nsd,nsd);
   mat_rot = 0.0;
 
-  StringT misc;
-  in >> misc;
- 
-  while(misc!="#")
-  { 
-     if(misc=="ROT") 
-     {
-        if(nsd==2) 
-        {
-           in >> angle;
-           cout << "Rotation Angle: " << angle << "\n";
-        }
-        else if (nsd==3)
-        {
-	  in >> mat_rot(0,0) >> mat_rot(1,0) >> mat_rot(2,0);
-	  in >> mat_rot(0,1) >> mat_rot(1,1) >> mat_rot(2,1);
-	  in >> mat_rot(0,2) >> mat_rot(1,2) >> mat_rot(2,2); 
+  if(nsd==2) 
+    {
+      in >> angle;
+      cout << "Rotation Angle: " << angle << "\n";
+    }
+  else if (nsd==3)
+    {
+      in >> mat_rot(0,0) >> mat_rot(1,0) >> mat_rot(2,0);
+      in >> mat_rot(0,1) >> mat_rot(1,1) >> mat_rot(2,1);
+      in >> mat_rot(0,2) >> mat_rot(1,2) >> mat_rot(2,2); 
+      
+      cout << "Rotation Matrix:\n";
+      cout << mat_rot(0,0) << "  " <<  mat_rot(1,0) << "  " << mat_rot(2,0) << "\n";
+      cout << mat_rot(0,1) << "  " <<  mat_rot(1,1) << "  " << mat_rot(2,1) << "\n";
+      cout << mat_rot(0,2) << "  " <<  mat_rot(1,2) << "  " << mat_rot(2,2) << "\n";
+    }
 
-	  cout << "Rotation Matrix:\n";
-	  cout << mat_rot(0,0) << "  " <<  mat_rot(1,0) << "  " << mat_rot(2,0) << "\n";
-	  cout << mat_rot(0,1) << "  " <<  mat_rot(1,1) << "  " << mat_rot(2,1) << "\n";
-	  cout << mat_rot(0,2) << "  " <<  mat_rot(1,2) << "  " << mat_rot(2,2) << "\n";
-        }
-     }
-     else if(misc=="OUTPUT") 
-     {
-        in >> input;
-     }
-
-     in >> misc;
-  }
-
+  StringT input = "example";
+  in >> input;
+  cout << "Output file root: " << input << "\n";
+     
   in.close();
+  // End of read data file
 
   //Define Mesh
 
@@ -238,8 +223,4 @@ void MakeCrystalT::Run() {
 
   cout << "\nWriting geometry in specified format file...\n";
   mesh_atom.BuildIOFile(program,version,title,input,kformat,per);
-  
-
 }
-
-

@@ -1,4 +1,4 @@
-/* $Id: CrystalLatticeT.cpp,v 1.7 2002-09-09 23:10:29 saubry Exp $ */
+/* $Id: CrystalLatticeT.cpp,v 1.8 2002-09-18 01:20:42 saubry Exp $ */
 #include "CrystalLatticeT.h"
 
 #include <iostream>
@@ -31,12 +31,18 @@ CrystalLatticeT::CrystalLatticeT(int nlsd, int nuca,
 	    matrix_rotation.Dimension(nLSD,nLSD);
 	    
 	    norm_vec.Dimension(nLSD);
+	    norm_vec = 0.0;
 
 	    for (int j=0; j<nLSD; j++)
 	      {
-		norm_vec[j] = 0.0;
 		for (int i=0; i<nLSD; i++)
 		  norm_vec[j] += mat_rot(i,j)*mat_rot(i,j);
+
+		if (norm_vec[j] <= 1.e-6) 
+		  {
+		    cout << "Matrix of rotation wrong...\n";
+		    throw eBadInputValue;
+		  }
 		norm_vec[j] = sqrt(norm_vec[j]);
 	      }
 
@@ -121,6 +127,9 @@ dArray2DT  CrystalLatticeT::AxisRotation(dArray2DT A)
 
   dArray2DT B(nLSD,nLSD);
   dMatrixT Q(nLSD,nLSD);
+
+  B = 0.0;
+  Q = 0.0;
 
   if(nLSD==2)
     {
