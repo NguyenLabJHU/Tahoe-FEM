@@ -318,7 +318,7 @@ const dMatrixT& FossumSSIsoT::con_perfplas_ijkl(void)
 * the normals and slipdirs. Returns false if the determinant is positive.
 */
 
-#if 0
+//#if 0
 bool FossumSSIsoT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
 {
 	/* stress tensor */
@@ -335,9 +335,10 @@ bool FossumSSIsoT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArray
 	DetCheckT checker(stress, modulus, modulus_e);
 	normals.Dimension(NumSD());
 	slipdirs.Dimension(NumSD());
-	return checker.IsLocalized_SS(normals,slipdirs);
+	double dummyDetA = 0.0;
+	return checker.IsLocalized_SS(normals,slipdirs,dummyDetA);
 }
-#endif
+//#endif
 
 
 /* returns the strain energy density for the specified strain */
