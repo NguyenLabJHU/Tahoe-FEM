@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.cpp,v 1.18 2004-03-28 09:47:16 paklein Exp $ */
+/* $Id: ParameterListT.cpp,v 1.19 2004-04-04 03:02:45 paklein Exp $ */
 #include "ParameterListT.h"
 #include "ParameterInterfaceT.h"
 #include <string.h>
@@ -174,7 +174,10 @@ const ParameterListT* ParameterListT::ResolveListChoice(const ParameterInterface
 {
 	const char caller[] = "ParameterListT::ResolveListChoice";
 
-	/* check choice as parameter list */
+	/* check choice with an interface - sub's with interfaces still may or may not
+	 * have been declared "inline". We could check this with a call to DefineSubs.
+	 * Instead, we look for a named (nonlined) choice first and fall through to the
+	 * search for an inlined choice if not found */
 	ParameterInterfaceT* choice = source.NewSub(choice_name);
 	if (choice) {
 	
@@ -193,7 +196,7 @@ const ParameterListT* ParameterListT::ResolveListChoice(const ParameterInterface
 			/* choice is wrapped with choice name */
 			if (name == choice_name)
 				if (count++ == instance) {
-				
+
 					/* lists within */
 					const ArrayT<ParameterListT>& lists = fParameterLists[i].Lists();
 					if (lists.Length() != 1)
@@ -203,33 +206,31 @@ const ParameterListT* ParameterListT::ResolveListChoice(const ParameterInterface
 					/* return */
 					return lists.Pointer();
 				}
-		}	
+		}
 	}
-	else /* check choice as inline sub */ {
+			
+	/* check choice as inline sub */
+	ParameterListT::ListOrderT order;
+	SubListT sub_sub_list;
+	source.DefineInlineSub(choice_name, order, sub_sub_list);
+	if (sub_sub_list.Length() > 0) {
 	
-		/* check choice as inline sub */
-		ParameterListT::ListOrderT order;
-		SubListT sub_sub_list;
-		source.DefineInlineSub(choice_name, order, sub_sub_list);
-		if (sub_sub_list.Length() > 0) {
+		/* must be a choice */
+		if (order != ParameterListT::Choice)
+			ExceptionT::GeneralFail(caller, "\"%s\" in \"%s\" is not a choice",
+				choice_name, source.Name().Pointer());
 	
-			/* must be a choice */
-			if (order != ParameterListT::Choice)
-				ExceptionT::GeneralFail(caller, "\"%s\" in \"%s\" is not a choice",
-					choice_name, source.Name().Pointer());
-	
-			/* search */
-			int count = 0;
-			for (int i = 0; i < fParameterLists.Length(); i++)
-			{
-				const StringT& name = fParameterLists[i].Name();
+		/* search */
+		int count = 0;
+		for (int i = 0; i < fParameterLists.Length(); i++)
+		{
+			const StringT& name = fParameterLists[i].Name();
 		
-				/* run through choices */
-				for (int j = 0; j < sub_sub_list.Length(); j++)
-					if (name == sub_sub_list[j].Name())
-						if (count++ == instance)
-							return fParameterLists.Pointer(i);
-			}
+			/* run through choices */
+			for (int j = 0; j < sub_sub_list.Length(); j++)
+				if (name == sub_sub_list[j].Name())
+					if (count++ == instance)
+						return fParameterLists.Pointer(i);
 		}
 	}
 
