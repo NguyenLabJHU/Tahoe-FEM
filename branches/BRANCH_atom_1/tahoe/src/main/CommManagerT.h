@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.1.2.4 2002-12-18 09:52:56 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.1.2.5 2002-12-19 03:12:36 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -14,6 +14,7 @@ class PartitionT;
 class CommunicatorT;
 class ModelManagerT;
 class iArrayT;
+class MessageT;
 
 /** manage processor to processor transactions. Manages partition information.
  * Creates ghosts nodes. Manages communication lists. Manipulates the
@@ -24,6 +25,9 @@ public:
 
 	/** constructor */
 	CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager);
+
+	/** destructor */
+	~CommManagerT(void);
 
 	/** set or clear partition information */
 	void SetPartition(PartitionT* partition);
@@ -80,6 +84,26 @@ public:
 	 * within the nodes appearing on this processor. Returns NULL if there is no 
 	 * list, indicating \e all nodes are owned by this partition */
 	const ArrayT<int>* BorderNodes(void) const;
+	/*@}*/
+
+
+	/** \name configuring persistent communications */
+	/*@{*/
+	/** set up a persistent all gather communication. Distribute the values per
+	 * node for all nodes owned by this process and collect values from nodes
+	 * on other processes.
+	 * \param num_vals number of values per node 
+	 * \return ID for this communication */
+	int Init_AllGather(int num_vals);
+
+	/** clear the persistent communication
+	 * \param ID ID for the communication to be cleared obtained during
+	 *        CommManagerT::Init_AllGather. */
+	void Clear_AllGather(int id);
+
+	/** perform the all gather. The values from this partition must already by
+	 * in the appropriate location in the destination array */
+	void AllGather(int id, dArray2DT& values);
 	/*@}*/
 
 private:
@@ -142,6 +166,11 @@ private:
 
 	/** list of nodes adjacent to any external nodes */
 	AutoArrayT<int> fBorderNodes;
+	/*@}*/
+	
+	/** \name persistent communications */
+	/*@{*/
+	AutoArrayT<MessageT*> fCommunications;
 	/*@}*/
 };
 
