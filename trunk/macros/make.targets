@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.29 2003-10-16 18:26:38 cjkimme Exp $
+# $Id: make.targets,v 1.30 2003-11-04 01:54:39 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -126,7 +126,7 @@ build: objects $(BUILD)
 
 $(TARGET): $(OPT_LIB) $(LIBRARY)
 	@ $(PRINTF) " linking...\n"	
-	@ $(LINK) $(MAIN) -o $(TARGET) -L$(HOME_DIR)/lib -l$(TARGET) $(OPT_LFLAGS) $(MY_LFLAGS) $(LFLAGS)
+	$(LINK) $(MAIN) -o $(TARGET) -L$(HOME_DIR)/lib -l$(TARGET) $(OPT_LFLAGS) $(MY_LFLAGS) $(LFLAGS)
 	@ $(PRINTF) "    ...wrote $(TARGET)\n"
 
 # include object list and create archive
