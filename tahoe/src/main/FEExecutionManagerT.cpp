@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.1.1.1 2001-01-29 08:20:21 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.2 2001-02-22 17:11:13 paklein Exp $ */
 /* created: paklein (09/21/1997)                                          */
 
 #include "FEExecutionManagerT.h"
@@ -240,8 +240,14 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
 		cout << "\n Enter number of partitions > 1 (0 to quit): ";
 #if (defined __SGI__ && defined __MPI__)
 		cout << '\n';
-#endif					
+#endif
+		/* read number of partitions */					
 		cin >> size;
+		
+		/* clear to end of line */
+		char line[255];
+		cin.getline(line, 254);
+		
 		if (size == 0) break;
 	}
 	if (size < 2) return;
