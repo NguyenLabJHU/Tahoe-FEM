@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.cpp,v 1.15 2003-04-18 18:24:06 manzari Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.16 2003-04-18 23:04:48 cjkimme Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -808,7 +808,12 @@ bool MR_RP2DT::NeedsNodalInfo(void)
 
 int MR_RP2DT::NodalQuantityNeeded(void) 
 { 
-        return 2; 
+	return 2; 
+}
+
+bool MR_RP2DT::NodesMayRetie(void)
+{	
+	return false;
 }
 
 double MR_RP2DT::signof(double& r)
