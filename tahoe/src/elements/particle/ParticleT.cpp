@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.12 2003-01-29 07:35:12 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.12.4.1 2003-03-14 01:13:19 cjkimme Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -564,6 +564,9 @@ istream& operator>>(istream& in, ParticleT::PropertyT& property)
 			break;
 		case ParticleT::kParadynPair:
 			property = ParticleT::kParadynPair;
+			break;
+		case ParticleT::kDampedPair:
+			property = ParticleT::kDampedPair;
 			break;
 		default:
 			ExceptionT::BadInputValue("operator>>ParticleT::PropertyT", 

@@ -1,10 +1,13 @@
-/* $Id: ParticlePairT.cpp,v 1.14 2003-01-29 07:35:12 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.14.4.1 2003-03-14 01:13:19 cjkimme Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
 #include "eIntegratorT.h"
 #include "InverseMapT.h"
 #include "CommManagerT.h"
+
+/* experimental stuff */
+#include "RandomNumberT.h"
 
 /* pair property types */
 #include "LennardJonesPairT.h"
@@ -21,7 +24,9 @@ ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field
 	ParticleT(support, field),
 	fNeighbors(kMemoryHeadRoom),
 	fEqnos(kMemoryHeadRoom),
-	fForce_list_man(0, fForce_list)
+	fForce_list_man(0, fForce_list),
+	QisDamped(false),
+	fRand(NULL)
 {
 
 }
@@ -400,6 +405,22 @@ void ParticlePairT::RHSDriver2D(void)
 			f_j[1] +=-r_ij_1;
 		}
 	}
+	
+	/* Somehow add damping here. Loop over i and j or
+	 * just over fForce?
+	 */
+	if (QisDamped)
+	{
+		const dArray2DT* velocities = NULL;
+		if (Field().Order() > 0) velocities = &(Field()[1]);
+		for (int i = 0; i < velocities->MajorDim(); i++)
+		{
+			fForce[i] -= fDamping*(*velocities)[i];
+			fForce(i,0) += .05*fRand->Rand();
+			fForce(i,1) += .05*fRand->Rand();
+		}	
+		
+	}
 
 	/* assemble */
 	support.AssembleRHS(group, fForce, Field().Equations());
@@ -555,6 +576,14 @@ void ParticlePairT::EchoProperties(ifstreamT& in, ofstreamT& out)
 	{
 		ParticleT::PropertyT property;
 		in >> property;
+		if (property == ParticleT::kDampedPair)
+		{
+			in >> fDamping;
+			in >> property;
+			QisDamped = true;
+			fRand = new RandomNumberT(RandomNumberT::kParadynGaussian);
+			fRand->sRand(1234567);
+		}	
 		switch (property)
 		{
 			case ParticleT::kHarmonicPair:
@@ -585,7 +614,7 @@ void ParticlePairT::EchoProperties(ifstreamT& in, ofstreamT& out)
 				break;
 			}
 			default:
-				ExceptionT::BadInputValue("ParticlePairT::ReadProperties", 
+				ExceptionT::BadInputValue("ParticlePairT::EchoProperties", 
 					"unrecognized property type: %d", property);
 		}
 	}
