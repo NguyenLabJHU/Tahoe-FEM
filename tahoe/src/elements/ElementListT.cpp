@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.14 2001-09-24 20:37:23 rjones Exp $ */
+/* $Id: ElementListT.cpp,v 1.15 2001-12-10 23:59:07 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
@@ -50,9 +50,6 @@
 
 /* class to read external field from file */
 #include "UpLagr_ExternalFieldT.h"
-
-/* rrsettg element */
-#include "NonsingularContinuumT.h"
 
 /* constructors */
 ElementListT::ElementListT(FEManagerT& fe_manager):
@@ -236,9 +233,11 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 				fArray[group] = new UpLagr_ExternalFieldT(fFEManager);
 				break;
 
+#if 0
 			case ElementT::kNonsingularContinuum:
 				fArray[group] = new NonsingularContinuumT(fFEManager);
 				break;
+#endif
 
 			case ElementT::kACME_Contact:
 #ifdef __ACME__
