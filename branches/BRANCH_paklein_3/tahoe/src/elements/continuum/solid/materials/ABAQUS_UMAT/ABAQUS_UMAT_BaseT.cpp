@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.13.2.5 2003-11-25 05:01:14 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.13.2.6 2003-12-03 01:44:07 paklein Exp $ */
 /* created: paklein (05/14/2000) */
 #include "ABAQUS_UMAT_BaseT.h"
 
@@ -51,7 +51,10 @@ ABAQUS_UMAT_BaseT::ABAQUS_UMAT_BaseT(ifstreamT& in, const FSMatSupportT& support
 	if (!fDecomp) ExceptionT::OutOfMemory(caller);
 
 #if DEBUG
-flog.open("UMAT.log");
+StringT UMAT_file;
+UMAT_file.Root(in.filename());
+UMAT_file.Append(".UMAT.log");
+flog.open(UMAT_file);
 flog.precision(DBL_DIG);
 flog.setf(ios::showpoint);
 flog.setf(ios::right, ios::adjustfield);
