@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.18 2003-04-03 01:09:07 saubry Exp $ */
+/* $Id: ElementT.cpp,v 1.18.6.1 2003-05-22 20:32:51 paklein Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -111,6 +111,9 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			break;
 		case ElementT::kBridgingScale:
 			type = ElementT::kBridgingScale;
+			break;	
+		case ElementT::kMeshfreeBridging:
+			type = ElementT::kMeshfreeBridging;
 			break;	
 		case ElementT::kSimoQ1P0:
 			type = ElementT::kSimoQ1P0;
