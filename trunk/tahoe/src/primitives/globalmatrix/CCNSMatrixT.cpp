@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.6 2002-03-22 01:33:38 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.7 2002-03-28 16:42:44 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 
 #include "CCNSMatrixT.h"
@@ -25,6 +25,20 @@ CCNSMatrixT::CCNSMatrixT(ostream& out, int check_code):
 	fu(NULL)
 {
 
+}
+
+/* copy constructor */
+CCNSMatrixT::CCNSMatrixT(const CCNSMatrixT& source):
+	GlobalMatrixT(source),
+	famax(NULL),
+	fKU(NULL),
+	fKL(NULL),
+	fKD(NULL),
+	fNumberOfTerms(0),
+	fMatrix(NULL),
+	fu(NULL)
+{
+	CCNSMatrixT::operator=(source);
 }
 
 CCNSMatrixT::~CCNSMatrixT(void)
@@ -291,6 +305,38 @@ void CCNSMatrixT::FindMinMaxPivot(double& min, double& max, double& abs_min,
 		}
 	}
 }
+
+/* assignment operator */
+GlobalMatrixT& CCNSMatrixT::operator=(const CCNSMatrixT& rhs)
+{
+#pragma unused(rhs)
+	cout << "\n CCNSMatrixT::operator= : not implemented" << endl;
+	throw eGeneralFail;
+}
+
+/* assignment operator */
+GlobalMatrixT& CCNSMatrixT::operator=(const GlobalMatrixT& rhs)
+{
+#ifdef __NO_RTTI__
+	cout << "\n CCNSMatrixT::operator= : requires RTTI" << endl;
+	throw eGeneralFail;
+#endif
+
+	const CCNSMatrixT* ccns = dynamic_cast<const CCNSMatrixT*>(&rhs);
+	if (!ccns) {
+		cout << "\n CCNSMatrixT::operator= : cast failed" << endl;
+		throw eGeneralFail;
+	}
+	return operator=(*ccns);
+}
+
+/* return a clone of self. Caller is responsible for disposing of the matrix */
+GlobalMatrixT* CCNSMatrixT::Clone(void) const
+{
+	CCNSMatrixT* new_mat = new CCNSMatrixT(*this);
+	return new_mat;
+}
+
 /**************************************************************************
 * Protected
 **************************************************************************/

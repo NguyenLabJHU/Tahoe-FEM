@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.h,v 1.5 2002-03-22 01:33:40 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.h,v 1.6 2002-03-28 16:42:46 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #ifndef _SPOOLES_MATRIX_T_H_
@@ -28,6 +28,9 @@ public:
 	/* constuctor */
 	SPOOLESMatrixT(ostream& out, int check_code, bool symmetric,
 		bool pivoting);
+
+	/* copy constructor */
+	SPOOLESMatrixT(const SPOOLESMatrixT& source);
 	
 	/* destructor */
 	virtual ~SPOOLESMatrixT(void);
@@ -59,6 +62,15 @@ public:
 	/* number scope and reordering */
 	virtual EquationNumberScopeT EquationNumberScope(void) const;
 	virtual bool RenumberEquations(void) const;
+	
+	/** assignment operator */
+	virtual GlobalMatrixT& operator=(const SPOOLESMatrixT& rhs);
+
+	/** assignment operator */
+	virtual GlobalMatrixT& operator=(const GlobalMatrixT& rhs);
+	
+	/** return a clone of self. Caller is responsible for disposing of the matrix */
+	virtual GlobalMatrixT* Clone(void) const;
 
 protected:
 
@@ -102,12 +114,6 @@ private:
 	int AZ_find_index(int key, int list[], int length);	
 	void AZ_init_quick_find(int list[], int length, int *shift, int *bins);
 	void AZ_sort(int list[], int N, int list2[], double list3[]);
-
-	/** no copy constructor */
-	SPOOLESMatrixT(const SPOOLESMatrixT&);
-	
-	/** no assignment operator */
-	const SPOOLESMatrixT& operator=(const SPOOLESMatrixT&);
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.4 2002-03-22 01:33:39 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.5 2002-03-28 16:42:45 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 
 #include "FullMatrixT.h"
@@ -15,6 +15,15 @@ FullMatrixT::FullMatrixT(ostream& out,int check_code):
 {
 
 }
+
+/* copy constructor */
+FullMatrixT::FullMatrixT(const FullMatrixT& source):
+	GlobalMatrixT(source),
+	fMatrix(source.fMatrix)
+{
+
+}
+
 
 /* set the internal matrix structure.
 * NOTE: do not call Initialize() equation topology has been set
@@ -236,6 +245,63 @@ GlobalMatrixT::EquationNumberScopeT FullMatrixT::EquationNumberScope(void) const
 
 bool FullMatrixT::RenumberEquations(void) const { return false; }
 
+/* assignment operator */
+GlobalMatrixT& FullMatrixT::operator=(const FullMatrixT& rhs)
+{
+	/* inherited */
+	GlobalMatrixT::operator=(rhs);
+
+	fMatrix = rhs.fMatrix;
+	return *this;
+}
+
+/* assignment operator */
+GlobalMatrixT& FullMatrixT::operator=(const GlobalMatrixT& rhs)
+{
+#ifdef __NO_RTTI__
+	cout << "\n FullMatrixT::operator= : requires RTTI" << endl;
+	throw eGeneralFail;
+#endif
+
+	const FullMatrixT* full = dynamic_cast<const FullMatrixT*>(&rhs);
+	if (!full) {
+		cout << "\n FullMatrixT::operator= : cast failed" << endl;
+		throw eGeneralFail;
+	}
+	return operator=(*full);
+}
+	
+/* return a clone of self. Caller is responsible for disposing of the matrix */
+GlobalMatrixT* FullMatrixT::Clone(void) const
+{
+	FullMatrixT* new_mat = new FullMatrixT(*this);
+	return new_mat;
+}
+
+void FullMatrixT::Multx(const dArrayT& x, dArrayT& b) const
+{
+	/* already factorized */
+	if (fIsFactorized) {
+		cout << "\n FullMatrixT::Multx: cannot calculate product with factorized matrix" << endl;
+		throw eGeneralFail;
+	}
+	
+	/* calculate product */
+	fMatrix.Multx(x, b);
+}
+
+void FullMatrixT::MultTx(const dArrayT& x, dArrayT& b) const
+{
+	/* already factorized */
+	if (fIsFactorized) {
+		cout << "\n FullMatrixT::MultTx: cannot calculate product with factorized matrix" << endl;
+		throw eGeneralFail;
+	}
+	
+	/* calculate product */
+	fMatrix.MultTx(x, b);
+}
+
 /**************************************************************************
 * Protected
 **************************************************************************/
@@ -254,6 +320,7 @@ void FullMatrixT::BackSubstitute(dArrayT& result)
 	if (fIsFactorized) throw eGeneralFail;
 
 	fMatrix.LinearSolve(result);
+	fIsFactorized = true;
 }
 
 /* rank check functions */

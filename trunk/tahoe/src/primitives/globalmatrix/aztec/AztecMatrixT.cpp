@@ -1,6 +1,5 @@
-/* $Id: AztecMatrixT.cpp,v 1.4 2002-03-22 19:04:18 paklein Exp $ */
-/* created: paklein (08/10/1998)                                          */
-/* interface using example Aztec example functions                        */
+/* $Id: AztecMatrixT.cpp,v 1.5 2002-03-28 16:42:47 paklein Exp $ */
+/* created: paklein (08/10/1998) */
 
 #include "AztecMatrixT.h"
 
@@ -28,6 +27,16 @@ AztecMatrixT::AztecMatrixT(ifstreamT& in, ostream& out, int check_code):
 	fAztec = new Aztec_fe(fInput, out);
 	if (!fAztec) throw eOutOfMemory;
 }	
+
+/* copy constructor */
+AztecMatrixT::AztecMatrixT(const AztecMatrixT& source):
+	GlobalMatrixT(source),
+	fInput(source.fInput)
+{
+#pragma unused(source)
+	cout << "\n AztecMatrixT::AztecMatrixT: not implemented" << endl;
+	throw eGeneralFail;
+}
 
 /* destuctor */
 AztecMatrixT::~AztecMatrixT(void)
@@ -277,6 +286,37 @@ GlobalMatrixT::EquationNumberScopeT AztecMatrixT::EquationNumberScope(void) cons
 }
 
 bool AztecMatrixT::RenumberEquations(void) const { return false; }
+
+/* assignment operator */
+GlobalMatrixT& AztecMatrixT::operator=(const AztecMatrixT& rhs)
+{
+	cout <<  "\n AztecMatrixT::operator= : not implemented" << endl;
+	throw eGeneralFail;
+	return *this;
+}
+
+/* assignment operator */
+GlobalMatrixT& AztecMatrixT::operator=(const GlobalMatrixT& rhs)
+{
+#ifdef __NO_RTTI__
+	cout << "\n AztecMatrixT::operator= : requires RTTI" << endl;
+	throw eGeneralFail;
+#endif
+
+	const AztecMatrixT* az = dynamic_cast<const AztecMatrixT*>(&rhs);
+	if (!az) {
+		cout << "\n AztecMatrixT::operator= : cast failed" << endl;
+		throw eGeneralFail;
+	}
+	return operator=(*az);
+}
+	
+/* return a clone of self. Caller is responsible for disposing of the matrix */
+GlobalMatrixT* AztecMatrixT::Clone(void) const
+{
+	AztecMatrixT* az = new AztecMatrixT(*this);
+	return az;
+}
 
 /*************************************************************************
 * Protected

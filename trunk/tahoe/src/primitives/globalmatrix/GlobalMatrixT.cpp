@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.8 2002-03-25 16:43:50 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.9 2002-03-28 16:42:45 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #include "GlobalMatrixT.h"
@@ -29,7 +29,7 @@ GlobalMatrixT::GlobalMatrixT(const GlobalMatrixT& source):
 	fStartEQ(0),
 	fIsFactorized(0)
 {
-	operator=(source);
+	GlobalMatrixT::operator=(source);
 }
 
 GlobalMatrixT::~GlobalMatrixT(void) { }
@@ -159,6 +159,20 @@ GlobalMatrixT& GlobalMatrixT::operator=(const GlobalMatrixT& RHS)
 	fStartEQ      = RHS.fStartEQ;
 	fIsFactorized = RHS.fIsFactorized;
 	return *this;
+}
+
+ //TEMP - should be pure virtual w/o implementation
+void GlobalMatrixT::Multx(const dArrayT& x, dArrayT& b) const
+{
+	cout << "\n GlobalMatrixT::Multx: not implemented" << endl;
+	throw eGeneralFail;
+}
+
+ //TEMP - should be pure virtual w/o implementation
+void GlobalMatrixT::MultTx(const dArrayT& x, dArrayT& b) const
+{
+	cout << "\n GlobalMatrixT::MultTx: not implemented" << endl;
+	throw eGeneralFail;
 }
 
 /**************************************************************************
