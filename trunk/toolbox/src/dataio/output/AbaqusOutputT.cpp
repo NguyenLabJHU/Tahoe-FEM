@@ -1,14 +1,17 @@
-/* $Id: AbaqusOutputT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: AbaqusOutputT.cpp,v 1.2 2001-06-29 16:24:57 paklein Exp $ */
 /* created: sawimme (05/31/2000)                                          */
 
 #include "AbaqusOutputT.h"
+
+#include <fstream.h>
+
 #include "AbaqusT.h"
 #include "OutputSetT.h"
 #include "ios_fwd_decl.h"
-#include <fstream.h>
 #include "iArray2DT.h"
 #include "dArray2DT.h"
 #include "ArrayT.h"
+#include "ofstreamT.h"
 
 AbaqusOutputT::AbaqusOutputT(ostream& out, const ArrayT<StringT>& out_strings, bool binary):
 OutputBaseT(out, out_strings),
@@ -23,7 +26,7 @@ fOldTime (0)
 void AbaqusOutputT::WriteGeometry(void)
 {
 AbaqusT aba (fout, fBinary);
-ofstream out;
+ofstreamT out;
 CreateResultsFile (0, aba, out);
 
 // write node sets
@@ -47,14 +50,14 @@ const dArray2DT& e_values)
 
 	// open file
 	AbaqusT aba (fout, fBinary);
-	ofstream out;
+	ofstreamT out;
 	if (fElementSets[ID]->PrintStep() == 0)
 	  CreateResultsFile (ID, aba, out);
 	else
 	  {
 	    StringT filename;
 	    FileName (ID, filename);
-	    out.open (filename, ios::app);
+	    out.open_append(filename);
 	    aba.ResetBufferSize (fBufferWritten);
 	  }
 
@@ -88,7 +91,7 @@ const dArray2DT& e_values)
 	  {
 	    ArrayT<AbaqusT::VariableKeyT> ekeys (e_labels.Length());
 	    SetRecordKey (e_labels, ekeys);
-	    //aba.WriteElementData (out, ekeys, e_values);
+	    aba.WriteElementData (out, ekeys, e_values);
 	  }
 
 	// write end increment
@@ -129,16 +132,18 @@ void AbaqusOutputT::FileName(int ID, StringT& filename) const
 	  filename.Append(".fin");
 }
 
-bool AbaqusOutputT::OpenFile (ofstream& out, const StringT& filename, AbaqusT& aba)
+bool AbaqusOutputT::OpenFile (ofstreamT& out, const StringT& filename, AbaqusT& aba)
 {
-if (out) out.close();
-aba.ResetBufferSize (fBufferWritten);
-out.open (filename);
-if (out) return true;
-else return false;
+	if (out.is_open()) out.close();
+	aba.ResetBufferSize (fBufferWritten);
+	out.open (filename);
+	if (out.is_open()) 
+		return true;
+	else 
+		return false;
 }
 
-void AbaqusOutputT::CreateResultsFile (int ID, AbaqusT& aba, ofstream& out)
+void AbaqusOutputT::CreateResultsFile (int ID, AbaqusT& aba, ofstreamT& out)
 {
 // file name
 StringT filename;
