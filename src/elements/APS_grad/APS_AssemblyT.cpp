@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.41 2003-10-28 01:52:12 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.42 2003-10-28 19:06:03 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -16,10 +16,6 @@
 #include "OutputSetT.h"
 
 using namespace Tahoe;
-
-/* parameters */
-//static int knum_d_state = 2; // double's needed per ip
-//static int knum_i_state = 0; // int's needed per ip
 
 //---------------------------------------------------------------------
 
@@ -117,6 +113,7 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	//enable the model manager
 	ModelManagerT& model = ElementSupport().Model();
 
+	n_en_surf=0;
 	ArrayT<GeometryT::CodeT> facet_geom;
 	iArrayT facet_nodes;
 	for (int i = 0; i < num_sidesets; i++)
@@ -219,10 +216,6 @@ void APS_AssemblyT::Initialize(void)
 	n_el = NumElements();
 	
 	n_sd_surf = n_sd;
-	//n_en_surf = 2;
-
-	//n_en_x_n_df = n_en*n_df;
-	//n_en_x_n_sd = n_en*n_sd;
 
 	/* set local arrays for coarse scale */
 	int dum=1;
@@ -255,6 +248,7 @@ void APS_AssemblyT::Initialize(void)
 	ElementSupport().RegisterCoordinates(fInitCoords_plast);	
 	fCurrCoords_plast.Dimension(n_en_plast, n_sd);
 	fShapes_plast = new ShapeFunctionT(fGeometryCode_plast, fNumIP_plast, fCurrCoords_plast);
+	//fShapes_plast = new ShapeFunctionT(fGeometryCode_plast, fNumIP_plast, fCurrCoords_displ);
 	fShapes_plast->Initialize();
 	
 	/* allocate state variable storage */
@@ -311,7 +305,6 @@ void APS_AssemblyT::Initialize(void)
 	fstate.FEA_Dimension 			( fNumIP_plast, knum_d_state );
 	fstate_n.FEA_Dimension 			( fNumIP_plast, knum_d_state );
 
-	//check these dims
 	fKdd.Dimension 			( n_en_displ, n_en_displ );
 	fKdeps.Dimension 		( n_en_displ, n_en_plast_x_n_sd );
 	fKepsd.Dimension 		( n_en_plast_x_n_sd, n_en_displ );
@@ -322,8 +315,11 @@ void APS_AssemblyT::Initialize(void)
 	fFeps_int.Dimension 	( n_en_plast_x_n_sd );
 	fFeps_ext.Dimension 	( n_en_plast_x_n_sd );
 	
-	fKdd_face.Dimension 		( n_en_surf, n_en_surf );
-	fFd_int_face.Dimension 		( n_en_surf );
+	/* only allow this dimensioning if there are sidesets */
+	if (n_en_surf > 0) {
+		fKdd_face.Dimension 		( n_en_surf, n_en_surf );
+		fFd_int_face.Dimension 		( n_en_surf );
+	}
 
 	fFEA_Shapes_displ.Construct	( fNumIP_displ,n_sd,n_en_displ );
 	fFEA_Shapes_plast.Construct	( fNumIP_plast,n_sd,n_en_plast );
@@ -474,7 +470,7 @@ void APS_AssemblyT::Select_Equations (const int &iBalScale,const int &iPlastScal
 		case PlastT::kAPS_BCJ :
 			fEquation_eps	= new APS_BCJT;
 			fPlastMaterial	= new APS_MatlT;		
-			fPlastMaterial->Assign (		APS_MatlT::kMu, 		fMaterial_Data[kMu] 		); 	
+			fPlastMaterial->Assign (	APS_MatlT::kMu, 		fMaterial_Data[kMu] 		); 	
 			fPlastMaterial->Assign ( 	APS_MatlT::km_rate, 	fMaterial_Data[km_rate] 	); 	
 			fPlastMaterial->Assign ( 	APS_MatlT::kgamma0_dot_1, fMaterial_Data[kgamma0_dot_1]); 
 			fPlastMaterial->Assign ( 	APS_MatlT::kgamma0_dot_2, fMaterial_Data[kgamma0_dot_2]); 	
@@ -482,8 +478,8 @@ void APS_AssemblyT::Select_Equations (const int &iBalScale,const int &iPlastScal
 			fPlastMaterial->Assign ( 	APS_MatlT::km1_y, 		fMaterial_Data[km1_y] 		); 	
 			fPlastMaterial->Assign ( 	APS_MatlT::km2_x, 		fMaterial_Data[km2_x] 		); 
 			fPlastMaterial->Assign ( 	APS_MatlT::km2_y, 		fMaterial_Data[km2_y] 		); 	
-			fPlastMaterial->Assign ( 	APS_MatlT::kl, 			fMaterial_Data[kl] 		); 	
-			fPlastMaterial->Assign ( 	APS_MatlT::kH, 			fMaterial_Data[kH] 		);
+			fPlastMaterial->Assign ( 	APS_MatlT::kl, 			fMaterial_Data[kl] 			); 	
+			fPlastMaterial->Assign ( 	APS_MatlT::kH, 			fMaterial_Data[kH] 			);
 			fPlastMaterial->Assign ( 	APS_MatlT::kkappa0_1, 	fMaterial_Data[kkappa0_1] 	); 	
 			fPlastMaterial->Assign ( 	APS_MatlT::kkappa0_2, 	fMaterial_Data[kkappa0_2] 	); 	
 			break;
@@ -1037,7 +1033,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 				/** Compute N-R matrix equations */
 				fEquation_eps->Construct ( fFEA_Shapes_plast, fPlastMaterial, np1, n, 
 											step_number, delta_t, FEA::kBackward_Euler );
-				fEquation_eps->Form_LHS_Keps_Kd ( fKepseps, 	fKepsd );
+				fEquation_eps->Form_LHS_Keps_Kd ( fKepseps, fKepsd );
 				fEquation_eps->Form_RHS_F_int ( fFeps_int );
 				
 				// update state variables
@@ -1130,17 +1126,17 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		fdstate_all.Alias(fNumIP_plast, knum_d_state, fdState(CurrElementNumber()));
 		
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradients 		( fShapes_displ, 	u, u_n, fgrad_u, fgrad_u_n );
-		Convert.Gradients 		( fShapes_plast, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
-		Convert.Interpolate 	( fShapes_plast, 	gamma_p, gamma_p_n, fgamma_p, fgamma_p_n );
-		Convert.Shapes			(	fShapes_displ, fFEA_Shapes_displ );
-		Convert.Shapes			(	fShapes_plast, fFEA_Shapes_plast );
-		Convert.Displacements	(	del_u, 	del_u_vec  );
-		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
-		Convert.Na				(	n_en_displ, fShapes_displ, 	fFEA_Shapes_displ );
-		Convert.Na				(	n_en_plast, fShapes_plast, 	fFEA_Shapes_plast );
-		Convert.Copy			(	fNumIP_plast, knum_d_state, fdstatenew_all, fstate );
-		Convert.Copy			(	fNumIP_plast, knum_d_state, fdstate_all, fstate_n );
+		Convert.Gradients 		( fShapes_displ, u, u_n, fgrad_u, fgrad_u_n );
+		Convert.Gradients 		( fShapes_plast, gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
+		Convert.Interpolate 	( fShapes_plast, gamma_p, gamma_p_n, fgamma_p, fgamma_p_n );
+		Convert.Shapes			( fShapes_displ, fFEA_Shapes_displ );
+		Convert.Shapes			( fShapes_plast, fFEA_Shapes_plast );
+		Convert.Displacements	( del_u, del_u_vec  );
+		Convert.Displacements	( del_gamma_p, del_gamma_p_vec  );
+		Convert.Na				( n_en_displ, fShapes_displ, fFEA_Shapes_displ );
+		Convert.Na				( n_en_plast, fShapes_plast, fFEA_Shapes_plast );
+		Convert.Copy			( fNumIP_plast, knum_d_state, fdstatenew_all, fstate );
+		Convert.Copy			( fNumIP_plast, knum_d_state, fdstate_all, fstate_n );
 		
 		APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); // Many variables at time-step n+1
 		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n,fgamma_p_n, fgamma_p_surf_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n	 
@@ -1162,8 +1158,8 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		else { //-- Still Iterating
 		
 			/* residual and tangent for coarse scale */
-			fEquation_d->Construct (	fNumIPSurf_displ, n_en_surf, fFEA_Shapes_displ, fBalLinMomMaterial, fPlastMaterial, np1, n, 
-										step_number, delta_t );
+			fEquation_d->Construct ( fNumIPSurf_displ, n_en_surf, fFEA_Shapes_displ, fBalLinMomMaterial, 
+									fPlastMaterial, np1, n, step_number, delta_t );
 			fEquation_d->Form_LHS_Keps_Kd ( fKdeps, fKdd );
 			fEquation_d->Form_RHS_F_int ( fFd_int, np1 );
 			fFd_int *= -1.0;
@@ -1225,7 +1221,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 			/* residual and tangent for fine scale */
 			fEquation_eps->Construct ( fFEA_Shapes_plast, fPlastMaterial, np1, n, step_number, 
 										delta_t, FEA::kBackward_Euler );
-			fEquation_eps->Form_LHS_Keps_Kd ( fKepseps, 	fKepsd );
+			fEquation_eps->Form_LHS_Keps_Kd ( fKepseps, fKepsd );
 			fEquation_eps->Form_RHS_F_int ( fFeps_int );
 			fFeps_int *= -1.0;
 			
