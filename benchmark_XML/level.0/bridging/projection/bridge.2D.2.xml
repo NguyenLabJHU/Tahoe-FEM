@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe_multi atom_input="atom.2D.1.xml" bridging_field="displacement"
+    coarse_to_fine="false" continuum_input="continuum.2D.2.xml"
+    fine_to_coarse="false" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <prescribe_overlap bond_density="1.0"/>
+</tahoe_multi>
