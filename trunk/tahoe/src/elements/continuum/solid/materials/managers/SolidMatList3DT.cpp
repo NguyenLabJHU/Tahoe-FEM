@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.29 2003-01-31 10:00:33 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.30 2003-03-08 01:53:28 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 #include "fstreamT.h"
@@ -80,6 +80,10 @@
 
 #ifdef PLASTICITY_DP_MATERIAL
 #include "DPSSKStV.h"
+#endif
+
+#ifdef SIERRA_MATERIAL
+#include "SIERRA_HypoElasticT.h"
 #endif
 
 #ifdef FOSSUM_MATERIAL_DEV
@@ -590,6 +594,19 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				ExceptionT::BadInputValue(caller, "SIMO_HOLZAPFEL_MATERIAL not enabled: %d", matcode);
 #endif
 			}
+			case kSIERRA_Material:
+			{
+#if SIERRA_MATERIAL
+				/* check */
+				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new SIERRA_HypoElasticT(in, *fFSMatSupport);
+				fHasHistory = true;
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "SIERRA_MATERIAL not enabled: %d", matcode);
+#endif
+			}
 			default:
 				ExceptionT::BadInputValue(caller, "unknown material code: %d", matcode);
 		}
@@ -598,7 +615,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		SolidMaterialT* pmat = (SolidMaterialT*) fArray[matnum];
 
 		/* verify construction */
-		if (!pmat) throw ExceptionT::kOutOfMemory;
+		if (!pmat) ExceptionT::OutOfMemory(caller);
 		
 		/* set thermal LTf pointer */
 		int LTfnum = pmat->ThermalStrainSchedule();
