@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.6 2001-11-08 13:36:12 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.7 2001-11-08 13:49:27 sawimme Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -42,8 +42,7 @@ void TranslateIOManager::Translate (const StringT& program, const StringT& versi
   InitializeTime ();
   if (fNumTS < 1)
     {
-      fMessage << "\n No time steps found, writing geometry only.";
-      WriteGeometry ();
+      fMessage << "\n**** No time steps found, writing geometry only.\n";
       fOutput->WriteGeometry ();
       return;      
     }
