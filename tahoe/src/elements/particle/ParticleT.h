@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.4 2002-11-21 01:11:14 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.5 2002-11-22 01:49:45 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -22,7 +22,7 @@ public:
 	/** destructor */
 	~ParticleT(void);
 	
-	/** initialization. Completely overrides ElementBaseT::Initialize */
+	/** initialization */
 	virtual void Initialize(void);
 
 	/** form of tangent matrix */
@@ -54,10 +54,18 @@ protected: /* for derived classes only */
 	virtual bool ChangingGeometry(void) const;
 
 	/** generate neighborlist
-	 * \param particle_tags global tags for which to determine neighhors. These are the
-	 *        tags inthe */
-	void GenerateNeighborList(const iArrayT& particle_tags, const iArrayT& particle_type,
-		const ArrayT<PotentialT*>& pots, RaggedArray2DT<int>& neighbors, bool double_list);
+	 * \param particle_tags global tags for which to determine neighhors
+	 * \param distance distance over which to search for neighbors
+	 * \param double_list if true the neighbor lists will contain two references for
+	 *        every neighbor interaction. For tags A and B, this means B will appear
+	 *        in the neighbor list for A and vice versa. if true, neighbor lists will
+	 *        only contain neighbors for which A > B.
+	 * \param neighbors list of neighbors for every tag in particle_tags as rows in the
+	 *        2D array. The list for each tag begins with the tag itself. Therefore, all
+	 *        lists are at least length 1. The numbering of the tags in the neighbor list
+	 *        is in terms of the tags provided in particle_tags. */
+	void GenerateNeighborList(const iArrayT& particle_tags, double distance, bool double_list,
+		RaggedArray2DT<int>& neighbors);
 
 protected:
 
