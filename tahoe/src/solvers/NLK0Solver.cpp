@@ -1,6 +1,5 @@
-/* $Id: NLK0Solver.cpp,v 1.8 2002-11-28 17:30:31 paklein Exp $ */
+/* $Id: NLK0Solver.cpp,v 1.9 2002-12-13 02:42:55 paklein Exp $ */
 /* created: paklein (10/01/1996) */
-
 #include "NLK0Solver.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -10,10 +9,9 @@
 #include "FEManagerT.h"
 #include "fstreamT.h"
 
-/* line search parameters */
-
 using namespace Tahoe;
 
+/* line search parameters */
 const double ks_max_factor = 5.0; //normally 1.0
 
 /* constructor */
@@ -27,11 +25,9 @@ NLK0Solver::NLK0Solver(FEManagerT& fe_manager, int group):
 #else
 	pCCSLHS = dynamic_cast<CCSMatrixT*>(fLHS);
 #endif
-	if (!pCCSLHS) {
-		cout << "\n NLK0Solver::NLK0Solver: solver requires matrix type: " << kProfileSolver 
-		     << " (symmetric)" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (!pCCSLHS)
+		ExceptionT::GeneralFail("NLK0Solver::NLK0Solver", 
+			"solver requires matrix type: %d (symmetric, profile solver)", kProfileSolver);
 }
 
 /***********************************************************************
@@ -39,19 +35,23 @@ NLK0Solver::NLK0Solver(FEManagerT& fe_manager, int group):
 ***********************************************************************/
 
 /* form and solve - returns the magnitude of the residual */
-double NLK0Solver::SolveAndForm(bool junk)
+double NLK0Solver::SolveAndForm(bool junk, bool clear_LHS)
 {		
+	const char caller[] = "NLK0Solver::SolveAndForm";
+
 #pragma unused(junk)
 
 	/* form the stiffness matrix */
 	if (fFormTangent)
 	{
-		pCCSLHS->Clear();
-		fFEManager.FormLHS(Group(), GlobalT::kNonSymmetric);
+		fLHS_lock = kOpen;
+		if (clear_LHS) pCCSLHS->Clear();
+		fFEManager.FormLHS(Group(), GlobalT::kSymmetric);
+		fLHS_lock = kLocked;
 
 		/* solve equation system */
 		fUpdate = fRHS;
-		if(!pCCSLHS->Solve(fRHS)) throw ExceptionT::kBadJacobianDet;
+		if(!pCCSLHS->Solve(fRHS)) ExceptionT::BadJacobianDet(caller);
 	
 		/* check for positive definiteness */
 		if ( pCCSLHS->HasNegativePivot() )
@@ -67,7 +67,8 @@ double NLK0Solver::SolveAndForm(bool junk)
 	
 	/* use last positive definite tangent */
 	if (!fFormTangent)
-		if (!fLastTangent.Solve(fRHS)) throw ExceptionT::kBadJacobianDet;
+		if (!fLastTangent.Solve(fRHS)) 
+			ExceptionT::BadJacobianDet(caller);
 			 		
 	/* update system */
 	fFEManager.Update(Group(), fRHS);
@@ -80,5 +81,5 @@ double NLK0Solver::SolveAndForm(bool junk)
 	/* e = a1 |R| + a2 |delta_d|                        */
 	//not implemented!
 			
-	return( fRHS.Magnitude() );
+	return Residual(fRHS);
 }

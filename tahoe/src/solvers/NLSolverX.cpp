@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.cpp,v 1.7 2002-11-28 17:30:31 paklein Exp $ */
+/* $Id: NLSolverX.cpp,v 1.8 2002-12-13 02:42:55 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #include "NLSolverX.h"
 
@@ -101,7 +101,7 @@ SolverT::SolutionStatusT NLSolverX::Solve(int num_iterations)
 			cout << " re-use :" << setw(3) << reuse_count <<  ": ";
 		}
 				
-		error = SolveAndForm(fFormNewTangent);
+		error = SolveAndForm(fFormNewTangent, true);
 		solutionflag = ExitIteration(error);
 
 		/* check for negative pivots */
@@ -176,12 +176,12 @@ SolverT::SolutionStatusT NLSolverX::Solve(int num_iterations)
 
 
 /* form and solve the equation system */
-double NLSolverX::SolveAndForm(bool newtangent)
+double NLSolverX::SolveAndForm(bool newtangent, bool clear_LHS)
 {		
 	/* form the stiffness matrix */
 	if (newtangent)
 	{
-		fLHS->Clear();
+		if (clear_LHS) fLHS->Clear();
 		fFEManager.FormLHS(Group(), GlobalT::kNonSymmetric);
 	}
 		 		
@@ -246,7 +246,7 @@ NLSolver::SolutionStatusT NLSolverX::Relax(int newtancount)
 			cout << " re-use :" << setw(3) << reuse_count <<  ": ";
 		}
 			
-		error = SolveAndForm(fFormNewTangent);
+		error = SolveAndForm(fFormNewTangent, true);
 		solutionflag = ExitIteration(error);
 
 		/* check for negative pivots */

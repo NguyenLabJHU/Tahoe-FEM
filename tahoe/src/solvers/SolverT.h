@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.11 2002-11-28 01:14:07 paklein Exp $ */
+/* $Id: SolverT.h,v 1.12 2002-12-13 02:42:56 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -118,6 +118,13 @@ public:
 
 protected:
 
+	/** enum for the protected state of the residual and stiffness matrix */
+	enum LockStateT {
+		  kOpen = 0, /**< open for assembly */
+		kLocked = 1, /**< attempts to assemle throw an ExceptionT::kGeneralFail */
+		kIgnore = 2  /**< attempts to assemble are silently ignored */
+		};
+
 	/** return the magnitude of the residual force */
 	double Residual(const dArrayT& force) const;
 
@@ -147,8 +154,11 @@ protected:
 	
 	/** global equation system */
 	/*@{*/
-	GlobalMatrixT* fLHS;	
+	GlobalMatrixT* fLHS;
+	LockStateT     fLHS_lock;
+		
 	dArrayT        fRHS;
+	LockStateT     fRHS_lock;
 	/*@}*/
 
 	/** runtime data */
@@ -160,23 +170,35 @@ protected:
 /* assembling the global equation system */
 inline void SolverT::AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
-	fLHS->Assemble(elMat, eqnos);
+	if (fLHS_lock == kOpen)
+		fLHS->Assemble(elMat, eqnos);
+	else if (fLHS_lock == kLocked)
+		ExceptionT::GeneralFail("SolverT::AssembleLHS", "LHS is locked");
 }
 
 inline void SolverT::AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 	const nArrayT<int>& col_eqnos)
 {
-	fLHS->Assemble(elMat, row_eqnos, col_eqnos);
+	if (fLHS_lock == kOpen)
+		fLHS->Assemble(elMat, row_eqnos, col_eqnos);
+	else if (fLHS_lock == kLocked)
+		ExceptionT::GeneralFail("SolverT::AssembleLHS", "LHS is locked");
 }
 
 inline void SolverT::AssembleLHS(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
 {
-	fLHS->Assemble(diagonal_elMat, eqnos);
+	if (fLHS_lock == kOpen)
+		fLHS->Assemble(diagonal_elMat, eqnos);
+	else if (fLHS_lock == kLocked)
+		ExceptionT::GeneralFail("SolverT::AssembleLHS", "LHS is locked");
 }
 
 inline void SolverT::OverWriteLHS(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
-	fLHS->OverWrite(elMat, eqnos);
+	if (fLHS_lock == kOpen)
+		fLHS->OverWrite(elMat, eqnos);
+	else if (fLHS_lock == kLocked)
+		ExceptionT::GeneralFail("SolverT::OverWriteLHS", "LHS is locked");
 }
 
 inline void SolverT::DisassembleLHS(dMatrixT& matrix, const nArrayT<int>& eqnos) const
