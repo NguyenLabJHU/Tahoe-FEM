@@ -1,6 +1,21 @@
-/* $Id: VTKConsoleT.cpp,v 1.1 2001-09-19 01:12:35 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.2 2001-09-20 23:11:42 recampb Exp $ */
 
 #include "VTKConsoleT.h"
+#include "vtkRenderer.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderWindowInteractor.h"
+#include "vtkPoints.h"
+#include "vtkUnstructuredGrid.h"
+#include "vtkUnstructuredGridReader.h"
+#include "vtkDataSetMapper.h"
+#include "vtkActor.h"
+#include "vtkScalarBarActor.h"
+#include "vtkCubeAxesActor2D.h"
+#include "vtkRendererSource.h"
+#include "vtkTIFFWriter.h"
+#include "vtkWindowToImageFilter.h"
+#include "vtkLookupTable.h"
+
 
 VTKConsoleT::VTKConsoleT(void)
 {
@@ -11,6 +26,27 @@ VTKConsoleT::VTKConsoleT(void)
   iAddVariable("an_integer", fInteger);
   iAddVariable("a_double", fDouble);  
   iAddVariable("a_string", fString);
+  iAddVariable("source_file", source_file);
+  iAddVariable("output_file", output_file);
+  iAddVariable("ugr", ugr);
+  iAddVariable("renderer", renderer);
+  iAddVariable("renWin", renWin);
+  iAddVariable("iren", iren);
+  iAddVariable("lut", lut);
+  iAddVariable("ugridMapper", ugridMapper);
+  iAddVariable("ugridActor", ugridActor);
+  iAddVariable("wireActor", wireActor);
+  iAddVariable("scalarBar", scalarBar);
+  iAddVariable("renSrc", renSrc);
+
+  ugr = vtkUnstructuredGridReader::New();
+  ugr->SetFileName(source_file);
+  renderer = vtkRenderer::New();
+//   renWin = vtkRenderWindow::New();
+//   renWin->AddRenderer(renderer);
+//   iren = vtkRenderWindowInteractor::New();
+//   iren->SetRenderWindow(renWin);
+
 
   /* add console commands */
   iAddCommand("Integer_Print");
