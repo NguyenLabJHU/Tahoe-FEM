@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.27 2002-03-18 19:24:22 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.28 2002-03-21 19:30:41 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -237,9 +237,7 @@ void ContactElementT::ResetDOF(dArray2DT& XDOF, int tag_set) const
 /* return the displacement-ghost node pairs to avoid pivoting*/
 const iArray2DT& ContactElementT::DOFConnects(int tag_set) const
 { 
-#if 0
 	return fSurfaces[tag_set].DisplacementMultiplierNodePairs();
-#endif
 }
 
 /* append element equations numbers to the list */
