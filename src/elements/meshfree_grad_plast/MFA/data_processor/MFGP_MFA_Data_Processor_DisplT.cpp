@@ -93,13 +93,17 @@ void MFGP_MFA_Data_Processor_DisplT::Set_B1(dMatrixT& B1 )
 void MFGP_MFA_Data_Processor_DisplT::Set_B3(dMatrixT& B3)
 {
 #if __option(extended_errorcheck)
-	if (B3.Rows() != dSymMatrixT::NumValues(sqrt(d3N.MajorDim())) ||
-	    B3.Cols() != sqrt(d3N.MajorDim())*d3N.MinorDim())
-	    throw ExceptionT::kSizeMismatch;
+//	if (B3.Rows() != dSymMatrixT::NumValues(sqrt(d3N.MajorDim())) ||
+//	    B3.Cols() != sqrt(d3N.MajorDim())*d3N.MinorDim())
+//	    throw ExceptionT::kSizeMismatch;
 #endif
 
 	int nnd = d3N.MinorDim();
-	int nsd = sqrt(d3N.MajorDim());
+	int nsd = 3;
+	if (d3N.MajorDim() == 4)
+		nsd = 2;
+	else if (d3N.MajorDim() == 1)
+		nsd = 1;
 	double* pB3 = B3.Pointer();
 
 	/* 1D */
