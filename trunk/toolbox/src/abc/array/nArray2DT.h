@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.10 2002-03-04 01:38:09 paklein Exp $ */
+/* $Id: nArray2DT.h,v 1.11 2002-03-06 08:18:39 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NARRAY2D_T_H_
@@ -46,11 +46,13 @@ public:
 	void Resize(int new_majordim, const nTYPE& fill);
 
 	/* dimensions */
-	int MajorDim(void) const;
-	int MinorDim(void) const;
+	int MajorDim(void) const; /**< major dimensions */
+	int MinorDim(void) const; /**< major dimensions */
 
-	/* accessors */
+	/** return a reference to an element in the array */
 	nTYPE& operator()(int majordim, int minordim) const;
+
+	/** return a pointer to the row in the array */
 	nTYPE* operator()(int majordim) const;
 
 	/* copy/assignment operators - by a scalar or element by element */
@@ -58,10 +60,10 @@ public:
 	nArray2DT<nTYPE>& operator=(const nTYPE& value);
 	void Alias(const nArray2DT& RHS);
 	
-	/* exchange data */
+	/** exchange data */
 	void Swap(nArray2DT<nTYPE>& source);
 
-	/* return transposed list (re-dimensions) - don't call with self! */
+	/** return transposed list (re-dimensions) */
 	void Transpose(const nArray2DT<nTYPE>& source);
 	  	
 	/** copy the specified row into array.
@@ -92,14 +94,16 @@ public:
 	void SetColumn(int col, const nTYPE* array);
 	void SetColumn(int col, const nArrayT<nTYPE>& array);
 
-	/* row and column sums */
+	/** return the sum of the values in the given row */
 	nTYPE RowSum(int row) const;
+
+	/** return the sum of the values in the given column */
 	nTYPE ColumnSum(int col) const;
 
-	/* row scaling */	
+	/** scale all values in the given row by a factor */	
 	void ScaleRow(int row, const nTYPE& scale);
 
-	/* column scaling */	
+	/** scale all values in the given column by a factor */	
 	void ScaleColumn(int col, const nTYPE& scale);
 
 	/* dot the specified row number with the array */
@@ -137,8 +141,18 @@ public:
 	void AddToRowScaled(int row, const nTYPE& scale, const nArrayT<nTYPE>& array);
 	void AddToRowsScaled(const nTYPE& scale, const nArrayT<nTYPE>& array);
 
-	/* copy all rows/columns from source at start */
+	/** copy all values from source into this array. This array must be
+	 * large enough to copy the contents of the source array at the
+	 * specified location
+	 * \param source source of data. All values are copied
+	 * \param start row in this array where data will start being written */
 	void BlockRowCopyAt(const nArray2DT& source, int start);
+
+	/** copy all values from source into this array. This array must be
+	 * large enough to copy the contents of the source array at the
+	 * specified location
+	 * \param source source of data. All values are copied
+	 * \param start column in this array where data will start being written */
 	void BlockColumnCopyAt(const nArray2DT& source, int start);
 
 	/* read/write with line numbers (1,...) */
@@ -364,22 +378,31 @@ inline void nArray2DT<nTYPE>::Swap(nArray2DT<nTYPE>& source)
 	source.fMinorDim = tmp;
 }
 
-/* return transposed list (re-dimensions) - don't call with self! */
+/* return transposed list (re-dimensions) */
 template <class nTYPE>
 void nArray2DT<nTYPE>::Transpose(const nArray2DT<nTYPE>& source)
 {
-	/* allocate memory */
-	Dimension(source.fMinorDim, source.fMajorDim);
-	
-	nTYPE* psrc   = source.Pointer();	
-	for (int i = 0; i < fMinorDim; i++)
+	/* called with data belonging to this*/
+	if (source.Pointer() == Pointer()) 
 	{
-		nTYPE* pthis = Pointer() + i;
-		for (int j = 0; j < fMajorDim; j++)
+		nArray2DT<nTYPE> temp = source;
+		Transpose(temp);
+	}
+	else
+	{
+		/* allocate memory */
+		Dimension(source.fMinorDim, source.fMajorDim);
+	
+		nTYPE* psrc   = source.Pointer();	
+		for (int i = 0; i < fMinorDim; i++)
 		{
-			*pthis = *psrc++;
-			pthis += fMinorDim;
-		}	
+			nTYPE* pthis = Pointer() + i;
+			for (int j = 0; j < fMajorDim; j++)
+			{
+				*pthis = *psrc++;
+				pthis += fMinorDim;
+			}	
+		}
 	}
 }
 
@@ -834,24 +857,29 @@ void nArray2DT<nTYPE>::AddToRowsScaled(const nTYPE& scale,
 template <class nTYPE>
 void nArray2DT<nTYPE>::BlockRowCopyAt(const nArray2DT& source, int start)
 {
+	/* quick exit */
+	if (source.Length() == 0) return;
+
 #if __option(extended_errorcheck)
 	/* dimensions check */
-if (fMinorDim != source.fMinorDim) throw eSizeMismatch;
+	if (fMinorDim != source.fMinorDim) throw eSizeMismatch;
 	if (start + source.fMajorDim > fMajorDim) throw eOutOfRange;
 #endif
 
 	/* copy */
-	if (source.Length() > 0)
-		MemCopy((*this)(start), source.Pointer(), source.Length());
+	MemCopy((*this)(start), source.Pointer(), source.Length());
 }
 
 /* copy all rows/columns from source at start */
 template <class nTYPE>
 void nArray2DT<nTYPE>::BlockColumnCopyAt(const nArray2DT& source, int start)
 {
+	/* quick exit */
+	if (source.Length() == 0) return;
+
 #if __option(extended_errorcheck)
-/* dimension checks */
-if (fMajorDim != source.fMajorDim) throw eSizeMismatch;
+	/* dimension checks */
+	if (fMajorDim != source.fMajorDim) throw eSizeMismatch;
 	if (start + source.fMinorDim > fMinorDim) throw eOutOfRange;
 #endif
 
