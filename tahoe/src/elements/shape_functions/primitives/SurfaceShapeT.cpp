@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.cpp,v 1.3.2.1 2002-05-04 20:17:19 paklein Exp $ */
+/* $Id: SurfaceShapeT.cpp,v 1.3.2.2 2002-05-05 23:40:33 paklein Exp $ */
 /* created: paklein (11/21/1997)                                          */
 /* Class to manage CSE integrals, where the dimension of                  */
 /* the field variable is 1 greater than the dimension of the parent       */
@@ -426,7 +426,8 @@ void SurfaceShapeT::Construct(void)
 	fInterp.Allocate(fFieldDim);
 	
 	/* coordinate transformation */	
-	fJacobian.Allocate(fFieldDim, fFieldDim-1);
+	int nsd = fFacetCoords.MinorDim();
+	fJacobian.Allocate(nsd, nsd-1);
 	
 	/* surface node numbering */
 	fFacetNodes.Allocate(2, fNumFacetNodes);
