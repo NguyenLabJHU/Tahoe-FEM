@@ -120,7 +120,7 @@ void MeshAtom::BuildIOFile(StringT& program_name,
 
   if(Set != 0) delete Set;
 
-  Set=new OutputSetT(*(Shape->GetAtomNames()), GeometryT::kPoint, 
+  Set=new OutputSetT(GeometryT::kPoint, 
 		     *(Shape->GetAtomConnectivities()), n_labels);
   
   IOLattice->SetCoordinates(*(Shape->GetAtomCoordinates()),(Shape->GetAtomID()));
