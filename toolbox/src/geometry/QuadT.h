@@ -1,4 +1,4 @@
-/* $Id: QuadT.h,v 1.6 2004-05-17 05:11:04 paklein Exp $ */
+/* $Id: QuadT.h,v 1.7 2005-01-26 19:52:10 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #ifndef _QUAD_T_H_
 #define _QUAD_T_H_
@@ -65,6 +65,19 @@ public:
 	/** return the integration point whose domain contains the given point in the
 	 * parent domain coordinates */
 	virtual int IPDomain(int nip, const dArrayT& coords) const;
+
+	/** \name nodal subdomains, see GeometryBaseT for more information
+	/*@{*/
+	/** subdomain geometry */
+	virtual GeometryT::CodeT NodalSubDomainGeometry(void) const;
+
+	/** number of nodes defining the nodal subdomain */
+	virtual int NodalSubDomainNumPoints(void) const;
+	
+	/** compute the coordinates of the points defining the nodal subdomain */
+	virtual void NodalSubDomainCoordinates(const LocalArrayT& coords, int node,
+		LocalArrayT& subdomain_coords) const;
+	/*@}*/
 };
 
 } /* namespace Tahoe */

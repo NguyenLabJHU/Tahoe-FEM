@@ -1,4 +1,4 @@
-/* $Id: QuadT.cpp,v 1.14 2005-01-15 06:53:06 paklein Exp $ */
+/* $Id: QuadT.cpp,v 1.15 2005-01-26 19:52:10 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "QuadT.h"
 #include <math.h>
@@ -799,4 +799,69 @@ int QuadT::IPDomain(int nip, const dArrayT& coords) const
 
 	/* dummy */
 	return -1;
+}
+
+/* subdomain geometry */
+GeometryT::CodeT QuadT::NodalSubDomainGeometry(void) const
+{
+	/* limited support */
+	if (fNumNodes != 4)
+		ExceptionT::GeneralFail("QuadT::NodalSubDomainGeometry",
+			"unsupported number of nodes %d", fNumNodes);
+
+	return GeometryT::kQuadrilateral;
+}
+
+/* number of nodes defining the nodal subdomain */
+int QuadT::NodalSubDomainNumPoints(void) const
+{
+	/* limited support */
+	if (fNumNodes != 4)
+		ExceptionT::GeneralFail("QuadT::NodalSubDomainGeometry",
+			"unsupported number of nodes %d", fNumNodes);
+
+	return 4;
+}
+	
+/* compute the coordinates of the points defining the nodal subdomain */
+void QuadT::NodalSubDomainCoordinates(const LocalArrayT& coords, int node,
+	LocalArrayT& subdomain_coords) const
+{
+	const char caller[] = "QuadT::NodalSubDomainCoordinates";
+
+#if __option(extended_errorcheck)
+	/* limited support */
+	if (fNumNodes != 4)
+		ExceptionT::GeneralFail(caller, "unsupported number of nodes %d", fNumNodes);
+
+	/* checks */
+	if (coords.NumberOfNodes() != fNumNodes || 
+		coords.MinorDim() != 2 ||
+		node < 0 || node >= fNumNodes ||
+		subdomain_coords.MinorDim() != 2 ||
+		subdomain_coords.NumberOfNodes() != QuadT::NodalSubDomainNumPoints())
+		ExceptionT::SizeMismatch(caller);
+#endif
+
+	int next_node[4] = {1,2,3,0};
+	int back_node[4] = {3,0,1,2};
+	int diag_node[4] = {2,3,0,1};
+
+	const double* px = coords(0);
+	const double* py = coords(1);
+
+	int back = back_node[node];
+	subdomain_coords(back,0) = 0.5*(px[node] + px[back]);
+	subdomain_coords(back,1) = 0.5*(py[node] + py[back]);
+
+	subdomain_coords(node,0) = px[node];
+	subdomain_coords(node,1) = py[node];
+	
+	int next = next_node[node];
+	subdomain_coords(next,0) = 0.5*(px[node] + px[next]);
+	subdomain_coords(next,1) = 0.5*(py[node] + py[next]);
+
+	int diag = diag_node[node];
+	subdomain_coords(diag,0) = 0.25*(px[0] + px[1] + px[2] + px[3]);
+	subdomain_coords(diag,1) = 0.25*(py[0] + py[1] + py[2] + py[3]);
 }
