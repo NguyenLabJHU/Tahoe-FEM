@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.cpp,v 1.4 2001-11-28 22:08:46 paklein Exp $ */
+/* $Id: iNLSolver_LS.cpp,v 1.5 2001-12-10 23:58:24 paklein Exp $ */
 /* created: paklein (01/01/2001) */
 
 #include "iNLSolver_LS.h"
@@ -68,7 +68,7 @@ void iNLSolver_LS::Run(void)
 	const int number_of_steps = fFEManager.NumberOfSteps();
 	
 	/* get the command spec */
-	CommandSpecT* step_command = Command("Step");
+	CommandSpecT* step_command = iCommand("Step");
 	if (!step_command) throw eGeneralFail;
 	step_command->Argument(0).SetValue(number_of_steps - step_number);
 	
