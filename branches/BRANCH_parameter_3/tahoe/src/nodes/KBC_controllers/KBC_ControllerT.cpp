@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.cpp,v 1.11.22.2 2004-05-13 16:43:35 paklein Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.11.22.3 2004-05-20 14:59:37 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "KBC_ControllerT.h"
 
@@ -85,7 +85,7 @@ void KBC_ControllerT::ReadNodes(ifstreamT& in, ArrayT<StringT>& id_list,
 	model->ManyNodeSets(id_list, nodes);
 }
 
-/* read nodes from stream */
+/* read nodes in node sets */
 void KBC_ControllerT::GetNodes(const ArrayT<StringT>& id_list, iArrayT& nodes) const
 {
 	/* get the model */

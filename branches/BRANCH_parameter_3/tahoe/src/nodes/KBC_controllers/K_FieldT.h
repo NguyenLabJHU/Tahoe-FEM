@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.h,v 1.8.18.1 2004-04-08 07:33:54 paklein Exp $ */
+/* $Id: K_FieldT.h,v 1.8.18.2 2004-05-20 14:59:37 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #ifndef _K_FIELD_T_H_
 #define _K_FIELD_T_H_
@@ -63,6 +63,15 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
@@ -84,9 +93,9 @@ protected:
 
 	/** \name K-field specifications */
 	/*@{*/
-	int    fnumLTf1;
+//	int    fnumLTf1;
 	double fK1;
-	int    fnumLTf2;
+//	int    fnumLTf2;
 	double fK2;
 	/*@}*/
 

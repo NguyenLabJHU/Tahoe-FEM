@@ -1,4 +1,4 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.9.2.2 2004-05-13 16:43:35 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.9.2.3 2004-05-20 14:59:37 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "BimaterialK_FieldT.h"
 
@@ -31,6 +31,7 @@ BimaterialK_FieldT::BimaterialK_FieldT(NodeManagerT& node_manager):
 /* initialize data - called immediately after construction */
 void BimaterialK_FieldT::Initialize(ifstreamT& in)
 {
+#if 0
 	/* only 2D for now */
 	int nsd = fNodeManager.NumSD();
 	if (nsd != 2)
@@ -178,6 +179,7 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 		cout << "\n BimaterialK_FieldT::Initialize: tip tracking not implemented in parallel" << endl;
 		throw ExceptionT::kBadInputValue;
 	}	
+#endif
 }
 
 void BimaterialK_FieldT::WriteParameters(ostream& out) const
@@ -185,6 +187,7 @@ void BimaterialK_FieldT::WriteParameters(ostream& out) const
 	/* inherited */
 	//KBC_ControllerT::WriteParameters(out);
 
+#if 0
 	out << "\n K - f i e l d   p a r a m e t e r s :\n\n";
 	out << " K I LTf . . . . . . . . . . . . . . . . . . . . = " << fnumLTf1 + 1 << '\n';
 	out << " K I . . . . . . . . . . . . . . . . . . . . . . = " << fK1         << '\n';
@@ -199,6 +202,7 @@ void BimaterialK_FieldT::WriteParameters(ostream& out) const
 	out << " Fracture path test value column number. . . . . = " << fTipColumnNum + 1  << '\n';
 	out << " Maximum extension distance per load step. . . . = " << fMaxGrowthDistance << '\n';
 	out << " Maximum number of extensions per load step. . . = " << fMaxGrowthSteps    << '\n';
+#endif
 
 	iArrayT tmp;
 	/* set 1 */
