@@ -1,4 +1,4 @@
-/* $Id: NOXSolverT.cpp,v 1.2.2.2 2002-04-30 08:22:07 paklein Exp $ */
+/* $Id: NOXSolverT.cpp,v 1.2.2.3 2002-06-05 09:18:36 paklein Exp $ */
 #include "NOXSolverT.h"
 
 /* optional */
@@ -175,7 +175,7 @@ NOXSolverT::~NOXSolverT(void)
 }
 
 /* generate the solution for the current time sequence */
-int NOXSolverT::Solve(void)
+SolverT::SolutionStatusT NOXSolverT::Solve(int num_iterations)
 {
 	try {
 
@@ -216,11 +216,15 @@ int NOXSolverT::Solve(void)
 
 	/* solve */
 	NOX::Status::StatusType nox_status;
+	fNumIteration = -1;
 	try {
-		nox_status = nox.iterate();
-		while (nox_status == NOX::Status::Unconverged) {
+		nox_status = nox.iterate(); 
+		fNumIteration++;
+		while (nox_status == NOX::Status::Unconverged &&
+			(num_iterations == -1 || fNumIteration < num_iterations)) {
 			cout << '\t' << group.getNormRHS()/error0 << endl;
 			nox_status = nox.iterate();
+			fNumIteration++;
 		}
 		cout << '\t' << group.getNormRHS()/error0 << endl;
 	}
@@ -255,11 +259,8 @@ int NOXSolverT::Solve(void)
 	CloseIterationOutput();
 			
 	/* close step */
-	if (status == kConverged)
-		return eNoError; /* found solution */
-	else
-		return eGeneralFail; /* failed to find solution */
-	}
+	return status;
+	} /* end try */
 		
 	/* exception */
 	catch (int code)
@@ -267,8 +268,7 @@ int NOXSolverT::Solve(void)
 		cout << "\n NOXSolverT::Run: exception at step number "
 			 << fFEManager.StepNumber() << " with step "
 			 << fFEManager.TimeStep() << endl;
-
-		return code;
+		return kFailed;
 	}
 }
 

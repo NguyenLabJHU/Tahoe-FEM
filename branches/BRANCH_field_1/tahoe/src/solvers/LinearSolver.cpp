@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.cpp,v 1.2.2.3 2002-04-30 01:30:23 paklein Exp $ */
+/* $Id: LinearSolver.cpp,v 1.2.2.4 2002-06-05 09:18:32 paklein Exp $ */
 /* created: paklein (05/30/1996) */
 
 #include "LinearSolver.h"
@@ -20,24 +20,10 @@ void LinearSolver::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	
 	/* flag to reform LHS */
 	fFormLHS = 1;
-
-#if 0
-	int analysis_code = fFEManager.Analysis();
-	if (analysis_code != GlobalT::kLinExpDynamic &&
-		analysis_code != GlobalT::kNLExpDynamic)
-		fFormLHS = 1;
-#endif
-//NOTE: these checks were added because explicit dynamics with
-//      contact was reforming the mass matrix whenever the contact
-//      configuration was changed. until this state is more clearly
-//      defined {ReEQ, Relax, ReEQRelax, ????}
-//
-//  Need a flag to say that the force configured:
-//    ReEQ_LHS, ReEQ_RHS
 }
 
 /* solve the current step */
-int LinearSolver::Solve(void)
+SolverT::SolutionStatusT LinearSolver::Solve(int)
 {
 	try {
 	/* initialize */
@@ -61,6 +47,7 @@ int LinearSolver::Solve(void)
 
 	/* determine update vector */
 	if (!fLHS->Solve(fRHS)) throw eBadJacobianDet;
+	fNumIteration = 1;
 
 	/* update displacements */
 	fFEManager.Update(Group(), fRHS);		
@@ -78,17 +65,16 @@ int LinearSolver::Solve(void)
 	/* trigger set of new equations */
 	if (relaxcode == GlobalT::kReEQ ||
 	    relaxcode == GlobalT::kReEQRelax)
-		fFEManager.Reinitialize(Group());
-	}
+		fFEManager.SetEquationSystem(Group());
+
+	return kConverged;
+	} /* end try */
 	
 	/* not OK */
 	catch (int exception)
 	{
 		cout << "\n LinearSolver::Solve: caught exception: " 
 		     << fFEManager.Exception(exception) << endl;
-		return exception;
+		return kFailed;
 	}
-
-	/* OK */
-	return eNoError;
 }

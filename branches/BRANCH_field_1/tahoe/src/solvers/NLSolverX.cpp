@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.cpp,v 1.2.2.3 2002-04-30 08:22:05 paklein Exp $ */
+/* $Id: NLSolverX.cpp,v 1.2.2.4 2002-06-05 09:18:33 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #include "NLSolverX.h"
 
@@ -62,7 +62,7 @@ NLSolverX::NLSolverX(FEManagerT& fe_manager, int group):
 }
 
 /* generate the solution for the current time sequence */
-int NLSolverX::Solve(void)
+SolverT::SolutionStatusT NLSolverX::Solve(int num_iterations)
 {
 	try { 	
 
@@ -77,8 +77,9 @@ int NLSolverX::Solve(void)
 	int into_trust     = 0;
 	int negative_pivot = 0;
 	int reuse_count    = 0;
-	int solutionflag = ExitIteration(error);
-	while(solutionflag == kContinue)
+	SolutionStatusT solutionflag = ExitIteration(error);
+	while(solutionflag == kContinue &&
+		(num_iterations == -1 || IterationNumber() < num_iterations))
 	{
 		/* force new tangent */
 		if (fMinFreshTangents > 0 &&
@@ -159,21 +160,15 @@ int NLSolverX::Solve(void)
 	if (into_trust) fFormNewTangent = 1;
 
 	/* found solution - check relaxation */
-	if (solutionflag == kConverged)
-		solutionflag = DoConverged();
+	if (solutionflag == kConverged) solutionflag = DoConverged();
 
-	/* found solution */
-	if (solutionflag == kConverged)
-		return eNoError; /* found solution */
-	else // (solutionflag == kFailed)
-		return eGeneralFail; /* did not find solution */
-	}
+	/* normal */
+	return solutionflag;
+
+	} /* end try */
 	
 	/* exceptions */
-	catch (int code)
-	{
-		return code;
-	}
+	catch (int code) { return kFailed; }
 }
 
 
@@ -213,7 +208,7 @@ double NLSolverX::SolveAndForm(bool newtangent)
 *************************************************************************/
 
 /* relax system */
-NLSolver::IterationStatusT NLSolverX::Relax(int newtancount)
+NLSolver::SolutionStatusT NLSolverX::Relax(int newtancount)
 {	
 #pragma unused (newtancount)
 
@@ -232,7 +227,7 @@ NLSolver::IterationStatusT NLSolverX::Relax(int newtancount)
 	int negative_pivot = 0;
 	int tangentcount   = 0;
 	int reuse_count    = 0;
-	IterationStatusT solutionflag = ExitIteration(error);
+	SolutionStatusT solutionflag = ExitIteration(error);
 	while (solutionflag == kContinue)
 	{
 		if (fFormNewTangent)
@@ -280,7 +275,7 @@ NLSolver::IterationStatusT NLSolverX::Relax(int newtancount)
 }
 
 /* handlers */
-NLSolver::IterationStatusT NLSolverX::DoConverged(void)
+NLSolver::SolutionStatusT NLSolverX::DoConverged(void)
 {
 	/* increase time step ? (for multi-step sequences) */
 	if (fQuickSolveTol > 1 && fNumNewTangent < fQuickSolveTol)
@@ -314,7 +309,7 @@ cout << fQuickConvCount << "/" << fQuickSeriesTol << endl;
 		/* reset global equations */
 		if (relaxcode == GlobalT::kReEQ ||
 		    relaxcode == GlobalT::kReEQRelax)
-			fFEManager.Reinitialize(Group());
+			fFEManager.SetEquationSystem(Group());
 						
 		/* new equilibrium */
 		if (relaxcode == GlobalT::kRelax ||

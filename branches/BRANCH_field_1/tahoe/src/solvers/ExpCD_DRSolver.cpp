@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.cpp,v 1.2.2.3 2002-04-30 08:22:05 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.cpp,v 1.2.2.4 2002-06-05 09:18:32 paklein Exp $ */
 /* created: paklein (08/19/1998) */
 
 #include "ExpCD_DRSolver.h"
@@ -11,11 +11,6 @@
 #include "ExceptionCodes.h"
 #include "FEManagerT.h"
 #include "DiagonalMatrixT.h"
-
-/* iteration status flags */
-const int kContinue  = 0;
-const int kConverged = 1;
-const int kFailed    = 2;
 
 /* constructor */
 ExpCD_DRSolver::ExpCD_DRSolver(FEManagerT& fe_manager, int group):
@@ -114,8 +109,8 @@ void ExpCD_DRSolver::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	fAcc.Allocate(loc_num_eq);
 }
 
-/* generate the solution for the current time sequence */
-int ExpCD_DRSolver::Solve(void)
+/* solve the system over the current time increment */
+SolverT::SolutionStatusT ExpCD_DRSolver::Solve(int num_iterations)
 {
 	try {
 
@@ -136,8 +131,9 @@ int ExpCD_DRSolver::Solve(void)
 	double error = fRHS.Magnitude();
 			
 	/* loop on error */
-	int solutionflag = ExitIteration(error);
-	while (solutionflag == kContinue)
+	SolutionStatusT solutionflag = ExitIteration(error);
+	while (solutionflag == kContinue && 
+		(num_iterations == -1 || fNumIteration < num_iterations))
 	{
 		/* explicit central difference time stepping */
 		error = SolveAndForm();
@@ -160,23 +156,21 @@ int ExpCD_DRSolver::Solve(void)
 		/* reset global equations */
 		if (relaxcode == GlobalT::kReEQ ||
 			relaxcode == GlobalT::kReEQRelax)
-			fFEManager.Reinitialize(Group());
+			fFEManager.SetEquationSystem(Group());
 					
 		/* new equilibrium */					
 		if (relaxcode == GlobalT::kRelax ||
 			relaxcode == GlobalT::kReEQRelax)
 			Relax();
-
-		return eNoError;
-	}
-	else return eGeneralFail;
-	
-	}
+	} 
+			
+	return solutionflag;
+	} /* end try */
 
 	/* abnormal */
 	catch (int code) { 
-		return code;
-	}		
+		return kFailed;
+	}
 }
 
 /*************************************************************************
@@ -193,7 +187,7 @@ int ExpCD_DRSolver::Solve(void)
 *
 * For (2) and (3), the load increment will be cut and the
 * iteration re-entered with the next Step() call */
-int ExpCD_DRSolver::ExitIteration(double error)
+SolverT::SolutionStatusT ExpCD_DRSolver::ExitIteration(double error)
 {
 	/* CONVERGENCE MOVIES */
 //TEMP
@@ -251,7 +245,7 @@ int ExpCD_DRSolver::ExitIteration(double error)
 	}
 }
 
-int ExpCD_DRSolver::ExitRelaxation(double error)
+SolverT::SolutionStatusT ExpCD_DRSolver::ExitRelaxation(double error)
 {
 	++fNumIteration;
 	

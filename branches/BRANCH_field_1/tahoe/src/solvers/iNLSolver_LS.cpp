@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.cpp,v 1.6.2.3 2002-04-30 08:22:06 paklein Exp $ */
+/* $Id: iNLSolver_LS.cpp,v 1.6.2.4 2002-06-05 09:18:33 paklein Exp $ */
 /* created: paklein (01/01/2001) */
 
 #include "iNLSolver_LS.h"
@@ -50,12 +50,13 @@ iNLSolver_LS::iNLSolver_LS(FEManagerT& fe_manager, int group):
 }
 
 /* interactive */
-int iNLSolver_LS::Solve(void)
+SolverT::SolutionStatusT iNLSolver_LS::Solve(int)
 {
 //TEMP - revised solvers means this interactive part needs to change
 cout << "\n iNLSolver_LS::Solve: not updated for multifield" << endl;
-return eStop;
+return kFailed;
 
+#if 0
 	/* initial state */
 	fIterationStatus = kConverged;
 	
@@ -79,6 +80,7 @@ return eStop;
 	/* execute */
 	StringT line;
 	iDoCommand(*step_command, line);
+#endif
 }
 
 /* console commands */
@@ -234,7 +236,7 @@ bool iNLSolver_LS::DoInitStep(void)
 #endif
 }
 
-NLSolver::IterationStatusT iNLSolver_LS::DoIterate(int max_count)
+NLSolver::SolutionStatusT iNLSolver_LS::DoIterate(int max_count)
 {
 	/* no action */
 	if (max_count < 1) return fIterationStatus;

@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.9.2.5 2002-05-05 23:33:10 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.9.2.6 2002-06-05 09:18:32 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #include "NLSolver.h"
@@ -80,7 +80,7 @@ NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 }
 
 /* generate the solution for the current time sequence */
-int NLSolver::Solve(void)
+SolverT::SolutionStatusT NLSolver::Solve(int num_iterations)
 {
 	try
 	{ 	
@@ -96,8 +96,9 @@ int NLSolver::Solve(void)
 	double error = Residual(fRHS);
 			
 	/* loop on error */
-	IterationStatusT solutionflag = ExitIteration(error);
-	while (solutionflag == kContinue)
+	SolutionStatusT solutionflag = ExitIteration(error);
+	while (solutionflag == kContinue &&
+		(num_iterations == -1 || fNumIteration < num_iterations))
 	{
 		error = SolveAndForm(true);
 		solutionflag = ExitIteration(error);
@@ -110,11 +111,7 @@ int NLSolver::Solve(void)
 	/* close iteration output */	
 	CloseIterationOutput();
 			
-	/* normal ending */
-	if (solutionflag == kConverged)
-		return eNoError; /* found solution */		
-	else
-		return eGeneralFail; /* solution procedure failed */
+	return solutionflag;
 	}
 		
 	/* abnormal ending */
@@ -123,7 +120,7 @@ int NLSolver::Solve(void)
 		cout << "\n NLSolver::Run: exception at step number "
              << fFEManager.StepNumber() << " with step "
              << fFEManager.TimeStep() << endl;
-		return code;
+		return kFailed;
 	}
 }
 
@@ -141,7 +138,7 @@ void NLSolver::ResetStep(void)
 }
 
 /* handlers */
-NLSolver::IterationStatusT NLSolver::DoConverged(void)
+NLSolver::SolutionStatusT NLSolver::DoConverged(void)
 {
 	/* increase time step ? (for multi-step sequences) */
 	if (fQuickSolveTol > 1 && fNumIteration < fQuickSolveTol)
@@ -169,7 +166,7 @@ NLSolver::IterationStatusT NLSolver::DoConverged(void)
 		/* reset global equations */
 		if (relaxcode == GlobalT::kReEQ ||
 		    relaxcode == GlobalT::kReEQRelax)
-			fFEManager.Reinitialize(Group());
+			fFEManager.SetEquationSystem(Group());
 						
 		/* new equilibrium */
 		if (relaxcode == GlobalT::kRelax ||
@@ -235,7 +232,7 @@ void NLSolver::Update(const dArrayT& update, const dArrayT* residual)
 }
 
 /* relax system */
-NLSolver::IterationStatusT NLSolver::Relax(int newtancount)
+NLSolver::SolutionStatusT NLSolver::Relax(int newtancount)
 {	
 	cout <<   "\n Relaxation:" << '\n';
 
@@ -250,7 +247,7 @@ NLSolver::IterationStatusT NLSolver::Relax(int newtancount)
 	double error = Residual(fRHS);
 		
 	/* loop on error */
-	IterationStatusT solutionflag = ExitIteration(error);
+	SolutionStatusT solutionflag = ExitIteration(error);
 	while (solutionflag == kContinue)
 	{
 	    int newtangent = 0;
@@ -277,7 +274,7 @@ NLSolver::IterationStatusT NLSolver::Relax(int newtancount)
 *
 * For (2) and (3), the load increment will be cut and the
 * iteration re-entered with the next Step() call */
-NLSolver::IterationStatusT NLSolver::ExitIteration(double error)
+NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 {
 	/* iteration count */
 	++fNumIteration;
@@ -290,7 +287,7 @@ NLSolver::IterationStatusT NLSolver::ExitIteration(double error)
 	}
 	
 	/* return value */
-	IterationStatusT status = kContinue;
+	SolutionStatusT status = kContinue;
 	
 	/* first pass */
 	if (fNumIteration == 0)
