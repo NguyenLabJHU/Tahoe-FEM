@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.16 2005-01-24 06:59:21 paklein Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.17 2005-02-13 22:14:30 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #include "ShapeFunctionT.h"
@@ -13,17 +13,15 @@ ShapeFunctionT::ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 	const LocalArrayT& coords):
 	DomainIntegrationT(geometry_code, numIP, coords.NumberOfNodes()),
 	fCoords(coords),
-	fGrad_x_temp(NULL)
+	fGrad_x_temp(NULL),
+	fStore(false),
+	fCurrElementNumber(NULL)
 {
 	/* consistency */
 	if (GeometryT::GeometryToNumSD(geometry_code) != fCoords.MinorDim())
-	{
-		cout << "\n ShapeFunctionT::ShapeFunctionT: geometry code "
-		     << geometry_code << " does not match\n"
-		     <<   "     the number of spatial dimensions of the coordinates "
-		     << fCoords.MinorDim() << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("ShapeFunctionT::ShapeFunctionT",
+			"geometry code %d does not match coordinates in %d dimensions",
+			geometry_code, fCoords.MinorDim());
 
 	/* configure workspace */
 	Construct();
@@ -32,7 +30,9 @@ ShapeFunctionT::ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 ShapeFunctionT::ShapeFunctionT(const ShapeFunctionT& link, const LocalArrayT& coords):
 	DomainIntegrationT(link),
 	fCoords(coords),
-	fGrad_x_temp(NULL)
+	fGrad_x_temp(NULL),
+	fStore(false),
+	fCurrElementNumber(NULL)	
 {
 	/* configure workspace */
 	Construct();
@@ -41,7 +41,23 @@ ShapeFunctionT::ShapeFunctionT(const ShapeFunctionT& link, const LocalArrayT& co
 /* compute local shape functions and derivatives */ 	
 void ShapeFunctionT::SetDerivatives(void)
 {
-	fDomain->ComputeDNa(fCoords, fDNaX, fDet);
+	/* fetch from storage */
+	if (fStore)
+	{
+		/* check */
+		if (!fCurrElementNumber)
+			ExceptionT::GeneralFail("ShapeFunctionT::SetDerivatives",
+				"current element not set");
+	
+		/* get Jocobian information */
+		fDet_store.RowCopy(*fCurrElementNumber, fDet);
+
+		/* get shape function derivatives */
+		for (int i = 0; i < fDNaX_store.Length(); i++)
+			fDNaX_store[i].RowCopy(*fCurrElementNumber, fDNaX[i]);
+	}
+	else /* compute values */
+		fDomain->ComputeDNa(fCoords, fDNaX, fDet);
 }
 
 /* field gradients at specific parent domain coordinates. */
@@ -67,7 +83,8 @@ void ShapeFunctionT::InterpolateU(const LocalArrayT& nodal,
 {
 #if __option(extended_errorcheck)
 	if (nodal.MinorDim() != u.Length() ||
-	    nodal.NumberOfNodes() != pNaU->MinorDim()) throw ExceptionT::kSizeMismatch;
+	    nodal.NumberOfNodes() != pNaU->MinorDim())
+	    ExceptionT::SizeMismatch("ShapeFunctionT::InterpolateU");
 #endif
 
 	int num_u = nodal.MinorDim();
@@ -80,7 +97,8 @@ void ShapeFunctionT::InterpolateU(const LocalArrayT& nodal,
 {
 #if __option(extended_errorcheck)
 	if (nodal.MinorDim() != u.Length() ||
-	    nodal.NumberOfNodes() != pNaU->MinorDim()) throw ExceptionT::kSizeMismatch;
+	    nodal.NumberOfNodes() != pNaU->MinorDim())
+	    ExceptionT::SizeMismatch("ShapeFunctionT::InterpolateU");
 #endif
 
 	int num_u = nodal.MinorDim();
@@ -94,7 +112,7 @@ void ShapeFunctionT::GradNa(const dArray2DT& DNa, dMatrixT& grad_Na) const
 #if __option(extended_errorcheck)
 	if (DNa.MajorDim() != grad_Na.Rows() ||
 	    DNa.MinorDim() != grad_Na.Cols())
-	    throw ExceptionT::kSizeMismatch;
+	    ExceptionT::SizeMismatch("ShapeFunctionT::GradNa");
 #endif
 
 	int numsd    = DNa.MajorDim();
@@ -156,7 +174,7 @@ void ShapeFunctionT::LaplaceStrain(const dSymMatrixT& strain, dSymMatrixT& lapla
 /* print the shape function values to the output stream */
 void ShapeFunctionT::Print(ostream& out) const
 {
-/* inherited */
+	/* inherited */
 	DomainIntegrationT::Print(out);
 
 	out << "\n Domain shape function derivatives:\n";
@@ -169,6 +187,43 @@ void ShapeFunctionT::Print(ostream& out) const
 	else	
 	    for (int i = 0; i < pDNaU->Length(); i++)
 			(*pDNaU)[i].WriteNumbered(out);
+}
+
+void ShapeFunctionT::InitStore(int num_elements, const int* curr_element)
+{
+	const char caller[] = "ShapeFunctionT::InitStore";
+	if (num_elements > 0 && !curr_element)
+		ExceptionT::GeneralFail(caller);
+	fCurrElementNumber = curr_element;
+
+	/* allocate work space */
+	fDet_store.Dimension(num_elements, fDet.Length());
+	fDNaX_store.Dimension(fDNaX.Length());
+	for (int i = 0; i < fDNaX_store.Length(); i++)
+		fDNaX_store[i].Dimension(num_elements, fDNaX[i].Length());
+
+	/* set flag */
+	fStore = false;
+}
+
+void ShapeFunctionT::Store(void)
+{
+	/* check */
+	if (!fCurrElementNumber) 
+		ExceptionT::GeneralFail("ShapeFunctionT::Store", "current element not set");
+
+	/* store Jocobian information */
+	fDet_store.SetRow(*fCurrElementNumber, fDet);
+
+	/* store shape function derivatives */
+	for (int i = 0; i < fDNaX_store.Length(); i++)
+		fDNaX_store[i].SetRow(*fCurrElementNumber, fDNaX[i]);
+}
+
+void ShapeFunctionT::CloseStore(void)
+{
+	/* set flag */
+	fStore = true;
 }
 
 /***********************************************************************
@@ -207,7 +262,8 @@ void ShapeFunctionT::Construct(void)
 {
 	/* check local array type (ambiguous for linear geometry) */
 	if (fCoords.Type() != LocalArrayT::kInitCoords &&
-	    fCoords.Type() != LocalArrayT::kCurrCoords) throw ExceptionT::kGeneralFail;
+	    fCoords.Type() != LocalArrayT::kCurrCoords) 
+	    ExceptionT::GeneralFail("ShapeFunctionT::Construct");
 
 	/* dimensions */
 	int numXnodes = fCoords.NumberOfNodes();

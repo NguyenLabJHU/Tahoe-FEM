@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.24 2005-01-26 19:55:54 paklein Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.25 2005-02-13 22:14:30 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -178,6 +178,13 @@ public:
 	/** print the shape function values to the output stream */
 	virtual void Print(ostream& out) const;
 
+	/** storage of derivatives and Jacobians */
+	/*@{*/
+	void InitStore(int num_elements, const int* curr_element);
+	void Store(void);
+	void CloseStore(void);
+	/*@}*/
+
 protected:
 
 	/** apply change of variables to the shape function derivatives */
@@ -224,6 +231,14 @@ private:
 	
 	/* work space */
 	dArrayT fv1, fv2;
+
+	/** \name storage */
+	/*@{*/
+	bool fStore;
+	const int* fCurrElementNumber;
+	dArray2DT fDet_store; /**< [nel] x [nip] */
+	ArrayT<dArray2DT> fDNaX_store; /**< [nip]: [nel] x [nen*nsd] */
+	/*@}*/
 };
 
 /* type of the domain coordinates */
