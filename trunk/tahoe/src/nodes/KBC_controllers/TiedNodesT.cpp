@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.17 2003-01-27 07:00:30 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.18 2003-03-03 21:51:11 cjkimme Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -6,6 +6,7 @@
 #include "BasicFieldT.h"
 #include "FEManagerT.h"
 #include "ElementsConfig.h"
+#include "SolidElementT.h"
 
 #ifdef COHESIVE_SURFACE_ELEMENT
 #include "TiedPotentialT.h"
@@ -22,7 +23,9 @@ TiedNodesT::TiedNodesT(NodeManagerT& node_manager, BasicFieldT& field):
 	KBC_ControllerT(node_manager),
 	fField(field),
 	fDummySchedule(1.0),
-	fFEManager(node_manager.FEManager())
+	fFEManager(node_manager.FEManager()),
+	fPairSpace(),
+	iPairSpace()
 {
 #ifndef COHESIVE_SURFACE_ELEMENT
 	ExceptionT::BadInputValue("TiedNodesT::TiedNodesT", "COHESIVE_SURFACE_ELEMENT not enabled");
@@ -380,25 +383,48 @@ bool TiedNodesT::ChangeStatus(void)
 #ifndef COHESIVE_SURFACE_ELEMENT
 		return false;
 #else
-      bool changeQ = false;
-	ElementBaseT* surroundingGroup = fFEManager.ElementGroup(TiedPotentialT::BulkGroup());
-  		if (!surroundingGroup)
-        {
-           	cout <<"TiedPotentialT::ChangeStatus: Group 0 doesn't exist \n";
-      	  	throw ExceptionT::kGeneralFail;
-        }
-	  	surroundingGroup->SendOutput(2);
-	  	dArray2DT fNodalQs = fNodeManager.OutputAverage();
+      	bool changeQ = false;
+      	iArrayT& qGroups = TiedPotentialT::BulkGroups();
+      	for (int j = 0; j < qGroups.Length(); j++) 
+      	{
+			ElementBaseT* surroundingGroup = fFEManager.ElementGroup(qGroups[j]);
+  			if (!surroundingGroup)
+        	{
+           		cout <<"TiedPotentialT::ChangeStatus: Element group "<<qGroups[j]<<" doesn't exist \n";
+      	  		throw ExceptionT::kGeneralFail;
+       	 	}
+	  		surroundingGroup->SendOutput(SolidElementT::iNodalStress);
+	  		dArray2DT fNodalQs = fNodeManager.OutputAverage();
 
-	  	for (int i = 0; i < fNodePairs.MajorDim();i++) 
-	    {  
-		    dArrayT sigma(fNodalQs.MinorDim(),fNodalQs(fNodePairs(i,1)));
+			if (j == 0)
+			{
+				if (!fPairSpace.IsAllocated())
+				{
+					fPairSpace.Dimension(fNodePairs.MajorDim(),fNodalQs.MinorDim());
+					iPairSpace.Dimension(fNodePairs.MajorDim());
+				}
+				fPairSpace = 0.;
+				iPairSpace = 0;
+			}
+
+		  	for (int i = 0; i < fNodePairs.MajorDim();i++) 
+		    {  
+			    fPairSpace.AddToRowScaled(i,1.,fNodalQs(fNodePairs(i,1)));
+	        }   
+	    }
+	    
+	    
+	    for (int i = 0; i < fNodePairs.MajorDim();i++) 
+		{  
+			dArrayT sigma(fPairSpace.MinorDim(),fPairSpace(i));
+			    
 			if (fPairStatus[i] == kTied && TiedPotentialT::InitiationQ(sigma.Pointer()))     
 			{ 
-		  		fPairStatus[i] = kFree;
-		  		changeQ = true;
+			  	fPairStatus[i] = kFree;
+			  	changeQ = true;
 			}
-        }   
+	   	}   
+	        
         return changeQ;
 #endif
     }	

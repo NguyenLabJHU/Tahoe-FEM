@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.13 2003-01-27 07:00:30 paklein Exp $ */
+/* $Id: TiedNodesT.h,v 1.14 2003-03-03 21:51:11 cjkimme Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -158,6 +158,10 @@ protected:
 	/** status history */
 	iArrayT fPairStatus_last;
 	/*@}*/
+	
+	/** workspaces for evaluating release conditions */
+	dArray2DT fPairSpace;
+	iArrayT iPairSpace;
 	
 	/** equations numbers of the global system */
 //	iArray2DT* fEqnos;
