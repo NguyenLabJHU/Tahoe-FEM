@@ -1,3 +1,4 @@
+/* $Id: AbaqusResultsT.h,v 1.2 2001-09-04 16:18:20 paklein Exp $ */
 /*
    CREATED: S. Wimmer 9 Nov 2000
 
@@ -15,6 +16,8 @@
 #ifndef _ABAQUSRESULTS_T_H_
 #define _ABAQUSRESULTS_T_H_
 
+/* direct members */
+#include <fstream.h>
 #include "iArrayT.h"
 #include "dArrayT.h"
 #include "StringT.h"
