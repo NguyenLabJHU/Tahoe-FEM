@@ -1,5 +1,5 @@
 @
-# $Id: run.batch,v 1.12 2005-01-03 18:05:02 cjkimme Exp $
+# $Id: run.batch,v 1.13 2005-01-25 02:41:55 cjkimme Exp $
 RKPM.2D.0.xml
 #RKPM.2D.1.xml
 RKPM.2D.2.xml
@@ -14,6 +14,6 @@ RKPM.2D.impdyn.xml
 RKPM.2D.contact.0.xml
 RKPM.2D.contact.1.xml
 RKPM.2D.contact.1.rs.xml
-fd_mfparticle.xml
+#fd_mfparticle.xml
 mfnodal_patchtest.xml
 
