@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.39 2002-10-23 19:15:29 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.40 2003-02-08 01:16:28 paklein Exp $ */
 #include "VTKBodyT.h"
 
 /* tahoe toolbox headers */
@@ -97,12 +97,6 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	command = fBodyData->iCommand("Point");
 	if (!command) throw eGeneralFail;
 	iAddCommand(*command);
-// 	command = fBodyData->iCommand("ShowContours");
-// 	if (!command) throw eGeneralFail;
-// 	iAddCommand(*command);
-// 	command = fBodyData->iCommand("HideContours");
-// 	if (!command) throw eGeneralFail;
-// 	iAddCommand(*command);
 	
 	CommandSpecT cut("ShowCuttingPlane", false);
 	ArgSpecT oX(ArgSpecT::double_, "oX");
@@ -170,6 +164,13 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	nodeNumber.SetPrompt("node number");
 	pick.AddArgument(nodeNumber);
 	iAddCommand(pick);
+
+	CommandSpecT toggle_vis("ToggleVisibility");
+	ArgSpecT toggle_vis_mode(ArgSpecT::string_);
+	toggle_vis_mode.SetDefault("list");
+	toggle_vis_mode.SetPrompt("toggle mode (on | off | list)");
+	toggle_vis.AddArgument(toggle_vis_mode);
+	iAddCommand(toggle_vis);	
 }
 
 /* destructor */
@@ -702,7 +703,6 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 
 	     return true;
 	  }
-
 	else if (command.Name() == "HideContours")
 	  {
 	    fBodyData->HideContours(fFrame->Renderer());
@@ -710,8 +710,6 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 	    
 
 	  }
-	
-	
 	else if (command.Name() == "Pick")
 	  {
 	    int nodeNum;
@@ -769,11 +767,50 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 	    else
 	      cout <<"Invalid Point" << endl;
 	    
-	    return true;
-	    
-	    
+	    return true; 
 	  }
-	
+	else if (command.Name() == "ToggleVisibility")
+	{
+		StringT mode;
+		command.Argument(0).GetValue(mode);
+		if (mode == "on")
+			fBodyData->UGridVisible() = true;
+		else if (mode == "off")
+			fBodyData->UGridVisible() = false;
+		else if (mode == "list")
+		{
+			ArrayT<bool>& grid_vis = fBodyData->UGridVisible();
+			const ArrayT<StringT>& grid_names = fBodyData->UGridNames();
+			bool exit = false;
+			StringT line;
+			cout << "Enter (1 | 0 | <RETURN>) for each entry (\".\" to exit):\n";
+			for (int i = 0; !exit && i < grid_vis.Length(); i++)
+			{
+				cout << "(" << i+1 << "/" << grid_vis.Length() << ") " << grid_names[i];
+				if (grid_vis[i])
+					cout << " (1): ";
+				else
+					cout << " (0): ";
+				line.GetLineFromStream(cin);
+				if (line[0] == '0')
+					grid_vis[i] = false;
+				else if (line[0] == '1')
+					grid_vis[i] = true;
+				else if (line[0] == '.')
+					exit = true;
+			}
+		}
+		else
+		{
+			cout << "\n ToggleVisibility: unrecognized mode: " << mode << endl;
+			return false;
+		}
+		
+		/* internal update */
+		fBodyData->UpdateVisibility();
+		
+		return true;
+	}
 	else
 	  /* inherited */
 	  return iConsoleObjectT::iDoCommand(command, line);
