@@ -1,4 +1,4 @@
-/* $Id: InputFEASCIIT.cpp,v 1.12 2002-03-04 18:02:32 paklein Exp $ */
+/* $Id: InputFEASCIIT.cpp,v 1.13 2002-03-04 18:15:07 paklein Exp $ */
 
 #include "InputFEASCIIT.h"
 
@@ -148,8 +148,7 @@ void InputFEASCIIT::ElementGroupNames (ArrayT<StringT>& groupnames) const
   if (groupnames.Length() != fBlockID.Length()) throw eSizeMismatch;
   for (int i=0; i < groupnames.Length(); i++)
     {
-      groupnames[i].Clear();
-      groupnames[i].Append(fBlockID[i]);
+      groupnames[i] = fBlockID[i];
     }
 }
 
@@ -188,10 +187,9 @@ void InputFEASCIIT::ReadCoordinates (dArray2DT& coords, iArrayT& node_id)
 
 int InputFEASCIIT::NumElements(const StringT& name)
 {
-	int ID = atoi(name);
-	int dex = fBlockID.PositionOf(ID);
+	int dex = fBlockID.PositionOf(name);
 	if (dex == -1) {
-		cout << "\n InputFEASCIIT::NumElements: could not find block ID " << ID << endl;
+		cout << "\n InputFEASCIIT::NumElements: could not find block ID " << name << endl;
 		throw eDatabaseFail;
 	}
 	return fBlockNumElem[dex];
@@ -199,10 +197,9 @@ int InputFEASCIIT::NumElements(const StringT& name)
 
 int InputFEASCIIT::NumElementNodes(const StringT& name)
 {
-	int ID = atoi(name);
-	int dex = fBlockID.PositionOf(ID);
+	int dex = fBlockID.PositionOf(name);
 	if (dex == -1) {
-		cout << "\n InputFEASCIIT::NumElementNodes: could not find block ID " << ID << endl;
+		cout << "\n InputFEASCIIT::NumElementNodes: could not find block ID " << name << endl;
 		throw eDatabaseFail;
 	}
 	return fBlockNumElemNode[dex];
@@ -313,10 +310,9 @@ void InputFEASCIIT::ReadConnectivity (const StringT& name, iArray2DT& connects)
 
 void InputFEASCIIT::ReadGeometryCode (const StringT& name, GeometryT::CodeT& geocode)
 {
-	int ID = atoi(name);
-	int dex = fBlockID.PositionOf(ID);
+	int dex = fBlockID.PositionOf(name);
 	if (dex == -1) {
-		cout << "\n InputFEASCIIT::ReadGeometryCode: could not find block ID " << ID << endl;
+		cout << "\n InputFEASCIIT::ReadGeometryCode: could not find block ID " << name << endl;
 		throw eDatabaseFail;
 	}
 	geocode = fBlockGeometry[dex];
@@ -532,10 +528,9 @@ void InputFEASCIIT::ReadElementVariables(int step, const StringT& name, dArray2D
 	if (step < 0) throw eDatabaseFail;
 
 	/* resolve block index */
-	int ID = atoi(name);
-	int dex = fBlockID.PositionOf(ID);
+	int dex = fBlockID.PositionOf(name);
 	if (dex == -1) {
-		cout << "\n InputFEASCIIT::ReadElementVariables: could not find block ID " << ID << endl;
+		cout << "\n InputFEASCIIT::ReadElementVariables: could not find block ID " << name << endl;
 		throw eDatabaseFail;
 	}
 
@@ -569,12 +564,12 @@ void InputFEASCIIT::ReadElementVariables(int step, const StringT& name, dArray2D
 			throw eDatabaseFail;
 
 	/* verify block */
-	int block_ID;
+	StringT block_ID;
 	if (!run.FindString ("Block ID", s) ||
         !s.Tail('=', block_ID)) throw eDatabaseFail;
-	if (ID != block_ID) {
+	if (name != block_ID) {
 		cout << "\n InputFEASCIIT::ReadElementVariables: found block ID " << block_ID << '\n'
-		     <<   "     at position " << dex << " instead of block ID " << ID << endl;
+		     <<   "     at position " << dex << " instead of block ID " << name << endl;
 		throw eDatabaseFail;
 	}
 
@@ -622,7 +617,7 @@ bool InputFEASCIIT::ScanGeometryFile (ifstreamT& in)
 	if (!in.FindString ("Connectivities", s)) return false;
 	for (int i = 0; i < num_blocks; i++)
 	{
-		int nid;
+		StringT nid;
 		if (!in.FindString ("Block ID", s) || !s.Tail ('=', nid)) 
 			return false;
 		fBlockID.Append(nid);
@@ -684,7 +679,7 @@ bool InputFEASCIIT::ScanResultsFile (ifstreamT& in)
 	}
 
 	/* scan element output labels (from first block) */
-	int id;
+	StringT id;
 	if (!in.FindString ("Element data", s) ||
 	    !in.FindString ("Block ID", s) ||
 	    !s.Tail ('=', id) ||

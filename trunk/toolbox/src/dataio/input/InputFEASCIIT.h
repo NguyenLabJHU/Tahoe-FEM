@@ -1,4 +1,4 @@
-/* $Id: InputFEASCIIT.h,v 1.7 2002-03-04 06:29:09 paklein Exp $ */
+/* $Id: InputFEASCIIT.h,v 1.8 2002-03-04 18:15:07 paklein Exp $ */
 #ifndef _INPUTFEASCII_T_H_
 #define _INPUTFEASCII_T_H_
 
@@ -112,7 +112,7 @@ public:
  private:
   StringT fFileRoot;
 
-  AutoArrayT<int> fBlockID;
+  AutoArrayT<StringT> fBlockID;
   AutoArrayT<int> fBlockNumElem;
   AutoArrayT<int> fBlockNumElemNode;
   AutoArrayT<GeometryT::CodeT> fBlockGeometry;
