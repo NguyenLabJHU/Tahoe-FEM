@@ -1,4 +1,4 @@
-/* $Id: ContactT.h,v 1.8 2003-03-02 18:55:11 paklein Exp $ */
+/* $Id: ContactT.h,v 1.9 2003-08-23 16:15:35 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #ifndef _CONTACT_T_H_
 #define _CONTACT_T_H_
@@ -13,6 +13,9 @@
 #include "nVariArray2DT.h"
 
 namespace Tahoe {
+
+/* forward declarations */
+class InverseMapT;
 
 /** base class for contact elements */
 class ContactT: public ElementBaseT
@@ -121,6 +124,9 @@ protected:
 
 	/** set the tracking data */
 	void SetTrackingData(int num_contact, double max_depth);
+
+	/** compute the nodal area associated with each striker node */
+	void ComputeNodalArea(const ArrayT<StringT>& striker_blocks, dArrayT& nodal_area, InverseMapT& inverse_map);
 
 protected:
 

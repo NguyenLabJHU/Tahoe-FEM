@@ -1,9 +1,9 @@
-/* $Id: PenaltyContactDrag2DT.h,v 1.2 2003-08-23 16:15:35 paklein Exp $ */
-#ifndef _PENALTY_CONTACT_DRAG_2D_T_H_
-#define _PENALTY_CONTACT_DRAG_2D_T_H_
+/* $Id: PenaltyContactDrag3DT.h,v 1.1 2003-08-23 16:15:35 paklein Exp $ */
+#ifndef _PENALTY_CONTACT_DRAG_3D_T_H_
+#define _PENALTY_CONTACT_DRAG_3D_T_H_
 
 /* base classes */
-#include "PenaltyContact2DT.h"
+#include "PenaltyContact3DT.h"
 
 /* direct members */
 #include "InverseMapT.h"
@@ -11,12 +11,12 @@
 namespace Tahoe {
 
 /** penalty contact formulation with constant drag force */
-class PenaltyContactDrag2DT: public PenaltyContact2DT
+class PenaltyContactDrag3DT: public PenaltyContact3DT
 {
 public:
 
 	/** constructor */
-	PenaltyContactDrag2DT(const ElementSupportT& support, const FieldT& field);
+	PenaltyContactDrag3DT(const ElementSupportT& support, const FieldT& field);
 
 	/** initialization after constructor */
 	virtual void Initialize(void);
@@ -28,6 +28,9 @@ protected:
 		 	
 	/** construct the residual force vector */
 	virtual void RHSDriver(void);
+
+	/** construct the effective mass matrix */
+	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
 
 protected:
 
@@ -50,4 +53,4 @@ protected:
 
 } /* namespace Tahoe */
 
-#endif /* _PENALTY_CONTACT_DRAG_2D_T_H_ */
+#endif /* _PENALTY_CONTACT_DRAG_3D_T_H_ */
