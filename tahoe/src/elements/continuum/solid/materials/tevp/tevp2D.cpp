@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.13.2.1 2001-06-22 14:18:33 paklein Exp $ */
+/* $Id: tevp2D.cpp,v 1.13.2.2 2001-07-02 21:54:39 paklein Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (04/04/2001) */
 /* Last Updated:  Harold Park (05/29/2001) */
@@ -9,13 +9,6 @@
 
 #include <iostream.h>
 #include <math.h>
-
-//#include "ElasticT.h"
-//DEV
-
-//#include "ShapeFunctionT.h"
-//DEV
-
 #include "FiniteStrainT.h"
 #include "FEManagerT.h"
 #include "ElementCardT.h"
@@ -40,8 +33,6 @@ tevp2D::tevp2D(ifstreamT& in, const FiniteStrainT& element):
   fDt(ContinuumElement().FEManager().TimeStep()),
   fStress(2),
   fModulus(kVoigt),
-//  fShapes(ContinuumElement().ShapeFunction()),
-//DEV
   fLocVel(element.Velocities()),
   fLocDisp(element.Displacements()),
 

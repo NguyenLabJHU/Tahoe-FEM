@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.1.1.1.2.4 2001-06-28 01:24:14 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.1.1.1.2.5 2001-07-02 21:54:37 paklein Exp $ */
 /* created: paklein (11/20/1996)                                          */
 /* Defines the interface for elastic continuum materials.                 */
 
@@ -70,9 +70,6 @@ public:
 	/* thermal accessors */
 	int ThermalLTfNumber(void) const;
 	void SetThermalLTfPtr(const LoadTime* LTfPtr);
-	
-	//double& PlanarDilatationFactor(void);
-	//DEV - this is messy
 	
 	double ThermalElongation(void) const; //percentage
 		//wrapper functions exist to complete construction of fThermal

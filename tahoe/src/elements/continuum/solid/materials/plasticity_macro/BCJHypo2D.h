@@ -36,11 +36,6 @@ class BCJHypo2D : public BCJHypo3D, public Material2DT
 
  protected:
 
-  // deformation gradient
-//  virtual const dMatrixT& DeformationGradient(const LocalArrayT& disp);
-//DEV - let's see who needs this
-
- protected:
   // Cauchy stress in 2D
   dSymMatrixT f2Ds_ij;
 

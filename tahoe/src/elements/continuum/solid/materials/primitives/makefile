@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4.2.1 2001-07-02 16:18:13 paklein Exp $
+# $Id: makefile,v 1.4.2.2 2001-07-02 21:54:38 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -8,6 +8,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	Anisotropic2DT.o \
 	ContinuumMaterialT.o \
+	DetCheckT.o \
 	DiffusionMaterialT.o \
 	FDStructMatT.o \
 	IsotropicT.o \
@@ -29,6 +30,7 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	Anisotropic2DT.cpp \
 	ContinuumMaterialT.cpp \
+	DetCheckT.cpp \
 	DiffusionMaterialT.cpp \
 	FDStructMatT.cpp \
 	IsotropicT.cpp \
@@ -45,6 +47,7 @@ SRC = \
 HDR = \
 	Anisotropic2DT.h \
 	ContinuumMaterialT.h \
+	DetCheckT.h \
 	DiffusionMaterialT.h \
 	FDStructMatT.h \
 	IsotropicT.h \

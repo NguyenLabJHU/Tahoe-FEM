@@ -10,10 +10,6 @@
 #include "ifstreamT.h"
 #include "Utils.h"
 #include "SimplePowerLaw.h"
-
-//#include "ElasticT.h"
-//DEV
-
 #include "FEManagerT.h"
 
 const double sqrt32 = sqrt(3.0/2.0);

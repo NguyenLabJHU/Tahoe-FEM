@@ -1,3 +1,4 @@
+/* $Id: EVPFDBaseT.h,v 1.1.2.4 2001-07-02 21:54:34 paklein Exp $ */
 /*
   File: EVPFDBaseT.h
 */
@@ -64,10 +65,6 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
 
   // allocate all elements at once
   void AllocateElements();
-
-  // deformation gradient
-//  virtual const dMatrixT& DeformationGradient(const LocalArrayT& disp);
-//DEV - let's see who needs this
 
 	// function to compute 3D deformation regardless of dimensionality of the
 	// problem. For 2D, the out-of-plane direction is x3 and the deformation

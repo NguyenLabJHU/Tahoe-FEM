@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:31 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.1.1.1.2.3 2001-07-02 21:54:37 paklein Exp $ */
 /* created: paklein (11/20/1996)                                          */
 
 #include "SolidMaterialT.h"
@@ -9,17 +9,12 @@
 #include "fstreamT.h"
 #include "dArrayT.h"
 #include "dSymMatrixT.h"
-//#include "ElasticT.h"
-//DEV
-
 #include "LocalArrayT.h"
 
 /* constructor */
 SolidMaterialT::SolidMaterialT(ifstreamT& in,
 	const ContinuumElementT& element):
 	ContinuumMaterialT(element)
-//DEV
-//	,fModuli(dSymMatrixT::NumValues(element.InitialCoordinates().MinorDim()))
 {
 	in >> fMassDamp;	if (fMassDamp  <  0.0) throw eBadInputValue;
 	in >> fStiffDamp;	if (fStiffDamp <  0.0) throw eBadInputValue;
@@ -134,14 +129,6 @@ void SolidMaterialT::SetThermalLTfPtr(const LoadTime* LTfPtr)
 {
 	fThermal->SetLTfPtr(LTfPtr);
 }
-
-//DEV - specific to 2D, small strain even, isotropic???
-#if 0
-double& SolidMaterialT::PlanarDilatationFactor(void)
-{
-	return fThermal->ScaleFactor();
-}	
-#endif
 
 double SolidMaterialT::ThermalElongation(void) const //percentage
 {

@@ -1,12 +1,9 @@
-/* $Id: SSSolidMatT.cpp,v 1.1.1.1.2.3 2001-06-29 01:21:18 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.1.1.1.2.4 2001-07-02 21:54:37 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 
 #include "SSSolidMatT.h"
 #include <iostream.h>
 #include "SmallStrainT.h"
-//#include "ShapeFunctionT.h"
-//DEV
-
 #include "dSymMatrixT.h"
 #include "ThermalDilatationT.h"
 
@@ -17,8 +14,6 @@ SSSolidMatT::SSSolidMatT(ifstreamT& in, const SmallStrainT& element):
 	fLocDisp(fSmallStrain.Displacements()),	
 	fStrainTemp(NumSD()),
 	fQ(NumSD()),
-//	fGradU(NumSD()),
-//DEV - not needed with new strain interface???
 	fThermalStrain(NumSD())
 {
 

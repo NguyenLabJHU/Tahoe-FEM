@@ -5,10 +5,6 @@
 #include "LocalCrystalPlast2D.h"
 #include "ElementCardT.h"
 #include "ifstreamT.h"
-
-//#include "ElasticT.h"
-//DEV
-
 #include "FEManagerT.h"
 
 /* spatial dimensions of the problem */
@@ -64,15 +60,3 @@ void LocalCrystalPlast2D::PrintName(ostream& out) const
   // output 2D case name
   out << "    Plane Strain\n";
 }
-
-//DEV - deprecated
-#if 0
-const dMatrixT& LocalCrystalPlast2D::DeformationGradient(const LocalArrayT& disp)
-{ 
-  // expand total deformation gradient: 2D -> 3D (plane strain)
-  fmatx1.Rank2ExpandFrom2D(F(disp));    // fFtot or fFtot_n
-  fmatx1(2, 2) = 1.;
-
-  return fmatx1;
-}
-#endif

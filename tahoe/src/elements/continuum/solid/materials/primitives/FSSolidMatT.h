@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.1.1.1.2.7 2001-07-02 16:12:05 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.1.1.1.2.8 2001-07-02 21:54:37 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 /* Defines the interface large strain materials which account             */
 /* for thermal strains with the multiplicative split:                     */
@@ -10,8 +10,6 @@
 #define _FD_STRUCT_MAT_T_H_
 
 /* base class */
-//#include "FDContinuumT.h"
-//DEV
 #include "StructuralMaterialT.h"
 #include "TensorTransformT.h"
 
@@ -42,10 +40,6 @@ public:
 	/** initialize step. compute thermal dilatation */
 	virtual void InitStep(void);
 
-	/* the shape functions */
-//	const ShapeFunctionT& ShapeFunction(void) const;
-//DEV
-
 	/** required parameter flags */
 	virtual bool Need_F(void) const { return true; };
 	virtual bool Need_F_last(void) const { return false; };
@@ -73,12 +67,6 @@ protected:
 
 	/** Green-Lagrangian strain. \param E return value */
 	void Compute_E(dSymMatrixT& E) const;
-
-//	const dMatrixT& F(const LocalArrayT& disp); 	
-//	const dSymMatrixT& C(void); // right stretch
-//	const dSymMatrixT& b(void); // left stretch
-//	const dSymMatrixT& E(void); // Green-Lagrange strain
-//DEV
 
 	/** acoustical tensor.
 	 * \param normal wave propagation direction
@@ -119,25 +107,11 @@ private:
 	/** reference to finite deformation element group */
 	const FiniteStrainT& fFiniteStrain;
 
-	/* shape functions */
-//	const ShapeFunctionT& fShapes;
-//DEV
-	
-	/* reference to nodal displacements */
-//	const LocalArrayT& fLocDisp;
-//DEV
-
 	/* work space */
 	dSymMatrixT fQ;  /**< return value */
-//	dMatrixT fGradU; /**< displacement gradient matrix */
-//DEV	
 
 	/* multiplicative thermal dilatation F */
 	dMatrixT fFtherminverse;		
 };
-
-/* inlines */
-//inline const ShapeFunctionT& FSSolidMatT::ShapeFunction(void) const { return fShapes; }
-//DEV
 
 #endif /* _FD_STRUCT_MAT_T_H_ */

@@ -1,3 +1,4 @@
+/* $Id: EVPFDBaseT.cpp,v 1.2.2.4 2001-07-02 21:54:34 paklein Exp $ */
 /*
   File: EVPFDBaseT.cpp
 */
@@ -185,11 +186,3 @@ void EVPFDBaseT::SetConstitutiveSolver()
   fInput >> gradtol;
   fSolver->SetGradTol(gradtol);
 }
-
-//DEV - let's see who needs this
-#if 0
-const dMatrixT& EVPFDBaseT::DeformationGradient(const LocalArrayT& disp)
-{ 
-  return F(disp);
-}
-#endif

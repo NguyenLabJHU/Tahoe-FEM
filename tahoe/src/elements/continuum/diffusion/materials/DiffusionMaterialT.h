@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.h,v 1.1.1.1.2.1 2001-06-07 03:01:26 paklein Exp $ */
+/* $Id: DiffusionMaterialT.h,v 1.1.1.1.2.2 2001-07-02 21:54:36 paklein Exp $ */
 /* created: paklein (10/02/1999)                                          */
 /* Defines the interface for materials for diffusion.                     */
 
@@ -16,8 +16,6 @@
 
 /* forward declarations */
 class ifstreamT;
-//class ShapeFunctionT;
-//DEV
 class LocalArrayT;
 class DiffusionT;
 
@@ -44,10 +42,6 @@ public:
 	double Capacity(void) const;
 	
 protected:
-
-	/* interpolation and gradients */
-//	const ShapeFunctionT& fShapes;
-//DEV
 
 	/* local displacements */
 	const LocalArrayT& fLocDisp;

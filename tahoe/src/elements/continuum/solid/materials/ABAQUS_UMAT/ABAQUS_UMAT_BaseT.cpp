@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.2.2.4 2001-06-29 23:55:45 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.2.2.5 2001-07-02 21:54:23 paklein Exp $ */
 /* created: paklein (05/14/2000)                                          */
 
 #include "ABAQUS_UMAT_BaseT.h"
@@ -11,11 +11,6 @@
 #include "fstreamT.h"
 #include "FEManagerT.h"
 #include "ContinuumElementT.h"
-//#include "ElasticT.h"
-//DEV
-
-//#include "ShapeFunctionT.h"
-//DEV
 
 #include "SpectralDecompT.h"
 #include "ThermalDilatationT.h"
@@ -25,8 +20,6 @@ ABAQUS_UMAT_BaseT::	ABAQUS_UMAT_BaseT(ifstreamT& in, const FiniteStrainT& elemen
 	FDStructMatT(in, element),
 	fRunState(ContinuumElement().RunState()),
 	fTangentType(GlobalT::kSymmetric),
-//	fLocLastDisp(element.LastDisplacements()),
-//DEV
 	fModulus(dSymMatrixT::NumValues(NumSD())),
 	fStress(NumSD()),
 	fIPCoordinates(NumSD()),

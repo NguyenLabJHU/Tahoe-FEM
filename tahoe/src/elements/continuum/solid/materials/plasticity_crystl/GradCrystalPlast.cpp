@@ -1,3 +1,4 @@
+/* $Id: GradCrystalPlast.cpp,v 1.1.2.3 2001-07-02 21:54:31 paklein Exp $ */
 /*
   File: GradCrystalPlast.cpp
 */
@@ -15,13 +16,6 @@
 #include "ElementCardT.h"
 #include "ifstreamT.h"
 #include "ContinuumElementT.h"
-
-//#include "ElasticT.h"
-//DEV
-
-//#include "ShapeFunctionT.h"
-//DEV
-
 
 /* spatial dimensions of the problem */
 const int kNSD = 3;
@@ -694,15 +688,6 @@ void GradCrystalPlast::DeltaFPInverse(const dArrayT& dgamma)
       fDFpi.AddScaled(-dgamma[i], fZ[i]);
     }
 }
-
-//DEV - deprecated
-#if 0
-const dMatrixT& GradCrystalPlast::DeformationGradient(const LocalArrayT& disp)
-{
-  ShapeFunction().GradU(disp, fGradU, fIP);
-  return  FDContinuumT::F(fGradU);
-}
-#endif
 
 /* PRIVATE MEMBER FUNCTIONS */
 

@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.1.1.1.2.4 2001-06-29 01:21:19 paklein Exp $ */
+/* $Id: SSSolidMatT.h,v 1.1.1.1.2.5 2001-07-02 21:54:37 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 /* Defines the interface for elastic continuum materials.                 */
 
@@ -6,7 +6,6 @@
 #define _SS_STRUCT_MAT_T_H_
 
 /* base class */
-#include "ContinuumT.h"
 #include "StructuralMaterialT.h"
 
 /* forward declarations */
@@ -75,8 +74,6 @@ private:
 	/* work space */
 	dSymMatrixT	fStrainTemp; // elastic strain (w/o thermal)
 	dSymMatrixT fQ;          // return value
-//	dMatrixT    fGradU;      // displacement gradient matrix
-//DEV - not needed with new strain interface???
 
 	/* thermal strain: e_elastic = e_total - e_thermal */
 	bool        fHasThermalStrain;
