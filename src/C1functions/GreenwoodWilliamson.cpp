@@ -1,4 +1,4 @@
-/* $Id: GreenwoodWilliamson.cpp,v 1.10 2002-05-13 19:19:23 dzeigle Exp $ */
+/* $Id: GreenwoodWilliamson.cpp,v 1.11 2002-05-16 15:53:08 dzeigle Exp $ */
 
 #include "GreenwoodWilliamson.h"
 #include <math.h>
@@ -156,8 +156,7 @@ double GreenwoodWilliamson::DFunction(double x) const
 				throw eBadInputValue;
 			}
 		
-			value = term[2]/term[3];
-	
+			value = term[2]/term[3];	
 		}
 	}
 	else
@@ -242,7 +241,7 @@ double GreenwoodWilliamson::DDFunction(double x) const
 			term[0] = -(fM-x)*(-20.0*fS*gp*m9+7.0*sqrt(2.0)*(fM-x)*gn*m11);
 			term[1] = 8.0*fS*(x-fM)*gp*m5+6.0*sqrt(2.0)*sqmux*gn*m7;
 			term[2] = exp(-expo)*fS*sqrt(PI*(fM-x))*(term[1]+term[0]);
-			term[3] = pow(2.0,11.0/4.0)*pow(fS,2.5)*sqrt(fM-x)*gn*gp;
+			term[3] = pow(2.0,11.0/4.0)*pow(fS,1.5)*sqrt(fM-x)*gn*gp;
 		
 			if (term[3]==0)
 			{
@@ -487,7 +486,7 @@ dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) con
 				term[0] = -(fM-r)*(-20.0*fS*gp*m9+7.0*sqrt(2.0)*(fM-r)*gn*m11);
 				term[1] = 8.0*fS*(r-fM)*gp*m5+6.0*sqrt(2.0)*sqmur*gn*m7;
 				term[2] = exp(-expo)*fS*sqrt(PI*(fM-r))*(term[1]+term[0]);
-				term[3] = pow(2.0,11.0/4.0)*pow(fS,2.5)*sqrt(fM-r)*gn*gp;
+				term[3] = pow(2.0,11.0/4.0)*pow(fS,1.5)*sqrt(fM-r)*gn*gp;
 		
 				if (term[3]==0)
 				{
