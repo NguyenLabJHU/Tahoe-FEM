@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.1 2002-11-22 21:33:14 creigh Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.2 2002-11-23 01:11:32 creigh Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -74,6 +74,7 @@ void StaggeredMultiScaleT::Initialize(void)
 	ua.Dimension (n_en, n_df);
 	ua_n.Dimension (n_en, n_df);
 	del_ua.Dimension (n_en, n_df);
+	del_ua_vec.Dimension (n_en_x_n_df);
 	fCoarse.RegisterLocal(ua);
 	fCoarse.RegisterLocal(ua_n);
 
@@ -81,6 +82,7 @@ void StaggeredMultiScaleT::Initialize(void)
 	ub.Dimension (n_en, n_df);
 	ub_n.Dimension (n_en, n_df);
 	del_ub.Dimension (n_en, n_df);
+	del_ub_vec.Dimension (n_en_x_n_df);
 	fFine.RegisterLocal(ub);
 	fFine.RegisterLocal(ub_n);
 
@@ -167,6 +169,8 @@ void StaggeredMultiScaleT::LHSDriver(void)	// RHS too!
 		Convert.Gradiants 		( fShapes, ua, ua_n, fGRAD_ua, fGRAD_ua_n );
 		Convert.Gradiants 		( fShapes, ub, ub_n, fGRAD_ub, fGRAD_ub_n );
 		Convert.Shapes				(	fShapes, fFEA_Shapes);
+		Convert.Displacements	(	del_ua, del_ua_vec);
+		Convert.Displacements	(	del_ub, del_ub_vec);
 
 		/** Construct data used in BOTH FineScaleT and CoarseScaleT (F,Fa,Fb,grad_ua,...etc.)
 		 * 	Presently, Tahoe cannot exploit this fact.  n and np1 are calculated for coarse field, then
@@ -189,7 +193,7 @@ void StaggeredMultiScaleT::LHSDriver(void)	// RHS too!
 			fLHS = fKb_I;
 
 			/** Compute coarse RHS (or Fint_bar_II in FAXed notes) */
-			fKa_I.Multx ( del_ua, fRHS );
+			fKa_I.Multx ( del_ua_vec, fRHS );
 			fRHS += fFint_I; 
 			fRHS *= -1.0; 
 		
@@ -208,7 +212,7 @@ void StaggeredMultiScaleT::LHSDriver(void)	// RHS too!
 			fLHS = fKa_II;	
 		
 			/** Compute fine RHS (or Fint_bar_II in FAXed notes) */
-			fKb_II.Multx ( del_ub, fRHS );
+			fKb_II.Multx ( del_ub_vec, fRHS );
 			fRHS += fFint_II; 
 			fRHS *= -1.0; 
 		

@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.h,v 1.1 2002-11-22 21:33:14 creigh Exp $ */ 
+/* $Id: StaggeredMultiScaleT.h,v 1.2 2002-11-23 01:11:32 creigh Exp $ */ 
 #ifndef _STAGGERED_MULTISCALE_T_H_ 
 #define _STAGGERED_MULTISCALE_T_H_ 
 //DEVELOPMENT
@@ -131,6 +131,8 @@ private:
 	LocalArrayT ub;     /**< fine scale displacement */
 	LocalArrayT ub_n; 	/**< fine scale displacement from previous increment */
 	LocalArrayT del_ub; /**< the Newton-R update i.e. del_ub = ub - ub_n (ub subcript n+1 implied) */
+	dArrayT			del_ua_vec;  	/** need in vector for i.e. { {ua1_1,ua1_2},{ua2_1,ua2_2}, ... } */
+	dArrayT			del_ub_vec;		/** need in vector for i.e. { {ub1_1,ub1_2},{ub2_1,ub2_2}, ... } */
 	/*@}*/
 	
 	/** \name shape functions wrt to current coordinates */
