@@ -1,4 +1,4 @@
-/* $Id: HarmonicPairT.h,v 1.3 2003-03-31 23:09:14 paklein Exp $ */
+/* $Id: HarmonicPairT.h,v 1.3.18.1 2003-11-04 19:47:18 bsun Exp $ */
 #ifndef _HARMONIC_PAIR_T_H_
 #define _HARMONIC_PAIR_T_H_
 
@@ -14,6 +14,7 @@ public:
 
 	/** constructor */
 	HarmonicPairT(double mass, double R0, double K);
+	HarmonicPairT(void);
 
 	/** \name return interaction functions */
 	/*@{*/
@@ -29,6 +30,15 @@ public:
 
 	/** write properties to output */
 	virtual void Write(ostream& out) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 private:
 

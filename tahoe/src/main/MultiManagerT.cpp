@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.3 2003-11-04 01:13:16 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.3.2.1 2003-11-04 19:47:22 bsun Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT

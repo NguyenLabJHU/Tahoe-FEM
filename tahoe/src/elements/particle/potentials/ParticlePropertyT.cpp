@@ -1,4 +1,4 @@
-/* $Id: ParticlePropertyT.cpp,v 1.7 2003-08-07 21:11:35 fwdelri Exp $ */
+/* $Id: ParticlePropertyT.cpp,v 1.7.6.1 2003-11-04 19:47:18 bsun Exp $ */
 #include "ParticlePropertyT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -6,12 +6,13 @@
 using namespace Tahoe;
 
 namespace Tahoe {
-const bool ArrayT<ParticlePropertyT*>::fByteCopy = true; 
-const bool ArrayT<ParticlePropertyT>::fByteCopy = false; 
+DEFINE_TEMPLATE_STATIC const bool ArrayT<ParticlePropertyT*>::fByteCopy = true; 
+DEFINE_TEMPLATE_STATIC const bool ArrayT<ParticlePropertyT>::fByteCopy = false; 
 }
 
 /* constructor */
 ParticlePropertyT::ParticlePropertyT(void):
+	ParameterInterfaceT("particle_property"),
 	fMass(0),
 	fRange(0)
 {
@@ -23,6 +24,26 @@ void ParticlePropertyT::Write(ostream& out) const
 {
 	out << " Mass. . . . . . . . . . . . . . . . . . . . . . = " << fMass << '\n';
 	out << " Interaction range . . . . . . . . . . . . . . . = " << fRange << '\n';
+}
+
+/* describe the parameters needed by the interface */
+void ParticlePropertyT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	ParameterInterfaceT::DefineParameters(list);
+
+	ParameterT mass(fMass, "mass");
+	mass.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(mass);
+}
+
+/* accept parameter list */
+void ParticlePropertyT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	fMass = list.GetParameter("mass");
 }
 
 namespace Tahoe {

@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.h,v 1.1 2003-10-20 23:31:07 cjkimme Exp $ */
+/* $Id: CSESymAnisoT.h,v 1.1.2.1 2003-11-04 19:47:09 bsun Exp $ */
 #ifndef _CSE_SYM_ANISO_T_H_
 #define _CSE_SYM_ANISO_T_H_
 

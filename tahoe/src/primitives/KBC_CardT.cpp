@@ -1,6 +1,5 @@
-/* $Id: KBC_CardT.cpp,v 1.11 2003-03-31 23:01:56 paklein Exp $ */
+/* $Id: KBC_CardT.cpp,v 1.11.16.1 2003-11-04 19:47:28 bsun Exp $ */
 /* created: paklein (05/23/1996) */
-
 #include "KBC_CardT.h"
 
 #include <iostream.h>
@@ -11,13 +10,12 @@
 
 #include "ScheduleT.h"
 
-/* copy behavior for arrays KBC_CardT's */
-
 using namespace Tahoe;
 
+/* copy behavior for arrays KBC_CardT's */
 namespace Tahoe {
-const bool ArrayT<KBC_CardT*>::fByteCopy = true;
-const bool ArrayT<KBC_CardT>::fByteCopy = false;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<KBC_CardT*>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<KBC_CardT>::fByteCopy = false;
 } /* namespace Tahoe */
 
 /* constructor */

@@ -1,4 +1,6 @@
-/* $Id: J2Simo2D.cpp,v 1.11.20.1 2003-10-15 22:18:22 bsun Exp $ */
+
+/* $Id: J2Simo2D.cpp,v 1.11.20.2 2003-11-04 19:47:16 bsun Exp $ */
+
 /* created: paklein (06/22/1997) */
 #include "J2Simo2D.h"
 #include "StringT.h"

@@ -1,5 +1,8 @@
 
-/* $Id: ParticleT.h,v 1.15.8.4 2003-10-15 22:18:25 bsun Exp $ */
+
+
+/* $Id: ParticleT.h,v 1.15.8.5 2003-11-04 19:47:17 bsun Exp $ */
+
 
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
@@ -31,6 +34,7 @@ public:
 
 	/** constructor */
 	ParticleT(const ElementSupportT& support, const FieldT& field);
+	ParticleT(const ElementSupportT& support);
 
 	/** destructor */
 	~ParticleT(void);
@@ -153,13 +157,29 @@ protected: /* for derived classes only */
 	 *  Initialize */
 	virtual void EchoDamping(ifstreamT& in, ofstreamT& out);
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	/*@}*/
+
+	/** return a new pair property or NULL if the name is invalid */
+	ThermostatBaseT* New_Thermostat(const StringT& name, bool throw_on_fail) const;
+
 protected:
 
 	/** reference ID for sending output */
 	int fOutputID;
-	
-	/** communications manager */
-	CommManagerT& fCommManager;
 
 	/** \name local to global tag map.
 	 * Used for things like neighbor lists */
@@ -181,6 +201,17 @@ protected:
 
 	/** maximum number of steps between reseting neighbor lists */
 	int fReNeighborIncr;
+
+	/** \name periodic boundary conditions */
+	/*@{*/
+	/** periodic lower and upper bounds for each coordinate direction */
+	dArray2DT fPeriodicBounds;
+	
+	/** schedule for stretching of periodic boundaries. The schedules should
+	 * have a value of 1 at time = 0.0 and increase or decrease from there
+	 * to define the stretch in the periodic BC's as a function of time. */
+	ArrayT<const ScheduleT*> fStretchSchedule;
+	/*@}*/
 
 	/** \name particle properties */
 	/*@{*/
@@ -268,6 +299,8 @@ private:
 
 	/** count between resetting neighbor lists */
 	int fReNeighborCounter;
+	int fhas_periodic;
+	dArrayT fPeriodicLengths;
 
 
 

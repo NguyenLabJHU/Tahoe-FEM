@@ -1,4 +1,4 @@
-/* $Id: Contact2DT.cpp,v 1.6 2003-01-29 07:34:30 paklein Exp $ */
+/* $Id: Contact2DT.cpp,v 1.6.20.1 2003-11-04 19:47:10 bsun Exp $ */
 /* created: paklein (05/26/1999) */
 #include "Contact2DT.h"
 
@@ -204,24 +204,18 @@ void Contact2DT::SetActiveStrikers(void)
 /* generate element data (based on current striker/body data) */
 void Contact2DT::SetConnectivities(void)
 {
+	const char caller[] = "Contact2DT::SetConnectivities";
+
 	/* check */
 	if (fConnectivities[0]->MajorDim() != fActiveStrikers.Length())
-	{
-		cout << "\n Contact2DT::SetConnectivities: expecting the number of contact\n"
-		     <<   "    connectivities " << fConnectivities[0]->MajorDim()
-		     << " to equal the number of active strikers "
-		     << fActiveStrikers.Length() << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "number of contact connectivities %d != number of active strikers %d",
+			fConnectivities[0]->MajorDim(), fActiveStrikers.Length());
 
 	/* set interacting nodes */
 	int* pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
-	if (fConnectivities[0]->MajorDim() > 0 && rowlength != 3) {
-		cout << "\n Contact2DT::SetConnectivities: expecting connectivites length 3 not " 
-		     << rowlength << endl;
-		throw ExceptionT::kSizeMismatch;
-	}
+	if (fConnectivities[0]->MajorDim() > 0 && rowlength != 3)
+		ExceptionT::SizeMismatch(caller, "expecting connectivites length 3 not %d", rowlength);
 
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{

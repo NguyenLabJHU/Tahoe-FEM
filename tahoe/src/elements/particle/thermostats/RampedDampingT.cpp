@@ -1,4 +1,4 @@
-/* $Id: RampedDampingT.cpp,v 1.2 2003-04-22 01:23:16 cjkimme Exp $ */
+/* $Id: RampedDampingT.cpp,v 1.2.14.1 2003-11-04 19:47:19 bsun Exp $ */
 #include "RampedDampingT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -16,7 +16,13 @@ using namespace Tahoe;
 RampedDampingT::RampedDampingT(ifstreamT& in, const int& nsd, const double& dt):
 	ThermostatBaseT(in,nsd,dt)
 {
+	SetName("ramped_damping");
 	// Not yet
+}
+
+RampedDampingT::RampedDampingT(void)
+{
+	SetName("ramped_damping");
 }
 
 /* write properties to output */

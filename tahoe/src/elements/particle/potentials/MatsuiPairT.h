@@ -1,4 +1,4 @@
-/* $Id: MatsuiPairT.h,v 1.1 2003-08-07 21:30:28 fwdelri Exp $ */
+/* $Id: MatsuiPairT.h,v 1.1.6.1 2003-11-04 19:47:18 bsun Exp $ */
 #ifndef _MATSUI_PAIR_T_H_
 #define _MATSUI_PAIR_T_H_
 
@@ -11,13 +11,13 @@
 namespace Tahoe {
 
 /* Matsui pair interaction */
-
 class MatsuiPairT: public PairPropertyT
 {
 public:
 
 	/** constructor */
 	MatsuiPairT(double mass, double sqr_q, double two_A, double two_B, double sqr_C, double f, double rc);
+	MatsuiPairT(void);
 
 	/** \name return interaction functions */
 	/*@{*/
@@ -33,6 +33,15 @@ public:
 
 	/** write properties to output */
 	virtual void Write(ostream& out) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.39 2003-08-14 05:57:04 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.39.6.1 2003-11-04 19:47:05 bsun Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -166,7 +166,7 @@ void ElementBaseT::FormLHS(GlobalT::SystemTypeT sys_type)
 			cout << "     Current element information not available\n";
 		cout.flush();
 #endif
-		throw error;
+		ExceptionT::Throw(error);
 	}
 }
 
@@ -198,7 +198,7 @@ void ElementBaseT::FormRHS(void)
 			cout << "     Current element information not available\n";
 		cout.flush();
 #endif
-		throw error;
+		ExceptionT::Throw(error);
 	}
 }
 
@@ -288,8 +288,7 @@ void ElementBaseT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 {
 #if __option(extended_errorcheck)
 	if (nodes.Length() != DOFs.MajorDim() ||
-	    DOFs.MinorDim() != NumDOF()) throw ExceptionT::kSizeMismatch;
-
+	    DOFs.MinorDim() != NumDOF()) ExceptionT::SizeMismatch("ElementBaseT::NodalDOFs");
 #endif
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
@@ -308,13 +307,9 @@ void ElementBaseT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 /* block ID for the specified element */
 const StringT& ElementBaseT::ElementBlockID(int element) const
 {
-	if (element < 0 || element >= NumElements()) {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-		cout << "\n ElementBaseT::ElementBlockID: element number " << element << " is out of range {0,"
-		    << NumElements() - 1 << "}" << endl;
-#endif
-		throw ExceptionT::kOutOfRange;
-	}
+	const char caller[] = "ElementBaseT::ElementBlockID";
+	if (element < 0 || element >= NumElements())
+		ExceptionT::OutOfRange(caller, "element number %d is out of range {0,%d}", element, NumElements() - 1);
 	
 	bool found = false;
 	for (int i = 0; i < fBlockData.Length(); i++)
@@ -322,13 +317,9 @@ const StringT& ElementBaseT::ElementBlockID(int element) const
 		    element <  fBlockData[i].StartNumber() + fBlockData[i].Dimension())
 			return fBlockData[i].ID();
 
-	if (!found) {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-		cout << "\n ElementBaseT::ElementBlockID: could not resolve block ID for element "
-		     << element << endl;
-#endif
-		throw ExceptionT::kGeneralFail;
-	}
+	if (!found)
+		ExceptionT::GeneralFail(caller, "could not resolve block ID for element %d", element);
+
 	return fBlockData[0].ID(); /* dummy */
 }
 
@@ -572,15 +563,8 @@ void ElementBaseT::ReadConnectivity(void)
 	    
 	    /* consistency check */
 	    if (num_nodes != 0 && nen != num_nodes)
-		{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-			cout << "\n ElementBaseT::ReadConnectivity: minor dimension "
-                 << num_nodes << " of block " << b+1 << '\n';
-			cout <<   "     does not match dimension of previous blocks "
-                 << nen << endl;
-#endif                 
-			throw ExceptionT::kBadInputValue;
-		}
+			ExceptionT::BadInputValue("ElementBaseT::ReadConnectivity",
+				"minor dimension %d of block %d does not match previous %d", num_nodes, b+1, nen);
 	    
 	    /* store block data */
 	    fBlockData[b].Set(elem_ID[b], elem_count, num_elems, matnums[b] - 1); // offset
@@ -690,7 +674,7 @@ const ElementBlockDataT& ElementBaseT::BlockData(const StringT& block_ID) const
 
 		cout.flush();
 #endif
-		throw ExceptionT::kBadInputValue;
+		ExceptionT::BadInputValue("ElementBaseT::BlockData");
 	}
 
 	/* return */
@@ -766,7 +750,8 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 /* set element cards array */
 void ElementBaseT::SetElementCards(void)
 {
-  if (fConnectivities.Length() != fEqnos.Length())
+	const char caller[] = "ElementBaseT::SetElementCards";
+	if (fConnectivities.Length() != fEqnos.Length())
     {
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
       cout << "ElementBaseT::SetElementCards length mismatch ";
@@ -774,7 +759,7 @@ void ElementBaseT::SetElementCards(void)
       cout << "\n fConnectivities length = " << fConnectivities.Length();
       cout << "\n          fEqnos length = " << fEqnos.Length() << endl;
 #endif
-      throw ExceptionT::kSizeMismatch;
+		ExceptionT::SizeMismatch(caller);
     }
 
 	/* loop over blocks to set pointers */
@@ -796,7 +781,7 @@ void ElementBaseT::SetElementCards(void)
 		    cout << "\n  blockconn dim = " << blockconn->MajorDim() << " " << blockconn->MinorDim();
 		    cout << "\n blockeqnos dim = " << blockeqnos.MajorDim() << " " << blockeqnos.MinorDim() << endl;
 #endif
-		    throw ExceptionT::kSizeMismatch;
+		    ExceptionT::SizeMismatch(caller);
 		  }
 
 		for (int j = 0; j < dim; j++)
@@ -822,7 +807,7 @@ void ElementBaseT::SetElementCards(void)
 				cout <<   "     (" << j + 1 << " in block " <<  i + 1 << ") of group "
 				     << fSupport.ElementGroupNumber(this) + 1 << " are out of range" << endl;
 #endif
-				throw ExceptionT::kBadInputValue;
+				ExceptionT::BadInputValue(caller);
 			}
 
 			count ++; /* next element */

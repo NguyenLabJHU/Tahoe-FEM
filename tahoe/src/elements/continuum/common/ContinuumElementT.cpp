@@ -1,4 +1,6 @@
-/* $Id: ContinuumElementT.cpp,v 1.28 2003-06-09 06:49:33 paklein Exp $ */
+
+/* $Id: ContinuumElementT.cpp,v 1.28.8.1 2003-11-04 19:47:11 bsun Exp $ */
+
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -14,6 +16,7 @@
 #include "iAutoArrayT.h"
 #include "OutputSetT.h"
 #include "ScheduleT.h"
+#include "ParameterContainerT.h"
 
 //TEMP: all this for general traction BC implementation?
 #include "VariArrayT.h"
@@ -40,12 +43,26 @@ ContinuumElementT::ContinuumElementT(const ElementSupportT& support,
 	fLocDisp(LocalArrayT::kDisp),
 	fDOFvec(NumDOF())
 {
+	SetName("continuum_element");
 	ifstreamT& in = ElementSupport().Input();
 	ostream&  out = ElementSupport().Output();
 		
 	/* control parameters */
 	in >> fGeometryCode; //TEMP - should actually come from the geometry database
 	in >> fNumIP;
+}
+
+/* constructor */
+ContinuumElementT::ContinuumElementT(const ElementSupportT& support):
+	ElementBaseT(support),
+	fMaterialList(NULL),
+	fBodySchedule(NULL),
+	fTractionBCSet(0),
+	fShapes(NULL),
+	fLocInitCoords(LocalArrayT::kInitCoords),
+	fLocDisp(LocalArrayT::kDisp)
+{
+	SetName("continuum_element");
 }
 
 /* destructor */
@@ -1103,9 +1120,139 @@ bool ContinuumElementT::CheckMaterialOutput(void) const
 	return true;
 }
 
+
+/* information about subordinate parameter lists */
+void ContinuumElementT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ElementBaseT::DefineSubs(sub_list);
+
+	/* geometry and integration rule (inline) */
+	sub_list.AddSub("element_geometry", ParameterListT::Once, true);
+
+	/* optional body force */
+	sub_list.AddSub("body_force", ParameterListT::ZeroOrOnce);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void ContinuumElementT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	/* geometry and integration rule (inline) */
+	if (sub == "element_geometry")
+	{
+		/* choice */
+		order = ParameterListT::Choice;
+	
+		/* element geometries */
+		sub_sub_list.AddSub("line");
+		sub_sub_list.AddSub("quadrilateral");
+		sub_sub_list.AddSub("triangle");
+		sub_sub_list.AddSub("hexahedron");
+		sub_sub_list.AddSub("tetrahedron");
+	}
+	else
+		ElementBaseT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
+{
+	/* body force */
+	if (list_name == "body_force")
+	{
+		ParameterContainerT* body_force = new ParameterContainerT("body_force");
+	
+		/* schedule number */
+		body_force->AddParameter(ParameterT::Integer, "schedule");
+	
+		/* body force vector */
+		body_force->AddSub("Double", ParameterListT::OnePlus); 		
+		
+		return body_force;
+	}
+	else if (list_name == "line")
+	{
+		ParameterContainerT* line = new ParameterContainerT("line");
+	
+		/* integration rules */
+		ParameterT num_ip(ParameterT::Integer, "num_ip");
+		num_ip.AddLimit(1, LimitT::Only);
+		num_ip.AddLimit(2, LimitT::Only);
+		num_ip.AddLimit(3, LimitT::Only);
+		num_ip.AddLimit(4, LimitT::Only);
+		num_ip.SetDefault(2);
+		line->AddParameter(num_ip);
+
+		return line;
+	}
+	else if (list_name == "quadrilateral")
+	{
+		ParameterContainerT* quad = new ParameterContainerT("quadrilateral");
+	
+		/* integration rules */
+		ParameterT num_ip(ParameterT::Integer, "num_ip");
+		num_ip.AddLimit(1, LimitT::Only);
+		num_ip.AddLimit(4, LimitT::Only);
+		num_ip.AddLimit(5, LimitT::Only);
+		num_ip.AddLimit(9, LimitT::Only);
+		num_ip.AddLimit(16, LimitT::Only);
+		num_ip.SetDefault(4);
+		quad->AddParameter(num_ip);
+
+		return quad;
+	}
+	else if (list_name == "triangle")
+	{
+		ParameterContainerT* tri = new ParameterContainerT("triangle");
+	
+		/* integration rules */
+		ParameterT num_ip(ParameterT::Integer, "num_ip");
+		num_ip.AddLimit(1, LimitT::Only);
+		num_ip.AddLimit(4, LimitT::Only);
+		num_ip.AddLimit(6, LimitT::Only);
+		num_ip.SetDefault(1);
+		tri->AddParameter(num_ip);
+
+		return tri;
+	}
+	else if (list_name == "hexahedron")
+	{
+		ParameterContainerT* hex = new ParameterContainerT("hexahedron");
+	
+		/* integration rules */
+		ParameterT num_ip(ParameterT::Integer, "num_ip");
+		num_ip.AddLimit(1, LimitT::Only);
+		num_ip.AddLimit(8, LimitT::Only);
+		num_ip.AddLimit(9, LimitT::Only);
+		num_ip.AddLimit(27, LimitT::Only);
+		num_ip.AddLimit(64, LimitT::Only);
+		num_ip.SetDefault(8);
+		hex->AddParameter(num_ip);
+
+		return hex;
+	}
+	else if (list_name == "tetrahedron")
+	{
+		ParameterContainerT* tet = new ParameterContainerT("tetrahedron");
+	
+		/* integration rules */
+		ParameterT num_ip(ParameterT::Integer, "num_ip");
+		num_ip.AddLimit(1, LimitT::Only);
+		num_ip.AddLimit(4, LimitT::Only);
+		num_ip.SetDefault(1);
+		tet->AddParameter(num_ip);
+
+		return tet;
+	}
+	else /* inherited */
+		return ElementBaseT::NewSub(list_name);
+}
+
+
 /***********************************************************************
-* Private
-***********************************************************************/
+ * Private
+ ***********************************************************************/
 
 /* update traction BC data */
 void ContinuumElementT::SetTractionBC(void)

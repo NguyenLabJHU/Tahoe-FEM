@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.14 2002-11-25 07:13:40 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.14.22.1 2003-11-04 19:47:29 bsun Exp $ */
 /* created: paklein (03/23/1997) */
 #include "GlobalMatrixT.h"
 #include <iostream.h>
@@ -18,8 +18,7 @@ GlobalMatrixT::GlobalMatrixT(ostream& out, int check_code):
 	fStartEQ(0),
 	fIsFactorized(0)
 {
-	if (fCheckCode < kNoCheck ||
-	    fCheckCode > kPrintSolution) ExceptionT::BadInputValue();
+
 }
 
 GlobalMatrixT::GlobalMatrixT(const GlobalMatrixT& source):
