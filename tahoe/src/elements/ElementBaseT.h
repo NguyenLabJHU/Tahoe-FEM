@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.13 2002-07-19 20:17:20 hspark Exp $ */
+/* $Id: ElementBaseT.h,v 1.14 2002-07-20 08:01:13 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -183,10 +183,17 @@ public:
 	 * the corresponding ElementBaseT::WriteRestart implementation. */
 	virtual void ReadRestart(istream& in);
 
-	/* element card data */
-	int CurrElementNumber(void) const;
+	/** \name element card data */
+	/*@{*/
+	/** information about a particular element */
 	ElementCardT& ElementCard(int card) const;
+
+	/** index of the "current" element */
+	int CurrElementNumber(void) const;
+
+	/** reference "current" element */
 	ElementCardT& CurrentElement(void) const;
+	/*@}*/
 
 	/** returns 1 if DOF's are interpolants of the nodal values */
 	virtual int InterpolantDOFs(void) const;
