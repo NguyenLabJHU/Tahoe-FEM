@@ -1,5 +1,5 @@
 %&LaTeX
-% $Id: execution.tex,v 1.2 2001-03-19 16:46:24 paklein Exp $
+% $Id: execution.tex,v 1.3 2001-03-26 09:12:19 paklein Exp $
 
 \section{Execution procedures}
 \tahoe has be ported to a number of platforms.  The code can be executed in
@@ -21,11 +21,11 @@ additional files are needed to run parallel analysis, but \tahoe generates
 these for the user.  The user must only be aware of which files are needed
 on the machine for each mode of operation at the time of execution.  The
 following sections explain how to execute \tahoe with the following command
-line optons:
+line options:
 \begin{center}
 \begin{tabular}[c]{c c}
 \parbox[b]{2.0in}{\raggedleft \texttt{tahoe}} &\parbox[b]{2.0in}{}\\
-&\parbox[b]{2.0in}{\texttt{-f [\textsl{job name}].in}}\\
+&\parbox[b]{2.0in}{\texttt{-f} $\sbrkt{\textit{job name}}$\texttt{.in}}\\
 &\parbox[b]{2.0in}{\texttt{-decomp}}\\
 &\parbox[b]{2.0in}{\texttt{-join}}\\
 &\parbox[b]{2.0in}{\texttt{-split\_io}}\\
@@ -37,9 +37,9 @@ line optons:
 For running serially, the user must have:
 \begin{center}
 \begin{tabular}[c]{c c}
-\parbox[b]{3.0in}{\raggedleft \texttt{[\textsl{job name}].in}} 
+\parbox[b]{3.0in}{\raggedleft $\sbrkt{\textit{job name}}$\texttt{.in}} 
 &\parbox[b]{3.0in}{parameters file}\\
-\parbox[b]{3.0in}{\raggedleft \texttt{[\textsl{geometry name}].exo}} 
+\parbox[b]{3.0in}{\raggedleft $\sbrkt{\textit{geometry name}}$\texttt{.exo}} 
 &\parbox[b]{3.0in}{geometry file (\textsf{ExodusII}~\cite{ExodusII})}\\
 \end{tabular}
 \end{center}
@@ -47,14 +47,14 @@ The file extensions are not interpreted by \tahoe, so these may be selected
 arbitrarily.  The resulting output files will be:
 \begin{center}
 \begin{tabular}[c]{c c}
- \parbox[b]{3.0in}{\raggedleft \texttt{[\textsl{job name}].out}} 
+ \parbox[b]{3.0in}{\raggedleft $\sbrkt{\textit{job name}}$\texttt{.out}} 
 &\parbox[b]{3.0in}{``echo'' file of parameters file}\\
- \parbox[b]{3.0in}{\raggedleft \texttt{[\textsl{job name}].io[\textsl{j}].exo}} 
+ \parbox[b]{3.0in}{\raggedleft $\sbrkt{\textit{job name}}$\texttt{.io}$\sbrkt{\textit{j}}$\texttt{.exo}} 
 &\parbox[b]{3.0in}{results data (\textsf{ExodusII}~\cite{ExodusII})}\\
 \end{tabular}
 \end{center}
-The results data have labels \texttt{\textsl{j}}, 
-where \texttt{\textsl{j}} = 0, \ldots, (number of output groups $-$ 1).  
+The results data have labels $j$,  
+where $j = 0,\ldots,\rbrkt{\textit{number of output groups} - 1}$.
 The number of output groups is determined by the type of analysis. 
 For the simplest case, each element group will produce one output group,
 and the sequence of output groups will be the same as the sequence the
@@ -68,10 +68,10 @@ executable with the number of processors specified as one.
 \subsection{Parallel analysis}
 \label{sect.parallel.analysis}
 The procedure for launching parallel executables varies depending on the
-user environment.  In the examples that follow, we assume parallel
+user environment. In the examples that follow, we assume parallel
 executables are launched using the \texttt{mpirun} command:
 \begin{center}
-	\texttt{\% mpirun -np 16 tahoe}
+	\texttt{\% mpirun -np} $\sbrkt{\textit{number of processors}}$ \texttt{tahoe}
 \end{center}
 Users should substitute the appropriate command, such as \texttt{dmpirun} 
 or \texttt{yod}, depending on the environment.
@@ -93,9 +93,9 @@ The identical input files (parameters and geometry) are needed to run in
 parallel as are needed to run in serial.
 \begin{center}
 \begin{tabular}[c]{c c}
- \parbox[b]{3.0in}{\raggedleft \texttt{[\textsl{job name}].in}}
+ \parbox[b]{3.0in}{\raggedleft $\sbrkt{\textit{job name}}$\texttt{.in}}
 &\parbox[b]{3.0in}{parameters file}\\
- \parbox[b]{3.0in}{\raggedleft \texttt{[\textsl{geometry name}].exo}}
+ \parbox[b]{3.0in}{\raggedleft $\sbrkt{\textit{geometry name}}$\texttt{.exo}}
 &\parbox[b]{3.0in}{geometry file (\textsf{ExodusII}~\cite{ExodusII})}\\
 \end{tabular}
 \end{center}
@@ -111,21 +111,20 @@ any of these parameters are changed, the user must delete any of the
 corresponding decomposition files.  The decomposition files are:
 \begin{center}
 \begin{tabular}[c]{c c}
- \parbox[b]{3.0in}{\raggedleft \texttt{[\textsl{geometry name}].io.exo}}
+ \parbox[b]{3.0in}{\raggedleft $\sbrkt{\textit{geometry name}}$\texttt{.io.exo}}
 &\parbox[b]{3.0in}{global geometry file}\\
- \parbox[b]{3.0in}{\raggedleft \texttt{[\textsl{geometry name}].n[\textsl{M}].io.map}}
+ \parbox[b]{3.0in}{\raggedleft $\sbrkt{\textit{geometry name}}$\texttt{.n}$\sbrkt{\textit{M}}$\texttt{.io.map}}
 &\parbox[b]{3.0in}{output map}\\
- \parbox[b]{3.0in}{\raggedleft \texttt{[\textsl{geometry name}].io.ID}}
+ \parbox[b]{3.0in}{\raggedleft $\sbrkt{\textit{geometry name}}$\texttt{.io.ID}}
 &\parbox[b]{3.0in}{block ID's per output group}\\
- \parbox[b]{3.0in}{\raggedleft \texttt{[\textsl{geometry name}].n[\textsl{M}].part[\textsl{i}]}}
+ \parbox[b]{3.0in}{\raggedleft $\sbrkt{\textit{geometry name}}$\texttt{.n}$\sbrkt{{M}}$\texttt{.part}$\sbrkt{\textit{i}}$}
 &\parbox[b]{3.0in}{decomposition data file}\\
- \parbox[b]{3.0in}{\raggedleft \texttt{[\textsl{geometry name}].n[\textsl{M}].p[\textsl{i}].exo}}
+ \parbox[b]{3.0in}{\raggedleft $\sbrkt{\textit{geometry name}}$\texttt{.n}$\sbrkt{\textit{M}}$\texttt{.p}$\sbrkt{\textit{i}}$\texttt{.exo}}
 &\parbox[b]{3.0in}{partial geometry file}
 \end{tabular}
 \end{center}
-In the file names above, \texttt{\textsl{M}} is the total number of partitions, 
-while \texttt{\textsl{i}} =
-0, \ldots, \texttt{\textsl{M}} $-$ 1.  
+In the file names above, $M$ is the total number of partitions, 
+while $i = 0,\ldots,\rbrkt{M - 1}$.
 If any decomposition files are not found, \tahoe will attempt
 to create all of them.  If \tahoe is launched on a non-limited memory
 machine, mesh decomposition is done serially on the processor with rank 0
@@ -134,17 +133,17 @@ decomposition files already exist, the decomposition phase is not repeated.
 \tahoe produces the following files during execution:
 \begin{center}
 \begin{tabular}[c]{c c}
- \parbox[b]{3.0in}{\raggedleft \texttt{[\textsl{job name}].p[\textsl{i}].out}}
+ \parbox[b]{3.0in}{\raggedleft $\sbrkt{\textit{job name}}$\texttt{.p}$\sbrkt{\textit{i}}$\texttt{.out}}
 &\parbox[b]{3.0in}{``echo'' file of parameters file}\\
- \parbox[b]{3.0in}{\raggedleft \texttt{[\textsl{job nam}e].p[\textsl{i}].log}}
+ \parbox[b]{3.0in}{\raggedleft $\sbrkt{\textit{job name}}$\texttt{.p}$\sbrkt{\textit{i}}$\texttt{.log}}
 &\parbox[b]{3.0in}{message passing log file}\\
- \parbox[b]{3.0in}{\raggedleft \texttt{console[\textsl{i}]}}
+ \parbox[b]{3.0in}{\raggedleft \texttt{console}$\sbrkt{\textit{i}}$}
 &\parbox[b]{3.0in}{redirected console output}\\
- \parbox[b]{3.0in}{\raggedleft \texttt{[\textsl{job name}].io[\textsl{j}].exo}}
+ \parbox[b]{3.0in}{\raggedleft $\sbrkt{\textit{job name}}$\texttt{.io}$\sbrkt{\textit{j}}$\texttt{.exo}}
 &\parbox[b]{3.0in}{results data (\textsf{ExodusII}~\cite{ExodusII})}
 \end{tabular}
 \end{center}
-where \texttt{\textsl{j}} = 0, \ldots, (number of output groups $-$ 1).  
+where $j = 0,\ldots,\rbrkt{\textit{number of output groups} - 1}$.
 The output from the
 standard output streams is not redirected to a file for the processor with
 rank 0, that is, no \texttt{console0} file is created.  Any prompts for use input
@@ -153,7 +152,8 @@ may opt to redirect the screen output to a file, called \texttt{console0} for
 consistency.  The following input makes use of the \texttt{-f} command line option
 to specify the name of the parameters file:
 \begin{center}
-\texttt{\% mpirun -np 16 tahoe -f [\textsl{job name}].in \textgreater~console0 \&}
+\texttt{\% mpirun -np} $\sbrkt{\textit{number of processors}}$ \texttt{tahoe -f}
+$\sbrkt{\textit{job name}}$\texttt{.in \textgreater~console0 \&}
 \end{center}
 On non-limited memory machines, the output from the distributed output
 groups is collected on processors as designated in the output map file. 
@@ -162,20 +162,20 @@ data is required.  Running \tahoe in this mode does require more memory.
 \tahoe will leave the output in its decomposed form if launched with the
 \texttt{-split\_io} command line option:
 \begin{center}
-\texttt{\% mpirun -np 16 tahoe -split\_io}
+\texttt{\% mpirun -np} $\sbrkt{\textit{number of processors}}$ \texttt{tahoe -split\_io}
 \end{center}
 When running on a limited memory machine, or when specifying the 
 \texttt{-split\_io}
 option, \tahoe will generate distributed results files:
 \begin{center}
 \begin{tabular}[c]{c c}
- \parbox[b]{3.0in}{\raggedleft \texttt{[\textsl{job name}].p[\textsl{i}].io[\textsl{j}].exo}}
+ \parbox[b]{3.0in}{\raggedleft $\sbrkt{\textit{job name}}$\texttt{.p}$\sbrkt{\textit{i}}$\texttt{.io}$\sbrkt{\textit{j}}$\texttt{.exo}}
 &\parbox[b]{3.0in}{distributed results file}
 \end{tabular}
 \end{center}
-where \texttt{\textsl{i}} = 0, \ldots, (number of partitions $-$ 1) and 
-\texttt{\textsl{j}} = 0, \ldots, (number of output
-groups $-$ 1).  The distributed results files must then be joined in a
+where $i = 0,\ldots,\rbrkt{\textit{number of partitions} - 1}$ and 
+$j = 0,\ldots,\rbrkt{\textit{number of output groups} - 1}$.
+The distributed results files must then be joined in a
 separate post-processing step to produce the results files that would have
 been written by a serial execution of the same calculation.
 
