@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.2 2001-07-06 22:28:02 paklein Exp $ */
 /* created: paklein (09/10/1998)                                          */
 /* 2D array with arbitrary "row" lengths. NO functions are provided       */
 /* for data retrieval. derived classes should use RowAlias()              */
@@ -14,6 +14,7 @@
 #include "ArrayT.h"
 #include "nArray2DT.h"
 #include "AutoFill2DT.h"
+#include "RowAutoFill2DT.h"
 
 template <class TYPE>
 class RaggedArray2DT
@@ -44,6 +45,7 @@ public:
 	/* assigment */
 	RaggedArray2DT<TYPE>& operator=(const RaggedArray2DT& source);
 	void Copy(const AutoFill2DT<TYPE>& source);
+	void Copy(const RowAutoFill2DT<TYPE>& source);
 	void Copy(const ArrayT<int>& rowcounts, const ArrayT<TYPE*>& data);
 	void CopyCompressed(const AutoFill2DT<TYPE>& source); // removes empty rows
 
@@ -278,6 +280,47 @@ RaggedArray2DT<TYPE>& RaggedArray2DT<TYPE>::operator=(const RaggedArray2DT& sour
 
 template <class TYPE>
 void RaggedArray2DT<TYPE>::Copy(const AutoFill2DT<TYPE>& source)
+{
+	/* total memory size */
+	fMajorDim = source.MajorDim();		
+	fPtrs.Allocate(fMajorDim + 1);
+	fData.Allocate(source.LogicalSize());
+
+	fMaxMinorDim = 0;
+	TYPE** pptrs = fPtrs.Pointer();
+	TYPE*  pdata = fData.Pointer();
+	for (int i = 0; i < fMajorDim; i++)
+	{
+		/* copy data */
+		int length = source.MinorDim(i);
+		if (length > 0)
+		{
+			memcpy(pdata, source(i), sizeof(TYPE)*length);
+	
+			/* track size */
+			fMaxMinorDim = (length > fMaxMinorDim) ? length : fMaxMinorDim;
+		}		
+		
+		/* set pointer */
+		*pptrs = pdata;			
+		pdata += length;
+		
+		pptrs++;
+	}
+	
+	/* set trailing pointer */
+	*pptrs = pdata;
+	
+	/* memory check */
+	if (pdata - fData.Pointer() != fData.Length())
+	{
+		cout << "\n RaggedArray2DT<TYPE>::Copy: memory partitioning error" << endl;
+		throw eGeneralFail;
+	}
+}
+
+template <class TYPE>
+void RaggedArray2DT<TYPE>::Copy(const RowAutoFill2DT<TYPE>& source)
 {
 	/* total memory size */
 	fMajorDim = source.MajorDim();		
