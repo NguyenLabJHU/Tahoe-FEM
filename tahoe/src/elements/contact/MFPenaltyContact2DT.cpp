@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.15 2005-03-12 08:38:09 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.16 2005-03-12 10:05:42 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
@@ -46,7 +46,7 @@ MFPenaltyContact2DT::MFPenaltyContact2DT(const ElementSupportT& support):
 void MFPenaltyContact2DT::RegisterOutput(void)
 {
 	/* inherited */
-	PenaltyContact2DT::RegisterOutput();
+//	PenaltyContact2DT::RegisterOutput();
 	
 	/* write contact forces */
 	if (fOutputForce) {
@@ -57,9 +57,12 @@ void MFPenaltyContact2DT::RegisterOutput(void)
 		n_labels[1] = "D_Y";
 		n_labels[2] = "F_X";
 		n_labels[3] = "F_Y";
+
+		/* all meshless nodes */
+		const iArrayT& all_nf_nodes = (fSCNI) ? fSCNI->NodesUsed() : fMeshFreeSupport->NodesUsed();
 	
 		/* register output */
-		OutputSetT output_set(GeometryT::kPoint, fNodesUsed2D, n_labels);
+		OutputSetT output_set(all_nf_nodes, n_labels);
 		fOutputID = ElementSupport().RegisterOutput(output_set);	
 	}
 }
@@ -68,7 +71,7 @@ void MFPenaltyContact2DT::RegisterOutput(void)
 void MFPenaltyContact2DT::WriteOutput(void)
 {
 	/* inherited */
-	PenaltyContact2DT::WriteOutput();
+//	PenaltyContact2DT::WriteOutput();
 
 	/* write contact forces */
 	if (fOutputForce) {
@@ -78,14 +81,12 @@ void MFPenaltyContact2DT::WriteOutput(void)
 
 		/* reconstruct displacement field */
 		if (fSCNI) {
-			iArrayT all(fNodesUsed2D.Length());
+			iArrayT all(fForce.MajorDim());
 			all.SetValueToPosition();
 			fSCNI->InterpolatedFieldAtNodes(all, disp);
 		}
 		else {
-			iArrayT tmp;
-			tmp.Alias(fNodesUsed2D);
-			fElementGroup->NodalDOFs(tmp, disp);
+			fElementGroup->NodalDOFs(fMeshFreeSupport->NodesUsed(), disp);
 		}
 
 		/* write in forces */
@@ -93,8 +94,7 @@ void MFPenaltyContact2DT::WriteOutput(void)
 		n_values.BlockColumnCopyAt(fForce, NumSD());
 		
 		/* write output */
-		dArray2DT e_values;
-		ElementSupport().WriteOutput(fOutputID, n_values, e_values);
+		ElementSupport().WriteOutput(fOutputID, n_values);
 	}
 }
 
@@ -177,12 +177,11 @@ void MFPenaltyContact2DT::TakeParameterList(const ParameterListT& list)
 	/* write contact forces */
 	fOutputForce = list.GetParameter("output_force");
 	if (fOutputForce) {
-	
+		
 		/* all meshless nodes */
 		const iArrayT& all_nf_nodes = (fSCNI) ? fSCNI->NodesUsed() : fMeshFreeSupport->NodesUsed();
 
 		/* set work space */
-		fNodesUsed2D.Alias(all_nf_nodes.Length(), 1, all_nf_nodes.Pointer());
 		fForce.Dimension(all_nf_nodes.Length(), NumSD());
 		fNodesUsed_inv.SetMap(all_nf_nodes);
 	}
