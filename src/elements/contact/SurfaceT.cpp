@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.14 2001-05-23 14:45:06 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.15 2001-05-31 00:37:27 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -95,15 +95,17 @@ void SurfaceT::PrintKinematicData(ostream& out)
             << " nodes:" << setw(kIntWidth) << fGlobalNodes.Length() << '\n' ;
 
 	for (int i = 0 ; i < fNormals.MajorDim() ; i++) {
-		double* position = fCoordinates(i);
-		out << i << " position: " << position[0] << ", "
-		                          << position[1] << ", "
-		                          << position[2] << '\n';
-		double* normal = fNormals(i);
-		out << i << " normal  : " << normal[0] << ", "
-		                          << normal[1] << ", "
-		                          << normal[2] << '\n';
+		out << i << " position: " ;
+		for (int j = 0 ; j < fNumSD ; j++) {
+			out << fCoordinates(i)[j] << ", ";
+		}
 		out << '\n';
+                out << i << " normal  : " ;
+                for (int j = 0 ; j < fNumSD ; j++) {
+                        out << fNormals(i)[j] << ", ";
+                }
+                out << '\n';
+
 	}
 
 }

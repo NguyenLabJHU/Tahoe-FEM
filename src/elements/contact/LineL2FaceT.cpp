@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.15 2001-05-23 14:45:05 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.16 2001-05-31 00:37:26 rjones Exp $ */
 
 #include "LineL2FaceT.h"
 #include "FaceT.h"
@@ -121,6 +121,7 @@ void
 LineL2FaceT::ComputeShapeFunctions
 (const double* local_coordinates, dMatrixT& shape_functions) const
 {
+	shape_functions = 0.0;
 	dArrayT shape_f(2);
 	ComputeShapeFunctions(local_coordinates, shape_f);
         shape_functions(0,0) = shape_f[0];

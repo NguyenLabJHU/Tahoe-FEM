@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.11 2001-05-23 14:45:04 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.12 2001-05-31 00:37:26 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -177,20 +177,10 @@ void ContactElementT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 	/* only necessary for bodies out-of-contact */
 	connects_1.AppendUnique(&fSurfaceLinks);
 	
-cout << "in ConnectsU \n";
 	/* add node-face interactions */
 	for (int i = 0; i < fSurfaces.Length(); i++) {
-cout << "surface " << i << '\n';
 	  const RaggedArray2DT<int>& connectivities   
 		= fSurfaces[i].Connectivities(); 
-for (int j = 0; j < connectivities.MajorDim(); j++) {
-for (int k = 0; k < connectivities.MinorDim(j); k++) {
-cout << connectivities(j)[k] << " ";
-}
-cout << '\n';
-}
-cout << '\n';
-          connects_2.Append(&connectivities);
 	}
 }
 

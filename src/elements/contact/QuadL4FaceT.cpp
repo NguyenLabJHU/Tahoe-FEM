@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.15 2001-05-23 14:45:06 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.16 2001-05-31 00:37:27 rjones Exp $ */
 
 #include "QuadL4FaceT.h"
 #include "FaceT.h"
@@ -166,6 +166,7 @@ void
 QuadL4FaceT::ComputeShapeFunctions
 (const double* local_coordinates, dMatrixT& shape_functions) const
 {
+	shape_functions = 0.0;
 	dArrayT shape_f(4);
 	ComputeShapeFunctions(local_coordinates, shape_f);
 	shape_functions(0,0) = shape_f[0];

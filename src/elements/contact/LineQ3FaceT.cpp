@@ -1,4 +1,4 @@
-/* $Id: LineQ3FaceT.cpp,v 1.1 2001-05-23 14:45:05 rjones Exp $ */
+/* $Id: LineQ3FaceT.cpp,v 1.2 2001-05-31 00:37:26 rjones Exp $ */
 
 #include "LineQ3FaceT.h"
 #include "FaceT.h"
@@ -142,6 +142,7 @@ void
 LineQ3FaceT::ComputeShapeFunctions
 (const double* local_coordinates, dMatrixT& shape_functions) const
 {
+	shape_functions = 0.0;
 	dArrayT shape_f(3);
 	ComputeShapeFunctions(local_coordinates, shape_f);
 	shape_functions(0,0) = shape_f[0];

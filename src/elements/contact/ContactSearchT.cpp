@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.cpp,v 1.10 2001-05-23 14:45:04 rjones Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.11 2001-05-31 00:37:26 rjones Exp $ */
 
 #include "ContactSearchT.h"
 
@@ -158,6 +158,7 @@ bool ContactSearchT::UpdateProjection (void)
   /* track previous node-face pairs and reset others */
   int tag;
   for (i = 0; i < fSurfaces.Length(); i++) {
+        cout << " updating surface " << i << '\n';
         ContactSurfaceT& surface = fSurfaces[i];
         ArrayT<ContactNodeT*>& nodes = surface.ContactNodes();
         for (j = 0; j < nodes.Length(); j++) {
