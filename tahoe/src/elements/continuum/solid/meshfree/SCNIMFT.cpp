@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.32 2004-10-13 00:20:15 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.33 2004-10-24 03:56:37 paklein Exp $ */
 #include "SCNIMFT.h"
 
 
@@ -710,6 +710,14 @@ void SCNIMFT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>&
 	fBoundaryIsTriangulated = (fSD == 2) ? (facetType == GeometryT::kLine) :
 		(facetType == GeometryT::kTriangle);
 	fBoundaryNodes.SortAscending();
+	
+	/* write boundary nodes to output */
+	if (ElementSupport().PrintInput()) {
+		ofstreamT& out = ElementSupport().Output();
+		fBoundaryNodes++;
+		out << "\n " << caller << ": boundary nodes\n" << fBoundaryNodes.wrap(10) << endl;
+		fBoundaryNodes--;
+	}
 	
 	/* don't need this information */
 	facet_numbers.Free();
