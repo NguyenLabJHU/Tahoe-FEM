@@ -1,17 +1,17 @@
-/* $Id: room.h,v 1.1.2.2 2003-05-03 09:08:27 paklein Exp $ */
-#ifndef _ROOM_H_
-#define _ROOM_H_
+/* $Id: basement.h,v 1.1.2.1 2003-05-03 09:08:27 paklein Exp $ */
+#ifndef _BASEMENT_H_
+#define _BASEMENT_H_
 
 /* base class */
 #include "ParameterInterfaceT.h"
 
 using namespace Tahoe;
 
-class room: public ParameterInterfaceT
+class basement: public ParameterInterfaceT
 {
 public:
 
-	room(const StringT& name);
+	basement(const StringT& name);
 
 	/** \name implementation of ParameterInterfaceT */
 	/*@{*/
@@ -21,11 +21,9 @@ public:
 
 private:
 
-	/** \name dimensions */
-	/*@{*/
-	int length;
-	int width;
-	/*@}*/
+	double height_;
+	double length_;
+	double width_;
 };
 
-#endif /* _ROOM_H_ */
+#endif /* _BASEMENT_H_ */

@@ -1,17 +1,17 @@
-/* $Id: lawn.h,v 1.1.2.2 2003-05-03 09:08:27 paklein Exp $ */
-#ifndef _LAWN_H_
-#define _LAWN_H_
+/* $Id: crawl_space.h,v 1.1.2.1 2003-05-03 09:08:27 paklein Exp $ */
+#ifndef _CRAWLSPACE_H_
+#define _CRAWLSPACE_H_
 
 /* base class */
-#include "ParameterInterfaceT.h"
+#include "basement.h"
 
 using namespace Tahoe;
 
-class lawn: public ParameterInterfaceT
+class crawl_space: public basement
 {
 public:
 
-	lawn(void);
+	crawl_space(void);
 
 	/** \name implementation of ParameterInterfaceT */
 	/*@{*/
@@ -21,6 +21,7 @@ public:
 
 private:
 
+	bool sump_pump_;
 };
 
-#endif /* _LAWN_H_ */
+#endif /* _CRAWLSPACE_H_ */
