@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.15 2002-08-17 00:03:08 hspark Exp $ */
+/* $Id: BridgingScaleT.h,v 1.16 2002-08-17 19:28:33 hspark Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -95,8 +95,8 @@ private:
 
 	/** \name bridging scale-related computational functions */
 	/*@{*/
-	/** compute fine scale fields */
-	void ComputeCoarseScaleFields(void);
+	/** compute coarse and fine scale displacement fields */
+	void CoarseFineU(void);
 	/*@}*/
 
 protected:
@@ -125,7 +125,7 @@ protected:
 	dArray2DT fFineScaleU;
 
 	int fTotalNodes;
-	iArray2DT fConnect, fConnectInv;
+	iArray2DT fConnect;
 	ElementMatrixT fElMat;
 	CCSMatrixT fGlobal;
 

@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.20 2002-08-17 00:03:08 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.21 2002-08-17 19:28:33 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -32,7 +32,6 @@ BridgingScaleT::BridgingScaleT(const ElementSupportT& support,
 	fGlobal(support.Output(),1),
 	fMass(ShapeFunction().ParentDomain().NumNodes()),
 	fConnect(solid.NumElements(), solid.NumElementNodes()),
-	fConnectInv(solid.NumElements(), solid.NumElementNodes()),
 	fWtempU(ShapeFunction().ParentDomain().NumNodes(), NumDOF()),
 	fMassInv(ShapeFunction().ParentDomain().NumNodes())
 {
@@ -54,8 +53,8 @@ void BridgingScaleT::Initialize(void)
 	/* stream */
 	ostream& out = ElementSupport().Output();
 	
-	/* current coordinates of all nodes/points in the calculation */
-	const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
+	/* initial coordinates of all nodes/points in the calculation */
+	const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
 
 	/* distinguish FEM nodes vs. atoms to separate their respective coordinates */
 	iArrayT atoms_used, nodes_used;
@@ -66,11 +65,6 @@ void BridgingScaleT::Initialize(void)
 	for (int i = 0; i < nodes_used.Length(); i++)
 	    node1[nodes_used[i]] = i + 1;
 
-#if 0
-	dArray2DT atom_coords, node_coords;
-	atom_coords.RowCollect(atoms_used, curr_coords);
-	node_coords.RowCollect(nodes_used, curr_coords);
-#endif
 	atoms_used++;
 	out << " Particles used:\n" << atoms_used.wrap(5) << '\n';
 	atoms_used--;
@@ -85,9 +79,9 @@ void BridgingScaleT::Initialize(void)
 	AutoFill2DT<int> auto_fill(fSolid.NumElements(), 10, 10);
 	dArrayT x_atom, centroid;
 	LocalArrayT cell_coords(LocalArrayT::kCurrCoords, fSolid.NumElementNodes(), NumSD());
-	cell_coords.SetGlobal(curr_coords); // Sets address of cell_coords
+	cell_coords.SetGlobal(init_coords); // Sets address of cell_coords
 
-	iGridManagerT grid(10, 100, curr_coords, &atoms_used);
+	iGridManagerT grid(10, 100, init_coords, &atoms_used);
 	grid.Reset();
 	for (int i = 0; i < fSolid.NumElements(); i++) {
 	
@@ -96,12 +90,11 @@ void BridgingScaleT::Initialize(void)
 
 			/* get global connectivity matrix */
 		        fConnect.SetRow(i, fSolid.ElementCard(i).NodesX());
-			fConnectInv.SetRow(i, fSolid.ElementCard(i).NodesX());
 			/* inverse map from global node numbers to local node numbers */
 			for (int j = 0; j < fSolid.NumElementNodes(); j++)
 			{
-			    int x = fConnectInv(i,j);
-			    fConnectInv(i,j) = node1[x];
+			    int x = fConnect(i,j);
+			    fConnect(i,j) = node1[x];
 			}
 
 			/* centroid and radius */
@@ -135,8 +128,8 @@ void BridgingScaleT::Initialize(void)
 	}
 
 	// (2) compute the inverse map using list fParticlesInCell
-	LocalArrayT cell_coord(LocalArrayT::kCurrCoords, fSolid.NumElementNodes(), NumSD());
-	cell_coord.SetGlobal(curr_coords); // Sets address of cell_coords
+	LocalArrayT cell_coord(LocalArrayT::kInitCoords, fSolid.NumElementNodes(), NumSD());
+	cell_coord.SetGlobal(init_coords); // Sets address of cell_coords
 	iArrayT atom_nums;
 	dArrayT mapped(NumSD()), point(NumSD());
 	dArray2DT atom_coords(fParticlesInCell.MaxMinorDim(), NumSD());
@@ -144,7 +137,7 @@ void BridgingScaleT::Initialize(void)
 	for (int i = 0; i < fParticlesInCell.MajorDim(); i++) {
 
 	                fParticlesInCell.RowAlias(i,atom_nums);
-	                atom_coords.RowCollect(atom_nums,curr_coords);
+	                atom_coords.RowCollect(atom_nums,init_coords);
 			/* gives domain (global) nodal coordinates */
 	                cell_coord.SetLocal(fSolid.ElementCard(i).NodesX()); 
 			
@@ -194,7 +187,7 @@ void BridgingScaleT::CloseStep(void)
 	
 	/* Do Bridging scale calculations after MD displacements
 	   computed using RodT */
-	ComputeCoarseScaleFields();
+	CoarseFineU();
 }
 
 /* resets to the last converged solution */
@@ -299,9 +292,9 @@ void BridgingScaleT::CurrElementInfo(ostream& out) const
 * Private
 ***********************************************************************/
 
-void BridgingScaleT::ComputeCoarseScaleFields(void)
+void BridgingScaleT::CoarseFineU(void)
 {
-  /* computes coarse scale fields */
+  /* computes coarse and fine scale displacement fields */
   const ParentDomainT& parent = ShapeFunction().ParentDomain();
   const FieldT& field = Field();
   iArrayT atoms, elemconnect(parent.NumNodes());
@@ -310,7 +303,7 @@ void BridgingScaleT::ComputeCoarseScaleFields(void)
   dArrayT map, shape(parent.NumNodes()), temp(NumSD()), disp;
   dMatrixT tempmass(parent.NumNodes()), Nd(parent.NumNodes(), NumSD()), wglobal(fTotalNodes, NumSD());
   /* set global matrices for bridging scale calculations */
-  fGlobal.AddEquationSet(fConnectInv);
+  fGlobal.AddEquationSet(fConnect);
   fGlobal.Initialize(fTotalNodes,fTotalNodes,1); // hard wired for serial calculations
   fGlobal.Clear();
   wglobal = 0.0;
@@ -320,7 +313,7 @@ void BridgingScaleT::ComputeCoarseScaleFields(void)
       fElMat = 0.0, fWtempU = 0.0;
       fParticlesInCell.RowAlias(i,atoms);
       fInverseMapInCell.RowAlias(i,map);
-      fConnectInv.RowAlias(i,elemconnect);
+      fConnect.RowAlias(i,elemconnect);
       for (int j = 0; j < fParticlesInCell.MinorDim(i); j++)
       {
 	  // still need to access individual atomic masses!!!
@@ -349,6 +342,7 @@ void BridgingScaleT::ComputeCoarseScaleFields(void)
     {
       wglobal.ColumnAlias(0, fWx);
       fGlobal.Solve(fWx);
+      cout << "Wx = \n" << fWx << endl;
     }
   else if (NumSD() == 2)
     {
@@ -356,34 +350,40 @@ void BridgingScaleT::ComputeCoarseScaleFields(void)
       wglobal.ColumnAlias(1, fWy);
       fGlobal.Solve(fWx);
       fGlobal.Solve(fWy);
+      cout << "Wx = \n" << fWx << endl;
+      cout << "Wy = \n" << fWy << endl;
     }
 
   /* Compute resulting fine scale fields = MD - FE */
   dArrayT wx(parent.NumNodes()), wy(parent.NumNodes());
+  iArrayT conn(parent.NumNodes());
   double nwx, nwy;
 
   for (int i = 0; i < fParticlesInCell.MajorDim(); i++)
-    {
-      fParticlesInCell.RowAlias(i,atoms);
-      fInverseMapInCell.RowAlias(i,map);
-      wx.CopyPart(0, fWx, i*NumSD(), parent.NumNodes());
-      for (int j = 0; j < fParticlesInCell.MinorDim(i); j++)
-	{
-	  displacements.RowAlias(atoms[j],disp);
-	  temp.CopyPart(0, map, NumSD()*j, NumSD());
-	  parent.EvaluateShapeFunctions(temp,shape);
-	  nwx = dArrayT::Dot(shape,wx);
-	  int which = atoms[j];
-	  double fsx = disp[0] - nwx;
-	  fFineScaleU(which,0) = fsx;
-	  if (NumSD() == 2)
-	    {
-	      wy.CopyPart(0, fWy, i*parent.NumNodes(), parent.NumNodes());
-	      nwy = dArrayT::Dot(shape,wy);
-	      double fsy = disp[1] - nwy;
-	      fFineScaleU(which,1) = fsy; 
-	    }
-	}
-    }
+  {
+    fParticlesInCell.RowAlias(i,atoms);
+    fInverseMapInCell.RowAlias(i,map);
+    fConnect.RowCopy(i,conn);
+    conn -= 1; // so that array indices start from 0
+    wx.Collect(conn, fWx);
+    for (int j = 0; j < fParticlesInCell.MinorDim(i); j++)
+      {
+	displacements.RowAlias(atoms[j],disp);
+	temp.CopyPart(0, map, NumSD()*j, NumSD());
+	parent.EvaluateShapeFunctions(temp,shape);
+	nwx = dArrayT::Dot(shape,wx);
+	int which = atoms[j];
+	double fsx = disp[0] - nwx;
+	fFineScaleU(which,0) = fsx;
+	if (NumSD() == 2)
+	  {
+	    wy.Collect(conn, fWy);
+	    nwy = dArrayT::Dot(shape,wy);
+	    double fsy = disp[1] - nwy;
+	    fFineScaleU(which,1) = fsy; 
+	  }
+      }
+  }
+  cout << "MD = \n" << displacements << endl;
   cout << "fine scale = \n" << fFineScaleU << endl; 
 }
