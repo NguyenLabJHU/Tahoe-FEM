@@ -22,6 +22,8 @@ VMF_Virtual_Work_EqT::VMF_Virtual_Work_EqT	( FEA_ShapeFunctionT &Shapes,VMF_Mate
 void VMF_Virtual_Work_EqT::Construct ( 	FEA_ShapeFunctionT &Shapes,VMF_MaterialT *Iso_Matl,VMS_VariableT &np1,VMS_VariableT &n, 
 														int Integration_Scheme) 
 {
+#pragma unused(Integration_Scheme)
+
 	n_ip 		= np1.fVars[0].IPs(); 
 	n_rows	= np1.fVars[0].Rows(); 
 	n_cols	= np1.fVars[0].Cols();
@@ -67,6 +69,7 @@ void VMF_Virtual_Work_EqT::Construct ( 	FEA_ShapeFunctionT &Shapes,VMF_MaterialT
 
 void VMF_Virtual_Work_EqT::Form_LHS_Ka_Kb	( dMatrixT &Ka, dMatrixT &Kb, double delta_t)  // Untested
 {
+#pragma unused(delta_t)
 
 	/* Term I. 		*/		Ka 	= Integral.of( 	B[kB_1hat], B[kBI_tau_3hat] 					);  	
 	/* Term IIb. 	*/	 	Kb  = Integral.of( 	B[kB_1hat], B[kBbII_2hat] 						);  	
@@ -79,6 +82,8 @@ void VMF_Virtual_Work_EqT::Form_LHS_Ka_Kb	( dMatrixT &Ka, dMatrixT &Kb, double d
 
 void VMF_Virtual_Work_EqT::Form_RHS_F_int ( dArrayT &F_int, double delta_t) // Untested
 {
+#pragma unused(delta_t)
+
 	FEA_dVectorT sigma_vec	( n_ip, n_sd_x_n_sd 		); // <-- Dimensionality problem
 	Data_Pro.Reduce_Order		(	A[kSigma], sigma_vec 	); 
 
