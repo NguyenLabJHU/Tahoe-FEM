@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.9.10.1 2003-05-24 04:04:35 paklein Exp $ */
+/* $Id: ParticlePairT.h,v 1.9.10.2 2003-07-02 04:06:08 hspark Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -8,11 +8,13 @@
 /* direct members */
 #include "RaggedArray2DT.h"
 #include "VariArrayT.h"
+#include "ofstreamT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
 class PairPropertyT;
+class StringT;
 
 /** base class for particle types */
 class ParticlePairT: public ParticleT
@@ -99,6 +101,11 @@ private:
 
 	/** constant matrix needed to compute the stiffness */
 	dMatrixT fOneOne;
+	
+	/** new variables for file I/O */
+	bool fopen;
+	ofstreamT fout;
+	StringT fsummary_file;
 	/*@}*/
 };
 
