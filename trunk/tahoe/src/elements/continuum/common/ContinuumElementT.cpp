@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.37 2004-02-02 23:46:43 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.38 2004-02-03 18:29:45 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -840,6 +840,7 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM,
 		{
 			int ndof = NumDOF();
 			int  nen = NumElementNodes();
+			int  nun = nodal_values->NumberOfNodes();
 
 			const double* Det    = fShapes->IPDets();
 			const double* Weight = fShapes->IPWeights();
@@ -870,7 +871,7 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM,
 					const double* Na = fShapes->IPShapeU();
 				
 					double temp = 2.0*Pi*r*constM*(*Weight++)*(*Det++);				
-					for (int lnd = 0; lnd < nen; lnd++)
+					for (int lnd = 0; lnd < nun; lnd++)
 					{
 						double temp2 = temp*(*Na++);
 						double* pacc = fDOFvec.Pointer();
@@ -897,7 +898,7 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM,
 					const double* Na = fShapes->IPShapeU();
 				
 					double temp = constM*(*Weight++)*(*Det++);				
-					for (int lnd = 0; lnd < nen; lnd++)
+					for (int lnd = 0; lnd < nun; lnd++)
 					{
 						double temp2 = temp*(*Na++);
 						double* pacc = fDOFvec.Pointer();
