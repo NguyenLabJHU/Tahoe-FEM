@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.10 2005-02-02 22:18:38 raregue Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.11 2005-02-15 18:13:06 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 #include "SSMatSupportT.h"
@@ -129,9 +129,9 @@ bool DPSSKStVLoc::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT
 	const dSymMatrixT& stress = s_ij();
 			
 	/* elasto-plastic tangent modulus */
-	//const dMatrixT& modulus = c_perfplas_ijkl();
+	const dMatrixT& modulus = c_perfplas_ijkl();
 	//const dMatrixT& modulus = c_ep_ijkl();
-	const dMatrixT& modulus = c_ijkl();
+	//const dMatrixT& modulus = c_ijkl();
 	
 	/* elastic modulus */
 	const dMatrixT& modulus_e = ce_ijkl();
