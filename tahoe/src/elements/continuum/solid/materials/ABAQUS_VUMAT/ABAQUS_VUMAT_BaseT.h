@@ -1,8 +1,9 @@
-/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.14 2003-11-21 22:46:13 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.15 2004-01-05 07:24:00 paklein Exp $ */
 #ifndef _ABAQUS_VUMAT_BASE_T_H_
 #define _ABAQUS_VUMAT_BASE_T_H_
 
 /* base class */
+#include "ABAQUS_BaseT.h"
 #include "FSSolidMatT.h"
 #include "IsotropicT.h"
 
@@ -28,7 +29,7 @@ class SpectralDecompT;
 /** interface for ABAQUS/Explicit VUMAT's. The class is derived
  * from IsotropicT because the VUMAT interface assumes elastic
  * response is approximately isotropic */
-class ABAQUS_VUMAT_BaseT: public FSSolidMatT, public IsotropicT
+class ABAQUS_VUMAT_BaseT: protected ABAQUS_BaseT, public FSSolidMatT, public IsotropicT
 {
 public:
 
@@ -98,11 +99,6 @@ protected:
 
 private:
 
-	/* conversion functions */
-	void dMatrixT_to_ABAQUS(const dMatrixT& A, nMatrixT<doublereal>& B) const;
-	void ABAQUS_to_dSymMatrixT(const doublereal* pA, dSymMatrixT& B) const;
-	void dSymMatrixT_to_ABAQUS(const dSymMatrixT& A, doublereal* pB) const;
-
 	/* load element data for the specified integration point */
 	void Load(const ElementCardT& element, int ip);
 	void Store(ElementCardT& element, int ip);
@@ -119,13 +115,6 @@ private:
 		doublereal*, doublereal*, doublereal*, doublereal*, doublereal*, doublereal*,
                 doublereal*, doublereal*, doublereal*, doublereal*, doublereal*, doublereal*,
                 doublereal*) = 0;
-                
-	/* read ABAQUS-format input */
-	void Read_ABAQUS_Input(ifstreamT& in);
-	bool Next_ABAQUS_Keyword(ifstreamT& in) const;
-	bool Skip_ABAQUS_Symbol(ifstreamT& in, char c) const; // returns true if c is next non-whitespace
-	void Skip_ABAQUS_Comments(ifstreamT& in);
-	void Read_ABAQUS_Word(ifstreamT& in, StringT& word, bool to_upper = true) const;
 	
 private:
 

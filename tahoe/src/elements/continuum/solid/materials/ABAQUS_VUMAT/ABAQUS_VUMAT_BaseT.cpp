@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.19 2003-11-21 22:46:13 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.20 2004-01-05 07:24:00 paklein Exp $ */
 #include "ABAQUS_VUMAT_BaseT.h"
 
 #ifdef __F2C__
@@ -17,7 +17,7 @@
 using namespace Tahoe;
 
 /* constructor */
-ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FSMatSupportT& support):
+ABAQUS_VUMAT_BaseT::ABAQUS_VUMAT_BaseT(ifstreamT& in, const FSMatSupportT& support):
 	FSSolidMatT(in, support),
 	fTangentType(GlobalT::kSymmetric),
 	fModulus(dSymMatrixT::NumValues(NumSD())),
@@ -34,7 +34,8 @@ ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FSMatSupportT& supp
 {
 	/* read ABAQUS-format input */
 	nstatv = 0;
-	Read_ABAQUS_Input(in);
+	bool nonsym = false;
+	Read_ABAQUS_Input(in, fVUMAT_name, fProperties, nstatv, nonsym);
 
 	/* set (material tangent) modulus tensor (fixed) */
 	double   Young = double(fProperties[0]);
@@ -120,7 +121,10 @@ ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FSMatSupportT& supp
 
 //DEBUG
 #if VUMAT_DEBUG
-flog.open("VUMAT.log");
+StringT VUMAT_file;
+VUMAT_file.Root(in.filename());
+VUMAT_file.Append(".VUMAT.log");
+flog.open(VUMAT_file);
 flog.precision(DBL_DIG);
 flog.setf(ios::showpoint);
 flog.setf(ios::right, ios::adjustfield);
@@ -349,85 +353,9 @@ void ABAQUS_VUMAT_BaseT::PrintProperties(ostream& out) const
 		    << setw(  d_width) << fProperties[i] << '\n';
 }
 
-/* conversion functions */
-void ABAQUS_VUMAT_BaseT::dMatrixT_to_ABAQUS(const dMatrixT& A,
-	nMatrixT<doublereal>& B) const
-{
-#if __option(extended_errorcheck)
-	/* expecting ABAQUS matrix to be 3D always */
-	if (B.Rows() != 3 ||
-	    B.Cols() != 3) throw ExceptionT::kGeneralFail;
-#endif
-
-	if (NumSD() == 2)
-	{
-		B(0,0) = doublereal(A(0,0));
-		B(1,0) = doublereal(A(1,0));
-		B(0,1) = doublereal(A(0,1));
-		B(1,1) = doublereal(A(1,1));
-	}
-	else
-	{
-		doublereal* pB = B.Pointer();
-		const double* pA = A.Pointer();
-		*pB++ = doublereal(*pA++);
-		*pB++ = doublereal(*pA++);
-		*pB++ = doublereal(*pA++);
-		*pB++ = doublereal(*pA++);
-		*pB++ = doublereal(*pA++);
-		*pB++ = doublereal(*pA++);
-		*pB++ = doublereal(*pA++);
-		*pB++ = doublereal(*pA++);
-		*pB   = doublereal(*pA);
-	}	
-}
-
-void ABAQUS_VUMAT_BaseT::ABAQUS_to_dSymMatrixT(const doublereal* pA,
-	dSymMatrixT& B) const
-{
-	double* pB = B.Pointer();
-	if (NumSD() == 2)
-	{
-		*pB++ = double(pA[0]); // 11
-		*pB++ = double(pA[1]); // 22
-		*pB   = double(pA[3]); // 12
-	}
-	else
-	{
-		*pB++ = double(pA[0]); // 11
-		*pB++ = double(pA[1]); // 22
-		*pB++ = double(pA[2]); // 33
-		*pB++ = double(pA[5]); // 23
-		*pB++ = double(pA[4]); // 13
-		*pB   = double(pA[3]); // 12
-	}
-}
-
-void ABAQUS_VUMAT_BaseT::dSymMatrixT_to_ABAQUS(const dSymMatrixT& A,
-	doublereal* pB) const
-{
-	const double* pA = A.Pointer();
-	if (NumSD() == 2)
-	{
-		*pB++ = doublereal(pA[0]); // 11
-		*pB++ = doublereal(pA[1]); // 22
-		*pB++;                     // 33 - leave unchanged
-		*pB   = doublereal(pA[2]); // 12
-	}
-	else
-	{
-		*pB++ = doublereal(pA[0]); // 11
-		*pB++ = doublereal(pA[1]); // 22
-		*pB++ = doublereal(pA[2]); // 33
-		*pB++ = doublereal(pA[5]); // 12
-		*pB++ = doublereal(pA[4]); // 13
-		*pB   = doublereal(pA[3]); // 23
-	}
-}
-
 /***********************************************************************
-* Private
-***********************************************************************/
+ * Private
+ ***********************************************************************/
 
 /* read ABAQUS format input - reads until first line
 * 	not containing a comment of keyword

@@ -1,13 +1,13 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.10 2004-01-05 07:23:56 paklein Exp $ */
-/* created: paklein (05/09/2000) */
-#ifndef _ABAQUS_UMAT_BASE_T_H_
-#define _ABAQUS_UMAT_BASE_T_H_
+/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.2 2004-01-05 07:23:56 paklein Exp $ */
+#ifndef _ABAQUS_UMAT_SS_BASE_T_H_
+#define _ABAQUS_UMAT_SS_BASE_T_H_
 
 /* base classes */
 #include "ABAQUS_BaseT.h"
-#include "FSSolidMatT.h"
+#include "SSSolidMatT.h"
 #include "IsotropicT.h"
 #include "Material2DT.h"
+#include "ofstreamT.h"
 
 /* library support options */
 #ifdef __F2C__
@@ -17,42 +17,35 @@
 #include "iArrayT.h"
 #include "dArray2DT.h"
 
-//TEMP - debugging
-#include <fstream.h>
-
 /* f2c */
 #include "f2c.h"
 
 namespace Tahoe {
 
-/* forward declarations */
-class SpectralDecompT;
-
-class ABAQUS_UMAT_BaseT: 
+/** wrapper for using ABAQUS UMAT's with small strain elements. Derived classes
+ * are responsible for setting IsotropicT and Material2DT properties. */
+class ABAQUS_UMAT_SS_BaseT: 
 	protected ABAQUS_BaseT, 
-	public FSSolidMatT, 
-	public IsotropicT,
+	public SSSolidMatT, 
+	public IsotropicT, 
 	public Material2DT
 {
 public:
 
-	/* constructor */
-	ABAQUS_UMAT_BaseT(ifstreamT& in, const FSMatSupportT& support);
-
-	/* destructor */
-	~ABAQUS_UMAT_BaseT(void);
+	/** constructor */
+	ABAQUS_UMAT_SS_BaseT(ifstreamT& in, const SSMatSupportT& support);
 
 	/** required parameter flags */
-	virtual bool Need_F_last(void) const { return true; };
+	virtual bool Need_Strain_last(void) const { return true; };
 
-	/* form of tangent matrix */
+	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
-	/* print parameters */
+	/** print parameters */
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
 
-	/* initialization */
+	/** initialization */
 	virtual void Initialize(void);
 
 	/* materials initialization */
@@ -77,10 +70,6 @@ public:
 	virtual double Pressure(void) const { return fPressure; };
 	/*@}*/
 
-	/* material description */
-	virtual const dMatrixT& C_IJKL(void);  // material tangent moduli
-	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
-
 	/* returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);
 
@@ -103,7 +92,7 @@ protected:
 private:
 
 	/* load element data for the specified integration point */
-	void Load(const ElementCardT& element, int ip);
+	void Load(ElementCardT& element, int ip);
 	void Store(ElementCardT& element, int ip);
 
 	/* make call to the UMAT */
@@ -125,17 +114,24 @@ private:
 		integer*, ftnlen) = 0;
 
 protected:
-
+	
 	GlobalT::SystemTypeT fTangentType;
 
 	/** properties array */
 	nArrayT<doublereal> fProperties;
-	
+
+	/** debugging */
+	ofstreamT flog;
+
 private:
 
-	//debugging
-	ofstream flog;
-	
+	/** set to true if modulus should be computed using the finite
+	 * difference approximation */
+	bool fApproxModulus;
+
+	/** number of "elastic" iterations */
+	int fNumElasticIterations;
+
 	/* material name */
 	StringT fUMAT_name;
 	//other options:
@@ -144,7 +140,6 @@ private:
 	//  expansion   (*EXPANSION)
 
 	/* work space */
-	dMatrixT    fModulus;            // return value
 	dSymMatrixT fStress;             // return value
 	dArrayT fIPCoordinates;          // integration point coordinates
 	double fPressure; /**< pressure for the most recent calculation of the stress */
@@ -190,14 +185,12 @@ private:
 	nArrayT<doublereal> fArgsArray;
 	
 	/* polar decomposition work space */
-	SpectralDecompT* fDecomp;
-	dMatrixT fF_rel;
-	dMatrixT fA_nsd;
-	dSymMatrixT fU1, fU2, fU1U2;
+	dMatrixT    fmat_nsd;
+	dSymMatrixT fsym_mat_nsd;
 };
 
 /* inlines */
-inline GlobalT::SystemTypeT ABAQUS_UMAT_BaseT::TangentType(void) const
+inline GlobalT::SystemTypeT ABAQUS_UMAT_SS_BaseT::TangentType(void) const
 {
 	return fTangentType;
 }
@@ -207,9 +200,10 @@ inline GlobalT::SystemTypeT ABAQUS_UMAT_BaseT::TangentType(void) const
 #else /* __F2C__ */
 
 #ifndef __MWERKS__
-#error "ABAQUS_UMAT_BaseT requires __F2C__"
+#error "ABAQUS_UMAT_SS_BaseT requires __F2C__"
 #endif
 
 #endif /* __F2C__ */
 
-#endif /* _ABAQUS_UMAT_BASE_T_H_ */
+
+#endif /* _ABAQUS_UMAT_SS_BASE_T_H_ */
