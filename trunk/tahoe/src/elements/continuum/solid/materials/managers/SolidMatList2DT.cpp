@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.7 2001-07-03 01:35:28 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.8 2001-07-19 18:55:05 hspark Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList2DT.h"
@@ -33,6 +33,7 @@
 #include "D2VIB2D_a.h"
 #include "OgdenIsoVIB2D.h"
 #include "ABAQUS_BCJ.h"
+#include "ABAQUS_VUMAT_BCJ.h"
 #include "QuadLogOgden2DT.h"
 #include "OgdenViscVIB2D.h"
 #include "SKStVT2D.h"
@@ -346,6 +347,18 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 #else
 				cout << "\n SolidMatList2DT::ReadMaterialData: model requires f2c support: "
 				     << kABAQUS_BCJ << endl;
+				throw eBadInputValue;
+#endif /* __F2C__ */
+				break;
+			}
+			case kABAQUS_VUMAT_BCJ:
+			{
+#ifdef __F2C__
+				fArray[matnum] = new ABAQUS_VUMAT_BCJ(in, *fFiniteStrain);
+				fHasHistory = true;
+#else
+				cout << "\n SolidMatList2DT::ReadMaterialData: model requires f2c support: "
+				     << kABAQUS_VUMAT_BCJ << endl;
 				throw eBadInputValue;
 #endif /* __F2C__ */
 				break;
