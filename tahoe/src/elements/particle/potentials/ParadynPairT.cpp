@@ -1,4 +1,4 @@
-/* $Id: ParadynPairT.cpp,v 1.1 2002-12-04 05:50:11 paklein Exp $ */
+/* $Id: ParadynPairT.cpp,v 1.2 2002-12-04 06:25:58 paklein Exp $ */
 #include "ParadynPairT.h"
 #include "toolboxConstants.h"
 #include "ifstreamT.h"
@@ -29,7 +29,7 @@ ParadynPairT::ParadynPairT(const StringT& param_file):
 	/* try to open file */
 	ifstreamT in(fParams);
 	if (!in.is_open())
-		ExceptionT::BadInputValue(caller, "error opening file: %s", fParams);
+		ExceptionT::BadInputValue(caller, "error opening file: %s", fParams.Pointer());
 
 	/* read comment line */
 	fDescription.GetLineFromStream(in);
@@ -124,7 +124,7 @@ double ParadynPairT::Energy(double r_ab, double* data_a, double* data_b)
 #pragma unused(data_b)
 
 	double pp = r_ab*s_1bydr + 1.0;
-	int kk = pp;
+	int kk = int(pp);
 	kk = Min(kk, s_nr-2);
 	pp -= kk;
 	pp = Min(pp, 1.0);
@@ -138,7 +138,7 @@ double ParadynPairT::Force(double r_ab, double* data_a, double* data_b)
 #pragma unused(data_b)
 
 	double pp = r_ab*s_1bydr + 1.0;
-	int kk = pp;
+	int kk = int(pp);
 	kk = Min(kk, s_nr-2);
 	pp -= kk;
 	pp = Min(pp, 1.0);
@@ -152,7 +152,7 @@ double ParadynPairT::Stiffness(double r_ab, double* data_a, double* data_b)
 #pragma unused(data_b)
 
 	double pp = r_ab*s_1bydr + 1.0;
-	int kk = pp;
+	int kk = int(pp);
 	kk = Min(kk, s_nr-2);
 	pp -= kk;
 	pp = Min(pp, 1.0);
