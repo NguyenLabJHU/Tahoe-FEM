@@ -1,4 +1,4 @@
-/* $Id: closet.cpp,v 1.2 2003-05-04 22:49:50 paklein Exp $ */
+/* $Id: closet.cpp,v 1.3 2003-08-14 01:22:43 paklein Exp $ */
 #include "closet.h"
 
 closet::closet(void):
@@ -31,6 +31,6 @@ void closet::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	room::TakeParameterList(list);
 	
-	list.GetParameter("has_shelf", has_shelf_);
-	list.GetParameter("has_bar", has_bar_);
+	has_shelf_ = list.GetParameter("has_shelf");
+	has_bar_ = list.GetParameter("has_bar");
 }

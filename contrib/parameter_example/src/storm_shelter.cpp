@@ -1,4 +1,4 @@
-/* $Id: storm_shelter.cpp,v 1.2 2003-05-04 22:49:50 paklein Exp $ */
+/* $Id: storm_shelter.cpp,v 1.3 2003-08-14 01:22:43 paklein Exp $ */
 #include "storm_shelter.h"
 
 storm_shelter::storm_shelter(void):
@@ -33,7 +33,7 @@ void storm_shelter::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	basement::TakeParameterList(list);
 
-	list.GetParameter("auxiliary_power", auxiliary_power_);
-	list.GetParameter("first_aid_kit", first_aid_kit_);
-	list.GetParameter("stored_water", stored_water_);
+	auxiliary_power_ = list.GetParameter("auxiliary_power");
+	first_aid_kit_ = list.GetParameter("first_aid_kit");
+	stored_water_ = list.GetParameter("stored_water");
 }

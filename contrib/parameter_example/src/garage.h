@@ -1,4 +1,4 @@
-/* $Id: garage.h,v 1.2 2003-05-04 22:49:50 paklein Exp $ */
+/* $Id: garage.h,v 1.3 2003-08-14 01:22:43 paklein Exp $ */
 #ifndef _GARAGE_H_
 #define _GARAGE_H_
 
@@ -25,7 +25,7 @@ public:
 	virtual void DefineParameters(ParameterListT& list) const;
 	virtual void TakeParameterList(const ParameterListT& list);
 
-	virtual void SubNames(ArrayT<StringT>& names, ArrayT<ParameterListT::OccurrenceT>& occur, ArrayT<bool>& is_inline) const;
+	virtual void DefineSubs(SubListT& sub_list) const;
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
 	/*@}*/
 

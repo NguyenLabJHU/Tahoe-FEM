@@ -1,4 +1,4 @@
-/* $Id: window.cpp,v 1.2 2003-05-04 22:49:50 paklein Exp $ */
+/* $Id: window.cpp,v 1.3 2003-08-14 01:22:43 paklein Exp $ */
 #include "window.h"
 
 window::window(void):
@@ -32,6 +32,6 @@ void window::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
 
-	list.GetParameter("height", height_);
-	list.GetParameter("width", width_);
+	height_ = list.GetParameter("height");
+	width_  = list.GetParameter("width");
 }

@@ -1,4 +1,4 @@
-/* $Id: garage.cpp,v 1.2 2003-05-04 22:49:50 paklein Exp $ */
+/* $Id: garage.cpp,v 1.3 2003-08-14 01:22:43 paklein Exp $ */
 #include "garage.h"
 #include "window.h"
 
@@ -44,9 +44,9 @@ void garage::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
 
-	list.GetParameter("opener", opener_);
-	list.GetParameter("length", length_);
-	list.GetParameter("width", width_);
+	opener_ = list.GetParameter("opener");
+	length_ = list.GetParameter("length");
+	width_  = list.GetParameter("width");
 
 	const ParameterListT* window_params = list.List("window");
 	if (window_params) {
@@ -55,26 +55,13 @@ void garage::TakeParameterList(const ParameterListT& list)
 	}
 }
 
-void garage::SubNames(ArrayT<StringT>& names, ArrayT<ParameterListT::OccurrenceT>& occur,
-		ArrayT<bool>& is_inline) const
+void garage::DefineSubs(SubListT& sub_list) const
 {
-	/* temporaries */
-	AutoArrayT<StringT> names_tmp;
-	AutoArrayT<ParameterListT::OccurrenceT> occur_tmp;
-	AutoArrayT<bool> is_inline_tmp;
-	
 	/* inherited */
-	ParameterInterfaceT::SubNames(names_tmp, occur_tmp, is_inline_tmp);
+	ParameterInterfaceT::DefineSubs(sub_list);
 
 	/* the window */
-	names_tmp.Append("window");
-	occur_tmp.Append(ParameterListT::ZeroOrOnce);
-	is_inline_tmp.Append(false);
-	
-	/* copy to return values */
-	names = names_tmp;
-	occur = occur_tmp;
-	is_inline = is_inline_tmp;
+	sub_list.AddSub("window", ParameterListT::ZeroOrOnce);
 }
 
 ParameterInterfaceT* garage::NewSub(const StringT& list_name) const
