@@ -1,13 +1,14 @@
-# $Id: DARWIN-3.3.gprof.macros,v 1.8 2004-11-12 20:54:53 paklein Exp $
+# $Id: DARWIN-3.3.gprof.macros,v 1.9 2005-02-05 01:03:15 paklein Exp $
 # macros for Panther (GCC 3.3)
 MAKE        = make
 DEFINES     = -DEIGHT_BYTE_REAL -D__DARWIN__ -DNON_UNIX_STDIO
 COMP_C      = gcc
 COMP_CC     = g++
 COMP_F      = g77
-COMP_FLAG   = -c
+COMP_FLAG   = -c -pipe
 MORE_CFLAGS = -pg
 LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
+CFLAGS_PCH  = $(LOC_CFLAGS)
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS) -include $(BLD_DIR)/pch/$(PCH) -Winvalid-pch 
 CFLAGS_F    = $(LOC_CFLAGS)
