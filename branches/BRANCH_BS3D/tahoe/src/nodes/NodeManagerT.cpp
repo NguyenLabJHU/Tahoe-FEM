@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.45.4.1 2004-03-16 15:19:44 hspark Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.45.4.2 2004-03-21 16:41:31 hspark Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -6,7 +6,6 @@
 #include <iomanip.h>
 #include <limits.h>
 #include <ctype.h>
-#include <math.h>
 
 #include "fstreamT.h"
 #include "FEManagerT.h"
@@ -457,41 +456,6 @@ void NodeManagerT::InitialCondition(void)
 		/* gather/distribute external contribution */
 		for (int j = 0; j <= field.Order(); j++)
 			fCommManager.AllGather(fMessageID[i], field[j]);
-	}
-
-	/* attempt to write into field here */
-	StringT bridging_field = "displacement";
-	FieldT* the_field = Field(bridging_field);
-	dArray2DT& disp = (*the_field)[0];	// access displacements
-	double sig = 15.0;
-	double H = sig/4.0;
-	double A = 1.5e-3;
-	double b = 0.1;
-	double Lc = 4.0 * sig;
-	double uc = exp(-pow(Lc/sig,2));
-	double pi = acos(-1.0);
-	double xi, yi, zi, dx, dy, dz, dist;
-	/* loop over all atoms, apply initial displacement */
-	const dArray2DT& initcoords = InitialCoordinates();  // init coords for all atoms
-
-	dArray2DT initdisp;
-	initdisp.Dimension(186624, 3);
-	dArrayT blah(3);
-	blah = 0.0;
-	
-	for (int i = 0; i < 186624; i++)
-	{
-		xi = fabs(initcoords(i,0));
-		yi = fabs(initcoords(i,1));
-		zi = fabs(initcoords(i,2));
-		dist = sqrt(xi*xi+yi*yi+zi*zi);	
-		if (dist <= Lc)
-		{
-			blah[0] = A/(1.0-uc)*(1.0+b*cos(2*pi*xi/H))*(exp(-pow(xi/sig,2))-uc);
-			blah[1] = A/(1.0-uc)*(1.0+b*cos(2*pi*yi/H))*(exp(-pow(yi/sig,2))-uc);
-			blah[2] = A/(1.0-uc)*(1.0+b*cos(2*pi*zi/H))*(exp(-pow(zi/sig,2))-uc);
-			disp.SetRow(i, blah);
-		}
 	}
 
 	/* update current configurations */
