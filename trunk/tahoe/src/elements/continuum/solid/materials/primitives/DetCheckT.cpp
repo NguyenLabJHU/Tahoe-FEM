@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.13 2002-02-24 01:00:59 raregue Exp $ */
+/* $Id: DetCheckT.cpp,v 1.14 2002-02-25 03:39:24 paklein Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "DetCheckT.h"
@@ -697,7 +697,7 @@ tempmatrix.eigenvalue3x3(tempmatrix, realev, imev);
 
 #endif
 
-#if 1
+#if 0
 
  // chooses eigvector by one that gives smallest value of det(A)
 
