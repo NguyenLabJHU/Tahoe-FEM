@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.2 2001-06-19 23:22:02 paklein Exp $ */
 /* created: paklein (11/12/1999)                                          */
 
 #include "MeshFreeElementSupportT.h"
@@ -34,16 +34,9 @@ MeshFreeElementSupportT::MeshFreeElementSupportT(ifstreamT& in):
 	fMapShift(-1)
 {
 	/* read */
-	in >> fMeshFreeCode;
-	in >> fd_max;
-	in >> fComplete;
-	in >> fStoreShape;
 	in >> fAutoBorder;
 
 	/* check values */
-	if (fd_max < 1.0) throw eBadInputValue;
-	if (fComplete < 1) throw eBadInputValue;
-	if (fStoreShape != 0 && fStoreShape != 1) throw eBadInputValue;
 	if (fAutoBorder != 0 && fAutoBorder != 1) throw eBadInputValue;
 
 #ifdef __MPI__
@@ -69,12 +62,6 @@ MeshFreeSupportT& MeshFreeElementSupportT::MeshFreeSupport(void) const
 void MeshFreeElementSupportT::PrintControlData(ostream& out) const
 {
 	/* echo */
-	out << " Mesh-free formulation . . . . . . . . . . . . . = " << fMeshFreeCode << '\n';
-	out << "    eq. " << MeshFreeSupportT::kEFG  << ", EFG\n";
-	out << "    eq. " << MeshFreeSupportT::kRKPM << ", RKPM\n";
-	out << " Domain of influence scale factor (d_max). . . . = " << fd_max        << '\n';
-	out << " Order of completeness of basis functions. . . . = " << fComplete     << '\n';
-	out << " Store all shape functions and derivatives . . . = " << fStoreShape   << '\n';
 	out << " Auto selection/generation of border transition. = " << fAutoBorder;
 	out << ((fAutoBorder == 1) ? " (ACTIVE)" : " (INACTIVE)") << '\n';
 	out.flush();
@@ -248,19 +235,20 @@ void MeshFreeElementSupportT::TraceNode(ostream& out, int node, const ElementBas
 	mf_support.LoadNodalData(node, neighbors, phi, Dphi);
 
 	/* nodal support size */
-	dArrayT d_max(neighbors.Length());
-	mf_support.GetDmax(neighbors, d_max);
+	dArray2DT nodal_params(neighbors.Length(), mf_support.NodalParameters().MinorDim());
+	mf_support.GetNodalParameters(neighbors, nodal_params);
 
 	/* write */
 	out << setw(kIntWidth) << "node"
-	    << setw(d_width) << "d_max"
-	    << setw(d_width) << "phi"   << '\n';
+        << setw(d_width) << "phi"
+	    << setw(nodal_params.MinorDim()*d_width) << "d_max" << '\n';
 	for (int i = 0; i < neighbors.Length(); i++)
 	{
 		out << setw(kIntWidth) <<
 			((node_map != NULL) ? (*node_map)[neighbors[i]] : neighbors[i]) + 1
-		    << setw(d_width) << d_max[i]
-		    << setw(d_width) << phi[i] << '\n';
+			<< setw(d_width) << phi[i];
+		nodal_params.PrintRow(i, out);
+		out << '\n';
 	}
 
 	/* integration cell information */
@@ -287,21 +275,21 @@ void MeshFreeElementSupportT::TraceNode(ostream& out, int node, const ElementBas
 			mf_support.LoadElementData(j, neighbors, phi, Dphi);
 	
 			/* nodal support size */
-			dArrayT d_max(neighbors.Length());
-			mf_support.GetDmax(neighbors, d_max);
+			dArray2DT nodal_params(neighbors.Length(), mf_support.NodalParameters().MinorDim());
+			mf_support.GetNodalParameters(neighbors, nodal_params);
 
 			/* write header */
 			out << setw(kIntWidth) << "node"
-			    << setw(d_width) << "d_max";
+			    << setw(nodal_params.MinorDim()*d_width) << "d_max";
 			for (int i = 0; i < num_ip; i++)
 				out << setw(d_width - 2) << "phi[" << i+1 << "]";
 			out << '\n';
 			
 			for (int k = 0; k < neighbors.Length(); k++)
 			{
-				out << setw(kIntWidth) <<
-					((node_map != NULL) ? (*node_map)[neighbors[k]] : neighbors[k]) + 1
-					<< setw(d_width) << d_max[k];
+				out << setw(kIntWidth) 
+				    << ((node_map != NULL) ? (*node_map)[neighbors[k]] : neighbors[k]) + 1;
+				nodal_params.PrintRow(k, out);
 				for (int i = 0; i < num_ip; i++)
 					out << setw(d_width) << phi(i,k);			
 				out << '\n';

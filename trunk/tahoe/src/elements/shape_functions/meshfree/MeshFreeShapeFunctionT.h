@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.h,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.h,v 1.2 2001-06-19 23:22:03 paklein Exp $ */
 /* created: paklein (09/10/1998)                                          */
 /* MLS shape functions for the displacement interpolation - for           */
 /* small strain or total Lagrangian finite deformation. DO NOT            */
@@ -14,25 +14,25 @@
 #include "ShapeFunctionT.h"
 
 /* direct members */
-#include "MeshFreeT.h"
+//#include "MeshFreeT.h"
 #include "iArray2DT.h"
 #include "iAutoArrayT.h"
 #include "iArrayT.h"
 
 /* forward declarations */
 class MeshFreeSupportT;
+class ifstreamT;
 template <class TYPE> class RaggedArray2DT;
 
 class MeshFreeShapeFunctionT: public ShapeFunctionT
 {
 public:
 
-/* constructors */
+	/* constructors */
 	MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 		const LocalArrayT& coords, const dArray2DT& all_coords,
 		const iArray2DT& connects, const iArrayT& nongridnodes,
-		MeshFreeT::FormulationT code, double dextra, int complete, bool store_shape,
-		const int& currelement);
+		const int& currelement, ifstreamT& in);
 
 	/* destructor */
 	~MeshFreeShapeFunctionT(void);
@@ -48,10 +48,10 @@ public:
 	void SetSkipNodes(const iArrayT& skip_nodes);
 	void SetSkipElements(const iArrayT& skip_elements);
 
-	/* read/write Dmax */
-	void SetDmax(const iArrayT& node, const dArrayT& Dmax);
-	void GetDmax(const iArrayT& node, dArrayT& Dmax) const;
-	const dArrayT& Dmax(void) const;
+	/* read/write nodal meshfree parameters */
+	void SetNodalParameters(const iArrayT& node, const dArray2DT& nodal_params);
+	void GetNodalParameters(const iArrayT& node, dArray2DT& nodal_params) const;
+	const dArray2DT& NodalParameters(void) const;
 
 	/* compute global shape derivatives */ 	
 	virtual void SetDerivatives(void);
@@ -83,7 +83,8 @@ public:
 	virtual void Print(ostream& out) const;
 	void PrintAt(ostream& out) const;
 
-	/* write MLS statistics */
+	/* write MLS information */
+	void WriteParameters(ostream& out) const;
 	void WriteStatistics(ostream& out) const;
 
 	/* blend FE/MLS shape functions for interpolant nodes */

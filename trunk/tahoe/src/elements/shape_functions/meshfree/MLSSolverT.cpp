@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.2 2001-06-19 23:22:03 paklein Exp $ */
 /* created: paklein (12/08/1999)                                          */
 
 #include "MLSSolverT.h"
@@ -11,17 +11,22 @@
 #include "PolyBasis2DT.h"
 #include "PolyBasis3DT.h"
 
-/* C1 window functions */
-#include "C1FunctionT.h"
+/* window functions */
+#include "GaussianWindowT.h"
+#include "RectangularGaussianWindowT.h"
 
 /* constants */
 const double sqrtPi = sqrt(acos(-1.0));
 
 /* constructor */
-MLSSolverT::MLSSolverT(int nsd, int complete):
+MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type, 
+	const dArrayT& window_params):
 	fNumSD(nsd),
 	fComplete(complete),
+	fWindowType(window_type),
 	fNumNeighbors(0),
+	fBasis(NULL),
+	fWindow(NULL),
 	fOrder(0),
 	fDb(fNumSD),
 	fDDb(dSymMatrixT::NumValues(fNumSD)),
@@ -36,7 +41,7 @@ MLSSolverT::MLSSolverT(int nsd, int complete):
 	/* work space */
 	fNSDsym(fNumSD)
 {
-	/* basis functions */
+	/* construct basis functions */
 	switch (fNumSD)
 	{
 		case 1:
@@ -56,7 +61,25 @@ MLSSolverT::MLSSolverT(int nsd, int complete):
 	if (!fBasis) throw eOutOfMemory;
 
 	/* construct window function */
-	fWindow = NULL;
+	switch (fWindowType)
+	{
+		case MeshFreeT::kGaussian:
+		{
+			fWindow = new GaussianWindowT(window_params[0], window_params[1], window_params[2]);
+			if (!fWindow) throw eGeneralFail;
+			break;
+		}
+		case MeshFreeT::kBrick:
+		{
+			fWindow = new RectangularGaussianWindowT(window_params[0], window_params[1]);
+			if (!fWindow) throw eGeneralFail;
+			break;
+		}
+		default:
+			cout << "\n MLSSolverT::MLSSolverT: unsupported window function type: "
+			     << fWindowType << endl;
+			throw eBadInputValue;
+	}
 	
 	/* dimension arrays */
 	int m = fBasis->BasisDimension();
@@ -87,6 +110,17 @@ MLSSolverT::~MLSSolverT(void)
 	delete fWindow;
 }
 
+/* write parameters */
+void MLSSolverT::WriteParameters(ostream& out) const
+{
+	/* window function parameters */
+	out << " Order of completeness . . . . . . . . . . . . . = " << fComplete << '\n';
+	out << " Window function type. . . . . . . . . . . . . . = " << fWindowType << '\n';
+	out << " Window function name. . . . . . . . . . . . . . = " << fWindow->Name() << '\n';
+	out << " Window function parameters:\n";
+	fWindow->WriteParameters(out);
+}
+
 /* class dependent initializations */
 void MLSSolverT::Initialize(void)
 {
@@ -111,11 +145,12 @@ void MLSSolverT::Initialize(void)
 }
 
 /* set MLS at coords given sampling points */
-int MLSSolverT::SetField(const dArray2DT& coords, const dArrayT& dmax,
+int MLSSolverT::SetField(const dArray2DT& coords, const dArray2DT& nodal_param,
 		const dArrayT& volume, const dArrayT& fieldpt, int order)
 {
 #if __option(extended_errorcheck)
-	if (dmax.Length()    != coords.MajorDim()) throw eSizeMismatch;
+	if (nodal_param.MajorDim() != coords.MajorDim()) throw eSizeMismatch;
+	if (nodal_param.MinorDim() != fWindow->NumberOfSupportParameters()) throw eSizeMismatch;
 	if (volume.Length()  != coords.MajorDim()) throw eSizeMismatch;
 	if (fieldpt.Length() != fNumSD) throw eSizeMismatch;
 	if (order < 0 || order > 2) throw eOutOfRange;
@@ -131,7 +166,22 @@ int MLSSolverT::SetField(const dArray2DT& coords, const dArrayT& dmax,
 	fLocCoords.AddToRowsScaled(1.0, fieldpt);
 
 	/* window functions */
-	int numactive = SetWindow(dmax);
+	bool new_windows = true; //TEMP - keep for testing
+	int numactive;
+	if (new_windows)
+	{
+		dArrayT origin(fLocCoords.MinorDim()); //TEMP - waste? Could make Window to assume this
+		origin = 0.0;
+		numactive = fWindow->Window(fLocCoords, nodal_param, origin, fOrder, fw, fDw, fDDw);
+	}
+	else numactive = SetWindow(nodal_param);
+	//NOTE - this isn't exactly the same as the "old" way. previously,
+	//       the distance use to determine coverage was just the distance
+	//       between points compared to dmax (the support size), while the 
+	//       Gaussian window functionw was evaluated to 4*dmax. the revised 
+	//       code evaluates both based on how distance compares with
+	//       GaussianWindowT::fCutOffFactor*dmax.
+
 	if (numactive < fBasis->BasisDimension())
 	{
 		cout << "\n MLSSolverT::SetField: not enough nodes for fit: ";
@@ -168,6 +218,17 @@ int MLSSolverT::BasisDimension(void) const
 	return fBasis->BasisDimension();
 }
 
+/* "synchronization" of nodal field parameters. */
+void MLSSolverT::SynchronizeSupportParameters(dArray2DT& params_1, 
+	dArray2DT& params_2)
+{
+	/* check */
+	if (!fWindow) 
+		throw eGeneralFail;
+	else
+		fWindow->SynchronizeSupportParameters(params_1, params_2);
+}
+
 /***********************************************************************
 * Protected
 ***********************************************************************/
@@ -188,8 +249,12 @@ void MLSSolverT::Dimension(void)
 }
 
 /* set window functions */
-int MLSSolverT::SetWindow(const dArrayT& dmax)
+int MLSSolverT::SetWindow(const dArray2DT& support_params)
 {
+//TEMP
+dArrayT dmax;
+dmax.Alias(support_params);
+
 	dArrayT dx;
 	dArrayT Dw(fNumSD); //make into work space variables
 	int count = 0;
@@ -202,7 +267,7 @@ int MLSSolverT::SetWindow(const dArrayT& dmax)
 		double di = dx.Magnitude();
 	
 		/* out of influence range (or inactive) */
-		if (di > 4.0*dm)
+		if (di > 2.0*dm)
 		{
 			 fw[i] = 0.0;
 			 if (fOrder > 0)
@@ -224,7 +289,7 @@ int MLSSolverT::SetWindow(const dArrayT& dmax)
 			double&   w = fw[i];
 			
 			/* window */
-	w = exp(-q*q)/(sqrtPi*adm);
+			w = exp(-q*q)/(sqrtPi*adm);
 
 			if (fOrder > 0)
 			{

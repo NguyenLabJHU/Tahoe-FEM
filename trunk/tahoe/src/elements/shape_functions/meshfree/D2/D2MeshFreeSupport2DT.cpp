@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupport2DT.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: D2MeshFreeSupport2DT.cpp,v 1.2 2001-06-19 23:22:06 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupport2DT.h"
@@ -16,10 +16,8 @@ static double Max(double a, double b) { return (a > b) ? a : b; };
 
 /* constructor */
 D2MeshFreeSupport2DT::D2MeshFreeSupport2DT(const ParentDomainT& domain,
-	const dArray2DT& coords, const iArray2DT& connects, const iArrayT& nongridnodes,
-	FormulationT code, double dextra, int complete, bool store_shape):
-	D2MeshFreeSupportT(domain, coords, connects, nongridnodes, code, dextra,
-		complete, store_shape)
+	const dArray2DT& coords, const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in):
+	D2MeshFreeSupportT(domain, coords, connects, nongridnodes, in)
 {
 
 }
@@ -47,11 +45,11 @@ void D2MeshFreeSupport2DT::SetCuttingFacets(const dArray2DT& facet_coords,
 /* process boundaries - nodes marked as "inactive" at the
 * current x_node by setting dmax = -1.0 */
 void D2MeshFreeSupport2DT::ProcessBoundaries(const dArray2DT& coords,
-	const dArrayT& x_node, dArrayT& dmax)
+	const dArrayT& x_node, dArray2DT& nodal_params)
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
-	if (coords.MajorDim() != dmax.Length()) throw eSizeMismatch;
+	if (coords.MajorDim() != nodal_params.MajorDim()) throw eSizeMismatch;
 	if (coords.MinorDim() != x_node.Length()) throw eSizeMismatch;
 #endif
 
@@ -66,7 +64,8 @@ void D2MeshFreeSupport2DT::ProcessBoundaries(const dArray2DT& coords,
 		double* p2 = p1 + 2;
 	
 		for (int i = 0; i < coords.MajorDim(); i++)
-			if (Intersect(p1, p2, pnode, coords(i))) dmax[i] = -1.0;
+			if (Intersect(p1, p2, pnode, coords(i))) 
+				nodal_params.SetRow(i, -1.0);
 	}
 }		
 

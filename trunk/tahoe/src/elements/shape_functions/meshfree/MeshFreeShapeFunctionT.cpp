@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.cpp,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.cpp,v 1.2 2001-06-19 23:22:03 paklein Exp $ */
 /* created: paklein (09/10/1998)                                          */
 
 #include "MeshFreeShapeFunctionT.h"
@@ -11,9 +11,9 @@
 MeshFreeShapeFunctionT::MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 	const LocalArrayT& coords, const dArray2DT& all_coords,
 	const iArray2DT& connects, const iArrayT& nongridnodes,
-	MeshFreeT::FormulationT code, double dextra, int complete, bool store_shape,
-	const int& currelement):
+	const int& currelement, ifstreamT& in):
 	ShapeFunctionT(geometry_code, numIP, coords, kStandardB),
+	fMFSupport(NULL),
 	fCurrElement(currelement),
 	fDNaU(numIP),
 	fXConnects(connects)
@@ -21,13 +21,13 @@ MeshFreeShapeFunctionT::MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, i
 	/* construct MLS support */
 	if (all_coords.MinorDim() == 2)
 		fMFSupport = new MeshFreeSupport2DT(*fDomain, all_coords, connects,
-							nongridnodes, code, dextra, complete, store_shape);
+							nongridnodes, in);
 	else
 		fMFSupport = new MeshFreeSupport3DT(*fDomain, all_coords, connects,
-							nongridnodes, code, dextra, complete, store_shape);
+							nongridnodes, in);
 
 	if (!fMFSupport) throw eOutOfMemory;
-	
+
 	/* set as field shape function */
 	SetUShapeFunctions(fNaU, fDNaU);
 }
@@ -380,6 +380,11 @@ void MeshFreeShapeFunctionT::PrintAt(ostream& out) const
 }
 
 /* write MLS statistics */
+void MeshFreeShapeFunctionT::WriteParameters(ostream& out) const
+{
+	fMFSupport->WriteParameters(out);
+}
+
 void MeshFreeShapeFunctionT::WriteStatistics(ostream& out) const
 {
 	fMFSupport->WriteStatistics(out);
@@ -657,15 +662,18 @@ void MeshFreeShapeFunctionT::BlendNodalData(int node, const iArrayT& nodes, dArr
 	}
 }
 
-/* read/write Dmax */
-void MeshFreeShapeFunctionT::SetDmax(const iArrayT& node, const dArrayT& Dmax)
+/* read/write nodal meshfree parameters */
+void MeshFreeShapeFunctionT::SetNodalParameters(const iArrayT& node, const dArray2DT& nodal_params)
 {
-	fMFSupport->SetDmax(node, Dmax);
+	fMFSupport->SetNodalParameters(node, nodal_params);
 }
 
-void MeshFreeShapeFunctionT::GetDmax(const iArrayT& node, dArrayT& Dmax) const
+void MeshFreeShapeFunctionT::GetNodalParameters(const iArrayT& node, dArray2DT& nodal_params) const
 {
-	fMFSupport->GetDmax(node, Dmax);
+	fMFSupport->GetNodalParameters(node, nodal_params);
 }
 
-const dArrayT& MeshFreeShapeFunctionT::Dmax(void) const { return fMFSupport->Dmax(); }
+const dArray2DT& MeshFreeShapeFunctionT::NodalParameters(void) const 
+{ 
+	return fMFSupport->NodalParameters(); 
+}

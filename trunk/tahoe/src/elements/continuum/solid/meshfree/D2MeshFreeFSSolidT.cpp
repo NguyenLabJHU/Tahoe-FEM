@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.2 2001-06-19 23:22:01 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeFSSolidT.h"
@@ -144,7 +144,7 @@ void D2MeshFreeFSSolidT::SetShape(void)
 /* constructors */
 	fD2MFShapes = new D2MeshFreeShapeFunctionT(fGeometryCode, fNumIP,
 		fLocInitCoords, fNodes->InitialCoordinates(), fConnectivities, fOffGridNodes,
-		fMeshFreeCode, fd_max, fComplete, fStoreShape, fElementCards.Position());
+		fElementCards.Position(), fFEManager.Input());
 
 	if (!fD2MFShapes) throw eOutOfMemory;
 	

@@ -1,6 +1,5 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.2 2001-06-19 23:22:04 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
-/* supporting functions for EFG elements                                  */
 
 #include "MeshFreeSupportT.h"
 
@@ -9,6 +8,7 @@
 #include "ExceptionCodes.h"
 #include "Constants.h"
 #include "dArray2DT.h"
+#include "ifstreamT.h"
 
 /* variable length memory managers */
 #include "nVariArray2DT.h"
@@ -37,22 +37,21 @@ static    int Max(int a, int b) { return (a > b) ? a : b; };
 static double Max(double a, double b) { return (a > b) ? a : b; };
 
 /* constructor */
-MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain, const dArray2DT& coords,
-	const iArray2DT& connects, const iArrayT& nongridnodes, FormulationT code,
-	double dextra, int complete, bool store_shape):
+MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,  
+	const dArray2DT& coords, const iArray2DT& connects, const iArrayT& nongridnodes, 
+	ifstreamT& in):
 	fDomain(domain),
+	fDextra(0.0),
 	fEFG(NULL),
 	fRKPM(NULL),
 	fGrid(NULL),
 	fCoords(coords),
 	fConnects(connects),
 	fNonGridNodes(nongridnodes),
-	fDextra(dextra),
-	fComplete(complete),
-	fStoreShape(store_shape),
 	fNumFacetNodes(0),
 	fCutCoords(NULL),
-	fdmax_man(25),
+	fvolume_man(25, fvolume),
+	fnodal_param_man(25),
 	fcoords_man(25, fcoords, fCoords.MinorDim()),
 	fx_ip_table(fDomain.NumIP(), fCoords.MinorDim()),
 	fReformNode(kNotInit),
@@ -61,31 +60,92 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain, const dArray2DT&
 	/* checks */
 	if (fDomain.NumSD()    !=   fCoords.MinorDim() ||
 	    fDomain.NumNodes() != fConnects.MinorDim()) throw eBadInputValue;
-	if (fDextra < 0.0) throw eBadInputValue;
+
+	/* read common parameters */
+	in >> fStoreShape;
+	in >> fMeshfreeType;
 
 	/* construct MLS solver */
-	if (code == kEFG)
+	if (fMeshfreeType == kEFG)
 	{
+		/* read parameters */
+		int complete = -1;
+		fDextra = -1.0;
+		in >> fDextra;
+		in >> complete;
+		
+		/* checks */
+		if (fDextra < 1.0 || complete <= 1) throw eBadInputValue;
+		
+		/* construct MLS solver */	
 		if (fDomain.NumSD() == 2)
-			fEFG = new OrthoMLS2DT(fComplete);
+			fEFG = new OrthoMLS2DT(complete);
+		else if (fDomain.NumSD() == 3)
+			fEFG = new OrthoMLS3DT(complete);
 		else
-			fEFG = new OrthoMLS3DT(fComplete);
+		{
+			cout << "\n MeshFreeSupportT::MeshFreeSupportT: unsupported spatial dimensions: "
+			     << fDomain.NumSD() << endl;
+			throw eGeneralFail;
+		}
 		if (!fEFG) throw eOutOfMemory;	
+		
+		/* initialize */
 		fEFG->Initialize();
+		
+		/* just one nodal field parameter */
+		fnodal_param_man.SetMinorDimension(1);
 	}
-	else if (code == kRKPM)
+	else if (fMeshfreeType == kRKPM)
 	{
-		fRKPM = new MLSSolverT(fDomain.NumSD(), fComplete);
+		/* common parameters */
+		int complete = -1;
+		WindowTypeT window_type;
+		in >> complete;
+		in >> window_type;
+		
+		/* check */
+		if (complete < 0) throw eBadInputValue;
+		
+		/* resolve window function parameters */
+		dArrayT window_params;
+		switch (window_type)
+		{
+			case kGaussian:
+			{
+				/* 2-parameters */
+				window_params.Allocate(3);
+				in >> window_params[0]; // support size scaling
+				in >> window_params[1]; // sharpening factor
+				in >> window_params[2]; // cut-off factor
+				break;
+			}
+			default:
+				cout << "\n MeshFreeSupportT::MeshFreeSupportT: unsupported window function type: "
+				     << window_type << endl;
+				throw eBadInputValue;
+		}
+
+		/* construct MLS solver */
+		fRKPM = new MLSSolverT(fDomain.NumSD(), complete, window_type, window_params);
 		if (!fRKPM) throw eOutOfMemory;	
+
+		/* initialize */
 		fRKPM->Initialize();
+		
+		/* dimension nodal field parameter */
+		fnodal_param_man.SetMinorDimension(fRKPM->NumberOfSupportParameters());
 	}
 	else
+	{
+		cout << "\n MeshFreeSupportT::MeshFreeSupportT: unsupported spatial dimensions: "
+		     << fMeshfreeType << endl;
 		throw eBadInputValue;
+	}
 
-	/* variable size managers */
-	fdmax_man.Register(fvolume );
-	fdmax_man.Register(fdmax   );
-	fdmax_man.Register(fdmax_ip);
+	/* variable size manager */
+	fnodal_param_man.Register(fnodal_param   );
+	fnodal_param_man.Register(fnodal_param_ip);
 }
 
 /* destructor */
@@ -94,6 +154,29 @@ MeshFreeSupportT::~MeshFreeSupportT(void)
 	delete fEFG;
 	delete fRKPM;
 	delete fGrid;
+}
+
+/* write parameters */
+void MeshFreeSupportT::WriteParameters(ostream& out) const
+{
+	/* common parameters */
+	out << "\n Meshfree support parameters:\n";
+	out << " Store shape functions . . . . . . . . . . . . . = " << ((fStoreShape) ? "TRUE" : "FALSE") << '\n';
+	out << " Meshfree formulation. . . . . . . . . . . . . . = " << fMeshfreeType << '\n';
+	out << "    [" << kEFG << "]: Element-free Galerkin (EFG)\n";
+	out << "    [" << kRKPM << "]: Reproducing Kernel Particle Method (RPKM)\n";	
+	if (fMeshfreeType == kEFG)
+	{
+		out << " Meshfree formulation. . . . . . . . . . . . . . = " << fDextra << '\n';
+		out << " Basis function completeness . . . . . . . . . . = " << fEFG->Completeness() << '\n';
+		out << " Number of basis function monomials. . . . . . . = " << fEFG->NumberOfMonomials() << '\n';
+	}
+	else if (fMeshfreeType == kRKPM)
+	{
+		fRKPM->WriteParameters(out);
+	}
+	else throw eGeneralFail;
+	out << '\n';
 }
 
 /* steps to initialization - modifications to the support size must
@@ -107,9 +190,19 @@ void MeshFreeSupportT::SetSupportSize(void)
 	SetSearchGrid();
 //NOTE: do this every time SetSupportSize is called???
 	
-	/* initialize Dmax for nodes in connectivity set */
+	/* initialize support size for nodes in connectivity set */
 	cout << "\n MeshFreeSupportT::SetSupportSize: setting nodal support" << endl;
-	SetDmax();
+	if (fMeshfreeType == kEFG || fRKPM->SearchType() == WindowT::kSpherical)
+	{
+		cout << "\n MeshFreeSupportT::SetSupportSize: spherical search" << endl;
+		SetSupport_Spherical_Search();
+	}
+	else if (fRKPM->SearchType() == WindowT::kConnectivity)
+	{
+		cout << "\n MeshFreeSupportT::SetSupportSize: connectivity search" << endl;
+		SetSupport_Cartesian_Connectivities();
+	} 
+	else throw eGeneralFail;
 }
 
 void MeshFreeSupportT::SetNeighborData(void)
@@ -151,41 +244,47 @@ void MeshFreeSupportT::SetSkipElements(const iArrayT& skip_elements)
 }
 
 /* synchronize Dmax with another set (of active EFG nodes) */
-void MeshFreeSupportT::SynchronizeDmax(dArrayT& synchDmax)
+void MeshFreeSupportT::SynchronizeSupportParameters(dArray2DT& nodal_params)
 {
-	/* should be over the same global node set (marked by length) */
-	if (fDmax.Length() != synchDmax.Length())
+	if (fMeshfreeType == kEFG)
 	{
-		cout << "\n MeshFreeSupportT::SynchronizeDmax: must be over same global node set" << endl;
-		throw eSizeMismatch;
+		/* should be over the same global node set (marked by length) */
+		if (fNodalParameters.Length() != nodal_params.Length())
+		{
+			cout << "\n MeshFreeSupportT::SynchronizeSupportParameters: list of nodal\n"
+			     << " parameters must the same length over the global node set" << endl;
+			throw eSizeMismatch;
+		}
+		
+		/* "synchronize" means take max of dmax */
+		double* pthis = fNodalParameters.Pointer();
+		double* pthat = nodal_params.Pointer();
+		int length = fNodalParameters.Length();
+		for (int i = 0; i < length; i++)
+		{
+			*pthis = *pthat = Max(*pthis,*pthat);
+			pthis++; pthat++;
+		}
 	}
-
-	double* pthis = fDmax.Pointer();
-	double* pthat = synchDmax.Pointer();
-	int length = fDmax.Length();
-	for (int i = 0; i < length; i++)
-	{
-		*pthis = *pthat = Max(*pthis,*pthat);
-		pthis++; pthat++;
-	}
+	else if (fMeshfreeType == kRKPM)
+		/* handled by the MLS solver */
+		fRKPM->SynchronizeSupportParameters(fNodalParameters, nodal_params);
+	else throw eGeneralFail;
 }
 
-void MeshFreeSupportT::SetDmax(const iArrayT& node, const dArrayT& Dmax)
+void MeshFreeSupportT::SetNodalParameters(const iArrayT& node, const dArray2DT& nodal_params)
 {
-	if (node.Length() != Dmax.Length()) throw eSizeMismatch;
+	if (node.Length() != nodal_params.MajorDim()) throw eSizeMismatch;
 
-	/* Dmax initialized externally */
-	if (fDmax.Length() == 0)
+	/* parameters initialized externally */
+	if (fNodalParameters.MajorDim() == 0)
 	{
 		if (node.Length() != fCoords.MajorDim())
 		{
-			cout << "\n MeshFreeSupportT::SetDmax: must initialize d_max for ALL nodes" << endl;
+			cout << "\n MeshFreeSupportT::SetNodalParameters: must initialize field parameters\n"
+			     << " for ALL nodes" << endl;
 			throw eGeneralFail;
 		}
-	
-		/* initialize */
-		fDmax.Allocate(fCoords.MajorDim());
-		fDmax = -1;
 
 		/* assume not following "normal" route to initialization */
 		if (!fGrid)
@@ -195,22 +294,33 @@ void MeshFreeSupportT::SetDmax(const iArrayT& node, const dArrayT& Dmax)
 			SetSearchGrid();
 		}
 
-		//TEMP - set nodal volume all to 1.0
-		if (fRKPM)
+		/* dimensions set by MLS solver type */
+		if (fMeshfreeType == kEFG)
+			fNodalParameters.Allocate(fCoords.MajorDim(), 1);
+		else if  (fMeshfreeType == kRKPM)
 		{
+			fNodalParameters.Allocate(fCoords.MajorDim(), fRKPM->NumberOfSupportParameters());
+			
+			/* additional parameters */	
 			fVolume.Allocate(fCoords.MajorDim());
 			fVolume = 1.0;
+			//TEMP - make all nodal "volumes" the same
 		}
+		else
+			throw eGeneralFail;
+
+		/* initialize */
+		fNodalParameters = -1;
 	}
 
 	/* map in */
-	for (int i = 0; i < node.Length(); i++)
-		fDmax[node[i]] = Dmax[i];
+	fNodalParameters.Assemble(node, nodal_params);
 }
 
-void MeshFreeSupportT::GetDmax(const iArrayT& node, dArrayT& Dmax) const
+void MeshFreeSupportT::GetNodalParameters(const iArrayT& node, dArray2DT& nodal_params) const
 {
-	Dmax.Collect(node, fDmax);
+	/* copy selected rows */
+	nodal_params.RowCollect(node, fNodalParameters);
 }
 
 /* cutting facet functions */
@@ -236,7 +346,14 @@ void MeshFreeSupportT::ResetFacets(const ArrayT<int>& facets)
 		throw eGeneralFail;
 	}
 	
-	/* collect nodes to reset */
+	/* collect nodes to reset.
+	 * The set of nodes to reset is determined by first calculating
+	 * a characteristic facet size. Then, all nodes within this
+	 * distance from the facet nodes are collected. Any node with
+	 * a non-zero support size is appended to the list for recomputation.
+	 * This approach does NOT strictly guarantee that affected nodes
+	 * are found. More correctly, we would need to find all nodes whose
+	 * support is cut by the facet. */
 	int nsd = fDomain.NumSD();
 	dArray2DT facet_coords;
 	AutoArrayT<int> resetnodes;
@@ -270,8 +387,9 @@ void MeshFreeSupportT::ResetFacets(const ArrayT<int>& facets)
 			{
 				int nd = inodes[i].Tag();
 	
-				/* must be meshfree node */
-				if (fDmax[nd] > 0.0)			
+				/* must an "active" meshfree node - determined by non-zero
+				 * nodal parameter, i.e., the support size */
+				if (fNodalParameters(nd,0) > 0.0)			
 				{
 					/* the node */
 					resetnodes.AppendUnique(nd);
@@ -281,7 +399,7 @@ void MeshFreeSupportT::ResetFacets(const ArrayT<int>& facets)
 					int* pnd = fnNeighborData(nd);
 					for (int k = 0; k < nnd; k++)
 					{
-						if (fDmax[*pnd] > 0.0) resetnodes.AppendUnique(*pnd);
+						if (fNodalParameters(*pnd,0) > 0.0) resetnodes.AppendUnique(*pnd);
 						pnd++;
 					}
 				}
@@ -467,20 +585,24 @@ int MeshFreeSupportT::SetFieldUsing(const dArrayT& x, const ArrayT<int>& nodes)
 	
 		/* dimension */
 		fcoords_man.SetMajorDimension(fneighbors.Length(), false);	
-		fdmax_man.Dimension(fneighbors.Length(), false);
+		fnodal_param_man.SetMajorDimension(fneighbors.Length(), false);
 	
 		/* collect local lists */
 		fcoords.RowCollect(fneighbors, fCoords);
-		fdmax.Collect(fneighbors, fDmax);
+		fnodal_param.RowCollect(fneighbors, fNodalParameters);
 	
 		/* compute MLS field */
 		int OK;
 		if (fEFG)
-			OK = fEFG->SetField(fcoords, fdmax, x);
+			OK = fEFG->SetField(fcoords, fnodal_param, x);
 		else
 		{
+			/* nodal volumes */
+			fvolume_man.SetLength(fneighbors.Length(), false);
 			fvolume.Collect(fneighbors, fVolume);
-			OK = fRKPM->SetField(fcoords, fdmax, fvolume, x, 1);
+			
+			/* compute field */
+			OK = fRKPM->SetField(fcoords, fnodal_param, fvolume, x, 1);
 		}
 
 		/* error */
@@ -491,17 +613,17 @@ int MeshFreeSupportT::SetFieldUsing(const dArrayT& x, const ArrayT<int>& nodes)
 			cout << " coordinates :" << x.no_wrap() << '\n';
 			cout << " neighborhood: " << fneighbors.Length() << '\n';
 			cout << setw(kIntWidth) << "node"
-			     << setw(  d_width) << "dmax"
 			     << setw(  d_width) << "dist"
-			     << setw(  d_width) << "x" << '\n';
+			     << setw(fnodal_param.MinorDim()*d_width) << "nodal parameters"
+			     << setw(fcoords.MinorDim()*d_width) << "x" << '\n';
 			dArrayT dist(x.Length());			
 			for (int i = 0; i < fneighbors.Length(); i++)
 			{
 				cout << setw(kIntWidth) << fneighbors[i] + 1;
-				cout << setw(  d_width) << fdmax[i];
 				fcoords.RowCopy(i, dist);
 				dist -= x;		
 				cout << setw(  d_width) << dist.Magnitude();
+				fnodal_param.PrintRow(i, cout);
 				fcoords.PrintRow(i, cout);
 			}
 			cout.flush();
@@ -587,13 +709,13 @@ void MeshFreeSupportT::WriteStatistics(ostream& out) const
 		out << setw(kIntWidth) << k
 	    	<< setw(kIntWidth) << counts[k] << '\n';	
 
-	/* neighbor distance data */
+	/* nodal support data */
 	double dmin, dmax;
-	fDmax.MinMax(dmin, dmax, 1);
+	fNodalParameters.MinMax(dmin, dmax, 1);
 
-	double*  pd = fDmax.Pointer();
+	double*  pd = fNodalParameters.Pointer();
 	double dsum = 0.0;
-	for (int i = 0; i < fDmax.Length(); i++)
+	for (int i = 0; i < fNodalParameters.Length(); i++)
 	{
 		if (*pd > 0.0) dsum += *pd;
 		pd++;
@@ -656,15 +778,15 @@ void MeshFreeSupportT::SetSearchGrid(void)
 	fGrid->Reset();
 }
 
-/* generate lists of all nodes that fall within Dmax of the
+/* generate lists of all nodes that fall within support of the
 * nodal coords (self included) */
 void MeshFreeSupportT::SetNodeNeighborData(const dArray2DT& coords)
 {
 #if __option(extended_errorcheck)
-	if (coords.MajorDim() != fDmax.Length()) throw eSizeMismatch;
+	if (coords.MajorDim() != fNodalParameters.MajorDim()) throw eSizeMismatch;
 #endif
 
-	int numnodes = fDmax.Length();
+	int numnodes = fNodalParameters.MajorDim();
 	int nsd      = coords.MinorDim();
 	
 	/* initialize neighbor counts */
@@ -676,17 +798,40 @@ void MeshFreeSupportT::SetNodeNeighborData(const dArray2DT& coords)
 	iArray2DT* pthis = &a1;
 	iArray2DT* pnext = &a2;
 
+	/* determine search type */
+	WindowT::SearchTypeT search_type = WindowT::kNone;
+	if (fMeshfreeType == kEFG)
+		search_type = WindowT::kSpherical;
+	else if (fMeshfreeType == kRKPM)
+		search_type = fRKPM->SearchType();
+	
+	/* check */
+	if (search_type == WindowT::kNone)
+	{
+		cout << "\n MeshFreeSupportT::SetNodeNeighborData: could not determine\n" 
+		     <<   "     search type" << endl;
+		throw eGeneralFail;
+	}
+
 	/* loop over "active" nodes */
+	dArrayT nodal_params;
 	AutoArrayT<int> neighbors;
 	for (int ndex = 0; ndex < fNodesUsed.Length(); ndex++)
 	{
 		int i = fNodesUsed[ndex];
 		double* target = coords(i);
-		double  tol    = fDmax[i];
 		
 		/* find nodes in neighborhood */
-		fGrid->Neighbors(i, tol, neighbors);
-		neighbors.Append(i); // add self to the list
+		if (search_type == WindowT::kSpherical)
+			fGrid->Neighbors(i, fNodalParameters(i,0), neighbors);
+		else
+		{
+			fNodalParameters.RowAlias(i, nodal_params);
+			fGrid->Neighbors(i, nodal_params, neighbors);
+		}		
+
+		/* add self to the list */
+		neighbors.Append(i);
 			
 		/* need more space */
 		int count = neighbors.Length();
@@ -741,8 +886,7 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 
 	/* integration point coordinate tables */	
 	dArray2DT x_ip_table(nip, nsd);
-	dArrayT   x_ip, x_node;
-	dArrayT   x_ab(nsd);
+	dArrayT   x_ip, x_node, nodal_params;
 
 	/* "big" system */
 	const int big = 25000;
@@ -804,13 +948,7 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 					{
 						/* fetch ip coordinates */
 						x_ip_table.RowAlias(k, x_ip);
-				
-						/* distance */
-						x_ab.DiffOf(x_node, x_ip);
-				
-						/* will contribute */
-						if (x_ab.Magnitude() < fDmax[neigh])
-							hit = 1;
+						if (Covers(x_ip, x_node, neigh)) hit = 1;
 					}
 				
 					/* within the neighborhood */	
@@ -953,6 +1091,40 @@ void MeshFreeSupportT::SetElementShapeFunctions(void)
 * Private
 *************************************************************************/
 
+/* test coverage - temporary function until OrthoMLSSolverT class
+ * is brought up to date */
+bool MeshFreeSupportT::Covers(const dArrayT& field_x, const dArrayT& node_x, 
+	int node) const
+{
+	bool covers = false;
+	if (fMeshfreeType == kEFG)
+	{
+		double dist = 0.0;
+		for (int j = 0; j < field_x.Length(); j++)
+		{
+			double dx = node_x[j] - field_x[j];
+			dist += dx*dx;
+		}
+				
+		/* covers */
+		double dmax_i = fNodalParameters(node, 0);
+		if (dist < dmax_i*dmax_i) covers = true;
+	}
+	else if (fMeshfreeType == kRKPM)
+	{
+		dArrayT nodal_params;
+		fNodalParameters.RowAlias(node, nodal_params);
+		covers = fRKPM->Covers(node_x, field_x, nodal_params);
+	}
+	else
+	{
+		cout << "\n MeshFreeSupportT::Covers: unexpected meshfree type: " 
+		     << fMeshfreeType << endl;
+		throw eGeneralFail;
+	}
+	return covers;
+}
+
 void MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 	dArray2DT& phi, ArrayT<dArray2DT>& Dphi)
 {
@@ -973,12 +1145,13 @@ void MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 	int nen = fConnects.MinorDim();
 
 	/* set dimensions */
-	fdmax_man.Dimension(nnd, false);
+	fnodal_param_man.SetMajorDimension(nnd, false);
 	fcoords_man.SetMajorDimension(nnd, false);
+	fvolume_man.SetLength(nnd, false);
 
 	/* collect neighbor data */
 	fcoords.RowCollect(neighbors, fCoords);
-	fdmax.Collect(neighbors, fDmax);
+	fnodal_param.RowCollect(neighbors, fNodalParameters);
 
 	/* workspace */
 	iArrayT     elementnodes;
@@ -998,29 +1171,30 @@ void MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 		fx_ip_table.RowAlias(i, x_ip);
 
 		/* process boundaries */
-		fdmax_ip = fdmax;
-		ProcessBoundaries(fcoords, x_ip, fdmax_ip);
+		fnodal_param_ip = fnodal_param;
+		ProcessBoundaries(fcoords, x_ip, fnodal_param_ip);
 		// set dmax = -1 for nodes that are inactive at x_node
 	
 		/* compute MLS field */
 		int OK;
-		if (fEFG)
+		if (fMeshfreeType == kEFG)
 		{
-			OK = fEFG->SetField(fcoords, fdmax_ip, x_ip);
+			OK = fEFG->SetField(fcoords, fnodal_param_ip, x_ip);
 	
 			/* store field data */
 			phi.SetRow(i, fEFG->phi());
 			Dphi[i] = fEFG->Dphi();
 		}
-		else
+		else if (fMeshfreeType == kRKPM)
 		{
 			fvolume.Collect(neighbors, fVolume);
-			OK = fRKPM->SetField(fcoords, fdmax_ip, fvolume, x_ip, 1);
+			OK = fRKPM->SetField(fcoords, fnodal_param_ip, fvolume, x_ip, 1);
 
 			/* store field data */
 			phi.SetRow(i, fRKPM->phi());
 			Dphi[i] = fRKPM->Dphi();
 		}
+		else throw eGeneralFail;
 
 		/* error */
 		ostream& err = cout;
@@ -1032,17 +1206,17 @@ void MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 			err << " coordinates: " << x_ip.no_wrap() << '\n';
 			err << " neighborhood: " << neighbors.Length() << '\n';
 			err << setw(kIntWidth) << "node"
-			     << setw(  d_width) << "dmax"
 			     << setw(  d_width) << "dist"
-			     << setw(  d_width) << "x" << '\n';
+			     << setw(fnodal_param_ip.MinorDim()*d_width) << "nodal parameters"
+			     << setw(fcoords.MinorDim()*d_width) << "x" << '\n';
 			dArrayT dist(x_ip.Length());
 			for (int j = 0; j < neighbors.Length(); j++)
 			{
 				err << setw(kIntWidth) << neighbors[j] + 1;
-				err << setw(  d_width) << fdmax_ip[j];
 				fcoords.RowCopy(j, dist);
 				dist -= x_ip;		
 				err << setw(  d_width) << dist.Magnitude();
+				fnodal_param_ip.PrintRow(j, err);
 				fcoords.PrintRow(j, err);				
 			}
 			err.flush();
@@ -1065,26 +1239,26 @@ void MeshFreeSupportT::ComputeNodalData(int node, const iArrayT& neighbors,
 	
 	/* set dimensions */
 	int count = neighbors.Length();
-	fdmax_man.Dimension(count, false);
+	fnodal_param_man.SetMajorDimension(count, false);
 	fcoords_man.SetMajorDimension(count, false);
 	
 	/* collect local lists */
 	fcoords.RowCollect(neighbors, fCoords);
-	fdmax.Collect(neighbors, fDmax);
+	fnodal_param.RowCollect(neighbors, fNodalParameters);
 		
 	/* coords of current node */
 	dArrayT x_node;
 	fCoords.RowAlias(node, x_node);
 	
 	/* process boundaries */
-	ProcessBoundaries(fcoords, x_node, fdmax);
+	ProcessBoundaries(fcoords, x_node, fnodal_param);
 	// set dmax = -1 for nodes that are inactive at x_node
 
 	/* compute MLS field */
 	int OK;
 	if (fEFG)
 	{
-		OK = fEFG->SetField(fcoords, fdmax, x_node);
+		OK = fEFG->SetField(fcoords, fnodal_param, x_node);
 		
 		/* copy field data */
 		phi  = fEFG->phi();
@@ -1092,8 +1266,12 @@ void MeshFreeSupportT::ComputeNodalData(int node, const iArrayT& neighbors,
 	}
 	else
 	{
+		/* dimension */
+		fvolume_man.SetLength(count, false);
 		fvolume.Collect(neighbors, fVolume);
-		OK = fRKPM->SetField(fcoords, fdmax, fvolume, x_node, 1);
+		
+		/* set field */
+		OK = fRKPM->SetField(fcoords, fnodal_param, fvolume, x_node, 1);
 		
 		/* copy field data */
 		phi  = fRKPM->phi();
@@ -1109,17 +1287,17 @@ void MeshFreeSupportT::ComputeNodalData(int node, const iArrayT& neighbors,
 		cout << " coordinates: " << x_node.no_wrap() << '\n';
 		cout << " neighborhood: " << neighbors.Length() << '\n';
 		cout << setw(kIntWidth) << "node"
-		     << setw(  d_width) << "dmax"
 		     << setw(  d_width) << "dist"
-		     << setw(  d_width) << "x" << '\n';
+		     << setw(fnodal_param.MinorDim()*d_width) << "dmax"
+		     << setw(fcoords.MinorDim()*d_width) << "x" << '\n';
 		dArrayT dist(x_node.Length());
 		for (int i = 0; i < neighbors.Length(); i++)
 		{
 			cout << setw(kIntWidth) << neighbors[i] + 1;
-			cout << setw(  d_width) << fdmax[i];
 			fcoords.RowCopy(i, dist);
 			dist -= x_node;		
 			cout << setw(  d_width) << dist.Magnitude();
+			fnodal_param.PrintRow(i, cout);
 			fcoords.PrintRow(i, cout);
 		}
 		cout.flush();		
@@ -1127,23 +1305,33 @@ void MeshFreeSupportT::ComputeNodalData(int node, const iArrayT& neighbors,
 	}
 }
 
-/* set dmax for each node in the connectivities */
-void MeshFreeSupportT::SetDmax(void)
+/* set support for each node in the connectivities */
+void MeshFreeSupportT::SetSupport_Spherical_Search(void)
 {
 	/* dimensions */
 	int nnd = fCoords.MajorDim();
 	int nsd = fCoords.MinorDim();
 
-	//TEMP - set nodal volume all to 1.0
+	/* MLS solver specific */
 	if (fRKPM)
 	{
+		//TEMP - set nodal volume all to 1.0
 		fVolume.Allocate(nnd);
 		fVolume = 1.0;
+		
+		/* check */
+		if (fRKPM->NumberOfSupportParameters() != 1)
+		{
+			cout << "\n MeshFreeSupportT::SetSupport_Spherical_Search: expecting only 1\n" 
+			     <<   "     nodal support size parameter:" << fRKPM->NumberOfSupportParameters() 
+			     << endl;
+			throw eGeneralFail;
+		}
 	}
 
-	/* initialize max distance to "inactive" */
-	fDmax.Allocate(nnd);
-	fDmax = -1.0;
+	/* initialize nodal parameters to "inactive" */
+	fNodalParameters.Allocate(nnd,1);
+	fNodalParameters = -1.0;
 
 	int min_neighbors = (fEFG) ? fEFG->NumberOfMonomials() :
 	                            fRKPM->BasisDimension();
@@ -1171,7 +1359,6 @@ void MeshFreeSupportT::SetDmax(void)
 	/* loop over all nodes */
 	AutoArrayT<double> dists;
 	AutoArrayT<int> nodes;
-//	dArrayT dists_sh;
 	iArrayT nodes_sh;
 	double dmax = 0.0;
 	for (int ndex = 0; ndex < fNodesUsed.Length(); ndex++)
@@ -1283,7 +1470,7 @@ void MeshFreeSupportT::SetDmax(void)
 			/* insurance for constructing the nodal fields */
 			for (int i = 0; i < num_support; i++)
 			{
-				double& d_i = fDmax[nodes[i]];
+				double& d_i = fNodalParameters(nodes[i],0);
 				d_i = (d_i < dmax) ? dmax : d_i;
 			}
 			
@@ -1299,21 +1486,16 @@ void MeshFreeSupportT::SetDmax(void)
 		}
 	}
 	
-	/* scale neighborhoods */
-	fDmax *= fDextra;
-
-//TEMP
-#if 0
-cout << " MeshFreeSupportT::SetDmax:\n";
-for (int i = 0; i < fDmax.Length(); i++)
-	cout << setw(kIntWidth) << i+1 << setw(kDoubleWidth) << fDmax[i] << '\n';
-#endif
-//END		
-						
+	/* post-modify support size */
+	if (fMeshfreeType == kEFG)
+		fNodalParameters *= fDextra; /* scale neighborhoods */
+	else if (fMeshfreeType == kRKPM)
+		fRKPM->ModifySupportParameters(fNodalParameters);
+	else throw eGeneralFail;
 }
 
-/* set dmax for each node in the connectivities */
-void MeshFreeSupportT::SetDmaxFromConnects(void)
+/* set the support for each node in the connectivities */
+void MeshFreeSupportT::SetSupport_Spherical_Connectivities(void)
 {
 // NOTE: this version of finding Dmax only works if all the nodes
 //       are members of the connectivities defining the integration
@@ -1329,7 +1511,6 @@ void MeshFreeSupportT::SetDmaxFromConnects(void)
 
 	/* loop over elements */
 	dArrayT x_0, x_i;
-	dArrayT r(nsd);
 	for (int i = 0; i < nel; i++)
 	{
 		int* pelem = fConnects(i);
@@ -1342,19 +1523,74 @@ void MeshFreeSupportT::SetDmaxFromConnects(void)
 			fCoords.RowAlias(node, x_0);
 			
 			/* find max neighbor distance */
-			double& maxdist = fDmax[node];
+			double& maxdist = fNodalParameters(node,0);
 			for (int k = 0; k < nen; k++)
 				if (k != j)
 				{
 					/* fetch origin coords */
 					fCoords.RowAlias(pelem[k], x_i);
 			
-					/* distance vector */
-					r.DiffOf(x_i, x_0);
-					double dist = r.Magnitude();
+					/* separating distance */
+					double dist = dArrayT::Distance(x_i, x_0);
 					
 					/* keep max */
 					maxdist = Max(dist, maxdist);
+				}
+		}
+	}
+}
+
+/* set the support for each node in the connectivities */
+void MeshFreeSupportT::SetSupport_Cartesian_Connectivities(void)
+{
+	/* checks */
+	if (fNodalParameters.MajorDim() != fCoords.MajorDim() ||
+	    fNodalParameters.MinorDim() != fCoords.MinorDim())
+	{
+		cout << "\n MeshFreeSupportT::SetSupport_Cartesian_Connectivities: unexpected\n" 
+		     <<   "     dimension for nodal parameters" << endl;
+		throw eSizeMismatch;
+	}
+
+	/* dimensions */
+	int nnd = fCoords.MajorDim();
+	int nsd = fCoords.MinorDim();
+	int nel = fConnects.MajorDim();
+	int nen = fConnects.MinorDim();
+
+	/* loop over elements */
+	dArrayT x_0, x_i, r(nsd), support;
+	for (int i = 0; i < nel; i++)
+	{
+		int* pelem = fConnects(i);
+		for (int j = 0; j < nen; j++)
+		{
+			/* current node */
+			int node = pelem[j];
+
+			/* fetch origin coords */
+			fCoords.RowAlias(node, x_0);
+			
+			/* find max neighbor distance */
+			for (int k = 0; k < nen; k++)
+				if (k != j) /* skip self */
+				{
+					/* fetch node coords */
+					fCoords.RowAlias(pelem[k], x_i);
+
+					/* check visibility */
+					if (Visible(x_0.Pointer(), x_i.Pointer()))
+					{
+						/* fetch support size */
+						fNodalParameters.RowAlias(node, support);
+
+						/* separation */
+						r.DiffOf(x_i, x_0);
+					
+						/* keep max in each direction */
+						for (int l = 0; l < nsd; l++)
+							support[l] = Max(r[l], support[l]);
+					}
 				}
 		}
 	}
@@ -1396,7 +1632,7 @@ void MeshFreeSupportT::SetNodesUsed(void)
 int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes)
 {
 /* NOTE: relies on the fact that the support of any node is big
-*       enough to ensure coverage of all neighboring nodes */
+ *       enough to ensure coverage of all neighboring nodes */
 
 	/* collect nodes in neighborhood of point x */
 	int cell_span = 0;
@@ -1411,18 +1647,39 @@ int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes
 		throw eGeneralFail;
 	}
 	
-	/* find biggest support */
-	double support_max = 0.0;
-	for (int ii = 0; ii < inodes->Length(); ii++)
+	/* collect support nodes */
+	if (fMeshfreeType == kEFG || fRKPM->SearchType() == WindowT::kSpherical)
 	{
-		int tag = ((*inodes)[ii]).Tag();
-		double dmax = fDmax[tag];
-		support_max = (dmax > support_max) ? dmax : support_max;
-	}
+		/* find biggest support */
+		double support_max = 0.0;
+		for (int ii = 0; ii < inodes->Length(); ii++)
+		{
+			int tag = ((*inodes)[ii]).Tag();
+			double dmax = fNodalParameters(tag,0);
+			support_max = (dmax > support_max) ? dmax : support_max;
+		}
 	
-	/* need to re-collect nodes */
-	if (fGrid->CellSpan(cell_span) < support_max)
+		/* need to re-collect nodes */
+		if (fGrid->CellSpan(cell_span) < support_max)
+			inodes = &fGrid->HitsInRegion(target, support_max);
+	}
+	else if (fRKPM->SearchType() == WindowT::kConnectivity)
+	{
+		/* find biggest support */
+		dArrayT support_max(x.Length()), support;
+		support_max = 0.0;
+		for (int ii = 0; ii < inodes->Length(); ii++)
+		{
+			int tag = ((*inodes)[ii]).Tag();
+			fNodalParameters.RowAlias(tag, support);
+			for (int i = 0; i < support.Length(); i++)
+				support_max[i] = Max(support_max[i], support[i]);
+		}
+	
+		/* re-collect using max support */
 		inodes = &fGrid->HitsInRegion(target, support_max);
+	}
+	else throw eGeneralFail;
 
 	/* work space */	
 	int nsd = fCoords.MinorDim();
@@ -1433,10 +1690,11 @@ int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes
 	out_nodes.Allocate(0);
 				
 	/* run through nodes */
+	dArrayT x_node, nodal_params;
 	for (int i = 0; i < inodes->Length(); i++)
 	{
 		int tag = ((*inodes)[i]).Tag();
-		double* x_node = fCoords(tag);
+		fCoords.RowAlias(tag, x_node);
 
 //NOTE - reverse this. finding the r^2 is probably cheaper than
 //       determining whether the node is visible
@@ -1444,18 +1702,10 @@ int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes
 		/* check node */
 		if (!nodes.HasValue(tag) &&     // redundant?
 		    !out_nodes.HasValue(tag) && // redundant?
-		     Visible(target, x_node))
+		     Visible(target, x_node.Pointer()))
 		{
-			double dist = 0.0;
-			for (int j = 0; j < nsd; j++)
-			{
-				double dx = x_node[j] - target[j];
-				dist += dx*dx;
-			}
-				
 			/* add to list */
-			double dmax_i = fDmax[tag];
-			if (dist < dmax_i*dmax_i)
+			if (Covers(x, x_node, tag))
 				nodes.Append(tag);
 			else
 				out_nodes.Append(tag);
@@ -1479,26 +1729,26 @@ int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes
 		     << setw(5) << "vis"
 		     << setw(5) << "cov"
 		     << setw(d_width) << "dist"
-		     << setw(d_width) << "dmax"
-		     << setw(d_width) << "x" << '\n';
+		     << setw(fNodalParameters.MinorDim()*d_width) << "dmax"
+		     << setw(x.Length()*d_width) << "x" << '\n';
 
 		/* work space */
-		dArrayT xn, r(nsd);
+		dArrayT xn, nodal_params;
 		
 		/* write nodes */
 		for (int i = 0; i < inodes->Length(); i++)
 		{
 			int tag = ((*inodes)[i]).Tag();
 			fCoords.RowAlias(tag, xn);
-			r.DiffOf(x, xn);
-			double dist = r.Magnitude();
+			double dist = dArrayT::Distance(x, xn);
+
 			cout << setw(kIntWidth) << tag+1
 		         << setw(5) << nodes.HasValue(tag)
 		         << setw(5) << Visible(x.Pointer(), xn.Pointer())
-		         << setw(5) << (dist < fDmax[tag])
-		         << setw(  d_width) << dist
-		         << setw(  d_width) << fDmax[tag]
-		         << setw(  d_width) << xn.no_wrap() << '\n';		
+		         << setw(5) << Covers(x, xn, tag)
+		         << setw(  d_width) << dist;
+			fNodalParameters.PrintRow(tag, cout);
+			cout << xn.no_wrap() << '\n';		
 		}
 		return 0;
 	}
