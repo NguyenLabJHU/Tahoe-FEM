@@ -1,3 +1,6 @@
-# $Id: regression.cron.template,v 1.1 2001-09-22 18:36:10 paklein Exp $
+# $Id: regression.cron.template,v 1.2 2001-09-23 18:37:20 paklein Exp $
+#
+# NOTE: replace [path] before submitting
+#
 0 1 * * * /bin/csh -f [path to scripts]regression.csh > [path to script]regression.LOG
 
