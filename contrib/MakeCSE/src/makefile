@@ -3,15 +3,15 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	GlobalEdgeFinderT.o \
-	ElementBaseT.o \
-	CSEBaseT.o \
-	FEManager.o \
-	MakeCSE.o \
+	main.o \
 	MakeCSEIOManager.o \
-	NodeManagerPrimitive.o \
+	FEManager.o \
+	ElementBaseT.o \
 	Quad2Tri.o \
-	main.o
+	CSEBaseT.o \
+	MakeCSE.o \
+	GlobalEdgeFinderT.o \
+	NodeManagerPrimitive.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -29,6 +29,7 @@ SRC = \
 	MakeCSEIOManager.cpp \
 	NodeManagerPrimitive.cpp \
 	Quad2Tri.cpp \
+	IOManager.cpp \
 	main.cpp
 
 # headers
@@ -41,17 +42,14 @@ HDR = \
 	MakeCSEIOManager.h \
 	NodeManagerPrimitive.h \
 	Quad2Tri.h \
+	IOManager.h \
 	ClockT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
 SUB_DIR = \
-	array \
-	misc \
-	ifstream_x \
-	geometry \
-	dataio
+	geometry
 subdir_driver: subdir_loop
 # SUB_DIR is empty
 #subdir_driver: 

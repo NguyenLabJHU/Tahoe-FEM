@@ -4,27 +4,27 @@
 
 // program reads input file, runs MakeCSE, writes output file
 
-#include "iosfwd.h"
-#include "StringT.h"
 #include "FEManager.h"
 #include "MakeCSEIOManager.h"
-#include "ifstream_x.h"
+#include "ifstreamT.h"
 
-bool IsInteractive (ifstream_x& in);
+using namespace Tahoe;
 
-void main (void)
+bool IsInteractive (ifstreamT& in);
+
+int main (void)
 {
   try
     {
       /* determine input file */
-      char *program_name = "MakeCSE";
-      char *program_version = "v5 (3 May 2000)";
+      const char *program_name = "MakeCSE";
+      const char *program_version = "v5 (3 May 2000)";
  
       /* create input/output manager and read input file */
       cout << "\n Welcome to: " << program_name << " " << program_version;
       cout << "\n\n Build Date: " << __DATE__ " " << __TIME__ << "\n\n";
 
-      ifstream_x in ('#');
+      ifstreamT in ('#');
       bool interactive = IsInteractive (in);
 
       StringT outfile (81);
@@ -34,7 +34,11 @@ void main (void)
 	  cin.getline (outfile.Pointer(), 80, '\n');
 	}
       else
-	outfile.DefaultName (in.filename(), ".in", ".out", -1);
+	{
+	  outfile = in.filename();
+	  outfile.Root();
+	  outfile.Append (".out");
+	}
      
       ofstream log (outfile);
       MakeCSEIOManager iodata (log);
@@ -74,9 +78,10 @@ void main (void)
 	}
       cout << "      Game Over\n\n";
     }
+  return 1;
 }
 
-bool IsInteractive (ifstream_x& in)
+bool IsInteractive (ifstreamT& in)
 {
   StringT infile (81);
   bool file = false;

@@ -5,16 +5,25 @@
 // this class redirects the Reader variable to MakeCSEReader
 
 #include "MakeCSEIOManager.h"
-
-#include <ctype.h>
+#include "MakeCSE.h"
+#include "ifstreamT.h"
 #include "Quad2Tri.h"
 #include "FEManager.h"
-#include "ifstream_x.h"
-#include "NodeManagerPrimitive.h"
-#include "MakeCSE.h"
+
+#include "ExodusInputT.h"
+#include "TahoeInputT.h"
+#include "EnSightInputT.h"
+#include "AbaqusInputT.h"
+#include "ExodusOutputT.h"
+#include "FE_ASCIIT.h"
+#include "EnSightOutputT.h"
+#include "AbaqusOutputT.h"
+#include "TecPlotOutputT.h"
+
+using namespace Tahoe;
 
 MakeCSEIOManager::MakeCSEIOManager (ostream& out) :
-  IOManager (out),
+  ModelManagerT (out),
   fVerbose (0),
   fRenumber (0),
   fZoneEdge (MakeCSE::kSingleZE),
@@ -24,7 +33,24 @@ MakeCSEIOManager::MakeCSEIOManager (ostream& out) :
 
 void MakeCSEIOManager::Interactive (void)
 {
-  IOManager::Interactive ();
+  StringT filename (81);
+  StringT answer (81);
+  if (fEchoInput) fEchoInput.close();
+  cout << "\n Do you want to write an input file? (1 or y)? ";
+  cin.getline (answer.Pointer(), 80, '\n');
+  if (answer[0] == 'y' || answer[0] == 'Y' || answer[0] == '1') 
+    {
+      cout << " Enter file name for input file: ";
+      cin.getline (filename.Pointer(), 80, '\n');
+      fEchoInput.open (filename);
+      fEcho = true;
+    }
+  else
+    fEcho = false;
+
+  InteractiveIO ();
+
+  fEchoInput.flush();
 
   if (fEcho) fEchoInput << "*VERBOSE " << fVerbose << endl;
 
@@ -33,6 +59,37 @@ void MakeCSEIOManager::Interactive (void)
   InteractiveSplitElement ();
 
   fEchoInput.flush ();
+}
+
+void MakeCSEIOManager::ReadParameters (ifstreamT& in, bool interactive, const StringT& program, const StringT& version)
+{
+  fMessage << "\n Welcome to: " << program << " " << version;
+  fMessage << "\n\n Build Date: " << __DATE__ " " << __TIME__ << "\n\n";
+  StringT database (81);
+  if (interactive)
+    {
+      fMessage << " No input file, interactive session.\n\n";
+      Interactive ();
+      cout << "\n Enter root for output files: ";
+      cin.getline (database.Pointer(), 80, '\n');
+    }
+
+  else 
+    {
+      fMessage << " Reading from Input file . . . . . . . . . . . . = " 
+	  << in.filename() << '\n';
+      ReadInputFile (in);
+
+      // change input file name to make slightly different root
+      // do not wnat to write over input database
+      database = in.filename();
+      database.Root();
+      database.Append ("_db.in");
+    }
+
+  // extension will be stripped off, so need one to strip
+  if (!strchr (database.Pointer(), '.')) database.Append (".in");
+  SetOutput(program, version, fTitle, database, fOutputFormat);
 }
 
 void MakeCSEIOManager::InputData (int& data, int key) const
@@ -63,12 +120,104 @@ void MakeCSEIOManager::InputData (iArrayT& data, int key) const
       }
 }
 
+/* output functions */
+void MakeCSEIOManager::WriteGeometry(void)
+{
+	fOutput->WriteGeometry();
+}
+
 
 //***************** private **************
 
-void MakeCSEIOManager::Parse (ifstream_x& in, StringT& word1)
+void MakeCSEIOManager::InteractiveIO (void)
 {
-  if (strncmp (word1, "VERBOSE", 7) == 0)
+  StringT filename, answer (81);
+  IOBaseT temp (cout);
+  temp.InputFormats (cout);
+
+  bool opened = false;
+  while (!opened)
+    {
+      // read input format
+      cout << "\n Enter database type to start with: ";
+      cin >> fFormat;
+      cin.getline (answer.Pointer(), 80, '\n'); // clear line
+
+      // read database file name
+      cout << "\n Enter database file name: ";
+      cin >> fInputName;
+      cin.getline (answer.Pointer(), 80, '\n'); // clear line
+
+      try { SetInput(); }
+      catch (int errorcode) 
+	{ if (errorcode != eBadInputValue) throw errorcode; }
+      opened = true;
+    }
+  if (fEcho) fEchoInput << "*INPUT " << fFormat << "\n"
+			<< fInputName << "\n";
+
+  // read output format
+  cout << "\n Enter output format: ";
+  cin >> fOutputFormat;
+  cin.getline (answer.Pointer(), 80, '\n'); // clear line
+  if (fEcho) fEchoInput << "*OUTPUT " << fOutputFormat << endl;
+
+  // read if Tahoe II files are external/internal
+  if (fOutputFormat == IOBaseT::kTahoeII)
+    {
+      cout << "\n Enter 1 for external files, or any other key for inline: ";
+      cin.getline (answer.Pointer(), 80, '\n');
+      if (answer[0] == '1') fExternTahoeII = true;
+      if (fEcho) fEchoInput << " " << fExternTahoeII << endl;
+    }
+
+  // set output from read parameters
+}
+
+// scan parameter file
+void MakeCSEIOManager::ReadInputFile(ifstreamT& in)
+{
+  StringT word1;
+  try
+    {
+      while (in.good())
+	{
+	  if (!ReadWord1 (in, word1)) return;
+	  if (strncmp (word1, "EOF", 3) == 0) return;
+	  Parse (in, word1);
+	}
+    }
+ catch (int j)
+   {
+     cout << '\n';
+     if (j > 0) cout << "   Invalid Parameter = " << j << endl;
+     cout << "   Last keyword = " << word1 << endl;
+     throw eBadInputValue;
+   } 
+
+ catch (StringT& j)
+   {
+     cout << "\n   Invalid Parameter = " << j << endl;
+     cout << "   Last keyword = " << word1 << endl;
+     throw eBadInputValue;
+   } 
+}
+
+void MakeCSEIOManager::Parse (ifstreamT& in, StringT& word1)
+{
+  if (strncmp (word1, "OUTPUT", 6) == 0)
+    ReadOutputFormat (in);
+
+  else if (strncmp (word1, "INPUT", 5) == 0)
+    ReadInputFormat (in);
+
+  else if (strncmp (word1, "TITLE", 5) == 0)
+    {
+      fTitle.GetLineFromStream (in);
+      fMessage << "\n Title: " << fTitle << "\n\n";
+    }
+
+  else if (strncmp (word1, "VERBOSE", 7) == 0)
     in >> fVerbose;
 
   else if (strncmp (word1, "FACET", 5) == 0)
@@ -108,10 +257,28 @@ void MakeCSEIOManager::Parse (ifstream_x& in, StringT& word1)
     ReadMultiID (in, kBlockToNode);
 
   else
-    IOManager::Parse (in, word1);
+    MakeCSEIOManager::Parse (in, word1);
 }
 
-void MakeCSEIOManager::ReadIDColumnal (ifstream_x& in, int key, int numoptions)
+bool MakeCSEIOManager::ReadWord1 (ifstreamT& in, StringT& word1) const
+{
+  // read string instead of character, to assist in user debugging
+  StringT word;
+  in >> word;
+  word.ToUpper();
+  if (word.Length() <= 1) return false;
+  if (word[0] != '*') 
+    {
+      cout << "\n\nError Reading Input File: Encountered " << word 
+	   << " when expecting *KEYWORD.\n";
+      throw -1;
+    }
+
+  word1 = word.Pointer(1);
+  return true;
+}
+
+void MakeCSEIOManager::ReadIDColumnal (ifstreamT& in, int key, int numoptions)
 {
   int start, stop;
   AutoArrayT<int> data;
@@ -131,7 +298,7 @@ void MakeCSEIOManager::ReadIDColumnal (ifstream_x& in, int key, int numoptions)
   fData[key].CopyPart (0, data, 0, data.Length());
 }
 
-void MakeCSEIOManager::Read2IDColumnal (ifstream_x& in, int key, int numoptions)
+void MakeCSEIOManager::Read2IDColumnal (ifstreamT& in, int key, int numoptions)
 {
   int start1, stop1;
   int start2, stop2;
@@ -157,7 +324,7 @@ void MakeCSEIOManager::Read2IDColumnal (ifstream_x& in, int key, int numoptions)
   fData[key].CopyPart (0, data, 0, data.Length());
 }
 
-bool MakeCSEIOManager::ReadID (ifstream_x& in, int& start, int& stop) const
+bool MakeCSEIOManager::ReadID (ifstreamT& in, int& start, int& stop) const
 {
   start = -1;
   char next;
@@ -176,7 +343,7 @@ bool MakeCSEIOManager::ReadID (ifstream_x& in, int& start, int& stop) const
   return true;
 }
 
-void MakeCSEIOManager::ReadMultiID (ifstream_x& in, int key)
+void MakeCSEIOManager::ReadMultiID (ifstreamT& in, int key)
 {
   int start, stop;
   iAutoArrayT ids;
@@ -341,7 +508,7 @@ void MakeCSEIOManager::InteractiveSplitElement (void)
     }  
 }
 
-void MakeCSEIOManager::Read (char* first, int key, int num)
+void MakeCSEIOManager::Read (const char* first, int key, int num)
 {
   StringT answer (81);
   fData[key].Allocate (num);
@@ -355,7 +522,7 @@ void MakeCSEIOManager::Read (char* first, int key, int num)
   if (fEcho) fEchoInput << fData[key] << '\n';
 }
 
-void MakeCSEIOManager::Read2D (char* first, char* second, int key, int num)
+void MakeCSEIOManager::Read2D (const char* first, const char* second, int key, int num)
 {
   StringT answer (81);
   fData[key].Allocate (num*2);
@@ -370,10 +537,10 @@ void MakeCSEIOManager::Read2D (char* first, char* second, int key, int num)
       cin.getline (answer.Pointer(), 80, '\n'); // clear line  
     }
   if (fEcho) 
-      fData[key].PrintWithFormat (fEchoInput, 10, 1, 2);
+      fData[key].WriteWrapped (fEchoInput, 2);
 }
 
-void MakeCSEIOManager::Read3D (char* first, char* second, char* third, int key, int num)
+void MakeCSEIOManager::Read3D (const char* first, const char* second, const char* third, int key, int num)
 {
   StringT answer (81);
   fData[key].Allocate (num*3);
@@ -391,5 +558,145 @@ void MakeCSEIOManager::Read3D (char* first, char* second, char* third, int key, 
       cin.getline (answer.Pointer(), 80, '\n'); // clear line  
     }
   if (fEcho) 
-    fData[key].PrintWithFormat (fEchoInput, 10, 1, 3);
+    fData[key].WriteWrapped (fEchoInput, 3);
 }
+
+void MakeCSEIOManager::ReadOutputFormat (ifstreamT& in)
+{
+  in >> fOutputFormat;
+  fMessage << " Output format . . . . . . . . . . . . . . . . . = " 
+       << fOutputFormat << '\n';
+  IOBaseT temp (cout);
+  temp.OutputFormats (fMessage);
+
+  // if TahoeII, choose external or inline data
+  if (fOutputFormat == IOBaseT::kTahoeII)
+    {
+      int tahoetype;
+      in >> tahoetype;
+      if (tahoetype == 1) fExternTahoeII = true;
+      fMessage << " External Files. . . . . . . . . . . . . . . . . = " 
+	   << fExternTahoeII << '\n';
+    }
+}
+
+void MakeCSEIOManager::ReadInputFormat (ifstreamT& in)
+{
+  int InputFormat;
+  in >> fFormat;
+
+  fMessage << " Input format. . . . . . . . . . . . . . . . . . = " 
+       << fFormat  << '\n';
+  IOBaseT temp (cout);
+  temp.InputFormats (fMessage);
+
+  // read database name
+  if (fFormat > IOBaseT::kTahoe)
+    {
+      in >> fInputName;
+      if (fInputName[0] == '*') throw fInputName;
+    }
+  SetInput ();
+}
+
+void MakeCSEIOManager::SetInput(void)
+{
+  cout << " Reading data from: " << fInputName << endl;
+  fMessage << " Reading data from: " << fInputName << endl;
+	switch (fFormat)
+	{
+		case IOBaseT::kExodusII:
+		{
+		  fInput = new ExodusInputT (fMessage);
+		  fInput->Open (fInputName);
+			break;
+		}
+	        case IOBaseT::kTahoeII:
+		{
+			fInput = new TahoeInputT (fMessage);
+			fInput->Open (fInputName);
+			break;		 
+		}
+	        case IOBaseT::kEnSight:
+		{
+		        fInput = new EnSightInputT (fMessage, false);
+			fInput->Open (fInputName);
+			break;
+		}
+	        case IOBaseT::kEnSightBinary:
+		{
+		        fInput = new EnSightInputT (fMessage, true);
+			fInput->Open (fInputName);
+			break;
+		}
+	        case IOBaseT::kAbaqus:
+	        case IOBaseT::kAbaqusBinary:
+		{
+		        fInput = new AbaqusInputT (fMessage);
+			fInput->Open (fInputName);
+			break;
+		}
+	        case IOBaseT::kTahoe:
+		{
+		  cout << "\nIOManager::SetInput Tahoe I formatted input no longer accepted. Please create a Tahoe II geometry file.\n";
+		}  
+		default:
+		{
+			cout << "\nIOManager::SetInput Wrong Input File Type.";
+			fMessage << "\nIOManager::SetInput Wrong Input File Type.";
+			throw eBadInputValue;
+      	}
+	}
+	
+	if (!fInput) throw eOutOfMemory;
+}
+
+void MakeCSEIOManager::SetOutput(const StringT& program_name, 
+	const StringT& version, const StringT& title, const StringT& input_file, 
+	IOBaseT::FileTypeT output_format)
+{	
+	ArrayT<StringT> outstrings (4);
+	outstrings[0] = input_file;
+	outstrings[1] = title;
+	outstrings[2] = program_name;
+	outstrings[3] = version;
+
+	const int kdigits = 4;
+	switch (output_format)
+	  {
+	  case IOBaseT::kExodusII:
+	    fOutput = new ExodusOutputT(fMessage, outstrings);
+	    break;
+	  case IOBaseT::kTahoe:
+	  case IOBaseT::kTahoeII:
+	    fOutput = new FE_ASCIIT(fMessage, fExternTahoeII, outstrings);
+	    break;
+	  case IOBaseT::kEnSight:
+	    fOutput = new EnSightOutputT (fMessage, outstrings, kdigits, false);
+	    break;
+	  case IOBaseT::kEnSightBinary:
+	    fOutput = new EnSightOutputT (fMessage, outstrings, kdigits, true);
+	    break;
+	  case IOBaseT::kAbaqus:
+	    fOutput = new AbaqusOutputT (fMessage, outstrings, false);
+	    break;
+	  case IOBaseT::kAbaqusBinary:
+	    fOutput = new AbaqusOutputT (fMessage, outstrings, true);
+	    break;
+
+	  case IOBaseT::kTecPlot:
+	    fOutput = new TecPlotOutputT (fMessage, outstrings, kdigits);
+	    break;
+	    
+	  default:
+	    {			
+	      cout << "\n IOManager::SetOutput unknown output format:" 
+		   << output_format << endl;
+	      fMessage  << "\n IOManager::SetOutput unknown output format:" 
+		    << output_format << endl;
+	      throw eBadInputValue;
+	    } 
+	  }	
+	if (!fOutput) throw eOutOfMemory;
+}
+
