@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.6 2004-02-06 03:42:53 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.7 2004-04-27 07:25:27 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
@@ -334,8 +334,8 @@ void MFPenaltyContact2DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 
 	/* register with the model manager and let it set the ward */
 	int nen = fNumFacetNodes + 1; /* facet nodes + 1 striker */
-	if (!model.RegisterVariElements (name, fConnectivities_man, GeometryT::kLine, nen, 0)) 
-		ExceptionT::GeneralFail(caller);
+	if (!model.RegisterElementGroup(name, GeometryT::kLine, nen)) 
+		ExceptionT::GeneralFail(caller, "could not register contact facets");
 
 	/* set up fConnectivities */
 	fConnectivities.Dimension(1);
