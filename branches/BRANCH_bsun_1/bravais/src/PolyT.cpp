@@ -339,9 +339,9 @@ bool PolyT::CheckCurrentGrain(dArrayT currentCoord, int currentGrain, double dis
 }
 
 bool PolyT::CheckNoOverlap (dArrayT currentCoord, nArrayT <nArrayT<dArrayT> > *AtomsinGrain, int currentGrain, CrystalLatticeT *templateLattice) {
-    double tolerance = .35 * templateLattice->GetLatticeParameters().Max() * templateLattice->GetLatticeParameters().Max();
+    double tolerance = .6* templateLattice->GetLatticeParameters().Max();
     bool noOverlap=true;
-    for (int tempGrain=0; tempGrain<currentGrain && noOverlap; tempGrain++) {
+    for (int tempGrain=0; tempGrain<=currentGrain && noOverlap; tempGrain++) {
 		for (int tempAtom=0; tempAtom < (*AtomsinGrain)[tempGrain].Length() && noOverlap; tempAtom++ ) {
 			dArrayT distance(nSD);
 			distance.DiffOf(currentCoord,(*AtomsinGrain)[tempGrain][tempAtom]);
