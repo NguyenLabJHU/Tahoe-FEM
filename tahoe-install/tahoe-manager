@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.27 2005-03-07 14:52:57 paklein Exp $
+# $Id: tahoe-manager,v 1.28 2005-03-07 18:45:18 paklein Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -300,7 +300,7 @@ unless(defined($connection)) {
 	print "connection type [$connect_default]: ";
 	$i = <STDIN>; 
 	chomp($i);
-	if (length($i) == 1) { # default
+	if (length($i) == 0) { # default
 		$i = $connect_default;
 	}
 	$connection = $connections[$i];
@@ -308,7 +308,7 @@ unless(defined($connection)) {
 		print "http proxy (proxyhost:port) [NONE]:";
 		$proxy = <STDIN>;
 		chomp($proxy);
-		if (length($proxy) == 1) { # default
+		if (length($proxy) == 0) { # default
 			$proxy = "NONE";
 		}
 	}
@@ -426,12 +426,14 @@ sub update_cvs {
 		if (-d $dir) {
 			print "\tupdating $dir...";
 			chdir($dir);
-			system("cvs update -Pd > ../cvs.log 2>&1");
+			#system("cvs update -Pd > ../cvs.log 2>&1");
+			system("cvs update -Pd > ../cvs.log");
 			chdir("..");
 		} else {
 			print "\tchecking out $dir...";
 			my $repo = $module2repo{$dir};
-			system("cvs -d $tahoe_name\@$tahoe:$repo checkout $dir > cvs.log 2>&1");
+			#system("cvs -d $tahoe_name\@$tahoe:$repo checkout $dir > cvs.log 2>&1");
+			system("cvs -d $tahoe_name\@$tahoe:$repo checkout $dir > cvs.log");
 		}
 		# check for failures
 		my ($errors, $patches, $updates, $merges) = (0, 0, 0, 0);
@@ -827,7 +829,8 @@ sub fillin_makefile{
 	if (! -e ".tahoe_config") {
 		print " use default ARCH = $mod_arch (y/n) [y]: ";
 		$ans = <STDIN>;
-		if (length($ans) > 1 && $ans !~ /y/i) {
+		chomp($ans);
+		if (length($ans) > 0 && $ans !~ /y/i) {
 			my $path = cwd();
 			chdir("..");
 			$mod_arch = get_arch();
