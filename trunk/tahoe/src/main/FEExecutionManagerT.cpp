@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.14 2002-01-09 18:30:07 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.15 2002-01-09 21:38:18 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #include "FEExecutionManagerT.h"
@@ -548,7 +548,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	try { FEman.Initialize(); }
 	catch (int code)
 	{
-		status << "\n \"" << in_loc.filename() << "\" exit on exception during the\n";
+		status << "\n \"" << in_loc.filename() << "\" exit on exception " << code << " during the\n";
 		status << " construction phase. Check the input file for errors." << endl;
 		
 		/* echo some lines from input */
@@ -585,17 +585,27 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	IOManager_mpi* IOMan = NULL;
 	if (!CommandLineOption("-split_io"))
 	{
+		try {
 		/* read output map */
 		iArrayT output_map;
 		ReadOutputMap(in, map_file, output_map);
 
 		/* set-up local IO */
-//		IOMan = new IOManager_mpi(in, output_map, *(FEman.OutputManager()), FEman.Partition(), global_model_file, format);
 		IOMan = new IOManager_mpi(in, output_map, *(FEman.OutputManager()), FEman.Partition(), model_file, format);
 		if (!IOMan) throw eOutOfMemory;
 		
 		/* set external IO */
 		FEman.SetExternalIO(IOMan);
+		}
+		
+		catch (int code)
+		{
+			token = 0;
+			status << "\n \"" << in.filename() << "\" exit on exception " << code 
+			       << " setting the external IO" << endl;
+			/* write exception codes to out file */
+			FEman.WriteExceptionCodes(out);		
+		}
 	}
 
 	/* solve */
@@ -604,7 +614,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	try { FEman.Solve(); }
 	catch (int code)
 	{
-		status << "\n \"" << in.filename() << "\" exit on exception during the\n";
+		status << "\n \"" << in.filename() << "\" exit on exception " << code << " during the\n";
 		status << " solution phase. See \"" << out_file << "\" for a list";
 		status << " of the codes.\n";
 		token = 0;

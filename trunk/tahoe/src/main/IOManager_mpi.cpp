@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.8 2002-01-07 20:37:22 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.9 2002-01-09 21:38:18 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #include "IOManager_mpi.h"
@@ -92,7 +92,7 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, const iArrayT& io_map,
 		{
 			/* dummy stuff */
 			iArray2DT connects;
-			ArrayT<const iArray2DT*> connects_list(1);
+			ArrayT<const iArray2DT*> connects_list(set.BlockID().Length());
 			connects_list[0] = &connects;
 			ArrayT<StringT> no_labels;
 
