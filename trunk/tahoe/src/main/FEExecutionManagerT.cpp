@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.33 2002-12-05 02:14:45 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.34 2002-12-05 08:30:46 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -351,9 +351,9 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
 	if (method == -1)
 	{
 		cout << "\n Select partitioning method:\n"
-		     << '\t' << kGraph   << ": graph\n"
-		     << '\t' << kAtom    << ": atom\n"
-		     << '\t' << kSpatial << ": spatial\n";
+		     << '\t' << PartitionT::kGraph   << ": graph\n"
+		     << '\t' << PartitionT::kAtom    << ": atom\n"
+		     << '\t' << PartitionT::kSpatial << ": spatial\n";
 		cout << "\n method: "; 
 #if (defined __SGI__ && defined __TAHOE_MPI__)
 		cout << '\n';
@@ -566,15 +566,15 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 			}
 		}
 
-		if (NeedDecomposition(in, model_file, size) || (!CommandLineOption("-split_io") && NeedOutputMap(in, map_file, size)))
+		if (NeedDecomposition(model_file, size) || (!CommandLineOption("-split_io") && NeedOutputMap(in, map_file, size)))
 		  {
 		/* prompt if not found */
 		if (method == -1)
 		{	
 			cout << "\n Select partitioning method:\n"
-			     << '\t' << kGraph   << ": graph\n"
-			     << '\t' << kAtom    << ": atom\n"
-			     << '\t' << kSpatial << ": spatial\n";
+			     << '\t' << PartitionT::kGraph   << ": graph\n"
+			     << '\t' << PartitionT::kAtom    << ": atom\n"
+			     << '\t' << PartitionT::kSpatial << ": spatial\n";
 			cout << "\n method: "; 
 #if (defined __SGI__ && defined __TAHOE_MPI__)
 			cout << '\n';
@@ -857,15 +857,15 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 	/* dispatch */
 	switch (decomp_type)
 	{
-		case kGraph:
+		case PartitionT::kGraph:
 			Decompose_graph(in, size, model_file, format, output_map_file);
 			break;
 
-		case kAtom:
+		case PartitionT::kAtom:
 			Decompose_atom(in, size, model_file, format, output_map_file);
 			break;
 			
-		case kSpatial:
+		case PartitionT::kSpatial:
 			cout << "\n FEExecutionManagerT::Decompose: spatial decomposition not implemented yet" << endl;
 			break;
 						
@@ -937,6 +937,9 @@ void FEExecutionManagerT::Decompose_atom(ifstreamT& in, int size,
 
 		/* set to local scope */
 		partition.SetScope(PartitionT::kLocal);
+		
+		/* set decomposition type */
+		partition.SetDecompType(PartitionT::kAtom);
 	
 		/* output file name */
 		StringT geom_file, suffix;
@@ -988,7 +991,7 @@ void FEExecutionManagerT::Decompose_graph(ifstreamT& in, int size,
 {
 	bool split_io = CommandLineOption("-split_io");
 	bool need_output_map = NeedOutputMap(in, output_map_file, size) && !split_io;
-	bool need_decomp = NeedDecomposition(in, model_file, size);
+	bool need_decomp = NeedDecomposition(model_file, size);
 	if (need_output_map || need_decomp)
 	{
 		/* echo stream */
@@ -1068,6 +1071,9 @@ void FEExecutionManagerT::Decompose_graph(ifstreamT& in, int size,
 			{
 				/* set to local scope */
 				partition[q].SetScope(PartitionT::kLocal);
+
+				/* set decomposition type */
+				partition[q].SetDecompType(PartitionT::kGraph);
 
 				StringT file_name;
 				file_name.Root(model_file);
@@ -1230,7 +1236,7 @@ void FEExecutionManagerT::Decompose_graph(ifstreamT& in, int size,
 }
 
 /* returns 1 if a new decomposition is needed */
-bool FEExecutionManagerT::NeedDecomposition(ifstreamT& in, const StringT& model_file,
+bool FEExecutionManagerT::NeedDecomposition(const StringT& model_file,
 	int size) const
 {
 	/* model file root */
@@ -1245,7 +1251,7 @@ bool FEExecutionManagerT::NeedDecomposition(ifstreamT& in, const StringT& model_
 		part_file.Append(".part", i);
 	
 		/* open partition file */
-		ifstreamT part_in(in.comment_marker(), part_file);
+		ifstreamT part_in(PartitionT::CommentMarker(), part_file);
 		if (part_in.is_open())
 		{
 			StringT version;
