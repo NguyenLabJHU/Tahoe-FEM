@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.19.2.1 2004-04-08 07:33:29 paklein Exp $ */
+/* $Id: EAMT.h,v 1.19.2.2 2004-04-14 17:35:38 paklein Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -27,10 +27,6 @@ public:
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
-	/** class initialization. Among other things, element work space
-	 * is allocated and connectivities are read. */
-	virtual void Initialize(void);
-
 	/** \name connectivities.
 	 * See ElementBaseT::ConnectsX and ElementBaseT::ConnectsU for more
 	 * information about what these are used for */
@@ -56,8 +52,18 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
@@ -88,9 +94,8 @@ protected:
 	/** generate labels for output data */
 	virtual void GenerateOutputLabels(ArrayT<StringT>& labels) const;
 
-	/**nearest neighbor list**/
-	RaggedArray2DT<int> NearestNeighbors;
-	RaggedArray2DT<int> RefNearestNeighbors;
+	/** return a new EAM property or NULL if the name is invalid */
+	EAMPropertyT* New_EAMProperty(const StringT& name, bool throw_on_fail) const;
 
 private:
 
@@ -105,6 +110,8 @@ private:
 	void GetEmbStiff(const dArray2DT& coords,const dArray2DT rho,
 			       dArray2DT& Emb);
 
+private:
+
 	/** particle pair-properties list */
 	ArrayT<EAMPropertyT*> fEAMProperties;
 
@@ -113,6 +120,13 @@ private:
 
 	/** equation numbers */
 	RaggedArray2DT<int> fEqnos;
+
+	/** \name nearest neighbor lists needed for calculation slip vector
+	 * and strain */
+	/*@{*/
+	RaggedArray2DT<int> fNearestNeighbors;
+	RaggedArray2DT<int> fRefNearestNeighbors;
+	/*@}*/
 
 	/** electron density */
 	dArray2DT fElectronDensity;
