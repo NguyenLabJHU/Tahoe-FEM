@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.39.14.2 2004-04-08 15:58:50 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.39.14.3 2004-04-09 05:24:36 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -68,8 +68,7 @@ ContinuumElementT::ContinuumElementT(const ElementSupportT& support):
 	fLocDisp(LocalArrayT::kDisp),
 	fNumIP(0),
 	fOutputID(),
-	fGeometryCode(GeometryT::kNone),
-	fAxisymmetric(false)
+	fGeometryCode(GeometryT::kNone)
 {
 	SetName("continuum_element");
 }
@@ -136,9 +135,6 @@ void ContinuumElementT::Initialize(void)
 {
 	/* inherited */
 	ElementBaseT::Initialize();
-	
-	/* set axisymmmetric flag */
-	fAxisymmetric = Axisymmetric();
 	
 	/* allocate work space */
 	fNEEvec.Dimension(NumElementNodes()*NumDOF());
@@ -470,7 +466,8 @@ void ContinuumElementT::ApplyTractionBC(void)
 		/* dimensions */
 		int nsd = NumSD();
 		int ndof = NumDOF();
-		if (fAxisymmetric && nsd != 2) ExceptionT::GeneralFail();
+		bool is_axi = Axisymmetric();
+		if (is_axi && nsd != 2) ExceptionT::GeneralFail();
 	
 		/* update equation numbers */
 		if (!fTractionBCSet) SetTractionBC();
@@ -541,7 +538,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 	
 					/* ip weight */
 					double jwt = detj*w[j];
-					if (fAxisymmetric) {
+					if (is_axi) {
 						surf_shape.Interpolate(coords, ip_coords, j);
 						jwt *= Pi2*ip_coords[0];
 					}
@@ -578,7 +575,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 	
 					/* ip weight */
 					double jwt = detj*w[j];
-					if (fAxisymmetric) {
+					if (is_axi) {
 						surf_shape.Interpolate(coords, ip_coords, j);
 						jwt *= Pi2*ip_coords[0];
 					}
@@ -626,7 +623,7 @@ void ContinuumElementT::SetGlobalShape(void)
 }
 
 /* form the element mass matrix */
-void ContinuumElementT::FormMass(int mass_type, double constM)
+void ContinuumElementT::FormMass(int mass_type, double constM, bool axisymmetric)
 {
 #if __option(extended_errorcheck)
 	if (fLocDisp.Length() != fLHS.Rows()) throw ExceptionT::kSizeMismatch;
@@ -654,7 +651,7 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 			int a = 0, zero = 0;
 			int& b_start = (fLHS.Format() == ElementMatrixT::kSymmetricUpper) ? a : zero;
 			
-			if (fAxisymmetric)
+			if (axisymmetric)
 			{
 				const LocalArrayT& coords = fShapes->Coordinates();
 				fShapes->TopIP();	
@@ -723,7 +720,7 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 			const double* Weight = fShapes->IPWeights();
 
 			/* total mass and diagonal sum */
-			if (fAxisymmetric)
+			if (axisymmetric)
 			{
 				const LocalArrayT& coords = fShapes->Coordinates();
 				fShapes->TopIP();
@@ -803,7 +800,7 @@ void ContinuumElementT::AddBodyForce(LocalArrayT& body_force) const
 }
 
 /* calculate the body force contribution */
-void ContinuumElementT::FormMa(MassTypeT mass_type, double constM, 
+void ContinuumElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric,
 	const LocalArrayT* nodal_values,
 	const dArray2DT* ip_values)
 {
@@ -835,7 +832,7 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM,
 			const double* Det    = fShapes->IPDets();
 			const double* Weight = fShapes->IPWeights();
 
-			if (fAxisymmetric)
+			if (axisymmetric)
 			{
 				const LocalArrayT& coords = fShapes->Coordinates();
 				fShapes->TopIP();
@@ -870,7 +867,7 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM,
 					}
 				}
 			}
-			else /* not axisymmteric */
+			else /* not axisymmetric */
 			{
 				fShapes->TopIP();
 				while (fShapes->NextIP())
@@ -902,7 +899,7 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM,
 		case kLumpedMass:
 		{
 			fLHS = 0.0; //hope there's nothing in there!
-			FormMass(kLumpedMass, constM);
+			FormMass(kLumpedMass, constM, axisymmetric);
 
 			/* init nodal values */
 			if (nodal_values)
@@ -1456,9 +1453,6 @@ void ContinuumElementT::TakeParameterList(const ParameterListT& list)
 
 	/* inherited */
 	ElementBaseT::TakeParameterList(list);
-
-	/* set axisymmmetric flag */
-	fAxisymmetric = Axisymmetric();
 
 	/* construct group communicator */
 	const CommunicatorT& comm = ElementSupport().Communicator();

@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.26.14.1 2004-04-08 07:32:30 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.26.14.2 2004-04-09 05:24:36 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -169,7 +169,7 @@ protected:
 	virtual void SetGlobalShape(void);
 
 	/** accumulate the element mass matrix */
-	void FormMass(int mass_type, double constM);
+	void FormMass(int mass_type, double constM, bool axisymmetric);
 
 	/** add contribution from the body force */
 	void AddBodyForce(LocalArrayT& body_force) const;
@@ -180,7 +180,7 @@ protected:
 	 * \param nodal nodal values. Pass NULL for no nodal values: [nen] x [ndof]
 	 * \param ip_values integration point source terms. Pass NULL for no integration
 	 *        point values : [nip] x [ndof] */
-	void FormMa(MassTypeT mass_type, double constM, 
+	void FormMa(MassTypeT mass_type, double constM, bool axisymmetric,
 		const LocalArrayT* nodal_values,
 		const dArray2DT* ip_values);
 	 		
@@ -293,9 +293,6 @@ private:
 
 	/** element parameter */
 	GeometryT::CodeT fGeometryCode;
-	
-	/** cached results from ContinuumElementT::Axisymmetric */
-	bool fAxisymmetric;
 };
 
 /* inlines */
