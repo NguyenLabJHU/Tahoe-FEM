@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.cpp,v 1.17 2003-05-26 01:55:47 paklein Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.18 2003-05-27 07:08:14 paklein Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -801,17 +801,17 @@ void MR_RP2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
 	
 }
 
-bool MR_RP2DT::NeedsNodalInfo(void) 
+bool MR_RP2DT::NeedsNodalInfo(void) const
 { 
 	return true; 
 }
 
-int MR_RP2DT::NodalQuantityNeeded(void) 
+int MR_RP2DT::NodalQuantityNeeded(void) const
 { 
 	return 2; 
 }
 
-bool MR_RP2DT::NodesMayRetie(void)
+bool MR_RP2DT::NodesMayRetie(void) const
 {	
 	return false;
 }
@@ -824,7 +824,7 @@ double MR_RP2DT::signof(double& r)
 		return fabs(r)/r;
 }
 
-bool MR_RP2DT::InitiationQ(const double *sigma)
+bool MR_RP2DT::InitiationQ(const nArrayT<double>& sigma) const
 {
 
   double tmp1, tmp11, tmp12, tmp2, tmp3, tmp31, tmp32, ff;

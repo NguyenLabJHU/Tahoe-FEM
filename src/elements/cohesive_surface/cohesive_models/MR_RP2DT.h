@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.h,v 1.8 2003-05-26 01:55:47 paklein Exp $*/
+/*$Id: MR_RP2DT.h,v 1.9 2003-05-27 07:08:14 paklein Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #ifndef _MR_RP_2D_T_H_
@@ -65,17 +65,21 @@ public:
 	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 		dArrayT& output);
 
-	/* functions needed for using TiedNodes KBC controller */
-	
+	/** \name functions needed for using TiedNodes KBC controller */
+	/*@{*/
 	/** For MR_RP2DT, returns true to compute nodal stresses. */
-	virtual bool NeedsNodalInfo(void);
+	virtual bool NeedsNodalInfo(void) const;
 	
-	virtual int NodalQuantityNeeded(void);
+	virtual int NodalQuantityNeeded(void) const;
+
+	/** transform stresses to local frame */
+	virtual bool RotateNodalQuantity(void) const { return true; };
 	
-	virtual bool InitiationQ(const double *sigma);
+	virtual bool InitiationQ(const nArrayT<double>& sigma) const;
 	
 	/** Whether or not the nodes will retie */
-	virtual bool NodesMayRetie(void);
+	virtual bool NodesMayRetie(void) const;
+	/*@}*/
 	
 protected:
 	
