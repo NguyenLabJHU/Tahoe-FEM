@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.cpp,v 1.10 2001-08-10 19:09:46 paklein Exp $ */
+/* $Id: DPSSLinHardT.cpp,v 1.11 2001-08-15 00:34:44 paklein Exp $ */
 /* created: myip (06/01/1999)                                        */
 /*
  * Interface for Drucker-Prager, nonassociative, small strain,
@@ -134,14 +134,18 @@ const dMatrixT& DPSSLinHardT::ModuliCorrection(const ElementCardT& element,
 	/* initialize */
 	fModuliCorr = 0.0;
 
+#if _CFOSTER_DEBUG_
 	cout << "element.IsAllocated = " << element.IsAllocated() << '\n';
 	cout << "element.IntegerData()  = " << element.IntegerData() << '\n'; 
+#endif
 
 	if (element.IsAllocated() && 
 	   (element.IntegerData())[ip] == kIsPlastic)
 	{
         
+#if _CFOSTER_DEBUG_
 	  cout << " in if statement \n";
+#endif
 
 		/* load internal state variables */
 	  	LoadData(element,ip);
@@ -170,6 +174,7 @@ const dMatrixT& DPSSLinHardT::ModuliCorrection(const ElementCardT& element,
 		fModuliCorr.AddScaled(ffriction*c4, fTensorTemp);
 	}
 
+#if _CFOSTER_DEBUG_
                cout << " Moduli Correction = \n";
 	       //        cout << fModuliCorr[0] << ' ' <<  fModuliCorr[6] << ' ' << fModuliCorr[12] << fModuliCorr[18] << ' ' <<  fModuliCorr[24] << ' ' << fModuliCorr[30] << '\n';
 	       // cout << fModuliCorr[1] << ' ' <<  fModuliCorr[7] << ' ' << fModuliCorr[13] << fModuliCorr[19] << ' ' <<  fModuliCorr[25] << ' ' << fModuliCorr[31] << '\n';
@@ -179,6 +184,7 @@ const dMatrixT& DPSSLinHardT::ModuliCorrection(const ElementCardT& element,
 	       // cout << fModuliCorr[5] << ' ' <<  fModuliCorr[11] << ' ' << fModuliCorr[17] << fModuliCorr[23] << ' ' <<  fModuliCorr[29] << ' ' << fModuliCorr[35] << '\n';
 	
                cout << fModuliCorr << '\n';
+#endif
 	
 
 	return fModuliCorr;
@@ -279,7 +285,7 @@ void DPSSLinHardT::Update(ElementCardT& element)
 		if (Flags[ip] == kIsPlastic) /* plastic update */
 		{
 			/* do not repeat if called again. */
-			//Flags[ip] = kIsElastic;
+			Flags[ip] = kIsElastic;
 			/* NOTE: ComputeOutput writes the updated internal variables
 			 *       for output even during iteration output, which is
 			 *       called before UpdateHistory */
@@ -295,7 +301,7 @@ void DPSSLinHardT::Update(ElementCardT& element)
 			fInternal[kalpha] -= fH_prime*dgamma;
 
 			/* dev plastic strain increment	*/
-			fPlasticStrain.AddScaled( sqrt32*dgamma, fUnitNorm );
+			fPlasticStrain.AddScaled( sqrt32*dgamma, fUnitNorm);
         	
         	/* vol plastic strain increment	*/
 			fPlasticStrain.AddScaled( fdilation*dgamma/sqrt(3.0), One );
