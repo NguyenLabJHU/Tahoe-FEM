@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.37.10.2 2003-10-21 19:00:59 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.37.10.3 2003-10-26 03:44:14 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -499,12 +499,17 @@ protected:
 	iArrayT fGlobalNumEquations;
 	/*@}*/
 	
-	/** \name system output (SO) information with check code 4 */
+	/** \name system output (SO). Write nodal residuals for groups with check 
+	 * code 4. Move this to the NodeManagerT or within the FieldT's ? */
 	/*@{*/
-	bool fSO_DivertOutput;
-	iArrayT fSO_OutputID;
-	iArray2DT fSO_Connects;
+	/** true if output per group is currently being diverted */
+	ArrayT<bool> fSO_DivertOutput;
 
+	/** output ID for the system output by group */
+	iArrayT fSO_OutputID;
+	
+	/** point connectivities used by all solver groups */
+	iArray2DT fSO_Connects;
 	/*@}*/
 };
 

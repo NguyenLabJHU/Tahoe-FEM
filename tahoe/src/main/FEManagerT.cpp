@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.63.8.2 2003-10-21 19:00:59 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.63.8.3 2003-10-26 03:44:14 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -70,8 +70,7 @@ FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm)
 	fActiveEquationStart(0),
 	fGlobalNumEquations(0),
 	fCurrentGroup(-1),
-	fAnalysisCode(GlobalT::kNoAnalysis),
-	fSO_DivertOutput(false)
+	fAnalysisCode(GlobalT::kNoAnalysis)
 {
 	/* console name */
 	iSetName("FE_manager");
@@ -682,6 +681,61 @@ void FEManagerT::WriteOutput(double time)
 				out << uni.wrap(5) << endl;
 			}
 		}
+		
+		/* system output */
+		for (int group = 0; group < fSO_OutputID.Length(); group++)
+			if (fSO_DivertOutput[group] && fSO_OutputID[group] != -1) 
+			{
+				/* get the output set */
+				int ndof = fNodeManager->NumDOF(group);
+				int nnd  = fNodeManager->NumNodes();
+				dArray2DT n_values(nnd, 2*ndof);
+				n_values = 0.0;
+		
+				/* collect field values */
+				ArrayT<FieldT*> fields;
+				fNodeManager->CollectFields(group, fields);
+				int column = 0;
+				for (int i = 0; i < fields.Length(); i++)
+				{
+					/* displacement */
+					const dArray2DT& disp = (*fields[i])[0];
+					for (int j = 0; j < disp.MinorDim(); j++)
+						n_values.ColumnCopy(column++, disp, j);
+				}
+			
+				/* collect forces */
+				column = ndof;
+				int shift = ActiveEquationStart(group);
+				const dArrayT& RHS = fSolvers[group]->RHS();		
+				int num_eq = RHS.Length();
+				for (int i = 0; i < fields.Length(); i++)
+				{
+					/* equations numbers */
+					const iArray2DT& eqnos = fields[i]->Equations();
+					double ndof_i = eqnos.MinorDim();
+
+					/* loop over nodes */
+					for (int j = 0; j < nnd; j++)
+					{
+						double* f = n_values(j) + column;
+						int* eqno = eqnos(j);
+						for (int k = 0; k < ndof_i; k++)
+						{
+							int eq_k = eqno[k] - shift;
+							if (eq_k > -1 && eq_k < num_eq)
+								f[k] = RHS[eq_k];
+						}
+					}
+
+					/* next field */
+					column += ndof_i;
+				}
+	
+				/* write output */
+				dArray2DT e_values;
+				WriteOutput(fSO_OutputID[group], n_values, e_values);
+			}
 	}
 	
 	catch (ExceptionT::CodeT error) { ExceptionT::Throw(error, "FEManagerT::WriteOutput"); }
@@ -763,7 +817,12 @@ void FEManagerT::DivertOutput(const StringT& outfile)
 	/* check */
 	if (!fIOManager) ExceptionT::GeneralFail("FEManagerT::DivertOutput", "I/O manager not initialized");
 	fIOManager->DivertOutput(outfile);
-	fSO_DivertOutput = true;
+	
+	/* resolved group */
+	if (fCurrentGroup != -1)
+		fSO_DivertOutput[fCurrentGroup]	= true;
+	else
+		fSO_DivertOutput = true;
 }
 
 void FEManagerT::RestoreOutput(void)
@@ -771,7 +830,12 @@ void FEManagerT::RestoreOutput(void)
 	/* check */
 	if (!fIOManager) ExceptionT::GeneralFail("FEManagerT::RestoreOutput", "I/O manager not initialized");
 	fIOManager->RestoreOutput();
-	fSO_DivertOutput = false;
+
+	/* resolved group */
+	if (fCurrentGroup != -1)
+		fSO_DivertOutput[fCurrentGroup]	= false;
+	else
+		fSO_DivertOutput = false;
 }
 
 /* cross-linking */
@@ -899,9 +963,7 @@ void FEManagerT::WriteSystemConfig(ostream& out, int group) const
 	/* dimensions */
 	int nnd = coords.MajorDim();
 	int nsd = coords.MinorDim();
-	int ndf = 0;
-	for (int i = 0; i < fields.Length(); i++)
-		ndf += fields[i]->NumDOF();
+	int ndf = fNodeManager->NumDOF(group);
 
 	/* force vector */
 	const dArrayT& RHS = fSolvers[group]->RHS();
@@ -1414,7 +1476,11 @@ void FEManagerT::SetSolver(void)
 	if (solver_list.Length() != fSolvers.Length())
 		ExceptionT::BadInputValue(caller, "must have at least one phase per solver");
 	
-	/* initialize */
+	/* initialize and register system output */
+	fSO_DivertOutput.Dimension(fSolvers.Length());
+	fSO_DivertOutput = false;
+	fSO_OutputID.Dimension(fSolvers.Length());
+	fSO_OutputID = -1;
 	if (fCurrentGroup != -1) throw;
 	for (fCurrentGroup = 0; fCurrentGroup < fSolvers.Length(); fCurrentGroup++)
 	{
@@ -1423,6 +1489,41 @@ void FEManagerT::SetSolver(void)
 
 		/* console hierarchy */
 		iAddSub(*(fSolvers[fCurrentGroup]));	
+
+		/* writing output */
+		if (fSolvers[fCurrentGroup]->Check() != 0)
+		{
+			/* point connectivities for all nodes */
+			if (fSO_Connects.MajorDim() != fNodeManager->NumNodes()) {
+				fSO_Connects.Dimension(fNodeManager->NumNodes(), 1);
+				fSO_Connects.SetValueToPosition();
+			}
+		
+			/* collect the fields */
+			ArrayT<FieldT*> fields;
+			fNodeManager->CollectFields(fCurrentGroup, fields);
+		
+			/* loop over field and collect labels */
+			int ndof = fNodeManager->NumDOF(fCurrentGroup);
+			ArrayT<StringT> n_labels(2*ndof);
+			int u_dex = 0, f_dex = u_dex + ndof;
+			for (int i = 0; i < fields.Length(); i++)
+			{
+				const FieldT* field = fields[i];
+				const ArrayT<StringT>& labels = field->Labels();
+				for (int j = 0; j < labels.Length(); j++)
+				{
+					StringT f_label = "F_";
+					f_label.Append(labels[j]);
+					n_labels[u_dex++] = labels[j];
+					n_labels[f_dex++] = f_label;
+				}
+			}
+
+			/* register output set */
+			OutputSetT output_set(GeometryT::kPoint, fSO_Connects, n_labels, false);
+			fSO_OutputID[fCurrentGroup] = RegisterOutput(output_set);
+		}
 	}
 	fCurrentGroup = -1;
 }
