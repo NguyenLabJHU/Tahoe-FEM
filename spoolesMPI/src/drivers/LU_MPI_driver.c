@@ -615,5 +615,8 @@ SolveMap_free(solvemap);
 
 /* need to free mtxX????? */
 
+/* close message stream */
+fclose(msgFile);
+
 return 1;}
 /*--------------------------------------------------------------------*/
