@@ -1,4 +1,4 @@
-# $Id: SASS.macros,v 1.7 2004-01-26 19:44:00 cjkimme Exp $
+# $Id: SASS.macros,v 1.8 2004-08-10 06:37:03 paklein Exp $
 #
 ## Load GNU file utilities to get ln -sf to work properly (sunfreeware.com)
 #
@@ -16,12 +16,6 @@ MAKE        = make
 DEFINES     = -D__SUN__ -D__MPI__ -D__TAHOE_MPI__
 # use the makedepend that comes with /usr/openwin/bin
 # do not use the one that comes with SEACAS/etc
-MAKEDEPEND = makedepend
-MAKEDEPEND_OUTPUT = -f
-#
-MAKEDEPENDFLAGS  = -I$(INC_DIR) -I/$(COMP_DIR)/include/cc -I/$(COMP_DIR)/include/CC \
-               -I/$(COMP_DIR)/include/CC4 -I/$(COMP_DIR)/include/CCios \
-               -I/$(COMP_DIR)/include/f77 $(DEFINES)
 COMP_C      = $(COMP_DIR)/bin/cc
 COMP_CC     = $(COMP_DIR)/bin/CC
 COMP_F      = $(COMP_DIR)/bin/f77
@@ -32,7 +26,17 @@ CFLAGS_CC   = $(LOC_CFLAGS) -features=rtti -instances=static
 CFLAGS_F    = $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = -L/opt/SUNWhpc/lib -R/opt/SUNWhpc/lib -lmpi
-LFLAGS	    = 
+MAKEDEPEND_C         = makedepend
+MAKEDEPENDFLAGS_C    = -I$(INC_DIR) -I/$(COMP_DIR)/include/cc -I/$(COMP_DIR)/include/CC \
+               -I/$(COMP_DIR)/include/CC4 -I/$(COMP_DIR)/include/CCios \
+               -I/$(COMP_DIR)/include/f77 $(DEFINES)
+MAKEDEPEND_OUTPUT_C  = -f
+MAKEDEPEND_CC        = makedepend
+MAKEDEPENDFLAGS_CC   = $(MAKEDEPENDFLAGS_C)
+MAKEDEPEND_OUTPUT_CC = -f
+MAKEDEPEND_F         = makedepend
+MAKEDEPENDFLAGS_F    = $(MAKEDEPENDFLAGS_C)
+MAKEDEPEND_OUTPUT_F  = -f
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = echo

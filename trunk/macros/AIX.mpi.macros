@@ -1,13 +1,10 @@
-# $Id: AIX.mpi.macros,v 1.10 2004-01-02 01:37:20 paklein Exp $
+# $Id: AIX.mpi.macros,v 1.11 2004-08-10 06:37:02 paklein Exp $
 # DEC
 MPI_CFLAGS  = -D__TAHOE_MPI__
 MPI_LFLAGS  =
 
 MAKE        = make
 DEFINES     = -D__AIX__ -D__TAHOE_MPI__
-MAKEDEPEND = makedepend
-MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/vacpp/include -I/usr/lpp/ppe.poe/include $(DEFINES)
 COMP_C      = mpcc
 COMP_CC     = mpCC
 COMP_F      = mpxlf
@@ -28,6 +25,15 @@ CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 F2C_LFLAG   =
 LINK        = $(COMP_CC)
 LFLAGS      = $(MPI_LFLAGS) $(F2C_LFLAG) -lm $(TR)
+MAKEDEPEND_C         = makedepend
+MAKEDEPENDFLAGS_C    = -I$(INC_DIR) -I/usr/vacpp/include -I/usr/lpp/ppe.poe/include $(DEFINES)
+MAKEDEPEND_OUTPUT_C  = -f
+MAKEDEPEND_CC        = makedepend
+MAKEDEPENDFLAGS_CC   = $(MAKEDEPENDFLAGS_C)
+MAKEDEPEND_OUTPUT_CC = -f
+MAKEDEPEND_F         = makedepend
+MAKEDEPENDFLAGS_F    = $(MAKEDEPENDFLAGS_C)
+MAKEDEPEND_OUTPUT_F  = -f
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = echo

@@ -1,4 +1,4 @@
-# $Id: SGI.mpich.macros,v 1.21 2004-01-02 01:37:20 paklein Exp $
+# $Id: SGI.mpich.macros,v 1.22 2004-08-10 06:37:03 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__  -DAZTEC_MPI
 MPI_LFLAGS = 
@@ -6,9 +6,6 @@ MPI_LFLAGS =
 # SGI Irix 6.2 (or newer)
 MAKE        = make
 DEFINES     = -D__SGI__ -D__TAHOE_MPI__ -DAZTEC_MPI
-MAKEDEPEND  = makedepend
-MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/include/CC -I/usr/local/mpich/include $(DEFINES)
 COMP_C      = /usr/local/mpich/bin/mpicc
 COMP_CC     = /usr/local/mpich/bin/mpiCC
 COMP_F      = /usr/local/mpich/bin/mpif77
@@ -19,6 +16,15 @@ CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -ptused -woff 1110,1155,1174,1188,1682
 CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS) -DEIGHT_BYTE_REAL
 LINK        = $(COMP_CC)
 LFLAGS      = $(MPI_LFLAGS) -lm -w
+MAKEDEPEND_C         = $(COMP_C) -MM
+MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_C  = -MF
+MAKEDEPEND_CC        = $(COMP_CC) -MM
+MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_CC = -MF
+MAKEDEPEND_F         = $(COMP_F) -MM
+MAKEDEPENDFLAGS_F    = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_F  = -MF
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = echo

@@ -1,4 +1,4 @@
-# $Id: DARWIN-3.3.pch.makefile.template,v 1.1 2004-01-02 01:17:39 paklein Exp $
+# $Id: DARWIN-3.3.pch.makefile.template,v 1.2 2004-08-10 06:37:02 paklein Exp $
 
 # caller must define $(MACROS) file
 include $(MACROS)
@@ -24,9 +24,9 @@ $(PCH).gch: $(PCH:.h=.d)
 
 # suffix rule to create dependencies for header file
 .h.d:
-	@ $(PRINTF) "    $(MAKEDEPEND): %s\n" $<
+	@ $(PRINTF) "    $(MAKEDEPEND_CC): %s\n" $<
 	@ $(PRINTF) "# DO NOT DELETE\n" > $@
-	$(MAKEDEPEND) $(MAKEDEPENDFLAGS) $(OPT_MAKEDEPENDFLAGS) $(MOD_MAKEDEPENDFLAGS) -MT $(PCH).gch $(MAKEDEPEND_OUTPUT)$@ $<
+	$(MAKEDEPEND_CC) $(MAKEDEPENDFLAGS_CC) $(OPT_MAKEDEPENDFLAGS) $(MOD_MAKEDEPENDFLAGS) -MT $(PCH).gch $(MAKEDEPEND_OUTPUT_CC)$@ $<
 
 # dependencies
 DEPEND = /dev/null

@@ -1,10 +1,7 @@
-# $Id: DARWIN-3.3.macros,v 1.7 2004-01-02 01:17:39 paklein Exp $
+# $Id: DARWIN-3.3.macros,v 1.8 2004-08-10 06:37:02 paklein Exp $
 # macros for Panther (GCC 3.3)
 MAKE        = make
 DEFINES     = -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -D__GCC_3__
-MAKEDEPEND  = g++ -MM
-MAKEDEPENDFLAGS = -I$(INC_DIR) $(DEFINES)
-MAKEDEPEND_OUTPUT = -MF
 COMP_C      = gcc
 COMP_CC     = g++
 COMP_F      = g77
@@ -15,6 +12,15 @@ CFLAGS_CC   = $(LOC_CFLAGS) -include $(BLD_DIR)/pch/$(PCH) -Winvalid-pch
 CFLAGS_F    = $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = -Xlinker -Y -Xlinker 50
+MAKEDEPEND_C         = gcc -MM
+MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_C  = -MF
+MAKEDEPEND_CC        = g++ -MM
+MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_CC = -MF
+MAKEDEPEND_F         = g77 -MM
+MAKEDEPENDFLAGS_F    = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_F  = -MF
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = ranlib

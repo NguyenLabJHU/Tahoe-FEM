@@ -1,4 +1,4 @@
-# $Id: DARWIN-3.3.LAM.debug.macros,v 1.1 2004-01-06 03:45:20 paklein Exp $
+# $Id: DARWIN-3.3.LAM.debug.macros,v 1.2 2004-08-10 06:37:02 paklein Exp $
 #
 # macros for Mac OS X using the GNU distribution provided with
 # the Apple Developer tools in addition to the LAM implementation
@@ -7,20 +7,28 @@
 #
 # macros for Panther (GCC 3.3)
 MAKE        = make
-DEFINES     = -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -D__GCC_3__ -DCHECK_MPI_STATUS -DCHECK_MPI_RETURN -DAZTEC_MPI
-MAKEDEPEND  = g++ -MM
-MAKEDEPENDFLAGS = -I$(INC_DIR) $(DEFINES)
-MAKEDEPEND_OUTPUT = -MF
+DEFINES     = -DEIGHT_BYTE_REAL -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -D__GCC_3__ -DCHECK_MPI_STATUS -DCHECK_MPI_RETURN -DAZTEC_MPI
 COMP_C      = mpicc
 COMP_CC     = mpic++
 COMP_F      = mpif77
+COMP_F90    = g95
 MORE_CFLAGS = -g
 LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS) -include $(BLD_DIR)/pch/$(PCH) -Winvalid-pch 
 CFLAGS_F    = $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
+F2C_LFLAG   = -lg2c
 LFLAGS      = -Xlinker -Y -Xlinker 50
+MAKEDEPEND_C         = gcc -MM
+MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_C  = -MF
+MAKEDEPEND_CC        = g++ -MM
+MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_CC = -MF
+MAKEDEPEND_F         = g77 -MM
+MAKEDEPENDFLAGS_F    = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_F  = -MF
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = ranlib

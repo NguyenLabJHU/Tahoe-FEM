@@ -1,4 +1,4 @@
-# $Id: DARWIN.LAM.macros,v 1.13 2004-01-02 01:37:20 paklein Exp $
+# $Id: DARWIN.LAM.macros,v 1.14 2004-08-10 06:37:02 paklein Exp $
 #
 # macros for Mac OS X using the GNU distribution provided with
 # the Apple Developer tools in addition to the LAM implementation
@@ -9,22 +9,27 @@
 # OS X does not distinguish mpicc from mpiCC.
 #
 MAKE        = make
-MAKEDEPEND = /usr/X11R6/bin/makedepend
-MAKEDEPEND_OUTPUT = -f
-GCC_ROOT    = /usr/include/gcc/darwin/default/g++-v3
-MAKEDEPENDFLAGS = -I$(INC_DIR) -I$(GCC_ROOT) -I$(GCC_ROOT)/backward -I$(GCC_ROOT)/bits -I$(GCC_ROOT)/ppc-darwin -I/usr/local/include
+DEFINES     = -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -D__GCC_3__ -DAZTEC_MPI -DNEW_STATIC_TEMPLATE_SYNTAX
 COMP_C      = mpicc
 COMP_CC     = mpic++
 COMP_F      = mpif77
-DEFINES     = -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -D__GCC_3__ -DAZTEC_MPI -DNEW_STATIC_TEMPLATE_SYNTAX
-MORE_CFLAGS = -O -DNDEBUG -g
-#MORE_CFLAGS = -g
+MORE_CFLAGS = -O -DNDEBUG
 LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS)
 CFLAGS_F    = $(LOC_CFLAGS) -DEIGHT_BYTE_REAL
 LINK        = $(COMP_CC)
+F2C_LFLAG   = -lg2c
 LFLAGS      = -Xlinker -Y -Xlinker 50
+MAKEDEPEND_C         = gcc -MM
+MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_C  = -MF
+MAKEDEPEND_CC        = g++ -MM
+MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_CC = -MF
+MAKEDEPEND_F         = g77 -MM
+MAKEDEPENDFLAGS_F    = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_F  = -MF
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = ranlib

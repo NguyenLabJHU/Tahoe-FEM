@@ -1,10 +1,7 @@
-# $Id: AIX.macros,v 1.9 2004-01-02 01:37:20 paklein Exp $
+# $Id: AIX.macros,v 1.10 2004-08-10 06:37:02 paklein Exp $
 # macros for IBM
 MAKE        = make
 DEFINES     = -D__AIX__ 
-MAKEDEPEND = makedepend
-MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/vacpp/include $(DEFINES)
 COMP_C      = xlc
 COMP_CC     = xlC
 COMP_F      = xlf
@@ -25,6 +22,15 @@ CFLAGS_F    = $(LOC_CFLAGS)
 F2C_LFLAG   =
 LINK        = $(COMP_CC)
 LFLAGS      = $(F2C_LFLAG) -lm $(TR)
+MAKEDEPEND_C         = makedepend
+MAKEDEPENDFLAGS_C    = -I$(INC_DIR) -I/usr/vacpp/include $(DEFINES)
+MAKEDEPEND_OUTPUT_C  = -f
+MAKEDEPEND_CC        = makedepend
+MAKEDEPENDFLAGS_CC   = $(MAKEDEPENDFLAGS_C)
+MAKEDEPEND_OUTPUT_CC = -f
+MAKEDEPEND_F         = makedepend
+MAKEDEPENDFLAGS_F    = $(MAKEDEPENDFLAGS_C)
+MAKEDEPEND_OUTPUT_F  = -f
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = echo
