@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.17 2002-11-28 00:12:48 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.18 2002-11-28 00:48:28 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -212,25 +212,25 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
   int p =0;
   for(int n = 0; n < is-1; n++)
     {
-      dArrayT aux_y(Ind[n+1]-Ind[n]);
-      dArrayT aux_z(Ind[n+1]-Ind[n]);
+      dArrayT aux(Ind[n+1]-Ind[n]);
 
       int isa = 0;
       for(int m = Ind[n]; m < Ind[n+1]; m++)
 	{
-	  aux_y[isa] = new_coord(m)[WhichSort[1]];
-	  aux_z[isa] = new_coord(m)[WhichSort[2]];
+	  aux[isa] = new_coord(m)[WhichSort[1]];
 	  isa++;
 	}
 
+      delete &Map;
       iArrayT Map(isa);
+
       Map.SetValueToPosition();
-      Map.SortAscending(aux_y);
+      Map.SortAscending(aux);
 
       for(int m = 0; m < isa; m++)
       {
-	y[p] = aux_y[m];
-	if(nlsd == 3) z[p] = aux_z[Map[m]];
+	y[p] = aux[m];
+	if(nlsd == 3) z[p] = new_coord(Map[m])[WhichSort[2]];
 	p++;
       }
     }
