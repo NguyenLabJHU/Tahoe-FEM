@@ -1,4 +1,4 @@
-/* $Id: EAM.h,v 1.3.42.1 2004-02-28 02:23:37 paklein Exp $ */
+/* $Id: EAM.h,v 1.3.42.2 2004-03-06 01:22:47 hspark Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAM.h                                                                  */
 
@@ -59,15 +59,15 @@ public:
 	const C1FunctionT* ElectronDensity(void) { return fElectronDensity; };
 	/*@}*/
 	
+	/* compute the total electron density - moved public by HSP 3/5/04 */
+	double TotalElectronDensity(void);
+	
 private:
 
 	/* form matrix of mixed pair potential and embedding
 	 * energy derivatives.  NOTE: computes the UPPER triangle
 	 * ONLY */
 	void FormMixedDerivatives(double rho);	
-
-	/* compute the total electron density */
-	double TotalElectronDensity(void);
 
 	/* Moduli tensor contributions */
 	void FormSingleBondContribution(double rho, dMatrixT& moduli);

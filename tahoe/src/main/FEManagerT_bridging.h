@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.9.2.1 2004-03-05 15:06:49 hspark Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.9.2.2 2004-03-06 01:22:48 hspark Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -20,6 +20,7 @@ class ParticleT;
 class BridgingScaleT;
 class KBC_PrescribedT;
 class dSPMatrixT;
+class EAMFCC3D;
 
 /** extension of FEManagerT for bridging scale calculations */
 class FEManagerT_bridging: public FEManagerT
@@ -185,6 +186,9 @@ private:
 
 	/** projection/interpolation operator */
 	BridgingScaleT* fBridgingScale;
+	
+	/** EAM class */
+	EAMFCC3D* fEAMFCC3D;
 	
 	/** \name follower node information */
 	/*@{*/

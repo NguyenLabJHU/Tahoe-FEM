@@ -1,4 +1,4 @@
-/* $Id: EAM_particle.h,v 1.1.2.6 2004-02-28 02:58:45 hspark Exp $ */
+/* $Id: EAM_particle.h,v 1.1.2.7 2004-03-06 01:22:47 hspark Exp $ */
 /* created: hspark(02/25/2004) */
 #ifndef _EAM_PARTICLE_H_
 #define _EAM_PARTICLE_H_
@@ -52,15 +52,18 @@ public:
 	/* unstressed lattice parameter */
 	virtual double LatticeParameter(void) const;
 
+	/* compute the total electron density - moved public by HSP 3/5/04 */
+	double TotalElectronDensity(void);
+
+	/* return the embedding force for a given electron density */
+	double ReturnEmbeddingForce(double rho);
+
 private:
 
 	/* form matrix of mixed pair potential and embedding
 	 * energy derivatives.  NOTE: computes the UPPER triangle
 	 * ONLY */
 	void FormMixedDerivatives(double rho);	
-
-	/* compute the total electron density */
-	double TotalElectronDensity(void);
 
 	/* Moduli tensor contributions */
 	void FormSingleBondContribution(double rho, dMatrixT& moduli);

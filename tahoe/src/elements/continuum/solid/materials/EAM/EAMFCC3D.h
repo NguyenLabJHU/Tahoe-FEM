@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.h,v 1.3.42.2 2004-03-05 15:06:45 hspark Exp $ */
+/* $Id: EAMFCC3D.h,v 1.3.42.3 2004-03-06 01:22:47 hspark Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAMFCC3D.h                                                             */
 
@@ -55,7 +55,10 @@ public:
 	virtual void Print(ostream& out) const;
 
 	/* calculate electron density at ghost atom */
-	double ElectronDensity(const dSymMatrixT& strain);
+	void ElectronDensity(const dSymMatrixT& strain, double& edensity, double& embforce);
+
+	/* initialize bond tables */
+	void InitBondTables(void);
 
 protected:
 

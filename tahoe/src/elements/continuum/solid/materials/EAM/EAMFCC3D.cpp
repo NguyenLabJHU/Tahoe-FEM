@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.cpp,v 1.4.36.3 2004-03-05 15:06:45 hspark Exp $ */
+/* $Id: EAMFCC3D.cpp,v 1.4.36.4 2004-03-06 01:22:47 hspark Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAMFCC3D.cpp                                                           */
 
@@ -116,26 +116,25 @@ void EAMFCC3D::Print(ostream& out) const
 }
 
 /* compute electron density at ghost atom */
-double EAMFCC3D::ElectronDensity(const dSymMatrixT& strain)
+void EAMFCC3D::ElectronDensity(const dSymMatrixT& strain, double& edensity, double& embforce)
 {
-	double ed;
-
 	/* compute deformed lattice geometry */
 	ComputeDeformedLengths(strain);
-
+	
 	/* get electron density */
 	if (!fEAM)
 	{
-		int blah = 0;
-		//ed = fEAM_particle->TotalElectronDensity();
+		edensity = fEAM_particle->TotalElectronDensity();
+		embforce = fEAM_particle->ReturnEmbeddingForce(edensity);
 	}
 	else
-	{
-		int blah = 0;
-		//ed = fEAM->TotalElectronDensity();	
-	}
-	
-	return ed;
+		edensity = fEAM->TotalElectronDensity();	
+}
+
+/* initialize bond tables */
+void EAMFCC3D::InitBondTables(void)
+{
+	BondLatticeT::Initialize();
 }
 
 /**********************************************************************

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.14.2.2 2004-03-05 15:06:49 hspark Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.14.2.3 2004-03-06 01:22:48 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -16,6 +16,7 @@
 #include "dSPMatrixT.h"
 #include "EAMFCC3D.h"
 #include "ShapeFunctionT.h"
+#include "dSymMatrixT.h"
 
 using namespace Tahoe;
 
@@ -25,7 +26,8 @@ FEManagerT_bridging::FEManagerT_bridging(ifstreamT& input, ofstreamT& output, Co
 	FEManagerT(input, output, comm),
 	fBridgingIn(bridging_input),
 	fBridgingScale(NULL),
-	fSolutionDriver(NULL)
+	fSolutionDriver(NULL),
+	fEAMFCC3D(NULL)
 {
 
 }
@@ -325,6 +327,11 @@ void FEManagerT_bridging::InitInterpolation(const iArrayT& nodes, const StringT&
 	/* compute interpolation data (using reference coordinates) */
 	const dArray2DT& init_coords = node_manager.InitialCoordinates();
 	BridgingScale().InitInterpolation(nodes, &init_coords, NULL, fFollowerCellData);
+	
+	/* construct EAMFCC3D pointer */
+	ifstreamT& in = Input();
+	fEAMFCC3D = new EAMFCC3D(in, 4, 3, 54);
+	fEAMFCC3D->InitBondTables();
 }
 
 /* field interpolations */
@@ -598,7 +605,6 @@ nMatrixT<int>& FEManagerT_bridging::PropertiesMap(int element_group)
 double FEManagerT_bridging::ElecDensity(ifstreamT& in, const iArrayT& ghostatoms)
 {
 	/* try constructing an EAMFCC3D here - need to construct new EAMFCC3D for each ghost atom? */
-	EAMFCC3D eam(in, 4, 3, 54);
 	StringT field = "displacement";
 	const ContinuumElementT* continuum = fFollowerCellData.ContinuumElement();
 	const ElementCardT& element_card1 = continuum->ElementCard(0);
@@ -620,6 +626,8 @@ double FEManagerT_bridging::ElecDensity(ifstreamT& in, const iArrayT& ghostatoms
 	dMatrixT fgrad(nsd), eye(nsd), green(nsd);
 	eye.Identity(1.0);
 	dArray2DT DNa;
+	dSymMatrixT green1(dSymMatrixT::k3D);
+	double ed, embforce;
 	
 	/* loop over all elements which contain atoms/ghost atoms */
 	for (int i = 0; i < inversemap.MajorDim(); i++)
@@ -650,13 +658,15 @@ double FEManagerT_bridging::ElecDensity(ifstreamT& in, const iArrayT& ghostatoms
 				
 				/* calculate deformation gradient = 1 + GradU */
 				fgrad+=eye;
-
+	
 				/* calculate green strain = .5*(F^{T}F-I) */
 				green.MultATB(fgrad, fgrad, 0);
 				green-=eye;
 				green*=.5;
+				green1.Symmetrize(green);
 				
 				/* calculate/store electron density/embedding force for each ghost atom */
+				fEAMFCC3D->ElectronDensity(green1, ed, embforce);
 
 			}
 		}
