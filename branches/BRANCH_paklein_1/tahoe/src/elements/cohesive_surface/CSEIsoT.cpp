@@ -1,6 +1,5 @@
-/* $Id: CSEIsoT.cpp,v 1.9.4.1 2002-10-17 04:28:49 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.9.4.2 2002-10-18 17:41:54 paklein Exp $ */
 /* created: paklein (11/19/1997) */
-
 #include "CSEIsoT.h"
 
 #include <math.h>
@@ -18,10 +17,9 @@
 #include "LennardJones612.h"
 #include "SmithFerrante.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 CSEIsoT::CSEIsoT(const ElementSupportT& support, const FieldT& field):
 	CSEBaseT(support, field)
 {
@@ -111,7 +109,7 @@ void CSEIsoT::Initialize(void)
 /* called by FormRHS and FormLHS */
 void CSEIsoT::LHSDriver(void)
 {
-	/* algorithmic constants */
+	/* time-stepping parameters */
 	double constK = 0.0;
 	int     formK = fController->FormK(constK);
 	if (!formK) return;
