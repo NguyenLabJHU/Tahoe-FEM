@@ -1,10 +1,10 @@
-/* $Id: SSHookeanMatT.cpp,v 1.1.1.1.2.1 2001-06-06 16:22:00 paklein Exp $ */
+/* $Id: SSHookeanMatT.cpp,v 1.1.1.1.2.2 2001-06-22 14:17:59 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "SSHookeanMatT.h"
 
 /* constructor */
-SSHookeanMatT::SSHookeanMatT(ifstreamT& in, const ElasticT& element):
+SSHookeanMatT::SSHookeanMatT(ifstreamT& in, const SmallStrainT& element):
 	SSStructMatT(in, element),
 	HookeanMatT(NumSD()),
 	fStress(NumSD())

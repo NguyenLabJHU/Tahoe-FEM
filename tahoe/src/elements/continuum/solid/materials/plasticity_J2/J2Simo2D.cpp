@@ -1,15 +1,18 @@
-/* $Id: J2Simo2D.cpp,v 1.3.2.1 2001-06-13 00:08:47 paklein Exp $ */
+/* $Id: J2Simo2D.cpp,v 1.3.2.2 2001-06-22 14:18:20 paklein Exp $ */
 /* created: paklein (06/22/1997)                                          */
 
 #include "J2Simo2D.h"
-#include "ElasticT.h"
+//#include "ElasticT.h"
+//DEV
+
+#include "StringT.h"
 #include "ElementCardT.h"
 
 /* constants */
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* constructor */
-J2Simo2D::J2Simo2D(ifstreamT& in, const ElasticT& element):
+J2Simo2D::J2Simo2D(ifstreamT& in, const FiniteStrainT& element):
 	SimoIso2D(in, element),
 //	J2SimoLinHardT(in, NumIP(), Mu()),
 	J2SimoC0HardeningT(in, NumIP(), Mu()),

@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.cpp,v 1.3.2.1 2001-06-07 03:01:20 paklein Exp $ */
+/* $Id: SimoIso2D.cpp,v 1.3.2.2 2001-06-22 14:18:09 paklein Exp $ */
 /* created: paklein (03/04/1997)                                          */
 /* (2D <-> 3D) translator for the SimoIso3D.                              */
 
@@ -7,7 +7,7 @@
 #include <iostream.h>
 
 /* constructor */
-SimoIso2D::SimoIso2D(ifstreamT& in, const ElasticT& element):
+SimoIso2D::SimoIso2D(ifstreamT& in, const FiniteStrainT& element):
 	SimoIso3D(in, element),
 	Material2DT(in, kPlaneStrain),
 	fStress2D(2),

@@ -19,7 +19,7 @@ class LocalCrystalPlast2D : public LocalCrystalPlast, public Material2DT
 {
  public:
   // constructor
-  LocalCrystalPlast2D(ifstreamT& in, const ElasticT& element);
+  LocalCrystalPlast2D(ifstreamT& in, const FiniteStrainT& element);
 
   // destructor
   ~LocalCrystalPlast2D();
@@ -35,8 +35,10 @@ class LocalCrystalPlast2D : public LocalCrystalPlast, public Material2DT
   virtual void PrintName(ostream& out) const;
 
  protected:
+ 
   // deformation gradient
-  virtual const dMatrixT& DeformationGradient(const LocalArrayT& disp);
+//  virtual const dMatrixT& DeformationGradient(const LocalArrayT& disp);
+//DEV - deprecated
 
  protected:
   // crystal Cauchy stress in 2D

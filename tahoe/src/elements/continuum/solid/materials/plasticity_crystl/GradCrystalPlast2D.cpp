@@ -6,13 +6,17 @@
 #include "Utils.h"
 
 #include "ifstreamT.h"
-#include "ElasticT.h"
-#include "ShapeFunctionT.h"
+//#include "ElasticT.h"
+//DEV
+
+//#include "ShapeFunctionT.h"
+//DEV
+
 
 /* spatial dimensions of the problem */
 const int kNSD = 2;
 
-GradCrystalPlast2D::GradCrystalPlast2D(ifstreamT& in, const ElasticT& element) :
+GradCrystalPlast2D::GradCrystalPlast2D(ifstreamT& in, const FiniteStrainT& element) :
   GradCrystalPlast (in, element),  
   Material2DT      (in, Material2DT::kPlaneStrain),
   f2Ds_ij    (kNSD),

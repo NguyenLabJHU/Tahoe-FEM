@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.1.1.1.2.1 2001-06-13 00:08:42 paklein Exp $ */
+/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:11 paklein Exp $ */
 /* created: paklein (10/18/1998)                                          */
 /* VIB plus principal stretch elasticity                                  */
 /* Interface for a elastoplastic material that is linearly                */
@@ -16,7 +16,9 @@
 #include <math.h>
 #include "Constants.h"
 
-#include "ElasticT.h"
+//#include "ElasticT.h"
+//DEV
+
 #include "iArrayT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
@@ -59,7 +61,7 @@ const int kNumOutput = 4;
 static const char* Labels[kNumOutput] = {"s_max", "s_min", "VM stress", "alpha"};
 
 /* constructor */
-J2IsoVIB2DLinHardT::J2IsoVIB2DLinHardT(ifstreamT& in, const ElasticT& element):
+J2IsoVIB2DLinHardT::J2IsoVIB2DLinHardT(ifstreamT& in, const FiniteStrainT& element):
 	IsoVIB3D(in, element),
 	Material2DT(in, kPlaneStrain),
 	J2PrimitiveT(in),

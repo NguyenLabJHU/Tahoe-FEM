@@ -1,4 +1,4 @@
-/* $Id: QuadLog2D.h,v 1.1.1.1.2.1 2001-06-07 03:01:19 paklein Exp $ */
+/* $Id: QuadLog2D.h,v 1.1.1.1.2.2 2001-06-22 14:18:08 paklein Exp $ */
 /* created: paklein (06/28/1997)                                          */
 /* (2D <-> 3D) translator for the QuadLog3D.                              */
 
@@ -14,7 +14,7 @@ class QuadLog2D: public QuadLog3D, public Material2DT
 public:
 
 	/* constructor */
-	QuadLog2D(ifstreamT& in, const ElasticT& element);
+	QuadLog2D(ifstreamT& in, const FiniteStrainT& element);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

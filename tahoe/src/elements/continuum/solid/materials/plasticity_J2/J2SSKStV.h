@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.h,v 1.1.1.1.2.1 2001-06-06 16:27:56 paklein Exp $ */
+/* $Id: J2SSKStV.h,v 1.1.1.1.2.2 2001-06-22 14:18:20 paklein Exp $ */
 /* created: paklein (06/18/1997)                                          */
 
 #ifndef _J2_SS_KSTV_H_
@@ -18,7 +18,7 @@ class J2SSKStV: public SSStructMatT,
 public:
 
 	/* constructor */
-	J2SSKStV(ifstreamT& in, const ElasticT& element);
+	J2SSKStV(ifstreamT& in, const SmallStrainT& element);
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);

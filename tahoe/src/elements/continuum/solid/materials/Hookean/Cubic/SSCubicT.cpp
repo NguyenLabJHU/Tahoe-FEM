@@ -1,10 +1,10 @@
-/* $Id: SSCubicT.cpp,v 1.1.1.1.2.1 2001-06-06 16:22:02 paklein Exp $ */
+/* $Id: SSCubicT.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:00 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #include "SSCubicT.h"
 
 /* constructor */
-SSCubicT::SSCubicT(ifstreamT& in, const ElasticT& element):
+SSCubicT::SSCubicT(ifstreamT& in, const SmallStrainT& element):
 	SSHookeanMatT(in, element),
 	CubicT(in)
 {

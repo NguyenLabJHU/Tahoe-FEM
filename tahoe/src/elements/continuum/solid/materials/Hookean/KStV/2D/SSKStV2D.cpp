@@ -1,4 +1,4 @@
-/* $Id: SSKStV2D.cpp,v 1.1.1.1.2.1 2001-06-06 16:20:45 paklein Exp $ */
+/* $Id: SSKStV2D.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:05 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "SSKStV2D.h"
@@ -10,7 +10,7 @@ const int kNumOutput = 3;
 static const char* Labels[kNumOutput] = {"phi", "J2_dev", "p"};
 
 /* constructor */
-SSKStV2D::SSKStV2D(ifstreamT& in, const ElasticT& element):
+SSKStV2D::SSKStV2D(ifstreamT& in, const SmallStrainT& element):
 	SSKStV(in, element),
 	Material2DT(in)
 {

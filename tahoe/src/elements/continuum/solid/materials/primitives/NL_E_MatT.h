@@ -1,4 +1,4 @@
-/* $Id: NL_E_MatT.h,v 1.1.1.1.2.1 2001-06-07 03:01:26 paklein Exp $ */
+/* $Id: NL_E_MatT.h,v 1.1.1.1.2.2 2001-06-22 14:18:30 paklein Exp $ */
 /* created: paklein (06/13/1997)                                          */
 /* Base class for materials with nonlinear elastic behavior               */
 /* which is computed from Langrangian coordinates (by the pure            */
@@ -27,7 +27,7 @@ class NL_E_MatT: public FDStructMatT
   public:
 
 	/** constructor */
-	NL_E_MatT(ifstreamT& in, const ElasticT& element);
+	NL_E_MatT(ifstreamT& in, const FiniteStrainT& element);
 	
 	/* spatial description */
 	virtual const dMatrixT& c_ijkl(void);  /**< spatial tangent modulus */

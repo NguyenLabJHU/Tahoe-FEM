@@ -8,7 +8,7 @@
 #include "Utils.h"
 
 #include "FEManagerT.h"
-#include "ElasticT.h"
+#include "FiniteStrainT.h"
 #include "StringT.h"
 
 /* initialization flag value */
@@ -17,7 +17,7 @@ const int kIsInit = 1;
 /* spatial dimensions of the problem */
 const int kNSD = 3;
 
-EVPFDBaseT::EVPFDBaseT(ifstreamT& in, const ElasticT& element) :
+EVPFDBaseT::EVPFDBaseT(ifstreamT& in, const FiniteStrainT& element) :
   FDHookeanMatT(in, element),
   IsotropicT  (in),
   //fdt         (element.FEManager().TimeStep()),

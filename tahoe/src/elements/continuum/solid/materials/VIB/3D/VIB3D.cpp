@@ -1,4 +1,4 @@
-/* $Id: VIB3D.cpp,v 1.1.1.1.2.1 2001-06-07 03:01:24 paklein Exp $ */
+/* $Id: VIB3D.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:14 paklein Exp $ */
 /* created: paklein (04/20/1997)                                          */
 /* Base class for general 3D probabolistic Cauchy-Born materials.         */
 
@@ -21,7 +21,7 @@
 #include "FCCPtsT.h"
 
 /* constructors */
-VIB3D::VIB3D(ifstreamT& in, const ElasticT& element):
+VIB3D::VIB3D(ifstreamT& in, const FiniteStrainT& element):
 	NL_E_MatT(in, element),
 	VIB_E_MatT(in, 3)
 {

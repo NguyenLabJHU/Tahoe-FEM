@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden3DT.cpp,v 1.1.2.1 2001-06-07 03:01:18 paklein Exp $ */
+/* $Id: QuadLogOgden3DT.cpp,v 1.1.2.2 2001-06-22 14:18:07 paklein Exp $ */
 /* created: paklein (02/17/2001)                                          */
 /* principal stretch version of Quad Log model                            */
 
@@ -9,7 +9,7 @@
 #include "fstreamT.h"
 
 /* constructor */
-QuadLogOgden3DT::QuadLogOgden3DT(ifstreamT& in, const ElasticT& element):
+QuadLogOgden3DT::QuadLogOgden3DT(ifstreamT& in, const FiniteStrainT& element):
 	OgdenIsotropicT(in, element),
 	flogE(3)
 {

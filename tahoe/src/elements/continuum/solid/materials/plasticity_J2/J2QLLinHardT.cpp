@@ -1,4 +1,4 @@
-/* $Id: J2QLLinHardT.cpp,v 1.5.2.2 2001-06-13 00:08:47 paklein Exp $ */
+/* $Id: J2QLLinHardT.cpp,v 1.5.2.3 2001-06-22 14:18:19 paklein Exp $ */
 /* created: paklein (10/26/2000)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -14,7 +14,9 @@
 #include <math.h>
 
 #include "Constants.h"
-#include "ElasticT.h"
+//#include "ElasticT.h"
+//DEV
+
 #include "iArrayT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
@@ -60,7 +62,7 @@ static const char* Labels[kNumOutput] = {
 	    "s_min"}; // min principal stress
 
 /* constructor */
-J2QLLinHardT::J2QLLinHardT(ifstreamT& in, const ElasticT& element):
+J2QLLinHardT::J2QLLinHardT(ifstreamT& in, const FiniteStrainT& element):
 	QuadLog3D(in, element),
 	J2PrimitiveT(in),
 	fb_elastic(kNSD),

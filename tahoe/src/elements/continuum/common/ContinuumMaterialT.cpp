@@ -1,9 +1,11 @@
-/* $Id: ContinuumMaterialT.cpp,v 1.2.2.1 2001-06-06 16:30:34 paklein Exp $ */
+/* $Id: ContinuumMaterialT.cpp,v 1.2.2.2 2001-06-22 14:18:29 paklein Exp $ */
 /* created: paklein (11/20/1996)                                          */
 
 #include "ContinuumMaterialT.h"
 #include "ContinuumElementT.h"
-#include "ShapeFunctionT.h"
+//#include "ShapeFunctionT.h"
+//DEV
+
 #include "ArrayT.h"
 #include "StringT.h"
 

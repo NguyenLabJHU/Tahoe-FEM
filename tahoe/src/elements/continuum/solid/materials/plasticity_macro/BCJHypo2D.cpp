@@ -6,12 +6,14 @@
 #include "ifstreamT.h"
 #include "Utils.h"
 
-#include "ElasticT.h"
+//#include "ElasticT.h"
+//DEV
+
 
 /* spatial dimension of problem */
 const int kNSD = 2;
 
-BCJHypo2D::BCJHypo2D(ifstreamT& in, const ElasticT& element) :
+BCJHypo2D::BCJHypo2D(ifstreamT& in, const FiniteStrainT& element) :
   BCJHypo3D   (in, element),  
   Material2DT (in, Material2DT::kPlaneStrain),
   f2Ds_ij   (kNSD),

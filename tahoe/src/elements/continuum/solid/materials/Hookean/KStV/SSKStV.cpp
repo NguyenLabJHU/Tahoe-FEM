@@ -1,10 +1,10 @@
-/* $Id: SSKStV.cpp,v 1.1.1.1.2.1 2001-06-06 16:20:43 paklein Exp $ */
+/* $Id: SSKStV.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:04 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "SSKStV.h"
 
 /* constructor */
-SSKStV::SSKStV(ifstreamT& in, const ElasticT& element):
+SSKStV::SSKStV(ifstreamT& in, const SmallStrainT& element):
 	SSHookeanMatT(in, element),
 	IsotropicT(in)
 {

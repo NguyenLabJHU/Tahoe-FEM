@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.cpp,v 1.2.2.2 2001-06-13 00:08:43 paklein Exp $ */
+/* $Id: IsoVIB3D.cpp,v 1.2.2.3 2001-06-22 14:18:13 paklein Exp $ */
 /* created: paklein (03/15/1998)                                          */
 /* 3D Isotropic VIB solver using spectral decomposition formulation       */
 
@@ -8,7 +8,9 @@
 #include <iostream.h>
 #include "Constants.h"
 
-#include "ElasticT.h"
+//#include "ElasticT.h"
+//DEV
+
 #include "fstreamT.h"
 #include "C1FunctionT.h"
 #include "dMatrixT.h"
@@ -19,7 +21,7 @@
 #include "IcosahedralPtsT.h"
 
 /* constructors */
-IsoVIB3D::IsoVIB3D(ifstreamT& in, const ElasticT& element):
+IsoVIB3D::IsoVIB3D(ifstreamT& in, const FiniteStrainT& element):
 	FDStructMatT(in, element),
 	VIB(in, 3, 3, 6),
 	fEigs(3),

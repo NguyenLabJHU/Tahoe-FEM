@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.cpp,v 1.1.1.1.2.3 2001-06-13 00:08:42 paklein Exp $ */
+/* $Id: IsoVIB2D.cpp,v 1.1.1.1.2.4 2001-06-22 14:18:10 paklein Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* 2D Isotropic VIB solver using spectral decomposition formulation       */
 
@@ -8,7 +8,9 @@
 #include <iostream.h>
 #include "Constants.h"
 
-#include "ElasticT.h"
+//#include "ElasticT.h"
+//DEV
+
 #include "C1FunctionT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
@@ -17,7 +19,7 @@
 #include "EvenSpacePtsT.h"
 
 /* constructors */
-IsoVIB2D::IsoVIB2D(ifstreamT& in, const ElasticT& element):
+IsoVIB2D::IsoVIB2D(ifstreamT& in, const FiniteStrainT& element):
 	FDStructMatT(in, element),
 	Material2DT(in, kPlaneStress),
 	VIB(in, 2, 2, 3),

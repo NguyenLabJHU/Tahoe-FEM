@@ -1,4 +1,4 @@
-/* $Id: NL_E_Mat2DT.cpp,v 1.1.1.1.2.2 2001-06-07 03:01:26 paklein Exp $ */
+/* $Id: NL_E_Mat2DT.cpp,v 1.1.1.1.2.3 2001-06-22 14:18:30 paklein Exp $ */
 /* created: paklein (06/13/1997)                                          */
 /* Base class for materials with 2D nonlinear elastic behavior.           */
 /* (See notes in NL_E_MatT.h)                                             */
@@ -6,7 +6,7 @@
 #include "NL_E_Mat2DT.h"
 
 /* constructors */
-NL_E_Mat2DT::NL_E_Mat2DT(ifstreamT& in, const ElasticT& element,
+NL_E_Mat2DT::NL_E_Mat2DT(ifstreamT& in, const FiniteStrainT& element,
 	ConstraintOptionT constraint):
 	NL_E_MatT(in, element),
 	Material2DT(in, constraint)

@@ -22,7 +22,7 @@ class LocalCrystalPlast : public PolyCrystalMatT
 {
  public:
   // constructor
-  LocalCrystalPlast(ifstreamT& in, const ElasticT& element);
+  LocalCrystalPlast(ifstreamT& in, const FiniteStrainT& element);
 
   // destructor
   ~LocalCrystalPlast();

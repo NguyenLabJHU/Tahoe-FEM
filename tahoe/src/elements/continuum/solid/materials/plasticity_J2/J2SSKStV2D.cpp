@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV2D.cpp,v 1.1.1.1.2.1 2001-06-06 16:27:56 paklein Exp $ */
+/* $Id: J2SSKStV2D.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:20 paklein Exp $ */
 /* created: paklein (06/18/1997)                                          */
 
 #include "J2SSKStV2D.h"
@@ -6,7 +6,7 @@
 #include "StringT.h"
 
 /* constructor */
-J2SSKStV2D::J2SSKStV2D(ifstreamT& in, const ElasticT& element):
+J2SSKStV2D::J2SSKStV2D(ifstreamT& in, const SmallStrainT& element):
 J2SSKStV(in, element),
 	Material2DT(in, Material2DT::kPlaneStrain),
 	fStress2D(2),

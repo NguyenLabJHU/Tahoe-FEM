@@ -1,4 +1,4 @@
-/* $Id: SSKStV.h,v 1.1.1.1.2.1 2001-06-06 16:20:44 paklein Exp $ */
+/* $Id: SSKStV.h,v 1.1.1.1.2.2 2001-06-22 14:18:04 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #ifndef _SS_KSTV_H_
@@ -13,7 +13,7 @@ class SSKStV: public SSHookeanMatT, public IsotropicT
 public:
 
 	/* constructor */
-	SSKStV(ifstreamT& in, const ElasticT& element);
+	SSKStV(ifstreamT& in, const SmallStrainT& element);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BCJ.cpp,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
+/* $Id: ABAQUS_BCJ.cpp,v 1.1.1.1.2.1 2001-06-22 14:17:53 paklein Exp $ */
 /* created: paklein (05/09/2000)                                          */
 
 #include "ABAQUS_BCJ.h"
@@ -28,7 +28,7 @@ int cycdmg7_([full argument list]);
 #endif
 
 /* constructor */
-ABAQUS_BCJ::ABAQUS_BCJ(ifstreamT& in, const ElasticT& element):
+ABAQUS_BCJ::ABAQUS_BCJ(ifstreamT& in, const FiniteStrainT& element):
 	ABAQUS_UMAT_BaseT(in, element)
 {
 

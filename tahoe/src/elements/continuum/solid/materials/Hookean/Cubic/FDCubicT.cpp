@@ -1,10 +1,10 @@
-/* $Id: FDCubicT.cpp,v 1.1.1.1.2.1 2001-06-06 16:22:02 paklein Exp $ */
+/* $Id: FDCubicT.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:00 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #include "FDCubicT.h"
 
 /* constructor */
-FDCubicT::FDCubicT(ifstreamT& in, const ElasticT& element):
+FDCubicT::FDCubicT(ifstreamT& in, const FiniteStrainT& element):
 	FDHookeanMatT(in, element),
 	CubicT(in)
 {

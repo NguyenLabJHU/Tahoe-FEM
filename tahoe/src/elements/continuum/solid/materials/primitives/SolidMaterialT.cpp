@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.1.1.1.2.1 2001-06-07 03:01:27 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:31 paklein Exp $ */
 /* created: paklein (11/20/1996)                                          */
 
 #include "SolidMaterialT.h"
@@ -9,12 +9,14 @@
 #include "fstreamT.h"
 #include "dArrayT.h"
 #include "dSymMatrixT.h"
-#include "ElasticT.h"
+//#include "ElasticT.h"
+//DEV
+
 #include "LocalArrayT.h"
 
 /* constructor */
 SolidMaterialT::SolidMaterialT(ifstreamT& in,
-	const ElasticT& element):
+	const ContinuumElementT& element):
 	ContinuumMaterialT(element)
 //DEV
 //	,fModuli(dSymMatrixT::NumValues(element.InitialCoordinates().MinorDim()))

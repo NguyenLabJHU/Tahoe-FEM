@@ -1,11 +1,11 @@
-/* $Id: FDKStV2D.cpp,v 1.1.1.1.2.1 2001-06-06 16:20:45 paklein Exp $ */
+/* $Id: FDKStV2D.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:05 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "FDKStV2D.h"
 #include "ThermalDilatationT.h"
 
 /* constructor */
-FDKStV2D::FDKStV2D(ifstreamT& in, const ElasticT& element):
+FDKStV2D::FDKStV2D(ifstreamT& in, const FiniteStrainT& element):
 	FDKStV(in, element),
 	Material2DT(in)
 {

@@ -1,11 +1,11 @@
-/* $Id: FDCubic2DT.cpp,v 1.1.1.1.2.1 2001-06-06 16:22:03 paklein Exp $ */
+/* $Id: FDCubic2DT.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:01 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #include "FDCubic2DT.h"
 #include "ThermalDilatationT.h"
 
 /* constructor */
-FDCubic2DT::FDCubic2DT(ifstreamT& in, const ElasticT& element):
+FDCubic2DT::FDCubic2DT(ifstreamT& in, const FiniteStrainT& element):
 	FDCubicT(in, element),
 	Material2DT(in)
 {

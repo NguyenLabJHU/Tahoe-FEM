@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.1.1.1.2.2 2001-06-14 00:34:18 paklein Exp $ */
+/* $Id: SSSolidMatT.h,v 1.1.1.1.2.3 2001-06-22 14:18:31 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 /* Defines the interface for elastic continuum materials.                 */
 
@@ -10,15 +10,14 @@
 #include "StructuralMaterialT.h"
 
 /* forward declarations */
-class ShapeFunctionT;
+class SmallStrainT;
 
-class SSSolidMatT: /* DEV - protected ContinuumT, */
-public StructuralMaterialT
+class SSSolidMatT: public StructuralMaterialT
 {
 public:
 
 	/* constructor */
-	SSSolidMatT(ifstreamT& in, const ElasticT& element);
+	SSSolidMatT(ifstreamT& in, const SmallStrainT& element);
 
 	/* I/O functions */
 	virtual void PrintName(ostream& out) const;
@@ -26,14 +25,10 @@ public:
 	/* required parameter flags */
 	virtual bool NeedDisp(void) const;
 
-	/* the shape functions */
-//	const ShapeFunctionT& ShapeFunction(void) const;
-//DEV
-		
-	/* elastic strain */
+	/** elastic strain */
 	const dSymMatrixT& e(void);
 
-	/* elastic strain */
+	/** elastic strain at the given integration point */
 	const dSymMatrixT& e(int ip);
 
 	/* material description */
@@ -64,9 +59,8 @@ private:
 
 private:
 
-	/* shape functions */
-//	const ShapeFunctionT& fShapes;
-//DEV
+	/* small strain element */
+	const SmallStrainT& fSmallStrain;
 	
 	/* nodal displacements */
 	const LocalArrayT& fLocDisp;
@@ -74,16 +68,12 @@ private:
 	/* work space */
 	dSymMatrixT	fStrainTemp; // elastic strain (w/o thermal)
 	dSymMatrixT fQ;          // return value
-	dMatrixT fGradU;         // displacement gradient matrix
+//	dMatrixT    fGradU;      // displacement gradient matrix
+//DEV - not needed with new strain interface???
 
 	/* thermal strain: e_elastic = e_total - e_thermal */
 	bool        fHasThermalStrain;
 	dSymMatrixT fThermalStrain;
-
 };
-
-/* inlines */
-//inline const ShapeFunctionT& SSSolidMatT::ShapeFunction(void) const { return fShapes; }
-//DEV
 
 #endif /* _SS_STRUCT_MAT_T_H_ */

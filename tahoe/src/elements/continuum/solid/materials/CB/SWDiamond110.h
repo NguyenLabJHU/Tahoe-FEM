@@ -1,4 +1,4 @@
-/* $Id: SWDiamond110.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: SWDiamond110.h,v 1.1.1.1.2.1 2001-06-22 14:17:56 paklein Exp $ */
 /* created: paklein (08/25/1996)                                          */
 
 #ifndef _SWDIAMOND110_H_
@@ -12,7 +12,7 @@ class SWDiamond110: public SWMaterial2D
 public:
 
 	/* constructor */
-	SWDiamond110(ifstreamT& in, const ElasticT& element);
+	SWDiamond110(ifstreamT& in, const FiniteStrainT& element);
 
 	/* print name */
 	virtual void PrintName(ostream& out) const;

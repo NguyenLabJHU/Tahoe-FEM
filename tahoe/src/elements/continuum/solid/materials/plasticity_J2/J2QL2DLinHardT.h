@@ -1,4 +1,4 @@
-/* $Id: J2QL2DLinHardT.h,v 1.3.2.1 2001-06-13 00:08:47 paklein Exp $ */
+/* $Id: J2QL2DLinHardT.h,v 1.3.2.2 2001-06-22 14:18:19 paklein Exp $ */
 /* created: paklein (06/29/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -27,7 +27,7 @@ class J2QL2DLinHardT: public QuadLog2D, public J2PrimitiveT
 public:
 
 	/* constructor */
-	J2QL2DLinHardT(ifstreamT& in, const ElasticT& element);
+	J2QL2DLinHardT(ifstreamT& in, const FiniteStrainT& element);
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);

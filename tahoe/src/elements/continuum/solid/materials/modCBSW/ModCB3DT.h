@@ -1,4 +1,4 @@
-/* $Id: ModCB3DT.h,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
+/* $Id: ModCB3DT.h,v 1.1.1.1.2.1 2001-06-22 14:18:17 paklein Exp $ */
 /* created: paklein (10/14/1998)                                          */
 
 #ifndef _MODCB_3D_T_H_
@@ -18,7 +18,7 @@ class ModCB3DT: public NL_E_MatT
 public:
 
 	/* constructor */
-	ModCB3DT(ifstreamT& in, const ElasticT& element, bool equilibrate);
+	ModCB3DT(ifstreamT& in, const FiniteStrainT& element, bool equilibrate);
 
 	/* destructor */
 	virtual ~ModCB3DT(void);

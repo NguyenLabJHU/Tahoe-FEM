@@ -13,7 +13,7 @@
 #include "Utils.h"
 
 #include "FEManagerT.h"
-#include "ElasticT.h"
+#include "FiniteStrainT.h"
 #include "StringT.h"
 
 /* number of elastic material properties : isotropic and cubic */
@@ -33,7 +33,7 @@ const int kNSD = 3;
 /* array copy behavior */
 const bool ArrayT<dMatrixT>::fByteCopy = true;
 
-PolyCrystalMatT::PolyCrystalMatT(ifstreamT& in, const ElasticT& element) :
+PolyCrystalMatT::PolyCrystalMatT(ifstreamT& in, const FiniteStrainT& element) :
   FDHookeanMatT(in, element),
   //fdt           (element.FEManager().TimeStep()),
   ftime         (element.FEManager().Time()),

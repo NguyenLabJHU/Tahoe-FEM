@@ -1,10 +1,10 @@
-/* $Id: FDHookeanMatT.cpp,v 1.1.1.1.2.2 2001-06-07 03:01:17 paklein Exp $ */
+/* $Id: FDHookeanMatT.cpp,v 1.1.1.1.2.3 2001-06-22 14:17:58 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "FDHookeanMatT.h"
 
 /* constructor */
-FDHookeanMatT::FDHookeanMatT(ifstreamT& in, const ElasticT& element):
+FDHookeanMatT::FDHookeanMatT(ifstreamT& in, const FiniteStrainT& element):
 	FDStructMatT(in, element),
 	HookeanMatT(NumSD()),
 	fE(NumSD()),
