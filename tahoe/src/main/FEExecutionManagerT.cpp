@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.41.2.15 2003-06-11 18:56:03 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.41.2.16 2003-06-13 06:13:07 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -604,7 +604,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	{	
 		/* set to initial condition */
 		atoms.InitialCondition();
-	
+		
 		/* calculate fine scale part of MD displacement and total displacement u */
 		continuum.InitialProject(bridging_field, *atoms.NodeManager(), projectedu, order1);
 	
@@ -614,7 +614,6 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		
 		/* calculate global interpolation matrix ntf */
 		continuum.Ntf(ntf, atoms.NonGhostNodes(), activefenodes);
-		//cout << "ntf = " << ntf << endl;
 		
 		/* compute FEM RHS force as product of ntf and fu */
 		dArrayT fx(ntf.Rows()), fy(ntf.Rows()), tempx(ntf.Cols()), tempy(ntf.Cols());
@@ -681,7 +680,8 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	
 				/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
 				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);				
-			       	/* calculate THK force on boundary atoms, update displacement histories */
+				
+				/* calculate THK force on boundary atoms, update displacement histories */
 				thkforce = atoms.THKForce(badisp);
 																			
 				/* solve MD equations of motion */
@@ -689,10 +689,6 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 						atoms.ResetCumulativeUpdate(group);
 						error = atoms.SolveStep();
 				}
-				
-				FieldT* cmd = atoms.NodeManager()->Field(bridging_field);
-				dArray2DT cacc = (*cmd)[2];
-				//cout << "md acc = " << cacc << endl;
 				
 				/* close  md step */
 				if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();    
@@ -714,17 +710,12 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			fu.ColumnCopy(1,tempy);
 			ntf.Multx(tempy,fy);
 			ntfproduct.SetColumn(1,fy);	// SetExternalForce updated via pointer
-			//cout << "fem force = " << ntfproduct << endl;
 			
 			/* solve FE equation of motion using internal force just calculated */
 			if (1 || error == ExceptionT::kNoError) {
 					continuum.ResetCumulativeUpdate(group);
 					error = continuum.SolveStep();
 			}
-                 
-			FieldT* fem = continuum.NodeManager()->Field(bridging_field);
-			dArray2DT facc1 = (*fem)[2];
-			//cout << "fem acc = " << facc1 << endl;
 		
 			/* Interpolate FEM values to MD ghost nodes which will act as MD boundary conditions */
 			continuum.InterpolateField(bridging_field, order1, boundghostdisp);
