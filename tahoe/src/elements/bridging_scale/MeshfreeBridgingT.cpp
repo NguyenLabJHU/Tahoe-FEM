@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.2.12.1 2003-10-16 12:51:29 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.2.12.2 2003-10-21 20:49:18 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
 #include "PointInCellDataT.h"
@@ -57,6 +57,7 @@ void MeshfreeBridgingT::InitProjection(const iArrayT& points_used, const dArray2
 	nodal_neighbors.MinorDim(neighbor_count);
 	RaggedArray2DT<double>& neighbor_weights = cell_data.NodalNeighborWeights();
 	neighbor_weights.Configure(neighbor_count);
+	neighbor_count.Free();
 	
 	/* point coordinates */
 	dArray2DT neighbor_coords;
@@ -110,6 +111,41 @@ void MeshfreeBridgingT::InitProjection(const iArrayT& points_used, const dArray2
 		const RaggedArray2DT<double>& neighbors_weights = cell_data.NodalNeighborWeights();
 		neighbors_weights.WriteNumbered(out);
 	}	
+
+	/* build neighborhoods for projecting points */
+	BuildPointNeighborhoods(points_used, point_coordinates, cell_data);
+
+	/* compute weights in point neighborhoods */
+	const RaggedArray2DT<int>& point_neighbors = cell_data.PointNeighbors();
+	neighbor_count.Dimension(point_neighbors.MajorDim());
+	point_neighbors.MinorDim(neighbor_count);
+	RaggedArray2DT<double>& point_neighbor_weights = cell_data.PointNeighborWeights();
+	point_neighbor_weights.Configure(neighbor_count);
+	neighbor_count.Free();
+	for (int i = 0; i < points_used.Length(); i++)
+	{
+		/* nodal neighbors */
+		point_neighbors.RowAlias(i, neighbors);
+		
+		/* dimension work space */
+		int nngh = neighbors.Length();
+		neighbor_coords_man.SetMajorDimension(nngh, false);
+		neighbor_support_man.SetMajorDimension(nngh, false);
+		neighbor_volume_man.SetLength(nngh, false);
+		neighbor_volume = 1.0;
+		
+		/* collect data */
+		neighbor_coords.RowCollect(neighbors, point_coordinates);
+		neighbor_support.RowCollect(neighbors, fSupport);
+		point_coordinates.RowAlias(points_used[i], x_node);
+		
+		/* compute MLS fit */
+		if (!fMLS->SetField(neighbor_coords, neighbor_support, neighbor_volume, x_node, 0))
+			ExceptionT::GeneralFail(caller, "could not compute MLS fit for point %d", points_used[i]+1);
+	
+		/* store weights */
+		point_neighbor_weights.SetRow(i, fMLS->phi());
+	}
 }
 
 /* project the point values onto the mesh */
@@ -149,6 +185,43 @@ void MeshfreeBridgingT::ProjectField(const PointInCellDataT& cell_data,
 		/* compute components of projection */
 		for (int j = 0; j < projection.MinorDim(); j++)
 			projection(i,j) = dArrayT::Dot(loc_values(j), weights);
+	}
+}
+
+/* compute the coarse scale part of the source field */
+void MeshfreeBridgingT::CoarseField(const PointInCellDataT& cell_data, const dArray2DT& field, 
+	dArray2DT& coarse) const
+{
+	/* point neighbor data */
+	const RaggedArray2DT<int>& point_neighbors = cell_data.PointNeighbors();
+	const RaggedArray2DT<double>& point_neighbor_weights = cell_data.PointNeighborWeights();
+
+	/* initialize return value */
+	coarse.Dimension(point_neighbors.MajorDim(), field.MinorDim());
+	coarse = 0.0;
+
+	/* neighborhood values */
+	LocalArrayT loc_values;
+	VariLocalArrayT loc_values_man(0, loc_values, field.MinorDim());
+	loc_values_man.SetNumberOfNodes(0); /* loc_values must be dimensioned before SetGlobal */
+	loc_values.SetGlobal(field);
+
+	/* calculate "projection" using weights */
+	iArrayT neighbors;
+	dArrayT weights;
+	for (int i = 0; i < coarse.MajorDim(); i++)
+	{
+		/* fetch neighbor data */
+		point_neighbors.RowAlias(i, neighbors);
+		point_neighbor_weights.RowAlias(i, weights);
+		
+		/* collect neighbor values */
+		loc_values_man.SetNumberOfNodes(neighbors.Length());
+		loc_values.SetLocal(neighbors);
+		
+		/* compute components of projection */
+		for (int j = 0; j < coarse.MinorDim(); j++)
+			coarse(i,j) = dArrayT::Dot(loc_values(j), weights);
 	}
 }
 
@@ -279,4 +352,48 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(const iArrayT& points_used, cons
 		nodal_neighbors.WriteNumbered(out);
 		tmp--;
 	}
+}
+
+/* determines points in the neighborhoods of nodes of each non-empty cell */
+void MeshfreeBridgingT::BuildPointNeighborhoods(const iArrayT& points_used, const dArray2DT& point_coords,
+	PointInCellDataT& cell_data)
+{
+	const char caller[] = "MeshfreeBridgingT::BuildPointNeighborhoods";
+
+	/* set map of points used to rows in neighbor data */
+	InverseMapT point_to_neighbor_data = cell_data.PointToNeighborData();
+	point_to_neighbor_data.SetMap(points_used);
+	point_to_neighbor_data.SetOutOfRange(InverseMapT::MinusOne);
+
+	/* set up search grid */
+	iGridManagerT grid(10, 100, point_coords, &points_used);
+	grid.Reset();
+
+	/* collect neighborhood points */
+	AutoFill2DT<int> auto_fill(points_used.Length(), 1, 10, 10);
+	dArrayT nodal_params(1);
+	dArrayT x_node, x_point;
+	for (int i = 0; i < points_used.Length(); i++)
+	{
+		/* candidate points */
+		int point = points_used[i];
+		nodal_params[0] = fSupport[point];
+		point_coords.RowAlias(point, x_node);
+		const AutoArrayT<iNodeT>& hits = grid.HitsInRegion(x_node.Pointer(), nodal_params[0]);
+
+		/* test all hits */
+		for (int j = 0; j < hits.Length(); j++)
+		{
+			/* point info */
+			int hit = hits[j].Tag();
+			point_coords.RowAlias(hit, x_point);
+
+			/* add to neighbor list */
+			if (fMLS->Covers(x_node, x_point, nodal_params))
+				auto_fill.Append(i, hit);
+		}
+	}
+
+	/* copy/compress contents */
+	cell_data.PointNeighbors().Copy(auto_fill);	
 }
