@@ -1,4 +1,4 @@
-/* $Id: MFAugLagMultT.h,v 1.3 2004-07-15 08:31:15 paklein Exp $ */
+/* $Id: MFAugLagMultT.h,v 1.4 2004-10-06 19:58:55 cjkimme Exp $ */
 #ifndef _MF_AUG_LAG_MULT_T_H_
 #define _MF_AUG_LAG_MULT_T_H_
 
@@ -190,6 +190,8 @@ private:
 	RaggedArray2DT<int> fLocallyNumberedNodeSets;
 	iArray2DT fFlattenedNodeSets;
 	iArrayT fLocalFlatNodes;
+	iArrayT fUnionOfNodes;
+	iArrayT fKey;
 	dArrayT fScales;
 	ArrayT<KBC_CardT::CodeT> fCodes;
 	/*@}*/
