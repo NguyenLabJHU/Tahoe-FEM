@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile_RP2DT.h,v 1.2 2003-09-03 23:47:56 paklein Exp $ */
+/* $Id: InelasticDuctile_RP2DT.h,v 1.3 2003-09-04 07:18:45 paklein Exp $ */
 #ifndef _INELASTIC_DUCTILE_RP_2D_T_H_
 #define _INELASTIC_DUCTILE_RP_2D_T_H_
 
@@ -27,7 +27,9 @@ public:
 
 	/** constructor.
 	 * \param time_step reference to the current time step */
-	InelasticDuctile_RP2DT(ifstreamT& in, const double& time_step, const double& area);
+	InelasticDuctile_RP2DT(ifstreamT& in, const double& time_step, const double& area,
+		ofstreamT& out);
+		//TEMP - output stream for debugging information
 
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const;
@@ -124,6 +126,9 @@ private:
 
 private:
 
+	//TEMP
+	ofstreamT& fOut;
+
 	/** reference to the time step */
 	const double& fTimeStep;
 
@@ -139,7 +144,7 @@ private:
 	double fphi_init;
 
 	/** strength multiplication */
-	double fkappa_scale;
+//	double fkappa_scale;
 
 	/** true if damage is reversible */
 	bool fReversible;
