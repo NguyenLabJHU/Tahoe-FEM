@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.7 2003-03-10 16:56:47 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.8 2003-03-11 09:32:41 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -58,7 +58,8 @@ void SIERRA_Material_BaseT::Print(ostream& out) const
 {
 	/* inherited */
 	FSSolidMatT::Print(out);
-	
+	IsotropicT::Print(out);
+
 	/* write properties array */
 	out << " Material name . . . . . . . . . . . . . . . . . = " << fMaterialName << '\n';
 	out << " Material model name . . . . . . . . . . . . . . = " << fSIERRA_Material_Data->Name() << '\n';
@@ -252,7 +253,7 @@ const dSymMatrixT& SIERRA_Material_BaseT::s_ij(void)
 		int nsv = fstate_old.Length();
 		int ncd = 0;
 		int matvals = fSIERRA_Material_Data->ID();
-		int ivars_size = fdstran.Length();
+		int ivars_size = fSIERRA_Material_Data->InputVariables().Length();
 
 		/* debug information */
 		if (fDebug) {
