@@ -130,7 +130,7 @@ const dSymMatrixT& MRSSKStV::s_ij(void)
 int MRSSKStV::IsLocalized(dArrayT& normal)
 {
         DetCheckT checker(fStress, fModulus);
-        checker.SetfStructuralMatSupport(fSSMatSupport);
+        checker.SetfStructuralMatSupport(*fSSMatSupport);
 
         int loccheck= checker.IsLocalized(normal);
         return loccheck;

@@ -92,9 +92,7 @@ public:
 
 	/* returns 1 if the trial elastic strain state lies outside of the 
 	 * yield surface */
-	int PlasticLoading(const dSymMatrixT& trialstrain, 
-                            ElementCardT& element, 
-		           int ip);
+	int PlasticLoading(const dSymMatrixT& trialstrain, ElementCardT& element, int ip);
 
 	/* computes the deviatoric stress corresponding to the given element
 	 * and elastic strain.  The function returns a reference to the
