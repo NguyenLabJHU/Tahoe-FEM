@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.26.2.1 2004-03-19 01:49:47 jzimmer Exp $ */
+/* $Id: ParticleT.h,v 1.26.2.2 2004-03-30 23:07:21 jzimmer Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -308,6 +308,8 @@ protected:
 	int Combination(int n, int k);
 
 	void Calc_CSP(int non, int num_s_vals,dArray2DT &s_values, RaggedArray2DT<int> &NearestNeighbors);
+    
+	void SetRefNN(RaggedArray2DT<int> &NearestNeighbors,RaggedArray2DT<int> &RefNearestNeighbors);
 
 private:
 
