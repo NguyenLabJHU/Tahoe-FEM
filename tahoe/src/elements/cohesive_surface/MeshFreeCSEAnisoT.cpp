@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.3 2002-02-20 09:37:54 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.4 2002-02-22 01:59:31 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -113,6 +113,9 @@ MeshFreeCSEAnisoT::~MeshFreeCSEAnisoT(void)
 {
 	delete fMFSurfaceShape;
 	fMFSurfaceShape = NULL;
+	
+	delete fSurfacePotential;
+	fSurfacePotential = NULL;
 }
 
 /* form of tangent matrix */
