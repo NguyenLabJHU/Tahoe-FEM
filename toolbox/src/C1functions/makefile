@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.22 2002-10-04 20:51:05 thao Exp $
+# $Id: makefile,v 1.23 2003-01-28 01:27:53 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -11,8 +11,6 @@ OBJ = \
 	ErrorFunc.o \
 	GaoKlein.o \
 	Gamma.o \
-	GreenwoodWilliamson.o \
-	ConHypGeom.o \
 	LennardJones612.o \
 	ModBessel.o \
 	ParabolaT.o \
@@ -39,8 +37,6 @@ SRC = \
 	ErrorFunc.cpp \
 	Gamma.cpp \
 	GaoKlein.cpp \
-	GreenwoodWilliamson.cpp \
-	ConHypGeom.cpp \
 	LennardJones612.cpp \
 	ModBessel.cpp \
 	ParabolaT.cpp \
@@ -61,8 +57,6 @@ HDR = \
 	ErrorFunc.h \
 	Gamma.h \
 	GaoKlein.h \
-	GreenwoodWilliamson.h \
-	ConHypGeom.h \
 	LennardJones612.h \
 	ModBessel.h \
 	ParabolaT.h \
