@@ -1,11 +1,11 @@
-/* $Id: ExceptionT.cpp,v 1.5 2002-11-22 02:04:28 paklein Exp $ */
+/* $Id: ExceptionT.cpp,v 1.6 2002-11-26 23:11:48 paklein Exp $ */
 #include "ExceptionT.h"
 #include "ArrayT.h"
 #include <iostream.h>
 #include <iomanip.h>
 #include <time.h>
 
-#ifdef __SGI__
+#if defined(__SGI__) || defined(__DELMAR__)
 #include <stdio.h>
 #include <stdarg.h>
 #else
