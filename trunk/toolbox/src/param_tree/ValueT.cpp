@@ -1,4 +1,4 @@
-/* $Id: ValueT.cpp,v 1.10 2004-01-21 17:06:45 paklein Exp $ */
+/* $Id: ValueT.cpp,v 1.11 2004-02-24 19:05:47 paklein Exp $ */
 #include "ValueT.h"
 #include <stdlib.h>
 #include <ctype.h>
@@ -295,6 +295,8 @@ ValueT::operator const int() const
 		return fInteger;
 	else if (fType == Double)
 		return int(fDouble);
+	else if (fType == Boolean)
+		return int(fBoolean);
 	else
 		ExceptionT::TypeMismatch("ValueT::int()", "cannot convert from %s", TypeName(fType));
 		
