@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.h,v 1.9 2003-01-27 06:42:48 paklein Exp $ */
+/* $Id: CommunicatorT.h,v 1.10 2003-11-11 07:38:01 paklein Exp $ */
 #ifndef _COMMUNICATOR_T_H_
 #define _COMMUNICATOR_T_H_
 
@@ -119,6 +119,9 @@ class CommunicatorT
 
 	/** sum of single doubles returned to all */
 	double Sum(double a) const;
+
+	/** element-by-element sum of a vector */
+	void Sum(const nArrayT<double>& my_values, nArrayT<double>& sum) const;
 
 	/** \name gather from all to one
 	 * Gather single integer from all processes to one. */
