@@ -1,4 +1,4 @@
-/* $Id: nArrayGroupT.h,v 1.3 2002-10-20 22:38:53 paklein Exp $ */
+/* $Id: nArrayGroupT.h,v 1.4 2003-01-27 06:42:44 paklein Exp $ */
 /* created: paklein (04/17/1998) */
 #ifndef _NARRAY_GROUP_T_H_
 #define _NARRAY_GROUP_T_H_
@@ -21,7 +21,7 @@ class nArrayGroupT: public MemoryGroupT<TYPE>
 public:
 
 	/** constructor */
-	nArrayGroupT(int headroom);
+	nArrayGroupT(int headroom, bool pool_memory);
 
 	/** add an nArrayT to list of managed arrays */
 	void Register(nArrayT<TYPE>& array);
@@ -36,13 +36,13 @@ private:
 };
 
 /*************************************************************************
-* Implementation
-*************************************************************************/
+ * Implementation
+ *************************************************************************/
 
 /* constructor */
 template <class TYPE>
-nArrayGroupT<TYPE>::nArrayGroupT(int headroom):
-	MemoryGroupT<TYPE>(headroom),
+nArrayGroupT<TYPE>::nArrayGroupT(int headroom, bool pool_memory):
+	MemoryGroupT<TYPE>(headroom, pool_memory),
 	fLength(0)
 {
 

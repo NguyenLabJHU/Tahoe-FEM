@@ -1,9 +1,26 @@
-/* $Id: CommunicatorT.cpp,v 1.7 2002-12-05 08:25:19 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.8 2003-01-27 06:42:48 paklein Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionT.h"
 #include <iostream.h>
-#include <time.h>
-#include "ArrayT.h"
+#include "nArrayT.h"
+#include "ofstreamT.h"
+
+/* to handle the variable number of arguments in Throw() */
+#if defined(__SGI__) || defined(__DELMAR__)
+#include <stdio.h>
+#include <stdarg.h>
+#else
+#include <cstdio>
+#include <cstdarg>
+#endif
+
+/* error checking - these should be set by the compiler macros 
+#undef CHECK_MPI_STATUS
+#undef CHECK_MPI_RETURN
+*/
+
+/* buffer for vsprintf */
+static char message_buffer[255];
 
 using namespace Tahoe;
 
@@ -14,22 +31,26 @@ char*** CommunicatorT::fargv = NULL;
 
 /* create communicator including all processes */
 CommunicatorT::CommunicatorT(void):
-	fLogLevel(kSilent),
-	fLog(&cout)
+	fLogLevel(kUrgent),
+	fLog(&cout),
+	fLastTime(0)
 {
 	/* check MPI environment */
 	Init();
 
 #ifdef __TAHOE_MPI__
 	fComm = MPI_COMM_WORLD;
-	if (MPI_Comm_size(fComm, &fSize) != MPI_SUCCESS) {
-		Log("CommunicatorT::CommunicatorT", "MPI_Comm_size failed", true);
-		throw ExceptionT::kMPIFail;
-	}
-	if (MPI_Comm_rank(fComm, &fRank) != MPI_SUCCESS) {
-		Log("CommunicatorT::CommunicatorT", "MPI_Comm_rank failed", true);
-		throw ExceptionT::kMPIFail;
-	}
+
+	int ret = MPI_Comm_size(fComm, &fSize);
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::CommunicatorT", "MPI_Comm_size failed");
+#endif
+
+	ret = MPI_Comm_rank(fComm, &fRank);
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::CommunicatorT", "MPI_Comm_rank failed");
+#endif
+
 #else
 	fComm = 0;
 	fSize = 1;
@@ -56,40 +77,67 @@ CommunicatorT::~CommunicatorT(void)
 	Finalize();
 }
 
-/* write message to log */
-void CommunicatorT::Log(const char* caller, const char* message, bool force) const
+void CommunicatorT::Log(LogLevelT priority, const char* caller) const
 {
-	if (fLogLevel != kSilent || force)
-		LogHead(caller) << message << endl;
+	if (priority >= LogLevel())
+	{
+		/* log message */
+		doLog(caller, NULL);
+
+		/* throw exception */
+		if (priority == kFail) ExceptionT::MPIFail(caller);
+	}
+}
+
+void CommunicatorT::Log(LogLevelT priority, const char* caller, const char* fmt, ...) const
+{
+	if (priority >= LogLevel())
+	{
+		/* log message */
+		va_list argp;
+		va_start(argp, fmt);
+		vsprintf(message_buffer, fmt, argp);
+		va_end(argp);
+		doLog(caller, message_buffer);
+
+		/* throw exception */
+		if (priority == kFail) ExceptionT::MPIFail(caller, message_buffer);
+	}
 }
 
 /* (re-)set the logging stream */
 void CommunicatorT::SetLog(ostream& log)
 {
-	Log("CommunicatorT::SetLog", "closing log stream");
+	Log(kUrgent, "SetLog", "new log stream");
+	fLog->flush();
 	fLog = &log;
-	Log("CommunicatorT::SetLog", "opening log stream");
+}
+
+void CommunicatorT::SetLog(ofstreamT& log)
+{
+	Log(kUrgent, "SetLog", "new log stream: %s", log.filename());
+	fLog->flush();
+	fLog = &log;
 }
 
 /* maximum over single integers */
 int CommunicatorT::Max(int a) const
 {
-	if (fLogLevel != kSilent)
-		*fLog << '\n' << Rank() << ": CommunicatorT::Max: in = " << a << endl;
+	Log(kModerate, "Max", "in = %d", a);
 
 #ifdef __TAHOE_MPI__
 	if (Size() > 1)
 	{
 		int b = a;
-		if (MPI_Allreduce(&b, &a, 1, MPI_INT, MPI_MAX, fComm) != MPI_SUCCESS) {
-			Log("CommunicatorT::Max", "MPI_Allreduce failed", true);
-			throw ExceptionT::kMPIFail;
-		}
+		int ret = MPI_Allreduce(&b, &a, 1, MPI_INT, MPI_MAX, fComm);
+
+#ifdef CHECK_MPI_RETURN
+		if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::Max", "MPI_Allreduce failed");
+#endif
 	}
 #endif
 
-	if (fLogLevel != kSilent)
-		*fLog << Rank() << ": CommunicatorT::Max: out = " << a << endl;
+	Log(kModerate, "Max", "out = %d", a);
 
 	return a;
 }
@@ -97,120 +145,113 @@ int CommunicatorT::Max(int a) const
 /* minimum over single integers */
 int CommunicatorT::Min(int a) const
 {
-	if (fLogLevel != kSilent)
-		*fLog << '\n' << Rank() << ": CommunicatorT::Min: in = " << a << endl;
+	Log(kModerate, "Min", "in = %d", a);
 
 #ifdef __TAHOE_MPI__
 	if (Size() > 1)
 	{
 		int b = a;
-		if (MPI_Allreduce(&b, &a, 1, MPI_INT, MPI_MIN, fComm) != MPI_SUCCESS) {
-			Log("CommunicatorT::Min", "MPI_Allreduce failed", true);
-			throw ExceptionT::kMPIFail;
-		}
+		int ret = MPI_Allreduce(&b, &a, 1, MPI_INT, MPI_MIN, fComm);
+
+#ifdef CHECK_MPI_RETURN
+		if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::Min", "MPI_Allreduce failed");
+#endif
 	}
 #endif
 
-	if (fLogLevel != kSilent)
-		*fLog << Rank() << ": CommunicatorT::Min: out = " << a << endl;
-
+	Log(kModerate, "Min", "out = %d", a);
 	return a;
 }
 
 /* minimum over single integers */
 int CommunicatorT::Sum(int a) const
 {
-	if (fLogLevel != kSilent)
-		*fLog << '\n' << Rank() << ": CommunicatorT::Sum: in = " << a << endl;
+	Log(kModerate, "Sum", "in = %d", a);
 
 #ifdef __TAHOE_MPI__
 	if (Size() > 1)
 	{
 		int b = a;
-		if (MPI_Allreduce(&b, &a, 1, MPI_INT, MPI_SUM, fComm) != MPI_SUCCESS) {
-			Log("CommunicatorT::Sum", "MPI_Allreduce failed", true);
-			throw ExceptionT::kMPIFail;
-		}
+		int ret = MPI_Allreduce(&b, &a, 1, MPI_INT, MPI_SUM, fComm);
+		
+#ifdef CHECK_MPI_RETURN
+		if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::Sum", "MPI_Allreduce failed");
+#endif
 	}
 #endif
 
-	if (fLogLevel != kSilent)
-		*fLog << Rank() << ": CommunicatorT::Sum: out = " << a << endl;
-
+	Log(kModerate, "Sum", "out = %d", a);
 	return a;
 }
 
 /* maximum over single doubles */
 double CommunicatorT::Max(double a) const
 {
-	if (fLogLevel != kSilent)
-		*fLog << '\n' << Rank() << ": CommunicatorT::Max: in = " << a << endl;
+	Log(kModerate, "Max", "in = %e", a);
 
 #ifdef __TAHOE_MPI__
 	if (Size() > 1)
 	{
 		double b = a;
-		if (MPI_Allreduce(&b, &a, 1, MPI_DOUBLE, MPI_MAX, fComm) != MPI_SUCCESS) {
-			Log("CommunicatorT::Max", "MPI_Allreduce failed", true);
-			throw ExceptionT::kMPIFail;
-		}
+		int ret = MPI_Allreduce(&b, &a, 1, MPI_DOUBLE, MPI_MAX, fComm);
+		
+#ifdef CHECK_MPI_RETURN
+		if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::Max", "MPI_Allreduce failed");
+#endif
 	}
 #endif
-	if (fLogLevel != kSilent)
-		*fLog << Rank() << ": CommunicatorT::Max: out = " << a << endl;
 
+	Log(kModerate, "Max", "out = %e", a);
 	return a;
 }
 
 /* minimum over single doubles */
 double CommunicatorT::Min(double a) const
 {
-	if (fLogLevel != kSilent)
-		*fLog << '\n' << Rank() << ": CommunicatorT::Min: in = " << a << endl;
+	Log(kModerate, "Min", "in = %e", a);
 
 #ifdef __TAHOE_MPI__
 	if (Size() > 1)
 	{
 		double b = a;
-		if (MPI_Allreduce(&b, &a, 1, MPI_DOUBLE, MPI_MIN, fComm) != MPI_SUCCESS) {
-			Log("CommunicatorT::Min", "MPI_Allreduce failed", true);
-			throw ExceptionT::kMPIFail;
-		}
+		int ret = MPI_Allreduce(&b, &a, 1, MPI_DOUBLE, MPI_MIN, fComm);
+		
+#ifdef CHECK_MPI_RETURN
+		if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::Min", "MPI_Allreduce failed");
+#endif
 	}
 #endif
 
-	if (fLogLevel != kSilent)
-		*fLog << Rank() << ": CommunicatorT::Min: out = " << a << endl;
-
+	Log(kModerate, "Min", "out = %e", a);
 	return a;
 }
 
 /* minimum over single integers */
 double CommunicatorT::Sum(double a) const
 {
-	if (fLogLevel != kSilent)
-		*fLog << '\n' << Rank() << ": CommunicatorT::Sum: in = " << a << endl;
+	Log(kModerate, "Sum", "in = %e", a);
 
 #ifdef __TAHOE_MPI__
 	if (Size() > 1)
 	{
 		double b = a;
-		if (MPI_Allreduce(&b, &a, 1, MPI_DOUBLE, MPI_SUM, fComm) != MPI_SUCCESS) {
-			Log("CommunicatorT::Sum", "MPI_Allreduce failed", true);
-			throw ExceptionT::kMPIFail;
-		}
+		int ret = MPI_Allreduce(&b, &a, 1, MPI_DOUBLE, MPI_SUM, fComm);
+
+#ifdef CHECK_MPI_RETURN
+		if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::Sum", "MPI_Allreduce failed");
+#endif
 	}
 #endif
 
-	if (fLogLevel != kSilent)
-		*fLog << Rank() << ": CommunicatorT::Sum: out = " << a << endl;
-
+	Log(kModerate, "Sum", "out = %e", a);
 	return a;
 }
 
 /* gather single integer. Called by destination process. */
-void CommunicatorT::Gather(int a, ArrayT<int>& gather) const
+void CommunicatorT::Gather(int a, nArrayT<int>& gather) const
 {
+	Log(kModerate, "Gather", "in = %d, destination = %d", a, Rank());
+
 	/* check */
 	if (gather.Length() != Size()) ExceptionT::SizeMismatch("CommunicatorT::Gather");
 
@@ -218,77 +259,171 @@ void CommunicatorT::Gather(int a, ArrayT<int>& gather) const
 	gather[Rank()] = a;
 
 #ifdef __TAHOE_MPI__
-	if (MPI_Gather(&a, 1, MPI_INT, gather.Pointer(), 1, MPI_INT, Rank(), fComm) != MPI_SUCCESS) {
-		Log("CommunicatorT::Gather", "MPI_Gather failed", true);
-		throw ExceptionT::kMPIFail;
-	}
+	int ret = MPI_Gather(&a, 1, MPI_INT, gather.Pointer(), 1, MPI_INT, Rank(), fComm);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::Gather", "MPI_Gather failed");
 #endif
+
+#endif
+
+	/* verbose */
+	if (LogLevel() == kLow)
+	{
+		Log(kLow, "Gather", "destination");
+		Log() << gather.wrap(10) << '\n';
+	}
 }
 
 /* gather single integer. Called by sending processes. */
 void CommunicatorT::Gather(int a, int destination) const
 {
+	const char caller[] = "CommunicatorT::Gather";
+	Log(kModerate, caller, "in = %d, destination = %d", a, destination);
+
 	/* check */
-	if (destination == Rank()) {
-		cout << "\n CommunicatorT::Gather: destination must be different from rank: " 
-		     << destination << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (destination == Rank())
+		ExceptionT::GeneralFail(caller, 
+			"destination %d must be different from rank %d", destination, Rank());
 
 #ifdef __TAHOE_MPI__
 	int* tmp = NULL;
-	if (MPI_Gather(&a, 1, MPI_INT, tmp, 1, MPI_INT, destination, fComm) != MPI_SUCCESS) {
-		Log("CommunicatorT::Gather", "MPI_Gather failed", true);
-		throw ExceptionT::kMPIFail;
-	}
+	int ret = MPI_Gather(&a, 1, MPI_INT, tmp, 1, MPI_INT, destination, fComm);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Gather failed");
+#endif
+
+#endif
+}
+
+/* gather an array of integers. Called by destination process. */
+void CommunicatorT::Gather(const nArrayT<int>& my_values, nArrayT<int>& gather, 
+	const nArrayT<int>& counts, const nArrayT<int>& displacements) const
+{
+	const char caller[] = "CommunicatorT::Gather";
+	Log(kModerate, caller, "sending %d to %d (self)", my_values.Length(), Rank());
+	if (LogLevel() == kLow) Log() << my_values.wrap(10) << '\n';
+
+#if __option(extended_errorcheck)
+	if (displacements.Length() != Size()) ExceptionT::SizeMismatch(caller);
+	if (counts[Rank()] != my_values.Length()) ExceptionT::SizeMismatch(caller);
+	if (counts.Length() != displacements.Length()) ExceptionT::SizeMismatch(caller);
+	if (displacements.Last() + counts.Last() > gather.Length()) ExceptionT::SizeMismatch(caller);
+		/* assume counts and displacements are OK interms of overlap and assume the
+		 * displacements are monotonically increasing */
+#endif
+
+#ifdef __TAHOE_MPI__
+	int ret = MPI_Gatherv(my_values.Pointer(), my_values.Length(), MPI_INT, 
+		gather.Pointer(), counts.Pointer(), displacements.Pointer(), MPI_INT, 
+		Rank(), fComm);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Gatherv failed");
+#endif
+
 #else
-#pragma unused(a)
+	/* write my into gather */
+	int len = my_values.Length();
+	int offset = displacements[Rank()];
+	gather.CopyPart(offset, my_values, 0, len);
+#endif
+
+	if (LogLevel() == kLow) {
+		Log(kLow, caller);
+		Log() << gather.wrap(10) << '\n';
+	}
+}
+
+/* gather an array of integers. Called by sending processes. */
+void CommunicatorT::Gather(const nArrayT<int>& my_values, int destination) const
+{
+	const char caller[] = "CommunicatorT::Gather";
+	Log(kModerate, caller, "sending %d to %d", my_values.Length(), destination);
+	if (LogLevel() == kLow) Log() << my_values.wrap(10) << '\n';
+
+	/* check */
+	if (destination < 0 || destination >= Size()) ExceptionT::SizeMismatch(caller);
+
+#ifdef __TAHOE_MPI__
+	int ret = MPI_Gatherv(my_values.Pointer(), my_values.Length(), MPI_INT, 
+		NULL, NULL, NULL, MPI_INT, destination, fComm);
+		
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Gatherv failed");
+#endif
+
 #endif
 }
 
 /* synchronize all processes */
 void CommunicatorT::Barrier(void) const
 {
+	Log(kLow, "Barrier");
+
 #ifdef __TAHOE_MPI__
-	if (MPI_Barrier(fComm) != MPI_SUCCESS) {
-		Log("CommunicatorT::Barrier", "MPI_Barrier failed", true);
-		throw ExceptionT::kMPIFail;
-	}
+	int ret = MPI_Barrier(fComm);
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::Barrier", "MPI_Barrier failed");
 #endif
+#endif
+
+	Log(kLow, "Barrier");
 }
 
 /* gather single integer to all processes. */
-void CommunicatorT::AllGather(int a, ArrayT<int>& gather) const
+void CommunicatorT::AllGather(int a, nArrayT<int>& gather) const
 {
+	const char caller[] = "CommunicatorT::AllGather";
+	Log(kModerate, caller, "in = %d", a);
+
 	/* check */
-	if (gather.Length() != Size()) ExceptionT::SizeMismatch("CommunicatorT::AllGather");
+	if (gather.Length() != Size())
+		ExceptionT::SizeMismatch(caller, "buffer length %d does not match size %d", 
+			gather.Length(), Size());
 
 	/* this */
 	gather[Rank()] = a;
 
 #ifdef __TAHOE_MPI__
-	if (MPI_Allgather(&a, 1, MPI_INT, gather.Pointer(), 1, MPI_INT, fComm) != MPI_SUCCESS) {
-		Log("CommunicatorT::Gather", "MPI_Allgather failed", true);
-		throw ExceptionT::kMPIFail;
-	}
+	int ret = MPI_Allgather(&a, 1, MPI_INT, gather.Pointer(), 1, MPI_INT, fComm);
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Allgather failed");
+#endif
 #endif
 
 //NOTE: need to implement gather with sends and receives for CPLANT and other
 //      platforms where Allgather seems to be troublesome.
+
+	/* verbose */
+	if (LogLevel() == kLow)
+	{
+		Log(kLow, caller);
+		Log() << gather.wrap(10) << '\n';
+	}
 }
 
 /* gather multiple values from all */
-void CommunicatorT::AllGather(const ArrayT<double>& my, ArrayT<double>& gather) const
+void CommunicatorT::AllGather(const nArrayT<double>& my, nArrayT<double>& gather) const
 {
+	const char caller[] = "CommunicatorT::AllGather";
+	Log(kModerate, caller, "sending %d", my.Length());
+	if (LogLevel() == kLow) Log() << my.wrap(5) << '\n';
+
 	/* check */
-	if (my.Length()*Size() != gather.Length()) ExceptionT::SizeMismatch("CommunicatorT::AllGather");
+	if (my.Length()*Size() != gather.Length()) 
+		ExceptionT::SizeMismatch(caller, 
+			"buffer length %d does not match size %d", gather.Length(), my.Length()*Size());
 
 #ifdef __TAHOE_MPI__
 	int len = my.Length();
-	if (MPI_Allgather(my.Pointer(), len, MPI_DOUBLE, gather.Pointer(), len, MPI_DOUBLE, fComm) != MPI_SUCCESS) {
-		Log("CommunicatorT::Gather", "MPI_Allgather failed", true);
-		throw ExceptionT::kMPIFail;
-	}
+	int ret = MPI_Allgather(my.Pointer(), len, MPI_DOUBLE, gather.Pointer(), len, MPI_DOUBLE, fComm);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Allgather failed");
+#endif
+
 #else
 	/* write my into gather */
 	int len = my.Length();
@@ -297,20 +432,31 @@ void CommunicatorT::AllGather(const ArrayT<double>& my, ArrayT<double>& gather) 
 
 //NOTE: need to implement gather with sends and receives for CPLANT and other
 //      platforms where Allgather seems to be troublesome.
+
+	Log(kModerate, caller, "gathered %d", gather.Length());
+	if (LogLevel() == kLow) Log() << gather.wrap(5) << '\n';
 }
 
 /* gather multiple values from all */
-void CommunicatorT::AllGather(const ArrayT<int>& my, ArrayT<int>& gather) const
+void CommunicatorT::AllGather(const nArrayT<int>& my, nArrayT<int>& gather) const
 {
+	const char caller[] = "CommunicatorT::AllGather";
+	Log(kModerate, caller, "sending %d", my.Length());
+	if (LogLevel() == kLow) Log() << my.wrap(5) << '\n';
+
 	/* check */
-	if (my.Length()*Size() != gather.Length()) ExceptionT::SizeMismatch("CommunicatorT::AllGather");
+	if (my.Length()*Size() != gather.Length()) 
+		ExceptionT::SizeMismatch(caller, 
+			"buffer length %d does not match size %d", gather.Length(), my.Length()*Size());
 
 #ifdef __TAHOE_MPI__
 	int len = my.Length();
-	if (MPI_Allgather(my.Pointer(), len, MPI_INT, gather.Pointer(), len, MPI_INT, fComm) != MPI_SUCCESS) {
-		Log("CommunicatorT::Gather", "MPI_Allgather failed", true);
-		throw ExceptionT::kMPIFail;
-	}
+	int ret = MPI_Allgather(my.Pointer(), len, MPI_INT, gather.Pointer(), len, MPI_INT, fComm);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Allgather failed");
+#endif
+
 #else
 	/* write my into gather */
 	int len = my.Length();
@@ -319,28 +465,41 @@ void CommunicatorT::AllGather(const ArrayT<int>& my, ArrayT<int>& gather) const
 
 //NOTE: need to implement gather with sends and receives for CPLANT and other
 //      platforms where Allgather seems to be troublesome.
+
+	Log(kModerate, caller, "gathered %d", gather.Length());
+	if (LogLevel() == kLow) Log() << gather.wrap(5) << '\n';
 }
 
 /* gather multiple values from all */
-void CommunicatorT::AllGather(const ArrayT<int>& counts, const ArrayT<int>& displacements, 
-	const ArrayT<double>& my, ArrayT<double>& gather) const
+void CommunicatorT::AllGather(const nArrayT<double>& my, nArrayT<double>& gather,
+	const nArrayT<int>& counts, const nArrayT<int>& displacements) const
 {
+	const char caller[] = "CommunicatorT::Gather";
+	Log(kModerate, caller, "sending %d", my.Length());
+	if (LogLevel() == kLow)
+	{
+		Log() << "counts = \n" << counts.wrap(5) << '\n';
+		Log() << "displacements = \n" << displacements.wrap(5) << '\n';
+		Log() << "sending = \n" << my.wrap(5) << '\n';		
+	}
+
 #if __option(extended_errorcheck)
-	if (counts[Rank()] != my.Length()) ExceptionT::SizeMismatch();
-	if (counts.Length() != displacements.Length()) ExceptionT::SizeMismatch();
-	if (gather.Length() > 1 && 
-		(displacements.Last() + counts.Last() >= gather.Length())) ExceptionT::SizeMismatch();
+	if (counts[Rank()] != my.Length()) ExceptionT::SizeMismatch(caller);
+	if (counts.Length() != displacements.Length()) ExceptionT::SizeMismatch(caller);
+	if (displacements.Last() + counts.Last() > gather.Length()) ExceptionT::SizeMismatch(caller);
 		/* assume counts and displacements are OK interms of overlap and assume the
 		 * displacements are monotonically increasing */
 #endif
 
 #ifdef __TAHOE_MPI__
 	int len = my.Length();
-	if (MPI_Allgatherv(my.Pointer(), len, MPI_DOUBLE, 
-		gather.Pointer(), counts.Pointer(), displacements.Pointer(), MPI_DOUBLE, fComm) != MPI_SUCCESS) {
-		Log("CommunicatorT::Gather", "MPI_Allgatherv failed", true);
-		throw ExceptionT::kMPIFail;
-	}
+	int ret = MPI_Allgatherv(my.Pointer(), len, MPI_DOUBLE, gather.Pointer(), 
+				counts.Pointer(), displacements.Pointer(), MPI_DOUBLE, fComm);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Allgatherv failed");
+#endif
+
 #else
 	/* write my into gather */
 	int len = my.Length();
@@ -350,28 +509,41 @@ void CommunicatorT::AllGather(const ArrayT<int>& counts, const ArrayT<int>& disp
 
 //NOTE: need to implement gather with sends and receives for CPLANT and other
 //      platforms where Allgather seems to be troublesome.
+
+	Log(kModerate, caller, "gathered %d", gather.Length());
+	if (LogLevel() == kLow) Log() << gather.wrap(5) << '\n';
 }
 
 /* gather multiple values from all */
-void CommunicatorT::AllGather(const ArrayT<int>& counts, const ArrayT<int>& displacements, 
-	const ArrayT<int>& my, ArrayT<int>& gather) const
+void CommunicatorT::AllGather(const nArrayT<int>& my, nArrayT<int>& gather,
+	const nArrayT<int>& counts, const nArrayT<int>& displacements) const
 {
+	const char caller[] = "CommunicatorT::Gather";
+	Log(kModerate, caller, "sending %d", my.Length());
+	if (LogLevel() == kLow)
+	{
+		Log() << "counts = \n" << counts.wrap(5) << '\n';
+		Log() << "displacements = \n" << displacements.wrap(5) << '\n';
+		Log() << "sending = \n" << my.wrap(5) << '\n';		
+	}
+
 #if __option(extended_errorcheck)
-	if (counts[Rank()] != my.Length()) ExceptionT::SizeMismatch();
-	if (counts.Length() != displacements.Length()) ExceptionT::SizeMismatch();
-	if (gather.Length() > 1 && 
-		(displacements.Last() + counts.Last() >= gather.Length())) ExceptionT::SizeMismatch();
+	if (counts[Rank()] != my.Length()) ExceptionT::SizeMismatch(caller);
+	if (counts.Length() != displacements.Length()) ExceptionT::SizeMismatch(caller);
+	if (displacements.Last() + counts.Last() > gather.Length()) ExceptionT::SizeMismatch(caller);
 		/* assume counts and displacements are OK interms of overlap and assume the
 		 * displacements are monotonically increasing */
 #endif
 
 #ifdef __TAHOE_MPI__
 	int len = my.Length();
-	if (MPI_Allgatherv(my.Pointer(), len, MPI_INT, 
-		gather.Pointer(), counts.Pointer(), displacements.Pointer(), MPI_INT, fComm) != MPI_SUCCESS) {
-		Log("CommunicatorT::Gather", "MPI_Allgatherv failed", true);
-		throw ExceptionT::kMPIFail;
-	}
+	int ret = MPI_Allgatherv(my.Pointer(), len, MPI_INT, gather.Pointer(), 
+				counts.Pointer(), displacements.Pointer(), MPI_INT, fComm);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Allgatherv failed");
+#endif
+
 #else
 	/* write my into gather */
 	int len = my.Length();
@@ -381,53 +553,365 @@ void CommunicatorT::AllGather(const ArrayT<int>& counts, const ArrayT<int>& disp
 
 //NOTE: need to implement gather with sends and receives for CPLANT and other
 //      platforms where Allgather seems to be troublesome.
+
+	Log(kModerate, caller, "gathered %d", gather.Length());
+	if (LogLevel() == kLow) Log() << gather.wrap(5) << '\n';
 }
 
 /* broadcast character array */
-void CommunicatorT::Broadcast(ArrayT<char>& data)
+void CommunicatorT::Broadcast(int source, ArrayT<char>& data)
+{
+	if (source == Rank())
+	{
+		Log(kModerate, "Broadcast", "sending %d", data.Length());
+		if (LogLevel() == kLow) Log() << setw(10) << "data: " << data.Pointer() << '\n';
+	}
+
+#ifdef __TAHOE_MPI__
+	int ret = MPI_Bcast(data.Pointer(), data.Length(), MPI_CHAR, source, fComm);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::Broadcast", "MPI_Bcast failed");
+#endif
+
+#endif
+
+	if (source != Rank())
+	{
+		Log(kModerate, "Broadcast", "received %d", data.Length());
+		if (LogLevel() == kLow) Log() << setw(10) << "data: " << data.Pointer() << '\n';
+	}
+}
+
+/* free any uncompleted requests */
+void CommunicatorT::FreeRequests(ArrayT<MPI_Request>& requests) const
 {
 #ifdef __TAHOE_MPI__
-	if (MPI_Bcast(data.Pointer(), data.Length(), MPI_CHAR, 0, fComm) != MPI_SUCCESS) {
-		Log("CommunicatorT::Broadcast", "MPI_Bcast failed", true);
-		throw ExceptionT::kMPIFail;
-	}
+	const char caller[] = "CommunicatorT::FreeRequests";
+
+	/* free any uncompleted receive requests */
+	for (int i = 0; i < requests.Length(); i++)
+		if (requests[i] != MPI_REQUEST_NULL)
+		{
+			Log(kLow, "caller", "cancelling request %d/%d", i+1, requests.Length());
+		
+			/* cancel request */
+			MPI_Cancel(&requests[i]);
+			MPI_Status status;
+			MPI_Wait(&requests[i], &status);
+			int flag;
+			MPI_Test_cancelled(&status, &flag);
+			if (flag )
+				Log(kLow, "caller", "cancelling request %d/%d: DONE", i+1, requests.Length());
+			else	
+				Log(kLow, "caller", "cancelling request %d/%d: FAIL", i+1, requests.Length());
+		}
 #else
-#pragma unused(data)
+#pragma unused(requests)
 #endif
 }
 
-/*************************************************************************
-* Protected
-*************************************************************************/
-
-/* returns the time string */
-const char* CommunicatorT::WallTime(void) const
+/* write status information */
+void CommunicatorT::WriteStatus(ostream& out, const char* caller, 
+	const MPI_Status& status) const
 {
-	time_t t;
-	time(&t);
-	return ctime(&t);
+#ifdef __TAHOE_MPI__
+	out << "\n " << caller << ": MPI status returned with error\n"
+        <<   "     status.MPI_SOURCE: " << status.MPI_SOURCE << '\n'
+        <<   "        status.MPI_TAG: " << status.MPI_TAG << '\n'
+        <<   "      status.MPI_ERROR: " << status.MPI_ERROR << endl;
+#else
+#pragma unused(out)
+#pragma unused(caller)
+#pragma unused(status)
+#endif
 }
 
-/* write log header */
-ostream& CommunicatorT::LogHead(const char* caller) const
+/* post non-blocking send */
+void CommunicatorT::PostSend(const nArrayT<double>& data, int destination, int tag, 
+	MPI_Request& request) const
 {
-	*fLog << Rank() << ": "
-	     << WallTime() << '\t'
-	     << caller << ": ";
-	return *fLog;
+	const char caller[] = "CommunicatorT::PostSend";
+
+	Log(kModerate, caller, "posting send of %d to %d with tag %d", 
+		data.Length(), destination, tag);
+	if (LogLevel() == kLow)
+		Log() << setw(10) << "data:\n" << data.wrap(5) << '\n';
+
+	if (destination < 0 || destination >= Size())
+		Log(kFail, caller, "destination ! (0 <= %d <= %d)", destination, Size());
+
+#ifdef __TAHOE_MPI__
+	/* post send */
+	int ret = MPI_Isend(data.Pointer(), data.Length(), MPI_DOUBLE, destination, tag, fComm, &request);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Isend failed");
+#endif
+
+#else
+#pragma unused(request)
+#endif
+}
+
+void CommunicatorT::PostSend(const nArrayT<int>& data, int destination, int tag, 
+	MPI_Request& request) const
+{
+	const char caller[] = "CommunicatorT::PostSend";
+
+	Log(kModerate, caller, "posting send of %d to %d with tag %d", 
+		data.Length(), destination, tag);
+	if (LogLevel() == kLow)
+		Log() << setw(10) << "data:\n" << data.wrap(5) << '\n';
+
+	if (destination < 0 || destination >= Size())
+		Log(kFail, caller, "destination ! (0 <= %d <= %d)", destination, Size());
+
+#ifdef __TAHOE_MPI__
+	/* post send */
+	int ret = MPI_Isend(data.Pointer(), data.Length(), MPI_INT, destination, tag, fComm, &request);
+	
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Isend failed");
+#endif
+
+#else
+#pragma unused(request)
+#endif
+}
+
+/* post non-blocking send */
+void CommunicatorT::PostReceive(nArrayT<double>& data, int source, 
+	int tag, MPI_Request& request) const
+{
+	const char caller[] = "CommunicatorT::PostReceive";
+
+	Log(kModerate, caller, "posting receive of %d from %d with tag %d", 
+		data.Length(), source, tag);
+
+	if (source < 0 || source >= Size())
+		Log(kFail, caller, "source ! (0 <= %d <= %d)", source, Size());
+
+#ifdef __TAHOE_MPI__
+	/* post receive */
+	int ret = MPI_Irecv(data.Pointer(), data.Length(), MPI_DOUBLE, source, tag, fComm, &request);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Irecv failed");
+#endif
+
+#else
+#pragma unused(request)
+#endif
+}
+
+void CommunicatorT::PostReceive(nArrayT<int>& data, int source, 
+	int tag, MPI_Request& request) const
+{
+	const char caller[] = "CommunicatorT::PostReceive";
+
+	Log(kModerate, caller, "posting receive of %d from %d with tag %d", 
+		data.Length(), source, tag);
+
+	if (source < 0 || source >= Size())
+		Log(kFail, caller, "source ! (0 <= %d <= %d)", source, Size());
+
+#ifdef __TAHOE_MPI__
+	/* post receive */
+	int ret = MPI_Irecv(data.Pointer(), data.Length(), MPI_INT, source, tag, fComm, &request);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Irecv failed");
+#endif
+
+#else
+#pragma unused(request)
+#endif
+}
+
+/* return the index the next receive */
+void CommunicatorT::WaitReceive(const ArrayT<MPI_Request>& requests, int& index, int& source) const
+{
+	const char caller[] = "CommunicatorT::WaitReceive";
+	Log(kModerate, caller, "waiting for 1 of %d", requests.Length());
+
+	index = source = -1;
+
+#ifdef __TAHOE_MPI__
+	/* grab completed receive */
+	MPI_Status status;
+	int ret = MPI_Waitany(requests.Length(), requests.Pointer(), &index, &status);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Waitany failed");
+#endif
+
+#ifdef CHECK_MPI_STATUS
+	if (status.MPI_ERROR != MPI_SUCCESS) Log(kFail, caller, "bad status: %d", status.MPI_ERROR);
+#endif
+	
+	source = status.MPI_SOURCE;
+#endif
+
+	Log(kModerate, caller, "received request at index %d from %d", index, source);
+}
+
+/* block until all sends posted with CommunicatorT::PostSend have completed */
+void CommunicatorT::WaitSends(const ArrayT<MPI_Request>& requests)
+{
+	const char caller[] = "CommunicatorT::WaitSends";
+	Log(kModerate, caller, "waiting for 1 of %d", requests.Length());
+
+	/* complete all sends */
+	for (int i = 0; i < requests.Length(); i++)
+	{
+		int index = -1;
+
+#ifdef __TAHOE_MPI__
+		/* grab completed receive */
+		MPI_Status status;
+		int ret = MPI_Waitany(requests.Length(), requests.Pointer(), &index, &status);
+
+#ifdef CHECK_MPI_RETURN
+		if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Waitany failed");
+#endif
+
+#ifdef CHECK_MPI_STATUS
+		if (status.MPI_ERROR != MPI_SUCCESS) {
+			WriteStatus(Log(), caller, status);
+			Log(kFail, caller, "bad status: %d", status.MPI_ERROR);
+		}
+#endif
+
+#endif
+
+		Log(kLow, caller, "completing send at index %d", index);
+	}
+}
+
+/* post blocking send */
+void CommunicatorT::Send(const nArrayT<double>& data, int destination, int tag) const
+{
+	const char caller[] = "CommunicatorT::Send";
+
+	Log(kModerate, caller, "posting send of %d to %d with tag %d", 
+		data.Length(), destination, tag);
+	if (LogLevel() == kLow)
+		Log() << setw(10) << "data:\n" << data.wrap(5) << '\n';
+
+	if (destination < 0 || destination >= Size())
+		Log(kFail, caller, "destination ! (0 <= %d <= %d)", destination, Size());
+
+#ifdef __TAHOE_MPI__
+	/* post send */
+	int ret = MPI_Send(data.Pointer(), data.Length(), MPI_DOUBLE, destination, tag, fComm);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Send failed");
+#endif
+
+#endif
+}
+
+void CommunicatorT::Send(const nArrayT<int>& data, int destination, int tag) const
+{
+	const char caller[] = "CommunicatorT::Send";
+
+	Log(kModerate, caller, "posting send of %d to %d with tag %d", 
+		data.Length(), destination, tag);
+	if (LogLevel() == kLow)
+		Log() << setw(10) << "data:\n" << data.wrap(5) << '\n';
+
+	if (destination < 0 || destination >= Size())
+		Log(kFail, caller, "destination ! (0 <= %d <= %d)", destination, Size());
+
+#ifdef __TAHOE_MPI__
+	/* post send */
+	int ret = MPI_Send(data.Pointer(), data.Length(), MPI_INT, destination, tag, fComm);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Send failed");
+#endif
+
+#endif
+}
+
+/* post blocking receive */
+void CommunicatorT::Receive(nArrayT<double>& data, int source, int tag) const
+{
+	const char caller[] = "CommunicatorT::Receive";
+
+	Log(kModerate, caller, "posting receive for %d from %d with tag %d", 
+		data.Length(), source, tag);
+
+	if (source < 0 || source >= Size())
+		Log(kFail, caller, "source ! (0 <= %d <= %d)", source, Size());
+
+#ifdef __TAHOE_MPI__
+	/* post receive */
+	MPI_Status status;
+	int ret = MPI_Recv(data.Pointer(), data.Length(), MPI_DOUBLE, source, tag, fComm, &status);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Recv failed");
+#endif
+
+#ifdef CHECK_MPI_STATUS
+	if (status.MPI_ERROR != MPI_SUCCESS) {
+		WriteStatus(Log(), caller, status);
+		Log(kFail, caller, "bad status: %d", status.MPI_ERROR);
+	}
+#endif
+
+#endif
+
+	if (LogLevel() == kLow)
+		Log() << setw(10) << "data:\n" << data.wrap(5) << '\n';
+}
+
+void CommunicatorT::Receive(nArrayT<int>& data, int source, int tag) const
+{
+	const char caller[] = "CommunicatorT::Receive";
+
+	Log(kModerate, caller, "posting receive for %d from %d with tag %d", 
+		data.Length(), source, tag);
+
+	if (source < 0 || source >= Size())
+		Log(kFail, caller, "source ! (0 <= %d <= %d)", source, Size());
+
+#ifdef __TAHOE_MPI__
+	/* post receive */
+	MPI_Status status;
+	int ret = MPI_Recv(data.Pointer(), data.Length(), MPI_INT, source, tag, fComm, &status);
+
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Recv failed");
+#endif
+
+#ifdef CHECK_MPI_STATUS
+	if (status.MPI_ERROR != MPI_SUCCESS) {
+		WriteStatus(Log(), caller, status);
+		Log(kFail, caller, "bad status: %d", status.MPI_ERROR);
+	}
+#endif
+
+#endif
+
+	if (LogLevel() == kLow)
+		Log() << setw(10) << "data:\n" << data.wrap(5) << '\n';
 }
 
 /*************************************************************************
-* Private
-*************************************************************************/
+ * Private
+ *************************************************************************/
 
 void CommunicatorT::Init(void)
 {
+	const char caller[] = "CommunicatorT::Init";
+
 	/* environment was shut down */
-	if (fCount == -1) {
-		cout << "\n CommunicatorT::Init: cannot restart MPI environment" << endl;
-		throw ExceptionT::kMPIFail;
-	}
+	if (fCount == -1)
+		ExceptionT::MPIFail(caller, "cannot restart MPI environment");
 
 	/* communicator count */
 	fCount++;
@@ -449,10 +933,10 @@ void CommunicatorT::Init(void)
 		}
 
 		/* initialize MPI environment */
-		if (MPI_Init(argc_, argv_) != MPI_SUCCESS) {
-			Log("CommunicatorT::Init", "MPI_Init failed", true);
-			throw ExceptionT::kMPIFail;
-		}
+		int ret = MPI_Init(argc_, argv_);
+#ifdef CHECK_MPI_RETURN
+		if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Init failed");
+#endif
 		
 		/* free */
 		if (!fargv) {
@@ -462,15 +946,15 @@ void CommunicatorT::Init(void)
 		}
 	}
 #endif	
+
+	Log(kModerate, caller, "communicator count = %d", fCount);
 }
 
 void CommunicatorT::Finalize(void)
 {
 	/* environment was shut down */
-	if (fCount == -1) {
-		cout << "\n CommunicatorT::Finalize: MPI environment already down" << endl;
-		throw ExceptionT::kMPIFail;
-	}
+	if (fCount == -1)
+		ExceptionT::MPIFail("CommunicatorT::Finalize", "MPI environment already down");
 
 	/* communicator count */
 	fCount--;
@@ -479,13 +963,46 @@ void CommunicatorT::Finalize(void)
 	if (fCount == 0)
 	{
 		/* shut down MPI environment */
-		if (MPI_Finalize() != MPI_SUCCESS) {
-			Log("CommunicatorT::Finalize", "MPI_Finalized failed", true);
-			throw ExceptionT::kMPIFail;
-		}
+		int ret = MPI_Finalize();
+#ifdef CHECK_MPI_RETURN
+		if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::Finalize", "MPI_Finalized failed");
+#endif
 	}
 #endif
 
 	/* close */
 	if (fCount == 0) fCount = -1;
+	Log(kModerate, "Init", "communicator count = %d", fCount);
+}
+
+void CommunicatorT::doLog(const char* caller, const char* message) const
+{
+	ostream& out = *fLog;
+
+	/* current clock */
+	time_t t;
+	time(&t);
+
+	/* cast away const-ness */
+	CommunicatorT* non_const_this = (CommunicatorT*) this;
+
+	/* elapsed time */
+#ifdef __TAHOE_MPI__
+	double new_time = MPI_Wtime();
+	double elapsed_time = new_time - fLastTime;
+	non_const_this->fLastTime = new_time;
+#else
+	double elapsed_time = double(t - fLastTime)/CLOCKS_PER_SEC;
+	non_const_this->fLastTime = t;
+#endif	    	    
+
+	/* write info */
+	out << '\n' << setw(10) << "CommunicatorT::doLog: rank: " << Rank() << '\n';
+	if (caller) out << setw(10) << " caller: " << caller << '\n';		
+	out << setw(10) << "  clock: " << ctime(&t);
+	out << setw(10) << "elapsed: " << elapsed_time << " sec" << '\n';
+	if (message) out << setw(10) << "message: " << message << '\n';
+
+	/* flush stream */
+	if (fLogLevel != kLow) out.flush();
 }

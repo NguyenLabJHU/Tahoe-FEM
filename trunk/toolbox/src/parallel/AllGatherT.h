@@ -1,4 +1,4 @@
-/* $Id: AllGatherT.h,v 1.1 2002-12-05 08:25:19 paklein Exp $ */
+/* $Id: AllGatherT.h,v 1.2 2003-01-27 06:42:48 paklein Exp $ */
 #ifndef _GATHER_T_H_
 #define _GATHER_T_H_
 
@@ -37,16 +37,23 @@ public:
 	 * is the same. */
 	bool Equal(void) const { return fEqual; };
 
+	/** the array of counts from every processor */
+	const iArrayT& Counts(void) const { return fCounts; };
+
 	/** \name perform the gather 
 	 * Gather does not need to be called with the same data type used
-	 * in call to AllGatherT::Initialize.
+	 * in call to AllGatherT::Initialize. When called with only one
+	 * argument, the data from this partition must already be in the
+	 * appropriate place within the destination array.
 	 * \param my_data array of data sent from this processor to all
 	 * \param gather destination for gathered data. Array must be at
 	 *        least of length AllGatherT:Total.
 	 */
 	/*@{*/
-	void AllGather(const ArrayT<double>& my_data, ArrayT<double>& gather);
-	void AllGather(const ArrayT<int>& my_data, ArrayT<int>& gather);
+	void AllGather(const nArrayT<double>& my_data, nArrayT<double>& gather);
+	void AllGather(nArrayT<double>& gather);
+	void AllGather(const nArrayT<int>& my_data, nArrayT<int>& gather);
+	void AllGather(nArrayT<int>& gather);
 	/*@}*/
 		
 private:

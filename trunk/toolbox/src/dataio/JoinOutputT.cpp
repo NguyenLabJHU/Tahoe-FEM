@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.14 2002-10-20 22:36:52 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.15 2003-01-27 06:42:47 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 #include "JoinOutputT.h"
 
@@ -328,10 +328,13 @@ void JoinOutputT::SetOutput(void)
 					for (int k = 0; k < connects.Length(); k++) 
 						connects[k] = nodes[connects[k]];
 
-					/* partition -> global numbering */
-					nodes.Alias(fPartitions[i].NodeMap());
-					for (int k = 0; k < connects.Length(); k++) 
-						connects[k] = nodes[connects[k]];
+					/* partition -> global numbering (atom decomp keeps global numbering) */
+					if (fPartitions[i].DecompType() != PartitionT::kAtom)
+					{
+						nodes.Alias(fPartitions[i].NodeMap());
+						for (int k = 0; k < connects.Length(); k++) 
+							connects[k] = nodes[connects[k]];
+					}
 
 					/* counts */					
 					num_elem += connects.MajorDim();

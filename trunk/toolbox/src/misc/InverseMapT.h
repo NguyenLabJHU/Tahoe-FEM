@@ -1,4 +1,4 @@
-/* $Id: InverseMapT.h,v 1.1 2002-11-25 07:08:30 paklein Exp $ */
+/* $Id: InverseMapT.h,v 1.2 2003-01-27 06:42:48 paklein Exp $ */
 #ifndef _INVERSE_MAP_T_H_
 #define _INVERSE_MAP_T_H_
 
@@ -24,12 +24,20 @@ public:
 
 	/** construct the inverse map */
 	void SetMap(const nArrayT<int>& forward);
+	
+	/** clear the map. Sets InverseMapT::Length to zero without
+	 * necessarily freeing any memory. Use InverseMapT::Free to
+	 * release allocated memory */
+	void ClearMap(void) { Dimension(0); };
 
 	/** map the global index to the local index */
 	int Map(int global) const;
 	
 	/** release memory */
-	void Free(void);	
+	void Free(void);
+	
+	/** return the logical size of the map */
+	int Length(void) { return AutoArrayT<int>::Length(); };
 	
 private:
 

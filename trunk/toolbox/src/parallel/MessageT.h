@@ -1,4 +1,4 @@
-/* $Id: MessageT.h,v 1.1 2002-12-05 08:25:19 paklein Exp $ */
+/* $Id: MessageT.h,v 1.2 2003-01-27 06:42:48 paklein Exp $ */
 #ifndef _MESSAGE_T_H_
 #define _MESSAGE_T_H_
 
@@ -23,6 +23,9 @@ public:
 
 	/** constructor */
 	MessageT(CommunicatorT& comm);
+
+	/** destructor */
+	virtual ~MessageT(void) { };
 
 protected:
 

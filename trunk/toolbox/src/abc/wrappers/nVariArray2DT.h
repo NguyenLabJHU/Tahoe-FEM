@@ -1,4 +1,4 @@
-/* $Id: nVariArray2DT.h,v 1.7 2002-11-25 07:04:16 paklein Exp $ */
+/* $Id: nVariArray2DT.h,v 1.8 2003-01-27 06:42:46 paklein Exp $ */
 /* created: paklein (04/18/1998) */
 #ifndef _N_VARI_ARRAY2D_T_H_
 #define _N_VARI_ARRAY2D_T_H_
@@ -23,18 +23,26 @@ public:
 	/** \name constructors */
 	/*@{*/
 	nVariArray2DT(void);
+	nVariArray2DT(nArray2DT<nTYPE>& ward);
 	nVariArray2DT(int headroom, nArray2DT<nTYPE>& ward, int minordim);
 	/*@}*/
 
 	/** set the managed array - can only be set once */
 	void SetWard(int headroom, nArray2DT<nTYPE>& ward, int minordim);
 	
+	/** return true if the ward is already set */
+	bool HasWard(void) const { return fWard != NULL; };
+	
 	/** \name set length of the ward
 	 * Fills extra space and copy old data if specified */
 	/*@{*/
 	void Dimension(int majordim, int minordim);
+	void Dimension(const nArray2DT<nTYPE>& array2D) { Dimension(array2D.MajorDim(), array2D.MinorDim()); };
 	void SetMajorDimension(int majordim, const nTYPE& fill, bool copy_in);
 	void SetMajorDimension(int majordim, bool copy_in);
+
+	/** exchange memory with the source array */
+	void Swap(nArray2DT<nTYPE>& source);
 	/*@}*/
 
 	/** \name dimensions of the ward */
@@ -66,6 +74,14 @@ nVariArray2DT<nTYPE>::nVariArray2DT(void):
 	fMinorDim(0)
 { 
 
+}
+
+template <class nTYPE>
+nVariArray2DT<nTYPE>::nVariArray2DT(nArray2DT<nTYPE>& ward):
+	fWard(NULL),
+	fMinorDim(0)
+{
+	SetWard(0, ward, 0);
 }
 
 template <class nTYPE>
@@ -139,6 +155,31 @@ inline void nVariArray2DT<nTYPE>::SetMajorDimension(int majordim,
 
 	/* update rest */
 	fWard->Set(majordim, fMinorDim, fWard->Pointer());
+}
+
+/* exchange memory with the source array */
+template <class nTYPE>
+void nVariArray2DT<nTYPE>::Swap(nArray2DT<nTYPE>& source)
+{
+	/* ward must be set */
+	if (!fWard) throw ExceptionT::kGeneralFail;
+
+	/* current dimensions */
+	int major_dim = source.MajorDim();
+	int minor_dim = source.MinorDim();
+
+	/* swap memory and dimension (yuk!) */
+	VariBaseT<nTYPE>::Swap(source);
+	nTYPE* mem;
+	source.ReleasePointer(&mem);
+	source.Set(source.Length()/fMinorDim, fMinorDim, mem);
+	source.TakePointer(source.Length(), mem);
+	
+	/* set ward */
+	fMinorDim = minor_dim;
+	fWard->Free(); /* force reset */
+	SetAlias(*fWard, major_dim*fMinorDim, true);
+	fWard->Set(major_dim, fMinorDim, fWard->Pointer());
 }
 
 /* dimensions accessors - of the ward */

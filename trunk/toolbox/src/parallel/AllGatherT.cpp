@@ -1,4 +1,4 @@
-/* $Id: AllGatherT.cpp,v 1.1 2002-12-05 08:25:19 paklein Exp $ */
+/* $Id: AllGatherT.cpp,v 1.2 2003-01-27 06:42:48 paklein Exp $ */
 #include "AllGatherT.h"
 #include "CommunicatorT.h"
 
@@ -22,26 +22,22 @@ void AllGatherT::Initialize(int my_size)
 	
 	/* collect counts from all */
 	fComm.AllGather(my_size, fCounts);
-	int total = fCounts.Sum();
+	fTotal = fCounts.Sum();
 	
 	/* determine if data size is the same from all */
 	fEqual = Same(fCounts);
 	
 	/* set displacements */
-	if (fEqual)
+	fDisplacements.Dimension(fCounts);
+	int offset = 0;
+	for (int i = 0; i < fCounts.Length(); i++)
 	{
-		fDisplacements.Dimension(fCounts);
-		int offset = 0;
-		for (int i = 0; i < fCounts.Length(); i++)
-		{
-			fDisplacements[i] = offset;
-			offset += fCounts[i];
-		}
+		fDisplacements[i] = offset;
+		offset += fCounts[i];
 	}
-	else fDisplacements.Dimension(0);
 }
 
-void AllGatherT::AllGather(const ArrayT<double>& my_data, ArrayT<double>& gather)
+void AllGatherT::AllGather(const nArrayT<double>& my_data, nArrayT<double>& gather)
 {
 	/* check */
 	if (gather.Length() < fTotal) ExceptionT::SizeMismatch("AllGatherT::AllGather");
@@ -50,10 +46,25 @@ void AllGatherT::AllGather(const ArrayT<double>& my_data, ArrayT<double>& gather
 	if (fEqual)
 		fComm.AllGather(my_data, gather);
 	else
-		fComm.AllGather(fCounts, fDisplacements, my_data, gather);
+		fComm.AllGather(my_data, gather, fCounts, fDisplacements);
 }
 
-void AllGatherT::AllGather(const ArrayT<int>& my_data, ArrayT<int>& gather)
+void AllGatherT::AllGather(nArrayT<double>& gather)
+{
+	/* check */
+	if (gather.Length() < fTotal) ExceptionT::SizeMismatch("AllGatherT::AllGather");
+	
+	/* equal sized or not */
+	int rank = fComm.Rank();
+	int size = fCounts[rank];
+	nArrayT<double> my_data(size, gather.Pointer(fDisplacements[rank]));
+	if (fEqual)
+		fComm.AllGather(my_data, gather);
+	else
+		fComm.AllGather(my_data, gather, fCounts, fDisplacements);
+}
+
+void AllGatherT::AllGather(const nArrayT<int>& my_data, nArrayT<int>& gather)
 {
 	/* check */
 	if (gather.Length() < fTotal) ExceptionT::SizeMismatch("AllGatherT::AllGather");
@@ -62,5 +73,20 @@ void AllGatherT::AllGather(const ArrayT<int>& my_data, ArrayT<int>& gather)
 	if (fEqual)
 		fComm.AllGather(my_data, gather);
 	else
-		fComm.AllGather(fCounts, fDisplacements, my_data, gather);
+		fComm.AllGather(my_data, gather, fCounts, fDisplacements);
+}
+
+void AllGatherT::AllGather(nArrayT<int>& gather)
+{
+	/* check */
+	if (gather.Length() < fTotal) ExceptionT::SizeMismatch("AllGatherT::AllGather");
+	
+	/* equal sized or not */
+	int rank = fComm.Rank();
+	int size = fCounts[rank];
+	nArrayT<int> my_data(size, gather.Pointer(fDisplacements[rank]));
+	if (fEqual)
+		fComm.AllGather(my_data, gather);
+	else
+		fComm.AllGather(my_data, gather, fCounts, fDisplacements);
 }
