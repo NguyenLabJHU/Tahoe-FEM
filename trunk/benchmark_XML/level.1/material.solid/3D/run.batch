@@ -1,5 +1,5 @@
 @
-# $Id: run.batch,v 1.10 2004-08-01 20:37:08 paklein Exp $
+# $Id: run.batch,v 1.11 2005-01-21 18:13:25 paklein Exp $
 material.01/run.batch
 material.02/run.batch
 material.03/run.batch
@@ -21,6 +21,7 @@ material.21/run.batch
 material.22/run.batch
 material.24/run.batch
 material.25/run.batch
+material.50/run.batch
 #material.80/run.batch
 #material.81/run.batch
 #material.90/run.batch
