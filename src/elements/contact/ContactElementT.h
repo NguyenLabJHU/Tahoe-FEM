@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.17 2001-09-24 20:37:24 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.18 2002-01-28 18:43:16 dzeigle Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -78,9 +78,9 @@ public:
 	virtual void ConnectsX(AutoArrayT<const iArray2DT*>& connects) const;
 	 	
 	/* surface specification modes */
-	enum SearchParametersT { kGapTol = 0,
-							kXiTol ,
-							kSearchNumParameters};
+	enum SearchParametersT {	kGapTol = 0,
+					kXiTol ,
+					kSearchNumParameters};
 	int fNumEnfParameters;
 
 	iArrayT fOutputFlags;

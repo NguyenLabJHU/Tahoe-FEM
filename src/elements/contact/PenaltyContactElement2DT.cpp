@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.1 2002-01-23 00:01:53 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.2 2002-01-28 18:43:16 dzeigle Exp $ */
 
 #include "PenaltyContactElement2DT.h"
 
@@ -9,7 +9,7 @@
 #include "ContactNodeT.h"
 #include "FEManagerT.h"
 #include "NodeManagerT.h"
-#include "SmithFerrante.h"
+#include "GreenwoodWilliamson.h"
 
 /* vector functions */
 #include "vector2D.h"
@@ -57,13 +57,13 @@ void PenaltyContactElement2DT::PrintControlData(ostream& out) const
 					<< search_parameters[kXiTol] << '\n';
 				out << "  penalty :         "
 					<< enf_parameters[kPenalty] << '\n';
-				out << "  SmithFerrante A : "
-					<< enf_parameters[kSmithFerranteA] << '\n';
-				out << "  SmithFerrante B : "
-					<< enf_parameters[kSmithFerranteB] << '\n';
+				out << "  Average asperity height : "
+					<< enf_parameters[kStatMean] << '\n';
+				out << "  Asperity height standard deviation : "
+					<< enf_parameters[kStatStandDev] << '\n';
 				out << "  (work of adhesion) : " 
-					<< enf_parameters[kSmithFerranteA]
-				*enf_parameters[kSmithFerranteB]*enf_parameters[kSmithFerranteB] << '\n';
+					<< enf_parameters[kStatMean]
+				*enf_parameters[kStatStandDev]*enf_parameters[kStatStandDev] << '\n';
 			}
 		}
 	}
@@ -79,7 +79,7 @@ void PenaltyContactElement2DT::RHSDriver(void)
   bool in_contact = 0;
   ContactNodeT* node;
   double gap, pen, pre;
-  double sf_a,sf_b;
+  double gw_m,gw_s;
 
   /* residual */
   for(int s = 0; s < fSurfaces.Length(); s++) {
@@ -116,12 +116,12 @@ void PenaltyContactElement2DT::RHSDriver(void)
                         node->OpposingFace()->Surface().Tag());
 
                   /* parameters for Smith-Ferrante Potential */
-                  sf_a = parameters[kSmithFerranteA];
-                  sf_b = parameters[kSmithFerranteB];
-		  if (sf_a > 0.0 && gap > 0.0) {
-                    SmithFerrante SmFr(sf_a,sf_b,0.0);
-		    /* First derivative of Smith-Ferrante represents force */
-                    pre  = SmFr.DFunction(gap);
+                  gw_m = parameters[kStatMean];
+                  gw_s = parameters[kStatStandDev];
+		  if (gw_m > 0.0 && gap > 0.0) {
+                    GreenwoodWilliamson GW(gw_m,gw_s,1.0);
+		    /* First derivative of Greenwood-Williamson represents force */
+                    pre  = GW.DFunction(gap);
 		  } else {
 		    /* linear penalty function */
 		    pen = parameters[kPenalty]; 
@@ -155,7 +155,7 @@ void PenaltyContactElement2DT::LHSDriver(void)
   int opp_num_nodes;
   ContactNodeT* node;
   double pen, pre, dpre_dg;
-  double gap,sf_a,sf_b;
+  double gap,gw_m,gw_s;
   dArrayT l1;
   l1.Allocate(fNumSD);
   double lm2[3];
@@ -214,13 +214,13 @@ void PenaltyContactElement2DT::LHSDriver(void)
                   dArrayT& parameters =
                         fEnforcementParameters(s,
                         node->OpposingFace()->Surface().Tag());
-                  sf_a = parameters[kSmithFerranteA];
-                  sf_b = parameters[kSmithFerranteB];
+                  gw_m = parameters[kStatMean];
+                  gw_s = parameters[kStatStandDev];
 
-		  if (sf_a > 0.0 && gap > 0.0) {
-                    SmithFerrante SmFr(sf_a,sf_b,0.0);
-                    pre  = SmFr.DFunction(gap);
-                    dpre_dg = SmFr.DDFunction(gap);
+		  if (gw_m > 0.0 && gap > 0.0) {
+                    GreenwoodWilliamson GW(gw_m,gw_s,1.0);
+                    pre  = GW.DFunction(gap);
+                    dpre_dg = GW.DDFunction(gap);
 		  } else {
 		    pen = parameters[kPenalty];
 		    pre = pen*gap; 
@@ -295,3 +295,4 @@ void PenaltyContactElement2DT::LHSDriver(void)
 /***********************************************************************
  * Private
  ***********************************************************************/
+

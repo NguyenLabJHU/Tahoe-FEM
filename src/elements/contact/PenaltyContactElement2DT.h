@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.h,v 1.1 2002-01-23 00:01:53 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.h,v 1.2 2002-01-28 18:43:16 dzeigle Exp $ */
 
 #ifndef _PENALTY_CONTACT_ELEMENT_2D_T_H_
 #define _PENALTY_CONTACT_ELEMENT_2D_T_H_
@@ -19,9 +19,10 @@ class PenaltyContactElement2DT: public ContactElementT
         enum EnforcementParametersT { kPass = 0,
                                 kPenalty ,
                                 kConsistentTangent ,
-                                kSmithFerranteA,
-                                kSmithFerranteB,
-                                kNumEnfParameters};
+                                kStatMean,
+                                kStatStandDev,
+                               	kAspDens, 
+				kNumEnfParameters};
 
 	 	
   protected:
@@ -38,3 +39,4 @@ class PenaltyContactElement2DT: public ContactElementT
 };
 
 #endif /* _PENALTY_CONTACT_ELEMENT_2D_T_H_ */
+
