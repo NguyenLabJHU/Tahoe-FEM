@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.24 2002-11-28 17:06:30 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.25 2002-12-02 09:42:10 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -661,60 +661,6 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 		}
 	}
 	else throw ExceptionT::kGeneralFail;
-
-//TEMP
-//#ifdef __MACOS__
-#if 0
-	cout << "\n FEManagerT_mpi::Decompose: writing graph to output\n" << endl;
-
-	fMainOut << "//######################### U con ##########################\n";
-	for (int i = 0; i < connects_2.Length(); i++)
-	{
-		fMainOut << "\n group: " << i+1 << '\n';
-		iArrayT tmp(connects_2[i]->Length(), connects_2[i]->Pointer());
-		tmp++;
-		connects_2[i]->WriteNumbered(fMainOut);
-		tmp--;
-	}
-	fMainOut << "//######################### U con ##########################\n";
-
-	fMainOut << "//######################### graph ##########################\n";
-	graph.Write(fMainOut);
-	fMainOut << "//######################### graph ##########################\n";
-	fMainOut.flush();
-
-	/* write partition data */
-	for (int q = 0; q < partition.Length(); q++)
-	{
-		StringT file_name;
-		file_name.Root(fModelFile);
-		file_name.Append(".n", partition.Length());
-		file_name.Append(".global");
-		file_name.Append(".part", q);
-		
-		ofstream out_q(file_name);
-		out_q << "# data for partition: " << q << '\n';
-		out_q << partition[q] << '\n';
-		out_q.close();
-	}
-#endif
-	
-	/* write partition data */
-	for (int q = 0; q < partition.Length(); q++)
-	{
-		/* set to local scope */
-		partition[q].SetScope(PartitionT::kLocal);
-
-		StringT file_name;
-		file_name.Root(fModelFile);
-		file_name.Append(".n", partition.Length());
-		file_name.Append(".part", q);
-		
-		ofstream out_q(file_name);
-		out_q << "# data for partition: " << q << '\n';
-		out_q << partition[q] << '\n';
-		out_q.close();
-	}
 }
 
 /*************************************************************************
