@@ -1,4 +1,4 @@
-/* $Id: PointInCellDataT.h,v 1.2 2003-03-31 23:16:47 paklein Exp $ */
+/* $Id: PointInCellDataT.h,v 1.2.6.1 2003-05-12 16:31:38 paklein Exp $ */
 #ifndef _POINT_IN_CELL_DATA_T_H_
 #define _POINT_IN_CELL_DATA_T_H_
 
@@ -57,10 +57,35 @@ public:
 	const InverseMapT& GlobalToLocal(void) const { return fGlobalToLocal; };
 	/*@}*/
 
+	/** \name nodal neighborhood data */
+	/*@{*/
+	RaggedArray2DT<int>& NodalNeighbors(void) { return fNodalNeighbors; };
+	const RaggedArray2DT<int>& NodalNeighbors(void) const { return fNodalNeighbors; };
+
+	/** interpolation data with arbitrary number of weights per point */
+	RaggedArray2DT<double>& NodalNeighborWeights(void) { return fNodalNeighborWeights; };
+
+	/** const access to interpolation data with arbitrary number of weights per point */
+	const RaggedArray2DT<double>& NodalNeighborWeights(void) const { return fNodalNeighborWeights; };
+
+	/** map of nodes in PointInCellDataT::CellNodes to rows in PointInCellDataT::NodalNeighbors
+	 * and PointInCellDataT::NodalNeighborWeights */
+	InverseMapT& NodeToNeighborData(void) { return fNodeToNeighborData; };
+
+	/** const access to map of nodes in PointInCellDataT::CellNodes to rows in 
+	 * PointInCellDataT::NodalNeighbors and PointInCellDataT::NodalNeighborWeights */
+	const InverseMapT& NodeToNeighborData(void) const { return fNodeToNeighborData; };
+	/*@}*/
+
+	/** collect the list of nodes in cells containing points. Returns the number of non-empty
+	 * cells. The list of nodes is accessed with PointInCellDataT::CellNodes */
+	int CollectCellNodes(void);
+
 	/** generate non-empty cell connectivities in local numbering. Generates the data
 	 * accessed with PointInCellDataT::CellNodes and PointInCellDataT::CellConnectivities.
 	 * The numbering of nodes corresponds to the index of the real node number in the 
-	 * PointInCellDataT::CellNodes array. */
+	 * PointInCellDataT::CellNodes array. Also calls PointInCellDataT::CollectCellNodes,
+	 * to collect the nodes in non-empty cells. */
 	void GenerateCellConnectivities(void);
 
 	/** nodes in cells containing points. The list corresponds to the latest
@@ -102,7 +127,20 @@ private:
 	
 	/** interpolation weights. Dimension [np] x [nen]. Assumes all cells have the same 
 	 * number of nodes, and therefore the same number of weights. */
-	dArray2DT fInterpolationWeights;
+	dArray2DT fInterpolationWeights;	
+	/*@}*/
+	
+	/** \name nodal neighborhoods */
+	/*@{*/
+	/** map of global node number to corresponding row in PointInCellDataT::fNodalNeighbors
+	 * and PointInCellDataT::fNodalNeighborWeights */
+	InverseMapT fNodeToNeighborData;
+	
+	/** points within the neighborhood of nodes in PointInCellDataT::fCellNodes */
+	RaggedArray2DT<int> fNodalNeighbors;
+
+	/** weights for interpolating point values to the nodes */
+	RaggedArray2DT<double> fNodalNeighborWeights;	
 	/*@}*/
 };
 
