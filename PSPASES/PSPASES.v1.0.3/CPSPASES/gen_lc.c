@@ -1,12 +1,12 @@
-/* $Id: gen_lc.c,v 1.2 2004-12-13 00:19:35 paklein Exp $ */
+/* $Id: gen_lc.c,v 1.3 2004-12-13 09:13:06 paklein Exp $ */
 /* gen_lc.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
 */
 
 /* debugging */
-/* #undef __DO_DEBUG__ */
-#define __DO_DEBUG__ 1
+#undef __DO_DEBUG__
+/* #define __DO_DEBUG__ 1 */
 
 #include "pspases_f2c.h"
 
@@ -51,7 +51,7 @@
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: gen_lc.c,v 1.2 2004-12-13 00:19:35 paklein Exp $ +/ */
+/* /+ $Id: gen_lc.c,v 1.3 2004-12-13 09:13:06 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 /*     recursive */
 /*<    >*/

@@ -1,12 +1,12 @@
-/* $Id: moveav.c,v 1.4 2004-12-13 00:27:45 paklein Exp $ */
+/* $Id: moveav.c,v 1.5 2004-12-13 09:13:06 paklein Exp $ */
 /* moveav.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
 */
 
 /* debugging */
-/* #undef __DO_DEBUG__ */
-#define __DO_DEBUG__ 1
+#undef __DO_DEBUG__
+/* #define __DO_DEBUG__ 1 */
 
 #include "mpi.h"
 #include "pspases_f2c.h"
@@ -58,7 +58,7 @@ static integer c__13 = 13;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: moveav.c,v 1.4 2004-12-13 00:27:45 paklein Exp $ +/ */
+/* /+ $Id: moveav.c,v 1.5 2004-12-13 09:13:06 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 /*<    >*/
 
