@@ -107,6 +107,11 @@ sub update{
 			system("cvs -d $username\@$cvsrep checkout $dir > cvs.log 2>&1");
 			print " ...done\n";
 		}
+		# check for failures
+		open(IN,"cvs.log");
+		@lines = <IN>; $file = "@lines"; close(IN); 
+		$errors = ($file =~ /^C /);
+                if($errors > 0) {$script_status++;}
 	}
 }
 
@@ -120,8 +125,12 @@ sub rebuild{
 			print "\tmaking $dir";
 			unlink("build.log");
 			system("make build > build.log 2>&1");
-		# check build log for errors	
-			print " ...done\n";
+			# check for errors	
+			open(IN,"build.log");
+			@lines = <IN>; $file = "@lines"; close(IN); 
+			$errors = ($file =~ / error /i);
+                	if($errors > 0) {print " ...ERROR\n";$script_status++;}
+			else            {print " ...done\n";}
 		}
 		chdir "..";
 	}
@@ -139,6 +148,12 @@ sub build{
 			system("rm -rf src-mirror obj object_list");
 			system("make init build > build.log 2>&1");
 			print " ...done\n";
+			# check for errors	
+			open(IN,"build.log");
+			@lines = <IN>; $file = "@lines"; close(IN); 
+			$errors = ($file =~ / error /i);
+                	if($errors > 0) {print " ...ERROR\n";$script_status++;}
+			else            {print " ...done\n";}
 		}
 		chdir "..";
 	}
@@ -169,7 +184,6 @@ sub test{
 	<IN>; 
 	$_ = <IN>; chomp(); s/^\s+//; s/\s+$//; $pass = $_;   
 	$_ = <IN>; chomp(); s/^\s+//; s/\s+$//; $fail = $_;   
-	# $path = cwd();
 	print "* $pass $fail, see compare.summary for more details\n";
 }
 
