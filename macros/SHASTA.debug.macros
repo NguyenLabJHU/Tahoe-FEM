@@ -1,4 +1,4 @@
-# $Id: SHASTA.macros,v 1.2 2003-10-07 19:03:23 paklein Exp $
+# $Id: SHASTA.debug.macros,v 1.1 2003-10-07 19:03:23 paklein Exp $
 MAKE        = make
 MAKE_DEPEND = makedepend
 DEPENDFLAGS = -I/opt/intel/compiler70/ia32/include
@@ -6,7 +6,7 @@ COMP_C      = mpicc
 COMP_CC     = mpiCC
 COMP_F      = mpif77
 DEFINES     = 
-MORE_CFLAGS = -O2 -DNDEBUG -D__TAHOE_MPI__ -D__SHASTA__ -D__INTEL_CC__ -DNON_UNIX_STDIO
+MORE_CFLAGS = -g -D__TAHOE_MPI__ -D__SHASTA__ -D__INTEL_CC__ -DNON_UNIX_STDIO
 LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -wr161,858
