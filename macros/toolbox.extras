@@ -1,4 +1,4 @@
-# $Id: toolbox.extras,v 1.3 2003-03-15 16:54:31 paklein Exp $
+# $Id: toolbox.extras,v 1.4 2003-04-10 23:00:08 paklein Exp $
 #
 # additional make commands for the toolbox module
 #
@@ -12,17 +12,18 @@ default:
 
 touch_SEACAS:
 	@ $(PRINTF) "removing object files depending on SEACAS\n"
-	-@ $(RM) $(SRC_DIR)/dataio/ModelManagerT.o
-	-@ $(RM) $(SRC_DIR)/dataio/database/ExodusT.o
+	- $(RM) $(SRC_DIR)/dataio/ModelManagerT.o
+	- $(RM) $(SRC_DIR)/dataio/database/ExodusT.o
+	- $(RM) $(SRC_DIR)/dataio/IOBaseT.o
 	@ $(PRINTF) "NOTE: dependent modules must also be up to date\n"
 
 touch_MPI:
 	@ $(PRINTF) "removing object files depending on MPI\n"
-	-@ $(RM) $(SRC_DIR)/parallel/CommunicatorT.o
+	- $(RM) $(SRC_DIR)/parallel/CommunicatorT.o
 	@ $(PRINTF) "NOTE: dependent modules must also be up to date\n"
 
 touch_METIS:
 	@ $(PRINTF) "removing object files depending on METIS\n"
-	-@ $(RM) $(SRC_DIR)/graph/GraphBaseT.o
+	- $(RM) $(SRC_DIR)/graph/GraphBaseT.o
 	@ $(PRINTF) "NOTE: dependent modules must also be up to date\n"
 
