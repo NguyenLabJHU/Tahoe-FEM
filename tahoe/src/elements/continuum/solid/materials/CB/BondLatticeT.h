@@ -1,7 +1,5 @@
-/* $Id: BondLatticeT.h,v 1.3 2003-03-31 23:14:38 paklein Exp $ */
-/* created: paklein (01/07/1997)                                          */
-/* BondLatticeT.h                                                         */
-
+/* $Id: BondLatticeT.h,v 1.3.34.1 2004-04-03 03:16:23 paklein Exp $ */
+/* created: paklein (01/07/1997) */
 #ifndef _BONDLATTICET_H_
 #define _BONDLATTICET_H_
 
@@ -12,50 +10,52 @@
 #include "dArray2DT.h"
 #include "dMatrixT.h"
 
-
 namespace Tahoe {
 
+/** container for unit cell bonds */
 class BondLatticeT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	BondLatticeT(int numlatticedim, int numspatialdim, int numbonds);
 	
-	/* The Q matrix passed into this constructor is used to rotate the
+	/** The Q matrix passed into this constructor is used to rotate the
 	 * bond vectors into the orientation prescribed by Q.  No check is
 	 * performed on the orthogonality of Q, only its dimensions.  Q is
 	 * deep copied.  Q is defined as:
-	 *
-	 *			Q = d x_natural / d x_global
-	 *
+	 \f[
+	 	\mathbf{Q} = \frac{\partial \mathbf{x}_{natural}}{\partial \mathbf{x}_{global}}
+	 \f]
 	 * So that the vectors are transformed by:
-	 *
-	 *			r_global = Transpose[Q].r_natural
+	 \f[
+	 	\mathbf{r}_{global} = \mathbf{Q}^T \mathbf{r}_{natural}
+	 \f]
 	 */
 	BondLatticeT(const dMatrixT& Q, int numspatialdim, int numbonds);
 	
-	/* destructor */
-	virtual ~BondLatticeT(void);
+	/** destructor */
+	virtual ~BondLatticeT(void) {};
 
-	/* initialize bond table */
+	/** initialize bond table */
 	void Initialize(void);
 		
-	/* references to the lattice lists */
+	/** \name accessors */
+	/*@{*/
 	const iArrayT& BondCounts(void) const;
 	const dArrayT& DeformedLengths(void) const;
-
-	/* accessors */
+	const dArray2DT& Bonds(void) const;
 	int NumberOfLatticeDim(void) const;
 	int NumberOfSpatialDim(void) const;
 	int NumberOfBonds(void) const;
+	/*@}*/
 
-	/* compute deformed bond lengths from the given Green strain */
+	/** compute deformed bond lengths from the given Green strain */
 	void ComputeDeformedLengths(const dSymMatrixT& strain);
 
 protected:
 
-	/* initialize bond table values */
+	/** initialize bond table values */
 	virtual void LoadBondTable(void) = 0;
 	
 protected:
@@ -77,5 +77,13 @@ protected:
 	dSymMatrixT	fStrain;		/* needed if LatticeDim != SpatialDim */  		
 };
 
-} // namespace Tahoe 
+inline const iArrayT& BondLatticeT::BondCounts(void) const { return fBondCounts; }
+inline const dArrayT& BondLatticeT::DeformedLengths(void) const { return fDefLength; }
+inline const dArray2DT& BondLatticeT::Bonds(void) const { return fBonds; }
+inline int BondLatticeT::NumberOfLatticeDim(void) const { return fNumLatticeDim; }
+inline int BondLatticeT::NumberOfSpatialDim(void) const { return fNumSpatialDim; }
+inline int BondLatticeT::NumberOfBonds(void) const { return fNumBonds; }
+
+} /* namespace Tahoe */
+
 #endif /* _BONDLATTICET_H_ */
