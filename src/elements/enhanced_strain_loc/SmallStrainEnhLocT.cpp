@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.16 2005-03-18 22:42:40 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.17 2005-03-19 00:29:53 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -1046,7 +1046,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		if ( loc_flag == 2 )
 		{
 			const int ip = fShapes->CurrIP();
-			// derivatives w.r.t natural or cartesian coordinates
+			// derivatives w.r.t natural or cartesian coordinates?
 			const dArray2DT& DNa = fShapes->Derivatives_U();
 
 			/* loop through nodes and calculate enhancement function */
