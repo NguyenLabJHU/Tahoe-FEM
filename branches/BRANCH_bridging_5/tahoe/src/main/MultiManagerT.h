@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.h,v 1.3.16.2 2004-03-20 16:48:49 paklein Exp $ */
+/* $Id: MultiManagerT.h,v 1.3.16.3 2004-04-03 03:19:59 paklein Exp $ */
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
 
@@ -112,6 +112,7 @@ private:
 	/*@{*/
 	bool fFineToCoarse; /**< fine scale contribution to coarse scale equations */ 
 	bool fCoarseToFine; /**< coarse scale contribution to fine scale equations */ 
+	bool fCorrectOverlap; /**< adjust C-B bond densities to account for overlap */ 
 	/*@}*/
 };
 
