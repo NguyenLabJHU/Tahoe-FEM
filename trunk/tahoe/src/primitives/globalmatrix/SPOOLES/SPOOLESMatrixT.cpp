@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.2 2001-05-01 23:22:57 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.3 2001-09-17 22:01:01 strohban Exp $ */
 /* created: paklein (09/13/2000)                                          */
 /* SPOOLES matrix solver                                                  */
 
@@ -10,6 +10,12 @@
 #include "MSRBuilderT.h"
 #include "ElementMatrixT.h"
 #include "SPOOLES.h"
+
+
+#ifdef __SPOOLES_MT__
+#include "SPOOLESMT.h"
+#endif
+
 
 /* message file name */
 const char SPOOLES_FILE[] = "SPOOLES.out";
@@ -374,23 +380,40 @@ throw;
 #endif
 //DEBUG
 
-	/* serial driver provided by in SPOOLES documentation */
-	int msglvl = 0; //  0: nothing
-	                //  1: scalar output (timing data) only
-	                // >1: verbose
-	int   matrix_type = SPOOLES_REAL;
-	int symmetry_flag = (fSymmetric) ? SPOOLES_SYMMETRIC : SPOOLES_NONSYMMETRIC;
-	int pivoting_flag = (fPivoting) ? SPOOLES_PIVOTING : SPOOLES_NO_PIVOTING;
-	int seed = 1;
-	int OK = LU_serial_driver(msglvl, SPOOLES_FILE, matrix_type, symmetry_flag,
-		pivoting_flag, seed, result.Length(), result.Pointer(),
-		r.Length(), r.Pointer(), c.Pointer(), v.Pointer());
-	if (OK != 1)
-	{
-		cout << "\n SPOOLESMatrixT::BackSubstitute: LU_serial_driver returned: "
-		     << OK << endl;
-		throw eGeneralFail;
-	}
+/* solving the system using either the serial or MT driver */
+ 
+ int msglvl = 0; //  0: nothing
+ //  1: scalar output (timing data) only
+ // >1: verbose
+ int matrix_type = SPOOLES_REAL;
+ int symmetry_flag = (fSymmetric) ? SPOOLES_SYMMETRIC : SPOOLES_NONSYMMETRIC;
+ int pivoting_flag = (fPivoting) ? SPOOLES_PIVOTING : SPOOLES_NO_PIVOTING;
+ int seed = 1; /* any seed will do here */
+ int OK;
+ 
+#ifdef __SPOOLES_MT__
+ /* call MT driver, __NUM_THREADS__ comes from make macro */
+ cout << "Using MT driver with " << __NUM_THREADS__ << " threads" << endl;
+
+ OK = LU_MT_driver(msglvl, SPOOLES_FILE, matrix_type, symmetry_flag,
+		   pivoting_flag, seed, result.Length(), result.Pointer(),
+		   r.Length(), r.Pointer(), c.Pointer(), v.Pointer(), 
+		   __NUM_THREADS__);
+#endif
+ 
+#ifndef __SPOOLES_MT__
+ cout << "Using SERIAL driver" << endl;
+ OK = LU_serial_driver(msglvl, SPOOLES_FILE, matrix_type, symmetry_flag,
+		       pivoting_flag, seed, result.Length(), result.Pointer(),
+		       r.Length(), r.Pointer(), c.Pointer(), v.Pointer());
+#endif
+ 
+ if (OK != 1)
+   {
+     cout << "\n SPOOLESMatrixT::BackSubstitute: LU_MT_driver returned: "
+	  << OK << endl;
+     throw eGeneralFail;
+   }
 }
 
 /* rank check functions */
