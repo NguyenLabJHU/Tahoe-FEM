@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.17 2004-03-17 22:47:12 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.18 2004-03-18 01:20:32 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -604,7 +604,7 @@ nMatrixT<int>& FEManagerT_bridging::PropertiesMap(int element_group)
 {
 	/* try cast to particle type */
 	ElementBaseT* element_base = (*fElementGroups)[element_group];
-#ifdef __NO_RTTI_
+#ifndef __NO_RTTI__
 	ParticleT* particle = dynamic_cast<ParticleT*>(element_base);
 #else
 	ParticleT* particle = element_base->dynamic_cast_ParticleT();
