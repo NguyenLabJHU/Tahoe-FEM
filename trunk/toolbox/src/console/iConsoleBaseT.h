@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.h,v 1.6 2001-12-12 19:29:00 paklein Exp $ */
+/* $Id: iConsoleBaseT.h,v 1.7 2002-01-03 23:06:13 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_BASE_T_H_
@@ -22,6 +22,9 @@ public:
 
 	/** constructor */
 	iConsoleBaseT(void);
+	
+	/** destructor */
+	~iConsoleBaseT(void);
 
 	/** command list */
 	const ArrayT<CommandSpecT*>& iCommands(void) const;
