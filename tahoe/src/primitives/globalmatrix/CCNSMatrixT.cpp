@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.13 2003-04-08 23:00:17 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.14 2003-10-31 20:53:14 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #include "CCNSMatrixT.h"
 
@@ -166,7 +166,7 @@ void CCNSMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 /* assemble the element contribution into the LHS matrix - assumes
 * that elMat is square (n x n) and that eqnos is also length n.
 * NOTE: assembly positions (equation numbers) = 1...fLocNumEQ */
-void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
+void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
 {
 	/* element matrix format */
 	ElementMatrixT::FormatT format = elMat.Format();
@@ -219,8 +219,8 @@ void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqno
 	}
 }
 
-void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
-	const nArrayT<int>& col_eqnos)
+void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
+	const ArrayT<int>& col_eqnos)
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
@@ -258,7 +258,7 @@ void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_
 	}
 }
 
-void CCNSMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
+void CCNSMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos)
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
@@ -476,9 +476,9 @@ void CCNSMatrixT::PrintAllPivots(void) const
 	fOut << '\n';
 }
 
-void CCNSMatrixT::PrintLHS(void) const
+void CCNSMatrixT::PrintLHS(bool force) const
 {
-	if (fCheckCode != GlobalMatrixT::kPrintLHS)
+	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS)
 		return;
 		
 	fOut << "\nLHS matrix:\n\n";

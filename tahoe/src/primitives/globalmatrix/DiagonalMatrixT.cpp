@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.13 2003-07-12 08:24:51 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.14 2003-10-31 20:53:14 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "DiagonalMatrixT.h"
 #include <iostream.h>
@@ -80,7 +80,7 @@ void DiagonalMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 /* assemble the element contribution into the LHS matrix - assumes
 * that elMat is square (n x n) and that eqnos is also length n.
 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
+void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
 {
 	if (elMat.Format() == ElementMatrixT::kDiagonal)
 	{
@@ -143,8 +143,8 @@ void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& 
 	}
 }
 
-void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
-	const nArrayT<int>& col_eqnos)
+void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
+	const ArrayT<int>& col_eqnos)
 {
 	/* pick out diagonal values */
 	for (int row = 0; row < row_eqnos.Length(); row++)
@@ -157,7 +157,7 @@ void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& 
 			}
 }
 
-void DiagonalMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
+void DiagonalMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos)
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
@@ -337,9 +337,9 @@ void DiagonalMatrixT::PrintZeroPivots(void) const
 	if (!firstline) fOut << '\n';
 }
 
-void DiagonalMatrixT::PrintLHS(void) const
+void DiagonalMatrixT::PrintLHS(bool force) const
 {
-	if (fCheckCode != GlobalMatrixT::kPrintLHS) return;
+	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
 		
 	fOut << "\nLHS matrix:\n\n";
 	fOut << fMatrix << "\n\n";
