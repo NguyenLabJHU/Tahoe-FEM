@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.5 2002-01-09 21:35:26 paklein Exp $ */
+/* $Id: OutputSetT.cpp,v 1.6 2002-01-27 18:28:45 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #include "OutputSetT.h"
@@ -9,11 +9,11 @@
 const bool ArrayT<OutputSetT*>::fByteCopy = true;
 
 /* constructor */
-OutputSetT::OutputSetT(int ID, GeometryT::CodeT geometry_code,
-		       const iArrayT& block_ID, 
-		       const ArrayT<const iArray2DT*> connectivities, 
-		       const ArrayT<StringT>& n_labels, 
-		       const ArrayT<StringT>& e_labels, bool changing):
+OutputSetT::OutputSetT(const StringT& ID, GeometryT::CodeT geometry_code,
+	const ArrayT<StringT>& block_ID, 
+	const ArrayT<const iArray2DT*> connectivities, 
+	const ArrayT<StringT>& n_labels, 
+	const ArrayT<StringT>& e_labels, bool changing):
 	fPrintStep(-1),
 	fID(ID),
 	fChanging(changing),
@@ -46,7 +46,7 @@ OutputSetT::OutputSetT(int ID, GeometryT::CodeT geometry_code,
 	fChanging = true; // force calculation of nodes used
 	NodesUsed();
 	for (int i = 0; i < fConnectivities.Length(); i++)
-		BlockNodesUsed(i);
+		BlockNodesUsed(fBlockID[i]);
 	fChanging = changing; // reset
 }
 
@@ -82,11 +82,9 @@ OutputSetT::OutputSetT(const OutputSetT& source):
 }
 
 /* dimensions */
-int OutputSetT::NumBlockElements (int index) const
+int OutputSetT::NumBlockElements(const StringT& ID) const
 {
-  if (index < 0 || index >= fConnectivities.Length())
-    throw eOutOfRange;
-	return fConnectivities[index]->MajorDim();
+	return fConnectivities[BlockIndex(ID)]->MajorDim();
 }
 
 int OutputSetT::NumElements(void) const 
@@ -97,11 +95,9 @@ int OutputSetT::NumElements(void) const
   return num; 
 }
 
-const iArray2DT* OutputSetT::Connectivities(int index) const
+const iArray2DT* OutputSetT::Connectivities(const StringT& ID) const
 {
-  if (index < 0 || index >= fConnectivities.Length())
-    throw eOutOfRange;
-	return fConnectivities[index];
+	return fConnectivities[BlockIndex(ID)];
 }
 
 //TEMP - used to write all set connectivities at once
@@ -122,8 +118,9 @@ void  OutputSetT::AllConnectivities (iArray2DT& connects) const
 }
 #endif
 
-const iArrayT& OutputSetT::BlockNodesUsed(int index)
+const iArrayT& OutputSetT::BlockNodesUsed(const StringT& ID)
 {
+	int index = BlockIndex(ID);
 	if (fChanging) /* need to reset data */
 	{
 		/* just one set */
@@ -194,4 +191,25 @@ void OutputSetT::SetNodesUsed(const ArrayT<const iArray2DT*>& connects_list,
 		(const nArrayT<int>**) connects_list.Pointer());
 
 	nodes_used.Union(tmp);
+}
+
+/*************************************************************************
+* Private
+*************************************************************************/
+
+/* returns the index for the element block for the given */
+int OutputSetT::BlockIndex(const StringT& ID) const
+{
+	int index = -1;
+	
+	for (int i = 0; index == -1 && i < fBlockID.Length(); i++)
+		if (fBlockID[i] == ID)
+			index = i;
+
+	if (index == -1) {
+		cout << "\n OutputSetT::BlockIndex: block ID not found: " << ID << endl;
+		throw eGeneralFail;
+	}
+
+	return index;
 }
