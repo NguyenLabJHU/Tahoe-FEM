@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.14 2002-03-25 19:39:17 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.15 2002-03-27 00:57:25 ebmarin Exp $ */
 /* created: paklein (02/14/1997) */
 
 #include "SolidMatList2DT.h"
@@ -44,6 +44,8 @@
 
 #include "HyperEVP2D.h"
 #include "BCJHypo2D.h"
+#include "BCJHypoIsoDamageKE2D.h"
+#include "BCJHypoIsoDamageYC2D.h"
 #include "LocalCrystalPlast2D.h"
 #include "GradCrystalPlast2D.h"
 #include "LocalCrystalPlastFp2D.h"
@@ -336,6 +338,24 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
 
 				fArray[matnum] = new BCJHypo2D(in, *fFiniteStrain);
+				fHasHistory = true;
+				break;
+			}
+			case kBCJHypoIsoDmgKE:
+			{
+				/* check */
+				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new BCJHypoIsoDamageKE2D(in, *fFiniteStrain);
+				fHasHistory = true;
+				break;
+			}
+			case kBCJHypoIsoDmgYC:
+			{
+				/* check */
+				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new BCJHypoIsoDamageYC2D(in, *fFiniteStrain);
 				fHasHistory = true;
 				break;
 			}
