@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.38 2003-04-01 18:23:48 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.39 2003-04-03 02:32:16 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -454,10 +454,12 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 					}
 					
 					/* log residual */
+					double tot_rel_error = (fabs(combined_res_0) > kSmall) ? 
+						(atoms_res + continuum_res)/combined_res_0 : 0.0;
 					log_out << setw(kIntWidth) << count << ": "
 					        << setw(d_width) << atoms_res << " (A) | "
 					        << setw(d_width) << continuum_res << " (C) | "
-					        << setw(d_width) << (atoms_res + continuum_res)/combined_res_0 << endl;
+					        << setw(d_width) << tot_rel_error << endl;
 
 					/* number of interations in last pass */
 					int atom_total_iter = atom_phase_status(0, FEManagerT::kIteration);
