@@ -1,4 +1,4 @@
-/*$Id: MR2DT.h,v 1.10 2003-05-26 01:55:47 paklein Exp $*/
+/*$Id: MR2DT.h,v 1.11 2003-05-27 18:22:51 manzari Exp $*/
 /* created by manzari*/
 /* Elastoplastic Cohesive Model for Geomaterials*/
 #ifndef _MR_2D_T_H_
@@ -49,8 +49,9 @@ public:
     double& Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff);
     dArrayT& qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar);
     dArrayT& dfdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdSig);
+    dArrayT& dQdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dQdSig);    
     dArrayT& dfdq_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdq);    
-    dMatrixT& dQdSig2_f(const dArrayT& qn, dMatrixT& dQdSig2);
+    dMatrixT& dQdSig2_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dQdSig2);
     dMatrixT& dQdSigdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dQdSigdq);
     dMatrixT& dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardSig);
     dMatrixT& dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardq);
