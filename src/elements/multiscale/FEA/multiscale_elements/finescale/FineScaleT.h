@@ -12,7 +12,8 @@ class FineScaleT
 {
 public:
 
-	enum Eqn_TypeT 		{ kVMS_BCJ, kVMS_EZ, kPOWER_LAW, kPHEN };
+	enum Eqn_TypeT 		{ kVMS_BCJ, kVMS_EZ, kVMS_EZ2, kVMS_EZ3, kVMS_EZ4, 
+											kVMS_EZ5, kPOWER_LAW, kPHEN };
 
 	FineScaleT ( void ) { }
 	virtual ~FineScaleT ( void ) { }
@@ -23,7 +24,6 @@ public:
 								double  fdelta_t = 0.0, int Integration_Scheme = FEA::kBackward_Euler ) = 0;
 	virtual void Form_LHS_Ka_Kb	(	dMatrixT &Ka, dMatrixT &Kb	)	= 0; 
 	virtual void Form_RHS_F_int	(	dArrayT &F_int	) = 0; 
-	
 
 };
 } // namespace Tahoe 

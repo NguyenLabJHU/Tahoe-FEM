@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.16 2002-12-17 08:57:51 paklein Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.17 2002-12-21 01:41:57 creigh Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -131,8 +131,12 @@ void StaggeredMultiScaleT::Initialize(void)
 		                     
 	/* construct the black boxs */  
 
-	//Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_BCJ ); 
-	Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_EZ ); 
+	Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_BCJ ); 
+	//Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_EZ ); 
+	//Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_EZ2 ); 
+	//Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_EZ3 ); 
+	//Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_EZ4 ); 
+	//Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_EZ5 ); 
 	
 	/* FEA Allocation */
 
@@ -171,10 +175,10 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 #define FINE     3 
 #define ALL      4 
 
-#define DEBUG COARSE 
+#define DEBUG FINE 
 
 #if (DEBUG)
-	int debug_iteration=41;
+	int debug_iteration=1;
 	static int loop_num=0;
 	static int current_group=0;
 	//static ofstreamT myout("matrix");
@@ -345,8 +349,10 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 		case CoarseScaleT::kVMF_Virtual_Work_Eq :
 			fEquation_I 		= new VMF_Virtual_Work_EqT;
 			fCoarseMaterial = new Iso_MatlT;
-			fCoarseMaterial -> Assign ( Iso_MatlT::kE, 	29000000.0 		);
-			fCoarseMaterial -> Assign ( Iso_MatlT::kPr, 	0.30 				); 
+			//fCoarseMaterial -> Assign ( Iso_MatlT::kE, 	29000000.0 		);
+			//fCoarseMaterial -> Assign ( Iso_MatlT::kPr, 	0.30 				); 
+			fCoarseMaterial -> Assign ( Iso_MatlT::kE, 	100.00 		);
+			fCoarseMaterial -> Assign ( Iso_MatlT::kPr, 	0.25 		); 
 			fCoarseMaterial -> E_Nu_2_Lamda_Mu	( Iso_MatlT::kE,			Iso_MatlT::kPr,	
 																						Iso_MatlT::kLamda, 	Iso_MatlT::kMu 	);
 			break;
@@ -373,13 +379,13 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 		case FineScaleT::kVMS_BCJ :
 			fEquation_II 	= new VMS_BCJT;
 			fFineMaterial = new BCJ_MatlT;																	// Tantalum 
-			fFineMaterial -> Assign (		BCJ_MatlT::kE, 			1.68e+11 		); 	// 1.68e11 (Pa) 
+			fFineMaterial -> Assign (		BCJ_MatlT::kE, 			168.0		 		); 	// 1.68e11 (Pa) 
 			fFineMaterial -> Assign ( 	BCJ_MatlT::kPr, 		0.34 				); 	// .34 
 			fFineMaterial -> Assign ( 	BCJ_MatlT::kl, 			0.001 			); 
 			fFineMaterial -> Assign ( 	BCJ_MatlT::kc_zeta, 0.001 			); 
-			fFineMaterial -> Assign ( 	BCJ_MatlT::kf, 			1.60e-05 		); 	// 1.6e-5
-			fFineMaterial -> Assign ( 	BCJ_MatlT::kV, 			9.78e+06 		); 	// 9.78e6 
-			fFineMaterial -> Assign ( 	BCJ_MatlT::kY, 			2.59e+07 		); 	// 2.59e7
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kf, 			0.000016 		); 	// 1.6e-5
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kV, 			1.0     		); 	// 9.78e6 
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kY, 			1.0			 		); 	// 2.59e7
 			fFineMaterial -> E_Nu_2_Lamda_Mu	( BCJ_MatlT::kE,			BCJ_MatlT::kPr,	
 																					BCJ_MatlT::kLamda, 	BCJ_MatlT::kMu 	);
 			break;
@@ -387,6 +393,41 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 		case FineScaleT::kVMS_EZ : 
 			fEquation_II 	= new VMS_EZT;
 			fFineMaterial = new Iso_MatlT; // <-- not used
+			break;
+
+		case FineScaleT::kVMS_EZ2 : 
+			fEquation_II 	= new VMS_EZ2T;
+			fFineMaterial = new Iso_MatlT; // <-- not used
+			break;
+
+		case FineScaleT::kVMS_EZ3 : 
+			fEquation_II 	= new VMS_EZ3T;
+			fFineMaterial = new BCJ_MatlT; 
+			fFineMaterial -> Assign (		BCJ_MatlT::kE, 			168.0 	 		); 	// GPa
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kPr, 		0.34 				); 	
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kf, 			0.000016 		); 	// 1.6e-5
+			fFineMaterial -> E_Nu_2_Lamda_Mu	( BCJ_MatlT::kE,			BCJ_MatlT::kPr,	
+																					BCJ_MatlT::kLamda, 	BCJ_MatlT::kMu 	);
+			break;
+
+		case FineScaleT::kVMS_EZ4 : 
+			fEquation_II 	= new VMS_EZ4T;
+			fFineMaterial = new BCJ_MatlT; 
+			fFineMaterial -> Assign (		BCJ_MatlT::kE, 			168.0 	 		); 	// GPa
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kPr, 		0.34 				); 	
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kf, 			0.000016 		); 	// 1.6e-5
+			fFineMaterial -> E_Nu_2_Lamda_Mu	( BCJ_MatlT::kE,			BCJ_MatlT::kPr,	
+																					BCJ_MatlT::kLamda, 	BCJ_MatlT::kMu 	);
+			break;
+
+		case FineScaleT::kVMS_EZ5 : 
+			fEquation_II 	= new VMS_EZ5T;
+			fFineMaterial = new BCJ_MatlT; 
+			fFineMaterial -> Assign (		BCJ_MatlT::kE, 			168.0 	 		); 	// GPa
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kPr, 		0.34 				); 	
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kf, 			0.000016 		); 	// 1.6e-5
+			fFineMaterial -> E_Nu_2_Lamda_Mu	( BCJ_MatlT::kE,			BCJ_MatlT::kPr,	
+																					BCJ_MatlT::kLamda, 	BCJ_MatlT::kMu 	);
 			break;
 
 		case FineScaleT::kPHEN :

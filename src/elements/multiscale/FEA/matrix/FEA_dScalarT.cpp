@@ -27,7 +27,8 @@ void FEA_dScalarT::Dot ( FEA_dVectorT &a, FEA_dVectorT &b )
 void FEA_dScalarT::Double_Dot ( FEA_dMatrixT &A, FEA_dMatrixT &B ) 
 {
   int i,l, n_rows_x_n_cols = A.Rows()*A.Cols(), n_ip = A.IPs(); 
-  register double dot = 0.0;
+  //register double dot = 0.0;
+  double dot = 0.0;
 	double *pA = A[0].Pointer ();
 	double *pB = B[0].Pointer ();
 

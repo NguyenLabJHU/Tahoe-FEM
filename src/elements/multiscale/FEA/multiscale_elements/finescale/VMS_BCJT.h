@@ -1,17 +1,16 @@
 //DEVELOPMENT
 
-#ifndef _VMS_BCJ_T_H_ 
-#define _VMS_BCJ_T_H_ 
+#ifndef _VMS_BCJT_H_ 
+#define _VMS_BCJT_H_ 
 
 #include "FineScaleT.h"
-#include "BCJ_MatlT.h"
 
 namespace Tahoe {
 
-/** VMS_BCJT: This class contains methods which build stiffness matricies 
+/** VMS_BCJTT: This class contains methods which build stiffness matricies 
  *  and formulate the non-linear Newton-Raphson equations Kd = -R
  *  for a Variational Multi-Scale (VMS) approach to implementation of Sandia's
- *  BCJ Model.  A dual field formulation u^alpha and u^beta is used. See
+ *  BCJT Model.  A dual field formulation u^alpha and u^beta is used. See
  *  Creighton et. al for more. 
  *  Collaboration:  Sandia National Laboratory and the University of Michigan **/
 
@@ -24,158 +23,94 @@ class VMS_BCJT : public FineScaleT
   	enum B_T { 
 								kB, 
 						   	kB_1hat,   
-						   	kB00_tau_2bar,   
-							 	kB01_tau_3hat,
-							 	kB02_tau_3hat,
-							 	kB03_3hat,
-							 	kB04_3hat,
-							 	kB_IIA, 
 							 	kB05_tau_3hat,
 							 	kB06_3hat,
-							 	kB_IIB, 
-
-								kB_H_bar_prime_a,
-								kB_H_bar_prime_b,
-
-								kB21_2hat,
-
-								kB_H_bar_a,
-								kB_H_bar_b,
-
-							 	kBa_cb_3hat,
-							 	kBb_cb_3hat,
-							 	kBa_cb_tau_3hat,
-							 	kBb_cb_tau_3hat,
-
-								kBa_cbi_3hat,
-								kBb_cbi_3hat,
-								kBa_cbi_tau_3hat,
-								kBb_cbi_tau_3hat,
-
-                kBa31_3hat,
-                kBb31_3hat,
-                kBa_sharp,
-                kBb_sharp,
-                kBrE,
+								
+								kBa_Cb_3hat,
+							 	kBb_Cb_3hat,
+								kBa_Cb_tau_3hat,
+							 	kBb_Cb_tau_3hat,
+								kBa_Cbi_3hat,
+								kBb_Cbi_3hat,
+								kBa_Cbi_tau_3hat,
+								kBb_Cbi_tau_3hat,
+								kBa_S,
+								kBb_S,
+								kBa_DEV_S, 
+								kBb_DEV_S, 
 
 								kB_Temp0,
 								kB_Temp1,
-								kB_Temp2,
-								kB_Temp3,
-								kB_Temp4,
-
 	             	kNUM_B_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 
+								
     enum A_T { 
-						   	kF,  // NOTE: kF != VMS::kF 
-						   	kFa,
+							 	kDa_m,
+						   	kgrad_ub,
 						   	kFai,
 						   	kFb,
-						   	kFbi,
-						   	kgrad_ub,
 								kFbT,
-								kCb,
-                kCbi,
-            		kEb,
+							 	kFa_n,
+							 	kCa_n,
 								kF_sharp,
-								kF_sharpT,
-
-								kF_np1,
-								kFa_np1,
-								kCa_np1,
-
-								kFa_n,
-								kCa_n,
-
-							 	kDa_m,
-							 	kDa_mp1,
-							 	kA02,
-							 	kA03,
-							 	kA04,
-							 	kA05,
-
+								kN,
 								kA1,
 								kA2,
 								kA3,
 								kA1T,
 								kA2T,
 								kA3T,
-								kA10,
-
-								kFbi_1hat,
-								ksE,
-								kCurl_sE,
-								kR2,
-								kZeta,
-								kS,
-								kH,
-								kDEV_H,
-								kN_1hat,
-								kN,
-
-								kXI,
-
+							 	kDa_mp1,
+						   	kCb,
+						   	kCbi,
+						   	kEb,
+						   	kS,
+						   	kDEV_S,
+								kG2,
 								kA_Temp0,
-								kA_Temp1,
 	             	kNUM_A_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
- 		
-    enum T4_T { 
-								kD, 
-						   	kC_bib,
-						   	kC_biH,
-							 	kZ_sharp,
-							 	kZI,
-						   	kOI,
-							 	kN_1hat0,
-							 	kP_O_N1hat,
-								kAa12T_2bar,
-								kAb12T_2bar,
-								krET_2bar,
 
+								
+    enum T4_T { 	//	4th order tensors in reduced form 
+
+								kCC,			//	Doubled upper case represent black bold font 
+								kMM,
+								kPP,
+								kMag_DEV_S_PP,
+								kN_o_N,		
+								kCbi_o_S,		// Outer product of (C^beta)^-1 and S  
+								kCbi_o_Cb,
 								kT4_Temp0,
-								kT4_Temp1,
 	             	kNUM_T4_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 
-    enum S_T { 
-								kMag_DEV_H,
-								kKappa,
-								kAlpha,
+								
+    enum S_T { 	// Scalar values
+
+								kMag_DEV_S,
 								kBeta,
-								kBeta4,
-								kBeta3,
-								kBeta4b,
-								kBeta_SCb,
-								kBeta_HC,
-								kJ,
-								kJa,
-								kJb,
-								kW,
+								kBeta2,
+								kSinh_Beta,
+								kCosh_Beta,
+								kCb_i_S,		// Inner product of C^beta and S 
 	             	kNUM_S_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 
-
+ 
     enum C_T { 
 								kLamda,
 								kMu,
-								kl,
-								kc_zeta,
-								kh,
 								kf,
-								kY,
 								kV,
-								kOneThird,
+								kY,
+								kNeg_dt_Root3by2_f,
+								kRoot3by2byV,
+								k1byV,
+								kYbyV,
+								k1by3,
 								kRoot3by2,
-								kGamma1,
-								kGamma2,
-								kGamma3p1,
-								kGamma3p5,
-								kGamma5,
 	             	kNUM_C_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 
-  	enum Back_Stress_T { 
-								kNoBackStress,
-								kSteinmann };
 
-		//--------------------------------------------------------------
+	//--------------------------------------------------------------
 	
  	VMS_BCJT	(	) { }
 								
@@ -188,27 +123,26 @@ class VMS_BCJT : public FineScaleT
   void 	Form_LHS_Ka_Kb	(	dMatrixT &Ka, dMatrixT &Kb ); 
   void 	Form_RHS_F_int	(	dArrayT &F_int ); 
 	void 	Form_B_List 		( void );  // Strain Displacement Matricies
-	void 	Form_A_S_Lists 	( VMS_VariableT &np1, VMS_VariableT &n ); // BCDE ---> A 
-	void 	Form_T4_List 		( void );  // Tensors generated by order reduction of 4th order Tensor 
-	void 	Form_C_List 		( VMF_MaterialT *BCJ_Matl );  // Constant List
+	void 	Form_A_S_Lists 	( VMS_VariableT &np1, VMS_VariableT &n ); // BCDE ---> A
+	void 	Form_T4_List 		( void );  // Tensors generated by order reduction of 4th order Tensor
+ 	void 	Form_C_List 		( VMF_MaterialT *Iso_Matl );  // Constant List
 
 	protected:
 
-  	FEA_dMatrix_ArrayT    B; // Dimension: n_sd x n_sd*n_en , 		e.g. 9x24
-		FEA_dMatrix_ArrayT    A; // Dimension: n_sd x n_sd , 					e.g. 3x3 
-  	FEA_dMatrix_ArrayT   T4; // Dimension: n_sd*n_sd x n_sd*n_sd, e.g. 9x9 Matricies (resulting from 3x3 outer 3x3 reduced order) 
+  	FEA_dMatrix_ArrayT    B; 	// Dimension: n_sd x n_sd*n_en , 		e.g. 9x24
+		FEA_dMatrix_ArrayT    A; 	// Dimension: n_sd x n_sd , 					e.g. 3x3 
+  	FEA_dMatrix_ArrayT   T4; 	// Dimension: n_sd*n_sd x n_sd*n_sd, e.g. 9x9 Matricies 
+															// (Tensors generated from 3x3 outer 3x3 reduced order)
   	FEA_dScalar_ArrayT    S; 
   	dArrayT 			      	C; 
- 
+		
 	protected:
 
-		dMatrixT Ka,Kb;
 		FEA_IntegrationT 		Integral;
 		FEA_Data_ProcessorT Data_Pro; 
 
-		int n_ip, n_rows, n_cols, n_sd, n_en, n_sd_x_n_sd, n_sd_x_n_en, Back_Stress, Time_Integration_Scheme;
+		int n_ip, n_rows, n_cols, n_sd, n_en, n_sd_x_n_sd, n_sd_x_n_en, Time_Integration_Scheme;
 		double delta_t;
-  
 };
 
 } // namespace Tahoe 
