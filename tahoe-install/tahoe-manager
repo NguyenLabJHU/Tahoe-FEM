@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.21 2005-03-05 03:50:04 paklein Exp $
+# $Id: tahoe-manager,v 1.22 2005-03-05 07:30:05 paklein Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -45,6 +45,16 @@ development /cvs/private/tahoe
 Sierra /cvs/private/tahoe
 qhull /cvs/private/tahoe
 benchmark_XML /cvs/protected/tahoe
+);
+
+# "touch" targets
+%module2touch = qw(
+spooles touch_spooles
+spoolesMPI touch_spooles
+aztec touch_Aztec
+f2c touch_f2c
+access touch_SEACAS
+metis touch_METIS
 );
 
 # modules in the UP_TO_DATE macro
@@ -104,7 +114,6 @@ ARG: while (@ARGV) {
 		if (/^b|build/i)           { build(); next ARG; }
 		if (/^cl|clean/i)          { clean(); next ARG; }
 		if (/^t|test/i)            { test(); next ARG; }
-#		if (/^a|all/i)             { update(); init(); build(); next ARG; }
 		if (/^u|usage|help|^h/i)   { usage();}
 		print "ERROR: unknown option: $_ \n"; usage();
 	}
@@ -113,14 +122,16 @@ ARG: while (@ARGV) {
 exit 0;
 
 ###############################################################################
-sub initialize{
+sub initialize {
 
 # classify modules
 my %tmp = %module2define;
 foreach my $key (@defaultmodules) {
 	delete $tmp{$key};
 }
-@optionalmodules = keys (%tmp);
+@optionalmodules = sort(keys (%tmp));
+
+print "opt = @optionalmodules\n";
 
 # search for system libs 
 foreach my $key (sort(keys %ENV)) {
@@ -142,7 +153,7 @@ print ">   connection: $connection\n";
 if ($proxy !~ "NONE") {
 	print ">        proxy: $proxy\n";
 }
-print "> architecture: $arch \n"; 
+print "> architecture: $arch \n\n"; 
 
 # check connection method
 #open(WHICH, "which $connect2command{$connection} |");
@@ -518,26 +529,28 @@ sub build {
 	my @tmp_modules = sort by_depend @run_modules;
 	print "($count) building: @tmp_modules, at $time\n";
 
-	foreach my $dir (@tmp_modules) {
-
-		unlink("$dir/build.log");
+	DIR: foreach my $dir (@tmp_modules) {
 
 		# needs initialization
-		if (-e "$dir/.status") { init($dir); }
+		if (-e "$dir/.status") { 
+			my $status = $script_status;
+			init($dir); 
+			next DIR if ($status != $script_status);
+		}
 
 		# build
 		if (-e "$dir/makefile" && !defined($up_to_date_modules{$dir})) {
-			print "\tmaking $dir...";
+
 			chdir($dir);
+			print "\tmaking $dir...";
 			system("make build > build.log 2>&1");
-			#system("make > build.log 2>&1");
 			
 			# check for errors	
 			open(IN,"build.log");
 			my @lines = <IN>; $file = "@lines"; close(IN); 
-			my $errors = ($file =~ / error /i);
+			my $errors = ($file =~ /\*\*\* ERROR:/);
                if($errors > 0) {
-               	print "ERROR\n";
+               	print " ERROR\n";
                	$script_status++;
                }
 			else { print " ok\n"; }
@@ -580,17 +593,30 @@ sub init {
 				if (!defined($up_to_date_modules{$dir})) {
 					print "\tinitializing $dir...";
 					system("make init > build.log 2>&1");
-					print " ok\n";
-				}
-				
-				# remove flag
-				unlink(".status");
+					
+					# check for errors	
+					open(IN,"build.log");
+					my @lines = <IN>; $file = "@lines"; close(IN); 
+					my $errors = ($file =~ /\*\*\* ERROR:/);
+               		if($errors > 0) {
+               			print " ERROR\n";
+               			$script_status++;
+               		}
+					else { 
+						print " ok\n"; 
+						unlink(".status"); # remove flag
+					}
+				} else { unlink(".status"); } # remove flag
 			}
 		 	chdir "..";
+		 	
+			# expat module needs to be build completely before initializing
+			# other modules
+			build($dir) if ($dir =~ "expat");
 		}
 	}
-
 }
+
 ##############################################################################
 sub clean{
 
@@ -618,6 +644,7 @@ sub clean{
 	}
 
 }
+
 ##############################################################################
 sub test{
 	$time = localtime();
@@ -651,6 +678,7 @@ sub test{
 	$_ = <IN>; chomp(); s/^\s+//; s/\s+$//; $fail = $_;   
 	print "* $pass,  $fail, see compare.summary for more details\n";
 }
+
 ##############################################################################
 sub failed{
 	$time = localtime();
@@ -660,13 +688,12 @@ sub failed{
 ##############################################################################
 sub usage {
 	print "\nusage: tahoe-manager [list of keywords and options]\n";
-	print "       update  : updates or checks out modules\n";
+	print "       build   : builds modules (calls init if needed)\n";
 	print "       config  : change build options\n";
+	print "       update  : updates or checks out modules\n";
 	print "       init    : creates makefiles and initializes modules\n";
-	print "       build   : builds modules\n";
-	print "       test    : runs regression tests\n";
 	print "       clean   : cleans modules\n";
-#	print "       all     : updates, init's and builds \n";
+	print "       test    : runs regression tests\n";
 	print "\n";
 	exit 1;
 }
@@ -768,8 +795,8 @@ sub fillin_makefile{
 	while (defined(my $line = <IN>)){
 	
 		# configuration
-		$line =~ s/HOME_DIR =/HOME_DIR = $path/;
-		$line =~ s/ARCH =/ARCH = $arch/;
+		$line =~ s/^HOME_DIR =/HOME_DIR = $path/;
+		$line =~ s/^ARCH =/ARCH = $arch/;
 		
 		# restore MOD_ macros
 		foreach my $key (@mod_macros_keys) {
@@ -869,16 +896,6 @@ sub add_optional_modules {
 		update ($choice) if (! -d $choice);
 	}
 
-	# flag modules that need to be re-initialized
-	foreach my $module (@modules) {
-		ADD: foreach my $addmodule (@addmodules) {
-			if (a_depends_on_b($module, $addmodule) == 1) {
-				system("echo 'init' > $module/.status");
-				last ADD;
-			}
-		}
-	}
-
 	my $done = 0;
 	while ($done == 0) {
 	
@@ -907,15 +924,31 @@ sub add_optional_modules {
 		# add dependent modules
 		if (scalar(@missingmodules) > 0) {
 			print "additions depend on modules: @missingmodules\n";
-			print "add needed modules (y/n) [y]: ";
+			print "add more modules (y/n) [y]: ";
 			my $ans = <STDIN>;
 			if ($ans !~ /n/i) {
 				foreach $module (@missingmodules) {
 					push (@addmodules, $module);
 					update($module) if (! -d $module); # fetch new modules to determine dependencies
 				}
-			}
+			} else { $done = 1; }
 		} else { $done = 1; }
+	}
+
+	# flag modules that need to be re-initialized
+	foreach my $module (@modules) {
+		foreach my $addmodule (@addmodules) {
+			if (a_depends_on_b($module, $addmodule) == 1) {
+				system("echo 'init' > $module/.status");
+			}
+			
+			# "touch" target
+			if (-e "$module/makefile" && defined($module2touch{$addmodule})) {
+				chdir($module);
+				system("make $module2touch{$addmodule} >> build.log 2>&1");
+				chdir("..");
+			}
+		}
 	}
 
 	# update module list
@@ -961,10 +994,17 @@ sub remove_optional_modules {
 
 	# flag modules that need to be re-initialized
 	foreach my $module (@modules) {
-		DEP: foreach $choice (@choices) {
-			if (a_depends_on_b($module, $curr_optionalmodules[$choice]) == 1) {
+		foreach $choice (@choices) {
+			my $outmodule = $curr_optionalmodules[$choice];
+			if (a_depends_on_b($module, $outmodule) == 1) {
 				system("echo 'init' > $module/.status");
-				last DEP;
+			}
+
+			# "touch" target
+			if (-e "$module/makefile" && defined($module2touch{$outmodule})) {
+				chdir($module);
+				system("make $module2touch{$outmodule} >> build.log 2>&1");
+				chdir("..");
 			}
 		}
 	}
@@ -1071,8 +1111,128 @@ sub configure_module {
 ##############################################################################
 sub configure_header {
 	my $header = shift(@_);
-	print "configuring header $header\n";
-	return 0;
+	
+	# read header info
+	my @info = ();
+	my @status = ();
+	my @symbol = ();
+	open(IN, "src-mirror/config/$header") || die "could not open \"$header\"\n";
+	my $flag = 0;
+	my $max_len = 0;
+	while (defined(my $line = <IN>)) {
+		if ($flag == 0) {
+			$flag = 1 if ($line =~ /\\def [a-zA-Z0-9_-]/);
+		} elsif ($flag == 1) { # description
+			chomp($line);
+			$line =~ s/( \* )(.*)/$2/;
+			push(@info, $line);
+			$flag = 2;
+		} elsif ($flag == 2) {
+
+			# forward to #define line			
+			while ($line !~ /^[\/\* ]*#define/) { $line = <IN>; }
+		
+			# status
+			chomp($line);
+			if ($line =~ /^#define/) {
+				push(@status, " ON");
+			} else {
+				push(@status, "OFF");			
+			}
+			
+			# symbol
+			$line =~ s/(.*#define )([a-zA-Z0-9_-]+)(.*)/$2/;
+			push(@symbol, $line);
+			$max_len = length($line) if (length($line) > $max_len);
+			$flag = 0;
+		}
+	
+	}
+	close(IN);
+
+	# prompt for changes
+	my @oldstatus = @status;
+	my $done = 0;
+	while ($done == 0) {
+		print "\nOptions:\n";
+		my $i = 0;
+		while ($i < scalar(@symbol)) {
+			print " " if ($i < 10);
+			my $line = "$i $status[$i] $symbol[$i]";
+			my $j = 0;
+			while ($j < $max_len - length($symbol[$i])) {
+				$line = $line." ";
+				$j++;
+			}
+			$line = $line." $info[$i]\n";
+			print $line;
+			$i++;
+		}
+		print "\n";
+		print " " if ($i < 10);
+		print "$i Toggle all options ON\n"; $i++;
+		print " " if ($i < 10);
+		print "$i Toggle all options OFF\n"; $i++;
+		print " " if ($i < 10);
+		print "$i Exit\n"; $i++;
+		print "\nChoice or options to toggle (applied left to right): ";
+		my $ans = <STDIN>;
+		my @opts = split(/ +|,/, $ans);
+		foreach $ans (@opts) {
+			if ($ans == scalar(@status)) { # all ON
+				my $i = 0;
+				while ($i < scalar(@status)) {
+					$status[$i] = " ON";
+					$i++;
+				}
+			}
+			elsif ($ans == scalar(@status)+1) { # all OFF
+				my $i = 0;
+				while ($i < scalar(@status)) {
+					$status[$i] = "OFF";
+					$i++;
+				}
+			}
+			elsif ($ans == scalar(@status)+2) { # all Exit
+				$done = 1;
+			} else { # toggle option
+				if ($status[$ans] =~ "OFF") {
+					$status[$ans] = " ON";
+				} else {
+					$status[$ans] = "OFF";				
+				}
+			}
+		}
+	}
+		
+	# write new header
+	open(IN, "src-mirror/config/$header") || die "could not open $header\n";
+	@file = <IN>;
+	close(IN);
+	open(OUT, ">src-mirror/config/$header") || die "could not open $header\n";
+	my $count = -1;
+	foreach my $line (@file) {
+		if ($line =~ /^[\/\* ]+#define|^#define/) {
+			if ($count > -1) { # skip #define at top of file
+				$line = "";
+				$line = $line."//" if ($status[$count] =~ "OFF");
+				$line = $line."#define $symbol[$count] 1\n";
+			}
+			$count++;
+		}
+		print OUT $line;
+	}
+	close(OUT);
+	
+	# count changes
+	my $changes = 0;
+	my $i = 0; 
+	while ($i < scalar(@status)) {
+		$changes++ if ($status[$i] !~ $oldstatus[$i]);
+		$i++
+	}
+
+	return $changes;
 }
 
 ##############################################################################
