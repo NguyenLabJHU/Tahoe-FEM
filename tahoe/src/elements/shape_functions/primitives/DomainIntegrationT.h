@@ -1,4 +1,4 @@
-/* $Id: DomainIntegrationT.h,v 1.10 2005-01-24 06:55:14 paklein Exp $ */
+/* $Id: DomainIntegrationT.h,v 1.11 2005-01-26 19:55:54 paklein Exp $ */
 /* created: paklein (09/04/1998) */
 #ifndef _DOMAIN_INTEGRATION_T_H_
 #define _DOMAIN_INTEGRATION_T_H_
@@ -20,12 +20,16 @@ class DomainIntegrationT
 public:
 
 	/** constructor. 
+     * The constructor needs to be followed with a call to ShapeFunctionT::Initialize
+     * to set the internal data structures.
 	 * \param geometry_code geometry of the parent domain
 	 * \param numIP number of integration points 
 	 * \param numnodes number of domain nodes */
 	DomainIntegrationT(GeometryT::CodeT geometry_code, int numIP, int numnodes);
 
 	/** constructor. 
+     * The constructor needs to be followed with a call to ShapeFunctionT::Initialize
+     * to set the internal data structures.
 	 * \param link shared parent domain and "synch-ed" CurrIP */
 	DomainIntegrationT(const DomainIntegrationT& link);
 
