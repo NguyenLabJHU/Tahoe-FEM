@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.22 2004-08-16 17:27:17 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.23 2004-09-22 06:11:19 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -547,7 +547,7 @@ void SIERRA_Material_BaseT::Read_SIERRA_Input(ifstreamT& in,
 
 			/* name */
 			StringT param_name;
-			param_name.Take(line, name_end);
+			param_name.Take(line, name_end+1);
 			param_name.DropLeadingSpace();
 			param_name.DropTrailingSpace();
 			param_name.Replace(' ', '_');
