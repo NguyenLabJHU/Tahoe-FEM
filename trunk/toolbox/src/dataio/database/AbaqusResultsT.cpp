@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.cpp,v 1.8 2002-01-05 06:56:26 paklein Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.9 2002-01-05 07:47:54 paklein Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
@@ -171,8 +171,7 @@ bool AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
 	case NODE: 
 	  {
 	    int number;
-	    if (!Read (number))
-	      throw eDatabaseFail;
+	    if (!Read (number)) return false;
 	    fNodeNumber.Append (number);
 	    fNumNodes++; 
 	    break;
@@ -180,8 +179,7 @@ bool AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
 	case NODESET: 
 	  {
 	    StringT name;
-	    if (!Read (name, 1))
-	      throw eDatabaseFail;
+	    if (!Read (name, 1)) return false;
 	    fNodeSetNames.Append (name);
 	    iArrayT tempset (0);
 	    fNodeSets.Append (tempset);
@@ -197,8 +195,7 @@ bool AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
 	case ELEMENTSET: 
 	  {
 	    StringT name;
-	    if (!Read (name, 1))
-	      throw eDatabaseFail;
+	    if (!Read (name, 1)) return false;
 	    fElementSetNames.Append (name);
 	    iArrayT tempset (0);
 	    fElementSets.Append (tempset);
@@ -215,8 +212,7 @@ bool AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
 	  {
 	    int number;
 	    double mode;
-	    if (!Read (number) || !Read (mode) )
-	      throw eDatabaseFail;
+	    if (!Read (number) || !Read (mode) ) return false;
 
 	    fModeIncs.Append (number);
 	    fModeSteps.Append (mode);
@@ -231,7 +227,7 @@ bool AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
 	    if (!Read (time) || !Read (steptime) || !Read (creep) || 
 		!Read (amp) || !Read (procedure) || !Read (step) ||
 		!Read (number) )
-	      throw eDatabaseFail;
+	      return false;
 
 	    fTimeIncs.Append (number);
 	    fTimeSteps.Append (time);
@@ -267,7 +263,8 @@ bool AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
   numtimesteps = fStartCount;
   nummodes = fModalCount;
   
-  return error == OKAY;
+  /* OK if the we make it here? */
+  return true; // better to return error != BAD ????
 }
 
 void AbaqusResultsT::ElementSetNames (ArrayT<StringT>& names) const
