@@ -1,35 +1,51 @@
-/*
- * File: LineT.cpp
- */
-
-/*
- * created      : PAK (04/25/99)
- * last modified: PAK (05/06/99)
- */
+/* $Id: LineT.cpp,v 1.2 2002-09-30 20:52:43 sawimme Exp $ */
+/* created: paklein (04/25/1999) */
+#include "LineT.h"
 
 #include <math.h>
 
 #include "ExceptionCodes.h"
-
-#include "LineT.h"
 #include "iArrayT.h"
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 #include "dMatrixT.h"
 
+
+using namespace Tahoe;
+
 /* parameters */
 const int kLinensd = 1;
 const int kNumVertexNodes = 2;
-
 const double sqrt3 = sqrt(3.0);
 
 /* constructor */
 LineT::LineT(int numnodes): GeometryBaseT(numnodes, kNumVertexNodes) { }
 
+/* evaluate the shape functions and gradients. */
+void LineT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
+{
+  /** Implemented by HSP 7-29-02 - linear case only */
+  //cout << "\n LineT::EvaluateShapeFunctions: not implemented" << endl;
+  //throw eGeneralFail;
+  /* set shape functions */
+  Na[0] = 0.5*(1.0 - coords[0]);
+  Na[1] = 0.5*(1.0 + coords[0]);
+}
+
+/* evaluate the shape functions and gradients. */
+void LineT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT& DNa) const
+{
+#pragma unused(coords)
+#pragma unused(Na)
+#pragma unused(DNa)
+	cout << "\n LineT::EvaluateShapeFunctions: not implemented" << endl;
+	throw eGeneralFail;
+}
+
 /* compute local shape functions and derivatives */
 void LineT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
-	dArrayT& weights)
+	dArrayT& weights) const
 {
 	/* dimensions */
 	int nnd = Na.MinorDim();
@@ -49,11 +65,11 @@ void LineT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 	
 	/* 2 point */
 	double x2    = sqrt(1.0/3.0);
-    double r2[2] = {-x2, x2};
+double r2[2] = {-x2, x2};
 
 	/* 3 point */
 	double    x3 = sqrt(3.0/5.0);
-    double r3[3] = {-x3, 0.0, x3};
+double r3[3] = {-x3, 0.0, x3};
 
 	/* 4 point */
 	double x41 = sqrt((3.0 - 2.0*sqrt(6.0/5.0))/7.0);
@@ -66,37 +82,37 @@ void LineT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 	{
 		case 1:
 		{
-			xa = r1;			  
-    		weights[0] = 2.0;
-    		break;
+			xa = r1;			
+		weights[0] = 2.0;
+		break;
 		}
 		case 2:  	
 		{
 			xa = r2;			   			
-       		weights[0] = 1.0;
-      		weights[1] = 1.0;
+		weights[0] = 1.0;
+		weights[1] = 1.0;
 			break;
 		}
 		case 3:
 		{
 			xa = r3;
-  			double a = 5.0/9.0;
-  			double b = 8.0/9.0;  			
-       		weights[0] = a;
-      		weights[1] = b;
-      		weights[2] = a;
+			double a = 5.0/9.0;
+			double b = 8.0/9.0;  			
+		weights[0] = a;
+		weights[1] = b;
+		weights[2] = a;
 			break;
 		}
 		case 4:
 		{
 			xa = r4;			    			
 
-			double w1 = (18.0 + sqrt(30.0))/36.0; 
+			double w1 = (18.0 + sqrt(30.0))/36.0;
 			double w2 = (18.0 - sqrt(30.0))/36.0;
-       		weights[0] = w2;
-      		weights[1] = w1;
-      		weights[2] = w1;
-      		weights[3] = w2;
+		weights[0] = w2;
+		weights[1] = w1;
+		weights[2] = w1;
+		weights[3] = w2;
 			break;
 		}	
 		default:		
@@ -152,14 +168,14 @@ void LineT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 }
 
 /* set the values of the nodal extrapolation matrix */
-void LineT::SetExtrapolation(dMatrixT& extrap)
+void LineT::SetExtrapolation(dMatrixT& extrap) const
 {
 	/* dimensions */
 	int nnd = extrap.Rows();
 	int nip = extrap.Cols();
 
 	/* dimension checks */
-	if (nnd != 2 && 
+	if (nnd != 2 &&
 	    nnd != 3) throw eGeneralFail;
 
 	/* initialize */
@@ -168,68 +184,68 @@ void LineT::SetExtrapolation(dMatrixT& extrap)
 	switch (nip)
 	{
 		case 1:	
-			  
-    		extrap(0,0) = 1.0;
-    		break;
+			
+		extrap = 1.0;
+		break;
 
 		case 2:	
 		{
 			double dat_2[3*2] = {
-                1.36602540378,
-               -0.366025403784,
-                0.5,
-               -0.366025403784,
-                1.36602540378,
-                0.5};
+1.36602540378,
+-0.366025403784,
+0.5,
+-0.366025403784,
+1.36602540378,
+0.5};
 			dMatrixT extrap_2(3, 2, dat_2);
 			extrap_2.CopyBlock(0, 0, extrap);
-    		break;
+		break;
 		}
 		case 3:	
 		{
 			double dat_3[3*3] = {
-                1.4788305577,
-                0.187836108965,
-                0.0,
-               -0.666666666667,
-               -0.666666666667,
-                1.0,
-                0.187836108965,
-                1.4788305577,
-                0.0};
+1.4788305577,
+0.187836108965,
+0.0,
+-0.666666666667,
+-0.666666666667,
+1.0,
+0.187836108965,
+1.4788305577,
+0.0};
 			dMatrixT extrap_3(3, 3, dat_3);
 			extrap_3.CopyBlock(0, 0, extrap);
-    		break;
+		break;
 		}
 		case 4:	
 		{
 			double dat_4[3*4] = {
-                1.52678812546,
-               -0.113917196282,
-               -0.0923265984407,
-               -0.813632449487,
-                0.400761520312,
-                0.592326598441,
-                0.400761520312,
-               -0.813632449487,
-                0.592326598441,
-               -0.113917196282,
-                1.52678812546,
-               -0.0923265984407};
+1.52678812546,
+-0.113917196282,
+-0.0923265984407,
+-0.813632449487,
+0.400761520312,
+0.592326598441,
+0.400761520312,
+-0.813632449487,
+0.592326598441,
+-0.113917196282,
+1.52678812546,
+-0.0923265984407};
 			dMatrixT extrap_4(3, 4, dat_4);
 			extrap_4.CopyBlock(0, 0, extrap);
-    		break;
+		break;
 		}
-    	default:		
+	default:		
 			
 			cout << "\n LineT::SetExtrapolation: unsupported number of integration points: " << nip << endl;
 			throw eGeneralFail;
 	}
 }
 
-/* return the local node numbers for each facet of the element 
- * numbered to produce at outward normal in the order: vertex
- * nodes, mid-edge nodes, mid-face nodes */
+/* return the local node numbers for each facet of the element
+* numbered to produce at outward normal in the order: vertex
+* nodes, mid-edge nodes, mid-face nodes */
 void LineT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 {
 #if __option(extended_errorcheck)
@@ -249,7 +265,7 @@ void LineT::NumNodesOnFacets(iArrayT& num_nodes) const
 }
 
 /* returns the nodes on each facet needed to determine neighbors
- * across facets */
+* across facets */
 void LineT::NeighborNodeMap(iArray2DT& facetnodes) const
 {
 	facetnodes.Allocate(2,1);
@@ -258,7 +274,7 @@ void LineT::NeighborNodeMap(iArray2DT& facetnodes) const
 }
 
 /* return geometry and number of nodes on each facet */
-void LineT::FacetGeometry(ArrayT<GeometryCode>& facet_geom, iArrayT& facet_nodes) const
+void LineT::FacetGeometry(ArrayT<CodeT>& facet_geom, iArrayT& facet_nodes) const
 {
 	facet_geom.Allocate(fNumFacets);
 	facet_geom = kPoint;

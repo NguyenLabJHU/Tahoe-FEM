@@ -1,17 +1,8 @@
-/*
- * File: PentahedronT.cpp
- *
- */
-
-/*
- * created      : SAW (10/22/99)
- * normals on triangle facets point outward, others point inward
- */
-
-#include "ExceptionCodes.h"
-
+/* $Id: PentahedronT.cpp,v 1.2 2002-09-30 20:52:43 sawimme Exp $ */
+/* created: sawimme (10/22/1999) */
 #include "PentahedronT.h"
 
+#include "ExceptionCodes.h"
 #include "QuadT.h"
 #include "TriT.h"
 #include "iArrayT.h"
@@ -19,6 +10,8 @@
 #include "iArray2DT.h"
 #include "dArray2DT.h"
 #include "dMatrixT.h"
+
+using namespace Tahoe;
 
 /* parameters */
 const int kTetnsd           = 3;
@@ -28,30 +21,49 @@ const int kNumFacets        = 5;
 /* constructor */
 PentahedronT::PentahedronT(int numnodes): GeometryBaseT(numnodes, kNumFacets) {}
 
+/* evaluate the shape functions and gradients. */
+void PentahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
+{
+#pragma unused(coords)
+#pragma unused(Na)
+	cout << "\n PentahedronT::EvaluateShapeFunctions: not implemented" << endl;
+	throw eGeneralFail;
+}
+
+/* evaluate the shape functions and gradients. */
+void PentahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT& DNa) const
+{
+#pragma unused(coords)
+#pragma unused(Na)
+#pragma unused(DNa)
+	cout << "\n PentahedronT::EvaluateShapeFunctions: not implemented" << endl;
+	throw eGeneralFail;
+}
+
 /* compute local shape functions and derivatives */
 void PentahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
-	dArrayT& weights)
+	dArrayT& weights) const
 {
 #pragma unused(Na)
 #pragma unused(Na_x)
 #pragma unused(weights)
 
-  cout << "\n PentahedronT::SetLocalShape not implemented " << endl;
-  throw eGeneralFail;
+cout << "\n PentahedronT::SetLocalShape not implemented " << endl;
+throw eGeneralFail;
 }
 
 /* set the values of the nodal extrapolation matrix */
-void PentahedronT::SetExtrapolation(dMatrixT& extrap)
+void PentahedronT::SetExtrapolation(dMatrixT& extrap) const
 {
 #pragma unused(extrap)
 
-  cout << "\n PentahedronT::SetExtrapolation not implemented " << endl;
-  throw eGeneralFail;
+cout << "\n PentahedronT::SetExtrapolation not implemented " << endl;
+throw eGeneralFail;
 }
 
-/* return the local node numbers for each facet of the element 
- * numbered to produce at outward normal in the order: vertex
- * nodes, mid-edge nodes, mid-face nodes */
+/* return the local node numbers for each facet of the element
+* numbered to produce at outward normal in the order: vertex
+* nodes, mid-edge nodes, mid-face nodes */
 void PentahedronT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 {
 	if (fNumNodes != 6 && fNumNodes != 15)
@@ -100,7 +112,6 @@ void PentahedronT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 
 void PentahedronT::NumNodesOnFacets(iArrayT& num_nodes) const
 {
-//TEMP
 	if (fNumNodes != 6 && fNumNodes != 15)
 	{
 		cout << "\n PentahedronT::NodesOnFacet: only implemented 6 and 15 element nodes" << endl;
@@ -109,32 +120,32 @@ void PentahedronT::NumNodesOnFacets(iArrayT& num_nodes) const
 
 	num_nodes.Allocate(5);
 	if (fNumNodes == 6)
-	  {
-	    num_nodes = 4;
-	    num_nodes[0] = 3;
-	    num_nodes[1] = 3;
-	  }
+	{
+		num_nodes = 4;
+		num_nodes[0] = 3;
+		num_nodes[1] = 3;
+	}
 	else
-	  {
-	    num_nodes = 8;
-	    num_nodes[0] = 6;
-	    num_nodes[1] = 6;
-	  }
+	{
+		num_nodes = 8;
+		num_nodes[0] = 6;
+		num_nodes[1] = 6;
+	}
 }
 
 /* returns the nodes on each facet needed to determine neighbors
- * across facets */
+* across facets */
 void PentahedronT::NeighborNodeMap(iArray2DT& facetnodes) const
 {
 #pragma unused(facetnodes)
 
-  cout << "\n PentahedronT::NeighborNodeMap not implemented " << endl;
-  // this would require facetnodes to be a ragged array
-  throw eGeneralFail;
+cout << "\n PentahedronT::NeighborNodeMap not implemented " << endl;
+// this would require facetnodes to be a ragged array
+throw eGeneralFail;
 }
 
 /* return geometry and number of nodes on each facet */
-void PentahedronT::FacetGeometry(ArrayT<GeometryCode>& facet_geom, iArrayT& facet_nodes) const
+void PentahedronT::FacetGeometry(ArrayT<CodeT>& facet_geom, iArrayT& facet_nodes) const
 {
 	facet_geom.Allocate(fNumFacets);
 	facet_geom = kQuadrilateral;
