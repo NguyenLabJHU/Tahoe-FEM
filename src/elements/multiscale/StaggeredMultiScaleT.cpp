@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.32 2003-05-14 01:04:10 paklein Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.33 2003-07-01 04:35:30 creigh Exp $ */
 #include "StaggeredMultiScaleT.h"
 
 #include "ShapeFunctionT.h"
@@ -38,12 +38,12 @@ StaggeredMultiScaleT::StaggeredMultiScaleT(const ElementSupportT& support, const
 	fTractionBCSet(0),
 	fCoarse(coarse),
 	fFine(fine),
-	fKa_I(ElementMatrixT::kNonSymmetric),
-	fKb_I(ElementMatrixT::kNonSymmetric),
-	fKa_II(ElementMatrixT::kNonSymmetric),
-	fKb_II(ElementMatrixT::kNonSymmetric),
-	fEquation_I(NULL),
-	fEquation_II(NULL),
+	fKa_1(ElementMatrixT::kNonSymmetric),
+	fKb_1(ElementMatrixT::kNonSymmetric),
+	fKa_2(ElementMatrixT::kNonSymmetric),
+	fKb_2(ElementMatrixT::kNonSymmetric),
+	fEquation_1(NULL),
+	fEquation_2(NULL),
 	render_settings_file_name(32),
 	surface_file_name(32),
 	write_file_name(32),
@@ -184,8 +184,8 @@ StaggeredMultiScaleT::StaggeredMultiScaleT(const ElementSupportT& support, const
 StaggeredMultiScaleT::~StaggeredMultiScaleT(void) 
 {  
 	delete fShapes;
-	delete fEquation_I; 
-	delete fEquation_II; 
+	delete fEquation_1; 
+	delete fEquation_2; 
 	delete fCoarseMaterial; 
 	delete fFineMaterial;
 
@@ -336,7 +336,7 @@ void StaggeredMultiScaleT::Initialize(void)
 
 	//Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_BCJ );
 	Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq, iFineScaleModelType );
-	fEquation_II -> Initialize ( n_ip, n_sd, n_en, ElementSupport().StepNumber() );
+	fEquation_2 -> Initialize ( n_ip, n_sd, n_en, ElementSupport().StepNumber() );
 	//step_number_last_iter = 0; 
 	//step_number_last_iter = ElementSupport().StepNumber();  // This may crash or not work
 
@@ -347,14 +347,14 @@ void StaggeredMultiScaleT::Initialize(void)
 	fGRAD_ua_n.FEA_Dimension 	( fNumIP, n_sd,n_sd );
 	fGRAD_ub_n.FEA_Dimension 	( fNumIP, n_sd,n_sd );
 
-	fKa_I.Dimension 		( n_en_x_n_df, n_en_x_n_df );
-	fKb_I.Dimension 		( n_en_x_n_df, n_en_x_n_df );
-	fKa_II.Dimension 		( n_en_x_n_df, n_en_x_n_df );
-	fKb_II.Dimension 		( n_en_x_n_df, n_en_x_n_df );
+	fKa_1.Dimension 		( n_en_x_n_df, n_en_x_n_df );
+	fKb_1.Dimension 		( n_en_x_n_df, n_en_x_n_df );
+	fKa_2.Dimension 		( n_en_x_n_df, n_en_x_n_df );
+	fKb_2.Dimension 		( n_en_x_n_df, n_en_x_n_df );
 
-	fFint_I.Dimension 	( n_en_x_n_df );
-	fFext_I.Dimension 	( n_en_x_n_df );
-	fFint_II.Dimension 	( n_en_x_n_df );
+	fFint_1.Dimension 	( n_en_x_n_df );
+	fFext_1.Dimension 	( n_en_x_n_df );
+	fR_2.Dimension 	( n_en_x_n_df );
 
 
 	fFEA_Shapes.Construct	( fNumIP,n_sd,n_en );
@@ -377,6 +377,8 @@ void StaggeredMultiScaleT::Initialize(void)
 	file_path.ToNativePathName();
 	file_path.Prepend(path);
 	var_plot_file.open(file_path);
+	nodal_forces_file.open("nodal_forces.data");
+	displacements_file.open("displacements.data");
 
 	int n_wfld = (int) bLog_Strain + num_tensors_to_render + num_scalars_to_render;
 	for (int v=0; v<n_wfld; v++)
@@ -562,12 +564,12 @@ void StaggeredMultiScaleT::RHSDriver_staggered(void)	// LHS too!	(This was origi
 		{
 			if (bStep_Complete) { //-- Done iterating, get result data from converged upon displacements 
 
-				fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, step_number, delta_t );
+				fEquation_1 -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, step_number, delta_t );
 
 				for (v=0; v<num_tensors_to_render; v++ ) 
-					fEquation_I -> Get ( Render_Tensor_Names[v], Render_Tensor[e][v] ); 
+					fEquation_1 -> Get ( Render_Tensor_Names[v], Render_Tensor[e][v] ); 
 				for (v=0; v<num_scalars_to_render; v++ ) 
-					fEquation_I -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
+					fEquation_1 -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
 
 				//-- Store/Register data in classic tahoe manner 
 				out_variable_all.Set(fNumIP, n_stress, fIPVariable(CurrElementNumber()));
@@ -579,21 +581,21 @@ void StaggeredMultiScaleT::RHSDriver_staggered(void)	// LHS too!	(This was origi
 			else { //-- Still Iterating
 
 				/** Compute N-R matrix equations */
-				fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, step_number, delta_t );
-				fEquation_I -> Form_LHS_Ka_Kb ( fKa_I, fKb_I );
-				fEquation_I -> Form_RHS_F_int ( fFint_I );
+				fEquation_1 -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, step_number, delta_t );
+				fEquation_1 -> Form_LHS_Ka_Kb ( fKa_1, fKb_1 );
+				fEquation_1 -> Form_RHS_F_int ( fFint_1 );
 
 				/** Set coarse LHS */
-				fLHS = fKb_I;
+				fLHS = fKb_1;
 
-				/** Compute coarse RHS (or Fint_bar_II in FAXed notes) */
-				fKa_I.Multx ( del_ua_vec, fRHS );
-				fRHS += fFint_I; 
+				/** Compute coarse RHS (or Fint_bar_2 in FAXed notes) */
+				fKa_1.Multx ( del_ua_vec, fRHS );
+				fRHS += fFint_1; 
 				fRHS *= -1.0; 
 
 				/** Compute Traction B.C. and Body Forces */
-				Get_Fext_I ( fFext_I );
-				fRHS += fFext_I;
+				Get_Fext_I ( fFext_1 );
+				fRHS += fFext_1;
 			
 				/* add to global equations */
 				ElementSupport().AssembleLHS	( fCoarse.Group(), fLHS, CurrentElement().Equations() );
@@ -601,18 +603,18 @@ void StaggeredMultiScaleT::RHSDriver_staggered(void)	// LHS too!	(This was origi
 			}
 		}
 
-		// SolverGroup 2 (gets field 1) <-- ua (obtained by a rearranged Equation II)
+		// SolverGroup 2 (gets field 1) <-- ua (obtained by a rearranged Equation 2)
 		else if (curr_group == fFine.Group() || (bStep_Complete && render_variable_group==1) )	
 		{
 
 			if (bStep_Complete) { //-- Done iterating, get result data from converged upon displacements 
 
-				fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t );
+				fEquation_2 -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t );
 
 				for (v=0; v<num_tensors_to_render; v++ )  
-					fEquation_II -> Get ( Render_Tensor_Names[v], Render_Tensor[e][v] ); 
+					fEquation_2 -> Get ( Render_Tensor_Names[v], Render_Tensor[e][v] ); 
 				for (v=0; v<num_scalars_to_render; v++ ) 
-					fEquation_II -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
+					fEquation_2 -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
 
 				//-- Store/Register data in classic tahoe manner 
 				out_variable_all.Set(fNumIP, n_stress, fIPVariable(CurrElementNumber()));
@@ -624,19 +626,19 @@ void StaggeredMultiScaleT::RHSDriver_staggered(void)	// LHS too!	(This was origi
 			else { //-- Still Iterating
 
 				/** Compute N-R matrix equations */
-				fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t, FEA::kBackward_Euler );
-				fEquation_II -> Form_LHS_Ka_Kb ( fKa_II, 	fKb_II );
-				fEquation_II -> Form_RHS_F_int ( fFint_II );
+				fEquation_2 -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t, FEA::kBackward_Euler );
+				fEquation_2 -> Form_LHS_Ka_Kb ( fKa_2, 	fKb_2 );
+				fEquation_2 -> Form_RHS_F_int ( fR_2 );
 
-				//cout << "fKa_II = "<< fKa_II << endl;
-				//cout << "fKb_II = "<< fKb_II << endl;
+				//cout << "fKa_2 = "<< fKa_2 << endl;
+				//cout << "fKb_2 = "<< fKb_2 << endl;
 
 				/** Set LHS */
-				fLHS = fKa_II;	
+				fLHS = fKa_2;	
 		
-				/** Compute fine RHS (or Fint_bar_II in FAXed notes)  */
-				fKb_II.Multx ( del_ub_vec, fRHS );
-				fRHS += fFint_II; 
+				/** Compute fine RHS (or Fint_bar_2 in FAXed notes)  */
+				fKb_2.Multx ( del_ub_vec, fRHS );
+				fRHS += fR_2; 
 				fRHS *= -1.0; 
 		
 				/* fine scale equation numbers */
@@ -673,7 +675,7 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 	switch ( iCoarseScale )	{
 
 		case CoarseScaleT::kVMF_Virtual_Work_Eq :
-			fEquation_I 		= new VMF_Virtual_Work_EqT;
+			fEquation_1 		= new VMF_Virtual_Work_EqT;
 			fCoarseMaterial = new Iso_MatlT;
 			fCoarseMaterial -> Assign ( Iso_MatlT::kE, 				fMaterial_Data[k__E] 				); 
 			fCoarseMaterial -> Assign ( Iso_MatlT::kPr, 			fMaterial_Data[k__Pr] 			); 
@@ -695,17 +697,17 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 			fCoarseMaterial -> E_Nu_2_Lamda_Mu	( Iso_MatlT::kE2,			Iso_MatlT::kPr2,	
 																						Iso_MatlT::kLamda2, Iso_MatlT::kMu2 	);
 
-			fEquation_I -> bControl_Eb 						=  	bLogical_Switches [k__Control_Eb]; 	
+			fEquation_1 -> bControl_Eb 						=  	bLogical_Switches [k__Control_Eb]; 	
 
 			break;
 
 		case CoarseScaleT::kLDV :
-			//fEquation_I 		= new LDVT; 
+			//fEquation_1 		= new LDVT; 
 			fCoarseMaterial = new Iso_MatlT;
 			break;
 
 		case CoarseScaleT::kStraight :
-			//fEquation_I 		= new StraightT; 
+			//fEquation_1 		= new StraightT; 
 			fCoarseMaterial = new E_Pr_MatlT;
 			break;
 
@@ -719,7 +721,7 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 	switch ( iFineScale )	{
 
 		case FineScaleT::kVMS_BCJ :
-			fEquation_II 	 = new VMS_BCJT;
+			fEquation_2 	 = new VMS_BCJT;
 			fFineMaterial  = new BCJ_MatlT;							
 			fFineMaterial -> Assign (		BCJ_MatlT::kE, 				fMaterial_Data[k__E] 			); 	
 			fFineMaterial -> Assign ( 	BCJ_MatlT::kPr, 			fMaterial_Data[k__Pr] 		); 	
@@ -748,10 +750,10 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 			fFineMaterial -> E_Nu_2_Lamda_Mu	( BCJ_MatlT::kE2,			BCJ_MatlT::kPr2,	
 																					BCJ_MatlT::kLamda2, BCJ_MatlT::kMu2 	);
 
-			fEquation_II -> bDiagnosis_Variables 	=  	bLogical_Switches [k__Diagnosis_Variables]; 	
-			fEquation_II -> bControl_Eb 					=  	bLogical_Switches [k__Control_Eb]; 	
-			fEquation_II -> Back_Stress_Type 			=  	iMaterial_Data[k__BS_Type]; 	
-			fEquation_II -> Iso_Hard_Type					= 	iMaterial_Data[k__IH_Type];
+			fEquation_2 -> bDiagnosis_Variables 	=  	bLogical_Switches [k__Diagnosis_Variables]; 	
+			fEquation_2 -> bControl_Eb 					=  	bLogical_Switches [k__Control_Eb]; 	
+			fEquation_2 -> Back_Stress_Type 			=  	iMaterial_Data[k__BS_Type]; 	
+			fEquation_2 -> Iso_Hard_Type					= 	iMaterial_Data[k__IH_Type];
 
 			//fFineMaterial -> Assign ( 	BCJ_MatlT::kf, 			0.0000001 		); 	
 			//fFineMaterial -> Assign ( 	BCJ_MatlT::kV, 			258870.0   		); 	
@@ -759,7 +761,7 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 
 
 		case FineScaleT::kVMS_BCJ_X :
-			fEquation_II 	 = new VMS_BCJ_XT;
+			fEquation_2 	 = new VMS_BCJ_XT;
 			fFineMaterial  = new BCJ_MatlT;							
 			fFineMaterial -> Assign (		BCJ_MatlT::kE, 				fMaterial_Data[k__E] 			); 	
 			fFineMaterial -> Assign ( 	BCJ_MatlT::kPr, 			fMaterial_Data[k__Pr] 		); 	
@@ -788,10 +790,10 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 			fFineMaterial -> E_Nu_2_Lamda_Mu	( BCJ_MatlT::kE2,			BCJ_MatlT::kPr2,	
 																					BCJ_MatlT::kLamda2, BCJ_MatlT::kMu2 	);
 
-			fEquation_II -> bDiagnosis_Variables 	=  	bLogical_Switches [k__Diagnosis_Variables]; 	
-			fEquation_II -> bControl_Eb 					=  	bLogical_Switches [k__Control_Eb]; 	
-			fEquation_II -> Back_Stress_Type 			=  	iMaterial_Data[k__BS_Type]; 	
-			fEquation_II -> Iso_Hard_Type					= 	iMaterial_Data[k__IH_Type];
+			fEquation_2 -> bDiagnosis_Variables 	=  	bLogical_Switches [k__Diagnosis_Variables]; 	
+			fEquation_2 -> bControl_Eb 					=  	bLogical_Switches [k__Control_Eb]; 	
+			fEquation_2 -> Back_Stress_Type 			=  	iMaterial_Data[k__BS_Type]; 	
+			fEquation_2 -> Iso_Hard_Type					= 	iMaterial_Data[k__IH_Type];
 
 			//fFineMaterial -> Assign ( 	BCJ_MatlT::kf, 			0.0000001 		); 	
 			//fFineMaterial -> Assign ( 	BCJ_MatlT::kV, 			258870.0   		); 	
@@ -799,20 +801,20 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 
 
 		case FineScaleT::kVMS_EZ : 
-			fEquation_II 	= new VMS_EZT;
+			fEquation_2 	= new VMS_EZT;
 			fFineMaterial = new BCJ_MatlT; // Can use any material class really -- just to hold data 
 			fFineMaterial -> Assign ( 	BCJ_MatlT::kf, 				fMaterial_Data[k__f] 			); 	
 			break;
 
 #if 0
 		case FineScaleT::kVMS_EZ2 : 
-			fEquation_II 	= new VMS_EZ2T;
+			fEquation_2 	= new VMS_EZ2T;
 			fFineMaterial = new Iso_MatlT; // <-- not used
 			break;
 #endif
 
 		case FineScaleT::kVMS_EZ3 : 
-			fEquation_II 	= new VMS_EZ3T;
+			fEquation_2 	= new VMS_EZ3T;
 			fFineMaterial = new BCJ_MatlT; 
 			fFineMaterial -> Assign (		BCJ_MatlT::kE, 		fMaterial_Data[k__E]	 		); 	// GPa
 			fFineMaterial -> Assign ( 	BCJ_MatlT::kPr, 	fMaterial_Data[k__Pr] 		); 	
@@ -824,7 +826,7 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 #if 0
 
 		case FineScaleT::kVMS_EZ4 : 
-			fEquation_II 	= new VMS_EZ4T;
+			fEquation_2 	= new VMS_EZ4T;
 			fFineMaterial = new BCJ_MatlT; 
 			fFineMaterial -> Assign (		BCJ_MatlT::kE, 			168.0 	 		); 	// GPa
 			fFineMaterial -> Assign ( 	BCJ_MatlT::kPr, 		0.34 				); 	
@@ -834,7 +836,7 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 			break;
 
 		case FineScaleT::kVMS_EZ5 : 
-			fEquation_II 	= new VMS_EZ5T;
+			fEquation_2 	= new VMS_EZ5T;
 			fFineMaterial = new BCJ_MatlT; 
 			fFineMaterial -> Assign (		BCJ_MatlT::kE, 			168.0 	 		); 	// GPa
 			fFineMaterial -> Assign ( 	BCJ_MatlT::kPr, 		0.34 				); 	
@@ -844,7 +846,7 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 			break;
 
 		case FineScaleT::kPHEN :
-			//fEquation_II 	= new PHENT;
+			//fEquation_2 	= new PHENT;
 			//fFineMaterial = new VMS_Phen_MaterialT;
 			break;
 #endif
@@ -936,12 +938,12 @@ void StaggeredMultiScaleT::AddNodalForce(const FieldT& field, int node, dArrayT&
 	int num_force = 0;
 	if (field.Name() == fCoarse.Name()) {
 		is_coarse = true;
-		element_force = &fFint_I;
+		element_force = &fFint_1;
 		num_force = fCoarse.NumDOF();
 	}
 	else if (field.Name() == fFine.Name()) {
 		is_coarse = false;
-		element_force = &fFint_II;
+		element_force = &fR_2;
 		num_force = fFine.NumDOF();
 	}
 	else
@@ -1001,10 +1003,10 @@ void StaggeredMultiScaleT::AddNodalForce(const FieldT& field, int node, dArrayT&
 			if (is_coarse)
 			{
 				/* residual and tangent for coarse scale */
-				fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, step_number, delta_t );
-				fEquation_I -> Form_LHS_Ka_Kb ( fKa_I, fKb_I );
-				fEquation_I -> Form_RHS_F_int ( fFint_I );
-				fFint_I *= -1.0;  
+				fEquation_1 -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, step_number, delta_t );
+				fEquation_1 -> Form_LHS_Ka_Kb ( fKa_1, fKb_1 );
+				fEquation_1 -> Form_RHS_F_int ( fFint_1 );
+				fFint_1 *= -1.0;  
 
 				/* add body force */
 				if (formBody) {
@@ -1016,16 +1018,16 @@ void StaggeredMultiScaleT::AddNodalForce(const FieldT& field, int node, dArrayT&
 					/* add body force to fRHS */
 					fRHS = 0.0;
 					FormMa(kConsistentMass, -density, &DDub, NULL);
-					fFint_I += fRHS;
+					fFint_1 += fRHS;
 				}
 			}
 			else /* fine scale nodal force */
 			{
 				/* residual and tangent for fine scale */
-				fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t, FEA::kBackward_Euler );
-				fEquation_II -> Form_LHS_Ka_Kb ( fKa_II, 	fKb_II );
-				fEquation_II -> Form_RHS_F_int ( fFint_II );
-				fFint_II *= -1.0;
+				fEquation_2 -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t, FEA::kBackward_Euler );
+				fEquation_2 -> Form_LHS_Ka_Kb ( fKa_2, 	fKb_2 );
+				fEquation_2 -> Form_RHS_F_int ( fR_2 );
+				fR_2 *= -1.0;
 			}
 
 			/* loop over nodes (double-noding OK) */
@@ -1044,7 +1046,9 @@ void StaggeredMultiScaleT::AddNodalForce(const FieldT& field, int node, dArrayT&
 			}			
 		}
 	}
-//	cout << "F_int = \n" << fFint_I << endl;
+
+	if (is_coarse && node==0) // Default is the 1st node #1 
+		nodal_forces_file << force << endl;
 }
 
 //---------------------------------------------------------------------
@@ -1206,16 +1210,28 @@ void StaggeredMultiScaleT::WriteOutput(void)
 	{
 		int node = nodes_used[i];
 		double* row = n_values(i);
-		for (int j = 0; j < fUa.MinorDim(); j++)
+		for (int j = 0; j < fUa.MinorDim(); j++) {
 			*row++ = fUa(node,j);
+			displacements_file <<  fUa(node,j) <<" "; 
+		}
+		displacements_file <<"   "; 
 
-		for (int j = 0; j < fUb.MinorDim(); j++)
+		for (int j = 0; j < fUb.MinorDim(); j++) {
 			*row++ = fUb(node,j);
+			displacements_file <<  fUb(node,j) <<" "; 
+		}
+		displacements_file <<"   "; 
 
+		for (int j = 0; j < fUb.MinorDim(); j++) 
+			displacements_file << fUa(node,j) + fUb(node,j) <<" "; 
+		
 		double* p_stress = extrap_values(i);
 		for (int j = 0; j < n_stress; j++)
 			*row++ = p_stress[j];
+
+		displacements_file <<  endl;
 	}
+
 
 	/* send */
 	ElementSupport().WriteOutput(fOutputID, n_values, fIPVariable);
@@ -1223,11 +1239,11 @@ void StaggeredMultiScaleT::WriteOutput(void)
 	//--------------------- Write plot file
 
 	int k;
-	double epsilon,Lf; 
+	double epsilon,Lf,Lo=8.0; // Lo = 1.0;  Lo = 1.0e-6
 
 	if (bLog_Strain) {
 		Lf = x_top - x_bot;
-		epsilon = log ( Lf ); // epsilon = e^(Lf/Lo) but Lo=1 for unit cube
+		epsilon = log ( Lf/Lo ); // epsilon = e^(Lf/Lo) but Lo=1 for unit cube
 		var_plot_file << epsilon << " ";
 		cout << "x_top= "<<x_top<<" x_bot= "<<x_bot<<" Lf= "<<Lf<<" epsilon = Log(Lf/Lo) = "<<epsilon<< endl;
 	}
@@ -1373,9 +1389,9 @@ void 	StaggeredMultiScaleT::Init_Render ( void )
 
 //---------------------------------------------------------------------
 
-void 	StaggeredMultiScaleT::Get_Fext_I ( dArrayT &fFext_I )
+void 	StaggeredMultiScaleT::Get_Fext_I ( dArrayT &fFext_1 )
 {
-	fFext_I = 0.0;
+	fFext_1 = 0.0;
 }
 
 
@@ -1472,20 +1488,13 @@ void StaggeredMultiScaleT::RHSDriver_staggered(void)
 
 			if (bStep_Complete) { //-- Done iterating, get result data from converged upon displacements 
 
-				fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, step_number, delta_t );
+				fEquation_1 -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, step_number, delta_t );
 
 				for (v=0; v<num_tensors_to_render; v++ ) 
-					fEquation_I -> Get ( Render_Tensor_Names[v], Render_Tensor[e][v] ); 
+					fEquation_1 -> Get ( Render_Tensor_Names[v], Render_Tensor[e][v] ); 
 				for (v=0; v<num_scalars_to_render; v++ ) 
-					fEquation_I -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
+					fEquation_1 -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
 
-#if 0
-				if (iDesired_Force_Node_Num != -1)
-					AddNodalForce(fCoarse, iDesired_Force_Node_Num, fForces_at_Node);
-
-				cout << "FLAG 2 "<<endl;
-				cout << "Node Forces "<< fForces_at_Node << endl;
-#endif
 				//-- Store/Register data in classic tahoe manner 
 				out_variable_all.Set(fNumIP, n_stress, fIPVariable(CurrElementNumber()));
 				for (l=0; l < fNumIP; l++) {
@@ -1496,21 +1505,21 @@ void StaggeredMultiScaleT::RHSDriver_staggered(void)
 			else { //-- Still Iterating
 
 				/** Compute N-R matrix equations */
-				fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, step_number, delta_t );
-				fEquation_I -> Form_LHS_Ka_Kb ( fKa_I, fKb_I );
-				fEquation_I -> Form_RHS_F_int ( fFint_I );
+				fEquation_1 -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, step_number, delta_t );
+				fEquation_1 -> Form_LHS_Ka_Kb ( fKa_1, fKb_1 );
+				fEquation_1 -> Form_RHS_F_int ( fFint_1 );
 
 				/** Set coarse LHS */
-				fLHS = fKb_I;
+				fLHS = fKb_1;
 
-				/** Compute coarse RHS (or Fint_bar_II in FAXed notes) */
-				fKa_I.Multx ( del_ua_vec, fRHS );
-				fRHS += fFint_I; 
+				/** Compute coarse RHS (or Fint_bar_2 in FAXed notes) */
+				fKa_1.Multx ( del_ua_vec, fRHS );
+				fRHS += fFint_1; 
 				fRHS *= -1.0; 
 
 				/** Compute Traction B.C. and Body Forces */
-				Get_Fext_I ( fFext_I );
-				fRHS += fFext_I;
+				Get_Fext_I ( fFext_1 );
+				fRHS += fFext_1;
 				
 				/* add body forces */
 				if (formBody) {
@@ -1527,18 +1536,18 @@ void StaggeredMultiScaleT::RHSDriver_staggered(void)
 			}
 		}
 
-		// SolverGroup 2 (gets field 1) <-- ua (obtained by a rearranged Equation II)
+		// SolverGroup 2 (gets field 1) <-- ua (obtained by a rearranged Equation 2)
 		else if (curr_group == fFine.Group() || (bStep_Complete && render_variable_group==1) )	
 		{
 
 			if (bStep_Complete) { //-- Done iterating, get result data from converged upon displacements 
 
-				fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t ); 
+				fEquation_2 -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t ); 
 
 				for (v=0; v<num_tensors_to_render; v++ )  
-					fEquation_II -> Get ( Render_Tensor_Names[v], Render_Tensor[e][v] ); 
+					fEquation_2 -> Get ( Render_Tensor_Names[v], Render_Tensor[e][v] ); 
 				for (v=0; v<num_scalars_to_render; v++ ) 
-					fEquation_II -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
+					fEquation_2 -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
 
 				//-- Store/Register data in classic tahoe manner 
 				out_variable_all.Set(fNumIP, n_stress, fIPVariable(CurrElementNumber()));
@@ -1550,16 +1559,16 @@ void StaggeredMultiScaleT::RHSDriver_staggered(void)
 			else { //-- Still Iterating
 
 				/** Compute N-R matrix equations */
-				fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t, FEA::kBackward_Euler );
-				fEquation_II -> Form_LHS_Ka_Kb ( fKa_II, 	fKb_II );
-				fEquation_II -> Form_RHS_F_int ( fFint_II );
+				fEquation_2 -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t, FEA::kBackward_Euler );
+				fEquation_2 -> Form_LHS_Ka_Kb ( fKa_2, 	fKb_2 );
+				fEquation_2 -> Form_RHS_F_int ( fR_2 );
 
 				/** Set LHS */
-				fLHS = fKa_II;	
+				fLHS = fKa_2;	
 		
-				/** Compute fine RHS (or Fint_bar_II in FAXed notes)  */
-				fKb_II.Multx ( del_ub_vec, fRHS );
-				fRHS += fFint_II; 
+				/** Compute fine RHS (or Fint_bar_2 in FAXed notes)  */
+				fKb_2.Multx ( del_ub_vec, fRHS );
+				fRHS += fR_2; 
 				fRHS *= -1.0; 
 		
 				/* fine scale equation numbers */
@@ -1650,12 +1659,12 @@ void StaggeredMultiScaleT::RHSDriver_monolithic(void)
 
 			if (render_variable_group == 0)
 			{
-				fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, step_number, delta_t );
+				fEquation_1 -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, step_number, delta_t );
 
 				for (v=0; v<num_tensors_to_render; v++ ) 
-					fEquation_I -> Get ( Render_Tensor_Names[v], Render_Tensor[e][v] ); 
+					fEquation_1 -> Get ( Render_Tensor_Names[v], Render_Tensor[e][v] ); 
 				for (v=0; v<num_scalars_to_render; v++ ) 
-					fEquation_I -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
+					fEquation_1 -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
 
 				//-- Store/Register data in classic tahoe manner 
 				out_variable_all.Set(fNumIP, n_stress, fIPVariable(CurrElementNumber()));
@@ -1666,12 +1675,12 @@ void StaggeredMultiScaleT::RHSDriver_monolithic(void)
 			}
 			else if (render_variable_group == 1)
 			{
-				fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t );
+				fEquation_2 -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t );
 
 				for (v=0; v<num_tensors_to_render; v++ )  
-					fEquation_II -> Get ( Render_Tensor_Names[v], Render_Tensor[e][v] ); 
+					fEquation_2 -> Get ( Render_Tensor_Names[v], Render_Tensor[e][v] ); 
 				for (v=0; v<num_scalars_to_render; v++ ) 
-					fEquation_II -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
+					fEquation_2 -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
 
 				//-- Store/Register data in classic tahoe manner 
 				out_variable_all.Set(fNumIP, n_stress, fIPVariable(CurrElementNumber()));
@@ -1685,10 +1694,10 @@ void StaggeredMultiScaleT::RHSDriver_monolithic(void)
 		else { //-- Still Iterating
 
 			/* residual and tangent for coarse scale */
-			fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, step_number, delta_t );
-			fEquation_I -> Form_LHS_Ka_Kb ( fKa_I, fKb_I );
-			fEquation_I -> Form_RHS_F_int ( fFint_I );
-			fFint_I *= -1.0;
+			fEquation_1 -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, step_number, delta_t );
+			fEquation_1 -> Form_LHS_Ka_Kb ( fKa_1, fKb_1 );
+			fEquation_1 -> Form_RHS_F_int ( fFint_1 );
+			fFint_1 *= -1.0;
 
 			/* add body force */
 			if (formBody) {
@@ -1700,29 +1709,29 @@ void StaggeredMultiScaleT::RHSDriver_monolithic(void)
 				/* add body force to fRHS */
 				fRHS = 0.0;
 				FormMa(kConsistentMass, -density, &DDub, NULL);
-				fFint_I += fRHS;
+				fFint_1 += fRHS;
 			}
 
 			/* residual and tangent for fine scale */
-			fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t, FEA::kBackward_Euler );
-			fEquation_II -> Form_LHS_Ka_Kb ( fKa_II, 	fKb_II );
-			fEquation_II -> Form_RHS_F_int ( fFint_II );
-			fFint_II *= -1.0;
+			fEquation_2 -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t, FEA::kBackward_Euler );
+			fEquation_2 -> Form_LHS_Ka_Kb ( fKa_2, 	fKb_2 );
+			fEquation_2 -> Form_RHS_F_int ( fR_2 );
+			fR_2 *= -1.0;
 
 			/* equations numbers */
 			const iArrayT& all_eq = CurrentElement().Equations();
-			coarse_eq.Set(fFint_I.Length(), all_eq.Pointer());
-			fine_eq.Set(fFint_II.Length(), all_eq.Pointer(fFint_I.Length()));
+			coarse_eq.Set(fFint_1.Length(), all_eq.Pointer());
+			fine_eq.Set(fR_2.Length(), all_eq.Pointer(fFint_1.Length()));
 
 			/* assemble residuals */
-			ElementSupport().AssembleRHS(curr_group, fFint_I, coarse_eq);
-			ElementSupport().AssembleRHS(curr_group, fFint_II, fine_eq);
+			ElementSupport().AssembleRHS(curr_group, fFint_1, coarse_eq);
+			ElementSupport().AssembleRHS(curr_group, fR_2, fine_eq);
 
 			/* assemble components of the tangent */
-			ElementSupport().AssembleLHS(curr_group, fKb_I, coarse_eq);
-			ElementSupport().AssembleLHS(curr_group, fKa_II, fine_eq);
-			ElementSupport().AssembleLHS(curr_group, fKa_I, coarse_eq, fine_eq);
-			ElementSupport().AssembleLHS(curr_group, fKb_II, fine_eq, coarse_eq);
+			ElementSupport().AssembleLHS(curr_group, fKb_1, coarse_eq);
+			ElementSupport().AssembleLHS(curr_group, fKa_2, fine_eq);
+			ElementSupport().AssembleLHS(curr_group, fKa_1, coarse_eq, fine_eq);
+			ElementSupport().AssembleLHS(curr_group, fKb_2, fine_eq, coarse_eq);
 		}
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.h,v 1.19 2003-05-13 23:14:09 creigh Exp $ */ 
+/* $Id: StaggeredMultiScaleT.h,v 1.20 2003-07-01 04:35:31 creigh Exp $ */ 
 //DEVELOPMENT
 #ifndef _STAGGERED_MULTISCALE_T_H_ 
 #define _STAGGERED_MULTISCALE_T_H_ 
@@ -219,6 +219,7 @@ private:
 	ArrayT < StringT > Render_Tensor_Names; 
 	ArrayT < StringT > Render_Scalar_Names; 
 	StringT write_file_name;
+	StringT node_force_file_name;
 	int component_i;
 	int component_j;
 	int Elmt2Write;
@@ -233,6 +234,8 @@ private:
  	int render_displ;	
 
   ofstreamT var_plot_file;
+  ofstreamT nodal_forces_file;
+  ofstreamT displacements_file;
  	double x_top;  // for calc Lf	
  	double x_bot;  // for calc Lf	
 
@@ -261,9 +264,9 @@ private:
 	void 	Init_Render ( void );
 	//void  Update_New_Step ( void );
 	void 	Store_Render_Data ( double &time,LocalArrayT fInitCoords,
-								 						LocalArrayT &ua,LocalArrayT &ub,FineScaleT *fEquation_II );
+								 						LocalArrayT &ua,LocalArrayT &ub,FineScaleT *fEquation_2 );
 	void RenderOutput ( void );
-	void Get_Fext_I 	( dArrayT &fFext_I );
+	void Get_Fext_I 	( dArrayT &fFext_1 );
 	
 #if RENDER
 	Render_ManagerT Render_Boss;
@@ -297,15 +300,15 @@ private:
 	 * (to include Variational Multi-Scale (VMS) formulation). */
 
 	/* Data Storage */
-	ElementMatrixT fKa_I, fKb_I;
-	ElementMatrixT fKa_II, fKb_II;
-	dArrayT 	fFint_I;
-	dArrayT 	fFext_I;
-	dArrayT		fFint_II;
+	ElementMatrixT 	fKa_1, 		fKb_1;
+	ElementMatrixT 	fKa_2, 		fKb_2;
+	dArrayT 				fFint_1;
+	dArrayT 				fFext_1;
+	dArrayT					fR_2;
 
 	/* Multi-Field Element Formulators */
-	CoarseScaleT* fEquation_I;	
-	FineScaleT* 	fEquation_II;
+	CoarseScaleT* fEquation_1;	
+	FineScaleT* 	fEquation_2;
 
 	/* Multi-Field Materials */
 	VMF_MaterialT* fFineMaterial;

@@ -1,4 +1,4 @@
-// $Id: VMS_BCJT.cpp,v 1.14 2003-04-23 23:34:25 creigh Exp $
+// $Id: VMS_BCJT.cpp,v 1.15 2003-07-01 04:35:32 creigh Exp $
 #include "FEA.h" 
 #include "VMS.h" 
 
@@ -297,14 +297,15 @@ void VMS_BCJT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n)
 	//--- Get Beta
 	S[kBeta]  = S[kMag_DEV_H];
 	S[kBeta] *= C[kRoot3by2]; 
-	S[kBeta] /= C[kV];
-	S[kBeta] -= C[kY]; // Re-define Y as Y = Y/V more control this way
 
- 	if 	( Iso_Hard_Type != kNo_Iso_Hard ) { //-- Apply Iso Hard to RHS
+ 	if 	( Iso_Hard_Type != kNo_Iso_Hard ) //-- Apply Iso Hard to RHS
 		Get_Iso_Hard_Kappa_bar ( ); 
-		S[kBeta] -= S[kKappa_bar]; 
-	}
-	//S[kBeta] /= C[kV];
+	else
+		S[kKappa_bar] = 0.0;
+
+	S[kKappa_bar] += C[kY];  //-- Y is the yield stress
+	S[kBeta] -= S[kKappa_bar]; 
+	S[kBeta] /= C[kV];
 
 	//--- Get Sinh(Beta) 
 	S[kMacaulay_Sinh_Beta].Sinh( S[kBeta] ); 
