@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.40.2.1 2003-11-20 01:41:21 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.40.2.2 2003-11-24 00:47:31 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 #include "fstreamT.h"
@@ -87,6 +87,7 @@
 #ifdef ABAQUS_BCJ_MATERIAL_DEV
 #include "ABAQUS_BCJ.h"
 #include "ABAQUS_BCJ_ISO.h"
+#include "ABAQUS_SS_BCJ_ISO.h"
 #include "ABAQUS_VUMAT_BCJ.h"
 #endif
 #endif
@@ -600,10 +601,15 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 			{
 #ifdef __F2C__
 #if defined(ABAQUS_MATERIAL) && defined(ABAQUS_BCJ_MATERIAL_DEV)
-				/* check */
-				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
-
-				fArray[matnum] = new ABAQUS_BCJ_ISO(in, *fFSMatSupport);
+	
+				/* small vs large strain elements */
+				if (fFSMatSupport)
+					fArray[matnum] = new ABAQUS_BCJ_ISO(in, *fFSMatSupport);
+				else if (fSSMatSupport)
+					fArray[matnum] = new ABAQUS_SS_BCJ_ISO(in, *fSSMatSupport);
+				else
+					ExceptionT::GeneralFail(caller);
+					
 				fHasHistory = true;
 				break;
 #else

@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.10 2003-06-28 17:32:18 thao Exp $ */
+/* $Id: SSSolidMatT.h,v 1.10.2.1 2003-11-24 00:47:32 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
@@ -61,19 +61,16 @@ public:
 	virtual bool HasDissipVar(void) const {return false;};
 
 	virtual const iArrayT& InternalDOF(void) const {
-		cout << "\n InternalDOF not implement";
-		throw ExceptionT::kGeneralFail;
-		return  ijunk;};
+		ExceptionT::GeneralFail("SSSolidMatT::InternalDOF", "not implemented");
+		return ijunk;};
 
 	virtual const dArrayT& InternalStressVars(void) {
-		cout << "\n InternalStressVars not implemented";
-		throw ExceptionT::kGeneralFail;
-		return  djunk;};
+		ExceptionT::GeneralFail("SSSolidMatT::InternalStressVars", "not implemented");
+		return djunk;};
 
 	virtual const dArrayT& InternalStrainVars(void) {
-		cout << "\n InternalStressVars not implemented.";
-		throw ExceptionT::kGeneralFail;
-		return  djunk;};
+		ExceptionT::GeneralFail("SSSolidMatT::InternalStrainVars", "not implemented");
+		return djunk;};
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.6 2003-01-29 07:35:08 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.6.14.1 2003-11-24 00:47:32 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
 #include <iostream.h>
@@ -15,7 +15,8 @@ SSSolidMatT::SSSolidMatT(ifstreamT& in,const SSMatSupportT& support):
 //	fLocDisp(fSmallStrain.Displacements()),	
 	fStrainTemp(NumSD()),
 	fQ(NumSD()),
-	fThermalStrain(NumSD())
+	fThermalStrain(NumSD()),
+	fHasThermalStrain(false)
 {
 
 }
