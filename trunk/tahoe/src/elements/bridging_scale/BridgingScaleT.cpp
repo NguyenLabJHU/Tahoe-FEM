@@ -1,9 +1,10 @@
-/* $Id: BridgingScaleT.cpp,v 1.47 2004-07-15 08:25:53 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.48 2004-07-22 08:20:19 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 
+#include "SolidElementT.h"
 #include "ShapeFunctionT.h"
 #include "ofstreamT.h"
 #include "iAutoArrayT.h"
@@ -18,20 +19,15 @@
 using namespace Tahoe;
 
 /* constructor */
-BridgingScaleT::BridgingScaleT(const ElementSupportT& support, 
-	const FieldT& field,
-	const SolidElementT& solid):
+BridgingScaleT::BridgingScaleT(const ElementSupportT& support):
 	ElementBaseT(support),
-	fSolid(solid),
-	fElMatU(ShapeFunction().ParentDomain().NumNodes(), ElementMatrixT::kSymmetric),
+	fSolid(NULL),
+	fElMatU(ElementMatrixT::kSymmetric),
 	fLocInitCoords(LocalArrayT::kInitCoords),
 	fLocDisp(LocalArrayT::kDisp),
-	fDOFvec(NumDOF()),
-	fGlobalMass(support.Output(),1),
-	fConnect(solid.NumElements(), solid.NumElementNodes()),
-	fWtempU(ShapeFunction().ParentDomain().NumNodes(), NumDOF())
+	fGlobalMass(support.Output(), 1)
 {
-#pragma message("fix me")
+	SetName("bridging");
 }
 
 /* map coordinates into elements */
@@ -45,7 +41,7 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 	global_to_local.SetMap(points_used);
 
 	/* map data */
-	cell_data.SetContinuumElement(fSolid);
+	cell_data.SetContinuumElement(SolidElement());
 	RaggedArray2DT<int>& point_in_cell = cell_data.PointInCell();
 	RaggedArray2DT<double>& point_in_cell_coords = cell_data.PointInCellCoords();
 
@@ -80,15 +76,16 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 	found_in_cell = -1;
 
 	/* check all cells for points */
+	int nel = SolidElement().NumElements();
 	const ParentDomainT& parent = ShapeFunction().ParentDomain();
-	AutoFill2DT<int> auto_fill(fSolid.NumElements(), 1, 10, 10);
+	AutoFill2DT<int> auto_fill(nel, 1, 10, 10);
 	dArrayT x_atom, centroid;
-	LocalArrayT loc_cell_coords(coord_type, fSolid.NumElementNodes(), NumSD());
+	LocalArrayT loc_cell_coords(coord_type, SolidElement().NumElementNodes(), NumSD());
 	loc_cell_coords.SetGlobal(cell_coordinates);
-	for (int i = 0; i < fSolid.NumElements(); i++) {
+	for (int i = 0; i < nel; i++) {
 	
 		/* gives domain (global) nodal coordinates */
-		loc_cell_coords.SetLocal(fSolid.ElementCard(i).NodesX());
+		loc_cell_coords.SetLocal(SolidElement().ElementCard(i).NodesX());
 
 		/* centroid and radius */
 		double radius = parent.AverageRadius(loc_cell_coords, centroid);
@@ -146,7 +143,7 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 	for (int i = 0; i < point_in_cell.MajorDim(); i++) 
 	{
 		/* cell coordinates */
-		loc_cell_coords.SetLocal(fSolid.ElementCard(i).NodesX()); 
+		loc_cell_coords.SetLocal(SolidElement().ElementCard(i).NodesX()); 
 
 		/* run through list and map to parent domain */
 		int* particles = point_in_cell(i);
@@ -192,6 +189,10 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 	}
 }
 
+const ShapeFunctionT& BridgingScaleT::ShapeFunction(void) const {
+	return SolidElement().ShapeFunction();
+}
+
 /* initialize interpolation data */
 void BridgingScaleT::InitInterpolation(const iArrayT& points_used, const dArray2DT* init_coords, 
 	const dArray2DT* curr_coords, PointInCellDataT& cell_data)
@@ -201,7 +202,7 @@ void BridgingScaleT::InitInterpolation(const iArrayT& points_used, const dArray2
 	
 	/* dimension return value */
 	dArray2DT& weights = cell_data.InterpolationWeights();
-	weights.Dimension(points_used.Length(), fSolid.NumElementNodes());
+	weights.Dimension(points_used.Length(), SolidElement().NumElementNodes());
 	iArrayT& cell = cell_data.InterpolatingCell();
 	cell.Dimension(points_used.Length());
 	cell = -1;
@@ -255,7 +256,7 @@ void BridgingScaleT::InitInterpolation(const iArrayT& points_used, const dArray2
 void BridgingScaleT::InterpolateField(const StringT& field, int order, const PointInCellDataT& cell_data,
 	dArray2DT& point_values) const
 {
-	int nen = fSolid.NumElementNodes();
+	int nen = SolidElement().NumElementNodes();
 
 	/* get the field */
 	const FieldT* the_field = ElementSupport().Field(field);
@@ -274,7 +275,7 @@ void BridgingScaleT::InterpolateField(const StringT& field, int order, const Poi
 	{
 		/* element nodes */
 		int element = cell[i];
-		const iArrayT& nodes = fSolid.ElementCard(element).NodesU();
+		const iArrayT& nodes = SolidElement().ElementCard(element).NodesU();
 
 		/* collect local values */
 		loc_field.SetLocal(nodes);
@@ -477,12 +478,72 @@ out << "\n residual =\n" << projection << endl;
 /* compute the coarse scale part of the source field */
 void BridgingScaleT::CoarseField(const PointInCellDataT& cell_data, const dArray2DT& field, dArray2DT& coarse) const
 {
-#pragma unused(cell_data)
-#pragma unused(field)
-#pragma unused(coarse)
-
 	const char caller[] = "BridgingScaleT::CoarseField";
-	ExceptionT::GeneralFail(caller, "not implemented");
+
+	/* projected part of the mesh */
+	const iArrayT& cell_nodes = cell_data.CellNodes();
+	const iArray2DT& cell_connects = cell_data.CellConnectivities();
+	
+	/* points in cell data */
+	const RaggedArray2DT<int>& point_in_cell = cell_data.PointInCell();
+	const dArray2DT& weights = cell_data.InterpolationWeights();
+	const InverseMapT& global_to_local = cell_data.GlobalToLocal();
+	
+	/* initialize return value */
+	coarse.Dimension(cell_nodes.Length(), field.MinorDim());
+	coarse = 0.0;
+	
+	/* loop over mesh */
+	int cell_dex = 0;
+	iArrayT cell_eq;
+	dArrayT Na, point_value;
+	dMatrixT Nd(cell_connects.MinorDim(), field.MinorDim());
+	//double atommass;
+	for (int i = 0; i < point_in_cell.MajorDim(); i++)
+	{
+		int np = point_in_cell.MinorDim(i);
+		if (np > 0)
+		{
+			const int* points = point_in_cell(i);
+			Nd = 0.0;
+			for (int j = 0; j < np; j++)
+			{
+				int point = points[j];
+			
+				/* fetch interpolation weights */
+				int point_dex = global_to_local.Map(point);
+				weights.RowAlias(point_dex, Na);
+				//atommass = mdmass[point_dex];
+
+				/* source values of the point */
+				field.RowAlias(point, point_value);
+			
+				/* rhs during projection - calculating part of w */
+				Nd.Outer(Na, point_value, 1.0, dMatrixT::kAccumulate);
+				//Nd *= atommass;	// need to multiply by atomic mass, i.e. w = M^{-1}N^{T}M_{A}q
+			}
+
+			/* equations of cell in projector */
+			cell_connects.RowAlias(cell_dex++, cell_eq);
+
+			/* assemble */
+			for (int j = 0; j < Nd.Cols(); j++)
+				coarse.Accumulate(j, cell_eq, Nd(j));
+		}
+	}
+
+	/* need non-const global matrix to solve */
+	BridgingScaleT* non_const_this = const_cast<BridgingScaleT*>(this);
+
+	/* calculate projection - requires global matrix that supports 
+	 * multiple solves - projection = w after operations within this loop */
+	dArrayT u_tmp(coarse.MajorDim());
+	for (int i = 0; i < coarse.MinorDim(); i++)
+	{
+		coarse.ColumnCopy(i, u_tmp);
+		non_const_this->fGlobalMass.Solve(u_tmp);
+		coarse.SetColumn(i, u_tmp);
+	}
 }
 
 /* collect the cells without any free nodes */
@@ -731,7 +792,6 @@ out << "\n residual =\n" << projection << endl;
 		fGlobalMass.Solve(u_tmp);
 		projection.SetColumn(i, u_tmp);
 	}
-
 	u_tmp.Free();
 
 	/* initialize return values */
@@ -832,6 +892,46 @@ void BridgingScaleT::WriteOutput(void)
 
 	/* send to output */
 //	ElementSupport().WriteOutput(fOutputID, n_values);
+}
+
+/* describe the parameters needed by the interface */
+void BridgingScaleT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	ElementBaseT::DefineParameters(list);
+
+	/* coarse scale element group */
+	list.AddParameter(ParameterT::Integer, "solid_element_group");
+}
+	
+/* accept parameter list */
+void BridgingScaleT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "BridgingScaleT::TakeParameterList";
+
+	/* resolve the solid element group */
+	int group = list.GetParameter("solid_element_group");
+	group--;
+	const ElementBaseT& element = ElementSupport().ElementGroup(group);
+#ifdef __NO_RTTI__
+	fSolid = element.dynamic_cast_SolidElementT();
+#else
+	fSolid = dynamic_cast<const SolidElementT*>(&element);
+#endif
+	if (!fSolid) ExceptionT::GeneralFail(caller, "could not resolve element group %d", group+1);
+
+	/* solid element class needs to store the internal force vector */
+	SolidElementT* solid = const_cast<SolidElementT*>(fSolid);
+	solid->SetStoreInternalForce(true);
+
+	/* inherited */
+	ElementBaseT::TakeParameterList(list);
+
+	/* dimension workspace */
+	fElMatU.Dimension(ShapeFunction().ParentDomain().NumNodes());
+	fDOFvec.Dimension(NumDOF());
+	fConnect.Dimension(fSolid->NumElements(), fSolid->NumElementNodes());
+	fWtempU.Dimension(ShapeFunction().ParentDomain().NumNodes(), NumDOF());
 }
 
 /***********************************************************************
