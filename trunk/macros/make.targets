@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.32 2004-01-02 01:17:40 paklein Exp $
+# $Id: make.targets,v 1.33 2004-01-02 19:33:36 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -142,11 +142,11 @@ archive:
 
 # initialization
 init: $(MAKE_INIT_XTRAS) $(MOD_MAKE_INIT_XTRAS)
-	@ if test -f $(LIBRARY); then $(RM) $(LIBRARY); fi
-	@ if ! test -d $(BLD_DIR); then mkdir $(BLD_DIR); fi
-	@ if ! test -d $(OBJ_DIR); then mkdir $(OBJ_DIR); fi
-	@ if ! test -d $(LIB_DIR); then mkdir $(LIB_DIR); fi
-	@ if ! test -f $(LIB_DIR)/lib.junk; then echo "# touch" > $(LIB_DIR)/lib.junk; fi
+	if test -f $(LIBRARY); then $(RM) $(LIBRARY); fi
+	if ! test -d $(BLD_DIR); then mkdir $(BLD_DIR); fi
+	if ! test -d $(OBJ_DIR); then mkdir $(OBJ_DIR); fi
+	if ! test -d $(LIB_DIR); then mkdir $(LIB_DIR); fi
+	if ! test -f $(LIB_DIR)/lib.junk; then echo "# touch" > $(LIB_DIR)/lib.junk; fi
 	@ $(ECHO) " mirroring $(SRC_DIR) to $(BLD_SRC_DIR)"; \
 	$(PERL) $(MACRO_DIR)/MirrorTree.pl $(SRC_DIR) $(BLD_SRC_DIR) "$(LN)" >& $(BLD_DIR)/mirror.log
 	@ $(MAKE) headers "HOME_DIR = $(HOME_DIR)" \
@@ -163,8 +163,8 @@ clean: $(MAKE_CLEAN_XTRAS) $(MOD_MAKE_CLEAN_XTRAS)
 	@ if test -d $(BLD_SRC_DIR); then $(RM) -rf $(BLD_SRC_DIR); fi
 	@ if test -d $(OBJ_DIR); then $(RM) -rf $(OBJ_DIR); fi
 	@ if test -d $(LIB_DIR); then $(RM) -rf $(LIB_DIR); fi
-	@ cd $(MACRO_DIR)/cxx_repository; ls -1 | $(GREP) "\.o$$\|\.DB$$" | $(XARGS) $(RM)
-	@ cd $(INC_DIR); ls -1 | $(GREP) '\.h$$' | $(XARGS) $(RM)
+	-@ cd $(MACRO_DIR)/cxx_repository; ls -1 | $(GREP) "\.o$$\|\.DB$$" | $(XARGS) $(RM)
+	-@ cd $(INC_DIR); ls -1 | $(GREP) '\.h$$' | $(XARGS) $(RM)
 
 # build object file list
 object_list: FORCE
@@ -183,7 +183,7 @@ object_list: FORCE
 
 # set symbolic links to all header files
 headers: $(MAKE_HEADERS_XTRAS) $(MOD_MAKE_HEADERS_XTRAS)
-	@ ls -1 | $(GREP) '\.h$$' | $(XARGS) $(RM)
+	-@ cd $(INC_DIR); ls -1 | $(GREP) '\.h$$' | $(XARGS) $(RM)
 	@ $(PRINTF) "cd $(SRC_DIR)\n"
 	cd $(SRC_DIR); \
 	$(MAKE) $(MAKE_OPTS) headers \
