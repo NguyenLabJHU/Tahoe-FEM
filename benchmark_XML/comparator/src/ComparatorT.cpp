@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.23 2004-06-28 21:26:29 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.24 2004-07-22 00:38:09 paklein Exp $ */
 #include "ComparatorT.h"
 
 #include <iostream.h>
@@ -11,6 +11,10 @@
 #include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "dArrayT.h"
+
+/* XML input files */
+#include "ParameterListT.h"
+#include "expat_ParseT.h"
 
 const char kBenchmarkDirectory[] = "benchmark";
 using namespace Tahoe;
@@ -64,10 +68,7 @@ void ComparatorT::Run(void)
 			PassOrFail(file_1, file_2, false, true);
 		}
 		else
-		{
-			cout << "\n ComparatorT::Run: expecting command line option \"-f2\"" << endl;
-			throw ExceptionT::kGeneralFail;
-		}
+			ExceptionT::GeneralFail("ComparatorT::Run", "expecting command line option \"-f2\"");
 	}
 	else /* inherited */
 		FileCrawlerT::Run();
@@ -260,8 +261,58 @@ void ComparatorT::JobOrBatch(ifstreamT& in, ostream& status)
 	/* catch XML job files */
 	StringT ext;
 	ext.Suffix(in.filename());
-	if (ext == ".xml")
-		RunJob(in, status);
+	if (ext == ".xml") {
+
+		/* read the input file */
+		ParameterListT params;
+		expat_ParseT parser;
+		parser.Parse(in.filename(), params);
+
+		/* plain tahoe simulation */
+		if (params.Name() == "tahoe")
+			RunJob(in, status);
+		else if (params.Name() == "tahoe_multi") /* multi-tahoe simulation */
+		{
+			/* add results to the list */
+			cout << "\nSTART: " << in.filename() << '\n';
+
+			StringT path, file;
+			path.FilePath(in.filename());
+			ifstreamT in_xml;
+		
+			/* continuum results */
+			file = params.GetParameter("continuum_input");
+			file.ToNativePathName();
+			file.Prepend(path);
+			in_xml.open(file);
+			JobOrBatch(in_xml, status);
+			in_xml.close();
+			bool continuum_pass = fPassFail.Last();
+
+			/* atomistic results */
+			file = params.GetParameter("atom_input");
+			file.ToNativePathName();
+			file.Prepend(path);
+			in_xml.open(file);
+			JobOrBatch(in_xml, status);
+			in_xml.close();
+			bool atomistic_pass = fPassFail.Last();
+			
+			/* report results to the list */
+			bool result = continuum_pass && atomistic_pass;
+			fFiles.Append(in.filename());
+			fPassFail.Append(result);
+			cout << in.filename() << ": " << ((result) ? "PASS" : "FAIL") << '\n';
+			cout << "\nEND: " << in.filename() << '\n';
+		}
+		else
+			ExceptionT::GeneralFail("ComparatorT::JobOrBatch", "unrecognized name ",
+				params.Name().Pointer());
+
+
+		
+		
+	}
 	else /* inherited */
 		FileCrawlerT::JobOrBatch(in, status);
 }
