@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.h,v 1.5 2002-06-04 17:09:44 recampb Exp $ */
+/* $Id: VTKUGridT.h,v 1.6 2002-06-04 21:49:08 recampb Exp $ */
 #ifndef _VTK_U_GRID_T_H_
 #define _VTK_U_GRID_T_H_
 
@@ -23,6 +23,7 @@ class vtkContourFilter;
 class vtkPolyDataMapper;
 class vtkOutlineFilter;
 class vtkExtractEdges;
+
 
 /* toolbox forward declarations */
 class iArray2DT;
@@ -83,9 +84,12 @@ class VTKUGridT
 	/** return the grid actor */
   	vtkActor* Actor(void) { return fActor; };
 
+	/** return the box outline actor */
 	vtkActor* OutlineActor(void) { return fOutlineActor;};
 
 	vtkActor* EdgesActor(void) {return edgesActor;};
+	
+	vtkActor* BoundBoxActor(void) {return boundBoxActor;};
   	
   	/** return the grid wrap vector */
   	vtkWarpVector* Warp(void) { return fWarp; };
@@ -106,6 +110,8 @@ class VTKUGridT
  	/** set the grid opacity.
  	 * \param opacity ranges from 0 to 1 for transparent to opaque */
 	void SetOpacity(double opacity);
+
+	void SetBoundingOpacity(double boundingOpacity);
  
  	/** return a reference to the cell numbering map */
 	const iArrayT& CellNumberMap(void) const { return fCellNumberMap; };
@@ -163,6 +169,11 @@ class VTKUGridT
 	vtkExtractEdges* edges;
 	vtkDataSetMapper* edgesMapper;
 	vtkActor* edgesActor;
+
+	vtkDataSetMapper* boundBoxMapper;
+	vtkActor* boundBoxActor;
+	
+	
       
 };
 

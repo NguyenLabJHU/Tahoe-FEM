@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.16 2002-06-04 17:09:44 recampb Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.17 2002-06-04 21:49:07 recampb Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -236,6 +236,7 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 	iAddVariable("scale_factor", scale_factor);
 	iAddVariable("opacity", opacity);
 	iAddVariable("numContours", numContours);
+	iAddVariable("boundingOpacity", boundingOpacity);
   	
   	/* commands */
   	iAddCommand(CommandSpecT("Wire"));
@@ -281,7 +282,7 @@ void VTKBodyDataT::AddToRenderer(vtkRenderer* renderer) const
   for (int i = 0; i < fUGrids.Length(); i++){
 		renderer->AddActor(fUGrids[i]->Actor());
 		renderer->AddActor(fUGrids[i]->OutlineActor());
-		//renderer->AddActor(fUGrids[i]->EdgesActor());
+		renderer->AddActor(fUGrids[i]->BoundBoxActor());
   }
 }
 
@@ -292,7 +293,7 @@ void VTKBodyDataT::RemoveFromRenderer(vtkRenderer* renderer) const
   for (int i = 0; i < fUGrids.Length(); i++){
 		renderer->RemoveActor(fUGrids[i]->Actor());
 		renderer->RemoveActor(fUGrids[i]->OutlineActor());
-		//renderer->RemoveActor(fUGrids[i]->EdgesActor());
+		renderer->RemoveActor(fUGrids[i]->BoundBoxActor());
   }
 		
 }
@@ -314,8 +315,10 @@ void VTKBodyDataT::UpdateData(void)
 				fUGrids[i]->SetScalarRange(scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
 				fUGrids[i]->SetOpacity(opacity);
 				fUGrids[i]->SetNumberOfColors(numColors);
-				if (fUGrids[i]->GetContoursBool())
+				if (fUGrids[i]->GetContoursBool()){
 				  fUGrids[i]->ShowContours(fScalars(currentStepNum, currentVarNum), numContours);
+				  fUGrids[i]->SetBoundingOpacity(boundingOpacity);
+				}
 				//fUGrids[i]->SetNumberOfColorBarLabels(numColorBarLabels);
 			}
 		}
@@ -418,6 +421,8 @@ bool VTKBodyDataT::iDoCommand(const CommandSpecT& command, StringT& line)
 				fUGrids[i]->SetRepresentation(VTKUGridT::kPoint);
 		return true;
 	}
+
+
 	else if (command.Name() == "ShowContours")
 	  {
 	     if (fScalars.MinorDim() > 0){
@@ -468,6 +473,7 @@ void VTKBodyDataT::DefaultValues(void)
 	opacity = 1;
 	scale_factor = 1.0;
 	numContours = 10;
+	boundingOpacity = .27;
 }
 
 /* load data for the current time step */
