@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.2 2001-04-09 22:28:55 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.3 2001-04-09 23:26:51 rjones Exp $ */
 
 #include "QuadL4FaceT.h"
 #include "FaceT.h"
@@ -140,6 +140,8 @@ QuadL4FaceT::ComputeShapeFunctions
 double
 QuadL4FaceT::ComputeJacobian (dArrayT& local_coordinates)
 {
+	//HACK
+	return 1.0;
 }
 
 bool

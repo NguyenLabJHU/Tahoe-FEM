@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.2 2001-04-09 22:28:55 rjones Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.3 2001-04-09 23:26:51 rjones Exp $ */
 
 
 #ifndef _CONTACT_SURFACE_T_H_
@@ -11,6 +11,8 @@
 #include "ArrayT.h"
 #include "dArray2DT.h"
 #include "dArrayT.h"
+#include "SurfaceT.h"
+#include "FaceT.h"
 
 /* forward declarations */
 class ofstreamT;
@@ -29,24 +31,29 @@ class ContactSurfaceT : public SurfaceT
 	/* constructor */
 	ContactSurfaceT(void);
 
+	/* constructor */
+	~ContactSurfaceT(void);
+
 	/* print data */
 	void PrintData(ostream& out);
 	
-        /* access functions */
-        const SurfaceT* OpposingSurface(int node_number) 
-		{return fOpposingSurface[node_number];}
-        const FaceT* OpposingFace(int node_number) 
-		{return fOpposingFace[node_number];}
-	double Gap(int node_number)
-		{return fGaps[node_number];}
-
-
   protected:
         /* nodal arrays */
 	ArrayT <SurfaceT*>  fOpposingSurface ; 
 	ArrayT <FaceT*>     fOpposingFace ; 
 	dArray2DT           fOpposingLocalCoordinates ;
 	dArrayT             fGaps ;
+
+  public:
+        /* access functions */ 
+        inline const SurfaceT* OpposingSurface(int node_number)
+                {return fOpposingSurface[node_number];}
+        inline const FaceT* OpposingFace(int node_number)
+                {return fOpposingFace[node_number];}
+        inline double Gap(int node_number)
+                {return fGaps[node_number];}
+
+
   private:
 
 };

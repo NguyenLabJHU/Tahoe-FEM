@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.2 2001-04-09 22:28:55 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.3 2001-04-09 23:26:51 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -24,6 +24,9 @@ SurfaceT::SurfaceT(void)
 
 SurfaceT::~SurfaceT(void)
 {
+	for (int i ; i < fNumFaces ; i++) {
+		delete fFaces[i];
+	}
 }
 
 

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2001-04-09 22:28:56 rjones Exp $
+# $Id: makefile,v 1.6 2001-04-09 23:26:51 rjones Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -9,8 +9,8 @@ OBJ = \
 	MultiplierContact3DT.o \
 	ContactElementT.o \
 	ContactSearchT.o \
-	SurfaceT.o \
 	ContactSurfaceT.o \
+	SurfaceT.o \
 	FaceT.o \
 	LineL2FaceT.o \
 	QuadL4FaceT.o \
@@ -33,8 +33,8 @@ SRC = \
 	MultiplierContact3DT.cpp \
 	ContactElementT.cpp \
 	ContactSearchT.cpp \
-	SurfaceT.cpp \
 	ContactSurfaceT.cpp \
+	SurfaceT.cpp \
 	FaceT.cpp \
 	LineL2FaceT.cpp \
 	QuadL4FaceT.cpp \
@@ -53,8 +53,8 @@ HDR = \
         ContactSurfaceT.h \
         ContactElementT.h \
         ContactSearchT.h \
-	SurfaceT.h \
 	ContactSurfaceT.h \
+	SurfaceT.h \
         FaceT.h \
         LineL2FaceT.h \
         QuadL4FaceT.h \
