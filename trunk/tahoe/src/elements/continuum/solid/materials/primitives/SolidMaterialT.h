@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.22 2005-02-10 17:59:56 raregue Exp $ */
+/* $Id: SolidMaterialT.h,v 1.23 2005-03-04 04:06:07 cfoster Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -132,9 +132,10 @@ public:
 	/** test for localization. check for bifurcation using current
 	 * Cauchy stress and the spatial tangent moduli.
 	 * \param normals orientation of the localization if localized
-	 * \return true if the determinant of the acoustical tensor is negative
-	 * or false if the determinant is positive. */
+	 * \return true if the determinant of the acoustical tensor A is 
+	 * negative or false if the determinant is positive. */
 	//virtual int IsLocalized(dArrayT& normal);
+	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double detA);
 	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
 
 	/** \name implementation of the ParameterInterfaceT interface */

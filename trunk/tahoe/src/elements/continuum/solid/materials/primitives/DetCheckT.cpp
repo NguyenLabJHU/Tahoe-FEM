@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.38 2005-03-01 20:10:40 cfoster Exp $ */
+/* $Id: DetCheckT.cpp,v 1.39 2005-03-04 04:06:07 cfoster Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -101,16 +101,20 @@ int DetCheckT::IsLocalized(dArrayT& normal)
 * R.A.Regueiro's SPINLOC.
 * 3d is a numerical search algorithm after Ortiz, et. al. (1987) */
 
+/*
 bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 							AutoArrayT <dArrayT> &slipdirs)
 {
   double dummy =1.0;
   return IsLocalized_SS( normals, slipdirs, dummy);
 }
+*/
 
 bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 							AutoArrayT <dArrayT> &slipdirs, double detA)
 {
+  cout << "in DetCheckT::IsLocalized_SS\n"; 
+
   int nsd =fs_jl.Rows();
 	dArrayT normal(nsd), slipdir(nsd);
 	dTensor4DT C(nsd, nsd, nsd, nsd);

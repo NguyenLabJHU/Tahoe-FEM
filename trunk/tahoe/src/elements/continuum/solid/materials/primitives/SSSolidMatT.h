@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.17 2005-01-31 07:09:14 paklein Exp $ */
+/* $Id: SSSolidMatT.h,v 1.18 2005-03-04 04:06:07 cfoster Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
@@ -76,6 +76,7 @@ public:
 	 * \param normal orientation of the localization if localized
 	 * \return true if the determinant of the acoustical tensor is negative
 	 * or fals if the determinant is positive. */
+	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double detA);
 	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
 
 protected:

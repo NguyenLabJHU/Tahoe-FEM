@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.h,v 1.23 2005-03-01 20:10:40 cfoster Exp $ */
+/* $Id: DetCheckT.h,v 1.24 2005-03-04 04:06:07 cfoster Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _DETCHECK_T_H_
@@ -53,7 +53,7 @@ public:
 	 * \return 1 if acoustic tensor isn't positive definite,
 	 * and returns the normal to the surface of localization.
 	 * returns 0, otherwise */
-	bool IsLocalized_SS(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
+	//	bool IsLocalized_SS(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
 	bool IsLocalized_SS(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double detA);
 	
 	/** set pointer to the calling element group */
