@@ -1,4 +1,4 @@
-/* $Id: ParameterT.h,v 1.8.2.1 2003-04-27 22:16:09 paklein Exp $ */
+/* $Id: ParameterT.h,v 1.8.2.2 2003-04-28 08:41:57 paklein Exp $ */
 #ifndef _PARAMETER_T_H_
 #define _PARAMETER_T_H_
 
@@ -21,6 +21,7 @@ public:
 	ParameterT(int a, const StringT& name);
 	ParameterT(double x, const StringT& name);
 	ParameterT(const StringT& s, const StringT& name);
+	ParameterT(bool b, const StringT& name);
 
 	/** set type without assigning value */
 	ParameterT(TypeT t, const StringT& name);
@@ -67,6 +68,7 @@ public:
 	ParameterT& operator=(int a);
 	ParameterT& operator=(double x);
 	ParameterT& operator=(const StringT& s);
+	ParameterT& operator=(bool b);
 	ParameterT& operator=(const ValueT& rhs);
 	ParameterT& operator=(const ParameterT& rhs);
 	/*@}*/
@@ -82,6 +84,7 @@ public:
 	void SetDefault(int a);
 	void SetDefault(double x);
 	void SetDefault(const StringT& s);
+	void SetDefault(bool b);
 
 	/** return a pointer to the default value or NULL if there isn't one */
 	const ValueT* Default(void) const { return fDefault; };
@@ -134,6 +137,10 @@ inline ParameterT& ParameterT::operator=(double x) {
 }
 inline ParameterT& ParameterT::operator=(const StringT& s) { 
 	ValueT::operator=(s); 
+	return *this;
+}
+inline ParameterT& ParameterT::operator=(bool b) { 
+	ValueT::operator=(b); 
 	return *this;
 }
 inline ParameterT& ParameterT::operator=(const ValueT& rhs) { 
