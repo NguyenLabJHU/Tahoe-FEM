@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.h,v 1.5 2001-11-28 22:05:45 paklein Exp $ */
+/* $Id: iConsoleT.h,v 1.6 2002-04-07 19:15:00 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_T_H_
@@ -62,8 +62,6 @@ class iConsoleT: public iConsoleBaseT
 	 * and variables */
 	void BuildDictionary(bool scope_only);
 
-private:
-
 	/* commands */
 	void ListCommand(ostream& out) const;
 	
@@ -73,41 +71,59 @@ private:
 	/* make an alias - returns false on fail */
 	bool MakeAlias(const StringT& alias, StringT& line);
 
-	/* manipulating the history stack */
+	/** \name command history
+	 * manipulating the history stack */
+	/*@{*/
 	void PushHistory(const StringT& line);
 	void PopHistory(void);
 	void TopHistory(StringT& line);
+	/*@}*/
+
+	/** pull the next command from the line. Commands are separated by ';',
+	 * but separators contained in quoted strings are ignored */
+	void NextCommand(const StringT& source, StringT& next) const;
 
 private:
 
-	/* log file */
+	/** log file */
 	ofstreamT flog;
 
-	/* parameters */
+	/** console variables */
+	/*@{*/
 	int fmax_recursion_depth;
 	int fhistory_size;
+	/*@}*/
 
-	/* current console object */
+	/** current console object */
+	/*@{*/
 	iConsoleObjectT* fCurrent;
 	iConsoleObjectT* fLastCurrent;
+	/*@}*/
 		
-	/* scope */
+	/** scope */
 	StringT fScope;
 	
-	/* runtime */
-	int frecursion_depth;
+	/** runtime */
+	/*@{*/
+	int  frecursion_depth;
+	bool fstop_read_on_error;
 	AutoArrayT<ifstreamT*> fInputStack;
 	AutoArrayT<StringT>    fDanglingInput;
+	int fHistoryCount;
 	AutoArrayT<StringT*>   fHistory;
-	
+	/*@}*/
 
-	/* dictionary */
+	/** dictionary */
+	/*@{*/
 	AutoArrayT<const StringT*> fWord;
 	AutoArrayT<CommandScope>   fWordScope;
-	
-	/* aliases */
+	/*@}*/
+
+	/** aliases */
+	/*@{*/
 	AutoArrayT<StringT> fAlias;
 	AutoArrayT<StringT> fAliasCommand;
+	/*@}*/
 };
 
 #endif /* _I_CONSOLE_T_H_ */

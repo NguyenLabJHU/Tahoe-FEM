@@ -1,4 +1,4 @@
-/* $Id: ArgSpecT.cpp,v 1.6 2002-02-27 16:47:14 paklein Exp $ */
+/* $Id: ArgSpecT.cpp,v 1.7 2002-04-07 19:14:59 paklein Exp $ */
 
 #include "ArgSpecT.h"
 #include <ctype.h>
@@ -60,6 +60,8 @@ void ArgSpecT::ClearDefault(void)
 		delete (double*) fDefault;
 	else if (fType == string_)
 		delete (StringT*) fDefault;
+	else if (fType == bool_)
+		delete (bool*) fDefault;
 	else {
 		cout << "\n ArgSpecT::ClearDefault: type mismatch" << endl;
 		throw eGeneralFail;
@@ -81,6 +83,8 @@ void ArgSpecT::ClearValue(void)
 		delete (double*) fValue;
 	else if (fType == string_)
 		delete (StringT*) fValue;
+	else if (fType == bool_)
+		delete (bool*) fValue;
 	else {
 		cout << "\n ArgSpecT::ClearValue: type mismatch" << endl;
 		throw eGeneralFail;
