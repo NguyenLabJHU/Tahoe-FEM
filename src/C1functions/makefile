@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.24 2003-04-25 20:01:39 dzeigle Exp $
+# $Id: makefile,v 1.25 2003-06-03 16:32:12 rjones Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -8,6 +8,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	MajumdarBhushan.o \
 	GreenwoodWilliamson.o \
+	GWPlastic.o \
+	PolyDistributionT.o \
 	ConHypGeom.o
 
 OBJ_LINK = $(OBJ)
@@ -20,12 +22,16 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	MajumdarBhushan.cpp \
 	GreenwoodWilliamson.cpp \
+	GWPlastic.cpp \
+	PolyDistributionT.cpp \
 	ConHypGeom.cpp
 
 # headers
 HDR = \
 	MajumdarBhushan.h \
 	GreenwoodWilliamson.h \
+	GWPlastic.h \
+	PolyDistributionT.h \
 	ConHypGeom.h
 
 HDR_LINK = $(HDR:.h=.h_link)

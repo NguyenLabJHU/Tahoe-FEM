@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.h,v 1.18 2003-05-12 22:01:29 dzeigle Exp $ */
+/* $Id: PenaltyContactElement2DT.h,v 1.19 2003-06-03 16:32:14 rjones Exp $ */
 // created by : rjones 2001
 #ifndef _PENALTY_CONTACT_ELEMENT_2D_T_H_
 #define _PENALTY_CONTACT_ELEMENT_2D_T_H_
@@ -36,6 +36,7 @@ class PenaltyContactElement2DT: public ContactElementT
 								kModSmithFerrante,
 								kGreenwoodWilliamson,
 								kMajumdarBhushan,
+								kGWPlastic,
 		kNumPenaltyTypes};
 	
 // material constants for the various penalty types
@@ -63,6 +64,14 @@ class PenaltyContactElement2DT: public ContactElementT
 								kAreaFraction
 						};
 	 	
+	enum GPParametersT {
+                                kMean=3,
+                                kStandardDeviation,
+                               	kDensity,
+                               	kRadius,
+                               	kModulus  
+						};
+
   protected:
 	/* look-up for symmetric matrix stored as a vector */
 	inline int LookUp (int s1,int s2,int n) 

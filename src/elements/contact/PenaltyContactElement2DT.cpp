@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.37 2003-05-22 22:56:17 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.38 2003-06-03 16:32:14 rjones Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -10,6 +10,7 @@
 #include "ModSmithFerrante.h"
 #include "GreenwoodWilliamson.h"
 #include "MajumdarBhushan.h"
+#include "GWPlastic.h"
 
 /* vector functions */
 #include "vector2D.h"
@@ -85,6 +86,21 @@ void PenaltyContactElement2DT::Initialize(void)
                                         = new MajumdarBhushan(mb_f,mb_s,mb_c);
 				}
 				break;
+			case PenaltyContactElement2DT::kGWPlastic:
+				{
+                /* parameters for cyclic formulation */
+                double gp_m = parameters[kMean];
+                double gp_s = parameters[kStandardDeviation];
+                double gp_dens = parameters[kDensity];
+                double gp_mod = parameters[kModulus];
+                double gp_rad = parameters[kRadius];
+                double material_coeff=(4.0/3.0)*gp_dens*gp_mod*sqrt(gp_rad);
+          		double area_coeff = PI*gp_dens*gp_rad;
+				parameters[kPenalty] *= material_coeff; // overwrite pen value
+				fPenaltyFunctions[LookUp(i,j,num_surfaces)]
+                                        = new GWPlastic(1.5,gp_m,gp_s);
+				}
+				break;
 			default:
 				throw ExceptionT::kBadInputValue;
 			}
@@ -148,7 +164,9 @@ void PenaltyContactElement2DT::PrintControlData(ostream& out) const
 				  << "     ModSmithFerrante    " 
 				  << PenaltyContactElement2DT::kModSmithFerrante << "\n"
 				  << "     GreenwoodWilliamson " 
-			      << PenaltyContactElement2DT::kGreenwoodWilliamson << "\n";
+			      << PenaltyContactElement2DT::kGreenwoodWilliamson << "\n"
+				  << "     GWPlastic           " 
+			      << PenaltyContactElement2DT::kGWPlastic           << "\n";
 			  out << "  penalty Type :         "
 					<< (int) enf_parameters[kPenaltyType] << '\n';
 			  switch ((int) enf_parameters[kPenaltyType]) 
@@ -185,6 +203,18 @@ void PenaltyContactElement2DT::PrintControlData(ostream& out) const
 					<< enf_parameters[kEPrime] << '\n';
 				out << "  Area Fraction                   : "
 					<< enf_parameters[kAreaFraction] << '\n';
+				break;	
+			  case kGWPlastic:
+				out << "  Average asperity height            : "
+					<< enf_parameters[kAsperityHeightMean] << '\n';
+				out << "  Asperity height standard deviation : "
+					<< enf_parameters[kAsperityHeightStandardDeviation] << '\n';
+				out << "  Asperity density                   : "
+					<< enf_parameters[kAsperityDensity] << '\n';
+				out << "  Asperity Radius                    : "
+					<< enf_parameters[kAsperityTipRadius] << '\n';
+				out << "  Hertzian Modulus                   : "
+					<< enf_parameters[kHertzianModulus] << '\n';
 				break;	
 			  default:
 				throw ExceptionT::kBadInputValue;
