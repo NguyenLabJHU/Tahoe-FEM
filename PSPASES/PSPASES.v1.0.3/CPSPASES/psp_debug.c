@@ -1,4 +1,4 @@
-/* $Id: psp_debug.c,v 1.8 2005-01-15 16:31:56 paklein Exp $ */
+/* $Id: psp_debug.c,v 1.9 2005-01-15 16:47:38 paklein Exp $ */
 #include <stdio.h>
 #include "pspases_f2c.h"
 #include "mpi.h"
@@ -145,9 +145,26 @@ int MPI_Waitall_d(int count, MPI_Request* request, MPI_Status* status)
 	/* call */	
 	ret = MPI_Waitall(count, request, status);
 
-	for (i = 0; i < count; i++)
-		printf("MPI_Waitall: status[%d]: status = %x, source = %d, tag = %d\n", i,
-			status+i, status[i].MPI_SOURCE, status[i].MPI_TAG);
+	if (ret == MPI_SUCCESS)
+		printf("MPI_Waitall: return = MPI_SUCCESS\n");
+	else
+		printf("MPI_Waitall: return = %d\n", ret);
+
+	for (i = 0; i < count; i++) {
+		printf("MPI_Waitall: status[%d]: status = %x", i, status+i);
+
+		if (status[i].MPI_SOURCE == MPI_ANY_SOURCE)
+			printf(", source = MPI_ANY_SOURCE");
+		else
+			printf(", source = %d", status[i].MPI_SOURCE);
+
+		if (status[i].MPI_TAG == MPI_ANY_TAG)
+			printf(", tag = MPI_ANY_TAG");
+		else
+			printf(", tag = %d", status[i].MPI_TAG);
+
+		printf(", error = %d\n", status[i].MPI_ERROR);
+	}
 	
 	return ret;
 }
