@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.6 2001-06-25 07:31:14 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.7 2001-07-02 21:56:32 paklein Exp $ */
 /* created: paklein (03/03/1997)                                          */
 
 #include "dSymMatrixT.h"
@@ -45,15 +45,6 @@ void dSymMatrixT::Set(int nsd, double* array)
 	/* inherited */
 	dArrayT::Set(NumValues(fNumSD), array);
 }
-
-//DEV - this is bad
-#if 0
-void dSymMatrixT::SetNSD(int nsd)
-{
-	fNumSD = nsd;
-	if (fNumSD < 1 && fNumSD > 3) throw eGeneralFail;
-}
-#endif
 
 /* accessor */
 double& dSymMatrixT::operator()(int row, int col) const
