@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.27 2005-03-06 04:02:35 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.28 2005-04-06 17:55:23 paklein Exp $ */
 #include "FS_SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -371,13 +371,13 @@ void FS_SCNIMFT::RHSDriver(void)
 		const double* acc;
 		int* nodes = fNodes.Pointer();
 		double* volume = fCellVolumes.Pointer();
+		double density = curr_material->Density();
 		for (int i = 0; i < nNodes; i++) {
 			acc = a(*nodes++);
 			for (int j = 0; j < nsd; j++)
-				*ma++ = *volume * *acc++;
+				*ma++ = density*(*volume)*(*acc++);
 			volume++;
 		}
-		fLHS *= curr_material->Density();
 	}
 
 	fForce = 0.0;

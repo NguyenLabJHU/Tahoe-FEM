@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.56 2005-03-01 08:26:29 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.57 2005-04-06 17:55:23 paklein Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -202,8 +202,10 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	fCellGeometry->SetNodesAndShapes(&fNodes, &fNodalCoordinates, fNodalShapes);
 	fCellGeometry->ComputeBMatrices(nodalCellSupports, bVectorArray, fCellVolumes, 
 									fCellCentroids, circumferential_B);	
-	
-	/** store shape functions at nodes */
+
+#pragma message("could convert cell volumes to axisymmetric here")
+
+	/* store shape functions at nodes */
 	int nNodes = fNodes.Length();
 	dArrayT nodalCoords;
 	const RaggedArray2DT<int>& nodeSupport = fNodalShapes->NodeNeighbors();
@@ -728,10 +730,9 @@ void SCNIMFT::AssembleParticleMass(const double rho)
 	for (int i = 0; i < fNodes.Length(); i++) {
 		double* m = fForce(*nodes++);
 		for (int j = 0; j < nsd; j++)
-			*m++ = *volume;
+			*m++ = *volume*rho;
 		volume++;
 	}
-	fForce *= rho;
 	
 	/* assemble all */
 	ElementSupport().AssembleLHS(Group(), fForce, Field().Equations());
@@ -740,6 +741,8 @@ void SCNIMFT::AssembleParticleMass(const double rho)
 /* contribution from natural BCs */
 void SCNIMFT::RHSDriver(void) 
 {
+	const char caller[] = "SCNIMFT::RHSDriver";
+
 	if (fTractionVectors.MajorDim()) {
 		int nsd = NumSD();
 		fForce = 0.;
@@ -767,6 +770,41 @@ void SCNIMFT::RHSDriver(void)
 		// fForce gets multiplied by constKd?
 
 		ElementSupport().AssembleRHS(Group(),fForce,Field().Equations());	
+	}
+
+	/* contribution from body force source */
+	bool body_force_source = false;
+	if (body_force_source) {
+
+		/* just one material for now */
+		ContinuumMaterialT *mat = (*fMaterialList)[0];
+		SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
+		if (!fCurrMaterial) ExceptionT::GeneralFail(caller, "cannot get material");
+
+		/* work space */	
+		int nsd = NumSD();
+		int nnd = fNodes.Length();
+		dArrayT bf_source(nsd);
+		bf_source = 0.0;
+
+		/* compute body force */
+		fForce = 0.0; /* [nNodes] x [nsd] */
+		double* f = fLHS.Pointer();
+		int* nodes = fNodes.Pointer();
+		double* volume = fCellVolumes.Pointer();
+		double density = fCurrMaterial->Density();
+		for (int i = 0; i < nnd; i++) {
+		
+			/* compute body force at node i */
+			//bf_source = ???
+		
+			for (int j = 0; j < nsd; j++)
+				*f++ = density*(*volume)*bf_source[j];
+			volume++;
+		}	
+
+		/* assemble */
+		ElementSupport().AssembleLHS(Group(), fForce, Field().Equations());
 	}
 }
 

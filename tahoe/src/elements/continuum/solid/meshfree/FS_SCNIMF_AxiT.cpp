@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.27 2005-03-06 04:02:35 cjkimme Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.28 2005-04-06 17:55:23 paklein Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 #include "ArrayT.h"
@@ -597,18 +597,16 @@ void FS_SCNIMF_AxiT::RHSDriver(void)
 		const dArray2DT& a = Field()(0,2); // accelerations
 		double* ma = fLHS.Pointer();
 		const double* acc;
-
 		int* nodes = fNodes.Pointer();
 		double* volume = fCellVolumes.Pointer();
+		double density = fCurrMaterial->Density();
 		for (int i = 0; i < nNodes; i++)
 		{
 			acc = a(*nodes++);
 			for (int j = 0; j < nsd; j++)
-				*ma++ = *volume * twoPi * fCellCentroids(i,0) * *acc++;
-
+				*ma++ = density*(*volume)*twoPi*fCellCentroids(i,0)*(*acc++);
 			volume++;
 		}
-		fLHS *= fCurrMaterial->Density();
 	}
 
 	fForce = 0.0;
