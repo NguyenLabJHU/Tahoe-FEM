@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.7.2.5 2001-10-28 23:54:06 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.7.2.6 2001-10-29 17:00:35 sawimme Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "ElementBaseT.h"
@@ -381,6 +381,9 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 	    /* increment element count */
 	    elem_count += num_elems;
 
+	    /* load connectivity from database into model manager */
+	    model->ReadConnectivity (indexes[b]);
+
 	    /* set pointer to connectivity list */
 	    fConnectivities [b] = model->ElementGroupPointer(indexes[b]);
 	  }
@@ -399,11 +402,10 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 	/* derived dimensions */	
 	fNumElemEqnos = fNumElemNodes*fNumDOF;
 	fEqnos.Allocate (num_blocks);
-	int count = 0;
 	for (int be=0; be < num_blocks; be++)
 	  {
-	    fEqnos[be].Allocate(fBlockData (be, kStartNum) - count, fNumElemEqnos);
-	    count = fBlockData (be, kStartNum);
+	    int numblockelems = fConnectivities[be]->MajorDim();
+	    fEqnos[be].Allocate(numblockelems, fNumElemEqnos);
 	  }
 
 	/* set pointers in element cards */
@@ -623,15 +625,15 @@ void ElementBaseT::SetElementCards(void)
 
 		for (int j = 0; j < dim; j++)
 		{
-			ElementCardT& element_card = fElementCards[count++];
+			ElementCardT& element_card = fElementCards[count];
 	
 			/* material number */
 			element_card.SetMaterialNumber(mat);
 
 			/* set pointers */
 			iArrayT& nodes = element_card.NodesX();
-			blockconn->RowAlias(dim, nodes);
-			blockeqnos.RowAlias(dim, element_card.Equations());
+			blockconn->RowAlias(count, nodes);
+			blockeqnos.RowAlias(count, element_card.Equations());
 			
 			/* check node numbers */
 			int min, max;
@@ -643,7 +645,9 @@ void ElementBaseT::SetElementCards(void)
 				cout <<   "     (" << j + 1 << " in block " <<  i + 1 << ") of group "
 				     << fFEManager.ElementGroupNumber(this) + 1 << " are out of range" << endl;
 				throw eBadInputValue;
-			}		
+			}
+
+			count ++; /* next element */
 		}
 	}
 }
