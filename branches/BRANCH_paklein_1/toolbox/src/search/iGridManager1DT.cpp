@@ -18,7 +18,7 @@ iGridManager1DT::iGridManager1DT(int nx, const dArray2DT& coords,
 void iGridManager1DT::Neighbors(int n, double tol, AutoArrayT<int>& neighbors)
 {
 	/* initialize */
-	neighbors.Allocate(0);
+	neighbors.Dimension(0);
 	
 	/* fetch prospective neighbors */
 	double* target = fCoords(n);
@@ -52,7 +52,7 @@ void iGridManager1DT::Neighbors(int n, const ArrayT<double>& tol_xy,
 	}
 
 	/* initialize */
-	neighbors.Allocate(0);
+	neighbors.Dimension(0);
 	
 	/* fetch prospective neighbors */
 	double* target = fCoords(n);

@@ -1,4 +1,4 @@
-/* $Id: GraphBaseT.cpp,v 1.8.2.1 2002-10-17 04:03:55 paklein Exp $ */
+/* $Id: GraphBaseT.cpp,v 1.8.2.2 2002-10-20 18:02:03 paklein Exp $ */
 /* created: paklein (04/13/1999) */
 
 #include "GraphBaseT.h"
@@ -68,7 +68,7 @@ void GraphBaseT::Partition(const iArrayT& config, const iArrayT& weight,
 	if (weight.Length() != fEdgeList.MajorDim()) throw ExceptionT::kSizeMismatch;
 
 	/* initialize partition map */
-	partition.Allocate(fEdgeList.MajorDim());
+	partition.Dimension(fEdgeList.MajorDim());
 	partition = 0;
 	
 	/* total number of partitions */
@@ -120,7 +120,7 @@ void GraphBaseT::Partition(const iArrayT& config, const iArrayT& weight,
 	
 	/* initialize partitions */
 	int curr_num_parts = graphs[depth-1]->NumNodes();
-	partition.Allocate(curr_num_parts);
+	partition.Dimension(curr_num_parts);
 	partition.SetValueToPosition();
 
 	/* header */
@@ -145,7 +145,7 @@ void GraphBaseT::Partition(const iArrayT& config, const iArrayT& weight,
 		
 		int dim = map.Length();
 		last_part_map.Swap(partition);
-		partition.Allocate(map.Length());
+		partition.Dimension(map.Length());
 	
 		/* propagate partitions out */
 		for (int j = 0; j < dim; j++)
@@ -211,7 +211,7 @@ void GraphBaseT::Partition_METIS(int num_partitions, const iArrayT& weight,
 	}
 
 	/* initialize partition map */
-	partition.Allocate(fEdgeList.MajorDim());
+	partition.Dimension(fEdgeList.MajorDim());
 	partition = 0;
 	if (num_partitions < 2) return;
 
@@ -412,7 +412,7 @@ void GraphBaseT::Contract(const GraphBaseT& parent, iArrayT& map)
 			parent.GetEdges(next, edges);
 				
 			/* get degrees for edges adjacent vertex */
-			degrees.Allocate(edges.Length());
+			degrees.Dimension(edges.Length());
 			parent.ReturnDegrees(edges, degrees);		
 		
 			/* mark edge to collapse */
@@ -428,7 +428,7 @@ void GraphBaseT::Contract(const GraphBaseT& parent, iArrayT& map)
 	}
 
 	/* generate map map[old_num] = new_num */
-	map.Allocate(dim);
+	map.Dimension(dim);
 	map = -1;
 	int dex = 0;
 	for (int j = 0; j < dim; j++) /* retained nodes */

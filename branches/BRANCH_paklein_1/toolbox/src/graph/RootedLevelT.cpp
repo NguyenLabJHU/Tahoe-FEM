@@ -1,4 +1,4 @@
-/* $Id: RootedLevelT.cpp,v 1.5.2.1 2002-10-17 04:03:56 paklein Exp $ */
+/* $Id: RootedLevelT.cpp,v 1.5.2.2 2002-10-20 18:02:03 paklein Exp $ */
 /* created: paklein (08/05/1996) */
 
 #include "RootedLevelT.h"
@@ -228,7 +228,7 @@ void RootedLevelT::NodesUsed(iArrayT& nodes_used) const
 			count++;
 	
 	/* allocate */
-	nodes_used.Allocate(count);
+	nodes_used.Dimension(count);
 	
 	/* collect */
 	count = 0;

@@ -1,4 +1,4 @@
-/* $Id: GridManager1DT.h,v 1.5.2.1 2002-10-17 04:10:10 paklein Exp $ */
+/* $Id: GridManager1DT.h,v 1.5.2.2 2002-10-20 18:02:07 paklein Exp $ */
 #ifndef _GRIDMANAGER1D_T_H_
 #define _GRIDMANAGER1D_T_H_
 
@@ -119,7 +119,7 @@ void GridManager1DT<sTYPE>::Reset(void)
 
 	for (int i = 0; i < fGrid.Length(); i++)
 	{
-		if (*pgrid) (*pgrid)->Allocate(0);
+		if (*pgrid) (*pgrid)->Dimension(0);
 		pgrid++;
 	}
 
@@ -194,7 +194,7 @@ void GridManager1DT<sTYPE>::Reset(const dArray2DT& coords,
 	fdx = (fxmax - fxmin)/fnx;
 
 	/* set grid parameters */
-	fGrid.Allocate(fnx);
+	fGrid.Dimension(fnx);
 }	
 
 /* insert data into the grid */
@@ -286,7 +286,7 @@ const AutoArrayT<sTYPE>& GridManager1DT<sTYPE>::
 {
   /* NOT FINISHED CHANGING YET! */
 	/* empty hit list */
-	fHits.Allocate(0);
+	fHits.Dimension(0);
 
 	/* grid indices */
 	int ixstart = int((coords[0] - fxmin - distance)/fdx);
@@ -314,7 +314,7 @@ const AutoArrayT<sTYPE>& GridManager1DT<sTYPE>::
 	HitsInRegion(double* coords, const ArrayT<double>& dist_x)
 {
 	/* empty hit list */
-	fHits.Allocate(0);
+	fHits.Dimension(0);
 
 	/* grid indices */
 	int ixstart = int((coords[0] - fxmin - dist_x[0])/fdx);

@@ -1,4 +1,4 @@
-/* $Id: iPeriodicGrid3DT.cpp,v 1.3 2002-07-02 19:57:24 cjkimme Exp $ */
+/* $Id: iPeriodicGrid3DT.cpp,v 1.3.2.1 2002-10-20 18:02:07 paklein Exp $ */
 /* created: paklein (12/18/1997)                                          */
 
 #include "iPeriodicGrid3DT.h"
@@ -22,7 +22,7 @@ iPeriodicGrid3DT::iPeriodicGrid3DT(int nx, int ny, int nz,
 int iPeriodicGrid3DT::PeriodicNeighbors(int n, double tol, iArrayT& neighbors)
 {
 	/* initialize */
-	fSortedHits.Allocate(0);
+	fSortedHits.Dimension(0);
 	int skiptag = n;
 
 	double h_x = fPeriodicity[0];

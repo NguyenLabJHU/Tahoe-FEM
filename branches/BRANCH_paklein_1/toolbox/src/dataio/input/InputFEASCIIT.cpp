@@ -1,4 +1,4 @@
-/* $Id: InputFEASCIIT.cpp,v 1.17.2.1 2002-10-17 03:59:16 paklein Exp $ */
+/* $Id: InputFEASCIIT.cpp,v 1.17.2.2 2002-10-20 18:02:00 paklein Exp $ */
 
 #include "InputFEASCIIT.h"
 
@@ -327,14 +327,14 @@ void InputFEASCIIT::ReadGeometryCode (const StringT& name, GeometryT::CodeT& geo
 
 void InputFEASCIIT::ReadTimeSteps (dArrayT& steps) 
 {
-	steps.Allocate(fTimeSteps.Length());
+	steps.Dimension(fTimeSteps.Length());
 	fTimeSteps.CopyInto(steps);
 }
 
 void InputFEASCIIT::ReadNodeLabels (ArrayT<StringT>& nlabels) const
 {
 	/* allocate */
-	nlabels.Allocate(NumNodeVariables());
+	nlabels.Dimension(NumNodeVariables());
 
 	/* copy */
 	for (int i=0; i < nlabels.Length(); i++)
@@ -344,7 +344,7 @@ void InputFEASCIIT::ReadNodeLabels (ArrayT<StringT>& nlabels) const
 void InputFEASCIIT::ReadElementLabels (ArrayT<StringT>& elabels) const
 {
 	/* allocate */
-	elabels.Allocate(NumElementVariables());
+	elabels.Dimension(NumElementVariables());
 
 	/* copy */
   	for (int i=0; i < elabels.Length(); i++)
@@ -755,7 +755,7 @@ void InputFEASCIIT::DataBlock (ifstreamT& in, iArrayT& used, iArrayT& ids, dArra
       /* bad patch - DataBlock used to read nodal output values as well
        * as nodal coordinates, which assume you have at least as many
        * output values as spatial dimensions */
-      if (used.Length() < vars.Length()) used.Allocate(vars.Length());
+      if (used.Length() < vars.Length()) used.Dimension(vars.Length());
     }
   else
     {
@@ -808,5 +808,5 @@ void InputFEASCIIT::DataBlock (ifstreamT& in, iArrayT& used, iArrayT& ids, dArra
 			in >> *pv++;
 		}
 	}
-	else ids.Allocate(0);
+	else ids.Dimension(0);
 }

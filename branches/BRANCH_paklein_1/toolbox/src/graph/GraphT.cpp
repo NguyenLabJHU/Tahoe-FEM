@@ -1,4 +1,4 @@
-/* $Id: GraphT.cpp,v 1.8.2.1 2002-10-17 04:03:56 paklein Exp $ */
+/* $Id: GraphT.cpp,v 1.8.2.2 2002-10-20 18:02:03 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "GraphT.h"
@@ -389,17 +389,17 @@ void GraphT::UnconnectedNodes(iArrayT& nodes) const
 	{
 		/* collect */
 		AutoArrayT<int> stray;
-		stray.Allocate(0);
+		stray.Dimension(0);
 		for (int i = 0; i < fEdgeList.MajorDim(); i++)
 			if (fEdgeList.MinorDim(i) == 0)
 				stray.Append(i + fShift);
 	
 		/* set return value */
-		nodes.Allocate(stray.Length());
+		nodes.Dimension(stray.Length());
 		stray.CopyInto(nodes);
 	}
 	else
-		nodes.Allocate(0);
+		nodes.Dimension(0);
 }
 
 /* label nodes by branch of graph */
@@ -418,7 +418,7 @@ void GraphT::LabelBranches(const iArrayT& nodes, iArrayT& branch_map)
 	
 	/* surface set data */
 	iArrayT level_nodes;
-	branch_map.Allocate(nodes.Max() + 1);
+	branch_map.Dimension(nodes.Max() + 1);
 	branch_map = -1;
 	int branch = 0;
 	for (int i = 0; i < nodes.Length(); i++)
@@ -489,7 +489,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 	
 	/* resolve internal/boundary nodes */
 	if (verbose) cout << " GraphT::Partition: classifying nodes" << endl;
-	partition.Allocate(config.Sum());
+	partition.Dimension(config.Sum());
 	for (int i = 0; i < partition.Length(); i++)
 		partition[i].Set(partition.Length(), i, part_map, *this);
 		
@@ -556,7 +556,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 	
 	/* resolve internal/boundary nodes */
 	if (verbose) cout << " GraphT::Partition: classifying nodes" << endl;
-	partition.Allocate(config.Sum());
+	partition.Dimension(config.Sum());
 	for (int i = 0; i < partition.Length(); i++)
 		partition[i].Set(partition.Length(), i, part_map, node_graph);
 		
@@ -622,7 +622,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 	
 	/* resolve internal/boundary nodes */
 	if (verbose) cout << " GraphT::Partition: classifying nodes" << endl;
-	partition.Allocate(config.Sum());
+	partition.Dimension(config.Sum());
 	for (int i = 0; i < partition.Length(); i++)
 		partition[i].Set(partition.Length(), i, part_map, connects_1, connects_2);
 		

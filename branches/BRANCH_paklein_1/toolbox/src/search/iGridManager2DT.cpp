@@ -1,4 +1,4 @@
-/* $Id: iGridManager2DT.cpp,v 1.3.2.1 2002-10-17 04:10:10 paklein Exp $ */
+/* $Id: iGridManager2DT.cpp,v 1.3.2.2 2002-10-20 18:02:07 paklein Exp $ */
 /* created: paklein (12/09/1997)                                          */
 /* iNodeT grid                                                            */
 
@@ -23,7 +23,7 @@ iGridManager2DT::iGridManager2DT(int nx, int ny, const dArray2DT& coords,
 void iGridManager2DT::Neighbors(int n, double tol, AutoArrayT<int>& neighbors)
 {
 	/* initialize */
-	neighbors.Allocate(0);
+	neighbors.Dimension(0);
 	
 	/* fetch prospective neighbors */
 	double* target = fCoords(n);
@@ -58,7 +58,7 @@ void iGridManager2DT::Neighbors(int n, const ArrayT<double>& tol_xy,
 	}
 
 	/* initialize */
-	neighbors.Allocate(0);
+	neighbors.Dimension(0);
 	
 	/* fetch prospective neighbors */
 	double* target = fCoords(n);

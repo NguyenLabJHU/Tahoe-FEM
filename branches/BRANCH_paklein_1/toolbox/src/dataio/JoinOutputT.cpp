@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.13.2.1 2002-10-17 03:53:36 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.13.2.2 2002-10-20 18:01:58 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 #include "JoinOutputT.h"
 
@@ -95,7 +95,7 @@ void JoinOutputT::Join(void)
 		if (output_set.BlockID().Length() == 0 && output_set.NumElementValues() > 0) //outdated - this should not occur
 			cout << "\n JoinOutputT::Join: skipping element output\n" << endl;
 		else
-			all_e_values.Allocate(output_set.NumElements(), output_set.NumElementValues());
+			all_e_values.Dimension(output_set.NumElements(), output_set.NumElementValues());
 
 		/* non-empty output */
 		if (all_n_values.Length() > 0 || all_e_values.Length() > 0)
@@ -312,7 +312,7 @@ void JoinOutputT::SetOutput(void)
 				
 					/* part geometry */
 					if (block_ID.Length() == 0) {
-						block_ID.Allocate(1);
+						block_ID.Dimension(1);
 						block_ID[0] = results.ElementGroupID(0);
 						geometry_code = results.ElementGroupGeometry(block_ID[0]);
 					}
@@ -431,7 +431,7 @@ void JoinOutputT::SetMaps(void)
 	int num_sets  = element_sets.Length();
 
 	/* global to set maps */
-	fMapSets.Allocate(num_sets);
+	fMapSets.Dimension(num_sets);
 	iArrayT shift(num_sets);
 	ArrayT<iArrayT> inv_global(num_sets);
 	for (int i = 0; i < num_sets; i++)
@@ -449,7 +449,7 @@ void JoinOutputT::SetMaps(void)
 		MapSetT& map_set = fMapSets[i];
 		int n_sets = (output_set.NumNodeValues()    > 0) ? num_parts : 0;
 		int e_sets = (output_set.NumElementValues() > 0) ? num_parts : 0;
-		map_set.Allocate(n_sets, e_sets);
+		map_set.Dimension(n_sets, e_sets);
 	}
 
 	/* resident partition for each node */
@@ -533,7 +533,7 @@ void JoinOutputT::SetMaps(void)
 						num_elems += fPartitions[n].ElementMap(block_ID[j]).Length();
 						
 					/* allocate map */
-					element_map.Allocate(num_elems);
+					element_map.Dimension(num_elems);
 					element_map = -1;
 					
 					/* fill map */
@@ -561,7 +561,7 @@ void JoinOutputT::SetMaps(void)
 void JoinOutputT::SetNodePartitionMap(iArrayT& node_partition)
 {
 	/* initialize */
-	node_partition.Allocate(fModel->NumNodes());
+	node_partition.Dimension(fModel->NumNodes());
 	node_partition = -1;
 	
 	for (int i = 0; i < fPartitions.Length(); i++)
@@ -613,7 +613,7 @@ void JoinOutputT::SetInverseMap(const iArrayT& global, iArrayT& inv_global,
 		int range = max - shift + 1;
 
 		/* determine (all) used nodes */
-		inv_global.Allocate(range);
+		inv_global.Dimension(range);
 		inv_global = fill;
 		for (int i = 0; i < global.Length(); i++)
 			inv_global[global[i] - shift] = i;
@@ -631,7 +631,7 @@ void JoinOutputT::PartitionSetNodes(int partition, const iArrayT& node_part_map,
 		if (node_part_map[set_nodes[i]] == partition) count++;
 
 	/* allocate return space */
-	nodes.Allocate(count);
+	nodes.Dimension(count);
 	
 	/* copy in */
 	count = 0;
@@ -654,7 +654,7 @@ void JoinOutputT::SetAssemblyMap(const iArrayT& inv_global, int shift, const iAr
 {
 	/* set map */
 	int n_map = local.Length();
-	lg_map.Allocate(n_map);
+	lg_map.Dimension(n_map);
 	int dex = 0;
 	int*  p = local.Pointer();
 	for (int j = 0; j < n_map; j++)

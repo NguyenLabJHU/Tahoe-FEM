@@ -1,4 +1,4 @@
-/* $Id: FrontT.cpp,v 1.3.2.1 2002-10-17 04:00:18 paklein Exp $ */
+/* $Id: FrontT.cpp,v 1.3.2.2 2002-10-20 18:02:01 paklein Exp $ */
 /* created: paklein (02/11/2000)                                          */
 
 #include "FrontT.h"
@@ -36,7 +36,7 @@ FrontT::~FrontT(void)
 		delete fFrontNodes[j];
 
 	/* empty lists */
-	fFrontNodes.Allocate(0);
+	fFrontNodes.Dimension(0);
 }
 
 

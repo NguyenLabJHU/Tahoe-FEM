@@ -1,4 +1,4 @@
-/* $Id: CMReLabellerT.cpp,v 1.2.2.1 2002-10-17 04:03:55 paklein Exp $ */
+/* $Id: CMReLabellerT.cpp,v 1.2.2.2 2002-10-20 18:02:03 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "CMReLabellerT.h"
@@ -136,9 +136,9 @@ void CMReLabellerT::Initialize(void)
 	int numnodes = fGraph.NumNodes();
 
 	/* allocate space */
-	fSequence.Allocate(numnodes);
-	fStatus.Allocate(numnodes);
-	fPriority.Allocate(numnodes);
+	fSequence.Dimension(numnodes);
+	fStatus.Dimension(numnodes);
+	fPriority.Dimension(numnodes);
 
 	/* initialize */
 	fSequence =-1;
@@ -230,7 +230,7 @@ void CMReLabellerT::SelectNodes(void)
 
 		/* collect top level info */
 		fRootedLevel.NodesOnLevel(topnodes, h_max - 1);
-		degrees.Allocate(topnodes.Length()); //really want to Allocate() every time?
+		degrees.Dimension(topnodes.Length()); //really want to Dimension() every time?
 		fGraph.ReturnDegrees(topnodes, degrees);
 		
 		/* order and halve */
@@ -375,7 +375,7 @@ void CMReLabellerT::CMSequence(void)
 		Liactive = active_tmp;
 		
 		// array carrying ordering of Liactive
-		Liordered.Allocate(0);
+		Liordered.Dimension(0);
 		
 		// loop through nodes of level i-1
 		for(int j = 0; j < widthiminus1; j++)

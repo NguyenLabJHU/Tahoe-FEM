@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.cpp,v 1.4.2.1 2002-10-17 04:08:58 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.4.2.2 2002-10-20 18:02:06 paklein Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionT.h"
 #include <iostream.h>
@@ -212,7 +212,7 @@ double CommunicatorT::Sum(double a) const
 void CommunicatorT::Gather(int a, ArrayT<int>& gather) const
 {
 	/* allocate */
-	gather.Allocate(Size());
+	gather.Dimension(Size());
 	gather[Rank()] = a;
 
 #ifdef __MPI__
@@ -259,7 +259,7 @@ void CommunicatorT::Barrier(void) const
 void CommunicatorT::AllGather(int a, ArrayT<int>& gather) const
 {
 	/* allocate */
-	gather.Allocate(Size());
+	gather.Dimension(Size());
 	gather[Rank()] = a;
 
 #ifdef __MPI__

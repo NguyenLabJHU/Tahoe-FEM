@@ -1,4 +1,4 @@
-/* $Id: TetrahedronT.cpp,v 1.2.2.1 2002-10-17 01:37:48 paklein Exp $ */
+/* $Id: TetrahedronT.cpp,v 1.2.2.2 2002-10-20 18:02:02 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "TetrahedronT.h"
@@ -238,7 +238,7 @@ void TetrahedronT::NumNodesOnFacets(iArrayT& num_nodes) const
 		throw ExceptionT::kGeneralFail;
 	}
 
-	num_nodes.Allocate(4);
+	num_nodes.Dimension(4);
 	if (fNumNodes == 4)
 		num_nodes = 3;
 	else
@@ -267,10 +267,10 @@ void TetrahedronT::FacetGeometry(ArrayT<CodeT>& facet_geom, iArrayT& facet_nodes
 		throw ExceptionT::kGeneralFail;
 	}
 
-	facet_geom.Allocate(fNumFacets);
+	facet_geom.Dimension(fNumFacets);
 	facet_geom = kTriangle;
 	
-	facet_nodes.Allocate(fNumFacets);
+	facet_nodes.Dimension(fNumFacets);
 	if (fNumNodes == 4)
 		facet_nodes = 3;
 	else

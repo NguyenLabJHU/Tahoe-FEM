@@ -1,4 +1,4 @@
-/* $Id: Front3DT.cpp,v 1.2.2.1 2002-10-17 04:00:16 paklein Exp $ */
+/* $Id: Front3DT.cpp,v 1.2.2.2 2002-10-20 18:02:01 paklein Exp $ */
 /* created: paklein (03/18/1999)                                          */
 
 #include "Front3DT.h"
@@ -45,7 +45,7 @@ Front3DT::~Front3DT(void)
 		delete fFrontLines[i];
 
 	/* empty list */
-	fFrontLines.Allocate(0);		
+	fFrontLines.Dimension(0);		
 }
 
 /* construct initial front */

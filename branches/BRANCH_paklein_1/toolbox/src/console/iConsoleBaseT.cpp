@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.cpp,v 1.13.2.1 2002-10-17 01:54:45 paklein Exp $ */
+/* $Id: iConsoleBaseT.cpp,v 1.13.2.2 2002-10-20 18:01:57 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleBaseT.h"
@@ -657,10 +657,10 @@ bool iConsoleBaseT::AddVariables(const iConsoleBaseT& source)
 /* remove all variables */
 void iConsoleBaseT::DeleteVariables(void)
 {
-	fVariables.Allocate(0);
-	fVariableTypes.Allocate(0);
-	fVariableValues.Allocate(0);
-	fVariableIsConst.Allocate(0);
+	fVariables.Dimension(0);
+	fVariableTypes.Dimension(0);
+	fVariableValues.Dimension(0);
+	fVariableIsConst.Dimension(0);
 }
 
 /************************************************************************
