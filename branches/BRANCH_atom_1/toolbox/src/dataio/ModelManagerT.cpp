@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.30.2.2 2002-12-10 17:05:04 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.30.2.3 2003-01-09 09:29:57 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -19,7 +19,8 @@ const bool ArrayT<ModelManagerT::SideSetScopeT>::fByteCopy = true;
 ModelManagerT::ModelManagerT (ostream& message):
 	fMessage(message),
 	fCoordinateDimensions (2),
-	fInput(NULL)
+	fInput(NULL),
+	fCoordinates_man(fCoordinates)
 {
   fCoordinateDimensions = -1;
 }
@@ -159,7 +160,7 @@ bool ModelManagerT::RegisterNodes (ifstreamT& in)
   ifstreamT& in2 = OpenExternal (in, tmp, fMessage, true, "ModelManagerT::RegisterNodes(ifstreamT): count not open file");
 
   in2 >> fCoordinateDimensions[0] >> fCoordinateDimensions[1];
-  fCoordinates.Dimension(fCoordinateDimensions[0], fCoordinateDimensions[1]);
+  fCoordinates_man.Dimension(fCoordinateDimensions[0], fCoordinateDimensions[1]);
   fCoordinates.ReadNumbered (in2);
   return true;
 }
@@ -167,16 +168,18 @@ bool ModelManagerT::RegisterNodes (ifstreamT& in)
 bool ModelManagerT::RegisterNodes(dArray2DT& coords, bool keep)
 {
 	if (!keep || !coords.IsAllocated())
+	{
+		fCoordinates_man.Dimension(coords);
 		fCoordinates = coords;
+	}
 	else
 	{
-		fCoordinates.Swap(coords);
+		fCoordinates_man.Swap(coords);
 		coords.Alias(fCoordinates);
 	}
 	
 	fCoordinateDimensions[0] = fCoordinates.MajorDim();
 	fCoordinateDimensions[1] = fCoordinates.MinorDim();
-
 	return true;
 }
 
@@ -508,16 +511,16 @@ void ModelManagerT::ReadCoordinates(void)
 		if (fFormat == IOBaseT::kTahoe)
 		{
 			if (fCoordinates.Length() == 0)
-			{
-				cout << "\n ModelManagerT::Coordinates, coords not registered yet" << endl;
-				throw ExceptionT::kGeneralFail;
-			}
+				ExceptionT::GeneralFail("ModelManagerT::ReadCoordinates", "coords not registered yet");
 			else
 				return; // do nothing, already loaded
 		}
-	
-		fCoordinates.Dimension(fCoordinateDimensions[0], fCoordinateDimensions[1]); 
-		Input("ReadCoordinates").ReadCoordinates (fCoordinates);
+		
+		/* dimension */
+		fCoordinates_man.Dimension(fCoordinateDimensions[0], fCoordinateDimensions[1]); 
+
+		/* read from input */
+		Input("ReadCoordinates").ReadCoordinates(fCoordinates);
 	}
 }
 
@@ -1263,8 +1266,8 @@ void ModelManagerT::AddNodes (const dArray2DT& newcoords, iArrayT& new_node_tags
   fCoordinateDimensions[0] += newnodes;
   numnodes = fCoordinateDimensions[0];
 
-  /* reallocate */
-  fCoordinates.Resize (fCoordinateDimensions[0]);
+  /* resize and copy in */
+  fCoordinates_man.SetMajorDimension(fCoordinateDimensions[0], true);
 
   /* copy in */
   double *pc = newcoords.Pointer();
@@ -1285,12 +1288,30 @@ void ModelManagerT::DuplicateNodes (const iArrayT& nodes, iArrayT& new_node_tags
   fCoordinateDimensions[0] += newnodes;
   numnodes = fCoordinateDimensions[0];
 
-  /* reallocate */
-  fCoordinates.Resize (fCoordinateDimensions[0]);
+  /* resize and copy in */
+  fCoordinates_man.SetMajorDimension(fCoordinateDimensions[0], true);
 
   /* copy in */
   for (int i=0; i < nodes.Length(); i++)
     fCoordinates.CopyRowFromRow (new_node_tags[i], nodes[i]);
+}
+
+void ModelManagerT::ResizeNodes(int num_nodes)
+{
+	/* resize and copy in */
+	fCoordinates_man.SetMajorDimension(num_nodes, true);
+	fCoordinateDimensions[0] = num_nodes;
+}
+
+void ModelManagerT::UpdateNodes (const dArray2DT& coordinates, const ArrayT<int>& nodes)
+{
+	/* dimension check */
+	if (coordinates.MajorDim() != nodes.Length() ||
+	    coordinates.MinorDim() != fCoordinates.MinorDim()) ExceptionT::SizeMismatch();
+
+	/* copy in */
+  	for (int i = 0; i < nodes.Length(); i++)
+		fCoordinates.SetRow(nodes[i], coordinates(i));
 }
 
 void ModelManagerT::AdjustCoordinatesto2D (void)

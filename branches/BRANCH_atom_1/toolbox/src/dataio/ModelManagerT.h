@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.24.2.1 2002-12-05 21:46:13 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.24.2.2 2003-01-09 09:29:58 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -12,6 +12,7 @@
 #include "iArray2DT.h"
 #include "dArray2DT.h"
 #include "InputBaseT.h"
+#include "nVariArray2DT.h"
 
 #include "ios_fwd_decl.h"
 
@@ -338,6 +339,10 @@ class ModelManagerT
 	 * \param newtotalnumnodes returned number of nodes after adding */
 	void DuplicateNodes (const iArrayT& nodes, iArrayT& new_node_tags, int& newtotalnumnodes);
 
+	/** resize the coordinate array. Excess values at the tail of the coordinate list are
+	 * discarded. Additional space added to the array is not initialized */
+	void ResizeNodes(int num_nodes);
+
 	/** adjust the DOF of the coordinate array from 3D to 2D by dropping the 3rd coordiante value */
 	void AdjustCoordinatesto2D (void);
 
@@ -350,6 +355,9 @@ class ModelManagerT
 
 	/** replace the coordinate list */
 	void UpdateNodes(dArray2DT& coordinates, bool keep) { RegisterNodes(coordinates, keep); };
+
+	/** overwrite the given the coordinates */
+	void UpdateNodes(const dArray2DT& coordinates, const ArrayT<int>& nodes);
 
 	/** call this function if the connectivity group/block/set is altered and replacement is needed
 	 * the number of elements and element nodes is updated
@@ -636,13 +644,16 @@ class ModelManagerT
   AutoArrayT<GeometryT::CodeT> fElementCodes; /** element group geometry codes */
   /*@}*/	
 
-  /** model data */
+  /** \name model data */
   /*@{*/	
   dArray2DT fCoordinates; /**< coordinates */
   AutoArrayT<iArray2DT*> fElementSets; /**< connectivities */ 
   AutoArrayT<iArrayT*> fNodeSets; /**< node sets */
   AutoArrayT<iArray2DT*> fSideSets; /**< side sets */
-  /*@}*/	
+  /*@}*/
+  
+  /** memory manager for the coordinate array */
+  nVariArray2DT<double> fCoordinates_man;
 };
 
 /* return a reference to the input class */
