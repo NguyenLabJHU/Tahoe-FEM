@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.cpp,v 1.3 2001-08-03 19:16:43 sawimme Exp $ */
+/* $Id: EnSightInputT.cpp,v 1.4 2001-08-07 23:11:54 paklein Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #include "EnSightInputT.h"
@@ -173,7 +173,6 @@ void EnSightInputT::ReadAllElementMap (iArrayT& elemmap)
   
   if (elemmapgiven)
     {
-      int num_nodes, numelems, numelemnodes;
       iArray2DT connects;
       iArrayT elementmap;
       GeometryT::CodeT geocode;

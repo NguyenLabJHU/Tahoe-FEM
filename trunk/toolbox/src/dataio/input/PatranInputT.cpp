@@ -1,3 +1,4 @@
+/* $Id: PatranInputT.cpp,v 1.2 2001-08-07 23:11:54 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "PatranInputT.h"
@@ -175,24 +176,30 @@ void PatranInputT::ReadNodeSet (StringT& name, iArrayT& nodes)
 
 int PatranInputT::NumSidesInSet (StringT& anme)
 {
+#pragma unused(anme)
   cout << "\n\n PatranInputT::Not programmed to read side sets\n\n";
   return 0;
 }
 
 int PatranInputT::SideSetGroupIndex (StringT& name)
 {
+#pragma unused(name)
   cout << "\n\n PatranInputT::Not programmed to read side sets\n\n";
   return 0;
 }
 
 void PatranInputT::ReadSideSetLocal (StringT& name, iArray2DT& sides)
 {
+#pragma unused(name)
+#pragma unused(sides)
   cout << "\n\n PatranInputT::Not programmed to read side sets\n\n";
   throw eGeneralFail;
 }
 
 void PatranInputT::ReadSideSetGlobal (StringT& name, iArray2DT& sides)
 {
+#pragma unused(name)
+#pragma unused(sides)
   cout << "\n\n PatranInputT::Not programmed to read side sets\n\n";
   throw eGeneralFail;
 }

@@ -1,3 +1,4 @@
+/* $Id: ModelManagerT.cpp,v 1.2 2001-08-07 23:11:52 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -336,6 +337,9 @@ void ModelManagerT::SideSetLocalToGlobal (const int localelemindex, const iArray
 
 void ModelManagerT::SideSetGlobalToLocal (int& localelemindex, iArray2DT& local, const iArray2DT& global)
 {
+#pragma unused(localelemindex)
+#pragma unused(local)
+#pragma unused(global)
   cout << "\n\n ModelManagerT not programmed SideSetGlobalToLocal\n\n";
   throw eGeneralFail;
 }
