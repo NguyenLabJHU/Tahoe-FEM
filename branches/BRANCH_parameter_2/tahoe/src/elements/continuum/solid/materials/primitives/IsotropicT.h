@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.h,v 1.7.16.2 2004-03-02 17:46:22 paklein Exp $ */
+/* $Id: IsotropicT.h,v 1.7.16.3 2004-03-24 19:52:52 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #ifndef _ISOTROPIC_T_H_
 #define _ISOTROPIC_T_H_
@@ -46,10 +46,6 @@ public:
 	/*@{*/
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-		SubListT& sub_sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
