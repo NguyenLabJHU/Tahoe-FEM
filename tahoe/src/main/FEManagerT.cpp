@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.17 2001-08-27 17:16:49 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.18 2001-11-28 22:08:45 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -17,6 +17,8 @@
 #include "ElementBaseT.h"
 #include "IOManager.h"
 #include "OutputSetT.h"
+#include "CommandSpecT.h"
+#include "ArgSpecT.h"
 
 /* nodes */
 #include "NodeManagerT.h"
@@ -88,9 +90,18 @@ FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output):
 	iAddVariable("restart_inc", fWriteRestart);
 	
 	/* console commands */
-	iAddCommand("ReadRestart");
-	iAddCommand("WriteRestart");
-	iAddCommand("WriteOutput");
+	ArgSpecT rs_file(ArgSpecT::string_);
+	rs_file.SetPrompt("restart file");
+
+	CommandSpecT read_rs("ReadRestart");
+	read_rs.AddArgument(rs_file);
+	iAddCommand(read_rs);
+
+	CommandSpecT write_rs("WriteRestart");
+	write_rs.AddArgument(rs_file);
+	iAddCommand(write_rs);
+	
+	iAddCommand(CommandSpecT("WriteOutput"));
 }
 
 /* destructor */
@@ -827,33 +838,23 @@ void FEManagerT::WriteSystemConfig(ostream& out) const
 }
 
 /* interactive */
-bool FEManagerT::iDoCommand(const StringT& command, StringT& line)
+bool FEManagerT::iDoCommand(const CommandSpecT& command, StringT& line)
 {
 	try
 	{
-		if (command == "ReadRestart")
+		if (command.Name() == "ReadRestart")
 		{
 			StringT file_name;
-			if (ResolveArgument(line, file_name, NULL))
-				ReadRestart(&file_name);
-			else
-			{
-				cout << "could not resolve file name from \"" << line
-				     << '\"'<< endl;
-			}
+			command.Argument(0).GetValue(file_name);
+			ReadRestart(&file_name);
 		}
-		else if (command == "WriteRestart")
+		else if (command.Name() == "WriteRestart")
 		{
 			StringT file_name;
-			if (ResolveArgument(line, file_name, NULL))
-				WriteRestart(&file_name);
-			else
-			{
-				cout << "could not resolve file name from \"" << line
-				     << '\"'<< endl;
-			}
+			command.Argument(0).GetValue(file_name);
+			WriteRestart(&file_name);
 		}
-		else if (command == "WriteOutput")
+		else if (command.Name() == "WriteOutput")
 		{
 			WriteOutput(Time(), IOBaseT::kAtInc);			
 		}

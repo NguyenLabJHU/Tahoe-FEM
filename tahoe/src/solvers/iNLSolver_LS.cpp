@@ -1,5 +1,5 @@
-/* $Id: iNLSolver_LS.cpp,v 1.3 2001-07-03 01:35:54 paklein Exp $ */
-/* created: paklein (01/01/2001)                                          */
+/* $Id: iNLSolver_LS.cpp,v 1.4 2001-11-28 22:08:46 paklein Exp $ */
+/* created: paklein (01/01/2001) */
 
 #include "iNLSolver_LS.h"
 
@@ -11,6 +11,8 @@
 #include "ExceptionCodes.h"
 #include "FEManagerT.h"
 #include "iConsoleT.h"
+#include "CommandSpecT.h"
+#include "ArgSpecT.h"
 
 /* matrix types */
 #include "CCSMatrixT.h"
@@ -27,12 +29,24 @@ iNLSolver_LS::iNLSolver_LS(FEManagerT& fe_manager):
 	iAddVariable("line_search", fLineSearch);
 
 	/* add console commands */
-	iAddCommand("ResetStep");
-	iAddCommand("Iterate");
-	iAddCommand("FormResidual");
-	iAddCommand("InitStep");
-	iAddCommand("Step");
-	iAddCommand("PivotInfo");
+	iAddCommand(CommandSpecT("ResetStep"));
+	iAddCommand(CommandSpecT("FormResidual"));
+	iAddCommand(CommandSpecT("PivotInfo"));
+	iAddCommand(CommandSpecT("InitStep"));
+
+	CommandSpecT iterate("Iterate");
+	ArgSpecT num_its(ArgSpecT::int_);
+	num_its.SetPrompt("number of iterations");
+	num_its.SetDefault(1);
+	iterate.AddArgument(num_its);
+	iAddCommand(iterate);
+
+	CommandSpecT step("Step");
+	ArgSpecT num_steps(ArgSpecT::int_);
+	num_steps.SetPrompt("number of steps");
+	num_steps.SetDefault(1);
+	step.AddArgument(num_steps);
+	iAddCommand(step);
 }
 
 /* interactive */
@@ -52,52 +66,45 @@ void iNLSolver_LS::Run(void)
 	/* finish time sequence */
 	const int step_number = fFEManager.StepNumber();
 	const int number_of_steps = fFEManager.NumberOfSteps();
-	StringT arg;
-	arg.Append("(", number_of_steps - step_number);
-	arg.Append(")");
-	iDoCommand("Step", arg);
+	
+	/* get the command spec */
+	CommandSpecT* step_command = Command("Step");
+	if (!step_command) throw eGeneralFail;
+	step_command->Argument(0).SetValue(number_of_steps - step_number);
+	
+	/* execute */
+	StringT line;
+	iDoCommand(*step_command, line);
 }
 
 /* console commands */
-bool iNLSolver_LS::iDoCommand(const StringT& command, StringT& line)
+bool iNLSolver_LS::iDoCommand(const CommandSpecT& command, StringT& line)
 {
 	try
 	{
-		if (command == "Step")
+		if (command.Name() == "Step")
 		{
 			/* resolve number of steps */
-			int num_steps = 1;
-			if (line[0] == '(' &&
-			    !ResolveArgument(line, num_steps, &num_steps))
-			{
-				cout << "could not resolve integer argument from: \""
-				     << line << '\"' << endl;
-				return false;
-			}
-			
+			int num_steps;
+			command.Argument(0).GetValue(num_steps);
+
 			/* run steps */
 			return DoStep(num_steps);
 		}
-		else if (command == "InitStep")
+		else if (command.Name() == "InitStep")
 			return DoInitStep();
-		else if (command == "Iterate")
+		else if (command.Name() == "Iterate")
 		{
 			/* resolve argument */
-			int num_iterations = 1;
-			if (line[0] == '(' &&
-			   !ResolveArgument(line, num_iterations, &num_iterations))
-			{
-				cout << "could not resolve integer argument from: \""
-				     << line << '\"' << endl;
-				return false;
-			}
+			int num_iterations;
+			command.Argument(0).GetValue(num_iterations);
 			
 			/* message */
 			if (DoIterate(num_iterations) == kFail)
 				cout << "warning: iterations ended with FAIL" << endl;
 			return true;
 		}
-		else if (command == "FormResidual")
+		else if (command.Name() == "FormResidual")
 		{
 			/* compute new residual */
 			fRHS = 0.0;
@@ -105,7 +112,7 @@ bool iNLSolver_LS::iDoCommand(const StringT& command, StringT& line)
 			cout << "residual norm = " << fRHS.Magnitude() << endl;
 			return true;
 		}
-		else if (command == "ResetStep")
+		else if (command.Name() == "ResetStep")
 		{
 			/* step back to last converged */
 			fFEManager.ResetStep();
@@ -113,7 +120,7 @@ bool iNLSolver_LS::iDoCommand(const StringT& command, StringT& line)
 			/* initialize step */
 			return DoInitStep();
 		}
-		else if (command == "PivotInfo")
+		else if (command.Name() == "PivotInfo")
 		{
 #ifdef __NO_RTTI__
 			cout << "command not available: requires RTTI" << endl;
@@ -194,7 +201,7 @@ bool iNLSolver_LS::DoStep(int max_steps)
 		}
 		
 		/* finished command */
-		if (count == max_steps)
+		if (count == max_steps + 1)
 			return true;
 		else
 			return false;

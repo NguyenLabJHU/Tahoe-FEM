@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.5 2001-05-30 23:27:02 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.6 2001-11-28 22:08:45 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #ifndef _FE_MANAGER_H_
@@ -204,7 +204,7 @@ public:
 	virtual int Size(void) const { return 1; }
 
 	/* interactive */
-	virtual bool iDoCommand(const StringT& command, StringT& line);
+	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
 
 protected:
 
