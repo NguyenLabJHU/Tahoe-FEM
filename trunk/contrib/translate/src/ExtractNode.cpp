@@ -37,8 +37,8 @@ void ExtractNode::TranslateVariables (void)
 {
   PrepFiles (fNVUsed, fNodeLabels);
 
-  int numnodes, numdims;
-  fModel.CoordinateDimensions (numnodes, numdims);
+  int numnodes = fModel.NumNodes();
+  int numdims = fModel.NumDimensions();
   fCoordinates = fModel.Coordinates ();
 
   fVarData.Allocate (numnodes, fNumNV);

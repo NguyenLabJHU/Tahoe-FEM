@@ -1,5 +1,6 @@
-
+/* $Id: PointPlots.cpp,v 1.10 2002-10-26 00:09:41 paklein Exp $ */
 #include "PointPlots.h"
+#include "ExceptionCodes.h"
 #include "TecPlotT.h"
 #include "AVST.h"
 #include <stdio.h>

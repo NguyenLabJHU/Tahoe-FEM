@@ -1,5 +1,6 @@
-/* $Id: MergeResults.cpp,v 1.4 2002-09-12 17:51:39 paklein Exp $  */
+/* $Id: MergeResults.cpp,v 1.5 2002-10-26 00:09:41 paklein Exp $ */
 #include "MergeResults.h"
+#include "ExceptionCodes.h"
 #include "OutputSetT.h"
 
 using namespace Tahoe;
