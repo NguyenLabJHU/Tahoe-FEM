@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.cpp,v 1.11 2002-12-13 02:42:56 paklein Exp $ */
+/* $Id: iNLSolver_LS.cpp,v 1.11.2.1 2003-02-15 02:38:16 paklein Exp $ */
 /* created: paklein (01/01/2001) */
 
 #include "iNLSolver_LS.h"
@@ -278,8 +278,8 @@ NLSolver::SolutionStatusT iNLSolver_LS::DoIterate(int max_count)
 			int count = 0;
 			while (fIterationStatus == kContinue && count++ < max_count)
 			{
-				bool form_tangent = (fNumIteration == 0) ? true : fFormTangent;
-				double error = SolveAndForm(form_tangent, false);
+				fLHS_update = (fNumIteration == 0) ? true : fFormTangent;
+				double error = SolveAndForm();
 				fIterationStatus = ExitIteration(error);
 			}
 		
