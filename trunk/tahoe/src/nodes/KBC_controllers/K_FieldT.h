@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.h,v 1.7 2003-08-18 03:45:17 paklein Exp $ */
+/* $Id: K_FieldT.h,v 1.8 2004-01-05 07:12:44 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #ifndef _K_FIELD_T_H_
@@ -24,6 +24,13 @@ class Material2DT;
 class K_FieldT: public KBC_ControllerT
 {
 public:
+
+	/** tip tracking methods. Define how the crack tip is determined from the
+	 * nodal values returned by the crack tip tracking group set by K_FieldT::fNearTipGroupNum */
+	enum TrackingCodeT {
+		 kMaximum = 0, /**< location of the maximum value */
+	   kThreshold = 1  /**< location of the first value exceeding a threshold */
+	};
 
 	/* constructor */
 	K_FieldT(NodeManagerT& node_manager);
@@ -76,24 +83,46 @@ protected:
 	
 protected:
 
-	/* K-field specifications */
+	/** \name K-field specifications */
+	/*@{*/
 	int    fnumLTf1;
 	double fK1;
 	int    fnumLTf2;
 	double fK2;
+	/*@}*/
 
-	/* crack tip coordinates */
+	/** crack tip coordinates */
 	dArrayT fInitTipCoords;
 	
-	/* crack extension parameters */
+	/** crack extension parameters */
 	dArrayT fGrowthDirection;
 
-	/* near tip group */
-	int    fNearTipGroupNum;   // -1: no nearfield group
-	int    fNearTipOutputCode; // variable to locate crack tip
-	int    fTipColumnNum;      // column of output variable to locate tip
+	/** \name crack tip tracking parameters */
+	/*@{*/
+	/** near tip group or -1 to disable any tracking */
+	int fNearTipGroupNum;
+	
+	/** nodal output code from tip group used to locate crack tip */
+	int    fNearTipOutputCode;
+
+	/** value within the output variables to locate tip */
+	int    fTipColumnNum;
+
+	/** tip tracking method */
+	TrackingCodeT fTrackingCode;
+
+	/** data used for tip tracking */
+	dArrayT fTrackingParameters;
+	/*@}*/
+
+	/** \name crack extension limiters */
+	/*@{*/
+	/** total extension during a single time increment */
 	double fMaxGrowthDistance;
-	int    fMaxGrowthSteps;
+
+	/** maximum number of relaxation steps within a single time increment */
+	int fMaxGrowthSteps;
+	/*@}*/
 		
 	/* BC nodes */
 	int     fFarFieldGroupNum;

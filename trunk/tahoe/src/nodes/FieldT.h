@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.17 2003-12-28 09:39:49 paklein Exp $ */
+/* $Id: FieldT.h,v 1.18 2004-01-05 07:12:36 paklein Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -168,7 +168,7 @@ public:
 	void CloseStep(void);
 
 	/** reset displacements (and configuration to the last known solution) */
-	void ResetStep(void);
+	GlobalT::RelaxCodeT ResetStep(void);
 
 	/** \name equation numbers
 	 * FieldT assumes equation numbers will be assigned by the host. The array can be 
