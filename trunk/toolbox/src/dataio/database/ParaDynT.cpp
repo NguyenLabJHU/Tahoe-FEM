@@ -1,4 +1,4 @@
-/* $Id: ParaDynT.cpp,v 1.7 2003-10-27 19:50:45 paklein Exp $ */
+/* $Id: ParaDynT.cpp,v 1.8 2003-11-04 01:21:10 paklein Exp $ */
 #include "ParaDynT.h"
 
 #include <ctype.h>
@@ -16,7 +16,7 @@ using namespace Tahoe;
 
 /* array behavior */
 namespace Tahoe  {
-template<> const bool ArrayT<ParaDynT::VariableTypeT>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<ParaDynT::VariableTypeT>::fByteCopy = true;
 } /* namespace Tahoe */
 
 ParaDynT::ParaDynT (ostream& out) : fOut (out)

@@ -1,4 +1,4 @@
-/* $Id: GeometryT.cpp,v 1.4 2003-10-27 19:50:53 paklein Exp $ */
+/* $Id: GeometryT.cpp,v 1.5 2003-11-04 01:21:18 paklein Exp $ */
 /* created: paklein (10/10/1999) */
 #include "GeometryT.h"
 
@@ -17,7 +17,7 @@
 using namespace Tahoe;
 
 namespace Tahoe {
-template<> const bool ArrayT<GeometryT::CodeT>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<GeometryT::CodeT>::fByteCopy = true;
 } /* namespace Tahoe */
 
 namespace Tahoe { 

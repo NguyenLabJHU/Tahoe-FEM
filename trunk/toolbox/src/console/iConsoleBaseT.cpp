@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.cpp,v 1.15 2003-10-27 19:50:41 paklein Exp $ */
+/* $Id: iConsoleBaseT.cpp,v 1.16 2003-11-04 01:21:05 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 #include "iConsoleBaseT.h"
 #include "CommandSpecT.h"
@@ -16,7 +16,7 @@ using namespace Tahoe;
 
 /* array behavior */
 namespace Tahoe {
-template<> const bool ArrayT<iConsoleBaseT::VariableType>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<iConsoleBaseT::VariableType>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* constructor */

@@ -1,4 +1,4 @@
-/* $Id: FrontNodeT.cpp,v 1.7 2003-10-27 19:50:49 paklein Exp $ */
+/* $Id: FrontNodeT.cpp,v 1.8 2003-11-04 01:21:14 paklein Exp $ */
 /* created: paklein (03/19/1999) */
 #include "FrontNodeT.h"
 
@@ -30,7 +30,7 @@ inline static void Normalize(double* A)
 
 /* array behavior */
 namespace Tahoe {
-template<> const bool ArrayT<FrontNodeT*>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<FrontNodeT*>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* constructor */

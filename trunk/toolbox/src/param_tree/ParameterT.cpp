@@ -1,9 +1,9 @@
-/* $Id: ParameterT.cpp,v 1.10 2003-10-27 19:50:59 paklein Exp $ */
+/* $Id: ParameterT.cpp,v 1.11 2003-11-04 01:21:25 paklein Exp $ */
 #include "ParameterT.h"
 
 /* array behavior */
 namespace Tahoe {
-template<> const bool ArrayT<ParameterT>::fByteCopy = false;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<ParameterT>::fByteCopy = false;
 }
 
 using namespace Tahoe;

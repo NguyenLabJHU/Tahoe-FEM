@@ -1,4 +1,4 @@
-/* $Id: ComplexT.cpp,v 1.14 2003-10-27 19:50:35 paklein Exp $ */
+/* $Id: ComplexT.cpp,v 1.15 2003-11-04 01:20:57 paklein Exp $ */
 /* created: PAK/AFLP (05/19/1997) */
 #include "ComplexT.h"
 
@@ -12,7 +12,7 @@ using namespace Tahoe;
 
 /* array behavior */
 namespace Tahoe {
-template<> const bool ArrayT<ComplexT>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<ComplexT>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /*

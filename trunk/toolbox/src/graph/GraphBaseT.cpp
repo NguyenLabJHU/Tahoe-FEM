@@ -1,4 +1,4 @@
-/* $Id: GraphBaseT.cpp,v 1.12 2003-10-27 19:50:55 paklein Exp $ */
+/* $Id: GraphBaseT.cpp,v 1.13 2003-11-04 01:21:20 paklein Exp $ */
 /* created: paklein (04/13/1999) */
 #include "GraphBaseT.h"
 
@@ -24,7 +24,7 @@ static inline int rnd(double number) { return int((2.0*number + 1.0)/2); }
 
 /* array behavior */
 namespace Tahoe {
-template<> const bool ArrayT<GraphBaseT*>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<GraphBaseT*>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* constructor */

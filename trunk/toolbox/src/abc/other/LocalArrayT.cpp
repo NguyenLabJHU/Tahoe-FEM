@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.cpp,v 1.15 2003-10-27 19:50:39 paklein Exp $ */
+/* $Id: LocalArrayT.cpp,v 1.16 2003-11-04 01:21:01 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 #include "LocalArrayT.h"
 #include "dArray2DT.h"
@@ -8,7 +8,7 @@ using namespace Tahoe;
 
 namespace Tahoe {
 /* array behavior */
-template<> const bool ArrayT<LocalArrayT::TypeT>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<LocalArrayT::TypeT>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* cconstructors */

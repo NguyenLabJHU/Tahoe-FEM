@@ -1,4 +1,4 @@
-/* $Id: FrontSegmentT.cpp,v 1.6 2003-10-27 19:50:49 paklein Exp $ */
+/* $Id: FrontSegmentT.cpp,v 1.7 2003-11-04 01:21:14 paklein Exp $ */
 /* created: paklein (03/19/1999) */
 #include "FrontSegmentT.h"
 #include "ArrayT.h"
@@ -25,7 +25,7 @@ inline static void Normalize(double* A)
 
 /* array behavior */
 namespace Tahoe {
-template<> const bool ArrayT<FrontSegmentT*>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<FrontSegmentT*>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* constructor */
