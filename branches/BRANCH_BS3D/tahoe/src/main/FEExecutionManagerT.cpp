@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.55.2.1 2004-02-02 05:49:08 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.55.2.2 2004-02-02 16:29:09 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -696,7 +696,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	int order3 = 2;
 	double dissipation = 0.0;
 	dArray2DT field_at_ghosts, totalu, fubig, fu, projectedu, boundghostdisp, boundghostvel, boundghostacc;
-	dArray2DT thkforce, gaussdisp;
+	dArray2DT thkforce, gaussdisp, thkdisp, totaldisp;
 	dSPMatrixT ntf;
 	iArrayT activefenodes;
 	StringT bridging_field = "displacement";
@@ -794,10 +794,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		badisp.RowCollect(batoms, boundghostdisp);
 		bavel.RowCollect(batoms, boundghostvel);
 		baacc.RowCollect(batoms, boundghostacc);
-	
-		/* Write interpolated FEM values at MD ghost nodes into MD field - displacement only */
-		atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);
-		
+			
+		/* Removed atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp); here */	
+			
 		if (nsd == 2)
 		{
 			/* store initial MD boundary displacement histories */
@@ -806,8 +805,8 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		}
 		else
 		{
-			/* implement 3D disp/disp THK formulation here */
-		
+			/* thkdisp = fine scale part of ghost atom displacement */
+			thkdisp = atoms.THKDisp(badisp);
 		}
 		
 		/* figure out timestep ratio between fem and md simulations */
@@ -832,22 +831,27 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				/* update FEM solution interpolated at boundary atoms and ghost atoms assuming 
 				constant acceleration - because of constant acceleration assumption, predictor and 
 				corrector are combined into one function */
-				bdisplast = badisp;
 				atoms.BAPredictAndCorrect(mddt, badisp, bavel, baacc);
 				atoms.BAPredictAndCorrect(mddt, gadisp, gavel, gaacc);
-				
-				/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
-				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);				
-				
+							
 				if (nsd == 2)
 				{
+					/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
+					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);	
+				
 					/* calculate THK force on boundary atoms, update displacement histories */
 					thkforce = atoms.THKForce(badisp);  // SetExternalForce set via pointer
 				}
 				else
 				{
-					/* implement 3D disp/disp THK stuff here */
+					/* calculate fine scale part of MD ghost atom displacements */
+					thkdisp = atoms.THKDisp(badisp);
 				
+					/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
+					totaldisp = gadisp;
+					totaldisp += thkdisp;
+					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, totaldisp);
+					/* rows of gadisp and thkdisp may need to be reordered to add same quantities for each atom */	
 				}
 																			
 				/* solve MD equations of motion */
@@ -906,9 +910,6 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			bavel.RowCollect(batoms, boundghostvel);
 			baacc.RowCollect(batoms, boundghostacc);
 			
-			/* Write interpolated FEM values at MD ghost nodes into MD field - displacement only */
-			//atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);
-
 			/* close fe step */
 			if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
                         
