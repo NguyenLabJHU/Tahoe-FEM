@@ -1,4 +1,4 @@
-// $Id: FEA_FormatT.cpp,v 1.24 2003-10-12 23:47:48 raregue Exp $
+// $Id: FEA_FormatT.cpp,v 1.25 2003-10-28 01:52:53 raregue Exp $
 #include "FEA_FormatT.h"
 
 using namespace Tahoe;
@@ -16,6 +16,21 @@ void FEA_FormatT::Shapes	(ShapeFunctionT *fShapes, FEA_ShapeFunctionT &FEA_Shape
 	}
 
 }
+
+//---------------------------------------------------------------------
+
+void FEA_FormatT::Shapes	(ShapeFunctionT &fShapes, FEA_ShapeFunctionT &FEA_Shapes )
+{
+	FEA_Shapes.j = fShapes.IPDets(); 		// IPDets() returns double*
+	FEA_Shapes.W = fShapes.IPWeights(); 	// IPWeights() returns double*
+	
+	for	(int l=0; l<fShapes.NumIP(); l++) {
+		fShapes.SetIP(l);
+		fShapes.GradNa		( FEA_Shapes.dNdx[l] 	); 
+	}
+
+}
+
 
 //---------------------------------------------------------------------
 
@@ -110,6 +125,22 @@ void FEA_FormatT::Na	(int n_en, ShapeFunctionT *fShapes, FEA_ShapeFunctionT &FEA
 
 //---------------------------------------------------------------------
 
+void FEA_FormatT::Na	(int n_en, ShapeFunctionT &fShapes, FEA_ShapeFunctionT &FEA_Shapes )
+{
+	int a,l,n_ip = fShapes.NumIP();
+	FEA_Shapes.N.FEA_Dimension ( n_ip, n_en );
+
+	for	(l=0; l<n_ip; l++) {
+		fShapes.SetIP(l);
+		const double *fN = fShapes.IPShapeU();
+		for (a=0; a<n_en; a++) 
+			FEA_Shapes.N[l][a] = fN[a]; 
+	}
+}
+
+
+//---------------------------------------------------------------------
+
 void FEA_FormatT::Interpolate (	ShapeFunctionT *fShapes,LocalArrayT &gammap_np1,LocalArrayT &gammap_n, 
 								FEA_dVectorT &Fgammap_np1, FEA_dVectorT &Fgammap_n)
 {
@@ -119,6 +150,19 @@ void FEA_FormatT::Interpolate (	ShapeFunctionT *fShapes,LocalArrayT &gammap_np1,
 		fShapes->InterpolateU 	( gammap_np1, 	Fgammap_np1[l], l );
 	}
 }
+
+//---------------------------------------------------------------------
+
+void FEA_FormatT::Interpolate (	ShapeFunctionT &fShapes,LocalArrayT &gammap_np1,LocalArrayT &gammap_n, 
+								FEA_dVectorT &Fgammap_np1, FEA_dVectorT &Fgammap_n)
+{
+	for	(int l=0; l<fShapes.NumIP(); l++) {
+		fShapes.SetIP(l);
+		fShapes.InterpolateU	( gammap_n, 	Fgammap_n[l], 	l );
+		fShapes.InterpolateU 	( gammap_np1, 	Fgammap_np1[l], l );
+	}
+}
+
 
 //not used
 void FEA_FormatT::State	( int n_ip, int num_state, dArrayT& fState, FEA_dVectorT& state )
@@ -173,6 +217,19 @@ void FEA_FormatT::Gradients (	ShapeFunctionT *fShapes,LocalArrayT &u_np1,LocalAr
 		fShapes->SetIP(l);
 		fShapes->GradU	( u_n, 		GRAD_u_n[l], 	l );
 		fShapes->GradU 	( u_np1, 	GRAD_u_np1[l], l );
+	}
+}
+
+
+//---------------------------------------------------------------------
+
+void FEA_FormatT::Gradients (	ShapeFunctionT &fShapes,LocalArrayT &u_np1,LocalArrayT &u_n, 
+								FEA_dMatrixT &GRAD_u_np1, FEA_dMatrixT &GRAD_u_n)
+{
+	for	(int l=0; l<fShapes.NumIP(); l++) {
+		fShapes.SetIP(l);
+		fShapes.GradU	( u_n, 		GRAD_u_n[l], 	l );
+		fShapes.GradU 	( u_np1, 	GRAD_u_np1[l], l );
 	}
 }
 
