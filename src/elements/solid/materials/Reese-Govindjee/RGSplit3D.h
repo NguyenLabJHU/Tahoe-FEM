@@ -59,8 +59,6 @@ class RGSplit3D: public RGBaseT
 	dSymMatrixT fb;
 	dArrayT     fEigs;
 	dArrayT     fEigs_e;
-	dArrayT     fEigs_bar;
-	dArrayT     fEigs_ebar;
 	dArrayT	    ftau_EQ;
 	dSymMatrixT fDtauDe_EQ;
 	dArrayT     ftau_NEQ;
@@ -68,10 +66,6 @@ class RGSplit3D: public RGBaseT
 	dMatrixT    fModMat;
   	dMatrixT    fiKAB;
 	
-	/*jacobian of F*/
-	double fJ;
-	double fJe;
-
   	/*viscosities*/
 	double fietaS;
 	double fietaB;

@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.cpp,v 1.1 2003-03-19 19:00:57 thao Exp $ */
+/* $Id: RGVIB2D.cpp,v 1.2 2003-03-22 00:40:53 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include <math.h>
@@ -189,8 +189,7 @@ const dMatrixT& RGVIB2D::c_ijkl(void)
  
         /* shear terms */ 
         const ArrayT<dArrayT>& eigenvectors=fSpectralDecompSpat.Eigenvectors(); 
-        const ArrayT<dArrayT>& eigenvectors2=fSpectralDecompRef.Eigenvectors(); 
-        double dlamb, coeff; 
+	double dlamb, coeff; 
 	double sig1 = fsigA_E[0]+fsigA_I[0]; 
 	double sig2 = fsigA_E[1]+fsigA_I[1]; 
 	
@@ -203,7 +202,7 @@ const dMatrixT& RGVIB2D::c_ijkl(void)
 	  coeff = (sig1*lamb2 - sig2*lamb1)/dlamb; 
 	else 
 	  coeff = 0.5*(gamAB_E(0,0) - gamAB_E(0,1) +  
-		       gamAB_I(0,0) - gamAB_I(0,1));           
+		       gamAB_I(0,0) - gamAB_I(0,1))-sig1;           
 	MixedRank4_2D(eigenvectors[0], eigenvectors[1], fModMat); 
 	fModulus.AddScaled(2.0*coeff, fModMat); 
 	
@@ -229,24 +228,29 @@ const dSymMatrixT& RGVIB2D::s_ij(void)
 	  { 
                 double Jvn = sqrt(fC_vn.Det());
 
-		/*A value of 1.2 is currently hardwired for the cut-off of Jv 
-		  for finite viscosity. The cut is abrupt and no "step down"
+		/*A value of 1.21 is currently hardwired for the cut-off of Jv 
+		  for finite viscosity. The cutoff is abrupt and no "step down"
                   procedure is implemented.  Eventually the cut-off should be
                   moved to the viscosity function*/
 
-                if (Jvn < 1.2) 
+                if (Jvn < 1.21) 
 		  { 
-                    const dMatrixT& F = F_mechanical(); 
-                    dSymMatrixT b_tr(NumSD()); 
                     dSymMatrixT iCvn = fC_vn; 
                     iCvn.Inverse(); 
+
                     /*calculate trial state;*/ 
+		    SpectralDecompT SpectralDecompTrial(NumSD());
+                    dSymMatrixT b_tr(NumSD()); 
+
+                    const dMatrixT& F = F_mechanical(); 
                     b_tr.MultQBQT(F,iCvn); 
-                    fSpectralDecompSpat.SpectralDecomp_Jacobi(b_tr, false);      
+                    SpectralDecompTrial.SpectralDecomp_Jacobi(b_tr, false);      
                     /*set initial value of elastic principal stretches  
                      * to trial values*/ 
-                    fEigs_e = fSpectralDecompSpat.Eigenvalues(); 
+                    fEigs_e = SpectralDecompTrial.Eigenvalues(); 
+
                     ComputeEigs_e(fEigs, fEigs_e, fsigA_I, fdtauAdepB_I); 
+
                     /*update viscuous stretch tensor*/ 
                     Compute_C(fC_v); 
                     fSpectralDecompRef.SpectralDecomp_Jacobi(fC_v,false); 
@@ -272,7 +276,6 @@ const dSymMatrixT& RGVIB2D::s_ij(void)
         sigA(fEigs_e, fsigA_I, Inelastic); 
         sigA(fEigs, fsigA_E, Elastic); 
  
-        fSpectralDecompSpat.SpectralDecomp_Jacobi(fb, false);    
         fStress = fSpectralDecompSpat.EigsToRank2(fsigA_E); 
         fStress += fSpectralDecompSpat.EigsToRank2(fsigA_I); 
  
@@ -519,7 +522,11 @@ void RGVIB2D::Calgorithm(const dArrayT& eigenstretch, dArrayT& eigenstress,
 
 	dMatrixT DAB(2);
 	DAB.MultAB(fiKAB,GAB);
-	Calg.MultSymAB(eigenmodulus,DAB);
+	//	Calg.MultSymAB(eigenmodulus,DAB);
+	Calg(0,0) = DAB(0,0)*fiKAB(0,0)+DAB(0,1)*fiKAB(1,0);
+	Calg(1,0) = DAB(1,0)*fiKAB(0,0)+DAB(1,1)*fiKAB(1,0);
+	Calg(0,1) = DAB(0,0)*fiKAB(0,1)+DAB(0,1)*fiKAB(1,1);
+	Calg(1,1) = DAB(1,0)*fiKAB(0,1)+DAB(1,1)*fiKAB(1,1);
 }
 
 void RGVIB2D::ComputeEigs_e(const dArrayT& eigenstretch, 

@@ -1,10 +1,9 @@
-/* $Id: OgdenBaseT.cpp,v 1.1 2003-03-21 06:29:09 thao Exp $ */
+/* $Id: OgdenBaseT.cpp,v 1.2 2003-03-22 00:40:51 thao Exp $ */
 /* created: paklein (10/01/2000) */
 #include "OgdenBaseT.h"
 
 #include <iostream.h>
 #include <math.h>
-#include <iomanip.h>
 
 using namespace Tahoe;
 
@@ -20,9 +19,7 @@ OgdenBaseT::OgdenBaseT(ifstreamT& in, const FSMatSupportT& support):
 	fModMat(dSymMatrixT::NumValues(NumSD())),
 	fModulus(dSymMatrixT::NumValues(NumSD())),
 	fStress(NumSD())
-{
-  cout.precision(15);
-}
+{}
 
 void OgdenBaseT::Print(ostream& out) const
 {
@@ -101,6 +98,7 @@ const dMatrixT& OgdenBaseT::c_ijkl(void)
 	/* shear terms */
       	const ArrayT<dArrayT>& eigenvectors = fSpectralDecomp.Eigenvectors();
 	double diff_stretch, dtde;
+	double small = 10e-12;
 
        	if (NumSD() == 2)
 	{
@@ -109,7 +107,7 @@ const dMatrixT& OgdenBaseT::c_ijkl(void)
 	  
 	  diff_stretch = l0-l1;
 	  
-	  if (fabs(diff_stretch) > kSmall)
+	  if (fabs(diff_stretch) > small)
 	    dtde = (fdWdE[0]*l1 - fdWdE[1]*l0)/diff_stretch;
 	  else
 	    dtde = 0.5*(fddWddE(0,0) - fddWddE(0,1));
@@ -123,26 +121,26 @@ const dMatrixT& OgdenBaseT::c_ijkl(void)
 	  double& l2 = eigenstretch[2];
 	  
 	  diff_stretch =  l0 - l1;
-	  if (fabs(diff_stretch) > kSmall)
+	  if (fabs(diff_stretch) > small)
 	    dtde = (fdWdE[0]*l1 - fdWdE[1]*l0)/diff_stretch;
 	  else
-	    dtde = 0.5*(fddWddE(0,0) - fddWddE(0,1));
+	    dtde = 0.5*(fddWddE(0,0) - fddWddE(0,1))-fdWdE[0];
 	  MixedRank4_3D(eigenvectors[0], eigenvectors[1], fModMat);
 	  fModulus.AddScaled(2.0*dtde, fModMat);
 	  
 	  diff_stretch = l0 - l2;
-	  if (fabs(diff_stretch) > kSmall)
+	  if (fabs(diff_stretch) > small)
 	    dtde = (fdWdE[0]*l2 - fdWdE[2]*l0)/diff_stretch;
 	  else
-	    dtde = 0.5*(fddWddE(0,0) - fddWddE(0,2));
+	    dtde = 0.5*(fddWddE(0,0) - fddWddE(0,2))-fdWdE[2];
 	  MixedRank4_3D(eigenvectors[0], eigenvectors[2], fModMat);
 	  fModulus.AddScaled(2.0*dtde, fModMat);
 	  
 	  diff_stretch = l1 - l2;
-	  if (fabs(diff_stretch) > kSmall)
+	  if (fabs(diff_stretch) > small)
 	    dtde = (fdWdE[1]*l2 - fdWdE[2]*l1)/diff_stretch;
 	  else
-	    dtde = 0.5*(fddWddE(1,1) - fddWddE(1,2));
+	    dtde = 0.5*(fddWddE(1,1) - fddWddE(1,2))-fdWdE[1];;
 	  MixedRank4_3D(eigenvectors[1], eigenvectors[2], fModMat);
 	  fModulus.AddScaled(2.0*dtde, fModMat);
 	}
