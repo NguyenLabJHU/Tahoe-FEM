@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.h,v 1.12 2003-06-13 17:27:28 saubry Exp $ */
+/* $Id: BoxT.h,v 1.13 2003-07-21 15:27:58 fwdelri Exp $ */
 
 #ifndef _BOX_T_H_
 #define _BOX_T_H_
@@ -25,9 +25,9 @@ class BoxT : public VolumeT
   
   //Constructor
   BoxT(int dim, dArray2DT len, dArrayT lattice_parameter,
-       iArrayT which_sort);
+       iArrayT which_sort, StringT slt);
   BoxT(int dim, iArrayT cel, dArrayT lattice_parameter,
-       iArrayT which_sort);
+       iArrayT which_sort, StringT slt);
   
   //Destructor
   ~BoxT(){};
@@ -46,8 +46,8 @@ class BoxT : public VolumeT
  private:
 
     dArray2DT ComputeMinMax(); 
-    int RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat);
-    int RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat);
+    int RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,iArrayT* temp_type,int temp_nat);
+    int RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,iArrayT* temp_type,int temp_nat);
 
 };
 

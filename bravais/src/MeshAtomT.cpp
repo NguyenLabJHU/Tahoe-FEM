@@ -48,13 +48,15 @@ MeshAtomT::MeshAtomT(StringT which_latticetype,int nsd,int nuca,
     {
       throw eBadInputValue;
     }
+
+  StringT slt = Crystal->GetSLATTYPE();
   
   if(which_shape == "BOX")
     {
       if(whichunit==1) 
-	Shape = new BoxT(nsd,len,latticeparameter,isort);
+	Shape = new BoxT(nsd,len,latticeparameter,isort,slt);
       else
-	Shape = new BoxT(nsd,cel,latticeparameter,isort);
+	Shape = new BoxT(nsd,cel,latticeparameter,isort,slt);
     }
   else if(which_shape == "ASPERITY")
     {

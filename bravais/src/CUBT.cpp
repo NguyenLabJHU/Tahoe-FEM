@@ -20,6 +20,9 @@ CUBT::CUBT(int nlsd,int nuca,dArrayT alat,
   for (int i=0; i<nlsd; i++) 
     vLatticeParameters[i] = alat[i];
 
+  // Define lattice type
+  sLATTYPE = "CUB";
+
   if (nlsd==2)
     {
       if(nuca != 1) {cout << "Wrong nuca\n"; throw eSizeMismatch;}
@@ -88,6 +91,9 @@ CUBT::CUBT(const CUBT& source) : CrystalLatticeT(source.nLSD,source.nUCA,
  
   for (int i=0; i<source.nLSD; i++) 
     vLatticeParameters[i] = source.vLatticeParameters[i];
+
+  for (int i=0; i<source.nUCA; i++) 
+    vType[i] = source.vType[i];
 
 }
 

@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: VolumeT.cpp,v 1.9 2003-06-12 20:30:42 saubry Exp $ */
+/* $Id: VolumeT.cpp,v 1.10 2003-07-21 15:27:58 fwdelri Exp $ */
 #include "VolumeT.h"
 
 VolumeT::VolumeT(int n) 
@@ -47,7 +47,6 @@ dArray2DT* VolumeT::GetAtomCoordinates()
 {
   return &atom_coord;
 }
-
 
 iArray2DT* VolumeT::GetAtomConnectivities()
 {

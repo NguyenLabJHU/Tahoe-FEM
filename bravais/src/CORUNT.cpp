@@ -20,72 +20,14 @@ CORUNT::CORUNT(int nlsd,int nuca,dArrayT alat,
   for (int i=0; i<nlsd; i++) 
     vLatticeParameters[i] = alat[i];
 
+  // Define Lattice Type
+  sLATTYPE = "CORUN";
+
   if (nlsd==2)
     {
-      if(nuca != 16) {cout << "Wrong nuca\n"; throw eSizeMismatch;}
-
-      // Define atoms in cell
-
-      vBasis(0,0) =-1.0;
-      vBasis(1,0) = 0.0;
-
-      vBasis(0,1) =-0.5;
-      vBasis(1,1) =-sqrt(3.0)/2;
-
-      vBasis(0,2) = 0.0;
-      vBasis(1,2) = 0.0;
-
-      vBasis(0,3) = 0.5;
-      vBasis(1,3) =-sqrt(3.0)/2;
-
-      vBasis(0,4) = 1.0;
-      vBasis(1,4) = 0.0;
-
-      vBasis(0,5) = 1.5;
-      vBasis(1,5) =-sqrt(3.0)/2;
-
-      vBasis(0,6) =-0.5;
-      vBasis(1,6) = sqrt(3.0)/6;
-
-      vBasis(0,7) = 0.0;
-      vBasis(1,7) =-sqrt(3.0)/3;
-
-      vBasis(0,8) = 1.5;
-      vBasis(1,8) = sqrt(3.0)/6;
-
-      vBasis(0,9) = 2.0;
-      vBasis(1,9) =-sqrt(3.0)/3;
-
-      vBasis(0,10) =-0.5;
-      vBasis(1,10) =-sqrt(3.0)/6;
-
-      vBasis(0,11) = 0.0;
-      vBasis(1,11) = sqrt(3.0)/3;
-
-      vBasis(0,12) = 0.5;
-      vBasis(1,12) =-sqrt(3.0)/6;
-
-      vBasis(0,13) = 1.0;
-      vBasis(1,13) = sqrt(3.0)/3;
-
-      vBasis(0,14) = 1.5;
-      vBasis(1,14) =-sqrt(3.0)/6;
-
-      vBasis(0,15) = 2.0;
-      vBasis(1,15) = sqrt(3.0)/3;
-
-      // Define basis vectors
-
-      vAxis(0,0) = 3.0*vLatticeParameters[0];
-      vAxis(1,0) = 0.0;
-      
-      vAxis(0,1) = 0.0;
-      vAxis(1,1) = sqrt(3.0)*vLatticeParameters[1];
-
-      // Rotate axis if necessary
-
-      if (fabs(angle_rotation) >=1.e-5) 
-      	vAxis = AxisRotation(vAxis);
+      cout << "Cannot create a 2-dimensional CORUN lattice!" << "\n";
+      cout << "Try a 2-d HEX lattice instead." << "\n";
+      throw eBadInputValue;
     }
   
   if (nlsd==3) 
@@ -95,84 +37,84 @@ CORUNT::CORUNT(int nlsd,int nuca,dArrayT alat,
 
       // Define atoms in cell
 
-      vBasis(0,0) =-1.0;
+      vBasis(0,0) = 0.0;
       vBasis(1,0) = 0.0;
       vBasis(2,0) = 0.0;
 
-      vBasis(0,1) =-0.5;
-      vBasis(1,1) =-sqrt(3.0)/2;
+      vBasis(0,1) = 0.5/3.0;
+      vBasis(1,1) = 0.5;
       vBasis(2,1) = 0.0;
 
-      vBasis(0,2) = 0.0;
+      vBasis(0,2) = 1.0/3.0;
       vBasis(1,2) = 0.0;
       vBasis(2,2) = 0.0;
 
-      vBasis(0,3) = 0.5;
-      vBasis(1,3) =-sqrt(3.0)/2;
+      vBasis(0,3) = 1.5/3.0;
+      vBasis(1,3) = 0.5;
       vBasis(2,3) = 0.0;
 
-      vBasis(0,4) = 1.0;
+      vBasis(0,4) = 2.0/3.0;
       vBasis(1,4) = 0.0;
       vBasis(2,4) = 0.0;
 
-      vBasis(0,5) = 1.5;
-      vBasis(1,5) =-sqrt(3.0)/2;
+      vBasis(0,5) = 2.5/3.0;
+      vBasis(1,5) = 0.5;
       vBasis(2,5) = 0.0;
 
-      vBasis(0,6) =-0.5;
-      vBasis(1,6) = sqrt(3.0)/6;
-      vBasis(2,6) = 0.25;
+      vBasis(0,6) = 0.0;
+      vBasis(1,6) = 1.0/3.0;
+      vBasis(2,6) = 0.5;
 
-      vBasis(0,7) = 0.0;
-      vBasis(1,7) =-sqrt(3.0)/3;
-      vBasis(2,7) = 0.25;
+      vBasis(0,7) = 0.5/3.0;
+      vBasis(1,7) = 5.0/6.0;
+      vBasis(2,7) = 0.5;
 
-      vBasis(0,8) = 1.5;
-      vBasis(1,8) = sqrt(3.0)/6;
-      vBasis(2,8) = 0.25;
+      vBasis(0,8) = 1.0/3.0;
+      vBasis(1,8) = 1.0/3.0;
+      vBasis(2,8) = 0.5;
 
-      vBasis(0,9) = 2.0;
-      vBasis(1,9) =-sqrt(3.0)/3;
-      vBasis(2,9) = 0.25;
+      vBasis(0,9) = 1.5/3.0;
+      vBasis(1,9) = 5.0/6.0;
+      vBasis(2,9) = 0.5;
 
-      vBasis(0,10) =-0.5;
-      vBasis(1,10) =-sqrt(3.0)/6;
+      vBasis(0,10) = 2.0/3.0;
+      vBasis(1,10) = 1.0/3.0;
       vBasis(2,10) = 0.5;
 
-      vBasis(0,11) = 0.0;
-      vBasis(1,11) = sqrt(3.0)/3;
+      vBasis(0,11) = 2.5/3.0;
+      vBasis(1,11) = 5.0/6.0;
       vBasis(2,11) = 0.5;
 
-      vBasis(0,12) = 0.5;
-      vBasis(1,12) =-sqrt(3.0)/6;
-      vBasis(2,12) = 0.5;
+      vBasis(0,12) = 0.0;
+      vBasis(1,12) = 2.0/3.0;
+      vBasis(2,12) = 0.25;
 
-      vBasis(0,13) = 1.0;
-      vBasis(1,13) = sqrt(3.0)/3;
-      vBasis(2,13) = 0.5;
+      vBasis(0,13) = 0.5/3.0;
+      vBasis(1,13) = 1.0/6.0;
+      vBasis(2,13) = 0.25;
 
-      vBasis(0,14) = 1.5;
-      vBasis(1,14) =-sqrt(3.0)/6;
-      vBasis(2,14) = 0.5;
+      vBasis(0,14) = 2.0/3.0;
+      vBasis(1,14) = 2.0/3.0;
+      vBasis(2,14) = 0.25;
 
-      vBasis(0,15) = 2.0;
-      vBasis(1,15) = sqrt(3.0)/3;
-      vBasis(2,15) = 0.5;
+      vBasis(0,15) = 2.5/3.0;
+      vBasis(1,15) = 1.0/6.0;
+      vBasis(2,15) = 0.25;
 
-      vBasis(0,16) =-0.5;
-      vBasis(1,16) = sqrt(3.0)/6;
+      vBasis(0,16) = 0.0;
+      vBasis(1,16) = 2.0/3.0;
       vBasis(2,16) = 0.75;
 
-      vBasis(0,17) = 0.0;
-      vBasis(1,17) =-sqrt(3.0)/3;
+      vBasis(0,17) = 0.5/3.0;
+      vBasis(1,17) = 1.0/6.0;
       vBasis(2,17) = 0.75;
 
-      vBasis(0,18) = 1.5;
-      vBasis(1,18) = sqrt(3.0)/6;
+      vBasis(0,18) = 2.0/3.0;
+      vBasis(1,18) = 2.0/3.0;
       vBasis(2,18) = 0.75;
 
-      vBasis(0,19) = 2.0;
-      vBasis(1,19) =-sqrt(3.0)/3;
+      vBasis(0,19) = 2.5/3.0;
+      vBasis(1,19) = 1.0/6.0;
       vBasis(2,19) = 0.75;
 
       // Define basis vectors
@@ -188,6 +130,11 @@ CORUNT::CORUNT(int nlsd,int nuca,dArrayT alat,
       vAxis(0,2) = 0.0;
       vAxis(1,2) = 0.0;
       vAxis(2,2) = vLatticeParameters[2];
+
+      // Define new type for Al atoms
+      
+      for (int i=12; i<20; i++)
+	vType[i] = 2;
 
       // Rotate axis if necessary  (put a flag later...)
 
@@ -213,6 +160,9 @@ CORUNT::CORUNT(const CORUNT& source) : CrystalLatticeT(source.nLSD,source.nUCA,
  
   for (int i=0; i<source.nLSD; i++) 
     vLatticeParameters[i] = source.vLatticeParameters[i];
+
+  for (int i=0; i<source.nUCA; i++) 
+    vType[i] = source.vType[i];
 
 }
 
