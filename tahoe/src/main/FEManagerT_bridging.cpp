@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.3.2.7 2003-05-11 21:01:08 hspark Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.3.2.8 2003-05-12 18:33:57 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -277,19 +277,23 @@ void FEManagerT_bridging::InterpolationMatrix(const StringT& field, dSPMatrixT& 
 }
 
 /* compute global interpolation matrix for all nodes whose support intersects MD region */
-void FEManagerT_bridging::Ntf(dSPMatrixT& ntf) const
+void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& nodes) const
 {
-	/* obtain actual node numbers of nodes whose support intersects MD */
+	/* obtain global node numbers of nodes whose support intersects MD, create inverse map */
 	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
-	int numactivenodes = cell_nodes.Length();
+	InverseMapT& gtlnodes = fDrivenCellData.GlobalToLocal();
+	InverseMapT& gtlatoms = fDrivenCellData.GlobalToLocal();
+	gtlnodes.SetMap(cell_nodes);	// create global to local map for active nodes
+	gtlatoms.SetMap(nodes);		// create global to local map for all atoms
+	int numactivenodes = cell_nodes.Length();	// number of projected nodes
+	int numatoms = nodes.Length();	// total number of atoms
 
-	/* the shape functions values at the interpolating point 
-	   assume given from atom 0 to natom? */
+	/* the shape functions values at the interpolating point */
 	const dArray2DT& weights = fDrivenCellData.InterpolationWeights(); 
 
 	/* redimension matrix if needed */
 	int row_eq = numactivenodes;	// the number of projected nodes
-	int col_eq = weights.MajorDim();	// total number of atoms
+	int col_eq = numatoms;	// total number of atoms
 	if (ntf.Rows() != row_eq || ntf.Cols() != col_eq)
 		ntf.Dimension(row_eq, col_eq, 0);
 
@@ -300,19 +304,20 @@ void FEManagerT_bridging::Ntf(dSPMatrixT& ntf) const
 	const ContinuumElementT* continuum = fDrivenCellData.ContinuumElement();
 	const iArrayT& cell = fDrivenCellData.InterpolatingCell();
 	
-	/* first loop over all atoms - assume goes from atom 0 to atom natom - may be incorrect */
+	/* first loop over all atoms */
 	for (int i = 0; i < col_eq; i++)
 	{
 		/* element info */
 		const ElementCardT& element_card = continuum->ElementCard(cell[i]);
-		const iArrayT& nodes = element_card.NodesU();
+		const iArrayT& fenodes = element_card.NodesU();
+		int dex = gtlatoms.Map(nodes[i]);	// global to local map for atoms
 		
 		/* put shape functions for nodes evaluated at each atom into global interpolation matrix */
-		/* writes rows using global row numbers - could lead to a wide spread in generalized case */
-		/* look into a global-local map for coarse scale nodes whose support intersects MD */
 		for (int j = 0; j < weights.MinorDim(); j++)
-			ntf.SetElement(nodes[j], i, weights(i,j));
-		
+		{
+			int dex2 = gtlnodes.Map(fenodes[j]);	// global to local map for nodes
+			ntf.SetElement(dex2, i, weights(dex,j));
+		}
 	}
 }
 
