@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.cpp,v 1.2 2004-03-14 01:08:09 paklein Exp $ */
+/* $Id: PSPASESMatrixT.cpp,v 1.3 2004-03-14 01:26:56 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "PSPASESMatrixT.h"
 
@@ -142,12 +142,13 @@ void PSPASESMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eq
 		/* diagonal entries only */
 		const double *pelMat = elMat.Pointer();
 		int inc = elMat.Rows() + 1; /* offset between diag entries are */
-
 		int nee = eqnos.Length();
-		for (int eqdex = 0; eqdex < nee; ++eqdex) {
-			int eqno = eqnos[eqdex] - 1;
-			if (eqno > -1) /* active eqn */ { 
-				double* a = (*this)(eqno, eqno);
+		int end_update = fStartEQ + fLocNumEQ - 1;		
+		for (int i = 0; i < nee; ++i) {
+			int eq = eqnos[eqdex];
+			if (eq >= fStartEQ && eq <= end_update) /* active eqn */ {
+				eq--;
+				double* a = (*this)(eq,eq);
 				if (a)
 					*a += *pelMat;
 				else
@@ -156,72 +157,26 @@ void PSPASESMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eq
 			pelMat += inc;
 		}
 	}
-	else if (format == ElementMatrixT::kNonSymmetric)
+	else if (format == ElementMatrixT::kNonSymmetric || format == ElementMatrixT::kSymmetricUpper)
 	{
+		/* fill matrix */
+		if (format == ElementMatrixT::kSymmetricUpper)
+			elMat.CopySymmetric();
+
 		int nee = eqnos.Length();  // number of equations for element
 		for (int col = 0; col < nee; ++col)
 		{
 			int ceqno = eqnos[col] - 1;
 			if (ceqno > -1) /* active eqn */ {
 				for (int row = 0; row <= col; ++row) {
-					int reqno = eqnos[row] - 1;
-					if (reqno > -1) /* active eqn */ {
-					
-						/* diagonal term */
-						if (reqno == ceqno) {
-							double* a = (*this)(reqno,ceqno);
-							if (a)
-								*a += elMat(row,col);
-							else
-								ExceptionT::OutOfRange(caller);
-						}
-						else /* off-diagonal term */ {
-						
-							/* symmetrize */
-							double v = 0.5*(elMat(row,col) + elMat(col,row));
-							double* a;
-
-							a = (*this)(reqno,ceqno);
-							if (a)
-								*a += elMat(row,col);
-							else
-								ExceptionT::OutOfRange(caller);
-
-							a = (*this)(ceqno,reqno);
-							if (a)
-								*a += elMat(row,col);
-							else
-								ExceptionT::OutOfRange(caller);
-						}
-					}
-				}
-			}
-		}
-	}
-	else if (format == ElementMatrixT::kSymmetricUpper) /* still need to assemble whole matrix */
-	{
-		int nee = eqnos.Length();  // number of equations for element
-		for (int col = 0; col < nee; ++col)
-		{
-			int ceqno = eqnos[col] - 1;
-			if (ceqno > -1) /* active eqn */ {
-				for (int row = 0; row <= col; ++row) {
-					int reqno = eqnos[row] - 1;
-					if (reqno > -1) /* active eqn */ {
-						double* a = (*this)(reqno,ceqno);
+					int reqno = eqnos[row];
+					if (reqno >= fStartEQ && reqno <= end_update) /* active eqn */ {
+						reqno--;
+						double* a (*this)(reqno,ceqno);
 						if (a)
-							*a += elMat(row,col);
+							*a += 0.5*(elMat(row,col) + elMat(col,row));
 						else
 							ExceptionT::OutOfRange(caller);
-							
-						/* transpose */
-						if (reqno != ceqno) {
-							double* a = (*this)(ceqno,reqno);
-							if (a)
-								*a += elMat(row,col);
-							else
-								ExceptionT::OutOfRange(caller);
-						}
 					}
 				}
 			}
@@ -378,8 +333,8 @@ double* PSPASESMatrixT::operator()(int row, int col)
 
 #if __option(extended_errorcheck)
 	/* range checks */
-	if (row_loc < 0 || row_loc >= fLocNumEQ) ExceptionT::OutOfRange(caller);
-	if (col < 0 || col >= fTotNumEQ) ExceptionT::OutOfRange(caller);
+	if (row_loc < 0 || row_loc >= fLocNumEQ) ExceptionT::OutOfRange(caller, "row_loc %d < 0 or >= %d", row_loc, fLocNumEQ);
+	if (col < 0 || col >= fTotNumEQ) ExceptionT::OutOfRange(caller, "col %d < 0 || >= %d", col, fTotNumEQ);
 #endif
 
 	/* equations are 1... */
