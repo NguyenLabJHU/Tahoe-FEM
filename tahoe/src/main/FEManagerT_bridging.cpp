@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.3.2.8 2003-05-12 18:33:57 hspark Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.3.2.9 2003-05-12 22:37:01 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -280,8 +280,8 @@ void FEManagerT_bridging::InterpolationMatrix(const StringT& field, dSPMatrixT& 
 void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& nodes) const
 {
 	/* obtain global node numbers of nodes whose support intersects MD, create inverse map */
-	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
-	InverseMapT& gtlnodes = fDrivenCellData.GlobalToLocal();
+	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();	// list of active nodes
+	InverseMapT gtlnodes;
 	InverseMapT& gtlatoms = fDrivenCellData.GlobalToLocal();
 	gtlnodes.SetMap(cell_nodes);	// create global to local map for active nodes
 	gtlatoms.SetMap(nodes);		// create global to local map for all atoms
@@ -316,9 +316,18 @@ void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& nodes) const
 		for (int j = 0; j < weights.MinorDim(); j++)
 		{
 			int dex2 = gtlnodes.Map(fenodes[j]);	// global to local map for nodes
-			ntf.SetElement(dex2, i, weights(dex,j));
+			ntf.SetElement(dex2, dex, weights(dex,j));  // dex = i...
 		}
 	}
+}
+
+/* add external force to RHS of equations */
+void FEManagerT_bridging::SetExternalForce(int group, const iArrayT& nodes, const dArray2DT& external_force)
+{
+	/* may not need nodes - can get from fDrivenCellData.CellNodes(); */
+	
+
+
 }
 
 /* initialize data for the driving field */

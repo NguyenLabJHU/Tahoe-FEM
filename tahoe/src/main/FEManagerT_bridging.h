@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.3.2.5 2003-05-12 18:33:57 hspark Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.3.2.6 2003-05-12 22:37:01 hspark Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -49,6 +49,9 @@ public:
 	/** set pointer to an external force vector or pass NULL to clear. The array
 	 * the length of the number of unknowns for the given group. */
 	void SetExternalForce(int group, const dArrayT& external_force);
+	
+	/** add external force to RHS */
+	void SetExternalForce(int group, const iArrayT& nodes, const dArray2DT& external_force);
 	/*@}*/
 
 	/** \name ghost nodes 
