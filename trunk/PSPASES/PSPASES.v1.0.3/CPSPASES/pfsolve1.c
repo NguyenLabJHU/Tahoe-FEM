@@ -1,4 +1,4 @@
-/* $Id: pfsolve1.c,v 1.3 2005-01-05 16:51:31 paklein Exp $ */
+/* $Id: pfsolve1.c,v 1.4 2005-01-15 02:43:30 paklein Exp $ */
 /* pfsolve1.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -62,7 +62,7 @@ static doublereal c_b60 = 1.;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: pfsolve1.c,v 1.3 2005-01-05 16:51:31 paklein Exp $ +/ */
+/* /+ $Id: pfsolve1.c,v 1.4 2005-01-15 02:43:30 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -354,6 +354,8 @@ static integer lbit_shift(integer a, integer b) {
 		    while(npending > 0) {
 /*<                 call mpi_waitany(2,req,mid,mpistat,ierr) >*/
 			MPI_Waitany(2, req, &mid, &mpistat);
+			mid++; /* completed requests numbered from 1 in FORTRAN */
+			
 /*<                 if(mid.eq.1) then  >*/
 			if (mid == 1) {
 /*<                   call mpi_get_count(mpistat,MPI_INTEGER,usize,ierr) >*/
@@ -433,6 +435,8 @@ static integer lbit_shift(integer a, integer b) {
 		    while(npending > 0) {
 /*<                 call mpi_waitany(3,req,mid,mpistat,ierr) >*/
 			MPI_Waitany(3, req, &mid, &mpistat);
+			mid++; /* completed requests numbered from 1 in FORTRAN */
+			
 /*<                 if(mid.eq.1) then >*/
 			if (mid == 1) {
 /*<                   call mpi_get_count(mpistat,MPI_INTEGER,usize,ierr) >*/
@@ -488,6 +492,8 @@ static integer lbit_shift(integer a, integer b) {
 		while(npending > 0) {
 /*<               call mpi_waitany(2,req(4),mid,mpistat,ierr) >*/
 		    MPI_Waitany(2, &req[3], &mid, &mpistat);
+		    mid++; /* completed requests numbered from 1 in FORTRAN */
+		    
 /*<               npending = npending-1 >*/
 		    --npending;
 /*<             end do >*/
