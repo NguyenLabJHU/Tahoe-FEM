@@ -1,4 +1,4 @@
-/* $Id: CellGeometryT.h,v 1.4 2005-01-26 20:21:07 cjkimme Exp $ */
+/* $Id: CellGeometryT.h,v 1.5 2005-01-27 17:50:34 paklein Exp $ */
 #ifndef _CELL_GEOMETRY_T_
 #define _CELL_GEOMETRY_T_
 
@@ -23,14 +23,13 @@ public:
 	CellGeometryT(const ElementSupportT& support, bool isAxisymmetric);
 	CellGeometryT(void);
 
-	/** destructor */
-	~CellGeometryT(void);
-
 	/** collect-geometry specific mesh, node, element, or body information */
 	virtual void DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index);
 	
-	/** set the nodal coordinates and shape functions */
-	void SetNodesAndShapes(iArrayT& nodes, dArray2DT& nodal_coordinates, MeshFreeNodalShapeFunctionT* nodalShapeFunctions);
+	/** set the nodal coordinates and shape functions
+	* \param nodes global ID's of the nodes associated with the rows in the coordinate array */
+	void SetNodesAndShapes(const iArrayT* nodes, const dArray2DT* nodal_coordinates, 
+		MeshFreeNodalShapeFunctionT* nodalShapeFunctions);
 	
 	/** generate data structures for integration over the body boundary */
 	virtual void BoundaryShapeFunctions(RaggedArray2DT<double>& phis, RaggedArray2DT<int>& supports, dArray2DT& normals) = 0;
@@ -40,6 +39,9 @@ public:
 	/** compute B matrices for strain smoothing/nodal integration */
 	virtual void ComputeBMatrices(RaggedArray2DT<int>& nodalCellSupports, RaggedArray2DT<dArrayT>& bVectorArray,
 									dArrayT& cellVolumes, dArray2DT& cellCentroids, RaggedArray2DT<double>& circumferential_B) = 0;
+
+	/** accessor to the element support class */
+	const ElementSupportT& ElementSupport(void) const;
 	
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -68,13 +70,12 @@ protected: /* for derived classes only */
 	
 	/** number of integration points per facet for cell volume boundary integration */
 	int fNumIP; 
-	
-	/** global node numbers */
-	iArrayT fNodes;
-	
+
 	const ElementSupportT* fElementSupport;
-	
-	dArray2DT fNodalCoordinates;
+
+	/** global ID of the nodes in CellGeometryT::fNodalCoordinates */
+	const iArrayT* fNodes;
+	const dArray2DT* fNodalCoordinates;
 	
 	/** shape functions */
 	MeshFreeNodalShapeFunctionT* fNodalShapes;
@@ -87,8 +88,16 @@ protected: /* for derived classes only */
 	
 };
 
-} /* namespace Tahoe */
+/* accessor to the element support class */
+inline const ElementSupportT& CellGeometryT::ElementSupport(void) const
+{
+#if __option(extended_errorcheck)
+	if (!fElementSupport) ExceptionT::GeneralFail("CellGeometryT::ElementSupport", "pointer not set");
+#endif
+	return *fElementSupport;
+}
 
+} /* namespace Tahoe */
 
 #endif /* _CELL_GEOMETRY_T */
 
