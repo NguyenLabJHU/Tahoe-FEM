@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.18 2002-06-26 18:00:21 recampb Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.19 2002-06-26 18:43:42 recampb Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -290,27 +290,30 @@ void VTKUGridT::SetScalars(vtkFloatArray* scalars)
 void VTKUGridT::ShowContours(vtkFloatArray* scalars, int numContours, double min, double max, vtkRenderer* renderer)
 {
   vtkActorCollection* temp = renderer->GetActors();
-  if (!cutting){
-    
-    fContour->SetInput(fUGrid);
+  
+    if (!warpBool)
+      fContour->SetInput(fUGrid);
+    else
+      fContour->SetInput(fWarp->GetOutput());
     fContourMapper->SetInput(fContour->GetOutput());  
     fContour->GenerateValues(numContours+2, min, max);
     fContourMapper->SetScalarRange(min,max);
    
     //fActor->SetMapper(fContourMapper);
     fContourActor->SetMapper(fContourMapper);
-    boundBoxActor->SetVisibility(true);
-    boundBoxActor->PickableOff();
-    cout << "Contour Values:" << endl;
-    for (int i=0; i<numContours+2; i++) 
-      cout << i <<"  " << fContour->GetValue(i) << endl;
-    contours = true;
-    renderer->RemoveActor(fActor);
-    if (temp->IsItemPresent(fContourActor) == 0)
-      renderer->AddActor(fContourActor);
-    if (temp->IsItemPresent(boundBoxActor) == 0)
-      renderer->AddActor(boundBoxActor);
-  }
+    if (!cutting){    
+      boundBoxActor->SetVisibility(true);
+      boundBoxActor->PickableOff();
+      cout << "Contour Values:" << endl;
+      for (int i=0; i<numContours+2; i++) 
+	cout << i <<"  " << fContour->GetValue(i) << endl;
+      contours = true;
+      renderer->RemoveActor(fActor);
+      if (temp->IsItemPresent(fContourActor) == 0)
+	renderer->AddActor(fContourActor);
+      if (temp->IsItemPresent(boundBoxActor) == 0)
+	renderer->AddActor(boundBoxActor);
+    }
   
   else
     {
@@ -365,9 +368,10 @@ void VTKUGridT::HideContours(vtkFloatArray* scalars, vtkRenderer* renderer)
   if (!cutting)
     {
       renderer->AddActor(fActor);
+      fActor->SetVisibility(true);
       renderer->RemoveActor(fContourActor);
       renderer->RemoveActor(boundBoxActor);
-      //fActor->SetMapper(fMapper);
+
       //boundBoxActor->SetVisibility(false);
     }
   
@@ -389,11 +393,11 @@ void VTKUGridT::HideContours(vtkFloatArray* scalars, vtkRenderer* renderer)
 
 void VTKUGridT::CuttingPlane(vtkRenderer* renderer, double oX, double oY, double oZ,double nX, double nY, double nZ, bool warp)
 {
-
+  cutting = true;
   if (!contours)
     {
       vtkActorCollection* temp = renderer->GetActors();
-      cutting = true;
+      
       warpBool = warp;
       vtkPlane* tplane = vtkPlane::New();
       vtkCutter* tcutter = vtkCutter::New();
@@ -484,6 +488,7 @@ void VTKUGridT::HideCuttingPlane(vtkRenderer* renderer)
   if (!contours)
     {
       fActor->SetMapper(fMapper);
+      renderer->AddActor(fActor);
       fActor->SetVisibility(true);
       boundBoxActor->SetVisibility(false);
       renderer->RemoveActor(boundBoxActor);
@@ -500,6 +505,8 @@ void VTKUGridT::HideCuttingPlane(vtkRenderer* renderer)
 	  renderer->RemoveActor(boundPlane[i]);
 	}
      renderer->AddActor(fContourActor);
+     //renderer->RemoveActor(boundBoxActor);
+     fContourActor->SetVisibility(true);
      
       
     }
