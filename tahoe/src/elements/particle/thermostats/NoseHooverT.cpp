@@ -1,4 +1,4 @@
-/* $Id: NoseHooverT.cpp,v 1.2 2003-04-18 19:01:56 cjkimme Exp $ */
+/* $Id: NoseHooverT.cpp,v 1.3 2003-04-22 01:23:16 cjkimme Exp $ */
 #include "NoseHooverT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -13,7 +13,7 @@ const double fkB = 0.00008617385;
 using namespace Tahoe;
 
 /* constructor */
-NoseHooverT::NoseHooverT(ifstreamT& in, int nsd, double dt):
+NoseHooverT::NoseHooverT(ifstreamT& in, const int& nsd, const double& dt):
 	ThermostatBaseT(in, nsd, dt)
 {
 	fBetaOrig = fBeta;

@@ -1,4 +1,4 @@
-/* $Id: RampedDampingT.h,v 1.1 2003-04-18 19:01:56 cjkimme Exp $ */
+/* $Id: RampedDampingT.h,v 1.2 2003-04-22 01:23:16 cjkimme Exp $ */
 #ifndef _RAMPED_DAMPING_T_H_
 #define _RAMPED_DAMPING_T_H_
 
@@ -24,7 +24,7 @@ class RampedDampingT: public ThermostatBaseT
 public:
 
 	/** constructor */
-	RampedDampingT(ifstreamT& in, int nsd, double dt);
+	RampedDampingT(ifstreamT& in, const int& nsd, const double& dt);
 
 	/** destructor */
 	virtual ~RampedDampingT(void) {};
@@ -47,32 +47,15 @@ protected:
 
 	/** \name properties */
 	/*@{*/
-	double fBeta;	
-	double fTemperature;
-	double fTimeStep;
+	double fBeta;
 	/*@}*/
-	
-	/** Nodes that are thermostatted */
-	iArrayT fNodes;
-	
-	/** True if stochastic force is returned */
-//	bool QLangevin;
 	
 	/** Number of spatial dimensions */
 	int fSD;
 	
-//	RandomNumberT* fRandom;
 	bool qNodesInRegion;
 	
-	/** \name Region paramters */
-	/*@{*/
-	/** Bounding box */
-	dArrayT fxmin, fxmax;
-	/** Re-check for particles in region every nIncs timesteps */
-	int nIncs; 
-	/*@}*/
 };
-
 
 } /* namespace Tahoe */
 

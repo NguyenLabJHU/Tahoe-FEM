@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.17 2003-04-22 01:20:18 saubry Exp $ */
+/* $Id: ParticleT.cpp,v 1.18 2003-04-22 01:23:15 cjkimme Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -16,6 +16,7 @@
 
 /* Thermostatting stuff */
 #include "RandomNumberT.h"
+#include "ScheduleT.h"
 #include "ThermostatBaseT.h"
 #include "GaussIsokineticT.h"
 #include "LangevinT.h"
@@ -71,6 +72,14 @@ ParticleT::~ParticleT(void)
 		delete fParticleProperties[i];
 		
 	delete fActiveParticles;
+	
+	/* thermostats */
+	for (int i = 0; i < fThermostats.Length(); i++)
+		delete fThermostats[i];
+		
+	if (fRandom)
+		delete fRandom;
+	
 }
 
 /* initialization */
@@ -767,12 +776,25 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 			}
 			case ThermostatBaseT::kRegion:
 			{
+				ExceptionT::BadInputValue(caller,"Thermostatted region not implemented yet");
 				break;
 			}
 			default:
 			{
 				ExceptionT::BadInputValue(caller,"Thermostat control type invalid");
 			}
+		}
+		if (thermostat_i != ThermostatBaseT::kDamped)
+		{
+			int schedNum;
+			double schedVal;
+			in >> schedNum;
+			schedNum--;
+			in >> schedVal;
+			const ScheduleT* sched = ElementSupport().Schedule(schedNum);
+			if (!sched)
+				ExceptionT::GeneralFail(caller,"Unable to get temperature schedule");
+			fThermostats[i]->SetTemperatureSchedule(sched,schedVal);
 		}
 		if (QisLangevin)
 		{
@@ -800,3 +822,5 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 		fRandom->sRand(randSeed);
 	}
 }
+
+

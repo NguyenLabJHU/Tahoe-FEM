@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.h,v 1.2 2003-04-18 19:01:56 cjkimme Exp $ */
+/* $Id: ThermostatBaseT.h,v 1.3 2003-04-22 01:23:16 cjkimme Exp $ */
 #ifndef _THERMOSTAT_BASE_T_H_
 #define _THERMOSTAT_BASE_T_H_
 
@@ -10,6 +10,7 @@
 #include "RandomNumberT.h"
 #include "RaggedArray2DT.h"
 #include "AutoArrayT.h"
+#include "ScheduleT.h"
 
 namespace Tahoe {
 
@@ -41,7 +42,7 @@ public:
 	friend istream& operator>>(istream& in, ThermostatBaseT::ThermostatT& property);	
 
 	/** constructor */
-	ThermostatBaseT(ifstreamT& in, int nsd, double dt);
+	ThermostatBaseT(ifstreamT& in, const int& nsd, const double& dt);
 
 	/** destructor */
 	virtual ~ThermostatBaseT(void) {};
@@ -72,6 +73,9 @@ public:
 	void NodesInRegion(const dArray2DT& coords,	
 					const ArrayT<int>* partition_nodes);
 
+	/** receive temperature schedule */
+	void SetTemperatureSchedule(const ScheduleT* schedule, const double& value);
+
 	void CreateVelocities(const RaggedArray2DT<int>& neighbors, dArray2DT* velocities,
 					AutoArrayT<int>& types,
 					ArrayT<ParticlePropertyT*>& particleProperties);
@@ -88,14 +92,9 @@ protected:
 	/** Nodes that are thermostatted */
 	iArrayT fNodes;
 	
-	/** True if stochastic force is returned */
-//	bool QLangevin;
-	
 	/** Number of spatial dimensions */
 	int fSD;
-	
-//	RandomNumberT* fRandom;
-	
+		
 	/** \name Region paramters */
 	/*@{*/
 	/** Bounding box */
@@ -103,6 +102,9 @@ protected:
 	/** Re-check for particles in region every nIncs timesteps */
 	int nIncs; 
 	/*@}*/
+	
+	const ScheduleT* fTemperatureSchedule;
+	double fTemperatureScale;
 };
 
 inline iArrayT& ThermostatBaseT::NodeList(void)
