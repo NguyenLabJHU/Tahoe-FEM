@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.13.2.2 2002-10-15 23:03:48 cjkimme Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.13.2.3 2002-10-16 23:29:21 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -69,20 +69,11 @@ CSEBaseT::CSEBaseT(const ElementSupportT& support):
 	fFractureArea(0.0),
 	fShapes(NULL)
 {
-#ifndef _SIERRA_TEST_
-	/* read control parameters */
-	ifstreamT& in = ElementSupport().Input();
-
-	in >> fGeometryCode;
-	in >> fNumIntPts;
-	in >> fCloseSurfaces;
-	in >> fOutputArea;
-#else
 	fGeometryCode = GeometryT::kQuadrilateral;
 	fNumIntPts = 4;
 	fCloseSurfaces = 0;
 	fOutputArea = 0;
-#endif
+
 	/* checks */
 	if (NumSD() == 2 && fGeometryCode != GeometryT::kLine)
 	{
@@ -280,6 +271,7 @@ void CSEBaseT::ResetStep(void)
 	}
 }
 
+#ifndef _SIERRA_TEST_
 /* solution calls */
 void CSEBaseT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
@@ -289,6 +281,7 @@ void CSEBaseT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 #pragma unused(force)
 	//not implemented
 }
+#endif
 
 /* returns the energy as defined by the derived class types */
 double CSEBaseT::InternalEnergy(void) { return 0.0; } //not implemented
@@ -342,9 +335,7 @@ void CSEBaseT::RegisterOutput(void)
 	GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
 
 	/* set output specifier */
-	StringT set_ID;
-	set_ID.Append(ElementSupport().ElementGroupNumber(this) + 1);
-	OutputSetT output_set(set_ID, geo_code, block_ID, fOutput_Connectivities, 
+	OutputSetT output_set(geo_code, block_ID, fOutput_Connectivities, 
 		n_labels, e_labels, false);
 
 

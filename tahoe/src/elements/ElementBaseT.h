@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.14.4.1 2002-10-11 00:23:12 cjkimme Exp $ */
+/* $Id: ElementBaseT.h,v 1.14.4.2 2002-10-16 23:29:20 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -35,7 +35,10 @@ template <class TYPE> class RaggedArray2DT;
 class iAutoArrayT;
 class dArray2DT;
 class StringT;
+
+#ifndef _SIERRA_TEST_
 class FieldT;
+#endif
 
 /** base class for element types. Initialization of the element classes
  * is accomplished by first setting the time integration controller with
@@ -75,8 +78,10 @@ public:
 	 * the connectivies have been dimensioned. */
 	int NumElementNodes(void) const;
 
+#ifndef _SIERRA_TEST_
 	/** solver group */
-	int Group(void) const { return 0; };//fField.Group(); };
+	int Group(void) const { return fField.Group(); };
+#endif
 
 	/** form of tangent matrix, symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const = 0;
@@ -93,10 +98,10 @@ public:
 
 	/** return a const reference to the run state flag */
 	const GlobalT::StateT& RunState(void) const { return fSupport.RunState(); };
-#endif
 
 	/** the iteration number for the current time increment */
 	const int& IterationNumber(void) const;
+#endif
 
 	/** return a pointer to the specified LoadTime function */
 	const ScheduleT* Schedule(int num) const { return fSupport.Schedule(num); };
@@ -105,7 +110,14 @@ public:
 	int NumSD(void) const { return fSupport.NumSD(); };
 
 	/** return the number of degrees of freedom per node */
-	int NumDOF(void) const { return 3;};//fField.NumDOF(); };
+	int NumDOF(void) const 
+	{ 
+#ifndef _SIERRA_TEST_
+		return fField.NumDOF();
+#else
+		return fSupport.NumSD();
+#endif 
+	};
 	/*@}*/
 
 	/** class initialization. Among other things, element work space
@@ -118,10 +130,12 @@ public:
 	/** call to trigger calculation and assembly of the residual force */
 	void FormRHS(void);
 	
+#ifndef _SIERRA_TEST_
 	/** accumulate the residual force on the specified node
 	 * \param node test node
 	 * \param force array into which to assemble to the residual force */
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force) = 0;
+#endif
 
 	/** initialize current time increment */
 	virtual void InitStep(void);
