@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.80 2004-09-28 15:35:37 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.80.2.1 2004-10-28 00:38:14 d-farrell2 Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1205,7 +1205,7 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 	/* decomposition method */
 	ParameterT decomp_method(ParameterT::Enumeration, "decomposition_method");
 	decomp_method.AddEnumeration("graph", PartitionT::kGraph);
-	decomp_method.AddEnumeration("atom", PartitionT::kAtom);
+	decomp_method.AddEnumeration("atom", PartitionT::kIndex);
 	decomp_method.AddEnumeration("spatial", PartitionT::kSpatial);
 	decomp_method.SetDefault(PartitionT::kGraph);
 	list.AddParameter(decomp_method, ParameterListT::ZeroOrOnce);
