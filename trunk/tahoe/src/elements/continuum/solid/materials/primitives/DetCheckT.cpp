@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.9 2001-11-28 21:37:53 dzeigle Exp $ */
+/* $Id: DetCheckT.cpp,v 1.10 2001-12-17 00:12:00 paklein Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "DetCheckT.h"
@@ -190,13 +190,11 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 
   double theta, phi; //horizontal plane angle and polar angle for normal
   int i,j,k,l,m,n, control;        // counters and control variable
-  int numev; //number of eigenvectors for given eigenvalue
+  int numev = 0; //number of eigenvectors for given eigenvalue
   double tol=1.0e-10; 
   double leastmin=tol; 
-  double guess; 
   int newtoncounter; //makes sure Newton iteration doesn't take too long
   double resid;
-  double inprod0, inprod1, inprod2;
 
   double detA [72] [19]; //determinant of acoustic tensor at each increment
   int localmin [72] [19]; // 1 for local minimum, 0 if not

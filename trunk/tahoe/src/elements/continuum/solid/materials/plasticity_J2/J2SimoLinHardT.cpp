@@ -1,4 +1,4 @@
-/* $Id: J2SimoLinHardT.cpp,v 1.7 2001-10-24 02:21:58 paklein Exp $ */
+/* $Id: J2SimoLinHardT.cpp,v 1.8 2001-12-17 00:11:57 paklein Exp $ */
 /* created: paklein (06/19/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -382,6 +382,9 @@ void J2SimoLinHardT::LoadData(const ElementCardT& element, int ip)
 int J2SimoLinHardT::PlasticLoading(const dMatrixT& F_total,
 	const dMatrixT& f_relative, ElementCardT& element, int ip)
 {
+#pragma unused(F_total)
+#pragma unused(f_relative)
+
 	/* compute relative stress */
 	fRed2Temp.Deviatoric(fb_bar_trial);
 	fRelStress.SetToCombination(fmu, fRed2Temp, -1.0, fbeta_bar_trial);
