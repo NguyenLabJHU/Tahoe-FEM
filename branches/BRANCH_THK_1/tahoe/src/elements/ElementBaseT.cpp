@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.34.4.1 2003-05-09 08:28:02 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.34.4.2 2003-05-09 08:47:24 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -363,10 +363,10 @@ void ElementBaseT::NodesUsed(ArrayT<int>& nodes_used) const
 }
 
 /* contribution to the nodal residual forces */
-const dArray2DT& ElementBaseT::ResidualForce(int group)
+const dArray2DT& ElementBaseT::InternalForce(int group)
 {
 #pragma unused(group)
-	ExceptionT::GeneralFail("ElementBaseT::ResidualForce", "not implemented");
+	ExceptionT::GeneralFail("ElementBaseT::InternalForce", "not implemented");
 	return ElementSupport().CurrentCoordinates(); /* dummy */
 }
 
