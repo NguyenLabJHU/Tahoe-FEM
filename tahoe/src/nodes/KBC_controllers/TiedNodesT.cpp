@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.9 2002-07-02 19:56:35 cjkimme Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.10 2002-08-21 22:35:26 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -6,10 +6,12 @@
 #include "BasicFieldT.h"
 #include "FEManagerT.h"
 
-/* constructor */
+//TEMP
+#include "ofstreamT.h"
 
 using namespace Tahoe;
 
+/* constructor */
 TiedNodesT::TiedNodesT(NodeManagerT& node_manager, BasicFieldT& field):
 	KBC_ControllerT(node_manager),
 	fField(field),
@@ -32,7 +34,7 @@ void TiedNodesT::Initialize(ifstreamT& in)
 	/* read "follower" nodes */
 	iArrayT follower_nodes;
 	ReadNodes(in, fFollowerIds, follower_nodes);
-	
+
 	/* echo "follower" has one "leader" */
 	fNodePairs.Dimension(follower_nodes.Length(), 2);
 	fNodePairs = -1;
@@ -69,11 +71,29 @@ void TiedNodesT::Initialize(ifstreamT& in)
 	if (free_count != 0) {
 		cout << "\n TiedNodesT::Initialize: " << free_count
 		     << " follower nodes without leaders" << endl;
-		throw eGeneralFail;
+//		throw eGeneralFail;
+//NOTE: for MP calculations, followers nodes that are external
+//      may not have their (external) leader nodes reproduced
+//      on this processor. Therefore, leader-less followers are
+//      not necessarily an error, though they should remain kFree
+//      and rely on other processors to enforce the tied constraint.
+//      Also, pairs that involve _only_ external nodes should be
+//      removed since any operations involving them on this
+//      processor are redundant.
 	}
 	
 	/* generate BC cards */
 	SetBCCards();
+}
+
+/* inform controller of external nodes */
+void TiedNodesT::SetExternalNodes(const iArrayT& ex_nodes) const
+{
+	if (ex_nodes.Length() > 0)
+		cout << "\n TiedNodesT::SetExternalNodes: not implemented" << endl;
+
+	//pair interactions that involve external nodes that are followers
+	//can be removed from the list
 }
 
 void TiedNodesT::WriteParameters(ostream& out) const
@@ -310,8 +330,6 @@ void TiedNodesT::SetBCCards(void)
 		}
 	}
 }
-
-
 
 /* copy kinematic information from the leader nodes to the follower nodes */
 void TiedNodesT::CopyKinematics(void)
