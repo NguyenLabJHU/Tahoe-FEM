@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.39 2004-01-28 01:28:30 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.40 2004-01-29 01:03:29 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -278,7 +278,7 @@ void BridgingScaleT::InterpolateField(const StringT& field, int order, const Poi
 
 /* compute the projection matrix */
 void BridgingScaleT::InitProjection(const iArrayT& points_used, const dArray2DT* init_coords, 
-	const dArray2DT* curr_coords, PointInCellDataT& cell_data, dArrayT& mdmass)
+	const dArray2DT* curr_coords, PointInCellDataT& cell_data)
 {
 	/* initialize point-in-cell data */
 	MaptoCells(points_used, init_coords, curr_coords, cell_data);
@@ -314,7 +314,7 @@ void BridgingScaleT::InitProjection(const iArrayT& points_used, const dArray2DT*
 	int cell_dex = 0;
 	iArrayT cell_eq;
 	dArrayT Na;
-	double atommass;
+	//double atommass;
 	for (int i = 0; i < point_in_cell.MajorDim(); i++)
 	{
 		int np = point_in_cell.MinorDim(i);
@@ -327,11 +327,11 @@ void BridgingScaleT::InitProjection(const iArrayT& points_used, const dArray2DT*
 				/* fetch interpolation weights */
 				int point_dex = global_to_local.Map(points[j]);
 				weights.RowAlias(point_dex, Na);
-				atommass = mdmass[point_dex];
+				//atommass = mdmass[point_dex];
 				
 				/* element mass */
 				fElMatU.Outer(Na, Na, 1.0, dMatrixT::kAccumulate);
-				fElMatU *= atommass;	// need to multiply by atomic mass, i.e. M = N^{T}M_{A}N
+				//fElMatU *= atommass;	// need to multiply by atomic mass, i.e. M = N^{T}M_{A}N
 			}
 
 			/* equations of cell in projector */
@@ -481,7 +481,7 @@ void BridgingScaleT::CoarseField(const PointInCellDataT& cell_data, const dArray
 /* Project point values onto mesh, write into displacement field.  Used to compute initial
    displacements from point values to mesh. */
 void BridgingScaleT::InitialProject(const StringT& field, const PointInCellDataT& cell_data,
-	const dArray2DT& point_values, dArray2DT& projection, dArray2DT& projectedu, dArrayT& mdmass)
+	const dArray2DT& point_values, dArray2DT& projection, dArray2DT& projectedu)
 {
 #pragma unused(field)
 	/* projected part of the mesh */
@@ -502,7 +502,7 @@ void BridgingScaleT::InitialProject(const StringT& field, const PointInCellDataT
 	iArrayT cell_eq;
 	dArrayT Na, point_value;
 	dMatrixT Nd(cell_connects.MinorDim(), point_values.MinorDim());
-	double atommass;
+	//double atommass;
 	for (int i = 0; i < point_in_cell.MajorDim(); i++)
 	{
 		int np = point_in_cell.MinorDim(i);
@@ -517,14 +517,14 @@ void BridgingScaleT::InitialProject(const StringT& field, const PointInCellDataT
 				/* fetch interpolation weights */
 				int point_dex = global_to_local.Map(point);
 				weights.RowAlias(point_dex, Na);
-				atommass = mdmass[point_dex];
+				//atommass = mdmass[point_dex];
 				
 				/* source values of the point */
 				point_values.RowAlias(point, point_value);
 
 				/* rhs during projection - calculating part of w */
 				Nd.Outer(Na, point_value, 1.0, dMatrixT::kAccumulate);
-				Nd *= atommass;	// need to multiply by atomic mass, i.e. w = M^{-1}N^{T}M_{A}q
+				//Nd *= atommass;	// need to multiply by atomic mass, i.e. w = M^{-1}N^{T}M_{A}q
 			}
 
 			/* equations of cell in projector */
@@ -626,7 +626,7 @@ out << "\n residual =\n" << projection << endl;
 /* calculate the fine scale part of MD solution as well as total solution u - same as project Field
  * except for those changes */
 void BridgingScaleT::BridgingFields(const StringT& field, const PointInCellDataT& cell_data,
-	const dArray2DT& mddisp, const dArray2DT& fedisp, dArray2DT& projection, dArray2DT& totalu, dArrayT& mdmass)
+	const dArray2DT& mddisp, const dArray2DT& fedisp, dArray2DT& projection, dArray2DT& totalu)
 {
 #pragma unused(field)
 
@@ -648,7 +648,7 @@ void BridgingScaleT::BridgingFields(const StringT& field, const PointInCellDataT
 	iArrayT cell_eq;
 	dArrayT Na, point_value;
 	dMatrixT Nd(cell_connects.MinorDim(), mddisp.MinorDim());
-	double atommass;
+	//double atommass;
 	for (int i = 0; i < point_in_cell.MajorDim(); i++)
 	{
 		int np = point_in_cell.MinorDim(i);
@@ -663,14 +663,14 @@ void BridgingScaleT::BridgingFields(const StringT& field, const PointInCellDataT
 				/* fetch interpolation weights */
 				int point_dex = global_to_local.Map(point);
 				weights.RowAlias(point_dex, Na);
-				atommass = mdmass[point_dex];
+				//atommass = mdmass[point_dex];
 
 				/* source values of the point */
 				mddisp.RowAlias(point, point_value);
 			
 				/* rhs during projection - calculating part of w */
 				Nd.Outer(Na, point_value, 1.0, dMatrixT::kAccumulate);
-				Nd *= atommass;	// need to multiply by atomic mass, i.e. w = M^{-1}N^{T}M_{A}q
+				//Nd *= atommass;	// need to multiply by atomic mass, i.e. w = M^{-1}N^{T}M_{A}q
 			}
 
 			/* equations of cell in projector */

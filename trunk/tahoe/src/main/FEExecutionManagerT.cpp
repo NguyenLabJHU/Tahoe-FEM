@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.54 2004-01-28 01:29:42 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.55 2004-01-29 01:03:32 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -462,10 +462,10 @@ void FEExecutionManagerT::RunStaticBridging_staggered(FEManagerT_bridging& conti
 	bool make_inactive = true;
 	atoms.InitGhostNodes();
 	continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
-	dArrayT mdmass;
-	atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
-	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), make_inactive, mdmass);
-
+	//dArrayT mdmass;
+	//atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
+	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), make_inactive);
+	
 #undef DO_COUPLING
 
 #ifdef DO_COUPLING
@@ -613,7 +613,6 @@ void FEExecutionManagerT::RunStaticBridging_staggered(FEManagerT_bridging& conti
 				ExceptionT::GeneralFail(caller, "hit error %d", error);
 			//TEMP - no error recovery yet
 		}
-			
 		cout << "\n Number of bridging iterations:\n";
 		cout << setw(kIntWidth) << "step" 
 			<< setw(kIntWidth) << "cycles" 
@@ -717,9 +716,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	gatoms.CopyPart(0, allatoms, 0, numgatoms);        
 	boundatoms.CopyPart(0, boundaryghostatoms, numgatoms, numbatoms);
 	continuum.InitInterpolation(boundaryghostatoms, bridging_field, *atoms.NodeManager());
-	dArrayT mdmass;
-	atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
-	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive, mdmass);		
+	//dArrayT mdmass;
+	//atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
+	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);		
 	//nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
 	nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for fracture problem
 	//nMatrixT<int> ghostonmap(4), ghostoffmap(4);    // for planar wave propagation problem
@@ -758,7 +757,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		atoms.InitialCondition();
 		
 		/* calculate fine scale part of MD displacement and total displacement u */
-		continuum.InitialProject(bridging_field, *atoms.NodeManager(), projectedu, order1, mdmass);
+		continuum.InitialProject(bridging_field, *atoms.NodeManager(), projectedu, order1);
 			
 		/* solve for initial FEM force f(u) as function of fine scale + FEM */
 		/* use projected totalu instead of totalu for initial FEM displacements */
@@ -920,7 +919,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
             
 			/* calculate total displacement u = FE + fine scale here using updated FEM displacement */
-			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu, mdmass);
+			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu);
 		
 			/* calculate FE internal force as function of total displacement u here */
 			promap = ghostoffmap;  // turn off ghost atoms for f(u) calculations

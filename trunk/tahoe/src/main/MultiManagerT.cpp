@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.6 2004-01-28 01:29:43 hspark Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.7 2004-01-29 01:03:32 hspark Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -49,11 +49,11 @@ void MultiManagerT::Initialize(InitCodeT)
 	int order1 = 0;
 	StringT bridging_field = "displacement";
 	bool make_inactive = true;
-	dArrayT mdmass;
+	//dArrayT mdmass;
 	fFine->InitGhostNodes();
 	fCoarse->InitInterpolation(fFine->GhostNodes(), bridging_field, *(fFine->NodeManager()));
-	fFine->LumpedMass(fFine->NonGhostNodes(), mdmass);
-	fCoarse->InitProjection(fFine->NonGhostNodes(), bridging_field, *(fFine->NodeManager()), make_inactive, mdmass);
+	//fFine->LumpedMass(fFine->NonGhostNodes(), mdmass);
+	fCoarse->InitProjection(fFine->NonGhostNodes(), bridging_field, *(fFine->NodeManager()), make_inactive);
 
 	/* send coarse/fine output through the fFine output */
 	int ndof = fFine->NodeManager()->NumDOF(group);
