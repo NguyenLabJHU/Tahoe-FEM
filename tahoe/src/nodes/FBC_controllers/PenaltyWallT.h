@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.h,v 1.3 2001-09-11 06:01:44 paklein Exp $ */
+/* $Id: PenaltyWallT.h,v 1.4 2001-09-11 23:42:51 paklein Exp $ */
 /* created: paklein (02/25/1997)                                          */
 
 #ifndef _PENATLY_WALL_T_H_
@@ -32,7 +32,7 @@ private:
 	/* accumulate the contact force vector fContactForce */
 	virtual void ComputeContactForce(double kforce);
 
-private:
+protected:
 
 	/* wall parameters */
 	dArrayT 	fnormal;
