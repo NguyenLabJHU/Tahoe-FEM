@@ -1,4 +1,4 @@
-/* $Id: ExceptionT.h,v 1.5 2002-11-22 01:55:28 paklein Exp $ */
+/* $Id: ExceptionT.h,v 1.6 2003-05-04 22:53:30 paklein Exp $ */
 /* created: paklein (06/04/1996) */
 #ifndef _EXCEPTION_T_H_
 #define _EXCEPTION_T_H_
@@ -25,7 +25,8 @@ class ExceptionT
 		kBadJacobianDet	  = 7, /**< ParentDomainT: bad jacobian determinant */
 		kMPIFail          = 8, /**< general error on MPI call */
 		kDatabaseFail     = 9, /**< general error reading/writing database */
-		kBadHeartBeat     =10  /**< error detected on other processor */
+		kBadHeartBeat     =10, /**< error detected on other processor */
+		kTypeMismatch     =11  /**< type mismatch */
 	};
 
 	/** convert ExceptionT::CodeT to a string */
@@ -71,6 +72,9 @@ class ExceptionT
 	static void BadHeartBeat(const char* caller = NULL);
 	static void BadHeartBeat(const char* caller, const char* fmt, ...);
 
+	static void TypeMismatch(const char* caller = NULL);
+	static void TypeMismatch(const char* caller, const char* fmt, ...);
+
 	static void Throw(ExceptionT::CodeT code, const char* caller = NULL);
 	static void Throw(ExceptionT::CodeT code, const char* caller, const char* fmt, ...);
 	/*@}*/
@@ -87,7 +91,7 @@ class ExceptionT
 	static void Throw_(ExceptionT::CodeT code, const char* caller, const char* message);
   
   	/** exception strings. One extra string to return "unknown". */
-  	static const char* fExceptionStrings[12];
+  	static const char* fExceptionStrings[13];
 };
 
 /* inline */
@@ -102,6 +106,7 @@ inline void ExceptionT::BadJacobianDet(const char* caller) { Throw_(kBadJacobian
 inline void ExceptionT::MPIFail(const char* caller)        { Throw_(kMPIFail, caller, NULL);        }
 inline void ExceptionT::DatabaseFail(const char* caller)   { Throw(kDatabaseFail, caller, NULL);   }
 inline void ExceptionT::BadHeartBeat(const char* caller)   { Throw(kBadHeartBeat, caller, NULL);   }
+inline void ExceptionT::TypeMismatch(const char* caller)   { Throw(kTypeMismatch, caller, NULL);   }
 
 } /* namespace Tahoe */
 #endif /* _EXCEPTION_CODES_H_ */

@@ -1,4 +1,4 @@
-/* $Id: ExceptionT.cpp,v 1.6 2002-11-26 23:11:48 paklein Exp $ */
+/* $Id: ExceptionT.cpp,v 1.7 2003-05-04 22:53:30 paklein Exp $ */
 #include "ExceptionT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -15,11 +15,11 @@
 
 /* initialize static data */
 namespace Tahoe {
-int ExceptionT::NumExceptions = 11;
+int ExceptionT::NumExceptions = 12;
 const bool ArrayT<ExceptionT::CodeT>::fByteCopy = true;
 
 /* exceptions strings */
-const char* ExceptionT::fExceptionStrings[12] = 
+const char* ExceptionT::fExceptionStrings[13] = 
 {
 /* 0 */ "no error",
 /* 1 */ "general fail",
@@ -32,7 +32,8 @@ const char* ExceptionT::fExceptionStrings[12] =
 /* 8 */ "MPI message passing error",
 /* 9 */ "database read failure",
 /*10 */ "bad MP heartbeat",
-/*11 */ "unknown"};
+/*11 */ "type mismatch",
+/*12 */ "unknown"};
 
 /* buffer for vsprintf */
 static char message_buffer[255];
@@ -148,6 +149,15 @@ void ExceptionT::BadHeartBeat(const char* caller, const char* fmt, ...)
 	vsprintf(message_buffer, fmt, argp);
 	va_end(argp);
 	Throw_(kBadHeartBeat, caller, message_buffer);
+}
+
+void ExceptionT::TypeMismatch(const char* caller, const char* fmt, ...)
+{
+	va_list argp;
+	va_start(argp, fmt);
+	vsprintf(message_buffer, fmt, argp);
+	va_end(argp);
+	Throw_(kTypeMismatch, caller, message_buffer);
 }
 
 void ExceptionT::Throw(ExceptionT::CodeT code, const char* caller, const char* fmt, ...)
