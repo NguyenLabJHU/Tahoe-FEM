@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.7.2.4 2001-10-26 19:13:18 sawimme Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.7.2.5 2001-10-28 23:54:06 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "ElementBaseT.h"
@@ -181,18 +181,27 @@ void ElementBaseT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 {
 #pragma unused(eq_2)
 
-	/* get local equations numbers */
-        fNodes->SetLocalEqnos(fConnectivities, fEqnos);
+#if __option(extended_errorcheck)
+	if (fConnectivities.Length() != fEqnos.Length()) throw eSizeMismatch;
+#endif
 
-	/* add to list */
-        eq_1.Append(&fEqnos);
+	/* loop over connectivity blocks */
+	for (int i = 0; i < fEqnos.Length(); i++)
+	{
+		/* get local equations numbers */
+		fNodes->SetLocalEqnos(*fConnectivities[i], fEqnos[i]);
+
+		/* add to list of equation numbers */
+		eq_1.Append(&fEqnos[i]);
+	}
 }
 
 /* appends group connectivities to the array (X -> geometry, U -> field) */
 void ElementBaseT::ConnectsX(AutoArrayT<const iArray2DT*>& connects) const
 {
-	/* append connectivities */
-        connects.AppendUnique(&fConnectivities);
+	/* loop over connectivity blocks */
+	for (int i = 0; i < fConnectivities.Length(); i++)
+		connects.AppendUnique(fConnectivities[i]);
 }
 
 void ElementBaseT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
@@ -335,7 +344,7 @@ void ElementBaseT::EchoConnectivityData(ifstreamT& in, ostream& out)
 void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 {	
 	/* read from parameter file */
-        iArrayT indexes, matnums;
+	iArrayT indexes, matnums;
 	ModelManagerT* model = fFEManager.ModelManager();
 	model->ElementBlockList (in, indexes, matnums);
 
