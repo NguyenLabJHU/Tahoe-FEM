@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.16 2003-05-20 10:25:12 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.17 2003-08-08 16:29:16 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nIntegratorT.h"
@@ -739,5 +739,3 @@ void FieldT::SetFBCEquations(void)
 		     << bad_count << " prescribed forces\n"
 		     <<   "     on equations with prescribed values" << endl;
 }
-
-	
