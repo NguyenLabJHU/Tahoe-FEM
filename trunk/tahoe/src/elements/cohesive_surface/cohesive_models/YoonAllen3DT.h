@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.h,v 1.1 2002-08-05 19:27:55 cjkimme Exp $ */
+/* $Id: YoonAllen3DT.h,v 1.2 2002-08-08 23:27:27 cjkimme Exp $ */
 /* created: cjkimme (05/28/2002) */
 
 #ifndef _YOON_ALLEN_3D_T_H_
@@ -88,6 +88,7 @@ private:
 	dArrayT ftau; /**< time constant for decay */
 	dArrayT fexp_tau; /**< exponentiations of the timestep over the time constants */
 	
+	int fdamage; /*switch for different damage evolutions laws */
 	/* damage evolution law parameters */
 	double falpha_exp, flambda_exp;
 	double falpha_0, flambda_0;

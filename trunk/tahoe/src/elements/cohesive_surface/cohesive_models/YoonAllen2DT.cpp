@@ -1,4 +1,4 @@
-/* $Id: YoonAllen2DT.cpp,v 1.4 2002-08-05 19:27:55 cjkimme Exp $ */
+/* $Id: YoonAllen2DT.cpp,v 1.5 2002-08-08 23:27:27 cjkimme Exp $ */
 
 #include "YoonAllen2DT.h"
 
@@ -45,11 +45,15 @@ YoonAllen2DT::YoonAllen2DT(ifstreamT& in, const double& time_step):
 		ftau[i] *= fE_t[i];
 	}
 
+	in >> fdamage; if (fdamage < 1 && fdamage > 3) throw eBadInputValue;
 	/* damage evolution law parameters */
 	in >> falpha_exp; //if (falpha_exp < 1.) throw eBadInputValue;
 	in >> falpha_0; if (falpha_0 <= kSmall) throw eBadInputValue;
-	in >> flambda_exp; if (flambda_exp > -1.) throw eBadInputValue;	
-	in >> flambda_0; if (flambda_0 < 1.) throw eBadInputValue;
+	if (fdamage == 2) 
+	{
+		in >> flambda_exp; if (flambda_exp > -1.) throw eBadInputValue;	
+		in >> flambda_0; if (flambda_0 < 1.) throw eBadInputValue;
+	}
 
 	/* stiffness multiplier */
 	in >> fpenalty; if (fpenalty < 0) throw eBadInputValue;
@@ -187,10 +191,26 @@ const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 	/* evolve the damage parameter */
 	double alpha = state2[2*knumDOF+1];
 	if (l_dot > kSmall)
-		alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
-//		alpha += fTimeStep*falpha_0*pow(1.-alpha,falpha_exp)*pow(1.-flambda_0*l,flambda_exp);
-//		alpha += fTimeStep*falpha_0*pow(l_dot,falpha_exp);
-
+	{
+		switch (fdamage) 
+		{
+			case 1:
+			{
+				alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
+				break;
+			}
+			case 2:
+			{
+				alpha += fTimeStep*falpha_0*pow(1.-alpha,falpha_exp)*pow(1.-flambda_0*l,flambda_exp);
+				break;
+			}
+			case 3:
+			{
+				alpha += fTimeStep*falpha_0*pow(l_dot,falpha_exp);
+				break;
+			}
+		}
+	}
 	 	
 	if (alpha >= 1.)
 	{
@@ -290,9 +310,24 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	double alpha = state[fNumRelaxTimes+2*knumDOF+1];
 	if (l_dot > kSmall)
 	{
-		alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
-//		alpha += fTimeStep*falpha_0*pow(1.-alpha,falpha_exp)*pow(1.-flambda_0*l,flambda_exp);
-//		alpha += fTimeStep*falpha_0*pow(l_dot,falpha_exp);
+		switch (fdamage) 
+		{
+			case 1:
+			{
+				alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
+				break;
+			}
+			case 2:
+			{
+				alpha += fTimeStep*falpha_0*pow(1.-alpha,falpha_exp)*pow(1.-flambda_0*l,flambda_exp);
+				break;
+			}
+			case 3:
+			{
+				alpha += fTimeStep*falpha_0*pow(l_dot,falpha_exp);
+				break;
+			}
+		}
 	}
 		
 	if (alpha >= 1.)
@@ -325,9 +360,27 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	double scratch;
 	scratch = 1./l/l;
 	if (l_dot > kSmall)
-		scratch += falpha_exp*pow(l,falpha_exp-2.)*falpha_0*fTimeStep/(1.-alpha);
-//	    scratch -= flambda_0*fTimeStep*flambda_exp*pow(1.-flambda_0*l,flambda_exp-1.)/(1-alpha);
-//		scratch += falpha_exp*pow(l_dot,falpha_exp-1)*falpha_0*fTimeStep/(1.-alpha)/l;
+	{
+		switch (fdamage)
+		{
+			case 1:
+			{
+				scratch += falpha_exp*pow(l,falpha_exp-2.)*falpha_0*fTimeStep/(1.-alpha);
+				break;
+			}
+			case 2:
+			{
+			    scratch -= flambda_0*fTimeStep*flambda_exp*pow(1.-flambda_0*l,flambda_exp-1.)/(1-alpha);
+			    break;
+			}
+			case 3:
+			{
+				scratch += falpha_exp*pow(l_dot,falpha_exp-1)*falpha_0*fTimeStep/(1.-alpha)/l;
+				break;
+			}
+		}
+	}
+	
 	l_0 *= scratch;
 	l_1 *= scratch;
 	
@@ -388,10 +441,14 @@ void YoonAllen2DT::Print(ostream& out) const
 		out << " Transient modulus for mode "<<i<<" . . . . . . . . .  = " << fE_t[i]    << '\n';
 		out << " Time constant for mode "<<i<<" . . . . . . . . . . .  = " << ftau[i]/fE_t[i] << '\n';
 	}
+	out << " Damage evolution law code . . . . . . . . . . . = " << fdamage << "\n";
 	out << " Damage evolution law exponent . . . . . . . . . = " << falpha_exp << "\n";
 	out << " Damage evolution law constant . . . . . . . . . = " << falpha_0 << "\n";
-	out << " Damage evolution law lambda exponent. . . . . . = " << flambda_exp << "\n";
-	out << " Damage evolution law lambda prefactor . . . . . = " << flambda_0 << "\n";
+	if (fdamage == 2)
+	{
+		out << " Damage evolution law lambda exponent. . . . . . = " << flambda_exp << "\n";
+		out << " Damage evolution law lambda prefactor . . . . . = " << flambda_0 << "\n";
+	}
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fpenalty   << '\n';
 #endif
 }
