@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.71.12.2 2004-04-28 02:58:36 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.71.12.3 2004-05-21 19:46:43 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -891,7 +891,7 @@ void FEManagerT::RestoreOutput(void)
 ElementBaseT* FEManagerT::ElementGroup(int groupnumber) const
 {
 	/* check range */
-	if (groupnumber > -1 && groupnumber < fElementGroups->Length())
+	if (fElementGroups && groupnumber > -1 && groupnumber < fElementGroups->Length())
 		return (*fElementGroups)[groupnumber];
 	else
 		return NULL;
