@@ -5,9 +5,11 @@ import java.awt.*;
 
 public class app {
 
-  protected test a;
+//  protected test a;
 
   public app(){
+  
+  /*
     JFrame temp = new JFrame();
     a = new test(temp);
     // construct the internal C++ object
@@ -16,7 +18,7 @@ public class app {
     
     // see if it prints
     a.Print();
-
+*/
   }
 
 
@@ -34,14 +36,9 @@ public static void main(String args[]) throws IOException {
 		emptyLabel.setPreferredSize(new Dimension(175, 100));
 		emptyLabel.setHorizontalAlignment(JLabel.CENTER);
 		//frame.getContentPane().add(emptyLabel, BorderLayout.CENTER);		
-		frame.setSize(600,400);
+		frame.setSize(400,400);
 		frame.getContentPane().add(new test(frame));
-                frame.pack();
-                frame.setVisible(true);
-
+		frame.pack();
+		frame.setVisible(true);
 	}
-
-
-
-  
 }
