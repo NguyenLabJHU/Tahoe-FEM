@@ -22,7 +22,7 @@ void MFGP_MFA_Data_Processor_PlastT::Initialize(const double *fN, const dArray2D
 /* shape function of plastic multiplier: [nnd] */ 
 void MFGP_MFA_Data_Processor_PlastT::Set_phi(dMatrixT& phi ) 
 {
-	int nnd; //??
+	int nnd = d2N.MinorDim();
 	double* pphi = phi.Pointer();
 	for (int i = 0; i < nnd; i++)
 	  	*pphi++ = *N++;		

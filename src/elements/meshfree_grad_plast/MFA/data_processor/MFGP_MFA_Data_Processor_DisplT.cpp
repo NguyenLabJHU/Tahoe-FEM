@@ -94,7 +94,7 @@ void MFGP_MFA_Data_Processor_DisplT::Set_B3(dMatrixT& B3 )
 {
 #if __option(extended_errorcheck)
 	if (B3.Rows() != dSymMatrixT::NumValues(sqrt(d3N.MajorDim())) ||
-	    B3.Cols() != sqrt(d3N.Length()))
+	    B3.Cols() != sqrt(d3N.MajorDim())*d3N.MinorDim())
 	    throw ExceptionT::kSizeMismatch;
 #endif
 

@@ -26,7 +26,10 @@ class MFGP_MFA_Data_Processor_DisplT
 		
 		void Initialize(const dArray2DT& fdNdx, const dArray2DT& fd3Ndx3 );
         
-		void Set_B1(dMatrixT& B1); 
+		/* B1: [nstr]x[nsd*nnd] */
+		void Set_B1(dMatrixT& B1);
+		
+		/* B3: [nstr]x[nsd*nnd] */ 
 		void Set_B3(dMatrixT& B3);
 	
 	protected:

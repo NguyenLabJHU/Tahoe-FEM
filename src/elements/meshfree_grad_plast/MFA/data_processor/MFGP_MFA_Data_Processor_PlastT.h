@@ -27,7 +27,10 @@ class MFGP_MFA_Data_Processor_PlastT
 		
 		void Initialize(const double *fN, const dArray2DT &fd2Ndx2 );
                         
+        /* phi: [1]x[nnd] */
         void Set_phi(dMatrixT& phi);
+        
+        /* B4: [1]x[nnd] */
 		void Set_B4(dMatrixT& B4);
 		
 	protected:
