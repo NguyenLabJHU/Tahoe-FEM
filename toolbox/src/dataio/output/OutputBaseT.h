@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.h,v 1.17 2003-09-10 00:14:17 paklein Exp $ */
+/* $Id: OutputBaseT.h,v 1.18 2003-09-20 23:25:38 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 #ifndef _OUTPUTBASE_T_H_
 #define _OUTPUTBASE_T_H_
@@ -62,7 +62,6 @@ public:
 	virtual void SetTypes(const iArrayT& types);
 	virtual void SetParts(const iArrayT& parts);
 
-
 	/** return the node id list
 	 * \return point to the id list. If NULL implies the row number in the coordinate
 	 *         array is the node id */
@@ -79,11 +78,18 @@ public:
 	void AddNodeSet(const iArrayT& nodeset, const StringT& setID);
 	void AddSideSet(const iArray2DT& sideset, const StringT& setID, const StringT& group_ID);
 
-	/* output functions */
+	/** \name output methods */
+	/*@{*/
 	virtual void WriteGeometry(void) = 0;
 	void WriteGeometryFile(const StringT& file_name, IOBaseT::FileTypeT format) const;
-	virtual void WriteOutput(double time, int ID, const dArray2DT& n_values,
-		const dArray2DT& e_values);
+
+	/** send data for output. Order of the nodal values is set by OutputSetT::NodesUsed. */
+	virtual void WriteOutput(double time, int ID, const dArray2DT& n_values, const dArray2DT& e_values);
+
+	/** send data for output */
+	virtual void WriteOutput(double time, int ID, const ArrayT<int>& nodes, const dArray2DT& n_values, 
+		const ArrayT<int>& elements, const dArray2DT& e_values);
+	/*@}*/
 
 protected:
 
