@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.5 2001-09-28 16:21:07 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.6 2001-09-28 21:36:36 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "vtkRenderer.h"
@@ -54,8 +54,84 @@ VTKConsoleT::VTKConsoleT(void)
   iAddCommand("Save");
   iAddCommand("Show_Node_Numbers");
   //  iAddCommand("Hide_Node_Numbers");
+  iAddCommand("Color_bar_on");
+  iAddCommand("Color_bar_off");
+//   iAddCommand("X_axis_rotation");
+//   iAddCommand("Y_axis_rotation");
+//   iAddCommand("Z_axis_rotation");
+ 
 
-  StringT file = "../../example_files/heat/heat.io0.exo";
+   StringT file = "../../example_files/heat/heat.io0.exo";
+
+//    ExodusT exo(cout);
+//   if (!exo.OpenRead(file))
+// 	{
+// 	  cout << " ERROR: could not open file: " << file << endl;
+// 	  throw;
+// 	}
+//   else
+// 	cout << "read database file: " << file << endl;
+
+
+
+//   /* read coordinates */
+//   int num_nodes = exo.NumNodes();
+//   int num_dim   = exo.NumDimensions();
+//   dArray2DT coordinates(num_nodes, num_dim);
+//   exo.ReadCoordinates(coordinates);
+
+//   /* read element block ID's */
+//   int num_elem_blocks = exo.NumElementBlocks();
+//   iArrayT element_ID(num_elem_blocks);
+//   exo.ElementBlockID(element_ID);
+
+//   /* read element connectivities */
+//   ArrayT<iArray2DT> connectivities(num_elem_blocks);
+//   for (int i = 0 ; i < num_elem_blocks; i++)
+// 	{
+// 	  /* read dimensions */
+// 	  int num_elements, num_element_nodes;
+// 	  exo.ReadElementBlockDims(element_ID[i], num_elements, num_element_nodes);
+
+// 	  /* read connectivities */
+// 	  connectivities[i].Allocate(num_elements, num_element_nodes);
+// 	  GeometryT::CodeT geometry;
+// 	  exo.ReadConnectivities(element_ID[i], geometry, connectivities[i]);
+
+
+// 	}
+
+//   /* look for results data */
+//   int num_time_steps = exo.NumTimeSteps();
+//   //if (num_time_steps > 0)
+//   //	{
+// 	  /* variables defined at the nodes */
+// 	  int num_node_variables = exo.NumNodeVariables();
+// 	  ArrayT<StringT> node_labels(num_node_variables);
+// 	  exo.ReadNodeLabels(node_labels);
+// 	  cout << " nodal variables:\n";
+// 	  for (int i = 0; i < node_labels.Length(); i++)
+// 		cout << node_labels[i] << '\n';
+
+// 	  /* variables defined over the elements */
+// 	  int num_element_variables = exo.NumElementVariables();
+// 	  ArrayT<StringT> element_labels;
+// 	  exo.ReadElementLabels(element_labels);
+// 	  cout << " element variables:\n" << endl;
+// 	  for (int i = 0; i < element_labels.Length(); i++)
+// 		cout << element_labels[i] << '\n';
+// 	  cout.flush();
+
+// 	  /* read nodal data */
+// 	  dArray2DT nodal_data(num_nodes, num_node_variables);
+// 	  dArrayT ndata(num_nodes);
+
+// 	  if (num_time_steps > 0)
+// 	    {
+// 	      for (int i = 0; i < num_time_steps; i++)
+// 		{
+// 		  double time;
+// 		  exo.ReadTime(i+1, time);
 
    ExodusT exo(cout);
   if (!exo.OpenRead(file))
@@ -72,6 +148,8 @@ VTKConsoleT::VTKConsoleT(void)
   int num_nodes = exo.NumNodes();
   int num_dim   = exo.NumDimensions();
   dArray2DT coordinates(num_nodes, num_dim);
+ 
+  //ArrayT<dArray2DT> coordinates(num_nodes);
   exo.ReadCoordinates(coordinates);
 
   /* read element block ID's */
@@ -103,18 +181,18 @@ VTKConsoleT::VTKConsoleT(void)
 	  int num_node_variables = exo.NumNodeVariables();
 	  ArrayT<StringT> node_labels(num_node_variables);
 	  exo.ReadNodeLabels(node_labels);
-	  cout << " nodal variables:\n";
-	  for (int i = 0; i < node_labels.Length(); i++)
-		cout << node_labels[i] << '\n';
+// 	  cout << " nodal variables:\n";
+// 	  for (int i = 0; i < node_labels.Length(); i++)
+// 		cout << node_labels[i] << '\n';
 
 	  /* variables defined over the elements */
 	  int num_element_variables = exo.NumElementVariables();
 	  ArrayT<StringT> element_labels;
 	  exo.ReadElementLabels(element_labels);
-	  cout << " element variables:\n" << endl;
-	  for (int i = 0; i < element_labels.Length(); i++)
-		cout << element_labels[i] << '\n';
-	  cout.flush();
+	 //  cout << " element variables:\n" << endl;
+// 	  for (int i = 0; i < element_labels.Length(); i++)
+// 		cout << element_labels[i] << '\n';
+// 	  cout.flush();
 
 	  /* read nodal data */
 	  dArray2DT nodal_data(num_nodes, num_node_variables);
@@ -127,6 +205,7 @@ VTKConsoleT::VTKConsoleT(void)
 		  double time;
 		  exo.ReadTime(i+1, time);
 		  
+		  
 		  /* loop over variables */
 		  for (int j = 0; j < num_node_variables; j++)
 		    {
@@ -134,13 +213,16 @@ VTKConsoleT::VTKConsoleT(void)
 		      nodal_data.SetColumn(j, ndata);
 		    }
 		  
-		  cout << " time: " << time << endl;
-		  cout << " nodal data:\n" << nodal_data << endl;
+// 		  cout << " time: " << time << endl;
+// 		  cout << " nodal data:\n" << nodal_data << endl;
 		}
 	
 	    }
 
 
+//   vtkPoints *points = vtkPoints::New();
+//  for (int i=0; i<num_nodes; i++) points->InsertPoint(i,coordinates[i]);
+		  
   vtkPoints *points = vtkPoints::New();
  for (int i=0; i<num_nodes; i++) points->InsertPoint(i,coordinates(i));
 
@@ -162,7 +244,21 @@ VTKConsoleT::VTKConsoleT(void)
  vtkIntArray* intArray = vtkIntArray::New();
  intArray->SetNumberOfComponents(vtk_connects.MinorDim()); //is this needed???
  intArray->SetArray(p_vtk_connects, vtk_connects.Length(), 0);
+
   
+ ugrid = vtkUnstructuredGrid::New();
+//   vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
+//     ugrid->Allocate(num_elem_blocks);
+//   for (int i=0; i<num_elem_blocks; i++) 
+//     ugrid->InsertNextCell(VTK_QUAD, 4, connectivities[i]);
+
+//   vtkScalars *scalars = vtkScalars::New(VTK_DOUBLE);
+//   for (int i=0; i<num_nodes; i++) scalars->InsertScalar(i,nodal_data[i]);
+
+//   ugrid->SetPoints(points);
+//   points->Delete();
+//   ugrid->GetPointData()->SetScalars(scalars);
+
  /* create VTK array of cells */
  vtkCellArray* vtk_cell_array = vtkCellArray::New();
  vtk_cell_array->SetCells(vtk_connects.MajorDim(), intArray);
@@ -170,8 +266,8 @@ VTKConsoleT::VTKConsoleT(void)
  //NOTE: do all at once for higher efficiency 
  //ugrid->Allocate(num_elem_blocks);
  // for (int i=0; i<num_elem_blocks; i++) 
- //   ugrid->InsertNextCell(VTK_TETRA, 4, connectivities[i]); 
- //??TETRA
+ //   ugrid->InsertNextCell(VTK_QUAD, 4, connectivities[i]); 
+ 
 
  //NOTE: the example database has triangles. Generally, you would need
  //      to determine the cell type from the database, or require that
@@ -180,7 +276,7 @@ VTKConsoleT::VTKConsoleT(void)
  cell_types = VTK_QUAD; // all the cells are the same
 
  /* insert cells in the grid */
- vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
+ //  vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
  ugrid->SetCells(cell_types.Pointer(), vtk_cell_array);
 
   vtkScalars *scalars = vtkScalars::New(VTK_DOUBLE);
@@ -199,7 +295,7 @@ VTKConsoleT::VTKConsoleT(void)
   satRange1 = 1; satRange2 = 1;
   alphaRange1 = 1; alphaRange2 = 1;
   scalarRange1 = 6; scalarRange2 = 17;
-  ugr = vtkUnstructuredGridReader::New();
+  // ugr = vtkUnstructuredGridReader::New();
   renderer = vtkRenderer::New();
   renWin = vtkRenderWindow::New();
   iren = vtkRenderWindowInteractor::New();
@@ -214,9 +310,12 @@ VTKConsoleT::VTKConsoleT(void)
   visPts = vtkSelectVisiblePoints::New();
   ldm = vtkLabeledDataMapper::New();
   pointLabels = vtkActor2D::New();
+  
 
 
-  ugr->SetFileName(source_file);
+  // ugr->SetFileName(source_file);
+
+
 
   renWin->AddRenderer(renderer);
  
@@ -229,7 +328,8 @@ VTKConsoleT::VTKConsoleT(void)
   lut->SetNumberOfColors(numColors);
   lut->Build();
   
-  ugridMapper->SetInput(ugr->GetOutput());
+  // ugridMapper->SetInput(ugr->GetOutput());
+  ugridMapper->SetInput(ugrid);
   ugridMapper->SetScalarRange(scalarRange1,scalarRange2);
   ugridMapper->SetLookupTable(lut);
   ugridMapper->ImmediateModeRenderingOn();
@@ -267,7 +367,8 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       cout << "int = " << fInteger << endl;
 //       return true;
 //     }
-
+int xDir;
+double xRot;
 
   if (command == "Start_Rendering")
   {
@@ -284,7 +385,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
     lut->SetValueRange(valRange1,valRange2);
     lut->SetAlphaRange(alphaRange1,alphaRange2);
     lut->SetNumberOfColors(numColors);
-    ugr->SetFileName(source_file);
+    // ugr->SetFileName(source_file);
     renWin->Render();
     iren->Start();
     return true;
@@ -304,8 +405,8 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 
   else if (command == "Save")
     {
-      //  cout << "Enter name for file to be saved to: ";
-      //  cin >> output_file;
+//         cout << "Enter name for file to be saved to: ";
+//         cin >> output_file;
     
       renSrc->SetInput(renderer);
       renSrc->WholeWindowOn();
@@ -317,8 +418,8 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 
   else if (command == "Show_Node_Numbers")
     {
-    
-      ids->SetInput(ugr->GetOutput());
+       ids->SetInput(ugrid);
+     //  ids->SetInput(ugr->GetOutput());
       ids->PointIdsOn();
       ids->CellIdsOn();
       ids->FieldDataOn();
@@ -337,7 +438,39 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 
     }
 
-//   else if (command == "Hide_Node_Numbers")
+
+  else if (command == "Color_bar_off")
+    {
+      renderer->RemoveActor(scalarBar);
+      renWin->Render();
+      iren->Start();
+      return true;
+    }
+
+  else if (command == "Color_bar_on")
+    {
+      renderer->AddActor(scalarBar);
+      renWin->Render();
+      iren->Start();
+      return true;
+    }
+
+
+//   else if (command == "X_axis_rotation")
+//     {
+//       cout << "Rotate:\n 1: Counter-clockwise\n 2: Clockwise: ";
+//       cin >> xDir;
+//       cout << "Rotate by how many degrees?: ";
+//       cin >> xRot;
+//       if (xDir == 1) renderer->GetActiveCamera()->Elevation(xRot);
+//       else if (xDir == 2) renderer->GetActiveCamera()->Elevation(360.0-xRot);
+//       renWin->Render();
+//       iren->Start();
+//       return true;
+//     }
+
+  //  else if (command == "Hide_Node_Numbers")
+
 //     {
 //      ids->SetInput(ugr->GetOutput());
       

@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.h,v 1.4 2001-09-28 00:18:06 recampb Exp $ */
+/* $Id: VTKConsoleT.h,v 1.5 2001-09-28 21:36:36 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -60,7 +60,9 @@ class VTKConsoleT: public iConsoleObjectT
   vtkSelectVisiblePoints *visPts;
   vtkLabeledDataMapper *ldm;
   vtkActor2D *pointLabels;
-  
+  vtkUnstructuredGrid *ugrid;  
+
+
 };
 
 #endif
