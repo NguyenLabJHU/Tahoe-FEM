@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.10 2003-11-21 22:46:55 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.11 2004-06-26 06:04:03 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
 #include <iostream.h>
@@ -358,11 +358,10 @@ void FSSolidMatT::Compute_E(const dMatrixT& F, dSymMatrixT& E) const
 		e[4] = (f[0]*f[6] + f[1]*f[7] + f[2]*f[8])*0.5;
 		e[5] = (f[0]*f[3] + f[1]*f[4] + f[2]*f[5])*0.5;
 	}
+	else if (nsd == 1)
+		E[0] = 0.5*(F[0]*F[0] - 1.0);
 	else
-	{
-		cout << "\n FSSolidMatT::Compute_E: unsupported dimension: " << nsd << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("FSSolidMatT::Compute_E", "unsupported dimension %d ", nsd);
 }
 
 /* return the acoustical tensor and wave speeds */
