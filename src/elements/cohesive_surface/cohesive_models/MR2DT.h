@@ -84,8 +84,6 @@ public:
 	//	virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
 	virtual void SetElementGroupsNeeded(iArrayT& iGroups);
 	
-	double signof(double r);
-	
 private:
 
 	//bool initiationQ(const ArrayT<double>&);
