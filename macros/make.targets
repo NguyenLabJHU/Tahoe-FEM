@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.21 2003-01-30 00:46:38 paklein Exp $
+# $Id: make.targets,v 1.22 2003-01-31 09:53:54 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -10,6 +10,7 @@ include $(OBJECT_LIST)
 #########################################################################
 # grouped
 OPT_CFLAGS = \
+	$(DEV_CFLAGS) \
 	$(TB_CFLAGS) \
 	$(NOX_CFLAGS) \
 	$(T_CFLAGS) \
@@ -25,6 +26,7 @@ OPT_CFLAGS = \
 	$(F2C_CFLAGS)
 
 OPT_LFLAGS = \
+	$(DEV_LFLAGS) \
 	$(TB_LFLAGS) \
 	$(NOX_LFLAGS) \
 	$(T_LFLAGS) \
@@ -40,6 +42,7 @@ OPT_LFLAGS = \
 	$(F2C_LFLAGS)
 
 OPT_LIB = \
+	$(DEV_LIB) \
 	$(TB_LIB) \
 	$(NOX_LIB) \
 	$(T_LIB) \
@@ -54,6 +57,7 @@ OPT_LIB = \
 	$(VTK_LIB)
 
 OPT_INC = \
+	$(DEV_INC) \
 	$(NOX_INC) \
 	$(TB_INC) \
 	$(T_INC) \
@@ -68,13 +72,29 @@ OPT_INC = \
 	$(AX_INC) \
 	$(VTK_INC)
 
+OPT_DEFINES = \
+	$(DEV_DEFINES) \
+	$(TB_DEFINES) \
+	$(NOX_DEFINES) \
+	$(T_DEFINES) \
+	$(ACME_DEFINES) \
+	$(SPOOLESMPI_DEFINES) \
+	$(SPOOLESMT_DEFINES) \
+	$(SPOOLES_DEFINES) \
+	$(AZ_DEFINES) \
+	$(BLAS_DEFINES) \
+	$(AX_DEFINES) \
+	$(METIS_DEFINES) \
+	$(VTK_DEFINES) \
+	$(F2C_DEFINES)
+
 #########################################################################
 # paths for file dependencies
 DEPEND_FILE = all.depend
-DEPEND_PATH = -I$(INC_DIR) $(OPT_INC) $(DEPENDFLAGS)
+DEPEND_PATH = -I$(INC_DIR) $(OPT_INC) $(DEFINES) $(OPT_DEFINES) $(DEPENDFLAGS)
 
 # Sun spends too much time searching standard directories
-#DEPEND_PATH = -Y -I$(INC_DIR) $(OPT_INC) $(DEPENDFLAGS)
+#DEPEND_PATH = -Y -I$(INC_DIR) $(OPT_INC) $(DEFINES) $(OPT_DEFINES) $(DEPENDFLAGS)
 #########################################################################
 
 # default target
@@ -151,7 +171,7 @@ object_list: FORCE
 	@ $(ECHO) "" >> object_list
 
 # set symbolic links to all header files
-headers:
+headers: $(MAKE_HEADERS_XTRAS)
 	@- rm $(INC_DIR)/*.h
 	@ $(ECHO) "cd $(SRC_DIR)"; \
 	cd $(SRC_DIR); \
@@ -163,7 +183,7 @@ headers:
 	"CURR_DIR = $(SRC_DIR)"
 
 # initialize dependency files
-depend_init:
+depend_init: $(MAKE_DEPEND_INIT_XTRAS)
 	@ $(ECHO) "cd $(SRC_DIR)"; \
 	cd $(SRC_DIR); \
 	$(MAKE) $(MAKE_OPTS) depend_init \
