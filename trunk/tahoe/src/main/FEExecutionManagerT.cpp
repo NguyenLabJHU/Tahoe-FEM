@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.55 2004-01-29 01:03:32 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.56 2004-02-22 00:19:50 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -460,7 +460,7 @@ void FEExecutionManagerT::RunStaticBridging_staggered(FEManagerT_bridging& conti
 	int order1 = 0;
 	StringT bridging_field = "displacement";
 	bool make_inactive = true;
-	atoms.InitGhostNodes();
+	atoms.InitGhostNodes(continuum.ProjectImagePoints());
 	continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
 	//dArrayT mdmass;
 	//atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
@@ -700,7 +700,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	dSPMatrixT ntf;
 	iArrayT activefenodes;
 	StringT bridging_field = "displacement";
-	atoms.InitGhostNodes();
+	atoms.InitGhostNodes(continuum.ProjectImagePoints());
 	bool makeinactive = false;	
 	/* figure out boundary atoms for use with THK boundary conditions, 
 	   ghost atoms for usage with MD force calculations */
