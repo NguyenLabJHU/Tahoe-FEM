@@ -1,4 +1,4 @@
-/* $Id: iGridManagerT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: iGridManagerT.h,v 1.2 2001-04-30 21:29:50 paklein Exp $ */
 /* created: paklein (09/13/1998)                                          */
 /* iNodeT grid with unified interface for 2D/3D and lightweight           */
 /* file dependencies                                                      */
@@ -31,6 +31,9 @@ public:
 	
 	/* reconfigure grid with stored coordinate data */
 	void Reset(void);
+	//void Reset(const dArray2DT& coords, const iArrayT* nodes_used);
+	//TODO - add version that allows you to change the coordinate data
+	//       but use the same grid allocation?
 
 	/* neighbors - returns neighbors coords(n) (SELF not included) */
 	void Neighbors(int n, double tol, AutoArrayT<int>& neighbors);
