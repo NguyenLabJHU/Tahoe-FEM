@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.h,v 1.7.30.1 2004-03-02 17:46:17 paklein Exp $ */
+/* $Id: SimoIso2D.h,v 1.7.30.2 2004-03-24 02:01:51 paklein Exp $ */
 /* created: paklein (03/04/1997) */
 #ifndef _SIMO_ISO_2D_H_
 #define _SIMO_ISO_2D_H_
@@ -15,6 +15,7 @@ public:
 
 	/** constructor */
 	SimoIso2D(ifstreamT& in, const FSMatSupportT& support);
+	SimoIso2D(void);
 
 	/** print material model name */
 	virtual void PrintName(ostream& out) const;
@@ -37,6 +38,9 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
