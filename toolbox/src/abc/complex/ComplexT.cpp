@@ -1,6 +1,5 @@
-/* $Id: ComplexT.cpp,v 1.5 2001-12-10 23:38:10 paklein Exp $ */
-/* created: PAK/AFLP (05/19/1997)                                         */
-/* 	                                                                      */
+/* $Id: ComplexT.cpp,v 1.6 2002-02-27 01:23:59 paklein Exp $ */
+/* created: PAK/AFLP (05/19/1997) */
 
 #include "ComplexT.h"
 
@@ -12,7 +11,7 @@
 
 
 /* array behavior */
-const bool ArrayT<ComplexT>::fByteCopy = true;
+template<> const bool ArrayT<ComplexT>::fByteCopy = true;
 
 /*
 * Real and Imaginary parts of arrays - must be dimensioned BEFORE call

@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.cpp,v 1.5 2002-02-18 08:48:42 paklein Exp $ */
+/* $Id: LocalArrayT.cpp,v 1.6 2002-02-27 01:24:00 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 
 #include "LocalArrayT.h"
@@ -6,7 +6,7 @@
 #include "iArrayT.h"
 
 /* array behavior */
-const bool ArrayT<LocalArrayT::TypeT>::fByteCopy = true;
+template<> const bool ArrayT<LocalArrayT::TypeT>::fByteCopy = true;
 
 /* cconstructors */
 LocalArrayT::LocalArrayT(void):

@@ -1,4 +1,4 @@
-/* $Id: dArray2DT.cpp,v 1.1.1.1 2001-01-25 20:56:22 paklein Exp $ */
+/* $Id: dArray2DT.cpp,v 1.2 2002-02-27 01:23:58 paklein Exp $ */
 /* created: paklein (07/16/1996)                                          */
 
 #include "dArray2DT.h"
@@ -11,7 +11,7 @@
 #include "dArrayT.h"
 
 /* array behavior */
-const bool ArrayT<dArray2DT*>::fByteCopy = true;
+template<> const bool ArrayT<dArray2DT*>::fByteCopy = true;
 
 /* constructor */
 dArray2DT::dArray2DT(void) { }

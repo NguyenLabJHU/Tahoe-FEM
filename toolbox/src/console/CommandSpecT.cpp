@@ -1,11 +1,11 @@
-/* $Id: CommandSpecT.cpp,v 1.4 2001-12-13 02:58:38 paklein Exp $ */
+/* $Id: CommandSpecT.cpp,v 1.5 2002-02-27 01:24:02 paklein Exp $ */
 
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
 
 /* array copy behavior */
-const bool ArrayT<CommandSpecT*>::fByteCopy = true; 
-const bool ArrayT<CommandSpecT>::fByteCopy = false; 
+template<> const bool ArrayT<CommandSpecT*>::fByteCopy = true; 
+template<> const bool ArrayT<CommandSpecT>::fByteCopy = false; 
 
 CommandSpecT::CommandSpecT(const StringT& name, bool ordered_args):
 	fName(name),

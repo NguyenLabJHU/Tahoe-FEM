@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.cpp,v 1.4 2001-09-04 06:46:37 paklein Exp $ */
+/* $Id: dMatrixT.cpp,v 1.5 2002-02-27 01:24:00 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "dMatrixT.h"
@@ -8,8 +8,8 @@
 #include "dSymMatrixT.h"
 
 /* copy behavior for arrays of dMatrixT's */
-const bool ArrayT<dMatrixT*>::fByteCopy = true;
-const bool ArrayT<dMatrixT>::fByteCopy = false;
+template<> const bool ArrayT<dMatrixT*>::fByteCopy = true;
+template<> const bool ArrayT<dMatrixT>::fByteCopy = false;
 
 /* constructor */
 dMatrixT::dMatrixT(void) { }

@@ -1,12 +1,11 @@
-/* $Id: iConsoleObjectT.cpp,v 1.2 2001-02-13 17:48:34 paklein Exp $ */
-/* created: paklein (12/21/2000)                                          */
-/* iConsoleObjectT.cpp                                                    */
+/* $Id: iConsoleObjectT.cpp,v 1.3 2002-02-27 01:24:02 paklein Exp $ */
+/* created: paklein (12/21/2000) */
 
 #include "iConsoleObjectT.h"
 #include <ctype.h>
 
 /* array behavior */
-const bool ArrayT<iConsoleObjectT*>::fByteCopy = true;
+template<> const bool ArrayT<iConsoleObjectT*>::fByteCopy = true;
 
 /* constructor */
 iConsoleObjectT::iConsoleObjectT(void):
