@@ -46,7 +46,7 @@ void NeoHookean::DevStress(const dArrayT& lambda_bar,dArrayT& tau)
   double& l2 = lambda_bar[2];
   
   tau[0] = fMu*fthird*(2.0*l0-l1-l2);
-  tau[1] = fMu*fthird*(2.0*l1-l2-l0);
+  tau[1] = fMu*fthird*(2.0*l1-l0-l2);
   
   if (nsd == 3)
     tau[2] = fMu*fthird*(2.0*l2-l0-l1);

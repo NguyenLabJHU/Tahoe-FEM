@@ -1,4 +1,4 @@
-/* $Id: RGBaseT.cpp,v 1.1 2003-03-19 19:00:55 thao Exp $ */
+/* $Id: RGBaseT.cpp,v 1.2 2003-03-20 22:41:25 thao Exp $ */
 /* created: TDN (01/22/2000) */
 #include "RGBaseT.h"
 
@@ -11,7 +11,7 @@ RGBaseT::RGBaseT(ifstreamT& in, const FSMatSupportT& support):
 	fSpectralDecompRef(NumSD())
 {
         int nsd = NumSD();
-	int numstress = (nsd*(nsd+1))*0.5;
+	int numstress = (nsd*(nsd+1))/2;
 
 	fnstatev = 0;
 	fnstatev += numstress;   /*current C_v*/
