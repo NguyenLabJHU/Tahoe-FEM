@@ -1,4 +1,4 @@
-/* $Id: QuadT.h,v 1.5 2004-04-06 00:57:37 paklein Exp $ */
+/* $Id: QuadT.h,v 1.6 2004-05-17 05:11:04 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #ifndef _QUAD_T_H_
 #define _QUAD_T_H_
@@ -61,6 +61,10 @@ public:
 	 * \param coords list of coordinates defining the domain
 	 * \param point test point coordinates */
 	virtual bool PointInDomain(const LocalArrayT& coords, const dArrayT& point) const;
+
+	/** return the integration point whose domain contains the given point in the
+	 * parent domain coordinates */
+	virtual int IPDomain(int nip, const dArrayT& coords) const;
 };
 
 } /* namespace Tahoe */

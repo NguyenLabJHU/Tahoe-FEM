@@ -1,4 +1,4 @@
-/* $Id: QuadT.cpp,v 1.12 2004-05-16 00:47:38 paklein Exp $ */
+/* $Id: QuadT.cpp,v 1.13 2004-05-17 05:11:04 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "QuadT.h"
 #include <math.h>
@@ -766,4 +766,37 @@ bool QuadT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
 		if (a == nen) a = 0;
 	}
 	return in_domain;
+}
+
+/* return the integration point whose domain contains the given point in the
+ * parent domain coordinates */
+int QuadT::IPDomain(int nip, const dArrayT& coords) const
+{
+	const char caller[] = "QuadT::IPDomain";
+	
+	/* domain check */
+	if (coords[0] < -1.0 || coords[0] > 1.0 || coords[1] < -1.0 || coords[1] > 1.0)
+		ExceptionT::OutOfRange(caller, "{%g,%g} outside domain", coords[0], coords[1]);	
+	
+	if (nip == 1)
+		return 0;
+	else if (nip == 4) {
+		if (coords[1] > 0.0) /* upper */ {
+			if (coords[0] > 0.0) /* right */
+				return 2;
+			else /* left */
+				return 3;
+		}
+		else /* lower-half */ {
+			if (coords[0] > 0.0) /* right */
+				return 1;
+			else /* left */
+				return 0;
+		}
+	}
+	else
+		ExceptionT::GeneralFail(caller, "%d integration points not supported", nip);
+
+	/* dummy */
+	return -1;
 }

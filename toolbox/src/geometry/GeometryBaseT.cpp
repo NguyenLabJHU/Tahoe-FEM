@@ -1,4 +1,4 @@
-/* $Id: GeometryBaseT.cpp,v 1.6 2004-04-06 00:57:37 paklein Exp $ */
+/* $Id: GeometryBaseT.cpp,v 1.7 2004-05-17 05:11:04 paklein Exp $ */
 /* created: paklein (10/21/1997) */
 #include "GeometryBaseT.h"
 #include "ExceptionT.h"
@@ -38,6 +38,18 @@ bool GeometryBaseT::PointInDomain(const LocalArrayT& coords, const dArrayT& poin
 void GeometryBaseT::IPGradientTransform(int ip, dMatrixT& transform) const
 {
 #pragma unused (ip)
+#pragma unused (transform)
 	ExceptionT::GeneralFail("GeometryBaseT::IPGradientTransform", 
 		"not implemented for geometry \"%s\"", ToString(Geometry()));
+}
+
+/* return the integration point whose domain contains the given point in the
+ * parent domain coordinates */
+int GeometryBaseT::IPDomain(int nip, const dArrayT& coords) const
+{
+#pragma unused (nip)
+#pragma unused (coords)
+	ExceptionT::GeneralFail("GeometryBaseT::IPDomain", 
+		"not implemented for geometry \"%s\"", ToString(Geometry()));
+	return -1;
 }
