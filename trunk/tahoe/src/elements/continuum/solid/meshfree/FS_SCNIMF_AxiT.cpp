@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.21 2005-01-28 02:45:52 paklein Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.22 2005-02-02 01:58:55 paklein Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 //#define VERIFY_B
@@ -206,7 +206,7 @@ void FS_SCNIMF_AxiT::WriteOutput(void)
 		}
 
 		const double* stress = fCurrMaterial->s_ij().Pointer();
-		double* inp_val = values_i.Pointer() + 2*ndof;
+		double* inp_val = values_i.Pointer(2*ndof);
 
 		/* mass */		
 		*inp_val++ = fCellVolumes[i] * 2. * Pi * fCellCentroids(i,0);
