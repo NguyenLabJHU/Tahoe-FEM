@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.22 2003-12-28 23:37:24 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.23 2004-01-27 15:31:52 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -101,6 +101,9 @@ public:
 
 	/** read/write access to the properties map */
 	nMatrixT<int>& PropertiesMap(void) { return fPropertiesMap; };
+
+	/** add the element group's contribution to the lumped (scalar) mass of the given nodes */
+	virtual void LumpedMass(const iArrayT& nodes, dArrayT& mass) const;
 
 protected: /* for derived classes only */
 

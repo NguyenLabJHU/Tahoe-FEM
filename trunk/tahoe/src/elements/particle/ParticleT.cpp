@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.33 2003-12-28 08:23:41 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.34 2004-01-27 15:31:52 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -479,6 +479,20 @@ const dArray2DT& ParticleT::InternalForce(int group)
 		ExceptionT::GeneralFail("ParticleT::InternalForce", 
 			"expecting solver group %d not %d", Group(), group);
 	return fForce;
+}
+
+/* add the element group's contribution to the lumped (scalar) mass of the given nodes */
+void ParticleT::LumpedMass(const iArrayT& nodes, dArrayT& mass) const
+{
+	/* inherited */
+	ElementBaseT::LumpedMass(nodes, mass);
+
+	/* collect particle masses */
+	for (int i = 0; i < nodes.Length(); i++)
+	{
+		int property_type = fType[nodes[i]];
+		mass[i] += fParticleProperties[property_type]->Mass();
+	}
 }
 
 /***********************************************************************
