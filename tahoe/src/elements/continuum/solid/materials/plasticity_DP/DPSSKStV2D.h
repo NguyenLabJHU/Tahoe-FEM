@@ -1,15 +1,14 @@
-/* $Id: DPSSKStV2D.h,v 1.8 2002-11-14 17:06:24 paklein Exp $ */
+/* $Id: DPSSKStV2D.h,v 1.8.32.1 2004-03-03 16:15:00 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_2D_H_
 #define _DP_SS_KSTV_2D_H_
 
 /* base class */
-#include "Material2DT.h"
 #include "DPSSKStV.h"
 
 namespace Tahoe {
 
-class DPSSKStV2D: public DPSSKStV, public Material2DT
+class DPSSKStV2D: public DPSSKStV
 {
   public:
 
@@ -25,7 +24,6 @@ class DPSSKStV2D: public DPSSKStV, public Material2DT
 		const ElementCardT& element, int ip);
 
 	/* print parameters */
-	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
 	
 	/* modulus */
@@ -35,8 +33,11 @@ class DPSSKStV2D: public DPSSKStV, public Material2DT
 	/* stress */
 	virtual const dSymMatrixT& s_ij(void);
 
-	/* returns the strain energy density for the specified strain */
-	virtual double StrainEnergyDensity(void);
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
   private:
   
