@@ -32,6 +32,13 @@ ifstreamT& OpenExternal(ifstreamT& in, ifstreamT& in2,
       // open separate file
       StringT filename;
       in >> filename;
+      
+  		// generate relative path in native format
+		filename.ToNativePathName();
+		StringT path;
+		path.FilePath(in.filename());
+		filename.Prepend(path);
+      
       OpenExternal(in2, filename, name);
       if (in.skip_comments()) in2.set_marker(in.comment_marker());
       return in2;
