@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.4.2.2 2001-10-26 18:59:58 sawimme Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.4.2.3 2001-10-29 00:01:42 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 
 #include "AugLagContact2DT.h"
@@ -200,7 +200,7 @@ void AugLagContact2DT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 	/* replace contact connects */
 	bool found = false;
 	for (int i = connects_1.Length() - 1; i > -1 && !found; i--)
-		if (connects_1[i] == &fConnectivities)
+		if (connects_1[i] == &fContactConnectivities)
 		{
 			connects_1[i] = &fXDOFConnectivities;
 			found = true;
