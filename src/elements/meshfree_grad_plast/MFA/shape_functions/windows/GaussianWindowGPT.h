@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowGPT.h,v 1.1 2004-06-22 23:17:51 kyonten Exp $ */
+/* $Id: GaussianWindowGPT.h,v 1.2 2004-06-30 16:56:21 kyonten Exp $ */
 
 #ifndef _GAUSSIAN_WINDOW_GP_T_H_
 #define _GAUSSIAN_WINDOW_GP_T_H_
@@ -9,6 +9,7 @@
 /* direct members */
 #include "dArrayT.h"
 #include "dArray2DT.h"
+#include "dMatrixT.h" // kyonten
 #include "dSymMatrixT.h"
 
 namespace Tahoe {
@@ -49,7 +50,7 @@ class GaussianWindowGPT: public WindowGPT
 
 	/* single point evaluations */
 	virtual bool Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dSymMatrixT& DDDw); // kyonten (DDDw)
+		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw); // kyonten (DDDw)
 
 	/* multiple point evaluations */
 	virtual int Window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
@@ -73,7 +74,6 @@ class GaussianWindowGPT: public WindowGPT
 	/* work space */
 	dArrayT     fNSD;
 	dSymMatrixT fNSDsym;
-	dArrayT fNSDvec; // kyonten (for DDDw)
 	
 };
 

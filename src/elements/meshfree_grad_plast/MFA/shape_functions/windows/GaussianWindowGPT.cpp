@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowGPT.cpp,v 1.1 2004-06-22 23:17:51 kyonten Exp $ */
+/* $Id: GaussianWindowGPT.cpp,v 1.2 2004-06-30 16:56:21 kyonten Exp $ */
 
 #include "GaussianWindowGPT.h"
 #include "ExceptionT.h"
@@ -63,7 +63,7 @@ void GaussianWindowGPT::WriteParameters(ostream& out) const
 
 /* Single point evaluations */
 bool GaussianWindowGPT::Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dSymMatrixT& DDDw)
+		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw)
 {
 	/* check out of influence range */
 	if (!Covers(x_n, x, param_n))
@@ -106,12 +106,41 @@ bool GaussianWindowGPT::Window(const dArrayT& x_n, const dArrayT& param_n, const
 	  			DDw.PlusIdentity(-2.0 * w / adm2);
 	  			if (order > 2) // kyonten (DDDw)
 	  			{
-	  				DDDw.Outer(Dw);
-	  				DDDw.MultTx(Dw,DDDw); //overwrite ??
-					DDDw *= -8.0*w/(adm2*adm2*adm2);
-					DDDw.PlusIdentity(8.0*w/(adm2*adm2)); 
-					fNSDvec.SetToScaled(4.0*w/(adm2*adm2),Dw);
-					DDDw += fNSDvec; // double check!!
+	  			    if (nsd == 2)
+	  			    {
+	  			     len = 3.; // upper triangle only (symmetry)
+	  			    }
+	  			    else if (nsd == 3)
+	  			    {
+	  			     len = 6.; // upper triangle only (symmetry)
+	  			    }
+	  				dMatrixT AA(1, len), II(1, len); 
+	  				dMatrixT DDDw1(nsd, nsd), I(nsd, nsd);
+	  				I = 0.; II = 0.;
+	  				DDDw1.Outer(Dw);
+	  				if (nsd == 2)
+	  				{
+	  				 AA(1,1) = DDDw1(1,1); AA(1,2) = DDDw1(2,2); AA(1,3) = DDDw1(1,2);
+	  				 I(1,1) = I(2,2) = 1.;
+	  				 II(1,1) = I(1,1); II(1,2) = I(2,2); II(1,3) = I(1,2);
+	  				}
+	  				else if (nsd == 3)
+	  				{
+	  				 AA(1,1) = DDDw1(1,1); AA(1,2) = DDDw1(2,2); AA(1,3) = DDDw1(3,3);
+	  				 AA(1,4) = DDDw1(2,3); AA(1,5) = DDDw1(1,3): AA(1,6) = DDDw1(1,2);
+	  				 I(1,1) = I(2,2) = I(3,3) = 1.;
+	  				 II(1,1) = I(1,1); II(1,2) = I(2,2); II(1,3) = I(3,3);
+	  				 II(1,4) = I(2,3); II(1,5) = I(1,3): II(1,6) = II(1,2);
+	  				}
+	  				DDDw.MultAB(Dw,DDDw1); // 3x6
+	  				DDDw *= -8.0*w/(adm2*adm2*adm2);
+	  				DDDw2.MultAB(Dw,II); // 3x6
+	  				DDDw2 += DDDw2;
+	  				DDDw2 *= 4.0*w/(adm2*adm2);
+	  				DDDw += DDDw2;
+	  				DDDw3.MultAB(Dw,II); // 3x6
+	  				DDDw3 *= 4.0*w/(adm2*adm2);
+	  				DDDw += DDDw3;
 	  			}
       		}
       		
@@ -132,7 +161,6 @@ int GaussianWindowGPT::Window(const dArray2DT& x_n, const dArray2DT& param_n,
 	int nsd = x.Length();
 	fNSD.Dimension(nsd);
 	fNSDsym.Dimension(nsd); 
-	fNSDvec.Dimension(nsd); // kyonten (dimension for DDDw)
 	
 	/* work space */
 	dArrayT x_node, param_node;
@@ -158,7 +186,7 @@ int GaussianWindowGPT::Window(const dArray2DT& x_n, const dArray2DT& param_n,
 				DDw.SetColumn(i, fNSDsym);
 				if (order > 2) //kyonten
 				{
-					DDDw.SetColumn(i, fNSD); 
+					DDDw.SetColumn(i, fNSDsym); 
 				}	
 			}
 		}
