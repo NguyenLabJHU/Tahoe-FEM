@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2003-04-05 20:07:47 thao Exp $
+# $Id: makefile,v 1.2 2003-04-07 18:59:09 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -19,26 +19,26 @@ include $(MACRO_DIR)/$(ARCH).macros
 #    (3) comment the OBJ, OBJ_LINK, and DEP macros in the
 #        section (1.1).
 #
-OBJ = 
-
-OBJ_LINK = $(OBJ)
-DEP = $(OBJ:.o=.d)
+#OBJ =
+#OBJ_LINK = $(OBJ)
+#DEP = $(OBJ:.o=.d)
 
 #
 # (1.2) If there are not object in this directory:
 #    (1) comment the OBJ, OBJ_LINK, and DEP definitions in section (1.1)
 #    (2) uncomment the OBJ, OBJ_LINK, and DEP definitions below
 #
-#OBJ = dummy
-#OBJ_LINK =
-#DEP = /dev/null
+OBJ = dummy
+OBJ_LINK =
+DEP = /dev/null
 
 ##################### (2) sources
 #
 # (2) If there are sources in this directory list them in the
 #     SRC macro; otherwise, comment the SRC macro.
 #
-SRC = 
+SRC =
+
 ##################### (3) headers
 #
 # (3) If there are header files in this directory:
@@ -48,8 +48,8 @@ SRC =
 # If there are no header files in this directory comment both the
 # HDR and HDR_LINK macro   
 #
-HDR = 
-HDR_LINK = $(HDR:.h=.h_link)
+#HDR = 
+#HDR_LINK = $(HDR:.h=.h_link)
 
 ##################### (4) sub-directories
 #
