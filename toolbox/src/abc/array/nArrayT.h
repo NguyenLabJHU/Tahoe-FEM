@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.5 2001-09-06 02:10:47 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.6 2001-09-06 08:43:35 paklein Exp $ */
 /* created: paklein (05/23/1997) */
 
 #ifndef _NARRAY_T_H_
@@ -362,7 +362,7 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator+=(const nArrayT& RHS)
 #if __option (extended_errorcheck)
 	if (fLength != RHS.fLength) throw eSizeMismatch;
 #endif
-	operator+=(RHS.Pointer());
+	return operator+=(RHS.Pointer());
 }
 
 template <class nTYPE>
@@ -392,7 +392,7 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator-=(const nArrayT& RHS)
 #if __option (extended_errorcheck)
 	if (fLength != RHS.fLength) throw eSizeMismatch;
 #endif
-	operator-=(RHS.Pointer());
+	return operator-=(RHS.Pointer());
 }
 
 template <class nTYPE>
