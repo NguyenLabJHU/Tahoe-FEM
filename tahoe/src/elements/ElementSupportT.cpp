@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.16 2002-12-03 19:15:04 cjkimme Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.16.2.1 2002-12-16 09:34:41 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -50,6 +50,12 @@ void ElementSupportT::SetFEManager(FEManagerT* fe)
 
 		/* set nodal information */
 		SetNodes(fe->NodeManager());
+
+		/* set model manager */
+		fModelManager = fe->ModelManager();
+
+		/* set comm manager */
+		fCommManager = fe->CommManager();
 	}
 	else
 	{
@@ -58,6 +64,12 @@ void ElementSupportT::SetFEManager(FEManagerT* fe)
 
 		/* clear nodal information */
 		SetNodes(NULL);
+
+		/* clear model manager */
+		fModelManager = NULL;
+
+		/* clear comm manager */
+		fCommManager = NULL;
 	}
 }
 
@@ -239,19 +251,6 @@ ElementBaseT& ElementSupportT::ElementGroup(int index) const
 }
 #endif
 
-/* geometry information */
-ModelManagerT& ElementSupportT::Model(void) const
-{
-#ifndef _SIERRA_TEST_
-	ModelManagerT* model = FEManager().ModelManager();
-	if (!model) throw ExceptionT::kGeneralFail;
-	return *model;
-#else
-	if (!fModelManager) throw ExceptionT::kGeneralFail;
-	return *fModelManager;
-#endif
-}
-
 #ifndef _SIERRA_TEST_
 /* XDOF support */
 XDOF_ManagerT& ElementSupportT::XDOF_Manager(void) const
@@ -261,7 +260,7 @@ XDOF_ManagerT& ElementSupportT::XDOF_Manager(void) const
 #endif
 
 /* node number map. returns NULL if there is not a map */
-const iArrayT* ElementSupportT::NodeMap(void) const
+const ArrayT<int>* ElementSupportT::NodeMap(void) const
 {
 #ifndef _SIERRA_TEST_
 	return FEManager().NodeMap();

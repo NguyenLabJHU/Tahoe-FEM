@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.16 2002-12-03 19:15:04 cjkimme Exp $ */
+/* $Id: ElementSupportT.h,v 1.16.2.1 2002-12-16 09:34:41 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -38,7 +38,7 @@ class ScheduleT;
 class StringT;
 class OutputSetT;
 class LocalArrayT;
-
+class CommManagerT;
 
 /** support for the ElementBaseT class hierarchy. A limited interface to get 
  * information in and out of an ElementBaseT */
@@ -221,15 +221,17 @@ public:
 	 * \param external_data data from other processors for each node in 
 	 *        the ElementSupport::IncomingNodes array */
 	void RecvExternalData(dArray2DT& external_data) const;
-	/*@}*/
-	
+	/*@}*/	
 #endif
 	
 	/** geometry information */
 	ModelManagerT& Model(void) const;
 
+	/** comm information */
+	CommManagerT& CommManager(void) const;
+
 	/** node number map. returns NULL if there is not map */
-	const iArrayT* NodeMap(void) const;
+	const ArrayT<int>* NodeMap(void) const;
 	
 	/** element number map for the given block ID */
 	const iArrayT* ElementMap(const StringT& block_ID) const;
@@ -282,8 +284,8 @@ public:
 	/*@}*/
 
 private:
-#ifndef _SIERRA_TEST_
 
+#ifndef _SIERRA_TEST_
  	/** \name verified access 
 	 * Use these if you don't want to keep checking that the pointers
 	 * have been initialized. */
@@ -294,14 +296,24 @@ private:
 	/** the nodes */
 	NodeManagerT& Nodes(void) const;
 	/*@}*/
+#endif
 
+private:
+
+	/** \name managers */
+	/*@{*/
 	/** the boss */
 	FEManagerT* fFEManager;
 	
 	/** the nodes */
 	NodeManagerT* fNodes;
 
-#endif
+	/** the model manager */
+ 	ModelManagerT* fModelManager;	
+
+	/** the communication manager */
+	CommManagerT* fCommManager;
+	/*@}*/
 	
 	/** \name cached parameters
 	 * Pre-set to allow fast access */
@@ -314,8 +326,6 @@ private:
 
 #ifdef _SIERRA_TEST_	
  
- 	ModelManagerT* fModelManager;
-
 	dArray2DT *fInitialCoordinates, *fCurrentCoordinates;
 	dArrayT *fResidual;
 	dMatrixT *fStiffness;
@@ -346,20 +356,16 @@ private:
 /* the top-level manager */
 inline FEManagerT& ElementSupportT::FEManager(void) const
 {
-	if (!fFEManager) {
-		cout << "\n ElementSupportT::FEManager: pointer not set" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (!fFEManager)
+		ExceptionT::GeneralFail("ElementSupportT::FEManager", "pointer not set");
 	return *fFEManager;
 }
 
 /* the nodes */
 inline NodeManagerT& ElementSupportT::Nodes(void) const
 {
-	if (!fNodes) {
-		cout << "\n ElementSupportT::Nodes: pointer not set" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (!fNodes) 
+		ExceptionT::GeneralFail("ElementSupportT::Nodes", "pointer not set");
 	return *fNodes;
 }
 #else
@@ -371,11 +377,25 @@ inline int *ElementSupportT::IntInput(void) const { return iparams; }
 /* return a const reference to the run state flag */
 inline const GlobalT::StateT& ElementSupportT::RunState(void) const
 {
-	if (!fRunState) {
-		cout << "\n ElementSupportT::RunState: not set" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (!fRunState)
+		ExceptionT::GeneralFail("ElementSupportT::RunState", "not set");
 	return *fRunState;
+}
+
+/* geometry information */
+inline ModelManagerT& ElementSupportT::Model(void) const
+{
+	if (!fModelManager) 
+		ExceptionT::GeneralFail("ElementSupportT::Model", "pointer not set");
+	return *fModelManager;
+}
+
+/* comm information */
+inline CommManagerT& ElementSupportT::CommManager(void) const
+{
+	if (!fCommManager) 
+		ExceptionT::GeneralFail("ElementSupportT::CommManager", "pointer not set");
+	return *fCommManager;
 }
 
 } // namespace Tahoe 
