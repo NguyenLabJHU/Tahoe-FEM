@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.1.2.7 2003-01-05 23:46:28 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.1.2.8 2003-01-08 08:35:52 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -115,33 +115,74 @@ void CommManagerT::EnforcePeriodicBoundaries(dArray2DT& displacement, double ski
 	/* nodes owned by this partition */
 	const ArrayT<int>* partition_nodes = PartitionNodes();
 	int nnd = (partition_nodes) ? partition_nodes->Length() : reference_coords.MajorDim();
+
+	/* dimension node lists */
+	if (fNodes_x_min.Length() != fIsPeriodic.Length()) {
+		int nper = fIsPeriodic.Length();
+		fNodes_x_min.Dimension(nper);
+		fNodes_x_min_ghost.Dimension(nper);
+		fNodes_x_max.Dimension(nper);
+		fNodes_x_max_ghost.Dimension(nper);
+	}
 	
 	/* loop over directions */
-	bool has_periodic = false;
+	int ghost_count = 0;
 	for (int i = 0; i < fIsPeriodic.Length(); i++)
 		if (fIsPeriodic[i])
 		{
-			has_periodic = true;
+			/* clear lists of boundary nodes */
+			AutoArrayT<int>& nodes_x_min = fNodes_x_min[i];
+			nodes_x_min.Dimension(0);			
+			AutoArrayT<int>& nodes_x_max = fNodes_x_max[i];
+			nodes_x_max.Dimension(0);
 		
 			/* coordinate limits */
 			double x_min = fPeriodicBoundaries(i,0);
 			double x_max = fPeriodicBoundaries(i,1);
 			double x_len = x_max - x_min;
 
+			/* nodes owned by this partition */
 			for (int j = 0; j < nnd; j++)
 			{
+				/* current coordinates */
 				int nd = (partition_nodes) ? (*partition_nodes)[j] : j;
 				double& X = reference_coords(nd,i);
 				double& d = displacement(nd,i);
 				double  x = X + d;
 			
-				/* shift displacements */
+				/* shift displacements - back in the box */
 				if (x > x_max) 
 					d -= x_len;
 				else if (x < x_min)
 					d += x_len;
+					
+				/* collect nodes close to periodic boundaries */
+				x = X + d;
+				if (x - x_min < skin) {
+					nodes_x_min.Append(nd);
+					ghost_count++;
+				}
+				if (x_max - x < skin) {
+					nodes_x_max.Append(nd);
+					ghost_count++;
+				}
 			}
 		}
+		
+	/* configure ghost nodes */
+	if (ghost_count > 0)
+	{
+		int ghost_count_tot = fComm.Sum(ghost_count);
+		
+		/* coordinates */
+#pragma message("CommManagerT::EnforcePeriodicBoundaries: finish me")		
+		
+		/* fields */
+		
+		
+		/* persistent communications */
+		
+	}
 }
 
 /* configure local environment */
