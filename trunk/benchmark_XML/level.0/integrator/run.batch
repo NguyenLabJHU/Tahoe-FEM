@@ -1,0 +1,16 @@
+@
+# $Id: run.batch,v 1.1 2004-04-06 06:53:33 paklein Exp $
+explicitCD.0.xml
+explicitCD.1.xml
+explicitCD.1a.xml
+explicitCD.2.xml
+gear.0.xml
+gear.1.xml
+gear.2.xml
+implicit.0.xml
+implicit.1.xml
+implicit.1a.xml
+implicit.2.xml
+trapezoid.0.xml
+trapezoid.1.xml
+
