@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.24 2004-03-16 05:37:14 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.25 2004-11-08 02:13:36 d-farrell2 Exp $ */
 /* created: paklein (05/23/1997) */
 #ifndef _NARRAY_T_H_
 #define _NARRAY_T_H_
@@ -147,9 +147,11 @@ public:
 	void SetToScaled(const nTYPE& scale, const nTYPE* RHS);
 	void AddScaled(const nTYPE& scale, const nArrayT& RHS);
 	void AddScaled(const nTYPE& scale, const nTYPE* RHS);
+	void AddScaled(const nTYPE& scale, const nArrayT& RHS, int istart, int iend);
 
 	/** sum and difference of nArrayT's */
 	void SumOf(const nArrayT& A, const nArrayT& B);
+	void SumOf(const nArrayT& A, const nArrayT& B, int istart, int iend);
 	void DiffOf(const nArrayT& A, const nArrayT& B);
 
 	/** sum and difference arrays. Arrays assumed to be the same
@@ -173,6 +175,10 @@ public:
 	                    const nTYPE& b, const nArrayT& B);
 	void AddCombination(const nArrayT& a, const ArrayT<nArrayT<nTYPE>*>& A);
 	void AddCombination(const nTYPE& a, const nArrayT& A);
+	
+	// Dave added this one, this += a*A + b*B, with restrictions on limits of arrays
+	void AddCombination(const nTYPE& a, const nArrayT& A,
+	                    const nTYPE& b, const nArrayT& B, int istart, int iend);
 
 	/** fill the array with random numbers in the range [-1 1] */
 	void Random(int seed = 1);
@@ -1051,7 +1057,7 @@ void nArrayT<nTYPE>::SetToScaled(const nTYPE& scale, const nTYPE* RHS)
 		*pthis++ = temp;
 	}
 }
-
+//// DEF modified to echo syntax of AddCombination
 template <class nTYPE>
 inline void nArrayT<nTYPE>::AddScaled(const nTYPE& scale, const nArrayT& RHS)
 {
@@ -1059,8 +1065,16 @@ inline void nArrayT<nTYPE>::AddScaled(const nTYPE& scale, const nArrayT& RHS)
 #if __option (extended_errorcheck)
 	if (fLength != RHS.fLength) ExceptionT::SizeMismatch();
 #endif
-
-	AddScaled(scale, RHS.Pointer());
+	nTYPE* pthis = Pointer();
+	nTYPE temp;
+	const nTYPE* pRHS = RHS.Pointer();
+	
+	for (int i = 0; i < fLength; i++)
+	{
+		temp  = scale;
+		temp *= *pRHS++;
+		*pthis++ += temp;
+	}
 }
 
 template <class nTYPE>
@@ -1072,6 +1086,29 @@ void nArrayT<nTYPE>::AddScaled(const nTYPE& scale, const nTYPE* RHS)
 	{
 		temp  = scale;
 		temp *= *RHS++;
+		*pthis++ += temp;
+	}
+}
+//// DEF added, modified to echo syntax of AddCombination
+template <class nTYPE>
+void nArrayT<nTYPE>::AddScaled(const nTYPE& scale, const nArrayT& RHS, int istart, int iend)
+{
+/* dimension checks */
+#if __option (extended_errorcheck)
+	if (fLength != RHS.fLength) ExceptionT::SizeMismatch();
+#endif
+	nTYPE* pthis = Pointer();
+	nTYPE temp;
+	const nTYPE* pRHS = RHS.Pointer();
+	
+	// now adjust the pointers to the start
+	pthis += istart;
+	pRHS += istart;
+	
+	for (int i = istart; i <= iend; i++)
+	{
+		temp  = scale;
+		temp *= *pRHS++;
 		*pthis++ += temp;
 	}
 }
@@ -1094,6 +1131,32 @@ inline void nArrayT<nTYPE>::SumOf(const nTYPE* pA, const nTYPE* pB)
 {
 	nTYPE* pthis = Pointer();
 	for (int i = 0; i < fLength; i++)
+	{
+		*pthis  = *pA++;
+		*pthis += *pB++;
+		pthis++;
+	}
+}
+
+//// DEF added, to take the operation limits
+template <class nTYPE>
+inline void nArrayT<nTYPE>::SumOf(const nArrayT& A, const nArrayT& B, int istart, int iend)
+{
+#if __option (extended_errorcheck)
+	/* dimension checks */
+	if (fLength != A.fLength || fLength != B.fLength) ExceptionT::SizeMismatch();
+#endif
+
+	nTYPE* pthis = Pointer();
+	const nTYPE* pA = A.Pointer();
+	const nTYPE* pB = B.Pointer();
+
+	// now adjust the pointers to the start and end
+	pA += istart;
+	pB += istart;
+	pthis += istart; 
+	
+	for (int i = istart; i <= iend; i++)
 	{
 		*pthis  = *pA++;
 		*pthis += *pB++;
@@ -1215,6 +1278,39 @@ void nArrayT<nTYPE>::AddCombination(const nTYPE& a, const nArrayT& A,
 		*pthis++ += temp;
 	}
 }
+//// DEF added 
+template <class nTYPE>
+void nArrayT<nTYPE>::AddCombination(const nTYPE& a, const nArrayT& A,
+	const nTYPE& b, const nArrayT& B, int istart, int iend)
+{
+/* dimension checks */
+#if __option (extended_errorcheck)
+	if (fLength != A.fLength || fLength != B.fLength) ExceptionT::SizeMismatch();
+#endif
+
+	nTYPE* pthis = Pointer();
+	const nTYPE* pA = A.Pointer();
+	const nTYPE* pB = B.Pointer();
+
+	// now adjust the pointers to the start and end
+	pA += istart;
+	pB += istart;
+	pthis += istart; 
+
+	register nTYPE temp;
+	
+	for (int i = istart; i <= iend; i++)
+	{
+		temp  = a;
+		temp *= *pA++;
+		*pthis += temp;
+	
+		temp  = b;
+		temp *= *pB++;
+		*pthis++ += temp;
+	}
+}
+
 
 template <class nTYPE>
 void nArrayT<nTYPE>::AddCombination(const nTYPE& a, const nArrayT& A)
