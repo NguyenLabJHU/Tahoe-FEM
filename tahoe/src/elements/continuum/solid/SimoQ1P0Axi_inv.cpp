@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0Axi_inv.cpp,v 1.1.2.1 2004-05-05 18:37:40 paklein Exp $ */
+/* $Id: SimoQ1P0Axi_inv.cpp,v 1.1.2.2 2004-05-06 00:20:48 paklein Exp $ */
 #include "SimoQ1P0Axi_inv.h"
 
 #include "ShapeFunctionT.h"
@@ -207,18 +207,35 @@ void SimoQ1P0Axi_inv::FormStiffness(double constK)
 
 	/* initialize */
 	fStressStiff = 0.0;
+	fNEEvec = 0.0;
 
+	int  nsd = NumSD();
+	int ndof = NumDOF();
+	int nen  = NumElementNodes();
 	fCurrShapes->GradNa(fMeanGradient, fb_bar);	
 	fShapes->TopIP();
 	while ( fShapes->NextIP() )
 	{
-		/* double scale factor */
-		double scale = constK*(*Det++)*(*Weight++);
+		int ip = fShapes->CurrIP();
+		double r = fRadius_x[ip];
+	
+		/* scale factor */
+		double scale = Pi2*r*constK*(*Det++)*(*Weight++);
+
+		/* collect array of nodal shape functions */
+		const double* Na_u = fCurrShapes->IPShapeU();
+		fIPShape.Alias(nen, Na_u);
+		double* u_r = fNEEvec.Pointer(kRadialDirection);
+		for (int a = 0; a < nen; a++) {
+			*u_r = *Na_u++;
+			u_r += ndof;
+		}
 	
 	/* S T R E S S   S T I F F N E S S */			
 		/* compute Cauchy stress */
 		const dSymMatrixT& cauchy = fCurrMaterial->s_ij();
 		cauchy.ToMatrix(fStressMat);
+		fMat2D.Rank2ReduceFrom3D(fStressMat);
 		
 		/* determinant of modified deformation gradient */
 		double J_bar = DeformationGradient().Det();
@@ -229,25 +246,36 @@ void SimoQ1P0Axi_inv::FormStiffness(double constK)
 
 		/* get shape function gradients matrix */
 		fCurrShapes->GradNa(fGradNa);
-		fb_sig.MultAB(fStressMat, fGradNa);
+		fb_sig.MultAB(fMat2D, fGradNa);
 
 		/* integration constants */		
-		fStressMat *= scale*J_correction;
+		fMat2D *= scale*J_correction;
 	
 		/* using the stress symmetry */
-		fStressStiff.MultQTBQ(fGradNa, fStressMat,
-			format, dMatrixT::kAccumulate);
+		fStressStiff.MultQTBQ(fGradNa, fMat2D, format, dMatrixT::kAccumulate);
+
+		/* contribution from out-of-plane stress */
+		fLHS.Outer(fNEEvec, fNEEvec, scale*J_correction*fStressMat(2,2)/(r*r), dMatrixT::kAccumulate);
 
 	/* M A T E R I A L   S T I F F N E S S */									
 		/* strain displacement matrix */
-		Set_B_bar(fCurrShapes->Derivatives_U(), fMeanGradient, fB);
+		Set_B_bar_axi(fIPShape, fCurrShapes->Derivatives_U(), fMeanGradient, r, fB);
 
 		/* get D matrix */
-		fD.SetToScaled(scale*J_correction, fCurrMaterial->c_ijkl());
+		fD.Rank4ReduceFrom3D(fCurrMaterial->c_ijkl());
+		fD *= scale;
 						
 		/* accumulate */
 		fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);
-		
+
+		/* add axisymmetric contribution to b */
+		Na_u = fCurrShapes->IPShapeU();
+		double* b_r = fGradNa.Pointer(kRadialDirection);
+		for (int a = 0; a < nen; a++) {
+			*b_r += (*Na_u++)/r;
+			b_r += nsd;
+		}
+
 		/* $div div$ term */	
 		fNEEmat.Outer(fGradNa, fGradNa);
 		fLHS.AddScaled(p_bar*scale, fNEEmat);
@@ -298,6 +326,9 @@ void SimoQ1P0Axi_inv::FormKd(double constK)
 		double r = fRadius_x[ip];
 		double R = fRadius_X[ip];
 	
+		/* collect array of nodal shape functions */
+		fIPShape.Alias(nen, fShapes->IPShapeU());
+	
 		/* strain displacement matrix */
 		Set_B_bar_axi(fIPShape, fCurrShapes->Derivatives_U(), fMeanGradient, r, fB);
 
@@ -323,6 +354,83 @@ void SimoQ1P0Axi_inv::FormKd(double constK)
 		/* incremental heat generation */
 		if (need_heat) 
 			fElementHeat[fShapes->CurrIP()] += fCurrMaterial->IncrementalHeat();
+
+		/* debugging output */
+		int output_element = fOutputCell;
+		if (CurrElementNumber() == output_element) {
+
+			/* collect nodal velocities */
+			if (CurrIP() == 0) 
+				SetLocalU(fLocVel);
+
+			/* step information */
+			int step_number = ElementSupport().StepNumber();
+			double time = ElementSupport().Time();
+		
+			/* acoustic wave speeds */
+			dArrayT normal(3), speeds(3);
+			normal[0] = 1.0;
+			normal[1] = 0.0;
+			normal[2] = 0.0;
+			fCurrMaterial->WaveSpeeds(normal, speeds);
+
+			/* neighborhood nodes */
+			const iArrayT& nodes_u = CurrentElement().NodesU();
+
+			/* get matrix of shape function gradients */
+			fShapes->GradNa(fGradNa);
+
+			/* include out-of-plane influence */
+			const double* NaU = fShapes->IPShapeU();
+			double r = fRadius_x[CurrIP()];
+			for (int i = 0; i < nodes_u.Length(); i++)
+				fGradNa(0,i) += (*NaU++)/r;
+			
+			/* file path */
+			StringT path;
+			path.FilePath(ElementSupport().Input().filename());
+			
+			/* write info for neighborhood nodes */
+			for (int i = 0; i < nodes_u.Length(); i++) {
+
+				/* file name */
+				StringT node_file;
+				node_file.Append("cell", output_element + 1);
+				node_file.Append(".ip", CurrIP() + 1);
+				node_file.Append(".nd", nodes_u[i] + 1);
+				node_file.Append(".dat");
+				node_file.Prepend(path);
+				
+				/* (re-)open stream */
+				ofstreamT out;
+				if (fOutputInit)
+					out.open_append(node_file);
+				else {
+					out.open(node_file);
+
+					/* Tecplot style data headers */				
+					out << "VARIABLES = \"step\" \"time\" \"J\" \"J_bar\" \"Na_r\" \"Na_z\" \"v_r\" \"v_z\" \"c_d\" \"c_s1\" \"c_s2\"" << endl;
+				}
+					
+				/* write output */
+				int d_width = OutputWidth(out, &time);
+				out << setw(kIntWidth) << step_number
+				    << setw(d_width) << time
+				    << setw(d_width) << fJacobian[CurrIP()] 
+				    << setw(d_width) << J_bar
+				    << setw(d_width) << fGradNa(0,i)
+				    << setw(d_width) << fGradNa(1,i)
+				    << setw(d_width) << fLocVel(i,0)
+				    << setw(d_width) << fLocVel(i,1)
+				    << speeds.no_wrap() << '\n';
+				    
+				/* close stream */
+				out.close();
+			}
+
+			/* set flag */
+			hit_cell = true;
+		}
 
 		/* next integration points */
 		Det++; Det0++; Weight++;
