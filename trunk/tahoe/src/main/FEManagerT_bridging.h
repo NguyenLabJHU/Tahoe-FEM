@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.23 2005-04-04 17:22:15 rjones Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.24 2005-04-05 16:06:37 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -156,7 +156,7 @@ public:
 
 	/** projects non-field point values onto the mesh. 
 	 */
-	void FEManagerT_bridging::Project(const dArray2DT& fine_values, dArray2DT& nodal_values);
+	void Project(const dArray2DT& fine_values, dArray2DT& nodal_values);
 
 	/** project the point values onto the mesh. Project to the nodes using
 	 * projection initialized with the latest call to FEManagerT_bridging::InitProjection. */
