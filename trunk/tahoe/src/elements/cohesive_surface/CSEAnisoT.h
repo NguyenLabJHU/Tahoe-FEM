@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.31 2003-08-14 05:51:27 paklein Exp $ */
+/* $Id: CSEAnisoT.h,v 1.32 2003-09-03 23:45:50 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -161,6 +161,8 @@ protected:
 	dMatrixT fddU;	 // surface stiffness (local frame)
 	
 	ArrayT<dMatrixT> fdQ; // list representation of rank 3 of dQ_ij/du_k
+
+	double fIPArea; /**< reference area associated with the current integration point */
 	
 	/* work space (for tangent) */
 	dMatrixT fnsd_nee_1;

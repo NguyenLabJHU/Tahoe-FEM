@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.53 2003-09-03 22:54:13 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.54 2003-09-03 23:45:50 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -58,7 +58,8 @@ CSEAnisoT::CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool r
 	fdelta(NumSD()),
 	fT(NumSD()),
 	fddU(NumSD()),
-	fRunState(support.RunState())
+	fRunState(support.RunState()),
+	fIPArea(0.0)
 {
 	SetName("anisotropic_CSE");
 
@@ -292,7 +293,7 @@ void CSEAnisoT::Initialize(void)
 			{
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
 				if (NumDOF() == 2)
-					fSurfPots[num] = new InelasticDuctile_RP2DT(in, ElementSupport().TimeStep());
+					fSurfPots[num] = new InelasticDuctile_RP2DT(in, ElementSupport().TimeStep(),fIPArea);
 				else
 					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
 				break;
@@ -721,6 +722,7 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 			}
 			else
 				j0 = j = fShapes->Jacobian(fQ);
+			fIPArea = w*j0;
 
 			/* check */
 			if (j0 <= 0.0 || j <= 0.0) ExceptionT::BadJacobianDet(caller);
@@ -929,7 +931,8 @@ void CSEAnisoT::RHSDriver(void)
 				}
 				else
 					j0 = j = fShapes->Jacobian(fQ);
-				
+				fIPArea = w*j0;
+
 				/* check */
 				if (j0 <= 0.0 || j <= 0.0) ExceptionT::BadJacobianDet(caller);
 	
