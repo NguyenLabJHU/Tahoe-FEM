@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.h,v 1.8.18.1 2004-05-01 06:33:13 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.h,v 1.8.18.2 2004-05-04 15:50:00 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #ifndef _MF_SMALLSTRAIN_T_H_
 #define _MF_SMALLSTRAIN_T_H_
@@ -16,7 +16,7 @@ namespace Tahoe {
  * field (displacement) representation
  * \note clean up code governing when crack growth algorithm
  * is used, initiation criteria, etc. (PAK 09/28/1999) */
-class MeshFreeSSSolidT: public SmallStrainT, public MeshFreeFractureSupportT
+class MeshFreeSSSolidT: public SmallStrainT
 {
 public:
 
@@ -89,6 +89,12 @@ private:
 	 virtual void WriteField(void); //TEMP?
 	
 private:
+
+	/** meshless shape functions */
+	MeshFreeShapeFunctionT* fMFShapes;
+
+	/** support for meshless calculations */
+	MeshFreeFractureSupportT* fMFFractureSupport;
 
 	/** make field at bounding nodes nodally exact */
 	bool fAutoBorder;

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.11.18.1 2004-05-01 06:33:13 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.11.18.2 2004-05-04 15:50:00 paklein Exp $ */
 /* created: paklein (02/15/2000) */
 #include "MeshFreeFractureSupportT.h"
 
@@ -20,7 +20,7 @@ using namespace Tahoe;
 MeshFreeFractureSupportT::MeshFreeFractureSupportT(void):
 	fCriterion(kNoCriterion)
 {
-
+	SetName("meshfree_fracture_support");
 }
 
 /* destructor */

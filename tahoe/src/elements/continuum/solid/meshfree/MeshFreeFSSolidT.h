@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.h,v 1.9.18.1 2004-05-01 06:33:13 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.h,v 1.9.18.2 2004-05-04 15:50:00 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #ifndef _EFG_FDELASTIC_T_H_
 #define _EFG_FDELASTIC_T_H_
@@ -16,8 +16,7 @@ namespace Tahoe {
  * field (displacement) representation
  * \note clean up code governing when crack growth algorithm
  * is used, initiation criteria, etc. (PAK 09/28/1999) */
-class MeshFreeFSSolidT: public TotalLagrangianT,
-	public MeshFreeFractureSupportT
+class MeshFreeFSSolidT: public TotalLagrangianT
 {
 public:
 
@@ -25,9 +24,6 @@ public:
 	MeshFreeFSSolidT(const ElementSupportT& support, const FieldT& field);
 	MeshFreeFSSolidT(const ElementSupportT& support);
 	
-	/* data initialization */
-	virtual void Initialize(void);
-
 	/* append element equations numbers to the list */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
@@ -91,6 +87,12 @@ private:
 	
 protected:
 
+	/** meshless shape functions */
+	MeshFreeShapeFunctionT* fMFShapes;
+
+	/** support for meshless calculations */
+	MeshFreeFractureSupportT* fMFFractureSupport;
+	
 	/** make field at bounding nodes nodally exact */
 	bool fAutoBorder;
 
@@ -104,5 +106,6 @@ protected:
 	iArray2DT fConnectsAll;
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _EFG_FDELASTIC_T_H_ */
