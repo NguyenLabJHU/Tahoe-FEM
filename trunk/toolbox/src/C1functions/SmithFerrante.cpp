@@ -1,4 +1,4 @@
-/* $Id: SmithFerrante.cpp,v 1.5 2004-03-17 17:55:41 paklein Exp $ */
+/* $Id: SmithFerrante.cpp,v 1.6 2004-03-24 01:56:34 paklein Exp $ */
 /* created: paklein (10/30/1997) */
 #include "SmithFerrante.h"
 #include <math.h>
@@ -14,7 +14,7 @@ SmithFerrante::SmithFerrante(double A, double B, double l_0):
 	fB(B), 
 	fl_0(l_0) 
 { 
-	SetName("Smith_Ferrante");
+	SetName("Smith-Ferrante");
 }
 
 SmithFerrante::SmithFerrante(void):
@@ -22,7 +22,7 @@ SmithFerrante::SmithFerrante(void):
 	fB(0), 
 	fl_0(0) 
 { 
-	SetName("Smith_Ferrante");
+	SetName("Smith-Ferrante");
 }
 
 /* I/O */

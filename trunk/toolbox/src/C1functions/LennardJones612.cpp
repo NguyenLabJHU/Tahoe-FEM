@@ -1,4 +1,4 @@
-/* $Id: LennardJones612.cpp,v 1.5 2004-03-17 17:55:41 paklein Exp $ */
+/* $Id: LennardJones612.cpp,v 1.6 2004-03-24 01:56:34 paklein Exp $ */
 /* created: paklein (10/30/1997) */
 #include "LennardJones612.h"
 #include <math.h>
@@ -15,13 +15,13 @@ const double twoe1by6 = pow(2.0,1.0/6.0);
 LennardJones612::LennardJones612(void): 
 	fA(0.0) 
 { 
-	SetName("Lennard_Jones_6-12");
+	SetName("Lennard-Jones_6-12");
 }
 
 LennardJones612::LennardJones612(double A): 
 	fA(A) 
 { 
-	SetName("Lennard_Jones_6-12");
+	SetName("Lennard-Jones_6-12");
 }
 
 /* I/O */
