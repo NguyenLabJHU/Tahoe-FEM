@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.11 2003-03-04 08:37:16 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.12 2003-03-31 23:05:20 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nIntegratorT.h"
@@ -29,6 +29,12 @@ FieldT::~FieldT(void)
 { 
 	for (int i = 0; i < fSourceOutput.Length(); i++)
 		delete fSourceOutput[i];
+		
+	for (int i = 0; i < fKBC_Controllers.Length(); i++)
+		delete fKBC_Controllers[i];
+
+	for (int i = 0; i < fFBC_Controllers.Length(); i++)
+		delete fFBC_Controllers[i];
 }
 
 void FieldT::RegisterLocal(LocalArrayT& array) const	
