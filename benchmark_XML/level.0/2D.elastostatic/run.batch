@@ -1,5 +1,5 @@
 @
-# $Id: run.batch,v 1.5 2004-09-10 20:27:07 paklein Exp $
+# $Id: run.batch,v 1.6 2004-10-05 16:41:15 paklein Exp $
 CSE.1.xml
 CSE.1a.xml
 CSE.1b.xml
@@ -21,3 +21,5 @@ traction.0c.xml
 traction.0d.xml
 traction.0e.xml
 tripatch.xml
+tri3.xml
+tri6.xml
