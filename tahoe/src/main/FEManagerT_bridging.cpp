@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.14 2004-01-29 01:03:32 hspark Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.15 2004-02-22 00:19:50 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -9,6 +9,7 @@
 #include "ofstreamT.h"
 #include "ifstreamT.h"
 #include "NLSolver.h"
+#include "CommManagerT.h"
 
 #include "BridgingScaleT.h"
 #include "ParticleT.h"
@@ -106,7 +107,7 @@ void FEManagerT_bridging::SetExternalForce(const StringT& field, const dArray2DT
 }
 
 /* initialize the ghost node information */
-void FEManagerT_bridging::InitGhostNodes(void)
+void FEManagerT_bridging::InitGhostNodes(bool include_image_nodes)
 {
 	const char caller[] = "FEManagerT_bridging::InitGhostNodes";
 
@@ -170,20 +171,39 @@ void FEManagerT_bridging::InitGhostNodes(void)
 		fGhostNodes--;
 	}
 
-	/* mark nodes as ghost */
-	fNonGhostNodes.Dimension(fModelManager->NumNodes() - fGhostNodes.Length());
-	iArrayT is_ghost(fModelManager->NumNodes());
-	is_ghost = 0;
-	for (int i = 0; i < fGhostNodes.Length(); i++)
-		is_ghost[fGhostNodes[i]] = 1;
+	/* initialize potential non-ghost nodes */
+	CommManagerT* comm = FEManagerT::CommManager();	
+	const ArrayT<int>* part_nodes = comm->PartitionNodes();
+	iArrayT is_ghost;
+	if (include_image_nodes || !part_nodes) {
+		/* assuming there are no images in the list of ghost nodes */
+		fNonGhostNodes.Dimension(fModelManager->NumNodes() - fGhostNodes.Length());
+		is_ghost.Dimension(fModelManager->NumNodes());
+		is_ghost = 0;	
+	} else { /* remove image nodes */
+		is_ghost.Dimension(fModelManager->NumNodes());
+		is_ghost = 1;
 
-	/* check for uniqueness */
-	int ng = is_ghost.Count(1);
-	if (ng != fGhostNodes.Length())
-		ExceptionT::GeneralFail(caller, "list of ghost nodes contains %d duplicates",
-			fGhostNodes.Length() - ng);
+		/* initialize potential non-ghost nodes */		
+		const int* p = part_nodes->Pointer();
+		int npn = part_nodes->Length();
+		for (int i = 0; i < npn; i++)
+			is_ghost[*p++] = 0;
+	}	
+
+	/* mark nodes as ghost */
+	for (int i = 0; i < fGhostNodes.Length(); i++) {
+		int& is_ghost_i = is_ghost[fGhostNodes[i]];
+		if (is_ghost_i == 1)
+			ExceptionT::GeneralFail(caller, "ghost node %d is duplicated or image",
+				fGhostNodes[i]+1);
+		else
+			is_ghost_i = 1;
+	}
 
 	/* collect non-ghost nodes */
+	if (fNonGhostNodes.Length() == 0) 
+		fNonGhostNodes.Dimension(is_ghost.Count(0));
 	dex = 0;
 	for (int i = 0; i < is_ghost.Length(); i++)
 		if (is_ghost[i] == 0)
@@ -461,6 +481,12 @@ void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& fi
 	
 	/* reset the group equations numbers */
 	SetEquationSystem(the_field->Group());
+}
+
+/* indicate whether image nodes should be included in the projection */
+bool FEManagerT_bridging::ProjectImagePoints(void) const
+{
+	return BridgingScale().ProjectImagePoints();
 }
 
 /* project the point values onto the mesh */

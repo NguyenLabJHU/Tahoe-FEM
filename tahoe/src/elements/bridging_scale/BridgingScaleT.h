@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.29 2004-01-29 01:03:29 hspark Exp $ */
+/* $Id: BridgingScaleT.h,v 1.30 2004-02-22 00:19:46 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -71,6 +71,9 @@ public:
 	/** compute the coarse scale part of the source field */
 	virtual void CoarseField(const PointInCellDataT& cell_data,
 		const dArray2DT& field, dArray2DT& coarse) const;
+		
+	/** indicate whether image nodes should be included in the projection */
+	virtual bool ProjectImagePoints(void) const { return false; };
 	/*@}*/
 
 	/** Same as ProjectField, except that computes and returns total solution u 

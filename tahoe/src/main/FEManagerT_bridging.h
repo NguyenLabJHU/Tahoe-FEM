@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.9 2004-01-29 01:03:32 hspark Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.10 2004-02-22 00:19:50 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -60,8 +60,10 @@ public:
 	 * The ghost node database must be initialized by calling
 	 * FEManagerT_bridging::InitGhostNodes before accessing the lists.*/
 	/*@{*/
-	/** initialize the ghost node information */
-	void InitGhostNodes(void);
+	/** initialize the ghost node information 
+	 * \param include_image_nodes flag to indicate whether image nodes should be
+	 *        included in the list of non-ghost nodes */
+	void InitGhostNodes(bool include_image_nodes);
 
 	/** prescribe the motion of ghost nodes. Generate KBC cards to control the
 	 * ghost node motion. Assumes all components of the ghost node motion are
@@ -112,6 +114,9 @@ public:
 	 * a BridgingScaleT in its element list. */
 	void InitProjection(const iArrayT& nodes, const StringT& field,
 		NodeManagerT& node_manager, bool make_inactive);
+
+	/** indicate whether image nodes should be included in the projection */
+	virtual bool ProjectImagePoints(void) const;
 
 	/** project the point values onto the mesh. Project to the nodes using
 	 * projection initialized with the latest call to FEManagerT_bridging::InitProjection. */

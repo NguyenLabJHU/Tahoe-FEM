@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.7 2004-01-29 01:03:32 hspark Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.8 2004-02-22 00:19:50 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -50,7 +50,7 @@ void MultiManagerT::Initialize(InitCodeT)
 	StringT bridging_field = "displacement";
 	bool make_inactive = true;
 	//dArrayT mdmass;
-	fFine->InitGhostNodes();
+	fFine->InitGhostNodes(fCoarse->ProjectImagePoints());
 	fCoarse->InitInterpolation(fFine->GhostNodes(), bridging_field, *(fFine->NodeManager()));
 	//fFine->LumpedMass(fFine->NonGhostNodes(), mdmass);
 	fCoarse->InitProjection(fFine->NonGhostNodes(), bridging_field, *(fFine->NodeManager()), make_inactive);

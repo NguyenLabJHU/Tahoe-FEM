@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.h,v 1.3 2003-10-28 07:32:08 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.h,v 1.4 2004-02-22 00:19:46 paklein Exp $ */
 #ifndef _MESHFREE_BRIDGING_SCALE_T_H_
 #define _MESHFREE_BRIDGING_SCALE_T_H_
 
@@ -44,6 +44,9 @@ public:
 	/** compute the coarse scale part of the source field */
 	virtual void CoarseField(const PointInCellDataT& cell_data,
 		const dArray2DT& field, dArray2DT& coarse) const;
+
+	/** indicate whether image nodes should be included in the projection */
+	virtual bool ProjectImagePoints(void) const { return false; };
 	/*@}*/
 
 protected:
