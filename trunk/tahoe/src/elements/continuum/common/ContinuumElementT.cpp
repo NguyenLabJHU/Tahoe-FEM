@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.47 2005-02-13 22:17:21 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.48 2005-02-14 00:12:24 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -1323,7 +1323,7 @@ void ContinuumElementT::TakeParameterList(const ParameterListT& list)
 
 	/* flag to compute and store shape function derivatives */
 	const ParameterT* store_shape = list.Parameter("store_shapefunctions");
-	fStoreShape = (store_shape) ? *store_shape : fStoreShape;
+	if (store_shape) fStoreShape = *store_shape;
 
 	/* construct material list */
 	ParameterListT mat_params;
