@@ -1,4 +1,4 @@
-/* $Id: BinaryTreeT.h,v 1.1 2002-11-16 20:44:59 paklein Exp $ */
+/* $Id: BinaryTreeT.h,v 1.2 2002-11-18 10:00:21 paklein Exp $ */
 #ifndef _BINARY_TREE_T_H_
 #define _BINARY_TREE_T_H_
 
@@ -23,7 +23,7 @@ public:
 	/** destructor */
 	~BinaryTreeT(void);
 	 	
-	/** \name insert the value into the tree */
+	/** \name insert values into the tree */
 	/*@{*/
 	/** insert single value */
 	void Insert(const TYPE& value);

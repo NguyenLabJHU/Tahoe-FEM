@@ -1,4 +1,4 @@
-/* $Id: BTreeNodeT.h,v 1.1 2002-11-16 20:46:14 paklein Exp $ */
+/* $Id: BTreeNodeT.h,v 1.2 2002-11-18 10:00:21 paklein Exp $ */
 #ifndef _B_TREE_NODE_T_H_
 #define _B_TREE_NODE_T_H_
 
@@ -24,6 +24,8 @@ public:
 
 	/** pointer to the left node */
 	BTreeNodeT<TYPE>* Left(void) const { return fLeft; };
+
+	/** pointer to the right node */
 	BTreeNodeT<TYPE>* Right(void) const { return fRight; };
 	 	 	
 private:
