@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: StringT.h,v 1.2 2001-02-07 22:01:01 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #ifndef _STRING_T_H_
@@ -42,10 +42,12 @@ public:
 	/* in/equality operators */
 	int operator==(const StringT& rhs) const;
 	int operator==(const char* string) const;
+	int operator==(char* string) const { return operator==((const char *) string); };
 	friend int operator==(const char* str_lhs, const StringT& str_rhs);
 
 	int operator!=(const StringT& rhs) const;
 	int operator!=(const char* string) const;
+	int operator!=(char* string) const { return operator!=((const char*) string); };
 	friend int operator!=(const char* str_lhs, const StringT& str_rhs);
 
 	/* convert all to uppercase */
