@@ -1,4 +1,4 @@
-/* $Id: ParameterT.cpp,v 1.15 2004-08-09 16:28:21 paklein Exp $ */
+/* $Id: ParameterT.cpp,v 1.16 2005-04-05 15:51:45 paklein Exp $ */
 #include "ParameterT.h"
 
 /* array behavior */
@@ -108,7 +108,18 @@ void ParameterT::AddLimit(const LimitT& limit)
 				Name().Pointer(), ValueT::TypeName(fType), ValueT::TypeName(limit.Type()));
 	}
 
-	fLimits.Append(limit);
+	bool added = fLimits.AppendUnique(limit);
+	if (!added && fType == Enumeration) {
+		StringT s = limit;
+		if (s.StringLength() > 0)
+			ExceptionT::GeneralFail(caller, "enumeration \"%s\" is not unique in \"%s\"", 
+				s.Pointer(), Name().Pointer());
+		else {
+			int i = limit;
+			ExceptionT::GeneralFail(caller, "enumeration %d is not unique in \"%s\"", 
+				i, Name().Pointer());
+		}
+	}
 }
 
 /* add list of limits */
