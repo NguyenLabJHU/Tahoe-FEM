@@ -9,24 +9,31 @@ class ExtractIOManager : public TranslateIOManager
 {
  public:
   ExtractIOManager (ostream& message);
-  virtual void Translate (const StringT& program, const StringT& version, const StringT& title);
+  void Translate (const StringT& program, const StringT& version, const StringT& title);
+
+ protected:
+  virtual void Initialize (void) = 0;
+  virtual void TranslateVariables (void) = 0;
+
+  void SetOutput (const StringT& program, const StringT& version, const StringT& title);
+  void PrepFiles (iArrayT& varsused, ArrayT<StringT>& labels);
+  void WriteVarData (iArrayT& varsused, int ts) const;
 
  private:
-  virtual void SetOutput (const StringT& program, const StringT& version, const StringT& title);
-  virtual void InitializeVariables (void);
-  virtual void InitializeNodePoints (void);
-  virtual void TranslateVariables (void);
+  void OpenFile (ofstreamT& o, StringT& name, bool append) const;
 
-  void PrepFiles (StringT& ext, int digits) const;
-  void OpenFile (ofstreamT& o, int index, int digits, StringT& ext, bool append) const;
+ protected:
+  int fNumItems;
+  ArrayT<StringT> fItemNames;
+  iArrayT fItemIndex;
+
+  dArray2DT fVarData;
+  dArray2DT fCoordinates;
 
  private:
-  int fOutputFormat;
-
-  int fCoords;
-  int fNumNP;
-  iArrayT fNodePoints;
-  iArrayT fNodePointIndex;
+  int fCheck;
+  int fNumDigits;
+  StringT fOutfileExtension;
 };
 
 #endif

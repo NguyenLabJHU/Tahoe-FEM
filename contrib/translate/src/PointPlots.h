@@ -13,13 +13,10 @@ class PointPlots : public TranslateIOManager
 
  private:
   virtual void SetOutput (const StringT& program, const StringT& version, const StringT& title);
-  virtual void InitializeVariables (void);
-  virtual void InitializeElements (void);
   virtual void TranslateVariables (void);
   void OpenFile (ofstreamT& o, int index, int digits, StringT& ext) const;
 
  private:
-  int fOutputFormat;
   int fElementGroup;
 };
 

@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.5 2001-09-21 15:49:25 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.6 2001-11-08 13:36:12 sawimme Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -18,7 +18,8 @@ TranslateIOManager::TranslateIOManager (ostream& out) :
   fNumNV (0),
   fNumEV (0),
   fNumQV (0),
-  fNumTS (0)
+  fNumTS (0),
+  fCoords (0)
 {
 }
 
@@ -51,7 +52,7 @@ void TranslateIOManager::Translate (const StringT& program, const StringT& versi
 }
 
 
-/**************** PRIVATE **********************/
+/**************** PROTECTED **********************/
 
 void TranslateIOManager::SetOutput (const StringT& program_name, const StringT& version, const StringT& title)
 {
@@ -123,6 +124,144 @@ void TranslateIOManager::InitializeVariables (void)
   if (fNumEV > 0) fModel.ElementLabels (fElementLabels);
 
   // future: query user as to which variables to translate
+}
+
+void TranslateIOManager::InitializeNodeVariables (void)
+{
+  fNumNV = fModel.NumNodeVariables ();
+  cout << "\n" << setw (10) << fNumNV << " Node Variables\n\n";
+  fNodeLabels.Allocate (fNumNV);
+  if (fNumNV > 0) fModel.NodeLabels (fNodeLabels);
+
+  // query user as to which variables to translate
+  VariableQuery (fNodeLabels, fNVUsed);
+
+  StringT answer;
+  cout << "\n Do you wish to translate coordinate values (y/n) ? ";
+  cin >> answer;
+  
+  if (answer[0] == 'y' || answer[0] == 'Y')
+    {
+      fCoords = true;
+      int numnodes;
+      fModel.CoordinateDimensions (numnodes, fCoords);
+    }
+  else
+    fCoords = 0;
+}
+
+void TranslateIOManager::InitializeQuadVariables (void)
+{
+  fNumQV = fModel.NumQuadratureVariables ();
+  cout << "\n" << setw (10) << fNumQV << " Quadrature Variables\n\n";
+  fQuadratureLabels.Allocate (fNumQV);
+  if (fNumQV > 0) fModel.QuadratureLabels (fQuadratureLabels);
+
+  // query user as to which variables to translate
+  if (fNumQV < 1)
+    {
+      fMessage << "\n No quadrature variables found.";
+      throw eGeneralFail;
+    }
+  //cout << fNumQV << " " << fQuadratureLabels[0] <<endl;
+  VariableQuery (fQuadratureLabels, fQVUsed);
+}
+
+void TranslateIOManager::InitializeElements (int& group, StringT& groupname) const
+{
+  int num = fModel.NumElementGroups ();
+  ArrayT<StringT> elemsetnames (num);
+  fModel.ElementGroupNames (elemsetnames);
+  cout << "\n";
+  for (int h=0; h < num; h++)
+    cout << "    " << h+1 << ". " << elemsetnames[h] << "\n";
+  cout << "\n You must have one type of element within the group you select.\n";
+  cout << "\n Enter the number of the element group: ";
+  cin >> group;
+  if (group < 1 || group > elemsetnames.Length()) throw eOutOfRange;
+  groupname = elemsetnames[group-1];
+}
+
+void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
+{
+  int selection;
+  cout << "\n One file will be written per node point.\n";
+  cout << "1. List of nodes\n";
+  cout << "2. Node Set\n";
+  cout << "3. Every nth node\n";
+  cout << "\n How do you want to define your list of nodes: ";
+  cin >> selection;
+
+  int numnodes, numdims;
+  fModel.CoordinateDimensions (numnodes, numdims);
+  fNodeMap.Allocate (numnodes);
+  fModel.AllNodeMap (fNodeMap);
+  int numpoints;
+  switch (selection)
+    {
+    case 1:
+      {
+	cout << "\n Enter the number of nodes: ";
+	cin >> numpoints;
+	nodes.Allocate (numpoints);
+	index.Allocate (numpoints);
+	for (int n=0; n < numpoints; n++)
+	  {
+	    cout << " Enter node " << n+1 << ": ";
+	    cin >> nodes[n];
+
+	    // translate node numbers to index
+	    int dex;
+	    fNodeMap.HasValue (nodes[n], dex);
+	    if (dex < 0 || dex >= numnodes) 
+	      {
+		cout << " ExtractIOManager::InitializeNodePoints\n";
+		cout << " Node " << nodes[n] << " was not found.\n";
+		throw eOutOfRange;
+	      }
+	    index [n] = dex;
+	  }
+	break;
+      }
+    case 2:
+      {
+	int num = fModel.NumNodeSets ();
+	ArrayT<StringT> nodesetnames (num);
+	fModel.NodeSetNames (nodesetnames);
+	cout << "\n";
+	for (int h=0; h < num; h++)
+	  cout << "    " << h+1 << ". " << nodesetnames[h] << "\n";
+	cout << "\n Enter the number of the node set: ";
+	int ni;
+	cin >> ni;
+	ni--;
+	numpoints = fModel.NodeSetLength (ni);
+	nodes.Allocate (numpoints);
+	index.Allocate (numpoints);
+	index = fModel.NodeSet (ni);
+	for (int n=0; n < numpoints; n++)
+	  nodes[n] = fNodeMap [index[n]];
+	break;
+      }
+    case 3:
+      {
+	int freq;
+	cout << "\n Number of Nodes: " << numnodes << "\n";
+	cout << "   Enter n: ";
+	cin >> freq;
+	numpoints = numnodes/freq;
+	nodes.Allocate (numpoints);
+	index.Allocate (numpoints);
+	for (int n=0; n < numpoints; n++)
+	  {
+	    nodes[n] = fNodeMap[n*freq];
+	    index[n] = n*freq;
+	  }
+	break;
+      }
+    default:
+      throw eGeneralFail;
+    }
 }
 
 void TranslateIOManager::InitializeTime (void)

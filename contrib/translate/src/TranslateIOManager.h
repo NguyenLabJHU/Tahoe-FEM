@@ -1,9 +1,9 @@
-/* $Id: TranslateIOManager.h,v 1.4 2001-09-13 13:31:55 sawimme Exp $ */
+/* $Id: TranslateIOManager.h,v 1.5 2001-11-08 13:36:13 sawimme Exp $ */
 
 #ifndef _TRANSLATE_IOMANAGER_H_
 #define _TRANSLATE_IOMANAGER_H_
 
-#include "DataManagerT.h"
+#include "ModelManagerT.h"
 #include "OutputBaseT.h"
 #include "StringT.h"
 #include "ArrayT.h"
@@ -21,7 +21,13 @@ class TranslateIOManager
  protected:
   virtual void SetOutput (const StringT& program, const StringT& version, const StringT& title);
 
-  virtual void InitializeVariables (void);
+  void InitializeVariables (void);
+  void InitializeNodeVariables (void);
+  void InitializeQuadVariables (void);
+
+  void InitializeElements (int& elementgroup, StringT& name) const;
+  void InitializeNodePoints (iArrayT& nodes, iArrayT& index);
+
   void InitializeTime (void);
 
   virtual void TranslateVariables (void);
@@ -36,13 +42,13 @@ class TranslateIOManager
 
  protected:
   ostream& fMessage;
+  ModelManagerT fModel;
 
-  DataManagerT fModel;
-
-  OutputBaseT* fOutput;
+  int fOutputFormat;
   StringT fOutputName;
-  iArrayT fOutputID;
+  int fCoords;  // flag used to determine if coords are treated as a variable
 
+  // variable information
   int fNumNV;
   int fNumEV;
   int fNumQV;
@@ -53,13 +59,19 @@ class TranslateIOManager
   iArrayT fEVUsed;
   iArrayT fQVUsed;
 
+  // time step information
   int fNumTS;
   dArrayT fTimeSteps;
   iArrayT fTimeIncs;
 
+ private:
+  OutputBaseT* fOutput;
+  iArrayT fOutputID;
+
   iArrayT fNodeMap; // not stored in ModelManager
   ArrayT<iArray2DT> fGlobalSideSets; 
   // need to store here instead of in ModelManager so that they are all global
+
 };
 
 #endif
