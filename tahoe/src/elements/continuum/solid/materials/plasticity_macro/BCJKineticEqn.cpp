@@ -38,19 +38,31 @@ double BCJKineticEqn::g(double kappa)
 double BCJKineticEqn::f(double sigma, double kappa)
 {
   // kinetic equation function f
-  return  fMatProp[2]*sinh((sigma-kappa-fMatProp[1])/fMatProp[0]);
+  double arg = sigma - kappa - fMatProp[1];
+  if (arg > 0.0) 
+     return  fMatProp[2]*sinh((sigma-kappa-fMatProp[1])/fMatProp[0]);
+  else
+     return 0.0;
 }
 
 double BCJKineticEqn::DfDsigma(double sigma, double kappa)
 {
   // d(f)/d(s_eff)
-  return  fMatProp[2]/fMatProp[0]*cosh((sigma-kappa-fMatProp[1])/fMatProp[0]);
+  double arg = sigma - kappa - fMatProp[1];
+  if (arg > 0.0) 
+     return  fMatProp[2]/fMatProp[0]*cosh((sigma-kappa-fMatProp[1])/fMatProp[0]);
+  else
+     return 0.0;
 }
 
 double BCJKineticEqn::DfDs(double sigma, double kappa)
 {
   // d(f)/d(kappa)
-  return  -fMatProp[2]/fMatProp[0]*cosh((sigma-kappa-fMatProp[1])/fMatProp[0]);
+  double arg = sigma - kappa - fMatProp[1];
+  if (arg > 0.0) 
+     return  -fMatProp[2]/fMatProp[0]*cosh((sigma-kappa-fMatProp[1])/fMatProp[0]);
+  else
+     return 0.0;
 }
 
 double BCJKineticEqn::h(double eqpdot, double kappa)
