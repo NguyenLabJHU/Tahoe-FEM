@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.33 2003-12-10 06:44:03 paklein Exp $ */
+/* $Id: ElementT.h,v 1.34 2004-01-05 07:37:04 paklein Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -26,6 +26,7 @@ public:
             kVirtualSWDC = 10,
         kCohesiveSurface = 11,
          kThermalSurface = 12,
+            kViscousDrag = 13,
          kPenaltyContact = 14,
              kBEMelement = 15,
           kAugLagContact = 16,
