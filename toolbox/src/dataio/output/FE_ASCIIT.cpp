@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.cpp,v 1.6 2002-02-09 19:20:20 paklein Exp $ */
+/* $Id: FE_ASCIIT.cpp,v 1.7 2002-02-12 02:11:18 paklein Exp $ */
 /* created: sawimme (05/20/1999) */
 
 #include "FE_ASCIIT.h"
@@ -87,7 +87,7 @@ void FE_ASCIIT::WriteGeometry(void)
 	  {
 	    iArray2DT& set = *((iArray2DT*) fSideSets[s]);
 	    set++;
-	    int block_ID = atoi(fElementSets[fSSGroupID[s]]->ID()); //NOTE: output set ID used for side sets?
+	    int block_ID = fSSGroupID[s];
 	    mf.PutSideSet (fSideSetIDs[s], block_ID, set);
 	    set--;
 	  }
