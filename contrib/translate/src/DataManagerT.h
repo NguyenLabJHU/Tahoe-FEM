@@ -37,7 +37,7 @@ class DataManagerT : public ModelManagerT
 inline DataManagerT::DataManagerT (ostream& message) :
   ModelManagerT (message) {}
 
-inline DataManagerT::NumElementQuadPoints (StringT& name)
+inline int DataManagerT::NumElementQuadPoints (StringT& name)
 { return fInput->NumElementQuadPoints(name); }
 
 inline int DataManagerT::NumTimeSteps (void)
