@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.26 2003-03-08 03:42:19 paklein Exp $ */
+/* $Id: SolidT.h,v 1.27 2003-03-19 17:09:02 thao Exp $ */
 /* created: paklein (03/10/2001) */
 
 #ifndef _MATERIAL_T_H_
@@ -49,10 +49,11 @@ kBCJHypoIsoDmgYC = 47,
 kLocXtalPlastFp_C = 56,
  kGrdXtalPlastFp = 57,
           kRGVIB = 60,
-   kRGNeoHookean = 61,
+	kRGSplit = 61,
    kSVNeoHookean = 62,
        kFDSVKStV = 63,
        kSSSVKStV = 64,
+       kOgdenMat = 65,
   kLocJ2SSNlHard = 70,
   kGrdJ2SSNlHard = 71,
      kABAQUS_BCJ = 80,

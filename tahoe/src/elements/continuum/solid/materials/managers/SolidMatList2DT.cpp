@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.32 2003-02-05 02:38:27 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.33 2003-03-19 17:09:02 thao Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 #include "fstreamT.h"
@@ -62,15 +62,15 @@
 #include "DPSSKStV2D.h"
 #endif
 
-#ifdef REESE_GOVINDJEE_MATERIAL
+#ifdef VISCOELASTIC_MATERIALS_DEV
 #include "RGVIB2D.h"
-#include "RG_NeoHookean2D.h"
-#endif
-
-#ifdef SIMO_HOLZAPFEL_MATERIAL
-#include "SV_NeoHookean2D.h"
+#include "RGSplit2D.h"
 #include "SSSV_KStV2D.h"
 #include "FDSV_KStV2D.h"
+#endif
+
+#ifdef ELASTIC_OGDEN_MATERIAL_DEV
+#include "OgdenMaterialT.h"
 #endif
 
 #ifdef ABAQUS_MATERIAL
@@ -128,7 +128,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				fArray[matnum] = new SSKStV2D(in, *fSSMatSupport);
 				break;
 			}
-			case kFDKStV:
+
 			{
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
@@ -558,7 +558,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			}
 			case kRGVIB:
 			{
-#ifdef REESE_GOVINDJEE_MATERIAL
+#ifdef VISCOELASTIC_MATERIALS_DEV
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 
@@ -566,38 +566,25 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "REESE_GOVINDJEE_MATERIAL not enabled: %d", matcode);
+				ExceptionT::BadInputValue(caller, "VISCOELASTIC_MATERIALS_DEV not enabled: %d", matcode);
 #endif
 			}
-			case kRGNeoHookean:
+			case kRGSplit:
 			{
-#ifdef REESE_GOVINDJEE_MATERIAL
+#ifdef VISCOELASTIC_MATERIALS_DEV
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new RG_NeoHookean2D(in, *fFSMatSupport);
+				fArray[matnum] = new RGSplit2D(in, *fFSMatSupport);
 				fHasHistory = true;
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "REESE_GOVINDJEE_MATERIAL not enabled: %d", matcode);
-#endif
-			}
-			case kSVNeoHookean:
-			{
-#ifdef SIMO_HOLZAPFEL_MATERIAL
-				/* check */
-				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
-
-				fArray[matnum] = new SV_NeoHookean2D(in, *fFSMatSupport);
-				fHasHistory = true;
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "SIMO_HOLZAPFEL_MATERIAL not enabled: %d", matcode);
+				ExceptionT::BadInputValue(caller, "VISCOELASTIC_MATERIALS_DEV not enabled: %d", matcode);
 #endif
 			}
 			case kFDSVKStV:
 			{
-#ifdef SIMO_HOLZAPFEL_MATERIAL
+#ifdef VISCOELASTIC_MATERIALS_DEV
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 
@@ -605,12 +592,12 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "SIMO_HOLZAPFEL_MATERIAL not enabled: %d", matcode);
+				ExceptionT::BadInputValue(caller, "VISCOELASTIC_MATERIALS_DEV not enabled: %d", matcode);
 #endif
 			}
 			case kSSSVKStV:
 			{
-#ifdef SIMO_HOLZAPFEL_MATERIAL
+#ifdef VISCOELASTIC_MATERIALS_DEV
 				/* check */
 				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 
@@ -618,7 +605,19 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "SIMO_HOLZAPFEL_MATERIAL not enabled: %d", matcode);
+				ExceptionT::BadInputValue(caller, "VISCOELASTIC_MATERIALS_DEV not enabled: %d", matcode);
+#endif
+			}
+			case kOgdenMat:
+			{
+#ifdef ELASTIC_OGDEN_MATERIAL_DEV
+				/* check */
+				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new OgdenMaterialT(in, *fFSMatSupport);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "ELASTIC_OGDEN_MATERIAL_DEV not enabled: %d", matcode);
 #endif
 			}
 //TEMP

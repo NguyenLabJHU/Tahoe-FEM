@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2003-03-04 07:37:19 paklein Exp $
+# $Id: makefile,v 1.7 2003-03-19 17:08:54 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,7 +22,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	OgdenIsotropicT.o \
 	QuadLogOgden2DT.o \
-	QuadLogOgden3DT.o
+	QuadLogOgden3DT.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -44,7 +44,7 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	OgdenIsotropicT.cpp \
 	QuadLogOgden2DT.cpp \
-	QuadLogOgden3DT.cpp
+	QuadLogOgden3DT.cpp 
 
 ##################### (3) headers
 #
@@ -58,7 +58,7 @@ SRC = \
 HDR = \
 	OgdenIsotropicT.h \
 	QuadLogOgden2DT.h \
-	QuadLogOgden3DT.h
+	QuadLogOgden3DT.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 
