@@ -1,4 +1,4 @@
-/* $Id: RandomNumberT.cpp,v 1.3 2003-04-10 17:13:27 cjkimme Exp $ */
+/* $Id: RandomNumberT.cpp,v 1.4 2003-04-12 16:47:01 paklein Exp $ */
 #include "RandomNumberT.h"
 #include "ifstreamT.h"
 #include <math.h>
@@ -72,14 +72,14 @@ double RandomNumberT::GaussianRandom(void)
 {  
 	double a1 = (this->*uniformFunc)();
 	double a2 = (this->*uniformFunc)();
-	return sqrt(-2.0*std::log(a1))*std::cos(TWOPI*a2);
+	return sqrt(-2.0*log(a1))*cos(TWOPI*a2);
 }
 
 /* random number generator from Paradyn */
 double RandomNumberT::ParadynUniformRandom(void)
 {
 	fseed = fa*fseed % frm;	
-	dseed = std::fmod(da*dseed,drm);
+	dseed = fmod(da*dseed,drm);
 	fseed = dseed;
 
 	return dseed/drm;
