@@ -1,0 +1,58 @@
+# $Id: layout,v 1.2 2002-04-08 17:23:54 paklein Exp $
+:root
+
+echo
+echo "The graphics window can be subdivided using the 'Layout' command"
+echo "and resized using the 'WindowSize' command..."
+wait 3
+WindowSize w 600 h 300
+Layout nx 2 ny 1
+ShowFr
+Upd
+wait 3
+HideFr
+WindowSize w 300 h 300
+Layout nx 2 ny 2
+ShowFr
+Upd
+wait 5
+echo
+list
+echo
+echo "'list' in the root scope now shows each of the frames as seperate"
+echo "scopes with the names shown by the frame labels."
+echo
+echo "Enter 'y' to stop now, 'n' to continue"
+end
+
+echo
+echo "In the scope of any frame, the 'ChangeBackgroundColor' can be used"
+echo "to change the color of the pane..."
+wait 3
+:root:1.0
+ChangeBac 2
+wait 1
+::0.1
+ChangeBac 5
+wait 1
+::1.1
+ChangeBac 3
+wait 3
+:root:1.0
+ChangeBac 1
+wait 0.2
+::0.1
+ChangeBac 1
+wait 0.2
+::1.1
+ChangeBac 1
+
+# clean up
+:root
+HideFr
+Layout nx 1 ny 1
+Upd
+
+echo
+echo "Enter 'y' to stop now, 'n' to continue"
+end

@@ -1,0 +1,57 @@
+#!/usr/bin/perl -w
+# this is a perl script to preprocess parameters in Tahoe files
+# right now it does simple substitutions only
+# parameters lines are of the format:
+#P name = value
+# or in a separate parameter file
+# the string "<name>" is seached for an replaced with "value"
+#  reese jones 9/01 : rjones@sandia.gov
+#
+$paramfile = 0;
+if (defined($ARGV[0])){
+	$origfile = $ARGV[0] ;   # tahoe input file
+	$outfile = "$origfile" ;
+	rename($origfile,"$origfile.bak");
+	$infile = "$origfile.bak";
+	if (defined($ARGV[1])){
+		$paramfile = $ARGV[1];
+		open(IN,$paramfile) 
+			|| die "cannot open file $paramfile for reading : $!";
+		print "opening parameter file $paramfile\n";
+		while (<IN>) {
+			s/^\s+//;
+	        s/\s+$//;
+	        @list = split(/ +/);
+	        push(@p_name, $list[0]);
+	        push(@p_value,$list[2]);
+	        print "parameter found: $p_name[$#p_name] = $p_value[$#p_value] \n";
+		}
+		close(IN);
+	}
+}
+else {
+	print "usage : tpp Tahoe_input_file [parameter_file] \n";
+	exit;
+}
+open(IN,$infile) || die "cannot open file $infile for reading : $!";
+open(OUT,">$outfile") || die "cannot create $outfile: $!";
+print "Preprocessing Tahoe input file $infile \n";
+while (<IN>) {
+	chomp;
+	if ($_ =~ /#P/ && !$paramfile){
+		s/^\s+//;
+		s/\s+$//;
+		@list = split(/ +/);
+		push(@p_name, $list[1]); 
+		push(@p_value,$list[3]); 
+		print "parameter found: $p_name[$#p_name] = $p_value[$#p_value] \n";
+	}
+	else {
+		for ($i=0; $i < $#p_name + 1 ; $i++) {
+			s/<$p_name[$i]>/$p_value[$i]/g;
+		}
+	}
+	print OUT "$_\n";
+}
+close(IN);
+close(OUT);
