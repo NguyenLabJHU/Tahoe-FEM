@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.cpp,v 1.3.4.1 2001-10-28 23:49:32 paklein Exp $ */
+/* $Id: SWDiamondT.cpp,v 1.3.4.2 2001-10-29 21:32:45 sawimme Exp $ */
 /* created: paklein (03/19/1997)                                          */
 
 #include "SWDiamondT.h"
@@ -137,9 +137,12 @@ void SWDiamondT::RegisterOutput(void)
 	n_labels[1] = "D_Y";
 	n_labels[2] = "D_Z";		
 
+	/* set block IDs, since fBlockData is nil */
+	iArrayT block_ID (1);
+	block_ID = 1;
+
 	/* set output specifier */
 	int ID = fFEManager.ElementGroupNumber(this) + 1;
-	iArrayT block_ID;
 	ArrayT<const iArray2DT*> output_connects_list(1);
 	output_connects_list[0] = &fOutputConnects;
 	OutputSetT output_set(ID, GeometryT::kPoint, block_ID, output_connects_list,
