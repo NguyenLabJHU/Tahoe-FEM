@@ -1,4 +1,4 @@
-/* $Id: OrthoMLSSolverT.cpp,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* $Id: OrthoMLSSolverT.cpp,v 1.1.1.1.4.1 2001-06-19 00:54:46 paklein Exp $ */
 /* created: paklein (07/03/1998)                                          */
 
 #include "OrthoMLSSolverT.h"
@@ -63,7 +63,7 @@ void OrthoMLSSolverT::Initialize(void)
 
 /* set MLS at coords given sampling points */
 int OrthoMLSSolverT::SetField(const dArray2DT& nodalcoords,
-	const dArrayT& dmax, const dArrayT& samplept)
+	const nArrayT<double>& dmax, const dArrayT& samplept)
 {
 #if __option(extended_errorcheck)
 	if (dmax.Length() != nodalcoords.MajorDim()) throw eSizeMismatch;

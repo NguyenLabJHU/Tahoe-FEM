@@ -1,12 +1,5 @@
-/* $Id: MeshFreeSupportT.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: MeshFreeSupportT.h,v 1.1.1.1.4.1 2001-06-19 00:54:46 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
-/* NOTE: Currently, fnNeighborData and feNeighborData don't reflect the   */
-/* configuration of the cutting surfaces, so the structure of the         */
-/* global equation matrix doesn't need to be reset when the crack         */
-/* grows, although new LHS matrices should be computed. In order for      */
-/* the global equation matrix to change fnNeighborData and                */
-/* would need to be recomputed.                                           */
-/* base class for support to MLS shape functions                          */
 
 #ifndef _MF_SUPPORT_T_H_
 #define _MF_SUPPORT_T_H_
@@ -20,10 +13,14 @@
 #include "iArray2DT.h"
 #include "dArray2DT.h"
 #include "RaggedArray2DT.h"
-#include "nArrayGroupT.h"
+#include "nArray2DGroupT.h"
+#include "VariArrayT.h"
 #include "nVariArray2DT.h"
+#include "WindowT.h"
 
 /* forward declarations */
+class ifstreamT;
+class ofstreamT;
 class dArray2DT;
 class ParentDomainT;
 class OrthoMLSSolverT;
@@ -31,17 +28,32 @@ class MLSSolverT;
 class iGridManagerT;
 class iNodeT;
 
+/** Base class for support of meshfree methods.
+ * This class sits between the shape function and the MLS solver. This
+ * class feeds the MLS solver coordinates and meshfree parameters for
+ * a given field point and can store the resulting shape functions and
+ * derivative. Shape functions and there derivatives can subsequently
+ * be retrieved from storage or calculated as needed.
+ *
+ * \note Currently, fnNeighborData and feNeighborData don't reflect the
+ * configuration of the cutting surfaces, so the structure of the
+ * global equation matrix doesn't need to be reset when the crack
+ * grows, although new LHS matrices should be computed. In order for
+ * the global equation matrix to change fnNeighborData and would need to be 
+ * recomputed. */
 class MeshFreeSupportT: public MeshFreeT
 {
 public:
 
 	/* constructor */
 	MeshFreeSupportT(const ParentDomainT& domain, const dArray2DT& coords,
-		const iArray2DT& connects, const iArrayT& nongridnodes, FormulationT code,
-		double dextra, int complete, bool store_shape);
+		const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in);
 
 	/* destructor */
 	virtual ~MeshFreeSupportT(void);
+	
+	/* write parameters */
+	virtual void WriteParameters(ostream& out) const;
 	
 	/* steps to initialization - modifications to the support size must
 	 * occur before setting the neighbor data */
@@ -54,11 +66,11 @@ public:
 	void SetSkipElements(const iArrayT& skip_elements);
 	const iArrayT& SkipElements(void) const;
 
-	/* synchronize Dmax with another set (of active EFG nodes) */
-	void SynchronizeDmax(dArrayT& synchDmax);
-	void SetDmax(const iArrayT& node, const dArrayT& Dmax);
-	void GetDmax(const iArrayT& node, dArrayT& Dmax) const;
-	const dArrayT& Dmax(void) const;
+	/* read/write nodal meshfree parameters */
+	void SynchronizeNodalParameters(dArray2DT& nodal_params);
+	void SetNodalParameters(const iArrayT& node, const dArray2DT& nodal_params);
+	void GetNodalParameters(const iArrayT& node, dArray2DT& nodal_params) const;
+	const dArray2DT& NodalParameters(void) const;
 
 	/* cutting facet functions */
 	virtual void SetCuttingFacets(const dArray2DT& facet_coords, int num_facet_nodes);
@@ -128,9 +140,9 @@ protected:
 	virtual void InitElementShapeData(void);
 
 	/* process boundaries - nodes marked as "inactive" at the
-	 * current x_node by setting dmax = -1.0 */
+	 * current x_node by setting nodal_params = -1.0 */
 	virtual void ProcessBoundaries(const dArray2DT& coords,
-		const dArrayT& x_node, dArrayT& dmax) = 0;
+		const dArrayT& x_node, dArray2DT& nodal_params) = 0;
 	virtual int Visible(const double* x1, const double* x2) = 0;
 
 private:
@@ -141,9 +153,9 @@ private:
 	void ComputeNodalData(int node, const iArrayT& neighbors, dArrayT& phi,
 		dArray2DT& Dphi);
 
-	/* set dmax for each node in the connectivities */
-	void SetDmax(void);
-	void SetDmaxFromConnects(void); // faster, but not strictly correct
+	/* compute nodal support parameters */
+	void SetSupport_SphericalSearch(void);
+	void SetSupport_Connectivities(void); // faster, but not strictly correct
 	void SetNodesUsed(void);
 
 	/* swap data */
@@ -151,11 +163,10 @@ private:
 
 protected:
 
-	/* MLS parameters */
-	double fDextra;
-	int    fComplete;   // order of field completeness
-	int    fStoreShape; // 1 => compute and store all shape functions
-	                    // 0 => compute shape functions as needed
+	/* common meshfree parameters */
+	double       fDextra; //used by EFG only
+	bool         fStoreShape;
+	FormulationT fMeshfreeType;
 
 	/* cutting surface data */
 	int fNumFacetNodes;
@@ -167,7 +178,7 @@ protected:
 	/* parent integration domain */
 	const ParentDomainT& fDomain;
 
-/* MLS solvers */
+	/* MLS solvers */
 	OrthoMLSSolverT* fEFG;
 	MLSSolverT*      fRKPM;
 
@@ -187,8 +198,9 @@ protected:
 	/* MLS computation work space */
 	AutoArrayT<int>       fneighbors; //used by SetFieldAt
 	dArrayT               fvolume;
-	dArrayT               fdmax, fdmax_ip;
-	nArrayGroupT<double>  fdmax_man;
+	VariArrayT<double>    fvolume_man;
+	dArray2DT             fnodal_param, fnodal_param_ip;	
+	nArray2DGroupT<double> fnodal_param_man;
 	dArray2DT             fcoords;
 	nVariArray2DT<double> fcoords_man;
 	dArray2DT             fx_ip_table;
@@ -200,8 +212,8 @@ protected:
 	const iArrayT&   fNonGridNodes; // EFG nodes not on the integration grid (global numbering)
 
 	/* nodal attributes */
-	dArrayT fVolume; // nodal volume (integration weight) -> just 1.0 for now
-	dArrayT fDmax;   // nodal support size
+	dArrayT fVolume;            // nodal volume (integration weight) -> just 1.0 for now
+	dArray2DT fNodalParameters; // nodal meshfree parameters, i.e., the support size
 
 	/* nodal neighbor lists */
 	iArrayT fNodesUsed; // (ordered) compact list of nodes
@@ -227,7 +239,7 @@ protected:
 };
 
 /* inlines */
-inline const dArrayT& MeshFreeSupportT::Dmax(void) const { return fDmax; }
+inline const dArray2DT& MeshFreeSupportT::NodalParameters(void) const { return fNodalParameters; }
 inline const iArrayT& MeshFreeSupportT::ElementNeighborsCounts(void) const { return feNeighborCount; }
 inline const RaggedArray2DT<int>& MeshFreeSupportT::ElementNeighbors(void) const { return feNeighborData; }
 inline const RaggedArray2DT<int>& MeshFreeSupportT::NodeNeighbors(void) const { return fnNeighborData; }

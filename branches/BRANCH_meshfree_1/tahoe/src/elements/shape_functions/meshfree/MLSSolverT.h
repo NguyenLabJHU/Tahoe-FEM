@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: MLSSolverT.h,v 1.1.1.1.4.1 2001-06-19 00:54:44 paklein Exp $ */
 /* created: paklein (12/08/1999)                                          */
 /* base class for moving least squares, interpolants                      */
 
@@ -14,28 +14,39 @@
 #include "nArray2DGroupT.h"
 #include "nMatrixGroupT.h"
 #include "nVariArray2DT.h"
+#include "WindowT.h"
+#include "MeshFreeT.h"
 
 /* forward declarations */
 class BasisT;
-class C1FunctionT;
 
 class MLSSolverT
 {
 public:
 
 	/* constructor */
-	MLSSolverT(int nsd, int complete);
+	MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type, 
+		const dArrayT& window_params);
 	
 	/* destructor */
 	virtual ~MLSSolverT(void);
+	
+	/* write parameters */
+	virtual void WriteParameters(ostream& out) const;
 	
 	/* class dependent initializations */
 	void Initialize(void);
 	
 	/* set MLS at fieldpt given sampling points and influence of each, returns 1
 	 * if successful and 0 if not */
-	int SetField(const dArray2DT& coords, const dArrayT& dmax,
+	int SetField(const dArray2DT& coords, const dArray2DT& nodal_param,
 		const dArrayT& volume, const dArrayT& fieldpt, int order);
+		
+	/** neighbor search type needed by the window function */
+	WindowT::SearchTypeT SearchType(void) const;
+
+	/** coverage test */
+	bool Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT& param_n) const;
 	
 	/* return field value and derivatives - valid AFTER SetField() */
 	const dArrayT& phi(void) const;	
@@ -44,6 +55,12 @@ public:
 
 	/* basis dimension */
 	int BasisDimension(void) const;
+	
+	/* number of nodal field parameters */
+	int NumberOfNodalParameters(void) const;
+	
+	/** "synchronization" of nodal field parameters. */
+	void SynchronizeNodalParameters(dArray2DT& params_1, dArray2DT& params_2);
 
 	//TEMP: debugging functions
 	
@@ -104,7 +121,8 @@ protected:
 	BasisT* fBasis;
 	
 	/* window function */
-	C1FunctionT* fWindow;
+	MeshFreeT::WindowTypeT fWindowType;
+	WindowT* fWindow;
 	
 	/* local nodal coordinates (centered at current field pt) */
 	dArray2DT fLocCoords;
@@ -149,6 +167,34 @@ private:
 };
 
 /* inlines */
+
+/* number of nodal field parameters */
+inline int MLSSolverT::NumberOfNodalParameters(void) const
+{
+#if __option(extended_errorcheck)
+	if (!fWindow) throw eGeneralFail;
+#endif
+	return fWindow->NumberOfNodalParameters();
+}
+
+/* coverage test */
+inline bool MLSSolverT::Covers(const dArrayT& x_n, const dArrayT& x, 
+	const dArrayT& param_n) const
+{
+#if __option(extended_errorcheck)
+	if (!fWindow) throw eGeneralFail;
+#endif
+	return fWindow->Covers(x_n, x, param_n);
+}
+
+/* neighbor search type needed by the window function */
+inline WindowT::SearchTypeT MLSSolverT::SearchType(void) const
+{
+#if __option(extended_errorcheck)
+	if (!fWindow) throw eGeneralFail;
+#endif
+	return fWindow->SearchType();
+}
 
 /* return field value and derivatives */
 inline const dArrayT& MLSSolverT::phi(void) const { return fphi; }

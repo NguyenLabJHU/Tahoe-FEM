@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.cpp,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.cpp,v 1.1.1.1.4.1 2001-06-19 00:54:44 paklein Exp $ */
 /* created: paklein (09/10/1998)                                          */
 
 #include "MeshFreeShapeFunctionT.h"
@@ -11,8 +11,7 @@
 MeshFreeShapeFunctionT::MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 	const LocalArrayT& coords, const dArray2DT& all_coords,
 	const iArray2DT& connects, const iArrayT& nongridnodes,
-	MeshFreeT::FormulationT code, double dextra, int complete, bool store_shape,
-	const int& currelement):
+	const int& currelement, ifstreamT& in):
 	ShapeFunctionT(geometry_code, numIP, coords, kStandardB),
 	fCurrElement(currelement),
 	fDNaU(numIP),
@@ -21,10 +20,10 @@ MeshFreeShapeFunctionT::MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, i
 	/* construct MLS support */
 	if (all_coords.MinorDim() == 2)
 		fMFSupport = new MeshFreeSupport2DT(*fDomain, all_coords, connects,
-							nongridnodes, code, dextra, complete, store_shape);
+							nongridnodes, in);
 	else
 		fMFSupport = new MeshFreeSupport3DT(*fDomain, all_coords, connects,
-							nongridnodes, code, dextra, complete, store_shape);
+							nongridnodes, in);
 
 	if (!fMFSupport) throw eOutOfMemory;
 	
