@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.35 2003-06-24 23:59:57 saubry Exp $ */
+/* $Id: EAMT.cpp,v 1.36 2003-07-15 23:02:30 saubry Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -1394,14 +1394,14 @@ void EAMT::RHSDriver3D(void)
 	      double F2 =  rhop_i * Ep_j ;
 	      double F2byr = formKd*F2/r;
 
-	      f_i[0] += r_ij_0 * F1byr;
-	      f_j[0] += r_ij_0 * F2byr;
+	      f_i[0] +=  r_ij_0 * F1byr;
+	      f_j[0] += -r_ij_0 * F2byr;
 	      
-	      f_i[1] += r_ij_1 * F1byr;
-	      f_j[1] += r_ij_1 * F2byr;
+	      f_i[1] +=  r_ij_1 * F1byr;
+	      f_j[1] += -r_ij_1 * F2byr;
 
-	      f_i[2] += r_ij_2 * F1byr;
-	      f_j[2] += r_ij_2 * F2byr;	  
+	      f_i[2] +=  r_ij_2 * F1byr;
+	      f_j[2] += -r_ij_2 * F2byr;	  
 	  
 	    }
 	}
