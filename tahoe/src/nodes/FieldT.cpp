@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.24.2.8 2004-03-24 19:48:55 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.24.2.9 2004-03-27 04:16:40 paklein Exp $ */
 #include "FieldT.h"
 
 #include "fstreamT.h"
@@ -692,7 +692,7 @@ void FieldT::DefineParameters(ParameterListT& list) const
 	ParameterInterfaceT::DefineParameters(list);
 
 	/* field name */
-	list.AddParameter(ParameterT::String, "field_name");
+	list.AddParameter(ParameterT::Word, "field_name");
 
 	/* solution group */
 	ParameterT solver_group(ParameterT::Integer, "solution_group");
@@ -819,7 +819,7 @@ ParameterInterfaceT* FieldT::NewSub(const StringT& list_name) const
 	{
 		ParameterContainerT* ic = new ParameterContainerT(list_name);
 		
-		ic->AddParameter(ParameterT::String, "node_ID");
+		ic->AddParameter(ParameterT::Word, "node_ID");
 		ic->AddParameter(ParameterT::Integer, "dof");
 		ParameterT IC_type(ParameterT::Enumeration, "type");
 		IC_type.AddEnumeration("u", 0);
@@ -839,7 +839,7 @@ ParameterInterfaceT* FieldT::NewSub(const StringT& list_name) const
 	{
 		ParameterContainerT* kbc = new ParameterContainerT(list_name);
 		
-		kbc->AddParameter(ParameterT::String, "node_ID");
+		kbc->AddParameter(ParameterT::Word, "node_ID");
 		kbc->AddParameter(ParameterT::Integer, "dof");
 		ParameterT BC_type(ParameterT::Enumeration, "type");
 		BC_type.AddEnumeration("fixed", -1);
@@ -863,7 +863,7 @@ ParameterInterfaceT* FieldT::NewSub(const StringT& list_name) const
 	{
 		ParameterContainerT* fbc = new ParameterContainerT(list_name);
 		
-		fbc->AddParameter(ParameterT::String, "node_ID");
+		fbc->AddParameter(ParameterT::Word, "node_ID");
 		fbc->AddParameter(ParameterT::Integer, "dof");
 		ParameterT schedule(ParameterT::Integer, "schedule");
 		schedule.SetDefault(0);
