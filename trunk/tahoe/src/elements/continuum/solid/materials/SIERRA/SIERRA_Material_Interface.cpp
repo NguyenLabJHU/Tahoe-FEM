@@ -1,7 +1,9 @@
-/* $Id: SIERRA_Material_Interface.cpp,v 1.6 2003-04-23 16:55:45 paklein Exp $ */
+/* $Id: SIERRA_Material_Interface.cpp,v 1.7 2003-05-05 00:58:29 paklein Exp $ */
 #include "SIERRA_Material_Interface.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
+
+using namespace Tahoe;
 
 const int kStringBufferSize = 255;
 static char StringBuffer[kStringBufferSize];

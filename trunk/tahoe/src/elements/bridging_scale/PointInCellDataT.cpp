@@ -1,7 +1,9 @@
-/* $Id: PointInCellDataT.cpp,v 1.2 2003-03-31 23:16:47 paklein Exp $ */
+/* $Id: PointInCellDataT.cpp,v 1.3 2003-05-05 00:58:26 paklein Exp $ */
 #include "PointInCellDataT.h"
 #include "ContinuumElementT.h"
 #include "InverseMapT.h"
+
+using namespace Tahoe;
 
 /* collect a list of the nodes used in cells containing a non-zero number
  * of points */

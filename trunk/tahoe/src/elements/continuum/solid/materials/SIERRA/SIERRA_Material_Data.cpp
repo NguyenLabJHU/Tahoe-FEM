@@ -1,5 +1,7 @@
-/* $Id: SIERRA_Material_Data.cpp,v 1.5 2003-04-23 16:56:38 paklein Exp $ */
+/* $Id: SIERRA_Material_Data.cpp,v 1.6 2003-05-05 00:58:29 paklein Exp $ */
 #include "SIERRA_Material_Data.h"
+
+using namespace Tahoe;
 
 /* static data */
 int SIERRA_Material_Data::sNextID = 0;
