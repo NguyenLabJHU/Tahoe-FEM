@@ -1,4 +1,4 @@
-/* $Id: TahoeInputT.cpp,v 1.3 2001-09-04 14:46:38 sawimme Exp $ */
+/* $Id: TahoeInputT.cpp,v 1.3.2.1 2001-10-15 19:01:28 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "TahoeInputT.h"
@@ -226,14 +226,17 @@ int TahoeInputT::NumSidesInSet (StringT& name) const
   return num;
 }
 
-int TahoeInputT::SideSetGroupIndex (StringT& name) const
+StringT TahoeInputT::SideSetGroupName (StringT& name) const
 {
   int id = atoi (name.Pointer());
   int elsetid;
   iArray2DT sides (NumSidesInSet(name), 2);
   if (fModel.GetSideSet (id, elsetid, sides) == ModelFileT::kFail)
     throw eDatabaseFail;
-  return elsetid;
+
+  StringT elname;
+  elname.Append (elsetid);
+  return elname;
 }
 
 void TahoeInputT::ReadSideSetLocal (StringT& name, iArray2DT& sides) const
@@ -242,6 +245,8 @@ void TahoeInputT::ReadSideSetLocal (StringT& name, iArray2DT& sides) const
   int elsetid;
   if (fModel.GetSideSet (id, elsetid, sides) == ModelFileT::kFail)
     throw eDatabaseFail;
+
+  sides += -1;
 }
 
 void TahoeInputT::ReadSideSetGlobal (StringT& name, iArray2DT& sides) const

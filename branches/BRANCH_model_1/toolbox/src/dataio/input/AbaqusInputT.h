@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.h,v 1.6 2001-09-21 13:48:51 sawimme Exp $ */
+/* $Id: AbaqusInputT.h,v 1.6.2.1 2001-10-15 19:01:26 sawimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #ifndef _ABAQUSINPUT_T_H_
@@ -55,7 +55,7 @@ class AbaqusInputT : public InputBaseT
 
   bool AreSideSetsLocal (void) const;
   int  NumSidesInSet (StringT& setname) const;
-  int  SideSetGroupIndex (StringT& setname) const;
+  StringT SideSetGroupName (StringT& setname) const;
   void ReadSideSetLocal (StringT& setname, iArray2DT& sides) const;
   void ReadSideSetGlobal (StringT& setname, iArray2DT& sides) const;
 
@@ -108,10 +108,11 @@ inline  int  AbaqusInputT::NumSidesInSet (StringT& setname)  const
 #pragma unused (setname)
   return 0; 
 }
-inline  int  AbaqusInputT::SideSetGroupIndex (StringT& setname)  const
+inline  StringT AbaqusInputT::SideSetGroupName (StringT& setname)  const
 { 
 #pragma unused (setname)
-  return -1; 
+  StringT name ("");
+  return name; 
 }
 inline  void AbaqusInputT::ReadSideSetLocal (StringT& setname, iArray2DT& sides) const
 {
