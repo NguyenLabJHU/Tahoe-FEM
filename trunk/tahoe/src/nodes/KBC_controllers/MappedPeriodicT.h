@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.h,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
+/* $Id: MappedPeriodicT.h,v 1.2 2001-06-06 23:15:51 paklein Exp $ */
 /* created: paklein (04/07/1997)                                          */
 /* Manager class for finite deformation elasto-static with 2 additional   */
 /* types of kinematic boundary conditions:                                */
@@ -53,8 +53,8 @@ protected:
 	dMatrixT fFperturb;
 	dMatrixT fF; /* F = 1 + LTf*Fperturb */
 	  	
-/* list of mapped nodes */
-iArrayT fMappedNodeList;
+	/* list of mapped nodes */
+	iArrayT fMappedNodeList;
 
 	/* master-slave node/dof pairs */
 	iArray2DT fSlaveMasterPairs;

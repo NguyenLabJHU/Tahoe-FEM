@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.cpp,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
+/* $Id: MappedPeriodicT.cpp,v 1.2 2001-06-06 23:15:51 paklein Exp $ */
 /* created: paklein (04/07/1997)                                          */
 
 #include "MappedPeriodicT.h"
@@ -37,9 +37,9 @@ void MappedPeriodicT::Initialize(ifstreamT& in)
 	in >> fFperturb;
 	if (!in.good()) throw eBadInputValue;
 
-/* list of mapped nodes */
-iArrayT id_list;
-ReadNodes(in, id_list, fMappedNodeList);
+	/* list of mapped nodes */
+	iArrayT id_list;
+	ReadNodes(in, id_list, fMappedNodeList);
 
 	/* read master nodes */
 	iArrayT tmp;
@@ -96,7 +96,7 @@ void MappedPeriodicT::WriteParameters(ostream& out) const
 	out << "\n Mapping Parameters:\n";
 	out << " Mapping load time function. . . . . . . . . . . = " << fnumLTf << '\n';
 	out << " Mapping perturbation:\n";
-	out << '\n' << fFperturb << '\n';
+	out << fFperturb << '\n';
 	out << " Number of mapped nodes. . . . . . . . . . . . . = "
 	    << fMappedNodeList.Length() << '\n';
 	tmp.Alias(fMappedNodeList);
@@ -153,42 +153,49 @@ void MappedPeriodicT::InitStep(void)
 	/* inherited */
 	KBC_ControllerT::InitStep();
 	
-	/* quick exit */
-	if (fSlaveMasterPairs.MajorDim() == 0) return;
-
-	/* nodal information */
-	const dArray2DT& init_coords = fNodeManager.InitialCoordinates();
-	const dArray2DT& disp = fNodeManager.Displacements();	
-
-	/* compute F - 1  = fFperturb */
-	fF.SetToScaled(fLTf->LoadFactor(), fFperturb);
-
-	int dex = 0;
-	int nsd = fF.Rows();
-	int num_pairs = fSlaveMasterPairs.MajorDim();	
-	dArrayT	X_m, d_m;      //master data
-	dArrayT X_s, d_s(nsd); //slave data
-	for (int i = 0; i < num_pairs; i++)
+	/* just compute mapping */
+	if (fSlaveMasterPairs.MajorDim() == 0)
 	{
-		int node_m = fSlaveMasterPairs(i, kMaster);
-		int node_s = fSlaveMasterPairs(i, kSlave);
-	
-		/* fetch pointers */
-		init_coords.RowAlias(node_m, X_m);
-		disp.RowAlias(node_m, d_m);		
-		init_coords.RowAlias(node_s, X_s);
-
-		/* periodic displacements */		
-		fD_sm.DiffOf(X_s, X_m);
-		fF.Multx(fD_sm, d_s);
-		
-		/* set cards */
-		for (int j = 0; j < nsd; j++)
-			fSlaveCards[dex++].SetValues(node_s, j, KBC_CardT::kDsp, 0, d_s[j] + d_m[j]);
+		/* compute F - 1  = fFperturb */
+		fF.SetToScaled(fLTf->LoadFactor(), fFperturb);
+		fF.PlusIdentity();
 	}
+	else /* apply mapping */
+	{
+		/* nodal information */
+		const dArray2DT& init_coords = fNodeManager.InitialCoordinates();
+		const dArray2DT& disp = fNodeManager.Displacements();	
+
+		/* compute F - 1  = fFperturb */
+		fF.SetToScaled(fLTf->LoadFactor(), fFperturb);
+
+		int dex = 0;
+		int nsd = fF.Rows();
+		int num_pairs = fSlaveMasterPairs.MajorDim();	
+		dArrayT	X_m, d_m;      //master data
+		dArrayT X_s, d_s(nsd); //slave data
+		for (int i = 0; i < num_pairs; i++)
+		{
+			int node_m = fSlaveMasterPairs(i, kMaster);
+			int node_s = fSlaveMasterPairs(i, kSlave);
+
+			/* fetch pointers */
+			init_coords.RowAlias(node_m, X_m);
+			disp.RowAlias(node_m, d_m);		
+			init_coords.RowAlias(node_s, X_s);
+
+			/* periodic displacements */		
+			fD_sm.DiffOf(X_s, X_m);
+			fF.Multx(fD_sm, d_s);
+		
+			/* set cards */
+			for (int j = 0; j < nsd; j++)
+				fSlaveCards[dex++].SetValues(node_s, j, KBC_CardT::kDsp, 0, d_s[j] + d_m[j]);
+		}
 	
-	/* set mapping */
-	fF.PlusIdentity();
+		/* set mapping */
+		fF.PlusIdentity();
+	}
 }
 
 /* output current configuration */
