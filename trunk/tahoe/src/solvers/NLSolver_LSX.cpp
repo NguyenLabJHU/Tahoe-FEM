@@ -1,8 +1,9 @@
-/* $Id: NLSolver_LSX.cpp,v 1.1 2003-09-09 22:46:43 paklein Exp $ */
+/* $Id: NLSolver_LSX.cpp,v 1.2 2003-09-09 23:09:19 paklein Exp $ */
 #include "NLSolver_LSX.h"
 #include "FEManagerT.h"
 
 #include <iostream.h>
+#include "fstreamT.h"
 
 using namespace Tahoe;
 
