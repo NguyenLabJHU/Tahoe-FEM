@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.5.4.3 2002-10-16 23:29:20 cjkimme Exp $ */
+/* $Id: ElementSupportT.h,v 1.5.4.4 2002-10-18 22:37:22 cjkimme Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -23,6 +23,8 @@ class NodeManagerT;
 class XDOF_ManagerT;
 class FieldT;
 class eControllerT;
+#else
+class iArrayT;
 #endif
 class GroupAverageT;
 class ElementMatrixT;
@@ -107,6 +109,11 @@ public:
 	
 	/** accessor for element integer input when streams are not available */
 	int *IntInput(void) const;
+	
+	/** generate equation numbers based on connectivity information */
+	void SetEqnos(int *conn, const int& nelem, const int& nElemNodes, const int&nNodes);
+
+	dArrayT& Residual(void) const { return *fResidual; };
 
 #endif // def _SIERRA_TEST_
 
@@ -291,6 +298,7 @@ private:
  	ModelManagerT* fModelManager;
 
 	dArray2DT *fInitialCoordinates, *fCurrentCoordinates;
+	dArrayT *fResidual;
 
 	int fItNum, fElem;
 	
@@ -302,6 +310,8 @@ private:
 	double *fparams;
 	
 	int *iparams;
+
+	iArrayT *ieqnos;
 
 #endif
 	
