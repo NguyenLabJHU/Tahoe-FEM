@@ -1,3 +1,4 @@
+// DEVELOPMENT
 #ifndef _OUTPUTLATTICE_T_H_
 #define _OUTPUTLATTICE_T_H_
 

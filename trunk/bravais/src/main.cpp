@@ -1,4 +1,5 @@
-/* $Id: main.cpp,v 1.5 2002-09-18 01:20:42 saubry Exp $ */
+// DEVELOPMENT
+/* $Id: main.cpp,v 1.6 2002-11-14 01:47:32 saubry Exp $ */
 #include <iostream>
 #include "ExceptionCodes.h"
 #include "PeriodicTableT.h"
