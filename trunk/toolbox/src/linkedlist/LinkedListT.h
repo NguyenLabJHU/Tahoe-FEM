@@ -1,4 +1,4 @@
-/* $Id: LinkedListT.h,v 1.2 2002-07-02 19:57:17 cjkimme Exp $ */
+/* $Id: LinkedListT.h,v 1.3 2002-07-08 11:20:22 sawimme Exp $ */
 /* created: paklein (02/07/1996)                                          */
 /* Basic linked list template                                             */
 /* Note: the TYPE stored in the list should have an appropriate           */
@@ -78,7 +78,7 @@ ostream& operator<<(ostream& out, const LinkedListT<TYPE>& list)
 		currPtr = currPtr->NextPtr();
 	}
 	return out;
-};
+}
 
 /*************************************************************************
 * Implementation
