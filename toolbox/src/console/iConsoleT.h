@@ -1,6 +1,5 @@
-/* $Id: iConsoleT.h,v 1.12 2002-08-13 08:14:40 paklein Exp $ */
+/* $Id: iConsoleT.h,v 1.12.4.1 2002-12-16 09:13:46 paklein Exp $ */
 /* created: paklein (12/21/2000) */
-
 #ifndef _I_CONSOLE_T_H_
 #define _I_CONSOLE_T_H_
 
