@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.49 2003-08-08 00:56:41 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.50 2003-08-12 19:49:55 thao Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -1203,7 +1203,16 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
                         }
                 
                         /* get Cauchy stress */
-                        cauchy = fCurrMaterial->s_ij();
+			const dSymMatrixT& stress = fCurrMaterial->s_ij();
+			int dim = stress.Length();
+			if (dim == 4)
+			{
+			  cauchy[0] = stress[0];
+			  cauchy[1] = stress[1];
+			  cauchy[2] = stress[2];
+			} 
+			else
+			  cauchy = stress;
 
                         /* stresses */
                         if (n_codes[iNodalStress])
