@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.7 2002-07-05 22:28:40 paklein Exp $ */
+/* $Id: ParentDomainT.h,v 1.8 2002-07-16 22:22:57 paklein Exp $ */
 /* created: paklein (07/03/1996)                                          */
 /* interface for a finite element parent domain. manages integration      */
 /* information (points, weights, etc..) and mapping between the real      */
@@ -136,6 +136,12 @@ class ParentDomainT
 	void NodalValues(const dArrayT& IPvalues, dArray2DT& nodalvalues,
 		int IPnum) const; 	
 
+	/** compute nodal values.
+	 * project all integration point values to the nodes 
+	 * \param ipvalues field values from a single integration pt: [nip]
+	 * \param nodalvalues extrapolated values: [nnd] */
+	void NodalValues(const dArrayT& IPvalues, dArrayT& nodalvalues) const; 	
+
 	/** evaluate the shape functions and gradients. Compute the values of the
 	 * shape functions and their gradients at an arbirary point in the
 	 * in the parent domain. Coordinates must fall within the domain.
@@ -259,6 +265,12 @@ inline void ParentDomainT::FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geom,
 	iArrayT& facet_nodes) const
 {
 	fGeometry->FacetGeometry(facet_geom, facet_nodes);
+}
+
+/* compute nodal values */
+inline void ParentDomainT::NodalValues(const dArrayT& IPvalues, dArrayT& nodalvalues) const
+{
+	fNodalExtrap.Multx(IPvalues, nodalvalues);
 }
 
 } // namespace Tahoe 
