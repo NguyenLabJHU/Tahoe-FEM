@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.29 2004-10-11 20:51:56 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.30 2004-10-11 23:05:37 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 
@@ -41,12 +41,12 @@ using namespace Tahoe;
 /* uncomment this line for many, many boundary integration points;
  * --set the number of points in the routine compute B matrices
  */
-#define SEPARATE_BOUNDARY_INTEGRATION
+//#define SEPARATE_BOUNDARY_INTEGRATION
 /* uncomment this line for one point boundary integration rules over
  * voronoi facets. SEPARATE_BOUNDARY_INTEGRATION must be defined, too,
  * but its effects are overidden when EVALUATE_AT_NODES is defined
  */
-#define EVALUATE_AT_NODES
+//#define EVALUATE_AT_NODES
 const int kNoTractionVector = -1;
 
 /* constructors */
@@ -278,6 +278,49 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	for (int i = 0; i < nodal_supports.Length(); i++) {
 		int* irow_i = fNodalSupports(i);
 		double* drow_i = fNodalPhi(i);
+		LinkedListT<int>& ilist = nodal_supports[i];
+		LinkedListT<double>& dlist = nodal_phi[i];
+		ilist.Top(); dlist.Top();
+		while (ilist.Next() && dlist.Next()) {
+			*irow_i++ = *(ilist.CurrentValue());
+			*drow_i++ = *(dlist.CurrentValue());
+		}
+	}
+	
+	//TEMP hardcoding boundary facet integration for one IP right now
+	/** store shape functions at boundary facet integration points */
+	nNodes = fNonDeloneEdges.Length();
+	dArrayT boundaryIPCoords(fSD);
+	nodal_phi.Dimension(nNodes);
+	nodal_supports.Dimension(nNodes);
+	for (int i = 0; i < nNodes; i++) {
+		double* v1 = fVoronoiVertices(fSelfDualFacets(i,0));
+		double* v2 = fVoronoiVertices(fSelfDualFacets(i,1));
+		for (int j = 0; j < fSD; j++) 
+			boundaryIPCoords[j] = v1[j] + v2[j];
+		boundaryIPCoords /= double(fSD);
+	
+		if (!fNodalShapes->SetFieldAt(boundaryIPCoords, NULL)) // shift = 0 or not ?
+			ExceptionT::GeneralFail("SCNIMFT::TakeParameterList","Shape Function evaluation"
+				"failed at Delone edge %d\n",fNodes[i]);		
+		
+		nodal_phi[i].AppendArray(fNodalShapes->FieldAt().Length(),
+									const_cast <double *> (fNodalShapes->FieldAt().Pointer()));
+		nodal_supports[i].AppendArray(fNodalShapes->Neighbors().Length(),
+										const_cast <int *> (fNodalShapes->Neighbors().Pointer()));
+	}
+	
+	// move into RaggedArray2DT's
+	// move into more efficient storage for computation
+	fBoundaryPhi.Configure(nodal_phi);
+	fBoundarySupports.Configure(nodal_supports);
+	
+	if (nodal_supports.Length() != nodal_phi.Length())
+		ExceptionT::GeneralFail(caller,"nodal support indices and shape function values do not match\n");
+		
+	for (int i = 0; i < nodal_supports.Length(); i++) {
+		int* irow_i = fBoundarySupports(i);
+		double* drow_i = fBoundaryPhi(i);
 		LinkedListT<int>& ilist = nodal_supports[i];
 		LinkedListT<double>& dlist = nodal_phi[i];
 		ilist.Top(); dlist.Top();
@@ -718,14 +761,14 @@ void SCNIMFT::RHSDriver(void)
 				dArrayT workspace(fSD == 2 ? 3 : 6); 
 				dArrayT traction_vector(fSD);
 				fTractionVectors.RowCopy(fTractionBoundaryCondition[i], workspace.Pointer());
-				traction_vector[0] = workspace[0]*fNonDeloneNormals(i,0) + workspace[2]*fNonDeloneNormals(i,1);
-				traction_vector[1] = workspace[1]*fNonDeloneNormals(i,1) + workspace[2]*fNonDeloneNormals(i,0);
+				traction_vector[0] = workspace[0]*fNonDeloneNormals(i,0) + .5*workspace[2]*fNonDeloneNormals(i,1);
+				traction_vector[1] = workspace[1]*fNonDeloneNormals(i,1) + .5*workspace[2]*fNonDeloneNormals(i,0);
 			
-				int* supp_i = fNodalSupports(fNonDeloneEdges[i]) ;
-				double* phi_i = fNodalPhi(fNonDeloneEdges[i]);
+				int* supp_i = fBoundarySupports(i) ;
+				double* phi_i = fBoundaryPhi(i);
 				double w_i = fBoundaryIntegrationWeights[i];
 				traction_vector *= w_i;
-				for (int j = 0; j < fNodalPhi.MinorDim(fNonDeloneEdges[i]); j++) {
+				for (int j = 0; j < fBoundaryPhi.MinorDim(i); j++) {
 					double* fint = fForce(*supp_i++);
 					for (int k = 0; k < fSD; k++) 
 						*fint++ += traction_vector[k]*(*phi_i); 
@@ -1002,7 +1045,7 @@ void SCNIMFT::ComputeBMatrices(void)
 			}
 		}
 	}
-//#if 0
+
 	/** Loop over remaining edges */
 	for (int i = 0; i < fNonDeloneEdges.Length(); i++) {
 		n_0 = fNonDeloneEdges[i];
@@ -1103,8 +1146,8 @@ void SCNIMFT::ComputeBMatrices(void)
 			}
 		}	
 	}
-//#endif // 0
-	// scale integrals by volumes of Voronoi cells
+ 
+ 	// scale integrals by volumes of Voronoi cells
 	dArrayT* currFacetIntegral;
 	for (int i = 0; i < nNodes; i++) {
 		LinkedListT<dArrayT>& bVectors_i = facetWorkSpace[i];

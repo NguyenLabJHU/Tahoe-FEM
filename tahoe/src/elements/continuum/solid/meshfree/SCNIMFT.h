@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.16 2004-09-29 18:26:52 cjkimme Exp $ */
+/* $Id: SCNIMFT.h,v 1.17 2004-10-11 23:05:37 cjkimme Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -230,9 +230,9 @@ protected:
 	dArray2DT fDualFacetCentroids;
 	
 	/** additional edges associated only with one node */
-	iArrayT fNonDeloneEdges; // Tag for Deletion
+	iArrayT fNonDeloneEdges; 
 	
-	/** centroids of the facets for those edges */
+	/** normal vectors of the facets for those edges */
 	dArray2DT fNonDeloneCentroids;
 	dArray2DT fNonDeloneNormals;
 	
@@ -277,12 +277,12 @@ protected:
 	RaggedArray2DT<dArrayT> bVectorArray;
 	
 	/** workspace for nodal shape functions */
-	RaggedArray2DT<double> fNodalPhi;
-	RaggedArray2DT<int> fNodalSupports;
+	RaggedArray2DT<double> fNodalPhi, fBoundaryPhi;
+	RaggedArray2DT<int> fNodalSupports, fBoundarySupports;
 	  	
 	/* body force vector */
 	const ScheduleT* fBodySchedule; /**< body force schedule */
-	dArrayT fBody; /**< body force vector   */
+	dArrayT fBody; /**< body force vector */
 	
 	/** shape functions */
 	MeshFreeNodalShapeFunctionT* fNodalShapes;
