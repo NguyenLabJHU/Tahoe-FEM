@@ -1,4 +1,4 @@
-/* $Id: ExceptionT.cpp,v 1.7 2003-05-04 22:53:30 paklein Exp $ */
+/* $Id: ExceptionT.cpp,v 1.8 2003-05-22 21:05:43 cjkimme Exp $ */
 #include "ExceptionT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -171,6 +171,7 @@ void ExceptionT::Throw(ExceptionT::CodeT code, const char* caller, const char* f
 
 void ExceptionT::Throw_(ExceptionT::CodeT code, const char* caller, const char* message)
 {
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* write info */
 	time_t t;
 	time(&t);
@@ -181,6 +182,7 @@ void ExceptionT::Throw_(ExceptionT::CodeT code, const char* caller, const char* 
 	cout <<   "      caller: " << caller << '\n';
 	if (message)
 	cout <<   "     message: " << message << '\n';
+#endif
 	
 	/* do the throw */
 	throw code;
