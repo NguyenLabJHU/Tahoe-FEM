@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.9 2003-03-04 06:41:02 paklein Exp $
+# $Id: makefile,v 1.10 2003-03-08 02:40:34 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -72,7 +72,8 @@ SUB_DIR = \
 	neighbors \
 	search \
 	dataio \
-	parallel
+	parallel \
+	param_tree
 
 subdir_driver: subdir_loop
 
