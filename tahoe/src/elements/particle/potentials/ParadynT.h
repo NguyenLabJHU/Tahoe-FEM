@@ -49,19 +49,19 @@ public:
 	/** \name return interaction functions */
 	/*@{*/
 	/** return a pointer to the energy function */
-	PairEnergyFunction ParadynT::getPairEnergy(void);
-	EmbedEnergyFunction ParadynT::getEmbedEnergy(void);
-	EDEnergyFunction ParadynT::getElecDensEnergy(void);
+	virtual PairEnergyFunction getPairEnergy(void);
+	virtual EmbedEnergyFunction getEmbedEnergy(void);
+	virtual EDEnergyFunction getElecDensEnergy(void);
 
 	/** return a pointer to the force function */
-	PairForceFunction ParadynT::getPairForce(void);
-        EmbedForceFunction ParadynT::getEmbedForce(void);
-	EDForceFunction ParadynT::getElecDensForce(void);
+	virtual PairForceFunction getPairForce(void);
+        virtual EmbedForceFunction getEmbedForce(void);
+	virtual EDForceFunction getElecDensForce(void);
 
 	/** return a pointer to the stiffness function */
-	PairEnergyFunction ParadynT::getPairStiffness(void);
-	EmbedEnergyFunction ParadynT::getEmbedStiffness(void);
-	EDEnergyFunction ParadynT::getElecDensStiffness(void);
+	virtual PairEnergyFunction getPairStiffness(void);
+	virtual EmbedEnergyFunction getEmbedStiffness(void);
+	virtual EDEnergyFunction getElecDensStiffness(void);
 
 	/** return Paradyn-style coefficients table.
 	 * returns false if no table is available. */
