@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.cpp,v 1.1.1.1.2.2 2001-10-31 20:59:40 sawimme Exp $ */
+/* $Id: ExodusOutputT.cpp,v 1.1.1.1.2.3 2001-11-06 20:38:33 sawimme Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "ExodusOutputT.h"
@@ -130,7 +130,7 @@ void ExodusOutputT::CreateResultsFile(int ID, ExodusT& exo)
 	int dim = fCoordinates->MinorDim();
 	int num_nodes = fElementSets[ID]->NumNodes();
 	int num_elem = fElementSets[ID]->NumElements();
-	int num_blks = 1;
+	int num_blks = fElementSets[ID]->NumBlocks();
 	int num_node_sets = 0;
 	int num_side_sets = 0;
 	
@@ -176,7 +176,7 @@ void ExodusOutputT::CreateGeometryFile(ExodusT& exo)
   for (int e=0; e < fElementSets.Length(); e++)
     if (fElementSets[e]->NumNodes() > 0)
       {
-	num_blks++;
+	num_blks += fElementSets[e]->NumBlocks();
 	num_elem += fElementSets[e]->NumElements();
       }
   
