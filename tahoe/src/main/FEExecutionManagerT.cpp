@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.56 2004-02-22 00:19:50 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.56.2.1 2004-02-25 07:55:27 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -464,7 +464,7 @@ void FEExecutionManagerT::RunStaticBridging_staggered(FEManagerT_bridging& conti
 	continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
 	//dArrayT mdmass;
 	//atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
-	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), make_inactive);
+	continuum.InitProjection(*atoms.CommManager(), atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), make_inactive);
 	
 #undef DO_COUPLING
 

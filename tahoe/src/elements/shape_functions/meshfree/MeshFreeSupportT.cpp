@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.22 2004-02-10 01:27:38 cjkimme Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.22.4.1 2004-03-01 02:44:59 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -157,7 +157,7 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT* domain,
 					
 				break;
 			}
-		        case kCubicSpline:
+		    case kRectCubicSpline:
 			{
 				/* parameters = dilation scaling in each direction
 				 *             + sharpening factor
@@ -168,6 +168,16 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT* domain,
 				for (int i = 0; i < window_params.Length(); i++)
 					in >> window_params[i];
 					
+				break;
+			}  
+		    case kCubicSpline:
+			{
+				/* parameters = dilation scaling in each direction */
+				window_params.Dimension(1);
+				
+				/* allow for line-by-line comments */
+				in >> window_params[0];
+
 				break;
 			}  
 			default:

@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.30 2004-01-27 19:11:58 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.30.6.1 2004-02-28 00:08:53 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -166,6 +166,7 @@ void ParticlePairT::WriteOutput(void)
 
 	/* collect displacements */
 	dArrayT vec, values_i;
+	double V0 = fLatticeParameter*fLatticeParameter*fLatticeParameter/4.0; /* atomic volume for FCC */
 	for (int i = 0; i < non; i++) {
 		int   tag_i = (parition_nodes) ? (*parition_nodes)[i] : i;
 		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
@@ -185,7 +186,7 @@ void ParticlePairT::WriteOutput(void)
 			temp.Outer(vec);
 		 	for (int cc = 0; cc < num_stresses; cc++) {
 				int ndex = ndof+2+cc;
-		   		values_i[ndex] = -mass[type_i]*temp[cc];
+		   		values_i[ndex] = -mass[type_i]*temp[cc]/V0;
 		 	}
 		}
 #endif
@@ -283,7 +284,7 @@ void ParticlePairT::WriteOutput(void)
 			 		/* accumulate into stress into array */
 		 			for (int cc = 0; cc < num_stresses; cc++) {
 						int ndex = ndof+2+cc;
-		   				n_values(local_j, ndex) += 0.5*Fbyr*temp[cc];		   
+		   				n_values(local_j, ndex) += 0.5*Fbyr*temp[cc]/V0;		   
 		 			}
 #endif
 				}
@@ -291,13 +292,16 @@ void ParticlePairT::WriteOutput(void)
 		}
 
 #ifndef NO_PARTICLE_STRESS_OUTPUT
+		/* calculate strain */
+		double J = 1.0;
+		CalcValues(i, coords, CParamStart, &Strain, &SlipVector, &NearestNeighbors, J);
+
 		/* copy stress into array */
 		for (int cc = 0; cc < num_stresses; cc++) {
 		  int ndex = ndof+2+cc;
-		  values_i[ndex] += vs_i[cc];
+		  values_i[ndex] += (vs_i[cc]/V0);
 		}
 
-		CalcValues(i, coords, CParamStart, &Strain, &SlipVector, &NearestNeighbors);
 		int valuep = 0;
 		Strain /= 2.0;
 		for (int n = 0; n < ndof; n++)

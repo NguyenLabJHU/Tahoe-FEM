@@ -1,4 +1,4 @@
-/* $Id: FCC3D.cpp,v 1.2 2003-03-31 23:14:38 paklein Exp $ */
+/* $Id: FCC3D.cpp,v 1.2.32.1 2004-02-28 00:04:28 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D.h"
 #include "ElementsConfig.h"
@@ -27,7 +27,7 @@ FCC3D::FCC3D(ifstreamT& in, const FSMatSupportT& support):
 	fQ(3),
 	fFCCLattice(NULL),
 	fPairProperty(NULL),
-	fCellVolume(0),
+	fAtomicVolume(0),
 	fBondTensor4(dSymMatrixT::NumValues(3)),
 	fBondTensor2(dSymMatrixT::NumValues(3))	
 {
@@ -74,16 +74,16 @@ FCC3D::FCC3D(ifstreamT& in, const FSMatSupportT& support):
 		
 	/* compute the (approx) cell volume */
 	double cube_edge = fNearestNeighbor*sqrt(2.0);
-	fCellVolume = cube_edge*cube_edge*cube_edge;
+	fAtomicVolume = cube_edge*cube_edge*cube_edge/4.0;
 
 	/* compute stress-free dilatation */
 	double stretch = ZeroStressStretch();
 	fNearestNeighbor *= stretch;
 	cube_edge = fNearestNeighbor*sqrt(2.0);
-	fCellVolume = cube_edge*cube_edge*cube_edge;
+	fAtomicVolume = cube_edge*cube_edge*cube_edge/4.0;
 
 	/* reset the continuum density (4 atoms per unit cell) */
-	fDensity = 4*fPairProperty->Mass()/fCellVolume;
+	fDensity = fPairProperty->Mass()/fAtomicVolume;
 }
 
 /* destructor */
@@ -130,7 +130,7 @@ void FCC3D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 	
 	moduli = 0.0; 
 	int nb = fFCCLattice->NumberOfBonds();
-	double R4byV = fNearestNeighbor*fNearestNeighbor*fNearestNeighbor*fNearestNeighbor/fCellVolume;
+	double R4byV = fNearestNeighbor*fNearestNeighbor*fNearestNeighbor*fNearestNeighbor/fAtomicVolume;
 	for (int i = 0; i < nb; i++)
 	{
 		double ri = bond_length[i]*fNearestNeighbor;
@@ -154,7 +154,7 @@ void FCC3D::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 	
 	PK2 = 0.0;
 	int nb = fFCCLattice->NumberOfBonds();
-	double R2byV = fNearestNeighbor*fNearestNeighbor/fCellVolume;
+	double R2byV = fNearestNeighbor*fNearestNeighbor/fAtomicVolume;
 	for (int i = 0; i < nb; i++)
 	{
 		double ri = bond_length[i]*fNearestNeighbor;
@@ -180,7 +180,7 @@ double FCC3D::ComputeEnergyDensity(const dSymMatrixT& E)
 		double r = bond_length[i]*fNearestNeighbor;
 		tmpSum += energy(r, NULL, NULL);
 	}
-	tmpSum /= fCellVolume;
+	tmpSum /= fAtomicVolume;
 	
 	return tmpSum;
 }

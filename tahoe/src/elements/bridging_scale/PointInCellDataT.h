@@ -1,4 +1,4 @@
-/* $Id: PointInCellDataT.h,v 1.4 2003-10-28 07:32:08 paklein Exp $ */
+/* $Id: PointInCellDataT.h,v 1.4.12.1 2004-02-25 07:47:34 paklein Exp $ */
 #ifndef _POINT_IN_CELL_DATA_T_H_
 #define _POINT_IN_CELL_DATA_T_H_
 
@@ -7,6 +7,7 @@
 #include "iArray2DT.h"
 #include "dArray2DT.h"
 #include "InverseMapT.h"
+#include "InterpolationDataT.h"
 
 namespace Tahoe {
 
@@ -57,43 +58,16 @@ public:
 	const InverseMapT& GlobalToLocal(void) const { return fGlobalToLocal; };
 	/*@}*/
 
-	/** \name nodal neighborhood data for nodes in filled cells */
+	/** \name interpolation from to nodes from points in filled cells */
 	/*@{*/
-	RaggedArray2DT<int>& NodalNeighbors(void) { return fNodalNeighbors; };
-	const RaggedArray2DT<int>& NodalNeighbors(void) const { return fNodalNeighbors; };
-
-	/** interpolation data with arbitrary number of weights per point */
-	RaggedArray2DT<double>& NodalNeighborWeights(void) { return fNodalNeighborWeights; };
-
-	/** const access to interpolation data with arbitrary number of weights per point */
-	const RaggedArray2DT<double>& NodalNeighborWeights(void) const { return fNodalNeighborWeights; };
-
-	/** map of nodes in PointInCellDataT::CellNodes to rows in PointInCellDataT::NodalNeighbors
-	 * and PointInCellDataT::NodalNeighborWeights */
-	InverseMapT& NodeToNeighborData(void) { return fNodeToNeighborData; };
-
-	/** const access to map of nodes in PointInCellDataT::CellNodes to rows in 
-	 * PointInCellDataT::NodalNeighbors and PointInCellDataT::NodalNeighborWeights */
-	const InverseMapT& NodeToNeighborData(void) const { return fNodeToNeighborData; };
+	InterpolationDataT& PointToNode(void) { return fPointToNode; };
+	const InterpolationDataT& PointToNode(void) const { return fPointToNode; };
 	/*@}*/
 
-	/** \name neighborhood data at source points */
+	/** \name projection from points to points */
 	/*@{*/
-	RaggedArray2DT<int>& PointNeighbors(void) { return fPointNeighbors; };
-	const RaggedArray2DT<int>& PointNeighbors(void) const { return fPointNeighbors; };
-
-	/** interpolation data with arbitrary number of weights per point */
-	RaggedArray2DT<double>& PointNeighborWeights(void) { return fPointNeighborWeights; };
-
-	/** const access to interpolation data with arbitrary number of weights per point */
-	const RaggedArray2DT<double>& PointNeighborWeights(void) const { return fPointNeighborWeights; };
-
-	/** map of rows in PointInCellDataT::PointNeighbors and PointInCellDataT::fPointNeighborWeights */
-	InverseMapT& PointToNeighborData(void) { return fPointToNeighborData; };
-
-	/** const access to map of rows in PointInCellDataT::PointNeighbors and 
-	 * PointInCellDataT::fPointNeighborWeights */
-	const InverseMapT& PointToNeighborData(void) const { return fPointToNeighborData; };
+	InterpolationDataT& PointToPoint(void) { return fPointToPoint; };
+	const InterpolationDataT& PointToPoint(void) const { return fPointToPoint; };
 	/*@}*/
 
 	/** collect the list of nodes in cells containing points. Returns the number of non-empty
@@ -135,9 +109,11 @@ private:
 	 * array */
 	iArray2DT fCellConnectivities;
 	 	
-	/** \name interpolation data */
+	/** \name interpolation data. Information needed to interpolate data
+	 * from the elements in PointInCellDataT::fContinuumElement onto an arbitrary
+	 * set of points contained in PointInCellDataT::fGlobalToLocal. */
 	/*@{*/
-	/** map from global id of interpolating point to the index in the
+	/** map from global id of interpolation point to the index in the
 	 * interpolation data */
 	InverseMapT fGlobalToLocal;
 	
@@ -148,32 +124,12 @@ private:
 	 * number of nodes, and therefore the same number of weights. */
 	dArray2DT fInterpolationWeights;	
 	/*@}*/
-	
-	/** \name nodal neighborhoods for all nodes in filled cells */
-	/*@{*/
-	/** map of global node number to corresponding row in PointInCellDataT::fNodalNeighbors
-	 * and PointInCellDataT::fNodalNeighborWeights */
-	InverseMapT fNodeToNeighborData;
-	
-	/** points within the neighborhood of nodes in PointInCellDataT::fCellNodes */
-	RaggedArray2DT<int> fNodalNeighbors;
 
-	/** weights for interpolating point values to the nodes */
-	RaggedArray2DT<double> fNodalNeighborWeights;	
-	/*@}*/
+	/** interpolation from to nodes from points in filled cells */
+	InterpolationDataT fPointToNode;
 
-	/** \name neighborhoods for projection points */
-	/*@{*/
-	/** map of global point number to corresponding row in PointInCellDataT::fPointNeighbors
-	 * and PointInCellDataT::fPointNeighborWeights */
-	InverseMapT fPointToNeighborData;
-	
-	/** points within the neighborhood of points mapped by fPointToNeighborData */
-	RaggedArray2DT<int> fPointNeighbors;
-
-	/** weights for interpolating point values to the points */
-	RaggedArray2DT<double> fPointNeighborWeights;	
-	/*@}*/
+	/** projection from points to points */
+	InterpolationDataT fPointToPoint;
 };
 
 } /* namespace Tahoe */

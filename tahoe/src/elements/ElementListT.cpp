@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.85 2004-03-02 23:50:28 raregue Exp $ */
+/* $Id: ElementListT.cpp,v 1.83 2004-02-03 08:24:48 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -51,8 +51,7 @@
 #include "MeshFreeFSSolidT.h"
 #include "MeshFreeFSSolidAxiT.h"
 #include "D2MeshFreeFSSolidT.h"
-#include "SS_SCNIMFT.h"
-#include "FS_SCNIMFT.h"
+#include "SCNIMFT.h"
 #include "UpLagr_ExternalFieldT.h"
 #ifdef SIMPLE_SOLID_DEV
 #include "TotalLagrangianFlatT.h"
@@ -108,10 +107,6 @@
 
 #ifdef MULTISCALE_APS_DEV
 #include "APS_AssemblyT.h"
-#endif
-
-#ifdef MULTISCALE_APS_V_DEV
-#include "APS_V_AssemblyT.h"
 #endif
 
 #ifdef GRAD_SMALL_STRAIN_DEV
@@ -256,8 +251,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		out << "    eq. " << ElementT::kMFCohesiveSurface  << ", meshfree cohesive surface element\n";
 		out << "    eq. " << ElementT::kStaggeredMultiScale << ", Staggered MultiScale Element (for VMS) \n";
 		out << "    eq. " << ElementT::kAPSgrad 			<< ", Strict Anti-plane Shear gradient plasticity \n";
-		out << "    eq. " << ElementT::kSS_SCNIMF 			<< ", Small Strain Stabilized, Conforming Nodally-Integrated Galerkin Mesh-free \n";
-		out << "    eq. " << ElementT::kFS_SCNIMF           << ", Finite Strain Stabilized Conforming Nodally-Integrated Galerkin Mesh-free \n";
+		out << "    eq. " << ElementT::kSCNIMF 			<< ", Stabilized, Conforming Nodally-Integrated Galerkin Mesh-free \n";
 		out << "    eq. " << ElementT::kACME_Contact       << ", 3D contact using ACME\n";
 		out << "    eq. " << ElementT::kMultiplierContact3D       << ", 3D contact using Lagrange multipliers\n";
 		out << "    eq. " << ElementT::kMultiplierContactElement2D       << ", 2D Lagrange multiplier contact elements\n";
@@ -444,29 +438,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "MULTISCALE_APS_DEV not enabled: %d", code);
-#endif
-			}
-			case ElementT::kAPSVgrad:
-			{
-#ifdef MULTISCALE_APS_V_DEV
-				/* must be using multi-field solver */
-				if (fSupport.Analysis() != GlobalT::kMultiField)				
-					ExceptionT::BadInputValue(caller, "multi field required");
-			
-				/* coarse scale field read above */
-				const FieldT* displ = field;
-
-				/* fine scale field */				
-				StringT plast_name;
-				in >> plast_name;
-				const FieldT* plast = fSupport.Field(plast_name);
-				if (!displ || !plast)
-					ExceptionT::BadInputValue(caller, "error resolving field names");
-			
-				fArray[group] = new APS_V_AssemblyT(fSupport, *displ, *plast);
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "MULTISCALE_APS_V_DEV not enabled: %d", code);
 #endif
 			}
 			case ElementT::kMeshFreeFDElastic:
@@ -907,24 +878,15 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		  ExceptionT::BadInputValue(caller, "GRAD_SMALL_STRAIN_DEV not enabled: %d", code);
 #endif			
 		}
-		case ElementT::kSS_SCNIMF:
+		case ElementT::kSCNIMF:
 		{
 #ifdef CONTINUUM_ELEMENT
-			fArray[group] = new SS_SCNIMFT(fSupport, *field);
+			fArray[group] = new SCNIMFT(fSupport, *field);
 			break;
 #else
 			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
 #endif		
 		}
-		case ElementT::kFS_SCNIMF:
-		{
-#ifdef CONTINUUM_ELEMENT
-			fArray[group] = new FS_SCNIMFT(fSupport, *field);
-			break;
-#else
-			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
-#endif		
-		}		
 		case ElementT::kGradC0SmallStrain:
 		{
 #ifdef GRAD_SMALL_STRAIN_DEV

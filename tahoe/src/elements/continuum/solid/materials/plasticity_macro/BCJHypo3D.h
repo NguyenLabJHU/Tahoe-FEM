@@ -1,4 +1,4 @@
-/* $Id: BCJHypo3D.h,v 1.9 2004-03-02 23:50:34 raregue Exp $ */
+/* $Id: BCJHypo3D.h,v 1.8 2003-02-19 19:22:54 ebmarin Exp $ */
 #ifndef _BCJ_HYPO_3D_H_
 #define _BCJ_HYPO_3D_H_
 
@@ -112,7 +112,7 @@ class BCJHypo3D : public EVPFDBaseT
   enum InternalVariables { kDEQP = 0,    // equivalent plastic strain increment
 			   kALPH = 1,    // norm of back stress tensor
 			   kKAPP = 2 };  // isotropic hardening variable
-			   			   
+
   enum EQValues { kEQP_n  = 0,           // equivalent plastic strain
                   kEQP    = 1,         
                   kEQXi_n = 2,           // equivalent overstress (deviatoric)  

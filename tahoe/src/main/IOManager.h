@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.17 2003-10-28 07:47:53 paklein Exp $ */
+/* $Id: IOManager.h,v 1.17.12.1 2004-03-01 19:06:02 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 
 #ifndef _IOMANAGER_H_
@@ -98,6 +98,10 @@ public:
 	 * \param n_values nodal output values ordered as given by IOManager::NodesUsed
 	 * \param e_values element output values in the the ordered defined in the connectivities */
 	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
+
+	/** write a snapshot */
+	void WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
+		const dArray2DT& values, const ArrayT<StringT>& labels) const;
 
 	/** return the list of nodes used by the output set
 	 * \param ID set ID returned from the call to IOManager::AddElementSet */
