@@ -1,4 +1,4 @@
-/* $Id: DecomposeT.cpp,v 1.2 2004-09-28 15:35:37 paklein Exp $ */
+/* $Id: DecomposeT.cpp,v 1.3 2004-09-28 16:08:05 paklein Exp $ */
 #include "DecomposeT.h"
 
 #include "ofstreamT.h"
@@ -11,6 +11,7 @@
 #include "ParameterListT.h"
 #include "FEManagerT.h"
 #include "GraphT.h"
+#include "StringT.h"
 
 #include <time.h>
 
