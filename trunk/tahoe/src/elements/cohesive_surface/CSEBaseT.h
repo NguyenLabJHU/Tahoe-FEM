@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.2 2001-02-20 00:42:11 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.3 2001-02-27 00:09:54 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 /* Base class for cohesive surface elements                               */
 
@@ -22,8 +22,10 @@ class CSEBaseT: public ElementBaseT
 {
 public:
 
+	/* flags for derived class support */
 	enum FormulationT {Isotropic = 0,
-	                 Anisotropic = 1}; // flags for derived class types
+	                 Anisotropic = 1, 
+	         NoRotateAnisotropic = 2};
 
 	enum NodalOutputCodeT {
 	                  NodalCoord = 0,  // (reference) coordinates
