@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.18.2.1 2004-03-16 19:33:57 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.18.2.2 2004-03-17 17:57:02 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -111,21 +111,14 @@ public:
 	
 protected:
 
+	/** \name construction of connectivities */
+	/*@{*/
+	/** define the elements blocks for the element group */
+	virtual void DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index);
+	/*@}*/
+
 	/** print element group data */
 	virtual void PrintControlData(ostream& out) const;
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	/** read element connectivity data. Cohesive elements with higher order
-	 * elements may need to revise the connectivity read from the geometry
-	 * file. The problem is that the element topologies resulting from
-	 * cohesive elements with higher order interpolations are not supported
-	 * by some database types and post-processors. Therefore, a second set
-	 * of connectivities is generated for the element calculations, while
-	 * output is written to the original connectivities. */
-	virtual void ReadConnectivity(ifstreamT& in, ostream& out);
-#else
-	virtual void ReadConnectivity(void);
-#endif 
 
 	/** \name output data */
 	/*@{*/

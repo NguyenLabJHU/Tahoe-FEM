@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.60 2004-01-05 07:34:30 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.60.2.1 2004-03-17 17:57:02 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -1066,8 +1066,7 @@ void CSEAnisoT::SetStatus(const ArrayT<StatusT>& status)
 /* extrapolate the integration point stresses and strains and extrapolate */
 void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	const iArrayT& e_codes, dArray2DT& e_values)
-{      
-
+{
 	/* number of output values */
 	int n_out = n_codes.Sum();
 	int e_out = e_codes.Sum();

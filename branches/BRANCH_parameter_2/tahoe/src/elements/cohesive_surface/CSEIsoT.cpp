@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.18 2003-11-21 22:45:50 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.18.4.1 2004-03-17 17:57:02 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -135,9 +135,77 @@ void CSEIsoT::Initialize(void)
 #endif
 }
 
+/* information about subordinate parameter lists */
+void CSEIsoT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	CSEBaseT::DefineSubs(sub_list);
+
+	/* surface potentials */
+	sub_list.AddSub("surface_potential", ParameterListT::OnePlus, true);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void CSEIsoT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	if (sub == "surface_potential")
+	{
+		/* choice */
+		order = ParameterListT::Choice;
+		
+		/* function types */
+		sub_sub_list.AddSub("Lennard_Jones_6-12");
+		sub_sub_list.AddSub("Smith_Ferrante");
+	}
+	else /* inherited */
+		DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT */
+ParameterInterfaceT* CSEIsoT::NewSub(const StringT& list_name) const
+{
+	/* try surface potential */
+	C1FunctionT* surf_pot = C1FunctionT::New(list_name);
+	if (surf_pot)
+		return surf_pot;
+	else /* inherited */
+		return CSEBaseT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void CSEIsoT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "CSEIsoT::TakeParameterList";
+
+	/* inherited */
+	CSEBaseT::TakeParameterList(list);
+
+	/* check output codes */
+	if (fNodalOutputCodes[MaterialData])
+		fNodalOutputCodes[MaterialData] = IOBaseT::kAtNever; /* not supported */
+		
+	/* construct list of potentials */
+	AutoArrayT<C1FunctionT*> surf_pots;
+	int count = 0;
+	const ParameterListT* surf_pot_params = list.ResolveListChoice(*this, "surface_potential", count);
+	if (surf_pot_params) ExceptionT::BadInputValue(caller, "expecting at least one \"surface_potential\"");
+	while (surf_pot_params) {
+		C1FunctionT* surf_pot = C1FunctionT::New(surf_pot_params->Name());
+		if (!surf_pot)
+			ExceptionT::BadInputValue(caller, "could not construct \"%s\"", surf_pot_params->Name().Pointer());
+		surf_pot->TakeParameterList(list);
+		surf_pots.Append(surf_pot);
+		
+		/* more? */
+		surf_pot_params = list.ResolveListChoice(*this, "surface_potential", ++count);
+	}
+	surf_pots.Swap(fSurfPots);
+}
+
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* called by FormRHS and FormLHS */
 void CSEIsoT::LHSDriver(GlobalT::SystemTypeT)
