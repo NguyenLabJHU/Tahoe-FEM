@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.18 2004-03-14 00:10:46 paklein Exp $ */
+/* $Id: SolverT.h,v 1.19 2004-03-16 06:58:22 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -40,8 +40,8 @@ public:
 	                   kProfileSolver = 1, /**< symmetric and nonsymmetric profile solvers */
 	                      kFullMatrix = 2, /**< full matrix with pivoting */
 					           kAztec = 3, /**< sparse, iterative solver */
-			            kSparseDirect = 4, /**< sparse, direct solver: SuperLU */
-			                 kSPOOLES = 5, /**< sparse, direct solver: symbolic factorization */
+			                 kSuperLU = 4, /**< sparse, direct solver */
+			                 kSPOOLES = 5, /**< sparse, direct solver */
 			                 kPSPASES = 6  /**< sparse, direct multi-processor solver */
 			                 };
 
