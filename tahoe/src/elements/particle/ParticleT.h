@@ -1,20 +1,31 @@
-/* $Id: ParticleT.h,v 1.5 2002-11-22 01:49:45 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.6 2002-11-25 07:19:45 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
 /* base class */
 #include "ElementBaseT.h"
 
+/* direct members */
+#include "nVariArray2DT.h"
+
 namespace Tahoe {
 
 /** forward declarations */
 class iGridManagerT;
-class PotentialT;
 
 /** base class for particle types */
 class ParticleT: public ElementBaseT
 {
 public:
+
+	/** enum for particle property types */
+	enum PropertyT {
+        kHarmonicPair, /**< harmonic pair potential */
+    kLennardJonesPair  /**< Jennard-Jones 6/12 pair potential */
+	};
+	
+	/** stream extraction operator */
+	friend istream& operator>>(istream& in, ParticleT::PropertyT& property);	
 
 	/** constructor */
 	ParticleT(const ElementSupportT& support, const FieldT& field);
@@ -40,6 +51,20 @@ public:
 
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
+
+	/** trigger reconfiguration */
+	virtual GlobalT::RelaxCodeT RelaxSystem(void);
+
+	/** \name restart functions */
+	/*@{*/
+	/** write restart data to the output stream. Should be paired with
+	 * the corresponding ElementBaseT::ReadRestart implementation. */
+	virtual void WriteRestart(ostream& out) const;
+
+	/** read restart data to the output stream. Should be paired with
+	 * the corresponding ElementBaseT::WriteRestart implementation. */
+	virtual void ReadRestart(istream& in);
+	/*@}*/
 	 			  	
 protected: /* for derived classes only */
 
@@ -52,6 +77,10 @@ protected: /* for derived classes only */
 
 	/** return true if connectivities are changing */
 	virtual bool ChangingGeometry(void) const;
+
+	/** set neighborlists and any other system configuration information
+	 * based on the current information. */
+	virtual void SetConfiguration(void) = 0;
 
 	/** generate neighborlist
 	 * \param particle_tags global tags for which to determine neighhors
@@ -67,30 +96,17 @@ protected: /* for derived classes only */
 	void GenerateNeighborList(const iArrayT& particle_tags, double distance, bool double_list,
 		RaggedArray2DT<int>& neighbors);
 
+	/** construct the list of properties from the given input stream */
+	virtual void EchoProperties(ifstreamT& in, ofstreamT& out) = 0;
+
+	/** assemble particle mass matrix into LHS of global equation system
+	 * \param mass mass associated with each particle type */
+	void AssembleParticleMass(const dArrayT& mass);
+
 protected:
 
 	/** reference ID for sending output */
 	int fOutputID;
-
-	/** \name particle attributes */
-	/*@{*/
-	dArrayT fMass;
-	iArrayT fType;
-	/*@}*/
-	
-	/** \name cached calculated values */
-	/*@{*/
-	dArrayT   fEnergy;
-	dArray2DT fForce;
-	/*@{*/
-	
-	/** \name group running averages.
-	 * Values are averages over {n1, n2,...,nN} steps */
-	/*@{*/
-	iArrayT fAverages;
-	dArrayT fKE_avg;
-	dArrayT fPE_avg;
-	/*@}*/
 
 	/** \name local to global tag map.
 	 * Used for things like neighbor lists */
@@ -105,10 +121,59 @@ protected:
 	/** connectivities used to define the output set. Just an alias to the
 	 * ParticleT::fGlobalTag. */
 	iArray2DT fPointConnectivities;
+
+	/*@}*/
+
+	/** number of steps between reseting neighbor lists */
+	int fReNeighborIncr;
+
+	/** \name map from global tag to local tag */
+	/*@{*/
+	/** index shift in ParticleT::fGlobalToLocal. The index shift allows some
+	 * saving in memory since global tags less than the shift are not stored
+	 * in the map. */
+	int fGlobalToLocal_shift;
+
+	/** local number of global tag
+	 * The local index of the global tag is recovered as\n
+	 * local = fGlobalToLocal[global - fGlobalToLocal_shift]\n
+	 * The map is set using ElementBaseT::GlobalToLocalMap. */
+	iArrayT fGlobalToLocal;
+	/*@}*/
+
+	/** \name particle properties */
+	/*@{*/
+	/** number of types. Read during ParticleT::EchoConnectivityData. */
+	int fNumTypes;
+
+	/** particle type for global tag */
+	iArrayT fType;
+	
+	/** map of particle types to properties: {type_a, type_b} -> property number */
+	nMatrixT<int> fPropertiesMap;
+	/*@}*/
+
+	/** \name cached calculated values */
+	/*@{*/
+//	dArrayT   fEnergy;
+	dArray2DT fForce;
+	/*@{*/
+	
+	/** \name group running averages.
+	 * Values are averages over {n1, n2,...,nN} steps */
+	/*@{*/
+//	iArrayT fAverages;
+//	dArrayT fKE_avg;
+//	dArrayT fPE_avg;
 	/*@}*/
 	
-	/** search grid */
+	/** the search grid */
 	iGridManagerT* fGrid;
+
+private:
+
+	/** count between resetting neighbor lists */
+	int fReNeighborCounter;
 };
 
 } /* namespace Tahoe */

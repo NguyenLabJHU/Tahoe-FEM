@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.5 2002-11-22 01:49:45 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.6 2002-11-25 07:19:45 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -9,7 +9,7 @@
 #include "ModelManagerT.h"
 #include "iGridManagerT.h"
 #include "iNodeT.h"
-#include "PotentialT.h"
+#include "ParticlePropertyT.h"
 #include "RaggedArray2DT.h"
 
 using namespace Tahoe;
@@ -18,13 +18,45 @@ using namespace Tahoe;
 const int kAvgNodesPerCell = 20;
 const int kMaxNumCells     =- 1; /* -1: no max */
 
+namespace Tahoe {
+
+/** stream extraction operator */
+istream& operator>>(istream& in, ParticleT::PropertyT& property)
+{
+	int i_property;
+	in >> i_property;
+	switch (i_property)
+	{
+		case ParticleT::kHarmonicPair:
+			property = ParticleT::kHarmonicPair;
+			break;
+		case ParticleT::kLennardJonesPair:
+			property = ParticleT::kLennardJonesPair;
+			break;
+		default:
+			ExceptionT::BadInputValue("operator>>ParticleT::PropertyT", 
+				"unknown code: %d", i_property);
+	}
+	return in;
+}
+
+} /* namespace Tahoe */
+
 /* constructors */
 ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 	ElementBaseT(support, field),
-	fGrid(NULL)
+	fReNeighborIncr(-1),
+	fNumTypes(-1),
+	fGrid(NULL),
+	fReNeighborCounter(0)
 {
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
+
+	/* read class parameters */
+	ifstreamT& in = ElementSupport().Input();
+	in >> fReNeighborIncr;
+	if (fReNeighborIncr < 0) ExceptionT::GeneralFail();
 }
 
 /* destructor */
@@ -37,10 +69,37 @@ ParticleT::~ParticleT(void)
 /* initialization */
 void ParticleT::Initialize(void)
 {
+	const char caller[] = "ParticleT::Initialize";
+
 	/* inherited */
 	ElementBaseT::Initialize();
 	
-	/* dimension work space */
+	/* allocate work space */
+	fForce.Dimension(ElementSupport().NumNodes(), NumDOF());
+	
+	/* read properties information */
+	ifstreamT& in = ElementSupport().Input();
+	ofstreamT& out = ElementSupport().Output();
+	EchoProperties(in, out);
+
+	/* map of {type_a, type_b} -> potential number */
+	fPropertiesMap.Dimension(fNumTypes);
+	fPropertiesMap = -1;
+	for (int i = 0; i < fPropertiesMap.Length(); i++)
+	{
+		int a, b, pot_num;
+		in >> a >> b >> pot_num;
+		if (fPropertiesMap(a,b) != -1) 
+			ExceptionT::BadInputValue(caller, "potential map(%d,%d) is already assigned to %d", a, b, fPropertiesMap(a,b));
+		else if (pot_num < 1 && pot_num > fNumTypes)
+			ExceptionT::BadInputValue(caller, "potential %d is out of range (%d,%d)", pot_num, 1, fNumTypes);
+		else
+			fPropertiesMap(a,b) = pot_num;
+	}
+	fPropertiesMap--; /* offset */
+
+	/* set the neighborlists */
+	SetConfiguration();
 }
 
 /* form of tangent matrix */
@@ -111,6 +170,44 @@ void ParticleT::SendOutput(int kincode)
 	//TEMP: for now, do nothing
 }
 
+/* trigger reconfiguration */
+GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
+{
+	/* inherited */
+	GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
+
+	/* generate contact element data */
+	if (++fReNeighborCounter >= fReNeighborIncr)
+	{
+		/* (re-)set the neighborlists */
+		SetConfiguration();
+
+		/* reset counter */
+		fReNeighborCounter = 0;
+	
+		return GlobalT::MaxPrecedence(relax, GlobalT::kReEQ);
+	}
+	else
+		return relax;
+}
+
+/* write restart data to the output stream */
+void ParticleT::WriteRestart(ostream& out) const
+{
+	/* write counter */
+	out << fReNeighborCounter << '\n';
+}
+
+/* read restart data to the output stream */
+void ParticleT::ReadRestart(istream& in)
+{
+	/* read counter */
+	in >> fReNeighborCounter;
+
+	/* (re-)set configuration */
+	SetConfiguration();	
+}
+
 /***********************************************************************
  * Protected
  ***********************************************************************/
@@ -129,9 +226,14 @@ bool ParticleT::ChangingGeometry(void) const
 /* echo element connectivity data */
 void ParticleT::EchoConnectivityData(ifstreamT& in, ostream& out)
 {
+	const char caller[] = "ParticleT::EchoConnectivityData";
+
+	/* access to the model database */
+	ModelManagerT& model = ElementSupport().Model();
+
 	int all_or_some = -1;
 	in >> all_or_some; 
-	if (all_or_some != 0 && all_or_some != 1) ExceptionT::BadInputValue("ParticleT::EchoConnectivityData");
+	if (all_or_some != 0 && all_or_some != 1) ExceptionT::BadInputValue(caller);
 	
 	if (all_or_some == 0)
 	{
@@ -144,9 +246,6 @@ void ParticleT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	}
 	else
 	{
-		/* access to the model database */
-		ModelManagerT& model = ElementSupport().Model();
-
 		/* read node set indexes */
 		model.NodeSetList(in, fID);
 
@@ -165,6 +264,36 @@ void ParticleT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	out << " Number of particles . . . . . . . . . . . . . . = " << fGlobalTag.Length();
 	if (all_or_some == 0) out << " (ALL)";
 	out << endl;
+	
+	/* particle types */
+	fNumTypes = -1;
+	in >> fNumTypes;
+	if (fNumTypes < 1) ExceptionT::BadInputValue(caller, "must define at least one type");
+	
+	/* initialize type map */
+	fType.Dimension(ElementSupport().NumNodes());
+	fType = -1;
+
+	/* read sets */
+	for (int i = 0; i < fNumTypes; i++)
+	{
+		/* read node set ids */
+		ArrayT<StringT> ids;
+		model.NodeSetList(in, ids);
+		iArrayT tags;
+		model.ManyNodeSets(ids, tags);
+	
+		/* mark map */
+		for (int j = 0; j < tags.Length(); j++)
+			fType[tags[j]] = i;
+	}
+
+	/* check that all are typed */
+	int not_marked_count = 0;
+	for (int i = 0; i < fGlobalTag.Length(); i++)
+		if (fType[fGlobalTag[i]] == -1) not_marked_count++;
+	if (not_marked_count != 0)
+		ExceptionT::BadInputValue(caller, "%d atoms not typed", not_marked_count);
 }
 
 /* generate labels for output data */
@@ -191,7 +320,7 @@ void ParticleT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 void ParticleT::GenerateNeighborList(const iArrayT& particle_tags, 
 	double distance, bool double_list, RaggedArray2DT<int>& neighbors)
 {
-	/* the global coordinate array */
+	/* global coordinates */
 	const dArray2DT& coords = ElementSupport().CurrentCoordinates();
 
 	/* construct grid */
@@ -248,4 +377,17 @@ void ParticleT::GenerateNeighborList(const iArrayT& particle_tags,
 	
 	/* copy/compress into return array */
 	neighbors.Copy(auto_neighbors);
+}
+
+/* assemble particle mass matrix into LHS of global equation system */
+void ParticleT::AssembleParticleMass(const dArrayT& mass)
+{
+	/* loop over particles */
+	fForce = 0.0;
+	for (int i = 0; i < fGlobalTag.Length(); i++)
+		/* assemble into global array */
+		fForce.SetRow(fGlobalTag[i], mass[fType[i]]);
+	
+	/* assemble all */
+	ElementSupport().AssembleLHS(Group(), fForce, Field().Equations());
 }
