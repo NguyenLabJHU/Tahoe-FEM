@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.2 2001-05-30 23:27:02 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.1.1.1 2001-01-29 08:20:21 paklein Exp $ */
 /* created: paklein (01/12/2000)                                          */
 
 #ifndef _FE_MANAGER_MPI_H_
@@ -56,10 +56,6 @@ public:
 	const dArray2DT& Coordinates(void) const;
 	virtual void WriteOutput(int ID, const dArray2DT& n_values,
 		const dArray2DT& e_values);
-
-	/* (temporarily) direct output away from main out */
-	virtual void DivertOutput(const StringT& outfile);
-	virtual void RestoreOutput(void);
 
 	/* return list of ID's of external nodes */
 	virtual void IncomingNodes(iArrayT& nodes_in) const;

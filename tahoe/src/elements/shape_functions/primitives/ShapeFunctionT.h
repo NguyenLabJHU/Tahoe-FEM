@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.3 2001-05-17 19:18:15 ebmarin Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.2 2001-03-15 17:48:46 paklein Exp $ */
 /* created: paklein (06/26/1996)                                          */
 /* interface for element shape functions. controls domain representation  */
 /* and field representation and spatial derivatives. integration control  */
@@ -50,7 +50,6 @@ public:
 	const double* IPShapeU(void) const;	// at field nodes
 
 	void GradU(const LocalArrayT& nodal, dMatrixT& grad_U) const;
-        void GradU(const LocalArrayT& nodal, dMatrixT& grad_U, int IPnumber) const;
 
 	/* extrapolate integration point values to the nodes
 	 *    IPvalues[numvals] : values from a single integration point
@@ -179,12 +178,6 @@ inline void ShapeFunctionT::GradU(const LocalArrayT& nodal,
 		fDomain->Jacobian(nodal, (*pDNaU)[fCurrIP], grad_U);
 	else
 		fDomain->Jacobian(nodal, *fGrad_x_temp, grad_U);
-}
-
-inline void ShapeFunctionT::GradU(const LocalArrayT& nodal,
-        dMatrixT& grad_U, int IPnumber) const
-{
-        fDomain->Jacobian(nodal, (*pDNaU)[IPnumber], grad_U);
 }
 
 inline void ShapeFunctionT::B(dMatrixT& B_matrix) const

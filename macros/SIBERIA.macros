@@ -1,4 +1,4 @@
-# $Id: SIBERIA.macros,v 1.6 2001-05-21 22:18:40 paklein Exp $
+# $Id: SIBERIA.macros,v 1.5 2001-02-22 23:38:44 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__MPI__
 MPI_LFLAGS = -lmpi
@@ -12,7 +12,7 @@ COMP_F      = f77
 TR          = $(MACRO_DIR)/cxx_repository
 MORE_CFLAGS = -O3 -DNDEBUG
 #MORE_CFLAGS = -g
-DEFINES     = -D__DEC__ -D__CPLANT__ -D__SIBERIA__ -U__IEEE_FLOAT
+DEFINES     = -D__DEC__ -D__CPLANT__ -D__SIBERIA__
 MY_CFLAGS   = -c -I$(INC_DIR) -I/usr/local/cplant/current/include $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(MPI_CFLAGS) $(MY_CFLAGS)
 CFLAGS_CC   = $(MPI_CFLAGS) $(MY_CFLAGS) -ptr $(TR) -distinguish_nested_enums -msg_disable 161,111

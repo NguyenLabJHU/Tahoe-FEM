@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.9 2001-06-04 22:50:17 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.6 2001-05-09 17:30:17 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #include "SolidElementT.h"
@@ -28,7 +28,7 @@
 
 /* initialize static data */
 const int SolidElementT::NumNodalOutputCodes = 7;
-const int SolidElementT::NumElementOutputCodes = 7;
+const int SolidElementT::NumElementOutputCodes = 5;
 
 /* constructor */
 SolidElementT::SolidElementT(FEManagerT& fe_manager):
@@ -76,7 +76,7 @@ void SolidElementT::Initialize(void)
 //}
 
 	/* setup for material output */
-	if (fNodalOutputCodes[iMaterialData] || fElementOutputCodes[iIPMaterialData])
+	if (fNodalOutputCodes[iMaterialData])
 	{
 		/* check compatibility of output */
 		if (!CheckMaterialOutput())
@@ -89,7 +89,6 @@ void SolidElementT::Initialize(void)
 		{
 			cout << "\n SolidElementT::Initialize: there are no material outputs" << endl;
 			fNodalOutputCodes[iMaterialData] = IOBaseT::kAtNever;
-			fElementOutputCodes[iIPMaterialData] = IOBaseT::kAtNever;
 		}
 	}	
 }
@@ -355,7 +354,6 @@ void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 
 	/* allocate nodal output codes */
 	fElementOutputCodes.Allocate(NumElementOutputCodes);
-	fElementOutputCodes = IOBaseT::kAtNever;
 
 //TEMP - backward compatibility
 	if (StringT::versioncmp(fFEManager.Version(), "v3.01") < 1)
@@ -364,14 +362,15 @@ void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 		cout << "\n SolidElementT::EchoOutputCodes: use input file version newer than v3.01\n" 
 		     <<   "     to enable element output control" << endl;
 		out << "\n SolidElementT::EchoOutputCodes: use input file version newer than v3.01\n" 
-		    <<   "     to enable element output control" << endl;	
+		    <<   "     to enable element output control" << endl;
+	
+		/* default */
+		fElementOutputCodes = IOBaseT::kAtNever;
 	}
 	else
 	{
-		int num_codes = (StringT::versioncmp(fFEManager.Version(), "v3.4.1") < 0) ? 5 : 7;
-	
 		/* read in at a time to allow comments */
-		for (int j = 0; j < num_codes; j++)
+		for (int j = 0; j < fElementOutputCodes.Length(); j++)
 		{
 			in >> fElementOutputCodes[j];
 		
@@ -399,8 +398,6 @@ void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 	out << "    [" << fElementOutputCodes[iStrainEnergy  ] << "]: strain energy\n";
 	out << "    [" << fElementOutputCodes[iKineticEnergy ] << "]: kinetic energy\n";
 	out << "    [" << fElementOutputCodes[iLinearMomentum] << "]: linear momentum\n";
-	out << "    [" << fElementOutputCodes[iIPStress      ] << "]: ip stresses\n";
-	out << "    [" << fElementOutputCodes[iIPMaterialData] << "]: ip material output parameters\n";
 }
 
 /* construct output labels array */
@@ -441,9 +438,6 @@ void SolidElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArra
 	if (fElementOutputCodes[iStrainEnergy] == mode) counts[iStrainEnergy] = 1;
 	if (fElementOutputCodes[iKineticEnergy] == mode) counts[iKineticEnergy] = 1;
 	if (fElementOutputCodes[iLinearMomentum] == mode) counts[iLinearMomentum] = fNumDOF;
-	if (fElementOutputCodes[iIPStress] == mode) counts[iIPStress] = dSymMatrixT::NumValues(fNumSD)*fNumIP;
-	if (fElementOutputCodes[iIPMaterialData] == mode) 
-		counts[iIPMaterialData] = (*fMaterialList)[0]->NumOutputVariables()*fNumIP;
 }
 
 /* initialize local arrays */
@@ -864,19 +858,6 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		linear_momentum.Set(fNumDOF, pall); pall += fNumDOF;
 		ip_velocity.Allocate(fNumDOF);
 	}
-	dArray2DT ip_stress;
-	if (e_codes[iIPStress])
-	{
-		ip_stress.Set(fNumIP, e_codes[iIPStress]/fNumIP, pall);
-		pall += ip_stress.Length();
-	}
-	dArray2DT ip_material_data;
-	if (e_codes[iIPMaterialData])
-	{
-		ip_material_data.Set(fNumIP, e_codes[iIPMaterialData]/fNumIP, pall);
-		pall += ip_material_data.Length();
-		ipmat.Allocate(ip_material_data.MinorDim());
-	}
 
 	/* check that degrees are displacements */
 	int interpolant_DOF = InterpolantDOFs();
@@ -923,9 +904,8 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			/* get Cauchy stress */
 			cauchy = fCurrMaterial->s_ij();
 
-			/* stresses */
+			/* nodal stress */
 			if (n_codes[iNodalStress]) fShapes->Extrapolate(cauchy, nodalstress);
-			if (e_codes[iIPStress]) ip_stress.SetRow(fShapes->CurrIP(), cauchy);
 
 			/* wave speeds */
 			if (n_codes[iWaveSpeeds])
@@ -961,16 +941,10 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			}
 
 			/* material stuff */
-			if (n_codes[iMaterialData] || e_codes[iIPMaterialData])
+			if (n_codes[iMaterialData])
 			{
-				/* compute material output */
 				fCurrMaterial->ComputeOutput(ipmat);
-				
-				/* store nodal data */
-				if (n_codes[iMaterialData]) fShapes->Extrapolate(ipmat, matdat);
-				
-				/* store element data */
-				if (e_codes[iIPMaterialData]) ip_material_data.SetRow(fShapes->CurrIP(), ipmat);
+				fShapes->Extrapolate(ipmat, matdat);
 			}
 			
 			/* mass averaged centroid */
@@ -1022,6 +996,9 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 	/* get nodally averaged values */
 	fNodes->OutputUsedAverage(n_values);
+	//was:
+	//const iArrayT& node_used = fFEManager.OutputSet(fOutputID).NodesUsed();
+	//fNodes->OutputAverage(node_used, n_values);
 }
 
 /***********************************************************************
@@ -1068,7 +1045,7 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 	}
 		
 	if (n_codes[iEnergyDensity]) n_labels[count++] = "phi";
-	if (n_codes[iWaveSpeeds])
+	if (n_codes[iWaveSpeeds   ])
 	{
 		const char* clabels2D[] = {"cd", "cs"};
 		const char* clabels3D[] = {"cd", "cs_min", "cs_max"};
@@ -1083,7 +1060,7 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 		ArrayT<StringT> matlabels;
 		(*fMaterialList)[0]->OutputLabels(matlabels);	
 		
-		for (int i = 0; i < matlabels.Length(); i++)
+		for (int i = 0; i < n_codes[iMaterialData]; i++)
 			n_labels[count++] = matlabels[i];
 	}
 
@@ -1104,48 +1081,5 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 		const char* plabels[] = {"L_X", "L_Y", "L_Z"};
 		for (int i = 0; i < fNumDOF; i++)
 			e_labels[count++] = plabels[i];
-	}
-	if (e_codes[iIPStress])
-	{
-		const char* slabels2D[] = {"s11", "s22", "s12"};
-		const char* slabels3D[] = {"s11", "s22", "s33", "s23", "s13", "s12"};
-		const char**    slabels = (fNumSD == 2) ? slabels2D : slabels3D;
-
-		/* over integration points */
-		for (int j = 0; j < fNumIP; j++)
-		{
-			StringT ip_label;
-			ip_label.Append("ip", j);
-			
-			/* over stress components */
-			for (int i = 0; i < dSymMatrixT::NumValues(fNumSD); i++)
-			{
-				e_labels[count].Clear();
-				e_labels[count].Append(ip_label, ".", slabels[i]);
-				count++;
-			}
-		}		
-	}
-
-	/* material output labels */
-	if (e_codes[iIPMaterialData])
-	{
-		ArrayT<StringT> matlabels;
-		(*fMaterialList)[0]->OutputLabels(matlabels);	
-
-		/* over integration points */
-		for (int j = 0; j < fNumIP; j++)
-		{
-			StringT ip_label;
-			ip_label.Append("ip", j);
-			
-			/* over stress components */
-			for (int i = 0; i < matlabels.Length(); i++)
-			{
-				e_labels[count].Clear();
-				e_labels[count].Append(ip_label, ".", matlabels[i]);
-				count++;
-			}
-		}		
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.h,v 1.3 2001-05-30 23:25:10 paklein Exp $ */
+/* $Id: IOManager_mpi.h,v 1.2 2001-02-27 00:16:14 paklein Exp $ */
 /* created: paklein (03/14/2000)                                          */
 
 #ifndef _IOMANAGER_MPI_H_
@@ -32,7 +32,8 @@ public:
 
 #ifdef __MPI__
 	/* distribute/assemble/write output */
-	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
+	virtual void WriteOutput(double time, int ID, const dArray2DT& n_values,
+		const dArray2DT& e_values);
 #endif
 
 private:

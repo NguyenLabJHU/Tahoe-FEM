@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.7 2001-06-01 16:42:28 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.6 2001-04-27 18:55:28 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #include "StringT.h"
@@ -207,9 +207,7 @@ StringT& StringT::Root(const char* s, char marker)
 			Allocate(new_len);
 			memcpy(fArray, s, sizeof(char)*new_len);
 			fArray[new_len - 1] = '\0';
-		} /* keep whole string */
-		else
-			*this = s;
+		}	
 		return *this;
 	}
 }
@@ -232,10 +230,10 @@ StringT& StringT::Suffix(char marker)
 		/* shrink */	
 		int new_len = strlen(fArray) + 1;
 		Resize(new_len, true);
-	} 
-	else /* empty */
-		*this = "\0";
-	return *this;
+		
+		return *this;
+	}
+	return *this = "\0";
 }
 
 StringT& StringT::Suffix(const char* s, char marker)

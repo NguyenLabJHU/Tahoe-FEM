@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.5 2001-06-01 16:41:41 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.4 2001-03-20 23:55:36 paklein Exp $ */
 /* created: paklein (09/21/1997)                                          */
 
 #include "FEExecutionManagerT.h"
@@ -142,12 +142,10 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 void FEExecutionManagerT::RunJob_serial(ifstreamT& in,
 	ostream& status) const
 {
-	/* output stream */
+	/* open output file stream */
 	StringT outfilename;
-	outfilename.Root(in.filename());
-	outfilename.Append(".out");
-	ofstreamT out;
-	out.open(outfilename);
+	ofstreamT out;	
+	out.open(outfilename.DefaultName(in.filename()));
 
 #ifdef __MWERKS__
 	if (!out.is_open())

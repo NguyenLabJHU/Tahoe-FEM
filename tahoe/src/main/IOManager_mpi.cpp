@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.3 2001-05-30 23:25:10 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.2 2001-02-27 00:16:14 paklein Exp $ */
 /* created: paklein (03/14/2000)                                          */
 
 #include "IOManager_mpi.h"
@@ -82,7 +82,8 @@ IOManager_mpi::~IOManager_mpi(void)
 
 #ifdef __MPI__
 /* distribute/assemble/write output */
-void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values)
+void IOManager_mpi::WriteOutput(double time, int ID,
+	const dArray2DT& n_values, const dArray2DT& e_values)
 {
 //cout << Rank() << ":IOManager_mpi::WriteOutput" << endl;
 
@@ -137,7 +138,7 @@ void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values, const dArray2
 		}
 
 		/* inherited - send for output */
-		IOManager::WriteOutput(ID, all_n_values, all_e_values);
+		IOManager::WriteOutput(time, ID, all_n_values, all_e_values);
 	}
 	/* assembling elsewhere */
 	else if (fOutNodeCounts[ID] > 0)

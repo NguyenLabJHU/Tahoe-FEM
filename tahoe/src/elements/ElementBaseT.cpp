@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.6 2001-05-21 17:11:52 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.5 2001-04-27 10:52:17 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "ElementBaseT.h"
@@ -625,14 +625,9 @@ void ElementBaseT::ReadConnectivity_ASCII(ifstreamT& in, ostream& out,
 			StringT connectfile;
 			in  >> connectfile;
 			out << "                     external file: " << connectfile << '\n';
-			connectfile.ToNativePathName();
-
-			/* path to source file */
-			StringT path;
-			path.FilePath(in.filename());
-			connectfile.Prepend(path);
 
 			/* open separate stream */
+			connectfile.ToNativePathName();
 			in2.open(connectfile);
 			in2.set_marker(in.comment_marker());
 			if (!in2.is_open())

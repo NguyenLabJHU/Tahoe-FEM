@@ -1,8 +1,7 @@
-/* $Id: tevp2D.h,v 1.12 2001-06-04 16:01:50 hspark Exp $ */
+/* $Id: tevp2D.h,v 1.7 2001-05-16 03:29:49 hspark Exp $ */
 /* Thermoelasto-viscoplastic material used to generate shear bands */
 /* Created:  Harold Park (04/04/2001) */
-/* Last Updated:  Harold Park (05/29/2001) */
-/* The one with errors to show Patrick */
+/* Last Updated:  Harold Park (05/10/2001) */
 
 #ifndef _TEVP_2D_H_
 #define _TEVP_2D_H_
@@ -56,22 +55,14 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   virtual int NumOutputVariables(void) const;
   virtual void OutputLabels(ArrayT<StringT>& labels) const;
   virtual void ComputeOutput(dArrayT& output);
-  
-  /* accessor functions to be inlined - these should return the value from
-   * the previous timestep */
-  const dMatrixT& GetDmat(void) const;     // Return the elastic modulus tensor
-  const dMatrixT& GetF(void) const;
-  const dMatrixT& GetD(void) const;
 
  private:
   /* computational functions */
 
   /* deformation gradient, rate of deformation, spin */
-  //void ComputeGradients(void);
-  void ComputeF(void);
-  void ComputeD(void);
-  double ComputeSpin(void);
-  void ComputeEbtotCtconXxii(void);
+  void ComputeGradients(void);
+  void ComputeEbtotXxiiCtcon(void);     
+  // Computes the incremental effective strain
   void ComputePP(void); 
   double ComputeEcc(void);
   void ComputeDmat(void);   // Original elastic coefficient tensor
@@ -83,21 +74,21 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
 
   /* Enumerated data types/definitions */
   enum InternalVariablesT {kTemp = 0,   // Temperature
-                             kSb = 1,   // Effective Stress
+			     kSb = 1,   // Effective Stress
                              kEb = 2};  // Effective Strain
   enum ModelT {kTevp = 0,          // Thermo-elasto-viscoplastic
                kFluid = 1};        // Fluid model
   enum StessComponentsT {kSig11 = 0,
-                         kSig12 = 1,
-                         kSig22 = 2,   // fTempStress stored like this...
-                         kSig33 = 3};
+			 kSig12 = 1,
+			 kSig22 = 2,   // fTempStress stored like this...
+			 kSig33 = 3};
 
   /* Output values/internal variable functions below - these functions
    * should ONLY be called AFTER the stress and modulus have been computed */
-  double ComputeTemperature(const ElementCardT& element, int ip);
+  double ComputeTemperature(void);
   double ComputeEffectiveStress(void);
-  double ComputeEffectiveStrain(const ElementCardT& element, int ip);
-  void CheckCriticalStrain(const ElementCardT& element, int ip);
+  double ComputeEffectiveStrain(void);
+  int CheckCriticalStrain(const ElementCardT& element, int ip);
   int CheckIfPlastic(const ElementCardT& element, int ip);
   /* load element data for the specified integration point */
   void LoadData(const ElementCardT& element, int ip); 
@@ -128,13 +119,16 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
  private:
 
   const double& fDt;           // Timestep
+  const double& fTime;         // Total time elapsed
 
   /* work space */
   dMatrixT fFtot_2D;           // Deformation gradient 2D
   dMatrixT fFtot;              // Total deformation gradient (3D)
   dMatrixT fDtot;              // Rate of deformation (3D)
+  dMatrixT fFinv_2D;           // Inverse of F needed to compute D
   dMatrixT fGradV_2D;          // Velocity gradient (2D)
   dMatrixT fGradV;             // Velocity gradient (3D)
+  dMatrixT fKirchoff;          // Kirchoff stress tensor
   const LocalArrayT& fLocVel;  // Nodal velocities
   const LocalArrayT& fLocDisp; // Nodal displacements (not necessary)
   dMatrixT fF_temp;            // Deformation gradient to work with
@@ -153,7 +147,6 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   dSymMatrixT fStress3D;
   dArrayT fSmlp;
   dSymMatrixT fSymStress2D;    // 2D symmetrix stress tensor
-  double fJ;                   // Jacobian of deformation gradient
 
   /* output variables/internal variables */
   double fTemperature;         // Temperature
@@ -172,7 +165,9 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
 };
 
 #endif /* _TEVP_2D_H_ */
-                                
+				
+
+
 
 
 

@@ -1,4 +1,4 @@
-/* $Id: AutoArrayT.h,v 1.3 2001-06-05 19:50:06 paklein Exp $ */
+/* $Id: AutoArrayT.h,v 1.2 2001-02-13 17:53:04 paklein Exp $ */
 /* created: paklein (12/05/1997)                                          */
 /* Array that automatically increases its dimensions when                 */
 /* elements are inserted using Append() or AppendUnique.                  */
@@ -306,35 +306,25 @@ void AutoArrayT<TYPE>::Append(const ArrayT<TYPE>& source)
 	/* increase memory if needed */
 	if (fLength + source.Length() >= fMemSize)
 	{
-		/* owns memory */
-		bool was_allocated = IsAllocated();
-
-		/* who owns the existing memory */
-		int old_length = fLength;
-		TYPE* olddata;
-		if (was_allocated)
-			ReleasePointer(&olddata);
-		else
-			olddata = Pointer();
+		/* old array */
+		TYPE* olddata = fArray;
 		
-		/* allocate more memory */
-		Allocate(fMemSize + source.Length());
+		/* allocate more memory (w/ headroom) */
+		fMemSize += source.Length();
+		fMemSize = (fMemSize*(100 + fHeadRoom))/100;
+		fArray = New(fMemSize);		
 		
-		/* reset logical size */
-		fLength = old_length;
-				
 		/* copy data into new space */
 		MemCopy(fArray, olddata, fLength);
 		
 		/* free memory */
-		if (was_allocated) delete[] olddata;
+		delete[] olddata;
 	}	
 
 	/* append data from the list */
 	MemCopy(fArray + fLength, source.Pointer(), source.Length());
-
-	/* reset logical size */
 	fLength += source.Length();
+
 }
 
 template <class TYPE>
@@ -344,22 +334,13 @@ void AutoArrayT<TYPE>::Append(const TYPE& value)
 		fArray[fLength++] = value;
 	else /* need more memory */
 	{
-		/* owns memory */
-		bool was_allocated = IsAllocated();
-
-		/* who owns the existing memory */
-		int old_length = fLength;
-		TYPE* olddata;
-		if (was_allocated)
-			ReleasePointer(&olddata);
-		else
-			olddata = Pointer();
-
+		/* old array */
+		TYPE* olddata = fArray;
+		
 		/* allocate larger block */
-		Allocate(fMemSize + 1);		
-
-		/* reset logical size */
-		fLength = old_length;
+		fMemSize += (fMemSize*fHeadRoom)/100;
+		if (fMemSize == fLength) fMemSize += 1; //insure growth
+		fArray = New(fMemSize);		
 		
 		/* copy data into new space */
 		MemCopy(fArray, olddata, fLength);
@@ -368,7 +349,7 @@ void AutoArrayT<TYPE>::Append(const TYPE& value)
 		fArray[fLength++] = value;
 		
 		/* free memory */
-		if (was_allocated) delete[] olddata;
+		delete[] olddata;
 	}	
 }
 

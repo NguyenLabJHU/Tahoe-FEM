@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.h,v 1.2 2001-06-05 17:27:18 paklein Exp $ */
+/* $Id: dSymMatrixT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 /* Interface for a reduced index symmetric matrix, stored as a vector.    */
 /* Can be constructed in 2D or 3D.                                        */
@@ -27,6 +27,8 @@ public:
 
 	/* set fields */
 	void Set(int nsd, double* array);
+//	void SetNSD(int nsd);
+//DEV - what's this for? Why not use allocate function to set NSD
 
 	/* assignment operators */
 	dSymMatrixT& operator=(const dSymMatrixT& RHS);

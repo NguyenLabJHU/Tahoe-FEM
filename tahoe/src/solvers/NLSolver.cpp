@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.6 2001-06-04 22:48:09 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.3 2001-03-14 03:20:00 paklein Exp $ */
 /* created: paklein (07/09/1996)                                          */
 
 #include "NLSolver.h"
@@ -195,9 +195,6 @@ NLSolver::IterationStatusT NLSolver::DoConverged(void)
 
 void NLSolver::DoNotConverged(void)
 {
-	/* message */
-	cout << "\n NLSolver::DoNotConverged: resetting step, cutting load set" << endl;
-
 	/* step back to last converged */
 	fFEManager.ResetStep();
 	
@@ -215,11 +212,14 @@ void NLSolver::InitIterationOutput(void)
 		root.Root(fFEManager.Input().filename());
 		
 		/* remove processor designation */ 
-		if (fFEManager.Size() > 1) root.Root();
+		if (fFEManager.Size() > 0) root.Root();
 		
 		/* increment */
 		root.Append(".", fFEManager.StepNumber());
 		root.Append("of", fFEManager.NumberOfSteps());
+
+		/* append processor designation */ 
+		if (fFEManager.Size() > 0) root.Append(".p", fFEManager.Rank());
 
 		/* set temporary output */
 		fFEManager.DivertOutput(root);
@@ -310,7 +310,7 @@ NLSolver::IterationStatusT NLSolver::ExitIteration(double error)
 	/* write convergence output */
 	if (++fIterationOutputCount == fIterationOutputIncrement)
 	{
-		fFEManager.WriteOutput(double(fNumIteration), IOBaseT::kAtInc);
+		fFEManager.WriteOutput(IOBaseT::kAtInc);
 		fIterationOutputCount = 0;
 	}
 	

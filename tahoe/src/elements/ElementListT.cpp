@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.5 2001-05-31 00:37:25 rjones Exp $ */
+/* $Id: ElementListT.cpp,v 1.4 2001-04-25 17:26:43 rjones Exp $ */
 /* created: paklein (04/20/1998)                                          */
 
 #include "ElementListT.h"
@@ -120,8 +120,8 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 		out << "    eq. " << kMFCohesiveSurface  << ", meshfree cohesive surface element\n";
 
 		out << "    eq. " << kACME_Contact       << ", 3D contact using ACME\n";
-		out << "    eq. " << kMultiplierContact3D       << ", 3D contact using quadrature-based elements\n";
-		out << "    eq. " << kMultiplierContact2D       << ", 2D contact using quadrature-based elements\n";
+		out << "    eq. " << kMultiplierContact3D       << ", 3D contact using NON-WORKING SKELETON code\n";
+		out << "    eq. " << kMultiplierContact2D       << ", 2D contact using NON-WORKING SKELETON code\n";
 		
 		
 		/* check */
@@ -270,11 +270,15 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 				break;
 
                         case kMultiplierContact3D:
+				cout << "\nWARNING: USING SKELETON CODE,"
+				     << " MultiplierContact3DT\n";
                                 fArray[group] 
 				    = new MultiplierContact3DT(fFEManager);
                                 break;
 
                         case kMultiplierContact2D:
+                                cout << "\nWARNING: USING SKELETON CODE,"
+                                     << " MultiplierContact2DT\n";
                                 fArray[group]
                                     = new MultiplierContact2DT(fFEManager);
                                 break;

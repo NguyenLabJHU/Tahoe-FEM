@@ -1,4 +1,4 @@
-/* $Id: J2Simo3D.cpp,v 1.3 2001-06-04 23:40:18 paklein Exp $ */
+/* $Id: J2Simo3D.cpp,v 1.2 2001-05-05 19:28:34 paklein Exp $ */
 /* created: paklein (06/22/1997)                                          */
 
 #include "J2Simo3D.h"
@@ -157,6 +157,11 @@ void J2Simo3D::ComputeOutput(dArrayT& output)
 		throw eGeneralFail;
 	}
 
+	/* state variable data */
+	bool has_internal = CurrentElement().IsAllocated();
+	output[0] = (has_internal) ? fInternal[kalpha] : 0.0;
+	output[1] = (has_internal) ? sqrt(fbeta_bar.ScalarProduct()) : 0.0;
+	
 	/* compute Cauchy stress (load state variables) */
 	dSymMatrixT stress = s_ij();
 	
@@ -166,43 +171,7 @@ void J2Simo3D::ComputeOutput(dArrayT& output)
 	/* Cauchy -> relative stress = dev[Kirchhoff] - beta */
 	stress *= fFtot.Det();
 	stress.Deviatoric();
-
-	/* apply update to state variable data */
-	bool has_internal = CurrentElement().IsAllocated();
-	if (has_internal)
-	{
-		/* get flags */
-		iArrayT& flags = CurrentElement().IntegerData();
-		if (flags[CurrIP()] == kIsPlastic)
-		{
-			/* factors */
-			double alpha = fInternal[kalpha];
-			double dgamma = fInternal[kdgamma];
-			double mu_bar_bar = fInternal[kmu_bar_bar];
-			double k = 2.0*mu_bar_bar*dgamma/fmu;
-		
-			/* update variables */
-			fInternal[kalpha] += sqrt23*dgamma;
-			fbeta_bar_trial_.SetToCombination(1.0, fbeta_bar, k*dH(alpha)/3.0, fUnitNorm);
-
-			/* write output */
-			output[0] = alpha + sqrt23*dgamma;
-			output[1] = sqrt(fbeta_bar_trial_.ScalarProduct());
-			stress -= fbeta_bar_trial_;
-		}
-		else
-		{
-			/* write output */
-			output[0] = fInternal[kalpha];
-			output[1] = sqrt(fbeta_bar.ScalarProduct());
-			stress -= fbeta_bar;
-		}
-	}
-	else
-	{
-		output[0] = 0.0;
-		output[1] = 0.0;
-	}
+	if (has_internal) stress -= fbeta_bar;
 
 	/* ||dev[t]|| */
 	output[2] = sqrt(stress.ScalarProduct())/sqrt23;

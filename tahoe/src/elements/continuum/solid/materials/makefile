@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2001-05-17 19:25:29 ebmarin Exp $
+# $Id: makefile,v 1.5 2001-04-30 19:29:22 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -35,11 +35,7 @@ SUB_DIR = \
 	rod \
 	Simo \
 	VIB \
-	plasticity_crystl \
-	plasticity_macro \
-	nlcsolver \
 	tevp
-
 subdir_driver: subdir_loop
 # SUB_DIR is empty
 #subdir_driver: 

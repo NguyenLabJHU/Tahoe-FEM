@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.cpp,v 1.3 2001-05-16 23:02:57 paklein Exp $ */
+/* $Id: ExecutionManagerT.cpp,v 1.2 2001-04-27 10:50:11 paklein Exp $ */
 /* created: paklein (08/27/1997)                                          */
 /* Manages input file driven jobs.                                        */
 /* MUST overload private:RunJob().                                        */
@@ -283,6 +283,12 @@ void ExecutionManagerT::RunBatch(ifstreamT& in, ostream& status)
 
 	/* mark status */
 	status << "\n Processing batch file: " << in.filename() << '\n';
+
+	/* open status stream */
+	StringT statusfilename;
+	statusfilename.Root(in.filename());
+	statusfilename.Append(".stat");
+	ofstreamT stat(statusfilename);	
 	
 	/* start day/date info */
 	time_t starttime;
@@ -308,9 +314,9 @@ void ExecutionManagerT::RunBatch(ifstreamT& in, ostream& status)
 	
 		/* process if valid */
 		if (nextin.is_open())
-			JobOrBatch(nextin, cout);
+			JobOrBatch(nextin, stat);
 		else
-			cout << " File not found: " << nextinfilename << '\n';
+			stat << " File not found: " << nextinfilename << '\n';
 			
 		/* get next entry */
 		in >> nextinfilename;
@@ -319,6 +325,6 @@ void ExecutionManagerT::RunBatch(ifstreamT& in, ostream& status)
 	/* stop day/date info */
 	time_t stoptime;
 	time(&stoptime);
-	cout << "\n Batch start time  : " << ctime(&starttime);
-	cout <<   " Batch stop time   : " << ctime(&stoptime);
+	stat << "\n Batch start time  : " << ctime(&starttime);
+	stat <<   " Batch stop time   : " << ctime(&stoptime);
 }

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.13 2001-06-03 21:02:24 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.10 2001-05-01 23:22:52 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "FEManagerT.h"
@@ -48,7 +48,7 @@
 #include "iNLSolver_LS.h"
 
 /* File/Version Control */
-const char* kCurrentVersion = "v3.4.1"; //version marker
+const char* kCurrentVersion = "v3.4"; //version marker
 const char* kProgramName    = "tahoe";
 
 /* exception strings */
@@ -206,14 +206,9 @@ ifstreamT& FEManagerT::OpenExternal(ifstreamT& in,  ifstreamT& in2, ostream& out
 		StringT file;
 		in >> file;
 		if (verbose) out << " external file: " << file << '\n';
-		file.ToNativePathName();
-
-		/* path to source file */
-		StringT path;
-		path.FilePath(in.filename());
-		file.Prepend(path);
 			
 		/* open stream */
+		file.ToNativePathName();
 		in2.open(file);
 		if (!in2.is_open())
 		{
@@ -516,15 +511,12 @@ void FEManagerT::DisassembleRHS(dArrayT& elRes, const nArrayT<int>& eqnos) const
 }
 
 /* writing results */
-void FEManagerT::WriteOutput(double time, IOBaseT::OutputModeT mode)
+void FEManagerT::WriteOutput(IOBaseT::OutputModeT mode)
 {
 	try
 	{
 		/* state */
 		SetStatus(GlobalT::kWriteOutput);
-
-		/* set output time */
-		fIOManager->SetOutputTime(time);
 
 		/* nodes */
 		fNodeManager->WriteOutput(mode);
@@ -564,7 +556,7 @@ void FEManagerT::WriteOutput(double time, IOBaseT::OutputModeT mode)
 void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values,
 	const dArray2DT& e_values)
 {
-	fIOManager->WriteOutput(ID, n_values, e_values);
+	fIOManager->WriteOutput(Time(), ID, n_values, e_values);
 }
 
 int FEManagerT::RegisterOutput(const OutputSetT& output_set)
@@ -877,7 +869,7 @@ bool FEManagerT::iDoCommand(const StringT& command, StringT& line)
 		}
 		else if (command == "WriteOutput")
 		{
-			WriteOutput(Time(), IOBaseT::kAtInc);			
+			WriteOutput(IOBaseT::kAtInc);			
 		}
 		else
 			/* inherited */
@@ -1174,13 +1166,6 @@ void FEManagerT::ReadParameters(void)
 	{
 		fMainIn >> fRestartFile;
 		fRestartFile.ToNativePathName();
-
-	    /* path from input file */
-	    StringT path;
-	    path.FilePath(fMainIn.filename());
-	    
-	    /* prepend path */
-	    fRestartFile.Prepend(path);
 	}
 	fMainIn >> fWriteRestart;
 	fMainIn >> fPrintInput;
