@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: MakeConfigHeaderFile.pl,v 1.3.2.1 2002-12-08 20:53:20 paklein Exp $
+# $Id: MakeConfigHeaderFile.pl,v 1.3.2.2 2002-12-10 16:52:46 paklein Exp $
 #
 # Generates a C/C++ header file from a configuration file which is
 # passed as the command-line argument.
@@ -21,12 +21,13 @@
 #
 
 if (scalar(@ARGV) == 0) {
-	print STDOUT "\tusage: MakeConfigHeaderFile.pl [config file]\n";
+	print STDOUT "\tusage: MakeConfigHeaderFile.pl [config file] [(optional) output directory]\n";
 	exit;
 }
 
-$destination = "../src/config";
 $config_file = $ARGV[0];
+$destination = ".";
+if (scalar(@ARGV) > 1) { $destination = $ARGV[1]; }
 
 print "reading configuration file: $config_file\n";
 
