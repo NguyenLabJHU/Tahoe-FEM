@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.h,v 1.6 2005-01-24 07:04:55 paklein Exp $ */
+/* $Id: MixtureSpeciesT.h,v 1.7 2005-01-25 23:05:56 paklein Exp $ */
 #ifndef _MIXTURE_SPECIES_T_H_
 #define _MIXTURE_SPECIES_T_H_
 
@@ -75,6 +75,9 @@ protected:
 
 	/** method used to compute stress gradient */
 	GradientOptionT fGradientOption;
+
+	/** write total species mass to output */
+	bool fOutputMass;
 
 	/** background solid */
 	UpdatedLagMixtureT* fUpdatedLagMixture;

@@ -1,4 +1,4 @@
-/* $Id: MixtureSpeciesT.cpp,v 1.10 2005-01-24 07:04:55 paklein Exp $ */
+/* $Id: MixtureSpeciesT.cpp,v 1.11 2005-01-25 23:05:56 paklein Exp $ */
 #include "MixtureSpeciesT.h"
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
@@ -13,6 +13,7 @@ using namespace Tahoe;
 MixtureSpeciesT::MixtureSpeciesT(const ElementSupportT& support):
 	NLDiffusionElementT(support),
 	fGradientOption(kGlobalProjection),
+	fOutputMass(false),
 	fUpdatedLagMixture(NULL),
 	fBackgroundSpecies(NULL),
 	fIndex(-1)
@@ -26,40 +27,41 @@ void MixtureSpeciesT::WriteOutput(void)
 	/* inherited */
 	NLDiffusionElementT::WriteOutput();
 
-#if 0
-	/* compute total species mass */
-	double mass = 0.0;
-	dArrayT ip_conc(1);
-	Top();
-	while (NextElement()) 
+	if (fOutputMass)
 	{
-		/* global shape function values */
-		SetGlobalShape();
-	
-		/* collect nodal concentrations */
-		SetLocalU(fLocDisp);
-		
-		/* loop over integration points */
-		const double* j = fShapes->IPDets();
-		const double* w = fShapes->IPWeights();
-		fShapes->TopIP();
-		while (fShapes->NextIP())
+		/* compute total species mass */
+		double mass = 0.0;
+		dArrayT ip_conc(1);
+		Top();
+		while (NextElement()) 
 		{
-			/* ip values */
-			IP_Interpolate(fLocDisp, ip_conc);		
-
-			/* accumulate */
-			mass += (*j++)*(*w++)*ip_conc[0];
-		}
-	}
+			/* global shape function values */
+			SetGlobalShape();
 	
-	/* output */
-	ofstreamT& out = ElementSupport().Output();
-	int d_width = OutputWidth(out, &mass);
-	out << setw(d_width) << ElementSupport().Time()
-	    << setw(d_width) << mass
-	    << ": time, mass of \"" << Field().FieldName() << "\"" << '\n';
-#endif
+			/* collect nodal concentrations */
+			SetLocalU(fLocDisp);
+		
+			/* loop over integration points */
+			const double* j = fShapes->IPDets();
+			const double* w = fShapes->IPWeights();
+			fShapes->TopIP();
+			while (fShapes->NextIP())
+			{
+				/* ip values */
+				IP_Interpolate(fLocDisp, ip_conc);		
+	
+				/* accumulate */
+				mass += (*j++)*(*w++)*ip_conc[0];
+			}
+		}
+	
+		/* output */
+		ofstreamT& out = ElementSupport().Output();
+		int d_width = OutputWidth(out, &mass);
+		out << setw(d_width) << ElementSupport().Time()
+		    << setw(d_width) << mass
+		    << ": time, mass of \"" << Field().FieldName() << "\"" << '\n';
+	}
 }
 
 /* describe the parameters needed by the interface */
@@ -84,6 +86,11 @@ void MixtureSpeciesT::DefineParameters(ParameterListT& list) const
 	grad_opt.AddEnumeration("element_projection", kElementProjection);
 	grad_opt.SetDefault(fGradientOption);
 	list.AddParameter(grad_opt);
+
+	/* output total species mass */
+	ParameterT output_mass(fOutputMass, "output_mass");
+	output_mass.SetDefault(fOutputMass);
+	list.AddParameter(output_mass);
 }
 
 /* accept parameter list */
@@ -116,6 +123,9 @@ void MixtureSpeciesT::TakeParameterList(const ParameterListT& list)
 		fGradientOption = kElementProjection;
 	else
 		ExceptionT::GeneralFail(caller, "unrecognized \"stress_gradient_option\" %d", grad_opt);
+
+	/* output the total system mass */
+	fOutputMass = list.GetParameter("output_mass");
 
 	/* allocate work space for element-by-element stress projection */
 	if (fGradientOption == kElementProjection) 
