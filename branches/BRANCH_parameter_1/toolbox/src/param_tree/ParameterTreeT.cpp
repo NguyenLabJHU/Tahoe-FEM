@@ -1,4 +1,4 @@
-/* $Id: ParameterTreeT.cpp,v 1.1.2.4 2003-05-03 09:06:52 paklein Exp $ */
+/* $Id: ParameterTreeT.cpp,v 1.1.2.5 2003-05-04 22:12:41 paklein Exp $ */
 #include "ParameterTreeT.h"
 #include "ParameterInterfaceT.h"
 
@@ -18,7 +18,7 @@ ParameterTreeT::~ParameterTreeT(void)
 }
 
 /* add a branch to the tree with the given root */
-void ParameterTreeT::BuildDescription(ParameterInterfaceT& root)
+void ParameterTreeT::BuildDescription(const ParameterInterfaceT& root)
 {
 	/* branch exists */
 	if (fDictionary.HasKey(root.Name())) return;
@@ -26,20 +26,6 @@ void ParameterTreeT::BuildDescription(ParameterInterfaceT& root)
 	/* collect parameters into a new list */
 	ParameterListT* root_list = new ParameterListT(root.Name());
 	BuildBranch(root, *root_list);
-	
-	/* store branch */
-	fBranches.Append(root_list);
-}
-
-/* add only parts of the branch contained in the guide parameter list */
-void ParameterTreeT::BuildDescription(ParameterInterfaceT& root, const ParameterListT& guide)
-{
-	/* branch exists */
-	if (fDictionary.HasKey(root.Name())) return;
-
-	/* collect parameters into a new list */
-	ParameterListT* root_list = new ParameterListT(root.Name());
-	BuildBranch(root, guide, *root_list);
 	
 	/* store branch */
 	fBranches.Append(root_list);
@@ -70,7 +56,7 @@ void ParameterTreeT::Validate(const ParameterInterfaceT& source, const Parameter
 
 		/* collect parameters */
 		valid_list.SetName(raw_list.Name());
-		source.ValidateParameters(raw_list, valid_list);
+		source.ValidateParameterList(raw_list, valid_list);
 		stage = 1;
 			
 		/* add to the dictionary */
@@ -395,7 +381,7 @@ bool ParameterTreeT::ValidateSequence(
 }
 
 /* build the branch */
-void ParameterTreeT::BuildBranch(ParameterInterfaceT& source, ParameterListT& params)
+void ParameterTreeT::BuildBranch(const ParameterInterfaceT& source, ParameterListT& params)
 {
 	const char caller[] = "ParameterTreeT::BuildBranch";
 	
@@ -477,110 +463,4 @@ void ParameterTreeT::BuildBranch(ParameterInterfaceT& source, ParameterListT& pa
 			fDeleteMe.Append(sub);
 		}
 	}	
-}
-
-/* build the branch */
-void ParameterTreeT::BuildBranch(ParameterInterfaceT& source, const ParameterListT& guide, 
-	ParameterListT& params)
-{
-	class list_info {
-		public:
-			list_info(void): occur(ParameterListT::Undefined), parent(NULL) {};
-		public:
-			ParameterListT::OccurrenceT occur;
-			list_info* parent;
-	};
-
-	const char caller[] = "ParameterTreeT::BuildBranch";
-
-	/* collect parameters */
-	source.DefineParameters(params);
-	
-	/* add list to the dictionary */
-	if (!fDictionary.Insert(source.Name(), &source))
-		ExceptionT::GeneralFail(caller, "dictionary already contains \"%s\"",
-			source.Name().Pointer());
-
-	/* sublist information */
-	ArrayT<StringT> names;
-	ArrayT<ParameterListT::OccurrenceT> occur;
-	ArrayT<bool> is_inline;
-	source.SubNames(names, occur, is_inline);
-	
-	/* construct sublists */
-	const ArrayT<ParameterListT>& sub_lists = guide.Lists();
-	for (int i = 0; i < sub_lists.Length(); i++) {
-
-		/* sublist name */
-		const StringT& sub_name = sub_lists[i].Name();
-
-		/* fetch sublist */
-		ParameterInterfaceT* sub = source.NewSub(sub_name);
-
-		/* not found */
-		if (!sub)
-			ExceptionT::GeneralFail(caller, "source \"%s\" did not return sublist \"%s\"",
-				params.Name().Pointer(), sub_name.Pointer());
-
-		/* already in the tree */
-		else if (fDictionary.HasKey(sub_name))
-		{
-			/* find occurrence */
-			ParameterListT::OccurrenceT sub_occur = ParameterListT::Undefined;
-			for (int j = 0; sub_occur == ParameterListT::Undefined && j < names.Length(); j++)
-				if (names[j] == sub_name)
-					sub_occur = occur[j];
-
-			/* add a blank list as a placeholder */
-			ParameterListT sub_params(sub_name);
-			if (!params.AddList(sub_params, sub_occur))
-				ExceptionT::GeneralFail(caller, "could not add sublist \"%s\" to list \"%s\"",
-					sub_params.Name().Pointer(), params.Name().Pointer());
-		}
-		else /* new tree entry */
-		{
-			/* find occurrence */
-			ParameterListT::OccurrenceT sub_occur = ParameterListT::Undefined;
-			for (int j = 0; sub_occur == ParameterListT::Undefined && j < names.Length(); j++)
-				if (names[j] == sub_name)
-					sub_occur = occur[j];
-					
-			/* check if inlined list - could cache inlines lists in source */
-			if (sub_occur == ParameterListT::Undefined)
-			{
-				for (int j = 0; sub_occur == ParameterListT::Undefined && j < is_inline.Length(); j++)
-					if (is_inline[j])
-					{
-						/* get inlined list information */
-						ParameterListT::ListOrderT order_j;
-						ArrayT<StringT> names_j;
-						ArrayT<ParameterListT::OccurrenceT> occur_j;
-						ArrayT<bool> is_inline_j;
-						source.DefineInlineSub(names[j], order_j, names_j, occur_j, is_inline_j);
-						
-						/* search */
-						for (int k = 0; sub_occur == ParameterListT::Undefined && k < names_j.Length(); k++)
-							if (names_j[k] == sub_name)
-								sub_occur = occur[j]; /* gets occurrence of nested list */
-					}					
-			}
-			
-			/* not found */
-			if (sub_occur == ParameterListT::Undefined)
-				ExceptionT::GeneralFail(caller, "sublist \"%s\" not found in \"%s\" or in the first level of nested lists",
-					sub_name.Pointer(), source.Name().Pointer());
-
-			/* build the sublist */
-			ParameterListT sub_params(sub->Name());
-			BuildBranch(*sub, sub_lists[i], sub_params);
-
-			/* add list */
-			if (!params.AddList(sub_params, sub_occur))
-				ExceptionT::GeneralFail(caller, "could not add sublist \"%s\" to list \"%s\"",
-					sub_params.Name().Pointer(), params.Name().Pointer());
-			
-			/* add to list of items to delete */
-			fDeleteMe.Append(sub);
-		}
-	}
 }
