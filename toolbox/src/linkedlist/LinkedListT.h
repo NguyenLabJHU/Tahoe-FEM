@@ -1,4 +1,4 @@
-/* $Id: LinkedListT.h,v 1.7 2004-02-17 17:57:49 cjkimme Exp $ */
+/* $Id: LinkedListT.h,v 1.8 2004-02-18 16:38:01 paklein Exp $ */
 /* created: paklein (02/07/1996) */
 #ifndef _LINKEDLIST_T_H_
 #define _LINKEDLIST_T_H_
@@ -274,6 +274,9 @@ int LinkedListT<TYPE>::AppendUnique(const TYPE &value)
 	}
 	else
 		ExceptionT::GeneralFail("LinkedListT::AppendUnique","Cannot append to shallow list");
+
+	/* dummy */
+	return 0;
 }
 
 /* insert value at the current node of the linked list */
