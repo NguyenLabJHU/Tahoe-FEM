@@ -1,0 +1,8 @@
+@
+# $Id: run.batch,v 1.1 2004-06-23 00:50:25 paklein Exp $
+cs.0.compress.shear.xml
+cs.0.shear.failure.xml
+cs.0.shear.xml
+cs.0.tension.failure.xml
+cs.0.tension.xml
+

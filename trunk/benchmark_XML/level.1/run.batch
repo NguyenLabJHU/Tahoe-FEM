@@ -1,4 +1,5 @@
 @
-# $Id: run.batch,v 1.1 2004-06-08 04:48:53 paklein Exp $
+# $Id: run.batch,v 1.2 2004-06-23 00:50:20 paklein Exp $
 material.solid/run.batch
+stress.smoothing/run.batch
 
