@@ -1,10 +1,11 @@
-/* $Id: ParameterListT.h,v 1.8 2003-04-26 19:11:32 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.8.2.1 2003-04-27 22:15:24 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
 /* direct members */
 #include "ParameterT.h"
 #include "AutoArrayT.h"
+#include "enum2int.h"
 
 namespace Tahoe {
 
@@ -18,7 +19,7 @@ class ParameterListT
 {
 public:
 
-	/** parameter occurrence */
+	/** parameter and list occurrence */
 	enum OccurrenceT {
 		Once,       /**< exactly once */
 		ZeroOrOnce, /**< zero or one time */
@@ -26,16 +27,36 @@ public:
 		Any         /**< zero or any number of times */
 	};
 
+	/** ordering of list items */
+	enum ListOrderT {
+		Sequence,
+		Choice
+	};
+
 	/** constructor */
-	ParameterListT(const StringT& name): fName(name) { };
+	ParameterListT(const StringT& name, ListOrderT list_order = Sequence, bool is_inline = false);
 
 	/** default constructor. Needed to allow making lists of lists */
-	ParameterListT(void) {};
-	
+	ParameterListT(void);
+
 	/** \name list name */
 	/*@{*/
 	const StringT& Name(void) const { return fName; };
 	void SetName(const StringT& name) { fName = name; };
+	/*@}*/
+	
+	/** \name list type */
+	/*@{*/
+	ListOrderT ListOrder(void) const { return fListOrder; };
+
+	/** set/change the list order */
+	void SetListOrder(ListOrderT list_order);
+	
+	bool Inline(void) const { return fInline; };
+	
+	/** set/change inlining flag. ParameterListT::PlainList's with parameters cannot
+	 * be converted to ParameterListT::Group's. */
+	void SetInline(bool is_inline);
 	/*@}*/
 	
 	/** \name dimensions */
@@ -60,6 +81,7 @@ public:
 	bool AddParameter(int a, const StringT& name, OccurrenceT occur = Once);
 	bool AddParameter(double x, const StringT& name, OccurrenceT occur = Once);
 	bool AddParameter(const StringT& s, const StringT& name, OccurrenceT occur = Once);
+	bool AddParameter(ValueT::TypeT t, const StringT& name, OccurrenceT occur = Once);
 
 	/** add a parameter list. Returns true of there where no conflicts with
 	 * existing parameter lists. The names of parameter lists cannot be repeated.
@@ -127,6 +149,12 @@ protected:
 
 	/** list name */
 	StringT fName;
+	
+	/** list order */
+	ListOrderT fListOrder;
+
+	/** flag indicating if list is inline */
+	bool fInline;
 
 	/** description */
 	StringT fDescription;
@@ -163,6 +191,11 @@ inline bool ParameterListT::AddParameter(double x, const StringT& name, Occurren
 inline bool ParameterListT::AddParameter(const StringT& s, const StringT& name, OccurrenceT occur)
 {
 	ParameterT parameter(s, name);
+	return AddParameter(parameter, occur);
+}
+inline bool ParameterListT::AddParameter(ValueT::TypeT t, const StringT& name, OccurrenceT occur)
+{
+	ParameterT parameter(t, name);
 	return AddParameter(parameter, occur);
 }
 

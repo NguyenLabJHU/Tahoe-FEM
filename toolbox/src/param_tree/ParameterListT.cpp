@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.cpp,v 1.6 2003-04-26 19:11:32 paklein Exp $ */
+/* $Id: ParameterListT.cpp,v 1.6.2.1 2003-04-27 22:15:24 paklein Exp $ */
 #include "ParameterListT.h"
 
 using namespace Tahoe;
@@ -10,9 +10,39 @@ const bool ArrayT<ParameterListT*>::fByteCopy = true;
 const bool ArrayT<ParameterListT::OccurrenceT>::fByteCopy = false;
 }
 
+/* constructor */
+ParameterListT::ParameterListT(const StringT& name, ListOrderT list_order, bool is_inline):
+	fName(name),
+	fListOrder(list_order),
+	fInline(is_inline)
+{
+
+}
+
+/* default constructor */
+ParameterListT::ParameterListT(void):
+	fListOrder(Sequence),
+	fInline(false)
+{
+
+}
+
+/* set/change the list type */
+void ParameterListT::SetInline(bool is_inline)
+{
+	if (is_inline && fParameters.Length() > 0)
+		ExceptionT::GeneralFail("ParameterListT::SetInline", 
+			"lists with parameters cannot inlined");
+	fInline = is_inline;
+}
+
 /* add parameter */
 bool ParameterListT::AddParameter(const ParameterT& param, OccurrenceT occur)
 {
+	if (fInline)
+		ExceptionT::GeneralFail("ParameterListT::AddParameter", 
+			"inlined lists cannot have parameters");
+
 	/* "description" is reserved */
 	if (param.Name() == "description") {
 		cout << "\n ParameterListT::AddParameter: parameter name \"description\" is reserved" << endl;
