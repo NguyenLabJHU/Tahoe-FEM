@@ -1,4 +1,4 @@
-/* $Id: AugLagSphereT.h,v 1.7 2003-04-07 17:25:48 cjkimme Exp $ */
+/* $Id: AugLagSphereT.h,v 1.6 2002-11-28 16:44:20 paklein Exp $ */
 /* created: paklein (03/24/1999) */
 
 #ifndef _AUGLAG_SPHERE_T_H_
@@ -31,8 +31,7 @@ public:
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 	virtual void Connectivities(AutoArrayT<const iArray2DT*>& connects_1,
-		AutoArrayT<const RaggedArray2DT<int>*>& connects_2,
-		AutoArrayT<const iArray2DT*>& equivalent_nodes) const;
+		AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
 
 	/* restarts */
 	virtual void ReadRestart(istream& in);

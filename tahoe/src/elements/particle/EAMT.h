@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.9 2003-05-09 18:37:59 paklein Exp $ */
+/* $Id: EAMT.h,v 1.3 2003-04-05 08:35:00 paklein Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -79,23 +79,6 @@ protected:
 
 private:
 
-	void GetRho2D(const dArray2DT& coords,dArray2DT& rho);
-	void GetRho3D(const dArray2DT& coords,dArray2DT& rho);
-
-	void GetRhoForce2D(const dArray2DT& coords,dArray2DT& rho);
-	void GetRhoForce3D(const dArray2DT& coords,dArray2DT& rho);
-
-	void GetRhoStiff2D(const dArray2DT& coords,dArray2DT& rho);
-	void GetRhoStiff3D(const dArray2DT& coords,dArray2DT& rho);
-
-	void GetEmbEnergy(const dArray2DT& coords,const dArray2DT rho,
-			  dArray2DT& Emb);
-	void GetEmbForce(const dArray2DT& coords,const dArray2DT rho,
-			 dArray2DT& Emb);
-
-	void GetEmbStiff(const dArray2DT& coords,const dArray2DT rho,
-			       dArray2DT& Emb);
-
 	/** particle pair-properties list */
 	ArrayT<EAMPropertyT*> fEAMProperties;
 
@@ -104,37 +87,6 @@ private:
 
 	/** equation numbers */
 	RaggedArray2DT<int> fEqnos;
-
-	/** electron density */
-	dArray2DT fElectronDensity;
-	nVariArray2DT<double> fElectronDensity_man;
-	int fElectronDensityMessageID;
-
-	/** electron density force*/
-	dArray2DT fElectronDensityForce;
-	nVariArray2DT<double> fElectronDensityForce_man;
-	int fElectronDensityForceMessageID;
-
-	/** electron density stiffness*/
-	dArray2DT fElectronDensityStiff;
-	nVariArray2DT<double> fElectronDensityStiff_man;
-	int fElectronDensityStiffMessageID;
-
-	/** embedding energy */
-	dArray2DT fEmbeddingEnergy;
-	nVariArray2DT<double> fEmbeddingEnergy_man;
-	int fEmbeddingEnergyMessageID;
-
-	/** embedding force */
-	dArray2DT fEmbeddingForce;
-	nVariArray2DT<double> fEmbeddingForce_man;
-	int fEmbeddingForceMessageID;
-
-	/** embedding stiffness */
-	dArray2DT fEmbeddingStiff;
-	nVariArray2DT<double> fEmbeddingStiff_man;
-	int fEmbeddingStiffMessageID;
-
 
 	/** \name workspace for EAMT::RHSDriver. Used to accumulate the force for
 	 * a single row of EAMT::fNeighbors. */
@@ -150,4 +102,3 @@ private:
 } /* namespace Tahoe */
 
 #endif /* _EAM_T_H_ */
-

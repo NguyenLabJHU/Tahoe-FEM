@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.16 2003-04-16 18:09:05 cjkimme Exp $ */
+/* $Id: NodeManagerT.h,v 1.13.2.1 2003-05-12 22:34:06 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -67,15 +67,14 @@ public:
 	/** const reference to the FEManagerT */
 	const FEManagerT& FEManager(void) const;
 
+	/** total number of equations in the given solver group */
 	int NumEquations(int group) const;
+
+	/** number of unknowns per node in the given solver group */
+	int NumDOF(int group) const;
 	int NumNodes(void) const;
 	int NumSD(void) const;
-	
-	/** the total number of fields */
 	int NumFields(void) const { return fFields.Length(); };
-	
-	/** the number of fields in the given group */
-	int NumFields(int group) const;
 	
 	/** return a const pointer to the field with the specified name. returns NULL
 	 * if a field with the given name is not found. */
@@ -95,8 +94,7 @@ public:
 	 * FBC_ControllerT and KBC_ControllerT do generate connectivities */
 	virtual void ConnectsU(int group, 
 		AutoArrayT<const iArray2DT*>& connects_1,
-		AutoArrayT<const RaggedArray2DT<int>*>& connects_2,
-		AutoArrayT<const iArray2DT*>& equivalent_nodes) const;
+		AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
 
 	/** return the implicit-explicit flag for the given group. If the group contains
 	 * fields with both implicit and explicit time integrators, the group is considered
@@ -363,7 +361,6 @@ private:
 	dArray2DT* fCurrentCoords;
 	nVariArray2DT<double> fCurrentCoords_man;
 	/*@}*/
-
 };
 
 /* inlines */

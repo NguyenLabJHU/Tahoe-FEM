@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.cpp,v 1.17 2003-04-24 20:45:20 cjkimme Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.16 2003-03-19 00:53:27 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch2DT.h"
@@ -9,6 +9,7 @@
 #include "ExceptionT.h"
 #include "fstreamT.h"
 #include "StringT.h"
+#include "SymmetricNodesT.h"
 
 /* class parameters */
 

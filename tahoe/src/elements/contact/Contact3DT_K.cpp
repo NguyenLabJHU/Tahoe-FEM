@@ -1,7 +1,5 @@
-/* $Id: Contact3DT_K.cpp,v 1.3 2003-05-05 00:58:28 paklein Exp $ */
+/* $Id: Contact3DT_K.cpp,v 1.2 2003-03-02 19:35:07 paklein Exp $ */
 #include "Contact3DT.h"
-
-using namespace Tahoe;
 
 void Contact3DT::DDg_tri_facet(
 	double* X1, double* X2, double* X3, double* pX,

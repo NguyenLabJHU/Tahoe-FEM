@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.38 2003-05-12 23:44:05 thao Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.35 2003-03-31 23:14:40 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 #include "fstreamT.h"
@@ -32,12 +32,8 @@
 #include "OgdenIsoVIB3D.h"
 #endif
 
-#ifdef VISCOELASTICITY
-#include "SSLinearVE3D.h"
-#include "RGSplitT.h"
-#endif
-
 #ifdef VISCOELASTIC_MATERIALS_DEV
+#include "SV_NeoHookean3D.h"
 #include "SSSV_KStV3D.h"
 #include "FDSV_KStV3D.h"
 #include "RGSplit3D.h"
@@ -45,10 +41,6 @@
 
 #ifdef ELASTIC_OGDEN_MATERIAL_DEV
 #include "OgdenMaterialT.h"
-#endif
-
-#ifdef J2PLASTICITY_MATERIALS_DEV
-#include "SSJ2LinHardT.h"
 #endif
 
 #ifdef PLASTICITY_CRYSTAL_MATERIAL
@@ -352,32 +344,6 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				ExceptionT::BadInputValue(caller, "FOSSUM_MATERIAL not enabled: %d", matcode);
 #endif
 			}
-			case kSSLinearVE:
-			{
-#ifdef VISCOELASTICITY
-				/* check */
-				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
-			
-				fArray[matnum] = new SSLinearVE3D(in, *fSSMatSupport);
-				fHasHistory = true;
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "VISCOELASTICITY not enabled: %d", matcode);
-#endif
-			}
-			case kRGSplitVE:
-			{
-#ifdef VISCOELASTICITY
-				/* check */
-				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
-			
-				fArray[matnum] = new RGSplitT(in, *fFSMatSupport);
-				fHasHistory = true;
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "VISCOELASTICITY not enabled: %d", matcode);
-#endif
-			}
 			case kThermoViscoPlastic:
 			{
 #ifdef THERMO_VISCO_PLASTIC_MATERIAL
@@ -606,6 +572,19 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				ExceptionT::BadInputValue(caller, "VISCOELASTIC_MATERIALS_DEV not enabled: %d", matcode);
 #endif
 			}
+			case kSVNeoHookean:
+			{
+#if VISCOELASTIC_MATERIALS_DEV
+				/* check */
+				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new SV_NeoHookean3D(in, *fFSMatSupport);
+				fHasHistory = true;
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "VISCOELASTIC_MATERIALS_DEV not enabled: %d", matcode);
+#endif
+			}
 			case kFDSVKStV:
 			{
 #if VISCOELASTIC_MATERIALS_DEV
@@ -642,19 +621,6 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "ELASTIC_OGDEN_MATERIAL_DEV not enabled: %d", matcode);
-#endif
-			}
-			case kSSJ2LinHard:
-			{
-#if J2PLASTICITY_MATERIALS_DEV
-				/* check */
-				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
-
-				fArray[matnum] = new SSJ2LinHardT(in, *fSSMatSupport);
-				fHasHistory = true;
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "J2PLASTICITY_MATERIALS_DEV not enabled: %d", matcode);
 #endif
 			}
 			case kSIERRA_Hypoelastic:

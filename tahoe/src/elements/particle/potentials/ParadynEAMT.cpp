@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.cpp,v 1.5 2003-05-08 01:07:19 saubry Exp $ */
+/* $Id: ParadynEAMT.cpp,v 1.1 2003-04-05 08:34:41 paklein Exp $ */
 #include "ParadynEAMT.h"
 
 #include "toolboxConstants.h"
@@ -45,11 +45,6 @@ ParadynEAMT::ParadynEAMT(const StringT& param_file):
   double mass;
   in >> fAtomicNumber >> mass 
      >> fLatticeParameter >> fStructure;
-
-  /* Adjust mass like in interpolate.F of ParaDyn */
-  double conmas = 1.0365e-4;
-  mass *= conmas;
-  
   
   /* read dimensions */
   int np, nr;
@@ -72,18 +67,19 @@ ParadynEAMT::ParadynEAMT(const StringT& param_file):
   rho_inc = 1.0/dp;
     
   /* Pair Energy, zrin in ParaDyn 
-     Note: It is only z at this point, not phi = z^2/r */
+     Note: It is only z^2 at this point, not phi = z^2/r */
   tmp.Dimension(nr);
   in >> tmp;
-
-  /* adjust units */
-  for (int j = 0; j < nr; j++)
-    tmp[j] *= sqrt(27.2*0.529);
-
+  tmp *= sqrt(27.2*0.529);
   f_inc = 1.0/dr;
 
+  dArrayT z2;  
+  z2.Dimension(nr);
+  for (int j = 0; j < nr; j++) 
+    z2[j] = tmp[j]*tmp[j];
+
   /* compute spline coefficients for z^2 */
-  ComputeCoefficients(tmp, dr, fPairCoeff);
+  ComputeCoefficients(z2, dr, fPairCoeff);
 
   /* Electron Density, rhoin in ParaDyn, 
      assume that z and rho grids coincide */
@@ -211,28 +207,28 @@ ParadynEAMT::EDStiffnessFunction ParadynEAMT::getElecDensStiffness(void)
 }
 
 /* return Paradyn-style coefficients table */
-bool ParadynEAMT::getParadynTable(const double** coeff, double& dr, 
-		int& row_size, int& num_rows) const
+bool ParadynEAMT::getParadynTable(const double** coeff, double& dr, int& row_size, int& num_rows) const
 {
-#pragma unused(coeff)
-#pragma unused(dr)
-#pragma unused(row_size)
-#pragma unused(num_rows)
-  return false;
+	*coeff = fPairCoeff.Pointer();
+	dr = f_inc;
+	row_size = 9;
+	num_rows = fPairCoeff.MajorDim();
+	return true;
 }
 
 /***********************************************************************
  * Private
  ***********************************************************************/
 
-// z(r)
+// phi(r) = z2(r)/r
 double ParadynEAMT::PairEnergy(double r_ab, double* data_a, double* data_b)
 {
 #pragma unused(data_a)
 #pragma unused(data_b)
 
-  double z = EnergyAux(r_ab,s_nr,s_f_inc,s_Paircoeff);
-  return z;
+  double z2 = EnergyAux(r_ab,s_nr,s_f_inc,s_Paircoeff);
+  double phi = z2/r_ab;
+  return phi;
 }
 
 // F(rho)
@@ -253,13 +249,14 @@ double ParadynEAMT::ElecDensEnergy(double r_ab, double* data_a, double* data_b)
   return EnergyAux(r_ab,s_nr,s_f_inc,s_ElecDenscoeff);
 }
 
-// z'(r)
+// phi(r)' = (z2)'/r - phi/r
 double ParadynEAMT::PairForce(double r_ab, double* data_a, double* data_b)
 {
-#pragma unused(data_a)
-#pragma unused(data_b)
-  double zp = ForceAux(r_ab,s_nr,s_f_inc,s_Paircoeff);
-  return zp;
+
+  double z2p = ForceAux(r_ab,s_nr,s_f_inc,s_Paircoeff);
+  double phi = PairEnergy(r_ab,data_a,data_b);
+  double phip = z2p/r_ab - phi/r_ab;
+  return phip;
 }
 
 // F'(rho)
@@ -280,14 +277,12 @@ double ParadynEAMT::ElecDensForce(double r_ab, double* data_a, double* data_b)
   return ForceAux(r_ab,s_nr,s_f_inc,s_ElecDenscoeff);
 }
 
-// z''(r)
+// phi(r)'' = z2''/r - 2*phi(r)'/r
 double ParadynEAMT::PairStiffness(double r_ab, double* data_a, double* data_b)
 {
-#pragma unused(data_a)
-#pragma unused(data_b)
-
-  double zpp = StiffnessAux(r_ab,s_nr,s_f_inc,s_Paircoeff);
-  return zpp;
+  double z2pp = StiffnessAux(r_ab,s_nr,s_f_inc,s_Paircoeff);
+  double phip = PairForce(r_ab,data_a,data_b);
+  double phipp = z2pp/r_ab - 2*phip/r_ab;
 }
 
 // F''(rho)
@@ -299,7 +294,7 @@ double ParadynEAMT::EmbeddingStiffness(double rho_ab, double* data_a, double* da
   return StiffnessAux(rho_ab,s_np,s_e_inc,s_Embcoeff);
 }
 
-// rho''(r)
+// rho''
 double ParadynEAMT::ElecDensStiffness(double r_ab, double* data_a, double* data_b)
 {
 #pragma unused(data_a)
@@ -362,8 +357,7 @@ void ParadynEAMT::ComputeCoefficients(const ArrayT<double>& f, double dx, dArray
   coeff(0,1)      =      coeff(1,0)      - coeff(0,0);
   coeff(1,1)      = 0.5*(coeff(2,0)      - coeff(0,0));
   coeff(nrar-2,1) = 0.5*(coeff(nrar-1,0) - coeff(nrar-3,0));
-  // Syl: coeff(nrar-1,1) = 0.0;
-  coeff(nrar-1,1) = coeff(nrar-1,0) - coeff(nrar-2,0);
+  coeff(nrar-1,1) = 0.0;
   
   /* derivative approximation through the middle */
   for (int j = 2; j < nrar-2; j++)

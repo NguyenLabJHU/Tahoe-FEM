@@ -1,4 +1,4 @@
-/* $Id: ParadynPairT.cpp,v 1.7 2003-05-08 01:07:19 saubry Exp $ */
+/* $Id: ParadynPairT.cpp,v 1.6 2003-01-27 07:00:26 paklein Exp $ */
 #include "ParadynPairT.h"
 #include "toolboxConstants.h"
 #include "ifstreamT.h"
@@ -38,10 +38,6 @@ ParadynPairT::ParadynPairT(const StringT& param_file):
 	double mass;
 	in >> fAtomicNumber >> mass >> fLatticeParameter >> fStructure;
 	
-	/* Adjust mass like in interpolate_pair.F of ParaDyn */
-	double conmas = 1.0365e-4;
-	mass *= conmas;
-
 	/* table dimensions */
 	int np, nr;
 	double dp, dr;
@@ -177,45 +173,44 @@ double ParadynPairT::Stiffness(double r_ab, double* data_a, double* data_b)
 /* compute the coefficients */
 void ParadynPairT::ComputeCoefficients(const ArrayT<double>& f, double dx, dArray2DT& coeff)
 {
-  int nrar = f.Length();
-  
-  /* dimension */
-  coeff.Dimension(nrar, knum_coeff);
-  
-  /* copy in function value */
-  for (int j = 0; j < nrar; j++)
-    coeff(j,0) = f[j];
-  
-  /* set function derivative at endpoints */
-  coeff(0,1) = coeff(1,0) - coeff(0,0);
-  coeff(1,1) = 0.5*(coeff(2,0) - coeff(0,0));
-  coeff(nrar-2,1) = 0.5*(coeff(nrar-1,0) - coeff(nrar-3,0));
-  // Syl: coeff(nrar-1,1) = 0.0;
-  coeff(nrar-1,1) = coeff(nrar-1,0) - coeff(nrar-2,0);
-  
-  /* derivative approximation through the middle */
-  for (int j = 2; j < nrar-2; j++)
-    coeff(j,1) = ((coeff(j-2,0) - coeff(j+2,0)) + 8.0*(coeff(j+1,0) - coeff(j-1,0)))/12.0;
-  
-  /* higher order coefficients */
-  for (int j = 0; j < nrar-1; j++)
-    {
-      coeff(j,2) = 3.0*(coeff(j+1,0) - coeff(j,0)) - 2.0*coeff(j,1) - coeff(j+1,1);
-      coeff(j,3) = coeff(j,1) + coeff(j+1,1) - 2.0*(coeff(j+1,0) - coeff(j,0));
-    }
-  coeff(nrar-1,2) = 0.0;
-  coeff(nrar-1,3) = 0.0;
-  
-  /* coefficients for derivatives */
-  for (int j = 0; j < nrar; j++)
-    {
-      /* for first derivative */
-      coeff(j,4) = coeff(j,1)/dx;
-      coeff(j,5) = 2.0*coeff(j,2)/dx;
-      coeff(j,6) = 3.0*coeff(j,3)/dx;
-      
-      /* for second derivatives */
-      coeff(j,7) = coeff(j,5)/dx;
-      coeff(j,8) = 2.0*coeff(j,6)/dx;
-    }
+	int nrar = f.Length();
+	
+	/* dimension */
+	coeff.Dimension(nrar, knum_coeff);
+
+	/* copy in function value */
+	for (int j = 0; j < nrar; j++)
+		coeff(j,0) = f[j];
+
+	/* set function derivative at endpoints */
+	coeff(0,1) = coeff(1,0) - coeff(0,0);
+	coeff(1,1) = 0.5*(coeff(2,0) - coeff(0,0));
+	coeff(nrar-2,1) = 0.5*(coeff(nrar-1,0) - coeff(nrar-3,0));
+	coeff(nrar-1,1) = 0.0;
+
+	/* derivative approximation through the middle */
+	for (int j = 2; j < nrar-2; j++)
+		coeff(j,1) = ((coeff(j-2,0) - coeff(j+2,0)) + 8.0*(coeff(j+1,0) - coeff(j-1,0)))/12.0;
+
+	/* higher order coefficients */
+	for (int j = 0; j < nrar-1; j++)
+	{
+		coeff(j,2) = 3.0*(coeff(j+1,0) - coeff(j,0)) - 2.0*coeff(j,1) - coeff(j+1,1);
+		coeff(j,3) = coeff(j,1) + coeff(j+1,1) - 2.0*(coeff(j+1,0) - coeff(j,0));
+	}
+	coeff(nrar-1,2) = 0.0;
+	coeff(nrar-1,3) = 0.0;
+    
+    /* coefficients for derivatives */
+	for (int j = 0; j < nrar; j++)
+	{
+		/* for first derivative */
+		coeff(j,4) = coeff(j,1)/dx;
+		coeff(j,5) = 2.0*coeff(j,2)/dx;
+		coeff(j,6) = 3.0*coeff(j,3)/dx;
+
+		/* for second derivatives */
+		coeff(j,7) = coeff(j,5)/dx;
+		coeff(j,8) = 2.0*coeff(j,6)/dx;
+	}
 }

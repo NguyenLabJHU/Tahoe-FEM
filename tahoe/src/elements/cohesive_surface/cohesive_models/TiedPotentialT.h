@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.h,v 1.14 2003-04-22 19:02:06 cjkimme Exp $ */
+/* $Id: TiedPotentialT.h,v 1.10 2003-03-26 20:00:08 cjkimme Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_T_H_
@@ -28,9 +28,6 @@ public:
 
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const;
-	
-	/** initialize the state variable array. */
-	virtual void InitStateVariables(ArrayT<double>& state);
 
 	/** dissipated energy */
 	virtual double FractureEnergy(const ArrayT<double>& state);
@@ -68,16 +65,11 @@ public:
 		dArrayT& output);
 
 	virtual bool NeedsNodalInfo(void);
-	
 	virtual int NodalQuantityNeeded(void);
+	//        virtual double ComputeNodalValue(const dArrayT &);
+	//        virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
 	
 	virtual bool InitiationQ(const double* sigma);
-	
-	/** whether or not potential may retie nodes */
-	virtual bool NodesMayRetie(void);
-	
-	/** returns true if criterium for retieing is met */
-	virtual bool RetieQ(const double* sigma, const ArrayT<double>& state, const dArrayT& jump_u);
 	
 protected:
 
@@ -95,13 +87,10 @@ private:
 	double phi_n; // mode I work to fracture
 	double r_fail; 
 	double fsigma, fL_0, fL_1, fL_2;
-	double q, r;
 	
 	double fnvec1, fnvec2; /*components of direction
 	  in which to sample the stress for freeing nodes */
 	double fsigma_critical; /* Initiation traction */
-	
-	bool qRetieNodes; // true if nodes might be retied
 };
 
 } // namespace Tahoe 

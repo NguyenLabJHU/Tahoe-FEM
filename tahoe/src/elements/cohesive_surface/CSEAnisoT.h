@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.27 2003-04-22 19:02:05 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.23 2003-03-28 00:14:59 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -52,10 +52,8 @@ public:
 	/** read restart data to the output stream. */
 	virtual void ReadRestart(istream& in);
 #else
-  	/* send restart array */
 	virtual void WriteRestart(double* outgoingData) const;
 	
-	/* receive restart array */
 	virtual void ReadRestart(double* incomingData);
 #endif	
 
@@ -63,9 +61,6 @@ public:
 	/* Initialize fields passed in from the outside */
 	virtual void InitStep(void);
 #endif
-
-	/** compute specified output parameter and send for smoothing */
-	virtual void SendOutput(int kincode);
 
 protected:
 
@@ -98,9 +93,6 @@ private:
 
 	void Q_ijk__u_j(const ArrayT<dMatrixT>& Q, const dArrayT& u,
 		dMatrixT& Qu);
-		
-	/* Fake output to send to TiedNodesT */
-	void ComputeFreeNodesForOutput();
 
 protected:
 
@@ -114,16 +106,13 @@ protected:
 #ifndef _SIERRA_TEST_
 	pArrayT<TiedPotentialBaseT**> fTiedPots;
 	TiedPotentialBaseT* tiedpot;
-	bool qRetieNodes;
+#endif
 
+#ifndef _SIERRA_TEST_
 	/** state variable storage array. 
 	 * Array has dimensions: [nel] x [nip * nvar] */
 	RaggedArray2DT<double> fStateVariables;
 	RaggedArray2DT<double> fStateVariables_last;
-	
-	
-	const GlobalT::StateT& fRunState;
-
 #else
 	/*In SIERRA, we're assuming only one cohesive law per element
 	 *block, but keeping the array 2D so we can loop over its
@@ -134,6 +123,8 @@ protected:
 	dArray2DT fStateVariables;
 	dArray2DT fStateVariables_last;
 #endif
+
+	const GlobalT::StateT& fRunState;
 
 	/** incremental heat sources for each element block */
 	ArrayT<dArray2DT> fIncrementalHeat;
@@ -155,10 +146,11 @@ protected:
 	bool fCalcNodalInfo;
 	int fNodalInfoCode, iTiedFlagIndex;
 	dArray2DT fNodalQuantities;
-	iArrayT iBulkGroups, otherInds;
+	iArrayT iBulkGroups;
 	
 	/* if nodes are tied, keep track of free nodes per element */
-	dArray2DT freeNodeQ, freeNodeQ_last;
+	Array2DT<bool> freeNodeQ, freeNodeQ_last;
+	
 };
 
 } // namespace Tahoe 

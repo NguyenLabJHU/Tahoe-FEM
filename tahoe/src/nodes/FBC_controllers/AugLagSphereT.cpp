@@ -1,4 +1,4 @@
-/* $Id: AugLagSphereT.cpp,v 1.10 2003-04-07 17:25:48 cjkimme Exp $ */
+/* $Id: AugLagSphereT.cpp,v 1.9 2003-01-29 07:35:22 paklein Exp $ */
 /* created: paklein (03/24/1999) */
 
 #include "AugLagSphereT.h"
@@ -97,11 +97,9 @@ void AugLagSphereT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 }
 
 void AugLagSphereT::Connectivities(AutoArrayT<const iArray2DT*>& connects_1,
-	AutoArrayT<const RaggedArray2DT<int>*>& connects_2,
-	AutoArrayT<const iArray2DT*>& equivalent_nodes) const
+	AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const
 {
 #pragma unused(connects_2)
-#pragma unused(equivalent_nodes)
 	connects_1.Append(&fContactTags);
 }
 

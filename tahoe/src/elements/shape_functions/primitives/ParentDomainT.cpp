@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.18 2003-04-05 20:24:10 thao Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.17 2003-03-31 23:07:50 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -117,7 +117,7 @@ jac.Rows() != nodal.MinorDim()) throw ExceptionT::kSizeMismatch;
 		for (int i = 0; i < nnd; i++)
 		{
 			j11 += (*pu1)*(*dx1);
-	    	j21 += (*pu2)*(*dx1);
+			j21 += (*pu2)*(*dx1);
 			j12 += (*pu1)*(*dx2);
 			j22 += (*pu2)*(*dx2);
 			
@@ -415,6 +415,7 @@ void ParentDomainT::ComputeDNa(const LocalArrayT& coords,
 		/* calculate the Jacobian matrix */
 		Jacobian(coords, fDNa[i], fJacobian);
 		det[i] = fJacobian.Det();
+		
 		/* element check */
 		if (det[i] <= 0.0) throw ExceptionT::kBadJacobianDet;
 

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8 2003-04-05 19:41:24 thao Exp $
+# $Id: makefile,v 1.7 2003-03-19 17:08:54 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -69,16 +69,16 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (2) uncomment the subdir_driver macro
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
-SUB_DIR = OgdenPotentials  
-subdir_driver: subdir_loop
+#SUB_DIR = 
+#subdir_driver: subdir_loop
 
 #
 # (4.2) If there are no sub-directories in this directory:
 #    (1) comment the SUB_DIR and subdir_driver in section (4.1)
 #    (2) uncomment the subdir_driver macro below
 #
-#SUB_DIR =
-#subdir_driver: 
+SUB_DIR =
+subdir_driver: 
 
 #####################
 

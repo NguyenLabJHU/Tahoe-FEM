@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.5 2003-04-22 16:17:16 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.3 2003-01-27 16:48:04 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -19,6 +19,7 @@ CommManagerT::CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager):
 	fModelManager(model_manager),
 	fPartition(NULL),
 	fNodeManager(NULL),
+	fPeriodicBoundaries(0,2),
 	fFirstConfigure(true),
 	fNumRealNodes(0)
 {
@@ -88,20 +89,20 @@ void CommManagerT::SetPartition(PartitionT* partition)
 void CommManagerT::SetNodeManager(NodeManagerT* node_manager)
 {
 	fNodeManager = node_manager;
-
-	/* dimension space for periodic BC */
-	int nsd = fModelManager.NumDimensions();
-	fIsPeriodic.Dimension(nsd);
-	fIsPeriodic = false;
-	fPeriodicBoundaries.Dimension(nsd, 2);
-	fPeriodicBoundaries = 0.0;
-	fPeriodicLength.Dimension(nsd);
-	fPeriodicLength = 0.0;
 }
 
 /* set boundaries */
 void CommManagerT::SetPeriodicBoundaries(int i, double x_i_min, double x_i_max)
 {
+	/* dimension dynamically */
+	if (i >= fIsPeriodic.Length())
+	{
+		int len = i + 1;
+		fIsPeriodic.Resize(len, false);
+		fPeriodicBoundaries.Resize(len, 0.0);
+		fPeriodicLength.Resize(len, 0.0);
+	}
+
 	if (x_i_min > x_i_max) ExceptionT::GeneralFail();
 	fIsPeriodic[i] = true;
 	fPeriodicBoundaries(i,0) = x_i_min;
@@ -121,8 +122,12 @@ void CommManagerT::EnforcePeriodicBoundaries(double skin)
 	/* only implemented for atom decomposition (or serial) */
 	if (fPartition && fPartition->DecompType() != PartitionT::kAtom) return;
 	
+	/* no periodic bounds declared */
+	if (fIsPeriodic.Length() == 0) return;
+
 	/* reference coordinates */
 	const dArray2DT& reference_coords = fModelManager.Coordinates();
+	if (reference_coords.MinorDim() > fIsPeriodic.Length()) ExceptionT::SizeMismatch(caller);
 
 	/* the coordinate update field */
 	dArray2DT* field = fNodeManager->CoordinateUpdate();
@@ -597,9 +602,9 @@ void CommManagerT::FirstConfigure(void)
 	
 		/* number of nodes owned by this partition */
 		int npn = fPartition->NumPartitionNodes();
-		int nsd = fModelManager.NumDimensions();
 
 		/* total number of nodes */
+		int nsd = fModelManager.NumDimensions();
 		AllGatherT all_gather(fComm);
 		all_gather.Initialize(npn*nsd);
 		fNumRealNodes = all_gather.Total()/nsd;

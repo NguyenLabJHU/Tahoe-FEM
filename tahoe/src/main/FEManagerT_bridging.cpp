@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.4 2003-05-05 00:58:34 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.3.2.15 2003-05-14 19:49:54 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -7,6 +7,7 @@
 #include "KBC_PrescribedT.h"
 #include "KBC_CardT.h"
 #include "ofstreamT.h"
+#include "ifstreamT.h"
 #include "NLSolver.h"
 
 #include "BridgingScaleT.h"
@@ -52,6 +53,14 @@ void FEManagerT_bridging::FormRHS(int group) const
 		fSolvers[group]->AssembleRHS(*external_force);
 		fSolvers[group]->LockRHS();
 	}
+	
+	/* assemble external contribution */
+	const dArray2DT* external_force_2D = fExternalForce2D[group];
+	if (external_force_2D != NULL) {
+		fSolvers[group]->UnlockRHS();
+		fSolvers[group]->AssembleRHS(*external_force_2D, fExternalForce2DEquations[group]);
+		fSolvers[group]->LockRHS();		
+	}
 }
 
 /* reset the cumulative update vector */
@@ -61,15 +70,53 @@ void FEManagerT_bridging::ResetCumulativeUpdate(int group)
 	fCumulativeUpdate[group] = 0.0;
 }
 
+/* (re-)set the equation number for the given group */
+void FEManagerT_bridging::SetEquationSystem(int group)
+{
+	/* inherited */
+	FEManagerT::SetEquationSystem(group);
+
+	//NOTE: this is going to break if the equation numbers has changed since the force was set
+	if (fExternalForce2D[group])
+		ExceptionT::GeneralFail("FEManagerT_bridging::SetEquationSystem",
+			"group %d has external force so equations cannot be reset", group+1);
+}
+
+/* set pointer to an external force vector */
+void FEManagerT_bridging::SetExternalForce(const StringT& field, const dArray2DT& external_force, const iArrayT& activefenodes)
+{
+	const char caller[] = "FEManagerT_bridging::SetExternalForce";
+
+	/* check */
+	if (activefenodes.Length() != external_force.MajorDim()) 
+		ExceptionT::SizeMismatch(caller);
+
+	/* get the field */
+	const FieldT* thefield = fNodeManager->Field(field);
+	if (!thefield) ExceptionT::GeneralFail(caller);
+
+	/* store pointers */
+	int group = thefield->Group();
+	fExternalForce2D[group] = &external_force;
+	fExternalForce2DNodes[group] = &activefenodes;
+	
+	/* collect equation numbers */
+	iArray2DT& eqnos = fExternalForce2DEquations[group];
+	eqnos.Dimension(fNodeManager->NumNodes(), thefield->NumDOF());
+	thefield->SetLocalEqnos(activefenodes, eqnos);	// crashes here if not nodes and atoms everywhere
+}
+
 /* initialize the ghost node information */
 void FEManagerT_bridging::InitGhostNodes(void)
 {
 	const char caller[] = "FEManagerT_bridging::InitGhostNodes";
 
 	/* collect ghost nodes */
-	ArrayT<StringT> id_list;
-	fModelManager->NodeSetList(fBridgingIn, id_list);
-	fModelManager->ManyNodeSets(id_list, fGhostNodes);
+	if (fBridgingIn.is_open()) {
+		ArrayT<StringT> id_list;
+		fModelManager->NodeSetList(fBridgingIn, id_list);
+		fModelManager->ManyNodeSets(id_list, fGhostNodes);
+	}
 
 	/* assume atomistic field is "displacement" */
 	StringT field = "displacement";
@@ -225,12 +272,12 @@ void FEManagerT_bridging::InterpolationMatrix(const StringT& field, dSPMatrixT& 
 	if (!the_field) ExceptionT::GeneralFail(caller, "could not resolve field \"%s\"", field.Pointer());
 
 	/* the shape functions values at the interpolating point */
-	const dArray2DT& weights = fFollowerCellData.InterpolationWeights();
+	const dArray2DT& weights = fFollowerCellData.InterpolationWeights(); 
 
 	/* redimension matrix if needed */
 	int   ndof = the_field->NumDOF();
-	int row_eq = weights.MajorDim()*ndof;
-	int col_eq = the_field->NumEquations();
+	int row_eq = weights.MajorDim()*ndof;	
+	int col_eq = the_field->NumEquations();	
 	if (G_Interpolation.Rows() != row_eq || G_Interpolation.Cols() != col_eq)
 		G_Interpolation.Dimension(row_eq, col_eq, 0);
 
@@ -273,9 +320,54 @@ void FEManagerT_bridging::InterpolationMatrix(const StringT& field, dSPMatrixT& 
 	}
 }
 
+/* compute global interpolation matrix for all nodes whose support intersects MD region */
+void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& atoms, iArrayT& activefenodes) const
+{
+	/* obtain global node numbers of nodes whose support intersects MD, create inverse map */
+	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();	// list of active nodes
+	activefenodes = cell_nodes;
+	const InverseMapT gtlnodes, gtlatoms;
+	gtlnodes.SetMap(cell_nodes);	// create global to local map for active nodes
+	gtlatoms.SetMap(atoms);		// create global to local map for all atoms - redundant?
+	int numactivenodes = cell_nodes.Length();	// number of projected nodes
+	int numatoms = atoms.Length();	// total number of atoms
+
+	/* the shape functions values at the interpolating point */
+	const dArray2DT& weights = fDrivenCellData.InterpolationWeights(); 
+
+	/* redimension matrix if needed */
+	int row_eq = numactivenodes;	// the number of projected nodes
+	int col_eq = numatoms;	// total number of atoms
+	if (ntf.Rows() != row_eq || ntf.Cols() != col_eq)
+		ntf.Dimension(row_eq, col_eq, 0);
+
+	/* clear */
+	ntf = 0.0;
+	
+	/* element group information */
+	const ContinuumElementT* continuum = fDrivenCellData.ContinuumElement();
+	const iArrayT& cell = fDrivenCellData.InterpolatingCell();
+	
+	/* first loop over all atoms */
+	for (int i = 0; i < col_eq; i++)
+	{
+		/* element info */
+		const ElementCardT& element_card = continuum->ElementCard(cell[i]);
+		const iArrayT& fenodes = element_card.NodesU();
+		int dex = gtlatoms.Map(atoms[i]);	// global to local map for atoms
+		
+		/* put shape functions for nodes evaluated at each atom into global interpolation matrix */
+		for (int j = 0; j < weights.MinorDim(); j++)
+		{
+			int dex2 = gtlnodes.Map(fenodes[j]);	// global to local map for nodes
+			ntf.SetElement(dex2, dex, weights(dex,j));  // dex = i...
+		}
+	}
+}
+
 /* initialize data for the driving field */
 void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& field, 
-	NodeManagerT& node_manager)
+	NodeManagerT& node_manager, bool make_inactive)
 {
 	const char caller[] = "FEManagerT_bridging::SetExactSolution";
 
@@ -312,12 +404,15 @@ void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& fi
 	/* generate KBC cards - all degrees of freedom */
 	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
 	int ndof = the_field->NumDOF();
-	ArrayT<KBC_CardT>& KBC_cards = fSolutionDriver->KBC_Cards();
-	KBC_cards.Dimension(cell_nodes.Length()*ndof);
-	int dex = 0;
-	for (int j = 0; j < ndof; j++)
-		for (int i = 0; i < cell_nodes.Length(); i++)
-			KBC_cards[dex++].SetValues(cell_nodes[i], j, KBC_CardT::kDsp, 0, 0.0);
+	if (make_inactive)
+	{
+		ArrayT<KBC_CardT>& KBC_cards = fSolutionDriver->KBC_Cards();
+		KBC_cards.Dimension(cell_nodes.Length()*ndof);
+		int dex = 0;
+		for (int j = 0; j < ndof; j++)
+			for (int i = 0; i < cell_nodes.Length(); i++)
+				KBC_cards[dex++].SetValues(cell_nodes[i], j, KBC_CardT::kDsp, 0, 0.0);
+	}
 
 	/* dimension work space */
 	fProjection.Dimension(cell_nodes.Length(), ndof);
@@ -344,6 +439,43 @@ void FEManagerT_bridging::ProjectField(const StringT& field, NodeManagerT& node_
 	SetFieldValues(field, cell_nodes, fProjection);
 }
 
+/* project the point values onto the mesh */
+void FEManagerT_bridging::InitialProject(const StringT& field, NodeManagerT& node_manager, dArray2DT& projectedu)
+{
+	const char caller[] = "FEManagerT_bridging::ProjectField";
+
+	/* get the source field */
+	FieldT* source_field = node_manager.Field(field);
+	if (!source_field) ExceptionT::GeneralFail(caller, "could not resolve source field \"%s\"", field.Pointer());
+
+	/* compute the projection onto the mesh */
+	const dArray2DT& source_field_values = (*source_field)[0];
+	BridgingScale().InitialProject(field, fDrivenCellData, source_field_values, fProjection, projectedu);
+
+	/* write values into the field */
+	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
+	SetFieldValues(field, cell_nodes, fProjection);
+}
+
+/* calculate the fine scale part of MD solution as well as total displacement u */
+void FEManagerT_bridging::BridgingFields(const StringT& field, NodeManagerT& atom_node_manager, 
+	NodeManagerT& fem_node_manager, dArray2DT& totalu)
+{
+	const char caller[] = "FEManagerT_bridging::ProjectField";
+
+	/* get the fem and md fields */
+	FieldT* atom_field = atom_node_manager.Field(field);
+	FieldT* fem_field = fem_node_manager.Field(field);
+	if (!atom_field) ExceptionT::GeneralFail(caller, "could not resolve source field \"%s\"", field.Pointer());
+	if (!fem_field) ExceptionT::GeneralFail(caller, "could not resolve source field \"%s\"", field.Pointer());
+	
+	/* compute the fine scale part of MD solution as well as total displacement u */
+	const dArray2DT& atom_values = (*atom_field)[0];
+	const dArray2DT& fem_values = (*fem_field)[0];
+	BridgingScale().BridgingFields(field, fDrivenCellData, atom_values, fem_values, fProjection, totalu);
+}
+
+
 /* the residual for the given group */
 const dArrayT& FEManagerT_bridging::Residual(int group) const 
 {
@@ -360,6 +492,20 @@ void FEManagerT_bridging::SetReferenceError(int group, double error) const
 	if (solver) solver->SetReferenceError(error);
 }
 
+/* return the internal forces for the given solver group associated with the
+ * most recent call to FEManagerT_bridging::FormRHS. */
+const dArray2DT& FEManagerT_bridging::InternalForce(int group) const
+{
+//TEMP - only look for the contribution from the particle group
+	const char caller[] = "FEManagerT_bridging::InternalForce";
+	if (!fParticle)
+		ExceptionT::GeneralFail(caller, "particle group not set");
+	else if (!fParticle->InGroup(group))
+		ExceptionT::GeneralFail(caller, "particles are not in group %d", group);
+		
+	return fParticle->InternalForce(group);
+}
+
 /*************************************************************************
  * Protected
  *************************************************************************/
@@ -367,15 +513,21 @@ void FEManagerT_bridging::SetReferenceError(int group, double error) const
 /* initialize solver information */
 void FEManagerT_bridging::SetSolver(void)
 {
-	/* inherited */
-	FEManagerT::SetSolver();
-
 	/* dimension list of cumulative update vectors */
 	fCumulativeUpdate.Dimension(NumGroups());
 	
 	/* dimension list of pointers to external force vectors */
 	fExternalForce.Dimension(NumGroups());
 	fExternalForce = NULL;
+
+	fExternalForce2D.Dimension(NumGroups());
+	fExternalForce2DNodes.Dimension(NumGroups());
+	fExternalForce2DEquations.Dimension(NumGroups());
+	fExternalForce2D = NULL;
+	fExternalForce2DNodes = NULL;
+
+	/* inherited */
+	FEManagerT::SetSolver();
 }
 
 /*************************************************************************

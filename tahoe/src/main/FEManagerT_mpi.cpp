@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.29 2003-04-07 17:26:49 cjkimme Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.28 2003-01-27 07:00:27 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -475,27 +475,21 @@ void FEManagerT_mpi::DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph,
 	/* connectivities for partititioning */
 	AutoArrayT<const iArray2DT*> connects_1;
 	AutoArrayT<const RaggedArray2DT<int>*> connects_2;
-	AutoArrayT<const iArray2DT*> equivalent_nodes;
 
 	/* collect connectivies from all solver groups */
 	for (int i = 0; i < NumGroups(); i++)
-		fNodeManager->ConnectsU(i,connects_1,connects_2, equivalent_nodes);
-	
+		fNodeManager->ConnectsU(i,connects_1,connects_2);
+
 	/* collect element groups */
 	for (int s = 0 ; s < fElementGroups.Length(); s++)
 		fElementGroups[s]->ConnectsU(connects_1, connects_2);
-		
 
 	/* initialize graph */
 	GraphT& graphU = graph;
 	for (int r = 0; r < connects_1.Length(); r++)
-		graphU.AddGroup(*(connects_1[r])); 
-
+		graphU.AddGroup(*(connects_1[r]));
 	for (int k = 0; k < connects_2.Length(); k++)
 		graphU.AddGroup(*(connects_2[k]));
-
-	for (int k = 0; k < equivalent_nodes.Length(); k++)
-		graphU.AddEquivalentNodes(*(equivalent_nodes[k]));
 		
 	/* make graph */
 	clock_t t0 = clock();

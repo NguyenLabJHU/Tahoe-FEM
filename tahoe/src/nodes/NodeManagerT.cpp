@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.28 2003-04-24 20:40:23 cjkimme Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.24.2.1 2003-05-12 22:34:06 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -37,7 +37,6 @@
 #include "TiedNodesT.h"
 #include "SymmetricNodesT.h"
 #include "PeriodicNodesT.h"
-#include "ScaledVelocityNodesT.h"
 
 using namespace Tahoe;
 
@@ -82,13 +81,15 @@ int NodeManagerT::NumEquations(int group) const
 	return neq; 
 }
 
-int NodeManagerT::NumFields(int group) const 
+int NodeManagerT::NumDOF(int group) const
 {
-	int num_fields = 0;
+	/* sum over fields */
+	int ndof = 0;
 	for (int i = 0; i < fFields.Length(); i++)
 		if (fFields[i]->Group() == group)
-			num_fields++;
-	return num_fields; 
+			ndof += fFields[i]->NumDOF();
+			
+	return ndof; 
 }
 
 /* return a pointer to the specified load time function */
@@ -222,13 +223,12 @@ void NodeManagerT::Equations(int group, AutoArrayT<const iArray2DT*>& eq_1,
 
 void NodeManagerT::ConnectsU(int group, 
 	AutoArrayT<const iArray2DT*>& connects_1,
-	AutoArrayT<const RaggedArray2DT<int>*>& connects_2,
-	AutoArrayT<const iArray2DT*>& equivalent_nodes) const
+	AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const
 {
 	/* from fields */
 	for (int i = 0; i < fFields.Length(); i++)
 		if (fFields[i]->Group() == group)
-			fFields[i]->Connectivities(connects_1, connects_2, equivalent_nodes);
+			fFields[i]->Connectivities(connects_1, connects_2);
 }
 
 /* return the implicit-explicit flag for the given group */
@@ -503,9 +503,6 @@ void NodeManagerT::WriteOutput(void)
 			}
 		}
 	}
-
-#pragma message("NodeManagerT -- Necessary kludge here")
-	UpdateCurrentCoordinates();
 
 	/* nodal histories */
 //NOTE - moved here from CloseStep	
@@ -1750,11 +1747,6 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 		case KBC_ControllerT::kPeriodicNodes:
 		{
 			PeriodicNodesT* kbc = new PeriodicNodesT(*this, field);
-			return kbc;
-		}
-		case KBC_ControllerT::kScaledVelocityNodes:
-		{
-			ScaledVelocityNodesT* kbc = new ScaledVelocityNodesT(*this, field);
 			return kbc;
 		}
 		default:

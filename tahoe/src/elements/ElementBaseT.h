@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.26 2003-02-21 22:31:28 cjkimme Exp $ */
+/* $Id: ElementBaseT.h,v 1.26.4.2 2003-05-09 08:47:24 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -265,8 +265,16 @@ public:
 	 * \param weight array length number of nodes */
 	virtual void WeightNodalCost(iArrayT& weight) const;
 
-	/** moved from protected to public by HSP on 7-19-02 */
+	/** array of nodes used by the element group */
 	void NodesUsed(ArrayT<int>& nodes_used) const;
+
+	/** contribution to the nodal residual forces. Return the contribution of this element
+	 * group to the residual for the given solver group. 
+	 * \note ElementBaseT::InternalForce is not implemented and throws ExceptionT::kGeneralFail. 
+	 *       Subclasses need to implemented this method if it is required. This may turn out to
+	 *       be a more general approach for collecting the total residual for the given solver
+	 *       group and could replace the current approach implemented through ElementBaseT::FormRHS. */
+	virtual const dArray2DT& InternalForce(int group);
 
 protected: /* for derived classes only */
 

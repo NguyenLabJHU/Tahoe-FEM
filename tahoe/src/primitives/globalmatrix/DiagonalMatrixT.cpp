@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.12 2003-04-08 23:00:53 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.11 2002-11-25 07:13:40 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "DiagonalMatrixT.h"
 #include <iostream.h>
@@ -146,15 +146,12 @@ void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& 
 void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 	const nArrayT<int>& col_eqnos)
 {
-	/* pick out diagonal values */
-	for (int row = 0; row < row_eqnos.Length(); row++)
-		for (int col = 0; col < col_eqnos.Length(); col++)
-			if (row_eqnos[row] == col_eqnos[col])
-			{
-				int eqno = row_eqnos[row] - 1;
-				if (eqno > -1)
-					fMatrix[eqno] += elMat(row, col);
-			}
+#pragma unused(elMat)
+#pragma unused(row_eqnos)
+#pragma unused(col_eqnos)
+
+	cout << "\n DiagonalMatrixT::Assemble(m,r,c): not implemented" << endl;
+	throw ExceptionT::kGeneralFail;
 }
 
 void DiagonalMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)

@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.39 2003-05-12 23:44:05 thao Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.37 2003-03-31 23:14:40 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 #include "fstreamT.h"
@@ -69,17 +69,8 @@
 #include "FDSV_KStV2D.h"
 #endif
 
-#ifdef VISCOELASTICITY
-#include "SSLinearVE2D.h"
-#include "RGSplitT.h"
-#endif
-
 #ifdef ELASTIC_OGDEN_MATERIAL_DEV
 #include "OgdenMaterialT.h"
-#endif
-
-#ifdef J2PLASTICITY_MATERIALS_DEV
-#include "SSJ2LinHard2D.h"
 #endif
 
 #ifdef ABAQUS_MATERIAL
@@ -375,32 +366,6 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				ExceptionT::BadInputValue(caller, "FOSSUM_MATERIAL not enabled: %d", matcode);
 #endif
 			}
-			case kSSLinearVE:
-			{
-#ifdef VISCOELASTICITY
-				/* check */
-				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
-			
-				fArray[matnum] = new SSLinearVE2D(in, *fSSMatSupport);
-				fHasHistory = true;
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "VISCOELASTICITY not enabled: %d", matcode);
-#endif
-			}
-			case kRGSplitVE:
-			{
-#ifdef VISCOELASTICITY
-				/* check */
-				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
-			
-				fArray[matnum] = new RGSplitT(in, *fFSMatSupport);
-				fHasHistory = true;
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "VISCOELASTICITY not enabled: %d", matcode);
-#endif
-			}
 			case kThermoViscoPlastic:
 			{
 #ifdef THERMO_VISCO_PLASTIC_MATERIAL
@@ -657,19 +622,6 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "ELASTIC_OGDEN_MATERIAL_DEV not enabled: %d", matcode);
-#endif
-			}
-			case kSSJ2LinHard:
-			{
-#ifdef J2PLASTICITY_MATERIALS_DEV
-				/* check */
-				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
-
-				fArray[matnum] = new SSJ2LinHard2D(in, *fSSMatSupport);
-				fHasHistory = true;
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "J2PLASITICITY_MATERIALS_DEV not enabled: %d", matcode);
 #endif
 			}
 //TEMP

@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.13 2003-05-06 17:33:46 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.10.2.2 2003-05-09 08:47:25 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -6,10 +6,8 @@
 #include "ElementBaseT.h"
 
 /* direct members */
-#include "VariArrayT.h"
 #include "nVariArray2DT.h"
 #include "InverseMapT.h"
-#include "dArray2DT.h"
 
 namespace Tahoe {
 
@@ -19,8 +17,6 @@ class CommManagerT;
 class ParticlePropertyT;
 class dSPMatrixT; //TEMP
 class InverseMapT;
-class RandomNumberT;
-class ThermostatBaseT;
 
 /** base class for particle types */
 class ParticleT: public ElementBaseT
@@ -93,6 +89,11 @@ public:
 	virtual void FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 		const iArray2DT& col_eq, dSPMatrixT& stiffness) = 0;
 
+	/** contribution to the nodal residual forces. Return the contribution of this element
+	 * group to the residual for the given solver group. ParticleT::InternalForce 
+	 * returns the internal force calculated with the latest call to ElementBaseT::FormRHS. */
+	virtual const dArray2DT& InternalForce(int group);
+
 protected: /* for derived classes only */
 
 	/** echo element connectivity data. Reads parameters that define
@@ -135,13 +136,6 @@ protected: /* for derived classes only */
 	 * stored in ParticleT::fReNeighborCoords. The maximum is over local atoms
 	 * only. */
 	double MaxDisplacement(void) const;
-	
-	/** Apply thermostatting/damping constraints to forces */
-	void ApplyDamping(const RaggedArray2DT<int>& fNeighbors);
-
-	/** Read in damping and thermostatting paramters. Called from
-	 *  Initialize */
-	virtual void EchoDamping(ifstreamT& in, ofstreamT& out);
 
 protected:
 
@@ -149,7 +143,7 @@ protected:
 	int fOutputID;
 	
 	/** communications manager */
-	CommManagerT& fCommManager;
+	const CommManagerT& fCommManager;
 
 	/** \name local to global tag map.
 	 * Used for things like neighbor lists */
@@ -218,22 +212,6 @@ protected:
 	double fDmax;  /**< maximum distance between the current
 	                    coordinates and the coordinates in ParticleT::fReNeighborCoords.
 	                    This value is computed during ParticleT::RelaxSystem. */
-
-	/* Damping, thermostatting variables */
-	bool QisDamped;
-	RandomNumberT* fRandom;
-	ArrayT<ThermostatBaseT*> fThermostats;
-	int nThermostats;
-
-	/** \name workspace for ParticlePairT::RHSDriver. Used to accumulate the force for
-	 * a single row of ParticlePairT::fNeighbors. */
-	/*@{*/
-	dArrayT fForce_list;
-	VariArrayT<double> fForce_list_man;
-
-	/** constant matrix needed to compute the stiffness */
-	dMatrixT fOneOne;
-	/*@}*/
 
 private:
 

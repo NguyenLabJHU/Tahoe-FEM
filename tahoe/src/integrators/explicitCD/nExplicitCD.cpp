@@ -1,4 +1,4 @@
-/* $Id: nExplicitCD.cpp,v 1.9 2003-04-16 20:34:02 cjkimme Exp $ */
+/* $Id: nExplicitCD.cpp,v 1.8 2003-01-29 07:35:15 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "nExplicitCD.h"
 #include "iArrayT.h"
@@ -53,11 +53,6 @@ void nExplicitCD::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		{
 			a  = KBC.Value();
 			v += vcorr_a*a;
-			break;
-		}
-
-		case KBC_CardT::kNull: /* do nothing */
-		{
 			break;
 		}
 

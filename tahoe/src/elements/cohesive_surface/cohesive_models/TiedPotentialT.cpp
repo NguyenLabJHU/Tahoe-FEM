@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.18 2003-04-22 19:02:06 cjkimme Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.14 2003-03-27 16:08:12 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -17,12 +17,10 @@ using namespace Tahoe;
 
 const int    knumDOF = 2;
 const double kExpMax = 100;
-const int nTiedFlag = 0;
 
 /* constructor */
 TiedPotentialT::TiedPotentialT(ifstreamT& in): 
-	SurfacePotentialT(knumDOF), TiedPotentialBaseT(),
-	qRetieNodes(false)
+	SurfacePotentialT(knumDOF), TiedPotentialBaseT()
 {
     in >> fnvec1; /* read in direction to sample stress state at */
     in >> fnvec2;
@@ -42,11 +40,6 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in):
     	if (iBulkGroups[i] < 0) throw ExceptionT::kBadInputValue;
     	iBulkGroups[i]--;
     }
-    
-    int willRetie;
-    in >> willRetie;
-    if (willRetie == 1) 
-    	qRetieNodes = true;
     
 	in >> qTv; /* 0 for Xu-Needleman. 1 for TvergHutch */
 	
@@ -73,6 +66,7 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in):
 	}
 	else
 	{
+	  	double q, r;
 	  	in >> q;	// phi_t/phi_n
 	  	in >> r; //delta_n* /d_n
 	  	if (q < 0.0 || r < 0.0) throw ExceptionT::kBadInputValue;
@@ -89,11 +83,6 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in):
 
 /* return the number of state variables needed by the model */
 int TiedPotentialT::NumStateVariables(void) const { return 1; }
-
-void TiedPotentialT::InitStateVariables(ArrayT<double>& state)
-{
-	state[nTiedFlag] = kTiedNode;
-}
 
 /* surface potential */ 
 double TiedPotentialT::FractureEnergy(const ArrayT<double>& state) 
@@ -134,7 +123,7 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 #endif
 
 
-	if (state[nTiedFlag] == kTiedNode)
+	if (state[0] != 1. && state[0] != -10.)
 	{
 			fTraction = 0.;
 	}
@@ -175,11 +164,8 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 						fTraction = 0.;
 		}
 		
-		/* handle tied flag updates */
-		if (state[nTiedFlag] == kReleaseNextStep && qIntegrate)
-			state[nTiedFlag] = kFreeNode;
-		if (state[nTiedFlag] == kTieNextStep && qIntegrate)
-			state[nTiedFlag] = kTiedNode;
+		if (state[0] == -10. && qIntegrate)
+			state[0] = 1.;
 	}
 
 	return fTraction;
@@ -187,8 +173,7 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 }
 
 /* potential stiffness */
-const dMatrixT& TiedPotentialT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, 
-										const dArrayT& sigma)
+const dMatrixT& TiedPotentialT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
@@ -196,7 +181,7 @@ const dMatrixT& TiedPotentialT::Stiffness(const dArrayT& jump_u, const ArrayT<do
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif 
 	
-	if (state[nTiedFlag] == kTiedNode)
+	if (state[0] != -10. && state[0] != 1.)
 	{
 		fStiffness = 0.;
 	}
@@ -285,7 +270,7 @@ SurfacePotentialT::StatusT TiedPotentialT::Status(const dArrayT& jump_u,
 	double u_t  = sqrt(u_t1*u_t1);
 	double u_n ;
 	if (!qTv)
-		u_n = jump_u[1] + d_n;
+		u_n = jump_u[1]+d_n;
 	else
 		u_n = jump_u[1] + fL_0*d_n;
 	
@@ -310,27 +295,10 @@ void TiedPotentialT::PrintName(ostream& out) const
 void TiedPotentialT::Print(ostream& out) const
 {
 #ifndef _SIERRA_TEST_
-	out <<  " Tangential Component of traction direction. . . = " << fnvec1 << '\n';
-	out <<  " Normal Component of traction direction. . . . . = " << fnvec2 << '\n';	
-	out << 	" Critical traction mag for nodal release . . . . = " << fsigma_critical << '\n';		
-	if (qTv)
-	{
-		out << " Cohesive stress . . . . . . . . . . . . . . . . = " << fsigma << '\n';
-		out << " Normal opening to failure . . . . . . . . . . . = " << d_n     << '\n';
-		out << " Tangential opening to failure . . . . . . . . . = " << d_t     << '\n';
-		out << " Non-dimensional opening to peak traction. . . . = " << fL_1       << '\n';
-		out << " Non-dimensional opening to declining traction . = " << fL_2       << '\n';
-		out << " Non-dimensional opening to failure. . . . . . . = " << r_fail    << '\n';
-	}
-	else
-	{
-		out << " Surface energy ratio (phi_t/phi_n). . . . . . . = " << q       << '\n';
-		out << " Critical opening ratio (delta_n* /d_n). . . . . = " << r       << '\n';
-		out << " Characteristic normal opening to failure. . . . = " << d_n     << '\n';
-		out << " Characteristic tangential opening to failure. . = " << d_t     << '\n';
-		out << " Mode I work to fracture (phi_n) . . . . . . . . = " << phi_n   << '\n';
-		out << " Failure ratio (d_n/delta_n or d_t/delta_t). . . = " << r_fail   << '\n';
-	}
+	out << " Characteristic normal opening to failure. . . . = " << d_n     << '\n';
+	out << " Characteristic tangential opening to failure. . = " << d_t     << '\n';
+	out << " Mode I work to fracture (phi_n) . . . . . . . . = " << phi_n   << '\n';
+	out << " Failure ratio (d_n/delta_n or d_t/delta_t). . . = " << r_fail   << '\n';
 #endif
 }
 
@@ -354,13 +322,10 @@ void TiedPotentialT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& 
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif	
 
-	output[0] = 0.;//state[nTiedFlag];
+	output[0] = 0.;//state[0];
 }
 
 bool TiedPotentialT::NeedsNodalInfo(void) { return true; }
-
-bool TiedPotentialT::NodesMayRetie(void) { return qRetieNodes; }
-
 
 int TiedPotentialT::NodalQuantityNeeded(void) 
 { 
@@ -373,19 +338,6 @@ bool TiedPotentialT::InitiationQ(const double* sigma)
 	double t2 = sigma[2]*fnvec1+sigma[1]*fnvec2;
 	
 	return t1*t1 + t2*t2 >= fsigma_critical;
-}
-
-bool TiedPotentialT::RetieQ(const double* sigma, const ArrayT<double>& state,
-							const dArrayT& jump_u)
-{
-#pragma unused(state)
-#pragma unused(sigma)
-/* to pass the benchmark, default will be to retie in compression. 
- * For other calculations, implement your own routine */
-	if (qRetieNodes)
-		return jump_u[1] < kSmall; 
-	else 
-		return false;
 }
 
 bool TiedPotentialT::CompatibleOutput(const SurfacePotentialT& potential) const

@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.30 2003-05-12 23:44:06 thao Exp $ */
+/* $Id: SolidT.h,v 1.28 2003-03-31 23:14:40 paklein Exp $ */
 /* created: paklein (03/10/2001) */
 #ifndef _MATERIAL_T_H_
 #define _MATERIAL_T_H_
@@ -34,8 +34,6 @@ kmodCauchyBornDC = 15,
     kIsoVIBOgden = 18,
    kIsoVIBSimoJ2 = 19,
             kFCC = 20,
-     kSSLinearVE = 21,
-      kRGSplitVE = 22,
     kFossumSSIso = 26,
 kThermoViscoPlastic = 30,
        kPovirk2D = 31,
@@ -52,10 +50,10 @@ kLocXtalPlastFp_C = 56,
  kGrdXtalPlastFp = 57,
           kRGVIB = 60,
 	kRGSplit = 61,
+   kSVNeoHookean = 62,
        kFDSVKStV = 63,
        kSSSVKStV = 64,
        kOgdenMat = 65,
-    kSSJ2LinHard = 66,
   kLocJ2SSNlHard = 70,
   kGrdJ2SSNlHard = 71,
      kABAQUS_BCJ = 80,

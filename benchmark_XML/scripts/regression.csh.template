@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: regression.csh.template,v 1.14 2003-04-07 19:02:56 paklein Exp $
+# $Id: regression.csh.template,v 1.13 2003-04-01 18:43:39 paklein Exp $
 
 # username on Tahoe server
 set TAHOE_USER =
@@ -23,7 +23,7 @@ set MODULES = (macros toolbox tahoe benchmark)
 ######### hopefully no changes will be required below #########
 
 # set path
-set path=(${W_DIR}/benchmark/scripts ${W_DIR}/bin /bin /usr/bin /usr/local/bin /usr/X11R6/bin /usr/bin/X11 /usr/ccs/bin /usr/sbin /usr/local/ssh /usr/ucb /etc /usr/openwin/bin /project/local/bin $path)
+set path=(${W_DIR}/benchmark/scripts /bin /usr/bin /usr/local/bin /usr/X11R6/bin /usr/bin/X11 /usr/ccs/bin /usr/sbin /usr/local/ssh /usr/ucb /etc /usr/openwin/bin /project/local/bin $path)
 
 # CVS
 setenv CVS_RSH ssh
@@ -34,15 +34,11 @@ set TAHOE = tahoe
 # build modules (in build order)
 set BUILD_MODULES = (toolbox tahoe)
 
-# command
-set RM = 'rm -f'
-set MV = 'mv -f'
-
 ###################### regression test ########################
 # clear log files
 cd ${W_DIR}
-if (-e make.stderr) ${RM} make.stderr
-if (-e make.stdout) ${RM} make.stdout
+if (-e make.stderr) rm make.stderr
+if (-e make.stdout) rm make.stdout
 #
 # resolve test requestor - first command line argument of $TAHOE_USER
 #
@@ -68,11 +64,11 @@ ${ECHO} "removing object code..."
 foreach mod ($BUILD_MODULES)
 	cd ${W_DIR}/$mod
 	if (-e ./lib/lib$mod.a) then
-		${RM} ./lib/lib$mod.a
+		rm ./lib/lib$mod.a
 	endif
 end
 if (-e ${W_DIR}/tahoe/${TAHOE}) then
-	${RM} ${W_DIR}/tahoe/${TAHOE}
+	rm ${W_DIR}/tahoe/${TAHOE}
 endif
 #
 # rebuild libraries and executables
@@ -102,8 +98,8 @@ if (-x ${W_DIR}/tahoe/${TAHOE} && -x ${W_DIR}/benchmark/comparator/compare) then
 
 	# test results 
     ${ECHO}  "running COMPARATOR..."
-	if (-e compare.summary) ${RM} compare.summary
-	if (-e compare.console) ${RM} compare.console
+	if (-e compare.summary) rm compare.summary
+	if (-e compare.console) rm compare.console
     ${W_DIR}/benchmark/comparator/compare -f run.batch >&! compare.console
 
 	# assess results

@@ -1,4 +1,4 @@
-/* $Id: ParticlePropertyT.h,v 1.6 2003-04-18 19:01:54 cjkimme Exp $ */
+/* $Id: ParticlePropertyT.h,v 1.3 2003-04-05 08:34:41 paklein Exp $ */
 #ifndef _PARTICLE_PROPERTY_T_H_
 #define _PARTICLE_PROPERTY_T_H_
 
@@ -19,9 +19,8 @@ public:
           kParadynEAM = 3  /**< EAM potentials in Paradyn format */
 	};
 	
-	
-	/** stream extraction operators */
-	friend istream& operator>>(istream& in, ParticlePropertyT::TypeT& property);
+	/** stream extraction operator */
+	friend istream& operator>>(istream& in, ParticlePropertyT::TypeT& property);	
 
 	/** constructor */
 	ParticlePropertyT(void);

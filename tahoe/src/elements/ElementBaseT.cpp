@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.34 2003-02-21 22:31:28 cjkimme Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.34.4.3 2003-05-10 17:53:40 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -324,10 +324,12 @@ void ElementBaseT::WeightNodalCost(iArrayT& weight) const
 	}
 }
 
-/* moved from protected to public by HSP on 7-19-02 */
+/* array of nodes used by the element group */
 void ElementBaseT::NodesUsed(ArrayT<int>& nodes_used) const
 {
-       int num_blocks = fBlockData.Length();
+	int num_blocks = fBlockData.Length();
+	if (num_blocks == 0)
+		ExceptionT::GeneralFail("ElementBaseT::NodesUsed", "fBlockData is not set");
 
        iArrayT mins (num_blocks);
        iArrayT maxes (num_blocks);
@@ -360,6 +362,14 @@ void ElementBaseT::NodesUsed(ArrayT<int>& nodes_used) const
 	int*  p = node_map.Pointer();
 	for (int j = 0; j < node_map.Length(); j++)
 		if (*p++ == 1) nodes_used[dex++] = j + min;
+}
+
+/* contribution to the nodal residual forces */
+const dArray2DT& ElementBaseT::InternalForce(int group)
+{
+#pragma unused(group)
+	ExceptionT::GeneralFail("ElementBaseT::InternalForce", "not implemented");
+	return ElementSupport().CurrentCoordinates(); /* dummy */
 }
 
 /***********************************************************************

@@ -1,4 +1,4 @@
-/* $Id: KBC_CardT.h,v 1.5 2003-04-16 18:06:46 cjkimme Exp $ */
+/* $Id: KBC_CardT.h,v 1.4 2002-07-02 19:56:42 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _KBC_CARD_T_H_
@@ -23,8 +23,7 @@ public:
 	enum CodeT {kFix = 0,
                 kDsp = 1,
                 kVel = 2,
-                kAcc = 3,
-                kNull= 4};
+                kAcc = 3};
 
 	/* constructor */
 	KBC_CardT(void);

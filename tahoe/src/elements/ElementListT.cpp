@@ -1,7 +1,8 @@
-/* $Id: ElementListT.cpp,v 1.50 2003-04-22 01:20:42 saubry Exp $ */
+/* $Id: ElementListT.cpp,v 1.46 2003-04-03 01:09:07 saubry Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
+
 #ifdef __DEVELOPMENT__
 #include "DevelopmentElementsConfig.h"
 #endif
@@ -201,9 +202,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		out << "    eq. " << ElementT::kBridgingScale      << ", Bridging Scale\n";
 		out << "    eq. " << ElementT::kSimoQ1P0           << ", Q1P0 mixed element\n";
 		out << "    eq. " << ElementT::kAdhesion           << ", surface adhesion\n";
-		out << "    eq. " << ElementT::kParticlePair       << ", Pair Potential\n";
-		out << "    eq. " << ElementT::kEAM                << ", EAM Potential\n";
-
 
 		/* create new element group - read control parameters
 		   and allocate space in the contructors */
@@ -552,6 +550,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			ExceptionT::BadInputValue(caller, "PARTICLE_ELEMENT not enabled: %d", code);
 #endif				
 		}
+
 		// SA
 		case ElementT::kEAM:
 		{
@@ -562,7 +561,12 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			ExceptionT::BadInputValue(caller, "PARTICLE_ELEMENT not enabled: %d", code);
 #endif				
 		}
-		case ElementT::kFSMatForce:
+
+
+
+
+		/********************************************************/
+			case ElementT::kFSMatForce:
 			{
 #ifdef SOLID_ELEMENT_DEV
 				fArray[group] = new UpdatedLagrangianMF(fSupport, *field);
@@ -580,6 +584,8 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
 #endif
 			}
+	       /*******************************************************/
+
 		default:
 			ExceptionT::BadInputValue(caller, "unknown element type: %d", code);
 		}

@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.cpp,v 1.6 2003-04-07 17:25:48 cjkimme Exp $ */
+/* $Id: FBC_ControllerT.cpp,v 1.5 2003-03-31 23:03:04 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #include "FBC_ControllerT.h"
 #include "ArrayT.h"
@@ -43,12 +43,10 @@ void FBC_ControllerT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 }
 
 void FBC_ControllerT::Connectivities(AutoArrayT<const iArray2DT*>& connects_1,
-	AutoArrayT<const RaggedArray2DT<int>*>& connects_2,
-	AutoArrayT<const iArray2DT*>& equivalent_nodes) const
+	AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const
 {
 #pragma unused(connects_1)
 #pragma unused(connects_2)
-#pragma unused(equivalent_nodes)
 // By default, the FBC controllers do not generate any additional
 // degrees of freedom and therefore do not need to send any DOF tag
 // sets to the solver.

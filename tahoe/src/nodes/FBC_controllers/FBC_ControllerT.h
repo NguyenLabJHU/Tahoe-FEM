@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.h,v 1.9 2003-04-07 17:25:48 cjkimme Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.8 2003-01-29 07:35:22 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #ifndef _FBC_CONTROLLER_T_H_
 #define _FBC_CONTROLLER_T_H_
@@ -52,8 +52,7 @@ public:
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 	virtual void Connectivities(AutoArrayT<const iArray2DT*>& connects_1,
-		AutoArrayT<const RaggedArray2DT<int>*>& connects_2,
-		AutoArrayT<const iArray2DT*>& equivalent_nodes) const;
+		AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
 
 	/* initial condition/restart functions
 	 *

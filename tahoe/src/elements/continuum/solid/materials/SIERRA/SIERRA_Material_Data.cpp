@@ -1,7 +1,5 @@
-/* $Id: SIERRA_Material_Data.cpp,v 1.6 2003-05-05 00:58:29 paklein Exp $ */
+/* $Id: SIERRA_Material_Data.cpp,v 1.3 2003-03-09 21:58:50 paklein Exp $ */
 #include "SIERRA_Material_Data.h"
-
-using namespace Tahoe;
 
 /* static data */
 int SIERRA_Material_Data::sNextID = 0;
@@ -18,9 +16,7 @@ SIERRA_Material_Data::SIERRA_Material_Data(const StringT& name, int XML_command_
 	fInitFunction(NULL)
 {
 	fXMLCommandID.Append(XML_command_id);
-//	fPropertyMap.SetCompareFunction(SIERRA_Material_Data::Compare);
-// NOTE: not needed now that all fortran strings should be translated to C strings
-//       before calling SIERRA_Material_Data methods.
+	fPropertyMap.SetCompareFunction(SIERRA_Material_Data::Compare);
 }
 
 /* register input variable name */
@@ -28,8 +24,6 @@ void SIERRA_Material_Data::AddInputVariable(const StringT& input_var)
 {
 	int size = -1;
 	if (input_var == "rot_strain_inc")
-		size = 6;
-	else if (input_var == "rot_strain_increment")
 		size = 6;
 	//others?
 	
