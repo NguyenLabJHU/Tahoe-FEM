@@ -1,4 +1,4 @@
-/* $Id: IntegratorT.cpp,v 1.3 2002-06-08 20:20:11 paklein Exp $ */
+/* $Id: IntegratorT.cpp,v 1.4 2002-07-02 19:55:07 cjkimme Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "IntegratorT.h"
@@ -8,6 +8,9 @@
 #include "dArrayT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 IntegratorT::IntegratorT(void): fdt(-1.0) { }
 
 /* destructor */

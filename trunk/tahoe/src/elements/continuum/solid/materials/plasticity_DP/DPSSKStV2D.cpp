@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV2D.cpp,v 1.6 2001-08-15 16:54:41 cfoster Exp $ */
+/* $Id: DPSSKStV2D.cpp,v 1.7 2002-07-02 19:56:09 cjkimme Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 #include "DPSSKStV2D.h"
@@ -6,6 +6,9 @@
 #include "StringT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 DPSSKStV2D::DPSSKStV2D(ifstreamT& in, const SmallStrainT& element):
 	DPSSKStV(in, element),
 	Material2DT(in, kPlaneStrain),

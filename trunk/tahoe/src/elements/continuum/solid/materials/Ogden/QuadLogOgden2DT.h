@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden2DT.h,v 1.2 2001-07-03 01:35:13 paklein Exp $ */
+/* $Id: QuadLogOgden2DT.h,v 1.3 2002-07-02 19:55:47 cjkimme Exp $ */
 /* created: paklein (02/18/2001)                                          */
 /* plane strain QuadLog with Ogden principal stretch formulation          */
 
@@ -8,6 +8,9 @@
 /* base classes */
 #include "OgdenIsotropicT.h"
 #include "Material2DT.h"
+
+
+namespace Tahoe {
 
 class QuadLogOgden2DT: public OgdenIsotropicT, public Material2DT
 {
@@ -36,4 +39,5 @@ private:
 	dArrayT flogE;		
 };
 
+} // namespace Tahoe 
 #endif /* _QUAD_LOG_ISO_2D_T_H_ */

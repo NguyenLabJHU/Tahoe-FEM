@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.h,v 1.3 2002-06-08 20:20:49 paklein Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.4 2002-07-02 19:56:28 cjkimme Exp $ */
 /* created: paklein (11/17/1997) */
 
 #ifndef _FBC_CONTROLLER_T_H_
@@ -9,6 +9,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 class FEManagerT;
 class SolverT;
@@ -90,4 +93,5 @@ protected:
 	const eControllerT* fController;
 };
 
+} // namespace Tahoe 
 #endif /* _FBC_CONTROLLER_T_H_ */

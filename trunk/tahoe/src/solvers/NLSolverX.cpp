@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.cpp,v 1.3 2002-06-08 20:20:55 paklein Exp $ */
+/* $Id: NLSolverX.cpp,v 1.4 2002-07-02 19:57:11 cjkimme Exp $ */
 /* created: paklein (08/25/1996) */
 #include "NLSolverX.h"
 
@@ -11,6 +11,9 @@
 #include "CCSMatrixT.h"
 
 /* control parameters */
+
+using namespace Tahoe;
+
 const int		kQuickConvTol = 6;
 const int		kBiggerIncTol = 3;
 const double	kRelDivTol    = 10.0;	

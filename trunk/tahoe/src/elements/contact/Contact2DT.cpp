@@ -1,6 +1,5 @@
-/* $Id: Contact2DT.cpp,v 1.3 2002-06-08 20:20:19 paklein Exp $ */
+/* $Id: Contact2DT.cpp,v 1.4 2002-07-02 19:55:18 cjkimme Exp $ */
 /* created: paklein (05/26/1999) */
-
 #include "Contact2DT.h"
 
 #include <math.h>
@@ -15,6 +14,8 @@
 /* parameters */
 const int kNumFacetNodes = 2;
 const int kMaxNumGrid    = 75;
+
+using namespace Tahoe;
 
 /* constructor */
 Contact2DT::Contact2DT(const ElementSupportT& support, const FieldT& field):

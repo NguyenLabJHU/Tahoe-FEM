@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.cpp,v 1.2 2001-07-03 01:35:41 paklein Exp $ */
+/* $Id: DiffusionMaterialT.cpp,v 1.3 2002-07-02 19:56:21 cjkimme Exp $ */
 /* created: paklein (10/02/1999)                                          */
 
 #include "DiffusionMaterialT.h"
@@ -14,6 +14,9 @@
 #include "DiffusionT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 DiffusionMaterialT::DiffusionMaterialT(ifstreamT& in, const DiffusionT& element):
 	ContinuumMaterialT(element),
 	fLocDisp(element.Displacements()),

@@ -1,4 +1,4 @@
-/* $Id: SpherePointsT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: SpherePointsT.h,v 1.2 2002-07-02 19:56:00 cjkimme Exp $ */
 /* created: paklein (10/31/1997)                                          */
 /* Base class for spherical point generators.                             */
 
@@ -9,6 +9,9 @@
 #include "dArray2DT.h"
 #include "dMatrixT.h"
 #include "dArrayT.h"
+
+
+namespace Tahoe {
 
 class SpherePointsT
 {
@@ -62,4 +65,5 @@ private:
 			
 };
 
+} // namespace Tahoe 
 #endif /* _SPHERE_PTS_T_H_ */

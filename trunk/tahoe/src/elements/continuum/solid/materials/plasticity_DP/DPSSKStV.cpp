@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.15 2002-02-26 01:49:33 raregue Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.16 2002-07-02 19:56:09 cjkimme Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 
@@ -9,6 +9,9 @@
 #include <iostream.h>
 
 /* parameters */
+
+using namespace Tahoe;
+
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSurfaceSupportT.h,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* $Id: MeshFreeSurfaceSupportT.h,v 1.2 2002-07-02 19:56:56 cjkimme Exp $ */
 /* created: paklein (02/22/2000)                                          */
 
 #ifndef _MF_SURFACE_SUPPORT_T_H_
@@ -14,6 +14,9 @@
 #include "iAutoArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class MeshFreeSupportT;
 class dArray2DT;
 class SurfaceShapeT;
@@ -146,4 +149,5 @@ inline int MeshFreeSurfaceSupportT::NumberOfNeighbors(int facet) const
 //{
 //	return fNodesUsed;
 //}
+} // namespace Tahoe 
 #endif /* _MF_SURFACE_SUPPORT_T_H_ */

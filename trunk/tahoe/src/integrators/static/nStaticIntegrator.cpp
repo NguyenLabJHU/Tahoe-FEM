@@ -1,4 +1,4 @@
-/* $Id: nStaticIntegrator.cpp,v 1.3 2002-06-08 20:20:12 paklein Exp $ */
+/* $Id: nStaticIntegrator.cpp,v 1.4 2002-07-02 19:55:09 cjkimme Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "nStaticIntegrator.h"
@@ -9,6 +9,9 @@
 #include "iArray2DT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 nStaticIntegrator::nStaticIntegrator(void) { }
 
 /* consistent BC's */

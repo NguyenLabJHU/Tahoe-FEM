@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.4 2002-06-08 20:20:22 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.5 2002-07-02 19:55:24 cjkimme Exp $ */
 
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
@@ -7,6 +7,9 @@
 #include "ElasticT.h"
 
 /** Interface for linear strain deformation and field gradients */
+
+namespace Tahoe {
+
 class SmallStrainT: public ElasticT
 {
   public:
@@ -136,4 +139,5 @@ inline const dSymMatrixT& SmallStrainT::LinearStrain_last(int ip) const
 	return fStrain_last_List[ip];
 }
 
+} // namespace Tahoe 
 #endif /* _SMALLSTRAIN_T_H_ */

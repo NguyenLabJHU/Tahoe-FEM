@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.cpp,v 1.4 2002-06-08 20:20:49 paklein Exp $ */
+/* $Id: AugLagWallT.cpp,v 1.5 2002-07-02 19:56:28 cjkimme Exp $ */
 #include "AugLagWallT.h"
 
 #include <iostream.h>
@@ -11,6 +11,9 @@
 #include "FieldT.h"
 
 /* parameters */
+
+using namespace Tahoe;
+
 const int kNumAugLagDOF = 1;
 
 /* constructor */

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.7 2002-06-08 20:20:25 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.8 2002-07-02 19:55:26 cjkimme Exp $ */
 /* created: paklein (11/12/1999) */
 
 #include "MeshFreeElementSupportT.h"
@@ -13,6 +13,9 @@
 #include "ModelManagerT.h"
 
 /* parameters */
+
+using namespace Tahoe;
+
 const int kHeadRoom = 10; // percent
 
 #ifdef __MPI__

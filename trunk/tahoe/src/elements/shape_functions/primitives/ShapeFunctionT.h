@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.11 2002-07-01 17:51:19 creigh Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.12 2002-07-02 19:57:09 cjkimme Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -14,6 +14,9 @@
  * and field representation and spatial derivatives. Integration control
  * is inherited. \note equation numbers refer to equations in the Hughes
  * book and in the class notes. */
+
+namespace Tahoe {
+
 class ShapeFunctionT: public DomainIntegrationT
 {
 public:
@@ -325,4 +328,5 @@ inline void ShapeFunctionT::SetUShapeFunctions(const dArray2DT& NaU,
 /* access to the (geometry) shape function derivatives */
 inline const ArrayT<dArray2DT>& ShapeFunctionT::DNaX(void) const { return fDNaX; }
 
+} // namespace Tahoe 
 #endif /* _SHAPE_FUNCTION_T_H_ */

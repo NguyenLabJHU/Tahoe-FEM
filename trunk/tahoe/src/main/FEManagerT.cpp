@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.33 2002-06-08 20:20:27 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.34 2002-07-02 19:55:30 cjkimme Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -38,6 +38,9 @@
 #include "NOXSolverT.h"
 
 /* File/Version Control */
+
+using namespace Tahoe;
+
 const char* kCurrentVersion = "v3.4.1";
 const char* kProgramName    = "tahoe";
 
@@ -1671,3 +1674,4 @@ SolverT* FEManagerT::New_Solver(int code, int group)
 
 	return solver;
 }
+

@@ -1,8 +1,11 @@
-/* $Id: RectGaussianWindowT.cpp,v 1.1 2001-06-23 06:25:43 hspark Exp $ */
+/* $Id: RectGaussianWindowT.cpp,v 1.2 2002-07-02 19:57:07 cjkimme Exp $ */
 
 #include "RectGaussianWindowT.h"
 #include "ExceptionCodes.h"
 #include <math.h>
+
+
+using namespace Tahoe;
 
 const double sqrtPi = sqrt(acos(-1.0));
 static double Max(double a, double b) { return (a > b) ? a : b; };

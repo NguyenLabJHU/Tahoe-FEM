@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.2 2002-06-08 20:20:47 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.3 2002-07-02 19:56:26 cjkimme Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nControllerT.h"
@@ -9,6 +9,9 @@
 #include "FieldSupportT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 FieldT::FieldT(const StringT& name, int ndof, nControllerT& controller):
 	BasicFieldT(name, ndof, controller.Order()),
 	fnController(controller),

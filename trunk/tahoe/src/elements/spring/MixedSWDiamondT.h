@@ -1,4 +1,4 @@
-/* $Id: MixedSWDiamondT.h,v 1.2 2002-06-08 20:20:26 paklein Exp $ */
+/* $Id: MixedSWDiamondT.h,v 1.3 2002-07-02 19:55:28 cjkimme Exp $ */
 /* created: paklein (03/22/1997) */
 
 #ifndef _MIXED_SWDIAMOND_T_H_
@@ -11,6 +11,9 @@
 #include "SWDataT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ScheduleT;
 
 class MixedSWDiamondT: public SWDiamondT
@@ -61,4 +64,5 @@ private:
 	iArrayT fNodeTypes;	// (1...numnodes) 			  	
 };
 
+} // namespace Tahoe 
 #endif /* _MIXED_SWDIAMOND_T_H_ */

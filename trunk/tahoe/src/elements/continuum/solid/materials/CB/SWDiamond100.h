@@ -1,4 +1,4 @@
-/* $Id: SWDiamond100.h,v 1.2 2001-07-03 01:34:59 paklein Exp $ */
+/* $Id: SWDiamond100.h,v 1.3 2002-07-02 19:55:34 cjkimme Exp $ */
 /* created: paklein (08/25/1996)                                          */
 
 #ifndef _SWDIAMOND100_H_
@@ -6,6 +6,9 @@
 
 /* base class */
 #include "SWMaterial2D.h"
+
+
+namespace Tahoe {
 
 class SWDiamond100: public SWMaterial2D
 {
@@ -30,4 +33,5 @@ protected:
 
 };
 
+} // namespace Tahoe 
 #endif /* _SWDIAMOND100_H_ */

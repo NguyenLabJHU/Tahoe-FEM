@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.5 2002-03-28 16:42:47 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.6 2002-07-02 19:56:49 cjkimme Exp $ */
 /* created: paklein (08/10/1998) */
 
 #include "AztecMatrixT.h"
@@ -19,6 +19,9 @@
 #include "RaggedArray2DT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 AztecMatrixT::AztecMatrixT(ifstreamT& in, ostream& out, int check_code):
 	GlobalMatrixT(out, check_code),
 	fInput(in)

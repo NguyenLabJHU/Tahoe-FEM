@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.8 2002-06-08 20:20:22 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.9 2002-07-02 19:55:23 cjkimme Exp $ */
 
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
@@ -7,6 +7,9 @@
 #include "ElasticT.h"
 
 /** Interface for linear strain deformation and field gradients */
+
+namespace Tahoe {
+
 class FiniteStrainT: public ElasticT
 {
   public:
@@ -167,4 +170,5 @@ inline bool FiniteStrainT::Needs_F_last(int material_number) const
 	return needs[fNeedsOffset + kF_last];
 }
 
+} // namespace Tahoe 
 #endif /* _FINITE_STRAIN_T_H_ */

@@ -5,6 +5,9 @@
 #include "NewtonMethod.h"
 #include "ExceptionCodes.h"
 
+
+using namespace Tahoe;
+
 NewtonMethod::NewtonMethod() { }
 
 NewtonMethodBase* NewtonMethod::clone() const

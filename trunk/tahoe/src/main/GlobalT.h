@@ -1,4 +1,4 @@
-/* $Id: GlobalT.h,v 1.6 2002-06-08 20:20:28 paklein Exp $ */
+/* $Id: GlobalT.h,v 1.7 2002-07-02 19:55:30 cjkimme Exp $ */
 /* created: paklein (02/03/1999) */
 
 #ifndef _GLOBAL_T_H_
@@ -8,6 +8,9 @@
 #include "ios_fwd_decl.h"
 
 /** class to handle "global" enumerated types */
+
+namespace Tahoe {
+
 class GlobalT
 {
 public:
@@ -97,4 +100,5 @@ inline GlobalT::SystemTypeT GlobalT::MaxPrecedence(SystemTypeT code1, SystemType
 	return (code1 > code2) ? code1 : code2;
 }
 
+} // namespace Tahoe 
 #endif // _GLOBAL_T_H_

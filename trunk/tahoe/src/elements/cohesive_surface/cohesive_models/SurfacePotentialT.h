@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.12 2002-06-08 20:20:17 paklein Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.13 2002-07-02 19:55:16 cjkimme Exp $ */
 /* created: paklein (06/20/1999) */
 
 #ifndef _SURFACE_POTENTIAL_T_H_
@@ -10,6 +10,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class StringT;
 
 /** base class for surface potential. The traction evolves in the local
@@ -114,4 +117,5 @@ protected:
 	dMatrixT fStiffness; /**< stiffness return value */
 };
 
+} // namespace Tahoe 
 #endif /* _SURFACE_POTENTIAL_T_H_ */

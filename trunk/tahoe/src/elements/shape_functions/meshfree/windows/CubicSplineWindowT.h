@@ -11,6 +11,9 @@
 #include "dSymMatrixT.h"
 
 /* Spherical/circular cubic spline window function */
+
+namespace Tahoe {
+
 class CubicSplineWindowT: public WindowT
 {
    public:
@@ -73,4 +76,5 @@ class CubicSplineWindowT: public WindowT
 
 };
 
+} // namespace Tahoe 
 #endif /* _CUBIC_SPLINE_WINDOW_T_H_ */

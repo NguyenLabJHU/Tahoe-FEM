@@ -1,4 +1,4 @@
-/* $Id: EvenSpacePtsT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: EvenSpacePtsT.cpp,v 1.2 2002-07-02 19:55:59 cjkimme Exp $ */
 /* created: paklein (11/02/1997)                                          */
 
 #include "EvenSpacePtsT.h"
@@ -9,6 +9,9 @@
 #include "Constants.h"
 #include "ExceptionCodes.h"
 #include "fstreamT.h"
+
+
+using namespace Tahoe;
 
 const double Pi = acos(-1.0);
 

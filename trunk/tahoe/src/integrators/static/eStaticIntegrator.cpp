@@ -1,4 +1,4 @@
-/* $Id: eStaticIntegrator.cpp,v 1.3 2002-04-02 23:19:24 paklein Exp $ */
+/* $Id: eStaticIntegrator.cpp,v 1.4 2002-07-02 19:55:09 cjkimme Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "eStaticIntegrator.h"
@@ -6,6 +6,9 @@
 #include "ExceptionCodes.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 eStaticIntegrator::eStaticIntegrator(void) { }
 
 /* returns 1 if the algorithm requires M, C, or K and sets const equal

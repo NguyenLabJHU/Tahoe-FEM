@@ -6,6 +6,8 @@
 #include "KBC_CardT.h"
 #include "BasicFieldT.h"
 
+using namespace Tahoe;
+
 /* constructor */
 nVerlet::nVerlet(void) { }
 

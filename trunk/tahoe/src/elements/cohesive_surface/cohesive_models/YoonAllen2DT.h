@@ -1,4 +1,4 @@
-/* $Id: YoonAllen2DT.h,v 1.2 2002-06-08 20:20:18 paklein Exp $ */
+/* $Id: YoonAllen2DT.h,v 1.3 2002-07-02 19:55:17 cjkimme Exp $ */
 /* created: cjkimme (05/28/2002) */
 
 #ifndef _YOON_ALLEN_2D_T_H_
@@ -8,6 +8,9 @@
 #include "SurfacePotentialT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ifstreamT;
 
 /** cohesive law from Yoon and Allen. This model is
@@ -97,4 +100,5 @@ private:
 	const double& fTimeStep;
 };
 
+} // namespace Tahoe 
 #endif /* _YOON_ALLEN_2D_T_H_ */

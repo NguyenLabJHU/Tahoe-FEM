@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.4 2002-06-08 20:20:45 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.5 2002-07-02 19:56:22 cjkimme Exp $ */
 /* created: paklein (11/20/1996) */
 
 #ifndef _STRUCTURAL_MATERIALT_H_
@@ -14,6 +14,9 @@
 #include "ThermalDilatationT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ifstreamT;
 class ElementBaseT;
 class dMatrixT;
@@ -142,4 +145,5 @@ inline int SolidMaterialT::ThermalStrainSchedule(void) const { return fThermal->
 inline void SolidMaterialT::SetThermalSchedule(const ScheduleT* LTfPtr) { fThermal->SetSchedule(LTfPtr); }
 inline double SolidMaterialT::ThermalElongation(void) const { return fThermal->PercentElongation(); }
 
+} // namespace Tahoe 
 #endif /* _STRUCTURAL_MATERIALT_H_ */

@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.18 2002-06-28 23:44:14 cfoster Exp $ */
+/* $Id: DetCheckT.cpp,v 1.19 2002-07-02 19:56:21 cjkimme Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "DetCheckT.h"
@@ -13,6 +13,9 @@
 //#include <ofstream.h>
 
 /* constants */
+
+using namespace Tahoe;
+
 const double Pi = acos(-1.0);
 
 /* constructor */

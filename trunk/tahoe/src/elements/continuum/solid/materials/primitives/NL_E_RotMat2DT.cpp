@@ -1,4 +1,4 @@
-/* $Id: NL_E_RotMat2DT.cpp,v 1.2 2001-07-03 01:35:42 paklein Exp $ */
+/* $Id: NL_E_RotMat2DT.cpp,v 1.3 2002-07-02 19:56:22 cjkimme Exp $ */
 /* created: paklein (06/13/1997)                                          */
 /* Base class for materials with 2D nonlinear elastic behavior            */
 /* with in-plane orientation with respect to global coordinate            */
@@ -9,6 +9,9 @@
 #include "NL_E_RotMat2DT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 NL_E_RotMat2DT::NL_E_RotMat2DT(ifstreamT& in, const FiniteStrainT& element,
 	ConstraintOptionT constraint):
 	NL_E_Mat2DT(in, element, constraint),

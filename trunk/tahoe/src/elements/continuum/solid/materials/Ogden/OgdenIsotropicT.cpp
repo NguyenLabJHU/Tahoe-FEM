@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.cpp,v 1.5 2001-07-03 01:35:12 paklein Exp $ */
+/* $Id: OgdenIsotropicT.cpp,v 1.6 2002-07-02 19:55:47 cjkimme Exp $ */
 /* created: paklein (10/01/2000)                                          */
 /* base class for large deformation isotropic material following          */
 /* Ogden's formulation.                                                   */
@@ -9,6 +9,9 @@
 #include <math.h>
 
 /* constructor */
+
+using namespace Tahoe;
+
 OgdenIsotropicT::OgdenIsotropicT(ifstreamT& in, const FiniteStrainT& element):
 	FDStructMatT(in, element),
 	fSpectralDecomp(NumSD()),

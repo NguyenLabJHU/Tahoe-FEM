@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.7 2002-06-08 20:20:16 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.8 2002-07-02 19:55:15 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEIsoT.h"
@@ -19,6 +19,9 @@
 #include "SmithFerrante.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 CSEIsoT::CSEIsoT(const ElementSupportT& support, const FieldT& field):
 	CSEBaseT(support, field)
 {

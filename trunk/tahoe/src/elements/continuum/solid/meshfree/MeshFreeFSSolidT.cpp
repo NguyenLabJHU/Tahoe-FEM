@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.9 2002-06-08 20:20:25 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.10 2002-07-02 19:55:26 cjkimme Exp $ */
 /* created: paklein (09/16/1998) */
 
 #include "MeshFreeFSSolidT.h"
@@ -22,6 +22,9 @@
 #endif
 
 /* parameters */
+
+using namespace Tahoe;
+
 const double Pi = acos(-1.0);
 
 /* constructor */

@@ -1,4 +1,4 @@
-/* $Id: J2SimoC0HardeningT.h,v 1.4 2002-06-08 20:20:41 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.h,v 1.5 2002-07-02 19:56:12 cjkimme Exp $ */
 /* created: paklein (05/01/2001) */
 
 #ifndef _J2_SIMO_C0_HARD_T_H_
@@ -15,6 +15,9 @@
 #include "C1FunctionT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ElementCardT;
 class ifstreamT;
 #include "ios_fwd_decl.h"
@@ -172,4 +175,5 @@ protected:
 inline double J2SimoC0HardeningT::K(double a) const { return fK->Function(a); }
 inline double J2SimoC0HardeningT::dK(double a) const { return fK->DFunction(a); }
 
+} // namespace Tahoe 
 #endif /* _J2_SIMO_C1_HARD_T_H_ */

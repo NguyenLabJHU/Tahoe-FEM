@@ -1,4 +1,4 @@
-/* $Id: VIB.h,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* $Id: VIB.h,v 1.2 2002-07-02 19:55:55 cjkimme Exp $ */
 /* created: paklein (10/30/1997)                                          */
 /* Base class for isotropic VIB solvers.                                  */
 
@@ -11,6 +11,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 class C1FunctionT;
 class dSymMatrixT;
@@ -62,4 +65,5 @@ protected:
 	dArray2DT fModuliTable;	
 };
 
+} // namespace Tahoe 
 #endif /* _VIB_H_ */

@@ -1,4 +1,4 @@
-/* $Id: D2VIB2D.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: D2VIB2D.cpp,v 1.2 2002-07-02 19:55:59 cjkimme Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2VIB2D.h"
@@ -11,6 +11,9 @@
 #include "D2MeshFreeFDElasticT.h"
 
 /* constructors */
+
+using namespace Tahoe;
+
 D2VIB2D::D2VIB2D(ifstreamT& in, const D2MeshFreeFDElasticT& element):
 	VIB2D(in, element),
 	fD2MLSShape(element.D2MLSShapeFunction())

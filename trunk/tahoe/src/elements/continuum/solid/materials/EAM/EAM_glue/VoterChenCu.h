@@ -1,4 +1,4 @@
-/* $Id: VoterChenCu.h,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* $Id: VoterChenCu.h,v 1.2 2002-07-02 19:55:37 cjkimme Exp $ */
 /* created: paklein (10/25/1998)                                          */
 /* VoterChenCu.h                                                          */
 
@@ -7,6 +7,9 @@
 
 /* base class */
 #include "EAM.h"
+
+
+namespace Tahoe {
 
 class VoterChenCu: public EAM
 {
@@ -27,10 +30,14 @@ private:
 	
 };
 
+} // namespace Tahoe
+
 /* specific glue functions */
 #include "C1FunctionT.h"
 
-class VCPairPotentialCu: public C1FunctionT
+namespace Tahoe {
+
+class VCPairPotentialCu: public Tahoe::C1FunctionT
 {
 	friend class VoterChenCu;
 	
@@ -77,7 +84,7 @@ private:
 	    	   	    	
 };
 
-class VCElectronDensityCu: public C1FunctionT
+class VCElectronDensityCu: public Tahoe::C1FunctionT
 {
 	friend class VoterChenCu;
 	
@@ -122,4 +129,5 @@ private:
 	  		   	    	
 };
 
+} // namespace Tahoe 
 #endif /* _VOTERCHEN_CU_H_ */

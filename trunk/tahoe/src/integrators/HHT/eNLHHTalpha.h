@@ -1,4 +1,4 @@
-/* $Id: eNLHHTalpha.h,v 1.2 2002-04-02 23:19:20 paklein Exp $ */
+/* $Id: eNLHHTalpha.h,v 1.3 2002-07-02 19:55:05 cjkimme Exp $ */
 /* created: paklein (10/17/1996) */
 
 #ifndef _E_NL_HHT_A_H_
@@ -6,6 +6,9 @@
 
 /* base class */
 #include "eLinearHHTalpha.h"
+
+
+namespace Tahoe {
 
 class eNLHHTalpha: public eLinearHHTalpha
 {
@@ -38,4 +41,5 @@ private:
 	
 };
 
+} // namespace Tahoe 
 #endif /* _E_NL_HHT_A_H_ */

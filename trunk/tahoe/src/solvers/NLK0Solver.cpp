@@ -1,4 +1,4 @@
-/* $Id: NLK0Solver.cpp,v 1.4 2002-06-08 20:20:55 paklein Exp $ */
+/* $Id: NLK0Solver.cpp,v 1.5 2002-07-02 19:57:11 cjkimme Exp $ */
 /* created: paklein (10/01/1996) */
 
 #include "NLK0Solver.h"
@@ -11,6 +11,9 @@
 #include "fstreamT.h"
 
 /* line search parameters */
+
+using namespace Tahoe;
+
 const double ks_max_factor = 5.0; //normally 1.0
 
 /* constructor */

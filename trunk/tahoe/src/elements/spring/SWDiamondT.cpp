@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.cpp,v 1.6 2002-06-08 20:20:26 paklein Exp $ */
+/* $Id: SWDiamondT.cpp,v 1.7 2002-07-02 19:55:28 cjkimme Exp $ */
 /* created: paklein (03/19/1997) */
 
 #include "SWDiamondT.h"
@@ -11,6 +11,9 @@
 #include "OutputSetT.h"
 
 /* element group parameters */
+
+using namespace Tahoe;
+
 const int knsd  = 3;
 const int kSWMaxNeighbors0 = 4; //max neighbors in undeformed state
 

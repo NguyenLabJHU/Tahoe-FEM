@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.5 2002-06-08 20:20:29 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.6 2002-07-02 19:55:31 cjkimme Exp $ */
 /* created: paklein (05/14/2000) */
 
 #include "ABAQUS_UMAT_BaseT.h"
@@ -15,6 +15,9 @@
 #include "ThermalDilatationT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 ABAQUS_UMAT_BaseT::	ABAQUS_UMAT_BaseT(ifstreamT& in, const FiniteStrainT& element):
 	FDStructMatT(in, element),
 	fRunState(ContinuumElement().RunState()),

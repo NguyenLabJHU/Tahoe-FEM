@@ -12,6 +12,9 @@
 #include "LAdMatrixT.h"
 #include "NewtonMethodBase.h"
 
+
+namespace Tahoe {
+
 class NLCSolverWrapperPtr;
 
 class NLCSolver
@@ -235,6 +238,7 @@ inline int NLCSolver::GetFDigits() const { return fDigits; }
 
 inline void NLCSolver::SetJacobianCode(const int code) { fJacCode = code; }
 
+} // namespace Tahoe 
 #endif /*_NLC_SOLVER_H_ */
 
 

@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.h,v 1.3 2002-06-08 20:20:28 paklein Exp $ */
+/* $Id: TimeManagerT.h,v 1.4 2002-07-02 19:55:30 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _TIMEMANAGER_T_H_
@@ -16,6 +16,9 @@
 #include "TimeSequence.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ifstreamT;
 class FEManagerT;
 class CoordinatorT;
@@ -158,4 +161,5 @@ inline const int& TimeManagerT::NumberOfSteps(void) const { return fNumSteps; }
 inline int TimeManagerT::NumSchedule(void) const { return fSchedule.Length() ; }
 inline int TimeManagerT::SequenceNumber(void) const { return fCurrentSequence; }
 inline int TimeManagerT::NumSequences(void) const { return fSequences.Length(); }
+} // namespace Tahoe 
 #endif /* _TIMEMANAGER_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: FDCrystalElast.h,v 1.2 2001-08-20 22:15:41 rdorgan Exp $ */
+/* $Id: FDCrystalElast.h,v 1.3 2002-07-02 19:56:03 cjkimme Exp $ */
 /*
   File: FDCrystalElast.h
 */
@@ -13,6 +13,9 @@
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
 #include "LAdMatrixT.h"
+
+
+namespace Tahoe {
 
 class ifstreamT;
 class ElasticT;
@@ -134,5 +137,6 @@ class FDCrystalElast : public CrystalElast
   dArrayT fvector1;
 };
 
+} // namespace Tahoe 
 #endif /* _FD_CRYSTAL_ELAST_H_ */
 

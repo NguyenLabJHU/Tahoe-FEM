@@ -6,6 +6,8 @@
 /* base class */
 #include "ControllerT.h"
 
+namespace Tahoe {
+
 /** explicit, central differences time integrator */
 class Verlet: virtual public ControllerT
 {
@@ -27,5 +29,7 @@ public:
 	virtual int OrderOfUnknown(void) const { return 2; };
 	/*@}*/
 };
+
+} // namespace Tahoe
 
 #endif /* _VERLET_H_ */

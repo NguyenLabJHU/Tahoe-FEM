@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.11 2002-07-02 16:21:38 hspark Exp $ */
+/* $Id: RodT.cpp,v 1.12 2002-07-02 19:55:28 cjkimme Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -12,6 +12,13 @@
 /* material types */
 #include "LinearSpringT.h"
 #include "LJSpringT.h"
+
+/* Element type parameters */
+
+using namespace Tahoe;
+
+const int RodT::kRodTndof = 2; /* number of degrees of freedom per node */
+const int RodT::kRodTnsd = 2; /* number of spatial dimensions */
 
 /* constructors */
 RodT::RodT(const ElementSupportT& support, const FieldT& field):

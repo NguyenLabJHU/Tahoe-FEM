@@ -1,4 +1,4 @@
-/* $Id: nExplicitCD.cpp,v 1.4 2002-06-29 01:13:15 paklein Exp $ */
+/* $Id: nExplicitCD.cpp,v 1.5 2002-07-02 19:55:08 cjkimme Exp $ */
 /* created: paklein (03/23/1997) */
 
 #include "nExplicitCD.h"
@@ -10,6 +10,9 @@
 #include "BasicFieldT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 nExplicitCD::nExplicitCD(void) { }
 
 /* consistent BC's - updates predictors and acceleration only */

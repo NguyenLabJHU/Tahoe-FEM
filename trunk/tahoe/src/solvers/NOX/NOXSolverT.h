@@ -1,4 +1,4 @@
-/* $Id: NOXSolverT.h,v 1.3 2002-06-08 20:20:57 paklein Exp $ */
+/* $Id: NOXSolverT.h,v 1.4 2002-07-02 19:57:16 cjkimme Exp $ */
 #ifndef _NOX_SOLVER_T_H_
 #define _NOX_SOLVER_T_H_
 
@@ -10,6 +10,9 @@
 #include "SolverInterfaceT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 namespace NOX {
 	namespace Parameter {
 		class List;
@@ -22,7 +25,7 @@ namespace NOX {
 //		class RelResid;
 		class MaxIters;
 	}
-}
+} // namespace NOX
 
 /** interface to the Sandia NOX nonlinear solver library. */
 class NOXSolverT: public SolverT, protected SolverInterfaceT
@@ -123,5 +126,6 @@ private:
 	/*@}*/
 };
 
+} // namespace Tahoe
 #endif /* __NOX__ */
 #endif /* _NOX_SOLVER_T_H_ */

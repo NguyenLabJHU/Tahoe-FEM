@@ -5,6 +5,9 @@
 #ifndef _NLC_SOLVER_WRAPPER_H_
 #define _NLC_SOLVER_WRAPPER_H_
 
+
+namespace Tahoe {
+
 class dArrayT;
 class dMatrixT;
 class PolyCrystalMatT;
@@ -83,4 +86,5 @@ class SolverWrapperEVPBase: public NLCSolverWrapper
   EVPFDBaseT& fevp;
 };
 
+} // namespace Tahoe 
 #endif /* _NLC_SOLVER_WRAPPER_H_ */

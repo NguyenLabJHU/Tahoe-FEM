@@ -1,4 +1,4 @@
-/* $Id: ACME_Contact3DT.cpp,v 1.2 2002-06-08 20:20:19 paklein Exp $ */
+/* $Id: ACME_Contact3DT.cpp,v 1.3 2002-07-02 19:55:18 cjkimme Exp $ */
 /* created: paklein (10/15/2000) */
 
 #include "ACME_Contact3DT.h"
@@ -9,6 +9,9 @@
 #include "fstreamT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 ACME_Contact3DT::ACME_Contact3DT(const ElementSupportT& support, const FieldT& field):
 	PenaltyContact3DT(support, field),
 	fContactSearch(NULL)

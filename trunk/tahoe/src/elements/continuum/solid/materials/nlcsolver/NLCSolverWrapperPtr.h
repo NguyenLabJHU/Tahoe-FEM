@@ -7,6 +7,9 @@
 
 #include "NLCSolverWrapper.h"
 
+
+namespace Tahoe {
+
 class dArrayT;
 class dMatrixT;
 
@@ -38,4 +41,5 @@ inline void NLCSolverWrapperPtr::FormRHS(dArrayT& x, dArrayT& rhs)
 inline void NLCSolverWrapperPtr::FormLHS(dArrayT& x, dMatrixT& lhs)
 { ptr_->FormLHS(x, lhs); }
  
+} // namespace Tahoe 
 #endif /* _NLC_SOLVER_WRAPPER_PTR_H_ */

@@ -1,4 +1,4 @@
-/* $Id: RectGaussianWindowT.h,v 1.2 2001-06-27 17:40:06 hspark Exp $ */
+/* $Id: RectGaussianWindowT.h,v 1.3 2002-07-02 19:57:07 cjkimme Exp $ */
 
 #ifndef _RECT_GAUSSIAN_WINDOW_T_H_
 #define _RECT_GAUSSIAN_WINDOW_T_H_
@@ -10,6 +10,9 @@
 #include "dSymMatrixT.h"
 
 /* Rectangular Gaussian window function */
+
+namespace Tahoe {
+
 class RectGaussianWindowT: public WindowT
 {
   public:
@@ -71,4 +74,5 @@ class RectGaussianWindowT: public WindowT
 	dSymMatrixT fNSDsym;
 };
 
+} // namespace Tahoe 
 #endif /* _RECT_GAUSSIAN_WINDOW_T_H_ */

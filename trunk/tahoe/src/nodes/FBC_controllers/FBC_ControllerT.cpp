@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.cpp,v 1.2 2002-06-08 20:20:49 paklein Exp $ */
+/* $Id: FBC_ControllerT.cpp,v 1.3 2002-07-02 19:56:28 cjkimme Exp $ */
 /* created: paklein (11/17/1997) */
 
 #include "FBC_ControllerT.h"
@@ -6,6 +6,9 @@
 #include <iostream.h>
 
 /* constructor */
+
+using namespace Tahoe;
+
 FBC_ControllerT::FBC_ControllerT(FEManagerT& fe_manager, int group):
 	fFEManager(fe_manager),
 	fGroup(group),

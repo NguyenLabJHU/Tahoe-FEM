@@ -12,6 +12,9 @@
 #include "Utils.h"
 
 // base class
+
+using namespace Tahoe;
+
 CrystalElasticity::CrystalElasticity() 
 {
   // initialize general stiffness coefficients

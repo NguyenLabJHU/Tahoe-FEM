@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.14 2002-06-08 20:20:42 paklein Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.15 2002-07-02 19:56:14 cjkimme Exp $ */
 #include "LocalCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -16,6 +16,9 @@
 #include "SpectralDecompT.h"
 
 /* spatial dimensions of the problem */
+
+using namespace Tahoe;
+
 const int kNSD = 3;
 
 const double sqrt23 = sqrt(2.0/3.0);

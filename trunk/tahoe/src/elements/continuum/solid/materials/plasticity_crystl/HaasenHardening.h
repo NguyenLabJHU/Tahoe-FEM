@@ -11,6 +11,9 @@
 #include "dArrayT.h"
 #include "dMatrixT.h"
 
+
+namespace Tahoe {
+
 class PolyCrystalMatT;
 class HaasenKinetics;
 class ifstreamT;
@@ -131,4 +134,5 @@ class HaasenHardening : public SlipHardening
   dArrayT farray;
 };
 
+} // namespace Tahoe 
 #endif /* _HAASEN_HARDENING_H_ */

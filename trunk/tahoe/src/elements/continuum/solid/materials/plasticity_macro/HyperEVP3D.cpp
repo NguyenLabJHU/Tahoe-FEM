@@ -1,4 +1,4 @@
-/* $Id: HyperEVP3D.cpp,v 1.6 2002-06-08 20:20:44 paklein Exp $ */
+/* $Id: HyperEVP3D.cpp,v 1.7 2002-07-02 19:56:19 cjkimme Exp $ */
 #include "HyperEVP3D.h"
 
 #include "ContinuumElementT.h"
@@ -7,6 +7,9 @@
 #include "ifstreamT.h"
 #include "Utils.h"
 #include "SimplePowerLaw.h"
+
+
+using namespace Tahoe;
 
 const double sqrt32 = sqrt(3.0/2.0);
 

@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV2D.cpp,v 1.2 2001-07-03 01:35:31 paklein Exp $ */
+/* $Id: J2SSKStV2D.cpp,v 1.3 2002-07-02 19:56:11 cjkimme Exp $ */
 /* created: paklein (06/18/1997)                                          */
 
 #include "J2SSKStV2D.h"
@@ -6,6 +6,9 @@
 #include "StringT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 J2SSKStV2D::J2SSKStV2D(ifstreamT& in, const SmallStrainT& element):
 J2SSKStV(in, element),
 	Material2DT(in, Material2DT::kPlaneStrain),

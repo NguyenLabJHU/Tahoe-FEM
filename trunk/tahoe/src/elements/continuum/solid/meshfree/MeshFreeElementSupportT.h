@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.h,v 1.5 2002-06-08 20:20:25 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.h,v 1.6 2002-07-02 19:55:26 cjkimme Exp $ */
 /* created: paklein (11/12/1999) */
 
 #ifndef _MFREE_SUPPORT_T_H_
@@ -15,6 +15,9 @@
 #include "MeshFreeT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ifstreamT;
 class MeshFreeShapeFunctionT;
 class MeshFreeSupportT;
@@ -109,4 +112,5 @@ protected:
 
 inline int MeshFreeElementSupportT::NumElementNodes(void) const { return fNumElemenNodes; }
 
+} // namespace Tahoe 
 #endif /* _MFREE_SUPPORT_T_H_ */

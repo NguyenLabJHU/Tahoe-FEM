@@ -8,6 +8,9 @@
 #include "NLCSolverWrapperPtr.h"
 #include "Utils.h"
 
+
+using namespace Tahoe;
+
 const double STP_MAX = 1000.;
 const double DBL_EPS = 2.2204460492503131E-16;
 

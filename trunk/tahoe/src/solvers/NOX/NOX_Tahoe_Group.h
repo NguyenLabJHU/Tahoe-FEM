@@ -1,4 +1,4 @@
-/* $Id: NOX_Tahoe_Group.h,v 1.3 2002-04-03 00:21:46 paklein Exp $ */
+/* $Id: NOX_Tahoe_Group.h,v 1.4 2002-07-02 19:57:16 cjkimme Exp $ */
 #ifndef NOX_TAHOE_GROUP_H
 #define NOX_TAHOE_GROUP_H
 
@@ -14,6 +14,9 @@
 #include "dArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 namespace NOX {
 	namespace Parameter {
 		class List;
@@ -25,7 +28,6 @@ class GlobalMatrixT;
 namespace NOX {
 
 //! %NOX %Tahoe support. 
-namespace Tahoe { 
 
 /** implementation of NOX::Abstract::Group for %Tahoe groups */
 class Group: public Abstract::Group {
@@ -200,8 +202,8 @@ public:
 	/** 2-norm of RHS. Computed during Group::computeRHS */
 	double fRHSNorm;	
 };
-} // namespace Tahoe
 } // namespace NOX
 
+} // namespace Tahoe 
 #endif /* __NOX__ */
 #endif /* NOX_TAHOE_GROUP_H */

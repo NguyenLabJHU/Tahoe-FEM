@@ -1,4 +1,4 @@
-/* $Id: ScheduleT.cpp,v 1.2 2002-06-08 20:20:53 paklein Exp $ */
+/* $Id: ScheduleT.cpp,v 1.3 2002-07-02 19:56:42 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ScheduleT.h"
 #include "fstreamT.h"
@@ -7,6 +7,9 @@
 #include <iomanip.h>
 
 /* constructors */
+
+using namespace Tahoe;
+
 ScheduleT::ScheduleT(double value):
 	fCurrentValue(value)
 {

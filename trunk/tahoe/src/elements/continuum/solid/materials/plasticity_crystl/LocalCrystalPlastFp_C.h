@@ -14,6 +14,9 @@
 #include "dArray2DT.h"
 #include "LocalArrayT.h"
 
+
+namespace Tahoe {
+
 class ifstreamT;
 class ElasticT;
 class ElementCardT;
@@ -78,4 +81,5 @@ class LocalCrystalPlastFp_C : public LocalCrystalPlastFp
   dMatrixT fGradU;
 };
 
+} // namespace Tahoe 
 #endif /* _LOCAL_CRYSTAL_PLAST_FP_C_H_ */

@@ -1,4 +1,4 @@
-/* $Id: eIntegratorT.h,v 1.2 2002-04-02 23:19:22 paklein Exp $ */
+/* $Id: eIntegratorT.h,v 1.3 2002-07-02 19:55:07 cjkimme Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _E_CONTROLLERT_H_
@@ -10,6 +10,9 @@
 /** Base class for a general (upto) second order element controller.  
  * This is the interface between the elements and the Controller 
  * class heirarchy. */
+
+namespace Tahoe {
+
 class eIntegratorT: virtual public IntegratorT
 {
 public:
@@ -44,4 +47,5 @@ protected:
 	virtual void eComputeParameters(void) = 0;
 };
 
+} // namespace Tahoe 
 #endif /* _E_CONTROLLERT_H_ */

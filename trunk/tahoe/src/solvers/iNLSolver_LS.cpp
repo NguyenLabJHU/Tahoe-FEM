@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.cpp,v 1.7 2002-06-08 20:20:55 paklein Exp $ */
+/* $Id: iNLSolver_LS.cpp,v 1.8 2002-07-02 19:57:12 cjkimme Exp $ */
 /* created: paklein (01/01/2001) */
 
 #include "iNLSolver_LS.h"
@@ -19,6 +19,9 @@
 #include "CCNSMatrixT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 iNLSolver_LS::iNLSolver_LS(FEManagerT& fe_manager, int group):
 	NLSolver_LS(fe_manager, group),
 	fFormTangent(true),

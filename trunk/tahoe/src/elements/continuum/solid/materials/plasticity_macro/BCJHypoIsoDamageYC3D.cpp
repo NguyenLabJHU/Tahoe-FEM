@@ -1,4 +1,4 @@
-/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.2 2002-06-08 20:20:44 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.3 2002-07-02 19:56:19 cjkimme Exp $ */
 #include "BCJHypoIsoDamageYC3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -7,6 +7,9 @@
 #include "BCJKineticEqn.h"
 
 #include "ContinuumElementT.h"
+
+
+using namespace Tahoe;
 
 const double sqrt32 = sqrt(3.0/2.0);
 

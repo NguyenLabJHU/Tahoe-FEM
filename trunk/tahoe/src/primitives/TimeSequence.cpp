@@ -1,4 +1,4 @@
-/* $Id: TimeSequence.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* $Id: TimeSequence.cpp,v 1.2 2002-07-02 19:56:42 cjkimme Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "TimeSequence.h"
@@ -9,6 +9,9 @@
 #include "ExceptionCodes.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 TimeSequence::TimeSequence(void) { }
 
 /* I/O operators */

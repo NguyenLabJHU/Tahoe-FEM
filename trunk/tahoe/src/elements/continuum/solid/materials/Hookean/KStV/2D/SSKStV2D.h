@@ -1,4 +1,4 @@
-/* $Id: SSKStV2D.h,v 1.2 2001-07-03 01:35:11 paklein Exp $ */
+/* $Id: SSKStV2D.h,v 1.3 2002-07-02 19:55:46 cjkimme Exp $ */
 /* created: paklein (06/10/97)                                            */
 
 #ifndef _SS_KSTV_2D_H_
@@ -7,6 +7,9 @@
 /* base classes */
 #include "SSKStV.h"
 #include "Material2DT.h"
+
+
+namespace Tahoe {
 
 class SSKStV2D: public SSKStV, public Material2DT
 {
@@ -35,4 +38,5 @@ private:
 	virtual bool SetThermalStrain(dSymMatrixT& thermal_strain);
 };
 
+} // namespace Tahoe 
 #endif /* _SS_KSTV_2D_H_ */

@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.h,v 1.2 2001-07-03 01:35:41 paklein Exp $ */
+/* $Id: DiffusionMaterialT.h,v 1.3 2002-07-02 19:56:21 cjkimme Exp $ */
 /* created: paklein (10/02/1999)                                          */
 /* Defines the interface for materials for diffusion.                     */
 
@@ -15,6 +15,9 @@
 #include "dArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ifstreamT;
 class LocalArrayT;
 class DiffusionT;
@@ -67,4 +70,5 @@ inline double DiffusionMaterialT::Capacity(void) const { return fCapacity; }
 /* conductivity */
 inline const dMatrixT& DiffusionMaterialT::k_ij(void) { return fConductivity; }
 
+} // namespace Tahoe 
 #endif /* _DIFFUSION_MATERIALT_H_ */

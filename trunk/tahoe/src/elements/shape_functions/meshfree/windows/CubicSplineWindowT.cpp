@@ -2,6 +2,9 @@
 #include "ExceptionCodes.h"
 #include <math.h>
 
+
+using namespace Tahoe;
+
 const double sqrtPi = sqrt(acos(-1.0));
 static double Max(double a, double b) { return (a > b) ? a : b; };
 

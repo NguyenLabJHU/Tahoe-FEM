@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.h,v 1.5 2002-06-08 20:20:19 paklein Exp $ */
+/* $Id: AugLagContact2DT.h,v 1.6 2002-07-02 19:55:18 cjkimme Exp $ */
 /* created: paklein (05/31/1998) */
 
 #ifndef _AUGLAG_CONTACT2D_T_H_
@@ -12,6 +12,9 @@
 #include "AutoArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class iGridManager2DT;
 
 /** contact enforcement in 2D using an augmented Lagrangian formulation.
@@ -104,4 +107,5 @@ private:
 
 };
 
+} // namespace Tahoe 
 #endif /* _AUGLAG_CONTACT2D_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.h,v 1.3 2002-06-08 20:20:55 paklein Exp $ */
+/* $Id: iNLSolver_LS.h,v 1.4 2002-07-02 19:57:12 cjkimme Exp $ */
 /* created: paklein (01/01/2001) */
 
 #ifndef _I_NL_SOLVER_LS_H_
@@ -11,6 +11,9 @@
 #include "dArray2DT.h"
 
 /** nonlinear Newton solver with interactive console */
+
+namespace Tahoe {
+
 class iNLSolver_LS: public NLSolver_LS
 {
 public:
@@ -48,4 +51,5 @@ private:
 	SolutionStatusT fIterationStatus;
 };
 
+} // namespace Tahoe 
 #endif /* _I_NL_SOLVER_LS_H_ */

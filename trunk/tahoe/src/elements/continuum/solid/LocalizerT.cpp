@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.cpp,v 1.4 2002-06-08 20:20:22 paklein Exp $ */
+/* $Id: LocalizerT.cpp,v 1.5 2002-07-02 19:55:23 cjkimme Exp $ */
 /* created: paklein (02/19/1998) */
 
 #include "LocalizerT.h"
@@ -21,6 +21,9 @@
 #include "FDStructMatT.h"
 
 /* flag parameter to mark localized elements */
+
+using namespace Tahoe;
+
 const int kMonitorLocalized = -1;
 
 /* strain check flags */

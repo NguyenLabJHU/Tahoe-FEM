@@ -1,4 +1,4 @@
-/* $Id: CrystalElastMat.h,v 1.2 2001-08-20 22:15:40 rdorgan Exp $ */
+/* $Id: CrystalElastMat.h,v 1.3 2002-07-02 19:56:03 cjkimme Exp $ */
 /*
   File: CrystalElastMat.h
 */
@@ -11,6 +11,9 @@
 #include <fstream.h>
 #include "ArrayT.h"
 #include "LocalArrayT.h"
+
+
+namespace Tahoe {
 
 class CrystalElast;
 class ifstreamT;
@@ -51,4 +54,5 @@ class CrystalElastMat
   void CalculateAlpha(dMatrixT& alpha, double DegC);
 };
 
+} // namespace Tahoe 
 #endif /* _CRYSTAL_ELAST_MAT_H_ */

@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.4 2002-07-01 17:50:38 creigh Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.5 2002-07-02 19:57:09 cjkimme Exp $ */
 /* created: paklein (07/03/1996)                                          */
 
 #include "ParentDomainT.h"
@@ -13,6 +13,9 @@
 #include "TetrahedronT.h"
 
 /* vector functions */
+
+using namespace Tahoe;
+
 inline static void CrossProduct(const double* A, const double* B, double* AxB)
 {   AxB[0] = A[1]*B[2] - A[2]*B[1];
 	AxB[1] = A[2]*B[0] - A[0]*B[2];

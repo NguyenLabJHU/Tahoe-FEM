@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlast.cpp,v 1.6 2002-06-08 20:20:42 paklein Exp $ */
+/* $Id: GradCrystalPlast.cpp,v 1.7 2002-07-02 19:56:14 cjkimme Exp $ */
 
 #include "GradCrystalPlast.h"
 #include "SlipGeometry.h"
@@ -14,6 +14,9 @@
 #include "ContinuumElementT.h"
 
 /* spatial dimensions of the problem */
+
+using namespace Tahoe;
+
 const int kNSD = 3;
 
 const double sqrt23 = sqrt(2.0/3.0);

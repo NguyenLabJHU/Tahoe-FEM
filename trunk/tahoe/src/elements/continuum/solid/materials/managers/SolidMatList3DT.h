@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.h,v 1.4 2002-06-08 20:20:40 paklein Exp $ */
+/* $Id: SolidMatList3DT.h,v 1.5 2002-07-02 19:56:05 cjkimme Exp $ */
 /* created: paklein (02/14/1997) */
 
 #ifndef _MATLIST_3D_T_H_
@@ -9,6 +9,9 @@
 #include "MaterialT.h"
 
 /* forward declaration */
+
+namespace Tahoe {
+
 class ElasticT;
 class SmallStrainT;
 class FiniteStrainT;
@@ -36,4 +39,5 @@ private:
 	const FiniteStrainT* fFiniteStrain;
 };
 
+} // namespace Tahoe 
 #endif /* _MATLIST_3D_T_H_ */

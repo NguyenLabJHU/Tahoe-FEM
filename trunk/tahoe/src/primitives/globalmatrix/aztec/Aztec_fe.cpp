@@ -1,4 +1,4 @@
-/* $Id: Aztec_fe.cpp,v 1.3 2002-03-25 16:44:41 paklein Exp $ */
+/* $Id: Aztec_fe.cpp,v 1.4 2002-07-02 19:56:49 cjkimme Exp $ */
 /* created: paklein (08/01/1998) */
 
 #include "Aztec_fe.h"
@@ -20,6 +20,9 @@
 #include "iArray2DT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 Aztec_fe::Aztec_fe(ifstreamT& in, ostream& msg):
 	AztecBaseT(msg),
 	fMSRBuilder(NULL),

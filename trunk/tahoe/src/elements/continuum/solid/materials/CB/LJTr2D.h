@@ -1,4 +1,4 @@
-/* $Id: LJTr2D.h,v 1.2 2001-07-03 01:34:59 paklein Exp $ */
+/* $Id: LJTr2D.h,v 1.3 2002-07-02 19:55:34 cjkimme Exp $ */
 /* created: paklein (07/01/1996)                                          */
 /* Plane stress hexagonal lattice with LJ potential                       */
 
@@ -10,6 +10,9 @@
 
 /* direct members */
 #include "dArray2DT.h"
+
+
+namespace Tahoe {
 
 class LJTr2D: public NL_E_RotMat2DT
 {
@@ -48,4 +51,5 @@ private:
 				
 };
 
+} // namespace Tahoe 
 #endif /* _LJTR2D_H_ */

@@ -1,4 +1,4 @@
-/* $Id: PenaltySphereT.h,v 1.2 2002-06-08 20:20:49 paklein Exp $ */
+/* $Id: PenaltySphereT.h,v 1.3 2002-07-02 19:56:28 cjkimme Exp $ */
 /* created: paklein (04/30/1998) */
 
 #ifndef _PENATLY_SPHERE_T_H_
@@ -9,6 +9,9 @@
 
 /* direct members */
 #include "ElementMatrixT.h"
+
+
+namespace Tahoe {
 
 class PenaltySphereT: public PenaltyRegionT
 {
@@ -50,4 +53,5 @@ protected:
 	iArrayT        fi_sh; //shallow
 };
 
+} // namespace Tahoe 
 #endif /* _PENATLY_SPHERE_T_H_ */

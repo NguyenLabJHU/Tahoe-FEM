@@ -1,4 +1,4 @@
-/* $Id: FDCrystalElast.cpp,v 1.4 2002-06-08 20:20:39 paklein Exp $ */
+/* $Id: FDCrystalElast.cpp,v 1.5 2002-07-02 19:56:03 cjkimme Exp $ */
 
 #include "FDCrystalElast.h"
 
@@ -18,6 +18,9 @@
         static const char* Labels[kNumOutput] = {"VM_stress","s1","s2","sn"};
   /* Numerical constants */
 	const double sqrt23 = sqrt(2.0/3.0);
+
+
+using namespace Tahoe;
 
 FDCrystalElast::FDCrystalElast(ifstreamT& in, const FiniteStrainT& element):CrystalElast(in, element),
   // deformation gradient 

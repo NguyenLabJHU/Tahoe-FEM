@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast2D.h,v 1.2 2001-07-03 01:35:35 paklein Exp $ */
+/* $Id: LocalCrystalPlast2D.h,v 1.3 2002-07-02 19:56:14 cjkimme Exp $ */
 /*
   File: LocalCrystalPlast2D.h
 */
@@ -12,6 +12,9 @@
 #include <iostream.h>
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
+
+
+namespace Tahoe {
 
 class ifstreamT;
 class ElasticT;
@@ -44,4 +47,5 @@ class LocalCrystalPlast2D : public LocalCrystalPlast, public Material2DT
   dMatrixT f2Dcavg_ijkl;
 };
 
+} // namespace Tahoe 
 #endif /* _LOCAL_CRYSTAL_PLAST_2D_H_ */

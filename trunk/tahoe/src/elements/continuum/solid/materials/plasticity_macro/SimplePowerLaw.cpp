@@ -5,6 +5,9 @@
 #include "SimplePowerLaw.h"
 #include "EVPFDBaseT.h"
 
+
+using namespace Tahoe;
+
 const int kNumMatProp = 5;
 
 SimplePowerLaw::SimplePowerLaw(EVPFDBaseT& model)

@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.5 2002-06-08 20:20:55 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.6 2002-07-02 19:57:12 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "SolverT.h"
@@ -26,6 +26,9 @@
 #endif
 
 /* constructor */
+
+using namespace Tahoe;
+
 SolverT::SolverT(FEManagerT& fe_manager, int group):
 	fFEManager(fe_manager),
 	fGroup(group),

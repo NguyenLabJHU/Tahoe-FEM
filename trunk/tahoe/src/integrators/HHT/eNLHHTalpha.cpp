@@ -1,10 +1,13 @@
-/* $Id: eNLHHTalpha.cpp,v 1.2 2002-04-02 23:19:20 paklein Exp $ */
+/* $Id: eNLHHTalpha.cpp,v 1.3 2002-07-02 19:55:05 cjkimme Exp $ */
 /* created: paklein (10/17/1996) */
 
 #include "eNLHHTalpha.h"
 #include "ExceptionCodes.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 eNLHHTalpha::eNLHHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder):
 	HHTalpha(in, out, auto2ndorder),
 	eLinearHHTalpha(in, out, auto2ndorder)

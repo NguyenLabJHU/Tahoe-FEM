@@ -11,6 +11,9 @@
 #include "dArrayT.h"
 #include "dMatrixT.h"
 
+
+namespace Tahoe {
+
 class PolyCrystalMatT;
 class LocalCrystalPlast;
 
@@ -89,4 +92,5 @@ class VoceHardening : public SlipHardening
   dArrayT farray;
 };
 
+} // namespace Tahoe 
 #endif /* _VOCE_HARDENING_H_ */

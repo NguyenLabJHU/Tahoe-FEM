@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.h,v 1.3 2001-07-03 01:35:12 paklein Exp $ */
+/* $Id: OgdenIsotropicT.h,v 1.4 2002-07-02 19:55:47 cjkimme Exp $ */
 /* created: paklein (10/01/2000)                                          */
 /* base class for large deformation isotropic material following          */
 /* Ogden's formulation.                                                   */
@@ -12,6 +12,9 @@
 
 /* direct members */
 #include "SpectralDecompT.h"
+
+
+namespace Tahoe {
 
 class OgdenIsotropicT: public FDStructMatT, public IsotropicT
 {
@@ -71,4 +74,5 @@ protected:
 	dSymMatrixT fStress;
 };
 
+} // namespace Tahoe 
 #endif /* _OGDEN_ISOTROPIC_T_H_ */

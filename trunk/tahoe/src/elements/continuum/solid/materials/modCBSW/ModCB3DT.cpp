@@ -1,4 +1,4 @@
-/* $Id: ModCB3DT.cpp,v 1.2 2001-07-03 01:35:29 paklein Exp $ */
+/* $Id: ModCB3DT.cpp,v 1.3 2002-07-02 19:56:06 cjkimme Exp $ */
 /* created: paklein (10/14/1998)                                          */
 
 #include "ModCB3DT.h"
@@ -13,6 +13,9 @@
 #include "dMatrixT.h"
 
 /* material parameters */
+
+using namespace Tahoe;
+
 const int kNSD  = 3;
 const int kNDOF = 3;
 

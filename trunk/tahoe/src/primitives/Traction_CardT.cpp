@@ -1,4 +1,4 @@
-/* $Id: Traction_CardT.cpp,v 1.2 2002-06-08 20:20:53 paklein Exp $ */
+/* $Id: Traction_CardT.cpp,v 1.3 2002-07-02 19:56:42 cjkimme Exp $ */
 /* created: paklein (05/29/1996) */
 #include "Traction_CardT.h"
 
@@ -14,6 +14,9 @@
 #include "ElementSupportT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 Traction_CardT::Traction_CardT(void):
 	fElemNum(0),
 	fFacetNum(0),
@@ -101,6 +104,8 @@ void Traction_CardT::WriteHeader(ostream& out, int ndof) const
 	out << '\n';			
 }
 
+namespace Tahoe {
+
 /* input operator for codes */
 istream& operator>>(istream& in, Traction_CardT::CoordSystemT& code)
 {
@@ -123,4 +128,6 @@ istream& operator>>(istream& in, Traction_CardT::CoordSystemT& code)
 	}
 
 	return in;
+}
+
 }

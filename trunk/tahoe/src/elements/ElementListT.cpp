@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.23 2002-07-01 17:35:22 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.24 2002-07-02 19:55:12 cjkimme Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
@@ -56,6 +56,9 @@
 #include "UpLagr_ExternalFieldT.h"
 
 /* constructors */
+
+using namespace Tahoe;
+
 ElementListT::ElementListT(void)
 {
 

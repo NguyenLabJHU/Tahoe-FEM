@@ -1,4 +1,4 @@
-/* $Id: LatLongPtsT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: LatLongPtsT.cpp,v 1.2 2002-07-02 19:56:00 cjkimme Exp $ */
 /* created: paklein (10/31/1997)                                          */
 /* Base class for spherical point generators.                             */
 
@@ -10,6 +10,9 @@
 #include "Constants.h"
 #include "ExceptionCodes.h"
 #include "fstreamT.h"
+
+
+using namespace Tahoe;
 
 const double Pi = acos(-1.0);
 

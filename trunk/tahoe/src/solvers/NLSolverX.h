@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.h,v 1.2 2002-06-08 20:20:55 paklein Exp $ */
+/* $Id: NLSolverX.h,v 1.3 2002-07-02 19:57:11 cjkimme Exp $ */
 /* created: paklein (08/25/1996) */
 
 #ifndef _NL_SOLVER_X_H_
@@ -8,6 +8,9 @@
 #include "NLSolver.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class CCSMatrixT;
 class CCNSMatrixT;
 
@@ -63,4 +66,5 @@ private:
 	CCNSMatrixT* pCCNS;
 };
 
+} // namespace Tahoe 
 #endif /* _NL_SOLVER_X_H_ */

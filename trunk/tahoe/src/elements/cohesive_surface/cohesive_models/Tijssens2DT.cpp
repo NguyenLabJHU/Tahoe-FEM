@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.12 2002-06-10 07:33:10 paklein Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.13 2002-07-02 19:55:16 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -12,6 +12,9 @@
 #include "SecantMethodT.h"
 
 /* class parameters */
+
+using namespace Tahoe;
+
 const int knumDOF = 2;
 
 /* constructor */

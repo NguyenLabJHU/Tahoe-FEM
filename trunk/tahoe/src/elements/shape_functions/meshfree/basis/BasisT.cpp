@@ -1,4 +1,4 @@
-/* $Id: BasisT.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: BasisT.cpp,v 1.2 2002-07-02 19:57:05 cjkimme Exp $ */
 /* created: paklein (12/10/1999)                                          */
 /* base class for basis functions                                         */
 
@@ -6,6 +6,9 @@
 #include "dSymMatrixT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 BasisT::BasisT(int complete, int nsd):
 	fComplete(complete),
 	fNumSD(nsd),

@@ -1,4 +1,4 @@
-/* $Id: LinearSpringT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: LinearSpringT.cpp,v 1.2 2002-07-02 19:56:24 cjkimme Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #include "LinearSpringT.h"
@@ -11,6 +11,9 @@
 /*
 * constructor
 */
+
+using namespace Tahoe;
+
 LinearSpringT::LinearSpringT(ifstreamT& in): RodMaterialT(in)
 {
 	in >> fSpringConstant;	if (fSpringConstant < 0.0) throw eBadInputValue;

@@ -9,6 +9,9 @@
 #include "Utils.h"
 #include "ifstreamT.h" 
 
+
+using namespace Tahoe;
+
 SlipHardening::SlipHardening(PolyCrystalMatT& poly):
   fPolyXtal  (poly),
   fdt        (poly.TimeStep()),

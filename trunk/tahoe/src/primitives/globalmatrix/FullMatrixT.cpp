@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.7 2002-04-10 01:12:03 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.8 2002-07-02 19:56:45 cjkimme Exp $ */
 /* created: paklein (03/07/1998) */
 
 #include "FullMatrixT.h"
@@ -10,6 +10,9 @@
 #include "ElementMatrixT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 FullMatrixT::FullMatrixT(ostream& out,int check_code):
 	GlobalMatrixT(out, check_code)
 {

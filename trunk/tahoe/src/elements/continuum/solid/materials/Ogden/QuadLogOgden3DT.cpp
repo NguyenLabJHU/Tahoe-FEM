@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden3DT.cpp,v 1.2 2001-07-03 01:35:13 paklein Exp $ */
+/* $Id: QuadLogOgden3DT.cpp,v 1.3 2002-07-02 19:55:47 cjkimme Exp $ */
 /* created: paklein (02/17/2001)                                          */
 /* principal stretch version of Quad Log model                            */
 
@@ -9,6 +9,9 @@
 #include "fstreamT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 QuadLogOgden3DT::QuadLogOgden3DT(ifstreamT& in, const FiniteStrainT& element):
 	OgdenIsotropicT(in, element),
 	flogE(3)

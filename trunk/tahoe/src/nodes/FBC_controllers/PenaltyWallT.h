@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.h,v 1.5 2002-06-08 20:20:49 paklein Exp $ */
+/* $Id: PenaltyWallT.h,v 1.6 2002-07-02 19:56:28 cjkimme Exp $ */
 /* created: paklein (02/25/1997) */
 
 #ifndef _PENATLY_WALL_T_H_
@@ -9,6 +9,9 @@
 
 /* direct members */
 #include "ElementMatrixT.h"
+
+
+namespace Tahoe {
 
 class PenaltyWallT: public PenaltyRegionT
 {
@@ -53,4 +56,5 @@ protected:
 	iArrayT        fi_sh; //shallow
 };
 
+} // namespace Tahoe 
 #endif /* _PENATLY_WALL_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: CrystalElastLat.cpp,v 1.2 2001-08-20 22:15:40 rdorgan Exp $ */
+/* $Id: CrystalElastLat.cpp,v 1.3 2002-07-02 19:56:03 cjkimme Exp $ */
 /*
   File: CrystalElastLat.cpp
 */
@@ -16,6 +16,9 @@
 #define RANDOM_MAX 32767
 
 // some constants
+
+using namespace Tahoe;
+
 const double pi = 4.0 * atan(1.0);
 const double pi180 = pi / 180.;
 

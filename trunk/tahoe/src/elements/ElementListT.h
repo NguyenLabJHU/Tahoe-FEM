@@ -1,4 +1,4 @@
-/* $Id: ElementListT.h,v 1.2 2002-06-08 20:20:13 paklein Exp $ */
+/* $Id: ElementListT.h,v 1.3 2002-07-02 19:55:12 cjkimme Exp $ */
 /* created: paklein (04/20/1998) */
 
 #ifndef _ELEMENTLIST_T_H_
@@ -13,6 +13,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 class ElementBaseT;
 class eControllerT;
@@ -44,4 +47,5 @@ private:
 	ElementSupportT fSupport;
 };
 
+} // namespace Tahoe 
 #endif /* _ELEMENTLIST_T_H_ */

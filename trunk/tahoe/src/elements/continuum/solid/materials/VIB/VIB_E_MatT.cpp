@@ -1,4 +1,4 @@
-/* $Id: VIB_E_MatT.cpp,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* $Id: VIB_E_MatT.cpp,v 1.2 2002-07-02 19:55:55 cjkimme Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* Base class for isotropic VIB_E_MatT materials.                         */
 
@@ -13,6 +13,9 @@
 #include "C1FunctionT.h"
 
 /* constructors */
+
+using namespace Tahoe;
+
 VIB_E_MatT::VIB_E_MatT(ifstreamT& in, int nsd):
 	VIB(in, nsd, dSymMatrixT::NumValues(nsd), (nsd == 2) ? 5 : 15)
 {

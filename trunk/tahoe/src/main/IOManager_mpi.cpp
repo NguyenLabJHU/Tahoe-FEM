@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.19 2002-03-04 06:56:31 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.20 2002-07-02 19:55:30 cjkimme Exp $ */
 /* created: paklein (03/14/2000) */
 
 #include "IOManager_mpi.h"
@@ -14,6 +14,9 @@
 #endif
 
 /* constructor */
+
+using namespace Tahoe;
+
 IOManager_mpi::IOManager_mpi(ifstreamT& in, const iArrayT& io_map,
 	const IOManager& local_IO, const PartitionT& partition,
 	const StringT& model_file, IOBaseT::FileTypeT format):

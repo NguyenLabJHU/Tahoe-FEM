@@ -1,4 +1,4 @@
-/* $Id: nIntegratorT.h,v 1.4 2002-06-08 20:20:11 paklein Exp $ */
+/* $Id: nIntegratorT.h,v 1.5 2002-07-02 19:55:07 cjkimme Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _N_CONTROLLERT_H_
@@ -12,6 +12,9 @@
 #include "ArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class BasicFieldT;
 class dArray2DT;
 class iArray2DT;
@@ -71,4 +74,5 @@ protected:
 	virtual void nComputeParameters(void) = 0;
 };
 
+} // namespace Tahoe 
 #endif /* _N_CONTROLLERT_H_ */

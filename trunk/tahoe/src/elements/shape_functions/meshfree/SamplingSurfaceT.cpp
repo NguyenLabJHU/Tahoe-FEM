@@ -1,4 +1,4 @@
-/* $Id: SamplingSurfaceT.cpp,v 1.2 2001-02-13 17:57:19 paklein Exp $ */
+/* $Id: SamplingSurfaceT.cpp,v 1.3 2002-07-02 19:56:56 cjkimme Exp $ */
 /* created: paklein (10/19/2000)                                          */
 
 #include "SamplingSurfaceT.h"
@@ -6,6 +6,9 @@
 #include "MeshFreeSupportT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 SamplingSurfaceT::SamplingSurfaceT(GeometryT::CodeT code, int num_facet_nodes,
 	int num_samples, MeshFreeSupportT& mf_support):
 	fCode(code),

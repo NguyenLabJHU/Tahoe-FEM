@@ -11,6 +11,9 @@
 #include "dArrayT.h"
 #include "dMatrixT.h"
 
+
+namespace Tahoe {
+
 class PolyCrystalMatT;
 
 class VoceGradHardening : public SlipHardening
@@ -77,4 +80,5 @@ class VoceGradHardening : public SlipHardening
   dArrayT fInternal;
 };
 
+} // namespace Tahoe 
 #endif /* _VOCE_GRAD_HARDENING_H_ */

@@ -1,4 +1,4 @@
-/* $Id: QuadLog2D.h,v 1.2 2001-07-03 01:35:14 paklein Exp $ */
+/* $Id: QuadLog2D.h,v 1.3 2002-07-02 19:55:50 cjkimme Exp $ */
 /* created: paklein (06/28/1997)                                          */
 /* (2D <-> 3D) translator for the QuadLog3D.                              */
 
@@ -8,6 +8,9 @@
 /* base classes */
 #include "QuadLog3D.h"
 #include "Material2DT.h"
+
+
+namespace Tahoe {
 
 class QuadLog2D: public QuadLog3D, public Material2DT
 {
@@ -39,4 +42,5 @@ protected:
 	dSymMatrixT fb_2D;
 };
 
+} // namespace Tahoe 
 #endif /* _QUAD_LOG_2D_ */

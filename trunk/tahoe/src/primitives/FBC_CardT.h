@@ -1,4 +1,4 @@
-/* $Id: FBC_CardT.h,v 1.3 2002-06-08 20:20:53 paklein Exp $ */
+/* $Id: FBC_CardT.h,v 1.4 2002-07-02 19:56:42 cjkimme Exp $ */
 /* created: paklein (06/15/1996) */
 
 #ifndef _FBC_CARD_T_H_
@@ -8,6 +8,9 @@
 #include "ios_fwd_decl.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class NodeManagerT;
 class ifstreamT;
 class ScheduleT;
@@ -58,4 +61,5 @@ inline void FBC_CardT::Destination(int& node, int& dof) const
 }
 inline int FBC_CardT::Node(void) const   { return fNode; }
 inline int FBC_CardT::DOF(void) const    { return fDOF;  }
+} // namespace Tahoe 
 #endif /* _FBC_CARD_T_H_ */

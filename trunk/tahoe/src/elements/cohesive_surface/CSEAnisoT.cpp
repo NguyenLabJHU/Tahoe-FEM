@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.20 2002-06-10 06:59:24 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.21 2002-07-02 19:55:15 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -25,6 +25,9 @@
 #include "YoonAllen2DT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 CSEAnisoT::CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate):
 	CSEBaseT(support, field),
 	fRotate(rotate),

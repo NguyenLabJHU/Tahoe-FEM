@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.h,v 1.2 2002-06-08 20:20:16 paklein Exp $ */
+/* $Id: ThermalSurfaceT.h,v 1.3 2002-07-02 19:55:15 cjkimme Exp $ */
 
 #ifndef _THERMAL_SURFACE_T_H_
 #define _THERMAL_SURFACE_T_H_
@@ -10,6 +10,9 @@
 #include "pArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class C1FunctionT;
 
 /** surface with thermal resistance */
@@ -58,4 +61,5 @@ private:
 	LocalArrayT fLocTemperatures;
 };
 
+} // namespace Tahoe 
 #endif /* _THERMAL_SURFACE_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.7 2002-06-08 20:20:19 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.8 2002-07-02 19:55:18 cjkimme Exp $ */
 /* created: paklein (05/31/1998) */
 
 #include "AugLagContact2DT.h"
@@ -13,6 +13,9 @@
 #include "XDOF_ManagerT.h"
 
 /* parameters */
+
+using namespace Tahoe;
+
 const int kNumAugLagDOF  = 1;
 
 /* constructor */

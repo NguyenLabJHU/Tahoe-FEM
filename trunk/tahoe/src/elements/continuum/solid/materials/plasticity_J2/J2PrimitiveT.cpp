@@ -1,4 +1,4 @@
-/* $Id: J2PrimitiveT.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: J2PrimitiveT.cpp,v 1.2 2002-07-02 19:56:11 cjkimme Exp $ */
 /* created: paklein (02/17/1997)                                          */
 /* Base class for a J2 plastic material with linear kinematic/            */
 /* isotropic hardening laws defined by:                                   */
@@ -13,6 +13,9 @@
 
 #include "fstreamT.h"
 #include "dSymMatrixT.h"
+
+
+using namespace Tahoe;
 
 const double sqrt23 = sqrt(2.0/3.0);
 

@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.h,v 1.4 2002-06-08 20:20:17 paklein Exp $ */
+/* $Id: ViscTvergHutch2DT.h,v 1.5 2002-07-02 19:55:17 cjkimme Exp $ */
 
 #ifndef _VISC_TVERG_HUTCH_2D_T_H_
 #define _VISC_TVERG_HUTCH_2D_T_H_
@@ -7,6 +7,9 @@
 #include "SurfacePotentialT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ifstreamT;
 
 /** cohesive potential from Tvergaard and Hutchinson with viscous
@@ -107,4 +110,5 @@ private:
 	                  * and the initial stiffness of the cohesive potential */
 };
 
+} // namespace Tahoe 
 #endif /* _VISC_TVERG_HUTCH_2D_T_H_ */

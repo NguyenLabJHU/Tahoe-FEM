@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianT.h,v 1.4 2002-06-08 20:20:22 paklein Exp $ */
+/* $Id: TotalLagrangianT.h,v 1.5 2002-07-02 19:55:24 cjkimme Exp $ */
 /* created: paklein (07/03/1996) */
 
 #ifndef _TOTAL_LAGRANGRIAN_T_H_
@@ -9,6 +9,9 @@
 
 /* direct members */
 #include "dMatrixT.h"
+
+
+namespace Tahoe {
 
 class TotalLagrangianT: public FiniteStrainT
 {
@@ -43,6 +46,7 @@ protected:
 	virtual void ComputeEffectiveDVA(int formBody,
 		int formMa, double constMa, int formCv, double constCv,
 		int formKd, double constKd);
+} // namespace Tahoe 
 #endif
 
 	/* calculate the internal force contribution ("-k*d") */
@@ -60,4 +64,5 @@ protected:
 	dArray2DT fDNa_x;
 };
 
+} // namespace Tahoe 
 #endif /* _TOTAL_LAGRANGRIAN_T_H_ */

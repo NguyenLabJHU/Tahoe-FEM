@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.10 2002-06-21 12:40:37 sawimme Exp $ */
+/* $Id: ContinuumElementT.h,v 1.11 2002-07-02 19:55:23 cjkimme Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _CONTINUUM_ELEMENT_T_H_
@@ -12,6 +12,9 @@
 #include "GeometryT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class MaterialListT;
 class ShapeFunctionT;
 class Traction_CardT;
@@ -293,4 +296,5 @@ inline const MaterialListT& ContinuumElementT::MaterialsList(void) const
 	return *fMaterialList;
 }
 
+} // namespace Tahoe 
 #endif /* _CONTINUUM_ELEMENT_T_H_ */

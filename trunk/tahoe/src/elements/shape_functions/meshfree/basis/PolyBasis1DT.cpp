@@ -1,10 +1,13 @@
-/* $Id: PolyBasis1DT.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: PolyBasis1DT.cpp,v 1.2 2002-07-02 19:57:05 cjkimme Exp $ */
 /* created: paklein (12/11/1999)                                          */
 /* base class for basis functions                                         */
 
 #include "PolyBasis1DT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 PolyBasis1DT::PolyBasis1DT(int complete):
 	BasisT(complete, 1)
 {

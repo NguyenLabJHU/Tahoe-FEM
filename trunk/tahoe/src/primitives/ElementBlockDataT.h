@@ -1,4 +1,4 @@
-/* $Id: ElementBlockDataT.h,v 1.1 2002-01-27 18:43:14 paklein Exp $ */
+/* $Id: ElementBlockDataT.h,v 1.2 2002-07-02 19:56:41 cjkimme Exp $ */
 
 #ifndef _ELEM_BLOCK_DATA_T_H_
 #define _ELEM_BLOCK_DATA_T_H_
@@ -9,6 +9,9 @@
 /** container for element block information. Used by ElementBaseT to
  * store information about multiple element blocks within an element
  * group. */
+
+namespace Tahoe {
+
 class ElementBlockDataT
 {
 public:
@@ -62,4 +65,5 @@ inline ElementBlockDataT& ElementBlockDataT::operator=(const ElementBlockDataT& 
 	return *this;
 }
 
+} // namespace Tahoe 
 #endif /* _ELEM_BLOCK_DATA_T_H_ */

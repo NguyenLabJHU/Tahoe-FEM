@@ -1,4 +1,4 @@
-/* $Id: ThermalDilatationT.h,v 1.3 2002-06-08 20:20:45 paklein Exp $ */
+/* $Id: ThermalDilatationT.h,v 1.4 2002-07-02 19:56:22 cjkimme Exp $ */
 /* created: paklein (08/25/1996) */
 
 #ifndef _THERMALDILAT_H_
@@ -8,6 +8,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 class ScheduleT;
 
@@ -52,4 +55,5 @@ inline void ThermalDilatationT::SetSchedule(const ScheduleT* LTf)
 		fPercentElongation = 0.0;
 }
 
+} // namespace Tahoe 
 #endif /* _THERMALDILAT_H_ */

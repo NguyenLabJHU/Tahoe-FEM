@@ -7,6 +7,9 @@
 #include "math_utils.h"
 #include "ExceptionCodes.h"
 
+
+using namespace Tahoe;
+
 NLCSolver_LS::NLCSolver_LS(const int dim, const NewtonMethodBase& method)
   : NLCSolver(dim, method), 
     fAlpha (1.e-4)

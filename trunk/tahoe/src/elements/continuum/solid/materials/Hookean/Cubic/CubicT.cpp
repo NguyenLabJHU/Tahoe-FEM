@@ -1,4 +1,4 @@
-/* $Id: CubicT.cpp,v 1.2 2001-07-03 01:35:06 paklein Exp $ */
+/* $Id: CubicT.cpp,v 1.3 2002-07-02 19:55:39 cjkimme Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #include "CubicT.h"
@@ -9,6 +9,9 @@
 #include "dMatrixT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 CubicT::CubicT(ifstreamT& in)
 {	
 	in >> fC11;			

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp_C.cpp,v 1.2 2002-06-08 20:20:43 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp_C.cpp,v 1.3 2002-07-02 19:56:14 cjkimme Exp $ */
 #include "LocalCrystalPlastFp_C.h"
 #include "LatticeOrient.h"
 #include "CrystalElasticity.h"
@@ -9,6 +9,9 @@
 #include "ContinuumElementT.h"
 
 /* spatial dimensions of the problem */
+
+using namespace Tahoe;
+
 const int kNSD = 3; 
 
 const double sqrt23 = sqrt(2.0/3.0);

@@ -12,6 +12,9 @@
 #include "dArray2DT.h"
 #include "LocalArrayT.h"
 
+
+namespace Tahoe {
+
 class GradCrystalPlastFp2D: public GradCrystalPlastFp, public Material2DT
 {
  public:
@@ -40,4 +43,5 @@ class GradCrystalPlastFp2D: public GradCrystalPlastFp, public Material2DT
   dMatrixT f2Dc_ijkl;
 };
 
+} // namespace Tahoe 
 #endif /* _GRAD_CRYSTAL_PLAST_FP_2D_H_ */
