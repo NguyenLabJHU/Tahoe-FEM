@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.27 2002-07-02 21:23:00 cjkimme Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.28 2002-07-03 18:55:59 recampb Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -428,6 +428,14 @@ void VTKBodyDataT::HideContours(vtkRenderer* renderer)
   
 }
 
+/* return the index of the given node number in the node number map */
+int VTKBodyDataT::NodeMapIndex(int node) const
+{
+  for (int i = 0; i < fPointNumberMap.Length(); i++)
+    if (fPointNumberMap[i] == node)
+      return i;
+  return -1;
+}
 
 /* execute console command. \return true is executed normally */
 bool VTKBodyDataT::iDoCommand(const CommandSpecT& command, StringT& line)

@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.20 2002-07-02 21:23:00 cjkimme Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.21 2002-07-03 18:55:59 recampb Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -379,16 +379,16 @@ void VTKUGridT::HideContours(vtkFloatArray* scalars, vtkRenderer* renderer)
   else 
     {
 
-  for (int i = 0; i < cut.Length(); i++)
-    {
-      cutterMapper[i]->ScalarVisibilityOn();
-      cut[i]->SetMapper(cutterMapper[i]);
-      renderer->RemoveActor(boundPlane[i]);
+      for (int i = 0; i < cut.Length(); i++)
+	{
+	  cutterMapper[i]->ScalarVisibilityOn();
+	  cut[i]->SetMapper(cutterMapper[i]);
+	  renderer->RemoveActor(boundPlane[i]);
+	}
+      
+
     }
-
-
-    }
-
+  
 }
 
 
@@ -431,7 +431,8 @@ void VTKUGridT::CuttingPlane(vtkRenderer* renderer, double oX, double oY, double
 	    cutterMapper[i]->SetInput(cutter[i]->GetOutput());
 	  }  
       
-      fActor->SetVisibility(false);
+      renderer->RemoveActor(fActor);
+      //fActor->SetVisibility(false);
       renderer->AddActor(tcut);
       
     }
@@ -445,11 +446,11 @@ else
     vtkCutter* tcutter = vtkCutter::New();
     vtkPolyDataMapper* tcutterMapper = vtkPolyDataMapper::New();
     vtkActor* tcut = vtkActor::New();
-    tcut->SetMapper(tcutterMapper);
     tcutter->SetInput(fContour->GetOutput());
     tcutter->SetCutFunction(tplane);
     tcutterMapper->SetInput(tcutter->GetOutput());
     tcutterMapper->SetLookupTable(fLookUpTable);
+    tcut->SetMapper(tcutterMapper);
     
     if (temp->IsItemPresent(boundBoxActor) == 0)
       renderer->AddActor(boundBoxActor);  
@@ -473,8 +474,8 @@ else
 	  
 // 	}
       
-      
-      fActor->SetVisibility(false);
+      renderer->RemoveActor(fActor);
+      //fActor->SetVisibility(false);
       renderer->AddActor(tcut);   
       renderer->RemoveActor(fContourActor);
  
@@ -496,6 +497,7 @@ void VTKUGridT::HideCuttingPlane(vtkRenderer* renderer)
       for (int i = 0; i < cut.Length(); i++)
 	{
 	  renderer->RemoveActor(cut[i]);
+
 	}
     }
   else
@@ -504,13 +506,21 @@ void VTKUGridT::HideCuttingPlane(vtkRenderer* renderer)
 	{
 	  renderer->RemoveActor(cut[i]);
 	  renderer->RemoveActor(boundPlane[i]);
+
 	}
      renderer->AddActor(fContourActor);
      //renderer->RemoveActor(boundBoxActor);
      fContourActor->SetVisibility(true);
      
+     cut.Free();
+     cutter.Free();
+     cutterMapper.Free();
+     plane.Free();
       
     }
+
+
+
 
 }
 
@@ -521,31 +531,19 @@ void VTKUGridT::Glyphing(vtkFloatArray* vectors, vtkRenderer* renderer, bool fil
   visPoints->SetRenderer(renderer);
   if (filter)
     {
-      if (warpBool)
-	{
-	  if (warpArrows)
-	    visPoints->SetInput(fWarp->GetOutput());
-	  else  
-	    visPoints->SetInput(fUGrid);
+      if (warpBool && warpArrows)
+	visPoints->SetInput(fWarp->GetOutput());
+      else  
+	visPoints->SetInput(fUGrid);
 	  
-	  glyph->SetInput(visPoints->GetOutput());
-	}
-      else
-	{
-	  visPoints->SetInput(fUGrid);
-	  glyph->SetInput(visPoints->GetOutput());
-	}
+      glyph->SetInput(visPoints->GetOutput());     
     }
-
+  
   else
     {
-      if (warpBool)
-	{
-	  if (warpArrows)
-	    glyph->SetInput(fWarp->GetOutput());
-	  else
-	    glyph->SetInput(fUGrid);
-	}
+      if (warpBool && warpArrows)
+	glyph->SetInput(fWarp->GetOutput());
+
       else
 	glyph->SetInput(fUGrid);
       
@@ -640,39 +638,13 @@ void VTKUGridT::SetWarpVectors(vtkFloatArray* vectors)
 	cutter[i]->SetInput(fWarp->GetOutput());
 	cutterMapper[i]->SetInput(cutter[i]->GetOutput());
       }
-    //if (contours){
       
       fContour->SetInput(fWarp->GetOutput());
       fContourMapper->SetInput(fContour->GetOutput());
       edges->SetInput(fWarp->GetOutput());
       edgesMapper->SetInput(edges->GetOutput());
       boundBoxMapper->SetInput(fWarp->GetOutput());
-      //  }  
-
-
-//   numPoints = fUGrid->GetNumberOfPoints();
-
-//   float d[3];
-  
-//   for (int i = 0; i<numPoints; i++){
-
-//     d[0] = (float)coords(i,0)+ (vectors->GetComponent(i,0));
-//     d[1] = (float)coords(i,1)+ (vectors->GetComponent(i,1));
-//     d[2] = (float) coords(i,2)+ (vectors->GetComponent(i,2));
-//     fUGrid->GetPoints()->SetPoint(i,d);
-
-//     // if (i == numPoints-1){
-//       cout << "Old: (" << coords(i,0) << ", " << coords(i,1) << ", " << coords(i,2) << ")" << endl;
-//       cout << "New: (" << d[0] << ", " << d[1] << ", " << d[2] << ")" << endl;
-    
-
-//       cout << (vectors->GetComponent(i,0)) << ", " << vectors->GetComponent(i,1) << ", " << vectors->GetComponent(i,2) << endl;
-//       //}
-//   }
-//   // cout << numPoints << endl;
-//   cout << vectors->GetNumberOfTuples()<< endl;
-      //  cout << vectors->GetNumberOfComponents() << endl;
-      // cout << fUGrid->GetPointData()->GetNumberOfArrays() << endl;
+ 
 }
 
 /* set the wrap displacement scale factor */

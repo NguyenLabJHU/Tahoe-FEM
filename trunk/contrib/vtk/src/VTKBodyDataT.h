@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.h,v 1.18 2002-07-02 21:23:00 cjkimme Exp $ */
+/* $Id: VTKBodyDataT.h,v 1.19 2002-07-03 18:55:59 recampb Exp $ */
 #ifndef _VTK_BODY_DATA_T_H_
 #define _VTK_BODY_DATA_T_H_
 
@@ -101,6 +101,10 @@ public:
 
 	void ShowContours(vtkRenderer* renderer);
 	void HideContours(vtkRenderer* renderer);
+
+	/** return the index of the given node number in the node number map
+	 * or -1 if the node is not present in the map */
+	int NodeMapIndex(int node) const;
 
 protected:
 
