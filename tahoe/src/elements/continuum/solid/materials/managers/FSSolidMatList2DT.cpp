@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.4 2004-08-01 20:42:03 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.5 2004-08-03 06:08:49 paklein Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -72,6 +72,9 @@
 #include "ABAQUS_BCJ.h"
 #include "ABAQUS_BCJ_ISO.h"
 #include "ABAQUS_VUMAT_BCJ.h"
+#endif
+#ifdef ABAQUS_TI_DEV
+#include "ABAQUS_Ti.h"
 #endif
 #endif
 
@@ -168,6 +171,9 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 		sub_lists.AddSub("ABAQUS_UMAT_BCJ");
 		sub_lists.AddSub("ABAQUS_VUMAT_BCJ");
 		sub_lists.AddSub("ABAQUS_UMAT_BCJ_iso-damage");
+#endif
+#ifdef ABAQUS_TI_DEV
+		sub_lists.AddSub("ABAQUS_UMAT_Ti");
 #endif
 #endif
 	}
@@ -277,6 +283,10 @@ FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& name) const
 		mat= new ABAQUS_VUMAT_BCJ;
 	else if (name == "ABAQUS_UMAT_BCJ_iso-damage")
 		mat= new ABAQUS_BCJ_ISO;
+#endif
+#ifdef ABAQUS_TI_DEV
+	else if (name == "ABAQUS_UMAT_Ti")
+		mat= new ABAQUS_Ti;
 #endif
 #endif
 
