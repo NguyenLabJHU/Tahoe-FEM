@@ -8,7 +8,7 @@
 #include "C0_LineT.h"
 #include "C1_LineT.h"
 #include "C0_QuadT.h"
-//#include "C1_QuadT.h"
+#include "C1_QuadT.h"
 #include "C0_HexahedronT.h"
 
 #include <math.h>
@@ -88,178 +88,6 @@ GradSmallStrainT::~GradSmallStrainT(void)
 	delete fGradSSMatSupport;
 	delete fShapes_PMultiplier;
 }
-#if 0
-/* initialize step */
-void GradSmallStrainT::InitStep(void)
-{
-	/* inherited */
-	SmallStrainT::InitStep();
-
-	/* initialize */ 
-	fRelaxed  = 0;       // needs to be placed at beginning of time step
-
-}
-
-/* adds check for weakening */
-void GradSmallStrainT::RHSDriver(void)
-{
-	/* initialize */ 
-	fWeakened = 0;       // count of weakened elements
-	
-	/* inherited */
-	SmallStrainT::RHSDriver();
-
-	/* check weakening */
-	if (ElementSupport().RunState() == GlobalT::kFormRHS && fWeakened > fMaxWeakened && fRelaxed < 4)
-	{
-		/* the solver shouldn't go onto the next time step */
-		fHoldTime = true;
-
-		/* count of times relaxed */
-		fRelaxed++;
-		
-		/* array to store miniumum values of yield strength */
-		dArrayT MinimumYS(fMaxWeakened);
-
-		/* initialize count of first weakened ip*/
-		int count = 0;
-			
-		/* loop over elements to find minimum yield strength */
-		Top();
-		while ( NextElement() )
-		{
-			/* current element */
-			const ElementCardT& element = CurrentElement();
-	
-			/* initialize */
-			fShapes->TopIP();
-
-			/* loop over IP */
-			while(fShapes->NextIP())
-			{
-				/* check if IP is weakened */
-				if (fCurrMaterial_Grad->weakened())
-				{						
-					/* get yield strength at IP */
-					double fys = fCurrMaterial_Grad->ys();
-
-					if (count < MinimumYS.Length())
-					{
-						/* store as minimum for first weakened ip */
-						MinimumYS[count] = fys;
-
-						/* increment count of first weakened ip*/
-						count++;
-					}
-					else
-					{
-						/* initialize */
-						bool IP_HasMinYS = false;
-						
-						/* determine if IP has a minimum yield strength */
-						for ( int i = MinimumYS.Length() - 1; i >= 0 && !IP_HasMinYS; i--)
-							/* store as minimum if less than any of the MinimumYS */
-							if (fys < MinimumYS[i])
-							{
-								MinimumYS[i] = fys;
-								IP_HasMinYS = true;
-							}
-					}
-
-					/* sort list for next IP */
-					MinimumYS.SortAscending();
-
-					cout << "BEGIN: Element [" << CurrElementNumber() << "], ip [" << CurrIP() << "]" << endl;
-				}
-			}
-		}
-
-		/* loop over elements to find IP's with minimum yield strength*/
-		Top();
-		while ( NextElement() )
-		{
-			/* current element */
-			const ElementCardT& element = CurrentElement();
-	
-			/* initialize */
-			fShapes->TopIP();
-
-			/* loop over IP */
-			while(fShapes->NextIP())
-			{
-				/* check if IP is weakened */
-				if (fCurrMaterial_Grad->weakened())
-				{						
-					/* initialize */
-					bool IP_HasMinYS = false;
-						
-					for ( int i = 0; i < MinimumYS.Length() && !IP_HasMinYS; i++)
-						/* determine if IP has a minimum yield strength */
-						if (fCurrMaterial_Grad->ys() <= MinimumYS[i] + kSmall)
-							IP_HasMinYS = true;
-
-					if (IP_HasMinYS)
-					{						
-						/* if the IP has a minimum yield strength, should be weakened */
-						fCurrMaterial_Grad->UpdateWeakened(element, CurrIP());
-
-						cout << "END: Element [" << CurrElementNumber() << "], ip [" << CurrIP() << "]" << endl;
-					}
-					if (!IP_HasMinYS)
-						/* if the IP does not have a minimum yield strength, should not be weakened */
-						fCurrMaterial_Grad->ResetWeakened(element, CurrIP());
-				}
-			}
-		}
-	}
-	else
-	{
-		fHoldTime = false;
-
-		/* loop over elements */
-		Top();
-		while ( NextElement() )
-		{
-			/* current element */
-			const ElementCardT& element = CurrentElement();
-	
-			/* initialize */
-			fShapes->TopIP();
-
-			/* loop over IP */
-			while(fShapes->NextIP())
-			{
-				/* check if IP is weakened */
-				if (fCurrMaterial_Grad->weakened() > 0.5)
-				{
-					/* IP should be weakened */
-					fCurrMaterial_Grad->UpdateWeakened(element, CurrIP());
-
-					cout << "fHoldTime = false: Element [" << CurrElementNumber() << "], ip [" << CurrIP() << "]" << endl;
-				}
-			}
-		}
-	}
-}
-
-/* element level reconfiguration for the current time increment */
-GlobalT::RelaxCodeT GradSmallStrainT::RelaxSystem(void)
-{
-	/* inherited */
-	GlobalT::RelaxCodeT code = SmallStrainT::RelaxSystem();
-
-	/* resolve current time */
-	if (fHoldTime)
-	{
-		code = GlobalT::MaxPrecedence(code, GlobalT::kRelax);
-
-		/* reset */ 
-		fHoldTime = false;  // call to hold current time increment
-	}
-
-	return code;
-}
-#endif
 
 void GradSmallStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 								 AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
@@ -727,7 +555,7 @@ void GradSmallStrainT::SetShape(void)
 			fShapes_PMultiplier = new C0_QuadT(GeometryCode(), NumIP(), fNumElementNodes_PMultiplier, fPMultiplier->NumDOF(), fLocInitCoords);
 		else
 			/* 2D, C1 */
-			ExceptionT::GeneralFail(caller, "C1_QuadT not implemented");
+			fShapes_PMultiplier = new C1_QuadT(GeometryCode(), NumIP(), fNumElementNodes_PMultiplier, fPMultiplier->NumDOF(), fLocInitCoords);
  	else
  		if (fDegreeOfContinuity_PMultiplier == kC0)
 			/* 3D, C0 */
@@ -900,6 +728,7 @@ void GradSmallStrainT::FormStiffness(double constK)
 			cout<<"                 stress         : " << sqrt(fCurrMaterial_Grad->s_ij().ScalarProduct())   <<endl;
 			cout<<"                 yc             : " << fCurrMaterial_Grad->yc()                           <<endl;
 			cout<<"                 PMultiplier    : " << fPMultiplier_List[CurrIP()]                        <<endl;
+			cout<<"                 del_PMultiplier: " << fPMultiplier_List[CurrIP()][0] -  fPMultiplier_last_List[CurrIP()][0]                      <<endl;
 			cout<<"                 LapPMultiplier : " << fLapPMultiplier_List[CurrIP()]                     <<endl;
 			cout<<"                 odm_bh_ij[0]   : " << (fCurrMaterial_Grad->odm_hb_ij())[0]               <<endl;
 			cout<<"                 odm_hb_ij[0]   : " << (fCurrMaterial_Grad->odm_bh_ij())[0]               <<endl;
@@ -920,27 +749,16 @@ void GradSmallStrainT::FormStiffness(double constK)
 
 	dArrayT fLocYield(fNumElementNodes_Disp);
 	IP_ExtrapolateAll(fYield_List, fLocYield);
-	
+
 	/* add constraint to Krr if elastic */
 	fK_ct = 0.;
-
 	for (int nd = 0; nd < fNumElementNodes_PMultiplier ; nd++)
-
-		// BEST CONVERGENCE / BETTER TOLERANCE CONVERGENCE
-		if (fLocPMultiplier[nd] <= 0. || fLocPMultiplier[nd] <= fLocLastPMultiplier[nd])
-
-		// 20ELEMENT KILLS EARLY / OTHER SOLUTIONS TAKE LONGER WITH WORSE TOLERANCE CONVERGENCE
-		// if (fLocPMultiplier1[nd] <= 0. || fLocPMultiplier1[nd] <= fLocLastPMultiplier1[nd] || fabs(fLocYield[nd]) < kYieldTol) 
-
-		// TAKES LONGER / WORSE TOLERANCE CONVERGENCE
-		//		if (fabs(fLocYield[nd]) < kYieldTol)
-
-			fK_ct(nd)[nd] = fNodalConstraint;
-
+		if (fLocPMultiplier[nd] <= fLocLastPMultiplier[nd] && false)
+			fK_ct(nd)[nd] = fNodalConstraint*fNodalConstraint;
 	fLHS.AddBlock(fK_bb.Rows(), fK_bb.Cols(), fK_ct);
 
 	/********DEBUG*******/
-	if (false)
+	if (fprint_All)
 	{
 		cout << caller << " Stiffness Matrix" << endl;
 		cout << "  element: " << CurrElementNumber() << endl;
@@ -1033,13 +851,14 @@ void GradSmallStrainT::FormKd(double constK)
 		fWeakened += fCurrMaterial_Grad->weakened();
 
 		/********DEBUG*******/
-		if (false  )
+		if (fprint_Kd)
 		{
 			cout<<"            ip: "             << CurrIP()                                                 <<endl;
 			cout<<"                 strain         : " << sqrt(fStrain_List[CurrIP()].ScalarProduct())       <<endl;
 			cout<<"                 stress         : " << sqrt(fCurrMaterial_Grad->s_ij().ScalarProduct())   <<endl;
 			cout<<"                 yc             : " << fCurrMaterial_Grad->yc()                           <<endl;
 			cout<<"                 PMultiplier    : " << fPMultiplier_List[CurrIP()]                        <<endl;
+			cout<<"                 del_PMultiplier: " << fPMultiplier_List[CurrIP()][0] -  fPMultiplier_last_List[CurrIP()][0]                      <<endl;
 			cout<<"                 LapPMultiplier : " << fLapPMultiplier_List[CurrIP()]                     <<endl;
 			cout<<"                 odm_bh_ij[0]   : " << (fCurrMaterial_Grad->odm_hb_ij())[0]               <<endl;
 			cout<<"                 odm_hb_ij[0]   : " << (fCurrMaterial_Grad->odm_bh_ij())[0]               <<endl;
@@ -1049,7 +868,7 @@ void GradSmallStrainT::FormKd(double constK)
 		}
 		/*******************/
 		/********DEBUG*******/
-		if (fprint_Kd)
+		if (false)
 		{
 			cout<<"            ip: "             << CurrIP()                                                 <<endl;
 			if (NumSD() == 2)
@@ -1071,6 +890,7 @@ void GradSmallStrainT::FormKd(double constK)
 			cout<<"                 PMultiplier    : " << fPMultiplier_List[CurrIP()]                        <<endl;
 			cout<<"                 LapPMultiplier : " << fLapPMultiplier_List[CurrIP()]                     <<endl;
 			cout<<"                 odm_bh_ij[0]   : " << (fCurrMaterial_Grad->odm_hb_ij())[0]               <<endl;
+			cout<<"                 del_PMultiplier: " << fPMultiplier_List[CurrIP()][0] -  fPMultiplier_last_List[CurrIP()][0]                      <<endl;
 			cout<<"                 odm_hb_ij[0]   : " << (fCurrMaterial_Grad->odm_bh_ij())[0]               <<endl;
 			cout<<"                 gm_hh          : " << fCurrMaterial_Grad->gm_hh()                        <<endl;
 			cout<<"                 gm_hp[0]       : " << fCurrMaterial_Grad->gm_hp()[0]                     <<endl;

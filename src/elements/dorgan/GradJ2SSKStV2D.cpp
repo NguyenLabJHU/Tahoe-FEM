@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSKStV2D.cpp,v 1.1 2004-09-02 18:25:04 rdorgan Exp $ */
+/* $Id: GradJ2SSKStV2D.cpp,v 1.2 2004-11-30 23:06:24 rdorgan Exp $ */
 #include "GradJ2SSKStV2D.h"
 #include "ElementCardT.h"
 #include "StringT.h"
@@ -40,11 +40,11 @@ const dMatrixT& GradJ2SSKStV2D::odm_bh_ij(void)
 	ReduceOffDiagonalModulus_bh(GradJ2SSKStV::odm_bh_ij(), fOffDiagonalModulus_bh_2D);
 
 	/* 3D -> 2D */
-	//	fModulus2D.Rank4ReduceFrom3D(GradJ2SSKStV::c_ijkl());
-	//	fStress2D.ReduceFrom3D(GradJ2SSKStV::n_ij());
+	//fModulus2D.Rank4ReduceFrom3D(GradJ2SSKStV::c_ijkl());
+	//fStress2D.ReduceFrom3D(GradJ2SSKStV::n_ij());
 
-	//	fModulus2D.Multx(fStress2D,fTensorTemp1);
-	//	fOffDiagonalModulus_bh_2D.AddScaled(-1.0, fTensorTemp1);
+	//fModulus2D.Multx(fStress2D,fTensorTemp1);
+	//fOffDiagonalModulus_bh_2D.AddScaled(-1.0, fTensorTemp1);
 	
 	return fOffDiagonalModulus_bh_2D;
 }

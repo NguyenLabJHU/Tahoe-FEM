@@ -1,4 +1,4 @@
-/* $Id: C1_LineT.cpp,v 1.1 2004-09-02 18:25:08 rdorgan Exp $ */ 
+/* $Id: C1_LineT.cpp,v 1.2 2004-11-30 23:06:28 rdorgan Exp $ */ 
 #include "C1_LineT.h"
 #include "ifstreamT.h"
 #include "StringT.h"
@@ -100,7 +100,7 @@ void C1_LineT::Initialize(void)
  * fCoords (#nodes x #sd), fLDNaX[#ip x (#sd x #nodes)]
  * fLNaU[#ip x #nodes#ndof] -> fGNaU[#ip x #nodes#ndof]
  * fLDNaU[#ip x (#sd x #nodes#ndof)] -> fGDNaU[#ip x (#sd x #nodes#ndof)]
- * fLDDNaU[#ip x (#sd x #nodes#ndof)] -> fGDDNaU[#ip x (#sd x #nodes#ndof)] */
+ * fLDDNaU[#ip x (#dSymMatrixT::NumValues(fNumSD) x #nodes#ndof)] -> fGDDNaU[#ip x (#sd x #nodes#ndof)] */
 void C1_LineT::SetDerivatives()
 {
 	const char caller[] = "C1_LineT::ComputeGDNaU";

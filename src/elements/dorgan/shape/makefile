@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2004-09-02 18:25:08 rdorgan Exp $
+# $Id: makefile,v 1.2 2004-11-30 23:06:28 rdorgan Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -24,6 +24,7 @@ OBJ = \
         C0_LineT.o\
         C1_LineT.o\
         C0_QuadT.o\
+        C1_QuadT.o\
         C0_HexahedronT.o\
         ShapeTools.o
 
@@ -48,6 +49,7 @@ SRC = \
         C0_LineT.cpp\
         C1_LineT.cpp\
         C0_QuadT.cpp\
+        C1_QuadT.cpp\
         C0_HexahedronT.cpp\
         ShapeTools.cpp
 
@@ -64,6 +66,7 @@ HDR = \
         C0_LineT.h\
         C1_LineT.h\
         C0_QuadT.h\
+        C1_QuadT.h\
         C0_HexahedronT.h\
         ShapeTools.h
 

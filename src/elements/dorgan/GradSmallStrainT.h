@@ -1,4 +1,4 @@
-/* $Id: GradSmallStrainT.h,v 1.16 2004-09-02 18:25:04 rdorgan Exp $ */ 
+/* $Id: GradSmallStrainT.h,v 1.17 2004-11-30 23:06:24 rdorgan Exp $ */ 
 #ifndef _GRAD_SMALL_STRAIN_T_H_ 
 #define _GRAD_SMALL_STRAIN_T_H_ 
 
@@ -27,15 +27,6 @@ public:
 
 	/** destructor */
 	~GradSmallStrainT(void);
-
-	/** initialize time increment */
-	//	virtual void InitStep(void);
-
-	/** adds check for weakening */
-	//	virtual void RHSDriver(void);
-
-	/** element level reconfiguration for the current time increment */
-	//	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 	
 	/** \name field */
 	/*@{*/

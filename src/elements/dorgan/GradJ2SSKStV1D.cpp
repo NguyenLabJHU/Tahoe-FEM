@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSKStV1D.cpp,v 1.8 2004-09-02 18:25:04 rdorgan Exp $ */
+/* $Id: GradJ2SSKStV1D.cpp,v 1.9 2004-11-30 23:06:24 rdorgan Exp $ */
 #include "GradJ2SSKStV1D.h"
 #include "GradSSMatSupportT.h"
 #include "ElementCardT.h"
@@ -19,14 +19,15 @@ const double kYieldTol    = 1.0e-10;
 const double kYieldStressSmall = 1.0e-03;
 
 /* element output data */
-const int kNumOutput = 6;
+const int kNumOutput = 7;
 static const char* Labels[kNumOutput] = {
 	"epsilon",     // equivalent total strain
 	"alpha",       // equivalent plastic strain
 	"r",           // isotropic hardening
 	"r,xx",        // Laplacian isotropic hardening
 	"R",           // isotropic hardening conjugate force
-	"R,xx"};       // Laplacian isotropic hardening conjugate force
+	"R,xx",        // Laplacian isotropic hardening conjugate force
+	"del_r"};      // increment isotropic hardening
 
 /* constructor */
 GradJ2SSKStV1D::GradJ2SSKStV1D(void):
@@ -186,6 +187,7 @@ const dMatrixT& GradJ2SSKStV1D::gm_hh(void)
 	}
 	else
 		fGradientModulus_hh[0] = Young();
+//		fGradientModulus_hh[0] = pow(Young(),4);
 		
 	return fGradientModulus_hh;
 }
@@ -258,9 +260,9 @@ const dSymMatrixT& GradJ2SSKStV1D::s_ij(void)
 	fPlasticStrain_j = fPlasticStrain_0;
 
 	/* increment isotropic hardening */
-	fIsoHard += del_Lambda();
+	fIsoHard       += del_Lambda();
 	fGradIsoHard_j += del_GradLambda();
-	fLapIsoHard += del_LapLambda();
+	fLapIsoHard    += del_LapLambda();
 
 	/* compute trial elastic strain */
 	const dSymMatrixT& e_tot = e();
@@ -284,17 +286,17 @@ const dSymMatrixT& GradJ2SSKStV1D::s_ij(void)
 	/* plastic iteration */
 	else if (ftrial > kYieldTol || fYieldStep > 0.5)   // check elastic predictor
 	{
+		fYieldStep = 1.;
+
 		/* compute unit normal */
 		fUnitNorm_j.SetToScaled(1.0/sqrt(fStress.ScalarProduct()), fStress);
 		
-		fYieldStep = 1.;
+		/* update plastic strain */
+		fPlasticStrain_j.AddScaled(del_Lambda(), fUnitNorm_j);
 
- 		/* update plastic strain */
- 		fPlasticStrain_j.AddScaled(del_Lambda(), fUnitNorm_j);
-
- 		/* plastic corrector */
- 		fTensorTemp1.Outer(HookeanMatT::Modulus(), fUnitNorm_j);
- 		fStress.AddScaled(-del_Lambda(), fTensorTemp1);
+		/* plastic corrector */
+		fTensorTemp1.Outer(HookeanMatT::Modulus(), fUnitNorm_j);
+		fStress.AddScaled(-del_Lambda(), fTensorTemp1);
 
  		/* update yield condition */
  		ftrial = YieldCondition(fIsoHard, fGradIsoHard_j, fLapIsoHard);
@@ -411,6 +413,9 @@ void GradJ2SSKStV1D::ComputeOutput(dArrayT& output)
 
 	/* Laplacian isotropic hardening conjugate force */
 	output[5] = Grad2R(output[2],fGradIsoHard_j,output[3]);
+
+	/* increment isotropic hardening */
+	output[6] = fInternal_j[kIsoHard] - fInternal_0[kIsoHard];
 }
 
 /* implementation of the ParameterInterfaceT interface */
@@ -461,7 +466,7 @@ void GradJ2SSKStV1D::DefineInlineSub(const StringT& name, ParameterListT::ListOr
 		sub_lists.AddSub("linear_function");
 		sub_lists.AddSub("cubic_spline");
 		sub_lists.AddSub("linear_exponential");
-		sub_lists.AddSub("power_law");
+		sub_lists.AddSub("power_law_2");
 		sub_lists.AddSub("piecewise_linear");
 	}
 }
@@ -580,8 +585,8 @@ void GradJ2SSKStV1D::AllocateAllElements(void)
 	d_size += dim;          //fUnitNorm_n
 	d_size += kNumInternal; //fInternal_0
 	d_size += kNumInternal; //fInternal_j
-	d_size += kNSD;         //fGradIsoHard_0
-	d_size += kNSD;         //fGradIsoHard_j
+	d_size += kNSD*1;       //fGradIsoHard_0
+	d_size += kNSD*1;       //fGradIsoHard_j
 
 	d_size *= fNumIP;
 
@@ -648,7 +653,6 @@ double GradJ2SSKStV1D::Grad2R(double lambda, dMatrixT gradlambda, double laplamb
 {
 	double fdR    = dK(lambda);
 	double fddR   = ddK(lambda);
-
 
 	return fddR*gradlambda.ScalarProduct() + fdR*laplambda;
 }
