@@ -1,4 +1,4 @@
-/* $Id: VolumeT.h,v 1.4 2002-07-24 23:14:56 saubry Exp $ */
+/* $Id: VolumeT.h,v 1.5 2002-08-02 02:07:50 saubry Exp $ */
 
 #ifndef _VOLUME_T_H_
 #define _VOLUME_T_H_
@@ -28,6 +28,8 @@ protected:
 	iArrayT atom_ID;
 	dArray2DT atom_coord;
 	iArray2DT atom_connectivities;
+	dArray2DT atom_bounds;
+	iArrayT atom_types;
 
 public:
 
@@ -37,20 +39,21 @@ public:
 
 	int GetDimensions();
 	int GetNumberAtoms();
-
 	double GetVolume();
+
+	virtual void CreateLattice(CrystalLatticeT* pcl) = 0;
+	virtual void CalculateBounds(iArrayT per,CrystalLatticeT* pcl) = 0;
+	virtual void CalculateType()=0;
+
+	virtual iArrayT GetNCells() = 0;
+        virtual dArray2DT GetLength() = 0; 
 
 	StringT* GetAtomNames();
 	iArrayT* GetAtomID();
 	dArray2DT* GetAtomCoordinates();
 	iArray2DT* GetAtomConnectivities();
-
-	virtual void CalculateVolume() = 0;
-	virtual void CreateLattice(CrystalLatticeT* pcl) = 0;
-
-	virtual iArrayT GetNCells() = 0;
-        virtual dArrayT GetLength() = 0; 
-
+	dArray2DT* GetAtomBounds();
+	iArrayT* GetAtomType();
 };
 
 }

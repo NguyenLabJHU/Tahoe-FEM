@@ -12,7 +12,7 @@ class FCCT : public CrystalLatticeT
 {
 public:
 	FCCT(int nlsd,int nuca,double alat,
-	     dArrayT vec_rot,double angle);
+	     dArray2DT mat_rot,double angle);
 
 	~FCCT() { };
 

@@ -4,6 +4,7 @@
 #include "ifstreamT.h"
 #include "OutputSetT.h"
 #include "dArrayT.h"
+#include "dArray2DT.h"
 
 // output
 #include "FE_ASCIIT.h"
@@ -11,21 +12,26 @@
 #include "EnSightOutputT.h"
 #include "AbaqusOutputT.h"
 #include "TecPlotOutputT.h"
+#include "ParaDynOutputT.h"
 
 
 using namespace Tahoe;
 
 
-OutPutLatticeT::OutPutLatticeT(ostream& outfile, const StringT& program_name,
-	const StringT& version, const StringT& title, const StringT& input_file,
-	IOBaseT::FileTypeT output_format):
-	fLog(outfile),
-	fOutputFormat(output_format),
-	fOutput(NULL),
-	fOutputTime(0.0)
+OutPutLatticeT::OutPutLatticeT(ostream& outfile, 
+			       const StringT& program_name,
+			       const StringT& version, const StringT& title, 
+			       const StringT& input_file,
+			       IOBaseT::FileTypeT output_format, dArray2DT bounds,
+			       iArrayT type):
+  fLog(outfile),
+  fOutputFormat(output_format),
+  fOutput(NULL),
+  fOutputTime(0.0)
 {
-	/* construct output formatter */
-	fOutput = NewOutput(program_name, version, title, input_file, fOutputFormat, fLog);
+  /* construct output formatter */
+  fOutput = NewOutput(program_name, version, title, input_file, 
+		      fOutputFormat, fLog, bounds,type);
 }
 
 
@@ -37,8 +43,12 @@ OutPutLatticeT::~OutPutLatticeT(void)
 
 /* construct and return new output formatter */
 OutputBaseT* OutPutLatticeT::NewOutput(const StringT& program_name,
-	const StringT& version, const StringT& title, const StringT& input_file,
-	IOBaseT::FileTypeT output_format, ostream& log)
+				       const StringT& version, 
+				       const StringT& title, 
+				       const StringT& input_file,
+				       IOBaseT::FileTypeT output_format, 
+				       ostream& log,
+				       dArray2DT bounds,iArrayT type)
 {
 	ArrayT<StringT> outstrings (4);
 	outstrings[0] = input_file;
@@ -72,6 +82,9 @@ OutputBaseT* OutPutLatticeT::NewOutput(const StringT& program_name,
 	    break;
 	  case IOBaseT::kTecPlot:
 	    output = new TecPlotOutputT(log, outstrings, kdigits);
+	    break;
+	  case IOBaseT::kParaDyn:
+	    output = new ParaDynOutputT(log, outstrings,bounds,type);
 	    break;
 	  default:
 	    {			

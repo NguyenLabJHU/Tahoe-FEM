@@ -24,22 +24,27 @@ using namespace Tahoe;
 // Constructor
 MeshAtom::MeshAtom(StringT which_latticetype,int nsd,int nuca,
 		   dArrayT latticeparameter,StringT which_shape,
-		   int whichunit,dArrayT len_cel,dArrayT rot_vec,
-		   double angle)
+		   int whichunit,dArray2DT len, iArrayT cel,
+		   dArray2DT mat_rot,double angle)
 {
   if(which_latticetype == "FCC")
-    Crystal = new FCCT(nsd,nuca,latticeparameter[0],rot_vec,angle);
+    Crystal = new FCCT(nsd,nuca,latticeparameter[0],mat_rot,angle);
   else if(which_latticetype == "BCC")
-    Crystal = new BCCT(nsd,nuca,latticeparameter[0],rot_vec,angle);
+    Crystal = new BCCT(nsd,nuca,latticeparameter[0],mat_rot,angle);
   else if(which_latticetype == "DIA")
-    Crystal = new DIAT(nsd,nuca,latticeparameter[0],rot_vec,angle);
+    Crystal = new DIAT(nsd,nuca,latticeparameter[0],mat_rot,angle);
   else
     {
       throw eBadInputValue;
     }
   
   if(which_shape == "BOX")
-    Shape = new BoxT(nsd,whichunit,len_cel,latticeparameter);
+    {
+      if(whichunit==1) 
+	Shape = new BoxT(nsd,len,latticeparameter);
+      else
+	Shape = new BoxT(nsd,cel,latticeparameter);
+    }
   else
     {
       cout << "Shape can only be BOX and not: " << which_shape << "\n";
@@ -56,8 +61,12 @@ int MeshAtom::CreateMeshAtom()
 
 double MeshAtom::Volume_of_Mesh()
 {
-  Shape->CalculateVolume();
   return Shape->GetVolume();
+}
+
+dArray2DT MeshAtom::Length()
+{
+  return Shape->GetLength();
 }
 
 
@@ -75,18 +84,29 @@ iArray2DT* MeshAtom::ReturnConnectivities()
 {
   return Shape->GetAtomConnectivities();
 }
+
+dArray2DT* MeshAtom::ReturnBounds()
+{   
+  return Shape->GetAtomBounds();
+}
   
 void MeshAtom::BuildIOFile(StringT& program_name,
 			   StringT& version, StringT& title, 
 			   StringT& input_file,
-			   IOBaseT::FileTypeT output_format)
+			   IOBaseT::FileTypeT output_format,
+			   iArrayT per)
 {
+  Shape->CalculateBounds(per,Crystal);
+  Shape->CalculateType();
+
   IOLattice = new OutPutLatticeT(cout,program_name,version,title,
-				 input_file,output_format);
+				 input_file,output_format,
+				 *(Shape->GetAtomBounds()),
+				 *(Shape->GetAtomType()));
   
   ArrayT<StringT> n_labels(1);
   n_labels[0] = "Atom";
-      
+
   Set=new OutputSetT(*(Shape->GetAtomNames()), GeometryT::kPoint, 
 		     *(Shape->GetAtomConnectivities()), n_labels);
   
@@ -95,3 +115,4 @@ void MeshAtom::BuildIOFile(StringT& program_name,
   
   IOLattice->WriteGeometry();
 }
+
