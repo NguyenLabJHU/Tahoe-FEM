@@ -279,27 +279,6 @@ VTKBodyDataT::VTKBodyDataT(const StringT& file_name):
     varList.Append("\n");
   }
 
-  
-  /* add variables to the console */
-  iAddVariable("min_Hue_Range", hueRange1);
-  iAddVariable("max_Hue_Range", hueRange2);
-  iAddVariable("min_Value_Range", valRange1);
-  iAddVariable("max_Value_Range", valRange2);
-  iAddVariable("min_Saturation_Range", satRange1);
-  iAddVariable("max_Saturation_Range", satRange2);
-  iAddVariable("min_Alpha_Range", alphaRange1);
-  iAddVariable("max_Alpha_Range", alphaRange2);
-  iAddVariable("min_Scalar_Range", scalarRange1[currentVarNum]);
-  iAddVariable("max_Scalar_Range", scalarRange2[currentVarNum]);
-  iAddVariable("numColors", numColors);
-  iAddVariable("scale_factor", scale_factor);
-  //iAddVariable("source_file", source_file);
-  //iAddVariable("output_file", output_file);
-
-
-
-
-
 }
 
 /* destructor */
@@ -414,3 +393,21 @@ void VTKBodyDataT::ChangeDataColor(int color)
     cout << "invalid color";
 }
 
+void VTKBodyDataT::AddVars(void)
+{
+  /* add variables to the console */
+  iAddVariable("min_Hue_Range", hueRange1);
+  iAddVariable("max_Hue_Range", hueRange2);
+  iAddVariable("min_Value_Range", valRange1);
+  iAddVariable("max_Value_Range", valRange2);
+  iAddVariable("min_Saturation_Range", satRange1);
+  iAddVariable("max_Saturation_Range", satRange2);
+  iAddVariable("min_Alpha_Range", alphaRange1);
+  iAddVariable("max_Alpha_Range", alphaRange2);
+  iAddVariable("min_Scalar_Range", scalarRange1[currentVarNum]);
+  iAddVariable("max_Scalar_Range", scalarRange2[currentVarNum]);
+  iAddVariable("numColors", numColors);
+  iAddVariable("scale_factor", scale_factor);
+  //iAddVariable("source_file", source_file);
+  //iAddVariable("output_file", output_file);
+}

@@ -41,6 +41,7 @@ class VTKBodyDataT: public iConsoleObjectT
   bool ChangeVars(const StringT& var);
   void SelectTimeStep(int);
   void ChangeDataColor(int);
+  void AddVars(void);
  
   const ArrayT<StringT>& NodeLabels(void) const { return node_labels; };
 
@@ -54,14 +55,14 @@ class VTKBodyDataT: public iConsoleObjectT
 /*   int CurrentVar (void) {return currentVarNum;}; */
 /*   StringT NodeLabels(const int i) {return node_labels[i];}; */
   int num_node_variables;
- const StringT inFile;
+  const StringT inFile;
   StringT varList;
-int num_time_steps;
+  int num_time_steps;
   int currentVarNum;
   int currentStepNum;
   vtkWarpVector *warp;
-vtkUnstructuredGrid *ugrid;
-
+  vtkUnstructuredGrid *ugrid;
+  
  private:
   
   /* source file */

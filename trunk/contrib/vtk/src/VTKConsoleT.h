@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.h,v 1.21 2001-11-20 01:04:04 recampb Exp $ */
+/* $Id: VTKConsoleT.h,v 1.22 2001-11-29 21:22:43 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -30,7 +30,7 @@ class VTKConsoleT: public iConsoleObjectT
   ~VTKConsoleT(void);
 
   /** execute given command. \return true if OK, false on fail */
-  virtual bool iDoCommand(const StringT& command, StringT& line);
+  virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
 
   /** return the list of bodies */
   const ArrayT<VTKBodyDataT*> Bodies(void) const { return fBodies; };

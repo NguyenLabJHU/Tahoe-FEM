@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.h,v 1.13 2001-11-20 01:04:04 recampb Exp $ */
+/* $Id: VTKFrameT.h,v 1.14 2001-11-29 21:22:43 recampb Exp $ */
 
 #ifndef _VTK_FRAME_T_H_
 #define _VTK_FRAME_T_H_
@@ -37,7 +37,7 @@ class VTKFrameT: public iConsoleObjectT
   ~VTKFrameT(void);
 
   /** return a pointer to the specified frame body */
-  VTKBodyDataT* Body(int bodyNum) { return bodies[bodyNum]; };
+  VTKBodyT* Body(int bodyNum) { return &bodies[bodyNum]; };
   
   /** add body to the frame.
    * returns true if the body was added the frame, false
@@ -58,7 +58,7 @@ class VTKFrameT: public iConsoleObjectT
   /** return a pointer to the frame's renderer */
   vtkRenderer* Renderer(void) { return renderer; };
 
-   virtual bool iDoCommand(const StringT& command, StringT& line);
+   virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
    
    /** set controlling console object */
    void setConsole(VTKConsoleT* console) { fConsole = console; };
@@ -71,6 +71,11 @@ class VTKFrameT: public iConsoleObjectT
 
    StringT getName(void) {return bodies[0]->inFile;};
 
+ protected:
+
+   /** write prompt for the specific argument of the command */
+   virtual void ValuePrompt(const CommandSpecT& command, int index, ostream& out) const;  
+
  private:
 
    /** controlling console object */
@@ -80,7 +85,9 @@ class VTKFrameT: public iConsoleObjectT
 
   vtkRenderWindow *fRenWin;
   vtkRenderWindowInteractor *fIren;
-  AutoArrayT<VTKBodyDataT*> bodies;
+
+  AutoArrayT<VTKBodyT> bodies;
+
   vtkActor2D* pointLabels;
   vtkSelectVisiblePoints* visPts;
   vtkLabeledDataMapper* ldm;
