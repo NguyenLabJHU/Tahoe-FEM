@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2003-08-10 23:34:15 thao Exp $
+# $Id: makefile,v 1.7 2003-08-11 01:20:57 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -8,7 +8,6 @@
 #
 # Instructions for how to define these is given in each section below
 #
-
 include $(MACRO_DIR)/suffix
 include $(MACRO_DIR)/$(ARCH).macros
 
@@ -23,12 +22,12 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	FiniteStrainMF.o \
 	SmallStrainMF.o \
+	SmallStrainQ2P1.o \
 	SmallStrainMF2.o \
 	MFSupportT.o \
 	SSMF.o \
 	SSQ2P1MF.o \
-	UpdatedLagrangianMF.o \
-	SmallStrainQ2P1.o 
+	UpdatedLagrangianMF.o  
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -50,12 +49,12 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	FiniteStrainMF.cpp \
 	SmallStrainMF.cpp \
+	SmallStrainQ2P1.cpp \
 	SmallStrainMF2.cpp \
 	MFSupportT.cpp \
 	SSMF.cpp \
 	SSQ2P1MF.cpp \
-	UpdatedLagrangianMF.cpp \
-	SmallStrainQ2P1.cpp  
+	UpdateLagrangianMF.cpp    
 
 ##################### (3) headers
 #
@@ -68,13 +67,13 @@ SRC = \
 #
 HDR = \
 	FiniteStrainMF.h \
-	SmallStrainMF2.h \
 	SmallStrainMF.h \
+	SmallStrainQ2P1.h \
+	SmallStrainMF2.h \
 	MFSupportT.h \
 	SSMF.h \
 	SSQ2P1MF.h \
-	UpdatedLagrangianMF.h \
-	SmallStrainQ2P1.h  
+	UpdatedLagrangianMF.h  
 
 HDR_LINK = $(HDR:.h=.h_link)
 
@@ -85,16 +84,16 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (2) uncomment the subdir_driver macro
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
-SUB_DIR = 
-subdir_driver:
+#SUB_DIR = 
+#subdir_driver: subdir_loop
 
 #
 # (4.2) If there are no sub-directories in this directory:
 #    (1) comment the SUB_DIR and subdir_driver in section (4.1)
 #    (2) uncomment the subdir_driver macro below
 #
-#SUB_DIR =
-#subdir_driver: 
+SUB_DIR =
+subdir_driver: 
 
 #####################
 

@@ -1,13 +1,16 @@
-/* $Id: MFSupportT.h,v 1.1 2003-08-10 23:27:27 thao Exp $ */
+/* $Id: MFSupportT.h,v 1.2 2003-08-11 01:20:57 thao Exp $ */
 
 #ifndef _MFSupportT_
 #define _MFSupportT_
 
 /* base class */
 #include "ofstreamT.h"
+#include "iArrayT.h"
 namespace Tahoe {
 
 /* forward declarations */
+class dArrayT;
+class dArray2DT;
 class ElementSupportT;
 class OutputSetT;
 class ifstreamT;

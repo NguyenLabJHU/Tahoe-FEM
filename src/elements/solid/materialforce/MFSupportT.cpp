@@ -1,6 +1,8 @@
-/* $Id: MFSupportT.cpp,v 1.1 2003-08-10 23:27:27 thao Exp $ */
+/* $Id: MFSupportT.cpp,v 1.2 2003-08-11 01:20:57 thao Exp $ */
 #include "MFSupportT.h"
 
+#include "dArrayT.h"
+#include "dArray2DT.h"
 #include "ElementSupportT.h"
 #include "OutputSetT.h"
 #include "ModelManagerT.h"
