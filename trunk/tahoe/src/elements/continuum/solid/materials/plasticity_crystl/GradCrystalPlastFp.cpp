@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp.cpp,v 1.10 2002-10-20 22:49:07 paklein Exp $ */
+/* $Id: GradCrystalPlastFp.cpp,v 1.11 2002-11-09 01:51:25 paklein Exp $ */
 #include "GradCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -122,7 +122,7 @@ const dSymMatrixT& GradCrystalPlastFp::s_ij()
   // compute crystal stresses (all IPs at once - elastic predictor at first iter)
   if (fStatus == GlobalT::kFormRHS && CurrIP() == 0)
     {
-       if (ContinuumElement().ElementSupport().IterationNumber(ContinuumElement().Group()) <= -1)
+       if (ContinuumElement().ElementSupport().IterationNumber() <= -1)
          {
            for (int intpt = 0; intpt < NumIP(); intpt++)
              {
@@ -203,7 +203,7 @@ const dMatrixT& GradCrystalPlastFp::c_ijkl()
   else
         fElasticity->ComputeModuli(fcBar_ijkl);
 
-  if (ContinuumElement().ElementSupport().IterationNumber(ContinuumElement().Group()) <= 0)
+  if (ContinuumElement().ElementSupport().IterationNumber() <= 0)
     {
       // elastic crystal stiffness
       FFFFC_3D(fc_ijkl, fcBar_ijkl, fFe);

@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.14 2002-10-20 22:48:37 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.15 2002-11-09 01:51:24 paklein Exp $ */
 
 #include "ABAQUS_VUMAT_BaseT.h"
 
@@ -246,7 +246,7 @@ const dSymMatrixT& ABAQUS_VUMAT_BaseT::s_ij(void)
 		double  t = support.Time();
 		double dt = support.TimeStep();
 		int  step = support.StepNumber();
-		int  iter = support.IterationNumber(ContinuumElement().Group());
+		int  iter = support.IterationNumber();
 		Call_VUMAT(t, dt, step, iter);
 	}
 	else

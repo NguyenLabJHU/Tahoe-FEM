@@ -1,4 +1,4 @@
-/* $Id: BCJHypoIsoDamageKE3D.cpp,v 1.4 2002-10-20 22:49:09 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageKE3D.cpp,v 1.5 2002-11-09 01:51:26 paklein Exp $ */
 #include "BCJHypoIsoDamageKE3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -393,7 +393,7 @@ void BCJHypoIsoDamageKE3D::IntegrateConstitutiveEqns(bool& converged, int subInc
 
   // check for inelastic process (note: uses deviatoric part)
   if ( fEQXieTr > (1.+1.e-6)*fKineticEqn->h(fEQValues[kEQPeDot_n],fInternal_n[kKAPP])
-                   && ContinuumElement().ElementSupport().IterationNumber(ContinuumElement().Group()) > -1 )
+                   && ContinuumElement().ElementSupport().IterationNumber() > -1 )
     {
       // step 5. forward gradient estimate
       if (subIncr == 1) ForwardGradientEstimate();

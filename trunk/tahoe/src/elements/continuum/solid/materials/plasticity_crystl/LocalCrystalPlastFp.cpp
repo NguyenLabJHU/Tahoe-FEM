@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.9 2002-10-20 22:49:07 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.10 2002-11-09 01:51:25 paklein Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -183,7 +183,7 @@ const dSymMatrixT& LocalCrystalPlastFp::s_ij()
 
 	  // compute crystal Cauchy stress (elastic predictor at first iteration)
           if (ContinuumElement().ElementSupport().StepNumber() >= 1 &&
-	          ContinuumElement().ElementSupport().IterationNumber(ContinuumElement().Group()) <= -1)
+	          ContinuumElement().ElementSupport().IterationNumber() <= -1)
 	     {
 	       // defomation gradient
                fMatx1.SetToCombination(1., fFtot, -1., fFtot_n);
@@ -271,7 +271,7 @@ const dMatrixT& LocalCrystalPlastFp::c_ijkl()
 
 	// compute consistent tangent (elastic predictor at fisrt iteration)
         if (ContinuumElement().ElementSupport().StepNumber() >= 1 &&
-	        ContinuumElement().ElementSupport().IterationNumber(ContinuumElement().Group()) <= 0)
+	        ContinuumElement().ElementSupport().IterationNumber() <= 0)
 	    {
                // elastic crystal stiffness
                FFFFC_3D(fc_ijkl, fcBar_ijkl, fFe);

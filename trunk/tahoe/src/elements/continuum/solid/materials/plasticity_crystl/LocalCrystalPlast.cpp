@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.16 2002-10-20 22:49:07 paklein Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.17 2002-11-09 01:51:25 paklein Exp $ */
 #include "LocalCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -190,14 +190,14 @@ const dSymMatrixT& LocalCrystalPlast::s_ij()
              cout << " Step # " << 
                       ContinuumElement().ElementSupport().StepNumber() 
                   << "    Iter # " << 
-                      ContinuumElement().ElementSupport().IterationNumber(ContinuumElement().Group()) 
+                      ContinuumElement().ElementSupport().IterationNumber() 
                   << endl;
           }
 
           // compute crystal Cauchy stress and consistent tangent
           // global iterations start at iter = -1
           if (ContinuumElement().ElementSupport().StepNumber() >= 0 &&
-              ContinuumElement().ElementSupport().IterationNumber(ContinuumElement().Group()) <= -1)
+              ContinuumElement().ElementSupport().IterationNumber() <= -1)
              {
                // deformation gradient
                fmatx1.SetToCombination(1., fFtot, -1., fFtot_n);
