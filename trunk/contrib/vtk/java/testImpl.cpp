@@ -1,4 +1,4 @@
-// $Id: testImpl.cpp,v 1.8 2002-08-12 06:56:21 paklein Exp $
+// $Id: testImpl.cpp,v 1.9 2002-08-12 17:16:35 paklein Exp $
 //#include <StubPreamble.h>
 // not needed for 1.3.1
 
@@ -47,14 +47,15 @@ JNIEXPORT void JNICALL Java_test_InitCpp(JNIEnv * env, jobject obj)
 	a->iAddSub(*c);
 
 	StringT log_file = "testClass.log";
-	//iConsoleT console(log_file, *b);
-	
+	//iConsoleT* console = new  iConsoleT(log_file, *b, NULL, false);
+
+#if 1
 	/* construct VTK console object */
 	ArrayT<StringT> arguments;
 	VTKConsoleT* vtk_console = new VTKConsoleT(arguments);
 	
 	iConsoleT* console = new iConsoleT(log_file, *vtk_console, NULL, false);
-	//console_(log_file, *b);
+#endif
 
   	testClass* p = new testClass(val);
 	env->SetLongField(obj, fid, jlong(p));
@@ -119,6 +120,8 @@ JNIEXPORT void JNICALL Java_test_Print(JNIEnv * env, jobject obj)
 	else
 		cout << " echo NOT OK\n" << endl;
 		
+	
+#if 1
 	/* call command of current console scope */
 	iConsoleObjectT& current_scope = p_console->Current();
 	cout << "current console object name: " << current_scope.iName() << endl;
@@ -136,6 +139,7 @@ JNIEXPORT void JNICALL Java_test_Print(JNIEnv * env, jobject obj)
 		cout << " Update OK\n" << endl;
 	else
 		cout << " Update NOT OK\n" << endl;
+#endif
 
 	return;
 }
