@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.1.2.2 2001-06-26 07:17:33 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.1.2.3 2001-06-28 01:24:11 paklein Exp $ */
 
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
@@ -13,6 +13,9 @@ class FiniteStrainT: public ElasticT
       
 	/** constructor */
 	FiniteStrainT(FEManagerT& fe_manager);
+
+	/** initialization. called immediately after constructor */
+	virtual void Initialize(void);
 
 	/** total deformation gradient */
 	const dMatrixT& DeformationGradient(void) const;
@@ -37,19 +40,31 @@ class FiniteStrainT: public ElasticT
 
   private:
   
-  	/** matrix indicies */
-  	enum MatrixIndexT {kF = 0,
-  	                kF_ip = 1,
-  	              kF_last = 2,
-  	           KF_last_ip = 3};
-
-  private:
-  
   	/** return values */
-  	ArrayT<dMatrixT> fMatrixList;
-  	
-  	/** cached matrices flags */
-  	iArrayT fIPSet;
+  	ArrayT<dMatrixT> fF_List;
+  	ArrayT<dMatrixT> fF_last_List;
 };
+
+/* inlines */
+
+inline const dMatrixT& FiniteStrainT::DeformationGradient(void) const
+{
+	return fF_List[CurrIP()];
+}
+
+inline const dMatrixT& FiniteStrainT::DeformationGradient(int ip) const
+{
+	return fF_List[ip];
+}
+
+inline const dMatrixT& FiniteStrainT::DeformationGradient_last(void) const
+{
+	return fF_last_List[CurrIP()];
+}
+
+inline const dMatrixT& FiniteStrainT::DeformationGradient_last(int ip) const
+{
+	return fF_last_List[ip];
+}
 
 #endif /* _FINITE_STRAIN_T_H_ */

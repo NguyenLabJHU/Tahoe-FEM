@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.1.1.1.2.4 2001-06-22 14:18:29 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.1.1.1.2.5 2001-06-28 01:24:14 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 /* Defines the interface large strain materials which account             */
 /* for thermal strains with the multiplicative split:                     */
@@ -48,6 +48,10 @@ public:
 	/* the shape functions */
 //	const ShapeFunctionT& ShapeFunction(void) const;
 //DEV
+
+	/* required parameter flags - all false by default */
+	virtual bool Need_F(void) const      { return false; };
+	virtual bool Need_F_last(void) const { return false; };
 
 	/** deformation gradient */
 	const dMatrixT& F(void) const; 

@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.1.2.1 2001-06-22 01:31:42 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.1.2.2 2001-06-28 01:24:12 paklein Exp $ */
 /* created: paklein (07/03/1996)                                          */
 
 #include "UpdatedLagrangianT.h"
@@ -49,7 +49,7 @@ UpdatedLagrangianT::~UpdatedLagrangianT(void)
 void UpdatedLagrangianT::Initialize(void)
 {
 	/* inherited */
-	ElasticT::Initialize();
+	FiniteStrainT::Initialize();
 
 	/* dimension */
 	fGradNa.Allocate(fNumSD, fNumElemNodes);
@@ -65,7 +65,7 @@ void UpdatedLagrangianT::Initialize(void)
 void UpdatedLagrangianT::SetLocalArrays(void)
 {
 	/* inherited */
-	ElasticT::SetLocalArrays();
+	FiniteStrainT::SetLocalArrays();
 
 	/* allocate and set source */
 	fLocCurrCoords.Allocate(fNumElemNodes, fNumSD);
@@ -76,7 +76,7 @@ void UpdatedLagrangianT::SetLocalArrays(void)
 void UpdatedLagrangianT::SetShape(void)
 {
 	/* inherited */
-	ElasticT::SetShape();
+	FiniteStrainT::SetShape();
 
 	/* linked shape functions */
 	fCurrShapes = new ShapeFunctionT(*fShapes, fLocCurrCoords);
@@ -84,24 +84,6 @@ void UpdatedLagrangianT::SetShape(void)
 
 	fCurrShapes->Initialize();
 }
-
-/* current element operations */
-//int	UpdatedLagrangianT::NextElement(void)
-//{
-//	int result = ElasticT::NextElement();
-//	while ( result &&
-//		fElementMonitor.Status(fElementCards.Position()) == kMonitorOFF)
-//		result = ElasticT::NextElement();
-//
-//	/* forming LHS matrix */
-//	if (result && fLHSRHSflag == kLHS) //no specialization for RHS
-//	{
-//		fStressStiff.Clear();
-//		SetLocal(fLocDisp);
-//	}
-//	
-//	return(result);
-//}
 
 /* form shape functions and derivatives */
 void UpdatedLagrangianT::SetGlobalShape(void)
@@ -196,6 +178,8 @@ void UpdatedLagrangianT::ComputeEffectiveDVA(int formBody,
 	int formMa, double constMa, int formCv, double constCv,
 	int formKd, double constKd)
 {
+//DEV - same as Total Lagrangian -> move to base class
+
 	/* acceleration */
 	if (formMa || formBody)
 	{
@@ -239,8 +223,10 @@ void UpdatedLagrangianT::ComputeEffectiveDVA(int formBody,
 /* calculate the damping force contribution ("-c*v") */
 void UpdatedLagrangianT::FormCv(double constC)
 {
+//DEV - same as Total Lagrangian -> move to base class
+
 //TEMP
-//This is wrong.  No nonlinear Rayleigh damping
+//This is approximate.  No nonlinear Rayleigh damping
 
 	/* clear workspace */
 	fLHS = 0.0;
