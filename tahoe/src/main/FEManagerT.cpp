@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.82 2004-10-08 19:46:19 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.83 2004-10-20 21:44:09 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1235,7 +1235,7 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	const char caller[] = "FEManagerT::TakeParameterList";
 
 //DEBUG
-cout << caller << ": START" << endl; 
+//cout << caller << ": START" << endl; 
 
 	/* state */
 	fStatus = GlobalT::kInitialization;
