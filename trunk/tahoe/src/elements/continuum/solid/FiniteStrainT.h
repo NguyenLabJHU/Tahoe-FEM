@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.2 2001-07-03 01:34:50 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.3 2001-07-10 07:29:54 paklein Exp $ */
 
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
@@ -35,11 +35,19 @@ class FiniteStrainT: public ElasticT
 
   protected:
 
+	/** return a pointer to a new material list.
+	 * \param size number of materials in the list */
+	virtual MaterialListT* NewMaterialList(int size) const;
+
 	/** construct list of materials from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);
 
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);
+
+	/** calculate the damping force contribution ("-c*v"). \note arises from
+	 * support for Rayleigh damping, which is on the way out */
+	virtual void FormCv(double constC);
 
   private:
 

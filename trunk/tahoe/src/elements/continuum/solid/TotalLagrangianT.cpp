@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianT.cpp,v 1.2 2001-07-03 01:34:52 paklein Exp $ */
+/* $Id: TotalLagrangianT.cpp,v 1.3 2001-07-10 07:29:54 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "TotalLagrangianT.h"
@@ -11,12 +11,8 @@
 #include "Constants.h"
 #include "FEManagerT.h"
 #include "StructuralMaterialT.h"
-#include "MaterialList2DT.h"
-#include "MaterialList3DT.h"
+#include "MaterialListT.h"
 #include "ShapeFunctionT.h"
-
-// for RTTI in FormKd()
-#include "FDStructMatT.h"
 
 /* constructor */
 TotalLagrangianT::TotalLagrangianT(FEManagerT& fe_manager):
@@ -40,6 +36,17 @@ void TotalLagrangianT::Initialize(void)
 	/* inherited */
 	FiniteStrainT::Initialize();
 
+//TEMP
+	if (fMaterialList->HasThermalStrains())
+	{
+		cout << "\n TotalLagrangianT::Initialize: element group ";
+		cout << fFEManager.ElementGroupNumber(this) + 1 << ": total Lagrangian\n";
+		cout << "     formulation has a bug associated with the multiplicative treatment\n";
+		cout << "     of thermal strains. The solutions appear correct, but the convergence\n";
+		cout << "     is not quadratic. Use updated Lagrangian formulation." << endl;
+		throw eGeneralFail;
+	}	
+
 	/* dimension */
 	fGradNa.Allocate(fNumSD, fNumElemNodes);
 	fStressStiff.Allocate(fNumElemNodes);
@@ -50,52 +57,9 @@ void TotalLagrangianT::Initialize(void)
 * Protected
 ***********************************************************************/
 
-//TEMP - until thermal strains fixed total lagrangian formulation
-void TotalLagrangianT::ReadMaterialData(ifstreamT& in)
-{
-	/* inherited */
-	FiniteStrainT::ReadMaterialData(in);
-	
-//TEMP
-	if (fMaterialList->HasThermalStrains())
-	{
-		cout << "\n TotalLagrangianT::ReadMaterialData: element group ";
-		cout << fFEManager.ElementGroupNumber(this) + 1 << ": total Lagrangian\n";
-		cout << "     formulation has a bug associated with the multiplicative treatment\n";
-		cout << "     of thermal strains. The solutions appear correct, but the convergence\n";
-		cout << "     is not quadratic. Use updated Lagrangian formulation." << endl;
-		throw eGeneralFail;
-	}	
-}
-
-/* construct materials manager and read data */
-MaterialListT* TotalLagrangianT::NewMaterialList(int size) const
-{
-	if (fNumSD == 2)
-		return new MaterialList2DT(size, *this);
-	else if (fNumSD == 3)
-		return new MaterialList3DT(size, *this);
-	else
-		return NULL;			
-}
-
 /* form the element stiffness matrix */
 void TotalLagrangianT::FormStiffness(double constK)
 {		
-//TEMP - must be a cleaner way
-#ifdef __NO_RTTI__
-	FDStructMatT* pFDmat = 0;
-	cout << "\n TotalLagrangianT::FormKd: requires RTTI" << endl;
-	throw eGeneralFail;
-#else
-	FDStructMatT* pFDmat = dynamic_cast<FDStructMatT*>(fCurrMaterial);
-	if (!pFDmat)
-	{
-		cout << "\n TotalLagrangianT::FormKd: requires an FDStructMatT" << endl;	
-		throw eGeneralFail;
-	}
-#endif		
-
 	/* matrix format */
 	dMatrixT::SymmetryFlagT format =
 		(fLHS.Format() == ElementMatrixT::kNonSymmetric) ?
@@ -213,30 +177,6 @@ void TotalLagrangianT::ComputeEffectiveDVA(int formBody,
 		fLocVel = 0.0;
 }	
 #endif
-
-/* calculate the damping force contribution ("-c*v") */
-void TotalLagrangianT::FormCv(double constC)
-{
-//TEMP
-//This is wrong.  No nonlinear Rayleigh damping
-
-	/* clear workspace */
-	fLHS = 0.0;
-	fStressStiff = 0.0;
-
-	/* form tangent stiffness */
-	FormStiffness(constC);
-	fLHS.CopySymmetric();
-
-	/* reorder */
-	fLocVel.ReturnTranspose(fTemp2);
-	
-	/* C*v */
-	fLHS.MultTx(fTemp2, fNEEvec);
-	
-	/* Accumulate */
-	fRHS += fNEEvec;
-}
 
 /* calculate the internal force contribution ("-k*d") */
 void TotalLagrangianT::FormKd(double constK)

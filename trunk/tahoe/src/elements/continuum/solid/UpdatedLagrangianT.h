@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.h,v 1.2 2001-07-03 01:34:53 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.h,v 1.3 2001-07-10 07:29:55 paklein Exp $ */
 /* created: paklein (07/03/1996)                                          */
 
 #ifndef _UPDATED_LAGRANGIAN_T_H_
@@ -31,9 +31,6 @@ protected:
 
 	/* form shape functions and derivatives */
 	virtual void SetGlobalShape(void);
-	
-	/* return a pointer to a new material list */
-	virtual MaterialListT* NewMaterialList(int size) const;
 
 	/* form the element stiffness matrix */
 	virtual void FormStiffness(double constK);
@@ -56,9 +53,6 @@ protected:
 		int formMa, double constMa, int formCv, double constCv,
 		int formKd, double constKd);
 #endif
-
-	/* calculate the damping force contribution ("-c*v") */
-	virtual void FormCv(double constC);
 
 	/* calculate the internal force contribution ("-k*d") */
 	virtual void FormKd(double constK);
