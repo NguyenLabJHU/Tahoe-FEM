@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.18 2002-12-17 08:58:18 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.19 2003-01-22 01:09:30 cjkimme Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -145,6 +145,8 @@ public:
 	void SetOutputCodes(iArrayT& fNodalOutputCodes, iArrayT& fElementOutputCodes);
 	
 	void SetOutputPointers(double *nodalOutput, double *elemOutput);
+	
+	void SetResidual(double *nodalForces);
 
 #endif // def _SIERRA_TEST_
 
