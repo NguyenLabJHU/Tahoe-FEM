@@ -1,9 +1,9 @@
-/* $Id: RodT.cpp,v 1.13 2002-07-02 20:59:14 hspark Exp $ */
+/* $Id: RodT.cpp,v 1.14 2002-07-03 00:05:30 hspark Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
 #include <math.h>
-
+#include <iostream.h>
 #include "fstreamT.h"
 #include "eControllerT.h"
 #include "OutputSetT.h"
@@ -40,6 +40,7 @@ RodT::RodT(const ElementSupportT& support, const FieldT& field):
 	fSumTemp(0.0),
 	fSumPressure(0.0),
 	fStepNumber(support.StepNumber()),
+	fNumNodes(NumElements()),
 	fLocVel(LocalArrayT::kVel)
 {
 	/* set matrix format */
@@ -208,16 +209,18 @@ void RodT::CloseStep(void)
 
       /* compute MD quantities of interest */
       ComputeInstPE();
-      ComputeAvgPE();
       ComputeInstKE();
-      ComputeAvgKE();
       ComputeInstTotalE();
-      ComputeAvgTotalE();
       ComputeInstTemperature();
-      ComputeAvgTemperature();
       //ComputeInstPressure();
-      //ComputeAvgPressure();
     }
+  ComputeAvgPE();
+  ComputeAvgKE();
+  ComputeAvgTotalE();
+  ComputeAvgTemperature();
+  //ComputeAvgPressure();
+  PrintMDToFile();
+  cout << "Number of atoms = " << NumElements() << endl;
 }
 
 
@@ -413,17 +416,18 @@ void RodT::ComputeInstKE(void)
 {
   /* computes the instantaneous kinetic energy of the system of atoms */
   double* ke = &fInstKE;
+  double* total = &fSumKE;
   double mass = fCurrMaterial->Mass();
   *ke = .5 * mass;
+  *total += *ke;
+  
   // NOT FINISHED YET - ISSUES WITH fLocVel
 }
 
 void RodT::ComputeAvgKE(void)
 {
   double* tempavg = &fAvgKE;
-  double* total = &fSumKE;
-  *total += fInstKE;
-  *tempavg = *total / fStepNumber;
+  *tempavg = fSumKE / fStepNumber;
 }
 
 void RodT::ComputeInstPE(void)
@@ -434,6 +438,7 @@ void RodT::ComputeInstPE(void)
   const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
   const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
   double* pe = &fInstPE;
+  double* total = &fSumPE;
 
   /* node numbers */
   const iArrayT& nodes = CurrentElement().NodesX();
@@ -447,29 +452,28 @@ void RodT::ComputeInstPE(void)
   fBond.DiffOf(curr_coords(n1), curr_coords(n0));
 
   (*pe) += fCurrMaterial->Potential(fBond.Magnitude(), fBond0.Magnitude());
+  *total += *pe;
 }
 
 void RodT::ComputeAvgPE(void)
 {
   double* tempavg = &fAvgPE;
-  double* total = &fSumPE;
-  *total += fInstPE;
-  *tempavg = *total / fStepNumber;
+  *tempavg = fSumPE / fStepNumber;
 }
 
 void RodT::ComputeInstTotalE(void)
 {
   /* computes instantaneous total energy = kinetic energy + potential energy of the system */
-  double *totale = &fInstTotalE;
+  double* totale = &fInstTotalE;
+  double* total = &fSumTotalE;
   *totale = fInstKE + fInstPE;
+  *total += *totale;
 }
 
 void RodT::ComputeAvgTotalE(void)
 {
-  double* total = &fSumTotalE;
   double* tempavg = &fAvgTotalE;
-  *total += fInstTotalE;
-  *tempavg = *total / fStepNumber;
+  *tempavg = fSumTotalE / fStepNumber;
 
 }
 
@@ -477,13 +481,13 @@ void RodT::ComputeInstTemperature(void)
 {
   /* computes instantaneous temperature of the atomic system */
   double* temp = &fInstTemp;
-  *temp = 2 * fInstKE / (fKb * NumSD() * NumDOF());
+  *temp = 2 * fInstKE / (fKb * NumSD() * fNumNodes);
 }
 
 void RodT::ComputeAvgTemperature(void)
 {
   double* temp = &fAvgTemp;
-  *temp = 2 * fAvgKE / (fKb * NumSD() * NumDOF());
+  *temp = 2 * fAvgKE / (fKb * NumSD() * fNumNodes);
 }
 
 void RodT::ComputeInstPressure(void)
@@ -496,4 +500,21 @@ void RodT::ComputeAvgPressure(void)
 {
   /* computes the average pressure of the atomic system */
 
+}
+
+int RodT::PrintMDToFile(void)
+{
+  /* print MD quantities (temperature/energy/pressure) to an output file */
+  ofstream out("MD.out");
+  
+  if(!out) {
+    cout << "Cannot open MD.out file.\n";
+    return 1;
+  }
+
+  out << "InstKE" << setw(12) << "InstPE" << setw(12) << "InstTemp" << setw(12) << "InstTotalE" << setw(12) << "AvgKE" << setw(12) << "AvgPE" << setw(12) << "AvgTemp" << setw(12) << "AvgTotalE" << setw(12) << endl;
+  out << fInstKE << setw(12) << fInstPE << setw(12) << fInstTemp << setw(12) << fInstTotalE << setw(12) << fAvgKE << setw(12) << fAvgPE << setw(12) << fAvgTemp << setw(12) << fAvgTotalE << setw(12) << endl;
+
+  out.close();
+  return 0;
 }
