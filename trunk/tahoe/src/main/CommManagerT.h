@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.7 2004-10-14 20:21:09 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.8 2004-11-10 17:10:41 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -10,6 +10,7 @@
 #include "MessageT.h" /* message enum's */
 #include "dArrayT.h"
 #include "nVariArray2DT.h"
+#include "Array2DT.h"
 
 namespace Tahoe {
 
@@ -286,8 +287,14 @@ private:
 	nVariArray2DT<int> fi_recv_buffer_man;
 	/*@}*/
 
+	/** \name spatial decomposition */
+	/*@{*/
 	/** ID of surrounding processors needed for spatial decomposition only */
 	iArray2DT fAdjacentCommID; /* [nsd] x {low, high} */
+
+	/** exchange nodes */
+	Array2DT<AutoArrayT<int> > fExchange;
+	/*@}*/
 };
 
 /* processor map */
