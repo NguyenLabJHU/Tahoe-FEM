@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.33 2003-03-19 17:09:02 thao Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.34 2003-03-19 20:18:58 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 #include "fstreamT.h"
@@ -128,7 +128,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				fArray[matnum] = new SSKStV2D(in, *fSSMatSupport);
 				break;
 			}
-
+			case kFDKStV:
 			{
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
