@@ -22,22 +22,27 @@
         </field>
     </nodes>
     <element_list>
-        <small_strain field_name="displacement">
+        <updated_lagrangian field_name="displacement">
             <quadrilateral/>
             <solid_element_nodal_output displacements="1"
                 material_output="1" stress="1"/>
-            <small_strain_element_block>
+            <large_strain_element_block>
                 <block_ID_list>
                     <String value="1"/>
                 </block_ID_list>
-                <small_strain_material_2D>
-                    <small_strain_StVenant_J2_2D density="1.0">
+                <large_strain_material_2D>
+                    <Simo_J2_2D density="1.0">
                         <E_and_nu Poisson_ratio="0.25" Young_modulus="100.0"/>
-                        <linear_function a="0.01" b="0.25"/>
-                    </small_strain_StVenant_J2_2D>
-                </small_strain_material_2D>
-            </small_strain_element_block>
-        </small_strain>
+                        <cubic_spline fixity="free_run">
+                            <OrderedPair x="0.00" y="0.25"/>
+                            <OrderedPair x="0.01" y="0.255"/>
+                            <OrderedPair x="0.05" y="0.26"/>
+                            <OrderedPair x="0.10" y="0.30"/>
+                        </cubic_spline>
+                    </Simo_J2_2D>
+                </large_strain_material_2D>
+            </large_strain_element_block>
+        </updated_lagrangian>
     </element_list>
     <nonlinear_solver abs_tolerance="1.0e-10"
         divergence_tolerance="1.0e+01" max_iterations="10" rel_tolerance="1.0e-12"/>
