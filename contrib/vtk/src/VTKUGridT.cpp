@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.4 2001-12-30 20:17:36 paklein Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.5 2002-04-17 17:30:19 paklein Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -83,8 +83,31 @@ void VTKUGridT::SetConnectivities(GeometryT::CodeT code, const iArray2DT& connec
 {
 	/* create array of VTK-style connectivities */
 	iArray2DT vtk_connects(connects.MajorDim(), connects.MinorDim()+1); //has 1 extra entry!!!
-	vtk_connects.BlockColumnCopyAt(connects, 1);
 	vtk_connects.SetColumn(0, connects.MinorDim()); //first value in each row is row size 
+
+	/* quads with mid-side nodes */
+	if (code == GeometryT::kQuadrilateral && connects.MinorDim() > 4)
+	{
+		/* reorder around the element edge */
+		int n_mid = connects.MinorDim() - 4;
+		for (int i = 0; i < connects.MajorDim(); i++)
+		{
+			int* a = connects(i);
+			int* b = vtk_connects(i) + 1; /* first value in each row is row size */
+			int* a_mid = a + 4;
+			for (int j = 0; j < 4; j++)
+			{
+				*b++ = *a++;
+				
+				/* interleave mid-side nodes */
+				if (j < n_mid)
+					*b++ = *a_mid++;
+			}
+		}
+	}
+	/* else just copy in */
+	else
+		vtk_connects.BlockColumnCopyAt(connects, 1);
 
 	/* release memory */
 	int* p_vtk_connects;
