@@ -65,9 +65,7 @@ class MeshAtomT {
   dArray2DT Length();
   iArrayT NumberOFCells();
 
-  iArrayT*   ReturnAtomID();
   dArray2DT* ReturnCoordinates();
-  iArray2DT* ReturnConnectivities();
   dArray2DT* ReturnBounds();
 
 

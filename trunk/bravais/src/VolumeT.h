@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: VolumeT.h,v 1.14 2003-08-01 22:54:39 saubry Exp $ */
+/* $Id: VolumeT.h,v 1.15 2003-08-02 00:21:33 saubry Exp $ */
 
 #ifndef _VOLUME_T_H_
 #define _VOLUME_T_H_
@@ -27,16 +27,13 @@ protected:
 	StringT sLATTYPE;
 
 	StringT atom_names;
-	iArrayT atom_ID;
+	iArrayT atom_number;
+	ArrayT< StringT > atom_ID;
 	dArray2DT atom_coord;
-	iArray2DT atom_connectivities;
+	ArrayT< const iArray2DT * >  atom_connect;
 	dArray2DT atom_bounds;
 	iArrayT atom_types;
 	iArrayT atom_parts;
-
-	// try to use the other OutputSeT constructor
-	ArrayT< const iArray2DT * > atom_array_connect;   
-	ArrayT< StringT > atom_array_ID;
 
 	iArrayT WhichSort;
 	iArrayT Map;
@@ -54,23 +51,19 @@ public:
 	virtual void CreateLattice(CrystalLatticeT* pcl) = 0;
 	virtual void SortLattice(CrystalLatticeT* pcl) = 0;
 
-	virtual void CalculateBounds(CrystalLatticeT* pcl) = 0;
+	virtual void CalculateBounds() = 0;
 
 	virtual iArrayT GetNCells() = 0;
         virtual dArray2DT GetLength() = 0; 
 
 	StringT*   GetAtomNames();
-	iArrayT*   GetAtomID();
+	const ArrayT< StringT > *   GetAtomID();
 	dArray2DT* GetAtomCoordinates();
-	iArray2DT* GetAtomConnectivities();
+	const ArrayT< const iArray2DT * > * GetAtomConnect();
 	dArray2DT* GetAtomBounds();
+	iArrayT*   GetAtomNumber();
 	iArrayT*   GetAtomTypes();
 	iArrayT*   GetAtomParts();
-
-
-	const ArrayT< const iArray2DT * > * GetAtomArrayConnect();
-	const ArrayT< StringT > * GetAtomArrayID();
-
 };
 
 }
