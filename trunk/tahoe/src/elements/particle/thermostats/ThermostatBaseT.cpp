@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.cpp,v 1.7 2003-10-30 17:15:21 paklein Exp $ */
+/* $Id: ThermostatBaseT.cpp,v 1.8 2003-10-31 20:50:24 paklein Exp $ */
 #include "ThermostatBaseT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -30,7 +30,7 @@ ThermostatBaseT::ThermostatBaseT(ifstreamT& in, const int& nsd,
 ThermostatBaseT::ThermostatBaseT(void):
 	ParameterInterfaceT("thermostat"),
 	fTemperature(0.0),
-	fSD(0.0),
+	fSD(0),
 	fTimeStep(0.0),
 	fTemperatureSchedule(NULL)
 {
