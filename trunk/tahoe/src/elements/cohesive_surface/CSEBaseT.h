@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.3 2001-02-27 00:09:54 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.4 2001-04-04 22:13:24 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 /* Base class for cohesive surface elements                               */
 
@@ -36,7 +36,8 @@ public:
 
 	enum ElementOutputCodeT {
 	             Centroid = 0,  // (reference) coordinates
-           CohesiveEnergy = 1}; // dissipated energy
+           CohesiveEnergy = 1,  // dissipated energy
+                 Traction = 2}; // element-averaged traction
 
 	/* constructor */
 	CSEBaseT(FEManagerT& fe_manager);

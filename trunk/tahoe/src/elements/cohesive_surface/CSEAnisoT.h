@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.3 2001-02-27 00:06:24 paklein Exp $ */
+/* $Id: CSEAnisoT.h,v 1.4 2001-04-04 22:13:24 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 /* Cohesive surface elements with vector traction potentials,             */
 /* i.e., like Xu-Needleman's potential.                                   */
@@ -39,6 +39,8 @@ protected:
 
 	/* nodal value calculations */
 	virtual void SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+		iArrayT& counts) const;
+	virtual void SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 		iArrayT& counts) const;
 
 	/* compute output values */

@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.4 2001-03-19 22:25:43 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.5 2001-04-04 22:13:24 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 
 #include "CSEBaseT.h"
@@ -17,7 +17,7 @@
 
 /* initialize static data */
 const int CSEBaseT::NumNodalOutputCodes = 5;
-const int CSEBaseT::NumElementOutputCodes = 2;
+const int CSEBaseT::NumElementOutputCodes = 3;
 
 /* constructor */
 CSEBaseT::CSEBaseT(FEManagerT& fe_manager):
@@ -116,8 +116,10 @@ void CSEBaseT::Initialize(void)
 	if (fNodalOutputCodes.Min() < IOBaseT::kAtFinal ||
 	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw eBadInputValue;
 
-//TEMP - backward compatibility
 	fElementOutputCodes.Allocate(NumElementOutputCodes);
+	fElementOutputCodes = IOBaseT::kAtNever;
+
+//TEMP - backward compatibility
 	if (StringT::versioncmp(fFEManager.Version(), "v3.01") < 1)
 	{
 		/* message */
@@ -125,12 +127,20 @@ void CSEBaseT::Initialize(void)
 		     <<   "     to enable element output control" << endl;
 		out << "\n CSEBaseT::Initialize: use input file version newer than v3.01\n" 
 		    <<   "     to enable element output control" << endl;
-	
-		/* default */
-		fElementOutputCodes = IOBaseT::kAtNever;
 	}
 	else
 	{
+//TEMP - BACK
+		int num_codes = fElementOutputCodes.Length();
+		if (StringT::versioncmp(fFEManager.Version(), "v3.02") < 1)
+		{
+			cout << "\n CSEBaseT::Initialize: use input file version newer than v3.02\n"
+		         <<   "     to enable output control of element averaged traction" << endl;
+			out << "\n CSEBaseT::Initialize: use input file version newer than v3.02\n"
+		         <<   "     to enable output control of element averaged traction" << endl;
+			num_codes = 2;
+		}
+	
 		/* read in at a time to allow comments */
 		for (int j = 0; j < fElementOutputCodes.Length(); j++)
 		{
@@ -148,8 +158,9 @@ void CSEBaseT::Initialize(void)
 
 	/* echo */
 	out << " Number of element output codes. . . . . . . . . = " << fElementOutputCodes.Length() << '\n';
-	out << "    [" << fElementOutputCodes[Centroid      ] << "]: reference centroid\n";
+	out << "    [" << fElementOutputCodes[Centroid      ] << "]: centroid\n";
 	out << "    [" << fElementOutputCodes[CohesiveEnergy] << "]: dissipated cohesive energy\n";
+	out << "    [" << fElementOutputCodes[Traction      ] << "]: average traction\n";
 	
 	/* close surfaces */
 	if (fCloseSurfaces) CloseSurfaces();
@@ -395,6 +406,8 @@ void CSEBaseT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& f
 		counts[Centroid] = fNumSD;
 	if (flags[CohesiveEnergy] == mode)
 		counts[CohesiveEnergy] = 1;
+	if (flags[Traction] == mode)
+		counts[Traction] = 1;
 }
 
 /* construct output labels array */
@@ -434,6 +447,7 @@ void CSEBaseT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_l
 			e_labels[count++] = xlabels[i];
 	}
 	if (e_codes[CohesiveEnergy]) e_labels[count++] = "phi";
+	if (e_codes[Traction]) e_labels[count++] = "Tmag";
 }
 
 /* write all current element information to the stream */
