@@ -1,4 +1,4 @@
-/* $Id: FCCLatticeT.cpp,v 1.4 2005-02-18 02:30:48 paklein Exp $ */
+/* $Id: FCCLatticeT.cpp,v 1.5 2005-02-19 00:47:41 paklein Exp $ */
 #include "FCCLatticeT.h"
 #include "ParameterContainerT.h"
 
@@ -45,7 +45,7 @@ ParameterInterfaceT* FCCLatticeT::NewSub(const StringT& name) const
 		ParameterContainerT FCC110("FCC_110");
 		ParameterT FCC110_type(ParameterT::Enumeration, "sense");
 		FCC110_type.AddEnumeration("[1 0 0][0 1 1][0 -1 1]", 0);
-		FCC110_type.AddEnumeration("[1 1 0][-1 1 0][0 0 1]", 0);
+		FCC110_type.AddEnumeration("[1 1 0][-1 1 0][0 0 1]", 1);
 		FCC110_type.SetDefault(0);
 		FCC110.AddParameter(FCC110_type);
 		orientation->AddSub(FCC110);
