@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.h,v 1.11 2002-08-08 16:50:05 paklein Exp $ */
+/* $Id: iConsoleT.h,v 1.12 2002-08-13 08:14:40 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_T_H_
@@ -48,10 +48,10 @@ class iConsoleT: public iConsoleBaseT
 	/** reference to the object which is the current scope */
 	iConsoleObjectT& Current(void) { return *fCurrent; };
 
-  private:
-
-	/* main event loop */
+	/** main event loop */
 	void DoInteractive(void);
+
+  private:
 
 	/* get command line */
 	void GetCommandLine(StringT& line);
