@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.11 2001-06-04 11:58:12 hspark Exp $ */
+/* $Id: tevp2D.cpp,v 1.12 2001-06-04 15:45:09 hspark Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (04/04/2001) */
 /* Last Updated:  Harold Park (05/29/2001) */
@@ -239,14 +239,17 @@ const dSymMatrixT& tevp2D::s_ij(void)
     //cout << "Last EffectiveStress = " << fInternal[kSb] << endl;
     //cout << "Last EffectiveStrain = " << fInternal[kEb] << endl;
     //cout << "Last Temperature = " << fInternal[kTemp] << endl;
-    int criticalstrain = CheckCriticalStrain(element, ip);
+    CheckCriticalStrain(element, ip);
     int checkplastic = CheckIfPlastic(element, ip);
     //cout << "Check plastic = " << checkplastic << endl;
     //cout << "CriticalStrain = " << criticalstrain << endl;
  
-    if (criticalstrain == kFluid) {
+    if (fCriticalStrain == kFluid) {
       /* Fluid model part - if critical strain criteria is exceeded */
       cout << "FAILURE MODEL SWITCH!!" << endl;
+      //cout << ContinuumElement().FEManager().StepNumber() << '\n';
+      //cout << "Within s_ij()" << '\n';
+      cout << CurrIP() << '\n';
       //ComputeGradients();   // Need determinant of deformation gradient
       //const double J = fFtot.Det();  // Determinant of deformation gradient
       const double temp = fInternal[kTemp];   // Use the PREVIOUS temperature
@@ -306,6 +309,11 @@ const dSymMatrixT& tevp2D::s_ij(void)
       fTempKirchoff = MatrixToArray(fStress3D);    // This is the Kirchoff stress
       
       fStress3D /= J;
+      if (ContinuumElement().FEManager().StepNumber() == 674 | ContinuumElement().FEManager().StepNumber() == 675)
+      {
+	//cout << CurrIP() << '\n';
+	//cout << "Visco stress = " << fStress3D << '\n';
+      }
     }
 
     fStress.ReduceFrom3D(fStress3D);     // Take only 2D stress components
@@ -376,6 +384,7 @@ void tevp2D::ComputeOutput(dArrayT& output)
   //cout << "xxii = " << xxii << endl;
   //cout << "fInternal[kSb] = " << fInternal[kSb] << endl;
   //cout << "fInternal[kTemp] = " << fInternal[kTemp] << endl;
+  //cout << element.IntegerData() << '\n';
   //cout << "fInternal[kEb] = " << fInternal[kEb] << endl;
   //cout << "Kirchoff Stress in ComputeOutput = \n" << fTempKirchoff << '\n';
   //cout << "fTempCauchy in ComputeOutput = \n" << fTempCauchy << endl;
@@ -440,8 +449,12 @@ double tevp2D::ComputeTemperature(const ElementCardT& element, int ip)
   //cout << "ComputeTemperature called" << endl;
   double temp_last = fInternal[kTemp];
   double sb = fInternal[kSb];
-  int criticalstrain = CheckCriticalStrain(element, ip);
-  if (criticalstrain == kFluid) {
+  if (fCriticalStrain == kFluid) {
+    if (ContinuumElement().FEManager().StepNumber() == 675)
+    {
+      //cout << "Within ComputeTemperature" << '\n';
+      //cout << CurrIP() << '\n';
+    }
   /* Case where fluid model was used */
     dMatrixT temp_stress(3), tempd(3); 
     tempd = GetD();
@@ -457,6 +470,11 @@ double tevp2D::ComputeTemperature(const ElementCardT& element, int ip)
   else {
   /* Case where fluid model was not used - viscoplasticity */
     double temp_rate = Chi * Xi * fEbtot * sb;
+    if (ContinuumElement().FEManager().StepNumber() == 674 | ContinuumElement().FEManager().StepNumber() == 675)
+    {
+      //cout << CurrIP() << '\n';
+      //cout << "fEbtot = " << fEbtot << '\n';
+    }
     fTemperature = temp_rate * fDt + temp_last;
     if (temp_rate < 0.0)
       cout << "NEGATIVE TEMPERATURE RATE:  VISCO" << '\n';
@@ -476,9 +494,8 @@ double tevp2D::ComputeEffectiveStrain(const ElementCardT& element, int ip)
   /* First check to see if critical strain criteria is met */
   //cout << "ComputeEffectiveStrain called" << endl;
   double eb_last = fInternal[kEb];
-  int criticalstrain = CheckCriticalStrain(element, ip);
 
-  if (criticalstrain == kFluid) {
+  if (fCriticalStrain == kFluid) {
   /* If fluid model is used (ie shear band has formed) */
     //ComputeGradients();
     dMatrixT tempd(3);
@@ -531,33 +548,35 @@ double tevp2D::ComputeEffectiveStress(void)
   return fSb;
 }
 
-int tevp2D::CheckCriticalStrain(const ElementCardT& element, int ip)
+void tevp2D::CheckCriticalStrain(const ElementCardT& element, int ip)
 {
   /* Returns an indicator to determine whether critical strain criteria
    * has been met, and switch to fluid model happens next time step */
   //cout << "CheckCriticalStrain called" << endl;
   iArrayT& flags = element.IntegerData();
+  fCriticalStrain = 0;
+  int* criticalstrain = &fCriticalStrain;
   double eb = fInternal[kEb];
   /* if already fluid, no need to check criterion */
   if (flags[ip + fNumIP] == kFluid)
   {
-    //cout << "Is there a problem?" << endl;
-    return 1;
-  }
-  //double ebtot = GetEbtot();  
-  double ebar_cr = Epsilon_1 + (Epsilon_2 - Epsilon_1) * Epsilon_rate;
-  ebar_cr /= (Epsilon_rate + fEbtot);
-  if (eb >= ebar_cr)
-  {
-    flags[ip + fNumIP] = kFluid;
-    fCriticalStrain = 1;        // Indicator to switch to fluid model
+    *criticalstrain = 1;
   }
   else
-  {
-    flags[ip + fNumIP] = kTevp; 
-    fCriticalStrain = 0;
+  {  
+    double ebar_cr = Epsilon_1 + (Epsilon_2 - Epsilon_1) * Epsilon_rate;
+    ebar_cr /= (Epsilon_rate + fEbtot);
+    if (eb >= ebar_cr)
+    {
+      flags[ip + fNumIP] = kFluid;
+      *criticalstrain = 1;        // Indicator to switch to fluid model
+    }
+    else 
+    {
+      flags[ip + fNumIP] = kTevp; 
+      *criticalstrain = 0;
+    }
   }
-  return fCriticalStrain;
 }
 
 void tevp2D::ComputeEbtotCtconXxii(void)
@@ -589,6 +608,15 @@ void tevp2D::ComputeEbtotCtconXxii(void)
     gsoft *= (1.0 - Delta * (exp((temp - Temp_0)/Kappa) - 1.0));
     double reg = sb / gsoft;
     *ebtot = Eb0tot * pow(reg, Smm);
+    if (ContinuumElement().FEManager().StepNumber() == 674 | ContinuumElement().FEManager().StepNumber() == 675)
+      {
+	//cout << "pcp2 = " << pCp2 << '\n';
+	//cout << "gsoft = " << gsoft << '\n';
+	cout << "reg = " << reg << '\n';
+	cout << "Eb0tot = " << Eb0tot << '\n';
+	cout << "Smm = " << Smm << '\n';
+	//cout << "*ebtot = " << *ebtot << '\n';
+      }
     double pE_ptau = Smm * (*ebtot) / sb;
     double dG_Eb = BigN * gsoft / (eb + Eb0);
     double dG_T = -(Sb0 * Delta / Kappa) * (pow(1.0 + eb / Eb0, BigN) * exp((temp - Temp_0) / Kappa));
@@ -598,7 +626,9 @@ void tevp2D::ComputeEbtotCtconXxii(void)
 
     *xxii = Theta * fDt * hh * pE_ptau;
     *ctcon = *xxii / ((1.0 + (*xxii)) * hh);
+
   }
+
   if (*ctcon < 0.0)
     cout << "NEGATIVE CTCON!" << '\n';
 

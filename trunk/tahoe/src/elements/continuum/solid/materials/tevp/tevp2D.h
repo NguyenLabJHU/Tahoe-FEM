@@ -1,4 +1,4 @@
-/* $Id: tevp2D.h,v 1.10 2001-06-04 11:58:12 hspark Exp $ */
+/* $Id: tevp2D.h,v 1.11 2001-06-04 15:45:09 hspark Exp $ */
 /* Thermoelasto-viscoplastic material used to generate shear bands */
 /* Created:  Harold Park (04/04/2001) */
 /* Last Updated:  Harold Park (05/29/2001) */
@@ -102,7 +102,7 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   double ComputeTemperature(const ElementCardT& element, int ip);
   double ComputeEffectiveStress(void);
   double ComputeEffectiveStrain(const ElementCardT& element, int ip);
-  int CheckCriticalStrain(const ElementCardT& element, int ip);
+  void CheckCriticalStrain(const ElementCardT& element, int ip);
   int CheckIfPlastic(const ElementCardT& element, int ip);
   /* load element data for the specified integration point */
   void LoadData(const ElementCardT& element, int ip); 
