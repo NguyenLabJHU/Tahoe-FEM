@@ -1,4 +1,4 @@
-/* $Id: GraphT.cpp,v 1.15 2003-11-21 22:41:54 paklein Exp $ */
+/* $Id: GraphT.cpp,v 1.16 2005-01-13 01:44:31 paklein Exp $ */
 #include "GraphT.h"
 
 #include <time.h>
@@ -67,23 +67,12 @@ void GraphT::MakeGraph(void)
 {
 	if (fMaxNodeNum == -1) return;
 
-	/* this version does not support any shifted nodes, but
-	 * does skip ien < 0 */
-	if (fShift > 0)
-	{
-		cout << " GraphT::MakeGraph: active connectivities must be >= 0, mininum\n"
-		     << "     found " << fShift << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-	/* ignore ien < 0 */
-	else if (fShift < 0)
-		fShift = fMinNodeNum = 0;
+	/* this version does not support any shift in numbering to save memory */
+	if (fShift != 0) fShift = fMinNodeNum = 0;		
 
 	/* temp work space */
 	int range = fMaxNodeNum - fMinNodeNum + 1;
-	//AutoFill2DT<int> edgedata(range, 25, 5);
 	RowAutoFill2DT<int> edgedata(range, 25, 5);
-	//edgedata.SetFlushSize(8*100000000); //flush every 100MB
 
 	/* create adjacency lists */	
 	const iArray2DT* currgroup;
