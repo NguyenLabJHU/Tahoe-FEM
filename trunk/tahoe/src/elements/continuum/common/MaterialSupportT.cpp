@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.cpp,v 1.6 2003-03-08 01:55:14 paklein Exp $ */
+/* $Id: MaterialSupportT.cpp,v 1.7 2003-08-25 21:42:42 paklein Exp $ */
 #include "MaterialSupportT.h"
 #include "ElementsConfig.h"
 
@@ -24,6 +24,11 @@ MaterialSupportT::MaterialSupportT(int nsd, int ndof, int nip):
 	fStepNumber(NULL),
 	fNumberOfSteps(NULL),
 
+	/* multiprocessor information */
+	fSize(1),
+	fRank(0),
+	fCommunicator(NULL),
+
 	fElementCards(NULL),
 	fContinuumElement(NULL),
 	fInitCoords(NULL),
@@ -34,6 +39,22 @@ MaterialSupportT::MaterialSupportT(int nsd, int ndof, int nip):
  
 /* destructor */
 MaterialSupportT::~MaterialSupportT(void) { }
+
+void MaterialSupportT::SetContinuumElement(const ContinuumElementT* p)
+{
+	fContinuumElement = p;
+#ifdef CONTINUUM_ELEMENT
+	if (fContinuumElement)
+	{
+		const ElementSupportT& element_support = fContinuumElement->ElementSupport();
+		fSize = element_support.Size();
+		fRank = element_support.Rank();
+		fCommunicator = &(element_support.Communicator());
+	}
+	else
+		fCommunicator = NULL;
+#endif
+}
 
 /* return a pointer to the specified LoadTime function */
 const ScheduleT* MaterialSupportT::Schedule(int num) const
