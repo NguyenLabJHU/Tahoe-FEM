@@ -1,4 +1,4 @@
-/* $Id: AztecBaseT.cpp,v 1.7 2003-02-28 02:18:13 paklein Exp $ */
+/* $Id: AztecBaseT.cpp,v 1.8 2003-02-28 20:22:27 paklein Exp $ */
 /* created: paklein (07/28/1998) */
 
 #include "AztecBaseT.h"
@@ -66,7 +66,7 @@ AztecBaseT::~AztecBaseT(void)
 	delete[] srow_val;
 	
 	/* bindx in transormed format */
-	if (bindx_transform != bindx)
+	if (proc_config[AZ_N_procs] > 1)
 		delete[] bindx_transform;
 }
 
@@ -136,11 +136,11 @@ void AztecBaseT::Initialize(int num_eq, int start_eq)
 	/* bindx data must be sorted */
 	if (!is_sorted) Sort_bindx();
 
-	/* keep copy */
-	if (bindx_transform != bindx) delete[] bindx_transform;
+	/* redudant for np = 1 */
 	if (proc_config[AZ_N_procs] == 1)
 		bindx_transform = bindx;
 	else {
+		delete [] bindx_transform;
 		bindx_transform = ArrayT<int>::New(numterms+1);
 		memcpy(bindx_transform, bindx, (numterms+1)*sizeof(int));
 	}
@@ -324,8 +324,8 @@ int AztecBaseT::RHSLength(void) const
 void AztecBaseT::SolveDriver(double* rhs, double* initguess)
 {
 	/* Aztec solution driver */
-AZ_solve(initguess, rhs, options, params, indx, bindx_transform,
-	rpntr, cpntr, bpntr, val, data_org, status, proc_config);
+	AZ_solve(initguess, rhs, options, params, indx, bindx_transform,
+		rpntr, cpntr, bpntr, val, data_org, status, proc_config);
 
 	/* free internal memory */
 	AZ_free_memory(AZ_SYS);
@@ -365,7 +365,7 @@ void AztecBaseT::SetUpQuickFind(void)
 void AztecBaseT::FreeAztecMemory(void)
 {	
 	/* allocated by Aztec using calloc or malloc */
-free((void *) indx);
+	free((void *) indx);
 	free((void *) rpntr);
 	free((void *) cpntr);
 	free((void *) bpntr);
@@ -386,9 +386,9 @@ free((void *) indx);
 void AztecBaseT::FreeAztec_MP_Memory(void)
 {
 	/* allocated by Aztec using calloc or malloc */
-free((void *) update_index);
-free((void *) external);
-free((void *) extern_index);
+	free((void *) update_index);
+	free((void *) external);
+	free((void *) extern_index);
 
 	/* practice safe set */
 	update_index = NULL;
