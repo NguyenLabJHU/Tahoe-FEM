@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.12 2003-05-23 20:10:39 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.13 2003-08-08 00:24:14 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 #ifndef _RAGGED_ARRAY_2D_T_H_
 #define _RAGGED_ARRAY_2D_T_H_
@@ -138,6 +138,9 @@ public:
 
 	/** return a pointer to first element in the specified row */
 	TYPE* operator()(int row) const;
+
+	/** return a pointer to first element in the specified row */
+	TYPE& operator()(int row, int col) const;
 	
 	/** return a pointer to the first element in the data array */
 	TYPE* Pointer(void) const;
@@ -674,6 +677,14 @@ template <class TYPE>
 inline TYPE* RaggedArray2DT<TYPE>::operator()(int row) const
 {
 	return fPtrs[row];
+}
+
+/* return a pointer to first element in the specified row */
+template <class TYPE>
+inline TYPE& RaggedArray2DT<TYPE>::operator()(int row, int col) const
+{
+	TYPE* prow = fPtrs[row];
+	return prow[col];
 }
 
 template <class TYPE>
