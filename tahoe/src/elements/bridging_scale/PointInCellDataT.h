@@ -1,4 +1,4 @@
-/* $Id: PointInCellDataT.h,v 1.5.4.1 2004-03-17 01:59:48 paklein Exp $ */
+/* $Id: PointInCellDataT.h,v 1.5.4.2 2004-04-03 20:15:41 paklein Exp $ */
 #ifndef _POINT_IN_CELL_DATA_T_H_
 #define _POINT_IN_CELL_DATA_T_H_
 
@@ -45,7 +45,8 @@ public:
 	/** const access to interpolation data */
 	const dArray2DT& InterpolationWeights(void) const { return fInterpolationWeights; };
 
-	/** cell containing each point of interpolation */
+	/** cell containing each point of interpolation with points referred to in
+	 * local numbering */
 	iArrayT& InterpolatingCell(void) { return fInterpolatingCell; };
 
 	/** const access to the cells containing each point of interpolation */
@@ -117,7 +118,8 @@ private:
 	 * interpolation data */
 	InverseMapT fGlobalToLocal;
 	
-	/** cell containing each point of interpolation */
+	/** cell containing each point of interpolation with points referred to in
+	 * local numbering */
 	iArrayT fInterpolatingCell;
 	
 	/** interpolation weights. Dimension [np] x [nen]. Assumes all cells have the same 
