@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.30 2003-05-21 23:48:17 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.31 2003-05-28 17:45:38 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -38,6 +38,7 @@
 #include "SymmetricNodesT.h"
 #include "PeriodicNodesT.h"
 #include "ScaledVelocityNodesT.h"
+#include "SetOfNodesKBCT.h"
 
 using namespace Tahoe;
 
@@ -289,6 +290,8 @@ void NodeManagerT::RegisterCoordinates(LocalArrayT& array) const
 
 /* the local node to home processor map */
 const ArrayT<int>* NodeManagerT::ProcessorMap(void) const { return fFEManager.ProcessorMap(); }
+
+CommManagerT& NodeManagerT::CommManager(void) const { return fCommManager; }
 
 /* read/write access to the coordinate update field */
 dArray2DT* NodeManagerT::CoordinateUpdate(void)
@@ -1769,6 +1772,11 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 		case KBC_ControllerT::kScaledVelocityNodes:
 		{
 			ScaledVelocityNodesT* kbc = new ScaledVelocityNodesT(*this, field);
+			return kbc;
+		}
+		case KBC_ControllerT::kSetOfNodesKBC:
+		{
+			SetOfNodesKBCT* kbc = new SetOfNodesKBCT(*this, field);
 			return kbc;
 		}
 		default:

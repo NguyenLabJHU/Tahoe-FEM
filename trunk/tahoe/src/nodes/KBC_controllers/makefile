@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.10 2003-04-24 20:40:24 cjkimme Exp $
+# $Id: makefile,v 1.11 2003-05-28 17:45:12 cjkimme Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -28,7 +28,8 @@ OBJ = \
 	TiedNodesT.o \
 	PeriodicNodesT.o \
 	KBC_PrescribedT.o \
-	ScaledVelocityNodesT.o
+	ScaledVelocityNodesT.o \
+	SetOfNodesKBCT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -56,7 +57,8 @@ SRC = \
 	TiedNodesT.cpp \
 	PeriodicNodesT.cpp \
 	KBC_PrescribedT.cpp \
-	ScaledVelocityNodesT.cpp
+	ScaledVelocityNodesT.cpp \
+	SetOfNodesKBCT.cpp
 
 ##################### (3) headers
 #
@@ -76,7 +78,8 @@ HDR = \
 	TiedNodesT.h \
 	PeriodicNodesT.h \
 	KBC_PrescribedT.h \
-	ScaledVelocityNodesT.h
+	ScaledVelocityNodesT.h \
+	SetOfNodesKBCT.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 
