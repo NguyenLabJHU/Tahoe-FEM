@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.24 2003-04-24 20:40:24 cjkimme Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.25 2003-08-08 00:33:27 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -100,8 +100,32 @@ void TiedNodesT::Initialize(ifstreamT& in)
 	SetBCCards();
 }
 
+/* initialize directly instead of using TiedNodesT::Initialize */
+void TiedNodesT::SetTiedPairs(iArrayT& follower, iArrayT& leader)
+{
+	fNodePairs.Dimension(follower.Length(), 2);
+	fNodePairs.SetColumn(0, follower);
+	fNodePairs.SetColumn(1, leader);
+	fPairStatus.Dimension(follower.Length());
+	fPairStatus = kFree;
+	fPairStatus_last = fPairStatus;
+
+	/* initialize tied pairs */
+	InitTiedNodePairs(leader, follower);
+	
+	/* check */
+	int free_count = fPairStatus.Count(kFree);
+	if (free_count != 0) {
+		cout << "\n TiedNodesT::Initialize: " << free_count
+		     << " follower nodes without leaders" << endl;
+	}
+	
+	/* generate BC cards */
+	SetBCCards();
+}
+
 /* inform controller of external nodes */
-void TiedNodesT::SetExternalNodes(const iArrayT& ex_nodes) const
+void TiedNodesT::SetExternalNodes(const ArrayT<int>& ex_nodes) const
 {
 	if (ex_nodes.Length() > 0)
 		cout << "\n TiedNodesT::SetExternalNodes: not implemented" << endl;
