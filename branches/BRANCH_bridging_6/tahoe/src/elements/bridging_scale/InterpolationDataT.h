@@ -1,4 +1,4 @@
-/* $Id: InterpolationDataT.h,v 1.2.16.1 2004-04-24 19:57:28 paklein Exp $ */
+/* $Id: InterpolationDataT.h,v 1.2.16.2 2004-05-10 22:33:35 paklein Exp $ */
 #ifndef _INTERPOLATION_DATA_T_H_
 #define _INTERPOLATION_DATA_T_H_
 
@@ -11,6 +11,7 @@ namespace Tahoe {
 /* forward declarations */
 class iArray2DT;
 class dArray2DT;
+class dArrayT;
 
 /** collection of information for interpolating data */
 class InterpolationDataT
