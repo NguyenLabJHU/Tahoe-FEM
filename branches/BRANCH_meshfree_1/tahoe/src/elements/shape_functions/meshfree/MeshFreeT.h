@@ -1,4 +1,4 @@
-/* $Id: MeshFreeT.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: MeshFreeT.h,v 1.1.1.1.4.1 2001-06-18 20:13:42 paklein Exp $ */
 /* created: paklein (12/08/1999)                                          */
 
 #ifndef _MESHFREE_T_H_
@@ -16,8 +16,9 @@ public:
 	friend istream& operator>>(istream& in, MeshFreeT::FormulationT& code);
 
 	/* window types */
-	enum WindowTypeT {kGauss = 1,
-	                 kSpline = 2};
+	enum WindowTypeT {kGaussian = 0,
+	               kCubicSpline = 1,
+	                     kBrick = 2};	                 
 	friend istream& operator>>(istream& in, MeshFreeT::WindowTypeT& code);
 };
 
