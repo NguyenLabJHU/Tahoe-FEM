@@ -1,4 +1,4 @@
-/* $Id: FossumSSIso2DT.h,v 1.5 2002-11-14 17:06:19 paklein Exp $ */
+/* $Id: FossumSSIso2DT.h,v 1.6 2002-11-15 02:46:33 paklein Exp $ */
 #ifndef _FOSSUM_SS_ISO_2D_T_H_
 #define _FOSSUM_SS_ISO_2D_T_H_
 /* DEVELOPMENT */
