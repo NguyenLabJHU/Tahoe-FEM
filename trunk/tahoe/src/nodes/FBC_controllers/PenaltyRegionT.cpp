@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.20 2005-02-22 00:10:19 rjones Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.21 2005-03-12 08:39:15 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltyRegionT.h"
 
@@ -221,9 +221,6 @@ GlobalT::RelaxCodeT PenaltyRegionT::RelaxSystem(void)
 /* register data for output */
 void PenaltyRegionT::RegisterOutput(void)
 {
-	/* initialize connectivities */
-	fContactNodes2D.Alias(fContactNodes.Length(), 1, fContactNodes.Pointer());
-	
 	/* output labels */
 	int ndof = Field().NumDOF();
 	int num_output = ndof + /* displacements */
@@ -240,7 +237,7 @@ void PenaltyRegionT::RegisterOutput(void)
 	n_labels[index] = "h";
 	
 	/* register output */
-	OutputSetT output_set(GeometryT::kPoint, fContactNodes2D, n_labels);
+	OutputSetT output_set(fContactNodes, n_labels);
 	fOutputID = FieldSupport().RegisterOutput(output_set);
 }
 
@@ -306,8 +303,7 @@ void PenaltyRegionT::WriteOutput(ostream& out) const
 	n_values.SetColumn(index, fGap);
 
 	/* send output */
-	dArray2DT e_values;
-	FieldSupport().WriteOutput(fOutputID, n_values, e_values);
+	FieldSupport().WriteOutput(fOutputID, n_values);
 }
 
 /* describe the parameters needed by the interface */

@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.h,v 1.9 2005-02-22 00:10:19 rjones Exp $ */
+/* $Id: PenaltyRegionT.h,v 1.10 2005-03-12 08:39:15 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #ifndef _PENALTY_REGION_T_H_
@@ -153,7 +153,7 @@ protected:
 	int fOutputID;
 	
 	/** "connectivities" for output, just alias of PenaltyRegionT::fContactNodes */
-	iArray2DT fContactNodes2D;
+//	iArray2DT fContactNodes2D;
 	/*@}*/	
 
 	/** nodal areas */
