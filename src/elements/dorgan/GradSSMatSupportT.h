@@ -1,4 +1,4 @@
-/* $Id: GradSSMatSupportT.h,v 1.7 2004-04-23 18:44:36 rdorgan Exp $ */
+/* $Id: GradSSMatSupportT.h,v 1.8 2004-06-09 00:25:53 rdorgan Exp $ */
 #ifndef _GRAD_SS_MAT_SUPPORT_T_H_
 #define _GRAD_SS_MAT_SUPPORT_T_H_
 
@@ -34,16 +34,28 @@ public:
 	const double& LinearField_last(int ip) const;
 	/*@}*/
 	
+	/** \name gradient field */
+	/*@{*/
+	const double& LinearGradField(void) const;
+	const double& LinearGradField(int ip) const;
+	/*@}*/
+	
+	/** \name gradient field from the end of the previous time step */
+	/*@{*/
+	const double& LinearGradField_last(void) const;
+	const double& LinearGradField_last(int ip) const;
+	/*@}*/
+	
 	/** \name Laplacian field */
 	/*@{*/
-	const double& LinearLaplacianField(void) const;
-	const double& LinearLaplacianField(int ip) const;
+	const double& LinearLapField(void) const;
+	const double& LinearLapField(int ip) const;
 	/*@}*/
 	
 	/** \name Laplacian field from the end of the previous time step */
 	/*@{*/
-	const double& LinearLaplacianField_last(void) const;
-	const double& LinearLaplacianField_last(int ip) const;
+	const double& LinearLapField_last(void) const;
+	const double& LinearLapField_last(int ip) const;
 	/*@}*/
 	
 	/** set source for the field */
@@ -52,11 +64,17 @@ public:
 	/** set source for the field from the end of the previous time step */
 	void SetLinearField_last(const dArrayT* field_last_List);
 	
+	/** set source for the gradient of field */
+	void SetLinearGradField(const dArrayT* gradfield_List);
+	
+	/** set source for the gradient of field from the end of the previous time step */
+	void SetLinearGradField_last(const dArrayT* gradfield_last_List);
+	
 	/** set source for the Laplacian of field */
-	void SetLinearLaplacianField(const dArrayT* lapfield_List);
+	void SetLinearLapField(const dArrayT* lapfield_List);
 	
 	/** set source for the Laplacian of field from the end of the previous time step */
-	void SetLinearLaplacianField_last(const dArrayT* lapfield_last_List);
+	void SetLinearLapField_last(const dArrayT* lapfield_last_List);
 	
 	/** \name dimensions */
 	/*@{*/
@@ -81,6 +99,9 @@ private:
 	const dArrayT* fField_List;
 	const dArrayT* fField_last_List;
 	
+	const dArrayT* fGradField_List;
+	const dArrayT* fGradField_last_List;
+
 	const dArrayT* fLapField_List;
 	const dArrayT* fLapField_last_List;
 	/*@}*/
@@ -123,25 +144,49 @@ inline const double& GradSSMatSupportT::LinearField_last(int ip) const
 	return (*fField_last_List)[ip]; 
 }
 
-inline const double& GradSSMatSupportT::LinearLaplacianField(void) const
+inline const double& GradSSMatSupportT::LinearGradField(void) const
+{
+	if (!fGradField_List) throw ExceptionT::kGeneralFail;
+	return (*fGradField_List)[CurrIP()]; 
+}
+
+inline const double& GradSSMatSupportT::LinearGradField(int ip) const
+{
+	if (!fGradField_List) throw ExceptionT::kGeneralFail;
+	return (*fGradField_List)[ip]; 
+}
+
+inline const double& GradSSMatSupportT::LinearGradField_last(void) const
+{
+	if (!fGradField_last_List) throw ExceptionT::kGeneralFail;
+	return (*fGradField_last_List)[CurrIP()]; 
+}
+
+inline const double& GradSSMatSupportT::LinearGradField_last(int ip) const
+{
+	if (!fGradField_last_List) throw ExceptionT::kGeneralFail;
+	return (*fGradField_last_List)[ip]; 
+}
+
+inline const double& GradSSMatSupportT::LinearLapField(void) const
 {
 	if (!fLapField_List) throw ExceptionT::kGeneralFail;
 	return (*fLapField_List)[CurrIP()]; 
 }
 
-inline const double& GradSSMatSupportT::LinearLaplacianField(int ip) const
+inline const double& GradSSMatSupportT::LinearLapField(int ip) const
 {
 	if (!fLapField_List) throw ExceptionT::kGeneralFail;
 	return (*fLapField_List)[ip]; 
 }
 
-inline const double& GradSSMatSupportT::LinearLaplacianField_last(void) const
+inline const double& GradSSMatSupportT::LinearLapField_last(void) const
 {
 	if (!fLapField_last_List) throw ExceptionT::kGeneralFail;
 	return (*fLapField_last_List)[CurrIP()]; 
 }
 
-inline const double& GradSSMatSupportT::LinearLaplacianField_last(int ip) const
+inline const double& GradSSMatSupportT::LinearLapField_last(int ip) const
 {
 	if (!fLapField_last_List) throw ExceptionT::kGeneralFail;
 	return (*fLapField_last_List)[ip]; 

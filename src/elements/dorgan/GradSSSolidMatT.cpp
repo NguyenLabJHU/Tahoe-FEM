@@ -1,4 +1,4 @@
-/* $Id: GradSSSolidMatT.cpp,v 1.8 2004-04-23 18:44:36 rdorgan Exp $ */ 
+/* $Id: GradSSSolidMatT.cpp,v 1.9 2004-06-09 00:25:53 rdorgan Exp $ */ 
 #include "GradSSSolidMatT.h"
 #include <iostream.h>
 #include "GradSSMatSupportT.h"
@@ -66,26 +66,48 @@ const double& GradSSSolidMatT::Field_last(int ip) const
 	return fGradSSMatSupport->LinearField_last(ip); 
 }
 
-/* Laplacian field */
-const double& GradSSSolidMatT::LaplacianField(void) const
+/* gradient field */
+const double& GradSSSolidMatT::GradField(void) const
 {
-	return fGradSSMatSupport->LinearLaplacianField(); 
+	return fGradSSMatSupport->LinearGradField(); 
 }
 
-const double& GradSSSolidMatT::LaplacianField(int ip) const
+const double& GradSSSolidMatT::GradField(int ip) const
 {
-	return fGradSSMatSupport->LinearLaplacianField(ip); 
+	return fGradSSMatSupport->LinearGradField(ip); 
+}
+
+/* gradient field from the end of the previous time step */
+const double& GradSSSolidMatT::GradField_last(void) const
+{
+	return fGradSSMatSupport->LinearGradField_last(); 
+}
+
+const double& GradSSSolidMatT::GradField_last(int ip) const
+{
+	return fGradSSMatSupport->LinearGradField_last(ip); 
+}
+
+/* Laplacian field */
+const double& GradSSSolidMatT::LapField(void) const
+{
+	return fGradSSMatSupport->LinearLapField(); 
+}
+
+const double& GradSSSolidMatT::LapField(int ip) const
+{
+	return fGradSSMatSupport->LinearLapField(ip); 
 }
 
 /* Laplacian field from the end of the previous time step */
-const double& GradSSSolidMatT::LaplacianField_last(void) const
+const double& GradSSSolidMatT::LapField_last(void) const
 {
-	return fGradSSMatSupport->LinearLaplacianField_last(); 
+	return fGradSSMatSupport->LinearLapField_last(); 
 }
 
-const double& GradSSSolidMatT::LaplacianField_last(int ip) const
+const double& GradSSSolidMatT::LapField_last(int ip) const
 {
-	return fGradSSMatSupport->LinearLaplacianField_last(ip); 
+	return fGradSSMatSupport->LinearLapField_last(ip); 
 }
 
 /* apply pre-conditions at the current time step */

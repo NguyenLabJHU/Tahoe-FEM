@@ -1,4 +1,4 @@
-/* $Id: GradSmallStrainT.h,v 1.5 2004-05-14 01:37:35 rdorgan Exp $ */ 
+/* $Id: GradSmallStrainT.h,v 1.6 2004-06-09 00:25:53 rdorgan Exp $ */ 
 #ifndef _GRAD_SMALL_STRAIN_T_H_ 
 #define _GRAD_SMALL_STRAIN_T_H_ 
 
@@ -25,7 +25,7 @@ public:
 
 	/** constructor */
 	GradSmallStrainT(const ElementSupportT& support, const FieldT& disp, 
-					   const FieldT& field1, const FieldT& field2);
+					 const FieldT& field1, const FieldT& field2);
 
 	/** destructor */
 	~GradSmallStrainT(void);
@@ -37,18 +37,6 @@ public:
 	 * for more information */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 						   AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
-	
-	/** \name isotropic hardening */
-	/*@{*/
-	const double& LinearField(void) const { return fField_List[CurrIP()]; };
-	const double& LinearField(int ip) const { return fField_List[ip]; };
-	/*@}*/
-	
-	/** \name isotropic hardening from the end of the previous time step */
-	/*@{*/
-	const double& LinearField_last(void) const { return fField_last_List[CurrIP()]; };
-	const double& LinearField_last(int ip) const { return fField_last_List[ip]; };
-	/*@}*/
 	
 	/** return the number of degrees of freedom for field per node */
 	int NumDOF_Field(void) const { return fField1.NumDOF() + fField2.NumDOF();} ;
@@ -109,6 +97,12 @@ protected:
 	dArrayT fField_List;
 	dArrayT fField_last_List;
 
+	dArrayT fGradField_List;
+	dArrayT fGradField_last_List;
+
+	dArrayT fLapField_List;
+	dArrayT fLapField_last_List;
+
 	dArrayT fYield_List;
 	/*@}*/
 	  
@@ -117,22 +111,16 @@ protected:
 	LocalArrayT fLocField1;      /**< hardness */
 	LocalArrayT fLocLastField1;  /**< hardness from last time increment */
 
-	//	dArrayT fLocField1Transpose;      /**< hardness */
-	//	dArrayT fLocLastField1Transpose;  /**< hardness from last time increment */
-
 	LocalArrayT fLocField2;      /**< hardness */
 	LocalArrayT fLocLastField2;  /**< hardness from last time increment */
-
-	//	dArrayT fLocFieldTranspose2;      /**< hardness */
-	//	dArrayT fLocLastFieldTranspose2;  /**< hardness from last time increment */
 	/*@}*/
 	
 private:
 	/* \name fields */
 	/*@{*/
 	const FieldT& fDisplacement; /**< displacement field */
-	const FieldT& fField1;        /**< hardening parameter fiel */
-	const FieldT& fField2;        /**< hardening parameter fiel */
+	const FieldT& fField1;        /**< hardening parameter field */
+	const FieldT& fField2;        /**< hardening parameter field */
 	/*@}*/
 	
 	/** \name shape functions for field */
@@ -150,15 +138,18 @@ private:
 	/** shape functions for Field */
 	dMatrixT fh;      /**<  shape functions */
 	dMatrixT fhT;     /**<  shape functions (Transpose) */
-	dMatrixT fh1;      /**<  shape functions */
-	dMatrixT fh1T;     /**<  shape functions (Transpose) */
-	dMatrixT fh2;      /**<  shape functions */
-	dMatrixT fh2T;     /**<  shape functions (Transpose) */
+	dMatrixT fh1;     /**<  shape functions */
+	dMatrixT fh1T;    /**<  shape functions (Transpose) */
+	dMatrixT fh2;     /**<  shape functions */
+	dMatrixT fh2T;    /**<  shape functions (Transpose) */
 	
 	dMatrixT fp;      /**<  gradient shape functions */
-	dMatrixT fpT;     /**<  gradient shape functions (Transpose) */
+	dMatrixT fp1;     /**<  gradient shape functions */
+	dMatrixT fp2;     /**<  gradient shape functions */
+	
 	dMatrixT fq;      /**<  Laplacian shape functions */
-	dMatrixT fqT;     /**<  Laplacian shape functions (Transpose) */
+	dMatrixT fq1;     /**<  Laplacian shape functions */
+	dMatrixT fq2;     /**<  Laplacian shape functions */
 	
 	/** stiffnesses */
 	ElementMatrixT fK_bb;               /**< elastic stiffness matrix */
@@ -167,11 +158,6 @@ private:
 	ElementMatrixT fK_hh, fK_hp, fK_hq; /**< Gradient matrices */
 	ElementMatrixT fK_ct;  /**< constraint matrix */
 
-	ElementMatrixT fK_bb_DEBUG;               /**< elastic stiffness matrix */
-	ElementMatrixT fK_bh_DEBUG;               /**< off-diagonal matrices */
-	ElementMatrixT fK_hb_DEBUG;               /**< off-diagonal matrices */
-	ElementMatrixT fK_hh_DEBUG;               /**< Gradient matrices */
-       
 	/** returned matrices */
 	dMatrixT fDM_bb;
 	dMatrixT fOM_hb, fOM_bh;

@@ -1,4 +1,4 @@
-/* $Id: GradSSSolidMatT.h,v 1.9 2004-04-23 18:44:36 rdorgan Exp $ */
+/* $Id: GradSSSolidMatT.h,v 1.10 2004-06-09 00:25:53 rdorgan Exp $ */
 #ifndef _GRAD_SS_SOLID_MAT_T_H_
 #define _GRAD_SS_SOLID_MAT_T_H_
 
@@ -46,16 +46,28 @@ public:
 	const double& Field_last(int ip) const;
 	/*@}*/
 	
+	/** \name gradient field */
+	/*@{*/
+	const double& GradField(void) const;
+	const double& GradField(int ip) const;
+	/*@}*/
+	
+	/** \name gradient field from the end of the previous time step */
+	/*@{*/
+	const double& GradField_last(void) const;
+	const double& GradField_last(int ip) const;
+	/*@}*/
+	
 	/** \name Laplacian field */
 	/*@{*/
-	const double& LaplacianField(void) const;
-	const double& LaplacianField(int ip) const;
+	const double& LapField(void) const;
+	const double& LapField(int ip) const;
 	/*@}*/
 	
 	/** \name Laplacian field from the end of the previous time step */
 	/*@{*/
-	const double& LaplacianField_last(void) const;
-	const double& LaplacianField_last(int ip) const;
+	const double& LapField_last(void) const;
+	const double& LapField_last(int ip) const;
 	/*@}*/
 	
 	/** number of degrees of freedom for field field (per node) in the host
@@ -100,8 +112,11 @@ public:
 	virtual double del_Field(void) = 0;
 	/*@}*/
 	
-	/** incremental change in LaplacianField */
-	virtual double del_LaplacianField(void) = 0;
+	/** incremental change in GradField */
+	virtual double del_GradField(void) = 0;
+	
+	/** incremental change in LapField */
+	virtual double del_LapField(void) = 0;
 	/*@}*/
 	
 protected:

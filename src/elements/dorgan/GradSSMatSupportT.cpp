@@ -1,4 +1,4 @@
-/* $Id: GradSSMatSupportT.cpp,v 1.7 2004-04-23 18:44:36 rdorgan Exp $ */ 
+/* $Id: GradSSMatSupportT.cpp,v 1.8 2004-06-09 00:25:53 rdorgan Exp $ */ 
 #include "GradSSMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -10,6 +10,8 @@ GradSSMatSupportT::GradSSMatSupportT(int nsd, int ndof_disp, int ndof_field, int
 
 	fField_List(NULL),
 	fField_last_List(NULL),
+	fGradField_List(NULL),
+	fGradField_last_List(NULL),
 	fLapField_List(NULL),
 	fLapField_last_List(NULL),
 
@@ -41,15 +43,29 @@ void GradSSMatSupportT::SetLinearField_last(const dArrayT* field_last_List)
 	fField_last_List = field_last_List;
 }
 
+/* set source for the gradient of isotropic hadening */
+void GradSSMatSupportT::SetLinearGradField(const dArrayT* gradfield_List)
+{
+	/* keep pointer */
+	fGradField_List = gradfield_List;
+}
+
+/** set source for the gradient of isotropic hardening from the end of the previous time step */
+void GradSSMatSupportT::SetLinearGradField_last(const dArrayT* gradfield_last_List)
+{
+	/* keep pointer */
+	fGradField_last_List = gradfield_last_List;
+}
+
 /* set source for the laplacian of isotropic hadening */
-void GradSSMatSupportT::SetLinearLaplacianField(const dArrayT* lapfield_List)
+void GradSSMatSupportT::SetLinearLapField(const dArrayT* lapfield_List)
 {
 	/* keep pointer */
 	fLapField_List = lapfield_List;
 }
 
 /** set source for the laplacian of isotropic hardening from the end of the previous time step */
-void GradSSMatSupportT::SetLinearLaplacianField_last(const dArrayT* lapfield_last_List)
+void GradSSMatSupportT::SetLinearLapField_last(const dArrayT* lapfield_last_List)
 {
 	/* keep pointer */
 	fLapField_last_List = lapfield_last_List;

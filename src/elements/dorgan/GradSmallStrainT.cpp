@@ -1,4 +1,4 @@
-/* $Id: GradSmallStrainT.cpp,v 1.6 2004-05-14 01:37:35 rdorgan Exp $ */ 
+/* $Id: GradSmallStrainT.cpp,v 1.7 2004-06-09 00:25:53 rdorgan Exp $ */ 
 #include "GradSmallStrainT.h"
 
 /* shape functions */
@@ -26,7 +26,7 @@ GradSmallStrainT::GradSmallStrainT(const ElementSupportT& support,
 	fDisplacement(disp),
 	fField1(field1),
 	fField2(field2),
-
+	
 	fLocField1(LocalArrayT::kDisp),
 	fLocLastField1(LocalArrayT::kLastDisp),
 	fLocField2(LocalArrayT::kDisp),
@@ -41,13 +41,6 @@ GradSmallStrainT::GradSmallStrainT(const ElementSupportT& support,
 	fK_hp(ElementMatrixT::kNonSymmetric),
 	fK_hq(ElementMatrixT::kNonSymmetric),
 	fK_ct(ElementMatrixT::kNonSymmetric),
-
-	/********DEBUG*******/
-	fK_bb_DEBUG(ElementMatrixT::kNonSymmetric),
-	fK_bh_DEBUG(ElementMatrixT::kNonSymmetric),
-	fK_hb_DEBUG(ElementMatrixT::kNonSymmetric),
-	fK_hh_DEBUG(ElementMatrixT::kNonSymmetric),
-	/*******************/
 
 	fDM_bb(dSymMatrixT::NumValues(NumSD())),
 	fOM_bh(dSymMatrixT::NumValues(NumSD()), 1),
@@ -124,6 +117,12 @@ void GradSmallStrainT::Initialize(void)
 	fField_List.Dimension(fNumIP_Field);       // field
 	fField_last_List.Dimension(fNumIP_Field);  // "last" field
 
+	fGradField_List.Dimension(fNumIP_Field);       // field
+	fGradField_last_List.Dimension(fNumIP_Field);  // "last" field
+
+	fLapField_List.Dimension(fNumIP_Field);       // field
+	fLapField_last_List.Dimension(fNumIP_Field);  // "last" field
+
 	fYield_List.Dimension(fNumIP_Disp);
 	
 	/* dimension work space */
@@ -135,13 +134,6 @@ void GradSmallStrainT::Initialize(void)
 	fK_hq.Dimension(fNumElementNodes_Field*fNumDOF_Field, fNumElementNodes_Field*fNumDOF_Field);
 	fK_ct.Dimension(fNumElementNodes_Field*fNumDOF_Field, fNumElementNodes_Field*fNumDOF_Field);
 
-	/********DEBUG*******/
-	fK_bb_DEBUG.Dimension(fNumElementNodes_Disp *fNumDOF_Disp,  fNumElementNodes_Disp *fNumDOF_Disp );
-	fK_bh_DEBUG.Dimension(fNumElementNodes_Disp *fNumDOF_Disp,  fNumElementNodes_Field*fNumDOF_Field);
-	fK_hb_DEBUG.Dimension(fNumElementNodes_Field*fNumDOF_Field, fNumElementNodes_Disp *fNumDOF_Disp );
-	fK_hh_DEBUG.Dimension(fNumElementNodes_Field*fNumDOF_Field, fNumElementNodes_Field*fNumDOF_Field);	
-	/*******************/
-
 	/* resize work arrays */
 	fNumEQ_Total = fNumElementNodes_Disp*fNumDOF_Disp+fNumElementNodes_Field*fNumDOF_Field;
 	fRHS.Dimension(fNumEQ_Total);
@@ -150,20 +142,20 @@ void GradSmallStrainT::Initialize(void)
 	/* allocate shape functions */
 	fh.Dimension (1, fNumElementNodes_Field*fNumDOF_Field);
 	fhT.Dimension(fNumElementNodes_Field*fNumDOF_Field, 1);
-
 	fh1.Dimension (1, fNumElementNodes_Field*fNumDOF_Field1);
 	fh1T.Dimension(fNumElementNodes_Field*fNumDOF_Field1, 1);
-
 	fh2.Dimension (1, fNumElementNodes_Field*fNumDOF_Field2);
 	fh2T.Dimension(fNumElementNodes_Field*fNumDOF_Field2, 1);
 
 	/* allocate gradient shape functions */
 	fp.Dimension (fNumSD, fNumElementNodes_Field*fNumDOF_Field);
-	fpT.Dimension(fNumElementNodes_Field*fNumDOF_Field, fNumSD);
+	fp1.Dimension (1, fNumElementNodes_Field*fNumDOF_Field1);
+	fp2.Dimension (1, fNumElementNodes_Field*fNumDOF_Field2);
 
 	/* allocate Laplacian shape functions */
 	fq.Dimension (1, fNumElementNodes_Field*fNumDOF_Field);
-	fqT.Dimension(fNumElementNodes_Field*fNumDOF_Field, 1);
+	fq1.Dimension (1, fNumElementNodes_Field*fNumDOF_Field1);
+	fq2.Dimension (1, fNumElementNodes_Field*fNumDOF_Field2);
 }
 
 void GradSmallStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -220,6 +212,12 @@ MaterialSupportT* GradSmallStrainT::NewMaterialSupport(MaterialSupportT* p) cons
 	if (pss) {
 		pss->SetLinearField(&fField_List);
 		pss->SetLinearField_last(&fField_last_List);
+
+		pss->SetLinearGradField(&fGradField_List);
+		pss->SetLinearGradField_last(&fGradField_last_List);
+
+		pss->SetLinearLapField(&fLapField_List);
+		pss->SetLinearLapField_last(&fLapField_last_List);
 	}
 
 	return p;
@@ -297,10 +295,16 @@ void GradSmallStrainT::SetGlobalShape(void)
 		/* setup workspace */
 		dArrayT temp(1);
 
-		for (int i=0; i<2; i++)
+		for (int i = 0; i < NumElementNodes_Field(); i++)
 		{
 			fh1[i] = fh[i];
-			fh2[i] = fh[i+2];
+			fh2[i] = fh[i + NumElementNodes_Field()];
+
+			fp1[i] = fp[i];
+			fp2[i] = fp[i + NumElementNodes_Field()];
+
+			fq1[i] = fq[i];
+			fq2[i] = fq[i + NumElementNodes_Field()];
 		}
 		
 		/* compute field using h shape functions */
@@ -312,9 +316,28 @@ void GradSmallStrainT::SetGlobalShape(void)
 		fh1.Multx(fLocLastField1, temp);
 		fField_last_List[ip] = temp[0];
 		fh2.Multx(fLocLastField2, temp);
-		fField_last_List[ip] += temp[0];		
-	}
+		fField_last_List[ip] += temp[0];
 
+		fp1.Multx(fLocField1, temp);
+		fGradField_List[ip] = temp[0];
+		fp2.Multx(fLocField2, temp);
+		fGradField_List[ip] += temp[0];		
+
+		fp1.Multx(fLocLastField1, temp);
+		fGradField_last_List[ip] = temp[0];
+		fp2.Multx(fLocLastField2, temp);
+		fGradField_last_List[ip] += temp[0];
+
+		fq1.Multx(fLocField1, temp);
+		fLapField_List[ip] = temp[0];
+		fq2.Multx(fLocField2, temp);
+		fLapField_List[ip] += temp[0];		
+
+		fq1.Multx(fLocLastField1, temp);
+		fLapField_last_List[ip] = temp[0];
+		fq2.Multx(fLocLastField2, temp);
+		fLapField_last_List[ip] += temp[0];
+	}
 	/********DEBUG*******/
 	if (print_GlobalShape)
 	{
@@ -322,8 +345,13 @@ void GradSmallStrainT::SetGlobalShape(void)
 			cout << "                 fLocField1[" << nd_dof << "]  : " << fLocField1[nd_dof] << endl;
 		for (int nd_dof = 0; nd_dof < NumElementNodes_Field()*fNumDOF_Field2; nd_dof++)
 			cout << "                 fLocField2[" << nd_dof << "]  : " << fLocField2[nd_dof] << endl;
+		cout << endl;
 		for (int ip = 0; ip < NumIP(); ip++)
 			cout << "                 fField_List[" << ip << "]: " << fField_List[ip] << endl;
+		for (int ip = 0; ip < NumIP(); ip++)
+			cout << "                 fGradField_List[" << ip << "]: " << fGradField_List[ip] << endl;
+		for (int ip = 0; ip < NumIP(); ip++)
+			cout << "                 fLapField_List[" << ip << "]: " << fLapField_List[ip] << endl;
 	}
 	/*******************/
 }
@@ -372,13 +400,6 @@ void GradSmallStrainT::FormStiffness(double constK)
 	/* integrate stiffness over the elements */
 	while(fShapes->NextIP())
 	{
-		/********DEBUG*******/
-		fK_bb_DEBUG = 0.0;
-		fK_bh_DEBUG = 0.0;
-		fK_hb_DEBUG = 0.0;
-		fK_hh_DEBUG = 0.0;
-		/*******************/
-
 		/* integration weight */
 		double scale = constK*(*Det++)*(*Weight++);
 
@@ -396,23 +417,18 @@ void GradSmallStrainT::FormStiffness(double constK)
 		/* compute elastic stiffness matrix */
 		fDM_bb.SetToScaled(scale, fCurrMaterial_Grad->dm_bb_ijkl());
 		fK_bb.MultQTBQ(fB, fDM_bb, format, dMatrixT::kAccumulate);
-		fK_bb_DEBUG.MultQTBQ(fB, fDM_bb, format, dMatrixT::kAccumulate);
-		
+
 		/* compute off-diagonal matrics */
 		fOM_bh.SetToScaled(scale, fCurrMaterial_Grad->om_bh_ij());
 		fK_bh.MultATBC(fB, fOM_bh, fh, format, dMatrixT::kAccumulate);
-		fK_bh_DEBUG.MultATBC(fB, fOM_bh, fh, format, dMatrixT::kAccumulate);
 
 		fK_hb.Transpose(fK_bh);
-		fK_hb_DEBUG.Transpose(fK_bh_DEBUG);
-
 		//		fOM_hb.SetToScaled(scale, fCurrMaterial_Grad->om_hb_ij());
 		//		fK_hb.MultATBC(fh, fOM_hb, fB, format, dMatrixT::kAccumulate);
 
 		/* compute non-symmetric, gradient dependent matrix */
 		fGM_hh.SetToScaled(scale, fCurrMaterial_Grad->gm_hh());
 		fK_hh.MultQTBQ(fh, fGM_hh, format, dMatrixT::kAccumulate);
-		fK_hh_DEBUG.MultQTBQ(fh, fGM_hh, format, dMatrixT::kAccumulate);
 
 		fGM_hp.SetToScaled(scale, fCurrMaterial_Grad->gm_hp());
 		fK_hp.MultATBC(fh, fGM_hp, fp, format, dMatrixT::kAccumulate);
@@ -439,37 +455,13 @@ void GradSmallStrainT::FormStiffness(double constK)
 			cout<<"                 gm_hq    : " << fCurrMaterial_Grad->gm_hq()                        <<endl;
 			for (int i = 0; i < NumElementNodes_Field()*NumDOF_Field(); i++)
 				cout<<"                 h[" << i << "]     : " << fh[i]                                <<endl;
+			for (int i = 0; i < NumElementNodes_Field()*NumDOF_Field(); i++)
+				cout<<"                 p[" << i << "]     : " << fp[i]                                <<endl;
+			for (int i = 0; i < NumElementNodes_Field()*NumDOF_Field(); i++)
+				cout<<"                 q[" << i << "]     : " << fq[i]                                <<endl;
 			for (int i = 0; i < NumElementNodes(); i++)
 				cout<<"                 B[" << i << "]     : " << fB[i]                                <<endl;
 			cout<<"                 scale    : " << scale                                              <<endl;
-			for (int i=0; i < fNumElementNodes_Disp * fNumDOF_Disp; i++)
-			{
-				cout<<"                 K_bb(" << i << ",j): ";
-				for (int j=0; j < fNumElementNodes_Disp * fNumDOF_Disp; j++)
-					cout << fK_bb_DEBUG(j)[i] << "     ";
-				cout<< endl;
-			}
-			for (int i=0; i < fNumElementNodes_Disp * fNumDOF_Disp; i++)
-			{
-				cout<<"                 K_bh(" << i << ",j): ";
-				for (int j=0; j < fNumElementNodes_Field * fNumDOF_Field; j++)
-					cout << fK_bh_DEBUG(j)[i] << "     ";
-				cout<< endl;
-			}
-			for (int i=0; i < fNumElementNodes_Field * fNumDOF_Field; i++)
-			{
-				cout<<"                 K_hb(" << i << ",j): ";
-				for (int j=0; j < fNumElementNodes_Disp * fNumDOF_Disp; j++)
-					cout << fK_hb_DEBUG(j)[i] << "     ";
-				cout<< endl;
-			}
-			for (int i=0; i < fNumElementNodes_Field * fNumDOF_Field; i++)
-			{
-				cout<<"                 K_hh(" << i << ",j): ";
-				for (int j=0; j < fNumElementNodes_Field * fNumDOF_Field; j++)
-					cout << fK_hh_DEBUG(j)[i] << "     ";
-				cout<< endl;
-			}
 		}
 		/*******************/
 	}
@@ -489,10 +481,7 @@ void GradSmallStrainT::FormStiffness(double constK)
 	fK_ct = 0.;
 	for (int nd = 0; nd < NumElementNodes_Field(); nd ++)
 		if (fLocField1[nd] <= 0. || fLocField1[nd] <= fLocLastField1[nd]) // || fLocYield[nd] <= 0.)
-			//		{
 			fK_ct(nd)[nd] = fNodalConstraint;
-	//			fK_ct(nd+fNumDOF_Field)[nd+fNumDOF_Field] = fNodalConstraint;
-	//		}
 	fLHS.AddBlock(fK_bb.Rows(), fK_bb.Cols(), fK_ct);
 
 	/********DEBUG*******/
@@ -612,6 +601,10 @@ void GradSmallStrainT::FormKd(double constK)
 			cout<<"                 gm_hp    : " << fCurrMaterial_Grad->gm_hp()                        <<endl;
 			for (int i = 0; i < NumElementNodes_Field()*NumDOF_Field(); i++)
 				cout<<"                 h[" << i << "]     : " << fh[i]                                <<endl;
+			for (int i = 0; i < NumElementNodes_Field()*NumDOF_Field(); i++)
+				cout<<"                 p[" << i << "]     : " << fp[i]                                <<endl;
+			for (int i = 0; i < NumElementNodes_Field()*NumDOF_Field(); i++)
+				cout<<"                 q[" << i << "]     : " << fq[i]                                <<endl;
 			for (int i = 0; i < NumElementNodes(); i++)
 				cout<<"                 B[" << i << "]     : " << fB[i]                                <<endl;
 			cout<<"                 scale    : " << scale                                              <<endl;
@@ -621,7 +614,6 @@ void GradSmallStrainT::FormKd(double constK)
 				cout<<"                 RHS_Field1["<< i << "]: " << -scale*yield*fh1T[i] << endl;
 			for (int i=0; i < neq_Field2; i++)
 				cout<<"                 RHS_Field2["<< i << "]: " << -scale*yield*fh2T[i] << endl;
-
 		}
 		/*******************/
 	}
@@ -740,15 +732,3 @@ void GradSmallStrainT::Set_q(dMatrixT& q) const
 	else
 		ExceptionT::GeneralFail(caller, "implemented for 1d only");
 }
-
-// CHECK COEFFICIENT 'scale' AND 'constK'
-
-// need global loading/unloading conditions
-
-// solves for new step of Field in iterative form: inc_Field_current-iteration = inc_Field_previous-iteration + dR
-//  where dR comes from solution of Kd=r
-// this allows the dR to go positive, and then not back to zero.
-// need some sort of penalty to force the following:
-//   1) dR >= 0
-//   2) if, during the computation of the total increment of Field for the time step,
-//	  f changes from greater than zero to zero, the total increment of Field should go back to zero.
