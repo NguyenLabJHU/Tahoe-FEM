@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.8 2002-02-18 08:48:41 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.9 2002-02-22 19:27:42 xiang Exp $ */
 /* created: paklein (03/03/1997)                                          */
 
 #include "dSymMatrixT.h"
@@ -8,7 +8,7 @@
 #include "Constants.h"
 #include "dMatrixT.h"
 
-const double Pi = acos(-1);
+const double Pi = acos(-1.0);
 inline double d_sign(double a, double b)
 {
 	double x;
