@@ -1,4 +1,4 @@
-/* $Id: SetOfNodesKBCT.cpp,v 1.3 2003-11-21 22:47:59 paklein Exp $ */
+/* $Id: SetOfNodesKBCT.cpp,v 1.3.4.1 2004-03-22 18:36:47 paklein Exp $ */
 #include "SetOfNodesKBCT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -84,7 +84,8 @@ void SetOfNodesKBCT::Initialize(ifstreamT& in)
 			for (int j = 0; j < iMax - iMin + 1; j++, pcard++)
 			{			
 				/* set values */
-				pcard->SetValues(iMin + j, dof[i], code[i], fScheduleNum[i], fScale[i]);
+				const ScheduleT* schedule = fNodeManager.Schedule(fScheduleNum[i]);
+				pcard->SetValues(iMin + j, dof[i], code[i], schedule, fScale[i]);
 			}
 	
 		}
@@ -180,7 +181,8 @@ void SetOfNodesKBCT::Initialize(ifstreamT& in)
 			for (int j = 0; j < fNodes.Length(); j++, pcard++)
 			{			
 				/* set values */
-				pcard->SetValues(fNodes[j], dof[i], code[i], fScheduleNum[i], fScale[i]);
+				const ScheduleT* schedule = fNodeManager.Schedule(fScheduleNum[i]);
+				pcard->SetValues(fNodes[j], dof[i], code[i], schedule, fScale[i]);
 			}
 		
 		}

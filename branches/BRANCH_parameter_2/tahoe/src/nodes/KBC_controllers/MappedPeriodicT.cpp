@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.cpp,v 1.7 2002-10-20 22:49:29 paklein Exp $ */
+/* $Id: MappedPeriodicT.cpp,v 1.7.34.1 2004-03-22 18:36:47 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 
 #include "MappedPeriodicT.h"
@@ -76,7 +76,7 @@ void MappedPeriodicT::Initialize(ifstreamT& in)
 	int dex = 0;
 	for (int i = 0; i < fMappedNodeList.Length(); i++)
 		for (int j = 0; j < nsd; j++)
-			fMappedCards[dex++].SetValues(fMappedNodeList[i], j, KBC_CardT::kDsp, 0, 0.0);	
+			fMappedCards[dex++].SetValues(fMappedNodeList[i], j, KBC_CardT::kDsp, NULL, 0.0);	
 
 	/* slave nodes */
 	dex = 0;
@@ -84,10 +84,7 @@ void MappedPeriodicT::Initialize(ifstreamT& in)
 		for (int jj = 0; jj < nsd; jj++)
 		{
 			/* set values */
-			fSlaveCards[dex].SetValues(fSlaveMasterPairs(ii, kSlave), jj, KBC_CardT::kDsp, 0, 0.0);
-	
-			/* dummy schedule */
-			fSlaveCards[dex].SetSchedule(&fDummySchedule);
+			fSlaveCards[dex].SetValues(fSlaveMasterPairs(ii, kSlave), jj, KBC_CardT::kDsp, &fDummySchedule, 0.0);
 			dex++;
 		}	
 }
@@ -145,8 +142,7 @@ void MappedPeriodicT::InitialCondition(void)
 		/* set prescribed displacements */
 		for (int j = 0; j < nsd; j++)
 		{
-			fMappedCards[dex].SetValues(node, j, KBC_CardT::kDsp, 0, d[j] - X[j]);
-			fMappedCards[dex].SetSchedule(fSchedule);
+			fMappedCards[dex].SetValues(node, j, KBC_CardT::kDsp, fSchedule, d[j] - X[j]);
 			dex++;
 		}
 	}
@@ -195,7 +191,7 @@ void MappedPeriodicT::InitStep(void)
 		
 			/* set cards */
 			for (int j = 0; j < nsd; j++)
-				fSlaveCards[dex++].SetValues(node_s, j, KBC_CardT::kDsp, 0, d_s[j] + d_m[j]);
+				fSlaveCards[dex++].SetValues(node_s, j, KBC_CardT::kDsp, NULL, d_s[j] + d_m[j]);
 		}
 	
 		/* set mapping */
