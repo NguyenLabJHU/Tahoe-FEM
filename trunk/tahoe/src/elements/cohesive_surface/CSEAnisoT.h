@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.17 2002-11-26 00:17:34 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.18 2002-11-30 16:41:25 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -56,7 +56,7 @@ public:
 protected:
 
 	/* tangent matrix and force vector */
-	virtual void LHSDriver(void);
+	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
 	virtual void RHSDriver(void);
 
 	/* nodal value calculations */

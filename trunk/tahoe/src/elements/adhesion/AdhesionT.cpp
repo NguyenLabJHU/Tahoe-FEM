@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.8 2002-11-21 01:13:33 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.9 2002-11-30 16:41:24 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -288,7 +288,7 @@ void AdhesionT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 ***********************************************************************/
 
 /* form group contribution to the stiffness matrix */
-void AdhesionT::LHSDriver(void)
+void AdhesionT::LHSDriver(GlobalT::SystemTypeT)
 {
 	/* time-stepping parameters */
 	double constK = 0.0;

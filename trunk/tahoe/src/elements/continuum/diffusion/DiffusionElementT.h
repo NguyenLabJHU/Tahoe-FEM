@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.h,v 1.7 2002-11-14 17:05:51 paklein Exp $ */
+/* $Id: DiffusionElementT.h,v 1.8 2002-11-30 16:41:28 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSE_T_H_
 #define _DIFFUSE_T_H_
@@ -69,7 +69,7 @@ protected:
 	/*@}*/
 
 	/** construct the effective mass matrix */
-	virtual void LHSDriver(void);
+	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
 
 	/** form the residual force vector */
 	virtual void RHSDriver(void);

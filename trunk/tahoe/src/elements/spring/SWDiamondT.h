@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.h,v 1.6 2002-11-21 01:13:40 paklein Exp $ */
+/* $Id: SWDiamondT.h,v 1.7 2002-11-30 16:41:29 paklein Exp $ */
 /* created: paklein (03/19/1997) */
 
 #ifndef _SWDIAMOND_T_H_
@@ -51,7 +51,7 @@ public:
 protected: /* for derived classes only */
 	 	
 	/* called by FormRHS and FormLHS */
-	virtual void LHSDriver(void);
+	virtual void LHSDriver(GlobalT::SystemTypeT);
 	virtual void RHSDriver(void);
 
 	/* print element group data */

@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.29 2002-11-26 00:17:34 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.30 2002-11-30 16:41:25 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -429,7 +429,7 @@ void CSEAnisoT::ReadRestart(istream& in)
 * Protected
 ***********************************************************************/
 
-void CSEAnisoT::LHSDriver(void)
+void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 {
 	/* matrix format */
 	dMatrixT::SymmetryFlagT format = (fRotate) ?

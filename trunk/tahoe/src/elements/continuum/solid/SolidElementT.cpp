@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.37 2002-11-14 17:05:51 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.38 2002-11-30 16:41:28 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -745,10 +745,10 @@ void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradie
 }
 
 /* construct the effective mass matrix */
-void SolidElementT::LHSDriver(void)
+void SolidElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 {
 	/* inherited */
-	ContinuumElementT::LHSDriver();
+	ContinuumElementT::LHSDriver(sys_type);
 
 	/* element contribution */
 	ElementLHSDriver();

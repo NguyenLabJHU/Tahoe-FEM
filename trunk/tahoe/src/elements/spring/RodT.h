@@ -1,4 +1,4 @@
-/* $Id: RodT.h,v 1.16 2002-11-21 01:13:41 paklein Exp $ */
+/* $Id: RodT.h,v 1.17 2002-11-30 16:41:30 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _ROD_T_H_
@@ -66,7 +66,7 @@ public:
 protected: /* for derived classes only */
 	 	
 	/* called by FormRHS and FormLHS */
-	virtual void LHSDriver(void);
+	virtual void LHSDriver(GlobalT::SystemTypeT);
 	virtual void RHSDriver(void);
 
 	/* increment current element */

@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.11 2002-11-26 00:17:34 cjkimme Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.12 2002-11-30 16:41:25 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -121,7 +121,7 @@ void CSEIsoT::Initialize(void)
 ***********************************************************************/
 
 /* called by FormRHS and FormLHS */
-void CSEIsoT::LHSDriver(void)
+void CSEIsoT::LHSDriver(GlobalT::SystemTypeT)
 {
 	/* time-stepping parameters */
 	double constK = 0.0;

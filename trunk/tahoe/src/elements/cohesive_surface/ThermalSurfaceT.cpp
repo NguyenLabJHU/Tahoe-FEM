@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.6 2002-10-20 22:48:17 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.7 2002-11-30 16:41:25 paklein Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -75,7 +75,7 @@ void ThermalSurfaceT::Initialize(void)
 ***********************************************************************/
 
 /* called by FormRHS and FormLHS */
-void ThermalSurfaceT::LHSDriver(void)
+void ThermalSurfaceT::LHSDriver(GlobalT::SystemTypeT)
 {
 	/* algorithmic constants */
 	double constK = 0.0;

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.14 2002-11-21 01:13:35 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.15 2002-11-30 16:41:25 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -552,7 +552,7 @@ void MeshFreeCSEAnisoT::EchoConnectivityData(ifstreamT& in, ostream& out)
 #pragma unused(out)
 }
 
-void MeshFreeCSEAnisoT::LHSDriver(void)
+void MeshFreeCSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 {
 	/* time-integration parameters */
 	double constK = 0.0;

@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.13 2002-11-28 01:14:05 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.14 2002-11-30 16:41:22 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -145,6 +145,17 @@ const ScheduleT* ElementSupportT::Schedule(int num) const
 #else
 #pragma unused(num)
 	return NULL;
+#endif
+}
+
+/* return the iteration number for the current solver group */
+int ElementSupportT::IterationNumber(void) const
+{ 
+#ifndef _SIERRA_TEST_
+	return FEManager().IterationNumber(); 
+#else
+#pragma unused(group)
+	return fItNum;
 #endif
 }
 

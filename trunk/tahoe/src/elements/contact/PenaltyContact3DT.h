@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.h,v 1.4 2002-11-21 01:13:36 paklein Exp $ */
+/* $Id: PenaltyContact3DT.h,v 1.5 2002-11-30 16:41:27 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 
 #ifndef _PENALTY_CONTACT3D_T_H_
@@ -25,7 +25,7 @@ protected:
 	virtual void PrintControlData(ostream& out) const;
 		 	
 	/* construct the effective mass matrix */
-	virtual void LHSDriver(void);
+	virtual void LHSDriver(GlobalT::SystemTypeT);
 
 	/* construct the residual force vector */
 	virtual void RHSDriver(void);
