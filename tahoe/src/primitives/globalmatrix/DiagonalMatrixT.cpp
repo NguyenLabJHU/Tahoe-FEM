@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.3 2001-05-01 23:22:55 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.4 2001-06-29 23:52:24 paklein Exp $ */
 /* created: paklein (03/23/1997)                                          */
 /* Virtual base class for all global matrix objects                       */
 
@@ -127,7 +127,7 @@ void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& 
 				break;
 			}
 			default:			
-				/* no assembly mode specified */
+				cout << "\n DiagonalMatrixT::Assemble: cannot assemble mode: " << fMode << endl;
 				throw eGeneralFail;
 		}
 	}
