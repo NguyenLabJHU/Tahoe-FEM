@@ -1,4 +1,4 @@
-/* $Id: tevp3D.cpp,v 1.16.20.1 2004-04-08 07:33:23 paklein Exp $ */
+/* $Id: tevp3D.cpp,v 1.16.20.2 2004-06-09 23:18:09 paklein Exp $ */
 /* created:  Harold Park (06/25/2001) */
 #include "tevp3D.h"
 #include <iostream.h>
@@ -128,21 +128,6 @@ void tevp3D::ResetHistory(void)
   /* reset if plastic */
   ElementCardT& element = CurrentElement();
   if (element.IsAllocated()) Reset(element);
-}
-
-/* print parameters */
-void tevp3D::Print(ostream& out) const
-{
-  /* inherited */
-  FSSolidMatT::Print(out);
-  IsotropicT::Print(out);
-}
-
-void tevp3D::PrintName(ostream& out) const
-{
-  /* inherited */
-  FSSolidMatT::PrintName(out);
-  out << "    3D Thermo-Elasto-Viscoplastic\n";
 }
 
 /* spatial description */

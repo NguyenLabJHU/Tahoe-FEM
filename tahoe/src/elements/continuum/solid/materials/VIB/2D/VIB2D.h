@@ -1,4 +1,4 @@
-/* $Id: VIB2D.h,v 1.6.46.1 2004-04-08 07:32:57 paklein Exp $ */
+/* $Id: VIB2D.h,v 1.6.46.2 2004-06-09 23:17:45 paklein Exp $ */
 /* created: paklein (04/09/1997) */
 #ifndef _VIB_2D_H_
 #define _VIB_2D_H_
@@ -28,10 +28,6 @@ public:
 	/* destructor */
 	virtual ~VIB2D(void);
 	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;	
-
 	/* set angle offset - for testing onset of amorphous behavior */
 	void SetAngle(double angleoffset);
 

@@ -1,4 +1,4 @@
-/* $Id: tevp3D.h,v 1.10.20.1 2004-04-08 07:33:23 paklein Exp $ */
+/* $Id: tevp3D.h,v 1.10.20.2 2004-06-09 23:18:09 paklein Exp $ */
 /* created:  Harold Park (06/25/2001) */
 #ifndef _TEVP_3D_H_
 #define _TEVP_3D_H_
@@ -31,10 +31,6 @@ class tevp3D: public FSIsotropicMatT
 
   /* reset internal variables to last converged solution */
   virtual void ResetHistory(void);
-
-  /* print parameters */
-  virtual void Print(ostream& out) const;
-  virtual void PrintName(ostream& out) const;
 
 	/** \name spatial description */
 	/*@{*/

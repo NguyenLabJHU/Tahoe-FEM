@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.16 2004-01-05 23:42:08 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.16.18.1 2004-06-09 23:17:29 paklein Exp $ */
 #ifndef _ABAQUS_VUMAT_BASE_T_H_
 #define _ABAQUS_VUMAT_BASE_T_H_
 
@@ -44,10 +44,6 @@ public:
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 
 	/* initialization */
 	virtual void Initialize(void);

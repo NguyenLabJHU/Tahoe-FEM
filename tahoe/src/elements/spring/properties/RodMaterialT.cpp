@@ -1,4 +1,4 @@
-/* $Id: RodMaterialT.cpp,v 1.7.50.1 2004-04-08 07:33:36 paklein Exp $ */
+/* $Id: RodMaterialT.cpp,v 1.7.50.2 2004-06-09 23:18:15 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 
 #include "RodMaterialT.h"
@@ -30,13 +30,6 @@ RodMaterialT::~RodMaterialT(void)
 }
 
 /* print parameters */
-void RodMaterialT::Print(ostream& out) const
-{
-	out << " Mass . . . . . . . . . . . . . . . . . . . . . .= " << fMass << '\n';	
-//	fThermal->Print(out);	
-}
-
-/* print parameters */
 void RodMaterialT::PrintParameters(ostream& out) const
 {
 	/* thermal expansion parameters */
@@ -57,12 +50,3 @@ void RodMaterialT::SetThermalSchedule(const ScheduleT* LTfPtr)
 /* returns true if the material has internal forces in the unloaded
 * configuration, ie thermal strains */
 int RodMaterialT::HasInternalStrain(void) const { return 0; }
-
-/***********************************************************************
-* Protected
-***********************************************************************/
-
-void RodMaterialT::PrintName(ostream& out) const
-{
-	out << " Material name:\n";
-}

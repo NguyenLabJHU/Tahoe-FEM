@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.30.20.1 2004-04-08 07:33:23 paklein Exp $ */
+/* $Id: tevp2D.cpp,v 1.30.20.2 2004-06-09 23:18:09 paklein Exp $ */
 /* created: Harold Park (04/04/2001) */
 #include "tevp2D.h"
 
@@ -141,21 +141,6 @@ void tevp2D::ResetHistory(void)
   /* reset if plastic */
   ElementCardT& element = CurrentElement();
   if (element.IsAllocated()) Reset(element);
-}
-
-/* print parameters */
-void tevp2D::Print(ostream& out) const
-{
-  /* inherited */
-  FSSolidMatT::Print(out);
-  IsotropicT::Print(out);
-}
-
-void tevp2D::PrintName(ostream& out) const
-{
-  /* inherited */
-  FSSolidMatT::PrintName(out);
-  out << "    Thermo-Elasto-Viscoplastic\n";
 }
 
 /* spatial description */

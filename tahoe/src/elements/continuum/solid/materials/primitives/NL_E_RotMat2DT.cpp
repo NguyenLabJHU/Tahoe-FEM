@@ -1,4 +1,4 @@
-/* $Id: NL_E_RotMat2DT.cpp,v 1.6.46.1 2004-04-08 07:33:18 paklein Exp $ */
+/* $Id: NL_E_RotMat2DT.cpp,v 1.6.46.2 2004-06-09 23:18:07 paklein Exp $ */
 /* created: paklein (06/13/1997) */
 #include "NL_E_RotMat2DT.h"
 
@@ -11,14 +11,6 @@ NL_E_RotMat2DT::NL_E_RotMat2DT(ifstreamT& in, const FSMatSupportT& support, Cons
 	Anisotropic2DT(in)
 {
 
-}
-
-/* print parameters */
-void NL_E_RotMat2DT::Print(ostream& out) const
-{
-	/* inherited */
-	NL_E_MatT::Print(out);
-	Anisotropic2DT::Print(out);
 }
 
 /* modulus */

@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.cpp,v 1.9.20.1 2004-04-08 07:32:59 paklein Exp $ */
+/* $Id: IsoVIB3D.cpp,v 1.9.20.2 2004-06-09 23:17:46 paklein Exp $ */
 /* created: paklein (03/15/1998) */
 #include "IsoVIB3D.h"
 
@@ -52,29 +52,6 @@ IsoVIB3D::IsoVIB3D(ifstreamT& in, const FSMatSupportT& support):
 
 /* destructor */
 IsoVIB3D::~IsoVIB3D(void) { delete fSphere; }
-
-/* print parameters */
-void IsoVIB3D::Print(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::Print(out);
-	VIB::Print(out);
-
-	fSphere->Print(out);
-}
-
-/* print name */
-void IsoVIB3D::PrintName(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::PrintName(out);
-	VIB::PrintName(out);
-
-	out << "    Isotropic/Principal Stretch Formulation\n";
-
-	/* integration rule */
-	fSphere->PrintName(out);
-}
 
 /* modulus */
 const dMatrixT& IsoVIB3D::c_ijkl(void)

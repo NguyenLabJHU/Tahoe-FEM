@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.cpp,v 1.8.46.2 2004-06-07 13:48:15 paklein Exp $ */
+/* $Id: QuadLog3D.cpp,v 1.8.46.3 2004-06-09 23:17:41 paklein Exp $ */
 /* created: paklein (06/27/1997) */
 #include "QuadLog3D.h"
 
@@ -34,22 +34,6 @@ QuadLog3D::QuadLog3D(void):
 	fSpectral(3)
 {
 
-}
-
-/* print parameters */
-void QuadLog3D::Print(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-}
-
-void QuadLog3D::PrintName(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::PrintName(out);
-
-	out << "    Quadratic logarithmic isotropic model\n";
 }
 
 /* modulus */

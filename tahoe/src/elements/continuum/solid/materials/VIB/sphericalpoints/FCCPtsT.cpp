@@ -1,4 +1,4 @@
-/* $Id: FCCPtsT.cpp,v 1.4 2002-10-20 22:48:59 paklein Exp $ */
+/* $Id: FCCPtsT.cpp,v 1.4.50.1 2004-06-09 23:17:50 paklein Exp $ */
 /* created: paklein (03/26/1999)                                          */
 /* FCC lattice of points                                                  */
 
@@ -35,20 +35,6 @@ FCCPtsT::FCCPtsT(int num_shells, double bond_length):
 	/* set weights */
 	fJacobians.Dimension(num_bonds);
 	fJacobians = 1;
-}
-
-/* print parameters */
-void FCCPtsT::Print(ostream& out) const
-{
-	/* number of integration points */
-	out << " Number of nearest neighbor shells . . . . . . . = " << fNumShells << '\n';
-	out << " Number of bonds (using 4-fold symmetry) . . . . = " << fJacobians.Length() << '\n';
-	out << " Bond length . . . . . . . . . . . . . . . . . . = " << fBondLength << '\n';
-}
-
-void FCCPtsT::PrintName(ostream& out) const
-{
-	out << "    FCC lattice\n";
 }
 
 /* generate sphere points:

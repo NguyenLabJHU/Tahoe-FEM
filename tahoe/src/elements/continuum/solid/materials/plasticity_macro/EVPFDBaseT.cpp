@@ -1,4 +1,4 @@
-/* $Id: EVPFDBaseT.cpp,v 1.11.46.1 2004-04-08 07:33:16 paklein Exp $ */
+/* $Id: EVPFDBaseT.cpp,v 1.11.46.2 2004-06-09 23:18:05 paklein Exp $ */
 #include "EVPFDBaseT.h"
 #include "NLCSolver.h"
 #include "NLCSolver_LS.h"
@@ -86,24 +86,6 @@ void EVPFDBaseT::InitStep(void)
 
 bool EVPFDBaseT::NeedLastDisp() const { return true; }
 
-void EVPFDBaseT::Print(ostream& out) const
-{
-  // inherited
-  FDHookeanMatT::Print(out);
-  IsotropicT::Print(out);
-
-  // print material data
-  out << " Material data:\n";
-  out << "    Kinetics of deformation\n";
-  out << "       Kinetic eqn model code. . . . . . . . . . = " << fKinEqnCode << "\n";
-  fKineticEqn->Print(out);
-
-  // nonlinear constitutive solver data
-  out << "    NLC solver:\n";
-  out << "       Solver method . . . . . . . . . . . . . . = " << fSolverCode << "\n";
-  fSolver->Print(out);
-}
-
 /* information about subordinate parameter lists */
 void EVPFDBaseT::DefineSubs(SubListT& sub_list) const
 {
@@ -135,15 +117,6 @@ void EVPFDBaseT::TakeParameterList(const ParameterListT& list)
 void EVPFDBaseT::SetModulus(dMatrixT& modulus)
 {
 	IsotropicT::ComputeModuli(modulus);
-}
-
-void EVPFDBaseT::PrintName(ostream& out) const
-{
-  // inherited
-  FDHookeanMatT::PrintName(out);
-
-  // print model name
-  out << "    Elasto-Visco-Plastic constitutive model\n";
 }
 
 int EVPFDBaseT::GetNumberOfEqns()

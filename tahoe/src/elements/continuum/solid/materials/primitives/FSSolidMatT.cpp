@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.10.20.1 2004-04-08 07:33:18 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.10.20.2 2004-06-09 23:18:07 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
 #include <iostream.h>
@@ -107,15 +107,6 @@ return 0;
 	else
 		return 0;
 #endif
-}
-
-/* I/O functions */
-void FSSolidMatT::PrintName(ostream& out) const
-{
-	/* inherited */
-	SolidMaterialT::PrintName(out);
-	
-	out << "    Large strain\n";
 }
 
 /* initialize current step. compute thermal dilatation */

@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionMaterialT.cpp,v 1.3.18.1 2004-04-08 07:32:33 paklein Exp $ */
+/* $Id: NLDiffusionMaterialT.cpp,v 1.3.18.2 2004-06-09 23:17:26 paklein Exp $ */
 #include "NLDiffusionMaterialT.h"
 #include "DiffusionMatSupportT.h"
 #include "ifstreamT.h"
@@ -42,25 +42,6 @@ NLDiffusionMaterialT::~NLDiffusionMaterialT(void)
 	delete fCpScaleFunction;
 }
 
-/* I/O functions */
-void NLDiffusionMaterialT::Print(ostream& out) const
-{
-	/* inherited */
-	DiffusionMaterialT::Print(out);
-	
-	/* temperature variation functions */
-	out << " Temperature variation in conductivity:\n";
-	fConductivityScaleFunction->Print(out);
-	fConductivityScaleFunction->PrintName(out);
-}
-
-void NLDiffusionMaterialT::PrintName(ostream& out) const
-{
-	/* inherited */
-	DiffusionMaterialT::PrintName(out);
-	
-	out << "    Nonlinear diffusion material\n";
-}
 
 /* conductivity */
 const dMatrixT& NLDiffusionMaterialT::k_ij(void)

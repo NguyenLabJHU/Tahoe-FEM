@@ -1,4 +1,4 @@
-/* $Id: BCJHypoIsoDamageYC2D.h,v 1.4.46.1 2004-04-08 07:33:16 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageYC2D.h,v 1.4.46.2 2004-06-09 23:18:05 paklein Exp $ */
 #ifndef _BCJ_HYPO_ISO_DAMAGE_YC_2D_H_
 #define _BCJ_HYPO_ISO_DAMAGE_YC_2D_H_
 
@@ -24,9 +24,6 @@ class BCJHypoIsoDamageYC2D : public BCJHypoIsoDamageYC3D
 
   // tangent modulus
   virtual const dMatrixT& c_ijkl();
-
-  // print data and model name
-  virtual void PrintName(ostream& out) const;
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

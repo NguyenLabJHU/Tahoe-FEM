@@ -1,4 +1,4 @@
-/* $Id: CrystalElast.cpp,v 1.9.46.1 2004-04-08 07:33:02 paklein Exp $ */
+/* $Id: CrystalElast.cpp,v 1.9.46.2 2004-06-09 23:17:51 paklein Exp $ */
 #include "CrystalElast.h"
 #include "CrystalElastMat.h"
 #include "CrystalElastLat.h"
@@ -66,32 +66,18 @@ void CrystalElast::Initialize()
   InitializeCrystalVariables();
 }
 
-void CrystalElast::Print(ostream& out) const
-{
-  // inherited
-  FDHookeanMatT::Print(out);
-
   // print input values
+#if 0
   out << " FDcrystal data:\n";
   out << "    Number of grains   . . . . . . . . . . . . . = " << fNumGrain    << "\n";
   out << "    Lattice Orientation code . . . . . . . . . . = " << fODFCode << "\n";
   out << "    Initial Temperature   .  . . . . . . . . . . = " << fInit_Temp_DegC << "\n";
-  fCrystalElastMat->Print(out);
-}
+#endif
 
 /* set (material) tangent modulus */
 void CrystalElast::SetModulus(dMatrixT& modulus)
 {
 #pragma unused(modulus)
-}
-
-void CrystalElast::PrintName(ostream& out) const
-{
-  // inherited
-  FDHookeanMatT::PrintName(out);
-
-  // print model name
-  out << "    CrystalElast constitutive model\n";
 }
 
 void CrystalElast::AllocateElements()

@@ -1,4 +1,4 @@
-/* $Id: SSCubicT.cpp,v 1.4.48.2 2004-06-07 13:48:13 paklein Exp $ */
+/* $Id: SSCubicT.cpp,v 1.4.48.3 2004-06-09 23:17:35 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #include "SSCubicT.h"
 
@@ -17,22 +17,6 @@ SSCubicT::SSCubicT(void):
 	ParameterInterfaceT("small_strain_cubic")
 {
 
-}
-
-/* print parameters */
-void SSCubicT::Print(ostream& out) const
-{
-	/* inherited */
-	SSHookeanMatT::Print(out);
-	CubicT::Print(out);
-}
-
-/* print name */
-void SSCubicT::PrintName(ostream& out) const
-{
-	/* inherited */
-	SSHookeanMatT::PrintName(out);
-	CubicT::PrintName(out);
 }
 
 /* describe the parameters needed by the interface */

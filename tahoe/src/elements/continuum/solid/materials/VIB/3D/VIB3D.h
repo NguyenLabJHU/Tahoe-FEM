@@ -1,4 +1,4 @@
-/* $Id: VIB3D.h,v 1.6 2003-01-29 07:34:54 paklein Exp $ */
+/* $Id: VIB3D.h,v 1.6.46.1 2004-06-09 23:17:47 paklein Exp $ */
 /* created: paklein (04/20/1997) */
 #ifndef _VIB_3D_H_
 #define _VIB_3D_H_
@@ -24,10 +24,6 @@ public:
 	/* destructor */
 	~VIB3D(void);
 	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;	
-
 	/* set angle offset - for testing onset of amorphous behavior
 	 * Angles given in degrees */
 	void SetAngles(double phi, double theta);

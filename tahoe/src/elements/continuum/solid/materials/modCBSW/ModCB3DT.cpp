@@ -1,4 +1,4 @@
-/* $Id: ModCB3DT.cpp,v 1.7.46.1 2004-04-08 07:33:06 paklein Exp $ */
+/* $Id: ModCB3DT.cpp,v 1.7.46.2 2004-06-09 23:17:53 paklein Exp $ */
 /* created: paklein (10/14/1998) */
 #include "ModCB3DT.h"
 
@@ -99,31 +99,9 @@ ModCB3DT::ModCB3DT(ifstreamT& in, const FSMatSupportT& support, bool equilibrate
 /* destructor */
 ModCB3DT::~ModCB3DT(void) { delete fModCBSolver; }
 
-/* I/O functions */
-void ModCB3DT::Print(ostream& out) const
-{
-	/* inherited */
-	NL_E_MatT::Print(out);
-
-	/* potential data */
-	fModCBSolver->Print(out);
-}
-
 /*************************************************************************
-* Protected
-*************************************************************************/
-
-void ModCB3DT::PrintName(ostream& out) const
-{
-	/* inherited */
-	NL_E_MatT::PrintName(out);
-	
-	const char* orients[] = {"natural", "110", "111"};
-	out << "    Modified CB <" << orients[fOrientationCode] << ">\n";
-
-	/* potential name */
-	fModCBSolver->PrintName(out);
-}
+ * Protected
+ *************************************************************************/
 
 void ModCB3DT::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 {

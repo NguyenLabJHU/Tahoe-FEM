@@ -1,4 +1,4 @@
-/* $Id: Hex2D.cpp,v 1.2.42.1 2004-04-08 07:32:39 paklein Exp $ */
+/* $Id: Hex2D.cpp,v 1.2.42.2 2004-06-09 23:17:30 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"
@@ -91,28 +91,6 @@ Hex2D::~Hex2D(void)
 {
 	delete fHexLattice2D;
 	delete fPairProperty;
-}
-
-/* I/O functions */
-void Hex2D::PrintName(ostream& out) const
-{
-	NL_E_MatT::PrintName(out);
-	out << "    2D Hexagonal lattice\n";
-}
-
-void Hex2D::Print(ostream& out) const
-{
-	/* inherited */
-	NL_E_MatT::Print(out);
-
-	/* lattice parameters */
-	out << " Number of neighbor shells . . . . . . . . . . . = " << fHexLattice2D->NumShells() << '\n';
-	out << " Number of neighbors . . . . . . . . . . . . . . = " << fHexLattice2D->NumberOfBonds() << '\n';
-	out << " Nearest neighbor distance . . . . . . . . . . . = " << fNearestNeighbor << '\n';
-
-	/* write pair properties to output */
-	out << " Interaction potential parameters:\n";
-	fPairProperty->Write(out);
 }
 
 /* describe the parameters needed by the interface */

@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.h,v 1.9.46.2 2004-06-07 13:48:15 paklein Exp $ */
+/* $Id: QuadLog3D.h,v 1.9.46.3 2004-06-09 23:17:41 paklein Exp $ */
 /* created: paklein (06/27/1997) */
 #ifndef _QUAD_LOG_3D_H_
 #define _QUAD_LOG_3D_H_
@@ -18,10 +18,6 @@ public:
 	QuadLog3D(ifstreamT& in, const FSMatSupportT& support);
 	QuadLog3D(void);
 	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-
 	/** \name spatial description */
 	/*@{*/
 	/** spatial tangent modulus */

@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.cpp,v 1.15 2003-05-29 06:41:17 paklein Exp $  */
+/* $Id: RateDep2DT.cpp,v 1.15.34.1 2004-06-09 23:17:25 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "RateDep2DT.h"
@@ -317,13 +317,6 @@ SurfacePotentialT::StatusT RateDep2DT::Status(const dArrayT& jump_u,
 	else
 		return Precritical;
 
-}
-
-void RateDep2DT::PrintName(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	out << "    RateDep 2D \n";
-#endif
 }
 
 /* print parameters to the output stream */

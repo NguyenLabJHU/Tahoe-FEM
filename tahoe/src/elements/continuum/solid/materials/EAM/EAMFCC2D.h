@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.h,v 1.7.46.1 2004-04-08 07:32:41 paklein Exp $ */
+/* $Id: EAMFCC2D.h,v 1.7.46.2 2004-06-09 23:17:32 paklein Exp $ */
 /* created: paklein (12/09/1996) */
 #ifndef _EAMFCC2D_H_
 #define _EAMFCC2D_H_
@@ -27,10 +27,6 @@ public:
 	/* destructor */
 	virtual ~EAMFCC2D(void);
 	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** describe the parameters needed by the interface */

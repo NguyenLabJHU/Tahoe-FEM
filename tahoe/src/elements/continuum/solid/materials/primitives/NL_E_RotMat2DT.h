@@ -1,4 +1,4 @@
-/* $Id: NL_E_RotMat2DT.h,v 1.5.46.1 2004-04-08 07:33:18 paklein Exp $ */
+/* $Id: NL_E_RotMat2DT.h,v 1.5.46.2 2004-06-09 23:18:07 paklein Exp $ */
 /* created: paklein (06/13/1997) */
 #ifndef _NL_E_ROTMAT_2D_T_H_
 #define _NL_E_ROTMAT_2D_T_H_
@@ -22,9 +22,6 @@ public:
 	/* constructor */
 	NL_E_RotMat2DT(ifstreamT& in, const FSMatSupportT& support, ConstraintT constraint);
 
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	
 	/* modulus */
 	virtual const dMatrixT& c_ijkl(void);
 	
@@ -32,8 +29,7 @@ public:
 	virtual const dSymMatrixT& s_ij(void);
 
 	/* strain energy density */
-	virtual double StrainEnergyDensity(void);
-	
+	virtual double StrainEnergyDensity(void);	
 };
 
 } // namespace Tahoe 

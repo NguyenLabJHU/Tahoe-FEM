@@ -1,4 +1,4 @@
-/* $Id: J2Simo3D.cpp,v 1.14.24.2 2004-06-09 06:25:37 paklein Exp $ */
+/* $Id: J2Simo3D.cpp,v 1.14.24.3 2004-06-09 23:17:56 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 #include "J2Simo3D.h"
 #include "ElementCardT.h"
@@ -111,7 +111,7 @@ const dSymMatrixT& J2Simo3D::s_ij(void)
 		/* apply correction due to the return mapping */
 		fStress += StressCorrection(element, mu, ip);
 	}
-	
+
 	return fStress;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: Hex2D.h,v 1.2.42.1 2004-04-08 07:32:39 paklein Exp $ */
+/* $Id: Hex2D.h,v 1.2.42.2 2004-06-09 23:17:30 paklein Exp $ */
 #ifndef _HEX_2D_H_
 #define _HEX_2D_H_
 
@@ -22,12 +22,6 @@ public:
 	/** destructor */
 	~Hex2D(void);
 	
-	/** \name write parameters */
-	/*@{*/
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-	/*@}*/
-
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** describe the parameters needed by the interface */

@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.13.18.1 2004-04-08 07:33:18 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.13.18.2 2004-06-09 23:18:07 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -77,13 +77,23 @@ public:
 	 * is not 2D */
 	ConstraintT Constraint(void) const { return fConstraint; };
 
+	/** \name queries */
+	/*@{*/
+	/** return true if the material can produce localization */
+	virtual bool HasLocalization(void) const { return false; };
+
+	/** return true if the material generates heat. The returns false unless 
+	 * overridden. */
+	virtual bool HasIncrementalHeat(void) const { return false; };
+
+	virtual bool NeedDisp(void) const     { return false; };
+	virtual bool NeedLastDisp(void) const { return false; };
+	virtual bool NeedVel(void) const      { return false; };
+	/*@}*/
+
 	/** incremental heat generation. Associated with the stress calculated with the
 	 * most recent call to SolidMaterialT::s_ij or SolidMaterialT::S_IJ */
 	virtual double IncrementalHeat(void);
-	
-	/** return true if the material generates heat. The returns false unless 
-	 * overridden. */
-	virtual bool HasIncrementalHeat(void) const;
 
 	/** strain energy density */
 	virtual double StrainEnergyDensity(void) = 0;
@@ -97,14 +107,6 @@ public:
 	 * \param normal wave propagation direction
 	 * \param speeds the computed acoustic wave speeds */
 	void WaveSpeeds(const dArrayT& normal, dArrayT& speeds);
-
-	/** \name required parameter flags
-	 * all false by default */
-	/*@{*/
-	virtual bool NeedDisp(void) const     { return false; };
-	virtual bool NeedLastDisp(void) const { return false; };
-	virtual bool NeedVel(void) const      { return false; };
-	/*@}*/
 	
 	/** return the strain in the material. The definition of strain will be
 	 * dependent on the subclass */
@@ -171,7 +173,6 @@ protected:
 
 /* incremental heat generation */
 inline double SolidMaterialT::IncrementalHeat(void) { return 0.0; }
-inline bool SolidMaterialT::HasIncrementalHeat(void) const { return false; }
 
 /* returns the density */
 inline double SolidMaterialT::Density(void) const { return fDensity; }

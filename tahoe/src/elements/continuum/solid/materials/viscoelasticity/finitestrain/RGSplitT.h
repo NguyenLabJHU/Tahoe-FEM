@@ -19,10 +19,6 @@ class RGSplitT: public RGViscoelasticityT
 	RGSplitT(ifstreamT& in, const FSMatSupportT& support);
 
 	~RGSplitT(void);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 	
 	virtual void Initialize(void);
 

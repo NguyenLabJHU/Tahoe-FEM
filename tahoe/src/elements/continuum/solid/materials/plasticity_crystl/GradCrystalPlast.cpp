@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlast.cpp,v 1.11.18.1 2004-04-08 07:33:13 paklein Exp $ */
+/* $Id: GradCrystalPlast.cpp,v 1.11.18.2 2004-06-09 23:18:00 paklein Exp $ */
 #include "GradCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -316,34 +316,6 @@ void GradCrystalPlast::ComputeOutput(dArrayT& output)
     // write euler angles at IP/ELE
     fLatticeOrient->WriteTexture(group, elem, intpt, fNumGrain, step, fangles);
   }
-}
-
-void GradCrystalPlast::Print(ostream& out) const
-{
-  // inherited
-  PolyCrystalMatT::Print(out);
-
-  // print slip kinetics data
-  out << "    Crystal slip kinetics (gradient crystal plast.)\n";
-  out << "       Kinetics law. . . . . . . . . . . . . . . = " << fKinEqnCode << "\n";
-  fKinetics->Print(out);
-
-  // print slip hardening data
-  out << "    Crystal slip hardening (gradient crystal plast.)\n";
-  out << "       Hardening law . . . . . . . . . . . . . . = " << fHardCode << "\n";
-  fHardening->Print(out);
-}
-
-void GradCrystalPlast::PrintName(ostream& out) const
-{
-  // inherited
-  PolyCrystalMatT::PrintName(out);
-
-  // output model name
-  out << "    gradient crystal plasticity equations\n";
-  fSlipGeometry->PrintName(out);
-  fKinetics->PrintName(out);
-  fHardening->PrintName(out);
 }
 
 /* PROTECTED MEMBER FUNCTIONS */

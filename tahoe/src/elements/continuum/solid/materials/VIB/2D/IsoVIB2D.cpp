@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.cpp,v 1.9.20.1 2004-04-08 07:32:57 paklein Exp $ */
+/* $Id: IsoVIB2D.cpp,v 1.9.20.2 2004-06-09 23:17:45 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoVIB2D.h"
 
@@ -36,16 +36,6 @@ IsoVIB2D::IsoVIB2D(ifstreamT& in, const FSMatSupportT& support):
 
 /* destructor */
 IsoVIB2D::~IsoVIB2D(void) { delete fCircle; }
-
-/* print parameters */
-void IsoVIB2D::Print(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::Print(out);
-	VIB::Print(out);
-
-	fCircle->Print(out);
-}
 
 /* modulus */
 const dMatrixT& IsoVIB2D::c_ijkl(void)
@@ -315,19 +305,6 @@ void IsoVIB2D::DefineParameters(ParameterListT& list) const
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-/* print name */
-void IsoVIB2D::PrintName(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::PrintName(out);
-	VIB::PrintName(out);
-
-	out << "    Isotropic/Principal Stretch Formulation\n";
-
-	/* integration rule */
-	fCircle->PrintName(out);
-}
 
 /* strained lengths in terms of the Lagrangian stretch eigenvalues */
 void IsoVIB2D::ComputeLengths(const dArrayT& eigs)

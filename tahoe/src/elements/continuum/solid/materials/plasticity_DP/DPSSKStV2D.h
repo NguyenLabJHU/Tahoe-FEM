@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV2D.h,v 1.9.4.1 2004-04-08 07:33:08 paklein Exp $ */
+/* $Id: DPSSKStV2D.h,v 1.9.4.2 2004-06-09 23:17:55 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_2D_H_
 #define _DP_SS_KSTV_2D_H_
@@ -23,9 +23,6 @@ class DPSSKStV2D: public DPSSKStV
                 const dSymMatrixT& totalstrain, 
 				const ElementCardT& element, int ip);
 
-	/* print parameters */
-	virtual void PrintName(ostream& out) const;
-	
 	/* modulus */
 	virtual const dMatrixT& c_ijkl(void);
   	

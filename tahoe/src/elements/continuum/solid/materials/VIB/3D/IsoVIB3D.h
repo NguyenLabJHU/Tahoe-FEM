@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.h,v 1.8 2003-01-29 07:34:53 paklein Exp $ */
+/* $Id: IsoVIB3D.h,v 1.8.46.1 2004-06-09 23:17:46 paklein Exp $ */
 /* created: paklein (03/15/1998) */
 #ifndef _ISO_VIB_3D_H_
 #define _ISO_VIB_3D_H_
@@ -25,11 +25,7 @@ public:
 
 	/* destructor */
 	virtual ~IsoVIB3D(void);
-	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;	
-	
+		
 	/** \name spatial description */
 	/*@{*/
 	/** spatial tangent modulus */

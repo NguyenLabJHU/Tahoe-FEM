@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSNonlinHard2D.h,v 1.2.48.1 2004-04-08 07:33:11 paklein Exp $ */
+/* $Id: GradJ2SSNonlinHard2D.h,v 1.2.48.2 2004-06-09 23:17:58 paklein Exp $ */
 #ifndef _GRAD_J2_SS_NONLIN_HARD_2D_H_
 #define _GRAD_J2_SS_NONLIN_HARD_2D_H_
 
@@ -17,9 +17,6 @@ public:
 	/* returns elastic strain (3D) */
 	virtual const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain,
 		const ElementCardT& element, int ip);
-
-	/* print parameters */
-	virtual void PrintName(ostream& out) const;
 	
 	/* modulus */
 	virtual const dMatrixT& c_ijkl(void);

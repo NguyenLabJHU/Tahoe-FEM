@@ -1,4 +1,4 @@
-/* $Id: FDKStV.h,v 1.5.46.1 2004-04-08 07:32:49 paklein Exp $ */
+/* $Id: FDKStV.h,v 1.5.46.2 2004-06-09 23:17:36 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #ifndef _FD_KSTV_H_
 #define _FD_KSTV_H_
@@ -16,11 +16,7 @@ public:
 	/** constructor */
 	FDKStV(ifstreamT& in, const FSMatSupportT& support);
 	FDKStV(void);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-
+	
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** information about subordinate parameter lists */

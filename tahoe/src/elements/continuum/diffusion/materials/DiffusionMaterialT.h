@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.h,v 1.7.18.1 2004-04-08 07:32:33 paklein Exp $ */
+/* $Id: DiffusionMaterialT.h,v 1.7.18.2 2004-06-09 23:17:26 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSION_MATERIALT_H_
 #define _DIFFUSION_MATERIALT_H_
@@ -28,12 +28,6 @@ public:
 
 	/** set support */
 	void SetDiffusionMatSupport(const DiffusionMatSupportT* support);
-
-	/** \name print parameters */
-	/*@{*/
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-	/*@}*/
 
 	/** \name parameters at the current field point */
 	/*@{*/

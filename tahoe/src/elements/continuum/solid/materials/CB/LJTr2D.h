@@ -1,4 +1,4 @@
-/* $Id: LJTr2D.h,v 1.7.46.1 2004-04-08 07:32:39 paklein Exp $ */
+/* $Id: LJTr2D.h,v 1.7.46.2 2004-06-09 23:17:30 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #ifndef _LJTR2D_H_
 #define _LJTR2D_H_
@@ -21,10 +21,6 @@ public:
 	LJTr2D(ifstreamT& in, const FSMatSupportT& support);
 	
 	virtual void Initialize(void);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: VIB3D.cpp,v 1.8.20.1 2004-04-08 07:32:59 paklein Exp $ */
+/* $Id: VIB3D.cpp,v 1.8.20.2 2004-06-09 23:17:47 paklein Exp $ */
 /* created: paklein (04/20/1997) */
 #include "VIB3D.h"
 
@@ -60,16 +60,6 @@ VIB3D::VIB3D(ifstreamT& in, const FSMatSupportT& support):
 
 /* destructor */
 VIB3D::~VIB3D(void) { delete fSphere; }
-
-/* print parameters */
-void VIB3D::Print(ostream& out) const
-{
-	/* inherited */
-	NL_E_MatT::Print(out);
-	VIB_E_MatT::Print(out);
-	
-	fSphere->Print(out);
-}
 
 /* set angle offset - for testing onset of amorphous behavior */
 void VIB3D::SetAngles(double phi, double theta)
@@ -135,18 +125,8 @@ void VIB3D::SetAngles(double phi, double theta)
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
-
-/* print name */
-void VIB3D::PrintName(ostream& out) const
-{
-	/* inherited */
-	NL_E_MatT::PrintName(out);
-	VIB_E_MatT::PrintName(out);
-
-	fSphere->PrintName(out);
-}
+ * Protected
+ ***********************************************************************/
 
 /* compute the symetric Cij reduced index matrix */
 void VIB3D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)

@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.cpp,v 1.9.46.1 2004-04-08 07:32:55 paklein Exp $ */
+/* $Id: SimoIso3D.cpp,v 1.9.46.2 2004-06-09 23:17:41 paklein Exp $ */
 /* created: paklein (03/02/1997) */
 #include "SimoIso3D.h"
 #include <iostream.h>
@@ -34,14 +34,6 @@ SimoIso3D::SimoIso3D(void):
 	ParameterInterfaceT("Simo_isotropic")
 {	
 
-}
-
-/* print parameters */
-void SimoIso3D::Print(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::Print(out);
-	IsotropicT::Print(out);
 }
 
 /* modulus */
@@ -146,14 +138,6 @@ void SimoIso3D::TakeParameterList(const ParameterListT& list)
 /*************************************************************************
  * Protected
  *************************************************************************/
-
-void SimoIso3D::PrintName(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::PrintName(out);
-
-	out << "    Simo Isotropic\n";
-}
 
 /* computation routines */
 void SimoIso3D::ComputeModuli(double J, const dSymMatrixT& b_bar,

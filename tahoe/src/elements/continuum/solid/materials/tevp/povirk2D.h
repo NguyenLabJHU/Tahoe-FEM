@@ -1,4 +1,4 @@
-/* $Id: povirk2D.h,v 1.7.20.1 2004-04-08 07:33:23 paklein Exp $ */
+/* $Id: povirk2D.h,v 1.7.20.2 2004-06-09 23:18:09 paklein Exp $ */
 /* created: Harold Park (09/10/2001) */
 #ifndef _POVIRK_2D_H_
 #define _POVIRK_2D_H_
@@ -31,10 +31,6 @@ class povirk2D: public FSIsotropicMatT
 
   /* reset internal variables to last converged solution */
   virtual void ResetHistory(void);
-
-  /* print parameters */
-  virtual void Print(ostream& out) const;
-  virtual void PrintName(ostream& out) const;
 
 	/** \name spatial description */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: DPPrimitiveT.h,v 1.8 2004-03-20 23:38:19 raregue Exp $ */
+/* $Id: DPPrimitiveT.h,v 1.8.4.1 2004-06-09 23:17:54 paklein Exp $ */
 /* created: myip (06/01/1999)                                      */
 /*
  * Base class for Drucker-Prager, nonassociative, small-strain,
@@ -28,10 +28,6 @@ class DPPrimitiveT
 
 	/* destructor */
 	virtual ~DPPrimitiveT(void);
-
-	/* write parameters to stream */
-   	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 	
   protected:
 

@@ -1,4 +1,4 @@
- /* $Id: SSViscoelasticityT.cpp,v 1.1.40.1 2004-04-08 07:33:26 paklein Exp $ */
+ /* $Id: SSViscoelasticityT.cpp,v 1.1.40.2 2004-06-09 23:18:12 paklein Exp $ */
 #include "SSViscoelasticityT.h"
 #include "fstreamT.h"
 #include "ExceptionT.h"
@@ -46,19 +46,6 @@ SSViscoelasticityT::SSViscoelasticityT(ifstreamT& in, const SSMatSupportT& suppo
 	fmeanSin_n.Set(1, pstatev);
 	
 }	
-
-void SSViscoelasticityT::Print(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::Print(out);
-}
-
-void SSViscoelasticityT::PrintName(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::PrintName(out);
-        out << "Finite Deformation Simo Viscoelastic Model \n";
-}
 
 void SSViscoelasticityT::PointInitialize(void)
 {

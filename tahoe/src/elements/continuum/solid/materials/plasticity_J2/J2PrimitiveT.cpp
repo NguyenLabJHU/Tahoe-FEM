@@ -1,4 +1,4 @@
-/* $Id: J2PrimitiveT.cpp,v 1.3 2002-10-20 22:49:05 paklein Exp $ */
+/* $Id: J2PrimitiveT.cpp,v 1.3.50.1 2004-06-09 23:17:56 paklein Exp $ */
 /* created: paklein (02/17/1997)                                          */
 /* Base class for a J2 plastic material with linear kinematic/            */
 /* isotropic hardening laws defined by:                                   */
@@ -34,23 +34,9 @@ J2PrimitiveT::J2PrimitiveT(ifstreamT& in):
 /* destructor */
 J2PrimitiveT::~J2PrimitiveT(void) { }
 
-/* output  parameters to stream */
-void J2PrimitiveT::Print(ostream& out) const
-{
-	out << " Initial yield stress. . . . . . . . . . . . . . = " << fYield << '\n';
-	out << " Hardening parameter . . . . . . . . . . . . . . = " << fH_bar << '\n';
-	out << " Isotropic/kinematic mixity. . . . . . . . . . . = " << ftheta << '\n';
-}
-
 /***********************************************************************
-* Protected
-***********************************************************************/
-
-void J2PrimitiveT::PrintName(ostream& out) const
-{
-	out << "    J2 Isotropic/Kinematic\n";
-	out << "    Hardening with Radial Return\n";
-}
+ * Protected
+ ***********************************************************************/
 
 /* returns the value value of the yield function given the
 * relative stress vector and state variables, where  alpha

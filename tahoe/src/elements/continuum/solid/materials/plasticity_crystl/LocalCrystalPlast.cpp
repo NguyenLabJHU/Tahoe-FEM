@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.20.18.1 2004-04-08 07:33:13 paklein Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.20.18.2 2004-06-09 23:18:00 paklein Exp $ */
 #include "LocalCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -472,37 +472,6 @@ void LocalCrystalPlast::ComputeOutput(dArrayT& output)
       // write texture at IP/ELE
       fLatticeOrient->WriteTexture(group, elem, intpt, fNumGrain, step, fangles);
     }
-}
-
-void LocalCrystalPlast::Print(ostream& out) const
-{
-  // inherited
-  PolyCrystalMatT::Print(out);
-
-  // print slip kinetics data
-  out << "    Kinetics of crystal slip (local crystal plast.)\n";
-  out << "       Kinetics law. . . . . . . . . . . . . . . = " << fKinEqnCode << "\n";
-  fKinetics->Print(out);
-
-  // print slip hardening data
-  out << "    Crystal slip hardening (local crystal plast.)\n";
-  out << "       Hardening law . . . . . . . . . . . . . . = " << fHardCode << "\n";
-  fHardening->Print(out);
-}
-
-void LocalCrystalPlast::PrintName(ostream& out) const
-{
-  // inherited
-  PolyCrystalMatT::PrintName(out);
-
-  // output model name
-  out << "    Local crystal plasticity equations\n";
-
-  // output detailed name of the model
-  fSlipGeometry->PrintName(out);
-  fElasticity->PrintName(out);
-  fKinetics->PrintName(out);
-  fHardening->PrintName(out);
 }
 
 GlobalT::SystemTypeT LocalCrystalPlast::TangentType() const

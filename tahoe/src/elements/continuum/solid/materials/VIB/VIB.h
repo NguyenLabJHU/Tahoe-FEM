@@ -1,4 +1,4 @@
-/* $Id: VIB.h,v 1.4 2002-10-20 22:48:54 paklein Exp $ */
+/* $Id: VIB.h,v 1.4.50.1 2004-06-09 23:17:43 paklein Exp $ */
 /* created: paklein (10/30/1997)                                          */
 /* Base class for isotropic VIB solvers.                                  */
 
@@ -28,10 +28,6 @@ public:
 	/* destructor */
 	virtual ~VIB(void);
 	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;	
-
 protected:
 
 	/* allocate memory for all the tables */

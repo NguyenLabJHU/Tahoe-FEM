@@ -1,4 +1,4 @@
-/* $Id: FCC3D.cpp,v 1.3.12.1 2004-04-08 07:32:39 paklein Exp $ */
+/* $Id: FCC3D.cpp,v 1.3.12.2 2004-06-09 23:17:30 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D.h"
 #include "ElementsConfig.h"
@@ -92,28 +92,6 @@ FCC3D::~FCC3D(void)
 {
 	delete fFCCLattice;
 	delete fPairProperty;
-}
-
-/* I/O functions */
-void FCC3D::PrintName(ostream& out) const
-{
-	NL_E_MatT::PrintName(out);
-	out << "    FCC lattice\n";
-}
-
-void FCC3D::Print(ostream& out) const
-{
-	/* inherited */
-	NL_E_MatT::Print(out);
-
-	/* lattice parameters */
-	out << " Number of neighbor shells . . . . . . . . . . . = " << fFCCLattice->NumShells() << '\n';
-	out << " Number of neighbors . . . . . . . . . . . . . . = " << fFCCLattice->NumberOfBonds() << '\n';
-	out << " Nearest neighbor distance . . . . . . . . . . . = " << fNearestNeighbor << '\n';
-
-	/* write pair properties to output */
-	out << " Interaction potential parameters:\n";
-	fPairProperty->Write(out);
 }
 
 /*************************************************************************

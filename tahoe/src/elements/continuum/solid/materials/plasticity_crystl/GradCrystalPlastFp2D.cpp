@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp2D.cpp,v 1.4.46.1 2004-04-08 07:33:13 paklein Exp $ */
+/* $Id: GradCrystalPlastFp2D.cpp,v 1.4.46.2 2004-06-09 23:18:00 paklein Exp $ */
 #include "GradCrystalPlastFp2D.h"
 #include "Utils.h"
 
@@ -38,15 +38,6 @@ const dMatrixT& GradCrystalPlastFp2D::c_ijkl()
   f2Dc_ijkl.Rank4ReduceFrom3D(c_ijkl);
 
   return f2Dc_ijkl;
-}
-
-void GradCrystalPlastFp2D::PrintName(ostream& out) const
-{
-  // inherited
-  GradCrystalPlastFp::PrintName(out);
-
-  // output 2D case name
-  out << "    Plane Strain\n";
 }
 
 /* describe the parameters needed by the interface */

@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.cpp,v 1.13.46.1 2004-04-08 07:33:13 paklein Exp $ */
+/* $Id: PolyCrystalMatT.cpp,v 1.13.46.2 2004-06-09 23:18:01 paklein Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -134,11 +134,7 @@ void PolyCrystalMatT::PointInitialize(void)
 
 bool PolyCrystalMatT::NeedLastDisp() const { return true; }
 
-void PolyCrystalMatT::Print(ostream& out) const
-{
-  // inherited
-  FDHookeanMatT::Print(out);
-
+#if 0
   // print input values
   out << " Polycrystal data:\n";
   out << "    Number of grains   . . . . . . . . . . . . . = " << fNumGrain    << "\n";
@@ -159,21 +155,12 @@ void PolyCrystalMatT::Print(ostream& out) const
   out << "    Convergence control for state\n";
   out << "       Max# iterations . . . . . . . . . . . . . = " << fMaxIterState << "\n";
   out << "       Tolerance convergence . . . . . . . . . . = " << fTolerState   << "\n";
-}
+#endif
 
 /* set (material) tangent modulus */
 void PolyCrystalMatT::SetModulus(dMatrixT& modulus)
 {
 	fElasticity->ComputeModuli(modulus);
-}
-
-void PolyCrystalMatT::PrintName(ostream& out) const
-{
-  // inherited
-  FDHookeanMatT::PrintName(out);
-
-  // print model name
-  out << "    PolyCrystal constitutive model\n";
 }
 
 void PolyCrystalMatT::SetSlipSystems()

@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.h,v 1.6 2003-01-29 07:34:38 paklein Exp $ */
+/* $Id: EAMFCC3DMatT.h,v 1.6.46.1 2004-06-09 23:17:32 paklein Exp $ */
 /* created: paklein (10/25/1998) */
 #ifndef _EAMFCC3DMatT_H_
 #define _EAMFCC3DMatT_H_
@@ -30,10 +30,6 @@ public:
 	/* destructor */
 	virtual ~EAMFCC3DMatT(void);
 	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-
 protected:
 
 	/* compute the symetric Cij reduced index matrix */

@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.h,v 1.7.46.1 2004-04-08 07:32:55 paklein Exp $ */
+/* $Id: SimoIso2D.h,v 1.7.46.2 2004-06-09 23:17:41 paklein Exp $ */
 /* created: paklein (03/04/1997) */
 #ifndef _SIMO_ISO_2D_H_
 #define _SIMO_ISO_2D_H_
@@ -16,9 +16,6 @@ public:
 	/** constructor */
 	SimoIso2D(ifstreamT& in, const FSMatSupportT& support);
 	SimoIso2D(void);
-
-	/** print material model name */
-	virtual void PrintName(ostream& out) const;
 
 	/** initialize step. Verify that the thermal dilatation deformation
 	 * gradient is equibiaxial. This state is assumed when computing

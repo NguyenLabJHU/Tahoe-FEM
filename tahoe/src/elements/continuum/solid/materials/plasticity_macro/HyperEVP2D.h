@@ -1,4 +1,4 @@
-/* $Id: HyperEVP2D.h,v 1.5.46.1 2004-04-08 07:33:16 paklein Exp $ */
+/* $Id: HyperEVP2D.h,v 1.5.46.2 2004-06-09 23:18:05 paklein Exp $ */
 #ifndef _HYPER_EVP_2D_H_
 #define _HYPER_EVP_2D_H_
 
@@ -24,9 +24,6 @@ class HyperEVP2D : public HyperEVP3D
 
   // tangent modulus
   virtual const dMatrixT& c_ijkl();
-
-  // print data and model name
-  virtual void PrintName(ostream& out) const;
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

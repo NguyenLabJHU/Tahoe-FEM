@@ -1,4 +1,4 @@
-/* $Id: SSKStV.h,v 1.4.48.1 2004-04-08 07:32:49 paklein Exp $ */
+/* $Id: SSKStV.h,v 1.4.48.2 2004-06-09 23:17:37 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #ifndef _SS_KSTV_H_
 #define _SS_KSTV_H_
@@ -16,10 +16,6 @@ public:
 	/* constructor */
 	SSKStV(ifstreamT& in, const SSMatSupportT& support);
 	SSKStV(void);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: FCCPtsT.h,v 1.2 2002-07-02 19:56:00 cjkimme Exp $ */
+/* $Id: FCCPtsT.h,v 1.2.56.1 2004-06-09 23:17:50 paklein Exp $ */
 /* created: paklein (03/26/1999)                                          */
 /* FCC lattice of points                                                  */
 
@@ -17,10 +17,6 @@ public:
 
 	/* constructor */
 	FCCPtsT(int num_shells, double bond_length);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;	
 
 	/* generate sphere points:
 	 *

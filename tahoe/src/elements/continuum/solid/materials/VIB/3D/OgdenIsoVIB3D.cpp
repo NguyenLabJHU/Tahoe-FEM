@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB3D.cpp,v 1.9.20.1 2004-04-08 07:32:59 paklein Exp $ */
+/* $Id: OgdenIsoVIB3D.cpp,v 1.9.20.2 2004-06-09 23:17:46 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "OgdenIsoVIB3D.h"
 
@@ -47,28 +47,6 @@ OgdenIsoVIB3D::OgdenIsoVIB3D(ifstreamT& in, const FSMatSupportT& support):
 
 /* destructor */
 OgdenIsoVIB3D::~OgdenIsoVIB3D(void) { delete fSphere; }
-
-/* print parameters */
-void OgdenIsoVIB3D::Print(ostream& out) const
-{
-	/* inherited */
-	OgdenIsotropicT::Print(out);
-	VIB::Print(out);
-
-	fSphere->Print(out);
-}
-
-/* print name */
-void OgdenIsoVIB3D::PrintName(ostream& out) const
-{
-	/* inherited */
-	OgdenIsotropicT::PrintName(out);
-	VIB::PrintName(out);
-	out << "    Odgen principal stretch formulation\n";
-
-	/* integration rule */
-	fSphere->PrintName(out);
-}
 
 /* strain energy density */
 double OgdenIsoVIB3D::StrainEnergyDensity(void)

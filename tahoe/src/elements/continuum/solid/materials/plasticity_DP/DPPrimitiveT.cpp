@@ -1,5 +1,5 @@
 
-/* $Id: DPPrimitiveT.cpp,v 1.8 2004-03-20 23:38:19 raregue Exp $ */
+/* $Id: DPPrimitiveT.cpp,v 1.8.4.1 2004-06-09 23:17:54 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 /* Base class for Druker-Prager, nonassociative, small strain,        */
 /* pressure dependent plasticity model with linear isotropic hardening.*/
@@ -36,24 +36,16 @@ DPPrimitiveT::DPPrimitiveT(ifstreamT& in):
 /* destructor */
 DPPrimitiveT::~DPPrimitiveT(void) { }
 
-/* write parameters */
-void DPPrimitiveT::Print(ostream& out) const
-{
+#if 0
   out << " Cohesion-like strength parameter. . . . . . = " << falpha_bar << '\n';
   out << " Friction-like parameter . . . . . . . . . . = " << ffriction  << '\n';
   out << " Dilation parameter. . . . . . . . . . . . . = " << fdilation  << '\n';
   out << " Deviatoric hardening parameter. . . . . . . = " << fH_prime   << '\n';
-}
+#endif
 
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-void DPPrimitiveT::PrintName(ostream& out) const
-{
-  out << "    Nonassociative Drucker-Prager, Pressure-Dependent, Small Strain, \n";
-  out << "    Plasticity Model with Linear Isotropic Hardening\n";
-}
 
 /*
  * Returns the value of the yield function given the

@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB2D.cpp,v 1.11.20.1 2004-04-08 07:32:57 paklein Exp $ */
+/* $Id: OgdenIsoVIB2D.cpp,v 1.11.20.2 2004-06-09 23:17:45 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "OgdenIsoVIB2D.h"
 
@@ -32,28 +32,6 @@ OgdenIsoVIB2D::OgdenIsoVIB2D(ifstreamT& in, const FSMatSupportT& support):
 OgdenIsoVIB2D::~OgdenIsoVIB2D(void)
 {
 	delete fCircle;
-}
-
-/* print parameters */
-void OgdenIsoVIB2D::Print(ostream& out) const
-{
-	/* inherited */
-	OgdenIsotropicT::Print(out);
-	VIB::Print(out);
-
-	fCircle->Print(out);
-}
-
-/* print name */
-void OgdenIsoVIB2D::PrintName(ostream& out) const
-{
-	/* inherited */
-	OgdenIsotropicT::PrintName(out);
-	VIB::PrintName(out);
-	out << "    Odgen principal stretch formulation\n";
-
-	/* integration rule */
-	fCircle->PrintName(out);
 }
 
 /* strain energy density */

@@ -30,10 +30,6 @@ class VoidGrowthModelImp
   
   // set rate sensitivity exponent
   void SetRateSensitivity(const double m);
-
-  // output related methods
-  virtual void PrintName(ostream& out) const = 0;
-  virtual void Print(ostream& out) const = 0;
   
  protected:
   // strain rate sensitivity exponent
@@ -57,10 +53,6 @@ class CocksVGModel: public VoidGrowthModelImp
   // derivatives of A1 and A2 
   virtual void ADerivCoefficients(const double& vvf, double& dA1, double& dA2) const;
   
-  // output related methods
-  virtual void PrintName(ostream& out) const;
-  virtual void Print(ostream& out) const;
-
  private:
 };
 
@@ -77,10 +69,6 @@ class DuvaCrowVGModel: public VoidGrowthModelImp
   // derivatives of A1 and A2 
   virtual void ADerivCoefficients(const double& vvf, double& dA1, double& dA2) const;
   
-  // output related methods
-  virtual void PrintName(ostream& out) const;
-  virtual void Print(ostream& out) const;
-
  private:
 };
 
@@ -97,10 +85,6 @@ class SofronisVGModel: public VoidGrowthModelImp
   // derivatives of A1 and A2 
   virtual void ADerivCoefficients(const double& vvf, double& dA1, double& dA2) const;
   
-  // output related methods
-  virtual void PrintName(ostream& out) const;
-  virtual void Print(ostream& out) const;
-
  private:
 };
 

@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.h,v 1.8 2003-05-26 01:51:46 paklein Exp $ */
+/* $Id: RateDep2DT.h,v 1.8.34.1 2004-06-09 23:17:25 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #ifndef _RATE_DEP_2D_T_H_
@@ -42,9 +42,6 @@ public:
 
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump_u, const ArrayT<double>& state);
-
-	/** write model name to output */
-	virtual void PrintName(ostream& out) const;
 
 	/** write model parameters */
 	virtual void Print(ostream& out) const;

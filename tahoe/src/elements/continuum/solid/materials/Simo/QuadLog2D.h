@@ -1,4 +1,4 @@
-/* $Id: QuadLog2D.h,v 1.5.46.2 2004-06-07 13:48:15 paklein Exp $ */
+/* $Id: QuadLog2D.h,v 1.5.46.3 2004-06-09 23:17:41 paklein Exp $ */
 /* created: paklein (06/28/1997) */
 #ifndef _QUAD_LOG_2D_
 #define _QUAD_LOG_2D_
@@ -16,9 +16,6 @@ public:
 	/* constructor */
 	QuadLog2D(ifstreamT& in, const FSMatSupportT& support);
 	QuadLog2D(void);
-
-	/* print parameters */
-	virtual void PrintName(ostream& out) const;
 
 	/* modulus */
 	virtual const dMatrixT& c_ijkl(void);

@@ -1,4 +1,4 @@
-/* $Id: RGViscoelasticityT.cpp,v 1.1.40.1 2004-04-08 07:33:25 paklein Exp $ */
+/* $Id: RGViscoelasticityT.cpp,v 1.1.40.2 2004-06-09 23:18:11 paklein Exp $ */
 /* created: TDN (01/22/2000) */
 #include "RGViscoelasticityT.h"
 
@@ -31,21 +31,6 @@ void RGViscoelasticityT::Initialize(void)
 	fC_v.Set(fndof, pstatev);        
 	pstatev += numstress;
 	fC_vn.Set(fndof, pstatev);
-}
-
-void RGViscoelasticityT::Print(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-}
-
-void RGViscoelasticityT::PrintName(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::PrintName(out);
-
-	out << "    Reese-Govindjee Finite Nonlinear Viscoelastic Model\n";
 }
 
 /*initializes history variable */

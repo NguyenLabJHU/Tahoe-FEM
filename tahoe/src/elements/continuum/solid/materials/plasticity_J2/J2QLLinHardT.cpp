@@ -1,4 +1,4 @@
-/* $Id: J2QLLinHardT.cpp,v 1.13.20.1 2004-04-08 07:33:09 paklein Exp $ */
+/* $Id: J2QLLinHardT.cpp,v 1.13.20.2 2004-06-09 23:17:56 paklein Exp $ */
 /* created: paklein (10/26/2000) */
 #include "J2QLLinHardT.h"
 
@@ -129,14 +129,6 @@ void J2QLLinHardT::ResetHistory(void)
 	for (int i = 0; i < Flags.Length(); i++)
 		if (Flags[i] == kIsElastic || Flags[i] == kIsPlastic)
 			Flags[i] = kReset;
-}
-
-/* print parameters */
-void J2QLLinHardT::Print(ostream& out) const
-{
-	/* inherited */
-	QuadLog3D::Print(out);
-	J2PrimitiveT::Print(out);
 }
 
 /* modulus */

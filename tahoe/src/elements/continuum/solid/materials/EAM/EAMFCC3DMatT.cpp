@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.cpp,v 1.7.46.1 2004-04-08 07:32:41 paklein Exp $ */
+/* $Id: EAMFCC3DMatT.cpp,v 1.7.46.2 2004-06-09 23:17:32 paklein Exp $ */
 /* created: paklein (10/25/1998) */
 #include "EAMFCC3DMatT.h"
 
@@ -125,33 +125,10 @@ EAMFCC3DMatT::EAMFCC3DMatT(ifstreamT& in, const FSMatSupportT& support):
 /* destructor */
 EAMFCC3DMatT::~EAMFCC3DMatT(void) { delete fEAM; }
 
-/* I/O functions */
-void EAMFCC3DMatT::Print(ostream& out) const
-{
-	/* inherited */
-	NL_E_MatT::Print(out);
-
-	/* print EAM solver data */
-	fEAM->Print(out);
-}
 
 /*************************************************************************
-* Protected
-*************************************************************************/
-
-void EAMFCC3DMatT::PrintName(ostream& out) const
-{
-	/* inherited */
-	NL_E_MatT::PrintName(out);
-
-	const char* planes[] = {"natural", "110", "111"};
-
-	out << "    EAM FCC 3D <" << planes[fOrientCode] << "> orientation\n";
-}
-
-/*************************************************************************
-* Private
-*************************************************************************/
+ * Private
+ *************************************************************************/
 
 void EAMFCC3DMatT::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 {
