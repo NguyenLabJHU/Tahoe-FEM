@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.8 2002-03-04 06:31:06 paklein Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.9 2002-03-28 16:10:40 sawimme Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "OutputBaseT.h"
@@ -127,17 +127,17 @@ void OutputBaseT::WriteGeometryFile(const StringT& file_name,
 		tahoeII.PutCoordinates(*fCoordinates);
 
 		/* element set data */
-		for (int i = 0; i < fElementSets.Length(); i++)
+		for (int i = 0, id=1; i < fElementSets.Length(); i++)
 		{
 		  const ArrayT<StringT>& blockIDs = fElementSets[i]->BlockID();
-		  for (int b=0; b < fElementSets[i]->NumBlocks(); b++)
+		  for (int b=0; b < fElementSets[i]->NumBlocks(); b++, id++)
 		    {
 		      const iArray2DT* c = fElementSets[i]->Connectivities(blockIDs[b]);
 		      iArray2DT conn = *c;
 		      
 		      iArrayT tmp(conn.Length(), conn.Pointer());
 		      tmp++;
-		      tahoeII.PutElementSet (atoi(blockIDs[b]), conn);
+		      tahoeII.PutElementSet (id, conn);
 		      tmp--;
 		    }
 		}
@@ -159,18 +159,18 @@ void OutputBaseT::WriteGeometryFile(const StringT& file_name,
 		exo.WriteCoordinates(*fCoordinates);
 
 		/* element set data */
-		for (int i = 0; i < fElementSets.Length(); i++)
+		for (int i = 0, id=1; i < fElementSets.Length(); i++)
 		{
 			/* write connectivities */
 		  const ArrayT<StringT>& blockIDs = fElementSets[i]->BlockID();
-		  for (int b=0; b < fElementSets[i]->NumBlocks(); b++)
+		  for (int b=0; b < fElementSets[i]->NumBlocks(); b++, id++)
 		    {
 				/* cast away const-ness to we can shift numbers */
 				iArray2DT& connects = *((iArray2DT*) fElementSets[i]->Connectivities(blockIDs[b]));
 	
 				/* write to file */
 				connects++;
-				exo.WriteConnectivities(atoi(blockIDs[b]), fElementSets[i]->Geometry(), connects);
+				exo.WriteConnectivities(id, fElementSets[i]->Geometry(), connects);
 				connects--;
 		    }
 
@@ -200,6 +200,11 @@ void OutputBaseT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 		     << "}" << endl;
 		throw eOutOfRange;
 	}
+
+	/* set current set ID to the global block index position */
+	fCurrentSetID = 0;
+	for (int i=0; i < ID; i++)
+	  fCurrentSetID += fElementSets[i]->NumBlocks();
 
 	if (!fCoordinates)
 	{

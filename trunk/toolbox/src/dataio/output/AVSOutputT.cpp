@@ -84,7 +84,7 @@ StringT AVSOutputT::CreateFileName (int index) const
   if (fSequence > 0) var.Append (".sq", fSequence + 1);
   
   /* tack on output set */
-  var.Append (".io", fElementSets[index]->ID());
+  var.Append (".io", fCurrentSetID);
 
   /* tack on print increment */
   var.Append (".ps", fElementSets[index]->PrintStep() + 1);
@@ -131,8 +131,7 @@ void AVSOutputT::WriteConnectivity (ostream &avsout, AVST &avs, int index, iArra
       LocalConnectivity (nodes_used, *connects, localconn);
       localconn++;
 
-      avs.WriteCells (avsout, fElementSets[index]->Geometry(), localconn, 
-      	atoi(fElementSets[index]->ID()), firstelemID);
+      avs.WriteCells (avsout, fElementSets[index]->Geometry(), localconn, fCurrentSetID + i + 1, firstelemID);
       firstelemID += connects->MajorDim();
     }
 }
