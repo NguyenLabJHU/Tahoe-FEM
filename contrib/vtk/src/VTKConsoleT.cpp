@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.61 2003-02-10 01:08:25 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.62 2003-02-20 02:30:06 paklein Exp $ */
 #include "VTKConsoleT.h"
 
 /* ANSI headers */
@@ -150,7 +150,18 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
 	/* display objects */
 	renWin = vtkRenderWindow::New();
 	renWin->SetWindowName("VTK for Tahoe");
-	renWin->SetPosition(10,10);
+	int x_position = 10;
+	int y_position = 10;
+	int index, start = 0;
+	if (CommandLineOption("-x", index, start) && fArguments.Length() >= index+2) {
+		StringT pos = fArguments[index+1];
+		x_position = atoi(pos);
+	}
+	if (CommandLineOption("-y", index, start) && fArguments.Length() >= index+2) {
+		StringT pos = fArguments[index+1];
+		y_position = atoi(pos);
+	}
+	renWin->SetPosition(x_position, y_position);
 
 	//renWin->SetDesiredUpdateRate(30.0);
 	renWin->SetSize(500,500);
@@ -207,7 +218,7 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
 // 	iAddCommand(CommandSpecT("HideCuttingPlane"));
 
 	/* look for command line options */
-	int index, start = 0;
+	index, start = 0;
 	while (CommandLineOption("-f", index, start))
 	{
 		StringT path = fArguments[index+1];

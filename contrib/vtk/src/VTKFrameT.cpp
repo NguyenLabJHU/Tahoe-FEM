@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.31 2002-10-23 04:52:05 paklein Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.32 2003-02-20 02:30:06 paklein Exp $ */
 #include "VTKFrameT.h"
 
 /* ANSI headers */
@@ -170,6 +170,12 @@ VTKFrameT::VTKFrameT(VTKConsoleT& console):
   	iAddCommand(CommandSpecT("Wire"));
   	iAddCommand(CommandSpecT("Surface"));
   	iAddCommand(CommandSpecT("Point"));
+
+	CommandSpecT perspective_toggle("Perspective");
+	ArgSpecT perspective_TF(ArgSpecT::bool_);
+	perspective_TF.SetPrompt("render with persective (t/f)");
+	perspective_toggle.AddArgument(perspective_TF);
+	iAddCommand(perspective_toggle);
 }
 
 /* destructor */
@@ -905,8 +911,19 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 			return true;
     	}    
     }
+	else if (command.Name() == "Perspective")
+	{
+		bool ON_OFF;
+		command.Argument(0).GetValue(ON_OFF);
+		vtkCamera* camera = fRenderer->GetActiveCamera();
+		if (ON_OFF)
+			camera->SetParallelProjection(0);
+		else
+			camera->SetParallelProjection(1);
 
-
+		return true;	
+	}
+	
  //  else if (command.Name() == "ShowCuttingPlane")
 //     {
 //     	if (bodies.Length() == 0)
