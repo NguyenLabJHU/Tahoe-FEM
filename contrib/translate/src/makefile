@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2002-05-19 17:45:42 paklein Exp $
+# $Id: makefile,v 1.7 2002-05-29 12:56:01 sawimme Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -11,7 +11,7 @@ OBJ = \
 	ExtractNode.o \
 	ExtractQuad.o \
 	PointPlots.o \
-	MergeResults.o \	
+	MergeResults.o \
 	main.o
 
 OBJ_LINK = $(OBJ)
