@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.16 2001-12-17 00:15:55 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.17 2002-04-21 07:15:11 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -505,9 +505,13 @@ void SimoFiniteStrainT::SetGlobalShape(void)
 			res = fRHS_enh.Magnitude();
 			res_0 = res;
 			res_rel = 1.0;
-			int iter_enh = 1;
+			int iter_enh = 0;
 			
-			while (iter_enh++ < fLocalIterationMax && res > fAbsTol && res_rel > fRelTol)
+			//TEMP - try freezing modes for first iteration
+			int global_iter = IterationNumber();
+			while (global_iter > -1 && iter_enh++ < fLocalIterationMax && res > fAbsTol && res_rel > fRelTol)
+			
+//			while (iter_enh++ < fLocalIterationMax && res > fAbsTol && res_rel > fRelTol)
 			{
 				/* form the stiffness associated with the enhanced modes */
 				fK22 = 0.0;
@@ -627,6 +631,7 @@ void SimoFiniteStrainT::FormStiffness_staggered(double constK)
 	fStressStiff_12 = 0.0;
 	fK22 = 0.0;
 	fK12 = 0.0;
+	if (format != dMatrixT::kUpperOnly) fK21 = 0.0;
 	
 	fShapes->TopIP();
 	while (fShapes->NextIP())
@@ -672,11 +677,8 @@ void SimoFiniteStrainT::FormStiffness_staggered(double constK)
 		/* non symmetric */
 		if (format != dMatrixT::kUpperOnly)
 		{
-			/* stress stiffness */
-			fStressStiff_21.Transpose(fStressStiff_12);
-		
 			/* material stiffness */
-			fK12.MultATBC(fB_enh, fD, fB, dMatrixT::kWhole, dMatrixT::kAccumulate);
+			fK21.MultATBC(fB_enh, fD, fB, dMatrixT::kWhole, dMatrixT::kAccumulate);
 		}
 	}
 						
@@ -684,7 +686,7 @@ void SimoFiniteStrainT::FormStiffness_staggered(double constK)
 	fLHS.Expand(fStressStiff_11, fNumDOF);
 	fK22.Expand(fStressStiff_22, fNumDOF);
 	fK12.Expand(fStressStiff_12, fNumDOF);
-	
+
 	/* condensation of element modes */
 	fK22.Inverse();
 	fK22 *= -1.0;
@@ -692,9 +694,12 @@ void SimoFiniteStrainT::FormStiffness_staggered(double constK)
 		fLHS.MultQBQT(fK12, fK22, format, dMatrixT::kAccumulate);
 	else
 	{
+		/* stress stiffness */
+		fStressStiff_21.Transpose(fStressStiff_12);
+
 		/* expand stress stiffness part */
 		fK21.Expand(fStressStiff_21, fNumDOF);
-	
+
 		/* assemble */
 		fLHS.MultABC(fK12, fK22, fK21, dMatrixT::kWhole, dMatrixT::kAccumulate);
 	}
@@ -767,10 +772,7 @@ void SimoFiniteStrainT::FormStiffness_monolithic(double constK)
 
 		/* non symmetric */
 		if (format != dMatrixT::kUpperOnly)
-		{
-			/* stress stiffness */
-			fStressStiff_21.Transpose(fStressStiff_12);
-		
+		{		
 			/* material stiffness */
 			fK21.MultATBC(fB_enh, fD, fB, dMatrixT::kWhole, dMatrixT::kAccumulate);
 		}
@@ -788,6 +790,9 @@ void SimoFiniteStrainT::FormStiffness_monolithic(double constK)
 	
 	/* non symmetric */
 	if (format != dMatrixT::kUpperOnly) {
+
+		/* stress stiffness */
+		fStressStiff_21.Transpose(fStressStiff_12);
 	
 		/* expand stress stiffness term */
 		fK21.Expand(fStressStiff_21, fNumDOF);
