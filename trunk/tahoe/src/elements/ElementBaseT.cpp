@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.43 2004-01-05 07:37:04 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.44 2004-01-27 15:31:05 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -386,6 +386,13 @@ void ElementBaseT::NodesUsed(ArrayT<int>& nodes_used) const
 	int*  p = node_map.Pointer();
 	for (int j = 0; j < node_map.Length(); j++)
 		if (*p++ == 1) nodes_used[dex++] = j + min;
+}
+
+/* add the element group's contribution to the lumped (scalar) mass of the given nodes */
+void ElementBaseT::LumpedMass(const iArrayT& nodes, dArrayT& mass) const
+{
+	if (nodes.Length() != mass.Length())
+		ExceptionT::SizeMismatch("ElementBaseT::LumpedMass");
 }
 
 /* contribution to the nodal residual forces */
