@@ -1,4 +1,4 @@
-/* $Id: parelimh1i.c,v 1.7 2005-01-15 02:26:39 paklein Exp $ */
+/* $Id: parelimh1i.c,v 1.8 2005-01-15 05:37:45 paklein Exp $ */
 /* parelimh1i.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -64,7 +64,7 @@ static integer c__27 = 27;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: parelimh1i.c,v 1.7 2005-01-15 02:26:39 paklein Exp $ +/ */
+/* /+ $Id: parelimh1i.c,v 1.8 2005-01-15 05:37:45 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -498,7 +498,7 @@ L135:
 	    myMPI_Isend(&hbuf_s__[1], i__1, MPI_BYTE, *mydown, *myid, *comm, &req[1]);
 
 /*<           call mpi_waitall(4,req,statall,ierr) >*/
-	    MPI_Waitall(4, req, statall);
+	    myMPI_Waitall(4, req, statall);
 
 /*<    >*/
 	    if (*nrows > 0) {
@@ -752,7 +752,7 @@ L90:
 /*<           end if >*/
 	    }
 /*<           call mpi_waitall(4,req,statall,ierr) >*/
-	    MPI_Waitall(4, req, statall);
+	    myMPI_Waitall(4, req, statall);
 /*<    >*/
 	    if (*nrows > 0) {
 		mydsyrk_("L", "N", nrows, &rank, &c_b22, &hbuf_r__[uptr], &ldb, 
