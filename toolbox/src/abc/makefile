@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2001-02-22 23:45:14 paklein Exp $
+# $Id: makefile,v 1.7 2001-10-15 17:12:54 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -26,6 +26,7 @@ SUB_DIR = \
 	managers \
 	matrix \
 	other \
+	tensor \
 	wrappers
 subdir_driver: subdir_loop
 # SUB_DIR is empty
