@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.h,v 1.2 2001-08-03 19:16:43 sawimme Exp $ */
+/* $Id: ExodusInputT.h,v 1.3 2001-09-04 14:46:38 sawimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #ifndef _EXODUSINPUT_T_H_
@@ -8,11 +8,11 @@
 
 /* direct members */
 #include "ExodusT.h"
+#include "dArray2DT.h"
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
 template <class TYPE> class ArrayT;
-class dArray2DT;
 class iArray2DT;
 
 class ExodusInputT : public InputBaseT
@@ -24,95 +24,139 @@ public:
   virtual void Close (void);
 
   /* virtual with InputManager base class */
-  virtual int  NumElementGroups (void);
-  virtual int  NumSideSets (void);
-  virtual int  NumNodeSets (void);
+  virtual void ElementGroupNames (ArrayT<StringT>& groupnames) const;
+  virtual void SideSetNames (ArrayT<StringT>& sidenames) const;
+  virtual void NodeSetNames (ArrayT<StringT>& nodenames) const;
 
-  virtual int  NumNodes (void);
-  virtual int  NumDimensions (void);
+  virtual int  NumElementGroups (void) const;
+  virtual int  NumSideSets (void) const;
+  virtual int  NumNodeSets (void) const;
+
+  virtual int  NumNodes (void) const;
+  virtual int  NumDimensions (void) const;
   virtual void ReadNodeMap (iArrayT& nodemap);
   virtual void ReadCoordinates (dArray2DT& coords);
   virtual void ReadCoordinates (dArray2DT& coords, iArrayT& nodemap);
 
-  virtual bool AreSideSetsLocal (void);
-
-  virtual int  NumGlobalElements (void);
+  virtual int  NumGlobalElements (void) const;
+  virtual int  NumElements (StringT& name);
+  virtual int  NumElementNodes (StringT& name);
   virtual void ReadAllElementMap (iArrayT& elemmap);
+  virtual void ReadGlobalElementMap (StringT& name, iArrayT& elemmap);
+  virtual void ReadGlobalElementSet (StringT& name, iArrayT& set);
+  virtual void ReadConnectivity (StringT& name, iArray2DT& connects);
+  virtual void ReadGeometryCode (StringT& name, GeometryT::CodeT& geocode);
+
+  virtual int  NumNodesInSet (StringT& name);
+  virtual void ReadNodeSet (StringT& name, iArrayT& nodes);
+
+  virtual bool AreSideSetsLocal (void) const;
+  virtual int  NumSidesInSet (StringT& setname) const;
+  virtual int  SideSetGroupIndex (StringT& setname) const;
+  virtual void ReadSideSetLocal (StringT& setname, iArray2DT& sides) const;
+  virtual void ReadSideSetGlobal (StringT& setname, iArray2DT& sides) const;
 
   virtual void QARecords (ArrayT<StringT>& records);
 
-  virtual int  NumTimeSteps (void);
+  virtual int  NumTimeSteps (void) const;
   virtual void ReadTimeSteps (dArrayT& steps);
 
   virtual int  NumNodeVariables (void);
   virtual int  NumElementVariables (void);
 
- protected:
-  virtual void ElementGroupIDs (iArrayT& groupnums);
-  virtual void SideSetIDs (iArrayT& sidenums);
-  virtual void NodeSetIDs (iArrayT& nodenums);
-  
-  virtual int NumElements_ID (int ID);
-  virtual int NumElementNodes_ID (int ID);
-  virtual void ReadGlobalElementMap_ID (int ID, iArrayT& elemmap);
-  virtual void ReadConnectivity_ID (int ID, iArray2DT& connects);
-  virtual void ReadGeometryCode_ID (int ID, GeometryT::CodeT& code);
+  virtual int  NumNodeVariables (void) const;
+  virtual int  NumElementVariables (void) const;
+  virtual int  NumQuadratureVariables (void) const;
 
-  virtual int  NumNodesInSet_ID (int ID);
-  virtual void ReadNodeSet_ID (int ID, iArrayT& nodes);
+  virtual void ReadNodeLabels (ArrayT<StringT>& labels) const;
+  virtual void ReadElementLabels (ArrayT<StringT>& elabels) const;
+  virtual void ReadQuadratureLabels (ArrayT<StringT>& qlabels) const;
 
-  virtual int  NumSidesInSet_ID (int ID);
-  virtual int  SideSetGroupIndex_ID (int ID);
-  virtual void ReadSideSetLocal_ID (int ID, iArray2DT& sides);
-  virtual void ReadSideSetGlobal_ID (int ID, iArray2DT& sides);
+  virtual void ReadAllNodeVariables (int step, dArray2DT& nvalues);
+  virtual void ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues);
+  virtual void ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues);
 
-  virtual void ReadElementLabels_ID (int ID, ArrayT<StringT>& elabels);
-  virtual void ReadElementVariables_ID (int step, int ID, dArray2DT& evalues);
+  virtual void ReadAllElementVariables (int step, dArray2DT& evalues);
+  virtual void ReadElementVariables (int step, StringT& name, dArray2DT& evalues);
+
+  virtual void ReadAllQuadratureVariables (int step, dArray2DT& qvalues);
+  virtual void ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues);
 
  private:
-  void NodesUsed(const iArray2DT& connects, iArrayT& nodesused) const;
+  void NodesUsed(const nArrayT<int>& connects, iArrayT& nodesused) const;
   
  private:
   ExodusT fData;
 };
 
-inline int ExodusInputT::NumDimensions (void)
-{ return fData.NumDimensions (); }
-
-inline int ExodusInputT::NumElementGroups (void)
-{ return fData.NumElementBlocks (); }
-
-inline int ExodusInputT::NumSideSets (void)
-{ return fData.NumSideSets (); }
-
-inline int ExodusInputT::NumNodeSets (void)
-{ return fData.NumNodeSets (); }
-
-inline int ExodusInputT::NumNodes (void)
-{ return fData.NumNodes(); }
-
 inline void ExodusInputT::Close (void)
 { fData.Close (); }
+
+inline int ExodusInputT::NumElementGroups (void) const
+{ return fData.NumElementBlocks (); }
+
+inline int ExodusInputT::NumSideSets (void) const
+{ return fData.NumSideSets (); }
+
+inline int ExodusInputT::NumNodeSets (void) const
+{ return fData.NumNodeSets (); }
+
+inline int ExodusInputT::NumNodes (void) const
+{ return fData.NumNodes(); }
+
+inline int ExodusInputT::NumDimensions (void) const
+{ return fData.NumDimensions (); }
+
+inline int ExodusInputT::NumNodesInSet (StringT& name)
+{ 
+  int setnum = atoi (name.Pointer());
+  return fData.NumNodesInSet (setnum); 
+}
+
+inline bool ExodusInputT::AreSideSetsLocal (void) const
+{ return true; }
+
+inline int ExodusInputT::NumSidesInSet (StringT& name) const
+{  
+  int setnum = atoi (name.Pointer());
+  return fData.NumSidesInSet (setnum); 
+}
 
 inline void ExodusInputT::QARecords (ArrayT<StringT>& records)
 { fData.ReadQA (records); }
 
-inline int ExodusInputT::NumTimeSteps (void)
+inline int ExodusInputT::NumTimeSteps (void) const
 { return fData.NumTimeSteps (); }
 
-inline bool ExodusInputT::AreSideSetsLocal (void)
-{ return true; }
-
-inline int ExodusInputT::NumNodeVariables (void)
+inline int ExodusInputT::NumNodeVariables (void) const
 { return fData.NumNodeVariables (); }
 
-inline int ExodusInputT::NumElementVariables (void)
+inline int ExodusInputT::NumElementVariables (void) const
 { return fData.NumElementVariables (); }
 
-inline int ExodusInputT::NumNodesInSet_ID (int setnum)
-{ return fData.NumNodesInSet (setnum); }
+inline int ExodusInputT::NumQuadratureVariables (void) const
+{ return 0; }
 
-inline int ExodusInputT::NumSidesInSet_ID (int setnum)
-{ return fData.NumSidesInSet (setnum); }
+inline void ExodusInputT::ReadNodeLabels (ArrayT<StringT>& labels) const
+{ fData.ReadNodeLabels (labels); }
+
+void ExodusInputT::ReadElementLabels (ArrayT<StringT>& elabels) const
+{ fData.ReadElementLabels (elabels); }
+
+inline void ExodusInputT::ReadQuadratureLabels (ArrayT<StringT>& qlabels) const
+{ qlabels.Free (); }
+
+inline void ExodusInputT::ReadAllQuadratureVariables (int step, dArray2DT& vals)
+{
+#pragma unused (step)
+  vals.Free ();
+}
+
+inline void ExodusInputT::ReadQuadratureVariables (int step, StringT& name, dArray2DT& vals)
+{
+#pragma unused (step)
+#pragma unused (name)
+  vals.Free ();
+}
 
 #endif

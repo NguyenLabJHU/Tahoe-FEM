@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.cpp,v 1.4 2001-08-07 23:11:54 paklein Exp $ */
+/* $Id: EnSightInputT.cpp,v 1.5 2001-09-04 14:46:37 sawimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #include "EnSightInputT.h"
@@ -30,7 +30,25 @@ void EnSightInputT::Open (const StringT& file)
     }
 }
 
-int EnSightInputT::NumElementGroups (void)
+void EnSightInputT::ElementGroupNames (ArrayT<StringT>& groupnames) const
+{
+  ifstream in (fGeometryFile);
+  int id = -1;
+  bool nodemap, elementmap;
+  int numnodes, numelems, numelemnodes;
+  fData.ReadGeometryHeader(in, nodemap, elementmap);
+  
+  iArrayT ids (fPartDimensions.MajorDim());
+  for (int i=0; i < fPartDimensions.MajorDim(); i++)
+    {
+      fData.ReadPart (in, ids[i]);
+      fData.SkipPart (in, nodemap, elementmap, numnodes, numelems, numelemnodes);
+    }
+  for (int j=0; j < ids.Length(); j++)
+    groupnames[j].Append (ids[j]);
+}
+
+int EnSightInputT::NumElementGroups (void) const
 {
   ifstream in (fGeometryFile);
   bool nodemap, elementmap;
@@ -38,7 +56,7 @@ int EnSightInputT::NumElementGroups (void)
   return fPartDimensions.MajorDim();
 }
 
-int EnSightInputT::NumNodes (void)
+int EnSightInputT::NumNodes (void) const
 {
   int num = 0;
   for (int i=0; i < fPartDimensions.MajorDim(); i++)
@@ -151,12 +169,54 @@ void EnSightInputT::ReadCoordinates (dArray2DT& coords, iArrayT& nodemap)
     }
 }
 
-int EnSightInputT::NumGlobalElements (void)
+int EnSightInputT::NumGlobalElements (void) const
 {
   int num = 0;
   for (int i=0; i < fPartDimensions.MajorDim(); i++)
     num += fPartDimensions (i, 1);
   return num;
+}
+
+int EnSightInputT::NumElements (StringT& name)
+{
+  int part, ID = atoi (name.Pointer());
+  fPartDimensions.ColumnHasValue (2, ID, part); 
+  return fPartDimensions (1, part);
+}
+
+int EnSightInputT::NumElementNodes (StringT& name)
+{
+  int group = atoi (name.Pointer());
+
+  ScanGeometryFile();
+  ifstream in (fGeometryFile);
+  int id = -1;
+
+  // read header
+  bool nodemapgiven, elemmapgiven;
+  fData.ReadGeometryHeader(in, nodemapgiven, elemmapgiven);
+  
+  // forward down to part of interest
+  int numnodes, numelems, numelemnodes, offset = 0;
+  fData.ReadPart (in, id);
+  while (id != group)
+    {
+      fData.SkipPart (in, nodemapgiven, elemmapgiven, numnodes, numelems, numelemnodes);
+      offset += numelems;
+      fData.ReadPart (in, id);
+    }
+
+  // skip coordinate data
+  int num_nodes;
+  fData.SkipCoordinates (in, num_nodes, nodemapgiven);
+  
+  // read connectivity
+  iArray2DT connects;
+  iArrayT elementmap;
+  GeometryT::CodeT geocode;
+  fData.ReadConnectivity (in, connects, elementmap, elemmapgiven, geocode);
+  
+  return connects.MinorDim();
 }
 
 void EnSightInputT::ReadAllElementMap (iArrayT& elemmap)
@@ -198,109 +258,9 @@ void EnSightInputT::ReadAllElementMap (iArrayT& elemmap)
     }
 }
 
-int  EnSightInputT::NumTimeSteps (void)
+void EnSightInputT::ReadGlobalElementMap (StringT& name, iArrayT& elementmap)
 {
-  dArrayT steps;
-  ReadTimeSteps (steps);
-  return steps.Length();
-}
-
-void EnSightInputT::ReadTimeSteps (dArrayT& steps)
-{
-  ifstreamT in ('#', fCaseFile);
-  steps.Allocate (0);
-  if (!AdvanceStream (in, "TIME")) return;
-  fData.ReadTimeSection (in, fStartIncrement, fIncrement, steps);
-}
-
-int  EnSightInputT::NumNodeVariables (void)
-{
-  ifstreamT incase ('#', fCaseFile);
-  if (!AdvanceStream (incase, "VARIABLE")) return 0;
-
-  AutoArrayT<bool> nvector, evector;
-  AutoArrayT<StringT> nl(20), el(20);
-  fData.ReadVariableSection (incase, nl, el, nvector, evector, false);
-  return nl.Length();
-}
-
-int  EnSightInputT::NumElementVariables (void)
-{
-  ifstreamT incase ('#', fCaseFile);
-  if (!AdvanceStream (incase, "VARIABLE")) return 0;
-
-  AutoArrayT<bool> nvector, evector;
-  AutoArrayT<StringT> nl(20), el(20);
-  fData.ReadVariableSection (incase, nl, el, nvector, evector, false);
-  return el.Length();
-}
-
-/*************************************************************************
-*
-* Protected
-*
-*************************************************************************/
-
-void EnSightInputT::ElementGroupIDs (iArrayT& groupnums)
-{
-  ifstream in (fGeometryFile);
-  int id = -1;
-  bool nodemap, elementmap;
-  int numnodes, numelems, numelemnodes;
-  fData.ReadGeometryHeader(in, nodemap, elementmap);
-  
-  iArrayT ids (fPartDimensions.MajorDim());
-  for (int i=0; i < fPartDimensions.MajorDim(); i++)
-    {
-      fData.ReadPart (in, ids[i]);
-      fData.SkipPart (in, nodemap, elementmap, numnodes, numelems, numelemnodes);
-    }
-  groupnums.Allocate (ids.Length());
-  groupnums.CopyPart (0, ids, 0, ids.Length());
-}
-
-int EnSightInputT::NumElements_ID (int ID)
-{
-  int part;
-  fPartDimensions.ColumnHasValue (2, ID, part); 
-  return fPartDimensions (1, part);
-}
-
-int EnSightInputT::NumElementNodes_ID (int group)
-{
-  ScanGeometryFile();
-  ifstream in (fGeometryFile);
-  int id = -1;
-
-  // read header
-  bool nodemapgiven, elemmapgiven;
-  fData.ReadGeometryHeader(in, nodemapgiven, elemmapgiven);
-  
-  // forward down to part of interest
-  int numnodes, numelems, numelemnodes, offset = 0;
-  fData.ReadPart (in, id);
-  while (id != group)
-    {
-      fData.SkipPart (in, nodemapgiven, elemmapgiven, numnodes, numelems, numelemnodes);
-      offset += numelems;
-      fData.ReadPart (in, id);
-    }
-
-  // skip coordinate data
-  int num_nodes;
-  fData.SkipCoordinates (in, num_nodes, nodemapgiven);
-  
-  // read connectivity
-  iArray2DT connects;
-  iArrayT elementmap;
-  GeometryT::CodeT geocode;
-  fData.ReadConnectivity (in, connects, elementmap, elemmapgiven, geocode);
-  
-  return connects.MinorDim();
-}
-
-void EnSightInputT::ReadGlobalElementMap_ID (int group, iArrayT& elementmap)
-{
+  int group = atoi (name.Pointer());
   ScanGeometryFile();
   ifstream in (fGeometryFile);
   int id = -1;
@@ -337,8 +297,15 @@ void EnSightInputT::ReadGlobalElementMap_ID (int group, iArrayT& elementmap)
     }
 }
 
-void EnSightInputT::ReadConnectivity_ID (int group, iArray2DT& connects)
+void EnSightInputT::ReadGlobalElementSet (StringT& name, iArrayT& set)
 {
+  ReadGlobalElementMap (name, set);
+  set += -1;
+}
+
+void EnSightInputT::ReadConnectivity (StringT& name, iArray2DT& connects)
+{
+  int group = atoi (name.Pointer());
   ScanGeometryFile();
   ifstream in (fGeometryFile);
   int id = -1;
@@ -370,8 +337,9 @@ void EnSightInputT::ReadConnectivity_ID (int group, iArray2DT& connects)
   connects += offset - 1;
 }
 
-void EnSightInputT::ReadGeometryCode_ID (int group, GeometryT::CodeT& geocode)
+void EnSightInputT::ReadGeometryCode (StringT& name, GeometryT::CodeT& geocode)
 {
+  int group = atoi (name.Pointer());
   ScanGeometryFile();
   ifstream in (fGeometryFile);
   int id = -1;
@@ -400,9 +368,70 @@ void EnSightInputT::ReadGeometryCode_ID (int group, GeometryT::CodeT& geocode)
   fData.ReadConnectivity (in, connects, elementmap, elemmapgiven, geocode);
 }
 
-void EnSightInputT::ReadElementLabels_ID (int ID, ArrayT<StringT>& elabels)
+void EnSightInputT::QARecords (ArrayT<StringT>& records)
 {
-#pragma unused (ID)
+  records.Allocate (4);
+  records[0] = "EnSight";
+  records[1] = "v6 Gold";
+}
+
+int  EnSightInputT::NumTimeSteps (void) const
+{
+  ifstreamT in ('#', fCaseFile);
+  if (!AdvanceStream (in, "TIME")) return 0;
+  return fData.NumTimeSteps (in);
+}
+
+void EnSightInputT::ReadTimeSteps (dArrayT& steps)
+{
+  ifstreamT in ('#', fCaseFile);
+  steps.Allocate (0);
+  if (!AdvanceStream (in, "TIME")) return;
+  fData.ReadTimeSection (in, fStartIncrement, fIncrement, steps);
+}
+
+int  EnSightInputT::NumNodeVariables (void) const
+{
+  ifstreamT incase ('#', fCaseFile);
+  if (!AdvanceStream (incase, "VARIABLE")) return 0;
+
+  AutoArrayT<bool> nvector, evector;
+  AutoArrayT<StringT> nl(20), el(20);
+  fData.ReadVariableSection (incase, nl, el, nvector, evector, false);
+  return nl.Length();
+}
+
+int  EnSightInputT::NumElementVariables (void) const
+{
+  ifstreamT incase ('#', fCaseFile);
+  if (!AdvanceStream (incase, "VARIABLE")) return 0;
+
+  AutoArrayT<bool> nvector, evector;
+  AutoArrayT<StringT> nl(20), el(20);
+  fData.ReadVariableSection (incase, nl, el, nvector, evector, false);
+  return el.Length();
+}
+
+void EnSightInputT::ReadNodeLabels (ArrayT<StringT>& nlabels) const
+{
+  ifstreamT incase ('#', fCaseFile);
+  if (!AdvanceStream (incase, "VARIABLE"))
+    {
+      nlabels.Allocate (0);
+      return;
+    }
+  
+  AutoArrayT<bool> nvector, evector;
+  AutoArrayT<StringT> nl(20), el(20);
+  fData.ReadVariableSection (incase, nl, el, nvector, evector, false);
+  
+  nlabels.Allocate (nl.Length());
+  for (int j=0; j < nl.Length(); j++)
+    nlabels[j] = nl[j];
+}
+
+void EnSightInputT::ReadElementLabels (ArrayT<StringT>& elabels) const
+{
   ifstreamT incase ('#', fCaseFile);
   if (!AdvanceStream (incase, "VARIABLE"))
     {
@@ -419,8 +448,82 @@ void EnSightInputT::ReadElementLabels_ID (int ID, ArrayT<StringT>& elabels)
     elabels[j] = el[j];
 }
 
-void EnSightInputT::ReadElementVariables_ID (int step, int group_id, dArray2DT& evalues)
+void EnSightInputT::ReadAllNodeVariables (int step, dArray2DT& nvalues)
 {
+  int numg = NumElementGroups ();
+  ArrayT<StringT> gnames  (numg);
+  ElementGroupNames (gnames);
+
+  int offset = 0;
+  dArray2DT vals;
+  for (int i=0; i < numg; i++)
+    {
+      ReadNodeVariables (step, gnames[i], vals);
+
+      if (vals.MinorDim() != nvalues.MinorDim()) throw eSizeMismatch;
+
+      nvalues.CopyPart (offset, vals, 0, vals.Length());
+      offset += vals.Length();
+    }
+}
+
+void EnSightInputT::ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues)
+{
+  int group_id = atoi (name.Pointer());
+  // set fStartIncrement
+  if (fStartIncrement < 0)
+    {
+      dArrayT temp;
+      ReadTimeSteps (temp);
+      if (temp.Length() == 0) return;
+    }
+  int currentinc = fStartIncrement + fIncrement*step;
+  
+  // set fPartDimensions
+  ScanGeometryFile();
+  
+  // make sure variables exist
+  nvalues.Allocate (0,0);
+  ifstreamT incase ('#', fCaseFile);
+  if (!AdvanceStream (incase, "VARIABLE"))  return;
+  
+  // read variable filenames;
+  AutoArrayT<bool> nvector, evector;
+  AutoArrayT<StringT> nl (20), el (20);
+  fData.ReadVariableSection (incase, nl, el, nvector, evector, true);
+  
+  // allocate space
+  int dex;
+  if (!fPartDimensions.ColumnHasValue (2, group_id, dex)) return;
+  nvalues.Allocate (fPartDimensions (dex, 0), nl.Length());
+  nvalues = 0.0;
+  
+  // read data
+  ReadVariableData (nvector, nl, group_id, nvalues, currentinc, true);
+}
+
+void EnSightInputT::ReadAllElementVariables (int step, dArray2DT& evalues)
+{
+  int numg = NumElementGroups ();
+  ArrayT<StringT> gnames  (numg);
+  ElementGroupNames (gnames);
+
+  int offset = 0;
+  dArray2DT vals;
+  for (int i=0; i < numg; i++)
+    {
+      ReadElementVariables (step, gnames[i], vals);
+
+      if (vals.MinorDim() != evalues.MinorDim()) throw eSizeMismatch;
+
+      evalues.CopyPart (offset, vals, 0, vals.Length());
+      offset += vals.Length();
+    }
+}
+
+void EnSightInputT::ReadElementVariables (int step, StringT& name, dArray2DT& evalues)
+{
+  int group_id = atoi (name.Pointer());
   // set fStartIncrement
   if (fStartIncrement < 0)
     {
