@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.10 2002-06-08 20:20:55 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.11 2002-06-26 05:41:34 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #include "NLSolver.h"
@@ -292,7 +292,7 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 	/* first pass */
 	if (fNumIteration == 0)
 	{
-		cout <<   " Group : " << fGroup+1 << '\n';
+		cout <<   "\n Group : " << fGroup+1 << '\n';
 		cout <<   " Absolute error = " << error << '\n';
 		cout <<   " Relative error :\n\n";
 
