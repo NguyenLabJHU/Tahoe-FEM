@@ -1,4 +1,4 @@
-/* $Id: ParameterUtils.cpp,v 1.8 2004-05-21 19:45:01 paklein Exp $ */
+/* $Id: ParameterUtils.cpp,v 1.9 2004-07-22 21:06:43 paklein Exp $ */
 #include "ParameterUtils.h"
 
 using namespace Tahoe;
@@ -116,7 +116,7 @@ StringParameterT::StringParameterT(const StringT& name):
  * VectorParameterT implementation
  **********************************************************************/
 
-VectorParameterT::VectorParameterT(const StringT& name, char variable, int dim):
+VectorParameterT::VectorParameterT(const StringT& name, int dim, char variable):
 	ParameterInterfaceT(name),
 	fVariable(variable),
 	fVector(dim)
@@ -124,7 +124,7 @@ VectorParameterT::VectorParameterT(const StringT& name, char variable, int dim):
 	fVector = 0.0;
 }
 
-VectorParameterT::VectorParameterT(char variable, int dim):
+VectorParameterT::VectorParameterT(int dim, char variable):
 	ParameterInterfaceT("vector"),
 	fVariable(variable),
 	fVector(dim)
@@ -133,9 +133,9 @@ VectorParameterT::VectorParameterT(char variable, int dim):
 }
 
 /* construct extracting length from the name */
-VectorParameterT::VectorParameterT(const StringT& name_N):
+VectorParameterT::VectorParameterT(const StringT& name_N, char variable):
 	ParameterInterfaceT(name_N),
-	fVariable('v')
+	fVariable(variable)
 {
 	const char caller[] = "VectorParameterT::VectorParameterT";
 	const char msg[] = "could not extract length from \"%s\"";
@@ -192,9 +192,9 @@ void VectorParameterT::TakeParameterList(const ParameterListT& list)
 }
 
 /* extract parameters to a dArrayT */
-void VectorParameterT::Extract(const ParameterListT& list, dArrayT& array)
+void VectorParameterT::Extract(const ParameterListT& list, dArrayT& array, char variable)
 {
-	VectorParameterT vec_param(list.Name());
+	VectorParameterT vec_param(list.Name(), variable);
 	vec_param.TakeParameterList(list);
 	array = vec_param;
 }
@@ -203,26 +203,29 @@ void VectorParameterT::Extract(const ParameterListT& list, dArrayT& array)
  * MatrixParameterT implementation
  **********************************************************************/
 
-MatrixParameterT::MatrixParameterT(const StringT& name, char variable, int row, int col):
+MatrixParameterT::MatrixParameterT(const StringT& name, int row, int col, char variable):
 	ParameterInterfaceT(name),
 	fVariable(variable),
-	fMatrix(row, col)
+	fMatrix(row, col),
+	fCopySymmetric(false)
 {
 	fMatrix = 0.0;
 }
 
-MatrixParameterT::MatrixParameterT(char variable, int row, int col):
+MatrixParameterT::MatrixParameterT(int row, int col, char variable):
 	ParameterInterfaceT("matrix"),
 	fVariable(variable),
-	fMatrix(row, col)
+	fMatrix(row, col),
+	fCopySymmetric(false)
 {
 	fMatrix = 0.0;
 }
 
 /* construct extracting dimensions from the name */
-MatrixParameterT::MatrixParameterT(const StringT& name_NxM):
+MatrixParameterT::MatrixParameterT(const StringT& name_NxM, char variable):
 	ParameterInterfaceT(name_NxM),
-	fVariable('A')	
+	fVariable(variable),
+	fCopySymmetric(false)
 {
 	const char caller[] = "MatrixParameterT::MatrixParameterT";
 	const char msg[] = "could not extract %s dimensions from \"%s\"";
@@ -260,6 +263,11 @@ void MatrixParameterT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
 	ParameterInterfaceT::DefineParameters(list);
+
+	/* add flag */
+	ParameterT copy_symmmetric(fCopySymmetric, "copy_symmetric");
+	copy_symmmetric.SetDefault(fCopySymmetric);
+	list.AddParameter(copy_symmmetric);
 
 	/* define components */
 	for (int i = 0; i < fMatrix.Cols(); i++)
@@ -306,12 +314,29 @@ void MatrixParameterT::TakeParameterList(const ParameterListT& list)
 			fMatrix(row, col) = parameters[i];
 		}
 	}
+
+	/* copy symmetric */
+	bool copy_symmetric = list.GetParameter("copy_symmetric");
+	if (copy_symmetric && fMatrix.Rows() == fMatrix.Cols()) {
+		for (int i = 0; i < fMatrix.Rows(); i++)
+			for (int j = i+1; j < fMatrix.Rows(); j++) {
+				double& a_ij = fMatrix(i,j);
+				double& a_ji = fMatrix(j,i);
+				if (fabs(a_ij) > kSmall && fabs(a_ji) > kSmall)
+					ExceptionT::GeneralFail(caller, "copy symmetric with nonzero {%d,%d} and {%d,%d} entries",
+						i+1, j+1, j+1, i+1);
+				else if (fabs(a_ij) > kSmall)
+					a_ji = a_ij;
+				else /* a_ji > kSmall */
+					a_ij = a_ji;				
+			}
+	}
 }
 
 /* extract parameters to a dArrayT */
-void MatrixParameterT::Extract(const ParameterListT& list, dMatrixT& matrix)
+void MatrixParameterT::Extract(const ParameterListT& list, dMatrixT& matrix, char variable)
 {
-	MatrixParameterT mat_param(list.Name());
+	MatrixParameterT mat_param(list.Name(), variable);
 	mat_param.TakeParameterList(list);
 	matrix = mat_param;
 }
