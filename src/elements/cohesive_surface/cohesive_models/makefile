@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:17 paklein Exp $
+# $Id: makefile,v 1.5 2001-10-11 00:52:36 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,7 +6,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	DecohesionLawT.o \
 	LinearDamageT.o \
 	SurfacePotentialT.o \
 	TvergHutch2DT.o \
@@ -20,7 +19,6 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	DecohesionLawT.cpp \
 	LinearDamageT.cpp \
 	SurfacePotentialT.cpp \
 	TvergHutch2DT.cpp \
@@ -29,7 +27,6 @@ SRC = \
 
 # headers
 HDR = \
-	DecohesionLawT.h \
 	LinearDamageT.h \
 	SurfacePotentialT.h \
 	TvergHutch2DT.h \
