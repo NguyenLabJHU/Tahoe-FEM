@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.cpp,v 1.4 2002-04-16 21:19:33 cjkimme Exp $ */
+/* $Id: ViscTvergHutch2DT.cpp,v 1.4.2.1 2002-05-07 07:23:10 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "ViscTvergHutch2DT.h"
@@ -40,7 +40,14 @@ ViscTvergHutch2DT::ViscTvergHutch2DT(ifstreamT& in, const double& time_step):
 }
 
 /* return the number of state variables needed by the model */
-int ViscTvergHutch2DT::NumStateVariables(void) const { return knumDOF; }
+int ViscTvergHutch2DT::NumStateVariables(void) const { return knumDOF + 1; }
+
+/* incremental heat */
+double ViscTvergHutch2DT::IncrementalHeat(const dArrayT& jump, const ArrayT<double>& state)
+{
+#pragma unused(jump)
+	return state[kIncHeat];
+}
 
 /* surface potential */
 double ViscTvergHutch2DT::FractureEnergy(const ArrayT<double>& state)
@@ -87,6 +94,7 @@ double ViscTvergHutch2DT::Potential(const dArrayT& jump_u, const ArrayT<double>&
 /* traction vector given displacement jump vector */	
 const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
 {
+#pragma unused(sigma)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
@@ -120,24 +128,42 @@ const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>
 	/* penetration */
 	if (u_n < 0) fTraction[1] += fK*u_n;
 
+	/* incremental opening */
+	double dd_t = u_t - state[0];
+	double dd_n = u_n - state[1];
+
 	/* viscous part */
+	double T_visc_t = 0.0;
+	double T_visc_n = 0.0;
 	if (L < 1)
 	{
 		double eta_dt = feta0*(1 - L)/fTimeStep;
-		fTraction[0] += eta_dt*(jump_u[0] - state[0]);
-		fTraction[1] += eta_dt*(jump_u[1] - state[1]);
+		T_visc_t = eta_dt*dd_t;
+		T_visc_n = eta_dt*dd_n;
 	}
 	
+	/* compute heat generation */
+	double& d_heat = state[kIncHeat] = T_visc_t*dd_t + T_visc_n*dd_n;
+	if (dd_n > 0) /* only heat on opening */
+		d_heat += fTraction[1]*dd_n;
+	if (u_t*dd_t > 0)
+		d_heat += fabs(fTraction[0]*dd_t); /* too lazy to figure out the correct sign ;) */
+	d_heat *= 0.9; /* work to heat conversion factor */
+	
 	/* update last opening displacement */
-	state[0] = jump_u[0];
-	state[1] = jump_u[1];
+	state[0] = u_t;
+	state[1] = u_n;
 
+	/* add viscous stress */
+	fTraction[0] += T_visc_t;
+	fTraction[1] += T_visc_n;
 	return fTraction;
 }
 
 /* potential stiffness */
 const dMatrixT& ViscTvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
 {
+#pragma unused(sigma)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
