@@ -1,4 +1,4 @@
-# $Id: Makefile.template,v 1.5 2002-08-12 16:40:02 paklein Exp $
+# $Id: Makefile.template,v 1.6 2002-08-12 17:16:35 paklein Exp $
 .SUFFIXES: .cpp .h .java .class .o .sig
 
 # choose platform specific macros file
@@ -28,7 +28,7 @@ TB_LIB      = $(TB_DIR)/lib/lib$(TB_LIB_NAME).a
 TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 
 #### VTK 4.x
-VTK_DIR    = /usr/local/src/VTK
+VTK_DIR    = /scr/paklein/local/src/VTK
 VTK_INC    = $(X_INC_FLAGS) -I$(VTK_DIR) -I$(VTK_DIR)/Common -I$(VTK_DIR)/Graphics -I$(VTK_DIR)/Imaging -I$(VTK_DIR)/Filtering -I$(VTK_DIR)/IO -I$(VTK_DIR)/Rendering
 VTK_CFLAGS = $(X_CFLAGS) $(THREAD_CFLAGS) $(VTK_INC) -D__VTK__ -D__VTK_NEW__
 VTK_LFLAGS = -L$(VTK_DIR)/bin/ -L/usr/X11R6/lib -lpthread -lm \
@@ -59,8 +59,7 @@ L_FLAGS_ALL = \
 	-L../lib -lvtk_console \
 	$(TB_LFLAGS) \
 	$(VTK_LFLAGS) \
-	$(AX_LFLAGS) \
-	$(LD_FLAGS)
+	$(AX_LFLAGS)
 
 all: $(JAVA_OBJ) $(JAVA_JNI_HDR) $(CPP_DSO)
 
@@ -69,7 +68,7 @@ $(CPP_DSO): $(CPP_OBJ)
 
 run:
 	java app
-	
+
 sig: $(JAVA_SIG)
 
 clean:
