@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.5 2004-03-04 19:10:52 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.5.2.1 2004-03-17 02:00:34 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
 #include "ifstreamT.h"
@@ -23,6 +23,10 @@ MeshfreeBridgingT::MeshfreeBridgingT(const ElementSupportT& support, const Field
 	BridgingScaleT(support, field, solid),
 	fMLS(NULL)
 {
+	/* solid element class needs to store the internal force vector */
+	SolidElementT& solid_tmp = const_cast<SolidElementT&>(fSolid);
+	solid_tmp.SetStoreInternalForce(true);
+
 	ifstreamT& in = ElementSupport().Input();
 	MeshFreeT::WindowTypeT window_type;
 	in >> window_type;
@@ -114,8 +118,8 @@ void MeshfreeBridgingT::InitProjection(CommManagerT& comm, const iArrayT& points
 		cell_coordinates.RowAlias(cell_nodes[i], x_node);
 		
 		/* compute MLS fit */
-		if (!fMLS->SetField(neighbor_coords, neighbor_support, neighbor_volume, x_node, 0)) {
-
+		if (!fMLS->SetField(neighbor_coords, neighbor_support, neighbor_volume, x_node, 0) && nngh != 1)
+		{
 			/* write support size of the neighborhood nodes */
 			bool write_support_size = true;
 			if (write_support_size)
@@ -181,9 +185,13 @@ void MeshfreeBridgingT::InitProjection(CommManagerT& comm, const iArrayT& points
 			/* throw */
 			ExceptionT::GeneralFail(caller, "could not compute MLS fit for node %d", cell_nodes[i]+1);
 		}
-	
-		/* store weights */
-		neighbor_weights.SetRow(i, fMLS->phi());
+		
+		/* only 1 source node - assume constant field */
+		if (nngh == 1)
+			neighbor_weights.SetRow(i, 1.0);
+		else
+			/* store MLS fit weights */
+			neighbor_weights.SetRow(i, fMLS->phi());
 	}
 	
 	/* verbose output */
