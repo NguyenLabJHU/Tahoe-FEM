@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.18 2002-12-17 08:58:18 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.19 2003-01-22 01:09:30 cjkimme Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -316,18 +316,22 @@ void ElementSupportT::SetCurrentCoordinates(dArray2DT* currentCoords)
  */
 void ElementSupportT::SetInitialCoordinates(double *initialCoords)
 {	
-	double *finit = fInitialCoordinates->Pointer();
+//	double *finit = fInitialCoordinates->Pointer();
 
-	for (int i = 0; i < fInitialCoordinates->Length();i++)
-		*finit++ = *initialCoords++;		
+//	for (int i = 0; i < fInitialCoordinates->Length();i++)
+//		*finit++ = *initialCoords++;		
+/* Try it without copying memory. Just use set */
+    fInitialCoordinates->Set(fNumNodes,fNumSD,initialCoords);
 }
 
 void ElementSupportT::SetCurrentCoordinates(double *currentCoords)
 {
-	double *fcurr = fCurrentCoordinates->Pointer();
+//	double *fcurr = fCurrentCoordinates->Pointer();
 	
-	for (int i = 0; i < fCurrentCoordinates->Length(); i++)
-		*fcurr++ = *currentCoords++;
+//	for (int i = 0; i < fCurrentCoordinates->Length(); i++)
+//		*fcurr++ = *currentCoords++;
+/* Try it without copying memory. Just use set */
+    fCurrentCoordinates->Set(fNumNodes,fNumSD,currentCoords);
 }
 
 /* This function isn't currently being used. Don't know if it needs to
@@ -355,6 +359,7 @@ void ElementSupportT::SetNumElements(int nelem)
 void ElementSupportT::SetEqnos(int *conn, const int& nElem, const int& nElemNodes, 
 	const int& nNodes)
 {
+#pragma unused(nNodes)
 	ieqnos = new iArrayT();
 	ieqnos->Dimension(nElem*nElemNodes*3);
 	int *iptr, ioff;
@@ -367,10 +372,12 @@ void ElementSupportT::SetEqnos(int *conn, const int& nElem, const int& nElemNode
 	}
 	
 	/* Allocate left- and right-hand sides while we're here */
+	/* Let SIERRA control the memory for the residual */
 	fResidual = new dArrayT();
-	fResidual->Dimension(fNumSD*nNodes);
+
+#pragma message("Do I really want to allocate a stiffness matrix?")
 	fStiffness = new dMatrixT(ElementMatrixT::kNonSymmetric);
-	fStiffness->Dimension(fNumSD*nNodes);
+//	fStiffness->Dimension(fNumSD*nNodes);
 }
 
 void ElementSupportT::SetMaterialInput(double *inputFloats, int length)
@@ -397,6 +404,11 @@ void ElementSupportT::SetElementInput(int *inputInts, int length)
 int ElementSupportT::ReturnInputInt(CodeT label) 
 { 
 		return (*iparams)[label];
+}
+
+void ElementSupportT::SetResidual(double *nodalForces)
+{
+	fResidual->Set(fNumSD*fNumNodes,nodalForces);
 }
 
 void ElementSupportT::SetStateVariableArray(double *incomingArray)
