@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.17 2002-11-25 07:03:21 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.18 2003-05-04 22:56:18 paklein Exp $ */
 /* created: paklein (05/23/1997) */
 #ifndef _NARRAY_T_H_
 #define _NARRAY_T_H_
@@ -249,10 +249,6 @@ ostream& operator<<(ostream& out, const OutputProxyT<TYPE>& proxy)
 	}
 	return out;
 }
-
-} //namespace Tahoe
-
-using namespace Tahoe;
 
 /* output formatters - for int's and double's */
 inline int OutputWidth(ostream& out, const int* junk)
@@ -825,7 +821,7 @@ void nArrayT<nTYPE>::SortAscending(void)
 template <class nTYPE>
 inline void nArrayT<nTYPE>::SortAscending(ArrayT<int>& map)
 {
-	::SortAscending(map, *this);
+	Tahoe::SortAscending(map, *this);
 }
 
 /* AZTEC az_sort.c: sort both arrays by the values in the master array */
@@ -1256,5 +1252,7 @@ void nArrayT<nTYPE>::WriteWithFormat(ostream& out, int width, int prec,
 
 	out.precision(currprec);
 }
+
+} /* namespace Tahoe */
 
 #endif /* _NARRAY_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: AutoArrayT.h,v 1.15 2002-12-05 08:21:16 paklein Exp $ */
+/* $Id: AutoArrayT.h,v 1.16 2003-05-04 22:56:18 paklein Exp $ */
 /* created: paklein (12/05/1997) */
 #ifndef _AUTO_ARRAY_T_H_
 #define _AUTO_ARRAY_T_H_
@@ -166,13 +166,9 @@ private:
 	int	fCurrElement;
 };
 
-} // namespace Tahoe
-
-using namespace Tahoe;
-
 /*************************************************************************
-* Implementation
-*************************************************************************/
+ * Implementation
+ *************************************************************************/
 
 /* default size */
 const int kAutoDefSize     = 5;
@@ -618,5 +614,7 @@ inline void AutoArrayT<TYPE>::Pop(void)
 {
 	if (Length() > 0) DeleteAt(0);
 }
+
+} /* namespace Tahoe */
 
 #endif /* _AUTO_ARRAY_T_H_ */
