@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2001-02-22 23:45:16 paklein Exp $
+# $Id: makefile,v 1.6 2003-02-22 23:53:44 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -11,7 +11,9 @@ OBJ = \
 	dMatrixT.o \
 	dSymMatrixT.o \
 	LAdMatrixT.o \
-	TriDiagdMatrixT.o
+	TriDiagdMatrixT.o \
+	dSPMatrixT.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -25,7 +27,8 @@ SRC = \
 	dMatrixT.cpp \
 	dSymMatrixT.cpp \
 	LAdMatrixT.cpp \
-	TriDiagdMatrixT.cpp
+	TriDiagdMatrixT.cpp \
+	dSPMatrixT.cpp
 
 # headers
 HDR = \
@@ -35,7 +38,9 @@ HDR = \
 	dSymMatrixT.h \
 	LAdMatrixT.h \
 	nMatrixT.h \
-	TriDiagdMatrixT.h
+	TriDiagdMatrixT.h \
+	dSPMatrixT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
