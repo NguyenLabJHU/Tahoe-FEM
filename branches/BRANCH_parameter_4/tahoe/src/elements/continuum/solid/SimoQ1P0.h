@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.h,v 1.8 2004-01-05 07:27:58 paklein Exp $ */
+/* $Id: SimoQ1P0.h,v 1.8.26.1 2004-07-06 06:53:19 paklein Exp $ */
 #ifndef _SIMO_Q1_P0_H_
 #define _SIMO_Q1_P0_H_
 
@@ -45,9 +45,7 @@ public:
 
 	/** constructor */
 	SimoQ1P0(const ElementSupportT& support, const FieldT& field);
-
-	/** data initialization */
-	virtual void Initialize(void);
+	SimoQ1P0(const ElementSupportT& support);
 
 	/** finalize current step - step is solved */
 	virtual void CloseStep(void);
@@ -60,6 +58,12 @@ public:
 
 	/** write restart information from stream */
 	virtual void WriteRestart(ostream& out) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

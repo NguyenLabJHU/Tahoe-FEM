@@ -1,4 +1,4 @@
-/* $Id: SolidMatSupportT.cpp,v 1.5 2003-12-28 08:23:29 paklein Exp $ */
+/* $Id: SolidMatSupportT.cpp,v 1.5.26.1 2004-07-06 06:53:50 paklein Exp $ */
 #include "SolidMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -9,8 +9,8 @@
 using namespace Tahoe;
 
 /* constructor */
-SolidMatSupportT::SolidMatSupportT(int nsd, int ndof, int nip):
-	MaterialSupportT(nsd, ndof, nip),
+SolidMatSupportT::SolidMatSupportT(int ndof, int nip):
+	MaterialSupportT(ndof, nip),
 	fSolidElement(NULL),
 	fLastDisp(NULL),
 	fVel(NULL),

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.38 2004-03-17 22:47:02 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.38.14.1 2004-07-06 06:53:06 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -301,14 +301,15 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** describe the parameters needed by the interface */
+	/** describe the parameters needed by the interface. See ParameterInterfaceT::DefineParameters
+	 * for more information. Additionally, sub-classes of ElementBaseT should define element
+	 * block information within a list whose name contains "_element_block" to make use of the
+	 * default implementation for ElementBaseT::CollectBlockInfo. Otherwise, ElementBaseT::CollectBlockInfo
+	 * must be overridden. */
 	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 #ifdef __NO_RTTI__
@@ -323,6 +324,20 @@ public:
 #endif
 
 protected: /* for derived classes only */
+	/** \name construction of connectivities */
+	/*@{*/
+	/** extract element block info from parameter list to be used. Method is
+	 * used in conjunction with ElementBaseT::DefineElements to initialize
+	 * the element group connectivities. By default, ElementBaseT::ExtractBlockInfo 
+	 * does not extract any information; henace to connectivies are read. 
+	 * The default implementation looks for block declarations with names
+	 * containing "_element_block" which contains block ID's within a
+	 * "block_ID_list". */
+	virtual void CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const;
+
+	/** define the elements blocks for the element group */
+	virtual void DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index);
+	/*@}*/
 
 	/** map the element numbers from block to group numbering */
 	void BlockToGroupElementNumbers(iArrayT& elems, const StringT& block_ID) const;
@@ -430,7 +445,7 @@ protected:
 	
 	/** \name grouped element arrays */
 	/*@{*/
-	ArrayT<const iArray2DT*> fConnectivities;		
+	ArrayT<const iArray2DT*> fConnectivities;
 	ArrayT<iArray2DT> fEqnos;			
 	/*@}*/
 	

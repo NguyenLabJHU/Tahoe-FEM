@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.24 2004-04-09 02:03:11 hspark Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.24.8.1 2004-07-06 06:54:37 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #ifndef _FE_EXECMAN_T_H_
 #define _FE_EXECMAN_T_H_
@@ -31,6 +31,7 @@ class FEManagerT_THK;
 class dArray2DT;
 class StringT;
 class EAMFCC3D;
+class ParameterListT;
 
 /** class to handle file driven finite element simulations */
 class FEExecutionManagerT: public ExecutionManagerT
@@ -60,7 +61,14 @@ protected:
 	int Size(void) const;
 	/*@}*/
 
+	/** Recursive dispatch */
+	virtual void JobOrBatch(ifstreamT& in, ostream& status);
+
 private:
+
+	/** parse input file and valid */
+	void ParseInput(const StringT& path, ParameterListT& params, bool validate, 
+		bool echo_input, bool echo_valid) const;
 
 	/** \name execution modes */
 	/*@{*/
@@ -73,9 +81,9 @@ private:
         kTHK = 4,
         kDTD = 5
 	};
-	
-	/** standard serial driver */
-	void RunJob_serial(ifstreamT& in, ostream& status) const;
+
+	/** TEMP - serial driver for XMl input */
+	void RunJob_serial_XML(ifstreamT& in, ostream& status) const;
 	
 	/** parallel driver */
 	void RunJob_parallel(ifstreamT& in, ostream& status) const;
@@ -84,7 +92,7 @@ private:
 	void RunDecomp_serial(ifstreamT& in, ostream& status, CommunicatorT& comm, int size = -1) const;
 
 	/** join parallel results files */
-	void RunJoin_serial(ifstreamT& in, ostream& status, CommunicatorT& comm, int size = -1) const;
+	void RunJoin_serial(ifstreamT& in, ostream& status, int size = -1) const;
 
 	/** multi-Tahoe, bridging scale test */
 	void RunBridging(ifstreamT& in, ostream& status) const;
@@ -124,8 +132,7 @@ private:
 	void Rewind(ifstreamT& in, ostream& status) const;
 
 	/** extract the model file name from the stream */
-	void GetModelFile(ifstreamT& in, StringT& model_file,
-		IOBaseT::FileTypeT& format) const;
+//	void GetModelFile(ifstreamT& in, StringT& model_file, IOBaseT::FileTypeT& format) const;
 
 	/** \name generate decomposition data */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: D2VIB2D.cpp,v 1.7 2004-06-17 07:40:48 paklein Exp $ */
+/* $Id: D2VIB2D.cpp,v 1.7.2.1 2004-07-06 06:53:45 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2VIB2D.h"
 
@@ -14,7 +14,8 @@ using namespace Tahoe;
 
 /* constructors */
 D2VIB2D::D2VIB2D(ifstreamT& in, const D2FSMatSupportT& support):
-	VIB2D(in, support),
+	ParameterInterfaceT("gradient_VIB_2D"),
+//	VIB2D(in, support),
 	fD2MLSShape(support.D2MeshFreeFDElastic()->D2MLSShapeFunction())
 {
 	/* length scale parameter */
@@ -23,15 +24,8 @@ D2VIB2D::D2VIB2D(ifstreamT& in, const D2FSMatSupportT& support):
 		
 	/* squared */
 	feps2 *= feps2;
-}
-
-/* print parameters */
-void D2VIB2D::Print(ostream& out) const
-{
-	/* inherited */
-	VIB2D::Print(out);
 	
-	out << " Length scale parameter (epsilon). . . . . . . . = " << sqrt(feps2) << '\n';
+	ExceptionT::GeneralFail("D2VIB2D::D2VIB2D", "out of date");
 }
 
 #if 0
@@ -64,15 +58,3 @@ const dSymMatrixT& D2VIB2D::S_IJ(void)
 	return fPK2; //dummy
 }
 #endif
-
-/***********************************************************************
-* Protected
-***********************************************************************/
-
-/* print name */
-void D2VIB2D::PrintName(ostream& out) const
-{
-	/* inherited */
-	VIB2D::PrintName(out);
-	out << "    with higher order gradient terms\n";
-}

@@ -1,6 +1,5 @@
-/* $Id: StaticIntegrator.h,v 1.5 2002-07-05 22:27:55 paklein Exp $ */
+/* $Id: StaticIntegrator.h,v 1.5.64.1 2004-07-06 06:54:33 paklein Exp $ */
 /* created: paklein (10/14/1996) */
-
 #ifndef _STATIC_CONTROLLER_H_
 #define _STATIC_CONTROLLER_H_
 
@@ -10,8 +9,6 @@
 #include "nStaticIntegrator.h"
 #include "eStaticIntegrator.h"
 
-#include "ios_fwd_decl.h"
-
 namespace Tahoe {
 
 class StaticIntegrator: public nStaticIntegrator, public eStaticIntegrator
@@ -19,7 +16,7 @@ class StaticIntegrator: public nStaticIntegrator, public eStaticIntegrator
 public:
 
 	/** constructor */
-	StaticIntegrator(ostream& out);
+	StaticIntegrator(void);
 	  	
 protected:  	
 	

@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.26 2003-11-21 22:47:59 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.26.28.1 2004-07-06 06:54:42 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -22,11 +22,10 @@
 using namespace Tahoe;
 
 /* constructor */
-TiedNodesT::TiedNodesT(NodeManagerT& node_manager, BasicFieldT& field):
-	KBC_ControllerT(node_manager),
+TiedNodesT::TiedNodesT(const BasicSupportT& support, BasicFieldT& field):
+	KBC_ControllerT(support),
 	fField(field),
-	fDummySchedule(1.0),
-	fFEManager(node_manager.FEManager())
+	fDummySchedule(1.0)
 {
 #ifndef COHESIVE_SURFACE_ELEMENT
 	ExceptionT::BadInputValue("TiedNodesT::TiedNodesT", "COHESIVE_SURFACE_ELEMENT not enabled");
@@ -36,6 +35,7 @@ TiedNodesT::TiedNodesT(NodeManagerT& node_manager, BasicFieldT& field):
 /* initialize data. Must be called immediately after construction */
 void TiedNodesT::Initialize(ifstreamT& in)
 {
+#if 0
 	/* read "leader" nodes */
 	iArrayT leader_nodes;
 	ReadNodes(in, fLeaderIds, leader_nodes);
@@ -98,6 +98,7 @@ void TiedNodesT::Initialize(ifstreamT& in)
 	
 	/* generate BC cards */
 	SetBCCards();
+#endif
 }
 
 /* initialize directly instead of using TiedNodesT::Initialize */
@@ -137,7 +138,7 @@ void TiedNodesT::SetExternalNodes(const ArrayT<int>& ex_nodes) const
 void TiedNodesT::WriteParameters(ostream& out) const
 {
 	/* inherited */
-	KBC_ControllerT::WriteParameters(out);
+//	KBC_ControllerT::WriteParameters(out);
 
 	out << "\n T i e d   n o d e   p a r a m e t e r s :\n\n";
 	out << " Number of leader node set ids . . . . . . . . . = " << fLeaderIds.Length() << '\n';
@@ -344,11 +345,11 @@ void TiedNodesT::InitTiedNodePairs(const iArrayT& leader_nodes,
 	iArrayT& follower_nodes)
 {
 	/* coordinates */
-	const dArray2DT& coords = fNodeManager.InitialCoordinates();
+	const dArray2DT& coords = fSupport.InitialCoordinates();
 	
 	/* get processor number */
-	int np = fNodeManager.Rank();
-	const ArrayT<int>* pMap = fNodeManager.ProcessorMap();
+	int np = fSupport.Rank();
+	const ArrayT<int>* pMap = fSupport.ProcessorMap();
 
 	/* dumb search */
 	int nsd = coords.MinorDim();
@@ -431,14 +432,9 @@ bool TiedNodesT::ChangeStatus(void)
       	dArray2DT freeNodeQ;
       	for (int j = 0; j < iElemGroups.Length(); j++) 
       	{
-			ElementBaseT* surroundingGroup = fFEManager.ElementGroup(iElemGroups[j]);
-  			if (!surroundingGroup)
-        	{
-           		cout <<"TiedPotentialT::ChangeStatus: Element group "<<iElemGroups[j]<<" doesn't exist \n";
-      	  		throw ExceptionT::kGeneralFail;
-       	 	}
-	  		surroundingGroup->SendOutput(CSEBaseT::InternalData);
-	  		freeNodeQ = fNodeManager.OutputAverage();
+			ElementBaseT& surroundingGroup = fSupport.ElementGroup(iElemGroups[j]);
+	  		surroundingGroup.SendOutput(CSEBaseT::InternalData);
+	  		freeNodeQ = fSupport.NodeManager().OutputAverage();
 	    }
 	    
 	    for (int i = 0; i < fNodePairs.MajorDim();i++) 
@@ -484,10 +480,7 @@ void TiedNodesT::SetBCCards(void)
 		    	for (int j = 0; j < ndof; j++)
 				{
 					/* set values */
-				  pcard->SetValues(fNodePairs(i,0), j, KBC_CardT::kNull, 0,0.);
-	
-					/* dummy schedule */
-				  pcard->SetSchedule(&fDummySchedule);
+				  pcard->SetValues(fNodePairs(i,0), j, KBC_CardT::kNull, &fDummySchedule, 0.0);
 				  pcard++;
 				} 
 		    }

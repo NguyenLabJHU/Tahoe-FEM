@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.13 2004-06-17 07:41:26 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.13.2.1 2004-07-06 06:54:15 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2MeshFreeFSSolidT.h"
 #include "SolidMaterialsConfig.h"
@@ -12,6 +12,7 @@
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
 #include "D2MeshFreeShapeFunctionT.h"
+#include "MeshFreeFractureSupportT.h"
 
 #ifdef VIB_MATERIAL
 #include "D2VIB2D.h"
@@ -160,6 +161,8 @@ void D2MeshFreeFSSolidT::ElementRHSDriver(void)
 /* initialization functions */
 void D2MeshFreeFSSolidT::SetShape(void)
 {
+#pragma message("fix me")
+#if 0
 	/* only support single list of integration cells for now */
 	if (fConnectivities.Length() > 1) {
 		cout << "\n D2MeshFreeFSSolidT::SetShape: multiple element blocks within an"
@@ -180,6 +183,7 @@ void D2MeshFreeFSSolidT::SetShape(void)
 	/* set base class pointers */
 	fShapes   = fD2MFShapes;
 	fMFShapes = fD2MFShapes;
+#endif
 }
 
 /* current element operations */
@@ -189,7 +193,7 @@ bool D2MeshFreeFSSolidT::NextElement(void)
 	int OK = MeshFreeFSSolidT::NextElement();
 	
 	/* resize */
-	fD2GradNa_wrap.SetDimensions(fD2GradNa.Rows(), MeshFreeElementSupportT::NumElementNodes());
+	fD2GradNa_wrap.SetDimensions(fD2GradNa.Rows(), fMFFractureSupport->NumElementNodes());
 
 	/* set material pointer (cast checked above) */
 	if (OK) pD2VIB2D = (D2VIB2D*) fCurrMaterial;

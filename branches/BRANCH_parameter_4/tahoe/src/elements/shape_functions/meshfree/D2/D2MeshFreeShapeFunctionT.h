@@ -1,6 +1,5 @@
-/* $Id: D2MeshFreeShapeFunctionT.h,v 1.5 2002-07-05 22:28:38 paklein Exp $ */
-/* created: paklein (10/23/1999)                                          */
-
+/* $Id: D2MeshFreeShapeFunctionT.h,v 1.5.64.1 2004-07-06 06:54:23 paklein Exp $ */
+/* created: paklein (10/23/1999) */
 #ifndef _D2_MF_SHAPE_T_H_
 #define _D2_MF_SHAPE_T_H_
 
@@ -20,7 +19,7 @@ public:
 	D2MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 		const LocalArrayT& coords, const dArray2DT& all_coords,
 		const iArray2DT& connects, const iArrayT& nongridnodes,
-		const int& currelement, ifstreamT& in);
+		const int& currelement, const ParameterListT& mf_support_params);
 
 	/* compute global shape derivatives */ 	
 	virtual void SetDerivatives(void);

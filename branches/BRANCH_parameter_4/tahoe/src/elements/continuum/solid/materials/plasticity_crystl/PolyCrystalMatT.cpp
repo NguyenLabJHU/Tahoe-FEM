@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.cpp,v 1.15 2004-04-27 00:33:41 ebmarin Exp $ */
+/* $Id: PolyCrystalMatT.cpp,v 1.15.4.1 2004-07-06 06:54:01 paklein Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -25,7 +25,8 @@ const int kIsInit = 1;
 const int kNSD = 3;
 
 PolyCrystalMatT::PolyCrystalMatT(ifstreamT& in, const FSMatSupportT& support) :
-  FDHookeanMatT(in, support),
+	ParameterInterfaceT("polycrystal_material"),
+//  FDHookeanMatT(in, support),
   fdt           (FSMatSupport().TimeStep()),
   //ftime       (FSMatSupport().Time()),
   fLocLastDisp  (FSMatSupport().FiniteStrain()->LastDisplacements()),
@@ -47,6 +48,8 @@ PolyCrystalMatT::PolyCrystalMatT(ifstreamT& in, const FSMatSupportT& support) :
   fc_ijkl       (dSymMatrixT::NumValues(kNSD)),
   fcavg_ijkl    (dSymMatrixT::NumValues(kNSD))
 {
+ExceptionT::GeneralFail("PolyCrystalMatT::PolyCrystalMatT", "out of date");
+
   // input file
   StringT filename;
   in >> filename;
@@ -131,11 +134,7 @@ void PolyCrystalMatT::PointInitialize(void)
 
 bool PolyCrystalMatT::NeedLastDisp() const { return true; }
 
-void PolyCrystalMatT::Print(ostream& out) const
-{
-  // inherited
-  FDHookeanMatT::Print(out);
-
+#if 0
   // print input values
   out << " Polycrystal data:\n";
   out << "    Number of grains   . . . . . . . . . . . . . = " << fNumGrain    << "\n";
@@ -156,21 +155,12 @@ void PolyCrystalMatT::Print(ostream& out) const
   out << "    Convergence control for state\n";
   out << "       Max# iterations . . . . . . . . . . . . . = " << fMaxIterState << "\n";
   out << "       Tolerance convergence . . . . . . . . . . = " << fTolerState   << "\n";
-}
+#endif
 
 /* set (material) tangent modulus */
 void PolyCrystalMatT::SetModulus(dMatrixT& modulus)
 {
 	fElasticity->ComputeModuli(modulus);
-}
-
-void PolyCrystalMatT::PrintName(ostream& out) const
-{
-  // inherited
-  FDHookeanMatT::PrintName(out);
-
-  // print model name
-  out << "    PolyCrystal constitutive model\n";
 }
 
 void PolyCrystalMatT::SetSlipSystems()

@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.30 2003-11-21 22:46:58 paklein Exp $ */
+/* $Id: tevp2D.cpp,v 1.30.28.1 2004-07-06 06:54:11 paklein Exp $ */
 /* created: Harold Park (04/04/2001) */
 #include "tevp2D.h"
 
@@ -24,9 +24,7 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 tevp2D::tevp2D(ifstreamT& in, const FSMatSupportT& support):
-  FSSolidMatT(in, support),
-  IsotropicT(in),
-  Material2DT(in),        // Currently reads in plane strain from file...
+	ParameterInterfaceT("tevp_2D"),
   /* initialize references */
 //  fRunState(ContinuumElement().RunState()),
 //  fDt(ContinuumElement().ElementSupport().TimeStep()),
@@ -143,22 +141,6 @@ void tevp2D::ResetHistory(void)
   /* reset if plastic */
   ElementCardT& element = CurrentElement();
   if (element.IsAllocated()) Reset(element);
-}
-
-/* print parameters */
-void tevp2D::Print(ostream& out) const
-{
-  /* inherited */
-  FSSolidMatT::Print(out);
-  IsotropicT::Print(out);
-  Material2DT::Print(out);
-}
-
-void tevp2D::PrintName(ostream& out) const
-{
-  /* inherited */
-  FSSolidMatT::PrintName(out);
-  out << "    Thermo-Elasto-Viscoplastic\n";
 }
 
 /* spatial description */

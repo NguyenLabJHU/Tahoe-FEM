@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.h,v 1.4 2004-04-09 02:03:05 hspark Exp $ */
+/* $Id: ParadynEAMT.h,v 1.4.8.1 2004-07-06 06:54:18 paklein Exp $ */
 #ifndef _PARADYN_EAM_T_H_
 #define _PARADYN_EAM_T_H_
 
@@ -13,6 +13,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class dArrayT;
+class BasicSupportT;
 
 class ParadynEAMT: public EAMPropertyT
 {
@@ -22,10 +23,8 @@ public:
 	 * coefficients of a cubic spline through the evenly spaced
 	 * values of the potential,electron density read from the 
          * file. */
-	ParadynEAMT(const StringT& param_file);
-
-	/** write properties to output */
-	virtual void Write(ostream& out) const;
+	ParadynEAMT(const BasicSupportT& support, const StringT& param_file);
+	ParadynEAMT(const BasicSupportT& support);
 
 	/** \name return interaction functions */
 	/*@{*/
@@ -50,13 +49,24 @@ public:
 		int& row_size, int& num_rows) const;
 	/*@}*/
 
-	/** the coefficients array */
+	/** \name coefficients array */
+	/*@{*/
 	const dArray2DT& PairCoefficients(void) const { return fPairCoeff; };
 	const dArray2DT& EmbedCoefficients(void) const { return fEmbedCoeff; };
 	const dArray2DT& ElectronDensityCoefficients(void) const { return fElectronDensityCoeff; };
 
 	/** add accessor function for lattice parameter */
 	virtual double GetLatticeParameter(void) const { return fLatticeParameter; };
+	/*@}*/
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 private:
 
@@ -80,6 +90,8 @@ private:
 	static double ForceAux(double r_ab,int n, double inc, double* coeff);
 	static double StiffnessAux(double r_ab,int n, double inc, double* coeff);
 
+	/** read parameters file */
+	void ReadParameters(const StringT& params);
 
 	/** compute the coefficients. Translated from the Paradyn routine interpolate.F
 	 * by Steve Plimpton, SNL-NM.
@@ -90,8 +102,8 @@ private:
 
 private:
 
-	/** path to source file */
-	StringT fParams;
+	/** host code support */
+	const BasicSupportT& fSupport;
 	
 	/** description from parameters file */
 	StringT fDescription;

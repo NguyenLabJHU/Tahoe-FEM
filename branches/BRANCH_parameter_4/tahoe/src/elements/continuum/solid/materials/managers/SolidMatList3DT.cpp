@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.44 2004-06-22 19:33:27 cjkimme Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.44.2.1 2004-07-06 06:53:52 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 
@@ -118,17 +118,19 @@ using namespace Tahoe;
 SolidMatList3DT::SolidMatList3DT(int length, const SolidMatSupportT& support):
 	SolidMatListT(length, support)
 {
-	SetName("solid_materials_3D");
+	SetName("solid_material_3D");
 }
 
 SolidMatList3DT::SolidMatList3DT(void)
 {
-	SetName("solid_materials_3D");
+	SetName("solid_material_3D");
 }
 
 /* read material data from the input stream */
 void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 {
+#pragma message("delete me")
+#if 0
 	const char caller[] = "SolidMatList3DT::ReadMaterialData";
 
 	int i, matnum;
@@ -767,6 +769,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		ExceptionT::Throw(error, caller, "exception constructing material %d, index %d, code %d",
 			i+1, matnum+1, matcode);
 	}
+#endif
 }
 
 /* error messages */

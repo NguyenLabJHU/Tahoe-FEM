@@ -33,10 +33,6 @@ class PowerLawIIKinetics: public SlipKinetics
   virtual double DPsiDIso(double gamdot, int is);
   virtual double DPsiDKin(double gamdot, int is);
 
-  // print kinetic equation data and model name
-  virtual void Print(ostream& out) const;
-  virtual void PrintName(ostream& out) const;
-
  private:
   // compute some preliminary quantities
   double ComputeInternalQnts(double& tau, double tauIso, int is);

@@ -62,10 +62,6 @@ class VoceHardening : public SlipHardening
   // compute hardening quantities
   virtual const dArrayT& ComputeHardQnts();
 
-  // print hardening data and model name
-  virtual void Print(ostream& out) const;
-  virtual void PrintName(ostream& out) const;
-
  private:
   // compute some hardening quantities
   void InternalHardQnts();

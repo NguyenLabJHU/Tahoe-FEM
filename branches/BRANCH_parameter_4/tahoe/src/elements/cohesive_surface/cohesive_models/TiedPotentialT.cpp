@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.23 2004-06-17 07:13:28 paklein Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.23.2.1 2004-07-06 06:53:10 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 #include "TiedPotentialT.h"
 
@@ -22,6 +22,8 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in):
 	SurfacePotentialT(knumDOF), TiedPotentialBaseT(),
 	qRetieNodes(false)
 {
+#pragma unused(in)
+#if 0
     in >> fnvec1; /* read in direction to sample stress state at */
     in >> fnvec2;
  
@@ -83,6 +85,7 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in):
 	}
 	
 	fsigma_critical *= fsigma_critical;
+#endif
 }
 
 /* return the number of state variables needed by the model */
@@ -297,13 +300,7 @@ SurfacePotentialT::StatusT TiedPotentialT::Status(const dArrayT& jump_u,
 			return Precritical;
 }
 
-void TiedPotentialT::PrintName(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	out << "    TiedPotentialT (modified Xu-Needleman) 2D \n";
-#endif
-}
-
+#if 0
 /* print parameters to the output stream */
 void TiedPotentialT::Print(ostream& out) const
 {
@@ -331,6 +328,7 @@ void TiedPotentialT::Print(ostream& out) const
 	}
 #endif
 }
+#endif
 
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0

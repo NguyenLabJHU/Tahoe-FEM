@@ -1,4 +1,4 @@
-/* $Id: SetOfNodesKBCT.cpp,v 1.3 2003-11-21 22:47:59 paklein Exp $ */
+/* $Id: SetOfNodesKBCT.cpp,v 1.3.28.1 2004-07-06 06:54:42 paklein Exp $ */
 #include "SetOfNodesKBCT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -11,8 +11,8 @@
 using namespace Tahoe;
 
 /* constructor */
-SetOfNodesKBCT::SetOfNodesKBCT(NodeManagerT& node_manager, BasicFieldT& field):
-	KBC_ControllerT(node_manager),
+SetOfNodesKBCT::SetOfNodesKBCT(const BasicSupportT& support, BasicFieldT& field):
+	KBC_ControllerT(support),
 	fSchedule(NULL)
 {
 #pragma unused(field)
@@ -22,13 +22,6 @@ SetOfNodesKBCT::SetOfNodesKBCT(NodeManagerT& node_manager, BasicFieldT& field):
 SetOfNodesKBCT::~SetOfNodesKBCT(void)
 {
    
-}
-
-void SetOfNodesKBCT::WriteParameters(ostream& out) const
-{
-	/* inherited */
-	KBC_ControllerT::WriteParameters(out);
-
 }
 
 void SetOfNodesKBCT::Initialize(ifstreamT& in)
@@ -67,7 +60,7 @@ void SetOfNodesKBCT::Initialize(ifstreamT& in)
 			if (code[i] != KBC_CardT::kFix)
 			{
 				fScheduleNum[i]--;
-				fSchedule = fNodeManager.Schedule(fScheduleNum[i]);	
+				fSchedule = fSupport.Schedule(fScheduleNum[i]);	
 				if (!fSchedule) 
 					ExceptionT::BadInputValue("SetOfNodesKBCT::Initialize","Cannot get schedule %d \n",fScheduleNum[i]);
 			}
@@ -84,7 +77,8 @@ void SetOfNodesKBCT::Initialize(ifstreamT& in)
 			for (int j = 0; j < iMax - iMin + 1; j++, pcard++)
 			{			
 				/* set values */
-				pcard->SetValues(iMin + j, dof[i], code[i], fScheduleNum[i], fScale[i]);
+				const ScheduleT* schedule = fSupport.Schedule(fScheduleNum[i]);
+				pcard->SetValues(iMin + j, dof[i], code[i], schedule, fScale[i]);
 			}
 	
 		}
@@ -92,11 +86,11 @@ void SetOfNodesKBCT::Initialize(ifstreamT& in)
 	}
 	else // Initialize regions
 	{		
-		int numSD = fNodeManager.NumSD();
+		int numSD = fSupport.NumSD();
 		dArrayT fxmin(numSD), fxmax(numSD);
 		
 		/* get nodal coordinates */
-		const dArray2DT& coords = fNodeManager.InitialCoordinates();
+		const dArray2DT& coords = fSupport.InitialCoordinates();
 
 		in >> fxmin;
 		in >> fxmax;
@@ -161,7 +155,7 @@ void SetOfNodesKBCT::Initialize(ifstreamT& in)
 			if (code[i] != KBC_CardT::kFix)
 			{
 				fScheduleNum[i]--;
-				fSchedule = fNodeManager.Schedule(fScheduleNum[i]);	
+				fSchedule = fSupport.Schedule(fScheduleNum[i]);	
 				if (!fSchedule) 
 					ExceptionT::BadInputValue("SetOfNodesKBCT::Initialize","Cannot get schedule %d \n",fScheduleNum[i]);
 			}
@@ -180,7 +174,8 @@ void SetOfNodesKBCT::Initialize(ifstreamT& in)
 			for (int j = 0; j < fNodes.Length(); j++, pcard++)
 			{			
 				/* set values */
-				pcard->SetValues(fNodes[j], dof[i], code[i], fScheduleNum[i], fScale[i]);
+				const ScheduleT* schedule = fSupport.Schedule(fScheduleNum[i]);
+				pcard->SetValues(fNodes[j], dof[i], code[i], schedule, fScale[i]);
 			}
 		
 		}

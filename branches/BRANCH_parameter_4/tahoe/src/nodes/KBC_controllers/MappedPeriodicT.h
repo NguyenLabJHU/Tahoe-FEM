@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.h,v 1.6 2002-07-05 22:28:31 paklein Exp $ */
+/* $Id: MappedPeriodicT.h,v 1.6.64.1 2004-07-06 06:54:42 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 
 #ifndef _MAPPED_PERIODIC_T_H
@@ -35,8 +35,8 @@ class MappedPeriodicT: public KBC_ControllerT
 {
 public:
 
-	/* constructor */
-	MappedPeriodicT(NodeManagerT& node_manager, BasicFieldT& field);
+	/** constructor */
+	MappedPeriodicT(const BasicSupportT& support, BasicFieldT& field);
 
 	/* initialize data - called immediately after construction */
 	virtual void Initialize(ifstreamT& in);
@@ -50,14 +50,28 @@ public:
 
 	/* output */
 	virtual void WriteOutput(ostream& out) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 	
 protected:
 
 	/** the field */
 	BasicFieldT& fField;
 
-	/* schedule for fFperturb */
-	int fnumLTf;
+	/** schedule for fFperturb */
 	const ScheduleT* fSchedule;   	
 	
 	/* specified deformation gradient */

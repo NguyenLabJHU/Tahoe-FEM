@@ -1,32 +1,36 @@
-/* $Id: MeshFreeSSSolidT.h,v 1.8 2004-01-05 07:16:47 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.h,v 1.8.26.1 2004-07-06 06:54:15 paklein Exp $ */
 /* created: paklein (09/11/1998) */
-
 #ifndef _MF_SMALLSTRAIN_T_H_
 #define _MF_SMALLSTRAIN_T_H_
 
 /* base classes */
 #include "SmallStrainT.h"
-#include "MeshFreeFractureSupportT.h"
 
 /* direct members */
 #include "nVariMatrixT.h"
 
 namespace Tahoe {
 
+/* forward declarations */
+class MeshFreeSupportT;
+class MeshFreeShapeFunctionT;
+class MeshFreeFractureSupportT;
+
 /** small strain elasticity with MLS shapefunctions for the
  * field (displacement) representation
  * \note clean up code governing when crack growth algorithm
  * is used, initiation criteria, etc. (PAK 09/28/1999) */
-class MeshFreeSSSolidT: public SmallStrainT, public MeshFreeFractureSupportT
+class MeshFreeSSSolidT: public SmallStrainT
 {
 public:
 
 	/* constructor */
 	MeshFreeSSSolidT(const ElementSupportT& support, const FieldT& field);
-	
-	/* data initialization */
-	virtual void Initialize(void);
+	MeshFreeSSSolidT(const ElementSupportT& support);
 
+	/* destructor */
+	~MeshFreeSSSolidT(void);
+	
 	/* append element equations numbers to the list */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
@@ -55,11 +59,26 @@ public:
 	virtual void InitStep(void);
 	virtual void CloseStep(void);
 	virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
-					
-protected:
 
-	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
+	/** accessors */
+	MeshFreeSupportT& MeshFreeSupport(void) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
+protected:
 
 	/* initialization functions */
 	virtual void SetShape(void);
@@ -78,11 +97,25 @@ private:
 	
 private:
 
+	/** meshless shape functions */
+	MeshFreeShapeFunctionT* fMFShapes;
+
+	/** support for meshless calculations */
+	MeshFreeFractureSupportT* fMFFractureSupport;
+
+	/** make field at bounding nodes nodally exact */
+	bool fAutoBorder;
+
 	/* dynamic wrapper */
 	nVariMatrixT<double> fB_wrap;
 	
 	/* field ready flag */
 	bool fFieldSet;
+
+	/** pointer to list parameters needed to construct meshless shape functions. This
+	 * pointer is set during MeshFreeSSSolidT::TakeParamaterListT and used during
+	 * MeshFreeSSSolidT::SetShape */
+	const ParameterListT* fMeshfreeParameters;
 };
 
 } // namespace Tahoe 

@@ -1,6 +1,5 @@
-/* $Id: TimeManagerT.h,v 1.11 2003-10-28 07:36:49 paklein Exp $ */
+/* $Id: TimeManagerT.h,v 1.11.30.1 2004-07-06 06:54:37 paklein Exp $ */
 /* created: paklein (05/23/1996) */
-
 #ifndef _TIMEMANAGER_T_H_
 #define _TIMEMANAGER_T_H_
 
@@ -34,21 +33,6 @@ class TimeManagerT: public iConsoleObjectT, public ParameterInterfaceT
 
 public:
 
-	/** enum of integrator types */
-	enum CodeT {
-		kLinearStatic = 0,
-		      kStatic = 1,
-           kTrapezoid = 2,
-           kLinearHHT = 3,
-		kNonlinearHHT = 4,
-		  kExplicitCD = 5,
-		kVerlet = 6,
-		kGear6 = 7
-	};
-
-	/** stream extraction operator */
-	friend istream& operator>>(istream& in, TimeManagerT::CodeT& code);
-
 	/** constructor */
 	TimeManagerT(FEManagerT& FEM);
 
@@ -57,6 +41,7 @@ public:
 
 	/* run through the time sequences */
 	void Top(void);
+	
 	bool NextSequence(void);
 
 	/* time sequence */
@@ -103,7 +88,7 @@ public:
 	bool WriteOutput(void) const;
 
 	/** return a pointer to a integrator of the specified type */
-	IntegratorT* New_Integrator(CodeT type) const;
+//	IntegratorT* New_Integrator(CodeT type) const;
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -112,6 +97,12 @@ public:
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
 	/*@}*/
 
 private:	
@@ -123,7 +114,9 @@ private:
 	
 	/* output functions */
 	void EchoTimeSequences(ifstreamT& in, ostream& out);
+#if 0
 	void EchoSchedule(ifstreamT& in, ostream& out);
+#endif
 
 	/* increment the time and reset the load factors */
 	void IncrementTime(double dt);
@@ -139,7 +132,7 @@ private:
 
 	FEManagerT& theBoss;
 	
-	ArrayT<TimeSequence> fSequences;
+	ArrayT<TimeSequence> fSequences; //TEMP - remove multiple time sequences
 	pArrayT<ScheduleT*>  fSchedule;
 
 	/** \name copied from current sequence */
@@ -165,7 +158,8 @@ private:
 	
 	/** will be IntegratorT::kExplicit if all integrators are explicit
 	 * otherwise will be IntegratorT::kImplicit */
-	IntegratorT::ImpExpFlagT fImpExp;
+//	IntegratorT::ImpExpFlagT fImpExp;
+//DELETE ME
 
 /* functions for time shifters */
 private:

@@ -1,3 +1,4 @@
+/* $Id: eGear6.cpp,v 1.2.58.1 2004-07-06 06:54:32 paklein Exp $ */
 #include "eGear6.h"
 
 #include "Environment.h"

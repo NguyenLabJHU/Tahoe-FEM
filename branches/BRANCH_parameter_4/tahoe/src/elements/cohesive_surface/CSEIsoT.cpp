@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.20 2004-06-17 07:13:20 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.20.2.1 2004-07-06 06:53:08 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -14,6 +14,7 @@
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 #include "eIntegratorT.h"
 #endif
+#include "ParameterContainerT.h"
 
 /* potential functions */
 #include "LennardJones612.h"
@@ -49,95 +50,98 @@ GlobalT::SystemTypeT CSEIsoT::TangentType(void) const
 	return GlobalT::kSymmetric;
 }
 
-void CSEIsoT::Initialize(void)
+/* information about subordinate parameter lists */
+void CSEIsoT::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
-	CSEBaseT::Initialize();
+	CSEBaseT::DefineSubs(sub_list);
+
+	/* element block/material specification */
+	sub_list.AddSub("isotropic_CSE_element_block", ParameterListT::OnePlus);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void CSEIsoT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	if (sub == "surface_potential")
+	{
+		/* choice */
+		order = ParameterListT::Choice;
+		
+		/* function types */
+		sub_sub_list.AddSub("Lennard-Jones_6-12");
+		sub_sub_list.AddSub("Smith-Ferrante");
+	}
+	else /* inherited */
+		CSEBaseT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT */
+ParameterInterfaceT* CSEIsoT::NewSub(const StringT& list_name) const
+{
+	/* try surface potential */
+	C1FunctionT* surf_pot = C1FunctionT::New(list_name);
+	if (surf_pot)
+		return surf_pot;
+
+	/* other lists */
+	if (list_name == "isotropic_CSE_element_block")
+	{
+		ParameterContainerT* block = new ParameterContainerT(list_name);
+		
+		/* list of element block ID's (defined by ElementBaseT) */
+		block->AddSub("block_ID_list", ParameterListT::Once);
+
+		/* choice of materials lists (inline) */
+		block->AddSub("surface_potential", ParameterListT::Once, true);
+
+		/* set this as source of subs */
+		block->SetSubSource(this);
+		
+		return block;
+	}		
+	else /* inherited */
+		return CSEBaseT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void CSEIsoT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "CSEIsoT::TakeParameterList";
+
+	/* inherited */
+	CSEBaseT::TakeParameterList(list);
 
 	/* check output codes */
 	if (fNodalOutputCodes[MaterialData])
-	{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-		cout << "\n CSEIsoT::Initialize: material outputs not supported, overriding" << endl;
-#endif
-		fNodalOutputCodes[MaterialData] = IOBaseT::kAtNever;
-	}
+		fNodalOutputCodes[MaterialData] = IOBaseT::kAtNever; /* not supported */
 
-	/* streams */
-	ifstreamT& in = ElementSupport().Input();
-	ostream&   out = ElementSupport().Output();
-	
-	/* construct props */
-	int numpots;
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	in >> numpots;
-#else
-	numpots = 1;
-#endif
-	fSurfPots.Dimension(numpots);
-	for (int i = 0; i < fSurfPots.Length(); i++)
-	{
-		int num, code;
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-		in >> num >> code;
-#else
-		num = 1; 
-		code = ElementSupport().ReturnInputInt(ElementSupportT::kMaterialCode);
-#endif
+	/* construct list of potentials - one per block */
+	int num_block = list.NumLists("isotropic_CSE_element_block");
+	fSurfPots.Dimension(num_block);
+	for (int i = 0; i < fSurfPots.Length(); i++) {
 
-		/* check for repeated number */
-		if (fSurfPots[--num] != NULL) throw ExceptionT::kBadInputValue;
-	
-		/* construct surface potential function */
-		switch (code)
-		{
-			case C1FunctionT::kLennardJones:
-			{	
-				double A, B;
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-				in >> A >> B;
-#else
-#endif				
-				fSurfPots[num] = new LennardJones612(A,B);
-				break;
-			}	
-			case C1FunctionT::kSmithFerrante:
-			{
-				double A, B;
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-				in >> A >> B;
-#else
-#endif			
-				fSurfPots[num] = new SmithFerrante(A,B,0.0);
-				break;
-			}
-			default:
-			
-				throw ExceptionT::kBadInputValue;	
-		}
-	
-		if (!fSurfPots[num]) throw ExceptionT::kOutOfMemory;
-	}
+		/* block information */
+		const ParameterListT& block = list.GetList("isotropic_CSE_element_block", i);
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	/* echo */
-	out << "\n Cohesive surface potentials:\n";
-	out << " Number of potentials. . . . . . . . . . . . . . = ";
-	out << fSurfPots.Length() << '\n';
-	for (int j = 0; j < fSurfPots.Length(); j++)
-	{
-		out << "\n Potential number. . . . . . . . . . . . . . . . = "
-		    << j + 1 << '\n';
-		out << " Potential name:\n";
-		fSurfPots[j]->PrintName(out);
-		fSurfPots[j]->Print(out);
+		/* resolve material choice */
+		const ParameterListT& surf_pot_params = block.GetListChoice(*this, "surface_potential");
+
+		/* construct material */
+		C1FunctionT* surf_pot = C1FunctionT::New(surf_pot_params.Name());
+		if (!surf_pot)
+			ExceptionT::BadInputValue(caller, "could not construct \"%s\"", surf_pot_params.Name().Pointer());
+		surf_pot->TakeParameterList(surf_pot_params);
+
+		/* keep */
+		fSurfPots[i] = surf_pot;
 	}
-#endif
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* called by FormRHS and FormLHS */
 void CSEIsoT::LHSDriver(GlobalT::SystemTypeT)

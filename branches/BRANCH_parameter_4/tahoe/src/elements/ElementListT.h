@@ -1,4 +1,4 @@
-/* $Id: ElementListT.h,v 1.9 2003-12-28 08:22:54 paklein Exp $ */
+/* $Id: ElementListT.h,v 1.9.26.1 2004-07-06 06:53:06 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #ifndef _ELEMENTLIST_T_H_
 #define _ELEMENTLIST_T_H_
@@ -60,7 +60,17 @@ public:
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list.
+	 * \param list input parameter list, which should be validated using ParameterInterfaceT::ValidateParameterList
+	 *        to ensure the list conforms to the description defined by the interface. */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+
+private:
+
+	/** return a pointer to a new element group or NULL if the request cannot be completed */
+	ElementBaseT* NewElement(const StringT& list_name) const;
 
 private:
 

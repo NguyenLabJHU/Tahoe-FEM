@@ -245,28 +245,6 @@ const double HaasenHardening::ComputeHardQnts(int is)
   return fMatProp[0]*fBT*(fDDtot[is]-fDDimm[is]);
 }
 
-void HaasenHardening::Print(ostream& out) const
-{
-  // print hardening parameters
-  out << "       Burger's vector (b) . . . . . . . . . . . = " << fMatProp[0] << "\n";
-  out << "       Constant G (~ shear modulus). . . . . . . = " << fMatProp[1] << "\n";
-  out << "       Constant K. . . . . . . . . . . . . . . . = " << fMatProp[2] << "\n";
-  out << "       Latent hardening coeff (q). . . . . . . . = " << fMatProp[3] << "\n";
-  out << "       Gamma0. . . . . . . . . . . . . . . . . . = " << fMatProp[4] << "\n";
-  out << "       X0aa. . . . . . . . . . . . . . . . . . . = " << fMatProp[5] << "\n";
-  out << "       Strain rate sensit exponent (m) . . . . . = " << fMatProp[6] << "\n";
-  out << "       tau_0 . . . . . . . . . . . . . . . . . . = " << fMatProp[7] << "\n";
-
-  // print hardening solver control data
-  fSolver->Print(out);
-}
-
-void HaasenHardening::PrintName(ostream& out) const
-{
-  // print model name
-  out << "    Haasen's slip hardening law\n";
-}
-
 /* PRIVATE MEMBERS FUNCTIONS */
 
 void HaasenHardening::NonDirectionalHardening(dArrayT& tauIso, const dArrayT& DDtot,
