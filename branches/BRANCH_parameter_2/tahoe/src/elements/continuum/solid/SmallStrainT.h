@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.13.2.3 2004-02-11 16:39:00 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.13.2.4 2004-02-12 17:19:13 paklein Exp $ */
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
 
@@ -60,6 +60,12 @@ class SmallStrainT: public SolidElementT
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+
+	/** extract element block info from parameter list */
+	virtual void CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const;
+
+	/** extract the list of material parameters */
+	virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
 
   protected:
 

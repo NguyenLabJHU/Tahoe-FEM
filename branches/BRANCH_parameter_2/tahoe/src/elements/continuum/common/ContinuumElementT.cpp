@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.35.2.1 2004-02-11 16:38:58 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.35.2.2 2004-02-12 17:19:12 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -423,18 +423,6 @@ void ContinuumElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
 {
 	/* inherited */
 	ElementBaseT::EchoConnectivityData(in, out);
-
-	/* construct group communicator */
-	const CommunicatorT& comm = ElementSupport().Communicator();
-	int color = (NumElements() > 0) ? 1 : CommunicatorT::kNoColor;
-	fGroupCommunicator = new CommunicatorT(comm, color, comm.Rank());
-}
-
-/* define the elements blocks for the element group */
-void ContinuumElementT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index)
-{
-	/* inherited */
-	ElementBaseT::DefineElements(block_ID, mat_index);
 
 	/* construct group communicator */
 	const CommunicatorT& comm = ElementSupport().Communicator();
@@ -1173,11 +1161,11 @@ void ContinuumElementT::DefineInlineSub(const StringT& sub, ParameterListT::List
 		order = ParameterListT::Choice;
 	
 		/* element geometries */
-		sub_sub_list.AddSub("quadrilateral");
-		sub_sub_list.AddSub("triangle");
-		sub_sub_list.AddSub("hexahedron");
-		sub_sub_list.AddSub("tetrahedron");
-		sub_sub_list.AddSub("line");
+		sub_sub_list.AddSub(GeometryT::ToString(GeometryT::kQuadrilateral));
+		sub_sub_list.AddSub(GeometryT::ToString(GeometryT::kTriangle));
+		sub_sub_list.AddSub(GeometryT::ToString(GeometryT::kHexahedron));
+		sub_sub_list.AddSub(GeometryT::ToString(GeometryT::kTetrahedron));
+		sub_sub_list.AddSub(GeometryT::ToString(GeometryT::kLine));
 	}
 	else
 		ElementBaseT::DefineInlineSub(sub, order, sub_sub_list);
@@ -1222,9 +1210,9 @@ ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
 
 		return line;
 	}
-	else if (list_name == "quadrilateral")
+	else if (list_name == GeometryT::ToString(GeometryT::kQuadrilateral))
 	{
-		ParameterContainerT* quad = new ParameterContainerT("quadrilateral");
+		ParameterContainerT* quad = new ParameterContainerT(list_name);
 	
 		/* integration rules */
 		ParameterT num_ip(ParameterT::Integer, "num_ip");
@@ -1238,9 +1226,9 @@ ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
 
 		return quad;
 	}
-	else if (list_name == "triangle")
+	else if (list_name == GeometryT::ToString(GeometryT::kTriangle))
 	{
-		ParameterContainerT* tri = new ParameterContainerT("triangle");
+		ParameterContainerT* tri = new ParameterContainerT(list_name);
 	
 		/* integration rules */
 		ParameterT num_ip(ParameterT::Integer, "num_ip");
@@ -1252,9 +1240,9 @@ ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
 
 		return tri;
 	}
-	else if (list_name == "hexahedron")
+	else if (list_name == GeometryT::ToString(GeometryT::kHexahedron))
 	{
-		ParameterContainerT* hex = new ParameterContainerT("hexahedron");
+		ParameterContainerT* hex = new ParameterContainerT(list_name);
 	
 		/* integration rules */
 		ParameterT num_ip(ParameterT::Integer, "num_ip");
@@ -1268,9 +1256,9 @@ ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
 
 		return hex;
 	}
-	else if (list_name == "tetrahedron")
+	else if (list_name == GeometryT::ToString(GeometryT::kTetrahedron))
 	{
-		ParameterContainerT* tet = new ParameterContainerT("tetrahedron");
+		ParameterContainerT* tet = new ParameterContainerT(list_name);
 	
 		/* integration rules */
 		ParameterT num_ip(ParameterT::Integer, "num_ip");
@@ -1283,6 +1271,81 @@ ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
 	}
 	else /* inherited */
 		return ElementBaseT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void ContinuumElementT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "ContinuumElementT::TakeParameterList";
+
+	/* inherited */
+	ElementBaseT::TakeParameterList(list);
+
+	/* construct group communicator */
+	const CommunicatorT& comm = ElementSupport().Communicator();
+	int color = (NumElements() > 0) ? 1 : CommunicatorT::kNoColor;
+	fGroupCommunicator = new CommunicatorT(comm, color, comm.Rank());
+
+	/* allocate work space */
+	fNEEvec.Dimension(NumElementNodes()*NumDOF());
+
+	/* initialize local arrays */
+	SetLocalArrays();
+
+	/* construct shape functions */
+	GeometryT::CodeT geom_codes[5] = {
+		GeometryT::kQuadrilateral,
+		GeometryT::kTriangle, 
+		GeometryT::kHexahedron,
+		GeometryT::kTetrahedron, 
+		GeometryT::kLine};
+	fGeometryCode = GeometryT::kNone;
+	for (int i = 0; i < 5; i++) {
+		const ParameterListT* integration_domain = list.List(GeometryT::ToString(geom_codes[i]));
+		if (integration_domain) {
+			fGeometryCode = geom_codes[i];
+			fNumIP = integration_domain->GetParameter("num_ip");
+		}
+	}
+	SetShape();
+
+	/* construct material list */
+	ParameterListT mat_params;
+	CollectMaterialInfo(list, mat_params);
+	fMaterialList = NewMaterialList(mat_params.Name(), mat_params.NumLists());
+	if (!fMaterialList) ExceptionT::GeneralFail(caller, "could not construct material list \"%s\"", 
+		mat_params.Name().Pointer());
+	fMaterialList->TakeParameterList(mat_params);
+
+	/* get form of tangent */
+	GlobalT::SystemTypeT type = TangentType();
+	
+	/* set form of element stiffness matrix */
+	if (type == GlobalT::kSymmetric)
+		fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
+	else if (type == GlobalT::kNonSymmetric)
+		fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
+	else if (type == GlobalT::kDiagonal)
+		fLHS.SetFormat(ElementMatrixT::kDiagonal);
+
+#pragma message("finish me")
+#if 0
+	/* output print specifications */
+	EchoOutputCodes(in, out);
+
+	/* body force specification (non virtual) */
+	EchoBodyForce(in, out);
+	
+	/* echo traction B.C.'s (non virtual) */
+	EchoTractionBC(in, out);
+#endif
+}
+
+/* extract the list of material parameters */
+void ContinuumElementT::CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const
+{
+#pragma unused(all_params)
+	mat_params.Clear();
 }
 
 /***********************************************************************

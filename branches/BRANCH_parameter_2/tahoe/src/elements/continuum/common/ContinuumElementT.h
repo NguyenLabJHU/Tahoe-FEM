@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.24.2.1 2004-02-11 16:38:58 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.24.2.2 2004-02-12 17:19:12 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -129,9 +129,6 @@ protected:
 	/** stream extraction operator */
 	friend istream& operator>>(istream& in, ContinuumElementT::MassTypeT& type);
 
-	/** define the elements blocks for the element group */
-	virtual void DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index);
-
 	/** echo element connectivity data. Calls the inherited ElementBaseT::ElementBaseT
 	 * and then constructs the communicator for the processes with non-zero numbers
 	 * of elements in this group */
@@ -223,7 +220,13 @@ protected:
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+
+	/** extract the list of material parameters */
+	virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.24.2.2 2004-02-05 18:47:16 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.24.2.3 2004-02-12 17:19:15 paklein Exp $ */
 #include "FieldT.h"
 
 #include "fstreamT.h"
@@ -855,7 +855,7 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 
 	/* construct integrator */
 	int integrator_type = list.GetParameter("integrator");
-	IntegratorT* fIntegrator = IntegratorT::New(integrator_type, true);
+	fIntegrator = IntegratorT::New(integrator_type, true);
 	
 	/* cast to nodal interface */
 	fnIntegrator = TB_DYNAMIC_CAST(const nIntegratorT*, fIntegrator);

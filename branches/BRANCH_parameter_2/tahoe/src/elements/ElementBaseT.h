@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.35.2.2 2004-02-11 16:38:57 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.35.2.3 2004-02-12 17:19:11 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -41,12 +41,7 @@ class SubListT;
 class FieldT;
 #endif
 
-/** base class for element types. Initialization of the element classes
- * is accomplished by first setting the time integration controller with
- * ElementBaseT::SetController followed by calling the function 
- * ElementBaseT::Initialize immediately after the constructor. This gives 
- * derived classes the opportunity to override derived class behavior since
- * both functions are virtual. A sequence of time steps begins with a call
+/** base class for element types. A sequence of time steps begins with a call
  * to ElementBaseT::InitialCondition. A single time step begins with a call to 
  * ElementBaseT::InitStep, followed by one or more calls to ElementBaseT::FormRHS
  * and ElementBaseT::FormLHS (in that order) depending on the solution method.
@@ -305,6 +300,18 @@ public:
 
 protected: /* for derived classes only */
 
+	/** \name construction of connectivities */
+	/*@{*/
+	/** extract element block info from parameter list to be used. Method is
+	 * used in conjunction with ElementBaseT::DefineElements to initialize
+	 * the element group connectivities. By default, ElementBaseT::ExtractBlockInfo 
+	 * does not extract any information; henace to connectivies are read. */
+	virtual void CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const;
+
+	/** define the elements blocks for the element group */
+	void DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index);
+	/*@}*/
+
 	/** map the element numbers from block to group numbering */
 	void BlockToGroupElementNumbers(iArrayT& elems, const StringT& block_ID) const;
 
@@ -353,9 +360,6 @@ protected: /* for derived classes only */
 	 * false otherwise */ 
 	virtual bool NextElement(void);
 	/*@}*/
-
-	/** define the elements blocks for the element group */
-	virtual void DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index);
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* print element group data */
