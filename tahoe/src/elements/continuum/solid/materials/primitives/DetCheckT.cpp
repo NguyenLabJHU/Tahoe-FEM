@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.17 2002-06-27 23:44:34 cfoster Exp $ */
+/* $Id: DetCheckT.cpp,v 1.18 2002-06-28 23:44:14 cfoster Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "DetCheckT.h"
@@ -9,6 +9,8 @@
 #include "dMatrixEXT.h"
 #include "dArrayT.h"
 #include "dTensor4DT.h"
+
+//#include <ofstream.h>
 
 /* constants */
 const double Pi = acos(-1.0);
@@ -191,7 +193,7 @@ int DetCheckT::DetCheck2D(dArrayT& normal)
 /* assumes small strain formulation */
 int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 {
-  int i,j,k,l,m,n, control; // counters and control variable
+  int i,j,k,l,m,n; // counters and control variable
 
   //double C [3] [3] [3] [3]; // rank 4 tangent modulus 
 
@@ -220,6 +222,10 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 
   dTensor4DT C(3,3,3,3);
   
+  //ofstream.out normal_file("normal.info");
+
+
+
   //cout << "In DetCheck3d_SS " << endl;
 
   // initialize variables
@@ -494,12 +500,13 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
       normal0=finalnormal0;
       normal1=finalnormal1;
       normal2=finalnormal2;
+     
+      //determine slip direction
 
-      // why do we need this ?      
       A.formacoustictensor(A, C, normal);
       
-      A.eigenvalue3x3(A, realev, imev);
-      //A.eigvalfinder(A, realev, imev);
+      //A.eigenvalue3x3(A, realev, imev);
+      A.eigvalfinder(A, realev, imev);
       
       guess=realev[0];
       if (realev[1]<guess)
@@ -569,7 +576,7 @@ void DetCheckT::FindApproxLocalMins(double detA [numThetaChecks] [numPhiChecks],
   //void DetCheckT::FindApproxLocalMins(double detA [numThetaChecks] [numPhiChecks],
   //int localmin [numThetaChecks] [numPhiChecks], double C [] [3] [3] [3])
 {
-  int i,j,k,l,m,n, control;
+  int i,j,k,l,m,n;
   double theta, phi; //horizontal plane angle and polar angle for normal, resp
   dMatrixEXT A(3), Ainverse(3); //acoustic tensor and its inverse
   dArrayT normal (3);
@@ -670,8 +677,8 @@ dArrayT DetCheckT::ChooseNewNormal(dArrayT& prevnormal, dMatrixEXT& J,
   // cout << "-1 " << endl;
 
   // chooses eigvector by closest approx to previous normal
-  //J.eigvalfinder(J, realev, imev);
-  J.eigenvalue3x3(J, realev, imev);
+  J.eigvalfinder(J, realev, imev);
+  //J.eigenvalue3x3(J, realev, imev);
 
   //cout << realev << endl << endl;
   //cout << imev << endl << endl;
