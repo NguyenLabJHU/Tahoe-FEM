@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman2DT.cpp,v 1.15 2003-05-26 01:51:46 paklein Exp $ */
+/* $Id: XuNeedleman2DT.cpp,v 1.16 2004-06-17 07:13:28 paklein Exp $ */
 /* created: paklein (11/14/1997) */
 
 #include "XuNeedleman2DT.h"
@@ -7,12 +7,11 @@
 #include <math.h>
 
 #include "ExceptionT.h"
-#include "fstreamT.h"
-
-/* class parameters */
+#include "ifstreamT.h"
 
 using namespace Tahoe;
 
+/* class parameters */
 const int    knumDOF = 2;
 const double kExpMax = 100;
 

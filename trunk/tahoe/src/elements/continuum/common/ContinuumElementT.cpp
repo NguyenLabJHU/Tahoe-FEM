@@ -1,11 +1,12 @@
-/* $Id: ContinuumElementT.cpp,v 1.39 2004-02-06 18:01:38 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.40 2004-06-17 07:13:48 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "ModelManagerT.h"
 #include "SolidMaterialT.h"
 #include "ShapeFunctionT.h"

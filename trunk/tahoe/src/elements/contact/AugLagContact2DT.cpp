@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.16 2003-11-21 22:45:57 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.17 2004-06-17 07:13:38 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 #include "AugLagContact2DT.h"
 
@@ -6,7 +6,7 @@
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "eIntegratorT.h"
 #include "ElementSupportT.h"
 #include "XDOF_ManagerT.h"

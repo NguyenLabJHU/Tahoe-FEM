@@ -1,7 +1,7 @@
-/* $Id: ScheduleT.cpp,v 1.5 2003-10-28 07:12:14 paklein Exp $ */
+/* $Id: ScheduleT.cpp,v 1.6 2004-06-17 07:14:05 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ScheduleT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 
 #include <iostream.h>
 #include <iomanip.h>

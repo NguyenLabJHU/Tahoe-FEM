@@ -1,11 +1,12 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.7 2004-04-27 07:25:27 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.8 2004-06-17 07:13:39 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "eIntegratorT.h"
 #include "InverseMapT.h"
 #include "iGridManager2DT.h"

@@ -1,18 +1,16 @@
-/* $Id: LinearDamageT.cpp,v 1.16 2003-11-21 22:45:53 paklein Exp $ */
+/* $Id: LinearDamageT.cpp,v 1.17 2004-06-17 07:13:28 paklein Exp $ */
 /* created: paklein (08/21/2000) */
-
 #include "LinearDamageT.h"
 
 #include <iostream.h>
 #include <math.h>
 
 #include "ExceptionT.h"
-#include "fstreamT.h"
-
-/* map to internal variables */
+#include "ifstreamT.h"
 
 using namespace Tahoe;
 
+/* map to internal variables */
 const int   kMaxOpening = 0;
 const int kTrialOpening = 1;
 const int kInitTraction = 2;
