@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.39.2.6 2003-05-06 22:14:05 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.39.2.7 2003-05-07 15:37:09 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -600,46 +600,51 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		/* running status flag */
 		ExceptionT::CodeT error = ExceptionT::kNoError;		
 		
-		/* test solving both MD and FE initially before main time loop */
+		/* Solve both MD and FE initially before main time loop */
 		atom_time->Step();	
 					
-		/* initialize step */
+		/* initialize MD step - assume initial MD displacements known here */
 		if (1 || error == ExceptionT::kNoError) error = atoms.InitStep();
-                        
-		/* solve atoms */
+		
+		/* begin continuum initial step */
+		continuum_time->Step();
+					
+		/* initialize step */
+		if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
+                    
+		/* calculate initial FEM displacements via projection of MD displacements */
+		continuum.ProjectField(bridging_field, *atoms.NodeManager());
+		
+		/* calculate fine scale part of MD displacement and total displacement u */
+		continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager());
+		
+		/* solve for initial FEM force as function of fine scale + FEM */
+		
+		/* solve continuum for accelerations */
+		if (1 || error == ExceptionT::kNoError) {
+				continuum.ResetCumulativeUpdate(group);
+				error = continuum.SolveStep();
+		}
+		
+		/* close fe step (all solving of equations over) */
+		if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
+		
+		/* set ghost atom displacements/velocities as BC's for MD simulation - need to integrate
+		 * these ghost atom displacements through time during MD time loop assuming
+		 * constant coarse scale acceleration */
+		continuum.InterpolateField(bridging_field, field_at_ghosts);
+		atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
+		
+		/* initialize time history variables here */
+		
+		/* solve atoms for accelerations */
 		if (1 || error == ExceptionT::kNoError) {
 				atoms.ResetCumulativeUpdate(group);
 				error = atoms.SolveStep();
 		}
                         
 		/* close  md step */
-		if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();    
-		
-		continuum_time->Step();
-					
-		/* initialize step */
-		if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
-                    
-		/* calculate initial FEM displacements via projection */
-		continuum.ProjectField(bridging_field, *atoms.NodeManager());
-		
-		/* solve for initial FEM force as function of fine scale + FEM */
-		
-		/* solve continuum */
-		if (1 || error == ExceptionT::kNoError) {
-				continuum.ResetCumulativeUpdate(group);
-				error = continuum.SolveStep();
-		}
-		
-		/* set ghost atom displacements as BC's for MD simulation */
-		continuum.InterpolateField(bridging_field, field_at_ghosts);
-		atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
-		
-		/* initialize time history variables here */
-		
-		/* close fe step */
-		if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
-		continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager());
+		if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep(); 
 		
 		/* now loop over continuum and atoms after initialization */
 		for (int i = 1; i < nfesteps; i++)	// FE loop - originally i = 0
@@ -650,13 +655,22 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 					
 				/* initialize step */
 				if (1 || error == ExceptionT::kNoError) error = atoms.InitStep();
-                        
-				/* solve atoms */
+                 
+				/* integrate coarse scale displacements/velocities at MD boundary atom/ghost atoms here */
+				
+				/* integrate MD displacements, fractional velocities */
+				
+				/* update time history variables here using coarse scale displacements at MD
+				 * boundary/ghost atoms + MD displacements at boundary/ghost atoms */
+				
+				/* solve MD equations of motion for accelerations */
 				if (1 || error == ExceptionT::kNoError) {
 						atoms.ResetCumulativeUpdate(group);
 						error = atoms.SolveStep();
 				}
-                        
+				
+				/* update MD integer step velocities */
+				
 				/* close  md step */
 				if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();    
 			}
@@ -665,14 +679,14 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			/* initialize step */
 			if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
             
-			/* integrate FEM displacement, fractional step velocities */
-			
 			/* calculate total displacement u = FE + fine scale here using updated FEM displacement */
 			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager());
 			
+			/* integrate FEM displacement, fractional step velocities */
+			
 			/* calculate FE internal force as function of total displacement u here */
 			
-			/* solve FE equation of motion here using internal force */
+			/* solve FE equation of motion for accelerations using internal force */
 			if (1 || error == ExceptionT::kNoError) {
 					continuum.ResetCumulativeUpdate(group);
 					error = continuum.SolveStep();
@@ -680,7 +694,8 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			
 			/* finish time integration for integer step velocities */
                     
-			/* update time history variables here */
+			/* interpolate coarse scale displacements/velocities to MD ghost atoms/boundary 
+			 * atom for next MD timesteps */
 			
 			
 			/* close fe step */
