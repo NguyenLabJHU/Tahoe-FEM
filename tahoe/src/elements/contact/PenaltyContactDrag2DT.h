@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactDrag2DT.h,v 1.2 2003-08-23 16:15:35 paklein Exp $ */
+/* $Id: PenaltyContactDrag2DT.h,v 1.2.32.1 2004-04-22 15:32:27 paklein Exp $ */
 #ifndef _PENALTY_CONTACT_DRAG_2D_T_H_
 #define _PENALTY_CONTACT_DRAG_2D_T_H_
 
@@ -17,9 +17,19 @@ public:
 
 	/** constructor */
 	PenaltyContactDrag2DT(const ElementSupportT& support, const FieldT& field);
+	PenaltyContactDrag2DT(const ElementSupportT& support);
 
 	/** initialization after constructor */
 	virtual void Initialize(void);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

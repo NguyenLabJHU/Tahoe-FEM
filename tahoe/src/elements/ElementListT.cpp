@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.85.12.3 2004-04-20 17:41:45 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.85.12.4 2004-04-22 15:32:26 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -1043,6 +1043,12 @@ void ElementListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrder
 #ifdef CONTACT_ELEMENT
 		sub_sub_list.AddSub("contact_2D_penalty");
 		sub_sub_list.AddSub("contact_3D_penalty");
+
+		sub_sub_list.AddSub("contact_2D_multiplier");
+		sub_sub_list.AddSub("contact_3D_multiplier");
+
+		sub_sub_list.AddSub("contact_drag_2D_penalty");
+		sub_sub_list.AddSub("contact_drag_3D_penalty");
 #endif
 
 #ifdef PARTICLE_ELEMENT
@@ -1131,6 +1137,16 @@ ElementBaseT* ElementListT::NewElement(const StringT& list_name) const
 		return new PenaltyContact2DT(fSupport);
 	else if (list_name == "contact_3D_penalty")
 		return new PenaltyContact3DT(fSupport);
+
+	else if (list_name == "contact_2D_multiplier")
+		return new AugLagContact2DT(fSupport);
+	else if (list_name == "contact_3D_multiplier")
+		return new AugLagContact3DT(fSupport);
+
+	else if (list_name == "contact_drag_2D_penalty")
+		return new PenaltyContactDrag2DT(fSupport);
+	else if (list_name == "contact_drag_3D_penalty")
+		return new PenaltyContactDrag3DT(fSupport);
 #endif
 
 #ifdef PARTICLE_ELEMENT

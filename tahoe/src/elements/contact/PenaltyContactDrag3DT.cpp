@@ -1,8 +1,9 @@
-/* $Id: PenaltyContactDrag3DT.cpp,v 1.3 2003-11-21 22:45:57 paklein Exp $ */
+/* $Id: PenaltyContactDrag3DT.cpp,v 1.3.20.1 2004-04-22 15:32:28 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContactDrag3DT.h"
 #include "fstreamT.h"
 #include "eIntegratorT.h"
+#include "ModelManagerT.h"
 
 #include <math.h>
 #include <iostream.h>
@@ -34,7 +35,16 @@ PenaltyContactDrag3DT::PenaltyContactDrag3DT(const ElementSupportT& support, con
 	fGapTolerance(0),
 	fSlipTolerance(0)
 {
+	SetName("contact_drag_3D_penalty");
+}
 
+PenaltyContactDrag3DT::PenaltyContactDrag3DT(const ElementSupportT& support):
+	PenaltyContact3DT(support),
+	fDrag(0),
+	fGapTolerance(0),
+	fSlipTolerance(0)
+{
+	SetName("contact_drag_3D_penalty");
 }
 
 /* initialization after constructor */
@@ -58,6 +68,33 @@ void PenaltyContactDrag3DT::Initialize(void)
 		in >> element_id[i];
 
 	/* compute associated nodal area (using all element blocks) */
+	ComputeNodalArea(element_id, fNodalArea, fStrikerLocNumber);
+}
+
+/* describe the parameters needed by the interface */
+void PenaltyContactDrag3DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	PenaltyContact3DT::DefineParameters(list);
+
+	list.AddParameter(fDrag, "drag_traction");
+	list.AddParameter(fGapTolerance, "gap_tolerance");
+	list.AddParameter(fSlipTolerance, "slip_tolerance");
+}
+
+/* accept parameter list */
+void PenaltyContactDrag3DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	PenaltyContact3DT::TakeParameterList(list);
+
+	fDrag = list.GetParameter("drag_traction");
+	fGapTolerance = list.GetParameter("gap_tolerance");
+	fSlipTolerance = list.GetParameter("slip_tolerance");
+
+	/* compute associated nodal area */
+	ArrayT<StringT> element_id;
+	ElementSupport().ModelManager().ElementGroupIDsWithNodes(fStrikerTags, element_id);
 	ComputeNodalArea(element_id, fNodalArea, fStrikerLocNumber);
 }
 

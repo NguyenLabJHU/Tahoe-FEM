@@ -1,4 +1,4 @@
-/* $Id: AugLagContact3DT.cpp,v 1.3 2003-11-21 22:45:57 paklein Exp $ */
+/* $Id: AugLagContact3DT.cpp,v 1.3.20.1 2004-04-22 15:32:27 paklein Exp $ */
 #include "AugLagContact3DT.h"
 
 #include <math.h>
@@ -44,6 +44,8 @@ AugLagContact3DT::AugLagContact3DT(const ElementSupportT& support, const FieldT&
 	fM2(NumSD(), fElDisp.Length()),
 	fV1(fElDisp.Length())
 {
+	SetName("contact_3D_multiplier");
+
 	/* regularization parameter */
 	const char caller[] = "AugLagContact3DT::AugLagContact3DT";
 	ElementSupport().Input() >> fr;
@@ -88,6 +90,13 @@ AugLagContact3DT::AugLagContact3DT(const ElementSupportT& support, const FieldT&
 	*p++ = 0;
 	*p++ = 0;
 	*p   = 1;
+}
+
+AugLagContact3DT::AugLagContact3DT(const ElementSupportT& support):
+	Contact3DT(support),
+	fr(0.0)
+{
+	SetName("contact_3D_multiplier");
 }
 
 /* allocates space and reads connectivity data */
@@ -268,6 +277,97 @@ void AugLagContact3DT::WriteRestart(ostream& out) const
 {
 #pragma unused(out)
 	ExceptionT::GeneralFail("AugLagContact3DT::WriteRestart", "has not been tested");
+}
+
+/* describe the parameters needed by the interface */
+void AugLagContact3DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	Contact3DT::DefineParameters(list);
+
+	/* regularization */
+	ParameterT regularization(ParameterT::Double, "regularization");
+	regularization.SetDefault(1.0);
+	regularization.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(regularization);
+}
+
+/* accept parameter list */
+void AugLagContact3DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	Contact3DT::TakeParameterList(list);
+
+	/* regularization */
+	fr = list.GetParameter("regularization");
+
+	/* dimension workspace */
+	fElCoord.Dimension(fNumFacetNodes + 1, NumSD());
+	fElRefCoord.Dimension(fNumFacetNodes + 1, NumSD());
+	fElDisp.Dimension(fNumFacetNodes + 1, NumDOF());
+	fdc_du.Dimension(NumSD(), fElDisp.Length());
+	fdn_du.Dimension(NumSD(), fElDisp.Length());
+	fM1.Dimension(NumSD());
+	fM2.Dimension(NumSD(), fElDisp.Length());
+	fV1.Dimension(fElDisp.Length());
+
+	/* set up weighting matrix */
+	double third = 1.0/3.0;
+	double* p = fdc_du.Pointer();
+	*p++ =-third;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-third;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-third;
+	*p++ =-third;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-third;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-third;
+	*p++ =-third;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-third;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-third;
+	*p++ = 1;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 1;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p   = 1;
+
+	/* reset base class parameters */
+	int neq = NumElementNodes()*NumDOF() + 1; // 1 additional dof
+
+	/* re-size element results */
+	fLHS.Dimension(neq); // or make new variables?
+	fRHS.Dimension(neq);
+
+	/* dynamic work space managers for element arrays */
+	fXDOFConnectivities_man.SetWard(0, fXDOFConnectivities, NumElementNodes() + 1);		
+	fXDOFEqnos_man.SetWard(0, fXDOFEqnos, neq);
+
+	/* only 1 tag set for the group */
+	iArrayT numDOF(1);
+	numDOF = kNumAugLagDOF;
+
+	/* register with node manager - sets initial fContactDOFtags */
+	ElementSupport().XDOF_Manager().XDOF_Register(this, numDOF);
 }
 
 /***********************************************************************
