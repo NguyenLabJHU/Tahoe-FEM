@@ -33,7 +33,7 @@
     MeshAtomT::MeshAtomT(StringT which_latticetype,int nsd,int nuca,
     	   dArrayT latticeparameter,StringT which_shape,
     	   int whichunit,dArray2DT len, iArrayT cel,int irot,
-    	   dArray2DT mat_rot,double angle,iArrayT isort,iArrayT per, int NumberofGrains)
+    	   dArray2DT mat_rot,double angle,iArrayT isort,iArrayT per, int NumberofGrains, int random_seed)
    {
     
      
@@ -54,11 +54,11 @@
       else if (which_shape=="POLY") {
          if (whichunit==1) {
 			if (per ==0) len*=2;
-			Shape = new PolyT(nsd,len,latticeparameter,isort,which_latticetype,per, NumberofGrains);
+			Shape = new PolyT(nsd,len,latticeparameter,isort,which_latticetype,per, NumberofGrains, random_seed);
          }
          else{
 			if (per==0)cel*=2;
-			Shape = new PolyT(nsd,cel,latticeparameter,isort,which_latticetype,per, NumberofGrains);
+			Shape = new PolyT(nsd,cel,latticeparameter,isort,which_latticetype,per, NumberofGrains, random_seed);
          }
       }
       else

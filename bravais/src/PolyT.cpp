@@ -25,10 +25,11 @@
     PolyT::PolyT(int dim, dArray2DT len, 
     dArrayT lattice_parameter,
     iArrayT which_sort, StringT slt,
-    iArrayT per, int NumGrains) : BoxT(dim,len, lattice_parameter, which_sort, slt, per) 
+    iArrayT per, int NumGrains, int random_seed) : BoxT(dim,len, lattice_parameter, which_sort, slt, per) 
    {
    //set up global variables
       NumberofGrains = NumGrains;
+      kRandomSeed = random_seed;
       Initialize();
       MakeGrains(lattice_parameter);
        
@@ -37,13 +38,13 @@
     PolyT::PolyT(int dim, iArrayT cel, 
     dArrayT lattice_parameter,
     iArrayT which_sort, StringT slt,
-    iArrayT per, int NumGrains) : BoxT(dim, cel, lattice_parameter, which_sort, slt, per) 
+    iArrayT per, int NumGrains, int random_seed) : BoxT(dim, cel, lattice_parameter, which_sort, slt, per) 
    {
    //set up global variables
+      kRandomSeed = random_seed;
       NumberofGrains = NumGrains;
       Initialize();
       MakeGrains(lattice_parameter);
-
    
    }//endconstructor
 
@@ -272,7 +273,7 @@
    }
 
     void PolyT::MakeGrains (dArrayT lattice_parameter) {
-    	srand(time(0));
+    	srand(kRandomSeed);
    	
       for (int i=0; i < NumberofGrains; i++) {
 
