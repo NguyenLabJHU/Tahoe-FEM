@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.5 2001-04-27 10:43:55 paklein Exp $ */
+/* $Id: StringT.h,v 1.6 2001-06-11 01:57:47 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #ifndef _STRING_T_H_
@@ -41,6 +41,10 @@ public:
 
 	/** make string empty */
 	void Clear(void);
+
+	/** return the string length. the string length is the number of characters
+	 * before the first '\0' character, i.e., the ANSI C strlen() function */
+	int StringLength(void) const;
 
 	/** equality operators */
 	int operator==(const StringT& rhs) const;
@@ -107,12 +111,14 @@ public:
 	StringT& DropLeadingSpace(void);
 	StringT& DropTrailingSpace(void);
 	
+#if 0
 	/** return a string with the extension and suffix tacked into
 	 * the root of this. The default extension for this is ".in" */
 	StringT& DefaultName(const StringT& sourcename);
 	StringT& DefaultName(const StringT& sourcename, const char* extout, int suffix = -1);
 	StringT& DefaultName(const StringT& sourcename, const char* extint, const char* extout,
 		int suffix);
+#endif
 
 	/** convert string to native, relative file path */
 	void ToNativePathName(void);
@@ -127,6 +133,18 @@ public:
 	/** version number comparison - returns 0 if the versions numbers are
 	 * the same, -1 if v1 is older than v2, 1 if v1 is newer than v2 */
 	static int versioncmp(const char* v1, const char* v2);
+	
+	/** extract double. perform type conversion on the tail of the string
+	 * \param key last character before the start of the tail
+	 * \param value conversion of tail, returns 0.0 if key not found
+	 * \return true if key found, else returns false */
+	bool Tail(char key, double& value) const;
+
+	/** extract integer. perform type conversion on the tail of the string
+	 * \param key last character before the start of the tail
+	 * \param value conversion of tail, returns 0 if key not found
+	 * \return true if key found, else returns false */
+	bool Tail(char key, int& value) const;
 
 private:
 	
@@ -169,6 +187,10 @@ inline int StringT::operator!=(const StringT& rhs) const
 	return operator!=(rhs.Pointer());
 }
 
+/* string length */
+inline int StringT::StringLength(void) const { return strlen(*this); }
+
+#if 0
 /* redirects */
 inline StringT& StringT::DefaultName(const StringT& sourcename)
 {
@@ -180,6 +202,7 @@ inline StringT& StringT::DefaultName(const StringT& sourcename,
 {
 	return DefaultName(sourcename, ".in", extout, suffix);
 }
+#endif
 
 inline char StringT::DirectorySeparator(void)
 {
