@@ -1,16 +1,15 @@
-/* $Id: ParticleT.h,v 1.3 2002-11-14 17:05:56 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.4 2002-11-21 01:11:14 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
 /* base class */
 #include "ElementBaseT.h"
 
-/* direct members */
-#include "LocalArrayT.h"
-#include "C1FunctionT.h"
+namespace Tahoe {
 
-/* templates */
-#include "pArrayT.h"
+/** forward declarations */
+class iGridManagerT;
+class PotentialT;
 
 /** base class for particle types */
 class ParticleT: public ElementBaseT
@@ -19,6 +18,9 @@ public:
 
 	/** constructor */
 	ParticleT(const ElementSupportT& support, const FieldT& field);
+
+	/** destructor */
+	~ParticleT(void);
 	
 	/** initialization. Completely overrides ElementBaseT::Initialize */
 	virtual void Initialize(void);
@@ -34,29 +36,28 @@ public:
 	
 	/* writing output */
 	virtual void RegisterOutput(void);
-	virtual void WriteOutput(IOBaseT::OutputModeT mode);
-//NOTE: for parallel calculations - write what you've got.
+	virtual void WriteOutput(void);
 
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
 	 			  	
 protected: /* for derived classes only */
-	 	
-	/* called by FormRHS and FormLHS */
-	virtual void LHSDriver(void);
-	virtual void RHSDriver(void);
 
-	/* increment current element */
-	virtual bool NextElement(void);
-		
-	/* element data */
-	virtual void ReadMaterialData(ifstreamT& in);	
-	virtual void WriteMaterialData(ostream& out) const;
+	/** echo element connectivity data. Reads parameters that define
+	 * which nodes belong to this ParticleT group. */
+	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
 	
-	/* element calculations */
-	double ElementEnergy(void);
-	void ElementForce(double constKd);
-	void ElementStiffness(double constK);
+	/** generate labels for output data */
+	virtual void GenerateOutputLabels(ArrayT<StringT>& labels) const;
+
+	/** return true if connectivities are changing */
+	virtual bool ChangingGeometry(void) const;
+
+	/** generate neighborlist
+	 * \param particle_tags global tags for which to determine neighhors. These are the
+	 *        tags inthe */
+	void GenerateNeighborList(const iArrayT& particle_tags, const iArrayT& particle_type,
+		const ArrayT<PotentialT*>& pots, RaggedArray2DT<int>& neighbors, bool double_list);
 
 protected:
 
@@ -66,43 +67,42 @@ protected:
 	/** \name particle attributes */
 	/*@{*/
 	dArrayT fMass;
-	
 	iArrayT fType;
 	/*@}*/
 	
 	/** \name cached calculated values */
 	/*@{*/
-	dArrayT fEnergy;
-
+	dArrayT   fEnergy;
 	dArray2DT fForce;
 	/*@{*/
 	
 	/** \name group running averages.
 	 * Values are averages over {n1, n2,...,nN} steps */
 	/*@{*/
-	dArrayT fKE;
-	dArrayT fPE;
+	iArrayT fAverages;
+	dArrayT fKE_avg;
+	dArrayT fPE_avg;
 	/*@}*/
 
-	/** local to global tag map. Neighborlists constructed using
-	 * group-local numbering */
-	iArrayT GlobalTag;
-
-	int fNumberLocalAtoms;
-
-private:
-
-	/** \name work space */
+	/** \name local to global tag map.
+	 * Used for things like neighbor lists */
 	/*@{*/
-	/** constant matrix needed to compute the stiffness */
-	dMatrixT fOneOne;
+	/** list of node set IDs define particles in this group. If ALL
+	 * nodes are particles, this will be length 1 with fID[0] = "ALL" */
+	ArrayT<StringT> fID;
+	
+	/** map of global = fGlobalTag[local], which is compact in the local tags */
+	iArrayT fGlobalTag;
 
-	/** pair vector */
-	dArrayT fBond;
-
-	/** current coordinates for one pair bond */
-//	dArray2DT fPairCoords;
+	/** connectivities used to define the output set. Just an alias to the
+	 * ParticleT::fGlobalTag. */
+	iArray2DT fPointConnectivities;
 	/*@}*/
+	
+	/** search grid */
+	iGridManagerT* fGrid;
 };
+
+} /* namespace Tahoe */
 
 #endif /* _PARTICLE_T_H_ */
