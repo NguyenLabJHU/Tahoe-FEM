@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.24.2.4 2004-02-18 16:33:54 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.24.2.5 2004-02-19 19:59:19 paklein Exp $ */
 #include "FieldT.h"
 
 #include "fstreamT.h"
@@ -17,6 +17,7 @@ using namespace Tahoe;
 FieldT::FieldT(const FieldSupportT& field_support):
 	ParameterInterfaceT("field"),
 	fFieldSupport(field_support),
+	fGroup(-1),
 	fIntegrator(NULL),	
 	fnIntegrator(NULL),
 	fEquationStart(0),
@@ -690,13 +691,19 @@ void FieldT::DefineParameters(ParameterListT& list) const
 	ParameterInterfaceT::DefineParameters(list);
 
 	/* field name */
-	list.AddParameter(ParameterT(ParameterT::String, "field_name"));
+	list.AddParameter(ParameterT::String, "field_name");
 
 	/* degrees of freedom */
 	ParameterT ndof(ParameterT::Integer, "ndof");
 	ndof.SetDescription("number of unknown per node");
 	ndof.AddLimit(0, LimitT::LowerInclusive);
 	list.AddParameter(ndof);
+
+	/* solution group */
+	ParameterT solver_group(ParameterT::Integer, "solution_group");
+	solver_group.AddLimit(1, LimitT::LowerInclusive);
+	solver_group.SetDefault(1);
+	list.AddParameter(solver_group);
 	
 	/* integrator number */
 	ParameterT integrator(ParameterT::Enumeration, "integrator");
@@ -856,6 +863,10 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 
 	/* number of degrees of freedom per node */
 	int ndof = list.GetParameter("ndof");
+
+	/* solution group */
+	fGroup = list.GetParameter("solution_group");
+	fGroup--;
 
 	/* construct integrator */
 	int integrator_type = list.GetParameter("integrator");
