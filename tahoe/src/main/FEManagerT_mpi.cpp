@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.30 2003-05-20 10:38:45 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.31 2003-08-14 06:06:43 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -342,7 +342,7 @@ void FEManagerT_mpi::SetElementGroups(void)
 	FEManagerT::SetElementGroups();
 	
 //TEMP - contact not yet supported in parallel
-	if (fElementGroups.HasContact())
+	if (fElementGroups->HasContact())
 		cout << "\n FEManagerT_mpi::SetElementGroups: WARNING: no contact between partitions"
 			 << endl;
 }
@@ -420,8 +420,8 @@ void FEManagerT_mpi::WeightNodalCost(iArrayT& weight) const
 	weight.Dimension(fNodeManager->NumNodes());
 	weight = 1;
 	fNodeManager->WeightNodalCost(weight);
-	for (int i = 0 ; i < fElementGroups.Length(); i++)
-		fElementGroups[i]->WeightNodalCost(weight);
+	for (int i = 0 ; i < fElementGroups->Length(); i++)
+		(*fElementGroups)[i]->WeightNodalCost(weight);
 }
 
 /* write time stamp to log file */
@@ -440,15 +440,15 @@ void FEManagerT_mpi::DoDecompose_2(ArrayT<PartitionT>& partition, GraphT& graph,
 	AutoArrayT<const RaggedArray2DT<int>*> connects_2;
 
 	/* collect element groups */
-	for (int s = 0 ; s < fElementGroups.Length(); s++)
-		fElementGroups[s]->ConnectsU(connects_1, connects_2);		
+	for (int s = 0 ; s < fElementGroups->Length(); s++)
+		(*fElementGroups)[s]->ConnectsU(connects_1, connects_2);		
 	
 	/* dual graph partitioning graph */
 	AutoArrayT<const iArray2DT*> connectsX_1;
 	
 	/* collect minimal connects */
-	for (int s = 0 ; s < fElementGroups.Length(); s++)
-		fElementGroups[s]->ConnectsX(connectsX_1);
+	for (int s = 0 ; s < fElementGroups->Length(); s++)
+		(*fElementGroups)[s]->ConnectsX(connectsX_1);
 
 	/* initialize graph */
 	GraphT& graphX = graph;
@@ -485,8 +485,8 @@ void FEManagerT_mpi::DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph,
 		fNodeManager->ConnectsU(i,connects_1,connects_2, equivalent_nodes);
 	
 	/* collect element groups */
-	for (int s = 0 ; s < fElementGroups.Length(); s++)
-		fElementGroups[s]->ConnectsU(connects_1, connects_2);
+	for (int s = 0 ; s < fElementGroups->Length(); s++)
+		(*fElementGroups)[s]->ConnectsU(connects_1, connects_2);
 		
 
 	/* initialize graph */
@@ -518,8 +518,8 @@ void FEManagerT_mpi::DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph,
 		if (verbose) cout << " FEManagerT_mpi::DoDecompose_1: constructing dual graph" << endl;
 		
 		/* collect element groups */
-		for (int s = 0 ; s < fElementGroups.Length(); s++)
-			fElementGroups[s]->ConnectsX(connectsX_1);
+		for (int s = 0 ; s < fElementGroups->Length(); s++)
+			(*fElementGroups)[s]->ConnectsX(connectsX_1);
 
 		/* initialize graph */
 		for (int r = 0; r < connectsX_1.Length(); r++)
