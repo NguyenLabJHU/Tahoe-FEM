@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.cpp,v 1.8 2003-10-31 20:50:24 paklein Exp $ */
+/* $Id: ThermostatBaseT.cpp,v 1.9 2003-11-09 16:45:45 paklein Exp $ */
 #include "ThermostatBaseT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -19,6 +19,7 @@ using namespace Tahoe;
 ThermostatBaseT::ThermostatBaseT(ifstreamT& in, const int& nsd, 
 	const double& dt):
 	ParameterInterfaceT("thermostat"),
+	fBeta(0.0),
 	fTemperature(-1.),
 	fSD(nsd),
 	fTimeStep(dt),
@@ -29,6 +30,7 @@ ThermostatBaseT::ThermostatBaseT(ifstreamT& in, const int& nsd,
 
 ThermostatBaseT::ThermostatBaseT(void):
 	ParameterInterfaceT("thermostat"),
+	fBeta(0.0),
 	fTemperature(0.0),
 	fSD(0),
 	fTimeStep(0.0),
