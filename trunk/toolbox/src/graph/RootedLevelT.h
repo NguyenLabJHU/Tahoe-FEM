@@ -1,4 +1,4 @@
-/* $Id: RootedLevelT.h,v 1.2 2002-07-02 19:57:15 cjkimme Exp $ */
+/* $Id: RootedLevelT.h,v 1.3 2002-07-05 22:26:30 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #ifndef _ROOTEDLEVEL_T_H_
@@ -7,10 +7,9 @@
 #include "Environment.h"
 #include "Constants.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class GraphT;
 class iArrayT;
 

@@ -1,4 +1,4 @@
-/* $Id: MonitorT.h,v 1.2 2002-07-02 19:57:18 cjkimme Exp $ */
+/* $Id: MonitorT.h,v 1.3 2002-07-05 22:26:31 paklein Exp $ */
 /* created: paklein (09/30/1996)                                          */
 
 #ifndef _MONITOR_T_H_
@@ -8,11 +8,11 @@
 #include "iArrayT.h"
 #include "VariArrayT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
-
 namespace Tahoe {
+
+/* forward declarations */
 
 class MonitorT
 {

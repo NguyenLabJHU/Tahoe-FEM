@@ -1,4 +1,4 @@
-/* $Id: CubicSplineT.h,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
+/* $Id: CubicSplineT.h,v 1.3 2002-07-05 22:26:16 paklein Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* CubicSplineT.h -                                                       */
 /* Interface for a piecewise cubic function.  The type of end             */
@@ -17,10 +17,9 @@
 #include "dRangeArrayT.h"
 #include "dArray2DT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class dMatrixT;
 
 class CubicSplineT: public C1FunctionT

@@ -1,5 +1,5 @@
-/* $Id: AbaqusOutputT.h,v 1.4 2002-07-02 19:57:07 cjkimme Exp $ */
-/* created: sawimme (05/31/2000)                                          */
+/* $Id: AbaqusOutputT.h,v 1.5 2002-07-05 22:26:27 paklein Exp $ */
+/* created: sawimme (05/31/2000) */
 
 #ifndef _ABAQUSOUTPUT_T_H_
 #define _ABAQUSOUTPUT_T_H_
@@ -7,10 +7,6 @@
 /* base class */
 #include "OutputBaseT.h"
 #include "AbaqusResultsT.h"
-
-/* forward declarations */
-
-
 
 namespace Tahoe {
 

@@ -1,12 +1,5 @@
-/*
- * File: Tensor3DT.h - templated class for rank 3 tensors
- *
- */
-
-/*
- * created      : PAK (05/23/97)
- * last modified: PAK (07/03/98)
- */
+/* $Id: Tensor3DT.h,v 1.4 2002-07-05 22:26:21 paklein Exp $ */
+/* created PAK (05/23/97) */
 
 #ifndef _TENSOR3D_H_
 #define _TENSOR3D_H_
@@ -17,10 +10,9 @@
 /* direct members */
 #include "nMatrixT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 template <class MATHTYPE> class nArrayT;
 
 template <class MATHTYPE>

@@ -1,4 +1,4 @@
-/* $Id: InputFEASCIIT.h,v 1.9 2002-07-02 19:57:03 cjkimme Exp $ */
+/* $Id: InputFEASCIIT.h,v 1.10 2002-07-05 22:26:26 paklein Exp $ */
 #ifndef _INPUTFEASCII_T_H_
 #define _INPUTFEASCII_T_H_
 
@@ -9,10 +9,9 @@
 #include "StringT.h"
 #include "AutoArrayT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class dArrayT;
 

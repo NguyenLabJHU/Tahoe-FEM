@@ -1,4 +1,4 @@
-/* $Id: CartesianGridT.h,v 1.3 2002-07-02 19:57:23 cjkimme Exp $ */
+/* $Id: CartesianGridT.h,v 1.4 2002-07-05 22:26:33 paklein Exp $ */
 /* created: paklein (11/10/2000) */
 
 #ifndef _CARTESIAN_GRID_T_H_
@@ -9,11 +9,10 @@
 #include "RaggedArray2DT.h"
 #include "iArray2DT.h"
 
-/** N-dimensional cartesian grid with periodic boundary conditions 
- * and load balancing */
-
 namespace Tahoe {
 
+/** N-dimensional cartesian grid with periodic boundary conditions 
+ * and load balancing */
 class CartesianGridT
 {
 public:

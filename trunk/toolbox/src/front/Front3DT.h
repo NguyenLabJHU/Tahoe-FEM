@@ -1,4 +1,4 @@
-/* $Id: Front3DT.h,v 1.2 2002-07-02 19:57:10 cjkimme Exp $ */
+/* $Id: Front3DT.h,v 1.3 2002-07-05 22:26:29 paklein Exp $ */
 /* created: paklein (03/18/1999)                                          */
 
 #ifndef _FRONT_3D_T_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "FrontT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class FrontSegmentT;
 
 class Front3DT: public FrontT

@@ -1,4 +1,4 @@
-/* $Id: RowAutoFill2DT.h,v 1.4 2002-07-02 19:56:50 cjkimme Exp $ */
+/* $Id: RowAutoFill2DT.h,v 1.5 2002-07-05 22:26:19 paklein Exp $ */
 
 #ifndef _ROW_AUTO_ARRAY2D_T_H_
 #define _ROW_AUTO_ARRAY2D_T_H_
@@ -9,12 +9,11 @@
 #include "Environment.h"
 #include "ExceptionCodes.h"
 
+namespace Tahoe {
+
 /** class to allow dynamical resizing of rows. Allocation is on a
  * row by row basis. "Overallocation" is controlled by the headroom
  * parameter. */
-
-namespace Tahoe {
-
 template <class TYPE>
 class RowAutoFill2DT
 {

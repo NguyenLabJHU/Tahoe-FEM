@@ -1,4 +1,4 @@
-/* $Id: PartitionT.h,v 1.7 2002-07-02 19:57:14 cjkimme Exp $ */
+/* $Id: PartitionT.h,v 1.8 2002-07-05 22:26:30 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 
 #ifndef _PARTITION_T_H_
@@ -8,10 +8,9 @@
 #include "iArrayT.h"
 #include "StringT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class GraphT;
 class iArray2DT;
 class dArray2DT;

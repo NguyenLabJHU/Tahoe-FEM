@@ -1,4 +1,4 @@
-/* $Id: FileCrawlerT.h,v 1.4 2002-07-02 19:57:17 cjkimme Exp $ */
+/* $Id: FileCrawlerT.h,v 1.5 2002-07-05 22:26:31 paklein Exp $ */
 
 #ifndef _FILE_CRAWLER_T_H_
 #define _FILE_CRAWLER_T_H_
@@ -9,11 +9,11 @@
 #include "ArrayT.h"
 #include "StringT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class StringT;
 

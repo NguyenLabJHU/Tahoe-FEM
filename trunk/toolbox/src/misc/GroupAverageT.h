@@ -1,4 +1,4 @@
-/* $Id: GroupAverageT.h,v 1.3 2002-07-02 19:57:18 cjkimme Exp $ */
+/* $Id: GroupAverageT.h,v 1.4 2002-07-05 22:26:31 paklein Exp $ */
 /* created: paklein (10/03/1996)                                          */
 
 #ifndef _GROUPAVERAGE_T_H_
@@ -9,10 +9,9 @@
 #include "dArray2DT.h"
 #include "AutoArrayT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class dArrayT;
 class StringT;
 class iArray2DT;

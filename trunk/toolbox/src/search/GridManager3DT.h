@@ -1,4 +1,4 @@
-/* $Id: GridManager3DT.h,v 1.3 2002-07-02 19:57:23 cjkimme Exp $ */
+/* $Id: GridManager3DT.h,v 1.4 2002-07-05 22:26:33 paklein Exp $ */
 /* created: paklein (12/06/1997)                                          */
 /* Interface for regular rectangular search and storage grid              */
 /* sTYPE requirements:                                                    */
@@ -20,10 +20,9 @@
 #include "pArrayT.h"
 #include "dArray2DT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class iArrayT;
 
 template <class sTYPE>

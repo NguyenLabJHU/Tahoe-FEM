@@ -1,4 +1,4 @@
-/* $Id: FindNeighborT.h,v 1.3 2002-07-02 19:57:20 cjkimme Exp $ */
+/* $Id: FindNeighborT.h,v 1.4 2002-07-05 22:26:32 paklein Exp $ */
 /* created: paklein (03/21/1997)                                          */
 /* FindNeighborT.h                                                        */
 
@@ -11,11 +11,11 @@
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class iGridManager1DT;
 class iGridManager2DT;
 class iGridManager3DT;

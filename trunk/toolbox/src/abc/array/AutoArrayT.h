@@ -1,11 +1,10 @@
-/* $Id: AutoArrayT.h,v 1.10 2002-07-02 19:56:39 cjkimme Exp $ */
+/* $Id: AutoArrayT.h,v 1.11 2002-07-05 22:26:17 paklein Exp $ */
 /* created: paklein (12/05/1997) */
 #ifndef _AUTO_ARRAY_T_H_
 #define _AUTO_ARRAY_T_H_
 
 /* base class */
 #include "ArrayT.h"
-
 
 namespace Tahoe {
 

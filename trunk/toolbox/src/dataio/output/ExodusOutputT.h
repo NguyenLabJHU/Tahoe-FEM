@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.h,v 1.5 2002-07-02 19:57:07 cjkimme Exp $ */
+/* $Id: ExodusOutputT.h,v 1.6 2002-07-05 22:26:27 paklein Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #ifndef _EXODUSOUTPUT_T_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "OutputBaseT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ExodusT;
 
 class ExodusOutputT: public OutputBaseT

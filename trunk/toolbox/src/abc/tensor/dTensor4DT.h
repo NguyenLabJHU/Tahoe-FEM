@@ -1,4 +1,4 @@
-/* $Id: dTensor4DT.h,v 1.3 2002-07-02 19:56:53 cjkimme Exp $ */
+/* $Id: dTensor4DT.h,v 1.4 2002-07-05 22:26:21 paklein Exp $ */
 /* created paklein (05/25/97) */
 
 #ifndef _D_TENSOR4D_T_H_
@@ -7,11 +7,10 @@
 /* base class */
 #include "Tensor4DT.h"
 
-/** fourth order tensor class for double's. Most functionality
- * is inherited from the base class Tensor4DT. */
-
 namespace Tahoe {
 
+/** fourth order tensor class for double's. Most functionality
+ * is inherited from the base class Tensor4DT. */
 class dTensor4DT: public Tensor4DT<double>
 {
   public:

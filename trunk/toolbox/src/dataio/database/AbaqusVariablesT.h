@@ -3,10 +3,9 @@
 
 #include "StringT.h"
 
-/** look up table for abaqus variables */
-
 namespace Tahoe {
 
+/** look up table for abaqus variables */
 class AbaqusVariablesT
 {
  public:

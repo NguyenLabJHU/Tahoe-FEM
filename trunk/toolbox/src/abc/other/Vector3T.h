@@ -1,4 +1,4 @@
-/* $Id: Vector3T.h,v 1.4 2002-07-02 19:56:50 cjkimme Exp $ */
+/* $Id: Vector3T.h,v 1.5 2002-07-05 22:26:20 paklein Exp $ */
 /* created: paklein (02/11/2000) */
 
 #ifndef _VECTOR_3_T_H_
@@ -7,11 +7,10 @@
 /* Environmental */
 #include "Environment.h"
 
-/** utility class for 3D vector functions.
- * \note some functions do create temporary nTYPE instances */
-
 namespace Tahoe {
 
+/** utility class for 3D vector functions.
+ * \note some functions do create temporary nTYPE instances */
 template <class nTYPE>
 class Vector3T
 {

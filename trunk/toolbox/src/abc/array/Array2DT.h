@@ -1,4 +1,4 @@
-/* $Id: Array2DT.h,v 1.6 2002-07-02 19:56:39 cjkimme Exp $ */
+/* $Id: Array2DT.h,v 1.7 2002-07-05 22:26:17 paklein Exp $ */
 /* created: paklein (11/02/1998)                                          */
 
 #ifndef _ARRAY2D_T_H_
@@ -6,7 +6,6 @@
 
 /* base class */
 #include "ArrayT.h"
-
 
 namespace Tahoe {
 

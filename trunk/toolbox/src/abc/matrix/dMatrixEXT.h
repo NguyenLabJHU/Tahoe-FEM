@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.h,v 1.9 2002-07-02 19:56:47 cjkimme Exp $ */
+/* $Id: dMatrixEXT.h,v 1.10 2002-07-05 22:26:19 paklein Exp $ */
 /* created: paklein (03/06/1998) */
 
 #ifndef _DMATRIXEX_T_H_
@@ -12,10 +12,9 @@
 #include "iArrayT.h"
 #include "dTensor4DT.h"
 
-/** interface for dMatrixT plus special matrix functions */
-
 namespace Tahoe {
 
+/** interface for dMatrixT plus special matrix functions */
 class dMatrixEXT: public dMatrixT
 {
 public:

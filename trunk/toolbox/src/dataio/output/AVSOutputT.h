@@ -6,10 +6,9 @@
 /* direct members */
 #include "OutputBaseT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class AVST;
 
 class AVSOutputT : public OutputBaseT

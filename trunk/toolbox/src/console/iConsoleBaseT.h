@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.h,v 1.9 2002-07-02 19:56:57 cjkimme Exp $ */
+/* $Id: iConsoleBaseT.h,v 1.10 2002-07-05 22:26:24 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_BASE_T_H_
@@ -8,10 +8,9 @@
 #include "AutoArrayT.h"
 #include "StringT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class CommandSpecT;
 class ArgSpecT;
 

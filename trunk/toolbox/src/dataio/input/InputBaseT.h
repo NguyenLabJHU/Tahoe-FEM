@@ -1,4 +1,4 @@
-/* $Id: InputBaseT.h,v 1.12 2002-07-02 19:57:03 cjkimme Exp $ */
+/* $Id: InputBaseT.h,v 1.13 2002-07-05 22:26:26 paklein Exp $ */
 /* created: sawimme (08/12/1999) */
 
 #ifndef _INPUTBASE_T_H_
@@ -8,11 +8,11 @@
 
 #include "GeometryT.h"
 
-/* foward declaration */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* foward declaration */
 class iArrayT;
 class iArray2DT;
 class dArrayT;

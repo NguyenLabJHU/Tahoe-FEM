@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.h,v 1.7 2002-07-02 19:56:59 cjkimme Exp $ */
+/* $Id: IOBaseT.h,v 1.8 2002-07-05 22:26:25 paklein Exp $ */
 /* created: sawimme (09/28/1999) */
 
 #ifndef _IOBASE_T_H_
@@ -7,10 +7,9 @@
 /* forward declarations */
 #include "ios_fwd_decl.h"
 
-/** database types and simple functions */
-
 namespace Tahoe {
 
+/** database types and simple functions */
 class IOBaseT
 {
 public:

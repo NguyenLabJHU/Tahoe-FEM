@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.h,v 1.7 2002-07-02 19:56:50 cjkimme Exp $ */
+/* $Id: LocalArrayT.h,v 1.8 2002-07-05 22:26:19 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 
 #ifndef _LOCALARRAY_T_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "dArrayT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class dArray2DT;
 
 /** array class to facilitate working with subsets of a dArray2DT. The

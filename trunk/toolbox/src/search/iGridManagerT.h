@@ -1,4 +1,4 @@
-/* $Id: iGridManagerT.h,v 1.5 2002-07-02 19:57:24 cjkimme Exp $ */
+/* $Id: iGridManagerT.h,v 1.6 2002-07-05 22:26:33 paklein Exp $ */
 /* created: paklein (09/13/1998)                                          */
 /* iNodeT grid with unified interface for 1D/2D/3D and lightweight        */
 /* file dependencies                                                      */
@@ -9,11 +9,11 @@
 /* environment */
 #include "Environment.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class iArrayT;
 template <class TYPE> class ArrayT;
 class dArray2DT;

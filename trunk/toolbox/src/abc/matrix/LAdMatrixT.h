@@ -1,4 +1,4 @@
-/* $Id: LAdMatrixT.h,v 1.3 2002-07-02 19:56:46 cjkimme Exp $ */
+/* $Id: LAdMatrixT.h,v 1.4 2002-07-05 22:26:18 paklein Exp $ */
 /* created: paklein (12/05/1996)                                          */
 /* dMatrixT with some linear algebra functions                            */
 
@@ -8,10 +8,9 @@
 /* base class */
 #include "dMatrixT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class dArrayT;
 
 class LAdMatrixT: public dMatrixT

@@ -1,4 +1,4 @@
-/* $Id: EnSightT.h,v 1.4 2002-07-02 19:57:00 cjkimme Exp $ */
+/* $Id: EnSightT.h,v 1.5 2002-07-05 22:26:25 paklein Exp $ */
 /* created: sawimme (05/13/1999)                                          */
 /* ******EnSight6 Gold Format******                                       */
 
@@ -8,11 +8,11 @@
 /* direct members */
 #include "GeometryT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 template <class TYPE> class ArrayT;
 class ifstreamT;
 class StringT;

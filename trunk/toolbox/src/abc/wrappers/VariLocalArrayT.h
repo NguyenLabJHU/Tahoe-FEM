@@ -1,4 +1,4 @@
-/* $Id: VariLocalArrayT.h,v 1.2 2002-07-02 19:56:54 cjkimme Exp $ */
+/* $Id: VariLocalArrayT.h,v 1.3 2002-07-05 22:26:22 paklein Exp $ */
 /* created: paklein (04/26/1999)                                          */
 /* Wrapper for dynamically re-sizing the number of nodes in               */
 /* a LocalArrayT's.                                                       */
@@ -9,10 +9,9 @@
 /* base class */
 #include "VariBaseT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class LocalArrayT;
 
 class VariLocalArrayT: public VariBaseT<double>

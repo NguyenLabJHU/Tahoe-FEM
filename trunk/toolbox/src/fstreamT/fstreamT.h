@@ -1,4 +1,4 @@
-/* $Id: fstreamT.h,v 1.5 2002-07-02 19:57:13 cjkimme Exp $ */
+/* $Id: fstreamT.h,v 1.6 2002-07-05 22:26:29 paklein Exp $ */
 /* created: paklein (12/30/2000) */
 
 #ifndef _FSTREAM_T_H_
@@ -7,10 +7,9 @@
 #include "ifstreamT.h"
 #include "ofstreamT.h"
 
-/** interface for stream utilities */
-
 namespace Tahoe {
 
+/** interface for stream utilities */
 class fstreamT
 {
   public:

@@ -1,4 +1,4 @@
-/* $Id: PatranT.h,v 1.8 2002-07-02 19:57:01 cjkimme Exp $ */
+/* $Id: PatranT.h,v 1.9 2002-07-05 22:26:25 paklein Exp $ */
 /* created: sawimme (05/17/2001)  */
 
 #ifndef _PATRAN_T_H_
@@ -8,11 +8,11 @@
 #include "StringT.h"
 #include "iArray2DT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class iArrayT;
 class dArray2DT;
 
