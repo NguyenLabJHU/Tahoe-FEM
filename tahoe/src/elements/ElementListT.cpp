@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.28 2002-10-20 22:48:14 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.29 2002-10-31 22:09:35 creigh Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 
@@ -28,7 +28,7 @@
 #include "SimoFiniteStrainT.h"
 #include "MultiScaleT.h"
 #include "CoarseScaleT.h"
-#include "FinePhestT.h"
+#include "FineScaleT.h"
 #include "BridgingScaleT.h"
 #include "SimoQ1P0.h"
 #include "AdhesionT.h"
@@ -160,7 +160,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		out << "    eq. " << ElementT::kMFCohesiveSurface  << ", meshfree cohesive surface element\n";
 		out << "    eq. " << ElementT::kMultiScale              << ", Variational Multi-Scale (VMS) Element \n";
 		out << "    eq. " << ElementT::kCoarseScale             << ", Coarse Scale Element (for VMS) \n";
-		out << "    eq. " << ElementT::kFinePhest               << ", Fine Sclale Phenomenological Str. Grad\n";
+		out << "    eq. " << ElementT::kFineScale               << ", Fine Sclale Phenomenological Str. Grad\n";
 		out << "    eq. " << ElementT::kACME_Contact       << ", 3D contact using ACME\n";
 		out << "    eq. " << ElementT::kMultiplierContact3D       << ", 3D contact using Lagrange multipliers\n";
 		out << "    eq. " << ElementT::kMultiplierContactElement2D       << ", 2D Lagrange multiplier contact elements\n";
@@ -224,8 +224,8 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				fArray[group] = new CoarseScaleT(fSupport, *field);
 				break;
 
-			case ElementT::kFinePhest:
-				fArray[group] = new FinePhestT(fSupport, *field);
+			case ElementT::kFineScale:
+				fArray[group] = new FineScaleT(fSupport, *field);
 				break;
 
 			case ElementT::kMeshFreeFDElastic:
