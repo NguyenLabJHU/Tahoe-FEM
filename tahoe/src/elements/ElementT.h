@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.27 2003-08-14 05:54:42 paklein Exp $ */
+/* $Id: ElementT.h,v 1.28 2003-08-22 20:19:31 thao Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -53,13 +53,14 @@ kPenaltyContactElement3D = 34,
                     kEAM = 39,  /**< particles with EAM potental */
      kNonLinearDiffusion = 41,
        kMeshfreeBridging = 45,
-	         kFSMatForce = 60,    /*UpLag with material force calculation*/
-            kSSMatForceD = 61,
-            kSSMatForceS = 62,
-        kSmallStrainQ2P1 = 64, /*small strain with mat force calculation*/
-               kSSQ2P1MF = 65,
-   kDorganVoyiadjisMarin = 63,	     
-    kHyperElasticInitCSE = 111, /**< large strain solid that triggers CSE */
+	     kFSMatForce = 60,    /*UpLag with material force calculation*/
+	     kSSMatForceD = 61,
+	     kSSMatForceS = 62,
+	     kSmallStrainQ2P1 = 64, /*small strain with mat force calculation*/		     kSSQ2P1MF = 65,
+	     kSmallStrainQ1P0 = 66,
+	     kSSQ1P0MF = 67,
+     kDorganVoyiadjisMarin = 63,	     
+       kHyperElasticInitCSE = 111, /**< large strain solid that triggers CSE */
      kPenaltyContactDrag = 114  /**< contact with constant drag traction */
 	     };    
 	     
