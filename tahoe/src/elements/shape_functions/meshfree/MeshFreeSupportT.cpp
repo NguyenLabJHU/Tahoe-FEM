@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.21 2004-01-27 01:21:11 cjkimme Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.22 2004-02-10 01:27:38 cjkimme Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -1046,6 +1046,11 @@ void MeshFreeSupportT::SetNodeNeighborData_2(const dArray2DT& coords)
 * element integration points */
 void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 {
+	/* verify that this routine should have been called */
+	if (!fDomain)
+		ExceptionT::GeneralFail("MeshFreeSupportT::SetElementNeighborData","No Domain available\n");
+
+
 	/* dimensions */
 	int numelems = connects.MajorDim();
 	int nen      = connects.MinorDim();
@@ -1101,12 +1106,8 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 		/* integration point coordinates */
 		fConnects.RowAlias(i, elementnodes);
 		loccoords.SetLocal(elementnodes);
-		if (fDomain)
-			fDomain->Interpolate(loccoords, x_ip_table);
-		else
-			;
-#pragma message("Fix this part")
-
+		fDomain->Interpolate(loccoords, x_ip_table);
+		
 		/* collect unique list of neighboring nodes */
 		nodeset.Dimension(0);
 		for (int j = 0; j < nen; j++)
@@ -1185,6 +1186,11 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 * element integration points */
 void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 {
+	/* verify that this routine should have been called */
+	if (!fDomain)
+		ExceptionT::GeneralFail("MeshFreeSupportT::SetElementNeighborData_2","No Domain available\n");
+
+
 	/* dimensions */
 	int numelems = connects.MajorDim();
 	int nen      = connects.MinorDim();
@@ -1241,12 +1247,8 @@ void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 		/* integration point coordinates */
 		fConnects.RowAlias(i, elementnodes);
 		loccoords.SetLocal(elementnodes);
-		if (fDomain)
-			fDomain->Interpolate(loccoords, x_ip_table);
-		else
-			;
-#pragma message("Fix this part, too\n")
-
+		fDomain->Interpolate(loccoords, x_ip_table);
+		
 		/* collect unique list of neighboring nodes */
 		nodeset.Dimension(0);
 		for (int j = 0; j < nen; j++)
@@ -1490,6 +1492,10 @@ bool MeshFreeSupportT::Covers(const dArrayT& field_x, const dArrayT& node_x,
 void MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 	dArray2DT& phi, ArrayT<dArray2DT>& Dphi)
 {
+	/* Verify that there is an element */
+	if (!fDomain)
+		ExceptionT::GeneralFail("MeshFreeSupportT::ComputeElementData","No Domain available\n");
+
 	/* skip nodes */
 	if (fSkipElement.Length() > 0 && fSkipElement[element] == 1)
 	{
@@ -1521,11 +1527,7 @@ void MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 	/* integration point coordinates */
 	fConnects.RowAlias(element, elementnodes);
 	loccoords.SetLocal(elementnodes);
-	if (fDomain)
-		fDomain->Interpolate(loccoords, fx_ip_table);
-	else
-		;
-#pragma message("The third time is here")
+	fDomain->Interpolate(loccoords, fx_ip_table);
 
 	/* loop over integration points */
 	dArrayT x_ip;
