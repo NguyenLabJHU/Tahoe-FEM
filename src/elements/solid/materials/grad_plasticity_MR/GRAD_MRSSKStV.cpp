@@ -60,11 +60,11 @@ void GRAD_MRSSKStV::ResetHistory(void)
 }
 
 /* initialize laplacian of strain and lambda, and lambda, all at ip */
-void GRAD_MRSSKStV::Initialize(dSymMatrixT& strain_lapl_ip, dArrayT& lambda_ip, dArrayT& lambda_lapl_ip)
+void GRAD_MRSSKStV::Initialize(dSymMatrixT& strain_lapl_ip, dArrayT& lambdaPM_ip, dArrayT& lambdaPM_lapl_ip)
 {
 	Strain_Lapl_IP = strain_lapl_ip;
-    lambda = lambda_ip;
-    lambda_Lapl = lambda_lapl_ip;
+    lambdaPM = lambdaPM_ip;
+    lambdaPM_Lapl = lambdaPM_lapl_ip;
 }
 
 const dSymMatrixT& GRAD_MRSSKStV::ElasticStrain(const dSymMatrixT& totalstrain, const ElementCardT& element, int ip) 
@@ -105,18 +105,12 @@ const dSymMatrixT& GRAD_MRSSKStV::s_ij(void)
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
 	/*
-	//interpolate the nodal field values to the current integration point /
-	const double& dlam = IP_Interpolate();
-	// compute the Laplacian of the field at the current integration point/ 
-	const double& lap_dlam = IP_ComputeLaplacian(); 
-	const dSymMatrixT& e_tot = e();          //remove thermal strain ??
+	const dSymMatrixT& e_tot = e();          //remove thermal strain 
 	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
-	//compute the Laplacian of strain at the current integration point/
-	const dSymMatrixT& lap_e_tot = IP_ComputeLaplacianStrain(); 
-	const dSymMatrixT& lap_e_els = LapElasticStrain(lap_etot, element, ip);
-	*/
+	const dSymMatrixT& lap_e_els = LapElasticStrain(Strain_Lapl_IP, element, ip);
+	
 	/* Updated Cauchy stress (return mapping) */
-	//fStress = fGRAD_MR->StressCorrection(e_els, lap_e_els, dlam, lap_dlam, element, ip);
+	//fStress = fGRAD_MR->StressCorrection(e_els, lap_e_els, lambdaPM, lambdaPM_Lapl, element, ip);
 	return fStress;	
 }
 
