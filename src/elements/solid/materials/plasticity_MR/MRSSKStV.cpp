@@ -135,11 +135,12 @@ void MRSSKStV::ComputeOutput(dArrayT& output)
 		
 		// check for localization
 		// compute modulus 
-		const dMatrixT& modulus = c_ijkl();
+		//const dMatrixT& modulus = c_ijkl();
 		// perfectly plastic modulus not implemented yet
 		//const dMatrixT& modulus = c_perfplas_ijkl();
 
 		/* localization condition checker */
+		/*
 		DetCheckT checker(stress, modulus, Ce);
 		AutoArrayT <dArrayT> normals;
 		AutoArrayT <dArrayT> slipdirs;
@@ -150,6 +151,8 @@ void MRSSKStV::ComputeOutput(dArrayT& output)
 		checkloc = checker.IsLocalized_SS(normals,slipdirs);
 		if (checkloc) output[6] = 1.0;
 		else output[6] = 0.0;
+		*/
+		output[6] = 0.0;
 	}	
 	else
 	{

@@ -241,18 +241,21 @@ void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 		//const dMatrixT& modulus = c_perfplas_ijkl();
 
 		/* localization condition checker */
+		/*
 		DetCheckT checker(stress, modulus, Ce);
 		AutoArrayT <dArrayT> normals;
 		AutoArrayT <dArrayT> slipdirs;
 		normals.Dimension(3);
 		slipdirs.Dimension(3);
-		//output[6] = checker.IsLocalized_SS(normals,slipdirs);
+		output[6] = checker.IsLocalized_SS(normals,slipdirs);
 		bool checkloc;
 		double detA;
 		//checkloc = checker.IsLocalized_SS(normals,slipdirs,detA);
 		checkloc = checker.IsLocalized_SS(normals,slipdirs);
 		if (checkloc) output[18] = 1.0;
 		else output[18] = 0.0;
+		*/
+		output[18] = 0.0;
 	}	
 	else
 	{
