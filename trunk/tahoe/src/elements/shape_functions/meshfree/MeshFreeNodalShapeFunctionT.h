@@ -1,4 +1,4 @@
-/* $Id: MeshFreeNodalShapeFunctionT.h,v 1.2 2004-02-10 01:27:38 cjkimme Exp $ */
+/* $Id: MeshFreeNodalShapeFunctionT.h,v 1.3 2004-06-24 21:03:50 cjkimme Exp $ */
 #ifndef _MF_NODAL_SHAPE_FUNCTION_T_H_
 #define _MF_NODAL_SHAPE_FUNCTION_T_H_
 
@@ -58,9 +58,10 @@ public:
 	virtual int SetFieldAt(const dArrayT& x, const dArrayT* shift); // returns 0 if MLS fails
 	const dArrayT& FieldAt(void);
 
-	/* compute global shape derivatives */ 	
+	/* compute global shape derivatives (at arbitrary point)*/ 	
 	virtual void SetDerivatives(void);
 	int SetDerivativesAt(const dArrayT& x); // returns 0 if MLS fails
+	const dArray2DT& DFieldAt(void);
 	void UseDerivatives(const iArrayT& neighbors, const dArray2DT& Dfield); // load external values
 
 	/* cutting facet functions */

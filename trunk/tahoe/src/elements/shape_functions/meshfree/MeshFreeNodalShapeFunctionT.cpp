@@ -1,4 +1,4 @@
-/* $Id: MeshFreeNodalShapeFunctionT.cpp,v 1.2 2004-02-10 01:27:38 cjkimme Exp $ */
+/* $Id: MeshFreeNodalShapeFunctionT.cpp,v 1.3 2004-06-24 21:03:50 cjkimme Exp $ */
 #include "MeshFreeNodalShapeFunctionT.h"
 #include "toolboxConstants.h"
 #include "MeshFreeSupport2DT.h"
@@ -57,7 +57,7 @@ void MeshFreeNodalShapeFunctionT::SetSkipNodes(const iArrayT& skip_nodes)
 	fMFSupport->SetSkipNodes(skip_nodes);
 }
 
-/* comput shape function at arbitrary point */
+/* compute shape function at arbitrary point */
 int MeshFreeNodalShapeFunctionT::SetFieldAt(const dArrayT& x, const dArrayT* shift)
 {
 	/* compute derivatives */
@@ -120,6 +120,11 @@ int MeshFreeNodalShapeFunctionT::SetDerivativesAt(const dArrayT& x)
 	}
 	else
 		return 0;
+}
+
+const dArray2DT& MeshFreeNodalShapeFunctionT::DFieldAt(void)
+{
+	return fMFSupport->DFieldAt();
 }
 
 void MeshFreeNodalShapeFunctionT::UseDerivatives(const iArrayT& neighbors,
