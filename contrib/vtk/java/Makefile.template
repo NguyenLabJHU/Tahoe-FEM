@@ -1,4 +1,4 @@
-# $Id: Makefile.template,v 1.4 2002-08-12 06:48:24 paklein Exp $
+# $Id: Makefile.template,v 1.5 2002-08-12 16:40:02 paklein Exp $
 .SUFFIXES: .cpp .h .java .class .o .sig
 
 # choose platform specific macros file
@@ -31,7 +31,7 @@ TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 VTK_DIR    = /usr/local/src/VTK
 VTK_INC    = $(X_INC_FLAGS) -I$(VTK_DIR) -I$(VTK_DIR)/Common -I$(VTK_DIR)/Graphics -I$(VTK_DIR)/Imaging -I$(VTK_DIR)/Filtering -I$(VTK_DIR)/IO -I$(VTK_DIR)/Rendering
 VTK_CFLAGS = $(X_CFLAGS) $(THREAD_CFLAGS) $(VTK_INC) -D__VTK__ -D__VTK_NEW__
-VTK_LFLAGS = -L/usr/local/src/VTK/bin/ -L/usr/X11R6/lib -lpthread -lm \
+VTK_LFLAGS = -L$(VTK_DIR)/bin/ -L/usr/X11R6/lib -lpthread -lm \
 	-lvtkCommon -lvtkFiltering -lvtkGraphics -lvtkRendering \
 	-lGL -lXt  -lSM -lICE  -L/usr/X11R6/lib -lX11 -lXext \
 	-lvtkImaging -lvtkGraphics -lvtkIO -lvtkFiltering -lvtkCommon \
@@ -54,7 +54,7 @@ CC_FLAGS_ALL = \
 	$(VTK_CFLAGS) \
 	$(AX_CFLAGS) \
 	$(CC_FLAGS)
-	
+
 L_FLAGS_ALL = \
 	-L../lib -lvtk_console \
 	$(TB_LFLAGS) \
