@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.5 2003-05-06 17:36:06 paklein Exp $ */
+/* $Id: EAMT.h,v 1.6 2003-05-06 19:06:18 saubry Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -79,8 +79,11 @@ protected:
 
 private:
 
-	dArrayT GetRho2D(const dArray2DT& coords);
-	dArrayT GetRho3D(const dArray2DT& coords);
+	void GetRho2D(const dArray2DT& coords,dArray2DT& rho);
+	void GetRho3D(const dArray2DT& coords,dArray2DT& rho);
+
+	void GetEmb(const dArray2DT& coords,const dArray2DT rho,
+		    dArray2DT& Emb);
 
 	/** particle pair-properties list */
 	ArrayT<EAMPropertyT*> fEAMProperties;
@@ -95,6 +98,12 @@ private:
 	dArray2DT fElectronDensity;
 	nVariArray2DT<double> fElectronDensity_man;
 	int fElectronDensityMessageID;
+
+	/** embedding energy */
+	dArray2DT fEmbeddingEnergy;
+	nVariArray2DT<double> fEmbeddingEnergy_man;
+	int fEmbeddingEnergyMessageID;
+
 
 	/** \name workspace for EAMT::RHSDriver. Used to accumulate the force for
 	 * a single row of EAMT::fNeighbors. */
