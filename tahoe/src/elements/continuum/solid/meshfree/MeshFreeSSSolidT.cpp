@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.11 2002-09-12 17:49:54 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.11.2.1 2002-09-21 09:10:03 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 
 #include "MeshFreeSSSolidT.h"
@@ -29,10 +29,10 @@ MeshFreeSSSolidT::MeshFreeSSSolidT(const ElementSupportT& support, const FieldT&
 	fB_wrap(10, fB)
 {
 	/* disable any strain-displacement options */
-	if (fStrainDispOpt != 0)
+	if (fStrainDispOpt != kStandardB)
 	{
 		cout << "\n MeshFreeSSSolidT::MeshFreeSSSolidT: no strain-displacement options\n" << endl;
-		fStrainDispOpt = 0;
+		fStrainDispOpt = kStandardB;
 	}
 }
 
