@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.41.4.1 2004-03-20 16:43:13 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.41.4.2 2004-04-03 20:15:11 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -112,6 +112,9 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 			}
 		}
 	}
+
+	/* map should return -1 if point not in map */
+	global_to_local.SetOutOfRange(InverseMapT::MinusOne);
 
 	/* copy/compress contents */
 	point_in_cell.Copy(auto_fill);
