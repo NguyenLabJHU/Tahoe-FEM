@@ -1,4 +1,4 @@
-/* $Id: LocalJ2SSNonlinHard.cpp,v 1.9 2003-11-21 22:46:51 paklein Exp $ */
+/* $Id: LocalJ2SSNonlinHard.cpp,v 1.10 2004-01-10 04:41:23 paklein Exp $ */
 #include "LocalJ2SSNonlinHard.h"
 
 #include "iArrayT.h"
@@ -166,9 +166,9 @@ const dSymMatrixT& LocalJ2SSNonlinHard::s_ij(void)
 	int fCurrIP = CurrIP();
 	ElementCardT& element = CurrentElement();
 
-	int iteration = fSSMatSupport.IterationNumber();
+	int iteration = fSSMatSupport->IterationNumber();
 
-	if (fSSMatSupport.RunState() == GlobalT::kFormRHS)
+	if (fSSMatSupport->RunState() == GlobalT::kFormRHS)
 	{
 	        if (iteration > -1)
 	                /* solve state at current integration point */

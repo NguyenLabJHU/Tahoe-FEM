@@ -1,4 +1,4 @@
-/* $Id: DiffusionMatListT.h,v 1.7 2003-12-10 07:14:28 paklein Exp $ */
+/* $Id: DiffusionMatListT.h,v 1.8 2004-01-10 04:41:07 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSE_MAT_LIST_T_H_
 #define _DIFFUSE_MAT_LIST_T_H_
@@ -32,6 +32,10 @@ public:
 	/*@{*/
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;

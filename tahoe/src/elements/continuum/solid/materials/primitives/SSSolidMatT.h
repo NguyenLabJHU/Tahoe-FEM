@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.11 2004-01-05 07:21:48 paklein Exp $ */
+/* $Id: SSSolidMatT.h,v 1.12 2004-01-10 04:41:25 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
@@ -21,6 +21,7 @@ public:
 
 	/** constructor */
 	SSSolidMatT(ifstreamT& in, const SSMatSupportT& support);
+	SSSolidMatT(void);
 
 	/* I/O functions */
 	virtual void PrintName(ostream& out) const;
@@ -93,7 +94,7 @@ private:
 protected:
 
 	/** small strain material support */
-	const SSMatSupportT& fSSMatSupport;
+	const SSMatSupportT* fSSMatSupport;
 
 	/** return value for the modulus */
 	dMatrixT fModulus;

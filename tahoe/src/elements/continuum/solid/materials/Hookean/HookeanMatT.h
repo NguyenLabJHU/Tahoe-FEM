@@ -1,35 +1,30 @@
-/* $Id: HookeanMatT.h,v 1.4 2002-07-05 22:28:14 paklein Exp $ */
-/* created: paklein (06/09/1997)                                          */
-/* Base class for all Hookean materials, defined as:                      */
-/* 	stress_ij = moduli_ijkl strain_kl                                     */
-
+/* $Id: HookeanMatT.h,v 1.5 2004-01-10 04:41:12 paklein Exp $ */
+/* created: paklein (06/09/1997) */
 #ifndef _HOOKEAN_MAT_H_
 #define _HOOKEAN_MAT_H_
-
-
-namespace Tahoe {
-
-/* forward declarations */
-class dSymMatrixT;
-
-}
 
 /* direct members */
 #include "dMatrixT.h"
 
 namespace Tahoe {
 
+/* forward declarations */
+class dSymMatrixT;
+
+/** base class for all Hookean materials, defined as:
+ * 	stress_ij = moduli_ijkl strain_kl */
 class HookeanMatT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	HookeanMatT(int nsd);
+	HookeanMatT(void) { };
 
-	/* destructor */
+	/** destructor */
 	virtual ~HookeanMatT(void);
 
-	/* initialization */
+	/** initialization */
 	void Initialize(void);
 
 protected:

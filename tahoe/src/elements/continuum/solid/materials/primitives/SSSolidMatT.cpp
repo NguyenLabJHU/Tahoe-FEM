@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.7 2004-01-05 07:21:48 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.8 2004-01-10 04:41:25 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
 #include <iostream.h>
@@ -12,16 +12,23 @@ using namespace Tahoe;
 const double strain_perturbation = 1.0e-08;
 
 /* constructor */
-SSSolidMatT::SSSolidMatT(ifstreamT& in,const SSMatSupportT& support):
+SSSolidMatT::SSSolidMatT(ifstreamT& in, const SSMatSupportT& support):
 	SolidMaterialT(in, support),
-	fSSMatSupport(support),
+	fSSMatSupport(&support),
 	fModulus(dSymMatrixT::NumValues(NumSD())),
 	fStrainTemp(NumSD()),
 	fQ(NumSD()),
 	fThermalStrain(NumSD()),
 	fHasThermalStrain(false)
 {
+	SetName("small_strain_solid_material");
+}
 
+SSSolidMatT::SSSolidMatT(void):
+	fSSMatSupport(NULL),
+	fHasThermalStrain(false)
+{
+	SetName("small_strain_solid_material");
 }
 
 /* I/O */
@@ -40,12 +47,12 @@ const dSymMatrixT& SSSolidMatT::e(void)
 	if (fHasThermalStrain)
 	{
 		/* thermal strain is purely dilatational */
-		fStrainTemp  = fSSMatSupport.LinearStrain();
+		fStrainTemp  = fSSMatSupport->LinearStrain();
 		fStrainTemp -= fThermalStrain;
 		return fStrainTemp;
 	}
 	else
-		return fSSMatSupport.LinearStrain();
+		return fSSMatSupport->LinearStrain();
 }
 
 /* elastic strain at the given integration point */
@@ -55,12 +62,12 @@ const dSymMatrixT& SSSolidMatT::e(int ip)
 	if (fHasThermalStrain)
 	{
 		/* thermal strain is purely dilatational */
-		fStrainTemp  = fSSMatSupport.LinearStrain(ip);
+		fStrainTemp  = fSSMatSupport->LinearStrain(ip);
 		fStrainTemp -= fThermalStrain;
 		return fStrainTemp;
 	}
 	else
-		return fSSMatSupport.LinearStrain(ip);
+		return fSSMatSupport->LinearStrain(ip);
 }
 
 /* strain - returns the elastic strain, ie. thermal removed */
@@ -69,7 +76,7 @@ const dSymMatrixT& SSSolidMatT::e_last(void)
 	/* cannot have thermal strain */
 	if (fHasThermalStrain)
 		ExceptionT::GeneralFail("SSSolidMatT::e_last", "not available with thermal strains");
-	return fSSMatSupport.LinearStrain_last();
+	return fSSMatSupport->LinearStrain_last();
 }
 
 /* elastic strain at the given integration point */
@@ -78,7 +85,7 @@ const dSymMatrixT& SSSolidMatT::e_last(int ip)
 	/* cannot have thermal strain */
 	if (fHasThermalStrain)
 		ExceptionT::GeneralFail("SSSolidMatT::e_last", "not available with thermal strains");
-	return fSSMatSupport.LinearStrain_last(ip);
+	return fSSMatSupport->LinearStrain_last(ip);
 }
 
 /* material description */
@@ -91,7 +98,7 @@ const dMatrixT& SSSolidMatT::c_ijkl(void)
 	/* get the strain tensor for the current ip - use the strain
 	 * from the material support since the return values from ensure e()
 	 * is recomputed when there are thermal strains */
-	dSymMatrixT& strain = const_cast<dSymMatrixT&>(fSSMatSupport.LinearStrain());
+	dSymMatrixT& strain = const_cast<dSymMatrixT&>(fSSMatSupport->LinearStrain());
 
 	/* compute columns of modulus */
 	for (int i = 0; i < fModulus.Cols(); i++) {
