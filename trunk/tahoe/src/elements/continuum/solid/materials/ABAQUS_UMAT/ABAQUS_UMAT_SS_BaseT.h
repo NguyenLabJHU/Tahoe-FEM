@@ -1,12 +1,10 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.4 2004-08-01 01:02:04 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.5 2004-08-01 20:41:53 paklein Exp $ */
 #ifndef _ABAQUS_UMAT_SS_BASE_T_H_
 #define _ABAQUS_UMAT_SS_BASE_T_H_
 
 /* base classes */
 #include "ABAQUS_BaseT.h"
-#include "SSSolidMatT.h"
-#include "IsotropicT.h"
-#include "ofstreamT.h"
+#include "SSIsotropicMatT.h"
 
 /* library support options */
 #ifdef __F2C__
@@ -21,18 +19,13 @@
 
 namespace Tahoe {
 
-/** wrapper for using ABAQUS UMAT's with small strain elements. Derived classes
- * are responsible for setting IsotropicT and Material2DT properties. */
-class ABAQUS_UMAT_SS_BaseT: 
-	protected ABAQUS_BaseT, 
-	public SSSolidMatT, 
-	public IsotropicT, 
-	public Material2DT
+/** wrapper for using ABAQUS UMAT's with small strain elements */
+class ABAQUS_UMAT_SS_BaseT: protected ABAQUS_BaseT, public SSIsotropicMatT 
 {
 public:
 
 	/** constructor */
-	ABAQUS_UMAT_SS_BaseT(ifstreamT& in, const SSMatSupportT& support);
+	ABAQUS_UMAT_SS_BaseT(void);
 
 	/** required parameter flags */
 	virtual bool Need_Strain_last(void) const { return true; };
@@ -42,9 +35,6 @@ public:
 
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
-
-	/** initialization */
-	virtual void Initialize(void);
 
 	/* materials initialization */
 	virtual bool NeedsPointInitialization(void) const; // false by default
@@ -82,6 +72,15 @@ public:
 	virtual void SetOutputVariables(iArrayT& variable_index,
 		ArrayT<StringT>& output_labels) = 0;
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/* I/O functions */
@@ -118,14 +117,14 @@ protected:
 	/** properties array */
 	nArrayT<doublereal> fProperties;
 
-	/** debugging */
-	ofstreamT flog;
-
 private:
 
-	/** set to true if modulus should be computed using the finite
-	 * difference approximation */
-	bool fApproxModulus;
+	/** if true, writes debugging info to output */
+	bool fDebug;
+
+	/** if true, uses the modulus computed by the UMAT; otherwise, returns
+	 * the finite difference approximation computed by FSSolidMatT */
+	bool fUseUMATModulus;
 
 	/** number of "elastic" iterations */
 	int fNumElasticIterations;
@@ -138,8 +137,8 @@ private:
 	//  expansion   (*EXPANSION)
 
 	/* work space */
-	dSymMatrixT fStress;             // return value
-	dArrayT fIPCoordinates;          // integration point coordinates
+	dSymMatrixT fStress; /**< integration point coordinates */
+	dArrayT fIPCoordinates; /**< integration point coordinates */
 	double fPressure; /**< pressure for the most recent calculation of the stress */
 	
 	/* material output data */

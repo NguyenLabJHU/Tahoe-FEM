@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.5 2004-07-29 18:34:11 paklein Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.6 2004-08-01 20:42:03 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -157,14 +157,22 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 #endif
 
 #ifdef VISCOELASTICITY
-	sub_lists.AddSub("Reese-Govindjee_split");
+		sub_lists.AddSub("Reese-Govindjee_split");
+#endif
+
+#ifdef ABAQUS_MATERIAL
+#ifdef ABAQUS_BCJ_MATERIAL_DEV
+		sub_lists.AddSub("ABAQUS_UMAT_BCJ");
+		sub_lists.AddSub("ABAQUS_VUMAT_BCJ");
+		sub_lists.AddSub("ABAQUS_UMAT_BCJ_iso-damage");
+#endif
 #endif
 
 #ifdef SIERRA_MATERIAL
-	sub_lists.AddSub("SIERRA_hypoelastic");
+		sub_lists.AddSub("SIERRA_hypoelastic");
 
 #ifdef __SIERRA__
-	sub_lists.AddSub("SIERRA_BCJ");
+		sub_lists.AddSub("SIERRA_BCJ");
 #endif /* __SIERRA__ */
 
 #endif
@@ -264,6 +272,17 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #ifdef VISCOELASTICITY
 	else if (name == "Reese-Govindjee_split")
 		mat= new RGSplitT;
+#endif
+
+#ifdef ABAQUS_MATERIAL
+#ifdef ABAQUS_BCJ_MATERIAL_DEV
+	else if (name == "ABAQUS_UMAT_BCJ")
+		mat= new ABAQUS_BCJ;
+	else if (name == "ABAQUS_VUMAT_BCJ")
+		mat= new ABAQUS_VUMAT_BCJ;
+	else if (name == "ABAQUS_UMAT_BCJ_iso-damage")
+		mat= new ABAQUS_BCJ_ISO;
+#endif
 #endif
 
 #ifdef SIERRA_MATERIAL

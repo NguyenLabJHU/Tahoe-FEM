@@ -1,12 +1,11 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.12 2004-08-01 01:02:04 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.13 2004-08-01 20:41:53 paklein Exp $ */
 /* created: paklein (05/09/2000) */
 #ifndef _ABAQUS_UMAT_BASE_T_H_
 #define _ABAQUS_UMAT_BASE_T_H_
 
 /* base classes */
 #include "ABAQUS_BaseT.h"
-#include "FSSolidMatT.h"
-#include "IsotropicT.h"
+#include "FSIsotropicMatT.h"
 
 /* library support options */
 #ifdef __F2C__
@@ -16,9 +15,6 @@
 #include "iArrayT.h"
 #include "dArray2DT.h"
 
-//TEMP - debugging
-#include <fstream.h>
-
 /* f2c */
 #include "f2c.h"
 
@@ -27,16 +23,13 @@ namespace Tahoe {
 /* forward declarations */
 class SpectralDecompT;
 
-class ABAQUS_UMAT_BaseT: 
-	protected ABAQUS_BaseT, 
-	public FSSolidMatT, 
-	public IsotropicT,
-	public Material2DT
+/** wrapper for using ABAQUS UMAT's with finite strain elements */
+class ABAQUS_UMAT_BaseT: protected ABAQUS_BaseT, public FSIsotropicMatT
 {
 public:
 
 	/* constructor */
-	ABAQUS_UMAT_BaseT(ifstreamT& in, const FSMatSupportT& support);
+	ABAQUS_UMAT_BaseT(void);
 
 	/* destructor */
 	~ABAQUS_UMAT_BaseT(void);
@@ -49,9 +42,6 @@ public:
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
-
-	/* initialization */
-	virtual void Initialize(void);
 
 	/* materials initialization */
 	virtual bool NeedsPointInitialization(void) const; // false by default
@@ -75,10 +65,6 @@ public:
 	virtual double Pressure(void) const { return fPressure; };
 	/*@}*/
 
-	/* material description */
-	virtual const dMatrixT& C_IJKL(void);  // material tangent moduli
-	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
-
 	/* returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);
 
@@ -92,6 +78,15 @@ public:
 	/* set material output */
 	virtual void SetOutputVariables(iArrayT& variable_index,
 		ArrayT<StringT>& output_labels) = 0;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
@@ -131,8 +126,12 @@ protected:
 	
 private:
 
-	//debugging
-	ofstream flog;
+	/** if true, writes debugging info to output */
+	bool fDebug;
+
+	/** if true, uses the modulus computed by the UMAT; otherwise, returns
+	 * the finite difference approximation computed by FSSolidMatT */
+	bool fUseUMATModulus;
 	
 	/* material name */
 	StringT fUMAT_name;
@@ -142,9 +141,7 @@ private:
 	//  expansion   (*EXPANSION)
 
 	/* work space */
-	dMatrixT    fModulus;            // return value
-	dSymMatrixT fStress;             // return value
-	dArrayT fIPCoordinates;          // integration point coordinates
+	dArrayT fIPCoordinates; /**< integration point coordinates */
 	double fPressure; /**< pressure for the most recent calculation of the stress */
 	
 	/* material output data */

@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.6 2004-07-15 08:26:33 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.7 2004-08-01 20:41:53 paklein Exp $ */
 #include "ABAQUS_UMAT_SS_BaseT.h"
 
 #ifdef __F2C__
@@ -6,152 +6,30 @@
 #include <ctype.h>
 #include <float.h>
 
-
 #include "ContinuumElementT.h" //needed for ip coordinates
 #include "SSMatSupportT.h"
-
 #include "ThermalDilatationT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 
 using namespace Tahoe;
 
-/* debugging */
-//#define DEBUG 1
-#undef DEBUG
-
 /* constructor */
-ABAQUS_UMAT_SS_BaseT::ABAQUS_UMAT_SS_BaseT(ifstreamT& in, const SSMatSupportT& support):
-	SSSolidMatT(in, support),
-	fApproxModulus(false),
-	fNumElasticIterations(-1),
+ABAQUS_UMAT_SS_BaseT::ABAQUS_UMAT_SS_BaseT(void):
+	ParameterInterfaceT("ABAQUS_UMAT_SS_material"),
+	fDebug(false),
+	fUseUMATModulus(false),
+	fNumElasticIterations(0),
 	fTangentType(GlobalT::kSymmetric),
-	fStress(NumSD()),
-	fIPCoordinates(NumSD()),
 	fPressure(0.0),
-	fmat_nsd(NumSD()),
-	fsym_mat_nsd(dSymMatrixT::int2DimensionT(NumSD()))
-{
-	const char caller[] = "ABAQUS_UMAT_SS_BaseT::ABAQUS_UMAT_SS_BaseT";
-
-	/* UMAT dimensions */
-	ndi = 0;
-	nshr = 0;
-	ntens = 0;
-	nstatv = 0;
-
-	/* read non-ABAQUS parameters */
-	in >> fNumElasticIterations;
-
-	/* read ABAQUS-format input */
-	bool nonsym = false;	
-	Read_ABAQUS_Input(in, fUMAT_name, fProperties, fDensity, nstatv, nonsym);
-	if (nonsym)
-		fTangentType = GlobalT::kNonSymmetric;
-
-#if DEBUG
-StringT UMAT_file;
-UMAT_file.Root(in.filename());
-UMAT_file.Append(".UMAT.log");
-flog.open(UMAT_file);
-flog.precision(DBL_DIG);
-flog.setf(ios::showpoint);
-flog.setf(ios::right, ios::adjustfield);
-flog.setf(ios::scientific, ios::floatfield);
-#endif
-}
-
-/* print parameters */
-void ABAQUS_UMAT_SS_BaseT::Print(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-	
-	/* class parameters */
-	out << " Number of elastic iterations. . . . . . . . . . = " << fNumElasticIterations << '\n';
-	
-	/* write properties array */
-	out << " Number of ABAQUS UMAT internal variables. . . . = " << nstatv << '\n';
-	out << " Number of ABAQUS UMAT properties. . . . . . . . = " << fProperties.Length() << '\n';
-	PrintProperties(out);
-}
-
-/* disable multiplicative thermal strains */
-void ABAQUS_UMAT_SS_BaseT::Initialize(void)
-{
-	const char caller[] = "ABAQUS_UMAT_SS_BaseT::Initialize";
-
-	/* inherited */
-	SSSolidMatT::Initialize();
-
-	/* notify */
-	if (fThermal->IsActive())
-		cout << "\n ABAQUS_UMAT_SS_BaseT::Initialize: thermal strains must\n"
-		     <<   "    be handled within the UMAT\n" << endl;
 	
 	/* UMAT dimensions */
-	ndi = 3; // always 3 direct components
-	int nsd = NumSD();
-	if (nsd == 2)
-		nshr = 1;
-	else if (nsd == 3)
-		nshr = 3;
-	else
-		ExceptionT::GeneralFail(caller);
-	ntens = ndi + nshr;
+	ndi(0),
+	nshr(0),
+	ntens(0),
+	nstatv(0)
+{
 
-	/* modulus storage */
-	if (fTangentType == GlobalT::kDiagonal)
-		fModulusDim = ntens;
-	else if (fTangentType == GlobalT::kSymmetric)
-	{
-		if (nsd == 2) fModulusDim = 10;
-		else if (nsd == 3) fModulusDim = 21;
-		else ExceptionT::GeneralFail(caller);
-	}
-	else if (fTangentType == GlobalT::kNonSymmetric)
-		fModulusDim = ntens*ntens;
-	else
-		ExceptionT::GeneralFail(caller);
-
-	/* storage block size (per ip) */
-	fBlockSize = 0;
-	fBlockSize += ntens;       // fstress
-	fBlockSize += ntens;       // fstrain
-	fBlockSize += 3;           // fsse_pd_cd
-	fBlockSize += nstatv;      // fstatv
-	fBlockSize += fModulusDim; // fmodulus
-	fBlockSize += ntens;       // fstress_last
-	fBlockSize += ntens;       // fstrain_last
-	fBlockSize += 3;           // fsse_pd_cd_last
-	fBlockSize += nstatv;      // fstatv_last
-	
-	/* argument array */
-	fArgsArray.Dimension(fBlockSize);
-
-	/* assign pointers */
-	doublereal* parg = fArgsArray.Pointer();
-	fstress.Set(ntens, parg);        parg += ntens;
-	fstrain.Set(ntens, parg);        parg += ntens;
-	fsse_pd_cd.Set(3, parg);         parg += 3;
-	fstatv.Set(nstatv, parg);        parg += nstatv;
-	fmodulus.Set(fModulusDim, parg); parg += fModulusDim;
-	fstress_last.Set(ntens, parg);   parg += ntens;
-	fstrain_last.Set(ntens, parg);   parg += ntens;
-	fsse_pd_cd_last.Set(3, parg);    parg += 3;
-	fstatv_last.Set(nstatv, parg);
-
-	/* UMAT array arguments */
-	fddsdde.Dimension(ntens);
-	fddsdde = 0.0;
-	fdstran.Dimension(ntens);
-	fdstran = 0.0;
-	fdrot.Dimension(3);   // always 3
-	fdrot.Identity();
-	fdfgrd0.Dimension(3); // always 3
-	fdfgrd0.Identity();
-	fdfgrd1.Dimension(3); // always 3
-	fdfgrd1.Identity();
-	fcoords.Dimension(nsd);
 }
 
 /* materials initialization */
@@ -219,131 +97,146 @@ void ABAQUS_UMAT_SS_BaseT::ResetHistory(void)
 /* spatial description */
 const dMatrixT& ABAQUS_UMAT_SS_BaseT::c_ijkl(void)
 {
-	const char caller[] = "ABAQUS_UMAT_SS_BaseT::c_ijkl";
+	if (!fUseUMATModulus)
+	{
+		const dMatrixT& modulus = SSIsotropicMatT::c_ijkl();
+		if (fDebug) {
+			ofstreamT& out = MaterialSupport().Output();
+			out << setw(10) << "element: " << MaterialSupport().CurrElementNumber()+1 << '\n';
+			out << setw(10) << "     ip: " << CurrIP()+1 << '\n';
+			out << setw(10) << "modulus:\n" << modulus << endl;
+		}
+		return modulus;
+	}
+	else
+	{
+		const char caller[] = "ABAQUS_UMAT_SS_BaseT::c_ijkl";
 
-	/* load stored data */
-	Load(CurrentElement(), CurrIP());
+		/* load stored data */
+		Load(CurrentElement(), CurrIP());
 
-	int nsd = NumSD();
+		int nsd = NumSD();
 
 #if __option(extended_errorcheck)
-	if (nsd == 2) {
-		if (ntens != 4)	
-			ExceptionT::SizeMismatch(caller);
-	} else if (nsd == 3) {
-		if (ntens != 6)	
-			ExceptionT::SizeMismatch(caller);
-	} else
-		ExceptionT::GeneralFail(caller);
+		if (nsd == 2) {
+			if (ntens != 4)	
+				ExceptionT::SizeMismatch(caller);
+		} else if (nsd == 3) {
+			if (ntens != 6)	
+				ExceptionT::SizeMismatch(caller);
+		} else
+			ExceptionT::GeneralFail(caller);
 #endif
 
-	if (fTangentType == GlobalT::kDiagonal)
-	{
-		if (nsd == 2)
+		if (fTangentType == GlobalT::kDiagonal)
 		{
-			fModulus(0,0) = double(fmodulus[0]); // 11
-			fModulus(1,1) = double(fmodulus[1]); // 22
-			fModulus(2,2) = double(fmodulus[3]); // 12
-		}
-		else
-		{
-			fModulus(0,0) = double(fmodulus[0]); // 11
-			fModulus(1,1) = double(fmodulus[1]); // 22
-			fModulus(2,2) = double(fmodulus[2]); // 33
-			fModulus(3,3) = double(fmodulus[5]); // 23
-			fModulus(4,4) = double(fmodulus[4]); // 13
-			fModulus(5,5) = double(fmodulus[3]); // 12
-		}
-	}
-	else if (fTangentType == GlobalT::kSymmetric)
-	{
-		if (nsd == 2)
-		{
-			fModulus(0,0) = double(fmodulus[0]);
-
-			fModulus(1,0) = fModulus(0,1) = double(fmodulus[1]);
-			fModulus(1,1) = double(fmodulus[2]);
-
-			fModulus(2,0) = fModulus(0,2) = double(fmodulus[6]);
-			fModulus(2,1) = fModulus(1,2) = double(fmodulus[7]);
-			fModulus(2,2) = double(fmodulus[9]);
-		}
-		else
-		{
-			fModulus(0,0) = double(fmodulus[0]);
-
-			fModulus(1,0) = fModulus(0,1) = double(fmodulus[1]);
-			fModulus(1,1) = double(fmodulus[2]);
-
-			fModulus(2,0) = fModulus(0,2) = double(fmodulus[3]);
-			fModulus(2,1) = fModulus(1,2) = double(fmodulus[4]);
-			fModulus(2,2) = double(fmodulus[5]);
-
-			fModulus(3,0) = fModulus(0,3) = double(fmodulus[15]);
-			fModulus(3,1) = fModulus(1,3) = double(fmodulus[16]);
-			fModulus(3,2) = fModulus(2,3) = double(fmodulus[17]);
-			fModulus(3,3) = double(fmodulus[20]);
-		
-			fModulus(4,0) = fModulus(0,4) = double(fmodulus[10]);
-			fModulus(4,1) = fModulus(1,4) = double(fmodulus[11]);
-			fModulus(4,2) = fModulus(2,4) = double(fmodulus[12]);
-			fModulus(4,3) = fModulus(3,4) = double(fmodulus[19]);
-			fModulus(4,4) = double(fmodulus[14]);
-		
-			fModulus(5,0) = fModulus(0,5) = double(fmodulus[6]);
-			fModulus(5,1) = fModulus(1,5) = double(fmodulus[7]);
-			fModulus(5,2) = fModulus(2,5) = double(fmodulus[8]);
-			fModulus(5,3) = fModulus(3,5) = double(fmodulus[18]);
-			fModulus(5,4) = fModulus(4,5) = double(fmodulus[13]);		
-			fModulus(5,5) = double(fmodulus[9]);
-		}
-	}
-	else if (fTangentType == GlobalT::kNonSymmetric)
-	{
-		if (nsd == 2) 
-		{
-			double* mod_tahoe = fModulus.Pointer();
-			*mod_tahoe++ = double(fmodulus[0]);
-			*mod_tahoe++ = double(fmodulus[1]);
-			*mod_tahoe++ = double(fmodulus[3]);
-
-			*mod_tahoe++ = double(fmodulus[4]);
-			*mod_tahoe++ = double(fmodulus[5]);
-			*mod_tahoe++ = double(fmodulus[7]);
-
-			*mod_tahoe++ = double(fmodulus[12]);
-			*mod_tahoe++ = double(fmodulus[13]);
-			*mod_tahoe   = double(fmodulus[15]);
-		}
-		else
-		{
-			int tahoe2abaqus[6] = {0,1,2,5,4,3};
-			double* mod_tahoe = fModulus.Pointer();
-			for (int i = 0; i < 6; i++)
+			if (nsd == 2)
 			{
-				doublereal* mod_abaqus = fmodulus.Pointer(ntens*tahoe2abaqus[i]);
-				for (int j = 0; j < 6; j++)
-					*mod_tahoe++ = double(mod_abaqus[tahoe2abaqus[j]]);
+				fModulus(0,0) = double(fmodulus[0]); // 11
+				fModulus(1,1) = double(fmodulus[1]); // 22
+				fModulus(2,2) = double(fmodulus[3]); // 12
+			}
+			else
+			{
+				fModulus(0,0) = double(fmodulus[0]); // 11
+				fModulus(1,1) = double(fmodulus[1]); // 22
+				fModulus(2,2) = double(fmodulus[2]); // 33
+				fModulus(3,3) = double(fmodulus[5]); // 23
+				fModulus(4,4) = double(fmodulus[4]); // 13
+				fModulus(5,5) = double(fmodulus[3]); // 12
 			}
 		}
+		else if (fTangentType == GlobalT::kSymmetric)
+		{
+			if (nsd == 2)
+			{
+				fModulus(0,0) = double(fmodulus[0]);
+	
+				fModulus(1,0) = fModulus(0,1) = double(fmodulus[1]);
+				fModulus(1,1) = double(fmodulus[2]);
+	
+				fModulus(2,0) = fModulus(0,2) = double(fmodulus[6]);
+				fModulus(2,1) = fModulus(1,2) = double(fmodulus[7]);
+				fModulus(2,2) = double(fmodulus[9]);
+			}
+			else
+			{
+				fModulus(0,0) = double(fmodulus[0]);
+	
+				fModulus(1,0) = fModulus(0,1) = double(fmodulus[1]);
+				fModulus(1,1) = double(fmodulus[2]);
+	
+				fModulus(2,0) = fModulus(0,2) = double(fmodulus[3]);
+				fModulus(2,1) = fModulus(1,2) = double(fmodulus[4]);
+				fModulus(2,2) = double(fmodulus[5]);
+
+				fModulus(3,0) = fModulus(0,3) = double(fmodulus[15]);
+				fModulus(3,1) = fModulus(1,3) = double(fmodulus[16]);
+				fModulus(3,2) = fModulus(2,3) = double(fmodulus[17]);
+				fModulus(3,3) = double(fmodulus[20]);
+		
+				fModulus(4,0) = fModulus(0,4) = double(fmodulus[10]);
+				fModulus(4,1) = fModulus(1,4) = double(fmodulus[11]);
+				fModulus(4,2) = fModulus(2,4) = double(fmodulus[12]);
+				fModulus(4,3) = fModulus(3,4) = double(fmodulus[19]);
+				fModulus(4,4) = double(fmodulus[14]);
+		
+				fModulus(5,0) = fModulus(0,5) = double(fmodulus[6]);
+				fModulus(5,1) = fModulus(1,5) = double(fmodulus[7]);
+				fModulus(5,2) = fModulus(2,5) = double(fmodulus[8]);
+				fModulus(5,3) = fModulus(3,5) = double(fmodulus[18]);
+				fModulus(5,4) = fModulus(4,5) = double(fmodulus[13]);		
+				fModulus(5,5) = double(fmodulus[9]);
+			}
+		}
+		else if (fTangentType == GlobalT::kNonSymmetric)
+		{
+			if (nsd == 2) 
+			{
+				double* mod_tahoe = fModulus.Pointer();
+				*mod_tahoe++ = double(fmodulus[0]);
+				*mod_tahoe++ = double(fmodulus[1]);
+				*mod_tahoe++ = double(fmodulus[3]);
+
+				*mod_tahoe++ = double(fmodulus[4]);
+				*mod_tahoe++ = double(fmodulus[5]);
+				*mod_tahoe++ = double(fmodulus[7]);
+
+				*mod_tahoe++ = double(fmodulus[12]);
+				*mod_tahoe++ = double(fmodulus[13]);
+				*mod_tahoe   = double(fmodulus[15]);
+			}
+			else
+			{
+				int tahoe2abaqus[6] = {0,1,2,5,4,3};
+				double* mod_tahoe = fModulus.Pointer();
+				for (int i = 0; i < 6; i++)
+				{
+					doublereal* mod_abaqus = fmodulus.Pointer(ntens*tahoe2abaqus[i]);
+					for (int j = 0; j < 6; j++)
+						*mod_tahoe++ = double(mod_abaqus[tahoe2abaqus[j]]);
+				}
+			}
+		}
+		else 
+			ExceptionT::GeneralFail(caller);
+
+		if (fDebug) {
+			ofstreamT& out = MaterialSupport().Output();
+			out << setw(10) << "element: " << MaterialSupport().CurrElementNumber()+1 << '\n';
+			out << setw(10) << "     ip: " << CurrIP()+1 << '\n';
+			out << setw(10) << "modulus:\n" << fModulus << endl;
+		}
+
+		return fModulus;
 	}
-	else 
-		ExceptionT::GeneralFail(caller);
-
-#if DEBUG
-flog << setw(10) << "element: " << MaterialSupport().CurrElementNumber()+1 << '\n';
-flog << setw(10) << "     ip: " << CurrIP()+1 << '\n';
-flog << setw(10) << "modulus:\n" << fModulus << endl;
-#endif
-
-	return fModulus;
 }
 
 const dSymMatrixT& ABAQUS_UMAT_SS_BaseT::s_ij(void)
 {
 	/* call UMAT */
 	if (MaterialSupport().RunState() == GlobalT::kFormRHS ||
-	    (fApproxModulus && MaterialSupport().RunState() == GlobalT::kFormLHS))
+		(!fUseUMATModulus && MaterialSupport().RunState() == GlobalT::kFormLHS))
 	{
 		double  t = fSSMatSupport->Time();
 		double dt = fSSMatSupport->TimeStep();
@@ -401,12 +294,8 @@ void ABAQUS_UMAT_SS_BaseT::ComputeOutput(dArrayT& output)
 {
 	/* check */
 	if (output.Length() != fOutputIndex.Length())
-	{
-		cout << "\n ABAQUS_UMAT_SS_BaseT::ComputeOutput: not enough space to return\n"
-		     <<   "     output variables: given " << output.Length()
-		     << ". expecting " << fOutputIndex.Length() << "." << endl;
-		throw ExceptionT::kSizeMismatch;
-	}
+		ExceptionT::SizeMismatch("ABAQUS_UMAT_SS_BaseT::ComputeOutput",
+			"output array should be length %d not %d", fOutputIndex.Length(), output.Length());
 
 	/* load stored data */
 	Load(CurrentElement(), CurrIP());
@@ -416,17 +305,143 @@ void ABAQUS_UMAT_SS_BaseT::ComputeOutput(dArrayT& output)
 		output[i] = double(fstatv[fOutputIndex[i]]);
 }
 
-/***********************************************************************
-* Protected
-***********************************************************************/
-
-/* I/O functions */
-void ABAQUS_UMAT_SS_BaseT::PrintName(ostream& out) const
+/* describe the parameters needed by the interface */
+void ABAQUS_UMAT_SS_BaseT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	SSSolidMatT::PrintName(out);
-	out << "    ABAQUS user material: " << fUMAT_name << '\n';
+	SSIsotropicMatT::DefineParameters(list);
+
+	ParameterT debug(fDebug, "debug");
+	debug.SetDefault(fDebug);
+	list.AddParameter(debug);
+
+	ParameterT umat_mod(fUseUMATModulus, "use_UMAT_modulus");
+	umat_mod.SetDefault(fUseUMATModulus);
+	list.AddParameter(umat_mod);
+
+	ParameterT elastic_iterations(fNumElasticIterations, "elastic_iterations");
+	elastic_iterations.SetDefault(fNumElasticIterations);
+	list.AddParameter(elastic_iterations);
+
+	/* file with UMAT materials parameters */
+	list.AddParameter(ParameterT::Word, "UMAT_parameter_file");
 }
+
+/* accept parameter list */
+void ABAQUS_UMAT_SS_BaseT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "ABAQUS_UMAT_SS_BaseT::TakeParameterList";
+
+	/* inherited */
+	SSIsotropicMatT::TakeParameterList(list);
+
+	fDebug = list.GetParameter("debug");
+	fUseUMATModulus = list.GetParameter("use_UMAT_modulus");
+	fNumElasticIterations = list.GetParameter("elastic_iterations");
+
+	/* dimension work space */
+	int nsd = NumSD();
+	fStress.Dimension(nsd);
+	fIPCoordinates.Dimension(nsd);
+	fmat_nsd.Dimension(nsd);
+	fsym_mat_nsd.Dimension(dSymMatrixT::int2DimensionT(nsd));
+
+	/* open UMAT parameters file */
+	StringT path;
+	path.FilePath(MaterialSupport().InputFile());
+	StringT params = list.GetParameter("UMAT_parameter_file");
+	params.ToNativePathName();
+	params.Prepend(path);
+	ifstreamT in('#', params);
+	if (!in.is_open())
+		ExceptionT::GeneralFail(caller, "could not open file \"%s\"",
+			params.Pointer());
+
+	/* read ABAQUS-format input */
+	bool nonsym = false;	
+	Read_ABAQUS_Input(in, fUMAT_name, fProperties, fDensity, nstatv, nonsym);
+	if (nonsym)
+		fTangentType = GlobalT::kNonSymmetric;
+
+	/* notify */
+	if (fThermal->IsActive())
+		cout << "\n ABAQUS_UMAT_SS_BaseT::Initialize: thermal strains must\n"
+		     <<   "    be handled within the UMAT\n" << endl;
+	
+	/* UMAT dimensions */
+	ndi = 3; // always 3 direct components
+	if (nsd == 2)
+		nshr = 1;
+	else if (nsd == 3)
+		nshr = 3;
+	else
+		ExceptionT::GeneralFail(caller, "unexpected dimension %d", nsd);
+	ntens = ndi + nshr;
+
+	/* modulus storage */
+	if (fTangentType == GlobalT::kDiagonal)
+		fModulusDim = ntens;
+	else if (fTangentType == GlobalT::kSymmetric)
+	{
+		if (nsd == 2) fModulusDim = 10;
+		else if (nsd == 3) fModulusDim = 21;
+		else ExceptionT::GeneralFail(caller);
+	}
+	else if (fTangentType == GlobalT::kNonSymmetric)
+		fModulusDim = ntens*ntens;
+	else
+		ExceptionT::GeneralFail(caller);
+
+	/* storage block size (per ip) */
+	fBlockSize = 0;
+	fBlockSize += ntens;       // fstress
+	fBlockSize += ntens;       // fstrain
+	fBlockSize += 3;           // fsse_pd_cd
+	fBlockSize += nstatv;      // fstatv
+	fBlockSize += fModulusDim; // fmodulus
+	fBlockSize += ntens;       // fstress_last
+	fBlockSize += ntens;       // fstrain_last
+	fBlockSize += 3;           // fsse_pd_cd_last
+	fBlockSize += nstatv;      // fstatv_last
+	
+	/* argument array */
+	fArgsArray.Dimension(fBlockSize);
+
+	/* assign pointers */
+	doublereal* parg = fArgsArray.Pointer();
+	fstress.Set(ntens, parg);        parg += ntens;
+	fstrain.Set(ntens, parg);        parg += ntens;
+	fsse_pd_cd.Set(3, parg);         parg += 3;
+	fstatv.Set(nstatv, parg);        parg += nstatv;
+	fmodulus.Set(fModulusDim, parg); parg += fModulusDim;
+	fstress_last.Set(ntens, parg);   parg += ntens;
+	fstrain_last.Set(ntens, parg);   parg += ntens;
+	fsse_pd_cd_last.Set(3, parg);    parg += 3;
+	fstatv_last.Set(nstatv, parg);
+
+	/* UMAT array arguments */
+	fddsdde.Dimension(ntens);
+	fddsdde = 0.0;
+	fdstran.Dimension(ntens);
+	fdstran = 0.0;
+	fdrot.Dimension(3);   // always 3
+	fdrot.Identity();
+	fdfgrd0.Dimension(3); // always 3
+	fdfgrd0.Identity();
+	fdfgrd1.Dimension(3); // always 3
+	fdfgrd1.Identity();
+	fcoords.Dimension(nsd);
+
+	/* write properties */
+	ofstreamT& out = MaterialSupport().Output();	
+	out << " Number of ABAQUS UMAT internal variables. . . . = " << nstatv << '\n';
+	out << " Number of ABAQUS UMAT properties. . . . . . . . = " << fProperties.Length() << '\n';
+	PrintProperties(out);
+}
+
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
 
 void ABAQUS_UMAT_SS_BaseT::PrintProperties(ostream& out) const
 {
@@ -518,21 +533,20 @@ void ABAQUS_UMAT_SS_BaseT::Call_UMAT(double t, double dt, int step, int iter)
 	integer     kinc   = integer(iter);                 // i: increment number
 	ftnlen      cmname_len = strlen(fUMAT_name);      // f2c: length of cmname string
 
-#ifdef DEBUG
-if (MaterialSupport().RunState() == GlobalT::kFormRHS) {
-	int d_width = OutputWidth(flog, stress);
-	flog << "\n THE INPUT\n";
-	flog << setw(10) << "   time: " << setw(d_width) << time[0]  << '\n';
-	flog << setw(10) << "   iter: " << MaterialSupport().IterationNumber() << '\n';
-	flog << setw(10) << "element: " << MaterialSupport().CurrElementNumber()+1 << '\n';
-	flog << setw(10) << "     ip: " << CurrIP()+1 << '\n';
-	flog << setw(10) << " stress: " << fstress.no_wrap() << '\n';
-	flog << setw(10) << " strain: " << fstrain.no_wrap() << '\n';
-	flog << setw(10) << "dstrain: " << fdstran.no_wrap() << '\n';
-	flog << setw(10) << "  state:\n";
-	flog << fstatv.wrap(5) << '\n';
-}
-#endif
+	if (fDebug)
+	{
+		ofstreamT& out = MaterialSupport().Output();
+		int d_width = OutputWidth(out, stress);
+		out << "\n THE INPUT\n";
+		out << setw(10) << "   time: " << setw(d_width) << time[0]  << '\n';
+		out << setw(10) << "element: " << MaterialSupport().CurrElementNumber()+1 << '\n';
+		out << setw(10) << "     ip: " << CurrIP()+1 << '\n';
+		out << setw(10) << " stress: " << fstress.no_wrap() << '\n';
+		out << setw(10) << " strain: " << fstrain.no_wrap() << '\n';
+		out << setw(10) << "dstrain: " << fdstran.no_wrap() << '\n';
+		out << setw(10) << "  state:\n";
+		out << fstatv.wrap(5) << '\n';
+	}
 
 	/* call UMAT wrapper */
 	UMAT(stress, statev, ddsdde, &sse, &spd, &scd, &rpl, ddsddt, drplde,
@@ -550,14 +564,14 @@ if (MaterialSupport().RunState() == GlobalT::kFormRHS) {
 		ExceptionT::BadJacobianDet("ABAQUS_UMAT_SS_BaseT::Call_UMAT", "material signaled step cut");
 	}
 
-#ifdef DEBUG
-if (MaterialSupport().RunState() == GlobalT::kFormRHS) {
-	flog << " THE OUTPUT\n";
-	flog << setw(10) << " stress: " << fstress.no_wrap() << '\n';
-	flog << setw(10) << " state:\n";
-	flog << fstatv.wrap(5) << endl;
-}
-#endif
+	if (fDebug)
+	{
+		ofstreamT& out = MaterialSupport().Output();
+		out << " THE OUTPUT\n";
+		out << setw(10) << " stress: " << fstress.no_wrap() << '\n';
+		out << setw(10) << " state:\n";
+		out << fstatv.wrap(5) << endl;
+	}
 
 	/* update strain */
 	fstrain += fdstran;

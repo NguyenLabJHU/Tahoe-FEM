@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.25 2004-07-15 08:26:37 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.26 2004-08-01 20:41:58 paklein Exp $ */
 #include "ABAQUS_VUMAT_BaseT.h"
 
 #ifdef __F2C__
@@ -6,165 +6,29 @@
 #include <ctype.h>
 #include <float.h>
 
-
 #include "ContinuumElementT.h"
-
 #include "SpectralDecompT.h"
 #include "ThermalDilatationT.h"
-
-#define VUMAT_DEBUG 0
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-ABAQUS_VUMAT_BaseT::ABAQUS_VUMAT_BaseT(ifstreamT& in, const FSMatSupportT& support):
-	FSSolidMatT(in, support),
+ABAQUS_VUMAT_BaseT::ABAQUS_VUMAT_BaseT(void):
+	ParameterInterfaceT("ABAQUS_VUMAT_material"),
+	fDebug(false),
 	fTangentType(GlobalT::kSymmetric),
-	fModulus(dSymMatrixT::NumValues(NumSD())),
-	fStress(NumSD()),
-	fIPCoordinates(NumSD()),
 	fPressure(0.0),
-	fDecomp(NULL),
-	fF_rel(NumSD()),
-	fROld(NumSD()),
-	fRNew(NumSD()),
-	fA_nsd(NumSD()),
-	fU1(NumSD()), fU2(NumSD()), fU1U2(NumSD()), fUOld(NumSD()), fUNew(NumSD())
+	fDecomp(NULL)
 {
-	/* read ABAQUS-format input */
-	nstatv = 0;
-	bool nonsym = false;
-	Read_ABAQUS_Input(in, fVUMAT_name, fProperties, fDensity, nstatv, nonsym);
 
-	/* set (material tangent) modulus tensor (fixed) */
-	double   Young = double(fProperties[0]);
-	double Poisson = double(fProperties[1]);
-	Set_E_nu(Young, Poisson);
-		
-	/* VUMAT dimensions */
-	ndi = 3; // always 3 direct components
-	int nsd = NumSD();
-	if (nsd == 2)
-		nshr = 1;
-	else if (nsd == 3)
-		nshr = 3;
-	else
-		throw ExceptionT::kGeneralFail;
-	ntens = ndi + nshr;
-
-	/* modulus storage */
-	if (fTangentType == GlobalT::kDiagonal)
-		fModulusDim = ntens;
-	else if (fTangentType == GlobalT::kSymmetric)
-	{
-		if (nsd == 2) fModulusDim = 10;
-		else if (nsd == 3) fModulusDim = 21;
-		else throw ExceptionT::kGeneralFail;
-	}
-	else if (fTangentType == GlobalT::kNonSymmetric)
-		fModulusDim = ntens*ntens;
-	else
-		throw ExceptionT::kGeneralFail;
-
-	/* storage block size (per ip) */
-	fBlockSize = 0;
-	fBlockSize += ntens;       // fstress
-	fBlockSize += ntens;       // fstrain
-	//fBlockSize += 3;           // fsse_pd_cd
-	/* may not need that (above) */
-	fBlockSize += nstatv;      // fstatv
-	//fBlockSize += fModulusDim; // fmodulus
-	fBlockSize += ntens;       // fstress_last
-	fBlockSize += ntens;       // fstrain_last
-	//fBlockSize += 3;           // fsse_pd_cd_last
-	/* may not need this (above) */
-	fBlockSize += nstatv;      // fstatv_last
-	
-	/* argument array */
-	fArgsArray.Dimension(fBlockSize);
-
-	/* assign pointers */
-	doublereal* parg = fArgsArray.Pointer();
-	fstress.Set(ntens, parg);        parg += ntens;
-	fstrain.Set(ntens, parg);        parg += ntens;
-	//fsse_pd_cd.Set(3, parg);         parg += 3;
-	fstatv.Set(nstatv, parg);        parg += nstatv;
-	//fmodulus.Set(fModulusDim, parg); parg += fModulusDim;
-	fstress_last.Set(ntens, parg);   parg += ntens;
-	fstrain_last.Set(ntens, parg);   parg += ntens;
-	//fsse_pd_cd_last.Set(3, parg);    parg += 3;
-	fstatv_last.Set(nstatv, parg);
-	
-	/* VUMAT array arguments */
-	//fddsdde.Dimension(ntens);
-	fdstran.Dimension(ntens);
-	fdstran = 0.0;
-	fdrot.Dimension(3);   // always 3
-	fdrot.Identity();
-	fdfgrd0.Dimension(3); // always 3
-	fdfgrd0.Identity();
-	fdfgrd1.Dimension(3); // always 3
-	fdfgrd1.Identity();
-	fcoords.Dimension(nsd);
-
-	/* initialize other VUMAT array arguments */
-	fROld = 0.0;
-	fRNew = 0.0;
-	fRelSpin = 0.0;
-	fUOld = 0.0;
-	fUNew = 0.0;
-
-	/* spectral decomp */
-	fDecomp = new SpectralDecompT(NumSD());
-	if (!fDecomp) throw ExceptionT::kOutOfMemory;
-
-//DEBUG
-#if VUMAT_DEBUG
-StringT VUMAT_file;
-VUMAT_file.Root(in.filename());
-VUMAT_file.Append(".VUMAT.log");
-flog.open(VUMAT_file);
-flog.precision(DBL_DIG);
-flog.setf(ios::showpoint);
-flog.setf(ios::right, ios::adjustfield);
-flog.setf(ios::scientific, ios::floatfield);
-#endif
 }
 
 /* destructor */
-ABAQUS_VUMAT_BaseT::~ABAQUS_VUMAT_BaseT(void)
-{
+ABAQUS_VUMAT_BaseT::~ABAQUS_VUMAT_BaseT(void) {
 	delete fDecomp;
-	fDecomp = NULL;
 }
-
-/* print parameters */
-void ABAQUS_VUMAT_BaseT::Print(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::Print(out);
-	
-	/* write properties array */
-	out << " Number of ABAQUS VUMAT internal variables. . . . = " << nstatv << '\n';
-	out << " Number of ABAQUS VUMAT properties. . . . . . . . = " << fProperties.Length() << '\n';
-	PrintProperties(out);
-}
-
-/* disable multiplicative thermal strains */
-void ABAQUS_VUMAT_BaseT::Initialize(void)
-{
-	/* inherited */
-	FSSolidMatT::Initialize();
-
-	/* notify */
-	if (fThermal->IsActive())
-		cout << "\n ABAQUS_VUMAT_BaseT::Initialize: thermal strains must\n"
-		     <<   "    be handled within the VUMAT\n" << endl;
-	
-	/* disable thermal transform */
-	//SetFmodMult(NULL);	
-}
-
 
 /* materials initialization */
 bool ABAQUS_VUMAT_BaseT::NeedsPointInitialization(void) const { return true; }
@@ -199,10 +63,9 @@ void ABAQUS_VUMAT_BaseT::UpdateHistory(void)
 		Load(element, ip);
 	
 		/* assign "current" to "last" */	
-		fstress_last    = fstress;
-		fstrain_last    = fstrain;
-		//fsse_pd_cd_last = fsse_pd_cd;
-		fstatv_last     = fstatv;
+		fstress_last = fstress;
+		fstrain_last = fstrain;
+		fstatv_last  = fstatv;
 
 		/* write to storage */
 		Store(element, ip);
@@ -219,27 +82,20 @@ void ABAQUS_VUMAT_BaseT::ResetHistory(void)
 		Load(element, ip);
 	
 		/* assign "last" to "current" */
-		fstress    = fstress_last;
-		fstrain    = fstrain_last;
-		//fsse_pd_cd = fsse_pd_cd_last;
-		fstatv     = fstatv_last;
+		fstress = fstress_last;
+		fstrain = fstrain_last;
+		fstatv  = fstatv_last;
 
 		/* write to storage */
 		Store(element, ip);
 	}
 }
 
-/* spatial description */
-const dMatrixT& ABAQUS_VUMAT_BaseT::c_ijkl(void)
-{
-	/* very approximate */
-	return ABAQUS_VUMAT_BaseT::C_IJKL();
-}
-
 const dSymMatrixT& ABAQUS_VUMAT_BaseT::s_ij(void)
 {
 	/* call VUMAT */
-	if (MaterialSupport().RunState() == GlobalT::kFormRHS)
+	if (MaterialSupport().RunState() == GlobalT::kFormRHS ||
+	    MaterialSupport().RunState() == GlobalT::kFormLHS)
 	{
 		double  t = fFSMatSupport->Time();
 		double dt = fFSMatSupport->TimeStep();
@@ -256,36 +112,8 @@ const dSymMatrixT& ABAQUS_VUMAT_BaseT::s_ij(void)
 	return fStress;
 }
 
-/* material description */
-const dMatrixT& ABAQUS_VUMAT_BaseT::C_IJKL(void)
-{
-	/* assuming constant and isotropic */
-	if (NumSD() == 2)
-		ComputeModuli2D(fModulus, Material2DT::kPlaneStrain);
-	else
-		ComputeModuli(fModulus);
-
-	return fModulus;
-}
-
-const dSymMatrixT& ABAQUS_VUMAT_BaseT::S_IJ(void)
-{
-	/* Cauchy stress */
-	const dSymMatrixT& s = ABAQUS_VUMAT_BaseT::s_ij();
-
-	/* spatial -> material */
-	fStress.SetToScaled(F().Det(), PullBack(F(), s));	
-	return fStress;
-}
-
 /* returns the strain energy density for the specified strain */
-double ABAQUS_VUMAT_BaseT::StrainEnergyDensity(void)
-{
-	/* load stored data */
-	Load(CurrentElement(), CurrIP());
-
-	/* pull from storage */
-	//return double(fsse_pd_cd[0]);
+double ABAQUS_VUMAT_BaseT::StrainEnergyDensity(void) {
 	return 0.0;
 }
 
@@ -316,12 +144,8 @@ void ABAQUS_VUMAT_BaseT::ComputeOutput(dArrayT& output)
 {
 	/* check */
 	if (output.Length() != fOutputIndex.Length())
-	{
-		cout << "\n ABAQUS_VUMAT_BaseT::ComputeOutput: not enough space to return\n"
-		     <<   "     output variables: given " << output.Length()
-		     << ". expecting " << fOutputIndex.Length() << "." << endl;
-		throw ExceptionT::kSizeMismatch;
-	}
+		ExceptionT::SizeMismatch("ABAQUS_VUMAT_BaseT::ComputeOutput",
+			"output array should be length %d not %d", fOutputIndex.Length(), output.Length());
 
 	/* load stored data */
 	Load(CurrentElement(), CurrIP());
@@ -331,17 +155,145 @@ void ABAQUS_VUMAT_BaseT::ComputeOutput(dArrayT& output)
 		output[i] = double(fstatv[fOutputIndex[i]]);
 }
 
+/* describe the parameters needed by the interface */
+void ABAQUS_VUMAT_BaseT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	FSIsotropicMatT::DefineParameters(list);
+
+	ParameterT debug(fDebug, "debug");
+	debug.SetDefault(fDebug);
+	list.AddParameter(debug);
+
+	/* file with UMAT materials parameters */
+	list.AddParameter(ParameterT::Word, "VUMAT_parameter_file");
+}
+
+/* accept parameter list */
+void ABAQUS_VUMAT_BaseT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "ABAQUS_VUMAT_BaseT::TakeParameterList";	
+
+	/* inherited */
+	FSIsotropicMatT::TakeParameterList(list);
+
+	fDebug = list.GetParameter("debug");
+
+	/* dimension work space */
+	int nsd = NumSD();
+	fIPCoordinates.Dimension(nsd);
+	fF_rel.Dimension(nsd);
+	fROld.Dimension(nsd);
+	fRNew.Dimension(nsd);
+	fA_nsd.Dimension(nsd);
+	fU1.Dimension(nsd);
+	fU2.Dimension(nsd);
+	fU1U2.Dimension(nsd);
+	fUOld.Dimension(nsd);
+	fUNew.Dimension(nsd);
+
+	/* open VUMAT parameters file */
+	StringT path;
+	path.FilePath(MaterialSupport().InputFile());
+	StringT params = list.GetParameter("VUMAT_parameter_file");
+	params.ToNativePathName();
+	params.Prepend(path);
+	ifstreamT in('#', params);
+	if (!in.is_open())
+		ExceptionT::GeneralFail(caller, "could not open file \"%s\"",
+			params.Pointer());
+
+	/* read ABAQUS-format input */
+	nstatv = 0;
+	bool nonsym = false;
+	Read_ABAQUS_Input(in, fVUMAT_name, fProperties, fDensity, nstatv, nonsym);
+		
+	/* VUMAT dimensions */
+	ndi = 3; // always 3 direct components
+	if (nsd == 2)
+		nshr = 1;
+	else if (nsd == 3)
+		nshr = 3;
+	else
+		ExceptionT::GeneralFail(caller, "unexpected dimension %d", nsd);
+	ntens = ndi + nshr;
+
+	/* modulus storage */
+	if (fTangentType == GlobalT::kDiagonal)
+		fModulusDim = ntens;
+	else if (fTangentType == GlobalT::kSymmetric)
+	{
+		if (nsd == 2) fModulusDim = 10;
+		else if (nsd == 3) fModulusDim = 21;
+		else ExceptionT::GeneralFail(caller);
+	}
+	else if (fTangentType == GlobalT::kNonSymmetric)
+		fModulusDim = ntens*ntens;
+	else
+		ExceptionT::GeneralFail(caller);
+
+	/* storage block size (per ip) */
+	fBlockSize = 0;
+	fBlockSize += ntens;       // fstress
+	fBlockSize += ntens;       // fstrain
+
+	/* may not need that (above) */
+	fBlockSize += nstatv;      // fstatv
+	fBlockSize += ntens;       // fstress_last
+	fBlockSize += ntens;       // fstrain_last
+
+	/* may not need this (above) */
+	fBlockSize += nstatv;      // fstatv_last
+	
+	/* argument array */
+	fArgsArray.Dimension(fBlockSize);
+
+	/* assign pointers */
+	doublereal* parg = fArgsArray.Pointer();
+	fstress.Set(ntens, parg);        parg += ntens;
+	fstrain.Set(ntens, parg);        parg += ntens;
+	fstatv.Set(nstatv, parg);        parg += nstatv;
+	fstress_last.Set(ntens, parg);   parg += ntens;
+	fstrain_last.Set(ntens, parg);   parg += ntens;
+	fstatv_last.Set(nstatv, parg);
+	
+	/* VUMAT array arguments */
+	fdstran.Dimension(ntens);
+	fdstran = 0.0;
+	fdrot.Dimension(3);   // always 3
+	fdrot.Identity();
+	fdfgrd0.Dimension(3); // always 3
+	fdfgrd0.Identity();
+	fdfgrd1.Dimension(3); // always 3
+	fdfgrd1.Identity();
+	fcoords.Dimension(nsd);
+
+	/* initialize other VUMAT array arguments */
+	fROld = 0.0;
+	fRNew = 0.0;
+	fRelSpin = 0.0;
+	fUOld = 0.0;
+	fUNew = 0.0;
+
+	/* spectral decomp */
+	fDecomp = new SpectralDecompT(nsd);
+	if (!fDecomp) ExceptionT::OutOfMemory(caller);
+
+	/* write properties array */
+	ofstreamT& out = MaterialSupport().Output();
+	out << " Number of ABAQUS VUMAT internal variables. . . . = " << nstatv << '\n';
+	out << " Number of ABAQUS VUMAT properties. . . . . . . . = " << fProperties.Length() << '\n';
+	PrintProperties(out);
+
+	/* notify */
+	if (fThermal->IsActive())
+		cout << "\n ABAQUS_VUMAT_BaseT::Initialize: thermal strains must\n"
+		     <<   "    be handled within the VUMAT\n" << endl;
+}
+
 /***********************************************************************
 * Protected
 ***********************************************************************/
-
-/* I/O functions */
-void ABAQUS_VUMAT_BaseT::PrintName(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::PrintName(out);
-	out << "    ABAQUS user material: " << fVUMAT_name << '\n';
-}
 
 void ABAQUS_VUMAT_BaseT::PrintProperties(ostream& out) const
 {
@@ -490,15 +442,10 @@ flog << fstatv.wrap(5) << endl;
 /* set variables to last converged */
 void ABAQUS_VUMAT_BaseT::Reset_VUMAT_Increment(void)
 {
-  ///* assign "last" to "current" */
-  //fstress    = fstress_last;
-  //fstrain    = fstrain_last;
-	//fsse_pd_cd = fsse_pd_cd_last;
-  //fstatv     = fstatv_last;
-  /* instead, assign "current" to "last" */
-  fstress_last = fstress;
-  fstrain_last = fstrain;
-  fstatv_last = fstatv;
+	/* assign "last" to "current" */
+	fstress = fstress_last;
+	fstrain = fstrain_last;
+	fstatv  = fstatv_last;
 }
 
 /* set stress/strain arguments */
