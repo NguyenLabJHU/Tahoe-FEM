@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.7 2004-10-13 06:39:07 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.8 2004-11-17 23:34:56 paklein Exp $ */
 #include "ConveyorT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -524,6 +524,7 @@ void ConveyorT::TakeParameterList(const ParameterListT& list)
 	/* create controller for the right edge of the domain */
 	fRightEdge = new KBC_ControllerT(fSupport);
 	fField.AddKBCController(fRightEdge);
+#pragma message("find and fix nodes originally on the right edge (set fShiftedNodes)")
 }
 
 /**********************************************************************
@@ -661,7 +662,7 @@ bool ConveyorT::SetSystemFocus(double focus)
 	for (int i = 0; i < nnd; i++)
 	{
 		/* node outside the window */
-		if (*px < fX_Left)
+		if (*px < fX_Left - fMeshRepeatLength/10.0)
 		{
 			/* store */
 			fShiftedNodes.Append(i);
