@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.6 2001-06-04 17:03:12 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.7 2001-06-05 18:29:20 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include "SurfaceT.h"
@@ -12,6 +12,10 @@ ContactSurfaceT::ContactSurfaceT(void)
 
 ContactSurfaceT::~ContactSurfaceT(void)
 {
+        for (int i=0 ; i < fContactNodes.Length() ; i++) {
+                delete fContactNodes[i];
+        }
+
 }
 
 void
