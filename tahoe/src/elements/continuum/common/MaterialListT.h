@@ -1,4 +1,4 @@
-/* $Id: MaterialListT.h,v 1.2 2001-10-24 02:01:32 paklein Exp $ */
+/* $Id: MaterialListT.h,v 1.2.2.1 2002-05-17 01:23:27 paklein Exp $ */
 /* created: paklein (02/16/1997) */
 
 #ifndef _MATERIAL_LIST_T_H_
@@ -30,32 +30,20 @@ public:
 
 	/** finalize the current time step */
 	void CloseStep(void);
-
+	
 	/** returns true if any of the materials in the list makes
 	 * use of history variables. If it does, Update/Reset
 	 * of these variables needs to be taken care of */
 	bool HasHistoryMaterials(void) const;
 
-	/** returns true if any of the materials in the list can undergo
-	 * strain localization */
-	bool HasLocalizingMaterials(void) const;
-
-	/** returns true if any of the materials in the list is going to
-	 * be subject to thermal loading */
-	bool HasThermalStrains(void) const;
-
 protected:
 
-	/* flags for material properties */
-	bool fHasHistory;    /* internal history variables     */
-	bool fHasLocalizers; /* materials that localize        */
-	bool fHasThermal;    /* materials with thermal loading */
-	
+	/** true if list contains materials with history variables */
+	bool fHasHistory;    
+
 };
 
 /* inlines */
 inline bool MaterialListT::HasHistoryMaterials(void) const { return fHasHistory;  }
-inline bool MaterialListT::HasLocalizingMaterials(void) const { return fHasLocalizers; }
-inline bool MaterialListT::HasThermalStrains(void) const { return fHasThermal; }
 
 #endif /* _MATERIAL_LIST_T_H_ */
