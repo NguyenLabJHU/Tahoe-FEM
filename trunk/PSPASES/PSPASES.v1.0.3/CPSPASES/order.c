@@ -1,4 +1,4 @@
-/* $Id: order.c,v 1.2 2004-12-11 09:27:22 paklein Exp $ */
+/* $Id: order.c,v 1.3 2004-12-11 10:10:51 paklein Exp $ */
 /* order.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -59,7 +59,7 @@ static integer c__0 = 0;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: order.c,v 1.2 2004-12-11 09:27:22 paklein Exp $ +/ */
+/* /+ $Id: order.c,v 1.3 2004-12-11 10:10:51 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 /*<    >*/
 /* Subroutine */ int porder_(integer *rowdist, integer *aptrs, integer *ainds,
@@ -94,8 +94,6 @@ static integer c__0 = 0;
 
 /* double precision functions */
 
-/*<       double precision MPI_WTIME, MPI_WTICK, PMPI_WTIME, PMPI_WTICK >*/
-/*<       external MPI_WTIME, MPI_WTICK, PMPI_WTIME, PMPI_WTICK >*/
 /*      integer, allocatable :: xadj(:),adjncy(:), sorder(:), counts(:) */
 	integer *xadj, *adjncy;
 /*<       integer xadj, adjncy, sorder, counts >*/
@@ -179,7 +177,7 @@ static integer c__0 = 0;
     xadj[mynnodes] = xadj[mynnodes - 1] + aptrs[(mynnodes - 1 << 1) + 2] - 1;
 /*      call mpi_allreduce(xadj(mynnodes),offdnz,1,MPI_INTEGER,MPI_SUM, */
 /*     +                   comm,ierr); */
-		MPI_Allreduce(xadj + mynnodes, &offdnz, 1, MPI_INTEGER, MPI_SUM, *comm);
+		MPI_Allreduce(xadj + mynnodes, &offdnz, 1, MPI_INT, MPI_SUM, *comm);
 
 /*<       if(offdnz.eq.0) then >*/
     if (offdnz == 0) {

@@ -1,7 +1,8 @@
 .SUFFIXES: .c .f
 
 C_FILES = b_ax.c \
-order.c
+order.c \
+moveai.c
 
 F2C_OPTS = -I/usr/local/lam/include -c -w
 
