@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.cpp,v 1.4 2003-04-22 18:32:16 paklein Exp $ */
+/* $Id: ParameterListT.cpp,v 1.5 2003-04-22 22:12:31 paklein Exp $ */
 #include "ParameterListT.h"
 
 using namespace Tahoe;
@@ -138,8 +138,6 @@ void ParameterListT::Validate(const ParameterListT& source, const ParameterListT
 		OccurrenceT occurrence = occurrences[i];
 
 		/* search entire list */
-		bool add_parameter = false;
-		ParameterT new_parameter(parameter.Type(), parameter.Name());
 		int count = 0;
 		for (int j = 0; j < source_parameters.Length(); j++) {
 				
@@ -152,6 +150,7 @@ void ParameterListT::Validate(const ParameterListT& source, const ParameterListT
 						parameter.Name().Pointer(), source.Name().Pointer());
 									
 				/* get value */
+				ParameterT new_parameter(parameter.Type(), parameter.Name());
 				if (source_parameters[j].Type() == parameter.Type())
 					new_parameter = source_parameters[j];
 				else if (source_parameters[j].Type() == ParameterT::String)
@@ -163,8 +162,17 @@ void ParameterListT::Validate(const ParameterListT& source, const ParameterListT
 				/* increment count */
 				count++;
 				
-				/* add it */
-				add_parameter = true;
+				/* check limits */
+				if (parameter.InBounds(new_parameter))
+					/* add it */
+					AddParameter(new_parameter);
+				else {
+				
+					/* again, verbose */
+					parameter.InBounds(new_parameter, true);
+					ExceptionT::BadInputValue(caller, "improper value for parameter \"%s\" in \"%s\"",
+						parameter.Name().Pointer(), source.Name().Pointer());
+				}
 			}
 		}
 				
@@ -172,23 +180,25 @@ void ParameterListT::Validate(const ParameterListT& source, const ParameterListT
 		if (count == 0 && (occurrence == Once || occurrence == OnePlus)) {
 			const ValueT* default_value = parameter.Default();
 			if (default_value) {
+				ParameterT new_parameter(parameter.Type(), parameter.Name());
 				new_parameter = *default_value;
-				add_parameter = true;
+
+				/* check limits */
+				if (parameter.InBounds(new_parameter))
+					/* add it */
+					AddParameter(new_parameter);
+				else {
+					
+					/* again, verbose */
+					parameter.InBounds(new_parameter, true);
+					ExceptionT::BadInputValue(caller, "improper value for parameter \"%s\" in \"%s\"",
+						parameter.Name().Pointer(), source.Name().Pointer());
+				}
 			}
 			else
 				ExceptionT::BadInputValue(caller, 
 					"required value \"%s\" is missing from \"%s\" and has no default value",
 					parameter.Name().Pointer(), source.Name().Pointer());
-		}
-		
-		/* add it */
-		if (add_parameter) {
-			
-			/* check limits */
-			const ArrayT<LimitT>& limits = parameter.Limits();
-
-			/* add to the list */
-			AddParameter(new_parameter);
 		}
 	}
 
