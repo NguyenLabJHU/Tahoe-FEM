@@ -1,4 +1,4 @@
-/* $Id: LangevinT.h,v 1.1 2003-04-16 18:15:54 cjkimme Exp $ */
+/* $Id: LangevinT.h,v 1.2 2003-04-18 19:01:56 cjkimme Exp $ */
 #ifndef _LANGEVIN_T_H_
 #define _LANGEVIN_T_H_
 
@@ -29,7 +29,8 @@ public:
 	
 	/** augment/overwrite forces with new ones */
 	virtual void ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2DT* velocities,
-					dArray2DT& forces);
+			dArray2DT& forces, AutoArrayT<int>& types,
+			ArrayT<ParticlePropertyT*>& particleProperties);
 	
 	/** write properties to output */
 	virtual void Write(ostream& out) const;

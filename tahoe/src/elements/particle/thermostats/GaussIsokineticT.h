@@ -1,6 +1,6 @@
-/* $Id: NoseHooverT.h,v 1.2 2003-04-18 19:01:56 cjkimme Exp $ */
-#ifndef _NOSE_HOOVER_T_H_
-#define _NOSE_HOOVER_T_H_
+/* $Id: GaussIsokineticT.h,v 1.1 2003-04-18 19:01:56 cjkimme Exp $ */
+#ifndef _GAUSS_ISOKINETIC_T_H_
+#define _GAUSS_ISOKINETIC_T_H_
 
 #include "ios_fwd_decl.h"
 
@@ -16,15 +16,15 @@ namespace Tahoe {
 class ifstreamT;
 
 /** base class for thermostatting and damping */
-class NoseHooverT: public ThermostatBaseT
+class GaussIsokineticT: public ThermostatBaseT
 {
 public:
 
 	/** constructor */
-	NoseHooverT(ifstreamT& in, int nsd, double dt);
+	GaussIsokineticT(ifstreamT& in, int nsd, double dt);
 
 	/** destructor */
-	virtual ~NoseHooverT(void) {};
+	virtual ~GaussIsokineticT(void) {};
 	
 	/** augment/overwrite forces with new ones */
 	virtual void ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2DT* velocities,
@@ -44,9 +44,7 @@ protected:
 
 	/** \name properties */
 	/*@{*/
-	double fBetaOrig;
-	double fEta;
-	double fEtaDot;
+	
 	/*@}*/
 	
 };

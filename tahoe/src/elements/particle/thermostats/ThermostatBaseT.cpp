@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.cpp,v 1.1 2003-04-16 18:15:54 cjkimme Exp $ */
+/* $Id: ThermostatBaseT.cpp,v 1.2 2003-04-18 19:01:56 cjkimme Exp $ */
 #include "ThermostatBaseT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -7,6 +7,8 @@
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "AutoArrayT.h"
+#include "RaggedArray2DT.h"
+#include "ParticlePropertyT.h"
 
 const double fkB = 0.00008617385;
 
@@ -20,20 +22,12 @@ ThermostatBaseT::ThermostatBaseT(ifstreamT& in, int nsd, double dt):
 	fTimeStep(dt)
 {
 	in >> fBeta;
-//	if (QLangevin)
-//	{
-//		in >> fTemperature;
-//		fAmp = sqrt(2.*fBeta*fkB*fTemperature/
-//						fTimeStep);
-//	}
 }
 
 /* write properties to output */
 void ThermostatBaseT::Write(ostream& out) const
 {
 	out << " Beta. . . . . . . . . . . . . . . . . . . . . . = " << fBeta << '\n';
-//	if (QLangevin)
-//		out << " Temperature . . . . . . . . . . . . . . . . . . = " << fTemperature << '\n';
 }
 
 /* restart files */
@@ -50,30 +44,53 @@ void ThermostatBaseT::ReadRestart(istream& in)
 }
 
 void ThermostatBaseT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2DT* velocities,
-					dArray2DT& forces)
+			dArray2DT& forces, AutoArrayT<int>& types,
+			ArrayT<ParticlePropertyT*>& particleProperties)
 {
+	double* v_j;
+	double* f_j;
+	int tag_j, currType;
+	double mass, beta;
 	if (fNodes.Length() == 0)
 	{ // All the nodes are damped, use neighbors
+		currType = types[*neighbors(0)];
+		mass = particleProperties[currType]->Mass();
+		beta = fBeta*mass;
 		for (int j = 0; j < neighbors.MajorDim(); j++) 
 		{
-			int tag_j = *neighbors(j);
-			double* f_j = forces(j);
-	    	double* v_j = (*velocities)(tag_j);
+			tag_j = *neighbors(j);
+			f_j = forces(j);
+	    	v_j = (*velocities)(tag_j);
+	    	if (types[tag_j] != currType)
+			{
+				currType = types[tag_j];
+				mass = particleProperties[currType]->Mass();
+				beta = fBeta*mass;
+			}
 				
 			for (int i = 0; i < fSD; i++)
-				*f_j++ -= fBeta*(*v_j++);
+				*f_j++ -= beta*(*v_j++);
 		}
 	}
 	else
 	{
+		currType = types[fNodes[0]];
+		mass = particleProperties[currType]->Mass();
+		beta = fBeta*mass;
 		for (int j = 0; j < fNodes.Length(); j++)
 		{ 
-			int tag_j = fNodes[j];
-			double* f_j = forces(j);
-			double* v_j = (*velocities)(tag_j);
+			tag_j = fNodes[j];
+			f_j = forces(j);
+			v_j = (*velocities)(tag_j);
+			if (types[tag_j] != currType)
+			{
+				currType = types[tag_j];
+				mass = particleProperties[currType]->Mass();
+				beta = fBeta*mass;
+			}
 
 			for (int i = 0; i < fSD; i++)
-				*f_j++ -= fBeta*(*v_j++); 	
+				*f_j++ -= beta*(*v_j++); 	
 	    }
 	}
 }			
@@ -114,6 +131,18 @@ void ThermostatBaseT::NodesInRegion(const dArray2DT& coords,
 	tmpList.CopyInto(fNodes);
 }
 
+void ThermostatBaseT::CreateVelocities(const RaggedArray2DT<int>& neighbors, dArray2DT* velocities,
+					AutoArrayT<int>& types,
+					ArrayT<ParticlePropertyT*>& particleProperties)
+{
+#pragma unused(neighbors)
+#pragma unused(velocities)
+#pragma unused(types)
+#pragma unused(particleProperties)
+	// Not implemented yet. Need to make a MB distribution? 
+}
+	
+
 namespace Tahoe {
 
 /* stream extraction operator */
@@ -143,9 +172,14 @@ istream& operator>>(istream& in, ThermostatBaseT::ThermostatT& property)
 			property = ThermostatBaseT::kNoseHoover;
 			break;
 		}
-		case ThermostatBaseT::kGaussianIsokinetic:
+		case ThermostatBaseT::kGaussIsokinetic:
 		{
-			property = ThermostatBaseT::kGaussianIsokinetic;
+			property = ThermostatBaseT::kGaussIsokinetic;
+			break;
+		}
+		case ThermostatBaseT::kRampedDamping:
+		{
+			property = ThermostatBaseT::kRampedDamping;
 			break;
 		}
 		default:

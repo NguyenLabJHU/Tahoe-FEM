@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.15 2003-04-16 18:15:49 cjkimme Exp $ */
+/* $Id: ParticleT.cpp,v 1.16 2003-04-18 19:01:51 cjkimme Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -17,8 +17,10 @@
 /* Thermostatting stuff */
 #include "RandomNumberT.h"
 #include "ThermostatBaseT.h"
+#include "GaussIsokineticT.h"
 #include "LangevinT.h"
 #include "NoseHooverT.h"
+#include "RampedDampingT.h"
 
 using namespace Tahoe;
 
@@ -373,10 +375,10 @@ void ParticleT::ApplyDamping(const RaggedArray2DT<int>& fNeighbors)
      	if (Field().Order() > 0) // got velocities!
      	{
      		velocities = &(Field()[1]);
-			int nsd = NumSD();
      		
      		for (int i = 0; i < nThermostats; i++)
-				fThermostats[i]->ApplyDamping(fNeighbors,velocities,fForce);
+				fThermostats[i]->ApplyDamping(fNeighbors,velocities,fForce,
+										fType,fParticleProperties);
 		}
 	}
 		
@@ -708,6 +710,24 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 				
 				break;
 			}
+			case ThermostatBaseT::kGaussIsokinetic:
+			{
+				QisDamped = true;
+				
+				fThermostats[i] = new GaussIsokineticT(in,
+					ElementSupport().NumSD(), ElementSupport().TimeStep());
+				
+				break;
+			}
+			case ThermostatBaseT::kRampedDamping:
+			{
+				QisDamped = true;
+				
+				fThermostats[i] = new RampedDampingT(in,
+					ElementSupport().NumSD(), ElementSupport().TimeStep());
+				
+				break;
+			}
 			default:
 			{
 				ExceptionT::BadInputValue(caller,"Damping type does not exist or is not valid");
@@ -719,6 +739,8 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 		{
 			case ThermostatBaseT::kNodes:
 			{
+				if (thermostat_i == ThermostatBaseT::kRampedDamping)
+					ExceptionT::BadInputValue(caller,"Ramped Damping requires spatial region");
 				int all_or_some = -99;
 				in >> all_or_some; 
 				if (all_or_some != 0 && all_or_some != 1) ExceptionT::BadInputValue(caller);
