@@ -22,6 +22,11 @@ if (len>0) Allocate(len);
 
 //--------------------
 
+/* destructor */
+FEA_EquateT::~FEA_EquateT(void) { delete [] vec_ptrs; }
+
+//--------------------
+
 void FEA_EquateT::Allocate(const int len)
 {
 length = len;
@@ -42,8 +47,8 @@ void FEA_EquateT::operator = (const FEA_EquateT& a)
     *p = *q;
 	}	
 
-extern FEA_StackT fStack;
-fStack.Reset();
+extern FEA_StackT* fStack;
+fStack->Reset();
 }
 
 //-------------------- 
@@ -57,8 +62,8 @@ void FEA_EquateT::operator += (const FEA_EquateT& a)
     *p += *q;
 	}	
 
-extern FEA_StackT fStack;
-fStack.Reset();
+extern FEA_StackT* fStack;
+fStack->Reset();
 }
 
 //-------------------- 
@@ -72,8 +77,8 @@ void FEA_EquateT::operator -= (const FEA_EquateT& a)
     *p -= *q;
 	}	
 
-extern FEA_StackT fStack;
-fStack.Reset();
+extern FEA_StackT* fStack;
+fStack->Reset();
 }
 
 //-------------------- 
@@ -87,8 +92,8 @@ void FEA_EquateT::operator *= (const FEA_EquateT& a)
     *p *= *q;
 	}	
 
-extern FEA_StackT fStack;
-fStack.Reset();
+extern FEA_StackT* fStack;
+fStack->Reset();
 }
 
 //-------------------- 
@@ -104,8 +109,8 @@ void FEA_EquateT::operator /= (const FEA_EquateT& a)
     *p /= *q;
 	}	
 
-extern FEA_StackT fStack;
-fStack.Reset();
+extern FEA_StackT* fStack;
+fStack->Reset();
 }
 
 //##################################################################################
@@ -119,8 +124,8 @@ void FEA_EquateT::operator = (const FEA_dScalarT& a)
     *p = *q++;
 	}	
 
-extern FEA_StackT fStack;
-fStack.Reset();
+extern FEA_StackT* fStack;
+fStack->Reset();
 }
 
 //-------------------- 
@@ -133,8 +138,8 @@ void FEA_EquateT::operator += (const FEA_dScalarT& a)
     *p += *q++;
 	}	
 
-extern FEA_StackT fStack;
-fStack.Reset();
+extern FEA_StackT* fStack;
+fStack->Reset();
 }
 
 //-------------------- 
@@ -147,8 +152,8 @@ void FEA_EquateT::operator -= (const FEA_dScalarT& a)
     *p -= *q++;
 	}	
 
-extern FEA_StackT fStack;
-fStack.Reset();
+extern FEA_StackT* fStack;
+fStack->Reset();
 }
 
 //-------------------- 
@@ -161,8 +166,8 @@ void FEA_EquateT::operator *= (const FEA_dScalarT& a)
     *p *= *q++;
 	}	
 
-extern FEA_StackT fStack;
-fStack.Reset();
+extern FEA_StackT* fStack;
+fStack->Reset();
 }
 
 //-------------------- 
@@ -175,8 +180,8 @@ void FEA_EquateT::operator /= (const FEA_dScalarT& a)
     *p /= *q++;
 	}	
 
-extern FEA_StackT fStack;
-fStack.Reset();
+extern FEA_StackT* fStack;
+fStack->Reset();
 }
 
 //##################################################################################
@@ -190,8 +195,8 @@ void FEA_EquateT::operator = (const double *vector)
     *p = vector[i]; 
 	}	
 
-extern FEA_StackT fStack;
-fStack.Reset();
+extern FEA_StackT* fStack;
+fStack->Reset();
 }
 
 //##################################################################################
@@ -206,8 +211,8 @@ void FEA_EquateT::operator = (const double& value)
     *p = value;
 	}	
 
-extern FEA_StackT fStack;
-fStack.Reset();
+extern FEA_StackT* fStack;
+fStack->Reset();
 }
 //-------------------- 
 
@@ -219,8 +224,8 @@ void FEA_EquateT::operator += (const double& a)
     *p += a;
 	}	
 
-extern FEA_StackT fStack;
-fStack.Reset();
+extern FEA_StackT* fStack;
+fStack->Reset();
 }
 //-------------------- 
 
@@ -232,8 +237,8 @@ void FEA_EquateT::operator -= (const double& a)
     *p -= a;
 	}
 
-extern FEA_StackT fStack;
-fStack.Reset();
+extern FEA_StackT* fStack;
+fStack->Reset();
 }
 
 //-------------------- 
@@ -246,8 +251,8 @@ void FEA_EquateT::operator *= (const double& a)
     *p *= a;
 	}	
 
-extern FEA_StackT fStack;
-fStack.Reset();
+extern FEA_StackT* fStack;
+fStack->Reset();
 }
 
 //-------------------- 
@@ -260,8 +265,8 @@ void FEA_EquateT::operator /= (const double& a)
     *p /= a;
 	}	
 
-extern FEA_StackT fStack;
-fStack.Reset();
+extern FEA_StackT* fStack;
+fStack->Reset();
 }
 
 //##################################################################################
@@ -269,56 +274,56 @@ fStack.Reset();
 
 FEA_EquateT& FEA_EquateT::operator + (const FEA_EquateT& a) 
 {
-extern FEA_StackT fStack;
-int n = fStack.Next_Stack();
-fStack.Stack[n].length = length; // Set so != 100
+extern FEA_StackT* fStack;
+int n = fStack->Next_Stack();
+fStack->Stack[n].length = length; // Set so != 100
 
 	for (int i=0; i<length; i++)  
-    (*fStack.Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) + (*a.vec_ptrs[i]); 
+    (*fStack->Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) + (*a.vec_ptrs[i]); 
 
-return fStack.Stack[n]; 
+return fStack->Stack[n]; 
 }
 
 //-------------------- 
 
 FEA_EquateT& FEA_EquateT::operator - (const FEA_EquateT& a) 
 {
-extern FEA_StackT fStack;
-int n = fStack.Next_Stack();
-fStack.Stack[n].length = length; // Set so != 100
+extern FEA_StackT* fStack;
+int n = fStack->Next_Stack();
+fStack->Stack[n].length = length; // Set so != 100
 
 	for (int i=0; i<length; i++)  
-    (*fStack.Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) - (*a.vec_ptrs[i]); 
+    (*fStack->Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) - (*a.vec_ptrs[i]); 
 
-return fStack.Stack[n]; 
+return fStack->Stack[n]; 
 }
 
 //-------------------- 
 
 FEA_EquateT& FEA_EquateT::operator * (const FEA_EquateT& a) 
 {
-extern FEA_StackT fStack;
-int n = fStack.Next_Stack();
-fStack.Stack[n].length = length; // Set so != 100
+extern FEA_StackT* fStack;
+int n = fStack->Next_Stack();
+fStack->Stack[n].length = length; // Set so != 100
 
 	for (int i=0; i<length; i++)  
-    (*fStack.Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) * (*a.vec_ptrs[i]); 
+    (*fStack->Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) * (*a.vec_ptrs[i]); 
 
-return fStack.Stack[n]; 
+return fStack->Stack[n]; 
 }
 
 //-------------------- 
 
 FEA_EquateT& FEA_EquateT::operator / (const FEA_EquateT& a) 
 {
-extern FEA_StackT fStack;
-int n = fStack.Next_Stack();
-fStack.Stack[n].length = length; // Set so != 100
+extern FEA_StackT* fStack;
+int n = fStack->Next_Stack();
+fStack->Stack[n].length = length; // Set so != 100
 
 	for (int i=0; i<length; i++)  
-    (*fStack.Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) / (*a.vec_ptrs[i]); 
+    (*fStack->Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) / (*a.vec_ptrs[i]); 
 
-return fStack.Stack[n]; 
+return fStack->Stack[n]; 
 }
 
 //##################################################################################
@@ -326,14 +331,14 @@ return fStack.Stack[n];
 
 FEA_EquateT& FEA_EquateT::operator + (const FEA_dScalarT& a) 
 {
-extern FEA_StackT fStack;
-int n = fStack.Next_Stack();
-fStack.Stack[n].length = length; // Set so != 100
+extern FEA_StackT* fStack;
+int n = fStack->Next_Stack();
+fStack->Stack[n].length = length; // Set so != 100
 
 	for (int i=0; i<length; i++)  
-    (*fStack.Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) + a[i]; 
+    (*fStack->Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) + a[i]; 
 
-return fStack.Stack[n]; 
+return fStack->Stack[n]; 
 
 }
 
@@ -341,14 +346,14 @@ return fStack.Stack[n];
 
 FEA_EquateT& FEA_EquateT::operator - (const FEA_dScalarT& a) 
 {
-extern FEA_StackT fStack;
-int n = fStack.Next_Stack();
-fStack.Stack[n].length = length; // Set so != 100
+extern FEA_StackT* fStack;
+int n = fStack->Next_Stack();
+fStack->Stack[n].length = length; // Set so != 100
 
 	for (int i=0; i<length; i++)  
-    (*fStack.Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) - a[i]; 
+    (*fStack->Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) - a[i]; 
 
-return fStack.Stack[n]; 
+return fStack->Stack[n]; 
 
 }
 
@@ -356,14 +361,14 @@ return fStack.Stack[n];
 
 FEA_EquateT& FEA_EquateT::operator * (const FEA_dScalarT& a) 
 {
-extern FEA_StackT fStack;
-int n = fStack.Next_Stack();
-fStack.Stack[n].length = length; // Set so != 100
+extern FEA_StackT* fStack;
+int n = fStack->Next_Stack();
+fStack->Stack[n].length = length; // Set so != 100
 
 	for (int i=0; i<length; i++)  
-    (*fStack.Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) * a[i]; 
+    (*fStack->Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) * a[i]; 
 
-return fStack.Stack[n]; 
+return fStack->Stack[n]; 
 
 }
 
@@ -371,14 +376,14 @@ return fStack.Stack[n];
 
 FEA_EquateT& FEA_EquateT::operator / (const FEA_dScalarT& a) 
 {
-extern FEA_StackT fStack;
-int n = fStack.Next_Stack();
-fStack.Stack[n].length = length; // Set so != 100
+extern FEA_StackT* fStack;
+int n = fStack->Next_Stack();
+fStack->Stack[n].length = length; // Set so != 100
 
 	for (int i=0; i<length; i++)  
-    (*fStack.Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) / a[i]; 
+    (*fStack->Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) / a[i]; 
 
-return fStack.Stack[n]; 
+return fStack->Stack[n]; 
 
 }
 
@@ -387,14 +392,14 @@ return fStack.Stack[n];
 
 FEA_EquateT& FEA_EquateT::operator + (const double& a) 
 {
-extern FEA_StackT fStack;
-int n = fStack.Next_Stack();
-fStack.Stack[n].length = length; // Set so != 100
+extern FEA_StackT* fStack;
+int n = fStack->Next_Stack();
+fStack->Stack[n].length = length; // Set so != 100
 
 	for (int i=0; i<length; i++)  
-    (*fStack.Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) + a; 
+    (*fStack->Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) + a; 
 
-return fStack.Stack[n]; 
+return fStack->Stack[n]; 
 
 }
 
@@ -402,14 +407,14 @@ return fStack.Stack[n];
 
 FEA_EquateT& FEA_EquateT::operator - (const double& a) 
 {
-extern FEA_StackT fStack;
-int n = fStack.Next_Stack();
-fStack.Stack[n].length = length; // Set so != 100
+extern FEA_StackT* fStack;
+int n = fStack->Next_Stack();
+fStack->Stack[n].length = length; // Set so != 100
 
 	for (int i=0; i<length; i++)  
-    (*fStack.Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) - a; 
+    (*fStack->Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) - a; 
 
-return fStack.Stack[n]; 
+return fStack->Stack[n]; 
 
 }
 
@@ -417,14 +422,14 @@ return fStack.Stack[n];
 
 FEA_EquateT& FEA_EquateT::operator * (const double& a) 
 {
-extern FEA_StackT fStack;
-int n = fStack.Next_Stack();
-fStack.Stack[n].length = length; // Set so != 100
+extern FEA_StackT* fStack;
+int n = fStack->Next_Stack();
+fStack->Stack[n].length = length; // Set so != 100
 
 	for (int i=0; i<length; i++)  
-    (*fStack.Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) * a; 
+    (*fStack->Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) * a; 
 
-return fStack.Stack[n]; 
+return fStack->Stack[n]; 
 
 }
 
@@ -432,14 +437,14 @@ return fStack.Stack[n];
 
 FEA_EquateT& FEA_EquateT::operator / (const double& a) 
 {
-extern FEA_StackT fStack;
-int n = fStack.Next_Stack();
-fStack.Stack[n].length = length; // Set so != 100
+extern FEA_StackT* fStack;
+int n = fStack->Next_Stack();
+fStack->Stack[n].length = length; // Set so != 100
 
 	for (int i=0; i<length; i++)  
-    (*fStack.Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) / a; 
+    (*fStack->Stack[n].vec_ptrs[i]) = (*vec_ptrs[i]) / a; 
 
-return fStack.Stack[n]; 
+return fStack->Stack[n]; 
 
 }
 

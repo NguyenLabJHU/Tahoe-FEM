@@ -16,6 +16,9 @@ class FEA_StackT
                                          //       f    
   	FEA_StackT(void);
 
+	/** destructor */
+	~FEA_StackT(void);
+
 		/** Circular, alternates 0,1,0,1,0,1,... */
 
  	 	//bool Next_Stack(void) 				{ index  = (index==0)  ? 1 : 0; return (index); 	} 

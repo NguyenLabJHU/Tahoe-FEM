@@ -19,6 +19,9 @@ class FEA_EquateT {
 
     FEA_EquateT(void);
     FEA_EquateT(const int len);
+    
+	/** destructor */
+	~FEA_EquateT(void);
 
 		void Allocate(const int len);
 

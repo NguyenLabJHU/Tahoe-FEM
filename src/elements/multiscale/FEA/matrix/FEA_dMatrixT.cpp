@@ -320,16 +320,16 @@ void FEA_dMatrixT::operator /=  (const FEA_dScalarT &s) {
 FEA_EquateT& FEA_dMatrixT::operator()(const int i, const int j) 
 {
 	double *p = FEA_Pointer (n_rows*j + i);
-	extern FEA_StackT fStack;
-	int n = fStack.Next_Shallow_Stack();
-	fStack.Shallow_Stack[n].length = n_ip; 
+	extern FEA_StackT* fStack;
+	int n = fStack->Next_Shallow_Stack();
+	fStack->Shallow_Stack[n].length = n_ip; 
 
 	for (int l=0; l<n_ip; l++) { 
-    fStack.Shallow_Stack[n].vec_ptrs[l] = p;  // Shallow copy allows data of (*this) LHS matrix to change
+    fStack->Shallow_Stack[n].vec_ptrs[l] = p;  // Shallow copy allows data of (*this) LHS matrix to change
 		p += n_rows_x_n_cols;
 	}
 
-  return	fStack.Shallow_Stack[n];
+  return	fStack->Shallow_Stack[n];
 }
 
 //------------ Matrix-Matrix Operations ---------------
@@ -504,9 +504,9 @@ void FEA_dMatrixT::Magnitude_Squared (FEA_dScalarT &s)
 
 FEA_EquateT& FEA_dMatrixT::Dot (int rc,int ij,const FEA_dMatrixT &a,int a_rc,int a_ij)
 {
-	extern FEA_StackT fStack;
-	int n = fStack.Next_Stack();
-	fStack.Stack[n].length = n_ip;
+	extern FEA_StackT* fStack;
+	int n = fStack->Next_Stack();
+	fStack->Stack[n].length = n_ip;
 	int l,i,j,dim_check=1;
 
 	//------------------ error checking 
@@ -532,17 +532,17 @@ FEA_EquateT& FEA_dMatrixT::Dot (int rc,int ij,const FEA_dMatrixT &a,int a_rc,int
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(n_rows*ij); // ij = { 0 < ij < n-1 }
 			double *q = a[l].Pointer(a.n_rows*a_ij);
-      (*fStack.Stack[n].vec_ptrs[l]) = 0.0;
+      (*fStack->Stack[n].vec_ptrs[l]) = 0.0;
    	  for (i=0; i<n_rows; i++) 
-      	(*fStack.Stack[n].vec_ptrs[l]) += (*p++)*(*q++);   // think of as two ops *p; then p++;
+      	(*fStack->Stack[n].vec_ptrs[l]) += (*p++)*(*q++);   // think of as two ops *p; then p++;
 		}
 	else if (rc==FEA::kRow && a_rc==FEA::kRow) 
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(ij);
 			double *q = a[l].Pointer(a_ij);
-      (*fStack.Stack[n].vec_ptrs[l]) = 0.0;
+      (*fStack->Stack[n].vec_ptrs[l]) = 0.0;
    	  for (j=0; j<n_cols; j++) {
-      	(*fStack.Stack[n].vec_ptrs[l]) += (*p)*(*q);
+      	(*fStack->Stack[n].vec_ptrs[l]) += (*p)*(*q);
 				p+=n_rows;
 				q+=a.n_rows;
 			}
@@ -551,9 +551,9 @@ FEA_EquateT& FEA_dMatrixT::Dot (int rc,int ij,const FEA_dMatrixT &a,int a_rc,int
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(n_rows*ij);
 			double *q = a[l].Pointer(a_ij);
-      (*fStack.Stack[n].vec_ptrs[l]) = 0.0;
+      (*fStack->Stack[n].vec_ptrs[l]) = 0.0;
    	  for (j=0; j<n_rows; j++) {
-      	(*fStack.Stack[n].vec_ptrs[l]) += (*p)*(*q);
+      	(*fStack->Stack[n].vec_ptrs[l]) += (*p)*(*q);
 				p++; 
 				q+=a.n_rows;
 			}
@@ -562,9 +562,9 @@ FEA_EquateT& FEA_dMatrixT::Dot (int rc,int ij,const FEA_dMatrixT &a,int a_rc,int
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(ij);
 			double *q = a[l].Pointer(a.n_rows*a_ij);
-      (*fStack.Stack[n].vec_ptrs[l]) = 0.0;
+      (*fStack->Stack[n].vec_ptrs[l]) = 0.0;
    	  for (j=0; j<n_cols; j++) {
-      	(*fStack.Stack[n].vec_ptrs[l]) += (*p)*(*q);
+      	(*fStack->Stack[n].vec_ptrs[l]) += (*p)*(*q);
 				p+=n_rows;
 				q++; 
 			}
@@ -572,16 +572,16 @@ FEA_EquateT& FEA_dMatrixT::Dot (int rc,int ij,const FEA_dMatrixT &a,int a_rc,int
 	else 	
 		cout <<"...ERROR >> FEA_dMatrixT::Dot() : either FEA::kRow or FEA::kCol must be sent. ";
 
-return fStack.Stack[n]; 
+return fStack->Stack[n]; 
 } 
 
 //----------------------------------------------------
 
 FEA_EquateT& FEA_dMatrixT::Dot_Aij (int rc,int ij,const FEA_dMatrixT &a,int a_rc,int a_ij, FEA_dMatrixT &c,int i,int j)
 {
-	extern FEA_StackT fStack;
-	int n = fStack.Next_Stack();
-	fStack.Stack[n].length = n_ip;
+	extern FEA_StackT* fStack;
+	int n = fStack->Next_Stack();
+	fStack->Stack[n].length = n_ip;
 	int k,l,dim_check=1;
 
 	//------------------ ERROR CHECKING
@@ -609,64 +609,64 @@ FEA_EquateT& FEA_dMatrixT::Dot_Aij (int rc,int ij,const FEA_dMatrixT &a,int a_rc
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(n_rows*ij);
 			double *q = a[l].Pointer(a.n_rows*a_ij);
-      (*fStack.Stack[n].vec_ptrs[l]) = 0.0;
+      (*fStack->Stack[n].vec_ptrs[l]) = 0.0;
    	  for (k=0; k<n_rows; k++) 
-      	(*fStack.Stack[n].vec_ptrs[l]) += (*p++)*(*q++);  
-			(*fStack.Stack[n].vec_ptrs[l]) *= (*r);
+      	(*fStack->Stack[n].vec_ptrs[l]) += (*p++)*(*q++);  
+			(*fStack->Stack[n].vec_ptrs[l]) *= (*r);
 			r += c.n_rows_x_n_cols;
 		}
 	else if (rc==FEA::kRow && a_rc==FEA::kRow) 
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(ij);
 			double *q = a[l].Pointer(a_ij);
-      (*fStack.Stack[n].vec_ptrs[l]) = 0.0;
+      (*fStack->Stack[n].vec_ptrs[l]) = 0.0;
    	  for (k=0; k<n_cols; k++) {
-      	(*fStack.Stack[n].vec_ptrs[l]) += (*p)*(*q);
+      	(*fStack->Stack[n].vec_ptrs[l]) += (*p)*(*q);
 				p+=n_rows;
 				q+=a.n_rows;
 			}
-			(*fStack.Stack[n].vec_ptrs[l]) *= (*r);
+			(*fStack->Stack[n].vec_ptrs[l]) *= (*r);
 			r += c.n_rows_x_n_cols;
 		}
 	else if (rc==FEA::kCol && a_rc==FEA::kRow) 
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(n_rows*ij);
 			double *q = a[l].Pointer(a_ij);
-      (*fStack.Stack[n].vec_ptrs[l]) = 0.0;
+      (*fStack->Stack[n].vec_ptrs[l]) = 0.0;
    	  for (k=0; k<n_rows; k++) {
-      	(*fStack.Stack[n].vec_ptrs[l]) += (*p)*(*q);
+      	(*fStack->Stack[n].vec_ptrs[l]) += (*p)*(*q);
 				p++; 
 				q+=a.n_rows;
 			}
-			(*fStack.Stack[n].vec_ptrs[l]) *= (*r);
+			(*fStack->Stack[n].vec_ptrs[l]) *= (*r);
 			r += c.n_rows_x_n_cols;
 		}
 	else if (rc==FEA::kRow && a_rc==FEA::kCol) 
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(ij);
 			double *q = a[l].Pointer(a.n_rows*a_ij);
-      (*fStack.Stack[n].vec_ptrs[l]) = 0.0;
+      (*fStack->Stack[n].vec_ptrs[l]) = 0.0;
    	  for (k=0; k<n_cols; k++) {
-      	(*fStack.Stack[n].vec_ptrs[l]) += (*p)*(*q);
+      	(*fStack->Stack[n].vec_ptrs[l]) += (*p)*(*q);
 				p+=n_rows;
 				q++; 
 			}
-			(*fStack.Stack[n].vec_ptrs[l]) *= (*r);
+			(*fStack->Stack[n].vec_ptrs[l]) *= (*r);
 			r += c.n_rows_x_n_cols;
 		}
 	else 	
 		cout <<"...ERROR >> FEA_dMatrixT::Dot() : either FEA::kRow or FEA::kCol must be sent. ";
 
-return fStack.Stack[n]; 
+return fStack->Stack[n]; 
 } 
 
 //----------------------------------------------------
 
 FEA_EquateT& FEA_dMatrixT::ij_x_Aij (int i,int j,const FEA_dMatrixT &a,int ii,int jj) 
 {
-extern FEA_StackT fStack;
-int n = fStack.Next_Stack();
-fStack.Stack[n].length = n_ip;
+extern FEA_StackT* fStack;
+int n = fStack->Next_Stack();
+fStack->Stack[n].length = n_ip;
 
 	int l,dim_check=1;
 
@@ -681,12 +681,12 @@ fStack.Stack[n].length = n_ip;
 	double *q = a[0].Pointer (n_rows*jj +ii);      // ij Component of 1st (0th) dMatrix
 
 	for (l=0; l<n_ip; l++) {
-    (*fStack.Stack[n].vec_ptrs[l]) = (*p)*(*q);   
+    (*fStack->Stack[n].vec_ptrs[l]) = (*p)*(*q);   
 		p += n_rows_x_n_cols; 
 		q += a.n_rows_x_n_cols; 
 	}
 
-return fStack.Stack[n]; 
+return fStack->Stack[n]; 
 }
 
 

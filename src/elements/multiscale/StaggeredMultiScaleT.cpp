@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.5 2002-12-01 19:54:07 paklein Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.6 2002-12-02 07:11:01 paklein Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -43,6 +43,10 @@ StaggeredMultiScaleT::StaggeredMultiScaleT(const ElementSupportT& support,
 	ifstreamT& in = ElementSupport().Input();
 	in >> fGeometryCode; //TEMP - should actually come from the geometry database
 	in >> fNumIP;
+
+	/* allocate the global stack object (once) */
+	extern FEA_StackT* fStack;
+	if (!fStack) fStack = new FEA_StackT;
 }
 
 //---------------------------------------------------------------------
@@ -54,7 +58,14 @@ StaggeredMultiScaleT::~StaggeredMultiScaleT(void)
 	delete fEquation_I; 
 	delete fEquation_II; 
 	delete fCoarseMaterial; 
-	delete fFineMaterial; 
+	delete fFineMaterial;
+
+	/* free the global stack object (once) */
+	extern FEA_StackT* fStack;
+	if (fStack) {
+		delete fStack;
+		fStack = NULL;
+	}
 }
 
 //---------------------------------------------------------------------

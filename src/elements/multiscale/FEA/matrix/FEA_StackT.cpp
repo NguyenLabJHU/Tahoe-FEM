@@ -1,5 +1,5 @@
+/* $Id: FEA_StackT.cpp,v 1.2 2002-12-02 07:11:03 paklein Exp $ */
 //DEVELOPMENT
-
 #include "FEA.h"
 
 using namespace Tahoe;
@@ -25,3 +25,11 @@ FEA_StackT::FEA_StackT(void)  							// Constructor
 }	
 
 //------------------------------------
+
+/* destructor */
+FEA_StackT::~FEA_StackT(void)
+{
+	for (int i = 0; i < Stack.Length(); i++)
+		for (int l = 0; l < Stack[i].length; l++)        				
+			delete Stack[i].vec_ptrs[l];
+}
