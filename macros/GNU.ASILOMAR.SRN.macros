@@ -1,4 +1,4 @@
-# $Id: GNU.ASILOMAR.SRN.macros,v 1.8 2004-01-02 01:17:40 paklein Exp $
+# $Id: GNU.ASILOMAR.SRN.macros,v 1.9 2004-01-02 01:37:20 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpich -lgm
@@ -8,7 +8,7 @@ MAKE        = make
 DEFINES     = -D__DEC__ -D__CPLANT__ -D__ASILOMAR__ -D__TAHOE_MPI__
 MAKEDEPEND = makedepend
 MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I/usr/local/asilomar/include -I/usr/local/asilomar/build/LINUX/ch_gm/include -I/usr/local/asilomar/build/LINUX/ch_gm/include/c++ -I/usr/include/g++-2 $(DEFINES)
+MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/local/asilomar/include -I/usr/local/asilomar/build/LINUX/ch_gm/include -I/usr/local/asilomar/build/LINUX/ch_gm/include/c++ -I/usr/include/g++-2 $(DEFINES)
 COMP_C      = gcc
 COMP_CC     = g++
 COMP_F      = g77

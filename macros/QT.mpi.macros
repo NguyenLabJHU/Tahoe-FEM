@@ -1,4 +1,4 @@
-# $Id: QT.mpi.macros,v 1.3 2004-01-02 01:17:40 paklein Exp $
+# $Id: QT.mpi.macros,v 1.4 2004-01-02 01:37:20 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__  -DAZTEC_MPI
 MPI_LFLAGS = -lmpi
@@ -8,7 +8,7 @@ MAKE        = make
 DEFINES     = -D__DEC__ -D__USE_STD_IOSTREAM -D__TAHOE_MPI__ -DAZTEC_MPI
 MAKEDEPEND  = makedepend
 MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I/usr/include/cxx $(DEFINES)
+MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/include/cxx $(DEFINES)
 COMP_C      = cxx
 COMP_CC     = cxx
 COMP_F      = f77

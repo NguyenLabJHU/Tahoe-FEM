@@ -1,10 +1,10 @@
-# $Id: GNU.troi.macros,v 1.16 2004-01-02 01:17:40 paklein Exp $
+# $Id: GNU.troi.macros,v 1.17 2004-01-02 01:37:20 paklein Exp $
 # GNU
 MAKE        = make
 DEFINES     = -D__GNU__ -D__SUN__ -D__NO_RTTI__
 MAKEDEPEND  = makedepend
 MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I/usr/local/include/g++-3 -I/usr/include/g++-2 -I/usr/include -I/usr/local/sparc-sun-solaris2.7/include $(DEFINES)
+MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/local/include/g++-3 -I/usr/include/g++-2 -I/usr/include -I/usr/local/sparc-sun-solaris2.7/include $(DEFINES)
 COMP_C      = gcc
 COMP_CC     = g++
 COMP_F      = g77

@@ -1,4 +1,4 @@
-# $Id: AIX.mpi.macros,v 1.9 2004-01-02 01:17:39 paklein Exp $
+# $Id: AIX.mpi.macros,v 1.10 2004-01-02 01:37:20 paklein Exp $
 # DEC
 MPI_CFLAGS  = -D__TAHOE_MPI__
 MPI_LFLAGS  =
@@ -7,7 +7,7 @@ MAKE        = make
 DEFINES     = -D__AIX__ -D__TAHOE_MPI__
 MAKEDEPEND = makedepend
 MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I/usr/vacpp/include -I/usr/lpp/ppe.poe/include $(DEFINES)
+MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/vacpp/include -I/usr/lpp/ppe.poe/include $(DEFINES)
 COMP_C      = mpcc
 COMP_CC     = mpCC
 COMP_F      = mpxlf

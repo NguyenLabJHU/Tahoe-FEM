@@ -1,4 +1,4 @@
-# $Id: CA-CPLANT.macros,v 1.13 2004-01-02 01:17:39 paklein Exp $
+# $Id: CA-CPLANT.macros,v 1.14 2004-01-02 01:37:20 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpi
@@ -7,14 +7,13 @@ MPI_LFLAGS = -lmpi
 MAKE        = make
 MAKEDEPEND = makedepend
 MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I/usr/include/cxx -I/usr/local/mpich/include
+MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/include/cxx -I/usr/local/mpich/include
 COMP_C      = cxx
 COMP_CC     = cxx
 COMP_F      = f77
 LINK        = $(COMP_CC)
 TR          = $(MACRO_DIR)/cxx_repository
 MORE_CFLAGS = -O3 -DNDEBUG 
-#MORE_CFLAGS = -g 
 DEFINES     = -D__DEC__ -D__CPLANT__ -D__CA_CPLANT__
 LOC_CFLAGS  = -c -I$(INC_DIR) -I/usr/local/mpich/include -msg_display_number $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS) -msg_disable 161

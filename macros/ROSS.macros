@@ -1,4 +1,4 @@
-# $Id: ROSS.macros,v 1.9 2004-01-02 01:17:40 paklein Exp $
+# $Id: ROSS.macros,v 1.10 2004-01-02 01:37:20 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__ -DAZTEC_MPI
 MPI_LFLAGS = -lmpi
@@ -8,7 +8,7 @@ MAKE        = make
 DEFINES     = -D__DEC__ -D__CPLANT__ -D__ROSS__ -U__IEEE_FLOAT -D__TAHOE_MPI__ -DAZTEC_MPI
 MAKEDEPEND  = makedepend
 MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I/usr/include/cxx -I/usr/local/cplant/ross/current/include $(DEFINES)
+MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/include/cxx -I/usr/local/cplant/ross/current/include $(DEFINES)
 COMP_CC     = c++
 COMP_C      = cc
 COMP_F      = f77

@@ -1,4 +1,4 @@
-# $Id: JANUS.macros,v 1.16 2004-01-02 01:17:40 paklein Exp $
+# $Id: JANUS.macros,v 1.17 2004-01-02 01:37:20 paklein Exp $
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpi
 
@@ -7,7 +7,7 @@ MAKE        = make
 DEFINES     = -D__JANUS__ -D__TAHOE_MPI__
 MAKEDEPEND  = makedepend
 MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I/usr/local/intel/tflop/current/tflops/include -I/usr/local/intel/tflop/current/tflops/include/CC $(DEFINES)
+MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/local/intel/tflop/current/tflops/include -I/usr/local/intel/tflop/current/tflops/include/CC $(DEFINES)
 COMP_C      = cicc
 COMP_CC     = ciCC
 COMP_F      = cif77

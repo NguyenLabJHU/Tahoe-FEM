@@ -1,10 +1,10 @@
-# $Id: AIX.macros,v 1.8 2004-01-02 01:17:39 paklein Exp $
+# $Id: AIX.macros,v 1.9 2004-01-02 01:37:20 paklein Exp $
 # macros for IBM
 MAKE        = make
 DEFINES     = -D__AIX__ 
 MAKEDEPEND = makedepend
 MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I/usr/vacpp/include $(DEFINES)
+MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/vacpp/include $(DEFINES)
 COMP_C      = xlc
 COMP_CC     = xlC
 COMP_F      = xlf
