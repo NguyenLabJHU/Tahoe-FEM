@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.35 2004-01-02 22:19:42 paklein Exp $
+# $Id: make.targets,v 1.36 2004-01-02 23:56:50 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -162,10 +162,10 @@ clean: $(MAKE_CLEAN_XTRAS) $(MOD_MAKE_CLEAN_XTRAS)
 # set-up directories
 setup:
 	@ if test -f $(LIBRARY); then $(RM) $(LIBRARY); fi
-	@ if ! test -d $(BLD_DIR); then mkdir $(BLD_DIR); fi
-	@ if ! test -d $(OBJ_DIR); then mkdir $(OBJ_DIR); fi
-	@ if ! test -d $(LIB_DIR); then mkdir $(LIB_DIR); fi
-	@ if ! test -f $(LIB_DIR)/lib.junk; then echo "# touch" > $(LIB_DIR)/lib.junk; fi
+	@ if [ ! -d $(BLD_DIR) ]; then mkdir $(BLD_DIR); fi
+	@ if [ ! -d $(OBJ_DIR) ]; then mkdir $(OBJ_DIR); fi
+	@ if [ ! -d $(LIB_DIR) ]; then mkdir $(LIB_DIR); fi
+	@ if [ ! -f $(LIB_DIR)/lib.junk ]; then echo "# touch" > $(LIB_DIR)/lib.junk; fi
 	@ $(ECHO) " mirroring $(SRC_DIR) to $(BLD_SRC_DIR)"
 	$(PERL) $(MACRO_DIR)/MirrorTree.pl $(SRC_DIR) $(BLD_SRC_DIR) "$(LN)" > $(BLD_DIR)/mirror.log
 
