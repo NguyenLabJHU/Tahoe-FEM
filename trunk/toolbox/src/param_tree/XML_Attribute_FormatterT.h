@@ -1,4 +1,4 @@
-/* $Id: XML_Attribute_FormatterT.h,v 1.3 2002-11-27 19:52:07 paklein Exp $ */
+/* $Id: XML_Attribute_FormatterT.h,v 1.4 2003-04-26 02:09:46 paklein Exp $ */
 #ifndef _XML_ATTRIBUTE_FORMATTER_T_H_
 #define _XML_ATTRIBUTE_FORMATTER_T_H_
 
@@ -11,7 +11,6 @@
 namespace Tahoe {
 
 /* forward declarations */
-class ParameterListT;
 template <class TYPE> class BinaryTreeT;
 
 /** formatter for XML for which parameter lists are mapped to
