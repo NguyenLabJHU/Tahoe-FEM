@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.17 2002-12-05 08:23:02 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.18 2003-03-21 06:33:36 thao Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -232,7 +232,8 @@ void dSymMatrixT::Eigensystem(dArrayT& val, dMatrixT& vec, bool sort_descending)
 	{
 		double tau = .5*(c-a)/b;
 		double r = sqrt(1.0+tau*tau);
-		double t = (tau >= 0) ? (-tau + r) : (-tau - r);
+		//		double t = (tau >= 0) ? (-tau + r) : (-tau - r);
+		double t = (tau >= 0) ? 1.0/(tau+sqrt(1+tau*tau)):-1.0/(-tau+sqrt(1+tau*tau));
 		cos = 1.0/sqrt(1+t*t);
 		sin = t*cos;
 	}
