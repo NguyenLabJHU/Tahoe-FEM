@@ -1,4 +1,4 @@
-/* $Id: MapT.h,v 1.5 2003-03-09 21:47:24 paklein Exp $ */
+/* $Id: MapT.h,v 1.6 2003-04-26 19:19:46 paklein Exp $ */
 #ifndef _MAP_T_H_
 #define _MAP_T_H_
 
@@ -29,6 +29,10 @@ public:
 	/** insert value in the map. Returns true if the value was added, returns false if
 	 * the key value already exists. */
 	bool Insert(const key_TYPE& key, const value_TYPE& value);
+
+	/** check if the key exists in the map. Even though method is const, it does update
+	 * cached values of the last lookup. */
+	bool HasKey(const key_TYPE& key) const;
 
 	/** read/write access to values */
 	value_TYPE& operator[](const key_TYPE& key) const;
@@ -77,30 +81,43 @@ bool MapT<key_TYPE, value_TYPE>::Insert(const key_TYPE& key, const value_TYPE& v
 template <class key_TYPE, class value_TYPE>
 value_TYPE& MapT<key_TYPE, value_TYPE>::operator[](const key_TYPE& key) const
 {
+	/* look up */
+	if (!HasKey(key)) {
+		cout << "\n MapT<key_TYPE, value_TYPE>::operator[]: key not found: " << key << endl;
+		ExceptionT::OutOfRange("MapT<key_TYPE, value_TYPE>::operator[]");
+	}
+
+	/* return */
+	return *fLastValue;
+}
+
+/* read/write access to values */
+template <class key_TYPE, class value_TYPE>
+bool MapT<key_TYPE, value_TYPE>::HasKey(const key_TYPE& key) const
+{
 	/* need look up */
 	if (!fLastValue || key != fLastKey) {
 		
 		/* return the tree node with the given value or NULL if not present */
 		MapNodeT<key_TYPE, value_TYPE> find_node(key);
 		BTreeNodeT<MapNodeT<key_TYPE, value_TYPE> >* tree_node = Find(find_node);
-	
-		/* no match */
-		if (!tree_node) {
-			cout << "\n MapT<key_TYPE, value_TYPE>::operator[]: key not found: " << key << endl;
-			throw ExceptionT::kOutOfRange;
-		}
-	
-		/* retrieve value */
-		const MapNodeT<key_TYPE, value_TYPE>& node = tree_node->Value();
 
 		/* updated cached values in non-const this */
 		MapT<key_TYPE, value_TYPE>* non_const_this = (MapT<key_TYPE, value_TYPE>*)(this);
-		non_const_this->fLastKey = key;
-		non_const_this->fLastValue = node.fValue;
+	
+		/* no match */
+		if (!tree_node)
+			non_const_this->fLastValue = NULL;
+		else /* retrieve value */
+		{
+			const MapNodeT<key_TYPE, value_TYPE>& node = tree_node->Value();
+			non_const_this->fLastKey = key;
+			non_const_this->fLastValue = node.fValue;
+		}
 	}
 
 	/* return */
-	return *fLastValue;
+	return fLastValue != NULL;
 }
 
 /* return copies of the the tree values in ascending order */
