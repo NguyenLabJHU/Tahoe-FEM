@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.16 2003-03-02 19:00:34 paklein Exp $ */
+/* $Id: ElementT.cpp,v 1.17 2003-03-19 17:11:21 thao Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -120,7 +120,13 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			break;	
 		case ElementT::kParticlePair:
 			type = ElementT::kParticlePair;
-			break;	
+			break;
+		case ElementT::kFSMatForce:
+		    type = ElementT::kFSMatForce;
+		    break;
+		case ElementT::kSSMatForce:
+		    type = ElementT::kSSMatForce;
+		    break;
 		default:
 			cout << "\n operator>>ElementT::TypeT: unknown type: "
 			<< i_type<< endl;

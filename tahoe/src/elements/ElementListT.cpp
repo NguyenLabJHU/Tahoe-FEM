@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.43 2003-03-02 19:00:34 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.44 2003-03-19 17:11:21 thao Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -79,6 +79,11 @@
 
 #ifdef MULTISCALE_ELEMENT_DEV
 #include "StaggeredMultiScaleT.h"
+#endif
+
+#ifdef SOLID_ELEMENT_DEV
+#include "UpdatedLagrangianMF.h"
+#include "SmallStrainMF.h"
 #endif
 
 using namespace Tahoe;
@@ -548,6 +553,27 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			ExceptionT::BadInputValue(caller, "PARTICLE_ELEMENT not enabled: %d", code);
 #endif				
 		}
+		/********************************************************/
+			case ElementT::kFSMatForce:
+			{
+#ifdef SOLID_ELEMENT_DEV
+				fArray[group] = new UpdatedLagrangianMF(fSupport, *field);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
+			case ElementT::kSSMatForce:
+			{
+#ifdef SOLID_ELEMENT_DEV
+				fArray[group] = new SmallStrainMF(fSupport, *field);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
+	       /*******************************************************/
+
 		default:
 			ExceptionT::BadInputValue(caller, "unknown element type: %d", code);
 		}
