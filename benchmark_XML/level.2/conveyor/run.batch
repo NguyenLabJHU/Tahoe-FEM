@@ -1,6 +1,7 @@
 @
-# $Id: run.batch,v 1.3 2004-12-27 07:08:40 paklein Exp $
+# $Id: run.batch,v 1.4 2004-12-27 07:40:27 paklein Exp $
 conveyor.0.xml
 conveyor.0.rs.xml
 conveyor.1.xml
+conveyor.1.sym.xml
 
