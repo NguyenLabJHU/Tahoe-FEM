@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.3.2.9 2003-05-12 22:37:01 hspark Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.3.2.10 2003-05-12 22:46:11 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -53,6 +53,14 @@ void FEManagerT_bridging::FormRHS(int group) const
 		fSolvers[group]->AssembleRHS(*external_force);
 		fSolvers[group]->LockRHS();
 	}
+	
+	/* assemble external contribution */
+	const dArray2DT* external_force_2D = fExternalForce2D[group];
+	if (external_force_2D != NULL) {
+		fSolvers[group]->UnlockRHS();
+		fSolvers[group]->AssembleRHS(*external_force_2D, fExternalForce2DEquations[group]);
+		fSolvers[group]->LockRHS();		
+	}
 }
 
 /* reset the cumulative update vector */
@@ -60,6 +68,42 @@ void FEManagerT_bridging::ResetCumulativeUpdate(int group)
 {
 	fCumulativeUpdate[group].Dimension(fNodeManager->NumEquations(group));
 	fCumulativeUpdate[group] = 0.0;
+}
+
+/* (re-)set the equation number for the given group */
+void FEManagerT_bridging::SetEquationSystem(int group)
+{
+	/* inherited */
+	FEManagerT::SetEquationSystem(group);
+
+	//NOTE: this is going to break if the equation numbers has changed since the force was set
+	if (fExternalForce2D[group])
+		ExceptionT::GeneralFail("FEManagerT_bridging::SetEquationSystem",
+			"group %d has external force so equations cannot be reset", group+1);
+}
+
+/* set pointer to an external force vector */
+void FEManagerT_bridging::SetExternalForce(const StringT& field, const iArrayT& nodes, const dArray2DT& external_force)
+{
+	const char caller[] = "FEManagerT_bridging::SetExternalForce";
+
+	/* check */
+	if (nodes.Length() != external_force.MajorDim()) 
+		ExceptionT::SizeMismatch(caller);
+
+	/* get the field */
+	const FieldT* thefield = fNodeManager->Field(field);
+	if (!thefield) ExceptionT::GeneralFail(caller);
+
+	/* store pointers */
+	int group = thefield->Group();
+	fExternalForce2D[group] = &external_force;
+	fExternalForce2DNodes[group] = &nodes;
+	
+	/* collect equation numbers */
+	iArray2DT& eqnos = fExternalForce2DEquations[group];
+	eqnos.Dimension(fNodeManager->NumNodes(), thefield->NumDOF());
+	thefield->SetLocalEqnos(nodes, eqnos);
 }
 
 /* initialize the ghost node information */
@@ -467,6 +511,12 @@ void FEManagerT_bridging::SetSolver(void)
 	/* dimension list of pointers to external force vectors */
 	fExternalForce.Dimension(NumGroups());
 	fExternalForce = NULL;
+
+	fExternalForce2D.Dimension(NumGroups());
+	fExternalForce2DNodes.Dimension(NumGroups());
+	fExternalForce2DEquations.Dimension(NumGroups());
+	fExternalForce2D = NULL;
+	fExternalForce2DNodes = NULL;
 }
 
 /*************************************************************************

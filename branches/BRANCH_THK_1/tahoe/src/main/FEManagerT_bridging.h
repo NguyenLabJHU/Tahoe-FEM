@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.3.2.6 2003-05-12 22:37:01 hspark Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.3.2.7 2003-05-12 22:46:11 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -49,9 +49,9 @@ public:
 	/** set pointer to an external force vector or pass NULL to clear. The array
 	 * the length of the number of unknowns for the given group. */
 	void SetExternalForce(int group, const dArrayT& external_force);
-	
-	/** add external force to RHS */
-	void SetExternalForce(int group, const iArrayT& nodes, const dArray2DT& external_force);
+
+	/** set pointer to an external force vector for the given field */
+	void SetExternalForce(const StringT& field, const iArrayT& nodes, const dArray2DT& external_force);
 	/*@}*/
 
 	/** \name ghost nodes 
@@ -110,6 +110,9 @@ public:
 	void BridgingFields(const StringT& field, NodeManagerT& atom_node_manager,
 		NodeManagerT& fem_node_manager, dArray2DT& totalu);
 	/*@}*/
+
+	/** (re-)set the equation number for the given group */
+	virtual void SetEquationSystem(int group);
 	
 	/** \name solver control */
 	/*@{*/
@@ -189,8 +192,14 @@ private:
 	ArrayT<dArrayT> fCumulativeUpdate;
 	/*@}*/
 	
-	/** external force vector by group */
+	/** \name external force vector by group */
+	/*@{*/
 	ArrayT<const dArrayT*> fExternalForce;
+	
+	ArrayT<const dArray2DT*> fExternalForce2D;
+	ArrayT<const iArrayT*>   fExternalForce2DNodes;
+	ArrayT<iArray2DT>        fExternalForce2DEquations;
+	/*@}*/
 };
 
 /* inlines */
