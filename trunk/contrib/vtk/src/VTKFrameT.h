@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.h,v 1.8 2001-11-06 02:39:51 recampb Exp $ */
+/* $Id: VTKFrameT.h,v 1.9 2001-11-07 02:34:45 paklein Exp $ */
 
 #ifndef _VTK_FRAME_T_H_
 #define _VTK_FRAME_T_H_
@@ -13,10 +13,8 @@
 
 /* VTK forward declarations */
 class vtkRenderer;
-//class vtkRendererSource;
 class vtkRenderWindow;
 class vtkRenderWindowInteractor;
-class vtkTIFFWriter;
 
 /* forward declarations */
 class VTKBodyT;
@@ -71,14 +69,11 @@ class VTKFrameT: public iConsoleObjectT
    VTKConsoleT* fConsole;
   
   vtkRenderer *renderer;
-  //  vtkRendererSource *renSrc;
-  vtkTIFFWriter *writer;
 
   vtkRenderWindow *fRenWin;
   vtkRenderWindowInteractor *fIren;
   AutoArrayT<VTKBodyT*> bodies;
   
-
  /*  vtkIdFilter *ids; */
 /*   vtkSelectVisiblePoints *visPts; */
 /*   vtkLabeledDataMapper *ldm; */

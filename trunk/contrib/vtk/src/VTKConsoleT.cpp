@@ -1,10 +1,9 @@
-/* $Id: VTKConsoleT.cpp,v 1.23 2001-11-06 02:39:51 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.24 2001-11-07 02:34:45 paklein Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
-//#include "vtkRendererSource.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkWindowToImageFilter.h"
 #include "vtkTIFFWriter.h"
@@ -20,163 +19,35 @@
 #include "GeometryT.h"
 #include "VTKBodyT.h"
 
-VTKConsoleT::VTKConsoleT(void)
+VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
+  fArguments(arguments)
 {
   /* set console name */
   iSetName("vtk");
 
-//   /* add variables to the console */
-//   iAddVariable("min_Hue_Range", hueRange1);
-//   iAddVariable("max_Hue_Range", hueRange2);
-//   iAddVariable("min_Value_Range", valRange1);
-//   iAddVariable("max_Value_Range", valRange2);
-//   iAddVariable("min_Saturation_Range", satRange1);
-//   iAddVariable("max_Saturation_Range", satRange2);
-//   iAddVariable("min_Alpha_Range", alphaRange1);
-//   iAddVariable("max_Alpha_Range", alphaRange2);
-//   // iAddVariable("min_Scalar_Range", scalarRange1);
-//   //iAddVariable("max_Scalar_Range", scalarRange2);
-//   iAddVariable("numColors", numColors);
-//   iAddVariable("source_file", source_file);
-//   //iAddVariable("output_file", output_file);
-//   //iAddVariable("scale_factor", scale_factor);
-
   /* add console commands */
-  iAddCommand("Start_Rendering");
-  iAddCommand("Update_Rendering");
+  iAddCommand("Interactive");
+  iAddCommand("Update");
+  iAddCommand("AddBody");
+  iAddCommand("RemoveBody");
+  iAddCommand("ResetView");
+  iAddCommand("Layout");
  
-  iAddCommand("Save");
   iAddCommand("Save_flip_book_images");
-  iAddCommand("Show_Node_Numbers");
-  iAddCommand("Hide_Node_Numbers");
-  iAddCommand("Color_bar_on");
-  iAddCommand("Color_bar_off");
-  iAddCommand("X_axis_rotation");
-  iAddCommand("Y_axis_rotation");
-  iAddCommand("Z_axis_rotation");
   iAddCommand("Flip_book");
-  iAddCommand("Change_background_color");
-  iAddCommand("Select_frame_number");
-  iAddCommand("Show_axes");
-  iAddCommand("Hide_axes");
-  iAddCommand("Choose_variable");
-  iAddCommand("Reset_to_Default_Values");
 
- /* prompt for input file */
-  // StringT file;
-  char line[255];
-    cout << "Choose number of File\n 1: heat.io0.exo\n 2: test.io0.exo\n 3: test2.io0.exo\n 4: big.exo\n 5: enter different .exo: ";
-    cin >> test;
-    cin.getline(line, 254);
-    
-	StringT inFile;
-    if (test == 1) inFile = "../../example_files/heat/heat.io0.exo";
-    else if (test ==2) inFile ="test.io0.exo";
-    else if (test == 3) inFile = "test2.io0.exo";
-    else if (test == 4) inFile = "big.exo";
-    else if (test == 5) {
-      cout << "Enter file name with .exo: ";
-      cin >> inFile;
-      cin.getline(line, 254);
-    }
-    else cout << "bad entry";
-  
-    cout << "How many frames in window (1 or 4)?";
-    cin >> numRen;
-    cin.getline(line, 254);
-
-
-    //TEMP - construct one body
-    try {
-      VTKBodyT* body = new VTKBodyT(inFile);
-      fBodies.Append(body);
-    }
-    catch (int) {
-      cout << "\n exception constructing body" << endl;
-    }
-
-
- /* prompt for input file */
-  // StringT file;
-    //char line[255];
-    cout << "Choose number of File\n 1: heat.io0.exo\n 2: test.io0.exo\n 3: test2.io0.exo\n 4: big.exo\n 5: enter different .exo: ";
-    cin >> test;
-    cin.getline(line, 254);
-    
-    StringT inFile2;
-    if (test == 1) inFile2 = "../../example_files/heat/heat.io0.exo";
-    else if (test ==2) inFile2 ="test.io0.exo";
-    else if (test == 3) inFile2 = "test2.io0.exo";
-    else if (test == 4) inFile2 = "big.exo";
-    else if (test == 5) {
-      cout << "Enter file name with .exo: ";
-      cin >> inFile2;
-      cin.getline(line, 254);
-    }
-    else cout << "bad entry";
-
-
-    //TEMP - construct one body
-    try {
-      VTKBodyT* body2 = new VTKBodyT(inFile2);
-      fBodies.Append(body2);
-    }
-    catch (int) {
-      cout << "\n exception constructing body" << endl;
-    }
-    //cout << fBodies[0]->num_node_variables << endl;
-    // cout << fBodies[1]->num_node_variables << endl;
-
-   renWin = vtkRenderWindow::New();
-   iren = vtkRenderWindowInteractor::New();
-   // writer = vtkTIFFWriter::New();
-
-  //TEMP - adding sub-scopes to the console
-  fFrames.Allocate(4);
-  for (int i = 0; i < 4; i++)
-    {
-      StringT temp;
-      temp.Append("frame",i,2);
-      fFrames[i].iSetName(temp);
-      iAddSub(fFrames[i]);
-      fFrames[i].setRenWin(renWin);
-      fFrames[i].setIren(iren);
-      fFrames[i].setConsole(this);
-  //     for (int j = 0; j<1; j++)
-// 	fFrames[i].bodies[j] = fBodies[j];
-    }
-  
-	  
-  //fBodies[0]->SetLookupTable();	  
-  fFrames[0].AddBody(fBodies[0]);
-  fFrames[1].AddBody(fBodies[0]);
-  fFrames[2].AddBody(fBodies[0]);
-  fFrames[3].AddBody(fBodies[0]);
-  renWin->AddRenderer(fFrames[0].Renderer());
- //renWin->AddRenderer(fFrames[1].Renderer());
-  if (numRen ==4){
-    fFrames[0].Renderer()->SetViewport(0,0,.5,.5);
-    fFrames[1].Renderer()->SetViewport(.5,0,1,.5);
-    fFrames[2].Renderer()->SetViewport(0,.5,.5,1);
-    fFrames[3].Renderer()->SetViewport(.5,.5,1,1);
-    fFrames[0].Renderer()->GetActiveCamera()->Zoom(0.85);
-    fFrames[1].Renderer()->GetActiveCamera()->Zoom(0.85);
-    fFrames[2].Renderer()->GetActiveCamera()->Zoom(0.85);
-    fFrames[3].Renderer()->GetActiveCamera()->Zoom(0.85);
-  }
-
-  if (numRen==4){   
-    renWin->AddRenderer(fFrames[1].Renderer());
-    renWin->AddRenderer(fFrames[2].Renderer());
-    renWin->AddRenderer(fFrames[3].Renderer());
-  }
-  iren->SetRenderWindow(renWin);
-  
+  /* display objects */
+  renWin = vtkRenderWindow::New();
   renWin->SetPosition(668, 0);
   renWin->SetSize(600,700);
+  iren = vtkRenderWindowInteractor::New();
+  iren->SetRenderWindow(renWin);
 
-  //renWin->Render();
-  //iren->Start();
+  /* set up single frame */
+  SetFrameLayout(1,1);
+
+  /* draw */
+  renWin->Render();
 }
 
 /* destructor*/
@@ -188,63 +59,175 @@ VTKConsoleT::~VTKConsoleT(void)
 	  delete fBodies[i];
 	  fBodies[i] = NULL;
 	}
+
+  /* free data for remaining bodies */
+  for (int i = 0; i < fFrames.Length(); i++)
+	{
+	  delete fFrames[i];
+	  fFrames[i] = NULL;
+	}
 }
 
 /* execute given command - returns false on fail */
 bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 {
-
-
-  if (command == "Start_Rendering")
+  if (command == "Interactive")
     {
-//       fBodies[0]->UpdateData();
-//       fBodies[1]->UpdateData();
       renWin->Render();
       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
       iren->Start();
       return true;
-    }
-  
-  else if (command == "Update_Rendering")
+    }  
+  else if (command == "Layout")
+	{
+	  int num_x = -1, num_y = -1;
+	  cout << "horizontal: ";
+	  cin >> num_x;
+	  cout << "vertical: ";
+	  cin >> num_y;
+	  Clean(cin);
+	  SetFrameLayout(num_x, num_y);
+	  return true;
+	}
+  else if (command == "Update")
     {
+	  for (int i = 0; i < fBodies.Length(); i++)
+		fBodies[i]->UpdateData();
+      renWin->Render();
+      return true;
+    }
+  else if (command == "ResetView")
+	{
+	  for (int i = 0; i < fFrames.Length(); i++)
+		fFrames[i]->ResetView();
+	  renWin->Render();
+	  return true;
+	}
+  else if (command == "AddBody")
+	{
+	  StringT path;
+	  cout << "path to data file: ";
+	  cin >> path;
+	  Clean(cin);
+	  path.ToNativePathName();
+	  
+	  return AddBody(path);
+	}
+  else if (command == "RemoveBody")
+	{
+	  int index;
+	  cout << "select body to remove (0," << fBodies.Length()-1 << "): ";
+	  cin >> index;
+	  Clean(cin);
+	  if (index < 0 && index >= fBodies.Length())
+		return false;
+	  else {
+
+		/* remove body from all frames */
+		int count = 0;
+		for (int i = 0; i < fFrames.Length(); i++)
+		  if (fFrames[i]->RemoveBody(fBodies[index])) count++;
+		cout << "body " << index << " removed from " << count << " frames" << endl;
+
+		/* free */
+		delete fBodies[index];
+		
+		/* resize array */
+		fBodies.DeleteAt(index);
+		return true;
+	  }
+	}
+  else if (command == "Flip_book")
+    {
+      double timeStep;
+      cout << "Enter time step in seconds: ";
+      cin >> timeStep;
+	  Clean(cin);
+      cout << "Show images at: \n 1: current view\n 2: default view: ";
+     
+      int sfbTest;
+      cin >> sfbTest;
+	  Clean(cin);
+
+      /* if default camera desired */
+      if (sfbTest == 2) {
+		for (int i = 0; i < fFrames.Length(); i++)
+		  fFrames[i]->ResetView();
+		renWin->Render();
+      }	
+
+      /* assume all the bodies have the same number of steps as body 0 */
+      for (int j = 0; j<fBodies[0]->num_time_steps; j++){
+        /* time delay */
+		clock_t start_time, cur_time;
+		start_time = clock();
+		while((clock() - start_time) < timeStep * CLOCKS_PER_SEC)
+		  {
+		  }
+		for (int i = 0; i < fBodies.Length(); i++)
+		  fBodies[i]->SelectTimeStep(j);
+		renWin->Render();
+      }
+      return true;
+    }
+  else if (command== "Save_flip_book_images")
+	{
+      StringT fbName;
+      cout << "Enter name for flipbook to be saved (without .tif extension): ";
+      cin >> fbName;
+	  Clean(cin);
+      cout << "Save images at: \n 1: current view\n 2: default view: ";
+      int sfbTest;
+      cin >> sfbTest;
+	  Clean(cin);
+	  
+      /* if default camera desired */
+      if (sfbTest == 2) {
+		for (int i = 0; i < fFrames.Length(); i++)
+		  fFrames[i]->ResetView();
+		renWin->Render();
+      }	
+
+      /* window to image filter */
+      vtkWindowToImageFilter* image = vtkWindowToImageFilter::New();
+      image->SetInput(renWin);
+
+      /* construct TIFF writer */
+      vtkTIFFWriter* writer = vtkTIFFWriter::New();
+      writer->SetInput(image->GetOutput());
+
+      /* assume all the bodies have the same number of steps as body 0 */
+      for (int j = 0; j<fBodies[0]->num_time_steps; j++){
+		for (int i = 0; i < fBodies.Length(); i++)
+		  fBodies[i]->SelectTimeStep(j);
+		renWin->Render();  
+
+		StringT name = fbName;
+		name.Append(j,3); // pad to a width of 3 digits
+		name.Append(".tif");
+		writer->SetFileName(name);
+		writer->Write();
+	
+		cout << fbName << " has been saved" << endl;
+		renWin->Render();
+      }
       
-      fBodies[0]->UpdateData();
-      renWin->Render();
-      cout << "type 'e' in the graphics window to exit interactive mode" << endl;   
-      iren->Start();
-      return true;
-    }
-    
-  else if (command == "Reset_to_Default_Values")
-    {
-      fBodies[0]->DefaultValues();
-      fBodies[0]->UpdateData();
-      renWin->Render();
-      // iren->Start();
-      return true;
-    }
+      /* clean up */
+      writer->Delete();
+      image->Delete();
 
-//   else if (command == "Reset_view")
-//     {
-//       int frNum;
-//       cout << "Which frame? ";
-//       cin >> frNum;
-//       char line[255];
-//       cin.getline(line, 254);
-//       fFrames[frNum].Renderer()->GetActiveCamera()->SetFocalPoint(0,0,0);
-// 	  cam->SetFocalPoint(0,0,0);
-// 	  cam->SetPosition(0,0,1);
-// 	  cam->ComputeViewPlaneNormal();
-// 	  cam->SetViewUp(0,1,0);
-// 	  cam->OrthogonalizeViewUp();
-// 	  renderer->SetActiveCamera(cam);
-// 	  renderer->ResetCamera();
-// 	  renWin->Render();
-// 	  cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-// 	  iren->Start();
-// 	  return true;
-//     }
-
+      cout << "Flip book images have been saved." << endl;
+      renWin->Render();
+      return true;
+	}
+  //  else if (command == "Reset_to_Default_Values")
+  //{
+  //  fBodies[0]->DefaultValues();
+  //  fBodies[0]->UpdateData();
+  //  renWin->Render();
+  //  // iren->Start();
+  //  return true;
+  //}
 //   else if (command == "Save")
 //     {
 //       cout << "Enter name for file to be saved to: ";
@@ -273,7 +256,6 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 // 	cin.getline(line, 254);
 // 	if (saveOpt == 2)
 // 	  renSrc->WholeWindowOn();
-	
 //       }
 //       writer->SetInput(renSrc->GetOutput());
 //       writer->SetFileName(output_file);
@@ -283,7 +265,6 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       //  iren->Start();
 //       return true;
 //     }
-
 //   else if (command == "Show_Node_Numbers")
 //     {
 //       //ids->SetInput(ugrid);
@@ -293,7 +274,6 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       //visPts->SetInput(ids->GetOutput());
 //       visPts->SetInput(warp->GetOutput());
 //       visPts->SetRenderer(renderer);
-
 //       //ldm->SetInput(warp->GetOutput());
 //       ldm->SetInput(visPts->GetOutput());
 //       //ldm->SetInput(ids->GetOutput());
@@ -307,10 +287,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
 //       iren->Start();
 //       return true;      
-
 //     }
-
-
 //   else if (command == "Color_bar_off")
 //     {
 //       renderer->RemoveActor(scalarBar);
@@ -319,7 +296,6 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       iren->Start();
 //       return true;
 //     }
-
 //   else if (command == "Color_bar_on")
 //     {
 //       renderer->AddActor(scalarBar);
@@ -328,11 +304,8 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       iren->Start();
 //       return true;
 //     }
-
-
 //   else if (command == "X_axis_rotation")
 //     {
- 
 //       cout << "Using the right-hand rule, rotate by how many degrees?: ";
 //       cin >> xRot;
 //       char line[255];
@@ -343,11 +316,8 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       //iren->Start();
 //       return true;
 //     }
-
-
 //   else if (command == "Y_axis_rotation")
 //     {
-
 //       cout << "Using the right-hand rule, rotate by how many degrees?: ";
 //       cin >> yRot;
 //       char line[255];
@@ -358,10 +328,8 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       //iren->Start();
 //       return true;
 //     }
-
 //   else if (command == "Z_axis_rotation")
 //     {
-
 //       cout << "Using the right-hand rule, rotate by how many degrees?: ";
 //       cin >> zRot;
 //       char line[255];
@@ -371,94 +339,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
 //       //iren->Start();
 //       return true;
-//     }
-
-  else if (command == "Flip_book")
-    {
-      double timeStep;
-      cout << "Enter time step in seconds: ";
-      cin >> timeStep;
-      char line[255];
-      cin.getline(line, 254);
-      cout << "Show images at: \n 1: current view\n 2: default view: ";
-     
-      int sfbTest;
-      cin >> sfbTest;
-      cin.getline(line, 254);
-      /* if default camera desired */
-      if (sfbTest == 2) {
-	for (int i = 0; i < fFrames.Length(); i++)
-	  fFrames[i].ResetView();
-	renWin->Render();
-      }	
-
-      /* assume all the bodies have the same number of steps as body 0 */
-      for (int j = 0; j<fBodies[0]->num_time_steps; j++){
-        /* time delay */
-	clock_t start_time, cur_time;
-         start_time = clock();
-         while((clock() - start_time) < timeStep * CLOCKS_PER_SEC)
-         {
-         }
-	 for (int i = 0; i < fBodies.Length(); i++)
-	   fBodies[i]->SelectTimeStep(j);
-	renWin->Render();
-      }
-      return true;
-    }
-
-   else if (command== "Save_flip_book_images")
-     {
-      StringT fbName;
-      cout << "Enter name for flipbook to be saved (without .tif extension): ";
-      cin >> fbName;
-      char line[255];
-      cin.getline(line,254);
-      cout << "Save images at: \n 1: current view\n 2: default view: ";
-      int sfbTest;
-      cin >> sfbTest;
-      cin.getline(line, 254);
-      /* if default camera desired */
-      if (sfbTest == 2) {
-	for (int i = 0; i < fFrames.Length(); i++)
-	  fFrames[i].ResetView();
-	renWin->Render();
-      }	
-
-      /* window to image filter */
-      vtkWindowToImageFilter* image = vtkWindowToImageFilter::New();
-      image->SetInput(renWin);
-
-      /* construct TIFF writer */
-      vtkTIFFWriter* writer = vtkTIFFWriter::New();
-      writer->SetInput(image->GetOutput());
-
-      /* assume all the bodies have the same number of steps as body 0 */
-      for (int j = 0; j<fBodies[0]->num_time_steps; j++){
-
-	for (int i = 0; i < fBodies.Length(); i++)
-	  fBodies[i]->SelectTimeStep(j);
-	renWin->Render();  
-
-	StringT name = fbName;
-	name.Append(j,3); // pad to a width of 3 digits
-	name.Append(".tif");
-	writer->SetFileName(name);
-	writer->Write();
-	
-	cout << fbName << " has been saved" << endl;
-	renWin->Render();
-      }
-      
-      /* clean up */
-      writer->Delete();
-      image->Delete();
-
-      cout << "Flip book images have been saved." << endl;
-      renWin->Render();
-      return true;
-     }
-	 
+//     }	 
 //   else if (command=="Change_background_color")
 //     {
 //       int bgColor;
@@ -468,7 +349,6 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 // 	char line[255];
 // 	cin.getline(line, 254);
 //       } while (bgColor != 1 && bgColor !=2 && bgColor != 3 && bgColor !=4 && bgColor !=5);
-      
 //       switch (bgColor) {
 //       case 1: 
 // 	renderer->SetBackground(0,0,0);
@@ -491,37 +371,8 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       iren->Start();
 //       return true;
 //     }
-
-//   else if (command == "Select_frame_number")
-//     {
-
-//       cout << "choose frame number from 0 to " << num_time_steps-1 <<" to be displayed: ";
-//       cin >> frameNum;
-//       char line[255];
-//       cin.getline(line, 254);
-//       // sbTitle = "Temperature for frame ";
-//       // sbTitle = "";
-//       // sbTitle.Append(node_labels(0)); 
-//       // sbTitle.Append(" for frame ");
-//       sbTitle.Drop(-3);
-//       sbTitle.Append(frameNum,3);
-//       // sbTitle.Append(j,3);
-//       scalarBar->SetTitle(sbTitle);
-//       // ugrid->GetPointData()->SetScalars(scalars[frameNum]);
-//       ugrid->GetPointData()->SetScalars(scalars[frameNum][currentVarNum]);
-//       if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
-// 	ugrid->GetPointData()->SetVectors(vectors[frameNum][currentVarNum]);
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       iren->Start();
-//       return true;
-      
-//     }
-
 //    else if (command == "Hide_Node_Numbers")
-
 //     {
-
 // // //       ids->PointIdsOff();
 // // //       ids->Update();
 //       pointLabels->VisibilityOff();
@@ -529,14 +380,10 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
 //       iren->Start();
 //       return true;   
- 
 //     }
-  
 //   else if (command == "Show_axes")
 //   {
-
 //   // x,y,z axes
-      
 //       axes->SetInput(ugrid);
 //      axes->SetCamera(renderer->GetActiveCamera());
 //     //  axes->SetLabelFormat("%6.4g");
@@ -554,7 +401,6 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       iren->Start();
 //       return true;
 //   }
-
 //   else if (command == "Hide_axes")
 //     {
 //       axes->VisibilityOff();
@@ -563,11 +409,8 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       iren->Start();
 //       return true;
 //     }
-
 //   else if (command == "Choose_variable")
 //     {
-
-
 //       char line[255];
 //       cout << "choose variable number from 0 to " << num_node_variables-1 <<" to be displayed\n" << varList;      
 //       cin >> currentVarNum;
@@ -583,11 +426,96 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       scalarBar->SetTitle(sbTitle);
 //       renWin->Render();
 //       return true;
-
 //     }
-
-
   else
     /* drop through to inherited */
     return iConsoleObjectT::iDoCommand(command, line);
+}
+
+/**********************************************************************
+* Private
+**********************************************************************/
+
+/* construct body from the given file path */
+bool VTKConsoleT::AddBody(const StringT& file)
+{
+  /* temp */
+  VTKBodyT* body;
+
+  /* try to construct body */
+  try {
+	body = new VTKBodyT(file);
+	fBodies.Append(body);
+  }
+  catch (int) {
+	cout << "\n exception constructing body from file: " << file << endl;
+	delete body;
+	return false;
+  }
+  /* OK */
+  return true;
+}
+
+/* reset the frame layout */
+void VTKConsoleT::SetFrameLayout(int num_x, int num_y)
+{
+  /* remove all frames from console and window*/
+  for (int i = 0; i < fFrames.Length(); i++)
+	{
+	  iDeleteSub(*fFrames[i]);
+	  renWin->RemoveRenderer(fFrames[i]->Renderer());
+	}
+
+  /* no less than one in each direction */
+  num_x = (num_x < 1) ? 1 : num_x;
+  num_y = (num_y < 1) ? 1 : num_y;
+
+  /* temp space for new layout */
+  Array2DT<VTKFrameT*> new_frames(num_y, num_x);
+  new_frames = NULL;
+
+  /* copy in old frames */
+  for (int i = 0; i < new_frames.MajorDim() && i < fFrames.MajorDim(); i++)
+	for (int j = 0; j < new_frames.MinorDim() && j < fFrames.MinorDim(); j++)
+	  {
+		new_frames(i,j) = fFrames(i,j);
+		fFrames(i,j) = NULL;
+	  }
+
+  /* delete any extra frames */
+  for (int i = 0; i < fFrames.Length(); i++)
+	delete fFrames[i];
+
+  /* swap */
+  new_frames.Swap(fFrames);
+
+  /* set up frames */
+  double dx = 1.0/fFrames.MinorDim();
+  double dy = 1.0/fFrames.MajorDim();
+  for (int i = 0; i < fFrames.MajorDim(); i++)
+	for (int j = 0; j < fFrames.MinorDim(); j++)
+	  {
+		/* need a new one */
+		if (fFrames(i,j) == NULL) fFrames(i,j) = new VTKFrameT;
+
+		/* name */
+		StringT name = "frame";
+		name.Append(".",i);
+		name.Append(".",j);
+		fFrames(i,j)->iSetName(name);
+
+		/* connect */
+		fFrames(i,j)->setRenWin(renWin);
+		fFrames(i,j)->setIren(iren);
+		fFrames(i,j)->setConsole(this);
+
+		/* set port location/size */
+		fFrames(i,j)->Renderer()->SetViewport(j*dx, i*dy, (j+1)*dx, (i+1)*dy);
+
+		/* add to window */
+		renWin->AddRenderer(fFrames(i,j)->Renderer());
+
+		/* add to console */
+		iAddSub(*fFrames(i,j));
+	  }
 }

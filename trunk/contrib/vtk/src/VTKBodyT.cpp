@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.5 2001-11-01 19:16:43 recampb Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.6 2001-11-07 02:34:45 paklein Exp $ */
 
 #include "VTKBodyT.h"
 
@@ -45,7 +45,7 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
   if (!exo.OpenRead(inFile))
     {
       cout << " ERROR: could not open file: " << inFile << endl;
-      throw;
+      throw eDatabaseFail;;
     }
   else
     cout << "read database file: " << inFile << endl;
