@@ -1,4 +1,4 @@
-/* $Id: nTrapezoid.cpp,v 1.2.4.4 2002-05-13 07:59:31 paklein Exp $ */
+/* $Id: nTrapezoid.cpp,v 1.2.4.5 2002-06-05 09:25:31 paklein Exp $ */
 /* created: paklein (10/03/1999) */
 
 #include "nTrapezoid.h"
@@ -48,6 +48,9 @@ void nTrapezoid::Predictor(BasicFieldT& field)
 {
 	/* displacement predictor */
 	field[0].AddScaled(dpred_v, field[1]);
+	
+	/* velocity predictor */
+	field[1] = 0.0;
 }		
 
 /* correctors - map ACTIVE */
@@ -68,7 +71,7 @@ void nTrapezoid::Corrector(BasicFieldT& field, const dArrayT& update,
 		{
 			double v = update[eq];
 			*pd += dcorr_v*v;
-			*pv = v;
+			*pv += v;
 		}
 		pd++;
 		pv++;
@@ -94,9 +97,18 @@ void nTrapezoid::MappedCorrector(BasicFieldT& field, const iArrayT& map,
 			/* active */
 			if (*pflag > 0)
 			{
-				double v = *pupdate;
-				*pd += dcorr_v*v;
-				*pv = v;
+				double dv = *pupdate - *pv; 
+/* NOTE: update is the total v_n+1, so we need to recover dv, the velocity
+ *       increment. Due to truncation errors, this will not match the update
+ *       applied in nTrapezoid::Corrector exactly. Therefore, ghosted nodes
+ *       will not have exactly the same trajectory as their images. The solution
+ *       would be to expand da to the full field, and send it. Otherwise, we
+ *       could develop maps from the update vector to each communicated outgoing
+ *       packet. Or {d,v} could be recalculated from t_n here and in Corrector,
+ *       though this would require the data from t_n. */
+
+				*pd += dcorr_v*dv;
+				*pv  = *pupdate; /* a_n+1 matches exactly */
 			}
 			
 			/* next */
