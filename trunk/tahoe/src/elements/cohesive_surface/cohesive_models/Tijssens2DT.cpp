@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.20 2003-05-28 23:15:27 cjkimme Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.21 2003-05-29 06:41:17 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -85,9 +85,9 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
-	if (fTimeStep <= 0.0) {
+	if (fTimeStep < 0.0) {
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-		cout << "\n Tijssens2DT::Traction: expecting positive time increment: "
+		cout << "\n Tijssens2DT::Traction: expecting non-negative time increment: "
 		     << fTimeStep << endl;
 #endif
 		throw ExceptionT::kBadInputValue;
@@ -144,7 +144,8 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 					state[1] = 1.1*fsigma_c;
 				double Tnp1 = state[1];
 				SecantMethodT secant(20);
-				double du_nd = du_n/fTimeStep;
+				double du_nd = 0.0;
+				if (fabs(fTimeStep) > kSmall) du_nd = du_n/fTimeStep;
 
 				secant.Reset(fsigma_c,-state[1]-fk_n*fTimeStep*(du_nd-fDelta_0),1.5*state[1],.5*state[1]-fk_n*fTimeStep*(du_nd-fDelta_0*exp(-fastar*(fsigma_c-Tnp1))));
 				Tnp1 = secant.NextGuess();

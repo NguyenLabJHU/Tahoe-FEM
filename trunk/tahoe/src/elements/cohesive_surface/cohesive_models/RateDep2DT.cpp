@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.cpp,v 1.14 2003-05-28 23:15:27 cjkimme Exp $  */
+/* $Id: RateDep2DT.cpp,v 1.15 2003-05-29 06:41:17 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "RateDep2DT.h"
@@ -140,9 +140,9 @@ const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
-	if (fTimeStep <= 0.0) {
+	if (fTimeStep < 0.0) {
 #ifndef _FRACTURE_INTERFACE_LIBRARY_	
-		cout << "\n RateDep2DT::Traction: expecting positive time increment: "
+		cout << "\n RateDep2DT::Traction: expecting non-negative time increment: "
 		     << fTimeStep << endl;
 #endif
 		throw ExceptionT::kBadInputValue;
@@ -162,8 +162,10 @@ const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state
 	else if (L < state[kL_2]) /* we're at or beyond the plateau stress */
 	{ 
 		if (state[kd_c_n + 1] == 0.) 
-		{ 
-			double u_n_dot = (u_n-state[qIntegrate ? kDelta : kDelta + 2])/fTimeStep;
+		{
+			double u_n_dot = 0.0;
+			if (fabs(fTimeStep) > kSmall) 
+				u_n_dot = (u_n-state[qIntegrate ? kDelta : kDelta + 2])/fTimeStep;
 			
 			if (u_n_dot > kSmall)
 			{
