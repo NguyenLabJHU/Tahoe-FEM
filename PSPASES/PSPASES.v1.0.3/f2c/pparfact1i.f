@@ -40,7 +40,7 @@ C/* constitutes an implicit agreement to these terms.  These terms and        */
 C/* conditions are subject to change at any time without prior notice.        */
 C/*                                                                           */
 C/*****************************************************************************/
-C/* $Id: pparfact1i.f,v 1.2 2004-12-15 01:14:19 paklein Exp $ */
+C/* $Id: pparfact1i.f,v 1.3 2005-01-03 07:31:27 paklein Exp $ */
 C/*****************************************************************************/
 
       subroutine PPARFACT1(N,aptrs,ainds,avals,lptrs,linds,lvals,
@@ -73,6 +73,7 @@ C     integer, allocatable:: ibuf_s(:)
       
 C     integer, allocatable:: locinds(:)
       integer locinds(*)
+      dimension locinds(0:N-1)
 
       integer ibuf_r(*)
       
