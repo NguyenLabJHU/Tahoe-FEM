@@ -1,4 +1,4 @@
-/* $Id: ParameterTreeT.cpp,v 1.9 2004-03-28 09:53:29 paklein Exp $ */
+/* $Id: ParameterTreeT.cpp,v 1.10 2004-07-22 21:05:49 paklein Exp $ */
 #include "ParameterTreeT.h"
 #include "ParameterInterfaceT.h"
 
@@ -255,8 +255,11 @@ bool ParameterTreeT::ValidateSequence(
 					/* assumes the number of values added to valid list is the number removed from the raw list */
 					raw_dex += valid_list.NumLists() - last_list_count; 
 				
+					/* entry is optional - OK to continue */
+					if (!in_throw_on_error) check_OK = true;
+				
 					/* check */
-					if (!check_OK && in_throw_on_error)
+					if (!check_OK)
 						ExceptionT::BadInputValue(caller, "error with inlined item \"%s\" at position %d in \"%s\"", 
 							name.Pointer(), valid_list.NumLists() + 1, source.Name().Pointer());
 					break;
