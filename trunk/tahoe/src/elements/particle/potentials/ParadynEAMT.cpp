@@ -1,4 +1,5 @@
-#include "ParadynT.h"
+/* $Id: ParadynEAMT.cpp,v 1.1 2003-04-05 08:34:41 paklein Exp $ */
+#include "ParadynEAMT.h"
 
 #include "toolboxConstants.h"
 #include "ifstreamT.h"
@@ -12,26 +13,25 @@ static inline int Min(int a, int b) { return (a < b) ? a : b; };
 static inline double Min(double a, double b) { return (a < b) ? a : b; };
 
 /* initialize static parameters */
-int     ParadynT::s_nr    = 0;
-double  ParadynT::s_f_inc = 1.0;
-double* ParadynT::s_Paircoeff = NULL;
+int     ParadynEAMT::s_nr    = 0;
+double  ParadynEAMT::s_f_inc = 1.0;
+double* ParadynEAMT::s_Paircoeff = NULL;
 
-int     ParadynT::s_np    = 0;
-double  ParadynT::s_e_inc = 1.0;
-double* ParadynT::s_Embcoeff = NULL;
+int     ParadynEAMT::s_np    = 0;
+double  ParadynEAMT::s_e_inc = 1.0;
+double* ParadynEAMT::s_Embcoeff = NULL;
 
-double* ParadynT::s_ElecDenscoeff = NULL;
+double* ParadynEAMT::s_ElecDenscoeff = NULL;
 
 /* parameters */
 const int knum_coeff = 9;
 
 /* constructor */
-
-ParadynT::ParadynT(const StringT& param_file):
+ParadynEAMT::ParadynEAMT(const StringT& param_file):
   fParams(param_file),
   f_cut(0.0)
 {
-  const char caller[] = "ParadynT::ParadynT";
+  const char caller[] = "ParadynEAMT::ParadynEAMT";
   
   /* try to open file */
   ifstreamT in(fParams);
@@ -94,7 +94,7 @@ ParadynT::ParadynT(const StringT& param_file):
 
 /* write properties to output */
 
-void ParadynT::Write(ostream& out) const
+void ParadynEAMT::Write(ostream& out) const
 {
   out << "Paradyn: " << fDescription << '\n';
   out << " Atomic number . . . . . . . . . . . . . . . . . = " << fAtomicNumber << '\n';
@@ -107,7 +107,7 @@ void ParadynT::Write(ostream& out) const
 }
 
 /* return a pointer to the energy function */
-ParadynT::PairEnergyFunction ParadynT::getPairEnergy(void)
+ParadynEAMT::PairEnergyFunction ParadynEAMT::getPairEnergy(void)
 {
   /* copy my data to static */
   s_nr        = fPairCoeff.MajorDim(); 
@@ -115,10 +115,10 @@ ParadynT::PairEnergyFunction ParadynT::getPairEnergy(void)
   s_Paircoeff = fPairCoeff.Pointer();
 
   /* return function pointer */
-  return PairEnergy;
+  return ParadynEAMT::PairEnergy;
 }
 
-ParadynT::EmbedEnergyFunction ParadynT::getEmbedEnergy(void)
+ParadynEAMT::EmbedEnergyFunction ParadynEAMT::getEmbedEnergy(void)
 {
   /* copy my data to static */
   s_np       = fEmbedCoeff.MajorDim(); 
@@ -126,10 +126,10 @@ ParadynT::EmbedEnergyFunction ParadynT::getEmbedEnergy(void)
   s_Embcoeff = fEmbedCoeff.Pointer();
 
   /* return function pointer */
-  return ParadynT::EmbeddingEnergy;
+  return ParadynEAMT::EmbeddingEnergy;
 }
 
-ParadynT::EDEnergyFunction ParadynT::getElecDensEnergy(void)
+ParadynEAMT::EDEnergyFunction ParadynEAMT::getElecDensEnergy(void)
 {
   /* copy my data to static */
   s_nr        = fPairCoeff.MajorDim(); 
@@ -137,10 +137,10 @@ ParadynT::EDEnergyFunction ParadynT::getElecDensEnergy(void)
   s_ElecDenscoeff = fElectronDensityCoeff.Pointer();
   
   /* return function pointer */
-  return ParadynT::ElecDensEnergy;
+  return ParadynEAMT::ElecDensEnergy;
 }
 
-ParadynT::PairForceFunction ParadynT::getPairForce(void)
+ParadynEAMT::PairForceFunction ParadynEAMT::getPairForce(void)
 {
   /* copy my data to static */
   s_nr        = fPairCoeff.MajorDim(); 
@@ -148,10 +148,10 @@ ParadynT::PairForceFunction ParadynT::getPairForce(void)
   s_Paircoeff = fPairCoeff.Pointer();
 
   /* return function pointer */
-  return ParadynT::PairForce;
+  return ParadynEAMT::PairForce;
 }
 
-ParadynT::EmbedForceFunction ParadynT::getEmbedForce(void)
+ParadynEAMT::EmbedForceFunction ParadynEAMT::getEmbedForce(void)
 {
   /* copy my data to static */
   s_np       = fEmbedCoeff.MajorDim(); 
@@ -159,10 +159,10 @@ ParadynT::EmbedForceFunction ParadynT::getEmbedForce(void)
   s_Embcoeff = fEmbedCoeff.Pointer();
   
   /* return function pointer */
-  return ParadynT::EmbeddingForce;
+  return ParadynEAMT::EmbeddingForce;
 }
 
-ParadynT::EDForceFunction ParadynT::getElecDensForce(void)
+ParadynEAMT::EDForceFunction ParadynEAMT::getElecDensForce(void)
 {
   /* copy my data to static */
   s_nr        = fPairCoeff.MajorDim(); 
@@ -170,10 +170,10 @@ ParadynT::EDForceFunction ParadynT::getElecDensForce(void)
   s_ElecDenscoeff = fElectronDensityCoeff.Pointer();
   
   /* return function pointer */
-  return ParadynT::ElecDensForce;
+  return ParadynEAMT::ElecDensForce;
 }
 
-ParadynT::PairStiffnessFunction ParadynT::getPairStiffness(void)
+ParadynEAMT::PairStiffnessFunction ParadynEAMT::getPairStiffness(void)
 {
   /* copy my data to static */
   s_nr        = fPairCoeff.MajorDim(); 
@@ -181,10 +181,10 @@ ParadynT::PairStiffnessFunction ParadynT::getPairStiffness(void)
   s_Paircoeff = fPairCoeff.Pointer();
 
   /* return function pointer */
-  return ParadynT::PairStiffness;
+  return ParadynEAMT::PairStiffness;
 }
 
-ParadynT::EmbedStiffnessFunction ParadynT::getEmbedStiffness(void)
+ParadynEAMT::EmbedStiffnessFunction ParadynEAMT::getEmbedStiffness(void)
 {
   /* copy my data to static */
   s_np       = fEmbedCoeff.MajorDim(); 
@@ -192,10 +192,10 @@ ParadynT::EmbedStiffnessFunction ParadynT::getEmbedStiffness(void)
   s_Embcoeff = fEmbedCoeff.Pointer();
   
   /* return function pointer */
-  return ParadynT::EmbeddingStiffness;
+  return ParadynEAMT::EmbeddingStiffness;
 }
 
-ParadynT::EDStiffnessFunction ParadynT::getElecDensStiffness(void)
+ParadynEAMT::EDStiffnessFunction ParadynEAMT::getElecDensStiffness(void)
 {
   /* copy my data to static */
   s_nr        = fPairCoeff.MajorDim(); 
@@ -203,11 +203,11 @@ ParadynT::EDStiffnessFunction ParadynT::getElecDensStiffness(void)
   s_ElecDenscoeff = fElectronDensityCoeff.Pointer();
   
   /* return function pointer */
-  return ParadynT::ElecDensStiffness;
+  return ParadynEAMT::ElecDensStiffness;
 }
 
 /* return Paradyn-style coefficients table */
-bool ParadynT::getParadynTable(const double** coeff, double& dr, int& row_size, int& num_rows) const
+bool ParadynEAMT::getParadynTable(const double** coeff, double& dr, int& row_size, int& num_rows) const
 {
 	*coeff = fPairCoeff.Pointer();
 	dr = f_inc;
@@ -221,7 +221,7 @@ bool ParadynT::getParadynTable(const double** coeff, double& dr, int& row_size, 
  ***********************************************************************/
 
 // phi(r) = z2(r)/r
-double ParadynT::PairEnergy(double r_ab, double* data_a, double* data_b)
+double ParadynEAMT::PairEnergy(double r_ab, double* data_a, double* data_b)
 {
 #pragma unused(data_a)
 #pragma unused(data_b)
@@ -232,7 +232,7 @@ double ParadynT::PairEnergy(double r_ab, double* data_a, double* data_b)
 }
 
 // F(rho)
-double ParadynT::EmbeddingEnergy(double rho_ab, double* data_a, double* data_b)
+double ParadynEAMT::EmbeddingEnergy(double rho_ab, double* data_a, double* data_b)
 {
 #pragma unused(data_a)
 #pragma unused(data_b)
@@ -241,7 +241,7 @@ double ParadynT::EmbeddingEnergy(double rho_ab, double* data_a, double* data_b)
 }
 
 // rho(r)
-double ParadynT::ElecDensEnergy(double r_ab, double* data_a, double* data_b)
+double ParadynEAMT::ElecDensEnergy(double r_ab, double* data_a, double* data_b)
 {
 #pragma unused(data_a)
 #pragma unused(data_b)
@@ -250,7 +250,7 @@ double ParadynT::ElecDensEnergy(double r_ab, double* data_a, double* data_b)
 }
 
 // phi(r)' = (z2)'/r - phi/r
-double ParadynT::PairForce(double r_ab, double* data_a, double* data_b)
+double ParadynEAMT::PairForce(double r_ab, double* data_a, double* data_b)
 {
 
   double z2p = ForceAux(r_ab,s_nr,s_f_inc,s_Paircoeff);
@@ -260,7 +260,7 @@ double ParadynT::PairForce(double r_ab, double* data_a, double* data_b)
 }
 
 // F'(rho)
-double ParadynT::EmbeddingForce(double rho_ab, double* data_a, double* data_b)
+double ParadynEAMT::EmbeddingForce(double rho_ab, double* data_a, double* data_b)
 {
 #pragma unused(data_a)
 #pragma unused(data_b)
@@ -269,7 +269,7 @@ double ParadynT::EmbeddingForce(double rho_ab, double* data_a, double* data_b)
 }
 
 // rho(r)'
-double ParadynT::ElecDensForce(double r_ab, double* data_a, double* data_b)
+double ParadynEAMT::ElecDensForce(double r_ab, double* data_a, double* data_b)
 {
 #pragma unused(data_a)
 #pragma unused(data_b)
@@ -278,7 +278,7 @@ double ParadynT::ElecDensForce(double r_ab, double* data_a, double* data_b)
 }
 
 // phi(r)'' = z2''/r - 2*phi(r)'/r
-double ParadynT::PairStiffness(double r_ab, double* data_a, double* data_b)
+double ParadynEAMT::PairStiffness(double r_ab, double* data_a, double* data_b)
 {
   double z2pp = StiffnessAux(r_ab,s_nr,s_f_inc,s_Paircoeff);
   double phip = PairForce(r_ab,data_a,data_b);
@@ -286,7 +286,7 @@ double ParadynT::PairStiffness(double r_ab, double* data_a, double* data_b)
 }
 
 // F''(rho)
-double ParadynT::EmbeddingStiffness(double rho_ab, double* data_a, double* data_b)
+double ParadynEAMT::EmbeddingStiffness(double rho_ab, double* data_a, double* data_b)
 {
 #pragma unused(data_a)
 #pragma unused(data_b)
@@ -295,7 +295,7 @@ double ParadynT::EmbeddingStiffness(double rho_ab, double* data_a, double* data_
 }
 
 // rho''
-double ParadynT::ElecDensStiffness(double r_ab, double* data_a, double* data_b)
+double ParadynEAMT::ElecDensStiffness(double r_ab, double* data_a, double* data_b)
 {
 #pragma unused(data_a)
 #pragma unused(data_b)
@@ -307,7 +307,7 @@ double ParadynT::ElecDensStiffness(double r_ab, double* data_a, double* data_b)
 /************************************************************************/
 /* Compute energy, force and stiffness for a given atom i 
  * like in force.F */
-double ParadynT::EnergyAux(double r_ab,int n, double inc, double* coeff)
+double ParadynEAMT::EnergyAux(double r_ab,int n, double inc, double* coeff)
 {
   double pp = r_ab*inc;
   int kk = int(pp);
@@ -318,7 +318,7 @@ double ParadynT::EnergyAux(double r_ab,int n, double inc, double* coeff)
   return c[0] + pp*(c[1] + pp*(c[2] + pp*c[3]));
 }
 
-double ParadynT::ForceAux(double r_ab,int n, double inc, double* coeff)
+double ParadynEAMT::ForceAux(double r_ab,int n, double inc, double* coeff)
 {
 
   double pp = r_ab*inc;
@@ -330,7 +330,7 @@ double ParadynT::ForceAux(double r_ab,int n, double inc, double* coeff)
   return c[4] + pp*(c[5] + pp*c[6]);
 }
 
-double ParadynT::StiffnessAux(double r_ab,int n, double inc, double* coeff)
+double ParadynEAMT::StiffnessAux(double r_ab,int n, double inc, double* coeff)
 {
   double pp = r_ab*inc;
   int kk = int(pp);
@@ -343,7 +343,7 @@ double ParadynT::StiffnessAux(double r_ab,int n, double inc, double* coeff)
 
 
 /* compute the coefficients, like interpolation.F*/
-void ParadynT::ComputeCoefficients(const ArrayT<double>& f, double dx, dArray2DT& coeff)
+void ParadynEAMT::ComputeCoefficients(const ArrayT<double>& f, double dx, dArray2DT& coeff)
 {
   int nrar = f.Length();
 	

@@ -1,19 +1,20 @@
-#ifndef _PARADYN_T_H_
-#define _PARADYN_T_H_
+/* $Id: ParadynEAMT.h,v 1.1 2003-04-05 08:34:41 paklein Exp $ */
+#ifndef _PARADYN_EAM_T_H_
+#define _PARADYN_EAM_T_H_
 
 /* direct members */
 #include "StringT.h"
 #include "dArray2DT.h"
 
 /* base class */
-#include "ParticlePropertyT.h"
+#include "EAMPropertyT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
 class dArrayT;
 
-class ParadynT: public ParticlePropertyT
+class ParadynEAMT: public EAMPropertyT
 {
 public:
 
@@ -21,49 +22,27 @@ public:
 	 * coefficients of a cubic spline through the evenly spaced
 	 * values of the potential,electron density read from the 
          * file. */
-	ParadynT(const StringT& param_file);
+	ParadynEAMT(const StringT& param_file);
 
 	/** write properties to output */
 	virtual void Write(ostream& out) const;
 
-	/** \name EAM 
-	 * Since the interaction functions will be called many times during
-	 * a calculation, we do not want these functions to be virtual. Instead,
-	 * we define some virtual functions that return pointers to functions
-	 * that do the evaluation of the pair interactions. In this way, a single
-	 * virtual function call is needed to return a pointer to a static
-	 * member function, which is then called many times. */
-	/*@{*/
-
-	typedef double (*PairEnergyFunction)(double r_ab, double* data_a, double* data_b);
-	typedef double (*EmbedEnergyFunction)(double rho_ab, double* data_a, double* data_b);
-	typedef double (*EDEnergyFunction)(double r_ab, double* data_a, double* data_b);
-
-	typedef double (*PairForceFunction)(double r_ab, double* data_a, double* data_b);
-	typedef double (*EmbedForceFunction)(double rho_ab, double* data_a, double* data_b);
-	typedef double (*EDForceFunction)(double r_ab, double* data_a, double* data_b);
-
-	typedef double (*PairStiffnessFunction)(double r_ab, double* data_a, double* data_b);
-	typedef double (*EmbedStiffnessFunction)(double rho_ab, double* data_a, double* data_b);
-	typedef double (*EDStiffnessFunction)(double r_ab, double* data_a, double* data_b);
-	
-
 	/** \name return interaction functions */
 	/*@{*/
 	/** return a pointer to the energy function */
-	ParadynT::PairEnergyFunction getPairEnergy(void);
-	ParadynT::EmbedEnergyFunction getEmbedEnergy(void);
-	ParadynT::EDEnergyFunction getElecDensEnergy(void);
+	virtual PairEnergyFunction getPairEnergy(void);
+	virtual EmbedEnergyFunction getEmbedEnergy(void);
+	virtual EDEnergyFunction getElecDensEnergy(void);
 
 	/** return a pointer to the force function */
-	ParadynT::PairForceFunction getPairForce(void);
-        ParadynT::EmbedForceFunction getEmbedForce(void);
-	ParadynT::EDForceFunction getElecDensForce(void);
+	virtual PairForceFunction getPairForce(void);
+	virtual EmbedForceFunction getEmbedForce(void);
+	virtual EDForceFunction getElecDensForce(void);
 
 	/** return a pointer to the stiffness function */
-	ParadynT::PairEnergyFunction getPairStiffness(void);
-	ParadynT::EmbedEnergyFunction getEmbedStiffness(void);
-	ParadynT::EDEnergyFunction getElecDensStiffness(void);
+	virtual PairEnergyFunction getPairStiffness(void);
+	virtual EmbedEnergyFunction getEmbedStiffness(void);
+	virtual EDEnergyFunction getElecDensStiffness(void);
 
 	/** return Paradyn-style coefficients table.
 	 * returns false if no table is available. */
@@ -129,12 +108,13 @@ private:
 	double rho_inc;
 	/*@}*/
 
-	/** coefficients of interpolant */
+	/** \name coefficients of interpolant */
+	/*@{*/
 	dArray2DT fPairCoeff;
 	dArray2DT fEmbedCoeff;
 	dArray2DT fElectronDensityCoeff;
-	
-	
+	/*@}*/
+
 	/** \name static parameters 
 	 * There parameters are used during evaluation of the static interaction 
 	 * functions. These are copied to static when a function pointer is requested */
@@ -156,10 +136,4 @@ private:
 
 } /* namespace Tahoe */
 
-#endif /* _PARADYN_T_H_ */
-
-
-
-
-
-
+#endif /* _PARADYN_EAM_T_H_ */
