@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.2 2002-06-08 20:20:16 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.3 2002-06-10 06:59:24 paklein Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -163,8 +163,8 @@ void ThermalSurfaceT::RHSDriver(void)
 	Top();
 	while (NextElement())
 	{
-		/* reset block info */
-		if (block_count == block_data->Dimension()) {
+		/* reset block info (skip empty) */
+		while (block_count == block_data->Dimension()) {
 			block_data = fBlockData.Pointer(++block_dex);
 			block_source = Field().Source(block_data->ID());
 			block_count = 0;

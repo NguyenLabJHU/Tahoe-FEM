@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.4 2002-06-08 20:20:22 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.5 2002-06-10 06:57:50 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -34,7 +34,11 @@ DiffusionElementT::DiffusionElementT(const ElementSupportT& support, const Field
 	fq(NumSD())
 {
 	/* check base class initializations */
-	if (NumDOF() != kDiffusionNDOF) throw eGeneralFail;
+	if (NumDOF() != kDiffusionNDOF) {
+		cout << "\n DiffusionElementT::DiffusionElementT: expecting field with " << kDiffusionNDOF << " dof/node not " 
+		     << NumDOF() << endl;
+		throw eBadInputValue;
+	}
 }
 
 /* data initialization */
@@ -297,8 +301,8 @@ void DiffusionElementT::RHSDriver(void)
 	Top();
 	while (NextElement())
 	{
-		/* reset block info */
-		if (block_count == block_data->Dimension()) {
+		/* reset block info (skip empty) */
+		while (block_count == block_data->Dimension()) {
 			block_data = fBlockData.Pointer(++block_dex);
 			block_source = Field().Source(block_data->ID());
 			block_count = 0;

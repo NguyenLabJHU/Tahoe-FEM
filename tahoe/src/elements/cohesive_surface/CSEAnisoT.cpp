@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.19 2002-06-08 20:20:16 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.20 2002-06-10 06:59:24 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -536,6 +536,12 @@ void CSEAnisoT::RHSDriver(void)
 	Top();
 	while (NextElement())
 	{
+		/* advance to block (skip empty blocks) */
+		while (block_count == fBlockData[block_dex].Dimension()) {
+			block_count = 0;
+			block_dex++;		
+		}
+
 		/* current element */
 		ElementCardT& element = CurrentElement();
 	
@@ -675,11 +681,8 @@ void CSEAnisoT::RHSDriver(void)
 				fFractureArea += (fShapes->Jacobian())*(fShapes->IPWeight());
 		}
 
-		/* next block */
-		if (++block_count == fBlockData[block_dex].Dimension()) {
-			block_count = 0;
-			block_dex++;
-		}
+		/* next in block */
+		block_count++;
 	}
 }
 

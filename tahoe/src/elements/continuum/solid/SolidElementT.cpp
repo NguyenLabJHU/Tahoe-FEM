@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.25 2002-06-08 20:20:22 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.26 2002-06-10 06:57:50 paklein Exp $ */
 
 #include "SolidElementT.h"
 
@@ -677,6 +677,12 @@ void SolidElementT::ElementRHSDriver(void)
 	Top();
 	while (NextElement())
 	{
+		/* advance to block (skip empty blocks) */
+		while (block_count == fBlockData[block_dex].Dimension()) {
+			block_count = 0;
+			block_dex++;		
+		}
+	
 		/* initialize */
 		fRHS = 0.0;
 		fElementHeat = 0.0;
@@ -709,11 +715,8 @@ void SolidElementT::ElementRHSDriver(void)
 		/* assemble */
 		AssembleRHS();
 		
-		/* next block */
-		if (++block_count == fBlockData[block_dex].Dimension()) {
-			block_count = 0;
-			block_dex++;
-		}
+		/* next in block */
+		block_count++;
 	}
 }
 
