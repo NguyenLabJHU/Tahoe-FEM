@@ -1,4 +1,4 @@
-/* $Id: nArray2DGroupT.h,v 1.4 2003-01-27 06:42:44 paklein Exp $ */
+/* $Id: nArray2DGroupT.h,v 1.5 2004-05-16 00:47:35 paklein Exp $ */
 /* created: paklein (04/16/1998) */
 #ifndef _NARRAY2D_GROUP_T_H_
 #define _NARRAY2D_GROUP_T_H_
@@ -73,7 +73,9 @@ nArray2DGroupT<TYPE>::nArray2DGroupT(int headroom, bool pool_memory, int minordi
 	fMinorDim(minordim)
 {
 	/* error check */
-	if (fMinorDim < 0) ExceptionT::GeneralFail();
+	if (fMinorDim < 0)
+		ExceptionT::GeneralFail("nArray2DGroupT<TYPE>::nArray2DGroupT",
+			"bad dimensiion %d", fMinorDim);
 }
 
 /* add Array2DT to list of managed - function allows only nArray2DT's
@@ -89,7 +91,7 @@ inline void nArray2DGroupT<TYPE>::Register(nArray2DT<TYPE>& array)
 template <class TYPE>
 inline void nArray2DGroupT<TYPE>::Dimension(int majordim, int minordim)
 {
-	if (majordim != fMajorDim || minordim != fMinorDim)
+	if (majordim != fMajorDim || minordim != fMinorDim || fMajorDim == 0) /* 0 => uninitialized */
 	{
 		/* reset dimensions */
 		fMinorDim = minordim;
@@ -106,13 +108,15 @@ void nArray2DGroupT<TYPE>::SetMinorDimension(int minordim)
 	fMinorDim = minordim;
 
 	/* error check */
-	if (fMinorDim < 0) throw ExceptionT::kGeneralFail;
+	if (fMinorDim < 0)
+		ExceptionT::GeneralFail("nArray2DGroupT<TYPE>::SetMinorDimension", 
+			"bad dimension %d", fMinorDim);
 }
 
 template <class TYPE>
 void nArray2DGroupT<TYPE>::SetMajorDimension(int majordim, bool copy_in)
 {
-	if (majordim != fMajorDim)
+	if (majordim != fMajorDim || fMajorDim == 0) /* 0 => uninitialized */
 	{
 		fMajorDim = majordim;
 
@@ -127,10 +131,11 @@ void nArray2DGroupT<TYPE>::SetMajorDimension(int majordim, bool copy_in)
 			nArray2DT<TYPE>* parray = (nArray2DT<TYPE>*) fArrays[i];
 		
 			/* reset parameters */
-			parray->Set(fMajorDim, fMinorDim, BlockPointer(i));
+			parray->Alias(fMajorDim, fMinorDim, BlockPointer(i));
 		}
 	}
 }
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _NARRAY2D_GROUP_T_H_ */
