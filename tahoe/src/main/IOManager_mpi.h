@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.h,v 1.15 2003-01-27 07:00:27 paklein Exp $ */
+/* $Id: IOManager_mpi.h,v 1.16 2003-10-28 07:47:53 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #ifndef _IOMANAGER_MPI_H_
@@ -31,15 +31,17 @@ public:
 
 	/** constructor 
 	 * \param model_file total model database */
-	IOManager_mpi(ifstreamT& in, CommunicatorT& comm, const iArrayT& io_map,
-		const IOManager& local_IO, const PartitionT& partition,
-		const StringT& model_file, IOBaseT::FileTypeT format);
+	IOManager_mpi(ifstreamT& in, CommunicatorT& comm, const IOManager& local_IO, 
+		const PartitionT& partition, const StringT& model_file, IOBaseT::FileTypeT format);
 
 	/** destructor */
 	virtual ~IOManager_mpi(void);
 
 	/** distribute/assemble/write output */
 	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
+
+	/** temporarily re-route output to a database with the given filename */
+	virtual void DivertOutput(const StringT& outfile);
 
 private:
 
@@ -48,6 +50,11 @@ private:
 
 	/** communicate output counts */
 	void SetCommunication(const IOManager& local_IO);
+
+	/** load balance output across processors 
+	 * \param local_IO IOManager for local output 
+	 * \param output_map returns with processor handling each output set */
+	void SetOutputMap(const IOManager& local_IO, iArrayT& output_map) const;
 
 	/** return the global node numbers of the set nodes residing
 	 * on the current partition */
@@ -91,7 +98,7 @@ private:
 
 	/** output set index to output processor map 
 	 * output_processor[output_set_index] */
-	const iArrayT fIO_map;
+	iArrayT fIO_map;
 
 	/** partition info */
 	const PartitionT& fPartition;
