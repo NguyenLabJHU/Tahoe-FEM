@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.44 2004-10-20 21:24:56 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.45 2004-12-21 17:21:55 thao Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -337,6 +337,41 @@ void ContinuumElementT::FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry,
 	/* from integration domain */
 	ShapeFunction().FacetGeometry(facet_geometry, num_facet_nodes);
 }
+
+void ContinuumElementT::SetStatus(const ArrayT<StatusT>& status)
+{
+  /* work space */
+  dArrayT state;
+  dArrayT t_in;
+
+  /* loop over elements and initial state variables */
+  int elem_num = 0;
+  Top();
+  while (NextElement())
+    {
+      /* current element */
+      int& flag = CurrentElement().Flag();
+      flag = status[elem_num++];
+      /* material pointer */
+      ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
+
+      if (flag == kMarkON){
+	if (pmat->NeedsPointInitialization()){
+	  /* global shape function values */
+	  SetGlobalShape();
+
+	  fShapes->TopIP();
+	  while (fShapes->NextIP())
+	    pmat->PointInitialize();
+	}
+	flag = kON;
+      }
+      else if (flag == kMarkOFF)
+	flag = kOFF;
+    }
+}
+
+
 
 /* initial condition/restart functions (per time sequence) */
 void ContinuumElementT::InitialCondition(void)

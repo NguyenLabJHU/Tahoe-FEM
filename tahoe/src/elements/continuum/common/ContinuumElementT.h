@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.30 2004-10-20 21:24:56 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.31 2004-12-21 17:21:55 thao Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -114,6 +114,9 @@ public:
 	
 	/** return the geometry code */
 	virtual GeometryT::CodeT GeometryCode(void) const;
+
+        /*set active elements*/
+        virtual void SetStatus(const ArrayT<StatusT>& status);
 
 	/** initial condition/restart functions (per time sequence) */
 	virtual void InitialCondition(void);
