@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.30 2004-04-27 07:24:02 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.31 2004-11-11 03:55:06 paklein Exp $ */
 /* created: sawimme July 2001 */
 #ifndef _MODELMANAGER_T_H_
 #define _MODELMANAGER_T_H_
@@ -528,7 +528,9 @@ class ModelManagerT
   /** return number of node variables found */
   int NumNodeVariables (void);
 
-  /** returns node variable labels */
+  /** returns node variable labels.
+   * \param labels returns with the labels for the nodal output data. Arrays is
+   *        (re-)dimensioned by the call. */
   void NodeLabels (ArrayT<StringT>& labels);
 
   /** returns an array of 0 or >0 values to indicate if the element set had data for 
@@ -560,7 +562,9 @@ class ModelManagerT
   /** return number of element variables found */
   int NumElementVariables (void);
 
-  /** returns element variable labels */
+  /** returns element variable labels 
+   * \param labels returns with the labels for the element output variables. Array is
+   *        (re-)dimensioned by the call. */
   void ElementLabels (ArrayT<StringT>& labels);
 
   /** returns an array of 0 or >0 values to indicate if the element set had data for each element variable */
@@ -716,7 +720,8 @@ inline int ModelManagerT::NumNodeVariables(void) {
 }
 
 inline void ModelManagerT::NodeLabels(ArrayT<StringT>& labels) { 
-	Input("NodeLabels").ReadNodeLabels (labels); 
+	labels.Dimension(NumNodeVariables());
+	Input("NodeLabels").ReadNodeLabels(labels); 
 }
 
 inline void ModelManagerT::NodeVariablesUsed(const StringT& ID, iArrayT& used) { 
@@ -748,7 +753,8 @@ inline int ModelManagerT::NumElementVariables(void) {
 }
 
 inline void ModelManagerT::ElementLabels(ArrayT<StringT>& labels) { 
-	Input("ElementLabels").ReadElementLabels (labels); 
+	labels.Dimension(NumElementVariables());
+	Input("ElementLabels").ReadElementLabels(labels); 
 }
 
 inline void ModelManagerT::ElementVariablesUsed(const StringT& ID, iArrayT& used) {
