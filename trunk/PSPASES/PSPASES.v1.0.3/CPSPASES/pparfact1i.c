@@ -1,4 +1,4 @@
-/* $Id: pparfact1i.c,v 1.2 2005-01-04 17:13:00 paklein Exp $ */
+/* $Id: pparfact1i.c,v 1.3 2005-01-04 18:19:34 paklein Exp $ */
 /* pparfact1i.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -63,7 +63,7 @@ static integer c__2 = 2;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: pparfact1i.c,v 1.2 2005-01-04 17:13:00 paklein Exp $ +/ */
+/* /+ $Id: pparfact1i.c,v 1.3 2005-01-04 18:19:34 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -136,7 +136,7 @@ static integer min(integer a, integer b) {
 	    *, integer *, integer *);
     integer ncols_u__, currdim, dbufptr, ibufptr, partner, /* mpistat[4], */
 	    msgsize, myright, nrows_u__;
-	MPI_Status mpistat[4];
+	MPI_Status mpistat[1];
 
 /*<       integer N,root,dd,lgblk,blk,myid,nstak(*),supinds(*) >*/
 /*<       integer aptrs(2,0:*),ainds(*),lptrs(3,0:*),linds(*) >*/

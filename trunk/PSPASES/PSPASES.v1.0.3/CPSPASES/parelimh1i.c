@@ -1,4 +1,4 @@
-/* $Id: parelimh1i.c,v 1.1 2005-01-04 17:46:35 paklein Exp $ */
+/* $Id: parelimh1i.c,v 1.2 2005-01-04 18:19:34 paklein Exp $ */
 /* parelimh1i.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -64,7 +64,7 @@ static integer c__27 = 27;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: parelimh1i.c,v 1.1 2005-01-04 17:46:35 paklein Exp $ +/ */
+/* /+ $Id: parelimh1i.c,v 1.2 2005-01-04 18:19:34 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -123,7 +123,7 @@ static integer min(integer a, integer b) {
 	    integer *, integer *, ftnlen);
     integer locptr, bottom, nbytes, newsup, newlocf, ncols_u__ /*, statall[16] */
 	    /* was [4][4] */, newrank, /* mpistat[4], */ msgtype;
-	MPI_Status mpistat[4], statall[16];
+	MPI_Status mpistat, statall[4];
 
 /*<       integer supinds(*),tptrs(3,0:*),tinds(*),stak(3,*),nstak(*) >*/
 /*<       integer cinfo(0:*) >*/
@@ -486,13 +486,13 @@ L135:
 	    msgtype = MPI_ANY_TAG;
 /*<    >*/
 
-	    MPI_Recv(&vbuf_r__[1], buflen, MPI_BYTE, *myup, msgtype, *comm, mpistat);
+	    MPI_Recv(&vbuf_r__[1], buflen, MPI_BYTE, *myup, msgtype, *comm, &mpistat);
 
 /*<           call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
-	    MPI_Get_count(mpistat, MPI_BYTE, &nbytes);
+	    MPI_Get_count(&mpistat, MPI_BYTE, &nbytes);
 
 /*<           msgtype = mpistat(MPI_TAG) >*/
-	    msgtype = mpistat->MPI_TAG;
+	    msgtype = mpistat.MPI_TAG;
 /*<           if (msgtype .ne. mydown) then >*/
 	    if (msgtype != *mydown) {
 /*<    >*/
@@ -523,17 +523,17 @@ L135:
 /*<           do while (npending .gt. 0) >*/
 	    while(npending > 0) {
 /*<             call mpi_waitany(4,req,msgid,mpistat,ierr) >*/
-		MPI_Waitany(4, req, &msgid, mpistat);
+		MPI_Waitany(4, req, &msgid, &mpistat);
 
 /*<             call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
-		MPI_Get_count(mpistat, MPI_BYTE, &nbytes);
+		MPI_Get_count(&mpistat, MPI_BYTE, &nbytes);
 
 /*<             if (msgid .eq. 2 .and. nsent1 .eq. 0) then >*/
 		if (msgid == 2 && nsent1 == 0) {
 /*<               ldb = ishft(nbytes/rank,-3) >*/
 		    ldb = lbit_shift(nbytes / rank, (ftnlen)-3);
 /*<               msgtype1 = mpistat(MPI_TAG) >*/
-		    msgtype1 = mpistat->MPI_TAG;
+		    msgtype1 = mpistat.MPI_TAG;
 /*<               if (msgtype1 .ne. mydown) then >*/
 		    if (msgtype1 != *mydown) {
 /*<    >*/
@@ -691,13 +691,13 @@ L90:
 /*<           msgtype = MPI_ANY_TAG  >*/
 	    msgtype = MPI_ANY_TAG;
 /*<    >*/
-	    MPI_Recv(&hbuf_r__[1], buflen, MPI_BYTE, *myleft, msgtype, *comm, mpistat);
+	    MPI_Recv(&hbuf_r__[1], buflen, MPI_BYTE, *myleft, msgtype, *comm, &mpistat);
 	    
 /*<           call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
-	    MPI_Get_count(mpistat, MPI_BYTE, &nbytes);
+	    MPI_Get_count(&mpistat, MPI_BYTE, &nbytes);
 	    
 /*<           msgtype = mpistat(MPI_TAG) >*/
-	    msgtype = mpistat->MPI_TAG;
+	    msgtype = mpistat.MPI_TAG;
 /*<           ldb = ishft(nbytes/rank,-3) >*/
 	    ldb = lbit_shift(nbytes / rank, (ftnlen)-3);
 /*<           uptr = 1 + ldb - nrows >*/
@@ -751,10 +751,10 @@ L90:
 /*<           do while (npending .ne. 0) >*/
 	    while(npending != 0) {
 /*<             call mpi_waitany(4,req,msgid,mpistat,ierr) >*/
-		MPI_Waitany(4, req, &msgid, mpistat);
+		MPI_Waitany(4, req, &msgid, &mpistat);
 		
 /*<             call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
-		MPI_Get_count(mpistat, MPI_BYTE, &nbytes);
+		MPI_Get_count(&mpistat, MPI_BYTE, &nbytes);
 
 /*<             npending = npending - 1 >*/
 		--npending;
@@ -763,7 +763,7 @@ L90:
 /*<               lda = ishft(nbytes/rank,-3) >*/
 		    lda = lbit_shift(nbytes / rank, (ftnlen)-3);
 /*<               msgtype1 = mpistat(MPI_TAG) >*/
-		    msgtype1 = mpistat->MPI_TAG;
+		    msgtype1 = mpistat.MPI_TAG;
 /*<               if (msgtype1 .ne. myright) then >*/
 		    if (msgtype1 != *myright) {
 /*<    >*/
@@ -782,7 +782,7 @@ L90:
 /*<               ldb = ishft(nbytes/rank,-3) >*/
 		    ldb = lbit_shift(nbytes / rank, (ftnlen)-3);
 /*<               msgtype2 = mpistat(MPI_TAG) >*/
-		    msgtype2 = mpistat->MPI_TAG;
+		    msgtype2 = mpistat.MPI_TAG;
 /*<               if (msgtype2 .ne. mydown) then >*/
 		    if (msgtype2 != *mydown) {
 /*<    >*/

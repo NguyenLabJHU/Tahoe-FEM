@@ -1,4 +1,4 @@
-/* $Id: alltoonev.c,v 1.1 2005-01-03 00:01:19 paklein Exp $ */
+/* $Id: alltoonev.c,v 1.2 2005-01-04 18:19:34 paklein Exp $ */
 /* alltoonev.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -57,7 +57,7 @@ static integer c__1 = 1;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: alltoonev.c,v 1.1 2005-01-03 00:01:19 paklein Exp $ +/ */
+/* /+ $Id: alltoonev.c,v 1.2 2005-01-04 18:19:34 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -75,7 +75,7 @@ static integer lbit_shift(integer a, integer b) {
     /* Local variables */
     integer diffbits, i__, j, k, num, ierr;
     integer msglen, partner /*, mpistat[4] */;
-	MPI_Status mpistat[4];
+	MPI_Status mpistat;
 
 /*<       implicit none >*/
 /*<       include 'mpif.h' >*/
@@ -132,7 +132,7 @@ static integer lbit_shift(integer a, integer b) {
 		msglen, &c__5, &partner, &c__1, comm, mpistat, &ierr); */
 
 	MPI_Sendrecv(&tgt[1],msglen,MPI_BYTE,partner,1,
-	             &tmp[1],msglen,MPI_BYTE,partner,1,*comm,mpistat);
+	             &tmp[1],msglen,MPI_BYTE,partner,1,*comm, &mpistat);
 
 /*<         do j=1,size >*/
 	i__2 = *size;
