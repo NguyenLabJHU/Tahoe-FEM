@@ -1,4 +1,4 @@
-/* $Id: DPPrimitiveLocT.h,v 1.3 2004-07-21 20:52:46 raregue Exp $ */
+/* $Id: DPPrimitiveLocT.h,v 1.4 2004-09-10 01:07:59 cfoster Exp $ */
 /* created: myip (06/01/1999)                                      */
 
 /*
@@ -62,6 +62,7 @@ protected:
 	double fdilation;  /* dilation-like parameter (fdilation >= 0.0) */
 	double fH_prime;   /* Deviatoric hardening parameter */
 	double fH_delta;   /* Localized deviatoric hardening parameter (fH_delta < 0.0) */
+	double fEta; /*fluidity parameter eta */
 	/*@}*/	
 };
 

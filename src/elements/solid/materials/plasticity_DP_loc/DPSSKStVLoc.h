@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.h,v 1.6 2004-07-22 21:10:26 paklein Exp $ */
+/* $Id: DPSSKStVLoc.h,v 1.7 2004-09-10 01:07:59 cfoster Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_LOC_H_
 #define _DP_SS_KSTV_LOC_H_
@@ -22,6 +22,9 @@ public:
 	/* destructor */
 	~DPSSKStVLoc(void);
 
+	/* required parameter flags */
+	virtual bool Need_Strain_last(void) const {return true;};
+
 	/* form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
@@ -43,6 +46,7 @@ public:
 	/*@{*/
 	/** spatial tangent modulus */
 	virtual const dMatrixT& c_ijkl(void);
+	const dMatrixT& c_ep_ijkl(void);
 	virtual const dMatrixT& c_perfplas_ijkl(void);
 
 	/** Cauchy stress */
@@ -101,7 +105,7 @@ private:
   
 	/* return values */
 	dSymMatrixT	fStress;
-	dMatrixT fModulus, fModulusCe;
+	dMatrixT fModulus, fModulusCe, fModulusEP;
 	dMatrixT fModulusPerfPlas;
 
 };

@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardLocT.h,v 1.3 2004-07-21 20:52:46 raregue Exp $ */
+/* $Id: DPSSLinHardLocT.h,v 1.4 2004-09-10 01:07:59 cfoster Exp $ */
 /* created: myip (06/01/1999)                                      */
 
 /*  
@@ -20,6 +20,8 @@
 #include "dMatrixT.h"
 #include "dArrayT.h"
 
+#include "DPSSKStVLoc.h"
+
 namespace Tahoe {
 
 /* forward declarations */
@@ -31,6 +33,7 @@ public:
 
 	/* constructor */
 	DPSSLinHardLocT(int num_ip, double mu, double lambda);
+
 
 	/* status flags */
 	enum LoadingStatusT {kIsPlastic = 0,
@@ -45,15 +48,15 @@ public:
 	/* return correction to stress vector computed by mapping the
 	 * stress back to the yield surface, if needed */
 	const dSymMatrixT& StressCorrection(const dSymMatrixT& trialstrain, 
-		ElementCardT& element, int ip); 
+		ElementCardT& element, int ip, double dt); 
 
 	/* return the correction to moduli due to plasticity (if any)
 	 *
 	 * Note: Return mapping occurs during the call to StressCorrection.
 	 *       The element passed in is already assumed to carry current
 	 *       internal variable values */
-	const dMatrixT& ModuliCorrection(const ElementCardT& element, int ip); 
-
+	const dMatrixT& ModuliCorrection(const ElementCardT& element, int ip, double dt); 
+const dMatrixT& ModuliCorrectionEP(const ElementCardT& element, int ip);
 	/* Modulus for checking perfectly plastic bifurcation */
 	const dMatrixT& ModuliCorrPerfPlas(const ElementCardT& element, int ip);
 
@@ -71,7 +74,7 @@ public:
 	dArrayT& Internal(void) { return fInternal; };
 	
 	/* element level data */
-	void Update(ElementCardT& element);
+	void Update(ElementCardT& element, double dt);
 	void Reset(ElementCardT& element);
 
 	/* returns 1 if the trial elastic strain state lies outside of the 
@@ -106,6 +109,9 @@ protected:
 	dArrayT     fInternal;      //internal variables
 
 private:
+
+	/* pointer to calling DPSSKStV */
+	//DPSSKStVLoc *fKStV;
 
 	/* number of integration points */
 	int fNumIP;

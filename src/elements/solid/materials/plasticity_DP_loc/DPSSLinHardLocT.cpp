@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardLocT.cpp,v 1.4 2004-07-21 20:52:46 raregue Exp $ */
+/* $Id: DPSSLinHardLocT.cpp,v 1.5 2004-09-10 01:07:59 cfoster Exp $ */
 /* created: myip (06/01/1999)                                        */
 
 /*
@@ -47,6 +47,7 @@ const dSymMatrixT& DPSSLinHardLocT::ElasticStrain(const dSymMatrixT& totalstrain
 		/* load internal variables */
 		LoadData(element, ip);
 
+
 		/* compute elastic strain */
 		fElasticStrain.DiffOf(totalstrain, fPlasticStrain);
 	
@@ -61,8 +62,10 @@ const dSymMatrixT& DPSSLinHardLocT::ElasticStrain(const dSymMatrixT& totalstrain
  * stress back to the yield surface, if needed */
 const dSymMatrixT& DPSSLinHardLocT::StressCorrection(
 						const dSymMatrixT& trialstrain, 
-						ElementCardT& element, int ip)
+						ElementCardT& element, int ip, double dt)
 {
+
+
 	/* check consistency and initialize plastic element */
 	if (PlasticLoading(trialstrain, element, ip) && !element.IsAllocated())
 	{
@@ -86,6 +89,8 @@ const dSymMatrixT& DPSSLinHardLocT::StressCorrection(
 		/* return mapping (single step) */
 		if (ftrial > kYieldTol)
 		{
+
+		  cout << "plastic loading\n";
 
 			/* plastic increment */
 	    	dgamma = ftrial/fX_H;
@@ -122,6 +127,8 @@ const dSymMatrixT& DPSSLinHardLocT::StressCorrection(
 			//corrected stress and internal state variables
 			stress += fStressCorr;
 
+			//checkers
+			/*
 			//cout << " stress = \n";
 			//cout << stress << endl;
 
@@ -133,9 +140,16 @@ const dSymMatrixT& DPSSLinHardLocT::StressCorrection(
 		
 			double f = YieldCondition(stress.Deviatoric(), p, a);
 			//cout << " yield function = " << f << endl;
+			*/
 		}
 		else 
-			dgamma = 0.0;			
+			dgamma = 0.0;
+		if (fEta != 0.0)
+		  {
+		    double timeFactor = dt/fEta;//(fKStV -> fSSMatSupport->TimeStep())/fEta;
+
+		    fStressCorr *= timeFactor/(1.0+timeFactor);
+		  }
 	}
 		
 	return fStressCorr;
@@ -146,7 +160,27 @@ const dSymMatrixT& DPSSLinHardLocT::StressCorrection(
  * Note: Return mapping occurs during the call to StressCorrection.
  *       The element passed in is already assumed to carry current
  *       internal variable values */
-const dMatrixT& DPSSLinHardLocT::ModuliCorrection(const ElementCardT& element, int ip)
+const dMatrixT& DPSSLinHardLocT::ModuliCorrection(const ElementCardT& element, int ip, double dt)
+{
+        ModuliCorrectionEP(element, ip);
+
+	//cout << "fEta = " << fEta << endl;
+
+	if (fEta != 0.0)
+	  {
+	    double timeFactor = dt/fEta; //(fKStV -> fSSMatSupport->TimeStep())/fEta;
+
+	    fModuliCorr *= timeFactor/(1.0+timeFactor);
+	  }
+
+	
+
+
+
+	return fModuliCorr;
+}	
+
+const dMatrixT& DPSSLinHardLocT::ModuliCorrectionEP(const ElementCardT& element, int ip)
 {
 	/* initialize */
 	fModuliCorr = 0.0;
@@ -221,10 +255,14 @@ const dMatrixT& DPSSLinHardLocT::ModuliCorrection(const ElementCardT& element, i
 		   
 			//cout << "fModuliCorr = " << fModuliCorr << endl;
 		}
-
 	}
+
+
+
 	return fModuliCorr;
-}	
+
+
+}
 
 
 /* return the correction to modulus Cep~, checking for perfectly plastic bifurcation */
@@ -319,7 +357,7 @@ void DPSSLinHardLocT::TakeParameterList(const ParameterListT& list)
  ***********************************************************************/
 
 /* element level data */
-void DPSSLinHardLocT::Update(ElementCardT& element)
+void DPSSLinHardLocT::Update(ElementCardT& element, double dt)
 {
 	/* get flags */
 	iArrayT& Flags = element.IntegerData();
@@ -349,12 +387,22 @@ void DPSSLinHardLocT::Update(ElementCardT& element)
 			//cout << "kdgamma = " << fInternal[kdgamma] << endl;
 		
 			/* internal state variable */
-			fInternal[kalpha] -= fH_prime*dgamma;
+			if (fEta == 0.0)
+			  {
+			  fInternal[kalpha] -= fH_prime*dgamma;
+			  cout << "kalpha = " << fInternal[kalpha] << endl;
+			  }
+			else
+			  {
+			    double timeFactor = dt/fEta;//(fKStV -> fSSMatSupport -> TimeStep())/fEta;
+			    fInternal[kalpha] -= timeFactor/(1+timeFactor)*fH_prime*dgamma;
+			    //fInternal[kalpha] /= (1 + timeFactor);
+			  }
 
 			/* dev plastic strain increment	*/
 			fPlasticStrain.AddScaled( sqrt32*dgamma, fUnitNorm);
         	
-        	/* vol plastic strain increment	*/
+			/* vol plastic strain increment	*/
 			fPlasticStrain.AddScaled( fdilation*dgamma/sqrt(3.0), One );
 		}
 }

@@ -1,5 +1,5 @@
 
-/* $Id: DPPrimitiveLocT.cpp,v 1.4 2004-07-21 20:52:46 raregue Exp $ */
+/* $Id: DPPrimitiveLocT.cpp,v 1.5 2004-09-10 01:07:59 cfoster Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 /* Base class for Druker-Prager, nonassociative, small strain,
@@ -23,7 +23,8 @@ DPPrimitiveLocT::DPPrimitiveLocT(void):
 	ffriction(-1.0),
 	fdilation(-1.0),
 	fH_prime(0.0),
-	fH_delta(1.0)
+	fH_delta(1.0),
+	fEta(-1.0)
 {
 
 }
@@ -48,6 +49,10 @@ void DPPrimitiveLocT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(fdilation, "dilation");
 	list.AddParameter(fH_prime, "H_prime");
 	list.AddParameter(fH_delta, "H_delta");
+
+	ParameterT eta(fEta, "fluidity_eta");
+	eta.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(eta);
 }
 
 /* accept parameter list */
@@ -61,6 +66,7 @@ void DPPrimitiveLocT::TakeParameterList(const ParameterListT& list)
 	fdilation = list.GetParameter("dilation");
 	fH_prime = list.GetParameter("H_prime");
 	fH_delta = list.GetParameter("H_delta");
+	fEta = list.GetParameter("fluidity_eta");
 }
 
 /***********************************************************************
