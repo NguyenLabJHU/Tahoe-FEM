@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.38 2004-10-27 20:04:13 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.39 2004-11-02 22:33:19 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 
@@ -21,6 +21,7 @@
 #include "InverseMapT.h"
 
 #include "MeshFreeSupport2DT.h"
+#include "MeshFreeSupport3DT.h"
 #include "MeshFreeNodalShapeFunctionT.h"
 #include "ContinuumMaterialT.h"
 #include "SolidMaterialT.h"
@@ -124,7 +125,7 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	qComputeVoronoiCell = list.GetParameter("compute_voronoi");
 	
 	/* get parameters needed to construct shape functions */
-	fMeshfreeParameters = list.List("meshfree_support_2D");
+	fMeshfreeParameters = list.ListChoice(*this, "meshfree_support_choice");
 	
 	/* access to the model database */
 	ModelManagerT& model = ElementSupport().ModelManager();
@@ -1569,10 +1570,10 @@ void SCNIMFT::DefineSubs(SubListT& sub_list) const
 	ElementBaseT::DefineSubs(sub_list);
 	
 	/* parameters for the meshfree support */
-	sub_list.AddSub("meshfree_support_2D");
+	sub_list.AddSub("meshfree_support_choice", ParameterListT::Once, true);
 
 	/* list of node set ID's defining which nodes get integrated */
-	sub_list.AddSub("mf_particle_ID_list",ParameterListT::OnePlus);
+	sub_list.AddSub("mf_particle_ID_list", ParameterListT::OnePlus);
 	
 	/* optional body force */
 	sub_list.AddSub("body_force", ParameterListT::ZeroOrOnce);
@@ -1599,8 +1600,19 @@ ParameterInterfaceT* SCNIMFT::NewSub(const StringT& name) const
 
 	if (material_list)
 		return material_list;
-  	else if (name == "meshfree_support_2D")
-    	return new MeshFreeSupport2DT;	
+	else if (name == "meshfree_support_choice") {
+	  ParameterContainerT* mf_choice = new ParameterContainerT(name);
+	  mf_choice->SetSubSource(this);
+	  mf_choice->SetListOrder(ParameterListT::Choice);
+	  
+	  mf_choice->AddSub("meshfree_support_2D");
+	  mf_choice->AddSub("meshfree_support_3D");
+	  
+	  return mf_choice;
+  	} else if (name == "meshfree_support_2D")
+	  return new MeshFreeSupport2DT;	
+	else if (name == "meshfree_support_3D")
+	  return new MeshFreeSupport3DT;
   	else if (name == "body_force") { // body force
 		ParameterContainerT* body_force = new ParameterContainerT(name);
 	
