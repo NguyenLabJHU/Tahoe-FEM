@@ -1,13 +1,9 @@
-/*
-  File: Utils.h
-*/
-
+/* $Id: Utils.h,v 1.2.10.1 2002-12-10 17:07:01 paklein Exp $ */
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
 #include <iostream.h>
 #include "ArrayT.h"
-
 
 namespace Tahoe {
 
