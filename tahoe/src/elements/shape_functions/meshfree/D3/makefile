@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2004-08-13 23:59:55 raregue Exp $
+# $Id: makefile,v 1.2 2004-08-19 18:02:37 raregue Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -42,9 +42,9 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	D2MeshFreeShapeFunctionT.cpp \
-	D2MeshFreeSupportT.cpp \
-	D2MeshFreeSupport2DT.cpp
+	D3MeshFreeShapeFunctionT.cpp \
+	D3MeshFreeSupportT.cpp \
+	D3MeshFreeSupport2DT.cpp
 
 ##################### (3) headers
 #
@@ -56,9 +56,9 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	D2MeshFreeShapeFunctionT.h \
-	D2MeshFreeSupportT.h \
-	D2MeshFreeSupport2DT.h
+	D3MeshFreeShapeFunctionT.h \
+	D3MeshFreeSupportT.h \
+	D3MeshFreeSupport2DT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
