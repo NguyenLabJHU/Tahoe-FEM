@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.4.2.7 2001-10-18 21:48:33 sawimme Exp $ */
+/* $Id: ModelManagerT.h,v 1.4.2.8 2001-10-25 19:50:51 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -106,6 +106,8 @@ class ModelManagerT
   void ElementGroupDimensions (int index, int& numelems, int& numelemnodes) const;
   GeometryT::CodeT ElementGroupGeometry (int index) const;
   const iArray2DT& ElementGroup (int index); /* read elements if not yet read and returns elements */
+  void ReadConnectivity (int index); /* reads elements if not yet read */
+  const iArray2DT* ElementGroupPointer (int index) const; /* returns pointer to group, must use ReadConns to have data */
 
   /* access map data, data is not offset */
   void AllNodeMap (iArrayT& map);
