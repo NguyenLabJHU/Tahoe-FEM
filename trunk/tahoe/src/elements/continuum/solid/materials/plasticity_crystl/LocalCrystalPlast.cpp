@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.4 2001-10-02 00:31:19 ebmarin Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.5 2001-10-08 00:32:24 ebmarin Exp $ */
 /*
   File: LocalCrystalPlast.cpp
 */
@@ -181,6 +181,15 @@ const dSymMatrixT& LocalCrystalPlast::s_ij()
       Compute_Ftot_last_3D(fFtot_n);
       Compute_Ftot_3D(fFtot);
 
+      // CHECKS
+      if (CurrIP() == -1) {
+        const int& step = fContinuumElement.FEManager().StepNumber();
+        cout << "\n\n" <<"**********" << endl;
+        cout << "   Step # "   << step
+             << ";  IP #   "   << CurrIP() << endl;
+        cout << " fFtot : " << endl << fFtot << endl;
+      }
+
       for (int igrn = 0; igrn < fNumGrain; igrn++)
 	{
 	  // recover local data
@@ -203,17 +212,44 @@ const dSymMatrixT& LocalCrystalPlast::s_ij()
                 fElasticity->ComputeModuli(fcBar_ijkl);
           //cout << " fcBar_ijkl " << endl << fcBar_ijkl << endl;
 
-	  // compute crystal state
-	  SolveCrystalState();
-	  
-	  // compute plastic deformation gradient
-	  FPInverse();
+          // compute crystal Cauchy stress and consistent tangent
+          // global iterations start at iter = -1
+          // cout << " Iter # " << fContinuumElement.FEManager().IterationNumber(); 
+          if (fContinuumElement.FEManager().IterationNumber() <= -2)
+             {
+               // deformation gradient
+               fmatx1.SetToCombination(1., fFtot, -1., fFtot_n);
+               fFt.SetToCombination(1., fFtot_n, 100.0 / 100.0, fmatx1);
 
-	  // compute crystal Cauchy stress
-	  CrystalS_ij();
+               // elastic tensors
+               fFe.MultAB(fFt, fFpi_n);
+               fCeBar.MultATA(fFe);
+ 
+               // 2nd Piola Kirchhoff Stress at t_n
+               fEeBar.SetToCombination(0.5, fCeBar, -0.5, fISym);
+               fSBar.A_ijkl_B_kl(fcBar_ijkl, fEeBar);
+
+               // Cauchy Stress
+               fs_ij.MultQBQT(fFe, fSBar);
+               fs_ij /= fFe.Det();
+
+               // elastic crystal stiffness
+               FFFFC_3D(fc_ijkl, fcBar_ijkl, fFe);
+             }
+          else 
+             {
+	       // compute crystal state
+	       SolveCrystalState();
 	  
-	  // compute crystal moduli (consistent tangent)
-	  CrystalC_ijkl();  
+       	       // compute plastic deformation gradient
+	       FPInverse();
+
+	       // compute crystal Cauchy stress
+	       CrystalS_ij();
+	  
+	       // compute crystal moduli (consistent tangent)
+	       CrystalC_ijkl();  
+             }
 
 	  // add stress and moduli to corresponding averaged quantities
 	  fsavg_ij.AddScaled(1./fNumGrain, fs_ij);
@@ -226,7 +262,8 @@ const dSymMatrixT& LocalCrystalPlast::s_ij()
           cout << "\n\n" <<"**********" << endl;
           cout << "   Step # "   << step
                << ";  IP #   "   << CurrIP() << endl;
-          cout << " fc_ijkl E-P " << endl << fc_ijkl << endl;
+          cout << " fc_ijkl E-P (from s_ij)" << endl << fc_ijkl << endl;
+          cout << " fcavg_ijkl E-P (from s_ij)" << endl << fcavg_ijkl << endl;
        }
     }
 
@@ -243,6 +280,13 @@ const dMatrixT& LocalCrystalPlast::c_ijkl()
   // load aggregate data
   LoadAggregateData(element, intpt);
 
+  if (CurrIP() == -1) {
+     const int& step = fContinuumElement.FEManager().StepNumber();
+     cout << "\n\n" <<"**********" << endl;
+     cout << "   Step # "   << step
+          << ";  IP #   "   << CurrIP() << endl;
+     cout << " fc_ijkl E-P (from c_ijkl)" << endl << fcavg_ijkl << endl;
+  }
   // return averaged moduli
   return fcavg_ijkl;
 }
@@ -269,7 +313,7 @@ void LocalCrystalPlast::FormRHS(const dArrayT& dgamma, dArrayT& rhs)
   // compute residual
   for (int i = 0; i < fNumSlip; i++)
     {
-      // rhs[i] = fTau[i] - fKinetics->Psi(dgamma[i]/fdt, i); 
+      //rhs[i] = fTau[i] - fKinetics->Psi(dgamma[i]/fdt, i); 
       rhs[i] = dgamma[i] - fdt * fKinetics->Phi(fTau[i], i);
     }
 }
@@ -286,10 +330,21 @@ void LocalCrystalPlast::FormLHS(const dArrayT& dgamma, dMatrixT& lhs)
   // term: X_b = 2*DFp*dDFpi/dDgamma_b = 2*DFp*(-Z_b)
   // (assumes backward Euler integration for FpDot)
   fDFp.Inverse(fDFpi);     
+  //for (int i = 0; i < fNumSlip; i++)
+  //  {
+  //    farray[i].MultAB(fDFp, fZ[i]);
+  //    farray[i] *= -2.0;       
+  //  }
+  ArrayT<dMatrixT> array(fNumSlip);
   for (int i = 0; i < fNumSlip; i++)
     {
-      farray[i].MultAB(fDFp, fZ[i]);
-      farray[i] *= -2.0;       
+      array[i].Allocate(kNSD,kNSD);
+    }
+  dDFpidDGamma(dgamma, array);
+  for (int i = 0; i < fNumSlip; i++)
+    {
+      farray[i].MultAB(fDFp, array[i]);
+      farray[i] *= 2.0;       
     }
 
   // initialize local Jacobian
@@ -334,7 +389,7 @@ void LocalCrystalPlast::FormLHS(const dArrayT& dgamma, dMatrixT& lhs)
   /*for (int i = 0; i < fNumSlip; i++)
     {
       lhs(i,i) -= (fKinetics->DPsiDGamdot(dgamma[i]/fdt, i) / fdt);
-      }*/
+    }*/
 
   // contribution of dRes/dHard*dHard/dDGamma to lhs(i,j)
   //  if (fAlgorCode == 3)
@@ -826,75 +881,78 @@ void LocalCrystalPlast::ForwardGradientEstimate()
 
   // some local tensors
   dMatrixT fFe_n (kNSD);
-  dSymMatrixT fbe_n (kNSD);
-  dSymMatrixT fsigma_n (kNSD);
+  dSymMatrixT fCeDot (kNSD);
 
   // elasticity tensors at t_n
-  // fFtot_n = DeformationGradient(fLocLastDisp); 
-  // fFtot_n = fContinuumElement.FEManager().LastDeformationGradient();
   fFe_n.MultAB(fFtot_n, fFpi_n);
-  fbe_n.MultAAT(fFe_n);
-  
-  // rate of deformation tensor at B_n
+  fCeBar.MultATA(fFe_n);
+ 
+  // rate : 0.5*L_v^p(CeBar)
   fmatx1.Inverse(fFtot_n);
-  fmatx2.MultAB(fFt, fmatx1);                // F_rel
-  fsymmatx1.MultATA(fmatx2);                 // D
+  fmatx2.MultAB(fFt, fmatx1);                // frel
+  fmatx3.Inverse(fmatx2);                    // (frel)^(-1)
+  fsymmatx1.MultATA(fmatx2);                 
   fsymmatx1.PlusIdentity(-1.);
-  fsymmatx1 *= 0.5 / fdt;
+  fsymmatx1 *= 0.5 / fdt;                    // Edot=0.5*(frel^T frel - 1)/dt
+  //fsymmatx2.MultQTBQ(fmatx3, fsymmatx1);     // Edot=frel^(-T)*Edot*frel^(-1)
+  //fCeDot.MultQTBQ(fFe_n, fsymmatx2);         // Cedot = 0.5*L_v^p(CeBar) = Fe^T*Edot*Fe
+  fCeDot.MultQTBQ(fFe_n, fsymmatx1);         // Cedot = 0.5*L_v^p(CeBar) = Fe^T*Edot*Fe
 
-  // Schmidt tensors at t_n
-  fmatx1.Inverse(fFe_n);
+  // 2nd Piola Kirchhoff Stress at t_n
+  fEeBar.SetToCombination(0.5, fCeBar, -0.5, fISym);
+  fSBar.A_ijkl_B_kl(fcBar_ijkl, fEeBar);
+
+  // Resolve Shear Stress on Slip Systems at t_n
+  fCeBar.ToMatrix(fmatx3);
+  fSBar.ToMatrix(fmatx4);
+  fmatx1.MultAB(fmatx3, fmatx4); 
+  for (int i = 0; i < fNumSlip; i++)
+     fTau[i] = dArrayT::Dot(fmatx1, fZ[i]);
+
   for (int i = 0; i < fNumSlip; i++)
     {
-      fmatx2.MultAB(fFe_n, fZ[i]);
-      farray[i].MultAB(fmatx2, fmatx1);      // Z_n
-      fA[i].Symmetrize(farray[i]);           // P_n
+      fmatx1.MultAB(fmatx3, fZ[i]);   // (CeBar*Z)
+      fmatx2.MultAB(fZ[i], fmatx4);   // (Z*SBar)
+      fB[i].Symmetrize(fmatx1);       // (CeBar*Z)_s
+      fA[i].Symmetrize(fmatx2);       // (Z*SBar)_s
     }
 
-  // resolved shear stress and Kirchhoff stress at t_n
-  fsymmatx2.MultATA(fFe_n);
-  ResolveShearStress(fsymmatx2);
-  fsigma_n.MultQBQT(fFe_n, fSBar);
+  // Form LHS
+  fLHS = 0.;
 
-  // sym matrices (D, be_n) -> full matrix representation
-  fsymmatx1.ToMatrix(fmatx1);
-  fbe_n.ToMatrix(fmatx2);
-
-  for (int i = 0; i < fNumSlip; i++) 
+  fCeDot.ToMatrix(fmatx3);
+  double theta = 0.5;
+  for (int i = 0; i < fNumSlip; i++)
     {
-      fsymmatx1.MultQBQT(fmatx2, fA[i]);
-      fsymmatx1 *= 2.*fMatProp[0];
+      fsymmatx3.A_ijkl_B_kl(fcBar_ijkl, fB[i]); // (Cijkl*(CeBar*Z)_s)
+      fA[i].AddScaled(0.5, fsymmatx3);   // (Z*SBar)_s + 0.5*(Cijkl*(CeBar*Z)_s)
+      fA[i].ToMatrix(fmatx2);
 
-      fsigma_n.ToMatrix(fmatx4);
-      fmatx3.MultAB(farray[i], fmatx4);
-      fsymmatx2.Symmetrize(fmatx3);
-
-      fA[i].ToMatrix(fmatx3);
-      fsymmatx1.AddCombination(fMatProp[1]*dArrayT::Dot(fmatx2, fmatx3), fbe_n,
-			       2., fsymmatx2);
-      fsymmatx1.ToMatrix(fmatx3);
-
+      double tmp =  2. * fdt * dArrayT::Dot(fmatx2, fmatx3);
+      if (ftime >= 0.0) 
       //if (ftime <= fdt)
-      if (ftime >= 0.0)
-	fDGamma[i] = dArrayT::Dot(fmatx3, fmatx1) * fdt;
+        fDGamma[i] = tmp;
       else
-	fDGamma[i] = fDGamma_n[i] * (1. + fdt / (m*fTau[i]) * dArrayT::Dot(fmatx3, fmatx1));
+	fDGamma[i] = fDGamma_n[i] + theta*fabs(fDGamma_n[i])/(m*fabs(fTau[i]))*tmp;
 
       for (int j = 0; j < fNumSlip; j++)
 	{
-	  fA[j].ToMatrix(fmatx4);
-	  // if (ftime <= fdt) {
-	  if (ftime >= 0.0) {
-	    fLHS(i, j) = dArrayT::Dot(fmatx3, fmatx4);
-	    // if (i == j) fLHS(i, j) += propH[0];
-	    if (i == j) fLHS(i, j) += fHardening->HardeningModulus();
-	  }
-	  else {
-	    fLHS(i, j) = fDGamma_n[i] / (m*fTau[i]) * dArrayT::Dot(fmatx3, fmatx4);
-	    if (i == j) fLHS(i, j) += 1.;
-	  }
-	}
+           fsymmatx1.SetToScaled(2.0, fB[j]);    // 2*(CeBar*Z)_s
+	   fsymmatx1.ToMatrix(fmatx1);
 
+	   // (Z*SBar)_s+0.5*(Cijkl*(CeBar*Z)_s):(2*CeBar*Z)_s
+	   fLHS(i,j) = dArrayT::Dot(fmatx2, fmatx1);
+
+	   if (ftime >= 0.0) {
+	   //if (ftime <= fdt) {
+	      //if (i == j) fLHS(i, j) += fHardening->HardeningModulus();
+	      if (i == j) fLHS(i, j) += 1.;
+	   }
+	   else {
+	      fLHS(i, j) *= theta*fabs(fDGamma_n[i])/(m*fabs(fTau[i]));
+	      if (i == j) fLHS(i, j) += 1.;
+	   }
+	}
     }
 
   // solve for initial estimate of dgamma
@@ -902,6 +960,14 @@ void LocalCrystalPlast::ForwardGradientEstimate()
 
   // norm of initial estimate of dgamma
   fMagDGam0 = fDGamma.Magnitude();
+
+  if (CurrIP() == -1) {
+       const int& step = fContinuumElement.FEManager().StepNumber();
+       cout << "\n\n" <<"**********" << endl;
+       cout << "   Step # "   << step
+            << ";  IP #   "   << CurrIP() << endl;
+       cout << " fDGamma (NEW)" << endl << fDGamma << endl;
+  }
 } 
 
 bool LocalCrystalPlast::Converged(double toler)
@@ -1055,14 +1121,23 @@ void LocalCrystalPlast::CrystalC_ijkl()
 
 void LocalCrystalPlast::SolveForDGamma(int& ierr)
 {
-  // solve for incremental shear strain
-  fSolver->Solve(fSolverPtr, fDGamma, ierr);
+  // uses continuation method based on rate sensitivity exponent
+  fKinetics->SetUpRateSensitivity();
 
-  if (ierr != 0) {
-    writeWarning("LocalCrystalPlast::SolveForDGamma:");
-    writeWarning("   Convergence problems in NLCSolver");
-    return;
-  }
+  do {
+      // current value for rate sensitivity exponent
+      fKinetics->ComputeRateSensitivity();
+
+      // solve for incremental shear strain
+      fSolver->Solve(fSolverPtr, fDGamma, ierr);
+
+      if (ierr != 0) {
+        writeWarning("LocalCrystalPlast::SolveForDGamma:");
+        writeWarning("   Convergence problems in NLCSolver");
+        return;
+      }
+
+  } while (!fKinetics->IsMaxRateSensitivity());
 
   // update iteration count from NLCSolver
   fIterCount = max(fIterCount, fSolver->GetIterationCount());

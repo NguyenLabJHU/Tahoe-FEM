@@ -4,6 +4,7 @@
 
 #include "PowerLawIKinetics.h"
 #include "PolyCrystalMatT.h"
+#include "Utils.h"
 
 const int kNumMatProp = 2;
 
@@ -28,7 +29,8 @@ double PowerLawIKinetics::Phi(double tau, int is)
   // compute Phi
   double tauIso = fHard.IsoHardeningStress(is);
 //  double qnt = pow(fabs(tau)/tauIso, 1./fMatProp[0]-1.);
-  double qnt = exp( (1./fMatProp[0]-1.)*log(fabs(tau)/tauIso) );
+//  double qnt = exp( (1./fMatProp[0]-1.)*log(fabs(tau)/tauIso) );
+  double qnt = Power( fabs(tau)/tauIso, (1./fMatProp[0]-1.) );
   return  fMatProp[1]*(tau/tauIso)*qnt;
 }
 
@@ -37,7 +39,8 @@ double PowerLawIKinetics::DPhiDTau(double tau, int is)
   // compute d(Phi)/d(Tau)
   double tauIso = fHard.IsoHardeningStress(is);
 //  double qnt = pow(fabs(tau)/tauIso, 1./fMatProp[0]-1.);
-  double qnt = exp( (1./fMatProp[0]-1.)*log(fabs(tau)/tauIso) );
+//  double qnt = exp( (1./fMatProp[0]-1.)*log(fabs(tau)/tauIso) );
+  double qnt = Power( fabs(tau)/tauIso, (1./fMatProp[0]-1.) );
   return  fMatProp[1]/(fMatProp[0]*tauIso)*qnt;
 }
 
@@ -46,7 +49,8 @@ double PowerLawIKinetics::DPhiDIso(double tau, int is)
   // compute d(Phi)/d(Iso)
   double tauIso = fHard.IsoHardeningStress(is);
 //  double qnt = pow(fabs(tau)/tauIso, 1./fMatProp[0]-1.);
-  double qnt = exp( (1./fMatProp[0]-1.)*log(fabs(tau)/tauIso) );
+//  double qnt = exp( (1./fMatProp[0]-1.)*log(fabs(tau)/tauIso) );
+  double qnt = Power( fabs(tau)/tauIso, (1./fMatProp[0]-1.) );
   return  -fMatProp[1]/(fMatProp[0]*tauIso)*(tau/tauIso)*qnt;
 }
 
@@ -61,7 +65,8 @@ double PowerLawIKinetics::Psi(double gamdot, int is)
 {
   // compute Psi
   double tauIso = fHard.IsoHardeningStress(is);
-  double qnt = pow(fabs(gamdot)/fMatProp[1], fMatProp[0]-1.);
+  //double qnt = pow(fabs(gamdot)/fMatProp[1], fMatProp[0]-1.);
+  double qnt = Power( fabs(gamdot)/fMatProp[1], fMatProp[0]-1.);
   return  tauIso*(gamdot/fMatProp[1])*qnt;
 }
 
@@ -69,7 +74,8 @@ double PowerLawIKinetics::DPsiDGamdot(double gamdot, int is)
 {
   // compute d(Psi)/d(gamdot)
   double tauIso = fHard.IsoHardeningStress(is);
-  double qnt = pow(fabs(gamdot)/fMatProp[1], fMatProp[0]-1.);
+  //double qnt = pow(fabs(gamdot)/fMatProp[1], fMatProp[0]-1.);
+  double qnt = Power( fabs(gamdot)/fMatProp[1], fMatProp[0]-1. );
   return  (fMatProp[0]*tauIso)/fMatProp[1]*qnt;
 }
 
@@ -77,7 +83,8 @@ double PowerLawIKinetics::DPsiDIso(double gamdot, int is)
 {
   // compute d(Psi)/d(Iso)
   #pragma unused(is)
-  double qnt = pow(fabs(gamdot)/fMatProp[1], fMatProp[0]-1.);
+  //double qnt = pow(fabs(gamdot)/fMatProp[1], fMatProp[0]-1.);
+  double qnt = Power( fabs(gamdot)/fMatProp[1], fMatProp[0]-1. );
   return  gamdot/fMatProp[1]*qnt;
 }
 
@@ -99,4 +106,24 @@ void PowerLawIKinetics::PrintName(ostream& out) const
 {
   // print model name
   out << "    Power law K.E. with nondirectional hardening\n";
+}
+
+void PowerLawIKinetics::SetUpRateSensitivity()
+{
+  fxm   = fMatProp[0];
+  fkmax = 1.e0 / fxm;
+  //fk = 2.5e0;
+  fk = fkmax;
+}
+
+void PowerLawIKinetics::ComputeRateSensitivity()
+{
+  fk = min(2.e0*fk, fkmax);
+  fMatProp[0] = 1.e0 / fk;
+  if (fk == fkmax) fMatProp[0] = fxm;
+}
+
+bool PowerLawIKinetics::IsMaxRateSensitivity()
+{
+   return (fk == fkmax);
 }
