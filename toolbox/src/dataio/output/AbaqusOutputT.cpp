@@ -1,4 +1,4 @@
-/* $Id: AbaqusOutputT.cpp,v 1.6 2002-07-02 19:57:07 cjkimme Exp $ */
+/* $Id: AbaqusOutputT.cpp,v 1.7 2002-07-26 18:43:57 sawimme Exp $ */
 /* created: sawimme (05/31/2000)                                          */
 
 #include "AbaqusOutputT.h"
@@ -248,14 +248,28 @@ void AbaqusOutputT::CreateResultsFile (int ID, AbaqusResultsT& aba)
       iArrayT nodemap;
       nodemap.Alias(fElementSets[ID]->BlockNodesUsed(blockids[nc]));
       nodemap++;
-      aba.WriteNodeSet (fNodeSetNames[nc], nodemap);
+      aba.WriteNodeSet (fElementSets[ID]->ID(), nodemap);
       nodemap--;
     }
   
   // write active dof
-  iArrayT activedof (fCoordinates->MinorDim());
-  activedof.SetValueToPosition();
-  activedof++;
+  iArrayT activedof (6);
+  activedof = 0;
+  switch (fCoordinates->MinorDim())
+    {
+    case 1:
+      activedof[0] = 1;
+      break;
+    case 2:
+      activedof[0] = 1;
+      activedof[1] = 2;
+      activedof[5] = 3;
+      break;
+    case 3:
+      activedof.SetValueToPosition ();
+      activedof++;
+      break;
+    }
   aba.WriteActiveDOF (activedof);
   
   // write heading
@@ -274,6 +288,13 @@ void AbaqusOutputT::SetRecordKey (AbaqusResultsT& aba, const ArrayT<StringT>& la
       if (strncmp (l, "D_X", 3) == 0 ||
 	  strncmp (l, "D_Y", 3) == 0 ||
 	  strncmp (l, "D_Z", 3) == 0 )
+	keys[i] = aba.VariableKey ("U");
+      else if (strncmp (l, "U_1", 3) == 0 ||
+	       strncmp (l, "U_2", 3) == 0 ||
+	       strncmp (l, "U_3", 3) == 0 ||
+	       strncmp (l, "U_4", 3) == 0 ||
+	       strncmp (l, "U_5", 3) == 0 ||
+	       strncmp (l, "U_6", 3) == 0 )
 	keys[i] = aba.VariableKey ("U");
       else if (strncmp (l, "s11", 3) == 0 ||
 	       strncmp (l, "s22", 3) == 0 ||

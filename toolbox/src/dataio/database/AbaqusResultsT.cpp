@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.cpp,v 1.19 2002-07-18 18:39:37 sawimme Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.20 2002-07-26 18:43:56 sawimme Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
@@ -114,7 +114,7 @@ void AbaqusResultsT::Create (const char* filename, bool binary, int numelems, in
  
 void AbaqusResultsT::OpenWrite (const char *filename, bool binary, int bufferwritten)
 {
-  fOut.open (filename);
+  fOut.open (filename, ios::app);
   if (!fOut)
     {
       fMessage << "\n AbaqusResultsT::OpenWRite unable to open file " << filename << endl;
@@ -579,8 +579,7 @@ void AbaqusResultsT::VariablesUsed (const StringT& name, AbaqusVariablesT::TypeT
 	default:
 	  {
 	    /* is this the setname we are interested in */
-	    int l = (name.StringLength() < outsetname.StringLength()) ? name.StringLength() : outsetname.StringLength();
-	    if (strncmp (outsetname.Pointer(), name.Pointer(), l) == 0)
+	    if (strncmp (outsetname.Pointer(), name.Pointer(), outsetname.StringLength()) == 0)
 	      {
 		/* make sure it is a variable */
 		int index = VariableKeyIndex (key);
@@ -706,7 +705,7 @@ int AbaqusResultsT::VariableKey (const char* name) const
   for (int i=0; i < NVT; i++)
     {
       const StringT& n = fVariableTable[i].Name();
-      if (strncmp (name, n.Pointer(), n.StringLength() - 1) == 0)
+      if (strncmp (name, n.Pointer(), n.StringLength()) == 0)
 	return fVariableTable[i].Key();
     }
   return -1;
@@ -801,8 +800,9 @@ void AbaqusResultsT::WriteConnectivity (GeometryT::CodeT code, int startnumber, 
 
 void AbaqusResultsT::WriteCoordinates (const iArrayT& nodes_used, const dArray2DT& coords)
 {
-  int length = 3 + coords.MinorDim();
+  int length = 3 + 6;
   int *pn = nodes_used.Pointer();
+  double zero = 0.;
   for (int i=0; i < nodes_used.Length(); i++)
     {
       WriteASCII (fMarker);
@@ -812,6 +812,9 @@ void AbaqusResultsT::WriteCoordinates (const iArrayT& nodes_used, const dArray2D
       double *pc = coords (*pn++ - 1);
       for (int j=0; j < coords.MinorDim(); j++)
 	Write (*pc++);
+      // fill to 6 degrees of freedom
+      for (int k=coords.MinorDim(); k < 6; k++)
+	Write (zero);
     }
 }
 
