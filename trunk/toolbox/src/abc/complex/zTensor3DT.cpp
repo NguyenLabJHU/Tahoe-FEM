@@ -32,7 +32,7 @@ void zTensor3DT::toRe(dTensor3DT& re) const
 	if (!SameDimensions(*this,re)) throw(eGeneralFail);
 
 	/* ComplexT function */
-	z_to_Re(*this, re);
+	ComplexT::z_to_Re(*this, re);
 }
 
 void zTensor3DT::toIm(dTensor3DT& im) const
@@ -41,7 +41,7 @@ void zTensor3DT::toIm(dTensor3DT& im) const
 	if (!SameDimensions(*this,im)) throw(eGeneralFail);
 
 	/* ComplexT function */
-	z_to_Im(*this, im);
+	ComplexT::z_to_Im(*this, im);
 }
 
 zTensor3DT& zTensor3DT::toZ(const dTensor3DT& re, const dTensor3DT& im)
@@ -53,7 +53,7 @@ zTensor3DT& zTensor3DT::toZ(const dTensor3DT& re, const dTensor3DT& im)
 	Allocate(re.Dimension(0),re.Dimension(1),re.Dimension(2));
 
 	/* ComplexT function */
-	ReIm_to_z(re,im,*this);
+	ComplexT::ReIm_to_z(re,im,*this);
 	
 	return (*this);
 }
