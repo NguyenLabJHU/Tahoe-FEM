@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.16 2003-03-02 18:59:58 paklein Exp $ */
+/* $Id: ElementT.h,v 1.17 2003-03-19 17:11:21 thao Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -49,9 +49,10 @@ kPenaltyContactElement3D = 34,
           kBridgingScale = 35,
                kSimoQ1P0 = 36, /**< Q1P0, finite strain, mixed element */
                kAdhesion = 37, /**< adhesive tractions between surfaces */
-           kParticlePair = 38  /**< particles with pair interactions */
-	};
-
+           kParticlePair = 38,  /**< particles with pair interactions */
+/***************************************/
+	     kFSMatForce = 60,    /*UpLag with material force calculation*/
+	     kSSMatForce = 61};   /*small strain with mat force calculation*/
 	/** stream extraction operator */ 
 	friend istream& operator>>(istream& in, ElementT::TypeT& type);
 };
