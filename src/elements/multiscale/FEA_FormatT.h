@@ -22,6 +22,8 @@ class	FEA_FormatT {
 		void Displacements 		(	LocalArrayT &u_mat, dArrayT &u_vec 										);
 		void Interpolate 		(	ShapeFunctionT*,LocalArrayT&,LocalArrayT&,FEA_dVectorT&,FEA_dVectorT&  	);
 		void State		 		(	int n_ip, int num_state, dArrayT&, FEA_dVectorT&	);
+		void Copy		 		(	int n_ip, int num_state, dArray2DT&, FEA_dVectorT&	);
+		void Copy		 		(	int n_ip, int num_state, FEA_dVectorT&, dArray2DT& 	);
 
 };
 

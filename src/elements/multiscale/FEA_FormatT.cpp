@@ -1,4 +1,4 @@
-// $Id: FEA_FormatT.cpp,v 1.13 2003-09-30 20:02:12 raregue Exp $
+// $Id: FEA_FormatT.cpp,v 1.14 2003-10-02 19:12:05 raregue Exp $
 #include "FEA_FormatT.h"
 
 using namespace Tahoe;
@@ -44,6 +44,7 @@ void FEA_FormatT::Interpolate (	ShapeFunctionT *fShapes,LocalArrayT &gammap_np1,
 	}
 }
 
+//not used
 void FEA_FormatT::State	( int n_ip, int num_state, dArrayT& fState, FEA_dVectorT& state )
 {
 	int a,i;
@@ -51,6 +52,24 @@ void FEA_FormatT::State	( int n_ip, int num_state, dArrayT& fState, FEA_dVectorT
 		for (i=0; i<num_state; i++)
 			state[a,i] = fState[a*num_state+i];
 }
+
+void FEA_FormatT::Copy	( int n_ip, int num_state, dArray2DT& fState, FEA_dVectorT& state )
+{
+	int a,i;
+	for (a=0; a<n_ip; a++)
+		for (i=0; i<num_state; i++)
+			state[a][i] = fState[a*num_state+i];
+}
+
+void FEA_FormatT::Copy	( int n_ip, int num_state, FEA_dVectorT& state, dArray2DT& fState  )
+{
+	int a,i;
+	for (a=0; a<n_ip; a++)
+		for (i=0; i<num_state; i++)
+			fState[a*num_state+i] = state[a][i];
+}
+
+
 
 
 //---------------------------------------------------------------------
