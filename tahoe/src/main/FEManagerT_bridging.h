@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.5.12.1 2003-10-16 12:56:14 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.5.12.2 2003-10-21 20:47:53 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -112,8 +112,12 @@ public:
 
 	/** project the point values onto the mesh. Project to the nodes using
 	 * projection initialized with the latest call to FEManagerT_bridging::InitProjection. */
-	void ProjectField(const StringT& field, NodeManagerT& node_manager, int order);
-	/*@}*/
+	void ProjectField(const StringT& field, const NodeManagerT& node_manager, int order);
+
+	/** compute the coarse scale projection at the source points. Project the solution to the source
+	 * points initialized with the latest call to FEManagerT_bridging::InitProjection. In other words,
+	 * filter out the fine scale part of the solution. */
+	void CoarseField(const StringT& field, const NodeManagerT& node_manager, int order, dArray2DT& coarse);
 
 	/** calculate the fine scale part of MD solution as well as total displacement u.  Does not
 	  * write into the displacement field */

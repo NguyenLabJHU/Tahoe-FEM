@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.9.10.1 2003-10-16 12:56:14 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.9.10.2 2003-10-21 20:47:53 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -453,12 +453,12 @@ void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& fi
 }
 
 /* project the point values onto the mesh */
-void FEManagerT_bridging::ProjectField(const StringT& field, NodeManagerT& node_manager, int order)
+void FEManagerT_bridging::ProjectField(const StringT& field, const NodeManagerT& node_manager, int order)
 {
 	const char caller[] = "FEManagerT_bridging::ProjectField";
 
 	/* get the source field */
-	FieldT* source_field = node_manager.Field(field);
+	const FieldT* source_field = node_manager.Field(field);
 	if (!source_field) ExceptionT::GeneralFail(caller, "could not resolve source field \"%s\"", field.Pointer());
 
 	/* compute the projection onto the mesh */
@@ -468,6 +468,21 @@ void FEManagerT_bridging::ProjectField(const StringT& field, NodeManagerT& node_
 	/* write values into the field */
 	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
 	SetFieldValues(field, cell_nodes, order, fProjection);
+}
+
+/* compute the coarse scale projection at the source points */
+void FEManagerT_bridging::CoarseField(const StringT& field, const NodeManagerT& node_manager, int order, 
+	dArray2DT& coarse)
+{
+	const char caller[] = "FEManagerT_bridging::ProjectField";
+
+	/* get the source field */
+	const FieldT* source_field = node_manager.Field(field);
+	if (!source_field) ExceptionT::GeneralFail(caller, "could not resolve source field \"%s\"", field.Pointer());
+	const dArray2DT& field_values = (*source_field)[order];
+
+	/** compute the coarse scale part of the source field */
+	BridgingScale().CoarseField(fDrivenCellData, field_values, coarse);
 }
 
 /* project the point values onto the mesh */
