@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.h,v 1.15 2003-03-28 21:49:45 creigh Exp $ */ 
+/* $Id: StaggeredMultiScaleT.h,v 1.16 2003-03-29 00:37:51 paklein Exp $ */ 
 //DEVELOPMENT
 #ifndef _STAGGERED_MULTISCALE_T_H_ 
 #define _STAGGERED_MULTISCALE_T_H_ 
@@ -176,6 +176,7 @@ private:
 	LocalArrayT ua_n; 	/**< fine scale displacement from previous increment */
 	LocalArrayT del_ua; /**< the Newton-R update i.e. del_ua = ua - ua_n (ua subcript n+1 implied) */
 	LocalArrayT ub;     /**< coarse scale displacement */
+	LocalArrayT DDub;     /**< coarse scale acceleration (used for body force) */
 	LocalArrayT ub_n; 	/**< coarse scale displacement from previous increment */
 	LocalArrayT del_ub; /**< the Newton-R update i.e. del_ub = ub - ub_n (ub subcript n+1 implied) */
 	dArrayT			del_ua_vec;  	/** need in vector for i.e. { {ua1_1,ua1_2},{ua2_1,ua2_2}, ... } */
@@ -213,7 +214,7 @@ private:
  	int render_variable_order;	
  	int render_displ;	
 
-  ofstreamT var_plot_file;
+	ofstreamT var_plot_file;
  	double x_top;  // for calc Lf	
  	double x_bot;  // for calc Lf	
 
@@ -326,8 +327,6 @@ private:
 
 	public:
 
-		/* forward declarations */
-	
 		enum MassTypeT {kNoMass = 0, /**< do not compute mass matrix */
             kConsistentMass = 1, /**< variationally consistent mass matrix */
                 kLumpedMass = 2  /**< diagonally lumped mass */ };
@@ -337,15 +336,13 @@ private:
 
 	protected:
 	
-	/** stream extraction operator */
-	//friend istream& operator>>(istream& in, ContinuumElementT::MassTypeT& type);
-
-		void ApplyTractionBC(void);
+	/** apply traction boundary conditions to the coarse scale equations */
+	void ApplyTractionBC(void);
 
 	/** add contribution from the body force */
 	void AddBodyForce(LocalArrayT& body_force) const;
 	
-		/** element body force contribution 
+	/** element body force contribution 
 	 * \param mass_type mass matrix type of ContinuumElementT::MassTypeT
 	 * \param constM pre-factor for the element integral
 	 * \param nodal nodal values. Pass NULL for no nodal values: [nen] x [ndof]
@@ -358,7 +355,7 @@ private:
 	// shared but the output of what each code means is class-dependent
 	void EchoBodyForce(ifstreamT& in, ostream& out);
 
-	/** update traction BC data */
+	/** update traction BC data for the coarse scale equations */
 	void SetTractionBC(void);
 
 	/* body force vector */
@@ -369,28 +366,17 @@ private:
 	ArrayT<Traction_CardT> fTractionList;
 	int fTractionBCSet;
 
-	dArrayT fDOFvec; /**< work space vector: [nodal DOF]   */
-	
+	dArrayT fDOFvec; /**< work space vector: [nodal DOF] */	
 };
 
-//-- Inlines from ContinuumElementT to satisfy Traction_and_Body_Force
-
-/* accessors */
 inline const ShapeFunctionT& StaggeredMultiScaleT::ShapeFunction(void) const 
 {
 #if __option(extended_errorcheck)
 	if (!fShapes)
-	{
-		cout << "\n ContinuumElementT::ShapeFunction: no shape functions" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("StaggeredMultiScaleT::ShapeFunction", "no shape functions");
 #endif
 	return *fShapes;
 }
 
-
 } // namespace Tahoe 
 #endif /* _STAGGERED_MULTISCALE_T_H_ */
-
-
-

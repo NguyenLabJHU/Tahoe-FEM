@@ -1,5 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.26 2003-03-28 21:49:45 creigh Exp $ */
-//DEVELOPMENT
+/* $Id: StaggeredMultiScaleT.cpp,v 1.27 2003-03-29 00:37:51 paklein Exp $ */
 #include "StaggeredMultiScaleT.h"
 
 #include "ShapeFunctionT.h"
@@ -30,6 +29,7 @@ StaggeredMultiScaleT::StaggeredMultiScaleT(const ElementSupportT& support, const
 	ua(LocalArrayT::kDisp),
 	ua_n(LocalArrayT::kLastDisp),
 	ub(LocalArrayT::kDisp),
+	DDub(LocalArrayT::kAcc),
 	ub_n(LocalArrayT::kLastDisp),
 	fInitCoords(LocalArrayT::kInitCoords),
 	fCurrCoords(LocalArrayT::kCurrCoords),
@@ -221,6 +221,7 @@ void StaggeredMultiScaleT::Initialize(void)
 
 	/* set local arrays for coarse scale */
 	ub.Dimension (n_en, n_df);
+	DDub.Dimension (n_en, n_df);
 	ub_n.Dimension (n_en, n_df);
 	del_ub.Dimension (n_en, n_df);
 	del_ub_vec.Dimension (n_en_x_n_df);
@@ -296,7 +297,17 @@ void StaggeredMultiScaleT::Initialize(void)
 		Render_Scalar[e].Construct ( num_scalars_to_render, n_ip );	
 	}
 
-	var_plot_file.open ( write_file_name.Pointer() );
+	/* streams */
+	ifstreamT& in  = ElementSupport().Input();
+	ofstreamT& out = ElementSupport().Output();
+
+	/* open plot file in the same directory as the input file */
+	StringT path;
+	path.FilePath(in.filename());
+	StringT file_path = write_file_name;
+	file_path.ToNativePathName();
+	file_path.Prepend(path);
+	var_plot_file.open(file_path);
 	int n_wfld = (int) bLog_Strain + num_tensors_to_render + num_scalars_to_render;
 	for (int v=0; v<n_wfld; v++)
 		var_plot_file << 0.0 << " "; // Accounts for initial time
@@ -309,6 +320,12 @@ void StaggeredMultiScaleT::Initialize(void)
 	if (render_switch)
 		Init_Render();
 
+	/* body force specification */
+	fDOFvec.Dimension(n_df);
+	EchoBodyForce(in, out);
+	
+	/* echo traction B.C.'s */
+	EchoTractionBC(in, out);
 }
 
 //---------------------------------------------------------------------
@@ -316,8 +333,10 @@ void StaggeredMultiScaleT::Initialize(void)
 /* form group contribution to the stiffness matrix and RHS */
 void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!	
 {
- 
 	int curr_group = ElementSupport().CurrentGroup();
+
+	/* traction boundary conditions acting on the coarse scale equations */
+	if (curr_group == fCoarse.Group()) ApplyTractionBC();
 
 	/* stress output work space */
 	int n_stress = dSymMatrixT::NumValues(NumSD());
@@ -333,6 +352,11 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 
 	//cout <<" s= " << render_switch <<"; t= "<< time << "; rt= " << render_time << "\n";
  
+ 	/* has (coarse scale) body forces */
+	int formBody = 0;
+	if (fBodySchedule && fBody.Magnitude() > kSmall)
+		formBody = 1;
+
 	/* loop over elements */
 	int e,v,l;
 	Top();
@@ -416,6 +440,15 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 				/** Compute Traction B.C. and Body Forces */
 				Get_Fext_I ( fFext_I );
 				fRHS += fFext_I;
+				
+				/* add body forces */
+				if (formBody) {
+//					double density = fCoarseMaterial->Retrieve(Iso_MatlT::kDensity);
+					double density = 1.0;
+					DDub = 0.0;
+					AddBodyForce(DDub);
+					FormMa(kConsistentMass, -density, &DDub, NULL);				
+				}
 			
 				/* add to global equations */
 				ElementSupport().AssembleLHS	( fCoarse.Group(), fLHS, CurrentElement().Equations() );
