@@ -1,4 +1,4 @@
-$Id: documentation.txt,v 1.1.1.1 2001-08-14 21:34:58 strohban Exp $
+$Id: documentation.txt,v 1.2 2001-08-14 21:41:54 strohban Exp $
 
 This is the documentation for some simple matlab scripts to analyze
 tahoe output files.

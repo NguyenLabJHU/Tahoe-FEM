@@ -1,3 +1,5 @@
+% $Id: createValStruct.m,v 1.2 2001-08-14 21:41:54 strohban Exp $
+
 function nDat = createValstruct(data,valDescr)
 % nDat = createValStruct(nodaldata,valDescr)
 % creates the nodal structure with all values

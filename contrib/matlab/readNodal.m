@@ -1,3 +1,5 @@
+% $Id: readNodal.m,v 1.2 2001-08-14 21:41:54 strohban Exp $
+
 function [t,nodaldata,valDescr] = readNodal(fname)
 % [t,nodaldata,valDescr] = readNodal(fname)
 % reads in nodal data from an .run file

@@ -1,3 +1,5 @@
+% $Id: readGeom.m,v 1.2 2001-08-14 21:41:54 strohban Exp $
+
 function [xy,elementsets,nodesets] = readGeom(fname)
 % [xy,elementsets,nodesets] = readGeom(fname) 
 % returns nodal data and element data from new

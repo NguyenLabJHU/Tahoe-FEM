@@ -1,3 +1,5 @@
+% $Id: str2array.m,v 1.2 2001-08-14 21:41:55 strohban Exp $
+
 function A = str2array(str)
 k=1;
 c=1;
