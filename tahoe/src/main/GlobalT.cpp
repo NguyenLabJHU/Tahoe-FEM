@@ -1,6 +1,5 @@
-/* $Id: GlobalT.cpp,v 1.4 2002-01-22 02:14:22 paklein Exp $ */
-/* created: paklein (04/01/2000)                                          */
-/* GlobalT.cpp                                                            */
+/* $Id: GlobalT.cpp,v 1.4.2.1 2002-04-23 01:25:50 paklein Exp $ */
+/* created: paklein (04/01/2000) */
 
 #include "GlobalT.h"
 #include <iostream.h>
