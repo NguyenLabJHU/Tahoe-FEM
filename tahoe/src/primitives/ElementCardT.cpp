@@ -1,4 +1,4 @@
-/* $Id: ElementCardT.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* $Id: ElementCardT.cpp,v 1.2 2001-04-30 21:29:14 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "ElementCardT.h"
@@ -107,7 +107,21 @@ void ElementCardT::WriteRestart(ostream& out) const
 /* element storage accessors/modifiers */
 void ElementCardT::Allocate(int i_size, int d_size)
 {
-	fData = new ElementStorageT(i_size,d_size);
+#if __option(extended_errorcheck)
+	if (fData != NULL) {
+		cout << "\n ElementCardT::Allocate: WARNING: element data already exists\n" 
+		     <<   "     and will be overwritten." << endl;
+	}
+#endif
+
+	/* free existing memory */
+	if (fData != NULL)
+	{
+		delete fData;
+		fData = NULL;
+	}
+
+	fData = new ElementStorageT(i_size, d_size);
 	if (!fData) throw eOutOfMemory;
 }
 
