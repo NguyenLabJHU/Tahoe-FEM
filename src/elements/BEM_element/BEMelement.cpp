@@ -1,10 +1,10 @@
-/* $Id: BEMelement.cpp,v 1.3 2002-07-02 19:55:13 cjkimme Exp $ */
+/* $Id: BEMelement.cpp,v 1.4 2002-09-12 17:49:51 paklein Exp $ */
 /* created: AFLP (02/28/1998) */
 
 #include "BEMelement.h"
 #include <iostream.h>
 #include <iomanip.h>
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "StringT.h"
 
 
