@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.14 2002-04-23 17:00:59 dzeigle Exp $
+# $Id: makefile,v 1.15 2002-04-24 19:25:01 dzeigle Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -8,11 +8,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	CubicSplineT.o \
 	C1FunctionT.o \
-	ConHyperGeom.o \
 	ErrorFunc.o \
 	GaoKlein.o \
 	Gamma.o \
-	GenHyperGeom.o \
 	GreenwoodWilliamson.o \
 	Kummer.o \
 	LennardJones612.o \
@@ -37,11 +35,9 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	CubicSplineT.cpp \
 	C1FunctionT.cpp \
-	CONHyperGeom.cpp \
 	ErrorFunc.cpp \
 	Gamma.cpp \
 	GaoKlein.cpp \
-	GenHyperGeom.cpp \
 	GreenwoodWilliamson.cpp \
 	Kummer.cpp \
 	LennardJones612.cpp \
@@ -60,11 +56,9 @@ SRC = \
 HDR = \
 	CubicSplineT.h \
 	C1FunctionT.h \
-	ConHyperGeom.h \
 	ErrorFunc.h \
 	Gamma.h \
 	GaoKlein.h \
-	GenHyperGeom.h \
 	GreenwoodWilliamson.h \
 	Kummer.h \
 	LennardJones612.h \
