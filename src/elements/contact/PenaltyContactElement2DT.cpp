@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.5 2002-01-30 18:58:12 dzeigle Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.6 2002-02-01 20:03:39 dzeigle Exp $ */
 
 #include "PenaltyContactElement2DT.h"
 
@@ -122,15 +122,10 @@ void PenaltyContactElement2DT::RHSDriver(void)
                   /* parameters for Smith-Ferrante Potential */
                   gw_m = parameters[kAsperityHeightMean];
                   gw_s = parameters[kAsperityHeightStandardDeviation];
-		  if (gw_m > 0.0 && gap > 0.0) {
-                    GreenwoodWilliamson GW(gw_m,gw_s);
-		    /* First derivative of Greenwood-Williamson represents force */
-                    pre  = material_coeff*GW.DFunction(gap);
-		  } else {
-		    /* linear penalty function */
-		    pen = parameters[kPenalty]; 
-		    pre  = pen*gap;
-		  }
+		  
+                  GreenwoodWilliamson GW(gw_m,gw_s);
+		  /* First derivative of Greenwood-Williamson represents force */
+                  pre  = material_coeff*GW.DFunction(gap);
 
 		  face->ComputeShapeFunctions(points(i),N1);
 		  for (int j =0; j < fNumSD; j++) {n1[j] = node->Normal()[j];}
@@ -222,15 +217,10 @@ void PenaltyContactElement2DT::LHSDriver(void)
                   gw_m = parameters[kAsperityHeightMean];
                   gw_s = parameters[kAsperityHeightStandardDeviation];
 
-		  if (gw_m > 0.0 && gap > 0.0) {
-                    GreenwoodWilliamson GW(gw_m,gw_s);
-                    pre  = material_coeff*GW.DFunction(gap);
-                    dpre_dg = material_coeff*GW.DDFunction(gap);
-		  } else {
-		    pen = parameters[kPenalty];
-		    pre = pen*gap; 
-                    dpre_dg = pen;
-		  }
+                  GreenwoodWilliamson GW(gw_m,gw_s);
+                  pre  = material_coeff*GW.DFunction(gap);
+                  dpre_dg = material_coeff*GW.DDFunction(gap);
+		  
                   consistent = (int) parameters[kConsistentTangent];
 		  const FaceT* opp_face = node->OpposingFace();
 		  opp_num_nodes = opp_face->NumNodes();
