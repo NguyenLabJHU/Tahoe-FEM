@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.2 2003-11-04 17:37:50 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.2.2.1 2003-11-04 19:47:10 bsun Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
@@ -26,7 +26,6 @@ MFPenaltyContact2DT::MFPenaltyContact2DT(const ElementSupportT& support, const F
 	PenaltyContact2DT(support, field),
 	fElementGroup(NULL),
 	fMeshFreeSupport(NULL),
-	fStrikerCoords_man(0, fStrikerCoords, support.NumSD()),
 	fdvT_man(0, true),
 	fRHS_man(0, fRHS)
 {
@@ -45,9 +44,6 @@ MFPenaltyContact2DT::MFPenaltyContact2DT(const ElementSupportT& support, const F
 	else
 		ExceptionT::GeneralFail("MFPenaltyContact2DT::MFPenaltyContact2DT",
 			"element group %d is not meshfree", fGroupNumber+1);
-
-	/* set map of node ID to meshfree point index */
-	fNodeToMeshFreePoint.SetMap(fMeshFreeSupport->NodesUsed());
 }
 
 /***********************************************************************
@@ -83,24 +79,13 @@ void MFPenaltyContact2DT::RHSDriver(void)
 	const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
 	const dArray2DT& disp = Field()[0]; /* displacements */
 
-	/* striker neighbors */
-	const RaggedArray2DT<int>& striker_neighbors = fMeshFreeSupport->NodeNeighbors();
-
-	/* compute current configuration of active strikers */
-	ComputeStrikerCoordinates(fActiveStrikers);
-
 	/* reset tracking data */
 	int num_contact = 0;
 	double h_max = 0.0;
 
 	/* loop over active elements */
 	dArrayT tangent(NumSD());
-	AutoArrayT<int> nodes;
-	AutoArrayT<int> eqnos;
-	iArray2DT eqnos2D;
-	iArrayT neighbors;
-	dArrayT Na;
-	dArray2DT DNa;
+	iArrayT eqnos;
 	int* pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
@@ -109,22 +94,13 @@ void MFPenaltyContact2DT::RHSDriver(void)
 		fElCoord.RowCollect(pelem, init_coords);
 		fElDisp.RowCollect(pelem, disp);
 
-		/* current configuration */
-		fElCoord.AddScaled(constKd, fElDisp);
+		/* current configuration using effective displacement */
+		fElCoord.AddScaled(constKd, fElDisp); //EFFECTIVE_DVA
 	
-		/* get facet coords */
+		/* get facet and striker coords */
 		fElCoord.RowAlias(0, fx1);
 		fElCoord.RowAlias(1, fx2);
-
-		/* collect information for current meshless striker */
-		int striker_node = pelem[2];
-		int striker_meshfree_index = fNodeToMeshFreePoint.Map(striker_node);
-		int striker_active_index = fNodeToActiveStriker.Map(striker_node);
-		fStrikerCoords.RowAlias(striker_active_index, fStriker);
-
-		/* striker neighborhood */
-		fMeshFreeSupport->LoadNodalData(striker_node, neighbors, Na, DNa);
-		SetDerivativeArrays(Na);
+		fElCoord.RowAlias(2, fStriker);
 
 		/* penetration vectors */
 		fv1.DiffOf(fStriker, fx1);
@@ -167,16 +143,10 @@ void MFPenaltyContact2DT::RHSDriver(void)
 				                dphi*fv1[1]/magtan, fColtemp2);
 					
 			/* get equation numbers */
-			nodes.Dimension(kNumFacetNodes + neighbors.Length());
-			nodes[0] = pelem[0];
-			nodes[1] = pelem[1];
-			nodes.CopyPart(kNumFacetNodes, neighbors, 0, neighbors.Length());
-			eqnos.Dimension(nodes.Length()*NumDOF());
-			eqnos2D.Alias(nodes.Length(), NumDOF(), eqnos.Pointer());
-			Field().SetLocalEqnos(nodes, eqnos2D);
+			fEqnos[0].RowAlias(i, eqnos);
 
 			/* assemble */
-			ElementSupport().AssembleRHS(Group(), fRHS, eqnos2D);
+			ElementSupport().AssembleRHS(Group(), fRHS, eqnos);
 		}
 	}
 
@@ -306,6 +276,10 @@ void MFPenaltyContact2DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 				ExceptionT::GeneralFail(caller, "striker %d is not meshfree", fStrikerTags[i]+1);
 	}
 
+	/* allocate striker coords */
+	fStrikerCoords.Dimension(fStrikerTags.Length(), NumSD());
+	fStrikerCoords = 0.0;
+
 	/* echo */
 	if (ElementSupport().PrintInput()) {
 		out << "\n Striker nodes:\n";
@@ -320,9 +294,20 @@ bool MFPenaltyContact2DT::SetActiveInteractions(void)
 {
 	int last_num_active = fActiveStrikers.Length();
 
-	/* current coords of all strikers */
-	ComputeStrikerCoordinates(fStrikerTags);
+	/* current striker coords */
+	if (fStrikerTags.Length() > 0) {
 
+		/* get reference coordinates */
+		dArray2DT ref_coords(fStrikerCoords.MajorDim(), fStrikerCoords.MinorDim());
+		ref_coords.RowCollect(fStrikerTags, ElementSupport().InitialCoordinates());
+
+		/* reconstruct displacement field */
+		fElementGroup->NodalDOFs(fStrikerTags, fStrikerCoords);
+
+		/* compute current configuration */
+		fStrikerCoords += ref_coords;
+	}
+		
 	/* construct search grid if needed */
 	if (!fGrid2D)
 	{
@@ -351,64 +336,9 @@ bool MFPenaltyContact2DT::SetActiveInteractions(void)
 	/* set striker/facet data */
 	SetActiveStrikers();
 	
-	/* set map from global ID to active striker index */
-	fNodeToActiveStriker.SetMap(fActiveStrikers);
-	
 	/* assume changed unless last and current step have no active */
 	if (last_num_active == 0 && fActiveStrikers.Length() == 0)
 		return false;
 	else
 		return true;
 }	
-
-void MFPenaltyContact2DT::ComputeStrikerCoordinates(const ArrayT<int>& strikers)
-{
-	/* dimension */
-	fStrikerCoords_man.SetMajorDimension(strikers.Length(), false);
-
-	/* current striker coords */
-	if (strikers.Length() > 0) {
-	
-		/* reconstruct displacement field */
-		iArrayT tmp;
-		tmp.Alias(strikers);
-		fElementGroup->NodalDOFs(tmp, fStrikerCoords);
-
-		/* compute current coordinates */
-		const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
-		for (int i = 0; i < strikers.Length(); i++)
-			fStrikerCoords.AddToRowScaled(i, 1.0, init_coords(strikers[i]));
-	}
-}
-
-/* set derivative arrays given the array of shape functions for the
- * nodes in the neighborhood of the meshfree striker. */
-void MFPenaltyContact2DT::SetDerivativeArrays(const dArrayT& mf_shape)
-{
-	/* dimenions */
-	int nsd = NumSD();
-	int ndof = NumDOF();
-	fdvT_man.Dimension((mf_shape.Length() + kNumFacetNodes)*ndof, nsd);
-
-	/* facet nodes */	
-	fdv1T(0,0) =-1.0;
-	fdv1T(1,1) =-1.0;
-	fdv1T(2,0) = 0.0;
-	fdv1T(3,1) = 0.0;
-
-	fdv2T(0,0) = 0.0;
-	fdv2T(1,1) = 0.0;
-	fdv2T(2,0) =-1.0;
-	fdv2T(3,1) =-1.0;
-
-	/* striker node */
-	int dex = kNumFacetNodes*ndof;
-	for (int i = 0; i < mf_shape.Length(); i++) {
-		double shape = mf_shape[i];
-		fdv1T(dex  , 0) = shape;
-		fdv1T(dex+1, 1) = shape;
-		fdv2T(dex  , 0) = shape;
-		fdv2T(dex+1, 1) = shape;
-		dex += ndof;
-	}
-}

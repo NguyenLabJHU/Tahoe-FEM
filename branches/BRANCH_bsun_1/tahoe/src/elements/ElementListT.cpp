@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.64 2003-10-02 21:05:04 hspark Exp $ */
+/* $Id: ElementListT.cpp,v 1.64.2.1 2003-11-04 19:47:05 bsun Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -23,6 +23,7 @@
 #ifdef COHESIVE_SURFACE_ELEMENT
 #include "CSEIsoT.h"
 #include "CSEAnisoT.h"
+#include "CSESymAnisoT.h"
 #include "MeshFreeCSEAnisoT.h"
 #include "ThermalSurfaceT.h"
 #endif
@@ -285,11 +286,11 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			}
 			case ElementT::kHyperElasticInitCSE:
 			{
-#ifdef CONTINUUM_ELEMENT
+#if defined(CONTINUUM_ELEMENT) && defined(COHESIVE_SURFACE_ELEMENT)
 				fArray[group] = new UpLagAdaptiveT(fSupport, *field);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT or COHESIVE_SURFACE_ELEMENT not enabled: %d", code);
 #endif
 			}
 			case ElementT::kTotLagHyperElastic:
@@ -446,6 +447,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				out << "    eq. " << CSEBaseT::Isotropic   << ", isotropic\n";
 				out << "    eq. " << CSEBaseT::Anisotropic << ", anisotropic\n";
 				out << "    eq. " << CSEBaseT::NoRotateAnisotropic << ", fixed-frame anisotropic\n";
+				out << "    eq. " << CSEBaseT::ModeIAnisotropic << ", anisotropic mode I\n";
 
 				if (CSEcode == CSEBaseT::Isotropic)
 					fArray[group] = new CSEIsoT(fSupport, *field);	
@@ -453,6 +455,8 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 					fArray[group] = new CSEAnisoT(fSupport, *field, true);
 				else if (CSEcode == CSEBaseT::NoRotateAnisotropic)
 					fArray[group] = new CSEAnisoT(fSupport, *field, false);
+				else if (CSEcode == CSEBaseT::ModeIAnisotropic)
+					fArray[group] = new CSESymAnisoT(fSupport, *field, false);
 				else
 				{
 					ExceptionT::BadInputValue(caller, "unknown CSE formulation: %d", CSEcode);
@@ -855,14 +859,40 @@ void ElementListT::SetActiveElementGroupMask(const ArrayT<bool>& mask)
 /* information about subordinate parameter lists */
 void ElementListT::DefineSubs(SubListT& sub_list) const
 {
+	/* inherited */
+	ParameterInterfaceT::DefineSubs(sub_list);
+
+	/* the element groups - an array of choices */
+	sub_list.AddSub("element_groups", ParameterListT::OnePlus, true);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void ElementListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	if (sub == "element_groups")
+	{
+		order = ParameterListT::Choice;
+
 #ifdef COHESIVE_SURFACE_ELEMENT
-	sub_list.AddSub("isotropic_CSE", ParameterListT::Any);
-	sub_list.AddSub("anisotropic_CSE", ParameterListT::Any);
+		sub_sub_list.AddSub("isotropic_CSE");
+		sub_sub_list.AddSub("anisotropic_CSE");
 #endif
 
 #ifdef ADHESION_ELEMENT
-	sub_list.AddSub("adhesion", ParameterListT::Any);
+		sub_sub_list.AddSub("adhesion");
 #endif
+
+#ifdef PARTICLE_ELEMENT
+		sub_sub_list.AddSub("particle_pair");
+#endif
+
+#ifdef CONTINUUM_ELEMENT
+		sub_sub_list.AddSub("diffusion");
+#endif
+	}
+	else /* inherited */
+		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
@@ -882,6 +912,16 @@ ParameterInterfaceT* ElementListT::NewSub(const StringT& list_name) const
 #ifdef ADHESION_ELEMENT
 	else if (list_name == "adhesion")
 		return new AdhesionT(fSupport);
+#endif
+
+#ifdef PARTICLE_ELEMENT
+	else if (list_name == "particle_pair")
+		return new ParticlePairT(fSupport);
+#endif
+
+#ifdef CONTINUUM_ELEMENT
+	else if (list_name == "diffusion")
+		return new DiffusionElementT(fSupport);
 #endif
 
 	/* inherited */	

@@ -1,5 +1,5 @@
 
-/* $Id: ParticleT.cpp,v 1.23.2.7 2003-10-27 21:49:04 bsun Exp $ */
+/* $Id: ParticleT.cpp,v 1.23.2.8 2003-11-04 19:47:17 bsun Exp $ */
 
 #include "ParticleT.h"
 
@@ -41,7 +41,6 @@ ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 	fNumTypes(-1),
 	fGrid(NULL),
 	fReNeighborCounter(0),
-	fCommManager(support.CommManager()),
 	fDmax(0),
 	fForce_man(0, fForce, field.NumDOF()),
 
@@ -50,6 +49,8 @@ ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 	fRandom(NULL)
 	
 {
+	SetName("particle");
+
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
 
@@ -64,6 +65,24 @@ ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 	/* values < 0 mean ignore */
 	fReNeighborDisp = (fReNeighborDisp < kSmall) ? -1 : fReNeighborDisp;
 	fReNeighborIncr = (fReNeighborIncr <= 0) ? -1 : fReNeighborIncr;
+}
+
+ParticleT::ParticleT(const ElementSupportT& support):
+	ElementBaseT(support),
+	fNeighborDistance(-1),
+	fReNeighborDisp(-1),
+	fReNeighborIncr(-1),
+	fNumTypes(-1),
+	fGrid(NULL),
+	fReNeighborCounter(0),
+	fDmax(0),
+	fActiveParticles(NULL),
+	fRandom(NULL)
+{
+	SetName("particle");
+
+	/* set matrix format */
+	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
 }
 
 /* destructor */
@@ -106,25 +125,57 @@ void ParticleT::Initialize(void)
 	out << " Re-neighboring interval . . . . . . . . . . . . = " << fReNeighborIncr << '\n';
 
 	/* periodic boundary conditions */
+
+	fPeriodicBounds.Dimension(NumSD(), 2);
+	fPeriodicBounds = 0.0;
+	fPeriodicLengths.Dimension(NumSD());
+	fPeriodicLengths=0.0;
+	fStretchSchedule.Dimension(NumSD());
+	fStretchSchedule = NULL;
+
 	out << " Periodic boundary conditions:\n";
 	out << setw(kIntWidth) << "dir"
 	    << setw(d_width) << "min"
 	    << setw(d_width) << "max" << '\n';
 	ifstreamT& in = ElementSupport().Input();
+
 	for (int i = 0; i < NumSD(); i++) {
 	
 		out << setw(kIntWidth) << i+1;
-		int has_periodic = 0;
-		in >> has_periodic;
-		if (has_periodic) {
+
+		 fhas_periodic = 0;
+		in >> fhas_periodic;
+		
+		if (fhas_periodic > 0) {
+
 			double x_min = 0.0, x_max = 0.0;
 			in >> x_min >> x_max;
 			out << setw(d_width) << x_min << setw(d_width) << x_max << '\n';
 			if (x_min > x_max)
 				ExceptionT::BadInputValue(caller, "x_min > x_max: %g < %g", x_min, x_max);
 
+			fPeriodicLengths[i]=x_max-x_min;
+			/* store */
+			fPeriodicBounds(i,0) = x_min;
+			fPeriodicBounds(i,1) = x_max;
+
+
 			/* send to CommManagerT */
 			ElementSupport().CommManager().SetPeriodicBoundaries(i, x_min, x_max);
+
+			
+			/* read stretch schedule */
+			if (fhas_periodic > 1) {
+				int schedule = -99;
+				in >> schedule;
+				schedule--;
+				fStretchSchedule[i] = ElementSupport().Schedule(schedule);
+				
+				/* check - expecting f(0) = 1 */
+				if (fabs(fStretchSchedule[i]->Value(0.0) - 1.0) > kSmall)
+					ExceptionT::BadInputValue(caller, "schedule %d does not have value 1 at time 0", schedule+1);
+			}
+
 		}
 		else out << setw(d_width) << "-" << setw(d_width) << "-" << '\n';
 	}
@@ -188,7 +239,8 @@ void ParticleT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 void ParticleT::RegisterOutput(void)
 {
 	/* "point connectivities" needed for output */
-	const ArrayT<int>* parition_nodes = fCommManager.PartitionNodes();
+	CommManagerT& comm_manager = ElementSupport().CommManager();
+	const ArrayT<int>* parition_nodes = comm_manager.PartitionNodes();
 	if (parition_nodes)
 	{
 		int num_nodes = parition_nodes->Length();
@@ -229,7 +281,8 @@ void ParticleT::WriteOutput(void)
 	/* reset connectivities */
 	if (ChangingGeometry())
 	{
-		const ArrayT<int>* parition_nodes = fCommManager.PartitionNodes();
+		CommManagerT& comm_manager = ElementSupport().CommManager();
+		const ArrayT<int>* parition_nodes = comm_manager.PartitionNodes();
 		if (parition_nodes)
 		{
 			int num_nodes = parition_nodes->Length();
@@ -253,16 +306,37 @@ GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
 	/* inherited */
 	GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
 
+	/* multiprocessor support */
+	CommManagerT& comm_manager = ElementSupport().CommManager();
+
 	/* compute max distance traveled since last neighboring 
 	 * (across all processes) */
-	fDmax = fCommManager.Communicator().Max(MaxDisplacement());
+	fDmax = comm_manager.Communicator().Max(MaxDisplacement());
 
 	/* check damping regions */
 	//fDampingCounters++;
 
+	/* reset periodic bounds given stretching */
+	bool has_moving = false;
+	for (int i = 0; i < NumSD(); i++)
+	{
+		const ScheduleT* stretch = fStretchSchedule[i];
+		if (stretch)
+		{
+			has_moving = true;
+			double scale = stretch->Value();
+			double x_min = scale*fPeriodicBounds(i,0);
+			double x_max = scale*fPeriodicBounds(i,1);
+	
+			/* redefine bounds */
+			comm_manager.SetPeriodicBoundaries(i, x_min, x_max);
+		}
+	}
+
 	/* generate contact element data */
 	fReNeighborCounter++;
-	if ((fReNeighborDisp > 0.0 && fDmax > fReNeighborDisp) || 
+	if (has_moving ||
+	    (fReNeighborDisp > 0.0 && fDmax > fReNeighborDisp) || 
 		(fReNeighborIncr != -1 && fReNeighborCounter >= fReNeighborIncr))
 	{
 		/* output stream */
@@ -329,7 +403,8 @@ void ParticleT::SetSkipParticles(const iArrayT& skip)
 		iArrayT nodes_used(nnd);
 
 		/* mark partition nodes as used */
-		const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
+		CommManagerT& comm_manager = ElementSupport().CommManager();
+		const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
 		if (part_nodes)
 		{
 			nodes_used = 0;
@@ -379,7 +454,7 @@ void ParticleT::SetConfiguration(void)
 	fForce_man.SetMajorDimension(nnd, false);
 
 	/* collect current coordinates */
-	const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
+	const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
 	const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
 	if (part_nodes)
 	{
@@ -425,7 +500,7 @@ void ParticleT::ApplyDamping(const RaggedArray2DT<int>& fNeighbors)
 /* return true if connectivities are changing */
 bool ParticleT::ChangingGeometry(void) const
 {
-	return fCommManager.PartitionNodesChanging();
+	return ElementSupport().CommManager().PartitionNodesChanging();
 }
 
 /* echo element connectivity data */
@@ -491,7 +566,8 @@ void ParticleT::GenerateNeighborList(const ArrayT<int>* particle_tags,
 	const dArray2DT& coords = ElementSupport().CurrentCoordinates();
 
 	/* node to processor map */
-	const ArrayT<int>* n2p_map = fCommManager.ProcessorMap();
+	CommManagerT& comm_manager = ElementSupport().CommManager();
+	const ArrayT<int>* n2p_map = comm_manager.ProcessorMap();
 
 	/* construct grid (using all local nodes) */
 	if (!fGrid) fGrid = new iGridManagerT(kAvgNodesPerCell, kMaxNumCells, coords, NULL);
@@ -510,7 +586,7 @@ void ParticleT::GenerateNeighborList(const ArrayT<int>* particle_tags,
 	 * ensure a full neighbor list of nodes in particle_tags */
 	if (double_list) full_list = false;
 	ArrayT<int> skipped;
-	const ArrayT<int>* partition_nodes = fCommManager.PartitionNodes();
+	const ArrayT<int>* partition_nodes = comm_manager.PartitionNodes();
 	int npn = (partition_nodes) ? partition_nodes->Length() : ElementSupport().NumNodes();
 	if (full_list && particle_tags && npn > num_tags) {
 		skipped.Dimension(npn);
@@ -572,7 +648,8 @@ void ParticleT::GenerateNeighborList(const ArrayT<int>* particle_tags,
 void ParticleT::AssembleParticleMass(const dArrayT& mass)
 {
 	/* partition nodes */
-	const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
+	CommManagerT& comm_manager = ElementSupport().CommManager();
+	const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
 	
 	fForce = 0.0;
 	if (part_nodes) /* not all nodes */
@@ -601,7 +678,8 @@ void ParticleT::AssembleParticleMass(const dArrayT& mass)
 double ParticleT::MaxDisplacement(void) const
 {
 	const char caller[] = "ParticleT::MaxDisplacement";
-	const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
+	CommManagerT& comm_manager = ElementSupport().CommManager();
+	const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
 	const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
 	double dmax2 = 0.0;
 	int nsd = curr_coords.MinorDim();
@@ -714,6 +792,7 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 	fThermostats.Dimension(nThermostats);
 	fThermostats = NULL;
 	
+	CommManagerT& comm_manager = ElementSupport().CommManager();
 	for (int i = 0; i < nThermostats; i++)
 	{
 		bool QisLangevin = false;
@@ -792,7 +871,7 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 				int nregions;
 				in >> nregions;
 				fThermostats[i]->InitRegion(in, ElementSupport().InitialCoordinates(),
-											fCommManager.PartitionNodes());
+											comm_manager.PartitionNodes());
 				break;
 			}
 			default:
@@ -840,6 +919,7 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 }
 
 
+
 void ParticleT::LLInsert (CSymmParamNode *ListStart, double value)
 {
   while(ListStart->Next!=NULL && ListStart->Next->value <value) ListStart=ListStart->Next;
@@ -851,6 +931,83 @@ void ParticleT::LLInsert (CSymmParamNode *ListStart, double value)
 }
 
 
+/* describe the parameters needed by the interface */
+void ParticleT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	ElementBaseT::DefineParameters(list);
+
+	ParameterT neighbor_distance(fNeighborDistance, "neighbor_distance");
+	neighbor_distance.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(neighbor_distance);
+
+	ParameterT re_neighbor_disp(fReNeighborDisp, "re_neighbor_displacement");
+	re_neighbor_disp.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(re_neighbor_disp, ParameterListT::ZeroOrOnce);
+
+
+
+	ParameterT re_neighbor_incr(fReNeighborIncr, "re_neighbor_increment");
+	re_neighbor_incr.AddLimit(0, LimitT::Lower);
+	re_neighbor_incr.SetDefault(1);
+	list.AddParameter(re_neighbor_incr, ParameterListT::ZeroOrOnce);
+}
+
+/* information about subordinate parameter lists */
+void ParticleT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ElementBaseT::DefineSubs(sub_list);
+
+	/* thermostats - array of choices */
+	sub_list.AddSub("thermostats", ParameterListT::Any, true);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void ParticleT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	if (sub == "thermostats")
+	{
+		order = ParameterListT::Choice;
+		
+		sub_sub_list.AddSub("ramped_damping");
+		sub_sub_list.AddSub("NoseHoover");
+		sub_sub_list.AddSub("Gauss_isokinetic");
+		sub_sub_list.AddSub("Langevin");
+	}
+	else /* inherited */
+		ElementBaseT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* ParticleT::NewSub(const StringT& list_name) const
+{
+	/* try to construct thermostat */
+	ThermostatBaseT* thermostat = New_Thermostat(list_name, false);
+	if (thermostat)
+		return thermostat;
+	else /* inherited */
+		return ElementBaseT::NewSub(list_name);
+}
+
+/* return a new pair property or NULL if the name is invalid */
+ThermostatBaseT* ParticleT::New_Thermostat(const StringT& name, bool throw_on_fail) const
+{
+	if (name == "ramped_damping")
+		return new RampedDampingT;
+	else if (name == "NoseHoover")
+		return new NoseHooverT;
+	else if (name == "Gauss_isokinetic")
+		return new GaussIsokineticT;
+	else if (name == "Langevin")
+		return new LangevinT;
+	else if (throw_on_fail)
+		ExceptionT::GeneralFail("ParticleT::New_Thermostat",
+			"unrecognized thermostat \"%s\"", name.Pointer());
+	
+	return NULL;
+}
 
 double ParticleT::GenCSymmValue (CSymmParamNode *CSymmParam, int ndof) 
 {
@@ -906,22 +1063,31 @@ void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CPara
   
       /* connecting vector */
       r_ij.DiffOf(x_j, x_i);
+      refcoords.RowAlias(tag_j, X_j);
+      deltaX.DiffOf(X_i, X_j);
+
+      SlipVectorTemp.DiffOf(deltaX, r_ji);
+      if (fhas_periodic&& (SlipVectorTemp.Magnitude() > fPeriodicLength.Max()/2.0)) 
+	{
+	  for (int i=0; i<ndof; i++) 
+	    {
+	      if (deltaX[i] > fPeriodicLength[i]/2.0) deltaX[i]-=fPeriodicLength[i];
+	      if (deltaX[i] < fPeriodicLength[i]/-2.0) deltaX[i]+=fPeriodicLength[i];
+	    }
+	  SlipVectorTemp.DiffOf(deltaX, r_ji);     
+	}
+      *SlipVector+=SlipVectorTemp;
+
       
       dArrayT r_ji(ndof);
       r_ji.DiffOf(x_i,x_j);
       
-      refcoords.RowAlias(tag_j, X_j);
-      deltaX.DiffOf(X_i, X_j);
+ 
       OmegaTemp.Outer(r_ji, deltaX);
       EtaTemp.Outer(deltaX, deltaX);
       Omega+=OmegaTemp;
       Eta+=EtaTemp;
      
-
-      SlipVectorTemp.DiffOf(deltaX, r_ji);
-      *SlipVector+=SlipVectorTemp;
-
-		    
       /*for each i-j and i-k for k>j, sum the vectors, and added the magnitude of the pair into the list*/
       for (int k = j+1; k<neighbors.Length(); k++)
 	{

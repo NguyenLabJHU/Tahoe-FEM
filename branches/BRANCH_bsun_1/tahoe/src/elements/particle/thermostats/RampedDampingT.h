@@ -1,4 +1,4 @@
-/* $Id: RampedDampingT.h,v 1.2 2003-04-22 01:23:16 cjkimme Exp $ */
+/* $Id: RampedDampingT.h,v 1.2.14.1 2003-11-04 19:47:19 bsun Exp $ */
 #ifndef _RAMPED_DAMPING_T_H_
 #define _RAMPED_DAMPING_T_H_
 
@@ -25,6 +25,7 @@ public:
 
 	/** constructor */
 	RampedDampingT(ifstreamT& in, const int& nsd, const double& dt);
+	RampedDampingT(void);
 
 	/** destructor */
 	virtual ~RampedDampingT(void) {};

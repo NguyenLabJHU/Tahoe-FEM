@@ -1,4 +1,4 @@
-/* $Id: SLUMatrix.h,v 1.7 2002-11-30 16:31:03 paklein Exp $ */
+/* $Id: SLUMatrix.h,v 1.7.22.1 2003-11-04 19:47:30 bsun Exp $ */
 /* created: rbridson (06/30/2000) */
 
 #ifndef _SLU_MATRIX_H_
@@ -50,10 +50,10 @@ public:
 	/* assemble the element contribution into the LHS matrix - assumes
 	 * that elMat is square (n x n) and that eqnos is also length n.
 	 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
-	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
-		const nArrayT<int>& col_eqnos);
-	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos);
+	virtual void Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos);
+	virtual void Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
+		const ArrayT<int>& col_eqnos);
+	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos);
 	
 	/* element accessor - READ ONLY */
 	double Element(int row, int col) const;

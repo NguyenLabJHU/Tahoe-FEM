@@ -1,5 +1,9 @@
-/* $Id: UpLagAdaptiveT.cpp,v 1.1 2003-08-08 00:40:42 paklein Exp $ */
+/* $Id: UpLagAdaptiveT.cpp,v 1.1.6.1 2003-11-04 19:47:13 bsun Exp $ */
 #include "UpLagAdaptiveT.h"
+
+/* requires cohesive surface elements */
+#ifdef COHESIVE_SURFACE_ELEMENT
+
 #include "CSEAnisoT.h"
 #include "AutoFill2DT.h"
 #include "TiedNodesT.h"
@@ -324,3 +328,5 @@ void UpLagAdaptiveT::FindLeaders(const iArray2DT& connects, const ArrayT<StatusT
 		}
 	}
 }
+
+#endif /* COHESIVE_SURFACE_ELEMENT */

@@ -1,4 +1,4 @@
-/* $Id: ElementCardT.cpp,v 1.12 2003-09-03 22:54:15 cjkimme Exp $ */
+/* $Id: ElementCardT.cpp,v 1.12.6.1 2003-11-04 19:47:28 bsun Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementCardT.h"
 #include <iostream.h>
@@ -15,7 +15,7 @@ using namespace Tahoe;
 
 /* array behavior */
 namespace Tahoe {
-const bool ArrayT<ElementCardT>::fByteCopy = false;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<ElementCardT>::fByteCopy = false;
 } /* namespace Tahoe */
 
 /* initialize static data */

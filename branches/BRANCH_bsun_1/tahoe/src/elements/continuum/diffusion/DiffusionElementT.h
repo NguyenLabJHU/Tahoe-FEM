@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.h,v 1.9 2003-06-09 06:58:12 paklein Exp $ */
+/* $Id: DiffusionElementT.h,v 1.9.8.1 2003-11-04 19:47:12 bsun Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSE_T_H_
 #define _DIFFUSE_T_H_
@@ -33,6 +33,7 @@ public:
 
 	/** constructor */
 	DiffusionElementT(const ElementSupportT& support, const FieldT& field);
+	DiffusionElementT(const ElementSupportT& support);
 
 	/** destructor */
 	~DiffusionElementT(void);

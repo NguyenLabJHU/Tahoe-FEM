@@ -1,4 +1,6 @@
-/* $Id: EAMT.h,v 1.15.6.1 2003-10-15 22:18:25 bsun Exp $ */
+
+/* $Id: EAMT.h,v 1.15.6.2 2003-11-04 19:47:17 bsun Exp $ */
+
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -21,6 +23,7 @@ public:
 
 	/** constructor */
 	EAMT(const ElementSupportT& support, const FieldT& field);
+	EAMT(const ElementSupportT& support);
 
 	/** collecting element group equation numbers */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -52,6 +55,12 @@ public:
 	 * particles and ghost particles which have prescribed motion. */
 	virtual void FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 		const iArray2DT& col_eq, dSPMatrixT& stiffness);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
 protected:
 

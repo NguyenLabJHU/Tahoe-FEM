@@ -1,4 +1,4 @@
-/* $Id: ParadynPairT.h,v 1.5 2003-03-25 01:22:41 saubry Exp $ */
+/* $Id: ParadynPairT.h,v 1.5.18.1 2003-11-04 19:47:18 bsun Exp $ */
 #ifndef _PARADYN_PAIR_T_H_
 #define _PARADYN_PAIR_T_H_
 
@@ -26,6 +26,7 @@ public:
 	 * coefficients of a cubic spline through the evenly spaced
 	 * values of the potential read from the file. */
 	ParadynPairT(const StringT& param_file);
+	ParadynPairT(void);
 
 	/** write properties to output */
 	virtual void Write(ostream& out) const;
@@ -50,6 +51,15 @@ public:
 	/** the coefficients array */
 	const dArray2DT& Coefficients(void) const { return fCoefficients; };
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 private:
 
 	/** \name interaction functions */
@@ -66,11 +76,11 @@ private:
 	 * \param coeff destination of coefficient. Allocated during the function call. */
 	static void ComputeCoefficients(const ArrayT<double>& f, double dx, dArray2DT& coeff);
 
+	/** initialize potential from stream */
+	void ReadParameters(const StringT& param_file);
+
 private:
 
-	/** path to source file */
-	StringT fParams;
-	
 	/** description from parameters file */
 	StringT fDescription;
 	

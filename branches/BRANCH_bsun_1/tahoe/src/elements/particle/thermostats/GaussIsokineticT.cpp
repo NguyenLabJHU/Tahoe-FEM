@@ -1,4 +1,4 @@
-/* $Id: GaussIsokineticT.cpp,v 1.6 2003-05-06 19:57:45 cjkimme Exp $ */
+/* $Id: GaussIsokineticT.cpp,v 1.6.12.1 2003-11-04 19:47:19 bsun Exp $ */
 #include "GaussIsokineticT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -17,7 +17,12 @@ using namespace Tahoe;
 GaussIsokineticT::GaussIsokineticT(ifstreamT& in, const int& nsd, const double& dt):
 	ThermostatBaseT(in, nsd, dt)
 {
-	
+	SetName("Gauss_isokinetic");
+}
+
+GaussIsokineticT::GaussIsokineticT(void)
+{
+	SetName("Gauss_isokinetic");
 }
 
 /* write properties to output */

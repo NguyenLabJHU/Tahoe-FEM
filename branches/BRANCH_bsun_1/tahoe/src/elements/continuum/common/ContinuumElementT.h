@@ -1,4 +1,6 @@
-/* $Id: ContinuumElementT.h,v 1.19 2002-11-21 01:13:37 paklein Exp $ */
+
+/* $Id: ContinuumElementT.h,v 1.19.22.1 2003-11-04 19:47:11 bsun Exp $ */
+
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -26,6 +28,7 @@ public:
 
 	/** constructor */
 	ContinuumElementT(const ElementSupportT& support, const FieldT& field);
+	ContinuumElementT(const ElementSupportT& support);
 
 	/** destructor */
 	virtual ~ContinuumElementT(void);
@@ -197,6 +200,21 @@ protected:
 	/** check consistency of material outputs.
 	 * \return true if output variables of all materials for the group matches */
 	virtual bool CheckMaterialOutput(void) const;
+
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	/*@}*/
+
 
 private:
 

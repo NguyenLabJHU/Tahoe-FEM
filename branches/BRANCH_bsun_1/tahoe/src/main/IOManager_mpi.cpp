@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.26 2003-01-27 07:00:27 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.26.20.1 2003-11-04 19:47:22 bsun Exp $ */
 /* created: paklein (03/14/2000) */
 #include "IOManager_mpi.h"
 
@@ -12,24 +12,17 @@ using namespace Tahoe;
 
 /* constructor */
 IOManager_mpi::IOManager_mpi(ifstreamT& in, CommunicatorT& comm,
-	const iArrayT& io_map,
 	const IOManager& local_IO, const PartitionT& partition,
 	const StringT& model_file, IOBaseT::FileTypeT format):
 	IOManager(in, local_IO),
 	fComm(comm),
-	fIO_map(io_map),
 	fPartition(partition),
 	fOutputGeometry(NULL)
 {
 	const char caller[] = "IOManager_mpi::IOManager_mpi";
 
-	if (io_map.Length() != local_IO.ElementSets().Length()) {
-		cout << "\n IOManager_mpi::IOManager_mpi: length of the io_map (" 
-		     << io_map.Length() << ") does not\n" 
-		     <<   "     match the number of output sets (" << 
-		     local_IO.ElementSets().Length() << ")" << endl;
-		throw ExceptionT::kSizeMismatch;	
-	}
+	/* map joined output sets onto processors */
+	SetOutputMap(local_IO, fIO_map);
 
 	/* local output sets */
 	const ArrayT<OutputSetT*>& element_sets = local_IO.ElementSets();
@@ -37,9 +30,8 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, CommunicatorT& comm,
 	/* load global geometry */
 	if (fIO_map.HasValue(fComm.Rank())) ReadOutputGeometry(model_file, element_sets, format);
 
-	fComm.Log(CommunicatorT::kModerate, caller, "constructing output sets");
-
 	/* construct global output sets - all of them to preserve ID's */
+	fComm.Log(CommunicatorT::kModerate, caller, "constructing output sets");
 	for (int i = 0; i < element_sets.Length(); i++)
 	{
 //cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: set: " << i << endl;
@@ -151,12 +143,7 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, CommunicatorT& comm,
 
 			/* check */
 			if (IO_ID != i)
-			{
-				cout << "\n IOManager_mpi::IOManager_mpi: expecting global I/O ID "
-				     << IO_ID << " to be the\n" <<   "     same as the local I/O ID "
-				     << i << endl;
-				throw ExceptionT::kGeneralFail;
-			}
+				ExceptionT::GeneralFail(caller, "global I/O ID %d != local I/O ID %d", IO_ID, i);
 		}
 		else
 		{
@@ -329,6 +316,14 @@ void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values, const dArray2
 	
 	/* synchronize */
 	fComm.Barrier();
+}
+
+/* temporarily re-route output to a database with the given filename */
+void IOManager_mpi::DivertOutput(const StringT& outfile)
+{
+	/* nothing to write if no output geometry */
+	if (fOutputGeometry)
+		IOManager::DivertOutput(outfile);
 }
 	
 /************************************************************************
@@ -708,6 +703,51 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 
 	/* check maps */
 	CheckAssemblyMaps();
+}
+
+void IOManager_mpi::SetOutputMap(const IOManager& local_IO, iArrayT& output_map) const
+{
+	/* registered output sets */
+	const ArrayT<OutputSetT*>& output_sets = local_IO.ElementSets();
+
+	/* initialize map - processor number for each element block */
+	output_map.Dimension(output_sets.Length());
+	output_map = 0;
+	
+	/* count of output values per processor */
+	iArrayT output_counts(fComm.Size());
+	output_counts = 0;
+	
+	/* output set size */
+	iArrayT set_size(output_sets.Length());
+	for (int i = 0; i < output_sets.Length(); i++)
+	{
+		const OutputSetT& set = *(output_sets[i]);
+	
+		/* count on this processor */
+		int size = 0;
+		size += set.NumNodes()*set.NodeOutputLabels().Length();
+		size += set.NumElements()*set.ElementOutputLabels().Length();
+		
+		/* total across processors */
+		size = fComm.Sum(size);
+		
+		set_size[i] = size;
+	}
+
+	/* map output sets to processors */
+	for (int i = 0; i < output_sets.Length(); i++)
+	{
+		int max_at;
+		set_size.Max(max_at);
+	
+		int min_at;
+		output_counts.Min(min_at);
+	
+		output_map[max_at] = min_at;
+		output_counts[min_at] += set_size[max_at];
+		set_size[max_at] = 0;
+	}
 }
 
 /* return the global node numbers of the set nodes residing

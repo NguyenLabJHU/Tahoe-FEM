@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.h,v 1.11 2002-11-30 16:31:03 paklein Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.11.22.1 2003-11-04 19:47:29 bsun Exp $ */
 /* created: paklein (03/23/1997) */
 #ifndef _GLOBAL_MATRIX_H_
 #define _GLOBAL_MATRIX_H_
@@ -12,6 +12,7 @@ namespace Tahoe {
 /* forward declarations */
 class dMatrixT;
 class ElementMatrixT;
+template <class TYPE> class ArrayT;
 template <class nTYPE> class nArrayT;
 class dArrayT;
 class iArray2DT;
@@ -28,7 +29,8 @@ public:
                    kAllPivots = 2,
                     kPrintLHS = 3,
                     kPrintRHS = 4,
-               kPrintSolution = 5};
+               kPrintSolution = 5,
+                    kCheckLHS = 6};
 
 	/** equation numbering scope */
 	enum EquationNumberScopeT {
@@ -77,16 +79,16 @@ public:
 	/*@{*/
 	/** assembly of square element matrix. The global equation numbers associated
 	 * with the rows and columns of the matrix are the same. */
-	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos) = 0;
+	virtual void Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos) = 0;
 
 	/** assembly of general element matrix. The global equation numbers associated
 	 * with the rows and columns of the matrix are specified separately and the
 	 * matrix does not need to be square. */
-	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
-		const nArrayT<int>& col_eqnos) = 0;
+	virtual void Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
+		const ArrayT<int>& col_eqnos) = 0;
 
 	/** assembly of a diagonal matrix */
-	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos) = 0;
+	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos) = 0;
 	/*@}*/
 
 	/* strong manipulation functions 
@@ -142,7 +144,16 @@ public:
 	 *        is supported. Otherwise is left unchanged.
 	 * \return true if the diagonal values where collected successfully */
 	virtual bool CopyDiagonal(dArrayT& diags) const;
-	
+
+	/** \name check functions */
+	/*@{*/
+	virtual void PrintAllPivots(void) const = 0;
+	virtual void PrintZeroPivots(void) const = 0;
+
+	/** write matrix if check code is GlobalMatrixT::kPrintLHS or if force is true */
+	virtual void PrintLHS(bool force = false) const = 0;
+	/*@}*/	
+
 protected:
 
 	/** precondition matrix */
@@ -153,9 +164,6 @@ protected:
 
 	/** \name check functions */
 	/*@{*/
-	virtual void PrintAllPivots(void) const = 0;
-	virtual void PrintZeroPivots(void) const = 0;
-	virtual void PrintLHS(void) const = 0;
 	void PrintRHS(const dArrayT& RHS) const;
 	void PrintSolution(const dArrayT& solution) const;
 	/*@}*/
