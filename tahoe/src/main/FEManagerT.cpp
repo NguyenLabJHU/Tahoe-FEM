@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.15 2001-08-15 00:32:49 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.16 2001-08-23 00:33:44 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "FEManagerT.h"
@@ -26,7 +26,6 @@
 #include "FDDynNodeManagerT.h"
 #include "VariFDNodesT.h"
 #include "VariFDDynNodesT.h"
-#include "XDOF_FDNodesT.h"
 #include "DuNodeManager.h"
 
 /* controllers */
@@ -991,11 +990,6 @@ void FEManagerT::SetNodeManager(void)
 			fNodeManager = new VariFDDynNodesT(*this);
 			break;
 
-		case GlobalT::kAugLagStatic:
-		
-			fNodeManager = new XDOF_FDNodesT(*this);
-			break;
-	
 		default:
 
 			cout << "FEManagerT::SetNodeManager: unknown analysis type." << endl;
@@ -1251,6 +1245,9 @@ void FEManagerT::SetIO(void)
 	/* element groups register output data */
 	for (int i = 0; i < fElementGroups.Length(); i++)
 		fElementGroups[i]->RegisterOutput();
+		
+	/* register output from nodes */		
+	fNodeManager->RegisterOutput();
 }
 
 /* (re-)set system to initial conditions */
