@@ -53,6 +53,9 @@
    	dArrayT GetAtom(Rotate3DT rotationMatrix, dArrayT grainCenter, int AtomNumber);
    	dArrayT GetAtom(Rotate2DT rotationMatrix, dArrayT grainCenter, int AtomNumber);
 		void MakeGrains(dArrayT lattice_parameter);
+	dArrayT ImposePBC(dArrayT currentCoord, dArrayT GrainCenter);
+	bool CheckCurrentGrain(dArrayT currentCoord, int currentGrain, double distanceToCurrentGrain);
+	bool CheckNoOverlap (dArrayT currentCoord, nArrayT <nArrayT<dArrayT> > *AtomsinGrain, int currentGrain, CrystalLatticeT *templateLattice);
    };
 
 
