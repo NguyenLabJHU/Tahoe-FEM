@@ -1,4 +1,4 @@
-/* $Id: ValueT.cpp,v 1.6 2003-04-22 18:32:16 paklein Exp $ */
+/* $Id: ValueT.cpp,v 1.6.2.1 2003-04-27 22:19:32 paklein Exp $ */
 #include "ValueT.h"
 #include <stdlib.h>
 #include <ctype.h>
@@ -7,6 +7,8 @@
 namespace Tahoe {
 const bool ArrayT<ValueT>::fByteCopy = false;
 }
+
+using namespace Tahoe;
 
 /* constructors */
 ValueT::ValueT(int a): 
