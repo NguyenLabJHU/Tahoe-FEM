@@ -1,3 +1,6 @@
+/* $Id: FossumSSIso2DT.h,v 1.5 2002-11-14 17:06:19 paklein Exp $ */
+#ifndef _FOSSUM_SS_ISO_2D_T_H_
+#define _FOSSUM_SS_ISO_2D_T_H_
 /* DEVELOPMENT */
 
 /* base class */
@@ -6,7 +9,6 @@
 
 #include "SSStructMatT.h"
 #include "IsotropicT.h"
-//#include "HookeanMatT.h"
 
 namespace Tahoe {
 
@@ -16,7 +18,7 @@ class FossumSSIso2DT: public FossumSSIsoT,
   public:
 
         /* constructor */
-        FossumSSIso2DT(ifstreamT& in, const SmallStrainT& element);
+        FossumSSIso2DT(ifstreamT& in, const SSMatSupportT& support);
 
         /* initialization */
         virtual void Initialize(void);
@@ -51,3 +53,4 @@ class FossumSSIso2DT: public FossumSSIsoT,
 };
 
 } // namespace Tahoe 
+#endif /* _FOSSUM_SS_ISO_2D_T_H_ */

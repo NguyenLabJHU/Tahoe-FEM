@@ -1,12 +1,11 @@
+/* $Id: FossumSSIsoT.h,v 1.5 2002-11-14 17:06:19 paklein Exp $ */
 /* DEVELOPMENT */
 /* 3-invariant, single-surface dilation/compaction plasticity model
  * with isotropic and kinematic hardeneing
  * Implemented 8/02 Craig Foster
  */
-
 #ifndef _FOSSUM_SS_ISOT_H_
 #define _FOSSUM_SS_ISOT_H_
-
 
 #include "StructuralMaterialT.h"
 #include "SSStructMatT.h"
@@ -20,8 +19,6 @@
 #include "dArrayT.h"
 #include "LAdMatrixT.h"
 
-// Primitive-like fns
-
 namespace Tahoe {
 
 /* forward declarations */
@@ -31,6 +28,10 @@ class dSymMatrixT;
 /* forward declarations */
 class ElementCardT;
 
+/** 3-invariant, single-surface dilation/compaction plasticity model
+ * with isotropic and kinematic hardeneing
+ * Implemented 8/02 Craig Foster
+ */
 class FossumSSIsoT: public SSStructMatT,
                     public IsotropicT,
                     public HookeanMatT
@@ -38,12 +39,8 @@ class FossumSSIsoT: public SSStructMatT,
   public:
 
         /* constructor */
-
-  /*
-        FossumSSIsoT(ifstreamT& in, const SmallStrainT& element, int num_ip, double mu, double lambda);
-  */
-
-        FossumSSIsoT(ifstreamT& in, const SmallStrainT& element);
+        FossumSSIsoT(ifstreamT& in, const SSMatSupportT& support);
+//      FossumSSIsoT(ifstreamT& in, const SSMatSupportT& support, int num_ip, double mu, double lambda);
 
         /* destructor */
         virtual ~FossumSSIsoT(void);

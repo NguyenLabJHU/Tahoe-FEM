@@ -1,3 +1,4 @@
+/* $Id: FossumSSIsoT.cpp,v 1.5 2002-11-14 17:06:19 paklein Exp $ */
 /* DEVELOPMENT */
 /* 3-invariant, single-surface dilation/compaction plasticity model
  * with isotropic and kinematic hardeneing
@@ -37,7 +38,7 @@ const int    kNSD         = 3;
 
 /*constructor*/
 
-FossumSSIsoT::FossumSSIsoT(ifstreamT& in, const SmallStrainT& element):
+FossumSSIsoT::FossumSSIsoT(ifstreamT& in, const SSMatSupportT& support):
   fA(-1.0),         
   fB(-1.0),
   fC(-1.0),
@@ -55,7 +56,7 @@ FossumSSIsoT::FossumSSIsoT(ifstreamT& in, const SmallStrainT& element):
   fmu          (Mu()),
   flambda      (Lambda()),
 
-  SSStructMatT(in, element),
+  SSStructMatT(in, support),
   IsotropicT(in),
   HookeanMatT(3),
   fStress(3),
@@ -383,6 +384,10 @@ const dSymMatrixT& FossumSSIsoT::StressCorrection(
         const dSymMatrixT& trialstrain, 
         ElementCardT& element, int ip)
 {
+#pragma unused(trialstrain)
+#pragma unused(element)
+#pragma unused(ip)
+
   /*not ready yet*/
 
   /*initialize*/      
@@ -399,6 +404,9 @@ const dSymMatrixT& FossumSSIsoT::StressCorrection(
 const dMatrixT& FossumSSIsoT::ModuliCorrection(const ElementCardT& element, 
         int ip)
 {
+#pragma unused(element)
+#pragma unused(ip)
+
         /* initialize */
 fModuliCorr = 0.0;
 
@@ -415,6 +423,9 @@ fModuliCorr = 0.0;
 const dMatrixT& FossumSSIsoT::ModuliCorrDisc(const ElementCardT& element, 
         int ip)
 {
+#pragma unused(element)
+#pragma unused(ip)
+
         /* initialize */
 
 fModuliCorrDisc = 0.0;
@@ -536,6 +547,8 @@ void FossumSSIsoT::LoadData(const ElementCardT& element, int ip)
 int FossumSSIsoT::PlasticLoading(const dSymMatrixT& trialstrain, 
         const ElementCardT& element, int ip)
 {
+#pragma unused(trialstrain)
+
   /* not yet plastic */
   //if (!element.IsAllocated()) 
   //return( YieldCondition(DeviatoricStress(trialstrain,element),
@@ -575,6 +588,7 @@ int FossumSSIsoT::PlasticLoading(const dSymMatrixT& trialstrain,
                         return 0;
                 }
         }
+	return 0;
 }       
 
 /* Computes the stress corresponding to the given element
@@ -1204,6 +1218,8 @@ double FossumSSIsoT::dGammadJ3(double J2)
 
 double FossumSSIsoT::d2fdJ3dJ3 (double J2, double J3)
 {
+#pragma unused(J3)
+
   double dGdJ3 = dGammadJ3(J2);
 
   return 2 * J2 * dGdJ3 * dGdJ3; 
@@ -1267,6 +1283,8 @@ double FossumSSIsoT::dFcdKappa(double I1, double kappa)
 
 double FossumSSIsoT::dLdKappa (double kappa)
 {
+#pragma unused(kappa)
+
   //return HeavisideFn(fKappa0 - kappa);
   return 1.0;
 }

@@ -1,39 +1,41 @@
-/* $Id: PMLMatT.h,v 1.2 2002-07-02 19:55:49 cjkimme Exp $ */
-/* created:   TDN (5/31/2001) */
-
+/* $Id: PMLMatT.h,v 1.3 2002-11-14 17:06:08 paklein Exp $ */
+/* created: TDN (5/31/2001) */
 #ifndef _PML_H_
 #define _PML_H_
  
 #include "StructuralMaterialT.h"
-#include "PMLT.h"
 #include "IsotropicT.h"
 #include "Material2DT.h"
-#include "C1FunctionT.h"
+#include "dSymMatrixT.h"
 
 namespace Tahoe {
+
+/* forward declarations */
+class PMLT;
+class C1FunctionT;
 
 class ifstreamT;
 
 /** base class for small strain linear elastic viscoelastic 
  * constitutive law */
-class PMLMatT: public StructuralMaterialT,IsotropicT,Material2DT
+class PMLMatT: public StructuralMaterialT, IsotropicT, Material2DT
 {
 	public:
 
-	/*constructor*/
-	PMLMatT(ifstreamT& in, const PMLT& element);
+	/* constructor */
+	PMLMatT(ifstreamT& in, const MaterialSupportT& support, const PMLT& element);
 	
-	/*print parameters*/
+	/* print parameters */
 	void Print(ostream& out) const;
 	void PrintName(ostream& out) const;
 		
-	/*calculate instantaneous moduli*/
+	/* calculate instantaneous moduli */
 	virtual void Initialize(void);
 		
 	/* apply pre-conditions at the current time step */
 	void InitStep(void);
 
-	/*initialize history variable*/
+	/* initialize history variable */
 	bool NeedsPointInitialization(void) const {return true;}; // declare true
 	void PointInitialize(void);                // assigns storage space
 	
@@ -60,9 +62,6 @@ class PMLMatT: public StructuralMaterialT,IsotropicT,Material2DT
 	/* returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);
 	
-	/*Form Residual flag*/
-	const GlobalT::StateT& fRunState;
-
 	/*number of spatial dimension*/
 	int fNumSD;
 	int fNumDOF;

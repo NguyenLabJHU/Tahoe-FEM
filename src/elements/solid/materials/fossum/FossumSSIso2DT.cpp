@@ -1,15 +1,14 @@
+/* $Id: FossumSSIso2DT.cpp,v 1.3 2002-11-14 17:06:19 paklein Exp $ */
 /* DEVELOPMENT */
-
 #include "FossumSSIso2DT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
-FossumSSIso2DT::FossumSSIso2DT(ifstreamT& in, const SmallStrainT& element):
-        FossumSSIsoT(in, element),
+/* constructor */
+FossumSSIso2DT::FossumSSIso2DT(ifstreamT& in, const SSMatSupportT& support):
+        FossumSSIsoT(in, support),
         Material2DT(in, kPlaneStrain),
         fStress2D(2),
         fModulus2D(dSymMatrixT::NumValues(2)),

@@ -1,25 +1,18 @@
-/* $Id: PMLMatT.cpp,v 1.5 2002-10-20 22:48:45 paklein Exp $ */
-/* created:   TDN (5/31/2001) */
-
+/* $Id: PMLMatT.cpp,v 1.6 2002-11-14 17:06:08 paklein Exp $ */
+/* created: TDN (5/31/2001) */
 #include "PMLMatT.h"
-
 #include <math.h>
 #include <iostream.h>
 #include "ExceptionT.h"
-#include "ContinuumElementT.h"
-#include "ElementSupportT.h"
 #include "fstreamT.h"
 #include "LinearDecreaseT.h"
-//#include "QuadraticDecreaseT.h"
-
-
-
-/* constructor */
+#include "PMLT.h"
 
 using namespace Tahoe;
 
-PMLMatT::PMLMatT(ifstreamT& in, const PMLT& element):
-	StructuralMaterialT(in, element),
+/* constructor */
+PMLMatT::PMLMatT(ifstreamT& in, const MaterialSupportT& support, const PMLT& element):
+	StructuralMaterialT(in, support),
 	Material2DT(in),
 	IsotropicT(in),
 	fPMLElement(element),
@@ -27,8 +20,7 @@ PMLMatT::PMLMatT(ifstreamT& in, const PMLT& element):
 	fNumDOF(NumDOF()),
 	fStress(NumSD()),
 	fModulus(dSymMatrixT::NumValues(NumSD())),
-	fRunState(ContinuumElement().RunState()),
-	fdt(ContinuumElement().ElementSupport().TimeStep())
+	fdt(support.TimeStep())
 {
  	int code;
 	in >> code;
@@ -222,12 +214,12 @@ const dSymMatrixT& PMLMatT::s_ij(void)
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
 	
-	/*obtain displacement gradients*/
+	/* obtain displacement gradients*/
 	const dMatrixT& gradU = fPMLElement.GradU();
 		
  //TEMP - revised Update/ComputeOutput sequence may make this
  //       check unnecessary	
-	if (1 || fRunState == GlobalT::kFormRHS)
+	if (1 /* || fRunState == GlobalT::kFormRHS */)
 	{
 		const dMatrixT& modulus = c_ijkl(); 
 //Q:What is the ordering of GradU?  GradU(i,j) = Ui,j?
