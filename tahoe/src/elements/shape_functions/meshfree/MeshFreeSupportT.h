@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.h,v 1.13 2004-07-15 08:29:59 paklein Exp $ */
+/* $Id: MeshFreeSupportT.h,v 1.14 2004-07-22 08:24:11 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #ifndef _MF_SUPPORT_T_H_
 #define _MF_SUPPORT_T_H_
@@ -120,8 +120,8 @@ public:
 	const ArrayT<int>& ResetNodes(void) const; /**< list of nodes affected by the last call to ResetFacets */
 	const ArrayT<int>& ResetCells(void) const; /**< list of cells affected by the last call to ResetFacets */
 
-	/* retrieving stored shape function values */
-
+	/** \name retrieving stored shape function values */
+	/*@{*/
 	/** fetch data for the specified node. triggers recalculation of any
 	 * nodal shape function that have been reset.
 	 * \param node particle data to fetch
@@ -137,9 +137,10 @@ public:
 	 * \param phi returns with the shape function values of neighbors at the integration points: [nip] x [nnd]
 	 * \param Dphi returns with neighbor shape function derivatives: [nip] x [nsd] x [nnd] */
 	void LoadElementData(int element, iArrayT& neighbors, dArray2DT& phi, ArrayT<dArray2DT>& Dphi);
+	/*@}*/
 
-	/* setting the MLS functions at an arbitrary point */
-
+	/** \name setting the MLS functions at an arbitrary point */
+	/*@{*/
 	/** set field at x.
 	 * \param x arbitrary field point
 	 * \param shift pointer to shift of x to use when determining the neighbor particles. NULL
@@ -163,6 +164,7 @@ public:
 	/** shape function derivatives for NeighborsAt the last call to SetFieldAt or SetFieldUsing
 	 * \return 2D array dimension: [nsd] x [nnd] */
 	const dArray2DT& DFieldAt(void) const;
+	/*@}*/
 
 	/** collect all nodes covering an arbitrary point 
 	 * \param x arbitrary field point
@@ -198,6 +200,11 @@ public:
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+
+	/** construct a new MLSSolverT with the given parameter list. The
+	 * MLSSolverT is constructed but MLSSolverT::Initialize still needs to
+	 * be called. Host is responsible for freeing the object that is returned. */
+	static MLSSolverT* New_MLSSolverT(int nsd, int completeness, const ParameterListT& params);
 
 protected:
 
