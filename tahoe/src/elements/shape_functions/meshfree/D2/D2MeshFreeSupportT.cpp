@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.cpp,v 1.12 2004-12-24 20:32:45 kyonten Exp $ */
+/* $Id: D2MeshFreeSupportT.cpp,v 1.13 2004-12-27 20:17:17 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupportT.h"
@@ -31,26 +31,6 @@ D2MeshFreeSupportT::D2MeshFreeSupportT(const ParentDomainT* domain, const dArray
 	fD2EFG(NULL)
 {
 	SetName("D2_meshfree_support"); //kyonten
-	/* only EFG solver is different for D2 */
-	if (fMeshfreeType == kEFG)
-	{
-		/* construct D2 MLS solver */
-		if (fCoords->MinorDim() == 2)
-			fD2EFG = new D2OrthoMLS2DT(fEFG->Completeness());
-		else
-		{
-			cout << "\n D2MeshFreeSupportT::D2MeshFreeSupportT: no 3D yet" << endl;
-			throw ExceptionT::kBadInputValue;
-		}
-		if (!fD2EFG) throw ExceptionT::kOutOfMemory;	
-		fD2EFG->Initialize();
-	
-	//TEMP - this will be better later
-	
-		/* set inherited */
-		delete fEFG;
-		fEFG = fD2EFG;
-	}
 }
 
 //*********************************************//
@@ -58,26 +38,6 @@ D2MeshFreeSupportT::D2MeshFreeSupportT(const ParentDomainT* domain, const dArray
 D2MeshFreeSupportT::D2MeshFreeSupportT(void) 
 {
 	SetName("D2_meshfree_support_2D");
-	/* only EFG solver is different for D2 */
-	if (fMeshfreeType == kEFG)
-	{
-		/* construct D2 MLS solver */
-		if (fCoords->MinorDim() == 2)
-			fD2EFG = new D2OrthoMLS2DT(fEFG->Completeness());
-		else
-		{
-			cout << "\n D2MeshFreeSupportT::D2MeshFreeSupportT: no 3D yet" << endl;
-			throw ExceptionT::kBadInputValue;
-		}
-		if (!fD2EFG) throw ExceptionT::kOutOfMemory;	
-		fD2EFG->Initialize();
-	
-	//TEMP - this will be better later
-	
-		/* set inherited */
-		delete fEFG;
-		fEFG = fD2EFG;
-	}
 }
 //*********************************************//
 
@@ -339,8 +299,29 @@ ParameterInterfaceT* D2MeshFreeSupportT::NewSub(const StringT& name) const
 /* accept parameter list */
 void D2MeshFreeSupportT::TakeParameterList(const ParameterListT& list)
 {
+	const char caller[] = "D2MeshFreeSupportT::TakeParameterList";
+
 	/* inherited */
 	MeshFreeSupportT::TakeParameterList(list);
+
+	/* only EFG solver is different for D2 */
+	if (fMeshfreeType == kEFG)
+	{
+		/* construct D2 MLS solver */
+		if (fCoords->MinorDim() == 2)
+			fD2EFG = new D2OrthoMLS2DT(fEFG->Completeness());
+		else
+			ExceptionT::BadInputValue(caller, "no 3D yet");
+
+		if (!fD2EFG) ExceptionT::OutOfMemory(caller);
+		fD2EFG->Initialize();
+	
+	//TEMP - this will be better later
+	
+		/* set inherited */
+		delete fEFG;
+		fEFG = fD2EFG;
+	}
 }
 //*****************************************************************//
 /*************************************************************************

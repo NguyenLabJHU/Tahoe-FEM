@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeSupportT.cpp,v 1.4 2004-12-24 20:33:55 kyonten Exp $ */
+/* $Id: D3MeshFreeSupportT.cpp,v 1.5 2004-12-27 20:17:24 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D3MeshFreeSupportT.h"
@@ -29,12 +29,6 @@ D3MeshFreeSupportT::D3MeshFreeSupportT(const ParentDomainT* domain, const dArray
 	D2MeshFreeSupportT(domain, coords, connects, nongridnodes)
 {
 	SetName("D3_meshfree_support"); //kyonten
-	/* only EFG solver is different for D3 */
-	if (fMeshfreeType == kEFG)
-	{
-		cout << "\n D3MeshFreeSupportT::D3MeshFreeSupportT: no EFG implemented" << endl;
-		throw ExceptionT::kBadInputValue;
-	}
 }
 
 //*********************************************//
@@ -42,12 +36,6 @@ D3MeshFreeSupportT::D3MeshFreeSupportT(const ParentDomainT* domain, const dArray
 D3MeshFreeSupportT::D3MeshFreeSupportT(void) 
 {
 	SetName("D3_meshfree_support_2D");
-	/* only EFG solver is different for D3 */
-	if (fMeshfreeType == kEFG)
-	{
-		cout << "\n D3MeshFreeSupportT::D3MeshFreeSupportT: no EFG implemented" << endl;
-		throw ExceptionT::kBadInputValue;
-	}
 }
 //*********************************************//
 
@@ -244,6 +232,11 @@ void D3MeshFreeSupportT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
 	D2MeshFreeSupportT::TakeParameterList(list);
+
+	/* only EFG solver is different for D3 */
+	if (fMeshfreeType == kEFG)
+		ExceptionT::BadInputValue("D3MeshFreeSupportT::TakeParameterList", 
+			"EFG not implemented");
 }
 //*****************************************************************//
 
