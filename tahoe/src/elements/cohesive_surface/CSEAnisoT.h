@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.25 2003-04-17 20:11:31 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.26 2003-04-18 23:05:12 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -114,6 +114,7 @@ protected:
 #ifndef _SIERRA_TEST_
 	pArrayT<TiedPotentialBaseT**> fTiedPots;
 	TiedPotentialBaseT* tiedpot;
+	bool qRetieNodes;
 
 	/** state variable storage array. 
 	 * Array has dimensions: [nel] x [nip * nvar] */
@@ -152,7 +153,7 @@ protected:
 	bool fCalcNodalInfo;
 	int fNodalInfoCode, iTiedFlagIndex;
 	dArray2DT fNodalQuantities;
-	iArrayT iBulkGroups;
+	iArrayT iBulkGroups, otherInds;
 	
 	/* if nodes are tied, keep track of free nodes per element */
 	dArray2DT freeNodeQ, freeNodeQ_last;

@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.16 2003-04-17 20:11:33 cjkimme Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.17 2003-04-18 23:05:16 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -348,6 +348,9 @@ void TiedPotentialT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& 
 }
 
 bool TiedPotentialT::NeedsNodalInfo(void) { return true; }
+
+bool TiedPotentialT::NodesMayRetie(void) { return false; }
+
 
 int TiedPotentialT::NodalQuantityNeeded(void) 
 { 
