@@ -1,4 +1,4 @@
-# $Id: GNU.linux.MT.macros,v 1.2 2001-12-10 22:15:16 paklein Exp $
+# $Id: GNU.linux.MT.macros,v 1.3 2002-03-19 17:18:52 paklein Exp $
 # GNU
 
 # additional flags for multithreaded code (spoolesMT in particular)
@@ -10,6 +10,7 @@ MT_LFLAGS = -lpthread
 
 MAKE        = make
 MAKE_DEPEND = makedepend
+DEPENDFLAGS = -I/usr/include/g++-3 -I/usr/include/g++-2
 COMP_C      = gcc
 COMP_CC     = g++
 COMP_F      = g77
@@ -31,7 +32,6 @@ RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf
 ECHO        = /bin/echo -e
 CAT         = cat
-INC_FLAGS   = -I/usr/include/g++-3 -I/usr/include/g++-2
 
 # command needed build library
 #BUILD_LIBRARY = BUILD_LIBRARY_RANLIB

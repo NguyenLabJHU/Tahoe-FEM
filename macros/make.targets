@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.14 2002-01-10 22:15:59 paklein Exp $
+# $Id: make.targets,v 1.15 2002-03-19 17:18:53 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -63,10 +63,10 @@ OPT_INC = \
 #########################################################################
 # paths for file dependencies
 DEPEND_FILE = all.depend
-DEPEND_PATH = -I$(INC_DIR) $(OPT_INC) $(INC_FLAGS)
+DEPEND_PATH = -I$(INC_DIR) $(OPT_INC) $(DEPENDFLAGS)
 
 # Sun spends too much time searching standard directories
-#DEPEND_PATH = -Y -I$(INC_DIR) $(OPT_INC) $(INC_FLAGS)
+#DEPEND_PATH = -Y -I$(INC_DIR) $(OPT_INC) $(DEPENDFLAGS)
 #########################################################################
 
 # default target
