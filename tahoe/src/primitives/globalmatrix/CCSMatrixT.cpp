@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.4 2001-06-12 22:15:11 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.5 2001-06-29 16:26:43 paklein Exp $ */
 /* created: paklein (05/29/1996)                                          */
 
 #include "CCSMatrixT.h"
@@ -216,6 +216,9 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_e
 	/* dimension check */
 	if (elMat.Rows() != row_eqnos.Length() ||
 	    elMat.Cols() != col_eqnos.Length()) throw eSizeMismatch;
+#else
+#pragma unused(row_eqnos)
+#pragma unused(col_eqnos)
 #endif
 
 	/* element matrix format */
