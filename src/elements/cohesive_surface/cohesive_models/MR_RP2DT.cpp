@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.cpp,v 1.10 2003-04-16 22:58:55 manzari Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.11 2003-04-17 17:31:28 cjkimme Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -76,6 +76,7 @@ void MR_RP2DT::InitStateVariables(ArrayT<double>& state)
     state[8]  = ftan_phi;
     state[9]  = ftan_psi;
     state[13] = 0.;
+    state[nTiedFlag] = -100.;
 }
 
 /* Value of the Yield Function */ 
@@ -134,236 +135,256 @@ const dArrayT& MR_RP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, 
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
 
-if (state[nTiedFlag] != 1. && state[nTiedFlag] != -10.)
-{
-	fTraction = 0.;
-
+if (state[nTiedFlag] == -100.)
+{  /* Nodes are definitely tied */
+	fTraction = 0.;		
 	return fTraction;
 }
-else
+else 
+{  	/* nodes are either untied or will be next step */
 
-if (! qIntegrate) 
-{
-    fTraction[0] = state[0];
-    fTraction[1] = state[1];
-    return fTraction;
-}
-else
-{
+	if (state[nTiedFlag] == -10.) 
+	{	/* nodes will be untied next step. Store stress and move along */
+		/* qIntegrate is guaranteed to be true */
+		if (!qIntegrate)
+			ExceptionT::GeneralFail("MR_RP2DT::Traction","nodes freed and !qIntegrate");
+		state[0] = sigma[2];
+		state[1] = sigma[1];
+		state[nTiedFlag] = -5.;
+		fTraction = 0.;
+			
+		return fTraction;
+	} 
 
-if (state[nTiedFlag] == -10.){
-    state[0] = sigma[2];
-    state[1] = sigma[1];
-	state[nTiedFlag] = 1.;
-	fTraction = 0.;
+	if (state[nTiedFlag] == -5.) /* First timestep with free nodes */
+	{  // Majid, the first time through with free nodes, your state[0] and 
+	   // state[1] contain the previous timestep's sigma values. 
+	   // I'm deliberately not getting the current timestep's sigma here.
+	   // I don't know which one you need. 
+		if (qIntegrate)
+			state[nTiedFlag] = 1.;
+	}
 	
-	return fTraction;
-}
-	
-int i; int j; int kk; int iplastic;
+	if (jump_u[0] < kSmall && jump_u[1] < kSmall)
+	{
+		fTraction = 0.;
+		return fTraction;
+	}
 
-dMatrixT AA(6,6); dMatrixT KE(2,2); dMatrixT KE_Inv(2,2); 
-dMatrixT I_mat(4,4); dMatrixT CMAT(6,6); dMatrixT A_qq(4,4);
-dMatrixT A_uu(2,2); dMatrixT A_uq(2,4); dMatrixT A_qu(4,2); 
-dMatrixT ZMAT(2,4); dMatrixT ZMATP(4,2); dMatrixT dQdSig2(2,2); 
-dMatrixT dqbardq(4,4); dMatrixT dQdSigdq(2,4); 
-dMatrixT dqbardSig(4,2); dMatrixT AA_inv(6,6); 
-dMatrixT X(6,1); dMatrixT Y(6,1); 
+	if (!qIntegrate) 
+	{   // Nothing to do here
+	    fTraction[0] = state[0];
+	    fTraction[1] = state[1];
+	    return fTraction;
+	}
+	else
+	{
+			
+		int i; int j; int kk; int iplastic;
 
-dArrayT up(2); dArrayT dup(2); dArrayT dSig(2); dArrayT qn(4);
-dArrayT qo(4); dArrayT Rvec(6); dArrayT Cvec(6); dArrayT upo(2);
-dArrayT R(6); dArrayT Rmod(6); dArrayT Sig(2); dArrayT Sig_I(2);
-dArrayT dQdSig(2); dArrayT dfdq(4); dArrayT qbar(4);
-dArrayT R2(6); dArrayT V_sig(2); dArrayT V_q(4); 
-dArrayT dfdSig(2); dArrayT dq(4);
+		dMatrixT AA(6,6); dMatrixT KE(2,2); dMatrixT KE_Inv(2,2); 
+		dMatrixT I_mat(4,4); dMatrixT CMAT(6,6); dMatrixT A_qq(4,4);
+		dMatrixT A_uu(2,2); dMatrixT A_uq(2,4); dMatrixT A_qu(4,2); 
+		dMatrixT ZMAT(2,4); dMatrixT ZMATP(4,2); dMatrixT dQdSig2(2,2); 
+		dMatrixT dqbardq(4,4); dMatrixT dQdSigdq(2,4); 
+		dMatrixT dqbardSig(4,2); dMatrixT AA_inv(6,6); 
+		dMatrixT X(6,1); dMatrixT Y(6,1); 
+
+		dArrayT up(2); dArrayT dup(2); dArrayT dSig(2); dArrayT qn(4);
+		dArrayT qo(4); dArrayT Rvec(6); dArrayT Cvec(6); dArrayT upo(2);
+		dArrayT R(6); dArrayT Rmod(6); dArrayT Sig(2); dArrayT Sig_I(2);
+		dArrayT dQdSig(2); dArrayT dfdq(4); dArrayT qbar(4);
+		dArrayT R2(6); dArrayT V_sig(2); dArrayT V_q(4); 
+		dArrayT dfdSig(2); dArrayT dq(4);
 
 
-double ff; double bott; double topp; double dlam; double dlam2; 
-double normr; double normflow; double normdup;
+		double ff; double bott; double topp; double dlam; double dlam2; 
+		double normr; double normflow; double normdup;
 
-/* initialize the neecessary vectors */
-	I_mat = 0.;
-    ZMAT = 0.; ZMATP = 0.; dlam = 0.; dlam2 = 0.; normr = 0.;
-    
-    for (i = 0; i<=1; ++i) {
-       up[i] = jump_u[i];
-       dup[i] = up[i] - state[i+2];
-       upo[i] = state[i+4];
-       Sig_I[i] = state[i];
-    }
-    
-    for (i = 0; i<=3; ++i) {
-        qn[i] = state[i+6];
-        qo[i] = qn[i];
-        I_mat(i,i) = 1.;
-    }
-    
-    Sig = Sig_I;
-    dQdSig_f(Sig, qn, dQdSig);
-    qbar_f(Sig, qn, qbar);
-    
-/* first estimate of plastic consistency parameter */    
-    normflow = dQdSig.Magnitude();
-    normdup  = dup.Magnitude();
-    dlam     = normdup;
-    dlam    /= normflow;
-    
-/* calculate residuals */    
-    for (i = 0; i<=1; ++i) {
-          R[i]  = upo[i];
-          R[i] -= up[i];
-          R[i] += dlam*dQdSig[i];
-    }
-        for (i = 0; i<=3; ++i) {
-          R[i+2]  = qo[i];
-          R[i+2] -= qn[i];
-          R[i+2] += dlam*qbar[i];
-    }
-    normr = R.Magnitude();
-    
-    
-/* Local Iteration */
+		/* initialize the neecessary vectors */
+			I_mat = 0.;
+		    ZMAT = 0.; ZMATP = 0.; dlam = 0.; dlam2 = 0.; normr = 0.;
+		    
+		    for (i = 0; i<=1; ++i) {
+		       up[i] = jump_u[i];
+		       dup[i] = up[i] - state[i+2];
+		       upo[i] = state[i+4];
+		       Sig_I[i] = state[i];
+		    }
+		    
+		    for (i = 0; i<=3; ++i) {
+		        qn[i] = state[i+6];
+		        qo[i] = qn[i];
+		        I_mat(i,i) = 1.;
+		    }
+		    
+		    Sig = Sig_I;
+		    dQdSig_f(Sig, qn, dQdSig);
+		    qbar_f(Sig, qn, qbar);
+		    
+		/* first estimate of plastic consistency parameter */    
+		    normflow = dQdSig.Magnitude();
+		    normdup  = dup.Magnitude();
+		    dlam     = normdup;
+		    dlam    /= normflow;
+		    
+		/* calculate residuals */    
+		    for (i = 0; i<=1; ++i) {
+		          R[i]  = upo[i];
+		          R[i] -= up[i];
+		          R[i] += dlam*dQdSig[i];
+		    }
+		        for (i = 0; i<=3; ++i) {
+		          R[i+2]  = qo[i];
+		          R[i+2] -= qn[i];
+		          R[i+2] += dlam*qbar[i];
+		    }
+		    normr = R.Magnitude();
+		    
+		    
+		/* Local Iteration */
 
-    kk = 0;
-    iplastic = 1;
-    Yield_f(Sig, qn, ff);
-    while (ff > fTol_1 | normr > fTol_2) {
-        if (kk > 500) {
-        	ExceptionT::GeneralFail("MR2DT::Traction","Too Many Iterations");
-        }
-        
-        dfdSig_f(Sig, qn, dfdSig);
-        dQdSig_f(Sig, qn, dQdSig);
-        qbar_f(Sig, qn, qbar);
-        dfdq_f(Sig, qn, dfdq);
-        dQdSig2_f(qn, dQdSig2);
-        dQdSigdq_f(Sig, qn, A_uq);
-        dqbardSig_f(Sig, qn, A_qu);
-        dqbardq_f(Sig, qn, A_qq);
-        
-        for (i = 0; i<=5; ++i) {
-          for (j = 0; j<=5; ++j) {
-            if (i<=1 & j<=1){
-             AA_inv(i,j)  = dQdSig2(i,j);
-             AA_inv(i,j) *= dlam;
-            }
-            if (i<=1 & j>1){
-             AA_inv(i,j)  = A_uq(i,j-2);
-             AA_inv(i,j) *= dlam;
-            } 
-            if(i>1 & j<=1){
-             AA_inv(i,j)  = A_qu(i-2,j);
-             AA_inv(i,j) *= dlam;
-            } 
-            if(i>1 & j >1) {
-             AA_inv(i,j)  = -I_mat(i-2,j-2);
-             AA_inv(i,j) *= 1.;
-             AA_inv(i,j) += dlam*A_qq(i-2,j-2);
-            } 
-          }
-        }
-        
-        AA.Inverse(AA_inv);
-        
-        V_sig = dfdSig;
-        V_q = dfdq;
-        for (i = 0; i<=5; ++i) {
-            if (i<=1){
-             Rvec[i] = V_sig[i];
-             Cvec[i] = dQdSig[i];
-            }
-            if (i > 1){
-             Rvec[i] = V_q[i-2];
-             Cvec[i] = qbar[i-2];
-            }
-        }
-        Yield_f(Sig, qn, ff);
-        dArrayT tmpVec(6);
-        AA.Multx(R,tmpVec);
-        topp = ff;
-        topp -= dArrayT::Dot(Rvec,tmpVec);        
-        AA.Multx(Cvec,tmpVec);
-        bott = dArrayT::Dot(Rvec,tmpVec); 		
-        dlam2 = topp/bott;
-         for (i = 0; i<=5; ++i) {
-            if (i<=1){
-             Rmod[i] = dQdSig[i];
-            }
-            if (i >1){
-             Rmod[i] = qbar[i-2];
-            }
-        }
-        Rmod *= dlam2;
-        R2 = R;
-        R2 += Rmod;
-        AA.Multx(R2,X);
-        Y = 0.;
-        Y -= X;
-        for (i = 0; i<=5; ++i) {
-            if (i<=1) {
-             dSig[i] = Y[i];
-            }
-            if (i > 1) {
-             dq[i-2] = Y[i];
-            }
-        }
-        
- /*  Update stresses and internal variables */       
-        Sig += dSig;
-        qn  += dq;
-        dlam = dlam + dlam2;
-        kk = kk + 1;
-        
- /*  Calculation of Yield Function and Residuals for next iteration check */       
-        Yield_f(Sig, qn, ff);
-        dQdSig_f(Sig, qn, dQdSig);
-        qbar_f(Sig, qn, qbar);
-        
-        for (i = 0; i<=1; ++i) {
-          R[i]  = upo[i];
-          R[i] -= up[i];
-          R[i] += dlam*dQdSig[i];
-        }
-        for (i = 0; i<=3; ++i) {
-          R[i+2]  = qo[i];
-          R[i+2] -= qn[i];
-          R[i+2] += dlam*qbar[i];
-        }
-        normr = R.Magnitude();
-        
-      }
-      
-/* update the state variables after convergence is achieved */
-    state[0] = Sig[0];
-    state[1] = Sig[1];     
-	fTraction[0] = state[0];
-	fTraction[1] = state[1];
-	state[2] = jump_u[0];
-	state[3] = jump_u[1];
-	state[4] = up[0];
-	state[5] = up[1];
-	state[6] = qn[0];
-	state[7] = qn[1];
-	state[8] = qn[2];
-	state[9] = qn[3];
-	state[10] = ff;
-	state[11] = dlam;
-	state[12] = double(iplastic);
-	state[13] = normr;
-	dQdSig_f(Sig, qn, dQdSig);
-	state[14] = Sig[0]*dQdSig[0];
-	state[14] += (Sig[1] + fabs(Sig[1]))*dQdSig[1]/2.;
-	state[14] /=fGf_I;
-	state[14] *=dlam;
-	state[15]  = signof(Sig[0]);
-	state[15] -= signof(Sig[0])*fabs(Sig[1]*qn[2]);
-	state[15] *= dQdSig[0];
-	state[15] /= fGf_II;
-	state[15] *=dlam;
-	state[16] = double(kk);
+		    kk = 0;
+		    iplastic = 1;
+		    Yield_f(Sig, qn, ff);
+		    while (ff > fTol_1 | normr > fTol_2) {
+		        if (kk > 500) {
+		        	ExceptionT::GeneralFail("MR2DT::Traction","Too Many Iterations");
+		        }
+		        
+		        dfdSig_f(Sig, qn, dfdSig);
+		        dQdSig_f(Sig, qn, dQdSig);
+		        qbar_f(Sig, qn, qbar);
+		        dfdq_f(Sig, qn, dfdq);
+		        dQdSig2_f(qn, dQdSig2);
+		        dQdSigdq_f(Sig, qn, A_uq);
+		        dqbardSig_f(Sig, qn, A_qu);
+		        dqbardq_f(Sig, qn, A_qq);
+		        
+		        for (i = 0; i<=5; ++i) {
+		          for (j = 0; j<=5; ++j) {
+		            if (i<=1 & j<=1){
+		             AA_inv(i,j)  = dQdSig2(i,j);
+		             AA_inv(i,j) *= dlam;
+		            }
+		            if (i<=1 & j>1){
+		             AA_inv(i,j)  = A_uq(i,j-2);
+		             AA_inv(i,j) *= dlam;
+		            } 
+		            if(i>1 & j<=1){
+		             AA_inv(i,j)  = A_qu(i-2,j);
+		             AA_inv(i,j) *= dlam;
+		            } 
+		            if(i>1 & j >1) {
+		             AA_inv(i,j)  = -I_mat(i-2,j-2);
+		             AA_inv(i,j) *= 1.;
+		             AA_inv(i,j) += dlam*A_qq(i-2,j-2);
+		            } 
+		          }
+		        }
+		        
+		        AA.Inverse(AA_inv);
+		        
+		        V_sig = dfdSig;
+		        V_q = dfdq;
+		        for (i = 0; i<=5; ++i) {
+		            if (i<=1){
+		             Rvec[i] = V_sig[i];
+		             Cvec[i] = dQdSig[i];
+		            }
+		            if (i > 1){
+		             Rvec[i] = V_q[i-2];
+		             Cvec[i] = qbar[i-2];
+		            }
+		        }
+		        Yield_f(Sig, qn, ff);
+		        dArrayT tmpVec(6);
+		        AA.Multx(R,tmpVec);
+		        topp = ff;
+		        topp -= dArrayT::Dot(Rvec,tmpVec);        
+		        AA.Multx(Cvec,tmpVec);
+		        bott = dArrayT::Dot(Rvec,tmpVec); 		
+		        dlam2 = topp/bott;
+		         for (i = 0; i<=5; ++i) {
+		            if (i<=1){
+		             Rmod[i] = dQdSig[i];
+		            }
+		            if (i >1){
+		             Rmod[i] = qbar[i-2];
+		            }
+		        }
+		        Rmod *= dlam2;
+		        R2 = R;
+		        R2 += Rmod;
+		        AA.Multx(R2,X);
+		        Y = 0.;
+		        Y -= X;
+		        for (i = 0; i<=5; ++i) {
+		            if (i<=1) {
+		             dSig[i] = Y[i];
+		            }
+		            if (i > 1) {
+		             dq[i-2] = Y[i];
+		            }
+		        }
+		        
+		 /*  Update stresses and internal variables */       
+		        Sig += dSig;
+		        qn  += dq;
+		        dlam = dlam + dlam2;
+		        kk = kk + 1;
+		        
+		 /*  Calculation of Yield Function and Residuals for next iteration check */       
+		        Yield_f(Sig, qn, ff);
+		        dQdSig_f(Sig, qn, dQdSig);
+		        qbar_f(Sig, qn, qbar);
+		        
+		        for (i = 0; i<=1; ++i) {
+		          R[i]  = upo[i];
+		          R[i] -= up[i];
+		          R[i] += dlam*dQdSig[i];
+		        }
+		        for (i = 0; i<=3; ++i) {
+		          R[i+2]  = qo[i];
+		          R[i+2] -= qn[i];
+		          R[i+2] += dlam*qbar[i];
+		        }
+		        normr = R.Magnitude();
+		        
+		      }
+		      
+		/* update the state variables after convergence is achieved */
+		    state[0] = Sig[0];
+		    state[1] = Sig[1];     
+			fTraction[0] = state[0];
+			fTraction[1] = state[1];
+			state[2] = jump_u[0];
+			state[3] = jump_u[1];
+			state[4] = up[0];
+			state[5] = up[1];
+			state[6] = qn[0];
+			state[7] = qn[1];
+			state[8] = qn[2];
+			state[9] = qn[3];
+			state[10] = ff;
+			state[11] = dlam;
+			state[12] = double(iplastic);
+			state[13] = normr;
+			dQdSig_f(Sig, qn, dQdSig);
+			state[14] = Sig[0]*dQdSig[0];
+			state[14] += (Sig[1] + fabs(Sig[1]))*dQdSig[1]/2.;
+			state[14] /=fGf_I;
+			state[14] *=dlam;
+			state[15]  = signof(Sig[0]);
+			state[15] -= signof(Sig[0])*fabs(Sig[1]*qn[2]);
+			state[15] *= dQdSig[0];
+			state[15] /= fGf_II;
+			state[15] *=dlam;
+			state[16] = double(kk);
 
-	return fTraction;
-}
+			return fTraction;
+		}
+	}
 }
 
 /* calculation of Yield_f */
@@ -578,7 +599,7 @@ const dMatrixT& MR_RP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>&
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif
 
-	if (state[nTiedFlag] != 1.)
+	if (state[nTiedFlag] != 1. || jump_u[0] < kSmall && jump_u[1] < kSmall)
 	{
 		fStiffness = 0.;
 		return fStiffness;
