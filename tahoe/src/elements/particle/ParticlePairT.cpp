@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.20 2003-08-07 21:11:33 fwdelri Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.21 2003-08-20 23:15:31 pgandhi Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -114,12 +114,10 @@ void ParticlePairT::WriteOutput(void)
 	/* map from partition node index */
 	const InverseMapT* inverse_map = fCommManager.PartitionNodes_inv();
 
-	////////////////////////////////////////////////////////
 	dSymMatrixT vs_i(ndof), temp(ndof);
 	int num_stresses = vs_i.NumValues(ndof);
 	//dArray2DT vsvalues(non, num_stresses);
 	num_output += num_stresses;
-	///////////////////////////////////////////////////// 
 
 	/* output arrays length number of active nodes */
 	dArray2DT n_values(non, num_output), e_values;
@@ -131,12 +129,10 @@ void ParticlePairT::WriteOutput(void)
 	/* pair properties function pointers */
 	int current_property = -1;
 	PairPropertyT::EnergyFunction energy_function = NULL;	
-	//////////////////////////////////////////////////////
 	PairPropertyT::ForceFunction force_function = NULL;
 	//const double* Paradyn_table = NULL;
 	//double dr = 1.0;
 	//int row_size = 0, num_rows = 0;
-	//////////////////////////////////////////////////
 
 	/* the field */
 	const FieldT& field = Field();
@@ -186,10 +182,9 @@ void ParticlePairT::WriteOutput(void)
 		/* tags */
 		int   tag_i = neighbors[0]; /* self is 1st spot */
 		int  type_i = fType[tag_i];
-		///////////////////////////////////////////////////////
 		//double* f_i = fForce(tag_i);
 		vs_i = 0.0;
-		///////////////////////////////////////////////////		
+
 		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
 		
 		/* values for particle i */
@@ -210,19 +205,15 @@ void ParticlePairT::WriteOutput(void)
 			/* tags */
 			int   tag_j = neighbors[j];
 			int  type_j = fType[tag_j];
-			////////////////////////////////////////////////
-			//double* f_j = fForce(tag_j);
-			//////////////////////////////////////////////		
 			
 			/* set pair property (if not already set) */
 			int property = fPropertiesMap(type_i, type_j);
 			if (property != current_property)
 			{
 				energy_function = fPairProperties[property]->getEnergyFunction();
-				////////////////////////////////////////
+
 				//if (!fPairProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
 				force_function = fPairProperties[property]->getForceFunction();
-				////////////////////////////////////
 				current_property = property;
 			}
 		
@@ -237,15 +228,11 @@ void ParticlePairT::WriteOutput(void)
 			double uby2 = 0.5*energy_function(r, NULL, NULL);
 			values_i[ndof] += uby2;
 			
-			///////////////////////////////////////////////////////
 	      	/* interaction force */
 			double F = force_function(r, NULL, NULL);
 			double Fbyr = F/r;
-			  //f_i=r_ij[nnf1]*Fbyr;
-			  //f_i[nnf1] += f_i[nnf1];			     
 			temp.Outer(r_ij);
 			vs_i.AddScaled(0.5*Fbyr, temp);
-			/////////////////////////////////////////
 
 			/* second node may not be on processor */
 			if (!proc_map || (*proc_map)[tag_j] == rank) {
@@ -266,13 +253,11 @@ void ParticlePairT::WriteOutput(void)
 				}
 			}
 		}
-		///////////////////////////////////////////////////////	
 		 /* copy stress into array */
 		 for (int cc = 0; cc < num_stresses; cc++) {
 			int ndex = ndof+2+cc;
 		   	values_i[ndex] += vs_i[cc];
 		 }
-		 ////////////////////////////////////////
 	}
 
 	/* send */
@@ -394,7 +379,6 @@ void ParticlePairT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 	int num_labels =
 		ndof // displacements
 		+ 2;     // PE and KE
-	///////////////////////////////////////////////////////////
 	int num_stress=0;
 	const char* stress[6];
 	if (ndof==3){
@@ -417,17 +401,15 @@ void ParticlePairT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 	  stress[0] = "s11";
 	  }
 	num_labels+=num_stress;
-	/////////////////////////////////////////////////
 	labels.Dimension(num_labels);
 	int dex = 0;
 	for (dex = 0; dex < NumDOF(); dex++)
 		labels[dex] = disp[dex];
 	labels[dex++] = "PE";
 	labels[dex++] = "KE";
-	////////////////////////////////////////////////////////////
+
 	for (int ns =0 ; ns<num_stress; ns++)
 	  labels[dex++]=stress[ns];
-	//////////////////////////////////////////////////////////
 }
 
 /* form group contribution to the stiffness matrix */
