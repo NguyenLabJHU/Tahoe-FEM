@@ -168,9 +168,9 @@ void AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
 	  }
 	case ELEMENTHEADER:
 	  {
-	    int objnum, intpt;
+	    int objnum, intpt, sectpt;
 	    if (fStartCount == 1)
-	      ReadElementHeader (objnum, intpt, location);
+	      ReadElementHeader (objnum, intpt, sectpt, location);
 	    break;
 	  }
 	case OUTPUTDEFINE: 
@@ -328,6 +328,41 @@ int AbaqusResultsT::NumElementNodes (StringT& name)
   return fCurrentLength - 1;
 }
 
+int AbaqusResultsT::NumElementQuadPoints (StringT& name)
+{
+  ResetFile ();
+  StringT setname = "";
+
+  while (strncmp (setname.Pointer(), name.Pointer(), name.Length()) != 0)
+    {
+      AdvanceTo (ELEMENTSET);
+      if (!Read (setname, 1)) throw eDatabaseFail;
+    }
+
+  int el;
+  if (!Read (el)) throw eDatabaseFail;
+
+  ResetFile ();
+  int cel=-1;
+  while (cel != el)
+    {
+      AdvanceTo (ELEMENT);
+      if (!Read (cel)) throw eDatabaseFail;
+    }
+
+  int numintpts;
+  GeometryT::CodeT code;
+  StringT elname;
+  if (!Read (elname, 1)) throw eDatabaseFail;
+  if (TranslateElementName (elname.Pointer(), code, numintpts) == BAD)
+    {
+      fMessage << "\nAbaqusResultsT::GeometryCode Unable to translate element name.\n\n";
+      throw eDatabaseFail;
+    }
+
+  return numintpts;
+}
+
 void AbaqusResultsT::ElementSet (StringT& name, iArrayT& elset) 
 {
   ResetFile ();
@@ -450,6 +485,7 @@ void AbaqusResultsT::ReadVariables (VariableType vt, int step, dArray2DT& values
   bool subset = true;
   if (name.Length() < 2) subset = false;
   iArrayT set;
+  int numquadpts = 0;
   switch (vt)
     {
     case kNodeVar:
@@ -473,11 +509,13 @@ void AbaqusResultsT::ReadVariables (VariableType vt, int step, dArray2DT& values
 	  {
 	    set.Allocate (NumElements (name));
 	    ElementSet (name, set);
+	    numquadpts = NumElementQuadPoints (name);
 	  }
 	else
 	  {
 	    set.Allocate (fNumElements);
 	    ElementMap (set);
+	    numquadpts = NumElementQuadPoints (fElementSetNames[0]);
 	  }
 	break;
       }
@@ -501,7 +539,7 @@ void AbaqusResultsT::ReadVariables (VariableType vt, int step, dArray2DT& values
     }
 
   int key;
-  int ID, objnum, intpt, location, outputmode;
+  int ID, objnum, intpt, secpt, location, outputmode;
   while (ReadNextRecord (key) == OKAY)
     {
       switch (key)
@@ -509,15 +547,12 @@ void AbaqusResultsT::ReadVariables (VariableType vt, int step, dArray2DT& values
 	case ENDINCREMENT:
 	case MODAL:
 	  return;
-	  
 	case ELEMENTHEADER:
-	  ReadElementHeader (objnum, intpt, location);
+	  ReadElementHeader (objnum, intpt, secpt, location);
 	  break;
-
 	case OUTPUTDEFINE:
 	  ReadOutputDefinitions (outputmode);
 	  break;
-
 	default:
 	  {
 	    if (CorrectType (outputmode, objnum, intpt, location, vt, ID))
@@ -527,10 +562,14 @@ void AbaqusResultsT::ReadVariables (VariableType vt, int step, dArray2DT& values
 		  if (!Read (ID)) throw eDatabaseFail;
 		
 		bool save = true;
-		int j;
-		set.HasValue (ID, j);
-		if (j < 0 || j > set.Length())
+		int row;
+		set.HasValue (ID, row);
+		if (row < 0 || row > set.Length())
 		  save = false;
+
+		// modify row by 
+		if (vt == kQuadVar)
+		  row = row*numquadpts + intpt - 1;
 
 		if (save)
 		  {
@@ -541,7 +580,9 @@ void AbaqusResultsT::ReadVariables (VariableType vt, int step, dArray2DT& values
 
 		    int index = VariableKeyIndex (k);
 		    int offset = fVarArrayColumn [index];
-		    values.CopyPart (j*values.MinorDim() + offset, v, 0, v.Length()); 
+		    //cout << ID << " " << intpt << " " << k << " ";
+		    //cout << row << " " << values.MinorDim() << " " << offset << endl;
+		    values.CopyPart (row*values.MinorDim() + offset, v, 0, v.Length()); 
 		  }
 	      }
 	  }
@@ -834,9 +875,8 @@ void AbaqusResultsT::ReadOutputDefinitions (int &outputmode)
     throw eDatabaseFail;
 }
 
-void AbaqusResultsT::ReadElementHeader (int &objnum, int& intpt, int &location)
+void AbaqusResultsT::ReadElementHeader (int &objnum, int& intpt, int& secpt, int &location)
 {
-  int secpt;
   if (!Read (objnum) || !Read (intpt) || !Read (secpt) || !Read (location) )
     throw eDatabaseFail;
 }

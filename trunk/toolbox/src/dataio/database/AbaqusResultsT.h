@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.h,v 1.2 2001-09-04 16:18:20 paklein Exp $ */
+/* $Id: AbaqusResultsT.h,v 1.3 2001-09-21 13:49:59 sawimme Exp $ */
 /*
    CREATED: S. Wimmer 9 Nov 2000
 
@@ -66,6 +66,7 @@ class AbaqusResultsT
   void ElementMap (iArrayT& e) const;
   int  NumElements (StringT& name);
   int  NumElementNodes (StringT& name);
+  int  NumElementQuadPoints (StringT& name);
   void ElementSet (StringT& name, iArrayT& elset);
   void GeometryCode (StringT& name, GeometryT::CodeT& code);
 
@@ -106,7 +107,7 @@ class AbaqusResultsT
   void NextTimeSteps (int &number, double &time);
   void ScanElement (void);
   void ReadOutputDefinitions (int &outputmode);
-  void ReadElementHeader (int& objnum, int& intpt, int &location);
+  void ReadElementHeader (int& objnum, int& intpt, int& secpt, int &location);
   void ScanVariable (AbaqusResultsT::VariableKeyT key, int outputmode, int location);
 
   bool VariableWrittenWithNodeNumber (AbaqusResultsT::VariableKeyT key) const;
