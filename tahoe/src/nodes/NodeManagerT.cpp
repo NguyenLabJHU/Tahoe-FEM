@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.18.2.4 2002-12-18 09:48:33 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.18.2.5 2002-12-18 21:11:22 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -68,14 +68,15 @@ int NodeManagerT::Rank(void) const { return fFEManager.Rank(); }
 int NodeManagerT::Size(void) const { return fFEManager.Size(); }
 
 int NodeManagerT::NumEquations(int group) const 
-{ 
+{
+	/* all fields store the same number of equations */
 	int neq = 0;
-	for (int i = 0; i < fFields.Length(); i++)
+	for (int i = 0; neq == 0 && i < fFields.Length(); i++)
 		if (fFields[i]->Group() == group)
 			neq += fFields[i]->NumEquations();
 			
-	/* get XDOF equations */
-	neq += XDOF_ManagerT::NumEquations(group);
+	/* just XDOF equations? */
+	if (neq == 0) neq += XDOF_ManagerT::NumEquations(group);
 				
 	return neq; 
 }
@@ -339,12 +340,6 @@ GlobalT::RelaxCodeT NodeManagerT::RelaxSystem(int group)
 /* update the active degrees of freedom */
 void NodeManagerT::Update(int group, const dArrayT& update)
 {
-	/* active equation numbers */
-//DEV
-	int eq_start = fFEManager.ActiveEquationStart(group);
-	int num_eq   = NumEquations(group);
-//DEV
-
 	/* update fields */
 	for (int i = 0; i < fFields.Length(); i++)
 		if (fFields[i]->Group() == group)
@@ -402,10 +397,6 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 /* update history */
 void NodeManagerT::CloseStep(int group)
 {
-	/* output nodal history */
-//NOTE - moved to WriteOutput
-//	WriteNodalHistory(group);
-
 	/* loop over fields */
 	for (int i = 0; i < fFields.Length(); i++)
 		if (fFields[i]->Group() == group)
@@ -499,20 +490,10 @@ void NodeManagerT::SetEquationNumbers(int group)
 	/* mark external nodes */
 	const ArrayT<int>* ex_nodes = fCommManager.ExternalNodes();
 	if (ex_nodes)
-		for (int i = 0; i < fields.Length(); i++) // ????? still needed ??????
+		for (int i = 0; i < fields.Length(); i++)
 		{
-			/* field data */
+			/* field equations array */
 			iArray2DT&  eqnos = fields[i]->Equations();
-			iArray2DT& xeqnos = fields[i]->ExternalEquations();
-		
-			/* collect equation numbers */
-			xeqnos.RowCollect(*ex_nodes, eqnos);
-	
-			/* mark active external nodes for update of active
-			 * external using controller */
-			for (int j = 0; j < xeqnos.Length(); j++)
-				if (xeqnos[j] >= FieldT::kInit) 
-					xeqnos[j] = 1;
 
 			/* mark all external as inactive for setting local
 			 * equation numbers */
@@ -522,35 +503,30 @@ void NodeManagerT::SetEquationNumbers(int group)
 
 	/* assign active equation numbers node-by-node across fields
 	 * in the group */
-	iArrayT num_active(fields.Length());
-	num_active = 0;
 	int num_eq = 0;
 	int nnd = NumNodes();
 	for (int i = 0; i < nnd; i++)
 		for (int j = 0; j < fields.Length(); j++)
 		{
-			int& count = num_active[j];
 			int  ndof = fields[j]->NumDOF();
 			int* peq = (fields[j]->Equations())(i);
 			for (int k = 0; k < ndof; k++)
 			{
 				/* active equation */
 				if (*peq >= FieldT::kInit) 
-				{
 					*peq = ++num_eq;
-					count++;
-				}
+
 				peq++;
 			}
 		}
+	
+	/* assign equation numbers to XDOF's */
+	XDOF_ManagerT::SetEquations(group, num_eq);
 
 	/* set equation arrays - assume all start at 1 */
 	int start_eq = 1;
 	for (int i = 0; i < fields.Length(); i++)
-		fields[i]->FinalizeEquations(start_eq, num_active[i]);
-	
-	/* assign equation numbers to XDOF's */
-	XDOF_ManagerT::SetEquations(group, num_eq);
+		fields[i]->FinalizeEquations(start_eq, num_eq);
 }
 
 void NodeManagerT::RenumberEquations(int group, 
@@ -585,7 +561,7 @@ void NodeManagerT::RenumberEquations(int group,
 		if (fFields[j]->Group() == group)
 		{
 			int start = fFields[j]->EquationStart();
-			int num_eq = fFields[j]->NumEquations();
+			int num_eq = NumEquations(group);
 			fFields[j]->FinalizeEquations(start, num_eq);
 		}
 
@@ -1512,6 +1488,8 @@ void NodeManagerT::EchoExternalNodes(ostream& out)
 
 void NodeManagerT::EchoForceBC(FieldT& field, ifstreamT& in, ostream& out)
 {
+	const char caller[] = "NodeManagerT::EchoForceBC";
+
 	/* print header */
 	out << "\n Force boundary conditions:\n\n";
 
@@ -1530,11 +1508,7 @@ void NodeManagerT::EchoForceBC(FieldT& field, ifstreamT& in, ostream& out)
 
 	/* check */
 	if (numFBCsets < 0)
-	{
-		cout << "\n NodeManagerT::EchoForceBC: expecting numFBC_sets > 0: " 
-		     << numFBCsets << endl;
-		throw ExceptionT::kBadInputValue;
-	}
+		ExceptionT::BadInputValue(caller, "expecting numFBC_sets > 0: %d", numFBCsets);
 
 	if (numFBCsets > 0)
 	  {
@@ -1583,11 +1557,8 @@ void NodeManagerT::EchoForceBC(FieldT& field, ifstreamT& in, ostream& out)
 
 	/* check node numbers */
 	for (int i = 0; i < cards.Length(); i++)
-		if (cards[i].Node() < 0 || cards[i].Node() >= NumNodes()) {
-			cout << "\n NodeManagerT::EchoForceBC: node number is out of range: " 
-			     << cards[i].Node() + 1 << endl;
-			throw ExceptionT::kOutOfRange;
-		}
+		if (cards[i].Node() < 0 || cards[i].Node() >= NumNodes()) 
+			ExceptionT::OutOfRange(caller, "node number is out of range: %d", cards[i].Node() + 1);
 }
 
 void NodeManagerT::EchoHistoryNodes(ifstreamT& in, ostream &out)
@@ -1636,35 +1607,13 @@ void NodeManagerT::EchoHistoryNodes(ifstreamT& in, ostream &out)
 		/* register the set with the model manager */
 		StringT ID = "55";
 		ID = model->FreeElementID(ID);
-		if (!model->RegisterElementGroup(ID, set, GeometryT::kPoint, true)) {
-			cout << "\n NodeManagerT::EchoHistoryNodes: error initializing node set "
-			     << node_set_ID[i] << " as model element ID " << ID << endl;
-			throw ExceptionT::kBadInputValue;
-		}
+		if (!model->RegisterElementGroup(ID, set, GeometryT::kPoint, true))
+			ExceptionT::BadInputValue("NodeManagerT::EchoHistoryNodes", 
+				"error initializing node set %d as model element ID %d", node_set_ID[i], ID.Pointer());
+
 		fHistoryNodeSetIDs[i] = ID;
 	}
 }
-
-#if 0
-/* apply kinematic boundary conditions */
-void NodeManagerT::ApplyKinematicBC(void)
-{
-	/* apply BC's */
-	for (int i = 0; i < fKBC.Length(); i++)
-		fnController->ConsistentKBC(fKBC[i]);
-		
-	/* KBC controllers */
-	for (int j = 0; j < fKBCControllers.Length(); j++)
-	{
-		/* boundary condition cards generated by the controller */
-		const ArrayT<KBC_CardT>& cards = fKBCControllers[j]->KBC_Cards();
-
-		/* apply BC's */
-		for (int i = 0; i < cards.Length(); i++)
-			fnController->ConsistentKBC(cards[i]);
-	}
-}
-#endif
 
 /* simple output function */
 void NodeManagerT::WriteData(ostream& out, const char* title,
@@ -1689,7 +1638,7 @@ void NodeManagerT::WriteData(ostream& out, const char* title,
 	if (rowlabels)
 	{
 		/* check */
-		if (rowlabels->Length() != data.MajorDim()) throw ExceptionT::kSizeMismatch;
+		if (rowlabels->Length() != data.MajorDim()) ExceptionT::SizeMismatch();
 	
 		for (int i = 0; i < data.MajorDim(); i++)
 		{
@@ -1730,9 +1679,8 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 			return kbc;
 		}
 		default:
-			cout << "\n NodeManagerT::NewKBC_Controller: KBC controller code "
-			     << code <<   "     is not supported" << endl;
-			throw ExceptionT::kBadInputValue;
+			ExceptionT::BadInputValue("NodeManagerT::NewKBC_Controller", 
+				"KBC controller code %d is not supported", code);
 	}
 	return NULL;
 }
@@ -1774,9 +1722,8 @@ FBC_ControllerT* NodeManagerT::NewFBC_Controller(FieldT& field, int code)
 			break;
 
 		default:
-			cout << "\n NodeManagerT::NewFBC_Controller: FBC controller code "
-			     << code <<   "     is not supported" << endl;
-			throw ExceptionT::kBadInputValue;
+			ExceptionT::BadInputValue("NodeManagerT::NewFBC_Controller",
+				"FBC controller code %d is not supported", code);
 	}
 	
 	/* set time integrator */
