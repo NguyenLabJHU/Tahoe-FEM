@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.32.2.9 2002-05-05 23:42:20 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.32.2.10 2002-05-07 07:21:30 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -210,7 +210,7 @@ void FEManagerT::Solve(void)
 					/* reset system configuration */
 					error = ResetStep();
 					
-					if (error != eNoError)
+					if (error == eNoError)
 						/* cut time increment */
 						seq_OK = DecreaseLoadStep();
 					else
