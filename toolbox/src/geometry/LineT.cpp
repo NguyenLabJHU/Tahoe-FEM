@@ -1,4 +1,4 @@
-/* $Id: LineT.cpp,v 1.6 2004-04-16 03:19:16 paklein Exp $ */
+/* $Id: LineT.cpp,v 1.7 2004-05-16 00:47:38 paklein Exp $ */
 /* created: paklein (04/25/1999) */
 #include "LineT.h"
 
@@ -252,14 +252,17 @@ void LineT::IPGradientTransform(int ip, dMatrixT& transform) const
 	int nip = transform.Cols();
 	if (nsd != 1) ExceptionT::SizeMismatch(caller);
 
-	//TEMP - only implemented for 2 integration points
-	if (nip != 2) ExceptionT::GeneralFail("QuadT::IPGradientTransform");
-
 	/* constant gradient */
 #pragma unused(ip)
-	double a = sqrt(3.0)/2.0;
-	transform(0,0) =-a;
-	transform(0,1) = a;
+	if (nip == 1)
+		transform = 0.0;
+	else if (nip == 2) {
+		double a = sqrt(3.0)/2.0;
+		transform(0,0) =-a;
+		transform(0,1) = a;
+	}
+	else
+		ExceptionT::GeneralFail(caller, "unsupported number of integration points %d", nip);
 }
 /* return the local node numbers for each facet of the element
 * numbered to produce at outward normal in the order: vertex
