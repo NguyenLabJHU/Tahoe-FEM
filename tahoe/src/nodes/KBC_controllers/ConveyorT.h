@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.h,v 1.1 2003-08-06 06:54:15 paklein Exp $ */
+/* $Id: ConveyorT.h,v 1.2 2003-08-08 16:33:55 paklein Exp $ */
 #ifndef _CONVEYOR_T_H_
 #define _CONVEYOR_T_H_
 
@@ -8,6 +8,9 @@
 /* direct members */
 #include "AutoArrayT.h"
 #include "iArray2DT.h"
+#include "dArray2DT.h"
+#include "iArrayT.h"
+#include "ofstreamT.h"
 
 namespace Tahoe {
 
