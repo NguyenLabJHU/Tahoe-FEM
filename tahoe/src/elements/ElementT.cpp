@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.19 2003-05-23 22:51:56 paklein Exp $ */
+/* $Id: ElementT.cpp,v 1.20 2003-06-09 06:35:28 paklein Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -76,6 +76,9 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			break;
 		case ElementT::kLinearDiffusion:
 			type = ElementT::kLinearDiffusion;
+			break;
+		case ElementT::kNonLinearDiffusion:
+			type = ElementT::kNonLinearDiffusion;
 			break;
 		case ElementT::kMFCohesiveSurface:
 			type = ElementT::kMFCohesiveSurface;
