@@ -1,4 +1,4 @@
-# $Id: ROSS.macros,v 1.10 2004-01-02 01:37:20 paklein Exp $
+# $Id: ROSS.macros,v 1.11 2004-08-10 06:37:03 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__ -DAZTEC_MPI
 MPI_LFLAGS = -lmpi
@@ -6,9 +6,6 @@ MPI_LFLAGS = -lmpi
 # Ross (DEC)
 MAKE        = make
 DEFINES     = -D__DEC__ -D__CPLANT__ -D__ROSS__ -U__IEEE_FLOAT -D__TAHOE_MPI__ -DAZTEC_MPI
-MAKEDEPEND  = makedepend
-MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/include/cxx -I/usr/local/cplant/ross/current/include $(DEFINES)
 COMP_CC     = c++
 COMP_C      = cc
 COMP_F      = f77
@@ -20,6 +17,15 @@ CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -ptr $(TR) -distinguish_nested_enums -
 CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = $(MPI_LFLAGS) -lm -ptr $(TR) -L/usr/local/cplant/ross/current/lib
+MAKEDEPEND_C         = makedepend
+MAKEDEPENDFLAGS_C    = -I$(INC_DIR) -I/usr/include/cxx -I/usr/local/cplant/ross/current/include $(DEFINES)
+MAKEDEPEND_OUTPUT_C  = -f
+MAKEDEPEND_CC        = makedepend
+MAKEDEPENDFLAGS_CC   = $(MAKEDEPENDFLAGS_C)
+MAKEDEPEND_OUTPUT_CC = -f
+MAKEDEPEND_F         = makedepend
+MAKEDEPENDFLAGS_F    = $(MAKEDEPENDFLAGS_C)
+MAKEDEPEND_OUTPUT_F  = -f
 AR          = ar
 ARFLAGS     = -cruv
 MAKE_OPTS   = 

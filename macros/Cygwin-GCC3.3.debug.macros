@@ -1,25 +1,26 @@
-# $Id: Cygwin-GCC3.3.debug.macros,v 1.1 2004-07-16 01:41:00 paklein Exp $
+# $Id: Cygwin-GCC3.3.debug.macros,v 1.2 2004-08-10 06:37:02 paklein Exp $
 # GNU
 #
 MAKE        = make
 DEFINES     = -D__GNU__ -DNON_UNIX_STDIO -D__GCC_3__ 
-MAKEDEPEND = g++ -MM
-MAKEDEPEND_OUTPUT = -MF
-MAKEDEPENDFLAGS = -I$(INC_DIR) $(DEFINES) -Wno-deprecated
-#
 COMP_C      = gcc
 COMP_CC     = g++
 COMP_F      = g77
-#
-#MORE_CFLAGS = -O3 -DNDEBUG -Wno-deprecated
-MORE_CFLAGS = -g -Wno-deprecated
-#LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -Wunused -Wuninitialized
-LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
+MORE_CFLAGS = -g
+LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -Wunused -Wuninitialized -Wno-deprecated
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS)
 CFLAGS_F    = $(LOC_CFLAGS)
-#
 LINK        = $(COMP_CC)
+MAKEDEPEND_C         = gcc -MM
+MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_C  = -MF
+MAKEDEPEND_CC        = g++ -MM
+MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_CC = -MF
+MAKEDEPEND_F         = g77 -MM
+MAKEDEPENDFLAGS_F    = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_F  = -MF
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = echo

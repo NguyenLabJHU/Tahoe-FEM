@@ -1,10 +1,7 @@
-# $Id: GNU.troi.macros,v 1.18 2004-01-02 23:56:12 paklein Exp $
+# $Id: GNU.troi.macros,v 1.19 2004-08-10 06:37:03 paklein Exp $
 # GNU
 MAKE        = make
 DEFINES     = -D__GNU__ -D__SUN__ -D__NO_RTTI__
-MAKEDEPEND  = makedepend
-MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/local/include/g++-3 -I/usr/include/g++-2 -I/usr/include -I/usr/local/sparc-sun-solaris2.7/include $(DEFINES)
 COMP_C      = gcc
 COMP_CC     = g++
 COMP_F      = g77
@@ -15,6 +12,15 @@ CFLAGS_CC   = $(LOC_CFLAGS)
 CFLAGS_F    = $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = -static
+MAKEDEPEND_C         = gcc -MM
+MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_C  = -MF
+MAKEDEPEND_CC        = g++ -MM
+MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_CC = -MF
+MAKEDEPEND_F         = g77 -MM
+MAKEDEPENDFLAGS_F    = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_F  = -MF
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = echo

@@ -1,10 +1,7 @@
-# $Id: AMGI.macros,v 1.2 2004-07-08 16:48:19 paklein Exp $
+# $Id: AMGI.macros,v 1.3 2004-08-10 06:37:02 paklein Exp $
 # SGI Irix 6.2
 MAKE        = make
 DEFINES     = -D__SGI__
-MAKEDEPEND  = makedepend
-MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/include/CC $(DEFINES)
 COMP_C      = cc
 COMP_CC     = CC
 COMP_F      = f77
@@ -16,6 +13,15 @@ CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS) -DEIGHT_BYTE_REAL
 F2C_LFLAG   = -lftn -lfortran
 LINK        = $(COMP_CC)
 LFLAGS      = $(MPI_LFLAGS) $(F2C_LFLAG) -lm -w
+MAKEDEPEND_C         = cc -M
+MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_C  = -MDupdate
+MAKEDEPEND_CC        = CC -M
+MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_CC = -MDupdate
+MAKEDEPEND_F         = f77 -M
+MAKEDEPENDFLAGS_F    = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT_F  = -MDupdate
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = echo

@@ -1,4 +1,4 @@
-# $Id: DELMAR.macros,v 1.17 2004-03-11 17:51:21 paklein Exp $
+# $Id: DELMAR.macros,v 1.18 2004-08-10 06:37:02 paklein Exp $
 #
 # build me on alc3
 #
@@ -24,6 +24,15 @@ CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -ptr $(TR) -msg_disable 161,111
 CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = $(MPI_LFLAGS) -lm -ptr $(TR) -L/usr/local/delmar/lib
+MAKEDEPEND_C         = makedepend
+MAKEDEPENDFLAGS_C    = -I/usr/local/delmar/include -I$(MACRO_DIR)/extras -I$(INC_DIR) $(DEFINES) -I/usr/lib/compaq/cxx-6.5.9.28/alpha-linux/include -I/usr/lib/compaq/cxx-6.5.9.28/alpha-linux/include/cxx
+MAKEDEPEND_OUTPUT_C  = -f
+MAKEDEPEND_CC        = makedepend
+MAKEDEPENDFLAGS_CC   = $(MAKEDEPENDFLAGS_C)
+MAKEDEPEND_OUTPUT_CC = -f
+MAKEDEPEND_F         = makedepend
+MAKEDEPENDFLAGS_F    = $(MAKEDEPENDFLAGS_C)
+MAKEDEPEND_OUTPUT_F  = -f
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = echo

@@ -1,13 +1,10 @@
-# $Id: JANUS.macros,v 1.17 2004-01-02 01:37:20 paklein Exp $
+# $Id: JANUS.macros,v 1.18 2004-08-10 06:37:03 paklein Exp $
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpi
 
 # ASCI Red - JANUS (sasn100, sasn101)
 MAKE        = make
 DEFINES     = -D__JANUS__ -D__TAHOE_MPI__
-MAKEDEPEND  = makedepend
-MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/local/intel/tflop/current/tflops/include -I/usr/local/intel/tflop/current/tflops/include/CC $(DEFINES)
 COMP_C      = cicc
 COMP_CC     = ciCC
 COMP_F      = cif77
@@ -18,6 +15,15 @@ CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -Wc,-tlocal --display_error_number --d
 CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = $(MPI_LFLAGS)
+MAKEDEPEND_C         = makedepend
+MAKEDEPENDFLAGS_C    = -I$(INC_DIR) -I/usr/local/intel/tflop/current/tflops/include -I/usr/local/intel/tflop/current/tflops/include/CC $(DEFINES)
+MAKEDEPEND_OUTPUT_C  = -f
+MAKEDEPEND_CC        = makedepend
+MAKEDEPENDFLAGS_CC   = $(MAKEDEPENDFLAGS_C)
+MAKEDEPEND_OUTPUT_CC = -f
+MAKEDEPEND_F         = makedepend
+MAKEDEPENDFLAGS_F    = $(MAKEDEPENDFLAGS_C)
+MAKEDEPEND_OUTPUT_F  = -f
 AR          = ar
 ARFLAGS     = -cruv
 MAKEOPTS    =

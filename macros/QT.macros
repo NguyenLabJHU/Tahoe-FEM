@@ -1,10 +1,7 @@
-# $Id: QT.macros,v 1.4 2004-01-02 01:37:20 paklein Exp $
+# $Id: QT.macros,v 1.5 2004-08-10 06:37:03 paklein Exp $
 # DEC
 MAKE        = make
 DEFINES     = -D__DEC__ -D__USE_STD_IOSTREAM
-MAKEDEPEND  = makedepend
-MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/include/cxx $(DEFINES)
 COMP_C      = cxx
 COMP_CC     = cxx
 COMP_F      = f77
@@ -17,6 +14,15 @@ CFLAGS_F    = $(LOC_CFLAGS)
 F2C_LFLAG   = -lfor
 LINK        = $(COMP_CC)
 LFLAGS      = $(F2C_LFLAG) -lm -ptr $(TR)
+MAKEDEPEND_C         = makedepend
+MAKEDEPENDFLAGS_C    = -I$(INC_DIR) -I/usr/include/cxx $(DEFINES)
+MAKEDEPEND_OUTPUT_C  = -f
+MAKEDEPEND_CC        = makedepend
+MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) -I/usr/include/cxx $(DEFINES)
+MAKEDEPEND_OUTPUT_CC = -f
+MAKEDEPEND_F         = makedepend
+MAKEDEPENDFLAGS_F    = -I$(INC_DIR) -I/usr/include/cxx $(DEFINES)
+MAKEDEPEND_OUTPUT_F  = -f
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = echo
