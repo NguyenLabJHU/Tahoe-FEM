@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.40 2004-09-15 20:38:26 raregue Exp $
+# $Id: makefile.template,v 1.41 2004-11-09 21:56:32 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (1) copy makefile.template to a local makefile
@@ -235,12 +235,12 @@ include $(MACRO_DIR)/make.targets
 
 # init extras target
 update_config:
-	@ if test -f $(SRC_DIR)/config/SolidMaterialsConfig.make; then rm $(SRC_DIR)/config/SolidMaterialsConfig.make; fi
-	@ if test -f $(SRC_DIR)/config/ElementsConfig.make; then rm $(SRC_DIR)/config/ElementsConfig.make;  fi
-	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl SolidMaterialsConfig.conf $(SRC_DIR)/config
-	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl ElementsConfig.conf  $(SRC_DIR)/config
-	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   SolidMaterialsConfig.conf $(SRC_DIR)/config
-	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   ElementsConfig.conf  $(SRC_DIR)/config
+	@ if test -f $(BLD_DIR)/src-mirror/config/SolidMaterialsConfig.make; then rm $(BLD_DIR)/src-mirror/config/SolidMaterialsConfig.make; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/ElementsConfig.make;       then rm $(BLD_DIR)/src-mirror/config/ElementsConfig.make;  fi
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl SolidMaterialsConfig.conf $(BLD_DIR)/src-mirror/config
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl ElementsConfig.conf       $(BLD_DIR)/src-mirror/config
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   SolidMaterialsConfig.conf $(BLD_DIR)/src-mirror/config
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   ElementsConfig.conf       $(BLD_DIR)/src-mirror/config
 	@ make do_up_to_date "COMMAND = update_config"
 
 # create symbolic links
@@ -257,14 +257,14 @@ make_build_extras:
 
 # clean extras target - clean config files out of src/config
 clean_config:
-	@ if test -f $(SRC_DIR)/config/SolidMaterialsConfig.h; then rm $(SRC_DIR)/config/SolidMaterialsConfig.h; fi
-	@ if test -f $(SRC_DIR)/config/SolidMaterialsConfig.make; then rm $(SRC_DIR)/config/SolidMaterialsConfig.make; fi
-	@ if test -f $(SRC_DIR)/config/ElementsConfig.h; then rm $(SRC_DIR)/config/ElementsConfig.h; fi
-	@ if test -f $(SRC_DIR)/config/ElementsConfig.make; then rm $(SRC_DIR)/config/ElementsConfig.make; fi
-	@ if test -f $(SRC_DIR)/config/DevelopmentElementsConfig.h; then rm $(SRC_DIR)/config/DevelopmentElementsConfig.h; fi
-	@ if test -f $(SRC_DIR)/config/DevelopmentElementsConfig.make; then rm $(SRC_DIR)/config/DevelopmentElementsConfig.make; fi
-	@ if test -f $(SRC_DIR)/config/DevelopmentMaterialsConfig.h; then rm $(SRC_DIR)/config/DevelopmentMaterialsConfig.h; fi
-	@ if test -f $(SRC_DIR)/config/DevelopmentMaterialsConfig.make; then rm $(SRC_DIR)/config/DevelopmentMaterialsConfig.make; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/SolidMaterialsConfig.h;          then rm $(BLD_DIR)/src-mirror/config/SolidMaterialsConfig.h; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/SolidMaterialsConfig.make;       then rm $(BLD_DIR)/src-mirror/config/SolidMaterialsConfig.make; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/ElementsConfig.h;                then rm $(BLD_DIR)/src-mirror/config/ElementsConfig.h; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/ElementsConfig.make;             then rm $(BLD_DIR)/src-mirror/config/ElementsConfig.make; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.h;     then rm $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.h; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.make;  then rm $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.make; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.h;    then rm $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.h; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.make; then rm $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.make; fi
 
 # loop over up-to-date list - must define $(COMMAND)
 do_up_to_date:
