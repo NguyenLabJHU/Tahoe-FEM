@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.4 2001-10-11 23:19:51 paklein Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.5 2001-10-25 22:18:01 cjkimme Exp $ */
 /* created: paklein (06/20/1999) */
 
 #ifndef _SURFACE_POTENTIAL_T_H_
@@ -26,7 +26,8 @@ public:
 	enum CodeT {kXuNeedleman = 0, /**< elastic potential developed by Xu and Needleman */
 	    kTvergaardHutchinson = 1, /**< tri-linear potential */
 	           kLinearDamage = 2, /**< irreversible linear decay */
-	kViscTvergaardHutchinson = 3  /**< T-H with viscous dissipation */};
+	kViscTvergaardHutchinson = 3, /**< T-H with viscous dissipation */
+	               kTijssens = 4  /**< */};
 
 	/** surface element status codes */
 	enum StatusT {Precritical = 0, /**< loading phase */
