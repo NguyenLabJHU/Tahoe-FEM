@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.112 2005-04-06 00:38:48 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.113 2005-04-06 23:13:27 thao Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -332,7 +332,7 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("small_strain_enh_loc_dieterich");
 #endif
 
-#if defined(MATERIAL_FORCE_ELEMENT_DEV) && defined(MATERIAL_FORCE_ELEMENT_DEV)
+#if defined(SOLID_ELEMENT_DEV) && defined(MATERIAL_FORCE_ELEMENT_DEV)
 		sub_lists.AddSub("small_strain_material_force");
 #endif
 
