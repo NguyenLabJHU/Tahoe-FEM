@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.cpp,v 1.10 2002-01-27 18:38:11 paklein Exp $ */
+/* $Id: AbaqusInputT.cpp,v 1.11 2002-02-22 15:46:42 sawimme Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #include "AbaqusInputT.h"
@@ -226,14 +226,32 @@ void AbaqusInputT::QuadratureVariablesUsed (const StringT& name, iArrayT& used)
 
 void AbaqusInputT::ReadAllNodeVariable (int step, int varindex, dArrayT& value)
 {
-  cout << "AbaqusInptuT::ReadAllNodeVariable not yet programmed \n\n";
-  throw eDatabaseFail;
+  int n = NumNodeVariables ();
+  dArray2DT  vals (value.Length(), n);
+  ReadAllNodeVariables (step, vals);
+
+  double *v = vals.Pointer(varindex);
+  double *t = value.Pointer();
+  for (int i=0; i < value.Length(); i++)
+    {
+      *t++ = *v;
+      v += n;
+    }
 }
 
 void AbaqusInputT::ReadNodeVariable (int step, const StringT& elsetname, int varindex, dArrayT& value)
 {
-  cout << "AbaqusInptuT::ReadNodeVariable not yet programmed \n\n";
-  throw eDatabaseFail;
+  int n = NumNodeVariables ();
+  dArray2DT  vals (value.Length(), n);
+  ReadNodeVariables (step, elsetname, vals);
+
+  double *v = vals.Pointer(varindex);
+  double *t = value.Pointer();
+  for (int i=0; i < value.Length(); i++)
+    {
+      *t++ = *v;
+      v += n;
+    }
 }
 
 void AbaqusInputT::ReadAllNodeVariables (int step, dArray2DT& values)
@@ -269,20 +287,38 @@ void AbaqusInputT::ReadNodeSetVariables (int step, const StringT& nsetname, dArr
 
 void AbaqusInputT::ReadAllElementVariable (int step, int varindex, dArrayT& value)
 {
-  cout << "AbaqusInptuT::ReadAllElementVariable not yet programmed \n\n";
-  throw eDatabaseFail;
+  int n = NumElementVariables ();
+  dArray2DT  vals (value.Length(), n);
+  ReadAllElementVariables (step, vals);
+
+  double *v = vals.Pointer(varindex);
+  double *t = value.Pointer();
+  for (int i=0; i < value.Length(); i++)
+    {
+      *t++ = *v;
+      v += n;
+    }
 }
 
 void AbaqusInputT::ReadElementVariable (int step, const StringT& elsetname, int varindex, dArrayT& value)
 {
-  cout << "AbaqusInptuT::ReadElementVariable not yet programmed \n\n";
-  throw eDatabaseFail;
+  int n = NumElementVariables ();
+  dArray2DT  vals (value.Length(), n);
+  ReadElementVariables (step, elsetname, vals);
+
+  double *v = vals.Pointer(varindex);
+  double *t = value.Pointer();
+  for (int i=0; i < value.Length(); i++)
+    {
+      *t++ = *v;
+      v += n;
+    }
 }
 
 void AbaqusInputT::ReadAllElementVariables (int step, dArray2DT& values)
 {
   StringT name ("\0");
-  int numv = NumNodeVariables ();
+  int numv = NumElementVariables ();
   if (values.MinorDim() != numv) throw eSizeMismatch;
   fData.ReadVariables (AbaqusVariablesT::kElement, step, values, name);
 }
@@ -296,14 +332,32 @@ void AbaqusInputT::ReadElementVariables (int step, const StringT& name, dArray2D
 
 void AbaqusInputT::ReadAllQuadratureVariable (int step, int varindex, dArrayT& value)
 {
-  cout << "AbaqusInptuT::ReadAllQuadratureVariable not yet programmed \n\n";
-  throw eDatabaseFail;
+  int n = NumQuadratureVariables ();
+  dArray2DT  vals (value.Length(), n);
+  ReadAllQuadratureVariables (step, vals);
+
+  double *v = vals.Pointer(varindex);
+  double *t = value.Pointer();
+  for (int i=0; i < value.Length(); i++)
+    {
+      *t++ = *v;
+      v += n;
+    }
 }
 
 void AbaqusInputT::ReadQuadratureVariable (int step, const StringT& elsetname, int varindex, dArrayT& value)
 {
-  cout << "AbaqusInptuT::ReadQuadratureVariable not yet programmed \n\n";
-  throw eDatabaseFail;
+  int n = NumQuadratureVariables ();
+  dArray2DT vals (value.Length(), n);
+  ReadQuadratureVariables (step, elsetname, vals);
+
+  double *v = vals.Pointer(varindex);
+  double *t = value.Pointer();
+  for (int i=0; i < value.Length(); i++)
+    {
+      *t++ = *v;
+      v += n;
+    }
 }
 
 void AbaqusInputT::ReadAllQuadratureVariables (int step, dArray2DT& values)
