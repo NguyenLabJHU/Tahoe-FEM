@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.cpp,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.cpp,v 1.2 2002-04-02 23:26:04 paklein Exp $ */
 /* created: paklein (08/19/1998)                                          */
 
 #include "ExpCD_DRSolver.h"
@@ -336,7 +336,7 @@ double ExpCD_DRSolver::SolveAndForm(void)
 	}
 		
 	/* get a_n+1 */
-	fLHS->Solve(fRHS);
+	if (!fLHS->Solve(fRHS)) throw eBadJacobianDet;
 
 	/* updates */
 	fDis.SetToCombination(fdt, fVel, 0.5*fdt*fdt, fAcc);
