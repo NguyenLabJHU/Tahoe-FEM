@@ -1,7 +1,8 @@
-/* $Id: VTKBodyT.cpp,v 1.36 2002-09-22 19:54:59 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.37 2002-10-23 04:52:05 paklein Exp $ */
 #include "VTKBodyT.h"
 
 /* tahoe toolbox headers */
+#include "ExceptionCodes.h"
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
 #include "Array2DT.h"
@@ -158,6 +159,12 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	color.SetPrompt("color glyphs by values or not (true/false)");
 	glyph.AddArgument(color);
 	iAddCommand(glyph);
+	
+	CommandSpecT scale_glyph("ScaleGlyphs");
+	ArgSpecT scale_factor(ArgSpecT::double_);
+	scale_factor.SetPrompt("Glyph scaling factor");
+	scale_glyph.AddArgument(scale_factor);
+	iAddCommand(scale_glyph);
 
 	CommandSpecT pick("Pick", false);
 	ArgSpecT nodeNumber(ArgSpecT::int_, "node");
@@ -165,8 +172,6 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	nodeNumber.SetPrompt("node number");
 	pick.AddArgument(nodeNumber);
 	iAddCommand(pick);
-	
-	
 }
 
 /* destructor */
@@ -621,6 +626,16 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 			fAxes.Allocate(0);
 			return true;
 		}
+	}
+	else if (command.Name() == "ScaleGlyphs")
+	{
+		double scale;
+		command.Argument(0).GetValue(scale);
+		scale = (scale < 0.0) ? 0.0 : scale;
+		ArrayT<VTKUGridT*> fUGrids = fBodyData->UGrids();
+		for (int i = 0; i < fBodyData->UGrids().Length(); i++)
+			fUGrids[i]->SetGlyphScale(scale);
+		return true;		
 	}
 	else if (command.Name() == "ShowGlyphs")
 	{  

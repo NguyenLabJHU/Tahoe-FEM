@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.57 2002-09-22 19:54:59 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.58 2002-10-23 04:52:05 paklein Exp $ */
 #include "VTKConsoleT.h"
 
 /* ANSI headers */
@@ -7,6 +7,7 @@
 //#include <cstdio>
 
 /* tahoe toolbox headers */
+#include "ExceptionCodes.h"
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 #include "dArrayT.h"

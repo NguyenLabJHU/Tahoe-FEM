@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.10 2002-06-04 21:49:03 recampb Exp $
+# $Id: makefile.template,v 1.11 2002-10-23 04:52:04 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -49,6 +49,14 @@ TB_CFLAGS   = $(TB_INC)
 TB_LIB_NAME = toolbox
 TB_LIB      = $(TB_DIR)/lib/lib$(TB_LIB_NAME).a
 TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
+
+#### METIS
+#METIS_DIR      = $(HOME_DIR)/../../metis
+#METIS_INC      = -I$(METIS_DIR)/inc
+#METIS_CFLAGS   = $(METIS_INC) -D__METIS__
+#METIS_LIB_NAME = metis
+#METIS_LIB      = $(METIS_DIR)/lib/lib$(METIS_LIB_NAME).a
+#METIS_LFLAGS   = -L$(METIS_DIR)/lib -l$(METIS_LIB_NAME)
 
 #### VTK 3.2
 #VTK_DIR    = /scr/paklein/vtk3.2

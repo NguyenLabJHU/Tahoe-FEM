@@ -1,7 +1,8 @@
-/* $Id: VTKUGridT.cpp,v 1.24 2002-09-22 19:54:59 paklein Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.25 2002-10-23 04:52:05 paklein Exp $ */
 #include "VTKUGridT.h"
 
 /* Tahoe toolbox headers */
+#include "ExceptionCodes.h"
 #include "iArray2DT.h"
 #include "dArray2DT.h"
 
@@ -593,6 +594,11 @@ void VTKUGridT::Glyphing(vtkFloatArray* vectors, vtkRenderer* renderer, bool fil
   
   spikeActor->SetVisibility(true);
   spikeActor->PickableOff();
+}
+
+void VTKUGridT::SetGlyphScale(double scale)
+{
+	glyph->SetScaleFactor(scale);
 }
 
 void VTKUGridT::HideGlyphing(void)
