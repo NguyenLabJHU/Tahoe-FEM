@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.12 2003-01-29 07:35:21 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.12.2.1 2003-02-10 02:15:18 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -72,9 +72,13 @@ public:
 	int NumSD(void) const;
 	int NumFields(void) const { return fFields.Length(); };
 	
-	/** return a pointer to the field with the specified name. returns NULL
+	/** return a const pointer to the field with the specified name. returns NULL
 	 * if a field with the given name is not found. */
 	const FieldT* Field(const char* name) const;
+
+	/** return a non-const pointer to the field with the specified name. returns NULL
+	 * if a field with the given name is not found. */
+	FieldT* Field(const char* name);
 
 	/** symmetry/structure of the stiffness matrix for the given group */
 	virtual GlobalT::SystemTypeT TangentType(int group) const;
@@ -352,6 +356,13 @@ private:
 };
 
 /* inlines */
+
+/* return a const pointer to the field with the specified name */
+inline FieldT* NodeManagerT::Field(const char* name)
+{
+	const FieldT* field = Field(name);
+	return (FieldT*) field;
+}
 
 /* reference configuration */
 inline const dArray2DT& NodeManagerT::InitialCoordinates(void) const
