@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: AsperityT.cpp,v 1.14 2003-08-04 21:06:00 saubry Exp $ */
+/* $Id: AsperityT.cpp,v 1.15 2003-08-14 23:57:53 saubry Exp $ */
 #include "AsperityT.h"
 #include "VolumeT.h"
 
@@ -30,6 +30,7 @@ AsperityT::AsperityT(int dim, dArray2DT len,
   pbc = per;
 
   sLATTYPE = slt;
+  VolType = "ASPERITY";
 
   for(int i=0;i<nSD;i++)
     {
@@ -75,9 +76,10 @@ AsperityT::AsperityT(int dim, dArray2DT len,
     {
       for(int i=0;i<nSD;i++)
         {
-          double dist = ncells[i]*lattice_parameter[i]*0.5;
-          length(i,0) = -dist;
-          length(i,1) = length(i,0) + (dist - length(i,0));
+	  int ncl = static_cast<int>(len(i,0)/lattice_parameter[i]);
+	  int ncu = static_cast<int>(len(i,1)/lattice_parameter[i]);
+          length(i,0) = ncl * lattice_parameter[i];
+          length(i,1) = ncu * lattice_parameter[i];
         }
     }
 }
@@ -98,6 +100,7 @@ AsperityT::AsperityT(int dim, iArrayT cel,
   pbc = per;
 
   sLATTYPE = slt;
+  VolType = "ASPERITY";
 
   for(int i=0;i<nSD;i++)
       ncells[i] = cel[i];
@@ -171,6 +174,8 @@ AsperityT::AsperityT(const AsperityT& source) : VolumeT(source.nSD)
 
   atom_connect.Dimension(source.atom_connect.Length());
   atom_connect = source.atom_connect;
+
+  VolType = "ASPERITY";
 }
 
 void AsperityT::CreateLattice(CrystalLatticeT* pcl) 
@@ -217,7 +222,7 @@ void AsperityT::CreateLattice(CrystalLatticeT* pcl)
 	atom_coord(m)[k] = temp_atom(m)[k];
     }
 
-  atom_names = "Box";
+  atom_names = "Asperity";
 
   // Create parts
   atom_parts.Dimension(nATOMS);
@@ -509,7 +514,7 @@ double AsperityT::ComputeCircleParameters()
   fCenterPlus.Dimension(nSD);  
   fCenterMinus.Dimension(nSD);  
 
-  h0 = length(nSD-1,0) + (length(nSD-1,1) - length(nSD-1,0))*0.5;
+  h0 = 0.0;  //length(nSD-1,0) + (length(nSD-1,1) - length(nSD-1,0))*0.5;
   rx = (length(0,1)-length(0,0))*0.5;
   rz = length(nSD-1,1)-h0;
   fRadius = (rx*rx+rz*rz)*0.5/rz;
@@ -543,6 +548,8 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 
   // Call circle parameters
   double h0 = ComputeCircleParameters();
+  cout << "Height of the asperity is " << h0 << "\n";
+  cout << "Radius of the asperity is " << fRadius << "\n";
 
   int natom= 0;
   int type= 0;
@@ -628,7 +635,7 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 		  double R = r0*r0 + r1*r1 + r2*r2;
 
 		  if(x >= l00 && x <= l01 && y >= l10 && y <= l11 && z >= l20 && z <= l21)
-		    if(R <= fRadius*fRadius - eps|| z <= h0 + eps)
+		    if(R <= fRadius*fRadius || z < h0)
 		      {
 			if( fabs(x-length(0,0)) >= 1.e-5 && fabs(y-length(1,0)) >= 1.e-5 ) 
 			  {
@@ -637,7 +644,7 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 			    (*temp_atom)(natom)[2] = z;
 			    (*temp_type)[natom] = type;
 			    (*temp_parts)[natom] = 1; 
-			    if (z<= h0 + eps) (*temp_parts)[natom] = -1; 
+			    if (z< h0) (*temp_parts)[natom] = -1; 
 			    if ( fabs(z-length(2,0)) <= 1.e-5 ) 
 			      (*temp_parts)[natom]= -2;
 			    
@@ -715,6 +722,9 @@ int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 
   // Call circle parameters
   double h0 = ComputeCircleParameters();
+  cout << "Height of the asperity is " << h0 << "\n";
+  cout << "Radius of the asperity is " << fRadius << "\n";
+
   dArrayT rotated_fCenterPlus(nlsd);
   rotated_fCenterPlus = pcl->VectorRotation(fCenterPlus);
 
@@ -783,14 +793,14 @@ int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 		  double r2 = z - rotated_fCenterPlus[2]; 
 		  double R = r0*r0 + r1*r1 + r2*r2;
 		  
-		  if( (R <= fRadius*fRadius) || (z <= h0) ) 
+		  if( (R + eps < fRadius*fRadius ) || (z < h0) ) 
 		    {
 		      (*temp_atom)(natom)[0] = x;
 		      (*temp_atom)(natom)[1] = y;
 		      (*temp_atom)(natom)[2] = z;
 		      (*temp_type)[natom] = vT[m];
 		      (*temp_parts)[natom] = 1;
-		      if (z<= h0 + eps) (*temp_parts)[natom] = -1; 
+		      if (z< h0) (*temp_parts)[natom] = -1; 
 		      if ( fabs(z-length(2,0)) <= 1.e-5 ) 
 			(*temp_parts)[natom]= -2;
 		      natom++;        

@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.38 2003-08-04 21:06:00 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.39 2003-08-14 23:57:53 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -30,6 +30,7 @@ BoxT::BoxT(int dim, dArray2DT len,
   pbc = per;
 
   sLATTYPE = slt;
+  VolType = "BOX";
 
   for(int i=0;i<nSD;i++)
     {
@@ -98,6 +99,7 @@ BoxT::BoxT(int dim, iArrayT cel,
   pbc = per;
 
   sLATTYPE = slt;
+  VolType = "BOX";
 
   for(int i=0;i<nSD;i++)
       ncells[i] = cel[i];
@@ -168,6 +170,8 @@ BoxT::BoxT(const BoxT& source) : VolumeT(source.nSD)
 
   atom_connect.Dimension(source.atom_connect.Length());
   atom_connect = source.atom_connect;
+
+  VolType = "BOX";
 }
 
 

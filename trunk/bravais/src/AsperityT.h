@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: AsperityT.h,v 1.8 2003-08-02 00:21:33 saubry Exp $ */
+/* $Id: AsperityT.h,v 1.9 2003-08-14 23:57:53 saubry Exp $ */
 
 #ifndef _ASPERITY_T_H_
 #define _ASPERITY_T_H_
@@ -16,19 +16,20 @@ using namespace Tahoe;
 
 class AsperityT : public VolumeT 
 {
+ protected:
  
   iArrayT ncells;
   dArray2DT length; // lower and upper bounds
   iArrayT WhichSort;
   iArrayT pbc;
+  double fRadius;
 
  private:
 
-  iArray2DT type1,type2;
-
-  double fRadius;
   dArrayT fCenterPlus;
   dArrayT fCenterMinus;
+
+  iArray2DT type1,type2;
 
  public:
   
@@ -51,7 +52,7 @@ class AsperityT : public VolumeT
 
   iArrayT GetNCells();
   dArray2DT GetLength();
-
+  double GetRadius();
  private: 
 
     dArray2DT ComputeMinMax(); 
@@ -65,6 +66,7 @@ class AsperityT : public VolumeT
     double ComputeCircleParameters();
 };
 
+inline double AsperityT::GetRadius() {return fRadius;};
 inline iArrayT AsperityT::GetNCells(){return ncells;};
 inline dArray2DT AsperityT::GetLength(){return length;};
 
