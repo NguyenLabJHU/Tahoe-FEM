@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.h,v 1.10 2004-01-31 07:20:45 paklein Exp $ */
+/* $Id: MaterialSupportT.h,v 1.11 2004-06-26 05:54:58 paklein Exp $ */
 #ifndef _MATERIAL_SUPPORT_T_H_
 #define _MATERIAL_SUPPORT_T_H_
 
@@ -260,7 +260,7 @@ inline ElementCardT* MaterialSupportT::ElementCard(int card) const
 /* return the current */
 inline ElementCardT* MaterialSupportT::CurrentElement(void) const
 {
-	if (fElementCards) 
+	if (fElementCards && fElementCards->InRange()) 
 		return &(fElementCards->Current());
 	else
 		return NULL;
