@@ -1,5 +1,5 @@
 %&LaTeX
-% $Id: element.tex,v 1.4 2001-04-23 05:07:41 paklein Exp $
+% $Id: element.tex,v 1.5 2001-06-04 01:32:53 paklein Exp $
 
 \section{Element types}
 Within the structure of \tahoe, any formulation that relates nodal 
@@ -26,9 +26,9 @@ schemes are discussed in this chapter.
 \multirow{4}{1.5in}{\centering finite element continuum} & small deformation & 2 &
 \multirow{4}{0.75in}{\centering N/A}\\
 \hhline{~--~}
-& total Lagrangian & 3 & \\
+& updated Lagrangian & 3 & \\
 \hhline{~--~}
-& updated Lagrangian & 17 & \\
+& total Lagrangian & 17 & \\
 \hhline{~--~}
 & linear diffusion & 21 & \\
 \hline
@@ -521,8 +521,122 @@ tractions.
 \subsection{Solid deformation}
 
 \subsubsection{Output variables}
+The values that can be written to output as nodal or element 
+quantities are listed in Tables~\ref{tab.solid.output.node} 
+and~\ref{tab.solid.output.element}, respectively. The element output 
+of integration point values have the labels
+\[
+\texttt{ip}N\texttt{.}\sbrkt{\textit{label}} \qquad
+N=1,\ldots,n_{\textit{ip}},
+\]
+where $n_{\textit{ip}}$ is the number of element integration points.
+
+\begin{table}[h]
+\caption{\label{tab.solid.output.node} Nodal output values for solid 
+deformation.}
+\begin{center}
+\begin{tabular}[c]{|c|c|c|c|}
+\hline
+% table headings
+ \parbox[b]{0.25in}{\centering  \textbf{\#}}
+&\parbox[b]{0.5in}{\centering   \textbf{var.}}
+&\parbox[b]{2.5in}{\raggedright \textbf{description}}
+&\parbox[b]{2.5in}{\raggedright  \textbf{labels}}\\
+\hline
+1 & $\mathbf{X}$ 
+  & \parbox[b]{2.5in}{\raggedright reference coordinates} 
+  & \parbox[b]{2.5in}{\raggedright 
+  $\texttt{x}\sbrkt{i} \quad i = 0, \ldots, n_{\textit{sd}}$ }\\
+\hline
+2 & $\mathbf{d}$ 
+  & \parbox[b]{2.5in}{\raggedright displacements} 
+  & \parbox[b]{2.5in}{\raggedright 
+  $ \texttt{D\_}\sbrkt{i} \quad i = \texttt{X}, \texttt{Y}, \ldots, 
+  n_{\textit{dof}}$ }\\
+\hline
+3 & $\boldsymbol{\sigma}$ 
+  & \parbox[c]{2.5in}{\raggedright extrapolated stresses} 
+  & \parbox[c]{2.5in}{\raggedright \vspace{0.025in}
+  2D: \texttt{s11}, \texttt{s22}, \texttt{s12} \\
+  3D: \texttt{s11}, \texttt{s22}, \texttt{s33}, 
+      \texttt{s23}, \texttt{s13}, \texttt{s12}}\\
+\hline
+4 & $\hat{\boldsymbol{\sigma}}$ 
+  & \parbox[b]{2.5in}{\raggedright extrapolated principal stresses} 
+  & \parbox[b]{2.5in}{\raggedright
+  $\texttt{s}\sbrkt{i} \quad i = 0, \ldots, n_{\textit{sd}}$ }\\
+\hline
+5 & $\phi$ 
+  & \parbox[c]{2.5in}{\raggedright extrapolated strain energy density} 
+  & \parbox[c]{2.5in}{\raggedright \texttt{phi}} \\
+\hline
+6 & $c_{d}$, $c_{s}$ 
+  & \parbox[c]{2.5in}{\raggedright extrapolated acoustical wave speeds} 
+  & \parbox[c]{2.5in}{\raggedright \vspace{0.025in}
+  2D: \texttt{cd}, \texttt{cs}\\
+  3D: \texttt{cd}, \texttt{cs\_min}, \texttt{cs\_max}} \\
+\hline
+7 &  
+  & \parbox[c]{2.5in}{\raggedright extrapolated material model output} 
+  & \parbox[c]{2.5in}{\raggedright determined by model} \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[h]
+\caption{\label{tab.solid.output.element} Element output values for 
+solid deformation.}
+\begin{center}
+\begin{tabular}[c]{|c|c|c|c|}
+\hline
+% table headings
+ \parbox[b]{0.25in}{\centering  \textbf{\#}}
+&\parbox[b]{0.5in}{\centering   \textbf{var.}}
+&\parbox[b]{2.5in}{\raggedright \textbf{description}}
+&\parbox[b]{2.5in}{\raggedright  \textbf{labels}}\\
+\hline
+1 & $\overline{\mathbf{X}}$ 
+  & \parbox[b]{2.5in}{\raggedright reference centroid coordinates} 
+  & \parbox[b]{2.5in}{\raggedright 
+  $\texttt{xc\_}\sbrkt{i} \quad i = 0, \ldots, n_{\textit{sd}}$ }\\
+\hline
+2 & $m$ 
+  & \parbox[b]{2.5in}{\raggedright integrated mass} 
+  & \parbox[b]{2.5in}{\raggedright \texttt{mass} }\\
+\hline
+3 & $\phi$ 
+  & \parbox[c]{2.5in}{\raggedright integrated strain energy} 
+  & \parbox[c]{2.5in}{\raggedright \texttt{U}}\\
+\hline
+4 & $T$ 
+  & \parbox[c]{2.5in}{\raggedright integrated kinetic energy} 
+  & \parbox[c]{2.5in}{\raggedright \texttt{T}}\\
+\hline
+5 & $\mathbf{L}$ 
+  & \parbox[c]{2.5in}{\raggedright integrated linear momentum} 
+  & \parbox[c]{2.5in}{\raggedright 
+  $\texttt{L\_}\sbrkt{i} \quad i=\texttt{X}, \texttt{Y}, \ldots, 
+  n_{\textit{dof}}$} \\
+\hline
+6 & $\boldsymbol{\sigma}$ 
+  & \parbox[c]{2.5in}{\raggedright integration point stresses} 
+  & \parbox[c]{2.5in}{\raggedright \vspace{0.025in}
+  2D: \texttt{s11}, \texttt{s22}, \texttt{s12} \\
+  3D: \texttt{s11}, \texttt{s22}, \texttt{s33}, 
+      \texttt{s23}, \texttt{s13}, \texttt{s12}}\\
+\hline
+7 &  
+  & \parbox[c]{2.5in}{\raggedright integration point material output} 
+  & \parbox[c]{2.5in}{\raggedright determined by model} \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
 
 \subsubsection{Constitutive models}
+The materials available for analysis of solid deformation are listed 
+in Table~\ref{tab.mat.solid}.
 
 \subsection{Diffusion}
 
@@ -619,14 +733,14 @@ cohesive surface elements.}
 \hline
 1 & $\mathbf{X}$ 
   & \parbox[b]{2.5in}{\raggedright reference coordinates} 
-  & \parbox[b]{2.0in}{\raggedright \texttt{x[$i$]} 
-    $i$ = 0, \ldots, $n_{\textit{sd}}$  }\\
+  & \parbox[b]{2.0in}{\raggedright 
+  $\texttt{x}\sbrkt{i} \quad i = 0, \ldots, n_{\textit{sd}}$  }\\
 \hline
 2 & $\mathbf{d}$ 
   & \parbox[b]{2.5in}{\raggedright displacements} 
-  & \parbox[b]{2.0in}{\raggedright \texttt{D\_[$i$]} 
-    $i$ = \texttt{X}, \texttt{Y}, \ldots, 
-    $n_{\textit{dof}}$  }\\
+  & \parbox[b]{2.0in}{\raggedright 
+  $\texttt{D\_}\sbrkt{i} \quad
+  i = \texttt{X}, \texttt{Y}, \ldots, n_{\textit{dof}}$  }\\
 \hline
 3 & $||\Delta||$ 
   & \parbox[b]{2.5in}{\raggedright opening displacements} 
@@ -658,14 +772,13 @@ cohesive surface elements.}
 \hline
 1 & $\mathbf{X}$ 
   & \parbox[b]{2.5in}{\raggedright reference coordinates} 
-  & \parbox[b]{2.0in}{\raggedright \texttt{x[$i$]} 
-    $i$ = 0, \ldots, $n_{\textit{sd}}$  }\\
+  & \parbox[b]{2.0in}{\raggedright 
+  $\texttt{x}\sbrkt{i}\quad i = 0, \ldots, n_{\textit{sd}}$  }\\
 \hline
 2 & $\mathbf{d}$ 
   & \parbox[b]{2.5in}{\raggedright displacements} 
-  & \parbox[b]{2.0in}{\raggedright \texttt{D\_[$i$]} 
-    $i$ = \texttt{X}, \texttt{Y}, \ldots, 
-    $n_{\textit{dof}}$  }\\
+  & \parbox[b]{2.0in}{\raggedright 
+  $\texttt{D\_}\sbrkt{i} i = \texttt{X}, \texttt{Y}, \ldots, n_{\textit{dof}}$  }\\
 \hline
 3 & $\tilde{\mathbf{\Delta}}$ 
   & \parbox[b]{2.5in}{\raggedright local opening displacements} 
@@ -699,7 +812,6 @@ generally vary from element to element.
 The element output variables for both isotropic and anisotropic 
 cohesive surface elements are listed in 
 Table~\ref{tab.CSE.element.output}.
-
 \begin{table}[h]
 \caption{\label{tab.CSE.element.output} Element output variables for
 cohesive surface elements.}
@@ -714,17 +826,23 @@ cohesive surface elements.}
 \hline
 1 & $\overline{\mathbf{X}}$ 
   & \parbox[b]{2.5in}{\raggedright centroid in reference coordinates} 
-  & \parbox[b]{2.0in}{\raggedright \texttt{xc\_[$i$]} 
-    $i$ = 0, \ldots, $n_{\textit{sd}}$  }\\
+  & \parbox[b]{2.0in}{\raggedright
+  $\texttt{xc\_}\sbrkt{i} \quad i = 0, \ldots, n_{\textit{sd}}$  }\\
 \hline
 2 & $\phi$ 
   & \parbox[b]{2.5in}{\raggedright integrated cohesive energy} 
   & \parbox[b]{2.0in}{\raggedright \texttt{phi}}\\
 \hline
+3 & $\overline{t}$ 
+  & \parbox[c]{2.5in}{\raggedright average traction} 
+  & \parbox[c]{2.0in}{\raggedright   
+      \vspace{0.025in}
+      2D: \texttt{T\_t}, \texttt{T\_n}\\
+	  3D: \texttt{T\_t1}, \texttt{T\_t2}, \texttt{T\_n}}\\
+\hline
 \end{tabular}
 \end{center}
 \end{table}
-
 Note that some of the variables are element-averaged quantities, 
 while others are integrated over the element.
 
