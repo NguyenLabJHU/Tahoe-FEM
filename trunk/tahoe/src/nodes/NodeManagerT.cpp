@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.2 2001-06-29 23:51:41 paklein Exp $ */
 /* created: paklein (05/23/1996)                                          */
 /* Field variables plus averging                                          */
 
@@ -52,5 +52,32 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(int code)
 }
 
 /* return the number of DOF's */
-int NodeManagerT::DegreesOfFreedom(int nsd) const { return nsd; }
+int NodeManagerT::DegreesOfFreedom(int nsd) const 
+{ 
+	/* select based on the analysis code */
+	switch (fFEManager.Analysis())
+	{
+		case GlobalT::kLinStatic:
+		case GlobalT::kLinDynamic:
+		case GlobalT::kNLStatic:
+		case GlobalT::kNLDynamic:
+		case GlobalT::kDR:
+		case GlobalT::kLinExpDynamic:
+		case GlobalT::kNLExpDynamic:
+		case GlobalT::kVarNodeNLStatic:
+		case GlobalT::kVarNodeNLExpDyn:
+		case GlobalT::kAugLagStatic:
+			return nsd;
+		
+		case GlobalT::kLinStaticHeat:
+		case GlobalT::kLinTransHeat:
+			return 1;
+			
+		default:
+			cout << "\n NodeManagerT::DegreesOfFreedom: could not resolve analysis code: " 
+			     << fFEManager.Analysis() << endl;
+			throw eGeneralFail;
+	}	
+	return 0; 	
+}
 
