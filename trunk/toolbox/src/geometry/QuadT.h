@@ -1,4 +1,4 @@
-/* $Id: QuadT.h,v 1.4 2004-02-28 21:52:26 paklein Exp $ */
+/* $Id: QuadT.h,v 1.5 2004-04-06 00:57:37 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #ifndef _QUAD_T_H_
 #define _QUAD_T_H_
@@ -39,6 +39,9 @@ public:
 	/* set the values of the nodal extrapolation matrix */
 	virtual void SetExtrapolation(dMatrixT& extrap) const;
 
+	/** integration point gradient matrix */
+	virtual void IPGradientTransform(int ip, dMatrixT& transform) const;
+
 	/* return the local node numbers for each facet of the element
 	 * numbered to produce at outward normal in the order: vertex
 	 * nodes, mid-edge nodes, mid-face nodes */
@@ -60,5 +63,6 @@ public:
 	virtual bool PointInDomain(const LocalArrayT& coords, const dArrayT& point) const;
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _QUAD_T_H_ */

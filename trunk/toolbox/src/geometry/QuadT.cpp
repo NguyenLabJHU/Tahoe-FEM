@@ -1,4 +1,4 @@
-/* $Id: QuadT.cpp,v 1.6 2004-02-28 21:52:26 paklein Exp $ */
+/* $Id: QuadT.cpp,v 1.7 2004-04-06 00:57:37 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "QuadT.h"
 #include <math.h>
@@ -626,6 +626,78 @@ void QuadT::SetExtrapolation(dMatrixT& extrap) const
 		}
 		default:		
 			ExceptionT::GeneralFail(caller, "no nodal extrapolation with Gauss rule: %d", numint);
+	}
+}
+
+/* integration point gradient matrix */
+void QuadT::IPGradientTransform(int ip, dMatrixT& transform) const
+{
+	const char caller[] = "QuadT::IPGradientTransform";
+
+	/* dimensions */
+	int nsd = transform.Rows();
+	int nip = transform.Cols();
+	if (nsd != 2) ExceptionT::SizeMismatch(caller);
+
+	//TEMP - only implemented for 4 nodes and 4 integration points
+	if (nip != 4) ExceptionT::GeneralFail("QuadT::IPGradientTransform");
+
+	double a = sqrt(3.0)/2.0;
+	switch (ip) {
+		case 0:
+		{
+			transform[0] = -a;
+			transform[1] = -a;
+			transform[2] = a;
+			transform[3] = 0.0;
+
+			transform[4] = 0.0;
+			transform[5] = 0.0;
+			transform[6] = 0.0;
+			transform[7] = a;
+			break;
+		}
+		case 1:
+		{
+			transform[0] = -a;
+			transform[1] = 0.0;
+			transform[2] = a;
+			transform[3] = -a;
+
+			transform[4] = 0.0;
+			transform[5] = a;
+			transform[6] = 0.0;
+			transform[7] = 0.0;
+			break;
+		}
+		case 2:
+		{
+			transform[0] = 0.0;
+			transform[1] = 0.0;
+			transform[2] = 0.0;
+			transform[3] = -a;
+
+			transform[4] = a;
+			transform[5] = a;
+			transform[6] = -a;
+			transform[7] = 0.0;
+			break;
+		}
+		case 3:
+		{
+			transform[0] = 0.0;
+			transform[1] = -a;
+			transform[2] = 0.0;
+			transform[3] = 0.0;
+
+			transform[4] = a;
+			transform[5] = 0.0;
+			transform[6] = -a;
+			transform[7] = a;
+			break;
+		}	
+		default:
+			ExceptionT::OutOfRange(caller, "bad ip %d", ip);
 	}
 }
 
