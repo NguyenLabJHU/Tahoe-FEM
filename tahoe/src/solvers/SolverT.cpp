@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.17.6.3 2004-03-03 16:17:16 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.17.6.4 2004-03-15 03:25:04 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -209,6 +209,7 @@ void SolverT::DefineParameters(ParameterListT& list) const
 #ifdef __SPOOLES__
 	matrix_type.AddEnumeration("SPOOLES", kSPOOLES);
 #endif
+	matrix_type.SetDefault(kProfileSolver);
 	list.AddParameter(matrix_type);
 
 	/* print equation numbers */
