@@ -1,4 +1,4 @@
-# $Id: GNU.DELMAR.macros,v 1.10 2004-08-10 06:37:02 paklein Exp $
+# $Id: GNU.DELMAR.macros,v 1.11 2004-11-12 20:54:53 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpich -lgm
@@ -9,10 +9,11 @@ DEFINES     = -D__DEC__ -D__CPLANT__ -D__DELMAR__ -D__TAHOE_MPI__
 COMP_C      = gcc
 COMP_CC     = g++
 COMP_F      = g77
+COMP_FLAG   = -c
 LINK        = $(COMP_CC)
 TR          = $(MACRO_DIR)/cxx_repository
 MORE_CFLAGS = -O3 -DNDEBUG
-LOC_CFLAGS  = -c -I$(INC_DIR) -I/usr/local/delmar/build/LINUX/ch_gm/include  -I/usr/local/delmar/include $(DEFINES) $(MORE_CFLAGS)
+LOC_CFLAGS  = -I$(INC_DIR) -I/usr/local/delmar/build/LINUX/ch_gm/include  -I/usr/local/delmar/include $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS)
 CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)

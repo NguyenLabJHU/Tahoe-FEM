@@ -1,13 +1,14 @@
-# $Id: GNU-GCC3.2.macros,v 1.10 2004-08-10 06:46:33 paklein Exp $
+# $Id: GNU-GCC3.2.macros,v 1.11 2004-11-12 20:54:53 paklein Exp $
 # GNU
 #
 MAKE        = make
-DEFINES     = -D__GNU__ -DNON_UNIX_STDIO -D__GCC_3__ 
+DEFINES     = -DNON_UNIX_STDIO
 COMP_C      = gcc
 COMP_CC     = g++
 COMP_F      = g77
+COMP_FLAG   = -c
 MORE_CFLAGS = -O3 -DNDEBUG
-LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -Wunused -Wuninitialized -Wno-deprecated
+LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -Wunused -Wuninitialized -Wno-deprecated
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS)
 CFLAGS_F    = $(LOC_CFLAGS)

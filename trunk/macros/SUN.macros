@@ -1,4 +1,4 @@
-# $Id: SUN.macros,v 1.20 2004-08-10 06:37:03 paklein Exp $
+# $Id: SUN.macros,v 1.21 2004-11-12 20:54:54 paklein Exp $
 #
 # Load GNU file utilities to get ln -sf to work properly (sunfreeware.com)
 #
@@ -18,10 +18,10 @@ DEFINES     = -D__SUN__
 COMP_C      = $(COMP_DIR)/bin/cc
 COMP_CC     = $(COMP_DIR)/bin/CC
 COMP_F      = $(COMP_DIR)/bin/f77
-#
+COMP_FLAG   = -c#
 MORE_CFLAGS = -fast -DNDEBUG 
 #MORE_CFLAGS = -g
-LOC_CFLAGS  = -c $(DEFINES) -I$(INC_DIR) $(MORE_CFLAGS)
+LOC_CFLAGS  = $(DEFINES) -I$(INC_DIR) $(MORE_CFLAGS)
 CFLAGS_C    = $(LOC_CFLAGS)
 # -instances=static no longer needed in Studio 8
 CFLAGS_CC   = $(LOC_CFLAGS) -features=rtti 
