@@ -1,9 +1,8 @@
-/* $Id: StaticIntegrator.h,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
-/* created: paklein (10/14/1996)                                          */
-/* This controller does not have a node controller branch                 */
+/* $Id: StaticIntegrator.h,v 1.2 2001-08-27 17:12:15 paklein Exp $ */
+/* created: paklein (10/14/1996) */
 
-#ifndef _STATICCONTROLLER_H_
-#define _STATICCONTROLLER_H_
+#ifndef _STATIC_CONTROLLER_H_
+#define _STATIC_CONTROLLER_H_
 
 #include "Environment.h"
 
@@ -28,4 +27,4 @@ protected:
 	
 };
 
-#endif /* _STATICCONTROLLER_H_ */
+#endif /* _STATIC_CONTROLLER_H_ */
