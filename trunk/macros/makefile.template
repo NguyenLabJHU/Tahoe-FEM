@@ -1,4 +1,4 @@
-# $ Id $
+# $Id: makefile.template,v 1.3 2001-01-25 18:17:01 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (1) set HOME_DIR to the full path to this makefile.
@@ -135,7 +135,6 @@ OPT_INC = \
 	$(SPOOLESMPI_INC) \
 	$(ACME_INC) \
 	$(AX_INC)
-	
 #########################################################################
 # paths for file dependencies
 DEPEND_FILE = all.depend
@@ -164,7 +163,8 @@ $(TARGET): $(OPT_LIB) $(LIBRARY)
 $(LIBRARY): $(LIB_DIR)/lib.junk
 	@ echo " building archive..."
 	@ cd $(SRC_DIR); \
-	make library \
+	$(MAKE) library \
+	"MAKE = $(MAKE)" \
 	"AR = $(AR)" \
 	"ARFLAGS = $(ARFLAGS)" \
 	"LIBRARY = $(LIBRARY)" \
@@ -176,7 +176,8 @@ RM_FILES = *.o *.i *.*~ *.bak ii_* *.d all.depend
 clean:
 	- rm $(TARGET)
 	- rm $(LIBRARY)
-	- cd $(SRC_DIR); make $(MAKE_OPTS) clean \
+	- cd $(SRC_DIR); $(MAKE) $(MAKE_OPTS) clean \
+	"MAKE = $(MAKE)" \
 	"RM = $(RM)" \
 	"RM_FILES = $(RM_FILES)" \
 	"MAKE_OPTS = $(MAKE_OPTS)" \
@@ -187,7 +188,8 @@ clean:
 headers:
 	@ echo "cd $(SRC_DIR)"; \
 	cd $(SRC_DIR); \
-	make $(MAKE_OPTS) headers \
+	$(MAKE) $(MAKE_OPTS) headers \
+	"MAKE = $(MAKE)" \
 	"LN = $(LN)" \
 	"INC_DIR = $(INC_DIR)" \
 	"CURR_DIR = $(SRC_DIR)" \
@@ -196,22 +198,30 @@ headers:
 depend_init:
 	@ echo "cd $(SRC_DIR)"; \
 	cd $(SRC_DIR); \
-	make $(MAKE_OPTS) depend_init \
+	$(MAKE) $(MAKE_OPTS) depend_init \
+	"MAKE = $(MAKE)" \
+	"MAKE_DEPEND = $(MAKE_DEPEND)" \
 	"DEPEND_PATH = $(DEPEND_PATH)" \
 	"MAKE_OPTS = $(MAKE_OPTS)"
 
 objects:
 	@ echo "cd $(SRC_DIR)"; \
 	cd $(SRC_DIR); \
-	make $(MAKE_OPTS) objects \
+	$(MAKE) $(MAKE_OPTS) objects \
+	"MAKE = $(MAKE)" \
 	"MAKE_OPTS = $(MAKE_OPTS)" \
-	"INC_DIR   = $(INC_DIR)" \
-	"OBJ_DIR   = $(OBJ_DIR)" \
-	"LIB_DIR   = $(LIB_DIR)" \
-	"CURR_DIR  = $(SRC_DIR)" \
-	"TR        = $(TR)" \
-	"COMP_CC   = $(COMP_CC)" \
-	"COMP_C    = $(COMP_C)" \
-	"CFLAGS    = $(OPT_CFLAGS) $(CFLAGS) $(MORE_CFLAGS)" \
+	"INC_DIR = $(INC_DIR)" \
+	"OBJ_DIR = $(OBJ_DIR)" \
+	"LIB_DIR = $(LIB_DIR)" \
+	"TR = $(TR)" \
+	"COMP_C = $(COMP_C)" \
+	"COMP_CC = $(COMP_CC)" \
+	"COMP_F = $(COMP_F)" \
+	"CFLAGS_C = $(OPT_CFLAGS) $(CFLAGS_C)" \
+	"CFLAGS_CC = $(OPT_CFLAGS) $(CFLAGS_CC)" \
+	"CFLAGS_F = $(OPT_CFLAGS) $(CFLAGS_F)" \
+	"MAKE_DEPEND = $(MAKE_DEPEND)" \
 	"DEPEND_PATH = $(DEPEND_PATH)" \
-	"DEPEND = $(DEPEND_FILE)"
+	"DEPEND = $(DEPEND_FILE)" \
+	"CURR_DIR = $(SRC_DIR)"
+
