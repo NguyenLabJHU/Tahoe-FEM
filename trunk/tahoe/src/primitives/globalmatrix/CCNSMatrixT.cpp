@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.19 2004-03-17 20:02:24 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.20 2004-06-26 06:26:40 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #include "CCNSMatrixT.h"
 
@@ -191,10 +191,7 @@ void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos
 			{
 #if __option (extended_errorcheck)
 				if (eqno < 0 || eqno >= fLocNumEQ)
-				{
-					cout << "\n CCNSMatrixT::Assemble: index out of range: " << eqno << endl;
-					throw ExceptionT::kGeneralFail;
-				}
+					ExceptionT::OutOfRange("CCNSMatrixT::Assemble", "bad equation number %d", eqno+1);
 #endif
 				/* assemble */
 				fKD[eqno] += *pelMat;
@@ -267,7 +264,7 @@ void CCNSMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<i
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
-	if (diagonal_elMat.Length() != eqnos.Length()) throw ExceptionT::kSizeMismatch;
+	if (diagonal_elMat.Length() != eqnos.Length()) ExceptionT::SizeMismatch("CCNSMatrixT::Assemble");
 #endif
 
 	for (int i = 0; i < eqnos.Length(); i++)
