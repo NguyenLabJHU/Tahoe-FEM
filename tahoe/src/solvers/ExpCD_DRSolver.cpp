@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.cpp,v 1.12 2004-10-14 20:25:07 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.cpp,v 1.13 2004-12-20 02:20:14 paklein Exp $ */
 /* created: paklein (08/19/1998) */
 #include "ExpCD_DRSolver.h"
 
@@ -160,7 +160,8 @@ SolverT::SolutionStatusT ExpCD_DRSolver::Solve(int num_iterations)
 		/* new equilibrium */					
 		if (relaxcode == GlobalT::kRelax ||
 			relaxcode == GlobalT::kReEQRelax)
-			Relax();
+			ExceptionT::Stop();
+//			Relax();
 	} 
 			
 	return solutionflag;
@@ -331,6 +332,7 @@ double ExpCD_DRSolver::SolveAndForm(void)
 	return fRHS.Magnitude();
 }
 
+#if 0
 /* relax system */
 void ExpCD_DRSolver::Relax(int newtancount)
 {	
@@ -363,6 +365,7 @@ void ExpCD_DRSolver::Relax(int newtancount)
 		throw ExceptionT::kGeneralFail;
 	}
 }
+#endif
 
 /*************************************************************************
 * Private
