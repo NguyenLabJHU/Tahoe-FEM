@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.2 2002-01-28 18:43:16 dzeigle Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.3 2002-01-30 16:28:57 dzeigle Exp $ */
 
 #include "PenaltyContactElement2DT.h"
 
@@ -13,6 +13,9 @@
 
 /* vector functions */
 #include "vector2D.h"
+
+/* constants */
+const double PI = 2.0*acos(0.0);
 
 /* parameters */
 static const int kMaxNumFaceNodes = 4;
@@ -58,12 +61,12 @@ void PenaltyContactElement2DT::PrintControlData(ostream& out) const
 				out << "  penalty :         "
 					<< enf_parameters[kPenalty] << '\n';
 				out << "  Average asperity height : "
-					<< enf_parameters[kStatMean] << '\n';
+					<< enf_parameters[kAsperityHeightMean] << '\n';
 				out << "  Asperity height standard deviation : "
-					<< enf_parameters[kStatStandDev] << '\n';
+					<< enf_parameters[kAsperityHeightStandardDeviation] << '\n';
 				out << "  (work of adhesion) : " 
-					<< enf_parameters[kStatMean]
-				*enf_parameters[kStatStandDev]*enf_parameters[kStatStandDev] << '\n';
+					<< enf_parameters[kAsperityHeightMean]
+				*enf_parameters[kAsperityHeightStandardDeviation]*enf_parameters[kAsperityHeightStandardDeviation] << '\n';
 			}
 		}
 	}
@@ -80,6 +83,7 @@ void PenaltyContactElement2DT::RHSDriver(void)
   ContactNodeT* node;
   double gap, pen, pre;
   double gw_m,gw_s;
+  double material_coeff=kAsperityDensity*kHertzianModulus*sqrt(kAsperityTipRadius)/(6.0*sqrt(PI));
 
   /* residual */
   for(int s = 0; s < fSurfaces.Length(); s++) {
@@ -116,12 +120,12 @@ void PenaltyContactElement2DT::RHSDriver(void)
                         node->OpposingFace()->Surface().Tag());
 
                   /* parameters for Smith-Ferrante Potential */
-                  gw_m = parameters[kStatMean];
-                  gw_s = parameters[kStatStandDev];
+                  gw_m = parameters[kAsperityHeightMean];
+                  gw_s = parameters[kAsperityHeightStandardDeviation];
 		  if (gw_m > 0.0 && gap > 0.0) {
-                    GreenwoodWilliamson GW(gw_m,gw_s,1.0);
+                    GreenwoodWilliamson GW(gw_m,gw_s);
 		    /* First derivative of Greenwood-Williamson represents force */
-                    pre  = GW.DFunction(gap);
+                    pre  = material_coeff*GW.DFunction(gap);
 		  } else {
 		    /* linear penalty function */
 		    pen = parameters[kPenalty]; 
@@ -173,6 +177,7 @@ void PenaltyContactElement2DT::LHSDriver(void)
    Perm(0,0) = 0.0 ; Perm(0,1) = -1.0;
    Perm(1,0) = 1.0 ; Perm(1,1) =  0.0;
    double alpha;
+   double material_coeff=kAsperityDensity*kHertzianModulus*sqrt(kAsperityTipRadius)/(6.0*sqrt(PI));
 
 
   for(int s = 0; s < fSurfaces.Length(); s++) {
@@ -214,13 +219,13 @@ void PenaltyContactElement2DT::LHSDriver(void)
                   dArrayT& parameters =
                         fEnforcementParameters(s,
                         node->OpposingFace()->Surface().Tag());
-                  gw_m = parameters[kStatMean];
-                  gw_s = parameters[kStatStandDev];
+                  gw_m = parameters[kAsperityHeightMean];
+                  gw_s = parameters[kAsperityHeightStandardDeviation];
 
 		  if (gw_m > 0.0 && gap > 0.0) {
-                    GreenwoodWilliamson GW(gw_m,gw_s,1.0);
-                    pre  = GW.DFunction(gap);
-                    dpre_dg = GW.DDFunction(gap);
+                    GreenwoodWilliamson GW(gw_m,gw_s);
+                    pre  = material_coeff*GW.DFunction(gap);
+                    dpre_dg = material_coeff*GW.DDFunction(gap);
 		  } else {
 		    pen = parameters[kPenalty];
 		    pre = pen*gap; 
@@ -295,4 +300,5 @@ void PenaltyContactElement2DT::LHSDriver(void)
 /***********************************************************************
  * Private
  ***********************************************************************/
+
 
