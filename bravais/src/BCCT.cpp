@@ -9,13 +9,13 @@
 #include "dArrayT.h"
 #include "dArray2DT.h"
 
-BCCT::BCCT(int nlsd,int nuca,double alat,
+BCCT::BCCT(int nlsd,int nuca,dArrayT alat,
 	   int which_rot,dArray2DT mat_rot,
 	   double angle) : 
   CrystalLatticeT(nlsd,nuca,which_rot,mat_rot,angle)
 {
   for (int i=0; i<nlsd; i++) 
-    vLatticeParameters[i] = alat;
+    vLatticeParameters[i] = alat[i];
 
   if (nlsd==2)
     {
