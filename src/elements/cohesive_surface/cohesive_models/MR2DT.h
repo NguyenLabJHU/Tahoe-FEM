@@ -1,4 +1,4 @@
-/*$Id: MR2DT.h,v 1.9 2003-03-31 23:29:50 cjkimme Exp $*/
+/*$Id: MR2DT.h,v 1.10 2003-05-26 01:55:47 paklein Exp $*/
 /* created by manzari*/
 /* Elastoplastic Cohesive Model for Geomaterials*/
 #ifndef _MR_2D_T_H_
@@ -44,7 +44,7 @@ public:
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
 
-	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate);
+	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate);
   
     double& Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff);
     dArrayT& qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar);

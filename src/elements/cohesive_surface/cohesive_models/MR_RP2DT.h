@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.h,v 1.7 2003-04-18 23:04:48 cjkimme Exp $*/
+/*$Id: MR_RP2DT.h,v 1.8 2003-05-26 01:55:47 paklein Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #ifndef _MR_RP_2D_T_H_
@@ -41,7 +41,7 @@ public:
 
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate);
+	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate);
     
 	/** algorithmic tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);

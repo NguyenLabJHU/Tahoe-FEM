@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.cpp,v 1.16 2003-04-18 23:04:48 cjkimme Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.17 2003-05-26 01:55:47 paklein Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -127,7 +127,7 @@ void MR_RP2DT::PrintName(ostream& out) const
 		
 /* traction vector given displacement jump vector */	
 
-const dArrayT& MR_RP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
+const dArrayT& MR_RP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate)
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)

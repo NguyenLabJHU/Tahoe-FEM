@@ -1,4 +1,4 @@
-/*$Id: MR2DT.cpp,v 1.9 2003-03-31 23:29:50 cjkimme Exp $*/
+/*$Id: MR2DT.cpp,v 1.10 2003-05-26 01:55:47 paklein Exp $*/
 /* created by manzari*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR2DT.h"
@@ -129,7 +129,7 @@ void MR2DT::PrintName(ostream& out) const
 		
 /* traction vector given displacement jump vector */	
 
-const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
+const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate)
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
