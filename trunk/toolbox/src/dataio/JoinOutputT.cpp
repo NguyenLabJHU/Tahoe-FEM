@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.7 2002-03-02 20:13:46 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.8 2002-03-04 06:20:24 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 
 #include "JoinOutputT.h"
@@ -242,8 +242,7 @@ void JoinOutputT::Join(void)
 void JoinOutputT::SetOutput(void)
 {
 	/* set coordinates */
-//	fOutput->SetCoordinates(fModel->Coordinates(), NULL);
-	fOutput->SetCoordinates(fModel->Coordinates());
+	fOutput->SetCoordinates(fModel->Coordinates(), NULL); //what about the map?
 	
 	/* block ID's in io groups */
 	StringT io_file;
@@ -706,6 +705,53 @@ void JoinOutputT::CheckAssemblyMaps(void)
 		}
 			
 		/* check element maps */
-		//TEMP - not supported yet
+		if (set.NumNodeValues() > 0)
+		{			
+				/* assembly map */
+				const MapSetT& map_set = fMapSets[i];
+			
+				/* check overall length */
+				int element_count = 0;
+				for (int j = 0; j < map_set.NumElementMaps(); j++)
+					element_count += map_set.ElementMap(j).Length();
+
+				/* sum elements may have redudant assembly, but there should be
+				 * at least as many entries in the maps as there are elements */
+				int num_elements = set.NumElements(); 
+				if (element_count < num_elements)
+				{
+					cout << "\n JoinOutputT::CheckAssemblyMaps: element maps size error: " << element_count
+					     << " should be at least " << num_elements << " for set " << i << endl;
+					throw eGeneralFail;
+				}
+
+				/* check fill */
+				iArrayT fill_check(num_elements);
+				fill_check = 0;
+			
+				/* check for overlap */
+				for (int k = 0; k < map_set.NumElementMaps(); k++)
+				{
+					const iArrayT& elem_assem_map = map_set.ElementMap(k);
+					for (int j = 0; j < elem_assem_map.Length(); j++)
+					{
+						int& check = fill_check[elem_assem_map[j]];
+						check = 1;
+						
+						/* NOTE: should not check element maps for duplicates because elements
+						 *       are generally reproduced across processor boundaries. However,
+						 *       the values for each of these elements should be identical. The
+						 *       nArray2DT::Assemble used to collect element values in WriteOutput
+						 *       overwrites, not accumulates, values in the global array */
+					}
+				}
+			
+				/* redundant check */
+				if (fill_check.Count(0) != 0)
+				{
+					cout << "\n JoinOutputT::CheckAssemblyMaps: element maps are incomplete" << endl;
+					throw eGeneralFail;
+				}
+			}
 	}
 }
