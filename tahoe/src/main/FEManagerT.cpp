@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.52.2.3 2003-02-14 02:49:04 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.52.2.4 2003-02-15 02:41:05 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -395,14 +395,18 @@ ExceptionT::CodeT FEManagerT::InitStep(void)
 	SetStatus(GlobalT::kInitStep);
 	
 	/* set the default value for the output time stamp */
-	fIOManager->SetOutputTime(Time());
+	fIOManager->SetOutputTime(Time());	
 
-	/* check group flag */
+	/* loop over solver groups */
 	if (fCurrentGroup != -1) throw ExceptionT::kGeneralFail;
-
-	/* nodes - ALL groups*/
 	for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
+	{
+		/* solver */
+		fSolvers[fCurrentGroup]->InitStep();
+
+		/* nodes */
 		fNodeManager->InitStep(fCurrentGroup);
+	}
 	fCurrentGroup = -1;
 
 	/* elements */
@@ -433,7 +437,7 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 		SolverT::SolutionStatusT status = SolverT::kContinue;
 
 		while (!all_pass && 
-			loop_count < fMaxSolverLoops &&
+			(fMaxSolverLoops == -1 || loop_count < fMaxSolverLoops) &&
 			status != SolverT::kFailed)
 		{
 			/* clear status */
@@ -445,8 +449,8 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 			{
 				/* group parameters */
 				fCurrentGroup = fSolverPhases(i,0);
-				int iter  = fSolverPhases(i,1);
-				int pass  = fSolverPhases(i,2);
+				int iter = fSolverPhases(i,1);
+				int pass = fSolverPhases(i,2);
 			
 				/* call solver */
 				status = fSolvers[fCurrentGroup]->Solve(iter);
@@ -514,13 +518,18 @@ ExceptionT::CodeT FEManagerT::CloseStep(void)
 	/* state */
 	SetStatus(GlobalT::kCloseStep);
 
+	/* solvers - need to be called first because they may be diverted the
+	 * output to a temp file and need to switch it back */
+	if (fCurrentGroup != -1) throw ExceptionT::kGeneralFail;
+	for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
+		fSolvers[fCurrentGroup]->CloseStep();
+	fCurrentGroup = -1;
+
 	/* write output BEFORE closing nodes and elements */
 	fTimeManager->CloseStep();
 
-	/* check group flag */
+	/* nodes - loop over all groups */
 	if (fCurrentGroup != -1) throw ExceptionT::kGeneralFail;
-
-	/* nodes - ALL groups */
 	for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
 		fNodeManager->CloseStep(fCurrentGroup);
 	fCurrentGroup = -1;
@@ -1155,7 +1164,7 @@ void FEManagerT::SetSolver(void)
 	
 	/* read solver phases */
 	AutoArrayT<int> solver_list;
-	if (fSolvers.Length() > 1) {
+	if (fAnalysisCode == GlobalT::kMultiField) {
 	
 		int num_phases = -99;
 		fMainIn >> num_phases;

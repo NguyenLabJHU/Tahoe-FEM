@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.36.2.7 2003-02-14 02:46:48 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.36.2.8 2003-02-15 02:41:05 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -320,6 +320,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		dArray2DT field_at_ghosts;
 		atom_time->Top();
 		continuum_time->Top();
+		int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
 		while (atom_time->NextSequence() && continuum_time->NextSequence())
 		{	
 			/* set to initial condition */
@@ -347,37 +348,17 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 				if (error == ExceptionT::kNoError) error = atoms.InitStep();
 				if (error == ExceptionT::kNoError) error = continuum.InitStep();
 			
-				/* first exchange */
-				continuum.InterpolateField(bridging_field, field_at_ghosts);
-				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
-				continuum.ProjectField(bridging_field, *atoms.NodeManager());
-			
-				/* first residual */
-				int group_num = 0;
-				atoms.FormRHS(group_num);
-				const dArrayT& atom_residual = atoms.Residual(group_num);
-				double atoms_res, atoms_res_0;
-				atoms_res = atoms_res_0 = atom_residual.Magnitude(); //serial
-
-				continuum.FormRHS(group_num);
-				const dArrayT& continuum_residual = continuum.Residual(group_num);
-				double continuum_res, continuum_res_0;
-				continuum_res = continuum_res_0 = continuum_residual.Magnitude(); //serial
-			
 				/* solver phase status */
 				const iArray2DT& atom_phase_status = atoms.SolverPhasesStatus();
 				const iArray2DT& continuum_phase_status = continuum.SolverPhasesStatus();
-
-				/* log initial residual */
-				int d_width = OutputWidth(log_out, &atoms_res_0);
-				log_out << " Absolute error (A) = " << setw(d_width) << atoms_res_0 << '\n';
-				log_out << " Absolute error (C) = " << setw(d_width) << continuum_res_0 << '\n';
 			
 				/* loop until both solved */
+				int group_num = 0;
+				double atoms_res, continuum_res, combined_res_0 = 0.0;
 				int count = 0;
-				while (count == 0 ||
-					(atom_phase_status(0, FEManagerT::kIteration) > 0 ||
-					continuum_phase_status(0, FEManagerT::kIteration) > 0)) //TEMP - assume just one phase
+				int atom_last_iter, atom_iter, continuum_last_iter, continuum_iter;
+				atom_last_iter = atom_iter = continuum_last_iter = continuum_iter = 0;
+				while (count == 0 || (atom_iter > 0 || continuum_iter > 0)) //TEMP - assume just one phase
 
 //				while (1 || error == ExceptionT::kNoError &&
 //					(atom_phase_status(0, FEManagerT::kIteration) > 0 ||
@@ -391,7 +372,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 					/* apply solution to continuum */
 					continuum.ProjectField(bridging_field, *atoms.NodeManager());
 					continuum.FormRHS(group_num);
-					continuum_res = continuum_residual.Magnitude(); //serial
+					continuum_res = continuum.Residual(group_num).Magnitude(); //serial
 					
 					/* solve continuum */
 					if (1 || error == ExceptionT::kNoError) error = continuum.SolveStep();
@@ -400,14 +381,28 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 					continuum.InterpolateField(bridging_field, field_at_ghosts);
 					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
 					atoms.FormRHS(group_num);
-					atoms_res = atom_residual.Magnitude(); //serial
+					atoms_res = atoms.Residual(group_num).Magnitude(); //serial
+					
+					/* reset the reference errors */
+					if (count == 1) {
+						combined_res_0 = atoms_res + continuum_res;
+						atoms.SetReferenceError(group_num, combined_res_0);
+						continuum.SetReferenceError(group_num, combined_res_0);
+					}
 					
 					/* log residual */
 					log_out << setw(kIntWidth) << count << ": "
 					        << setw(d_width) << atoms_res << " (A) | "
 					        << setw(d_width) << continuum_res << " (C) | "
-					        << setw(d_width) << atoms_res + continuum_res << endl;
-					        
+					        << setw(d_width) << (atoms_res + continuum_res)/combined_res_0 << endl;
+
+					/* number of interations in last pass */
+					int atom_total_iter = atom_phase_status(0, FEManagerT::kIteration);
+					int continuum_total_iter = continuum_phase_status(0, FEManagerT::kIteration);
+					atom_iter = atom_total_iter - atom_last_iter;
+					continuum_iter = continuum_total_iter - continuum_last_iter;
+					atom_last_iter = atom_total_iter;
+					continuum_last_iter = continuum_total_iter;
 				}
 				
 				loop_count.Append(count);

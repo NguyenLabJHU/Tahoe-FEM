@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.1.2.5 2003-02-14 02:49:33 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.1.2.6 2003-02-15 02:41:05 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -63,9 +63,15 @@ public:
 	void ProjectField(const StringT& field, NodeManagerT& node_manager);
 	/*@}*/
 
+	/** \name solver control */
+	/*@{*/
 	/** the residual for the given group. The array contains the residual from
 	 * the latest call to FEManagerT::FormRHS */
 	const dArrayT& Residual(int group) const;
+
+	/** set the reference error for the given group */
+	void SetReferenceError(int group, double error) const;
+	/*@}*/
 
 private:
 

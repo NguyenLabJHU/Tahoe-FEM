@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.1.2.8 2003-02-14 02:49:33 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.1.2.9 2003-02-15 02:41:05 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #include "ModelManagerT.h"
 #include "NodeManagerT.h"
@@ -6,7 +6,7 @@
 #include "KBC_PrescribedT.h"
 #include "KBC_CardT.h"
 #include "ofstreamT.h"
-#include "SolverT.h"
+#include "NLSolver.h"
 
 /* constructor */
 FEManagerT_bridging::FEManagerT_bridging(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
@@ -205,7 +205,17 @@ void FEManagerT_bridging::ProjectField(const StringT& field, NodeManagerT& node_
 const dArrayT& FEManagerT_bridging::Residual(int group) const 
 {
 	return fSolvers[group]->RHS(); 
-};
+}
+
+/* set the reference error for the given group */
+void FEManagerT_bridging::SetReferenceError(int group, double error) const
+{
+	/* retrieve nonlinear solver */
+	NLSolver* solver = dynamic_cast<NLSolver*>(fSolvers[group]);
+
+	/* silent in failuer */
+	if (solver) solver->SetReferenceError(error);
+}
 
 /*************************************************************************
  * Private
