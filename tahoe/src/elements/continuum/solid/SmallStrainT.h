@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.7.2.1 2002-09-21 09:09:59 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.7.2.2 2002-09-22 23:08:57 paklein Exp $ */
 
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
@@ -41,12 +41,8 @@ class SmallStrainT: public ElasticT
 	/** form the element stiffness matrix */
 	void FormStiffness(double constK);
 
-	/** compute the measures of strain/deformation over the element.
-	 * Use the current shape function derivatives to compute the strain or other
-	 * measure of deformation over the element.
-	 * SmallStrainT::SetDeformation can compute B-bar matricies, as given by
-	 * Hughes (4.5.11-16). Results are put in ElasticT::fB_list. */
-	virtual void SetDeformation(void);
+	/** form shape functions and derivatives */
+	virtual void SetGlobalShape(void);
 
   private:
 

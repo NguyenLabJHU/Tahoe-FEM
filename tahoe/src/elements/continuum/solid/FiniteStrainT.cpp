@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.11.2.1 2002-09-21 09:09:58 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.11.2.2 2002-09-22 23:08:56 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -142,8 +142,11 @@ void FiniteStrainT::ReadMaterialData(ifstreamT& in)
 }
 
 /* form shape functions and derivatives */
-void FiniteStrainT::SetDeformation(void)
+void FiniteStrainT::SetGlobalShape(void)
 {
+	/* inherited */
+	ElasticT::SetGlobalShape();
+
 	/* what needs to get computed */
 	int material_number = CurrentElement().MaterialNumber();
 	bool needs_F = Needs_F(material_number);
