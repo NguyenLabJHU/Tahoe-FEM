@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.h,v 1.1 2003-04-05 08:38:38 paklein Exp $ */
+/* $Id: FEManagerT_THK.h,v 1.2 2003-04-05 18:54:37 hspark Exp $ */
 #ifndef _FE_MANAGER_THK_H_
 #define _FE_MANAGER_THK_H_
 
@@ -19,6 +19,15 @@ public:
 	/** constructor */
 	FEManagerT_THK(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
 		ifstreamT& bridging_input);
+
+
+	/** contains hard coded values of theta matrix **/
+	const dMatrixT& GetTheta(int index);
+
+	/** calculate displacement BC for given boundary atom **/
+	const dArrayT& ComputeStaticDispBC(const dArray2DT& disp0, const dArray2DT& disp1,
+					   int ncrit);
+
 };
 
 } /* namespace Tahoe */
