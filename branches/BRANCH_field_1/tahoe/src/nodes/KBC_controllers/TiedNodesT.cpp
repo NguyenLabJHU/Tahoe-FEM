@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.7.2.6 2002-05-11 19:47:09 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.7.2.7 2002-06-02 04:00:03 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -263,7 +263,7 @@ bool TiedNodesT::ChangeStatus(void)
   	for (int i = 0; i < fNodePairs.MajorDim();i++) 
     {  
 	    dArrayT sigma(fNodalQs.MinorDim(),fNodalQs(fNodePairs(i,0)));
-		if (fPairStatus[i] == kTied && TiedPotentialT::InitiationQ(sigma))     
+		if (fPairStatus[i] == kTied && TiedPotentialT::InitiationQ(sigma.Pointer()))     
 		{ 
 	  		fPairStatus[i] = kFree;
 	  		changeQ = true;
