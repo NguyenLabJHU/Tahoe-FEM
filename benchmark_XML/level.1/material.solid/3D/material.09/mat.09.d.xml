@@ -32,7 +32,7 @@
                 <large_strain_material_3D>
                     <Simo_J2 density="1.0">
                         <E_and_nu Poisson_ratio="0.25" Young_modulus="100.0"/>
-                        <power_law a="0.25" b="400.0" n="0.8"/>
+                        <power_law a="0.25" b="1.0" c="400.0" n="0.8"/>
                     </Simo_J2>
                 </large_strain_material_3D>
             </large_strain_element_block>
