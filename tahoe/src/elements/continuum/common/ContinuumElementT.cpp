@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.2 2001-02-20 00:42:12 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 
 #include "ContinuumElementT.h"
@@ -235,23 +235,25 @@ void ContinuumElementT::WriteRestart(ostream& out) const
 /* writing output */
 void ContinuumElementT::RegisterOutput(void)
 {
-	/* ID is just group number */
-	int ID = fFEManager.ElementGroupNumber(this) + 1;
-
 //NOTE: could loop over each output mode and register
 //      it with the output separately. for now just register
 //      "kAtInc"
 	
-	/* get output configuration */
-	iArrayT counts;
-	SetOutputCodes(IOBaseT::kAtInc, fOutputCodes, counts);
-	int num_out = counts.Sum();
+	/* nodal output */
+	iArrayT n_counts;
+	SetNodalOutputCodes(IOBaseT::kAtInc, fNodalOutputCodes, n_counts);
 
-	/* variable labels */
-	ArrayT<StringT> n_labels(num_out);
-	ArrayT<StringT> e_labels;
-	GenerateOutputLabels(counts, n_labels);
+	/* element output */
+	iArrayT e_counts;
+	SetElementOutputCodes(IOBaseT::kAtInc, fElementOutputCodes, e_counts);
 
+	/* collect variable labels */
+	ArrayT<StringT> n_labels(n_counts.Sum());
+	ArrayT<StringT> e_labels(e_counts.Sum());
+	GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
+
+	/* set output specifier */
+	int ID = fFEManager.ElementGroupNumber(this) + 1;
 	OutputSetT output_set(ID, fGeometryCode, fConnectivities,
 		n_labels, e_labels, false);
 		
@@ -259,7 +261,7 @@ void ContinuumElementT::RegisterOutput(void)
 	fOutputID = fFEManager.RegisterOutput(output_set);
 }
 
-//NOTE - this function is identical to CSEBaseT::WriteOutput
+//NOTE - this function is/was identical to CSEBaseT::WriteOutput
 void ContinuumElementT::WriteOutput(IOBaseT::OutputModeT mode)
 {
 //TEMP - not handling general output modes yet
@@ -271,27 +273,18 @@ void ContinuumElementT::WriteOutput(IOBaseT::OutputModeT mode)
 	}
 
 	/* map output flags to count of values */
-	iArrayT counts;
-	SetOutputCodes(mode, fOutputCodes, counts);
-	int num_out = counts.Sum();
+	iArrayT n_counts;
+	SetNodalOutputCodes(mode, fNodalOutputCodes, n_counts);
+	iArrayT e_counts;
+	SetElementOutputCodes(mode, fElementOutputCodes, e_counts);
 
-	dArray2DT group_n_values;
-	dArray2DT group_e_values(0,0);
-	if (num_out > 0)
-	{
-		/* reset averaging workspace */
-		fNodes->ResetAverage(num_out);
+	/* calculate output values */
+	dArray2DT n_values;
+	dArray2DT e_values;
+	ComputeOutput(n_counts, n_values, e_counts, e_values);
 
-		/* compute nodal values */
-		ComputeNodalValues(counts);
-
-		/* get nodal values */
-		const iArrayT& node_used = fFEManager.OutputSet(fOutputID).NodesUsed();
-		fNodes->OutputAverage(node_used, group_n_values);
-	}
-
-	/* send out */
-	fFEManager.WriteOutput(fOutputID, group_n_values, group_e_values);
+	/* send to output */
+	fFEManager.WriteOutput(fOutputID, n_values, e_values);
 }
 
 /* side set to nodes on facets data */
@@ -1504,6 +1497,42 @@ void ContinuumElementT::CurrElementInfo(ostream& out) const
 	temp.Allocate(fLocDisp.NumberOfNodes(), fLocDisp.MinorDim());
 	fLocDisp.ReturnTranspose(temp);
 	temp.WriteNumbered(out);
+}
+
+/* check material outputs - return true if OK */
+bool ContinuumElementT::CheckMaterialOutput(void) const
+{
+	/* check compatibility of output */
+	if (fMaterialList->Length() > 1)
+	{
+		/* check compatibility of material outputs */
+		bool OK = true;
+		int i, j;
+		for (i = 0; OK && i < fMaterialList->Length(); i++)
+		{
+			ContinuumMaterialT* m_i = (*fMaterialList)[i];
+			for (j = i+1; OK && j < fMaterialList->Length(); j++)
+			{
+				ContinuumMaterialT* m_j = (*fMaterialList)[j];
+				OK = ContinuumMaterialT::CompatibleOutput(*m_i, *m_j);
+			}
+		}
+			
+		/* output not compatible */
+		if (!OK)	
+		{
+			cout << "\n ContinuumElementT::CheckMaterialOutput: incompatible output\n"
+			    <<    "     between materials " << i+1 << " and " << j+1 << ":\n";
+			(*fMaterialList)[i]->PrintName(cout);
+			cout << '\n';
+			(*fMaterialList)[j]->PrintName(cout);
+			cout << endl;
+			return false;
+		}
+	}
+	
+	/* no problems */
+	return true;
 }
 
 /***********************************************************************

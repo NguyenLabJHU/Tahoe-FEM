@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.2 2001-02-20 00:42:11 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 /* Base class for cohesive surface elements                               */
 
@@ -25,11 +25,16 @@ public:
 	enum FormulationT {Isotropic = 0,
 	                 Anisotropic = 1}; // flags for derived class types
 
-	enum OutputCodeT {NodalCoord = 0,  // (reference) coordinates
+	enum NodalOutputCodeT {
+	                  NodalCoord = 0,  // (reference) coordinates
                        NodalDisp = 1,  // displacements
                    NodalDispJump = 2,  // opening displacements
                    NodalTraction = 3,  // traction
                     MaterialData = 4}; // output from constitutive relations
+
+	enum ElementOutputCodeT {
+	             Centroid = 0,  // (reference) coordinates
+           CohesiveEnergy = 1}; // dissipated energy
 
 	/* constructor */
 	CSEBaseT(FEManagerT& fe_manager);
@@ -73,18 +78,21 @@ protected: /* for derived classes only */
 	virtual void PrintControlData(ostream& out) const;
 
 	/* nodal value calculations */
-	virtual void SetOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+	virtual void SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 		iArrayT& counts) const;
-	virtual void ComputeNodalValues(const iArrayT& codes) = 0;
+	virtual void SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+		iArrayT& counts) const;
+	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+		const iArrayT& e_codes, dArray2DT& e_values) = 0;
+
+	/* construct output labels array */
+	virtual void GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_labels,
+		const iArrayT& e_codes, ArrayT<StringT>& e_labels) const;
 
 	/* write current element information to the output */
 	void CurrElementInfo(ostream& out) const;
 	
 private:
-
-	/* construct output labels array */
-	virtual void GenerateOutputLabels(const iArrayT& codes,
-		ArrayT<StringT>& labels) const;
 
 	/* close surfaces to zero gap */
 	void CloseSurfaces(void) const;
@@ -105,7 +113,8 @@ protected:
 
 	/* output control */
 	int fOutputID;
-	iArrayT	fOutputCodes;
+	iArrayT	fNodalOutputCodes;
+	iArrayT	fElementOutputCodes;
 	iArrayT fNodesUsed;
 
 	/* output stream for fracture area */
@@ -125,7 +134,8 @@ protected:
 	dMatrixT fNEEmat;
 
 	/* parameters */
-	static const int NumOutputCodes;
+	static const int NumNodalOutputCodes;
+	static const int NumElementOutputCodes;
 };
 
 #endif /* _CSE_BASE_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.2 2001-02-13 17:58:26 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.3 2001-02-20 00:42:10 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "ElementBaseT.h"
@@ -126,10 +126,10 @@ void ElementBaseT::FormRHS(void)
 		
 			/* write current element information to main out */
 			CurrElementInfo(out);
-			cout << " See output file for current element information\n";
+			cout << "     See output file for current element information\n";
 		}
 		else
-			cout << "\n Current element information not available\n";
+			cout << "     Current element information not available\n";
 		cout.flush();
 		throw error;
 	}

@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.2 2001-02-20 00:42:11 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 
 #include "CSEBaseT.h"
@@ -16,12 +16,12 @@
 #include "OutputSetT.h"
 
 /* initialize static data */
-const int CSEBaseT::NumOutputCodes = 5;
+const int CSEBaseT::NumNodalOutputCodes = 5;
+const int CSEBaseT::NumElementOutputCodes = 2;
 
 /* constructor */
 CSEBaseT::CSEBaseT(FEManagerT& fe_manager):
 	ElementBaseT(fe_manager),
-	fOutputCodes(NumOutputCodes),
 	fLocInitCoords1(LocalArrayT::kInitCoords),
 	fLocCurrCoords(LocalArrayT::kCurrCoords),
 	fFractureArea(0.0),
@@ -92,27 +92,64 @@ void CSEBaseT::Initialize(void)
 	fNEEmat.Allocate(fNumElemEqnos);
 
 	/* echo output codes (one at a time to allow comments) */
+	fNodalOutputCodes.Allocate(NumNodalOutputCodes);
 	ifstreamT& in = fFEManager.Input();
 	ostream&   out = fFEManager.Output();
-	for (int i = 0; i < fOutputCodes.Length(); i++)
+	for (int i = 0; i < fNodalOutputCodes.Length(); i++)
 	{
-		in >> fOutputCodes[i];
+		in >> fNodalOutputCodes[i];
 
 		/* convert all to "at print increment" */
-		if (fOutputCodes[i] != IOBaseT::kAtNever)
-			fOutputCodes[i] = IOBaseT::kAtInc;		
+		if (fNodalOutputCodes[i] != IOBaseT::kAtNever)
+			fNodalOutputCodes[i] = IOBaseT::kAtInc;		
 	}
 
-	out << " Number of nodal output codes. . . . . . . . . . = " << NumOutputCodes << '\n';
-	out << "    [" << fOutputCodes[NodalCoord   ] << "]: initial nodal coordinates\n";
-	out << "    [" << fOutputCodes[NodalDisp    ] << "]: nodal displacements\n";
-	out << "    [" << fOutputCodes[NodalDispJump] << "]: nodal gap (magnitude)\n";
-	out << "    [" << fOutputCodes[NodalTraction] << "]: nodal traction magnitude\n";
-	out << "    [" << fOutputCodes[MaterialData ] << "]: constitutive output data\n";
+	/* echo */
+	out << " Number of nodal output codes. . . . . . . . . . = " << fNodalOutputCodes.Length() << '\n';
+	out << "    [" << fNodalOutputCodes[NodalCoord   ] << "]: initial nodal coordinates\n";
+	out << "    [" << fNodalOutputCodes[NodalDisp    ] << "]: nodal displacements\n";
+	out << "    [" << fNodalOutputCodes[NodalDispJump] << "]: nodal gap (magnitude)\n";
+	out << "    [" << fNodalOutputCodes[NodalTraction] << "]: nodal traction magnitude\n";
+	out << "    [" << fNodalOutputCodes[MaterialData ] << "]: constitutive output data\n";
 
 	/* check */
-	if (fOutputCodes.Min() < IOBaseT::kAtFinal ||
-	    fOutputCodes.Max() > IOBaseT::kAtInc) throw eBadInputValue;
+	if (fNodalOutputCodes.Min() < IOBaseT::kAtFinal ||
+	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw eBadInputValue;
+
+//TEMP - backward compatibility
+	fElementOutputCodes.Allocate(NumElementOutputCodes);
+	if (StringT::versioncmp(fFEManager.Version(), "v3.01") < 1)
+	{
+		/* message */
+		cout << "\n CSEBaseT::Initialize: use input file version newer than v3.01\n" 
+		     <<   "     to enable element output control" << endl;
+		out << "\n CSEBaseT::Initialize: use input file version newer than v3.01\n" 
+		    <<   "     to enable element output control" << endl;
+	
+		/* default */
+		fElementOutputCodes = IOBaseT::kAtNever;
+	}
+	else
+	{
+		/* read in at a time to allow comments */
+		for (int j = 0; j < fElementOutputCodes.Length(); j++)
+		{
+			in >> fElementOutputCodes[j];
+		
+			/* convert all to "at print increment" */
+			if (fElementOutputCodes[j] != IOBaseT::kAtNever)
+				fElementOutputCodes[j] = IOBaseT::kAtInc;
+		}	
+
+		/* checks */
+		if (fElementOutputCodes.Min() < IOBaseT::kAtFail ||
+		    fElementOutputCodes.Max() > IOBaseT::kAtInc) throw eBadInputValue;
+	}
+
+	/* echo */
+	out << " Number of element output codes. . . . . . . . . = " << fElementOutputCodes.Length() << '\n';
+	out << "    [" << fElementOutputCodes[Centroid      ] << "]: reference centroid\n";
+	out << "    [" << fElementOutputCodes[CohesiveEnergy] << "]: dissipated cohesive energy\n";
 	
 	/* close surfaces */
 	if (fCloseSurfaces) CloseSurfaces();
@@ -189,18 +226,15 @@ void CSEBaseT::RegisterOutput(void)
 //      it with the output separately. for now just register
 //      "kAtInc"
 
-	/* ID is just group number */
-	int ID = fFEManager.ElementGroupNumber(this) + 1;
-
 	/* "deformed" geometry */
 	GeometryT::CodeT geo_code;
 	switch (fGeometryCode)
-{
+	{
 		case GeometryT::kLine:		
 			geo_code = GeometryT::kQuadrilateral;
 			break;
 
-	case GeometryT::kQuadrilateral:
+		case GeometryT::kQuadrilateral:
 			geo_code = GeometryT::kHexahedron;
 			break;
 
@@ -216,18 +250,22 @@ void CSEBaseT::RegisterOutput(void)
 		throw eGeneralFail;	
 	}	
 
-	/* get output configuration */
-	iArrayT counts;
-	SetOutputCodes(IOBaseT::kAtInc, fOutputCodes, counts);
-	int num_out = counts.Sum();
+	/* nodal output */
+	iArrayT n_counts;
+	SetNodalOutputCodes(IOBaseT::kAtInc, fNodalOutputCodes, n_counts);
 
-	/* variable labels */
-	ArrayT<StringT> n_labels(num_out);
-	ArrayT<StringT> e_labels;
-	GenerateOutputLabels(counts, n_labels);
+	/* element output */
+	iArrayT e_counts;
+	SetElementOutputCodes(IOBaseT::kAtInc, fElementOutputCodes, e_counts);
 
-	OutputSetT output_set(ID, geo_code, fConnectivities,
-		n_labels, e_labels, false);
+	/* collect variable labels */
+	ArrayT<StringT> n_labels(n_counts.Sum());
+	ArrayT<StringT> e_labels(e_counts.Sum());
+	GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
+
+	/* set output specifier */
+	int ID = fFEManager.ElementGroupNumber(this) + 1;
+	OutputSetT output_set(ID, geo_code, fConnectivities, n_labels, e_labels, false);
 		
 	/* register and get output ID */
 	fOutputID = fFEManager.RegisterOutput(output_set);
@@ -251,35 +289,26 @@ void CSEBaseT::WriteOutput(IOBaseT::OutputModeT mode)
 		farea_out << setw(kDoubleWidth) << fFractureArea << endl;
 	}
 
-	/* nodal output */
-	iArrayT codes;
-	SetOutputCodes(mode, fOutputCodes, codes);
-	int num_out = codes.Sum();
+	/* map output flags to count of values */
+	iArrayT n_counts;
+	SetNodalOutputCodes(mode, fNodalOutputCodes, n_counts);
+	iArrayT e_counts;
+	SetElementOutputCodes(mode, fElementOutputCodes, e_counts);
 
-	dArray2DT group_n_values;
-	dArray2DT group_e_values(0,0);
-	if (num_out > 0)
-	{
-		/* reset averaging workspace */
-		fNodes->ResetAverage(num_out);
+	/* calculate output values */
+	dArray2DT n_values;
+	dArray2DT e_values;
+	ComputeOutput(n_counts, n_values, e_counts, e_values);
 
-		/* compute nodal values */
-		ComputeNodalValues(codes);
-
-		/* get nodal values */
-		fNodes->OutputUsedAverage(group_n_values);		
-	}
-
-	/* send out */
-	fFEManager.WriteOutput(fOutputID, group_n_values, group_e_values);
-
+	/* send to output */
+	fFEManager.WriteOutput(fOutputID, n_values, e_values);
 }
 
 /* compute specified output parameter and send for smoothing */
 void CSEBaseT::SendOutput(int kincode)
 {
-/* output flags */
-iArrayT flags(fOutputCodes.Length());
+	/* output flags */
+	iArrayT flags(fNodalOutputCodes.Length());
 
 	/* set flags to get desired output */
 	flags = IOBaseT::kAtNever;
@@ -300,15 +329,16 @@ iArrayT flags(fOutputCodes.Length());
 	}
 
 	/* number of output values */
-	iArrayT counts;
-	SetOutputCodes(IOBaseT::kAtInc, flags, counts);
-	int num_out = counts.Sum();
+	iArrayT n_counts;
+	SetNodalOutputCodes(IOBaseT::kAtInc, flags, n_counts);
 
 	/* reset averaging workspace */
-	fNodes->ResetAverage(num_out);
+	fNodes->ResetAverage(n_counts.Sum());
 
 	/* generate nodal values */
-	ComputeNodalValues(counts);
+	iArrayT e_counts;
+	dArray2DT e_values, n_values;
+	ComputeOutput(n_counts, n_values, e_counts, e_values);
 }
 
 /***********************************************************************
@@ -331,13 +361,13 @@ void CSEBaseT::PrintControlData(ostream& out) const
 	out << " Output fracture surface area. . . . . . . . . . = " << fOutputArea    << '\n';
 }
 
-void CSEBaseT::SetOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+void CSEBaseT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 		iArrayT& counts) const
 {
 	/* initialize */
 	counts.Allocate(flags.Length());
 	counts = 0;
-
+	
 	if (flags[NodalCoord] == mode)
 		counts[NodalCoord] = fNumSD;
 	if (flags[NodalDisp] == mode)
@@ -346,6 +376,58 @@ void CSEBaseT::SetOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 		counts[NodalDispJump] = 1;
 	if (flags[NodalTraction] == mode)
 		counts[NodalTraction] = 1;
+}
+
+void CSEBaseT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+	iArrayT& counts) const
+{
+	/* initialize */
+	counts.Allocate(flags.Length());
+	counts = 0;
+
+	if (flags[Centroid] == mode)
+		counts[Centroid] = fNumSD;
+	if (flags[CohesiveEnergy] == mode)
+		counts[CohesiveEnergy] = 1;
+}
+
+/* construct output labels array */
+void CSEBaseT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_labels,
+	const iArrayT& e_codes, ArrayT<StringT>& e_labels) const
+{
+	/* allocate nodal output labels */
+	n_labels.Allocate(n_codes.Sum());
+
+	int count = 0;
+	if (n_codes[NodalDisp])
+	{
+		if (fNumDOF > 3) throw eGeneralFail;
+		const char* dlabels[3] = {"D_X", "D_Y", "D_Z"};
+
+		for (int i = 0; i < fNumDOF; i++)
+			n_labels[count++] = dlabels[i];
+	}
+
+	if (n_codes[NodalCoord])
+	{
+		const char* xlabels[] = {"x1", "x2", "x3"};
+		for (int i = 0; i < fNumSD; i++)
+			n_labels[count++] = xlabels[i];
+	}
+
+	if (n_codes[NodalDispJump]) n_labels[count++] = "jump";
+	if (n_codes[NodalTraction]) n_labels[count++] = "Tmag";
+	
+	/* allocate nodal output labels */
+	e_labels.Allocate(e_codes.Sum());
+	count = 0;
+	if (e_codes[Centroid])
+	{
+		const char* xlabels[] = {"xc_1", "xc_2", "xc_3"};
+		for (int i = 0; i < fNumSD; i++)
+			e_labels[count++] = xlabels[i];
+	}
+	if (e_codes[CohesiveEnergy]) e_labels[count++] = "phi";
 }
 
 /* write all current element information to the stream */
@@ -369,35 +451,6 @@ void CSEBaseT::CurrElementInfo(ostream& out) const
 /***********************************************************************
 * Private
 ***********************************************************************/
-
-/* construct output labels array */
-void CSEBaseT::GenerateOutputLabels(const iArrayT& codes,
-	ArrayT<StringT>& labels) const
-{
-	/* allocate */
-	labels.Allocate(codes.Sum());
-
-	int count = 0;
-	if (codes[NodalDisp])
-	{
-		if (fNumDOF > 3) throw eGeneralFail;
-		const char* dlabels[3] = {"D_X", "D_Y", "D_Z"};
-
-		for (int i = 0; i < fNumDOF; i++)
-			labels[count++] = dlabels[i];
-	}
-
-	if (codes[NodalCoord])
-	{
-		const char* xlabels[] = {"x1", "x2", "x3"};
-
-		for (int i = 0; i < fNumSD; i++)
-			labels[count++] = xlabels[i];
-	}
-
-	if (codes[NodalDispJump]) labels[count++] = "jump";
-	if (codes[NodalTraction]) labels[count++] = "Tmag";
-}
 
 /* close surfaces to zero gap */
 void CSEBaseT::CloseSurfaces(void) const

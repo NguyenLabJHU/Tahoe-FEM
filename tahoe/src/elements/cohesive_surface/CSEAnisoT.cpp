@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.2 2001-02-20 00:42:11 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 /* Cohesive surface elements with scalar traction potentials,             */
 /* i.e., the traction potential is a function of the gap magnitude,       */
@@ -117,7 +117,7 @@ fCurrShapes->Initialize();
 	}
 
 	/* check compatibility of constitutive outputs */
-	if (fSurfPots.Length() > 1 && fOutputCodes[MaterialData])
+	if (fSurfPots.Length() > 1 && fNodalOutputCodes[MaterialData])
 		for (int k = 0; k < fSurfPots.Length(); k++)
 		{
 			const SurfacePotentialT* pot_k = fSurfPots[k];
@@ -336,18 +336,43 @@ void CSEAnisoT::RHSDriver(void)
 	}	
 }
 
-/* extrapolate the integration point stresses and strains and extrapolate */
-void CSEAnisoT::ComputeNodalValues(const iArrayT& codes)
+/* nodal value calculations */
+void CSEAnisoT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+	iArrayT& counts) const
 {
-/* number of nodally smoothed values */
-int num_out = codes.Sum();
+	/* inherited */
+	CSEBaseT::SetNodalOutputCodes(mode, flags, counts);
+
+	/* resize for vectors not magnitudes */
+	if (flags[NodalDispJump] == mode)
+		counts[NodalDispJump] = fNumDOF;	
+	if (flags[NodalTraction] == mode)
+		counts[NodalTraction] = fNumDOF;
+	if (flags[MaterialData] == mode)
+		counts[MaterialData] = fSurfPots[0]->NumOutputVariables();
+}
+
+/* extrapolate the integration point stresses and strains and extrapolate */
+void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+	const iArrayT& e_codes, dArray2DT& e_values)
+{
+	/* number of output values */
+	int n_out = n_codes.Sum();
+	int e_out = e_codes.Sum();
 
 	/* nothing to output */
-	if (num_out == 0) return;
+	if (n_out == 0 && e_out == 0) return;
+
+	/* reset averaging workspace */
+	fNodes->ResetAverage(n_out);
+
+	/* allocate element results space */
+	e_values.Allocate(fNumElements, e_out);
+	e_values = 0.0;
 
 	/* work arrays */
-	dArray2DT nodal_space(fNumElemNodes, num_out);
-	dArray2DT nodal_all(fNumElemNodes, num_out);
+	dArray2DT nodal_space(fNumElemNodes, n_out);
+	dArray2DT nodal_all(fNumElemNodes, n_out);
 	dArray2DT coords, disp;
 	dArray2DT jump, T;
 	dArray2DT matdat;	
@@ -357,19 +382,27 @@ int num_out = codes.Sum();
 	LocalArrayT loc_disp(LocalArrayT::kDisp, fNumElemNodes, fNumDOF);
 	fFEManager.RegisterLocal(loc_init_coords);
 	fFEManager.RegisterLocal(loc_disp);
-	dArrayT ipmat(codes[MaterialData]);
+	dArrayT ipmat(n_codes[MaterialData]);
 	
 	/* set shallow copies */
 	double* pall = nodal_space.Pointer();
-	coords.Set(fNumElemNodes, codes[NodalCoord], pall);
-	pall += coords.Length();
-	disp.Set(fNumElemNodes, codes[NodalDisp], pall);
-	pall += disp.Length();
-	jump.Set(fNumElemNodes, codes[NodalDispJump], pall);
-	pall += jump.Length();
-	T.Set(fNumElemNodes, codes[NodalTraction], pall);
-	pall += T.Length();
-	matdat.Set(fNumElemNodes, codes[MaterialData], pall);
+	coords.Set(fNumElemNodes, n_codes[NodalCoord], pall) ; pall += coords.Length();
+	disp.Set(fNumElemNodes, n_codes[NodalDisp], pall)    ; pall += disp.Length();
+	jump.Set(fNumElemNodes, n_codes[NodalDispJump], pall); pall += jump.Length();
+	T.Set(fNumElemNodes, n_codes[NodalTraction], pall)   ; pall += T.Length();
+	matdat.Set(fNumElemNodes, n_codes[MaterialData], pall);
+
+	/* element work arrays */
+	dArrayT element_values(e_values.MinorDim());
+	pall = element_values.Pointer();
+	dArrayT centroid;
+	if (e_codes[Centroid])
+	{
+		centroid.Set(fNumSD, pall); 
+		pall += fNumSD;
+	}
+	double phi_tmp, area;
+	double& phi = (e_codes[CohesiveEnergy]) ? *pall++ : phi_tmp;
 
 	Top();
 	while (NextElement())
@@ -381,22 +414,21 @@ int num_out = codes.Sum();
 	    nodal_space = 0.0;
 
 		/* coordinates for whole element */
-		if (codes[NodalCoord])
+		if (n_codes[NodalCoord])
 		{
 			SetLocalX(loc_init_coords);
 			loc_init_coords.ReturnTranspose(coords);
 		}
 		
 		/* displacements for whole element */
-		if (codes[NodalDisp])
+		if (n_codes[NodalDisp])
 		{
 			SetLocalU(loc_disp);
 			loc_disp.ReturnTranspose(disp);
 		}
 
-		/* gap and/or traction magnitude */
-		if (element.Flag() == kON &&
-		    (codes[NodalDispJump] || codes[NodalTraction]))
+		/* compute output */
+		if (element.Flag() == kON)
 		{
 	  		/* surface potential */
 			SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
@@ -404,10 +436,17 @@ int num_out = codes.Sum();
 			/* get current geometry */
 			SetLocalX(fLocCurrCoords); //EFFECTIVE_DVA
 
+			/* initialize element values */
+			phi = area = 0;
+			if (e_codes[Centroid]) centroid = 0.0;
+
 			/* integrate */
 			fShapes->TopIP();
 			while (fShapes->NextIP())
 			{
+				/* element integration weight */
+				double ip_w = fShapes->Jacobian()*fShapes->IPWeight();
+
 				/* gap */
 				const dArrayT& gap = fShapes->InterpolateJumpU(fLocCurrCoords);
 
@@ -416,18 +455,38 @@ int num_out = codes.Sum();
 				fQ.MultTx(gap, fdelta);
 
 				/* gap */				
-				if (codes[NodalDispJump])
+				if (n_codes[NodalDispJump])
 					fShapes->Extrapolate(fdelta, jump);				
 				
 				/* traction */
-				if (codes[NodalTraction])
+				if (n_codes[NodalTraction])
 					fShapes->Extrapolate(surfpot->Traction(fdelta), T);
 					
 				/* material output data */
-				if (codes[MaterialData])
+				if (n_codes[MaterialData])
 				{
 					surfpot->ComputeOutput(fdelta, ipmat);
 					fShapes->Extrapolate(ipmat, matdat);
+				}
+
+				/* area-averaged centroid */
+				if (e_codes[Centroid])
+				{
+					/* mass */
+					area += ip_w;
+				
+					/* moment */
+					centroid.AddScaled(ip_w, fShapes->IPCoords());
+				}
+				
+				/* cohesive energy */
+				if (e_codes[CohesiveEnergy])
+				{
+					/* surface potential */
+					double potential = surfpot->Potential(fdelta);
+
+					/* integrate */
+					phi += potential*ip_w;
 				}
 			}
 		}
@@ -442,6 +501,81 @@ int num_out = codes.Sum();
 
 		/* accumulate - extrapolation done from ip's to corners => X nodes */
 		fNodes->AssembleAverage(element.NodesX(), nodal_all);
+		
+		/* element values */
+		if (e_codes[Centroid]) centroid /= area;
+		
+		/* store results */
+		e_values.SetRow(CurrElementNumber(), element_values);		
+	}
+
+	/* get nodally averaged values */
+	fNodes->OutputUsedAverage(n_values);
+}
+
+void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_labels,
+	const iArrayT& e_codes, ArrayT<StringT>& e_labels) const
+{
+	/* inherited */
+	CSEBaseT::GenerateOutputLabels(n_codes, n_labels, e_codes, e_labels);
+
+	/* overwrite nodal labels */
+	n_labels.Allocate(n_codes.Sum());
+	int count = 0;
+	if (n_codes[NodalDisp])
+	{
+		if (fNumDOF > 3) throw eGeneralFail;
+		const char* dlabels[3] = {"D_X", "D_Y", "D_Z"};
+		for (int i = 0; i < fNumDOF; i++)
+			n_labels[count++] = dlabels[i];
+	}
+
+	if (n_codes[NodalCoord])
+	{
+		const char* xlabels[3] = {"x1", "x2", "x3"};
+		for (int i = 0; i < fNumSD; i++)
+			n_labels[count++] = xlabels[i];
+	}
+
+	if (n_codes[NodalDispJump])
+	{
+		const char* d_2D[2] = {"d_t", "d_n"};
+		const char* d_3D[3] = {"d_t1", "d_t2", "d_n"};
+		const char** dlabels;
+		if (fNumDOF == 2)
+			dlabels = d_2D;
+		else if (fNumDOF == 3)
+			dlabels = d_3D;
+		else
+			throw eGeneralFail;
+
+		for (int i = 0; i < fNumDOF; i++)
+			n_labels[count++] = dlabels[i];
+	}
+
+	if (n_codes[NodalTraction])
+	{
+		const char* t_2D[2] = {"T_t", "T_n"};
+		const char* t_3D[3] = {"T_t1", "T_t2", "T_n"};
+		const char** tlabels;
+		if (fNumDOF == 2)
+			tlabels = t_2D;
+		else if (fNumDOF == 3)
+			tlabels = t_3D;
+		else
+			throw eGeneralFail;
+
+		for (int i = 0; i < fNumDOF; i++)
+			n_labels[count++] = tlabels[i];
+	}
+
+	/* material output labels */
+	if (n_codes[MaterialData])
+	{
+		ArrayT<StringT> matlabels;
+		fSurfPots[0]->OutputLabels(matlabels);
+		for (int i = 0; i < n_codes[MaterialData]; i++)
+			n_labels[count++] = matlabels[i];
 	}
 }
 
@@ -478,89 +612,6 @@ void CSEAnisoT::CurrElementInfo(ostream& out) const
 /***********************************************************************
 * Private
 ***********************************************************************/
-
-/* nodal value calculations */
-void CSEAnisoT::SetOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
-	iArrayT& counts) const
-{
-	/* inherited */
-	CSEBaseT::SetOutputCodes(mode, flags, counts);
-
-	/* resize for vectors not magnitudes */
-	if (flags[NodalDispJump] == mode)
-		counts[NodalDispJump] = fNumDOF;	
-	if (flags[NodalTraction] == mode)
-		counts[NodalTraction] = fNumDOF;
-	if (flags[MaterialData] == mode)
-		counts[MaterialData] = fSurfPots[0]->NumOutputVariables();}
-
-void CSEAnisoT::GenerateOutputLabels(const iArrayT& codes,
-	ArrayT<StringT>& labels) const
-{
-	/* dimension */
-	labels.Allocate(codes.Sum());
-
-	int count = 0;
-	if (codes[NodalDisp])
-	{
-		if (fNumDOF > 3) throw eGeneralFail;
-		const char* dlabels[3] = {"D_X", "D_Y", "D_Z"};
-
-		for (int i = 0; i < fNumDOF; i++)
-			labels[count++] = dlabels[i];
-	}
-
-	if (codes[NodalCoord])
-	{
-		const char* xlabels[3] = {"x1", "x2", "x3"};
-
-		for (int i = 0; i < fNumSD; i++)
-			labels[count++] = xlabels[i];
-	}
-
-	if (codes[NodalDispJump])
-	{
-		const char* d_2D[2] = {"d_t", "d_n"};
-		const char* d_3D[3] = {"d_t1", "d_t2", "d_n"};
-		
-		const char** dlabels;
-		if (fNumDOF == 2)
-			dlabels = d_2D;
-		else if (fNumDOF == 3)
-			dlabels = d_3D;
-		else
-			throw eGeneralFail;
-
-		for (int i = 0; i < fNumDOF; i++)
-			labels[count++] = dlabels[i];
-	}
-
-	if (codes[NodalTraction])
-	{
-		const char* t_2D[2] = {"T_t", "T_n"};
-		const char* t_3D[3] = {"T_t1", "T_t2", "T_n"};
-		
-		const char** tlabels;
-		if (fNumDOF == 2)
-			tlabels = t_2D;
-		else if (fNumDOF == 3)
-			tlabels = t_3D;
-		else
-			throw eGeneralFail;
-
-		for (int i = 0; i < fNumDOF; i++)
-			labels[count++] = tlabels[i];
-	}
-
-	/* material output labels */
-	if (codes[MaterialData])
-	{
-		ArrayT<StringT> matlabels;
-		fSurfPots[0]->OutputLabels(matlabels);
-		for (int i = 0; i < codes[MaterialData]; i++)
-			labels[count++] = matlabels[i];
-	}
-}
 
 /* operations with pseudo rank 3 (list in j) matrices */
 void CSEAnisoT::u_i__Q_ijk(const dArrayT& u, const ArrayT<dMatrixT>& Q,

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.2 2001-02-20 00:42:14 paklein Exp $ */
 /* created: paklein (09/16/1998)                                          */
 /* large deformation elasticity with MLS shapefunctions for the           */
 /* field (displacement) representation                                    */
@@ -359,16 +359,17 @@ bool MeshFreeFSSolidT::NextElement(void)
 }
 
 /* driver for nodal value calculations */
-void MeshFreeFSSolidT::ComputeNodalValues(const iArrayT& codes)
+void MeshFreeFSSolidT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+	const iArrayT& e_codes, dArray2DT& e_values)
 {
 	/* set nodal displacements data */
-	if (codes[iNodalDisp] == fNumDOF) SetNodalField(fNodes->Displacements());
+	if (n_codes[iNodalDisp] == fNumDOF) SetNodalField(fNodes->Displacements());
 
 	/* inherited */
-	TotLag_FSSolidT::ComputeNodalValues(codes);
+	TotLag_FSSolidT::ComputeOutput(n_codes, n_values, e_codes, e_values);
 
 	/* free work space memory */
-	if (codes[iNodalDisp] == fNumDOF) FreeNodalField();
+	if (n_codes[iNodalDisp] == fNumDOF) FreeNodalField();
 }
 
 /***********************************************************************

@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.2 2001-02-20 00:42:15 paklein Exp $ */
 /* created: paklein (07/03/1996)                                          */
 
 #include "ParentDomainT.h"
@@ -378,7 +378,7 @@ void ParentDomainT::NodalValues(const dArrayT& IPvalues,
 #if __option(extended_errorcheck)
 	/* dimension check */
 	if (nodalvalues.MajorDim() != fNumNodes ||
-nodalvalues.MinorDim() != IPvalues.Length()) throw eSizeMismatch;
+		nodalvalues.MinorDim() != IPvalues.Length()) throw eSizeMismatch;
 #endif
 
 	int numvals = IPvalues.Length();

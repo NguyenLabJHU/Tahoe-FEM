@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.1.1.1 2001-01-29 08:20:37 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.2 2001-02-20 00:42:11 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 /* Cohesive surface elements with scalar traction potentials,             */
 /* i.e., the traction potential is a function of the gap magnitude,       */
@@ -42,10 +42,10 @@ void CSEIsoT::Initialize(void)
 	CSEBaseT::Initialize();
 
 	/* check output codes */
-	if (fOutputCodes[MaterialData])
+	if (fNodalOutputCodes[MaterialData])
 	{
 		cout << "\n CSEIsoT::Initialize: material outputs not supported, overriding" << endl;
-		fOutputCodes[MaterialData] = IOBaseT::kAtNever;
+		fNodalOutputCodes[MaterialData] = IOBaseT::kAtNever;
 	}
 
 	/* streams */
@@ -232,17 +232,26 @@ void CSEIsoT::RHSDriver(void)
 }
 
 /* extrapolate the integration point stresses and strains and extrapolate */
-void CSEIsoT::ComputeNodalValues(const iArrayT& codes)
+void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+	const iArrayT& e_codes, dArray2DT& e_values)
 {
-/* number of nodally smoothed values */
-int num_out = codes.Sum();
+	/* number of nodally smoothed values */
+	int n_out = n_codes.Sum();
+	int e_out = e_codes.Sum();
 
 	/* nothing to output */
-	if (num_out == 0) return;
+	if (n_out == 0 && e_out == 0) return;
+
+	/* reset averaging workspace */
+	fNodes->ResetAverage(n_out);
+
+	/* allocate element results space */
+	e_values.Allocate(fNumElements, e_out);
+	e_values = 0.0;
 
 	/* work arrays */
-	dArray2DT nodal_space(fNumElemNodes, num_out);
-	dArray2DT nodal_all(fNumElemNodes, num_out);
+	dArray2DT nodal_space(fNumElemNodes, n_out);
+	dArray2DT nodal_all(fNumElemNodes, n_out);
 	dArray2DT coords, disp;
 	dArray2DT jump, Tmag;
 
@@ -255,37 +264,51 @@ int num_out = codes.Sum();
 
 	/* set shallow copies */
 	double* pall = nodal_space.Pointer();
-	coords.Set(fNumElemNodes, codes[NodalCoord], pall);
+	coords.Set(fNumElemNodes, n_codes[NodalCoord], pall);
 	pall += coords.Length();
-	disp.Set(fNumElemNodes, codes[NodalDisp], pall);
+	disp.Set(fNumElemNodes, n_codes[NodalDisp], pall);
 	pall += disp.Length();
-	jump.Set(fNumElemNodes, codes[NodalDispJump], pall);
+	jump.Set(fNumElemNodes, n_codes[NodalDispJump], pall);
 	pall += jump.Length();
-	Tmag.Set(fNumElemNodes, codes[NodalTraction], pall);
+	Tmag.Set(fNumElemNodes, n_codes[NodalTraction], pall);
+
+	/* element work arrays */
+	dArrayT element_values(e_values.MinorDim());
+	pall = element_values.Pointer();
+	dArrayT centroid;
+	if (e_codes[Centroid])
+	{
+		centroid.Set(fNumSD, pall); 
+		pall += fNumSD;
+	}
+	double phi_tmp, area;
+	double& phi = (e_codes[CohesiveEnergy]) ? *pall++ : phi_tmp;
 
 	Top();
 	while (NextElement())
 	{
+		/* current element */
+		ElementCardT& element = CurrentElement();
+
 		/* initialize */
 	    nodal_space = 0.0;
 
 		/* coordinates for whole element */
-		if (codes[NodalCoord])
+		if (n_codes[NodalCoord])
 		{
 			SetLocalX(loc_init_coords);
 			loc_init_coords.ReturnTranspose(coords);
 		}
 		
 		/* displacements for whole element */
-		if (codes[NodalDisp])
+		if (n_codes[NodalDisp])
 		{
 			SetLocalU(loc_disp);
 			loc_disp.ReturnTranspose(disp);
 		}
 
-		/* gap and/or traction magnitude */
-		if (codes[NodalDispJump] ||
-		    codes[NodalTraction])
+		/* compute output */
+		if (element.Flag() == kON)
 		{
 	  		/* surface potential */
 			C1FunctionT* surfpot = fSurfPots[CurrentElement().MaterialNumber()];
@@ -293,15 +316,22 @@ int num_out = codes.Sum();
 			/* get current geometry */
 			SetLocalX(fLocCurrCoords); //EFFECTIVE_DVA
 
+			/* initialize element values */
+			phi = area = 0;
+			if (e_codes[Centroid]) centroid = 0.0;
+
 			/* integrate */
 			fShapes->TopIP();
 			while (fShapes->NextIP())
 			{
+				/* element integration weight */
+				double ip_w = fShapes->Jacobian()*fShapes->IPWeight();
+
 				/* gap */
 				const dArrayT& gap = fShapes->InterpolateJumpU(fLocCurrCoords);
 				double d = gap.Magnitude();
 
-				if (codes[NodalDispJump])
+				if (n_codes[NodalDispJump])
 				{
 					/* extrapolate ip values to nodes */
 					ipjump[0] = d;
@@ -309,14 +339,34 @@ int num_out = codes.Sum();
 				}
 
 				/* traction */
-				if (codes[NodalTraction])
+				if (n_codes[NodalTraction])
 				{
 					/* traction magnitude */
 					ipTmag[0] = surfpot->DFunction(d);
 
 					/* extrapolate to nodes */
 					fShapes->Extrapolate(ipTmag, Tmag);
-				}			
+				}	
+				
+				/* area-averaged centroid */
+				if (e_codes[Centroid])
+				{
+					/* mass */
+					area += ip_w;
+				
+					/* moment */
+					centroid.AddScaled(ip_w, fShapes->IPCoords());
+				}
+				
+				/* cohesive energy */
+				if (e_codes[CohesiveEnergy])
+				{
+					/* surface potential */
+					double potential = surfpot->Function(d);
+
+					/* integrate */
+					phi += potential*ip_w;
+				}
 			}
 		}
 
@@ -329,5 +379,14 @@ int num_out = codes.Sum();
 
 		/* accumulate - extrapolation done from ip's to corners => X nodes */
 		fNodes->AssembleAverage(CurrentElement().NodesX(), nodal_all);
+
+		/* element values */
+		if (e_codes[Centroid]) centroid /= area;
+		
+		/* store results */
+		e_values.SetRow(CurrElementNumber(), element_values);		
 	}
+
+	/* get nodally averaged values */
+	fNodes->OutputUsedAverage(n_values);
 }
