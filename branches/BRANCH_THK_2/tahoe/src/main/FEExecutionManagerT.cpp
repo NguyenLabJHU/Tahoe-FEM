@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.41.2.16 2003-06-13 06:13:07 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.41.2.17 2003-06-16 05:34:07 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -586,7 +586,10 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	int numbatoms = boundaryghostatoms.Length() - numgatoms;	// total number of boundary atoms
 	dArray2DT gadisp(numgatoms,2), gavel(numgatoms,2), gaacc(numgatoms,2);
 	dArray2DT badisp(numbatoms,2), bavel(numbatoms,2), baacc(numbatoms,2);
-	iArrayT allatoms(boundaryghostatoms.Length()), gatoms(numgatoms), batoms(numbatoms);
+	iArrayT allatoms(boundaryghostatoms.Length()), gatoms(numgatoms), batoms(numbatoms); 
+	ArrayT<bool> ghostmask(1), ghostallow(1);
+	ghostmask = false;
+	ghostallow = true;
 	allatoms.SetValueToPosition();
 	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);
 	gatoms.CopyPart(0, allatoms, 0, numgatoms);
@@ -607,14 +610,16 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		
 		/* calculate fine scale part of MD displacement and total displacement u */
 		continuum.InitialProject(bridging_field, *atoms.NodeManager(), projectedu, order1);
-	
+
 		/* solve for initial FEM force f(u) as function of fine scale + FEM */
 		/* use projected totalu instead of totalu for initial FEM displacements */
+		//atoms.SetActiveElementGroupMask(ghostmask);	// turn ghost atoms off (ghostmask)
 		fubig = InternalForce(projectedu, atoms);
-		
+		//atoms.SetActiveElementGroupMask(ghostallow);	// turn ghost atoms back on	(ghostallow)
+
 		/* calculate global interpolation matrix ntf */
 		continuum.Ntf(ntf, atoms.NonGhostNodes(), activefenodes);
-		
+
 		/* compute FEM RHS force as product of ntf and fu */
 		dArrayT fx(ntf.Rows()), fy(ntf.Rows()), tempx(ntf.Cols()), tempy(ntf.Cols());
 		dArray2DT ntfproduct(ntf.Rows(), 2);
@@ -629,7 +634,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		
 		/* Add FEM RHS force to RHS using SetExternalForce */
 		continuum.SetExternalForce(bridging_field, ntfproduct, activefenodes);
-		
+	
 		/* now d0, v0 and a0 are known after InitialCondition */
 		continuum.InitialCondition();
 
@@ -651,6 +656,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		
 		/* store initial MD boundary displacement histories */
 		thkforce = atoms.THKForce(badisp);
+		//atoms.SetExternalForce(bridging_field, thkforce, batoms);  // sets pointer to thkforce
 
 		/* figure out timestep ratio between fem and md simulations */
 		int nfesteps = continuum_time->NumberOfSteps();
@@ -682,7 +688,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);				
 				
 				/* calculate THK force on boundary atoms, update displacement histories */
-				thkforce = atoms.THKForce(badisp);
+				thkforce = atoms.THKForce(badisp);  // SetExternalForce set via pointer
 																			
 				/* solve MD equations of motion */
 				if (1 || error == ExceptionT::kNoError) {
@@ -702,7 +708,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu);
 			
 			/* calculate FE internal force as function of total displacement u here */
+			//atoms.SetActiveElementGroupMask(ghostmask);	// turn ghost atoms off (ghostmask)
 			fubig = InternalForce(totalu, atoms);
+			//atoms.SetActiveElementGroupMask(ghostallow);	// turn ghost atoms back on (ghostallow)
 			fu.RowCollect(atoms.NonGhostNodes(), fubig);
 			fu.ColumnCopy(0,tempx);
 			ntf.Multx(tempx,fx);
