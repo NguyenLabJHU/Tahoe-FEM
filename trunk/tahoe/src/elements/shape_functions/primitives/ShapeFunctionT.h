@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.6 2001-07-11 01:03:30 paklein Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.7 2001-08-06 22:08:16 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -74,6 +74,12 @@ public:
 	 * \param grad_U field gradient matrix: [nu] x [nsd] 
 	 * \param IPnumber integration point number */
 	void GradU(const LocalArrayT& nodal, dMatrixT& grad_U, int IPnumber) const;
+
+	/** field gradients at specific parent domain coordinates. 
+	 * \param nodal array of nodal values: [nnd] x [nu]
+	 * \param grad_U field gradient matrix: [nu] x [nsd] 
+	 * \param coord coordinates in the parent domain */
+	void GradU(const LocalArrayT& nodal, dMatrixT& grad_U, const dArrayT& coord) const;
 
 	/** convert shape function derivatives by applying a chain rule
 	 * transformation:

@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.2 2001-07-11 01:03:30 paklein Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.3 2001-08-06 22:08:16 paklein Exp $ */
 /* created: paklein (06/26/1996)                                          */
 
 #include "ShapeFunctionT.h"
@@ -52,6 +52,17 @@ ShapeFunctionT::ShapeFunctionT(const ShapeFunctionT& link, const LocalArrayT& co
 void ShapeFunctionT::SetDerivatives(void)
 {
 	fDomain->ComputeDNa(fCoords, fDNaX, fDet);
+}
+
+/* field gradients at specific parent domain coordinates. */
+void ShapeFunctionT::GradU(const LocalArrayT& nodal, dMatrixT& grad_U, 
+	const dArrayT& coord) const
+{
+#pragma unused(nodal)
+#pragma unused(grad_U)
+#pragma unused(coord)
+	cout << "\n ShapeFunctionT::GradU: not implemented yet" << endl;
+	throw eGeneralFail;
 }
 
 /************************ for the current integration point *********************/
