@@ -1,4 +1,4 @@
-/* $Id: BondLatticeT.h,v 1.5 2004-07-15 08:26:42 paklein Exp $ */
+/* $Id: BondLatticeT.h,v 1.6 2005-02-13 22:23:52 paklein Exp $ */
 /* created: paklein (01/07/1997) */
 #ifndef _BONDLATTICET_H_
 #define _BONDLATTICET_H_
@@ -42,10 +42,12 @@ public:
 	/*@{*/
 	const iArrayT& BondCounts(void) const;
 	const dArrayT& DeformedLengths(void) const;
+	dArrayT& DeformedLengths(void);
 	const dArray2DT& Bonds(void) const;
 //	int NumberOfLatticeDim(void) const;
 //	int NumberOfSpatialDim(void) const;
 	int NumberOfBonds(void) const { return fBonds.MajorDim(); };
+	dSymMatrixT& Stretch(void) { return fStretch; };
 	/*@}*/
 
 	/* compute deformed bond lengths from the given Green strain */
@@ -67,14 +69,16 @@ protected:
 	/*@{*/
 	dArrayT		fBondSh;		/**< shallow bond vector */
 	dArrayT 	fBondDp;		/**< deep bond vector */
-	dMatrixT	fLatDimMatrix;	/**< matrix with same dimensions as lattice */
+//	dMatrixT	fLatDimMatrix;	/**< matrix with same dimensions as lattice */
 	dSymMatrixT	fStrain;		/**< needed if LatticeDim != SpatialDim */  		
+	dSymMatrixT	fStretch;		/**< stretch tensor */
 	/*@}*/
 };
 
 /* inlines */
 inline const iArrayT& BondLatticeT::BondCounts(void) const { return fBondCounts; }
 inline const dArrayT& BondLatticeT::DeformedLengths(void) const { return fDefLength; }
+inline dArrayT& BondLatticeT::DeformedLengths(void) { return fDefLength; }
 inline const dArray2DT& BondLatticeT::Bonds(void) const { return fBonds; }
 
 } /* namespace Tahoe */
