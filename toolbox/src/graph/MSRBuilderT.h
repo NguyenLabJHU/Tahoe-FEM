@@ -1,4 +1,4 @@
-/* $Id: MSRBuilderT.h,v 1.3 2002-07-02 19:57:14 cjkimme Exp $ */
+/* $Id: MSRBuilderT.h,v 1.4 2002-07-05 22:26:30 paklein Exp $ */
 /* created: paklein (07/30/1998) */
 
 #ifndef _MSR_BUILDER_T_H_
@@ -7,7 +7,9 @@
 /* base class */
 #include "GraphT.h"
 
-/* class to generate MSR matrix structure data
+namespace Tahoe {
+
+/** class to generate MSR matrix structure data.
  * INPUT: equation topology
  * Equation topology can be described in sets which as added
  * using MSRBuilderT::AddGroup. Active equations are specified with
@@ -17,9 +19,6 @@
  * MSRBuilderT::SetMSRData generates the MSR structure data for the active rows
  * specified in the input. Active rows are numbered {0,...,max}. The
  * MSR data generated in also numbered with zero offset. */
-
-namespace Tahoe {
-
 class MSRBuilderT: public GraphT
 {
 public:

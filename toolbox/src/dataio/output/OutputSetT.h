@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.10 2002-07-02 19:57:07 cjkimme Exp $ */
+/* $Id: OutputSetT.h,v 1.11 2002-07-05 22:26:27 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #ifndef _OUTPUTSET_T_H_
@@ -9,10 +9,9 @@
 #include "StringT.h"
 #include "iArrayT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class iArray2DT;
 
 /** class to act as specifier for output data. A class that would

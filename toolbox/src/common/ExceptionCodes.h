@@ -1,13 +1,12 @@
-/* $Id: ExceptionCodes.h,v 1.3 2002-07-02 19:56:55 cjkimme Exp $ */
+/* $Id: ExceptionCodes.h,v 1.4 2002-07-05 22:26:23 paklein Exp $ */
 /* created: paklein (06/04/1996)                                          */
 
 #ifndef _EXCEPTION_CODES_H_
 #define _EXCEPTION_CODES_H_
 
-/* number of exception codes */
-
 namespace Tahoe {
 
+/* number of exception codes */
 const int eNumExceptions	= 10;
 
 /* exception codes */

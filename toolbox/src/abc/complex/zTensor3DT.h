@@ -1,4 +1,4 @@
-/* $Id: zTensor3DT.h,v 1.3 2002-07-02 19:56:42 cjkimme Exp $ */
+/* $Id: zTensor3DT.h,v 1.4 2002-07-05 22:26:18 paklein Exp $ */
 /* created : PAK (05/19/97) */
 
 #ifndef _Z_TENSOR3D_T_H_
@@ -10,10 +10,9 @@
 /* direct members */
 #include "ComplexT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class dTensor3DT;
 
 class zTensor3DT: public Tensor3DT<ComplexT>

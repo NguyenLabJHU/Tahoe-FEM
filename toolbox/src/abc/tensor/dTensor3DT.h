@@ -1,7 +1,4 @@
-/*
- * File: dTensor3DT.h 
- *
- */
+/* $Id: dTensor3DT.h,v 1.3 2002-07-05 22:26:21 paklein Exp $ */
 
 /*
  * created      : PAK (05/24/97)

@@ -1,4 +1,4 @@
-/* $Id: Triantafyllidis.h,v 1.2 2002-07-02 19:56:32 cjkimme Exp $ */
+/* $Id: Triantafyllidis.h,v 1.3 2002-07-05 22:26:16 paklein Exp $ */
 
 #ifndef _TRIANTAFYLLIDIS_H_
 #define _TRIANTAFYLLIDIS_H_
@@ -6,11 +6,10 @@
 /* base class */
 #include "C1FunctionT.h"
 
-/** the potential used by Triantafyllidis and Bardenhagen in \a Journal \a of
- * \a Elasticity (1993) */
-
 namespace Tahoe {
 
+/** the potential used by Triantafyllidis and Bardenhagen in \a Journal \a of
+ * \a Elasticity (1993) */
 class Triantafyllidis: public C1FunctionT
 {
 public:

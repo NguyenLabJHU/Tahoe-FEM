@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.h,v 1.13 2002-07-02 19:57:03 cjkimme Exp $ */
+/* $Id: AbaqusInputT.h,v 1.14 2002-07-05 22:26:26 paklein Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _ABAQUSINPUT_T_H_
@@ -15,12 +15,11 @@
 /* forward declarations */
 #include "ios_fwd_decl.h"
 
+namespace Tahoe {
+
 /** If SetLabelName does not have a case for the variable being read, 
  * a default variable name is used. As new variables are added to 
  * AbaqusT::VariableKey, they should also be added to SetLabelName */
-
-namespace Tahoe {
-
 class AbaqusInputT : public InputBaseT
 {
  public:

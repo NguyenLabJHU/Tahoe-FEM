@@ -1,4 +1,4 @@
-/* $Id: TriDiagdMatrixT.h,v 1.2 2002-07-02 19:56:47 cjkimme Exp $ */
+/* $Id: TriDiagdMatrixT.h,v 1.3 2002-07-05 22:26:19 paklein Exp $ */
 /* created: paklein (01/15/1998)                                          */
 /* Triadiagonal matrix with Gauss elimination.                            */
 
@@ -11,10 +11,9 @@
 /* base class */
 #include "nArrayT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class dArrayT;
 
 class TriDiagdMatrixT: public nArrayT<double>

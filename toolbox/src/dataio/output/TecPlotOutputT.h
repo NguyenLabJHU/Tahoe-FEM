@@ -1,4 +1,4 @@
-/* $Id: TecPlotOutputT.h,v 1.3 2002-07-02 19:57:07 cjkimme Exp $ */
+/* $Id: TecPlotOutputT.h,v 1.4 2002-07-05 22:26:27 paklein Exp $ */
 /* created: sawimme (06/06/2000)                                          */
 
 #ifndef _TECPLOTOUTPUT_T_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "OutputBaseT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class TecPlotT;
 
 class TecPlotOutputT: public OutputBaseT

@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.21 2002-07-02 19:56:59 cjkimme Exp $ */
+/* $Id: ModelManagerT.h,v 1.22 2002-07-05 22:26:25 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -13,11 +13,11 @@
 #include "dArray2DT.h"
 #include "InputBaseT.h"
 
-/* forward */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 template <class TYPE> class nVariArray2DT;
 

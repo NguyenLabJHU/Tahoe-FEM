@@ -1,4 +1,4 @@
-/* $Id: LinearExponentialT.h,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
+/* $Id: LinearExponentialT.h,v 1.3 2002-07-05 22:26:16 paklein Exp $ */
 /* created: paklein (05/04/2001)                                    */
 
 #ifndef _LINEAR_EXPONENTIAL_T_H_
@@ -7,15 +7,14 @@
 /* base class */
 #include "C1FunctionT.h"
 
+namespace Tahoe {
+
 /** implementation of the function:
  *
  *  f(x) = a + b x + c (1 - exp[-x/d])
  *
  * with parameters {a, b, c, d}
  */
-
-namespace Tahoe {
-
 class LinearExponentialT: public C1FunctionT
 {
 public:

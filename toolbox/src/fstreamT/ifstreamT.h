@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.h,v 1.11 2002-07-02 19:57:13 cjkimme Exp $ */
+/* $Id: ifstreamT.h,v 1.12 2002-07-05 22:26:29 paklein Exp $ */
 /* created: paklein (03/03/1999) */
 
 #ifndef _IFSTREAM_T_H_
@@ -7,17 +7,17 @@
 #include "Environment.h"
 
 /* base class */
-#include "ios_fwd_decl.h"
 #include <fstream.h>
 #include <stddef.h>
 
 /* direct members */
 #include "StringT.h"
 
-/** input file stream with extended capabilities */
+#include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/** input file stream with extended capabilities */
 class ifstreamT: public ifstream
 {
 public:

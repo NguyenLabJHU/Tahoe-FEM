@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.h,v 1.11 2002-07-02 19:57:03 cjkimme Exp $ */
+/* $Id: EnSightInputT.h,v 1.12 2002-07-05 22:26:26 paklein Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _ENSIGHTINPUT_T_H_
@@ -14,11 +14,11 @@
 #include "dArray2DT.h"
 #include "dArrayT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 template <class TYPE> class ArrayT;
 
 class iArray2DT;

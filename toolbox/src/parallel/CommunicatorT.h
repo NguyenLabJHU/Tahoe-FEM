@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.h,v 1.2 2002-07-02 19:57:21 cjkimme Exp $ */
+/* $Id: CommunicatorT.h,v 1.3 2002-07-05 22:26:32 paklein Exp $ */
 
 #ifndef _COMMUNICATOR_T_H_
 #define _COMMUNICATOR_T_H_
@@ -11,11 +11,11 @@
 #define MPI_Comm long
 #endif
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 template <class TYPE> class ArrayT;
 
 /** interface to handle process to process communication. If compiled

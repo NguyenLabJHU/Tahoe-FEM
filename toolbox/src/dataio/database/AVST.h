@@ -6,11 +6,11 @@
 /* direct members */
 #include "GeometryT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 template <class TYPE> class ArrayT;
 class StringT;
 class iArray2DT;

@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.h,v 1.6 2002-07-02 19:57:07 cjkimme Exp $ */
+/* $Id: FE_ASCIIT.h,v 1.7 2002-07-05 22:26:27 paklein Exp $ */
 /* created: sawimme (05/20/1999) */
 
 #ifndef _FE_ASCII_T_H_
@@ -10,10 +10,9 @@
 /* direct members */
 #include <fstream.h>
 
-/** text file output */
-
 namespace Tahoe {
 
+/** text file output */
 class FE_ASCIIT: public OutputBaseT
 {
 public:

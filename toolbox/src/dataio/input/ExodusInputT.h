@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.h,v 1.13 2002-07-02 19:57:03 cjkimme Exp $ */
+/* $Id: ExodusInputT.h,v 1.14 2002-07-05 22:26:26 paklein Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _EXODUSINPUT_T_H_
@@ -12,11 +12,11 @@
 #include "iArrayT.h"
 #include "dArrayT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class iArray2DT;
 
 class ExodusInputT : public InputBaseT

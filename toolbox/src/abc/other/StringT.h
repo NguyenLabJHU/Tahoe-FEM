@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.14 2002-07-02 19:56:50 cjkimme Exp $ */
+/* $Id: StringT.h,v 1.15 2002-07-05 22:26:20 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #ifndef _STRING_T_H_
@@ -10,11 +10,11 @@
 /* base class */
 #include "ArrayT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 
 class StringT: public ArrayT<char>

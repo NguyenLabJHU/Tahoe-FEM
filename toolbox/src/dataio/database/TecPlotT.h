@@ -1,4 +1,4 @@
-/* $Id: TecPlotT.h,v 1.3 2002-07-02 19:57:01 cjkimme Exp $ */
+/* $Id: TecPlotT.h,v 1.4 2002-07-05 22:26:25 paklein Exp $ */
 /* created: saw (06.06.2000)                                              */
 
 #ifndef _TECPLOT_T_H_
@@ -9,10 +9,9 @@
 #include "GeometryT.h"
 #include "ArrayT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class StringT;
 class dArray2DT;
 class iArray2DT;

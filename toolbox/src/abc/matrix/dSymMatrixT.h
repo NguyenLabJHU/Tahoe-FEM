@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.h,v 1.6 2002-07-02 19:56:47 cjkimme Exp $ */
+/* $Id: dSymMatrixT.h,v 1.7 2002-07-05 22:26:19 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _DSYM_MATRIX_T_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "dArrayT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class dMatrixT;
 
 /* interface for a 1D/2D/3D reduced index symmetric matrix stored as 

@@ -1,4 +1,4 @@
-/* $Id: BandedLAdMatrixT.h,v 1.2 2002-07-02 19:56:46 cjkimme Exp $ */
+/* $Id: BandedLAdMatrixT.h,v 1.3 2002-07-05 22:26:18 paklein Exp $ */
 /* created: MLK (05/21/1997)                                              */
 /* square banded matrix operations                                        */
 /* banded matrix elements stored in columns                               */
@@ -12,10 +12,9 @@
 /* base class */
 #include "nArrayT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class dArrayT;
 class dMatrixT;
 

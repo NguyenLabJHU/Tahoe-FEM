@@ -1,4 +1,4 @@
-/* $Id: pArrayT.h,v 1.4 2002-07-02 19:56:50 cjkimme Exp $ */
+/* $Id: pArrayT.h,v 1.5 2002-07-05 22:26:20 paklein Exp $ */
 /* created: paklein (11/21/1996) */
 
 #ifndef _P_ARRAY_T_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "ArrayT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 template <class TYPEPtr> class ProxyTYPEPtr;
 
 /** A class to help working with arrays of pointers. The data in the

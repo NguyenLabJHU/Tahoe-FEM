@@ -1,4 +1,4 @@
-/* $Id: zMatrixT.h,v 1.5 2002-07-02 19:56:42 cjkimme Exp $ */
+/* $Id: zMatrixT.h,v 1.6 2002-07-05 22:26:18 paklein Exp $ */
 /* created: paklein (05/19/1997)                                          */
 /* 2 dimensional matrix mathematics object.                               */
 
@@ -11,10 +11,9 @@
 /* direct members */
 #include "ComplexT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class dMatrixT;
 
 class zMatrixT: public nMatrixT<ComplexT>

@@ -1,4 +1,4 @@
-/* $Id: zArrayT.h,v 1.5 2002-07-02 19:56:42 cjkimme Exp $ */
+/* $Id: zArrayT.h,v 1.6 2002-07-05 22:26:18 paklein Exp $ */
 /* created: PAK/AFLP (05/19/1997)                                         */
 
 #ifndef _ZARRAY_T_H_
@@ -10,10 +10,9 @@
 /* direct members */
 #include "ComplexT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class dArrayT;
 
 class zArrayT: public nArrayT<ComplexT>

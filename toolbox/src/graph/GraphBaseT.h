@@ -1,4 +1,4 @@
-/* $Id: GraphBaseT.h,v 1.3 2002-07-02 19:57:14 cjkimme Exp $ */
+/* $Id: GraphBaseT.h,v 1.4 2002-07-05 22:26:30 paklein Exp $ */
 /* created: paklein (04/13/1999) */
 
 #ifndef _GRAPHBASE_T_H_
@@ -7,10 +7,9 @@
 /* direct members */
 #include "RaggedArray2DT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class iArrayT;
 class iArray2DT;
 

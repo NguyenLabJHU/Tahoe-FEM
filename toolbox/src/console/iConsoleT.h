@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.h,v 1.9 2002-07-02 19:56:57 cjkimme Exp $ */
+/* $Id: iConsoleT.h,v 1.10 2002-07-05 22:26:24 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_T_H_
@@ -10,10 +10,9 @@
 /* direct members */
 #include "fstreamT.h"
 
-/* forward declaration */
-
 namespace Tahoe {
 
+/* forward declaration */
 class iConsoleObjectT;
 
 /** interactive console. */

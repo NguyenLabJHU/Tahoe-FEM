@@ -1,4 +1,4 @@
-/* $Id: Tensor4DT.h,v 1.4 2002-07-02 19:56:53 cjkimme Exp $ */
+/* $Id: Tensor4DT.h,v 1.5 2002-07-05 22:26:21 paklein Exp $ */
 /* created paklein (12/19/96) */
 #ifndef _TENSOR4D_T_H_
 #define _TENSOR4D_T_H_
@@ -6,10 +6,9 @@
 /* base class */
 #include "TensorT.h"
 
-/** templated base class for fourth order tensors */
-
 namespace Tahoe {
 
+/** templated base class for fourth order tensors */
 template <class MATHTYPE>
 class Tensor4DT: public TensorT<MATHTYPE>
 {

@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.h,v 1.4 2002-07-02 19:56:59 cjkimme Exp $ */
+/* $Id: JoinOutputT.h,v 1.5 2002-07-05 22:26:25 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 
 #ifndef _JOIN_OUTPUT_T_H_
@@ -11,10 +11,9 @@
 #include "dArray2DT.h"
 #include "StringT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class OutputBaseT;
 class ModelManagerT;
 

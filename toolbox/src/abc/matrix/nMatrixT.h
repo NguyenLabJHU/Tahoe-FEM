@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.13 2002-07-02 19:56:47 cjkimme Exp $ */
+/* $Id: nMatrixT.h,v 1.14 2002-07-05 22:26:19 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _NMATRIX_T_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "nArrayT.h"
 
-/** 2 dimensional matrix mathematics template object */
-
 namespace Tahoe {
 
+/** 2 dimensional matrix mathematics template object */
 template <class nTYPE>
 class nMatrixT: public nArrayT<nTYPE>
 {

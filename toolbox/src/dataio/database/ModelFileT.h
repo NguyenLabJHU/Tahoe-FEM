@@ -1,4 +1,4 @@
-/* $Id: ModelFileT.h,v 1.2 2002-07-02 19:57:01 cjkimme Exp $ */
+/* $Id: ModelFileT.h,v 1.3 2002-07-05 22:26:25 paklein Exp $ */
 /* created: paklein (12/15/1999)                                          */
 
 #ifndef _MODEL_FILE_T_H_
@@ -10,11 +10,11 @@
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class ExodusT;
 

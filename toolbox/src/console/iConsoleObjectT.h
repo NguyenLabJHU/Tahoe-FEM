@@ -1,4 +1,4 @@
-/* $Id: iConsoleObjectT.h,v 1.3 2002-07-02 19:56:57 cjkimme Exp $ */
+/* $Id: iConsoleObjectT.h,v 1.4 2002-07-05 22:26:24 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_OBJECT_T_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "iConsoleBaseT.h"
 
-/** interface for a console object */
-
 namespace Tahoe {
 
+/** interface for a console object */
 class iConsoleObjectT: public iConsoleBaseT
 {
 public:

@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.h,v 1.7 2002-07-02 19:57:18 cjkimme Exp $ */
+/* $Id: SpectralDecompT.h,v 1.8 2002-07-05 22:26:31 paklein Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -9,10 +9,9 @@
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class dArrayT;
 
 class SpectralDecompT

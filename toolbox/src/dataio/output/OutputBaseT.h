@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.h,v 1.11 2002-07-02 19:57:07 cjkimme Exp $ */
+/* $Id: OutputBaseT.h,v 1.12 2002-07-05 22:26:27 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #ifndef _OUTPUTBASE_T_H_
@@ -13,10 +13,9 @@
 #include "iAutoArrayT.h"
 #include "GeometryT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class dArray2DT;
 class iArray2DT;
 class OutputSetT;

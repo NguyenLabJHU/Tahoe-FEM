@@ -1,4 +1,4 @@
-/* $Id: ExodusT.h,v 1.6 2002-07-02 19:57:00 cjkimme Exp $ */
+/* $Id: ExodusT.h,v 1.7 2002-07-05 22:26:25 paklein Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #ifndef _EXODUS_T_H_
@@ -11,10 +11,9 @@
 #include "StringT.h"
 #include "GeometryT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class iArray2DT;
 class dArrayT;
 class dArray2DT;
