@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.34 2003-08-14 01:21:12 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.35 2003-08-14 05:52:16 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -1082,6 +1082,7 @@ void ModelManagerT::ManyNodeSets (const ArrayT<StringT>& ID, iArrayT& nodes)
 		
 		/* gather included nodes */
 		nodes.Dimension(count);
+		count = 0;
 		p = flag.Pointer();
 		for (int j = 0; j < len; j++)
 			if (*p++ == 1)
