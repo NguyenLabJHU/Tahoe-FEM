@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.18.2.2 2002-05-03 07:16:25 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.18.2.3 2002-05-03 23:05:58 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -961,10 +961,10 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 	int count = 0;
 	if (n_codes[NodalDisp])
 	{
-		if (NumDOF() > 3) throw eGeneralFail;
-		const char* dlabels[3] = {"D_X", "D_Y", "D_Z"};
-		for (int i = 0; i < NumDOF(); i++)
-			n_labels[count++] = dlabels[i];
+		/* labels from the field */
+		const ArrayT<StringT>& labels = Field().Labels();
+		for (int i = 0; i < labels.Length(); i++)
+			n_labels[count++] = labels[i];
 	}
 
 	if (n_codes[NodalCoord])
