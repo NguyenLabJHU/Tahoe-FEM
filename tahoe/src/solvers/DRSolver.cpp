@@ -1,6 +1,5 @@
-/* $Id: DRSolver.cpp,v 1.8 2003-12-28 08:24:14 paklein Exp $ */
+/* $Id: DRSolver.cpp,v 1.9 2004-01-05 07:07:19 paklein Exp $ */
 /* created: PAK/CBH (10/03/1996) */
-
 #include "DRSolver.h"
 
 #include <iostream.h>
@@ -11,10 +10,9 @@
 #include "FEManagerT.h"
 #include "CCSMatrixT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 DRSolver::DRSolver(FEManagerT& fe_manager, int group): 
 	NLSolver(fe_manager, group)
 {
@@ -51,7 +49,7 @@ SolverT::SolutionStatusT DRSolver::Solve(int num_iterations)
 	fRHS = 0.0;
 	fFEManager.FormRHS(Group());
 
-	SolutionStatusT status = ExitIteration(fRHS.Magnitude());
+	SolutionStatusT status = ExitIteration(fRHS.Magnitude(), fNumIteration);
 	while (status != kConverged &&
 		(num_iterations == -1 || IterationNumber() < num_iterations))
 	{
@@ -79,7 +77,7 @@ SolverT::SolutionStatusT DRSolver::Solve(int num_iterations)
 		fFEManager.FormRHS(Group());
 		
 		/* check status */
-		status = ExitIteration(fRHS.Magnitude());
+		status = ExitIteration(fRHS.Magnitude(), fNumIteration);
 	}  
 
 	/* normal */

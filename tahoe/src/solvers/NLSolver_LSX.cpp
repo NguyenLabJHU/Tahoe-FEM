@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LSX.cpp,v 1.2 2003-09-09 23:09:19 paklein Exp $ */
+/* $Id: NLSolver_LSX.cpp,v 1.3 2004-01-05 07:07:19 paklein Exp $ */
 #include "NLSolver_LSX.h"
 #include "FEManagerT.h"
 
@@ -32,10 +32,10 @@ void NLSolver_LSX::InitStep(void)
 
 /* allows continuation of NLSolver_LSX::fMinStepRelError is less
  * that NLSolver_LSX::fPuntTol */
-NLSolver::SolutionStatusT NLSolver_LSX::ExitIteration(double error)
+NLSolver::SolutionStatusT NLSolver_LSX::ExitIteration(double error, int iteration)
 {
 	/* inherited */
-	SolutionStatusT status = NLSolver_LS::ExitIteration(error);
+	SolutionStatusT status = NLSolver_LS::ExitIteration(error, iteration);
 
 	/* track smallest error */
 	double rel_error = error/fError0;

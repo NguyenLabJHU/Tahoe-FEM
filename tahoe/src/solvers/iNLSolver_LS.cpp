@@ -1,6 +1,5 @@
-/* $Id: iNLSolver_LS.cpp,v 1.13 2003-12-28 08:24:14 paklein Exp $ */
+/* $Id: iNLSolver_LS.cpp,v 1.14 2004-01-05 07:07:19 paklein Exp $ */
 /* created: paklein (01/01/2001) */
-
 #include "iNLSolver_LS.h"
 
 #include <iostream.h>
@@ -271,7 +270,7 @@ NLSolver::SolutionStatusT iNLSolver_LS::DoIterate(int max_count)
 	
 				/* initial error */
 				double error = Residual(fRHS);
-				fIterationStatus = ExitIteration(error);
+				fIterationStatus = ExitIteration(error, fNumIteration);
 			}
 				
 			/* loop on error */
@@ -279,8 +278,8 @@ NLSolver::SolutionStatusT iNLSolver_LS::DoIterate(int max_count)
 			while (fIterationStatus == kContinue && count++ < max_count)
 			{
 				fLHS_update = (fNumIteration == 0) ? true : fFormTangent;
-				double error = SolveAndForm();
-				fIterationStatus = ExitIteration(error);
+				double error = SolveAndForm(fNumIteration);
+				fIterationStatus = ExitIteration(error, fNumIteration);
 			}
 		
 			/* found solution - check relaxation */

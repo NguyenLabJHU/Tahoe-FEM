@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.18 2003-12-28 08:24:14 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.19 2004-01-05 07:07:19 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 
@@ -131,7 +131,7 @@ void PCGSolver_LS::DefineParameters(ParameterListT& list) const
  * Protected
  *************************************************************************/
 
-double PCGSolver_LS::SolveAndForm(void)
+double PCGSolver_LS::SolveAndForm(int& iteration)
 {
 	/* form the stiffness matrix (must be cleared previously) */
 	if (fLHS_update) {
@@ -151,7 +151,7 @@ double PCGSolver_LS::SolveAndForm(void)
 	fLHS_lock = kLocked;
 									
 	/* recalculate residual */
-	fNumIteration++;
+	iteration++;
 	if (fLHS_update) {
 		fLHS->Clear();
 		fLHS_lock = kOpen; /* LHS open for assembly, too! */

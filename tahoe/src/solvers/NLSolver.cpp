@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.28 2003-10-31 20:54:04 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.29 2004-01-05 07:07:19 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -17,6 +17,7 @@ using namespace Tahoe;
 NLSolver::NLSolver(FEManagerT& fe_manager):
 	SolverT(fe_manager),
 	fMaxIterations(-1),
+	fMinIterations(-1),
 	fZeroTolerance(0.0),
 	fTolerance(0.0),
 	fDivTolerance(-1.0),
@@ -31,6 +32,7 @@ NLSolver::NLSolver(FEManagerT& fe_manager):
 
 	/* console variables */
 	iAddVariable("max_iterations", fMaxIterations);
+	iAddVariable("min_iterations", fMinIterations);
 	iAddVariable("abs_tolerance", fZeroTolerance);
 	iAddVariable("rel_tolerance", fTolerance);
 	iAddVariable("div_tolerance", fDivTolerance);
@@ -50,6 +52,9 @@ NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 	ifstreamT& in = fFEManager.Input();
 	
 	in >> fMaxIterations;
+	//TEMP - no new parameters until switch to XML input
+	//in >> fMinIterations;
+	fMinIterations = 0;
 	in >> fZeroTolerance;
 	in >> fTolerance;
 	in >> fDivTolerance;
@@ -65,6 +70,7 @@ NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 	
 	out << "\n O p t i m i z a t i o n   P a r a m e t e r s :\n\n";
 	out << " Maximum number of iterations. . . . . . . . . . = " << fMaxIterations  << '\n';
+	out << " Minimum number of iterations. . . . . . . . . . = " << fMinIterations  << '\n';
 	out << " Absolute convergence tolerance. . . . . . . . . = " << fZeroTolerance  << '\n';	
 	out << " Relative convergence tolerance. . . . . . . . . = " << fTolerance      << '\n';	
 	out << " Divergence tolerance. . . . . . . . . . . . . . = " << fDivTolerance   << '\n';	
@@ -98,6 +104,7 @@ NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 	
 	/* console variables */
 	iAddVariable("max_iterations", fMaxIterations);
+	iAddVariable("min_iterations", fMinIterations);
 	iAddVariable("abs_tolerance", fZeroTolerance);
 	iAddVariable("rel_tolerance", fTolerance);
 	iAddVariable("div_tolerance", fDivTolerance);
@@ -142,13 +149,13 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 		
 	/* loop on error */
 	double error = Residual(fRHS);
-	SolutionStatusT solutionflag = ExitIteration(error);
+	SolutionStatusT solutionflag = ExitIteration(error, fNumIteration);
 	int num_iterations = 0;
 	while (solutionflag == kContinue &&
 		(max_iterations == -1 || num_iterations++ < max_iterations))
 	{
-		error = SolveAndForm();
-		solutionflag = ExitIteration(error);
+		error = SolveAndForm(fNumIteration);
+		solutionflag = ExitIteration(error, fNumIteration);
 	}
 
 	/* found solution - check relaxation */
@@ -292,6 +299,7 @@ void NLSolver::DefineParameters(ParameterListT& list) const
 
 	/* additional parameters */
 	list.AddParameter(fMaxIterations, "max_iterations");
+	list.AddParameter(fMinIterations, "min_iterations", ParameterListT::ZeroOrOnce);
 	list.AddParameter(fZeroTolerance, "abs_tolerance");
 	list.AddParameter(fTolerance, "rel_tolerance");
 	list.AddParameter(fDivTolerance, "divergence_tolerance");
@@ -328,9 +336,8 @@ NLSolver::SolutionStatusT NLSolver::Relax(int newtancount)
 {	
 	cout <<   "\n Relaxation:" << '\n';
 
-	/* reset iteration count */
-	fNumIteration = -1;
-		
+	/* iteration count */
+	int iteration = -1;
 	int count = newtancount - 1;
 
 	/* form the first residual force vector */
@@ -344,7 +351,7 @@ NLSolver::SolutionStatusT NLSolver::Relax(int newtancount)
 	double error = Residual(fRHS);
 		
 	/* loop on error */
-	SolutionStatusT solutionflag = ExitIteration(error);
+	SolutionStatusT solutionflag = ExitIteration(error, iteration);
 	while (solutionflag == kContinue)
 	{
 		if (++count == newtancount) {	
@@ -353,8 +360,8 @@ NLSolver::SolutionStatusT NLSolver::Relax(int newtancount)
 		}
 		else fLHS_update = false;
 			
-		error = SolveAndForm();
-		solutionflag = ExitIteration(error);
+		error = SolveAndForm(iteration);
+		solutionflag = ExitIteration(error, iteration);
 	}
 
 	return solutionflag;
@@ -370,14 +377,14 @@ NLSolver::SolutionStatusT NLSolver::Relax(int newtancount)
 *
 * For (2) and (3), the load increment will be cut and the
 * iteration re-entered with the next Step() call */
-NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
+NLSolver::SolutionStatusT NLSolver::ExitIteration(double error, int iteration)
 {
 	int d_width = cout.precision() + kDoubleExtra;
 
 	/* write convergence output */
 	if (fIterationOutputIncrement > 0 && ++fIterationOutputCount >= fIterationOutputIncrement)
 	{
-		fFEManager.WriteOutput(double(fNumIteration));
+		fFEManager.WriteOutput(double(iteration));
 		fIterationOutputCount = 0;
 	}
 	
@@ -385,7 +392,7 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 	SolutionStatusT status = kContinue;
 	
 	/* first pass */
-	if (fNumIteration == -1)
+	if (iteration == -1)
 	{
 		cout <<   "\n Group : " << fGroup+1 << '\n';
 		cout <<   " Absolute error = " << error << '\n';
@@ -405,20 +412,12 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 			status = kContinue;
 		}
 	}
-	/* iteration limit hit */
-	else if (fNumIteration > fMaxIterations)
-	{
-		cout << setw(kIntWidth) << fNumIteration 
-		     << ": Relative error = " << setw(d_width) << error/fError0 << '\n';	
-		cout << "\n NLSolver::ExitIteration: max iterations hit" << endl;
-		status = kFailed;
-	}
 	/* interpret error */
 	else
 	{
 		double relerror = error/fError0;
 		if (fVerbose) 
-			cout << setw(kIntWidth) << fNumIteration  << ": Relative error = "
+			cout << setw(kIntWidth) << iteration  << ": Relative error = "
 			     << setw(d_width) << relerror << endl;
 
 		/* diverging solution */	
@@ -427,15 +426,28 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 			cout << "\n NLSolver::ExitIteration: diverging solution detected" << endl;			
 			status = kFailed;
 		}
+		/* required number of iterations */
+		else if (iteration < fMinIterations-1)
+		{
+			status = kContinue;
+		}
 		/* converged */
 		else if (relerror < fTolerance || error < fZeroTolerance)
 		{
 			if (!fVerbose)
-				cout << setw(kIntWidth) << fNumIteration  << ": Relative error = " 
+				cout << setw(kIntWidth) << iteration  << ": Relative error = " 
 				     << setw(d_width) << relerror << " (converged)\n";
 	
 			fFEManager.Output() << "\n Converged at time = " << fFEManager.Time() << endl;
 			status = kConverged;
+		}
+		/* iteration limit hit */
+		else if (iteration > fMaxIterations)
+		{
+			cout << setw(kIntWidth) << fNumIteration 
+			     << ": Relative error = " << setw(d_width) << error/fError0 << '\n';	
+			cout << "\n NLSolver::ExitIteration: max iterations hit" << endl;
+			status = kFailed;
 		}
 		/* continue iterations */
 		else
@@ -446,7 +458,7 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 }
 
 /* form and solve the equation system */
-double NLSolver::SolveAndForm(void)
+double NLSolver::SolveAndForm(int& iteration)
 {		
 	/* form the stiffness matrix (must be cleared previously) */
 	if (fLHS_update) {
@@ -475,7 +487,7 @@ double NLSolver::SolveAndForm(void)
 	Update(fRHS, NULL);
 
 	/* recalculate residual */
-	fNumIteration++;
+	iteration++;
 	fRHS_lock = kOpen;
 	if (fLHS_update) {
 		fLHS->Clear();
