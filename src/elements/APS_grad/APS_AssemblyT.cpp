@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.26 2003-10-06 18:34:33 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.27 2003-10-06 18:57:53 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -1135,8 +1135,6 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 				{
 					if (e == fSideSetElements[i][j])
 					{
-						for (int k = 0; k < e.NumSideSetFacets??(); k++)
-						{
 							//set SurfShapes and derivatives for this facet
 							//??set nodes and nodal coords for fSurfShapes??
 							fCurrCoordsSurf = "coords of this e's facet nodes";
@@ -1161,8 +1159,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 							Convert.Gradients 	( fSurfShapes, 	u, u_n, fgrad_u_surf, fgrad_u_surf_n );
 							APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgrad_gamma_p, fstate ); 
 							fEquation_d -> Form_LHS_Kd_Surf ( fKdd, fFEA_SurfShapes, fNormal );
-							fEquation_d -> Form_RHS_F_int_Surf ( fFd_int, np1, fPlasticGradientWght[i] );	
-						}	
+							fEquation_d -> Form_RHS_F_int_Surf ( fFd_int, np1, fPlasticGradientWght[i] );		
 					}
 				}
 			}
