@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.22 2003-12-01 23:51:43 cjkimme Exp $ */
+/* $Id: OutputSetT.cpp,v 1.23 2004-02-19 18:51:10 cjkimme Exp $ */
 /* created: paklein (03/07/2000) */
 #include "OutputSetT.h"
 #include "iArrayT.h"
@@ -105,9 +105,6 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 	fBlockNodesUsed(fConnectivities.Length()),
 	fBlockIndexToSetIndexMap(fConnectivities.Length())
 {
-
- cout << " fSSID Length is " << SideSetID().Length()  <<  "\n"; 
-
 	if (fConnectivities.Length() != fBlockID.Length() &&
 		fBlockID.Length() != fSSID.Length()) 
 	  {
