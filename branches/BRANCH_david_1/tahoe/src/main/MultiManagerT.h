@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.h,v 1.8 2004-07-27 17:49:50 paklein Exp $ */
+/* $Id: MultiManagerT.h,v 1.8.2.1 2004-08-03 00:12:34 d-farrell2 Exp $ */
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
 
@@ -24,7 +24,7 @@ public:
 
 	/** constructor */
 	MultiManagerT(const StringT& input_file, ofstreamT& output, CommunicatorT& comm,
-		const ArrayT<StringT>& argv);
+		const ArrayT<StringT>& argv, TaskT task);
 
 	/** destructor */
 	virtual ~MultiManagerT(void);

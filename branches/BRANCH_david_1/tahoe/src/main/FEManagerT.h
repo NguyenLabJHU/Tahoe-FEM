@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.46.2.2 2004-08-01 18:33:01 d-farrell2 Exp $ */
+/* $Id: FEManagerT.h,v 1.46.2.3 2004-08-03 00:11:10 d-farrell2 Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -61,6 +61,8 @@ public:
 	enum TaskT {kDecompose = 0,
 	                  kRun = 1};
 	                  
+	TaskT task;
+	                  
 	/** factory method */
 	static FEManagerT* New(const StringT& name, const StringT& input_file, ofstreamT& output, 
 		CommunicatorT& comm, const ArrayT<StringT>& argv, TaskT task);
@@ -100,7 +102,7 @@ public:
 	virtual void Solve(void);
 	
 	/* debugging, formerly in FEManagerT_mpi.h, DEF 28 July 04 (needed??) */
-	virtual const iArrayT* ElementMap(const StringT& block_ID) const;
+	//virtual const iArrayT* ElementMap(const StringT& block_ID) const;
 	
 	/** \name accessors */
 	/*@{*/
