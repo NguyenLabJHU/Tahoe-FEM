@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.18 2004-02-22 01:16:50 paklein Exp $
+# $Id: makefile.template,v 1.19 2004-07-12 18:15:02 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -53,7 +53,7 @@ MOD_CFLAGS_F  =
 MOD_LFLAGS    =
 
 ##### expat XML parsing library
-#EXPAT_PREFIX   = /usr/local
+#EXPAT_PREFIX   = $(HOME_DIR)/../expat
 #EXPAT_DEFINES  = -D__EXPAT__
 #EXPAT_INC      = -I$(EXPAT_PREFIX)/include
 #EXPAT_CFLAGS   = $(EXPAT_INC) $(EXPAT_DEFINES)
