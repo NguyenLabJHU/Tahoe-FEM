@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.32.2.2 2003-02-21 01:17:48 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.32.2.3 2003-03-30 21:21:31 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 #include "fstreamT.h"
@@ -99,7 +99,7 @@ SolidMatList2DT::SolidMatList2DT(int length, const SolidMatSupportT& support):
 /* read material data from the input stream */
 void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 {
-	const char caller[] = "SolidMatList3DT::ReadMaterialData";
+	const char caller[] = "SolidMatList2DT::ReadMaterialData";
 
 	int i, matnum;
 	SolidT::TypeT matcode;
