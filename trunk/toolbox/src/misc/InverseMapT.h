@@ -1,14 +1,14 @@
-/* $Id: InverseMapT.h,v 1.5 2003-11-04 17:32:40 paklein Exp $ */
+/* $Id: InverseMapT.h,v 1.6 2003-11-04 18:17:05 paklein Exp $ */
 #ifndef _INVERSE_MAP_T_H_
 #define _INVERSE_MAP_T_H_
 
 /* base class */
 #include "AutoArrayT.h"
 
-namespace Tahoe {
-
 /* forward declarations */
-template <class TYPE> class nArrayT;
+#include "nArrayT.h";
+
+namespace Tahoe {
 
 /** class to construct and access an inverse map. Given a forward map
  * \f$ j = g(i) \f$, the class constructs and handles access to the inverse
