@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.h,v 1.2 2001-09-20 23:11:42 recampb Exp $ */
+/* $Id: VTKConsoleT.h,v 1.3 2001-09-26 18:07:58 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -33,11 +33,15 @@ class VTKConsoleT: public iConsoleObjectT
   /* execute given command - returns false on fail */
   virtual bool iDoCommand(const StringT& command, StringT& line);
 
+  /* void dataUpdate(void); */
+
  private:
-  
-  int fInteger;
-  double fDouble;
-  StringT fString;
+  double valRange1, valRange2;
+  double hueRange1,hueRange2;
+  double satRange1, satRange2;
+  double alphaRange1, alphaRange2;
+  double scalarRange1, scalarRange2;
+  int numColors;
   StringT source_file;
   StringT output_file;
   vtkUnstructuredGridReader *ugr;
@@ -50,6 +54,7 @@ class VTKConsoleT: public iConsoleObjectT
   vtkActor *wireActor;
   vtkScalarBarActor *scalarBar;
   vtkRendererSource *renSrc;
+  vtkTIFFWriter *writer;
   
 
 };
