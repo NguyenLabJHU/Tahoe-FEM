@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.cpp,v 1.5 2002-11-01 19:46:07 cjkimme Exp $ */
+/* $Id: YoonAllen3DT.cpp,v 1.6 2002-12-03 19:13:38 cjkimme Exp $ */
 
 #include "YoonAllen3DT.h"
 
@@ -65,7 +65,7 @@ YoonAllen3DT::YoonAllen3DT(ifstreamT& in, const double& time_step):
 
 }
 
-YoonAllen3DT::YoonAllen3DT(double *fparams, int *iparams, const double& time_step): 
+YoonAllen3DT::YoonAllen3DT(dArrayT fparams, int *iparams, const double& time_step): 
 	SurfacePotentialT(knumDOF),
 	fTimeStep(time_step)
 {

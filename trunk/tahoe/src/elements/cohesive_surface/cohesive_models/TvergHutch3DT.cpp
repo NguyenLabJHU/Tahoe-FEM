@@ -1,4 +1,4 @@
-/* $Id: TvergHutch3DT.cpp,v 1.5 2002-11-15 02:46:31 paklein Exp $ */
+/* $Id: TvergHutch3DT.cpp,v 1.6 2002-12-03 19:13:38 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch3DT.h"
@@ -36,7 +36,7 @@ TvergHutch3DT::TvergHutch3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
 }
 
-TvergHutch3DT::TvergHutch3DT(double* params): SurfacePotentialT(knumDOF)
+TvergHutch3DT::TvergHutch3DT(dArrayT params): SurfacePotentialT(knumDOF)
 {
 	/* traction potential parameters */
 	fsigma_max = params[0]; if (fsigma_max < 0) throw ExceptionT::kBadInputValue;
@@ -123,7 +123,7 @@ const dArrayT& TvergHutch3DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		sigbyL = fsigma_max/fL_1;
 	else if (L < fL_2)
 		sigbyL = fsigma_max/L;
-	else if (L < fL_fail)
+	else if (L < 1.)
 		sigbyL = fsigma_max*(1. - L)/(1. - fL_2)/L;
 	else
 		sigbyL = 0.0;	
@@ -186,7 +186,7 @@ const dMatrixT& TvergHutch3DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 		} 
 		else 
 		{
-			if (L < fL_fail) // K3
+			if (L < 1.) // K3
 			{
 				double dijTerm = fsigma_max*(1./L-1.)/(1.-fL_2)*fd_c_n;
 

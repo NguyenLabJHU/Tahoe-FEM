@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.15 2002-12-01 19:52:18 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.16 2002-12-03 19:15:04 cjkimme Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -102,7 +102,7 @@ public:
 	int NumElements(void) const;
 
 	/** accessor for element floating point input when streams are not available */
-	double *FloatInput(void) const;
+	dArrayT *FloatInput(void) const;
 	
 	/** accessor for element integer input when streams are not available */
 	int *IntInput(void) const;
@@ -114,14 +114,12 @@ public:
 	
 	dMatrixT& Stiffness(void) const { return *fStiffness; };
 	
-	void SetInput(map<string,double>& inputParams);
+	void SetInput(double *inputFloats, int length);
 	
 	void Setfmap(map<string,double>& inputDoubles);
 	
 	void Setimap(map<string,int>& inputInts);
-	
-//	const map<string,double>& ReturnInputDouble(void) const { return fmap; };
-	
+		
 	double ReturnInputDouble(string label);
 	
 	int ReturnInputInt(string label);
@@ -329,7 +327,8 @@ private:
 	ifstreamT *ifst;
 	ofstreamT *ofst;
 	
-	double *fparams;
+//	double *fparams;
+	dArrayT *fparams;
 	map<string,double> fmap;
 	map<string,int> imap;
 	
@@ -365,7 +364,7 @@ inline NodeManagerT& ElementSupportT::Nodes(void) const
 }
 #else
 inline int ElementSupportT::NumElements(void) const { return fElem; }
-inline double *ElementSupportT::FloatInput(void) const { return fparams; }
+inline dArrayT *ElementSupportT::FloatInput(void) const { return fparams; }
 inline int *ElementSupportT::IntInput(void) const { return iparams; }
 #endif
 

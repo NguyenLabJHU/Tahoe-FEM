@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.h,v 1.4 2002-11-01 19:46:07 cjkimme Exp $ */
+/* $Id: YoonAllen3DT.h,v 1.5 2002-12-03 19:13:38 cjkimme Exp $ */
 /* created: cjkimme (05/28/2002) */
 
 #ifndef _YOON_ALLEN_3D_T_H_
@@ -21,7 +21,7 @@ public:
 
 	/** constructors */
 	YoonAllen3DT(ifstreamT& in, const double &fTimeStep);
-	YoonAllen3DT(double *fparams, int *iparams, const double &fTimeStep);
+	YoonAllen3DT(dArrayT fparams, int *iparams, const double &fTimeStep);
 
 	virtual void InitStateVariables(ArrayT<double>& state);
 
