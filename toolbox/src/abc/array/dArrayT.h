@@ -1,4 +1,4 @@
-/* $Id: dArrayT.h,v 1.5 2002-07-02 19:56:39 cjkimme Exp $ */
+/* $Id: dArrayT.h,v 1.6 2002-10-04 20:51:39 thao Exp $ */
 /* created: paklein (08/11/1996)                                          */
 
 #ifndef _DARRAY_T_H_
@@ -33,8 +33,6 @@ public:
 	dArrayT& UnitVector(void);
 };
 
-} // namespace Tahoe
-
 /* inlines */
 
 /* assigment operators */
@@ -60,5 +58,7 @@ inline dArrayT& dArrayT::UnitVector(void)
 {
 	return UnitVector(*this);
 }
+
+} // namespace Tahoe
  
 #endif /* _DARRAY_T_H_ */
