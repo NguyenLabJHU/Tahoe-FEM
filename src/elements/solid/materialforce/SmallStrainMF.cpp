@@ -1,4 +1,4 @@
-/* $Id: SmallStrainMF.cpp,v 1.1 2003-03-19 18:46:05 thao Exp $ */
+/* $Id: SmallStrainMF.cpp,v 1.2 2003-03-20 22:43:00 thao Exp $ */
 #include "SmallStrainMF.h"
 
 #include "OutputSetT.h"
@@ -144,11 +144,13 @@ void SmallStrainMF::ComputeMatForce(dArray2DT& output)
   {
     for (int j = 0; j<nsd; j++)
     {
-      /*material force set to zero for kinematic constrained nodes*/
+      /*material force set to zero for kinematically constrained nodes*/
       if(eqno[i*nsd+j] < 1)
       {
-	*pout_force++ = 0;
-	*pout_dissip++ = 0;
+	*pout_force++ = 0.0;
+	*pout_dissip++ = 0.0;
+	pmat_force++;
+	pmat_fdissip++;
       }
       else
       {

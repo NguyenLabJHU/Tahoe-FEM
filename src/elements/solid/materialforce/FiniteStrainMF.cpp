@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainMF.cpp,v 1.1 2003-03-19 18:46:05 thao Exp $ */
+/* $Id: FiniteStrainMF.cpp,v 1.2 2003-03-20 22:43:00 thao Exp $ */
 #include "FiniteStrainMF.h"
 
 #include "OutputSetT.h"
@@ -34,17 +34,21 @@ void FiniteStrainMF::RegisterOutput(void)
 	/* inherited */
 	SolidElementT::RegisterOutput();
 
-	ArrayT<StringT> n_labels(2*NumSD());
+	ArrayT<StringT> n_labels(3*NumSD());
 	ArrayT<StringT> e_labels;
 	
 	StringT mf_label = "mF";
 	StringT mfd_label = "mF_dissip";
+	StringT d_label = "D";
+	
 	const char* suffix[3] = {"_X", "_Y", "_Z"};
 	int dex = 0;
 	for (int i = 0; i < NumSD(); i++)
 		n_labels[dex++].Append(mf_label, suffix[i]);
 	for (int i = 0; i < NumSD(); i++)
 		n_labels[dex++].Append(mfd_label, suffix[i]);
+	for (int i = 0; i < NumSD(); i++)
+		n_labels[dex++].Append(d_label, suffix[i]);
 
 	/* collect ID's of the element blocks in the group */
 	ArrayT<StringT> block_ID(fBlockData.Length());
@@ -85,12 +89,15 @@ void FiniteStrainMF::ComputeMatForce(dArray2DT& output)
   int nsd = NumSD();
   int nmf = nnd*nsd;
 
-  output.Dimension(nnd,2*nsd);
+  output.Dimension(nnd,3*nsd);
   dArrayT mat_force(nmf);
   dArrayT mat_fdissip(nmf);
   mat_force = 0;
   mat_fdissip = 0;
   
+  const dArray2DT& disp = Field()[0];
+  if (disp.MajorDim() != output.MajorDim()) throw ExceptionT::kGeneralFail;
+
   dArrayT elem_data(nsd*nen);
    
   Top();
@@ -112,20 +119,35 @@ void FiniteStrainMF::ComputeMatForce(dArray2DT& output)
     }
   }
   MatForceSurfMech(mat_force);
-  mat_force += mat_fdissip;
+
+  /*assemble material forces and displacements into output array*/
   double* pout_force = output.Pointer();
   double* pout_dissip = output.Pointer(nsd);
+  double* pout_disp = output.Pointer(2*nsd);
   double* pmat_force = mat_force.Pointer();
   double* pmat_fdissip = mat_fdissip.Pointer();
+  const iArray2DT& eqno = Field().Equations();
   for (int i = 0; i<nnd; i++)
   {
-  	for (int j = 0; j<nsd; j++)
-  	{
-  		*pout_force++ = (*pmat_force++) + (*pmat_fdissip);
-  		*pout_dissip++ = (*pmat_fdissip++);
-  	}
-  	pout_force += nsd;
-  	pout_dissip += nsd;
+    for (int j = 0; j<nsd; j++)
+    {
+      if (eqno[i*nsd+j]<1)
+      {
+	*pout_force++ = 0.0;
+	*pout_dissip++ = 0.0;
+	pmat_force++;
+	pmat_fdissip++;
+      }
+      else
+      {
+	*pout_force++ = (*pmat_force++) + (*pmat_fdissip);
+	*pout_dissip++ = (*pmat_fdissip++);
+      }
+      *pout_disp++ = disp[i*nsd+j];
+    }
+    pout_force += 2*nsd;
+    pout_dissip += 2*nsd;
+    pout_disp += 2*nsd;
   }
 }
 
@@ -228,8 +250,10 @@ void FiniteStrainMF::MatForceVolMech(dArrayT& elem_val)
   const double* jac = fShapes->IPDets();
   const double* weight = fShapes->IPWeights();
 
-  bool print = false;
-  if (fElementCards.Position() == 635) print = true;
+  /*********************print check***************
+   *  bool print = false;
+   *  if (fElementCards.Position() == 635) print = true;
+   *******************************************************/
 
   fShapes->TopIP();
   while(fShapes->NextIP())
@@ -264,7 +288,6 @@ void FiniteStrainMF::MatForceVolMech(dArrayT& elem_val)
       nEshelby[1] = C[2]*S[0]+C[1]*S[2]; //(1,0)
       nEshelby[2] = C[0]*S[2]+C[2]*S[1]; //(0,1)
       nEshelby[3] = C[2]*S[2]+C[1]*S[1]-energy; //(1,1)
-      if (print) cout<<"\nnEshelby: "<<nEshelby;
 
       double* pDQaX = DQa(0); 
       double* pDQaY = DQa(1);
@@ -325,9 +348,6 @@ void FiniteStrainMF::MatForceVolMech(dArrayT& elem_val)
     weight++;
     jac++;
   }
-  if (print) cout <<"\nelem: "<<CurrentElement().NodesX()<<"\nMF: "<< elem_val<<'\n';
-      
-  /*cout <<"\nFmat Vol: "<<elem_val;*/
 }
 
 void FiniteStrainMF::MatForceDissip(dArrayT& elem_val, const dArrayT& statev)
@@ -396,7 +416,6 @@ void FiniteStrainMF::MatForceDissip(dArrayT& elem_val, const dArrayT& statev)
       for (int cnt = 0; cnt < numstress; cnt++)
     	  ip_val[cnt] += (*pQbU)*(*jac)*(*weight)*iInStretch[cnt];
       pQbU++;  
-      //cout <<"\nip_val: "<<ip_val;  
     }
     pInStretch += nstatev;
     weight++;
@@ -506,7 +525,6 @@ void FiniteStrainMF::MatForceDissip(dArrayT& elem_val, const dArrayT& statev)
     jac++;
     weight++;
   }
-//    cout <<"\nFmat Dissip: "<<elem_val;
 }
 
 void FiniteStrainMF::MatForceSurfMech(dArrayT& global_val)
@@ -740,7 +758,6 @@ void FiniteStrainMF::MatForceSurfMech(dArrayT& global_val)
 	      ip_w++;
         }
       }
-//      cout <<"\nFmat Surf: "<<elem_val;
       AssembleMatForce(elem_val, global_val, surf_nodes);
     }
   }
