@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.h,v 1.5 2001-12-17 20:03:51 cjkimme Exp $ */
+/* $Id: Tijssens2DT.h,v 1.6 2002-02-18 19:09:43 cjkimme Exp $ */
 
 #ifndef _TIJSSENS_2D_T_H_
 #define _TIJSSENS_2D_T_H_
@@ -8,6 +8,7 @@
 
 /* forward declarations */
 class ifstreamT;
+class FEManagerT;
 
 /**Rate dependence of traction as a function of the rate of change
  * of the gap vector as described by Tijssens, et. al in Mech. Mat. 32 19-35. 
@@ -19,7 +20,7 @@ public:
 
 	/** constructor.
 	 * \param time_step reference to the current time step */
-	Tijssens2DT(ifstreamT& in, const double& time_step);
+	Tijssens2DT(ifstreamT& in, double time_step,FEManagerT& FE_Manager);
 
 	/** return the number of state variables needed by the model.
 	 * Need to store the opening displacement from the previous
@@ -76,8 +77,11 @@ protected:
 	
 private:
 
+	//bool initiationQ(const ArrayT<double>&);
+
 	/** the time step */
-	const double& fTimeStep;
+	double fTimeStep;
+	FEManagerT& fFEManager;
 
 	/* traction rate parameters */
 	double fk_t0; /* initial tangential stiffness */
@@ -98,7 +102,7 @@ private:
 	double ftemp; /* Temperature */
 //	double fY; /* Bulk yield strength */
 	int fGroup; /* element group to obtain hydrostatic stress from */
-	int fSteps; /* number of steps for k_n to go to 0 after failure */
+	double fSteps; /* number of steps for k_n to go to 0 after failure */
 
 };
 

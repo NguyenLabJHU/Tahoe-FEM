@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.14 2001-12-17 20:03:51 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.15 2002-02-18 19:09:42 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -21,6 +21,7 @@
 #include "TvergHutch2DT.h"
 #include "ViscTvergHutch2DT.h"
 #include "Tijssens2DT.h"
+#include "RateDep2DT.h"
 
 /* constructor */
 CSEAnisoT::CSEAnisoT(FEManagerT& fe_manager, bool rotate):
@@ -83,7 +84,6 @@ void CSEAnisoT::Initialize(void)
 	ifstreamT& in = fFEManager.Input();
 	ostream&   out = fFEManager.Output();
 		
-
 	fCalcNodalInfo = false;
 
 	/* construct props */
@@ -137,7 +137,19 @@ void CSEAnisoT::Initialize(void)
 			case SurfacePotentialT::kTijssens:
 			{	
 				if (fNumDOF == 2)
-					fSurfPots[num] = new Tijssens2DT(in,FEManager().TimeStep());
+					fSurfPots[num] = new Tijssens2DT(in,FEManager().TimeStep(),fFEManager);
+				else
+				{
+					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code <<  endl;
+
+					throw eBadInputValue;
+				}
+				break;
+			}
+			case SurfacePotentialT::kRateDep:
+			{	
+				if (fNumDOF == 2)
+					fSurfPots[num] = new RateDep2DT(in,FEManager().TimeStep());
 				else
 				{
 					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code <<  endl;
@@ -290,6 +302,18 @@ void CSEAnisoT::LHSDriver(void)
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 
+	if (fCalcNodalInfo) 
+	{
+	          ElementBaseT* surroundingGroup = fFEManager.ElementGroup(fBulkGroup);
+		  if (!surroundingGroup) 
+		  {
+		      cout << "\n CSEAnisoT::LHSDriver cannot get group number 1 \n";
+		      throw eGeneralFail;
+		  }
+		  surroundingGroup->SendOutput(fNodalInfoCode);
+		  fNodalQuantities = fNodes->OutputAverage();
+	}
+
 	AutoArrayT<double> state2;
 	dArrayT state;
 	Top();
@@ -312,6 +336,18 @@ void CSEAnisoT::LHSDriver(void)
 		
 		/* initialize */
 		fLHS = 0.0;
+		
+		if (surfpot->NeedsNodalInfo()) 
+		{
+		  /* just scalars for now. MinorDim() will be changed */
+		  fNodalValues.Allocate(element.NodesX().Length(),1);
+		  dArrayT nodalRow(fNodalQuantities.MinorDim());
+		  for (int iIndex = 0; iIndex < element.NodesX().Length(); iIndex++) 
+		  {
+		    fNodalQuantities.RowCopy(element.NodesX()[iIndex],nodalRow);
+		    fNodalValues[iIndex] = surfpot->ComputeNodalValue(nodalRow);
+		  }
+		}
 
 		/* loop over integration points */
 		double* pstate = fStateVariables_last(CurrElementNumber());
@@ -337,6 +373,15 @@ void CSEAnisoT::LHSDriver(void)
 
 			/* check */
 			if (j0 <= 0.0 || j <= 0.0) throw eBadJacobianDet;
+
+			/* Interpolate nodal info to IPs */
+			if (surfpot->NeedsNodalInfo()) 
+			{
+			  /* compute just a scalar at IP for now */
+			  dArrayT scalarIP(1);
+			  fShapes->Interpolate(fNodalValues,scalarIP);
+			  surfpot->UpdateStateVariables(scalarIP,state);
+			}
 		
 			/* gap vector and gradient (facet1 to facet2) */
 			const dArrayT&    delta = fShapes->InterpolateJumpU(fLocCurrCoords);
@@ -385,7 +430,8 @@ void CSEAnisoT::RHSDriver(void)
 	double constKd = 0.0;
 	int formKd = fController->FormKd(constKd);
 	if (!formKd) return;
-
+	//SurfacePotentialT::ResetTimeFlags();
+	
 	/* set state to start of current step */
 	fStateVariables = fStateVariables_last;
 
@@ -397,7 +443,6 @@ void CSEAnisoT::RHSDriver(void)
 	fFractureArea = 0.0;
 	
 	/* If the potential needs info from the nodes, start to gather it now */
-	/* Added by cjkimme 11/07/01 */
 	if (fCalcNodalInfo) 
 	{
 	          ElementBaseT* surroundingGroup = fFEManager.ElementGroup(fBulkGroup);
@@ -409,6 +454,9 @@ void CSEAnisoT::RHSDriver(void)
 		  surroundingGroup->SendOutput(fNodalInfoCode);
 		  fNodalQuantities = fNodes->OutputAverage();
 	}
+
+	//fNeedsNewTimeStep = false;
+	//fFEManager.ClearCSEFlags();
 	
 	dArrayT state;
 	Top();
@@ -434,7 +482,6 @@ void CSEAnisoT::RHSDriver(void)
 	  		fRHS = 0.0;
 			
 			/* Get whatever nodal info the potential needs */
-			/* Added by cjkimme 11/07/01 */
 			if (surfpot->NeedsNodalInfo()) 
 			{
 			    /* just scalars for now. MinorDim() will be changed */
@@ -494,7 +541,18 @@ void CSEAnisoT::RHSDriver(void)
 				/* gap -> traction, in/out of local frame */
 				fQ.MultTx(delta, fdelta);
 				fQ.Multx(surfpot->Traction(fdelta, state), fT);
-			       
+		                /*if (surfpot->PotentialTimeChangeQ())
+				{
+				  if (!fNeedsNewTimeStep) 
+				  {
+				    fNeedsNewTimeStep = true;
+				    fNewTimeStep = surfpot->TimeStepRequested();
+				  }
+				  else
+				    if (fNewTimeStep > surfpot->TimeStepRequested())
+				      fNewTimeStep = surfpot->TimeStepRequested();
+				}*/
+
 				/* expand */
 				fShapes->Grad_d().MultTx(fT, fNEEvec);
 	
@@ -527,7 +585,11 @@ void CSEAnisoT::RHSDriver(void)
 			while (fShapes->NextIP())
 				fFractureArea += (fShapes->Jacobian())*(fShapes->IPWeight());
 		}
-	}	
+	}
+
+	//if (fNeedsNewTimeStep)
+	 // fFEManager.CSESendsTimeStep(fNewTimeStep);
+	  
 }
 
 /* nodal value calculations */
@@ -559,7 +621,7 @@ void CSEAnisoT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& 
 /* extrapolate the integration point stresses and strains and extrapolate */
 void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	const iArrayT& e_codes, dArray2DT& e_values)
-{
+{      
 	/* number of output values */
 	int n_out = n_codes.Sum();
 	int e_out = e_codes.Sum();
@@ -619,8 +681,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 
 	/* If the potential needs info from the nodes, start to gather it now */
-	/* Added by cjkimme 11/07/01 */
-	/*	if (fCalcNodalInfo) 
+	if (fCalcNodalInfo) 
 	{
 	        ElementBaseT* surroundingGroup = fFEManager.ElementGroup(fBulkGroup);
 		if (!surroundingGroup) 
@@ -632,7 +693,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		surroundingGroup->SendOutput(fNodalInfoCode);
 		fNodalQuantities = fNodes->OutputAverage();
 	}	
-	fNodes->ResetAverage(n_out);*/
+	fNodes->ResetAverage(n_out);
 	
 	AutoArrayT<double> state;
 	Top();
@@ -662,7 +723,6 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		//NOTE: will not get any element output if the element not kON
 		//      although quantities like the reference element centroid could
 		//      still be safely calculated.
-
 		/* compute output */
 		if (element.Flag() == kON)
 		{
@@ -684,18 +744,17 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			if (e_codes[Traction]) traction = 0.0;
 
 			/* Get whatever nodal info the potential needs */
-			/* Added by cjkimme 11/07/01 */
-			//if (surfpot->NeedsNodalInfo()) 
-			//{
+			if (surfpot->NeedsNodalInfo()) 
+			{
 			  /* just scalars for now. MinorDim() will be changed */
-			/*fNodalValues.Allocate(element.NodesX().Length(),1);
+			  fNodalValues.Allocate(element.NodesX().Length(),1);
 			  dArrayT nodalRow(fNodalQuantities.MinorDim());
 			  for (int iIndex = 0; iIndex < element.NodesX().Length(); iIndex++) 
 			  {
 			    fNodalQuantities.RowCopy(element.NodesX()[iIndex],nodalRow);
 			    fNodalValues[iIndex] = surfpot->ComputeNodalValue(nodalRow);
 			  }
-			}*/
+			}
 
 			/* integrate */
 			fShapes->TopIP();
@@ -720,14 +779,13 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					fShapes->Extrapolate(fdelta, jump);				
 
 				/* Interpolate nodal info to IPs */
-				/* Added by cjkimme 11/07/01 */
-				//if (surfpot->NeedsNodalInfo()) 
-				//{
+				if (surfpot->NeedsNodalInfo()) 
+				{
 				  /* compute just a scalar at IP for now */
-				/*dArrayT scalarIP(1);
+				  dArrayT scalarIP(1);
 				  fShapes->Interpolate(fNodalValues,scalarIP);
 				  surfpot->UpdateStateVariables(scalarIP,state);
-				}*/
+				}
 
 				/* traction */
 				if (n_codes[NodalTraction] || e_codes[Traction])
@@ -755,6 +813,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 					/* evaluate */
 					surfpot->ComputeOutput(fdelta, state, ipmat);
+					//matdat.RowCopy(fShapes->CurrIP(),ipmat);
 					fShapes->Extrapolate(ipmat, matdat);
 				}
 
@@ -796,11 +855,16 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		
 		  		/* surface potential */
 				SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
+				int num_state = fNumStateVariables[element.MaterialNumber()];
+				state.Allocate(num_state);
+
 		
 				/* integrate */
 				fShapes->TopIP();
 				while (fShapes->NextIP())
 				{
+
+				        double* pstate = fStateVariables_last(CurrElementNumber()) + fShapes->CurrIP()*num_state;
 					/* element integration weight */
 					double ip_w = fShapes->Jacobian()*fShapes->IPWeight();
 					area += ip_w;
@@ -811,8 +875,9 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 					/* cohesive energy */
 					if (e_codes[CohesiveEnergy])
-					{
+					  {  
 						/* surface potential */
+					        state.Copy(pstate);
 						double potential = surfpot->FractureEnergy(state);
 	
 						/* integrate */
@@ -837,7 +902,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		fNodes->AssembleAverage(element.NodesX(), nodal_all);
 		
 		/* store results */
-		e_values.SetRow(CurrElementNumber(), element_values);		
+		e_values.SetRow(CurrElementNumber(), element_values);	      
 	}
 
 	/* get nodally averaged values */

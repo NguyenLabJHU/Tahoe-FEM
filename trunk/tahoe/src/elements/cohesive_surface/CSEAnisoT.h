@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.8 2001-11-16 00:22:41 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.9 2002-02-18 19:09:42 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #ifndef _CSE_ANISO_T_H_
@@ -108,6 +108,12 @@ protected:
         dArray2DT fNodalQuantities;
 	LocalArrayT fNodalValues;
 	int fBulkGroup;
+
+	/* change the time Step */
+	/*double fNewTimeStep;
+	bool fNeedsNewTimeStep;
+	bool NewTimeStepQ(void);
+	double NewTimeStep(void);*/
 };
 
 #endif /* _CSE_ANISO_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.8 2001-11-16 00:22:42 cjkimme Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.9 2002-02-18 19:09:43 cjkimme Exp $ */
 /* created: paklein (06/20/1999) */
 
 #ifndef _SURFACE_POTENTIAL_T_H_
@@ -27,7 +27,8 @@ public:
 	    kTvergaardHutchinson = 1, /**< tri-linear potential */
 	           kLinearDamage = 2, /**< irreversible linear decay */
 	kViscTvergaardHutchinson = 3, /**< T-H with viscous dissipation */
-	               kTijssens = 4  /**< */};
+	               kTijssens = 4, /**< */
+	                kRateDep = 5, /* simplified Tijssens' model */};
 
 	/** surface element status codes */
 	enum StatusT {Precritical = 0, /**< loading phase */
