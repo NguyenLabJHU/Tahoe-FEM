@@ -1,4 +1,4 @@
-/* $Id: AutoFill2DT.h,v 1.8 2003-01-27 06:42:46 paklein Exp $ */
+/* $Id: AutoFill2DT.h,v 1.9 2003-02-10 02:06:32 paklein Exp $ */
 /* created: paklein (01/19/1999) */
 #ifndef _AUTO_ARRAY2D_T_H_
 #define _AUTO_ARRAY2D_T_H_
@@ -51,6 +51,9 @@ public:
 	/*@{*/
 	void SetMaxMinorDim(int maxminordim, bool make_headroom = false);
 	void SetHeadRoom(int headroom);
+	
+	/** free memory */
+	void Free(void);
 	/*@}*/
 	
 	/** \name accessors
@@ -270,6 +273,20 @@ inline void AutoFill2DT<TYPE>::SetHeadRoom(int headroom)
 {
 	if (headroom < 0) ExceptionT::GeneralFail();
 	fHeadRoom = headroom;
+}
+
+/* free memory */
+template <class TYPE>
+void AutoFill2DT<TYPE>::Free(void)
+{
+	fCounts = 0;
+	fMaxMinorDim = 0;
+	fChunkMinorDim = 0;
+	for (int i = 0; i < fChunks.Length(); i++)
+	{
+		delete[] fChunks[i];
+		fChunks[i] = NULL;
+	}
 }
 
 /* accessors */
