@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.h,v 1.6.2.2 2001-11-06 14:23:38 sawimme Exp $ */
+/* $Id: AbaqusInputT.h,v 1.6.2.3 2001-11-13 20:56:00 sawimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #ifndef _ABAQUSINPUT_T_H_
@@ -71,6 +71,10 @@ class AbaqusInputT : public InputBaseT
   void ReadNodeLabels (ArrayT<StringT>& nlabels) const;
   void ReadElementLabels (ArrayT<StringT>& elabels) const;
   void ReadQuadratureLabels (ArrayT<StringT>& qlabels) const;  
+
+  void NodeVariablesUsed (StringT& name, iArrayT& used);
+  void ElementVariablesUsed (StringT& name, iArrayT& used);
+  void QuadratureVariablesUsed (StringT& name, iArrayT& used);  
 
   void ReadAllNodeVariables (int step, dArray2DT& nvalues);
   void ReadNodeVariables (int step, StringT& elsetname, dArray2DT& nvalues);

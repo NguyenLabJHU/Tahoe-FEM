@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.cpp,v 1.6.2.1 2001-11-06 14:23:38 sawimme Exp $ */
+/* $Id: AbaqusInputT.cpp,v 1.6.2.2 2001-11-13 20:55:59 sawimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #include "AbaqusInputT.h"
@@ -196,6 +196,24 @@ void AbaqusInputT::ReadQuadratureLabels (ArrayT<StringT>& qlabels) const
   iArrayT dims (qlabels.Length());
   fData.QuadratureVariables (keys, dims);
   SetLabelName (keys, dims, qlabels);
+}
+
+void AbaqusInputT::NodeVariablesUsed (StringT& name, iArrayT& used)
+{
+  if (used.Length() != NumNodeVariables()) throw eSizeMismatch;
+  fData.VariablesUsed (name, AbaqusVariablesT::kNode, used);
+}
+
+void AbaqusInputT::ElementVariablesUsed (StringT& name, iArrayT& used)
+{ 
+  if (used.Length() != NumElementVariables()) throw eSizeMismatch;
+  fData.VariablesUsed (name, AbaqusVariablesT::kElement, used);
+}
+
+void AbaqusInputT::QuadratureVariablesUsed (StringT& name, iArrayT& used)
+{ 
+  if (used.Length() != NumQuadratureVariables()) throw eSizeMismatch;
+  fData.VariablesUsed (name, AbaqusVariablesT::kQuadrature, used);
 }
 
 void AbaqusInputT::ReadAllNodeVariables (int step, dArray2DT& values)

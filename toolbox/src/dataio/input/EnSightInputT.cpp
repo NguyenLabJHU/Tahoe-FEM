@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.cpp,v 1.5 2001-09-04 14:46:37 sawimme Exp $ */
+/* $Id: EnSightInputT.cpp,v 1.5.2.1 2001-11-13 20:56:00 sawimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #include "EnSightInputT.h"
@@ -448,6 +448,38 @@ void EnSightInputT::ReadElementLabels (ArrayT<StringT>& elabels) const
     elabels[j] = el[j];
 }
 
+void EnSightInputT::NodeVariablesUsed (StringT& name, iArrayT& used)
+{ 
+  used = 0;
+
+  // gather variable labels and vector/scalar data
+  ifstreamT incase ('#', fCaseFile);
+  if (!AdvanceStream (incase, "VARIABLE")) return;
+  
+  AutoArrayT<bool> nvector, evector;
+  AutoArrayT<StringT> nl(20), el(20);
+  fData.ReadVariableSection (incase, nl, el, nvector, evector, false);
+  if (used.Length() != nl.Length()) throw eSizeMismatch;
+  
+  VariableUsed (name, used, nl, nvector, true);
+}
+
+void EnSightInputT::ElementVariablesUsed (StringT& name, iArrayT& used)
+{ 
+  used = 0;
+
+  // gather variable labels and vector/scalar data
+  ifstreamT incase ('#', fCaseFile);
+  if (!AdvanceStream (incase, "VARIABLE")) return;
+  
+  AutoArrayT<bool> nvector, evector;
+  AutoArrayT<StringT> nl(20), el(20);
+  fData.ReadVariableSection (incase, nl, el, nvector, evector, false);
+  if (used.Length() != nl.Length()) throw eSizeMismatch;
+  
+  VariableUsed (name, used, el, evector, false);
+}
+
 void EnSightInputT::ReadAllNodeVariables (int step, dArray2DT& nvalues)
 {
   int numg = NumElementGroups ();
@@ -663,6 +695,62 @@ void EnSightInputT::ReadVariableData (ArrayT<bool>& vector, ArrayT<StringT>& lab
 	    {
 	      values.BlockColumnCopyAt (temp, i);
 	      found = true;
+	    }
+	}
+
+      if (vector[i])
+	i += kDOF - 1;
+    }
+}
+
+void EnSightInputT::VariableUsed (StringT& name, iArrayT& used, ArrayT<StringT>& labels, ArrayT<bool>& vector, bool nodal) const
+{
+  // examine each variable file for entries with this part
+  int group_id = atoi (name.Pointer());
+  for (int i=0; i < labels.Length(); i++)
+    {
+      StringT filename = CreateVariableFile (labels[i], 0);
+      ifstream in (filename);
+      
+      if (!in)
+	{
+	  cout << "\n\nEnSightInputT::VariablesUsed Unable to open: "
+	       << filename << endl;
+	}
+
+      // read variable file header
+      StringT header;
+      fData.ReadVariableHeader (in, header);
+
+      // search file for part
+      bool found = false;
+      int id, dex, num;
+      dArray2DT temp;
+      while (fData.ReadPart (in, id) && !found)
+	{
+	  if (!fPartDimensions.ColumnHasValue (2, id, dex)) throw eGeneralFail;
+
+	  if (nodal)
+	    num = fPartDimensions (dex, 0);
+	  else
+	    num = fPartDimensions (dex, 1);
+
+	  if (vector[i])
+	    temp.Allocate (num, kDOF);
+	  else
+	    temp.Allocate (num, 1);
+	  temp = 0.0;
+
+	  fData.ReadVariable (in, temp);
+
+	  // found part
+	  if (id == group_id)
+	    {
+	      if (vector[i])
+		for (int hg=0; hg < kDOF; hg++)
+		  used[i+hg] = kDOF;
+	      else
+		used[i] = 1;
 	    }
 	}
 
