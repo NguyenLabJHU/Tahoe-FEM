@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.cpp,v 1.20.2.2 2004-07-07 15:27:58 paklein Exp $ */
+/* $Id: XuNeedleman3DT.cpp,v 1.20.2.3 2004-07-13 16:42:27 paklein Exp $ */
 /* created: paklein (06/23/1999)*/
 #include "XuNeedleman3DT.h"
 
@@ -6,42 +6,11 @@
 #include <math.h>
 
 #include "ExceptionT.h"
-
-
 using namespace Tahoe;
 
 /* class parameters */
 const int    knumDOF = 3;
 const double kExpMax = 20;
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-/* constructor */
-XuNeedleman3DT::XuNeedleman3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
-{
-	SetName("Xu-Needleman_3D");
-#pragma unused(in)
-#if 0
-	in >> q; // phi_t/phi_n
-	in >> r; // delta_n* /d_n
-	if (q < 0.0 || r < 0.0) throw ExceptionT::kBadInputValue;
-	
-	in >> d_n; // characteristic normal opening
-	in >> d_t; // characteristic tangent opening
-	if (d_n < 0.0 || d_t < 0.0) throw ExceptionT::kBadInputValue;
-	
-	in >> phi_n; // mode I work to fracture
-	if (phi_n < 0.0) throw ExceptionT::kBadInputValue;
-
-	in >> r_fail; // d/d_(n/t) for which surface is considered failed
-	if (r_fail < 1.0) throw ExceptionT::kBadInputValue;
-
-	in >> fKratio; // stiffening ratio
-	if (fKratio < 0.0) throw ExceptionT::kBadInputValue;
-	
-	fK = fKratio*phi_n/(d_n*d_n);
-#endif
-}
-#endif
 
 XuNeedleman3DT::XuNeedleman3DT(dArrayT& params): SurfacePotentialT(knumDOF)
 {

@@ -1,4 +1,4 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.10.2.2 2004-07-12 16:06:37 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.10.2.3 2004-07-13 16:42:45 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "BimaterialK_FieldT.h"
 
@@ -165,67 +165,6 @@ void BimaterialK_FieldT::TakeParameterList(const ParameterListT& list)
 //TEMP - tip tracking not supporting for parallel execution
 	if (fNearTipGroupNum != -1 && fSupport.Size() > 1) 
 		ExceptionT::BadInputValue(caller, "tip tracking not implemented in parallel");
-
-#if 0
-	iArrayT tmp;
-	/* set 1 */
-	if (fFarFieldGroupNum != -1)
-	{
-		out << " Far field element group 1 number. . . . . . . . = " << fFarFieldGroupNum + 1 << '\n';
-		out << " Far field group 1 material number . . . . . . . = " << fFarFieldMaterialNum + 1 << '\n';
-		if (fID_List_1.Length() > 0)
-		{
-			out << " Number of group 1 node sets . . . . . . . . . . = " << fID_List_1.Length() << '\n';
-			int wrap = 0;
-			for (int i = 0; i < fID_List_1.Length(); i++)
-			{
-				if (++wrap == 4) {
-					out << '\n';
-					wrap = 0;
-				}
-				out << setw(12) << fID_List_1[i];
-			}	
-			out << '\n';
-		}
-		out << " Number of group 1 nodes . . . . . . . . . . . . = " << fNodes.Length() << '\n';	
-		tmp.Alias(fNodes_1);
-		tmp++;
-		out << tmp.wrap(6) << '\n';
-		tmp--;
-	}
-	else
-		out << " Far field element group 1 number. . . . . . . . = RIGID\n";
-	
-	/* set 2 */
-	if (fFarFieldGroupNum_2 != -1)
-	{
-		out << " Far field element group 2 number. . . . . . . . = " << fFarFieldGroupNum_2 + 1 << '\n';
-		out << " Far field group 2 material number . . . . . . . = " << fFarFieldMaterialNum_2 + 1 << '\n';
-		if (fID_List_2.Length() > 0)
-		{
-			out << " Number of group 2 node sets . . . . . . . . . . = " << fID_List_2.Length() << '\n';
-			int wrap = 0;
-			for (int i = 0; i < fID_List_2.Length(); i++)
-			{
-				if (++wrap == 4) {
-					out << '\n';
-					wrap = 0;
-				}
-				out << setw(12) << fID_List_2[i];
-			}	
-			out << '\n';
-		}
-		out << " Number of group 2 nodes . . . . . . . . . . . . = " << fNodes_2.Length() << '\n';	
-		tmp.Alias(fNodes_2);
-		tmp++;
-		out << tmp.wrap(6) << '\n';
-		tmp--;
-	}
-	else
-		out << " Far field element group 2 number. . . . . . . . = RIGID\n";
-
-	out << " Group in the upper half plane . . . . . . . . . = " << fUHP << '\n';
-#endif
 }
 
 /***********************************************************************

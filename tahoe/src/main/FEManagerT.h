@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.43.2.3 2004-07-12 16:06:33 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.43.2.4 2004-07-13 16:42:41 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -62,9 +62,6 @@ public:
 	/** destructor */
 	virtual ~FEManagerT(void);
 
-	/** initialize members */
-//	virtual void Initialize(InitCodeT init = kFull);
-	
 	/** solve all the time sequences */
 	void Solve(void);
 	
@@ -278,17 +275,6 @@ public:
 	void InternalForceOnNode(const FieldT& field, int node, dArrayT& force) const;
 	/*@}*/
 
-	/** \name access to integrators */
-	/*@{*/
-#if 0
-	int NumIntegrators(void) const { return fIntegrators.Length(); };
-	IntegratorT* Integrator(int index) { return fIntegrators[index]; };
-	const IntegratorT* Integrator(int index) const { return fIntegrators[index]; };
-	const eIntegratorT* eIntegrator(int index) const;
-	const nIntegratorT* nIntegrator(int index) const;
-#endif
-	/*@}*/
-
 	/** debugging */
 	virtual void WriteSystemConfig(ostream& out, int group) const;
 	virtual void RegisterSystemOutput(int group);
@@ -397,16 +383,8 @@ protected:
 	/** "const" function that sets the status flag */
 	void SetStatus(GlobalT::StateT status) const;
 
-	/** look for input file key and check file version */
-//	void CheckInputFile(void);
-
-	/** \name phases of FEManagerT::Initialize. */
+	/** \name initialization */
 	/*@{*/
-//	virtual void ReadParameters(InitCodeT init);
-	virtual void WriteParameters(void) const;
-	void SetIntegrator(void);
-	virtual void SetNodeManager(void);
-	virtual void SetElementGroups(void);
 	virtual void SetSolver(void);
 	virtual void SetOutput(void);
 	/*@}*/

@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.3.28.2 2004-07-07 15:28:47 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.3.28.3 2004-07-13 16:42:45 paklein Exp $ */
 #include "ConveyorT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -41,10 +41,10 @@ void ConveyorT::InitialCondition(void)
 	MarkElements();	
 }
 
+#if 0
 /* initialize data - called immediately after construction */
 void ConveyorT::Initialize(ifstreamT& in)
 {
-#if 0
 	const char caller[] = "ConveyorT::Initialize";
 
 	/* only 2D for now */
@@ -131,9 +131,8 @@ void ConveyorT::Initialize(ifstreamT& in)
 	/* create controller for the right edge of the domain */
 	fRightEdge = new KBC_PrescribedT(fSupport);
 	fField.AddKBCController(fRightEdge);
-
-#endif
 }
+#endif
 
 void ConveyorT::Reset(void)
 {

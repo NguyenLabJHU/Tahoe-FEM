@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.h,v 1.6.30.2 2004-07-12 16:06:31 paklein Exp $ */
+/* $Id: ThermostatBaseT.h,v 1.6.30.3 2004-07-13 16:42:40 paklein Exp $ */
 #ifndef _THERMOSTAT_BASE_T_H_
 #define _THERMOSTAT_BASE_T_H_
 
@@ -21,7 +21,6 @@ namespace Tahoe {
 class ifstreamT;
 class dArray2DT;
 class ParticlePropertyT;
-//class ModelManagerT;
 class BasicSupportT;
 
 /** base class for thermostatting and damping */
@@ -42,12 +41,8 @@ public:
    					kNodes = 0, /**< apply to some or all nodesets */
     			   kRegion = 1 /**< apply to nodes in region of space */
 	}; 
-	
-	/** stream extraction operators */
-//	friend istream& operator>>(istream& in, ThermostatBaseT::ThermostatT& property);	
 
 	/** constructor */
-//	ThermostatBaseT(ifstreamT& in, const int& nsd, const double& dt);
 	ThermostatBaseT(const BasicSupportT& support);
 
 	/** destructor */

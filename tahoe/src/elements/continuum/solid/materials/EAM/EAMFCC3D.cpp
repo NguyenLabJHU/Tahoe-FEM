@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.cpp,v 1.6.2.4 2004-07-12 16:06:08 paklein Exp $ */
+/* $Id: EAMFCC3D.cpp,v 1.6.2.5 2004-07-13 16:42:35 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D.h"
 
@@ -34,43 +34,6 @@ EAMFCC3D::EAMFCC3D(void):
 {
 
 }
-
-#if 0
-EAMFCC3D::EAMFCC3D(ifstreamT& in, int EAMcode, int nsd):
-	FCCLatticeT(0), /* number of shells is not used by this class */
-	fEAM(NULL),
-	fLatticeParameter(0.0),
-	fCellVolume(0.0)
-{
-	/* set EAM solver functions */
-	SetGlueFunctions(in, EAMcode, nsd);
-
-	/* lattice parameter and cell volume */
-	fLatticeParameter = fEAM->LatticeParameter();
-	fCellVolume = fLatticeParameter*fLatticeParameter*fLatticeParameter;
-}
-#endif
-
-#if 0
-EAMFCC3D::EAMFCC3D(ifstreamT& in, const dMatrixT& Q, int EAMcode, int nsd):
-	CBLatticeT(Q, numspatialdim, numbonds), fEAMcode(EAMcode)
-{
-	/* dimension check */
-	if( Q.Rows() != kEAMFCC3DNumLatticeDim ||
-	    Q.Cols() != kEAMFCC3DNumLatticeDim) throw ExceptionT::kGeneralFail;
-
-	/* set EAM solver functions */
-	SetGlueFunctions(in);
-	
-	/* lattice parameter and cell volume */
-	if (!fEAM)
-		fLatticeParameter = fEAM_particle->LatticeParameter();
-	else
-		fLatticeParameter = fEAM->LatticeParameter();
-		
-	fCellVolume       = fLatticeParameter*fLatticeParameter*fLatticeParameter;
-}
-#endif
 
 /* destructor */
 EAMFCC3D::~EAMFCC3D(void) { 

@@ -1,12 +1,10 @@
-/* $Id: TvergHutch3DT.cpp,v 1.12.2.2 2004-07-07 15:27:58 paklein Exp $ */
+/* $Id: TvergHutch3DT.cpp,v 1.12.2.3 2004-07-13 16:42:27 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 #include "TvergHutch3DT.h"
 
 #include <iostream.h>
 #include <math.h>
-
 #include "ExceptionT.h"
-
 #include "StringT.h"
 
 using namespace Tahoe;
@@ -14,33 +12,7 @@ using namespace Tahoe;
 /* class parameters */
 const int knumDOF = 3;
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* constructor */
-TvergHutch3DT::TvergHutch3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
-{
-	SetName("Tvergaard-Hutchinson_3D");
-
-#pragma unused(in)
-#if 0
-	/* traction potential parameters */
-	in >> fsigma_max; if (fsigma_max < 0) throw ExceptionT::kBadInputValue;
-	in >> fd_c_n; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
-	in >> fd_c_t; if (fd_c_t < 0) throw ExceptionT::kBadInputValue;
-	
-	/* non-dimensional opening parameters */
-	in >> fL_1; if (fL_1 < 0 || fL_1 > 1) throw ExceptionT::kBadInputValue;
-	in >> fL_2; if (fL_2 < fL_1 || fL_2 > 1) throw ExceptionT::kBadInputValue;
-	in >> fL_fail; if (fL_fail < 1.0) fL_fail = 1.0;
-
-	/* stiffness multiplier */
-	in >> fpenalty; if (fpenalty < 0) throw ExceptionT::kBadInputValue;
-
-	/* penetration stiffness */
-	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
-#endif
-}
-#endif
-
 TvergHutch3DT::TvergHutch3DT(dArrayT& params): SurfacePotentialT(knumDOF)
 {
 	SetName("Tvergaard-Hutchinson_3D");

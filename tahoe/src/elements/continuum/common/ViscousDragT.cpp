@@ -1,4 +1,4 @@
-/* $Id: ViscousDragT.cpp,v 1.3.6.3 2004-07-12 08:08:44 paklein Exp $ */
+/* $Id: ViscousDragT.cpp,v 1.3.6.4 2004-07-13 16:42:30 paklein Exp $ */
 #include "ViscousDragT.h"
 
 #include "ifstreamT.h"
@@ -15,13 +15,14 @@ ViscousDragT::ViscousDragT(const ElementSupportT& support):
 	fViscosity(0.0)
 {
 	SetName("viscous_drag");
+ExceptionT::GeneralFail("ViscousDragT::ViscousDragT", "out of date");
 }
 
+#if 0
 /* class initialization */
 void ViscousDragT::Initialize(void)
 {
 #pragma message("delete me")
-#if 0
 	/* inherited */
 	ElementBaseT::Initialize();
 
@@ -83,8 +84,8 @@ void ViscousDragT::Initialize(void)
 	out << " Number of nodes used. . . . . . . . . . . . . . = " << fNodesUsed.Length() << '\n';
 	if (ElementSupport().PrintInput())
 		out << fNodesUsed.wrap(5) << '\n';
-#endif
 }
+#endif
 
 /* collecting element group equation numbers */
 void ViscousDragT::Equations(AutoArrayT<const iArray2DT*>& eq_1, AutoArrayT<const RaggedArray2DT<int>*>& eq_2)

@@ -1,4 +1,4 @@
-/* $Id: TvergHutchRigid2DT.cpp,v 1.2.2.2 2004-07-07 15:27:58 paklein Exp $ */
+/* $Id: TvergHutchRigid2DT.cpp,v 1.2.2.3 2004-07-13 16:42:27 paklein Exp $ */
 #include "TvergHutchRigid2DT.h"
 
 #include <iostream.h>
@@ -17,6 +17,7 @@ const int knumDOF = 2;
 TvergHutchRigid2DT::TvergHutchRigid2DT(ifstreamT& in): 
 	SurfacePotentialT(knumDOF)
 {
+ExceptionT::GeneralFail("TvergHutchRigid2DT::TvergHutchRigid2DT", "out of date");
 #pragma unused(in)
 #if 0
 	/* traction potential parameters */

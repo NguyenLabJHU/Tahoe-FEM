@@ -1,4 +1,4 @@
-/* $Id: PeriodicNodesT.h,v 1.2.58.1 2004-07-06 06:54:42 paklein Exp $ */
+/* $Id: PeriodicNodesT.h,v 1.2.58.2 2004-07-13 16:42:45 paklein Exp $ */
 #ifndef _PERIODIC_NODES_T_H_
 #define _PERIODIC_NODES_T_H_
 
@@ -21,9 +21,6 @@ public:
 
 	/** constructor */
 	PeriodicNodesT(const BasicSupportT& support, BasicFieldT& field);
-
-	/** write class parameters */
-	void WriteParameters(ostream& out) const;
 
 protected:
 

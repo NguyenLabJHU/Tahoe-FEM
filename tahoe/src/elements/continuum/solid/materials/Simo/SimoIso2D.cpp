@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.cpp,v 1.9.54.1 2004-07-06 06:53:39 paklein Exp $ */
+/* $Id: SimoIso2D.cpp,v 1.9.54.2 2004-07-13 16:42:36 paklein Exp $ */
 /* created: paklein (03/04/1997) */
 #include "SimoIso2D.h"
 #include <math.h>
@@ -29,13 +29,6 @@ void SimoIso2D::InitStep(void)
 		    fabs(F_therm_inv(1,0)) > kSmall ||
 		    fabs(F_therm_inv(0,1)) > kSmall)
 			ExceptionT::GeneralFail("SimoIso2D::InitStep", "expecting isotropic (F_thermal)^-1:");
-#if 0
-		{
-			cout << "\n SimoIso2D::InitStep: expecting isotropic (F_thermal)^-1:\n"
-			     << F_therm_inv << endl;
-			throw ExceptionT::kGeneralFail;
-		}
-#endif
 	}
 }
 

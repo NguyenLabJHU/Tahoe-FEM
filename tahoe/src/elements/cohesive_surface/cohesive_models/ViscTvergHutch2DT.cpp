@@ -1,12 +1,10 @@
-/* $Id: ViscTvergHutch2DT.cpp,v 1.15.2.2 2004-07-07 15:27:58 paklein Exp $ */
+/* $Id: ViscTvergHutch2DT.cpp,v 1.15.2.3 2004-07-13 16:42:27 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 #include "ViscTvergHutch2DT.h"
 
 #include <iostream.h>
 #include <math.h>
-
 #include "ExceptionT.h"
-
 #include "StringT.h"
 
 using namespace Tahoe;
@@ -15,35 +13,6 @@ using namespace Tahoe;
 const int knumDOF = 2;
 
 /* constructor */
-ViscTvergHutch2DT::ViscTvergHutch2DT(ifstreamT& in, const double& time_step): 
-	SurfacePotentialT(knumDOF),
-	fTimeStep(&time_step)
-{
-	SetName("viscous_Tvergaard-Hutchinson_2D");
-
-#pragma unused(in)
-#if 0
-	/* traction potential parameters */
-	in >> fsigma_max; if (fsigma_max < 0) throw ExceptionT::kBadInputValue;
-	in >> fd_c_n; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
-	in >> fd_c_t; if (fd_c_t < 0) throw ExceptionT::kBadInputValue;
-	
-	/* non-dimensional opening parameters */
-	in >> fL_1; if (fL_1 < 0 || fL_1 > 1) throw ExceptionT::kBadInputValue;
-	in >> fL_2; if (fL_2 < fL_1 || fL_2 > 1) throw ExceptionT::kBadInputValue;
-	in >> fL_fail; if (fL_fail < 1.0) fL_fail = 1.0;
-	
-	/* damping parameter */
-	in >> feta0; if (feta0 < 0) throw ExceptionT::kBadInputValue;
-	
-	/* stiffness multiplier */
-	in >> fpenalty; if (fpenalty < 0) throw ExceptionT::kBadInputValue;
-	
-	/* penetration stiffness */
-	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
-#endif
-}
-
 ViscTvergHutch2DT::ViscTvergHutch2DT(void): 
 	SurfacePotentialT(knumDOF),
 	fTimeStep(NULL),

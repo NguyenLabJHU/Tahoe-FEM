@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.19.26.4 2004-07-12 16:06:05 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.19.26.5 2004-07-13 16:42:32 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -27,18 +27,6 @@ FiniteStrainT::FiniteStrainT(const ElementSupportT& support):
 FiniteStrainT::~FiniteStrainT(void) {
 	delete fFSMatSupport;
 }
-
-#if 0
-/* TEMPORARY */
-void FiniteStrainT::InitialCondition(void)
-{
-	/* inherited */
-	SolidElementT::InitialCondition();
-	
-	/* set the source for the iteration number */
-	fFSMatSupport->SetIterationNumber(ElementSupport().IterationNumber(Group()));
-}
-#endif
 
 /* compute field gradients with respect to current coordinates */
 void FiniteStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u) const

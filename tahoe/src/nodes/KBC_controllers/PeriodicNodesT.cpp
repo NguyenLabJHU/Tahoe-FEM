@@ -1,4 +1,4 @@
-/* $Id: PeriodicNodesT.cpp,v 1.4.28.2 2004-07-07 15:28:47 paklein Exp $ */
+/* $Id: PeriodicNodesT.cpp,v 1.4.28.3 2004-07-13 16:42:45 paklein Exp $ */
 #include "PeriodicNodesT.h"
 
 #include "BasicSupportT.h"
@@ -14,26 +14,6 @@ PeriodicNodesT::PeriodicNodesT(const BasicSupportT& support, BasicFieldT& field)
 {
 	fIsPeriodic = false;
 	fPeriodicStride = 0.0;
-}
-
-void PeriodicNodesT::WriteParameters(ostream& out) const
-{
-	/* inherited */
-	TiedNodesT::WriteParameters(out);
-
-	/* periodic information */
-	int d_width = OutputWidth(out, fPeriodicStride.Pointer());
-	out << " Periodic boundaries:\n";
-	out << setw(kIntWidth) << "dir" << setw(d_width) << "length" << '\n';
-	for (int i = 0; i < fPeriodicStride.Length(); i++)
-	{
-		out << setw(kIntWidth) << i+1;
-		if (fIsPeriodic[i]) 
-			out << setw(d_width) << fPeriodicStride[i] << '\n';
-		else
-			out << setw(d_width) << "-" << '\n';
-	}
-	out.flush();
 }
 
 /**********************************************************************

@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman2DT.h,v 1.10.42.1 2004-07-06 06:53:10 paklein Exp $ */
+/* $Id: XuNeedleman2DT.h,v 1.10.42.2 2004-07-13 16:42:27 paklein Exp $ */
 /* created: paklein (11/14/1997) */
 
 #ifndef _XU_NEEDLE_2D_T_H_
@@ -18,7 +18,6 @@ class XuNeedleman2DT: public SurfacePotentialT
 public:
 
 	/** constructor */
-	XuNeedleman2DT(ifstreamT& in);
 	XuNeedleman2DT(void);
 
 	/** return the number of state variables needed by the model */

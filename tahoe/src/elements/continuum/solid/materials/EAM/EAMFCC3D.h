@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.h,v 1.4.8.2 2004-07-12 16:06:08 paklein Exp $ */
+/* $Id: EAMFCC3D.h,v 1.4.8.3 2004-07-13 16:42:35 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #ifndef _EAMFCC3D_H_
 #define _EAMFCC3D_H_
@@ -19,7 +19,7 @@ class EAMFCC3D: public FCCLatticeT
 {
 public:
 
-	/* EAM glue functions */
+	/** EAM glue functions */
 	enum GlueTypeT {kErcolessiAdamsAl = 0,
                          kVoterChenAl = 1,
                          kVoterChenCu = 2,
@@ -28,8 +28,6 @@ public:
 
 	/** constructor */
 	EAMFCC3D(void);
-//	EAMFCC3D(ifstreamT& in, int EAMcode, int nsd);
-//	EAMFCC3D(ifstreamT& in, const dMatrixT& Q, int EAMcode, int nsd);
 
 	/* destructor */
 	virtual ~EAMFCC3D(void);

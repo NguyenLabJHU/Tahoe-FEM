@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.h,v 1.8.42.1 2004-07-06 06:53:10 paklein Exp $ */
+/* $Id: ViscTvergHutch2DT.h,v 1.8.42.2 2004-07-13 16:42:27 paklein Exp $ */
 #ifndef _VISC_TVERG_HUTCH_2D_T_H_
 #define _VISC_TVERG_HUTCH_2D_T_H_
 
@@ -24,9 +24,7 @@ class ViscTvergHutch2DT: public SurfacePotentialT
 {
 public:
 
-	/** constructor.
-	 * \param time_step reference to the current time step */
-	ViscTvergHutch2DT(ifstreamT& in, const double& time_step);
+	/** constructor */
 	ViscTvergHutch2DT(void);
 
 	/** set the source of the time step */

@@ -1,9 +1,8 @@
-/* $Id: MappedPeriodicT.cpp,v 1.8.2.3 2004-07-12 16:06:37 paklein Exp $ */
+/* $Id: MappedPeriodicT.cpp,v 1.8.2.4 2004-07-13 16:42:45 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 #include "MappedPeriodicT.h"
 
 #include "FEManagerT.h"
-
 #include "BasicFieldT.h"
 #include "ParameterUtils.h"
 #include "ParameterContainerT.h"
@@ -23,96 +22,6 @@ MappedPeriodicT::MappedPeriodicT(const BasicSupportT& support, BasicFieldT& fiel
 {
 	SetName("mapped_nodes");
 	fF.Identity();
-}
-
-/* initialize data - called immediately after construction */
-void MappedPeriodicT::Initialize(ifstreamT& in)
-{
-#pragma unused(in)
-#if 0
-	/* schedule for fFperturb */
-	in >> fnumLTf; fnumLTf--;
-	if (fnumLTf < 0) throw ExceptionT::kBadInputValue;
-	fSchedule = fSupport.Schedule(fnumLTf);	
-	if (!fSchedule) throw ExceptionT::kBadInputValue;
-
-	/* specified deformation gradient */
-	in >> fFperturb;
-	if (!in.good()) throw ExceptionT::kBadInputValue;
-
-	/* list of mapped nodes */
-	ArrayT<StringT> id_list;
-	ReadNodes(in, id_list, fMappedNodeList);
-
-	/* read master nodes */
-	iArrayT tmp;
-	ReadNodes(in, id_list, tmp);
-	fSlaveMasterPairs.Dimension(tmp.Length(), 2);
-	fSlaveMasterPairs.SetColumn(kMaster, tmp);
-
-	/* read corresponding slave nodes */
-	ReadNodes(in, id_list, tmp);
-	if (tmp.Length() != fSlaveMasterPairs.MajorDim())
-	{
-		cout << "\n MappedPeriodicT::Initialize: length of master node list "
-		     << fSlaveMasterPairs.MajorDim() << " does\n"
-		     <<   "     not match the length of the slave node list "
-		     << tmp.Length() << endl;
-		throw ExceptionT::kBadInputValue;
-	}
-	fSlaveMasterPairs.SetColumn(kSlave, tmp);
-	
-	/* generate BC cards */
-	int num_BC = fMappedNodeList.Length() + fSlaveMasterPairs.MajorDim();
-	int nsd = fFperturb.Rows();
-	fKBC_Cards.Dimension(num_BC*nsd);
-	fMappedCards.Set(fMappedNodeList.Length()*nsd, fKBC_Cards.Pointer());
-	fSlaveCards.Set(fSlaveMasterPairs.MajorDim()*nsd,
-		fKBC_Cards.Pointer(fMappedCards.Length()));
-
-	/* mapped nodes */
-	int dex = 0;
-	for (int i = 0; i < fMappedNodeList.Length(); i++)
-		for (int j = 0; j < nsd; j++)
-			fMappedCards[dex++].SetValues(fMappedNodeList[i], j, KBC_CardT::kDsp, NULL, 0.0);	
-
-	/* slave nodes */
-	dex = 0;
-	for (int ii = 0; ii < fSlaveMasterPairs.MajorDim(); ii++)
-		for (int jj = 0; jj < nsd; jj++)
-		{
-			/* set values */
-			fSlaveCards[dex].SetValues(fSlaveMasterPairs(ii, kSlave), jj, KBC_CardT::kDsp, &fDummySchedule, 0.0);
-			dex++;
-		}	
-#endif
-}
-
-void MappedPeriodicT::WriteParameters(ostream& out) const
-{
-	/* inherited */
-//	KBC_ControllerT::WriteParameters(out);
-
-#if 0
-	iArrayT tmp;
-	out << "\n Mapping Parameters:\n";
-	out << " Mapping load time function. . . . . . . . . . . = " << fnumLTf << '\n';
-	out << " Mapping perturbation:\n";
-	out << fFperturb << '\n';
-	out << " Number of mapped nodes. . . . . . . . . . . . . = "
-	    << fMappedNodeList.Length() << '\n';
-	tmp.Alias(fMappedNodeList);
-	tmp++;
-	out << tmp.wrap(5) << '\n';
-	tmp--;
-	out << " Number of linked node pairs . . . . . . . . . . = "
-	    << fSlaveMasterPairs.MajorDim() << '\n';
-	tmp.Alias(fSlaveMasterPairs);
-	tmp++;
-	fSlaveMasterPairs.WriteNumbered(out);
-	tmp--;
-	out << '\n';
-#endif
 }
 
 /* initial condition */

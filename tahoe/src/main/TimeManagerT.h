@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.h,v 1.11.30.3 2004-07-12 16:06:33 paklein Exp $ */
+/* $Id: TimeManagerT.h,v 1.11.30.4 2004-07-13 16:42:41 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _TIMEMANAGER_T_H_
 #define _TIMEMANAGER_T_H_
@@ -38,9 +38,6 @@ public:
 
 	/** set to initial conditions */
 	void InitialCondition(void);
-
-	/** initialization */
-//	void Initialize(void);
 
 	/* run through the time sequences */
 	void Top(void);
@@ -90,9 +87,6 @@ public:
 	/** return true if output should be written for the current step */
 	bool WriteOutput(void) const;
 
-	/** return a pointer to a integrator of the specified type */
-//	IntegratorT* New_Integrator(CodeT type) const;
-
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** describe the parameters needed by the interface */
@@ -114,12 +108,6 @@ private:
 	enum StatusT { kDecreaseStep =-1,
                        kSameStep = 0,
                    kIncreaseStep = 1};
-	
-	/* output functions */
-	void EchoTimeSequences(ifstreamT& in, ostream& out);
-#if 0
-	void EchoSchedule(ifstreamT& in, ostream& out);
-#endif
 
 	/* increment the time and reset the load factors */
 	void IncrementTime(double dt);

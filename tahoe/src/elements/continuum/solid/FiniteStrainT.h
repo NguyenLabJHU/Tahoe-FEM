@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.17.22.3 2004-07-12 16:06:05 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.17.22.4 2004-07-13 16:42:33 paklein Exp $ */
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
 
@@ -20,11 +20,6 @@ class FiniteStrainT: public SolidElementT
 
 	/** destructor */
 	~FiniteStrainT(void);
-
-	/** TEMPORARY. Need this extra call here to set the source for the iteration number
-	 * in SmallStrainT::fSSMatSupport. The solvers are not constructed when the material
-	 * support is initialized */
-//	virtual void InitialCondition(void);
 
 	/** \name deformation gradients */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DSym.cpp,v 1.3.58.1 2004-07-06 06:53:26 paklein Exp $ */
+/* $Id: EAMFCC3DSym.cpp,v 1.3.58.2 2004-07-13 16:42:35 paklein Exp $ */
 /* created: paklein (12/06/1996) */
 #include "EAMFCC3DSym.h"
 
@@ -15,14 +15,6 @@ using namespace Tahoe;
 EAMFCC3DSym::EAMFCC3DSym(void) {
 	SetName("FCC_EAM_Cauchy-Born");
 }
-
-#if 0
-EAMFCC3DSym::EAMFCC3DSym(ifstreamT& in, int EAMcode, int nsd):
-	EAMFCC3D(in, EAMcode, nsd)
-{
-
-}
-#endif
 
 /**********************************************************************
  * Protected

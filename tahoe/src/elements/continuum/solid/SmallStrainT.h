@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.14.24.3 2004-07-12 16:06:05 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.14.24.4 2004-07-13 16:42:33 paklein Exp $ */
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
 
@@ -32,11 +32,6 @@ class SmallStrainT: public SolidElementT
 	const dSymMatrixT& LinearStrain_last(void) const;
 	const dSymMatrixT& LinearStrain_last(int ip) const;
 	/*@}*/
-
-	/** TEMPORARY. Need this extra call here to set the source for the iteration number
-	 * in SmallStrainT::fSSMatSupport. The solvers are not constructed when the material
-	 * support is initialized */
-//	virtual void InitialCondition(void);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.20.2.5 2004-07-12 16:06:02 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.20.2.6 2004-07-13 16:42:31 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -44,18 +44,6 @@ DiffusionElementT::~DiffusionElementT(void)
 {
 	delete fDiffusionMatSupport;
 }
-
-#if 0
-/* TEMPORARY */
-void DiffusionElementT::InitialCondition(void)
-{
-	/* inherited */
-	ContinuumElementT::InitialCondition();
-	
-	/* set the source for the iteration number */
-	fDiffusionMatSupport->SetIterationNumber(ElementSupport().IterationNumber(Group()));
-}
-#endif
 
 /* compute nodal force */
 void DiffusionElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)

@@ -1,4 +1,4 @@
-/* $Id: VIB.cpp,v 1.13.2.2 2004-07-12 16:06:14 paklein Exp $ */
+/* $Id: VIB.cpp,v 1.13.2.3 2004-07-13 16:42:37 paklein Exp $ */
 /* created: paklein (10/30/1997) */
 #include "VIB.h"
 
@@ -15,81 +15,7 @@ VIB::VIB(int nsd, int numstress, int nummoduli):
 	fNumStress(numstress),
 	fNumModuli(nummoduli)
 {
-#if 0
-	/* set potential function */
-	int potentialcode;
-	in >> potentialcode;	
-	switch(potentialcode)
-	{
-		case C1FunctionT::kLennardJones:
-		{	
-			double A, B;
-			in >> A >> B;
-			fPotential = new LennardJones612(A,B);
-			break;
-		}	
-		case C1FunctionT::kSmithFerrante:
-		{
-			double A, B;
-			in >> A >> B;		
-			fPotential = new SmithFerrante(A,B);
-			break;
-		}
-		case C1FunctionT::kGaoKlein:
-		{
-			double A, B, C;
-			in >> A >> B >> C;		
-			fPotential = new GaoKlein(A,B,C);
-			break;
-		}
-		case C1FunctionT::kQuadraticPot:
-		{
-			double A, B;
-			in >> A;		
-	                in >> B;
-			fPotential = new ParabolaT(A,B,1.0);
-			break;
-		}
-		case C1FunctionT::kTriantafyllidis:
-		{
-			double A;
-			in >> A;		
-			fPotential = new Triantafyllidis(A);
-			break;
-		}
-		case C1FunctionT::kGaoJi:
-		{
-			double A, B, C;
-			in >> A >> B >> C;		
-			fPotential = new GaoJi(A,B,C);
-			break;
-		}
-		case C1FunctionT::kGaoJi2:
-		{
-			double A, B, C;
-			in >> A >> B >> C;
-			fPotential = new GaoJi2(A,B,C);
-			break;
-		}
-		case C1FunctionT::kGaoVicky:
-		{
-			double A, B, C, D;
-			in >> A >> B >> C >>D;
-			fPotential = new GaoVicky(A,B,C,D);
-			break;
-		}
-		case C1FunctionT::kSF2:
-		{
-			double A, B;
-			in >> A >> B;		
-			fPotential = new SF2(A,B);
-			break;
-		}
-		default:		
-			throw ExceptionT::kBadInputValue;	
-	}
-	if (!fPotential) throw ExceptionT::kOutOfMemory;
-#endif
+
 }
 
 /* destructor */

@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.41.2.6 2004-07-12 16:06:30 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.41.2.7 2004-07-13 16:42:38 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -364,63 +364,6 @@ bool ParticleT::ChangingGeometry(void) const {
 	return ElementSupport().CommManager().PartitionNodesChanging();
 }
 
-/* echo element connectivity data */
-void ParticleT::EchoConnectivityData(ifstreamT& in, ostream& out)
-{
-ExceptionT::GeneralFail("ParticleT::EchoConnectivityData", "delete me");
-#if 0
-#pragma unused(out)
-	const char caller[] = "ParticleT::EchoConnectivityData";
-	
-	/* particle types */
-	fNumTypes = -1;
-	in >> fNumTypes;
-	if (fNumTypes < 1) ExceptionT::BadInputValue(caller, "must define at least one type");
-	
-	/* initialize type map */
-	fType.Dimension(ElementSupport().NumNodes());
-	fType = -1;
-
-	int all_or_some = -99;
-	in >> all_or_some; 
-	if (all_or_some != 0 && all_or_some != 1) ExceptionT::BadInputValue(caller);
-	if (fNumTypes > 1 && all_or_some == 0)
-		ExceptionT::BadInputValue(caller, "atom types must be listed explicitly if there is more than 1 type");
-
-	if (all_or_some == 0) /* ALL */
-	{
-		/* mark particle tags with type 0 */
-		fType = 0;
-	}
-	else
-	{
-		/* access to the model database */
-		ModelManagerT& model = ElementSupport().ModelManager();
-
-		/* read sets */
-		for (int i = 0; i < fNumTypes; i++)
-		{
-			/* read node set ids */
-			ArrayT<StringT> ids;
-			model.NodeSetList(in, ids);
-			iArrayT tags;
-			model.ManyNodeSets(ids, tags);
-	
-			/* mark map */
-			for (int j = 0; j < tags.Length(); j++)
-				fType[tags[j]] = i;
-		}
-	}
-
-	/* check that all are typed */
-	int not_marked_count = 0;
-	for (int i = 0; i < fType.Length(); i++)
-		if (fType[i] == -1) not_marked_count++;
-	if (not_marked_count != 0)
-		ExceptionT::BadInputValue(caller, "%d atoms not typed", not_marked_count);
-#endif
-}
-
 /* generate neighborlist */
 void ParticleT::GenerateNeighborList(const ArrayT<int>* particle_tags, 
 	double distance, RaggedArray2DT<int>& neighbors, 
@@ -670,28 +613,6 @@ void ParticleT::SetDamping(const ParameterListT& list)
 
 	/* keep */
 	fThermostats.Swap(thermostats);
-
-#if 0
-	for (int i = 0; i < num_thermostats; i++)
-	{
-		bool QisLangevin = false;
-
-
-		if (thermostat_i != ThermostatBaseT::kDamped)
-		{
-			int schedNum;
-			double schedVal;
-			in >> schedNum;
-			schedNum--;
-			in >> schedVal;
-			const ScheduleT* sched = ElementSupport().Schedule(schedNum);
-			if (!sched)
-				ExceptionT::GeneralFail(caller,"Unable to get temperature schedule");
-			fThermostats[i]->SetTemperatureSchedule(sched,schedVal);
-		}
-	}
-#endif
-
 }
 
 

@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.21.2.4 2004-07-12 16:06:33 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.21.2.5 2004-07-13 16:42:41 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 
@@ -49,37 +49,6 @@ void TimeManagerT::InitialCondition(void)
 		fImpExp = nodes->ImplicitExplicit(i);
 }
 
-#if 0
-/* initialization */
-void TimeManagerT::Initialize(void)
-{
-	ifstreamT& in  = theBoss.Input();
-	ofstreamT& out = theBoss.Output();
-
-	/* Time sequences - allocate memory and echo */
-	int num_sequences = -1;
-	in >> num_sequences;	
-	if (num_sequences < 1) throw ExceptionT::kBadInputValue;
-	fSequences.Dimension(num_sequences);
-	EchoTimeSequences(in, out);
-	
-	/* Loadtime functions - allocate memory and echo */	
-	int num_LTf = -1;
-	in >> num_LTf;
-	if (num_LTf < 0) throw ExceptionT::kBadInputValue;
-	fSchedule.Dimension(num_LTf); // add: f(t) = 1.0
-
-//	EchoSchedule(in, out);
-	
-	/* console variables */
-	iSetName("time");
-	iAddVariable("num_steps", fNumSteps);
-	iAddVariable("output_inc", fOutputInc);
-	iAddVariable("max_step_cuts", fMaxCuts);
-	iAddVariable("time_step", fTimeStep);
-}
-#endif
-
 /* run through the time sequences.  NextSequence returns 0
 * if there are no more time sequences */
 void TimeManagerT::Top(void)
@@ -118,16 +87,7 @@ bool TimeManagerT::NextSequence(void)
 		theBoss.Output() << fCurrentSequence + 1 << "\n\n";
 		cout << "\n T i m e   S e q u e n c e : ";
 		cout << fCurrentSequence + 1 << endl;
-		
-		/* see if all Integrators are explicit */
-#pragma message ("delete me")
-#if 0
-		fImpExp = IntegratorT::kExplicit;
-		for (int i = 0; fImpExp == IntegratorT::kExplicit && 
-			i < theBoss.NumIntegrators(); i++)
-			fImpExp = theBoss.Integrator(i)->ImplicitExplicit();
-#endif
-		
+
 		return true;
 	}
 	else
@@ -393,65 +353,6 @@ ParameterInterfaceT* TimeManagerT::NewSub(const StringT& name) const
 /************************************************************************
  * Private
  ************************************************************************/
-
-void TimeManagerT::EchoTimeSequences(ifstreamT& in, ostream& out)
-{
-	int num_seq = fSequences.Length();
-	out << "\n T i m e   S e q u e n c e   D a t a :\n\n";
-	out << " Number of time sequences  . . . . . . . . . . . = " << num_seq;
-	out << "\n\n";
-	
-	for (int i = 0; i < num_seq; i++)
-	{
-		int seqnum;
-		in >> seqnum;	
-		if (seqnum < 1 ||
-		    seqnum > num_seq) throw ExceptionT::kBadInputValue;
-
-		out << " Sequence number . . . . . . . . . . . . . . . . = ";
-		out << seqnum << '\n';
-		
-		/* echo data */
-		seqnum--;
-		fSequences[seqnum].Read(in);
-		fSequences[seqnum].Write(out);
-		out << '\n';
-	}
-}
-
-#if 0
-void TimeManagerT::EchoSchedule(ifstreamT& in, ostream& out)
-{
-	int num_LTf = fSchedule.Length();
-	out << "\n L o a d - T i m e   F u n c t i o n   D a t a :\n\n";
-	out << " Number of load-time functions . . . . . . . . . = " << num_LTf << '\n';
-
-	for (int i = 0; i < num_LTf; i++)
-	{
-		int LTfnum, numpts;
-		in >> LTfnum >> numpts;
-
-		/* checks */
-		if (LTfnum < 1 || LTfnum > num_LTf) throw ExceptionT::kBadInputValue;
-		if (numpts < 1) throw ExceptionT::kBadInputValue;
-
-		out << " Loadtime function number. . . . . . . . . . . . = ";
-		out << LTfnum << "\n\n";
-		
-		/* echo data */
-		LTfnum--;
-		fSchedule[LTfnum] = new ScheduleT(numpts);
-		if (!fSchedule[LTfnum]) throw ExceptionT::kOutOfMemory;
-
-		fSchedule[LTfnum]->Read(in);
-		fSchedule[LTfnum]->Write(out);
-		out << '\n';
-		
-		/* initialize time */
-		fSchedule[LTfnum]->SetTime(0.0);
-	}
-}
-#endif
 
 /* increment the time and reset the load factors */
 void TimeManagerT::IncrementTime(double dt)

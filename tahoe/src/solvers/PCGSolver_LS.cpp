@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.20.2.3 2004-07-10 08:06:31 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.20.2.4 2004-07-13 16:42:48 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 
@@ -26,67 +26,6 @@ PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
 	iAddVariable("max_step_size", fMaxStepSize);
 	iAddVariable("restart_count", fRestart);	
 }
-
-#if 0
-PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
-	NLSolver(fe_manager, group),
-	fRestart_count(-1)
-//	,fPreconditioner(0) //TEMP
-{
-	SetName("PCG_solver");
-
-	/* check */
-	if (fMatrixType != kDiagonalMatrix)
-	{
-		cout << "\n PCGSolver_LS::PCGSolver_LS: expecting matrix type: "
-		     << kDiagonalMatrix << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-	
-	/* set assembly mode */
-	DiagonalMatrixT* pdiag = TB_DYNAMIC_CAST(DiagonalMatrixT*, fLHS);
-	if (!pdiag)
-	{
-		cout << "\n PCGSolver_LS::PCGSolver_LS: unable to cast LHS matrix to\n"
-		     <<   "     DiagonalMatrixT" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-	pdiag->SetAssemblyMode(DiagonalMatrixT::kDiagOnly);
-
-	ifstreamT& in = fFEManager.Input();
-	/* read parameters */
-	in >> fRestart;
-	in >> fSearchIterations;
-	in >> fOrthogTolerance;
-	in >> fMaxStepSize;
-
-	/* mininum search iterations > 0 */
-	fSearchIterations = (fSearchIterations != 0 &&
-	                     fSearchIterations < 3) ? 3 : fSearchIterations;
-
-	/* print parameters */
-	ostream& out = fFEManager.Output();
-	out << " CG restart count. . . . . . . . . . . . . . . . = " << fRestart          << '\n';
-	out << " Maximum number of line search iterations. . . . = " << fSearchIterations << '\n';
-	out << " Line search orthoginality tolerance . . . . . . = " << fOrthogTolerance  << '\n';
-	out << " Maximum update step size. . . . . . . . . . . . = " << fMaxStepSize      << endl;
-	
-	/* checks */
-	if (fRestart < 1)           throw ExceptionT::kBadInputValue;
-	if (fSearchIterations < 0)  throw ExceptionT::kBadInputValue;
-	if (fOrthogTolerance > 1.0) throw ExceptionT::kBadInputValue;
-	if (fMaxStepSize      < 0)  throw ExceptionT::kBadInputValue;
-	
-	/* allocate space for history */
-	fSearchData.Dimension(fSearchIterations, 2);
-
-	/* set console */
-	iAddVariable("search_iterations", fSearchIterations);
-	iAddVariable("line_search_tolerance", fOrthogTolerance);
-	iAddVariable("max_step_size", fMaxStepSize);
-	iAddVariable("restart_count", fRestart);
-}
-#endif
 
 /* (re-)configure the global equation system */
 void PCGSolver_LS::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)

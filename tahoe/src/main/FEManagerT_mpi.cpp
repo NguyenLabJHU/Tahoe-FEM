@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.35.2.4 2004-07-12 05:42:01 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.35.2.5 2004-07-13 16:42:41 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -328,68 +328,6 @@ void FEManagerT_mpi::TakeParameterList(const ParameterListT& list)
 /*************************************************************************
  * Protected
  *************************************************************************/
-
-void FEManagerT_mpi::ReadParameters(InitCodeT init)
-{
-#pragma unused(init)
-#if 0
-	/* log */
-	TimeStamp("FEManagerT_mpi::ReadParameters");
-
-	/* inherited */
-//	FEManagerT::ReadParameters(init);
-
-	/* collect model file and input format from ModelManager */
-	fInputFormat = fModelManager->DatabaseFormat();
-	fModelFile = fModelManager->DatabaseName();
-	
-	/* set for parallel execution */
-	if (fTask == kRun)
-	{
-		StringT name, suffix;
-		
-		/* input file name */
-		name.Root(fInputFile);
-		suffix.Suffix(fInputFile);
-		name.Append(".p", Rank());
-		name.Append(suffix);
-		fMainIn.set_filename(name);
-
-		/* model file name */
-		suffix.Suffix(fModelFile);
-		fModelFile.Root();
-		fModelFile.Append(".n", Size());
-		fModelFile.Append(".p", Rank());
-		fModelFile.Append(suffix);
-		
-		/* (re-)set model manager to partial geometry file */
-		if (!fModelManager->Initialize(fInputFormat, fModelFile, true)) {
-			cout << "\n FEManagerT_mpi::ReadParameters: error initializing model manager" << endl;
-			throw ExceptionT::kBadInputValue;
-		}
-		
-		/* restart file name */
-		if (fReadRestart)
-		{
-			suffix.Suffix(fRestartFile);
-			fRestartFile.Root();
-			fRestartFile.Append(".p", Rank());
-			fRestartFile.Append(suffix);
-		}
-	}
-#endif
-}
-
-void FEManagerT_mpi::SetElementGroups(void)
-{
-	/* inherited */
-	FEManagerT::SetElementGroups();
-	
-//TEMP - contact not yet supported in parallel
-	if (fElementGroups->HasContact())
-		cout << "\n FEManagerT_mpi::SetElementGroups: WARNING: no contact between partitions"
-			 << endl;
-}
 
 /* (re-)set system to initial conditions */
 ExceptionT::CodeT FEManagerT_mpi::InitialCondition(void)

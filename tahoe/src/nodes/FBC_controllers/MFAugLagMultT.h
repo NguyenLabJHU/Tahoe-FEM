@@ -1,4 +1,4 @@
-/* $Id: MFAugLagMultT.h,v 1.2.2.2 2004-07-12 16:06:36 paklein Exp $ */
+/* $Id: MFAugLagMultT.h,v 1.2.2.3 2004-07-13 16:42:44 paklein Exp $ */
 #ifndef _MF_AUG_LAG_MULT_T_H_
 #define _MF_AUG_LAG_MULT_T_H_
 
@@ -32,16 +32,10 @@ class MFAugLagMultT: public FBC_ControllerT, public DOFElementT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	MFAugLagMultT(void);
-//	MFAugLagMultT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes, const FieldT& field,
-//		const dArray2DT& coords, const dArray2DT& disp);
 
-	/* input processing */
-//	virtual void EchoData(ifstreamT& in, ostream& out);
-
-	/* initialize data */
-//	virtual void Initialize(void);
+	/** initialize data */
 	virtual void SetEquationNumbers(void);
 
 	/* append element equations numbers to the list */

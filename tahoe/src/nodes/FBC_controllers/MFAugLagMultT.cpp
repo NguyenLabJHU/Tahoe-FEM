@@ -1,4 +1,4 @@
-/* $Id: MFAugLagMultT.cpp,v 1.3.2.3 2004-07-12 16:06:36 paklein Exp $ */
+/* $Id: MFAugLagMultT.cpp,v 1.3.2.4 2004-07-13 16:42:44 paklein Exp $ */
 #include "MFAugLagMultT.h"
 
 #include <iostream.h>
@@ -59,88 +59,6 @@ GlobalT::SystemTypeT MFAugLagMultT::TangentType(void) const
 {
 	return GlobalT::kSymmetric;
 }
-
-#if 0
-/* get input data */
-void MFAugLagMultT::EchoData(ifstreamT& in, ostream& out)
-{
-#pragma unused(out)
-
-	int numBCs;
-	in >> numBCs;
-	if (numBCs <= 0)
-		ExceptionT::BadInputValue("MFAugLagMultT::Initialize","Expecting numBCs > 0");
-	
-	fNodeSetIDs.Dimension(numBCs);
-	fConstrainedDOFs.Dimension(numBCs);
-	fCodes.Dimension(numBCs);
-	fScheduleNums.Dimension(numBCs);
-	fCodes.Dimension(numBCs);
-	iArrayT fNumConstraints(numBCs);
-	fScales.Dimension(numBCs);
-	
-	const ScheduleT* pSchedule;
-	NodeManagerT* pNodeManager = fFEManager.NodeManager();
-	ModelManagerT* pModel = fFEManager.ModelManager();  
-	  
-	fNumConstrainedDOFs = 0;
-	for (int i = 0; i < numBCs; i++) {
-		in >> fNodeSetIDs[i];
-	
-		in >> fConstrainedDOFs[i];
-		fConstrainedDOFs[i]--;
-	
-		in >> fCodes[i];
-		
-		if (fCodes[i] != 0 && fCodes[i] != 1)
-			ExceptionT::GeneralFail("MFAugLagMultT::EchoData","Code %d must be 0 or 1",i);
-	
-		in >> fScheduleNums[i] >> fScales[i]; 
-		
-		if (fCodes[i] != KBC_CardT::kFix)
-		{
-			fScheduleNums[i]--;
-			pSchedule = pNodeManager->Schedule(fScheduleNums[i]);	
-			if (!pSchedule) 
-				ExceptionT::BadInputValue("MFAugLagMultT::EchoData","Cannot get schedule %d",fScheduleNums[i]);
-		}
-		
-		fNumConstraints[i] = pModel->NodeSetLength(fNodeSetIDs[i]);
-		fNumConstrainedDOFs += fNumConstraints[i];
-	}
-	
-	fConstraintValues.Dimension(fNumConstrainedDOFs);
-	
-	fNodeSets.Configure(fNumConstraints);
-	
-	for (int i = 0; i< numBCs; i++) {
-		const iArrayT& nodeSet_i = pModel->NodeSet(fNodeSetIDs[i]);	
-		fNodeSets.SetRow(i, nodeSet_i);
-	}
-	
-	int numElementGroups;
-	in >> numElementGroups;
-	if (numElementGroups != 1)
-		ExceptionT::BadInputValue("MFAugLagMultT::EchoData","Can only handle 1 element block");
-	
-	in >> fBlockID;
-	fBlockID--;
-	
-	in >> fk;
-	if (fk < 0.) ExceptionT::GeneralFail("MFAugLagMultT::EchoData","fk must be non-negative");
-}
-
-/* initialize data */
-void MFAugLagMultT::Initialize(void)
-{
-	const char caller[] = "MFAugLagMultT::Initialize";
-	
-	/* allocate memory for force vector */
-	fConstraintForce.Dimension(fNumConstrainedDOFs);
-	fConstraintForce = 0.0;
-
-}
-#endif
 
 void MFAugLagMultT::SetEquationNumbers(void)
 {
@@ -508,12 +426,7 @@ void MFAugLagMultT::TakeParameterList(const ParameterListT& list)
 	/* field support */
 	const FieldSupportT& field_support = FieldSupport();
 	ModelManagerT& model_manager = field_support.ModelManager();
-//	NodeManagerT& node_manager = field_support.NodeManager();
 
-//	const ScheduleT* pSchedule = NULL;
-//	NodeManagerT* pNodeManager = fFEManager.NodeManager();
-//	ModelManagerT* pModel = fFEManager.ModelManager();  
-	  
 	fNumConstrainedDOFs = 0;
 	for (int i = 0; i < numBCs; i++) {
 

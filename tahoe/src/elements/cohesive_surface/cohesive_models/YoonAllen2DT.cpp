@@ -1,4 +1,4 @@
-/* $Id: YoonAllen2DT.cpp,v 1.14.2.3 2004-07-12 16:05:59 paklein Exp $ */
+/* $Id: YoonAllen2DT.cpp,v 1.14.2.4 2004-07-13 16:42:27 paklein Exp $ */
 #include "YoonAllen2DT.h"
 
 #include <iostream.h>
@@ -15,58 +15,6 @@ using namespace Tahoe;
 const int knumDOF = 2;
 
 /* constructor */
-YoonAllen2DT::YoonAllen2DT(ifstreamT& in, const double& time_step): 
-	SurfacePotentialT(knumDOF),
-	fTimeStep(&time_step)
-{
-	SetName("Yoon-Allen_2D");
-#pragma unused(in)
-#if 0
-	/* traction potential parameters */
-	in >> fsigma_0; if (fsigma_0 < 0) throw ExceptionT::kBadInputValue;
-	in >> fd_c_n; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
-	in >> fd_c_t; if (fd_c_t < 0) throw ExceptionT::kBadInputValue;
-	
-	/* moduli and time constants */
-	in >> fE_infty; if (fE_infty < 0) throw ExceptionT::kBadInputValue;
-	in >> iNumRelaxTimes; if (iNumRelaxTimes < 0) throw ExceptionT::kBadInputValue;
-
-	ftau.Dimension(iNumRelaxTimes);
-	fE_t.Dimension(iNumRelaxTimes);
-	fexp_tau.Dimension(iNumRelaxTimes);
-
-	for (int i = 0;i < iNumRelaxTimes; i++)
-	{
-		in >> fE_t[i]; if (fE_t[i] < 0) throw ExceptionT::kBadInputValue;
-		in >> ftau[i]; if (ftau[i] < 0) throw ExceptionT::kBadInputValue;
-	
-		fexp_tau[i] = exp(-fTimeStep/ftau[i]) - 1.;
-		
-		/* scale ftau by fE_t to reduce multiplications in traction
-		 * and stiffness routines
-		 */
-		ftau[i] *= fE_t[i];
-	}
-
-	in >> idamage; if (idamage < 1 && idamage > 3) throw ExceptionT::kBadInputValue;
-	/* damage evolution law parameters */
-	in >> falpha_exp; //if (falpha_exp < 1.) throw ExceptionT::kBadInputValue;
-	in >> falpha_0; if (falpha_0 <= kSmall) throw ExceptionT::kBadInputValue;
-	if (idamage == 2) 
-	{
-		in >> flambda_exp; if (flambda_exp > -1.) throw ExceptionT::kBadInputValue;	
-		in >> flambda_0; if (flambda_0 < 1.) throw ExceptionT::kBadInputValue;
-	}
-
-	/* stiffness multiplier */
-	in >> fpenalty; if (fpenalty < 0) throw ExceptionT::kBadInputValue;
-
-	
-	/* penetration stiffness */
-	fK = fpenalty*fsigma_0/fd_c_n;
-#endif
-}
-
 YoonAllen2DT::YoonAllen2DT(void): 
 	SurfacePotentialT(knumDOF),
 	fTimeStep(NULL),

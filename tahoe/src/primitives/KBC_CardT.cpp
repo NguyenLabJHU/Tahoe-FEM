@@ -1,13 +1,7 @@
-/* $Id: KBC_CardT.cpp,v 1.13.30.2 2004-07-08 07:40:24 paklein Exp $ */
+/* $Id: KBC_CardT.cpp,v 1.13.30.3 2004-07-13 16:42:47 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "KBC_CardT.h"
-
-#include <iostream.h>
-#include <iomanip.h>
-
-#include "toolboxConstants.h"
 #include "ExceptionT.h"
-
 #include "ScheduleT.h"
 
 using namespace Tahoe;
@@ -39,30 +33,6 @@ KBC_CardT::KBC_CardT(int node, int dof, CodeT code, const ScheduleT* schedule, d
 	SetValues(node, dof, code, schedule, value);
 }
 
-void KBC_CardT::SetValues(istream& in)
-{
-#pragma message ("delete me")
-#pragma unused(in)
-ExceptionT::GeneralFail();
-#if 0
-	/* parameters */
-	int node;
-	int dof;
-	CodeT code;
-	int nLTf;
-	double value;
-
-	/* read */
-	in >> node >> dof >> code >> nLTf >> value;
-
-	/* correct offset */
-	node--; dof--; nLTf--;
-	
-	/* set and echo */
-	SetValues(node, dof, code, nLTf, value);
-#endif
-}						
-
 void KBC_CardT::SetValues(int node, int dof, CodeT code,  const ScheduleT* schedule, double value)
 {
 	/* set */
@@ -79,8 +49,6 @@ void KBC_CardT::SetValues(int node, int dof, CodeT code,  const ScheduleT* sched
 	}
 }
 
-//void KBC_CardT::SetSchedule(const ScheduleT* schedule) { fSchedule = schedule; }
-
 /* returns the value of the BC */
 double KBC_CardT::Value(void) const
 {
@@ -94,30 +62,6 @@ double KBC_CardT::Value(void) const
 			return fvalue*(fSchedule->Value());
 	  }
 }
-
-#if 0
-/* I/O */
-void KBC_CardT::WriteHeader(ostream& out)
-{
-	int d_width = out.precision() + kDoubleExtra;
-
-	out << setw(kIntWidth) << "node"  << setw(kIntWidth) << "dof";
-//	out << setw(kIntWidth) << "code"  << setw(kIntWidth) << "LTf";
-    out << setw(kIntWidth) << "code";
-	out << setw(d_width)   << "value" << '\n';
-}
-
-
-void KBC_CardT::WriteValues(ostream& out) const
-{
-	int d_width = out.precision() + kDoubleExtra;
-
-	out << setw(kIntWidth) << fnode + 1 << setw(kIntWidth) << fdof + 1;
-//	out << setw(kIntWidth) << fcode     << setw(kIntWidth) << fSchedNum + 1;
-	out << setw(kIntWidth) << fcode;
-	out << setw(d_width)   << fvalue    << '\n';
-}
-#endif
 
 KBC_CardT::CodeT KBC_CardT::int2CodeT(int i_code)
 {
