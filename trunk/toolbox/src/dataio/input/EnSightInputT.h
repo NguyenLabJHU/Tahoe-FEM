@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.h,v 1.4 2001-09-21 13:48:51 sawimme Exp $ */
+/* $Id: EnSightInputT.h,v 1.5 2001-10-15 17:48:55 sawimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #ifndef _ENSIGHTINPUT_T_H_
@@ -57,7 +57,7 @@ public:
 
   virtual bool AreSideSetsLocal (void) const;
   virtual int  NumSidesInSet (StringT& setname) const;
-  virtual int  SideSetGroupIndex (StringT& setname) const;
+  virtual StringT SideSetGroupName (StringT& setname) const;
   virtual void ReadSideSetLocal (StringT& setname, iArray2DT& sides) const;
   virtual void ReadSideSetGlobal (StringT& setname, iArray2DT& sides) const;
   
@@ -124,10 +124,11 @@ inline int  EnSightInputT::NumSidesInSet (StringT& setname) const
 #pragma unused (setname)
   return 0;
 }
-inline int  EnSightInputT::SideSetGroupIndex (StringT& setname) const
+inline StringT EnSightInputT::SideSetGroupName (StringT& setname) const
 {
 #pragma unused (setname)
-  return -1;
+  StringT name ("");
+  return name; 
 }
 inline void EnSightInputT::ReadSideSetLocal (StringT& setname, iArray2DT& sides) const
 {
