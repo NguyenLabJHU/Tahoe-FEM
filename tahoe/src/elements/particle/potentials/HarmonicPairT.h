@@ -1,4 +1,4 @@
-/* $Id: HarmonicPairT.h,v 1.1 2002-11-25 07:19:46 paklein Exp $ */
+/* $Id: HarmonicPairT.h,v 1.2 2002-11-26 01:55:37 paklein Exp $ */
 #ifndef _HARMONIC_PAIR_T_H_
 #define _HARMONIC_PAIR_T_H_
 
@@ -13,7 +13,7 @@ class HarmonicPairT: public PairPropertyT
 public:
 
 	/** constructor */
-	HarmonicPairT(double R0, double K);
+	HarmonicPairT(double mass, double R0, double K);
 
 	/** \name return interaction functions */
 	/*@{*/

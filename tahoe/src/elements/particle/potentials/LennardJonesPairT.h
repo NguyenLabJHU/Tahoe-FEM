@@ -1,4 +1,4 @@
-/* $Id: LennardJonesPairT.h,v 1.1 2002-11-25 07:19:46 paklein Exp $ */
+/* $Id: LennardJonesPairT.h,v 1.2 2002-11-26 01:55:37 paklein Exp $ */
 #ifndef _LENNARD_JONES_PAIR_T_H_
 #define _LENNARD_JONES_PAIR_T_H_
 
@@ -13,7 +13,7 @@ class LennardJonesPairT: public PairPropertyT
 public:
 
 	/** constructor */
-	LennardJonesPairT(double eps, double sigma, double cut_off);
+	LennardJonesPairT(double mass, double eps, double sigma, double cut_off);
 
 	/** \name return interaction functions */
 	/*@{*/
