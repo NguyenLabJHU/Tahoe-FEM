@@ -1,16 +1,16 @@
-// file: FEManager.cpp
+// file: MakeCSEFEManager.cpp
 
 // MakeCSE version
 
 // created: 11/10/99 SAW
 
-#include "FEManager.h"
+#include "MakeCSEFEManager.h"
 #include "Quad2Tri.h"
-#include "CSEBaseT.h"
+#include "MakeCSE_CSEBaseT.h"
 
 using namespace Tahoe;
 
-FEManager::FEManager (ostream& out, MakeCSEIOManager& theIO) :
+MakeCSEFEManager::MakeCSEFEManager (ostream& out, MakeCSEIOManager& theIO) :
   fMainOut (out),
   fEdger (out),
   fCSEMakerBoss (out, fEdger)
@@ -28,14 +28,14 @@ FEManager::FEManager (ostream& out, MakeCSEIOManager& theIO) :
     fRenumberOption = kNoRenumber;
 }
 
-FEManager::~FEManager (void)
+MakeCSEFEManager::~MakeCSEFEManager (void)
 {
   delete fNodeBoss;
   for (int i=0; i < fElementGroups.Length(); i++)
     delete fElementGroups[i];
 }
 
-void FEManager::CreateCSE (void)
+void MakeCSEFEManager::CreateCSE (void)
 {
   fCSEMakerBoss.Create ();
 
@@ -50,7 +50,7 @@ void FEManager::CreateCSE (void)
     }
 }
 
-ElementBaseT* FEManager::ElementGroup(int groupnumber) const
+MakeCSE_ElementBaseT* MakeCSEFEManager::ElementGroup(int groupnumber) const
 {
   // check range 
 	if (groupnumber > -1 && groupnumber < fNumElementGroups)
@@ -59,7 +59,7 @@ ElementBaseT* FEManager::ElementGroup(int groupnumber) const
 		return NULL;
 }
 
-void FEManager::NodesUsed (int groupID, iArrayT& nodes) const
+void MakeCSEFEManager::NodesUsed (int groupID, iArrayT& nodes) const
 {
   int g = -1;
   for (int i=0; i < fElementGroups.Length(); i++)
@@ -69,7 +69,7 @@ void FEManager::NodesUsed (int groupID, iArrayT& nodes) const
   if (g > -1) fElementGroups[g]->NodesUsed (nodes);
 }
 
-void FEManager::SetIO (MakeCSEIOManager& theIO)
+void MakeCSEFEManager::SetIO (MakeCSEIOManager& theIO)
 {
   fNodeBoss->RegisterOutput (theIO);
 
@@ -77,7 +77,7 @@ void FEManager::SetIO (MakeCSEIOManager& theIO)
     fElementGroups[i]->RegisterOutput (theIO);
 }
 
-void FEManager::WriteOutput (MakeCSEIOManager& theIO, IOBaseT::OutputModeT mode) const
+void MakeCSEFEManager::WriteOutput (MakeCSEIOManager& theIO, IOBaseT::OutputModeT mode) const
 {
   for (int i = 0; i < fElementGroups.Length(); i++)
     fElementGroups[i]->WriteOutput (theIO, mode);
@@ -85,14 +85,14 @@ void FEManager::WriteOutput (MakeCSEIOManager& theIO, IOBaseT::OutputModeT mode)
 
 //************** PRIVATE *******************
 
-void FEManager::SetNodeManager (MakeCSEIOManager& theIO)
+void MakeCSEFEManager::SetNodeManager (MakeCSEIOManager& theIO)
 {
   fMainOut << "\n N o d a l   D a t a :\n\n";
   fNodeBoss = new NodeManagerPrimitive (fMainOut, fPrintInput, *this);
   fNodeBoss->Initialize (theIO);
 }
 
-void FEManager::SetElementGroups (MakeCSEIOManager& theIO)
+void MakeCSEFEManager::SetElementGroups (MakeCSEIOManager& theIO)
 {
   // determine number of regular element groups 
   fNumRegular = theIO.NumElementGroups ();
@@ -147,7 +147,7 @@ void FEManager::SetElementGroups (MakeCSEIOManager& theIO)
 	      fElementGroups[e] = new Quad2Tri (fMainOut, *fNodeBoss, splitData (dex, 1), ids[e]);
 	      break;
 	    default:
-	      cout << "FEManager::SetElementGroups: unable to split element block: " << ids[e] << ", unknown method: " << splitData (dex, 1) << endl;
+	      cout << "MakeCSEFEManager::SetElementGroups: unable to split element block: " << ids[e] << ", unknown method: " << splitData (dex, 1) << endl;
 	      throw eGeneralFail;
 	    }
 	}

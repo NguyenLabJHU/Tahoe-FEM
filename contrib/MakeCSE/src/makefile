@@ -5,10 +5,10 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	main.o \
 	MakeCSEIOManager.o \
-	FEManager.o \
-	ElementBaseT.o \
+	MakeCSEFEManager.o \
+	MakeCSE_ElementBaseT.o \
 	Quad2Tri.o \
-	CSEBaseT.o \
+	MakeCSE_CSEBaseT.o \
 	MakeCSE.o \
 	GlobalEdgeFinderT.o \
 	NodeManagerPrimitive.o 
@@ -22,27 +22,25 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	GlobalEdgeFinderT.cpp \
-	ElementBaseT.cpp \
-	CSEBaseT.cpp \
-	FEManager.cpp \
+	MakeCSE_ElementBaseT.cpp \
+	MakeCSE_CSEBaseT.cpp \
+	MakeCSEFEManager.cpp \
 	MakeCSE.cpp \
 	MakeCSEIOManager.cpp \
 	NodeManagerPrimitive.cpp \
 	Quad2Tri.cpp \
-	IOManager.cpp \
 	main.cpp
 
 # headers
 HDR = \
 	GlobalEdgeFinderT.h \
-	ElementBaseT.h \
-	CSEBaseT.h \
-	FEManager.h \
+	MakeCSE_ElementBaseT.h \
+	MakeCSE_CSEBaseT.h \
+	MakeCSEFEManager.h \
 	MakeCSE.h \
 	MakeCSEIOManager.h \
 	NodeManagerPrimitive.h \
 	Quad2Tri.h \
-	IOManager.h \
 	ClockT.h
 
 HDR_LINK = $(HDR:.h=.h_link)

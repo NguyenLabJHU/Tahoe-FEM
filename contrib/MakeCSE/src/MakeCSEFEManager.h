@@ -1,11 +1,11 @@
-// file: FEManager.h
+// file: MakeCSEFEManager.h
 
 // MakeCSE version
 
 // created: 11/10/99 SAW
 
-#ifndef _FE_MANAGER_H_
-#define _FE_MANAGER_H_
+#ifndef _MakeCSEFE_MANAGER_H_
+#define _MakeCSEFE_MANAGER_H_
 
 #include "ArrayT.h"
 #include "MakeCSEIOManager.h"
@@ -15,11 +15,11 @@
 
 using namespace Tahoe;
 
-class FEManager
+class MakeCSEFEManager
 {
  public:
-  FEManager (ostream& out, MakeCSEIOManager& theIO);
-  ~FEManager (void);
+  MakeCSEFEManager (ostream& out, MakeCSEIOManager& theIO);
+  ~MakeCSEFEManager (void);
 
   void CreateCSE (void);
 
@@ -34,7 +34,7 @@ class FEManager
   int NumRegularGroups (void) const;
   int NumCSEGroups (void) const;
   NodeManagerPrimitive* NodeManager(void) const;
-  ElementBaseT* ElementGroup(int groupnumber) const;
+  MakeCSE_ElementBaseT* ElementGroup(int groupnumber) const;
 
   void NodesUsed (int groupID, iArrayT& nodes) const;
 
@@ -51,7 +51,7 @@ class FEManager
   int fRenumberOption;
 
   NodeManagerPrimitive* fNodeBoss;
-  ArrayT<ElementBaseT*> fElementGroups;
+  ArrayT<MakeCSE_ElementBaseT*> fElementGroups;
   int fNumElementGroups;
   int fNumRegular;
   int fNumCSE;
@@ -60,8 +60,8 @@ class FEManager
   GlobalEdgeFinderT fEdger;
 };
 
-inline NodeManagerPrimitive* FEManager::NodeManager(void) const { return fNodeBoss; }
-inline int FEManager::NumCSEGroups (void) const { return fNumCSE; }
-inline int FEManager::NumRegularGroups (void) const { return fNumRegular; }
+inline NodeManagerPrimitive* MakeCSEFEManager::NodeManager(void) const { return fNodeBoss; }
+inline int MakeCSEFEManager::NumCSEGroups (void) const { return fNumCSE; }
+inline int MakeCSEFEManager::NumRegularGroups (void) const { return fNumRegular; }
 
 #endif

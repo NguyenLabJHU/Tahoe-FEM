@@ -1,9 +1,9 @@
-// file: ElementBaseT.cpp
+// file: MakeCSE_ElementBaseT.cpp
 
 // created: SAW 10/06/99
 
-#include "ElementBaseT.h"
-#include "FEManager.h"
+#include "MakeCSE_ElementBaseT.h"
+#include "MakeCSEFEManager.h"
 #include "OutputSetT.h"
 #include "GeometryBaseT.h"
 #include "TriT.h"
@@ -14,7 +14,7 @@
 
 using namespace Tahoe;
 
-ElementBaseT::ElementBaseT (ostream& fMainOut, int ID) :
+MakeCSE_ElementBaseT::MakeCSE_ElementBaseT (ostream& fMainOut, int ID) :
   out (fMainOut),
   fNumElemNodes (0),
   fGeometryCode (GeometryT::kNone),
@@ -23,18 +23,18 @@ ElementBaseT::ElementBaseT (ostream& fMainOut, int ID) :
 {
 }
 
-ElementBaseT::~ElementBaseT (void)
+MakeCSE_ElementBaseT::~MakeCSE_ElementBaseT (void)
 {
 }
 
 // use this initialize for preexisting data
-void ElementBaseT::Initialize (MakeCSEIOManager& theInput)
+void MakeCSE_ElementBaseT::Initialize (MakeCSEIOManager& theInput)
 {
   EchoConnectivity (theInput);
   EchoSideSets (theInput);
 }
 
-void ElementBaseT::Initialize (GeometryT::CodeT geocode, int numnodes)
+void MakeCSE_ElementBaseT::Initialize (GeometryT::CodeT geocode, int numnodes)
 {
   fGeometryCode = geocode;
   fNumElemNodes = numnodes;
@@ -46,7 +46,7 @@ void ElementBaseT::Initialize (GeometryT::CodeT geocode, int numnodes)
   out << "\n";
 }
 
-void ElementBaseT::AddElements (int numelems)
+void MakeCSE_ElementBaseT::AddElements (int numelems)
 {
   int num = fNodeNums.MajorDim();
   // reallocate space;
@@ -59,11 +59,11 @@ void ElementBaseT::AddElements (int numelems)
     fNodeNums.Resize (num + numelems, FEManager::kNotSet);
 }
 
-void ElementBaseT::SetNodes (int e1local, const iArrayT& nodes)
+void MakeCSE_ElementBaseT::SetNodes (int e1local, const iArrayT& nodes)
 {
   if (nodes.Length() != fNumElemNodes)
     {
-      cout << "ElementBaseT::Cannot set nodes, wrong length" << endl;
+      cout << "MakeCSE_ElementBaseT::Cannot set nodes, wrong length" << endl;
       cout << nodes.Length() << " " << fNumElemNodes << endl;
       throw eSizeMismatch;
     }
@@ -72,7 +72,7 @@ void ElementBaseT::SetNodes (int e1local, const iArrayT& nodes)
   fNodeNums.SetRow (e1local, nodes);
 }
 
-void ElementBaseT::FacesWithNode (int e1local, int node, iArrayT& faces) const
+void MakeCSE_ElementBaseT::FacesWithNode (int e1local, int node, iArrayT& faces) const
 {
   if (!IsElementValid (e1local)) throw eSizeMismatch;
   iAutoArrayT f;
@@ -85,7 +85,7 @@ void ElementBaseT::FacesWithNode (int e1local, int node, iArrayT& faces) const
   faces = temp;
 }
 
-bool ElementBaseT::FaceHasNode (int e1local, int f1, int node) const
+bool MakeCSE_ElementBaseT::FaceHasNode (int e1local, int f1, int node) const
 {
   if (!IsElementValid (e1local) || !IsFaceValid (f1)) 
     { 
@@ -99,7 +99,7 @@ bool ElementBaseT::FaceHasNode (int e1local, int f1, int node) const
   return false;
 }
 
-void ElementBaseT::ResetOneFaceNode (int e1local, int f1, int oldnode, int newnode)
+void MakeCSE_ElementBaseT::ResetOneFaceNode (int e1local, int f1, int oldnode, int newnode)
 {
   if (!IsElementValid (e1local) || !IsFaceValid (f1)) 
     { 
@@ -135,7 +135,7 @@ void ElementBaseT::ResetOneFaceNode (int e1local, int f1, int oldnode, int newno
     }
 }
 
-void ElementBaseT::ElementNodes (int e1local, iArrayT& nodes) const
+void MakeCSE_ElementBaseT::ElementNodes (int e1local, iArrayT& nodes) const
 {
   if (!IsElementValid (e1local)) 
     { 
@@ -145,7 +145,7 @@ void ElementBaseT::ElementNodes (int e1local, iArrayT& nodes) const
   nodes.Set (fNodeNums.MinorDim(), fNodeNums(e1local));
 }
 
-void ElementBaseT::FaceNodes (int e1local, int f1, iArrayT& nodes) const
+void MakeCSE_ElementBaseT::FaceNodes (int e1local, int f1, iArrayT& nodes) const
 {
   if (!IsElementValid (e1local) || !IsFaceValid (f1)) 
     { 
@@ -161,7 +161,7 @@ void ElementBaseT::FaceNodes (int e1local, int f1, iArrayT& nodes) const
       nodes [i] = FEManager::kNotSet;
 }
 
-void ElementBaseT::AbbrFaceNodes (int e1local, int f1, iArrayT& nodes) const
+void MakeCSE_ElementBaseT::AbbrFaceNodes (int e1local, int f1, iArrayT& nodes) const
 {
   if (!IsElementValid (e1local) || !IsFaceValid (f1)) 
     { 
@@ -178,7 +178,7 @@ void ElementBaseT::AbbrFaceNodes (int e1local, int f1, iArrayT& nodes) const
       nodes [i] = FEManager::kNotSet;
 }
 
-bool ElementBaseT::CheckSideSet (const iArray2DT& sides) const
+bool MakeCSE_ElementBaseT::CheckSideSet (const iArray2DT& sides) const
 {
   int elem = NumElements();
   int face = NumElemFaces();
@@ -187,14 +187,14 @@ bool ElementBaseT::CheckSideSet (const iArray2DT& sides) const
     {
       if (*s > elem || *s < 0) 
 	{
-	  cout << "ElementBaseT::CheckSideSet: element out of range"
+	  cout << "MakeCSE_ElementBaseT::CheckSideSet: element out of range"
 	       << *s << " " << elem << " " << fGroupID << endl;
 	  return false;
 	}
       s++;
       if (*s > face || *s < 0)
 	{
-	  cout << "ElementBaseT::CheckSideSet: facet out of range"
+	  cout << "MakeCSE_ElementBaseT::CheckSideSet: facet out of range"
 	       << *s << " " << face << " " << fGroupID << endl;
 	  return false;
 	}
@@ -203,7 +203,7 @@ bool ElementBaseT::CheckSideSet (const iArray2DT& sides) const
   return true;
 }
 
-void ElementBaseT::AddSideSet (int setID, const iArray2DT& sides)
+void MakeCSE_ElementBaseT::AddSideSet (int setID, const iArray2DT& sides)
 {
   int dex;
   fSideSetID.HasValue (setID, dex);
@@ -232,7 +232,7 @@ void ElementBaseT::AddSideSet (int setID, const iArray2DT& sides)
     }
 }
 
-void ElementBaseT::Renumber (const iArrayT& map)
+void MakeCSE_ElementBaseT::Renumber (const iArrayT& map)
 {
   // renumber connectivity
   int *n = fNodeNums.Pointer();
@@ -241,14 +241,14 @@ void ElementBaseT::Renumber (const iArrayT& map)
 }
 
 
-void ElementBaseT::Connectivities (AutoArrayT<const iArray2DT*>& conn, iAutoArrayT& geocodes, iAutoArrayT& change)
+void MakeCSE_ElementBaseT::Connectivities (AutoArrayT<const iArray2DT*>& conn, iAutoArrayT& geocodes, iAutoArrayT& change)
 {
   conn.Append (&fNodeNums);
   geocodes.Append (fGeometryCode);
   change.Append (0);
 }
 
-void ElementBaseT::NodesUsed (iArrayT& nodes_used) const
+void MakeCSE_ElementBaseT::NodesUsed (iArrayT& nodes_used) const
 {
 	/* compressed number range */
 	int min   = fNodeNums.Min();
@@ -270,7 +270,7 @@ void ElementBaseT::NodesUsed (iArrayT& nodes_used) const
 		if (*p++ == 1) nodes_used[dex++] = j + min;
 }
 
-void ElementBaseT::RegisterOutput (MakeCSEIOManager& theIO)
+void MakeCSE_ElementBaseT::RegisterOutput (MakeCSEIOManager& theIO)
 {
   ArrayT<StringT> n_labels;
   ArrayT<StringT> e_labels;
@@ -286,7 +286,7 @@ void ElementBaseT::RegisterOutput (MakeCSEIOManager& theIO)
     //theIO.AddSideSet (fSideSetData[s], fSideSetID[s], fOutputID);
 }
 
-void ElementBaseT::WriteOutput (MakeCSEIOManager& theIO, IOBaseT::OutputModeT mode) const
+void MakeCSE_ElementBaseT::WriteOutput (MakeCSEIOManager& theIO, IOBaseT::OutputModeT mode) const
 {
   // send variable data
   /*iArrayT codes;
@@ -304,11 +304,11 @@ void ElementBaseT::WriteOutput (MakeCSEIOManager& theIO, IOBaseT::OutputModeT mo
     theIO.WriteOutput (fOutputID, group_n_values, group_e_values);*/
 }
 
-bool ElementBaseT::IsElementValid (int e1local) const 
+bool MakeCSE_ElementBaseT::IsElementValid (int e1local) const 
 {
   if (e1local >= fNodeNums.MajorDim() || e1local < 0)
     {
-      cout << "\n\nElementBaseT::IsElementValid, not valid\n";
+      cout << "\n\nMakeCSE_ElementBaseT::IsElementValid, not valid\n";
       cout << "   element = " << e1local 
 	   << "\n   num of elements in group = " << fNodeNums.MajorDim();
       cout << "\n   Element Group ID = " << fGroupID << endl;
@@ -317,11 +317,11 @@ bool ElementBaseT::IsElementValid (int e1local) const
   return true;
 }
 
-bool ElementBaseT::IsFaceValid (int face) const
+bool MakeCSE_ElementBaseT::IsFaceValid (int face) const
 {
   if (face >= fFacetNodes.Length() || face < 0)
     {
-      cout << "\n\nElementBaseT::IsFaceValid, not valid\n";
+      cout << "\n\nMakeCSE_ElementBaseT::IsFaceValid, not valid\n";
       cout << "   face = " << face+1 
 	   << "\n   number of allowed faces = " << fFacetNodes.Length();
       cout << "\n   Element Group ID = " << fGroupID << endl;
@@ -332,13 +332,13 @@ bool ElementBaseT::IsFaceValid (int face) const
 
 // *********** PROTECTED *************
 
-void ElementBaseT::EchoConnectivity (MakeCSEIOManager& theInput)
+void MakeCSE_ElementBaseT::EchoConnectivity (MakeCSEIOManager& theInput)
 {
   ReadConnectivity (theInput, fGeometryCode, fNodeNums);
   InitializeConnectivity ();
 }
 
-void ElementBaseT::ReadConnectivity (MakeCSEIOManager& theInput, GeometryT::CodeT& geocode, iArray2DT& conn) const
+void MakeCSE_ElementBaseT::ReadConnectivity (MakeCSEIOManager& theInput, GeometryT::CodeT& geocode, iArray2DT& conn) const
 {
   iArrayT map;
   StringT id;
@@ -348,7 +348,7 @@ void ElementBaseT::ReadConnectivity (MakeCSEIOManager& theInput, GeometryT::Code
   theInput.ElementIDs (id, map);
 }
 
-void ElementBaseT::InitializeConnectivity (void)
+void MakeCSE_ElementBaseT::InitializeConnectivity (void)
 {
   fNumElemNodes = fNodeNums.MinorDim();
   SetFace ();
@@ -358,13 +358,13 @@ void ElementBaseT::InitializeConnectivity (void)
   PrintControlData ();
 }
 
-void ElementBaseT::EchoSideSets (MakeCSEIOManager& theInput)
+void MakeCSE_ElementBaseT::EchoSideSets (MakeCSEIOManager& theInput)
 {
   ReadSideSetData (theInput, fSideSetData);
   CheckAllSideSets ();
 }
 
-void ElementBaseT::ReadSideSetData (MakeCSEIOManager& theInput, ArrayT<iArray2DT>& Data)
+void MakeCSE_ElementBaseT::ReadSideSetData (MakeCSEIOManager& theInput, ArrayT<iArray2DT>& Data)
 {
   /* read in side sets that are to be transferred */
   iArrayT sides;
@@ -402,13 +402,13 @@ void ElementBaseT::ReadSideSetData (MakeCSEIOManager& theInput, ArrayT<iArray2DT
     }
 }
 
-void ElementBaseT::CheckAllSideSets (void)
+void MakeCSE_ElementBaseT::CheckAllSideSets (void)
 {
   for (int i=0; i < fSideSetData.Length(); i++)
     {
       if (!CheckSideSet (fSideSetData[i]))
 	{
-	  cout << "ElementBaseT::CheckAllSideSets, side set " << i
+	  cout << "MakeCSE_ElementBaseT::CheckAllSideSets, side set " << i
 	       << "\nfails CheckSideSet for element group id: " 
 	       << fGroupID << " " << NumElements() << " " << NumElemFaces() << endl;
 	  fSideSetData[i].WriteNumbered(cout);
@@ -417,7 +417,7 @@ void ElementBaseT::CheckAllSideSets (void)
     }    
 }
 
-void ElementBaseT::SetFace (void)
+void MakeCSE_ElementBaseT::SetFace (void)
 {
   GeometryBaseT *geo;
   switch (fGeometryCode)
@@ -444,7 +444,7 @@ void ElementBaseT::SetFace (void)
 
     default:
       {
-	cout << "\n\n ElementBaseT::SetFace does not like GeoCode " 
+	cout << "\n\n MakeCSE_ElementBaseT::SetFace does not like GeoCode " 
 	     << fGeometryCode << " " << fNumElemNodes << endl;
 	throw eBadInputValue;
       }
@@ -487,7 +487,7 @@ void ElementBaseT::SetFace (void)
   delete geo;
 }
 
-void ElementBaseT::PrintControlData (void) const
+void MakeCSE_ElementBaseT::PrintControlData (void) const
 {
   out << "   Number of Elements. . . . . . . . . . . . . . = "
       << fNodeNums.MajorDim() << '\n'; 
