@@ -1,5 +1,5 @@
-/* $Id: TotalLagrangianT.h,v 1.3 2001-07-10 07:29:55 paklein Exp $ */
-/* created: paklein (07/03/1996)                                          */
+/* $Id: TotalLagrangianT.h,v 1.4 2002-06-08 20:20:22 paklein Exp $ */
+/* created: paklein (07/03/1996) */
 
 #ifndef _TOTAL_LAGRANGRIAN_T_H_
 #define _TOTAL_LAGRANGRIAN_T_H_
@@ -15,7 +15,7 @@ class TotalLagrangianT: public FiniteStrainT
 public:
 
 	/* constructors */
-	TotalLagrangianT(FEManagerT& fe_manager);
+	TotalLagrangianT(const ElementSupportT& support, const FieldT& field);
 
 	/* data initialization */
 	virtual void Initialize(void);

@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.cpp,v 1.6 2001-10-24 02:23:08 paklein Exp $ */
+/* $Id: J2Simo2D.cpp,v 1.7 2002-06-08 20:20:41 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 
 #include "J2Simo2D.h"
@@ -134,6 +134,17 @@ double J2Simo2D::StrainEnergyDensity(void)
 		CurrentElement(), CurrIP());
 
 	return fThickness*ComputeEnergy(J, b_els);
+}
+
+/* incremental heat generation */
+double J2Simo2D::IncrementalHeat(void)
+{
+	/* trust the "current" element is already loaded */
+	ElementCardT& element = CurrentElement();
+	if (element.IsAllocated())
+		return fInternal[kHeatIncr];
+	else
+		return 0.0;
 }
 
 /** returns the number of output variables */

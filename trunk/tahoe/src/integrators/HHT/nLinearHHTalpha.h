@@ -1,4 +1,4 @@
-/* $Id: nLinearHHTalpha.h,v 1.3 2002-04-02 23:19:20 paklein Exp $ */
+/* $Id: nLinearHHTalpha.h,v 1.4 2002-06-08 20:20:10 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _N_LINEARHHT_A_H_
@@ -19,27 +19,27 @@ public:
 	/** constructor */
 	nLinearHHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder);
 
-	/* consistent BC's - updates predictors and acceleration only */
-	virtual void ConsistentKBC(const KBC_CardT& KBC);
-	
-	/* predictors - map ALL */
-	virtual void Predictor(void);
+	/** consistent BC's */
+	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC);
+
+	/** pseudo-boundary conditions for external nodes */
+	virtual KBC_CardT::CodeT ExternalNodeCondition(void) const;
+
+	/** predictor. Maps ALL degrees of freedom forward. */
+	virtual void Predictor(BasicFieldT& field);
 
 	/** corrector - map ACTIVE. See nControllerT::Corrector for more
 	 * documentation */
-	virtual void Corrector(const iArray2DT& eqnos, const dArrayT& update,
-		int eq_start, int eq_stop);
+	virtual void Corrector(BasicFieldT& field, const dArrayT& update, 
+		int eq_start, int num_eq);
 
 	/** corrector with node number map - map ACTIVE. See 
 	 * nControllerT::MappedCorrector for more documentation */
-	virtual void MappedCorrector(const iArrayT& map, const iArray2DT& eqnos,
-		const dArray2DT& update, int eq_start, int eq_stop);
+	virtual void MappedCorrector(BasicFieldT& field, const iArrayT& map,
+		const iArray2DT& flags, const dArray2DT& update);
 
 	/** return the field array needed by nControllerT::MappedCorrector. */
-	virtual const dArray2DT& MappedCorrectorField(void) const;
-
-	/* pseudo-boundary conditions for external nodes */
-	virtual KBC_CardT::CodeT ExternalNodeCondition(void) const;
+	virtual const dArray2DT& MappedCorrectorField(BasicFieldT& field) const;
 
 protected:  	
 	

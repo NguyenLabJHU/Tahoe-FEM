@@ -1,5 +1,5 @@
-/* $Id: MFPenaltySphereT.cpp,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
-/* created: paklein (04/17/2000)                                          */
+/* $Id: MFPenaltySphereT.cpp,v 1.2 2002-06-08 20:20:49 paklein Exp $ */
+/* created: paklein (04/17/2000) */
 
 #include "MFPenaltySphereT.h"
 
@@ -11,9 +11,9 @@
 #include "fstreamT.h"
 
 /* constructor */
-MFPenaltySphereT::MFPenaltySphereT(FEManagerT& fe_manager,
+MFPenaltySphereT::MFPenaltySphereT(FEManagerT& fe_manager, int group,
 	const iArray2DT& eqnos, const dArray2DT& coords, const dArray2DT* vels):
-	PenaltySphereT(fe_manager, eqnos, coords, vels),
+	PenaltySphereT(fe_manager, group, eqnos, coords, vels),
 	fElementGroup(NULL)
 {
 

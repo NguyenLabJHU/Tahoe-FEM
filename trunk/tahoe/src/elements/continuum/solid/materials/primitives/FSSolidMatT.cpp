@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.4 2001-10-24 02:13:20 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.5 2002-06-08 20:20:45 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 
 #include "FSSolidMatT.h"
@@ -15,7 +15,8 @@ FSSolidMatT::FSSolidMatT(ifstreamT& in, const FiniteStrainT& element):
 	fQ(NumSD()),
 	fF_therm_inv(NumSD()),
 	fF_therm_inv_last(NumSD()),
-	fF_mechanical(NumSD())
+	fF_mechanical(NumSD()),
+	fTemperatureField(false)
 {
 	/* no thermal strain */
 	fF_therm_inv.Identity();
@@ -34,6 +35,19 @@ void FSSolidMatT::Initialize(void)
 	/* set multiplicative thermal transformation */
 	SetInverseThermalTransformation(fF_therm_inv);
 	fF_therm_inv_last = fF_therm_inv;
+	
+	/* check for temperature field */
+	if (fFiniteStrain.Temperatures() && fFiniteStrain.LastTemperatures()) {
+
+		/* set flag */
+		fTemperatureField = true;
+		
+		/* work space */
+		fTemperature.Dimension(fFiniteStrain.Temperatures()->MinorDim());
+		
+		/* disable prescribed dilatation */
+		fThermal->SetSchedule(NULL);
+	}
 }
 
 /* test for localization using "current" values for Cauchy
@@ -108,9 +122,23 @@ const dMatrixT& FSSolidMatT::F_total(int ip) const
 
 const dMatrixT& FSSolidMatT::F_mechanical(void)
 {
-	/* has thermal strain */
-	if (fThermal->IsActive())
+	/* has nodal temperature field */
+	if (fTemperatureField)
 	{
+		/* integration point temperature */
+		fFiniteStrain.IP_Interpolate(*(fFiniteStrain.Temperatures()), fTemperature);
+	
+		/* expansion factor */
+//TEMP - the old stiffness damping factor for the %CTE for now
+		double dilatation = 1.0 + fTemperature[0]*StiffnessDamping()/100.0;
+
+		/* remove thermal strain */
+		fF_therm_inv.Identity(1.0/dilatation);
+		fF_mechanical.MultAB(fFiniteStrain.DeformationGradient(), fF_therm_inv);
+		return fF_mechanical;
+	}
+	else if (fThermal->IsActive())
+	{	
 		fF_mechanical.MultAB(fFiniteStrain.DeformationGradient(), fF_therm_inv);
 		return fF_mechanical;
 	}
@@ -120,8 +148,23 @@ const dMatrixT& FSSolidMatT::F_mechanical(void)
 
 const dMatrixT& FSSolidMatT::F_mechanical(int ip)
 {
+	/* has nodal temperature field */
+	if (fTemperatureField)
+	{
+		/* integration point temperature */
+		fFiniteStrain.IP_Interpolate(*(fFiniteStrain.Temperatures()), fTemperature, ip);
+	
+		/* expansion factor */
+//TEMP - the old stiffness damping factor for the %CTE for now
+		double dilatation = 1.0 + fTemperature[0]*StiffnessDamping()/100.0;
+
+		/* remove thermal strain */
+		fF_therm_inv.Identity(1.0/dilatation);
+		fF_mechanical.MultAB(fFiniteStrain.DeformationGradient(), fF_therm_inv);
+		return fF_mechanical;
+	}
 	/* has thermal strain */
-	if (fThermal->IsActive())
+	else if (fThermal->IsActive())
 	{
 		fF_mechanical.MultAB(fFiniteStrain.DeformationGradient(ip), fF_therm_inv);
 		return fF_mechanical;
@@ -143,8 +186,23 @@ const dMatrixT& FSSolidMatT::F_total_last(int ip) const
 
 const dMatrixT& FSSolidMatT::F_mechanical_last(void)
 {
+	/* has nodal temperature field */
+	if (fTemperatureField)
+	{
+		/* integration point temperature */
+		fFiniteStrain.IP_Interpolate(*(fFiniteStrain.LastTemperatures()), fTemperature);
+	
+		/* expansion factor */
+//TEMP - the old stiffness damping factor for the %CTE for now
+		double dilatation = 1.0 + fTemperature[0]*StiffnessDamping()/100.0;
+
+		/* remove thermal strain */
+		fF_therm_inv.Identity(1.0/dilatation);
+		fF_mechanical.MultAB(fFiniteStrain.DeformationGradient_last(), fF_therm_inv);
+		return fF_mechanical;
+	}
 	/* has thermal strain */
-	if (fThermal->IsActive())
+	else if (fThermal->IsActive())
 	{
 		fF_mechanical.MultAB(fFiniteStrain.DeformationGradient_last(), 
 			fF_therm_inv_last);
@@ -156,8 +214,23 @@ const dMatrixT& FSSolidMatT::F_mechanical_last(void)
 
 const dMatrixT& FSSolidMatT::F_mechanical_last(int ip)
 {
+	/* has nodal temperature field */
+	if (fTemperatureField)
+	{
+		/* integration point temperature */
+		fFiniteStrain.IP_Interpolate(*(fFiniteStrain.LastTemperatures()), fTemperature, ip);
+	
+		/* expansion factor */
+//TEMP - the old stiffness damping factor for the %CTE for now
+		double dilatation = 1.0 + fTemperature[0]*StiffnessDamping()/100.0;
+
+		/* remove thermal strain */
+		fF_therm_inv.Identity(1.0/dilatation);
+		fF_mechanical.MultAB(fFiniteStrain.DeformationGradient(), fF_therm_inv);
+		return fF_mechanical;
+	}
 	/* has thermal strain */
-	if (fThermal->IsActive())
+	else if (fThermal->IsActive())
 	{
 		fF_mechanical.MultAB(fFiniteStrain.DeformationGradient_last(ip), 
 			fF_therm_inv_last);

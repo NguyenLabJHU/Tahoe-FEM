@@ -1,8 +1,4 @@
-/* $Id: LocalCrystalPlast_C.cpp,v 1.4 2002-03-26 17:48:17 paklein Exp $ */
-/*
-  File: LocalCrystalPlast_C.cpp
-*/
-
+/* $Id: LocalCrystalPlast_C.cpp,v 1.5 2002-06-08 20:20:43 paklein Exp $ */
 #include "LocalCrystalPlast_C.h"
 #include "LatticeOrient.h"
 #include "VoceHardening.h"
@@ -10,7 +6,6 @@
 #include "ifstreamT.h"
 #include "Utils.h"
 #include "ContinuumElementT.h"
-#include "FEManagerT.h"
 
 /* spatial dimensions of the problem */
 const int kNSD = 3; 
@@ -214,8 +209,8 @@ void LocalCrystalPlast_C::ComputeOutput(dArrayT& output)
       output[1] = fIterCount;
 
       // compute texture of aggregate, if requested
-      const int& step = ContinuumElement().FEManager().StepNumber();
-      const int& nsteps = ContinuumElement().FEManager().NumberOfSteps();
+      const int& step = ContinuumElement().ElementSupport().StepNumber();
+      const int& nsteps = ContinuumElement().ElementSupport().NumberOfSteps();
 
       if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
 	{

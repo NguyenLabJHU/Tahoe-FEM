@@ -1,6 +1,5 @@
-/* $Id: MixedSWDiamondT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
-/* created: paklein (03/22/1997)                                          */
-/* Interface for heterogeneous diamond cubic lattice                      */
+/* $Id: MixedSWDiamondT.cpp,v 1.2 2002-06-08 20:20:26 paklein Exp $ */
+/* created: paklein (03/22/1997) */
 
 #include "MixedSWDiamondT.h"
 
@@ -9,22 +8,19 @@
 #include <iomanip.h>
 
 #include "fstreamT.h"
-#include "FEManagerT.h"
-#include "NodeManagerT.h"
 #include "FindNeighbor23T.h"
-#include "LoadTime.h"
+#include "ScheduleT.h"
 
 /* parameters */
 const int kSWMaxNeighbors0 = 4;
 
-/*
-* constructor
-*/
-MixedSWDiamondT::MixedSWDiamondT(FEManagerT& fe_manager):SWDiamondT(fe_manager),
+/* constructor */
+MixedSWDiamondT::MixedSWDiamondT(const ElementSupportT& support, const FieldT& field):
+	SWDiamondT(support, field),
 	fCurrMatType(-1)
 {
-	fFEManager.Input() >> fLTfNum;
-	fLTfPtr = GetLTfPtr(fLTfNum);
+	ElementSupport().Input() >> fLTfNum;
+	fLTfPtr = ElementSupport().Schedule(fLTfNum);
 }
 
 /*
@@ -37,7 +33,7 @@ void MixedSWDiamondT::InitStep(void)
 	SWDiamondT::InitStep();
 	
 	/* update variable material properties */
-	double x   = fLTfPtr->LoadFactor();
+	double x   = fLTfPtr->Value();
 	double xm1 = 1.0 - x; //assumes 0 ² x ² 1 during the run!!!!
 
 	/* 3rd material is variable */
@@ -100,7 +96,7 @@ void MixedSWDiamondT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		EchoNodeTags(in, out);
 	
 		/* connector */
-		FindNeighbor23T Connector(fNodes->CurrentCoordinates(), kSWMaxNeighbors0);
+		FindNeighbor23T Connector(ElementSupport().CurrentCoordinates(), kSWMaxNeighbors0);
 	
 		/* connect nodes - dimensions lists */
 		Connector.GetNeighors(fNodes_2Body, fNodes_3Body, tolerance);
@@ -165,7 +161,7 @@ bool MixedSWDiamondT::Next3Body(void)
 /* echo node type tags */
 void MixedSWDiamondT::EchoNodeTags(istream& in, ostream& out)
 {
-	int numnodes = fNodes->NumNodes();
+	int numnodes = ElementSupport().NumNodes();
 	int numtypes = fSWDataList.Length();
 
 	/* allocate memory */

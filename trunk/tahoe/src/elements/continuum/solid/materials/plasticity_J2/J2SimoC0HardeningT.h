@@ -1,4 +1,4 @@
-/* $Id: J2SimoC0HardeningT.h,v 1.3 2001-10-24 02:20:04 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.h,v 1.4 2002-06-08 20:20:41 paklein Exp $ */
 /* created: paklein (05/01/2001) */
 
 #ifndef _J2_SIMO_C0_HARD_T_H_
@@ -44,13 +44,14 @@ protected:
 
 	/** index of stored values */
 	enum VariablesT {
-        kalpha = 0, /* isotropic hardening         */
-   kstressnorm = 1, /* norm of the relative stress */
-       kdgamma = 2, /* consistency parameter       */
-       kftrial = 3, /* yield function value        */
+        kalpha = 0, /**< isotropic hardening */
+   kstressnorm = 1, /**< norm of the relative stress */
+       kdgamma = 2, /**< consistency parameter */
+       kftrial = 3, /**< yield function value */
        kmu_bar = 4, 
    kmu_bar_bar = 5,
-     kDetF_tot = 6};/* determinant of total F      */
+     kDetF_tot = 6, /**< determinant of total F */
+     kHeatIncr = 7  /**< incremental heat generation */ };
 
 	/** hardening function types */
 	enum HardeningFunctionT {

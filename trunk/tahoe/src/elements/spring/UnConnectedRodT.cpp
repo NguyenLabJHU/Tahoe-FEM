@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.6 2002-02-18 09:13:10 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.7 2002-06-08 20:20:27 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 
 #include "UnConnectedRodT.h"
@@ -6,19 +6,17 @@
 #include <iomanip.h>
 
 #include "fstreamT.h"
-#include "FEManagerT.h"
 #include "ModelManagerT.h"
-#include "NodeManagerT.h"
 #include "FindNeighborT.h"
 
 /* constructor */
-UnConnectedRodT::UnConnectedRodT(FEManagerT& fe_manager):
-	RodT(fe_manager),
+UnConnectedRodT::UnConnectedRodT(const ElementSupportT& support, const FieldT& field):
+	RodT(support, field),
 	fNumNodesUsed(0),
 	fReconnectCount(0)
 {
 	/* read neighbor list parameters */
-	fFEManager.Input() >> fReconnectInc >> fMaxNeighborCount >> fNeighborDist;
+	ElementSupport().Input() >> fReconnectInc >> fMaxNeighborCount >> fNeighborDist;
 
 	/* checks */
 	if (fMaxNeighborCount <  1  ) throw eBadInputValue;
@@ -62,14 +60,13 @@ GlobalT::RelaxCodeT UnConnectedRodT::RelaxSystem(void)
 	
 		/* re-connect - more neighbors and greater distance */
 		iArray2DT rodconnects;
-		FindNeighborT Connector(fNodes->CurrentCoordinates(), fMaxNeighborCount);
+		FindNeighborT Connector(ElementSupport().CurrentCoordinates(), fMaxNeighborCount);
 		Connector.GetNeighors(rodconnects, fNeighborDist);
 		
 		/* update model manager */
-		ModelManagerT* model = fFEManager.ModelManager ();
-		model->UpdateConnectivity (fBlockData[0].ID(), rodconnects, true);
+		ModelManagerT& model = ElementSupport().Model();
+		model.UpdateConnectivity (fBlockData[0].ID(), rodconnects, true);
 		fBlockData[0].SetDimension(rodconnects.MajorDim());
-		fNumElements = rodconnects.MajorDim();
 
 		/* reset local equation number lists */	
 		ConfigureElementData();
@@ -126,7 +123,7 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	if (fNumNodesUsed == -1) //use ALL nodes
 	{
 		/* connector */
-		FindNeighborT Connector(fNodes->CurrentCoordinates(), fMaxNeighborCount);
+		FindNeighborT Connector(ElementSupport().CurrentCoordinates(), fMaxNeighborCount);
 	
 		/* connect nodes - dimensions lists */
 		Connector.GetNeighors(rodconnects, fNeighborDist);
@@ -145,28 +142,29 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		
 		/* connector */
 		nodesused--;
-		FindNeighborT Connector(nodesused, fNodes->CurrentCoordinates(),
-							    fMaxNeighborCount);
+		FindNeighborT Connector(nodesused, 
+			ElementSupport().CurrentCoordinates(), 
+			fMaxNeighborCount);
 	
 		/* connect nodes - dimensions lists */
 		Connector.GetNeighors(rodconnects, fNeighborDist);		
 	}
 
 	/* send connectivity data to ModelManagerT */
-	ModelManagerT* model = fFEManager.ModelManager();
-	StringT name ("URod");
-	name.Append (fFEManager.ElementGroupNumber(this) + 1);
+	ModelManagerT& model = ElementSupport().Model();
+	StringT name("URod");
+	name.Append(ElementSupport().ElementGroupNumber(this) + 1);
 	GeometryT::CodeT code = GeometryT::kLine;
-	model->RegisterElementGroup (name, rodconnects, code, true);
+	model.RegisterElementGroup (name, rodconnects, code, true);
 
 	/* set up fBlockData to store block ID */
 	fBlockData.Allocate(1);
 	fBlockData[0].Set(name, 0, rodconnects.MajorDim(), 0); // currently assume all interactions use potential 0
-	fNumElements = rodconnects.MajorDim();
+//	fNumElements = rodconnects.MajorDim();
 
 	/* set up fConnectivities */
 	fConnectivities.Allocate (1);
-	fConnectivities[0] = model->ElementGroupPointer(name);
+	fConnectivities[0] = model.ElementGroupPointer(name);
 	
 	/* set up base class equations array */
 	fEqnos.Allocate(1);
@@ -190,20 +188,21 @@ void UnConnectedRodT::ConfigureElementData(void)
 	iArray2DT& rod_eqnos = fEqnos[0];
 
 	/* allocate memory */
-	fNumElements = connects->MajorDim();
-	fElementCards.Allocate(fNumElements);
-	rod_eqnos.Allocate(fNumElements, fNumElemEqnos);
+	int nen = connects->MinorDim();
+	int nel = connects->MajorDim();
+	fElementCards.Allocate(nel);
+	rod_eqnos.Allocate(nel, nen*NumDOF());
 
 	/* set 2 body element data */
 	int block_index = 0;
-	for (int i = 0; i < fNumElements; i++)	
+	for (int i = 0; i < nel; i++)	
 	{
 		/* element card */
 		ElementCardT& card = fElementCards[i];
 	
 		/* node and equation numbers */			
-		card.NodesX().Set(fNumElemNodes, (*connects)(i));
-		card.Equations().Set(fNumElemEqnos, rod_eqnos(i));
+		card.NodesX().Set(NumElementNodes(), (*connects)(i));
+		card.Equations().Set(rod_eqnos.MinorDim(), rod_eqnos(i));
 		
 		/* material number */
 		card.SetMaterialNumber(fBlockData[block_index].MaterialID());

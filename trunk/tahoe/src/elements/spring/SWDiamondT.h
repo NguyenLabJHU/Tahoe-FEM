@@ -1,5 +1,5 @@
-/* $Id: SWDiamondT.h,v 1.3 2001-12-17 00:15:57 paklein Exp $ */
-/* created: paklein (03/19/1997)                                          */
+/* $Id: SWDiamondT.h,v 1.4 2002-06-08 20:20:26 paklein Exp $ */
+/* created: paklein (03/19/1997) */
 
 #ifndef _SWDIAMOND_T_H_
 #define _SWDIAMOND_T_H_
@@ -19,7 +19,7 @@ class SWDiamondT: public ElementBaseT
 public:
 
 	/* constructor */
-	SWDiamondT(FEManagerT& fe_manager);
+	SWDiamondT(const ElementSupportT& support, const FieldT& field);
 
 	/* initialization */
 	virtual void Initialize(void);
@@ -28,7 +28,7 @@ public:
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
 	/* NOT implemented. Returns an zero force vector */
-	virtual void AddNodalForce(int node, dArrayT& force);
+	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
 
 	/* returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void);

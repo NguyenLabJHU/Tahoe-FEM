@@ -1,15 +1,14 @@
-/* $Id: ElementBaseT.h,v 1.8 2002-04-17 23:55:55 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.9 2002-06-08 20:20:13 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
 
-#include "GlobalT.h"
-
 /* base class */
 #include "iConsoleObjectT.h"
 
 /* direct members */
+#include "GlobalT.h"
 #include "iArray2DT.h"
 #include "ElementMatrixT.h"
 #include "dMatrixT.h"
@@ -18,19 +17,20 @@
 #include "AutoArrayT.h"
 #include "IOBaseT.h"
 #include "ElementBlockDataT.h"
+#include "ElementSupportT.h"
+#include "FieldT.h"
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
 class ifstreamT;
-class FEManagerT;
-class NodeManagerT;
 class LocalArrayT;
-class LoadTime;
+class ScheduleT;
 class eControllerT;
 template <class TYPE> class RaggedArray2DT;
 class iAutoArrayT;
 class dArray2DT;
 class StringT;
+class FieldT;
 
 /** base class for element types. Initialization of the element classes
  * is accomplished by first setting the time integration controller with
@@ -51,42 +51,55 @@ class ElementBaseT: public iConsoleObjectT
 public:
 
 	/** constructor */
-	ElementBaseT(FEManagerT& fe_manager);
+	ElementBaseT(const ElementSupportT& support, const FieldT& field);
 
 	/** destructor */
 	virtual ~ElementBaseT(void);
 
-	/** class initialization. Among other things, element work space
-	 * is allocated and connectivities are read. */
-	virtual void Initialize(void);
+	/** \name accessors */
+	/*@{*/
+	/** number of elements */
+	int NumElements(void) const { return fElementCards.Length(); };
 
-	/** return a const reference to the top-level manager */
-	const FEManagerT& FEManager(void) const;
+	/** number of nodes per element. This size is taken from dimensions of the first
+	 * entry in the ElementBaseT::fConnectivies array, and therefore isn't valid until
+	 * the connectivies have been dimensioned. */
+	int NumElementNodes(void) const;
 
-	/** return a const reference to the run state flag */
-	const GlobalT::StateT& RunState(void) const;
-
-	/** return the number of spatial dimensions */
-	int NumSD(void) const;
-
-	/** return the number of degrees of freedom per node */
-	int NumDOF(void) const;
-
-	/** set the time integration controller */
-	virtual void SetController(eControllerT* controller);
-
-	/** re-initialize. signal to element group that the global
-	 * equations numbers are going to be reset so that the group
-	 * has the opportunity to reconnect and should reinitialize
-	 * an dependencies on global equation numbers obtained from the
-	 * NodeManagerT */
-	virtual void Reinitialize(void);
+	/** solver group */
+	int Group(void) const { return fField.Group(); };
 
 	/** form of tangent matrix, symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const = 0;
+	
+	/** return the block ID for the specified element */
+	const StringT& ElementBlockID(int element) const;
+
+	/** the source */
+	const ElementSupportT& ElementSupport(void) const { return fSupport; };
+
+	/** field information */
+	const FieldT& Field(void) const { return fField; };
+
+	/** return a const reference to the run state flag */
+	const GlobalT::StateT& RunState(void) const { return fSupport.RunState(); };
 
 	/** the iteration number for the current time increment */
 	const int& IterationNumber(void) const;
+
+	/** return a pointer to the specified LoadTime function */
+	const ScheduleT* Schedule(int num) const { return fSupport.Schedule(num); };
+
+	/** return the number of spatial dimensions */
+	int NumSD(void) const { return fSupport.NumSD(); };
+
+	/** return the number of degrees of freedom per node */
+	int NumDOF(void) const { return fField.NumDOF(); };
+	/*@}*/
+
+	/** class initialization. Among other things, element work space
+	 * is allocated and connectivities are read. */
+	virtual void Initialize(void);
 		
 	/** call to trigger calculation and assembly of the tangent stiffness */
 	void FormLHS(void);
@@ -97,7 +110,7 @@ public:
 	/** accumulate the residual force on the specified node
 	 * \param node test node
 	 * \param force array into which to assemble to the residual force */
-	virtual void AddNodalForce(int node, dArrayT& force) = 0;
+	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force) = 0;
 
 	/** initialize current time increment */
 	virtual void InitStep(void);
@@ -155,10 +168,7 @@ public:
 	 * \em append them to the AutoArrayT that is passed in. */
 	virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 	             AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
-	
-	/** return a pointer to the specified LoadTime function */
-	LoadTime* GetLTfPtr(int num) const;
-	
+		
 	/** prepare for a sequence of time steps */
 	virtual void InitialCondition(void);
 
@@ -171,7 +181,6 @@ public:
 	virtual void ReadRestart(istream& in);
 
 	/* element card data */
-	int NumElements(void) const;
 	int CurrElementNumber(void) const;
 	ElementCardT& ElementCard(int card) const;
 	ElementCardT& CurrentElement(void) const;
@@ -184,9 +193,6 @@ public:
 	 * \param DOFs array of the field degrees of freedom for all nodes */
 	virtual void NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const;
 
-	/** return the block ID for the specified element */
-	const StringT& ElementBlockID(int element) const;
-
 	/** weight the computational effort of every node.
 	 * \param weight array length number of nodes */
 	virtual void WeightNodalCost(iArrayT& weight) const;
@@ -198,7 +204,6 @@ protected: /* for derived classes only */
 	const LocalArrayT& SetLocalX(LocalArrayT& localarray); // the geometry
 	const LocalArrayT& SetLocalU(LocalArrayT& localarray); // the degrees of freedom
 
-		 	
 	/* called by FormRHS and FormLHS */
 	virtual void LHSDriver(void) = 0;
 	virtual void RHSDriver(void) = 0;
@@ -257,21 +262,10 @@ private:
 	
 protected:
 
-	FEManagerT&   fFEManager;
-	NodeManagerT* fNodes;
-
 	/* element controller */
-	eControllerT* fController;
+	const eControllerT* fController;
 
-	/* derived data */
-	int	fNumSD;
-	int	fNumDOF;
-	int fNumElemNodes;	
-	int	fNumElemEqnos;
-	int	fAnalysisCode;
-	
 	/* element-by-element info */
-	int	fNumElements;
 	AutoArrayT<ElementCardT> fElementCards;
 	
 	/* grouped element arrays */
@@ -286,21 +280,24 @@ protected:
 	 * information for a block of connectivities. The content of each
 	 * row is set by ElementBaseT::BlockIndexT. */
 	ArrayT<ElementBlockDataT> fBlockData;
+
+private:
+
+	/** \name sources and parameters
+	 * Available to sub-classes through access methods */
+	/*@{*/
+	const ElementSupportT& fSupport;
+	const FieldT& fField;
+	/*@}*/
 };
 
 /* inline functions */
-
-/* up */
-inline const FEManagerT& ElementBaseT::FEManager(void) const { return fFEManager; }
-inline int ElementBaseT::NumSD(void) const { return fNumSD; }
-inline int ElementBaseT::NumDOF(void) const { return fNumDOF; }
 
 /* currElement operations */
 inline void ElementBaseT::Top(void) { fElementCards.Top(); }
 inline bool ElementBaseT::NextElement(void) { return fElementCards.Next(); }
 
 /* element card */
-inline int ElementBaseT::NumElements(void) const { return fNumElements; }
 inline int ElementBaseT::CurrElementNumber(void) const { return fElementCards.Position(); }
 inline ElementCardT& ElementBaseT::CurrentElement(void) const { return fElementCards.Current(); }
 inline ElementCardT& ElementBaseT::ElementCard(int card) const { return fElementCards[card]; }
@@ -308,5 +305,19 @@ inline ElementCardT& ElementBaseT::ElementCard(int card) const { return fElement
 /* called by FormRHS and FormLHS */
 inline void ElementBaseT::LHSDriver(void) { }
 inline void ElementBaseT::RHSDriver(void) { }
+
+/* number of nodes per element */
+inline int ElementBaseT::NumElementNodes(void) const
+{
+#if 1
+//#if __option(extended_errorcheck)
+	if (fConnectivities.Length() > 0 && fConnectivities[0])
+		return fConnectivities[0]->MinorDim();
+	else
+		return 0;
+#else
+	return fConnectivities[0]->MinorDim();
+#endif
+}
 
 #endif /* _ELEMENTBASE_T_H_ */

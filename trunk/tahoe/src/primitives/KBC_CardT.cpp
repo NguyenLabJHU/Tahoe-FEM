@@ -1,4 +1,4 @@
-/* $Id: KBC_CardT.cpp,v 1.5 2002-02-27 16:47:49 paklein Exp $ */
+/* $Id: KBC_CardT.cpp,v 1.6 2002-06-08 20:20:53 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "KBC_CardT.h"
@@ -9,16 +9,16 @@
 #include "Constants.h"
 #include "ExceptionCodes.h"
 
-#include "LoadTime.h"
+#include "ScheduleT.h"
 
 /* copy behavior for arrays KBC_CardT's */
 const bool ArrayT<KBC_CardT*>::fByteCopy = true;
 const bool ArrayT<KBC_CardT>::fByteCopy = false;
 
 /* constructor */
-KBC_CardT::KBC_CardT(void):fLTfPtr(NULL) { }
+KBC_CardT::KBC_CardT(void):fSchedule(NULL) { }
 KBC_CardT::KBC_CardT(int node, int dof, CodeT code, int nLTF, double value):
-	fnode(node), fdof(dof), fcode(code), fnLTf(nLTF), fvalue(value)
+	fnode(node), fdof(dof), fcode(code), fSchedNum(nLTF), fvalue(value)
 {
 
 }
@@ -45,21 +45,21 @@ void KBC_CardT::SetValues(istream& in)
 void KBC_CardT::SetValues(int node, int dof, CodeT code, int nLTf, double value)
 {
 	/* set */
-	fnode  = node;
-	fdof   = dof;
-	fcode  = code;
-	fnLTf  = nLTf;
+	fnode = node;
+	fdof = dof;
+	fcode = code;
+	fSchedNum = nLTf;
 	fvalue = value;
 
 	/* fixed (uncorrected) */
 	if (fcode == kFix)
 	{
-		fnLTf  = 0;
+		fSchedNum  = 0;
 		fvalue = 0.0;
 	}
 }
 
-void KBC_CardT::SetSchedule(const LoadTime* LTfPtr) { fLTfPtr = LTfPtr; }
+void KBC_CardT::SetSchedule(const ScheduleT* schedule) { fSchedule = schedule; }
 
 /* returns the value of the BC */
 double KBC_CardT::Value(void) const
@@ -70,14 +70,14 @@ double KBC_CardT::Value(void) const
 	  {
 #if __option(extended_errorcheck)
 		/* double check pointers are set */
-		if (!fLTfPtr) throw eGeneralFail;
+		if (!fSchedule) throw eGeneralFail;
 #endif
-		return fvalue*(fLTfPtr->LoadFactor());
+		return fvalue*(fSchedule->Value());
 	  }
 }
 
 /* I/O */
-void KBC_CardT::WriteHeader(ostream& out) const
+void KBC_CardT::WriteHeader(ostream& out)
 {
 	int d_width = out.precision() + kDoubleExtra;
 
@@ -92,7 +92,7 @@ void KBC_CardT::WriteValues(ostream& out) const
 	int d_width = out.precision() + kDoubleExtra;
 
 	out << setw(kIntWidth) << fnode + 1 << setw(kIntWidth) << fdof + 1;
-	out << setw(kIntWidth) << fcode     << setw(kIntWidth) << fnLTf + 1;
+	out << setw(kIntWidth) << fcode     << setw(kIntWidth) << fSchedNum + 1;
 	out << setw(d_width)   << fvalue    << '\n';
 }
 

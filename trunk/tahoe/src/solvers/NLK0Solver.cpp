@@ -1,4 +1,4 @@
-/* $Id: NLK0Solver.cpp,v 1.3 2002-04-02 23:27:27 paklein Exp $ */
+/* $Id: NLK0Solver.cpp,v 1.4 2002-06-08 20:20:55 paklein Exp $ */
 /* created: paklein (10/01/1996) */
 
 #include "NLK0Solver.h"
@@ -14,8 +14,8 @@
 const double ks_max_factor = 5.0; //normally 1.0
 
 /* constructor */
-NLK0Solver::NLK0Solver(FEManagerT& fe_manager):
-	NLSolver(fe_manager),
+NLK0Solver::NLK0Solver(FEManagerT& fe_manager, int group):
+	NLSolver(fe_manager, group),
 	fFormTangent(1),
 	fLastTangent(fe_manager.Output(), fLHS->CheckCode())
 {
@@ -44,7 +44,7 @@ double NLK0Solver::SolveAndForm(bool junk)
 	if (fFormTangent)
 	{
 		pCCSLHS->Clear();
-		fFEManager.FormLHS();
+		fFEManager.FormLHS(Group());
 
 		/* solve equation system */
 		fUpdate = fRHS;
@@ -67,11 +67,11 @@ double NLK0Solver::SolveAndForm(bool junk)
 		if (!fLastTangent.Solve(fRHS)) throw eBadJacobianDet;
 			 		
 	/* update system */
-	fFEManager.Update(fRHS);
+	fFEManager.Update(Group(), fRHS);
 								
 	/* compute new residual */
 	fRHS = 0.0;
-	fFEManager.FormRHS();
+	fFEManager.FormRHS(Group());
 
 	/* combine residual magnitude with update magnitude */
 	/* e = a1 |R| + a2 |delta_d|                        */

@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.9 2002-04-02 23:27:27 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.10 2002-06-08 20:20:55 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #include "NLSolver.h"
@@ -12,8 +12,8 @@
 #include "FEManagerT.h"
 
 /* constructor */
-NLSolver::NLSolver(FEManagerT& fe_manager):
-	SolverT(fe_manager),
+NLSolver::NLSolver(FEManagerT& fe_manager, int group):
+	SolverT(fe_manager, group),
 	fMaxIterations(-1),
 	fZeroTolerance(0.0),
 	fTolerance(0.0),
@@ -80,55 +80,47 @@ NLSolver::NLSolver(FEManagerT& fe_manager):
 }
 
 /* generate the solution for the current time sequence */
-void NLSolver::Run(void)
+SolverT::SolutionStatusT NLSolver::Solve(int num_iterations)
 {
-	/* solve load sequence */
-	while (Step())
-	{			
-		/* residual loop */
-		try
-		{ 	
-			/* apply boundary conditions */
-			fFEManager.InitStep();
+	try
+	{ 	
+	/* reset iteration count */
+	fNumIteration = -1;
 
-			/* open iteration output */
-			InitIterationOutput();
+	/* open iteration output */
+	InitIterationOutput();
 
-			/* form the first residual force vector */
-			fRHS = 0.0;
-			fFEManager.FormRHS();	
-			double error = Residual(fRHS);
+	/* form the first residual force vector */
+	fRHS = 0.0;
+	fFEManager.FormRHS(Group());	
+	double error = Residual(fRHS);
 			
-			/* loop on error */
-			IterationStatusT solutionflag = ExitIteration(error);
-			while (solutionflag == kContinue)
-			{
-				error = SolveAndForm(true);
-				solutionflag = ExitIteration(error);
-			}
+	/* loop on error */
+	SolutionStatusT solutionflag = ExitIteration(error);
+	while (solutionflag == kContinue &&
+		(num_iterations == -1 || fNumIteration < num_iterations))
+	{
+		error = SolveAndForm(true);
+		solutionflag = ExitIteration(error);
+	}
 
-			/* found solution - check relaxation */
-			if (solutionflag == kConverged)
-				solutionflag = DoConverged();
+	/* found solution - check relaxation */
+	if (solutionflag == kConverged)
+		solutionflag = DoConverged();
 				
-			/* close iteration output */	
-			CloseIterationOutput();
+	/* close iteration output */	
+	CloseIterationOutput();
 			
-			/* close step */
-			if (solutionflag == kConverged)
-				fFEManager.CloseStep();
-			/* solution procedure failed */
-			else
-				DoNotConverged();
-		}
+	return solutionflag;
+	}
 		
-		catch (int code)
-		{
-			cout << "\n NLSolver::Run: exception at step number "
-			     << fFEManager.StepNumber() << " with step "
-			     << fFEManager.TimeStep() << endl;
-			fFEManager.HandleException(code);
-		}
+	/* abnormal ending */
+	catch (int code)
+	{
+		cout << "\n NLSolver::Run: exception at step number "
+             << fFEManager.StepNumber() << " with step "
+             << fFEManager.TimeStep() << endl;
+		return kFailed;
 	}
 }
 
@@ -146,7 +138,7 @@ void NLSolver::ResetStep(void)
 }
 
 /* handlers */
-NLSolver::IterationStatusT NLSolver::DoConverged(void)
+NLSolver::SolutionStatusT NLSolver::DoConverged(void)
 {
 	/* increase time step ? (for multi-step sequences) */
 	if (fQuickSolveTol > 1 && fNumIteration < fQuickSolveTol)
@@ -168,13 +160,13 @@ NLSolver::IterationStatusT NLSolver::DoConverged(void)
 	}
 
 	/* allow for multiple relaxation */
-	GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem();
+	GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
 	while (relaxcode != GlobalT::kNoRelax)
 	{	
 		/* reset global equations */
 		if (relaxcode == GlobalT::kReEQ ||
 		    relaxcode == GlobalT::kReEQRelax)
-			fFEManager.Reinitialize();
+			fFEManager.SetEquationSystem(Group());
 						
 		/* new equilibrium */
 		if (relaxcode == GlobalT::kRelax ||
@@ -183,7 +175,7 @@ NLSolver::IterationStatusT NLSolver::DoConverged(void)
 			if (Relax() == kFailed)
 				return kFailed;
 	   		else
-				relaxcode = fFEManager.RelaxSystem();
+				relaxcode = fFEManager.RelaxSystem(Group());
 		}
 		else
 			relaxcode = GlobalT::kNoRelax;
@@ -191,18 +183,6 @@ NLSolver::IterationStatusT NLSolver::DoConverged(void)
 
 	/* success */
 	return kConverged;						
-}
-
-void NLSolver::DoNotConverged(void)
-{
-	/* message */
-	cout << "\n NLSolver::DoNotConverged: resetting step, cutting load set" << endl;
-
-	/* step back to last converged */
-	fFEManager.ResetStep();
-	
-	/* cut load increment */
-	fFEManager.DecreaseLoadStep();
 }
 
 /* divert output for iterations */
@@ -216,6 +196,9 @@ void NLSolver::InitIterationOutput(void)
 		
 		/* remove processor designation */ 
 		if (fFEManager.Size() > 1) root.Root();
+		
+		/* solver group */
+		root.Append(".gp", Group());
 		
 		/* increment */
 		root.Append(".", fFEManager.StepNumber());
@@ -245,11 +228,11 @@ void NLSolver::Update(const dArrayT& update, const dArrayT* residual)
 #pragma unused(residual)
 
 	/* full Newton update */
-	fFEManager.Update(update);
+	fFEManager.Update(Group(), update);
 }
 
 /* relax system */
-NLSolver::IterationStatusT NLSolver::Relax(int newtancount)
+NLSolver::SolutionStatusT NLSolver::Relax(int newtancount)
 {	
 	cout <<   "\n Relaxation:" << '\n';
 
@@ -260,11 +243,11 @@ NLSolver::IterationStatusT NLSolver::Relax(int newtancount)
 
 	/* form the first residual force vector */
 	fRHS = 0.0;
-	fFEManager.FormRHS();	
+	fFEManager.FormRHS(Group());	
 	double error = Residual(fRHS);
 		
 	/* loop on error */
-	IterationStatusT solutionflag = ExitIteration(error);
+	SolutionStatusT solutionflag = ExitIteration(error);
 	while (solutionflag == kContinue)
 	{
 	    int newtangent = 0;
@@ -281,17 +264,6 @@ NLSolver::IterationStatusT NLSolver::Relax(int newtancount)
 	return solutionflag;
 }
 
-/* advance to next load step. Returns 0 if there are no more
-* steps. Overload to add class dependent initializations */
-int NLSolver::Step(void)
-{
-	/* reset iteration count */
-	fNumIteration = -1;
-		
-	/* inherited */
-	return SolverT::Step();
-}
-
 /* returns 1 if the iteration loop should be left, otherwise
 * returns 0.  The iteration loop can be exited for the
 * following reasons:
@@ -302,7 +274,7 @@ int NLSolver::Step(void)
 *
 * For (2) and (3), the load increment will be cut and the
 * iteration re-entered with the next Step() call */
-NLSolver::IterationStatusT NLSolver::ExitIteration(double error)
+NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 {
 	/* iteration count */
 	++fNumIteration;
@@ -315,11 +287,12 @@ NLSolver::IterationStatusT NLSolver::ExitIteration(double error)
 	}
 	
 	/* return value */
-	IterationStatusT status = kContinue;
+	SolutionStatusT status = kContinue;
 	
 	/* first pass */
 	if (fNumIteration == 0)
 	{
+		cout <<   " Group : " << fGroup+1 << '\n';
 		cout <<   " Absolute error = " << error << '\n';
 		cout <<   " Relative error :\n\n";
 
@@ -385,7 +358,7 @@ double NLSolver::SolveAndForm(bool newtangent)
 	if (newtangent)
 	{
 		fLHS->Clear();
-		fFEManager.FormLHS();
+		fFEManager.FormLHS(Group());
 	}
 		 		
 	/* solve equation system */
@@ -396,7 +369,7 @@ double NLSolver::SolveAndForm(bool newtangent)
 								
 	/* compute new residual */
 	fRHS = 0.0;
-	fFEManager.FormRHS();
+	fFEManager.FormRHS(Group());
 
 	/* combine residual magnitude with update magnitude */
 	/* e = a1 |R| + a2 |delta_d|                        */

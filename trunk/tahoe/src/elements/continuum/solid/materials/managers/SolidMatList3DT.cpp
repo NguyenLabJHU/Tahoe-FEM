@@ -1,5 +1,5 @@
-/* $Id: SolidMatList3DT.cpp,v 1.16 2002-05-31 07:09:51 thao Exp $ */
-/* created: paklein (02/14/1997)                                          */
+/* $Id: SolidMatList3DT.cpp,v 1.17 2002-06-08 20:20:40 paklein Exp $ */
+/* created: paklein (02/14/1997) */
 
 #include "SolidMatList3DT.h"
 
@@ -46,7 +46,7 @@
 
 /* constructors */
 SolidMatList3DT::SolidMatList3DT(int length, const ElasticT& element_group):
-	SolidMatListT(length),
+	StructuralMatListT(length),
 	fElementGroup(element_group)
 {
 #ifdef __NO_RTTI__
@@ -443,7 +443,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		int LTfnum = pmat->ThermalStrainSchedule();
 		if (LTfnum > -1)
 		{
-			pmat->SetThermalSchedule(fElementGroup.GetLTfPtr(LTfnum));
+			pmat->SetThermalSchedule(fElementGroup.Schedule(LTfnum));
 			
 			/* set flag */
 			fHasThermal = true;

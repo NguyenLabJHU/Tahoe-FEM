@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.cpp,v 1.8 2002-04-16 21:19:33 cjkimme Exp $ */
+/* $Id: SurfacePotentialT.cpp,v 1.9 2002-06-08 20:20:17 paklein Exp $ */
 /* created: paklein (06/20/1999) */
 
 #include "SurfacePotentialT.h"
@@ -41,6 +41,13 @@ bool SurfacePotentialT::CompatibleOutput(const SurfacePotentialT& pot1,
 int SurfacePotentialT::NumOutputVariables(void) const
 {
 	return 0;
+}
+
+double SurfacePotentialT::IncrementalHeat(const dArrayT& jump, const ArrayT<double>& state)
+{
+#pragma unused(jump)
+#pragma unused(state)
+	return 0.0;
 }
 
 void SurfacePotentialT::OutputLabels(ArrayT<StringT>& labels) const

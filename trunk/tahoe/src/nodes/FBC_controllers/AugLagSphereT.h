@@ -1,5 +1,5 @@
-/* $Id: AugLagSphereT.h,v 1.2 2001-08-15 18:37:48 paklein Exp $ */
-/* created: paklein (03/24/1999)                                          */
+/* $Id: AugLagSphereT.h,v 1.3 2002-06-08 20:20:49 paklein Exp $ */
+/* created: paklein (03/24/1999) */
 
 #ifndef _AUGLAG_SPHERE_T_H_
 #define _AUGLAG_SPHERE_T_H_
@@ -10,14 +10,15 @@
 
 /* forward declarations */
 class XDOF_ManagerT;
+class FieldT;
 
 class AugLagSphereT: public PenaltySphereT, public DOFElementT
 {
 public:
 
 	/* constructor */
-	AugLagSphereT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes, const iArray2DT& eqnos,
-		const dArray2DT& coords, const dArray2DT* vels);
+	AugLagSphereT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes, 
+		const FieldT& field, const dArray2DT& coords);
 
 	/* initialize data */
 	virtual void Initialize(void);
@@ -54,6 +55,10 @@ public:
 
 	/* returns 1 if group needs to reconfigure DOF's, else 0 */
 	virtual int Reconfigure(void);
+
+	/** return the equation group to which the generate degrees of
+	 * freedom belong. */
+	virtual int Group(void) const;	
 	
 private:
 
@@ -62,8 +67,11 @@ private:
 
 private:
 
-	/* nodemanager(s) */
+	/** XDOF manager */
 	XDOF_ManagerT* fXDOF_Nodes;
+
+	/** the field */
+	const FieldT& fField;
 	
 	/* contact equation sets (shallow copy of contact node equs) */
 	iArray2DT fContactEqnos2D;

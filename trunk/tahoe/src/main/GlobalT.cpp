@@ -1,6 +1,5 @@
-/* $Id: GlobalT.cpp,v 1.4 2002-01-22 02:14:22 paklein Exp $ */
-/* created: paklein (04/01/2000)                                          */
-/* GlobalT.cpp                                                            */
+/* $Id: GlobalT.cpp,v 1.5 2002-06-08 20:20:28 paklein Exp $ */
+/* created: paklein (04/01/2000) */
 
 #include "GlobalT.h"
 #include <iostream.h>
@@ -12,6 +11,9 @@ istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code)
 	in >> i_code;
 	switch (i_code)
 	{
+		case GlobalT::kNoAnalysis:
+			code = GlobalT::kNoAnalysis;
+			break;
 		case GlobalT::kLinStatic:
 			code = GlobalT::kLinStatic;
 			break;
@@ -70,6 +72,9 @@ istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code)
 			break;
 		case GlobalT::kPML:
 			code = GlobalT::kPML;
+			break;
+		case GlobalT::kMultiField:
+			code = GlobalT::kMultiField;
 			break;
 		default:
 			cout << "\n operator>>GlobalT::AnalysisCodeT: unknown code: "

@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.cpp,v 1.6 2002-03-22 02:27:53 paklein Exp $ */
+/* $Id: iNLSolver_LS.cpp,v 1.7 2002-06-08 20:20:55 paklein Exp $ */
 /* created: paklein (01/01/2001) */
 
 #include "iNLSolver_LS.h"
@@ -19,8 +19,8 @@
 #include "CCNSMatrixT.h"
 
 /* constructor */
-iNLSolver_LS::iNLSolver_LS(FEManagerT& fe_manager):
-	NLSolver_LS(fe_manager),
+iNLSolver_LS::iNLSolver_LS(FEManagerT& fe_manager, int group):
+	NLSolver_LS(fe_manager, group),
 	fFormTangent(true),
 	fLineSearch(true)
 {
@@ -50,8 +50,13 @@ iNLSolver_LS::iNLSolver_LS(FEManagerT& fe_manager):
 }
 
 /* interactive */
-void iNLSolver_LS::Run(void)
+SolverT::SolutionStatusT iNLSolver_LS::Solve(int)
 {
+//TEMP - revised solvers means this interactive part needs to change
+cout << "\n iNLSolver_LS::Solve: not updated for multifield" << endl;
+return kFailed;
+
+#if 0
 	/* initial state */
 	fIterationStatus = kConverged;
 	
@@ -75,6 +80,7 @@ void iNLSolver_LS::Run(void)
 	/* execute */
 	StringT line;
 	iDoCommand(*step_command, line);
+#endif
 }
 
 /* console commands */
@@ -108,14 +114,14 @@ bool iNLSolver_LS::iDoCommand(const CommandSpecT& command, StringT& line)
 		{
 			/* compute new residual */
 			fRHS = 0.0;
-			fFEManager.FormRHS();
+			fFEManager.FormRHS(Group());
 			cout << "residual norm = " << fRHS.Magnitude() << endl;
 			return true;
 		}
 		else if (command.Name() == "ResetStep")
 		{
 			/* step back to last converged */
-			fFEManager.ResetStep();
+//			fFEManager.ResetStep();
 
 			/* initialize step */
 			return DoInitStep();
@@ -160,7 +166,7 @@ bool iNLSolver_LS::iDoCommand(const CommandSpecT& command, StringT& line)
 		cout << "\n iNLSolver_LS::iDoCommand: exception at step number "
 		     << fFEManager.StepNumber() << " with step "
 		     << fFEManager.TimeStep() << endl;
-		fFEManager.HandleException(code);
+//		fFEManager.HandleException(code);
 		return false;
 	}
 }
@@ -213,6 +219,8 @@ bool iNLSolver_LS::DoInitStep(void)
 	/* close any iteration output */	
 	CloseIterationOutput();
 
+	return false; //TEMP
+#if 0
 	if (Step())
 	{
 		/* apply boundary conditions */
@@ -225,9 +233,10 @@ bool iNLSolver_LS::DoInitStep(void)
 		cout << "reached end of time sequence" << endl;
 		return false;
 	}
+#endif
 }
 
-NLSolver::IterationStatusT iNLSolver_LS::DoIterate(int max_count)
+NLSolver::SolutionStatusT iNLSolver_LS::DoIterate(int max_count)
 {
 	/* no action */
 	if (max_count < 1) return fIterationStatus;
@@ -251,7 +260,7 @@ NLSolver::IterationStatusT iNLSolver_LS::DoIterate(int max_count)
 				InitIterationOutput();
 	
 				fRHS = 0.0;
-				fFEManager.FormRHS();
+				fFEManager.FormRHS(Group());
 	
 				/* initial error */
 				double error = Residual(fRHS);
@@ -271,7 +280,7 @@ NLSolver::IterationStatusT iNLSolver_LS::DoIterate(int max_count)
 			if (fIterationStatus == kConverged)
 			{
 				fIterationStatus = DoConverged();	
-				fFEManager.CloseStep();
+//				fFEManager.CloseStep();
 			}
 			break;
 		}

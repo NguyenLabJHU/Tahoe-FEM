@@ -1,4 +1,4 @@
-/* $Id: tevp3D.cpp,v 1.8 2001-10-03 22:16:46 hspark Exp $ */
+/* $Id: tevp3D.cpp,v 1.9 2002-06-08 20:20:46 paklein Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (06/25/2001) */
 
@@ -7,7 +7,6 @@
 #include <math.h>
 #include "ifstreamT.h"
 #include "FiniteStrainT.h"
-#include "FEManagerT.h"
 #include "ElementCardT.h"
 
 /* element output data */
@@ -25,7 +24,7 @@ tevp3D::tevp3D(ifstreamT& in, const FiniteStrainT& element):
   IsotropicT(in),
   /* initialize references */
   fRunState(ContinuumElement().RunState()),
-  fDt(ContinuumElement().FEManager().TimeStep()),
+  fDt(ContinuumElement().ElementSupport().TimeStep()),
   fStress(3),
   fModulus(kVoigt),
   fLocVel(element.Velocities()),

@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.cpp,v 1.3 2001-11-06 17:43:37 paklein Exp $ */
+/* $Id: SurfaceShapeT.cpp,v 1.4 2002-06-08 20:20:54 paklein Exp $ */
 /* created: paklein (11/21/1997)                                          */
 /* Class to manage CSE integrals, where the dimension of                  */
 /* the field variable is 1 greater than the dimension of the parent       */
@@ -83,6 +83,7 @@ void SurfaceShapeT::Initialize(void)
 	dMatrixT shNaMat;
 	for (int i = 0; i < fNumIP; i++)
 	{
+		double* Na = fNa(i);
 		double* jumpNa = fjumpNa(i);
 		int* sign = jump.Pointer();
 		
@@ -94,6 +95,7 @@ void SurfaceShapeT::Initialize(void)
 			for (int j = 0; j < fNumFacetNodes; j++) //ISO
 			{
 				int dex = *pfacet++;
+				Na[dex] = *shape;
 				jumpNa[dex] = sign[dex]*(*shape++);
 			}
 		}
@@ -128,12 +130,11 @@ void SurfaceShapeT::Initialize(void)
 
 /**** for the current integration point ***/
 
-/* jump in the nodal values */
-const dArrayT& SurfaceShapeT::InterpolateJumpU(const LocalArrayT& nodalU) const
+void SurfaceShapeT::InterpolateJump(const LocalArrayT& nodal, dArrayT& jump) const
 {
-	for (int i = 0; i < fFieldDim; i++)
-		fInterp[i] = fjumpNa.DotRow(fCurrIP, nodalU(i));
-	return fInterp;
+	int dim = jump.Length();
+	for (int i = 0; i < dim; i++)
+		jump[i] = fjumpNa.DotRow(fCurrIP, nodal(i));
 }
 
 /* interpolate field values to the current integration point */
@@ -400,6 +401,9 @@ void SurfaceShapeT::Construct(void)
 	/* check dimensions */
 	if (fFacetCoords.NumberOfNodes()*2 != fTotalNodes) throw eSizeMismatch;
 
+	/* shape functions */
+	fNa.Allocate(fNumIP, fTotalNodes);
+
 	/* jump shape functions */
 	fjumpNa.Allocate(fNumIP, fTotalNodes);
 
@@ -422,7 +426,8 @@ void SurfaceShapeT::Construct(void)
 	fInterp.Allocate(fFieldDim);
 	
 	/* coordinate transformation */	
-	fJacobian.Allocate(fFieldDim, fFieldDim-1);
+	int nsd = fFacetCoords.MinorDim();
+	fJacobian.Allocate(nsd, nsd-1);
 	
 	/* surface node numbering */
 	fFacetNodes.Allocate(2, fNumFacetNodes);

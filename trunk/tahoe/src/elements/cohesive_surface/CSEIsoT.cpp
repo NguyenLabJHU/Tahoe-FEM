@@ -1,8 +1,5 @@
-/* $Id: CSEIsoT.cpp,v 1.6 2001-04-04 22:35:08 paklein Exp $ */
-/* created: paklein (11/19/1997)                                          */
-/* Cohesive surface elements with scalar traction potentials,             */
-/* i.e., the traction potential is a function of the gap magnitude,       */
-/* or effective gap magnitude only.                                       */
+/* $Id: CSEIsoT.cpp,v 1.7 2002-06-08 20:20:16 paklein Exp $ */
+/* created: paklein (11/19/1997) */
 
 #include "CSEIsoT.h"
 
@@ -10,11 +7,10 @@
 #include <iostream.h>
 #include <iomanip.h>
 
+#include "ElementSupportT.h"
 #include "fstreamT.h"
 #include "Constants.h"
 #include "SurfaceShapeT.h"
-#include "FEManagerT.h"
-#include "NodeManagerT.h"
 #include "C1FunctionT.h"
 #include "eControllerT.h"
 
@@ -23,8 +19,8 @@
 #include "SmithFerrante.h"
 
 /* constructor */
-CSEIsoT::CSEIsoT(FEManagerT& fe_manager):
-	CSEBaseT(fe_manager)
+CSEIsoT::CSEIsoT(const ElementSupportT& support, const FieldT& field):
+	CSEBaseT(support, field)
 {
 
 }
@@ -32,7 +28,7 @@ CSEIsoT::CSEIsoT(FEManagerT& fe_manager):
 /* form of tangent matrix */
 GlobalT::SystemTypeT CSEIsoT::TangentType(void) const
 {
-	/* tangent matrix is not symmetric */
+	/* tangent matrix is symmetric */
 	return GlobalT::kSymmetric;
 }
 
@@ -49,8 +45,8 @@ void CSEIsoT::Initialize(void)
 	}
 
 	/* streams */
-	ifstreamT& in = fFEManager.Input();
-	ostream&   out = fFEManager.Output();
+	ifstreamT& in = ElementSupport().Input();
+	ostream&   out = ElementSupport().Output();
 	
 	/* construct props */
 	int numpots;
@@ -242,35 +238,39 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	/* nothing to output */
 	if (n_out == 0 && e_out == 0) return;
 
+	int nsd = NumSD();
+	int ndof = NumDOF();
+	int nen = NumElementNodes();
+
 	/* reset averaging workspace */
-	fNodes->ResetAverage(n_out);
+	ElementSupport().ResetAverage(n_out);
 
 	/* allocate element results space */
-	e_values.Allocate(fNumElements, e_out);
+	e_values.Allocate(NumElements(), e_out);
 	e_values = 0.0;
 
 	/* work arrays */
-	dArray2DT nodal_space(fNumElemNodes, n_out);
-	dArray2DT nodal_all(fNumElemNodes, n_out);
+	dArray2DT nodal_space(nen, n_out);
+	dArray2DT nodal_all(nen, n_out);
 	dArray2DT coords, disp;
 	dArray2DT jump, Tmag;
 
 	/* ip values */
 	dArrayT ipjump(1), ipTmag(1);
-	LocalArrayT loc_init_coords(LocalArrayT::kInitCoords, fNumElemNodes, fNumSD);
-	LocalArrayT loc_disp(LocalArrayT::kDisp, fNumElemNodes, fNumDOF);
-	fFEManager.RegisterLocal(loc_init_coords);
-	fFEManager.RegisterLocal(loc_disp);
+	LocalArrayT loc_init_coords(LocalArrayT::kInitCoords, nen, nsd);
+	LocalArrayT loc_disp(LocalArrayT::kDisp, nen, ndof);
+	ElementSupport().RegisterCoordinates(loc_init_coords);
+	Field().RegisterLocal(loc_disp);
 
 	/* set shallow copies */
 	double* pall = nodal_space.Pointer();
-	coords.Set(fNumElemNodes, n_codes[NodalCoord], pall);
+	coords.Set(nen, n_codes[NodalCoord], pall);
 	pall += coords.Length();
-	disp.Set(fNumElemNodes, n_codes[NodalDisp], pall);
+	disp.Set(nen, n_codes[NodalDisp], pall);
 	pall += disp.Length();
-	jump.Set(fNumElemNodes, n_codes[NodalDispJump], pall);
+	jump.Set(nen, n_codes[NodalDispJump], pall);
 	pall += jump.Length();
-	Tmag.Set(fNumElemNodes, n_codes[NodalTraction], pall);
+	Tmag.Set(nen, n_codes[NodalTraction], pall);
 
 	/* element work arrays */
 	dArrayT element_values(e_values.MinorDim());
@@ -278,8 +278,8 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	dArrayT centroid;
 	if (e_codes[Centroid])
 	{
-		centroid.Set(fNumSD, pall); 
-		pall += fNumSD;
+		centroid.Set(nsd, pall); 
+		pall += nsd;
 	}
 	double e_tmp, area;
 	double& phi = (e_codes[CohesiveEnergy]) ? *pall++ : e_tmp;
@@ -433,12 +433,12 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		nodal_all.BlockColumnCopyAt(Tmag  , colcount);
 
 		/* accumulate - extrapolation done from ip's to corners => X nodes */
-		fNodes->AssembleAverage(CurrentElement().NodesX(), nodal_all);
+		ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_all);
 		
 		/* store results */
 		e_values.SetRow(CurrElementNumber(), element_values);		
 	}
 
 	/* get nodally averaged values */
-	fNodes->OutputUsedAverage(n_values);
+	ElementSupport().OutputUsedAverage(n_values);
 }

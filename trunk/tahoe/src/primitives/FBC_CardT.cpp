@@ -1,4 +1,4 @@
-/* $Id: FBC_CardT.cpp,v 1.5 2002-02-27 16:47:49 paklein Exp $ */
+/* $Id: FBC_CardT.cpp,v 1.6 2002-06-08 20:20:53 paklein Exp $ */
 /* created: paklein (06/15/1996) */
 
 #include "FBC_CardT.h"
@@ -7,10 +7,9 @@
 #include <iomanip.h>
 
 #include "Constants.h"
-
+#include "NodeManagerT.h" // needed for schedule information
 #include "fstreamT.h"
-#include "NodeManagerT.h"
-#include "LoadTime.h"
+#include "ScheduleT.h"
 
 /* copy behavior for arrays FBC_CardT's */
 const bool ArrayT<FBC_CardT*>::fByteCopy = true;
@@ -20,15 +19,15 @@ const bool ArrayT<FBC_CardT>::fByteCopy = false;
 FBC_CardT::FBC_CardT(void):
 	fNode(-1),
 	fDOF(-1),
-	fLTf(-1),
+	fSchedNum(-1),
 	fValue(0.0),
-	fLTfPtr(NULL)
+	fSchedule(NULL)
 {
 
 }
 
 /* modifiers */
-void FBC_CardT::SetValues(const NodeManagerPrimitive& theBoss, ifstreamT& in)
+void FBC_CardT::SetValues(const NodeManagerT& theBoss, ifstreamT& in)
 {
 	/* parameters */
 	int    node;
@@ -46,17 +45,17 @@ void FBC_CardT::SetValues(const NodeManagerPrimitive& theBoss, ifstreamT& in)
 	SetValues(theBoss, node, dof, nLTf, value);
 }
 
-void FBC_CardT::SetValues(const NodeManagerPrimitive& theBoss, int node, int dof,
-	int nLTf, double value)
+void FBC_CardT::SetValues(const NodeManagerT& theBoss, int node, int dof,
+	int schedule, double value)
 {
 	/* set */
-	fNode  = node;
-	fDOF   = dof;
-	fLTf   = nLTf;
-	fValue = value;
+	fNode     = node;
+	fDOF      = dof;
+	fSchedNum = schedule;
+	fValue    = value;
 	
-	/* resolve the pointer to the LTf */
-	fLTfPtr = theBoss.GetLTfPtr(fLTf);
+	/* resolve the pointer to the schedule */
+	fSchedule = theBoss.Schedule(fSchedNum);
 }
 
 /* split force value in half */
@@ -68,11 +67,11 @@ void FBC_CardT::SplitForce(void)
 /* return the current value */
 double FBC_CardT::CurrentValue(void) const
 {
-	return fValue*(fLTfPtr->LoadFactor());
+	return fValue*(fSchedule->Value());
 }
 
 /* I/O */
-void FBC_CardT::WriteHeader(ostream& out) const
+void FBC_CardT::WriteHeader(ostream& out)
 {
 	double* junk = NULL;
 	int d_width = OutputWidth(out, junk);
@@ -89,7 +88,7 @@ void FBC_CardT::WriteValues(ostream& out) const
 
 	out << setw(kIntWidth) << fNode + 1
 	    << setw(kIntWidth) << fDOF + 1
-<< setw(kIntWidth) << fLTf + 1
+<< setw(kIntWidth) << fSchedNum + 1
 << setw(d_width)   << fValue
 << '\n';
 }

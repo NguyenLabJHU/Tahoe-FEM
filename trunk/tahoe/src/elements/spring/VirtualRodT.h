@@ -1,7 +1,5 @@
-/* $Id: VirtualRodT.h,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
-/* created: paklein (05/01/1997)                                          */
-/* UnConnectedRodT plus virtual elements for periodic boundary            */
-/* conditions.                                                            */
+/* $Id: VirtualRodT.h,v 1.2 2002-06-08 20:20:27 paklein Exp $ */
+/* created: paklein (05/01/1997) */
 
 #ifndef _UNCON_VROD_T_H_
 #define _UNCON_VROD_T_H_
@@ -14,7 +12,7 @@ class VirtualRodT: public UnConnectedRodT
 public:
 
 	/* constructor */
-	VirtualRodT(FEManagerT& fe_manager);
+	VirtualRodT(const ElementSupportT& support, const FieldT& field);
 
 	/* append element equations numbers to the list */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,

@@ -1,5 +1,5 @@
-/* $Id: D2MeshFreeFSSolidT.h,v 1.2 2001-07-03 01:34:55 paklein Exp $ */
-/* created: paklein (10/23/1999)                                          */
+/* $Id: D2MeshFreeFSSolidT.h,v 1.3 2002-06-08 20:20:25 paklein Exp $ */
+/* created: paklein (10/23/1999) */
 
 #ifndef _D2_EFG_FDELASTIC_T_H_
 #define _D2_EFG_FDELASTIC_T_H_
@@ -16,7 +16,7 @@ class D2MeshFreeFSSolidT: public MeshFreeFSSolidT
 public:
 
 	/* constructor */
-	D2MeshFreeFSSolidT(FEManagerT& fe_manager);
+	D2MeshFreeFSSolidT(const ElementSupportT& support, const FieldT& field);
 
 	/* accessors */
 	const D2MeshFreeShapeFunctionT& D2MLSShapeFunction() const;

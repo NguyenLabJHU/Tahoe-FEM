@@ -1,10 +1,9 @@
-/* $Id: EVPFDBaseT.cpp,v 1.6 2002-03-26 17:48:18 paklein Exp $ */
+/* $Id: EVPFDBaseT.cpp,v 1.7 2002-06-08 20:20:44 paklein Exp $ */
 #include "EVPFDBaseT.h"
 #include "NLCSolver.h"
 #include "NLCSolver_LS.h"
 #include "Utils.h"
 
-#include "FEManagerT.h"
 #include "FiniteStrainT.h"
 #include "StringT.h"
 
@@ -18,7 +17,7 @@ EVPFDBaseT::EVPFDBaseT(ifstreamT& in, const FiniteStrainT& element) :
   FDHookeanMatT(in, element),
   IsotropicT  (in),
   //fdt         (element.FEManager().TimeStep()),
-  ftime       (element.FEManager().Time()),
+  ftime       (element.ElementSupport().Time()),
   fStatus     (element.RunState()),
   fLocDisp    (element.Displacements()),
   fLocLastDisp(element.LastDisplacements()),

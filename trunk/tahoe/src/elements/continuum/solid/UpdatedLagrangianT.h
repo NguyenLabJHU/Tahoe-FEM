@@ -1,5 +1,5 @@
-/* $Id: UpdatedLagrangianT.h,v 1.3 2001-07-10 07:29:55 paklein Exp $ */
-/* created: paklein (07/03/1996)                                          */
+/* $Id: UpdatedLagrangianT.h,v 1.4 2002-06-08 20:20:22 paklein Exp $ */
+/* created: paklein (07/03/1996) */
 
 #ifndef _UPDATED_LAGRANGIAN_T_H_
 #define _UPDATED_LAGRANGIAN_T_H_
@@ -10,12 +10,13 @@
 /* direct members */
 #include "dMatrixT.h"
 
+/** update Lagrangian, finite strain solid */
 class UpdatedLagrangianT: public FiniteStrainT
 {
 public:
 
 	/* constructors */
-	UpdatedLagrangianT(FEManagerT& fe_manager);
+	UpdatedLagrangianT(const ElementSupportT& support, const FieldT& field);
 
 	/* destructors */
 	virtual ~UpdatedLagrangianT(void);

@@ -1,20 +1,19 @@
-/* $Id: VirtualSWDC.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
-/* created: paklein (05/05/1997)                                          */
-
+/* $Id: VirtualSWDC.cpp,v 1.2 2002-06-08 20:20:26 paklein Exp $ */
+/* created: paklein (05/05/1997) */
 #include "VirtualSWDC.h"
 
 #include <iomanip.h>
 
 #include "fstreamT.h"
 #include "Constants.h"
-#include "NodeManagerT.h"
 
 /* fVNodePair decoding */
 const int kVirtualNode = 0;
 const int kActiveNode  = 1;
 
 /* constructor */
-VirtualSWDC::VirtualSWDC(FEManagerT& fe_manager): SWDiamondT(fe_manager)
+VirtualSWDC::VirtualSWDC(const ElementSupportT& support, const FieldT& field): 
+	SWDiamondT(support, field)
 {
 
 }
@@ -26,7 +25,7 @@ void VirtualSWDC::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 #pragma unused(eq_2)
 
 	/* set local 2-body equations numbers */
-	fNodes->SetLocalEqnos(fNodes_2Body, fEqnos_2Body);
+	Field().SetLocalEqnos(fNodes_2Body, fEqnos_2Body);
 
 //	/* set periodic local equation numbers for 3-body */
 //	iArray2DT temp_3Body; //temp copy to be modified
@@ -41,7 +40,7 @@ void VirtualSWDC::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 //	theNodes->SetLocalEqnos(temp_3Body, fEqnos_3Body);
 
 	/* set local 3-body equations numbers */	
-	fNodes->SetLocalEqnos(fPeriodicNodes_3Body, fEqnos_3Body);
+	Field().SetLocalEqnos(fPeriodicNodes_3Body, fEqnos_3Body);
 
 	/* add to list */
 	eq_1.Append(&fEqnos_3Body); //3 body is superset
@@ -118,7 +117,7 @@ void VirtualSWDC::SwapVirtualNodes(iArray2DT& elnodelist)
 void VirtualSWDC::SwapVirtualNodes2(iArray2DT& elnodelist)
 {
 	/* load local equation numbers - redundant */
-	fNodes->SetLocalEqnos(fNodes_3Body, fEqnos_3Body);
+	Field().SetLocalEqnos(fNodes_3Body, fEqnos_3Body);
 
 	/* shallow work space */
 	iArrayT localeqns, localnds;

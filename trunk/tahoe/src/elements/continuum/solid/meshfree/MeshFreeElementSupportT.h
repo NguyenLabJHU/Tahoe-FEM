@@ -1,5 +1,5 @@
-/* $Id: MeshFreeElementSupportT.h,v 1.4 2001-12-17 00:15:56 paklein Exp $ */
-/* created: paklein (11/12/1999)                                          */
+/* $Id: MeshFreeElementSupportT.h,v 1.5 2002-06-08 20:20:25 paklein Exp $ */
+/* created: paklein (11/12/1999) */
 
 #ifndef _MFREE_SUPPORT_T_H_
 #define _MFREE_SUPPORT_T_H_

@@ -1,5 +1,5 @@
-/* $Id: ACME_Contact3DT.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
-/* created: paklein (10/15/2000)                                          */
+/* $Id: ACME_Contact3DT.h,v 1.2 2002-06-08 20:20:19 paklein Exp $ */
+/* created: paklein (10/15/2000) */
 
 #ifndef _ACME_PENALTY_CONTACT3D_T_H_
 #define _ACME_PENALTY_CONTACT3D_T_H_
@@ -18,7 +18,7 @@ class ACME_Contact3DT: public PenaltyContact3DT
 public:
 
 	/* constructor */
-	ACME_Contact3DT(FEManagerT& fe_manager);
+	ACME_Contact3DT(const ElementSupportT& support, const FieldT& field);
 
 	/* destructor */
 	~ACME_Contact3DT(void);

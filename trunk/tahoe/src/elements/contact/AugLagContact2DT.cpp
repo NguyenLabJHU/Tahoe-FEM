@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.6 2001-12-31 17:44:27 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.7 2002-06-08 20:20:19 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 
 #include "AugLagContact2DT.h"
@@ -8,19 +8,19 @@
 #include <iomanip.h>
 
 #include "fstreamT.h"
-#include "FEManagerT.h"
 #include "eControllerT.h"
-#include "NodeManagerT.h"
+#include "ElementSupportT.h"
+#include "XDOF_ManagerT.h"
 
 /* parameters */
 const int kNumAugLagDOF  = 1;
 
 /* constructor */
-AugLagContact2DT::AugLagContact2DT(FEManagerT& fe_manager):
-	Contact2DT(fe_manager)
+AugLagContact2DT::AugLagContact2DT(const ElementSupportT& support, const FieldT& field):
+	Contact2DT(support, field)
 {
 	/* regularization parameter */
-	fFEManager.Input() >> fr;
+	ElementSupport().Input() >> fr;
 	if (fr < 0.0) throw eBadInputValue;
 }
 
@@ -31,22 +31,22 @@ void AugLagContact2DT::Initialize(void)
 	Contact2DT::Initialize();
 
 	/* reset base class parameters */
-	fNumElemEqnos = fNumElemNodes*fNumDOF + 1; // 1 additional dof
+	int neq = NumElementNodes()*NumDOF() + 1; // 1 additional dof
 
 	/* re-size element results */
-	fLHS.Allocate(fNumElemEqnos); // or make new variables?
-	fRHS.Allocate(fNumElemEqnos);
+	fLHS.Allocate(neq); // or make new variables?
+	fRHS.Allocate(neq);
 
 	/* dynamic work space managers for element arrays */
-	fXDOFConnectivities_man.SetWard(0, fXDOFConnectivities, fNumElemNodes + 1);		
-	fXDOFEqnos_man.SetWard(0, fXDOFEqnos, fNumElemEqnos);
+	fXDOFConnectivities_man.SetWard(0, fXDOFConnectivities, NumElementNodes() + 1);		
+	fXDOFEqnos_man.SetWard(0, fXDOFEqnos, neq);
 
 	/* only 1 tag set for the group */
 	iArrayT numDOF(1);
 	numDOF = kNumAugLagDOF;
 
 	/* register with node manager - sets initial fContactDOFtags */
-	fNodes->XDOF_Register(this, numDOF);
+	ElementSupport().XDOF_Manager().XDOF_Register(this, numDOF);
 }
 
 /* append element equations numbers to the list */
@@ -56,7 +56,7 @@ void AugLagContact2DT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 #pragma unused(eq_2)
 
 	/* collect using method allowing mixed node/tag numbers */
-	fNodes->XDOF_SetLocalEqnos(fXDOFConnectivities, fXDOFEqnos);
+	ElementSupport().XDOF_Manager().XDOF_SetLocalEqnos(Group(), fXDOFConnectivities, fXDOFEqnos);
 
 	/* add to list */
 	eq_1.Append(&fXDOFEqnos);
@@ -67,7 +67,7 @@ void AugLagContact2DT::SetDOFTags(void)
 {
 	/* DOF space about to be reset. store history */
 	dArrayT constraints;
-	constraints.Alias(fNodes->XDOF(this, 0));
+	constraints.Alias(ElementSupport().XDOF_Manager().XDOF(this, 0));
 	fLastDOF = constraints;
 
 	/* resize DOF tags array */
@@ -76,10 +76,10 @@ void AugLagContact2DT::SetDOFTags(void)
 	/* write list of active strikers */
 	iArrayT tmp;
 	tmp.Alias(fActiveStrikers);	
-	ostream& out = fFEManager.Output();
-	out << "\nold: " << fNodes->XDOF(this, 0).MajorDim() << '\n';
+	ostream& out = ElementSupport().Output();
+	out << "\nold: " << ElementSupport().XDOF_Manager().XDOF(this, 0).MajorDim() << '\n';
 	out << "new: " << fActiveStrikers.Length() << endl;
-	out << "\n            time: " << fFEManager.Time() << '\n';
+	out << "\n            time: " << ElementSupport().Time() << '\n';
 	out <<   " active strikers: " << tmp.Length()   << '\n';
 	tmp++;
 	out << tmp.wrap(8) << '\n';
@@ -257,15 +257,16 @@ void AugLagContact2DT::LHSDriver(void)
 	if (!formK) return;
 
 	/* get reference to global coordinates and constrain force vector */
-	const dArray2DT& coords = fNodes->CurrentCoordinates();
-	const dArray2DT& constr = fNodes->XDOF(this, 0);
+	const dArray2DT& coords = ElementSupport().CurrentCoordinates();
+	const dArray2DT& constr = ElementSupport().XDOF_Manager().XDOF(this, 0);
 	const dArrayT force(constr.MajorDim(),constr.Pointer());
 
 	/* loop over active elements */
-	dArrayT tangent(fNumSD);
+	int neq = NumElementNodes()*NumDOF() + 1;
+	dArrayT tangent(NumSD());
 	iArrayT eqnos;
-	dMatrixT uLHS(fNumElemEqnos - kNumAugLagDOF);
-	dArrayT  uRHS(fNumElemEqnos - kNumAugLagDOF, fRHS.Pointer());
+	dMatrixT uLHS(neq - kNumAugLagDOF);
+	dArrayT  uRHS(neq - kNumAugLagDOF, fRHS.Pointer());
 	for (int i = 0; i < fXDOFConnectivities.MajorDim(); i++)
 	{
 		int* pelem = fXDOFConnectivities(i);
@@ -303,13 +304,13 @@ void AugLagContact2DT::LHSDriver(void)
 			/* compute  d h/d d_i*/
 			uRHS.AddScaled(-h/(magtan*magtan),fNEEvec);
 
-			fColtemp1.Set(fNumElemEqnos - 1, fdv1T(0));
-			fColtemp2.Set(fNumElemEqnos - 1, fdv2T(1));
+			fColtemp1.Set(neq - 1, fdv1T(0));
+			fColtemp2.Set(neq - 1, fdv2T(1));
 			uRHS.AddCombination(-fv2[1]/magtan,fColtemp1,
 				                -fv1[0]/magtan,fColtemp2);
 			
-			fColtemp1.Set(fNumElemEqnos - 1, fdv1T(1));
-			fColtemp2.Set(fNumElemEqnos - 1, fdv2T(0));
+			fColtemp1.Set(neq - 1, fdv1T(1));
+			fColtemp2.Set(neq - 1, fdv2T(0));
 			uRHS.AddCombination(fv2[0]/magtan, fColtemp1,
 				                fv1[1]/magtan, fColtemp2);
 
@@ -343,7 +344,7 @@ void AugLagContact2DT::LHSDriver(void)
 			fLHS.AddBlock(0, 0, uLHS);
 			
 			/* augmented Lagrangian DOF */
-			int dex = fNumElemEqnos - 1;
+			int dex = neq - 1;
 			fLHS.SetRow(dex, fRHS);
 			fLHS.SetCol(dex, fRHS);
 			
@@ -355,7 +356,7 @@ void AugLagContact2DT::LHSDriver(void)
 			fLHS = 0.0;
 		
 			/* augmented Lagrangian DOF */
-			int dex = fNumElemEqnos - 1;
+			int dex = neq - 1;
 			fLHS(dex,dex) = -1.0/fr;							
 		}
 		
@@ -363,7 +364,7 @@ void AugLagContact2DT::LHSDriver(void)
 		fXDOFEqnos.RowAlias(i, eqnos);
 			
 		/* assemble */
-		fFEManager.AssembleLHS(fLHS, eqnos);
+		ElementSupport().AssembleLHS(Group(), fLHS, eqnos);
 	}
 }
 
@@ -375,15 +376,15 @@ void AugLagContact2DT::RHSDriver(void)
 	if (!formKd) return;
 
 	/* get reference to global coordinates and constrain force vector */
-	const dArray2DT& coords = fNodes->CurrentCoordinates(); //EFFECTIVE_DVA
-	const dArray2DT& constr = fNodes->XDOF(this, 0);
+	const dArray2DT& coords = ElementSupport().CurrentCoordinates(); //EFFECTIVE_DVA
+	const dArray2DT& constr = ElementSupport().XDOF_Manager().XDOF(this, 0);
 	const dArrayT force(constr.MajorDim(), constr.Pointer()); // general for all
 	                                                          // value of kNumAugLagDOF
-
 	/* loop over active elements */
-	dArrayT tangent(fNumSD);
+	int neq = NumElementNodes()*NumDOF() + 1;
+	dArrayT tangent(NumSD());
 	iArrayT eqnos;
-	dArrayT uRHS(fNumElemEqnos - kNumAugLagDOF,fRHS.Pointer());
+	dArrayT uRHS(neq - kNumAugLagDOF, fRHS.Pointer());
 	for (int i = 0; i < fXDOFConnectivities.MajorDim(); i++)
 	{
 		int* pelem = fXDOFConnectivities(i);
@@ -423,18 +424,18 @@ void AugLagContact2DT::RHSDriver(void)
 			uRHS.AddScaled(-g*h/(magtan*magtan),fNEEvec);
 						
 			/* d_area */
-			fColtemp1.Set(fNumElemEqnos - 1, fdv1T(0));
-			fColtemp2.Set(fNumElemEqnos - 1, fdv2T(1));
+			fColtemp1.Set(neq - 1, fdv1T(0));
+			fColtemp2.Set(neq - 1, fdv2T(1));
 			uRHS.AddCombination(-g*fv2[1]/magtan, fColtemp1,
 				                -g*fv1[0]/magtan, fColtemp2);
 			
-			fColtemp1.Set(fNumElemEqnos - 1, fdv1T(1));
-			fColtemp2.Set(fNumElemEqnos - 1, fdv2T(0));
+			fColtemp1.Set(neq - 1, fdv1T(1));
+			fColtemp2.Set(neq - 1, fdv2T(0));
 			uRHS.AddCombination(g*fv2[0]/magtan, fColtemp1,
 				                g*fv1[1]/magtan, fColtemp2);
 				
 			/* augmented Lagrangian DOF */				
-			fRHS[fNumElemEqnos - 1] = h;					
+			fRHS[neq - 1] = h;					
 		}
 		/* gap */
 		else
@@ -443,7 +444,7 @@ void AugLagContact2DT::RHSDriver(void)
 			fRHS = 0.0;
 
 			/* augmented Lagrangian DOF */				
-			fRHS[fNumElemEqnos - 1] = -force[i]/fr;							
+			fRHS[neq - 1] = -force[i]/fr;							
 		}
 
 		//NOTE: Contact force is the negative of the element
@@ -454,6 +455,6 @@ void AugLagContact2DT::RHSDriver(void)
 		fXDOFEqnos.RowAlias(i, eqnos);
 
 		/* assemble */
-		fFEManager.AssembleRHS(fRHS, eqnos);
+		ElementSupport().AssembleRHS(Group(), fRHS, eqnos);
 	}
 }

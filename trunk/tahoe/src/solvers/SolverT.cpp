@@ -1,5 +1,5 @@
-/* $Id: SolverT.cpp,v 1.4 2002-02-11 01:23:03 paklein Exp $ */
-/* created: paklein (05/23/1996)                                          */
+/* $Id: SolverT.cpp,v 1.5 2002-06-08 20:20:55 paklein Exp $ */
+/* created: paklein (05/23/1996) */
 
 #include "SolverT.h"
 
@@ -26,8 +26,9 @@
 #endif
 
 /* constructor */
-SolverT::SolverT(FEManagerT& fe_manager):
+SolverT::SolverT(FEManagerT& fe_manager, int group):
 	fFEManager(fe_manager),
+	fGroup(group),
 	fLHS(NULL),
 	fNumIteration(0)
 {
@@ -40,6 +41,7 @@ SolverT::SolverT(FEManagerT& fe_manager):
 
 	ostream& out = fFEManager.Output();
 	out << "\n S o l v e r   p a r a m e t e r s:\n\n";
+	out << " Group . . . . . . . . . . . . . . . . . . . . . = " << fGroup << '\n';
 	out << " Global equation type. . . . . . . . . . . . . . = " << fMatrixType << '\n';
 	out << "    eq. " << kDiagonalMatrix   << ", diagonal matrix\n";
 	out << "    eq. " << kProfileSolver    << ", profile solver (symmetric and nonsymmetric)\n";
@@ -107,7 +109,7 @@ void SolverT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 		fLHS->Initialize(tot_num_eq, loc_num_eq, start_eq);
 	
 		/* output global equation number for each DOF */
-		if (fPrintEquationNumbers) fFEManager.WriteEquationNumbers();
+		if (fPrintEquationNumbers) fFEManager.WriteEquationNumbers(fGroup);
 	}	
 
 	catch (int error_code)
@@ -216,7 +218,7 @@ GlobalT::EquationNumberScopeT SolverT::EquationNumberScope(void) const
 
 /* advance to next load step. Returns 0 if there are no more
 * steps. Overload to add class dependent initializations */
-int SolverT::Step(void) { return fFEManager.Step(); }
+//int SolverT::Step(void) { return fFEManager.Step(); }
 
 /* return the magnitude of the residual force */
 double SolverT::Residual(const dArrayT& force) const
@@ -364,7 +366,7 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 		case kProfileSolver:
 		{
 			/* global system properties */
-			GlobalT::SystemTypeT type = fFEManager.GlobalSystemType();
+			GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
 		
 			if (type == GlobalT::kNonSymmetric)
 				fLHS = new CCNSMatrixT(out, check_code);
@@ -416,7 +418,7 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 		{
 #ifdef __SPOOLES__
 			/* global system properties */
-			GlobalT::SystemTypeT type = fFEManager.GlobalSystemType();
+			GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
 
 			/* solver options */
 			bool pivoting = true; //NOTE: SPOOLES v2.2 does not seem to solve non-symmetric

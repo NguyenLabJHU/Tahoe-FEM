@@ -1,12 +1,12 @@
-/* $Id: LinearSolver.cpp,v 1.2 2002-04-02 23:28:01 paklein Exp $ */
-/* created: paklein (05/30/1996)                                          */
+/* $Id: LinearSolver.cpp,v 1.3 2002-06-08 20:20:55 paklein Exp $ */
+/* created: paklein (05/30/1996) */
 
 #include "LinearSolver.h"
 #include "FEManagerT.h"
 
 /* constructor */
-LinearSolver::LinearSolver(FEManagerT& fe_manager):
-	SolverT(fe_manager),
+LinearSolver::LinearSolver(FEManagerT& fe_manager, int group):
+	SolverT(fe_manager, group),
 	fFormLHS(1)
 {
 
@@ -20,77 +20,61 @@ void LinearSolver::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	
 	/* flag to reform LHS */
 	fFormLHS = 1;
-
-#if 0
-	int analysis_code = fFEManager.Analysis();
-	if (analysis_code != GlobalT::kLinExpDynamic &&
-		analysis_code != GlobalT::kNLExpDynamic)
-		fFormLHS = 1;
-#endif
-//NOTE: these checks were added because explicit dynamics with
-//      contact was reforming the mass matrix whenever the contact
-//      configuration was changed. until this state is more clearly
-//      defined {ReEQ, Relax, ReEQRelax, ????}
-//
-//  Need a flag to say that the force configured:
-//    ReEQ_LHS, ReEQ_RHS
 }
 
-/* solve for the current time sequence */
-void LinearSolver::Run(void)
+/* solve the current step */
+SolverT::SolutionStatusT LinearSolver::Solve(int)
 {
-	/* single-step update loop */
-	while (Step())
-	{
-		try
-		{
-			/* initialize */
-			fRHS = 0.0;
+	try {
+	/* initialize */
+	fRHS = 0.0;
 			
-			/* apply kinematic BC's */
-			fFEManager.InitStep();
-
-			/* form the residual force vector */
-			fFEManager.FormRHS();
+	/* form the residual force vector */
+	fFEManager.FormRHS(Group());
 					
-			/* solve equation system */
-			if (fFormLHS)
-			{
-				/* initialize */
-				fLHS->Clear();
+	/* solve equation system */
+	if (fFormLHS)
+	{
+		/* initialize */
+		fLHS->Clear();
 	
-				/* form the stiffness matrix */
-				fFEManager.FormLHS();
+		/* form the stiffness matrix */
+		fFEManager.FormLHS(Group());
 				
-				/* flag not to reform */
-				fFormLHS = 0;
-			}
-
-			/* determine update vector */
-			if (!fLHS->Solve(fRHS)) throw eBadJacobianDet;
-
-			/* update displacements */
-			fFEManager.Update(fRHS);		
-			
-			/* relaxation */
-			GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem();
-				
-			/* relax for configuration change */
-			if (relaxcode == GlobalT::kRelax) fFormLHS = 1;
-				//NOTE: NLSolver calls "fFEManager.Reinitialize()". Should this happen
-				//      here, too? For statics, should also reset the structure of
-				//      global stiffness matrix, but since EFG only breaks connections
-				//      and doesn't make new ones, this should be OK for now. PAK (03/04/99)
-			
-			/* trigger set of new equations */
-			if (relaxcode == GlobalT::kReEQ ||
-			    relaxcode == GlobalT::kReEQRelax)
-				fFEManager.Reinitialize();
-				
-			/* finalize */
-			fFEManager.CloseStep();
-		}
-
-		catch (int code) { fFEManager.HandleException(code); }
+		/* flag not to reform */
+		fFormLHS = 0;
 	}
-}	
+
+	/* determine update vector */
+	if (!fLHS->Solve(fRHS)) throw eBadJacobianDet;
+	fNumIteration = 1;
+
+	/* update displacements */
+	fFEManager.Update(Group(), fRHS);		
+			
+	/* relaxation */
+	GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
+				
+	/* relax for configuration change */
+	if (relaxcode == GlobalT::kRelax) fFormLHS = 1;
+			//NOTE: NLSolver calls "fFEManager.Reinitialize()". Should this happen
+			//      here, too? For statics, should also reset the structure of
+			//      global stiffness matrix, but since EFG only breaks connections
+			//      and doesn't make new ones, this should be OK for now. PAK (03/04/99)
+			
+	/* trigger set of new equations */
+	if (relaxcode == GlobalT::kReEQ ||
+	    relaxcode == GlobalT::kReEQRelax)
+		fFEManager.SetEquationSystem(Group());
+
+	return kConverged;
+	} /* end try */
+	
+	/* not OK */
+	catch (int exception)
+	{
+		cout << "\n LinearSolver::Solve: caught exception: " 
+		     << fFEManager.Exception(exception) << endl;
+		return kFailed;
+	}
+}

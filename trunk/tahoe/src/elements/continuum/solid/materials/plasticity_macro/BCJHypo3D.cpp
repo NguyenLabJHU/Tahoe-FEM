@@ -1,4 +1,4 @@
-/* $Id: BCJHypo3D.cpp,v 1.9 2002-03-26 18:52:40 ebmarin Exp $ */
+/* $Id: BCJHypo3D.cpp,v 1.10 2002-06-08 20:20:44 paklein Exp $ */
 #include "BCJHypo3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -7,7 +7,6 @@
 #include "BCJKineticEqn.h"
 
 #include "ContinuumElementT.h"
-#include "FEManagerT.h"
 
 const double sqrt32 = sqrt(3.0/2.0);
 
@@ -313,7 +312,7 @@ void BCJHypo3D::ComputeOutput(dArrayT& output)
   //output[5] = fIterCount;
 
   if (BCJ_MESSAGES && intpt == 0 && CurrElementNumber() == 0)
-     cerr << " step # " << ContinuumElement().FEManager().StepNumber()
+     cerr << " step # " << ContinuumElement().ElementSupport().StepNumber()
           << " EQP  "   << fEQValues[kEQP]
           << " EQXi "   << fEQValues[kEQXi]
           << " PRESS "  << fEQValues[kPress]
@@ -478,7 +477,7 @@ void BCJHypo3D::SolveState()
   int totSubIncrs = 1;
 
   // time step and relative deformation gradient
-  fdt = ContinuumElement().FEManager().TimeStep();
+  fdt = ContinuumElement().ElementSupport().TimeStep();
   fmatx1.Inverse(fFtot_n);
   fF.MultAB(fFtot, fmatx1);
   fFr = fF;
@@ -531,7 +530,7 @@ void BCJHypo3D::SolveState()
  
       // time step
       double tmp = (float)subIncr/(float)totSubIncrs;
-      fdt = ContinuumElement().FEManager().TimeStep() * tmp;
+      fdt = ContinuumElement().ElementSupport().TimeStep() * tmp;
       
       // relative deformation gradient for subincrement
       fFr.SetToCombination((1.-tmp), fI, tmp, fF);

@@ -1,8 +1,5 @@
-/* $Id: CSEIsoT.h,v 1.2 2001-02-20 00:42:11 paklein Exp $ */
-/* created: paklein (11/19/1997)                                          */
-/* Cohesive surface elements with scalar traction potentials,             */
-/* i.e., the traction potential is a function of the gap magnitude,       */
-/* or effective gap magnitude only.                                       */
+/* $Id: CSEIsoT.h,v 1.3 2002-06-08 20:20:16 paklein Exp $ */
+/* created: paklein (11/19/1997) */
 
 #ifndef _CSE_ISO_T_H_
 #define _CSE_ISO_T_H_
@@ -16,12 +13,15 @@
 /* forward declarations */
 class C1FunctionT;
 
+/** Cohesive surface elements with scalar traction potentials,
+ * i.e., the traction potential is a function of the gap magnitude,
+ * or effective gap magnitude only. */
 class CSEIsoT: public CSEBaseT
 {
 public:
 
 	/* constructor */
-	CSEIsoT(FEManagerT& fe_manager);
+	CSEIsoT(const ElementSupportT& support, const FieldT& field);
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;

@@ -1,4 +1,4 @@
-/* $Id: IntegratorT.cpp,v 1.2 2002-04-02 23:19:22 paklein Exp $ */
+/* $Id: IntegratorT.cpp,v 1.3 2002-06-08 20:20:11 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "IntegratorT.h"
@@ -6,7 +6,6 @@
 #include <iostream.h>
 
 #include "dArrayT.h"
-#include "NodeManagerT.h"
 
 /* constructor */
 IntegratorT::IntegratorT(void): fdt(-1.0) { }
@@ -30,5 +29,7 @@ void IntegratorT::SetTimeStep(double timestep)
 * FormRHS function */
 void IntegratorT::FormNodalForce(NodeManagerT* nodeboss) const
 {
-	nodeboss->FormRHS();
+#pragma unused(nodeboss)
+#pragma message("IntegratorT::FormNodalForce: need this????")
+//	nodeboss->FormRHS();
 }

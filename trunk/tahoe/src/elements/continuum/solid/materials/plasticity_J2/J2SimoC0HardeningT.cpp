@@ -1,4 +1,4 @@
-/* $Id: J2SimoC0HardeningT.cpp,v 1.7 2002-05-23 01:01:07 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.cpp,v 1.8 2002-06-08 20:20:41 paklein Exp $ */
 /* created: paklein (05/01/2001) */
 
 #include "J2SimoC0HardeningT.h"
@@ -20,7 +20,7 @@ const double kYieldTol = 1.0e-10;
 const int kNSD = 3;
 
 /* static variables */
-const int J2SimoC0HardeningT::kNumInternal = 7;
+const int J2SimoC0HardeningT::kNumInternal = 8;
 
 /* constructor */
 J2SimoC0HardeningT::J2SimoC0HardeningT(ifstreamT& in, int num_ip, double mu):
@@ -167,6 +167,7 @@ int J2SimoC0HardeningT::PlasticLoading(ElementCardT& element, int ip)
 		fInternal[kstressnorm] = sqrt(fRelStress.ScalarProduct());
 		fInternal[kmu_bar]     = fmu*fb_bar_trial.Trace()/3.0;
 		fInternal[kmu_bar_bar] = fInternal[kmu_bar] - ftrace_beta_trial/3.0;
+		fInternal[kHeatIncr]   = 0.0;
 		
 		/* compute unit normal */
 		fUnitNorm.SetToScaled(1.0/fInternal[kstressnorm], fRelStress);
@@ -206,6 +207,7 @@ const dSymMatrixT& J2SimoC0HardeningT::StressCorrection(ElementCardT& element, i
 		/* fetch data */
 		double  ftrial = fInternal[kftrial];
 		double& dgamma = fInternal[kdgamma];
+		double& heat_incr = fInternal[kHeatIncr];
 		
 		/* return mapping (single step) */
 		if (ftrial > kYieldTol)
@@ -259,6 +261,9 @@ const dSymMatrixT& J2SimoC0HardeningT::StressCorrection(ElementCardT& element, i
 
 			/* plastic correction - to Cauchy stress */
 			fStressCorr.SetToScaled(-2.0*mu_bar_bar*dgamma/fInternal[kDetF_tot], fUnitNorm);
+
+			/* incremental heat generation - 90% of plastic work */
+			heat_incr = 0.9*sqrt23*dgamma*fInternal[kstressnorm];
 				
 			/* debugging - check the results of the return mapping */
 			bool check_map = false;
@@ -291,8 +296,10 @@ const dSymMatrixT& J2SimoC0HardeningT::StressCorrection(ElementCardT& element, i
 				     <<   " ||dev[t]|| = " << t << endl;
 			}			
 		}
-		else
+		else {
 			dgamma = 0.0;
+			heat_incr = 0.0;
+		}
 	}
 		
 	return fStressCorr;
@@ -481,13 +488,20 @@ void J2SimoC0HardeningT::LoadData(const ElementCardT& element, int ip)
 	int stressdim = dSymMatrixT::NumValues(kNSD);
 	int offset    = stressdim*fNumIP;
 	int dex       = ip*stressdim;
-
-	fb_bar.Set(kNSD, &d_array[dex]);
-    fUnitNorm.Set(kNSD, &d_array[offset + dex]);
-    fbeta_bar.Set(kNSD, &d_array[2*offset + dex]);
-    fb_bar_trial_.Set(kNSD, &d_array[3*offset + dex]);
-    fbeta_bar_trial_.Set(kNSD, &d_array[4*offset + dex]);
-    fInternal.Set(kNumInternal, &d_array[5*offset + ip*kNumInternal]);     	
+	
+	/* already set */
+	if (fb_bar.Pointer() == d_array.Pointer(dex)) 
+		return;
+	else
+	{
+		/* set pointers */
+		fb_bar.Set(kNSD, &d_array[dex]);
+		fUnitNorm.Set(kNSD, &d_array[offset + dex]);
+		fbeta_bar.Set(kNSD, &d_array[2*offset + dex]);
+		fb_bar_trial_.Set(kNSD, &d_array[3*offset + dex]);
+		fbeta_bar_trial_.Set(kNSD, &d_array[4*offset + dex]);
+		fInternal.Set(kNumInternal, &d_array[5*offset + ip*kNumInternal]);
+	}
 }
 
 /* returns the value value of the yield function given the

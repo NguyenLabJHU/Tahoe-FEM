@@ -1,5 +1,5 @@
-/* $Id: Contact2DT.cpp,v 1.2 2001-12-17 00:15:53 paklein Exp $ */
-/* created: paklein (05/26/1999)                                          */
+/* $Id: Contact2DT.cpp,v 1.3 2002-06-08 20:20:19 paklein Exp $ */
+/* created: paklein (05/26/1999) */
 
 #include "Contact2DT.h"
 
@@ -8,24 +8,23 @@
 #include <iomanip.h>
 
 #include "fstreamT.h"
-#include "FEManagerT.h"
 #include "eControllerT.h"
-#include "NodeManagerT.h"
 #include "iGridManager2DT.h"
+#include "ElementSupportT.h"
 
 /* parameters */
 const int kNumFacetNodes = 2;
 const int kMaxNumGrid    = 75;
 
 /* constructor */
-Contact2DT::Contact2DT(FEManagerT& fe_manager):
-	ContactT(fe_manager, kNumFacetNodes),
+Contact2DT::Contact2DT(const ElementSupportT& support, const FieldT& field):
+	ContactT(support, field, kNumFacetNodes),
 	fGrid2D(NULL),
-	fv1(fNumSD),
-	fv2(fNumSD)
+	fv1(NumSD()),
+	fv2(NumSD())
 {
 	/* check base class initializations */
-	if (fNumSD != 2) throw eGeneralFail;
+	if (NumSD() != 2) throw eGeneralFail;
 }
 
 /* destructor */
@@ -38,8 +37,9 @@ void Contact2DT::Initialize(void)
 	ContactT::Initialize();
 	
 	/* dimension */
-	fNEEvec.Allocate(fNumElemEqnos);
-	fNEEmat.Allocate(fNumElemEqnos);
+	int neq = NumElementNodes()*NumDOF();
+	fNEEvec.Allocate(neq);
+	fNEEmat.Allocate(neq);
 	SetShapeFunctionArrays();	
 }
 
@@ -57,7 +57,7 @@ bool Contact2DT::SetActiveInteractions(void)
 
 	/* collect current striker node coords */
 	if (fStrikerTags.Length() > 0)
-		fStrikerCoords.RowCollect(fStrikerTags, fNodes->CurrentCoordinates());
+		fStrikerCoords.RowCollect(fStrikerTags, ElementSupport().CurrentCoordinates());
 		
 	/* construct search grid if needed */
 	if (!fGrid2D)
@@ -73,8 +73,8 @@ bool Contact2DT::SetActiveInteractions(void)
 		if (!fGrid2D) throw eOutOfMemory;
 
 		/* search grid statistics */
-		ostream& out = fFEManager.Output();
-		out << "\n Search grid: group " << fFEManager.ElementGroupNumber(this) + 1 << '\n';
+		ostream& out = ElementSupport().Output();
+		out << "\n Search grid: group " << ElementSupport().ElementGroupNumber(this) + 1 << '\n';
 		fGrid2D->WriteStatistics(out);
 	}
 	
@@ -104,7 +104,7 @@ void Contact2DT::SetActiveStrikers(void)
 	fHitFacets.Allocate(0);
 
 	/* reference to current coordinates */
-	const dArray2DT& allcoords = fNodes->CurrentCoordinates(); //EFFECTIVE_DVA
+	const dArray2DT& allcoords = ElementSupport().CurrentCoordinates(); //EFFECTIVE_DVA
 	
 	/* by-striker data */
 	int numstrikers = fStrikerTags.Length();
@@ -153,7 +153,7 @@ void Contact2DT::SetActiveStrikers(void)
 				if (!surface.HasValue(strikertag))
 				{
 					/* possible striker */
-					fStriker.Set(fNumSD, hits[k].Coords());
+					fStriker.Set(NumSD(), hits[k].Coords());
 			
 					/* penetration vectors */
 					fv1.DiffOf(fStriker, fx1);
@@ -216,6 +216,12 @@ void Contact2DT::SetConnectivities(void)
 	/* set interacting nodes */
 	int* pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
+	if (fConnectivities[0]->MajorDim() > 0 && rowlength != 3) {
+		cout << "\n Contact2DT::SetConnectivities: expecting connectivites length 3 not " 
+		     << rowlength << endl;
+		throw eSizeMismatch;
+	}
+
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{
 		const iArray2DT& surface = fSurfaces[fHitSurface[i]];
@@ -238,9 +244,11 @@ void Contact2DT::SetConnectivities(void)
 void Contact2DT::SetShapeFunctionArrays(void)
 {
 	/* allocate workspace - displacement DOF's only */
-	fdv1T.Allocate(fNumElemEqnos, fNumSD);
-	fdv2T.Allocate(fNumElemEqnos, fNumSD);
-	fdtanT.Allocate(fNumElemEqnos, fNumSD);
+	int neq = NumElementNodes()*NumDOF();
+	int nsd = NumSD();
+	fdv1T.Allocate(neq, nsd);
+	fdv2T.Allocate(neq, nsd);
+	fdtanT.Allocate(neq, nsd);
 
 	/* derivative arrays */
 	fdv1T = 0.0;
@@ -278,13 +286,13 @@ void Contact2DT::SetSurfacesData(void)
 		for (int i = 0; i < fSurfaces.Length(); i++)
 		{
 			int num_facets = fSurfaces[i].MajorDim();	
-			fTanVecs[i].Allocate(num_facets, fNumSD);
+			fTanVecs[i].Allocate(num_facets, NumSD());
 			fTanMags[i].Allocate(num_facets);
 		}
 	}
 	
 	/* reference to current coordinates */
-	const dArray2DT& allcoords = fNodes->CurrentCoordinates();
+	const dArray2DT& allcoords = ElementSupport().CurrentCoordinates();
 
 	/* loop over bodies */
 	dArrayT tangent;

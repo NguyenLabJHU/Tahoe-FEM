@@ -1,5 +1,5 @@
-/* $Id: DRSolver.cpp,v 1.2 2002-04-02 23:25:16 paklein Exp $ */
-/* created: PAK/CBH (10/03/1996)                                          */
+/* $Id: DRSolver.cpp,v 1.3 2002-06-08 20:20:55 paklein Exp $ */
+/* created: PAK/CBH (10/03/1996) */
 
 #include "DRSolver.h"
 
@@ -12,7 +12,8 @@
 #include "CCSMatrixT.h"
 
 /* constructor */
-DRSolver::DRSolver(FEManagerT& fe_manager): NLSolver(fe_manager)
+DRSolver::DRSolver(FEManagerT& fe_manager, int group): 
+	NLSolver(fe_manager, group)
 {
 #ifdef __NO_RTTI__
 	fCCSLHS = (CCSMatrixT*) fLHS;
@@ -38,52 +39,52 @@ void DRSolver::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 }
 
 /* generate the solution for the current time sequence */
-void DRSolver::Run(void)
+SolverT::SolutionStatusT DRSolver::Solve(int num_iterations)
 {
-	/* solve displacements for quasi-static load sequence */
-	while ( Step() )
+	try
+	{	  	
+
+	/* form the residual force vector */
+	fRHS = 0.0;
+	fFEManager.FormRHS(Group());
+
+	SolutionStatusT status = ExitIteration(fRHS.Magnitude());
+	while (status != kConverged &&
+		(num_iterations == -1 || IterationNumber() < num_iterations))
 	{
-	 	try
-	  	{	  	
-			/* apply kinematic BC's - set displacements and update geometry */
-			fFEManager.InitStep();
-
-	  		/* form the residual force vector */
-			fRHS = 0.0;
-			fFEManager.FormRHS();
-
-			while (!ExitIteration(fRHS.Magnitude()))
-	  		{
-				/* form the stiffness matrix */
-				fLHS->Clear();				
-				fFEManager.FormLHS();
+		/* form the stiffness matrix */
+		fLHS->Clear();				
+		fFEManager.FormLHS(Group());
 	
-				/* compute mass for stability */
-				ComputeMass();
+		/* compute mass for stability */
+		ComputeMass();
 
-				/* calculate velocity */
-				ComputeVelocity();
+		/* calculate velocity */
+		ComputeVelocity();
 
-				/* displacement update */
-				fVel *= fFEManager.TimeStep();
+		/* displacement update */
+		fVel *= fFEManager.TimeStep();
 
-				/* update displacements */
-				fFEManager.Update(fVel);
+		/* update displacements */
+		fFEManager.Update(Group(), fVel);
 				
-				/* calculate critical damping */
-				ComputeDamping();
+		/* calculate critical damping */
+		ComputeDamping();
 
-	  			/* form the residual force vector */
-				fRHS = 0.0;
-				fFEManager.FormRHS();
-			}
-			
-			/* finalize */
-			fFEManager.CloseStep();
-	 	}
-	 	
-	 	catch (int code) { fFEManager.HandleException(code); }
-	}
+		/* form the residual force vector */
+		fRHS = 0.0;
+		fFEManager.FormRHS(Group());
+		
+		/* check status */
+		status = ExitIteration(fRHS.Magnitude());
+	}  
+
+	/* normal */
+	return status;
+	
+	} /* end try */
+	
+	catch (int code) { return kFailed; }
 }
 
 /*************************************************************************
@@ -126,7 +127,7 @@ void DRSolver::ComputeVelocity(void)
 void DRSolver::ComputeDamping(void)
 {
 	/* numerator */
-	fFEManager.GetUnknowns(0, fDisp);
+	fFEManager.GetUnknowns(fGroup, 0, fDisp);
 	fCCSLHS->Multx(fDisp, fKd);
 	double numer = dArrayT::Dot(fDisp,fKd);
 	
