@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.7 2001-12-14 19:51:01 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.8 2001-12-30 20:19:51 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleT.h"
@@ -41,7 +41,12 @@ iConsoleT::iConsoleT(const StringT& log_file, iConsoleObjectT& current):
 	}
 
 	/* set commands */
-	iAddCommand(CommandSpecT("end"));
+	CommandSpecT the_end("end");
+	ArgSpecT confirm(ArgSpecT::string_);
+	confirm.SetPrompt("really quit (y/n)? ");
+	the_end.AddArgument(confirm);
+	iAddCommand(the_end);
+
 	iAddCommand(CommandSpecT("scope"));
 	iAddCommand(CommandSpecT("list"));
 	iAddCommand(CommandSpecT("history"));
@@ -434,7 +439,16 @@ void iConsoleT::DoInteractive(void)
 					case kConsoleCommand:
 					{
 						if (command_name == "end")
-							end = true;
+						{
+							/* fetch command specification */
+							const CommandSpecT* command_spec = iResolveCommand(command_name, line);
+							
+							/* verify */
+							StringT confirm;
+							command_spec->Argument(0).GetValue(confirm);
+							if (confirm[0] == 'y')
+								end = true;
+						}
 						else
 						{
 							/* fetch command specification */
