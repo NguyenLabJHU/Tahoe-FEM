@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.7 2002-03-22 01:33:39 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.8 2002-03-25 16:43:50 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #include "GlobalMatrixT.h"
@@ -177,14 +177,13 @@ void GlobalMatrixT::PrintRHS(const dArrayT& RHS) const
 	int d_width = OutputWidth(fOut, p);
 
 	fOut << "\n RHS vector:\n\n";
-	fOut << setw(kIntWidth)    << "eqn no.";
-	fOut << setw(d_width) << "RHS\n\n";
+	fOut << setw(kIntWidth)    << "loc eq."
+	     << setw(kIntWidth)    << "glb eq." 
+	     << setw(d_width)      << "RHS\n\n";
 	for (int i = 0; i < fLocNumEQ; i++)
-	{
-		fOut << setw(kIntWidth) << i + 1;
-		fOut << setw(d_width) << *p++ << '\n';
-	}
-	
+		fOut << setw(kIntWidth) << i + 1
+		     << setw(kIntWidth) << fStartEQ + i
+		     << setw(d_width) << *p++ << '\n';	
 	fOut << endl;
 
 	/* restore stream precision */
@@ -203,15 +202,13 @@ void GlobalMatrixT::PrintSolution(const dArrayT& solution) const
 	int d_width = OutputWidth(fOut, p);
 
 	fOut << "\n solution vector:\n\n";
-	fOut << setw(kIntWidth)    << "eqn no.";
-	fOut << setw(d_width) << "solution\n\n";
-
+	fOut << setw(kIntWidth)    << "loc eq."
+	     << setw(kIntWidth)    << "glb eq." 
+	     << setw(d_width)      << "solution\n\n";
 	for (int i = 0; i < fLocNumEQ; i++)
-	{
-		fOut << setw(kIntWidth) << i + 1;
-		fOut << setw(d_width) << *p++ << '\n';
-	}
-	
+		fOut << setw(kIntWidth) << i + 1
+		     << setw(kIntWidth) << fStartEQ + i
+		     << setw(d_width) << *p++ << '\n';	
 	fOut << endl;
 
 	/* restore stream precision */
