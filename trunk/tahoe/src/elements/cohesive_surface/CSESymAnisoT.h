@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.h,v 1.2 2003-11-21 22:45:50 paklein Exp $ */
+/* $Id: CSESymAnisoT.h,v 1.3 2003-12-01 23:53:15 cjkimme Exp $ */
 #ifndef _CSE_SYM_ANISO_T_H_
 #define _CSE_SYM_ANISO_T_H_
 
@@ -78,6 +78,9 @@ private:
 
 	/** stiffness matrix */
 	dMatrixT fK;
+	
+	/** information about the side sets for OutputSetT */
+	ArrayT<StringT> sideSet_ID;
 
 };
 
