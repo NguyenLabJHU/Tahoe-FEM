@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.36 2005-03-11 02:11:11 rjones Exp $
+# $Id: tahoe-manager,v 1.37 2005-03-11 21:29:28 paklein Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -752,20 +752,12 @@ sub clean {
 sub test{
 	$time = (split(/ +/,localtime()))[3];
 	print "($count) running tests at $time\n";
- 	unless(-d "benchmark_XML"){
-		print "checking out benchmark\n";
-		unlink("cvs.log");
-		my $repo = $module2repo{"benchmark_XML"};
-		system("cvs -d $tahoe_name\@$tahoe:$repo checkout benchmark_XML > cvs.log 2>&1");
- 	} else {
-		system("cd benchmark_XML; cvs -q update -Pd > cvs.log 2>&1");
-	}
+	update("benchmark_XML");
 	chdir("benchmark_XML/comparator");
 	print("\tbuilding comparator...");
 	fillin_makefile(); system("make init build > build.log 2>&1");
 	print(" ok\n");
 	chdir("..");
-	print("\trunning benchmarks");
 	print("\tremoving previous results...");
 	system("make clean > build.log 2>&1");
 	print(" ok\n");
@@ -779,7 +771,7 @@ sub test{
 	<IN>; 
 	$_ = <IN>; chomp(); s/^\s+//; s/\s+$//; $pass = $_;   
 	$_ = <IN>; chomp(); s/^\s+//; s/\s+$//; $fail = $_;   
-	print "* $pass,  $fail, see compare.summary for more details\n";
+	print "* $pass,  $fail, see benchmark_XML/compare.summary for more details\n";
 }
 
 ##############################################################################
