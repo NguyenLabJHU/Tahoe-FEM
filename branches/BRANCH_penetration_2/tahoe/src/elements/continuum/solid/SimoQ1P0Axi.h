@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0Axi.h,v 1.1 2004-02-03 08:24:57 paklein Exp $ */
+/* $Id: SimoQ1P0Axi.h,v 1.1.12.1 2004-04-21 18:57:54 paklein Exp $ */
 #ifndef _SIMO_Q1_P0_AXI_H_
 #define _SIMO_Q1_P0_AXI_H_
 
@@ -83,6 +83,12 @@ protected:
 	dMatrixT fb_bar;
 	dMatrixT fb_sig;
 	/*@}*/
+
+	/** debugging flags */
+	bool fOutputInit;
+	
+	//TEMP - cell tracking
+	int fOutputCell;
 };
 
 } /* namespace Tahoe */
