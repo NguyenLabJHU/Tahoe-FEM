@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.9 2002-01-08 13:55:32 sawimme Exp $ */
+/* $Id: ModelManagerT.h,v 1.10 2002-01-08 23:11:41 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -266,8 +266,9 @@ class ModelManagerT
   /** return reference to node set array
       \note node numbering is global, continuous, and offset to zero */
   const iArrayT& NodeSet (int index);
-  /** return mapped node set array
-  /** compile the set of node sets indicated by indexes into one sorted array called nodes
+
+  /** return mapped node set array.
+   * compile the set of node sets indicated by indexes into one sorted array called nodes
    * \note node numbering is global, continuous, and offset to zero */
   void ManyNodeSets (const iArrayT& indexes, iArrayT& nodes);
 
