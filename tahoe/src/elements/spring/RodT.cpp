@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.14 2002-07-03 00:05:30 hspark Exp $ */
+/* $Id: RodT.cpp,v 1.15 2002-07-03 16:12:17 hspark Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -83,9 +83,13 @@ void RodT::Initialize(void)
 	else if (type == GlobalT::kDiagonal)
 		fLHS.SetFormat(ElementMatrixT::kDiagonal);
 
-	/* initialize and allocate velocity array */
-	fLocVel.Allocate(NumElementNodes(), NumDOF());
-	Field().RegisterLocal(fLocVel);
+	/* initialize and allocate velocity array IF dynamic (MD) calculation*/
+	double constM = 0.0;
+	int formM = fController->FormM(constM);
+	if(formM) {
+	  fLocVel.Allocate(NumElementNodes(), NumDOF());
+	  Field().RegisterLocal(fLocVel);
+	}
 }
 
 /* form of tangent matrix */
@@ -202,25 +206,32 @@ void RodT::CloseStep(void)
   /* set material variables */
   //fMaterialList->CloseStep(); 
   Top();
+  double constM = 0.0;
+  int formM = fController->FormM(constM);
+  if(formM) {
+    fLocVel.Allocate(NumElementNodes(), NumDOF());
+    Field().RegisterLocal(fLocVel);
+  }
   while (NextElement())
-    {
-      /* get velocities */
-      SetLocalU(fLocVel);
-
-      /* compute MD quantities of interest */
-      ComputeInstPE();
-      ComputeInstKE();
-      ComputeInstTotalE();
-      ComputeInstTemperature();
-      //ComputeInstPressure();
+    if(formM) { // Only do for dynamic (MD) calculations
+      {
+     	/* get velocities */
+	SetLocalU(fLocVel);
+	
+	/* compute MD quantities of interest */
+	ComputeInstPE();
+	ComputeInstKE();
+	ComputeInstTotalE();
+	ComputeInstTemperature();
+	//ComputeInstPressure();
+      }
+      ComputeAvgPE();
+      ComputeAvgKE();
+      ComputeAvgTotalE();
+      ComputeAvgTemperature();
+      //ComputeAvgPressure();
+      PrintMDToFile();
     }
-  ComputeAvgPE();
-  ComputeAvgKE();
-  ComputeAvgTotalE();
-  ComputeAvgTemperature();
-  //ComputeAvgPressure();
-  PrintMDToFile();
-  cout << "Number of atoms = " << NumElements() << endl;
 }
 
 
