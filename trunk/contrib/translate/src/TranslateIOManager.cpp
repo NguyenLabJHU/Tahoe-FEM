@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.40 2003-11-18 19:44:56 paklein Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.41 2003-12-07 05:16:51 paklein Exp $  */
 #include "TranslateIOManager.h"
 
 #include "ExceptionT.h"
@@ -504,8 +504,8 @@ void TranslateIOManager::InitializeTime (void)
 	    dArrayT temp (fNumTS);
 	    for (int i=0; i < fNumTS; i++)
 	      {
-		temp[i] = fTimeSteps [i*n];
-		fTimeIncs = i*n;
+			temp[i] = fTimeSteps [i*n];
+			fTimeIncs[i] = i*n;
 	      }
 	    fTimeSteps = temp;
 	    break;
