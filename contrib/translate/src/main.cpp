@@ -1,7 +1,8 @@
-/* $Id: main.cpp,v 1.15 2002-10-28 14:19:02 sawimme Exp $ */
+/* $Id: main.cpp,v 1.16 2003-02-18 08:47:23 paklein Exp $ */
 #include "ExceptionT.h"
 #include "TranslateIOManager.h"
 #include "ExtractNode.h"
+#include "ExtractElement.h"
 #include "ExtractQuad.h"
 #include "PointPlots.h"
 #include "MergeResults.h"
@@ -48,6 +49,7 @@ int main (int c, char* a [])
 	      cout << "3. Quadrature Data Extraction to XY Data \n";
 	      cout << "4. Quadrature Data Extraction for Point Plots \n";
 	      cout << "5. Merge Results Files \n";
+	      cout << "6. Element Data Extraction to XY Data \n";
 	      cout << "\n Select type of translation: ";
 	    }
 	  in >> selection;
@@ -97,6 +99,14 @@ int main (int c, char* a [])
 		dataio = new MergeResults (cout, in, write);
 		break;
 	      }
+		case 6:
+		{
+			cout << " Extract nodal data.\n\n";
+			program = "Extract";
+			version = "v1.0";
+			dataio = new ExtractElement(cout, in, write);
+			break;
+		}
 	    default:
 	      throw ExceptionT::kGeneralFail;
 	    }

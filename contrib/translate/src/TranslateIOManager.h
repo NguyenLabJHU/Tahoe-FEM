@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.h,v 1.12 2002-08-13 08:17:29 paklein Exp $ */
+/* $Id: TranslateIOManager.h,v 1.13 2003-02-18 08:47:23 paklein Exp $ */
 
 #ifndef _TRANSLATE_IOMANAGER_H_
 #define _TRANSLATE_IOMANAGER_H_
@@ -32,10 +32,12 @@ class TranslateIOManager
 
   void InitializeVariables (void);
   void InitializeNodeVariables (void);
+  void InitializeElementVariables(void);
   void InitializeQuadVariables (void);
 
   void InitializeElements (int& elementgroup, StringT& name) const;
   void InitializeNodePoints (iArrayT& nodes, iArrayT& index);
+  void SelectElements(StringT& ID, iArrayT& elements, iArrayT& index);
 
   void InitializeTime (void);
 

@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.31 2002-10-28 14:19:02 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.32 2003-02-18 08:47:23 paklein Exp $  */
 #include "TranslateIOManager.h"
 
 #include "ExceptionT.h"
@@ -203,6 +203,17 @@ void TranslateIOManager::InitializeNodeVariables (void)
     fCoords = 0;
 }
 
+void TranslateIOManager::InitializeElementVariables(void)
+{
+	fNumEV = fModel.NumElementVariables ();
+	cout << "\n" << setw (10) << fNumEV << " Element Variables\n\n";
+	fElementLabels.Dimension(fNumEV);
+	if (fNumEV > 0) fModel.ElementLabels(fElementLabels);
+
+	// query user as to which variables to translate
+	VariableQuery(fElementLabels, fEVUsed);
+}
+
 void TranslateIOManager::InitializeQuadVariables (void)
 {
   fNumQV = fModel.NumQuadratureVariables ();
@@ -341,6 +352,80 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
     default:
       throw ExceptionT::kGeneralFail;
     }
+}
+
+void TranslateIOManager::SelectElements(StringT& ID, iArrayT& elements, iArrayT& index)
+{
+	const char caller[] = "ExtractIOManager::SelectElements";
+
+	int selection;
+	if (fWrite)
+	{
+		cout << "\n One file will be written per element point.\n";
+		cout << "1. List of element\n";
+		cout << "2. Every nth element\n";
+		cout << "\n How do you want to define your list of elements: ";
+	}
+	fIn >> selection;
+
+	int nel, nen;
+	fModel.ElementGroupDimensions(ID, nel, nen);
+
+	int num_elements;
+	switch (selection)
+	{
+		case 1: // List
+		{
+			iArrayT elementIDs(nel);
+			fModel.ElementIDs(ID, elementIDs);
+
+			cout << "\n Element list defined individually\n";
+			if (fWrite)
+				cout << "\n Enter the number of elements: ";
+			fIn >> num_elements;
+			
+			elements.Dimension(num_elements);
+			index.Dimension(num_elements);
+			for (int n=0; n < num_elements; n++)
+			{
+				if (fWrite) cout << " Enter element " << n+1 << ": ";
+				fIn >> elements[n];
+
+				// translate node numbers to index
+				int dex;
+				elementIDs.HasValue(elements[n], dex);
+				if (dex < 0 || dex >= num_elements) 
+					ExceptionT::OutOfRange(caller, "Element %d was not found", elements[n]);
+				index[n] = dex;
+	  		}
+		break;
+      	}
+		case 2: // nth element
+		{
+			iArrayT element_map(nel);
+			fModel.ElementMap(ID, element_map);
+
+			int freq;
+			if (fWrite)
+			{
+				cout << "\n Number of Elements: " << nel << "\n";
+				cout << "   Enter n: ";
+			}
+			fIn >> freq;
+			cout << "\n Element list defined by every " << freq << "th element.\n";
+			int num_elem = nel/freq;
+			elements.Dimension(num_elem);
+			index.Dimension(num_elem);
+			for (int n = 0; n < num_elem; n++)
+			{
+				elements[n] = element_map[n*freq];
+	    		index[n] = n*freq;
+			}
+		break;
+		}
+		default:
+			ExceptionT::GeneralFail(caller);
+	}
 }
 
 void TranslateIOManager::InitializeTime (void)
