@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.36.2.1 2003-02-06 02:39:45 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.36.2.2 2003-02-10 02:22:04 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -217,22 +217,33 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 	const char caller[] = "FEExecutionManagerT::RunBridging";
 
 	/* read atomistic and continuum source files */
-	StringT atom_file, continuum_file;
+	StringT atom_file, bridge_atom_file;
 	in >> atom_file
-	   >> continuum_file;
+	   >> bridge_atom_file;
+	   
+	StringT continuum_file, bridge_continuum_file;
+	in >> continuum_file
+	   >> bridge_continuum_file;
 
 	/* streams for atomistic Tahoe */
 	atom_file.ToNativePathName();
-	ifstreamT atoms_in('#', atom_file);
-	if (atoms_in.is_open())
+	ifstreamT atom_in('#', atom_file);
+	if (atom_in.is_open())
 		cout << " atomistic parameters file: " << atom_file << endl;
 	else
 		ExceptionT::BadInputValue(caller, "file not found: %s", atom_file);
 	StringT atom_out_file;
-	atom_out_file.Root(atoms_in.filename());
+	atom_out_file.Root(atom_in.filename());
 	atom_out_file.Append(".out");
-	ofstreamT atoms_out;
-	atoms_out.open(atom_out_file);
+	ofstreamT atom_out;
+	atom_out.open(atom_out_file);
+
+	bridge_atom_file.ToNativePathName();
+	ifstreamT bridge_atom_in('#', bridge_atom_file);
+	if (bridge_atom_in.is_open())
+		cout << " atomistic bridging parameters file: " << bridge_atom_file << endl;
+	else
+		ExceptionT::BadInputValue(caller, "file not found: %s", bridge_atom_file);
 
 	/* streams for continuum Tahoe */
 	continuum_file.ToNativePathName();
@@ -246,6 +257,13 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 	continuum_out_file.Append(".out");
 	ofstreamT continuum_out;
 	continuum_out.open(continuum_out_file);
+
+	bridge_continuum_file.ToNativePathName();
+	ifstreamT bridge_continuum_in('#', bridge_continuum_file);
+	if (bridge_continuum_in.is_open())
+		cout << " continuum bridging parameters file: " << bridge_continuum_file << endl;
+	else
+		ExceptionT::BadInputValue(caller, "file not found: %s", bridge_continuum_file);
 
 	clock_t t0 = 0, t1 = 0, t2 = 0;
 
@@ -261,19 +279,42 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		/* construction */
 		phase = 0;
 		in.set_marker('#');
-		FEManagerT_bridging atoms(atoms_in, atoms_out, fComm);
+		FEManagerT_bridging atoms(atom_in, atom_out, fComm, bridge_atom_in);
 		atoms.Initialize();
-		FEManagerT_bridging continuum(continuum_in, continuum_out, fComm);
+		FEManagerT_bridging continuum(continuum_in, continuum_out, fComm, bridge_continuum_in);
 		continuum.Initialize();
 
-		continuum.SetFollowers(atoms.GhostNodes(), "displacement", *atoms.NodeManager());
-		continuum.SetExactSolution(atoms.NonGhostNodes(), "displacement", *atoms.NodeManager());
+		/* configure ghost nodes */
+		atoms.InitGhostNodes();
+		continuum.InitInterpolation(atoms.GhostNodes(), "displacement", *atoms.NodeManager());
+		continuum.InitProjection(atoms.NonGhostNodes(), "displacement", *atoms.NodeManager());
 
 		t1 = clock();
 
 		/* solution */
 		phase = 1;
-		//do something here until total system is solved
+
+#if 0
+		/* communicate configuration */
+		msmd_object.SetGhostNodeDisplacement(ghost_atom_disp);
+		tahoe_object.SetParticleCoords(msmd_object.Coordinates());
+	
+		/* loop until both are equilibrated */
+		while (!msmd_object.Equilibrated() && !tahoe_object.Equilibrated())
+		{
+			/* equilibrate */
+			msmd_object.Solve();
+			tahoe_object.Solve();
+
+			/* new ghost atom displacements */
+			const dArray2DT& ghost_atom_coords = msmd_object.GhostAtomsCoordinates();
+			const dArray2DT& ghost_atom_disp = tahoe_object.InterpolateField("displacement", ghost_atom_coords);
+
+			/* communicate configuration */
+			msmd_object.SetGhostNodeDisplacement(ghost_atom_disp);
+			tahoe_object.SetParticleCoords(msmd_object.Coordinates());
+		}
+#endif
 
 		t2 = clock();
 	}
@@ -296,7 +337,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		if (t1 == 0) t1 = clock();
 		if (t2 == 0) t2 = clock();		
 
-		atoms_out << endl;
+		atom_out << endl;
 		continuum_out << endl;
 	}
 
