@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.13.2.6 2004-03-17 18:03:32 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.13.2.7 2004-03-24 19:46:30 paklein Exp $ */
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
 
@@ -84,9 +84,6 @@ class SmallStrainT: public SolidElementT
 
 	/** construct list of materials from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);
-
-	/** initialize local field arrays. Allocate B-bar workspace if needed. */
-	virtual void SetLocalArrays(void);
 
 	/** calculate the internal force contribution ("-k*d") */
 	void FormKd(double constK);

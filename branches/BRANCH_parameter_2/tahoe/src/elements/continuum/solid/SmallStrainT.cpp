@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.13.2.9 2004-03-17 18:03:32 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.13.2.10 2004-03-24 19:46:30 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -89,7 +89,7 @@ void SmallStrainT::DefineParameters(ParameterListT& list) const
 	/* strain-displacement relation */
 	ParameterT strain_displacement(ParameterT::Enumeration, "strain_displacement");
 	strain_displacement.AddEnumeration("standard", kStandardB);
-    strain_displacement.AddEnumeration("B_bar", kMeanDilBbar);
+    strain_displacement.AddEnumeration("B-bar", kMeanDilBbar);
     strain_displacement.SetDefault(kStandardB);
 	list.AddParameter(strain_displacement);
 }
@@ -156,6 +156,10 @@ void SmallStrainT::TakeParameterList(const ParameterListT& list)
 	/* strain displacement option */
 	int b = list.GetParameter("strain_displacement");
 	fStrainDispOpt = (b == kStandardB) ? kStandardB : kMeanDilBbar;
+	if (fStrainDispOpt == kMeanDilBbar) {
+		fLocDispTranspose.Dimension(fLocDisp.Length());
+		fMeanGradient.Dimension(NumSD(), NumElementNodes());
+	}	
 
 	/* offset to class needs flags */
 	fNeedsOffset = fMaterialNeeds[0].Length();
@@ -332,19 +336,6 @@ void SmallStrainT::ReadMaterialData(ifstreamT& in)
 		/* consistency */
 		needs[kNeedDisp] = needs[kNeedDisp] || needs[fNeedsOffset + kstrain];
 		needs[KNeedLastDisp] = needs[KNeedLastDisp] || needs[fNeedsOffset + kstrain_last];
-	}
-}
-
-/* initialize local field arrays. Allocate B-bar workspace if needed. */
-void SmallStrainT::SetLocalArrays(void)
-{
-	/* inherited */
-	SolidElementT::SetLocalArrays();
-
-	/* using B-bar */
-	if (fStrainDispOpt == kMeanDilBbar) {
-		fLocDispTranspose.Dimension(fLocDisp.Length());
-		fMeanGradient.Dimension(NumSD(), NumElementNodes());
 	}
 }
 
