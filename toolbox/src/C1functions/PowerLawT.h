@@ -1,4 +1,4 @@
-/* $Id: PowerLawT.h,v 1.1 2004-01-27 19:07:23 paklein Exp $ */
+/* $Id: PowerLawT.h,v 1.2 2005-03-11 20:26:05 paklein Exp $ */
 #ifndef _POWER_LAW_T_H_
 #define _POWER_LAW_T_H_
 
@@ -9,17 +9,17 @@ namespace Tahoe {
 
 /** implementation of the function:
 \f[
-	f(x) = a (1 + b x)^n
+	f(x) = a (b + c x)^n
 \f]
  *
- * with parameters {a, b, n}
+ * with parameters {a, b, c, n}
  */
 class PowerLawT: public C1FunctionT
 {
 public:
 
 	/** constructor */
-	PowerLawT(double a, double b, double n);
+	PowerLawT(double a, double b, double c, double n);
 	PowerLawT(void);
 	
 	/** evaluate function */
@@ -58,7 +58,7 @@ public:
 private:
 
 	/* parameters */
-	double fa, fb, fn;
+	double fa, fb, fc, fn;
 };
 
 } /* namespace Tahoe */
