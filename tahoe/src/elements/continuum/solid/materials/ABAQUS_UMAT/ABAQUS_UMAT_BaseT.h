@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.11 2004-07-15 08:26:33 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.12 2004-08-01 01:02:04 paklein Exp $ */
 /* created: paklein (05/09/2000) */
 #ifndef _ABAQUS_UMAT_BASE_T_H_
 #define _ABAQUS_UMAT_BASE_T_H_
@@ -43,6 +43,9 @@ public:
 
 	/** required parameter flags */
 	virtual bool Need_F_last(void) const { return true; };
+
+	/** material has history variables */
+	virtual bool HasHistory(void) const { return true; };
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
