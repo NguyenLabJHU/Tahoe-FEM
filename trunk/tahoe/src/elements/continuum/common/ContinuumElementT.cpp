@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.4 2001-03-15 17:47:24 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.5 2001-06-30 07:54:04 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 
 #include "ContinuumElementT.h"
@@ -658,7 +658,9 @@ void ContinuumElementT::ApplyTractionBC(void)
 			int elem, facet;
 			BC_card.Destination(elem, facet);
 			double thick = 1.0;
-			if (fNumSD == 2) //better to do this once elsewhere?
+			
+			/* use thickness for 2D solid deformation elements */
+			if (fNumSD == 2 && fNumDOF == 2) //better to do this once elsewhere?
 			{
 				/* get material pointer */
 				const ElementCardT& elem_card = fElementCards[elem];
