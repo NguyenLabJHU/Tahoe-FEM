@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.42 2002-04-07 19:15:41 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.43 2002-04-11 22:00:50 cjkimme Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -113,6 +113,22 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
 	stepnum.SetPrompt("time step");
 	select_step.AddArgument(stepnum);
 	iAddCommand(select_step);
+
+	CommandSpecT next_step("NextTimeStep");
+	next_step.SetPrompter(this);
+	ArgSpecT steps_ahead(ArgSpecT::int_);
+	steps_ahead.SetDefault(1);
+	steps_ahead.SetPrompt("number steps forwards");
+	next_step.AddArgument(steps_ahead);
+	iAddCommand(next_step);
+
+	CommandSpecT prev_step("PreviousTimeStep");
+	prev_step.SetPrompter(this);
+	ArgSpecT steps_back(ArgSpecT::int_);
+	steps_back.SetDefault(1);
+	steps_back.SetPrompt("number steps backwards");
+	prev_step.AddArgument(steps_back);
+	iAddCommand(prev_step);
 
 	/* display objects */
 	renWin = vtkRenderWindow::New();
@@ -257,8 +273,80 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
   				return false;
   			}
   		}
+  } 
+  else
+    if (command.Name() == "NextTimeStep")	
+	{
+		/* no bodies */
+		if (fBodies.Length() == 0)
+		{
+			cout << "no bodies" << endl;
+			return false;
+		}
+		else
+		{
+ 			fRenderHold = true;
+ 	 		int old_step = fBodies[0]->CurrentStepNumber();
+ 			int step;
+ 			command.Argument(0).GetValue(step);
+			step += old_step;
+ 			bool OK = true;
+			for (int i = 0; OK && i < fBodies.Length(); i++)
+				OK = fBodies[i]->SelectTimeStep(step);
+ 			fRenderHold = false;
+	
+			if (OK)
+			{
+				StringT tmp;
+				iDoCommand(*iCommand("Update"), tmp);
+				return true;
+			}
+  			else
+  			{
+  				/* reset */
+				for (int i = 0; i < fBodies.Length(); i++)
+					fBodies[i]->SelectTimeStep(old_step);
+  				return false;
+  			}
+  		}
   }
-  else if (command.Name() == "Wire")
+  else if (command.Name() == "PreviousTimeStep")	
+	{
+		/* no bodies */
+		if (fBodies.Length() == 0)
+		{
+			cout << "no bodies" << endl;
+			return false;
+		}
+		else
+		{
+ 			fRenderHold = true;
+ 	 		int old_step = fBodies[0]->CurrentStepNumber();
+ 			int step;
+ 			command.Argument(0).GetValue(step);
+			step = old_step - step;
+ 			bool OK = true;
+			for (int i = 0; OK && i < fBodies.Length(); i++)
+				OK = fBodies[i]->SelectTimeStep(step);
+ 			fRenderHold = false;
+	
+			if (OK)
+			{
+				StringT tmp;
+				iDoCommand(*iCommand("Update"), tmp);
+				return true;
+			}
+  			else
+  			{
+  				/* reset */
+				for (int i = 0; i < fBodies.Length(); i++)
+					fBodies[i]->SelectTimeStep(old_step);
+  				return false;
+  			}
+  		}
+  }
+  else 
+    if (command.Name() == "Wire")
   {
 	bool OK = true;
   	for (int i = 0; OK && i < fBodies.Length(); i++)
