@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.70 2005-02-25 15:38:17 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.71 2005-03-11 20:33:27 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -389,7 +389,8 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 	 * this needs to be resolved; however, it cannot be resolved before ContinuumElementT::TakeParameterList
 	 * has been called because fIntegrator won't be set. Therefore, kAutomaticMass is resolved
 	 * both here and in SolidElementT::TangentType. */
-	list.GetParameter("mass_type", enum2int<ContinuumElementT::MassTypeT>(fMassType));
+	int mass_type = list.GetParameter("mass_type");
+	fMassType = int2MassTypeT(mass_type);
 
 	/* inherited */
 	ContinuumElementT::TakeParameterList(list);

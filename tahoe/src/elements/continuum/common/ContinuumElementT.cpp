@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.48 2005-02-14 00:12:24 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.49 2005-03-11 20:33:41 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -418,6 +418,21 @@ void ContinuumElementT::InitialCondition(void)
 		/* finalize storage */
 		if (fStoreShape) fShapes->CloseStore();
 	}
+}
+
+ContinuumElementT::MassTypeT ContinuumElementT::int2MassTypeT(int i)
+{
+	if (i == kNoMass)
+		return kNoMass;
+	else if (i == kConsistentMass)
+		return kConsistentMass;
+	else if (i == kLumpedMass)
+		return kLumpedMass;
+	else if (i == kAutomaticMass)
+		return kAutomaticMass;
+	else
+		ExceptionT::GeneralFail("ContinuumElementT::int2MassTypeT", 
+			"could not translate %d", i);	
 }
 
 /***********************************************************************

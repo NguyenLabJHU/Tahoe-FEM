@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.35 2005-02-26 22:41:47 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.36 2005-03-11 20:33:41 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -131,6 +131,7 @@ public:
             kConsistentMass = 1, /**< variationally consistent mass matrix */
                 kLumpedMass = 2, /**< diagonally lumped mass */
              kAutomaticMass = 3  /**< select the mass type base on the time integration scheme */};
+	MassTypeT static int2MassTypeT(int i);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

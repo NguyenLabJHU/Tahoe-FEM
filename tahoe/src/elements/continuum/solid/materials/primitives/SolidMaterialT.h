@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.25 2005-03-09 19:25:48 raregue Exp $ */
+/* $Id: SolidMaterialT.h,v 1.26 2005-03-11 20:32:15 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -34,6 +34,7 @@ public:
 		kNoConstraint = 0, /**< no constraint, material is 3D */
 		kPlaneStress = 1, /**< plane stress */
 		kPlaneStrain = 2  /**< plane strain */};
+	ConstraintT static int2ConstraintT(int i);
 
 	/** constructor */
 	SolidMaterialT(void);
