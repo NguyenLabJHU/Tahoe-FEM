@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.35 2003-05-21 23:48:05 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.36 2003-05-28 23:26:42 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -10,7 +10,7 @@
 #include "fstreamT.h"
 #include "toolboxConstants.h"
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 #include "FieldT.h"
 #include "eIntegratorT.h"
 #endif
@@ -20,7 +20,7 @@
 using namespace Tahoe;
 
 /* constructor */
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 ElementBaseT::ElementBaseT(const ElementSupportT& support, const FieldT& field):
 	fSupport(support),
 	fField(field),
@@ -49,7 +49,7 @@ ElementBaseT::~ElementBaseT(void) {	}
 void ElementBaseT::Initialize(void)
 {
 	/* set console variables */
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	int index = fSupport.ElementGroupNumber(this) + 1;
 	StringT name;
 	name.Append(index);
@@ -91,7 +91,7 @@ GlobalT::SystemTypeT ElementBaseT::TangentType(void) const
 	return GlobalT::kSymmetric;
 }
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 
 /* the iteration number for the current time increment */
 const int& ElementBaseT::IterationNumber(void) const
@@ -122,7 +122,7 @@ void ElementBaseT::FormLHS(GlobalT::SystemTypeT sys_type)
 	try { LHSDriver(sys_type); }
 	catch (ExceptionT::CodeT error)
 	{
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		cout << "\n ElementBaseT::FormLHS: " << fSupport.Exception(error);
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
 		cout << fSupport.ElementGroupNumber(this) + 1 << ".\n";
@@ -154,7 +154,7 @@ void ElementBaseT::FormRHS(void)
 	try { RHSDriver(); }
 	catch (ExceptionT::CodeT error)
 	{
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		cout << "\n ElementBaseT::FormRHS: " << fSupport.Exception(error);
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
 		cout << fSupport.ElementGroupNumber(this) + 1 << ".\n";
@@ -203,7 +203,7 @@ void ElementBaseT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	if (fConnectivities.Length() != fEqnos.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* loop over connectivity blocks */
 	for (int i = 0; i < fEqnos.Length(); i++)
 	{
@@ -234,7 +234,7 @@ void ElementBaseT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 	ConnectsX(connects_1);
 }
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 void ElementBaseT::ReadRestart(istream& in)
 {
 	/* stream check */
@@ -249,11 +249,13 @@ void ElementBaseT::WriteRestart(ostream& out) const
 #else
 void ElementBaseT::ReadRestart(double* incomingData)
 {
+#pragma unused(incomingData)
 	// Do nothing
 }
 
 void ElementBaseT::WriteRestart(double* outgoingData) const
 {
+#pragma unused(outgoingData)
 	// Do nothing
 }
 #endif
@@ -269,7 +271,7 @@ void ElementBaseT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 
 #endif
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	const dArray2DT& all_DOFs = fField[0]; // displacements
 	DOFs.RowCollect(nodes, all_DOFs); // no check of nodes used
 
@@ -286,7 +288,7 @@ void ElementBaseT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 const StringT& ElementBaseT::ElementBlockID(int element) const
 {
 	if (element < 0 || element >= NumElements()) {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		cout << "\n ElementBaseT::ElementBlockID: element number " << element << " is out of range {0,"
 		    << NumElements() - 1 << "}" << endl;
 #endif
@@ -300,7 +302,7 @@ const StringT& ElementBaseT::ElementBlockID(int element) const
 			return fBlockData[i].ID();
 
 	if (!found) {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		cout << "\n ElementBaseT::ElementBlockID: could not resolve block ID for element "
 		     << element << endl;
 #endif
@@ -393,7 +395,7 @@ const LocalArrayT& ElementBaseT::SetLocalU(LocalArrayT& localarray)
 /* assembling the left and right hand sides */
 void ElementBaseT::AssembleRHS(void) const
 {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	fSupport.AssembleRHS(fField.Group(), fRHS, CurrentElement().Equations());
 #else
 	fSupport.AssembleRHS(fElementCards.Position(),fRHS,CurrentElement().Equations());
@@ -402,14 +404,14 @@ void ElementBaseT::AssembleRHS(void) const
 
 void ElementBaseT::AssembleLHS(void) const
 {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	fSupport.AssembleLHS(fField.Group(), fLHS, CurrentElement().Equations());
 #else	
 	fSupport.AssembleLHS(fElementCards.Position(),fLHS,CurrentElement().Equations());
 #endif
 }
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* print element group data */
 void ElementBaseT::PrintControlData(ostream& out) const
 {
@@ -447,13 +449,13 @@ void ElementBaseT::EchoConnectivityData(void)
 	/* set pointers in element cards */
 	SetElementCards();
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* write */
 	WriteConnectivity(out);
 #endif
 }
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* resolve input format types */
 void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 {
@@ -467,7 +469,7 @@ void ElementBaseT::ReadConnectivity(void)
 	ArrayT<StringT> elem_ID;
 	iArrayT matnums;
 	ModelManagerT& model = fSupport.Model();
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	model.ElementBlockList(in, elem_ID, matnums);
 #else
 	/* For Sierra, can't use input stream */
@@ -490,7 +492,7 @@ void ElementBaseT::ReadConnectivity(void)
 	{
 	    /* check number of nodes */
 	    int num_elems, num_nodes;
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	    model.ElementGroupDimensions(elem_ID[b], num_elems, num_nodes);
 #else
 		num_elems = fSupport.NumElements();
@@ -503,7 +505,7 @@ void ElementBaseT::ReadConnectivity(void)
 	    /* consistency check */
 	    if (num_nodes != 0 && nen != num_nodes)
 		{
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 			cout << "\n ElementBaseT::ReadConnectivity: minor dimension "
                  << num_nodes << " of block " << b+1 << '\n';
 			cout <<   "     does not match dimension of previous blocks "
@@ -518,7 +520,7 @@ void ElementBaseT::ReadConnectivity(void)
 	    /* increment element count */
 	    elem_count += num_elems;
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	    /* load connectivity from database into model manager */
 	    model.ReadConnectivity(elem_ID[b]);
 #endif
@@ -541,7 +543,7 @@ void ElementBaseT::ReadConnectivity(void)
 	fElementCards.Dimension(elem_count);
 }
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* resolve output formats */
 void ElementBaseT::WriteConnectivity(ostream& out) const
 {	
@@ -602,7 +604,7 @@ const ElementBlockDataT& ElementBaseT::BlockData(const StringT& block_ID) const
 	/* check */
 	if (block_num == -1)
 	{
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		cout << "\n ElementBaseT::BlockData: block ID ";
 		cout << block_ID << " not found in\n";
 		cout <<   "     element group " << fSupport.ElementGroupNumber(this) + 1;
@@ -630,7 +632,7 @@ const ElementBlockDataT& ElementBaseT::BlockData(const StringT& block_ID) const
 /* write all current element information to the stream */
 void ElementBaseT::CurrElementInfo(ostream& out) const
 {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	if (!fElementCards.InRange()) return;
 	
 	out << "\n element group: " << fSupport.ElementGroupNumber(this) + 1 << '\n';
@@ -698,7 +700,7 @@ void ElementBaseT::SetElementCards(void)
 {
   if (fConnectivities.Length() != fEqnos.Length())
     {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
       cout << "ElementBaseT::SetElementCards length mismatch ";
       cout << "\n           element group: " << fSupport.ElementGroupNumber(this) + 1;      
       cout << "\n fConnectivities length = " << fConnectivities.Length();
@@ -719,7 +721,7 @@ void ElementBaseT::SetElementCards(void)
 
 		if (blockconn->MajorDim() != blockeqnos.MajorDim())
 		  {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		    cout << "ElementBaseT::SetElementCards length mismatch ";
 		    cout << "\n   element group: " << fSupport.ElementGroupNumber(this) + 1; 
 		    cout << "\n           block: " << i+1;
@@ -746,7 +748,7 @@ void ElementBaseT::SetElementCards(void)
 			nodes.MinMax(min, max);
 			if (min < 0 || max >= numberofnodes)
 			{
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 				cout << "\n ElementBaseT::SetElementCards: nodes {" << min + 1
 				     << "," << max + 1 << "} in element " << dim + 1 << "\n";
 				cout <<   "     (" << j + 1 << " in block " <<  i + 1 << ") of group "
