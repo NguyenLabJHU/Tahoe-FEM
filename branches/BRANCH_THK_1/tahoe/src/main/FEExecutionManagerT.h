@@ -1,8 +1,11 @@
-/* $Id: FEExecutionManagerT.h,v 1.13.2.2 2003-04-28 22:14:53 hspark Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.13.2.3 2003-04-29 00:55:02 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
 #define _FE_EXECMAN_T_H_
+
+/* element configuration header */
+#include "ElementsConfig.h"
 
 /* base class */
 #include "ExecutionManagerT.h"
@@ -78,16 +81,21 @@ private:
 	/** multi-Tahoe, bridging scale test */
 	void RunBridging(ifstreamT& in, ostream& status) const;
 
-        /** quasistatic multi-Tahoe bridging scale */
-        void RunStaticBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms,
-                                ofstream& log_out) const;
-        
-        /** dynamic multi-Tahoe bridging scale */
-        void RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms) const;
-
 	/** time history kernel tests */
 	void RunTHK(ifstreamT& in, ostream& status) const;
 	/*@}*/
+
+#ifdef BRIDGING_ELEMENT
+	/** \name bridging scale with different integrators */
+	/*@{*/
+	/** quasistatic multi-Tahoe bridging scale */
+	void RunStaticBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms,
+		ofstream& log_out) const;
+        
+	/** dynamic multi-Tahoe bridging scale */
+	void RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms) const;
+	/*@}*/
+#endif
 
 	/** print message on exception */
 	void Rewind(ifstreamT& in, ostream& status) const;
