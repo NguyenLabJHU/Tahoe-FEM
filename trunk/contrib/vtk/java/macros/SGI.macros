@@ -1,7 +1,7 @@
-# $Id: SGI.macros,v 1.2 2002-07-20 02:33:17 paklein Exp $
+# $Id: SGI.macros,v 1.3 2002-07-23 21:13:29 recampb Exp $
 # macros for SGI (wallaby2)
 COMP_CC = CC
-CC_FLAGS = -c -I/usr/java2/include -I/usr/java2/include/irix
+CC_FLAGS = -c -I/usr/java2/include -I/usr/java2/include/irix -I../../../toolbox/inc
 LD       = CC
 LD_FLAGS = -shared
 DSO_EXT  = so
