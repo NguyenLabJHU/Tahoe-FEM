@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.16 2004-07-15 08:30:17 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.17 2004-07-22 09:24:45 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 #include "UnConnectedRodT.h"
 
@@ -192,7 +192,7 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	ConfigureElementData();
 
 	/* print connectivity data */
-	WriteConnectivity(out);
+	//WriteConnectivity(out);
 }
 
 /***********************************************************************
