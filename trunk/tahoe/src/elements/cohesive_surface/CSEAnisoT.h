@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.2 2001-02-20 00:42:11 paklein Exp $ */
+/* $Id: CSEAnisoT.h,v 1.3 2001-02-27 00:06:24 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 /* Cohesive surface elements with vector traction potentials,             */
 /* i.e., like Xu-Needleman's potential.                                   */
@@ -20,7 +20,7 @@ class CSEAnisoT: public CSEBaseT
 public:
 
 	/* constructor */
-	CSEAnisoT(FEManagerT& fe_manager);
+	CSEAnisoT(FEManagerT& fe_manager, bool rotate);
 
 	/* destructor */
 	~CSEAnisoT(void);
@@ -63,7 +63,8 @@ private:
 
 protected:
 
-	/* shape functions (wrt current config) */
+	/* shape function - if (fRotate) then wrt current config */
+	bool fRotate;
 	SurfaceShapeT* fCurrShapes;
 
 	/* cohesive surface potentials */

@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.2 2001-02-20 00:42:11 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.3 2001-02-27 00:06:24 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 /* Cohesive surface elements with scalar traction potentials,             */
 /* i.e., the traction potential is a function of the gap magnitude,       */
@@ -27,31 +27,37 @@
 #include "math_utils.h"
 
 /* constructor */
-CSEAnisoT::CSEAnisoT(FEManagerT& fe_manager):
+CSEAnisoT::CSEAnisoT(FEManagerT& fe_manager, bool rotate):
 	CSEBaseT(fe_manager),
+	fRotate(rotate),
+	fCurrShapes(NULL),
 	fQ(fNumSD),
 	fdelta(fNumSD),
 	fT(fNumSD),
-	fddU(fNumSD),
-	fdQ(fNumSD),
-	fCurrShapes(NULL)
+	fddU(fNumSD)
 {
 	/* reset format for the element stiffness matrix */
-	fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
+	if (fRotate) fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
 }
 
 /* destructor */
 CSEAnisoT::~CSEAnisoT(void)
 {
-	delete fCurrShapes;
-	fCurrShapes = NULL;
+	if (fRotate)
+	{
+		delete fCurrShapes;
+		fCurrShapes = NULL;
+	}
 }
 
 /* form of tangent matrix */
 GlobalT::SystemTypeT CSEAnisoT::TangentType(void) const
 {
-	/* tangent matrix is not symmetric */
-	return GlobalT::kNonSymmetric;
+	if (fRotate)
+		/* tangent matrix is not symmetric */
+		return GlobalT::kNonSymmetric;
+	else
+		return GlobalT::kSymmetric;
 }
 
 void CSEAnisoT::Initialize(void)
@@ -59,16 +65,23 @@ void CSEAnisoT::Initialize(void)
 	/* inherited */
 	CSEBaseT::Initialize();
 	
-	/* shape functions wrt. current coordinates (linked parent domains) */
-fCurrShapes = new SurfaceShapeT(*fShapes, fLocCurrCoords);
-if (!fCurrShapes) throw eOutOfMemory;
-fCurrShapes->Initialize();
-
-	/* dimension */
-	fnsd_nee_1.Allocate(fNumSD, fNumElemEqnos);
-	fnsd_nee_2.Allocate(fNumSD, fNumElemEqnos);
-	for (int k = 0; k < fNumSD; k++)
-		fdQ[k].Allocate(fNumSD, fNumElemEqnos);
+	/* rotating local frame */
+	if (fRotate)
+	{
+		/* shape functions wrt. current coordinates (linked parent domains) */
+		fCurrShapes = new SurfaceShapeT(*fShapes, fLocCurrCoords);
+		if (!fCurrShapes) throw eOutOfMemory;
+		fCurrShapes->Initialize();
+		
+		/* allocate work space */
+		fnsd_nee_1.Allocate(fNumSD, fNumElemEqnos);
+		fnsd_nee_2.Allocate(fNumSD, fNumElemEqnos);
+		fdQ.Allocate(fNumSD);
+		for (int k = 0; k < fNumSD; k++)
+			fdQ[k].Allocate(fNumSD, fNumElemEqnos);
+	}
+	else
+		fCurrShapes = fShapes;
 
 	/* streams */
 	ifstreamT& in = fFEManager.Input();
@@ -134,6 +147,8 @@ fCurrShapes->Initialize();
 		}
 			
 	/* write */
+	out << " Rotating local coordinate frame . . . . . . . . = " <<
+	    ((fRotate) ? "ACTIVE" : "INACTIVE") << '\n';
 	out << "\n Cohesive surface potentials:\n";
 	out << " Number of potentials. . . . . . . . . . . . . . = ";
 	out << fSurfPots.Length() << '\n';
@@ -152,6 +167,10 @@ fCurrShapes->Initialize();
 
 void CSEAnisoT::LHSDriver(void)
 {
+	/* matrix format */
+	dMatrixT::SymmetryFlagT format = (fRotate) ?
+		dMatrixT::kWhole : dMatrixT::kUpperOnly;
+
 	/* time-integration parameters */
 	double constK = 0.0;
 	int formK = fController->FormK(constK);
@@ -184,10 +203,18 @@ void CSEAnisoT::LHSDriver(void)
 		fShapes->TopIP();
 		while (fShapes->NextIP())
 		{
+			/* integration weights */
+			double w = fShapes->IPWeight();		
+
 			/* coordinate transformations */
-			double j0 = fShapes->Jacobian();
-			double w  = fShapes->IPWeight();		
-			double j  = fCurrShapes->Jacobian(fQ, fdQ);
+			double j0, j;
+			if (fRotate)
+			{
+				j0 = fShapes->Jacobian();
+				j  = fCurrShapes->Jacobian(fQ, fdQ);
+			}
+			else
+				j0 = j = fShapes->Jacobian(fQ);
 
 			/* check */
 			if (j0 <= 0.0 || j <= 0.0) throw eBadJacobianDet;
@@ -196,29 +223,35 @@ void CSEAnisoT::LHSDriver(void)
 			const dArrayT&    delta = fShapes->InterpolateJumpU(fLocCurrCoords);
 			const dMatrixT& d_delta = fShapes->Grad_d();
 
-			/* gap -> {traction, stiffness} in local frame */
+			/* stiffness in local frame */
 			fQ.MultTx(delta, fdelta);
 			const dMatrixT& K = surfpot->Stiffness(fdelta);
-			const dArrayT&  T = surfpot->Traction(fdelta);
 			
-			/* 1st term */
-			fT.SetToScaled(j0*w*constK, T);
-			Q_ijk__u_j(fdQ, fT, fnsd_nee_1);
-			fNEEmat.MultATB(d_delta, fnsd_nee_1);
-			fLHS += fNEEmat;
+			/* rotation */
+			if (fRotate)
+			{
+				/* traction in local frame */
+				const dArrayT& T = surfpot->Traction(fdelta);
 
-			/* 2st term */
-			fddU.SetToScaled(j0*w*constK, K);
-			fnsd_nee_1.MultATB(fQ, d_delta);
-			fnsd_nee_2.MultATB(fddU, fnsd_nee_1);
-			u_i__Q_ijk(delta, fdQ, fnsd_nee_1);
-			fNEEmat.MultATB(fnsd_nee_2, fnsd_nee_1);
-			fLHS += fNEEmat;
+				/* 1st term */
+				fT.SetToScaled(j0*w*constK, T);
+				Q_ijk__u_j(fdQ, fT, fnsd_nee_1);
+				fNEEmat.MultATB(d_delta, fnsd_nee_1);
+				fLHS += fNEEmat;
+
+				/* 2st term */
+				fddU.SetToScaled(j0*w*constK, K);
+				fnsd_nee_1.MultATB(fQ, d_delta);
+				fnsd_nee_2.MultATB(fddU, fnsd_nee_1);
+				u_i__Q_ijk(delta, fdQ, fnsd_nee_1);
+				fNEEmat.MultATB(fnsd_nee_2, fnsd_nee_1);
+				fLHS += fNEEmat;
+			}
 
 			/* 3rd term */
 			fddU.MultQBQT(fQ, K);
 			fddU *= j0*w*constK;
-			fLHS.MultQTBQ(d_delta, fddU, dMatrixT::kWhole, dMatrixT::kAccumulate);	
+			fLHS.MultQTBQ(d_delta, fddU, format, dMatrixT::kAccumulate);	
 		}
 		
 		/* assemble */
@@ -266,10 +299,18 @@ void CSEAnisoT::RHSDriver(void)
 			fShapes->TopIP();
 			while (fShapes->NextIP())
 			{
+				/* integration weights */
+				double w = fShapes->IPWeight();		
+
 				/* coordinate transformations */
-				double j0 = fShapes->Jacobian();
-				double w  = fShapes->IPWeight();		
-				double j  = fCurrShapes->Jacobian(fQ);
+				double j0, j;
+				if (fRotate)
+				{
+					j0 = fShapes->Jacobian();
+					j  = fCurrShapes->Jacobian(fQ);
+				}
+				else
+					j0 = j = fShapes->Jacobian(fQ);
 				
 				/* check */
 				if (j0 <= 0.0 || j <= 0.0)
