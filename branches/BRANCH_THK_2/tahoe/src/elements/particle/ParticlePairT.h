@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.9 2003-03-31 23:12:22 paklein Exp $ */
+/* $Id: ParticlePairT.h,v 1.9.10.1 2003-05-24 04:04:35 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -53,6 +53,9 @@ public:
 	virtual void FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 		const iArray2DT& col_eq, dSPMatrixT& stiffness);
 
+	/** access to the neighbor pair list */
+	const RaggedArray2DT<int>& Neighbors(void) const { return fNeighbors; };
+	
 protected:
 
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
