@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.17 2002-11-16 20:48:25 paklein Exp $ */
+/* $Id: StringT.h,v 1.18 2003-03-08 01:59:52 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #ifndef _STRING_T_H_
 #define _STRING_T_H_
@@ -83,8 +83,17 @@ public:
 	friend int operator!=(const char* str_lhs, const StringT& str_rhs);
 	/*@}*/
 
+	/** \name reformatting */
+	/*@{*/
 	/** convert all to uppercase */
 	const StringT& ToUpper(void);
+
+	/** convert all to lowercase */
+	const StringT& ToLower(void);
+
+	/** replace one character with another */
+	void Replace(char find, char replace);
+	/*@}*/
 
 	/** read a line from the input stream, where a line is the next
 	 * kFileNameLength characters or fewer characters terminated

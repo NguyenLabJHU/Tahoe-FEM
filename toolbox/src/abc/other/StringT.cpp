@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.29 2002-11-25 07:06:39 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.30 2003-03-08 01:59:52 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #include "StringT.h"
 #include "ifstreamT.h"
@@ -153,7 +153,7 @@ int operator!=(const char* str_lhs, const StringT& str_rhs)
 /* convert all to uppercase */
 const StringT& StringT::ToUpper(void)
 {
-int num_chars = strlen(*this);
+	int num_chars = strlen(*this);
 	char* p = Pointer();
 	for (int i = 0; i < num_chars; i++)
 	{
@@ -163,6 +163,32 @@ int num_chars = strlen(*this);
 
 	return *this;
 }	
+
+/* convert all to lowercase */
+const StringT& StringT::ToLower(void)
+{
+	int num_chars = strlen(*this);
+	char* p = Pointer();
+	for (int i = 0; i < num_chars; i++)
+	{
+	    *p = tolower(*p);
+		p++;
+	}
+
+	return *this;
+}	
+
+/* replace one character with another */
+void StringT::Replace(char find, char replace)
+{
+	int num_chars = strlen(*this);
+	char* p = Pointer();
+	for (int i = 0; i < num_chars; i++)
+	{
+		if (*p == find) *p = replace;
+		p++;
+	}
+}
 
 /* read a line from the input stream, where a line is the next
 * kLineLength characters or fewer characters terminated
@@ -928,8 +954,9 @@ int StringT::versioncmp(const char* v1_, const char* v2_)
 /* extract double */
 bool StringT::Tail(char key, double& value) const
 {
-	char* p = Pointer();
-	while (*p != '\0' && *p != key) p++;
+	char* first = Pointer();
+	char* p = first + StringLength() - 1;
+	while (p != first && *p != key) p--;
 
 	value = 0.0;
 	if (*p == key)
@@ -944,8 +971,9 @@ bool StringT::Tail(char key, double& value) const
 /* extract integer */
 bool StringT::Tail(char key, int& value) const
 {
-	char* p = Pointer();
-	while (*p != '\0' && *p != key) p++;
+	char* first = Pointer();
+	char* p = first + StringLength() - 1;
+	while (p != first && *p != key) p--;
 
 	value = 0;
 	if (*p == key)
@@ -961,8 +989,9 @@ bool StringT::Tail(char key, int& value) const
 /* extract string */
 bool StringT::Tail(char key, StringT& value) const
 {
-	char* p = Pointer();
-	while (*p != '\0' && *p != key) p++;
+	char* first = Pointer();
+	char* p = first + StringLength() - 1;
+	while (p != first && *p != key) p--;
 
 	value = 0;
 	if (*p == key)
