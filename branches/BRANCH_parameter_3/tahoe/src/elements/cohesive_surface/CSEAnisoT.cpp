@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.61.4.3 2004-06-16 07:14:55 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.61.4.4 2004-06-23 00:52:23 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -358,7 +358,10 @@ ParameterInterfaceT* CSEAnisoT::NewSub(const StringT& list_name) const
 		cz->AddSub("Xu-Needleman_2D");
 		cz->AddSub("Tvergaard-Hutchinson_2D");
 		cz->AddSub("viscous_Tvergaard-Hutchinson_2D");
-	
+		cz->AddSub("Tijssens_2D");
+		cz->AddSub("Tvergaard-Hutchinson_rate_dep_2D");
+		cz->AddSub("Yoon-Allen_2D");
+
 		return cz;
 	}
 	else if (list_name == "cohesive_relation_3D")
