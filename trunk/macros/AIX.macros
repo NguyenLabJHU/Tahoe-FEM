@@ -1,4 +1,4 @@
-# $Id: AIX.macros,v 1.5 2003-01-27 07:33:59 paklein Exp $
+# $Id: AIX.macros,v 1.6 2003-02-08 17:33:13 paklein Exp $
 # DEC
 MAKE        = make
 MAKE_DEPEND = makedepend
@@ -18,10 +18,10 @@ MORE_CFLAGS = -O -DNDEBUG -qsuppress=1500-036
 #
 #MORE_CFLAGS = -g 
 DEFINES     = -D__AIX__ 
-MY_CFLAGS   = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -qmaxmem=10000
-CFLAGS_C    = $(MY_CFLAGS)
-CFLAGS_CC   = $(MY_CFLAGS) -qrtti -qsuppress=1540-0080
-CFLAGS_F    = $(MY_CFLAGS)
+LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -qmaxmem=10000
+CFLAGS_C    = $(LOC_CFLAGS)
+CFLAGS_CC   = $(LOC_CFLAGS) -qrtti -qsuppress=1540-0080
+CFLAGS_F    = $(LOC_CFLAGS)
 F2C_LFLAG   =
 LINK        = $(COMP_CC)
 LFLAGS      = $(F2C_LFLAG) -lm $(TR)

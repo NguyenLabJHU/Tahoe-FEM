@@ -1,4 +1,4 @@
-# $Id: DARWIN.LAM.macros,v 1.5 2003-01-27 07:33:59 paklein Exp $
+# $Id: DARWIN.LAM.macros,v 1.6 2003-02-08 17:33:14 paklein Exp $
 #
 # macros for Mac OS X using the GNU distribution provided with
 # the Apple Developer tools in addition to the LAM implementation
@@ -18,10 +18,10 @@ COMP_F      = mpif77
 DEFINES     = -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -D__GCC_3__
 MORE_CFLAGS = -O -DNDEBUG -g
 #MORE_CFLAGS = -g
-MY_CFLAGS   = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
-CFLAGS_C    = $(MY_CFLAGS)
-CFLAGS_CC   = $(MY_CFLAGS)
-CFLAGS_F    = $(MY_CFLAGS)
+LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
+CFLAGS_C    = $(LOC_CFLAGS)
+CFLAGS_CC   = $(LOC_CFLAGS)
+CFLAGS_F    = $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = -Xlinker -Y -Xlinker 50
 AR          = ar

@@ -1,4 +1,4 @@
-# $Id: AIX.mpi.macros,v 1.6 2003-01-27 07:33:59 paklein Exp $
+# $Id: AIX.mpi.macros,v 1.7 2003-02-08 17:33:14 paklein Exp $
 # DEC
 MPI_CFLAGS  = -D__TAHOE_MPI__
 MPI_LFLAGS  =
@@ -21,10 +21,10 @@ MORE_CFLAGS = -O -DNDEBUG -qsuppress=1500-036
 #
 #MORE_CFLAGS = -g 
 DEFINES     = -D__AIX__ 
-MY_CFLAGS   = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -qmaxmem=10000
-CFLAGS_C    = $(MPI_CFLAGS) $(MY_CFLAGS)
-CFLAGS_CC   = $(MPI_CFLAGS) $(MY_CFLAGS) -qrtti
-CFLAGS_F    = $(MPI_CFLAGS) $(MY_CFLAGS)
+LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -qmaxmem=10000
+CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS)
+CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -qrtti
+CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 F2C_LFLAG   =
 LINK        = $(COMP_CC)
 LFLAGS      = $(MPI_LFLAGS) $(F2C_LFLAG) -lm $(TR)

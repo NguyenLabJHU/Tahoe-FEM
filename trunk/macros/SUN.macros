@@ -1,4 +1,4 @@
-# $Id: SUN.macros,v 1.13 2003-01-27 07:33:59 paklein Exp $
+# $Id: SUN.macros,v 1.14 2003-02-08 17:33:14 paklein Exp $
 #
 ## Load GNU file utilities to get ln -sf to work properly (sunfreeware.com)
 #
@@ -24,10 +24,10 @@ COMP_F      = $(COMP_DIR)/bin/f77
 #
 #MORE_CFLAGS = -fast -DNDEBUG 
 MORE_CFLAGS = -g
-MY_CFLAGS   = -c -I$(INC_DIR) -D__SUN__ $(MORE_CFLAGS)
-CFLAGS_C    = $(MY_CFLAGS)
-CFLAGS_CC   = $(MY_CFLAGS) -features=rtti -instances=static
-CFLAGS_F    = $(MY_CFLAGS)
+LOC_CFLAGS  = -c -I$(INC_DIR) -D__SUN__ $(MORE_CFLAGS)
+CFLAGS_C    = $(LOC_CFLAGS)
+CFLAGS_CC   = $(LOC_CFLAGS) -features=rtti -instances=static
+CFLAGS_F    = $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = 
 AR          = ar

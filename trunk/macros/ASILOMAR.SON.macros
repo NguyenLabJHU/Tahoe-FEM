@@ -1,4 +1,4 @@
-# $Id: ASILOMAR.SON.macros,v 1.3 2003-01-27 07:33:59 paklein Exp $
+# $Id: ASILOMAR.SON.macros,v 1.4 2003-02-08 17:33:14 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpich -lgm
@@ -15,10 +15,10 @@ TR          = $(MACRO_DIR)/cxx_repository
 MORE_CFLAGS = -O3 -DNDEBUG -D__USE_STD_IOSTREAM -arch ev56
 #MORE_CFLAGS = -g 
 DEFINES     = -D__DEC__ -D__CPLANT__ -D__CA_CPLANT__ -D__ASILOMAR__ -D__ALPHA_LINUX__ 
-MY_CFLAGS   = -c -I$(INC_DIR) -I/usr/local/asilomar/build/LINUX/ch_gm/include -I/usr/local/asilomar/include -msg_display_number $(DEFINES) $(MORE_CFLAGS)
-CFLAGS_C    = $(MPI_CFLAGS) $(MY_CFLAGS)
-CFLAGS_CC   = $(MPI_CFLAGS) $(MY_CFLAGS) -ptr $(TR) -msg_disable 161,111
-CFLAGS_F    = $(MPI_CFLAGS) $(MY_CFLAGS)
+LOC_CFLAGS  = -c -I$(INC_DIR) -I/usr/local/asilomar/build/LINUX/ch_gm/include -I/usr/local/asilomar/include -msg_display_number $(DEFINES) $(MORE_CFLAGS)
+CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS)
+CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -ptr $(TR) -msg_disable 161,111
+CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = $(MPI_LFLAGS) -lm -ptr $(TR) -L/usr/local/asilomar/build/LINUX/ch_gm/lib -L/usr/local/asilomar/lib
 AR          = ar
