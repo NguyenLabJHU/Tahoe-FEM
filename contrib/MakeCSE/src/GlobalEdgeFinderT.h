@@ -51,7 +51,7 @@ class GlobalEdgeFinderT
 
 	// node and facet data
 	void ZoneFacets (const StringT& groupid, const sArrayT& zonegroupids, iArray2DT& sideset, iAutoArrayT& boundarynodes);
-	void BoundaryFacets (const StringT& groupid, const StringT& bordergroupid, iArray2DT& sideset);
+	void BoundaryFacets (const StringT& groupid, const sArrayT& bordergroupid, iArray2DT& sideset);
 
 	bool HasNode (int node, const ArrayT<int>& facets);
 	bool AnotherNode (int node, const ArrayT<int>& facets, const iArrayT& nodes);

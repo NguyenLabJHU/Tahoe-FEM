@@ -40,7 +40,7 @@ class MakeCSE
   void CollectSingleNodes (ModelManagerT& model, MakeCSE_IOManager& theInput);
   void CollectZones (ModelManagerT& model, MakeCSE_IOManager& theInput, const sArrayT& zonedata);
   void CollectBoundaries (const sArrayT& boundarydata);
-  bool GroupComboDone (int g, int b, iArray2DT& groupsdone) const;
+  int SetBoundarySearch (const sArrayT& boundarydata, sArrayT& groupids, ArrayT<sArrayT>& bordergroupids, sArrayT& csegroupids) const;
 
   void InitializeSet (int group, int CSEgroup);
   void AddElements (int num, int CSEgroup);
