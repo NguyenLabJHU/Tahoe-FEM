@@ -1,0 +1,14 @@
+# $Id: ReadMe,v 1.1 2002-11-15 01:59:43 paklein Exp $
+This little program read in atomic coordinates and displacements in
+Paradyn output format, fits a moving least squares displacement field
+to the results and calculates first and second gradients of the field.
+The field gradients are used to construct a deformation gradient, which
+is fed to a Cauchy-Born constitutive model to return the stress and
+acoustic wave speeds for the continuum model at the given state of
+deformation. The results are written to an output file.
+
+See the example directory for a test case.
+
+NOTE: due to the structure of the materials code in Tahoe, you will need
+      to link in all optional libraries that were enabled during compilation
+      of toolbox and tahoe.
