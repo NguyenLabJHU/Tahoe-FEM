@@ -31,5 +31,8 @@ Things that needed to be addressed when running the code through f2c
 	are specific to the MPI headers provided when f2c was run. The integer
 	constants must be replaced with their names.
 
+(10) MPI_Waitany returns completed requests indexed from 1 in FORTRAN, while
+    they are indexed from 0 in C.
+
 Potential issues:
 (1) lbit_shift translated from ishft in moveai.c. What does this do?
