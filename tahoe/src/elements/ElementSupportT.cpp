@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.2 2002-06-08 20:20:13 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.3 2002-06-11 15:18:56 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "FEManagerT.h"
 #include "NodeManagerT.h"
@@ -98,7 +98,7 @@ int ElementSupportT::ElementGroupNumber(const ElementBaseT* element) const
 	return FEManager().ElementGroupNumber(element); 
 }
 
-double ElementSupportT::Time(void) const
+const double& ElementSupportT::Time(void) const
 {
 	return FEManager().Time();
 }
