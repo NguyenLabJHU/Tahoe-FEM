@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.cpp,v 1.8 2002-03-04 17:23:32 raregue Exp $ */
+/* $Id: dMatrixEXT.cpp,v 1.9 2002-06-27 23:41:24 cfoster Exp $ */
 /* created: paklein (03/06/1998)                                          */
 
 #include "dMatrixEXT.h"
@@ -7,9 +7,9 @@
 #include "dArray2DT.h"
 #include <math.h>
 #include "dTensor4DT.h"
-//#include "nrutil.h"
+//#include "NRUTIL.H"
 
-/* Numerical Recipies macros */
+/* Numerical Recipes macros */
 static double sqrarg;
 #define SQR(a) ((sqrarg=(a)) == 0.0 ? 0.0 : sqrarg*sqrarg)
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
@@ -374,11 +374,14 @@ void dMatrixEXT::eigvalfinder (dMatrixEXT& matrix, dArrayT& realev, dArrayT& ime
         if (fRows != imev.Length()) throw eSizeMismatch;
 #endif
 
+	dMatrixEXT matrixCopy(fRows);
+	matrixCopy = matrix;
 
-elmhes(matrix, fRows);
+elmhes(matrixCopy, fRows);
 
-hqr(matrix, fRows, realev, imev);
+//matrixCopy(0,2) = 0.0;
 
+hqr(matrixCopy, fRows, realev, imev);
 
 }
 
@@ -389,33 +392,181 @@ void dMatrixEXT::elmhes(dMatrixEXT& a,int n)
 	int m,j,i;
 	double y,x;
 
-	for (m=2;m<n;m++) {
+	// for (m=2;m<n<m++)
+	for (m=1;m<n-1;m++) {
 		x=0.0;
 		i=m;
-		for (j=m;j<=n;j++) {
+		//	for (j=m;j<=n;j++) {
+		for (j=m;j<=n-1;j++) {
 			if (fabs(a(j,m-1)) > fabs(x)) {
 				x=a(j,m-1);
 				i=j;
 			}
 		}
 		if (i != m) {
-			for (j=m-1;j<=n;j++) SWAP(a(i,j),a(m,j))
-			for (j=1;j<=n;j++) SWAP(a(j,i),a(j,m))
+		  //for (j=m-1;j<=n;j++) SWAP(a(i,j),a(m,j))
+		  //for (j=1;j<=n;j++) SWAP(a(j,i),a(j,m))
+		  for (j=m-1;j<=n-1;j++) SWAP(a(i,j),a(m,j))
+		  for (j=0;j<=n-1;j++) SWAP(a(j,i),a(j,m))
 		}
 		if (x) {
-			for (i=m+1;i<=n;i++) {
+		  //for (i=m+1;i<=n;i++) {
+		  for (i=m+1;i<=n-1;i++) {
 				if ((y=a(i,m-1)) != 0.0) {
 					y /= x;
 					a(i,m-1)=y;
-					for (j=m;j<=n;j++)
+					//for (j=m;j<=n;j++)
+					for (j=m;j<=n-1;j++)
 						a(i,j) -= y*a(m,j);
-					for (j=1;j<=n;j++)
+					//for (j=1;j<=n;j++)
+					for (j=0;j<=n-1;j++)
 						a(j,m) += y*a(j,i);
 				}
 			}
 		}
 	}
 }
+
+
+void dMatrixEXT::hqr(dMatrixEXT& a, int n, dArrayT& wr, dArrayT& wi)
+  //float **a,wi[],wr[];
+  //int n;
+{
+	int nn,m,l,k,j,its,i,mmin;
+	double z,y,x,w,v,u,t,s,r,q,p,anorm;
+
+	//anorm=fabs(a(1,1));
+	anorm=fabs(a(0,0));	
+	//for (i=2;i<=n;i++)
+	//	for (j=(i-1);j<=n;j++)
+	for (i=1;i<n;i++)
+		for (j=(i-1);j<n;j++)
+			anorm += fabs(a(i,j));
+	nn=n;
+	t=0.0;
+
+	//while (nn >= 1) {
+	while (nn >= 0) {
+		its=0;
+		do {
+		      //for (l=nn;l>=2;l--) {
+			for (l=nn;l>=1;l--) {
+				s=fabs(a(l-1,l-1))+fabs(a(l,l));
+				if (s == 0.0) s=anorm;
+				if ((double)(fabs(a(l,l-1)) + s) == s) break;
+			}
+			x=a(nn,nn);
+			if (l == nn) {
+				wr[nn]=x+t;
+				wi[nn--]=0.0;
+			} else {
+				y=a(nn-1,nn-1);
+				w=a(nn,nn-1)*a(nn-1,nn);
+				if (l == (nn-1)) {
+					p=0.5*(y-x);
+					q=p*p+w;
+					z=sqrt(fabs(q));
+					x += t;
+					if (q >= 0.0) {
+						z=p+SIGN(z,p);
+						wr[nn-1]=wr[nn]=x+z;
+						if (z) wr[nn]=x-w/z;
+						wi[nn-1]=wi[nn]=0.0;
+					} else {
+						wr[nn-1]=wr[nn]=x+p;
+						wi[nn-1]= -(wi[nn]=z);
+					}
+					nn -= 2;
+				} else {
+					if (its == 30){
+					  cout << "Too many iterations in hqr (dMatrixEXT)  \n";
+					  throw eGeneralFail;
+					}
+					if (its == 10 || its == 20) {
+						t += x;
+						//for (i=1;i<=nn;i++) a(i,i) -= x;
+						for (i=0;i<nn;i++) a(i,i) -= x;	
+						s=fabs(a(nn,nn-1))+fabs(a(nn-1,nn-2));
+						y=x=0.75*s;
+						w = -0.4375*s*s;
+					}
+					++its;
+					// should be okay
+					for (m=(nn-2);m>=l;m--) {
+						z=a(m,m);
+						r=x-z;
+						s=y-z;
+						p=(r*s-w)/a(m+1,m)+a(m,m+1);
+						q=a(m+1,m+1)-z-r-s;
+						r=a(m+2,m+1);
+						s=fabs(p)+fabs(q)+fabs(r);
+						p /= s;
+						q /= s;
+						r /= s;
+						if (m == l) break;
+						u=fabs(a(m,m-1))*(fabs(q)+fabs(r));
+						v=fabs(p)*(fabs(a(m-1,m-1))+fabs(z)+fabs(a(m+1,m+1)));
+						if ((float)(u+v) == v) break;
+					}
+					// should be okay  for (i=m+2;i<=nn;i++) {
+					for (i=m+2;i<=nn;i++) {
+						a(i,i-2)=0.0;
+						if (i != (m+2)) a(i,i-3)=0.0;
+					}
+					//  should be okay for (k=m;k<=nn-1;k++) {
+					for (k=m;k<=nn-1;k++) {
+						if (k != m) {
+							p=a(k,k-1);
+							q=a(k+1,k-1);
+							r=0.0;
+							if (k != (nn-1)) r=a(k+2,k-1);
+							if ((x=fabs(p)+fabs(q)+fabs(r)) != 0.0) {
+								p /= x;
+								q /= x;
+								r /= x;
+							}
+						}
+						if ((s=SIGN(sqrt(p*p+q*q+r*r),p)) != 0.0) {
+							if (k == m) {
+								if (l != m)
+								a(k,k-1) = -a(k,k-1);
+							} else
+								a(k,k-1) = -s*x;
+							p += s;
+							x=p/s;
+							y=q/s;
+							z=r/s;
+							q /= p;
+							r /= p;
+							// should be okay
+							for (j=k;j<=nn;j++) {
+								p=a(k,j)+q*a(k+1,j);
+								if (k != (nn-1)) {
+									p += r*a(k+2,j);
+									a(k+2,j) -= p*z;
+								}
+								a(k+1,j) -= p*y;
+								a(k,j) -= p*x;
+							}
+							mmin = nn<k+3 ? nn : k+3;
+							// should be okay l not 1
+							for (i=l;i<=mmin;i++) {
+								p=x*a(i,k)+y*a(i,k+1);
+								if (k != (nn-1)) {
+									p += z*a(i,k+2);
+									a(i,k+2) -= p*r;
+								}
+								a(i,k+1) -= p*q;
+								a(i,k) -= p;
+							}
+						}
+					}
+				}
+			}
+		} while (l < nn-1);
+	}
+}
+
 
 /* void svdcmp(double **a, int m, int n, double w[], double **v) */
 int dMatrixEXT::svdcmp(double* a, int m, int n, double* w, double* v, double* rv1, int max_its) const
@@ -665,132 +816,6 @@ void dMatrixEXT::svbksb(double* u, double* w, double* v, int m, int n, double* b
 	//free_vector(tmp,1,n);
 }
 
-void dMatrixEXT::hqr(dMatrixEXT& a, int n, dArrayT& wr, dArrayT& wi)
-  //float **a,wi[],wr[];
-  //int n;
-{
-	int nn,m,l,k,j,its,i,mmin;
-	double z,y,x,w,v,u,t,s,r,q,p,anorm;
-
-	anorm=fabs(a(1,1));
-	for (i=2;i<=n;i++)
-		for (j=(i-1);j<=n;j++)
-			anorm += fabs(a(i,j));
-	nn=n;
-	t=0.0;
-	while (nn >= 1) {
-		its=0;
-		do {
-			for (l=nn;l>=2;l--) {
-				s=fabs(a(l-1,l-1))+fabs(a(l,l));
-				if (s == 0.0) s=anorm;
-				if ((float)(fabs(a(l,l-1)) + s) == s) break;
-			}
-			x=a(nn,nn);
-			if (l == nn) {
-				wr[nn]=x+t;
-				wi[nn--]=0.0;
-			} else {
-				y=a(nn-1,nn-1);
-				w=a(nn,nn-1)*a(nn-1,nn);
-				if (l == (nn-1)) {
-					p=0.5*(y-x);
-					q=p*p+w;
-					z=sqrt(fabs(q));
-					x += t;
-					if (q >= 0.0) {
-						z=p+SIGN(z,p);
-						wr[nn-1]=wr[nn]=x+z;
-						if (z) wr[nn]=x-w/z;
-						wi[nn-1]=wi[nn]=0.0;
-					} else {
-						wr[nn-1]=wr[nn]=x+p;
-						wi[nn-1]= -(wi[nn]=z);
-					}
-					nn -= 2;
-				} else {
-					if (its == 30){
-					  cout << "Too many iterations in hqr (dMatrixEXT)  \n";
-					  throw eGeneralFail;
-					}
-					if (its == 10 || its == 20) {
-						t += x;
-						for (i=1;i<=nn;i++) a(i,i) -= x;
-						s=fabs(a(nn,nn-1))+fabs(a(nn-1,nn-2));
-						y=x=0.75*s;
-						w = -0.4375*s*s;
-					}
-					++its;
-					for (m=(nn-2);m>=l;m--) {
-						z=a(m,m);
-						r=x-z;
-						s=y-z;
-						p=(r*s-w)/a(m+1,m)+a(m,m+1);
-						q=a(m+1,m+1)-z-r-s;
-						r=a(m+2,m+1);
-						s=fabs(p)+fabs(q)+fabs(r);
-						p /= s;
-						q /= s;
-						r /= s;
-						if (m == l) break;
-						u=fabs(a(m,m-1))*(fabs(q)+fabs(r));
-						v=fabs(p)*(fabs(a(m-1,m-1))+fabs(z)+fabs(a(m+1,m+1)));
-						if ((float)(u+v) == v) break;
-					}
-					for (i=m+2;i<=nn;i++) {
-						a(i,i-2)=0.0;
-						if (i != (m+2)) a(i,i-3)=0.0;
-					}
-					for (k=m;k<=nn-1;k++) {
-						if (k != m) {
-							p=a(k,k-1);
-							q=a(k+1,k-1);
-							r=0.0;
-							if (k != (nn-1)) r=a(k+2,k-1);
-							if ((x=fabs(p)+fabs(q)+fabs(r)) != 0.0) {
-								p /= x;
-								q /= x;
-								r /= x;
-							}
-						}
-						if ((s=SIGN(sqrt(p*p+q*q+r*r),p)) != 0.0) {
-							if (k == m) {
-								if (l != m)
-								a(k,k-1) = -a(k,k-1);
-							} else
-								a(k,k-1) = -s*x;
-							p += s;
-							x=p/s;
-							y=q/s;
-							z=r/s;
-							q /= p;
-							r /= p;
-							for (j=k;j<=nn;j++) {
-								p=a(k,j)+q*a(k+1,j);
-								if (k != (nn-1)) {
-									p += r*a(k+2,j);
-									a(k+2,j) -= p*z;
-								}
-								a(k+1,j) -= p*y;
-								a(k,j) -= p*x;
-							}
-							mmin = nn<k+3 ? nn : k+3;
-							for (i=l;i<=mmin;i++) {
-								p=x*a(i,k)+y*a(i,k+1);
-								if (k != (nn-1)) {
-									p += z*a(i,k+2);
-									a(i,k+2) -= p*r;
-								}
-								a(i,k+1) -= p*q;
-								a(i,k) -= p;
-							}
-						}
-					}
-				}
-			}
-		} while (l < nn-1);
-	}
-}
 
 
 /* find eigenvalues of 3x3 matrix explicitly */
@@ -1104,8 +1129,8 @@ vector3[2]=vector3[2]/norm;
 
 
 /*forms acoustic tensor from rank 4 tangent modulus, normal */
-void dMatrixEXT::formacoustictensor(dMatrixEXT& A, double C [3] [3] [3] [3], dArrayT& normal)
-//void dMatrixEXT::formacoustictensor(dMatrixEXT& A, dTensor4DT& C, dArrayT& normal)
+//void dMatrixEXT::formacoustictensor(dMatrixEXT& A, double C [3] [3] [3] [3], dArrayT& normal)
+void dMatrixEXT::formacoustictensor(dMatrixEXT& A, dTensor4DT& C, dArrayT& normal)
 {
  int k,l,m,n; //counters
 
@@ -1119,8 +1144,8 @@ void dMatrixEXT::formacoustictensor(dMatrixEXT& A, double C [3] [3] [3] [3], dAr
    for (n=0;n<3;n++){
      for (k=0;k<3;k++){
        for (l=0;l<3;l++){
-		A (m,n)+=normal[k]*C [k] [m] [n] [l]*normal[l]; 
-		//A (m,n)+=normal[k]*C(k,m,n,l)*normal[l]; 
+	 //A (m,n)+=normal[k]*C [k] [m] [n] [l]*normal[l]; 
+	 A (m,n)+=normal[k]*C(k,m,n,l)*normal[l]; 
        }
      }
    }

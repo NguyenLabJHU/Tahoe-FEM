@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.h,v 1.7 2002-03-04 17:23:32 raregue Exp $ */
+/* $Id: dMatrixEXT.h,v 1.8 2002-06-27 23:41:24 cfoster Exp $ */
 /* created: paklein (03/06/1998) */
 
 #ifndef _DMATRIXEX_T_H_
@@ -43,8 +43,8 @@ public:
     void eigenvalue3x3(dMatrixEXT& J, dArrayT& reroot, dArrayT& imroot);
 	void eigenvector3x3(dMatrixEXT& J, double value, int numvector,  dArrayT& vector, dArrayT& vector2, dArrayT& vector3);
 	/*forms acoustic tensor from rank 4 tangent modulus, normal */
-	void formacoustictensor(dMatrixEXT& A, double C [3] [3] [3] [3], dArrayT& normal);
-	//void formacoustictensor(dMatrixEXT& A, dTensor4DT& C, dArrayT& normal);
+	//void formacoustictensor(dMatrixEXT& A, double C [3] [3] [3] [3], dArrayT& normal);
+	void formacoustictensor(dMatrixEXT& A, dTensor4DT& C, dArrayT& normal);
 
 
 	/** generate singular value decomposition of *this = U*W*V^T. 
@@ -119,10 +119,10 @@ private:
 	double pythag(double a, double b) const;
 	int tqli(double d[], double e[], int n);
 
-	/* Numerical recipe, puts general matrix in Hessian form */
+	/* Numerical recipe, puts general matrix in Hessenberg form */
 	void elmhes(dMatrixEXT& a,int n);
 
-	/* numerical recipe, finds eigenvalues of Hessian matrix
+	/* numerical recipe, finds eigenvalues of Hessenberg matrix
 	 *real part of each value is in wr, imaginary in wi */
 	void hqr(dMatrixEXT& a, int n, dArrayT& wr, dArrayT& wi);
 
