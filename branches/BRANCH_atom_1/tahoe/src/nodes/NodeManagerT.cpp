@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.18.2.3 2002-12-16 09:16:55 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.18.2.4 2002-12-18 09:48:33 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -10,6 +10,7 @@
 #include "fstreamT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
+#include "CommManagerT.h"
 #include "LocalArrayT.h"
 #include "nControllerT.h"
 #include "eControllerT.h"
@@ -40,8 +41,9 @@
 using namespace Tahoe;
 
 /* constructor */
-NodeManagerT::NodeManagerT(FEManagerT& fe_manager):
+NodeManagerT::NodeManagerT(FEManagerT& fe_manager, CommManagerT& comm_manager):
 	fFEManager(fe_manager),
+	fCommManager(comm_manager), 
 	fInitCoords(NULL),
 	fCoordUpdate(NULL),
 	fCurrentCoords(NULL)
@@ -70,7 +72,7 @@ int NodeManagerT::NumEquations(int group) const
 	int neq = 0;
 	for (int i = 0; i < fFields.Length(); i++)
 		if (fFields[i]->Group() == group)
-			neq += fFields[i]->NumActiveEquations();
+			neq += fFields[i]->NumEquations();
 			
 	/* get XDOF equations */
 	neq += XDOF_ManagerT::NumEquations(group);
@@ -100,7 +102,7 @@ void NodeManagerT::Initialize(void)
 	EchoFields(in, out);
 
 	/* external nodes (parallel execution) */
-	EchoExternalNodes(out);
+//	EchoExternalNodes(out);
 
 	/* history nodes */
 	EchoHistoryNodes(in, out);
@@ -338,15 +340,29 @@ GlobalT::RelaxCodeT NodeManagerT::RelaxSystem(int group)
 void NodeManagerT::Update(int group, const dArrayT& update)
 {
 	/* active equation numbers */
+//DEV
 	int eq_start = fFEManager.ActiveEquationStart(group);
 	int num_eq   = NumEquations(group);
-	
+//DEV
+
 	/* update fields */
 	for (int i = 0; i < fFields.Length(); i++)
 		if (fFields[i]->Group() == group)
-			fFields[i]->Update(update, eq_start, num_eq);
+		{
+			/* assemble contribution from local solver */
+			fFields[i]->AssembleUpdate(update);
+		
+			/* gather external contribution - by field???? */
+			dArray2DT& update = fFields[i]->Update();
+			//something with the comm manager
+			
+			/* apply the update */
+			fFields[i]->ApplyUpdate();
+		}
+			
 
 	/* external nodes */
+#if 0
 	if (Size() > 1)
 		for (int i = 0; i < fFields.Length(); i++)
 		{
@@ -366,6 +382,7 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 			/* apply update - external nodes to be updated are marked with 1 */
 			integrator.MappedCorrector(field, fExNodes, xeqnos, update);
 		}
+#endif
 
 	/* update current configurations */
 	if (fCoordUpdate && fCoordUpdate->Group() == group)
@@ -476,20 +493,20 @@ void NodeManagerT::SetEquationNumbers(int group)
 			"group has no fields: %d", group);
 	
 	/* initialize equations numbers arrays */
-	ArrayT<iArray2DT> group_eqnos(fields.Length());
 	for (int i = 0; i < fields.Length(); i++)
-		fields[i]->InitEquations(group_eqnos[i]);
+		fields[i]->InitEquations();
 
 	/* mark external nodes */
-	if (fExNodes.Length() > 0)
-		for (int i = 0; i < fields.Length(); i++)
+	const ArrayT<int>* ex_nodes = fCommManager.ExternalNodes();
+	if (ex_nodes)
+		for (int i = 0; i < fields.Length(); i++) // ????? still needed ??????
 		{
 			/* field data */
-			iArray2DT&  eqnos = group_eqnos[i];
+			iArray2DT&  eqnos = fields[i]->Equations();
 			iArray2DT& xeqnos = fields[i]->ExternalEquations();
 		
 			/* collect equation numbers */
-			xeqnos.RowCollect(fExNodes, eqnos);
+			xeqnos.RowCollect(*ex_nodes, eqnos);
 	
 			/* mark active external nodes for update of active
 			 * external using controller */
@@ -499,8 +516,8 @@ void NodeManagerT::SetEquationNumbers(int group)
 
 			/* mark all external as inactive for setting local
 			 * equation numbers */
-			for (int j = 0; j < fExNodes.Length(); j++)
-				eqnos.SetRow(fExNodes[j], FieldT::kExternal);	
+			for (int j = 0; j < ex_nodes->Length(); j++)
+				eqnos.SetRow((*ex_nodes)[j], FieldT::kExternal);	
 		}
 
 	/* assign active equation numbers node-by-node across fields
@@ -514,7 +531,7 @@ void NodeManagerT::SetEquationNumbers(int group)
 		{
 			int& count = num_active[j];
 			int  ndof = fields[j]->NumDOF();
-			int* peq = (group_eqnos[j])(i);
+			int* peq = (fields[j]->Equations())(i);
 			for (int k = 0; k < ndof; k++)
 			{
 				/* active equation */
@@ -527,9 +544,10 @@ void NodeManagerT::SetEquationNumbers(int group)
 			}
 		}
 
-	/* set equation arrays */
+	/* set equation arrays - assume all start at 1 */
+	int start_eq = 1;
 	for (int i = 0; i < fields.Length(); i++)
-		fields[i]->SetEquations(group_eqnos[i], num_active[i]);
+		fields[i]->FinalizeEquations(start_eq, num_active[i]);
 	
 	/* assign equation numbers to XDOF's */
 	XDOF_ManagerT::SetEquations(group, num_eq);
@@ -562,24 +580,36 @@ void NodeManagerT::RenumberEquations(int group,
 	/* rearrange equations if needed */
 	CheckEquationNumbers(group);
 
+	/* reset fields */
+	for (int j = 0; j < fFields.Length(); j++)
+		if (fFields[j]->Group() == group)
+		{
+			int start = fFields[j]->EquationStart();
+			int num_eq = fFields[j]->NumEquations();
+			fFields[j]->FinalizeEquations(start, num_eq);
+		}
+
 	cout << "\n NodeManagerT::RenumberEquations: done" << endl;
 }
 
 void NodeManagerT::SetEquationNumberScope(int group, GlobalT::EquationNumberScopeT scope)
 {
+	/* id's of external nodes */
+	const ArrayT<int>* ex_nodes = fCommManager.ExternalNodes();
+
 	//TEMP - external DOF's no tested with other scopes
-	if (scope != GlobalT::kLocal && fExNodes.Length() > 0 && NumTagSets() > 0)
+	if (scope != GlobalT::kLocal && ex_nodes && NumTagSets() > 0)
 		ExceptionT::GeneralFail("NodeManagerT::SetEquationNumberScope", 
 			"external DOF only verified with local numbering");
 
 	/* switch numbering scope - with external nodes */
-	if (scope == GlobalT::kGlobal && fExNodes.Length() > 0)
+	if (scope == GlobalT::kGlobal && ex_nodes)
 	{
 		/* shift local equation numbers */
 		int start = fFEManager.GlobalEquationStart(group);
 		int shift = start - 1;
 		
-		/* loop over fields */
+		/* change numbering scope */
 		for (int j = 0; j < fFields.Length(); j++)
 			if (fFields[j]->Group() == group)
 			{
@@ -593,11 +623,19 @@ void NodeManagerT::SetEquationNumberScope(int group, GlobalT::EquationNumberScop
 				}
 
 				/* collect external equation numbers */
-				iArray2DT external_equations(fExNodes.Length(), fFields[j]->NumDOF());
+				iArray2DT external_equations(ex_nodes->Length(), fFields[j]->NumDOF());
 				fFEManager.SendRecvExternalData(eqnos, external_equations);
 
 				/* write-in */
-				eqnos.Assemble(fExNodes, external_equations);
+				eqnos.Assemble(*ex_nodes, external_equations);
+			}
+			
+		/* reset fields */
+		for (int j = 0; j < fFields.Length(); j++)
+			if (fFields[j]->Group() == group)
+			{
+				int num_eq = fFields[j]->NumEquations();
+				fFields[j]->FinalizeEquations(start, num_eq);
 			}
 	}
 }
@@ -1446,6 +1484,7 @@ void NodeManagerT::EchoKinematicBC(FieldT& field, ifstreamT& in, ostream& out)
 		}
 }
 
+#if 0
 void NodeManagerT::EchoExternalNodes(ostream& out)
 {
 	/* get external nodes */
@@ -1469,6 +1508,7 @@ void NodeManagerT::EchoExternalNodes(ostream& out)
 			fFields[i]->InitExternalEquations(fExNodes);
 	}
 }
+#endif
 
 void NodeManagerT::EchoForceBC(FieldT& field, ifstreamT& in, ostream& out)
 {
@@ -1556,6 +1596,11 @@ void NodeManagerT::EchoHistoryNodes(ifstreamT& in, ostream &out)
 
 	/* model database */
 	ModelManagerT* model = fFEManager.ModelManager();
+	
+	/* list of external nodes */
+	const ArrayT<int>* p_ex_nodes = fCommManager.ExternalNodes();
+	iArrayT ex_nodes;
+	if (p_ex_nodes) ex_nodes.Alias(*p_ex_nodes);
 
 	/* read node set indexes */
 	ArrayT<StringT> node_set_ID;
@@ -1575,7 +1620,7 @@ void NodeManagerT::EchoHistoryNodes(ifstreamT& in, ostream &out)
 		is_external = true;
 		int count = 0;
 		for (int j = 0; j < node_set.Length(); j++)
-			if (!fExNodes.HasValue(node_set[j]))
+			if (!ex_nodes.HasValue(node_set[j]))
 			{
 				is_external[j] = false;
 				count++;

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.10.2.2 2002-12-16 09:16:55 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.10.2.3 2002-12-18 09:48:33 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -22,6 +22,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class FEManagerT;
+class CommManagerT;
 class ScheduleT;
 class LocalArrayT;
 class nControllerT;
@@ -45,7 +46,7 @@ class NodeManagerT:
 public:
 
 	/** constructor */
-	NodeManagerT(FEManagerT& fe_manager);
+	NodeManagerT(FEManagerT& fe_manager, CommManagerT& comm_manager);
 	
 	/** destructor */
 	virtual ~NodeManagerT(void);
@@ -241,7 +242,7 @@ protected:
 	/*@{*/
 	virtual void EchoCoordinates(ifstreamT& in, ostream& out);
 	virtual void EchoFields(ifstreamT& in, ostream& out);
-	virtual void EchoExternalNodes(ostream& out);
+//	virtual void EchoExternalNodes(ostream& out);
 	virtual void EchoHistoryNodes(ifstreamT& in, ostream &out);
 	/*@}*/
 
@@ -278,8 +279,11 @@ private:
 	
 protected:
 
-	/** */
+	/** host */
 	FEManagerT& fFEManager;
+	
+	/** communication manager */
+	CommManagerT& fCommManager;
 
 	/** fields */
 	ArrayT<FieldT*> fFields;
@@ -293,17 +297,16 @@ protected:
 	/** history node output set information. There is one output set
 	 * per field for every history node set: [nfield*nset] x [3]
 	 * Each row has:
-	 * <ul>
-	 * <li> [0]: output set ID returned by FEManagerT::RegisterOutput
-	 * <li> [1]: index of the field associated with the output set 
-	 * <li> [2]: index in NodeManagerT::fHistoryNodeSetIDs of
-	 *           the "connectivitities" associated with the set.
-	 * </ul> */
+	 * -# output set ID returned by FEManagerT::RegisterOutput
+	 * -# index of the field associated with the output set 
+	 * -# index in NodeManagerT::fHistoryNodeSetIDs of
+	 *    the "connectivitities" associated with the set. */
 	iArray2DT fHistoryOutputID;
 	/*@}*/
 	
 	/** "ghost" node numbers */
-	iArrayT fExNodes;
+//	iArrayT fExNodes;
+//DEV - moved to CommManagerT
 
 private:
 
