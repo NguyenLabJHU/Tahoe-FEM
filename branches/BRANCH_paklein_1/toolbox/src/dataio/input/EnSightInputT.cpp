@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.cpp,v 1.12 2002-07-02 19:57:03 cjkimme Exp $ */
+/* $Id: EnSightInputT.cpp,v 1.12.2.1 2002-10-17 03:59:16 paklein Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #include "EnSightInputT.h"
@@ -78,7 +78,7 @@ int EnSightInputT::NumNodes (void) const
 
 void EnSightInputT::ReadNodeID(iArrayT& node_id)
 {
-  if (node_id.Length() != NumNodes()) throw eSizeMismatch;
+  if (node_id.Length() != NumNodes()) throw ExceptionT::kSizeMismatch;
 
   ScanGeometryFile();
 
@@ -123,7 +123,7 @@ void EnSightInputT::ReadCoordinates (dArray2DT& coords)
   fData.ReadGeometryHeader(in, nodemapgiven, elemmapgiven);
   
   if (coords.MajorDim() != NumNodes() ||
-      coords.MinorDim() != 3) throw eSizeMismatch;
+      coords.MinorDim() != 3) throw ExceptionT::kSizeMismatch;
 
   int num = 0;
   dArray2DT tempcoords;
@@ -236,7 +236,7 @@ int EnSightInputT::NumElementNodes (const StringT& name)
 
 void EnSightInputT::ReadAllElementMap (iArrayT& elemmap)
 {
-  if (elemmap.Length() != NumGlobalElements()) throw eSizeMismatch;
+  if (elemmap.Length() != NumGlobalElements()) throw ExceptionT::kSizeMismatch;
 
   ScanGeometryFile();
   ifstream in (fGeometryFile);
@@ -474,7 +474,7 @@ void EnSightInputT::NodeVariablesUsed (const StringT& name, iArrayT& used)
   AutoArrayT<bool> nvector, evector;
   AutoArrayT<StringT> nl(20), el(20);
   fData.ReadVariableSection (incase, nl, el, nvector, evector, false);
-  if (used.Length() != nl.Length()) throw eSizeMismatch;
+  if (used.Length() != nl.Length()) throw ExceptionT::kSizeMismatch;
   
   VariableUsed (name, used, nl, nvector, true);
 }
@@ -490,7 +490,7 @@ void EnSightInputT::ElementVariablesUsed (const StringT& name, iArrayT& used)
   AutoArrayT<bool> nvector, evector;
   AutoArrayT<StringT> nl(20), el(20);
   fData.ReadVariableSection (incase, nl, el, nvector, evector, false);
-  if (used.Length() != nl.Length()) throw eSizeMismatch;
+  if (used.Length() != nl.Length()) throw ExceptionT::kSizeMismatch;
   
   VariableUsed (name, used, el, evector, false);
 }
@@ -542,7 +542,7 @@ void EnSightInputT::ReadAllNodeVariables (int step, dArray2DT& nvalues)
     {
       ReadNodeVariables (step, gnames[i], vals);
 
-      if (vals.MinorDim() != nvalues.MinorDim()) throw eSizeMismatch;
+      if (vals.MinorDim() != nvalues.MinorDim()) throw ExceptionT::kSizeMismatch;
 
       nvalues.CopyPart (offset, vals, 0, vals.Length());
       offset += vals.Length();
@@ -617,7 +617,7 @@ void EnSightInputT::ReadAllElementVariables (int step, dArray2DT& evalues)
     {
       ReadElementVariables (step, gnames[i], vals);
 
-      if (vals.MinorDim() != evalues.MinorDim()) throw eSizeMismatch;
+      if (vals.MinorDim() != evalues.MinorDim()) throw ExceptionT::kSizeMismatch;
 
       evalues.CopyPart (offset, vals, 0, vals.Length());
       offset += vals.Length();
@@ -769,7 +769,7 @@ void EnSightInputT::ReadOneVariableData (int component, const StringT& label, in
   dArray2DT temp;
   while (fData.ReadPart (in, id) && !found)
     {
-      if (!fPartDimensions.ColumnHasValue (kPartID, id, dex)) throw eGeneralFail;
+      if (!fPartDimensions.ColumnHasValue (kPartID, id, dex)) throw ExceptionT::kGeneralFail;
 
       if (nodal)
 	num = fPartDimensions (dex, kNumNodes);
@@ -824,7 +824,7 @@ void EnSightInputT::ReadVariableData (ArrayT<bool>& vector, ArrayT<StringT>& lab
       dArray2DT temp;
       while (fData.ReadPart (in, id) && !found)
 	{
-	  if (!fPartDimensions.ColumnHasValue (kPartID, id, dex)) throw eGeneralFail;
+	  if (!fPartDimensions.ColumnHasValue (kPartID, id, dex)) throw ExceptionT::kGeneralFail;
 	  
 	  if (nodal)
 	    num = fPartDimensions (dex, kNumNodes);
@@ -877,7 +877,7 @@ void EnSightInputT::VariableUsed (const StringT& name, iArrayT& used, ArrayT<Str
       dArray2DT temp;
       while (fData.ReadPart (in, id) && !found)
 	{
-	  if (!fPartDimensions.ColumnHasValue (kPartID, id, dex)) throw eGeneralFail;
+	  if (!fPartDimensions.ColumnHasValue (kPartID, id, dex)) throw ExceptionT::kGeneralFail;
 
 	  if (nodal)
 	    num = fPartDimensions (dex, kNumNodes);

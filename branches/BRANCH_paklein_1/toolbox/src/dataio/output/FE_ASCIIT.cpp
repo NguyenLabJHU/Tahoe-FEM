@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.cpp,v 1.14 2002-07-02 19:57:07 cjkimme Exp $ */
+/* $Id: FE_ASCIIT.cpp,v 1.14.2.1 2002-10-17 03:59:17 paklein Exp $ */
 /* created: sawimme (05/20/1999) */
 
 #include "FE_ASCIIT.h"
@@ -143,7 +143,7 @@ void FE_ASCIIT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 		if (!out.is_open())
 		{
 			cout << "\n FE_ASCIIT::WriteOutput: error opening file: " << geom_file << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 
 		/* ID information */
@@ -190,7 +190,7 @@ void FE_ASCIIT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 	if (!out.is_open())
 	{
 		cout << "\n FE_ASCIIT::WriteOutput: error opening file: " << dat_file << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* print header */
@@ -440,7 +440,7 @@ void FE_ASCIIT::WriteNodeValues(ostream& out, const iArrayT& node_numbers,
 	if (values.Length() == 0) return;
 
 	/* check */
-	if (node_numbers.Length() != values.MajorDim()) throw eSizeMismatch;
+	if (node_numbers.Length() != values.MajorDim()) throw ExceptionT::kSizeMismatch;
 
 	/* write */
 	for (int i = 0; i < node_numbers.Length(); i++)
