@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.8 2001-11-09 14:22:19 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.9 2001-12-17 20:10:52 sawimme Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -56,11 +56,22 @@ void TranslateIOManager::Translate (const StringT& program, const StringT& versi
 void TranslateIOManager::SetOutput (const StringT& program_name, const StringT& version, const StringT& title)
 {
   IOBaseT temp (cout);
-  cout << "\n\n";
-  temp.OutputFormats (cout);
-  int outputformat;
-  cout << "\n Enter the Output Format: ";
-  cin >> outputformat;
+  int outputformat = -1;
+  while (outputformat != IOBaseT::kExodusII &&
+	 outputformat != IOBaseT::kTahoeII &&
+	 outputformat != IOBaseT::kEnSight &&
+	 outputformat != IOBaseT::kEnSightBinary &&
+	 outputformat != IOBaseT::kAbaqus &&
+	 outputformat != IOBaseT::kAbaqusBinary &&
+	 outputformat != IOBaseT::kTecPlot &&
+	 outputformat != IOBaseT::kAVS &&
+	 outputformat != IOBaseT::kAVSBinary )
+    {
+      cout << "\n\n";
+      temp.OutputFormats (cout);
+      cout << "\n Enter the Output Format: ";
+      cin >> outputformat;
+    }
   cout << "\n Enter the root of the output files: ";
   cin >> fOutputName;
 
@@ -177,9 +188,15 @@ void TranslateIOManager::InitializeElements (int& group, StringT& groupname) con
   cout << "\n You must have one type of element within the group you select.\n";
   cout << " Enter the number of the element group: ";
   cin >> group;
-  if (group < 1 || group > elemsetnames.Length()) throw eOutOfRange;
-  groupname = elemsetnames[group-1];
+  if (group < 1 || group > elemsetnames.Length()) 
+    {
+      cout << "\n The number entered for an element group is invalid: "
+	   << group << "\n";
+      cout << "Minimum limit is 1 and maximum is " << elemsetnames.Length() << endl;
+      throw eOutOfRange;
+    }
   group--;
+  groupname = elemsetnames[group];
 }
 
 void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
@@ -279,8 +296,9 @@ void TranslateIOManager::InitializeTime (void)
 	  cout << "    " << b+1 << ". " << fTimeSteps[b] << "\n";
       cout << "\n1. Translate All\n";
       cout << "2. Translate Specified\n";
-      cout << "3. Translate Every nth step\n";
-      cout << "4. Translate None (just geometry)\n";
+      cout << "3. Translate Specified Range\n";
+      cout << "4. Translate Every nth step\n";
+      cout << "5. Translate None (just geometry)\n";
       cout << "\n Enter Selection: ";
       cin >> selection;
 
@@ -312,6 +330,25 @@ void TranslateIOManager::InitializeTime (void)
 	    break;
 	  }
 	case 3:
+	  {
+	    int start, stop;
+	    cout << "\n Increments are numbered consequetively from 1.\n";
+	    cout << " Enter the starting increment: ";
+	    cin >> start;
+	    cout << " Enter the end increment: ";
+	    cin >> stop;
+	    if (stop < start) throw eGeneralFail;
+	    if (start < 1) throw eGeneralFail;
+	    fNumTS = stop-start+1;
+	    dArrayT temp (fNumTS);
+	    fTimeIncs.Allocate (fNumTS);
+	    fTimeIncs.SetValueToPosition();
+	    fTimeIncs += start;
+	    temp.Collect (fTimeIncs, fTimeSteps);
+	    fTimeSteps = temp;
+	    break;
+	  }
+	case 4:
 	  {
 	    int n;
 	    cout << "\n Enter n: ";
@@ -438,6 +475,7 @@ void TranslateIOManager::WriteElements (void)
   cout << "\n Number of Element Groups: " << num << endl;
   cout << "\n1. Translate All\n";
   cout << "2. Translate Some\n";
+  cout << "\n How many element groups do you want to translate: ";
   cin >> selection;
 
   bool changing = false;
@@ -457,16 +495,17 @@ void TranslateIOManager::WriteElements (void)
 	  iArrayT block_ID (1);
 	  ArrayT<const iArray2DT*> conn (1);
 	  block_ID = e+1;
-	  conn[0] = &(fModel.ElementGroup (e));
+	  conn[0] = fModel.ElementGroupPointer (e);
+	  fModel.ReadConnectivity (e);
 
-	  /* use with newly branched tahoe toolbox */
-	  //OutputSetT set (e, fModel.ElementGroupGeometry (e), block_ID, 
-	  //		  conn, fNodeLabels, fElementLabels, changing);
-
-	  /* old style */
-	  OutputSetT set (e, fModel.ElementGroupGeometry (e), block_ID, 
-			  fModel.ElementGroup (e), fNodeLabels, fElementLabels, changing);
-	  fOutputID[e] = fOutput->AddElementSet (set);
+	  if (conn[0]->Length() > 0)
+	    {
+	      OutputSetT set (e+1, fModel.ElementGroupGeometry (e), block_ID, 
+			      conn, fNodeLabels, fElementLabels, changing);
+	      fOutputID[e] = fOutput->AddElementSet (set);
+	    }
+	  else
+	    cout << " Element Group " << names[e] << " has no elements.\n";
 	}
       else
 	fOutputID[e] = -1;

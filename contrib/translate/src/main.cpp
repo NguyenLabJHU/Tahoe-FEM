@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.6 2001-11-08 13:36:14 sawimme Exp $ */
+/* $Id: main.cpp,v 1.7 2001-12-17 20:10:52 sawimme Exp $ */
 
 #include "TranslateIOManager.h"
 #include "ExtractNode.h"
@@ -9,13 +9,16 @@ int main (void)
 {
   try 
     {
-      int selection;
-      cout << "\n1. Datafile Translation \n";
-      cout << "2. Nodal Data Extraction to XY Data \n";
-      cout << "3. Quadrature Data Extraction to XY Data \n";
-      cout << "4. Quadrature Data Extraction for Point Plots \n";
-      cout << "\n Select type of translation: ";
-      cin >> selection;
+      int selection = -1;
+      while (selection < 1 || selection > 4)
+	{
+	  cout << "\n1. Datafile Translation \n";
+	  cout << "2. Nodal Data Extraction to XY Data \n";
+	  cout << "3. Quadrature Data Extraction to XY Data \n";
+	  cout << "4. Quadrature Data Extraction for Point Plots \n";
+	  cout << "\n Select type of translation: ";
+	  cin >> selection;
+	}
       
       TranslateIOManager *dataio;
       StringT program, version;

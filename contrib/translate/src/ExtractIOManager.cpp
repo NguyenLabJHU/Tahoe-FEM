@@ -2,6 +2,7 @@
 #include "ExtractIOManager.h"
 #include "TecPlotT.h"
 #include <stdio.h>
+//#include <time.h>
 
 ExtractIOManager::ExtractIOManager (ostream& out) :
   TranslateIOManager (out)
@@ -44,10 +45,15 @@ void ExtractIOManager::Translate (const StringT& program, const StringT& version
 
 void ExtractIOManager::SetOutput (const StringT& program, const StringT& version, const StringT& title)
 {
-  cout << "\n    eq.  " << IOBaseT::kTahoe   << ". Text\n";
-  cout << "    eq.  " << IOBaseT::kTecPlot << ". TecPlot 7.5\n";
-  cout << "\n Enter the Output Format: ";
-  cin >> fOutputFormat;
+  fOutputFormat = -1;
+  while (fOutputFormat != IOBaseT::kTahoe &&
+	 fOutputFormat != IOBaseT::kTecPlot)
+    {
+      cout << "\n    eq.  " << IOBaseT::kTahoe   << ". Text\n";
+      cout << "    eq.  " << IOBaseT::kTecPlot << ". TecPlot 7.5\n";
+      cout << "\n Enter the Output Format: ";
+      cin >> fOutputFormat;
+    }
   cout << "\n Enter the root of the output files: ";
   cin >> fOutputName;
 
@@ -60,8 +66,6 @@ void ExtractIOManager::SetOutput (const StringT& program, const StringT& version
 
 void ExtractIOManager::PrepFiles (iArrayT& varsused, ArrayT<StringT>& labels)
 {
-  if (varsused.Length() != labels.Length()) throw eSizeMismatch;
-
   cout << "\n";
 
   // open files, one per item = node or element or int point
@@ -108,7 +112,13 @@ void ExtractIOManager::PrepFiles (iArrayT& varsused, ArrayT<StringT>& labels)
 void ExtractIOManager::WriteVarData (iArrayT& varsused, int ts) const
 {
   if ((ts+1)%fCheck == 0 || ts == fNumTS-1)
-    cout << "Time Step " << fTimeIncs[ts]+1 << ": " << fTimeSteps[ts] << endl;
+    {
+      /*time_t t;
+	time (&t);
+	cout << " STATUS:  Time Step " << fTimeIncs[ts]+1 << ": " << fTimeSteps[ts] 
+	<< " Wall Time: " << localtime (&t) << endl; */
+      cout << " STATUS:  Time Step " << fTimeIncs[ts]+1 << ": " << fTimeSteps[ts] << endl;
+    }
 
   switch (fOutputFormat)
     {
@@ -141,7 +151,10 @@ void ExtractIOManager::WriteVarData (iArrayT& varsused, int ts) const
 void ExtractIOManager::OpenFile (ofstreamT& o, StringT& name, bool append) const
 {
   StringT filename (fOutputName);
-  filename.Append ("_", name);
+  filename.Append ("_");
+  for (int i=name.StringLength(); i < fNumDigits; i++)
+    filename.Append ("0");
+  filename.Append (name);
   filename.Append (".", fOutfileExtension);
   if (!append)
     {
