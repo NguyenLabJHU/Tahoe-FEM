@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.50 2003-04-22 01:20:42 saubry Exp $ */
+/* $Id: ElementListT.cpp,v 1.51 2003-05-23 22:50:28 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -42,6 +42,7 @@
 
 #ifdef BRIDGING_ELEMENT
 #include "BridgingScaleT.h"
+#include "MeshfreeBridgingT.h"
 #endif
 
 #ifdef CONTACT_ELEMENT
@@ -519,7 +520,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			}
 		case ElementT::kBridgingScale:
 		{
-#if defined (BRIDGING_ELEMENT) && defined (CONTINUUM_ELEMENT) && defined(SPRING_ELEMENT)
+#if defined (BRIDGING_ELEMENT) && defined (CONTINUUM_ELEMENT)
 			/* associated group numbers */
 			int solid_group = -99;
 			in >> solid_group;
@@ -531,7 +532,24 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			fArray[group] = new BridgingScaleT(fSupport, *field, *solid);
 		    break;
 #else
-				ExceptionT::BadInputValue(caller, "BRIDGING_ELEMENT, CONTINUUM_ELEMENT, or SPRING_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "BRIDGING_ELEMENT or CONTINUUM_ELEMENT not enabled: %d", code);
+#endif				
+		}
+		case ElementT::kMeshfreeBridging:
+		{
+#if defined (BRIDGING_ELEMENT) && defined (CONTINUUM_ELEMENT)
+			/* associated group numbers */
+			int solid_group = -99;
+			in >> solid_group;
+
+			const SolidElementT* solid = dynamic_cast<const SolidElementT*>(&(fSupport.ElementGroup(--solid_group)));
+			if (!solid)
+				ExceptionT::BadInputValue(caller, "unable to cast pointer to group %d to type SolidElementT", solid_group+1);
+
+			fArray[group] = new MeshfreeBridgingT(fSupport, *field, *solid);
+		    break;
+#else
+				ExceptionT::BadInputValue(caller, "BRIDGING_ELEMENT or CONTINUUM_ELEMENT not enabled: %d", code);
 #endif				
 		}
 		case ElementT::kAdhesion:
