@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.cpp,v 1.2 2001-04-27 10:52:18 paklein Exp $ */
+/* $Id: SWDiamondT.cpp,v 1.3 2001-06-12 04:07:28 paklein Exp $ */
 /* created: paklein (03/19/1997)                                          */
 
 #include "SWDiamondT.h"
@@ -1585,31 +1585,31 @@ void SWDiamondT::PrintConnectivityData(ostream& out)
 /* 3 body potentials */
 double SWDiamondT::U3body(double r1, double r2, double c12) const
 {
-	return( pow(1./3 + c12,2)*feps*flambda*
+	return( pow(1.0/3.0 + c12, 2.0)*feps*flambda*
 	         ( (r1 < frcut*fa) ? exp(fgamma/(-frcut + r1/fa)) : 0.0 )*
-( (r2 < frcut*fa) ? exp(fgamma/(-frcut + r2/fa)) : 0.0 ) );
+( (r2 < frcut*fa) ? exp(fgamma/(-frcut + r2/fa)) : 0.0) );
 }
 	
 	/* 1st derivs */
 double SWDiamondT::Dr1U3body(double r1, double r2, double c12) const
 {
-	return( pow(1 + 3*c12,2)*feps*flambda*
+	return( pow(1.0 + 3.0*c12, 2.0)*feps*flambda*
 	        ( (r1 < frcut*fa) ? -(fa*fgamma*exp(fgamma/(-frcut + r1/fa))/
-	                          pow(-(fa*frcut) + r1,2)) : 0.0 )*
-( (r2 < frcut*fa) ? exp(fgamma/(-frcut + r2/fa)) : 0.0 )/9 );
+	                          pow(-(fa*frcut) + r1, 2.0)) : 0.0)*
+( (r2 < frcut*fa) ? exp(fgamma/(-frcut + r2/fa)) : 0.0 )/9.0 );
 }
 
 double SWDiamondT::Dr2U3body(double r1, double r2, double c12) const
 {
-	return( pow(1 + 3*c12,2)*feps*flambda*
+	return( pow(1.0 + 3.0*c12, 2.0)*feps*flambda*
 	         ( (r1 < frcut*fa) ? exp(fgamma/(-frcut + r1/fa)) : 0.0 )*
 ( (r2 < frcut*fa) ? -(fa*fgamma*exp(fgamma/(-frcut + r2/fa))/
-pow(-(fa*frcut) + r2,2)) : 0.0 )/9 );
+pow(-(fa*frcut) + r2, 2.0)) : 0.0)/9.0 );
 }
 
 double SWDiamondT::Dc12U3body(double r1, double r2, double c12) const
 {
-	return( 2*(1./3 + c12)*feps*flambda*
+	return( 2.0*(1.0/3.0 + c12)*feps*flambda*
 	        ( (r1 < frcut*fa) ? exp(fgamma/(-frcut + r1/fa)) : 0.0 )*
 ( (r2 < frcut*fa) ? exp(fgamma/(-frcut + r2/fa)) : 0.0 ) );
 }
@@ -1617,25 +1617,25 @@ double SWDiamondT::Dc12U3body(double r1, double r2, double c12) const
 	/* 2nd derivs */
 double SWDiamondT::DDr1U3body(double r1, double r2, double c12) const
 {
-	return( pow(1 + 3*c12,2)*feps*flambda*
+	return( pow(1.0 + 3.0*c12, 2.0)*feps*flambda*
 	         ( (r1 < frcut*fa) ? fa*fgamma*(fa*fgamma - 2*fa*frcut + 2*r1)*
-	            exp(fgamma/(-frcut + r1/fa))/pow(-(fa*frcut) + r1,4) : 0.0)*
-	         ( (r2 < frcut*fa) ? exp(fgamma/(-frcut + r2/fa)) : 0.0)/9 );
+	            exp(fgamma/(-frcut + r1/fa))/pow(-(fa*frcut) + r1, 4.0) : 0.0)*
+	         ( (r2 < frcut*fa) ? exp(fgamma/(-frcut + r2/fa)) : 0.0)/9.0 );
 }
 
 double SWDiamondT::DDr2U3body(double r1, double r2, double c12) const
 {
-	return( pow(1 + 3*c12,2)*feps*flambda*
+	return( pow(1.0 + 3.0*c12, 2.0)*feps*flambda*
 	         ( (r1 < frcut*fa) ? exp(fgamma/(-frcut + r1/fa)) : 0.0 )*
 ( (r2 < frcut*fa) ? fa*fgamma*(fa*fgamma - 2*fa*frcut + 2*r2)*
-exp(fgamma/(-frcut + r2/fa))/pow(-(fa*frcut) + r2,4) : 0.0 )/9 );
+exp(fgamma/(-frcut + r2/fa))/pow(-(fa*frcut) + r2, 4.0) : 0.0 )/9.0 );
 }
 
 double SWDiamondT::DDc12U3body(double r1, double r2, double c12) const
 {
 #pragma unused(c12) //cos_12 doesn't appear in second derivative
 
-	return( 2*feps*flambda*
+	return( 2.0*feps*flambda*
 	        ( (r1 < frcut*fa) ? exp(fgamma/(-frcut + r1/fa)) : 0.0 )*
 ( (r2 < frcut*fa) ? exp(fgamma/(-frcut + r2/fa)) : 0.0 ) );
 }
@@ -1643,27 +1643,27 @@ double SWDiamondT::DDc12U3body(double r1, double r2, double c12) const
 	/* mixed derivs */
 double SWDiamondT::Dr1Dr2U3body(double r1, double r2, double c12) const
 {
-	return( pow(1 + 3*c12,2)*feps*flambda*
+	return( pow(1.0 + 3.0*c12, 2.0)*feps*flambda*
 	         ( (r1 < frcut*fa) ? -(fa*fgamma*exp(fgamma/(-frcut + r1/fa))/
 	                            pow(-(fa*frcut) + r1,2)) : 0.0 )*
 ( (r2 < frcut*fa) ? -(fa*fgamma*exp(fgamma/(-frcut + r2/fa))/
-pow(-(fa*frcut) + r2,2)) : 0.0 )/9 );
+pow(-(fa*frcut) + r2,2)) : 0.0 )/9.0 );
 }
 
 double SWDiamondT::Dr1Dc12U3body(double r1, double r2, double c12) const
 {
-	return( 2*(1./3 + c12)*feps*flambda*
+	return( 2.0*(1.0/3.0 + c12)*feps*flambda*
 	         ( (r1 < frcut*fa) ? -(fa*fgamma*exp(fgamma/(-frcut + r1/fa))/
-	                            pow(-(fa*frcut) + r1,2)) : 0.0 )*
+	                            pow(-(fa*frcut) + r1, 2.0)) : 0.0 )*
 ( (r2 < frcut*fa) ? exp(fgamma/(-frcut + r2/fa)) : 0.0 ) );
 }
 
 double SWDiamondT::Dr2Dc12U3body(double r1, double r2, double c12) const
 {
-	return( 2*(1./3 + c12)*feps*flambda*
+	return( 2.0*(1.0/3.0 + c12)*feps*flambda*
 	        ( (r1 < frcut*fa) ? exp(fgamma/(-frcut + r1/fa)) : 0.0 )*
 ( (r2 < frcut*fa) ? -(fa*fgamma*exp(fgamma/(-frcut + r2/fa))/
-pow(-(fa*frcut) + r2,2)) : 0.0 ) );
+pow(-(fa*frcut) + r2, 2.0)) : 0.0 ) );
 }
 
 /* compute entire Hessian at once */
@@ -1732,28 +1732,28 @@ void SWDiamondT::ComputeHessian_3Body(dMatrixT& hessian,
 	/* 2 body potential and derivatives */
 double SWDiamondT::U2body(double r) const
 {
-	return( fA*feps*(-1 + pow(fa,4)*fB/pow(r,4))*
+	return( fA*feps*(-1.0 + pow(fa,4.0)*fB/pow(r,4.0))*
 	         ( (r < frcut*fa) ? exp(fdelta/(-frcut + r/fa)) : 0.0 ) );
 }
 
 double SWDiamondT::DU2body(double r) const
 {
-	return( -4*pow(fa,4)*fA*fB*feps*
-	          ( (r < frcut*fa) ? exp(fdelta/(-frcut + r/fa)) : 0.0 )/pow(r,5) +
-fA*feps*(-1 + pow(fa,4)*fB/pow(r,4))*
+	return( -4.0*pow(fa,4.0)*fA*fB*feps*
+	          ( (r < frcut*fa) ? exp(fdelta/(-frcut + r/fa)) : 0.0 )/pow(r,5.0) +
+fA*feps*(-1.0 + pow(fa,4.0)*fB/pow(r,4.0))*
 ( (r < frcut*fa) ? -(fa*fdelta*exp(fdelta/(-frcut + r/fa))/
 pow(-(fa*frcut) + r,2)) : 0.0) );
 }
 
 double SWDiamondT::DDU2body(double r) const
 {
-	return( 20*pow(fa,4)*fA*fB*feps*
-	         ( (r < frcut*fa) ? exp(fdelta/(-frcut + r/fa)) : 0.0)/pow(r,6) -
-8*pow(fa,4)*fA*fB*feps*
+	return( 20.0*pow(fa,4.0)*fA*fB*feps*
+	         ( (r < frcut*fa) ? exp(fdelta/(-frcut + r/fa)) : 0.0)/pow(r,6.0) -
+8.0*pow(fa,4.0)*fA*fB*feps*
 ( (r < frcut*fa) ? -(fa*fdelta*exp(fdelta/(-frcut + r/fa))/
-pow(-(fa*frcut) + r,2)) : 0.0 )/pow(r,5) +
-fA*feps*(-1 + pow(fa,4)*fB/pow(r,4))*
-( (r < frcut*fa) ? fa*fdelta*(fa*fdelta - 2*fa*frcut + 2*r)*
+pow(-(fa*frcut) + r,2.0)) : 0.0 )/pow(r,5.0) +
+fA*feps*(-1.0 + pow(fa,4.0)*fB/pow(r,4.0))*
+( (r < frcut*fa) ? fa*fdelta*(fa*fdelta - 2.0*fa*frcut + 2.0*r)*
 exp(fdelta/(-frcut + r/fa))/
-pow(-(fa*frcut) + r,4): 0.0 ) );
+pow(-(fa*frcut) + r,4.0): 0.0 ) );
 }
