@@ -1,4 +1,4 @@
-/* $Id: PatranT.cpp,v 1.9 2002-01-27 18:31:02 paklein Exp $ */
+/* $Id: PatranT.cpp,v 1.10 2002-02-11 18:58:49 sawimme Exp $ */
 /* created sawimme (05/17/2001) */
 
 #include "PatranT.h"
@@ -373,6 +373,36 @@ bool PatranT::ReadElementSet (const StringT& title, int& namedtype, iArrayT& ele
 
   elems.Allocate (set.Length());
   elems.CopyPart (0, set, 0, set.Length());
+  return true;
+}
+
+bool PatranT::ReadElementSetMixed (const StringT& title, iArrayT& namedtype, iArrayT& elems) const
+{
+  iArrayT list;
+  if (!ReadNamedComponent (title, list)) 
+    {
+      fMessage << "PatranT::ReadElementSet, unable to read named component\n";
+      return false;
+    }
+
+  /* pull element IDs from component list */
+  iAutoArrayT set;
+  iAutoArrayT nt;
+  int *it = list.Pointer();
+  int *il = list.Pointer() + 1;
+  for (int i=0; i < list.Length()/2; i++, it += 2, il += 2)
+    if ((*it >   5 && *it < 19) ||
+	(*it > 105 && *it < 119) ||
+	(*it > 205 && *it < 219))
+      {
+	set.Append (*il);
+	nt.Append (*it);
+      }
+
+  elems.Allocate (set.Length());
+  elems.CopyPart (0, set, 0, set.Length());
+  namedtype.Allocate (nt.Length());
+  namedtype.CopyPart (0, nt, 0, nt.Length());
   return true;
 }
 
