@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.cpp,v 1.9 2003-01-29 07:34:48 paklein Exp $ */
+/* $Id: SimoIso3D.cpp,v 1.9.44.1 2004-03-30 19:09:41 paklein Exp $ */
 /* created: paklein (03/02/1997) */
 #include "SimoIso3D.h"
 #include <iostream.h>
@@ -82,18 +82,30 @@ const dSymMatrixT& SimoIso3D::s_ij(void)
 /* material description */
 const dMatrixT& SimoIso3D::C_IJKL(void)
 {
-	cout << "\n SimoIso3D::C_IJKL: use updated Lagrangian formulation" << endl;
-	throw ExceptionT::kGeneralFail;
+	/* get mechanical part of the deformation gradient */
+	const dMatrixT& F_mech = F_mechanical();
 
-	return fModulus; // dummy
+	/* 4th order tensor transformation */
+	const dMatrixT& C = PullBack(F_mech, c_ijkl());
+	
+	/* scale with deformation gradient */
+	fModulus.SetToScaled(F_mech.Det(), C);
+
+	return fModulus;
 }
 
 const dSymMatrixT& SimoIso3D::S_IJ(void)
 {
-	cout << "\n SimoIso3D::S_IJ: use updated Lagrangian formulation" << endl;
-	throw ExceptionT::kGeneralFail;
+	/* get mechanical part of the deformation gradient */
+	const dMatrixT& F_mech = F_mechanical();
 
-	return fStress; // dummy
+	/* 2nd order tensor transformation */
+	const dSymMatrixT& S = PullBack(F_mech, s_ij());
+	
+	/* scale with deformation gradient */
+	fStress.SetToScaled(F_mech.Det(), S);
+
+	return fStress;
 }
 
 /* returns the strain energy density for the specified strain */
