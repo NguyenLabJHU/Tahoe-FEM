@@ -1,4 +1,4 @@
-/* $Id: WindowT.h,v 1.11 2004-10-30 20:55:00 raregue Exp $ */
+/* $Id: WindowT.h,v 1.12 2004-10-31 20:48:42 paklein Exp $ */
 #ifndef _WINDOW_T_H_
 #define _WINDOW_T_H_
 
@@ -11,7 +11,6 @@ class ifstreamT;
 class dArrayT;
 class dArray2DT;
 class dSymMatrixT;
-class dMatrixT;  // for DDDw
 template <class TYPE> class ArrayT;
 
 /** base class for various support types, and hence different 
@@ -66,11 +65,9 @@ class WindowT
 	 * \param w the value at x of the window function centered at x_n
 	 * \param Dw window function derivatives: [nsd]
 	 * \param DDw window function second derivatives: [nstr] 
-	 * \param DDDw window function third derivatives: [nstr]
 	 * \return true if the support covers the field point */
 	virtual bool Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw) = 0;
-															// kyonten (DDDw)
+		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw) = 0;
 
 	/** coverage test.
 	 * \return true if the window function centered at x_n covers the
@@ -87,7 +84,7 @@ class WindowT
 	 * transform the nodal parameters into rectangular dimensions that circumscribes
 	 * the support of the nodal support */
 	/*@{*/
-	virtual const dArrayT& RectangularSupportSize(const dArrayT& param_n) const = 0;
+	virtual void RectangularSupportSize(const dArrayT& param_n, dArrayT& support_size) const = 0;
 	/*@}*/
 	
 	/** \name multi-point evaluations */
@@ -102,16 +99,14 @@ class WindowT
 	 * \param w values of the window function derivaties: [npts] x [nstr] 
 	 * \return the number of points covered by the window function */
 	virtual int Window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
-		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw, dArray2DT& DDDw) = 0;	
-															// kyonten (DDDw)
+		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw) = 0;	
 
 	/** coverage test.
 	 * \param x_n array of window function centers: [npts] x [nsd]
 	 * \param x field point of evaluation
 	 * \param covers array of coverage test results: [npts] 
 	 * \return the number of points covering x */
-	virtual int Covers(const dArray2DT& x_n, const dArrayT& x, 
-			    const dArray2DT& param_n, ArrayT<bool>& covers) const = 0;
+	virtual int Covers(const dArray2DT& x_n, const dArrayT& x, const dArray2DT& param_n, ArrayT<bool>& covers) const;
 
 	/** compute spherical support size in batch. Default implementation uses the relies on the
 	 * purely virtual method WindowT::SupportSize to evaluate the support size over
