@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.36.2.12 2003-02-27 07:57:46 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.36.2.13 2003-03-29 17:27:13 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -63,69 +63,81 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 {
 	const char caller[] = "FEExecutionManagerT::RunJob";
 
-	/* run serial by default */
-	int size = fComm.Size();
-	int run_option = 0;
-	if (size > 1) run_option = 1;
+	/* mode - job by default */
+	ModeT mode = kJob;
 
 	/* check command line options */
 	for (int i = 0; i < fCommandLineOptions.Length(); i++)
 	{
 		if (fCommandLineOptions[i] == "-decomp")
-			run_option = 3;
+			mode = kDecompose;
 		else if (fCommandLineOptions[i] == "-join")
-			run_option = 4;
+			mode = kJoin;
 	}
 
-	//TEMP - check for bridging scale
-	if (CommandLineOption("-bridging")) run_option = 5;
+	/* check second char */
+	if (mode == kJob) {
+		char next_char;
+		in >> next_char;
+		if (next_char == fJobChar)
+			mode = kBridging;
+		else
+			in.putback(next_char);	
+	}
 
-	switch (run_option)
+	switch (mode)
 	{
-		case 0:
-			cout << "\n RunJob_serial: " << in.filename() << endl;
-			RunJob_serial(in, status);
+		case kJob:
+		{
+			if (fComm.Size() == 1) {
+				cout << "\n RunJob_serial: " << in.filename() << endl;
+				RunJob_serial(in, status);
+			} else {
+				cout << "\n RunJob_parallel: " << in.filename() << endl;
+				RunJob_parallel(in, status);
+			}
 			break;
-		case 1:
-			cout << "\n RunJob_parallel: " << in.filename() << endl;
-			RunJob_parallel(in, status);
-			break;
-		case 3:
+		}
+		case kDecompose:
 		{
 			cout << "\n RunDecomp_serial: " << in.filename() << endl;
-			if (size > 1) cout << " RunDecomp_serial: SERIAL ONLY" << endl;
+			if (fComm.Size() > 1) cout << " RunDecomp_serial: SERIAL ONLY" << endl;
 				
-			if (fComm.Rank() == 0)
-				RunDecomp_serial(in, status);
+			/* decompose using rank 0 */
+			if (fComm.Rank() == 0) RunDecomp_serial(in, status);
+
+			/* synch */
 			fComm.Barrier();
 			break;
 		}
-		case 4:
+		case kJoin:
 		{
 			cout << "\n RunJoin_serial: " << in.filename() << endl;
-			if (size > 1) cout << " RunJoin_serial: SERIAL ONLY" << endl;
+			if (fComm.Size() > 1) cout << " RunJoin_serial: SERIAL ONLY" << endl;
 			
-			if (fComm.Rank() == 0)
-				RunJoin_serial(in, status);
+			/* join using rank 0 */
+			if (fComm.Rank() == 0) RunJoin_serial(in, status);
+
+			/* synch */
 			fComm.Barrier();
 			break;
 		}
-		case 5: //TEMP - handle bridging scale
+		case kBridging:
 		{
 			cout << "\n RunBridging: " << in.filename() << endl;
-			if (size > 1) ExceptionT::GeneralFail(caller, "RunBridging for SERIAL ONLY");
+			if (fComm.Size() > 1) ExceptionT::GeneralFail(caller, "RunBridging for SERIAL ONLY");
 
 			RunBridging(in, status);
 			break;
 		}
 		default:
-			ExceptionT::GeneralFail("FEExecutionManagerT::RunJob", "unknown option: %d", run_option);
+			ExceptionT::GeneralFail("FEExecutionManagerT::RunJob", "unknown mode: %d", mode);
 	}
 }
 
 /**********************************************************************
-* Protected
-**********************************************************************/
+ * Protected
+ **********************************************************************/
 
 bool FEExecutionManagerT::AddCommandLineOption(const char* str)
 {
@@ -239,7 +251,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 	if (atom_in.is_open())
 		cout << " atomistic parameters file: " << atom_file << endl;
 	else
-		ExceptionT::BadInputValue(caller, "file not found: %s", atom_file);
+		ExceptionT::BadInputValue(caller, "file not found: %s", atom_file.Pointer());
 	StringT atom_out_file;
 	atom_out_file.Root(atom_in.filename());
 	atom_out_file.Append(".out");
@@ -252,7 +264,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 	if (bridge_atom_in.is_open())
 		cout << " atomistic bridging parameters file: " << bridge_atom_file << endl;
 	else
-		ExceptionT::BadInputValue(caller, "file not found: %s", bridge_atom_file);
+		ExceptionT::BadInputValue(caller, "file not found: %s", bridge_atom_file.Pointer());
 
 	/* streams for continuum Tahoe */
 	continuum_file.ToNativePathName();
@@ -261,7 +273,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 	if (continuum_in.is_open())
 		cout << " continuum parameters file: " << continuum_file << endl;
 	else
-		ExceptionT::BadInputValue(caller, "file not found: %s", continuum_file);
+		ExceptionT::BadInputValue(caller, "file not found: %s", continuum_file.Pointer());
 	StringT continuum_out_file;
 	continuum_out_file.Root(continuum_in.filename());
 	continuum_out_file.Append(".out");
@@ -274,7 +286,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 	if (bridge_continuum_in.is_open())
 		cout << " continuum bridging parameters file: " << bridge_continuum_file << endl;
 	else
-		ExceptionT::BadInputValue(caller, "file not found: %s", bridge_continuum_file);
+		ExceptionT::BadInputValue(caller, "file not found: %s", bridge_continuum_file.Pointer());
 
 	/* brigding solver log file */
 	StringT log_file;
@@ -312,6 +324,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
 		continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager());
 
+#if 0
 		/* cross coupling matricies */
 		int neq_A = atoms.NodeManager()->Field(bridging_field)->NumEquations();
 		int neq_C = continuum.NodeManager()->Field(bridging_field)->NumEquations();
@@ -319,6 +332,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		dSPMatrixT K_CA(neq_C, neq_A, 0), G_Interpolation;
 		dArrayT F_A(neq_A), F_C(neq_C);
 		continuum.InterpolationMatrix(bridging_field, G_Interpolation);
+#endif
 
 		t1 = clock();
 
@@ -364,8 +378,8 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 				const iArray2DT& atom_phase_status = atoms.SolverPhasesStatus();
 				const iArray2DT& continuum_phase_status = continuum.SolverPhasesStatus();
 
-				/* set cross-coupling */
 #if 0
+				/* set cross-coupling */
 				atoms.Form_G_NG_Stiffness(bridging_field, K_G_NG);
 				K_AC.MultAB(K_G_NG, G_Interpolation);
 				K_CA.Transpose(K_AC);
@@ -391,18 +405,23 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 						error = atoms.SolveStep();
 					}
 
+#if 0
 					/* set cross-coupling */
 					atoms.Form_G_NG_Stiffness(bridging_field, K_G_NG);
 					K_AC.MultAB(K_G_NG, G_Interpolation);
 					K_CA.Transpose(K_AC);
+#endif
 					
 					/* apply solution to continuum */
 					continuum.ProjectField(bridging_field, *atoms.NodeManager());
+
+#if 0
 					K_CA.Multx(atoms.CumulativeUpdate(group_num), F_C);
 					F_C *= -1.0;
 					continuum.SetExternalForce(group_num, F_C);
 					continuum.FormRHS(group_num);
 					continuum_res = continuum.Residual(group_num).Magnitude(); //serial
+#endif
 					
 					/* solve continuum */
 					if (1 || error == ExceptionT::kNoError) {
@@ -413,14 +432,13 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 					/* apply solution to atoms */
 					continuum.InterpolateField(bridging_field, field_at_ghosts);
 					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
+#if 0
 					K_AC.Multx(continuum.CumulativeUpdate(group_num), F_A);
 					F_A *= -1.0;
 					atoms.SetExternalForce(group_num, F_A);
+#endif
 					atoms.FormRHS(group_num);
 					atoms_res = atoms.Residual(group_num).Magnitude(); //serial
-
-					/* set cross-coupling */
-					//assume K_AC = (K_CA)^T
 
 					/* reset the reference errors */
 					if (count == 1) {
