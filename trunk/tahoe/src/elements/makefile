@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.9 2002-10-20 22:48:15 paklein Exp $
+# $Id: makefile,v 1.10 2002-11-22 21:55:54 creigh Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -40,7 +40,8 @@ SUB_DIR = \
 	continuum \
 	lattice \
 	rod \
-	adhesion
+	adhesion \
+	multiscale
 subdir_driver: subdir_loop
 # SUB_DIR is empty
 #subdir_driver: 
