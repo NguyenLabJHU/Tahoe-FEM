@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.15 2002-11-30 16:41:25 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.15.2.1 2003-01-09 09:39:21 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -54,9 +54,9 @@ MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(const ElementSupportT& support, const Field
 
 	/* dynamic work space managers */
 	fLocGroup(kHeadRoom),
-	fNEEArray(kHeadRoom),
-	fNEEMatrix(kHeadRoom),
-	fMatrixManager(kHeadRoom)
+	fNEEArray(kHeadRoom, true),
+	fNEEMatrix(kHeadRoom, true),
+	fMatrixManager(kHeadRoom, true)
 {
 	/* set format of element stiffness matrix */
 	fLHS.SetFormat(ElementMatrixT::kNonSymmetric);

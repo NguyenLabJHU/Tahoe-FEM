@@ -1,4 +1,4 @@
-/* $Id: OrthoMLSSolverT.cpp,v 1.5 2002-10-20 22:49:41 paklein Exp $ */
+/* $Id: OrthoMLSSolverT.cpp,v 1.5.4.1 2003-01-09 09:37:40 paklein Exp $ */
 /* created: paklein (07/03/1998)                                          */
 
 #include "OrthoMLSSolverT.h"
@@ -17,7 +17,7 @@ OrthoMLSSolverT::OrthoMLSSolverT(int nsd, int complete):
 	fDqJ(fNumSD),
 
 	/* variable memory managers */
-	fArrayGroup(0),
+	fArrayGroup(0, true),
 	fArray2DGroup1(0, 0),
 	fArray2DGroup2(0, 0),
 	fLocCoords_man(0, fLocCoords, fNumSD)

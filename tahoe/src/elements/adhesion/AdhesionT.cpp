@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.9 2002-11-30 16:41:24 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.9.2.1 2003-01-09 09:39:20 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -25,8 +25,8 @@ AdhesionT::AdhesionT(const ElementSupportT& support, const FieldT& field):
 	fGrid(NULL),
 	fCutOff(0.0),
 	fAdhesion(NULL),
-	fNEE_vec_man(0),
-	fNEE_mat_man(0),
+	fNEE_vec_man(0, true),
+	fNEE_mat_man(0, true),
 	fFace2_man(0, NumSD()),
 	fGrad_d_man(0, fGrad_d)
 {

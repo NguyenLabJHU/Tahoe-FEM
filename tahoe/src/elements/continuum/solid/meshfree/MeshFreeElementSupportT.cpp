@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.11.2.2 2002-12-27 23:08:30 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.11.2.3 2003-01-09 09:39:22 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 
 #include "MeshFreeElementSupportT.h"
@@ -23,8 +23,8 @@ MeshFreeElementSupportT::MeshFreeElementSupportT(ifstreamT& in):
 	fMFShapes(NULL),
 	fLocGroup(kHeadRoom),
 	fNumElemenNodes(0),
-	fNEEArray(kHeadRoom),
-	fNEEMatrix(kHeadRoom),
+	fNEEArray(kHeadRoom, true),
+	fNEEMatrix(kHeadRoom, true),
 	fFieldSet(false),
 	fMapShift(-1)
 {
