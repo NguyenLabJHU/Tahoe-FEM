@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.h,v 1.1.2.3 2002-10-18 17:42:45 paklein Exp $ */
+/* $Id: AdhesionT.h,v 1.1.2.4 2002-10-19 17:49:40 paklein Exp $ */
 #ifndef _ADHESION_T_H_
 #define _ADHESION_T_H_
 
@@ -10,7 +10,6 @@
 #include "LocalArrayT.h"
 #include "dArray2DT.h"
 #include "nVariArray2DT.h"
-#include "iGridManagerT.h"
 #include "GeometryT.h"
 #include "RaggedArray2DT.h"
 #include "nArrayGroupT.h"
@@ -23,6 +22,7 @@ namespace Tahoe {
 /* forward declarations */
 class SurfaceShapeT;
 class C1FunctionT;
+class iGridManagerT;
 
 /** class to calculate surface adhesion forces between bodies */
 class AdhesionT: public ElementBaseT
@@ -126,9 +126,23 @@ protected:
 	/** nodes on the surface faces */
 	ArrayT<iArray2DT> fSurfaces;
 	
-	/** shape functions. Surface shape functions particular to the
-	 * topology of faces in each surface. */
+	/** shape functions over undeformed configuration. Surface shape 
+	 * functions particular to the topology of faces in each surface.
+	 * Shape functions over the undeformed configuration are needed to
+	 * define the integration rule.
+	 * \note We could calculate and store the integration parameters
+	 *       over the undeformed configuration instead of recalculating
+	 *       them over the faces during integration. */
 	ArrayT<SurfaceShapeT*> fShapes;
+
+	/** shape functions over current configuration. Surface shape 
+	 * functions particular to the topology of faces in each surface. */
+	ArrayT<SurfaceShapeT*> fCurrShapes;
+
+	/** initial coordinates. Initial coordinates in local ordering 
+	 * particular to the topology of faces in each surface. Initial
+	 * coordinates are needed to define the integration rules. */
+	ArrayT<LocalArrayT> fLocInitCoords;
 
 	/** current coordinates. Current coordinates in local ordering 
 	 * particular to the topology of faces in each surface. */
@@ -173,7 +187,7 @@ protected:
 	/*@}*/
 	
 	/** search grid */
-	iGridManagerT fGrid;
+	iGridManagerT* fGrid;
 	
 	/** \name surface interaction */
 	/*@{*/
