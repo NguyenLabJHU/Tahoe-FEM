@@ -1,4 +1,4 @@
-/* $Id: QuadT.cpp,v 1.13 2004-05-17 05:11:04 paklein Exp $ */
+/* $Id: QuadT.cpp,v 1.14 2005-01-15 06:53:06 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "QuadT.h"
 #include <math.h>
@@ -171,7 +171,7 @@ void QuadT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT
 			double shape = 0.5*tempr1*tempr2*temps1*temps2;
 			double shapex, shapey;
 				
-			if (fmod(lnd+1.0,2) == 0)
+			if ((lnd+1) % 2 == 0)
 			{
 				/* even numbered mid-side nodes */
 				shapex = 0.5*ra[lnd]*temps1*temps2;
