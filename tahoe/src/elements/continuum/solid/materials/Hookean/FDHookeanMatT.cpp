@@ -1,4 +1,4 @@
-/* $Id: FDHookeanMatT.cpp,v 1.3 2001-08-21 19:13:56 paklein Exp $ */
+/* $Id: FDHookeanMatT.cpp,v 1.4 2001-09-15 01:19:23 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "FDHookeanMatT.h"
@@ -26,46 +26,81 @@ void FDHookeanMatT::Initialize(void)
 const dMatrixT& FDHookeanMatT::c_ijkl(void)
 {
 	/* push forward */
-	const dMatrixT& F_mat = F();
-	fModulus = PushForward(F_mat, Modulus());
-	fModulus /= F_mat.Det();
+	const dMatrixT& F_mech = F_mechanical();
+	fModulus = PushForward(F_mech, Modulus());
+	fModulus /= F_mech.Det();
 	return fModulus;
 }
 
 const dSymMatrixT& FDHookeanMatT::s_ij(void)
 {
+	/* get mechanical part of the deformation gradient */
+	const dMatrixT& F_mech = F_mechanical();
+
 	/* strain */
-	Compute_E(fE);
+	Compute_E(F_mech, fE);
 
 	/* compute stress */
 	HookeanStress(fE, fStress);
-	const dMatrixT& F_mat = F();
 
 	/* push forward */
-	fStress = PushForward(F_mat, fStress);
-	fStress /= F_mat.Det();
+	fStress = PushForward(F_mech, fStress);
+	fStress /= F_mech.Det();
 	return fStress;
 }
 
 /* material description */
 const dMatrixT& FDHookeanMatT::C_IJKL(void)
-{ 
-	return Modulus();
+{
+	/* has thermal strain */
+	if (HasThermalStrain())
+	{
+		/* inverse thermal strain */
+		const dMatrixT& F_t_inv = F_thermal_inverse();
+	
+		/* pull back */
+		fModulus = PushForward(F_t_inv, Modulus());
+		fModulus /= F_t_inv.Det();
+		return fModulus;
+	}
+	else /* no thermal strain */
+		return Modulus();
 }
 
 const dSymMatrixT& FDHookeanMatT::S_IJ(void)
 {
+	/* get mechanical part of the deformation gradient */
+	const dMatrixT& F_mech = F_mechanical();
+
 	/* strain */
-	Compute_E(fE);
+	Compute_E(F_mech, fE);
 
 	/* compute stress */
 	HookeanStress(fE, fStress);
+
+	/* has thermal strain */
+	if (HasThermalStrain())
+	{
+		/* inverse thermal strain */
+		const dMatrixT& F_t_inv = F_thermal_inverse();
+	
+		/* pull back */
+		fStress = PushForward(F_t_inv, fStress);
+		fStress /= F_t_inv.Det();
+	}
+	
 	return fStress;
 }
 
 /* returns the strain energy density for the specified strain */
 double FDHookeanMatT::StrainEnergyDensity(void)
 {
-	Compute_E(fE);
+	/* get mechanical part of the deformation gradient */
+	const dMatrixT& F_mech = F_mechanical();
+
+	/* strain */
+	Compute_E(F_mech, fE);
+	
+	/* compute strain energy density */
 	return HookeanEnergy(fE);
 }

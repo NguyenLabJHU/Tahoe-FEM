@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.cpp,v 1.4 2001-07-03 01:35:14 paklein Exp $ */
+/* $Id: SimoIso3D.cpp,v 1.5 2001-09-15 01:19:42 paklein Exp $ */
 /* created: paklein (03/02/1997)                                          */
 
 #include "SimoIso3D.h"
@@ -41,8 +41,11 @@ void SimoIso3D::Print(ostream& out) const
 /* modulus */
 const dMatrixT& SimoIso3D::c_ijkl(void)
 {
+	/* get mechanical part of the deformation gradient */
+	const dMatrixT& F_mech = F_mechanical();
+
 	/* b */
-	Compute_b(fb);
+	Compute_b(F_mech, fb);
 
 	/* compute b_bar */
 	double J = fb.Det();
@@ -58,8 +61,11 @@ const dMatrixT& SimoIso3D::c_ijkl(void)
 /* stress */
 const dSymMatrixT& SimoIso3D::s_ij(void)
 {
+	/* get mechanical part of the deformation gradient */
+	const dMatrixT& F_mech = F_mechanical();
+
 	/* b */
-	Compute_b(fb);
+	Compute_b(F_mech, fb);
 
 	/* compute b_bar */
 	double J = fb.Det();
@@ -92,8 +98,11 @@ const dSymMatrixT& SimoIso3D::S_IJ(void)
 /* returns the strain energy density for the specified strain */
 double SimoIso3D::StrainEnergyDensity(void)
 {
+	/* get mechanical part of the deformation gradient */
+	const dMatrixT& F_mech = F_mechanical();
+
 	/* b */
-	Compute_b(fb);
+	Compute_b(F_mech, fb);
 
 	/* compute b_bar */
 	double J = fb.Det();
@@ -157,20 +166,4 @@ double SimoIso3D::ComputeEnergy(double J, const dSymMatrixT& b_bar)
 {
 	return U(J) +                          /* volumetric */
 	       0.5*Mu()*(b_bar.Trace() - 3.0); /* deviatoric */
-}
-
-/* Volumetric energy function and derivatives */
-double SimoIso3D::U(double J) const
-{
-	return 0.5*Kappa()*(0.5*(J*J - 1.0) - log(J));
-}
-
-double SimoIso3D::dU(double J) const
-{
-	return 0.5*Kappa()*(J - 1.0/J);
-}
-
-double SimoIso3D::ddU(double J) const
-{
-	return 0.5*Kappa()*(1.0 + 1.0/(J*J));
 }

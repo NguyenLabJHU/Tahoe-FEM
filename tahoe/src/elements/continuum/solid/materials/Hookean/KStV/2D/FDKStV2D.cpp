@@ -1,4 +1,4 @@
-/* $Id: FDKStV2D.cpp,v 1.3 2001-08-27 17:19:21 paklein Exp $ */
+/* $Id: FDKStV2D.cpp,v 1.4 2001-09-15 01:19:25 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "FDKStV2D.h"
@@ -41,6 +41,7 @@ bool FDKStV2D::SetInverseThermalTransformation(dMatrixT& F_trans_inv)
 {
 	if (fThermal->IsActive())
 	{
+		/* note - this is approximate at finite strains */
 		double factor = IsotropicT::DilatationFactor2D(fConstraintOption);
 
 		/* assuming isotropic expansion */
