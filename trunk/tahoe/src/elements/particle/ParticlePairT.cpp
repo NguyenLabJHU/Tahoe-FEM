@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.21 2003-08-20 23:15:31 pgandhi Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.22 2003-09-18 21:21:44 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include "dSymMatrixT.h"
 #include "dArray2DT.h"
+#include "iGridManagerT.h"
 
 /* pair property types */
 #include "LennardJonesPairT.h"
@@ -817,8 +818,13 @@ void ParticlePairT::SetConfiguration(void)
 	if (fActiveParticles) 
 		part_nodes = fActiveParticles;
 	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
-	
+
+	/* output stream */
 	ofstreamT& out = ElementSupport().Output();
+
+	/* write the search grid statistics */
+	if (fGrid) fGrid->WriteStatistics(out);
+	
 	out << "\n Neighbor statistics:\n";
 	out << " Total number of neighbors . . . . . . . . . . . = " << fNeighbors.Length() << '\n';
 	out << " Minimum number of neighbors . . . . . . . . . . = " << fNeighbors.MinMinorDim(0) << '\n';
