@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.14 2002-03-04 06:59:07 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.15 2002-03-21 20:06:58 paklein Exp $ */
 
 #include "ComparatorT.h"
 
@@ -277,6 +277,10 @@ bool ComparatorT::PassOrFail(ifstreamT& in) //const
 bool ComparatorT::PassOrFail(const StringT& file_1, const StringT& file_2,
 	bool do_rel, bool do_abs)
 {
+	/* header */
+	cout << "\n file 1: " << file_1 << '\n'
+	     <<   " file 2: " << file_2 << endl;
+
 	/* open file_1 -> "current" */
 	ModelManagerT res_1(cout);
 	try {
