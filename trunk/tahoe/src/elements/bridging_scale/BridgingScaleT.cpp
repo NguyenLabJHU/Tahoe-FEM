@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.18 2002-08-15 16:31:45 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.19 2002-08-15 23:41:26 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -317,8 +317,6 @@ void BridgingScaleT::ComputeCoarseScaleFields(void)
   const FieldT& field = Field();
   iArrayT atoms, elemconnect(parent.NumNodes());
   const dArray2DT& displacements = field[0];
-  const dArray2DT& velocities = field[1];
-  const dArray2DT& accelerations = field[2];
   dArrayT map, shape(parent.NumNodes()), temp(NumSD()), disp, vel, acc;
   dMatrixT tempmass(parent.NumNodes()); 
   dMatrixT Nd(parent.NumNodes(), NumSD()), Nv(parent.NumNodes(), NumSD()), Na(parent.NumNodes(), NumSD());
@@ -337,18 +335,18 @@ void BridgingScaleT::ComputeCoarseScaleFields(void)
       {
 	  // still need to access individual atomic masses!!!
 	  displacements.RowAlias(atoms[j],disp);
-	  velocities.RowAlias(atoms[j],vel);
-	  accelerations.RowAlias(atoms[j],acc);
+//	  velocities.RowAlias(atoms[j],vel);
+//	  accelerations.RowAlias(atoms[j],acc);
 	  temp.CopyPart(0, map, NumSD()*j, NumSD());
 	  parent.EvaluateShapeFunctions(temp,shape);
 	  tempmass.Outer(shape,shape);
 	  fElMat += tempmass;
 	  Nd.Outer(shape, disp);
-	  Nv.Outer(shape, vel);
-	  Na.Outer(shape, acc);
+//	  Nv.Outer(shape, vel);
+//	  Na.Outer(shape, acc);
 	  fWtempU += Nd;
-	  fWtempV += Nv;
-	  fWtempA += Na;
+//	  fWtempV += Nv;
+//	  fWtempA += Na;
       }
       
       /* Assemble local equations to global equations for LHS */
