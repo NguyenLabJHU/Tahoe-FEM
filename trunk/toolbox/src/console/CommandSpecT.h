@@ -1,4 +1,4 @@
-/* $Id: CommandSpecT.h,v 1.3 2001-12-12 19:29:00 paklein Exp $ */
+/* $Id: CommandSpecT.h,v 1.4 2001-12-13 02:58:38 paklein Exp $ */
 
 #ifndef _COMMAND_SPEC_T_H_
 #define _COMMAND_SPEC_T_H_
@@ -45,7 +45,7 @@ class CommandSpecT
 	/** constant reference to command argument. The indeces
 	 * of arguments is set by the order in which they are added
 	 * using CommandSpecT::AddArgument. */
-	const ArgSpecT& Argument(int index) const { return *fArguments[index]; };
+	const ArgSpecT& Argument(int index = 0) const { return *fArguments[index]; };
 
 	/** return a reference to a specific argument. The indeces
 	 * of arguments is set by the order in which they are added

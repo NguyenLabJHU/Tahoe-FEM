@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.5 2001-12-10 12:41:08 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.6 2001-12-13 02:58:38 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleT.h"
@@ -392,7 +392,7 @@ void iConsoleT::DoInteractive(void)
 						if (command != NULL)
 						{
 							line.Prepend(*command, " ");
-							PushHistory(line);
+							//PushHistory(line); don't include re-runs in history
 						}
 						line_OK = true;
 					}
