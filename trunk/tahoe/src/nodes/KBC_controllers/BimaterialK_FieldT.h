@@ -1,8 +1,10 @@
-/* $Id: BimaterialK_FieldT.h,v 1.6 2004-07-15 08:31:21 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.h,v 1.7 2004-11-18 16:36:47 paklein Exp $ */
 /* created: paklein (09/06/2000)*/
-
 #ifndef _BIMATERIAL_K_FIELD_T_H_
 #define _BIMATERIAL_K_FIELD_T_H_
+
+#include "ElementsConfig.h"
+#ifdef CONTINUUM_ELEMENT
 
 /* base class */
 #include "K_FieldT.h"
@@ -85,4 +87,7 @@ protected:
 };
 
 } // namespace Tahoe 
+
+#endif /* CONTINUUM_ELEMENT */
+
 #endif /* _BIMATERIAL_K_FIELD_T_H_ */

@@ -1,6 +1,9 @@
-/* $Id: MFAugLagMultT.h,v 1.4 2004-10-06 19:58:55 cjkimme Exp $ */
+/* $Id: MFAugLagMultT.h,v 1.5 2004-11-18 16:36:40 paklein Exp $ */
 #ifndef _MF_AUG_LAG_MULT_T_H_
 #define _MF_AUG_LAG_MULT_T_H_
+
+#include "ElementsConfig.h"
+#ifdef CONTINUUM_ELEMENT
 
 /* base classes */
 #include "FBC_ControllerT.h"
@@ -219,4 +222,7 @@ private:
 };
 
 } // namespace Tahoe 
+
+#endif /* CONTINUUM_ELEMENT */
+
 #endif /* _MF_AUG_LAG_MULT_T_H_ */
