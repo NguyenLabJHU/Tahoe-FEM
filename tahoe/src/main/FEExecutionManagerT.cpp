@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.41.2.10 2003-05-26 15:43:12 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.41.2.11 2003-05-27 15:14:14 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -675,27 +675,17 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				/* initialize step */
 				if (1 || error == ExceptionT::kNoError) error = atoms.InitStep();
 				
-				/* update FEM solution interpolated at boundary atoms and ghost atoms assuming constant 						       acceleration - because of constant acceleration assumption, can call corrector immediately
-				   after predictor */
-				atoms.BAPredictor(mddt, badisp, bavel, baacc);
-				atoms.BAPredictor(mddt, gadisp, gavel, gaacc);
-				atoms.BACorrector(mddt, bavel, baacc);
-				atoms.BACorrector(mddt, gavel, gaacc);
+				/* update FEM solution interpolated at boundary atoms and ghost atoms assuming 
+				constant acceleration - because of constant acceleration assumption, predictor and 
+				corrector are combined into one function */
+				atoms.BAPredictAndCorrect(mddt, badisp, bavel, baacc);
+				atoms.BAPredictAndCorrect(mddt, gadisp, gavel, gaacc);
 				
 				/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
 				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);				
 				
 				/* UPDATE TIME HISTORY VARIABLES HERE USING BADISP ARRAY */
-								
-				FieldT* pmd = atoms.NodeManager()->Field(bridging_field);
-				dArray2DT apdsp1 = (*pmd)[0];
-				dArray2DT apvel1 = (*pmd)[1];
-				dArray2DT apacc1 = (*pmd)[2];
-				cout << "predicted md disp = " << apdsp1 << endl;
-				cout << "predicted md vel = " << apvel1 << endl;
-				cout << "predicted md acc = " << apacc1 << endl;
-
-								
+																
 				/* solve MD equations of motion */
 				if (1 || error == ExceptionT::kNoError) {
 						atoms.ResetCumulativeUpdate(group);
@@ -717,14 +707,6 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			/* calculate total displacement u = FE + fine scale here using updated FEM displacement */
 			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu);
 			
-			FieldT* pfem = continuum.NodeManager()->Field(bridging_field);
-			dArray2DT fpdsp1 = (*pfem)[0];
-			dArray2DT fpvel1 = (*pfem)[1];
-			dArray2DT fpacc1 = (*pfem)[2];
-			cout << "predicted fem disp = " << fpdsp1 << endl;
-			cout << "predicted fem vel = " << fpvel1 << endl;
-			cout << "predicted fem acc = " << fpacc1 << endl;
-			
 			/* calculate FE internal force as function of total displacement u here */
 			fubig = InternalForce(totalu, atoms);
 			fu.RowCollect(atoms.NonGhostNodes(), fubig);
@@ -742,20 +724,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 					error = continuum.SolveStep();
 			}
                  
-			FieldT* atomfield = atoms.NodeManager()->Field(bridging_field);
 			FieldT* fem = continuum.NodeManager()->Field(bridging_field);
-			dArray2DT dsp1 = (*atomfield)[0];
-			dArray2DT vel1 = (*atomfield)[1];
-			dArray2DT acc1 = (*atomfield)[2];
-			dArray2DT fdsp1 = (*fem)[0];
-			dArray2DT fvel1 = (*fem)[1];
 			dArray2DT facc1 = (*fem)[2];
-			cout << "corrected fem disp = " << fdsp1 << endl;
-			cout << "md disp = " << dsp1 << endl;
-			cout << "corrected fem vel = " << fvel1 << endl;
-			cout << "md vel = " << vel1 << endl;
 			cout << "fem acc = " << facc1 << endl;
-			cout << "md acc = " << acc1 << endl;
 		
 			/* Interpolate FEM values to MD ghost nodes which will act as MD boundary conditions */
 			continuum.InterpolateField(bridging_field, order1, boundghostdisp);
