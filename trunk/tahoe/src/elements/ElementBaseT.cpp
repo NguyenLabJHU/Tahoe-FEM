@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.14 2002-02-27 16:47:47 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.15 2002-04-17 23:55:55 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -97,6 +97,12 @@ void ElementBaseT::SetController(eControllerT* controller)
 GlobalT::SystemTypeT ElementBaseT::TangentType(void) const
 {
 	return GlobalT::kSymmetric;
+}
+
+/* the iteration number for the current time increment */
+const int& ElementBaseT::IterationNumber(void) const
+{
+	return fFEManager.IterationNumber();
 }
 
 /* solution calls */
