@@ -1,4 +1,4 @@
-/* $Id: CrystalLatticeT.cpp,v 1.12 2002-10-31 01:34:53 saubry Exp $ */
+/* $Id: CrystalLatticeT.cpp,v 1.13 2002-11-01 00:09:52 saubry Exp $ */
 #include "CrystalLatticeT.h"
 
 #include <iostream>
@@ -13,14 +13,17 @@
 #include "Rotate2DT.h"
 #include "Rotate3DT.h"
 
-CrystalLatticeT::CrystalLatticeT(int nlsd, int nuca,
+CrystalLatticeT::CrystalLatticeT(int nlsd, int nuca,int which_rot,
 				 dArray2DT mat_rot,double angle) 
 {
   nLSD = nlsd;
   nUCA = nuca;
+
   vBasis.Dimension(nLSD,nUCA);
   vLatticeParameters.Dimension(nLSD);
   vAxis.Dimension(nLSD,nLSD);
+
+  WhichRot = which_rot;
   
   // Define rotation
   if(nLSD == 3)
@@ -85,9 +88,22 @@ CrystalLatticeT::CrystalLatticeT(const CrystalLatticeT& source)
 
   vBasis.Dimension(nLSD,nUCA);
   vBasis = source.vBasis;
-
   vLatticeParameters.Dimension(nLSD);
   vLatticeParameters = source.vLatticeParameters;
+  vAxis.Dimension(nLSD,nLSD);
+  vAxis = source.vAxis;
+
+  WhichRot = source.WhichRot;
+  
+  if(nLSD == 2)
+    angle_rotation = source.angle_rotation;
+  else if(nLSD == 3)
+    {
+      matrix_rotation.Dimension(nLSD,nLSD);
+      matrix_rotation = source.matrix_rotation;
+      norm_vec.Dimension(nLSD);
+      norm_vec = source.norm_vec;
+    }
 
   density = source.density;
 }

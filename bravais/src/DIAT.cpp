@@ -9,8 +9,9 @@
 #include "dArray2DT.h"
 
 DIAT::DIAT(int nlsd,int nuca,double alat,
-	   dArray2DT mat_rot,double angle) : 
-  CrystalLatticeT(nlsd,nuca,mat_rot,angle)
+	   int which_rot,dArray2DT mat_rot,
+	   double angle) : 
+  CrystalLatticeT(nlsd,nuca,which_rot,mat_rot,angle)
 {
   for (int i=0; i<nlsd; i++) 
     vLatticeParameters[i] = alat;
@@ -94,7 +95,7 @@ DIAT::DIAT(int nlsd,int nuca,double alat,
 
 
 DIAT::DIAT(const DIAT& source) : CrystalLatticeT(source.nLSD,source.nUCA,
-						 source.matrix_rotation,
+						 source.WhichRot,source.matrix_rotation,
 						 source.angle_rotation)
 {
   for (int i=0; i<source.nLSD; i++) 

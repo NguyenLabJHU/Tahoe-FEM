@@ -146,6 +146,9 @@ void MakeCrystalT::Run() {
 
   int irot= 0;
 
+  iArrayT isort(nsd);
+  isort = 0;
+
   while (misc!="#")
   {
     if (misc=="PERIODICITY")
@@ -188,6 +191,22 @@ void MakeCrystalT::Run() {
         cout << mat_rot(2,0) << "  " <<  mat_rot(2,1) << "  " << mat_rot(2,2) << "\n";
       }
     }
+    else if (misc=="SORT")
+      {
+	if(nsd == 2) 
+	  {
+	    in >> isort[0] >> isort[1];
+	    cout << "Sorting criteria: ";
+	    cout << "[" << isort[0] << " " << isort[1] << "]\n";
+	  }
+	if(nsd == 3) 
+	  {
+	    in >> isort[0] >> isort[1] >> isort[2];
+	    cout << "Sorting criteria: ";
+	    cout << "[" << isort[0] << " " << isort[1] 
+		 << " " << isort[2] << "]\n";
+	  }
+      }
     else if (misc=="OUTPUT")
     {
       in >> input;
@@ -210,7 +229,7 @@ void MakeCrystalT::Run() {
 
   MeshAtom mesh_atom(latticetype,nsd,b,latticeparameter,
 		     shape,whichunit,len,cel,irot,mat_rot,
-		     angle);
+		     angle,isort);
 
   StringT program = "bravais";
   StringT version = "v1.0";
