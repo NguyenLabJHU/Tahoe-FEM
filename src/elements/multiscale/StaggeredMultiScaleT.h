@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.h,v 1.16 2003-03-29 00:37:51 paklein Exp $ */ 
+/* $Id: StaggeredMultiScaleT.h,v 1.17 2003-04-08 23:07:39 paklein Exp $ */ 
 //DEVELOPMENT
 #ifndef _STAGGERED_MULTISCALE_T_H_ 
 #define _STAGGERED_MULTISCALE_T_H_ 
@@ -148,7 +148,16 @@ protected:
 
 private:
 
-	//----- Class Data -----------
+	/** \name solution methods.
+	 * Both of these drivers assemble the LHS as well as the residual.
+	 */
+	/*@{*/
+	/** driver for staggered solution */
+	void RHSDriver_staggered(void);
+	
+	/** driver for monolithic solution */
+	void RHSDriver_monolithic(void);
+	/*@}*/
 	
 public:	
 protected:
@@ -270,8 +279,8 @@ private:
 	 * (to include Variational Multi-Scale (VMS) formulation). */
 
 	/* Data Storage */
-	dMatrixT 	fKa_I, 	fKb_I;  
-	dMatrixT 	fKa_II, fKb_II; 
+	ElementMatrixT fKa_I, fKb_I;  
+	ElementMatrixT fKa_II, fKb_II; 
 	dArrayT 	fFint_I;
 	dArrayT 	fFext_I;
 	dArrayT		fFint_II;

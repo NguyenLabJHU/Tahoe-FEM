@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.27 2003-03-29 00:37:51 paklein Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.28 2003-04-08 23:07:39 paklein Exp $ */
 #include "StaggeredMultiScaleT.h"
 
 #include "ShapeFunctionT.h"
@@ -38,6 +38,10 @@ StaggeredMultiScaleT::StaggeredMultiScaleT(const ElementSupportT& support, const
 	fTractionBCSet(0),
 	fCoarse(coarse),
 	fFine(fine),
+	fKa_I(ElementMatrixT::kNonSymmetric), 
+	fKb_I(ElementMatrixT::kNonSymmetric), 
+	fKa_II(ElementMatrixT::kNonSymmetric), 
+	fKb_II(ElementMatrixT::kNonSymmetric),
 	fEquation_I(NULL),
 	fEquation_II(NULL),
 	render_settings_file_name(32),
@@ -48,7 +52,7 @@ StaggeredMultiScaleT::StaggeredMultiScaleT(const ElementSupportT& support, const
 	int i;
 	/* check - some code below assumes that both fields have the
 	 * same dimension. TEMP? */
-	if (fCoarse.NumDOF() != fFine.NumDOF()) throw ExceptionT::kBadInputValue;
+	if (fCoarse.NumDOF() != fFine.NumDOF()) ExceptionT::BadInputValue("StaggeredMultiScaleT::StaggeredMultiScaleT");
 
 	/* read parameters from input */
 	ifstreamT& in = ElementSupport().Input();
@@ -338,171 +342,11 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 	/* traction boundary conditions acting on the coarse scale equations */
 	if (curr_group == fCoarse.Group()) ApplyTractionBC();
 
-	/* stress output work space */
-	int n_stress = dSymMatrixT::NumValues(NumSD());
-	dArray2DT   out_variable_all;
-	dSymMatrixT out_variable;
-
-	/** Time Step Increment */
-	double delta_t = ElementSupport().TimeStep();
-						time = ElementSupport().Time();
-						step_number = ElementSupport().StepNumber();
-
-	iArrayT fine_eq;
-
-	//cout <<" s= " << render_switch <<"; t= "<< time << "; rt= " << render_time << "\n";
- 
- 	/* has (coarse scale) body forces */
-	int formBody = 0;
-	if (fBodySchedule && fBody.Magnitude() > kSmall)
-		formBody = 1;
-
-	/* loop over elements */
-	int e,v,l;
-	Top();
-	while (NextElement())
-	{
-		e = CurrElementNumber();
-
-		SetLocalU (ua);			 SetLocalU (ua_n);
-		SetLocalU (ub);			 SetLocalU (ub_n);
-
-		del_ua.DiffOf (ua, ua_n);
-		del_ub.DiffOf (ub, ub_n);
-
-	 	SetLocalX(fInitCoords); 
-		fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, ua, 1.0, ub); 
-		fShapes->SetDerivatives(); 
-
-		if (bStep_Complete) { //-- Done iterating, get result data 
-			if (bLog_Strain) {	//-- For calculation of Lf : epsilon = e^(Lf/Lo) 
-				if ( e == cube_top_elmt ) 
-					x_top = fCurrCoords ( cube_top_elmt_top_local_node, 1 ); // 1 is for the 2 direction
-				if ( e == cube_bottom_elmt ) 
-					x_bot = fCurrCoords ( cube_bottom_elmt_bottom_local_node, 1 ); // 1 is for the 2 direction
-			}
-		}
-		
-		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradiants 		( fShapes, 	ua, ua_n, fGRAD_ua, fGRAD_ua_n );
-		Convert.Gradiants 		( fShapes, 	ub, ub_n, fGRAD_ub, fGRAD_ub_n );
-		Convert.Shapes				(	fShapes, 	fFEA_Shapes );
-		Convert.Displacements	(	del_ua, 	del_ua_vec  );
-		Convert.Displacements	(	del_ub, 	del_ub_vec  );
-
-		Convert.Na						(	n_en, fShapes, 	fFEA_Shapes );
-
-		/** Construct data used in BOTH FineScaleT and CoarseScaleT (F,Fa,Fb,grad_ua,...etc.)
-		 * 	Presently, Tahoe cannot exploit this fact.  n and np1 are calculated for coarse field, then
-		 * 	calculated again for fine field -- this is a waste and defeats the putpose of VMS_VariableT. 
-		 *  Note: n is last time step (known data), no subscript,np1 or (n+1) is the 
-		 *  next time step (what were solving for)   */
-
-		VMS_VariableT np1(	fGRAD_ua, 	fGRAD_ub 	 ); // Many variables at time-step n+1
-		VMS_VariableT   n(	fGRAD_ua_n, fGRAD_ub_n );	// Many variables at time-step n
-		
-		/* which field */
-	  //SolverGroup 1 (gets field 2) <-- ub (obtained by a rearranged Equation I)
-		if ( curr_group == fCoarse.Group() || (bStep_Complete && render_variable_group==0) )	
-		{
-
-			if (bStep_Complete) { //-- Done iterating, get result data from converged upon displacements 
-
-				fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n );
-
-				for (v=0; v<num_tensors_to_render; v++ ) 
-					fEquation_I -> Get ( Render_Tensor_Names[v], Render_Tensor[e][v] ); 
-				for (v=0; v<num_scalars_to_render; v++ ) 
-					fEquation_I -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
-
-				//-- Store/Register data in classic tahoe manner 
-				out_variable_all.Set(fNumIP, n_stress, fIPVariable(CurrElementNumber()));
-				for (l=0; l < fNumIP; l++) {
-					out_variable.Set(NumSD(), out_variable_all(l));
-					out_variable.FromMatrix(Render_Tensor[e][0][l]);
-				} 
-			}
-			else { //-- Still Iterating
-
-				/** Compute N-R matrix equations */
-				fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, FEA::kBackward_Euler );
-				fEquation_I -> Form_LHS_Ka_Kb ( fKa_I, fKb_I );
-				fEquation_I -> Form_RHS_F_int ( fFint_I );
-
-				/** Set coarse LHS */
-				fLHS = fKb_I;
-
-				/** Compute coarse RHS (or Fint_bar_II in FAXed notes) */
-				fKa_I.Multx ( del_ua_vec, fRHS );
-				fRHS += fFint_I; 
-				fRHS *= -1.0; 
-
-				/** Compute Traction B.C. and Body Forces */
-				Get_Fext_I ( fFext_I );
-				fRHS += fFext_I;
-				
-				/* add body forces */
-				if (formBody) {
-//					double density = fCoarseMaterial->Retrieve(Iso_MatlT::kDensity);
-					double density = 1.0;
-					DDub = 0.0;
-					AddBodyForce(DDub);
-					FormMa(kConsistentMass, -density, &DDub, NULL);				
-				}
-			
-				/* add to global equations */
-				ElementSupport().AssembleLHS	( fCoarse.Group(), fLHS, CurrentElement().Equations() );
-				ElementSupport().AssembleRHS 	( fCoarse.Group(), fRHS, CurrentElement().Equations() );
-			}
-		}
-
-		// SolverGroup 2 (gets field 1) <-- ua (obtained by a rearranged Equation II)
-		else if (curr_group == fFine.Group() || (bStep_Complete && render_variable_group==1) )	
-		{
-
-			if (bStep_Complete) { //-- Done iterating, get result data from converged upon displacements 
-
-				fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t );
-
-				for (v=0; v<num_tensors_to_render; v++ )  
-					fEquation_II -> Get ( Render_Tensor_Names[v], Render_Tensor[e][v] ); 
-				for (v=0; v<num_scalars_to_render; v++ ) 
-					fEquation_II -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
-
-				//-- Store/Register data in classic tahoe manner 
-				out_variable_all.Set(fNumIP, n_stress, fIPVariable(CurrElementNumber()));
-				for (l=0; l < fNumIP; l++) {
-					out_variable.Set(NumSD(), out_variable_all(l));
-					out_variable.FromMatrix(Render_Tensor[e][0][l]);
-				} 
-			}
-			else { //-- Still Iterating
-
-				/** Compute N-R matrix equations */
-				fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t, FEA::kBackward_Euler );
-				fEquation_II -> Form_LHS_Ka_Kb ( fKa_II, 	fKb_II );
-				fEquation_II -> Form_RHS_F_int ( fFint_II );
-
-				/** Set LHS */
-				fLHS = fKa_II;	
-		
-				/** Compute fine RHS (or Fint_bar_II in FAXed notes)  */
-				fKb_II.Multx ( del_ub_vec, fRHS );
-				fRHS += fFint_II; 
-				fRHS *= -1.0; 
-		
-				/* fine scale equation numbers */
-				fEqnos_fine.RowAlias ( CurrElementNumber(), fine_eq );
-
-				/* add to global equations */
-				ElementSupport().AssembleLHS ( fFine.Group(), fLHS, fine_eq );
-				ElementSupport().AssembleRHS ( fFine.Group(), fRHS, fine_eq );
-			}
-
-		}
-		else throw ExceptionT::kGeneralFail;
-	}
-
+	/* choose solution method */
+	if (fCoarse.Group() == fFine.Group())
+		RHSDriver_monolithic();
+	else
+		RHSDriver_staggered();
 }
 
 //---------------------------------------------------------------------
@@ -668,17 +512,55 @@ void StaggeredMultiScaleT::CloseStep(void)
 void StaggeredMultiScaleT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
 {
-	/* ElementBaseT handles equation array for the coarse scale */
-	if (ElementSupport().CurrentGroup() == fCoarse.Group())
-		ElementBaseT::Equations(eq_1,eq_2);
-	else if (ElementSupport().CurrentGroup() == fFine.Group())
+	/* doing monolithic solution */
+	if (fCoarse.Group() == fFine.Group())
 	{
-		/* collect local equation numbers */
-		fFine.SetLocalEqnos(fConnectivities, fEqnos_fine);
+		int ndof_fine = fFine.NumDOF();
+		int ndof_coarse = fCoarse.NumDOF();
+		int nen = NumElementNodes();
 	
-		eq_1.Append(&fEqnos_fine);
+		/* loop over connectivity blocks */
+		for (int i = 0; i < fEqnos.Length(); i++)
+		{
+			/* connectivities */
+			const iArray2DT& connects = *(fConnectivities[i]);
+			int nel = connects.MajorDim();
+		
+			/* dimension */
+			fEqnos[i].Dimension(nel, nen*(ndof_coarse + ndof_fine));
+			iArray2DT coarse_eq(nel, nen*ndof_fine);
+			iArray2DT fine_eq(nel, nen*ndof_fine);
+			
+			/* get equation numbers */
+			fCoarse.SetLocalEqnos(connects, coarse_eq);
+			fFine.SetLocalEqnos(connects, fine_eq);
+			
+			/* write into one array */
+			fEqnos[i].BlockColumnCopyAt(coarse_eq, 0);
+			fEqnos[i].BlockColumnCopyAt(fine_eq, coarse_eq.MinorDim());
+
+			/* add to list of equation numbers */
+			eq_1.Append(&fEqnos[i]);
+		}
+	
+		/* reset pointers to element cards */
+		SetElementCards();	
 	}
-	else throw ExceptionT::kGeneralFail;
+	else
+	{
+		/* ElementBaseT handles equation array for the coarse scale */
+		if (ElementSupport().CurrentGroup() == fCoarse.Group())
+			ElementBaseT::Equations(eq_1,eq_2);
+
+		/* fine scale equations */
+		if (ElementSupport().CurrentGroup() == fFine.Group())
+		{
+			/* collect local equation numbers */
+			fFine.SetLocalEqnos(fConnectivities, fEqnos_fine);
+		
+			eq_1.Append(&fEqnos_fine);
+		}
+	}
 }
 
 //---------------------------------------------------------------------
@@ -822,12 +704,9 @@ void StaggeredMultiScaleT::RegisterOutput(void)
 
 void StaggeredMultiScaleT::WriteOutput(void)
 {
-
 	bStep_Complete=1;
 	RHSDriver();
 	bStep_Complete=0;
-
-	
 
 	/* my output set */
 	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
@@ -854,7 +733,7 @@ void StaggeredMultiScaleT::WriteOutput(void)
 			fShapes->Extrapolate(out_variable, nd_stress);
 		}
 	
-	/* accumulate - extrapolation done from ip's to corners => X nodes  */
+		/* accumulate - extrapolation done from ip's to corners => X nodes  */
 		ElementSupport().AssembleAverage(CurrentElement().NodesX(), nd_stress);
 	}
 
@@ -1047,3 +926,332 @@ void 	StaggeredMultiScaleT::Get_Fext_I ( dArrayT &fFext_I )
 	
 }
 
+/*************************************************************************
+ * Private
+ *************************************************************************/
+
+/* form group contribution to the stiffness matrix and RHS */
+void StaggeredMultiScaleT::RHSDriver_staggered(void)
+{
+	const char caller[] = "StaggeredMultiScaleT::RHSDriver_staggered";
+	if (fCoarse.Group() == fFine.Group())
+		ExceptionT::GeneralFail(caller, "coarse and fine group must be different: %d == %d",
+			fCoarse.Group(), fFine.Group());
+
+	int curr_group = ElementSupport().CurrentGroup();
+
+	/* stress output work space */
+	int n_stress = dSymMatrixT::NumValues(NumSD());
+	dArray2DT   out_variable_all;
+	dSymMatrixT out_variable;
+
+	/* time Step Increment */
+	double delta_t = ElementSupport().TimeStep();
+	time = ElementSupport().Time();
+	step_number = ElementSupport().StepNumber();
+	iArrayT fine_eq;
+
+	//cout <<" s= " << render_switch <<"; t= "<< time << "; rt= " << render_time << "\n";
+ 
+ 	/* has (coarse scale) body forces */
+	int formBody = 0;
+	if (fBodySchedule && fBody.Magnitude() > kSmall)
+		formBody = 1;
+
+	/* loop over elements */
+	int e,v,l;
+	Top();
+	while (NextElement())
+	{
+		e = CurrElementNumber();
+
+		SetLocalU (ua);			 SetLocalU (ua_n);
+		SetLocalU (ub);			 SetLocalU (ub_n);
+
+		del_ua.DiffOf (ua, ua_n);
+		del_ub.DiffOf (ub, ub_n);
+
+	 	SetLocalX(fInitCoords); 
+		fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, ua, 1.0, ub); 
+		fShapes->SetDerivatives(); 
+
+		if (bStep_Complete) { //-- Done iterating, get result data 
+			if (bLog_Strain) {	//-- For calculation of Lf : epsilon = e^(Lf/Lo) 
+				if ( e == cube_top_elmt ) 
+					x_top = fCurrCoords ( cube_top_elmt_top_local_node, 1 ); // 1 is for the 2 direction
+				if ( e == cube_bottom_elmt ) 
+					x_bot = fCurrCoords ( cube_bottom_elmt_bottom_local_node, 1 ); // 1 is for the 2 direction
+			}
+		}
+		
+		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
+		Convert.Gradiants 		( fShapes, 	ua, ua_n, fGRAD_ua, fGRAD_ua_n );
+		Convert.Gradiants 		( fShapes, 	ub, ub_n, fGRAD_ub, fGRAD_ub_n );
+		Convert.Shapes				(	fShapes, 	fFEA_Shapes );
+		Convert.Displacements	(	del_ua, 	del_ua_vec  );
+		Convert.Displacements	(	del_ub, 	del_ub_vec  );
+
+		Convert.Na						(	n_en, fShapes, 	fFEA_Shapes );
+
+		/* Construct data used in BOTH FineScaleT and CoarseScaleT (F,Fa,Fb,grad_ua,...etc.)
+		 * 	Presently, Tahoe cannot exploit this fact.  n and np1 are calculated for coarse field, then
+		 * 	calculated again for fine field -- this is a waste and defeats the putpose of VMS_VariableT. 
+		 *  Note: n is last time step (known data), no subscript,np1 or (n+1) is the 
+		 *  next time step (what were solving for)   */
+
+		VMS_VariableT np1(	fGRAD_ua, 	fGRAD_ub 	 ); // Many variables at time-step n+1
+		VMS_VariableT   n(	fGRAD_ua_n, fGRAD_ub_n );	// Many variables at time-step n
+		
+		/* which field */
+	  //SolverGroup 1 (gets field 2) <-- ub (obtained by a rearranged Equation I)
+		if ( curr_group == fCoarse.Group() || (bStep_Complete && render_variable_group==0) )	
+		{
+
+			if (bStep_Complete) { //-- Done iterating, get result data from converged upon displacements 
+
+				fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n );
+
+				for (v=0; v<num_tensors_to_render; v++ ) 
+					fEquation_I -> Get ( Render_Tensor_Names[v], Render_Tensor[e][v] ); 
+				for (v=0; v<num_scalars_to_render; v++ ) 
+					fEquation_I -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
+
+				//-- Store/Register data in classic tahoe manner 
+				out_variable_all.Set(fNumIP, n_stress, fIPVariable(CurrElementNumber()));
+				for (l=0; l < fNumIP; l++) {
+					out_variable.Set(NumSD(), out_variable_all(l));
+					out_variable.FromMatrix(Render_Tensor[e][0][l]);
+				} 
+			}
+			else { //-- Still Iterating
+
+				/** Compute N-R matrix equations */
+				fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, FEA::kBackward_Euler );
+				fEquation_I -> Form_LHS_Ka_Kb ( fKa_I, fKb_I );
+				fEquation_I -> Form_RHS_F_int ( fFint_I );
+
+				/** Set coarse LHS */
+				fLHS = fKb_I;
+
+				/** Compute coarse RHS (or Fint_bar_II in FAXed notes) */
+				fKa_I.Multx ( del_ua_vec, fRHS );
+				fRHS += fFint_I; 
+				fRHS *= -1.0; 
+
+				/** Compute Traction B.C. and Body Forces */
+				Get_Fext_I ( fFext_I );
+				fRHS += fFext_I;
+				
+				/* add body forces */
+				if (formBody) {
+//					double density = fCoarseMaterial->Retrieve(Iso_MatlT::kDensity);
+					double density = 1.0;
+					DDub = 0.0;
+					AddBodyForce(DDub);
+					FormMa(kConsistentMass, -density, &DDub, NULL);				
+				}
+			
+				/* add to global equations */
+				ElementSupport().AssembleLHS	( fCoarse.Group(), fLHS, CurrentElement().Equations() );
+				ElementSupport().AssembleRHS 	( fCoarse.Group(), fRHS, CurrentElement().Equations() );
+			}
+		}
+
+		// SolverGroup 2 (gets field 1) <-- ua (obtained by a rearranged Equation II)
+		else if (curr_group == fFine.Group() || (bStep_Complete && render_variable_group==1) )	
+		{
+
+			if (bStep_Complete) { //-- Done iterating, get result data from converged upon displacements 
+
+				fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t );
+
+				for (v=0; v<num_tensors_to_render; v++ )  
+					fEquation_II -> Get ( Render_Tensor_Names[v], Render_Tensor[e][v] ); 
+				for (v=0; v<num_scalars_to_render; v++ ) 
+					fEquation_II -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
+
+				//-- Store/Register data in classic tahoe manner 
+				out_variable_all.Set(fNumIP, n_stress, fIPVariable(CurrElementNumber()));
+				for (l=0; l < fNumIP; l++) {
+					out_variable.Set(NumSD(), out_variable_all(l));
+					out_variable.FromMatrix(Render_Tensor[e][0][l]);
+				} 
+			}
+			else { //-- Still Iterating
+
+				/** Compute N-R matrix equations */
+				fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t, FEA::kBackward_Euler );
+				fEquation_II -> Form_LHS_Ka_Kb ( fKa_II, 	fKb_II );
+				fEquation_II -> Form_RHS_F_int ( fFint_II );
+
+				/** Set LHS */
+				fLHS = fKa_II;	
+		
+				/** Compute fine RHS (or Fint_bar_II in FAXed notes)  */
+				fKb_II.Multx ( del_ub_vec, fRHS );
+				fRHS += fFint_II; 
+				fRHS *= -1.0; 
+		
+				/* fine scale equation numbers */
+				fEqnos_fine.RowAlias ( CurrElementNumber(), fine_eq );
+
+				/* add to global equations */
+				ElementSupport().AssembleLHS ( fFine.Group(), fLHS, fine_eq );
+				ElementSupport().AssembleRHS ( fFine.Group(), fRHS, fine_eq );
+			}
+
+		}
+		else ExceptionT::GeneralFail(caller);
+	}
+}
+
+/* form group contribution to the stiffness matrix and RHS */
+void StaggeredMultiScaleT::RHSDriver_monolithic(void)
+{
+	const char caller[] = "StaggeredMultiScaleT::RHSDriver_monolithic";
+	if (fCoarse.Group() != fFine.Group())
+		ExceptionT::GeneralFail(caller, "coarse and fine group must be the same: %d != %d",
+			fCoarse.Group(), fFine.Group());
+
+	int curr_group = ElementSupport().CurrentGroup();
+
+	/* stress output work space */
+	int n_stress = dSymMatrixT::NumValues(NumSD());
+	dArray2DT   out_variable_all;
+	dSymMatrixT out_variable;
+
+	/* time Step Increment */
+	double delta_t = ElementSupport().TimeStep();
+	time = ElementSupport().Time();
+	step_number = ElementSupport().StepNumber();
+	iArrayT coarse_eq, fine_eq;
+
+	//cout <<" s= " << render_switch <<"; t= "<< time << "; rt= " << render_time << "\n";
+ 
+ 	/* has (coarse scale) body forces */
+	int formBody = 0;
+	if (fBodySchedule && fBody.Magnitude() > kSmall)
+		formBody = 1;
+
+	/* loop over elements */
+	int e,v,l;
+	Top();
+	while (NextElement())
+	{
+		e = CurrElementNumber();
+
+		SetLocalU (ua);			 SetLocalU (ua_n);
+		SetLocalU (ub);			 SetLocalU (ub_n);
+
+		del_ua.DiffOf (ua, ua_n);
+		del_ub.DiffOf (ub, ub_n);
+
+	 	SetLocalX(fInitCoords); 
+		fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, ua, 1.0, ub); 
+		fShapes->SetDerivatives(); 
+
+		if (bStep_Complete) { //-- Done iterating, get result data 
+			if (bLog_Strain) {	//-- For calculation of Lf : epsilon = e^(Lf/Lo) 
+				if ( e == cube_top_elmt ) 
+					x_top = fCurrCoords ( cube_top_elmt_top_local_node, 1 ); // 1 is for the 2 direction
+				if ( e == cube_bottom_elmt ) 
+					x_bot = fCurrCoords ( cube_bottom_elmt_bottom_local_node, 1 ); // 1 is for the 2 direction
+			}
+		}
+		
+		/* repackage data to forms compatible with FEA classes (very little cost in big picture) */
+		Convert.Gradiants 		( fShapes, 	ua, ua_n, fGRAD_ua, fGRAD_ua_n );
+		Convert.Gradiants 		( fShapes, 	ub, ub_n, fGRAD_ub, fGRAD_ub_n );
+		Convert.Shapes				(	fShapes, 	fFEA_Shapes );
+		Convert.Displacements	(	del_ua, 	del_ua_vec  );
+		Convert.Displacements	(	del_ub, 	del_ub_vec  );
+		Convert.Na(	n_en, fShapes, 	fFEA_Shapes );
+
+		/* Construct data used in BOTH FineScaleT and CoarseScaleT (F,Fa,Fb,grad_ua,...etc.)
+		 * 	Presently, Tahoe cannot exploit this fact.  n and np1 are calculated for coarse field, then
+		 * 	calculated again for fine field -- this is a waste and defeats the putpose of VMS_VariableT. 
+		 *  Note: n is last time step (known data), no subscript,np1 or (n+1) is the 
+		 *  next time step (what were solving for)   */
+		VMS_VariableT np1(	fGRAD_ua, 	fGRAD_ub 	 ); // Many variables at time-step n+1
+		VMS_VariableT   n(	fGRAD_ua_n, fGRAD_ub_n );	// Many variables at time-step n
+
+		if (bStep_Complete) { //-- Done iterating, get result data from converged upon displacements 
+
+			if (render_variable_group == 0)
+			{
+				fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n );
+
+				for (v=0; v<num_tensors_to_render; v++ ) 
+					fEquation_I -> Get ( Render_Tensor_Names[v], Render_Tensor[e][v] ); 
+				for (v=0; v<num_scalars_to_render; v++ ) 
+					fEquation_I -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
+
+				//-- Store/Register data in classic tahoe manner 
+				out_variable_all.Set(fNumIP, n_stress, fIPVariable(CurrElementNumber()));
+				for (l=0; l < fNumIP; l++) {
+					out_variable.Set(NumSD(), out_variable_all(l));
+					out_variable.FromMatrix(Render_Tensor[e][0][l]);
+				}
+			}
+			else if (render_variable_group == 1)
+			{
+				fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t );
+
+				for (v=0; v<num_tensors_to_render; v++ )  
+					fEquation_II -> Get ( Render_Tensor_Names[v], Render_Tensor[e][v] ); 
+				for (v=0; v<num_scalars_to_render; v++ ) 
+					fEquation_II -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
+
+				//-- Store/Register data in classic tahoe manner 
+				out_variable_all.Set(fNumIP, n_stress, fIPVariable(CurrElementNumber()));
+				for (l=0; l < fNumIP; l++) {
+					out_variable.Set(NumSD(), out_variable_all(l));
+					out_variable.FromMatrix(Render_Tensor[e][0][l]);
+				}
+			}
+			else ExceptionT::GeneralFail(caller, "inrecognized render group %d", render_variable_group);
+		}
+		else { //-- Still Iterating
+
+			/* residual and tangent for coarse scale */
+			fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, FEA::kBackward_Euler );
+			fEquation_I -> Form_LHS_Ka_Kb ( fKa_I, fKb_I );
+			fEquation_I -> Form_RHS_F_int ( fFint_I );
+			fFint_I *= -1.0;
+
+			/* add body force */
+			if (formBody) {
+//				double density = fCoarseMaterial->Retrieve(Iso_MatlT::kDensity);
+				double density = 1.0;
+				DDub = 0.0;
+				AddBodyForce(DDub);
+				
+				/* add body force to fRHS */
+				fRHS = 0.0;
+				FormMa(kConsistentMass, -density, &DDub, NULL);
+				fFint_I += fRHS;
+			}
+
+			/* residual and tangent for fine scale */
+			fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t, FEA::kBackward_Euler );
+			fEquation_II -> Form_LHS_Ka_Kb ( fKa_II, 	fKb_II );
+			fEquation_II -> Form_RHS_F_int ( fFint_II );
+			fFint_II *= -1.0;
+
+			/* equations numbers */
+			const iArrayT& all_eq = CurrentElement().Equations();
+			coarse_eq.Set(fFint_I.Length(), all_eq.Pointer());
+			fine_eq.Set(fFint_II.Length(), all_eq.Pointer(fFint_I.Length()));
+
+			/* assemble residuals */
+			ElementSupport().AssembleRHS(curr_group, fFint_I, coarse_eq);
+			ElementSupport().AssembleRHS(curr_group, fFint_II, fine_eq);
+
+			/* assemble components of the tangent */
+			ElementSupport().AssembleLHS(curr_group, fKb_I, coarse_eq);
+			ElementSupport().AssembleLHS(curr_group, fKa_II, fine_eq);
+			ElementSupport().AssembleLHS(curr_group, fKa_I, coarse_eq, fine_eq);
+			ElementSupport().AssembleLHS(curr_group, fKb_II, fine_eq, coarse_eq);
+		}
+	}
+}
