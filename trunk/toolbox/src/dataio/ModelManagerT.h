@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.14 2002-01-27 18:24:23 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.15 2002-01-27 22:36:34 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -354,7 +354,7 @@ class ModelManagerT
   void SideSetLocalToGlobal (const StringT& element_ID, const iArray2DT& local, iArray2DT& global);
 
   /** convert globally numbered set to locally numbered and determine element group containing set */
-  void SideSetGlobalToLocal (StringT& element_ID, iArray2DT& local, const iArray2DT& global);
+  void SideSetGlobalToLocal(const iArray2DT& global, iArray2DT& local, StringT& element_ID);
 
   /** add nodes to the coordinate array
    * \param newcoords array of coordinates to add
