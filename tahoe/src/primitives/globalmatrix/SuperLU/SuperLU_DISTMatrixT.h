@@ -1,4 +1,4 @@
-/* $Id: SuperLU_DISTMatrixT.h,v 1.2 2004-03-21 05:19:18 paklein Exp $ */
+/* $Id: SuperLU_DISTMatrixT.h,v 1.3 2004-03-21 17:03:37 paklein Exp $ */
 #ifndef _SUPER_LU_DIST_MATRIX_T_H_
 #define _SUPER_LU_DIST_MATRIX_T_H_
 
@@ -11,6 +11,9 @@
 
 /* SuperLU type definitions */
 #include "superlu_ddefs.h"
+
+/* direct members */
+#include "AutoArrayT.h"
 
 namespace Tahoe {
 
