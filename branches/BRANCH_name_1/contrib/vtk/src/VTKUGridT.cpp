@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.19 2002-06-26 18:43:42 recampb Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.19.2.1 2002-06-28 17:25:09 cjkimme Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -28,6 +28,7 @@
 #include "vtkTahoeGlyph3D.h"
 #include "vtkActorCollection.h"
 
+using namespace Tahoe;
 
 /* array behavior */
 const bool ArrayT<VTKUGridT*>::fByteCopy = true;

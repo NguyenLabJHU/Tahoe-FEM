@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.h,v 1.15 2002-02-01 18:11:40 paklein Exp $ */
+/* $Id: VTKBodyT.h,v 1.15.2.1 2002-06-28 17:25:08 cjkimme Exp $ */
 
 #ifndef _VTK_BODY_T_H_
 #define _VTK_BODY_T_H_
@@ -10,6 +10,8 @@
 #include "StringT.h"
 #include "iConsoleObjectT.h"
 #include "VTKBodyDataT.h"
+
+using namespace Tahoe;
 
 /* forward declarations */
 class VTKBodyDataT;
@@ -82,5 +84,6 @@ class VTKBodyT: public iConsoleObjectT
 	ArrayT<vtkLabeledDataMapper*> fCellLabelMapper;
 	ArrayT<vtkActor2D*> fCellLabelActor;	
 };
+
 
 #endif

@@ -1,6 +1,8 @@
 
 #include "ExtractNode.h"
 
+using namespace Tahoe;
+
 ExtractNode::ExtractNode (ostream& out, istream& in, bool write) :
   ExtractIOManager (out, in, write)
 {

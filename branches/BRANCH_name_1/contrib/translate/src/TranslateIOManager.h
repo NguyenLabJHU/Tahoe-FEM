@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.h,v 1.10 2002-05-19 17:45:42 paklein Exp $ */
+/* $Id: TranslateIOManager.h,v 1.10.2.1 2002-06-28 17:25:07 cjkimme Exp $ */
 
 #ifndef _TRANSLATE_IOMANAGER_H_
 #define _TRANSLATE_IOMANAGER_H_
@@ -10,6 +10,8 @@
 #include "iArrayT.h"
 #include "dArrayT.h"
 #include "iArray2DT.h"
+
+namespace Tahoe {
 
 class TranslateIOManager
 {
@@ -86,5 +88,7 @@ class TranslateIOManager
   // need to store here instead of in ModelManager so that they are all global
 
 };
+
+} // namespace Tahoe
 
 #endif

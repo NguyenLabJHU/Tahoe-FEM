@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.h,v 1.15 2002-06-26 18:00:21 recampb Exp $ */
+/* $Id: VTKUGridT.h,v 1.15.2.1 2002-06-28 17:25:09 cjkimme Exp $ */
 #ifndef _VTK_U_GRID_T_H_
 #define _VTK_U_GRID_T_H_
 
@@ -8,6 +8,8 @@
 #include "iArrayT.h"
 #include "dArray2DT.h"
 #include "AutoArrayT.h"
+
+using namespace Tahoe; 
 
 /* VTK forward declarations */
 class vtkPoints;
@@ -35,9 +37,10 @@ class vtkArrowSource;
 class vtkSelectVisiblePoints;
 class vtkRenderer;
 
-
 /* toolbox forward declarations */
+namespace Tahoe {
 class iArray2DT;
+}
 
 /** interface for display of unstructured grid data. */
 class VTKUGridT
