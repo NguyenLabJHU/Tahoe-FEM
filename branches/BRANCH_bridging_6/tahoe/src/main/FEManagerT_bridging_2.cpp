@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_2.cpp,v 1.1.2.4 2004-05-26 05:58:53 paklein Exp $ */
+/* $Id: FEManagerT_bridging_2.cpp,v 1.1.2.5 2004-05-26 09:32:44 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -29,6 +29,7 @@
 #include "BondLatticeT.h"
 #include "nArrayGroupT.h"
 #include "nVariMatrixT.h"
+#include "SecantMethodT.h"
 
 #include "CCSMatrixT.h"
 #ifdef __SPOOLES__
@@ -137,8 +138,13 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 	ElementMatrixT K_constraint(2, ElementMatrixT::kSymmetric);
 	dArrayT rhs;
 	VariArrayT<double> rhs_man(0, rhs);
+	dArrayT update;
+	VariArrayT<double> update_man(0, update);	
 	dArrayT constraint;
 	VariArrayT<double> constraint_man(0, constraint);
+
+	/* secant method solver */
+	SecantMethodT secant_search(10, 0.1);
 
 	/* solve unknowns */
 	ArrayT<char> cell_type(nel);
@@ -245,6 +251,7 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 		ddf_dpdp_i.AddEquationSet(inv_equations_i);
 		ddf_dpdp_i.Initialize(num_eq, num_eq, 1);
 		rhs_man.SetLength(num_eq, false);
+		update_man.SetLength(num_eq, false);
 		
 		/* compute contribution from bonds terminating at "ghost" atoms */
 		ComputeSum_signR_Na(R_i, ghost_neighbors_i, point_coords, overlap_node_i_map, sum_R_N);
@@ -321,78 +328,141 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 		int iter = 0;
 		double error_0 = sqrt(dArrayT::Dot(rhs, rhs));
 		double error = error_0;
+		//double bounds = (k_r > kSmall) ? 8.0 : 0.25;
+		double bounds = 0.25;
 		cout << "\n{e, ||fa||} = {" << error << ", " <<  sqrt(dArrayT::Dot(f_a, f_a)) << "}" << endl;		
-		while (iter++ < max_iter && error > abs_tol && error/error_0 > rel_tol && error/error_0 < div_tol) {
+		while (fabs(bounds - 0.25) > kSmall || (iter < max_iter && error > abs_tol && error/error_0 > rel_tol && error/error_0 < div_tol)) {
+
+			iter++;
 
 			/* catch errors in linear solver */
 			try {
 
 				/* solve system */
-				ddf_dpdp_i.Solve(rhs);
+				update = rhs;
+				ddf_dpdp_i.Solve(update);
 
-				/* update densities */
-				for (int j = 0; j < num_eq_p; j++)
-					p_i[j] += rhs[j];
-								
-				/* update constraints */
-				for (int j = 0; j < num_eq_L; j++)
-					constraint[j] += rhs[j+num_eq_p];
-
-				/* recompute residual */			
-				f_a = sum_R_N;
-				Compute_df_dp_2(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map,
-					bond_densities_i_eq, inv_connects_i, inv_equations_i, inv_equations_i,
-					p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
-
-				/* assemble residual */
-				rhs = 0.0;
-				for (int j = 0; j < df_dp_i.Length(); j++)
-					rhs[j] -= df_dp_i[j];
-				
-				/* apply constraints */
-				for (int j = 0; j < num_eq_L; j++)
+				/* line search */
+				int ls_count = 0;
+				bool ls_continue = true;
+				double s = 0.0;
+				double s_last = 0.0;
+				double G_R_0 = 0.0;
+				while (ls_continue)
 				{
-					/* equation numbers */
-					constraint_eq.RowAlias(j, eqnos);
+					/* select step size */
+					if (ls_count == 0)
+						s = 1.0; /* full Newton step */
+					else if (ls_count == 1)
+						s = 0.5;
+					else /* secant method */
+						s = secant_search.NextGuess();
 
-					/* constraint equation: g >= 0 */
-					double   g = 0.25 - (p_i[j] - 0.5)*(p_i[j] - 0.5);
-					double  Dg = -2.0*(p_i[j] - 0.5);
-					double DDg = -2.0;
+					/* scale update */
+					rhs = update;
+					rhs *= (s - s_last);
+
+					/* update densities */
+					for (int j = 0; j < num_eq_p; j++)
+						p_i[j] += rhs[j];
+								
+					/* update constraints */
+					for (int j = 0; j < num_eq_L; j++)
+						constraint[j] += rhs[j+num_eq_p];
+
+					/* recompute residual */			
+					f_a = sum_R_N;
+					Compute_df_dp_2(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map,
+						bond_densities_i_eq, inv_connects_i, inv_equations_i, inv_equations_i,
+						p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
+
+					/* assemble residual */
+					rhs = 0.0;
+					for (int j = 0; j < df_dp_i.Length(); j++)
+						rhs[j] -= df_dp_i[j];
+				
+					/* apply constraints */
+					for (int j = 0; j < num_eq_L; j++)
+					{
+						/* equation numbers */
+						constraint_eq.RowAlias(j, eqnos);
+
+						/* constraint equation: g >= 0 */
+						double   g = bounds - (p_i[j] - 0.5)*(p_i[j] - 0.5);
+						double  Dg = -2.0*(p_i[j] - 0.5);
+						double DDg = -2.0;
 		
-					/* augmented multiplier */
-					double L_r = constraint[j] + k_r*g;
-					if (L_r < 0.0) /* active constraint */
-					{
-						/* force */
-						rhs[eqnos[0]-1] -= Dg*L_r;
-						rhs[eqnos[1]-1] -= g;
+						/* augmented multiplier */
+						double L_r = constraint[j] + k_r*g;
+						if (L_r < 0.0) /* active constraint */
+						{
+							/* force */
+							rhs[eqnos[0]-1] -= Dg*L_r;
+							rhs[eqnos[1]-1] -= g;
 
-						/* stiffness */
-						K_constraint(0,0) = DDg*L_r + k_r*Dg*Dg;
-						K_constraint(0,1) = Dg;
-						K_constraint(1,0) = Dg;
-						K_constraint(1,1) = 0.0;
+							/* stiffness */
+							K_constraint(0,0) = DDg*L_r + k_r*Dg*Dg;
+							K_constraint(0,1) = Dg;
+							K_constraint(1,0) = Dg;
+							K_constraint(1,1) = 0.0;
+						}
+						else /* inactive */
+						{
+							/* force */
+							rhs[eqnos[0]-1] += 0.0;
+							rhs[eqnos[1]-1] += constraint[j]/k_r;
+			
+							/* stiffness */
+							K_constraint(0,0) = 0.0;
+							K_constraint(0,1) = 0.0;
+							K_constraint(1,0) = 0.0;
+							K_constraint(1,1) = -1.0/k_r;
+						}
+			
+						/* assembly stiffness constribution */
+						ddf_dpdp_i.Assemble(K_constraint, eqnos);
 					}
-					else /* inactive */
+
+					/* orthogonality */
+					double G_R = dArrayT::Dot(rhs, update);
+
+					/* process results */
+					if (ls_count == 0)
 					{
-						/* force */
-						rhs[eqnos[0]-1] += 0.0;
-						rhs[eqnos[1]-1] += constraint[j]/k_r;
-			
-						/* stiffness */
-						K_constraint(0,0) = 0.0;
-						K_constraint(0,1) = 0.0;
-						K_constraint(1,0) = 0.0;
-						K_constraint(1,1) = -1.0/k_r;
+						G_R_0 = G_R;
+						
+						//TEMP - no line search
+						//ls_continue = false;
+					
+						/* quick exit */
+						if (fabs(G_R_0) < kSmall)
+							ls_continue = false;
 					}
-			
-					/* assembly stiffness constribution */
-					ddf_dpdp_i.Assemble(K_constraint, eqnos);
+					else if (ls_count == 1) /* initialize secant search */
+						secant_search.Reset(s, G_R, 1.0, G_R_0);
+					else
+					{
+						int test = secant_search.NextPoint(s, G_R);
+						if (test == 1)
+							ls_continue = false;
+						else if (test == -1)
+							ExceptionT::GeneralFail(caller, "line search failed");
+					}
+
+					/* next iteration */
+					ls_count++;
+					s_last = s;
 				}				
 
 				error = sqrt(dArrayT::Dot(rhs, rhs));
-				cout << setw(5) << iter << ": {e/e_0, ||fa||} = {" << error/error_0 << ", " <<  sqrt(dArrayT::Dot(f_a, f_a)) << "}" << endl;
+				cout << setw(5) << iter << ": {n_ls, s, e/e_0, ||fa||} = {"<< secant_search.Iterations()+1 << ", " << s << ", " << error/error_0 << ", " <<  sqrt(dArrayT::Dot(f_a, f_a)) << "}" << endl;
+
+				/* tighten bounds */
+				if (bounds > 0.25 && (error < abs_tol || error/error_0 < rel_tol)) {
+					bounds /= 2.0;
+					cout << " bounds = " << bounds << endl;
+				}
+				
 			} /* end try */
 
 			catch (ExceptionT::CodeT error) {
