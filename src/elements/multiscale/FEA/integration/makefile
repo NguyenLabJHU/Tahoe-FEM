@@ -1,4 +1,4 @@
-#/* $Id: makefile,v 1.2 2002-11-23 16:32:40 paklein Exp $ */
+#/* $Id: makefile,v 1.3 2003-10-08 17:27:28 paklein Exp $ */
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -16,7 +16,10 @@ SRC = \
 	FEA_IntegrationT.cpp 	
 
 # headers
-HDR =	FEA_IntegrationT.h 	
+HDR = \
+	FEA_IntegrationT.h \
+	FEA_SurfIntegrationT.h
+		 
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories

@@ -1,4 +1,4 @@
-#/* $Id: makefile,v 1.2 2002-11-23 16:32:43 paklein Exp $ */
+#/* $Id: makefile,v 1.3 2003-10-08 17:27:30 paklein Exp $ */
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -14,7 +14,9 @@ DEP = $(OBJ:.o=.d)
 SRC = all_depend_2.cpp
 
 # headers
-HDR =	FEA_ShapeFunctionT.h 	
+HDR = \
+	FEA_ShapeFunctionT.h \
+	FEA_SurfShapeFunctionT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
