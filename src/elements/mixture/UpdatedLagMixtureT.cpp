@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.cpp,v 1.4 2005-01-04 00:52:16 paklein Exp $ */
+/* $Id: UpdatedLagMixtureT.cpp,v 1.5 2005-01-07 02:20:28 paklein Exp $ */
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
 #include "FSSolidMixtureT.h"
@@ -27,7 +27,7 @@ int UpdatedLagMixtureT::SpeciesIndex(const StringT& field_name) const
 	return mixture->SpeciesIndex(field_name);
 }
 
-/* project the Cauchy stress for the given species to the nodes */
+/* project the given partial first Piola-Kirchoff stress to the nodes */
 void UpdatedLagMixtureT::ProjectPartialStress(int i)
 {
 	const char caller[] = "UpdatedLagMixtureT::ProjectPartialStress";
@@ -70,6 +70,64 @@ void UpdatedLagMixtureT::ProjectPartialStress(int i)
 				
 				/* Cauchy -> 1st PK stress */
 				cauchy.ToMatrix(s);
+				const dMatrixT& F = DeformationGradient();
+				F_inv.Inverse(F);
+				P.MultABT(s, F_inv);
+				P *= F.Det();
+
+				/* extrapolate to the nodes */
+				fShapes->Extrapolate(P_1D, nodal_P);
+			}
+
+			/* accumulate - extrapolation done from ip's to corners => X nodes */
+			ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_P);
+		}
+}
+
+/* project the variation with concentration of the given partial first
+ * Piola-Kirchoff stress to the nodes */
+void UpdatedLagMixtureT::ProjectDPartialStress(int i)
+{
+	const char caller[] = "UpdatedLagMixtureT::ProjectDPartialStress";
+
+	/* dimensions */
+	int nen = NumElementNodes();
+	int nsd = NumSD();
+
+	/* reset averaging workspace */
+	ElementSupport().ResetAverage(nsd*nsd);
+
+	/* work space */
+	dMatrixT P(nsd), F_inv(nsd), s(nsd);
+	dArrayT P_1D;
+	P_1D.Alias(P);
+
+	/* loop over elements */
+	dArray2DT nodal_P(nen, nsd*nsd);
+	Top();
+	while (NextElement())
+		if (CurrentElement().Flag() != kOFF)
+		{
+			/* get materials */
+			FSSolidMixtureT* mixture = TB_DYNAMIC_CAST(FSSolidMixtureT*, fCurrMaterial);
+			if (!mixture) ExceptionT::GeneralFail(caller, "material is not a mixture");
+		
+			/* global shape function values */
+			SetGlobalShape();
+			
+			/* collect concentration */
+			mixture->UpdateConcentrations(i);
+
+			/* extrapolate element stresses */
+			nodal_P = 0.0;
+			fShapes->TopIP();
+			while (fShapes->NextIP())
+			{
+				/* Cauchy stress */
+				const dSymMatrixT& dcauchy = mixture->ds_ij_dc(i);
+				
+				/* Cauchy -> 1st PK stress */
+				dcauchy.ToMatrix(s);
 				const dMatrixT& F = DeformationGradient();
 				F_inv.Inverse(F);
 				P.MultABT(s, F_inv);

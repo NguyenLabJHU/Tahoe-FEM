@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.h,v 1.2 2004-11-07 17:09:26 paklein Exp $ */
+/* $Id: UpdatedLagMixtureT.h,v 1.3 2005-01-07 02:20:28 paklein Exp $ */
 #ifndef _UPDATED_LAG_MIXTURE_T_H_
 #define _UPDATED_LAG_MIXTURE_T_H_
 
@@ -18,8 +18,12 @@ public:
 	/** resolve the species name into the index */
 	int SpeciesIndex(const StringT& name) const;
 
-	/** project the Cauchy stress for the given species to the nodes */
+	/** project the given partial first Piola-Kirchoff stress to the nodes */
 	void ProjectPartialStress(int i);
+
+	/** project the variation with concentration of the given partial first 
+	 * Piola-Kirchoff stress to the nodes */
+	void ProjectDPartialStress(int i);
 
 	/** return the body force vector */
 	void BodyForce(dArrayT& body_force) const;
