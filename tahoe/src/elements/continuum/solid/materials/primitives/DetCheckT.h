@@ -1,14 +1,20 @@
-/* $Id: DetCheckT.h,v 1.15 2003-11-21 22:46:55 paklein Exp $ */
+/* $Id: DetCheckT.h,v 1.16 2004-05-12 01:00:11 raregue Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _DETCHECK_T_H_
 #define _DETCHECK_T_H_
 
+/* 5 degree increment */
 #define sweepIncr 5         // should be an integral divisor of 360
 #define numThetaChecks 72    // should be 360/sweepIncr and should be even
 #define numPhiChecks  19      // should be 90/sweepIncr+1
+/* 1 degree increment
+#define sweepIncr 1         // should be an integral divisor of 360
+#define numThetaChecks 360    // should be 360/sweepIncr and should be even
+#define numPhiChecks  91      // should be 90/sweepIncr+1
+*/
 
-# include "AutoArrayT.h"
+#include "AutoArrayT.h"
 
 namespace Tahoe {
 
@@ -22,15 +28,17 @@ class dTensor4DT;
 class SolidMatSupportT;
 
 /** class to support checks of loss of ellipticity.  \note this class does 
- * not dynamically allocate memory on construction */
+  * not dynamically allocate memory on construction */
+
 class DetCheckT
 {
 public:
 
 	/** constructor
 	 * \param s_jl Cauchy stress
-	 * \param c_ijkl spatial tangent modulus */
-	DetCheckT(const dSymMatrixT& s_jl, const dMatrixT& c_ijkl);
+	 * \param c_ijkl spatial tangent modulus
+	 * \param ce_ijkl spatial elastic modulus */
+	DetCheckT(const dSymMatrixT& s_jl, const dMatrixT& c_ijkl, const dMatrixT& ce_ijkl);
 
 	/** check ellipticity of tangent modulus.
 	 * \return 1 if acoustic tensor isn't positive definite,
@@ -83,8 +91,9 @@ private:
 
 private:
 
-	const dSymMatrixT& 	fs_jl;	/* Cauchy stress          */
-	const dMatrixT&		fc_ijkl;/* spatial tangent moduli */
+	const dSymMatrixT& fs_jl;	/* Cauchy stress          */
+	const dMatrixT& fc_ijkl;	/* spatial tangent moduli */
+	const dMatrixT& fce_ijkl;	/* spatial elastic moduli */
 
 	double phi2, phi4;	/* phase shifts */
 	double A0, A2, A4;	/* amplitudes   */
