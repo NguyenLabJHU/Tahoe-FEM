@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.7 2002-10-25 00:06:50 cjkimme Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.7.2.1 2002-11-13 08:39:29 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -17,10 +17,9 @@
 #include "ElementMatrixT.h"
 #endif
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 ElementSupportT::ElementSupportT(void)
 {
 #ifndef _SIERRA_TEST_
