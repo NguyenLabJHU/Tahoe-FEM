@@ -1,4 +1,4 @@
-/* $Id: MeshFreeT.cpp,v 1.5 2002-10-20 22:49:41 paklein Exp $ */
+/* $Id: MeshFreeT.cpp,v 1.5.40.1 2004-03-01 02:44:59 paklein Exp $ */
 /* created: paklein (12/08/1999)                                          */
 
 #include "MeshFreeT.h"
@@ -37,11 +37,14 @@ istream& operator>>(istream& in, MeshFreeT::WindowTypeT& code)
 		case MeshFreeT::kGaussian:
 			code = MeshFreeT::kGaussian;
 			break;
-		case MeshFreeT::kCubicSpline:
-			code = MeshFreeT::kCubicSpline;
+		case MeshFreeT::kRectCubicSpline:
+			code = MeshFreeT::kRectCubicSpline;
 			break;
 		case MeshFreeT::kBrick:
 			code = MeshFreeT::kBrick;
+			break;
+		case MeshFreeT::kCubicSpline:
+			code = MeshFreeT::kCubicSpline;
 			break;
 		default:
 			cout << "\n operator>>MeshFreeT::WindowTypeT: unknown code: "
