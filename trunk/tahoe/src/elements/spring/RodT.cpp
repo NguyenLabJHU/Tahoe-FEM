@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.21 2002-08-10 02:38:37 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.22 2002-08-12 17:43:55 hspark Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -484,10 +484,8 @@ void RodT::ComputeHardyStress(void)
 	kinstress *= .5;
 	kinstress *= fCurrMaterial->Mass();
 	fHardyStress += kinstress;
-	cout << "Kinetic Hardy Stress = \n" << kinstress << endl;
       }
   }
-  cout << "Hardy Stress = \n" << fHardyStress << endl;
 }
 
 void RodT::ComputeHardyHeatFlux(void)

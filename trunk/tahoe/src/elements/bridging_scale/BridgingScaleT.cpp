@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.14 2002-08-11 01:29:41 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.15 2002-08-12 17:43:54 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -91,13 +91,15 @@ void BridgingScaleT::Initialize(void)
 	dArrayT x_atom, centroid;
 	LocalArrayT cell_coords(LocalArrayT::kCurrCoords, fSolid.NumElementNodes(), NumSD());
 	cell_coords.SetGlobal(curr_coords); // Sets address of cell_coords
+
 	// SetGlobal sets source for SetLocal which copies the relevant data 
 	iGridManagerT grid(10, 100, curr_coords, &atoms_used);
 	grid.Reset();
 	for (int i = 0; i < fSolid.NumElements(); i++) {
 	
 			/* gives domain (global) nodal coordinates */
-	                cell_coords.SetLocal(fSolid.ElementCard(i).NodesX()); 
+	                cell_coords.SetLocal(fSolid.ElementCard(i).NodesX());
+
 			/* centroid and radius */
 			double radius = parent.AverageRadius(cell_coords, centroid);
 			/* candidate particles */
@@ -362,8 +364,8 @@ void BridgingScaleT::ComputeMass(void)
   }
   MassInv.Inverse(Mass);
   MassInv.Multx(trialU,trialU2);
-  cout << "MD displacements = \n" << displacements << endl;
-  cout << "FEM nodal values = \n" << trialU2 << endl;
+  //cout << "MD displacements = \n" << displacements << endl;
+  //cout << "FEM nodal values = \n" << trialU2 << endl;
 }
 
 void BridgingScaleT::ComputeU(const dArray2DT& field1, const dArray2DT& field2, const dArray2DT& field3)

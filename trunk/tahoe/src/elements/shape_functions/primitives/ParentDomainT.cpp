@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.11 2002-07-21 00:19:20 hspark Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.12 2002-08-12 17:43:56 hspark Exp $ */
 /* created: paklein (07/03/1996) */
 
 #include "ParentDomainT.h"
@@ -573,6 +573,7 @@ void ParentDomainT::Print(ostream& out) const
 /* return true if the given point is within the domain */
 bool ParentDomainT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
 {
+  int x, y;
   int dim = point.Length();
   int numpoints = coords.Length();
   if (dim == 1) /* 1D case */
@@ -589,7 +590,22 @@ bool ParentDomainT::PointInDomain(const LocalArrayT& coords, const dArrayT& poin
       return false;
   }
   else if (dim == 2)
-    int blah=0;
+  {
+    /* currently assuming square/rectangular elements */
+    cout << "coords = \n" << point << endl;
+    if (point[0] <= coords(0,0) && point[0] >= coords(1,0))
+      x = 1;
+    else
+      x = 0;
+    if (point[1] >= coords(0,1) && point[1] <= coords(3,1))
+      y = 1;
+    else
+      y = 0;
+    if (x == 1 && y == 1)
+      return true;
+    else
+      return false;
+  }
   else if (dim == 3)
     int blah2=0;
   else

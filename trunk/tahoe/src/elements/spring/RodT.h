@@ -1,4 +1,4 @@
-/* $Id: RodT.h,v 1.14 2002-08-05 22:22:30 hspark Exp $ */
+/* $Id: RodT.h,v 1.15 2002-08-12 17:43:55 hspark Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _ROD_T_H_
@@ -99,6 +99,8 @@ private: /* MD related computational functions */
 	/* Hardy-related functions */
 	void ComputeHardyStress(void);
 	void ComputeHardyHeatFlux(void);
+	void LocalizationFunction(double distance, double radius, double& gauss);
+	void PairIntegral(void);
 
 protected:
 
