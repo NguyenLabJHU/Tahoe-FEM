@@ -1,26 +1,27 @@
-/* $Id: MFGP_SSSolidMatList3DT.h,v 1.3 2004-10-30 00:50:12 raregue Exp $ */
+/* $Id: MFGP_SSSolidMatList3DT.h,v 1.4 2005-01-06 22:54:25 kyonten Exp $ */
 /* created: paklein (02/14/1997) */
 #ifndef _MFGP_SS_MATLIST_3D_T_H_
 #define _MFGP_SS_MATLIST_3D_T_H_
 
 /* base class */
-#include "SolidMatListT.h"
+#include "MFGP_SolidMatListT.h"
 #include "SolidT.h"
 
-#include "SSMatSupportT.h"
+//#include "SSMatSupportT.h"
+#include "MFGP_MaterialSupportT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
-class SSSolidMatT;
+class MFGP_SSSolidMatT;
 
 /** materials list for 3D structural analysis */
-class MFGP_SSSolidMatList3DT: public SolidMatListT, public SolidT
+class MFGP_SSSolidMatList3DT: public MFGP_SolidMatListT, public SolidT
 {
 public:
 
 	/** constructors */
-	MFGP_SSSolidMatList3DT(int length, const SSMatSupportT& support);
+	MFGP_SSSolidMatList3DT(int length, const MFGP_MaterialSupportT& support);
 	MFGP_SSSolidMatList3DT(void);
 
 	/** \name implementation of the ParameterInterfaceT interface */
@@ -40,12 +41,13 @@ public:
 	/*@}*/
 
 	/** construct the specified material or NULL if the request cannot be completed */
-	SSSolidMatT* NewSSSolidMat(const StringT& name) const;
+	MFGP_SSSolidMatT* NewSSSolidMat(const StringT& name) const;
 
 private:
 
 	/** support for finite strain materials */
-	const SSMatSupportT* fSSMatSupport;
+	//const SSMatSupportT* fSSMatSupport;
+	const MFGP_MaterialSupportT* fMFGPMaterialSupport;
 	
 };
 
