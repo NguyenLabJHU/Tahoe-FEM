@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.12 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.13 2004-07-22 08:27:07 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -12,159 +12,106 @@
 #include "TimeManagerT.h"
 #include "ParticlePairT.h"
 #include "FieldT.h"
+#include "ParameterContainerT.h"
+#include "ParameterUtils.h"
 
 using namespace Tahoe;
 
 /* constructor */
 MultiManagerT::MultiManagerT(const StringT& input_file, ofstreamT& output, CommunicatorT& comm,
-	FEManagerT_bridging* fine, FEManagerT_bridging* coarse):
-	FEManagerT(input_file, output, comm, fArgv),
-	fFine(fine),
-	fCoarse(coarse),
+	const ArrayT<StringT>& argv):
+	FEManagerT(input_file, output, comm, argv),
+	fFine(NULL),
+	fCoarse(NULL),
 	fDivertOutput(false),
 	fFineField(NULL),
 	fCoarseField(NULL),
 	fFineToCoarse(true),
 	fCoarseToFine(true),
-	fCorrectOverlap(true),
-	fCBTikhonov(0.0),
-	fK2(0.0)
+//	fCorrectOverlap(true),
+	fImpExp(IntegratorT::kImplicit)
 {
-	const char caller[] = "MultiManagerT::MultiManagerT";
-
-	/* borrow parameters from coarse scale solver */
-	fAnalysisCode = fCoarse->Analysis();
-	fTimeManager = fCoarse->TimeManager();
-	fOutputFormat = fCoarse->OutputFormat();
-
-	/* don't compute initial conditions */
-	fFine->SetComputeInitialCondition(false);
-	fCoarse->SetComputeInitialCondition(false);
-
-	StringT bridging_field = "displacement";
-	fFineField = fFine->NodeManager()->Field(bridging_field);
-	if (!fFineField) ExceptionT::GeneralFail(caller, "could not resolve fine scale \"%s\" field", bridging_field.Pointer());
-	fCoarseField = fCoarse->NodeManager()->Field(bridging_field);
-	if (!fFineField) ExceptionT::GeneralFail(caller, "could not resolve coarse scale \"%s\" field", bridging_field.Pointer());
+	SetName("tahoe_multi");
 }
 
 /* destructor */
 MultiManagerT::~MultiManagerT(void)
 {
+	/* clear pointer because base class will free and this time manager is taken from
+	 * the coarse scale solver */
 	fTimeManager = NULL;
 }
 
-/* initialize members */
-void MultiManagerT::Initialize(InitCodeT)
+/** (re-)set system to initial conditions */
+ExceptionT::CodeT MultiManagerT::InitialCondition(void)
 {
-	const char caller[] = "MultiManagerT::Initialize";
-ExceptionT::GeneralFail(caller, "out of date");
-#if 0
-	/* state */
-	fStatus = GlobalT::kInitialization;
-
-	/* fine scale node manager */
-	NodeManagerT& fine_node_manager = *(fFine->NodeManager());
-
-	/* configure projection/interpolation */
-	int group = 0;
-	int order1 = 0;
-	bool make_inactive = true;
-	fFine->InitGhostNodes(fCoarse->ProjectImagePoints());
-	fCoarse->InitInterpolation(fFine->GhostNodes(), fFineField->Name(), fine_node_manager);
-	fCoarse->InitProjection(*(fFine->CommManager()), fFine->NonGhostNodes(), fFineField->Name(), fine_node_manager, make_inactive);
-
-	/* send coarse/fine output through the fFine output */
-	int ndof = fFine->NodeManager()->NumDOF(group);
-	ArrayT<StringT> labels(2*ndof);
-	const char* coarse_labels[] = {"UC_X", "UC_Y", "UC_Z"};
-	const char* fine_labels[] = {"UF_X", "UF_Y", "UF_Z"};
-	int dex = 0;
-	for (int i = 0; i < ndof; i++) labels[dex++] = coarse_labels[i];
-	for (int i = 0; i < ndof; i++) labels[dex++] = fine_labels[i];
-	const iArrayT& non_ghost_nodes = fFine->NonGhostNodes();
-	fAtomConnectivities.Alias(non_ghost_nodes.Length(), 1, non_ghost_nodes.Pointer());
-	OutputSetT output_set(GeometryT::kPoint, fAtomConnectivities, labels, false);
-	fOutputID = fFine->RegisterOutput(output_set);
-
-	/* set joint solver */
-	int n1 = fFine->NumGroups();
-	int n2 = fCoarse->NumGroups();
-	if (n1 != n2) ExceptionT::GeneralFail(caller, "number of groups must match: %d != %d", n1, n2);
-	fSolvers.Dimension(n1);
-	fSolvers = NULL;
-	SetSolver();
-
-	/* read the cross term flags */
-	ifstreamT& in = Input();
-	in >> fFineToCoarse
-	   >> fCoarseToFine
-	   >> fCorrectOverlap;
-	   
-	/* enforce zero bond density in projected cells */
-	if (fCoarseToFine)
-		fCoarse->DeactivateFollowerCells();
-
-	/* correct overlap */
-	if (fCorrectOverlap) {
-	
-		fCBTikhonov = fK2 = -99;
-		int nip = -99;
-		double r = -99; /* augmented lagrangian regularization */
-		in >> fCBTikhonov
-		   >> fK2
-		   >> nip
-		   >> r;
-		if (fCBTikhonov < 0.0 || fK2 < 0.0 || r < 0.0)
-			ExceptionT::GeneralFail(caller, "regularization must be >= 0.0: %g, %g, %g", fCBTikhonov, fK2, r);
-	
-		const dArray2DT& fine_init_coords = fine_node_manager.InitialCoordinates();
-		const ParticlePairT* particle_pair = fFine->ParticlePair();
-		if (!particle_pair) ExceptionT::GeneralFail(caller, "could not resolve ParticlePairT");
-		
-		if (fCorrectOverlap == 1)
-			fCoarse->CorrectOverlap_1(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2);
-		else if (fCorrectOverlap == 2)
-			fCoarse->CorrectOverlap_2(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2, r, nip);
-		else if (fCorrectOverlap == 22)
-			fCoarse->CorrectOverlap_22(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2, r, nip);
-		else if (fCorrectOverlap == 3)
-			fCoarse->CorrectOverlap_3(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2, nip);
-		else if (fCorrectOverlap == 4)
-			fCoarse->CorrectOverlap_4(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2, r, nip);
-		else
-			ExceptionT::GeneralFail(caller, "unrecognized overlap correction method %d", fCorrectOverlap);
-	}
-
-//TEMP - debugging
-#if 0
-if (1) {
-	ofstreamT& out = Output();
-	int prec = out.precision();
-	out.precision(12);
-	iArrayT r, c;
-	dArrayT v;
-	
-	/* projection data */
-	const PointInCellDataT& projection_data = fCoarse->ProjectionData();
-	const InterpolationDataT& interp = projection_data.PointToNode();
-	out << "projection:\n" << '\n';
-	interp.ToMatrix(r, c, v);
-	for (int i = 0; i < r.Length(); i++)
-		out << r[i]+1 << " " << c[i]+1 << " " << v[i] << '\n';
-
-	/* interpolation data */
-	const PointInCellDataT& interpolation_data = fCoarse->InterpolationData();
-	interpolation_data.InterpolationDataToMatrix(r, c, v);
-	out << "interpolation:\n" << '\n';
-	for (int i = 0; i < r.Length(); i++)
-		out << r[i]+1 << " " << c[i]+1 << " " << v[i] << '\n';
-
-	out.flush();
-	out.precision(prec);
+	ExceptionT::CodeT error = ExceptionT::kNoError;
+	if (error == ExceptionT::kNoError) 
+		error = fFine->InitialCondition();
+	if (error == ExceptionT::kNoError) 
+		error = fCoarse->InitialCondition();
+	return error;
 }
-#endif
-#endif
+
+/* (re-)set the equation number for the given group */
+void MultiManagerT::Solve(void)
+{
+	const char caller[] = "FEExecutionManagerT::Solve";
+	    
+	/* time managers */
+	TimeManagerT* atom_time = fFine->TimeManager();
+	TimeManagerT* continuum_time = fCoarse->TimeManager();
+
+	/* set to initial condition */
+	ExceptionT::CodeT error = InitialCondition();
+
+	/* loop over time increments */
+	while (atom_time->Step() && continuum_time->Step()) /* same clock */
+	{
+		/* consistency check */
+		if (fabs(atom_time->TimeStep() - continuum_time->TimeStep()) > kSmall)
+			ExceptionT::GeneralFail(caller, "coarse/fine time step mismatch: %g != %g", 
+				atom_time->TimeStep(), continuum_time->TimeStep());
+
+		/* initialize the current time step */
+		if (error == ExceptionT::kNoError) 
+			error = InitStep();
+
+		/* solve the current time step */
+		if (error == ExceptionT::kNoError) 
+			error = SolveStep();
+			
+		/* close the current time step */
+		if (error == ExceptionT::kNoError)
+			error = CloseStep();
+				
+		/* handle errors */
+		switch (error)
+		{
+			case ExceptionT::kNoError:
+				/* nothing to do */
+				break;
+			case ExceptionT::kGeneralFail:					
+			case ExceptionT::kBadJacobianDet:
+			{
+				cout << '\n' << caller << ": trying to recover from error: " << ExceptionT::ToString(error) << endl;
+				
+				/* reset system configuration */
+				error = ResetStep();
+					
+				/* cut time step */
+				if (error == ExceptionT::kNoError) {
+					if (!DecreaseLoadStep())
+						ExceptionT::GeneralFail(caller, "could not decrease load step");
+				}
+				else
+					ExceptionT::GeneralFail(caller, "could not reset step");
+				break;
+			}
+			default: 
+				ExceptionT::GeneralFail(caller, "no recovery from \"%s\"", ExceptionT::ToString(error));
+		}
+	}
 }
 
 /* (re-)set the equation number for the given group */
@@ -222,6 +169,21 @@ ExceptionT::CodeT MultiManagerT::InitStep(void)
 
 	/* OK */
 	return error;
+}
+
+/* execute the solution procedure */
+ExceptionT::CodeT MultiManagerT::SolveStep(void)
+{
+	/* monolithic solution scheme - inherited */
+	if (fSolvers.Length() == 1)
+		return FEManagerT::SolveStep();
+	else if (fSolvers.Length() == 0) /* staggered solution scheme */
+		return SolveStep_Staggered();
+	else
+		ExceptionT::GeneralFail("MultiManagerT::SolveStep", "number of solvers should be 0 or 1: %d",
+			fSolvers.Length());
+
+	return ExceptionT::kGeneralFail;
 }
 
 /* close the current time increment for all groups */
@@ -404,11 +366,11 @@ void MultiManagerT::Update(int group, const dArrayT& update)
 	fCoarse->Update(group, update_tmp);
 
 	/* project fine scale solution on to the coarse grid */
-	fCoarse->ProjectField(fFineField->Name(), *(fFine->NodeManager()), order);
+	fCoarse->ProjectField(fFineField->FieldName(), *(fFine->NodeManager()), order);
 
 	/* interpolate coarse scale solution to the fine */
-	fCoarse->InterpolateField(fFineField->Name(), order, fFieldAtGhosts);
-	fFine->SetFieldValues(fFineField->Name(), fFine->GhostNodes(), order, fFieldAtGhosts);
+	fCoarse->InterpolateField(fFineField->FieldName(), order, fFieldAtGhosts);
+	fFine->SetFieldValues(fFineField->FieldName(), fFine->GhostNodes(), order, fFieldAtGhosts);
 }
 
 /* system relaxation */
@@ -458,7 +420,7 @@ void MultiManagerT::WriteOutput(double time)
 	int ndof = nodes.NumDOF(group);
 	const iArrayT& source_points = fFine->NonGhostNodes();
 	dArray2DT n_values(source_points.Length(), 2*ndof), coarse;
-	fCoarse->CoarseField(fFineField->Name(), nodes, order, coarse);
+	fCoarse->CoarseField(fFineField->FieldName(), nodes, order, coarse);
 	if (source_points.Length() != coarse.MajorDim())
 		ExceptionT::GeneralFail(caller);
 
@@ -498,5 +460,390 @@ bool MultiManagerT::IncreaseLoadStep(void) {
 	return fCoarse->IncreaseLoadStep() && fFine->IncreaseLoadStep();
 }
 
+/* describe the parameters needed by the interface */
+void MultiManagerT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited - don't call direct base class method */
+	ParameterInterfaceT::DefineParameters(list);
+
+	/* paths to input files for sub-tahoe's */
+	list.AddParameter(ParameterT::String, "atom_input");
+	list.AddParameter(ParameterT::String, "continuum_input");
+
+	/* name of the bridging field */
+	list.AddParameter(ParameterT::Word, "bridging_field");
+
+	/* force balance options */
+	ParameterT fine_to_coarse(fFineToCoarse, "fine_to_coarse");
+	fine_to_coarse.SetDefault(fFineToCoarse);
+	list.AddParameter(fine_to_coarse);
+
+	ParameterT coarse_to_fine(fCoarseToFine, "coarse_to_fine");
+	coarse_to_fine.SetDefault(fCoarseToFine);
+	list.AddParameter(coarse_to_fine);
+}
+
+/* information about subordinate parameter lists */
+void MultiManagerT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited - don't call direct base class method */
+	ParameterInterfaceT::DefineSubs(sub_list);
+
+	/* ghost atoms */
+	sub_list.AddSub("ghost_atom_ID_list", ParameterListT::ZeroOrOnce);
+
+	/* overlap correction method */
+	sub_list.AddSub("overlap_correction_choice", ParameterListT::Once, true);
+	
+	/* single solver for both tahoe's */
+	sub_list.AddSub("multi_solver_choice", ParameterListT::ZeroOrOnce, true);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void MultiManagerT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
+{
+	if (name == "multi_solver_choice")
+	{
+		order = ParameterListT::Choice;
+
+		/* only nonlinear PCG solver for now */
+		sub_lists.AddSub("PCG_solver");
+	}
+	else /* inherited - skip FEManagerT definitions */
+		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* MultiManagerT::NewSub(const StringT& name) const
+{
+	/* try to construct solver */
+	FEManagerT* non_const_this = (FEManagerT*) this;	
+	SolverT* solver = SolverT::New(*non_const_this, name, -1);
+	if (solver)
+		return solver;
+	else if (name == "overlap_correction_choice")
+	{
+		ParameterContainerT* choice = new ParameterContainerT(name);
+		choice->SetListOrder(ParameterListT::Choice);
+		choice->SetSubSource(this);
+
+		/* prescribe density in overlap */
+		ParameterContainerT prescribe_overlap("prescribe_overlap");
+		prescribe_overlap.AddParameter(ParameterT::Double, "bond_density");
+		choice->AddSub(prescribe_overlap);
+
+		/* common parameters */
+		ParameterT smoothing(ParameterT::Double, "smoothing");
+		smoothing.SetDefault(0.0);
+		smoothing.AddLimit(0.0, LimitT::LowerInclusive);
+
+		ParameterT bind_1(ParameterT::Double, "bind_to_1.0");
+		bind_1.SetDefault(0.0);
+		bind_1.AddLimit(0.0, LimitT::LowerInclusive);
+
+		ParameterT init_stiffness(ParameterT::Double, "init_stiffness_factor");
+		init_stiffness.SetDefault(1.0e-04);
+		init_stiffness.AddLimit(0.0, LimitT::LowerInclusive);
+
+		ParameterT reg(ParameterT::Double, "constraint_regularization");
+		reg.SetDefault(0.0);
+		reg.AddLimit(0.0, LimitT::LowerInclusive);
+
+		ParameterT density_nip(ParameterT::Enumeration, "density_nip");
+		density_nip.AddEnumeration("1", 1);
+		density_nip.AddEnumeration("default", -1);
+		density_nip.SetDefault(-1);
+
+		/* solve shell-at-a-time (no constraints) */
+		ParameterContainerT by_bond("by-bond");
+		by_bond.AddParameter(smoothing);
+		by_bond.AddParameter(bind_1);
+		by_bond.AddParameter(reg);
+		by_bond.AddParameter(density_nip);
+		choice->AddSub(by_bond);
+
+		/* solve bond-at-a-time with Augmented Lagrangian constraints */
+		ParameterContainerT by_bond_L("by-bond_multiplier");
+		by_bond_L.AddParameter(smoothing);
+		by_bond_L.AddParameter(bind_1);
+		by_bond_L.AddParameter(reg);
+		by_bond_L.AddParameter(density_nip);
+		ParameterT init_bound(ParameterT::Double, "init_bound_width");
+		init_bound.SetDefault(1.0);
+		init_bound.AddLimit(1.0, LimitT::LowerInclusive);
+		by_bond_L.AddParameter(init_bound);
+		choice->AddSub(by_bond_L);
+
+		/* solve bond-at-a-time with penalized constraints */
+		ParameterContainerT by_bond_p("by-bond_penalty");
+		by_bond_p.AddParameter(smoothing);
+		by_bond_p.AddParameter(bind_1);
+//		by_bond_p.AddParameter(init_stiffness);
+		by_bond_p.AddParameter(density_nip);
+		ParameterT bound_tolerance(ParameterT::Double, "bound_tolerance");
+		bound_tolerance.SetDefault(0.02);
+		bound_tolerance.AddLimit(0.0, LimitT::Lower);
+		by_bond_p.AddParameter(bound_tolerance);
+		choice->AddSub(by_bond_p);
+			
+		return choice;
+	}	
+	else /* inherited - skip FEManagerT definitions */
+		return ParameterInterfaceT::NewSub(name);
+}
+
+/* accept parameter list */
+void MultiManagerT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "MultiManagerT::TakeParameterList";
+
+	/* inherited - don't call direct base class method */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	/* path to parameters file */
+	StringT path;
+	path.FilePath(fInputFile);
+
+	/* parse/validate continuum input */
+	StringT continuum_input = list.GetParameter("continuum_input");
+	continuum_input.ToNativePathName();
+	continuum_input.Prepend(path);
+	ParameterListT continuum_params;
+	ParseInput(continuum_input, continuum_params, true, true, true, fArgv);
+			
+	/* construct continuum solver */
+	StringT continuum_output_file;
+	continuum_output_file.Root(continuum_input);
+	continuum_output_file.Append(".out");
+	fCoarseOut.open(continuum_output_file);
+	fCoarse = new FEManagerT_bridging(continuum_input, fCoarseOut, fComm, fArgv);
+	fCoarse->TakeParameterList(continuum_params);
+
+	/* parse/validate atomistic input */
+	StringT atom_input = list.GetParameter("atom_input");
+	atom_input.ToNativePathName();
+	atom_input.Prepend(path);
+	ParameterListT atom_params;
+	ParseInput(atom_input, atom_params, true, true, true, fArgv);
+
+	/* construct atomistic solver */
+	StringT atom_output_file;
+	atom_output_file.Root(atom_input);
+	atom_output_file.Append(".out");
+	fFineOut.open(atom_output_file);
+	fFine = new FEManagerT_bridging(atom_input, fFineOut, fComm, fArgv);
+	fFine->TakeParameterList(atom_params);
+
+	/* check consistency between time managers */
+	TimeManagerT* atom_time = fFine->TimeManager();
+	TimeManagerT* continuum_time = fCoarse->TimeManager();
+	if (atom_time->NumberOfSteps() - continuum_time->NumberOfSteps() != 0) 
+		ExceptionT::GeneralFail(caller, "coarse/fine number of steps mismatch: %d != %d",
+			atom_time->NumberOfSteps(), continuum_time->NumberOfSteps());
+
+	/* use parameters from coarse scale solver */
+	fTimeManager = fCoarse->TimeManager();
+	fOutputFormat = fCoarse->OutputFormat();
+
+	/* don't compute initial conditions */
+	fFine->SetComputeInitialCondition(false);
+	fCoarse->SetComputeInitialCondition(false);
+
+	/* resolve bridging fields */
+	const StringT& bridging_field = list.GetParameter("bridging_field");
+	fFineField = fFine->NodeManager()->Field(bridging_field);
+	if (!fFineField) ExceptionT::GeneralFail(caller, "could not resolve fine scale \"%s\" field", bridging_field.Pointer());
+	fCoarseField = fCoarse->NodeManager()->Field(bridging_field);
+	if (!fFineField) ExceptionT::GeneralFail(caller, "could not resolve coarse scale \"%s\" field", bridging_field.Pointer());
+
+	/* resolve integrator types */
+	if (fFineField->Integrator().ImplicitExplicit() != fCoarseField->Integrator().ImplicitExplicit())
+		ExceptionT::GeneralFail(caller, "time integrator mismatch");
+	fImpExp = fFineField->Integrator().ImplicitExplicit();
+
+	/* collect the ghost atom ID list */
+	ArrayT<StringT> ghost_atom_ID;
+	const ParameterListT* ghosts = list.List("ghost_atom_ID_list");
+	if (ghosts)	StringListT::Extract(*ghosts, ghost_atom_ID);
+
+	/* configure projection/interpolation */
+	NodeManagerT& fine_node_manager = *(fFine->NodeManager());	
+	int group = 0;
+	int order1 = 0;
+	bool make_inactive = true;
+	fFine->InitGhostNodes(fFineField->FieldName(), ghost_atom_ID, fCoarse->ProjectImagePoints());
+	fCoarse->InitInterpolation(fFineField->FieldName(), fFine->GhostNodes(), fine_node_manager);
+	fCoarse->InitProjection(fFineField->FieldName(), *(fFine->CommManager()), fFine->NonGhostNodes(), fine_node_manager, make_inactive);
+
+	/* send coarse/fine output through the fFine output */
+	int ndof = fFine->NodeManager()->NumDOF(group);
+	ArrayT<StringT> labels(2*ndof);
+	const char* coarse_labels[] = {"UC_X", "UC_Y", "UC_Z"};
+	const char* fine_labels[] = {"UF_X", "UF_Y", "UF_Z"};
+	int dex = 0;
+	for (int i = 0; i < ndof; i++) labels[dex++] = coarse_labels[i];
+	for (int i = 0; i < ndof; i++) labels[dex++] = fine_labels[i];
+	const iArrayT& non_ghost_nodes = fFine->NonGhostNodes();
+	fAtomConnectivities.Alias(non_ghost_nodes.Length(), 1, non_ghost_nodes.Pointer());
+	OutputSetT output_set(GeometryT::kPoint, fAtomConnectivities, labels, false);
+	fOutputID = fFine->RegisterOutput(output_set);
+
+	/* construct solver */
+	int n1 = fFine->NumGroups();
+	int n2 = fCoarse->NumGroups();
+	if (n1 != n2) ExceptionT::GeneralFail(caller, "number of groups must match: %d != %d", n1, n2);
+	const ParameterListT* multi_solver = list.ListChoice(*this, "multi_solver_choice");
+	if (multi_solver)
+	{
+		/* construct */
+		SolverT* solver = SolverT::New(*this, multi_solver->Name(), 0);
+		if (!solver) ExceptionT::GeneralFail(caller, "could not construct solver \"%s\"",
+			multi_solver->Name().Pointer());
+		solver->TakeParameterList(*multi_solver);
+		
+		/* store */
+		fSolvers.Dimension(1);
+		fSolvers[0] = solver;
+	}
+	SetSolver();
+
+	/* default solver phases */
+	fMaxSolverLoops = 1;
+	fSolverPhases.Dimension(1, 3);
+	fSolverPhases(0,0) = 0;
+	fSolverPhases(0,1) =-1;
+	fSolverPhases(0,2) =-1;
+	fSolverPhasesStatus.Dimension(fSolverPhases.MajorDim(), kNumStatusFlags);
+	fSolverPhasesStatus = 0;
+
+	/* terms to include in the equilibrium equations */
+	fFineToCoarse = list.GetParameter("fine_to_coarse");
+	fCoarseToFine = list.GetParameter("coarse_to_fine");
+	if (fCoarseToFine) /* enforce zero bond density in projected cells */
+		fCoarse->DeactivateFollowerCells();
+
+	/* needed to solve overlap */
+	const dArray2DT& fine_init_coords = fine_node_manager.InitialCoordinates();
+	const ParticlePairT* particle_pair = fFine->ParticlePair();
+	if (!particle_pair) ExceptionT::GeneralFail(caller, "could not resolve ParticlePairT");
+	
+	/* overlap correction method */
+	const ParameterListT& overlap = list.GetListChoice(*this, "overlap_correction_choice");
+	if (overlap.Name() == "prescribe_overlap")
+	{
+		double density = overlap.GetParameter("bond_density");
+		cout << "\n " << caller << ": \"prescribe_overlap\" not implemented. p = 1.0" << endl;
+	}
+	else if (overlap.Name() == "by-bond_multiplier")
+	{
+		/* extract parameters */
+		double smoothing = overlap.GetParameter("smoothing");
+		double bind_1 = overlap.GetParameter("bind_to_1.0");
+		double reg = overlap.GetParameter("constraint_regularization");
+		int nip = overlap.GetParameter("density_nip");
+		double init_bound_width = overlap.GetParameter("init_bound_width");
+		
+		/* compute overlap correction */
+		double bound_0 = init_bound_width/2.0;
+		fCoarse->CorrectOverlap_2(particle_pair->Neighbors(), fine_init_coords, 
+			smoothing, bind_1, reg, bound_0, nip);
+	}
+	else if (overlap.Name() == "by-bond_penalty")
+	{
+		/* extract parameters */
+		double smoothing = overlap.GetParameter("smoothing");
+		double bind_1 = overlap.GetParameter("bind_to_1.0");
+		double bound_tol = overlap.GetParameter("bound_tolerance");
+		int nip = overlap.GetParameter("density_nip");
+		
+		/* compute overlap correction */
+		fCoarse->CorrectOverlap_22(particle_pair->Neighbors(), fine_init_coords, 
+			smoothing, bind_1, bound_tol, nip);
+	}
+	else
+		ExceptionT::GeneralFail(caller, "unrecognized overlap correction method \"%s\"",
+			overlap.Name().Pointer());
+}
+
+/* driver for staggered solution with single clock for both systems */
+ExceptionT::CodeT MultiManagerT::SolveStep_Staggered(void)
+{
+	const char caller[] = "MultiManagerT::SolveStep_Staggered";
+
+	/* solver phase status */
+	const iArray2DT& atom_phase_status = fFine->SolverPhasesStatus();
+	const iArray2DT& continuum_phase_status = fCoarse->SolverPhasesStatus();
+
+	/* running error */
+	ExceptionT::CodeT error = ExceptionT::kNoError;
+
+	/* loop until both solved */
+	dArray2DT field_at_ghosts;
+	int d_width = OutputWidth(cout, field_at_ghosts.Pointer());	
+	int group_num = 0;
+	int order1 = 0; 
+	double atoms_res, continuum_res, combined_res_0 = 0.0;
+	int count = 0;
+	int atom_last_iter, atom_iter, continuum_last_iter, continuum_iter;
+	atom_last_iter = atom_iter = continuum_last_iter = continuum_iter = 0;
+	while (count == 0 || (atom_iter > 0 || continuum_iter > 0)) //TEMP - assume just one phase
+//	while (1 || error == ExceptionT::kNoError &&
+//		(atom_phase_status(0, FEManagerT::kIteration) > 0 ||
+//		continuum_phase_status(0, FEManagerT::kIteration) > 0)) //TEMP - assume just one phase
+	{
+		count++;
+
+		/* solve atoms */
+		if (1 || error == ExceptionT::kNoError) {
+			fFine->ResetCumulativeUpdate(group_num);
+			error = fFine->SolveStep();
+		}
+
+		/* apply solution to continuum */
+		fCoarse->ProjectField(fFineField->FieldName(), *fFine->NodeManager(), order1);
+		fCoarse->FormRHS(group_num);
+		continuum_res = fCoarse->RHS(group_num).Magnitude(); //serial
+					
+		/* solve continuum */
+		if (1 || error == ExceptionT::kNoError) {
+			fCoarse->ResetCumulativeUpdate(group_num);
+			error = fCoarse->SolveStep();
+		}
+				
+		/* apply solution to atoms */
+		int order = 0;  // displacement only for static case
+		fCoarse->InterpolateField(fFineField->FieldName(), order, field_at_ghosts);
+		fFine->SetFieldValues(fFineField->FieldName(), fFine->GhostNodes(), order, field_at_ghosts);
+		fFine->FormRHS(group_num);
+		atoms_res = fFine->RHS(group_num).Magnitude(); //serial
+
+		/* reset the reference errors */
+		if (count == 1) {
+			combined_res_0 = atoms_res + continuum_res;
+			fFine->SetReferenceError(group_num, combined_res_0);
+			fCoarse->SetReferenceError(group_num, combined_res_0);
+		}
+					
+		/* log residual */
+		double tot_rel_error = (fabs(combined_res_0) > kSmall) ? 
+			(atoms_res + continuum_res)/combined_res_0 : 0.0;
+		cout << setw(kIntWidth) << count << ": "
+			 << setw(d_width) << atoms_res << " (A) | "
+			 << setw(d_width) << continuum_res << " (C) | "
+			 << setw(d_width) << tot_rel_error << endl;
+
+		/* number of interations in last pass */
+		int atom_total_iter = atom_phase_status(0, FEManagerT::kIteration);
+		int continuum_total_iter = continuum_phase_status(0, FEManagerT::kIteration);
+		atom_iter = atom_total_iter - atom_last_iter;
+		continuum_iter = continuum_total_iter - continuum_last_iter;
+		atom_last_iter = atom_total_iter;
+		continuum_last_iter = continuum_total_iter;
+	}
+
+	/* do not return error codes */
+	return ExceptionT::kNoError;
+}
 
 #endif /* BRIDGING_ELEMENT */
