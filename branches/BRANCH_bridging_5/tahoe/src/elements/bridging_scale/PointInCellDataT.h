@@ -1,4 +1,4 @@
-/* $Id: PointInCellDataT.h,v 1.5 2004-03-04 08:54:20 paklein Exp $ */
+/* $Id: PointInCellDataT.h,v 1.5.4.1 2004-03-17 01:59:48 paklein Exp $ */
 #ifndef _POINT_IN_CELL_DATA_T_H_
 #define _POINT_IN_CELL_DATA_T_H_
 
@@ -58,7 +58,7 @@ public:
 	const InverseMapT& GlobalToLocal(void) const { return fGlobalToLocal; };
 	/*@}*/
 
-	/** \name interpolation from to nodes from points in filled cells */
+	/** \name interpolation to nodes from points in filled cells */
 	/*@{*/
 	InterpolationDataT& PointToNode(void) { return fPointToNode; };
 	const InterpolationDataT& PointToNode(void) const { return fPointToNode; };
@@ -125,7 +125,7 @@ private:
 	dArray2DT fInterpolationWeights;	
 	/*@}*/
 
-	/** interpolation from to nodes from points in filled cells */
+	/** interpolation to nodes from points in filled cells */
 	InterpolationDataT fPointToNode;
 
 	/** projection from points to points */
