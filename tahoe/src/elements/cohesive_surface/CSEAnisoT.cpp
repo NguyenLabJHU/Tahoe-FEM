@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.26 2002-10-23 00:18:02 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.27 2002-10-30 00:35:49 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -128,7 +128,9 @@ void CSEAnisoT::Initialize(void)
 #ifndef _SIERRA_TEST_		
 		in >> num >> code;
 #else
-		num = 1; code = 0;
+		num = 1; 
+		ElementSupportT* nonConstEst = const_cast<ElementSupportT*>(&(ElementSupport()));	
+		code = nonConstEst->ReturnInputInt("COHESIVE POTENTIAL CODE");
 #endif
 		num--;
 
@@ -143,11 +145,10 @@ void CSEAnisoT::Initialize(void)
 				{
 #ifndef _SIERRA_TEST_
 					fSurfPots[num] = new XuNeedleman2DT(in);
-#else
 					cout << "\n CSEAnisoT::Initialize: potential not implemented for 2D: "
 					     << code << endl; 				
-					throw ExceptionT::kBadInputValue;
 #endif
+					throw ExceptionT::kBadInputValue;
 				}
 				else
 				{
@@ -166,11 +167,10 @@ void CSEAnisoT::Initialize(void)
 				{
 #ifndef _SIERRA_TEST_
 					fSurfPots[num] = new TvergHutch2DT(in);
-#else
 					cout << "\n CSEAnisoT::Initialize: potential not implemented for 2D: "
 					     << code << endl; 				
-					throw ExceptionT::kBadInputValue;
 #endif
+					throw ExceptionT::kBadInputValue;
 				}
 				else
 				{
@@ -244,10 +244,9 @@ void CSEAnisoT::Initialize(void)
 				{
 #ifndef _SIERRA_TEST_
 					fSurfPots[num] = new YoonAllen2DT(in, ElementSupport().TimeStep());
-#else
 					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code << endl;
-					throw ExceptionT::kBadInputValue;
 #endif
+					throw ExceptionT::kBadInputValue;
 				}
 				else
 				{
@@ -262,7 +261,9 @@ void CSEAnisoT::Initialize(void)
 				break;
 			}
 			default:
+#ifndef _SIERRA_TEST_
 				cout << "\n CSEAnisoT::Initialize: unknown potential code: " << code << endl;
+#endif
 				throw ExceptionT::kBadInputValue;
 		}
 		if (!fSurfPots[num]) throw ExceptionT::kOutOfMemory;
