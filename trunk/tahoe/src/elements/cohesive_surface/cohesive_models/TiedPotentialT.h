@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.h,v 1.12 2003-04-17 20:11:33 cjkimme Exp $ */
+/* $Id: TiedPotentialT.h,v 1.13 2003-04-18 23:05:16 cjkimme Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_T_H_
@@ -68,11 +68,13 @@ public:
 		dArrayT& output);
 
 	virtual bool NeedsNodalInfo(void);
+	
 	virtual int NodalQuantityNeeded(void);
-	//        virtual double ComputeNodalValue(const dArrayT &);
-	//        virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
 	
 	virtual bool InitiationQ(const double* sigma);
+	
+	/* whether or not potential may retie nodes */
+	virtual bool NodesMayRetie(void);
 	
 protected:
 

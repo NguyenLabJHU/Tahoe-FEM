@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.45 2003-04-18 18:09:58 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.46 2003-04-18 23:05:12 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -308,6 +308,8 @@ void CSEAnisoT::Initialize(void)
 				SurfacePotentialT* surfpot = fSurfPots[num];
 				fTiedPots[num] = new TiedPotentialBaseT*;
 				*fTiedPots[num] = dynamic_cast<TiedPotentialBaseT*>(surfpot);
+				if (!fTiedPots[num]) // bad cast
+					ExceptionT::GeneralFail(caller,"Unable to case tied potential");
 				iTiedFlagIndex = surfpot->NumStateVariables()-1;
 
 				freeNodeQ.Dimension(NumElements(),NumElementNodes());
@@ -315,12 +317,28 @@ void CSEAnisoT::Initialize(void)
 				freeNodeQ_last = freeNodeQ;
 					 
 				/* Initialize things if a potential needs more info than the gap vector */
-				if (*fTiedPots[num] != NULL && (*fTiedPots[num])->NeedsNodalInfo()) 
+				if ((*fTiedPots[num])->NeedsNodalInfo()) 
 				{
 					fCalcNodalInfo = true;
 					fNodalInfoCode = (*fTiedPots[num])->NodalQuantityNeeded();
 					iBulkGroups = (*fTiedPots[num])->BulkGroups();
 				}
+				if ((*fTiedPots[num])->NodesMayRetie())
+					qRetieNodes = true;
+				else 
+					qRetieNodes = false;
+				
+				/* utility array for stress smoothing over tied node pairs */
+				otherInds.Dimension(NumElementNodes());
+			  	if (NumSD() == 2)
+			  	{
+			  		otherInds[0] = 3; otherInds[1] = 2; otherInds[2] = 1; otherInds[3] = 0;
+			  	} 
+			  	else // 3D
+			  	{
+			  		otherInds[0] = 4; otherInds[1] = 5; otherInds[2] = 6; otherInds[3] = 7;
+			  		otherInds[4] = 0; otherInds[5] = 1; otherInds[6] = 2; otherInds[7] = 3;
+			  	}
 				
 				break;
 			}
@@ -566,54 +584,15 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 		if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
 		{
 		  	iArrayT ndIndices = element.NodesX();
-		  	int numNodes = ndIndices.Length();
-		  	dArray2DT elementVals(numNodes,fNodalQuantities.MinorDim());
-		  	fNodalValues.Dimension(numNodes,fNodalQuantities.MinorDim());
-		  	for (int iIndex = 0; iIndex < numNodes; iIndex++) 
-			  	{
-			  		elementVals.SetRow(iIndex,0.);
-			    	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[iIndex]));
-			    	int otherIndex;
-			    	if (NumSD() == 2) // average stress over top and bottom 
-			    	{
-			    		switch (ndIndices[iIndex])
-			    		{
-			    			case 0:
-			    			{
-			    				otherIndex = 3;
-			    				break;
-			    			}
-			    			case 1:
-			    			{
-			    				otherIndex = 2;
-			    				break;
-			    			}
-			    			case 2:
-			    			{
-			    				otherIndex = 1;
-			    				break;
-			    			}
-			    			case 3:
-			    			{
-			    				otherIndex = 0;
-			    				break;
-			    			}
-			    			default:
-			    			{
-			    				ExceptionT::GeneralFail("CSEAnisoT::RHSDriver","node index out of range");
-			    				break;
-			    			}
-			    		}
-			    	} 
-			    	else // NumSD == 3
-			    	{
-			    		if (iIndex < 4)
-			    			otherIndex = iIndex + 4;
-			    		else
-			    			otherIndex = iIndex - 4;
-			    	}
-			    	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[otherIndex]));
-			  	}
+		  	int numElemNodes = ndIndices.Length();
+		  	dArray2DT elementVals(numElemNodes,fNodalQuantities.MinorDim());
+		  	fNodalValues.Dimension(numElemNodes,fNodalQuantities.MinorDim());
+		  	for (int iIndex = 0; iIndex < numElemNodes; iIndex++) 
+			{
+				elementVals.SetRow(iIndex,0.);
+			 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[iIndex]));
+			 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[otherInds[iIndex]]));
+			}
 		  	fNodalValues.SetGlobal(elementVals);
 		  	ndIndices.SetValueToPosition();
 		  	fNodalValues.SetLocal(ndIndices);
@@ -804,59 +783,18 @@ void CSEAnisoT::RHSDriver(void)
 			int currElNum = CurrElementNumber();
 			iArrayT ndIndices;
 			int numElemNodes;
-			int numFacetNodes;
 			if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
 			{
 				ndIndices = element.NodesX();
 			  	numElemNodes = ndIndices.Length();
-			  	numFacetNodes = facet1.Length();
 			  	dArray2DT elementVals(numElemNodes,fNodalQuantities.MinorDim()); 	
 			  	fNodalValues.Dimension(numElemNodes,fNodalQuantities.MinorDim());
 			  	for (int iIndex = 0; iIndex < numElemNodes; iIndex++) 
-			  	{
-			  		elementVals.SetRow(iIndex,0.);
-			    	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[iIndex]));
-			    	int otherIndex;
-			    	if (NumSD() == 2) // average stress over top and bottom 
-			    	{
-			    		switch (ndIndices[iIndex])
-			    		{
-			    			case 0:
-			    			{
-			    				otherIndex = 3;
-			    				break;
-			    			}
-			    			case 1:
-			    			{
-			    				otherIndex = 2;
-			    				break;
-			    			}
-			    			case 2:
-			    			{
-			    				otherIndex = 1;
-			    				break;
-			    			}
-			    			case 3:
-			    			{
-			    				otherIndex = 0;
-			    				break;
-			    			}
-			    			default:
-			    			{
-			    				ExceptionT::GeneralFail("CSEAnisoT::RHSDriver","node index out of range");
-			    				break;
-			    			}
-			    		}
-			    	} 
-			    	else // NumSD == 3
-			    	{
-			    		if (iIndex < 4)
-			    			otherIndex = iIndex + 4;
-			    		else
-			    			otherIndex = iIndex - 4;
-			    	}
-			    	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[otherIndex]));
-			  	}
+				{
+					elementVals.SetRow(iIndex,0.);
+				 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[iIndex]));
+				 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[otherInds[iIndex]]));
+				}
 			  	fNodalValues.SetGlobal(elementVals);
 			  	ndIndices.SetValueToPosition();
 			  	fNodalValues.SetLocal(ndIndices);
@@ -923,6 +861,17 @@ void CSEAnisoT::RHSDriver(void)
 					{
 						if (nodalReleaseQ) // InitiationQ is true
 							state[iTiedFlagIndex] = kReleaseNextStep;
+					}
+					
+					/* see if nodes need to be retied */
+					if (qRetieNodes && state[iTiedFlagIndex] == kFreeNode)
+					{
+						// test for retie here
+						// if retie
+							state[iTiedFlagIndex] = kTieNextStep;
+						for (int i = 0; i < numElemNodes; i++)
+							freeNodeQ(currElNum,i) = 0.;
+						nodalReleaseQ = false; //? not sure about this line
 					}
 				}
 #endif
@@ -1139,55 +1088,16 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				tiedpot = NULL;
 			if (tiedpot != NULL && tiedpot->NeedsNodalInfo()) 
 			{
-			  	int numNodes = element.NodesX().Length();
-			  	dArray2DT elementVals(numNodes,fNodalQuantities.MinorDim());
+			  	int numElemNodes = element.NodesX().Length();
+			  	dArray2DT elementVals(numElemNodes,fNodalQuantities.MinorDim());
 			  	iArrayT ndIndices = element.NodesX();
-			  	fNodalValues.Dimension(numNodes,fNodalQuantities.MinorDim());
-			  	for (int iIndex = 0; iIndex < numNodes; iIndex++) 
-			  	{
-			  		elementVals.SetRow(iIndex,0.);
-			    	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[iIndex]));
-			    	int otherIndex;
-			    	if (NumSD() == 2) // average stress over top and bottom 
-			    	{
-			    		switch (ndIndices[iIndex])
-			    		{
-			    			case 0:
-			    			{
-			    				otherIndex = 3;
-			    				break;
-			    			}
-			    			case 1:
-			    			{
-			    				otherIndex = 2;
-			    				break;
-			    			}
-			    			case 2:
-			    			{
-			    				otherIndex = 1;
-			    				break;
-			    			}
-			    			case 3:
-			    			{
-			    				otherIndex = 0;
-			    				break;
-			    			}
-			    			default:
-			    			{
-			    				ExceptionT::GeneralFail("CSEAnisoT::RHSDriver","node index out of range");
-			    				break;
-			    			}
-			    		}
-			    	} 
-			    	else // NumSD == 3
-			    	{
-			    		if (iIndex < 4)
-			    			otherIndex = iIndex + 4;
-			    		else
-			    			otherIndex = iIndex - 4;
-			    	}
-			    	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[otherIndex]));
-			  	}
+			  	fNodalValues.Dimension(numElemNodes,fNodalQuantities.MinorDim());
+			  	for (int iIndex = 0; iIndex < numElemNodes; iIndex++) 
+				{
+					elementVals.SetRow(iIndex,0.);
+				 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[iIndex]));
+				 	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[otherInds[iIndex]]));
+				}
 				fNodalValues.SetGlobal(elementVals);
 				ndIndices.SetValueToPosition();
 			  	fNodalValues.SetLocal(ndIndices);
