@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.2 2001-03-19 22:39:38 paklein Exp $ */
 /* created: paklein (09/05/2000)                                          */
 
 #include "K_FieldT.h"
@@ -65,6 +65,7 @@ void K_FieldT::Initialize(ifstreamT& in)
 	in >> fMaxGrowthSteps; if (fMaxGrowthSteps < 1) throw eBadInputValue;
 
 	/* offsets and checks */
+	fNearTipOutputCode--;
 	if (fNearTipGroupNum != -1) fNearTipGroupNum--;
 	fTipColumnNum--;
 	if (fNearTipGroupNum <  -1) throw eBadInputValue;
@@ -114,7 +115,7 @@ void K_FieldT::WriteParameters(ostream& out) const
 	out << " Fracture path element group . . . . . . . . . . = ";
 	if (fNearTipGroupNum > -1) out << fNearTipGroupNum + 1 << '\n';
 	else out << "<none>\n";
-	out << " Fracture path output code . . . . . . . . . . . = " << fNearTipOutputCode << '\n';
+	out << " Fracture path output code . . . . . . . . . . . = " << fNearTipOutputCode + 1 << '\n';
 	out << " Fracture path test value column number. . . . . = " << fTipColumnNum + 1  << '\n';
 	out << " Maximum extension distance per load step. . . . = " << fMaxGrowthDistance << '\n';
 	out << " Maximum number of extensions per load step. . . = " << fMaxGrowthSteps    << '\n';
