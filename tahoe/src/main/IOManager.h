@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.8 2002-02-18 09:33:25 paklein Exp $ */
+/* $Id: IOManager.h,v 1.9 2002-03-02 20:26:24 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 
 #ifndef _IOMANAGER_H_
@@ -40,9 +40,6 @@ public:
 	 * themselves are not copied. */
 	IOManager(ifstreamT& in, const IOManager& io_man);
 
-//TEMP - what was this for
-//	IOManager(ostream& out);
-
 	/** destructor */
 	virtual ~IOManager(void);
 
@@ -53,7 +50,8 @@ public:
 	void NextTimeSequence(int sequence_number);
 
 	/** set model coordinates */
-	void SetCoordinates(const dArray2DT& coordinates, const iArrayT* node_map);
+//	void SetCoordinates(const dArray2DT& coordinates, const iArrayT* node_map);
+	void SetCoordinates(const dArray2DT& coordinates);
 	
 	/** register the output for an element set. returns the output ID */
 	int AddElementSet(const OutputSetT& output_set);
