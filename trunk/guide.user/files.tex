@@ -1,14 +1,20 @@
-
 %&LaTeX
-% $Id: files.tex,v 1.1 2001-03-13 02:20:51 paklein Exp $
+% $Id: files.tex,v 1.2 2001-03-19 16:46:24 paklein Exp $
 
 \section{Geometry and results files}
 \label{sect.files}
-The user input consists of a parameters file and a geometry
-file.  The output will consist of results files.  Table 25 describes the
-I/O databases that Tahoe currently reads and writes as geometry files for
-input and as results files for output.
-
+The user input consists of a analysis parameters
+and a geometry specification. 
+Analysis parameters are specified in a plain text file. Several 
+options exist for the specification of the geometry.
+Table~\ref{tab.input.file.type} lists the
+file types available to specify the geometry.
+These will be described in greater detail in 
+Section~\ref{sect.file.geometry}.
+Table~\ref{tab.output.file.type} lists the
+file types available for the output of results.
+Note that some of the file types may be used for both
+input and results, while others are limited to one or the other.
 \begin{table}[h]
 \caption{\label{tab.input.file.type} Geometry input file formats.}
 \begin{center}
@@ -29,31 +35,73 @@ input and as results files for output.
 \end{tabular}
 \end{center}
 \end{table}
-
 \begin{table}[h]
-\caption{\label{tab.input.file.type} Result output file formats.}
+\caption{\label{tab.output.file.type} Result output file formats.}
 \begin{center}
 \begin{tabular}[c]{|l|c|c|}
 \hline
- \parbox[b]{0.75in}{\centering \textbf{code}}
-&\parbox[b]{2.0in}{\raggedright \textbf{description}}\\
+ \parbox[c]{0.75in}{\centering \textbf{code}}
+&\parbox[c]{2.0in}{\raggedright \textbf{description}}\\
 \hline
-\parbox[b]{0.75in}{\centering 0} & 
-\parbox[b]{2.0in}{\raggedright TahoeI}\\
+\parbox[c]{0.75in}{\centering 0} & 
+\parbox[c]{2.0in}{\raggedright TahoeI}\\
 \hline
-\parbox[b]{0.75in}{\centering 2}  & 
-\parbox[b]{2.0in}{\raggedright \textsf{TecPlot}~\cite{TecPlot} version 7}\\
+\parbox[c]{0.75in}{\centering 2}  & 
+\parbox[c]{2.0in}{\raggedright \textsf{TecPlot}~\cite{TecPlot} version 7}\\
 \hline
-\parbox[b]{0.75in}{\centering 3}  & 
-\parbox[b]{2.0in}{\raggedright \textsf{EnSight}~\cite{EnSight} Gold ASCII 
-version 6}\\
+\parbox[c]{0.75in}{\centering 3}  & 
+\parbox[c]{2.0in}{\raggedright \vspace{2pt} \textsf{EnSight}~\cite{EnSight} Gold ASCII 
+version 6 \vspace{2pt}}\\
 \hline
-\parbox[b]{0.75in}{\centering 4}  & 
-\parbox[b]{2.0in}{\raggedright \textsf{EnSight} Gold Binary version 6}\\
+\parbox[c]{0.75in}{\centering 4}  & 
+\parbox[c]{2.0in}{\raggedright \vspace{2pt} \textsf{EnSight} Gold 
+Binary version 6 \vspace{2pt}}\\
 \hline
-\parbox[b]{0.75in}{\centering 5}  & 
-\parbox[b]{2.0in}{\raggedright \textsf{ExodusII}~\cite{ExodusII}}\\
+\parbox[c]{0.75in}{\centering 5}  & 
+\parbox[c]{2.0in}{\raggedright \textsf{ExodusII}~\cite{ExodusII}}\\
 \hline
 \end{tabular}
 \end{center}
 \end{table}
+
+\subsection{Geometry file formats}
+\label{sect.file.geometry}
+Input data is allowed to be one of three database formats listed in
+Table~\ref{tab.input.file.type}: 
+\begin{itemize}
+\item[(1)] TahoeI: With this format, geometry data may be supplied 
+embedded in the parameters file or in files separate from, or external 
+to, the parameters files. When specified in external files, the block 
+of geometry data in the parameters file is replaced by the name of 
+the external file where the data resides. The format of the data 
+itself is the same in both cases.
+\item[(2)] TahoeII: This format allows random access to the geometry 
+data which is stored in one or more plain text files.
+\item[(3)] \textsf{ExodusII}: 
+This format allows random access to the geometry 
+data which is stored in platform independent binary file.
+\end{itemize}
+All \tahoe plain text input files are white space delineated, that is, 
+values are seperated by white space, but the arrangement of white space
+is ignored.
+The \# symbol denotes that the remainder of a given line of text 
+should be ignored, or treated as a comment.
+
+\subsubsection{TahoeI format}
+\label{sect.file.tahoeI}
+
+\subsubsection{TahoeII format}
+\label{sect.file.tahoeII}
+
+\subsubsection{\textsf{ExodusII/Genesis} format}
+\label{sect.file.exodusII}
+The \textsf{ExodusII}~\cite{ExodusII} finite element geometry and results file 
+format was developed at Sandia National Laboratories. This file format 
+is export-controlled, and therefore is not available to all users.
+A given database should contain a coordinate list, element blocks,
+and any node set or sides sets needed in the input file (i.e. a Genesis
+file) [21].  Material data should not be included and will be ignored. 
+Node and element maps are currently ignored and items are assumed to be
+consecutively numbered.  To refer to a specific set or block in the
+database use the ID value.  The blocks and sets do not need to have
+consecutive ID values.
