@@ -1,4 +1,4 @@
-/* $Id: Hex2D.cpp,v 1.2.42.4 2004-06-16 00:31:50 paklein Exp $ */
+/* $Id: Hex2D.cpp,v 1.2.42.5 2004-06-16 07:13:38 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"
@@ -175,11 +175,10 @@ void Hex2D::TakeParameterList(const ParameterListT& list)
 	int nshells = list.GetParameter("shells");
 
 	/* construct pair property */
-	const ParameterListT* pair_prop = list.ResolveListChoice(*this, "pair_potential_choice");
-	if (!pair_prop) ExceptionT::GeneralFail(caller, "could not resolve \"pair_potential_choice\"");
-	fPairProperty = PairPropertyT::New(pair_prop->Name(), &(MaterialSupport()));
-	if (!fPairProperty) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", pair_prop->Name().Pointer());
-	fPairProperty->TakeParameterList(*pair_prop);
+	const ParameterListT& pair_prop = list.GetListChoice(*this, "pair_potential_choice");
+	fPairProperty = PairPropertyT::New(pair_prop.Name(), &(MaterialSupport()));
+	if (!fPairProperty) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", pair_prop.Name().Pointer());
+	fPairProperty->TakeParameterList(pair_prop);
 
 	/* construct the bond tables */
 	fHexLattice2D = new HexLattice2DT(nshells);

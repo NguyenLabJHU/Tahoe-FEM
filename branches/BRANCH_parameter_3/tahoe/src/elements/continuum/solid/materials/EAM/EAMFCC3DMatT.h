@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.h,v 1.6.46.2 2004-06-16 00:31:52 paklein Exp $ */
+/* $Id: EAMFCC3DMatT.h,v 1.6.46.3 2004-06-16 07:13:35 paklein Exp $ */
 /* created: paklein (10/25/1998) */
 #ifndef _EAMFCC3DMatT_H_
 #define _EAMFCC3DMatT_H_
@@ -28,6 +28,9 @@ public:
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
@@ -45,13 +48,10 @@ protected:
 	
 protected:
 	
-	int fOrientCode;
-	int	fEAMCode;
-	
-	/* EAM solver */
+	/** Cauchy-Born EAM solver */
 	EAMFCC3DSym* fEAM;
-	
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _EAMFCC3DMatT_H_ */
