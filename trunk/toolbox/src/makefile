@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2001-03-01 01:17:48 hspark Exp $
+# $Id: makefile,v 1.7 2002-02-12 02:04:06 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -32,7 +32,8 @@ SUB_DIR = \
 	linkedlist \
 	misc \
 	neighbors \
-	search
+	search \
+	parallel
 
 subdir_driver: subdir_loop
 # SUB_DIR is empty
