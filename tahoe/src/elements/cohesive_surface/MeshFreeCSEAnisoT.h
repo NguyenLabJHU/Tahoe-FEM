@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.h,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.h,v 1.2 2001-02-08 00:11:23 ebmarin Exp $ */
 /* created: paklein (06/08/2000)                                          */
 
 #ifndef _MF_CSE_ANISO_T_H_
@@ -76,12 +76,12 @@ public:
 	/* returns 1 if DOF's are interpolants of the nodal values */
 	virtual int InterpolantDOFs(void) const;
 
-protected:
-
 	/* element status flags */
 	enum StatusFlagT {kOFF = 0,
                       kON = 1,
                   kMarked = 2};
+
+protected:
 
 	/* print element group data */
 	virtual void PrintControlData(ostream& out) const;
