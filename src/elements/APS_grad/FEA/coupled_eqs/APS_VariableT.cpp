@@ -1,4 +1,4 @@
-// $Id: APS_VariableT.cpp,v 1.12 2003-10-06 18:34:39 raregue Exp $
+// $Id: APS_VariableT.cpp,v 1.13 2003-10-10 22:09:40 raregue Exp $
 #include "APS_VariableT.h"
 
 //---------------------------------------------------------------------
@@ -8,9 +8,9 @@ using namespace Tahoe;
 
 //APS_VariableT::APS_VariableT (const FEA_dVectorT& grad_u, const FEA_dVectorT& gammap, const FEA_dMatrixT& grad_gammap) 
 APS_VariableT::APS_VariableT (const FEA_dMatrixT& grad_u, const FEA_dMatrixT& grad_u_surf, const FEA_dVectorT& gammap, 
-								const FEA_dMatrixT& grad_gammap, FEA_dVectorT& state)
+								const FEA_dVectorT& gamma_p_surf, const FEA_dMatrixT& grad_gammap, FEA_dVectorT& state)
 {
-	Construct	(grad_u, grad_u_surf, gammap, grad_gammap, state);
+	Construct	(grad_u, grad_u_surf, gammap, gamma_p_surf, grad_gammap, state);
 }
 
 //---------------------------------------------------------------------
@@ -18,7 +18,7 @@ APS_VariableT::APS_VariableT (const FEA_dMatrixT& grad_u, const FEA_dMatrixT& gr
 
 //void APS_VariableT::Construct (const FEA_dVectorT& grad_u, const FEA_dVectorT& gammap,const FEA_dMatrixT& grad_gammap) 
 void APS_VariableT::Construct (const FEA_dMatrixT& grad_u, const FEA_dMatrixT& grad_u_surf, const FEA_dVectorT& gammap,
-								const FEA_dMatrixT& grad_gammap, FEA_dVectorT& state)
+								const FEA_dVectorT& gamma_p_surf, const FEA_dMatrixT& grad_gammap, FEA_dVectorT& state)
 {
   	n_vars_vector = APS::kNUM_APS_VECTOR_VARS;  
   	n_vars_matrix = APS::kNUM_APS_MATRIX_VARS; 
@@ -29,6 +29,7 @@ void APS_VariableT::Construct (const FEA_dMatrixT& grad_u, const FEA_dMatrixT& g
 	fVars_matrix[APS::kgrad_u] = grad_u; 
 	fVars_matrix[APS::kgrad_u_surf] = grad_u_surf; 
 	fVars_vector[APS::kgammap] = gammap; 
+	fVars_vector[APS::kgammap_surf] = gamma_p_surf; 
 	fVars_matrix[APS::kgrad_gammap] = grad_gammap; 
 	fVars_vector[APS::kstate] = state;
 }
@@ -128,6 +129,10 @@ void APS_VariableT::Allocate_and_Compute_Variables(APS::VarT_vector kVariable)
       case APS::kgammap : // gammap   
         fVars_vector[APS::kgammap]; 
 				break;
+				
+		case APS::kgammap_surf : // gammap   
+        fVars_vector[APS::kgammap_surf]; 
+				break;		
 				
 	  case APS::kstate : // ISVs   
         fVars_vector[APS::kstate]; 

@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.h,v 1.12 2003-10-10 13:36:02 raregue Exp $
+// $Id: APS_Bal_EqT.h,v 1.13 2003-10-10 22:09:42 raregue Exp $
 #ifndef _APS_BALEQ_T_H_ 
 #define _APS_BALEQ_T_H_ 
 
@@ -54,6 +54,7 @@ class APS_Bal_EqT	: public BalLinMomT
 								keps,
 								//kgrad_u,
 								kgammap,
+								kgammap_surf,
 								kV_Temp1,
 								kV_Temp2,
 	             				kNUM_V_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)

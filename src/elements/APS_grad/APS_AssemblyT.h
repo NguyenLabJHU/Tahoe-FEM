@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.19 2003-10-10 13:36:01 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.20 2003-10-10 22:09:38 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -152,7 +152,7 @@ private:
 	FEA_dMatrixT fgrad_gamma_p, fgrad_gamma_p_n, fVars_matrix, fgrad_u, fgrad_u_n, 
 				fgrad_u_surf, fgrad_u_surf_n;
 	//FEA_dVectorT fgrad_u, fgrad_u_n, fgamma_p, fgamma_p_n, fVars_vector;
-	FEA_dVectorT fgamma_p, fgamma_p_n, fVars_vector, fstate, fstate_n;
+	FEA_dVectorT fgamma_p, fgamma_p_n, fgamma_p_surf, fgamma_p_surf_n, fVars_vector, fstate, fstate_n;
 
 	/** \name  values read from input in the constructor */
 	/*@{*/

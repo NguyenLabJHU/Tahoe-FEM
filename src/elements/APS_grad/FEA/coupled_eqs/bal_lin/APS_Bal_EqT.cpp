@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.cpp,v 1.18 2003-10-10 13:36:02 raregue Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.19 2003-10-10 22:09:42 raregue Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -98,10 +98,15 @@ void APS_Bal_EqT::Form_LHS_Kd_Surf	( dMatrixT &Kd_face, FEA_SurfShapeFunctionT &
 
 void APS_Bal_EqT::Form_RHS_F_int_Surf ( dArrayT &F_int_face, APS_VariableT &npt, double &wght  ) 
 {
+		V[kgammap_surf] = npt.Get ( APS::kgammap_surf );
+		V[keps] = V[kgammap_surf];
+		V[keps] *= wght;
+		/*
 		V[keps](0) = C[km1];
 		V[keps](0) *= wght;
 		V[keps](1) = C[km2];
-		V[keps](1) *= wght;
+		V[keps](1) *= wght; 
+		*/
 		
 		B_gradu[kgrad_u_surf] = npt.Get ( APS::kgrad_u_surf );
 		V[kV_Temp2](0)=B_gradu[kgrad_u_surf](0,0);

@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.36 2003-10-10 19:33:39 paklein Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.37 2003-10-10 22:09:38 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -270,11 +270,13 @@ void APS_AssemblyT::Initialize(void)
 	fgrad_u.FEA_Dimension 			( fNumIP, dum, n_sd );
 	fgrad_u_surf.FEA_Dimension 		( fNumIPSurf, dum, n_sd );
 	fgamma_p.FEA_Dimension 			( fNumIP, n_sd );
+	fgamma_p_surf.FEA_Dimension 	( fNumIPSurf, n_sd );
 	fgrad_gamma_p.FEA_Dimension 	( fNumIP, n_sd,n_sd );
 	//fgrad_u_n.FEA_Dimension 		( fNumIP, n_sd );
 	fgrad_u_n.FEA_Dimension 		( fNumIP, dum, n_sd );
 	fgrad_u_surf_n.FEA_Dimension 	( fNumIPSurf, dum, n_sd );
 	fgamma_p_n.FEA_Dimension 		( fNumIP, n_sd );
+	fgamma_p_surf_n.FEA_Dimension 	( fNumIPSurf, n_sd );
 	fgrad_gamma_p_n.FEA_Dimension 	( fNumIP, n_sd,n_sd );
 	
 	fstate.FEA_Dimension 			( fNumIP, knum_d_state );
@@ -605,8 +607,8 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		Convert.Copy			(	fNumIP, knum_d_state, fdstatenew_all, fstate );
 		Convert.Copy			(	fNumIP, knum_d_state, fdstate_all, fstate_n );
 		
-		APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgrad_gamma_p, fstate ); // Many variables at time-step n+1
-		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n,fgamma_p_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n	 
+		APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); // Many variables at time-step n+1
+		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n,fgamma_p_n, fgamma_p_surf_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n	 
 
 			/* calculate coarse scale nodal force */
 			if (is_coarse)
@@ -920,8 +922,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 		Convert.Copy			(	fNumIP, knum_d_state, fdstatenew_all, fstate );
 		Convert.Copy			(	fNumIP, knum_d_state, fdstate_all, fstate_n );
 		
-		APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgrad_gamma_p, fstate ); // Many variables at time-step n+1
-		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n, fgamma_p_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n
+		APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); // Many variables at time-step n+1
+		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n, fgamma_p_n, fgamma_p_surf_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n
 		
 		/* which field */
 	  	//SolverGroup 1 (gets field 1) <-- u (obtained by a rearranged Equation_d)
@@ -1038,12 +1040,12 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 	iArrayT displ_eq, plast_eq;
 
 	/* work space for integration over faces */
-	LocalArrayT face_coords(LocalArrayT::kInitCoords, 2, NumSD());
+	LocalArrayT face_coords(LocalArrayT::kInitCoords, n_en_surf, NumSD());
 	ElementSupport().RegisterCoordinates(face_coords);
 	iArrayT face_nodes, face_equations;
 	dMatrixT face_jacobian(NumSD(), NumSD()-1);
 	dMatrixT face_Q(NumSD());
-	LocalArrayT face_gamma_p(LocalArrayT::kDisp, 2, NumSD());
+	LocalArrayT face_gamma_p(LocalArrayT::kDisp, n_en_surf, NumSD());
 	fPlast.RegisterLocal(face_gamma_p);
 
  	/* has (coarse scale) body forces */
@@ -1087,8 +1089,8 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		Convert.Copy			(	fNumIP, knum_d_state, fdstatenew_all, fstate );
 		Convert.Copy			(	fNumIP, knum_d_state, fdstate_all, fstate_n );
 		
-		APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgrad_gamma_p, fstate ); // Many variables at time-step n+1
-		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n, fgamma_p_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n
+		APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); // Many variables at time-step n+1
+		APS_VariableT   n(	fgrad_u_n, fgrad_u_surf_n, fgamma_p_n, fgamma_p_surf_n, fgrad_gamma_p_n, fstate_n );	// Many variables at time-step n
 		
 		if (bStep_Complete) { 
 		
@@ -1137,8 +1139,9 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 						fPlasticGradientFaceEqnos[i].RowAlias(j, face_equations);
 						
 						Convert.SurfShapeGradient	( n_en_surf, surf_shape, fFEA_SurfShapes, face_coords,
-													parent, fInitCoords, *fShapes, u, u_n, fgrad_u_surf, fgrad_u_surf_n );
-						APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgrad_gamma_p, fstate ); 
+													parent, fInitCoords, *fShapes, u, u_n, fgrad_u_surf, fgrad_u_surf_n,
+													face_gamma_p, fgamma_p_surf );
+						APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); 
 						fEquation_d -> Form_LHS_Kd_Surf ( fKdd_face, fFEA_SurfShapes );
 						fEquation_d -> Form_RHS_F_int_Surf ( fFd_int_face, np1, fPlasticGradientWght[i] );
 
