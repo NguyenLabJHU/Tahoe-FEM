@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.16 2004-01-05 07:23:56 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.17 2004-01-05 23:36:01 paklein Exp $ */
 /* created: paklein (05/14/2000) */
 #include "ABAQUS_UMAT_BaseT.h"
 
@@ -42,7 +42,7 @@ ABAQUS_UMAT_BaseT::ABAQUS_UMAT_BaseT(ifstreamT& in, const FSMatSupportT& support
 
 	/* read ABAQUS-format input */
 	bool nonsym = false;
-	Read_ABAQUS_Input(in, fUMAT_name, fProperties, nstatv, nonsym);
+	Read_ABAQUS_Input(in, fUMAT_name, fProperties, fDensity, nstatv, nonsym);
 	if (nonsym)
 		fTangentType = GlobalT::kNonSymmetric;
 
