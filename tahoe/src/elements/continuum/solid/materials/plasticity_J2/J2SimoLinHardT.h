@@ -1,4 +1,4 @@
-/* $Id: J2SimoLinHardT.h,v 1.2 2001-05-05 19:26:29 paklein Exp $ */
+/* $Id: J2SimoLinHardT.h,v 1.3 2001-09-25 00:51:55 paklein Exp $ */
 /* created: paklein (06/19/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -34,6 +34,12 @@ public:
 	J2SimoLinHardT(ifstreamT& in, int num_ip, double mu);
 
 protected:
+
+	/** elastic/plastic flag values */
+	enum LoadStateT {
+		kNotInit =-1,
+	  kIsPlastic = 0,
+	  kIsElastic = 1};
 
 	/** number of stored variables */
 	static const int kNumInternal;
@@ -92,13 +98,18 @@ protected:
 	dSymMatrixT fb_bar;    //isochoric, elastic part of b
 	dSymMatrixT fbeta_bar; //stress surface "center", kinematic hardening
 
+	/** shear modulus */
+	double fmu;
+
+	/* internal state variable work space */
+	dSymMatrixT fUnitNorm;        //unit normal to the stress surface
+	dSymMatrixT fb_bar_trial_;    //unit normal to the stress surface
+	dSymMatrixT fbeta_bar_trial_; //unit normal to the stress surface
+
 private:
 
 	/** number of integration points */
 	int fNumIP;
-
-	/** shear modulus */
-	double fmu;
 
 	/* return values */
 	dSymMatrixT	fStressCorr;
@@ -120,11 +131,6 @@ private:
 	dSymMatrixT fRed2Temp;
 	dMatrixT    fRed4Temp1;
 	dMatrixT    fRed4Temp2;
-
-	/* internal state variable work space */
-	dSymMatrixT fUnitNorm;        //unit normal to the stress surface
-	dSymMatrixT fb_bar_trial_;    //unit normal to the stress surface
-	dSymMatrixT fbeta_bar_trial_; //unit normal to the stress surface
 };
 
 #endif /* _J2_SIMO_LIN_HARD_T_H_ */
