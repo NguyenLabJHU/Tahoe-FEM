@@ -1,4 +1,4 @@
-/* $Id: PeriodicTableT.cpp,v 1.3 2002-06-04 00:12:47 jzimmer Exp $ */
+/* $Id: PeriodicTableT.cpp,v 1.4 2002-07-24 01:14:59 saubry Exp $ */
 
 #include "PeriodicTableT.h"
 
@@ -7,6 +7,8 @@
 #include "StringT.h"
 #include "ArrayT.h"
 #include "PerTabEntryT.h"
+
+using namespace Tahoe;
 
 PeriodicTableT::PeriodicTableT():PT(110) {
 	Initialize();

@@ -1,69 +1,56 @@
-/* $Id: BoxT.cpp,v 1.1 2002-03-06 01:55:43 jzimmer Exp $ */
+/* $Id: BoxT.cpp,v 1.2 2002-07-24 01:14:59 saubry Exp $ */
 #include "BoxT.h"
-
 #include "VolumeT.h"
+
 #include <iostream>
 #include <fstream>
+
 #include "ifstreamT.h"
 #include "iArrayT.h"
+#include "iArray2DT.h"
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "CrystalLatticeT.h"
 
-BoxT::BoxT(int n) : VolumeT(n) {
+BoxT::BoxT(int dim, int whichunit, dArrayT len_cel, 
+	   dArrayT lattice_parameter) : VolumeT(dim) 
+{
+  nSD = dim;
+  length.Dimension(nSD);
+  ncells.Dimension(nSD);
+
+  for(int i=0;i<nSD;i++)
+    {
+      length[i] = len_cel[i]*lattice_parameter[i];
+
+      double d1 = len_cel[i]/lattice_parameter[i];
+      int i1 = static_cast<int>((2.0*d1+1.0)/2.0);
+      ncells[i] = i1;
+    }
 }
 
-BoxT::~BoxT() {
-}
 
-void BoxT::SetSize(ifstreamT& in) {
-	length.Dimension(nSD);
-	ncells.Dimension(nSD);
-	in >> dimunits;
-	if (dimunits) {
-		switch(nSD) {
-		 case 2:
-		  in >> length[0] >> length[1];
-		  break;
-		 case 3:
-		  in >> length[0] >> length[1] >> length[2];
-		  break;
-		}
-	}
-	else {
-		switch(nSD) {
-		 case 2:
-		  in >> ncells[0] >> ncells[1];
-		  break;
-		 case 3:
-		  in >> ncells[0] >> ncells[1] >> ncells[2];
-		  break;
-		}
-	}
-}
+BoxT::BoxT(const BoxT& source) : VolumeT(source.nSD) 
+{
+  ncells.Dimension(source.nSD);
+  ncells = source.ncells;
 
-void BoxT::DefineBoundary(CrystalLatticeT* pcl) {
-	int nlsd = pcl->GetNLSD();
-	if (nlsd!=nSD) throw eSizeMismatch;
-	const dArrayT& vLP = pcl->GetLatticeParameters();
-	if (dimunits) {
-		for(int i=0;i<nSD;i++) {
-			double d1 = length[i]/vLP[i];
-			int i1 = (int) (2.0*d1+1.0)/2.0;
-			ncells[i] = i1;
-		}
-	}
-	else {
-		for(int i=0;i<nSD;i++) {
-			length[i] = vLP[i]*ncells[i];
-		}
-	} 
-	surfaces.Dimension(nSD,2);
-	for (int i=0; i<nSD; i++ ) {
-		surfaces(i,0) = -length[i]/2;
-		surfaces(i,1) =  length[i]/2;
-	}
+  length.Dimension(source.nSD);
+  length = source.length;
 
+  volume = source.volume;
+
+  atom_names = source.atom_names;
+
+  atom_ID.Dimension(source.nATOMS);
+  atom_ID = source.atom_ID;
+
+  atom_coord.Dimension(source.nATOMS,source.nSD);
+  atom_coord = source.atom_coord;
+
+
+  atom_connectivities.Dimension(source.nATOMS,source.nSD);
+  atom_connectivities = source.atom_connectivities;
 }
 
 void BoxT::CalculateVolume() {
@@ -77,44 +64,67 @@ void BoxT::CalculateVolume() {
 	}
 }
 
-void BoxT::FillVolume(CrystalLatticeT* pcl) {
+void BoxT::CreateLattice(CrystalLatticeT* pcl) {
 	int nuca = pcl->GetNUCA();
 	const dArrayT& vLP = pcl->GetLatticeParameters();
 	const dArray2DT& vB = pcl->GetBasis();
 	int p,q,r,a = 0;
-	int count = 1.1*(pcl->GetDensity())*volume;
-	double offset = 0.0;
-	atom_coord.Dimension(nSD,count);	
+
+	if (nSD==2) nATOMS = nuca*ncells[0]*ncells[1];
+	if (nSD==3) nATOMS = nuca*ncells[0]*ncells[1]*ncells[2];
+                    
+	atom_ID.Dimension(nATOMS);
+	atom_coord.Dimension(nATOMS,nSD);
+	atom_connectivities.Dimension(nATOMS,1);
+
 	if (nSD==2) {
-		for (p=-(ncells[1]/2);p<(ncells[1]/2);p++) {
-		for (q=-(ncells[0]/2);q<(ncells[0]/2);q++) {
+		for (p=-(ncells[1]/2);p<((ncells[1]+1)/2);p++) {
+		for (q=-(ncells[0]/2);q<((ncells[0]+1)/2);q++) {
 			for (int m=0;m<nuca;m++) {
-				atom_coord[0,a] = ((double) q + vB(0,m))*vLP[0] + offset;
-				atom_coord[1,a] = ((double) p + vB(1,m))*vLP[1] + offset;
-				a++;
-			}
+
+			  if (a > nATOMS) {cout << "nATOMS wrong";throw eSizeMismatch;}
+			  
+			  atom_coord(a)[0] = ((double) q + vB(0,m))*vLP[0];
+			  atom_coord(a)[1] = ((double) p + vB(1,m))*vLP[1];
+			  
+			  a++;			}
 		}
 		}
 	}
 	else if (nSD==3) {
-		for (p=-(ncells[2]/2);p<(ncells[2]/2);p++) {
-		for (q=-(ncells[1]/2);q<(ncells[1]/2);q++) {
-		for (r=-(ncells[0]/2);r<(ncells[0]/2);r++) {
-			for (int m=0;m<nuca;m++) {
-				atom_coord[0,a] = ((double) r + vB(0,m))*vLP[0] + offset;
-				atom_coord[1,a] = ((double) q + vB(1,m))*vLP[1] + offset;
-				atom_coord[2,a] = ((double) p + vB(2,m))*vLP[2] + offset;
-				a++;
-			}
-		}
-		}
-		}
+	        for (p=-((ncells[2])/2);p<((ncells[2]+1)/2);p++) {
+		for (q=-((ncells[1])/2);q<((ncells[1]+1)/2);q++) {
+	        for (r=-((ncells[0])/2);r<((ncells[0]+1)/2);r++) {
+		        for (int m=0;m<nuca;m++) {
+
+			  if (a > nATOMS) {cout << "nATOMS wrong";throw eSizeMismatch;}
+
+			  atom_coord(a)[0] = ((double) r + vB(0,m))*vLP[0];
+			  atom_coord(a)[1] = ((double) q + vB(1,m))*vLP[1];
+			  atom_coord(a)[2] = ((double) p + vB(2,m))*vLP[2];
+
+ 		               a++;                     }
+	       
+	      }
+	      }
+	      }
+	}
+	
+
+ 	atom_names = "Box";
+	for (p=0;p<nATOMS;p++){
+	  atom_ID[p] = p;
+	  atom_connectivities(p)[0] = p;
 	}
 
-	cout << "The number of atoms anticipated was " << count << "\n";
-	cout << "The number of atoms created is " << a << "\n";
-
-	nATOMS = a;
-
 }
-		
+
+
+iArrayT BoxT::GetNCells(){
+        return ncells;
+}
+
+
+dArrayT BoxT::GetLength(){
+        return length;
+}

@@ -1,45 +1,54 @@
-/* $Id: VolumeT.cpp,v 1.2 2002-03-06 01:55:43 jzimmer Exp $ */
+/* $Id: VolumeT.cpp,v 1.3 2002-07-24 01:14:59 saubry Exp $ */
 #include "VolumeT.h"
-#include <iostream>
-#include <fstream>
-#include "ifstreamT.h"
-#include "dArrayT.h"
-#include "iArray2DT.h"
-#include "dArray2DT.h"
-#include "ArrayT.h"
-#include "EnSightOutputT.h"
-#include "OutputSetT.h"
-#include "StringT.h"
 
-VolumeT::VolumeT(int n) {
-	nSD = n;
-	nATOMS = 0;
+VolumeT::VolumeT(int n) 
+{
+  nSD = n;nATOMS = 0;
 }
 
-VolumeT::~VolumeT() {
+
+VolumeT::VolumeT(const VolumeT& source)
+{
+  nSD = source.nSD;
+  nATOMS = source.nATOMS;
 }
 
-int VolumeT::GetDimensions() {
-	return nSD;
+
+int VolumeT::GetDimensions()
+{
+  return nSD;
 }
 
-double VolumeT::GetVolume() {
-	return volume;
+
+double VolumeT::GetVolume() 
+{
+  return volume;
 }
 
-void VolumeT::WriteFile() {
 
-	ArrayT<iArray2DT> fAtomSets(1);
-	fAtomSets[0].Dimension(nATOMS,1);
-	fAtomSets[0].SetValueToPosition();
+int VolumeT::GetNumberAtoms() 
+{
+  return nATOMS;
+}
 
-	ArrayT<iArray2DT*> connects(1);
-	connects[0] = fAtomSets.Pointer(0);
-	ArrayT<StringT> ID(1);
-	ID[0] = "nickel";
+StringT* VolumeT::GetAtomNames() 
+{
+  return &atom_names;
+}
 
-	
+iArrayT* VolumeT::GetAtomID()
+{
+  return &atom_ID;
+}
+
+dArray2DT* VolumeT::GetAtomCoordinates() 
+{
+  return &atom_coord;
+}
 
 
+iArray2DT* VolumeT::GetAtomConnectivities()
+{
+  return &atom_connectivities;
 }
 

@@ -1,34 +1,53 @@
-/* $Id: VolumeT.h,v 1.2 2002-03-06 01:55:43 jzimmer Exp $ */
+/* $Id: VolumeT.h,v 1.3 2002-07-24 01:15:15 saubry Exp $ */
 
 #ifndef _VOLUME_T_H_
 #define _VOLUME_T_H_
 
 #include <iostream>
+
+#include "iArrayT.h"
+#include "iArray2DT.h"
+
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "CrystalLatticeT.h"
-
-class ifstreamT;
+#include "ifstreamT.h"
 
 class VolumeT {
+
 protected:
+
 	int nSD;
-	double volume;
 	int nATOMS;
+	double volume;
+
+	StringT atom_names;
+	iArrayT atom_ID;
 	dArray2DT atom_coord;
+	iArray2DT atom_connectivities;
+
 public:
+
         VolumeT(int n);
-	~VolumeT();
+	~VolumeT() {};
+        VolumeT(const VolumeT& source);
+
 	int GetDimensions();
+	int GetNumberAtoms();
+
 	double GetVolume();
-	void WriteFile();
 
-	bool dimunits;
+	StringT* GetAtomNames();
+	iArrayT* GetAtomID();
+	dArray2DT* GetAtomCoordinates();
+	iArray2DT* GetAtomConnectivities();
 
-	virtual void SetSize(ifstreamT& in) = 0;
-	virtual void DefineBoundary(CrystalLatticeT* pcl) = 0;
 	virtual void CalculateVolume() = 0;
-	virtual void FillVolume(CrystalLatticeT* pcl) = 0;
+	virtual void CreateLattice(CrystalLatticeT* pcl) = 0;
+
+	virtual iArrayT GetNCells() = 0;
+        virtual dArrayT GetLength() = 0; 
+
 };
 
 #endif
