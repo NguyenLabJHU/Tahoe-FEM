@@ -1,4 +1,4 @@
-/* $Id: InputFEASCIIT.cpp,v 1.16 2002-07-02 19:57:03 cjkimme Exp $ */
+/* $Id: InputFEASCIIT.cpp,v 1.17 2002-07-26 12:19:43 sawimme Exp $ */
 
 #include "InputFEASCIIT.h"
 
@@ -718,16 +718,28 @@ bool InputFEASCIIT::ScanResultsFile (ifstreamT& in)
 
 bool InputFEASCIIT::AdvanceToBlock (ifstreamT& in, const StringT& name, const char* tname) const
 {
-  const int ID = atoi (name.Pointer());
-  int found = -1;
+  //const int ID = atoi (name.Pointer());
+  //int found = -1;
+  bool found = false;
+  StringT item;
   StringT s;
-  while (found != ID)
+  while (!found && in.good())
     {
       if (!in.FindString (tname, s) ||
 	  !in.FindString ("Block ID", s) ||
-	  !s.Tail ('=', found)) return false;
-    }
+	  !s.Tail ('=', item)) 
+	{
+	  cout << "\n\nInputFEASCIIT::AdvanceToBlock unable to find:\n";
+	  cout << "    Name = " << name << "\n    tname = " << tname;
+	  cout << "\n    Last string read: " << s << endl;
+	  return false;
+	}
+      if (strncmp (name.Pointer(), item.Pointer(), name.StringLength()) == 0)
 	return true;
+    }
+  cout << "\n\nInputFEASCIIT::AdvanceToBlock end of file:\n";
+  cout << "    Name = " << name << "\n    tname = " << tname;
+  return false;
 }
 
 void InputFEASCIIT::DataBlock (ifstreamT& in, iArrayT& used, iArrayT& ids, dArray2DT& vals, bool nodal) const
