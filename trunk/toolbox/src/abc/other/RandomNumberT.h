@@ -1,4 +1,4 @@
-/* $Id: RandomNumberT.h,v 1.4 2003-04-14 17:26:21 cjkimme Exp $ */
+/* $Id: RandomNumberT.h,v 1.5 2003-04-24 20:49:06 cjkimme Exp $ */
 #ifndef _RANDOM_NUMBER_T_H_
 #define _RANDOM_NUMBER_T_H_
 
@@ -11,6 +11,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class dArrayT;
+class dArray2DT;
 class ifstreamT;
 
 class RandomNumberT
@@ -32,16 +33,18 @@ public:
 	RandomNumberT(ifstreamT& in);
 	/*@}*/
 	
+	/** set the seed */
 	void sRand(long seed, long a = 16807, long rm = 2147483647);
 
+	/** return a random number of the appropriate type */
 	double Rand(void);
 
-	
+	/* Fill arrays with random numbers */
 	dArrayT& RandomArray(dArrayT& fillArray);
+	dArray2DT& RandomArray(dArray2DT& fillArray);
 	
+	/** Accessor for the seed */
 	long RandSeed(void);
-
-    // Need some way to write seed to restart. 
 
  private:
 
