@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.1.2.5 2003-12-03 19:52:53 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.1.2.6 2003-12-04 07:48:02 paklein Exp $ */
 #include "ABAQUS_UMAT_SS_BaseT.h"
 
 #ifdef __F2C__
@@ -460,7 +460,7 @@ void ABAQUS_UMAT_SS_BaseT::Store(ElementCardT& element, int ip)
 
 /* make call to the UMAT */
 void ABAQUS_UMAT_SS_BaseT::Call_UMAT(double t, double dt, int step, int iter)
-{	
+{
 	/* load stored data */
 	Load(CurrentElement(), CurrIP());
 
@@ -498,7 +498,7 @@ void ABAQUS_UMAT_SS_BaseT::Call_UMAT(double t, double dt, int step, int iter)
 	integer     nprops = integer(fProperties.Length()); // i: number of material properties
 	doublereal* coords = fcoords.Pointer();             // i: coordinates of the integration point
 	doublereal* drot   = fdrot.Pointer();               // i: rotation increment matrix
-	doublereal  pnewdt;                                 // o: suggested time step (automatic time integration)
+	doublereal  pnewdt = dtime;                         // o: suggested time step (automatic time integration)
 	doublereal  celent;                                 // i: characteristic element length
 	doublereal* dfgrd0 = fdfgrd0.Pointer();             // i: deformation gradient at the beginning of the increment
 	doublereal* dfgrd1 = fdfgrd1.Pointer();             // i: deformation gradient at the end of the increment
@@ -529,6 +529,10 @@ flog << fstatv.wrap(5) << '\n';
 		&drpldt, stran, dstran, time, &dtime, &temp, &dtemp, predef, dpred, cmname,
 		&ndi, &nshr, &ntens, &nstatv, props, &nprops, coords, drot, &pnewdt, &celent,
 		dfgrd0, dfgrd1, &noel, &npt, &layer, &kspt, &kstep, &kinc, cmname_len);
+
+	/* check for step cut */
+	if (pnewdt/dtime < 0.55)
+		ExceptionT::BadJacobianDet("ABAQUS_UMAT_SS_BaseT::Call_UMAT", "material signaled step cut");
 
 #ifdef DEBUG
 flog << " THE OUTPUT\n";
