@@ -1,4 +1,4 @@
-/* $Id: SSQ1P0MF.h,v 1.2 2003-08-30 03:31:24 thao Exp $ */
+/* $Id: SSQ1P0MF.h,v 1.3 2003-11-04 18:14:48 thao Exp $ */
 
 #ifndef _SS_Q1P0_MF_H_
 #define _SS_Q1P0_MF_H_
@@ -43,7 +43,6 @@ class SSQ1P0MF: public SmallStrainQ1P0, public MFSupportT
     void MatForceSurfMech(dArrayT& global_val);
 
     /*extrapolate element ip state variables values to nodes*/
-    void MeanVolEnergy();
     void Extrapolate(void);
   
  protected:	
@@ -53,7 +52,7 @@ class SSQ1P0MF: public SmallStrainQ1P0, public MFSupportT
 
 
  private:
-    double fptheta;
+
     /*stress and strains*/
     ArrayT<dMatrixT> fGradU_List;
     dMatrixT fGradUTemp;

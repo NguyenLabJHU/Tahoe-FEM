@@ -1,4 +1,4 @@
-/* $Id: SSQ2P1MF.cpp,v 1.3 2003-08-22 16:59:20 thao Exp $ */
+/* $Id: SSQ2P1MF.cpp,v 1.4 2003-11-04 18:14:48 thao Exp $ */
 #include "SSQ2P1MF.h"
 
 #include "OutputSetT.h"
@@ -273,8 +273,6 @@ void SSQ2P1MF::MatForceVolMech(dArrayT& elem_val)
       fEshelby(0,1) = gradU(0,0)*fCauchy(0,1) + gradU(1,0)*fCauchy(1,1);
       fEshelby(1,0) = gradU(0,1)*fCauchy(0,0) + gradU(1,1)*fCauchy(1,0);
       fEshelby(1,1) = gradU(0,1)*fCauchy(0,1) + gradU(1,1)*fCauchy(1,1) - energy;
-
-      //      cout <<"\nfEshelby: "<<fEshelby;
 
       double* pDQaX = DQa(0); 
       double* pDQaY = DQa(1);
