@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<tahoe author="paklein" geometry_file="../geometry/CSE.1.geom"
-    title="2D cohesive element test" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="../geometry/CSE.1.geom" title="2D cohesive element test">
     <time num_steps="100" output_inc="10" time_step="0.1">
         <schedule_function>
             <piecewise_linear>
@@ -38,22 +37,16 @@
         </small_strain>
         <anisotropic_CSE field_name="displacement">
             <line/>
-            <surface_element_nodal_output displacement_jump="1"
-                displacements="1" material_output="1" traction="1"/>
+            <surface_element_nodal_output displacement_jump="1" displacements="1" material_output="1" traction="1"/>
             <anisotropic_CSE_element_block>
                 <block_ID_list>
                     <String value="2"/>
                 </block_ID_list>
                 <cohesive_relation_2D>
-                    <Tijssens_2D A_0="1.0" B_0="1.0" Delta_0="0.001"
-                        Delta_n_ccr="0.005" Q_A="1.0" Q_B="1.0"
-                        a_star="1.0" bulk_element_group="1" c_1="50.0"
-                        failure_decay_steps="15" k_n="50.0" k_t0="100.0"
-                        sigma_c="1.0" temperature="5.0"/>
+                    <Tijssens_2D A_0="1.0" B_0="1.0" Delta_0="0.001" Delta_n_ccr="0.005" Q_A="1.0" Q_B="1.0" a_star="1.0" bulk_element_group="1" c_1="50.0" failure_decay_steps="15" k_n="50.0" k_t0="100.0" sigma_c="1.0" temperature="5.0"/>
                 </cohesive_relation_2D>
             </anisotropic_CSE_element_block>
         </anisotropic_CSE>
     </element_list>
-    <nonlinear_solver abs_tolerance="1.0e-10"
-        divergence_tolerance="1.0e+01" max_iterations="10" rel_tolerance="1.0e-12"/>
+    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+01" max_iterations="10" rel_tolerance="1.0e-12"><profile_matrix/></nonlinear_solver>
 </tahoe>

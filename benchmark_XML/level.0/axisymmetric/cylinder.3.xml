@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<tahoe author="paklein" geometry_file="../geometry/rect.5x1.geom"
-    title="total lagrangian axisymmetric test" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="../geometry/rect.5x1.geom" title="total lagrangian axisymmetric test">
     <time num_steps="1" output_inc="1" time_step="1.0">
         <schedule_function>
             <piecewise_linear>
@@ -35,6 +34,5 @@
             </large_strain_axi_element_block>
         </total_lagrangian_axi>
     </element_list>
-    <nonlinear_solver abs_tolerance="1.0e-10"
-        divergence_tolerance="1.0e+01" max_iterations="5" rel_tolerance="1.0e-12"/>
+    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+01" max_iterations="5" rel_tolerance="1.0e-12"><profile_matrix/></nonlinear_solver>
 </tahoe>

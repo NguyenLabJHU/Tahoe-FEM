@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<tahoe geometry_file="./geometry/cse.6.geom" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" geometry_file="./geometry/cse.6.geom">
     <time max_step_cuts="5" num_steps="5" output_inc="1" time_step="0.2">
         <schedule_function>
             <piecewise_linear>
@@ -41,21 +41,16 @@
         </updated_lagrangian>
         <anisotropic_CSE field_name="displacement">
             <line num_ip="3"/>
-            <surface_element_nodal_output coordinates="1"
-                displacement_jump="1" displacements="1"
-                material_output="1" traction="1"/>
+            <surface_element_nodal_output coordinates="1" displacement_jump="1" displacements="1" material_output="1" traction="1"/>
             <anisotropic_CSE_element_block>
                 <block_ID_list>
                     <String value="3"/>
                 </block_ID_list>
                 <cohesive_relation_2D>
-                    <Tvergaard-Hutchinson_2D L_1="0.1" L_2="0.7"
-                        L_fail="1.0" d_c_n="0.1" d_c_t="0.1"
-                        penalty="0.0" sigma_max="5.0"/>
+                    <Tvergaard-Hutchinson_2D L_1="0.1" L_2="0.7" L_fail="1.0" d_c_n="0.1" d_c_t="0.1" penalty="0.0" sigma_max="5.0"/>
                 </cohesive_relation_2D>
             </anisotropic_CSE_element_block>
         </anisotropic_CSE>
     </element_list>
-    <nonlinear_solver abs_tolerance="1.0e-10"
-        divergence_tolerance="10.0" max_iterations="4" rel_tolerance="1.0e-12"/>
+    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="10.0" max_iterations="4" rel_tolerance="1.0e-12"><profile_matrix/></nonlinear_solver>
 </tahoe>

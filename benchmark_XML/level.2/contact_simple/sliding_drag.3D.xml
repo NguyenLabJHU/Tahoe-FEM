@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<tahoe author="paklein" geometry_file="../geometry/two_cubes.4.geom"
-    title="two cubes in contact" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="../geometry/two_cubes.4.geom" title="two cubes in contact">
     <time max_step_cuts="2" num_steps="30" output_inc="10" time_step="0.1">
         <schedule_function>
             <piecewise_linear>
@@ -48,9 +47,7 @@
                 </large_strain_material_3D>
             </large_strain_element_block>
         </updated_lagrangian>
-        <contact_drag_3D_penalty drag_traction="0.2"
-            field_name="displacement" gap_tolerance="0.1"
-            penalty_stiffness="2.0e+02" slip_tolerance="0.1">
+        <contact_drag_3D_penalty drag_traction="0.2" field_name="displacement" gap_tolerance="0.1" penalty_stiffness="2.0e+02" slip_tolerance="0.1">
             <contact_surface>
                 <surface_side_set side_set_ID="1"/>
             </contact_surface>
@@ -64,6 +61,5 @@
             </contact_nodes>
         </contact_drag_3D_penalty>
     </element_list>
-    <nonlinear_solver abs_tolerance="1.0e-10"
-        divergence_tolerance="1.0e+03" max_iterations="15" rel_tolerance="1.0e-12"/>
+    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+03" max_iterations="15" rel_tolerance="1.0e-12"><profile_matrix/></nonlinear_solver>
 </tahoe>

@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<tahoe geometry_file="../geometry/cube.1.geom" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" geometry_file="../geometry/cube.1.geom">
     <time num_steps="100" output_inc="50" time_step="0.01">
         <schedule_function>
             <piecewise_linear>
@@ -24,20 +24,16 @@
     <element_list>
         <updated_lagrangian field_name="displacement">
             <hexahedron/>
-            <solid_element_nodal_output displacements="1"
-                material_output="1" stress="1"/>
+            <solid_element_nodal_output displacements="1" material_output="1" stress="1"/>
             <large_strain_element_block>
                 <block_ID_list>
                     <String value="1"/>
                 </block_ID_list>
                 <large_strain_material_3D>
-                    <Reese-Govindjee_split density="1.0" kappa_EQ="1.2"
-                        kappa_NEQ="1.2" mu_EQ="1.2" mu_NEQ="1.2"
-                        eta_bulk="1.0" eta_shear="1.0"/>
+                    <Reese-Govindjee_split density="1.0" kappa_EQ="1.2" kappa_NEQ="1.2" mu_EQ="1.2" mu_NEQ="1.2" eta_bulk="1.0" eta_shear="1.0"/>
                 </large_strain_material_3D>
             </large_strain_element_block>
         </updated_lagrangian>
     </element_list>
-    <nonlinear_solver abs_tolerance="1.0e-10"
-        divergence_tolerance="1.0e+01" max_iterations="10" rel_tolerance="1.0e-12"/>
+    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+01" max_iterations="10" rel_tolerance="1.0e-12"><profile_matrix/></nonlinear_solver>
 </tahoe>

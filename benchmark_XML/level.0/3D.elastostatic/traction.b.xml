@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<tahoe geometry_file="../geometry/hex20.2x2x2.geom" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" geometry_file="../geometry/hex20.2x2x2.geom">
     <time num_steps="1" output_inc="1" time_step="1.0">
         <schedule_function>
             <piecewise_linear>
@@ -48,6 +48,5 @@
             </small_strain_element_block>
         </small_strain>
     </element_list>
-    <nonlinear_solver abs_tolerance="1.0e-10"
-        divergence_tolerance="10.0" max_iterations="10" rel_tolerance="1.0e-12"/>
+    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="10.0" max_iterations="10" rel_tolerance="1.0e-12"><profile_matrix/></nonlinear_solver>
 </tahoe>

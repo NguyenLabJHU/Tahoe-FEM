@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<tahoe author="paklein" geometry_file="geometry/hex_lattice.5x5.geom"
-    title="small hex lattice with damping" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="geometry/hex_lattice.5x5.geom" title="small hex lattice with damping">
     <time num_steps="1000" output_inc="250" time_step="0.125">
         <schedule_function>
             <piecewise_linear>
@@ -24,8 +23,7 @@
         </field>
     </nodes>
     <element_list>
-        <particle_pair field_name="displacement" lattice_parameter="1.0"
-            max_neighbor_distance="1.1" re-neighbor_displacement="1.0">
+        <particle_pair field_name="displacement" lattice_parameter="1.0" max_neighbor_distance="1.1" re-neighbor_displacement="1.0">
             <velocity_damping beta="1.0">
                 <thermostat_temperature schedule="1" value="0.0"/>
                 <pick_all/>
@@ -40,5 +38,5 @@
             </pair_particle_interaction>
         </particle_pair>
     </element_list>
-    <linear_solver matrix_type="diagonal"/>
+    <linear_solver><diagonal_matrix/></linear_solver>
 </tahoe>
