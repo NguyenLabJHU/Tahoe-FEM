@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.9 2002-01-02 08:06:53 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.10 2002-01-06 06:57:52 cbhovey Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleT.h"
@@ -6,7 +6,11 @@
 #include <ctype.h>
 #include <time.h>
 #include <iomanip.h>
+#ifdef _MSC_VER
+#include <strstrea.h>
+#else
 #include <strstream.h>
+#endif
 
 #include "iConsoleObjectT.h"
 #include "ifstreamT.h"
@@ -388,7 +392,11 @@ void iConsoleT::DoInteractive(void)
 				if (first.StringLength() > 0)
 				{
 					line.Drop(count);
+#ifdef _MSC_VER
+					istrstream s((char*) first);
+#else
 					istrstream s((const char*) first);
+#endif
 					int dex = -99199;
 					s >> dex;
 					if (dex < 0 || dex >= fHistory.Length() - 1)

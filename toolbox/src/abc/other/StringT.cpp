@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.12 2001-12-30 20:28:14 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.13 2002-01-06 06:57:50 cbhovey Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #include "StringT.h"
@@ -10,7 +10,11 @@
 #include <iostream.h>
 #include <fstream.h>
 #include <iomanip.h>
+#ifdef _MSC_VER
+#include <strstrea.h>
+#else
 #include <strstream.h>
+#endif
 
 #include "Constants.h"
 #include "ExceptionCodes.h"
@@ -466,7 +470,7 @@ StringT& StringT::Prepend(const char* s1, const char* s2)
 StringT& StringT::Drop(int n)
 {
 	/* check */
-	if ((int) fabs(n) > strlen(*this)) throw eOutOfRange;
+	if ((int) fabs(double(n)) > strlen(*this)) throw eOutOfRange;
 	//NOTE - SUNWspro 5.0 doesn't like int(fabs(n))
 	
 	if (n > 0)
@@ -475,7 +479,7 @@ StringT& StringT::Drop(int n)
 		memmove(str, str + n, strlen(str) + 1 - n);
 	}
 	else if (n < 0)
-		(*this)[strlen(*this) + n] = '\0';
+		(*this)[int(strlen(*this)) + n] = '\0';
 
 	return *this;
 }

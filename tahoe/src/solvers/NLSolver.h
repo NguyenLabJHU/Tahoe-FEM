@@ -1,4 +1,4 @@
-/* $Id: NLSolver.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: NLSolver.h,v 1.2 2002-01-06 06:58:46 cbhovey Exp $ */
 /* created: paklein (07/09/1996)                                          */
 
 #ifndef _NL_SOLVER_H_
@@ -20,12 +20,21 @@ public:
 	/* error handler */
 	virtual void ResetStep(void);
 
-protected:
-
+#ifdef _MSC_VER
 	/* iteration status flags */
 	enum IterationStatusT {kContinue = 0,
                           kConverged = 1,
                              kFailed = 2};
+#endif
+
+protected:
+
+#ifndef _MSC_VER
+	/* iteration status flags */
+	enum IterationStatusT {kContinue = 0,
+                          kConverged = 1,
+                             kFailed = 2};
+#endif
 
 	/* apply system update (socket for line searching), pass NULL
 	 * for residual if not available */

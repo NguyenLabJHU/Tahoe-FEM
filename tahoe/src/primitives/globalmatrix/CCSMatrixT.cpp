@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.5 2001-06-29 16:26:43 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.6 2002-01-06 06:58:43 cbhovey Exp $ */
 /* created: paklein (05/29/1996)                                          */
 
 #include "CCSMatrixT.h"
@@ -817,7 +817,7 @@ void CCSMatrixT::ComputeSize(int& num_nonzero, int& mean_bandwidth, int& bandwid
 		num_nonzero = fDiags[fLocNumEQ-1] + 1;
 
 		/* final dimensions */
-		mean_bandwidth = int(ceil(num_nonzero/fLocNumEQ));
+		mean_bandwidth = int(ceil(double(num_nonzero)/fLocNumEQ));
 		bandwidth += 1;
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.2 2001-03-08 00:50:06 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.3 2002-01-06 06:58:46 cbhovey Exp $ */
 /* created: paklein (08/19/1999)                                          */
 
 #include "PCGSolver_LS.h"
@@ -125,7 +125,7 @@ double PCGSolver_LS::SolveAndForm(bool newtangent)
 void PCGSolver_LS::CGSearch(void)
 {
 	/* restart */
-	if (fmod(fNumIteration, fRestart) < kSmall)
+	if (fmod(double(fNumIteration), fRestart) < kSmall)
 	{
 		fR_last = fRHS;
 		fLHS->Solve(fRHS);

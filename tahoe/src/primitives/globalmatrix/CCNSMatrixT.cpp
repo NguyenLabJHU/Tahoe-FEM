@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.4 2001-06-12 22:15:11 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.5 2002-01-06 06:58:43 cbhovey Exp $ */
 /* created: paklein (03/04/1998)                                          */
 
 #include "CCNSMatrixT.h"
@@ -521,7 +521,7 @@ void CCNSMatrixT::ComputeSize(int& num_nonzero, int& mean_bandwidth, int& bandwi
 		num_nonzero = 2*famax[fLocNumEQ] + fLocNumEQ;
 
 		/* final dimensions */
-		mean_bandwidth = int(ceil(num_nonzero/fLocNumEQ));
+		mean_bandwidth = int(ceil(double(num_nonzero)/fLocNumEQ));
 		bandwidth += 1;
 	}
 }

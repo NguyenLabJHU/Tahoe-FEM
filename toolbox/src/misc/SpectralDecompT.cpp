@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.cpp,v 1.6 2001-07-16 21:25:04 paklein Exp $ */
+/* $Id: SpectralDecompT.cpp,v 1.7 2002-01-06 06:57:54 cbhovey Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -575,8 +575,8 @@ const dMatrixT& SpectralDecompT::SpatialTensor3D(const dSymMatrixT& b, int A)
 	/* cyclic permutation */
 	double dA;
 
-	int B = int(fmod(A + 1, 3));
-	int C = int(fmod(B + 1, 3));
+	int B = int(fmod(A + 1.0, 3));
+	int C = int(fmod(B + 1.0, 3));
 	dA = (fEigs[A] - fEigs[B])*(fEigs[A] - fEigs[C]);
 
 	/* checks */

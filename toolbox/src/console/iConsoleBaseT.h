@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.h,v 1.7 2002-01-03 23:06:13 paklein Exp $ */
+/* $Id: iConsoleBaseT.h,v 1.8 2002-01-06 06:57:52 cbhovey Exp $ */
 /* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_BASE_T_H_
@@ -58,6 +58,11 @@ public:
 	/** return the command specification with the given name. Returns
 	 * NULL if the name is not found */
 	CommandSpecT* iCommand(const StringT& command_name) const;
+
+#ifdef _MSC_VER
+	/** operator types */
+	enum VariableOperator {kEQ = 0, kPlusEQ, kMinusEQ, kTimesEQ, kDivEQ, kFail};
+#endif
 
 protected:
 
@@ -143,8 +148,10 @@ protected:
 	 * \param i index of the variable to write */
 	void WriteVariable(ostream& out, int i) const;
 
+#ifndef _MSC_VER
 	/** operator types */
 	enum VariableOperator {kEQ = 0, kPlusEQ, kMinusEQ, kTimesEQ, kDivEQ, kFail};
+#endif
 
 	/** resolve the operator type from the input line */
 	VariableOperator ResolveOperator(StringT& line) const;

@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.3 2001-12-17 00:15:58 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.4 2002-01-06 06:58:37 cbhovey Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "RodT.h"
@@ -15,6 +15,10 @@
 /* material types */
 #include "LinearSpringT.h"
 #include "LJSpringT.h"
+
+/* Element type parameters */
+const int RodT::kRodTndof = 2; /* number of degrees of freedom per node */
+const int RodT::kRodTnsd = 2; /* number of spatial dimensions */
 
 /* constructors */
 RodT::RodT(FEManagerT& fe_manager):

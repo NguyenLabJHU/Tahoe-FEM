@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.cpp,v 1.9 2002-01-05 07:47:54 paklein Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.10 2002-01-06 06:57:53 cbhovey Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
@@ -1576,10 +1576,11 @@ bool AbaqusResultsT::Read (int& i)
     {
       CheckBufferSize (fIn);
       int temp;
+	  double tmp;
       if (fIn.eof()) return false;
-      fIn.read (reinterpret_cast<char *> (&temp), sizeof (double));
+      fIn.read (reinterpret_cast<char *> (&temp), sizeof (tmp));
       i = temp;
-      fBufferDone += sizeof (double);
+      fBufferDone += sizeof (tmp);
     }
   else
     {

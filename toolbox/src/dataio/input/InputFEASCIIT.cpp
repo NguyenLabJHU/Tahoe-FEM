@@ -1,8 +1,12 @@
-/* $Id: InputFEASCIIT.cpp,v 1.5 2002-01-05 06:36:48 paklein Exp $ */
+/* $Id: InputFEASCIIT.cpp,v 1.6 2002-01-06 06:57:54 cbhovey Exp $ */
 #include "InputFEASCIIT.h"
 #include "ifstreamT.h"
 #include "dArrayT.h"
+#ifdef _MSC_VER
+#include <strstrea.h>
+#else
 #include <strstream.h>
+#endif
 
 InputFEASCIIT::InputFEASCIIT (ostream& out) :
   InputBaseT (out),
@@ -261,7 +265,11 @@ void InputFEASCIIT::ReadGeometryCode (StringT& name, GeometryT::CodeT& geocode)
   if (!geo.FindString ("Geometry code", s)) throw eDatabaseFail;
 
   // either this or write an operator= for Geometry::CodeT
+#ifdef _MSC_VER
+  char *h = strstr ((char*) s, "=");
+#else
   const char *h = strstr ((const char*) s, "=");
+#endif
   istrstream istr (h+1);
   istr >> geocode;
 }

@@ -1,4 +1,4 @@
-/* $Id: EnSightT.h,v 1.2 2001-09-04 14:38:54 sawimme Exp $ */
+/* $Id: EnSightT.h,v 1.3 2002-01-06 06:57:53 cbhovey Exp $ */
 /* created: sawimme (05/13/1999)                                          */
 /* ******EnSight6 Gold Format******                                       */
 
@@ -49,7 +49,7 @@ enum VariableTypeT {kScalarElemental,
 	// case file
 	void WriteCaseFormat (ostream& fvar) const;
 	void WriteCaseGeometry (ostream& fvar, int sequence, StringT& geofile) const;
-	void WriteVariableLabels (ostream& fvar, const ArrayT<StringT>& labels, const ArrayT<StringT>& filenames, const ArrayT<EnSightT::VariableTypeT>& t) const;
+	void WriteVariableLabels (ostream& fvar, const ArrayT<StringT>& labels, const ArrayT<StringT>& filenames, const ArrayT<VariableTypeT>& t) const;
 	void WriteTime (ostream& fvar, int sequence, int start, int increment, const ArrayT<double>& timesteps) const;
 
 	void GetElementName (StringT& fElementName, int& num_output_nodes, GeometryT::CodeT geocode) const;
