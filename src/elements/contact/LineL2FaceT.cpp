@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.2 2001-04-09 22:28:55 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.3 2001-04-10 00:13:56 rjones Exp $ */
 
 #include "LineL2FaceT.h"
 #include "FaceT.h"
@@ -65,7 +65,6 @@ int number_of_face_nodes, int* connectivity):
 
 LineL2FaceT::~LineL2FaceT (void)
 {
-	delete [] fx;
 }
 
 void

@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.3 2001-04-09 23:26:51 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.4 2001-04-10 00:13:57 rjones Exp $ */
 
 #include "QuadL4FaceT.h"
 #include "FaceT.h"
@@ -70,7 +70,6 @@ int number_of_face_nodes, int* connectivity):
 
 QuadL4FaceT::~QuadL4FaceT (void)
 {
-	delete [] fx;
 }
 
 void
