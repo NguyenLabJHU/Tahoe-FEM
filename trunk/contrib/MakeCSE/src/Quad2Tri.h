@@ -1,4 +1,4 @@
-// file: Quad2Tri.h
+// $Id: Quad2Tri.h,v 1.4 2002-10-08 20:51:51 paklein Exp $
 
 // created: SAW 12/21/99
 
@@ -8,11 +8,11 @@
 #include "MakeCSE_ElementBaseT.h"
 
 class NodeManagerPrimitive;
-class MakeCSEIOManager;
+class MakeCSE_IOManager;
 
 using namespace Tahoe;
 
-class Quad2Tri : public ElementBaseT
+class Quad2Tri : public MakeCSE_ElementBaseT
 {
  public:
 
@@ -24,8 +24,8 @@ class Quad2Tri : public ElementBaseT
   Quad2Tri (ostream& fMainOut, NodeManagerPrimitive& NMP, int method, int ID);
 
  protected:
-  virtual void EchoConnectivity (MakeCSEIOManager& theInput);
-  virtual void EchoSideSets (MakeCSEIOManager& theInput);
+  virtual void EchoConnectivity (MakeCSE_IOManager& theInput);
+  virtual void EchoSideSets (MakeCSE_IOManager& theInput);
 
  private:
 

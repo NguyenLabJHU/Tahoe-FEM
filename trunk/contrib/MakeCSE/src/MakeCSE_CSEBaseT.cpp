@@ -1,19 +1,17 @@
-// file: MakeCSE_CSEBaseT.cpp
-
+// $Id: MakeCSE_CSEBaseT.cpp,v 1.2 2002-10-08 20:51:50 paklein Exp $
 // created: SAW 5/2/2000
-
 #include "MakeCSE_CSEBaseT.h"
-#include "MakeCSEFEManager.h"
-#include "MakeCSEIOManager.h"
+#include "MakeCSE_FEManager.h"
+#include "MakeCSE_IOManager.h"
 
 using namespace Tahoe;
 
 MakeCSE_CSEBaseT::MakeCSE_CSEBaseT (ostream& fMainOut, int ID) :
-  ElementBaseT (fMainOut, ID),
-  fSurfaceFacets (2)
+	MakeCSE_ElementBaseT (fMainOut, ID),
+	fSurfaceFacets (2)
 {
   fSurfaceFacets[0] = 0;
-  fSurfaceFacets[1] = FEManager::kNotSet;
+  fSurfaceFacets[1] = MakeCSE_FEManager::kNotSet;
 }
 
 void MakeCSE_CSEBaseT::Initialize (GeometryT::CodeT code, int numregfacenodes)

@@ -6,7 +6,7 @@
 #define _MAKECSE_ELEMENTBASET_H_
 
 #include "iArray2DT.h"
-#include "MakeCSEIOManager.h"
+#include "MakeCSE_IOManager.h"
 
 using namespace Tahoe;
 
@@ -18,7 +18,7 @@ class MakeCSE_ElementBaseT
   virtual ~MakeCSE_ElementBaseT (void);
 
   // read from input that group's connectivity, create element cards
-  void Initialize (MakeCSEIOManager& input);
+  void Initialize (MakeCSE_IOManager& input);
 
   // initialize element group for newly created data
   virtual void Initialize (GeometryT::CodeT geocode, int numnodes);
@@ -65,8 +65,8 @@ class MakeCSE_ElementBaseT
   void Connectivities (AutoArrayT<const iArray2DT*>& conn, iAutoArrayT& geocodes, iAutoArrayT& change);
 
   void NodesUsed (iArrayT& nodes) const;
-  void RegisterOutput (MakeCSEIOManager& theIO);
-  void WriteOutput (MakeCSEIOManager& theIO, IOBaseT::OutputModeT mode) const;
+  void RegisterOutput (MakeCSE_IOManager& theIO);
+  void WriteOutput (MakeCSE_IOManager& theIO, IOBaseT::OutputModeT mode) const;
 
   /* returns true if side set is contained within this element group */
   bool CheckSideSet (const iArray2DT& sides) const;
@@ -76,11 +76,11 @@ class MakeCSE_ElementBaseT
   bool IsFaceValid (int face) const;
 
  protected:
-  virtual void EchoConnectivity (MakeCSEIOManager& theInput);
-  void ReadConnectivity (MakeCSEIOManager& theInput, GeometryT::CodeT& geocode, iArray2DT& conn) const;
+  virtual void EchoConnectivity (MakeCSE_IOManager& theInput);
+  void ReadConnectivity (MakeCSE_IOManager& theInput, GeometryT::CodeT& geocode, iArray2DT& conn) const;
   void InitializeConnectivity (void);
-  virtual void EchoSideSets (MakeCSEIOManager& theInput);
-  void ReadSideSetData (MakeCSEIOManager& theInput, ArrayT<iArray2DT>& sides);
+  virtual void EchoSideSets (MakeCSE_IOManager& theInput);
+  void ReadSideSetData (MakeCSE_IOManager& theInput, ArrayT<iArray2DT>& sides);
   void CheckAllSideSets (void);
 
   /* determines facenode map from GeometryT */
