@@ -1,4 +1,4 @@
-/* $Id: nNLHHTalpha.cpp,v 1.13 2004-07-15 08:30:28 paklein Exp $ */
+/* $Id: nNLHHTalpha.cpp,v 1.14 2004-12-26 21:08:41 d-farrell2 Exp $ */
 /* created: paklein (10/17/1996) */
 #include "nNLHHTalpha.h"
 #include "dArrayT.h"
@@ -73,31 +73,59 @@ void nNLHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 				"unknown BC code: %d", KBC.Code());
 	}
 }		
-
-/* rredictors - map ALL */
-void nNLHHTalpha::Predictor(BasicFieldT& field)
+#pragma message ("roll up redundancy after it works")
+// predictors - map ALL, unless limit arguments are specified
+void nNLHHTalpha::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
-	/* displacement predictor */
-	field[0].AddCombination(dpred_v, field[1], dpred_a, field[2]);
-
-	/* velocity predictor */
-	field[1].AddScaled(vpred_a, field[2]);
-	
-	/* acceleration predictor */
-	field[2] = 0.0;
+	if (fieldend == -1) // operate on full arrays
+	{
+		/* displacement predictor */
+		field[0].AddCombination(dpred_v, field[1], dpred_a, field[2]);
+		
+		/* velocity predictor */
+		field[1].AddScaled(vpred_a, field[2]);
+		
+		/* acceleratior predictor */
+		field[2] = 0.0;	
+	}
+	else // operate on restricted contiguous block of the arrays
+	{
+		/* displacement predictor */
+		field[0].AddCombination(dpred_v, field[1], dpred_a, field[2], fieldstart, fieldend);
+		
+		/* velocity predictor */
+		field[1].AddScaled(vpred_a, field[2], fieldstart, fieldend);
+		
+		/* acceleratior predictor */
+		field[2].SetToScaled(0.0, field[1], fieldstart, fieldend);	
+	}
 }		
 
 /* corrector. Maps ALL degrees of freedom forward. */
-void nNLHHTalpha::Corrector(BasicFieldT& field, const dArray2DT& update)
+void nNLHHTalpha::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
 {
-	/* displacement corrector */
-	field[0].AddScaled(dcorr_a, update);
-
-	/* velocity corrector */
-	field[1].AddScaled(vcorr_a, update);
-	
-	/* acceleration corrector */
-	field[2] += update;
+	if (fieldend == -1) // operate on full arrays
+	{
+		/* displacement corrector */
+		field[0].AddScaled(dcorr_a, update);
+		
+		/* velocity corrector */
+		field[1].AddScaled(vcorr_a, update);
+		
+		/* acceleration corrector */
+		field[2] += update;
+	}
+	else // operate on restricted contiguous block of the arrays
+	{
+		/* displacement corrector */
+		field[0].AddScaled(dcorr_a, update, fieldstart, fieldend);
+		
+		/* velocity corrector */
+		field[1].AddScaled(vcorr_a, update, fieldstart, fieldend);
+		
+		/* acceleration corrector */
+		field[2].AddScaled(1.0, update, fieldstart, fieldend);
+	}
 }
 
 /* correctors - map ACTIVE */

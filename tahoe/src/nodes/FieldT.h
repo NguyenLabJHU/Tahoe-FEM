@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.21 2004-07-15 08:31:10 paklein Exp $ */
+/* $Id: FieldT.h,v 1.22 2004-12-26 21:09:42 d-farrell2 Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -128,6 +128,9 @@ public:
 	
 	/** apply predictor to all degrees of freedom */
 	void InitStep(void);
+	
+	/** apply predictor to all degrees of freedom */
+	void InitStep(int fieldstart, int fieldend);
 
 	/** \name form tangent and force contributions */
 	/*@{*/
@@ -161,8 +164,9 @@ public:
 	 * The algorithm properly assembles duplicated numbers in the equations array. */
 	void AssembleUpdate(const dArrayT& update);
 	
-	/** apply the full update to the field */
-	void ApplyUpdate(void);
+	/** apply the full update to the field, only do for specfied group */
+	
+	void ApplyUpdate(int fPartFieldStart = 0, int fPartFieldEnd = -1);
 
 	/** copy nodal information. Copy all field information from the source 
 	 * nodes to the targets. Equation are not copied. */
@@ -324,6 +328,10 @@ public:
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
+	// some accessors to the external FBC information
+	const dArrayT GetfFBCValues(void) { return fFBCValues ; };
+	const iArrayT GetfFBCEqnos(void) { return fFBCEqnos ; };
+	
 private:
 
 	/** apply the IC_CardT to the field. Return false if any initial conditions where
