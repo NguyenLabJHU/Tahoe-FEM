@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.20 2004-08-08 17:45:32 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.21 2004-08-12 17:43:46 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -636,6 +636,9 @@ void SIERRA_Material_BaseT::Store(ElementCardT& element, int ip)
 void SIERRA_Material_BaseT::Set_Calc_Arguments(void)
 {
 	const char caller[] = "SIERRA_Material_BaseT::Set_Calc_Arguments";
+	
+	/* reset state variables to the start of the increment */
+	fstate_new = fstate_old;
 
 	/* determine material input */
 	const ArrayT<StringT>& input = fSIERRA_Material_Data->InputVariables();
