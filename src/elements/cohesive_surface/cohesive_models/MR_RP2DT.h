@@ -1,3 +1,5 @@
+/* created by manzari*/
+/* Rigid Plastic Cohesive Model for Geomaterials*/
 #ifndef _MR_RP_2D_T_H_
 #define _MR_RP_2D_T_H_
 

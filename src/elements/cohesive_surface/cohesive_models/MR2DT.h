@@ -1,3 +1,5 @@
+/* created by manzari*/
+/* Elastoplastic Cohesive Model for Geomaterials*/
 #ifndef _MR_2D_T_H_
 #define _MR_2D_T_H_
 
@@ -40,8 +42,9 @@ public:
 
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
+
 	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate);
-    
+  
     double& Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff);
     dArrayT& qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar);
     dArrayT& dfdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdSig);
@@ -82,6 +85,7 @@ public:
 	//        virtual double ComputeNodalValue(const dArrayT &);
 	//	virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
 	virtual void SetElementGroupsNeeded(iArrayT& iGroups);
+	
 	
 private:
 

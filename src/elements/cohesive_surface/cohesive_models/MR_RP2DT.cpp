@@ -1,3 +1,5 @@
+/* created by manzari*/
+/* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
 
 #include <iostream.h>
@@ -168,7 +170,7 @@ double Denom;
     dQdSig[0] = 2.*Sig[0];
     dQdSig[1] = 2.*qn[3]*qn[1] - Sig[1]*qn[3];
     dfdSig[0] = 2.*Sig[0];
-    dfdSig[1] = 2.*qn[4]*qn[1] - Sig[1]*qn[4];
+    dfdSig[1] = 2.*qn[2]*qn[1] - Sig[1]*qn[2];
     qbar_f(Sig, qn, qbar);
     dfdq_f(Sig, qn, dfdq);
     Denom = 0.;
@@ -601,7 +603,7 @@ double bott, dlam;
 	        KE.MultAB(A_uq,KE1);
 	        KE *= state[12];
 	        KE *= state[12];
-	        KE2 = A_qq;
+	        KE2 = dQdSig2;
 	        KE2 *=state[12];
 	        KE += KE2;
 	        

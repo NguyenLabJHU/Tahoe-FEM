@@ -1,3 +1,5 @@
+/* created by manzari*/
+/* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR2DT.h"
 
 #include <iostream.h>
@@ -125,6 +127,7 @@ void MR2DT::PrintName(ostream& out) const
 
 		
 /* traction vector given displacement jump vector */	
+
 const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
 {
 #pragma unused(sigma)
@@ -133,6 +136,14 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
 
+if (! qIntegrate) 
+{
+    fTraction[0] = state[0];
+    fTraction[1] = state[1];
+    return fTraction;
+}
+else
+{
 int i; int j; int kk;
 
 dMatrixT AA(6,6); dMatrixT KE(2,2); dMatrixT KE_Inv(2,2); dMatrixT I_mat(4,4); 
@@ -352,7 +363,7 @@ double ff; double bott; double topp; double dlam; double dlam2; double normr;
 
 	return fTraction;
 }
-
+}
 
 /* calculation of Yield_f */
 
@@ -651,7 +662,7 @@ double bott;
 	   		fStiffness[2] = KEP(1,0);
 	   		fStiffness[3] = KEP(1,1);
 	       }
-	      
+
 	return fStiffness;
 
 }
