@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.52.2.6 2004-11-24 15:06:36 d-farrell2 Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.52.2.7 2004-11-25 00:53:14 d-farrell2 Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -62,6 +62,10 @@ NodeManagerT::NodeManagerT(FEManagerT& fe_manager, CommManagerT& comm_manager):
 	/* init support */
 	fFieldSupport.SetFEManager(&fe_manager);
 	fFieldSupport.SetNodeManager(this);
+	
+	// initialize the partition ends to everything
+	fPartFieldStart = 0;
+	fPartFieldEnd = - 1;
 }
 
 /* destructor */
