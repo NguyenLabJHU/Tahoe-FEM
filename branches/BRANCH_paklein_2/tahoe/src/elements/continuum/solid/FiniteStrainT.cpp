@@ -1,8 +1,11 @@
-/* $Id: FiniteStrainT.cpp,v 1.13 2002-10-20 22:48:23 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.13.2.1 2002-11-13 08:40:42 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
 #include "FDStructMatT.h"
+#include "FDMatSupportT.h"
+
+/* materials lists */
 #include "MaterialList1DT.h"
 #include "MaterialList2DT.h"
 #include "MaterialList3DT.h"
@@ -13,7 +16,8 @@ using namespace Tahoe;
 FiniteStrainT::FiniteStrainT(const ElementSupportT& support, const FieldT& field):
 	ElasticT(support, field),
 	fNeedsOffset(-1),
-	fCurrShapes(NULL)	
+	fCurrShapes(NULL),
+	fFDMatSupport(NULL)
 {
 	/* disable any strain-displacement options */
 	if (fStrainDispOpt != kStandardB)
@@ -21,6 +25,12 @@ FiniteStrainT::FiniteStrainT(const ElementSupportT& support, const FieldT& field
 		cout << "\n FiniteStrainT::FiniteStrainT: no strain-displacement options\n" << endl;
 		fStrainDispOpt = kStandardB;
 	}
+}
+
+/* destructor */
+FiniteStrainT::~FiniteStrainT(void)
+{
+	delete fFDMatSupport;
 }
 
 /* called immediately after constructor */
@@ -61,6 +71,16 @@ void FiniteStrainT::Initialize(void)
 	}
 }
 
+/* TEMPORARY */
+void FiniteStrainT::InitialCondition(void)
+{
+	/* inherited */
+	ElasticT::InitialCondition();
+	
+	/* set the source for the iteration number */
+	fFDMatSupport->SetIterationNumber(ElementSupport().IterationNumber(Group()));
+}
+
 /* compute field gradients with respect to current coordinates */
 void FiniteStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u) const
 {
@@ -96,15 +116,40 @@ void FiniteStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u,
 * Protected
 ***********************************************************************/
 
-/* construct materials manager and read data */
-MaterialListT* FiniteStrainT::NewMaterialList(int size) const
+/* construct a new material support and return a pointer */
+MaterialSupportT* FiniteStrainT::NewMaterialSupport(MaterialSupportT* p) const
 {
-        if (NumSD() == 1) /* 1D added by HSP 6-26-02 */
-	        return new MaterialList1DT(size, *this);
+	/* allocate */
+	if (!p) p = new FDMatSupportT(NumSD(), NumDOF(), NumIP());
+
+	/* inherited initializations */
+	ElasticT::NewMaterialSupport(p);
+	
+	/* set StructuralMatSupportT fields */
+	FDMatSupportT* ps = dynamic_cast<FDMatSupportT*>(p);
+	if (ps) {
+		ps->SetDeformationGradient(&fF_List);
+		ps->SetDeformationGradient_last(&fF_last_List);
+	}
+
+	return p;
+}
+
+/* construct materials manager and read data */
+MaterialListT* FiniteStrainT::NewMaterialList(int size)
+{
+	/* material support */
+	if (!fFDMatSupport) {
+		fFDMatSupport = dynamic_cast<FDMatSupportT*>(NewMaterialSupport());
+		if (!fFDMatSupport) throw ExceptionT::kGeneralFail;
+	}
+
+	if (NumSD() == 1)
+		return new MaterialList1DT(size, *fFDMatSupport);
 	else if (NumSD() == 2)
-		return new MaterialList2DT(size, *this);
+		return new MaterialList2DT(size, *fFDMatSupport);
 	else if (NumSD() == 3)
-		return new MaterialList3DT(size, *this);
+		return new MaterialList3DT(size, *fFDMatSupport);
 	else
 		return NULL;			
 }
