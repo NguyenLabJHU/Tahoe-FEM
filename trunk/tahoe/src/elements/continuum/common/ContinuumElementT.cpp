@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.11 2001-09-05 22:29:16 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.12 2001-10-24 02:10:01 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 
 #include "ContinuumElementT.h"
@@ -173,6 +173,9 @@ void ContinuumElementT::CloseStep(void)
 {
 	/* inherited */
 	ElementBaseT::CloseStep();
+
+	/* set material variables */
+	fMaterialList->CloseStep();
 
 	/* update element level internal variables */
 	if (fMaterialList->HasHistoryMaterials())
