@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.39 2004-11-02 22:33:19 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.40 2004-12-22 22:38:58 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 
@@ -71,6 +71,8 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support, const FieldT& field):
 	fNumIP(1),
 	vCellFile("voronoidiagram")
 {
+#pragma unused(field)
+
 	SetName("mfparticle");
 
 	/* set matrix format */
@@ -679,6 +681,8 @@ bool SCNIMFT::ChangingGeometry(void) const
 /* echo element connectivity data */
 void SCNIMFT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index) 
 {
+#pragma unused(mat_index)
+
 	const char caller[] = "SCNIMFT::DefineElements";
 	
 	/* access to the model database */
@@ -751,10 +755,10 @@ void SCNIMFT::AssembleParticleMass(const double rho)
 {
 	
 	fForce = 0.0;
-	double* m = fForce.Pointer();
 	int* nodes = fNodes.Pointer();
 	double* volume = fVoronoiCellVolumes.Pointer();
 	for (int i = 0; i < fNodes.Length(); i++) {
+		double* m = fForce(*nodes++);
 		for (int j = 0; j < fSD; j++)
 			*m++ = *volume;
 		volume++;
@@ -909,26 +913,32 @@ int SCNIMFT::SupportSize(int localNode)
 void SCNIMFT::InitializeVoronoiData(void)
 {
 #ifdef __QHULL__
+  // use qhull's data structures but make our own specialized versions
+  CompGeomT::ConvexHullMap selfDuals;
+  VoronoiDiagramMap voronoiFacetIndices;
+  ArrayT<dArrayT> voronoiFacetAreas;
+  ArrayT<dArray2DT> voronoiFacetNormals;
+  CompGeomT::ConvexHullMap voronoiCells;
+
   fVoronoiVertices.Alias(fVoronoi->VoronoiVertices());
-  fVoronoiCells.Alias(fVoronoi->VoronoiCells()); 		
-  fVoronoiFacetIndices.Alias(fVoronoi->VoronoiFacetIndices());
+  voronoiCells.Alias(fVoronoi->VoronoiCells()); 		
+  voronoiFacetIndices.Alias(fVoronoi->VoronoiFacetIndices());
   
   // Data for integration over boundary of each Voronoi region
-  fVoronoiFacetAreas.Alias(fVoronoi->VoronoiFacetAreas());
-  fVoronoiFacetNormals.Alias(fVoronoi->VoronoiFacetNormals());
+  voronoiFacetAreas.Alias(fVoronoi->VoronoiFacetAreas());
+  voronoiFacetNormals.Alias(fVoronoi->VoronoiFacetNormals());
   fVoronoiCellVolumes.Alias(fVoronoi->VoronoiCellVolumes());
   
   fDeloneEdges.Alias(fVoronoi->DeloneEdges());
   fDualFacets.Alias(fVoronoi->DualFacets());
-  fNumClippedFacets = fVoronoi->NumClippedFacets();
-  fSelfDuals.Alias(fVoronoi->SelfDualFacets());
-  fNumSelfDuals = fVoronoi->NumSelfDualFacets();
+  selfDuals.Alias(fVoronoi->SelfDualFacets());
+  int numSelfDuals = fVoronoi->NumSelfDualFacets();
 
-  fNonDeloneEdges.Dimension(fNumSelfDuals);
-  fNonDeloneNormals.Dimension(fNumSelfDuals, fSD);
-  fBoundaryIntegrationWeights.Dimension(fNumSelfDuals);
-  fSelfDualFacets.Dimension(fNumSelfDuals, 2);
-
+  fNonDeloneEdges.Dimension(numSelfDuals);
+  fNonDeloneNormals.Dimension(numSelfDuals, fSD);
+  fBoundaryIntegrationWeights.Dimension(numSelfDuals);
+  fSelfDualFacets.Dimension(numSelfDuals, 2);
+  
   int ctr = 0;
   double *v1;
   
@@ -939,24 +949,35 @@ void SCNIMFT::InitializeVoronoiData(void)
   double *pt = ptArray.Pointer(); 
   
   for (int i = 0; i < fSelfDuals.Length(); i++)
-    for (int j = 0; j < fSelfDuals[i].Length(); j++) {
-      fNonDeloneEdges[ctr] = fBoundaryNodes[i];
-      thisFacet = &fVoronoiFacetIndices[fBoundaryNodes[i]][fSelfDuals[i][j]];
-      thisFacetLength = thisFacet->Length();
-      ptArray = 0.;
-      for (int k = 0; k < thisFacetLength; k++) {
-	v1 = fVoronoiVertices(fVoronoiCells[fBoundaryNodes[i]][(*thisFacet)[k]]);
-	for (int l = 0; l < fSD; l++)
-	  pt[l] += v1[l];
-	fSelfDualFacets(ctr,k) =  fVoronoiCells[fBoundaryNodes[i]][(*thisFacet)[k]]; 
-      }
+    	for (int j = 0; j < fSelfDuals[i].Length(); j++) {
+      		fNonDeloneEdges[ctr] = fBoundaryNodes[i];
+      		thisFacet = &voronoiFacetIndices[fBoundaryNodes[i]][selfDuals[i][j]];
+      		thisFacetLength = thisFacet->Length();
+      		ptArray = 0.;
+      		for (int k = 0; k < thisFacetLength; k++) {
+				v1 = fVoronoiVertices(voronoiCells[fBoundaryNodes[i]][(*thisFacet)[k]]);
+				for (int l = 0; l < fSD; l++)
+	  				pt[l] += v1[l];
+				fSelfDualFacets(ctr,k) =  voronoiCells[fBoundaryNodes[i]][(*thisFacet)[k]]; 
+      		}
       
-      for (int k = 0; k < fSD; k++) 
-	fNonDeloneNormals(ctr,k) =  fVoronoiFacetNormals[fBoundaryNodes[i]](fSelfDuals[i][j],k);
+      		for (int k = 0; k < fSD; k++) 
+				fNonDeloneNormals(ctr,k) =  voronoiFacetNormals[fBoundaryNodes[i]](fSelfDuals[i][j],k);
       
-      fBoundaryIntegrationWeights[ctr] =  fVoronoiFacetAreas[fBoundaryNodes[i]][fSelfDuals[i][j]];
-      ctr++;
-    }
+      		fBoundaryIntegrationWeights[ctr] =  voronoiFacetAreas[fBoundaryNodes[i]][fSelfDuals[i][j]];
+      		ctr++;
+    	}
+    	
+  // Data for Axisymmetric mass matrix calculation
+  int nVoronoiCells = voronoiCells.Length();
+  fVoronoiCellCentroids.Dimension(nVoronoiCells, fSD);
+  fVoronoiCellCentroids = 0.;
+  for (int i = 0; i < nVoronoiCells; i++) {
+  	iArrayT& cell_i = voronoiCells[i];
+  	for (int j = 0; j < cell_i.Length(); j++) 
+      fVoronoiCellCentroids.AddRowScaled(i,1.,fVoronoiVertices(cell_i[j]));
+    fVoronoiCellCentroids.ScaleRow(i,1./double(cell_i.Length()))
+  }
 #endif
 }
 
@@ -1355,30 +1376,9 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
     for (int i = 0; i < fNodes.Length(); i++) {
 		vout << i <<"\n";
 
-		// number of vertices on the boundary of the Voronoi cell
-		vout << fVoronoiCells[i].Length() << " ";
-		for (int j = 0; j < fVoronoiCells[i].Length(); j++)
-		  vout << fVoronoiCells[i][j] << " ";
-		vout << "\n";
+		for (int j = 0; j < fSD; j++)
+			vout << fVoronoiCellCentroids(i,j);
 
-		// number of facets
-		vout << fVoronoiFacetIndices[i].Length() << "\n";
-		
-		// data for each facet
-		for (int j = 0; j < fVoronoiFacetIndices[i].Length(); j++) {
-	   		vout << j << " " << fVoronoiFacetIndices[i][j].Length() << " ";
-	    	for (int k = 0; k < fVoronoiFacetIndices[i][j].Length(); k++)
-	      		vout << fVoronoiFacetIndices[i][j][k] << " ";
-	    
-	    	// area of facet
-	    	vout << fVoronoiFacetAreas[i][j] << " ";
-	    
-	    	// facet normal vector
-	    	for (int k = 0; k < nSD; k++)
-	      		vout << fVoronoiFacetNormals[i](j,k) << " ";
-	    	vout << "\n";
-	  	}
-	
 		// cell volume
 		vout << fVoronoiCellVolumes[i] << "\n";
     }
@@ -1402,33 +1402,28 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
   
     // write out self-duals and allocate storage for them
     // self-duals are facets on the body boundary dual to only 1 node in the body
-    vout << fNumSelfDuals << "\n";
-    for (int i = 0; i < fNumSelfDuals; i++)
+    int numSelfDuals = fNonDeloneEdges.Length();
+    vout << numSelfDuals << "\n";
+    for (int i = 0; i < numSelfDuals; i++)
       vout << fNonDeloneEdges[i] << " ";
     vout << "\n";
-
-    // list of centroids of self-dual facets
-    iArrayT* thisFacet;
-    int thisFacetLength;
-    dArrayT ptArray(fSD); // workspace for centroids
-    double *pt = ptArray.Pointer(); 
     
-    for (int i = 0; i < fNumSelfDuals; i++) { 
+    for (int i = 0; i < numSelfDuals; i++) { 
       for (int k = 0; k < fSD; k++)
-	vout << fSelfDualFacets(i,k) << " "; // SPECIALIZED TO 2D!!!
+	    vout << fSelfDualFacets(i,k) << " "; // SPECIALIZED TO 2D!!!
       vout << "\n";
     }
 
     // list of normals of self-dual facets
-    for (int i = 0; i < fNumSelfDuals; i++) {
+    for (int i = 0; i < numSelfDuals; i++) {
       for (int k = 0; k < fSD; k++) {
-	vout << fNonDeloneNormals(i,k) << " ";
+	    vout << fNonDeloneNormals(i,k) << " ";
       }
       vout << "\n";
     }
 
     // list of areas of self-dual facets
-    for (int i = 0; i < fNumSelfDuals; i++)
+    for (int i = 0; i < numSelfDuals; i++)
       vout << fBoundaryIntegrationWeights[i] << "\n";
  
 }	
@@ -1447,7 +1442,7 @@ void SCNIMFT::VoronoiDiagramFromFile(ifstreamT& vin)
     }
     
     vin >> nSD;
-    if (nSD != 2 ) {
+    if (nSD != fSD) {
 		vin.close();
 		ExceptionT::GeneralFail(caller,"Input Voronoi file does not match SD\n");
     }
@@ -1456,11 +1451,8 @@ void SCNIMFT::VoronoiDiagramFromFile(ifstreamT& vin)
     
     // allocate memory for Voronoi diagram data structures
     fVoronoiVertices.Dimension(nVertices, nSD);
-    fVoronoiCells.Dimension(nNodes);
-    fVoronoiFacetIndices.Dimension(nNodes);
+    fVoronoiCellCentroids.Dimension(nNodes, nSD);
     fVoronoiCellVolumes.Dimension(nNodes);
-    fVoronoiFacetAreas.Dimension(nNodes);
-    fVoronoiFacetNormals.Dimension(nNodes);
 
     for (int i = 0 ; i < nVertices; i++)
     	for (int j = 0; j < nSD; j++)
@@ -1472,35 +1464,8 @@ void SCNIMFT::VoronoiDiagramFromFile(ifstreamT& vin)
 		if (itmp != i)
 	  		ExceptionT::GeneralFail(caller,"Bad Input Voronoi file\n");
 
-		// read in number of vertices on Voronoi cell i
-		vin >> itmp;
-		fVoronoiCells[i].Dimension(itmp);
-		for (int j = 0; j < itmp; j++)
-	  		vin >> fVoronoiCells[i][j];
-	  		
-		// number of facets
-		int nFacets;
-		vin >> nFacets;
-		fVoronoiFacetIndices[i].Dimension(nFacets);
-		fVoronoiFacetAreas[i].Dimension(nFacets);
-		fVoronoiFacetNormals[i].Dimension(nFacets, nSD);
-		for (int j = 0; j < nFacets; j++) {
-	    	vin >> itmp;
-	    	if (itmp != j)
-	      		ExceptionT::GeneralFail(caller,"Bad Input Voronoi File\n");
-	  
-	    	// number of vertices in facet
-	    	vin >> itmp;
-	    	fVoronoiFacetIndices[i][j].Dimension(itmp);
-	    
-	    	for (int k = 0; k < itmp; k++)
-				vin >> fVoronoiFacetIndices[i][j][k];
-	    	
-	    	vin >> fVoronoiFacetAreas[i][j];
-	    	
-	    	for (int k = 0; k < nSD; k++)
-	      		vin >> fVoronoiFacetNormals[i](j,k);
-        }
+	  	for (int j = 0; j < fSD; j++)
+			vin >> fVoronoiCellCentroids(i,j);
 	
 		vin >> fVoronoiCellVolumes[i];
 
