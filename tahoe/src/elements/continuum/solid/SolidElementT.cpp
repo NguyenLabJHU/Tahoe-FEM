@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.58.14.2 2004-04-09 05:25:48 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.58.14.3 2004-06-07 13:49:20 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -13,6 +13,7 @@
 #include "eIntegratorT.h"
 #include "iAutoArrayT.h"
 #include "ParameterContainerT.h"
+#include "ParameterUtils.h"
 
 /* materials */
 #include "SolidMaterialT.h"
@@ -369,6 +370,13 @@ ParameterInterfaceT* SolidElementT::NewSub(const StringT& list_name) const
 	{
 		ParameterContainerT* node_output = new ParameterContainerT(list_name);
 		
+		/* wave speed sampling direction */
+		ParameterContainerT wave_direction("wave_direction");
+		wave_direction.SetListOrder(ParameterListT::Choice);
+		wave_direction.AddSub("Vector_2");
+		wave_direction.AddSub("Vector_3");
+		node_output->AddSub(wave_direction, ParameterListT::ZeroOrOnce);
+		
 		/* all false by default */
 		for (int i = 0; i < NumNodalOutputCodes; i++)
 			node_output->AddParameter(ParameterT::Integer, NodalOutputNames[i], ParameterListT::ZeroOrOnce);
@@ -392,6 +400,8 @@ ParameterInterfaceT* SolidElementT::NewSub(const StringT& list_name) const
 /* accept parameter list */
 void SolidElementT::TakeParameterList(const ParameterListT& list)
 {
+	const char caller[] = "SolidElementT::TakeParameterList";
+
 	/* inherited */
 	ContinuumElementT::TakeParameterList(list);
 
@@ -410,7 +420,9 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 	fNodalOutputCodes = 0;
 	qUseSimo = qNoExtrap = false;	
 	const ParameterListT* node_output = list.List("solid_element_nodal_output");
-	if (node_output)
+	if (node_output) 
+	{
+		/* set flags */
 		for (int i = 0; i < NumNodalOutputCodes; i++)
 		{
 			/* look for entry */
@@ -431,6 +443,23 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 	    			fNodalOutputCodes[i] = 1;
 			}
 		}
+	
+		/* wave speed sampling direction */
+		if (fNodalOutputCodes[iWaveSpeeds])
+		{
+			/* resolve list choice */
+			ParameterInterfaceT* n_output = NewSub(node_output->Name());
+			const ParameterListT* vec_params = node_output->ResolveListChoice(*n_output, "wave_direction");
+			delete n_output;
+			
+			/* extract unit vector */
+			if (!vec_params) ExceptionT::GeneralFail(caller, "\"wave_direction\" required with wave speed output");
+			VectorParameterT::Extract(*vec_params, fNormal);
+			if (fNormal.Length() != NumSD()) ExceptionT::GeneralFail(caller, "expecting normal length %d not %d",
+				NumSD(), fNormal.Length());
+			fNormal.UnitVector();
+		}	
+	}
 
 	/* element output codes */
 	fElementOutputCodes.Dimension(NumElementOutputCodes);
