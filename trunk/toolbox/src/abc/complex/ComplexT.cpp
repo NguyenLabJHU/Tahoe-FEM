@@ -10,8 +10,28 @@
 #include "Constants.h"
 #include "nArrayT.h"
 
+
 /* array behavior */
 const bool ArrayT<ComplexT>::fByteCopy = true;
+
+/*
+ * Conjugate
+ */
+ComplexT Conjugate(const ComplexT& z)
+{
+	return (  ComplexT( z.Re()  , -1.0*(z.Im() ) )  );
+}
+
+ComplexT ComplexT::Conjugate( void )  
+{
+	(*this).fIm *= -1.;
+	
+	return(*this);
+	
+ }
+
+
+
 
 /*
 * Real and Imaginary parts of arrays - must be dimensioned BEFORE call

@@ -64,3 +64,20 @@ zArrayT& zArrayT::toZ(const dArrayT& re, const dArrayT& im)
 
 	return (*this);
 }
+
+
+zArrayT& zArrayT::Conjugate( const zArrayT& array)
+{
+	    
+	// dimension  
+	Allocate(array.Length() );
+	
+
+	ComplexT* pthis  = Pointer();
+		
+	for(int i=0;i<Length();i++)
+		 (*pthis++).toZ( array[i].Re(), -1*array[i].Im() );
+			
+	return (*this);
+
+}

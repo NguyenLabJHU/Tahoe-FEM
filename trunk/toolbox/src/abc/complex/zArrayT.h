@@ -44,6 +44,9 @@ public:
 	void toRe(dArrayT& re) const;
 	void toIm(dArrayT& im) const;
 	zArrayT& toZ(const dArrayT& re, const dArrayT& im);
+	
+	zArrayT& Conjugate( const zArrayT& array);
+	
 };
 
 /*

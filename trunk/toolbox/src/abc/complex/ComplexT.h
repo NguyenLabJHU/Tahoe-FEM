@@ -27,6 +27,12 @@ public:
 	ComplexT& toZ(double re, double im); //returns reference to this
 	
 	/*
+	 * Conjugate
+	 */
+	friend ComplexT Conjugate( const ComplexT& z );
+	ComplexT Conjugate(void) ;
+	
+	/*
 	 * Real and Imaginary parts of arrays - must be dimensioned BEFORE call
 	 */
 	friend void z_to_Re(const nArrayT<ComplexT>& z, nArrayT<double>& d);
@@ -41,6 +47,8 @@ public:
 	/* Assignment operators */
 	ComplexT& operator=(const ComplexT& zRHS);
 	ComplexT& operator=(double re);
+	ComplexT& operator=(int i);
+
 
 	/* Addition */
 	friend ComplexT operator+(const ComplexT& z1 , const ComplexT& z2) ;
@@ -115,6 +123,17 @@ inline ComplexT& ComplexT::operator=(double re)
 
 	return (*this);
 }
+
+inline ComplexT& ComplexT::operator=(int i)
+{
+	fRe = i;
+	fIm = 0.0;
+
+	return (*this);
+}
+
+
+
 
 /* Addition */
 inline ComplexT operator+(const ComplexT& z1, const ComplexT& z2)
