@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2001-10-25 22:18:35 cjkimme Exp $
+# $Id: makefile,v 1.8 2002-02-18 19:09:43 cjkimme Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,6 +6,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
+	RateDep2DT.o \
 	LinearDamageT.o \
 	SurfacePotentialT.o \
 	Tijssens2DT.o \
@@ -21,6 +22,7 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
+	RateDep2DT.cpp \
 	LinearDamageT.cpp \
 	SurfacePotentialT.cpp \
         Tijssens2DT.cpp \
@@ -30,6 +32,7 @@ SRC = \
 	XuNeedleman3DT.cpp 
 # headers
 HDR = \
+	RateDep2DT.h \
 	LinearDamageT.h \
 	SurfacePotentialT.h \
 	Tijssens2DT.h \
