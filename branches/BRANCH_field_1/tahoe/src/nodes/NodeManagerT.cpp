@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.7.2.6 2002-05-05 23:44:31 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.7.2.7 2002-05-11 21:01:18 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "NodeManagerT.h"
@@ -106,13 +106,6 @@ void NodeManagerT::Initialize(void)
 	/* set fields */
 	EchoFields(in, out);
 
-	//TEMP - for now, use field called "displacement" to update the
-	//       reference coordinates to the current coordinates
-	fCoordUpdate = Field("displacement");
-	if (fCoordUpdate) {
-		fCurrentCoords = new dArray2DT(InitialCoordinates());
-	}
-	
 	/* external nodes (parallel execution) */
 	EchoExternalNodes(out);
 
@@ -1192,6 +1185,16 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			field->Dimension(NumNodes());
 			field->WriteParameters(out);
 
+			/* coordinate update field */
+			if (name == "displacement") {
+				if (fCoordUpdate) {
+					cout << "\n NodeManagerT::EchoFields: \"displacement\" field already set" << endl;
+					throw eBadInputValue;
+				}
+				fCoordUpdate = field;
+				fCurrentCoords = new dArray2DT(InitialCoordinates());
+			}
+
 			/* echo initial/boundary conditions */
 			EchoInitialConditions(*field, in, out);
 			EchoKinematicBC(*field, in, out);
@@ -1269,6 +1272,16 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 		
 		/* clear all equation numbers */
 		field->Equations() = FieldT::kInit;
+
+		/* coordinate update field */
+		if (field->Name() == "displacement") {
+			if (fCoordUpdate) {
+				cout << "\n NodeManagerT::EchoFields: \"displacement\" field already set" << endl;
+				throw eBadInputValue;
+			}
+			fCoordUpdate = field;
+			fCurrentCoords = new dArray2DT(InitialCoordinates());
+		}
 
 		/* initial/boundary conditions */
 		EchoInitialConditions(*field, in, out);
