@@ -63,9 +63,9 @@ class MeshAtom {
   // Access to mesh
   double Volume_of_Mesh();
 
-  iArrayT* MeshAtom::ReturnAtomID();
-  dArray2DT* MeshAtom::ReturnCoordinates();
-  iArray2DT* MeshAtom::ReturnConnectivities();
+  iArrayT* ReturnAtomID();
+  dArray2DT* ReturnCoordinates();
+  iArray2DT* ReturnConnectivities();
   void BuildIOFile(StringT& program_name,
 			     StringT& version, StringT& title, 
 			     StringT& input_file,
