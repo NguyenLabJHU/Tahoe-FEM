@@ -1,5 +1,5 @@
 
-/* $Id: VTKConsoleT.h,v 1.28 2002-06-12 19:04:08 recampb Exp $ */
+/* $Id: VTKConsoleT.h,v 1.29 2002-06-26 18:00:21 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -39,6 +39,8 @@ class VTKConsoleT: public iConsoleObjectT
 
   /** return the list of bodies */
   const ArrayT<VTKBodyDataT*> Bodies(void) const { return fBodies; };
+  
+  static AutoArrayT<vtkActor*> pickedPoints;
 
  protected:
  
@@ -62,6 +64,8 @@ class VTKConsoleT: public iConsoleObjectT
   static void PickPoints(void *);
 
   static void PickCells(void *);
+
+
 
   /** returns the index of the requested option */
   bool CommandLineOption(const char* str, int& index, int start = 0) const;
@@ -87,7 +91,7 @@ class VTKConsoleT: public iConsoleObjectT
   vtkPointPicker* pointPicker;
   vtkCellPicker* cellPicker;
 
-  static AutoArrayT<vtkActor*> pickedPoints;
+
   //static vtkActorCollection* pickedPoints;
  
 };

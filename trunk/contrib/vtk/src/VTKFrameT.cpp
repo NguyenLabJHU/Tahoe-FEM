@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.25 2002-06-13 22:47:24 recampb Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.26 2002-06-26 18:00:21 recampb Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -71,22 +71,26 @@ VTKFrameT::VTKFrameT(VTKConsoleT& console):
   iAddCommand(CommandSpecT("HideElementNumbers"));
   iAddCommand(CommandSpecT("ShowAxes"));
   iAddCommand(CommandSpecT("HideAxes"));
-  iAddCommand(CommandSpecT("ShowContours"));
-  iAddCommand(CommandSpecT("HideContours"));
+//   iAddCommand(CommandSpecT("ShowContours"));
+//   iAddCommand(CommandSpecT("HideContours"));
 //   iAddCommand(CommandSpecT("ShowCuttingPlane"));
 //   iAddCommand(CommandSpecT("HideCuttingPlane"));
 
 
 
-	CommandSpecT show_color_bar("ShowColorBar");
-	ArgSpecT body(ArgSpecT::string_);
-	body.SetDefault("<DEFAULT>");
-	body.SetPrompt("body to reference scalar range");
-	show_color_bar.AddArgument(body);
-	iAddCommand(show_color_bar);
-
-	iAddCommand(CommandSpecT("HideColorBar"));
-
+  CommandSpecT show_color_bar("ShowColorBar");
+  ArgSpecT body(ArgSpecT::string_);
+  body.SetDefault("<DEFAULT>");
+  body.SetPrompt("body to reference scalar range");
+  show_color_bar.AddArgument(body);
+  ArgSpecT location(ArgSpecT::string_, "location");
+  location.SetDefault("L");
+  location.SetPrompt("color bar position, where T/t = top, L/l = left, B/b = bottom, R/r = right");
+  show_color_bar.AddArgument(location);
+  iAddCommand(show_color_bar);
+  
+  iAddCommand(CommandSpecT("HideColorBar"));
+  
   CommandSpecT rotate("Rotate", false);
   ArgSpecT rot_x(ArgSpecT::double_, "x");
   rot_x.SetDefault(0.0);
@@ -333,8 +337,11 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 	else
   	{
   		StringT body;
-		command.Argument(0).GetValue(body);  	
-  	
+		StringT location;
+		command.Argument(0).GetValue(body);
+		command.Argument("location").GetValue(location);
+		
+		
   		/* use default */
   		VTKBodyDataT* body_data = NULL;
   		if (body == "<DEFAULT>")
@@ -385,10 +392,38 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 		const StringT& var_name = (body_data->NodeLabels())[body_data->CurrentVariableNumber()];
 		scalarBar->SetTitle(var_name);
 		scalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
-		scalarBar->GetPositionCoordinate()->SetValue(0.01,0.1);
-		scalarBar->SetOrientationToVertical();
-		scalarBar->SetWidth(0.15); 
-		scalarBar->SetHeight(0.8);
+		
+		if (location == "L" || location == "l")
+		  {
+		    scalarBar->GetPositionCoordinate()->SetValue(0.01,0.1);
+		    scalarBar->SetOrientationToVertical();
+		    scalarBar->SetWidth(0.15); 
+		    scalarBar->SetHeight(0.8);
+		  }
+		
+		else if (location =="R" || location == "r")
+		  {
+		    scalarBar->GetPositionCoordinate()->SetValue(0.84,0.1);
+		    scalarBar->SetOrientationToVertical();
+		    scalarBar->SetWidth(0.15); 
+		    scalarBar->SetHeight(0.8); 
+		  }
+		
+		else if (location == "T" || location == "t")
+		  {
+		    scalarBar->GetPositionCoordinate()->SetValue(0.1,0.84);
+		    scalarBar->SetOrientationToHorizontal();
+		    scalarBar->SetWidth(0.8); 
+		    scalarBar->SetHeight(0.15); 
+		  }		
+		
+		else if (location == "B" || location == "b")
+		  {
+		    scalarBar->GetPositionCoordinate()->SetValue(0.1,0.01);
+		    scalarBar->SetOrientationToHorizontal();
+		    scalarBar->SetWidth(0.8); 
+		    scalarBar->SetHeight(0.15); 
+		  }
 		
 		Render();
 		return true;
@@ -749,53 +784,53 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 		return true;
     }
 
-  else if (command.Name() == "ShowContours")
-    {
-      	if (bodies.Length() == 0)
-    		return false;
-    	else
-    	{
-    		/* command spec */
-    		CommandSpecT* show = bodies[0]->iCommand("ShowContours");
-    		if (!show)
-    		{
-    			cout << "command not found" << endl;
-    			return false;
-    		}
+ //  else if (command.Name() == "ShowContours")
+//     {
+//       	if (bodies.Length() == 0)
+//     		return false;
+//     	else
+//     	{
+//     		/* command spec */
+//     		CommandSpecT* show = bodies[0]->iCommand("ShowContours");
+//     		if (!show)
+//     		{
+//     			cout << "command not found" << endl;
+//     			return false;
+//     		}
     	
-    		/* labels ON */
-    		StringT tmp;
-    		for (int i = 0; i < bodies.Length(); i++)
-    			bodies[i]->iDoCommand(*show, tmp);
+//     		/* labels ON */
+//     		StringT tmp;
+//     		for (int i = 0; i < bodies.Length(); i++)
+//     			bodies[i]->iDoCommand(*show, tmp);
 
-			Render();
-			return true;
-    	}    
-    }
+// 			Render();
+// 			return true;
+//     	}    
+//     }
 
-  else if (command.Name() == "HideContours")
-    {
-    	if (bodies.Length() == 0)
-    		return false;
-    	else
-    	{
-    		/* command spec */
-    		CommandSpecT* hide = bodies[0]->iCommand("HideContours");
-    		if (!hide)
-    		{
-    			cout << "command not found" << endl;
-    			return false;
-    		}
+//   else if (command.Name() == "HideContours")
+//     {
+//     	if (bodies.Length() == 0)
+//     		return false;
+//     	else
+//     	{
+//     		/* command spec */
+//     		CommandSpecT* hide = bodies[0]->iCommand("HideContours");
+//     		if (!hide)
+//     		{
+//     			cout << "command not found" << endl;
+//     			return false;
+//     		}
     	
-    		/* labels OFF */
-    		StringT tmp;
-    		for (int i = 0; i < bodies.Length(); i++)
-    			bodies[i]->iDoCommand(*hide, tmp);
+//     		/* labels OFF */
+//     		StringT tmp;
+//     		for (int i = 0; i < bodies.Length(); i++)
+//     			bodies[i]->iDoCommand(*hide, tmp);
 
-			Render();
-			return true;
-    	}    
-    }
+// 			Render();
+// 			return true;
+//     	}    
+//     }
 
 
  //  else if (command.Name() == "ShowCuttingPlane")

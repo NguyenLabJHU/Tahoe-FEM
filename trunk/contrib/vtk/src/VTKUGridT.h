@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.h,v 1.14 2002-06-22 01:54:48 paklein Exp $ */
+/* $Id: VTKUGridT.h,v 1.15 2002-06-26 18:00:21 recampb Exp $ */
 #ifndef _VTK_U_GRID_T_H_
 #define _VTK_U_GRID_T_H_
 
@@ -77,16 +77,16 @@ class VTKUGridT
 	void SetScalars(vtkFloatArray* scalars);
 
 	/** display data as contour surfaces in 3D or contour lines in 2D */
-	void ShowContours(vtkFloatArray* scalars, int numContours, double min, double max);
+	void ShowContours(vtkFloatArray* scalars, int numContours, double min, double max, vtkRenderer* renderer);
 	
 	/** remove contours */
-	void HideContours(vtkFloatArray* scalars);
+	void HideContours(vtkFloatArray* scalars, vtkRenderer* renderer);
 
 	void CuttingPlane(vtkRenderer* renderer, double oX, double oY, double oZ, double nX, double nY, double nZ, bool warp);
 
 	void HideCuttingPlane(vtkRenderer* renderer);
 
-	void Glyphing(vtkFloatArray* vectors, vtkRenderer* renderer, bool filter, bool warpA);
+	void Glyphing(vtkFloatArray* vectors, vtkRenderer* renderer, bool filter, bool warpA, bool scale, bool color);
 
 	void HideGlyphing(void);
 
@@ -100,7 +100,8 @@ class VTKUGridT
 	void SetVectors(vtkFloatArray* vectors);
 
 	/** set vectors that warp */
-	void SetWarpVectors(vtkFloatArray* vectors, const dArray2DT& coords);
+
+	void SetWarpVectors(vtkFloatArray* vectors);
   
 	/** return the grid actor */
   	vtkActor* Actor(void) { return fActor; };
@@ -212,6 +213,9 @@ class VTKUGridT
 	AutoArrayT<vtkCutter*> cutter;
 	AutoArrayT<vtkActor*> cut;
 	AutoArrayT<vtkPolyDataMapper*> cutterMapper;
+	AutoArrayT<vtkContourFilter*> contourA;
+	AutoArrayT<vtkPolyDataMapper*> contourMapperA;
+	AutoArrayT<vtkActor*> boundPlane;
 
 	/** glyphing variables */
 	vtkTahoeGlyph3D* glyph;
@@ -222,6 +226,7 @@ class VTKUGridT
 	bool glyphFilter;
 	bool warpBool;
 	bool warpArrows;
+	bool cutting;
 	
       
 };

@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.53 2002-06-19 22:48:34 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.54 2002-06-26 18:00:20 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -195,8 +195,8 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   	iAddCommand(CommandSpecT("Wire"));
   	iAddCommand(CommandSpecT("Surface"));
   	iAddCommand(CommandSpecT("Point"));
-	iAddCommand(CommandSpecT("ShowContours"));
-	iAddCommand(CommandSpecT("HideContours"));
+// 	iAddCommand(CommandSpecT("ShowContours"));
+// 	iAddCommand(CommandSpecT("HideContours"));
 // 	iAddCommand(CommandSpecT("ShowCuttingPlane"));
 // 	iAddCommand(CommandSpecT("HideCuttingPlane"));
 
@@ -432,29 +432,29 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
   	return OK;
   }
 
-  else if (command.Name() == "ShowContours")
-  {
-	bool OK = true;
-  	for (int i = 0; OK && i < fBodies.Length(); i++)
-  	{
-  		const CommandSpecT* comm = fBodies[i]->iResolveCommand(command.Name(), line);
-  		if (!comm) return false;
-  		OK = fBodies[i]->iDoCommand(*comm, line);
-  	}
-  	return OK;
-  }
+//   else if (command.Name() == "ShowContours")
+//   {
+// 	bool OK = true;
+//   	for (int i = 0; OK && i < fBodies.Length(); i++)
+//   	{
+//   		const CommandSpecT* comm = fBodies[i]->iResolveCommand(command.Name(), line);
+//   		if (!comm) return false;
+//   		OK = fBodies[i]->iDoCommand(*comm, line);
+//   	}
+//   	return OK;
+//   }
 
-  else if (command.Name() == "HideContours")
-  {
-	bool OK = true;
-  	for (int i = 0; OK && i < fBodies.Length(); i++)
-  	{
-  		const CommandSpecT* comm = fBodies[i]->iResolveCommand(command.Name(), line);
-  		if (!comm) return false;
-  		OK = fBodies[i]->iDoCommand(*comm, line);
-  	}
-  	return OK;
-  }
+//   else if (command.Name() == "HideContours")
+//   {
+// 	bool OK = true;
+//   	for (int i = 0; OK && i < fBodies.Length(); i++)
+//   	{
+//   		const CommandSpecT* comm = fBodies[i]->iResolveCommand(command.Name(), line);
+//   		if (!comm) return false;
+//   		OK = fBodies[i]->iDoCommand(*comm, line);
+//   	}
+//   	return OK;
+//   }
 
 //   else if (command.Name() == "ShowCuttingPlane")
 //   {

@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.17 2002-06-22 01:54:48 paklein Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.18 2002-06-26 18:00:21 recampb Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -26,6 +26,7 @@
 #include "vtkSelectVisiblePoints.h"
 #include "vtkRenderer.h"
 #include "vtkTahoeGlyph3D.h"
+#include "vtkActorCollection.h"
 
 
 /* array behavior */
@@ -34,6 +35,7 @@ const bool ArrayT<vtkActor*>::fByteCopy = true;
 const bool ArrayT<vtkPlane*>::fByteCopy = true;
 const bool ArrayT<vtkCutter*>::fByteCopy = true;
 const bool ArrayT<vtkPolyDataMapper*>::fByteCopy = true;
+const bool ArrayT<vtkContourFilter*>::fByteCopy = true;
 
 
 /* constructor */
@@ -59,8 +61,7 @@ VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
 
 	fContour = vtkContourFilter::New();
 	fContourMapper = vtkPolyDataMapper::New();
-	fContour->SetInput(fUGrid);
-	fContourMapper->SetInput(fContour->GetOutput());
+	fContourActor = vtkActor::New();
 	
 // 	dsToPd = vtkDataSetToPolyDataFilter::New();
 // 	dsToPd->SetInput(fUGrid);
@@ -114,7 +115,8 @@ VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
 	glyphFilter = true;
 	warpBool = false;
 	warpArrows = false;
-
+	contours = false;
+	cutting = false;
 	
 	
 	/* change color range from blue to red */
@@ -122,7 +124,7 @@ VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
 	fLookUpTable->SetHueRange(0.6667, 0);
 	fMapper->SetLookupTable(fLookUpTable);
 	fContourMapper->SetLookupTable(fLookUpTable);
-	contours = false;
+
 
 	/* the actor */
 	fActor = vtkActor::New();
@@ -285,85 +287,226 @@ void VTKUGridT::SetScalars(vtkFloatArray* scalars)
 }
 
 /* show contour surfaces for 3D or contour lines for 2D */
-void VTKUGridT::ShowContours(vtkFloatArray* scalars, int numContours, double min, double max)
+void VTKUGridT::ShowContours(vtkFloatArray* scalars, int numContours, double min, double max, vtkRenderer* renderer)
 {
+  vtkActorCollection* temp = renderer->GetActors();
+  if (!cutting){
+    
+    fContour->SetInput(fUGrid);
+    fContourMapper->SetInput(fContour->GetOutput());  
+    fContour->GenerateValues(numContours+2, min, max);
+    fContourMapper->SetScalarRange(min,max);
+   
+    //fActor->SetMapper(fContourMapper);
+    fContourActor->SetMapper(fContourMapper);
+    boundBoxActor->SetVisibility(true);
+    boundBoxActor->PickableOff();
+    cout << "Contour Values:" << endl;
+    for (int i=0; i<numContours+2; i++) 
+      cout << i <<"  " << fContour->GetValue(i) << endl;
+    contours = true;
+    renderer->RemoveActor(fActor);
+    if (temp->IsItemPresent(fContourActor) == 0)
+      renderer->AddActor(fContourActor);
+    if (temp->IsItemPresent(boundBoxActor) == 0)
+      renderer->AddActor(boundBoxActor);
+  }
   
+  else
+    {
+  
+    for (int i=0; i<cutter.Length(); i++)
+      {
+	vtkContourFilter* tContour = vtkContourFilter::New();
+	vtkPolyDataMapper* tContourMapper = vtkPolyDataMapper::New();
 
-  fContour->GenerateValues(numContours+2, min, max);
+	tContourMapper->SetLookupTable(fLookUpTable);
+		
+	contourA.Append(tContour);
+	contourMapperA.Append(tContourMapper);
+	tContour->SetInput(cutter[i]->GetOutput());
+	tContour->GenerateValues(numContours+2, min, max);
+	tContourMapper->SetInput(tContour->GetOutput());
+	tContourMapper->SetScalarRange(min, max);
+	vtkActor* tActor = vtkActor::New();
+	boundPlane.Append(tActor);
+	boundPlane[i]->SetMapper(cutterMapper[i]);
 
-  fContourMapper->SetScalarRange(min,max);
+	cutterMapper[i]->ScalarVisibilityOff();
 
-  fActor->SetMapper(fContourMapper);
-  boundBoxActor->SetVisibility(true);
-  boundBoxActor->PickableOff();
-  cout << "Contour Values:" << endl;
-  for (int i=0; i<numContours+2; i++) 
-    cout << i <<"  " << fContour->GetValue(i) << endl;
-  contours = true;
-
+	boundPlane[i]->GetProperty()->SetOpacity(.20);
+	boundPlane[i]->GetProperty()->SetColor(1,1,1);
+	cut[i]->SetMapper(tContourMapper);
+	
+	
+	if (temp->IsItemPresent(cut[i]) == 0)
+	  renderer->AddActor(cut[i]);
+	if (temp->IsItemPresent(boundPlane[i]) == 0)
+	  renderer->AddActor(boundPlane[i]);
+	
+	cout << "Contour Values:" << endl;
+	for (int i=0; i<numContours+2; i++) 
+	  cout << i <<"  " << tContour->GetValue(i) << endl;
+      }	
+    
+    contours = true;
+    renderer->RemoveActor(fActor);
+    
+    
+    }
+  
 }
 
 /* hide contour surfaces */
-void VTKUGridT::HideContours(vtkFloatArray* scalars)
+void VTKUGridT::HideContours(vtkFloatArray* scalars, vtkRenderer* renderer)
 {
-  
   contours = false;
-  fActor->SetMapper(fMapper);
-  boundBoxActor->SetVisibility(false);
+  
+  if (!cutting)
+    {
+      renderer->AddActor(fActor);
+      renderer->RemoveActor(fContourActor);
+      renderer->RemoveActor(boundBoxActor);
+      //fActor->SetMapper(fMapper);
+      //boundBoxActor->SetVisibility(false);
+    }
+  
+  else 
+    {
+
+  for (int i = 0; i < cut.Length(); i++)
+    {
+      cutterMapper[i]->ScalarVisibilityOn();
+      cut[i]->SetMapper(cutterMapper[i]);
+      renderer->RemoveActor(boundPlane[i]);
+    }
+
+
+    }
 
 }
 
 
 void VTKUGridT::CuttingPlane(vtkRenderer* renderer, double oX, double oY, double oZ,double nX, double nY, double nZ, bool warp)
 {
-  warpBool = warp;
-  vtkPlane* tplane = vtkPlane::New();
-  vtkCutter* tcutter = vtkCutter::New();
-  vtkPolyDataMapper* tcutterMapper = vtkPolyDataMapper::New();
-  vtkActor* tcut = vtkActor::New();
-  tcut->SetMapper(tcutterMapper);
-  tcutter->SetInput(fUGrid);
-  tcutter->SetCutFunction(tplane);
-  tcutterMapper->SetInput(tcutter->GetOutput());
-  tcutterMapper->SetLookupTable(fLookUpTable);
-  boundBoxActor->SetVisibility(true);
-  boundBoxActor->PickableOff();
-  tplane->SetOrigin(oX, oY, oZ);
-  tplane->SetNormal(nX, nY, nZ);
-  plane.Append(tplane);
-  cutter.Append(tcutter);
-  cutterMapper.Append(tcutterMapper);
-  cut.Append(tcut);
 
-  //fActor->SetMapper(cutterMapper);
+  if (!contours)
+    {
+      vtkActorCollection* temp = renderer->GetActors();
+      cutting = true;
+      warpBool = warp;
+      vtkPlane* tplane = vtkPlane::New();
+      vtkCutter* tcutter = vtkCutter::New();
+      vtkPolyDataMapper* tcutterMapper = vtkPolyDataMapper::New();
+      vtkActor* tcut = vtkActor::New();
+      tcut->SetMapper(tcutterMapper);
+      tcutter->SetInput(fUGrid);
+      tcutter->SetCutFunction(tplane);
+      tcutterMapper->SetInput(tcutter->GetOutput());
+      tcutterMapper->SetLookupTable(fLookUpTable);
+      
+      if (temp->IsItemPresent(boundBoxActor) == 0)
+	renderer->AddActor(boundBoxActor);  
+      
+      boundBoxActor->SetVisibility(true);
+      boundBoxActor->PickableOff();
+      tplane->SetOrigin(oX, oY, oZ);
+      tplane->SetNormal(nX, nY, nZ);
+      plane.Append(tplane);
+      cutter.Append(tcutter);
+      cutterMapper.Append(tcutterMapper);
+      cut.Append(tcut);
+      
+      //fActor->SetMapper(cutterMapper);
+      
+      if (warp)
+	for (int i=0; i<cutter.Length(); i++)
+	  {
+	    cutter[i]->SetInput(fWarp->GetOutput());
+	    cutterMapper[i]->SetInput(cutter[i]->GetOutput());
+	  }  
+      
+      fActor->SetVisibility(false);
+      renderer->AddActor(tcut);
+      
+    }
 
-  if (warp)
-    for (int i=0; i<cutter.Length(); i++)
-      {
-	cutter[i]->SetInput(fWarp->GetOutput());
-	cutterMapper[i]->SetInput(cutter[i]->GetOutput());
-      }  
-  
-  fActor->SetVisibility(false);
-  renderer->AddActor(tcut);
+else
+  {
+    vtkActorCollection* temp = renderer->GetActors();
+    cutting = true;
+    warpBool = warp;
+    vtkPlane* tplane = vtkPlane::New();
+    vtkCutter* tcutter = vtkCutter::New();
+    vtkPolyDataMapper* tcutterMapper = vtkPolyDataMapper::New();
+    vtkActor* tcut = vtkActor::New();
+    tcut->SetMapper(tcutterMapper);
+    tcutter->SetInput(fContour->GetOutput());
+    tcutter->SetCutFunction(tplane);
+    tcutterMapper->SetInput(tcutter->GetOutput());
+    tcutterMapper->SetLookupTable(fLookUpTable);
+    
+    if (temp->IsItemPresent(boundBoxActor) == 0)
+      renderer->AddActor(boundBoxActor);  
+    
+    boundBoxActor->SetVisibility(true);
+    boundBoxActor->PickableOff();
+    tplane->SetOrigin(oX, oY, oZ);
+    tplane->SetNormal(nX, nY, nZ);
+    plane.Append(tplane);
+    cutter.Append(tcutter);
+    cutterMapper.Append(tcutterMapper);
+      cut.Append(tcut);
+      
+      //fActor->SetMapper(cutterMapper);
+      
+      
+//       for (int i=0; i<cutter.Length(); i++)
+// 	{
+// 	  cutter[i]->SetInput(contourA[i]->GetOutput());
+// 	  cutterMapper[i]->SetInput(cutter[i]->GetOutput());
+	  
+// 	}
+      
+      
+      fActor->SetVisibility(false);
+      renderer->AddActor(tcut);   
+      renderer->RemoveActor(fContourActor);
+ 
+  }
 
-  
   
 }
 
 void VTKUGridT::HideCuttingPlane(vtkRenderer* renderer)
 {
-  fActor->SetMapper(fMapper);
-  fActor->SetVisibility(true);
-  boundBoxActor->SetVisibility(false);
-  for (int i = 0; i < cut.Length(); i++)
+  cutting = false;
+  if (!contours)
     {
-      renderer->RemoveActor(cut[i]);
+      fActor->SetMapper(fMapper);
+      fActor->SetVisibility(true);
+      boundBoxActor->SetVisibility(false);
+      renderer->RemoveActor(boundBoxActor);
+      for (int i = 0; i < cut.Length(); i++)
+	{
+	  renderer->RemoveActor(cut[i]);
+	}
     }
-  
+  else
+    {
+      for (int i = 0; i < cut.Length(); i++)
+	{
+	  renderer->RemoveActor(cut[i]);
+	  renderer->RemoveActor(boundPlane[i]);
+	}
+     renderer->AddActor(fContourActor);
+     
+      
+    }
+
 }
 
-void VTKUGridT::Glyphing(vtkFloatArray* vectors, vtkRenderer* renderer, bool filter, bool warpA) 
+void VTKUGridT::Glyphing(vtkFloatArray* vectors, vtkRenderer* renderer, bool filter, bool warpA, bool scale, bool color) 
 {
   glyphFilter = filter;
   warpArrows = warpA;
@@ -401,9 +544,20 @@ void VTKUGridT::Glyphing(vtkFloatArray* vectors, vtkRenderer* renderer, bool fil
     }
   
 
+  if (scale)
+    glyph->SetScaleModeToScaleByVector();
+  else
+    glyph->SetScaleModeToDataScalingOff();
 
+  if (color){
+    glyph->SetColorModeToColorByVector();
+    spikeMapper->ScalarVisibilityOn();
+  }  
+  else
+    spikeMapper->ScalarVisibilityOff();
+  
   glyph->SetVectors(vectors);
-
+  
   spikeActor->SetVisibility(true);
   spikeActor->PickableOff();
 }
@@ -435,7 +589,9 @@ void VTKUGridT::SetVectors(vtkFloatArray* vectors)
 
 
 /* set vectors that warp */
-void VTKUGridT::SetWarpVectors(vtkFloatArray* vectors, const dArray2DT& coords)
+
+void VTKUGridT::SetWarpVectors(vtkFloatArray* vectors)
+
 {
   /* insert in grid */
   SetVectors(vectors);

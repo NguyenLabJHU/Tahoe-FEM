@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.30 2002-06-23 03:39:34 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.31 2002-06-26 18:00:20 recampb Exp $ */
 
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
@@ -7,6 +7,7 @@
 #include "VTKMappedIdFilterT.h"
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
+#include "VTKConsoleT.h"
 
 #include "vtkCubeAxesActor2D.h"
 #include "vtkRenderer.h"
@@ -18,6 +19,11 @@
 #include "vtkActor2D.h"
 #include "vtkContourGrid.h"
 #include "vtkLODActor.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkSphereSource.h"
+#include "Array2DT.h"
+#include "vtkFloatArray.h"
+
 
 /* array behavior */
 const bool ArrayT<VTKBodyT*>::fByteCopy = true;
@@ -27,6 +33,7 @@ const bool ArrayT<vtkMappedIdFilterT*>::fByteCopy = true;
 const bool ArrayT<vtkSelectVisiblePoints*>::fByteCopy = true;
 const bool ArrayT<vtkLabeledDataMapper*>::fByteCopy = true;
 const bool ArrayT<vtkActor2D*>::fByteCopy = true;
+const bool ArrayT<vtkFloatArray*>::fByteCopy = true;
 
 /* constructor */
 VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
@@ -70,6 +77,8 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	iAddCommand(CommandSpecT("HideAxes"));
 // 	iAddCommand(CommandSpecT("ShowGlyphs"));
 	iAddCommand(CommandSpecT("HideCuttingPlane"));
+	iAddCommand(CommandSpecT("ShowContours"));
+	iAddCommand(CommandSpecT("HideContours"));
 
 	/* commands from body data */
 	command = fBodyData->iCommand("Wire");
@@ -81,12 +90,12 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	command = fBodyData->iCommand("Point");
 	if (!command) throw eGeneralFail;
 	iAddCommand(*command);
-	command = fBodyData->iCommand("ShowContours");
-	if (!command) throw eGeneralFail;
-	iAddCommand(*command);
-	command = fBodyData->iCommand("HideContours");
-	if (!command) throw eGeneralFail;
-	iAddCommand(*command);
+// 	command = fBodyData->iCommand("ShowContours");
+// 	if (!command) throw eGeneralFail;
+// 	iAddCommand(*command);
+// 	command = fBodyData->iCommand("HideContours");
+// 	if (!command) throw eGeneralFail;
+// 	iAddCommand(*command);
 
 // 	command = fBodyData->iCommand("ShowGlyphs");
 // 	if (!command) throw eGeneralFail;
@@ -133,7 +142,24 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	base.SetDefault("tail");
 	base.SetPrompt("Location of base of arrow (head/tail)");
 	glyph.AddArgument(base);
+	ArgSpecT scale(ArgSpecT::bool_, "scale");
+	scale.SetDefault(true);
+	scale.SetPrompt("determines whether the vectors scale in size or are of fixed length (true/false)");
+	glyph.AddArgument(scale);
+	ArgSpecT color(ArgSpecT::bool_, "color");
+	color.SetDefault(true);
+	color.SetPrompt("color glyphs by values or not (true/false)");
+	glyph.AddArgument(color);
 	iAddCommand(glyph);
+
+	CommandSpecT pick("Pick", false);
+	ArgSpecT nodeNumber(ArgSpecT::int_, "nodeNumber");
+	nodeNumber.SetDefault(1);
+	nodeNumber.SetPrompt("node number");
+	pick.AddArgument(nodeNumber);
+	iAddCommand(pick);
+	
+	
 }
 
 /* destructor */
@@ -213,10 +239,10 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 		return fBodyData->iDoCommand(command, line);
 	else if (command.Name() == "Point")
 		return fBodyData->iDoCommand(command, line);
-	else if (command.Name() == "ShowContours")
-		return fBodyData->iDoCommand(command, line);
-	else if (command.Name() == "HideContours")
-		return fBodyData->iDoCommand(command, line);
+// 	else if (command.Name() == "ShowContours")
+// 		return fBodyData->iDoCommand(command, line);
+// 	else if (command.Name() == "HideContours")
+// 		return fBodyData->iDoCommand(command, line);
 
 // 	else if (command.Name() == "ShowGlyphs")
 // 		return fBodyData->iDoCommand(command, line);
@@ -552,8 +578,8 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 					if (ugrids[i]->NumSD() == 2) axes->ZAxisVisibilityOff();
 					//axes->SetCornerOffset(.2);
 					//axes->ShadowOn();
-					//axes->SetFlyModeToOuterEdges();
-					axes->SetFlyModeToClosestTriad();
+					axes->SetFlyModeToOuterEdges();
+					//axes->SetFlyModeToClosestTriad();
 					//axes->SetFontFactor(1.8);
 					axes->GetProperty()->SetColor(1,1,1);
 					axes->ShadowOff();
@@ -591,12 +617,14 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 	}
 	else if (command.Name() == "ShowGlyphs")
 	{  
-		bool filter;
+		bool filter, scale, color;
 		bool warpArrows = true;
 		StringT temp;
 		command.Argument("base").GetValue(temp);
 		if (temp == "head") warpArrows = false;
 		command.Argument("filter").GetValue(filter);
+		command.Argument("scale").GetValue(scale);
+		command.Argument("color").GetValue(color);
 		ArrayT<VTKUGridT*> fUGrids = fBodyData->UGrids();
 	    
 		/* glyph vector */
@@ -605,7 +633,7 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 		/* found requested field */
 		if (vector_field) {
 			for (int i = 0; i < fBodyData->UGrids().Length(); i++)
-				fUGrids[i]->Glyphing(vector_field, fFrame->Renderer(), filter, warpArrows);
+				fUGrids[i]->Glyphing(vector_field, fFrame->Renderer(), filter, warpArrows, scale, color);
 			return true;
 		}
 		else /* no such field */ 
@@ -646,28 +674,112 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 	    return true;
 	  }
 	
+	else if (command.Name() == "ShowContours")
+	  {
+	    fBodyData->ShowContours(fFrame->Renderer());
 
+	     return true;
+	  }
+
+	else if (command.Name() == "HideContours")
+	  {
+	    fBodyData->HideContours(fFrame->Renderer());
+	    return true;
+	    
+
+	  }
+
+
+
+	
+	else if (command.Name() == "Pick")
+	  {
+	    vtkPolyDataMapper* sphereMapper = vtkPolyDataMapper::New();
+	    vtkActor* sphereActor = vtkActor::New();  
+	    vtkSphereSource *sphere = vtkSphereSource::New();
+	    sphere->SetThetaResolution(8); sphere->SetPhiResolution(8);
+	    //float* bounds = pointPicker->GetDataSet()->GetBounds();
+	    //sphere->SetRadius(.008*(bounds[1]-bounds[0]));
+	    sphere->SetRadius(.01);
+	    sphereMapper->SetInput(sphere->GetOutput());
+	    sphereActor->SetMapper(sphereMapper);
+	    sphereActor->GetProperty()->SetColor(1,1,1);
+	    sphereActor->VisibilityOn();
+	    sphereActor->PickableOff();
+	
+	    int nodeNum;
+	    command.Argument("nodeNumber").GetValue(nodeNum);
+	    Array2DT<vtkFloatArray*> scalars = fBodyData->getScalars();
+	    dArray2DT Coordinates = fBodyData->Coordinates();   	    
+	    
+	    
+
+	    if (nodeNum > 0){
+	      //for (int i = 0; i < fUGrids.Length(); i++)
+		float* coords = fBodyData->UGrids()[0]->UGrid()->GetPoint(nodeNum-1);
+		//double* coords = Coordinates(nodeNum-1);
+	       
+	       sphereActor->SetPosition((float)coords[0], (float)coords[1], (float)coords[2]);
+	       fFrame->Renderer()->AddActor(sphereActor);
+	       VTKConsoleT::pickedPoints.Append(sphereActor);
+	       
+	       StringT dummy;
+	       const CommandSpecT* comm = iResolveCommand("Update", dummy);
+	       if (!comm) return false;
+	       iDoCommand(*comm, dummy);
+
+
+
+//   float* coords = pointPicker->GetDataSet()->GetPoint(pointPicker->GetPointId());
+//       int num_values = pointPicker->GetDataSet()->GetPointData()->GetScalars()->GetNumberOfComponents(); 
+    
+//       sphereActor->SetPosition(coords);
+//       pointPicker->GetRenderer()->AddActor(sphereActor);
+//       pickedPoints.Append(sphereActor);
+//       iren->GetRenderWindow()->Render();
+ 
+		
+//       cout <<"Point: " << pointPicker->GetPointId()+1 << endl;
+//       cout <<"Coordinates: " << "(" << coords[0] << ", " << coords[1] << ", " << coords[2] << ")" << endl;
+//       cout <<"Value: " << (pointPicker->GetDataSet()->GetPointData()->GetScalars()->GetComponent(pointPicker->GetPointId(), 0)) << endl;
+
+
+	      
+ 	      cout <<"Point: " << nodeNum << endl;
+	      cout <<"Coordinates: " << "(" << (float)coords[0] << ", " << (float)coords[1] << ", " << (float)coords[2] << ")" << endl;
+	      cout <<"Value: " << scalars(fBodyData->CurrentStepNumber(), fBodyData->CurrentVariableNumber())->GetComponent(nodeNum-1, 0) << endl;
+	      
+	    }
+	    
+	    else
+	      cout <<"Invalid Point" << endl;
+	    
+	    return true;
+	    
+	    
+	  }
+	
 	else
-		/* inherited */
-		return iConsoleObjectT::iDoCommand(command, line);
+	  /* inherited */
+	  return iConsoleObjectT::iDoCommand(command, line);
 }
 
 /* change the plot variable */
 bool VTKBodyT::ChangeVars(const StringT& var)
-{
-	if (fBodyData->ChangeVars(var))
-	{
-		/* remove all variables */
-		DeleteVariables();
-		
-		/* re-add all the VTKBodyDataT variables */
-		AddVariables(*fBodyData);
-		
-		return true;
+  {
+    if (fBodyData->ChangeVars(var))
+      {
+	/* remove all variables */
+	DeleteVariables();
+	
+	/* re-add all the VTKBodyDataT variables */
+	AddVariables(*fBodyData);
+	
+	return true;
 	}
-	else return false;
-}
-
+    else return false;
+  }
+ 
 /* add actors in self to the given renderer */
 void VTKBodyT::AddToFrame(void)
 {
