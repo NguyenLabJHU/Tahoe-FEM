@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.5 2001-06-23 01:34:54 thao Exp $ */
+/* $Id: SolidT.h,v 1.6 2001-07-19 18:55:06 hspark Exp $ */
 /* created: paklein (03/10/2001)                                          */
 
 #ifndef _MATERIAL_T_H_
@@ -40,7 +40,8 @@ kThermoViscoPlastic = 30,
    kGrdXtalPlast = 52,
    kOgdenViscVIB = 60,
          kSKStVT = 61,
-     kABAQUS_BCJ = 80
+     kABAQUS_BCJ = 80,
+kABAQUS_VUMAT_BCJ = 90
 		};
 
 	/* stream extraction operator */ 
