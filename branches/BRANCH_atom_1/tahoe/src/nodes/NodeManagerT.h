@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.10.2.7 2003-01-11 01:17:12 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.10.2.8 2003-01-13 19:55:32 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -202,6 +202,10 @@ public:
 	
 	/** the local node to home processor map */
 	const ArrayT<int>* ProcessorMap(void) const;
+
+	/** read/write access to the coordinate update field. Returns NULL if these is no
+	 * coordinate update field. */
+	dArray2DT* CoordinateUpdate(void);
 	/*@}*/
 
 	/* weight the computational effort of every node */
@@ -338,7 +342,7 @@ private:
 
 	/** the field that updates the current coordinates. Pointer is NULL if
 	 * there is no update from the initial coordinates to the current coords */
-	const FieldT* fCoordUpdate;
+	FieldT* fCoordUpdate;
 
 	/** current coordinates. NULL if the current coordinates are the same
 	 * as the initial coordinates. */

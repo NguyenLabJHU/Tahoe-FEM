@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.18.2.10 2003-01-11 22:09:28 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.18.2.11 2003-01-13 19:55:32 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -254,6 +254,15 @@ void NodeManagerT::RegisterCoordinates(LocalArrayT& array) const
 /* the local node to home processor map */
 const ArrayT<int>* NodeManagerT::ProcessorMap(void) const { return fFEManager.ProcessorMap(); }
 
+/* read/write access to the coordinate update field */
+dArray2DT* NodeManagerT::CoordinateUpdate(void)
+{
+	if (!fCoordUpdate)
+		return NULL;
+	else
+		return &((*fCoordUpdate)[0]); /* zeroth order component */
+}
+
 GlobalT::SystemTypeT NodeManagerT::TangentType(int group) const
 {
 	/* initialize */
@@ -373,7 +382,16 @@ void NodeManagerT::InitialCondition(void)
 {
 	/* apply to fields */
 	for (int i = 0; i < fFields.Length(); i++)
-		fFields[i]->InitialCondition();
+	{
+		FieldT& field = *(fFields[i]);
+
+		/* apply initial conditions */
+		field.InitialCondition();
+
+		/* gather/distribute external contribution */
+		for (int j = 0; j <= field.Order(); j++)
+			fCommManager.AllGather(fMessageID[i], field[j]);
+	}
 }
 
 void NodeManagerT::ReadRestart(ifstreamT& in)
@@ -487,23 +505,25 @@ void NodeManagerT::SetEquationNumbers(int group)
 
 	/* assign active equation numbers node-by-node across fields
 	 * in the group */
+	const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
 	int num_eq = 0;
-	int nnd = NumNodes();
+	int nnd = (part_nodes) ? part_nodes->Length() : NumNodes();
 	for (int i = 0; i < nnd; i++)
 		for (int j = 0; j < fields.Length(); j++)
 		{
-			int  ndof = fields[j]->NumDOF();
-			int* peq = (fields[j]->Equations())(i);
+			int ndof = fields[j]->NumDOF();
+			int nd = (part_nodes) ? (*part_nodes)[i] : i;
+			int* peq = (fields[j]->Equations())(nd);
 			for (int k = 0; k < ndof; k++)
 			{
 				/* active equation */
 				if (*peq >= FieldT::kInit) 
 					*peq = ++num_eq;
-
+	
 				peq++;
 			}
 		}
-	
+
 	/* assign equation numbers to XDOF's */
 	XDOF_ManagerT::SetEquations(group, num_eq);
 
@@ -721,11 +741,6 @@ void NodeManagerT::CopyNodeToNode(const ArrayT<int>& source,
 	/* check */
 	if (source.Length() != target.Length()) ExceptionT::SizeMismatch();
 
-	/* current coordinates */
-	if (fCurrentCoords)
-		for( int i = 0; i < source.Length(); i++ ) 
-			fCurrentCoords->CopyRowFromRow(target[i], source[i]) ;
-
 	/* copy fields */
 	for (int i = 0; i < fFields.Length(); i++)
 	{
@@ -741,6 +756,19 @@ void NodeManagerT::CopyNodeToNode(const ArrayT<int>& source,
 		
 		/* reset history */
 		field.CloseStep();
+	}
+
+	/* reset current coordinates */
+	if (fCurrentCoords)
+	{
+		const dArray2DT& d = (*fCoordUpdate)[0];
+		const dArray2DT& X = InitialCoordinates();
+		for (int i = 0; i < target.Length(); i++)
+		{
+			int nd = target[i];
+			for (int j = 0; j < d.MinorDim(); j++)
+				(*fCurrentCoords)(nd,j) = X(nd,j) + d(nd,j);
+		}
 	}
 }
 
