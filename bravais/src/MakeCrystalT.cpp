@@ -298,6 +298,26 @@ void MakeCrystalT::Run() {
       
     }
 
+
+  //Output in a file
+  /*FILE *out=NULL;
+  out = fopen("lala","w");
+
+      if(nsd==2)
+	{
+	  for (int j=0; j<nb_atoms; j++) 
+	    fprintf(out,"%lf %lf\n",coords(j)[0],coords(j)[1]);
+	}
+      else 
+	{
+	  for (int j=0; j<nb_atoms; j++) 
+	    fprintf(out,"%lf %lf\n",coords(j)[0],coords(j)[1],coords(j)[2]);
+	}
+  */
+  
+
+
+
   cout << "\nWriting geometry in specified format file...\n";
   mesh_atom.BuildIOFile(program,version,title,input,kformat,per);
 }
