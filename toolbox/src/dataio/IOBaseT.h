@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.h,v 1.13 2003-11-25 19:45:30 paklein Exp $ */
+/* $Id: IOBaseT.h,v 1.14 2003-11-25 19:56:54 paklein Exp $ */
 /* created: sawimme (09/28/1999) */
 #ifndef _IOBASE_T_H_
 #define _IOBASE_T_H_
@@ -12,6 +12,7 @@ namespace Tahoe {
 class InputBaseT;
 class OutputBaseT;
 class StringT;
+class ifstreamT;
 
 /** database types and simple functions */
 class IOBaseT
