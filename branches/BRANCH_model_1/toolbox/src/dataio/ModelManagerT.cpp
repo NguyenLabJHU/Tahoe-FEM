@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.4.2.5 2001-10-11 19:58:19 sawimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.4.2.6 2001-10-15 19:04:43 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -349,7 +349,7 @@ void ModelManagerT::NodeSetList (ifstreamT& in, iArrayT& indexes)
     }
 }
 
-void ModelManagerT::SideSetList (ifstreamT& in, iArrayT& indexes)\
+void ModelManagerT::SideSetList (ifstreamT& in, iArrayT& indexes)
 {
 }
 
@@ -383,7 +383,9 @@ int ModelManagerT::ReadCards (ifstreamT& in, ostream& out, ArrayT<iArrayT>& node
 	}
       else
 	{
-	  nodes[i] = NodeSet (NodeSetIndex (ID));
+	  int index = NodeSetIndex (ID);
+	  if (index < 0) throw eBadInputValue;
+	  nodes[i] = NodeSet (index);
 	  if (i == 0)
 	    out << " Number of node sets . . . . . . . . . . . . . . = " 
 		<< numc << "\n\n";
@@ -400,6 +402,72 @@ int ModelManagerT::ReadCards (ifstreamT& in, ostream& out, ArrayT<iArrayT>& node
       in2 >> value[i];
     }  
   return count;
+}
+
+void ModelManagerT::ReadNumTractionLines (ifstreamT& in, int& numlines, int& numsets)
+{
+  if (fFormat == IOBaseT::kTahoe)
+    {
+      in >> numlines;
+      fMessage << " Number of traction BC's . . . . . . . . . . . . = " << numlines << '\n';
+      
+      if (numlines > 0)
+	in >> numsets;
+    }
+  else
+    {
+      in >> numsets;
+      numlines = numsets;
+      fMessage << " Number of traction BC side sets . . . . . . . . = " << numsets << "\n\n";
+    }
+}
+
+void ModelManagerT::ReadTractionSetData (ifstreamT& in, int& blockindex, int& setsize)
+{
+  if (fFormat == IOBaseT::kTahoe)
+    in >> blockindex >> setsize;
+  else
+    {
+      setsize = 1;
+      // blockindex set later
+    }
+}
+
+void ModelManagerT::ReadTractionSideSet (ifstreamT& in, int& blockindex, iArray2DT& localsides)
+{
+  if (fFormat == IOBaseT::kTahoe)
+    {
+      localsides.Allocate (2,1);
+      in >> localsides[0] >> localsides[1];
+      // blockindex is already set
+    }
+  else
+    {
+      StringT name;
+      int index;
+      in >> name;
+      index = SideSetIndex (name);
+      if (index < 0) 
+	{
+	  fMessage << "\n ModelManagerT::ReadTractionSideSet: ";
+	  fMessage << "Side Set Name is not found in registered list: ";
+	  fMessage << name << "\n";
+	  throw eBadInputValue;
+	}
+      blockindex = SideSetGroupIndex (index);
+ 
+      /* read set */
+      iArray2DT temp = SideSet (index);
+      if (!IsSideSetLocal(index))
+	SideSetGlobalToLocal (blockindex, localsides, temp);
+      else
+	localsides = temp;
+
+      fMessage << " Database side set name. . . . . . . . . . . . . = ";
+      fMessage << name << '\n';
+      fMessage << " Number of traction BC cards . . . . . . . . . . = ";
+      fMessage << localsides.MajorDim() << endl;
+    }
 }
 
 void ModelManagerT::CoordinateDimensions (int& length, int& dof) const
@@ -849,7 +917,10 @@ bool ModelManagerT::ScanSideSets (void)
     {
       fSideSetDimensions[i] = fInput->NumSidesInSet (fSideSetNames[i]);
       if (fSideSetIsLocal[i])
-	fInput->SideSetGroupIndex (fSideSetNames[i]);
+	{
+	  StringT name = fInput->SideSetGroupName (fSideSetNames[i]);
+	  fSideSetGroupIndex = ElementGroupIndex (name);
+	}
     }
   return true;
 }
