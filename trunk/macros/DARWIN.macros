@@ -1,4 +1,4 @@
-# $Id: DARWIN.macros,v 1.6 2002-09-12 16:44:16 paklein Exp $
+# $Id: DARWIN.macros,v 1.7 2002-11-28 16:42:18 paklein Exp $
 # GNU
 MAKE        = make
 MAKE_DEPEND = /usr/X11R6/bin/makedepend
@@ -15,7 +15,7 @@ CFLAGS_C    = $(MY_CFLAGS)
 CFLAGS_CC   = $(MY_CFLAGS)
 CFLAGS_F    = $(MY_CFLAGS)
 LINK        = $(COMP_CC)
-LFLAGS      =
+LFLAGS      = -Xlinker -Y -Xlinker 50
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = ranlib
