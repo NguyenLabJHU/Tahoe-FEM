@@ -5,8 +5,15 @@
  Output ID . . . . . . . . . . . . . . . . . . . = 0
  Number of nodal values. . . . . . . . . . . . . = 9
  Labels:
-       D_X       D_Y       D_Z       s11       s22
-       s33       s23       s13       s12
+	D_X
+	D_Y
+	D_Z
+	s11
+	s22
+	s33
+	s23
+	s13
+	s12
  Number of element values. . . . . . . . . . . . = 0
  Number of blocks. . . . . . . . . . . . . . . . = 1
  Changing geometry . . . . . . . . . . . . . . . = 0
