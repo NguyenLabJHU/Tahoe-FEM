@@ -1,4 +1,4 @@
-/* $Id: MFSupportT.cpp,v 1.4 2003-11-10 18:50:15 thao Exp $ */
+/* $Id: MFSupportT.cpp,v 1.5 2003-11-12 19:21:19 thao Exp $ */
 #include "MFSupportT.h"
 
 #include "dArrayT.h"
@@ -7,7 +7,6 @@
 #include "OutputSetT.h"
 #include "ModelManagerT.h"
 #include "ifstreamT.h"
-#include "ofstreamT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
@@ -55,7 +54,7 @@ MFSupportT::MFSupportT(const  ElementSupportT& support):
   out << "\n Number of nodesets for summing material force: "<<fnumset;
   for (int j = 0; j<fnumset; j++) out << "\n\tNodeset: "<<fNID[j];
   out <<'\n';
-  
+
   /*initialize fio boolean*/
   fopen = false;
 }
@@ -285,7 +284,6 @@ void MFSupportT::WriteSummary(dArray2DT& output)
     fout.close();
   }
 }
-
 
 /****************utitlity functions******************************/
 void MFSupportT::AssembleArray(const dArrayT& elem_val, dArrayT& global_val, const iArrayT& elem_nodes)

@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.h,v 1.3 2003-11-10 22:16:41 paklein Exp $ */
+/* $Id: UpLagMF.h,v 1.4 2003-11-12 19:21:19 thao Exp $ */
 
 #ifndef _UpLagMF_H_
 #define _UpLagMF_H_
@@ -6,6 +6,7 @@
 /* base class */
 #include "UpdatedLagrangianT.h"
 #include "MFSupportT.h"
+#include "LocalizeT.h"
 #include "ofstreamT.h"
 #include "RaggedArray2DT.h"
 namespace Tahoe {
@@ -14,10 +15,9 @@ namespace Tahoe {
 class FSSolidMatT;
 class ifstreamT;
 class StringT;
-//template<class TYPE> class RaggedArray2DT;
 
 /** Interface for linear strain deformation and field gradients */
-class UpLagMF: public UpdatedLagrangianT, public MFSupportT
+class UpLagMF: public UpdatedLagrangianT, public MFSupportT, public LocalizeT
 {
   public:
     /** constructor */
@@ -25,7 +25,7 @@ class UpLagMF: public UpdatedLagrangianT, public MFSupportT
 
     virtual void Initialize(void);
     virtual void SetGlobalShape(void);
-    
+
     /*output*/
     /* register self for output */
     virtual void RegisterOutput(void);
@@ -36,6 +36,9 @@ class UpLagMF: public UpdatedLagrangianT, public MFSupportT
     /*connectivities for parrallel computing*/
     virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 			   AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
+
+    /*form right hand side*/
+    virtual void FormKd(double constK);
 
  protected:
     /*material force evaluation*/
@@ -54,9 +57,13 @@ class UpLagMF: public UpdatedLagrangianT, public MFSupportT
     FSSolidMatT* fCurrFSMat;
 
     /*connectivities*/
-	RaggedArray2DT<int> fXConnects;
-    //RaggedArray2DT<int>* fXConnects;
+    RaggedArray2DT<int> fXConnects;
 
+    /*localization check*/
+    iArrayT floc_flags;
+    dArray2DT felem_centers;
+    dArray2DT fnormals;
+    
  private:
     dMatrixT fEshelby;        /*eshelby energy momentum tensor*/
     dSymMatrixT fC;

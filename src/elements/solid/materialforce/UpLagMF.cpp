@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.cpp,v 1.4 2003-11-10 22:16:41 paklein Exp $ */
+/* $Id: UpLagMF.cpp,v 1.5 2003-11-12 19:21:19 thao Exp $ */
 #include "UpLagMF.h"
 
 #include "OutputSetT.h"
@@ -27,21 +27,31 @@ using namespace Tahoe;
 UpLagMF::UpLagMF(const ElementSupportT& support, const FieldT& field):
   UpdatedLagrangianT(support, field),
   MFSupportT(support),
+  LocalizeT(support),
   ftraction(LocalArrayT::kUnspecified),
   fsurf_disp(LocalArrayT::kDisp),
-  fsurf_coords(LocalArrayT::kInitCoords) {
+  fsurf_coords(LocalArrayT::kInitCoords){
 }
 
 void UpLagMF::Initialize(void)
 {
   UpdatedLagrangianT::Initialize();
-  
+
+  int nel = fElementCards.Length();
+
+  /*localization*/
+  floc_flags.Dimension(nel);
+  felem_centers.Dimension(nel,NumSD());
+  fnormals.Dimension(nel, NumSD());
+  floc_flags = 0;
+  felem_centers = 0;
+  fnormals = 0;
+
   /*dimension workspace for bulk quantities*/
   fEshelby.Dimension(NumSD());
   fC.Dimension(NumSD());
   fBodyForce.Dimension(NumSD()*NumElementNodes());
   fip_body.Dimension(NumSD());
-
 }
 
 void UpLagMF::SetGlobalShape(void)
@@ -94,10 +104,15 @@ void UpLagMF::WriteOutput(void)
   dArray2DT n_values; 
   dArray2DT e_values;
   
+  WriteLocalize(floc_flags, felem_centers, fnormals);
   MapOutput();
   ComputeMatForce(n_values);
-  
+
   /* send to output */
+  const CommunicatorT& comm = ElementSupport().Communicator();
+  if (comm.Size() == 1)
+    WriteSummary(n_values);
+
   ElementSupport().WriteOutput(fMatForceOutputID, n_values, e_values);
 }
 
@@ -109,51 +124,71 @@ void UpLagMF::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
   const CommunicatorT& comm = ElementSupport().Communicator();
   
   /*check for parallel execution*/
-  if (true && comm.Size()> 1)
+  /*make graph from element connectivities*/
+  bool verbose = true;
+  GraphT graph(true);
+  
+  for (int i = 0; i<fConnectivities.Length(); i++)
+    graph.AddGroup(*fConnectivities[i]);
+  graph.MakeGraph();
+  
+  int nnd = graph.NumNodes(); 
+  iArrayT first_edges;
+  AutoFill2DT<int> fill(nnd, 1, 5, 16);
+  for (int i = 0; i<nnd; i++)
   {
-    /*make graph from element connectivities*/
-    bool verbose = true;
-    GraphT graph(true);
-    /*Q:?*/
-    for (int i = 0; i<fConnectivities.Length(); i++)
-      graph.AddGroup(*fConnectivities[i]);
-    graph.MakeGraph();
-
-    int nnd = graph.NumNodes(); //Q:NumNodes() or fNumGroupNodes?
-    iArrayT first_edges;
-    AutoFill2DT<int> fill(nnd, 1, 5, 16);
-    //    cout<<"\nMajor dim: "<<fill.MajorDim();
-    for (int i = 0; i<nnd; i++)
-    {
-      graph.GetEdges(i, first_edges);
-      fill.Append(i,first_edges);
-      for (int j = 0; j<first_edges.Length(); j++)
-      {  
-	iArrayT second_edges;
-	graph.GetEdges(first_edges[j],second_edges);
-	/*Do we need to reorder the neighbor list so that the node number appears in the first entry?*/
-	fill.AppendUnique(i,second_edges);
-      }
+    graph.GetEdges(i, first_edges);
+    fill.Append(i,first_edges);
+    for (int j = 0; j<first_edges.Length(); j++)
+    {  
+      iArrayT second_edges;
+      graph.GetEdges(first_edges[j],second_edges);
+      /*Do we need to reorder the neighbor list so that the node number appears in the first entry?*/
+      fill.AppendUnique(i,second_edges);
     }
-    /*Q:Does fExtendedConnect need to be split into element groups?*/
-    
-    /* non-const this */
-    UpLagMF* non_const_this = (UpLagMF*) this; 
-	non_const_this->fXConnects.Copy(fill); 
-
-//TEMP
-	iArrayT tmp(fXConnects.Length(), fXConnects.Pointer());
-	tmp++;
-	ofstreamT& out = ElementSupport().Output();
-	out << "\nextended connectivities: \n";
-	fXConnects.WriteNumbered(ElementSupport().Output());
-	tmp--;
-//TEMP
-
-    connects_2.Append(&fXConnects);
   }
+  
+  /* non-const this */
+  UpLagMF* non_const_this = (UpLagMF*) this; 
+  non_const_this->fXConnects.Copy(fill); 
+  
+  /*
+    iArrayT tmp(fXConnects.Length(), fXConnects.Pointer());
+    tmp++;
+    ofstreamT& out = ElementSupport().Output();
+    out << "\nextended connectivities: \n";
+    fXConnects.WriteNumbered(ElementSupport().Output());
+    tmp--;
+  */
+  
+  connects_2.Append(&fXConnects);
 }
 
+void UpLagMF::FormKd(double constK)
+{
+  const char caller[] = "UpLagMF::FormKd";
+ 
+  /*inherited function*/
+  UpdatedLagrangianT::FormKd(constK);
+
+  int elem = CurrElementNumber();
+
+  fCurrShapes->TopIP();
+  while (LocalizeT::fCheck && floc_flags[elem]==0 && fCurrShapes->NextIP())
+  {
+    const dSymMatrixT& stress = fCurrMaterial->s_ij();
+    const dMatrixT& modulus = fCurrMaterial->c_ijkl();
+
+    int loc = CheckLocalizeFS(stress, modulus,fLocInitCoords);
+    cout <<"\nLocalize? "<<loc<<endl;
+    if (loc)
+    {
+      floc_flags[elem] = 1;
+      felem_centers.SetRow(elem, LocalizedElemCenter());
+      fnormals.SetRow(elem, LocalizedNormal());
+    }
+  }
+}
 /**********************Material Force Driver**************/
 /*driver*/
 void UpLagMF::ComputeMatForce(dArray2DT& output)
@@ -179,8 +214,14 @@ void UpLagMF::ComputeMatForce(dArray2DT& output)
   fDissipForce = 0.0;
 
   /*if internal dissipation vars exists, extrapolate from element ip to nodes*/
-  if (fhas_dissipation) { 
-    /*assume all materials within elemblock have the same internal dissipation variables*/
+  if (fhas_dissipation) {
+    /*assume all materials within elem group have the same internal dissipation variables*/
+    const MaterialListT& matlist = ContinuumElementT::MaterialsList();
+    if (matlist.Length() > 1){
+      cout << "\nUpLagMF::ComputeMatForce: Currently inelastic material force class requires that each element group has only one element block.";
+      throw ExceptionT::kGeneralFail;
+    }
+
     ContinuumMaterialT* pmat0 = (*fMaterialList)[ElementCard(0).MaterialNumber()];
     fCurrFSMat = dynamic_cast<FSSolidMatT*>(pmat0);
     if (!fCurrFSMat) throw ExceptionT::kGeneralFail;
@@ -208,20 +249,24 @@ void UpLagMF::ComputeMatForce(dArray2DT& output)
   Top();
   while (NextElement())
   {
-    ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
-    fCurrFSMat = dynamic_cast<FSSolidMatT*>(pmat);
-    if (!fCurrFSMat) ExceptionT::GeneralFail(caller);
-    
-    /*Set Global Shape Functions for current element*/
-    SetGlobalShape();
-    MatForceVolMech(felem_rhs);
-    AssembleArray(felem_rhs, fMatForce, CurrentElement().NodesX());
-    if (fhas_dissipation) 
+    int elem = CurrElementNumber();
+    if (floc_flags[elem] == 0)
     {
-      felem_val.Free();
-      ExtractArray2D(fGlobalVal, felem_val, CurrentElement().NodesX());
-      MatForceDissip(felem_rhs, felem_val);
-      AssembleArray(felem_rhs, fDissipForce, CurrentElement().NodesX());
+      ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
+      fCurrFSMat = dynamic_cast<FSSolidMatT*>(pmat);
+      if (!fCurrFSMat) ExceptionT::GeneralFail(caller);
+      
+      /*Set Global Shape Functions for current element*/
+      SetGlobalShape();
+      MatForceVolMech(felem_rhs);
+      AssembleArray(felem_rhs, fMatForce, CurrentElement().NodesX());
+      if (fhas_dissipation) 
+      {
+	felem_val.Free();
+	ExtractArray2D(fGlobalVal, felem_val, CurrentElement().NodesX());
+	MatForceDissip(felem_rhs, felem_val);
+	AssembleArray(felem_rhs, fDissipForce, CurrentElement().NodesX());
+      }
     }
   }
 
@@ -258,7 +303,6 @@ void UpLagMF::ComputeMatForce(dArray2DT& output)
     pout_dissip += 2*NumSD();
     pout_disp += 2*NumSD();
   }
-  WriteSummary(output);
 }
 
 void UpLagMF::MatForceVolMech(dArrayT& elem_val)
@@ -524,183 +568,186 @@ void UpLagMF::MatForceSurfMech(dArrayT& global_val)
       fsurf_coords.SetLocal(surf_nodes);
       fsurf_disp.SetLocal(surf_nodes);
 
-      /*get surface shape function*/
-      const ParentDomainT& surf_shape = ShapeFunction().FacetShapeFunction(facet);
-      int nip = surf_shape.NumIP();
-      fsurf_val = 0.0;
-      const double* ip_w = surf_shape.Weight();
-      for (int j = 0; j<nip; j++)
+      if (floc_flags[elem]==0)
       {
-	/*calculate surface jacobian and jacobian determinant*/
-	surf_shape.DomainJacobian(fsurf_coords,j,fjacobian);
-	double detj = surf_shape.SurfaceJacobian(fjacobian, fQ);
-	if (nsd ==2)
-	{ 
-	  double* t = fQ(0);
-	  double* n = fQ(1);
-	  /*interpolate tractions to integration points*/
-	  surf_shape.Interpolate(ftraction, fip_tract,j);
-
-	  /*rotate tractions from global to local coordinates*/
-	  if (BC_card.CoordSystem() == Traction_CardT::kCartesian)
-	  {
-	    double local_tract1 = t[0]*fip_tract[0]+t[1]*fip_tract[1];
-	    double local_tract2 = n[0]*fip_tract[0]+n[1]*fip_tract[1];
-	    fip_tract[0] = local_tract1;
-	    fip_tract[1] = local_tract2;
-	  }
-	  //      	  cout <<"\nIP traction: "<<fip_tract;
-	  //	  cout <<"\nfjacobian: "<<fjacobian;
-	  //	  cout <<"\ntangent: ("<<t[0]<<", "<<t[1]<<")";
-	  /*get displacement gradient*/
-	  fgradU = 0;
-	  double& du1 = fgradU[0];
-	  double& du2 = fgradU[1];
-
-	  /*spatial derivative along the facet direction 1.0/(ds/dz)*/
-	  double jac = (t[0]*fjacobian[0]+t[1]*fjacobian[1]);
-	  if (jac <= 0.0)
-	  {
-	    cout <<"\nUplagMF::MatForceSurfMech";
-	    throw ExceptionT::kBadJacobianDet;
-	  }
-	  fjac_loc[0] = 1.0/jac;
-	  /*parent domain shape function derivatives*/
-	  const double* pdz = surf_shape.DShape(j,0);
-	  const double& j11 = fjac_loc[0];
-	  const double* pu1 = fsurf_disp(0);
-	  const double* pu2 = fsurf_disp(1);
-
-	  //       	  cout << "\n U "<< fsurf_disp;
-	  //       	  cout << "\n fjac_loc "<<fjac_loc[0];
-	  for (int i = 0; i<nfn; i++)
-	  {
-	    /*Rotate global displacement vector to local coordinates*/
-	    double local_u1 = t[0]*(*pu1)+t[1]*(*pu2);
-      	    double local_u2 = n[0]*(*pu1)+n[1]*(*pu2);
-	    //       	    cout << "\n local disp: ("<<local_u1<<", "<<local_u2<<")";
-	    //       	    cout << "\n Dz: "<< *pdz;
-	    /*calculate displacement gradient along local direction*/
-	    du1 += (*pdz)*j11*(local_u1);
-	    du2 += (*pdz)*j11*(local_u2);
-	    pdz++; pu1++; pu2++;
-	  }
-	  //       	  cout << "\n GradU" <<fgradU;
-
-	  /*calculate material traction*/
-	  double mat_tract = -(1+fgradU[0])*fip_tract[0]-fgradU[1]*fip_tract[1];
-	  /*rotate material traction to global coordinates*/
-	  //       	  cout << "\n mat_tract: "<< mat_tract;
-
-	  double mat_tractx = t[0]*mat_tract;
-	  double mat_tracty = t[1]*mat_tract;
-	  //       	  cout << "\n mat_tractx: "<< mat_tractx;
-	  //       	  cout << "\n mat_tracty: "<< mat_tracty;
-
-	  /*integrate material force*/
-	  const double* pQa = surf_shape.Shape(j);
-	  double* psurf_val = fsurf_val.Pointer();
-	  for (int i = 0; i<nfn; i++)
-	  {
-	    (*psurf_val++) += (*pQa)*(mat_tractx)*detj*(*ip_w);
-	    (*psurf_val++) += (*pQa++)*(mat_tracty)*detj*(*ip_w);
-	  }
-	  ip_w++;
-	}
-	else if (NumSD() == 3)
-        {
-	  double* n1 = fQ(0);
-	  double* n2 = fQ(1);
-	  double* n3 = fQ(2);
-	  /*interpolate tractions to integration points*/
-	  surf_shape.Interpolate(ftraction, fip_tract,j);
-	  
-	  /*rotate tractions from global to local coordinates*/
-	  if (BC_card.CoordSystem() == Traction_CardT::kCartesian)
-	  {
-	    double local_tract1 = n1[0]*fip_tract[0]+n1[1]*fip_tract[1]+n1[2]*fip_tract[2];
-	    double local_tract2 = n2[0]*fip_tract[0]+n2[1]*fip_tract[1]+n2[2]*fip_tract[2];
-	    double local_tract3 = n3[0]*fip_tract[0]+n3[1]*fip_tract[1]+n2[2]*fip_tract[2];
-	    fip_tract[0] = local_tract1;
-	    fip_tract[1] = local_tract2;
-	    fip_tract[2] = local_tract3;
-	  }
-	  /*get displacement gradient*/
-	  fgradU = 0;
-	  double& du11 = fgradU[0];
-	  double& du21 = fgradU[1];
-	  double& du31 = fgradU[2];
-	  double& du12 = fgradU[3];
-	  double& du22 = fgradU[4];
-	  double& du32 = fgradU[5];
-
-	  /*spatial derivative along the facet direction 1.0/(ds/dz)*/
-	  fjac_loc[0] = (n1[0]*fjacobian[0]+n1[1]*fjacobian[1]+n1[2]*fjacobian[2]);
-	  fjac_loc[1] = (n2[0]*fjacobian[0]+n2[1]*fjacobian[1]+n2[2]*fjacobian[2]);
-	  fjac_loc[2] = (n1[0]*fjacobian[4]+n1[1]*fjacobian[5]+n1[2]*fjacobian[6]);
-	  fjac_loc[3] = (n2[0]*fjacobian[4]+n2[1]*fjacobian[5]+n2[2]*fjacobian[6]);
-	  double jac = fjac_loc.Det();
-	  if (jac <= 0.0)
-	  {
-	    cout <<"\nUplagMF::MatForceSurfMech";
-	    throw ExceptionT::kBadJacobianDet;
-	  }	  
-	  fjac_loc.Inverse();
-
-	  /*parent domain shape function derivatives*/
-	  const double* pdz = surf_shape.DShape(j,0);
-	  const double* pdn = surf_shape.DShape(j,1);
-
-	  const double& j11 = fjac_loc[0];
-	  const double& j21 = fjac_loc[1];
-	  const double& j12 = fjac_loc[2];
-	  const double& j22 = fjac_loc[3];
-
-	  const double* pu1 = fsurf_disp(0);
-	  const double* pu2 = fsurf_disp(1);
-	  const double* pu3 = fsurf_disp(2);
-
-	  for (int i = 0; i<nfn; i++)
-	  {
-	    /*Rotate global displacement vector to local coordinates*/
-	    double local_u1 = n1[0]*(*pu1)+n1[1]*(*pu2)+n1[2]*(*pu3);
-      	    double local_u2 = n2[0]*(*pu1)+n2[1]*(*pu2)+n2[2]*(*pu3);
-	    double local_u3 = n3[0]*(*pu1)+n3[1]*(*pu2)+n3[2]*(*pu3);
+	/*get surface shape function*/
+	const ParentDomainT& surf_shape = ShapeFunction().FacetShapeFunction(facet);
+	int nip = surf_shape.NumIP();
+	fsurf_val = 0.0;
+	const double* ip_w = surf_shape.Weight();
+	for (int j = 0; j<nip; j++)
+	{
+	  /*calculate surface jacobian and jacobian determinant*/
+	  surf_shape.DomainJacobian(fsurf_coords,j,fjacobian);
+	  double detj = surf_shape.SurfaceJacobian(fjacobian, fQ);
+	  if (nsd ==2)
+	  { 
+	    double* t = fQ(0);
+	    double* n = fQ(1);
+	    /*interpolate tractions to integration points*/
+	    surf_shape.Interpolate(ftraction, fip_tract,j);
 	    
-	    /*calculate displacement gradient along local direction*/
-	    du11 += (*pdz)*j11*(local_u1) + (*pdn)*j21*(local_u1);
-	    du21 += (*pdz)*j11*(local_u2) + (*pdn)*j21*(local_u2);
-	    du31 += (*pdz)*j11*(local_u3) + (*pdn)*j21*(local_u3);
-
-	    du12 += (*pdz)*j12*(local_u1) + (*pdn)*j22*(local_u1);
-	    du22 += (*pdz)*j12*(local_u2) + (*pdn)*j22*(local_u2);
-	    du32 += (*pdz)*j12*(local_u3) + (*pdn)*j22*(local_u3);
-
-	    pdz++; pdn++; pu1++; pu2++; pu3++;
+	    /*rotate tractions from global to local coordinates*/
+	    if (BC_card.CoordSystem() == Traction_CardT::kCartesian)
+	    {
+	      double local_tract1 = t[0]*fip_tract[0]+t[1]*fip_tract[1];
+	      double local_tract2 = n[0]*fip_tract[0]+n[1]*fip_tract[1];
+	      fip_tract[0] = local_tract1;
+	      fip_tract[1] = local_tract2;
+	    }
+	    //      	  cout <<"\nIP traction: "<<fip_tract;
+	    //	  cout <<"\nfjacobian: "<<fjacobian;
+	    //	  cout <<"\ntangent: ("<<t[0]<<", "<<t[1]<<")";
+	    /*get displacement gradient*/
+	    fgradU = 0;
+	    double& du1 = fgradU[0];
+	    double& du2 = fgradU[1];
+	    
+	    /*spatial derivative along the facet direction 1.0/(ds/dz)*/
+	    double jac = (t[0]*fjacobian[0]+t[1]*fjacobian[1]);
+	    if (jac <= 0.0)
+	    {
+	      cout <<"\nUplagMF::MatForceSurfMech";
+	      throw ExceptionT::kBadJacobianDet;
+	    }
+	    fjac_loc[0] = 1.0/jac;
+	    /*parent domain shape function derivatives*/
+	    const double* pdz = surf_shape.DShape(j,0);
+	    const double& j11 = fjac_loc[0];
+	    const double* pu1 = fsurf_disp(0);
+	    const double* pu2 = fsurf_disp(1);
+	    
+	    //       	  cout << "\n U "<< fsurf_disp;
+	    //       	  cout << "\n fjac_loc "<<fjac_loc[0];
+	    for (int i = 0; i<nfn; i++)
+	    {
+	      /*Rotate global displacement vector to local coordinates*/
+	      double local_u1 = t[0]*(*pu1)+t[1]*(*pu2);
+	      double local_u2 = n[0]*(*pu1)+n[1]*(*pu2);
+	      //       	    cout << "\n local disp: ("<<local_u1<<", "<<local_u2<<")";
+	      //       	    cout << "\n Dz: "<< *pdz;
+	      /*calculate displacement gradient along local direction*/
+	      du1 += (*pdz)*j11*(local_u1);
+	      du2 += (*pdz)*j11*(local_u2);
+	      pdz++; pu1++; pu2++;
+	    }
+	    //       	  cout << "\n GradU" <<fgradU;
+	    
+	    /*calculate material traction*/
+	    double mat_tract = -(1+fgradU[0])*fip_tract[0]-fgradU[1]*fip_tract[1];
+	    /*rotate material traction to global coordinates*/
+	    //       	  cout << "\n mat_tract: "<< mat_tract;
+	    
+	    double mat_tractx = t[0]*mat_tract;
+	    double mat_tracty = t[1]*mat_tract;
+	    //       	  cout << "\n mat_tractx: "<< mat_tractx;
+	    //       	  cout << "\n mat_tracty: "<< mat_tracty;
+	    
+	    /*integrate material force*/
+	    const double* pQa = surf_shape.Shape(j);
+	    double* psurf_val = fsurf_val.Pointer();
+	    for (int i = 0; i<nfn; i++)
+	    {
+	      (*psurf_val++) += (*pQa)*(mat_tractx)*detj*(*ip_w);
+	      (*psurf_val++) += (*pQa++)*(mat_tracty)*detj*(*ip_w);
+	    }
+	    ip_w++;
 	  }
-	  /*calculate material traction*/
-	  double mat_tract1 = -(1+fgradU[0])*fip_tract[0]-fgradU[1]*fip_tract[1]+fgradU[2]*fip_tract[2];
-	  double mat_tract2 = -fgradU[3]*fip_tract[0]-(1+fgradU[4])*fip_tract[1]+fgradU[5]*fip_tract[2];
-
-	  /*rotate material traction to global coordinates*/
-	  double mat_tractx = n1[0]*mat_tract1 + n2[0]*mat_tract2;
-	  double mat_tracty = n1[1]*mat_tract1 + n2[1]*mat_tract2;
-	  double mat_tractz = n1[2]*mat_tract1 + n2[2]*mat_tract2;
-
-	  /*integrate material force*/
-	  const double* pQa = surf_shape.Shape(j);
-	  double* psurf_val = fsurf_val.Pointer();
-	  for (int i = 0; i<nfn; i++)
+	  else if (NumSD() == 3)
 	  {
-	    (*psurf_val++) += (*pQa)*(mat_tractx)*detj*(*ip_w);
-	    (*psurf_val++) += (*pQa)*(mat_tracty)*detj*(*ip_w);
-	    (*psurf_val++) += (*pQa++)*(mat_tractz)*detj*(*ip_w);
+	    double* n1 = fQ(0);
+	    double* n2 = fQ(1);
+	    double* n3 = fQ(2);
+	    /*interpolate tractions to integration points*/
+	    surf_shape.Interpolate(ftraction, fip_tract,j);
+	    
+	    /*rotate tractions from global to local coordinates*/
+	    if (BC_card.CoordSystem() == Traction_CardT::kCartesian)
+	    {
+	      double local_tract1 = n1[0]*fip_tract[0]+n1[1]*fip_tract[1]+n1[2]*fip_tract[2];
+	      double local_tract2 = n2[0]*fip_tract[0]+n2[1]*fip_tract[1]+n2[2]*fip_tract[2];
+	      double local_tract3 = n3[0]*fip_tract[0]+n3[1]*fip_tract[1]+n2[2]*fip_tract[2];
+	      fip_tract[0] = local_tract1;
+	      fip_tract[1] = local_tract2;
+	      fip_tract[2] = local_tract3;
+	    }
+	    /*get displacement gradient*/
+	    fgradU = 0;
+	    double& du11 = fgradU[0];
+	    double& du21 = fgradU[1];
+	    double& du31 = fgradU[2];
+	    double& du12 = fgradU[3];
+	    double& du22 = fgradU[4];
+	    double& du32 = fgradU[5];
+	    
+	    /*spatial derivative along the facet direction 1.0/(ds/dz)*/
+	    fjac_loc[0] = (n1[0]*fjacobian[0]+n1[1]*fjacobian[1]+n1[2]*fjacobian[2]);
+	    fjac_loc[1] = (n2[0]*fjacobian[0]+n2[1]*fjacobian[1]+n2[2]*fjacobian[2]);
+	    fjac_loc[2] = (n1[0]*fjacobian[4]+n1[1]*fjacobian[5]+n1[2]*fjacobian[6]);
+	    fjac_loc[3] = (n2[0]*fjacobian[4]+n2[1]*fjacobian[5]+n2[2]*fjacobian[6]);
+	    double jac = fjac_loc.Det();
+	    if (jac <= 0.0)
+	      {
+		cout <<"\nUplagMF::MatForceSurfMech";
+		throw ExceptionT::kBadJacobianDet;
+	      }	  
+	    fjac_loc.Inverse();
+	    
+	    /*parent domain shape function derivatives*/
+	    const double* pdz = surf_shape.DShape(j,0);
+	    const double* pdn = surf_shape.DShape(j,1);
+	    
+	    const double& j11 = fjac_loc[0];
+	    const double& j21 = fjac_loc[1];
+	    const double& j12 = fjac_loc[2];
+	    const double& j22 = fjac_loc[3];
+	    
+	    const double* pu1 = fsurf_disp(0);
+	    const double* pu2 = fsurf_disp(1);
+	    const double* pu3 = fsurf_disp(2);
+	    
+	    for (int i = 0; i<nfn; i++)
+	    {
+	      /*Rotate global displacement vector to local coordinates*/
+	      double local_u1 = n1[0]*(*pu1)+n1[1]*(*pu2)+n1[2]*(*pu3);
+	      double local_u2 = n2[0]*(*pu1)+n2[1]*(*pu2)+n2[2]*(*pu3);
+	      double local_u3 = n3[0]*(*pu1)+n3[1]*(*pu2)+n3[2]*(*pu3);
+	      
+	      /*calculate displacement gradient along local direction*/
+	      du11 += (*pdz)*j11*(local_u1) + (*pdn)*j21*(local_u1);
+	      du21 += (*pdz)*j11*(local_u2) + (*pdn)*j21*(local_u2);
+	      du31 += (*pdz)*j11*(local_u3) + (*pdn)*j21*(local_u3);
+	      
+	      du12 += (*pdz)*j12*(local_u1) + (*pdn)*j22*(local_u1);
+	      du22 += (*pdz)*j12*(local_u2) + (*pdn)*j22*(local_u2);
+	      du32 += (*pdz)*j12*(local_u3) + (*pdn)*j22*(local_u3);
+	      
+	      pdz++; pdn++; pu1++; pu2++; pu3++;
+	    }
+	    /*calculate material traction*/
+	    double mat_tract1 = -(1+fgradU[0])*fip_tract[0]-fgradU[1]*fip_tract[1]+fgradU[2]*fip_tract[2];
+	    double mat_tract2 = -fgradU[3]*fip_tract[0]-(1+fgradU[4])*fip_tract[1]+fgradU[5]*fip_tract[2];
+	    
+	    /*rotate material traction to global coordinates*/
+	    double mat_tractx = n1[0]*mat_tract1 + n2[0]*mat_tract2;
+	    double mat_tracty = n1[1]*mat_tract1 + n2[1]*mat_tract2;
+	    double mat_tractz = n1[2]*mat_tract1 + n2[2]*mat_tract2;
+	    
+	    /*integrate material force*/
+	    const double* pQa = surf_shape.Shape(j);
+	    double* psurf_val = fsurf_val.Pointer();
+	    for (int i = 0; i<nfn; i++)
+	    {
+		(*psurf_val++) += (*pQa)*(mat_tractx)*detj*(*ip_w);
+		(*psurf_val++) += (*pQa)*(mat_tracty)*detj*(*ip_w);
+		(*psurf_val++) += (*pQa++)*(mat_tractz)*detj*(*ip_w);
+	    }
+	    ip_w++;
 	  }
-	  ip_w++;
 	}
+	AssembleArray(fsurf_val, global_val, surf_nodes);
+	//      cout << "\nsurf_val: "<<fsurf_val;
       }
-      AssembleArray(fsurf_val, global_val, surf_nodes);
-      //      cout << "\nsurf_val: "<<fsurf_val;
     }
   }
 }

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.9 2003-11-10 18:50:15 thao Exp $
+# $Id: makefile,v 1.10 2003-11-12 19:21:19 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -27,7 +27,8 @@ OBJ = \
 	SSMF.o \
 	SSQ2P1MF.o \
 	SSQ1P0MF.o \
-	UpLagMF.o 
+	UpLagMF.o \
+	LocalizeT.o  
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -54,7 +55,8 @@ SRC = \
 	SSMF.cpp \
 	SSQ2P1MF.cpp \
 	SSQ1P0MF.cpp \
-	UpLagMF.cpp 
+	UpLagMF.cpp \
+	LocalizeT.cpp 
 
 ##################### (3) headers
 #
@@ -73,7 +75,8 @@ HDR = \
 	SSMF.h \
 	SSQ2P1MF.h \
 	SSQ1P0MF.h \
-	UpLagMF.h 
+	UpLagMF.h \
+	LocalizeT.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 

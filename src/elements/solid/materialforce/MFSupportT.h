@@ -1,4 +1,4 @@
-/* $Id: MFSupportT.h,v 1.2 2003-08-11 01:20:57 thao Exp $ */
+/* $Id: MFSupportT.h,v 1.3 2003-11-12 19:21:19 thao Exp $ */
 
 #ifndef _MFSupportT_
 #define _MFSupportT_
@@ -52,6 +52,7 @@ class MFSupportT
     /*output set and dimensions*/
     OutputSetT* fOutputSet;
     int fNumGroupNodes;
+    int fNumGroupElem;
     iArrayT fMap;
 
     ArrayT<StringT> fNID;
