@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagMixtureT.cpp,v 1.6 2005-01-14 00:20:30 paklein Exp $ */
+/* $Id: UpdatedLagMixtureT.cpp,v 1.7 2005-02-16 21:37:47 paklein Exp $ */
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
 #include "FSSolidMixtureT.h"
@@ -48,7 +48,7 @@ void UpdatedLagMixtureT::ProjectPartialStress(int i)
 	dArray2DT nodal_P(nen, nsd*nsd);
 	Top();
 	while (NextElement())
-		if (CurrentElement().Flag() != kOFF)
+		if (CurrentElement().Flag() != ElementCardT::kOFF)
 		{
 			/* get materials */
 			FSSolidMixtureT* mixture = TB_DYNAMIC_CAST(FSSolidMixtureT*, fCurrMaterial);
@@ -106,7 +106,7 @@ void UpdatedLagMixtureT::ProjectDPartialStress(int i)
 	dArray2DT nodal_P(nen, nsd*nsd);
 	Top();
 	while (NextElement())
-		if (CurrentElement().Flag() != kOFF)
+		if (CurrentElement().Flag() != ElementCardT::kOFF)
 		{
 			/* get materials */
 			FSSolidMixtureT* mixture = TB_DYNAMIC_CAST(FSSolidMixtureT*, fCurrMaterial);
@@ -149,7 +149,7 @@ void UpdatedLagMixtureT::IP_PartialStress(int i, ArrayT<dMatrixT>* ip_stress,
 	if (!ip_stress && !ip_dstress)
 		return;
 	/* element is active */
-	else if (CurrentElement().Flag() != kOFF)
+	else if (CurrentElement().Flag() != ElementCardT::kOFF)
 	{
 		/* get materials */
 		FSSolidMixtureT* mixture = TB_DYNAMIC_CAST(FSSolidMixtureT*, fCurrMaterial);
