@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.h,v 1.4.4.3 2002-04-29 17:19:28 paklein Exp $ */
+/* $Id: XDOF_ManagerT.h,v 1.4.4.4 2002-05-03 07:13:38 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 
 #ifndef _XDOF_MANAGER_T_H_
@@ -87,6 +87,9 @@ public:
 	/*@}*/
 
 protected:
+
+	/** return the number of XDOF equations in the specified group */
+	int NumEquations(int group) const;
 
 	/** set the start tag */
 	void SetStartTag(int start_tag) { fStartTag = start_tag; };

@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.cpp,v 1.1.1.1.8.1 2002-04-26 02:24:24 paklein Exp $ */
+/* $Id: FBC_ControllerT.cpp,v 1.1.1.1.8.2 2002-05-03 07:13:37 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 
 #include "FBC_ControllerT.h"
@@ -18,7 +18,7 @@ FBC_ControllerT::FBC_ControllerT(FEManagerT& fe_manager, int group):
 FBC_ControllerT::~FBC_ControllerT(void) { }
 
 /* set the controller */
-void FBC_ControllerT::SetController(eControllerT* controller)
+void FBC_ControllerT::SetController(const eControllerT* controller)
 {
 	fController = controller;
 }

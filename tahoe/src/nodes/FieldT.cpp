@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.1.2.6 2002-04-30 08:22:03 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.1.2.7 2002-05-03 07:13:34 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nControllerT.h"
@@ -19,14 +19,7 @@ FieldT::FieldT(const StringT& name, int ndof, nControllerT& controller):
 }
 
 /* destructor */
-FieldT::~FieldT(void)
-{
-	for (int i = 0; i < fKBC_Controllers.Length(); i++)
-		delete fKBC_Controllers[i];
-
-	for (int i = 0; i < fFBC_Controllers.Length(); i++)
-		delete fFBC_Controllers[i];
-}
+FieldT::~FieldT(void) { }
 
 /* set number of nodes */
 void FieldT::Dimension(int nnd)
