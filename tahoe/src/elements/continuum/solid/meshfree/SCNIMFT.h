@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.13 2004-07-29 23:42:06 cjkimme Exp $ */
+/* $Id: SCNIMFT.h,v 1.14 2004-08-02 22:26:04 paklein Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -253,6 +253,8 @@ protected:
 #endif
 	bool qComputeVoronoiCell;
 	StringT vCellFile;
+	
+	int fNumIP;
 
 	ArrayT<dArrayT> fVoronoiFacetAreas; // Tag for Deletion
 	ArrayT<dArray2DT> fVoronoiFacetNormals; // Tag for Deletion
