@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.h,v 1.2.2.2 2001-06-22 14:18:20 paklein Exp $ */
+/* $Id: J2Simo2D.h,v 1.2.2.3 2001-06-29 23:55:50 paklein Exp $ */
 /* created: paklein (06/22/1997)                                          */
 
 #ifndef _J2_SIMO_2D_H_
@@ -43,7 +43,7 @@ public:
 	virtual double StrainEnergyDensity(void);
 	 	 	
 	/** required parameter flags */
-	virtual bool NeedLastDisp(void) const;
+	virtual bool Need_F_last(void) const { return true; };
 
 	/** returns the number of output variables */
 	virtual int NumOutputVariables(void) const;

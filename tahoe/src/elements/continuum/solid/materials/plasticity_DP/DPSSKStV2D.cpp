@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV2D.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:18 paklein Exp $ */
+/* $Id: DPSSKStV2D.cpp,v 1.1.1.1.2.3 2001-06-29 23:55:48 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 #include "DPSSKStV2D.h"
@@ -15,6 +15,13 @@ DPSSKStV2D::DPSSKStV2D(ifstreamT& in, const SmallStrainT& element):
 {
 	/* account for thickness */
 	fDensity *= fThickness;
+}
+
+/* initialization */
+void DPSSKStV2D::Initialize(void)
+{
+	/* inherited */
+	HookeanMatT::Initialize();
 }
 
 /* returns elastic strain (3D) */

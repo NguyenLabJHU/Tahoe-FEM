@@ -1,4 +1,4 @@
-/* $Id: HookeanMatT.cpp,v 1.1.1.1.2.1 2001-06-06 16:22:00 paklein Exp $ */
+/* $Id: HookeanMatT.cpp,v 1.1.1.1.2.2 2001-06-29 23:55:46 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 /* Base class for all Hookean materials, defined as:                      */
 /* 	stress_ij = moduli_ijkl strain_kl                                     */
@@ -9,8 +9,9 @@
 /* constructor */
 HookeanMatT::HookeanMatT(int nsd):
 	fModulus(dSymMatrixT::NumValues(nsd))
-{ 
-
+{
+	/* must set initialized later */
+	fModulus =-1.0;
 }
 
 /* destructor */

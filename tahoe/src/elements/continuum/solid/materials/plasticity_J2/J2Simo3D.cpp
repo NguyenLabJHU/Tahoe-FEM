@@ -1,4 +1,4 @@
-/* $Id: J2Simo3D.cpp,v 1.3.2.2 2001-06-22 14:18:21 paklein Exp $ */
+/* $Id: J2Simo3D.cpp,v 1.3.2.3 2001-06-29 23:55:50 paklein Exp $ */
 /* created: paklein (06/22/1997)                                          */
 
 #include "J2Simo3D.h"
@@ -122,9 +122,6 @@ double J2Simo3D::StrainEnergyDensity(void)
 
 	return ComputeEnergy(J, b_els);
 }
-
-/* required parameter flags */
-bool J2Simo3D::NeedLastDisp(void) const { return true; }
 
 /** returns the number of output variables */
 int J2Simo3D::NumOutputVariables(void) const { return 4; }
