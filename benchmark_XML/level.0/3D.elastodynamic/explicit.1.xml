@@ -24,7 +24,7 @@
         </history_node_ID_list>
     </nodes>
     <element_list>
-        <updated_lagrangian field_name="displacement" mass_type="lumped_mass">
+        <updated_lagrangian field_name="displacement">
             <hexahedron/>
             <solid_element_nodal_output displacements="1" material_output="1" stress="1"/>
             <solid_element_element_output linear_momentum="1"/>
