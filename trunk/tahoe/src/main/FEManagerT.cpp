@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.60 2003-08-14 06:05:37 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.61 2003-08-18 03:39:01 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1095,6 +1095,8 @@ ParameterInterfaceT* FEManagerT::NewSub(const StringT& list_name) const
 		return non_const_this->New_Solver(GlobalT::kLinearSolver);
 	else if (list_name == "nonlinear_solver")
 		return non_const_this->New_Solver(GlobalT::kNewtonSolver);	
+	else if (list_name == "PCG_solver")
+		return non_const_this->New_Solver(GlobalT::kPCGSolver_LS);	
 	else /* inherited */
 		return ParameterInterfaceT::NewSub(list_name);
 }
@@ -1112,6 +1114,9 @@ void FEManagerT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT&
 
 		/* nonlinear solver */
 		sub_sub_list.AddSub("nonlinear_solver");
+
+		/* nonlinear PCG solver */
+		sub_sub_list.AddSub("PCG_solver");
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
@@ -1919,6 +1924,10 @@ SolverT* FEManagerT::New_Solver(GlobalT::SolverTypeT solver_type)
 			
 		case GlobalT::kNewtonSolver:
 			solver = new NLSolver(*this);
+			break;
+
+		case GlobalT::kPCGSolver_LS:				
+			solver = new PCGSolver_LS(*this);
 			break;
 
 		default:
