@@ -1,4 +1,4 @@
-/* $Id: ContactNodeT.h,v 1.8 2001-09-06 01:03:26 rjones Exp $ */
+/* $Id: ContactNodeT.h,v 1.9 2001-09-14 00:27:16 rjones Exp $ */
 
 
 #ifndef _CONTACT_NODE_T_H_
@@ -57,6 +57,13 @@ class ContactNodeT
 	void ComputeSlip(double* slip);
 
 	bool HasProjection(void) {return fStatus > kNoProjection;}
+	
+#if 0
+	inline void MyFaces(ArrayT<FaceT*>& faces)
+		{faces.Set;}
+	inline void OppFaces(ArrayT<FaceT*>& faces)
+		{faces.Set;}
+#endif
 				  
   protected:
         /* data */

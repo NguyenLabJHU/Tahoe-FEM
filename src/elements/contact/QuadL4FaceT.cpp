@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.17 2001-08-06 20:55:13 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.18 2001-09-14 00:27:17 rjones Exp $ */
 
 #include "QuadL4FaceT.h"
 #include "FaceT.h"
@@ -36,6 +36,7 @@ int number_of_face_nodes, int* connectivity):
 		ip = fIntegrationPoints(3);	
 		ip[0] = -1.0 ; ip[1] =  1.0;
 	}
+	fGeometryType = GeometryT::kQuadrilateral;
 }
 
 QuadL4FaceT::~QuadL4FaceT (void)

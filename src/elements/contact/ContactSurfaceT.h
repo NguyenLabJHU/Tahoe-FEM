@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.13 2001-09-06 15:10:14 rjones Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.14 2001-09-14 00:27:16 rjones Exp $ */
 
 
 #ifndef _CONTACT_SURFACE_T_H_
@@ -59,6 +59,10 @@ class ContactSurfaceT : public SurfaceT
 	void PrintNormals(ofstream& out) const;
 	void PrintStatus(ostream& out) const;
 
+	inline void InitializeMultiplierMap(void)
+		{fMultiplierMap = -1;}
+	void DetermineMultiplierExtent(void);
+	void TagMultiplierMap(const ArrayT<FaceT*>&  faces);
 	inline iArrayT&  MultiplierTags(void) 
 		{return fMultiplierTags;} // this can NOT be const	
 	inline const iArrayT&  MultiplierTags(void) const

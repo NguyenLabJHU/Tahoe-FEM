@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.16 2001-06-12 22:14:32 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.17 2001-09-14 00:27:17 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -63,32 +63,6 @@ SurfaceT::~SurfaceT(void)
 	}
 }
 
-
-void SurfaceT::PrintConnectivityData(ostream& out)
-{
-	/* surface data */
-        /* echo data and correct numbering offset */
-	/* nodes */
-	out << "\n Surface " << fTag
-            << " nodes:" << setw(kIntWidth) << fGlobalNodes.Length() << '\n' ;
-	fGlobalNodes++;
-	out << fGlobalNodes.wrap(8) << '\n';
-	fGlobalNodes--;
-
-	/* face connectivities */
-	out << "\n Faces :" << setw(kIntWidth) 
-	    << fFaces.Length() 
-	    << ", geometry type :" << GeometryType() <<  '\n' ;
-	for (int i = 0 ; i < fFaces.Length() ; i++) {
-		iArrayT connectivity = fFaces[i]->Connectivity();
-		connectivity++;
-        	out << connectivity.wrap(8) << '\n';
-        	connectivity--;
-	}
-	out << '\n';
-
-}
-
 void SurfaceT::PrintKinematicData(ostream& out)
 {
 	out << "\n Surface " << fTag
@@ -109,6 +83,28 @@ void SurfaceT::PrintKinematicData(ostream& out)
 	}
 
 }
+
+void SurfaceT::PrintConnectivityData(ostream& out)
+{ /* surface data */
+	/* nodes */
+	out << " nodes:" << setw(kIntWidth) << fGlobalNodes.Length() << '\n' ;
+	fGlobalNodes++;
+	out << fGlobalNodes.wrap(8) << '\n';
+	fGlobalNodes--;
+
+	/* face connectivities */
+	out << " faces:" << setw(kIntWidth) << fFaces.Length() 
+	    << ", geometry type :" << GeometryType() <<  '\n' ;
+	for (int i = 0 ; i < fFaces.Length() ; i++) {
+		iArrayT connectivity = fFaces[i]->Connectivity();
+		connectivity++;
+        	out << connectivity.wrap(8) << '\n';
+        	connectivity--;
+	}
+	out << '\n';
+
+}
+
 
 
 /* surface input functions */
@@ -143,6 +139,7 @@ void SurfaceT::InputSideSets
 	iArray2DT side_set;
 	int block_ID;
 	int input_format = fe_manager.InputFormat();
+	out <<" Surface: "<< fTag ;
 	switch (input_format)
 	{
 		case IOBaseT::kExodusII:
@@ -170,9 +167,9 @@ void SurfaceT::InputSideSets
 			side_set--;
 
 			/* echo dimensions */
-			out << " side set ID: " << set_ID << '\n';
-			out << "  element ID: " << block_ID << '\n';
-			out << "       sides: " << side_set.MajorDim() << '\n';
+			out << " side set ID: " << set_ID ;
+			out << "  element ID: " << block_ID ;
+			out << "       sides: " << side_set.MajorDim() << '\n'; 
 			break;
 		}
 		case IOBaseT::kTahoe:

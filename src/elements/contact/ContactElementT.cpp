@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.20 2001-09-10 23:26:17 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.21 2001-09-14 00:27:16 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -32,6 +32,7 @@ ContactElementT::ContactElementT
 	fNumEnfParameters = num_enf_params;
 	fXDOF_Nodes = NULL;
 	fNumMultipliers = 0;
+	ReadControlData();
 }
 
 ContactElementT::ContactElementT
@@ -44,7 +45,7 @@ ContactElementT::ContactElementT
 {
 	fNumEnfParameters = num_enf_params;
 	if (!fXDOF_Nodes) throw eGeneralFail;
-	fNumMultipliers = 1;
+	ReadControlData();
 }
 
 
@@ -82,27 +83,27 @@ void ContactElementT::Initialize(void)
         /* workspace matrices */
 	SetWorkspace();
 
-        /* for bandwidth reduction in the case of no contact 
+	/* for bandwidth reduction in the case of no contact 
 	 * make node-to-node pseudo-connectivities to link all bodies */
-        int num_surfaces = fSurfaces.Length();
-        if (num_surfaces > 1)
-        {
-                fSurfaceLinks.Allocate(num_surfaces - 1, 2);
-                for (int i = 0; i < num_surfaces - 1; i++)
-                {
+	int num_surfaces = fSurfaces.Length();
+	if (num_surfaces > 1)
+	{
+		fSurfaceLinks.Allocate(num_surfaces - 1, 2);
+		for (int i = 0; i < num_surfaces - 1; i++)
+		{
 			fSurfaceLinks(i,0) = fSurfaces[i  ].GlobalNodes()[0];
 			fSurfaceLinks(i,1) = fSurfaces[i+1].GlobalNodes()[0];
-                }
-        }
+		}
+	}
 
 
 
 	if (fXDOF_Nodes) {
-        	iArrayT numDOF(fSurfaces.Length());
-        	numDOF = fNumMultipliers;
+		iArrayT numDOF(fSurfaces.Length());
+		numDOF = fNumMultipliers;
 		/* this calls GenerateElementData */
-        	/* register with node manager */
-        	fNodes->XDOF_Register(this, numDOF);
+		/* register with node manager */
+		fNodes->XDOF_Register(this, numDOF);
 	}
 	else {
 		/* set initial contact configuration */
@@ -113,25 +114,25 @@ void ContactElementT::Initialize(void)
 void ContactElementT::SetWorkspace(void)
 {
 	// ARE THESE RIGHT?
-        /* workspace matrices */
+	/* workspace matrices */
 	n1.Allocate(fNumSD);
 	l1.Allocate(fNumSD);
-        RHS_man.SetWard(kMaxNumFaceDOF,RHS);
-        tmp_RHS_man.SetWard(kMaxNumFaceDOF,tmp_RHS);
-        LHS_man.SetWard(kMaxNumFaceDOF,LHS);
-        opp_LHS_man.SetWard(kMaxNumFaceDOF,opp_LHS);
-        tmp_LHS_man.SetWard(kMaxNumFaceDOF,tmp_LHS);
-        N1_man.SetWard(kMaxNumFaceDOF,N1);
-        N2_man.SetWard(kMaxNumFaceDOF,N2);
-        N1n_man.SetWard(kMaxNumFaceDOF,N1n);
-        N2n_man.SetWard(kMaxNumFaceDOF,N2n);
-        weights_man.SetWard(kMaxNumFaceNodes,weights);
-        eqnums_man.SetWard(kMaxNumFaceDOF,eqnums,fNumSD);
-        opp_eqnums_man.SetWard(kMaxNumFaceDOF,opp_eqnums,fNumSD);
+   	RHS_man.SetWard(kMaxNumFaceDOF,RHS);
+   	tmp_RHS_man.SetWard(kMaxNumFaceDOF,tmp_RHS);
+   	LHS_man.SetWard(kMaxNumFaceDOF,LHS);
+   	opp_LHS_man.SetWard(kMaxNumFaceDOF,opp_LHS);
+   	tmp_LHS_man.SetWard(kMaxNumFaceDOF,tmp_LHS);
+   	N1_man.SetWard(kMaxNumFaceDOF,N1);
+   	N2_man.SetWard(kMaxNumFaceDOF,N2);
+   	N1n_man.SetWard(kMaxNumFaceDOF,N1n);
+   	N2n_man.SetWard(kMaxNumFaceDOF,N2n);
+   	weights_man.SetWard(kMaxNumFaceNodes,weights);
+   	eqnums_man.SetWard(kMaxNumFaceDOF,eqnums,fNumSD);
+   	opp_eqnums_man.SetWard(kMaxNumFaceDOF,opp_eqnums,fNumSD);
 #if 0
-        /* dynamic work space managers for element arrays */
-        fXDOFConnectivities_man.SetWard(0, fXDOFConnectivities, fNumElemNodes + 1);
-        fXDOFEqnos_man.SetWard(0, fXDOFEqnos, fNumElemEqnos);
+  	/* dynamic work space managers for element arrays */
+	fXDOFConnectivities_man.SetWard(0, fXDOFConnectivities, fNumElemNodes + 1);
+	fXDOFEqnos_man.SetWard(0, fXDOFEqnos, fNumElemEqnos);
 
 #endif
 }
@@ -184,15 +185,24 @@ int ContactElementT::Reconfigure(void)
 /* (1) sizes the DOF tags array needed for the current timestep */
 void ContactElementT::SetDOFTags(void)
 { 
-        bool changed = fContactSearch->SetInteractions();
+	bool changed = fContactSearch->SetInteractions();
 
-        dArray2DT multiplier_values; // this is size NumPotential???
+	for (int i = 0; i < fSurfaces.Length(); i++) {
+		fSurfaces[i].InitializeMultiplierMap();
+	}
+
+	for (int i = 0; i < fSurfaces.Length(); i++) {
+		/* tag potentially active nodes */
+		fSurfaces[i].DetermineMultiplierExtent();
+	}
+	
+	dArray2DT multiplier_values; 
 	for (int i = 0; i < fSurfaces.Length(); i++) {
 		/* number active nodes and total */
-        	/* store last dof tag and value */
-        	/* resize DOF tags array for number of potential contacts */
-        	multiplier_values.Alias(fXDOF_Nodes->XDOF(this,i));
-	        fSurfaces[i].AllocateMultiplierTags(multiplier_values);
+        /* store last dof tag and value */
+        /* resize DOF tags array for number of potential contacts */
+        multiplier_values.Alias(fXDOF_Nodes->XDOF(this,i));
+	    fSurfaces[i].AllocateMultiplierTags(multiplier_values);
 	}
 }
 
@@ -360,6 +370,66 @@ double ContactElementT::InternalEnergy(void)
 ***********************************************************************/
 
 /* print element group data */
+void ContactElementT::ReadControlData(void)
+{
+    /* streams */
+    ifstreamT& in = fFEManager.Input(); 
+    ostream&  out = fFEManager.Output(); 
+
+    /* print flags */
+    fOutputFlags.Allocate(kNumOutputFlags);
+    for (int i = 0; i < fOutputFlags.Length(); i++) {
+        in >> fOutputFlags[i];
+    }
+	out << " Print gaps                 = " << fOutputFlags[kGaps] << '\n';
+	out << " Print normals              = " << fOutputFlags[kNormals] << '\n';
+
+    int num_surfaces;
+    in >> num_surfaces;
+    if (num_surfaces < 1) throw eBadInputValue;
+	out << " Number of contact surfaces. . . . . . . . . . . = "
+	    << num_surfaces << '\n';
+
+    int num_pairs;
+    in >> num_pairs;
+    if (num_pairs < 1 || num_pairs > num_surfaces*(num_surfaces-1))
+        throw eBadInputValue;
+	out << " Number of surface pairs with data . . . . . . . = "
+	    << num_pairs << '\n';
+
+	/* parameters */
+	out << " Number of search parameters . . . . . . . . . . = "
+	    << kSearchNumParameters << '\n';
+	out << " Number of enforcement parameters. . . . . . . . = "
+	    << fNumEnfParameters << '\n';
+    fSearchParameters.Allocate(num_surfaces);
+    fEnforcementParameters.Allocate(num_surfaces);
+    int s1, s2;
+    for (int i = 0; i < num_pairs ; i++)
+    {
+        in >> s1 >> s2;
+        s1--; s2--;
+        dArrayT& search_parameters = fSearchParameters(s1,s2);
+        /* general parameters for search */
+        search_parameters.Allocate (kSearchNumParameters);
+        dArrayT& enf_parameters    = fEnforcementParameters(s1,s2);
+        /* parameters specific to enforcement */
+        enf_parameters.Allocate (fNumEnfParameters);
+        for (int j = 0 ; j < search_parameters.Length() ; j++)
+        {
+            in >> search_parameters[j];
+        }
+        for (int j = 0 ; j < enf_parameters.Length() ; j++)
+        {
+            in >> enf_parameters[j];
+        }
+    }
+    fSearchParameters.CopySymmetric();
+    fEnforcementParameters.CopySymmetric();
+
+}
+
+/* print element group data */
 void ContactElementT::PrintControlData(ostream& out) const
 {
 	/* inherited */
@@ -370,19 +440,17 @@ void ContactElementT::PrintControlData(ostream& out) const
 /* echo contact surfaces */
 void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
 {
-	int num_surfaces;
-	in >> num_surfaces;
-	out << " Number of contact surfaces. . . . . . . . . . . = "
-	    << num_surfaces << '\n';
-	if (num_surfaces < 1) throw eBadInputValue;
-
+	int num_surfaces = fSearchParameters.Rows();
 	/* surfaces */
+	out << " Surface connectivity data .............................\n";
 	fSurfaces.Allocate(num_surfaces); 
 	for (int i = 0; i < fSurfaces.Length(); i++)
 	{
 		int spec_mode;
 		in >> spec_mode;
 		ContactSurfaceT& surface = fSurfaces[i];
+		surface.SetTag(i);
+		/* read connectivity data */
 		switch (spec_mode)
 		{
 			case kSideSets:
@@ -396,69 +464,8 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
                                      << " for surface " << i+1 << '\n';
 				throw eBadInputValue;
 		}
-		surface.SetTag(i);
 		surface.PrintConnectivityData(out);
 	}
-
-	/* print flags */
-	fOutputFlags.Allocate(kNumOutputFlags);
-	for (int i = 0; i < fOutputFlags.Length(); i++) {
-		in >> fOutputFlags[i];
-	}
-
-	/* parameters */
-	fSearchParameters.Allocate(num_surfaces);
-	fEnforcementParameters.Allocate(num_surfaces);
-
-	int num_pairs;
-	in >> num_pairs;
-	out << " Number of surface pairs with data . . . . . . . . = "
-	    << num_pairs << '\n';
-	out << " Number of search parameters = " 
-	    << kSearchNumParameters << '\n'
-	    << " Number of enforcement parameters = " 
-	    << fNumEnfParameters
-	    << '\n';
-	int s1, s2;
-	for (int i = 0; i < num_pairs ; i++) 
-	{
-		in >> s1 >> s2;
-		s1--; s2--;
-		dArrayT& search_parameters = fSearchParameters(s1,s2);
-		search_parameters.Allocate (kSearchNumParameters);
-		dArrayT& enf_parameters    = fEnforcementParameters(s1,s2);
-		// add parameters specific to enforcement
-		enf_parameters.Allocate (fNumEnfParameters);
-		for (int j = 0 ; j < search_parameters.Length() ; j++)
-		{
-			in >> search_parameters[j]; 
-		}
-		for (int j = 0 ; j < enf_parameters.Length() ; j++)
-		{
-			in >> enf_parameters[j]; 
-		}
-	}
-	
-	fSearchParameters.CopySymmetric();
-	fEnforcementParameters.CopySymmetric();
-
-	/* write out search parameter matrix */
-	for (int i = 0; i < num_surfaces ; i++) 
-        {
-                for (int j = 0 ; j < num_surfaces ; j++)
-                {
-					dArrayT& search_parameters = fSearchParameters(i,j);
-					dArrayT& enf_parameters = fEnforcementParameters(i,j);
-					/* only print allocated parameter arrays */
-					if (search_parameters.Length() 
-						== kSearchNumParameters) {
-			  		out << "(" << i << "," << j << ")\n" ;
-			  		out << search_parameters << '\n';
-			  		out << enf_parameters << '\n'; 
-					}
-                }
-        }
-
 }
 
 /* generate contact element data - return true if configuration has

@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.14 2001-09-10 23:26:18 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.15 2001-09-14 00:27:16 rjones Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -78,7 +78,7 @@ public:
 		// returns no (NULL) geometry connectivies
 	 	
         /* surface specification modes */
-        enum SearchParametersT { kGapTol = 0,
+	enum SearchParametersT { kGapTol = 0,
 				kXiTol ,
 				kSearchNumParameters};
 	int fNumEnfParameters;
@@ -89,37 +89,39 @@ public:
 			kStatus,
 			kNumOutputFlags};
 
-        /* returns the array for the DOF tags needed for the current config */
-        virtual void SetDOFTags(void);
-        virtual iArrayT& DOFTags(int tag_set);
+	/* returns the array for the DOF tags needed for the current config */
+	virtual void SetDOFTags(void);
+	virtual iArrayT& DOFTags(int tag_set);
 
-        /* generate nodal connectivities */
-        virtual void GenerateElementData(void);
-        // NOTE: since the sequence of setting global equation
-        //       number is controlled externally, responsibility
-        //       for calling the element group to (self-) configure
-        //       is also left to calls from the outside. otherwise
-        //       it's tough to say whether data requested by the group
-        //       is current.
+	/* generate nodal connectivities */
+	virtual void GenerateElementData(void);
+	// NOTE: since the sequence of setting global equation
+	//       number is controlled externally, responsibility
+  	//       for calling the element group to (self-) configure
+   	//       is also left to calls from the outside. otherwise
+	//       it's tough to say whether data requested by the group
+	//       is current.
 
-        /* return the contact elements */
-        virtual const iArray2DT& DOFConnects(int tag_set) const;
+	/* return the contact elements */
+  	virtual const iArray2DT& DOFConnects(int tag_set) const;
 
-        /* restore the DOF values to the last converged solution */
-        virtual void ResetDOF(dArray2DT& DOF, int tag_set) const;
-
-        /* returns 1 if group needs to reconfigure DOF's, else 0 */
-        virtual int Reconfigure(void);
+   	/* restore the DOF values to the last converged solution */
+   	virtual void ResetDOF(dArray2DT& DOF, int tag_set) const;
+	
+   	/* returns 1 if group needs to reconfigure DOF's, else 0 */
+   	virtual int Reconfigure(void);
 
 protected:
 	/* contact surfaces */
 	ArrayT<ContactSurfaceT> fSurfaces; 
 
-        /* search interaction parameters, symmetric matrix */
-        nMatrixT<dArrayT> fSearchParameters ;
+	/* search interaction parameters, symmetric matrix */
+  	nMatrixT<dArrayT> fSearchParameters ;
 
-	// this will have kPass, kPenalty etc
 	nMatrixT<dArrayT> fEnforcementParameters ;
+
+	/* read element group data */
+	void ReadControlData(void);
 
 	/* print element group data */
 	virtual void PrintControlData(ostream& out) const;
@@ -176,13 +178,13 @@ protected:
 	iArray2DT fSurfaceLinks;
 
 	/* nodemanager with external DOF's for multipliers */
-        XDOF_ManagerT* fXDOF_Nodes;
+	XDOF_ManagerT* fXDOF_Nodes;
 	int fNumMultipliers;
 
 	
 private:
-        /* surface specification modes */
-        enum SurfaceSpecModeT { kSideSets = 1};
+	/* surface specification modes */
+	enum SurfaceSpecModeT { kSideSets = 1};
 };
 
 #endif /* _CONTACT_ELEMENT_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: LineQ3FaceT.cpp,v 1.4 2001-08-06 20:55:13 rjones Exp $ */
+/* $Id: LineQ3FaceT.cpp,v 1.5 2001-09-14 00:27:17 rjones Exp $ */
 
 #include "LineQ3FaceT.h"
 #include "FaceT.h"
@@ -31,6 +31,7 @@ int number_of_face_nodes, int* connectivity):
         	ip = fIntegrationPoints(2);   
         	ip[0] =  1.0 ; 
 	}
+	fGeometryType = GeometryT::kLine;
 
 }
 

@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.14 2001-09-10 23:26:18 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.15 2001-09-14 00:27:16 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include "SurfaceT.h"
@@ -72,26 +72,26 @@ ContactSurfaceT::SetPotentialConnectivity(int num_multipliers)
 	node_face_counts = 0;
 
 	/* count connectivity */
-        for (i = 0; i < fContactNodes.Length(); i++){
-          node = fContactNodes[i];
-          face = node->OpposingFace();
-          /* connectivities for potential interactions, based on search tol */
-          if (face) {
+	for (i = 0; i < fContactNodes.Length(); i++){
+		node = fContactNodes[i];
+		face = node->OpposingFace();
+		/* connectivities for potential interactions, based on search tol */
+		if (face) {
             /* (1) all nodes in associated primary faces */
             for (j = 0; j <  fNodeNeighbors.MinorDim(i) ; j++) {
                 face = fNodeNeighbors(i)[j]; 
                 node_face_counts[i] += face->Connectivity().Length();
             }
             /* (2) all nodes in opposing neighbor faces */
-	    /* inclusive of opposing face */
-            const ArrayT<FaceT*>&  faces 
-		= node->OpposingFace()->Neighbors();
+			/* inclusive of opposing face */
+			const ArrayT<FaceT*>&  faces 
+			= node->OpposingFace()->Neighbors();
             for (j = 0; j < faces.Length() ; j++) {
-		face = faces[j]; // this is a cast
-		node_face_counts[i] += face->Connectivity().Length();
-            }
-          }
-        }
+				face = faces[j]; // this is a cast
+				node_face_counts[i] += face->Connectivity().Length();
+			}
+		}
+	}
 
 	if (num_multipliers) {
 		fConnectivities.Configure(node_face_counts,2);
@@ -103,62 +103,56 @@ ContactSurfaceT::SetPotentialConnectivity(int num_multipliers)
 	}
 
 	/* fill connectivity */
-        for (i = 0; i < fContactNodes.Length(); i++){
-          node = fContactNodes[i];
-	  face = node->OpposingFace();
-	  count = 0;
-	  /* connectivities for potential interactions, based on search tol */
-	  if (face) {
-	    /* if node has opposing face it is potentially in contact */
-	    int* node_face_connectivity = fConnectivities(i);
+	for (i = 0; i < fContactNodes.Length(); i++){
+		node = fContactNodes[i];
+		face = node->OpposingFace();
+		count = 0;
+		/* connectivities for potential interactions, based on search tol */
+		if (face) {
+			/* if node has opposing face it is potentially in contact */
+			int* node_face_connectivity = fConnectivities(i);
             /* (1) all nodes in associated primary faces */
-	    const iArrayT& global_nodes = this->GlobalNodes();
+			const iArrayT& global_nodes = this->GlobalNodes();
             for (j = 0; j < fNodeNeighbors.MinorDim(i) ; j++) {
                 face = fNodeNeighbors(i)[j]; 
                 const iArrayT& face_connectivity = face->Connectivity();
                 for (k = 0; k < face_connectivity.Length(); k++ ) {
-                  node_face_connectivity[count] 
-		    = global_nodes[face_connectivity[k]];// face nodes
-		  count++;
-		}
+                  	node_face_connectivity[count] 
+				    = global_nodes[face_connectivity[k]];// face nodes
+		  			count++;
+				}
             }
             /* (2) all nodes in opposing neighbor faces */
-	    /* inclusive of opposing face */
-	    const iArrayT& opp_global_nodes
-		= node->OpposingSurface()->GlobalNodes();
+		    /* inclusive of opposing face */
+		    const iArrayT& opp_global_nodes
+				= node->OpposingSurface()->GlobalNodes();
             const ArrayT<FaceT*>&  faces 
-		= node->OpposingFace()->Neighbors();
-	    for (j = 0; j < faces.Length() ; j++) {
-		face = faces[j] ; // this is cast
+				= node->OpposingFace()->Neighbors();
+		    for (j = 0; j < faces.Length() ; j++) {
+				face = faces[j] ; // this is cast
                 const iArrayT& face_connectivity = face->Connectivity();
                 for (k = 0; k < face_connectivity.Length(); k++ ) {
-                  node_face_connectivity[count] 
-		    = opp_global_nodes[face_connectivity[k]];// face nodes
-		  count++;
+					node_face_connectivity[count] 
+				    = opp_global_nodes[face_connectivity[k]];// face nodes
+					count++;
                 }
-	    }
-	    if (count != node_face_counts[i]) {
-		cout <<"Error in ContactSurface::SetPotentialConnectivities\n";
-		cout <<" count " << count <<" "<<  node_face_counts[i] <<'\n';
-		throw;
-	    }
-	    if (num_multipliers) {
-		int* node_face_connectivity = fConnectivities(i);
-		int local_multiplier_node;
+	    	}
+	    	if (count != node_face_counts[i]) {
+			cout <<"Error in ContactSurface::SetPotentialConnectivities\n";
+			cout <<" count " << count <<" "<<  node_face_counts[i] <<'\n';
+			throw eGeneralFail;
+		    }
+			if (num_multipliers) {
+				int* node_face_connectivity = fConnectivities(i);
+				int local_multiplier_node;
                 /* all nodes in associated primary faces */
                 for (j = 0; j < fNodeNeighbors.MinorDim(i) ; j++) {
                     face = fNodeNeighbors(i)[j];
                     const iArrayT& face_connectivity = face->Connectivity();
                     for (k = 0; k < face_connectivity.Length(); k++ ) {
-		      local_multiplier_node 
-			= fMultiplierMap[face_connectivity[k]];
-		      if (local_multiplier_node > -1){
                         node_face_connectivity[count]
-                        = fMultiplierTags[local_multiplier_node];
-		      } else {
-			node_face_connectivity[count] = -1;
-		      }
-                      count++;
+                        = fMultiplierTags[fMultiplierMap[face_connectivity[k]]];
+                      	count++;
                     }
                 }
                 /* all nodes in opposing neighbor faces */
@@ -173,21 +167,14 @@ ContactSurfaceT::SetPotentialConnectivity(int num_multipliers)
                     face = faces[j] ; // this is cast
                     const iArrayT& face_connectivity = face->Connectivity();
                     for (k = 0; k < face_connectivity.Length(); k++ ) {
-                      local_multiplier_node 
-			= opp_multiplier_map[face_connectivity[k]];
-                      if (local_multiplier_node > -1){
                         node_face_connectivity[count]
-                        = opp_multiplier_tags[local_multiplier_node];
-		      } else {
-			node_face_connectivity[count] = -1;
-                      }
-                      count++;
+                        = opp_multiplier_tags[opp_multiplier_map[face_connectivity[k]]];
+                      	count++;
                     }
                 }
-
-	    }
-	  }
-        }
+	    	}
+		}
+	}
 }
 
 /* this is for debugging */
@@ -292,6 +279,45 @@ ContactSurfaceT::PrintStatus(ostream& out) const
         }
 }
 
+
+void
+ContactSurfaceT::DetermineMultiplierExtent(void)
+{
+    ContactNodeT* node = NULL;
+    const FaceT* face = NULL;
+
+    for (int i = 0; i < fContactNodes.Length(); i++){
+        node = fContactNodes[i];
+        /* if node has opposing face it is potentially in contact */
+        if (node->OpposingFace()) {
+            /* (1) all nodes in associated primary faces */
+            for (int j = 0; j < fNodeNeighbors.MinorDim(i) ; j++) {
+                face = fNodeNeighbors(i)[j];
+                const iArrayT& face_connectivity = face->Connectivity();
+                for (int k = 0; k < face_connectivity.Length(); k++ ) {
+                    fMultiplierMap[face_connectivity[k]] = 1;
+                }
+            }
+            /* (2) all nodes in opposing neighbor faces */
+            /* inclusive of opposing face */
+            const ArrayT<FaceT*>&  faces
+                = node->OpposingFace()->Neighbors();
+			node->OpposingSurface()->TagMultiplierMap(faces);
+		}
+	}
+}
+
+void
+ContactSurfaceT::TagMultiplierMap(const ArrayT<FaceT*>&  faces)
+{
+	for (int j = 0; j < faces.Length() ; j++) {
+		const iArrayT& face_connectivity = faces[j]->Connectivity();
+		for (int k = 0; k < face_connectivity.Length(); k++ ) {
+			fMultiplierMap[face_connectivity[k]] = 1;
+		}
+	}
+}
+
 void
 ContactSurfaceT::AllocateMultiplierTags(dArray2DT& multiplier_values) 
 {
@@ -300,12 +326,9 @@ ContactSurfaceT::AllocateMultiplierTags(dArray2DT& multiplier_values)
 	fLastMultiplierValues = multiplier_values;
 
 	/* assign active numbering and total */
-	fMultiplierMap = -1;
 	int count = 0;
 	for (int n = 0 ; n < fContactNodes.Length(); n++) {
-		if (fContactNodes[n]->HasProjection()){
-			fMultiplierMap[n] = count++;		
-		}
+		if (fMultiplierMap[n] > -1) { fMultiplierMap[n] = count++;}
 	}
 	fNumPotentialContactNodes = count;
 

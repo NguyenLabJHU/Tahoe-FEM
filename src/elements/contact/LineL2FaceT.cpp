@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.19 2001-08-06 20:55:13 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.20 2001-09-14 00:27:17 rjones Exp $ */
 
 #include "LineL2FaceT.h"
 #include "FaceT.h"
@@ -28,6 +28,7 @@ int number_of_face_nodes, int* connectivity):
         	ip = fIntegrationPoints(1);   
         	ip[0] =  1.0 ; 
 	}
+	fGeometryType = GeometryT::kLine;
 
 }
 
