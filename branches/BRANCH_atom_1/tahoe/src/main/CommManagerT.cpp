@@ -1,10 +1,11 @@
-/* $Id: CommManagerT.cpp,v 1.1.2.11 2003-01-11 22:10:43 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.1.2.12 2003-01-13 19:59:43 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
 #include "NodeManagerT.h"
 #include "PartitionT.h"
 #include "InverseMapT.h"
+#include "FieldT.h"
 #include <float.h>
 
 /* message types */
@@ -19,7 +20,8 @@ CommManagerT::CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager):
 	fPartition(NULL),
 	fNodeManager(NULL),
 	fPeriodicBoundaries(0,2),
-	fFirstConfigure(true)
+	fFirstConfigure(true),
+	fNumRealNodes(0)
 {
 	//TEMP - with inline coordinate information (serial) this map
 	//       need to be set ASAP
@@ -106,34 +108,38 @@ void CommManagerT::SetPeriodicBoundaries(int i, double x_i_min, double x_i_max)
 	fPeriodicBoundaries(i,0) = x_i_min;
 	fPeriodicBoundaries(i,1) = x_i_max;
 	fPeriodicLength[i] = x_i_max - x_i_min;
-
-//TEMP
-ExceptionT::Stop("CommManagerT::SetPeriodicBoundaries", "not supported yet");
 }
 
 /* unset boundaries */
 void CommManagerT::ClearPeriodicBoundaries(int i) { fIsPeriodic[i] = false; }
 
 /* enforce the periodic boundary conditions */
-void CommManagerT::EnforcePeriodicBoundaries(dArray2DT& displacement, double skin)
+void CommManagerT::EnforcePeriodicBoundaries(double skin)
 {
 	const char caller[] = "CommManagerT::EnforcePeriodicBoundaries";
 	if (!fNodeManager) ExceptionT::GeneralFail(caller, "node manager node set");
 
 	/* only implemented for atom decomposition (or serial) */
 	if (fPartition && fPartition->DecompType() != PartitionT::kAtom) return;
+	
+	/* no periodic bounds declared */
+	if (fIsPeriodic.Length() == 0) return;
 
 	/* reference coordinates */
 	const dArray2DT& reference_coords = fModelManager.Coordinates();
 	if (reference_coords.MinorDim() > fIsPeriodic.Length()) ExceptionT::SizeMismatch(caller);
 
+	/* the coordinate update field */
+	dArray2DT* field = fNodeManager->CoordinateUpdate();
+	if (!field) ExceptionT::GeneralFail(caller, "no coordinate update array");
+	dArray2DT& displacement = *field;
+
 	/* nodes owned by this partition */
 	const ArrayT<int>* partition_nodes = PartitionNodes();
 	int nnd = (partition_nodes) ? partition_nodes->Length() : reference_coords.MajorDim();
 
-	/* number of "real" nodes */
+	/* current number of "ghost" nodes */
 	int ngn = fComm.Sum(fPBCNodes.Length());
-	int nrn = fModelManager.NumNodes() - ngn;
 
 	/* reset ghost nodes */
 	fPBCNodes.Dimension(0);
@@ -141,13 +147,22 @@ void CommManagerT::EnforcePeriodicBoundaries(dArray2DT& displacement, double ski
 	fPBCNodes_face.Dimension(0);
 
 	/* loop over directions */
+	int x_lower = 1; /* ...000001 */
+	int x_upper = 2; /* ...000010 */
+	bool has_periodic = false;
 	for (int i = 0; i < fIsPeriodic.Length(); i++)
+	{
 		if (fIsPeriodic[i])
-		{		
+		{
+			has_periodic = true;
+
 			/* coordinate limits */
 			double x_min = fPeriodicBoundaries(i,0);
 			double x_max = fPeriodicBoundaries(i,1);
 			double x_len = x_max - x_min;
+			
+			/* existing number of ghosts nodes */
+			int ngh = fPBCNodes.Length();
 
 			/* nodes owned by this partition */
 			for (int j = 0; j < nnd; j++)
@@ -157,35 +172,62 @@ void CommManagerT::EnforcePeriodicBoundaries(dArray2DT& displacement, double ski
 				double& X = reference_coords(nd,i);
 				double& d = displacement(nd,i);
 				double  x = X + d;
-			
+
 				/* shift displacements - back in the box */
 				if (x > x_max) 
 					d -= x_len;
 				else if (x < x_min)
 					d += x_len;
-					
+
 				/* collect nodes close to periodic boundaries */
 				x = X + d;
 				if (x - x_min < skin) {
 					fPBCNodes.Append(nd);
-					fPBCNodes_face.Append(-(i+1));
+					fPBCNodes_face.Append(x_lower);
 				}
 				if (x_max - x < skin) {
 					fPBCNodes.Append(nd);
-					fPBCNodes_face.Append(i+1);
+					fPBCNodes_face.Append(x_upper);
 				}
+			}
+			
+			/* create images of images */
+			for (int j = 0; j < ngh; j++)
+			{
+				/* current coordinates */
+				int nd = fPBCNodes[j];
+				double& X = reference_coords(nd,i);
+				double& d = displacement(nd,i);
+				double  x = X + d;
+			
+				/* close to the boundaries */
+				if (x - x_min < skin) {
+					fPBCNodes.Append(nd);
+					fPBCNodes_face.Append(fPBCNodes_face[j] | x_lower); /* bitwise OR */
+				}
+				if (x_max - x < skin) {
+					fPBCNodes.Append(nd);
+					fPBCNodes_face.Append(fPBCNodes_face[j] | x_upper); /* bitwise OR */
+				}			
 			}
 		}
 		
+		/* next direction */
+		x_lower <<= 2;
+		x_upper <<= 2;
+	}
+
 	/* configure ghost nodes */
-	if (fPBCNodes.Length() > 0)
+//	if (fPBCNodes.Length() > 0 || (fPBCNodes.Length() == 0 && fPBCNodes_ghost.Length() > 0))
+	if (has_periodic)
 	{
 		/* communicate number of ghost nodes per partition */
 		iArrayT ghost_count(fComm.Size());
 		fComm.AllGather(fPBCNodes.Length(), ghost_count);
+		ngn = ghost_count.Sum();
 
 		/* local numbering of ghost nodes */
-		int ghost_num_start = nrn;
+		int ghost_num_start = fNumRealNodes;
 		for (int i = 0; i < fComm.Rank(); i++)
 			ghost_num_start += ghost_count[i];
 
@@ -195,32 +237,50 @@ void CommManagerT::EnforcePeriodicBoundaries(dArray2DT& displacement, double ski
 			fPBCNodes_ghost[i] = ghost_num++;
 
 		/* resize all coordinate and field arrays */
-		fNodeManager->ResizeNodes(nrn + fPBCNodes_ghost.Length());
-
-		/* copy nodal information */
-		fNodeManager->CopyNodeToNode(fPBCNodes, fPBCNodes_ghost);
+		fNodeManager->ResizeNodes(fNumRealNodes + ngn);
 
 		/* generate reference coordinates - write access to the coordinates from the
 		 * model manager, not from the node manager. The node manager does not change
 		 * the initial coordinates during CopyNodeToNode */
 		const dArray2DT& coords = fModelManager.Coordinates();
-		dArray2DT ghost_coords(fPBCNodes_ghost.Length(), coords.MinorDim(), coords(ghost_num_start));
-		for (int i = 0; i < fPBCNodes_ghost.Length(); i++)
-		{
-			/* copy coordinates */
-			ghost_coords.SetRow(i, coords(fPBCNodes[i]));
-		
-			/* periodic shift */
-			int face = fPBCNodes_face[i];
-			int dim = int(fabs(double(face))) - 1;
-			int shift = (face > 0) ? -1 : 1;
-			ghost_coords(i,dim) += shift*fPeriodicLength[dim];
-		}
+		if (ngn > 0) {
+			dArray2DT ghost_coords(fPBCNodes_ghost.Length(), coords.MinorDim(), coords(ghost_num_start));
 
-		/* exchange */
-		AllGatherT all_gather(fComm);
-		all_gather.Initialize(ghost_coords);
-		all_gather.AllGather(ghost_coords);
+			/* copy coordinates */
+			for (int i = 0; i < fPBCNodes_ghost.Length(); i++)
+				ghost_coords.SetRow(i, coords(fPBCNodes[i]));
+			
+			/* loop over directions and shift coords */
+			int x_lower = 1; /* ...000001 */
+			int x_upper = 2; /* ...000010 */
+			for (int j = 0; j < fIsPeriodic.Length(); j++)
+			{
+				if (fIsPeriodic[j])
+				{
+					for (int i = 0; i < fPBCNodes_ghost.Length(); i++)
+					{
+						/* periodic shift */
+						int face = fPBCNodes_face[i];
+						
+						/* at lower bound */
+						if (face & x_lower) /* bitwise AND */
+							ghost_coords(i,j) += fPeriodicLength[j];
+						else if (face & x_upper) /* bitwise AND */
+							ghost_coords(i,j) -= fPeriodicLength[j];
+					}
+				}
+
+				/* next direction */
+				x_lower <<= 2;
+				x_upper <<= 2;
+			}
+
+			/* exchange */
+			AllGatherT all_gather(fComm);
+			all_gather.Initialize(ghost_coords);
+			dArray2DT ghost_coords_all(ngn, coords.MinorDim(), coords(fNumRealNodes));
+			all_gather.AllGather(ghost_coords_all);
+		}
 
 		/* persistent communications */
 		for (int i = 0; i < fGhostCommunications.Length(); i++)
@@ -232,22 +292,26 @@ void CommManagerT::EnforcePeriodicBoundaries(dArray2DT& displacement, double ski
 			/* (re-)set message size */
 			all_gather->Initialize(fPBCNodes.Length()*fNumValues[i]);
 		}
+		
+		/* reset the node-to-processor map */
+		fProcessor.Resize(coords.MajorDim());
+		int* n2p = fProcessor.Pointer(ghost_num_start);
+		for (int i = 0; i < ghost_count.Length(); i++)
+			for (int j = 0; j < ghost_count[i]; j++)
+				*n2p++ = -(i+1);
+
+		/* create partition nodes list if */
+		if (fPartitionNodes.Length() == 0)
+			CollectPartitionNodes(fProcessor, fComm.Rank(), fPartitionNodes);
+
+		/* copy nodal information */
+		fNodeManager->CopyNodeToNode(fPBCNodes, fPBCNodes_ghost);
 	}
 }
 
 /* configure local environment */
 void CommManagerT::Configure(void)
 {
-	/* nothing to do */
-	if (fComm.Size() == 1)
-	{
-		bool has_periodic = false;
-		for (int i = 0; i < fIsPeriodic.Length(); i++)
-			has_periodic = has_periodic || fIsPeriodic[i];
-		if (!has_periodic) return;
-	}
-	if (!fPartition || fPartition->DecompType() != PartitionT::kAtom) return;
-
 	/* first time through */
 	if (fFirstConfigure) {
 		FirstConfigure();
@@ -400,14 +464,13 @@ void CommManagerT::AllGather(int id, nArray2DT<double>& values)
 		if (!all_gather) ExceptionT::GeneralFail(caller);
 		
 		/* exchange */
-		int nrn = fModelManager.NumNodes() - fPBCNodes.Length();
-		fdExchange.Set(nrn, values.MinorDim(), values(0));
+		fdExchange.Set(fNumRealNodes, values.MinorDim(), values(0));
 		all_gather->AllGather(fdExchange);
 
 		/* ghost nodes */
-		if (fPBCNodes.Length() > 0) {
+		if (fModelManager.NumNodes() > fNumRealNodes) {
 		
-			/* copy values to ghost nodes */
+			/* copy values for local ghost nodes */
 			int ngh = fPBCNodes.Length();
 			for (int i = 0; i < ngh; i++)
 				values.SetRow(fPBCNodes_ghost[i], values(fPBCNodes[i]));
@@ -417,7 +480,7 @@ void CommManagerT::AllGather(int id, nArray2DT<double>& values)
 			if (!all_gather) ExceptionT::GeneralFail(caller);
 
 			/* exchange */
-			fdExchange.Set(fPBCNodes.Length(), values.MinorDim(), values(nrn));
+			fdExchange.Set(fModelManager.NumNodes() - fNumRealNodes, values.MinorDim(), values(fNumRealNodes));
 			all_gather->AllGather(fdExchange);
 		}		
 	}
@@ -462,12 +525,11 @@ void CommManagerT::AllGather(int id, nArray2DT<int>& values)
 		if (!all_gather) ExceptionT::GeneralFail(caller);
 		
 		/* exchange */
-		int nrn = fModelManager.NumNodes() - fPBCNodes.Length();
-		fiExchange.Set(nrn, values.MinorDim(), values(0));
-		all_gather->AllGather(values);
+		fiExchange.Set(fNumRealNodes, values.MinorDim(), values(0));
+		all_gather->AllGather(fiExchange);
 		
 		/* ghost nodes */
-		if (fPBCNodes.Length() > 0) {
+		if (fModelManager.NumNodes() > fNumRealNodes) {
 		
 			/* copy values to ghost nodes */
 			int ngh = fPBCNodes.Length();
@@ -479,7 +541,7 @@ void CommManagerT::AllGather(int id, nArray2DT<int>& values)
 			if (!all_gather) ExceptionT::GeneralFail(caller);
 
 			/* exchange */
-			fiExchange.Set(fPBCNodes.Length(), values.MinorDim(), values(nrn));
+			fiExchange.Set(fModelManager.NumNodes() - fNumRealNodes, values.MinorDim(), values(fNumRealNodes));
 			all_gather->AllGather(fiExchange);
 		}		
 	}
@@ -520,7 +582,8 @@ void CommManagerT::FirstConfigure(void)
 {
 	/* nothing to do in serial */
 	if (!fPartition) {
-		fProcessor.Dimension(fModelManager.NumNodes());
+		fNumRealNodes = fModelManager.NumNodes();
+		fProcessor.Dimension(fNumRealNodes);
 		fProcessor = fComm.Rank();
 		return;
 	}
@@ -541,14 +604,14 @@ void CommManagerT::FirstConfigure(void)
 		int nsd = fModelManager.NumDimensions();
 		AllGatherT all_gather(fComm);
 		all_gather.Initialize(npn*nsd);
-		int ntn = all_gather.Total()/nsd;
+		fNumRealNodes = all_gather.Total()/nsd;
 
 		/* collect global reference coordinate list */
 		const dArray2DT& reference_coords = fModelManager.Coordinates();
-		if (reference_coords.MajorDim() != ntn)
+		if (reference_coords.MajorDim() != fNumRealNodes)
 		{
 			/* collect */
-			dArray2DT coords_all(ntn, nsd);		
+			dArray2DT coords_all(fNumRealNodes, nsd);		
 			all_gather.AllGather(reference_coords, coords_all);
 
 			/* reset model manager */
@@ -620,9 +683,9 @@ void CommManagerT::FirstConfigure(void)
 		fBorderNodes.Alias(fPartitionNodes);
 		
 		/* all the rest are external */
-		fExternalNodes.Dimension(ntn - fPartitionNodes.Length());
+		fExternalNodes.Dimension(fNumRealNodes - fPartitionNodes.Length());
 		int lower, upper;
-		lower = upper = ntn;
+		lower = upper = fNumRealNodes;
 		if (fPartitionNodes.Length() > 0) {
 			lower = fPartitionNodes.First();
 			upper = fPartitionNodes.Last();
@@ -630,7 +693,7 @@ void CommManagerT::FirstConfigure(void)
 		int dex = 0;
 		for (int i = 0; i < lower; i++)
 			fExternalNodes[dex++] = i;
-		for (int i = upper+1; i < ntn; i++)
+		for (int i = upper+1; i < fNumRealNodes; i++)
 			fExternalNodes[dex++] = i;
 	}
 }

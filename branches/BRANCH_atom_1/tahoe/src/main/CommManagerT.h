@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.1.2.9 2003-01-11 01:18:41 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.1.2.10 2003-01-13 19:59:43 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -48,10 +48,12 @@ public:
 	
 	/** enforce the periodic boundary conditions.
 	 * Enforcement involves the following steps:
-	 * -# shift the displacement of any atoms that have moved outside the box
 	 * -# reset the ghost nodes
 	 * \param field field which provides the displacements of the nodes */
-	void EnforcePeriodicBoundaries(dArray2DT& displacement, double skin);
+	void EnforcePeriodicBoundaries(double skin);
+
+	/** return the number of real nodes */
+	int NumRealNodes(void) const { return fNumRealNodes; };
 	/*@}*/
 
 	/** configure the current local coordinate list and register it with the
@@ -100,6 +102,17 @@ public:
 	 * within the nodes appearing on this processor. Returns NULL if there is no 
 	 * list, indicating \e all nodes are owned by this partition */
 	const ArrayT<int>* BorderNodes(void) const;
+	/*@}*/
+
+	/** \name ghost nodes 
+	 * Lists of {real, ghost} node pairs created on this processor. Return NULL if there
+	 * are no ghost nodes on this processor. */
+	/*@{*/
+	/** nodes with ghosts */
+	const ArrayT<int>* NodesWithGhosts(void) const;
+
+	/** images of the nodes listed in CommManagerT::GhostedNodes */
+	const ArrayT<int>* GhostNodes(void) const;
 	/*@}*/
 
 	/** \name configuring persistent communications */
@@ -174,6 +187,7 @@ private:
 	/** periodic distance along each coordinate */
 	dArrayT fPeriodicLength;
 
+	int fNumRealNodes;
 	AutoArrayT<int> fPBCNodes;
 	AutoArrayT<int> fPBCNodes_ghost;
 	AutoArrayT<int> fPBCNodes_face;
@@ -271,6 +285,24 @@ inline const ArrayT<int>* CommManagerT::BorderNodes(void) const
 {
 	if (fBorderNodes.Length() > 0)
 		return &fBorderNodes;
+	else
+		return NULL;
+}
+
+/* nodes with ghosts */
+inline const ArrayT<int>* CommManagerT::NodesWithGhosts(void) const
+{
+	if (fPBCNodes.Length() > 0)
+		return &fPBCNodes;
+	else
+		return NULL;
+}
+
+/* the ghosts */
+inline const ArrayT<int>* CommManagerT::GhostNodes(void) const
+{
+	if (fPBCNodes_ghost.Length() > 0)
+		return &fPBCNodes_ghost;
 	else
 		return NULL;
 }
