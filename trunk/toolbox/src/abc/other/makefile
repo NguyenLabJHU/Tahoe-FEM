@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.9 2002-03-19 18:59:20 paklein Exp $
+# $Id: makefile,v 1.10 2003-02-22 23:53:15 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -24,6 +24,7 @@ SRC = \
 # headers
 HDR = \
 	AutoFill2DT.h \
+	nAutoFill2DT.h \
 	dRangeArrayT.h \
 	LocalArrayT.h \
 	pArrayT.h \
