@@ -1,4 +1,4 @@
-/* $Id: ACME_Contact3DT.cpp,v 1.3.4.1 2002-10-17 04:28:52 paklein Exp $ */
+/* $Id: ACME_Contact3DT.cpp,v 1.3.4.2 2002-10-20 18:07:13 paklein Exp $ */
 /* created: paklein (10/15/2000) */
 
 #include "ACME_Contact3DT.h"
@@ -66,7 +66,7 @@ void ACME_Contact3DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	if (num_surfaces < 1) throw ExceptionT::kBadInputValue;
 
 	/* read contact surfaces */
-	fSurfaces.Allocate(num_surfaces);
+	fSurfaces.Dimension(num_surfaces);
 	for (int i = 0; i < fSurfaces.Length(); i++)
 		InputSideSets(in, out, fSurfaces[i]);
 
@@ -137,7 +137,7 @@ void ACME_Contact3DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	}
 	
 	/* allocate striker coords */
-	fStrikerCoords.Allocate(fStrikerTags.Length(), fNumSD);
+	fStrikerCoords.Dimension(fStrikerTags.Length(), fNumSD);
 }
 
 /* steps in setting contact configuration */
@@ -238,29 +238,29 @@ void ACME_Contact3DT::SetWorkSpace(void)
 	int Number_of_Entity_Keys = fSurfaces.Length();
 	int Number_of_Node_Blocks = 1; //TEMP - must be 1
 
-	Node_Block_Types.Allocate(Number_of_Node_Blocks);
+	Node_Block_Types.Dimension(Number_of_Node_Blocks);
 	Node_Block_Types[0] = ContactSearch::NODE; //TEMP must be NODE
 
-	Number_Nodes_in_Blocks.Allocate(Number_of_Node_Blocks);
+	Number_Nodes_in_Blocks.Dimension(Number_of_Node_Blocks);
 	Number_Nodes_in_Blocks[0] = fStrikerTags.Length(); //TEMP - all NODE in 1
 	const int* Node_Global_IDs = fStrikerTags.Pointer(); //all facet nodes as strikers
 	int  Number_of_Face_Blocks = fSurfaces.Length();
 
-	Face_Block_Types.Allocate(Number_of_Face_Blocks);
+	Face_Block_Types.Dimension(Number_of_Face_Blocks);
 //NOTE: set this based on the number of nodes	
 	Face_Block_Types = ContactSearch::TRIFACEL3; //this end has tri facets only
 //NOTE: set this based on the number of nodes	
 
-	Number_Faces_in_Blocks.Allocate(Number_of_Face_Blocks);
+	Number_Faces_in_Blocks.Dimension(Number_of_Face_Blocks);
 	for (int i = 0; i < Number_Faces_in_Blocks.Length(); i++)
 		Number_Faces_in_Blocks[i] = fSurfaces[i].MajorDim();		
 
 	GenerateACMEConnectivities(Connectivity);
 
 	int  Number_of_Nodal_Comm_Partners = 0; //TEMP - must be 0 for now
-	Nodal_Comm_Proc_IDs.Allocate(1); //TEMP - unused
-	Number_Nodes_to_Partner.Allocate(1); //TEMP - unused
-	Communication_Nodes.Allocate(1); //TEMP - unused
+	Nodal_Comm_Proc_IDs.Dimension(1); //TEMP - unused
+	Number_Nodes_to_Partner.Dimension(1); //TEMP - unused
+	Communication_Nodes.Dimension(1); //TEMP - unused
 		 	
 	/* set up ACME search */
 	ContactSearch::ContactErrorCode error;
@@ -294,7 +294,7 @@ void ACME_Contact3DT::SetWorkSpace(void)
 	bool two_pass = false;
 	double normal_tolerance = 0.1;
 	double tangent_tolerance = 0.0;
-	fSearchData.Allocate(3*Number_of_Entity_Keys*Number_of_Entity_Keys);
+	fSearchData.Dimension(3*Number_of_Entity_Keys*Number_of_Entity_Keys);
 	double* pdata = fSearchData.Pointer();
 	for (int i3 = 0; i3 < Number_of_Entity_Keys; i3++)
 		for (int i2 = 0; i2 < Number_of_Entity_Keys; i2++)
@@ -349,7 +349,7 @@ void ACME_Contact3DT::GenerateACMEConnectivities(iArrayT& connectivities)
 	int tot_num_facets = 0;
 	for (int i = 0; i < fSurfaces.Length(); i++)
 		tot_num_facets += fSurfaces[i].MajorDim();
-	connectivities.Allocate(tot_num_facets*fNumFacetNodes);
+	connectivities.Dimension(tot_num_facets*fNumFacetNodes);
 
 	/* node number -> striker tag map */
 	int max, shift;

@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.cpp,v 1.8.4.1 2002-10-17 04:28:57 paklein Exp $ */
+/* $Id: SWDiamondT.cpp,v 1.8.4.2 2002-10-20 18:07:18 paklein Exp $ */
 /* created: paklein (03/19/1997) */
 
 #include "SWDiamondT.h"
@@ -40,11 +40,11 @@ SWDiamondT::SWDiamondT(const ElementSupportT& support, const FieldT& field):
 //	fNumElemEqnos = 3*NumDOF();
 
 	/* allocate memory */
-	fK_3Body.Allocate(3*NumDOF());
-	fF_3Body.Allocate(3*NumDOF());
+	fK_3Body.Dimension(3*NumDOF());
+	fF_3Body.Dimension(3*NumDOF());
 
-	fK_2Body.Allocate(2*NumDOF());
-	fF_2Body.Allocate(2*NumDOF());
+	fK_2Body.Dimension(2*NumDOF());
+	fF_2Body.Dimension(2*NumDOF());
 
 	/* register local arrays */
 	ElementSupport().RegisterCoordinates(fLocX_3Body);
@@ -339,13 +339,13 @@ void SWDiamondT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		Connector.GetNeighors(fNodes_2Body, fNodes_3Body, tolerance);
 		
 		/* set nodes used */
-		fNodesUsed.Allocate(coords.MajorDim());
+		fNodesUsed.Dimension(coords.MajorDim());
 		fNodesUsed.SetValueToPosition();
 	}
 	else                      //only use specified nodes
 	{
 		/* read specified nodes */
-		fNodesUsed.Allocate(num_nodes_used);
+		fNodesUsed.Dimension(num_nodes_used);
 		in >> fNodesUsed;
 
 		/* echo data */
@@ -394,11 +394,11 @@ void SWDiamondT::ConfigureElementData(void)
 	int neq2body = 2*NumDOF();
 
 	/* allocate memory */
-	List_3Body.Allocate(num3);
-	List_2Body.Allocate(num2);
+	List_3Body.Dimension(num3);
+	List_2Body.Dimension(num2);
 
-	fEqnos_3Body.Allocate(num3, neq3body);
-	fEqnos_2Body.Allocate(num2, neq2body);
+	fEqnos_3Body.Dimension(num3, neq3body);
+	fEqnos_2Body.Dimension(num2, neq2body);
 
 	/* set 3 body element data */
 	for (int i = 0; i < num3; i++)	
@@ -417,9 +417,9 @@ void SWDiamondT::ConfigureElementData(void)
 	}
 	
 	/* set base class connectivity and equations data */
-	fConnectivities.Allocate(1);
+	fConnectivities.Dimension(1);
 	fConnectivities[0] = &fNodes_3Body;
-	fEqnos.Allocate(1);
+	fEqnos.Dimension(1);
 	fEqnos[0].Alias(fEqnos_3Body);
 }
 

@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.cpp,v 1.6 2002-09-12 17:50:05 paklein Exp $ */
+/* $Id: AugLagWallT.cpp,v 1.6.4.1 2002-10-20 18:07:42 paklein Exp $ */
 #include "AugLagWallT.h"
 
 #include <iostream.h>
@@ -28,7 +28,7 @@ AugLagWallT::AugLagWallT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes,
 	fField(field)
 {
 	/* (re-)dimension the tangent matrix */
-	fLHS.Allocate(rEqnos.MinorDim() + 1); // additional DOF
+	fLHS.Dimension(rEqnos.MinorDim() + 1); // additional DOF
 }
 
 /* initialize data */
@@ -225,7 +225,7 @@ void AugLagWallT::SetDOFTags(void)
 //       and collect the list of active nodes
 
 	/* ALL constraints ALWAYS active */
-	fContactDOFtags.Allocate(fContactNodes.Length());
+	fContactDOFtags.Dimension(fContactNodes.Length());
 }
 
 iArrayT& AugLagWallT::DOFTags(int tag_set)
@@ -238,7 +238,7 @@ iArrayT& AugLagWallT::DOFTags(int tag_set)
 void AugLagWallT::GenerateElementData(void)
 {
 	/* allocate space */
-	fContactTags.Allocate(fContactNodes.Length(), 2);
+	fContactTags.Dimension(fContactNodes.Length(), 2);
 	
 	/* collect tags - {contact node, DOF tag} */
 	fContactTags.SetColumn(0, fContactNodes);

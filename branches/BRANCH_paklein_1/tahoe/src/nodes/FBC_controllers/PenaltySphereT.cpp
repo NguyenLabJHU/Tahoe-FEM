@@ -1,4 +1,4 @@
-/* $Id: PenaltySphereT.cpp,v 1.4.4.1 2002-10-17 04:45:25 paklein Exp $ */
+/* $Id: PenaltySphereT.cpp,v 1.4.4.2 2002-10-20 18:07:42 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltySphereT.h"
@@ -46,7 +46,7 @@ void PenaltySphereT::Initialize(void)
 	PenaltyRegionT::Initialize();
 	
 	/* memory for distances */
-	fDistances.Allocate(fNumContactNodes);
+	fDistances.Dimension(fNumContactNodes);
 }
 
 

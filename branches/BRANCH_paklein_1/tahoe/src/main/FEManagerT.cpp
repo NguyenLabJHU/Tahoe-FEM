@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.39.4.1 2002-10-17 04:54:06 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.39.4.2 2002-10-20 18:07:20 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1048,7 +1048,7 @@ void FEManagerT::SetElementGroups(void)
 	int num_groups;
 	fMainIn >> num_groups;
 	if (num_groups < 1) throw ExceptionT::kBadInputValue;
-	fElementGroups.Allocate(num_groups);
+	fElementGroups.Dimension(num_groups);
 	fElementGroups.EchoElementData(fMainIn, fMainOut, *this);
 		
 	/* set console */

@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.8.4.1 2002-10-17 04:45:25 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.8.4.2 2002-10-20 18:07:42 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltyRegionT.h"
@@ -165,10 +165,10 @@ void PenaltyRegionT::Initialize(void)
 {
 	/* allocate memory for equation numbers */
 	int numDOF = rEqnos.MinorDim();
-	fContactEqnos.Allocate(fNumContactNodes*numDOF);
+	fContactEqnos.Dimension(fNumContactNodes*numDOF);
 	
 	/* allocate memory for force vector */
-	fContactForce2D.Allocate(fNumContactNodes,numDOF);
+	fContactForce2D.Dimension(fNumContactNodes,numDOF);
 	fContactForce.Set(fNumContactNodes*numDOF, fContactForce2D.Pointer());
 	fContactForce2D = 0.0; // will be generate impulse at ApplyPreSolve
 }

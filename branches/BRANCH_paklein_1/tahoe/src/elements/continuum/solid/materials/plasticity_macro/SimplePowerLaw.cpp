@@ -16,7 +16,7 @@ SimplePowerLaw::SimplePowerLaw(EVPFDBaseT& model)
   ifstreamT& in = model.Input();
 
   // allocate space for matl's property array
-  fMatProp.Allocate(kNumMatProp);
+  fMatProp.Dimension(kNumMatProp);
 
   // read material properties for kinetic equation
   in >> fMatProp[0];   // s0

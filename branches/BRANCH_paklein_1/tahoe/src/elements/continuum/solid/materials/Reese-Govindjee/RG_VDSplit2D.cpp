@@ -1,4 +1,4 @@
-/* $Id: RG_VDSplit2D.cpp,v 1.2.2.1 2002-10-17 04:36:15 paklein Exp $ */
+/* $Id: RG_VDSplit2D.cpp,v 1.2.2.2 2002-10-20 18:07:26 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 #include "ExceptionT.h"
 #include "fstreamT.h"
@@ -67,7 +67,7 @@ int RG_VDSplit2D::NumOutputVariables() const {return kNumOutputVar;}
 void RG_VDSplit2D::OutputLabels(ArrayT<StringT>& labels) const 
 { 
   //allocates space for labels 
-        labels.Allocate(kNumOutputVar); 
+        labels.Dimension(kNumOutputVar); 
    
         //copy labels 
         for (int i = 0; i< kNumOutputVar; i++) 

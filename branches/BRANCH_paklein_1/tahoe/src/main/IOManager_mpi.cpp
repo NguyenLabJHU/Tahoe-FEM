@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.23.4.1 2002-10-17 04:54:07 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.23.4.2 2002-10-20 18:07:20 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 #include "IOManager_mpi.h"
 
@@ -439,7 +439,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 	int num_sets = local_sets.Length();
 
 	/* set local counts */
-	fOutNodeCounts.Allocate(num_sets);
+	fOutNodeCounts.Dimension(num_sets);
 
 	/* resident nodes in each set */
 	ArrayT<iArrayT> nodes(num_sets);
@@ -473,7 +473,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 	}
 		
 	/* gather number of commumicated nodes in each set for each processor */
-	fNodeCounts.Allocate(num_proc, num_sets);
+	fNodeCounts.Dimension(num_proc, num_sets);
 	if (MPI_Allgather(fOutNodeCounts.Pointer(), num_sets, MPI_INT,
 	                     fNodeCounts.Pointer(), num_sets, MPI_INT, fComm)
 		!= MPI_SUCCESS) throw ExceptionT::kMPIFail;
@@ -482,7 +482,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 //     << fNodeCounts << endl;
 
 	/* gather number of commumicated elements in each set for each processor */
-	fElementCounts.Allocate(num_proc, num_sets);
+	fElementCounts.Dimension(num_proc, num_sets);
 	if (MPI_Allgather(elem_counts.Pointer(), num_sets, MPI_INT,
                    fElementCounts.Pointer(), num_sets, MPI_INT, fComm)
 		!= MPI_SUCCESS) throw ExceptionT::kMPIFail;
@@ -491,7 +491,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 //     << fElementCounts << endl;
 
 	/* allocate map sets */
-	fMapSets.Allocate(num_sets);
+	fMapSets.Dimension(num_sets);
 
 	/* loop over sets */
 	ArrayT<iArrayT> buffer(num_proc);
@@ -503,7 +503,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 		MapSetT& map_set = fMapSets[k];
 
 		/* allocate assembly maps */	
-		if (fIO_map[k] == fComm.Rank()) map_set.Allocate(num_proc, num_proc);
+		if (fIO_map[k] == fComm.Rank()) map_set.Dimension(num_proc, num_proc);
 
 //###########################################################
 //# set nodal communication maps ############################
@@ -535,7 +535,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 				if (num_incoming > 0 && i != fComm.Rank())
 				{
 					/* allocate receive buffer */
-					buffer[i].Allocate(num_incoming);
+					buffer[i].Dimension(num_incoming);
 				
 					/* post non-blocking receives */
 					if (MPI_Irecv(buffer[i].Pointer(), buffer[i].Length(),
@@ -605,7 +605,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 				if (num_incoming > 0 && j != fComm.Rank())			
 				{
 					/* allocate receive buffer */
-					buffer[j].Allocate(num_incoming);
+					buffer[j].Dimension(num_incoming);
 
 					/* post non-blocking receives */
 					MPI_Status status;
@@ -671,7 +671,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 				if (num_incoming > 0 && i != fComm.Rank())
 				{
 					/* allocate receive buffer: [block length list][concat-ed id list] */
-					buffer[i].Allocate(block_ID.Length() + num_incoming);
+					buffer[i].Dimension(block_ID.Length() + num_incoming);
 
 					/* post non-blocking receives */
 					if (MPI_Irecv(buffer[i].Pointer(), buffer[i].Length(),
@@ -686,7 +686,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 			/* process my output set */
 			if (elem_counts[k] > 0 ) {
 				iArrayT& assem_map = map_set.ElementMap(fComm.Rank());
-				assem_map.Allocate(elem_counts[k]);
+				assem_map.Dimension(elem_counts[k]);
 				assem_map = -1;
 				int offset = 0;
 				iArrayT block_assem_map;
@@ -722,7 +722,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 					
 					/* process a block at a time */
 					iArrayT& assem_map = map_set.ElementMap(source);
-					assem_map.Allocate(fElementCounts(source, k));
+					assem_map.Dimension(fElementCounts(source, k));
 					assem_map = -1;					
 					iArrayT elem_map, block_assem_map;
 					int offset = 0; 
@@ -757,7 +757,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 				if (num_incoming > 0 && j != fComm.Rank())			
 				{
 					/* allocate receive buffer */
-					buffer[j].Allocate(block_ID.Length() + num_incoming);
+					buffer[j].Dimension(block_ID.Length() + num_incoming);
 
 					/* post non-blocking receives */
 					MPI_Status status;
@@ -771,7 +771,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 					/* process a block at a time */
 					const iArrayT& rbuff = buffer[j];
 					iArrayT& assem_map = map_set.ElementMap(j);
-					assem_map.Allocate(fElementCounts(j,k));
+					assem_map.Dimension(fElementCounts(j,k));
 					assem_map = -1;					
 					iArrayT elem_map, block_assem_map;
 					int offset = 0; 
@@ -877,7 +877,7 @@ void IOManager_mpi::GlobalSetNodes(const iArrayT& local_set_nodes, iArrayT& node
 				
 		/* collect (global node numbers) */
 		const iArrayT& to_global_nodes = fPartition.NodeMap();
-		nodes.Allocate(count);
+		nodes.Dimension(count);
 		int dex = 0;
 		p_local = local_set_nodes.Pointer();
 		for (int j = 0; j < length; j++)
@@ -890,7 +890,7 @@ void IOManager_mpi::GlobalSetNodes(const iArrayT& local_set_nodes, iArrayT& node
 	else /* no external nodes => all nodes resident */
 	{
 		int length = local_set_nodes.Length();
-		nodes.Allocate(length);
+		nodes.Dimension(length);
 
 		/* collect (global node numbers) */
 		const iArrayT& to_global_nodes = fPartition.NodeMap();
@@ -912,7 +912,7 @@ void IOManager_mpi::SetInverseMap(const iArrayT& global, iArrayT& inv_global,
 	int range = max - shift + 1;
 
 	/* determine (all) used nodes */
-	inv_global.Allocate(range);
+	inv_global.Dimension(range);
 	inv_global = fill;
 	for (int i = 0; i < global.Length(); i++)
 		inv_global[global[i] - shift] = i;
@@ -923,7 +923,7 @@ void IOManager_mpi::SetAssemblyMap(const iArrayT& inv_global, int shift, const i
 {
 	/* set map */
 	int n_map = local.Length();
-	lg_map.Allocate(n_map);
+	lg_map.Dimension(n_map);
 	int dex = 0;
 	int*  p = local.Pointer();
 	for (int j = 0; j < n_map; j++)

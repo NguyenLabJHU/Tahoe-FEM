@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.cpp,v 1.5.4.1 2002-10-17 04:38:07 paklein Exp $ */
+/* $Id: IsoVIB3D.cpp,v 1.5.4.2 2002-10-20 18:07:31 paklein Exp $ */
 /* created: paklein (03/15/1998)                                          */
 /* 3D Isotropic VIB solver using spectral decomposition formulation       */
 
@@ -347,7 +347,7 @@ void IsoVIB3D::Construct(void)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Allocate(numpoints);
+	Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fSphere->Jacobians();

@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.7 2002-09-23 06:58:25 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.7.2.1 2002-10-20 18:07:16 paklein Exp $ */
 
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
@@ -36,17 +36,17 @@ void SmallStrainT::Initialize(void)
 	/* allocate deformation gradient list */
 	if (need_strain)
 	{
-		fStrain_List.Allocate(NumIP());
+		fStrain_List.Dimension(NumIP());
 		for (int i = 0; i < NumIP(); i++)
-			fStrain_List[i].Allocate(NumSD());
+			fStrain_List[i].Dimension(NumSD());
 	}
 	
 	/* allocate "last" deformation gradient list */
 	if (need_strain_last)
 	{
-		fStrain_last_List.Allocate(NumIP());
+		fStrain_last_List.Dimension(NumIP());
 		for (int i = 0; i < NumIP(); i++)
-			fStrain_last_List[i].Allocate(NumSD());
+			fStrain_last_List[i].Dimension(NumSD());
 	}
 }
 

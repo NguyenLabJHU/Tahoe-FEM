@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.6.4.1 2002-10-17 04:28:56 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.6.4.2 2002-10-20 18:07:17 paklein Exp $ */
 /* created: paklein (02/15/2000) */
 
 #include "MeshFreeFractureSupportT.h"
@@ -139,7 +139,7 @@ void MeshFreeFractureSupportT::InitSupport(ifstreamT& in, ostream& out,
 		
 		/* allocate work space */
 		int nsd = fMFShapes->NumSD();
-		ftmp_nsd.Allocate(nsd);
+		ftmp_nsd.Dimension(nsd);
 	}
 }
 
@@ -147,7 +147,7 @@ bool MeshFreeFractureSupportT::CheckGrowth(StructuralMaterialT* material,
 	LocalArrayT* disp, bool verbose)
 {
 	/* clear facets to reset */
-	fResetFacets.Allocate(0);
+	fResetFacets.Dimension(0);
 	fInitTractionMan.SetMajorDimension(0, false);
 
 	/* do check */
@@ -242,7 +242,7 @@ void MeshFreeFractureSupportT::InitCuttingFacetsAndFronts(ifstreamT& in,
 		
 		/* read facet data */
 		int nsd = fMFShapes->NumSD();
-		fResetFacets.Allocate(0);
+		fResetFacets.Dimension(0);
 		fFacetman.SetMajorDimension(num_facets, false);
 		dArray2DT facet;
 		dArrayT x;
@@ -304,7 +304,7 @@ void MeshFreeFractureSupportT::InitSamplingSurfaces(ifstreamT& in, ostream& out)
 	
 	if (num_sampling_surfaces > 0)
 	{
-		fSamplingSurfaces.Allocate(num_sampling_surfaces);
+		fSamplingSurfaces.Dimension(num_sampling_surfaces);
 
 		//TEMP - only support in line data
 		for (int i = 0; i < fSamplingSurfaces.Length(); i++)
@@ -400,7 +400,7 @@ void MeshFreeFractureSupportT::InitializeFronts(ifstreamT& in, ostream& out)
 	if (fn_s > -1 && num_fronts > 0)
 	{
 		/* allocate list */
-		fFrontList.Allocate(num_fronts);
+		fFrontList.Dimension(num_fronts);
 		int numSD = fMFShapes->NumSD();
 		for (int i = 0; i < fFrontList.Length(); i++)
 		{
@@ -449,7 +449,7 @@ void MeshFreeFractureSupportT::InitializeFronts(ifstreamT& in, ostream& out)
 		}	  	
 
 		/* allocate workspace */
-		fhoop.Allocate(numSD);
+		fhoop.Dimension(numSD);
 	}		
 }
 
@@ -505,7 +505,7 @@ bool MeshFreeFractureSupportT::CheckFronts(StructuralMaterialT& material,
 			double max_sample;
 			int max_dex = -1;
 			int dex = nsd - 1; // "last" component
-			samples.Allocate(x_list.MajorDim());
+			samples.Dimension(x_list.MajorDim());
 			for (int j = 0; j < x_list.MajorDim(); j++)
 			{
 				/* fetch coords and transformation tensor */
@@ -722,7 +722,7 @@ bool MeshFreeFractureSupportT::CheckSurfaces(StructuralMaterialT& material,
 						//      sampled on the surface
 						
 						/* retrieve facet coordinates */
-						coordinates.Allocate(surface.NodesPerFacet(), nsd);
+						coordinates.Dimension(surface.NodesPerFacet(), nsd);
 						surface.FacetCoordinates(facet, coordinates);
 						
 						/* store facet coordinates */

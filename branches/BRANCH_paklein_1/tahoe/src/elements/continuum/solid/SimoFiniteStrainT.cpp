@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.21.2.2 2002-10-19 17:54:11 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.21.2.3 2002-10-20 18:07:16 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -114,10 +114,10 @@ void SimoFiniteStrainT::Initialize(void)
 	/* space for enhanced part of the deformation gradient */
 	if (need_F)
 	{
-		fF_enh_all.Allocate(nip*nsd*nsd);
-		fF_Galerkin_all.Allocate(nip*nsd*nsd);
-		fF_enh_List.Allocate(NumIP());
-		fF_Galerkin_List.Allocate(NumIP());
+		fF_enh_all.Dimension(nip*nsd*nsd);
+		fF_Galerkin_all.Dimension(nip*nsd*nsd);
+		fF_enh_List.Dimension(NumIP());
+		fF_Galerkin_List.Dimension(NumIP());
 		for (int i = 0; i < NumIP(); i++)
 		{
 			int dex = i*nsd*nsd;
@@ -129,10 +129,10 @@ void SimoFiniteStrainT::Initialize(void)
 	/* space for enhanced part of the "last" deformation gradient */
 	if (need_F_last)
 	{
-		fF_enh_last_all.Allocate(nip*nsd*nsd);
-		fF_Galerkin_last_all.Allocate(nip*nsd*nsd);
-		fF_enh_last_List.Allocate(NumIP());
-		fF_Galerkin_last_List.Allocate(NumIP());
+		fF_enh_last_all.Dimension(nip*nsd*nsd);
+		fF_Galerkin_last_all.Dimension(nip*nsd*nsd);
+		fF_enh_last_List.Dimension(NumIP());
+		fF_Galerkin_last_List.Dimension(NumIP());
 		for (int i = 0; i < NumIP(); i++)
 		{
 			int dex = i*nsd*nsd;
@@ -143,31 +143,31 @@ void SimoFiniteStrainT::Initialize(void)
 
 	/* dimension work space */
 	int nen = NumElementNodes();
-	fGradNa.Allocate(NumSD(), nen);
-	fGradNa_enh.Allocate(NumSD(), fNumModeShapes);
-	fRHS_enh.Allocate(NumSD()*fNumModeShapes);
-	fB_enh.Allocate(dSymMatrixT::NumValues(NumSD()), NumSD()*fNumModeShapes);
-	fWP_enh.Allocate(NumSD(), fNumModeShapes);
+	fGradNa.Dimension(NumSD(), nen);
+	fGradNa_enh.Dimension(NumSD(), fNumModeShapes);
+	fRHS_enh.Dimension(NumSD()*fNumModeShapes);
+	fB_enh.Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*fNumModeShapes);
+	fWP_enh.Dimension(NumSD(), fNumModeShapes);
 	
 	/* stiffness work space */
-	fStressStiff_11.Allocate(nen);
-	fStressStiff_12.Allocate(nen, fNumModeShapes);
-	fStressStiff_21.Allocate(fNumModeShapes, nen);
-	fStressStiff_22.Allocate(fNumModeShapes, fNumModeShapes);
+	fStressStiff_11.Dimension(nen);
+	fStressStiff_12.Dimension(nen, fNumModeShapes);
+	fStressStiff_21.Dimension(fNumModeShapes, nen);
+	fStressStiff_22.Dimension(fNumModeShapes, fNumModeShapes);
 	
-	fK22.Allocate(fNumModeShapes*NumDOF());	
-	fK12.Allocate(nen*NumDOF(), fNumModeShapes*NumDOF());
-	fK21.Allocate(fNumModeShapes*NumDOF(), nen*NumDOF());
+	fK22.Dimension(fNumModeShapes*NumDOF());	
+	fK12.Dimension(nen*NumDOF(), fNumModeShapes*NumDOF());
+	fK21.Dimension(fNumModeShapes*NumDOF(), nen*NumDOF());
 	
 	/* solve all dof's together */
 	if (fModeSolveMethod == kMonolithic)
 	{
 		/* work space for UL quad */
-		fK11.Allocate(fLHS.Rows());
+		fK11.Dimension(fLHS.Rows());
 	
 		/* resize work arrays */
-		fRHS.Allocate(nen*NumDOF() + fCurrElementModes.Length());
-		fLHS.Allocate(fRHS.Length());
+		fRHS.Dimension(nen*NumDOF() + fCurrElementModes.Length());
+		fLHS.Dimension(fRHS.Length());
 		
 		/* XDOF support */
 		XDOF_ManagerT& xdof_man = ElementSupport().XDOF_Manager();		
@@ -194,21 +194,21 @@ void SimoFiniteStrainT::Initialize(void)
 	{
 		/* allocate storage for stress and modulus at the integration
 		 * points of all the elements */
-		fPK1_storage.Allocate(NumElements(), nip*nsd*nsd);
-		fc_ijkl_storage.Allocate(NumElements(), nip*nst*nst);
-		fPK1_list.Allocate(nip);
-		fc_ijkl_list.Allocate(nip);
+		fPK1_storage.Dimension(NumElements(), nip*nsd*nsd);
+		fc_ijkl_storage.Dimension(NumElements(), nip*nst*nst);
+		fPK1_list.Dimension(nip);
+		fc_ijkl_list.Dimension(nip);
 
 		/* allocate memory for incompressible modes */
-		fElementModes.Allocate(NumElements(), fNumModeShapes*NumSD());
+		fElementModes.Dimension(NumElements(), fNumModeShapes*NumSD());
 		fElementModes = 0;
 		
 		/* element modes increment */
-		//fElementModesInc.Allocate(fCurrElementModes.Length());
+		//fElementModesInc.Dimension(fCurrElementModes.Length());
 	}
 
 	/* allocate memory for last incompressible modes */
-	fElementModes_last.Allocate(NumElements(), fNumModeShapes*NumSD());
+	fElementModes_last.Dimension(NumElements(), fNumModeShapes*NumSD());
 	fElementModes_last = 0;
 }
 
@@ -289,7 +289,7 @@ void SimoFiniteStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		
 			/* resize equations array - displacement DOF's + element modes */
 			int neq = NumElementNodes()*NumDOF();
-			eqnos.Allocate(connects.MajorDim(), neq + fCurrElementModes.Length());
+			eqnos.Dimension(connects.MajorDim(), neq + fCurrElementModes.Length());
 		
 			/* set displacement equations */
 			Field().SetLocalEqnos(connects, eqnos);
@@ -319,7 +319,7 @@ void SimoFiniteStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 void SimoFiniteStrainT::SetDOFTags(void)
 {
 	/* one tag per element */
-	fEnhancedModeTags.Allocate(NumElements());
+	fEnhancedModeTags.Dimension(NumElements());
 }
 	
 /* return the array tag numbers in the specified set currently 
@@ -342,7 +342,7 @@ iArrayT& SimoFiniteStrainT::DOFTags(int tag_set)
 void SimoFiniteStrainT::GenerateElementData(void)
 {
 	/* just link tags with (one of) the element nodes */
-	fEnhancedConnectivities.Allocate(NumElements(), 2);
+	fEnhancedConnectivities.Dimension(NumElements(), 2);
 	
 	int *pt = fEnhancedConnectivities.Pointer();
 	int *mt = fEnhancedModeTags.Pointer();
@@ -452,7 +452,7 @@ void SimoFiniteStrainT::PrintControlData(ostream& out) const
 void SimoFiniteStrainT::SetShape(void)
 {
 	/* dimension before sending to the shape functions */
-	fCurrElementModes.Allocate(fNumModeShapes, NumSD());
+	fCurrElementModes.Dimension(fNumModeShapes, NumSD());
 	fCurrElementModes = 0;
 	fCurrElementModes_last = fCurrElementModes;
 

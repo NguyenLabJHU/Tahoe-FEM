@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.10.4.1 2002-10-17 04:47:07 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.10.4.2 2002-10-20 18:07:45 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 
 #include "CCNSMatrixT.h"
@@ -72,7 +72,7 @@ void CCNSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	if (famax != NULL) delete[] famax;
 	iArrayT i_memory;
 	try {
-		i_memory.Allocate(fLocNumEQ + 1);
+		i_memory.Dimension(fLocNumEQ + 1);
 		i_memory.ReleasePointer(&famax);
 	}	
 	catch (ExceptionT::CodeT error)
@@ -101,10 +101,10 @@ void CCNSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	if (fMatrix != NULL) delete[] fMatrix;
 	dArrayT d_memory;
 	try {
-		d_memory.Allocate(fLocNumEQ);
+		d_memory.Dimension(fLocNumEQ);
 		d_memory.ReleasePointer(&fu);
 
-		d_memory.Allocate(fNumberOfTerms);
+		d_memory.Dimension(fNumberOfTerms);
 		d_memory.ReleasePointer(&fMatrix);
 	}	
 	catch (ExceptionT::CodeT error)

@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.7.4.1 2002-10-17 04:47:09 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.7.4.2 2002-10-20 18:07:46 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 
 #include "AztecMatrixT.h"
@@ -99,7 +99,7 @@ void AztecMatrixT::AddEquationSet(const iArray2DT& eqset)
 	/* dimension workspace */
 	int dim = eqset.MinorDim();
 	if (dim > fValMat.Rows())
-		fValMat.Allocate(dim);
+		fValMat.Dimension(dim);
 }
 
 void AztecMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
@@ -110,7 +110,7 @@ void AztecMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 	/* dimension workspace */
 	int dim = eqset.MaxMinorDim();
 	if (dim > fValMat.Rows())
-		fValMat.Allocate(dim);
+		fValMat.Dimension(dim);
 }
 
 /* assemble the element contribution into the LHS matrix - assumes
@@ -125,8 +125,8 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqn
 	if (format == ElementMatrixT::kDiagonal)
 	{
 		/* extract values for active equation numbers */
-		fRowDexVec.Allocate(0);	
-		fValVec.Allocate(0);
+		fRowDexVec.Dimension(0);	
+		fValVec.Dimension(0);
 		int end_update = fStartEQ + fLocNumEQ - 1;
 		for (int i = 0; i < eqnos.Length(); i++)
 		{
@@ -155,8 +155,8 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqn
 	else
 	{
 		/* equation numbers -> local active rows and all active columns */
-		fRowDexVec.Allocate(0);
-		fColDexVec.Allocate(0);
+		fRowDexVec.Dimension(0);
+		fColDexVec.Dimension(0);
 		int end_update = fStartEQ + fLocNumEQ - 1;
 		for (int j = 0; j < eqnos.Length(); j++)
 		{
@@ -187,7 +187,7 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqn
 			fColDexVec[c] = eqnos[fColDexVec[c]] - 1; //OFFSET
 
 		/* row-by-row assembly */
-		fValVec.Allocate(num_cols);
+		fValVec.Dimension(num_cols);
 		int status = 1;
 		for (int i = 0; i < num_rows && status; i++)
 		{
@@ -225,7 +225,7 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row
 		int end_update = fStartEQ + fLocNumEQ - 1;
 
 		/* equation numbers -> local active rows */
-		fRowDexVec.Allocate(0);
+		fRowDexVec.Dimension(0);
 		for (int j = 0; j < row_eqnos.Length(); j++)
 		{
 			int eq = row_eqnos[j];
@@ -234,7 +234,7 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row
 		}
 
 		/* equation numbers -> local active rows */
-		fColDexVec.Allocate(0);
+		fColDexVec.Dimension(0);
 		for (int j = 0; j < col_eqnos.Length(); j++)
 			if (col_eqnos[j] > 0)
 				fColDexVec.Append(j);
@@ -259,7 +259,7 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row
 			fColDexVec[c] = col_eqnos[fColDexVec[c]] - 1; //OFFSET
 
 		/* row-by-row assembly */
-		fValVec.Allocate(num_cols);
+		fValVec.Dimension(num_cols);
 		int status = 1;
 		for (int i = 0; i < num_rows && status; i++)
 		{

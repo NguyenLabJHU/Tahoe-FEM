@@ -1,4 +1,4 @@
-/* $Id: SymmetricNodesT.cpp,v 1.3.4.1 2002-10-17 04:42:20 paklein Exp $ */
+/* $Id: SymmetricNodesT.cpp,v 1.3.4.2 2002-10-20 18:07:43 paklein Exp $ */
 #include "SymmetricNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -27,7 +27,7 @@ void SymmetricNodesT::Initialize(ifstreamT& in)
 	dArrayT fv1(nsd);	
 
 	/* Read in points in symmetry plane */
-	fDir.Allocate(nsd+1,nsd);
+	fDir.Dimension(nsd+1,nsd);
 	for (int i = nsd;i > 1;i--)
 	{
 	    in >> fv1;

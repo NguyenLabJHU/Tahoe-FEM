@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.11.4.1 2002-10-17 04:54:07 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.11.4.2 2002-10-20 18:07:20 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "TimeManagerT.h"
@@ -105,14 +105,14 @@ TimeManagerT::TimeManagerT(FEManagerT& FEM):
 	int num_sequences;
 	in >> num_sequences;	
 	if (num_sequences < 1) throw ExceptionT::kBadInputValue;
-	fSequences.Allocate(num_sequences);
+	fSequences.Dimension(num_sequences);
 	EchoTimeSequences(in, out);
 	
 	/* Loadtime functions - allocate memory and echo */	
 	int num_LTf;
 	in >> num_LTf;
 	if (num_LTf < 1) throw ExceptionT::kBadInputValue;
-	fSchedule.Allocate(num_LTf); // add: f(t) = 1.0
+	fSchedule.Dimension(num_LTf); // add: f(t) = 1.0
 
 	EchoSchedule(in, out);
 	

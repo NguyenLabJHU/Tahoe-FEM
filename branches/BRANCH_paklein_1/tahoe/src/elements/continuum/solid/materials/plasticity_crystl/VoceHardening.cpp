@@ -42,13 +42,13 @@ VoceHardening::VoceHardening(PolyCrystalMatT& poly) :
 
   // allocate space for
   // ... material constants and initial hard values
-  fMatProp.Allocate(kNumMatProp);
-  fInitHardValues.Allocate(kNumInitValues);
+  fMatProp.Dimension(kNumMatProp);
+  fInitHardValues.Dimension(kNumInitValues);
 
   // ... hardening variables
-  fTauIso.Allocate(fNumHardVar);
-  fTauIso_n.Allocate(fNumHardVar);
-  ftauiso_save.Allocate(fNumHardVar);
+  fTauIso.Dimension(fNumHardVar);
+  fTauIso_n.Dimension(fNumHardVar);
+  ftauiso_save.Dimension(fNumHardVar);
 
   // input material properties for hardening law
   in >> fMatProp[0];   // h0

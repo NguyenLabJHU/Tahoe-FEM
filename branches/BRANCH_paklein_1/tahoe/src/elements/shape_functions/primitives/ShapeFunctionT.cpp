@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.10.2.1 2002-10-17 04:21:56 paklein Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.10.2.2 2002-10-20 18:07:50 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #include "ShapeFunctionT.h"
@@ -157,7 +157,7 @@ void ShapeFunctionT::DoTransformDerivatives(const dMatrixT& changeofvar,
 	int  numnodes = original.MinorDim();
 
 	/* allocate memory */
-	transformed.Allocate(original.MajorDim(),numnodes);
+	transformed.Dimension(original.MajorDim(),numnodes);
 
 	/* apply chain rule derivative */
 	for (int i = 0; i < numnodes; i++)
@@ -191,18 +191,18 @@ void ShapeFunctionT::Construct(void)
 	int numsd     = fCoords.MinorDim();
 
 	/* parent domain jacobian */
-	fDet.Allocate(fNumIP),
+	fDet.Dimension(fNumIP),
 
 	/* memory for the derivatives */
-	fDNaX.Allocate(fNumIP);
+	fDNaX.Dimension(fNumIP);
 	for (int i = 0; i < fNumIP; i++)
-		fDNaX[i].Allocate(numsd, numXnodes);		
+		fDNaX[i].Dimension(numsd, numXnodes);		
 
 	/* initialize to isoparametric */
 	pNaU  = &(fDomain->Na());
 	pDNaU = &fDNaX;
 	
 	/* work space */
-	fv1.Allocate(numsd);
-	fv2.Allocate(numsd);
+	fv1.Dimension(numsd);
+	fv2.Dimension(numsd);
 }

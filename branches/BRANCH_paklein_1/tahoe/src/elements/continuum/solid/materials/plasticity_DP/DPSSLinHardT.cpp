@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.cpp,v 1.14.4.1 2002-10-17 04:38:14 paklein Exp $ */
+/* $Id: DPSSLinHardT.cpp,v 1.14.4.2 2002-10-20 18:07:35 paklein Exp $ */
 /* created: myip (06/01/1999)                                        */
 /*
  * Interface for Drucker-Prager, nonassociative, small strain,
@@ -320,7 +320,7 @@ void DPSSLinHardT::AllocateElement(ElementCardT& element)
 	d_size += kNumInternal*fNumIP;        //fInternal
 
 	/* construct new plastic element */
-	element.Allocate(i_size, d_size);
+	element.Dimension(i_size, d_size);
 	
 	/* initialize values */
 	element.IntegerData() = kIsElastic;

@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LS.cpp,v 1.5.4.1 2002-10-17 04:14:24 paklein Exp $ */
+/* $Id: NLSolver_LS.cpp,v 1.5.4.2 2002-10-20 18:07:51 paklein Exp $ */
 /* created: paklein (08/18/1999) */
 
 #include "NLSolver_LS.h"
@@ -41,7 +41,7 @@ NLSolver_LS::NLSolver_LS(FEManagerT& fe_manager, int group):
 	if (fMaxStepSize      < 0)  throw ExceptionT::kBadInputValue;
 	
 	/* allocate space for history */
-	fSearchData.Allocate(fSearchIterations, 2);
+	fSearchData.Dimension(fSearchIterations, 2);
 	
 	/* set console */
 	iAddVariable("line_search_iterations", fSearchIterations);
@@ -88,7 +88,7 @@ bool NLSolver_LS::iDoVariable(const StringT& variable, StringT& line)
 	{
 		/* need to reallocate */
 		if (variable == "line_search_iterations")
-			fSearchData.Allocate(fSearchIterations, 2);
+			fSearchData.Dimension(fSearchIterations, 2);
 	}
 	return result;
 }

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.12.4.1 2002-10-17 04:28:49 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.12.4.2 2002-10-20 18:07:10 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -136,7 +136,7 @@ void MeshFreeCSEAnisoT::Initialize(void)
 	ostream&   out = ElementSupport().Output();
 		
 	/* initialize local arrays */
-	fLocDisp.Allocate(0, NumDOF()); // set minor dimension
+	fLocDisp.Dimension(0, NumDOF()); // set minor dimension
 	Field().RegisterLocal(fLocDisp);
 	fLocGroup.Register(fLocDisp);
 
@@ -210,7 +210,7 @@ void MeshFreeCSEAnisoT::Initialize(void)
 		}
 		case SurfacePotentialT::kLinearDamage:
 		{
-			fInitTraction.Allocate(NumDOF());
+			fInitTraction.Dimension(NumDOF());
 			LinearDamageT* lin_damage = new LinearDamageT(in, fInitTraction);
 			if (!lin_damage) throw ExceptionT::kOutOfMemory;
 			
@@ -261,7 +261,7 @@ void MeshFreeCSEAnisoT::Initialize(void)
 
 	/* allocate flags array */
 	const dArray2DT& facets = fMFFractureSupport->Facets();
-	fActiveFlag.Allocate(facets.MajorDim());
+	fActiveFlag.Dimension(facets.MajorDim());
 	fActiveFlag = kON;
 
 	/* initialize decohesion laws */
@@ -375,7 +375,7 @@ void MeshFreeCSEAnisoT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 
 //TEMP - assume all cutting facets are configured.
 //       is this the best place to do this???
-	fActiveFlag.Allocate(fElemEqnosEX.MajorDim());
+	fActiveFlag.Dimension(fElemEqnosEX.MajorDim());
 
 	/* get facet neighbors data */
 	RaggedArray2DT<int> neighbors;

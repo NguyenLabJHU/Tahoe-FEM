@@ -1,4 +1,4 @@
-/* $Id: J2Simo3D.cpp,v 1.10.4.1 2002-10-17 04:38:15 paklein Exp $ */
+/* $Id: J2Simo3D.cpp,v 1.10.4.2 2002-10-20 18:07:36 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 
 #include "J2Simo3D.h"
@@ -161,7 +161,7 @@ int J2Simo3D::NumOutputVariables(void) const { return 4; }
 void J2Simo3D::OutputLabels(ArrayT<StringT>& labels) const
 {
 	/* set labels */
-	labels.Allocate(4);
+	labels.Dimension(4);
 	labels[0] = "alpha";
 	labels[1] = "norm_beta";
 	labels[2] = "VM_Kirch";

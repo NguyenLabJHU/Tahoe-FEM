@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.5.4.1 2002-10-17 04:28:49 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.5.4.2 2002-10-20 18:07:10 paklein Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -42,7 +42,7 @@ void ThermalSurfaceT::Initialize(void)
 	}
 
 	/* initialize local array */
-	fLocTemperatures.Allocate(NumElementNodes(), NumDOF());
+	fLocTemperatures.Dimension(NumElementNodes(), NumDOF());
 	Field().RegisterLocal(fLocTemperatures);
 
 	/* read conduction parameters */
@@ -258,7 +258,7 @@ void ThermalSurfaceT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	ElementSupport().ResetAverage(n_out);
 
 	/* allocate element results space */
-	e_values.Allocate(NumElements(), e_out);
+	e_values.Dimension(NumElements(), e_out);
 	e_values = 0.0;
 
 	/* work arrays */

@@ -208,7 +208,7 @@ int LocalJ2SSNonlinHard::NumOutputVariables(void) const  { return kNumOutput; }
 void LocalJ2SSNonlinHard::OutputLabels(ArrayT<StringT>& labels) const
 {
 	/* set size */
-	labels.Allocate(kNumOutput);
+	labels.Dimension(kNumOutput);
 	
 	/* copy labels */
 	for (int i = 0; i < kNumOutput; i++)
@@ -376,7 +376,7 @@ void LocalJ2SSNonlinHard::AllocateAllElements(void)
 		ElementCardT& element = ElementCard(el);
 
 	        /* construct new element */
-		element.Allocate(fNumIP, d_size);
+		element.Dimension(fNumIP, d_size);
 	
 		/* initialize values */
 		element.IntegerData() = kIsElastic;

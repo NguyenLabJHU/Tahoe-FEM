@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.24.4.2 2002-10-19 17:51:22 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.24.4.3 2002-10-20 18:07:10 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -77,11 +77,11 @@ void CSEAnisoT::Initialize(void)
  		
 		/* allocate work space */
 		int nee = NumElementNodes()*NumDOF();
-		fnsd_nee_1.Allocate(NumSD(), nee);
-		fnsd_nee_2.Allocate(NumSD(), nee);
-		fdQ.Allocate(NumSD());
+		fnsd_nee_1.Dimension(NumSD(), nee);
+		fnsd_nee_2.Dimension(NumSD(), nee);
+		fdQ.Dimension(NumSD());
 		for (int k = 0; k < NumSD(); k++)
-			fdQ[k].Allocate(NumSD(), nee);
+			fdQ[k].Dimension(NumSD(), nee);
 	}
 	else
 		fCurrShapes = fShapes;
@@ -95,8 +95,8 @@ void CSEAnisoT::Initialize(void)
 	/* construct props */
 	int numprops;
 	in >> numprops;
-	fSurfPots.Allocate(numprops);
-	fNumStateVariables.Allocate(numprops);
+	fSurfPots.Dimension(numprops);
+	fNumStateVariables.Dimension(numprops);
 	for (int i = 0; i < fSurfPots.Length(); i++)
 	{
 		int num, code;
@@ -287,7 +287,7 @@ void CSEAnisoT::Initialize(void)
 		}		
 	}
 	else /* set dimensions to zero */
-		fStateVariables.Allocate(fElementCards.Length(), 0);
+		fStateVariables.Dimension(fElementCards.Length(), 0);
 
 	/* set history */
 	fStateVariables_last = fStateVariables;
@@ -365,7 +365,7 @@ void CSEAnisoT::LHSDriver(void)
 		/* surface potential */
 		SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
 		int num_state = fNumStateVariables[element.MaterialNumber()];
-		state2.Allocate(num_state);
+		state2.Dimension(num_state);
 
 		/* get ref geometry (1st facet only) */
 		fNodes1.Collect(facet1, element.NodesX());
@@ -385,7 +385,7 @@ void CSEAnisoT::LHSDriver(void)
 		  	iArrayT ndIndices = element.NodesX();
 		  	int numNodes = ndIndices.Length();
 		  	dArray2DT elementVals(numNodes,fNodalQuantities.MinorDim());
-		  	fNodalValues.Allocate(numNodes,fNodalQuantities.MinorDim());
+		  	fNodalValues.Dimension(numNodes,fNodalQuantities.MinorDim());
 		  	for (int iIndex = 0; iIndex < numNodes; iIndex++) 
 		    	elementVals.SetRow(iIndex,fNodalQuantities(ndIndices[iIndex]));
 			currElNum = CurrElementNumber();
@@ -583,7 +583,7 @@ void CSEAnisoT::RHSDriver(void)
 				iArrayT ndIndices = element.NodesX();
 			  	int numNodes = ndIndices.Length();
 			  	dArray2DT elementVals(numNodes,fNodalQuantities.MinorDim()); 	
-			  	fNodalValues.Allocate(numNodes,fNodalQuantities.MinorDim());
+			  	fNodalValues.Dimension(numNodes,fNodalQuantities.MinorDim());
 			  	for (int iIndex = 0; iIndex < numNodes; iIndex++) 
 			    	elementVals.SetRow(iIndex,fNodalQuantities(ndIndices[iIndex]));
 			  //	ndIndices[0] = 3;ndIndices[3] = 0;ndIndices[1] = 2;ndIndices[2] =1;
@@ -747,7 +747,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	ElementSupport().ResetAverage(n_out);
 
 	/* allocate element results space */
-	e_values.Allocate(NumElements(), e_out);
+	e_values.Dimension(NumElements(), e_out);
 	e_values = 0.0;
 
 	/* work arrays */
@@ -831,7 +831,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	  		/* surface potential */
 			SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
 			int num_state = fNumStateVariables[element.MaterialNumber()];
-			state.Allocate(num_state);
+			state.Dimension(num_state);
 
 			/* get ref geometry (1st facet only) */
 			fNodes1.Collect(facet1, element.NodesX());
@@ -853,7 +853,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			  	int numNodes = element.NodesX().Length();
 			  	dArray2DT elementVals(numNodes,fNodalQuantities.MinorDim());
 			  	iArrayT ndIndices = element.NodesX();
-			  	fNodalValues.Allocate(numNodes,fNodalQuantities.MinorDim());
+			  	fNodalValues.Dimension(numNodes,fNodalQuantities.MinorDim());
 			  	for (int iIndex = 0; iIndex < numNodes; iIndex++) 
 			    	elementVals.SetRow(iIndex,fNodalQuantities(ndIndices[iIndex])); 
 			  //	ndIndices[0] = 3;ndIndices[3] = 0;ndIndices[1] = 2;ndIndices[2] =1;
@@ -983,7 +983,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		  		/* surface potential */
 				SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
 				int num_state = fNumStateVariables[element.MaterialNumber()];
-				state.Allocate(num_state);
+				state.Dimension(num_state);
 
 		
 				/* integrate */
@@ -1043,7 +1043,7 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 	CSEBaseT::GenerateOutputLabels(n_codes, n_labels, e_codes, e_labels);
 
 	/* overwrite nodal labels */
-	n_labels.Allocate(n_codes.Sum());
+	n_labels.Dimension(n_codes.Sum());
 	int count = 0;
 	if (n_codes[NodalDisp])
 	{
@@ -1102,7 +1102,7 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 	}
 	
 	/* allocate nodal output labels */
-	e_labels.Allocate(e_codes.Sum());
+	e_labels.Dimension(e_codes.Sum());
 	count = 0;
 	if (e_codes[Centroid])
 	{

@@ -1,4 +1,4 @@
-/* $Id: Traction_CardT.cpp,v 1.4.4.1 2002-10-17 04:47:06 paklein Exp $ */
+/* $Id: Traction_CardT.cpp,v 1.4.4.2 2002-10-20 18:07:44 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "Traction_CardT.h"
 
@@ -46,7 +46,7 @@ void Traction_CardT::EchoValues(const ElementSupportT& support, const DomainInte
 	
 	/* configure */
 	domain.NodesOnFacet(facet, fLocNodeNums);
-	valuesT.Allocate(fLocNodeNums.Length(), ndof);
+	valuesT.Dimension(fLocNodeNums.Length(), ndof);
 
 	/* read tractions */
 	in >> valuesT;
@@ -59,7 +59,7 @@ void Traction_CardT::EchoValues(const ElementSupportT& support, int elem, int fa
 	int nLTf, CoordSystemT coord_sys, const iArrayT& locnodenums,
 	const dArray2DT& valuesT, ostream& out)
 {	
-	fValues.Allocate(valuesT.MajorDim(), valuesT.MinorDim());
+	fValues.Dimension(valuesT.MajorDim(), valuesT.MinorDim());
 
 	/* set */
 	fElemNum  = elem;

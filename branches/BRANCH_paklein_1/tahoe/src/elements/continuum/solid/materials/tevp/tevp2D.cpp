@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.26.2.1 2002-10-17 04:38:21 paklein Exp $ */
+/* $Id: tevp2D.cpp,v 1.26.2.2 2002-10-20 18:07:42 paklein Exp $ */
 /* Created:  Harold Park (04/04/2001) */
 #include "tevp2D.h"
 
@@ -319,7 +319,7 @@ int tevp2D::NumOutputVariables(void) const { return kNumOutput; }
 void tevp2D::OutputLabels(ArrayT<StringT>& labels) const
 {
   /* set size */
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   /* copy labels - WHY? */
   for (int i = 0; i < kNumOutput; i++)
@@ -634,7 +634,7 @@ void tevp2D::AllocateElement(ElementCardT& element)
                                       // Sig11, Sig12=Sig21, Sig22 and Sig33
   d_size += kNSD * fNumIP;           // 3 2D symmetric components (Sig11, Sig12, Sig22)
   /* construct new plastic element */
-  element.Allocate(i_size, d_size);
+  element.Dimension(i_size, d_size);
 
   /* first set of flags for plasticity criterion */
   for (int ip = 0; ip < fNumIP; ip++)

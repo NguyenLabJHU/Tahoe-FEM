@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.8.4.1 2002-10-17 04:38:17 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.8.4.2 2002-10-20 18:07:38 paklein Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -101,9 +101,9 @@ LocalCrystalPlastFp::LocalCrystalPlastFp(ifstreamT& in, const FiniteStrainT& ele
   // allocate additional space for arrays of matrices
   for (int i = 0; i < fNumSlip; i++)
     {
-      fA[i].Allocate(kNSD);
-      fB[i].Allocate(kNSD);
-      fArrayOfMatx[i].Allocate(kNSD,kNSD);
+      fA[i].Dimension(kNSD);
+      fB[i].Dimension(kNSD);
+      fArrayOfMatx[i].Dimension(kNSD,kNSD);
     }
 
   // set 2nd order unit tensors
@@ -435,7 +435,7 @@ int LocalCrystalPlastFp::NumOutputVariables() const {return kNumOutput;}
 void LocalCrystalPlastFp::OutputLabels(ArrayT<StringT>& labels) const
 {
   // allocate space for labels
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   // copy labels
   for (int i = 0; i < kNumOutput; i++)

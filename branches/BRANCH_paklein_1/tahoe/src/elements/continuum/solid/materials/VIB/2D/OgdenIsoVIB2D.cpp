@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB2D.cpp,v 1.6 2002-10-05 20:04:14 paklein Exp $ */
+/* $Id: OgdenIsoVIB2D.cpp,v 1.6.2.1 2002-10-20 18:07:30 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "OgdenIsoVIB2D.h"
 
@@ -201,7 +201,7 @@ void OgdenIsoVIB2D::Construct(void)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Allocate(numpoints);
+	Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fCircle->Jacobians();

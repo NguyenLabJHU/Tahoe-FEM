@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.cpp,v 1.7.2.3 2002-10-19 17:46:44 paklein Exp $ */
+/* $Id: SurfaceShapeT.cpp,v 1.7.2.4 2002-10-20 18:07:50 paklein Exp $ */
 /* created: paklein (11/21/1997) */
 #include "SurfaceShapeT.h"
 
@@ -28,7 +28,7 @@ SurfaceShapeT::SurfaceShapeT(GeometryT::CodeT geometry_code, int num_ip,
 	if (fCoords.NumberOfNodes() == fNumFacetNodes)
 		fFacetCoords.Alias(fCoords);
 	else
-		fFacetCoords.Allocate(fNumFacetNodes, fCoords.MinorDim());
+		fFacetCoords.Dimension(fNumFacetNodes, fCoords.MinorDim());
 	
 	/* dimension arrays */
 	Construct();
@@ -49,7 +49,7 @@ SurfaceShapeT::SurfaceShapeT(const SurfaceShapeT& link, const LocalArrayT& coord
 	if (fCoords.NumberOfNodes() == fNumFacetNodes)
 		fFacetCoords.Alias(fCoords);
 	else
-		fFacetCoords.Allocate(fNumFacetNodes, fCoords.MinorDim());
+		fFacetCoords.Dimension(fNumFacetNodes, fCoords.MinorDim());
 
 	/* dimension arrays */
 	Construct();
@@ -167,7 +167,7 @@ void SurfaceShapeT::Extrapolate(const dArrayT& IPvalues,
 	dArray2DT& nodalvalues)
 {
 	/* resize workspace */
-	fNodalValues.Allocate(fNumFacetNodes, IPvalues.Length());
+	fNodalValues.Dimension(fNumFacetNodes, IPvalues.Length());
 
 	/* initialize */
 	fNodalValues = 0.0;
@@ -410,44 +410,44 @@ void SurfaceShapeT::Construct(void)
 	if (fFacetCoords.NumberOfNodes()*2 != fTotalNodes) throw ExceptionT::kSizeMismatch;
 
 	/* shape functions */
-	fNa.Allocate(fNumIP, fTotalNodes);
+	fNa.Dimension(fNumIP, fTotalNodes);
 
 	/* jump shape functions */
-	fjumpNa.Allocate(fNumIP, fTotalNodes);
+	fjumpNa.Dimension(fNumIP, fTotalNodes);
 
 	/* shape function and derivatives tables */
-	fgrad_d.Allocate(fNumIP);
-	fgrad_dTgrad_d.Allocate(fNumIP);
-	fgrad_dd.Allocate(fNumIP, fFieldDim-1);
+	fgrad_d.Dimension(fNumIP);
+	fgrad_dTgrad_d.Dimension(fNumIP);
+	fgrad_dd.Dimension(fNumIP, fFieldDim-1);
 
 	int dim = fTotalNodes*fFieldDim;
 	for (int i = 0; i < fNumIP; i++)
 	{
-		fgrad_d[i].Allocate(fFieldDim, dim);
-		fgrad_dTgrad_d[i].Allocate(dim, dim);
+		fgrad_d[i].Dimension(fFieldDim, dim);
+		fgrad_dTgrad_d[i].Dimension(dim, dim);
 		
 		for (int j = 0; j < fFieldDim-1; j++)
-			fgrad_dd(i,j).Allocate(fFieldDim, dim);
+			fgrad_dd(i,j).Dimension(fFieldDim, dim);
 	}
 
 	/* return value */
-	fInterp.Allocate(fFieldDim);
+	fInterp.Dimension(fFieldDim);
 	
 	/* coordinate transformation */	
 	int nsd = fFacetCoords.MinorDim();
-	fJacobian.Allocate(nsd, nsd-1);
+	fJacobian.Dimension(nsd, nsd-1);
 	
 	/* surface node numbering */
-	fFacetNodes.Allocate(2, fNumFacetNodes);
+	fFacetNodes.Dimension(2, fNumFacetNodes);
 	
 	/* work space */
-	fu_vec.Allocate(fTotalNodes*fFieldDim);	
+	fu_vec.Dimension(fTotalNodes*fFieldDim);	
 	
 	/* 3D work space */
 	if (fFieldDim == 3)
 	{
-		fM1.Allocate(fFieldDim, fu_vec.Length());
-		fM2.Allocate(fFieldDim, fu_vec.Length());
+		fM1.Dimension(fFieldDim, fu_vec.Length());
+		fM2.Dimension(fFieldDim, fu_vec.Length());
 	}
 }
 

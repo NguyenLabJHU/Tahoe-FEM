@@ -1,4 +1,4 @@
-/* $Id: VIB2D.cpp,v 1.4.4.1 2002-10-17 04:38:07 paklein Exp $ */
+/* $Id: VIB2D.cpp,v 1.4.4.2 2002-10-20 18:07:30 paklein Exp $ */
 /* created: paklein (04/09/1997)                                          */
 /* 2D VIB solver                                                          */
 
@@ -79,7 +79,7 @@ void VIB2D::SetAngle(double angleoffset)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Allocate(numpoints);
+	Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fCircle->Jacobians();

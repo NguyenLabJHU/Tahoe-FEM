@@ -1,4 +1,4 @@
-/* $Id: BCJHypo3D.cpp,v 1.11.4.1 2002-10-17 04:38:18 paklein Exp $ */
+/* $Id: BCJHypo3D.cpp,v 1.11.4.2 2002-10-20 18:07:40 paklein Exp $ */
 #include "BCJHypo3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -280,7 +280,7 @@ int BCJHypo3D::NumOutputVariables() const {return kNumOutput;}
 void BCJHypo3D::OutputLabels(ArrayT<StringT>& labels) const
 {
   // allocate space for labels
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   // copy labels
   for (int i = 0; i < kNumOutput; i++)

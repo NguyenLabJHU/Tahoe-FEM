@@ -60,13 +60,13 @@ GradientTools::GradientTools(int numip, int numnodes, int numsd) :
 
   // addional allocation for shape function derivatives
   for (int i = 0; i < fNumIP; i++) {
-     fLDNa[i].Allocate(fNumSD, fNumNodes);
-     fGDNa[i].Allocate(fNumSD, fNumNodes);
+     fLDNa[i].Dimension(fNumSD, fNumNodes);
+     fGDNa[i].Dimension(fNumSD, fNumNodes);
   }
 
   // additional allocation for spatial gradient of a tensor T
   for (int i = 0; i < kNSD; i++)
-     fGradT[i].Allocate(kNSD, kNSD); 
+     fGradT[i].Dimension(kNSD, kNSD); 
 
   //initialize arrays
   fNa = 0.0;

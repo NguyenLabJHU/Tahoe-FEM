@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.cpp,v 1.7.4.1 2002-10-17 04:22:36 paklein Exp $ */
+/* $Id: D2MeshFreeSupportT.cpp,v 1.7.4.2 2002-10-20 18:07:48 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupportT.h"
@@ -69,11 +69,11 @@ void D2MeshFreeSupportT::InitNeighborData(void)
 
 	/* space for nodal calculations */
 	int max_n_size = fnNeighborData.MaxMinorDim();
-	fndShapespace.Allocate(max_n_size*(1 + nsd + stress_dim));
+	fndShapespace.Dimension(max_n_size*(1 + nsd + stress_dim));
 
 	/* data and element integration point shape functions */
 	int max_e_size = feNeighborData.MaxMinorDim();
-	felShapespace.Allocate(nip*max_e_size*(1 + nsd + stress_dim));
+	felShapespace.Dimension(nip*max_e_size*(1 + nsd + stress_dim));
 }
 
 /* "load" data for the specified node (global numbering) */
@@ -324,7 +324,7 @@ void D2MeshFreeSupportT::SetNodalShapeFunctions(void)
 	}
 	
 	/* clear */
-	fResetNodes.Allocate(0);
+	fResetNodes.Dimension(0);
 }
 
 /* compute all integration point shape functions and derivatives */
@@ -359,7 +359,7 @@ void D2MeshFreeSupportT::SetElementShapeFunctions(void)
 	}
 
 	/* clear */
-	fResetElems.Allocate(0);
+	fResetElems.Dimension(0);
 }
 
 /*************************************************************************

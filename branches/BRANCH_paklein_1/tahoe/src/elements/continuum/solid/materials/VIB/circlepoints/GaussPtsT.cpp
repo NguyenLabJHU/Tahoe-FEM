@@ -1,4 +1,4 @@
-/* $Id: GaussPtsT.cpp,v 1.3.4.1 2002-10-17 04:38:09 paklein Exp $ */
+/* $Id: GaussPtsT.cpp,v 1.3.4.2 2002-10-20 18:07:32 paklein Exp $ */
 /* created: paklein (11/02/1997)                                          */
 
 #include "GaussPtsT.h"
@@ -101,7 +101,7 @@ void GaussPtsT::SetCoords(int numint)
 	}
 
 	/* calculate directions */	
-	fPoints.Allocate(numint,2);
+	fPoints.Dimension(numint,2);
 	for (int i = 0; i < numint; i++)
 	{
 		double *xsi = fPoints(i);
@@ -159,6 +159,6 @@ void GaussPtsT::SetJacobians(int numint)
 	dArrayT temp(numint,p);
 	
 	/* copy in */
-	fJacobians.Allocate(numint);
+	fJacobians.Dimension(numint);
 	fJacobians.SetToScaled(Pi,temp);
 }

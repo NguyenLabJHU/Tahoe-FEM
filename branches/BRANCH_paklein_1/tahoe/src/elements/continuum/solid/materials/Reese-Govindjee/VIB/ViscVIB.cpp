@@ -1,4 +1,4 @@
-/* $Id: ViscVIB.cpp,v 1.1.2.1 2002-10-17 04:38:01 paklein Exp $ */
+/* $Id: ViscVIB.cpp,v 1.1.2.2 2002-10-20 18:07:27 paklein Exp $ */
 /* created: TDN (1/19/2000) */
 
 #include <math.h>
@@ -147,24 +147,24 @@ void ViscVIB::PrintName(ostream& out) const
 void ViscVIB::Allocate(int numbonds)
 {
   	/* length table */
-	fLengths_E.Allocate(numbonds);
-	fLengths_I.Allocate(numbonds);
+	fLengths_E.Dimension(numbonds);
+	fLengths_I.Dimension(numbonds);
 
 	/* potential tables */
-	fU_E.Allocate(numbonds);
-	fdU_E.Allocate(numbonds);
-	fddU_E.Allocate(numbonds);
+	fU_E.Dimension(numbonds);
+	fdU_E.Dimension(numbonds);
+	fddU_E.Dimension(numbonds);
 
-	fU_I.Allocate(numbonds);
-	fdU_I.Allocate(numbonds);
-	fddU_I.Allocate(numbonds);
+	fU_I.Dimension(numbonds);
+	fdU_I.Dimension(numbonds);
+	fddU_I.Dimension(numbonds);
 
   	/* jacobian table */
-	fjacobian.Allocate(numbonds);
+	fjacobian.Dimension(numbonds);
   
   	/* STRESS angle tables - by associated stress component */
-	fStressTable.Allocate(fNumStress, numbonds);
+	fStressTable.Dimension(fNumStress, numbonds);
   	  	
   	/* MODULI angle tables - using Cauchy symmetry */ 	
-	fModuliTable.Allocate(fNumModuli, numbonds);	
+	fModuliTable.Dimension(fNumModuli, numbonds);	
 } 

@@ -20,7 +20,7 @@ BCJKineticEqn::BCJKineticEqn(EVPFDBaseT& model)
   fTheta = model.Temperature();
 
   // allocate space for matl's property array
-  fMatProp.Allocate(kNumMatProp);
+  fMatProp.Dimension(kNumMatProp);
 
   // read material constants for kinetic equation
   in >> fC1 >> fC2 >> fC3 >> fC4 >> fC5 >> fC6;

@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianT.cpp,v 1.9.2.2 2002-10-19 17:54:58 paklein Exp $ */
+/* $Id: TotalLagrangianT.cpp,v 1.9.2.3 2002-10-20 18:07:16 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "TotalLagrangianT.h"
 
@@ -27,9 +27,9 @@ void TotalLagrangianT::Initialize(void)
 	FiniteStrainT::Initialize();
 
 	/* dimension */
-	fGradNa.Allocate(NumSD(), NumElementNodes());
-	fStressStiff.Allocate(NumElementNodes());
-	fTemp2.Allocate(NumElementNodes()*NumDOF());
+	fGradNa.Dimension(NumSD(), NumElementNodes());
+	fStressStiff.Dimension(NumElementNodes());
+	fTemp2.Dimension(NumElementNodes()*NumDOF());
 }
 
 /***********************************************************************

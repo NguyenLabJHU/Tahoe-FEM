@@ -1,4 +1,4 @@
-/* $Id: DRSolver.cpp,v 1.5.4.1 2002-10-17 04:14:24 paklein Exp $ */
+/* $Id: DRSolver.cpp,v 1.5.4.2 2002-10-20 18:07:51 paklein Exp $ */
 /* created: PAK/CBH (10/03/1996) */
 
 #include "DRSolver.h"
@@ -33,10 +33,10 @@ void DRSolver::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	NLSolver::Initialize(tot_num_eq, loc_num_eq, start_eq);
 
 	/* memory */
-	fMass.Allocate(loc_num_eq);
-	fVel.Allocate(loc_num_eq);
-	fDisp.Allocate(loc_num_eq);
-	fKd.Allocate(loc_num_eq);
+	fMass.Dimension(loc_num_eq);
+	fVel.Dimension(loc_num_eq);
+	fDisp.Dimension(loc_num_eq);
+	fKd.Dimension(loc_num_eq);
 	
 	fNumEquations = loc_num_eq;
 }

@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB3DLinHardT.cpp,v 1.5.4.1 2002-10-17 04:38:07 paklein Exp $ */
+/* $Id: J2IsoVIB3DLinHardT.cpp,v 1.5.4.2 2002-10-20 18:07:31 paklein Exp $ */
 /* created: paklein (10/12/1998)                                          */
 /* VIB plus principal stretch elasticity                                  */
 /* Interface for a elastoplastic material that is linearly                */
@@ -237,7 +237,7 @@ int J2IsoVIB3DLinHardT::NumOutputVariables(void) const { return kNumOutput; }
 void J2IsoVIB3DLinHardT::OutputLabels(ArrayT<StringT>& labels) const
 {
 	/* set size */
-	labels.Allocate(kNumOutput);
+	labels.Dimension(kNumOutput);
 	
 	/* copy labels */
 	for (int i = 0; i < kNumOutput; i++)
@@ -471,7 +471,7 @@ void J2IsoVIB3DLinHardT::AllocateElement(ElementCardT& element)
 	d_size += kNumInternal*num_ip;          // fInternal
 
 	/* construct new plastic element */
-	element.Allocate(i_size, d_size);
+	element.Dimension(i_size, d_size);
 
 	/* initialize values */
 	element.IntegerData() = kNotInit;

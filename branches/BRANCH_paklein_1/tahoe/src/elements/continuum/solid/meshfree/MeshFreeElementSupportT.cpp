@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.8.4.1 2002-10-17 04:28:56 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.8.4.2 2002-10-20 18:07:17 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 
 #include "MeshFreeElementSupportT.h"
@@ -77,7 +77,7 @@ void MeshFreeElementSupportT::InitSupport(ifstreamT& in, ostream& out,
 	
 	/* set element card pointers */
 	int num_cells = elem_cards.Length();
-	fUNodeLists.Allocate(num_cells);
+	fUNodeLists.Dimension(num_cells);
 	for (int i = 0; i < num_cells; i++)
 	{
 		ElementCardT& card = elem_cards[i];
@@ -137,7 +137,7 @@ void MeshFreeElementSupportT::SetNodalField(const dArray2DT& dof)
 	int range = max - fMapShift + 1;
 	
 	/* dimension */
-	fGlobalToNodesUsedMap.Allocate(range);
+	fGlobalToNodesUsedMap.Dimension(range);
 	fGlobalToNodesUsedMap = -1;
 
 	/* make map */
@@ -385,7 +385,7 @@ void MeshFreeElementSupportT::SetAllFENodes(const iArrayT& fe_nodes)
 		//NOTE: this could be more efficient
 
 	/* generate final list */
-	fAllFENodes.Allocate(all_fe_nodes.Length() - all_fe_nodes.Count(-1));
+	fAllFENodes.Dimension(all_fe_nodes.Length() - all_fe_nodes.Count(-1));
 	int* from = all_fe_nodes.Pointer();
 	int*   to = fAllFENodes.Pointer();
 	for (int k = 0; k < all_fe_nodes.Length(); k++)

@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.9.4.1 2002-10-17 04:47:07 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.9.4.2 2002-10-20 18:07:45 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #include "DiagonalMatrixT.h"
@@ -50,7 +50,7 @@ void DiagonalMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	GlobalMatrixT::Initialize(tot_num_eq, loc_num_eq, start_eq);
 
 	/* allocate work space */
-	fMatrix.Allocate(fLocNumEQ);
+	fMatrix.Dimension(fLocNumEQ);
 }
 
 /* set all matrix values to 0.0 */

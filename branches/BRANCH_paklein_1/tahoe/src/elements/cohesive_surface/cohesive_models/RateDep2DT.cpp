@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.cpp,v 1.9.6.1 2002-10-17 04:28:50 paklein Exp $  */
+/* $Id: RateDep2DT.cpp,v 1.9.6.2 2002-10-20 18:07:11 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "RateDep2DT.h"
@@ -368,7 +368,7 @@ int RateDep2DT::NumOutputVariables(void) const { return 4; }
 
 void RateDep2DT::OutputLabels(ArrayT<StringT>& labels) const
 {
-	labels.Allocate(4);
+	labels.Dimension(4);
 	labels[0] = "lambda";
 	labels[1] = "D_t_dot";
 	labels[2] = "D_n_dot";

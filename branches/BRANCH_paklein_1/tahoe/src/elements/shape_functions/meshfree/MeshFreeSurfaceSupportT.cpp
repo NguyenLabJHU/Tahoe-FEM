@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSurfaceSupportT.cpp,v 1.3.4.1 2002-10-17 04:22:34 paklein Exp $ */
+/* $Id: MeshFreeSurfaceSupportT.cpp,v 1.3.4.2 2002-10-20 18:07:47 paklein Exp $ */
 /* created: paklein (02/22/2000)                                          */
 /* supporting functions for cohesive elements in a meshfree domain        */
 
@@ -300,7 +300,7 @@ void MeshFreeSurfaceSupportT::StoreData(int facet, int side,
 	if (facet < 0 || facet > Neighbors.MajorDim()) throw ExceptionT::kOutOfRange;
 
 	/* collect all nodes used */
-	fall_neighbors.Allocate(0);
+	fall_neighbors.Dimension(0);
 	for (int i = 0; i < nip; i++)
 		fall_neighbors.AppendUnique(neighbors[i]);
 	int nnd = fall_neighbors.Length();
@@ -311,8 +311,8 @@ void MeshFreeSurfaceSupportT::StoreData(int facet, int side,
 		
 	/* generate local data */
 	int* map = fnode_map.Pointer();
-	fphi.Allocate(nip*nnd);
-	fDphi.Allocate(nip*nsd*nnd);
+	fphi.Dimension(nip*nnd);
+	fDphi.Dimension(nip*nsd*nnd);
 	
 	fphi  = 0.0;
 	fDphi = 0.0;
@@ -369,7 +369,7 @@ void MeshFreeSurfaceSupportT::MakeInverseMap(const iAutoArrayT& map,
 	int range = max - shift + 1;
 	
 	/* dimension */
-	inv_map.Allocate(range);
+	inv_map.Dimension(range);
 	inv_map = -1;
 
 	/* make map */

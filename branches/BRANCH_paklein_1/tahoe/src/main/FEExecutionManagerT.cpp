@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.26.2.1 2002-10-17 04:54:06 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.26.2.2 2002-10-20 18:07:20 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -1141,7 +1141,7 @@ void FEExecutionManagerT::ReadOutputMap(ifstreamT& in, const StringT& map_file,
 	/* read map */
 	int size, num_sets;
 	map_in >> size >> num_sets;
-	map.Allocate(num_sets);
+	map.Dimension(num_sets);
 	map_in >> map;
 
 	/* check */
@@ -1161,7 +1161,7 @@ void FEExecutionManagerT::SetOutputMap(const ArrayT<OutputSetT*>& output_sets,
 	iArrayT& output_map, int size) const
 {
 	/* initialize map - processor number for each element block */
-	output_map.Allocate(output_sets.Length());
+	output_map.Dimension(output_sets.Length());
 	output_map = 0;
 	
 	iArrayT output_counts(size);
@@ -1351,7 +1351,7 @@ void FEExecutionManagerT::EchoPartialGeometry_ExodusII(const PartitionT& partiti
 			/* non-empty set */
 			if (local_indices.Length() > 0)
 			{
-				sideset.Allocate(local_indices.Length(), sideset_ALL.MinorDim());
+				sideset.Dimension(local_indices.Length(), sideset_ALL.MinorDim());
 				sideset.RowCollect(local_indices, sideset_ALL);
 
 				iArrayT elements(sideset.MajorDim());
@@ -1472,7 +1472,7 @@ void FEExecutionManagerT::EchoPartialGeometry_TahoeII(const PartitionT& partitio
 			ID.Append(element_set_ID);
 			iArrayT local_indices;
 			partition.ReturnPartitionElements(ID, elements_ALL, local_indices);
-			sideset.Allocate(local_indices.Length(), sideset_ALL.MinorDim());
+			sideset.Dimension(local_indices.Length(), sideset_ALL.MinorDim());
 			sideset.RowCollect(local_indices, sideset_ALL);
 				
 			/* map to (block) local numbering */

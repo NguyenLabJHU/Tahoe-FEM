@@ -1,4 +1,4 @@
-/* $Id: ModCB2DT.cpp,v 1.5.4.1 2002-10-17 04:38:13 paklein Exp $ */
+/* $Id: ModCB2DT.cpp,v 1.5.4.2 2002-10-20 18:07:34 paklein Exp $ */
 /* created: paklein (05/31/1997)                                          */
 
 #include "ModCB2DT.h"
@@ -42,7 +42,7 @@ ModCB2DT::ModCB2DT(ifstreamT& in, const FiniteStrainT& element, bool equilibrate
 
 		case kDC101:
 		{
-			Q.Allocate(3);
+			Q.Dimension(3);
 			Q = 0.0;
 			
 			double cos45 = 0.5*sqrt2;
@@ -57,7 +57,7 @@ ModCB2DT::ModCB2DT(ifstreamT& in, const FiniteStrainT& element, bool equilibrate
 		}
 		case kDC111:
 		{
-			Q.Allocate(3);
+			Q.Dimension(3);
 			Q = 0.0;
 			
 			/* transform global xy-plane into [111] */			

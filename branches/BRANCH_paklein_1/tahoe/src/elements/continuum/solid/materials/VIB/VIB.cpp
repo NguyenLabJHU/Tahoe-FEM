@@ -1,4 +1,4 @@
-/* $Id: VIB.cpp,v 1.6.4.1 2002-10-17 04:38:06 paklein Exp $ */
+/* $Id: VIB.cpp,v 1.6.4.2 2002-10-20 18:07:28 paklein Exp $ */
 /* created: paklein (10/30/1997) */
 #include "VIB.h"
 
@@ -21,10 +21,9 @@
 #include "ParabolaT.h"
 #include "Triantafyllidis.h"
 
-/* constructors */
-
 using namespace Tahoe;
 
+/* constructors */
 VIB::VIB(ifstreamT& in, int nsd, int numstress, int nummoduli):
 	fNumSD(nsd),
 	fNumStress(numstress),
@@ -126,22 +125,22 @@ void VIB::PrintName(ostream& out) const
 *************************************************************************/
 
 /* allocate memory for all the tables */
-void VIB::Allocate(int numbonds)
+void VIB::Dimension(int numbonds)
 {
 	/* length table */
-	fLengths.Allocate(numbonds);
+	fLengths.Dimension(numbonds);
 
 	/* potential tables */
-	fU.Allocate(numbonds);
-	fdU.Allocate(numbonds);
-	fddU.Allocate(numbonds);
+	fU.Dimension(numbonds);
+	fdU.Dimension(numbonds);
+	fddU.Dimension(numbonds);
 
 	/* jacobian table */
-	fjacobian.Allocate(numbonds);
+	fjacobian.Dimension(numbonds);
 
 	/* STRESS angle tables - by associated stress component */
-	fStressTable.Allocate(fNumStress, numbonds);
+	fStressTable.Dimension(fNumStress, numbonds);
 	  	
 	/* MODULI angle tables - using Cauchy symmetry */ 	
-	fModuliTable.Allocate(fNumModuli, numbonds);	
+	fModuliTable.Dimension(fNumModuli, numbonds);	
 }

@@ -1,4 +1,4 @@
-/* $Id: J2SimoC0HardeningT.cpp,v 1.9.4.1 2002-10-17 04:38:15 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.cpp,v 1.9.4.2 2002-10-20 18:07:36 paklein Exp $ */
 /* created: paklein (05/01/2001) */
 
 #include "J2SimoC0HardeningT.h"
@@ -381,7 +381,7 @@ void J2SimoC0HardeningT::AllocateElement(ElementCardT& element)
 	d_size += dSymMatrixT::NumValues(kNSD)*fNumIP; //fbeta_bar_trial_
 
 	/* construct new plastic element */
-	element.Allocate(i_size, d_size);
+	element.Dimension(i_size, d_size);
 	
 	/* initialize values */
 	element.IntegerData() = kNotInit;

@@ -1,5 +1,5 @@
 
-/* $Id: Contact3DT.cpp,v 1.4.4.1 2002-10-17 04:28:52 paklein Exp $ */
+/* $Id: Contact3DT.cpp,v 1.4.4.2 2002-10-20 18:07:13 paklein Exp $ */
 /* created: paklein (07/17/1999) */
 
 #include "Contact3DT.h"
@@ -185,9 +185,9 @@ void Contact3DT::SetActiveStrikers(void)
 {
 	/* clear previous contact config */
 	fActiveMap = -1;
-	fActiveStrikers.Allocate(0);
-	fHitSurface.Allocate(0);
-	fHitFacets.Allocate(0);
+	fActiveStrikers.Dimension(0);
+	fHitSurface.Dimension(0);
+	fHitFacets.Dimension(0);
 
 	/* reference to current coordinates */
 	const dArray2DT& allcoords = ElementSupport().CurrentCoordinates(); //EFFECTIVE_DVA

@@ -309,7 +309,7 @@ int GradJ2SSNonlinHard::NumOutputVariables(void) const  { return kNumOutput; }
 void GradJ2SSNonlinHard::OutputLabels(ArrayT<StringT>& labels) const
 {
 	/* set size */
-	labels.Allocate(kNumOutput);
+	labels.Dimension(kNumOutput);
 	
 	/* copy labels */
 	for (int i = 0; i < kNumOutput; i++)
@@ -628,7 +628,7 @@ void GradJ2SSNonlinHard::AllocateAllElements(void)
 		ElementCardT& element = ElementCard(el);
 
 	        /* construct new element */
-		element.Allocate(fNumIP, d_size);
+		element.Dimension(fNumIP, d_size);
 	
 		/* initialize values */
 		element.IntegerData() = kIsElastic;
@@ -825,7 +825,7 @@ dArrayT GradJ2SSNonlinHard::Laplacian(const dArrayT& ip_field, int field_length)
 
 		ArrayT<dArrayT> A_dA_ip_grad_field(fNumSD);
 		for (int sd = 0; sd < fNumSD; sd++)
-		        A_dA_ip_grad_field[sd].Allocate(fNumIP);
+		        A_dA_ip_grad_field[sd].Dimension(fNumIP);
 	
 		/* extrapolate values of field from ip to nodes */
 		ContinuumElement().IP_ExtrapolateAll(ip_field,dA_nd_field);

@@ -1,4 +1,4 @@
-/* $Id: HyperEVP3D.cpp,v 1.7.4.1 2002-10-17 04:38:18 paklein Exp $ */
+/* $Id: HyperEVP3D.cpp,v 1.7.4.2 2002-10-20 18:07:40 paklein Exp $ */
 #include "HyperEVP3D.h"
 
 #include "ContinuumElementT.h"
@@ -212,7 +212,7 @@ int HyperEVP3D::NumOutputVariables() const {return kNumOutput;}
 void HyperEVP3D::OutputLabels(ArrayT<StringT>& labels) const
 {
   // allocate space for labels
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   // copy labels
   for (int i = 0; i < kNumOutput; i++)

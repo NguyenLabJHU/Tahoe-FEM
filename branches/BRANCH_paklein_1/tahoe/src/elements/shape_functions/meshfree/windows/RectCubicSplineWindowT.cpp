@@ -312,8 +312,8 @@ int RectCubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_
 
   /* allocate */
   int nsd = x.Length();
-  fNSD.Allocate(nsd);
-  fNSDsym.Allocate(nsd);
+  fNSD.Dimension(nsd);
+  fNSDsym.Dimension(nsd);
 
   /* work space */
   dArrayT x_node, param_node;

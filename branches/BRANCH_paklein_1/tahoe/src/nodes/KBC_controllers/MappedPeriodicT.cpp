@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.cpp,v 1.6.4.1 2002-10-17 04:42:20 paklein Exp $ */
+/* $Id: MappedPeriodicT.cpp,v 1.6.4.2 2002-10-20 18:07:43 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 
 #include "MappedPeriodicT.h"
@@ -49,7 +49,7 @@ void MappedPeriodicT::Initialize(ifstreamT& in)
 	/* read master nodes */
 	iArrayT tmp;
 	ReadNodes(in, id_list, tmp);
-	fSlaveMasterPairs.Allocate(tmp.Length(), 2);
+	fSlaveMasterPairs.Dimension(tmp.Length(), 2);
 	fSlaveMasterPairs.SetColumn(kMaster, tmp);
 
 	/* read corresponding slave nodes */
@@ -67,7 +67,7 @@ void MappedPeriodicT::Initialize(ifstreamT& in)
 	/* generate BC cards */
 	int num_BC = fMappedNodeList.Length() + fSlaveMasterPairs.MajorDim();
 	int nsd = fFperturb.Rows();
-	fKBC_Cards.Allocate(num_BC*nsd);
+	fKBC_Cards.Dimension(num_BC*nsd);
 	fMappedCards.Set(fMappedNodeList.Length()*nsd, fKBC_Cards.Pointer());
 	fSlaveCards.Set(fSlaveMasterPairs.MajorDim()*nsd,
 		fKBC_Cards.Pointer(fMappedCards.Length()));

@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.10.4.1 2002-10-17 04:47:08 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.10.4.2 2002-10-20 18:07:46 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT.h"
@@ -93,8 +93,8 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& e
 	if (format == ElementMatrixT::kDiagonal)
 	{
 		/* extract values for active equation numbers */
-		fRowDexVec.Allocate(0);	
-		fValVec.Allocate(0);
+		fRowDexVec.Dimension(0);	
+		fValVec.Dimension(0);
 		int end_update = fStartEQ + fLocNumEQ - 1;
 		for (int i = 0; i < eqnos.Length(); i++)
 		{
@@ -137,8 +137,8 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& e
 			}
 
 			/* equation numbers -> active equation numbers */
-			fRowDexVec.Allocate(0);
-			fRowEqnVec.Allocate(0);
+			fRowDexVec.Dimension(0);
+			fRowEqnVec.Dimension(0);
 			for (int j = 0; j < eqnos.Length(); j++)
 				if (eqnos[j] > 0)
 				{
@@ -153,7 +153,7 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& e
 			/* assemble (global) upper triangle */
 			int end_update = fStartEQ + fLocNumEQ - 1;
 			int num_active = fActiveDex.Length();
-			fValVec.Allocate(num_active); // max size
+			fValVec.Dimension(num_active); // max size
 			int status = 1;
 			for (int i = 0; i < num_active && status; i++)
 			{
@@ -181,8 +181,8 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& e
 		else
 		{
 			/* equation numbers -> active element row numbers */
-			fRowDexVec.Allocate(0);
-			fColDexVec.Allocate(0);
+			fRowDexVec.Dimension(0);
+			fColDexVec.Dimension(0);
 			int end_update = fStartEQ + fLocNumEQ - 1;
 			for (int j = 0; j < eqnos.Length(); j++)
 			{
@@ -212,7 +212,7 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& e
 				fColDexVec[c] = eqnos[fColDexVec[c]] - 1; //OFFSET
 	
 			/* row-by-row assembly */
-			fValVec.Allocate(num_cols);
+			fValVec.Dimension(num_cols);
 			int status = 1;
 			for (int i = 0; i < num_rows && status; i++)
 			{
@@ -265,7 +265,7 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& r
 			int end_update = fStartEQ + fLocNumEQ - 1;
 
 			/* equation numbers -> active element row numbers */
-			fRowDexVec.Allocate(0);
+			fRowDexVec.Dimension(0);
 			for (int j = 0; j < row_eqnos.Length(); j++)
 			{
 				int eq = row_eqnos[j];
@@ -274,7 +274,7 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& r
 			}
 
 			/* equation numbers -> active element column numbers */
-			fColDexVec.Allocate(0);
+			fColDexVec.Dimension(0);
 			for (int j = 0; j < col_eqnos.Length(); j++)
 				if (col_eqnos[j] > 0)
 					fColDexVec.Append(j);
@@ -298,7 +298,7 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& r
 				fColDexVec[c] = col_eqnos[fColDexVec[c]] - 1; //OFFSET
 	
 			/* row-by-row assembly */
-			fValVec.Allocate(num_cols);
+			fValVec.Dimension(num_cols);
 			int status = 1;
 			for (int i = 0; i < num_rows && status; i++)
 			{
@@ -477,9 +477,9 @@ void SPOOLESMatrixT::GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v, double drop
 		if (fabs(*pval++) > drop_tol) num_vals++;
 
 	/* overall dimension */
-	r.Allocate(num_vals);
-	c.Allocate(num_vals);
-	v.Allocate(num_vals);
+	r.Dimension(num_vals);
+	c.Dimension(num_vals);
+	v.Dimension(num_vals);
 
 	/* start of off-diagonal data (MSR) */
 	int* pcol = fbindx.Pointer(fLocNumEQ + 1);
@@ -632,7 +632,7 @@ void SPOOLESMatrixT::AssembleDiagonals(int numvals, const int* rows,
 void SPOOLESMatrixT::SetMSRData(void)
 {
 	/* set update vector - global numbering */
-	fupdate.Allocate(fLocNumEQ);
+	fupdate.Dimension(fLocNumEQ);
 	int* pupdate = fupdate.Pointer();
 	int n_update = fStartEQ; //OFFSET
 	for (int i = 0; i < fLocNumEQ; i++)
@@ -657,7 +657,7 @@ void SPOOLESMatrixT::SetMSRData(void)
 #endif
 	
 	/* allocate the matrix */
-	fval.Allocate(fbindx.Length());
+	fval.Dimension(fbindx.Length());
 
 	/* clear equation lists */
 	fMSRBuilder->ClearGroups();
@@ -667,7 +667,7 @@ void SPOOLESMatrixT::SetMSRData(void)
 void SPOOLESMatrixT::SetUpQuickFind(void)
 {
 	/* quick find bin */
-	fupdate_bin.Allocate(2 + (fLocNumEQ + 4)/4); /* oversize */
+	fupdate_bin.Dimension(2 + (fLocNumEQ + 4)/4); /* oversize */
 
 	/* initialize shift and bin */
 	AZ_init_quick_find(fupdate.Pointer(), fLocNumEQ, &fQF_shift,
@@ -685,8 +685,8 @@ void SPOOLESMatrixT::SetUpQuickFind(void)
 	maxlength += 1;
 
 	/* allocate space for sorted row data */
-	fsrow_dex.Allocate(maxlength);
-	fsrow_val.Allocate(maxlength);
+	fsrow_dex.Dimension(maxlength);
+	fsrow_val.Dimension(maxlength);
 }
 
 int SPOOLESMatrixT::AZ_quick_find(int key, int list[], int length, int shift,

@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.15.2.1 2002-10-17 04:21:56 paklein Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.15.2.2 2002-10-20 18:07:50 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -28,7 +28,7 @@ ParentDomainT::ParentDomainT(GeometryT::CodeT geometry_code, int numIP, int numn
 {
 	/* memory for the derivatives */
 	for (int i = 0; i < fDNa.Length(); i++)
-		fDNa[i].Allocate(fNumSD, fNumNodes);
+		fDNa[i].Dimension(fNumSD, fNumNodes);
 		
 	/* initialize parent domain geometry */
 	fGeometry = GeometryT::NewGeometry(fGeometryCode, fNumNodes);

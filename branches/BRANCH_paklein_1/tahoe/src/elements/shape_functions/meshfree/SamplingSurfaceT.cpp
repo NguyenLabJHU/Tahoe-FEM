@@ -1,4 +1,4 @@
-/* $Id: SamplingSurfaceT.cpp,v 1.3.4.1 2002-10-17 04:22:35 paklein Exp $ */
+/* $Id: SamplingSurfaceT.cpp,v 1.3.4.2 2002-10-20 18:07:48 paklein Exp $ */
 /* created: paklein (10/19/2000)                                          */
 
 #include "SamplingSurfaceT.h"
@@ -25,7 +25,7 @@ SamplingSurfaceT::SamplingSurfaceT(GeometryT::CodeT code, int num_facet_nodes,
 	fSurfaceShape->Initialize();
 	
 	/* work space */
-	fQ.Allocate(fLocFacetCoords.MinorDim());
+	fQ.Dimension(fLocFacetCoords.MinorDim());
 }
 
 /* destructor */
@@ -121,7 +121,7 @@ void SamplingSurfaceT::SetSamplingPoints(const dArray2DT& facet_coords,
 	SetFieldData(NULL);
 	
 	/* allocate flags */
-	fFlag.Allocate(fNumFacets);
+	fFlag.Dimension(fNumFacets);
 	fFlag = 0;
 }
 

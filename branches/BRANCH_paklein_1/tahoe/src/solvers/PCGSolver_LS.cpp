@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.7.4.1 2002-10-17 04:14:24 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.7.4.2 2002-10-20 18:07:51 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 
 #include "PCGSolver_LS.h"
@@ -68,7 +68,7 @@ PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
 	if (fMaxStepSize      < 0)  throw ExceptionT::kBadInputValue;
 	
 	/* allocate space for history */
-	fSearchData.Allocate(fSearchIterations, 2);
+	fSearchData.Dimension(fSearchIterations, 2);
 
 	/* set console */
 	iAddVariable("search_iterations", fSearchIterations);
@@ -84,7 +84,7 @@ void PCGSolver_LS::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	NLSolver::Initialize(tot_num_eq, loc_num_eq, start_eq);
 
 	/* allocate work space */
-	fdiff_R.Allocate(fRHS.Length());
+	fdiff_R.Dimension(fRHS.Length());
 }
 
 /*************************************************************************

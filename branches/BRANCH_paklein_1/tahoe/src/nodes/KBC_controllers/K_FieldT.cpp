@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.7.4.1 2002-10-17 04:42:20 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.7.4.2 2002-10-20 18:07:43 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #include "K_FieldT.h"
@@ -52,12 +52,12 @@ void K_FieldT::Initialize(ifstreamT& in)
 	if (!fLTf2) throw ExceptionT::kBadInputValue;
 
 	/* coordinates of the crack tip */
-	fInitTipCoords.Allocate(nsd);
+	fInitTipCoords.Dimension(nsd);
 	in >> fInitTipCoords;
 	fLastTipCoords = fTipCoords = fInitTipCoords;
 
 	/* crack extension parameters */
-	fGrowthDirection.Allocate(nsd);
+	fGrowthDirection.Dimension(nsd);
 	in >> fGrowthDirection; fGrowthDirection.UnitVector();
 
 	/* near tip group */
@@ -85,7 +85,7 @@ void K_FieldT::Initialize(ifstreamT& in)
 	if (fFarFieldMaterialNum < 0) throw ExceptionT::kBadInputValue;
 
 	/* generate BC cards */
-	fKBC_Cards.Allocate(fNodes.Length()*nsd);
+	fKBC_Cards.Dimension(fNodes.Length()*nsd);
 	KBC_CardT* pcard = fKBC_Cards.Pointer();
 	for (int i = 0; i < fNodes.Length(); i++)
 		for (int j = 0; j < nsd; j++)
@@ -99,8 +99,8 @@ void K_FieldT::Initialize(ifstreamT& in)
 		}	
 
 	/* allocate displacement field factors */
-	fK1Disp.Allocate(fNodes.Length(), nsd);
-	fK2Disp.Allocate(fNodes.Length(), nsd);
+	fK1Disp.Dimension(fNodes.Length(), nsd);
+	fK2Disp.Dimension(fNodes.Length(), nsd);
 	
 //TEMP - tip tracking not supporting for parallel execution
 	if (fNearTipGroupNum != -1 && fNodeManager.Size() > 1) {
