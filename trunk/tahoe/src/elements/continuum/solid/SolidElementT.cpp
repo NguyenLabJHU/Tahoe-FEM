@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.15 2001-08-21 01:11:06 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.16 2001-11-16 00:03:36 cjkimme Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #include "SolidElementT.h"
@@ -269,7 +269,7 @@ void SolidElementT::SendOutput(int kincode)
 		    flags[iNodalDisp] = fNumDOF;
 			break;
 		case iNodalStress:
-		    flags[iNodalStress] = dSymMatrixT::NumValues(fNumSD);
+		    flags[iNodalStress] = 1;
 			break;
 		case iEnergyDensity:
 		    flags[iEnergyDensity] = 1;
@@ -288,7 +288,7 @@ void SolidElementT::SendOutput(int kincode)
 
 	/* reset averaging workspace */
 	fNodes->ResetAverage(n_counts.Sum());
-
+      
 	/* no element output */
 	iArrayT e_counts(fElementOutputCodes.Length());
 	e_counts = 0;
@@ -297,6 +297,7 @@ void SolidElementT::SendOutput(int kincode)
 	dArray2DT n_values, e_values;
 	ComputeOutput(n_counts, n_values, e_counts, e_values);
 }
+
 
 /***********************************************************************
 * Protected
