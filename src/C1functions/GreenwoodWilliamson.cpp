@@ -1,4 +1,4 @@
-/* $Id: GreenwoodWilliamson.cpp,v 1.3 2002-02-01 19:59:56 dzeigle Exp $ */
+/* $Id: GreenwoodWilliamson.cpp,v 1.4 2002-02-04 17:38:28 dzeigle Exp $ */
 
 #include "GreenwoodWilliamson.h"
 #include <math.h>
@@ -99,11 +99,11 @@ double GreenwoodWilliamson::DFunction(double x) const
 			double temp1, temp2, temp3, temp4, temp5, temp6;
 			double temp7, temp8, temp9, temp10, temp11;
 			double ap2, ap3, ap4;
-			double bp2, bp3, bp4;
-			double x1p2, x1p3, x1p4;
-			double x2p2, x2p3, x2p4;
-			double x3p2, x3p3, x3p4;
-			double x4p2, x4p3, x4p4;
+			double bp2, bp3;
+			double x1p2, x1p3;
+			double x2p2, x2p3;
+			double x3p2;
+			double x4p2, x4p3;
 			
 			x1 = (35.0*a-sqrt(525.0+70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
 			x2 = (35.0*a+sqrt(525.0+70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
@@ -115,19 +115,13 @@ double GreenwoodWilliamson::DFunction(double x) const
 			ap4 = pow(a,4.0);
 			bp2 = pow(b,2.0);
 			bp3 = pow(b,3.0);
-			bp4 = pow(b,4.0);
 			x1p2 = pow(x1,2.0);
 			x1p3 = pow(x1,3.0);
-			x1p4 = pow(x1,4.0);
 			x2p2 = pow(x2,2.0);
 			x2p3 = pow(x2,3.0);
-			x2p4 = pow(x2,4.0);
 			x3p2 = pow(x3,2.0);
-			x3p3 = pow(x3,3.0);
-			x3p4 = pow(x3,4.0);
 			x4p2 = pow(x4,2.0);
 			x4p3 = pow(x4,3.0);
-			x4p4 = pow(x4,4.0);
 			
 			temp1 = 12.0*a*x2*(x2-x3)*(x2-x4)*(x3-x4)*x4;
 			temp2 = 4.0*ap3*(2.0*x2p3-2.0*x2*x3p2+x4*x3p2-x4p3);
@@ -242,11 +236,11 @@ double GreenwoodWilliamson::DDFunction(double x) const
 			double temp1, temp2, temp3, temp4, temp5, temp6;
 			double temp7, temp8, temp9, temp10, temp11;
 			double ap2, ap3, ap4;
-			double bp2, bp3, bp4;
-			double x1p2, x1p3, x1p4;
-			double x2p2, x2p3, x2p4;
-			double x3p2, x3p3, x3p4;
-			double x4p2, x4p3, x4p4;
+			double bp2, bp3;
+			double x1p2, x1p3;
+			double x2p2, x2p3;
+			double x3p2;
+			double x4p2, x4p3;
 			
 			x1 = (35.0*a-sqrt(525.0+70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
 			x2 = (35.0*a+sqrt(525.0+70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
@@ -258,19 +252,13 @@ double GreenwoodWilliamson::DDFunction(double x) const
 			ap4 = pow(a,4.0);
 			bp2 = pow(b,2.0);
 			bp3 = pow(b,3.0);
-			bp4 = pow(b,4.0);
 			x1p2 = pow(x1,2.0);
 			x1p3 = pow(x1,3.0);
-			x1p4 = pow(x1,4.0);
 			x2p2 = pow(x2,2.0);
 			x2p3 = pow(x2,3.0);
-			x2p4 = pow(x2,4.0);
 			x3p2 = pow(x3,2.0);
-			x3p3 = pow(x3,3.0);
-			x3p4 = pow(x3,4.0);
 			x4p2 = pow(x4,2.0);
 			x4p3 = pow(x4,3.0);
-			x4p4 = pow(x4,4.0);
 			
 			temp1 = 12.0*a*x2*(x2-x3)*(x2-x4)*(x3-x4)*x4;
 			temp2 = 4.0*ap3*(2.0*x2p3-2.0*x2*x3p2+x4*x3p2-x4p3);
@@ -413,11 +401,11 @@ dArrayT& GreenwoodWilliamson::MapDFunction(const dArrayT& in, dArrayT& out) cons
 				double temp1, temp2, temp3, temp4, temp5, temp6;
 				double temp7, temp8, temp9, temp10, temp11;
 				double ap2, ap3, ap4;
-				double bp2, bp3, bp4;
-				double x1p2, x1p3, x1p4;
-				double x2p2, x2p3, x2p4;
-				double x3p2, x3p3, x3p4;
-				double x4p2, x4p3, x4p4;
+				double bp2, bp3;
+				double x1p2, x1p3;
+				double x2p2, x2p3;
+				double x3p2;
+				double x4p2, x4p3;
 			
 				x1 = (35.0*a-sqrt(525.0+70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
 				x2 = (35.0*a+sqrt(525.0+70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
@@ -429,19 +417,13 @@ dArrayT& GreenwoodWilliamson::MapDFunction(const dArrayT& in, dArrayT& out) cons
 				ap4 = pow(a,4.0);
 				bp2 = pow(b,2.0);
 				bp3 = pow(b,3.0);
-				bp4 = pow(b,4.0);
 				x1p2 = pow(x1,2.0);
 				x1p3 = pow(x1,3.0);
-				x1p4 = pow(x1,4.0);
 				x2p2 = pow(x2,2.0);
 				x2p3 = pow(x2,3.0);
-				x2p4 = pow(x2,4.0);
 				x3p2 = pow(x3,2.0);
-				x3p3 = pow(x3,3.0);
-				x3p4 = pow(x3,4.0);
 				x4p2 = pow(x4,2.0);
 				x4p3 = pow(x4,3.0);
-				x4p4 = pow(x4,4.0);
 			
 				temp1 = 12.0*a*x2*(x2-x3)*(x2-x4)*(x3-x4)*x4;
 				temp2 = 4.0*ap3*(2.0*x2p3-2.0*x2*x3p2+x4*x3p2-x4p3);
@@ -567,11 +549,11 @@ dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) con
 				double temp1, temp2, temp3, temp4, temp5, temp6;
 				double temp7, temp8, temp9, temp10, temp11;
 				double ap2, ap3, ap4;
-				double bp2, bp3, bp4;
-				double x1p2, x1p3, x1p4;
-				double x2p2, x2p3, x2p4;
-				double x3p2, x3p3, x3p4;
-				double x4p2, x4p3, x4p4;
+				double bp2, bp3;
+				double x1p2, x1p3;
+				double x2p2, x2p3;
+				double x3p2;
+				double x4p2, x4p3;
 				
 				x1 = (35.0*a-sqrt(525.0+70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
 				x2 = (35.0*a+sqrt(525.0+70.0*sqrt(30.0))*(a-b)+35.0*b)/70.0;
@@ -583,19 +565,13 @@ dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) con
 				ap4 = pow(a,4.0);
 				bp2 = pow(b,2.0);
 				bp3 = pow(b,3.0);
-				bp4 = pow(b,4.0);
 				x1p2 = pow(x1,2.0);
 				x1p3 = pow(x1,3.0);
-				x1p4 = pow(x1,4.0);
 				x2p2 = pow(x2,2.0);
 				x2p3 = pow(x2,3.0);
-				x2p4 = pow(x2,4.0);
 				x3p2 = pow(x3,2.0);
-				x3p3 = pow(x3,3.0);
-				x3p4 = pow(x3,4.0);
 				x4p2 = pow(x4,2.0);
 				x4p3 = pow(x4,3.0);
-				x4p4 = pow(x4,4.0);
 			
 				temp1 = 12.0*a*x2*(x2-x3)*(x2-x4)*(x3-x4)*x4;
 				temp2 = 4.0*ap3*(2.0*x2p3-2.0*x2*x3p2+x4*x3p2-x4p3);
@@ -670,6 +646,7 @@ dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) con
 	}
 	return(out);
 }
+
 
 
 
