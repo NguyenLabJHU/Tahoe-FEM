@@ -1,11 +1,11 @@
-/* $Id: SolidMatList2DT.h,v 1.4 2002-03-21 22:41:31 creigh Exp $ */
-/* created: paklein (02/14/1997)                                          */
+/* $Id: SolidMatList2DT.h,v 1.4.2.1 2002-05-17 01:23:27 paklein Exp $ */
+/* created: paklein (02/14/1997) */
 
 #ifndef _MATLIST_2D_T_H_
 #define _MATLIST_2D_T_H_
 
 /* base classes */
-#include "SolidMatListT.h"
+#include "StructuralMatListT.h"
 #include "MaterialT.h"
 
 /* forward declaration */
@@ -14,7 +14,7 @@ class SmallStrainT;
 class FiniteStrainT;
 class MultiScaleT;
 
-class SolidMatList2DT: public SolidMatListT, public MaterialT
+class SolidMatList2DT: public StructuralMatListT, public MaterialT
 {
 public:
 
