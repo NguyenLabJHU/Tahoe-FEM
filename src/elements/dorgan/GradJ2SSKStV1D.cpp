@@ -1,6 +1,7 @@
-/* $Id: GradJ2SSKStV1D.cpp,v 1.3 2004-07-22 21:10:23 paklein Exp $ */
+/* $Id: GradJ2SSKStV1D.cpp,v 1.4 2004-07-27 21:13:57 rdorgan Exp $ */
 #include "GradJ2SSKStV1D.h"
 #include "GradSSMatSupportT.h"
+
 #include "ElementCardT.h"
 #include "StringT.h"
 
@@ -124,7 +125,7 @@ const dSymMatrixT& GradJ2SSKStV1D::s_ij(void)
 	/* modify Cauchy stress (return mapping) */
 	int iteration = fGradSSMatSupport->GroupIterationNumber();
 	if (iteration > -1) /* elastic iteration */
-		fStress += StressCorrection(e_els, element, Young(), fk_r, fc_r, NumIP(), ip);
+		StressCorrection(fStress, element, Young(), fk_r, fc_r, NumIP(), ip);
 
 	return fStress;	
 }
@@ -132,9 +133,6 @@ const dSymMatrixT& GradJ2SSKStV1D::s_ij(void)
 /* yield criteria moduli */
 double GradJ2SSKStV1D::yc()
 {
-	/* stress tensor (loads element data and sets fStress) */
-	s_ij();
-
 	/* yield condition */
 	return YCModuli(fStress, CurrentElement(), Young(), fk_r, fc_r, NumIP(), CurrIP());
 }
@@ -168,7 +166,7 @@ void GradJ2SSKStV1D::ComputeOutput(dArrayT& output)
 
 	/* total strain */
 	output[0] = e()[0];
-	
+
 	const ElementCardT& element = CurrentElement();
 	if (element.IsAllocated())
 	{
@@ -179,26 +177,21 @@ void GradJ2SSKStV1D::ComputeOutput(dArrayT& output)
 		const iArrayT& flags = element.IntegerData();
 		if (flags[CurrIP()] == kIsPlastic) // output with update
 			output[1] += fInternal[kdgamma];
-
-		/* isotropic hardening */
-		output[2] = fInternal[kdgamma];
-
-		/* gradient isotropic hardening */
-		output[3] = fInternal[kdgradgamma];
-
-		/* Laplacian isotropic hardening */
-		output[4] = fInternal[kdlapgamma];
 	}
 	else
-	{
 		output[1] = 0.0;
-		output[2] = 0.0;
-		output[3] = 0.0;
-		output[4] = 0.0;
-	}
+
+	/* isotropic hardening */
+	output[2] = GradSSSolidMatT::Lambda();
+
+	/* gradient isotropic hardening */
+	output[3] = GradLambda();
+
+	/* Laplacian isotropic hardening */
+	output[4] = LapLambda();
 
 	/* isotropic hardening conjugate force */
-	output[5] = K(output[2]);
+	output[5] = K(output[2]) - K(0.0);
 
 	/* gradient isotropic hardening conjugate force */
 	output[6] = Grad1R(output[2], output[3], output[4]);

@@ -76,7 +76,7 @@ GradSmallStrainT::~GradSmallStrainT(void)
 	delete fGradSSMatSupport;
 	delete fShapes_PMultiplier;
 	
-#if 0
+#if 1
 	for (int i = 0; i < fFixedPMultiplier.Length(); i++)
 		delete fFixedPMultiplier;
 #endif
@@ -408,10 +408,10 @@ void GradSmallStrainT::DefineElements(const ArrayT<StringT>& block_ID, const Arr
 		vertex_nodes[1] = 1;
 
 		fConnectivities_All.Dimension(NumElements(), num_vertex_nodes);
-	
-		//fFixedPMultiplier.Dimension(fConnectivities.Length());
-		//fFixedPMultiplier = NULL;
-	
+#if 1
+		fFixedPMultiplier.Dimension(fConnectivities.Length());
+		fFixedPMultiplier = NULL;
+#endif
 		/* translate blocks */
 		int count = 0;
 		for (int i = 0; i < fConnectivities.Length(); i++)
@@ -427,7 +427,7 @@ void GradSmallStrainT::DefineElements(const ArrayT<StringT>& block_ID, const Arr
 			/* next block */
 			count += connects.MajorDim();
 
-#if 0
+#if 1
 			/* prescribe fixed multiplier field at center node */
 			FieldT* non_constPMultiplier = const_cast<FieldT*>fPMultiplier;
 

@@ -1,4 +1,4 @@
-/* $Id: GradSmallStrainT.h,v 1.11 2004-07-21 21:51:54 paklein Exp $ */ 
+/* $Id: GradSmallStrainT.h,v 1.12 2004-07-27 21:13:57 rdorgan Exp $ */ 
 #ifndef _GRAD_SMALL_STRAIN_T_H_ 
 #define _GRAD_SMALL_STRAIN_T_H_ 
 
@@ -113,10 +113,6 @@ protected:
 	/** define the elements blocks for the element group */
 	virtual void DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index);
 
-	/** echo element connectivity data. Calls ElementBaseT::ReadConnectivity
-	 * to read the data and ElementBaseT::WriteConnectivity to write it. */
-	//	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
-	
 	/** initialization functions */
 	virtual void SetLocalArrays(void);
 	virtual void SetShape(void);
@@ -181,7 +177,7 @@ protected:
 	/*@{*/
 	const FieldT* fDisplacement; /**< displacement field */
 	const FieldT* fPMultiplier;        /**< hardening parameter field */
-//	ArrayT<KBC_ControllerT*> fFixedPMultiplier; /**< fixed conditions block-by-block */
+	ArrayT<KBC_ControllerT*> fFixedPMultiplier; /**< fixed conditions block-by-block */
 	/*@}*/
 	
 	/** \name shape functions for lambda */
