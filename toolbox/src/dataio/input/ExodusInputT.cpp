@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.8 2002-01-07 03:06:02 paklein Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.9 2002-01-09 12:14:25 paklein Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #include "ExodusInputT.h"
@@ -217,7 +217,7 @@ void ExodusInputT::ReadSideSetGlobal (StringT& name, iArray2DT& sides) const
 
 void ExodusInputT::ReadTimeSteps (dArrayT& steps)
 {
-  if (steps.Length() != NumTimeSteps()) throw eSizeMismatch;
+  steps.Allocate(NumTimeSteps());
   for (int i=0; i < steps.Length(); i++)
     fData.ReadTime (i+1, steps[i]);
 }
