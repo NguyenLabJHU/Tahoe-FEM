@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.3.30.6 2004-11-12 00:28:48 thao Exp $ */
+/* $Id: ConveyorT.cpp,v 1.3.30.7 2004-11-12 01:23:48 thao Exp $ */
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
@@ -6,6 +6,7 @@
 #include "ElementBaseT.h"
 #include "KBC_PrescribedT.h"
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "ConveyorT.h"
 #include "ContinuumElementT.h"
 #include "CSEAnisoT.h"
