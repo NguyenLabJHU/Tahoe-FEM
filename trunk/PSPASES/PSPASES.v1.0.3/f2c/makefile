@@ -1,6 +1,8 @@
 .SUFFIXES: .c .f
 
-C_FILES = b_ax.c
+C_FILES = \ 
+b_ax.c \
+order.c
 
 F2C_OPTS = -I/usr/local/lam/include -c -w
 
