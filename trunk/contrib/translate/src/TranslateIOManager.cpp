@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.13 2002-02-11 23:48:58 paklein Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.14 2002-02-13 18:08:32 sawimme Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -11,8 +11,10 @@
 #include "TecPlotOutputT.h"
 #include "FE_ASCIIT.h"
 
-TranslateIOManager::TranslateIOManager (ostream& out) :
+TranslateIOManager::TranslateIOManager (ostream& out, istream& in, bool write) :
   fMessage (out),
+  fIn (in),
+  fWrite (write),
   fModel (out),
   fOutput (NULL),
   fNumNV (0),
@@ -25,7 +27,7 @@ TranslateIOManager::TranslateIOManager (ostream& out) :
 
 void TranslateIOManager::Translate (const StringT& program, const StringT& version, const StringT& title)
 {
-  fModel.Initialize ();
+  SetInput ();
   SetOutput (program, version, title);
 
   InitializeVariables ();
@@ -53,27 +55,52 @@ void TranslateIOManager::Translate (const StringT& program, const StringT& versi
 
 /**************** PROTECTED **********************/
 
+void TranslateIOManager::SetInput (void)
+{
+  IOBaseT::FileTypeT format;
+  IOBaseT temp (cout);
+  StringT database;
+  if (fWrite)
+    {
+      temp.InputFormats (cout);
+      cout << "\n Enter the Model Format Type: ";
+    }
+  fIn >> format;
+  if (format != IOBaseT::kTahoe)
+    {
+      if (fWrite)
+	cout << "\n Enter the Model File Name: ";
+      fIn >> database;
+      database.ToNativePathName();
+    }
+  else
+    database = "\0";
+  if (fModel.Initialize (format, database, true))
+    cout << "\n Input Format: " << format << " File: " << database << endl;
+  else
+    {
+      cout << "\n Unable to initialize model file\n";
+      throw eGeneralFail;
+    }
+}
+
 void TranslateIOManager::SetOutput (const StringT& program_name, const StringT& version, const StringT& title)
 {
   IOBaseT temp (cout);
   int outputformat = -1;
-  while (outputformat != IOBaseT::kExodusII &&
-	 outputformat != IOBaseT::kTahoeII &&
-	 outputformat != IOBaseT::kEnSight &&
-	 outputformat != IOBaseT::kEnSightBinary &&
-	 outputformat != IOBaseT::kAbaqus &&
-	 outputformat != IOBaseT::kAbaqusBinary &&
-	 outputformat != IOBaseT::kTecPlot &&
-	 outputformat != IOBaseT::kAVS &&
-	 outputformat != IOBaseT::kAVSBinary )
+  if (fWrite)
     {
       cout << "\n\n";
       temp.OutputFormats (cout);
       cout << "\n Enter the Output Format: ";
-      cin >> outputformat;
     }
-  cout << "\n Enter the root of the output files: ";
-  cin >> fOutputName;
+  fIn >> outputformat;
+
+  if (fWrite)
+    cout << "\n Enter the root of the output files: ";
+  fIn >> fOutputName;
+  cout << "\n Output format: " << outputformat << " File: " << fOutputName << endl;
+
   fOutputName.ToNativePathName();
   fOutputName.Append(".ext"); //trimmed off by fOutput
 
@@ -149,14 +176,16 @@ void TranslateIOManager::InitializeNodeVariables (void)
   VariableQuery (fNodeLabels, fNVUsed);
 
   StringT answer;
-  cout << "\n Do you wish to translate coordinate values (y/n) ? ";
-  cin >> answer;
+  if (fWrite)
+    cout << "\n Do you wish to translate coordinate values (y/n) ? ";
+  fIn >> answer;
   
   if (answer[0] == 'y' || answer[0] == 'Y')
     {
       fCoords = true;
       int numnodes;
       fModel.CoordinateDimensions (numnodes, fCoords);
+      cout << "\n Adding coordinates to variable values.\n";
     }
   else
     fCoords = 0;
@@ -183,12 +212,15 @@ void TranslateIOManager::InitializeElements (int& group, StringT& groupname) con
 {
   int num = fModel.NumElementGroups ();
   const ArrayT<StringT>& elemsetnames = fModel.ElementGroupIDs();
-  cout << "\n";
-  for (int h=0; h < num; h++)
-    cout << "    " << h+1 << ". " << elemsetnames[h] << "\n";
-  cout << "\n You must have one type of element within the group you select.\n";
-  cout << " Enter the number of the element group: ";
-  cin >> group;
+  if (fWrite)
+    {
+      cout << "\n";
+      for (int h=0; h < num; h++)
+	cout << "    " << h+1 << ". " << elemsetnames[h] << "\n";
+      cout << "\n You must have one type of element within the group you select.\n";
+      cout << " Enter the number of the element group: ";
+    }
+  fIn >> group;
   if (group < 1 || group > elemsetnames.Length()) 
     {
       cout << "\n The number entered for an element group is invalid: "
@@ -196,6 +228,8 @@ void TranslateIOManager::InitializeElements (int& group, StringT& groupname) con
       cout << "Minimum limit is 1 and maximum is " << elemsetnames.Length() << endl;
       throw eOutOfRange;
     }
+  else
+    cout << "\n Translating element group: " << group << " " << elemsetnames[group-1] << endl;
   group--;
   groupname = elemsetnames[group];
 }
@@ -203,12 +237,15 @@ void TranslateIOManager::InitializeElements (int& group, StringT& groupname) con
 void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
 {
   int selection;
-  cout << "\n One file will be written per node point.\n";
-  cout << "1. List of nodes\n";
-  cout << "2. Node Set\n";
-  cout << "3. Every nth node\n";
-  cout << "\n How do you want to define your list of nodes: ";
-  cin >> selection;
+  if (fWrite)
+    {
+      cout << "\n One file will be written per node point.\n";
+      cout << "1. List of nodes\n";
+      cout << "2. Node Set\n";
+      cout << "3. Every nth node\n";
+      cout << "\n How do you want to define your list of nodes: ";
+    }
+  fIn >> selection;
 
   int numnodes, numdims;
   fModel.CoordinateDimensions (numnodes, numdims);
@@ -219,14 +256,17 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
     {
     case 1:
       {
-	cout << "\n Enter the number of nodes: ";
-	cin >> numpoints;
+	cout << "\n Node list defined individually\n";
+	if (fWrite)
+	  cout << "\n Enter the number of nodes: ";
+	fIn >> numpoints;
 	nodes.Allocate (numpoints);
 	index.Allocate (numpoints);
 	for (int n=0; n < numpoints; n++)
 	  {
-	    cout << " Enter node " << n+1 << ": ";
-	    cin >> nodes[n];
+	    if (fWrite)
+	      cout << " Enter node " << n+1 << ": ";
+	    fIn >> nodes[n];
 
 	    // translate node numbers to index
 	    int dex;
@@ -245,12 +285,16 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
       {
 	int num = fModel.NumNodeSets ();
 	const ArrayT<StringT>& nodesetnames = fModel.NodeSetIDs();
-	cout << "\n";
-	for (int h=0; h < num; h++)
-	  cout << "    " << h+1 << ". " << nodesetnames[h] << "\n";
-	cout << "\n Enter the number of the node set: ";
+	if (fWrite)
+	  {
+	    cout << "\n";
+	    for (int h=0; h < num; h++)
+	      cout << "    " << h+1 << ". " << nodesetnames[h] << "\n";
+	    cout << "\n Enter the number of the node set: ";
+	  }
 	int ni;
-	cin >> ni;
+	fIn >> ni;
+	cout << "\n Node list defined by node set: " << ni << " " << nodesetnames[ni-1] << endl;
 	ni--;
 	numpoints = fModel.NodeSetLength (nodesetnames[ni]);
 	nodes.Allocate (numpoints);
@@ -263,9 +307,13 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
     case 3:
       {
 	int freq;
-	cout << "\n Number of Nodes: " << numnodes << "\n";
-	cout << "   Enter n: ";
-	cin >> freq;
+	if (fWrite)
+	  {
+	    cout << "\n Number of Nodes: " << numnodes << "\n";
+	    cout << "   Enter n: ";
+	  }
+	fIn >> freq;
+	cout << "\n Node list defined by every " << freq << "th node.\n";
 	numpoints = numnodes/freq;
 	nodes.Allocate (numpoints);
 	index.Allocate (numpoints);
@@ -290,37 +338,45 @@ void TranslateIOManager::InitializeTime (void)
       fModel.TimeSteps (fTimeSteps);
 
       int selection;
-      cout << "\n Number of Time Steps Available: " << fNumTS << endl;
-      if (fNumTS < 100)
-	for (int b=0; b < fNumTS; b++)
-	  cout << "    " << b+1 << ". " << fTimeSteps[b] << "\n";
-      cout << "\n1. Translate All\n";
-      cout << "2. Translate Specified\n";
-      cout << "3. Translate Specified Range\n";
-      cout << "4. Translate Every nth step\n";
-      cout << "5. Translate None (just geometry)\n";
-      cout << "\n Enter Selection: ";
-      cin >> selection;
+      if (fWrite)
+	{
+	  cout << "\n Number of Time Steps Available: " << fNumTS << endl;
+	  if (fNumTS < 100)
+	    for (int b=0; b < fNumTS; b++)
+	      cout << "    " << b+1 << ". " << fTimeSteps[b] << "\n";
+	  cout << "\n1. Translate All\n";
+	  cout << "2. Translate Specified\n";
+	  cout << "3. Translate Specified Range\n";
+	  cout << "4. Translate Every nth step\n";
+	  cout << "5. Translate None (just geometry)\n";
+	  cout << "\n Enter Selection: ";
+	}
+      fIn >> selection;
 
       switch (selection)
 	{
 	case 1:
 	  {
+	    cout << "\n Translating all time steps.\n";
 	    fTimeIncs.Allocate (fNumTS);
 	    fTimeIncs.SetValueToPosition ();
 	    break;
 	  }
 	case 2:
 	  {
-	    cout << "\n Enter the number of time steps to translate: ";
-	    cin >> fNumTS;
+	    cout << "\n Translating list of time steps.\n";
+	    if (fWrite)
+	      cout << "\n Enter the number of time steps to translate: ";
+	    fIn >> fNumTS;
 	    dArrayT temp (fNumTS);
 	    fTimeIncs.Allocate (fNumTS);
-	    cout << "\n Increments are numbered consequetively from 1.\n";
+	    if (fWrite)
+	      cout << "\n Increments are numbered consequetively from 1.\n";
 	    for (int i=0; i < fNumTS; i++)
 	      {
-		cout << "    Enter time increment " << i+1 << ": ";
-		cin >> fTimeIncs[i];
+		if (fWrite)
+		  cout << "    Enter time increment " << i+1 << ": ";
+		fIn >> fTimeIncs[i];
 		fTimeIncs[i]--;
 		if (fTimeIncs[i] < 0 || fTimeIncs[i] >= fTimeSteps.Length())
 		  throw eOutOfRange;
@@ -332,11 +388,16 @@ void TranslateIOManager::InitializeTime (void)
 	case 3:
 	  {
 	    int start, stop;
-	    cout << "\n Increments are numbered consequetively from 1.\n";
-	    cout << " Enter the starting increment: ";
-	    cin >> start;
-	    cout << " Enter the end increment: ";
-	    cin >> stop;
+	    if (fWrite)
+	      {
+		cout << "\n Increments are numbered consequetively from 1.\n";
+		cout << " Enter the starting increment: ";
+	      }
+	    fIn >> start;
+	    if (fWrite)
+	      cout << " Enter the end increment: ";
+	    fIn >> stop;
+	    cout << "\n Translating time steps from " << start << " to " << stop << ".\n";
 	    if (stop < start) throw eGeneralFail;
 	    if (start < 1) throw eGeneralFail;
 	    fNumTS = stop-start+1;
@@ -351,8 +412,10 @@ void TranslateIOManager::InitializeTime (void)
 	case 4:
 	  {
 	    int n;
-	    cout << "\n Enter n: ";
-	    cin >> n;
+	    if (fWrite)
+	      cout << "\n Enter n: ";
+	    fIn >> n;
+	    cout << "\nTranslating every " << n << "th time step.\n";
 	    fNumTS = fNumTS / n;
 	    fTimeIncs.Allocate (fNumTS);
 	    dArrayT temp (fNumTS);
@@ -440,12 +503,15 @@ void TranslateIOManager::WriteNodeSets (void)
   const ArrayT<StringT>& names = fModel.NodeSetIDs();
 
   int selection;
-  cout << "\n Number of Node Sets: " << num << endl;
-  cout << "\n1. Translate All\n";
-  cout << "2. Translate Some\n";
-  cout << "3. Translate None\n";
-  cout << "\n selection: ";
-  cin >> selection;
+  if (fWrite)
+    {
+      cout << "\n Number of Node Sets: " << num << endl;
+      cout << "\n1. Translate All\n";
+      cout << "2. Translate Some\n";
+      cout << "3. Translate None\n";
+      cout << "\n selection: ";
+    }
+  fIn >> selection;
 
   if (selection == 3) return;
   for (int i=0; i < num; i++)
@@ -453,14 +519,16 @@ void TranslateIOManager::WriteNodeSets (void)
       StringT answer("yes");
       if (selection == 2)
 	{
-	  cout << "    Translate Node Set " << names[i] << " (y/n) ? ";
-	  cin >> answer;
+	  if (fWrite)
+	    cout << "    Translate Node Set " << names[i] << " (y/n) ? ";
+	  fIn >> answer;
 	}
       
-		if (answer [0] == 'y' || answer[0] == 'Y') {
-			int ID = atoi(names[i]);
-			fOutput->AddNodeSet (fModel.NodeSet(names[i]), ID);
-		}
+      if (answer [0] == 'y' || answer[0] == 'Y') 
+	{
+	  int ID = atoi(names[i]);
+	  fOutput->AddNodeSet (fModel.NodeSet(names[i]), ID);
+	}
     }
 }
  
@@ -471,11 +539,14 @@ void TranslateIOManager::WriteElements (void)
   const ArrayT<StringT>& names = fModel.ElementGroupIDs(	);
 
   int selection;
-  cout << "\n Number of Element Groups: " << num << endl;
-  cout << "\n1. Translate All\n";
-  cout << "2. Translate Some\n";
-  cout << "\n selection: ";
-  cin >> selection;
+  if (fWrite)
+    {
+      cout << "\n Number of Element Groups: " << num << endl;
+      cout << "\n1. Translate All\n";
+      cout << "2. Translate Some\n";
+      cout << "\n selection: ";
+    }
+  fIn >> selection;
 
   bool changing = false;
   StringT answer;
@@ -485,8 +556,9 @@ void TranslateIOManager::WriteElements (void)
       answer = "yes";
       if (selection == 2)
 	{
-	  cout << "    Translate Element Group " << names[e] << " (y/n) ? ";
-	  cin >> answer;
+	  if (fWrite)
+	    cout << "    Translate Element Group " << names[e] << " (y/n) ? ";
+	  fIn >> answer;
 	}
       
       if (answer [0] == 'y' || answer[0] == 'Y')
@@ -497,10 +569,10 @@ void TranslateIOManager::WriteElements (void)
 
 	  if (true || conn[0]->Length() > 0)
 	    {
-	    	ArrayT<StringT> block_ID(1);
-	    	block_ID[0] = names[e];
-	    	StringT ID;
-	    	ID.Append(e+1);
+	      ArrayT<StringT> block_ID(1);
+	      block_ID[0] = names[e];
+	      StringT ID;
+	      ID.Append(e+1);
 	      OutputSetT set(ID, fModel.ElementGroupGeometry (names[e]), block_ID, 
 			      conn, fNodeLabels, fElementLabels, changing);
 	      fOutputID[e] = fOutput->AddElementSet (set);
@@ -521,12 +593,15 @@ void TranslateIOManager::WriteSideSets (void)
   const ArrayT<StringT>& names = fModel.SideSetIDs();
 
   int selection;
-  cout << "\n Number of Side Sets: " << num << endl;
-  cout << "\n1. Translate All\n";
-  cout << "2. Translate Some\n";
-  cout << "3. Translate None\n";
-  cout << "\n selection: ";
-  cin >> selection;
+  if (fWrite)
+    {
+      cout << "\n Number of Side Sets: " << num << endl;
+      cout << "\n1. Translate All\n";
+      cout << "2. Translate Some\n";
+      cout << "3. Translate None\n";
+      cout << "\n selection: ";
+    }
+  fIn >> selection;
 
   if (selection == 3) return;
   for (int i=0; i < num; i++)
@@ -534,8 +609,9 @@ void TranslateIOManager::WriteSideSets (void)
       StringT answer ("yes");
       if (selection == 2)
 	{
-	  cout << "    Translate Node Set " << names[i] << " (y/n) ? ";
-	  cin >> answer;
+	  if (fWrite)
+	    cout << "    Translate Node Set " << names[i] << " (y/n) ? ";
+	  fIn >> answer;
 	}
       
       if (answer [0] == 'y' || answer[0] == 'Y')
@@ -556,8 +632,9 @@ void TranslateIOManager::VariableQuery (const ArrayT<StringT>& names, iArrayT& l
   for (int i=0; i < names.Length(); i++)
     {
       StringT answer;
-      cout << " Extract variable " << names[i] << " (y/n) ? ";
-      cin >> answer;
+      if (fWrite)
+	cout << " Extract variable " << names[i] << " (y/n) ? ";
+      fIn >> answer;
 
       if (answer[0] == 'y' || answer[0] == 'Y')
 	temp.Append (i);

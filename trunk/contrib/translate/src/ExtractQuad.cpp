@@ -1,8 +1,8 @@
 
 #include "ExtractQuad.h"
 
-ExtractQuad::ExtractQuad (ostream& out) :
-  ExtractIOManager (out)
+ExtractQuad::ExtractQuad (ostream& out, istream& in, bool write) :
+  ExtractIOManager (out, in, write)
 {
 }
 

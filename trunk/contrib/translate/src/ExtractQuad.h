@@ -8,7 +8,7 @@
 class ExtractQuad : public ExtractIOManager
 {
  public:
-  ExtractQuad (ostream& message);
+  ExtractQuad (ostream& message, istream& in, bool write);
 
  protected:
   void Initialize (void);

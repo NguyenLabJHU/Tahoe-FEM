@@ -4,8 +4,8 @@
 #include <stdio.h>
 //#include <time.h>
 
-ExtractIOManager::ExtractIOManager (ostream& out) :
-  TranslateIOManager (out)
+ExtractIOManager::ExtractIOManager (ostream& out, istream& in, bool write) :
+  TranslateIOManager (out, in, write)
 {
 }
 
@@ -49,19 +49,24 @@ void ExtractIOManager::SetOutput (const StringT& program, const StringT& version
   while (fOutputFormat != IOBaseT::kTahoe &&
 	 fOutputFormat != IOBaseT::kTecPlot)
     {
-      cout << "\n    eq.  " << IOBaseT::kTahoe   << ". Text\n";
-      cout << "    eq.  " << IOBaseT::kTecPlot << ". TecPlot 7.5\n";
-      cout << "\n Enter the Output Format: ";
-      cin >> fOutputFormat;
+      if (fWrite)
+	{
+	  cout << "\n    eq.  " << IOBaseT::kTahoe   << ". Text\n";
+	  cout << "    eq.  " << IOBaseT::kTecPlot << ". TecPlot 7.5\n";
+	  cout << "\n Enter the Output Format: ";
+	}
+      fIn >> fOutputFormat;
     }
-  cout << "\n Enter the root of the output files: ";
-  cin >> fOutputName;
+  if (fWrite)
+    cout << "\n Enter the root of the output files: ";
+  fIn >> fOutputName;
 
   switch (fOutputFormat)
     {
     case IOBaseT::kTecPlot: fOutfileExtension = "dat"; break;
     case IOBaseT::kTahoe: fOutfileExtension = "txt"; break;
     }
+  cout << "\n Output Format: " << fOutputFormat << " File: " << fOutputName << endl;
 }
 
 void ExtractIOManager::PrepFiles (iArrayT& varsused, ArrayT<StringT>& labels)

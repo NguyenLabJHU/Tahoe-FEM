@@ -1,24 +1,32 @@
-/* $Id: main.cpp,v 1.7 2001-12-17 20:10:52 sawimme Exp $ */
+/* $Id: main.cpp,v 1.8 2002-02-13 18:08:32 sawimme Exp $ */
 
 #include "TranslateIOManager.h"
 #include "ExtractNode.h"
 #include "ExtractQuad.h"
 #include "PointPlots.h"
+#include "ifstreamT.h"
 
-int main (void)
+istream& Open (int c, char* a [], ifstreamT& tmp, bool& w);
+
+int main (int c, char* a [])
 {
   try 
     {
-      int selection = -1;
-      while (selection < 1 || selection > 4)
+      bool write = true;
+      ifstreamT tmp;
+      istream& in = Open (c, a, tmp, write);
+
+      int selection;
+      if (write)
 	{
 	  cout << "\n1. Datafile Translation \n";
 	  cout << "2. Nodal Data Extraction to XY Data \n";
 	  cout << "3. Quadrature Data Extraction to XY Data \n";
 	  cout << "4. Quadrature Data Extraction for Point Plots \n";
 	  cout << "\n Select type of translation: ";
-	  cin >> selection;
 	}
+      in >> selection;
+      cout << "\n Type of translation: " << selection << ".";
       
       TranslateIOManager *dataio;
       StringT program, version;
@@ -26,34 +34,34 @@ int main (void)
 	{
 	case 1:
 	  {
-	    cout << "\n\n Program to translate data files.\n\n";
+	    cout << " Translate data files.\n\n";
 	    program = "Translate";
 	    version = "v1.4";
-	    dataio = new TranslateIOManager (cout);
+	    dataio = new TranslateIOManager (cout, in, write);
 	    break;
 	  }
 	case 2:
 	  {
-	    cout << "\n\n Program to extract nodal data.\n\n";
+	    cout << " Extract nodal data.\n\n";
 	    program = "Extract";
 	    version = "v1.1";
-	    dataio = new ExtractNode (cout);
+	    dataio = new ExtractNode (cout, in, write);
 	    break;
 	  }
 	case 3:
 	  {
-	    cout << "\n\n Program to extract quadrature data.\n\n";
+	    cout << " Extract quadrature data.\n\n";
 	    program = "Extract";
 	    version = "v1.1";
-	    dataio = new ExtractQuad (cout);
+	    dataio = new ExtractQuad (cout, in, write);
 	    break;
 	  }
 	case 4:
 	  {
-	    cout << "\n\n Program to extract quadrature data for point plots.\n\n";
+	    cout << " Extract quadrature data for point plots.\n\n";
 	    program = "PointPlot";
 	    version = "v1.0";
-	    dataio = new PointPlots (cout);
+	    dataio = new PointPlots (cout, in, write);
 	    break;
 	  }
 	default:
@@ -88,3 +96,15 @@ int main (void)
   return 1;
 }
 
+istream& Open (int c, char* a [], ifstreamT& tmp, bool& w)
+{
+  if (c == 2)
+    {
+      tmp.open (a[1]);
+      cout << "\n Reading answers from: " << a[1] << endl;
+      w = false;
+      return tmp;
+    }
+  w = true;
+  return cin;
+}

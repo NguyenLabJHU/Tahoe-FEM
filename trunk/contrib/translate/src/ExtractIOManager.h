@@ -8,7 +8,7 @@
 class ExtractIOManager : public TranslateIOManager
 {
  public:
-  ExtractIOManager (ostream& message);
+  ExtractIOManager (ostream& message, istream& in, bool write);
   void Translate (const StringT& program, const StringT& version, const StringT& title);
 
  protected:
