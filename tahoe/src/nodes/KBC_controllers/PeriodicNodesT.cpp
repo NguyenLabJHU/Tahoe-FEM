@@ -1,4 +1,4 @@
-/* $Id: PeriodicNodesT.cpp,v 1.2 2002-10-20 22:41:38 paklein Exp $ */
+/* $Id: PeriodicNodesT.cpp,v 1.2.4.1 2002-12-16 09:16:56 paklein Exp $ */
 #include "PeriodicNodesT.h"
 #include "NodeManagerT.h"
 #include "ifstreamT.h"
@@ -67,7 +67,7 @@ void PeriodicNodesT::InitTiedNodePairs(const iArrayT& leader_nodes,
 	
 	/* get processor number */
 	int np = fNodeManager.Rank();
-	const iArrayT& pMap = fNodeManager.ProcessorMap();
+	const ArrayT<int>* pMap = fNodeManager.ProcessorMap();
 
 	/* dumb search */
 	int nsd = coords.MinorDim();
@@ -93,7 +93,7 @@ void PeriodicNodesT::InitTiedNodePairs(const iArrayT& leader_nodes,
 		double* x_f = coords(follower_nodes[i]);
 		
 		/*If a follower is external, flag it for removal from the list*/
-		if (pMap[follower_nodes[i]] != np)
+		if (pMap && (*pMap)[follower_nodes[i]] != np)
 		{
 			fPairStatus[i] = kChangeF;
 		}
@@ -114,8 +114,8 @@ void PeriodicNodesT::InitTiedNodePairs(const iArrayT& leader_nodes,
 			if (OK) 
 			{
 				fNodePairs(i,1) = leader_nodes[j];
-				if (pMap[follower_nodes[i]] != np && 
-					pMap[leader_nodes[j]] != np)
+				if (pMap && (*pMap)[follower_nodes[i]] != np && 
+					(*pMap)[leader_nodes[j]] != np)
 				{
 					/* Flag the pair as external */
 					fPairStatus[i] = kTiedExt;

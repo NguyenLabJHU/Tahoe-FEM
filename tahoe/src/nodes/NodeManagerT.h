@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.10.2.1 2002-12-10 17:09:37 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.10.2.2 2002-12-16 09:16:55 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -194,7 +194,7 @@ public:
 	void RegisterCoordinates(LocalArrayT& array) const;
 	
 	/** the local node to home processor map */
-	const iArrayT& ProcessorMap(void) const;
+	const ArrayT<int>* ProcessorMap(void) const;
 	/*@}*/
 
 	/** set the controller for the time integration algorithm */

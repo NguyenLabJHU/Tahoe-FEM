@@ -1,4 +1,4 @@
-/* $Id: BasicFieldT.h,v 1.4 2002-07-05 22:28:30 paklein Exp $ */
+/* $Id: BasicFieldT.h,v 1.4.10.1 2002-12-16 09:16:55 paklein Exp $ */
 
 #ifndef _BASIC_FIELD_T_H_
 #define _BASIC_FIELD_T_H_
@@ -66,7 +66,7 @@ public:
 	iArray2DT& Equations(void) { return fEqnos; };
 
 	/** write field equation numbers to the output stream */
-	void WriteEquationNumbers(ostream& out, const iArrayT* node_map) const;
+	void WriteEquationNumbers(ostream& out, const ArrayT<int>* node_map) const;
 	/*@}*/
 
 protected:
