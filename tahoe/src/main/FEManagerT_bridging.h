@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.3.2.9 2003-05-13 15:08:36 hspark Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.3.2.10 2003-05-13 20:46:32 hspark Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -51,7 +51,7 @@ public:
 	void SetExternalForce(int group, const dArrayT& external_force);
 
 	/** set pointer to an external force vector for the given field */
-	void SetExternalForce(const StringT& field, const dArray2DT& external_force);
+	void SetExternalForce(const StringT& field, const dArray2DT& external_force, const iArrayT& activefenodes);
 	/*@}*/
 
 	/** \name ghost nodes 
@@ -93,7 +93,7 @@ public:
 
 	/** compute global interpolation matrix for all nodes whose support intersects the MD 
 	 *  region, i.e. N_{I}(X_{\alpha}) */
-	void Ntf(dSPMatrixT& ntf, const iArrayT& nodes) const;
+	void Ntf(dSPMatrixT& ntf, const iArrayT& atoms, iArrayT& activefenodes) const;
 
 	/** initialize projection data. Initialize data structures needed to project
 	 * field values to the given list of points. Requires that this FEManagerT has
@@ -108,7 +108,7 @@ public:
 
 	/** calculate the fine scale part of MD solution as well as total displacement u */
 	void BridgingFields(const StringT& field, NodeManagerT& atom_node_manager,
-		NodeManagerT& fem_node_manager, dArray2DT& totalu);
+		NodeManagerT& fem_node_manager, dArray2DT& totalu, dArray2DT& projectedu);
 	/*@}*/
 
 	/** (re-)set the equation number for the given group */

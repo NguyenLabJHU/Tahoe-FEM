@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.3.2.13 2003-05-13 15:08:36 hspark Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.3.2.14 2003-05-13 20:46:32 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -83,16 +83,12 @@ void FEManagerT_bridging::SetEquationSystem(int group)
 }
 
 /* set pointer to an external force vector */
-void FEManagerT_bridging::SetExternalForce(const StringT& field, const dArray2DT& external_force)
+void FEManagerT_bridging::SetExternalForce(const StringT& field, const dArray2DT& external_force, const iArrayT& activefenodes)
 {
 	const char caller[] = "FEManagerT_bridging::SetExternalForce";
 
-	/* may not need to input active coarse scale nodes in function call because of Lagrangian nature of
-	   method, i.e. active nodes are always active nodes, and don't change. */
-	const iArrayT& nodes = fDrivenCellData.CellNodes();
-
 	/* check */
-	if (nodes.Length() != external_force.MajorDim()) 
+	if (activefenodes.Length() != external_force.MajorDim()) 
 		ExceptionT::SizeMismatch(caller);
 
 	/* get the field */
@@ -102,12 +98,12 @@ void FEManagerT_bridging::SetExternalForce(const StringT& field, const dArray2DT
 	/* store pointers */
 	int group = thefield->Group();
 	fExternalForce2D[group] = &external_force;
-	fExternalForce2DNodes[group] = &nodes;
+	fExternalForce2DNodes[group] = &activefenodes;
 	
 	/* collect equation numbers */
 	iArray2DT& eqnos = fExternalForce2DEquations[group];
 	eqnos.Dimension(fNodeManager->NumNodes(), thefield->NumDOF());
-	thefield->SetLocalEqnos(nodes, eqnos);
+	thefield->SetLocalEqnos(activefenodes, eqnos);
 }
 
 /* initialize the ghost node information */
@@ -325,16 +321,16 @@ void FEManagerT_bridging::InterpolationMatrix(const StringT& field, dSPMatrixT& 
 }
 
 /* compute global interpolation matrix for all nodes whose support intersects MD region */
-void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& nodes) const
+void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& atoms, iArrayT& activefenodes) const
 {
 	/* obtain global node numbers of nodes whose support intersects MD, create inverse map */
 	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();	// list of active nodes
+	activefenodes = cell_nodes;
 	const InverseMapT gtlnodes, gtlatoms;
-	//const InverseMapT gtlatoms; // const InverseMapT& gtlatoms = fDrivenCellData.GlobalToLocal();
 	gtlnodes.SetMap(cell_nodes);	// create global to local map for active nodes
-	gtlatoms.SetMap(nodes);		// create global to local map for all atoms - redundant?
+	gtlatoms.SetMap(atoms);		// create global to local map for all atoms - redundant?
 	int numactivenodes = cell_nodes.Length();	// number of projected nodes
-	int numatoms = nodes.Length();	// total number of atoms
+	int numatoms = atoms.Length();	// total number of atoms
 
 	/* the shape functions values at the interpolating point */
 	const dArray2DT& weights = fDrivenCellData.InterpolationWeights(); 
@@ -358,7 +354,7 @@ void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& nodes) const
 		/* element info */
 		const ElementCardT& element_card = continuum->ElementCard(cell[i]);
 		const iArrayT& fenodes = element_card.NodesU();
-		int dex = gtlatoms.Map(nodes[i]);	// global to local map for atoms
+		int dex = gtlatoms.Map(atoms[i]);	// global to local map for atoms
 		
 		/* put shape functions for nodes evaluated at each atom into global interpolation matrix */
 		for (int j = 0; j < weights.MinorDim(); j++)
@@ -445,10 +441,9 @@ void FEManagerT_bridging::ProjectField(const StringT& field, NodeManagerT& node_
 
 /* calculate the fine scale part of MD solution as well as total displacement u */
 void FEManagerT_bridging::BridgingFields(const StringT& field, NodeManagerT& atom_node_manager, 
-	NodeManagerT& fem_node_manager, dArray2DT& totalu)
+	NodeManagerT& fem_node_manager, dArray2DT& totalu, dArray2DT& projectedu)
 {
 	const char caller[] = "FEManagerT_bridging::ProjectField";
-	dArray2DT fine_scale;
 
 	/* get the fem and md fields */
 	FieldT* atom_field = atom_node_manager.Field(field);
@@ -459,7 +454,7 @@ void FEManagerT_bridging::BridgingFields(const StringT& field, NodeManagerT& ato
 	/* compute the fine scale part of MD solution as well as total displacement u */
 	const dArray2DT& atom_values = (*atom_field)[0];
 	const dArray2DT& fem_values = (*fem_field)[0];
-	BridgingScale().BridgingFields(field, fDrivenCellData, atom_values, fem_values, fine_scale, fProjection, totalu);
+	BridgingScale().BridgingFields(field, fDrivenCellData, atom_values, fem_values, projectedu, fProjection, totalu);
 }
 
 

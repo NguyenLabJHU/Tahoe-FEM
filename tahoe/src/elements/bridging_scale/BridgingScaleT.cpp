@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.31.2.4 2003-05-10 21:30:22 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.31.2.5 2003-05-13 20:46:31 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -455,7 +455,7 @@ out << "\n residual =\n" << projection << endl;
 /* calculate the fine scale part of MD solution as well as total solution u - same as project Field
  * except for those changes */
 void BridgingScaleT::BridgingFields(const StringT& field, const PointInCellDataT& cell_data,
-	const dArray2DT& values, const dArray2DT& values2, dArray2DT& fine_scale,
+	const dArray2DT& mddisp, const dArray2DT& fedisp, dArray2DT& projectedu,
 	dArray2DT& projection, dArray2DT& totalu)
 {
 #pragma unused(field)
@@ -470,14 +470,14 @@ void BridgingScaleT::BridgingFields(const StringT& field, const PointInCellDataT
 	const InverseMapT& global_to_local = cell_data.GlobalToLocal();
 	
 	/* initialize return value */
-	projection.Dimension(cell_nodes.Length(), values.MinorDim());
+	projection.Dimension(cell_nodes.Length(), mddisp.MinorDim());
 	projection = 0.0;
 	
 	/* loop over mesh */
 	int cell_dex = 0;
 	iArrayT cell_eq;
 	dArrayT Na, point_value;
-	dMatrixT Nd(cell_connects.MinorDim(), values.MinorDim());
+	dMatrixT Nd(cell_connects.MinorDim(), mddisp.MinorDim());
 	for (int i = 0; i < point_in_cell.MajorDim(); i++)
 	{
 		int np = point_in_cell.MinorDim(i);
@@ -494,7 +494,7 @@ void BridgingScaleT::BridgingFields(const StringT& field, const PointInCellDataT
 				weights.RowAlias(point_dex, Na);
 
 				/* source values of the point */
-				values.RowAlias(point, point_value);
+				mddisp.RowAlias(point, point_value);
 			
 				/* rhs during projection - calculating part of w */
 				Nd.Outer(Na, point_value, 1.0, dMatrixT::kAccumulate);
@@ -529,15 +529,17 @@ out << "\n residual =\n" << projection << endl;
 	u_tmp.Free();
 
 	/* initialize return values */
-	fine_scale.Dimension(values);
-	fine_scale = 0.0;
-	totalu.Dimension(values);
+	projectedu.Dimension(mddisp);
+	projectedu = 0.0;
+	fFineScale.Dimension(mddisp);
+	fFineScale = 0.0;
+	totalu.Dimension(mddisp);
 	totalu = 0.0;
-	fCoarseScale.Dimension(values);
+	fCoarseScale.Dimension(mddisp);
 	fCoarseScale = 0.0;
 	dArray2DT coarse_scale;
 	dArray2DT coarse(cell_connects.MinorDim(), projection.MinorDim());
-	coarse_scale.Dimension(values);
+	coarse_scale.Dimension(mddisp);
 	coarse_scale = 0.0;
 
 	cell_dex = 0;
@@ -551,7 +553,7 @@ out << "\n residual =\n" << projection << endl;
 			/* gather cell information */
 			cell_connects.RowAlias(cell_dex++, cell_connect);
 			cell_projection.RowCollect(cell_connect, projection);
-			coarse.RowCollect(cell_connect, values2);
+			coarse.RowCollect(cell_connect, fedisp);
 		
 			int* points = point_in_cell(i);
 			for (int j = 0; j < np; j++)
@@ -565,24 +567,28 @@ out << "\n residual =\n" << projection << endl;
 				/* interpolate to point */
 				for (int k = 0; k < projection.MinorDim(); k++)
 				{
-					/* interpolate projected coarse scale to point (gives Nw) - always exact? */
+					/* interpolate projected coarse scale to point (gives Nw) */
 					fCoarseScale(point, k) = cell_projection.DotColumn(k, Na);
 					
 					/* interpolate actual FEM solution to atoms (point) */
 					coarse_scale(point,k) = coarse.DotColumn(k,Na);
 					
 					/* error = source - projection = q-Nw*/
-					fine_scale(point, k) = values(point, k) - fCoarseScale(point, k);
+					fFineScale(point, k) = mddisp(point, k) - fCoarseScale(point, k);
 					
 					/* compute total displacement u = FEM + fine scale */
-					totalu(point,k) = coarse_scale(point,k) + fine_scale(point,k);
+					totalu(point,k) = coarse_scale(point,k) + fFineScale(point,k);
+					
+					/* computed projected total displacement */
+					projectedu(point,k) = fCoarseScale(point,k) + fFineScale(point,k);
 				}
 			}
 		}
 	}
 	cout << "totalu = " << totalu << endl;
-	cout << "coarse scale = " << coarse_scale << endl;
-	cout << "fine scale = " << fine_scale << endl;
+	cout << "fem disp = " << coarse_scale << endl;
+	cout << "projected u = " << projectedu << endl;
+	cout << "fine scale = " << fFineScale << endl;
 }
 
 /* writing output */

@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.39.2.13 2003-05-13 15:08:36 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.39.2.14 2003-05-13 20:46:32 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -578,8 +578,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	TimeManagerT* atom_time = atoms.TimeManager();
 	TimeManagerT* continuum_time = continuum.TimeManager();
 
-	dArray2DT field_at_ghosts, totalu, fu;
+	dArray2DT field_at_ghosts, totalu, fu, projectedu;
 	dSPMatrixT ntf;
+	iArrayT activefenodes;
 	atom_time->Top();
 	continuum_time->Top();
 	int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
@@ -617,13 +618,14 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
                     		
 		/* calculate fine scale part of MD displacement and total displacement u */
-		continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu);
+		continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu, projectedu);
 		
 		/* solve for initial FEM force f(u) as function of fine scale + FEM */
-		fu = InternalForce(totalu, atoms);
+		/* use projected totalu instead of totalu for first timestep */
+		fu = InternalForce(projectedu, atoms);
 		
 		/* calculate global interpolation matrix ntf */
-		continuum.Ntf(ntf, atoms.NonGhostNodes());
+		continuum.Ntf(ntf, atoms.NonGhostNodes(), activefenodes);
 		cout << "ntf = " << ntf << endl;
 		cout << "fu = " << fu << endl;
 		
@@ -639,7 +641,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		cout << "ntfproduct = " << ntfproduct << endl;
 		
 		/* Add FEM RHS force to RHS using SetExternalForce */
-		continuum.SetExternalForce(bridging_field, ntfproduct);
+		continuum.SetExternalForce(bridging_field, ntfproduct, activefenodes);
 		
 		/* solve FEM equation of motion using force just calculated as RHS */
 		if (1 || error == ExceptionT::kNoError) {
@@ -701,7 +703,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
             
 			/* calculate total displacement u = FE + fine scale here using updated FEM displacement */
-			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu);
+			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu, projectedu);
 						
 			/* integrate FEM displacement, fractional step velocities */
 			
@@ -714,8 +716,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			ntf.Multx(tempy,fy);
 			ntfproduct.SetColumn(1,fy);
 			
-			/* calculate FEM RHS force using ntf and fu */
-			continuum.SetExternalForce(bridging_field, ntfproduct);
+			/* no need to call SetExternalForce again due to pointers to ntfproduct */
 			
 			/* solve FE equation of motion using internal force just calculated */
 			if (1 || error == ExceptionT::kNoError) {
