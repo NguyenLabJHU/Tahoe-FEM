@@ -1,4 +1,4 @@
-/* $Id: SimoShapeFunctionT.h,v 1.3 2001-07-19 01:09:08 paklein Exp $ */
+/* $Id: SimoShapeFunctionT.h,v 1.4 2001-07-20 00:58:39 paklein Exp $ */
 
 #ifndef _SIMO_SHAPE_FUNCTION_T_H_
 #define _SIMO_SHAPE_FUNCTION_T_H_
@@ -15,7 +15,7 @@ public:
 
 	/** constructor */
 	SimoShapeFunctionT(GeometryT::CodeT geometry_code, int numIP, 
-		const LocalArrayT& coords, const dArray2DT& element_modes);
+		const LocalArrayT& coords, const LocalArrayT& element_modes);
 
 	/** compute global shape derivatives */ 	
 	virtual void SetDerivatives(void);
@@ -49,7 +49,7 @@ public:
 private:
 
 	/** element modes */
-	const dArray2DT& fElementModes;
+	const LocalArrayT& fElementModes;
 	bool fHas3DIncompressibleMode;
 
 	/** gradients of the enhanced bubble modes */
