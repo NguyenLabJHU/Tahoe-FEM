@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.h,v 1.11 2003-10-31 20:53:14 paklein Exp $ */
+/* $Id: CCNSMatrixT.h,v 1.12 2004-03-16 06:56:28 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #ifndef _CCNSMATRIX_T_H_
 #define _CCNSMATRIX_T_H_
@@ -170,25 +170,34 @@ private:
 
 protected:
 
-	/* equations sets */
+	/** \name equations sets */
+	/*@{*/
 	LinkedListT<const iArray2DT*> fEqnos;
 	LinkedListT<const RaggedArray2DT<int>*> fRaggedEqnos;
+	/*@}*/
 
-	/* skyline */
+	/** skyline */
 	int* famax; // length fNumEQ+1
 
-	/* matrix components - pointers to fMatrix */
-	double* fKU; // upper triangle
-	double*	fKL; // lower triangle
-	double*	fKD; // diagonal
+	/** \name matrix components - pointers to fMatrix */
+	/*@{*/
+	double* fKU; /**< upper triangle */
+	double*	fKL; /**< lower triangle */
+	double*	fKD; /**< diagonal */
+	/*@}*/
 
-	/* storage */   	
+	/** \name storage */   	
+	/*@{*/
 	int		fNumberOfTerms;
 	double* fMatrix;
+	/*@}*/
+
+	/** runtime flag */
+	bool fIsFactorized;
 
 private:
 
-	/* workspace */
+	/** workspace */
 	double* fu;
 };
 

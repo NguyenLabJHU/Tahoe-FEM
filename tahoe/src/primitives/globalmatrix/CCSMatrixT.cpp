@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.19 2004-02-11 16:46:30 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.20 2004-03-16 06:56:28 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "CCSMatrixT.h"
 
@@ -24,7 +24,8 @@ CCSMatrixT::CCSMatrixT(ostream& out, int check_code):
 	GlobalMatrixT(out, check_code),
 	fDiags(NULL),
 	fNumberOfTerms(0),
-	fMatrix(NULL)
+	fMatrix(NULL),
+	fIsFactorized(false)
 {
 
 }
@@ -33,7 +34,8 @@ CCSMatrixT::CCSMatrixT(const CCSMatrixT& source):
 	GlobalMatrixT(source),
 	fDiags(NULL),
 	fNumberOfTerms(0),
-	fMatrix(NULL)
+	fMatrix(NULL),
+	fIsFactorized(source.fIsFactorized)
 {
 	CCSMatrixT::operator=(source);
 }
@@ -125,6 +127,8 @@ void CCSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	/* clear stored equation sets */
 	fEqnos.Clear();
 	fRaggedEqnos.Clear();
+	
+	fIsFactorized = false;
 }
 
 /* set all matrix volues to 0.0 */
@@ -134,7 +138,8 @@ void CCSMatrixT::Clear(void)
 	GlobalMatrixT::Clear();
 
 	/* byte set */
-	memset(fMatrix, 0, sizeof(double)*fNumberOfTerms);	
+	memset(fMatrix, 0, sizeof(double)*fNumberOfTerms);
+	fIsFactorized = false;
 }
 
 /* add element group equations to the overall topology.
@@ -431,6 +436,8 @@ GlobalMatrixT& CCSMatrixT::operator=(const CCSMatrixT& RHS)
 		/* inherited - do after since some dimensions are contained in
 		 * base class */
 		GlobalMatrixT::operator=(RHS);
+		
+		fIsFactorized = RHS.fIsFactorized;
 	}
 	
 	return *this;
@@ -578,7 +585,10 @@ ostream& operator<<(ostream& out, const CCSMatrixT& matrix)
 
 /* solution routines */
 void CCSMatrixT::Factorize(void)
-{			
+{
+	/* quick exit */
+	if (fIsFactorized) return;
+
 	int		j, jj, jjlast, jcolht;
 	int		i, ii, ij, icolht, istart, iilast;
 	int		jm1, jlength, jtemp, length;
@@ -648,19 +658,21 @@ if (jcolht >= 2)
 		cout << "\n CCSMatrixT::Factorize: factorization is approximate due to zero";
 		cout << " values on the diagonal" << endl;
 	}
+	
+	/* set flag */
+	fIsFactorized = true;
 }
 
 void CCSMatrixT::BackSubstitute(dArrayT& result)
 {
+	/* check */
+	if (!fIsFactorized) ExceptionT::GeneralFail("CCSMatrixT::BackSubstitute", "matrix is not factorized");
 
 	int		j, jj, jjlast, jjnext, jcolht;
 	int		i, istart, jtemp;
 	double	ajj, bj;
 	double* resultPtr = result.Pointer();
 	int     fail = 0;
-
-	/* check */
-	if (!fIsFactorized) throw ExceptionT::kGeneralFail;
 		
 	/* forward reduction */
 	jj = -1;

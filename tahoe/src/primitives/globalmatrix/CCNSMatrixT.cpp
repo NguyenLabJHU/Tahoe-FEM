@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.17 2004-02-11 16:46:30 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.18 2004-03-16 06:56:28 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #include "CCNSMatrixT.h"
 
@@ -23,7 +23,8 @@ CCNSMatrixT::CCNSMatrixT(ostream& out, int check_code):
 	famax(NULL),
 	fNumberOfTerms(0),
 	fMatrix(NULL),
-	fu(NULL)
+	fu(NULL),
+	fIsFactorized(false)
 {
 
 }
@@ -37,7 +38,8 @@ CCNSMatrixT::CCNSMatrixT(const CCNSMatrixT& source):
 	fKD(NULL),
 	fNumberOfTerms(0),
 	fMatrix(NULL),
-	fu(NULL)
+	fu(NULL),
+	fIsFactorized(false)
 {
 	CCNSMatrixT::operator=(source);
 }
@@ -137,6 +139,8 @@ void CCNSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	/* clear stored equation sets */
 	fEqnos.Clear();
 	fRaggedEqnos.Clear();
+	
+	/* set flag */
 }
 
 /* set all matrix volues to 0.0 */
@@ -146,7 +150,8 @@ void CCNSMatrixT::Clear(void)
 	GlobalMatrixT::Clear();
 
 	/* byte set */
-	memset(fMatrix, 0, sizeof(double)*fNumberOfTerms);	
+	memset(fMatrix, 0, sizeof(double)*fNumberOfTerms);
+	fIsFactorized = false;
 }
 
 /* add element group equations to the overall topology.
@@ -325,7 +330,8 @@ void CCNSMatrixT::FindMinMaxPivot(double& min, double& max, double& abs_min,
 /* assignment operator */
 GlobalMatrixT& CCNSMatrixT::operator=(const CCNSMatrixT& rhs)
 {
-#pragma unused(rhs)
+	fIsFactorized = rhs.fIsFactorized;
+
 	cout << "\n CCNSMatrixT::operator= : not implemented" << endl;
 	throw ExceptionT::kGeneralFail;
 }
@@ -364,7 +370,6 @@ bool CCNSMatrixT::CopyDiagonal(dArrayT& diags) const
 		/* copy */
 		dArrayT tmp(fLocNumEQ, fKD);
 		diags = tmp;
-
 		return true;		
 	}
 }
@@ -405,14 +410,20 @@ ostream& operator<<(ostream& out, const CCNSMatrixT& matrix)
 
 /* solution routines */
 void CCNSMatrixT::Factorize(void)
-{			
-	/* factorization routine (GRF) */
-	SolNonSymSysSkyLine(fKU, fKL, fKD, famax, fLocNumEQ);
+{
+	/* quick exit */
+	if (fIsFactorized)
+		return;
+	else /* factorization routine (GRF) */
+		SolNonSymSysSkyLine(fKU, fKL, fKD, famax, fLocNumEQ);
 }
 
 /* solves system. K has already been decomposed in LU form. */
 void CCNSMatrixT::BackSubstitute(dArrayT& result)
 {
+	if (!fIsFactorized) ExceptionT::GeneralFail("CCNSMatrixT::BackSubstitute",
+		"matrix is not factorized");
+
 	/* solves L u'= F -> F := u' (GRF) */
 	solvLT(fKL, result.Pointer(), famax, fLocNumEQ);
 	

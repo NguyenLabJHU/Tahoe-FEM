@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.20 2004-03-14 02:51:35 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.21 2004-03-16 06:56:35 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "SPOOLESMatrixT.h"
 
@@ -80,49 +80,27 @@ void SPOOLESMatrixT::BackSubstitute(dArrayT& result)
 	iArrayT r, c;
 	dArrayT v;
 	GenerateRCV(r, c, v, 1.0e-15);
-	
-	/* write matrix */
-	if (fCheckCode == kPrintLHS) {
-		int old_precision = fOut.precision();
-		fOut.precision(12);
-		int d_width = fOut.precision() + kDoubleExtra;
-		fOut << "\n LHS matrix in {r,c,v} format:\n";
-		fOut << " Number of values = " << r.Length() << '\n';
-		for (int i = 0; i < r.Length(); i++)
-			fOut << setw(kIntWidth) << r[i] + 1
-			     << setw(kIntWidth) << c[i] + 1
-			     << setw(d_width) << v[i] << '\n';
-		fOut.flush();
-		fOut.precision(old_precision);
-	}
 
-/* solving the system using either the serial or MT driver */
  
- int msglvl = 0; //  0: nothing
- //  1: scalar output (timing data) only
- // >1: verbose
- int matrix_type = SPOOLES_REAL;
- int symmetry_flag = (fSymmetric) ? SPOOLES_SYMMETRIC : SPOOLES_NONSYMMETRIC;
- int pivoting_flag = (fPivoting) ? SPOOLES_PIVOTING : SPOOLES_NO_PIVOTING;
- int seed = 1; /* any seed will do here */
- int OK;
+	 int msglvl = 0; //  0: nothing
+	 //  1: scalar output (timing data) only
+	 // >1: verbose
+	int matrix_type = SPOOLES_REAL;
+	int symmetry_flag = (fSymmetric) ? SPOOLES_SYMMETRIC : SPOOLES_NONSYMMETRIC;
+	int pivoting_flag = (fPivoting) ? SPOOLES_PIVOTING : SPOOLES_NO_PIVOTING;
+	int seed = 1; /* any seed will do here */
+	int OK;
  
 #ifdef __SPOOLES_MT__
- /* call MT driver, __NUM_THREADS__ comes from make macro */
- //cout << "Using MT driver with " << __NUM_THREADS__ << " threads" << endl;
-
- OK = LU_MT_driver(msglvl, SPOOLES_FILE, matrix_type, symmetry_flag,
-		   pivoting_flag, seed, result.Length(), result.Pointer(),
-		   r.Length(), r.Pointer(), c.Pointer(), v.Pointer(), 
-		   __NUM_THREADS__);
-#endif
- 
-#ifndef __SPOOLES_MT__
- //cout << "Using SERIAL driver" << endl;
- OK = LU_serial_driver(msglvl, SPOOLES_FILE, matrix_type, symmetry_flag,
-		       pivoting_flag, seed, result.Length(), result.Pointer(),
-		       r.Length(), r.Pointer(), c.Pointer(), v.Pointer());
-#endif
+	/* call MT driver, __NUM_THREADS__ comes from make macro */
+	OK = LU_MT_driver(msglvl, SPOOLES_FILE, matrix_type, symmetry_flag,
+		pivoting_flag, seed, result.Length(), result.Pointer(),
+		r.Length(), r.Pointer(), c.Pointer(), v.Pointer(), __NUM_THREADS__);
+#else /* not __SPOOLES_MT__ */
+	OK = LU_serial_driver(msglvl, SPOOLES_FILE, matrix_type, symmetry_flag,
+		pivoting_flag, seed, result.Length(), result.Pointer(),
+		r.Length(), r.Pointer(), c.Pointer(), v.Pointer());
+#endif /* __SPOOLES_MT__ */
  
 	if (OK != 1) ExceptionT::BadJacobianDet(caller, "LU driver returned %d", OK);
 }
