@@ -1,4 +1,4 @@
-/* $Id: SSMF.cpp,v 1.7 2003-11-21 23:05:04 thao Exp $ */
+/* $Id: SSMF.cpp,v 1.8 2003-11-24 17:35:12 thao Exp $ */
 #include "SSMF.h"
 
 #include "OutputSetT.h"
@@ -78,13 +78,13 @@ void SSMF::RegisterOutput(void)
   const char* suffix[3] = {"_X", "_Y", "_Z"};
   int dex = 0;
   for (int i = 0; i < NumSD(); i++)
+    n_labels[dex++].Append(disp_label, suffix[i]);
+  for (int i = 0; i < NumSD(); i++)
     n_labels[dex++].Append(mf_label, suffix[i]);
   for (int i = 0; i < NumSD(); i++)
     n_labels[dex++].Append(mfd_label, suffix[i]);
   for (int i = 0; i < NumSD(); i++)
     n_labels[dex++].Append(mfdd_label, suffix[i]);
-  for (int i = 0; i < NumSD(); i++)
-    n_labels[dex++].Append(disp_label, suffix[i]);
   
   /* collect ID's of the element blocks in the group */
   ArrayT<StringT> block_ID(fBlockData.Length());
@@ -264,22 +264,22 @@ void SSMF::ComputeMatForce(dArray2DT& output)
   MatForceSurfMech(fMatForce);
 
   /*assemble material forces and displacements into output array*/
-  double* pout_force = output.Pointer();
-  double* pout_dissip = output.Pointer(NumSD());
-  double* pout_dyn = output.Pointer(2*NumSD());
-  double* pout_disp = output.Pointer(3*NumSD());
+  double* pout_disp = output.Pointer();
+  double* pout_force = output.Pointer(NumSD());
+  double* pout_dissip = output.Pointer(2*NumSD());
+  double* pout_dyn = output.Pointer(3*NumSD());
 
   double* pmat_force = fMatForce.Pointer();
   double* pmat_fdissip = fDissipForce.Pointer();
   double* pmat_fdyn = fDynForce.Pointer();
 
-  //  const iArray2DT& eqno = Field().Equations();
   for (int i = 0; i<nnd; i++)
   {
     for (int j = 0; j<NumSD(); j++)
     {
+      *pout_disp++ = disp[i*NumSD()+j];
+
       /*material force set to zero for kinematically constrained nodes*/
-      //      if(eqno[i*NumSD()+j] < 1)
       if (fExclude[i] == 1)
       {
 	    *pout_force++ = 0.0;
@@ -295,7 +295,6 @@ void SSMF::ComputeMatForce(dArray2DT& output)
 	    *pout_dissip++ = (*pmat_fdissip++);
 	    *pout_dyn++ = (*pmat_fdyn++);
       } 
-      *pout_disp++ = disp[i*NumSD()+j];
     }
     pout_force += 3*NumSD();
     pout_dissip += 3*NumSD();

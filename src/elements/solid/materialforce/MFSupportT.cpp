@@ -1,4 +1,4 @@
-/* $Id: MFSupportT.cpp,v 1.8 2003-11-21 22:54:46 paklein Exp $ */
+/* $Id: MFSupportT.cpp,v 1.9 2003-11-24 17:35:12 thao Exp $ */
 #include "MFSupportT.h"
 
 #include "dArrayT.h"
@@ -136,12 +136,12 @@ void MFSupportT::WriteSummary(dArray2DT& output)
   int intwidth = kIntWidth;
   if (nsd == 2)
   { 
-    double* pFx = output.Pointer();
-    double* pFy = output.Pointer(1);
-    double* pDFx = output.Pointer(2);
-    double* pDFy = output.Pointer(3);
-    double* pKFx = output.Pointer(4);
-    double* pKFy = output.Pointer(5);
+    double* pFx = output.Pointer(2);
+    double* pFy = output.Pointer(3);
+    double* pDFx = output.Pointer(4);
+    double* pDFy = output.Pointer(5);
+    double* pKFx = output.Pointer(6);
+    double* pKFy = output.Pointer(7);
  
     /*sum components of material force over a given nodeset*/ 
     double MFx, MFy, DFx, DFy, KFx, KFy;  
@@ -219,12 +219,12 @@ void MFSupportT::WriteSummary(dArray2DT& output)
   }
   else if (nsd == 3)
   { 
-    double* pFx = output.Pointer();
-    double* pFy = output.Pointer(1);
-    double* pFz = output.Pointer(2);
-    double* pDFx = output.Pointer(3);
-    double* pDFy = output.Pointer(4);
-    double* pDFz = output.Pointer(5);
+    double* pFx = output.Pointer(3);
+    double* pFy = output.Pointer(4);
+    double* pFz = output.Pointer(5);
+    double* pDFx = output.Pointer(6);
+    double* pDFy = output.Pointer(7);
+    double* pDFz = output.Pointer(8);
      
     double MFx,MFy, MFz, DFx, DFy, DFz;  
     MFx = MFy = MFz = DFx = DFy = DFz = 0.0;

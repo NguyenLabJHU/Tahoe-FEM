@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.h,v 1.6 2003-11-19 06:09:46 thao Exp $ */
+/* $Id: UpLagMF.h,v 1.7 2003-11-24 17:35:13 thao Exp $ */
 
 #ifndef _UpLagMF_H_
 #define _UpLagMF_H_
@@ -60,11 +60,6 @@ class UpLagMF: public UpdatedLagrangianT, public MFSupportT, public LocalizeT
     /*connectivities*/
     RaggedArray2DT<int> fXConnects;
 
-    /*localization check*/
-    iArray2DT fLocCheckFlags;
-    dArray2DT felem_centers;
-    dArray2DT fnormals;
-    
  private:
     dMatrixT fEshelby;        /*eshelby energy momentum tensor*/
     dSymMatrixT fC;

@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.cpp,v 1.12 2003-11-22 16:45:37 thao Exp $ */
+/* $Id: UpLagMF.cpp,v 1.13 2003-11-24 17:35:13 thao Exp $ */
 #include <ctype.h>
 
 #include "UpLagMF.h"
@@ -40,17 +40,21 @@ void UpLagMF::Initialize(void)
   int nel = fElementCards.Length();
 
   /*localization*/
-  fLocCheckFlags.Dimension(2,nel);
+  fcheckflag.Dimension(nel);
+  flocflag.Dimension(nel);
+  flocflagtot.Dimension(nel);
   felem_centers.Dimension(nel,NumSD());
   fnormals.Dimension(nel, NumSD());
-  fLocCheckFlags = 0;
+
+  fcheckflag = 0.0;
+  flocflag = 0.0;
+  flocflagtot = 0.0;
   felem_centers = 0.0;
   fnormals = 0.0;
   
   if (fCheck == 1)
   {
     /*set check localization flags*/
-    int* pcheckflag = fLocCheckFlags(0);
     for (int i = 0; i < nel; i++)
     {
       int cnt = 0;
@@ -58,22 +62,18 @@ void UpLagMF::Initialize(void)
       while (cnt < fBlockList.Length() && !match)
       {
 	if (fBlockList[cnt]+1 > fBlockData.Length()) {
-	  cout<<"\nUpLagMF::Initialize:Block number exceeds group dimensions.";
+	  cout<<"\nUpLagMF::Initialize:Block number exceeds group dimension.";
 	  throw ExceptionT::kGeneralFail;
 	}
 	const StringT& A = fBlockData[fBlockList[cnt]].ID();
 	const StringT& B = ElementBlockID(i);
-	//	cout << "\nblockcheck: "<<A;
-	//	cout << "\n elemblock: "<<B;
 	if (strlen(A) == strlen(B) && strncmp(A,B,strlen(A)) == 0)
 	  match = true;
 	cnt ++;
       }
       if (match)
-	pcheckflag[i] = 1;
+	fcheckflag[i] = 1;
     }
-    //    cout << "\nList of blocks to check: "<<fBlockList;
-   //    cout << "\nCheckflags: "<< fLocCheckFlags;
   }
     
   /*dimension workspace for bulk quantities*/
@@ -89,8 +89,6 @@ void UpLagMF::Initialize(void)
 void UpLagMF::SetGlobalShape(void)
 {
   UpdatedLagrangianT::SetGlobalShape();
-  if (fCheck == 1)
-    fip_loc.Dimension(fShapes->NumIP());
 }
 
 /***************************outputs managers***********************************/
@@ -110,13 +108,13 @@ void UpLagMF::RegisterOutput(void)
   const char* suffix[3] = {"_X", "_Y", "_Z"};
   int dex = 0;
   for (int i = 0; i < NumSD(); i++)
+    n_labels[dex++].Append(disp_label, suffix[i]);
+  for (int i = 0; i < NumSD(); i++)
     n_labels[dex++].Append(mf_label, suffix[i]);
   for (int i = 0; i < NumSD(); i++)
     n_labels[dex++].Append(mfd_label, suffix[i]);
   for (int i = 0; i < NumSD(); i++)
     n_labels[dex++].Append(mfdd_label, suffix[i]);
-  for (int i = 0; i < NumSD(); i++)
-    n_labels[dex++].Append(disp_label, suffix[i]);
   
   /* collect ID's of the element blocks in the group */
   ArrayT<StringT> block_ID(fBlockData.Length());
@@ -141,12 +139,8 @@ void UpLagMF::WriteOutput(void)
   dArray2DT n_values; 
   dArray2DT e_values;
   
-  iArrayT locflag;
-  fLocCheckFlags.RowAlias(1,locflag);
-
-  //  cout << "\nlocflag: "<<locflag<<endl;
   if (fCheck==1)
-    WriteLocalize(locflag, felem_centers, fnormals);
+    WriteLocalize(flocflagtot, felem_centers, fnormals);
   MapOutput();
   ComputeMatForce(n_values);
 
@@ -212,51 +206,35 @@ GlobalT::RelaxCodeT UpLagMF::RelaxSystem(void)
  
   /*inherited function*/
   GlobalT::RelaxCodeT relax = UpdatedLagrangianT::RelaxSystem();
-
-  const int* pcheckflag = fLocCheckFlags(0);
-  int* plocflag = fLocCheckFlags(1);
-
   ostream& out = ElementSupport().Output();
   out << "\nRelaxation: Localization Check\n";
+
+  flocflag = 0;
   Top();
   while (NextElement() && fCheck == 1)
   {
     int elem = CurrElementNumber();
-    if (pcheckflag[elem] == 1)
+    if (fcheckflag[elem] == 1)
     {
       SetGlobalShape();
       SetLocalX(fLocInitCoords);
  
-      fip_loc = 0; 
       fCurrShapes->TopIP();
-      while (fCurrShapes->NextIP() && plocflag[elem] == 0)
+      while (fCurrShapes->NextIP() && flocflag[elem] == 0)
       {
 	const dSymMatrixT& stress = fCurrMaterial->s_ij();
 	const dMatrixT& modulus = fCurrMaterial->c_ijkl();
 	
 	int loc = CheckLocalizeFS(stress, modulus,fLocInitCoords);
-	//	out <<"\nElem "<<elem<<" Localize? "<<loc<<endl;
-
        	if (loc == 1)
        	{
-	  fip_loc[CurrIP()] = 1;
 	  out << "Localization detected in element " << elem 
 	      << " IP " << CurrIP() << endl;
-	  out << fip_loc;
-	/********************
-	  plocflag[elem] = 1;
+	  flocflag[elem] = 1;
+	  flocflagtot[elem] = 1;
 	  felem_centers.SetRow(elem, LocalizedElemCenter());
 	  fnormals.SetRow(elem, LocalizedNormal());
-      	  out << "\nelem: "<<elem;;
-      	  out <<"\n"<< modulus;
-	********************/
 	}
-      }
-      if (fip_loc.Sum() == NumIP())
-      {
-	  plocflag[elem] = 1;
-	  felem_centers.SetRow(elem, LocalizedElemCenter());
-	  fnormals.SetRow(elem, LocalizedNormal());
       }
     }
   }
@@ -331,12 +309,10 @@ void UpLagMF::ComputeMatForce(dArray2DT& output)
 
   /*evaluate volume contributions to material and dissipation force*/
   Top();
-  const int* plocflag = fLocCheckFlags(1);
   while (NextElement())
   {
     int elem = CurrElementNumber();
-    //    cout << "\nelem: "<<plocflag[elem]<<endl;
-    if (plocflag[elem] == 0)
+    if (flocflag[elem] == 0)
     {
       ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
       fCurrFSMat = dynamic_cast<FSSolidMatT*>(pmat);
@@ -352,11 +328,11 @@ void UpLagMF::ComputeMatForce(dArray2DT& output)
 	SetLocalU(fLocDisp);
 	MatForceDynamic(felem_rhs);
 	AssembleArray(felem_rhs, fDynForce, CurrentElement().NodesX());
-	//	cout << "\nfDynForce: "<<fDynForce;
       }
  
       MatForceVolMech(felem_rhs);
       AssembleArray(felem_rhs, fMatForce, CurrentElement().NodesX());
+
       if (fhas_dissipation) 
       {
 	felem_val.Free();
@@ -365,33 +341,31 @@ void UpLagMF::ComputeMatForce(dArray2DT& output)
 	AssembleArray(felem_rhs, fDissipForce, CurrentElement().NodesX());
       }
     }
+    else cout << "\nElement "<<CurrElementNumber()<<" localized, excluded from material force calculations.\n";
   }
 
   /*add surface contribution*/
   MatForceSurfMech(fMatForce);
-  //  cout << "\nDynForce: "<<fDynForce;
-  //  cout << "\nMatForce: "<<fMatForce;
-  //  cout << "\nDissipForce: "<<fDissipForce;
+
   /*assemble material forces and displacements into output array*/
-  double* pout_force = output.Pointer();
-  double* pout_dissip = output.Pointer(NumSD());
-  double* pout_dyn = output.Pointer(2*NumSD());
-  double* pout_disp = output.Pointer(3*NumSD());
+  double* pout_disp = output.Pointer();
+  double* pout_force = output.Pointer(NumSD());
+  double* pout_dissip = output.Pointer(2*NumSD());
+  double* pout_dyn = output.Pointer(3*NumSD());
 
   double* pmat_force = fMatForce.Pointer();
   double* pmat_fdissip = fDissipForce.Pointer();
   double* pmat_fdyn = fDynForce.Pointer();
 
-  //  const iArray2DT& eqno = Field().Equations();
   for (int i = 0; i<nnd; i++)
   {
     for (int j = 0; j<NumSD(); j++)
     {
-      /*material force set to zero for kinematically constrained nodes*/
-      //      if(eqno[i*NumSD()+j] < 1)
+      *pout_disp++ = disp[i*NumSD()+j];
+
+      /*material force set to zero on external boundary*/
       if (fExclude[i] == 1)
       {
-	//            cout << "\n boundary node: "<<i<<" nsd: "<<j;
 	    *pout_force++ = 0.0;
 	    *pout_dissip++ = 0.0;
 	    *pout_dyn++ = 0.0;
@@ -405,13 +379,11 @@ void UpLagMF::ComputeMatForce(dArray2DT& output)
 	    *pout_dissip++ = (*pmat_fdissip++);
 	    *pout_dyn++ = (*pmat_fdyn++);
       }
-      *pout_disp++ = disp[i*NumSD()+j];
     }
-    //    cout << "\noutput: "<<output;
+    pout_disp += 3*NumSD();
     pout_force += 3*NumSD();
     pout_dissip += 3*NumSD();
     pout_dyn += 3*NumSD();
-    pout_disp += 3*NumSD();
   }
 }
 
@@ -787,9 +759,8 @@ void UpLagMF::MatForceSurfMech(dArrayT& global_val)
       fsurf_coords.SetLocal(surf_nodes);
       fsurf_disp.SetLocal(surf_nodes);
 
-      if (fLocCheckFlags(elem,1)==0)
+      if (flocflag[elem]==0)
       {
-	//	cout << "\n Elem "<<elem<<" MatSurfVol";
 	/*get surface shape function*/
 	const ParentDomainT& surf_shape = ShapeFunction().FacetShapeFunction(facet);
 	int nip = surf_shape.NumIP();
