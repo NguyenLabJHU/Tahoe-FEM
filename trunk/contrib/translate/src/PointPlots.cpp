@@ -66,7 +66,7 @@ void PointPlots::TranslateVariables (void)
   int nume = fModel.NumElementGroups ();
   ArrayT<StringT> names (nume);
   fModel.ElementGroupNames (names);
-  int egindex = fElementGroup - 1;
+  int egindex = fElementGroup;
   int numelems, numelemnodes;
   fModel.ElementGroupDimensions (egindex, numelems, numelemnodes);
   int numquadpts = fModel.NumElementQuadPoints (names [egindex]);
