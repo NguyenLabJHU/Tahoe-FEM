@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.7 2002-07-17 00:00:49 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.7.2.1 2002-09-21 09:09:59 paklein Exp $ */
 
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
@@ -35,14 +35,30 @@ class SmallStrainT: public ElasticT
 	/** initialize local field arrays. Allocate B-bar workspace if needed. */
 	virtual void SetLocalArrays(void);
 
-	/** form shape functions and derivatives */
-	virtual void SetGlobalShape(void);
-  	           
+	/** calculate the internal force contribution ("-k*d") */
+	void FormKd(double constK);
+
+	/** form the element stiffness matrix */
+	void FormStiffness(double constK);
+
+	/** compute the measures of strain/deformation over the element.
+	 * Use the current shape function derivatives to compute the strain or other
+	 * measure of deformation over the element.
+	 * SmallStrainT::SetDeformation can compute B-bar matricies, as given by
+	 * Hughes (4.5.11-16). Results are put in ElasticT::fB_list. */
+	virtual void SetDeformation(void);
+
   private:
 
 	/** indicies of elements in the list of material needs */
 	enum MaterialNeedsT {kstrain = 0,
 	                kstrain_last = 1};
+
+	/** compute mean dilatation, Hughes (4.5.23) */
+	void SetMeanDilatation(dArray2DT& mean_dilatation) const;
+
+	/** set B-bar as given by Hughes (4.5.11-16)*/
+	void Set_B_bar(const dArray2DT& derivatives, const dArray2DT& mean_dilatation, dMatrixT& B);
 
   private:
     
@@ -56,7 +72,8 @@ class SmallStrainT: public ElasticT
   	/** \name work space */
   	/*@{*/
   	dMatrixT fGradU;
-  	dArrayT  fLocDispTranspose; /**< used for B-bar method */
+  	dArrayT fLocDispTranspose; /**< used for B-bar method */
+	dArray2DT fMeanDilatation;/**< store mean dilatation */
   	/*@}*/
 };
 

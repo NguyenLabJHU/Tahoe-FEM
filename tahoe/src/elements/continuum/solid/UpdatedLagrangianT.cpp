@@ -1,6 +1,5 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.7 2002-09-12 17:49:53 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.7.2.1 2002-09-21 09:09:59 paklein Exp $ */
 /* created: paklein (07/03/1996) */
-
 #include "UpdatedLagrangianT.h"
 
 #include <math.h>
@@ -12,22 +11,14 @@
 #include "StructuralMaterialT.h"
 #include "ShapeFunctionT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 UpdatedLagrangianT::UpdatedLagrangianT(const ElementSupportT& support, const FieldT& field):
 	FiniteStrainT(support, field),
 	fCauchyStress(NumSD()),
 	fLocCurrCoords(LocalArrayT::kCurrCoords)
 {
-	/* disable any strain-displacement options */
-	if (fStrainDispOpt != 0)
-	{
-		cout << "\nUpLag_FDElasticT::UpdatedLagrangianT: no strain-displacement options\n" << endl;
-		fStrainDispOpt = 0;
-	}
-
 	/* consistency check */
 	if (ElementSupport().Analysis() == GlobalT::kLinStatic ||
 	    ElementSupport().Analysis() == GlobalT::kLinDynamic)
@@ -133,7 +124,7 @@ void UpdatedLagrangianT::FormStiffness(double constK)
 
 	/* M A T E R I A L   S T I F F N E S S */									
 		/* strain displacement matrix */
-		fCurrShapes->B(fB);
+		Set_B(fCurrShapes->Derivatives_U(), fB);
 
 		/* get D matrix */
 		fD.SetToScaled(scale, fCurrMaterial->c_ijkl());
@@ -158,8 +149,8 @@ void UpdatedLagrangianT::FormKd(double constK)
 	fCurrShapes->TopIP();
 	while ( fCurrShapes->NextIP() )
 	{
-		/* get strain-displacement matrix */
-		fCurrShapes->B(fB);
+		/* strain displacement matrix */
+		Set_B(fCurrShapes->Derivatives_U(), fB);
 
 		/* B^T * Cauchy stress */
 		fB.MultTx(fCurrMaterial->s_ij(), fNEEvec);
