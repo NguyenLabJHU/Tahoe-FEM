@@ -1,4 +1,4 @@
-/* $Id: SSLinearVE2D.cpp,v 1.4.4.1 2005-02-24 01:14:20 thao Exp $ */
+/* $Id: SSLinearVE2D.cpp,v 1.4.4.2 2005-04-04 18:50:27 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSLinearVE2D.h"
 #include "SSMatSupportT.h"
@@ -10,8 +10,8 @@
 
 using namespace Tahoe;
 
-const int kNumOutputVar = 1;
-static const char* Labels[kNumOutputVar] = {"Dvisc"};
+const int kNumOutputVar = 3;
+static const char* Labels[kNumOutputVar] = {"Dvisc", "Iev","IIev"};
 
 SSLinearVE2D::SSLinearVE2D(ifstreamT& in, const SSMatSupportT& support):
 	SSViscoelasticityT(in, support),
@@ -198,7 +198,7 @@ const dSymMatrixT& SSLinearVE2D::s_ij(void)
 	
 	/*deviatoric part*/
 	fStress3D = fStrain3D;
-	fStress3D *= 2.0*mu;
+	fStress3D *= 2.0*mu
 
 	/*volumetric part*/
 	fStress3D[0] += kappa*I1;
@@ -259,8 +259,26 @@ void SSLinearVE2D::ComputeOutput(dArrayT& output)
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
 
-	double etaS = fMu[kNonEquilibrium]*ftauS;
-	double etaB = fKappa[kNonEquilibrium]*ftauB;
+	double& muNEQ = fMu[kNonEquilibrium];
+	double& kappaNEQ = fKappa[kNonEquilibrium];
+	double etaS = muNEQ*ftauS;
+	double etaB = kappaNEQ*ftauB;
 	
-	output[0] = 0.5*(0.5/etaS*fdevQ.ScalarProduct() + 1.0/etaB*fmeanQ[0]*fmeanQ[0]); 
+	output[0] = 0.5*(0.5/etaS*fdevQ.ScalarProduct() + 1.0/etaB*fmeanQ[0]*fmeanQ[0]);
+	const dSymMatrixT& strain = e();
+	double I1 = strain[0]+strain[1]; 
+	output[1] = I1-fmeanQ[0]/kappaNEQ;
+
+	fStrain3D = fdevQ;
+	fStrain3D /= -muNEQ;
+
+	fStrain3D[0] += strain[0];
+	fStrain3D[1] += strain[1];
+	fStrain3D[5] += strain[2];
+	fStrain3D[0] -= fthird*I1;
+	fStrain3D[1] -= fthird*I1;
+	fStrain3D[2] -= fthird*I1;
+	
+	output[2] = 0.5*fStrain3D.ScalarProduct();
+
 }	
