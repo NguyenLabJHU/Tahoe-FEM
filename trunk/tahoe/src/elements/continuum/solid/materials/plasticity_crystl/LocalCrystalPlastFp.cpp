@@ -674,8 +674,7 @@ void LocalCrystalPlastFp::IterateOnCrystalState(bool& stateConverged, int subInc
             if (ierr != 0)
                {
                  if (XTAL_MESSAGES) {
-                    writeWarning("LocalCrystalPlastFp::SolveCrystalState:
-                       ierr!=0 in SolveForPlastDefGradient -> subincrementation");
+                    writeWarning("LocalCrystalPlastFp::SolveCrystalState:\n ierr!=0 in SolveForPlastDefGradient -> subincrementation");
                     cout << " elem # " << CurrElementNumber() 
                          << ";  IP # " << CurrIP() << endl;
                     cout << " subIncr # " << subIncr << endl;
@@ -693,8 +692,7 @@ void LocalCrystalPlastFp::IterateOnCrystalState(bool& stateConverged, int subInc
        catch(int code)
 	  {
             if (XTAL_MESSAGES) {
-               writeWarning("LocalCrystalPlastFp::SolveCrystalState: 
-                  exception thrown at SolveForPlasticDefGradient -> subincrementation");
+               writeWarning("LocalCrystalPlastFp::SolveCrystalState:\n exception thrown at SolveForPlasticDefGradient -> subincrementation");
                cout << " elem # " << CurrElementNumber() 
                     << ";  IP # " << CurrIP() << endl;
                cout << " subIncr # " << subIncr << endl;
@@ -706,8 +704,7 @@ void LocalCrystalPlastFp::IterateOnCrystalState(bool& stateConverged, int subInc
   // check if did not converge in max iterations
   if (!stateConverged && iterState > fMaxIterState) {
      if (XTAL_MESSAGES) {
-        writeWarning("LocalCrystalPlastFp::SolveCrystalState: 
-           didn't converge in maxIters -> subincrementaion");
+        writeWarning("LocalCrystalPlastFp::SolveCrystalState:\n didn't converge in maxIters -> subincrementaion");
         cout << " elem # " << CurrElementNumber() 
              << ";  IP # " << CurrIP() << endl;
         cout << " subIncr # " << subIncr << endl;
