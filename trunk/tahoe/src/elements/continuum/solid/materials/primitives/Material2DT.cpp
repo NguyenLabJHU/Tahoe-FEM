@@ -1,4 +1,4 @@
-/* $Id: Material2DT.cpp,v 1.4 2002-10-20 22:49:11 paklein Exp $ */
+/* $Id: Material2DT.cpp,v 1.5 2003-04-12 22:10:48 thao Exp $ */
 /* created: paklein (02/15/1997) */
 #include "Material2DT.h"
 
@@ -58,6 +58,11 @@ Material2DT::Material2DT(ifstreamT& in, ConstraintOptionT constraintopt):
 	if (fThickness <= 0.0) throw ExceptionT::kBadInputValue;
 }
 
+Material2DT::Material2DT(void)
+{
+	fThickness = 1.0;
+	fConstraintOption = kPlaneStrain;
+}
 /* default material output */
 void Material2DT::Print(ostream& out) const
 {

@@ -1,4 +1,4 @@
-/* $Id: Material2DT.h,v 1.4 2002-10-05 20:04:19 paklein Exp $ */
+/* $Id: Material2DT.h,v 1.5 2003-04-12 22:10:48 thao Exp $ */
 /* created: paklein (02/15/1997) */
 
 #ifndef _MATERIAL_2D_T_H_
@@ -29,7 +29,8 @@ public:
 	/*@{*/
 	Material2DT(ifstreamT& in);
 	Material2DT(ifstreamT& in, ConstraintOptionT constraintopt);
-	/*@}*/
+	Material2DT(void);
+        /*@}*/
 	
 	/** I/O functions */
 	void Print(ostream& out) const;
