@@ -1,4 +1,4 @@
-/* $Id: TorsionKBCT.h,v 1.1 2003-05-31 18:19:40 paklein Exp $ */
+/* $Id: TorsionKBCT.h,v 1.2 2003-05-31 18:38:29 paklein Exp $ */
 #ifndef _TORSION_KBC_T_H_
 #define _TORSION_KBC_T_H_
 
@@ -6,6 +6,7 @@
 #include "KBC_ControllerT.h"
 
 /* direct members */
+#include "iArrayT.h"
 #include "dArrayT.h"
 #include "ScheduleT.h"
 
