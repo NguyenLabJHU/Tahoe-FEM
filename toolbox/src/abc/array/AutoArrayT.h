@@ -1,4 +1,4 @@
-/* $Id: AutoArrayT.h,v 1.1.1.1 2001-01-25 20:56:22 paklein Exp $ */
+/* $Id: AutoArrayT.h,v 1.2 2001-02-13 17:53:04 paklein Exp $ */
 /* created: paklein (12/05/1997)                                          */
 /* Array that automatically increases its dimensions when                 */
 /* elements are inserted using Append() or AppendUnique.                  */
@@ -95,17 +95,6 @@ public:
   	/* size plus headroom */
   	int WithHeadRoom(int length) { return (length*(100 + fHeadRoom))/100; };
   	
-#if 0
-private:
-
-	/* safe memory copying - ie. like memcpy if fByteCopy is 1 */
-	void MemCopy(TYPE* to, const TYPE* from, int length);
-	void MemCopy(TYPE* to, const TYPE* from, int length) const;
-
-	/* safe memory moving - ie. like memmove if fByteCopy is 1 */
-	void MemMove(TYPE* to, const TYPE* from, int length);
-#endif
-	  	
 private:
 	
 	// Size of allocated memory. fLength used to store

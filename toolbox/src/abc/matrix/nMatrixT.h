@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.2 2001-02-13 17:53:04 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 /* 2 dimensional matrix mathematics template object.                      */
 
@@ -17,7 +17,6 @@ public:
 
 	/* control flags */
 	enum SymmetryFlagT {kWhole = 0, kUpperOnly = 1};
-
 	enum AssemblyModeT {kOverwrite = 0, kAccumulate = 1};
 
 	/* constructor*/
