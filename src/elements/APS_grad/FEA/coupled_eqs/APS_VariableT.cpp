@@ -1,4 +1,4 @@
-// $Id: APS_VariableT.cpp,v 1.5 2003-09-16 16:42:31 raregue Exp $
+// $Id: APS_VariableT.cpp,v 1.6 2003-09-19 00:47:02 raregue Exp $
 #include "APS_VariableT.h"
 
 //---------------------------------------------------------------------
@@ -6,21 +6,21 @@
 
 using namespace Tahoe;
 
-APS_VariableT::APS_VariableT (const FEA_dVectorT& grad_u, const FEA_dVectorT& gammap) 
+APS_VariableT::APS_VariableT (const FEA_dMatrixT& grad_u, const FEA_dMatrixT& grad_gammap) 
 {
-	Construct	(grad_u, gammap);
+	Construct	(grad_u, grad_gammap);
 }
 
 //---------------------------------------------------------------------
-/** Data initialization: Allocate space for grad_u, gammap  */
+/** Data initialization: Allocate space for grad_u, grad_gammap  */
 
-void APS_VariableT::Construct (const FEA_dVectorT& grad_u, const FEA_dVectorT& gammap) 
+void APS_VariableT::Construct (const FEA_dMatrixT& grad_u, const FEA_dMatrixT& grad_gammap) 
 {
   	n_vars = APS::kNUM_APS_VARS;  
   	fVars.Dimension( n_vars );  
 
 	fVars[APS::kgrad_u] = grad_u; // This = opr allocates if LHS Length=0
-	fVars[APS::kgammap] = gammap; 
+	fVars[APS::kgrad_gammap] = grad_gammap; 
 }
 
 //----------------------------------------------------
@@ -46,7 +46,7 @@ void APS_VariableT::Print(char *c) { // overload << later
 		if (fVars[l].IPs() == 0)
 			cout << "APS_VariableT n["<<l<<"] Unallocated \n\n";
     else {
-  		cout << "\n Vector "<<l<<" evaluated at "<<fVars[l].IPs() <<" inegration points (ip): \n"; 
+  		cout << "\n Vector "<<l<<" evaluated at "<<fVars[l].IPs() <<" integration points (ip): \n"; 
   		for (int i=0; i<fVars[l].IPs(); i++) 
    	 		cout <<"\n "<< c <<" @ ip "<<i<<": \n\n"<< fVars[l][i] << "\n";
 			cout << "\n";
@@ -64,7 +64,7 @@ void APS_VariableT::Print(char *c) { // overload << later
 
   return fVars[variable];
   
-}*/
+} */
 
 //---------------------------------------------------------------------
 
@@ -75,7 +75,7 @@ void APS_VariableT::operator=(const APS_VariableT &a)	// Initializes
 
 //#if 0
 	for (int i=0; i<n_vars; i++) {
-  	fVars[i].FEA_Dimension( a.fVars[i].IPs(), a.fVars[i].Rows() );
+  	fVars[i].FEA_Dimension( a.fVars[i].IPs(), a.fVars[i].Rows(), a.fVars[i].Cols() );
   	fVars[i] = a.fVars[i];
 	}
 //#endif
@@ -120,7 +120,7 @@ fVars.Dimension( n_vars );
 
 //#if 0
 for (int i=0; i<n_vars; i++) {
-	fVars[i].FEA_Dimension( a.fVars[i].IPs(), a.fVars[i].Rows() );
+	fVars[i].FEA_Dimension( a.fVars[i].IPs(), a.fVars[i].Rows(), a.fVars[i].Cols() );
 	fVars[i].SumOf(a.fVars[i],b.fVars[i]); 
 }
 //#endif

@@ -1,4 +1,4 @@
-// $Id: APS_EnumT.h,v 1.1 2003-07-10 17:20:21 raregue Exp $
+// $Id: APS_EnumT.h,v 1.2 2003-09-19 00:47:02 raregue Exp $
 #ifndef _APS_ENUM_H_ 
 #define _APS_ENUM_H_ 
 
@@ -18,7 +18,7 @@ class APS
 
     enum VarT {  	
 					kgrad_u, 
-					kgammap, 
+					kgrad_gammap, 
 	                kNUM_APS_VARS }; // <-- Keep this one last !!
 };
 

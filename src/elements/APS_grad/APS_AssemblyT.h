@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.4 2003-09-16 16:42:30 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.5 2003-09-19 00:47:00 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -18,8 +18,10 @@
 #include "APS_FEA.h"
 #include "APS_EnumT.h"
 #include "APS_VariableT.h"
-#include "BalLinMomT.h"
-#include "PlastT.h"
+#include "APS_Bal_EqT.h"
+#include "APS_BCJT.h"
+//#include "BalLinMomT.h"
+//#include "PlastT.h"
 #include "FEA_FormatT.h"
 
 namespace Tahoe {
@@ -73,8 +75,8 @@ class APS_AssemblyT: public ElementBaseT
 
 	/** collecting element group equation numbers. See ElementBaseT::Equations
 	 * for more information */
-	virtual void Equations( AutoArrayT<const iArray2DT*>& eq_1,
-							AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
+	virtual void Equations( AutoArrayT<const iArray2DT*>& eq_d,
+							AutoArrayT<const RaggedArray2DT<int>*>& eq_eps);
 
 	/** return a const reference to the run state flag */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -89,6 +91,12 @@ class APS_AssemblyT: public ElementBaseT
 
 	/** write element group parameters to out */
 	virtual void PrintControlData(ostream& out) const;
+	
+	/** register element for output */
+	virtual void RegisterOutput(void);
+
+	/** write element output */
+	virtual void WriteOutput(void);	
 
 	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
@@ -139,7 +147,7 @@ private:
 	//VMS_VariableT n,np1; // <-- keep local scope in elmt loop for now 
 
 	/** Gradients with respect to reference coodinates */
-	FEA_dMatrixT fVar;
+	FEA_dMatrixT fGRAD_u, fGRAD_u_n, fGRAD_gamma_p, fGRAD_gamma_p_n, fVar;
 
 	/** \name  values read from input in the constructor */
 	/*@{*/
@@ -155,6 +163,7 @@ private:
 	LocalArrayT u;		//total out-of-plane displacement
 	LocalArrayT u_n; 	//total out-of-plane displacement from previous increment
 	LocalArrayT del_u;	//the Newton-R update i.e. del_u = u - u_n (u_{n+1}^{k+1} implied
+	LocalArrayT DDu;    //coarse scale acceleration (used for body force)
 	LocalArrayT gamma_p;		//plastic gradient
 	LocalArrayT gamma_p_n;
 	LocalArrayT del_gamma_p;	//the Newton-R update
@@ -168,6 +177,12 @@ private:
 	//bool New_Step;
 	int step_number;
 	int iPlastModelType;
+	
+	dArrayT fForces_at_Node;
+	bool bStep_Complete;
+ 	double time;
+ 	
+ 	void Get_Fd_ext 	( dArrayT &fFd_ext );
 	
 
 	//-- Material Parameters 
@@ -190,16 +205,16 @@ private:
 	/*@}*/
 
 	/* Data Storage */
-	ElementMatrixT fKd_I, fKeps_I;
-	ElementMatrixT fKd_II, fKeps_II;
-	dArrayT 	fFint_I;
-	dArrayT 	fFext_I;
-	dArrayT		fFint_II;
-	dArrayT		fFext_II;
+	ElementMatrixT fKdd, fKdeps;
+	ElementMatrixT fKepsd, fKepseps;
+	dArrayT 	fFd_int;
+	dArrayT 	fFd_ext;
+	dArrayT		fFeps_int;
+	dArrayT		fFeps_ext;
 
 	/* Multi-Field Element Formulators */
-	BalLinMomT* fEquation_I;	
-	PlastT* 	fEquation_II;
+	BalLinMomT* fEquation_d;	
+	PlastT* 	fEquation_eps;
 
 	/* Multi-Field Materials */
 	APS_MaterialT* fPlastMaterial;

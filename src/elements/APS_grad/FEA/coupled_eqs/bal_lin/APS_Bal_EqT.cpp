@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.cpp,v 1.4 2003-09-16 16:42:33 raregue Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.5 2003-09-19 00:47:04 raregue Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -44,7 +44,7 @@ void APS_Bal_EqT::Construct ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_M
 	Form_C_List		(	Shear_Matl );
 	Form_B_List		(	);
 	Form_VB_List	(	);
-	Form_V_List		(	);
+	Form_V_S_List		(	);
 
 	Integral.Construct ( Shapes.j, Shapes.W ); 
 
@@ -57,26 +57,20 @@ void APS_Bal_EqT::Form_LHS_Keps_Kd	( dMatrixT &Keps, dMatrixT &Kd )  // Untested
 		Keps 	= Integral.of( B[kB], C[kMu], B[kBgamma] );  
 		Keps 	*= -1.0;
 	 	Kd  	= Integral.of( B[kB], C[kMu], B[kB] );  	
-		Kd		-= Integral.of( VB[kN], C[kMu], VB[knuB] );
+#pragma message("APS_Bal_EqT::Form_LHS_Keps_Kd: this domain over Gamma_eps")
+//		Kd		-= Integral.of( VB[kN], C[kMu], VB[knuB] );
 }
 
 //---------------------------------------------------------------------
 
-void APS_Bal_EqT::Form_RHS_F_int ( dArrayT &F_int, dMatrixT &Kd, dMatrixT &Keps ) // Untested
+void APS_Bal_EqT::Form_RHS_F_int ( dArrayT &F_int ) // Untested
 {
-#pragma message("APS_Bal_EqT::Form_RHS_F_int: traction must be input")
-		double traction = 0.0;
-		F_int = Integral.of	( VB[kN], traction );
-#pragma message("APS_Bal_EqT::Form_RHS_F_int: displ must be passed in")
-		dArrayT displ(n_en), tmp1(n_en);
-		Kd.Multx (tmp1, displ);
-		F_int -= tmp1;
-		dMatrixT Kepstmp = Keps;
-		Kepstmp -= Integral.of( VB[kN], C[kMu], VB[knuNgam] );
-#pragma message("APS_Bal_EqT::Form_RHS_F_int: eps must be passed in")
-		dArrayT eps(n_sd_x_n_en), tmp2(n_en);
-		Kepstmp.Multx ( tmp2, eps);
-		F_int += tmp2;
+#pragma message("APS_Bal_EqT::Form_RHS_F_int: how get grad_u and gammap?")
+/*		F_int = Integral.of( B[kB], C[kMu], V[kgrad_u] ); 
+		F_int -= Integral.of( B[kB], C[kMu], V[kgammap] ); */
+#pragma message("APS_Bal_EqT::Form_RHS_F_int: this domain over Gamma_eps")
+/*		F_int -= Integral.of( VB[kN], C[kMu], S[knuepsgradu] ); 
+		F_int += Integral.of( VB[kN], C[kMu], S[knuepseps] );  */
 }
 
 //=== Private =========================================================
@@ -95,15 +89,20 @@ void APS_Bal_EqT::Form_VB_List (void)
 		Data_Pro.APS_N(VB[kN]);
 
  		V[knueps].Dot( B[kB], VB[knuB] );
- 		V[knueps].Dot( B[kBgamma], VB[knuNgam] );
+ 		V[knueps].Dot( B[kBgamma], VB[knuNgam] ); 
 }
 
 
-void APS_Bal_EqT::Form_V_List (void)
+void APS_Bal_EqT::Form_V_S_List (void)
 {
-#pragma message("APS_Bal_EqT::Form_V_List: V[knueps] must be input")
+#pragma message("APS_Bal_EqT::Form_V_S_List: V[knueps] and V[keps] must be input for BC")
 		V[knueps](0) = 1.0;
 		V[knueps](1) = 0.0;
+		V[keps](0) = 1.0;
+		V[keps](1) = 0.0;
+#pragma message("APS_Bal_EqT::Form_V_S_List: how get grad_u?")
+//		V[knueps].Dot( V[kgrad_u], S[knuepsgradu] );
+		V[knueps].Dot( V[keps], S[knuepseps] );
 }
 
 

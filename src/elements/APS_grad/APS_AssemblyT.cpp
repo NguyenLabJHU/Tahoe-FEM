@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.4 2003-09-16 16:42:30 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.5 2003-09-19 00:47:00 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -6,6 +6,9 @@
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"
+
+#include "APS_MatlT.h"
+#include "Shear_MatlT.h"
 
 #include "APS_Bal_EqT.h"
 #include "APS_BCJT.h"
@@ -26,6 +29,7 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	ElementBaseT(support, displ), //pass the displacement field to the base class
 	u(LocalArrayT::kDisp),
 	u_n(LocalArrayT::kLastDisp),
+	DDu(LocalArrayT::kAcc),
 	gamma_p(LocalArrayT::kDisp),
 	gamma_p_n(LocalArrayT::kLastDisp),
 	fInitCoords(LocalArrayT::kInitCoords),
@@ -35,12 +39,13 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	fTractionBCSet(0),
 	fDispl(displ),
 	fPlast(gammap),
-	fKd_I(ElementMatrixT::kNonSymmetric),
-	fKeps_I(ElementMatrixT::kNonSymmetric),
-	fKd_II(ElementMatrixT::kNonSymmetric),
-	fKeps_II(ElementMatrixT::kNonSymmetric),
-	fEquation_I(NULL),
-	fEquation_II(NULL)
+	fKdd(ElementMatrixT::kNonSymmetric),
+	fKdeps(ElementMatrixT::kNonSymmetric),
+	fKepsd(ElementMatrixT::kNonSymmetric),
+	fKepseps(ElementMatrixT::kNonSymmetric),
+	fEquation_d(NULL),
+	fEquation_eps(NULL),
+	bStep_Complete(0)
 {
 	int i;
 	/* check - some code below assumes that both fields have the
@@ -85,8 +90,8 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 APS_AssemblyT::~APS_AssemblyT(void) 
 {  
 	delete fShapes;
-	delete fEquation_I; 
-	delete fEquation_II; 
+	delete fEquation_d; 
+	delete fEquation_eps; 
 	delete fBalLinMomMaterial; 
 	delete fPlastMaterial;
 
@@ -97,7 +102,6 @@ APS_AssemblyT::~APS_AssemblyT(void)
 		fStack = NULL;
 	}
 
-	var_plot_file.close(); 
 }
 
 //--------------------------------------------------------------------
@@ -148,6 +152,7 @@ void APS_AssemblyT::Initialize(void)
 	/* set local arrays for coarse scale */
 	u.Dimension (n_en, n_df);
 	u_n.Dimension (n_en, n_df);
+	DDu.Dimension (n_en, n_df);
 	del_u.Dimension (n_en, n_df);
 	del_u_vec.Dimension (n_en_x_n_df);
 	fDispl.RegisterLocal(u);
@@ -192,7 +197,7 @@ void APS_AssemblyT::Initialize(void)
 	/* construct the black boxs */  
 
 	Select_Equations ( BalLinMomT::kAPS_Bal_Eq, iPlastModelType );
-	fEquation_II -> Initialize ( n_ip, n_sd, n_en, ElementSupport().StepNumber() );
+	fEquation_eps -> Initialize ( n_ip, n_sd, n_en, ElementSupport().StepNumber() );
 	//step_number_last_iter = 0; 
 	//step_number_last_iter = ElementSupport().StepNumber();  // This may crash or not work
 
@@ -200,15 +205,22 @@ void APS_AssemblyT::Initialize(void)
 
 	// these dimensions should be different since want to use quadratic interp for u
 	// and linear interp for gamma_p
-	fKd_I.Dimension 		( n_en_x_n_df, n_en_x_n_df );
-	fKeps_I.Dimension 		( n_en_x_n_df, n_en_x_n_df );
-	fKd_II.Dimension 		( n_en_x_n_df, n_en_x_n_df );
-	fKeps_II.Dimension 		( n_en_x_n_df, n_en_x_n_df );
+	
+	fGRAD_u.FEA_Dimension 			( fNumIP, n_sd );
+	fGRAD_gamma_p.FEA_Dimension 	( fNumIP, n_sd,n_sd );
+	fGRAD_u_n.FEA_Dimension 		( fNumIP, n_sd );
+	fGRAD_gamma_p_n.FEA_Dimension 	( fNumIP, n_sd,n_sd );
 
-	fFint_I.Dimension 	( n_en_x_n_df );
-	fFext_I.Dimension 	( n_en_x_n_df );
-	fFint_II.Dimension 	( n_en_x_n_df );
-	fFext_II.Dimension 	( n_en_x_n_df );
+//check these dims
+	fKdd.Dimension 			( n_en_x_n_df, n_en_x_n_df );
+	fKdeps.Dimension 		( n_en_x_n_df, n_en_x_n_df );
+	fKepsd.Dimension 		( n_en_x_n_df, n_en_x_n_df );
+	fKepseps.Dimension 		( n_en_x_n_df, n_en_x_n_df );
+
+	fFd_int.Dimension 	( n_en_x_n_df );
+	fFd_ext.Dimension 	( n_en_x_n_df );
+	fFeps_int.Dimension 	( n_en_x_n_df );
+	fFeps_ext.Dimension 	( n_en_x_n_df );
 
 	fFEA_Shapes.Construct	( fNumIP,n_sd,n_en );
 
@@ -221,7 +233,7 @@ void APS_AssemblyT::Initialize(void)
 	fIPVariable = 0.0;
 
 	/* allocate storage for nodal forces */
-	fForces_at_Node.Dimension ( n_sd );
+	//fForces_at_Node.Dimension ( n_sd );
 
 	/* body force specification */
 	fDOFvec.Dimension(n_df);
@@ -249,8 +261,8 @@ void APS_AssemblyT::RHSDriver(void)
 }
 //---------------------------------------------------------------------
 
-void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
-	AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
+void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
+	AutoArrayT<const RaggedArray2DT<int>*>& eq_eps)
 {
 	/* doing monolithic solution */
 	if (fDispl.Group() == fPlast.Group())
@@ -280,7 +292,7 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 			fEqnos[i].BlockColumnCopyAt(plast_eq, displ_eq.MinorDim());
 
 			/* add to list of equation numbers */
-			eq_1.Append(&fEqnos[i]);
+			eq_d.Append(&fEqnos[i]);
 		}
 	
 		/* reset pointers to element cards */
@@ -290,7 +302,7 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	{
 		/* ElementBaseT handles equation array for the coarse scale */
 		if (ElementSupport().CurrentGroup() == fDispl.Group())
-			ElementBaseT::Equations(eq_1,eq_2);
+			ElementBaseT::Equations(eq_d,eq_eps);
 
 		/* fine scale equations */
 		if (ElementSupport().CurrentGroup() == fPlast.Group())
@@ -298,7 +310,7 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 			/* collect local equation numbers */
 			fPlast.SetLocalEqnos(fConnectivities, fEqnos_plast);
 		
-			eq_1.Append(&fEqnos_plast);
+			eq_d.Append(&fEqnos_plast);
 		}
 	}
 }
@@ -346,13 +358,14 @@ void APS_AssemblyT::RHSDriver_staggered(void)	// LHS too!	This was original RHSD
 		del_gamma_p.DiffOf (gamma_p, gamma_p_n);
 
 	 	SetLocalX(fInitCoords); 
-		fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, ua, 1.0, ub); 
+	 	//current and initial coords the same for anti-plane shear problem
+		fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
 		fShapes->SetDerivatives(); 
 		
 		// ?????
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradiants 		( fShapes, 	u, u_n );
-		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n );
+		Convert.Gradiants 		( fShapes, 	u, u_n, fGRAD_u, fGRAD_u_n );
+		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n, fGRAD_gamma_p, fGRAD_gamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
@@ -363,9 +376,12 @@ void APS_AssemblyT::RHSDriver_staggered(void)	// LHS too!	This was original RHSD
 		 * 	calculated again for fine field -- this is a waste and defeats the purpose of APS_VariableT. 
 		 *  Note: n is last time step (known data), no subscript, np1 or (n+1) is the 
 		 *  next time step (what were solving for)   */
+		 
+		APS_VariableT np1(	fGRAD_u, 	fGRAD_gamma_p 	 ); // Many variables at time-step n+1
+		APS_VariableT   n(	fGRAD_u_n, fGRAD_gamma_p_n );	// Many variables at time-step n		 
 		
 		/* which field */
-	  //SolverGroup 1 (gets field 2) <-- gamma_p (obtained by a rearranged Equation I)
+	  //SolverGroup 1 (gets field 1) <-- u (obtained by a rearranged Equation I)
 		if ( curr_group == fDispl.Group() )	
 		{
 			if (bStep_Complete) { 
@@ -374,22 +390,22 @@ void APS_AssemblyT::RHSDriver_staggered(void)	// LHS too!	This was original RHSD
 			else { //-- Still Iterating
 
 				/** Compute N-R matrix equations */
-				fEquation_I -> Construct (	fFEA_Shapes, fBalLinMomMaterial, np1, n, 
+				fEquation_d -> Construct (	fFEA_Shapes, fBalLinMomMaterial, np1, n, 
 											step_number, delta_t );
-				fEquation_I -> Form_LHS_Keps_Kd ( fKeps_I, fKd_I );
-				fEquation_I -> Form_RHS_F_int ( fFint_I );
+				fEquation_d -> Form_LHS_Keps_Kd ( fKdeps, fKdd );
+				fEquation_d -> Form_RHS_F_int ( fFd_int );
 
 				/** Set coarse LHS */
-				fLHS = fKd_I;
+				fLHS = fKdd;
 
 				/** Compute coarse RHS */
-				fKeps_I.Multx ( del_gamma_p_vec, fRHS );
-				fRHS += fFint_I; 
+				fKdeps.Multx ( del_gamma_p_vec, fRHS );
+				fRHS += fFd_int; 
 				fRHS *= -1.0; 
 
 				/** Compute Traction B.C. and Body Forces */
-				Get_Fext_I ( fFext_I );
-				fRHS += fFext_I;
+				Get_Fd_ext ( fFd_ext );
+				fRHS += fFd_ext;
 			
 				/* add to global equations */
 				ElementSupport().AssembleLHS	( fDispl.Group(), fLHS, CurrentElement().Equations() );
@@ -397,7 +413,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)	// LHS too!	This was original RHSD
 			}
 		}
 
-		// SolverGroup 2 (gets field 1) <-- ua (obtained by a rearranged Equation II)
+		// SolverGroup 2 (gets field 2) <-- gamma_p (obtained by a rearranged Equation II)
 		else if (curr_group == fPlast.Group() )	
 		{
 
@@ -407,17 +423,17 @@ void APS_AssemblyT::RHSDriver_staggered(void)	// LHS too!	This was original RHSD
 			else { //-- Still Iterating
 
 				/** Compute N-R matrix equations */
-				fEquation_II -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, 
+				fEquation_eps -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, 
 											step_number, delta_t, FEA::kBackward_Euler );
-				fEquation_II -> Form_LHS_Keps_Kd ( fKeps_II, 	fKd_II );
-				fEquation_II -> Form_RHS_F_int ( fFint_II );
+				fEquation_eps -> Form_LHS_Keps_Kd ( fKepseps, 	fKepsd );
+				fEquation_eps -> Form_RHS_F_int ( fFeps_int );
 
 				/** Set LHS */
-				fLHS = fKeps_II;	
+				fLHS = fKepseps;	
 		
 				/** Compute fine RHS (or Fint_bar_II in FAXed notes)  */
-				fKd_II.Multx ( del_u_vec, fRHS );
-				fRHS += fFint_II; 
+				fKepsd.Multx ( del_u_vec, fRHS );
+				fRHS += fFeps_int; 
 				fRHS *= -1.0; 
 		
 				/* fine scale equation numbers */
@@ -454,9 +470,9 @@ void APS_AssemblyT::Select_Equations (const int &iBalScale,const int &iPlastScal
 	switch ( iBalScale )	{
 
 		case BalLinMomT::kAPS_Bal_Eq :
-			fEquation_I 	= new APS_Bal_EqT;
+			fEquation_d 	= new APS_Bal_EqT;
 			fBalLinMomMaterial = new Shear_MatlT;
-			fBalLinMomMaterial -> Assign ( Shear_MatlT::kmu, fMaterial_Data[k__mu] );
+			fBalLinMomMaterial -> Assign ( Shear_MatlT::kMu, fMaterial_Data[k__mu] );
 			break;
 
 		default :
@@ -469,7 +485,7 @@ void APS_AssemblyT::Select_Equations (const int &iBalScale,const int &iPlastScal
 	switch ( iPlastScale )	{
 
 		case PlastT::kAPS_BCJ :
-			fEquation_II	= new APS_BCJT;
+			fEquation_eps	= new APS_BCJT;
 			fPlastMaterial	= new APS_MatlT;		
 			fPlastMaterial -> Assign (	APS_MatlT::kMu, 		fMaterial_Data[k__mu] 		); 	
 			fPlastMaterial -> Assign ( 	APS_MatlT::km_rate, 	fMaterial_Data[k__m_rate] 	); 	
@@ -479,6 +495,7 @@ void APS_AssemblyT::Select_Equations (const int &iBalScale,const int &iPlastScal
 			fPlastMaterial -> Assign ( 	APS_MatlT::kl, 			fMaterial_Data[k__l] 		); 	
 			fPlastMaterial -> Assign ( 	APS_MatlT::kH, 			fMaterial_Data[k__H] 		); 	
 			break;
+			
 		default :
 			cout << " APS_AssemblyT::Select_Equations() .. ERROR >> bad iPlastScale \n";
 			break;
@@ -566,12 +583,12 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 	int num_force = 0;
 	if (field.Name() == fDispl.Name()) {
 		is_coarse = true;
-		element_force = &fFint_I;
+		element_force = &fFd_int;
 		num_force = fDispl.NumDOF();
 	}
 	else if (field.Name() == fPlast.Name()) {
 		is_coarse = false;
-		element_force = &fFint_II;
+		element_force = &fFeps_int;
 		num_force = fPlast.NumDOF();
 	}
 	else
@@ -616,8 +633,8 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		
 		// ?????
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradiants 		( fShapes, 	u, u_n );
-		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n );
+		Convert.Gradiants 		( fShapes, 	u, u_n, fGRAD_u, fGRAD_u_n );
+		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n, fGRAD_gamma_p, fGRAD_gamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
@@ -628,38 +645,41 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		 * 	calculated again for fine field -- this is a waste and defeats the purpose of VMS_VariableT. 
 		 *  Note: n is last time step (known data), no subscript, np1 or (n+1) is the 
 		 *  next time step (what were solving for)   */
+		 
+		APS_VariableT np1(	fGRAD_u, 	fGRAD_gamma_p 	 ); // Many variables at time-step n+1
+		APS_VariableT   n(	fGRAD_u_n, fGRAD_gamma_p_n );	// Many variables at time-step n		 
 
 			/* calculate coarse scale nodal force */
 			if (is_coarse)
 			{
 				/* residual and tangent for coarse scale */
-				fEquation_I -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, 
+				fEquation_d -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, 
 											step_number, delta_t );
-				fEquation_I -> Form_LHS_Keps_Kd ( fKeps_I, fKd_I );
-				fEquation_I -> Form_RHS_F_int ( fFint_I );
-				fFint_I *= -1.0;  
+				fEquation_d -> Form_LHS_Keps_Kd ( fKdeps, fKdd );
+				fEquation_d -> Form_RHS_F_int ( fFd_int );
+				fFd_int *= -1.0;  
 
 				/* add body force */
 				if (formBody) {
 //					double density = fBalLinMomMaterial->Retrieve(Iso_MatlT::kDensity);
 					double density = 1.0;
-					DDub = 0.0;
-					AddBodyForce(DDub);
+					DDu = 0.0;
+					AddBodyForce(DDu);
 				
 					/* add body force to fRHS */
 					fRHS = 0.0;
-					FormMa(kConsistentMass, -density, &DDub, NULL);
-					fFint_I += fRHS;
+					FormMa(kConsistentMass, -density, &DDu, NULL);
+					fFd_int += fRHS;
 				}
 			}
 			else /* fine scale nodal force */
 			{
 				/* residual and tangent for fine scale */
-				fEquation_II -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, 
+				fEquation_eps -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, 
 											step_number, delta_t, FEA::kBackward_Euler );
-				fEquation_II -> Form_LHS_Keps_Kd ( fKeps_II, 	fKd_II );
-				fEquation_II -> Form_RHS_F_int ( fFint_II );
-				fFint_II *= -1.0;
+				fEquation_eps -> Form_LHS_Keps_Kd ( fKepseps, 	fKepsd );
+				fEquation_eps -> Form_RHS_F_int ( fFeps_int );
+				fFeps_int *= -1.0;
 			}
 
 			/* loop over nodes (double-noding OK) */
@@ -678,7 +698,7 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 			}			
 		}
 	}
-//	cout << "F_int = \n" << fFint_I << endl;
+//	cout << "F_int = \n" << fFd_int << endl;
 }
 
 //---------------------------------------------------------------------
@@ -728,8 +748,8 @@ void APS_AssemblyT::RegisterOutput(void)
 
 	/* over integration points */
 	// what stress output?????
-	const char* slabels2D[] = {"s11", "s22", "s12"};
-	const char* slabels3D[] = {"s11", "s22", "s33", "s23", "s13", "s12"};
+	const char* slabels2D[] = {"s13", "s23"};
+	const char* slabels3D[] = {"s13", "s23"};
 	const char** slabels = (NumSD() == 2) ? slabels2D : slabels3D;
 	int count = 0;
 	for (int j = 0; j < fNumIP; j++)
@@ -862,9 +882,9 @@ void APS_AssemblyT::WriteOutput(void)
 
 //---------------------------------------------------------------------
 
-void 	APS_AssemblyT::Get_Fext_I ( dArrayT &fFext_I )
+void 	APS_AssemblyT::Get_Fd_ext ( dArrayT &fFd_ext )
 {
-	fFext_I = 0.0;
+	fFd_ext = 0.0;
 }
 
 
@@ -930,15 +950,18 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 		
 		// ?????
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradiants 		( fShapes, 	u, u_n );
-		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n );
+		Convert.Gradiants 		( fShapes, 	u, u_n, fGRAD_u, fGRAD_u_n );
+		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n, fGRAD_gamma_p, fGRAD_gamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
 		Convert.Na				(	n_en, fShapes, 	fFEA_Shapes );
 		
+		APS_VariableT np1(	fGRAD_u, 	fGRAD_gamma_p 	 ); // Many variables at time-step n+1
+		APS_VariableT   n(	fGRAD_u_n, fGRAD_gamma_p_n );	// Many variables at time-step n
+		
 		/* which field */
-	  //SolverGroup 1 (gets field 2) <-- u (obtained by a rearranged Equation I)
+	  //SolverGroup 1 (gets field 1) <-- u (obtained by a rearranged Equation I)
 		if ( curr_group == fDispl.Group()  )	
 		{
 
@@ -948,30 +971,30 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 			else { //-- Still Iterating
 
 				/** Compute N-R matrix equations */
-				fEquation_I -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, 
+				fEquation_d -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, 
 											step_number, delta_t );
-				fEquation_I -> Form_LHS_Keps_Kd ( fKeps_I, fKd_I );
-				fEquation_I -> Form_RHS_F_int ( fFint_I );
+				fEquation_d -> Form_LHS_Keps_Kd ( fKdeps, fKdd );
+				fEquation_d -> Form_RHS_F_int ( fFd_int );
 
 				/** Set coarse LHS */
-				fLHS = fKd_I;
+				fLHS = fKdd;
 
 				/** Compute coarse RHS */
-				fKeps_I.Multx ( del_gamma_p_vec, fRHS );
-				fRHS += fFint_I; 
+				fKdeps.Multx ( del_gamma_p_vec, fRHS );
+				fRHS += fFd_int; 
 				fRHS *= -1.0; 
 
 				/** Compute Traction B.C. and Body Forces */
-				Get_Fext_I ( fFext_I );
-				fRHS += fFext_I;
+				Get_Fd_ext ( fFd_ext );
+				fRHS += fFd_ext;
 				
 				/* add body forces */
 				if (formBody) {
 //					double density = fBalLinMomMaterial->Retrieve(Iso_MatlT::kDensity);
 					double density = 1.0;
-					DDub = 0.0;
-					AddBodyForce(DDub);
-					FormMa(kConsistentMass, -density, &DDub, NULL);				
+					DDu = 0.0;
+					AddBodyForce(DDu);
+					FormMa(kConsistentMass, -density, &DDu, NULL);				
 				}
 			
 				/* add to global equations */
@@ -980,8 +1003,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 			}
 		}
 
-		// SolverGroup 2 (gets field 1) <-- ua (obtained by a rearranged Equation II)
-		else if (curr_group == fPlast.Group() || (bStep_Complete && render_variable_group==1) )	
+		// SolverGroup 2 (gets field 2) <-- gamma_p (obtained by a rearranged Equation II)
+		else if (curr_group == fPlast.Group() )	
 		{
 
 			if (bStep_Complete) { 
@@ -990,17 +1013,17 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 			else { //-- Still Iterating
 
 				/** Compute N-R matrix equations */
-				fEquation_II -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, 
+				fEquation_eps -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, 
 											step_number, delta_t, FEA::kBackward_Euler );
-				fEquation_II -> Form_LHS_Keps_Kd ( fKeps_II, 	fKd_II );
-				fEquation_II -> Form_RHS_F_int ( fFint_II );
+				fEquation_eps -> Form_LHS_Keps_Kd ( fKepseps, 	fKepsd );
+				fEquation_eps -> Form_RHS_F_int ( fFeps_int );
 
 				/** Set LHS */
-				fLHS = fKeps_II;	
+				fLHS = fKepseps;	
 		
 				/** Compute fine RHS (or Fint_bar_II in FAXed notes)  */
-				fKd_II.Multx ( del_u_vec, fRHS );
-				fRHS += fFint_II; 
+				fKepsd.Multx ( del_u_vec, fRHS );
+				fRHS += fFeps_int; 
 				fRHS *= -1.0; 
 		
 				/* fine scale equation numbers */
@@ -1059,17 +1082,20 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		del_gamma_p.DiffOf (gamma_p, gamma_p_n);
 
 	 	SetLocalX(fInitCoords); 
-	 	// not change in coordinates
+	 	// no change in coordinates
 		fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
 		fShapes->SetDerivatives(); 
 		
 		/* repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradiants 		( fShapes, 	u, u_n );
-		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n );
+		Convert.Gradiants 		( fShapes, 	u, u_n, fGRAD_u, fGRAD_u_n );
+		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n, fGRAD_gamma_p, fGRAD_gamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
 		Convert.Na				(	n_en, fShapes, 	fFEA_Shapes );
+		
+		APS_VariableT np1(	fGRAD_u, 	fGRAD_gamma_p 	 ); // Many variables at time-step n+1
+		APS_VariableT   n(	fGRAD_u_n, fGRAD_gamma_p_n );	// Many variables at time-step n
 
 		if (bStep_Complete) { 
 		//nothing done
@@ -1077,46 +1103,46 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		else { //-- Still Iterating
 
 			/* residual and tangent for coarse scale */
-			fEquation_I -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, 
+			fEquation_d -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, 
 										step_number, delta_t );
-			fEquation_I -> Form_LHS_Keps_Kd ( fKeps_I, fKd_I );
-			fEquation_I -> Form_RHS_F_int ( fFint_I );
-			fFint_I *= -1.0;
+			fEquation_d -> Form_LHS_Keps_Kd ( fKdeps, fKdd );
+			fEquation_d -> Form_RHS_F_int ( fFd_int );
+			fFd_int *= -1.0;
 
 			/* add body force */
 			if (formBody) {
 //				double density = fBalLinMomMaterial->Retrieve(Iso_MatlT::kDensity);
 				double density = 1.0;
-				DDub = 0.0;
-				AddBodyForce(DDub);
+				DDu = 0.0;
+				AddBodyForce(DDu);
 				
 				/* add body force to fRHS */
 				fRHS = 0.0;
-				FormMa(kConsistentMass, -density, &DDub, NULL);
-				fFint_I += fRHS;
+				FormMa(kConsistentMass, -density, &DDu, NULL);
+				fFd_int += fRHS;
 			}
 
 			/* residual and tangent for fine scale */
-			fEquation_II -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, step_number, 
+			fEquation_eps -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, step_number, 
 										delta_t, FEA::kBackward_Euler );
-			fEquation_II -> Form_LHS_Keps_Kd ( fKeps_II, 	fKd_II );
-			fEquation_II -> Form_RHS_F_int ( fFint_II );
-			fFint_II *= -1.0;
+			fEquation_eps -> Form_LHS_Keps_Kd ( fKepseps, 	fKepsd );
+			fEquation_eps -> Form_RHS_F_int ( fFeps_int );
+			fFeps_int *= -1.0;
 
 			/* equations numbers */
 			const iArrayT& all_eq = CurrentElement().Equations();
-			displ_eq.Set(fFint_I.Length(), all_eq.Pointer());
-			plast_eq.Set(fFint_II.Length(), all_eq.Pointer(fFint_I.Length()));
+			displ_eq.Set(fFd_int.Length(), all_eq.Pointer());
+			plast_eq.Set(fFeps_int.Length(), all_eq.Pointer(fFd_int.Length()));
 
 			/* assemble residuals */
-			ElementSupport().AssembleRHS(curr_group, fFint_I, displ_eq);
-			ElementSupport().AssembleRHS(curr_group, fFint_II, plast_eq);
+			ElementSupport().AssembleRHS(curr_group, fFd_int, displ_eq);
+			ElementSupport().AssembleRHS(curr_group, fFeps_int, plast_eq);
 
 			/* assemble components of the tangent */
-			ElementSupport().AssembleLHS(curr_group, fKd_I, displ_eq);
-			ElementSupport().AssembleLHS(curr_group, fKeps_II, plast_eq);
-			ElementSupport().AssembleLHS(curr_group, fKeps_I, displ_eq, plast_eq);
-			ElementSupport().AssembleLHS(curr_group, fKd_II, plast_eq, displ_eq);
+			ElementSupport().AssembleLHS(curr_group, fKdd, displ_eq);
+			ElementSupport().AssembleLHS(curr_group, fKepseps, plast_eq);
+			ElementSupport().AssembleLHS(curr_group, fKdeps, displ_eq, plast_eq);
+			ElementSupport().AssembleLHS(curr_group, fKepsd, plast_eq, displ_eq);
 		}
 	}
 }

@@ -1,4 +1,4 @@
-// $Id: APS_VariableT.h,v 1.2 2003-09-02 23:57:54 raregue Exp $
+// $Id: APS_VariableT.h,v 1.3 2003-09-19 00:47:02 raregue Exp $
 #ifndef _APS_VARIABLE_T_H_ 
 #define _APS_VARIABLE_T_H_ 
 
@@ -17,10 +17,10 @@ class APS_VariableT
 
 		/** constructor */
 		APS_VariableT 	(void) { }
-		APS_VariableT 	(const FEA_dVectorT& grad_u, const FEA_dVectorT& gammap);
+		APS_VariableT 	(const FEA_dMatrixT& grad_u, const FEA_dMatrixT& grad_gammap);
 
 		/** data initialization */
-		void Construct 	(const FEA_dVectorT& grad_u, const FEA_dVectorT& gammap);
+		void Construct 	(const FEA_dMatrixT& grad_u, const FEA_dMatrixT& grad_gammap);
 
 		/** delete variables */
 		void Delete_Vars	( void );
@@ -42,7 +42,7 @@ class APS_VariableT
 
  		//protected:
 
-    	ArrayT <FEA_dVectorT> fVars;         /** Variables : grad_u, gammap stored here */
+    	ArrayT <FEA_dMatrixT> fVars;         /** Variables : grad_u, grad_gammap stored here */
 
 	private:
 
