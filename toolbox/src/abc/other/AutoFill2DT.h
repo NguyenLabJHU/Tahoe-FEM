@@ -1,4 +1,4 @@
-/* $Id: AutoFill2DT.h,v 1.2 2001-07-06 22:21:53 paklein Exp $ */
+/* $Id: AutoFill2DT.h,v 1.3 2001-11-14 21:50:45 paklein Exp $ */
 /* created: paklein (01/19/1999)                                          */
 /* NOTE: going to use this with a manager to help count and               */
 /* store edges in a graph. There have to be 2 modes of                    */
@@ -104,7 +104,10 @@ inline AutoFill2DT<TYPE>::AutoFill2DT(int majordim, int headroom):
 {
 	/* check */
 	if (fMajorDim < 0 ||
-	    fHeadRoom < 0) throw eGeneralFail;	
+	    fHeadRoom < 0) throw eGeneralFail;
+	    
+	/* initialize memory */
+	Allocate(0,0);	    
 }
 
 template <class TYPE>
