@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.15 2001-08-21 01:11:06 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.15.2.1 2001-10-26 18:42:57 sawimme Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #include "SolidElementT.h"
@@ -120,7 +120,10 @@ void SolidElementT::SetController(eControllerT* controller)
 void SolidElementT::AddNodalForce(int node, dArrayT& force)
 {
 	/* quick exit */
-	if (!fConnectivities.HasValue(node)) return;
+        bool hasnode = false;
+	for (int i=0; i < fBlockData.MajorDim() && !hasnode; i++)
+	  if (fConnectivities[i]->HasValue(node)) hasnode = true;
+	if (!hasnode) return;
 
 	/* set components and weights */
 	double constMa = 0.0;
