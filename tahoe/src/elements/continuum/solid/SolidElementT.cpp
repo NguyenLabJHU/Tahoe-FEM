@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.4 2001-03-19 22:31:17 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.5 2001-04-29 21:11:08 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #include "SolidElementT.h"
@@ -447,10 +447,12 @@ void SolidElementT::SetLocalArrays(void)
 	ContinuumElementT::SetLocalArrays();
 
 	/* dimension */
+	fLocLastDisp.Allocate(fNumElemNodes, fNumDOF);
 	fLocVel.Allocate(fNumElemNodes, fNumDOF);
 	fLocAcc.Allocate(fNumElemNodes, fNumDOF);
 
 	/* set source */
+	fFEManager.RegisterLocal(fLocLastDisp);
 	fFEManager.RegisterLocal(fLocVel);
 	fFEManager.RegisterLocal(fLocAcc);
 }
@@ -463,6 +465,17 @@ void SolidElementT::SetShape(void)
 	if (!fShapes) throw eOutOfMemory;
 
 	fShapes->Initialize();
+}
+
+/* form shape functions and derivatives */
+void SolidElementT::SetGlobalShape(void)
+{
+	/* inherited */
+	ContinuumElementT::SetGlobalShape();
+
+	/* material dependent local arrays */
+	if (fCurrMaterial->NeedLastDisp()) SetLocalU(fLocLastDisp);	
+	if (fCurrMaterial->NeedVel()) SetLocalU(fLocVel);	
 }
 
 /* construct the effective mass matrix */
