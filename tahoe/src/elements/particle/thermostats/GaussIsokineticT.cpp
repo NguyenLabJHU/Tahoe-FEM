@@ -1,4 +1,4 @@
-/* $Id: GaussIsokineticT.cpp,v 1.4 2003-04-29 23:09:36 cjkimme Exp $ */
+/* $Id: GaussIsokineticT.cpp,v 1.5 2003-04-30 00:06:15 cjkimme Exp $ */
 #include "GaussIsokineticT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -104,7 +104,7 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 	}
 	
 	/* compute damping coefficient */
-	if (abs(denom) > kSmall)
+	if (fabs(denom) > kSmall)
 		fBeta = num/denom;
 	else
 		fBeta = 0.; 
