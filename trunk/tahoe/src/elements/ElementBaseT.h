@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.43 2004-10-20 21:22:23 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.44 2004-11-07 17:07:30 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -394,7 +394,7 @@ protected: /* for derived classes only */
 	/** \name element loop operations */
 	/*@{*/
 	/** reset loop */
-	void Top(void);
+	virtual void Top(void);
 	
 	/** advance to next element. \return true if there is another element, 
 	 * false otherwise */ 
