@@ -1,4 +1,6 @@
-/* $Id: ParticleT.h,v 1.15.8.3 2003-10-09 23:58:17 bsun Exp $ */
+
+/* $Id: ParticleT.h,v 1.15.8.4 2003-10-15 22:18:25 bsun Exp $ */
+
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 

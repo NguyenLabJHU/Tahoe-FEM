@@ -1,11 +1,10 @@
-/* $Id: J2Simo2D.h,v 1.10 2003-01-29 07:35:02 paklein Exp $ */
+/* $Id: J2Simo2D.h,v 1.10.20.1 2003-10-15 22:18:22 bsun Exp $ */
 /* created: paklein (06/22/1997) */
 #ifndef _J2_SIMO_2D_H_
 #define _J2_SIMO_2D_H_
 
 /* base classes */
 #include "SimoIso2D.h"
-//#include "J2SimoLinHardT.h"
 #include "J2SimoC0HardeningT.h"
 
 /* direct members */
@@ -13,7 +12,7 @@
 
 namespace Tahoe {
 
-//class J2Simo2D: public SimoIso2D, public J2SimoLinHardT
+/** finite strain J2 plasticity */
 class J2Simo2D: public SimoIso2D, public J2SimoC0HardeningT
 {
 public:

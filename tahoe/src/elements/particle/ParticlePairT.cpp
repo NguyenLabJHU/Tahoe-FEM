@@ -1,4 +1,6 @@
-/* $Id: ParticlePairT.cpp,v 1.23.2.2 2003-10-09 23:58:17 bsun Exp $ */
+
+/* $Id: ParticlePairT.cpp,v 1.23.2.3 2003-10-15 22:18:25 bsun Exp $ */
+
 
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
@@ -183,10 +185,10 @@ void ParticlePairT::WriteOutput(void)
 	dMatrixT Strain(ndof);
 	for (int i = 0; i < fNeighbors.MajorDim(); i++)
 	  { //run through neighbor list
-	  
+	    
 		/* row of neighbor list */
 		fNeighbors.RowAlias(i, neighbors);
-
+		Strain=0;
 		/* tags */
 		int   tag_i = neighbors[0]; /* self is 1st spot */
 		int  type_i = fType[tag_i];
@@ -283,6 +285,7 @@ void ParticlePairT::WriteOutput(void)
 
 		CalcValues(i, coords, CParamStart, &Strain, &SlipVector, &NearestNeighbors);
 		int valuep=0;
+		Strain /=2;
 		for(int n=0; n<ndof;n++)
 		  for(int m=n;m<ndof;m++)
 		    n_values(local_i,ndof+2+num_stresses+valuep++)=Strain(n,m);

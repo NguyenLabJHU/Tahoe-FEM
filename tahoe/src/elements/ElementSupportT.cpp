@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.25 2003-08-25 21:41:49 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.25.6.1 2003-10-15 22:18:20 bsun Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -280,9 +280,11 @@ const FieldT* ElementSupportT::Field(const char* name) const
 /* return the element controller appropriate for the given field */
 const eIntegratorT* ElementSupportT::eIntegrator(const FieldT& field) const
 {
-	const nIntegratorT& n_cont = field.nIntegrator();
-	const eIntegratorT* e_cont = dynamic_cast<const eIntegratorT*>(&n_cont);
-	return e_cont;
+	const nIntegratorT& n_integrator = field.nIntegrator();
+	const IntegratorT* integrator = &n_integrator;
+	const eIntegratorT* e_integrator = dynamic_cast<const eIntegratorT*>(integrator);
+	if (!e_integrator) ExceptionT::GeneralFail("ElementSupportT::eIntegrator", "could not resolve eIntegrator");
+	return e_integrator;
 }
 
 #else //_FRACTURE_INTERFACE_LIBRARY_

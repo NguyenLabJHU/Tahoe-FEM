@@ -1,4 +1,6 @@
-/* $Id: ParticleT.cpp,v 1.23.2.5 2003-10-10 22:10:14 bsun Exp $ */
+
+/* $Id: ParticleT.cpp,v 1.23.2.6 2003-10-15 22:18:25 bsun Exp $ */
+
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -876,7 +878,8 @@ void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CPara
   NearestNeighbors->RowAlias(i, neighbors);
   const dArray2DT&  refcoords = ElementSupport().InitialCoordinates();
   int   tag_i = neighbors[0]; /* self is 1st spot */
-  
+  Eta=0;
+  Omega=0;
 
 
   coords.RowAlias(tag_i, x_i);
@@ -921,8 +924,7 @@ void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CPara
 	}
 
     }
-  if(Eta.Det()==0) *Strain=0;
-  else 
+  if(Eta.Det()!=0)
     {
       dMatrixT EtaInverse = Eta.Inverse();
       F_iI.MultAB(Omega, EtaInverse);
@@ -932,7 +934,7 @@ void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CPara
 	Id=0;
 	for(int i=0; i<ndof;i++) Id(i,i)=1;
 	Strain->DiffOf(Id,b_ij.Inverse());
-	*Strain/=2;
+
       }
     }
   *SlipVector /= neighbors.Length()-1;
