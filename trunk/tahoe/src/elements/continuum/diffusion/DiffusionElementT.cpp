@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.13 2003-05-20 10:31:51 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.14 2003-06-09 06:58:12 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -277,7 +277,7 @@ void DiffusionElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		
 		/* set shape function derivatives */
 		SetGlobalShape();
-			
+
 		/* element mass */
 		if (formC) FormMass(kConsistentMass, constC*(fCurrMaterial->Capacity()));
 
@@ -476,7 +476,7 @@ void DiffusionElementT::FormKd(double constK)
 		fB.MultTx(fCurrMaterial->q_i(), fNEEvec);
 
 		/* accumulate */
-		fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);
+		fRHS.AddScaled(-constK*(*Weight++)*(*Det++), fNEEvec);
 	}	
 }
 
@@ -610,6 +610,9 @@ void DiffusionElementT::GenerateOutputLabels(const iArrayT& n_codes,
 	ArrayT<StringT>& n_labels, const iArrayT& e_codes, 
 	ArrayT<StringT>& e_labels) const
 {
+//TEMP - no element labels for now
+#pragma unused(e_labels)
+
 	/* allocate node labels */
 	n_labels.Dimension(n_codes.Sum());
 	int count = 0;	
@@ -639,12 +642,7 @@ void DiffusionElementT::GenerateOutputLabels(const iArrayT& n_codes,
 			n_labels[count++] = matlabels[i];
 	}
 	
-//TEMP - no element labels for now
-#pragma unused(e_labels)
 	if (e_codes.Sum() != 0)
-	{
-		cout << "\n DiffusionElementT::GenerateOutputLabels: not expecting any element\n"
-		     <<   "     output codes:\n" << e_codes << endl;	
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("DiffusionElementT::GenerateOutputLabels", 
+			"not expecting any element output codes");
 }
