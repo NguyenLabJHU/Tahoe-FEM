@@ -1,4 +1,4 @@
-/* $Id: BasisGPT.cpp,v 1.1 2004-06-22 23:17:48 kyonten Exp $ */
+/* $Id: BasisGPT.cpp,v 1.2 2004-07-14 19:48:51 kyonten Exp $ */
 /* created: paklein (12/10/1999)                                          */
 /* base class for basis functions                                         */
 
@@ -14,7 +14,9 @@ BasisGPT::BasisGPT(int complete, int nsd):
 	fNumSD(nsd),
 	fDP(fNumSD),
 	fDDP(dSymMatrixT::NumValues(fNumSD)),
-	fDDDP(dSymMatrixT::NumValues(fNumSD)), // kyonten
+	fDDDP(fNumSD*fNumSD), // kyonten
+	// DDDp(nsd*nsd) is a special case. In 3D case out of
+	// 27 components, only 9 are needed
 	fArray2DGroup1(0, 0)
 {
 	fArray2DGroup1.Register(fP);
