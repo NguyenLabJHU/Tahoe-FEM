@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.5 2001-06-23 06:24:04 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.6 2001-06-25 07:31:14 paklein Exp $ */
 /* created: paklein (03/03/1997)                                          */
 
 #include "dSymMatrixT.h"
@@ -213,7 +213,8 @@ void dSymMatrixT::Eigensystem(dArrayT& val, dMatrixT& vec, bool sort_descending)
 	double b = fArray[2];
 	double cos;
 	double sin;
-	if (abs(b) < 1e-14)
+	
+	if (fabs(b) < 1e-14)
 	{
 		cos = 1.0;
 		sin = 0.0;
