@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.18 2002-08-19 23:53:58 hspark Exp $ */
+/* $Id: BridgingScaleT.h,v 1.19 2002-09-04 15:58:21 hspark Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -117,9 +117,9 @@ protected:
 	RaggedArray2DT<double> fInverseMapInCell;
 
 	/** Nodal degrees of freedom */
-	dArrayT fUx, fUy, fVx, fVy, fAx, fAy;
-	dMatrixT fWtempU, fWtempV, fWtempA;
-	dArray2DT fFineScaleU, fFineScaleV, fFineScaleA;
+	dArrayT fUx, fUy;
+	dMatrixT fWtempU;
+	dArray2DT fFineScaleU;
 
 	int fTotalNodes;
 	iArray2DT fConnect, fAtomConnect;
