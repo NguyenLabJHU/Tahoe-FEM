@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.cpp,v 1.12 2002-10-04 01:36:34 thao Exp $ */
+/* $Id: dMatrixT.cpp,v 1.12.2.2 2002-10-19 03:10:42 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "dMatrixT.h"
@@ -28,7 +28,7 @@ dMatrixT::dMatrixT(const dMatrixT& source): nMatrixT<double>(source) { }
 dMatrixT& dMatrixT::Inverse(const dMatrixT& matrix)
 {
 	/* must be square */
-	if (fRows != fCols) throw eSizeMismatch;
+	if (fRows != fCols) throw ExceptionT::kSizeMismatch;
 	
 	/* (2 x 2) */
 	if (fRows == 2)
@@ -163,7 +163,7 @@ dMatrixT& dMatrixT::Inverse(const dMatrixT& matrix)
 			else
 			{
 				cout << "\n dMatrixT::Inverse: zero pivot in row " << n << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 		}
 	}
@@ -177,7 +177,7 @@ double dMatrixT::Det(void) const
 {
 /* dimension check */
 #if __option (extended_errorcheck)
-	if (fRows != fCols) throw eGeneralFail;
+	if (fRows != fCols) throw ExceptionT::kGeneralFail;
 #endif
 	
 	if (fCols == 2) // (2 x 2)
@@ -188,7 +188,7 @@ double dMatrixT::Det(void) const
 		return fArray[0]*(fArray[4]*fArray[8] - fArray[5]*fArray[7])
 			 - fArray[1]*(fArray[3]*fArray[8] - fArray[5]*fArray[6])
 			 + fArray[2]*(fArray[3]*fArray[7] - fArray[4]*fArray[6]);
-	else throw eGeneralFail;
+	else throw ExceptionT::kGeneralFail;
 	return 0;
 }
 
@@ -197,7 +197,7 @@ double dMatrixT::Trace(void) const
 {
 /* check is square */
 #if __option (extended_errorcheck)
-	if (fRows != fCols) throw eGeneralFail;
+	if (fRows != fCols) throw ExceptionT::kGeneralFail;
 #endif
 
 	double trace  = 0.0;
@@ -235,7 +235,7 @@ dMatrixT& dMatrixT::Symmetrize(const dMatrixT& matrix)
 	/* square matrices only */
 	if (fRows != fCols ||
 	    matrix.fRows != matrix.fCols ||
-	    fRows != matrix.fRows) throw eSizeMismatch;
+	    fRows != matrix.fRows) throw ExceptionT::kSizeMismatch;
 #endif
 
 	if (fRows == 2)
@@ -268,8 +268,8 @@ void dMatrixT::Rank4ReduceFrom3D(const dMatrixT& mat3D)
 {
 	/* dimension checks */
 #if __option(extended_errorcheck)	
-	if (fRows != fCols || fRows != 3) throw eGeneralFail;
-	if (mat3D.fRows != mat3D.fCols || mat3D.fRows != 6) throw eSizeMismatch;
+	if (fRows != fCols || fRows != 3) throw ExceptionT::kGeneralFail;
+	if (mat3D.fRows != mat3D.fCols || mat3D.fRows != 6) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double* pthis = fArray;
@@ -299,7 +299,7 @@ dMatrixT& dMatrixT::ReducedIndexDeviatoric(void)
 {
 #if __option (extended_errorcheck)
 	/* check */
-	if (fRows != fCols || (fRows != 3 && fRows != 6)) throw eGeneralFail;
+	if (fRows != fCols || (fRows != 3 && fRows != 6)) throw ExceptionT::kGeneralFail;
 #endif
 
 	*this = 0.0;
@@ -334,7 +334,7 @@ dMatrixT& dMatrixT::ReducedIndexI(void)
 {
 #if __option (extended_errorcheck)
 	/* check */
-	if (fRows != fCols || (fRows != 3 && fRows != 6)) throw eGeneralFail;
+	if (fRows != fCols || (fRows != 3 && fRows != 6)) throw ExceptionT::kGeneralFail;
 #endif
 
 	*this = 0.0;
@@ -360,7 +360,7 @@ dMatrixT& dMatrixT::ReducedIndexII(void)
 {
 #if __option (extended_errorcheck)
 	/* check */
-	if (fRows != fCols || (fRows != 3 && fRows != 6)) throw eGeneralFail;
+	if (fRows != fCols || (fRows != 3 && fRows != 6)) throw ExceptionT::kGeneralFail;
 #endif
 
 	*this = 0.0;
@@ -393,8 +393,8 @@ void dMatrixT::MultSymAB(const dSymMatrixT& A, const dMatrixT& B)
 	if (fRows != fCols ||
 		fCols != A.Rows() ||
 	  	A.Rows() != B.Rows() ||
-	  	B.Rows() != B.Cols()) throw eSizeMismatch; 
-	if(fCols < 2 || fCols > 3) throw eGeneralFail;
+	  	B.Rows() != B.Cols()) throw ExceptionT::kSizeMismatch; 
+	if(fCols < 2 || fCols > 3) throw ExceptionT::kGeneralFail;
 #endif		   
 	double* pB = B.Pointer();
 	double* pA = A.Pointer();
@@ -434,7 +434,7 @@ void dMatrixT::ReducedI_C(const dSymMatrixT& C)
 
 #if __option (extended_errorcheck)
 	/* check */
-	if (fRows != fCols || fCols < nummod ) throw eGeneralFail;
+	if (fRows != fCols || fCols < nummod ) throw ExceptionT::kGeneralFail;
 #endif
 	
 	double* pC = C.Pointer();
@@ -507,7 +507,7 @@ dMatrixT&  dMatrixT::DyadAB(const dSymMatrixT& A, const dSymMatrixT& B)
         /*dimension check*/
 #if __option (extended_errorcheck)
 	if (fRows != fCols || A.Rows() != B.Rows() 
-	    || fCols < nummod) throw eGeneralFail;
+	    || fCols < nummod) throw ExceptionT::kGeneralFail;
 #endif	
 	double* pthis = fArray;
 	double* pB = B.Pointer();
@@ -523,13 +523,16 @@ dMatrixT&  dMatrixT::DyadAB(const dSymMatrixT& A, const dSymMatrixT& B)
 }
 
 /* expand into block diagonal submatrices if dimension factor */
-void dMatrixT::Expand(const dMatrixT& B, int factor)
+void dMatrixT::Expand(const dMatrixT& B, int factor, AssemblyModeT mode)
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)
 	if (fRows != factor*B.fRows ||
-	    fCols != factor*B.fCols) throw eSizeMismatch;
+	    fCols != factor*B.fCols) throw ExceptionT::kSizeMismatch;
 #endif
+
+	/* initialize */
+	if (mode == kOverwrite) *this = 0.0;
 
 	double*	pCol  = Pointer();
 	double* pBCol = B.Pointer();

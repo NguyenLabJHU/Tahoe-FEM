@@ -1,4 +1,4 @@
-/* $Id: LatLongPtsT.cpp,v 1.3 2002-09-12 17:50:02 paklein Exp $ */
+/* $Id: LatLongPtsT.cpp,v 1.3.4.2 2002-10-20 18:07:32 paklein Exp $ */
 /* created: paklein (10/31/1997)                                          */
 /* Base class for spherical point generators.                             */
 
@@ -8,7 +8,7 @@
 #include <iostream.h>
 
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "fstreamT.h"
 
 
@@ -23,11 +23,11 @@ LatLongPtsT::LatLongPtsT(ifstreamT& in)
 {
 	/* number of integration points */
 	in >> fNphi >> fNtheta;
-	if (fNphi < 1 || fNtheta < 1) throw eBadInputValue;
+	if (fNphi < 1 || fNtheta < 1) throw ExceptionT::kBadInputValue;
 	
 	int Ntot = fNtheta*fNphi + 2;  //2 extra for the z-axis caps
-	fPoints.Allocate(Ntot,3);
-	fJacobians.Allocate(Ntot);
+	fPoints.Dimension(Ntot,3);
+	fJacobians.Dimension(Ntot);
 }
 
 /*

@@ -1,4 +1,4 @@
-/* $Id: SecantMethodT.cpp,v 1.2 2002-07-02 19:57:18 cjkimme Exp $ */
+/* $Id: SecantMethodT.cpp,v 1.2.2.1 2002-10-17 04:06:03 paklein Exp $ */
 /* created: paklein (12/01/1998)                                          */
 /* SecantMethodT.cpp                                                      */
 
@@ -6,7 +6,7 @@
 
 #include <math.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 /* constructor */
 
@@ -19,7 +19,7 @@ SecantMethodT::SecantMethodT(int max_iterations, double tolerance):
 	fcount(-1)
 {
 	/* check input values */
-	if (fMaxIts < 1 || fTol < 0.0) throw eBadInputValue;	
+	if (fMaxIts < 1 || fTol < 0.0) throw ExceptionT::kBadInputValue;	
 }
 
 /* initialize the search with 2 intial guesses */

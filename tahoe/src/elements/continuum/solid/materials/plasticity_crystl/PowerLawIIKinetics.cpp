@@ -17,7 +17,7 @@ PowerLawIIKinetics::PowerLawIIKinetics(PolyCrystalMatT& poly) :
   ifstreamT& in = poly.Input_x();
 
   // allocate space for material properties
-  fMatProp.Allocate(kNumMatProp);
+  fMatProp.Dimension(kNumMatProp);
 
   // read material properties
   in >> fMatProp[0];     // "m" strain rate sensitivity exponent

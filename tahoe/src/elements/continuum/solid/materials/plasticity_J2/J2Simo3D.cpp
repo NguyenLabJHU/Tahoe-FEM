@@ -1,4 +1,4 @@
-/* $Id: J2Simo3D.cpp,v 1.10 2002-07-02 19:56:11 cjkimme Exp $ */
+/* $Id: J2Simo3D.cpp,v 1.10.4.2 2002-10-20 18:07:36 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 
 #include "J2Simo3D.h"
@@ -31,7 +31,7 @@ if (J2PrimitiveT::ftheta != 1.0) {
 	cout << "\n J2Simo3D::J2Simo3D: kinematic hardening is not working correctly.\n" 
 	     <<   "     Use pure isotropic hardening, i.e., theta = 1.0: " 
 	     << J2PrimitiveT::ftheta << endl;
-	throw eBadInputValue; }
+	throw ExceptionT::kBadInputValue; }
 #endif
 }
 
@@ -161,7 +161,7 @@ int J2Simo3D::NumOutputVariables(void) const { return 4; }
 void J2Simo3D::OutputLabels(ArrayT<StringT>& labels) const
 {
 	/* set labels */
-	labels.Allocate(4);
+	labels.Dimension(4);
 	labels[0] = "alpha";
 	labels[1] = "norm_beta";
 	labels[2] = "VM_Kirch";
@@ -175,7 +175,7 @@ void J2Simo3D::ComputeOutput(dArrayT& output)
 	if (output.Length() < 4) {
 		cout << "\n J2Simo3D::ComputeOutput: expecting 4 output variables: " 
 		     << output.Length() << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* compute Cauchy stress (load state variables) */

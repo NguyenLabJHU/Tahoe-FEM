@@ -1,4 +1,4 @@
-/* $Id: RGBaseT.h,v 1.2 2002-10-05 03:44:30 paklein Exp $ */
+/* $Id: RGBaseT.h,v 1.2.2.1 2002-10-17 04:38:00 paklein Exp $ */
 /* created : TDN (1/22/2001) */
 
 #ifndef _RG_BASE_T_H_
@@ -27,7 +27,7 @@ class RGBaseT: public FDStructMatT, public IsotropicT
 	 * StructuralMaterialT::s_ij. \note NOT IMPLEMENTED */
 	virtual double Pressure(void) const {
 		cout << "\n RGBaseT::Pressure: not implemented" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 		return 0.0;
 	};
 

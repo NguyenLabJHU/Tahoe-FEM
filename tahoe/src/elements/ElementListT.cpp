@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.27 2002-09-23 06:58:23 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.27.2.2 2002-10-18 17:43:08 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 
@@ -31,6 +31,7 @@
 #include "FinePhestT.h"
 #include "BridgingScaleT.h"
 #include "SimoQ1P0.h"
+#include "AdhesionT.h"
 
 /* contact */
 #include "PenaltyContact2DT.h"
@@ -56,10 +57,9 @@
 /* class to read external field from file */
 #include "UpLagr_ExternalFieldT.h"
 
-/* constructors */
-
 using namespace Tahoe;
 
+/* constructors */
 ElementListT::ElementListT(void)
 {
 
@@ -98,7 +98,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				case GlobalT::kPML:
 				{
 					cout << "\n ElementListT::EchoElementData: PML not fully implemented" << endl;
-					throw eGeneralFail;
+					throw ExceptionT::kGeneralFail;
 				}
 				case GlobalT::kLinStaticHeat:
 				case GlobalT::kLinTransHeat:
@@ -122,14 +122,14 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				default:
 					cout << "\n ElementListT::EchoElementData: recognized analysis type: "
 					     << fSupport.Analysis() << endl;
-					throw eBadInputValue;
+					throw ExceptionT::kBadInputValue;
 			}
 		}
 		
 		/* check field */
 		if (!field) {
 			cout << "\n ElementListT::EchoElementData: could not resolve field" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 
 		/* read code */
@@ -168,18 +168,19 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		out << "    eq. " << ElementT::kPenaltyContactElement3D       << ", 3D penalty contact elements\n";
 		out << "    eq. " << ElementT::kBridgingScale      << ", Bridging Scale\n";
 		out << "    eq. " << ElementT::kSimoQ1P0           << ", Q1P0 mixed element\n";
+		out << "    eq. " << ElementT::kAdhesion           << ", surface adhesion\n";
 		/* check */
 		if (group < 0 || group >= Length())
 		{
 			cout << "\n ElementListT::EchoElementData: Element group number is out of\n";
 			cout <<   "     range: " << group + 1 << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 
 		/* no over-writing existing groups */
 		if (fArray[group]) {
 			cout << "\n ElementListT::EchoElementData: group already exists" << group + 1 << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 
 		/* create new element group - read control parameters
@@ -278,7 +279,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				{
 					cout << "\n ElementListT::EchoElementData: unknown CSE formulation: ";
 					cout << CSEcode << '\n';
-					throw eBadInputValue;
+					throw ExceptionT::kBadInputValue;
 				}
 				break;
 			}
@@ -326,7 +327,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				fArray[group] = new ACME_Contact3DT(fSupport, *field);
 #else
 				cout << "\n ElementListT::EchoElementData: ACME not installed.";
-				throw eGeneralFail;					
+				throw ExceptionT::kGeneralFail;					
 #endif /* __ACME__ */			
 				break;
 
@@ -359,26 +360,30 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			if (!particle) {
 				cout << "\n ElementListT::EchoElementData: unable to cast pointer to group " << particle_group+1 << '\n'
 				     <<   "     to type RodT" << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 			const ElasticT* solid = dynamic_cast<const ElasticT*>(&(fSupport.ElementGroup(--solid_group)));
 			if (!solid) {
 				cout << "\n ElementListT::EchoElementData: unable to cast pointer to group " << solid_group+1 << '\n'
 				     <<   "     to type ElasticT" << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 			fArray[group] = new BridgingScaleT(fSupport, *field, *particle, *solid);
 		    break;
 		}
+		case ElementT::kAdhesion:
+		{
+			fArray[group] = new AdhesionT(fSupport, *field);
+			break;
+		}
 		default:
 		  
 		  cout << "\n ElementListT::EchoElementData: unknown element type:" << code << endl;
-		  throw eBadInputValue;
+		  throw ExceptionT::kBadInputValue;
 		}
 		
-		if (!fArray[group]) throw eOutOfMemory;
-//		fArray[group]->SetController(e_controller); //TEMP: this is dangerous. should pass
-		fArray[group]->Initialize();                //      controller in during construction
+		if (!fArray[group]) throw ExceptionT::kOutOfMemory;
+		fArray[group]->Initialize();
 	}
 }
 

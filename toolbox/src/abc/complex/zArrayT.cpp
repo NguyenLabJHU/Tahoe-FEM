@@ -1,4 +1,4 @@
-/* $Id: zArrayT.cpp,v 1.8 2002-09-12 16:40:17 paklein Exp $ */
+/* $Id: zArrayT.cpp,v 1.8.2.1 2002-10-17 01:51:23 paklein Exp $ */
 /* created: PAK/AFLP (05/19/1997)                                         */
 
 #include "zArrayT.h"
@@ -72,7 +72,7 @@ zArrayT& zArrayT::toZ(const dArrayT& re, const dArrayT& im)
 zArrayT& zArrayT::Conjugate(const zArrayT& array)
 {
   /* must have same length */
-  if (array.Length() != Length()) throw eSizeMismatch;
+  if (array.Length() != Length()) throw ExceptionT::kSizeMismatch;
 
   ComplexT* pLHS = Pointer();
   ComplexT* pRHS = array.Pointer();

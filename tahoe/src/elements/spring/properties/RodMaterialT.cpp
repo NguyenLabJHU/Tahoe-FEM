@@ -1,9 +1,9 @@
-/* $Id: RodMaterialT.cpp,v 1.6 2002-07-02 19:56:24 cjkimme Exp $ */
+/* $Id: RodMaterialT.cpp,v 1.6.4.1 2002-10-17 04:38:20 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 
 #include "RodMaterialT.h"
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "ThermalDilatationT.h"
 #include "ifstreamT.h"
 
@@ -15,10 +15,10 @@ RodMaterialT::RodMaterialT(ifstreamT& in)
 {
 	fMass = -1.0;
 	in >> fMass;
-	if (fMass < 0) throw eBadInputValue;
+	if (fMass < 0) throw ExceptionT::kBadInputValue;
 	
 	fThermal = new ThermalDilatationT(in);
-	if (!fThermal) throw(eOutOfMemory);
+	if (!fThermal) throw ExceptionT::kOutOfMemory;
 }
 
 /* destructor */

@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.14 2002-09-12 17:50:12 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.14.4.1 2002-10-17 04:14:24 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #include "NLSolver.h"
@@ -8,7 +8,7 @@
 
 #include "fstreamT.h"
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "FEManagerT.h"
 #include "CommunicatorT.h"
 
@@ -51,27 +51,27 @@ NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 	out << " Iteration output print increment. . . . . . . . = " << fIterationOutputIncrement << endl;	
 	
 	/* checks */
-	if (fMaxIterations < 0) throw eBadInputValue;
+	if (fMaxIterations < 0) throw ExceptionT::kBadInputValue;
 	if (fZeroTolerance < 0.0 || fZeroTolerance > 1.0)
 	{
 		cout << "\n NLSolver::NLSolver: absolute convergence tolerance is out of\n"
 		     <<   "    range: 0 <= tol <= 1: " << fZeroTolerance << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	if (fTolerance < 0.0 || fTolerance > 1.0)
 	{
 		cout << "\n NLSolver::NLSolver: relative convergence tolerance is out of\n"
 		     <<   "    range: 0 <= tol <= 1: " << fTolerance << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
-	if (fDivTolerance < 0)  throw eBadInputValue;
-	if (fQuickSolveTol  != -1 && fQuickSolveTol  < 1) throw eBadInputValue;
-	if (fQuickSeriesTol != -1 && fQuickSeriesTol < 1) throw eBadInputValue;
+	if (fDivTolerance < 0)  throw ExceptionT::kBadInputValue;
+	if (fQuickSolveTol  != -1 && fQuickSolveTol  < 1) throw ExceptionT::kBadInputValue;
+	if (fQuickSeriesTol != -1 && fQuickSeriesTol < 1) throw ExceptionT::kBadInputValue;
 	if (fIterationOutputIncrement < 0)
 	{
 		cout << "\n NLSolver::NLSolver: expecting iteration output increment < 0: "
 		     << fIterationOutputIncrement << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	
 	/* console variables */
@@ -118,15 +118,15 @@ SolverT::SolutionStatusT NLSolver::Solve(int num_iterations)
 	}
 		
 	/* abnormal ending */
-	catch (int code)
+	catch (ExceptionT::CodeT code)
 	{
 		cout << "\n NLSolver::Solve: exception at step number "
              << fFEManager.StepNumber() << " with step "
              << fFEManager.TimeStep() 
-             << "\n     " << code << ": " << fFEManager.Exception(code) << endl;
+             << "\n     " << code << ": " << ExceptionT::ToString(code) << endl;
 
 		/* error occurred here -> trip checksum */
-		if (code != eBadHeartBeat) fFEManager.Communicator().Sum(code);
+		if (code != ExceptionT::kBadHeartBeat) fFEManager.Communicator().Sum(code);
 		
 		return kFailed;
 	}
@@ -370,7 +370,7 @@ double NLSolver::SolveAndForm(bool newtangent)
 	}
 		 		
 	/* solve equation system */
-	if (!fLHS->Solve(fRHS)) throw eBadJacobianDet;
+	if (!fLHS->Solve(fRHS)) throw ExceptionT::kBadJacobianDet;
 
 	/* apply update to system */
 	Update(fRHS, NULL);

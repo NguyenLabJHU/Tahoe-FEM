@@ -14,14 +14,14 @@ SlipGeometry::SlipGeometry(int numslip) :
   fNumSlip(numslip)
 {
   // allocate space for arrays
-  fVecS.Allocate(fNumSlip);
-  fVecM.Allocate(fNumSlip);
-  fZ.Allocate(fNumSlip);
+  fVecS.Dimension(fNumSlip);
+  fVecM.Dimension(fNumSlip);
+  fZ.Dimension(fNumSlip);
   for (int i = 0; i < fNumSlip; i++)
     {
-      fVecS[i].Allocate(3);
-      fVecM[i].Allocate(3);
-      fZ[i].Allocate(3,3);
+      fVecS[i].Dimension(3);
+      fVecM[i].Dimension(3);
+      fZ[i].Dimension(3,3);
     }
 }
 

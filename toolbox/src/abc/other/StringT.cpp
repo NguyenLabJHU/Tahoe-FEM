@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.26 2002-09-22 23:06:11 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.26.2.1 2002-10-17 01:51:26 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 
 #include "StringT.h"
@@ -17,10 +17,9 @@
 #include <strstream.h>
 #endif
 
-/* array behavior */
-
 using namespace Tahoe;
 
+/* array behavior */
 namespace Tahoe {
 const bool ArrayT<StringT>::fByteCopy = false;
 const bool ArrayT<StringT*>::fByteCopy = true;
@@ -84,7 +83,7 @@ StringT& StringT::operator=(const char* string)
 void StringT::Clear(void)
 {
 	/* should have at least one character */
-	if (Length() < 1) throw eGeneralFail;
+	if (Length() < 1) throw ExceptionT::kGeneralFail;
 	
 	/* zero string length */
 	fArray[0] = '\0';
@@ -424,7 +423,7 @@ StringT& StringT::Append(int number, int width)
 		{
 			cout << "\n StringT::Append: padding limit: ";
 			cout << strlen(pad_str) << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}		
 		else
 			pad_str[pad_len] = '\0';
@@ -450,7 +449,7 @@ StringT& StringT::Append(const char* s, int number, int width)
 		{
 			cout << "\n StringT::Append: padding limit: ";
 			cout << strlen(pad_str) << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}		
 		else
 			pad_str[pad_len] = '\0';
@@ -518,7 +517,7 @@ StringT& StringT::Prepend(const char* s1, const char* s2)
 StringT& StringT::Drop(int n)
 {
 	/* check */
-	if ((int) fabs(double(n)) > strlen(*this)) throw eOutOfRange;
+	if ((int) fabs(double(n)) > strlen(*this)) throw ExceptionT::kOutOfRange;
 	//NOTE - SUNWspro 5.0 doesn't like int(fabs(n))
 	
 	if (n > 0)
@@ -537,7 +536,7 @@ StringT& StringT::Delete(int start, int end)
 {
 #if __option(extended_errorcheck)
 	if (end < start || start < 0 || end >= strlen(*this))
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 #endif
 
 	char* str = *this;
@@ -560,7 +559,7 @@ StringT& StringT::Take(const StringT& source, int n)
 	{
 		/* check */
 		int size = (n < 0) ? -n : n;
-		if (n > strlen(source)) throw eOutOfRange;
+		if (n > strlen(source)) throw ExceptionT::kOutOfRange;
 
 		/* allocate */
 		Dimension(size + 1);
@@ -591,7 +590,7 @@ StringT& StringT::Take(const StringT& source, int start, int end)
 		/* checks */
 		if (start < 0 ||
 		    end > strlen(source) ||
-		    end < start) throw eOutOfRange;
+		    end < start) throw ExceptionT::kOutOfRange;
 
 		/* allocate */
 		int n = end - start + 1;
@@ -736,7 +735,7 @@ void StringT::ToNativePathName(void)
 
 	/* fall through */
 	cout << "\n StringT::ToNativePathName: unknown platform" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 /* path string translators */
@@ -750,7 +749,7 @@ void StringT::ToMacOSPath(void)
 		if (strlen(fArray) >= kLineLength-1)
 		{	
 			cout << "\n StringT::ToMacOSPath: path too long" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 
 		char temp[kLineLength];
@@ -817,7 +816,7 @@ void StringT::ToWinNTPath(void)
 		if (strlen(fArray) >= kLineLength-1)
 		{	
 			cout << "\n StringT::ToWinNTPath: path too long" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 
 		/* driver */
@@ -835,7 +834,7 @@ void StringT::ToUNIXPath(void)
 		if (strlen(fArray) >= kLineLength-1)
 		{	
 			cout << "\n StringT::ToUNIXPath: path too long" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 
 		/* driver */
@@ -863,7 +862,7 @@ int StringT::versioncmp(const char* v1_, const char* v2_)
 			cout << "\n StringT::versioncmp: incompatible version numbers:\n" 
 			     << '\t' << v1_ << '\n'
 			     << '\t' << v2_ << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		v1_++; v2_++;
 	}
@@ -874,7 +873,7 @@ int StringT::versioncmp(const char* v1_, const char* v2_)
 	if (l1 > 50 || l2 > 50)
 	{
 		cout << "StringT::versioncmp: exceeded maximum version string length: 50" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* copy in and pad with trailing space:
@@ -901,13 +900,13 @@ int StringT::versioncmp(const char* v1_, const char* v2_)
 		{
 			cout << "\n StringT::versioncmp: error reading version number: "
 			     << v1 << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		if (i2 == -9999)
 		{
 			cout << "\n StringT::versioncmp: error reading version number: "
 			     << v2 << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		
 		/* resolve */
@@ -933,7 +932,7 @@ int StringT::versioncmp(const char* v1_, const char* v2_)
 			else if (a1 != '.' || a2 != '.')
 			{
 				cout << "\n StringT::versioncmp: illegal character" << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 		}
 	}
@@ -999,7 +998,7 @@ void StringT::IntegerToString(int number, char* string) const
 	if (number == 0)
 	{
 		/* check space */
-		if (strlen(string) < 2) throw eGeneralFail;
+		if (strlen(string) < 2) throw ExceptionT::kGeneralFail;
 		
 		string[0] = '0';
 		string[1] = '\0';
@@ -1010,7 +1009,7 @@ void StringT::IntegerToString(int number, char* string) const
 			// extra space for '\0';
 	
 		/* check that string has enough space */
-		if (strlen(string) + 1 < lens) throw eSizeMismatch;
+		if (strlen(string) + 1 < lens) throw ExceptionT::kSizeMismatch;
 		
 		/* set all bytes to 0! */
 		memset(string, '\0', sizeof(char)*lens);
@@ -1031,7 +1030,7 @@ void StringT::ToNTorUNIX(char from, char to)
 {
 	/* check */
 	if ((from != '\\' && from != '/') ||
-	     ( to != '\\' &&   to != '/')) throw eGeneralFail;
+	     ( to != '\\' &&   to != '/')) throw ExceptionT::kGeneralFail;
 	     
 	char temp[kLineLength];
 

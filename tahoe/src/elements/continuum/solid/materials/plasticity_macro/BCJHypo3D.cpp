@@ -1,4 +1,4 @@
-/* $Id: BCJHypo3D.cpp,v 1.11 2002-07-02 19:56:18 cjkimme Exp $ */
+/* $Id: BCJHypo3D.cpp,v 1.11.4.2 2002-10-20 18:07:40 paklein Exp $ */
 #include "BCJHypo3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -280,7 +280,7 @@ int BCJHypo3D::NumOutputVariables() const {return kNumOutput;}
 void BCJHypo3D::OutputLabels(ArrayT<StringT>& labels) const
 {
   // allocate space for labels
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   // copy labels
   for (int i = 0; i < kNumOutput; i++)
@@ -504,7 +504,7 @@ void BCJHypo3D::SolveState()
                  cout << "BCJHypo3D::SolveState: totSubIncrs > 128 \n";
                  cout << "  **will throw 'EBadJacobianDet' to force dtime decrease** \n";
 	      }
-              throw eBadJacobianDet;
+              throw ExceptionT::kBadJacobianDet;
 	  }
           if (subIncr > 1) fInternal = fInt_save;
 	  if (BCJ_MESSAGES) cout << " BCJHypo3D::SolveState: will try " 
@@ -699,7 +699,7 @@ void BCJHypo3D::Solve(bool& converged)
 
   // solve for primary unknowns (internal variables)
   try { fSolver->Solve(fSolverPtr, fInternal, ierr); }
-  catch (int code)
+  catch (ExceptionT::CodeT code)
      {
        if (BCJ_MESSAGES)
           writeWarning("BCJHypo3D::Solve: exception caught at Solve() -> subincrementation");

@@ -1,8 +1,8 @@
-/* $Id: RG_VDSplit3D.cpp,v 1.1 2002-10-04 23:59:00 thao Exp $ */
+/* $Id: RG_VDSplit3D.cpp,v 1.1.2.2 2002-10-20 18:07:26 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "fstreamT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "RG_VDSplit3D.h"
 
 #include <math.h>
@@ -66,7 +66,7 @@ int RG_VDSplit3D::NumOutputVariables() const {return kNumOutputVar;}
 void RG_VDSplit3D::OutputLabels(ArrayT<StringT>& labels) const 
 { 
   //allocates space for labels 
-        labels.Allocate(kNumOutputVar); 
+        labels.Dimension(kNumOutputVar); 
    
         //copy labels 
         for (int i = 0; i< kNumOutputVar; i++) 

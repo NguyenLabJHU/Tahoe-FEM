@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.10 2002-07-02 19:56:48 cjkimme Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.10.4.2 2002-10-20 18:07:46 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT.h"
@@ -30,14 +30,14 @@ SPOOLESMatrixT::SPOOLESMatrixT(ostream& out, int check_code,
 	fSolveCount(0)	
 {
 	fMSRBuilder = new MSRBuilderT(fSymmetric);
-	if (!fMSRBuilder) throw eOutOfMemory;
+	if (!fMSRBuilder) throw ExceptionT::kOutOfMemory;
 }
 
 SPOOLESMatrixT::SPOOLESMatrixT(const SPOOLESMatrixT& source):
 	GlobalMatrixT(source)
 {
 	cout << "\n SPOOLESMatrixT::SPOOLESMatrixT: not implemented" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 /* destructor */
@@ -84,8 +84,8 @@ void SPOOLESMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqnos)
 void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 #if __option (extended_errorcheck)
-	if (elMat.Rows() != elMat.Cols()) throw eGeneralFail;
-	if (elMat.Rows() != eqnos.Length()) throw eSizeMismatch;
+	if (elMat.Rows() != elMat.Cols()) throw ExceptionT::kGeneralFail;
+	if (elMat.Rows() != eqnos.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* element matrix format */
@@ -93,8 +93,8 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& e
 	if (format == ElementMatrixT::kDiagonal)
 	{
 		/* extract values for active equation numbers */
-		fRowDexVec.Allocate(0);	
-		fValVec.Allocate(0);
+		fRowDexVec.Dimension(0);	
+		fValVec.Dimension(0);
 		int end_update = fStartEQ + fLocNumEQ - 1;
 		for (int i = 0; i < eqnos.Length(); i++)
 		{
@@ -117,7 +117,7 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& e
 		{
 			cout << "\n SPOOLESMatrixT::Assemble: error with equations:\n";
 			cout << eqnos << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	}
 	else
@@ -133,12 +133,12 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& e
 			{
 				cout << "\n SPOOLESMatrixT::Assemble: unexpected matrix format:"
 				     << format << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 
 			/* equation numbers -> active equation numbers */
-			fRowDexVec.Allocate(0);
-			fRowEqnVec.Allocate(0);
+			fRowDexVec.Dimension(0);
+			fRowEqnVec.Dimension(0);
 			for (int j = 0; j < eqnos.Length(); j++)
 				if (eqnos[j] > 0)
 				{
@@ -153,7 +153,7 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& e
 			/* assemble (global) upper triangle */
 			int end_update = fStartEQ + fLocNumEQ - 1;
 			int num_active = fActiveDex.Length();
-			fValVec.Allocate(num_active); // max size
+			fValVec.Dimension(num_active); // max size
 			int status = 1;
 			for (int i = 0; i < num_active && status; i++)
 			{
@@ -181,8 +181,8 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& e
 		else
 		{
 			/* equation numbers -> active element row numbers */
-			fRowDexVec.Allocate(0);
-			fColDexVec.Allocate(0);
+			fRowDexVec.Dimension(0);
+			fColDexVec.Dimension(0);
 			int end_update = fStartEQ + fLocNumEQ - 1;
 			for (int j = 0; j < eqnos.Length(); j++)
 			{
@@ -212,7 +212,7 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& e
 				fColDexVec[c] = eqnos[fColDexVec[c]] - 1; //OFFSET
 	
 			/* row-by-row assembly */
-			fValVec.Allocate(num_cols);
+			fValVec.Dimension(num_cols);
 			int status = 1;
 			for (int i = 0; i < num_rows && status; i++)
 			{
@@ -229,7 +229,7 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& e
 			{
 				cout << "\n SPOOLESMatrixT::Assemble: error with equations:\n";
 				cout << eqnos << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 		}
 	}
@@ -241,7 +241,7 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& r
 #if __option (extended_errorcheck)
 	/* check dimensions */
 	if (elMat.Rows() != row_eqnos.Length() ||
-	    elMat.Cols() != col_eqnos.Length()) throw eSizeMismatch;
+	    elMat.Cols() != col_eqnos.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* element matrix format */
@@ -249,7 +249,7 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& r
 	if (format == ElementMatrixT::kDiagonal)
 	{
 		cout << "\n SPOOLESMatrixT::Assemble(m, r, c): cannot assemble diagonal matrix" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	else
 	{
@@ -257,7 +257,7 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& r
 		if (fSymmetric)
 		{
 			cout << "\n SPOOLESMatrixT::Assemble(m, r, c): cannot assemble symmetric matrix" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		else
 		{
@@ -265,7 +265,7 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& r
 			int end_update = fStartEQ + fLocNumEQ - 1;
 
 			/* equation numbers -> active element row numbers */
-			fRowDexVec.Allocate(0);
+			fRowDexVec.Dimension(0);
 			for (int j = 0; j < row_eqnos.Length(); j++)
 			{
 				int eq = row_eqnos[j];
@@ -274,7 +274,7 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& r
 			}
 
 			/* equation numbers -> active element column numbers */
-			fColDexVec.Allocate(0);
+			fColDexVec.Dimension(0);
 			for (int j = 0; j < col_eqnos.Length(); j++)
 				if (col_eqnos[j] > 0)
 					fColDexVec.Append(j);
@@ -298,7 +298,7 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& r
 				fColDexVec[c] = col_eqnos[fColDexVec[c]] - 1; //OFFSET
 	
 			/* row-by-row assembly */
-			fValVec.Allocate(num_cols);
+			fValVec.Dimension(num_cols);
 			int status = 1;
 			for (int i = 0; i < num_rows && status; i++)
 			{
@@ -316,7 +316,7 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& r
 				cout << "\n SPOOLESMatrixT::Assemble: error with equations:\n";
 				cout << " row:\n" << row_eqnos << endl;
 				cout << " col:\n" << col_eqnos << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 		}
 	}
@@ -339,7 +339,7 @@ GlobalMatrixT& SPOOLESMatrixT::operator=(const SPOOLESMatrixT& rhs)
 #pragma unused(rhs)
 
 	cout << "\n SPOOLESMatrixT::operator= : not implemented" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 	return *this;
 }
 
@@ -348,13 +348,13 @@ GlobalMatrixT& SPOOLESMatrixT::operator=(const GlobalMatrixT& rhs)
 {
 #ifdef __NO_RTTI__
 	cout << "\n SPOOLESMatrixT::operator= : requires RTTI" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 #endif
 
 	const SPOOLESMatrixT* sp = dynamic_cast<const SPOOLESMatrixT*>(&rhs);
 	if (!sp) {
 		cout << "\n SPOOLESMatrixT::operator= : cast failed" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return operator=(*sp);
 }
@@ -386,11 +386,11 @@ void SPOOLESMatrixT::BackSubstitute(dArrayT& result)
 		cout << "\n SPOOLESMatrixT::BackSubstitute: expecting total number of equations\n"
 		     <<   "     " << fTotNumEQ
 		     << " to be equal to the local number of equations " << fLocNumEQ << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* flag should not be set */
-	if (fIsFactorized) throw eGeneralFail;
+	if (fIsFactorized) throw ExceptionT::kGeneralFail;
 
 	/* convert matrix to RCV */
 	iArrayT r, c;
@@ -444,7 +444,7 @@ void SPOOLESMatrixT::BackSubstitute(dArrayT& result)
    {
      cout << "\n SPOOLESMatrixT::BackSubstitute: LU_MT_driver returned: "
 	  << OK << endl;
-     throw eGeneralFail;
+     throw ExceptionT::kGeneralFail;
    }
 }
 
@@ -477,9 +477,9 @@ void SPOOLESMatrixT::GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v, double drop
 		if (fabs(*pval++) > drop_tol) num_vals++;
 
 	/* overall dimension */
-	r.Allocate(num_vals);
-	c.Allocate(num_vals);
-	v.Allocate(num_vals);
+	r.Dimension(num_vals);
+	c.Dimension(num_vals);
+	v.Dimension(num_vals);
 
 	/* start of off-diagonal data (MSR) */
 	int* pcol = fbindx.Pointer(fLocNumEQ + 1);
@@ -518,7 +518,7 @@ void SPOOLESMatrixT::GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v, double drop
 		cout << "\n SPOOLESMatrixT::GenerateRCV: translation error:\n"
 		     <<   "   expected number of values = " << num_vals << '\n'
 		     <<   "            number of values = " << count << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -632,7 +632,7 @@ void SPOOLESMatrixT::AssembleDiagonals(int numvals, const int* rows,
 void SPOOLESMatrixT::SetMSRData(void)
 {
 	/* set update vector - global numbering */
-	fupdate.Allocate(fLocNumEQ);
+	fupdate.Dimension(fLocNumEQ);
 	int* pupdate = fupdate.Pointer();
 	int n_update = fStartEQ; //OFFSET
 	for (int i = 0; i < fLocNumEQ; i++)
@@ -657,7 +657,7 @@ void SPOOLESMatrixT::SetMSRData(void)
 #endif
 	
 	/* allocate the matrix */
-	fval.Allocate(fbindx.Length());
+	fval.Dimension(fbindx.Length());
 
 	/* clear equation lists */
 	fMSRBuilder->ClearGroups();
@@ -667,7 +667,7 @@ void SPOOLESMatrixT::SetMSRData(void)
 void SPOOLESMatrixT::SetUpQuickFind(void)
 {
 	/* quick find bin */
-	fupdate_bin.Allocate(2 + (fLocNumEQ + 4)/4); /* oversize */
+	fupdate_bin.Dimension(2 + (fLocNumEQ + 4)/4); /* oversize */
 
 	/* initialize shift and bin */
 	AZ_init_quick_find(fupdate.Pointer(), fLocNumEQ, &fQF_shift,
@@ -685,8 +685,8 @@ void SPOOLESMatrixT::SetUpQuickFind(void)
 	maxlength += 1;
 
 	/* allocate space for sorted row data */
-	fsrow_dex.Allocate(maxlength);
-	fsrow_val.Allocate(maxlength);
+	fsrow_dex.Dimension(maxlength);
+	fsrow_val.Dimension(maxlength);
 }
 
 int SPOOLESMatrixT::AZ_quick_find(int key, int list[], int length, int shift,

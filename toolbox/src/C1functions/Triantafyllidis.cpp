@@ -1,9 +1,9 @@
-/* $Id: Triantafyllidis.cpp,v 1.2 2002-07-02 19:56:32 cjkimme Exp $ */
+/* $Id: Triantafyllidis.cpp,v 1.2.2.1 2002-10-17 01:46:10 paklein Exp $ */
 
 #include "Triantafyllidis.h"
 #include <math.h>
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dArrayT.h"
 
 /* constructor */
@@ -28,7 +28,7 @@ void Triantafyllidis::PrintName(ostream& out) const
 /* returning values */
 double Triantafyllidis::Function(double x) const
 {
-	if (x < 0.0) throw eGeneralFail;
+	if (x < 0.0) throw ExceptionT::kGeneralFail;
 	return fA*(log(x) - (x - 1.0)/x);
 }
 
@@ -46,14 +46,14 @@ double Triantafyllidis::DDFunction(double x) const
 dArrayT& Triantafyllidis::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl = in.Pointer();
 	double* pU = out.Pointer();
 	for (int i = 0; i < in.Length(); i++)
 	{
 		double x = *pl++;
-		if (x < 0.0) throw eGeneralFail;
+		if (x < 0.0) throw ExceptionT::kGeneralFail;
 		*pU++ = fA*(log(x) - (x - 1.0)/x);
 	}
 	return out;
@@ -62,7 +62,7 @@ dArrayT& Triantafyllidis::MapFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& Triantafyllidis::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl  = in.Pointer();
 	double* pdU = out.Pointer();	
@@ -77,7 +77,7 @@ dArrayT& Triantafyllidis::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& Triantafyllidis::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl   = in.Pointer();
 	double* pddU = out.Pointer();	

@@ -1,6 +1,5 @@
-/* $Id: nMatrixT.h,v 1.16 2002-10-10 17:26:37 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.16.2.2 2002-10-18 01:23:58 paklein Exp $ */
 /* created: paklein (05/24/1996) */
-
 #ifndef _NMATRIX_T_H_
 #define _NMATRIX_T_H_
 
@@ -9,7 +8,7 @@
 
 namespace Tahoe {
 
-/** 2 dimensional matrix mathematics template object */
+/** two-dimensional matrix mathematics template object */
 template <class nTYPE>
 class nMatrixT: public nArrayT<nTYPE>
 {
@@ -59,7 +58,7 @@ public:
 	int Cols(void) const;
 	/*@}*/
 
-	/** \name \e deprecated dimensioning methods */
+	/** \name deprecated dimensioning methods */
 	/*@{*/
 	/** \deprecated replaced by nMatrixT::Dimension on 02/13/2002 */
 	void Allocate(int numrows, int numcols) { Dimension(numrows, numcols); } ;
@@ -67,9 +66,14 @@ public:
 	void Allocate(int squaredim) { Dimension(squaredim); } ;
 	/*@}*/
 
-	/* element and column accessor */
+	/** \name accessors */
+	/*@{*/
+	/** return a single element of the matrix */
 	nTYPE& operator()(int nrow, int ncol) const;
+
+	/** return a pointer a column in the matrix */
 	nTYPE* operator()(int ncol) const;
+	/*@}*/
 
 	/** \name accessing blocks
 	 * row and col in the upper left */
@@ -90,7 +94,6 @@ public:
 	/** exchange data */
 	void Swap(nMatrixT<nTYPE>& source);
 	/*@}*/
-
 	
 	/** \name accessing rows and columns */
 	/*@{*/
@@ -160,10 +163,7 @@ public:
 	   		
 	/** dyadic product
 	 * Set thisd to the the outer product of the 2 vectors, or
-	 * in dyadic notation:
-	 * \f[
-	 *        \mathbf{v}_1 \otimes \mathbf{v}_2 
-	 * \f] */
+	 * in dyadic notation \f$ \mathbf{v}_1 \otimes \mathbf{v}_2 \f$. */
 	void Outer(const nArrayT<nTYPE>& v1, const nArrayT<nTYPE>& v2);
 
 	/** \name identity operations
@@ -321,7 +321,7 @@ inline nTYPE& nMatrixT<nTYPE>::operator()(int nrow, int ncol) const
 	if (nrow < 0 ||
 	    nrow >= fRows ||
 	    ncol < 0 ||
-	    ncol >= fCols) throw eOutOfRange;
+	    ncol >= fCols) throw ExceptionT::kOutOfRange;
 #endif
 	
 	return(fArray[ncol*fRows + nrow]);
@@ -333,7 +333,7 @@ inline nTYPE* nMatrixT<nTYPE>::operator()(int ncol) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (ncol < 0 || ncol >= fCols) throw eOutOfRange;
+	if (ncol < 0 || ncol >= fCols) throw ExceptionT::kOutOfRange;
 #endif
 	
 	return(fArray + ncol*fRows);
@@ -347,7 +347,7 @@ const nMatrixT<nTYPE>& block)
 /* range checking */
 #if __option (extended_errorcheck)
 	if (row + block.Rows() > fRows ||
-	    col + block.Cols() > fCols) throw eSizeMismatch;
+	    col + block.Cols() > fCols) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double* pstart = &(*this)(row,col);
@@ -370,7 +370,7 @@ const nMatrixT<nTYPE>& block)
 /* range checking */
 #if __option (extended_errorcheck)
 	if (row + block.Rows() > fRows ||
-	    col + block.Cols() > fCols) throw eSizeMismatch;
+	    col + block.Cols() > fCols) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double* pstart = &(*this)(row,col);
@@ -393,7 +393,7 @@ void nMatrixT<nTYPE>::CopyBlock(int row, int col,
 /* range checking */
 #if __option (extended_errorcheck)
 	if (row + block.Rows() > fRows ||
-	    col + block.Cols() > fCols) throw eSizeMismatch;
+	    col + block.Cols() > fCols) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double* pstart = &(*this)(row,col);
@@ -414,7 +414,7 @@ void nMatrixT<nTYPE>::CopyBlock(const ArrayT<int>& rc,
 /* range checking */
 #if __option (extended_errorcheck)
 	if (block.Rows() != block.Cols() ||
-	    block.Cols() != rc.Length()) throw eSizeMismatch;
+	    block.Cols() != rc.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 	
 	nTYPE* pblock = block.Pointer();
@@ -434,7 +434,7 @@ void nMatrixT<nTYPE>::CopyBlock(const ArrayT<int>& r,
 /* range checking */
 #if __option (extended_errorcheck)
 	if (block.Rows() != r.Length() ||
-	    block.Cols() != c.Length()) throw eSizeMismatch;
+	    block.Cols() != c.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 	
 	nTYPE* pblock = block.Pointer();
@@ -506,8 +506,8 @@ void nMatrixT<nTYPE>::CopyRow(int rownum, ArrayT<nTYPE>& row) const
 {
 /* dimension check */
 #if __option(extended_errorcheck)
-	if (row.Length() != fCols) throw eSizeMismatch;
-	if (rownum < 0 || rownum >= fRows) throw eOutOfRange;
+	if (row.Length() != fCols) throw ExceptionT::kSizeMismatch;
+	if (rownum < 0 || rownum >= fRows) throw ExceptionT::kOutOfRange;
 #endif
 
 	nTYPE* prow  = row.Pointer();
@@ -525,9 +525,9 @@ void nMatrixT<nTYPE>::CopyFromRow(int rownum, int start_col,
 {
 /* dimension check */
 #if __option(extended_errorcheck)
-	if (start_col < 0) throw eOutOfRange;
-	if (start_col + row.Length() > fCols) throw eSizeMismatch;
-	if (rownum < 0 || rownum >= fRows) throw eOutOfRange;
+	if (start_col < 0) throw ExceptionT::kOutOfRange;
+	if (start_col + row.Length() > fCols) throw ExceptionT::kSizeMismatch;
+	if (rownum < 0 || rownum >= fRows) throw ExceptionT::kOutOfRange;
 #endif
 
 	int num_vals = row.Length();
@@ -547,7 +547,7 @@ void nMatrixT<nTYPE>::CopyRows(const ArrayT<int>& rows,
 /* dimension check */
 #if __option(extended_errorcheck)
 	if (fCols != source.Cols() || fRows != rows.Length())
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 #endif
 
 	int* prows = rows.Pointer();
@@ -571,7 +571,7 @@ void nMatrixT<nTYPE>::CopyColumn(int colnum, ArrayT<nTYPE>& col) const
 {
 /* dimension check */
 #if __option(extended_errorcheck)
-	if (col.Length() != fRows) throw eSizeMismatch;
+	if (col.Length() != fRows) throw ExceptionT::kSizeMismatch;
 #endif
 	
 	/* byte copy */
@@ -585,7 +585,7 @@ void nMatrixT<nTYPE>::CopyColumns(const ArrayT<int>& cols,
 /* dimension check */
 #if __option(extended_errorcheck)
 	if (fRows != source.Rows || fCols != cols.Length())
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 #endif
 
 	int* prows = rows.Pointer();
@@ -615,7 +615,7 @@ void nMatrixT<nTYPE>::CopySymmetric(int IsUpper)
 {
 /* must be square */
 #if __option (extended_errorcheck)
-	if (fRows != fCols) throw eGeneralFail;
+	if (fRows != fCols) throw ExceptionT::kGeneralFail;
 #endif
 
 	int col, dex, row;
@@ -650,7 +650,7 @@ nMatrixT<nTYPE>& nMatrixT<nTYPE>::Transpose(const nMatrixT<nTYPE>& matrix, int f
 {
 #if __option (extended_errorcheck)	
 	if (fRows != matrix.fCols ||
-	    fCols != matrix.fRows) throw eSizeMismatch;
+	    fCols != matrix.fRows) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* selve transposition */
@@ -685,7 +685,7 @@ nMatrixT<nTYPE>& nMatrixT<nTYPE>::Transpose(const nMatrixT<nTYPE>& matrix, int f
 	else
 	{
 		cout << "\n nMatrixT<nTYPE>::Transpose: unrecognized fill mode: " << fillmode << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return *this;
 }
@@ -732,7 +732,7 @@ nMatrixT<nTYPE>& nMatrixT<nTYPE>::Transpose(int fillmode)
 	else
 	{
 		cout << "\n nMatrixT<nTYPE>::Transpose: unrecognized fill mode: " << fillmode << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	return *this;
@@ -752,7 +752,7 @@ void nMatrixT<nTYPE>::MultAB(const nMatrixT& A, const nMatrixT& B, int upper)
 #if __option (extended_errorcheck)
 	if (fRows != A.fRows ||
 	    fCols != B.fCols ||
-	  A.fCols != B.fRows) throw eSizeMismatch;
+	  A.fCols != B.fRows) throw ExceptionT::kSizeMismatch;
 #endif		
 
 	if (!upper)	/* entire matrix */		
@@ -795,7 +795,7 @@ void nMatrixT<nTYPE>::MultAB(const nMatrixT& A, const nMatrixT& B, int upper)
 	{
 		/* dimension checks */
 #if __option (extended_errorcheck)
-		if (fRows != fCols) throw eGeneralFail;
+		if (fRows != fCols) throw ExceptionT::kGeneralFail;
 #endif
 		
 		int 	  dotcount = A.fCols;
@@ -842,7 +842,7 @@ void nMatrixT<nTYPE>::MultATB(const nMatrixT& A, const nMatrixT& B, int upper)
 #if __option (extended_errorcheck)
 	if (fRows != A.fCols ||
 		fCols != B.fCols ||
-	  A.fRows != B.fRows) throw eSizeMismatch;
+	  A.fRows != B.fRows) throw ExceptionT::kSizeMismatch;
 #endif
 
 	if (!upper)	/* entire matrix */
@@ -883,7 +883,7 @@ void nMatrixT<nTYPE>::MultATB(const nMatrixT& A, const nMatrixT& B, int upper)
 	{
 		/* dimension checks */
 #if __option (extended_errorcheck)
-		if(fRows != fCols) throw eGeneralFail;
+		if(fRows != fCols) throw ExceptionT::kGeneralFail;
 #endif
 
 	  	int 	  dotcount = A.fRows;
@@ -929,7 +929,7 @@ void nMatrixT<nTYPE>::MultABT(const nMatrixT& A, const nMatrixT& B, int upper)
 #if __option (extended_errorcheck)
 	if (fRows != A.fRows ||
 	    fCols != B.fRows ||
-	  A.fCols != B.fCols) throw eSizeMismatch;
+	  A.fCols != B.fCols) throw ExceptionT::kSizeMismatch;
 #endif
 
 	if (!upper) /* entire matrix */
@@ -972,7 +972,7 @@ void nMatrixT<nTYPE>::MultABT(const nMatrixT& A, const nMatrixT& B, int upper)
 	{
 		/* dimension checks */
 #if __option (extended_errorcheck)
-		if (fRows != fCols) throw eGeneralFail;
+		if (fRows != fCols) throw ExceptionT::kGeneralFail;
 #endif
 
 		int 	  dotcount = A.fCols;
@@ -1020,7 +1020,7 @@ void nMatrixT<nTYPE>::MultATBT(const nMatrixT& A, const nMatrixT& B)
 #if __option (extended_errorcheck)
 	if (fRows != A.fCols &&
 		fCols != B.fRows &&
-A.fRows != B.fCols) throw eSizeMismatch;
+A.fRows != B.fCols) throw ExceptionT::kSizeMismatch;
 #endif
 
 	int 	  dotcount = A.fRows;
@@ -1072,7 +1072,7 @@ void nMatrixT<nTYPE>::MultABC(const nMatrixT& p, const nMatrixT& b, const nMatri
 	if (fRows != p.fRows ||
 	    fCols != q.fCols ||
 	  b.fRows != p.fCols ||
-	  b.fCols != q.fRows) throw eSizeMismatch;
+	  b.fCols != q.fRows) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* initialize */
@@ -1131,7 +1131,7 @@ void nMatrixT<nTYPE>::MultABCT(const nMatrixT& p, const nMatrixT& b, const nMatr
 	if (fRows != p.fRows ||
 	    fCols != q.fRows ||
 	  b.fRows != p.fCols ||
-	  b.fCols != q.fCols) throw eSizeMismatch;
+	  b.fCols != q.fCols) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* initialize */
@@ -1190,7 +1190,7 @@ void nMatrixT<nTYPE>::MultATBC(const nMatrixT& p, const nMatrixT& b, const nMatr
 	if (fRows != p.fCols ||
 	    fCols != q.fCols ||
 	  b.fRows != p.fRows ||
-	  b.fCols != q.fRows) throw eSizeMismatch;
+	  b.fCols != q.fRows) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* initialize */
@@ -1267,7 +1267,7 @@ void nMatrixT<nTYPE>::MultQBQT(const nMatrixT& q,
 	if (fRows != q.fRows ||
 	    fCols != q.fRows ||
 	  b.fRows != q.fCols ||
-	  b.fCols != q.fCols) throw eSizeMismatch;
+	  b.fCols != q.fCols) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* initialize */
@@ -1332,7 +1332,7 @@ void nMatrixT<nTYPE>::MultQTBQ(const nMatrixT& q,
 	if (fRows != q.fCols ||
 	    fCols != q.fCols ||
 	  b.fRows != q.fRows ||
-	  b.fCols != q.fRows) throw eSizeMismatch;
+	  b.fCols != q.fRows) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* initialize */
@@ -1396,7 +1396,7 @@ void nMatrixT<nTYPE>::Multx(const nArrayT<nTYPE>& x,
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)	
-	if (fRows != b.Length() || fCols != x.Length()) throw eSizeMismatch;
+	if (fRows != b.Length() || fCols != x.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	nTYPE* ARow = Pointer();
@@ -1433,7 +1433,7 @@ void nMatrixT<nTYPE>::MultTx(const nArrayT<nTYPE>& x,
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)
-	if (fRows != x.Length() && fCols != b.Length()) throw eSizeMismatch;
+	if (fRows != x.Length() && fCols != b.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	nTYPE* ARow = Pointer();
@@ -1470,7 +1470,7 @@ nTYPE nMatrixT<nTYPE>::MultmBn(const nArrayT<nTYPE>& m,
 	/* dimension checks */
 #if __option (extended_errorcheck)
 	if (fRows != m.Length() ||
-	    fCols != n.Length()) throw eSizeMismatch;
+	    fCols != n.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	register nTYPE product = 0.0;
@@ -1516,7 +1516,7 @@ void nMatrixT<nTYPE>::Outer(const nArrayT<nTYPE>& v1,
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)
-	if (v1.Length() != fRows || v2.Length() != fCols) throw eSizeMismatch;
+	if (v1.Length() != fRows || v2.Length() != fCols) throw ExceptionT::kSizeMismatch;
 #endif
 
 	nTYPE* pthis = Pointer();
@@ -1543,7 +1543,7 @@ inline void nMatrixT<nTYPE>::PlusIdentity(const nTYPE& value)
 {
 /* must be square */
 #if __option (extended_errorcheck)
-	if (fRows != fCols) throw eGeneralFail;
+	if (fRows != fCols) throw ExceptionT::kGeneralFail;
 #endif
 
 	if (fRows == 2)
@@ -1574,7 +1574,7 @@ nMatrixT<nTYPE>& nMatrixT<nTYPE>::Identity(const nTYPE& value)
 {
 /* must be square */
 #if __option (extended_errorcheck)
-	if (fRows != fCols) throw eGeneralFail;
+	if (fRows != fCols) throw ExceptionT::kGeneralFail;
 #endif
 	
 	if (fRows == 2)
@@ -1621,8 +1621,8 @@ inline void nMatrixT<nTYPE>::SetRow(int row, const nArrayT<nTYPE>& vec)
 {
 	/* dimension check */
 #if __option (extended_errorcheck)
-	if (vec.Length() != fCols) throw eSizeMismatch;
-	if (row < 0 || row >= fRows) throw(eOutOfRange);
+	if (vec.Length() != fCols) throw ExceptionT::kSizeMismatch;
+	if (row < 0 || row >= fRows) throw ExceptionT::kOutOfRange;
 #endif
 	
 	SetRow(row, vec.Pointer());
@@ -1655,7 +1655,7 @@ inline void nMatrixT<nTYPE>::SetCol(int col, const nArrayT<nTYPE>& vec)
 {
 /* dimension check */
 #if __option (extended_errorcheck)
-	if (vec.Length() != fRows) throw(eOutOfRange);
+	if (vec.Length() != fRows) throw ExceptionT::kOutOfRange;
 #endif
 
 	SetCol(col, vec.Pointer());
@@ -1684,7 +1684,7 @@ inline nTYPE nMatrixT<nTYPE>::DotRow(int rownum,
 {
 #if __option (extended_errorcheck)
 	/* dimension check */
-	if (vec.Length() != fCols) throw eSizeMismatch;
+	if (vec.Length() != fCols) throw ExceptionT::kSizeMismatch;
 #endif
 	return DotRow(rownum, vec.Pointer());
 }
@@ -1711,7 +1711,7 @@ inline nTYPE nMatrixT<nTYPE>::DotCol(int colnum,
 {
 #if __option (extended_errorcheck)
 	/* dimension check */
-	if (vec.Length() != fRows) throw eSizeMismatch;
+	if (vec.Length() != fRows) throw ExceptionT::kSizeMismatch;
 #endif
 	return DotCol(colnum, vec.Pointer());
 }

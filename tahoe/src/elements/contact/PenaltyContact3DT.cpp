@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.4 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.4.4.2 2002-10-20 18:07:13 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 
 #include "PenaltyContact3DT.h"
@@ -47,7 +47,7 @@ PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support, const Field
 	{
 		cout << "\n PenaltyContact3DT::PenaltyContact3DT: reguralization must be > 0: "
 		     << fK << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 
 	double third = 1.0/3.0;
@@ -167,7 +167,7 @@ void PenaltyContact3DT::RHSDriver(void)
 	fnum_contact = 0;
 	fh_max = 0.0;
 
-	fDists.Allocate(fConnectivities[0]->MajorDim());
+	fDists.Dimension(fConnectivities[0]->MajorDim());
 	int* pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)

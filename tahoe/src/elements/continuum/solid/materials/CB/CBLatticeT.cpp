@@ -1,4 +1,4 @@
-/* $Id: CBLatticeT.cpp,v 1.2 2002-07-02 19:55:33 cjkimme Exp $ */
+/* $Id: CBLatticeT.cpp,v 1.2.4.1 2002-10-17 04:37:48 paklein Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* CBLatticeT.cpp                                                         */
 
@@ -81,7 +81,7 @@ void CBLatticeT::BatchBondComponentTensor2(dArray2DT& comptable) const
 void CBLatticeT::BondTensor4_2D(const dArrayT& comps, dMatrixT& matrix) const
 {
 	/* dimension check */
-	if (matrix.Rows() != 3 || matrix.Cols() != 3) throw eGeneralFail;
+	if (matrix.Rows() != 3 || matrix.Cols() != 3) throw ExceptionT::kGeneralFail;
 
 	double R0 = comps[0];
 	double R1 = comps[1];
@@ -98,7 +98,7 @@ void CBLatticeT::BondTensor4_2D(const dArrayT& comps, dMatrixT& matrix) const
 void CBLatticeT::BondTensor4_3D(const dArrayT& comps, dMatrixT& matrix) const
 {
 	/* dimension check */
-	if (matrix.Rows() != 6 || matrix.Cols() != 6) throw eGeneralFail;
+	if (matrix.Rows() != 6 || matrix.Cols() != 6) throw ExceptionT::kGeneralFail;
 
 	double R0 = comps[0];
 	double R1 = comps[1];
@@ -116,7 +116,7 @@ void CBLatticeT::BondTensor4_3D(const dArrayT& comps, dMatrixT& matrix) const
 void CBLatticeT::BondTensor2_2D(const dArrayT& comps, dArrayT& vector) const
 {	
 	/* dimension check */
-	if (vector.Length() != 3) throw eGeneralFail;
+	if (vector.Length() != 3) throw ExceptionT::kGeneralFail;
 	
 	double R0 = comps[0];
 	double R1 = comps[1];
@@ -129,7 +129,7 @@ void CBLatticeT::BondTensor2_2D(const dArrayT& comps, dArrayT& vector) const
 void CBLatticeT::BondTensor2_3D(const dArrayT& comps, dArrayT& vector) const
 {
 	/* dimension check */
-	if (vector.Length() != 6) throw eGeneralFail;
+	if (vector.Length() != 6) throw ExceptionT::kGeneralFail;
 	
 	double R0 = comps[0];
 	double R1 = comps[1];
@@ -147,7 +147,7 @@ void CBLatticeT::BondTensor2_3D(const dArrayT& comps, dArrayT& vector) const
 void CBLatticeT::BatchBondTensor2_2D(dArray2DT& comptable) const
 {
 	/* dimension check */
-	if (comptable.MinorDim() != 3) throw eGeneralFail;
+	if (comptable.MinorDim() != 3) throw ExceptionT::kGeneralFail;
 
 	for (int i = 0; i < fNumBonds; i++)
 	{
@@ -166,7 +166,7 @@ void CBLatticeT::BatchBondTensor2_2D(dArray2DT& comptable) const
 void CBLatticeT::BatchBondTensor2_3D(dArray2DT& comptable) const
 {
 	/* dimension check */
-	if (comptable.MinorDim() != 6) throw eGeneralFail;
+	if (comptable.MinorDim() != 6) throw ExceptionT::kGeneralFail;
 
 	for (int i = 0; i < fNumBonds; i++)
 	{

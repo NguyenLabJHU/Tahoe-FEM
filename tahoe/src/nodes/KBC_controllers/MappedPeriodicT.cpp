@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.cpp,v 1.6 2002-07-02 19:56:35 cjkimme Exp $ */
+/* $Id: MappedPeriodicT.cpp,v 1.6.4.2 2002-10-20 18:07:43 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 
 #include "MappedPeriodicT.h"
@@ -34,13 +34,13 @@ void MappedPeriodicT::Initialize(ifstreamT& in)
 {
 	/* schedule for fFperturb */
 	in >> fnumLTf; fnumLTf--;
-	if (fnumLTf < 0) throw eBadInputValue;
+	if (fnumLTf < 0) throw ExceptionT::kBadInputValue;
 	fSchedule = fNodeManager.Schedule(fnumLTf);	
-	if (!fSchedule) throw eBadInputValue;
+	if (!fSchedule) throw ExceptionT::kBadInputValue;
 
 	/* specified deformation gradient */
 	in >> fFperturb;
-	if (!in.good()) throw eBadInputValue;
+	if (!in.good()) throw ExceptionT::kBadInputValue;
 
 	/* list of mapped nodes */
 	ArrayT<StringT> id_list;
@@ -49,7 +49,7 @@ void MappedPeriodicT::Initialize(ifstreamT& in)
 	/* read master nodes */
 	iArrayT tmp;
 	ReadNodes(in, id_list, tmp);
-	fSlaveMasterPairs.Allocate(tmp.Length(), 2);
+	fSlaveMasterPairs.Dimension(tmp.Length(), 2);
 	fSlaveMasterPairs.SetColumn(kMaster, tmp);
 
 	/* read corresponding slave nodes */
@@ -60,14 +60,14 @@ void MappedPeriodicT::Initialize(ifstreamT& in)
 		     << fSlaveMasterPairs.MajorDim() << " does\n"
 		     <<   "     not match the length of the slave node list "
 		     << tmp.Length() << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	fSlaveMasterPairs.SetColumn(kSlave, tmp);
 	
 	/* generate BC cards */
 	int num_BC = fMappedNodeList.Length() + fSlaveMasterPairs.MajorDim();
 	int nsd = fFperturb.Rows();
-	fKBC_Cards.Allocate(num_BC*nsd);
+	fKBC_Cards.Dimension(num_BC*nsd);
 	fMappedCards.Set(fMappedNodeList.Length()*nsd, fKBC_Cards.Pointer());
 	fSlaveCards.Set(fSlaveMasterPairs.MajorDim()*nsd,
 		fKBC_Cards.Pointer(fMappedCards.Length()));

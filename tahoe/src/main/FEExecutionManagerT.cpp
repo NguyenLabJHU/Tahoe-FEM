@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.26 2002-09-23 06:58:28 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.26.2.2 2002-10-20 18:07:20 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -9,10 +9,10 @@
 #include "fstreamT.h"
 #include "Environment.h"
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 #if defined(__MWERKS__) && __option(profile)
-#include <profiler.h>
+#include <Profiler.h>
 #endif
 
 #include "fstreamT.h"
@@ -113,7 +113,7 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 		default:
 			status << "\n FEExecutionManagerT::RunJob: unknown option:"
 			     << run_option << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -224,6 +224,11 @@ void FEExecutionManagerT::RunJob_serial(ifstreamT& in,
 	int phase; // job phase
 	try
 	{
+#if defined(__MWERKS__) && __option(profile)
+		/* start recording profiler information */
+		ProfilerSetStatus(1);
+#endif
+
 		t0 = clock();
 
 		/* construction */
@@ -235,16 +240,19 @@ void FEExecutionManagerT::RunJob_serial(ifstreamT& in,
 		t1 = clock();
 		
 		/* solution */
-//ProfilerSetStatus(1);
 		phase = 1;
 		analysis1.Solve();
-//ProfilerSetStatus(0);
 
 		t2 = clock();
+
+#if defined(__MWERKS__) && __option(profile)
+		/* stop recording profiler information */
+		ProfilerSetStatus(0);
+#endif
 	}
 
 	/* job failure */
-	catch (int code)
+	catch (ExceptionT::CodeT code)
 	{
 		status << "\n \"" << in.filename() << "\" exit on exception during the\n";
 		if (phase == 0)
@@ -252,7 +260,7 @@ void FEExecutionManagerT::RunJob_serial(ifstreamT& in,
 			status << " construction phase. Check the input file for errors." << endl;
 		
 			/* echo some lines from input */
-			if (code == eBadInputValue) Rewind(in, status);
+			if (code == ExceptionT::kBadInputValue) Rewind(in, status);
 		}
 		else
 		{
@@ -293,7 +301,7 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
 	int size = 0;
 	int index;
 	if (!CommandLineOption("-decomp", index)) 
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	else {
 		if (fCommandLineOptions.Length() > index+1)
 		{
@@ -367,7 +375,7 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
 	}
 
 	/* job failure */
-	catch (int code)
+	catch (ExceptionT::CodeT code)
 	{
 		/* fix clock values */
 		if (t1 == 0) t1 = clock();
@@ -407,9 +415,8 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 		fe_man.Initialize(FEManagerT::kParametersOnly);
 		
 		/* model file parameters */
-		StringT model_file;
-		IOBaseT::FileTypeT model_format;
-		fe_man.ModelManager()->Format(model_format, model_file);
+		StringT model_file = fe_man.ModelManager()->DatabaseName();
+		IOBaseT::FileTypeT model_format = fe_man.ModelManager()->DatabaseFormat();
 		IOBaseT::FileTypeT results_format = fe_man.OutputFormat();
 		if (results_format == IOBaseT::kTahoe ||
 		    results_format == IOBaseT::kTahoeII)
@@ -418,7 +425,7 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 		int size = 0;
 		int index;
 		if (!CommandLineOption("-join", index)) 
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		else {
 			if (fCommandLineOptions.Length() > index+1)
 			{
@@ -459,7 +466,7 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 		StringT version = fe_man.Version();
 		StringT title   = fe_man.Title();
 		StringT input   = in.filename();
-		OutputBaseT* output = IOManager::NewOutput(program, version, title, input, 
+		OutputBaseT* output = IOBaseT::NewOutput(program, version, title, input, 
 			results_format, cout);
 		
 		/* construct joiner */
@@ -476,7 +483,7 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 	}
 
 	/* job failure */
-	catch (int code)
+	catch (ExceptionT::CodeT code)
 	{
 		/* fix clock values */
 		if (t1 == 0) t1 = clock();
@@ -540,7 +547,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	{
 		/* run decomp */
 		try { Decompose(in, size, model_file, format, map_file); }
-		catch (int code)
+		catch (ExceptionT::CodeT code)
 		{
 			cout << " ::RunJob_parallel: exception on decomposition: " << code << endl;
 			token = 0;
@@ -548,7 +555,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	}
 
 	/* synch and check status */
-	if (fComm.Sum(token) != size) throw eGeneralFail;
+	if (fComm.Sum(token) != size) throw ExceptionT::kGeneralFail;
 
 	/* read partition information */
 	PartitionT partition;
@@ -577,7 +584,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	}
 	
 	/* synch and check status */
-	if (fComm.Sum(token) != size) throw eGeneralFail;
+	if (fComm.Sum(token) != size) throw ExceptionT::kGeneralFail;
 		
 	/* write partial geometry files (if needed) */
 	StringT partial_file;
@@ -605,17 +612,17 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	}
 	FEManagerT_mpi FEman(in_loc, out, fComm, &partition, FEManagerT_mpi::kRun);
 	try { FEman.Initialize(); }
-	catch (int code)
+	catch (ExceptionT::CodeT code)
 	{
 		status << "\n \"" << in_loc.filename() << "\" exit on exception " << code << " during the\n";
 		status << " construction phase. Check the input file for errors." << endl;
 		
 		/* echo some lines from input */
-		if (code == eBadInputValue) Rewind(in_loc, status);
+		if (code == ExceptionT::kBadInputValue) Rewind(in_loc, status);
 		token = 0;
 
 		/* write exception codes to out file */
-		FEman.WriteExceptionCodes(out);
+		ExceptionT::WriteExceptionCodes(out);
 	}
 	
 	if (fComm.Sum(token) != size)
@@ -634,7 +641,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		}
 		else fComm.Gather(token, 0);
 		
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	/* external IO */
@@ -649,19 +656,19 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 
 		/* set-up local IO */
 		IOMan = new IOManager_mpi(in, fComm, output_map, *(FEman.OutputManager()), FEman.Partition(), model_file, format);
-		if (!IOMan) throw eOutOfMemory;
+		if (!IOMan) throw ExceptionT::kOutOfMemory;
 		
 		/* set external IO */
 		FEman.SetExternalIO(IOMan);
 		}
 		
-		catch (int code)
+		catch (ExceptionT::CodeT code)
 		{
 			token = 0;
 			status << "\n \"" << in.filename() << "\" exit on exception " << code 
 			       << " setting the external IO" << endl;
 			/* write exception codes to out file */
-			FEman.WriteExceptionCodes(out);		
+			ExceptionT::WriteExceptionCodes(out);		
 		}
 	}
 
@@ -681,14 +688,14 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		else 
 			fComm.Gather(token, 0);
 		
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* solve */
 	t2 = clock();
 	token = 1;
 	try { FEman.Solve(); }
-	catch (int code)
+	catch (ExceptionT::CodeT code)
 	{
 		status << "\n \"" << in.filename() << "\" exit on exception " << code << " during the\n";
 		status << " solution phase. See \"" << out_file << "\" for a list";
@@ -696,7 +703,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		token = 0;
 
 		/* write exception codes to out file */
-		FEman.WriteExceptionCodes(out);		
+		ExceptionT::WriteExceptionCodes(out);		
 	}
 
 	/* free external IO */
@@ -718,12 +725,12 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		}
 		else fComm.Gather(token, 0);
 		
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	t3 = clock(); } // end try
 
 	/* job failure */
-	catch (int code)
+	catch (ExceptionT::CodeT code)
 	{
 		/* fix clock values */
 		if (t1 == 0) t1 = clock();
@@ -792,7 +799,8 @@ void FEExecutionManagerT::GetModelFile(ifstreamT& in, StringT& model_file,
 	fe_temp.Initialize(FEManagerT::kParametersOnly);
 
 	ModelManagerT* model = fe_temp.ModelManager();
-	model->Format (format, model_file);
+	format = model->DatabaseFormat();
+	model_file = model->DatabaseName();
 }
 
 /* initializations for rank 0 */
@@ -822,10 +830,10 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 		/* construct global problem */
 		FEManagerT_mpi global_FEman(in_decomp, decomp_out, fComm, NULL, FEManagerT_mpi::kDecompose);
 		try { global_FEman.Initialize(FEManagerT::kAllButSolver); }
-		catch (int code)
+		catch (ExceptionT::CodeT code)
 		{
 			cout << "\n FEExecutionManagerT::Decompose: exception during construction: "
-		         << global_FEman.Exception(code) << endl;
+		         << ExceptionT::ToString(code) << endl;
 			throw code;
 		}
 
@@ -870,7 +878,7 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 				global_FEman.Decompose(partition, graph, true, method);
 				cout << " Decomposing: " << model_file << ": DONE"<< endl;
 			}
-			catch (int code)
+			catch (ExceptionT::CodeT code)
 			{
 				cout << "\n FEExecutionManagerT::Decompose: exception during decomposition: "
 			         << code << endl;
@@ -946,7 +954,7 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 				{
 					cout << "\n FEExecutionManagerT::Decompose: unexpected node number shift: "
 					     << shift << endl;				
-					throw eGeneralFail;
+					throw ExceptionT::kGeneralFail;
 				}
 				dArrayT degree(nnd);
 				for (int j = 0; j < nnd; j++)
@@ -1008,7 +1016,7 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 				{			
 					cout << "     Writing partial model file: " << partial_file << endl;
 					try { EchoPartialGeometry(partition[i], model_file, partial_file, format); }
-					catch (int error)
+					catch (ExceptionT::CodeT error)
 					{
 						cout << "\n ::Decompose: exception writing file: " << partial_file << endl;
 						throw error;
@@ -1127,13 +1135,13 @@ void FEExecutionManagerT::ReadOutputMap(ifstreamT& in, const StringT& map_file,
 	{
 		cout << "\n FEExecutionManagerT::ReadOutputMap: could not open io map file: "
 		     << map_file << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* read map */
 	int size, num_sets;
 	map_in >> size >> num_sets;
-	map.Allocate(num_sets);
+	map.Dimension(num_sets);
 	map_in >> map;
 
 	/* check */
@@ -1144,7 +1152,7 @@ void FEExecutionManagerT::ReadOutputMap(ifstreamT& in, const StringT& map_file,
 		cout << "\n FEExecutionManagerT::ReadOutputMap: map error\n";
 		cout << map.wrap(5) << '\n';
 		cout.flush();
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -1153,7 +1161,7 @@ void FEExecutionManagerT::SetOutputMap(const ArrayT<OutputSetT*>& output_sets,
 	iArrayT& output_map, int size) const
 {
 	/* initialize map - processor number for each element block */
-	output_map.Allocate(output_sets.Length());
+	output_map.Dimension(output_sets.Length());
 	output_map = 0;
 	
 	iArrayT output_counts(size);
@@ -1205,7 +1213,7 @@ void FEExecutionManagerT::EchoPartialGeometry(const PartitionT& partition,
 		default:
 			cout << "\n ::WritePartialGeometry: unsupported file format: "
 			     << format << endl;	
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -1221,7 +1229,7 @@ void FEExecutionManagerT::EchoPartialGeometry_ExodusII(const PartitionT& partiti
 	{
 		cout << "\n FEExecutionManagerT::EchoPartialGeometry_ExodusII: error opening file: "
 		     << model_file << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}		
 
 	/* collect file creation information */
@@ -1343,7 +1351,7 @@ void FEExecutionManagerT::EchoPartialGeometry_ExodusII(const PartitionT& partiti
 			/* non-empty set */
 			if (local_indices.Length() > 0)
 			{
-				sideset.Allocate(local_indices.Length(), sideset_ALL.MinorDim());
+				sideset.Dimension(local_indices.Length(), sideset_ALL.MinorDim());
 				sideset.RowCollect(local_indices, sideset_ALL);
 
 				iArrayT elements(sideset.MajorDim());
@@ -1371,7 +1379,7 @@ void FEExecutionManagerT::EchoPartialGeometry_TahoeII(const PartitionT& partitio
 	{
 		cout << "\n FEExecutionManagerT::EchoPartialGeometry_TahoeII: error opening file: "
 		     << model_file << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}		
 	
 	/* open model file */
@@ -1381,22 +1389,22 @@ void FEExecutionManagerT::EchoPartialGeometry_TahoeII(const PartitionT& partitio
 
 	/* title */
 	StringT title;
-	if (model_ALL.GetTitle(title) != ModelFileT::kOK) throw eGeneralFail;
+	if (model_ALL.GetTitle(title) != ModelFileT::kOK) throw ExceptionT::kGeneralFail;
 	title.Append(": partition ", part);
-	if (model.PutTitle(title) != ModelFileT::kOK) throw eGeneralFail;
+	if (model.PutTitle(title) != ModelFileT::kOK) throw ExceptionT::kGeneralFail;
 
 	/* nodal coordinates */
 	const iArrayT& node_map = partition.NodeMap();
 	dArray2DT coords_ALL;
-	if (model_ALL.GetCoordinates(coords_ALL) != ModelFileT::kOK) throw eGeneralFail;
+	if (model_ALL.GetCoordinates(coords_ALL) != ModelFileT::kOK) throw ExceptionT::kGeneralFail;
 	dArray2DT coords(node_map.Length(), coords_ALL.MinorDim());		
 	coords.RowCollect(node_map, coords_ALL);
-	if (model.PutCoordinates(coords) != ModelFileT::kOK) throw eGeneralFail;
+	if (model.PutCoordinates(coords) != ModelFileT::kOK) throw ExceptionT::kGeneralFail;
 	coords.Free();	
 		
 	/* element sets */
 	iArrayT elementID;
-	if (model_ALL.GetElementSetID(elementID) != ModelFileT::kOK) throw eGeneralFail;
+	if (model_ALL.GetElementSetID(elementID) != ModelFileT::kOK) throw ExceptionT::kGeneralFail;
 	for (int j = 0; j < elementID.Length(); j++)
 	{
 		/* collect connecitivities within the partition */
@@ -1404,7 +1412,7 @@ void FEExecutionManagerT::EchoPartialGeometry_TahoeII(const PartitionT& partitio
 		ID.Append(elementID[j]);
 		const iArrayT& element_map = partition.ElementMap(ID);
 		iArray2DT set_ALL;
-		if (model_ALL.GetElementSet(elementID[j], set_ALL) != ModelFileT::kOK) throw eGeneralFail;				
+		if (model_ALL.GetElementSet(elementID[j], set_ALL) != ModelFileT::kOK) throw ExceptionT::kGeneralFail;				
 		iArray2DT set(element_map.Length(), set_ALL.MinorDim());
 		set.RowCollect(element_map, set_ALL);
 			
@@ -1414,17 +1422,17 @@ void FEExecutionManagerT::EchoPartialGeometry_TahoeII(const PartitionT& partitio
 		set++;
 
 		/* add */
-		if (model.PutElementSet(elementID[j], set) != ModelFileT::kOK) throw eGeneralFail;
+		if (model.PutElementSet(elementID[j], set) != ModelFileT::kOK) throw ExceptionT::kGeneralFail;
 	}
 		
 	/* node sets */
 	iArrayT nodeID;
-	if (model_ALL.GetNodeSetID(nodeID) != ModelFileT::kOK) throw eGeneralFail;
+	if (model_ALL.GetNodeSetID(nodeID) != ModelFileT::kOK) throw ExceptionT::kGeneralFail;
 	for (int k = 0; k < nodeID.Length(); k++)
 	{
 		/* whole node set */
 		iArrayT nodeset_ALL;		
-		if (model_ALL.GetNodeSet(nodeID[k], nodeset_ALL) != ModelFileT::kOK) throw eGeneralFail;
+		if (model_ALL.GetNodeSet(nodeID[k], nodeset_ALL) != ModelFileT::kOK) throw ExceptionT::kGeneralFail;
 		nodeset_ALL--;
 				
 		/* partition node set */
@@ -1438,18 +1446,18 @@ void FEExecutionManagerT::EchoPartialGeometry_TahoeII(const PartitionT& partitio
 			
 		/* add */
 		nodeset++;
-		if (model.PutNodeSet(nodeID[k], nodeset) != ModelFileT::kOK) throw eGeneralFail;
+		if (model.PutNodeSet(nodeID[k], nodeset) != ModelFileT::kOK) throw ExceptionT::kGeneralFail;
 	}
 
 	/* side sets */		
 	iArrayT sideID;
-	if (model_ALL.GetSideSetID(sideID) != ModelFileT::kOK) throw eGeneralFail;
+	if (model_ALL.GetSideSetID(sideID) != ModelFileT::kOK) throw ExceptionT::kGeneralFail;
 	for (int l = 0; l < sideID.Length(); l++)
 	{
 		/* whole side set */
 		int element_set_ID;
 		iArray2DT sideset_ALL;		
-		if (model_ALL.GetSideSet(sideID[l], element_set_ID, sideset_ALL) != ModelFileT::kOK) throw eGeneralFail;
+		if (model_ALL.GetSideSet(sideID[l], element_set_ID, sideset_ALL) != ModelFileT::kOK) throw ExceptionT::kGeneralFail;
 
 		/* partition side set */
 		iArray2DT sideset;
@@ -1464,7 +1472,7 @@ void FEExecutionManagerT::EchoPartialGeometry_TahoeII(const PartitionT& partitio
 			ID.Append(element_set_ID);
 			iArrayT local_indices;
 			partition.ReturnPartitionElements(ID, elements_ALL, local_indices);
-			sideset.Allocate(local_indices.Length(), sideset_ALL.MinorDim());
+			sideset.Dimension(local_indices.Length(), sideset_ALL.MinorDim());
 			sideset.RowCollect(local_indices, sideset_ALL);
 				
 			/* map to (block) local numbering */
@@ -1479,7 +1487,7 @@ void FEExecutionManagerT::EchoPartialGeometry_TahoeII(const PartitionT& partitio
 		}
 			
 		/* add */
-		if (model.PutSideSet(sideID[l], element_set_ID, sideset) != ModelFileT::kOK) throw eGeneralFail;
+		if (model.PutSideSet(sideID[l], element_set_ID, sideset) != ModelFileT::kOK) throw ExceptionT::kGeneralFail;
 	}
 
 	/* close database */

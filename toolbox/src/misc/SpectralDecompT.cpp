@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.cpp,v 1.9 2002-07-02 19:57:18 cjkimme Exp $ */
+/* $Id: SpectralDecompT.cpp,v 1.9.2.2 2002-10-20 18:02:04 paklein Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -47,7 +47,7 @@ SpectralDecompT::SpectralDecompT(int nsd):
 		
 	/* dimension rank 1 matrices */
 	for (int i = 0; i < nsd; i++)
-		fm[i].Allocate(nsd);
+		fm[i].Dimension(nsd);
 
 	/* eigenvectors in columns */
 	for (int j = 0; j < nsd; j++)
@@ -169,7 +169,7 @@ void SpectralDecompT::SpectralDecomp_Jacobi(const dSymMatrixT& rank2, bool pertu
 		n2n2[5] = pvec[0]*pvec[1];
 	}
 	else
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 		
 	/* perturb repeated roots */
 	if (perturb_repeated) PerturbRepeated(fEigs);
@@ -216,7 +216,7 @@ void SpectralDecompT::PolarDecomp(const dMatrixT& F, dMatrixT& R, dSymMatrixT& U
 #if __option(extended_errorcheck)
 	if (fEigs.Length() != F.Rows() ||
 	          F.Rows() != R.Rows() ||
-	          R.Rows() != U.Rows()) throw eSizeMismatch;
+	          R.Rows() != U.Rows()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* construct stretch C */
@@ -227,11 +227,11 @@ void SpectralDecompT::PolarDecomp(const dMatrixT& F, dMatrixT& R, dSymMatrixT& U
 	SpectralDecomp_Jacobi(U, perturb_repeated);
 
 	/* eigenvalues to stretches */
-	if (fEigs[0] <= 0.0) throw eBadJacobianDet; fEigs[0] = sqrt(fEigs[0]);
-	if (fEigs[1] <= 0.0) throw eBadJacobianDet; fEigs[1] = sqrt(fEigs[1]);
+	if (fEigs[0] <= 0.0) throw ExceptionT::kBadJacobianDet; fEigs[0] = sqrt(fEigs[0]);
+	if (fEigs[1] <= 0.0) throw ExceptionT::kBadJacobianDet; fEigs[1] = sqrt(fEigs[1]);
 	if (fEigs.Length() == 3)
 	{
-		if (fEigs[2] <= 0.0) throw eBadJacobianDet;
+		if (fEigs[2] <= 0.0) throw ExceptionT::kBadJacobianDet;
 		fEigs[2] = sqrt(fEigs[2]);
 	}
 	
@@ -257,7 +257,7 @@ bool SpectralDecompT::PerturbRepeated(dArrayT& values) const
 	if (values.Length() != 2 && values.Length() != 3)
 	{
 		cout << "\n SpectralDecompT::PerturbRepeated: expecting array length 2 or 3" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* perturb repeated values */
@@ -590,7 +590,7 @@ const dMatrixT& SpectralDecompT::SpatialTensor3D(const dSymMatrixT& b, int A)
 		fSpatTensor.Identity();
 		return fSpatTensor;
 	}
-	else if (fEigs[A] <= 0.0) throw eBadJacobianDet;
+	else if (fEigs[A] <= 0.0) throw ExceptionT::kBadJacobianDet;
 
 	/* I_b - b (x) b */
 	double k1 = 1.0/dA;
@@ -663,7 +663,7 @@ void SpectralDecompT::SchmidtDecompose(const dSymMatrixT& rank2,
 		cout << " 1x eig = " << l2 << endl;
 		cout << " 2x nxn = (diagonals must be > 0)\n" << n2xn2 << '\n';
 		cout.precision(prec_old);
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 			
 	/* components of unique eigenvector - chop noise */

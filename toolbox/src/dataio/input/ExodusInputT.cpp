@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.16 2002-08-23 15:38:23 paklein Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.16.2.2 2002-10-20 18:02:00 paklein Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #include "ExodusInputT.h"
@@ -28,7 +28,7 @@ bool ExodusInputT::Open (const StringT& filename)
 
 void ExodusInputT::ElementGroupNames (ArrayT<StringT>& groupnames) const
 {
-  if (groupnames.Length() != NumElementGroups()) throw eSizeMismatch;
+  if (groupnames.Length() != NumElementGroups()) throw ExceptionT::kSizeMismatch;
   iArrayT ids (groupnames.Length());
   fData.ElementBlockID (ids);
   for (int i=0; i < groupnames.Length(); i++) {
@@ -39,7 +39,7 @@ void ExodusInputT::ElementGroupNames (ArrayT<StringT>& groupnames) const
 
 void ExodusInputT::SideSetNames (ArrayT<StringT>& sidenames) const
 {
-  if (sidenames.Length() != NumSideSets ()) throw eSizeMismatch;
+  if (sidenames.Length() != NumSideSets ()) throw ExceptionT::kSizeMismatch;
   iArrayT sidenums (sidenames.Length());
   fData.SideSetID (sidenums);
   for (int i=0; i < sidenames.Length(); i++) {
@@ -50,7 +50,7 @@ void ExodusInputT::SideSetNames (ArrayT<StringT>& sidenames) const
 
 void ExodusInputT::NodeSetNames (ArrayT<StringT>& nodenames) const
 {
-  if (nodenames.Length() != NumNodeSets ()) throw eSizeMismatch;
+  if (nodenames.Length() != NumNodeSets ()) throw ExceptionT::kSizeMismatch;
   iArrayT nodenums (nodenames.Length());
   fData.NodeSetID (nodenums);
   for (int i=0; i < nodenames.Length(); i++) {
@@ -61,14 +61,14 @@ void ExodusInputT::NodeSetNames (ArrayT<StringT>& nodenames) const
 
 void ExodusInputT::ReadNodeID(iArrayT& node_id)
 {
-	if (node_id.Length() != NumNodes()) throw eSizeMismatch;
+	if (node_id.Length() != NumNodes()) throw ExceptionT::kSizeMismatch;
 	fData.ReadNodeMap(node_id);
 }
 
 void ExodusInputT::ReadCoordinates (dArray2DT& coords)
 {
   if (coords.MajorDim() != NumNodes() ||
-      coords.MinorDim() != fData.NumDimensions()) throw eSizeMismatch;
+      coords.MinorDim() != fData.NumDimensions()) throw ExceptionT::kSizeMismatch;
   fData.ReadCoordinates (coords);
 }
 
@@ -110,14 +110,14 @@ int ExodusInputT::NumElementNodes (const StringT& name)
 
 void ExodusInputT::ReadAllElementMap (iArrayT& elemmap)
 {
-  if (elemmap.Length() != NumGlobalElements()) throw eSizeMismatch;
+  if (elemmap.Length() != NumGlobalElements()) throw ExceptionT::kSizeMismatch;
   elemmap.SetValueToPosition ();
   elemmap += 1;
 }
 
 void ExodusInputT::ReadGlobalElementMap (const StringT& name, iArrayT& elemmap)
 {
-  if (elemmap.Length() != NumElements (name)) throw eSizeMismatch;
+  if (elemmap.Length() != NumElements (name)) throw ExceptionT::kSizeMismatch;
   int id = atoi (name.Pointer());
   int offset = 0;
   ArrayT<StringT> eid (NumElementGroups());
@@ -146,7 +146,7 @@ void ExodusInputT::ReadConnectivity (const StringT& name, iArray2DT& connects)
   fData.ReadElementBlockDims (group, numelems, numelemnodes);
 
   if (connects.MajorDim() != numelems ||
-      connects.MinorDim() != numelemnodes) throw eSizeMismatch;
+      connects.MinorDim() != numelemnodes) throw ExceptionT::kSizeMismatch;
   fData.ReadConnectivities (group, geocode, connects);
 
   connects += -1;
@@ -164,7 +164,7 @@ void ExodusInputT::ReadGeometryCode (const StringT& name, GeometryT::CodeT& code
 void ExodusInputT::ReadNodeSet (const StringT& name, iArrayT& nodes)
 {
   int set_num = atoi (name.Pointer());
-  if (nodes.Length() != fData.NumNodesInSet(set_num)) throw eSizeMismatch;
+  if (nodes.Length() != fData.NumNodesInSet(set_num)) throw ExceptionT::kSizeMismatch;
   fData.ReadNodeSet (set_num, nodes);
   
   nodes += -1;
@@ -186,7 +186,7 @@ void ExodusInputT::ReadSideSetLocal (const StringT& name, iArray2DT& sides) cons
 {
   int set_num = atoi (name.Pointer());
   if (sides.MajorDim() != fData.NumSidesInSet (set_num) ||
-      sides.MinorDim() != 2) throw eSizeMismatch;
+      sides.MinorDim() != 2) throw ExceptionT::kSizeMismatch;
   int block_ID;
   fData.ReadSideSet (set_num, block_ID, sides);
   
@@ -197,7 +197,7 @@ void ExodusInputT::ReadSideSetGlobal (const StringT& name, iArray2DT& sides) con
 {
   int set_num = atoi (name.Pointer());
   if (sides.MajorDim() != fData.NumSidesInSet (set_num) ||
-      sides.MinorDim() != 2) throw eSizeMismatch;
+      sides.MinorDim() != 2) throw ExceptionT::kSizeMismatch;
   int block_ID;
   fData.ReadSideSet (set_num, block_ID, sides);
   
@@ -220,7 +220,7 @@ void ExodusInputT::ReadSideSetGlobal (const StringT& name, iArray2DT& sides) con
 
 void ExodusInputT::ReadTimeSteps (dArrayT& steps)
 {
-  steps.Allocate(NumTimeSteps());
+  steps.Dimension(NumTimeSteps());
   for (int i=0; i < steps.Length(); i++)
     fData.ReadTime (i+1, steps[i]);
 }
@@ -269,7 +269,7 @@ void ExodusInputT::ReadAllNodeVariables (int step, dArray2DT& values)
       	     << values.MajorDim() << "," << values.MinorDim() << "}\n"
       	     <<   "     does not match the file dimensions {"
       	     << NumNodes() << "," << NumNodeVariables() << "}." << endl;
-     	throw eSizeMismatch;
+     	throw ExceptionT::kSizeMismatch;
 	}
 
   dArrayT temp (NumNodes());
@@ -291,7 +291,7 @@ void ExodusInputT::ReadNodeVariables (int step, const StringT& name, dArray2DT& 
 
   values.Allocate (nodesused.Length(), NumNodeVariables ());
   //if (values.MajorDim() != nodesused ||
-  //  values.MinorDim() != NumNodeVariables ()) throw eSizeMismatch;
+  //  values.MinorDim() != NumNodeVariables ()) throw ExceptionT::kSizeMismatch;
 
   dArrayT temp (NumNodes());
   dArray2DT temp2 (NumNodes(), NumNodeVariables ());
@@ -314,7 +314,7 @@ void ExodusInputT::ReadNodeSetVariables (int step, const StringT& nsetname, dArr
 
   values.Allocate (nodesused.Length(), NumNodeVariables ());
   //if (values.MajorDim() != nodesused ||
-  //  values.MinorDim() != NumNodeVariables ()) throw eSizeMismatch;
+  //  values.MinorDim() != NumNodeVariables ()) throw ExceptionT::kSizeMismatch;
 
   dArrayT temp (NumNodes());
   dArray2DT temp2 (NumNodes(), NumNodeVariables ());
@@ -329,7 +329,7 @@ void ExodusInputT::ReadNodeSetVariables (int step, const StringT& nsetname, dArr
 
 void ExodusInputT::ReadAllElementVariable (int step, int varindex, dArrayT& values)
 {
-  if (values.Length() != NumGlobalElements ()) throw eSizeMismatch;
+  if (values.Length() != NumGlobalElements ()) throw ExceptionT::kSizeMismatch;
 
   int ng = NumElementGroups ();
   iArrayT ids (ng);
@@ -351,7 +351,7 @@ void ExodusInputT::ReadElementVariable (int step, const StringT& name, int varin
   int group_id = atoi (name.Pointer());
   int numelems, dim;
   fData.ReadElementBlockDims (group_id, numelems, dim);
-  if (values.Length() != numelems) throw eSizeMismatch;
+  if (values.Length() != numelems) throw ExceptionT::kSizeMismatch;
   fData.ReadElementVariable (step+1, group_id, varindex+1, values);
 }
 
@@ -359,7 +359,7 @@ void ExodusInputT::ReadAllElementVariables (int step, dArray2DT& values)
 {
   int num = values.MinorDim();
   if (values.MajorDim() != NumGlobalElements () ||
-      num != NumElementVariables ()) throw eSizeMismatch;
+      num != NumElementVariables ()) throw ExceptionT::kSizeMismatch;
   dArray2DT vt (num, values.MajorDim());
 
   if (num ==0)
@@ -405,7 +405,7 @@ void ExodusInputT::ReadElementVariables (int step, const StringT& name, dArray2D
   
   // read element variables
   if (evalues.MajorDim() != numelems ||
-      evalues.MinorDim() != num) throw eSizeMismatch;
+      evalues.MinorDim() != num) throw ExceptionT::kSizeMismatch;
 
   dArrayT temp (numelems);
   for (int e=0; e < num; e++)
@@ -438,7 +438,7 @@ void ExodusInputT::NodesUsed(const nArrayT<int>& connects, iArrayT& nodesused) c
 		node_map[connects[i] - min] = 1;
 
 	/* collect list */
-	nodesused.Allocate(node_map.Count(1));
+	nodesused.Dimension(node_map.Count(1));
 	int dex = 0;
 	int*  p = node_map.Pointer();
 	for (int j = 0; j < node_map.Length(); j++)

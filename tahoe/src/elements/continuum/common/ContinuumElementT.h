@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.15 2002-08-14 21:02:09 creigh Exp $ */
+/* $Id: ContinuumElementT.h,v 1.15.4.2 2002-10-19 17:56:33 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _CONTINUUM_ELEMENT_T_H_
@@ -83,7 +83,7 @@ public:
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
-	/* form of tangent matrix - symmetric by default */
+	/** form of tangent matrix - symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
 	/* initialize/finalize time increment */
@@ -103,14 +103,6 @@ public:
 	/** send output */
 	virtual void WriteOutput(IOBaseT::OutputModeT mode);
 
-	/* side set to nodes on facets data. elements in the side set
-	 * refer to local numbering with the source element block 
-	 * \param block_ID ID of the source element block within the group
-	 * \param sideset {elememt, face} of each side in the set
-	 * \param facets nodes on each facet of the side set in cannonical ordering.
-	 *        array is dimensioned internally */
-	void SideSetToFacets(const StringT& block_ID, const iArray2DT& sideset, iArray2DT& facets) const;
-
 	/** return geometry and number of nodes on each facet */
 	void FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry, iArrayT& num_facet_nodes) const;
 	
@@ -119,19 +111,6 @@ public:
 
 	/** initial condition/restart functions (per time sequence) */
 	virtual void InitialCondition(void);
-
-	/** element faces on the group "surface" */
-	void SurfaceFacets(GeometryT::CodeT& geometry,
-		iArray2DT& surface_facets, iArrayT& surface_nodes) const;
-
-	/** element faces on the group "surface" grouped into contiguous patches */
-	void SurfaceFacets(GeometryT::CodeT& geometry,
-		ArrayT<iArray2DT>& surface_facet_sets,
-		iArrayT& surface_nodes) const;
-	
-	/** generate a list of nodes on the "surface" of the element group
-	 * based in the group connectivities */
-	void SurfaceNodes(iArrayT& surface_nodes) const;
 	
 	/** reference to the materials list */
 	const MaterialListT& MaterialsList(void) const;
@@ -194,21 +173,19 @@ protected:
 	/** construct a new material list and return a pointer */
 	virtual MaterialListT* NewMaterialList(int size) const = 0;
 
-	/** return the "bounding" elements and the corresponding
-	 * neighbors, both dimensioned internally */
-	void BoundingElements(iArrayT& elements, iArray2DT& neighbors) const;
-
 	/** write all current element information to the stream. used to generate
 	 * debugging information after runtime errors */
 	virtual void CurrElementInfo(ostream& out) const;
 
-	/* driver for calculating output values */
+	/** \name calculating output values */
+	/*@{*/
 	virtual void SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 		iArrayT& counts) const = 0;
 	virtual void SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 		iArrayT& counts) const = 0;
 	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	                           const iArrayT& e_codes, dArray2DT& e_values) = 0;
+	/*@}*/
 
 	/** check consistency of material outputs.
 	 * \return true if output variables of all materials for the group matches */
@@ -216,7 +193,7 @@ protected:
 
 private:
 
-	/* construct output labels array */
+	/** construct output labels array */
 	virtual void GenerateOutputLabels(
 		const iArrayT& n_codes, ArrayT<StringT>& n_labels, 
 		const iArrayT& e_codes, ArrayT<StringT>& e_labels) const = 0;
@@ -250,16 +227,19 @@ protected:
 	/** shape functions */
 	ShapeFunctionT* fShapes;
 	
-	/* arrays with local ordering */
+	/** \name arrays with local ordering */
+	/*@{*/
 	LocalArrayT fLocInitCoords;   /**< initial coords with local ordering */
 	LocalArrayT fLocDisp;	      /**< displacements with local ordering  */ 
 	LocalArrayT fLocDispAlpha;    /**< multi-scale u^alpha */
 	LocalArrayT fLocDispBeta;     /**< multi-scale u^alpha */
+	/*@}*/
 	
-	/* work space */
+	/** \name work space */
+	/*@{*/
 	dArrayT fNEEvec; /**< work space vector: [element DOF] */
 	dArrayT fDOFvec; /**< work space vector: [nodal DOF]   */
-//	dArrayT fNSDvec; /**< work space vector: [nodal dim]   */
+	/*@}*/
 
 private:
 
@@ -269,7 +249,7 @@ private:
 	/** output ID */
 	int fOutputID;
 
-	/* control data */
+	/** element parameter */
 	GeometryT::CodeT fGeometryCode;
 };
 
@@ -286,7 +266,7 @@ inline const ShapeFunctionT& ContinuumElementT::ShapeFunction(void) const
 	if (!fShapes)
 	{
 		cout << "\n ContinuumElementT::ShapeFunction: no shape functions" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 	return *fShapes;
@@ -304,7 +284,7 @@ inline const LocalArrayT& ContinuumElementT::Displacements() const
 
 inline const MaterialListT& ContinuumElementT::MaterialsList(void) const
 {
-	if (!fMaterialList) throw eGeneralFail;
+	if (!fMaterialList) throw ExceptionT::kGeneralFail;
 	return *fMaterialList;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.h,v 1.8 2002-07-05 22:28:34 paklein Exp $ */
+/* $Id: DiagonalMatrixT.h,v 1.8.4.1 2002-10-17 04:47:07 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _DIAGONAL_MATRIX_H_
@@ -18,7 +18,7 @@ class DiagonalMatrixT: public GlobalMatrixT
 public:
 
 	/** enum to signal how to assemble non-diagonal contributions to the matrix */
-	enum AssemblyModeT {kNoAssembly = 0, /**< do not assemble, throw exception */ 
+	enum AssemblyModeT {kNoAssembly = 0, /**< do not assemble, throw ExceptionT::xception */ 
 	                    kDiagOnly   = 1, /**< assemble the diagonal values only */
                         kAbsRowSum  = 2  /**< assemble the L1 norm of the row */};
 

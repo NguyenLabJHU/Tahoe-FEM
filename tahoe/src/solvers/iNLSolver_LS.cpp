@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.cpp,v 1.9 2002-09-12 17:50:12 paklein Exp $ */
+/* $Id: iNLSolver_LS.cpp,v 1.9.4.1 2002-10-17 04:14:24 paklein Exp $ */
 /* created: paklein (01/01/2001) */
 
 #include "iNLSolver_LS.h"
@@ -8,7 +8,7 @@
 
 #include "fstreamT.h"
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "FEManagerT.h"
 #include "iConsoleT.h"
 #include "CommandSpecT.h"
@@ -77,7 +77,7 @@ return kFailed;
 	
 	/* get the command spec */
 	CommandSpecT* step_command = iCommand("Step");
-	if (!step_command) throw eGeneralFail;
+	if (!step_command) throw ExceptionT::kGeneralFail;
 	step_command->Argument(0).SetValue(number_of_steps - step_number);
 	
 	/* execute */
@@ -164,7 +164,7 @@ bool iNLSolver_LS::iDoCommand(const CommandSpecT& command, StringT& line)
 			return SolverT::iDoCommand(command, line);
 	}
 	
-	catch (int code)
+	catch (ExceptionT::CodeT code)
 	{
 		cout << "\n iNLSolver_LS::iDoCommand: exception at step number "
 		     << fFEManager.StepNumber() << " with step "

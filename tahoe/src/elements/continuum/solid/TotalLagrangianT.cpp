@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianT.cpp,v 1.9 2002-09-23 06:58:25 paklein Exp $ */
+/* $Id: TotalLagrangianT.cpp,v 1.9.2.3 2002-10-20 18:07:16 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "TotalLagrangianT.h"
 
@@ -27,9 +27,9 @@ void TotalLagrangianT::Initialize(void)
 	FiniteStrainT::Initialize();
 
 	/* dimension */
-	fGradNa.Allocate(NumSD(), NumElementNodes());
-	fStressStiff.Allocate(NumElementNodes());
-	fTemp2.Allocate(NumElementNodes()*NumDOF());
+	fGradNa.Dimension(NumSD(), NumElementNodes());
+	fStressStiff.Dimension(NumElementNodes());
+	fTemp2.Dimension(NumElementNodes()*NumDOF());
 }
 
 /***********************************************************************
@@ -100,7 +100,7 @@ void TotalLagrangianT::FormStiffness(double constK)
 	}
 						
 	/* stress stiffness into fLHS */
-	fLHS.Expand(fStressStiff, NumDOF());
+	fLHS.Expand(fStressStiff, NumDOF(), dMatrixT::kAccumulate);
 }
 
 /* calculate the internal force contribution ("-k*d") */
@@ -127,7 +127,7 @@ void TotalLagrangianT::FormKd(double constK)
 		if (J <= 0.0)
 		{
 			cout << "\n TotalLagrangianT::FormKd: negative jacobian determinant" << endl;
-			throw eBadJacobianDet;
+			throw ExceptionT::kBadJacobianDet;
 		}
 		else
 			fTempMat2.Inverse();

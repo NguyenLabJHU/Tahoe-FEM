@@ -1,4 +1,4 @@
-/* $Id: ElementCardT.cpp,v 1.9 2002-09-12 17:50:06 paklein Exp $ */
+/* $Id: ElementCardT.cpp,v 1.9.4.2 2002-10-20 18:07:44 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementCardT.h"
@@ -67,7 +67,7 @@ ElementCardT& ElementCardT::operator=(const ElementCardT& rhs)
 		else
 		{
 			fData = new ElementStorageT(*rhs.fData);
-			if (!fData) throw(eOutOfMemory);
+			if (!fData) throw ExceptionT::kOutOfMemory;
 		}
 	}
 
@@ -87,7 +87,7 @@ void ElementCardT::ReadRestart(istream& in)
 	in >> i_size >> d_size;
 	
 	/* allocate space */
-	Allocate(i_size,d_size);
+	Dimension(i_size,d_size);
 
 	/* read data */
 	in >> (*fData);
@@ -98,7 +98,7 @@ void ElementCardT::WriteRestart(ostream& out) const
 	out << fFlag;
 
 	/* error to call if not allocated */
-	if (!fData) throw eGeneralFail;
+	if (!fData) throw ExceptionT::kGeneralFail;
 
 	/* output data size */
 	out << " " << IntegerData().Length();
@@ -110,7 +110,7 @@ void ElementCardT::WriteRestart(ostream& out) const
 }
 
 /* element storage accessors/modifiers */
-void ElementCardT::Allocate(int i_size, int d_size)
+void ElementCardT::Dimension(int i_size, int d_size)
 {
 	/* nothing to do */
 	if (IntegerData().Length() == i_size &&
@@ -132,7 +132,7 @@ void ElementCardT::Allocate(int i_size, int d_size)
 	}
 
 	fData = new ElementStorageT(i_size, d_size);
-	if (!fData) throw eOutOfMemory;
+	if (!fData) throw ExceptionT::kOutOfMemory;
 }
 
 namespace Tahoe {

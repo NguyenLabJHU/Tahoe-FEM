@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.cpp,v 1.12 2002-08-07 23:45:24 cjkimme Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.12.6.2 2002-10-20 18:07:11 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch2DT.h"
@@ -6,7 +6,7 @@
 #include <iostream.h>
 #include <math.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "fstreamT.h"
 #include "StringT.h"
 
@@ -20,17 +20,17 @@ const int knumDOF = 2;
 TvergHutch2DT::TvergHutch2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 {
 	/* traction potential parameters */
-	in >> fsigma_max; if (fsigma_max < 0) throw eBadInputValue;
-	in >> fd_c_n; if (fd_c_n < 0) throw eBadInputValue;
-	in >> fd_c_t; if (fd_c_t < 0) throw eBadInputValue;
+	in >> fsigma_max; if (fsigma_max < 0) throw ExceptionT::kBadInputValue;
+	in >> fd_c_n; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
+	in >> fd_c_t; if (fd_c_t < 0) throw ExceptionT::kBadInputValue;
 	
 	/* non-dimensional opening parameters */
-	in >> fL_1; if (fL_1 < 0 || fL_1 > 1) throw eBadInputValue;
-	in >> fL_2; if (fL_2 < fL_1 || fL_2 > 1) throw eBadInputValue;
+	in >> fL_1; if (fL_1 < 0 || fL_1 > 1) throw ExceptionT::kBadInputValue;
+	in >> fL_2; if (fL_2 < fL_1 || fL_2 > 1) throw ExceptionT::kBadInputValue;
 	in >> fL_fail; if (fL_fail < 1.0) fL_fail = 1.0;
 
 	/* stiffness multiplier */
-	in >> fpenalty; if (fpenalty < 0) throw eBadInputValue;
+	in >> fpenalty; if (fpenalty < 0) throw ExceptionT::kBadInputValue;
 
 	/* penetration stiffness */
 	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
@@ -48,8 +48,8 @@ double TvergHutch2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& sta
 {
 #pragma unused(state)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double u_t = jump_u[0];
@@ -85,8 +85,8 @@ const dArrayT& TvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 #pragma unused(state)
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double u_t = jump_u[0];
@@ -122,8 +122,8 @@ const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 #pragma unused(state)
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif
 
 	/*double u_t = jump_u[0];*/
@@ -202,7 +202,7 @@ SurfacePotentialT::StatusT TvergHutch2DT::Status(const dArrayT& jump_u,
 {
 #pragma unused(state)
 #if __option(extended_errorcheck)
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double u_t = jump_u[0];
@@ -247,7 +247,7 @@ void TvergHutch2DT::Print(ostream& out) const
 int TvergHutch2DT::NumOutputVariables(void) const { return 1; }
 void TvergHutch2DT::OutputLabels(ArrayT<StringT>& labels) const
 {
-	labels.Allocate(1);
+	labels.Dimension(1);
 	labels[0] = "lambda";
 }
 
@@ -256,7 +256,7 @@ void TvergHutch2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& s
 {
 #pragma unused(state)
 #if __option(extended_errorcheck)
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif
 
 	double u_t = jump_u[0];

@@ -1,4 +1,4 @@
-/* $Id: ReLabellerT.cpp,v 1.3 2002-09-20 16:20:39 paklein Exp $ */
+/* $Id: ReLabellerT.cpp,v 1.3.2.2 2002-10-20 18:02:03 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "ReLabellerT.h"
@@ -326,9 +326,9 @@ void ReLabellerT::Initialize(void)
 	int numnodes = fGraph.NumNodes();
 
 	/* allocate space */
-	fSequence.Allocate(numnodes);
-	fStatus.Allocate(numnodes);
-	fPriority.Allocate(numnodes),
+	fSequence.Dimension(numnodes);
+	fStatus.Dimension(numnodes);
+	fPriority.Dimension(numnodes),
 
 	/* initialize */
 	fSequence =-1;
@@ -393,7 +393,7 @@ void ReLabellerT::BuildRootedLevel(void)
 	}
 	
 	/* check all nodes used */
-	if (count != nnd) throw eGeneralFail;
+	if (count != nnd) throw ExceptionT::kGeneralFail;
 	
 	/* set end node from last level */
 	fRootedLevel.NodesOnLevel(nodes_used, fRootedLevel.Depth() - 1);
@@ -416,7 +416,7 @@ void ReLabellerT::SelectNodes(void)
 
 		/* collect top level info */
 		fRootedLevel.NodesOnLevel(topnodes, h_max - 1);
-		degrees.Allocate(topnodes.Length()); //really want to Allocate() every time?
+		degrees.Dimension(topnodes.Length()); //really want to Dimension() every time?
 		fGraph.ReturnDegrees(topnodes, degrees);
 		
 		/* order and halve */
@@ -470,7 +470,7 @@ void ReLabellerT::NewSequence(void)
 		NewNumber(currnode);
 	
 	/* check that all nodes got renumbered */
-	if (fCurrLabel != fPriority.Length()) throw eGeneralFail;
+	if (fCurrLabel != fPriority.Length()) throw ExceptionT::kGeneralFail;
 }
 
 /* estimate size of the system in terms of the
@@ -479,7 +479,7 @@ void ReLabellerT::ComputeSize(const iArrayT& sequence, int& bandwidth, int& prof
 {
 #if __option(extended_errorcheck)
 	if (fGraph.NumNodes() != sequence.Length())
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* generate node map */

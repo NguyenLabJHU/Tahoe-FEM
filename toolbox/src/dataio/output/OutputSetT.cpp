@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.14 2002-09-12 16:10:02 paklein Exp $ */
+/* $Id: OutputSetT.cpp,v 1.14.2.2 2002-10-20 18:02:01 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 #include "OutputSetT.h"
 #include "iArrayT.h"
@@ -32,17 +32,17 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 	    cout << "\n\nOutputSetT::OutputSetT size mismatch: \n";
 	    cout << " fConnectivities.Length = " << fConnectivities.Length();
 	    cout << "\n    fBlockID.Length = " << fBlockID.Length() << endl;
-	    throw eSizeMismatch;
+	    throw ExceptionT::kSizeMismatch;
 	  }
 
 	for (int i=0; i < fConnectivities.Length(); i++)
 		fConnectivities[i] = connectivities[i];
 
-	fNodeOutputLabels.Allocate(n_labels.Length());
+	fNodeOutputLabels.Dimension(n_labels.Length());
 	for (int i = 0; i < fNodeOutputLabels.Length(); i++)
 		fNodeOutputLabels[i] = n_labels[i];
 
-	fElementOutputLabels.Allocate(e_labels.Length());
+	fElementOutputLabels.Dimension(e_labels.Length());
 	for (int j = 0; j < fElementOutputLabels.Length(); j++)
 		fElementOutputLabels[j] = e_labels[j];
 
@@ -72,7 +72,7 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 	                    * with the output classes */
 
 	/* copy node labels */
-	fNodeOutputLabels.Allocate(n_labels.Length());
+	fNodeOutputLabels.Dimension(n_labels.Length());
 	for (int i = 0; i < fNodeOutputLabels.Length(); i++)
 		fNodeOutputLabels[i] = n_labels[i];
 
@@ -98,16 +98,16 @@ OutputSetT::OutputSetT(const OutputSetT& source):
 	for (int i=0; i < fConnectivities.Length(); i++)
 	        fConnectivities[i] = source.fConnectivities[i];
 
-	fNodeOutputLabels.Allocate(source.fNodeOutputLabels.Length());
+	fNodeOutputLabels.Dimension(source.fNodeOutputLabels.Length());
 	for (int i = 0; i < fNodeOutputLabels.Length(); i++)
 		fNodeOutputLabels[i] = source.fNodeOutputLabels[i];
 
-	fElementOutputLabels.Allocate(source.fElementOutputLabels.Length());
+	fElementOutputLabels.Dimension(source.fElementOutputLabels.Length());
 	for (int j = 0; j < fElementOutputLabels.Length(); j++)
 		fElementOutputLabels[j] = source.fElementOutputLabels[j];
 
 	if (fMode == kElementBlock &&
-	    fConnectivities.Length() != fBlockID.Length()) throw eSizeMismatch;
+	    fConnectivities.Length() != fBlockID.Length()) throw ExceptionT::kSizeMismatch;
 	
 	/* set nodes used by blocks */
 	if (fConnectivities.Length() == 1)
@@ -154,7 +154,7 @@ const iArrayT& OutputSetT::BlockNodesUsed(const StringT& ID)
 		if (fBlockNodesUsed.Length() == 1)
 		{
 			fBlockNodesUsed[index].Alias(fNodesUsed);
-			fBlockIndexToSetIndexMap[0].Allocate(fNodesUsed.Length());
+			fBlockIndexToSetIndexMap[0].Dimension(fNodesUsed.Length());
 			fBlockIndexToSetIndexMap[0].SetValueToPosition();		
 		}
 		else /* more than one block */
@@ -168,7 +168,7 @@ const iArrayT& OutputSetT::BlockNodesUsed(const StringT& ID)
 				/* block to set index map */
 				iArrayT& map = fBlockIndexToSetIndexMap[index];
 				iArrayT& used = fBlockNodesUsed[index];
-				map.Allocate(used.Length());
+				map.Dimension(used.Length());
 		
 				/* range of nodes numbers */
 				int min, max;
@@ -191,7 +191,7 @@ const iArrayT& OutputSetT::BlockNodesUsed(const StringT& ID)
 					if (dex < 0) {
 						cout << "\n OutputSetT::BlockNodesUsed: ERROR: block node used " << used[i]+1 
 						     << " is not marked as used by the set" << endl;
-						throw eGeneralFail;
+						throw ExceptionT::kGeneralFail;
 					}
 					else
 						map[i] = dex;
@@ -238,7 +238,7 @@ int OutputSetT::BlockIndex(const StringT& ID) const
 
 		if (index == -1) {
 			cout << "\n OutputSetT::BlockIndex: block ID not found: " << ID << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		return index;
 	}

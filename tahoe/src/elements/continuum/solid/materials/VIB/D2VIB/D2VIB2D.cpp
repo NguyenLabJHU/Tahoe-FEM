@@ -1,4 +1,4 @@
-/* $Id: D2VIB2D.cpp,v 1.3 2002-09-12 17:50:01 paklein Exp $ */
+/* $Id: D2VIB2D.cpp,v 1.3.4.1 2002-10-17 04:38:08 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2VIB2D.h"
@@ -20,7 +20,7 @@ D2VIB2D::D2VIB2D(ifstreamT& in, const D2MeshFreeFDElasticT& element):
 {
 	/* length scale parameter */
 	in >> feps2;
-//	if (feps2 < 0.0) throw eBadInputValue;
+//	if (feps2 < 0.0) throw ExceptionT::kBadInputValue;
 		
 	/* squared */
 	feps2 *= feps2;
@@ -40,28 +40,28 @@ void D2VIB2D::Print(ostream& out) const
 const dMatrixT& D2VIB2D::c_ijkl(void)
 {
 	cout << "\n D2VIB2D::c_ijkl: not allowed" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 	return fModuli; //dummy
 }
 
 const dSymMatrixT& D2VIB2D::s_ij(void)
 {
 	cout << "\n D2VIB2D::s_ij: not allowed" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 	return fPK2; //dummy
 }
 
 const dMatrixT& D2VIB2D::C_IJKL(void)
 {
 	cout << "\n D2VIB2D::C_IJKL: not allowed" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 	return fModuli; //dummy
 }
 
 const dSymMatrixT& D2VIB2D::S_IJ(void)
 {
 	cout << "\n D2VIB2D::S_IJ: not allowed" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 	return fPK2; //dummy
 }
 #endif

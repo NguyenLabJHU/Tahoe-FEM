@@ -1,4 +1,4 @@
-/* $Id: J2SSLinHardT.cpp,v 1.3 2002-07-02 19:56:11 cjkimme Exp $ */
+/* $Id: J2SSLinHardT.cpp,v 1.3.4.2 2002-10-20 18:07:36 paklein Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -152,7 +152,7 @@ void J2SSLinHardT::AllocateElement(ElementCardT& element)
 	d_size += kNumInternal*fNumIP;          //fInternal
 
 	/* construct new plastic element */
-	element.Allocate(i_size, d_size);
+	element.Dimension(i_size, d_size);
 	
 	/* initialize values */
 	element.IntegerData() = kIsElastic;
@@ -226,7 +226,7 @@ void J2SSLinHardT::Reset(ElementCardT& element)
 void J2SSLinHardT::LoadData(const ElementCardT& element, int ip)
 {
 	/* check */
-	if (!element.IsAllocated()) throw eGeneralFail;
+	if (!element.IsAllocated()) throw ExceptionT::kGeneralFail;
 
 	/* fetch arrays */
 	dArrayT& d_array = element.DoubleData();

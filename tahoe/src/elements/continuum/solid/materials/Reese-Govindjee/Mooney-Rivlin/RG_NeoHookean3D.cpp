@@ -1,10 +1,10 @@
-/* $Id: RG_NeoHookean3D.cpp,v 1.1 2002-10-04 23:59:01 thao Exp $ */
+/* $Id: RG_NeoHookean3D.cpp,v 1.1.2.1 2002-10-17 04:38:01 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
 
 #include "fstreamT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "RG_NeoHookean3D.h"
 #include <math.h>
 #include <iostream.h>

@@ -1,4 +1,4 @@
-/* $Id: Front3DT.cpp,v 1.2 2002-07-02 19:57:10 cjkimme Exp $ */
+/* $Id: Front3DT.cpp,v 1.2.2.2 2002-10-20 18:02:01 paklein Exp $ */
 /* created: paklein (03/18/1999)                                          */
 
 #include "Front3DT.h"
@@ -45,7 +45,7 @@ Front3DT::~Front3DT(void)
 		delete fFrontLines[i];
 
 	/* empty list */
-	fFrontLines.Allocate(0);		
+	fFrontLines.Dimension(0);		
 }
 
 /* construct initial front */
@@ -53,7 +53,7 @@ void Front3DT::Initialize(const dArray2DT& facet_coords, const iArrayT& fr_facet
 		const iArrayT& fr_edges)
 {
 	/* checks */
-	if (fr_facets.Length() != fr_edges.Length()) throw eSizeMismatch;
+	if (fr_facets.Length() != fr_edges.Length()) throw ExceptionT::kSizeMismatch;
 
 	/* facet coords */
 	const double* pA;
@@ -67,7 +67,7 @@ void Front3DT::Initialize(const dArray2DT& facet_coords, const iArrayT& fr_facet
 
 		/* new segment */
 		FrontSegmentT* new_seg = new FrontSegmentT(pA, pB, pC);
-		if (!new_seg) throw eOutOfMemory;
+		if (!new_seg) throw ExceptionT::kOutOfMemory;
 
 		/* add to front */
 		fFrontLines.Append(new_seg);
@@ -91,7 +91,7 @@ const dArray2DT& Front3DT::NewFacets(const ArrayT<int>& extend_pts,
 	const ArrayT<int>& extend_dir)
 {
 #if __option(extended_errorcheck)
-	if (extend_pts.Length() != extend_dir.Length()) throw eSizeMismatch;
+	if (extend_pts.Length() != extend_dir.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* each extension generates 2 new facets */
@@ -178,7 +178,7 @@ const dArray2DT& Front3DT::NewFacets_insert(const ArrayT<int>& extend_pts,
 	const ArrayT<int>& extend_dir)
 {
 #if __option(extended_errorcheck)
-	if (extend_pts.Length() != extend_dir.Length()) throw eSizeMismatch;
+	if (extend_pts.Length() != extend_dir.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* quick exit */
@@ -243,12 +243,12 @@ const dArray2DT& Front3DT::NewFacets_insert(const ArrayT<int>& extend_pts,
 
 				/* set segments */
 				FrontSegmentT* new_seg = new FrontSegmentT(A, mid, B);
-				if (!new_seg) throw eOutOfMemory;
+				if (!new_seg) throw ExceptionT::kOutOfMemory;
 				seg1.Reset(mid, x_n, B);
 			
 				/* new front node */
 				FrontNodeT* new_node = NewFrontNode(*new_seg, seg1);
-				if (!new_node) throw eOutOfMemory;
+				if (!new_node) throw ExceptionT::kOutOfMemory;
 
 				/* insert */
 				fFrontLines.InsertAt( new_seg, node);
@@ -292,11 +292,11 @@ const dArray2DT& Front3DT::NewFacets_insert(const ArrayT<int>& extend_pts,
 				/* set segments */
 				seg2.Reset(x_n, mid, A);
 				FrontSegmentT* new_seg = new FrontSegmentT(mid, B, A);
-				if (!new_seg) throw eOutOfMemory;
+				if (!new_seg) throw ExceptionT::kOutOfMemory;
 			
 				/* new front node */
 				FrontNodeT* new_node = NewFrontNode(seg2, *new_seg);
-				if (!new_node) throw eOutOfMemory;
+				if (!new_node) throw ExceptionT::kOutOfMemory;
 
 				/* insert */
 				fFrontLines.InsertAt( new_seg, node + 2);
@@ -429,7 +429,7 @@ void Front3DT::SetEdgePointers(const double* coords, int edge, const double** pp
 			*ppA = *ppC + 3;
 			break;
 		default:
-			throw eOutOfRange;
+			throw ExceptionT::kOutOfRange;
 	}
 }
 
@@ -447,7 +447,7 @@ FrontNodeT* Front3DT::NewFrontNode(const FrontSegmentT& seg1,
 	    fabs(x12[2] - x21[2]) > kSmall)
 	{
 		cout << "\n Front3DT::NewFrontNode: segments not continuous" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* average normals */
@@ -462,7 +462,7 @@ FrontNodeT* Front3DT::NewFrontNode(const FrontSegmentT& seg1,
 
 	/* construct node */
 	FrontNodeT* node = new FrontNodeT(3, x12, N_n, N_t, fcone, fda*fda_s, fnum_pts);
-	if (!node) throw eOutOfMemory;
+	if (!node) throw ExceptionT::kOutOfMemory;
 
 	return node;
 }
@@ -481,7 +481,7 @@ void Front3DT::ResetFrontNode(const FrontSegmentT& seg1, const FrontSegmentT& se
 	    fabs(x12[2] - x21[2]) > kSmall)
 	{
 		cout << "\n Front3DT::NewFrontNode: segments not continuous" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* average normals */
@@ -526,7 +526,7 @@ void Front3DT::CheckFrontSpacing(void)
 				
 				/* reset segments */
 				FrontSegmentT* new_seg = new FrontSegmentT(seg.x1(), x_mid, seg);
-				if (!new_seg) throw eOutOfMemory;
+				if (!new_seg) throw ExceptionT::kOutOfMemory;
 				seg.Reset(x_mid, seg.x2(), seg);
 				
 				/* generate new front node */

@@ -1,6 +1,5 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.12 2002-09-12 17:49:54 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.12.4.1 2002-10-17 04:28:56 paklein Exp $ */
 /* created: paklein (09/16/1998) */
-
 #include "MeshFreeFSSolidT.h"
 
 #include <iostream.h>
@@ -9,8 +8,9 @@
 
 #include "fstreamT.h"
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "MeshFreeShapeFunctionT.h"
+#include "ModelManagerT.h"
 
 //TEMP
 #include "MaterialListT.h"
@@ -85,7 +85,12 @@ void MeshFreeFSSolidT::Initialize(void)
 
 	/* initialize support data */
 	iArrayT surface_nodes;
-	if (fAutoBorder) SurfaceNodes(surface_nodes);
+	if (fAutoBorder) {
+		ArrayT<StringT> IDs;
+		ElementBlockIDs(IDs);
+		ElementSupport().Model().SurfaceNodes(IDs, surface_nodes,
+			&(ShapeFunction().ParentDomain().Geometry()));
+	}
 	MeshFreeFractureSupportT::InitSupport(
 		ElementSupport().Input(), 
 		ElementSupport().Output(),
@@ -105,7 +110,7 @@ void MeshFreeFSSolidT::Initialize(void)
 	{	
 		cout << "\n MeshFreeFSSolidT::Initialize: can only have 1 material in the group\n";
 		cout <<   "     with active cracks" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	
 //TEMP - needs rethinking
@@ -117,7 +122,7 @@ void MeshFreeFSSolidT::Initialize(void)
 		cout << "\n MeshFreeFSSolidT::Initialize: failure criterion requires\n"
 		     <<   "     localizing materials: " << MeshFreeFractureSupportT::kAcoustic
 		     << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 #endif
 
@@ -224,7 +229,7 @@ GlobalT::RelaxCodeT MeshFreeFSSolidT::RelaxSystem(void)
 		//       includes the current element pointer, gradient operators,
 		//       state variables, etc. Not implemented
 		cout << "\n MeshFreeFSSolidT::RelaxSystem: crack growth not available" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 		fElementCards.Current(0);
 		
 		/* check for crack growth */
@@ -253,7 +258,7 @@ GlobalT::RelaxCodeT MeshFreeFSSolidT::RelaxSystem(void)
 	}
 	else if (CheckGrowth(NULL, &fLocDisp, false)) {
 		cout << "\n MeshFreeFSSolidT::RelaxSystem: unexpected crack growth" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 		
 	return relax;
@@ -322,14 +327,14 @@ void MeshFreeFSSolidT::SetShape(void)
 		cout << "\n MeshFreeFSSolidT::SetShape: multiple element blocks within an\n"
 		     <<   "     element group not supported. Number of blocks: " 
 		     << fConnectivities.Length() << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* constructors */
 	fMFShapes = new MeshFreeShapeFunctionT(GeometryCode(), NumIP(),
 		fLocInitCoords, ElementSupport().InitialCoordinates(), *fConnectivities[0], fOffGridNodes,
 		fElementCards.Position(), ElementSupport().Input());
-	if (!fMFShapes) throw eOutOfMemory;
+	if (!fMFShapes) throw ExceptionT::kOutOfMemory;
 
 	/* echo parameters */
 	fMFShapes->WriteParameters(ElementSupport().Output());

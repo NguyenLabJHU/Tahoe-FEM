@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.23 2002-09-12 17:46:13 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.23.4.2 2002-10-20 18:07:18 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -87,7 +87,7 @@ void RodT::Initialize(void)
 	/* initialize and allocate velocity array IF dynamic (MD) calculation*/
 	const FieldT& field = Field();
 	if (field.Order() > 0) {
-	  fLocVel.Allocate(NumElementNodes(), NumDOF());
+	  fLocVel.Dimension(NumElementNodes(), NumDOF());
 	  Field().RegisterLocal(fLocVel);
 	}
 }
@@ -309,7 +309,7 @@ void RodT::RHSDriver(void)
 //TEMP - inertia term in residual
 if (formMa) {
 	cout << "\n ParticleT::RHSDriver: M*a term not implemented" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 	/* coordinates arrays */
@@ -366,7 +366,7 @@ void RodT::ReadMaterialData(ifstreamT& in)
 	/* allocate space */
 	int	nummaterials;
 	in >> nummaterials;
-	fMaterialsList.Allocate(nummaterials);
+	fMaterialsList.Dimension(nummaterials);
 
 	/* read data */
 	for (int i = 0; i < nummaterials; i++)
@@ -389,11 +389,11 @@ void RodT::ReadMaterialData(ifstreamT& in)
 			default:
 			
 				cout << "\n RodT::ReadMaterialData: unknown material type\n" << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 		}
 
 		/* check */
-		if (!fMaterialsList[matnum]) throw(eOutOfMemory);
+		if (!fMaterialsList[matnum]) throw ExceptionT::kOutOfMemory;
 	
 		/* set thermal LTf pointer */
 		int LTfnum = fMaterialsList[matnum]->ThermalScheduleNumber();

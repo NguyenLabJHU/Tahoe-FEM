@@ -1,6 +1,5 @@
-/* $Id: IOBaseT.h,v 1.9 2002-08-01 16:32:56 saubry Exp $ */
+/* $Id: IOBaseT.h,v 1.9.2.1 2002-10-17 01:58:30 paklein Exp $ */
 /* created: sawimme (09/28/1999) */
-
 #ifndef _IOBASE_T_H_
 #define _IOBASE_T_H_
 
@@ -8,6 +7,11 @@
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
+
+/* forward declarations */
+class InputBaseT;
+class OutputBaseT;
+class StringT;
 
 /** database types and simple functions */
 class IOBaseT
@@ -54,6 +58,15 @@ public:
 	
 	/** try to guess the file format based on the file extension */
 	static FileTypeT name_to_FileTypeT(const char* file_name);
+
+	/** construct new input object. User is responsible for deleting the object.
+	 * \param message stream InputBaseT will use to log messages */
+	static InputBaseT* NewInput(FileTypeT format, ostream& message);
+
+	/** construct a new output formatter */
+	static OutputBaseT* NewOutput(const StringT& program_name, const StringT& version,
+		const StringT& title, const StringT& input_file,
+		FileTypeT output_format, ostream& log);	
 
 protected:
 

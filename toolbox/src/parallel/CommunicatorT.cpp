@@ -1,6 +1,6 @@
-/* $Id: CommunicatorT.cpp,v 1.4 2002-08-21 07:19:29 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.4.2.2 2002-10-20 18:02:06 paklein Exp $ */
 #include "CommunicatorT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include <iostream.h>
 #include <time.h>
 #include "ArrayT.h"
@@ -24,11 +24,11 @@ CommunicatorT::CommunicatorT(void):
 	fComm = MPI_COMM_WORLD;
 	if (MPI_Comm_size(fComm, &fSize) != MPI_SUCCESS) {
 		Log("CommunicatorT::CommunicatorT", "MPI_Comm_size failed", true);
-		throw eMPIFail;
+		throw ExceptionT::kMPIFail;
 	}
 	if (MPI_Comm_rank(fComm, &fRank) != MPI_SUCCESS) {
 		Log("CommunicatorT::CommunicatorT", "MPI_Comm_rank failed", true);
-		throw eMPIFail;
+		throw ExceptionT::kMPIFail;
 	}
 #else
 	fComm = 0;
@@ -83,7 +83,7 @@ int CommunicatorT::Max(int a) const
 		int b = a;
 		if (MPI_Allreduce(&b, &a, 1, MPI_INT, MPI_MAX, fComm) != MPI_SUCCESS) {
 			Log("CommunicatorT::Max", "MPI_Allreduce failed", true);
-			throw eMPIFail;
+			throw ExceptionT::kMPIFail;
 		}
 	}
 #endif
@@ -106,7 +106,7 @@ int CommunicatorT::Min(int a) const
 		int b = a;
 		if (MPI_Allreduce(&b, &a, 1, MPI_INT, MPI_MIN, fComm) != MPI_SUCCESS) {
 			Log("CommunicatorT::Min", "MPI_Allreduce failed", true);
-			throw eMPIFail;
+			throw ExceptionT::kMPIFail;
 		}
 	}
 #endif
@@ -129,7 +129,7 @@ int CommunicatorT::Sum(int a) const
 		int b = a;
 		if (MPI_Allreduce(&b, &a, 1, MPI_INT, MPI_SUM, fComm) != MPI_SUCCESS) {
 			Log("CommunicatorT::Sum", "MPI_Allreduce failed", true);
-			throw eMPIFail;
+			throw ExceptionT::kMPIFail;
 		}
 	}
 #endif
@@ -152,7 +152,7 @@ double CommunicatorT::Max(double a) const
 		double b = a;
 		if (MPI_Allreduce(&b, &a, 1, MPI_DOUBLE, MPI_MAX, fComm) != MPI_SUCCESS) {
 			Log("CommunicatorT::Max", "MPI_Allreduce failed", true);
-			throw eMPIFail;
+			throw ExceptionT::kMPIFail;
 		}
 	}
 #endif
@@ -174,7 +174,7 @@ double CommunicatorT::Min(double a) const
 		double b = a;
 		if (MPI_Allreduce(&b, &a, 1, MPI_DOUBLE, MPI_MIN, fComm) != MPI_SUCCESS) {
 			Log("CommunicatorT::Min", "MPI_Allreduce failed", true);
-			throw eMPIFail;
+			throw ExceptionT::kMPIFail;
 		}
 	}
 #endif
@@ -197,7 +197,7 @@ double CommunicatorT::Sum(double a) const
 		double b = a;
 		if (MPI_Allreduce(&b, &a, 1, MPI_DOUBLE, MPI_SUM, fComm) != MPI_SUCCESS) {
 			Log("CommunicatorT::Sum", "MPI_Allreduce failed", true);
-			throw eMPIFail;
+			throw ExceptionT::kMPIFail;
 		}
 	}
 #endif
@@ -212,13 +212,13 @@ double CommunicatorT::Sum(double a) const
 void CommunicatorT::Gather(int a, ArrayT<int>& gather) const
 {
 	/* allocate */
-	gather.Allocate(Size());
+	gather.Dimension(Size());
 	gather[Rank()] = a;
 
 #ifdef __MPI__
 	if (MPI_Gather(&a, 1, MPI_INT, gather.Pointer(), 1, MPI_INT, Rank(), fComm) != MPI_SUCCESS) {
 		Log("CommunicatorT::Gather", "MPI_Gather failed", true);
-		throw eMPIFail;
+		throw ExceptionT::kMPIFail;
 	}
 #endif
 }
@@ -230,14 +230,14 @@ void CommunicatorT::Gather(int a, int destination) const
 	if (destination == Rank()) {
 		cout << "\n CommunicatorT::Gather: destination must be different from rank: " 
 		     << destination << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 #ifdef __MPI__
 	int* tmp = NULL;
 	if (MPI_Gather(&a, 1, MPI_INT, tmp, 1, MPI_INT, destination, fComm) != MPI_SUCCESS) {
 		Log("CommunicatorT::Gather", "MPI_Gather failed", true);
-		throw eMPIFail;
+		throw ExceptionT::kMPIFail;
 	}
 #else
 #pragma unused(a)
@@ -250,7 +250,7 @@ void CommunicatorT::Barrier(void) const
 #ifdef __MPI__
 	if (MPI_Barrier(fComm) != MPI_SUCCESS) {
 		Log("CommunicatorT::Barrier", "MPI_Barrier failed", true);
-		throw eMPIFail;
+		throw ExceptionT::kMPIFail;
 	}
 #endif
 }
@@ -259,13 +259,13 @@ void CommunicatorT::Barrier(void) const
 void CommunicatorT::AllGather(int a, ArrayT<int>& gather) const
 {
 	/* allocate */
-	gather.Allocate(Size());
+	gather.Dimension(Size());
 	gather[Rank()] = a;
 
 #ifdef __MPI__
 	if (MPI_Allgather(&a, 1, MPI_INT, gather.Pointer(), 1, MPI_INT, fComm) != MPI_SUCCESS) {
 		Log("CommunicatorT::Gather", "MPI_Allgather failed", true);
-		throw eMPIFail;
+		throw ExceptionT::kMPIFail;
 	}
 #endif
 
@@ -279,7 +279,7 @@ void CommunicatorT::Broadcast(ArrayT<char>& data)
 #ifdef __MPI__
 	if (MPI_Bcast(data.Pointer(), data.Length(), MPI_CHAR, 0, fComm) != MPI_SUCCESS) {
 		Log("CommunicatorT::Broadcast", "MPI_Bcast failed", true);
-		throw eMPIFail;
+		throw ExceptionT::kMPIFail;
 	}
 #else
 #pragma unused(data)
@@ -316,7 +316,7 @@ void CommunicatorT::Init(void)
 	/* environment was shut down */
 	if (fCount == -1) {
 		cout << "\n CommunicatorT::Init: cannot restart MPI environment" << endl;
-		throw eMPIFail;
+		throw ExceptionT::kMPIFail;
 	}
 
 	/* communicator count */
@@ -341,7 +341,7 @@ void CommunicatorT::Init(void)
 		/* initialize MPI environment */
 		if (MPI_Init(argc_, argv_) != MPI_SUCCESS) {
 			Log("CommunicatorT::Init", "MPI_Init failed", true);
-			throw eMPIFail;
+			throw ExceptionT::kMPIFail;
 		}
 		
 		/* free */
@@ -359,7 +359,7 @@ void CommunicatorT::Finalize(void)
 	/* environment was shut down */
 	if (fCount == -1) {
 		cout << "\n CommunicatorT::Finalize: MPI environment already down" << endl;
-		throw eMPIFail;
+		throw ExceptionT::kMPIFail;
 	}
 
 	/* communicator count */
@@ -371,7 +371,7 @@ void CommunicatorT::Finalize(void)
 		/* shut down MPI environment */
 		if (MPI_Finalize() != MPI_SUCCESS) {
 			Log("CommunicatorT::Finalize", "MPI_Finalized failed", true);
-			throw eMPIFail;
+			throw ExceptionT::kMPIFail;
 		}
 	}
 #endif

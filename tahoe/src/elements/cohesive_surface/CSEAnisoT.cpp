@@ -1,6 +1,5 @@
-/* $Id: CSEAnisoT.cpp,v 1.24 2002-09-12 17:49:52 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.24.4.3 2002-10-20 18:07:10 paklein Exp $ */
 /* created: paklein (11/19/1997) */
-
 #include "CSEAnisoT.h"
 
 #include <math.h>
@@ -25,7 +24,6 @@
 #include "TiedPotentialT.h"
 #include "YoonAllen2DT.h"
 #include "YoonAllen3DT.h"
-//#include "SimoViscoElast2DT.h"
 
 /* constructor */
 
@@ -74,16 +72,16 @@ void CSEAnisoT::Initialize(void)
 	{
 		/* shape functions wrt. current coordinates (linked parent domains) */
 		fCurrShapes = new SurfaceShapeT(*fShapes, fLocCurrCoords);
-		if (!fCurrShapes) throw eOutOfMemory;
+		if (!fCurrShapes) throw ExceptionT::kOutOfMemory;
 		fCurrShapes->Initialize();
  		
 		/* allocate work space */
 		int nee = NumElementNodes()*NumDOF();
-		fnsd_nee_1.Allocate(NumSD(), nee);
-		fnsd_nee_2.Allocate(NumSD(), nee);
-		fdQ.Allocate(NumSD());
+		fnsd_nee_1.Dimension(NumSD(), nee);
+		fnsd_nee_2.Dimension(NumSD(), nee);
+		fdQ.Dimension(NumSD());
 		for (int k = 0; k < NumSD(); k++)
-			fdQ[k].Allocate(NumSD(), nee);
+			fdQ[k].Dimension(NumSD(), nee);
 	}
 	else
 		fCurrShapes = fShapes;
@@ -97,8 +95,8 @@ void CSEAnisoT::Initialize(void)
 	/* construct props */
 	int numprops;
 	in >> numprops;
-	fSurfPots.Allocate(numprops);
-	fNumStateVariables.Allocate(numprops);
+	fSurfPots.Dimension(numprops);
+	fNumStateVariables.Dimension(numprops);
 	for (int i = 0; i < fSurfPots.Length(); i++)
 	{
 		int num, code;
@@ -106,7 +104,7 @@ void CSEAnisoT::Initialize(void)
 		num--;
 
 		/* check for repeated number */
-		if (fSurfPots[num] != NULL) throw eBadInputValue;
+		if (fSurfPots[num] != NULL) throw ExceptionT::kBadInputValue;
 
 		switch (code)
 		{
@@ -140,7 +138,7 @@ void CSEAnisoT::Initialize(void)
 				{
 					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: "
 					     << code << endl; 				
-					throw eBadInputValue;
+					throw ExceptionT::kBadInputValue;
 				}
 				break;
 			}
@@ -152,7 +150,7 @@ void CSEAnisoT::Initialize(void)
 				{
 					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code <<  endl;
 
-					throw eBadInputValue;
+					throw ExceptionT::kBadInputValue;
 				}
 				break;
 			}
@@ -164,7 +162,7 @@ void CSEAnisoT::Initialize(void)
 				{
 					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code <<  endl;
 
-					throw eBadInputValue;
+					throw ExceptionT::kBadInputValue;
 				}
 				break;
 			}
@@ -181,7 +179,7 @@ void CSEAnisoT::Initialize(void)
 				{
 					cout << "\n TiedPotentialT::Initialize: potential not implemented for 3D: " << code <<  endl;
 
-					throw eBadInputValue;
+					throw ExceptionT::kBadInputValue;
 				}
 				break;
 			}
@@ -201,15 +199,15 @@ void CSEAnisoT::Initialize(void)
 				{
 					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code <<  endl;
 
-					throw eBadInputValue;
+					throw ExceptionT::kBadInputValue;
 				}
 				break;
 			}*/
 			default:
 				cout << "\n CSEAnisoT::Initialize: unknown potential code: " << code << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 		}
-		if (!fSurfPots[num]) throw eOutOfMemory;
+		if (!fSurfPots[num]) throw ExceptionT::kOutOfMemory;
 		
 		/* get number of state variables */
 		fNumStateVariables[num] = fSurfPots[num]->NumStateVariables();
@@ -236,7 +234,7 @@ void CSEAnisoT::Initialize(void)
 				{
 					cout << "\n CSEAnisoT::Initialize: incompatible output between potentials\n"
 					     <<   "     " << k+1 << " and " << i+1 << endl;
-					throw eBadInputValue;
+					throw ExceptionT::kBadInputValue;
 				}
 			}
 		}
@@ -289,7 +287,7 @@ void CSEAnisoT::Initialize(void)
 		}		
 	}
 	else /* set dimensions to zero */
-		fStateVariables.Allocate(fElementCards.Length(), 0);
+		fStateVariables.Dimension(fElementCards.Length(), 0);
 
 	/* set history */
 	fStateVariables_last = fStateVariables;
@@ -367,7 +365,7 @@ void CSEAnisoT::LHSDriver(void)
 		/* surface potential */
 		SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
 		int num_state = fNumStateVariables[element.MaterialNumber()];
-		state2.Allocate(num_state);
+		state2.Dimension(num_state);
 
 		/* get ref geometry (1st facet only) */
 		fNodes1.Collect(facet1, element.NodesX());
@@ -387,7 +385,7 @@ void CSEAnisoT::LHSDriver(void)
 		  	iArrayT ndIndices = element.NodesX();
 		  	int numNodes = ndIndices.Length();
 		  	dArray2DT elementVals(numNodes,fNodalQuantities.MinorDim());
-		  	fNodalValues.Allocate(numNodes,fNodalQuantities.MinorDim());
+		  	fNodalValues.Dimension(numNodes,fNodalQuantities.MinorDim());
 		  	for (int iIndex = 0; iIndex < numNodes; iIndex++) 
 		    	elementVals.SetRow(iIndex,fNodalQuantities(ndIndices[iIndex]));
 			currElNum = CurrElementNumber();
@@ -430,7 +428,7 @@ void CSEAnisoT::LHSDriver(void)
 				j0 = j = fShapes->Jacobian(fQ);
 
 			/* check */
-			if (j0 <= 0.0 || j <= 0.0) throw eBadJacobianDet;
+			if (j0 <= 0.0 || j <= 0.0) throw ExceptionT::kBadJacobianDet;
 		
 			/* gap vector and gradient (facet1 to facet2) */
 			const dArrayT&    delta = fShapes->InterpolateJumpU(fLocCurrCoords);
@@ -585,7 +583,7 @@ void CSEAnisoT::RHSDriver(void)
 				iArrayT ndIndices = element.NodesX();
 			  	int numNodes = ndIndices.Length();
 			  	dArray2DT elementVals(numNodes,fNodalQuantities.MinorDim()); 	
-			  	fNodalValues.Allocate(numNodes,fNodalQuantities.MinorDim());
+			  	fNodalValues.Dimension(numNodes,fNodalQuantities.MinorDim());
 			  	for (int iIndex = 0; iIndex < numNodes; iIndex++) 
 			    	elementVals.SetRow(iIndex,fNodalQuantities(ndIndices[iIndex]));
 			  //	ndIndices[0] = 3;ndIndices[3] = 0;ndIndices[1] = 2;ndIndices[2] =1;
@@ -632,7 +630,7 @@ void CSEAnisoT::RHSDriver(void)
 				if (j0 <= 0.0 || j <= 0.0)
 				{
 					cout << "\n CSEAnisoT::RHSDriver: jacobian error" << endl;
-					throw eBadJacobianDet;
+					throw ExceptionT::kBadJacobianDet;
 				}
 	
 				/* gap vector from facet1 to facet2 */
@@ -749,7 +747,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	ElementSupport().ResetAverage(n_out);
 
 	/* allocate element results space */
-	e_values.Allocate(NumElements(), e_out);
+	e_values.Dimension(NumElements(), e_out);
 	e_values = 0.0;
 
 	/* work arrays */
@@ -833,7 +831,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	  		/* surface potential */
 			SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
 			int num_state = fNumStateVariables[element.MaterialNumber()];
-			state.Allocate(num_state);
+			state.Dimension(num_state);
 
 			/* get ref geometry (1st facet only) */
 			fNodes1.Collect(facet1, element.NodesX());
@@ -855,7 +853,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			  	int numNodes = element.NodesX().Length();
 			  	dArray2DT elementVals(numNodes,fNodalQuantities.MinorDim());
 			  	iArrayT ndIndices = element.NodesX();
-			  	fNodalValues.Allocate(numNodes,fNodalQuantities.MinorDim());
+			  	fNodalValues.Dimension(numNodes,fNodalQuantities.MinorDim());
 			  	for (int iIndex = 0; iIndex < numNodes; iIndex++) 
 			    	elementVals.SetRow(iIndex,fNodalQuantities(ndIndices[iIndex])); 
 			  //	ndIndices[0] = 3;ndIndices[3] = 0;ndIndices[1] = 2;ndIndices[2] =1;
@@ -985,7 +983,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		  		/* surface potential */
 				SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
 				int num_state = fNumStateVariables[element.MaterialNumber()];
-				state.Allocate(num_state);
+				state.Dimension(num_state);
 
 		
 				/* integrate */
@@ -1045,7 +1043,7 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 	CSEBaseT::GenerateOutputLabels(n_codes, n_labels, e_codes, e_labels);
 
 	/* overwrite nodal labels */
-	n_labels.Allocate(n_codes.Sum());
+	n_labels.Dimension(n_codes.Sum());
 	int count = 0;
 	if (n_codes[NodalDisp])
 	{
@@ -1072,7 +1070,7 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 		else if (NumDOF() == 3)
 			dlabels = d_3D;
 		else
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 
 		for (int i = 0; i < NumDOF(); i++)
 			n_labels[count++] = dlabels[i];
@@ -1088,7 +1086,7 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 		else if (NumDOF() == 3)
 			tlabels = t_3D;
 		else
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 
 		for (int i = 0; i < NumDOF(); i++)
 			n_labels[count++] = tlabels[i];
@@ -1104,7 +1102,7 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 	}
 	
 	/* allocate nodal output labels */
-	e_labels.Allocate(e_codes.Sum());
+	e_labels.Dimension(e_codes.Sum());
 	count = 0;
 	if (e_codes[Centroid])
 	{
@@ -1123,7 +1121,7 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 		else if (NumDOF() == 3)
 			tlabels = t_3D;
 		else
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 
 		for (int i = 0; i < NumDOF(); i++)
 			e_labels[count++] = tlabels[i];
@@ -1154,7 +1152,7 @@ void CSEAnisoT::CurrElementInfo(ostream& out) const
 		out << delta_temp << '\n';	
 	}
 	
-	catch (int error)
+	catch (ExceptionT::CodeT error)
 	{
 		out << " CSEAnisoT::CurrElementInfo: error on surface jacobian\n";
 	}
@@ -1183,5 +1181,5 @@ void CSEAnisoT::Q_ijk__u_j(const ArrayT<dMatrixT>& Q, const dArrayT& u,
 	else if (Q.Length() == 3)
 		Qu.SetToCombination(u[0], Q[0], u[1], Q[1], u[2], Q[2]);
 	else
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 }

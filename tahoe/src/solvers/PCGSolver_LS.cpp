@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.7 2002-09-12 17:50:12 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.7.4.2 2002-10-20 18:07:51 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 
 #include "PCGSolver_LS.h"
@@ -8,7 +8,7 @@
 
 #include "fstreamT.h"
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 #include "FEManagerT.h"
 #include "DiagonalMatrixT.h"
@@ -26,7 +26,7 @@ PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
 	{
 		cout << "\n PCGSolver_LS::PCGSolver_LS: expecting matrix type: "
 		     << kDiagonalMatrix << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	/* set assembly mode */
@@ -38,7 +38,7 @@ PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
 	{
 		cout << "\n PCGSolver_LS::PCGSolver_LS: unable to cast LHS matrix to\n"
 		     <<   "     DiagonalMatrixT" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 	pdiag->SetAssemblyMode(DiagonalMatrixT::kDiagOnly);
@@ -62,13 +62,13 @@ PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
 	out << " Maximum update step size. . . . . . . . . . . . = " << fMaxStepSize      << endl;
 	
 	/* checks */
-	if (fRestart < 1)           throw eBadInputValue;
-	if (fSearchIterations < 0)  throw eBadInputValue;
-	if (fOrthogTolerance > 1.0) throw eBadInputValue;
-	if (fMaxStepSize      < 0)  throw eBadInputValue;
+	if (fRestart < 1)           throw ExceptionT::kBadInputValue;
+	if (fSearchIterations < 0)  throw ExceptionT::kBadInputValue;
+	if (fOrthogTolerance > 1.0) throw ExceptionT::kBadInputValue;
+	if (fMaxStepSize      < 0)  throw ExceptionT::kBadInputValue;
 	
 	/* allocate space for history */
-	fSearchData.Allocate(fSearchIterations, 2);
+	fSearchData.Dimension(fSearchIterations, 2);
 
 	/* set console */
 	iAddVariable("search_iterations", fSearchIterations);
@@ -84,7 +84,7 @@ void PCGSolver_LS::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	NLSolver::Initialize(tot_num_eq, loc_num_eq, start_eq);
 
 	/* allocate work space */
-	fdiff_R.Allocate(fRHS.Length());
+	fdiff_R.Dimension(fRHS.Length());
 }
 
 /*************************************************************************
@@ -131,7 +131,7 @@ void PCGSolver_LS::CGSearch(void)
 	if (fmod(double(fNumIteration), fRestart) < kSmall)
 	{
 		fR_last = fRHS;
-		if (!fLHS->Solve(fRHS)) throw eBadJacobianDet;
+		if (!fLHS->Solve(fRHS)) throw ExceptionT::kBadJacobianDet;
 		fu_last = fRHS;
 		
 		/* reform preconditioner */
@@ -153,10 +153,10 @@ void PCGSolver_LS::CGSearch(void)
 //		              InnerProduct(fR_last, fR_last);
 
 		/* with scaling matrix Bertsekas (6.32) */
-		if (!fLHS->Solve(fdiff_R)) throw eBadJacobianDet; /* apply scaling */
+		if (!fLHS->Solve(fdiff_R)) throw ExceptionT::kBadJacobianDet; /* apply scaling */
 		double beta = InnerProduct(fRHS, fdiff_R);
 		fdiff_R = fR_last;     /* copy */
-		if (!fLHS->Solve(fdiff_R)) throw eBadJacobianDet; /* apply scaling */
+		if (!fLHS->Solve(fdiff_R)) throw ExceptionT::kBadJacobianDet; /* apply scaling */
 		beta /= InnerProduct(fR_last, fdiff_R);
 		
 		/* limit beta */
@@ -164,7 +164,7 @@ void PCGSolver_LS::CGSearch(void)
 		
 		/* compute new update (in last update) */
 		fR_last = fRHS;
-		if (!fLHS->Solve(fRHS)) throw eBadJacobianDet; /* apply preconditioner */
+		if (!fLHS->Solve(fRHS)) throw ExceptionT::kBadJacobianDet; /* apply preconditioner */
 		fRHS.AddScaled(beta, fu_last);
 		fu_last = fRHS;
 
@@ -324,7 +324,7 @@ double PCGSolver_LS::GValue(double step)
 	fFEManager.Update(Group(), fRHS);
 	fRHS = 0.0;
 	try { fFEManager.FormRHS(Group()); }
-	catch (int error)
+	catch (ExceptionT::CodeT error)
 	{
 		cout << "\n PCGSolver_LS::GValue: caught exception" << endl;
 		throw error;

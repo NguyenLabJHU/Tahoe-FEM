@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.h,v 1.7 2002-07-02 19:56:45 cjkimme Exp $ */
+/* $Id: CCSMatrixT.h,v 1.7.4.1 2002-10-17 04:47:07 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 /* This is the interface for a Symmetric matrix stored in                 */
 /* Compact Column form.                                                   */
@@ -14,7 +14,7 @@
 
 /* project headers */
 #include "Environment.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 /* base class */
 #include "GlobalMatrixT.h"
@@ -169,7 +169,7 @@ protected:
 inline int CCSMatrixT::ColumnHeight(int col) const
 {
 #if __option (extended_errorcheck)
-	if (col < 0 || col >= fLocNumEQ) throw eGeneralFail;
+	if (col < 0 || col >= fLocNumEQ) throw ExceptionT::kGeneralFail;
 #endif
 
 	return ( (col > 0) ? (fDiags[col] - fDiags[col-1] - 1) : 0);

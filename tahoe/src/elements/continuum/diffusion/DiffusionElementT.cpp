@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.8 2002-09-23 06:58:25 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.8.2.2 2002-10-20 18:07:15 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -40,7 +40,7 @@ DiffusionElementT::DiffusionElementT(const ElementSupportT& support, const Field
 	if (NumDOF() != kDiffusionNDOF) {
 		cout << "\n DiffusionElementT::DiffusionElementT: expecting field with " << kDiffusionNDOF << " dof/node not " 
 		     << NumDOF() << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 }
 
@@ -51,7 +51,7 @@ void DiffusionElementT::Initialize(void)
 	ContinuumElementT::Initialize();
 
 	/* allocate */
-	fB.Allocate(NumSD(), NumElementNodes());
+	fB.Dimension(NumSD(), NumElementNodes());
 
 	/* setup for material output */
 	if (fNodalOutputCodes[iMaterialData])
@@ -60,7 +60,7 @@ void DiffusionElementT::Initialize(void)
 		if (!CheckMaterialOutput())
 		{
 			cout << "\n DiffusionElementT::Initialize: error with material output" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		/* no material output variables */
 	 	else if ((*fMaterialList)[0]->NumOutputVariables() == 0)
@@ -164,7 +164,7 @@ void DiffusionElementT::PrintControlData(ostream& out) const
 void DiffusionElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 {
 	/* allocate */
-	fNodalOutputCodes.Allocate(NumOutputCodes);
+	fNodalOutputCodes.Dimension(NumOutputCodes);
 
 	/* read in at a time to allow comments */
 	for (int i = 0; i < fNodalOutputCodes.Length(); i++)
@@ -178,7 +178,7 @@ void DiffusionElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 
 	/* checks */
 	if (fNodalOutputCodes.Min() < IOBaseT::kAtFail ||
-	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw eBadInputValue;
+	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw ExceptionT::kBadInputValue;
 
 	/* control parameters */
 	out << " Number of nodal output codes. . . . . . . . . . = " << NumOutputCodes << '\n';
@@ -194,7 +194,7 @@ void DiffusionElementT::SetLocalArrays(void)
 	ContinuumElementT::SetLocalArrays();
 
 	/* allocate */
-	fLocVel.Allocate(NumElementNodes(), NumDOF());
+	fLocVel.Dimension(NumElementNodes(), NumDOF());
 
 	/* nodal velocities */
 	if (fController->Order() == 1)
@@ -206,7 +206,7 @@ void DiffusionElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iAr
 	iArrayT& counts) const
 {
 	/* initialize */
-	counts.Allocate(flags.Length());
+	counts.Dimension(flags.Length());
 	counts = 0;
 
 	if (flags[iNodalCoord] == mode)
@@ -225,7 +225,7 @@ void DiffusionElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const i
 	if (counts.Sum() != 0)
 	{
 		cout << "\n DiffusionElementT::SetElementOutputCodes: not yet supported" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 }
 
@@ -233,7 +233,7 @@ void DiffusionElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const i
 void DiffusionElementT::SetShape(void)
 {
 	fShapes = new ShapeFunctionT(GeometryCode(), NumIP(), fLocInitCoords);
-	if (!fShapes ) throw eOutOfMemory;
+	if (!fShapes ) throw ExceptionT::kOutOfMemory;
 	fShapes->Initialize();
 }
 
@@ -475,7 +475,7 @@ void DiffusionElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_value
 if (e_out > 0)
 {
 	cout << "\n DiffusionElementT::ComputeOutput: element output not yet supported" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 	/* dimensions */
@@ -558,7 +558,7 @@ void DiffusionElementT::GenerateOutputLabels(const iArrayT& n_codes,
 	ArrayT<StringT>& e_labels) const
 {
 	/* allocate node labels */
-	n_labels.Allocate(n_codes.Sum());
+	n_labels.Dimension(n_codes.Sum());
 	int count = 0;	
 
 	if (n_codes[iNodalDisp])
@@ -592,6 +592,6 @@ void DiffusionElementT::GenerateOutputLabels(const iArrayT& n_codes,
 	{
 		cout << "\n DiffusionElementT::GenerateOutputLabels: not expecting any element\n"
 		     <<   "     output codes:\n" << e_codes << endl;	
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }

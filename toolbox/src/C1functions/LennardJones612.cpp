@@ -1,10 +1,10 @@
-/* $Id: LennardJones612.cpp,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
+/* $Id: LennardJones612.cpp,v 1.2.2.1 2002-10-17 01:46:10 paklein Exp $ */
 /* created: paklein (10/30/1997)                                          */
 
 #include "LennardJones612.h"
 #include <math.h>
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dArrayT.h"
 
 /* constants */
@@ -60,7 +60,7 @@ double LennardJones612::DDFunction(double x) const
 dArrayT& LennardJones612::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl = in.Pointer();
 	double* pU = out.Pointer();
@@ -76,7 +76,7 @@ dArrayT& LennardJones612::MapFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& LennardJones612::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
@@ -92,7 +92,7 @@ dArrayT& LennardJones612::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& LennardJones612::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl   = in.Pointer();
 	double* pddU = out.Pointer();

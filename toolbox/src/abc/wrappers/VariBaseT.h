@@ -1,4 +1,4 @@
-/* $Id: VariBaseT.h,v 1.3 2002-07-02 19:56:54 cjkimme Exp $ */
+/* $Id: VariBaseT.h,v 1.3.2.1 2002-10-17 01:51:28 paklein Exp $ */
 /* created: paklein (04/18/1998)                                          */
 /* base class for WRAPPERS of ArrayT<>'s, and derivatives,                */
 /* to add dynamic re-sizing using some headroom to cut down               */
@@ -67,7 +67,7 @@ template <class TYPE>
 inline void VariBaseT<TYPE>::SetHeadRoom(int headroom)
 {
 	fHeadRoom = headroom;
-	if (fHeadRoom < 0) throw eGeneralFail;
+	if (fHeadRoom < 0) throw ExceptionT::kGeneralFail;
 }
 
 /**********************************************************************

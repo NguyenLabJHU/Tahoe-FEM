@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.10 2002-07-03 22:26:07 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.10.4.2 2002-10-20 18:07:18 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 
 #include "UnConnectedRodT.h"
@@ -22,8 +22,8 @@ UnConnectedRodT::UnConnectedRodT(const ElementSupportT& support, const FieldT& f
 	ElementSupport().Input() >> fReconnectInc >> fMaxNeighborCount >> fNeighborDist;
 
 	/* checks */
-	if (fMaxNeighborCount <  1  ) throw eBadInputValue;
-	if (fNeighborDist     <= 0.0) throw eBadInputValue;
+	if (fMaxNeighborCount <  1  ) throw ExceptionT::kBadInputValue;
+	if (fNeighborDist     <= 0.0) throw ExceptionT::kBadInputValue;
 }
 
 /* apply pre-conditions at the current time step.  Signal
@@ -42,7 +42,7 @@ void UnConnectedRodT::ResetStep(void)
 {
 	/* pre-condition */
 	fReconnectCount--;
-	if (fReconnectCount < 0) throw eGeneralFail;
+	if (fReconnectCount < 0) throw ExceptionT::kGeneralFail;
 		// condition implies that equilibrium could not be
 		// established with a reconnected system for which
 		// there is no last converged solution to go back to
@@ -57,7 +57,7 @@ GlobalT::RelaxCodeT UnConnectedRodT::RelaxSystem(void)
 	/* redetermine connectivities */
 	if (++fReconnectCount == fReconnectInc)
 	{
-		if (fNumNodesUsed != -1) throw eGeneralFail;
+		if (fNumNodesUsed != -1) throw ExceptionT::kGeneralFail;
 			//not storing NodesUsed yet
 			//so cannot reconnect.	 	
 	
@@ -107,7 +107,7 @@ void UnConnectedRodT::ReadMaterialData(ifstreamT& in)
 	RodT::ReadMaterialData(in);
 	
 	/* should only be one material */
-	if (fMaterialsList.Length() != 1) throw eGeneralFail;
+	if (fMaterialsList.Length() != 1) throw ExceptionT::kGeneralFail;
 	
 	/* set current material (once) */
 	fCurrMaterial = fMaterialsList[0];
@@ -117,7 +117,7 @@ void UnConnectedRodT::ReadMaterialData(ifstreamT& in)
 void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 {
 	in >> fNumNodesUsed;
-	if (fNumNodesUsed != -1 && fNumNodesUsed < 1) throw eBadInputValue;
+	if (fNumNodesUsed != -1 && fNumNodesUsed < 1) throw ExceptionT::kBadInputValue;
 
 	/* temp space */
 	iArray2DT rodconnects;
@@ -184,7 +184,7 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	model.RegisterElementGroup (name, rodconnects, code, true);
 
 	/* set up fBlockData to store block ID */
-	fBlockData.Allocate(1);
+	fBlockData.Dimension(1);
 	fBlockData[0].Set(name, 0, rodconnects.MajorDim(), 0); // currently assume all interactions use potential 0
 //	fNumElements = rodconnects.MajorDim();
 
@@ -193,7 +193,7 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	fConnectivities[0] = model.ElementGroupPointer(name);
 	
 	/* set up base class equations array */
-	fEqnos.Allocate(1);
+	fEqnos.Dimension(1);
 
 	/* set element equation and node lists */
 	ConfigureElementData();
@@ -216,8 +216,8 @@ void UnConnectedRodT::ConfigureElementData(void)
 	/* allocate memory */
 	int nen = connects->MinorDim();
 	int nel = connects->MajorDim();
-	fElementCards.Allocate(nel);
-	rod_eqnos.Allocate(nel, nen*NumDOF());
+	fElementCards.Dimension(nel);
+	rod_eqnos.Dimension(nel, nen*NumDOF());
 
 	/* set 2 body element data */
 	int block_index = 0;

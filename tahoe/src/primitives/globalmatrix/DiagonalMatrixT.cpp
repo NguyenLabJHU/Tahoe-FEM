@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.9 2002-09-12 17:50:08 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.9.4.2 2002-10-20 18:07:45 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #include "DiagonalMatrixT.h"
@@ -16,7 +16,7 @@ DiagonalMatrixT::DiagonalMatrixT(ostream& out, int check_code, AssemblyModeT mod
 	GlobalMatrixT(out, check_code)
 {
 	try { SetAssemblyMode(mode); }
-	catch (int) { throw eBadInputValue; }
+	catch (ExceptionT::CodeT) { throw ExceptionT::kBadInputValue; }
 }
 
 /* copy constructor */
@@ -38,7 +38,7 @@ void DiagonalMatrixT::SetAssemblyMode(AssemblyModeT mode)
 	/* check */
 	if (fMode != kNoAssembly &&
 	    fMode != kDiagOnly   &&
-	    fMode != kAbsRowSum) throw eGeneralFail;
+	    fMode != kAbsRowSum) throw ExceptionT::kGeneralFail;
 }
 
 /* set the internal matrix structure.
@@ -50,7 +50,7 @@ void DiagonalMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	GlobalMatrixT::Initialize(tot_num_eq, loc_num_eq, start_eq);
 
 	/* allocate work space */
-	fMatrix.Allocate(fLocNumEQ);
+	fMatrix.Dimension(fLocNumEQ);
 }
 
 /* set all matrix values to 0.0 */
@@ -140,7 +140,7 @@ void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& 
 			}
 			default:			
 				cout << "\n DiagonalMatrixT::Assemble: cannot assemble mode: " << fMode << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 		}
 	}
 }
@@ -153,7 +153,7 @@ void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& 
 #pragma unused(col_eqnos)
 
 	cout << "\n DiagonalMatrixT::Assemble(m,r,c): not implemented" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 /* fetch values */
@@ -162,7 +162,7 @@ void DiagonalMatrixT::DisassembleDiagonal(dArrayT& diagonals,
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
-	if (diagonals.Length() != eqnos.Length()) throw eSizeMismatch;
+	if (diagonals.Length() != eqnos.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	for (int i = 0; i < eqnos.Length(); i++)
@@ -200,13 +200,13 @@ GlobalMatrixT& DiagonalMatrixT::operator=(const GlobalMatrixT& rhs)
 {
 #ifdef __NO_RTTI__
 	cout << "\n DiagonalMatrixT::operator= : requires RTTI" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 #endif
 
 	const DiagonalMatrixT* dmat = dynamic_cast<const DiagonalMatrixT*>(&rhs);
 	if (!dmat) {
 		cout << "\n DiagonalMatrixT::operator= : cast failed" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return operator=(*dmat);
 }
@@ -274,7 +274,7 @@ void DiagonalMatrixT::Factorize(void)
 void DiagonalMatrixT::BackSubstitute(dArrayT& result)
 {
 	/* checks */
-	if (result.Length() != fLocNumEQ || !fIsFactorized) throw eGeneralFail;
+	if (result.Length() != fLocNumEQ || !fIsFactorized) throw ExceptionT::kGeneralFail;
 	
 	double* presult = result.Pointer();
 	double* pMatrix = fMatrix.Pointer();

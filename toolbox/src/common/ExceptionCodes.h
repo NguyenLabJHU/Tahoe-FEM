@@ -1,26 +1,1 @@
-/* $Id: ExceptionCodes.h,v 1.5 2002-08-21 07:15:12 paklein Exp $ */
-/* created: paklein (06/04/1996) */
-
-#ifndef _EXCEPTION_CODES_H_
-#define _EXCEPTION_CODES_H_
-
-namespace Tahoe {
-
-/* number of exception codes */
-const int eNumExceptions	= 11;
-
-/* exception codes */
-const int eNoError          = 0; // no error
-const int eGeneralFail		= 1; // general unrecoverable error
-const int eStop             = 2; // stop
-const int eOutOfMemory      = 3; // out of memory
-const int eOutOfRange       = 4; // index range error
-const int eSizeMismatch     = 5; // (array) dimension mismatch
-const int eBadInputValue    = 6; // bad input/construction parameter
-const int eBadJacobianDet	= 7; // ParentDomainT:bad jacobian determinant
-const int eMPIFail          = 8; // general error on MPI call
-const int eDatabaseFail     = 9; // general error reading/writing database
-const int eBadHeartBeat     =10; // error detected on other processor
-
-} // namespace Tahoe 
-#endif /* _EXCEPTION_CODES_H_ */
+/* $Id: ExceptionCodes.h,v 1.5.2.2 2002-10-20 18:00:32 paklein Exp $ *//* created: paklein (06/04/1996) */#ifndef _EXCEPTION_CODES_H_#define _EXCEPTION_CODES_H_/** \file   * Backward compatibility for exception codes. * * \deprecated This file provides backward compatibility for the "old" style * of Tahoe exception enums and output. See ExceptionT for revised definitions * and methods having to do with exceptions. */  #include "ExceptionT.h" using namespace Tahoe;/* number of exception codes */#define eNumExceptions   ExceptionT::NumExceptions/* see ExceptionT for definitions */#define eNoError         ExceptionT::kNoError         // no error#define eGeneralFail     ExceptionT::kGeneralFail     // general unrecoverable error#define eStop            ExceptionT::kStop            // stop#define eOutOfMemory     ExceptionT::kOutOfMemory     // out of memory#define eOutOfRange      ExceptionT::kOutOfRange      // index range error#define eSizeMismatch    ExceptionT::kSizeMismatch    // (array) dimension mismatch#define eBadInputValue   ExceptionT::kBadInputValue   // bad input/construction parameter#define eBadJacobianDet  ExceptionT::kBadJacobianDet  // ParentDomainT:bad jacobian determinant#define eMPIFail         ExceptionT::kMPIFail         // general error on MPI call#define eDatabaseFail    ExceptionT::kDatabaseFail    // general error reading/writing database#define eBadHeartBeat    ExceptionT::kBadHeartBeat    // error detected on other processor #endif

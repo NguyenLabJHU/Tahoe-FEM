@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.cpp,v 1.7 2002-09-23 06:58:28 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.cpp,v 1.7.2.2 2002-10-20 18:07:47 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 
 #include "MeshFreeShapeFunctionT.h"
@@ -28,7 +28,7 @@ MeshFreeShapeFunctionT::MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, i
 		fMFSupport = new MeshFreeSupport3DT(*fDomain, all_coords, connects,
 							nongridnodes, in);
 
-	if (!fMFSupport) throw eOutOfMemory;
+	if (!fMFSupport) throw ExceptionT::kOutOfMemory;
 
 	/* set as field shape function */
 	SetUShapeFunctions(fNaU, fDNaU);
@@ -178,7 +178,7 @@ void MeshFreeShapeFunctionT::SelectedNodalField(const dArray2DT& all_DOF,
 	int ndf = all_DOF.MinorDim();
 	
 	/* allocate output space */
-	field.Allocate(nnd, ndf);
+	field.Dimension(nnd, ndf);
 
 	/* MLS nodal data */
 	iArrayT   neighbors;
@@ -229,7 +229,7 @@ void MeshFreeShapeFunctionT::NodalField(const dArray2DT& DOF, dArray2DT& field,
 	int ndf = DOF.MinorDim();
 	
 	/* allocate output space */
-	field.Allocate(nnd, ndf);
+	field.Dimension(nnd, ndf);
 
 	/* MLS nodal data */
 	iArrayT   neighbors;
@@ -277,7 +277,7 @@ void MeshFreeShapeFunctionT::NodalField(const dArray2DT& DOF, dArray2DT& field,
 	{
 		cout << "\n MeshFreeShapeFunctionT::NodalField: derivatives not continuous with\n"
 		     <<   "     interpolant field nodes" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* fetch list of nodes to compute */
@@ -289,8 +289,8 @@ void MeshFreeShapeFunctionT::NodalField(const dArray2DT& DOF, dArray2DT& field,
 	int nsd = NumSD();
 	
 	/* allocate output space */
-	field.Allocate(nnd, ndf);
-	Dfield.Allocate(nnd, ndf*nsd);
+	field.Dimension(nnd, ndf);
+	Dfield.Dimension(nnd, ndf*nsd);
 
 	/* MLS nodal data */
 	iArrayT   neighbors;
@@ -400,7 +400,7 @@ void MeshFreeShapeFunctionT::WriteStatistics(ostream& out) const
 void MeshFreeShapeFunctionT::InitBlend(void)
 {
 	/* initialize element flags */
-	fElemHasExactNode.Allocate(fXConnects.MajorDim());
+	fElemHasExactNode.Dimension(fXConnects.MajorDim());
 	fElemHasExactNode = -1;
 
 	/* map to exact nodes */
@@ -460,7 +460,7 @@ void MeshFreeShapeFunctionT::InitBlend(void)
 
 	/* initialize element data */
 	int num_flagged = fElemHasExactNode.Count(1);
-	fElemFlags.Allocate(num_flagged, nen);
+	fElemFlags.Dimension(num_flagged, nen);
 	fElemFlags = 0;
 	
 	/* create element flagged data and make map */
@@ -490,20 +490,20 @@ for (int i = 0; i < fElemHasExactNode.Length(); i++)
 	if (fElemHasExactNode[i] > -1)
 		fElemFlags.PrintRow(fElemHasExactNode[i], cout);
 }	
-throw eStop;
+throw ExceptionT::kStop;
 #endif
 //END
 	
 	/* allocate ramp function */
-	fR.Allocate(NumIP());
-	fDR.Allocate(NumIP(), NumSD());
+	fR.Dimension(NumIP());
+	fDR.Dimension(NumIP(), NumSD());
 		
 	/* allocate work space for blended shape functions */
-	fDNa_tmp.Allocate(NumIP());
+	fDNa_tmp.Dimension(NumIP());
 	int el_maxsize = (fMFSupport->ElementNeighbors()).MaxMinorDim();
 	int nd_maxsize = (fMFSupport->NodeNeighbors()   ).MaxMinorDim();
-	felSpace.Allocate(NumIP()*el_maxsize*(1 + NumSD()));
-	fndSpace.Allocate(nd_maxsize*(1 + NumSD()));
+	felSpace.Dimension(NumIP()*el_maxsize*(1 + NumSD()));
+	fndSpace.Dimension(nd_maxsize*(1 + NumSD()));
 }
 
 /* blend FE/MLS shape functions for interpolant nodes */
@@ -563,7 +563,7 @@ void MeshFreeShapeFunctionT::BlendElementData(void)
 	}	
 	
 	/* identify the cell nodes in the neighbors list */
-	fNeighExactFlags.Allocate(nnd);
+	fNeighExactFlags.Dimension(nnd);
 	for (int k = 0; k < nnd; k++)
 	{
 		int    loc   = -1;

@@ -1,4 +1,4 @@
-/* $Id: pArrayT.h,v 1.5 2002-07-05 22:26:20 paklein Exp $ */
+/* $Id: pArrayT.h,v 1.5.2.1 2002-10-17 01:51:26 paklein Exp $ */
 /* created: paklein (11/21/1996) */
 
 #ifndef _P_ARRAY_T_H_
@@ -179,7 +179,7 @@ inline ProxyTYPEPtr<TYPEPtr> pArrayT<TYPEPtr>::operator[](int index)
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (index < 0 || index >= fLength) throw(eOutOfRange);
+	if (index < 0 || index >= fLength) throw ExceptionT::kOutOfRange;
 #endif
 
 	return ProxyTYPEPtr<TYPEPtr>(*this,index);
@@ -190,7 +190,7 @@ inline ProxyTYPEPtr<TYPEPtr> pArrayT<TYPEPtr>::operator[](int index) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (index < 0 || index >= fLength) throw(eOutOfRange);
+	if (index < 0 || index >= fLength) throw ExceptionT::kOutOfRange;
 #endif
 
 /* const_cast<> not supported */

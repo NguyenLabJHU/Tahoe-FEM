@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.cpp,v 1.5 2002-10-04 20:52:52 thao Exp $ */
+/* $Id: IsotropicT.cpp,v 1.5.2.1 2002-10-17 04:38:19 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "IsotropicT.h"
@@ -17,13 +17,13 @@ IsotropicT::IsotropicT(ifstreamT& in)
 	double E, nu;
 	in >> E >> nu;
 	try { Set_E_nu(E, nu); }
-	catch (int exception) { throw eBadInputValue; }
+	catch (ExceptionT::CodeT exception) { throw ExceptionT::kBadInputValue; }
 }
 
 IsotropicT::IsotropicT(void)
 {
 	try { Set_E_nu(0.0, 0.0); }
-	catch (int exception) { throw eBadInputValue; }
+	catch (ExceptionT::CodeT exception) { throw ExceptionT::kBadInputValue; }
 }
 
 /* set moduli */
@@ -33,8 +33,8 @@ void IsotropicT::Set_E_nu(double E, double nu)
 	fPoisson = nu;
 
 	/* checks */
-	if (fYoung < 0.0) throw eGeneralFail;
-	if (fPoisson > 0.5 || fPoisson < -1.0) throw eGeneralFail;
+	if (fYoung < 0.0) throw ExceptionT::kGeneralFail;
+	if (fPoisson > 0.5 || fPoisson < -1.0) throw ExceptionT::kGeneralFail;
 	
 	/* compute remaining moduli */
 	fMu     = 0.5*fYoung/(1.0 + fPoisson);
@@ -48,7 +48,7 @@ void IsotropicT::Set_mu_kappa(double mu, double kappa)
 	fKappa = kappa;
 
 	/* checks */
-	if (fMu < 0.0 || fKappa < 0.0) throw eGeneralFail;
+	if (fMu < 0.0 || fKappa < 0.0) throw ExceptionT::kGeneralFail;
 
 	/* set moduli */
 	fYoung = (9.0*fKappa*fMu)/(3.0*fKappa + fMu);
@@ -62,7 +62,7 @@ void IsotropicT::Set_PurePlaneStress_mu_lambda(double mu, double lambda)
 	fKappa = mu+lambda;
 
 	/* checks */
-	if (fMu < 0.0 || fKappa < 0.0) throw eGeneralFail;
+	if (fMu < 0.0 || fKappa < 0.0) throw ExceptionT::kGeneralFail;
 
 	/* set moduli */
 	fYoung = 4.0*mu*(lambda + mu)/(lambda + 2.0*mu);
@@ -100,7 +100,7 @@ void IsotropicT::ComputeModuli(dMatrixT& moduli) const
 	else
 	{
 		cout << "\n IsotropicT::ComputeModuli: for 3D only" << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 }
 
@@ -122,7 +122,7 @@ void IsotropicT::ComputeModuli2D(dMatrixT& moduli,
 		moduli(2,2) = mu;
 	}
 	else 
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 }
 
 /* scale factor for constrained dilatation */

@@ -1,10 +1,10 @@
-/* $Id: eExplicitCD.cpp,v 1.3 2002-07-02 19:55:08 cjkimme Exp $ */
+/* $Id: eExplicitCD.cpp,v 1.3.4.1 2002-10-17 04:13:11 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #include "eExplicitCD.h"
 
 #include "Environment.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 /* constructor */
 

@@ -1,4 +1,4 @@
-/* $Id: iGridManager3DT.cpp,v 1.3 2002-07-02 19:57:24 cjkimme Exp $ */
+/* $Id: iGridManager3DT.cpp,v 1.3.2.2 2002-10-20 18:02:07 paklein Exp $ */
 /* created: paklein (12/09/1997)                                          */
 /* iNodeT grid                                                            */
 
@@ -23,7 +23,7 @@ iGridManager3DT::iGridManager3DT(int nx, int ny, int nz,
 void iGridManager3DT::Neighbors(int n, double tol, AutoArrayT<int>& neighbors)
 {
 	/* initialize */
-	neighbors.Allocate(0);
+	neighbors.Dimension(0);
 	
 	/* fetch prospective neighbors */
 	double* target = fCoords(n);
@@ -50,7 +50,7 @@ void iGridManager3DT::Neighbors(int n, double tol, AutoArrayT<int>& neighbors)
 void iGridManager3DT::Neighbors(int n, const ArrayT<double>& tol_xyz, AutoArrayT<int>& neighbors)
 {
 	/* initialize */
-	neighbors.Allocate(0);
+	neighbors.Dimension(0);
 	
 	/* fetch prospective neighbors */
 	double* target = fCoords(n);
@@ -132,7 +132,7 @@ void iGridManager3DT::ProcessHits(double* target, double tol, int skiptag,
 			if (dsqr <= tolsqr)
 			{
 				/* quit if list full */
-				if (count == neighbors.Length()) throw eGeneralFail;
+				if (count == neighbors.Length()) throw ExceptionT::kGeneralFail;
 
 				/* append to list */
 				neighbors[count++] = hits[i].Tag();			

@@ -1,4 +1,4 @@
-/* $Id: VoterChenCu.cpp,v 1.2 2002-07-02 19:55:37 cjkimme Exp $ */
+/* $Id: VoterChenCu.cpp,v 1.2.4.1 2002-10-17 04:37:50 paklein Exp $ */
 /* created: paklein (12/04/1996)                                          */
 /* VoterChenCu.cpp                                                        */
 
@@ -36,13 +36,13 @@ double VoterChenCu::LatticeParameter(void) const
 void VoterChenCu::SetPairPotential(void)
 {	
 	fPairPotential = new VCPairPotentialCu();
-	if (!fPairPotential) throw(eOutOfMemory);
+	if (!fPairPotential) throw ExceptionT::kOutOfMemory;
 }
 
 void VoterChenCu::SetElectronDensity(void)
 {	
 	fElectronDensity = new VCElectronDensityCu();
-	if (!fElectronDensity) throw(eOutOfMemory);
+	if (!fElectronDensity) throw ExceptionT::kOutOfMemory;
 }
 
 void VoterChenCu::SetEmbeddingEnergy(void)
@@ -52,7 +52,7 @@ void VoterChenCu::SetEmbeddingEnergy(void)
 	dArray2DT coeff(npoints+1, 4, VC_U_coeff_dat);
 
 	fEmbeddingEnergy = new CubicSplineT(knots, coeff);
-	if (!fEmbeddingEnergy) throw(eOutOfMemory);
+	if (!fEmbeddingEnergy) throw ExceptionT::kOutOfMemory;
 }
 
 /**********************************************************************
@@ -104,7 +104,7 @@ double VCPairPotentialCu::DDFunction(double x) const
 dArrayT& VCPairPotentialCu::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw eGeneralFail;
+	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
 	double *pin   =  in.Pointer();
 	double *pout  = out.Pointer();
@@ -120,7 +120,7 @@ dArrayT& VCPairPotentialCu::MapFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& VCPairPotentialCu::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw eGeneralFail;
+	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
 	double *pin   =  in.Pointer();
 	double *pout  = out.Pointer();
@@ -136,7 +136,7 @@ dArrayT& VCPairPotentialCu::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& VCPairPotentialCu::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw eGeneralFail;
+	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
 	double *pin   =  in.Pointer();
 	double *pout  = out.Pointer();
@@ -301,7 +301,7 @@ double VCElectronDensityCu::DDFunction(double x) const
 dArrayT& VCElectronDensityCu::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw eGeneralFail;
+	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
 	double *pin   =  in.Pointer();
 	double *pout  = out.Pointer();
@@ -317,7 +317,7 @@ dArrayT& VCElectronDensityCu::MapFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& VCElectronDensityCu::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw eGeneralFail;
+	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
 	double *pin   =  in.Pointer();
 	double *pout  = out.Pointer();
@@ -333,7 +333,7 @@ dArrayT& VCElectronDensityCu::MapDFunction(const dArrayT& in, dArrayT& out) cons
 dArrayT& VCElectronDensityCu::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw eGeneralFail;
+	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
 	double *pin   =  in.Pointer();
 	double *pout  = out.Pointer();

@@ -1,4 +1,4 @@
-/* $Id: GraphT.cpp,v 1.8 2002-07-02 19:57:14 cjkimme Exp $ */
+/* $Id: GraphT.cpp,v 1.8.2.2 2002-10-20 18:02:03 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "GraphT.h"
@@ -36,7 +36,7 @@ void GraphT::AddGroup(const iArray2DT& groupdata)
 	SetRange(groupdata);
 
 	/* do not allow repeated registering of groups */
-	if (!fGroupData_1.AppendUnique(&groupdata)) throw eGeneralFail;
+	if (!fGroupData_1.AppendUnique(&groupdata)) throw ExceptionT::kGeneralFail;
 }
 
 void GraphT::AddGroup(const RaggedArray2DT<int>& groupdata)
@@ -46,7 +46,7 @@ void GraphT::AddGroup(const RaggedArray2DT<int>& groupdata)
 	SetRange(temp);
 
 	/* do not allow repeated registering of groups */
-	if (!fGroupData_2.AppendUnique(&groupdata)) throw eGeneralFail;
+	if (!fGroupData_2.AppendUnique(&groupdata)) throw ExceptionT::kGeneralFail;
 }
 
 void GraphT::ClearGroups(void)
@@ -67,7 +67,7 @@ void GraphT::MakeGraph(void)
 	{
 		cout << " GraphT::MakeGraph: active connectivities must be >= 0, mininum\n"
 		     << "     found " << fShift << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	/* ignore ien < 0 */
 	else if (fShift < 0)
@@ -389,17 +389,17 @@ void GraphT::UnconnectedNodes(iArrayT& nodes) const
 	{
 		/* collect */
 		AutoArrayT<int> stray;
-		stray.Allocate(0);
+		stray.Dimension(0);
 		for (int i = 0; i < fEdgeList.MajorDim(); i++)
 			if (fEdgeList.MinorDim(i) == 0)
 				stray.Append(i + fShift);
 	
 		/* set return value */
-		nodes.Allocate(stray.Length());
+		nodes.Dimension(stray.Length());
 		stray.CopyInto(nodes);
 	}
 	else
-		nodes.Allocate(0);
+		nodes.Dimension(0);
 }
 
 /* label nodes by branch of graph */
@@ -410,7 +410,7 @@ void GraphT::LabelBranches(const iArrayT& nodes, iArrayT& branch_map)
 	{
 		cout << "\n GraphT::LabelBranches: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* rooted level structure */
@@ -418,7 +418,7 @@ void GraphT::LabelBranches(const iArrayT& nodes, iArrayT& branch_map)
 	
 	/* surface set data */
 	iArrayT level_nodes;
-	branch_map.Allocate(nodes.Max() + 1);
+	branch_map.Dimension(nodes.Max() + 1);
 	branch_map = -1;
 	int branch = 0;
 	for (int i = 0; i < nodes.Length(); i++)
@@ -446,7 +446,7 @@ void GraphT::LabelBranches(const iArrayT& nodes, iArrayT& branch_map)
 				
 					int& map = branch_map[*pnodes++];
 #if __option(extended_errorcheck)
-					if (map != -1) throw eGeneralFail;
+					if (map != -1) throw ExceptionT::kGeneralFail;
 #endif
 					map = branch;
 				}
@@ -466,7 +466,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 	{
 		cout << "\n GraphT::Partition: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* dimensions */
@@ -489,7 +489,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 	
 	/* resolve internal/boundary nodes */
 	if (verbose) cout << " GraphT::Partition: classifying nodes" << endl;
-	partition.Allocate(config.Sum());
+	partition.Dimension(config.Sum());
 	for (int i = 0; i < partition.Length(); i++)
 		partition[i].Set(partition.Length(), i, part_map, *this);
 		
@@ -507,7 +507,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 		{
 			const iArrayT* nodes_i = partition[commID[i]].NodesIn(ID);
 			if (!nodes_i)
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			else
 				nodes_out[i].Alias(*nodes_i);
 		}
@@ -533,7 +533,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 	{
 		cout << "\n GraphT::Partition: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* dimensions */
@@ -556,7 +556,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 	
 	/* resolve internal/boundary nodes */
 	if (verbose) cout << " GraphT::Partition: classifying nodes" << endl;
-	partition.Allocate(config.Sum());
+	partition.Dimension(config.Sum());
 	for (int i = 0; i < partition.Length(); i++)
 		partition[i].Set(partition.Length(), i, part_map, node_graph);
 		
@@ -574,7 +574,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 		{
 			const iArrayT* nodes_i = partition[commID[i]].NodesIn(ID);
 			if (!nodes_i)
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			else
 				nodes_out[i].Alias(*nodes_i);
 		}
@@ -599,7 +599,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 	{
 		cout << "\n GraphT::Partition: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* dimensions */
@@ -622,7 +622,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 	
 	/* resolve internal/boundary nodes */
 	if (verbose) cout << " GraphT::Partition: classifying nodes" << endl;
-	partition.Allocate(config.Sum());
+	partition.Dimension(config.Sum());
 	for (int i = 0; i < partition.Length(); i++)
 		partition[i].Set(partition.Length(), i, part_map, connects_1, connects_2);
 		
@@ -640,7 +640,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 		{
 			const iArrayT* nodes_i = partition[commID[i]].NodesIn(ID);
 			if (!nodes_i)
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			else
 				nodes_out[i].Alias(*nodes_i);
 		}

@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupport2DT.cpp,v 1.5 2002-09-12 17:50:11 paklein Exp $ */
+/* $Id: D2MeshFreeSupport2DT.cpp,v 1.5.4.1 2002-10-17 04:22:36 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupport2DT.h"
@@ -6,7 +6,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "toolboxConstants.h"
 #include "dArray2DT.h"
 #include "iArray2DT.h"
@@ -37,7 +37,7 @@ void D2MeshFreeSupport2DT::SetCuttingFacets(const dArray2DT& facet_coords,
 	{
 		cout << "\n D2MeshFreeSupport2DT::SetCuttingFacets: 2D cutting facets must\n"
 		     <<   "     have 2 nodes: " << fNumFacetNodes << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 }
 
@@ -52,8 +52,8 @@ void D2MeshFreeSupport2DT::ProcessBoundaries(const dArray2DT& coords,
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
-	if (coords.MajorDim() != nodal_params.MajorDim()) throw eSizeMismatch;
-	if (coords.MinorDim() != x_node.Length()) throw eSizeMismatch;
+	if (coords.MajorDim() != nodal_params.MajorDim()) throw ExceptionT::kSizeMismatch;
+	if (coords.MinorDim() != x_node.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* quick exit */

@@ -1,9 +1,9 @@
-/* $Id: MLSSolverT.cpp,v 1.8 2002-07-02 19:56:55 cjkimme Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.8.4.2 2002-10-20 18:07:47 paklein Exp $ */
 /* created: paklein (12/08/1999)                                          */
 
 #include "MLSSolverT.h"
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dSymMatrixT.h"
 
 /* basis functions */
@@ -60,9 +60,9 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 		default:
 			cout << "\n MLSSolverT::MLSSolverT: unsupported spatial dimensions "
 			     << fNumSD << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
-	if (!fBasis) throw eOutOfMemory;
+	if (!fBasis) throw ExceptionT::kOutOfMemory;
 
 	/* construct window function */
 	switch (fWindowType)
@@ -70,7 +70,7 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 		case MeshFreeT::kGaussian:
 		{
 			fWindow = new GaussianWindowT(window_params[0], window_params[1], window_params[2]);
-			if (!fWindow) throw eGeneralFail;
+			if (!fWindow) throw ExceptionT::kGeneralFail;
 			break;
 		}
 		case MeshFreeT::kBrick:
@@ -79,7 +79,7 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 			double sharpening_factor = window_params[fNumSD];
 			double cut_off_factor = window_params[fNumSD+1];
 			fWindow = new RectGaussianWindowT(scalings, sharpening_factor, cut_off_factor);
-			if (!fWindow) throw eGeneralFail;
+			if (!fWindow) throw ExceptionT::kGeneralFail;
 			break;
 		}
 	        case MeshFreeT::kCubicSpline:
@@ -88,35 +88,35 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 			double sharpening_factor = window_params[fNumSD];
 			double cut_off_factor = window_params[fNumSD+1];
 			fWindow = new RectCubicSplineWindowT(scalings, sharpening_factor, cut_off_factor);
-			if (!fWindow) throw eGeneralFail;
+			if (!fWindow) throw ExceptionT::kGeneralFail;
 			break;
 		}
 		default:
 			cout << "\n MLSSolverT::MLSSolverT: unsupported window function type: "
 			     << fWindowType << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 	
 	/* dimension arrays */
 	int m = fBasis->BasisDimension();
-	fb.Allocate(m);
+	fb.Dimension(m);
 	for (int j = 0; j < fDb.Length(); j++)
-		fDb[j].Allocate(m);
+		fDb[j].Dimension(m);
 	for (int jj = 0; jj < fDDb.Length(); jj++)
-		fDDb[jj].Allocate(m);
+		fDDb[jj].Dimension(m);
 
-	fMinv.Allocate(m);
+	fMinv.Dimension(m);
 	for (int i = 0; i < fDM.Length(); i++)
-		fDM[i].Allocate(m);
+		fDM[i].Dimension(m);
 	for (int ii = 0; ii < fDDM.Length(); ii++)
-		fDDM[ii].Allocate(m);
+		fDDM[ii].Dimension(m);
 
 	/* work space */
-	fMtemp.Allocate(m);
-	fbtemp1.Allocate(m);
-	fbtemp2.Allocate(m);
-	fbtemp3.Allocate(m);
-	fbtemp4.Allocate(m);
+	fMtemp.Dimension(m);
+	fbtemp1.Dimension(m);
+	fbtemp2.Dimension(m);
+	fbtemp3.Dimension(m);
+	fbtemp4.Dimension(m);
 }
 	
 /* destructor */
@@ -165,11 +165,11 @@ int MLSSolverT::SetField(const dArray2DT& coords, const dArray2DT& nodal_param,
 		const dArrayT& volume, const dArrayT& fieldpt, int order)
 {
 #if __option(extended_errorcheck)
-	if (nodal_param.MajorDim() != coords.MajorDim()) throw eSizeMismatch;
-	if (nodal_param.MinorDim() != fWindow->NumberOfSupportParameters()) throw eSizeMismatch;
-	if (volume.Length()  != coords.MajorDim()) throw eSizeMismatch;
-	if (fieldpt.Length() != fNumSD) throw eSizeMismatch;
-	if (order < 0 || order > 2) throw eOutOfRange;
+	if (nodal_param.MajorDim() != coords.MajorDim()) throw ExceptionT::kSizeMismatch;
+	if (nodal_param.MinorDim() != fWindow->NumberOfSupportParameters()) throw ExceptionT::kSizeMismatch;
+	if (volume.Length()  != coords.MajorDim()) throw ExceptionT::kSizeMismatch;
+	if (fieldpt.Length() != fNumSD) throw ExceptionT::kSizeMismatch;
+	if (order < 0 || order > 2) throw ExceptionT::kOutOfRange;
 #endif
 	
 	/* dimension work space */
@@ -240,7 +240,7 @@ void MLSSolverT::SynchronizeSupportParameters(dArray2DT& params_1,
 {
 	/* check */
 	if (!fWindow) 
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	else
 		fWindow->SynchronizeSupportParameters(params_1, params_2);
 }
@@ -370,7 +370,7 @@ int MLSSolverT::SetMomentMartrix(const dArrayT& volume)
 			OK = SymmetricInverse4x4(fMinv);
 			break;
 		default:
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 	return OK;
 }

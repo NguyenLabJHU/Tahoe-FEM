@@ -1,8 +1,8 @@
-/* $Id: SSSimoViscoT.cpp,v 1.1 2002-10-05 02:48:19 thao Exp $ */
+/* $Id: SSSimoViscoT.cpp,v 1.1.2.2 2002-10-20 18:07:28 paklein Exp $ */
 #include "SSSimoViscoT.h"
 
 #include "fstreamT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "ContinuumElementT.h"
 #include "ElementSupportT.h"
 
@@ -31,7 +31,7 @@ SSSimoViscoT::SSSimoViscoT(ifstreamT& in, const SmallStrainT& element):
 	fnstatev ++;			 /*preceding mean overstress*/
 	fnstatev ++; 			 /*preceding mean inelastic stress*/
 	
-	fstatev.Allocate(fnstatev);
+	fstatev.Dimension(fnstatev);
 	double* pstatev = fstatev.Pointer();
 	/* assign pointers to current and preceding blocks of state variable array */
 	
@@ -72,7 +72,7 @@ void SSSimoViscoT::PointInitialize(void)
 	if (CurrIP() == 0)
 	{
 		ElementCardT& element = CurrentElement();
-		element.Allocate(0, fnstatev*NumIP());
+		element.Dimension(0, fnstatev*NumIP());
 	
 	/* initialize internal variables to 0.0*/
 		element.DoubleData() = 0.0;
@@ -152,7 +152,7 @@ int SSSimoViscoT::NumOutputVariables() const {return kNumOutputVar;}
 void SSSimoViscoT::OutputLabels(ArrayT<StringT>& labels) const
 {
 	//allocates space for labels
-	labels.Allocate(kNumOutputVar);
+	labels.Dimension(kNumOutputVar);
 	
 	//copy labels
 	for (int i = 0; i< kNumOutputVar; i++)

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.21 2002-09-12 17:49:50 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.21.4.2 2002-10-20 18:07:08 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -59,8 +59,8 @@ void ElementBaseT::Initialize(void)
 
 	/* dimension */
 	int neq = NumElementNodes()*NumDOF();
-	fLHS.Allocate(neq);	
-	fRHS.Allocate(neq);
+	fLHS.Dimension(neq);	
+	fRHS.Dimension(neq);
 }
 
 /* initial condition/restart functions
@@ -85,11 +85,19 @@ const int& ElementBaseT::IterationNumber(void) const
 	return ElementSupport().IterationNumber(Group());
 }
 
+/* collect the list of element block ID's used by the element group */
+void ElementBaseT::ElementBlockIDs(ArrayT<StringT>& IDs) const
+{
+	IDs.Dimension(fBlockData.Length());
+	for (int i = 0; i < IDs.Length(); i++)
+		IDs[i] = fBlockData[i].ID();
+}
+
 /* solution calls */
 void ElementBaseT::FormLHS(void)
 {
 	try { LHSDriver(); }
-	catch (int error)
+	catch (ExceptionT::CodeT error)
 	{
 		cout << "\n ElementBaseT::FormLHS: " << fSupport.Exception(error);
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
@@ -119,7 +127,7 @@ void ElementBaseT::FormLHS(void)
 void ElementBaseT::FormRHS(void)
 {
 	try { RHSDriver(); }
-	catch (int error)
+	catch (ExceptionT::CodeT error)
 	{
 		cout << "\n ElementBaseT::FormRHS: " << fSupport.Exception(error);
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
@@ -165,7 +173,7 @@ void ElementBaseT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 #pragma unused(eq_2)
 
 #if __option(extended_errorcheck)
-	if (fConnectivities.Length() != fEqnos.Length()) throw eSizeMismatch;
+	if (fConnectivities.Length() != fEqnos.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* loop over connectivity blocks */
@@ -198,13 +206,13 @@ void ElementBaseT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 void ElementBaseT::ReadRestart(istream& in)
 {
 	/* stream check */
-	if (!in.good()) throw eGeneralFail;
+	if (!in.good()) throw ExceptionT::kGeneralFail;
 }
 
 void ElementBaseT::WriteRestart(ostream& out) const
 {
 	/* stream check */
-	if (!out.good()) throw eGeneralFail;
+	if (!out.good()) throw ExceptionT::kGeneralFail;
 }
 
 /* returns 1 if DOF's are interpolants of the nodal values */
@@ -214,7 +222,7 @@ void ElementBaseT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 {
 #if __option(extended_errorcheck)
 	if (nodes.Length() != DOFs.MajorDim() ||
-	    DOFs.MinorDim() != NumDOF()) throw eSizeMismatch;
+	    DOFs.MinorDim() != NumDOF()) throw ExceptionT::kSizeMismatch;
 
 #endif
 
@@ -232,7 +240,7 @@ const StringT& ElementBaseT::ElementBlockID(int element) const
 	if (element < 0 || element >= NumElements()) {
 		cout << "\n ElementBaseT::ElementBlockID: element number " << element << " is out of range {0,"
 		    << NumElements() - 1 << "}" << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 	
 	bool found = false;
@@ -244,7 +252,7 @@ const StringT& ElementBaseT::ElementBlockID(int element) const
 	if (!found) {
 		cout << "\n ElementBaseT::ElementBlockID: could not resolve block ID for element "
 		     << element << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return fBlockData[0].ID(); /* dummy */
 }
@@ -295,7 +303,7 @@ void ElementBaseT::NodesUsed(ArrayT<int>& nodes_used) const
 	  }
 
 	/* collect list */
-	nodes_used.Allocate(node_map.Count(1));
+	nodes_used.Dimension(node_map.Count(1));
 	int dex = 0;
 	int*  p = node_map.Pointer();
 	for (int j = 0; j < node_map.Length(); j++)
@@ -348,11 +356,11 @@ void ElementBaseT::EchoConnectivityData(ifstreamT& in, ostream& out)
 
 	/* derived dimensions */
 	int neq = NumElementNodes()*NumDOF();
-	fEqnos.Allocate(fBlockData.Length());
+	fEqnos.Dimension(fBlockData.Length());
 	for (int be=0; be < fEqnos.Length(); be++)
 	  {
 	    int numblockelems = fConnectivities[be]->MajorDim();
-	    fEqnos[be].Allocate(numblockelems, neq);
+	    fEqnos[be].Dimension(numblockelems, neq);
 	  }
 
 	/* set pointers in element cards */
@@ -375,7 +383,7 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 
 	/* allocate block map */
 	int num_blocks = elem_ID.Length();
-	fBlockData.Allocate(num_blocks);
+	fBlockData.Dimension(num_blocks);
 	fConnectivities.Allocate (num_blocks);
 
 	/* read from parameter file */
@@ -397,7 +405,7 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
                  << num_nodes << " of block " << b+1 << '\n';
 			cout <<   "     does not match dimension of previous blocks "
                  << nen << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 	    
 	    /* store block data */
@@ -424,7 +432,7 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 		}
 	  
 	/* set dimensions */
-	fElementCards.Allocate(elem_count);
+	fElementCards.Dimension(elem_count);
 }
 
 /* resolve output formats */
@@ -514,7 +522,7 @@ int ElementBaseT::MakeLocalConnects(iArray2DT& localconnects)
 		    node_map[j] = localnum++;
 
 	/* connectivities with local node numbering */
-	localconnects.Allocate(NumElements(), NumElementNodes());
+	localconnects.Dimension(NumElements(), NumElementNodes());
 	int *plocal = localconnects.Pointer();
 	for (int b=0; b < num_blocks; b++)
 	{
@@ -555,7 +563,7 @@ const ElementBlockDataT& ElementBaseT::BlockData(const StringT& block_ID) const
                  << setw(kIntWidth) << fBlockData[i].MaterialID() << '\n';
 
 		cout.flush();
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 
 	/* return */
@@ -597,7 +605,7 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 	if (node_map)
 	{
 		const iArrayT& nodes_X = CurrentElement().NodesX();
-		temp.Allocate(nodes_X.Length());
+		temp.Dimension(nodes_X.Length());
 		for (int i = 0; i < nodes_X.Length(); i++)
 			temp[i] = (*node_map)[nodes_X[i]];
 	}
@@ -610,7 +618,7 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 	if (node_map)
 	{
 		const iArrayT& nodes_U = CurrentElement().NodesU();
-		temp.Allocate(nodes_U.Length());
+		temp.Dimension(nodes_U.Length());
 		for (int i = 0; i < nodes_U.Length(); i++)
 			temp[i] = (*node_map)[nodes_U[i]];
 	}
@@ -632,11 +640,11 @@ void ElementBaseT::SetElementCards(void)
       cout << "\n           element group: " << fSupport.ElementGroupNumber(this) + 1;      
       cout << "\n fConnectivities length = " << fConnectivities.Length();
       cout << "\n          fEqnos length = " << fEqnos.Length() << endl;
-      throw eSizeMismatch;
+      throw ExceptionT::kSizeMismatch;
     }
 
 	/* allocate */
-	//fElementCards.Allocate(fNumElements);
+	//fElementCards.Dimension(fNumElements);
 
 	/* loop over blocks to set pointers */
 	int numberofnodes = fField.NumNodes();
@@ -655,7 +663,7 @@ void ElementBaseT::SetElementCards(void)
 		    cout << "\n           block: " << i+1;
 		    cout << "\n  blockconn dim = " << blockconn->MajorDim() << " " << blockconn->MinorDim();
 		    cout << "\n blockeqnos dim = " << blockeqnos.MajorDim() << " " << blockeqnos.MinorDim() << endl;
-		    throw eSizeMismatch;
+		    throw ExceptionT::kSizeMismatch;
 		  }
 
 		for (int j = 0; j < dim; j++)
@@ -679,7 +687,7 @@ void ElementBaseT::SetElementCards(void)
 				     << "," << max + 1 << "} in element " << dim + 1 << "\n";
 				cout <<   "     (" << j + 1 << " in block " <<  i + 1 << ") of group "
 				     << fSupport.ElementGroupNumber(this) + 1 << " are out of range" << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 
 			count ++; /* next element */

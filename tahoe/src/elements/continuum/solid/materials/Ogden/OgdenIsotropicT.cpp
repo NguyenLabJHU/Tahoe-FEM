@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.cpp,v 1.8 2002-10-05 20:04:12 paklein Exp $ */
+/* $Id: OgdenIsotropicT.cpp,v 1.8.2.1 2002-10-17 04:37:58 paklein Exp $ */
 /* created: paklein (10/01/2000) */
 #include "OgdenIsotropicT.h"
 
@@ -178,7 +178,7 @@ void OgdenIsotropicT::MixedRank4_2D(const dArrayT& a, const dArrayT& b,
 	if (a.Length() != 2 ||
 	    b.Length() != 2 ||
 	    rank4_ab.Rows() != 3 ||
-	    rank4_ab.Cols() != 3) throw eSizeMismatch;
+	    rank4_ab.Cols() != 3) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11;
@@ -237,7 +237,7 @@ void OgdenIsotropicT::MixedRank4_3D(const dArrayT& a, const dArrayT& b,
 	if (a.Length() != 3 ||
 	    b.Length() != 3 ||
 	    rank4_ab.Rows() != 6 ||
-	    rank4_ab.Cols() != 6) throw eSizeMismatch;
+	    rank4_ab.Cols() != 6) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12;

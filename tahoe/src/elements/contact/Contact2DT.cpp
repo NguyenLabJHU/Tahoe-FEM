@@ -1,4 +1,4 @@
-/* $Id: Contact2DT.cpp,v 1.4 2002-07-02 19:55:18 cjkimme Exp $ */
+/* $Id: Contact2DT.cpp,v 1.4.4.2 2002-10-20 18:07:13 paklein Exp $ */
 /* created: paklein (05/26/1999) */
 #include "Contact2DT.h"
 
@@ -25,7 +25,7 @@ Contact2DT::Contact2DT(const ElementSupportT& support, const FieldT& field):
 	fv2(NumSD())
 {
 	/* check base class initializations */
-	if (NumSD() != 2) throw eGeneralFail;
+	if (NumSD() != 2) throw ExceptionT::kGeneralFail;
 }
 
 /* destructor */
@@ -39,8 +39,8 @@ void Contact2DT::Initialize(void)
 	
 	/* dimension */
 	int neq = NumElementNodes()*NumDOF();
-	fNEEvec.Allocate(neq);
-	fNEEmat.Allocate(neq);
+	fNEEvec.Dimension(neq);
+	fNEEmat.Dimension(neq);
 	SetShapeFunctionArrays();	
 }
 
@@ -71,7 +71,7 @@ bool Contact2DT::SetActiveInteractions(void)
 		ngrid = (ngrid > kMaxNumGrid) ? kMaxNumGrid : ngrid;
 
 		fGrid2D = new iGridManager2DT(ngrid, ngrid, fStrikerCoords, 0);
-		if (!fGrid2D) throw eOutOfMemory;
+		if (!fGrid2D) throw ExceptionT::kOutOfMemory;
 
 		/* search grid statistics */
 		ostream& out = ElementSupport().Output();
@@ -100,9 +100,9 @@ void Contact2DT::SetActiveStrikers(void)
 {
 	/* clear previous contact config */
 	fActiveMap = -1;
-	fActiveStrikers.Allocate(0);
-	fHitSurface.Allocate(0);
-	fHitFacets.Allocate(0);
+	fActiveStrikers.Dimension(0);
+	fHitSurface.Dimension(0);
+	fHitFacets.Dimension(0);
 
 	/* reference to current coordinates */
 	const dArray2DT& allcoords = ElementSupport().CurrentCoordinates(); //EFFECTIVE_DVA
@@ -164,8 +164,8 @@ void Contact2DT::SetActiveStrikers(void)
 					double   magtan = tanmags[j];				
 					double        b = dArrayT::Dot(tangent, fv1)/magtan;
 					double    depth = fabs(fv2[0]*fv1[1] - (fv1[0]*fv2[1])/magtan);
-					double    max_d = magtan/5.0;
-					double overhang = magtan/100.0; // facets a little oversized
+					double    max_d = magtan/2.0;
+					double overhang = magtan/50.0; // facets a little oversized
 					
 					/* within cut-off box */
 //					if (depth < max_d && (b >= 0.0 && b <= magtan))
@@ -211,7 +211,7 @@ void Contact2DT::SetConnectivities(void)
 		     <<   "    connectivities " << fConnectivities[0]->MajorDim()
 		     << " to equal the number of active strikers "
 		     << fActiveStrikers.Length() << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* set interacting nodes */
@@ -220,7 +220,7 @@ void Contact2DT::SetConnectivities(void)
 	if (fConnectivities[0]->MajorDim() > 0 && rowlength != 3) {
 		cout << "\n Contact2DT::SetConnectivities: expecting connectivites length 3 not " 
 		     << rowlength << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
@@ -247,9 +247,9 @@ void Contact2DT::SetShapeFunctionArrays(void)
 	/* allocate workspace - displacement DOF's only */
 	int neq = NumElementNodes()*NumDOF();
 	int nsd = NumSD();
-	fdv1T.Allocate(neq, nsd);
-	fdv2T.Allocate(neq, nsd);
-	fdtanT.Allocate(neq, nsd);
+	fdv1T.Dimension(neq, nsd);
+	fdv2T.Dimension(neq, nsd);
+	fdtanT.Dimension(neq, nsd);
 
 	/* derivative arrays */
 	fdv1T = 0.0;
@@ -282,13 +282,13 @@ void Contact2DT::SetSurfacesData(void)
 	if (fTanVecs.Length() != fSurfaces.Length())
 	{
 		int num_surfaces = fSurfaces.Length();
-		fTanVecs.Allocate(num_surfaces);
-		fTanMags.Allocate(num_surfaces);
+		fTanVecs.Dimension(num_surfaces);
+		fTanMags.Dimension(num_surfaces);
 		for (int i = 0; i < fSurfaces.Length(); i++)
 		{
 			int num_facets = fSurfaces[i].MajorDim();	
-			fTanVecs[i].Allocate(num_facets, NumSD());
-			fTanMags[i].Allocate(num_facets);
+			fTanVecs[i].Dimension(num_facets, NumSD());
+			fTanMags[i].Dimension(num_facets);
 		}
 	}
 	

@@ -1,4 +1,4 @@
-/* $Id: KBC_CardT.cpp,v 1.9 2002-09-12 17:50:06 paklein Exp $ */
+/* $Id: KBC_CardT.cpp,v 1.9.4.1 2002-10-17 04:47:06 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "KBC_CardT.h"
@@ -7,7 +7,7 @@
 #include <iomanip.h>
 
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 #include "ScheduleT.h"
 
@@ -75,7 +75,7 @@ double KBC_CardT::Value(void) const
 	  {
 #if __option(extended_errorcheck)
 		/* double check pointers are set */
-		if (!fSchedule) throw eGeneralFail;
+		if (!fSchedule) throw ExceptionT::kGeneralFail;
 #endif
 		return fvalue*(fSchedule->Value());
 	  }
@@ -121,7 +121,7 @@ KBC_CardT::CodeT KBC_CardT::int_to_CodeT (int i_code)
 		default:
 			cout << "\n KBC_CardT::int_to_CodeT: unknown code: "
 			<< i_code<< endl;
-			throw eBadInputValue;	
+			throw ExceptionT::kBadInputValue;	
 	}
 
 	/* dummy */
@@ -154,7 +154,7 @@ istream& operator>>(istream& in, KBC_CardT::CodeT& code)
 		default:
 			cout << "\n operator>>KBC_CardT::CodeT: unknown code: "
 			<< i_code<< endl;
-			throw eBadInputValue;	
+			throw ExceptionT::kBadInputValue;	
 	}
 
 	return in;

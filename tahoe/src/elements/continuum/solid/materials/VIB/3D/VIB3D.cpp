@@ -1,4 +1,4 @@
-/* $Id: VIB3D.cpp,v 1.4 2002-09-12 17:50:00 paklein Exp $ */
+/* $Id: VIB3D.cpp,v 1.4.4.2 2002-10-20 18:07:31 paklein Exp $ */
 /* created: paklein (04/20/1997)                                          */
 /* Base class for general 3D probabolistic Cauchy-Born materials.         */
 
@@ -8,7 +8,7 @@
 #include <iostream.h>
 
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 #include "fstreamT.h"
 #include "C1FunctionT.h"
@@ -51,10 +51,10 @@ VIB3D::VIB3D(ifstreamT& in, const FiniteStrainT& element):
 		}	
 		default:
 		
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 	
-	if (!fSphere) throw(eOutOfMemory);
+	if (!fSphere) throw ExceptionT::kOutOfMemory;
 	
 	/* default construction */
 	SetAngles(0.0, 0.0);
@@ -81,7 +81,7 @@ void VIB3D::SetAngles(double phi, double theta)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Allocate(numpoints);
+	Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fSphere->Jacobians();

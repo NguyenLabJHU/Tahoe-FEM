@@ -1,4 +1,4 @@
-/* $Id: TensorTransformT.cpp,v 1.4 2002-07-02 19:56:22 cjkimme Exp $ */
+/* $Id: TensorTransformT.cpp,v 1.4.4.1 2002-10-17 04:38:19 paklein Exp $ */
 /* created: paklein (07/02/1996)                                          */
 
 #include "TensorTransformT.h"
@@ -59,7 +59,7 @@ void TensorTransformT::FFFFC_2D(const dMatrixT& F, dMatrixT& C)
 #if __option(extended_errorcheck)
 	/* consistency */
 	if (C.Rows() != dSymMatrixT::NumValues(F.Rows()))
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 #endif
 
 	int nsd = F.Rows();
@@ -92,7 +92,7 @@ void TensorTransformT::FFFFC_3D(const dMatrixT& F, dMatrixT& C)
 #if __option(extended_errorcheck)
 	/* consistency */
 	if (C.Rows() != dSymMatrixT::NumValues(F.Rows()))
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 #endif
 
 	int nsd = F.Rows();
@@ -143,7 +143,7 @@ void TensorTransformT::FFFFC_2D_Z(const dMatrixT& F, dMatrixT& C) const
 #if __option(extended_errorcheck)
 	/* consistency */
 	if (C.Rows() != dSymMatrixT::NumValues(F.Rows()))
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 #endif
 
 	double	z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15;

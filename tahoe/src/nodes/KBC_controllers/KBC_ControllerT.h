@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.10 2002-09-30 23:49:03 cjkimme Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.10.2.1 2002-10-17 04:42:20 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #ifndef _KBC_CONTROLLER_T_H_
@@ -36,7 +36,8 @@ public:
       kBimaterialK_Field = 1,
          kMappedPeriodic = 2,
               kTiedNodes = 3,
-         kSymmetricNodes = 4};
+         kSymmetricNodes = 4,
+          kPeriodicNodes = 5};
 
 	/** constructor */
 	KBC_ControllerT(NodeManagerT& node_manager);

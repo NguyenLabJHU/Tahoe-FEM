@@ -1,4 +1,4 @@
-/* $Id: TimeSequence.cpp,v 1.3 2002-09-12 17:50:07 paklein Exp $ */
+/* $Id: TimeSequence.cpp,v 1.3.4.1 2002-10-17 04:47:06 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "TimeSequence.h"
@@ -6,7 +6,7 @@
 #include "fstreamT.h"
 
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 /* constructor */
 
@@ -17,10 +17,10 @@ TimeSequence::TimeSequence(void) { }
 /* I/O operators */
 void TimeSequence::Read(ifstreamT& in)
 {
-	in >> fNumSteps;  if (fNumSteps     < 0) throw eBadInputValue;
+	in >> fNumSteps;  if (fNumSteps     < 0) throw ExceptionT::kBadInputValue;
 	in >> fOutputInc;
-	in >> fMaxCuts;	  if (fMaxCuts  <  0  ) throw eBadInputValue;
-	in >> fTimeStep;  if (fTimeStep <= 0.0) throw eBadInputValue;
+	in >> fMaxCuts;	  if (fMaxCuts  <  0  ) throw ExceptionT::kBadInputValue;
+	in >> fTimeStep;  if (fTimeStep <= 0.0) throw ExceptionT::kBadInputValue;
 }
 
 void TimeSequence::Write(ostream& out) const

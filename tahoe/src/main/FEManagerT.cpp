@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.39 2002-09-12 17:49:56 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.39.4.2 2002-10-20 18:07:20 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -9,7 +9,7 @@
 #include <ctype.h>
 
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 #include "fstreamT.h"
 #include "TimeManagerT.h"
@@ -43,21 +43,6 @@ using namespace Tahoe;
 /* File/Version Control */
 const char* kCurrentVersion = "v3.4.1";
 const char* kProgramName    = "tahoe";
-
-/* exception strings */
-const char* eExceptionStrings[] = {
-/* 0 */ "no error",
-/* 1 */ "general fail",
-/* 2 */ "stop",
-/* 3 */ "out of memory",
-/* 4 */ "index out of range",
-/* 5 */ "dimension mismatch",
-/* 6 */ "invalid value read from input",
-/* 7 */ "zero or negative jacobian",
-/* 8 */ "MPI message passing error",
-/* 9 */ "database read failure",
-/*10 */ "bad MP heartbeat",
-/*11 */ "unknown"};	
 
 /* constructor */
 FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm):
@@ -135,7 +120,7 @@ void FEManagerT::Initialize(InitCodeT init)
 	
 	/* set model manager */
 	fModelManager = new ModelManagerT(fMainOut);
-	if (!fModelManager) throw eOutOfMemory;
+	if (!fModelManager) throw ExceptionT::kOutOfMemory;
 	if (verbose) cout << "    FEManagerT::Initialize: input" << endl;
 
 	/* main parameters */
@@ -146,7 +131,7 @@ void FEManagerT::Initialize(InitCodeT init)
 	
 	/* construct the managers */
 	fTimeManager = new TimeManagerT(*this);
-	if (!fTimeManager) throw eOutOfMemory;
+	if (!fTimeManager) throw ExceptionT::kOutOfMemory;
 	iAddSub(*fTimeManager);
 	if (verbose) cout << "    FEManagerT::Initialize: time" << endl;
 
@@ -189,36 +174,36 @@ void FEManagerT::Solve(void)
 		while (seq_OK && fTimeManager->Step())
 		{
 			/* running status flag */
-			int error = eNoError;		
+			ExceptionT::CodeT error = ExceptionT::kNoError;		
 
 			/* initialize the current time step */
-			if (error == eNoError) 
+			if (error == ExceptionT::kNoError) 
 				error = InitStep();
 			
 			/* solve the current time step */
-			if (error == eNoError) 
+			if (error == ExceptionT::kNoError) 
 				error = SolveStep();
 			
 			/* close the current time step */
-			if (error == eNoError) 
+			if (error == ExceptionT::kNoError) 
 				error = CloseStep();
 
 			/* handle errors */
 			switch (error)
 			{
-				case eNoError:
+				case ExceptionT::kNoError:
 					/* nothing to do */
 					break;
 
-				case eGeneralFail:
-				case eBadJacobianDet:
+				case ExceptionT::kGeneralFail:
+				case ExceptionT::kBadJacobianDet:
 				{
-					cout << "\n FEManagerT::Solve: trying to recover: error: " << Exception(error) << endl;
+					cout << "\n FEManagerT::Solve: trying to recover: error: " << ExceptionT::ToString(error) << endl;
 				
 					/* reset system configuration */
 					error = ResetStep();
 					
-					if (error == eNoError)
+					if (error == ExceptionT::kNoError)
 						/* cut time increment */
 						seq_OK = DecreaseLoadStep();
 					else
@@ -226,7 +211,7 @@ void FEManagerT::Solve(void)
 					break;
 				}
 				default:
-					cout << "\n FEManagerT::Solve: no recovery for error: " << Exception(error) << endl;
+					cout << "\n FEManagerT::Solve: no recovery for error: " << ExceptionT::ToString(error) << endl;
 					seq_OK = false;
 			}
 		}
@@ -261,33 +246,13 @@ GlobalT::SystemTypeT FEManagerT::GlobalSystemType(int group) const
 	return type;
 }
 
-void FEManagerT::WriteExceptionCodes(ostream& out) const
-{
-	out << "\nE x c e p t i o n   c o d e s :\n\n";
-	
-	for (int i = 0; i < eNumExceptions; i++)
-	{
-		out << setw(kIntWidth) << i << " : ";
-		out << eExceptionStrings[i] << '\n';
-		out << endl;
-	}	
-}
-
-const char* FEManagerT::Exception(int code) const
-{
-	if (code >= 0 && code < eNumExceptions)
-		return eExceptionStrings[code];
-	else
-		return eExceptionStrings[eNumExceptions];
-}
-
 /* load control functions */
 bool FEManagerT::DecreaseLoadStep(void) { return fTimeManager->DecreaseLoadStep(); }
 bool FEManagerT::IncreaseLoadStep(void) { return fTimeManager->IncreaseLoadStep(); }
 
-int FEManagerT::ResetStep(void)
+ExceptionT::CodeT FEManagerT::ResetStep(void)
 {
-	int error = eNoError;
+	ExceptionT::CodeT error = ExceptionT::kNoError;
 	try{
 	/* state */
 	fStatus = GlobalT::kResetStep;	
@@ -308,14 +273,14 @@ int FEManagerT::ResetStep(void)
 		fSolvers[i]->ResetStep();
 	}
 	
-	catch (int exc) {
+	catch (ExceptionT::CodeT exc) {
 		cout << "\n FEManagerT::ResetStep: caught exception: " 
-		     << Exception(exc) << endl;
+		     << ExceptionT::ToString(exc) << endl;
 		return exc;
 	}
 	
 	/* OK */
-	return eNoError;
+	return ExceptionT::kNoError;
 }
 
 const double& FEManagerT::Time(void) const { return fTimeManager->Time(); }
@@ -374,7 +339,7 @@ void FEManagerT::InternalForceOnNode(const FieldT& field, int node, dArrayT& for
 		fElementGroups[i]->AddNodalForce(field, node, force);
 }
 
-int FEManagerT::InitStep(void)
+ExceptionT::CodeT FEManagerT::InitStep(void)
 {
 	try {
 	/* state */
@@ -392,19 +357,19 @@ int FEManagerT::InitStep(void)
 		fElementGroups[i]->InitStep();
 	}
 	
-	catch (int exc) {
+	catch (ExceptionT::CodeT exc) {
 		cout << "\n FEManagerT::InitStep: caught exception: " 
-		     << Exception(exc) << endl;
+		     << ExceptionT::ToString(exc) << endl;
 		return exc;
 	}
 	
 	/* OK */
-	return eNoError;
+	return ExceptionT::kNoError;
 }
 
-int FEManagerT::SolveStep(void)
+ExceptionT::CodeT FEManagerT::SolveStep(void)
 {
-	int error = eNoError;
+	ExceptionT::CodeT error = ExceptionT::kNoError;
 	try {
 		
 		int loop_count = 0;
@@ -472,14 +437,14 @@ int FEManagerT::SolveStep(void)
 		/* solver looping not successful */
 		if (!all_pass) {
 			cout << "\n Solver loop not converged after " << loop_count << " iterations" << endl;
-			error = eGeneralFail;
+			error = ExceptionT::kGeneralFail;
 		} else if (fSolverPhases.MajorDim() > 1) {
 			cout << "\n Solver loop converged in " << loop_count << " iterations" << endl;
 		}
 	}	
-	catch (int exc) {
+	catch (ExceptionT::CodeT exc) {
 		cout << "\n FEManagerT::SolveStep: caught exception: " 
-		     << Exception(exc) << endl;
+		     << ExceptionT::ToString(exc) << endl;
 		error = exc;
 	}
 	
@@ -487,7 +452,7 @@ int FEManagerT::SolveStep(void)
 	return error;
 }
 
-int FEManagerT::CloseStep(void)
+ExceptionT::CodeT FEManagerT::CloseStep(void)
 {
 	try {
 	/* state */
@@ -507,13 +472,13 @@ int FEManagerT::CloseStep(void)
 	/* write restart file */
 	WriteRestart();
 	}
-	catch (int exc) {
-		cout << "\n FEManagerT::CloseStep: caught exception: " << Exception(exc) << endl;
+	catch (ExceptionT::CodeT exc) {
+		cout << "\n FEManagerT::CloseStep: caught exception: " << ExceptionT::ToString(exc) << endl;
 		return exc;
 	}
 	
 	/* OK */
-	return eNoError;
+	return ExceptionT::kNoError;
 }
 
 void FEManagerT::Update(int group, const dArrayT& update)
@@ -605,8 +570,8 @@ void FEManagerT::WriteOutput(double time, IOBaseT::OutputModeT mode)
 			fElementGroups[i]->WriteOutput(mode);
 	}
 	
-	catch (int error) { 
-		cout << "\n FEManagerT::WriteOutput: caught exception: " << Exception(error) << endl;
+	catch (ExceptionT::CodeT error) { 
+		cout << "\n FEManagerT::WriteOutput: caught exception: " << ExceptionT::ToString(error) << endl;
 		throw error; 
 	}
 }
@@ -622,14 +587,14 @@ int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 	/* check */
 	if (!fIOManager) {
 		cout << "\n FEManagerT::RegisterOutput: I/O manager not yet initialized" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* limit registering output to initialization stage */
 	if (fStatus != GlobalT::kInitialization) {
 		cout << "\n FEManagerT::RegisterOutput: output sets can only be registered\n"
 		     <<   "     during initialization" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	int ID = fIOManager->AddElementSet(output_set);
@@ -670,7 +635,7 @@ int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 		else {
 			cout << "\n FEManagerT::RegisterOutput: unrecognized output set mode: "
 			     << output_set.Mode() << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	}
 	
@@ -688,7 +653,7 @@ const OutputSetT& FEManagerT::OutputSet(int ID) const
 	/* check */
 	if (!fIOManager) {
 		cout << "\n FEManagerT::OutputSet: I/O manager not yet initialized" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	return fIOManager->OutputSet(ID);
@@ -700,7 +665,7 @@ void FEManagerT::DivertOutput(const StringT& outfile)
 	/* check */
 	if (!fIOManager) {
 		cout << "\n FEManagerT::DivertOutput: I/O manager not yet initialized" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	fIOManager->DivertOutput(outfile);
@@ -711,7 +676,7 @@ void FEManagerT::RestoreOutput(void)
 	/* check */
 	if (!fIOManager) {
 		cout << "\n FEManagerT::RestoreOutput: I/O manager not yet initialized" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	fIOManager->RestoreOutput();
@@ -759,14 +724,14 @@ void FEManagerT::RecvExternalData(dArray2DT& external_data)
 {
 #pragma unused(external_data)
 	cout << "\n FEManagerT::RecvExternalData: invalid request for external data" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 void FEManagerT::SendExternalData(const dArray2DT& all_out_data)
 {
 #pragma unused(all_out_data)
 	cout << "\n FEManagerT::RecvExternalData: invalid send of external data" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 void FEManagerT::SendRecvExternalData(const iArray2DT& all_out_data, iArray2DT& external_data)
@@ -774,7 +739,7 @@ void FEManagerT::SendRecvExternalData(const iArray2DT& all_out_data, iArray2DT& 
 #pragma unused(all_out_data)
 #pragma unused(external_data)
 	cout << "\n FEManagerT::RecvExternalData: invalid exchange of external data" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 void FEManagerT::Wait(void)
@@ -811,7 +776,7 @@ eControllerT* FEManagerT::eController(int index) const
 		//NOTE: cast should be safe for all cases
 #else
 	eControllerT* e_controller = dynamic_cast<eControllerT*>(fControllers[index]);
-	if (!e_controller) throw eGeneralFail;
+	if (!e_controller) throw ExceptionT::kGeneralFail;
 #endif
 
 	return e_controller;
@@ -825,7 +790,7 @@ nControllerT* FEManagerT::nController(int index) const
 		//NOTE: cast should be safe for all cases
 #else
 	nControllerT* n_controller = dynamic_cast<nControllerT*>(fControllers[index]);
-	if (!n_controller) throw eGeneralFail;
+	if (!n_controller) throw ExceptionT::kGeneralFail;
 #endif
 
 	return n_controller;
@@ -986,9 +951,9 @@ bool FEManagerT::iDoCommand(const CommandSpecT& command, StringT& line)
 			return iConsoleObjectT::iDoCommand(command, line);
 	}
 	
-	catch (int error)
+	catch (ExceptionT::CodeT error)
 	{
-		cout << "caught exception: " << Exception(error) << endl;
+		cout << "caught exception: " << ExceptionT::ToString(error) << endl;
 		return false;
 	}
 	
@@ -1069,7 +1034,7 @@ void FEManagerT::SetNodeManager(void)
 {
 	/* construct */
 	fNodeManager = new NodeManagerT(*this);
-	if (!fNodeManager) throw eOutOfMemory;	
+	if (!fNodeManager) throw ExceptionT::kOutOfMemory;	
 	fNodeManager->Initialize();			
 
 	/* add to console */
@@ -1082,8 +1047,8 @@ void FEManagerT::SetElementGroups(void)
 	/* echo element data */
 	int num_groups;
 	fMainIn >> num_groups;
-	if (num_groups < 1) throw eBadInputValue;
-	fElementGroups.Allocate(num_groups);
+	if (num_groups < 1) throw ExceptionT::kBadInputValue;
+	fElementGroups.Dimension(num_groups);
 	fElementGroups.EchoElementData(fMainIn, fMainOut, *this);
 		
 	/* set console */
@@ -1112,7 +1077,7 @@ void FEManagerT::SetSolver(void)
 			if (fSolvers[index] != NULL) {
 				cout << "\n FEManagerT::SetSolver: solver at index "
 				     << index+1 << " is already set" << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 	
 			/* construct solver */
@@ -1122,7 +1087,7 @@ void FEManagerT::SetSolver(void)
 	else /* support for legacy analysis codes */
 	{
 		/* should have just one solver */
-		if (fSolvers.Length() != 1) throw eSizeMismatch;
+		if (fSolvers.Length() != 1) throw ExceptionT::kSizeMismatch;
 	
 		/* solver set by analysis code */
 		switch (fAnalysisCode)
@@ -1154,7 +1119,7 @@ void FEManagerT::SetSolver(void)
 			}
 			default:
 				cout << "\n FEManagerT::SetSolver: unknown analysis type: " << fAnalysisCode << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 		}
 	}
 	
@@ -1167,7 +1132,7 @@ void FEManagerT::SetSolver(void)
 		if (num_phases < fSolvers.Length()) {
 			cout << "\n FEManagerT::SetSolver: expecting at least " << fSolvers.Length()
 			     << " solver phases: " << num_phases << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		fSolverPhases.Dimension(num_phases, 3);
 		fSolverPhases = -99;
@@ -1182,17 +1147,17 @@ void FEManagerT::SetSolver(void)
 			/* checks */
 			if (solver < 0 || solver >= fSolverPhases.MajorDim()) {
 				cout << "\n FEManagerT::SetSolver: solver number is out of range: " << solver+1 << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 			if (iters < 1 && iters != -1) {
 				cout << "\n FEManagerT::SetSolver: solver iterations for solver " 
 				     << solver+1 << " must be -1 or > 0: " << iters << endl;
-				throw eBadInputValue;			
+				throw ExceptionT::kBadInputValue;			
 			}
 			if (pass_iters < 0 && pass_iters != -1) {
 				cout << "\n FEManagerT::SetSolver: iterations to pass solver " 
 				     << solver+1 << " must be -1 or >= 0: " << iters << endl;
-				throw eBadInputValue;			
+				throw ExceptionT::kBadInputValue;			
 			}
 			
 			/* store values */
@@ -1207,7 +1172,7 @@ void FEManagerT::SetSolver(void)
 		fMainIn >> fMaxSolverLoops;
 		if (fMaxSolverLoops < 1 && fMaxSolverLoops != -1) {
 			cout << "\n FEManagerT::SetSolver: expecting -1 or > 0: " << fMaxSolverLoops << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 	}
 	else /* set default values for single solver */
@@ -1236,7 +1201,7 @@ void FEManagerT::SetSolver(void)
 	/* check that all solvers hit at least once */
 	if (solver_list.Length() != fSolvers.Length()) {
 		cout << "\n FEManagerT::SetSolver: must have at least one phase per solver" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}	
 	
 	/* initialize */
@@ -1284,16 +1249,16 @@ void FEManagerT::ReadParameters(InitCodeT init)
 	fMainIn >> fPrintInput;
 
 	/* check */
-	if (fReadRestart  != 0 && fReadRestart  != 1) throw eBadInputValue;
-	if (fWriteRestart < 0) throw eBadInputValue;
-	if (fPrintInput   != 0 && fPrintInput   != 1) throw eBadInputValue;
+	if (fReadRestart  != 0 && fReadRestart  != 1) throw ExceptionT::kBadInputValue;
+	if (fWriteRestart < 0) throw ExceptionT::kBadInputValue;
+	if (fPrintInput   != 0 && fPrintInput   != 1) throw ExceptionT::kBadInputValue;
 
 	/* initialize the model manager */
 	if (!fModelManager->Initialize(format, database, 
 		init == kFull || init == kAllButSolver)) /* conditions under which to scan model */
 	{
 		cout << "\n FEManagerT::ReadParameters: error initializing model manager" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 
 	/* read number of equation groups */	
@@ -1339,7 +1304,7 @@ void FEManagerT::SetController(void)
 			if (!controller) {
 				cout << "\n FEManagerT::SetController: exception constructing controller " 
 				     << i+1 << " of " << fControllers.Length() << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 			fControllers[i] = controller;
 		}
@@ -1391,10 +1356,10 @@ void FEManagerT::SetController(void)
 			}			
 			default:
 				cout << "\nFEManagerT::SetController: unknown controller type\n" << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 		}
 		
-		if (!controller) throw eGeneralFail;
+		if (!controller) throw ExceptionT::kGeneralFail;
 		fControllers[0] = controller;
 	}
 }
@@ -1405,7 +1370,7 @@ void FEManagerT::SetOutput(void)
 	StringT file_name(fMainIn.filename());
 	fIOManager = new IOManager(fMainOut, kProgramName, kCurrentVersion, fTitle,
 		file_name, fOutputFormat);	
-	if (!fIOManager) throw eOutOfMemory;
+	if (!fIOManager) throw ExceptionT::kOutOfMemory;
 	
 	/* set global coordinates */
 	fIOManager->SetCoordinates(fNodeManager->InitialCoordinates(), NULL);
@@ -1467,7 +1432,7 @@ void FEManagerT::ReadRestart(const StringT* file_name)
 		{
 			cout << "\n FEManagerT::ReadRestart: could not open file: "
 			     << rs_file << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 	}
 }
@@ -1574,7 +1539,7 @@ void FEManagerT::SetEquationSystem(int group)
 	
 		/* renumber equations */
 		try { fNodeManager->RenumberEquations(group, connects_1, connects_2); }
-		catch (int exception) {
+		catch (ExceptionT::CodeT exception) {
 			cout << "\n FEManagerT::SetEquationSystem: could not renumber equations: exception: " 
 			     << exception << endl;
 		}
@@ -1667,26 +1632,26 @@ SolverT* FEManagerT::New_Solver(int code, int group)
 			/* all fields in the group */
 			ArrayT<FieldT*> fields;
 			fNodeManager->CollectFields(group, fields);
-			if (fields.Length() < 1) throw eGeneralFail;
+			if (fields.Length() < 1) throw ExceptionT::kGeneralFail;
 			
 			const nControllerT& controller = fields[0]->nController();
 			solver = new NOXSolverT(*this, group, controller.OrderOfUnknown());
 			break;
 #else
 			cout << "\n FEManagerT::New_Solver: NOX not installed: " << SolverT::kNOX << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 #endif	
 		}		
 		default:			
 			cout << "\n FEManagerT::New_Solver: unknown nonlinear solver code: ";
 			cout << code << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 
 	/* fail */
 	if (!solver) {
 		cout << "\n FEManagerT::New_Solver: failed" << endl;
-		throw eGeneralFail;	
+		throw ExceptionT::kGeneralFail;	
 	}
 
 	return solver;

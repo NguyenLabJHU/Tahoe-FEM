@@ -1,4 +1,4 @@
-/* $Id: ScheduleT.cpp,v 1.3 2002-07-02 19:56:42 cjkimme Exp $ */
+/* $Id: ScheduleT.cpp,v 1.3.4.1 2002-10-17 04:47:06 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ScheduleT.h"
 #include "fstreamT.h"
@@ -89,5 +89,5 @@ void ScheduleT::CheckSequential(void) const
 {
 	if (fTime.Length() == 1) return;
 	for (int i = 1; i < fTime.Length(); i++)
-		if (fTime[i] < fTime[i-1]) throw eGeneralFail;
+		if (fTime[i] < fTime[i-1]) throw ExceptionT::kGeneralFail;
 }

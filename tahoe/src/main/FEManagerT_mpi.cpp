@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.21 2002-09-10 13:43:56 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.21.4.2 2002-10-20 18:07:20 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -36,13 +36,13 @@ FEManagerT_mpi::FEManagerT_mpi(ifstreamT& input, ofstreamT& output,
 		{
 			cout << "\n FEManagerT_mpi::FEManagerT_mpi: partition information required if task is "
 			     << kRun << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		else if (fPartition->ID() != Rank())
 		{
 			cout << "\n FEManagerT_mpi::FEManagerT_mpi: partition ID " << fPartition->ID()
 			     << " does not match process rank " << Rank() << endl;
-			throw eMPIFail;
+			throw ExceptionT::kMPIFail;
 		}
 		
 		/* initial time */
@@ -121,7 +121,7 @@ FEManagerT_mpi::~FEManagerT_mpi(void)
 		fComm.SetLog(cout);
 }
 
-int FEManagerT_mpi::InitStep(void)
+ExceptionT::CodeT FEManagerT_mpi::InitStep(void)
 {
 	/* give heartbeat */
 	fComm.Log("FEManagerT_mpi::InitStep", "init", true);
@@ -130,18 +130,18 @@ int FEManagerT_mpi::InitStep(void)
 	if (fExternIOManager) fExternIOManager->SetOutputTime(Time());
 
 	/* inherited */
-	int error = FEManagerT::InitStep();
-	if (error != eNoError) {
+	ExceptionT::CodeT error = FEManagerT::InitStep();
+	if (error != ExceptionT::kNoError) {
 		cout << "\n FEManagerT_mpi::InitStep: error: " << error << endl;
 	}
 	return error;
 }
 
-int FEManagerT_mpi::SolveStep(void)
+ExceptionT::CodeT FEManagerT_mpi::SolveStep(void)
 {
 	/* inherited */
-	int error = FEManagerT::SolveStep();
-	if (error != eNoError) {
+	ExceptionT::CodeT error = FEManagerT::SolveStep();
+	if (error != ExceptionT::kNoError) {
 		cout << "\n FEManagerT_mpi::SolveStep: return: " << error << endl;
 	}
 	return error;
@@ -185,8 +185,8 @@ void FEManagerT_mpi::Update(int group, const dArrayT& update)
 	TimeStamp("FEManagerT_mpi::Update");
 	
 	/* check sum */
-	if (fComm.Sum(eNoError) != 0) 
-		throw eBadHeartBeat; /* must trigger try block in FEManagerT::SolveStep */
+	if (fComm.Sum(ExceptionT::kNoError) != 0) 
+		throw ExceptionT::kBadHeartBeat; /* must trigger try block in FEManagerT::SolveStep */
 
 	/* inherited */
 	FEManagerT::Update(group, update);
@@ -252,7 +252,7 @@ void FEManagerT_mpi::IncomingNodes(iArrayT& nodes_in) const
 {
 	if (fTask == kRun)
 	{
-		if (!fPartition) throw eGeneralFail;
+		if (!fPartition) throw ExceptionT::kGeneralFail;
 		nodes_in = fPartition->Nodes_External();
 	}
 }
@@ -261,7 +261,7 @@ void FEManagerT_mpi::OutgoingNodes(iArrayT& nodes_out) const
 {
 	if (fTask == kRun)
 	{
-		if (!fPartition) throw eGeneralFail;
+		if (!fPartition) throw ExceptionT::kGeneralFail;
 		nodes_out = fPartition->Nodes_Border();
 	}
 }
@@ -291,7 +291,7 @@ void FEManagerT_mpi::RecvExternalData(dArray2DT& external_data)
 		int index;
 		MPI_Status status;
 		if (MPI_Waitany(fRecvRequest.Length(), fRecvRequest.Pointer(),
-			&index, &status) != MPI_SUCCESS) throw eMPIFail;
+			&index, &status) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
 		
 		/* process receive */
 		if (status.MPI_ERROR == MPI_SUCCESS)
@@ -311,7 +311,7 @@ void FEManagerT_mpi::RecvExternalData(dArray2DT& external_data)
 				external_data.SetRow(in_nodes[j] - shift, recv(j));
 		}
 		else
-			throw eMPIFail;
+			throw ExceptionT::kMPIFail;
 	}
 	
 	//TEMP
@@ -325,20 +325,20 @@ void FEManagerT_mpi::RecvExternalData(dArray2DT& external_data)
 		int index;
 		MPI_Status status;
 		if (MPI_Waitany(fSendRequest.Length(), fSendRequest.Pointer(),
-			&index, &status) != MPI_SUCCESS) throw eMPIFail;
+			&index, &status) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
 			
 		if (0 && status.MPI_ERROR != MPI_SUCCESS)
 		{
 			flog << "\n FEManagerT_mpi::RecvExternalData: error completing send\n"
 			     <<   "     from " << Rank() << " to " << commID[ii] << endl;
-			throw eMPIFail;
+			throw ExceptionT::kMPIFail;
 		}
 	}
 #else
 if (external_data.Length() > 0)
 {
 	cout << "\n FEManagerT_mpi::RecvExternalData: invalid request for external data" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 #endif /* __MPI__ */
 }
@@ -355,7 +355,7 @@ void FEManagerT_mpi::SendExternalData(const dArray2DT& all_out_data)
 	{
 		cout << "\n FEManagerT_mpi::SendExternalData: expecting outgoing array with\n"
 		     <<   "    major dimension (number of nodes) " << fNodeManager->NumNodes() << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* allocate communication buffers */
@@ -368,7 +368,7 @@ void FEManagerT_mpi::SendExternalData(const dArray2DT& all_out_data)
 	for (int j = 0; j < commID.Length(); j++)
 		if (MPI_Irecv(fRecvBuffer[j].Pointer(), fRecvBuffer[j].Length(),
 			MPI_DOUBLE, commID[j], MPI_ANY_TAG, fComm, &fRecvRequest[j])
-			!= MPI_SUCCESS) throw eMPIFail;
+			!= MPI_SUCCESS) throw ExceptionT::kMPIFail;
 
 	/* post non-blocking sends */
 	for (int i = 0; i < commID.Length(); i++)
@@ -388,13 +388,13 @@ void FEManagerT_mpi::SendExternalData(const dArray2DT& all_out_data)
 		/* post send */
 		if (MPI_Isend(fSendBuffer[i].Pointer(), fSendBuffer[i].Length(),
 			MPI_DOUBLE, commID[i], Rank(), fComm, &fSendRequest[i])
-			!= MPI_SUCCESS) throw eMPIFail;		
+			!= MPI_SUCCESS) throw ExceptionT::kMPIFail;		
 	}
 #else
 	if (all_out_data.Length() > 0)
 	{
 		cout << "\n FEManagerT_mpi::SendExternalData: invalid send of external data" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif /* __MPI__ */
 }
@@ -406,21 +406,21 @@ void FEManagerT_mpi::SendRecvExternalData(const iArray2DT& all_out_data,
 #pragma unused(all_out_data)
 #pragma unused(external_data)
 	cout << "\n FEManagerT_mpi::SendRecvExternalData: invalid exchange of external data" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 #else
 
 	/* checks */
 	if (!fPartition)
 	{
 		cout << "\n FEManagerT_mpi::SendRecvExternalData: invalid pointer to partition data" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	if (all_out_data.MajorDim() != fNodeManager->NumNodes())
 	{
 		cout << "\n FEManagerT_mpi::SendRecvExternalData: expecting outgoing array with\n"
 		     <<   "    major dimension (number of nodes) " << fNodeManager->NumNodes() << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* communication list */
@@ -439,7 +439,7 @@ void FEManagerT_mpi::SendRecvExternalData(const iArray2DT& all_out_data,
 	for (int j = 0; j < commID.Length(); j++)
 		if (MPI_Irecv(recv[j].Pointer(), recv[j].Length(),
 			MPI_INT, commID[j], MPI_ANY_TAG, fComm, &recv_request[j])
-			!= MPI_SUCCESS) throw eMPIFail;
+			!= MPI_SUCCESS) throw ExceptionT::kMPIFail;
 
 	/* post non-blocking sends */
 	for (int k = 0; k < commID.Length(); k++)
@@ -453,7 +453,7 @@ void FEManagerT_mpi::SendRecvExternalData(const iArray2DT& all_out_data,
 		/* post send */
 		if (MPI_Isend(send[k].Pointer(), send[k].Length(),
 			MPI_INT, commID[k], Rank(), fComm, &send_request[k])
-			!= MPI_SUCCESS) throw eMPIFail;		
+			!= MPI_SUCCESS) throw ExceptionT::kMPIFail;		
 	}
 
 	int shift = (fPartition->Nodes_External())[0];
@@ -468,7 +468,7 @@ void FEManagerT_mpi::SendRecvExternalData(const iArray2DT& all_out_data,
 		int index;
 		MPI_Status status;
 		if (MPI_Waitany(recv_request.Length(), recv_request.Pointer(),
-			&index, &status) != MPI_SUCCESS) throw eMPIFail;
+			&index, &status) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
 		
 		/* process receive */
 		if (status.MPI_ERROR == MPI_SUCCESS)
@@ -482,7 +482,7 @@ void FEManagerT_mpi::SendRecvExternalData(const iArray2DT& all_out_data,
 				external_data.SetRow(in_nodes[j] - shift, incoming(j));
 		}
 		else
-			throw eMPIFail;
+			throw ExceptionT::kMPIFail;
 	}
 	
 	/* complete all sends */
@@ -492,13 +492,13 @@ void FEManagerT_mpi::SendRecvExternalData(const iArray2DT& all_out_data,
 		int index;
 		MPI_Status status;
 		if (MPI_Waitany(send_request.Length(), send_request.Pointer(),
-			&index, &status) != MPI_SUCCESS) throw eMPIFail;
+			&index, &status) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
 			
 		if (0 && status.MPI_ERROR != MPI_SUCCESS)
 		{
 			flog << "\n FEManagerT_mpi::RecvExternalData: error completing send\n"
 			     <<   "     from " << Rank() << " to " << commID[ii] << endl;
-			throw eMPIFail;
+			throw ExceptionT::kMPIFail;
 		}
 	}
 #endif
@@ -537,7 +537,7 @@ void FEManagerT_mpi::NodeToProcessorMap(const iArrayT& node, iArrayT& processor)
 	{	
 		int proc = comm_ID[i];
 		const iArrayT* comm_nodes = Partition().NodesIn(proc);
-		if (!comm_nodes) throw eGeneralFail;
+		if (!comm_nodes) throw ExceptionT::kGeneralFail;
 		for (int j = 0; j < comm_nodes->Length(); j++)
 		{
 			int nd = (*comm_nodes)[j] - shift;
@@ -573,7 +573,7 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 	if (partition.Length() == 1)
 	{
 		cout << "\n FEManagerT_mpi::Decompose: expecting more than 1 partition" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* geometry file must be ascii external */
@@ -582,7 +582,7 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 		cout << "\n FEManagerT_mpi::Decompose: requires input format with external\n";
 		cout <<   "     geometry information. Use code " << IOBaseT::kTahoeII
 		     << " or " << IOBaseT::kExodusII << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}	
 
 	/* decomposition method */
@@ -604,7 +604,7 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 			
 			/* set number of element sets */
 			iArrayT elementID;
-			if (model_ALL.GetElementSetID(elementID) != ModelFileT::kOK) throw eGeneralFail;
+			if (model_ALL.GetElementSetID(elementID) != ModelFileT::kOK) throw ExceptionT::kGeneralFail;
 			ArrayT<StringT> IDlist(elementID.Length());
 			for (int i = 0; i < IDlist.Length(); i++)
 				IDlist[i].Append(elementID[i]);
@@ -614,7 +614,7 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 				/* get element set */
 				iArray2DT set;
 				if (model_ALL.GetElementSet(elementID[i], set) != ModelFileT::kOK)
-					throw eGeneralFail;
+					throw ExceptionT::kGeneralFail;
 					
 				/* correct node numbering offset */
 				set--;	
@@ -660,7 +660,7 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 			}
 		}
 	}
-	else throw eGeneralFail;
+	else throw ExceptionT::kGeneralFail;
 
 //TEMP
 //#ifdef __MACOS__
@@ -730,7 +730,8 @@ void FEManagerT_mpi::ReadParameters(InitCodeT init)
 	FEManagerT::ReadParameters(init);
 
 	/* collect model file and input format from ModelManager */
-	fModelManager->Format(fInputFormat, fModelFile);
+	fInputFormat = fModelManager->DatabaseFormat();
+	fModelFile = fModelManager->DatabaseName();
 	
 	/* set for parallel execution */
 	if (fTask == kRun)
@@ -754,7 +755,7 @@ void FEManagerT_mpi::ReadParameters(InitCodeT init)
 		/* (re-)set model manager to partial geometry file */
 		if (!fModelManager->Initialize(fInputFormat, fModelFile, true)) {
 			cout << "\n FEManagerT_mpi::ReadParameters: error initializing model manager" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		
 		/* restart file name */
@@ -781,12 +782,12 @@ void FEManagerT_mpi::SetNodeManager(void)
 	if (fTask == kRun)
 	{
 		/* check */
-		if (fPartition->ID() < 0) throw eGeneralFail;
+		if (fPartition->ID() < 0) throw ExceptionT::kGeneralFail;
 	
 		/* communication ID list */
 		const iArrayT& commID = fPartition->CommID();
-		fRecvRequest.Allocate(commID.Length());
-		fSendRequest.Allocate(commID.Length());
+		fRecvRequest.Dimension(commID.Length());
+		fSendRequest.Dimension(commID.Length());
 	}
 #endif /* __MPI__ */
 }
@@ -820,11 +821,11 @@ int FEManagerT_mpi::AllReduce(MPI_Op operation, int value)
 #pragma unused(operation)
 #pragma unused(value)
 	cout << "\n FEManagerT_mpi::AllReduce: illegal request to reduce value" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 #else
 	int reduction = 0;
 	if (MPI_Allreduce(&value, &reduction, 1, MPI_INT, operation, fComm)
-		!= MPI_SUCCESS) throw eMPIFail;
+		!= MPI_SUCCESS) throw ExceptionT::kMPIFail;
 	return reduction;
 #endif
 }
@@ -879,7 +880,7 @@ void FEManagerT_mpi::AllocateBuffers(int minor_dim, ArrayT<dArray2DT>& recv,
 	if (!fPartition)
 	{
 		cout << "\n FEManagerT_mpi::AllocateBuffers: invalid pointer to partition" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* communication list */
@@ -899,15 +900,15 @@ void FEManagerT_mpi::AllocateBuffers(int minor_dim, ArrayT<dArray2DT>& recv,
 	send.Free();
 
 	/* allocate buffers */
-	recv.Allocate(commID.Length());
-	send.Allocate(commID.Length());
+	recv.Dimension(commID.Length());
+	send.Dimension(commID.Length());
 	for (int i = 0; i < commID.Length(); i++)
 	{
 		const iArrayT& nodes_in = *(fPartition->NodesIn(commID[i]));
-		recv[i].Allocate(nodes_in.Length(), minor_dim);
+		recv[i].Dimension(nodes_in.Length(), minor_dim);
 		
 		const iArrayT& nodes_out = *(fPartition->NodesOut(commID[i]));
-		send[i].Allocate(nodes_out.Length(), minor_dim);
+		send[i].Dimension(nodes_out.Length(), minor_dim);
 	}
 }
 
@@ -918,7 +919,7 @@ void FEManagerT_mpi::AllocateBuffers(int minor_dim, ArrayT<iArray2DT>& recv,
 	if (!fPartition)
 	{
 		cout << "\n FEManagerT_mpi::AllocateBuffers: invalid pointer to partition" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* communication list */
@@ -938,22 +939,22 @@ void FEManagerT_mpi::AllocateBuffers(int minor_dim, ArrayT<iArray2DT>& recv,
 	send.Free();
 
 	/* allocate buffers */
-	recv.Allocate(commID.Length());
-	send.Allocate(commID.Length());
+	recv.Dimension(commID.Length());
+	send.Dimension(commID.Length());
 	for (int i = 0; i < commID.Length(); i++)
 	{
 		const iArrayT& nodes_in = *(fPartition->NodesIn(commID[i]));
-		recv[i].Allocate(nodes_in.Length(), minor_dim);
+		recv[i].Dimension(nodes_in.Length(), minor_dim);
 		
 		const iArrayT& nodes_out = *(fPartition->NodesOut(commID[i]));
-		send[i].Allocate(nodes_out.Length(), minor_dim);
+		send[i].Dimension(nodes_out.Length(), minor_dim);
 	}
 }
 
 /* collect computation effort for each node */
 void FEManagerT_mpi::WeightNodalCost(iArrayT& weight) const
 {
-	weight.Allocate(fNodeManager->NumNodes());
+	weight.Dimension(fNodeManager->NumNodes());
 	weight = 1;
 	fNodeManager->WeightNodalCost(weight);
 	for (int i = 0 ; i < fElementGroups.Length(); i++)

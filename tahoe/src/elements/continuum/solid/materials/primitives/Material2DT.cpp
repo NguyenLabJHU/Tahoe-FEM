@@ -1,10 +1,10 @@
-/* $Id: Material2DT.cpp,v 1.3 2002-10-05 20:04:19 paklein Exp $ */
+/* $Id: Material2DT.cpp,v 1.3.2.1 2002-10-17 04:38:19 paklein Exp $ */
 /* created: paklein (02/15/1997) */
 #include "Material2DT.h"
 
 #include <iostream.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "fstreamT.h"
 
 namespace Tahoe {
@@ -27,7 +27,7 @@ istream& operator>>(istream& in, Material2DT::ConstraintOptionT& option)
 		default:
 			cout << "\n operator>>Material2DT::ConstraintOptionT: unknown option: "
 			<< i_option << endl;
-			throw eBadInputValue;	
+			throw ExceptionT::kBadInputValue;	
 	}
 	return in;
 }
@@ -43,9 +43,9 @@ Material2DT::Material2DT(ifstreamT& in)
 	in >> fConstraintOption;
 
 	/* checks */
-	if (fThickness <= 0.0) throw eBadInputValue;
+	if (fThickness <= 0.0) throw ExceptionT::kBadInputValue;
 	if (fConstraintOption != kPlaneStress &&
-	    fConstraintOption != kPlaneStrain) throw eBadInputValue;
+	    fConstraintOption != kPlaneStrain) throw ExceptionT::kBadInputValue;
 }
 
 Material2DT::Material2DT(ifstreamT& in, ConstraintOptionT constraintopt):
@@ -55,7 +55,7 @@ Material2DT::Material2DT(ifstreamT& in, ConstraintOptionT constraintopt):
 	in >> fThickness;
 	in >> junk;	
 	
-	if (fThickness <= 0.0) throw eBadInputValue;
+	if (fThickness <= 0.0) throw ExceptionT::kBadInputValue;
 }
 
 /* default material output */

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.8 2002-07-02 19:56:14 cjkimme Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.8.4.2 2002-10-20 18:07:38 paklein Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -101,9 +101,9 @@ LocalCrystalPlastFp::LocalCrystalPlastFp(ifstreamT& in, const FiniteStrainT& ele
   // allocate additional space for arrays of matrices
   for (int i = 0; i < fNumSlip; i++)
     {
-      fA[i].Allocate(kNSD);
-      fB[i].Allocate(kNSD);
-      fArrayOfMatx[i].Allocate(kNSD,kNSD);
+      fA[i].Dimension(kNSD);
+      fB[i].Dimension(kNSD);
+      fArrayOfMatx[i].Dimension(kNSD,kNSD);
     }
 
   // set 2nd order unit tensors
@@ -435,7 +435,7 @@ int LocalCrystalPlastFp::NumOutputVariables() const {return kNumOutput;}
 void LocalCrystalPlastFp::OutputLabels(ArrayT<StringT>& labels) const
 {
   // allocate space for labels
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   // copy labels
   for (int i = 0; i < kNumOutput; i++)
@@ -715,7 +715,7 @@ void LocalCrystalPlastFp::IterateOnCrystalState(bool& stateConverged, int subInc
             stateConverged = (Converged(fTolerState) && fHardening->Converged(fTolerState));
          }
 	  
-       catch(int code)
+       catch(ExceptionT::CodeT code)
 	  {
             if (XTAL_MESSAGES)
                cout << " ...... failed at subIncr # " << subIncr 
@@ -777,7 +777,7 @@ void LocalCrystalPlastFp::SolveForPlasticDefGradient(int& ierr)
  
        // solve for Fp
        try { fSolver->Solve(fSolverPtr, fFpArray, ierr); }
-       catch(int code) 
+       catch(ExceptionT::CodeT code) 
            {
              if (XTAL_MESSAGES) 
 		writeWarning("... in LocalCrystalPlastFp::SolveForPlasticDefGradient: exception caugth");

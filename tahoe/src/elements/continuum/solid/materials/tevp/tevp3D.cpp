@@ -1,4 +1,4 @@
-/* $Id: tevp3D.cpp,v 1.12 2002-10-05 20:04:20 paklein Exp $ */
+/* $Id: tevp3D.cpp,v 1.12.2.2 2002-10-20 18:07:42 paklein Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (06/25/2001) */
 
@@ -69,7 +69,7 @@ tevp3D::tevp3D(ifstreamT& in, const FiniteStrainT& element):
 	if (Mu_d < 0.0) 
 	{
 		cout << "\n tevp3D::tevp3D: Mu must be > 0: " << Mu_d << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 
   /* initialize material constants */
@@ -161,7 +161,7 @@ const dMatrixT& tevp3D::C_IJKL(void)
 const dSymMatrixT& tevp3D::S_IJ(void)
 {
 	cout << "\n tevp3D::S_IJ: not implemented" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 
 	/* implement stress here */
 	return fStress;
@@ -298,7 +298,7 @@ int tevp3D::NumOutputVariables(void) const { return kNumOutput; }
 void tevp3D::OutputLabels(ArrayT<StringT>& labels) const
 {
   /* set size */
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   /* copy labels - WHY? */
   for (int i = 0; i < kNumOutput; i++)
@@ -611,7 +611,7 @@ void tevp3D::AllocateElement(ElementCardT& element)
                                       // S11, S22, S33, S23, S13, S21
   d_size += kVoigt * fNumIP;           // 6 3D symmetric components (S11, S22, S33, S23, S13, S12)
   /* construct new plastic element */
-  element.Allocate(i_size, d_size);
+  element.Dimension(i_size, d_size);
 
   /* first set of flags for plasticity criterion */
   for (int ip = 0; ip < fNumIP; ip++)
@@ -628,7 +628,7 @@ void tevp3D::LoadData(const ElementCardT& element, int ip)
 {
   /* load element data for the specified integration point */
   /* check */
-  if (!element.IsAllocated()) throw eGeneralFail;
+  if (!element.IsAllocated()) throw ExceptionT::kGeneralFail;
 
   int dex = ip * kVoigt;     // 6 non-zero 3Dstress components (11, 22, 33, 23, 13, 21)
   int offset = fNumIP * kVoigt;

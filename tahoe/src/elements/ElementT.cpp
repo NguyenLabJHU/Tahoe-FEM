@@ -1,8 +1,8 @@
-/* $Id: ElementT.cpp,v 1.11 2002-09-23 06:58:23 paklein Exp $ */
+/* $Id: ElementT.cpp,v 1.11.2.2 2002-10-18 17:43:08 paklein Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 namespace Tahoe {
 
@@ -30,7 +30,7 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			cout << "\n operator>>ElementT::TypeT: element type is not longer\n"
 			     <<   "     supported. Support for changing number of elements is being re-\n"
 			     <<   "     written: " << i_type << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		case ElementT::kSWDiamond:
 			type = ElementT::kSWDiamond;
@@ -96,8 +96,10 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			type = ElementT::kTotLagrExternalField;
 			break;
 		case ElementT::kNonsingularContinuum:
-			type = ElementT::kNonsingularContinuum;
-			break;
+		{
+			cout << "\n operator>>ElementT::TypeT: type is not longer supported: " << i_type << endl;
+			throw ExceptionT::kBadInputValue;
+		}
 		case ElementT::kMultiplierContactElement2D:
 			type = ElementT::kMultiplierContactElement2D;
 			break;
@@ -119,10 +121,13 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		case ElementT::kSimoQ1P0:
 			type = ElementT::kSimoQ1P0;
 			break;	
+		case ElementT::kAdhesion:
+			type = ElementT::kAdhesion;
+			break;	
 		default:
 			cout << "\n operator>>ElementT::TypeT: unknown type: "
 			<< i_type<< endl;
-			throw eBadInputValue;	
+			throw ExceptionT::kBadInputValue;	
 	}
 	return in;
 }

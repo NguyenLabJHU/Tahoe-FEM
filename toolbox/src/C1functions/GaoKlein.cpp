@@ -1,10 +1,10 @@
-/* $Id: GaoKlein.cpp,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
+/* $Id: GaoKlein.cpp,v 1.2.2.1 2002-10-17 01:46:09 paklein Exp $ */
 /* created: paklein (12/26/1998)                                          */
 
 #include "GaoKlein.h"
 #include <math.h>
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dArrayT.h"
 
 /* constructor */
@@ -59,7 +59,7 @@ cout << "  ---------------------------------------------";
 cout << "                        2	";
 cout << endl;
 	
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 	return 0.0;
 }
 
@@ -93,7 +93,7 @@ double GaoKlein::DDFunction(double x) const
 dArrayT& GaoKlein::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
@@ -112,7 +112,7 @@ dArrayT& GaoKlein::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& GaoKlein::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl   = in.Pointer();
 	double* pddU = out.Pointer();

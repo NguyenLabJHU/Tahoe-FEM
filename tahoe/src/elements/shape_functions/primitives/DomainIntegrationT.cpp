@@ -1,4 +1,4 @@
-/* $Id: DomainIntegrationT.cpp,v 1.3 2002-07-02 19:57:08 cjkimme Exp $ */
+/* $Id: DomainIntegrationT.cpp,v 1.3.4.2 2002-10-20 18:07:50 paklein Exp $ */
 /* created: paklein (09/04/1998)                                          */
 /* class to manage the parent domain including construction for           */
 /* shared parent domains, integration point iterations, and some          */
@@ -21,7 +21,7 @@ DomainIntegrationT::DomainIntegrationT(GeometryT::CodeT geometry_code, int numIP
 {
 	/* set parent geometry */
 	fDomain = new ParentDomainT(geometry_code, fNumIP, numnodes);
-	if (!fDomain) throw eOutOfMemory;
+	if (!fDomain) throw ExceptionT::kOutOfMemory;
 	
 	/* set parent domain shape functions and derivatives */
 	fDomain->Initialize();
@@ -43,7 +43,7 @@ DomainIntegrationT::DomainIntegrationT(const DomainIntegrationT& link):
 		/* surface shapefunctions */
 		fSurfShapes.Alias(link.fSurfShapes);
 
-		fDelete.Allocate(fSurfShapes.Length());
+		fDelete.Dimension(fSurfShapes.Length());
 		fDelete = 0;
 	}
 }
@@ -80,8 +80,8 @@ void DomainIntegrationT::SetSurfaceShapes(void)
 {
 	/* memory */
 	int num_facets = NumFacets();
-	fSurfShapes.Allocate(num_facets);
-	fDelete.Allocate(num_facets);
+	fSurfShapes.Dimension(num_facets);
+	fDelete.Dimension(num_facets);
 	
 	/* surface shape information */
 	ArrayT<GeometryT::CodeT> facet_geom;
@@ -111,7 +111,7 @@ void DomainIntegrationT::SetSurfaceShapes(void)
 			//TEMP - set number of ip's on facet same as number of nodes
 			int nip = (NumSD() == 3) ? 4 : nnd;
 			fSurfShapes[i] = new ParentDomainT(geo, nip, nnd);
-			if (!fSurfShapes[i]) throw eOutOfMemory;
+			if (!fSurfShapes[i]) throw ExceptionT::kOutOfMemory;
 	
 			/* set shape functions and derivatives */
 			fSurfShapes[i]->Initialize();

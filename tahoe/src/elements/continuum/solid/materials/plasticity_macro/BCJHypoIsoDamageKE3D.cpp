@@ -1,4 +1,4 @@
-/* $Id: BCJHypoIsoDamageKE3D.cpp,v 1.3 2002-07-02 19:56:18 cjkimme Exp $ */
+/* $Id: BCJHypoIsoDamageKE3D.cpp,v 1.3.4.1 2002-10-20 18:07:40 paklein Exp $ */
 #include "BCJHypoIsoDamageKE3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -41,18 +41,18 @@ BCJHypoIsoDamageKE3D::BCJHypoIsoDamageKE3D(ifstreamT& in, const FiniteStrainT& e
   fNumEQValues = kNumEQValues;      // fEQPe_n, fEQPe, fEQPh_n, fEQPh, fEQPDot_n, fEQPDot
   
   // re-dimensioning some arrays of base class BCJHypo3D
-  fInternal_n.Allocate(fNumInternal);
-  fInternal.Allocate(fNumInternal);
-  fInt_save.Allocate(fNumInternal);
-  fEQValues.Allocate(fNumEQValues);
-  fRHS.Allocate(fNumInternal);
-  fLHS.Allocate(fNumInternal,fNumInternal);
-  farray.Allocate(fNumInternal);
+  fInternal_n.Dimension(fNumInternal);
+  fInternal.Dimension(fNumInternal);
+  fInt_save.Dimension(fNumInternal);
+  fEQValues.Dimension(fNumEQValues);
+  fRHS.Dimension(fNumInternal);
+  fLHS.Dimension(fNumInternal,fNumInternal);
+  farray.Dimension(fNumInternal);
 
   // allocate space for derivatives of: (i) effective stresses, (ii) factor eta
-  fdEQPeDot.Allocate(fNumInternal);
-  fdEQPhDot.Allocate(fNumInternal);
-  fdEta.Allocate(fNumInternal);
+  fdEQPeDot.Dimension(fNumInternal);
+  fdEQPhDot.Dimension(fNumInternal);
+  fdEta.Dimension(fNumInternal);
 }
 
 BCJHypoIsoDamageKE3D::~BCJHypoIsoDamageKE3D() 
@@ -229,7 +229,7 @@ int BCJHypoIsoDamageKE3D::NumOutputVariables() const {return kNumOutput;}
 void BCJHypoIsoDamageKE3D::OutputLabels(ArrayT<StringT>& labels) const
 {
   // allocate space for labels
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   // copy labels
   for (int i = 0; i < kNumOutput; i++)

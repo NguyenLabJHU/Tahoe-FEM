@@ -1,4 +1,4 @@
-/* $Id: PatranT.cpp,v 1.16 2002-07-25 19:47:28 sawimme Exp $ */
+/* $Id: PatranT.cpp,v 1.16.2.1 2002-10-17 03:57:48 paklein Exp $ */
 /* created sawimme (05/17/2001) */
 
 #include "PatranT.h"
@@ -7,7 +7,7 @@
 #include "iArray2DT.h"
 #include "dArrayT.h"
 #include "dArray2DT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "iAutoArrayT.h"
 #include "ofstreamT.h"
 #include <time.h>
@@ -78,7 +78,7 @@ int PatranT::NumElements (void) const
 
 bool PatranT::NamedComponents (ArrayT<StringT>& names) const
 {
-  if (names.Length() != fNamedComponents.Length()) throw eSizeMismatch;
+  if (names.Length() != fNamedComponents.Length()) throw ExceptionT::kSizeMismatch;
   for (int i=0; i < names.Length(); i++)
     names[i] = fNamedComponents[i];
   return true;
@@ -239,7 +239,7 @@ bool PatranT::ReadConnectivity (const StringT& title, PatranT::NamedTypes& named
 	  fMessage << "num elems " << elems.Length() << " " << connects.MajorDim() << endl;
 	  fMessage << "count " << count << endl;
 	  elems.WriteWithFormat (fMessage, 6, 0, 6);
-	  throw eDatabaseFail;
+	  throw ExceptionT::kDatabaseFail;
 	  return false;
 	}
 
@@ -279,14 +279,14 @@ bool PatranT::ReadAllElements (ArrayT<iArrayT>& connects, ArrayT<PatranT::Elemen
 	{
 	  fMessage << "\nPatranT::ReadAllElements, IV not valid\n";
 	  fMessage << "ID " << ID << " IV " << IV << " KC " << KC << endl;
-	  throw eDatabaseFail;
+	  throw ExceptionT::kDatabaseFail;
 	}
 
       if (count >= connects.Length() ||
 	  count >= elementtypes.Length())
 	{
 	  fMessage << "\nPatranT::ReadAllElements, incorrect allocation\n";
-	  throw eSizeMismatch;
+	  throw ExceptionT::kSizeMismatch;
 	}
 
       ClearPackets (in, 1);
@@ -307,7 +307,7 @@ bool PatranT::ReadAllElements (ArrayT<iArrayT>& connects, ArrayT<PatranT::Elemen
     {
       fMessage << "\nPatranT::ReadAllElements, incorrect number read or allocated\n";
       fMessage << "count " << count << " " << " elementtypes.length " << elementtypes.Length() << endl;
-      throw eSizeMismatch;    
+      throw ExceptionT::kSizeMismatch;    
     }
 
   return true;

@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.9 2002-07-02 19:56:39 cjkimme Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.9.2.2 2002-10-18 01:23:30 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 
 #ifndef _RAGGED_ARRAY_2D_T_H_
@@ -76,8 +76,14 @@ public:
 	/** shallow copy from nArray2DT */
 	void Alias(const nArray2DT<TYPE>& source);
 
+	/** \name assignment operators */
+	/*@{*/
 	/** assigment operator from another RaggedArray2DT */
 	RaggedArray2DT<TYPE>& operator=(const RaggedArray2DT& source);
+
+	/** set entire array to the same value */
+	RaggedArray2DT<TYPE>& operator=(const TYPE& value);
+	/*@}*/
 
 	/** configure and construct using a AutoFill2DT */
 	void Copy(const AutoFill2DT<TYPE>& source);
@@ -243,7 +249,7 @@ template <class TYPE>
 inline int RaggedArray2DT<TYPE>::MinorDim(int row) const
 {
 #if __option(extended_errorcheck)
-	if (row < 0 || row >= fMajorDim) throw eOutOfRange;
+	if (row < 0 || row >= fMajorDim) throw ExceptionT::kOutOfRange;
 #endif
 
 	TYPE** p = fPtrs.Pointer() + row;
@@ -254,7 +260,7 @@ template <class TYPE>
 inline void RaggedArray2DT<TYPE>::MinorDim(ArrayT<int>& minordim) const
 {
 #if __option(extended_errorcheck)
-	if (minordim.Length() != fMajorDim) throw eSizeMismatch;
+	if (minordim.Length() != fMajorDim) throw ExceptionT::kSizeMismatch;
 #endif
 
 	TYPE**  p = fPtrs.Pointer();
@@ -420,6 +426,15 @@ RaggedArray2DT<TYPE>& RaggedArray2DT<TYPE>::operator=(const RaggedArray2DT& sour
 	return *this;
 }
 
+/* assigment operator */
+template <class TYPE>
+RaggedArray2DT<TYPE>& RaggedArray2DT<TYPE>::operator=(const TYPE& value)
+{
+	/* set array */
+	fData = value;
+	return *this;
+}
+
 template <class TYPE>
 void RaggedArray2DT<TYPE>::Copy(const AutoFill2DT<TYPE>& source)
 {
@@ -458,7 +473,7 @@ void RaggedArray2DT<TYPE>::Copy(const AutoFill2DT<TYPE>& source)
 	if (pdata - fData.Pointer() != fData.Length())
 	{
 		cout << "\n RaggedArray2DT<TYPE>::Copy: memory partitioning error" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -500,7 +515,7 @@ void RaggedArray2DT<TYPE>::Copy(const RowAutoFill2DT<TYPE>& source)
 	if (pdata - fData.Pointer() != fData.Length())
 	{
 		cout << "\n RaggedArray2DT<TYPE>::Copy: memory partitioning error" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -560,7 +575,7 @@ void RaggedArray2DT<TYPE>::CopyCompressed(const AutoFill2DT<TYPE>& source) // re
 	if (pdata - fData.Pointer() != fData.Length())
 	{
 		cout << "\n RaggedArray2DT<TYPE>::CopyCompressed: memory partitioning error" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -589,7 +604,7 @@ template <class TYPE>
 inline void RaggedArray2DT<TYPE>::SetRow(int row, const ArrayT<TYPE>& array)
 {
 #if __option(extended_errorcheck)
-	if (array.Length() != MinorDim(row)) throw eSizeMismatch;
+	if (array.Length() != MinorDim(row)) throw ExceptionT::kSizeMismatch;
 #endif
 
 	SetRow(row, array.Pointer());

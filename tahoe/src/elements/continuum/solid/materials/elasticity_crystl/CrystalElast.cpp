@@ -1,4 +1,4 @@
-/* $Id: CrystalElast.cpp,v 1.6 2002-07-02 19:56:03 cjkimme Exp $ */
+/* $Id: CrystalElast.cpp,v 1.6.4.1 2002-10-20 18:07:33 paklein Exp $ */
 
 #include "CrystalElast.h"
 #include "CrystalElastMat.h"
@@ -111,7 +111,7 @@ void CrystalElast::AllocateElements()
       ElementCardT& element = ElementCard(elem);
       
       // construct element
-      element.Allocate(i_size, d_size);
+      element.Dimension(i_size, d_size);
       
       // initialize values
       element.IntegerData() = kIsInit;
@@ -133,18 +133,18 @@ void CrystalElast::SetLatticeOrientation()
   int numint = NumIP();
 
   // allocate array for euler angles at integration point
-  fangles.Allocate(fNumGrain);
+  fangles.Dimension(fNumGrain);
   for (int i = 0; i < fNumGrain; i++)
-    fangles[i].Allocate(3);
+    fangles[i].Dimension(3);
 
   // allocate array to hold crystal orientations
-  fEuler.Allocate(numelem);
+  fEuler.Dimension(numelem);
   for (int i = 0; i< numelem; i++)
     {
-      fEuler[i].Allocate(numint, fNumGrain);
+      fEuler[i].Dimension(numint, fNumGrain);
       for (int j = 0; j < numint; j++)
 	for (int k = 0; k < fNumGrain; k++)
-	  fEuler[i](j,k).Allocate(3);
+	  fEuler[i](j,k).Dimension(3);
     }
 
   // assign orientation angles to each IP/ELEM

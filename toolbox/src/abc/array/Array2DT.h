@@ -1,4 +1,4 @@
-/* $Id: Array2DT.h,v 1.7 2002-07-05 22:26:17 paklein Exp $ */
+/* $Id: Array2DT.h,v 1.7.2.1 2002-10-17 01:51:22 paklein Exp $ */
 /* created: paklein (11/02/1998)                                          */
 
 #ifndef _ARRAY2D_T_H_
@@ -211,7 +211,7 @@ inline TYPE& Array2DT<TYPE>::operator()(int majordim, int minordim) const
 /* range checking */
 #if __option (extended_errorcheck)
 if (majordim < 0 || majordim >= fMajorDim ||
-	minordim < 0 || minordim >= fMinorDim) throw eOutOfRange;
+	minordim < 0 || minordim >= fMinorDim) throw ExceptionT::kOutOfRange;
 #endif
 
 	return fArray[majordim*fMinorDim + minordim];
@@ -222,7 +222,7 @@ inline TYPE* Array2DT<TYPE>::operator()(int majordim) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (majordim < 0 || majordim >= fMajorDim) throw eOutOfRange;
+	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
 #endif
 
 	return fArray + majordim*fMinorDim ;
@@ -282,7 +282,7 @@ inline void Array2DT<TYPE>::SetRow(int row, const ArrayT<TYPE>& array)
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (array.Length() != fMinorDim) throw eSizeMismatch;
+	if (array.Length() != fMinorDim) throw ExceptionT::kSizeMismatch;
 #endif
 	
 	/* copy */	

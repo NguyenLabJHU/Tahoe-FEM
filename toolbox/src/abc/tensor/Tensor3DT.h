@@ -1,4 +1,4 @@
-/* $Id: Tensor3DT.h,v 1.4 2002-07-05 22:26:21 paklein Exp $ */
+/* $Id: Tensor3DT.h,v 1.4.2.1 2002-10-17 01:51:27 paklein Exp $ */
 /* created PAK (05/23/97) */
 
 #ifndef _TENSOR3D_H_
@@ -124,7 +124,7 @@ void Tensor3DT<MATHTYPE>::Dimension(int dim0, int dim1, int dim2)
 	fDim[2] = dim2;
 
 	/* sanity check */
-	if ( fDim.Min() < 1 ) throw(eGeneralFail);
+	if ( fDim.Min() < 1 ) throw ExceptionT::kOutOfRange;
 
 	/* offsets */
 	fOffset0 = fDim[1]*fDim[2];
@@ -160,7 +160,7 @@ inline MATHTYPE& Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1, int dim2) c
 #if __option (extended_errorcheck)
 	if (dim0 < 0 || dim0 >= fDim[0] ||
 	    dim1 < 0 || dim1 >= fDim[1] ||
-	    dim2 < 0 || dim2 >= fDim[2]) throw(eGeneralFail);
+	    dim2 < 0 || dim2 >= fDim[2]) throw ExceptionT::kOutOfRange;
 #endif
 
 	return (fArray[dim0*fOffset0 + dim1*fOffset1 + dim2]);
@@ -172,7 +172,7 @@ inline MATHTYPE* Tensor3DT<MATHTYPE>::operator()(int dim0, int dim1) const
 /* range checking */
 #if __option (extended_errorcheck)
 	if (dim0 < 0 || dim0 >= fDim[0] ||
-	    dim1 < 0 || dim1 >= fDim[1]) throw(eGeneralFail);
+	    dim1 < 0 || dim1 >= fDim[1]) throw ExceptionT::kOutOfRange;
 #endif
 
 	return (fArray + dim0*fOffset0 + dim1*fOffset1);
@@ -183,7 +183,7 @@ inline MATHTYPE* Tensor3DT<MATHTYPE>::operator()(int dim0) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (dim0 < 0 || dim0 >= fDim[0]) throw(eGeneralFail);
+	if (dim0 < 0 || dim0 >= fDim[0]) throw ExceptionT::kOutOfRange;
 #endif
 
 	return (fArray + dim0*fOffset0);
@@ -202,24 +202,24 @@ void Tensor3DT<MATHTYPE>::ContractIndex(const Tensor3DT& t3, int t3dex,
 #if __option (extended_errorcheck)
 	if (this == &t3 || 
 	    t3dex < 0 || t3dex >= 3 ||
-        t2dex < 0 || t2dex >= 2) throw(eGeneralFail);
+        t2dex < 0 || t2dex >= 2) throw ExceptionT::kOutOfRange;
 	
 	/* (t2,t3) and (this, t2) */
 	if (t2dex == 0)
 		if (t2.Rows() != t3.fDim[t3dex] || t2.Cols() != fDim[2])
-			throw(eGeneralFail);
+			throw ExceptionT::kOutOfRange;
 	else if (t2.Cols() != t3.fDim[t3dex] || t2.Rows() != fDim[2]) 
-		throw(eGeneralFail);
+		throw ExceptionT::kOutOfRange;
 	
 	/* (this, t3) */
 	if (t3dex == 2)
 		if (fDim[0] != t3.fDim[0] || fDim[1] != t3.fDim[1])
-			throw(eGeneralFail);
+			throw ExceptionT::kOutOfRange;
 	else if (t3dex == 1)
 		if (fDim[0] != t3.fDim[0] || fDim[1] != t3.fDim[2])
-			throw(eGeneralFail);
+			throw ExceptionT::kOutOfRange;
 	else if (fDim[0] != t3.fDim[1] || fDim[1] != t3.fDim[2])
-		throw(eGeneralFail);
+		throw ExceptionT::kOutOfRange;
 #endif
 
 	/* call optimized contraction routines */
@@ -239,16 +239,16 @@ void Tensor3DT<MATHTYPE>::ContractIndex(int t3dex,
 {
 #if __option (extended_errorcheck)
 	if (t3dex < 0 || t3dex >= 3 ||t1.Length() != fDim[t3dex])
-		throw(eGeneralFail);
+		throw ExceptionT::kOutOfRange;
 	
 	if (t3dex == 0)
 		if (t2.Rows() != fDim[1] || t2.Cols() != fDim[2])
-			throw(eGeneralFail);
+			throw ExceptionT::kOutOfRange;
 	else if (t3dex == 1)
 		if (t2.Rows() != fDim[0] || t2.Cols() != fDim[2])
-			throw(eGeneralFail);
+			throw ExceptionT::kOutOfRange;
 	else if (t2.Rows() != fDim[0] && t2.Cols() != fDim[1])
-		throw(eGeneralFail);
+		throw ExceptionT::kOutOfRange;
 #endif
 
 	/* call optimized contraction routines */

@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.4 2002-07-02 19:57:02 cjkimme Exp $ */
+/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.4.4.2 2002-10-20 18:07:48 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeShapeFunctionT.h"
@@ -26,9 +26,9 @@ D2MeshFreeShapeFunctionT::D2MeshFreeShapeFunctionT(GeometryT::CodeT geometry_cod
 	else
 	{
 		cout << "\n D2MeshFreeShapeFunctionT::D2MeshFreeShapeFunctionT: no 3D yet" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
-	if (!fD2MFSupport) throw eOutOfMemory;
+	if (!fD2MFSupport) throw ExceptionT::kOutOfMemory;
 
 	/* delete MLS support for base class */
 	delete fMFSupport;
@@ -63,7 +63,7 @@ int D2MeshFreeShapeFunctionT::SetDerivativesAt(const dArrayT& x, AutoArrayT<int>
 	
 		/* copy nodal neighor data */
 		fNeighbors.Alias(fMFSupport->NeighborsAt());
-		nodes.Allocate(fNeighbors.Length());
+		nodes.Dimension(fNeighbors.Length());
 		nodes = fNeighbors;
 		
 		/* set next calls to GradU */
@@ -101,9 +101,9 @@ void D2MeshFreeShapeFunctionT::NodalField(const dArray2DT& DOF, dArray2DT& field
 	int nxx = dSymMatrixT::NumValues(nsd);
 	
 	/* allocate output space */
-	field.Allocate(nnd, ndf);
-	Dfield.Allocate(nnd, ndf*nsd);
-	DDfield.Allocate(nnd, ndf*nxx);
+	field.Dimension(nnd, ndf);
+	Dfield.Dimension(nnd, ndf*nsd);
+	DDfield.Dimension(nnd, ndf*nxx);
 
 	/* MLS nodal data */
 	iArrayT   neighbors;

@@ -1,4 +1,4 @@
-/* $Id: FrontT.cpp,v 1.3 2002-07-02 19:57:10 cjkimme Exp $ */
+/* $Id: FrontT.cpp,v 1.3.2.2 2002-10-20 18:02:01 paklein Exp $ */
 /* created: paklein (02/11/2000)                                          */
 
 #include "FrontT.h"
@@ -23,9 +23,9 @@ FrontT::FrontT(int nsd, int num_facet_nodes, double cone, double da,
 	fNewFacetMan(20, fNewFacets, nsd*num_facet_nodes)
 {
 	/* checks */
-	if (fcone < 0.0 || fcone > 180.0) throw eBadInputValue;
-	if (fda < 0.0) throw eBadInputValue;
-	if (fnum_pts < 0) throw eBadInputValue;
+	if (fcone < 0.0 || fcone > 180.0) throw ExceptionT::kBadInputValue;
+	if (fda < 0.0) throw ExceptionT::kBadInputValue;
+	if (fnum_pts < 0) throw ExceptionT::kBadInputValue;
 }
 
 /* destructor */
@@ -36,7 +36,7 @@ FrontT::~FrontT(void)
 		delete fFrontNodes[j];
 
 	/* empty lists */
-	fFrontNodes.Allocate(0);
+	fFrontNodes.Dimension(0);
 }
 
 

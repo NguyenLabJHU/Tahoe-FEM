@@ -1,4 +1,4 @@
-/* $Id: GraphBaseT.cpp,v 1.8 2002-07-05 17:16:10 paklein Exp $ */
+/* $Id: GraphBaseT.cpp,v 1.8.2.2 2002-10-20 18:02:03 paklein Exp $ */
 /* created: paklein (04/13/1999) */
 
 #include "GraphBaseT.h"
@@ -65,10 +65,10 @@ void GraphBaseT::Partition(const iArrayT& config, const iArrayT& weight,
 	iArrayT& partition, bool verbose)
 {
 	/* dimension check */
-	if (weight.Length() != fEdgeList.MajorDim()) throw eSizeMismatch;
+	if (weight.Length() != fEdgeList.MajorDim()) throw ExceptionT::kSizeMismatch;
 
 	/* initialize partition map */
-	partition.Allocate(fEdgeList.MajorDim());
+	partition.Dimension(fEdgeList.MajorDim());
 	partition = 0;
 	
 	/* total number of partitions */
@@ -89,16 +89,16 @@ void GraphBaseT::Partition(const iArrayT& config, const iArrayT& weight,
 	
 		/* next contracted graph */
 		GraphBaseT* new_graph = new GraphBaseT(fVerbose);
-		if (!new_graph) throw eOutOfMemory;
+		if (!new_graph) throw ExceptionT::kOutOfMemory;
 		graphs.Append(new_graph);
 		
 		iArrayT* new_map = new iArrayT();
-		if (!new_map) throw eOutOfMemory;
+		if (!new_map) throw ExceptionT::kOutOfMemory;
 		maps.Append(new_map);
 	
 		/* generate contracted graph */	
 		new_graph->Contract(*graph, *new_map);
-		if (!new_graph->Verify(cout)) throw eGeneralFail; //TEMP
+		if (!new_graph->Verify(cout)) throw ExceptionT::kGeneralFail; //TEMP
 
 		/* generated contracted nodal weights */
 		iArrayT* new_weight = new iArrayT(new_graph->NumNodes());
@@ -120,7 +120,7 @@ void GraphBaseT::Partition(const iArrayT& config, const iArrayT& weight,
 	
 	/* initialize partitions */
 	int curr_num_parts = graphs[depth-1]->NumNodes();
-	partition.Allocate(curr_num_parts);
+	partition.Dimension(curr_num_parts);
 	partition.SetValueToPosition();
 
 	/* header */
@@ -141,11 +141,11 @@ void GraphBaseT::Partition(const iArrayT& config, const iArrayT& weight,
 		const GraphBaseT& next_graph = (i == 0) ? *this : *graphs[i-1];
 		const iArrayT& map = *maps[i];
 		const iArrayT& next_weight = (i == 0) ? weight: *weights[i-1];
-		if (map.Length() != next_graph.NumNodes()) throw eSizeMismatch; //TEMP
+		if (map.Length() != next_graph.NumNodes()) throw ExceptionT::kSizeMismatch; //TEMP
 		
 		int dim = map.Length();
 		last_part_map.Swap(partition);
-		partition.Allocate(map.Length());
+		partition.Dimension(map.Length());
 	
 		/* propagate partitions out */
 		for (int j = 0; j < dim; j++)
@@ -194,24 +194,24 @@ void GraphBaseT::Partition_METIS(int num_partitions, const iArrayT& weight,
 #pragma unused(volume_or_edgecut)
 	/* error message */
 	cout << "\n GraphBaseT::Partition_METIS: requires metis module" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 #else
 	
 	/* NOTE: based on "kmetis.c" */
 
 	/* dimension check */
-	if (weight.Length() != fEdgeList.MajorDim()) throw eSizeMismatch;
+	if (weight.Length() != fEdgeList.MajorDim()) throw ExceptionT::kSizeMismatch;
 
 	/* options check */
 	if (volume_or_edgecut != 0 && volume_or_edgecut != 1)
 	{
 		cout << "\n GraphBaseT::Partition_METIS: volume_or_edgecut must be 0 or 1: " 
 		     << volume_or_edgecut << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* initialize partition map */
-	partition.Allocate(fEdgeList.MajorDim());
+	partition.Dimension(fEdgeList.MajorDim());
 	partition = 0;
 	if (num_partitions < 2) return;
 
@@ -284,7 +284,7 @@ void GraphBaseT::Partition_METIS(int num_partitions, const iArrayT& weight,
 void GraphBaseT::ReturnDegrees(const ArrayT<int>& nodes, ArrayT<int>& degrees) const
 {
 #if __option(extended_errorcheck)
-	if (nodes.Length() != degrees.Length()) throw eSizeMismatch;
+	if (nodes.Length() != degrees.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	int* pnodes   = nodes.Pointer();
@@ -340,7 +340,7 @@ void GraphBaseT::InitializePriorities(iArrayT& priorities, int W1) const
 	{
 		cout << "\n GraphBaseT::InitializePriorities: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	for (int i = 0; i < fMaxNodeNum; i++)
@@ -382,7 +382,7 @@ void GraphBaseT::Contract(const GraphBaseT& parent, iArrayT& map)
 		cout << "\n GraphBaseT::Contract: not expecting a node number shift\n"
 		     <<   "     in this graph " << fShift << " or the parent "
 		     << parent.fShift << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* dimensions */
@@ -412,7 +412,7 @@ void GraphBaseT::Contract(const GraphBaseT& parent, iArrayT& map)
 			parent.GetEdges(next, edges);
 				
 			/* get degrees for edges adjacent vertex */
-			degrees.Allocate(edges.Length());
+			degrees.Dimension(edges.Length());
 			parent.ReturnDegrees(edges, degrees);		
 		
 			/* mark edge to collapse */
@@ -428,7 +428,7 @@ void GraphBaseT::Contract(const GraphBaseT& parent, iArrayT& map)
 	}
 
 	/* generate map map[old_num] = new_num */
-	map.Allocate(dim);
+	map.Dimension(dim);
 	map = -1;
 	int dex = 0;
 	for (int j = 0; j < dim; j++) /* retained nodes */
@@ -484,7 +484,7 @@ int GraphBaseT::SelectCollapse(const ArrayT<int>& edges, const ArrayT<int>& degr
 	{
 		cout << "\n GraphBaseT::SelectCollapse: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	int node = -1, degree;
@@ -513,7 +513,7 @@ int GraphBaseT::SetGains(const GraphBaseT& graph, const iArrayT& partition,
 	{
 		cout << "\n GraphBaseT::SetGains: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* dimensions */
@@ -565,7 +565,7 @@ void GraphBaseT::SetMoves(const iArray2DT& gain, const iArrayT& partition,
 	{
 		cout << "\n GraphBaseT::SetMoves: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* dimensions */
@@ -630,7 +630,7 @@ int GraphBaseT::ApplyMoves(const GraphBaseT& graph, const iArrayT& move,
 	{
 		cout << "\n GraphBaseT::ApplyMoves: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* dimensions */
@@ -725,8 +725,8 @@ void GraphBaseT::OptimizeParts(const GraphBaseT& graph, const iArrayT& weight,
 	iArrayT& partition, int dim, int& repetitions, int& cuts)	
 {
 #if __option(extended_errorcheck)
-	if (graph.NumNodes() != partition.Length()) throw eSizeMismatch;
-	if (graph.NumNodes() != weight.Length()) throw eSizeMismatch;
+	if (graph.NumNodes() != partition.Length()) throw ExceptionT::kSizeMismatch;
+	if (graph.NumNodes() != weight.Length()) throw ExceptionT::kSizeMismatch;
 #endif	
 
 	//TEMP
@@ -734,7 +734,7 @@ void GraphBaseT::OptimizeParts(const GraphBaseT& graph, const iArrayT& weight,
 	{
 		cout << "\n GraphBaseT::OptimizeParts: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* dimensions */

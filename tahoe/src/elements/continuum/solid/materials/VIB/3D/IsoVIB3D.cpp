@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.cpp,v 1.5 2002-09-12 17:50:00 paklein Exp $ */
+/* $Id: IsoVIB3D.cpp,v 1.5.4.2 2002-10-20 18:07:31 paklein Exp $ */
 /* created: paklein (03/15/1998)                                          */
 /* 3D Isotropic VIB solver using spectral decomposition formulation       */
 
@@ -44,9 +44,9 @@ IsoVIB3D::IsoVIB3D(ifstreamT& in, const FiniteStrainT& element):
 			break;
 			
 		default:
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
-	if (!fSphere) throw eOutOfMemory;
+	if (!fSphere) throw ExceptionT::kOutOfMemory;
 
 	/* set tables */
 	Construct();
@@ -151,7 +151,7 @@ const dMatrixT& IsoVIB3D::c_ijkl(void)
 
 	/* (material) -> (spatial) */
 	double J = sqrt(fEigs.Product());
-	if (J <= 0.0) throw eBadJacobianDet;
+	if (J <= 0.0) throw ExceptionT::kBadJacobianDet;
 	
 	c11 *= (fEigs[0]*fEigs[0]/J);
 	c22 *= (fEigs[1]*fEigs[1]/J);
@@ -256,7 +256,7 @@ const dSymMatrixT& IsoVIB3D::s_ij(void)
 
 	/* PK2 -> Cauchy (with thickness) */
 	double J = sqrt(fEigs.Product());
-	if (J <= kSmall) throw eBadJacobianDet;
+	if (J <= kSmall) throw ExceptionT::kBadJacobianDet;
 	
 	fEigs[0] *= (s1/J);
 	fEigs[1] *= (s2/J);
@@ -347,7 +347,7 @@ void IsoVIB3D::Construct(void)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Allocate(numpoints);
+	Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fSphere->Jacobians();

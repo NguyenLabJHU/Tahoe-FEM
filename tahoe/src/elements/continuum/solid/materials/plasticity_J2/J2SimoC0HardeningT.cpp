@@ -1,4 +1,4 @@
-/* $Id: J2SimoC0HardeningT.cpp,v 1.9 2002-07-02 19:56:12 cjkimme Exp $ */
+/* $Id: J2SimoC0HardeningT.cpp,v 1.9.4.2 2002-10-20 18:07:36 paklein Exp $ */
 /* created: paklein (05/01/2001) */
 
 #include "J2SimoC0HardeningT.h"
@@ -156,7 +156,7 @@ int J2SimoC0HardeningT::PlasticLoading(ElementCardT& element, int ip)
 		{
 			cout << "\n J2SimoC0HardeningT::PlasticLoading: should not arrive here\n"
 			     <<   "     with uninitialized state" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 #if 0
 		{
@@ -243,7 +243,7 @@ const dSymMatrixT& J2SimoC0HardeningT::StressCorrection(ElementCardT& element, i
 					if (df_hat < kSmall)
 					{
 						cout << "\n J2SimoC0HardeningT::StressCorrection: consistency function is nonconvex" << endl;
-						throw eGeneralFail;
+						throw ExceptionT::kGeneralFail;
 					}
 				
 					/* increment update */
@@ -258,7 +258,7 @@ const dSymMatrixT& J2SimoC0HardeningT::StressCorrection(ElementCardT& element, i
 				{
 					cout << "\n J2SimoC0HardeningT::StressCorrection: local iteration failed after " 
 					     << max_iteration << " iterations" << endl;
-					throw eGeneralFail;
+					throw ExceptionT::kGeneralFail;
 				}
 			}
 
@@ -381,7 +381,7 @@ void J2SimoC0HardeningT::AllocateElement(ElementCardT& element)
 	d_size += dSymMatrixT::NumValues(kNSD)*fNumIP; //fbeta_bar_trial_
 
 	/* construct new plastic element */
-	element.Allocate(i_size, d_size);
+	element.Dimension(i_size, d_size);
 	
 	/* initialize values */
 	element.IntegerData() = kNotInit;
@@ -399,7 +399,7 @@ void J2SimoC0HardeningT::Update(ElementCardT& element)
 	//disable the material - look at J2QL2DLinHard2DT to
 	//verify that this is OK, esp. for successive calls to
 	//Update without advancing the simulation
-	if (!element.IsAllocated()) throw eGeneralFail;
+	if (!element.IsAllocated()) throw ExceptionT::kGeneralFail;
 
 	/* get flags */
 	iArrayT& Flags = element.IntegerData();
@@ -445,7 +445,7 @@ void J2SimoC0HardeningT::Reset(ElementCardT& element)
 	//disable the material - look at J2QL2DLinHard2DT to
 	//verify that this is OK, esp. for successive calls to
 	//Update without advancing the simulation
-	if (!element.IsAllocated()) throw eGeneralFail;
+	if (!element.IsAllocated()) throw ExceptionT::kGeneralFail;
 
 	/* get flags */
 	iArrayT& Flags = element.IntegerData();
@@ -534,7 +534,7 @@ void J2SimoC0HardeningT::ConstructHardeningFunction(ifstreamT& in)
 			double yield = -1;
 			double dK = -1;
 			in >> yield >> dK;
-			if (yield < 0) throw eBadInputValue;
+			if (yield < 0) throw ExceptionT::kBadInputValue;
 			
 			dArray2DT points(2,2);
 			points(0,0) = 0.0;
@@ -568,7 +568,7 @@ void J2SimoC0HardeningT::ConstructHardeningFunction(ifstreamT& in)
 			{
 				cout << "\n J2SimoC0HardeningT::ConstructHardeningFunction: expecting at least 2 spline points:"
 				     << num_points << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 			dArray2DT points(num_points, 2);
 			in >> points;
@@ -580,6 +580,6 @@ void J2SimoC0HardeningT::ConstructHardeningFunction(ifstreamT& in)
 		default:
 			cout << "\n J2SimoC0HardeningT::ConstructHardeningFunction: unknown hardening function type: " 
 			     << type << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 }

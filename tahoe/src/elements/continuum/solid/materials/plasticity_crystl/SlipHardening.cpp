@@ -21,8 +21,8 @@ SlipHardening::SlipHardening(PolyCrystalMatT& poly):
   fSolverPtr ( new SolverWrapperHard(*this) )
 { 
   // if needed, these allocations are overridden in derived classes
-  fTauIso.Allocate(1);
-  fTauKin.Allocate(1);
+  fTauIso.Dimension(1);
+  fTauKin.Dimension(1);
 
   // other allocations are carried out in derived classes
 }

@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.26 2002-10-05 20:04:20 paklein Exp $ */
+/* $Id: tevp2D.cpp,v 1.26.2.2 2002-10-20 18:07:42 paklein Exp $ */
 /* Created:  Harold Park (04/04/2001) */
 #include "tevp2D.h"
 
@@ -74,7 +74,7 @@ tevp2D::tevp2D(ifstreamT& in, const FiniteStrainT& element):
 	if (Mu_d < 0.0) 
 	{
 		cout << "\n tevp2D::tevp2D: Mu must be > 0: " << Mu_d << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 
         in >> Bvisc;
@@ -319,7 +319,7 @@ int tevp2D::NumOutputVariables(void) const { return kNumOutput; }
 void tevp2D::OutputLabels(ArrayT<StringT>& labels) const
 {
   /* set size */
-  labels.Allocate(kNumOutput);
+  labels.Dimension(kNumOutput);
 
   /* copy labels - WHY? */
   for (int i = 0; i < kNumOutput; i++)
@@ -634,7 +634,7 @@ void tevp2D::AllocateElement(ElementCardT& element)
                                       // Sig11, Sig12=Sig21, Sig22 and Sig33
   d_size += kNSD * fNumIP;           // 3 2D symmetric components (Sig11, Sig12, Sig22)
   /* construct new plastic element */
-  element.Allocate(i_size, d_size);
+  element.Dimension(i_size, d_size);
 
   /* first set of flags for plasticity criterion */
   for (int ip = 0; ip < fNumIP; ip++)
@@ -651,7 +651,7 @@ void tevp2D::LoadData(const ElementCardT& element, int ip)
 {
   /* load element data for the specified integration point */
   /* check */
-  if (!element.IsAllocated()) throw eGeneralFail;
+  if (!element.IsAllocated()) throw ExceptionT::kGeneralFail;
 
   int dex = ip * kVoigt;     // 4 non-zero stress components (11, 12, 22, 33)
   int dex2 = ip * kNSD;      // 3 non-zero 2D stress components (11, 12=21, 22)
