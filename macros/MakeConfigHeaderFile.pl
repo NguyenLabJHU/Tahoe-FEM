@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: MakeConfigHeaderFile.pl,v 1.7 2003-08-07 18:18:09 paklein Exp $
+# $Id: MakeConfigHeaderFile.pl,v 1.8 2003-08-07 21:48:02 paklein Exp $
 #
 # Generates a C/C++ header file from a configuration file which is
 # passed as the command-line argument.
@@ -35,6 +35,7 @@ print "reading configuration file: $config_file\n";
 
 # skip leading comments
 open(IN, $config_file) || die "could not open config file: $config_file\n";
+$config_file_age = (-M $config_file);
 $out_root = <IN>;
 chomp($out_root);
 while ($out_root =~ /^#/ || $out_root !~ /[a-zA-Z0-9]/ ) {
@@ -42,13 +43,59 @@ while ($out_root =~ /^#/ || $out_root !~ /[a-zA-Z0-9]/ ) {
 	chomp($out_root);
 }
 
+# current settings of existing header file
+%current_options = ();
+
 # output file
 print "output file root: $out_root\n";
 $config_header_file = "$destination" . "/" . $out_root . ".h";
+$config_header_file_age = 0.0;
 if (-e $config_header_file) {
-	print "output file already exists: $config_header_file\n";
-	print "stop.\n";
-	exit;
+	
+	# header file is up to date
+	$config_header_file_age = (-M $config_header_file);
+	if ($config_header_file_age < $config_file_age) {
+		print "output file is up to date: $config_header_file\n";
+		print "stop.\n";
+		exit;
+	} else {	
+		print "output file exists but is not up to date: $config_header_file\n";
+		
+		# read settings
+		open(IN2, $config_header_file) || die "could not open file: $config_header_file\n";
+		while (defined($line = <IN2>)) {
+			chomp($line);
+		
+			# line contains a symbol definition
+			if ($line =~ /#define/) {
+			
+				# extract the symbol name
+				$symbol = $line;
+				$symbol =~ s/(.*#define\s+)([a-zA-Z0-9_]+)(.*)/$2/;
+
+				print "option: $symbol: ";
+
+				# not active
+				if ($line =~ /#undef/ || $line !~ /^#define/) {
+					print "INACTIVE\n";
+					$current_options{$symbol} = 0;
+				}
+				else {					
+					print "ACTIVE\n";
+					$current_options{$symbol} = 1;
+				}			
+			}
+		}
+		close(IN2);
+		
+		# keep existing file as backup
+		$config_header_file_bak = $config_header_file.".bak";
+		if (-e $config_header_file_bak) { 
+			system("rm $config_header_file_bak");
+		}
+		print "moving $config_header_file to $config_header_file_bak\n";
+		system("mv $config_header_file $config_header_file_bak");
+	}
 }
 else {
 	print "creating output file: $config_header_file\n";
@@ -114,11 +161,18 @@ while (defined($line = <IN>)) {
 		# read ENABLE/DISABLE
 		elsif ($scan_line == 2) {
 		
+			# default settings from .conf file
 			if ($line =~ /DISABLE/) { 
 				$enabled = 0; 
 			} else { 
 				$enabled = 1; 
 			}
+			
+			# current settings
+			if (defined($current_options{$opt_root})) {
+				$enabled = $current_options{$opt_root};
+			}
+			
 			$scan_line++;
 		} 
 		# read description
