@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.16.2.1 2002-12-16 09:34:41 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.16.2.2 2002-12-18 09:52:22 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -207,11 +207,14 @@ public:
 	/** rank of this process */
 	int Rank(void) const;
 
-	/** the nodes not native to this processor */
-	void IncomingNodes(iArrayT& nodes_in) const;
+	/** the nodes not native to this processor. Returns NULL if there is no 
+	 * list, indicating \e all nodes are owned by this partition */
+	const ArrayT<int>* ExternalNodes(void) const;
 
-	/** the nodes native to this processor that appear on other processors */
-	void OutgoingNodes(iArrayT& nodes_out) const;
+	/** the nodes native to this processor that appear on other processors.
+	 * Returns NULL if there is no list, indicating \e all nodes are owned by 
+	 * this partition */
+	const ArrayT<int>* BorderNodes(void) const;
 
 	/** send data out.
 	 * \param all_out_data outgoing data for \e every node on this processor: [nnd] x [nvals] */
