@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.17 2002-09-12 16:47:03 paklein Exp $
+# $Id: make.targets,v 1.18 2002-10-18 17:25:51 cjkimme Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -12,6 +12,7 @@ include $(OBJECT_LIST)
 OPT_CFLAGS = \
 	$(NOX_CFLAGS) \
 	$(TB_CFLAGS) \
+	$(T_CFLAGS) \
 	$(ACME_CFLAGS) \
 	$(SPOOLESMPI_CFLAGS) \
 	$(SPOOLESMT_CFLAGS) \
@@ -26,6 +27,7 @@ OPT_CFLAGS = \
 OPT_LFLAGS = \
 	$(NOX_LFLAGS) \
 	$(TB_LFLAGS) \
+	$(T_LFLAGS) \
 	$(ACME_LFLAGS) \
 	$(SPOOLESMPI_LFLAGS) \
 	$(SPOOLESMT_LFLAGS) \
@@ -40,6 +42,7 @@ OPT_LFLAGS = \
 OPT_LIB = \
 	$(NOX_LIB) \
 	$(TB_LIB) \
+	$(T_LIB) \
 	$(F2C_LIB) \
 	$(BLAS_LIB) \
 	$(AZ_LIB) \
@@ -53,6 +56,7 @@ OPT_LIB = \
 OPT_INC = \
 	$(NOX_INC) \
 	$(TB_INC) \
+	$(T_INC) \
 	$(F2C_INC) \
 	$(BLAS_INC) \
 	$(AZ_INC) \
