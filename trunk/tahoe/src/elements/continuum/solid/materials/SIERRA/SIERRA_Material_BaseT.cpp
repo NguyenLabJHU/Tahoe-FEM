@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.17 2004-08-06 07:25:18 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.18 2004-08-06 07:27:15 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -6,13 +6,6 @@
 #include "ParameterListT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
-#include "DotLine_FormatterT.h"
-#if defined(__GCC_3__)
-#include <strstream>
-#else
-#include <strstream.h>
-#endif
-#include <string.h>
 
 using namespace Tahoe;
 
@@ -289,10 +282,17 @@ void SIERRA_Material_BaseT::TakeParameterList(const ParameterListT& list)
 			params.Pointer());
 
 	/* read SIERRA-format input */
-	ParameterListT param_list("sierra_params");
+	StringT line;
+	line.GetLineFromStream(in);
+	StringT word;
+	int count;
+	word.FirstWord(line, count, true);
+	if (word != "begin")
+		ExceptionT::BadInputValue(caller, "expecting \"begin\":\n%s", line.Pointer());
+	line.Tail(' ', word);
+	word.ToUpper();
+	ParameterListT param_list(word);
 	Read_SIERRA_Input(in, param_list);
-	DotLine_FormatterT formatter;
-	formatter.WriteParameterList(MaterialSupport().Output(), param_list);
 	fSIERRA_Material_Data = Process_SIERRA_Input(param_list);
 
 	/* check parameters */
@@ -398,7 +398,7 @@ void SIERRA_Material_BaseT::Read_SIERRA_Input(ifstreamT& in,
 	StringT line;
 	line.GetLineFromStream(in);
 	bool done = false;
-	while (!done && in.good())
+	while (!done)
 	{
 		StringT word;
 		word.FirstWord(line, char_count, C_word_only);
@@ -414,24 +414,9 @@ void SIERRA_Material_BaseT::Read_SIERRA_Input(ifstreamT& in,
 			if (name.StringLength() == 0)
 				ExceptionT::BadInputValue(caller, "could not list name from line:\n%s",
 					line.Pointer());
-
-			/* init sub-list */
-			ParameterListT param_sub_list(name);
-
-			/* look for more description */
-			char* key = strstr(line, " for ");
-			if (key)
-			{
-				int count;
-				StringT description;
-				description.FirstWord(key + strlen(" for "), count, true);
-				description.ToUpper();
-				param_sub_list.SetDescription(description);			
-			}
-			else
-				param_sub_list.SetDescription("NONE");
-
+					
 			/* recursively construct list */
+			ParameterListT param_sub_list(name);
 			Read_SIERRA_Input(in, param_sub_list);
 			
 			/* add list to parameter list */
@@ -450,72 +435,31 @@ void SIERRA_Material_BaseT::Read_SIERRA_Input(ifstreamT& in,
 					param_list.Name().Pointer(), name.Pointer());
 			done = true;
 		}
-		else if (param_list.Name() == "VALUES") /* expecting list of ordered pairs */
-		{
-			ParameterListT ordered_pair("OrderedPair");
-			istrstream in(line.Pointer());
-			double x, y;
-			in >> x >> y;
-			ordered_pair.AddParameter(x, "x");
-			ordered_pair.AddParameter(y, "y");
-			param_list.AddList(ordered_pair);
-		}
 		else /* split parameter name and value */
 		{
-			/* drop end-of-line comment - text following '$' */
-			int tail_pos = line.LastPositionOf('$');
-			if (tail_pos > 0)
-				line.Drop(tail_pos - line.StringLength());
-
-			/* split line at delimiter */
-			int name_end = 0, value_start = 0;
-			char* delim = strstr(line, " is ");
-			int equal_pos = line.FirstPositionOf('=');
-			if (delim != NULL)
-			{
-				name_end = line.StringLength() - strlen(delim);
-				value_start = name_end + strlen(" is ");
-			}
-			else if (equal_pos > 0)
-			{
-				name_end = equal_pos - 1;
-				value_start = equal_pos + 1;
-			}
-			else
-				ExceptionT::GeneralFail(caller, "could not find delimiter in \"%s\"",
+			/* find equals sign */
+			int equal_dex = line.FirstPositionOf('=');
+			if (equal_dex < 1)
+				ExceptionT::BadInputValue(caller, "line does not contain \"=\":\n%s",
 					line.Pointer());
-
-			/* name */
 			StringT param_name;
-			param_name.Take(line, name_end);
+			param_name.Take(line, equal_dex);
 			param_name.DropLeadingSpace();
 			param_name.DropTrailingSpace();
 			param_name.Replace(' ', '_');
 			param_name.ToUpper();
+		
+			/* get value */
+			double value;
+			if (!line.Tail('=', value))
+				ExceptionT::BadInputValue(caller, "could not extract value from line:\n%s",
+					line.Pointer());
 			
-			/* value */
-			StringT value;
-			value.Take(line, value_start - line.StringLength());
-			value.DropLeadingSpace();
-			value.DropTrailingSpace();
-			value.Replace(' ', '_');
-			value.ToUpper();
-			
-			/* looks like a number */
-			if (value[0] == '+' || value[0] == '-' || value[0] == '.' || isdigit(value[0]))
-			{
-				ParameterT param(atof(value), param_name);
-				if (!param_list.AddParameter(param))
-					ExceptionT::BadInputValue(caller, "parameter is duplicate: \"%s\"",
-						param_name.Pointer());
-			}
-			else /* string parameter */ 
-			{
-				ParameterT param(value, param_name);
-				if (!param_list.AddParameter(param))
-					ExceptionT::BadInputValue(caller, "parameter is duplicate: \"%s\"",
-						param_name.Pointer());
-			}
+			/* new parameter */
+			ParameterT param(value, param_name);
+			if (!param_list.AddParameter(param))
+				ExceptionT::BadInputValue(caller, "parameter is duplicate: \"%s\"",
+					param_name.Pointer());
 		}
 		
 		/* get next line */
