@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.14 2002-08-01 23:13:04 rdorgan Exp $
+# $Id: makefile,v 1.15 2002-09-04 16:29:23 cfoster Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -26,6 +26,7 @@ SUB_DIR = \
 	CB \
 	EAM \
 	elasticity_crystl \
+	fossum \
 	Hookean \
 	managers \
 	modCBSW \
