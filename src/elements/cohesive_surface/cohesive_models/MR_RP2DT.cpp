@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.cpp,v 1.6 2003-03-31 23:29:50 cjkimme Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.7 2003-04-01 20:09:26 manzari Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -136,6 +136,8 @@ const dArrayT& MR_RP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, 
 if (state[nTiedFlag] != 1. && state[nTiedFlag] != -10.)
 {
 	fTraction = 0.;
+	/*state[0] = sigma[0];
+	state[1] = sigma[1];*/
 
 	return fTraction;
 }
@@ -610,21 +612,21 @@ double bott, dlam;
 	else 
 	  	if (state[12] == 1.) 
 	  	{
-	  	    dlam = state[12];
+	  	    dlam = state[11];
 	  	    dQdSig2_f(qn, dQdSig2);
 	        dqbardSig_f(Sig, qn, A_qu);
 	        dqbardq_f(Sig, qn, A_qq);
 	        dQdSigdq_f(Sig, qn, A_uq);
 	        Ch = A_qq;
-	        Ch *= -state[12];
+	        Ch *= -state[11];
 	        Ch += I_mat;
 	        Ch_Inv.Inverse(Ch);
 	        KE1.MultAB(Ch_Inv,A_qu);
 	        KE.MultAB(A_uq,KE1);
-	        KE *= state[12];
-	        KE *= state[12];
+	        KE *= state[11];
+	        KE *= state[11];
 	        KE2 = dQdSig2;
-	        KE2 *=state[12];
+	        KE2 *=state[11];
 	        KE += KE2;
 	        
 	        KE_Inv.Inverse(KE);
@@ -693,7 +695,7 @@ double bott, dlam;
                 }
 	        }
 	        
-	        KP2 *= state[12];
+	        KP2 *= state[11];
 	        KP += KP2;
 	        KP /= -bott;
             KP += I_m;
