@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.41.2.11 2003-05-27 15:14:14 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.41.2.12 2003-05-29 12:43:39 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -575,6 +575,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	int order2 = 1;
 	int order3 = 2;
 	dArray2DT field_at_ghosts, totalu, fubig, fu, projectedu, boundghostdisp, boundghostvel, boundghostacc;
+	dArray2DT thkforce;
 	dSPMatrixT ntf;
 	iArrayT activefenodes;
 	StringT bridging_field = "displacement";
@@ -680,12 +681,15 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				corrector are combined into one function */
 				atoms.BAPredictAndCorrect(mddt, badisp, bavel, baacc);
 				atoms.BAPredictAndCorrect(mddt, gadisp, gavel, gaacc);
-				
+	
 				/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
 				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);				
 				
 				/* UPDATE TIME HISTORY VARIABLES HERE USING BADISP ARRAY */
-																
+														
+				/* calculate THK force on boundary atoms */
+				thkforce = atoms.THKForce(badisp);
+																			
 				/* solve MD equations of motion */
 				if (1 || error == ExceptionT::kNoError) {
 						atoms.ResetCumulativeUpdate(group);
