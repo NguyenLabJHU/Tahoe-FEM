@@ -2,7 +2,7 @@
 /***** This code reads in a matrix file in .bin format, and tests PSPASES */
 /***** functionality for various parameters and solution paths.           */
 /***** 					        written by: Mahesh Joshi  */
-/*****   $Id: pspases_testc.c,v 1.2 2004-12-11 01:22:00 paklein Exp $ */
+/*****   $Id: pspases_testc.c,v 1.3 2005-01-05 08:57:33 paklein Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +20,7 @@ typedef int int4;
 void main(int argc, char *argv[]) 
 {
 
-FILE *fp;
+FILE *fp, *stdout_fp;
 int4 *aptrs4,*ainds4,*taptrs,*tainds;
 int *aptrs,*ainds,*rowdist,*rowdistbx,*aisizes;
 double *avals,*b,*x,*tavals,*tb;
@@ -37,6 +37,8 @@ int *order,*sizes,clean_option;
 double time0,Ftime,Otime,Ytime,Ntime,Ttime,Ltime;
 double *memPM,*memFM,maxPM,minPM,sumPM,maxFM,minFM,sumFM,maxTM,minTM;
 int dummy;
+char stdout_file[] = "out.N";
+char alpha[] = "0123456789";
 
 MPI_Init(&argc,&argv);
 
@@ -48,6 +50,10 @@ MPI_Comm_rank(comm,&myid);
 if (myid == 0) {
 printf("sizeof(int) = %d\n", sizeof(int));
 printf("sizeof(int4) = %d\n", sizeof(int4));
+}
+else /* redirect standard output */ {
+	stdout_file[4] = alpha[myid];
+  	stdout_fp =freopen(stdout_file, "w", stdout);
 }
 
 if(argc<2) {
@@ -281,6 +287,14 @@ if(runopt == -1) {
   beginOpt = runopt;
   endOpt = runopt;
 }
+
+/* skip DPSPACEF test */
+#if 0
+if (endOpt == 0) {
+	printf("\n\n!!!!!!!!!! NOTE: skipping test of DPSPACEF !!!!!!!!!!\n");
+	endOpt = 1;
+}
+#endif
 
 for(runopt=beginOpt;runopt>=endOpt;runopt--) {
 
