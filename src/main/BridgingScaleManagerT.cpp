@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleManagerT.cpp,v 1.5 2004-11-06 01:49:59 paklein Exp $ */
+/* $Id: BridgingScaleManagerT.cpp,v 1.6 2004-12-26 21:14:26 d-farrell2 Exp $ */
 #include "BridgingScaleManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -51,6 +51,7 @@ void BridgingScaleManagerT::Solve(void)
 	/* configure ghost nodes */
 	NodeManagerT& fine_node_manager = *(fFine_THK->NodeManager());
 	int nsd = fine_node_manager.NumSD();
+	int nnd = fine_node_manager.NumNodes(); // DEF added
 	int group = 0;
 	int order1 = 0;	// For InterpolateField, 3 calls to obtain displacement/velocity/acceleration
 	int order2 = 1;
@@ -58,7 +59,11 @@ void BridgingScaleManagerT::Solve(void)
 	double dissipation = 0.0;
 	
 	/* internal force vector - communicated within atomistic side */
-	dArray2DT fubig(0,nsd);
+	dArray2DT rhs_2D_true(nnd,nsd);
+	rhs_2D_true = 0.0e0;
+	dArray2DT& rhs_2D = rhs_2D_true; 
+	dArray2DT fubig(nnd,nsd);
+
 	CommManagerT* fine_comm_manager = fFine_THK->CommManager();
 	if (!fine_comm_manager) ExceptionT::GeneralFail(caller, "could not resolve fine scale comm manager");
 	int fubig_ID = fine_comm_manager->Init_AllGather(fubig);
@@ -105,28 +110,6 @@ void BridgingScaleManagerT::Solve(void)
 	fCoarse->InitProjection(bridging_field, *(fFine_THK->CommManager()), fFine_THK->NonGhostNodes(), 
 		fine_node_manager, makeinactive);		
 
-	/* nodes to include/exclude in calculation of the atomistic displacements. Dimension
-	 * of these matricies is the number atom types */
-	nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // 3D wave propagation
-	//nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for 2D fracture problem
-	//nMatrixT<int> ghostonmap(4), ghostoffmap(4);    // for planar wave propagation problem
-	//nMatrixT<int> ghostonmap(7), ghostoffmap(7);	// 3D fracture problem
-	ghostonmap = 0;
-	ghostoffmap = 0;
-	ghostoffmap(0,1) = ghostoffmap(1,0) = 1;	// 3D wave propagation
-	//ghostonmap(4,5) = ghostonmap(5,4) = 1;	// 3D fracture problem
-	//ghostoffmap(0,6) = ghostoffmap(6,0) = ghostoffmap(1,6) = ghostoffmap(6,1) = 1;
-	//ghostoffmap(2,6) = ghostoffmap(6,2) = ghostoffmap(3,6) = ghostoffmap(6,3) = 1;
-	//ghostoffmap(4,6) = ghostoffmap(6,4) = ghostoffmap(5,6) = ghostoffmap(6,5) = 1;
-	//ghostoffmap(1,0) = ghostoffmap(0,1) = 1;  // for wave propagation problem
-	//ghostoffmap(4,0) = ghostoffmap(0,4) = ghostoffmap(4,1) = ghostoffmap(1,4) = 1;  // center MD crack
-	//ghostoffmap(4,2) = ghostoffmap(2,4) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
-	//ghostoffmap(4,3) = ghostoffmap(3,4) = 1;
-	//ghostonmap(2,3) = ghostonmap(3,2) = 1;
-	//ghostoffmap(1,0) = ghostoffmap(0,1) = ghostoffmap(3,0) = ghostoffmap(0,3) = 1; // left edge MD crack
-	//ghostoffmap(1,3) = ghostoffmap(3,1) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
-	//ghostonmap(1,0) = ghostonmap(0,1) = 1;
-
 	if (nsd == 3)
 	{
 		/* set pointers to embedding force/electron density in FEManagerT_bridging atoms */
@@ -152,9 +135,19 @@ void BridgingScaleManagerT::Solve(void)
 	/* solve for initial FEM force f(u) as function of fine scale + FEM */
 	/* use projected totalu instead of totalu for initial FEM displacements */
 	nMatrixT<int>& promap = fFine_THK->PropertiesMap(0);   // element group for particles = 0
+	const int promap_dim = promap.Rows(); // assumes square property matrix
+	
+	// now defne the mappings
+	nMatrixT<int> ghostonmap(promap_dim),ghostoffmap(promap_dim);
+	ghostoffmap = 0;
+	
+	ghostoffmap = fFine_THK->GetGhostMap();
+	
 	ghostonmap = promap; // copy original properties map
 	promap = ghostoffmap;  // turn ghost atoms off for f(u) calculation
-	fubig = InternalForce(bridging_field, projectedu, *fFine_THK);
+
+	fubig = TotalForce(bridging_field, projectedu, *fFine_THK, rhs_2D) ;
+	
 	fine_comm_manager->AllGather(fubig_ID, fubig);	
 	promap = ghostonmap;   // turn ghost atoms back on for MD force calculations
 
@@ -293,7 +286,9 @@ void BridgingScaleManagerT::Solve(void)
 		
 		/* calculate FE internal force as function of total displacement u here */
 		promap = ghostoffmap;  // turn off ghost atoms for f(u) calculations
-		fubig = InternalForce(bridging_field, totalu, *fFine_THK);
+		
+		fubig = TotalForce(bridging_field, totalu, *fFine_THK, rhs_2D);
+		
 		fine_comm_manager->AllGather(fubig_ID, fubig);	
 		promap = ghostonmap;   // turn on ghost atoms for MD force calculations
 		fu.RowCollect(fFine_THK->NonGhostNodes(), fubig); 
@@ -373,6 +368,114 @@ void BridgingScaleManagerT::TakeParameterList(const ParameterListT& list)
 /**********************************************************************
  * Protected
  **********************************************************************/
+// calculate total finescale force for the given displacement u, DEF added
+const dArray2DT& BridgingScaleManagerT::TotalForce(const StringT& field_name, const dArray2DT& field_values, 
+	FEManagerT_bridging& bridging, dArray2DT& rhs_2D) const
+{
+// DEBUG
+//cout << "BridgingScaleManagerT::InternalForce : Start" << endl;
+
+	NodeManagerT& fine_node_manager = *(fFine_THK->NodeManager());
+	int nsd = fine_node_manager.NumSD(); // get the number of spatial dims
+
+	/* first obtain the MD displacement field */
+	FieldT* field = bridging.NodeManager()->Field(field_name);
+	if (!field) 
+		ExceptionT::GeneralFail("BridgingScaleManagerT::TotalForce", "field \"%s\" not found",
+			field_name.Pointer());
+	
+	dArray2DT disp_0 = (*field)[0];	// temporarily store current displacements
+	int group = 0; // assume particle group number = 0
+	
+	/* obtain atom node list - can calculate once and store... */
+	int nnd = field_values.MajorDim();
+	iArrayT nodes(nnd);
+	nodes.SetValueToPosition();
+	
+	// get the ghost nodes
+	iArrayT& ghostnodes = (iArrayT&) bridging.GhostNodes();
+		
+	/* now write total bridging scale displacement u into field */
+	int order = 0;	// write displacement only
+	bridging.SetFieldValues(field_name, nodes, order, field_values);
+	
+	/* compute RHS - ParticlePairT fForce calculated by this call */
+	bridging.FormRHS(group);
+	
+	// lets try to get the external force vector information from FieldT
+	// fext* will be NULL if no external force (i.e. length = 0)
+	ArrayT<FieldT*> finefields;
+	fine_node_manager.CollectFields(group, finefields);
+	FieldT* fields_ref;
+	for (int ifield = 0; ifield < finefields.Length(); ifield++)
+	{
+		fields_ref = finefields[ifield]; // not sure what to do with this when multiple fields...
+	}
+	const dArrayT& fextvals = fields_ref->FieldT::GetfFBCValues();
+	const iArrayT& fexteqns = fields_ref->FieldT::GetfFBCEqnos(); 	
+	
+	/* write actual MD displacements back into field */
+	bridging.SetFieldValues(field_name, nodes, order, disp_0);
+
+	// get the internal force contribution associated with the last call to FormRHS
+	dArray2DT& internalforce = (dArray2DT&) bridging.InternalForce(group);
+	
+	// get the equation numbers from the MD displacement field (1 is first equation # (corresponds to first entry in RHS)
+	iArray2DT& eq_nos = field->Equations();
+	
+	//get the internal and external (interatomic & BC) force into the projection
+	dArrayT& rhs = (dArrayT&) bridging.RHS(group);
+	dArrayT rhs_temp = rhs;
+	
+	// insert the internal force into the total force
+	for (int i = 0; i < nnd; i++)
+	{
+		for (int j = 0; j < nsd; j++)
+		{
+			rhs_2D(i,j) = internalforce(i,j);
+		}
+	}
+	
+	// now add in the external force contribution -> roll this into above once it works (maybe make it faster..)
+	// since eqn numbering in 2D force array is row order (xcomp # < ycomp # < zcomp#)
+	
+	// first translate Fext array into 2D with dimensions (nnd,nsd) -> mapping in general???
+	dArray2DT external_force_vals(nnd,nsd);
+	external_force_vals = 0.0e0;
+	dArray2DT& external_force_ref = external_force_vals; 
+	int extmarker = -1;
+	
+	
+	if (fextvals.Length() != 0)
+	{	
+		for (int i = 0; i < nnd; i++)
+		{
+			for (int j = 0; j < nsd; j++)
+			{
+				// this searches the external force equations... needs better implementation.
+				for (int k = 0; k < fextvals.Length(); k++) // assumes length(fextvals) = length(fexteqns)
+				{
+					if (fexteqns[k] == eq_nos(i,j)) // if the equation number matches up
+					{
+						// record k, break out of loop (try to save some time...)
+						extmarker = k;
+						break;
+					}
+				}				
+				if (extmarker > -1)
+				{
+					rhs_2D(i,j) += fextvals[extmarker];
+				}
+				else
+				{
+					cout << "BridgingScaleManagerT::TotalForce, extmarker = -1" << endl;
+				}
+			}
+		}
+	}
+	
+	return rhs_2D;
+}
 
 /* calculate internal force for the given displacement u */
 const dArray2DT& BridgingScaleManagerT::InternalForce(const StringT& field_name, const dArray2DT& field_values, 

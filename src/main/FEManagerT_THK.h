@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.h,v 1.12 2004-09-28 15:35:14 paklein Exp $ */
+/* $Id: FEManagerT_THK.h,v 1.13 2004-12-26 21:14:26 d-farrell2 Exp $ */
 
 #ifndef _FE_MANAGER_THK_H_
 #define _FE_MANAGER_THK_H_
@@ -53,6 +53,9 @@ public:
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
+	// accessor for the ghostoffmapping
+	const nMatrixT<int> GetGhostMap(void) { return fghostoffmap;};
+
 private:
 
 	/** 2D Bridging Scale Initialization */
@@ -73,7 +76,7 @@ private:
 	/*@{*/
 	int fNcrit;
 	double fLatticeParameter;
-	StringT fThetaFile;
+	StringT fThetaFile, fGhostMapFile;
 	ArrayT<StringT> fTHKNodes;
 	/*@}*/
 
@@ -97,6 +100,18 @@ private:
 	
 	/** displacement history: [n_boundary_atoms] x [time x ndof] */
 	ArrayT<dArray2DT> fHistoryTablet, fHistoryTableb, fHistoryTablet1, fHistoryTableb1;
+	
+	// DEF added these
+	// ghostoffmap matrix
+	nMatrixT<int> fghostoffmap;
+	iArrayT fthk_bound_lengths;
+	iArray2DT fthk_boundary_atoms;
+	int fmax_thk_bound_length;
+	int fnumsets;
+	/** displacement history: [boundary_n] x [[n_boundary_atoms] x [time x ndof]] */
+	ArrayT< ArrayT<dArray2DT> > fHistoryTable;
+	/** boundary neighbors: [boundary_n] x [[n_boundary_atoms] x [n_neighbors]] */
+	ArrayT<iArray2DT> fbound_neighbor_atoms;
 };
 
 } /* namespace Tahoe */

@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleManagerT.h,v 1.3 2004-09-28 15:35:13 paklein Exp $ */
+/* $Id: BridgingScaleManagerT.h,v 1.4 2004-12-26 21:14:26 d-farrell2 Exp $ */
 #ifndef _BRIDGING_SCALE_MANAGER_H_
 #define _BRIDGING_SCALE_MANAGER_H_
 
@@ -39,6 +39,10 @@ public:
 	/*@}*/
 
 private:
+
+	/** calculate internal+external force for the given displacement u */
+	const dArray2DT& TotalForce(const StringT& field_name, const dArray2DT& field_values, 
+		FEManagerT_bridging& bridging, dArray2DT& rhs_2D) const;
 
 	/** calculate internal force for the given displacement u */
 	const dArray2DT& InternalForce(const StringT& field_name, const dArray2DT& field_values, 
