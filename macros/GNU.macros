@@ -1,5 +1,5 @@
-# $Id: GNU.macros,v 1.9 2003-01-27 07:33:59 paklein Exp $
-# GNU
+# $Id: GNU.macros,v 1.10 2003-01-31 22:43:57 paklein Exp $
+# GNU - test
 MAKE        = make
 MAKE_DEPEND = makedepend
 DEPENDFLAGS = -I/usr/include/g++-3 -I/usr/include/g++-2
