@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.12.4.3 2004-05-16 00:48:37 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.12.4.4 2004-05-17 05:14:14 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -185,7 +185,9 @@ public:
 	 * crystal */
 	void CorrectOverlap_all(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2);
 
-	void CorrectOverlap(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2, int nip);
+	void CorrectOverlap_2(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2, int nip);
+
+	void CorrectOverlap_3(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2, int nip);
 
 	/** enforce zero bond density in projected cells */
 	void DeactivateFollowerCells(void);
@@ -250,12 +252,15 @@ protected:
 	void GhostNodeBonds(const RaggedArray2DT<int>& neighbors,
 		RaggedArray2DT<int>& ghost_neighbors, iArrayT& overlap_cell) const;
 	
-	void GhostNodeBonds(const dArrayT& R_i, const dArray2DT& point_coords, 
+	void GhostNodeBonds_2(const dArrayT& R_i, const dArray2DT& point_coords, 
 		const RaggedArray2DT<int>& ghost_neighbors_all, RaggedArray2DT<int>& ghost_neighbors_i, 
 		AutoArrayT<int>& overlap_cell_i, AutoArrayT<int>& overlap_node_i) const;
 
 	/** collect list of cells not containing any active bonds */
 	void BondFreeElements(const RaggedArray2DT<int>& ghost_neighbors_i, AutoArrayT<int>& bondfree_cell_i) const;
+
+	/** count number of bonds terminating with the domain of each element integration point */
+	void CountIPBonds(const ArrayT<int>& elements, iArray2DT& ip_counts) const;
 
 	/** generate "inverse" connectivities for active elements in the support of active nodes.
 	 * For each node in the forward map, collect the elements which are part of its support
