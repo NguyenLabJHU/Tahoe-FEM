@@ -1,6 +1,7 @@
-/* $Id: IC_CardT.cpp,v 1.14.2.3 2004-07-13 16:42:47 paklein Exp $ */
+/* $Id: IC_CardT.cpp,v 1.14.2.4 2004-07-13 16:48:23 paklein Exp $ */
 /* created: paklein (07/16/1997) */
 #include "IC_CardT.h"
+#include "ArrayT.h"
 
 using namespace Tahoe;
 
