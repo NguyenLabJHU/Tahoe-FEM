@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.13 2002-11-21 01:13:42 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.14 2002-11-26 01:54:53 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "TimeManagerT.h"
@@ -161,6 +161,13 @@ bool TimeManagerT::NextSequence(void)
 		theBoss.Output() << fCurrentSequence + 1 << "\n\n";
 		cout << "\n T i m e   S e q u e n c e : ";
 		cout << fCurrentSequence + 1 << endl;
+		
+		/* see if all controllers are explicit */
+		fImpExp = ControllerT::kExplicit;
+		for (int i = 0; fImpExp == ControllerT::kExplicit && 
+			i < theBoss.NumControllers(); i++)
+			fImpExp = theBoss.Controller(i)->ImplicitExplicit();
+		
 		return true;
 	}
 	else
@@ -188,8 +195,7 @@ bool TimeManagerT::Step(void)
 		
 		/* print less often for explicit */
 		GlobalT::AnalysisCodeT analysiscode = theBoss.Analysis();
-		bool is_explicit = (analysiscode == GlobalT::kLinExpDynamic ||
-		                    analysiscode == GlobalT::kNLExpDynamic);
+		bool is_explicit = fImpExp == ControllerT::kExplicit;
 		
 		/* verbose flag */
 		bool write_header = !is_explicit     ||

@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.h,v 1.6 2002-07-12 21:55:47 hspark Exp $ */
+/* $Id: TimeManagerT.h,v 1.7 2002-11-26 01:54:53 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _TIMEMANAGER_T_H_
@@ -14,6 +14,7 @@
 #include "iAutoArrayT.h"
 #include "IOBaseT.h"
 #include "TimeSequence.h"
+#include "ControllerT.h"
 
 namespace Tahoe {
 
@@ -23,7 +24,6 @@ class FEManagerT;
 class CoordinatorT;
 class nLinearHHTalpha;
 class NodeManagerT;
-class ControllerT;
 
 class TimeManagerT: public iConsoleObjectT
 {
@@ -140,6 +140,10 @@ private:
 	/* time stepper */
 	int	   fIsTimeShifted;
 	double fTimeShift;
+	
+	/** will be ControllerT::kExplicit if all integrators are explicit
+	 * otherwise will be ControllerT::kImplicit */
+	ControllerT::ImpExpFlagT fImpExp;
 
 /* functions for time shifters */
 private:
