@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.h,v 1.7 2002-02-18 09:44:07 paklein Exp $ */
+/* $Id: TranslateIOManager.h,v 1.8 2002-02-22 20:06:08 sawimme Exp $ */
 
 #ifndef _TRANSLATE_IOMANAGER_H_
 #define _TRANSLATE_IOMANAGER_H_
@@ -70,6 +70,7 @@ class TranslateIOManager
  private:
   OutputBaseT* fOutput;
   iArrayT fOutputID;
+  bool fOneOutputSet;
 
   dArray2DT fCoordinates;
   iArrayT fNodeMap; // not stored in ModelManager
