@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.32 2004-10-14 20:24:56 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.33 2005-01-27 17:48:56 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "MeshFreeSupportT.h"
 
@@ -199,15 +199,13 @@ void MeshFreeSupportT::SetSkipElements(const iArrayT& skip_elements)
 /* synchronize Dmax with another set (of active EFG nodes) */
 void MeshFreeSupportT::SynchronizeSupportParameters(dArray2DT& nodal_params)
 {
+	const char caller[] = "MeshFreeSupportT::SynchronizeSupportParameters";
 	if (fMeshfreeType == kEFG)
 	{
 		/* should be over the same global node set (marked by length) */
 		if (fNodalParameters.Length() != nodal_params.Length())
-		{
-			cout << "\n MeshFreeSupportT::SynchronizeSupportParameters: list of nodal\n"
-			     << " parameters must the same length over the global node set" << endl;
-			throw ExceptionT::kSizeMismatch;
-		}
+			ExceptionT::SizeMismatch(caller, "expecting %d nodal parameters not %d",
+				fNodalParameters.Length(), nodal_params.Length());
 		
 		/* "synchronize" means take max of dmax */
 		double* pthis = fNodalParameters.Pointer();
@@ -222,7 +220,9 @@ void MeshFreeSupportT::SynchronizeSupportParameters(dArray2DT& nodal_params)
 	else if (fMeshfreeType == kRKPM)
 		/* handled by the MLS solver */
 		fRKPM->SynchronizeSupportParameters(fNodalParameters, nodal_params);
-	else throw ExceptionT::kGeneralFail;
+	else
+		ExceptionT::GeneralFail(caller, "unrecognized meshfree formulation %d",
+			fMeshfreeType);
 }
 
 void MeshFreeSupportT::SetSupportParameters(const iArrayT& node, const dArray2DT& nodal_params)
@@ -1678,7 +1678,7 @@ bool MeshFreeSupportT::Covers(const dArrayT& field_x, const dArrayT& node_x,
 		}
 				
 		/* covers */
-		double dmax_i = fNodalParameters(node, 0);
+		double dmax_i = fDextra*fNodalParameters(node, 0);
 		if (dist < dmax_i*dmax_i) covers = true;
 	}
 	else if (fMeshfreeType == kRKPM)
@@ -2177,6 +2177,8 @@ int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes
 /* NOTE: relies on the fact that the support of any node is big
  *       enough to ensure coverage of all neighboring nodes */
 
+	const char caller[] = "MeshFreeSupportT::BuildNeighborhood";
+
 	/* collect nodes in neighborhood of point x */
 	int cell_span = 0;
 	const double* target = x.Pointer();
@@ -2184,21 +2186,35 @@ int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes
 	while (inodes->Length() < 1 && cell_span <= 3)
 		inodes = &fGrid->HitsInRegion(target, ++cell_span);
 	if (inodes->Length() < 1)
-	{
-		cout << "\n MeshFreeSupportT::BuildNeighborhood: failed to find any nodes around:\n";
-		cout << x << "\n     after 4 iterations" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "failed to find any neighboring points");
 	
 	/* collect support nodes */
-	if (fMeshfreeType == kEFG || fRKPM->SearchType() == WindowT::kSpherical)
+	if (fMeshfreeType == kEFG)
 	{
 		/* find biggest support */
 		double support_max = 0.0;
+		dArrayT nodal_params;
 		for (int ii = 0; ii < inodes->Length(); ii++)
 		{
 			int tag = ((*inodes)[ii]).Tag();
-			double dmax = fNodalParameters(tag,0);
+			double dmax = fNodalParameters(tag,0)*fDextra;
+			support_max = (dmax > support_max) ? dmax : support_max;
+		}
+	
+		/* need to re-collect nodes */
+		if (fGrid->CellSpan(cell_span) < support_max)
+			inodes = &fGrid->HitsInRegion(target, support_max);
+	}		
+	else if (fRKPM->SearchType() == WindowT::kSpherical)
+	{
+		/* find biggest support */
+		double support_max = 0.0;
+		dArrayT nodal_params;
+		for (int ii = 0; ii < inodes->Length(); ii++)
+		{
+			int tag = ((*inodes)[ii]).Tag();
+			fNodalParameters.RowAlias(tag, nodal_params);
+			double dmax = fRKPM->SphericalSupportSize(nodal_params);
 			support_max = (dmax > support_max) ? dmax : support_max;
 		}
 	
@@ -2209,12 +2225,13 @@ int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes
 	else if (fRKPM->SearchType() == WindowT::kConnectivity)
 	{
 		/* find biggest support */
-		dArrayT support_max(x.Length()), support;
+		dArrayT support_max(x.Length()), support(fNodalParameters.MinorDim()), nodal_params;
 		support_max = 0.0;
 		for (int ii = 0; ii < inodes->Length(); ii++)
 		{
 			int tag = ((*inodes)[ii]).Tag();
-			fNodalParameters.RowAlias(tag, support);
+			fNodalParameters.RowAlias(tag, nodal_params);
+			fRKPM->RectangularSupportSize(nodal_params, support);
 			for (int i = 0; i < support.Length(); i++)
 				support_max[i] = Max(support_max[i], support[i]);
 		}
@@ -2222,7 +2239,7 @@ int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes
 		/* re-collect using max support */
 		inodes = &fGrid->HitsInRegion(target, support_max);
 	}
-	else throw ExceptionT::kGeneralFail;
+	else ExceptionT::GeneralFail(caller, "unrecognized neighbor search method");
 
 	/* work space */	
 	int nsd = fCoords->MinorDim();
