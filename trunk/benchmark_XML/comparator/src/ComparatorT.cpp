@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.4 2001-06-12 04:28:20 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.5 2001-06-14 20:52:09 paklein Exp $ */
 
 #include "ComparatorT.h"
 
@@ -20,9 +20,8 @@ double abs_tol = 1.0e-10;
 double rel_tol = 1.0e-08;
 
 /* constructor */
-ComparatorT::ComparatorT(int argc, char* argv[], char job_char, char batch_char,
-	int jobcharputback):
-	FileCrawlerT(argc, argv, job_char, batch_char, jobcharputback),
+ComparatorT::ComparatorT(int argc, char* argv[], char job_char, char batch_char):
+	FileCrawlerT(argc, argv, job_char, batch_char),
 	fAbsTol(abs_tol),
 	fRelTol(rel_tol),
 	fIsRoot(true)
