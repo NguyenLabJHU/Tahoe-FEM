@@ -1,0 +1,96 @@
+# $Id: subdir.targets,v 1.6 2003-01-30 00:46:38 paklein Exp $
+
+MACROS = \
+	"INC_DIR = $(INC_DIR)" \
+	"SRC_DIR = $(SRC_DIR)" \
+	"OBJ_DIR = $(OBJ_DIR)" \
+	"LIB_DIR = $(LIB_DIR)" \
+	"ARCH = $(ARCH)" \
+	"MACRO_DIR = $(MACRO_DIR)" \
+	"OPT_CFLAGS = $(OPT_CFLAGS)" \
+	"MY_CFLAGS = $(MY_CFLAGS)" \
+	"MY_CCFLAGS = $(MY_CCFLAGS)" \
+	"MY_FFLAGS = $(MY_FFLAGS)" \
+	"MY_LFLAGS = $(MY_LFLAGS)" \
+	"LIBRARY = $(LIBRARY)" \
+	"MAKE_DEPEND = $(MAKE_DEPEND)" \
+	"DEPEND_PATH = $(DEPEND_PATH)" \
+	"DEPEND = $(DEPEND)"
+
+# debugging
+echo_all:
+	@ $(ECHO) "MAKE = $(MAKE)"
+	@ $(ECHO) "MAKE_OPTS = $(MAKE_OPTS)"
+	@ $(ECHO) "INC_DIR = $(INC_DIR)"
+	@ $(ECHO) "SRC_DIR = $(SRC_DIR)"
+	@ $(ECHO) "OBJ_DIR = $(OBJ_DIR)"
+	@ $(ECHO) "LIB_DIR = $(LIB_DIR)"
+	@ $(ECHO) "ARCH = $(ARCH)"
+	@ $(ECHO) "MACRO_DIR = $(MACRO_DIR)"
+	@ $(ECHO) "TR = $(TR)"
+	@ $(ECHO) "COMP_C = $(COMP_C)"
+	@ $(ECHO) "COMP_CC = $(COMP_CC)"
+	@ $(ECHO) "COMP_F = $(COMP_F)"
+	@ $(ECHO) "CFLAGS_C = $(CFLAGS_C)"
+	@ $(ECHO) "CFLAGS_CC = $(CFLAGS_CC)"
+	@ $(ECHO) "CFLAGS_F = $(CFLAGS_F)"
+	@ $(ECHO) "LIBRARY = $(LIBRARY)"
+	@ $(ECHO) "AR = $(AR)"
+	@ $(ECHO) "ARFLAGS = $(ARFLAGS)"
+	@ $(ECHO) "RM = $(RM)"
+	@ $(ECHO) "RM_FILES = $(RM_FILES)"
+	@ $(ECHO) "LN = $(LN)"
+	@ $(ECHO) "MY_CFLAGS = $(MY_CFLAGS)"
+	@ $(ECHO) "MY_CCFLAGS = $(MY_CCFLAGS)"
+	@ $(ECHO) "MY_FFLAGS = $(MY_FFLAGS)"
+	@ $(ECHO) "MY_LFLAGS = $(MY_LFLAGS)"
+	@ $(ECHO) "MAKE_DEPEND = $(MAKE_DEPEND)"
+	@ $(ECHO) "DEPEND_PATH = $(DEPEND_PATH)"
+	@ $(ECHO) "DEPEND = $(DEPEND)"
+	@ $(ECHO) "ECHO = $(ECHO)"
+	@ $(ECHO) "CAT = $(CAT)"
+
+clean:
+	-@ $(RM) $(RM_FILES)
+	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = clean"
+
+depend_init: all.depend
+	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = depend_init"
+
+depend_clean:
+	-@ $(RM) *.d
+
+all.depend: $(DEP)
+	@ $(ECHO) "    $(CAT): $(DEP) > all.depend"; $(CAT) $(DEP) > all.depend
+
+headers: depend_clean $(HDR_LINK)
+	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = headers"
+
+objects: all.depend
+	@ $(MAKE) $(MACROS) update_objects
+	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = objects"
+
+update_objects: $(OBJ)
+
+library:
+	@ $(ECHO) "\\" >> $(LIBRARY)
+	@ $(ECHO) "\t$(OBJ_LINK)\c" >> $(LIBRARY)
+	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = library"
+	
+subdir_loop:
+	@ for n in $(SUB_DIR); do \
+		if test -d $$n; then \
+			$(ECHO) " cd $$n"; \
+			cd $$n; \
+			$(MAKE) $(COMMAND) $(MACROS) "CURR_DIR = $(CURR_DIR)/$$n" \
+			|| exit 1; \
+			cd ../; \
+		else \
+			$(ECHO) "\n*** missing directory: $(CURR_DIR)/$$n"; \
+			$(ECHO) "*** try updating with \"cvs update -Pd\"\n"; \
+			exit 1; \
+		fi; \
+	done	
+
+dummy:
+
