@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.15 2004-01-05 07:24:00 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.16 2004-01-05 23:42:08 paklein Exp $ */
 #ifndef _ABAQUS_VUMAT_BASE_T_H_
 #define _ABAQUS_VUMAT_BASE_T_H_
 
@@ -186,9 +186,6 @@ private:
 	dMatrixT fF_rel;
 	dMatrixT fA_nsd, fROld, fRNew;
 	dSymMatrixT fU1, fU2, fU1U2, fUOld, fUNew;
-
-	/* density */
-	double fAbDensity;
 };
 
 /* inlines */

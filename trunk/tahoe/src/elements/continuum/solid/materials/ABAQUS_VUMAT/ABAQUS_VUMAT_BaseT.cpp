@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.22 2004-01-05 23:36:06 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.23 2004-01-05 23:42:08 paklein Exp $ */
 #include "ABAQUS_VUMAT_BaseT.h"
 
 #ifdef __F2C__
@@ -29,7 +29,6 @@ ABAQUS_VUMAT_BaseT::ABAQUS_VUMAT_BaseT(ifstreamT& in, const FSMatSupportT& suppo
 	fROld(NumSD()),
 	fRNew(NumSD()),
 	fA_nsd(NumSD()),
-	fAbDensity(0.0),
 	fU1(NumSD()), fU2(NumSD()), fU1U2(NumSD()), fUOld(NumSD()), fUNew(NumSD())
 {
 	/* read ABAQUS-format input */
@@ -449,7 +448,7 @@ void ABAQUS_VUMAT_BaseT::Call_VUMAT(double t, double dt, int step, int iter)
 	doublereal* stretchold = fUOld2.Pointer();           // i: Stretch tensor at beginning of increment
 	doublereal* stretchnew = fUNew2.Pointer();           // i: Stretch tensor at end of increment
 	doublereal* relspininc = fRelSpin.Pointer();        // i: Relative spin increment
-	doublereal  density = fAbDensity;                   // i: Density of material
+	doublereal  density = fDensity;                   // i: Density of material
 	doublereal* stressnew = fstress.Pointer();          // o: This is the stress to be updated
 	doublereal* statevnew = fstatv.Pointer();           // o: This is the state variable array to be updated
 
