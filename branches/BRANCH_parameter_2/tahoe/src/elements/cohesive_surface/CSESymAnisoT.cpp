@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.cpp,v 1.6 2003-12-01 23:53:15 cjkimme Exp $ */
+/* $Id: CSESymAnisoT.cpp,v 1.6.2.1 2004-03-24 01:59:56 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSESymAnisoT.h"
 
@@ -38,7 +38,7 @@ using namespace Tahoe;
 CSESymAnisoT::CSESymAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate):
 	CSEAnisoT(support, field, rotate)
 {
-	SetName("modeI_CSE");
+	SetName("anisotropic_symmetry_CSE");
 
 	/* reset format for the element stiffness matrix */
 	if (fRotate) fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
@@ -48,20 +48,15 @@ CSESymAnisoT::CSESymAnisoT(const ElementSupportT& support, const FieldT& field, 
 CSESymAnisoT::CSESymAnisoT(const ElementSupportT& support):
 	CSEAnisoT(support)
 {
-	SetName("modeI_CSE");
+	SetName("anisotropic_symmetry_CSE");
 }
 #else
 CSESymAnisoT::CSESymAnisoT(ElementSupportT& support, bool rotate):
 	CSEAnisoT(support)
 {
-	SetName("modeI_CSE");
+	SetName("anisotropic_symmetry_CSE");
 }
 #endif
-
-CSESymAnisoT::~CSESymAnisoT(void)
-{
-
-}
 
 /* writing output */
 void CSESymAnisoT::RegisterOutput(void)
@@ -109,12 +104,14 @@ void CSESymAnisoT::RegisterOutput(void)
 	GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	ArrayT<StringT> block_ID(fBlockData.Length());
-	for (int i = 0; i < block_ID.Length(); i++)
-		block_ID[i] = fBlockData[i].ID();
+
+	/* collect output connectivities */
+	ModelManagerT& model = ElementSupport().Model();
+	ArrayT<const iArray2DT*> output_connects(fOutputBlockID.Length());
+	model.ElementGroupPointers(fOutputBlockID, output_connects);
 	
 	/* set output specifier */
-	OutputSetT output_set(geo_code, block_ID, sideSet_ID, fOutput_Connectivities, n_labels, e_labels, false);
+	OutputSetT output_set(geo_code, fOutputBlockID, fSideSet_ID, output_connects, n_labels, e_labels, false);
 
 	/* register and get output ID */
 	fOutputID = ElementSupport().RegisterOutput(output_set);
@@ -122,7 +119,6 @@ void CSESymAnisoT::RegisterOutput(void)
 	ElementSupport().RegisterOutput(n_labels,e_labels);
 #endif
 }
-
 
 /***********************************************************************
  * Protected
@@ -825,6 +821,65 @@ void CSESymAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	ElementSupport().OutputUsedAverage(n_values);
 }
 
+/* extract element block info from parameter list to be used */
+void CSESymAnisoT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  
+	ArrayT<int>& mat_index) const
+{
+	const char caller[] = "CSESymAnisoT::CollectBlockInfo";
+
+	/* inherited */
+	CSEAnisoT::CollectBlockInfo(list, block_ID, mat_index);
+
+	/* geometry information */
+	ModelManagerT& model = ElementSupport().Model();
+
+	/* register side sets as element blocks */
+	CSESymAnisoT* non_const_this = (CSESymAnisoT*) this;
+	non_const_this->fSideSet_ID = block_ID;
+	int nen = 0;
+	for (int b = 0; b < fSideSet_ID.Length(); b++)
+	{
+		/* read side set */
+		iArrayT facet_nodes;
+		ArrayT<GeometryT::CodeT> facet_geom;
+		iArray2DT faces;
+		model.SideSet(fSideSet_ID[b], facet_geom, facet_nodes, faces);	
+	
+		/* handle empty set */
+	    if (faces.MajorDim() == 0)	{
+	    	facet_geom.Dimension(1);
+	    	facet_geom[0] = (NumSD() == 2) ? GeometryT::kLine : GeometryT::kQuadrilateral;
+	    	faces.Dimension(0, DefaultNumElemNodes());
+	    }
+	    
+	    /* set the number of element nodes */
+	    if (nen == 0)
+	    	nen = faces.MinorDim();
+	    else if (nen != faces.MinorDim())/* check consistency */
+	    	ExceptionT::BadInputValue(caller, "side set \"%s\" has %d nodes not %d",
+	    		fSideSet_ID[b].Pointer(), faces.MinorDim(), nen);
+
+		/* Make a new ID that's the last element group in the database */
+		StringT new_id;
+		new_id.Append(model.NumElementGroups()+1);
+		new_id = model.FreeElementID(new_id);
+		block_ID[b] = new_id;
+	
+		/* register side set as element block */
+		if (!model.RegisterElementGroup(new_id, faces, facet_geom[0], true))
+			ExceptionT::GeneralFail(caller, "could not reguster side set \"%s\" as element block \"%s\"",
+				fSideSet_ID[b].Pointer(), new_id.Pointer());
+
+	}
+
+	/* connectivities came back empty */
+	if (nen == 0)
+		ExceptionT::GeneralFail(caller, "no connectivities from side sets");
+		
+	/* reset the ID's used for output */
+	non_const_this->fOutputBlockID = block_ID;
+}
+
 /* read element connectivity data */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 void CSESymAnisoT::ReadConnectivity(ifstreamT& in, ostream& out)
@@ -839,7 +894,7 @@ void CSESymAnisoT::ReadConnectivity(void)
 	ModelManagerT& model = ElementSupport().Model();
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	bool multiDatabaseSets = false;
-	model.SideSetList(in, sideSet_ID, multiDatabaseSets);
+	model.SideSetList(in, fSideSet_ID, multiDatabaseSets);
 #else
 	/* For Sierra, can't use input stream */
 	sideSet_ID.Dimension(1);
@@ -850,7 +905,7 @@ void CSESymAnisoT::ReadConnectivity(void)
 #endif
 
 	/* allocate block map */
-	int num_blocks = sideSet_ID.Length();
+	int num_blocks = fSideSet_ID.Length();
 	
 	if (num_blocks != 1)
 	{
@@ -873,7 +928,7 @@ void CSESymAnisoT::ReadConnectivity(void)
 	    /* check number of nodes */
 	    int num_elems, num_nodes;
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	    model.SideSet(sideSet_ID[b], ssArray, facetNodes, faces);
+	    model.SideSet(fSideSet_ID[b], ssArray, facetNodes, faces);
 	    num_elems = faces.MajorDim();
 	    if (num_elems == 0) // empty side sets are possible and should be allowed
 	    {
@@ -939,7 +994,8 @@ void CSESymAnisoT::ReadConnectivity(void)
 	fElementCards.Dimension(elem_count);
 	
 	/* set for output */
-	fOutput_Connectivities = fConnectivities;
+//	fOutput_Connectivities = fConnectivities;
+	ExceptionT::GeneralFail("CSESymAnisoT::ReadConnectivity", "fix me");
 }
 
 /* write all current element information to the stream */
