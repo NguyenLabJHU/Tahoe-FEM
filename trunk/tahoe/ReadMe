@@ -1,4 +1,4 @@
-$Id: ReadMe,v 1.2 2004-09-16 00:04:02 paklein Exp $
+$Id: ReadMe,v 1.3 2004-09-16 00:05:08 paklein Exp $
 
 INSTALLATION:
 See makefile.template for instructions for building this module. Tahoe 2.x
@@ -39,7 +39,7 @@ The precompiled headers are useful for the following:
     
         tahoe/src/pch/tahoePrefix.h
 
-(2) Some versions of CodeWarrior now have a mechanism for defining symbols
+(2) Some versions of CodeWarrior do not have a mechanism for defining symbols
     for the C preprocessor, as is normally done with -D[symbol] flags passed to
     command-line compilers. The "build options" section of makefile.template
     defines a number of these to define the configuration of the build. With
