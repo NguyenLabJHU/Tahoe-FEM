@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.44 2004-01-27 15:31:05 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.45 2004-02-09 08:23:31 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -523,7 +523,7 @@ void ElementBaseT::EchoConnectivityData(void)
 	  }
 
 	/* set pointers in element cards */
-	SetElementCards();
+	SetElementCards(fBlockData, fConnectivities, fEqnos, fElementCards);
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* write */
@@ -765,16 +765,20 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 }
 
 /* set element cards array */
-void ElementBaseT::SetElementCards(void)
+void ElementBaseT::SetElementCards(
+	const ArrayT<ElementBlockDataT>& block_data, 
+	const ArrayT<const iArray2DT*>& connectivities,		
+	const ArrayT<iArray2DT>& eqnos, 
+	AutoArrayT<ElementCardT>& element_cards) const
 {
 	const char caller[] = "ElementBaseT::SetElementCards";
-	if (fConnectivities.Length() != fEqnos.Length())
+	if (connectivities.Length() != eqnos.Length())
     {
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
       cout << "ElementBaseT::SetElementCards length mismatch ";
       cout << "\n           element group: " << fSupport.ElementGroupNumber(this) + 1;      
-      cout << "\n fConnectivities length = " << fConnectivities.Length();
-      cout << "\n          fEqnos length = " << fEqnos.Length() << endl;
+      cout << "\n connectivities length = " << connectivities.Length();
+      cout << "\n         eqnos length = " << eqnos.Length() << endl;
 #endif
 		ExceptionT::SizeMismatch(caller);
     }
@@ -782,12 +786,12 @@ void ElementBaseT::SetElementCards(void)
 	/* loop over blocks to set pointers */
 	int numberofnodes = fSupport.NumNodes();
 	int count = 0;
-	for (int i = 0; i < fBlockData.Length(); i++)
+	for (int i = 0; i < block_data.Length(); i++)
 	{
-		int dim = fBlockData[i].Dimension();
-		int mat = fBlockData[i].MaterialID();
-		const iArray2DT* blockconn = fConnectivities[i];
-		iArray2DT& blockeqnos = fEqnos[i];
+		int dim = block_data[i].Dimension();
+		int mat = block_data[i].MaterialID();
+		const iArray2DT* blockconn = connectivities[i];
+		const iArray2DT& blockeqnos = eqnos[i];
 
 		if (blockconn->MajorDim() != blockeqnos.MajorDim())
 		  {
@@ -803,7 +807,7 @@ void ElementBaseT::SetElementCards(void)
 
 		for (int j = 0; j < dim; j++)
 		{
-			ElementCardT& element_card = fElementCards[count];
+			ElementCardT& element_card = element_cards[count];
 	
 			/* material number */
 			element_card.SetMaterialNumber(mat);
@@ -833,8 +837,8 @@ void ElementBaseT::SetElementCards(void)
 }
 
 /***********************************************************************
-* Private
-***********************************************************************/
+ * Private
+ ***********************************************************************/
 
 /* return the default number of element nodes */
 int ElementBaseT::DefaultNumElemNodes(void) const { return 0; }
