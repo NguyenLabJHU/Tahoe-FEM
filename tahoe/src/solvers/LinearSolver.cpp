@@ -1,12 +1,12 @@
-/* $Id: LinearSolver.cpp,v 1.2 2002-04-02 23:28:01 paklein Exp $ */
-/* created: paklein (05/30/1996)                                          */
+/* $Id: LinearSolver.cpp,v 1.2.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* created: paklein (05/30/1996) */
 
 #include "LinearSolver.h"
 #include "FEManagerT.h"
 
 /* constructor */
-LinearSolver::LinearSolver(FEManagerT& fe_manager):
-	SolverT(fe_manager),
+LinearSolver::LinearSolver(FEManagerT& fe_manager, int group):
+	SolverT(fe_manager, group),
 	fFormLHS(1)
 {
 

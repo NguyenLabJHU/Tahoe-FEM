@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.9 2002-04-02 23:27:27 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.9.2.1 2002-04-25 01:37:48 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #include "NLSolver.h"
@@ -12,8 +12,8 @@
 #include "FEManagerT.h"
 
 /* constructor */
-NLSolver::NLSolver(FEManagerT& fe_manager):
-	SolverT(fe_manager),
+NLSolver::NLSolver(FEManagerT& fe_manager, int group):
+	SolverT(fe_manager, group),
 	fMaxIterations(-1),
 	fZeroTolerance(0.0),
 	fTolerance(0.0),

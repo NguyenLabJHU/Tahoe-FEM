@@ -1,4 +1,4 @@
-/* $Id: SymmetricNodesT.h,v 1.1 2002-04-19 21:12:58 cjkimme Exp $ */
+/* $Id: SymmetricNodesT.h,v 1.1.2.1 2002-04-25 01:34:00 paklein Exp $ */
 
 #ifndef _SYMMETRIC_NODES_T_H_
 #define _SYMMETRIC_NODES_T_H_
@@ -16,7 +16,7 @@
 class dArray2DT;
 class FEManagerT;
 
-/* Class derived from TiedNodesT intended to provide a means to enforce
+/** class derived from TiedNodesT. Intended to provide a means to enforce
  * symmetry constraints along the line(plane) in 2D(3D) determined by 
  * follower and leader nodes. This symmetry is enforced in function
  * CopyKinematics. */
@@ -25,7 +25,7 @@ class SymmetricNodesT: public TiedNodesT
 public:	
 
 	/** constructor */
-	SymmetricNodesT(NodeManagerT& node_manager);
+	SymmetricNodesT(NodeManagerPrimitive& node_manager, BasicFieldT& field);
 
 	/** initialize data. Must be called immediately after construction */
        	virtual void Initialize(ifstreamT& in);
@@ -128,7 +128,7 @@ protected:
 
 	//const FEManagerT& fFEManager;
  private:
-	int fSD;
+
 	dArray2DT fDir;
 	
 };

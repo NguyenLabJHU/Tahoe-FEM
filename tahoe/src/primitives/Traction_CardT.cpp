@@ -1,6 +1,5 @@
-/* $Id: Traction_CardT.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
-/* created: paklein (05/29/1996)                                          */
-
+/* $Id: Traction_CardT.cpp,v 1.1.1.1.8.1 2002-04-25 01:36:32 paklein Exp $ */
+/* created: paklein (05/29/1996) */
 #include "Traction_CardT.h"
 
 #include <iostream.h>
@@ -10,7 +9,7 @@
 
 #include "fstreamT.h"
 #include "dArray2DT.h"
-#include "LoadTime.h"
+#include "ScheduleT.h"
 #include "DomainIntegrationT.h"
 #include "FEManagerT.h"
 
@@ -79,13 +78,13 @@ void Traction_CardT::EchoValues(const FEManagerT& theBoss, int elem, int facet,
 	}
 
 	/* resolve the pointer to the LTf */
-	fLTfPtr = theBoss.GetLTfPtr(nLTf);
+	fLTfPtr = theBoss.Schedule(nLTf);
 }	
 
 /* return the traction value: (ndof x nnd) */
 void Traction_CardT::CurrentValue(LocalArrayT& traction) const
 {
-	traction.SetToScaled(fLTfPtr->LoadFactor(), fValues);
+	traction.SetToScaled(fLTfPtr->Value(), fValues);
 }
 
 /* write the standard header */

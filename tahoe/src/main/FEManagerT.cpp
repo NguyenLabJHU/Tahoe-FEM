@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.32.2.1 2002-04-24 01:29:23 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.32.2.2 2002-04-25 01:28:56 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -24,11 +24,15 @@
 #include "nControllerT.h"
 
 /* nodes */
+#include "NodeManagerPrimitive.h"
+
+#if 0
 #include "NodeManagerT.h"
 #include "FDNodeManager.h"
 #include "DynNodeManager.h"
 #include "FDDynNodeManagerT.h"
 #include "DuNodeManager.h"
+#endif
 
 /* solvers */
 #include "LinearSolver.h"
@@ -68,8 +72,6 @@ FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output):
 	fTimeManager(NULL),
 	fNodeManager(NULL),
 	fElementGroups(*this),
-	fSolutionDriver(NULL),
-	fController(NULL),
 	fIOManager(NULL),
 	fRestartCount(0),
 	fGlobalEquationStart(0),
@@ -104,12 +106,13 @@ FEManagerT::~FEManagerT(void)
 	fStatus = GlobalT::kDestruction;
 	delete fTimeManager;
 	delete fNodeManager;
-	delete fSolutionDriver;
+	
+	for (int i = 0; i < fSolvers.Length(); i++)
+		delete fSolvers[i];
 	
 	for (int i = 0; i < fControllers.Length(); i++)
 		delete fControllers[i];
 
-	delete fController;
 	delete fIOManager;
 	delete fModelManager;
 	fStatus = GlobalT::kNone;	
@@ -229,15 +232,15 @@ int FEManagerT::NumberOfLTf(void) const
 GlobalT::AnalysisCodeT FEManagerT::Analysis(void) const { return fAnalysisCode; }
 bool FEManagerT::PrintInput(void) const { return fPrintInput; }
 
-void FEManagerT::WriteEquationNumbers(void) const
+void FEManagerT::WriteEquationNumbers(int group) const
 {
-	fNodeManager->WriteEquationNumbers(fMainOut);
+	fNodeManager->WriteEquationNumbers(group, fMainOut);
 	fMainOut.flush();
 }
 
-GlobalT::SystemTypeT FEManagerT::GlobalSystemType(void) const
+GlobalT::SystemTypeT FEManagerT::GlobalSystemType(int group) const
 {
-	GlobalT::SystemTypeT type = fNodeManager->TangentType();
+	GlobalT::SystemTypeT type = fNodeManager->TangentType(group);
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
 	{
 		GlobalT::SystemTypeT e_type = fElementGroups[i]->TangentType();
@@ -455,46 +458,46 @@ GlobalT::RelaxCodeT FEManagerT::RelaxSystem(void) const
 }
 
 /* global equation functions */
-void FEManagerT::AssembleLHS(const ElementMatrixT& elMat,
+void FEManagerT::AssembleLHS(int group, const ElementMatrixT& elMat,
 	const nArrayT<int>& eqnos) const
 {
 	fSolutionDriver->AssembleLHS(elMat, eqnos);
 }
 
-void FEManagerT::AssembleLHS(const ElementMatrixT& elMat,
+void FEManagerT::AssembleLHS(int group, const ElementMatrixT& elMat,
 	const nArrayT<int>& row_eqnos, const nArrayT<int>& col_eqnos) const
 {
 	fSolutionDriver->AssembleLHS(elMat, row_eqnos, col_eqnos);
 }
 
-void FEManagerT::OverWriteLHS(const ElementMatrixT& elMat,
+void FEManagerT::OverWriteLHS(int group, const ElementMatrixT& elMat,
 	const nArrayT<int>& eqnos) const
 {
 	fSolutionDriver->OverWriteLHS(elMat, eqnos);
 }
 
-void FEManagerT::DisassembleLHS(dMatrixT& elMat, const nArrayT<int>& eqnos) const
+void FEManagerT::DisassembleLHS(int group, dMatrixT& elMat, const nArrayT<int>& eqnos) const
 {
 	fSolutionDriver->DisassembleLHS(elMat, eqnos);
 }
 
-void FEManagerT::DisassembleLHSDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const
+void FEManagerT::DisassembleLHSDiagonal(int group, dArrayT& diagonals, const nArrayT<int>& eqnos) const
 {
 	fSolutionDriver->DisassembleLHSDiagonal(diagonals, eqnos);
 }
 
-void FEManagerT::AssembleRHS(const dArrayT& elRes,
+void FEManagerT::AssembleRHS(int group, const dArrayT& elRes,
 	const nArrayT<int>& eqnos) const
 {
 	fSolutionDriver->AssembleRHS(elRes, eqnos);
 }
 
-void FEManagerT::OverWriteRHS(const dArrayT& elRes, const nArrayT<int>& eqnos) const
+void FEManagerT::OverWriteRHS(int group, const dArrayT& elRes, const nArrayT<int>& eqnos) const
 {
 	fSolutionDriver->OverWriteRHS(elRes, eqnos);
 }
 
-void FEManagerT::DisassembleRHS(dArrayT& elRes, const nArrayT<int>& eqnos) const
+void FEManagerT::DisassembleRHS(int group, dArrayT& elRes, const nArrayT<int>& eqnos) const
 {
 	fSolutionDriver->DisassembleRHS(elRes, eqnos);
 }
@@ -1005,93 +1008,70 @@ void FEManagerT::SetElementGroups(void)
 /* set the correct fSolutionDriver type */
 void FEManagerT::SetSolver(void)
 {	
-	switch (fAnalysisCode)
+	/* no predefined solvers */ 
+	if (fAnalysisCode == GlobalT::kMultiField)
 	{
-		case GlobalT::kLinStatic:
-		case GlobalT::kLinDynamic:
-		case GlobalT::kLinExpDynamic:
-		case GlobalT::kNLExpDynamic:
-		case GlobalT::kVarNodeNLExpDyn:
-		case GlobalT::kNLExpDynKfield:
-		case GlobalT::kLinStaticHeat:
-		case GlobalT::kLinTransHeat:
-		case GlobalT::kPML:
-		
-			fSolutionDriver = new LinearSolver(*this);
-			break;
-
-		case GlobalT::kDR:
-
-			fSolutionDriver = new DRSolver(*this);
-			break;
-
-		case GlobalT::kNLStatic:
-		case GlobalT::kNLDynamic:
-		case GlobalT::kNLStaticKfield:
-		case GlobalT::kVarNodeNLStatic:
+		for (int i = 0; i < fSolvers.Length(); i++)
 		{
-			int NL_solver_code;
-			fMainIn >> NL_solver_code;
-			
-			/* construct nonlinear solver */
-			switch (NL_solver_code)
-			{
-				case SolverT::kNewtonSolver:			
-					fSolutionDriver = new NLSolver(*this);	
-					break;
-
-				case SolverT::kK0_NewtonSolver:				
-					fSolutionDriver = new NLK0Solver(*this);
-					break;
-
-				case SolverT::kModNewtonSolver:				
-					fSolutionDriver = new NLSolverX(*this);
-					break;
-
-				case SolverT::kExpCD_DRSolver:				
-					fSolutionDriver = new ExpCD_DRSolver(*this);
-					break;
-
-				case SolverT::kNewtonSolver_LS:				
-					fSolutionDriver = new NLSolver_LS(*this);
-					break;
-
-				case SolverT::kPCGSolver_LS:				
-					fSolutionDriver = new PCGSolver_LS(*this);
-					break;
-
-				case SolverT::kiNewtonSolver_LS:				
-					fSolutionDriver = new iNLSolver_LS(*this);
-					break;
-
-				case SolverT::kNOX:				
-#ifdef __NOX__
-					fSolutionDriver = new NOXSolverT(*this);
-					break;
-#else
-					cout << "\n FEManagerT::SetSolver: NOX not installed: " << SolverT::kNOX << endl;
-					throw eGeneralFail;
-#endif			
-				default:			
-					cout << "\n FEManagerT::SetSolver: unknown nonlinear solver code: ";
-					cout << NL_solver_code << endl;
+			int index = -1;
+			int type = -1;
+			fMainIn >> index >> type;
+			index--
+			if (fSolvers[index] != NULL) {
+				cout << "\n FEManagerT::SetSolver: solver at index "
+				     << index+1 << " is already set" << endl;
+				throw eBadInputValue
 			}
-			break;
+	
+			/* construct solver */
+			fSolvers[index] = New_Solver(type);
 		}
-
-		default:
-
-			cout << "\n FEManagerT::SetSolver: unknown analysis type: " << fAnalysisCode << endl;
-			throw eBadInputValue;
 	}
+	else /* support for legacy analysis codes */
+	{
+		/* should have just one solver */
+		if (fSolvers.Length() != 1) throw eSizeMismatch;
+	
+		/* solver set by analysis code */
+		switch (fAnalysisCode)
+		{
+			case GlobalT::kLinStatic:
+			case GlobalT::kLinDynamic:
+			case GlobalT::kLinExpDynamic:
+			case GlobalT::kNLExpDynamic:
+			case GlobalT::kNLExpDynKfield:
+			case GlobalT::kLinStaticHeat:
+			case GlobalT::kLinTransHeat:
+			case GlobalT::kPML:
+				fSolvers[0] = New_Solver(SolverT::kLinear);
+				break;
 
-	if (!fSolutionDriver) throw eGeneralFail;
+			case GlobalT::kDR:
+				fSolvers[0] = New_Solver(SolverT::kDR);
+				break;
+
+			case GlobalT::kNLStatic:
+			case GlobalT::kNLDynamic:
+			case GlobalT::kNLStaticKfield:
+			case GlobalT::kVarNodeNLStatic:
+			{
+				int NL_solver_code;
+				fMainIn >> NL_solver_code;
+				fSolvers[0] = New_Solver(NL_solver_code);
+				break;
+			}
+			default:
+				cout << "\n FEManagerT::SetSolver: unknown analysis type: " << fAnalysisCode << endl;
+				throw eBadInputValue;
+		}
+	}
 
 	/* reset equation structure */
 	SetEquationSystem();
 	
-	/* console */
-	iAddSub(*fSolutionDriver);
+	/* add solvers to console */
+	for (int i = 0; i < fSolvers.Length(); i++)
+		iAddSub(*(fSolver[i]));
 }
 
 void FEManagerT::ReadParameters(InitCodeT init)
@@ -1139,6 +1119,18 @@ void FEManagerT::ReadParameters(InitCodeT init)
 		cout << "\n FEManagerT::ReadParameters: error initializing model manager" << endl;
 		throw eBadInputValue;
 	}
+
+	/* read number of equation groups */	
+	int num_groups = -1;
+	if (fAnalysisCode != kMultiField)
+		fMainIn >> num_groups;
+	/* support for legacy analysis */
+	else
+		num_groups = 1;
+
+	/* allocate to that NumGroups is correct */
+	fSolvers.Dimension(num_groups);
+	fSolvers = NULL;
 }
 
 /* set the execution controller and send to nodes and elements.
@@ -1440,4 +1432,69 @@ void FEManagerT::SendEqnsToSolver(void) const
 
 	for (int k = 0; k < eq_2.Length(); k++)
 		fSolutionDriver->ReceiveEqns(*(eq_2[k]));
+}
+
+SolverT* FEManagerT::New_Solver(int code) const
+{
+	/* construct solver */
+	SolverT* solver = NULL;
+	switch (code)
+	{
+		case SolverT::kLinear:
+			solver = new LinearSolver(*this);
+			break;
+
+		case SolverT::kDR:
+			solver = new DRSolver(*this);
+			break;
+	
+		case SolverT::kNewtonSolver:			
+			solver = new NLSolver(*this);	
+			break;
+
+		case SolverT::kK0_NewtonSolver:				
+			solver = new NLK0Solver(*this);
+			break;
+
+		case SolverT::kModNewtonSolver:				
+			solver = new NLSolverX(*this);
+			break;
+
+		case SolverT::kExpCD_DRSolver:				
+			solver = new ExpCD_DRSolver(*this);
+			break;
+
+		case SolverT::kNewtonSolver_LS:				
+			solver = new NLSolver_LS(*this);
+			break;
+
+		case SolverT::kPCGSolver_LS:				
+			solver = new PCGSolver_LS(*this);
+			break;
+
+		case SolverT::kiNewtonSolver_LS:				
+			solver = new iNLSolver_LS(*this);
+			break;
+
+		case SolverT::kNOX:				
+#ifdef __NOX__
+			solver = new NOXSolverT(*this);
+			break;
+#else
+			cout << "\n FEManagerT::New_Solver: NOX not installed: " << SolverT::kNOX << endl;
+			throw eGeneralFail;
+#endif			
+		default:			
+			cout << "\n FEManagerT::New_Solver: unknown nonlinear solver code: ";
+			cout << NL_solver_code << endl;
+			throw eBadInputValue;
+	}
+
+	/* fail */
+	if (!solver) {
+		cout << "\n FEManagerT::New_Solver: failed" << endl;
+		throw eGeneralFail;	
+	}
+
+	return solver;
 }

@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.h,v 1.2 2001-11-28 22:08:46 paklein Exp $ */
+/* $Id: iNLSolver_LS.h,v 1.2.2.1 2002-04-25 01:37:48 paklein Exp $ */
 /* created: paklein (01/01/2001) */
 
 #ifndef _I_NL_SOLVER_LS_H_
@@ -10,12 +10,13 @@
 /* direct members */
 #include "dArray2DT.h"
 
+/** nonlinear Newton solver with interactive console */
 class iNLSolver_LS: public NLSolver_LS
 {
 public:
 
 	/* constructor */
-	iNLSolver_LS(FEManagerT& fe_manager);
+	iNLSolver_LS(FEManagerT& fe_manager, int group);
 
 	/* generate the solution for the current time sequence */
 	virtual void Run(void);

@@ -1,21 +1,23 @@
-/* $Id: MappedPeriodicT.cpp,v 1.4.2.1 2002-04-24 01:29:27 paklein Exp $ */
-/* created: paklein (04/07/1997)                                          */
+/* $Id: MappedPeriodicT.cpp,v 1.4.2.2 2002-04-25 01:34:00 paklein Exp $ */
+/* created: paklein (04/07/1997) */
 
 #include "MappedPeriodicT.h"
 
-#include "NodeManagerT.h"
+#include "NodeManagerPrimitive.h"
 #include "FEManagerT.h"
 #include "fstreamT.h"
+#include "BasicFieldT.h"
 
 /* column indeces */
 const int kMaster = 0;
 const int kSlave  = 1;
 
 /* constructor */
-MappedPeriodicT::MappedPeriodicT(NodeManagerT& node_manager):
+MappedPeriodicT::MappedPeriodicT(NodeManagerPrimitive& node_manager, BasicFieldT& field):
 	KBC_ControllerT(node_manager),
+	fField(field),
 	fnumLTf(-1),
-	fLTf(NULL),
+	fSchedule(NULL),
 	fFperturb(fNodeManager.NumSD()),
 	fF(fNodeManager.NumSD()),
 	fD_sm(fNodeManager.NumSD()),
@@ -30,8 +32,8 @@ void MappedPeriodicT::Initialize(ifstreamT& in)
 	/* schedule for fFperturb */
 	in >> fnumLTf; fnumLTf--;
 	if (fnumLTf < 0) throw eBadInputValue;
-	fLTf = fNodeManager.Schedule(fnumLTf);	
-	if (!fLTf) throw eBadInputValue;
+	fSchedule = fNodeManager.Schedule(fnumLTf);	
+	if (!fSchedule) throw eBadInputValue;
 
 	/* specified deformation gradient */
 	in >> fFperturb;
@@ -141,7 +143,7 @@ void MappedPeriodicT::InitialCondition(void)
 		for (int j = 0; j < nsd; j++)
 		{
 			fMappedCards[dex].SetValues(node, j, KBC_CardT::kDsp, 0, d[j] - X[j]);
-			fMappedCards[dex].SetSchedule(fLTf);
+			fMappedCards[dex].SetSchedule(fSchedule);
 			dex++;
 		}
 	}
@@ -157,21 +159,17 @@ void MappedPeriodicT::InitStep(void)
 	if (fSlaveMasterPairs.MajorDim() == 0)
 	{
 		/* compute F - 1  = fFperturb */
-		fF.SetToScaled(fLTf->Value(), fFperturb);
+		fF.SetToScaled(fSchedule->Value(), fFperturb);
 		fF.PlusIdentity();
 	}
 	else /* apply mapping */
 	{
 		/* nodal information */
 		const dArray2DT& init_coords = fNodeManager.InitialCoordinates();
-
-#pragma message("MappedPeriodicT::InitStep: need displacements here")
-throw;
-dArray2DT disp;
-//		const dArray2DT& disp = fNodeManager.Displacements();	
+		const dArray2DT& disp = fField[0];	
 
 		/* compute F - 1  = fFperturb */
-		fF.SetToScaled(fLTf->Value(), fFperturb);
+		fF.SetToScaled(fSchedule->Value(), fFperturb);
 
 		int dex = 0;
 		int nsd = fF.Rows();

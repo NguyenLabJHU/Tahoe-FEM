@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.h,v 1.3.4.2 2002-04-24 01:29:27 paklein Exp $ */
+/* $Id: MappedPeriodicT.h,v 1.3.4.3 2002-04-25 01:34:00 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 
 #ifndef _MAPPED_PERIODIC_T_H
@@ -13,6 +13,9 @@
 #include "iArray2DT.h"
 #include "dArrayT.h"
 #include "ScheduleT.h"
+
+/* forward declarations */
+class BasicFieldT;
 
 /** boundary condition class for finite deformation elasto-static with 2 
  * additional types of kinematic boundary conditions:
@@ -31,7 +34,7 @@ class MappedPeriodicT: public KBC_ControllerT
 public:
 
 	/* constructor */
-	MappedPeriodicT(NodeManagerT& node_manager);
+	MappedPeriodicT(NodeManagerPrimitive& node_manager, BasicFieldT& field);
 
 	/* initialize data - called immediately after construction */
 	virtual void Initialize(ifstreamT& in);
@@ -48,9 +51,12 @@ public:
 	
 protected:
 
+	/** the field */
+	BasicFieldT& fField;
+
 	/* schedule for fFperturb */
 	int fnumLTf;
-	const ScheduleT* fLTf;   	
+	const ScheduleT* fSchedule;   	
 	
 	/* specified deformation gradient */
 	dMatrixT fFperturb;

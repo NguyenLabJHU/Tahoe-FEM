@@ -1,15 +1,15 @@
-/* $Id: KBC_ControllerT.cpp,v 1.5 2002-04-10 16:48:24 paklein Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.5.2.1 2002-04-25 01:34:00 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #include "KBC_ControllerT.h"
 
-#include "NodeManagerT.h"
+#include "NodeManagerPrimitive.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
 #include "fstreamT.h"
 
 /* constructor */
-KBC_ControllerT::KBC_ControllerT(NodeManagerT& node_manager):
+KBC_ControllerT::KBC_ControllerT(NodeManagerPrimitive& node_manager):
 	fNodeManager(node_manager)
 {
 

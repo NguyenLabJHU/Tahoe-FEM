@@ -1,4 +1,4 @@
-/* $Id: BimaterialK_FieldT.h,v 1.2.2.1 2002-04-23 01:25:52 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.h,v 1.2.2.2 2002-04-25 01:34:00 paklein Exp $ */
 /* created: paklein (09/06/2000)*/
 
 #ifndef _BIMATERIAL_K_FIELD_T_H_
@@ -15,7 +15,7 @@ class BimaterialK_FieldT: public K_FieldT
 public:
 
 	/* constructor */
-	BimaterialK_FieldT(NodeManagerT& node_manager);
+	BimaterialK_FieldT(NodeManagerPrimitive& node_manager);
 
 	/* initialize data - called immediately after construction */
 	virtual void Initialize(ifstreamT& in);

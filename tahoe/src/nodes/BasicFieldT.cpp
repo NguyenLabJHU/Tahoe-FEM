@@ -1,4 +1,4 @@
-/* $Id: BasicFieldT.cpp,v 1.1.2.1 2002-04-24 01:29:25 paklein Exp $ */
+/* $Id: BasicFieldT.cpp,v 1.1.2.2 2002-04-25 01:31:27 paklein Exp $ */
 #include "BasicFieldT.h"
 #include "iArrayT.h"
 
@@ -6,8 +6,7 @@
 BasicFieldT::BasicFieldT(const StringT& name, int ndof, int order):
 	fName(name),
 	fField(order),
-	fEqnos(0, ndof),
-	fNumActiveEquations(-1)
+	fEqnos(0, ndof)
 {
 	/* set default labels */
 	fLabels.Dimension(ndof);
@@ -30,8 +29,8 @@ void BasicFieldT::Dimension(int nnd)
 	/* dimension field */
 	for (int i = 0; i < fField.Length(); i++)
 		fField[i].Dimension(nnd, ndof);
-
-	/* dimension equations array */
+		
+	/* allocate equations array */
 	fEqnos.Dimension(nnd, ndof);
 }
 

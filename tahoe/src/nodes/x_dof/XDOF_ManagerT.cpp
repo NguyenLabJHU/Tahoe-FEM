@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.cpp,v 1.8.2.1 2002-04-23 01:25:52 paklein Exp $ */
+/* $Id: XDOF_ManagerT.cpp,v 1.8.2.2 2002-04-25 01:35:16 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 /* base class which defines the interface for a manager */
 /* of DOF's comprised of FE DOF's plus constrain DOF's */
@@ -50,9 +50,6 @@ void XDOF_ManagerT::XDOF_Register(DOFElementT* group, const iArrayT& numDOF)
 		throw eGeneralFail;
 	}
 	
-	/* solver group */
-	fDOFGroups.Append(group->Group());
-	
 	/* keep number of tag sets for each group */
 	fNumTagSets.Append(numDOF.Length());
 
@@ -102,7 +99,8 @@ bool XDOF_ManagerT::ResetTags(int group)
 		/* loop over element in the group */
 		int index = 0;
 		for (int j = 0; j < fDOFElements.Length(); j++)
-			if (fDOFGroups[j] == group && fDOFElements[j]->Reconfigure() == 1)
+			if (fDOFElements[j]->Group() == group && 
+			    fDOFElements[j]->Reconfigure() == 1)
 				relax = 1;
 	
 		if (relax)
@@ -120,7 +118,7 @@ bool XDOF_ManagerT::ResetTags(int group)
 		
 			/* loop over DOF element groups */
 			for (int i = 0; i < fDOFElements.Length(); i++)
-				if (fDOFGroups[i] == group)
+				if (fDOFElements[i]->Group() == group)
 				{
 					/* reset contact configs */
 					ConfigureElementGroup(i, fNumTags);
@@ -147,7 +145,7 @@ void XDOF_ManagerT::Reset(int group)
 	int index = 0;
 	for (int i = 0; i < fDOFElements.Length(); i++)
 	{
-		if (fDOFGroups[i] == group)
+		if (fDOFElements[i]->Group() == group)
 		{
 			/* loop over tag sets */
 			for (int j = 0; j < fNumTagSets[i]; j++)
@@ -166,7 +164,7 @@ void XDOF_ManagerT::Update(int group, const dArrayT& update)
 	for (int i = 0; i < fDOFElements.Length(); i++)
 	{
 		int nsets = fNumTagSets[i];
-		if (fDOFGroups[i] == group)
+		if (fDOFElements[i]->Group() == group)
 		{
 			for (int j = 0; j < nsets; j++)
 			{
@@ -238,7 +236,7 @@ void XDOF_ManagerT::SetEquations(int group, int& num_eq)
 	for (int i = 0; i < fDOFElements.Length(); i++)
 	{
 		int nsets = fNumTagSets[i];
-		if (fDOFGroups[i] == group)
+		if (fDOFElements[i]->Group() == group)
 		{
 			/* assign number sequentially through the set */
 			for (int j = 0; j < nsets; j++)
@@ -256,6 +254,15 @@ void XDOF_ManagerT::SetEquations(int group, int& num_eq)
 			/* next group */
 			dex += nsets;
 	}
+}
+
+/* access to global equation numbers */
+void XDOF_ManagerT::EquationNumbers(int group, AutoArrayT<iArray2DT*>& equationsets)
+{
+	/* loop over elements */
+	for (int i = 0; i < fDOFElements.Length(); i++)
+		if (fDOFElements[i]->Group() == group)
+			equationsets.Append(fXDOF_Eqnos[i]);
 }
 
 /* remove external DOF's from first slot of each row */

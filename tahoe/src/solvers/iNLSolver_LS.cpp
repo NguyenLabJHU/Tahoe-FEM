@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.cpp,v 1.6 2002-03-22 02:27:53 paklein Exp $ */
+/* $Id: iNLSolver_LS.cpp,v 1.6.2.1 2002-04-25 01:37:48 paklein Exp $ */
 /* created: paklein (01/01/2001) */
 
 #include "iNLSolver_LS.h"
@@ -19,8 +19,8 @@
 #include "CCNSMatrixT.h"
 
 /* constructor */
-iNLSolver_LS::iNLSolver_LS(FEManagerT& fe_manager):
-	NLSolver_LS(fe_manager),
+iNLSolver_LS::iNLSolver_LS(FEManagerT& fe_manager, int group):
+	NLSolver_LS(fe_manager, group),
 	fFormTangent(true),
 	fLineSearch(true)
 {

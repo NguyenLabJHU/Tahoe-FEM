@@ -1,7 +1,5 @@
-/* $Id: ExpCD_DRSolver.h,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
-/* created: paklein (08/19/1998)                                          */
-/* quasi-static solver using dynamic relaxation with                      */
-/* explicit central difference pseudo-dynamics                            */
+/* $Id: ExpCD_DRSolver.h,v 1.1.1.1.8.1 2002-04-25 01:37:48 paklein Exp $ */
+/* created: paklein (08/19/1998) */
 
 #ifndef _EXPCD_DRSOLVER_H_
 #define _EXPCD_DRSOLVER_H_
@@ -12,12 +10,14 @@
 /* direct members */
 #include "fstreamT.h"
 
+/** nonlinear solver using dynamic relaxation with
+ * explicit central difference pseudo-dynamics */
 class ExpCD_DRSolver: public SolverT
 {
 public:
 
 	/* constructor */
-	ExpCD_DRSolver(FEManagerT& fe_manager);
+	ExpCD_DRSolver(FEManagerT& fe_manager, int group);
 
 	/* (re-)configure the global equation system */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);

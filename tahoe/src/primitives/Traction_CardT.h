@@ -1,5 +1,5 @@
-/* $Id: Traction_CardT.h,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
-/* created: paklein (05/29/1996)                                          */
+/* $Id: Traction_CardT.h,v 1.1.1.1.8.1 2002-04-25 01:36:32 paklein Exp $ */
+/* created: paklein (05/29/1996) */
 
 #ifndef _TRACTION_T_H_
 #define _TRACTION_T_H_
@@ -13,19 +13,21 @@
 /* forward declarations */
 #include "ios_fwd_decl.h"
 class ifstreamT;
-class LoadTime;
+class ScheduleT;
 class DomainIntegrationT;
 class FEManagerT;
 
+/** natural boundary condition information */
 class Traction_CardT
 {
 public:
 
-	/* coordinate system for traction vector */
-	enum CoordSystemT {kCartesian = 0,  // x,y,z components of traction
-	                       kLocal = 1}; // last component is normal component
+	/** coordinate system for traction vector */
+	enum CoordSystemT {kCartesian = 0, /**< x,y,z components of traction */
+	                       kLocal = 1  /**< last component is normal component */
+	                       }; 
 
-	/* constructor */
+	/** constructor */
 	Traction_CardT(void);
 
 	/* modifiers */
@@ -65,7 +67,7 @@ private:
 	int fElemNum;
 	int fFacetNum;
 	CoordSystemT fCoordSystem;
-	const LoadTime* fLTfPtr;
+	const ScheduleT* fLTfPtr;
 	LocalArrayT fValues;
 
 	 /* local numbers of facet nodes */

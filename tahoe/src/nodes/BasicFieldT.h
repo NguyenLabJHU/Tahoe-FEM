@@ -1,4 +1,4 @@
-/* $Id: BasicFieldT.h,v 1.1.2.1 2002-04-24 01:29:25 paklein Exp $ */
+/* $Id: BasicFieldT.h,v 1.1.2.2 2002-04-25 01:31:27 paklein Exp $ */
 
 #ifndef _BASIC_FIELD_T_H_
 #define _BASIC_FIELD_T_H_
@@ -54,14 +54,11 @@ public:
 
 	/** \name equation numbers */
 	/*@{*/
-	/** determine the number of equations for the field */
-	int NumEquations(void) const;
-	
-	/** the global equation numbers array. Resets the cached count of active equations */
-	iArray2DT& Equations(void);
-	
 	/** const access to the equation numbers */
 	const iArray2DT& Equations(void) const { return fEqnos; };
+
+	/** non-const access to the equation numbers. Modify these at your own risk */
+	iArray2DT& Equations(void) { return fEqnos; };
 
 	/** write field equation numbers to the output stream */
 	void WriteEquationNumbers(ostream& out, const iArrayT* node_map) const;
@@ -78,39 +75,8 @@ protected:
 	/** field dof labels [ndof] */
 	ArrayT<StringT> fLabels;	
 
-	/** \name equation numbers */
-	/*@{*/
 	/** equation array: [nnd] x [ndof] */
 	iArray2DT fEqnos;
-
-	/** (cached) count of the number of active equations */
-	int fNumActiveEquations;
-	/*@{*/	
 };
-
-/* the global equation numbers array. Resets the cached count of active equations */
-inline iArray2DT& BasicFieldT::Equations(void)
-{
-	fNumActiveEquations = -1;
-	return fEqnos;
-}
-
-/* determine the number of equations for the field */
-int BasicFieldT::NumEquations(void) const
-{
-	/* recalculate */
-	if (fNumActiveEquations == -1)
-	{
-		int neq = 0;
-		int *peq = fEqnos.Pointer();
-		int len  = fEqnos.Length();
-		for (int i = 0; i < len; i++)
-			if (*peq++ > 0) neq++;
-	
-		/* not so const */
-		const_cast<BasicFieldT*>(this)->fNumActiveEquations = neq;
-	}
-	return fNumActiveEquations;
-}
 
 #endif /* _BASIC_FIELD_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.4 2002-03-28 16:38:46 paklein Exp $ */
+/* $Id: SolverT.h,v 1.4.2.1 2002-04-25 01:37:48 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _SOLVER_H_
@@ -41,7 +41,9 @@ public:
                    kNewtonSolver_LS = 4, /**< Newton solver with line search */
                       kPCGSolver_LS = 5, /**< preconditioned, nonlinear conjugate gradient */
                   kiNewtonSolver_LS = 6, /**< interactive Newton solver (with line search) */
-                               kNOX = 7  /**< NOX library solver */
+                               kNOX = 7, /**< NOX library solver */
+                            kLinear = 8, /**< linear problems */
+                                kDR = 9  /**< dynamic relaxation */                               
                                };
 
 	/* global matrix types */
@@ -53,7 +55,7 @@ public:
 			                 kSPOOLES = 5};/**< sparse, direct solver: symbolic factorization */
 
 	/* constructor */
-	SolverT(FEManagerT& fe_manager);
+	SolverT(FEManagerT& fe_manager, int group);
 
 	/* destructor */
 	virtual ~SolverT(void);
@@ -118,16 +120,22 @@ private:
 	void SetGlobalMatrix(int matrix_type, int check_code);
 		 	
 protected:
-	
+
+	/** the Boss */	
 	FEManagerT& fFEManager;
+
+	/** equation group number */
+	int fGroup;
 
 	/* flags */
 	int fMatrixType;
 	int fPrintEquationNumbers;
 	
-	/* global equation system */
+	/** global equation system */
+	/*@{*/
 	GlobalMatrixT* fLHS;	
 	dArrayT        fRHS;
+	/*@}*/
 
 	/* runtime data */
 	int fNumIteration;

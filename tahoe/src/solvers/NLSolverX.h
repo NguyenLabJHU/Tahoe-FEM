@@ -1,6 +1,5 @@
-/* $Id: NLSolverX.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
-/* created: paklein (08/25/1996)                                          */
-/* NLSolver with selective tangent reformation                            */
+/* $Id: NLSolverX.h,v 1.1.1.1.8.1 2002-04-25 01:37:48 paklein Exp $ */
+/* created: paklein (08/25/1996) */
 
 #ifndef _NL_SOLVER_X_H_
 #define _NL_SOLVER_X_H_
@@ -12,12 +11,13 @@
 class CCSMatrixT;
 class CCNSMatrixT;
 
+/** nonlinear solver methods testbed */
 class NLSolverX: public NLSolver
 {
 public:
 
 	/* constructor */
-	NLSolverX(FEManagerT& fe_manager);
+	NLSolverX(FEManagerT& fe_manager, int group);
 
 	/* generate the solution for the current time sequence */
 	virtual void Run(void);

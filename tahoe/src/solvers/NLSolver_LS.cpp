@@ -1,5 +1,5 @@
-/* $Id: NLSolver_LS.cpp,v 1.2 2002-04-02 23:27:27 paklein Exp $ */
-/* created: paklein (08/18/1999)                                          */
+/* $Id: NLSolver_LS.cpp,v 1.2.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* created: paklein (08/18/1999) */
 
 #include "NLSolver_LS.h"
 
@@ -12,8 +12,8 @@
 #include "FEManagerT.h"
 
 /* constructor */
-NLSolver_LS::NLSolver_LS(FEManagerT& fe_manager):
-	NLSolver(fe_manager)
+NLSolver_LS::NLSolver_LS(FEManagerT& fe_manager, int group):
+	NLSolver(fe_manager, group)
 {
 	ifstreamT& in = fFEManager.Input();
 	

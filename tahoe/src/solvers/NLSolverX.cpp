@@ -1,7 +1,5 @@
-/* $Id: NLSolverX.cpp,v 1.2 2002-04-02 23:27:27 paklein Exp $ */
-/* created: paklein (08/25/1996)                                          */
-/* NLSolverX with selective tangent reformation                           */
-
+/* $Id: NLSolverX.cpp,v 1.2.2.1 2002-04-25 01:37:48 paklein Exp $ */
+/* created: paklein (08/25/1996) */
 #include "NLSolverX.h"
 
 #include <iostream.h>
@@ -23,8 +21,8 @@ const int kConverged = 1;
 const int kFailed    = 2;
 
 /* constructor */
-NLSolverX::NLSolverX(FEManagerT& fe_manager):
-	NLSolver(fe_manager)
+NLSolverX::NLSolverX(FEManagerT& fe_manager, int group):
+	NLSolver(fe_manager, group)
 {
 #ifdef __NO_RTTI__
 	cout << "\n NLSolverX::Initialize: RTTI required" << endl;

@@ -1,5 +1,4 @@
-/* $Id: AugLagWallT.cpp,v 1.3 2002-04-19 19:21:52 paklein Exp $ */
-
+/* $Id: AugLagWallT.cpp,v 1.3.2.1 2002-04-25 01:32:44 paklein Exp $ */
 #include "AugLagWallT.h"
 
 #include <iostream.h>
@@ -7,20 +6,22 @@
 
 #include "Constants.h"
 #include "FEManagerT.h"
-#include "NodeManagerT.h"
 #include "XDOF_ManagerT.h"
 #include "eControllerT.h"
+#include "FieldT.h"
 
 /* parameters */
 const int kNumAugLagDOF = 1;
 
 /* constructor */
 AugLagWallT::AugLagWallT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes,
-	const iArray2DT& eqnos,
-	const dArray2DT& coords,
-	const dArray2DT* vels):
-	PenaltyWallT(fe_manager, eqnos, coords, vels),
-	fXDOF_Nodes(XDOF_nodes)
+	const FieldT& field, const dArray2DT& coords):
+	PenaltyWallT(fe_manager, 
+		field.Equations(), 
+		coords, 
+		(field.Order() > 0) ? &(field[1]): NULL),
+	fXDOF_Nodes(XDOF_nodes),
+	fField(field)
 {
 	/* (re-)dimension the tangent matrix */
 	fLHS.Allocate(rEqnos.MinorDim() + 1); // additional DOF
@@ -67,8 +68,7 @@ void AugLagWallT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 
 	/* collect displacement DOF's */
 	iArray2DT disp_eq(fContactNodes.Length(), ndof_u);
-	NodeManagerT* nodemanager = fFEManager.NodeManager();
-	nodemanager->SetLocalEqnos(fContactNodes, disp_eq);
+	fField.SetLocalEqnos(fContactNodes, disp_eq);
 
 	int eq_col = 0;
 	iArrayT eq_temp(fContactNodes.Length());
@@ -250,6 +250,9 @@ const iArray2DT& AugLagWallT::DOFConnects(int tag_set) const
 
 /* returns 1 if group needs to reconfigure DOF's, else 0 */
 int AugLagWallT::Reconfigure(void) { return 0; }
+
+/* return the equation group */
+int AugLagWallT::Group(void) const { return fField.Group(); };
 
 /**********************************************************************
 * Private
