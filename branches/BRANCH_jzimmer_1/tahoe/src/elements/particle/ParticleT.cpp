@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.35.8.5 2004-03-23 19:26:18 jzimmer Exp $ */
+/* $Id: ParticleT.cpp,v 1.35.8.6 2004-03-30 23:07:21 jzimmer Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -195,7 +195,22 @@ void ParticleT::Initialize(void)
 	    in.rewind();
 	    fLatticeParameter = 4.08; //defaults to gold
 	  }
-	NearestNeighborDistance = fLatticeParameter*.79;
+	if (NumSD()==1)
+	{
+	 NearestNeighborDistance=fLatticeParameter*1.1;
+	} 
+    else if (NumSD()==2)
+	{
+	 NearestNeighborDistance=fLatticeParameter*1.1;
+    }
+    else if (NumSD()==3)
+    { 
+	 NearestNeighborDistance=fLatticeParameter*.78;
+    }
+	else
+	{ 
+	 throw eBadInputValue;
+	}
 
 	/* set up communication of type information */
 	fTypeMessageID = ElementSupport().CommManager().Init_AllGather(MessageT::Integer, 1);
@@ -1132,8 +1147,6 @@ void ParticleT::Calc_Slip_and_Strain(int non, int num_s_vals,dArray2DT &s_values
       for (int m=0; m<ndof; m++) Id(m,m) = 1.0;
       strain.DiffOf(C_IJ,Id);
       strain *= 0.5;
-	  //cout << "J = " << J << endl;
-	  //cout << "E33 = " << strain(2,2) << endl;
      }
     }
    }
@@ -1154,6 +1167,7 @@ void ParticleT::Calc_Slip_and_Strain(int non, int num_s_vals,dArray2DT &s_values
    {
     s_values(local_i,valuep++) = slipvector[m];
    }
+   //cout << i << "   " << strain(1,1) << endl;
   } /* end of i loop */
  
 } 
@@ -1174,6 +1188,27 @@ void ParticleT::Calc_CSP(int non, int num_s_vals,dArray2DT &s_values, RaggedArra
   int ndof = NumDOF();
   iArrayT neighbors;
   dArrayT x_i(ndof), x_j(ndof), r_ij(ndof), rvec(ndof);  
+  int ncspairs;
+
+  /* set number of centrosymmetry pairs to be added up
+   * according to the number of spatial dimensions */
+
+  if (NumSD()==1)
+  {
+   ncspairs = 2; 
+  }
+  else if (NumSD()==2)
+  {
+   ncspairs = 3; 
+  }
+  else if (NumSD()==3)
+  {
+   ncspairs = 6;
+  }
+  else
+  {
+   throw eBadInputValue;
+  }
 
   /* multi-processor information */
   CommManagerT& comm_manager = ElementSupport().CommManager();
@@ -1227,12 +1262,55 @@ void ParticleT::Calc_CSP(int non, int num_s_vals,dArray2DT &s_values, RaggedArra
    if (icombos != ncombos) throw eSizeMismatch;
    ndsum.SortAscending();
    double csp = 0.0;
-   for (int m = 0; m < 6; m++) csp += ndsum[m];
+   if (ncspairs >= ncombos) ncspairs = ncombos;
+   for (int m = 0; m < ncspairs; m++) csp += ndsum[m];
    csp /= pow(fLatticeParameter,2);  
 
    /* put centrosymmetry parameter into global s_values array */
    s_values(local_i, num_s_vals-1) = csp;
-
+  //cout << i << "   " << csp << endl;
   } /* end of i loop */
  
 }
+
+void ParticleT::SetRefNN(RaggedArray2DT<int> &NearestNeighbors,RaggedArray2DT<int> &RefNearestNeighbors)
+{
+  int ndof = NumDOF();
+  iArrayT neighbors;
+  CommManagerT& comm_manager = ElementSupport().CommManager();
+
+  /* copy NearestNeighbors list to a ReferenceNN list */
+  RefNearestNeighbors = NearestNeighbors;
+
+  const ArrayT<int>* GN = comm_manager.GhostNodes();
+  const ArrayT<int>* NWG = comm_manager.NodesWithGhosts();
+
+  if (NWG != NULL)
+  {
+   InverseMapT map;
+   map.SetMap(*GN);
+   map.SetOutOfRange(InverseMapT::MinusOne);
+
+   /* looking at all atoms with nearest neighbors that are 
+	* image/ghost atoms, replace the identity of those
+	* ghost atoms with the ID of the actual atom it is a 
+	* ghost of */
+   for (int i = 0; i < RefNearestNeighbors.MajorDim(); i++)
+   {
+    RefNearestNeighbors.RowAlias(i,neighbors);
+    for (int j = 1; j<neighbors.Length(); j++)
+    {
+     int tag_j = neighbors[j];
+     int GN_num = map.Map(tag_j);
+	 if (GN_num != -1)
+	 {
+	  int real_num = (*NWG)[GN_num];
+	  //cout << i << "   " << tag_j << "   " << real_num << endl;
+	  neighbors[j] = real_num;
+	 }
+    }
+	//cout << i << "   " << neighbors.Length() << endl;
+   }
+  }
+}
+

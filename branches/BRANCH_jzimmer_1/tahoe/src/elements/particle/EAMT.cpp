@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.54.2.1 2004-03-19 01:49:47 jzimmer Exp $ */
+/* $Id: EAMT.cpp,v 1.54.2.2 2004-03-30 23:07:21 jzimmer Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -99,7 +99,7 @@ void EAMT::Initialize(void)
   /* inherited */
   ParticleT::Initialize();
 
-  RefNearestNeighbors = NearestNeighbors;
+  ParticleT::SetRefNN(NearestNeighbors,RefNearestNeighbors);
 
   /* dimension */
   int ndof = NumDOF();

@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.32.2.2 2004-03-19 17:35:45 jzimmer Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.32.2.3 2004-03-30 23:07:21 jzimmer Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -75,7 +75,7 @@ void ParticlePairT::Initialize(void)
 	/* inherited */
 	ParticleT::Initialize();
 
-	RefNearestNeighbors = NearestNeighbors;
+	ParticleT::SetRefNN(NearestNeighbors,RefNearestNeighbors);
 
 	/* dimension */
 	int ndof = NumDOF();
