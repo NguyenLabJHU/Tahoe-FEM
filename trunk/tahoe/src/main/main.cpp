@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.25 2004-08-08 20:40:10 paklein Exp $ */
+/* $Id: main.cpp,v 1.26 2005-01-31 07:09:46 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>
@@ -120,11 +120,11 @@ static void StartUp(int* argc, char*** argv, CommunicatorT& comm)
 #endif
 
 #if __option (profile)
-	pascal OSErr err = ProfilerInit(collectDetailed, bestTimeBase, 1000, 25);
-	if (err == memFullErr)
-		cout << "\n ProfilerInit: memory full" << endl;
-	else if	(err == paramErr)
-		cout << "\n ProfilerInit: parameter error" << endl;
+	pascal OSErr err = ProfilerInit(collectDetailed, bestTimeBase, 10000, 30);
+	if (err != noErr) {
+		cout << "\n ProfilerInit: error " << err << endl;
+		abort();
+	}
 	ProfilerSetStatus(0);
 	cout << "\n P r o f i l i n g   i s   a c t i v e\n" << endl;
 #endif
