@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.6 2003-10-28 07:38:02 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.7 2004-01-27 15:32:57 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -86,6 +86,9 @@ public:
 
 	/** \name interpolation and projection operators */
 	/*@{*/
+	/** return the "lumped" (scalar) mass associated with the given nodes */
+	void LumpedMass(const iArrayT& nodes, dArrayT& mass) const;
+	
 	/** initialize interpolation data. Initialize data structures needed to interpolate
 	 * field values to the given list of points. Requires that this FEManagerT has
 	 * a BridgingScaleT in its element list. */
