@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.h,v 1.19 2002-07-03 18:55:59 recampb Exp $ */
+/* $Id: VTKBodyDataT.h,v 1.20 2002-07-11 15:57:41 recampb Exp $ */
 #ifndef _VTK_BODY_DATA_T_H_
 #define _VTK_BODY_DATA_T_H_
 
@@ -72,8 +72,8 @@ public:
 
 /* 	int NumContours(void) { return numContours;}; */
 
-/* 	int CurrentScalarRange1(void) { return scalarRange1[currentVarNum];}; */
-/* 	int CurrentScalarRange2(void) { return scalarRange2[currentVarNum];}; */
+ 	double CurrentScalarRange1(void) { return scalarRange1[currentVarNum];}; 
+	double CurrentScalarRange2(void) { return scalarRange2[currentVarNum];}; 
 
 //	int NumVectors(void) const {return fVectors.Length();};
 	

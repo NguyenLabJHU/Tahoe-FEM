@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.21 2002-07-03 18:55:59 recampb Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.22 2002-07-11 15:57:42 recampb Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -95,7 +95,7 @@ VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
 	boundBoxActor->SetVisibility(false);
 	boundBoxActor->GetProperty()->SetColor(1,1,1);
 	
-	fWarp = vtkWarpVector::New();
+	// fWarp = vtkWarpVector::New();
 
 	glyph = vtkTahoeGlyph3D::New();
 	cone = vtkArrowSource::New();
@@ -362,7 +362,7 @@ void VTKUGridT::ShowContours(vtkFloatArray* scalars, int numContours, double min
 }
 
 /* hide contour surfaces */
-void VTKUGridT::HideContours(vtkFloatArray* scalars, vtkRenderer* renderer)
+void VTKUGridT::HideContours(vtkRenderer* renderer)
 {
   contours = false;
   
@@ -392,7 +392,7 @@ void VTKUGridT::HideContours(vtkFloatArray* scalars, vtkRenderer* renderer)
 }
 
 
-void VTKUGridT::CuttingPlane(vtkRenderer* renderer, double oX, double oY, double oZ,double nX, double nY, double nZ, bool warp)
+void VTKUGridT::CuttingPlane(vtkRenderer* renderer, double oX, double oY, double oZ,double nX, double nY, double nZ, bool warp, double min, double max)
 {
   cutting = true;
   if (!contours)
@@ -409,6 +409,7 @@ void VTKUGridT::CuttingPlane(vtkRenderer* renderer, double oX, double oY, double
       tcutter->SetCutFunction(tplane);
       tcutterMapper->SetInput(tcutter->GetOutput());
       tcutterMapper->SetLookupTable(fLookUpTable);
+      tcutterMapper->SetScalarRange(min, max);
       
       if (temp->IsItemPresent(boundBoxActor) == 0)
 	renderer->AddActor(boundBoxActor);  
@@ -450,6 +451,7 @@ else
     tcutter->SetCutFunction(tplane);
     tcutterMapper->SetInput(tcutter->GetOutput());
     tcutterMapper->SetLookupTable(fLookUpTable);
+    tcutterMapper->SetScalarRange(min, max);
     tcut->SetMapper(tcutterMapper);
     
     if (temp->IsItemPresent(boundBoxActor) == 0)
@@ -599,10 +601,13 @@ void VTKUGridT::SetVectors(vtkFloatArray* vectors)
 void VTKUGridT::SetWarpVectors(vtkFloatArray* vectors)
 
 {
+
+  if (!fWarp)
+    fWarp = vtkWarpVector::New();
   /* insert in grid */
   SetVectors(vectors);
   
- 
+  
     /* set up warp vector */
     warpBool = true;
     fWarp->SetInput(fUGrid);

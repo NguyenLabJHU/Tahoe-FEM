@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.28 2002-07-03 18:55:59 recampb Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.29 2002-07-11 15:57:41 recampb Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -422,7 +422,7 @@ void VTKBodyDataT::HideContours(vtkRenderer* renderer)
 {
   for (int i = 0; i < fUGrids.Length(); i++)
     {
-      fUGrids[i]->HideContours(fScalars(currentStepNum, currentVarNum), renderer);
+      fUGrids[i]->HideContours(renderer);
       
     }
   
