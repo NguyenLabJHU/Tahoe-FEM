@@ -1,11 +1,11 @@
-/* $Id: StaggeredMultiScaleT.h,v 1.12 2003-03-07 22:23:57 creigh Exp $ */ 
+/* $Id: StaggeredMultiScaleT.h,v 1.13 2003-03-08 16:13:25 creigh Exp $ */ 
 //DEVELOPMENT
 #ifndef _STAGGERED_MULTISCALE_T_H_ 
 #define _STAGGERED_MULTISCALE_T_H_ 
 
 #include "ContinuumT.h"
 
-#define RENDER 1  // <-- Turn rendering on/off
+#define RENDER 0  // <-- Turn rendering on/off
 
 #if RENDER
 #include "Render_ManagerT.h"
