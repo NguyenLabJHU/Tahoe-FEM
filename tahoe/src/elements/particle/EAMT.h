@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.11 2003-05-24 00:15:51 saubry Exp $ */
+/* $Id: EAMT.h,v 1.12 2003-05-27 21:11:59 saubry Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -78,6 +78,8 @@ protected:
 	virtual void GenerateOutputLabels(ArrayT<StringT>& labels) const;
 
 private:
+
+	dArrayT fRHS2;
 
 	void GetRho2D(const dArray2DT& coords,dArray2DT& rho);
 	void GetRho3D(const dArray2DT& coords,dArray2DT& rho);
