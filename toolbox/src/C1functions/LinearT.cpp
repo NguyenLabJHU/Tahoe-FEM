@@ -1,4 +1,4 @@
-/* $Id: LinearT.cpp,v 1.6 2003-11-21 22:41:27 paklein Exp $ */
+/* $Id: LinearT.cpp,v 1.7 2004-03-06 17:28:32 paklein Exp $ */
 /* created: paklein (03/25/1999) */
 #include "LinearT.h"
 #include <iostream.h>
@@ -11,7 +11,16 @@ using namespace Tahoe;
 LinearT::LinearT(double A, double B): 
   fA(A),
   fB(B)
-{ }
+{
+	SetName("linear_function");
+}
+
+LinearT::LinearT(void): 
+  fA(0.0),
+  fB(0.0)
+{ 
+	SetName("linear_function");
+}
 
 /* I/O */
 void LinearT::Print(ostream& out) const
@@ -71,4 +80,25 @@ dArrayT& LinearT::MapDDFunction(const dArrayT& in, dArrayT& out) const
 
     	return out;
 
+}
+
+void LinearT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	C1FunctionT::DefineParameters(list);
+
+	list.AddParameter(fA, "slope");
+	list.AddParameter(fB, "intercept");
+	
+	/* set the description */
+	list.SetDescription("f(x) = a*x + b");	
+}
+
+void LinearT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	C1FunctionT::TakeParameterList(list);
+
+	fA = list.GetParameter("slope");
+	fB = list.GetParameter("intercept");
 }

@@ -1,4 +1,4 @@
-/* $Id: LinearT.h,v 1.5 2003-11-10 22:14:00 cjkimme Exp $ */
+/* $Id: LinearT.h,v 1.6 2004-03-06 17:28:32 paklein Exp $ */
 #ifndef _LINEAR_T_H_
 #define _LINEAR_T_H_
 
@@ -17,8 +17,11 @@ class LinearT: public C1FunctionT
 {
 public:
 
-	/** constructor */
+	/** \name constructors */
+	/*@{*/
 	LinearT(double A, double B);
+	LinearT(void);
+	/*@}*/
 
 	/** \name I/O */
 	/*@{*/
@@ -39,6 +42,19 @@ public:
 	virtual dArrayT& MapDFunction(const dArrayT& in, dArrayT& out) const;
 	virtual dArrayT& MapDDFunction(const dArrayT& in, dArrayT& out) const;
 	/*@}*/
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface.
+	 * \param list destination for the parameter descriptions. The list should have the
+	 *        name corresponding to ParameterInterfaceT::Name. */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list.
+	 * \param list input parameter list, which should be validated using ParameterInterfaceT::ValidateParameterList
+	 *        to ensure the list conforms to the description defined by the interface. */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@{*/
 
 private:
 
