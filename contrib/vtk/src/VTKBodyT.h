@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.h,v 1.11 2001-12-10 12:44:08 paklein Exp $ */
+/* $Id: VTKBodyT.h,v 1.12 2001-12-12 15:52:58 paklein Exp $ */
 
 #ifndef _VTK_BODY_T_H_
 #define _VTK_BODY_T_H_
@@ -29,7 +29,7 @@ class VTKBodyT: public iConsoleObjectT
  public:
 
 	/** default constuctor */
-	VTKBodyT(void) { fBodyData = NULL; };
+	VTKBodyT(void);
 
 	/** constructor */
 	VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data);
