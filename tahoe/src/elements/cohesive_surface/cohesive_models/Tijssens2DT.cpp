@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.15 2002-10-20 22:48:18 paklein Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.16 2002-10-23 00:18:03 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -49,7 +49,6 @@ Tijssens2DT::Tijssens2DT(ifstreamT& in, const double& time_step):
 	ftau_c = fsigma_c/root3;
 	fGamma_0 = fDelta_0*root3;
 	fastar /= ftemp;
-
 }
 
 /* return the number of state variables needed by the model */
@@ -76,7 +75,7 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 	if (fTimeStep <= 0.0) {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 		cout << "\n Tijssens2DT::Traction: expecting positive time increment: "
 		     << fTimeStep << endl;
 #endif
@@ -254,7 +253,7 @@ SurfacePotentialT::StatusT Tijssens2DT::Status(const dArrayT& jump_u,
 
 void Tijssens2DT::PrintName(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << "    Tijssens 2D \n";
 #endif
 }
@@ -262,7 +261,7 @@ void Tijssens2DT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void Tijssens2DT::Print(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << " Initial tangential stiffness. . . . . . . . . . = " << fk_t0 << '\n';
 	out << " Normal stiffness . . . .  . . . . . . . . . . . = " << fk_n     << '\n';
 	out << " Tangential stiffness rate constant. . . . . . . = " << fDelta_n_ccr*fc_1     << '\n';
@@ -322,9 +321,9 @@ void Tijssens2DT::UpdateStateVariables(const dArrayT& IPdata, ArrayT<double>& st
         state[7] = IPdata[0];
 }*/
 
-int Tijssens2DT::ElementGroupNeeded(void) 
-{
-	return fGroup-1;
+void Tijssens2DT::SetElementGroupsNeeded(iArrayT iGroups) 
+{	
+	iGroups[0] = 1;
 }
 
 bool Tijssens2DT::CompatibleOutput(const SurfacePotentialT& potential) const

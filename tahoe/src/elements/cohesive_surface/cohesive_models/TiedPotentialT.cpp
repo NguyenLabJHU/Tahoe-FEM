@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.6 2002-10-20 22:48:18 paklein Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.7 2002-10-23 00:18:03 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -113,7 +113,7 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 	if (fTimeStep <= 0.0) {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 		cout << "\n TiedPotentialT::Traction: expecting positive time increment: "
 		     << fTimeStep << endl;
 #endif
@@ -284,7 +284,7 @@ SurfacePotentialT::StatusT TiedPotentialT::Status(const dArrayT& jump_u,
 
 void TiedPotentialT::PrintName(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << "    TiedPotentialT (modified Xu-Needleman) 2D \n";
 #endif
 }
@@ -292,7 +292,7 @@ void TiedPotentialT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void TiedPotentialT::Print(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << " Characteristic normal opening to failure. . . . = " << d_n     << '\n';
 	out << " Characteristic tangential opening to failure. . = " << d_t     << '\n';
 	out << " Mode I work to fracture (phi_n) . . . . . . . . = " << phi_n   << '\n';

@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.h,v 1.10 2002-07-05 22:28:00 paklein Exp $ */
+/* $Id: Tijssens2DT.h,v 1.11 2002-10-23 00:18:03 cjkimme Exp $ */
 
 #ifndef _TIJSSENS_2D_T_H_
 #define _TIJSSENS_2D_T_H_
@@ -68,7 +68,7 @@ public:
 	virtual int NodalQuantityNeeded(void);
 	//        virtual double ComputeNodalValue(const dArrayT &);
 	//	virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
-	virtual int ElementGroupNeeded(void);
+	virtual void SetElementGroupsNeeded(iArrayT iGroups);
 
 protected:
 
@@ -103,7 +103,6 @@ private:
 //	double fY; /* Bulk yield strength */
 	int fGroup; /* element group to obtain hydrostatic stress from */
 	double fSteps; /* number of steps for k_n to go to 0 after failure */
-
 };
 
 } // namespace Tahoe 

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.15 2002-10-20 22:48:14 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.16 2002-10-23 00:18:01 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -18,7 +18,9 @@
 #include "IOBaseT.h"
 #include "ElementBlockDataT.h"
 #include "ElementSupportT.h"
+#ifndef _SIERRA_TEST_
 #include "FieldT.h"
+#endif
 
 #include "ios_fwd_decl.h"
 
@@ -33,7 +35,10 @@ template <class TYPE> class RaggedArray2DT;
 class iAutoArrayT;
 class dArray2DT;
 class StringT;
+
+#ifndef _SIERRA_TEST_
 class FieldT;
+#endif
 
 /** base class for element types. Initialization of the element classes
  * is accomplished by first setting the time integration controller with
@@ -53,8 +58,12 @@ class ElementBaseT: public iConsoleObjectT
 {
 public:
 
-	/** constructor */
+	/** constructors */
+#ifndef _SIERRA_TEST_
 	ElementBaseT(const ElementSupportT& support, const FieldT& field);
+#else
+	ElementBaseT(const ElementSupportT& support);
+#endif
 
 	/** destructor */
 	virtual ~ElementBaseT(void);
@@ -69,8 +78,10 @@ public:
 	 * the connectivies have been dimensioned. */
 	int NumElementNodes(void) const;
 
+#ifndef _SIERRA_TEST_
 	/** solver group */
 	int Group(void) const { return fField.Group(); };
+#endif
 
 	/** form of tangent matrix, symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const = 0;
@@ -81,6 +92,7 @@ public:
 	/** the source */
 	const ElementSupportT& ElementSupport(void) const { return fSupport; };
 
+#ifndef _SIERRA_TEST_
 	/** field information */
 	const FieldT& Field(void) const { return fField; };
 
@@ -89,6 +101,7 @@ public:
 
 	/** the iteration number for the current time increment */
 	const int& IterationNumber(void) const;
+#endif
 
 	/** return a pointer to the specified LoadTime function */
 	const ScheduleT* Schedule(int num) const { return fSupport.Schedule(num); };
@@ -96,11 +109,18 @@ public:
 	/** return the number of spatial dimensions */
 	int NumSD(void) const { return fSupport.NumSD(); };
 
-	/** return the number of degrees of freedom per node */
-	int NumDOF(void) const { return fField.NumDOF(); };
-	
 	/** collect the list of element block ID's used by the element group */
 	void ElementBlockIDs(ArrayT<StringT>& IDs) const;
+	
+	/** return the number of degrees of freedom per node */
+	int NumDOF(void) const 
+	{ 
+#ifndef _SIERRA_TEST_
+		return fField.NumDOF();
+#else
+		return fSupport.NumSD();
+#endif 
+	};
 	/*@}*/
 
 	/** class initialization. Among other things, element work space
@@ -113,10 +133,12 @@ public:
 	/** call to trigger calculation and assembly of the residual force */
 	void FormRHS(void);
 	
+#ifndef _SIERRA_TEST_
 	/** accumulate the residual force on the specified node
 	 * \param node test node
 	 * \param force array into which to assemble to the residual force */
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force) = 0;
+#endif
 
 	/** initialize current time increment */
 	virtual void InitStep(void);
@@ -324,7 +346,9 @@ private:
 	 * Available to sub-classes through access methods */
 	/*@{*/
 	const ElementSupportT& fSupport;
+#ifndef _SIERRA_TEST_
 	const FieldT& fField;
+#endif
 	/*@}*/
 };
 

@@ -1,6 +1,5 @@
-/* $Id: CSEBaseT.h,v 1.7 2002-07-05 22:27:58 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.8 2002-10-23 00:18:02 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
-
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
 
@@ -43,8 +42,12 @@ public:
            CohesiveEnergy = 1, /**< dissipated energy */
                  Traction = 2  /**< element-averaged traction */ };
 
-	/* constructor */
+	/* constructors */
+#ifndef _SIERRA_TEST_
 	CSEBaseT(const ElementSupportT& support, const FieldT& field);
+#else
+	CSEBaseT(const ElementSupportT& support);
+#endif
 
 	/* destructor */
 	~CSEBaseT(void);
@@ -61,8 +64,10 @@ public:
 	/* resets to the last converged solution */
 	virtual void ResetStep(void);
 
+#ifndef _SIERRA_TEST_
 	/* solution calls */
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
+#endif
 
 	/* returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void); //not implemented
@@ -73,6 +78,11 @@ public:
 
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
+
+#ifdef _SIERRA_TEST_	
+	/* Initialize fields passed in from the outside */
+	virtual void InitStep(void);
+#endif
 
 protected:
 

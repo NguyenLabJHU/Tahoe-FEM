@@ -1,4 +1,4 @@
-/* $Id: LinearDamageT.cpp,v 1.11 2002-10-20 22:48:18 paklein Exp $ */
+/* $Id: LinearDamageT.cpp,v 1.12 2002-10-23 00:18:03 cjkimme Exp $ */
 /* created: paklein (08/21/2000) */
 
 #include "LinearDamageT.h"
@@ -215,7 +215,7 @@ SurfacePotentialT::StatusT LinearDamageT::Status(const dArrayT& jump_u,
 
 void LinearDamageT::PrintName(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << "    Linear Damage\n";
 #endif
 }
@@ -223,7 +223,7 @@ void LinearDamageT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void LinearDamageT::Print(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << " Normal opening to failure . . . . . . . . . . . = " << fd_c_n     << '\n';
 	out << " Tangential opening to failure . . . . . . . . . = " << fd_c_t     << '\n';
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fpenalty   << '\n';

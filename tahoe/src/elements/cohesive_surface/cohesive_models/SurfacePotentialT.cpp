@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.cpp,v 1.12 2002-10-20 22:48:18 paklein Exp $ */
+/* $Id: SurfacePotentialT.cpp,v 1.13 2002-10-23 00:18:03 cjkimme Exp $ */
 /* created: paklein (06/20/1999) */
 
 #include "SurfacePotentialT.h"
@@ -22,7 +22,7 @@ void SurfacePotentialT::InitStateVariables(ArrayT<double>& state)
 {
 	int num_state = NumStateVariables();
 	if (state.Length() != num_state) {
-#ifndef _TAHOE_FRACTURE_INTERFACE_	
+#ifndef _SIERRA_TEST_	
 		cout << "\n SurfacePotentialT::InitStateVariables: expecting state variable array\n"
 		     <<   "     length " << num_state << ", found length " << state.Length() << endl;
 #endif

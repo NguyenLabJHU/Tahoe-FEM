@@ -1,4 +1,4 @@
-/* $Id: TvergHutch3DT.cpp,v 1.3 2002-10-20 22:48:18 paklein Exp $ */
+/* $Id: TvergHutch3DT.cpp,v 1.4 2002-10-23 00:18:03 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch3DT.h"
@@ -31,6 +31,24 @@ TvergHutch3DT::TvergHutch3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 
 	/* stiffness multiplier */
 	in >> fpenalty; if (fpenalty < 0) throw ExceptionT::kBadInputValue;
+
+	/* penetration stiffness */
+	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
+}
+
+TvergHutch3DT::TvergHutch3DT(double* params): SurfacePotentialT(knumDOF)
+{
+	/* traction potential parameters */
+	fsigma_max = params[0]; if (fsigma_max < 0) throw ExceptionT::kBadInputValue;
+	fd_c_n = params[1]; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
+	fd_c_t = params[2]; if (fd_c_t < 0) throw ExceptionT::kBadInputValue;
+	/* non-dimensional opening parameters */
+	fL_1 = params[3]; if (fL_1 < 0 || fL_1 > 1) ExceptionT::kBadInputValue;
+	fL_2 = params[4]; if (fL_2 < fL_1 || fL_2 > 1) ExceptionT::kBadInputValue;
+	fL_fail = params[5]; if (fL_fail < 1.0) fL_fail = 1.0;
+
+	/* stiffness multiplier */
+	fpenalty = params[6]; if (fpenalty < 0) throw ExceptionT::kBadInputValue;
 
 	/* penetration stiffness */
 	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
@@ -95,8 +113,6 @@ const dArrayT& TvergHutch3DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 	double u_t2 = jump_u[1];
 	double u_n = jump_u[2];
 	
-	/*Change the below*/
-
 	double r_t1 = u_t1/fd_c_t;
 	double r_t2 = u_t2/fd_c_t;
 	double r_n = u_n/fd_c_n;
@@ -223,15 +239,17 @@ SurfacePotentialT::StatusT TvergHutch3DT::Status(const dArrayT& jump_u,
 
 void TvergHutch3DT::PrintName(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << "    Tvergaard-Hutchinson 3D\n";
+#else
+#pragma unused(out)
 #endif
 }
 
 /* print parameters to the output stream */
 void TvergHutch3DT::Print(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << " Cohesive stress . . . . . . . . . . . . . . . . = " << fsigma_max << '\n';
 	out << " Normal opening to failure . . . . . . . . . . . = " << fd_c_n     << '\n';
 	out << " Tangential opening to failure . . . . . . . . . = " << fd_c_t     << '\n';
@@ -239,6 +257,8 @@ void TvergHutch3DT::Print(ostream& out) const
 	out << " Non-dimensional opening to declining traction . = " << fL_2       << '\n';
 	out << " Non-dimensional opening to failure. . . . . . . = " << fL_fail    << '\n';
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fpenalty   << '\n';
+#else
+#pragma unused(out)
 #endif
 }
 

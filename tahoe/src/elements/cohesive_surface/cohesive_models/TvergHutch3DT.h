@@ -1,4 +1,4 @@
-/* $Id: TvergHutch3DT.h,v 1.1 2002-08-05 19:27:55 cjkimme Exp $ */
+/* $Id: TvergHutch3DT.h,v 1.2 2002-10-23 00:18:03 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #ifndef _TVERG_HUTCH_3D_T_H_
@@ -19,8 +19,9 @@ class TvergHutch3DT: public SurfacePotentialT
 {
 public:
 
-	/** constructor */
+	/** constructors */
 	TvergHutch3DT(ifstreamT& in);
+	TvergHutch3DT(double *params);
 
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const { return 0; };
