@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.15 2003-10-04 19:14:01 paklein Exp $ */
+/* $Id: FieldT.h,v 1.16 2003-11-04 17:35:35 paklein Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -226,7 +226,7 @@ public:
 	void SetLocalEqnos(const RaggedArray2DT<int>& nodes, RaggedArray2DT<int>& eqnos) const;
 
 	/** collect equation numbers */
-	void SetLocalEqnos(const iArrayT& tags, iArray2DT& eqnos) const;
+	void SetLocalEqnos(const ArrayT<int>& tags, iArray2DT& eqnos) const;
 	/*@}*/
 
 	/** \name restart functions
@@ -401,7 +401,7 @@ inline const dArray2DT& FieldT::operator()(int step, int order) const
 		return fField_last[order];
 }
 
-inline void FieldT::SetLocalEqnos(const iArrayT& tags,
+inline void FieldT::SetLocalEqnos(const ArrayT<int>& tags,
 	iArray2DT& eqnos) const
 {
 	eqnos.RowCollect(tags,fEqnos);
