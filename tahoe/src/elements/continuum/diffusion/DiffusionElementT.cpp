@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.2 2001-02-20 00:42:13 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.3 2001-03-19 22:31:17 paklein Exp $ */
 /* created: paklein (10/02/1999)                                          */
 
 #include "DiffusionElementT.h"
@@ -143,8 +143,11 @@ void DiffusionElementT::SendOutput(int kincode)
 	/* reset averaging workspace */
 	fNodes->ResetAverage(n_counts.Sum());
 
+	/* no element output */
+	iArrayT e_counts(fElementOutputCodes.Length());
+	e_counts = 0;
+
 	/* generate nodal values */
-	iArrayT e_counts;
 	dArray2DT e_values, n_values;
 	ComputeOutput(n_counts, n_values, e_counts, e_values);
 }
