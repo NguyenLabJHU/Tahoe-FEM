@@ -1,9 +1,10 @@
-/* $Id: ExceptionT.h,v 1.3 2002-11-13 08:28:14 paklein Exp $ */
+/* $Id: ExceptionT.h,v 1.4 2002-11-13 16:49:31 paklein Exp $ */
 /* created: paklein (06/04/1996) */
 #ifndef _EXCEPTION_T_H_
 #define _EXCEPTION_T_H_
 
 #include "ios_fwd_decl.h"
+#include <stdlib.h>
 
 namespace Tahoe {
 
