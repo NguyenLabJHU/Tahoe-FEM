@@ -1,4 +1,4 @@
-/* $Id: HexahedronT.cpp,v 1.5 2004-05-12 22:20:15 paklein Exp $ */
+/* $Id: HexahedronT.cpp,v 1.6 2004-05-16 00:59:30 paklein Exp $ */
 /* created: paklein (10/22/1997) */
 #include "HexahedronT.h"
 #include <math.h>
@@ -995,7 +995,9 @@ void HexahedronT::IPGradientTransform(int ip, dMatrixT& transform) const
 	int nip = transform.Cols();
 	if (nsd != 3) ExceptionT::SizeMismatch(caller);
 	
-	if (nip == 8) {
+	if (nip == 1)
+		transform = 0.0;
+	else if (nip == 8) {
 		double a = sqrt(3.0)/2.0;
 		double m0[3*8] = {-a, -a, -a, a, 0, 0, 0, 0, 0, 0, a, 0, 0, 0, a, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		double m1[3*8] = {-a, 0, 0, a, -a, -a, 0, a, 0, 0, 0, 0, 0, 0, 0, 0, 0, a, 0, 0, 0, 0, 0, 0};
