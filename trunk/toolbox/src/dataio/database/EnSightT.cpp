@@ -1,4 +1,4 @@
-/* $Id: EnSightT.cpp,v 1.18 2004-06-17 06:38:21 paklein Exp $ */
+/* $Id: EnSightT.cpp,v 1.19 2004-07-01 16:39:40 paklein Exp $ */
 /* created: sawimme (05/13/1999) */
 #include "EnSightT.h"
 
@@ -126,8 +126,13 @@ else
 elementmap.WriteWithFormat (fgeo, iwidth, 0, 1, 0);
 }
 
-void EnSightT::WriteConnectivity (ostream& fgeo, int numelemnodes, const iArray2DT& connects) const
+void EnSightT::WriteConnectivity (ostream& fgeo, GeometryT::CodeT code, int numelemnodes, const iArray2DT& connects) const
 {
+	/* resolve numbering convention differences between EnSight and tahoe */
+	iArray2DT connects_tmp;
+	connects_tmp.Alias(connects);
+	ConvertElementNumbering(code, connects_tmp);
+
   /* do not write all columns of connectivity data,
      only write up to numelemnodes */
   if (fBinary)
@@ -151,6 +156,9 @@ void EnSightT::WriteConnectivity (ostream& fgeo, int numelemnodes, const iArray2
 	  pc += connects.MinorDim();
 	}
     }
+
+	/* convert back since we modified const connects */
+	ConvertElementNumbering(code, connects_tmp);
 }
 
 void EnSightT::WriteVector (ostream& fvar, const dArray2DT& values, int i) const
@@ -610,40 +618,45 @@ in.getline (line.Pointer(), 80, '\n'); // clear endline character
 
 void EnSightT::ReadConnectivity (istream& in, iArray2DT& conn, iArrayT& map, bool elemmapgiven, GeometryT::CodeT& code) const
 {
-StringT line (81);
-int num_elems, num_elem_nodes;
-if (fBinary)
-{
-in.read (line.Pointer(), sizeof (char)*80); // element name
-if (!GeometryCode (code, line, num_elem_nodes)) return;
-in.read (reinterpret_cast<char *> (&num_elems), sizeof (int));
-if (elemmapgiven)
+	StringT line (81);
+	int num_elems, num_elem_nodes;
+	if (fBinary)
 	{
-	  map.Allocate (num_elems);
-	  int *mp = map.Pointer();
-	  for (int k=0; k < num_elems; k++)
-	    in.read (reinterpret_cast<char *> (mp++), sizeof (int));
-	}
-conn.Allocate (num_elems, num_elem_nodes);
-int *cp = conn.Pointer();
-for (int l=0; l < num_elems*num_elem_nodes; l++)
-	in.read (reinterpret_cast<char *> (cp++), sizeof (int));
-}
-else
-{
-in.getline (line.Pointer(), 80, '\n'); // element name
-if (!GeometryCode (code, line, num_elem_nodes)) return;
-in >> num_elems;
-if (elemmapgiven)
-	{
-	  map.Allocate (num_elems);
-	  in >> map;
-	}
-conn.Allocate (num_elems, num_elem_nodes);
-in >> conn;
+		in.read (line.Pointer(), sizeof (char)*80); // element name
+		if (!GeometryCode (code, line, num_elem_nodes)) return;
+		in.read (reinterpret_cast<char *> (&num_elems), sizeof (int));
+		if (elemmapgiven)
+		{
+			map.Dimension (num_elems);
+			int *mp = map.Pointer();
+			for (int k=0; k < num_elems; k++)
+			in.read (reinterpret_cast<char *> (mp++), sizeof (int));
+		}
 
-in.getline (line.Pointer(), 80, '\n'); // clear endline character
-}
+		conn.Dimension (num_elems, num_elem_nodes);
+		int *cp = conn.Pointer();
+		for (int l=0; l < num_elems*num_elem_nodes; l++)
+			in.read (reinterpret_cast<char *> (cp++), sizeof (int));
+	}
+	else
+	{
+		in.getline (line.Pointer(), 80, '\n'); // element name
+		if (!GeometryCode (code, line, num_elem_nodes)) return;
+		in >> num_elems;
+		if (elemmapgiven)
+		{
+			map.Dimension (num_elems);
+			in >> map;
+		}
+		
+		conn.Dimension (num_elems, num_elem_nodes);
+		in >> conn;
+
+		in.getline (line.Pointer(), 80, '\n'); // clear endline character
+	}
+
+	/* translate numbering conventions */
+	ConvertElementNumbering(code, conn);
 }
 
 void EnSightT::ReadVariableHeader (istream& in, StringT& header) const
@@ -679,8 +692,22 @@ values.Transpose (temp);
 }
 
 /*************************************************************************
-* Private
-*************************************************************************/
+ * Private
+ *************************************************************************/
+
+/* translate element number convention between EnSight and tahoe */
+void EnSightT::ConvertElementNumbering(GeometryT::CodeT code, iArray2DT& conn) const
+{
+	/* 3-noded line elements */
+	if (code == GeometryT::kLine && conn.MinorDim() == 3)
+		for (int i = 0; i < conn.MajorDim(); i++)
+		{
+			/* swap last two nodes */
+			int tmp = conn(i,1);
+			conn(i,1) = conn(i,2);
+			conn(i,2) = tmp;
+		}
+}
 
 void EnSightT::WritedArray2DT(ostream& out, const dArray2DT& values, int column_position) const
 {

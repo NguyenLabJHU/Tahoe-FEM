@@ -1,7 +1,5 @@
-/* $Id: EnSightT.h,v 1.5 2002-07-05 22:26:25 paklein Exp $ */
-/* created: sawimme (05/13/1999)                                          */
-/* ******EnSight6 Gold Format******                                       */
-
+/* $Id: EnSightT.h,v 1.6 2004-07-01 16:39:40 paklein Exp $ */
+/* created: sawimme (05/13/1999) */
 #ifndef _ENSIGHT_T_H_
 #define _ENSIGHT_T_H_
 
@@ -22,6 +20,7 @@ class iArray2DT;
 class dArray2DT;
 template <class TYPE> class AutoArrayT;
 
+/** interface for I/O of EnSight6 Gold format */
 class EnSightT
 {
 public:
@@ -43,7 +42,7 @@ enum VariableTypeT {kScalarElemental,
 	// returns num_elem_nodes
 	int WriteConnectivityHeader (ostream& fgeo, GeometryT::CodeT code, int numelems, int numelemnodes) const;
 	void WriteConnectivityMap (ostream& fgeo, const iArrayT& elementmap) const;
-	void WriteConnectivity (ostream& fgeo, int numelemnodes, const iArray2DT& connects) const;
+	void WriteConnectivity (ostream& fgeo, GeometryT::CodeT code, int numelemnodes, const iArray2DT& connects) const;
 
 	// variables
 	void WriteVector (ostream& fvar, const dArray2DT& values, int i = 0) const;
@@ -78,6 +77,10 @@ enum VariableTypeT {kScalarElemental,
 	void ReadVariable (istream& in, dArray2DT& values) const;
 
 private:
+
+	/* translate element number convention between EnSight and tahoe */
+	void ConvertElementNumbering(GeometryT::CodeT code, iArray2DT& conn) const;
+
 void WritedArray2DT(ostream& out, const dArray2DT& values, int column_position) const;
 void Fillto3D (ostream& out, int width, int length) const;
 	void WriteString (ostream& o, const char* s) const;
