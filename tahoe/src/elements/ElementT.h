@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.29 2003-09-24 21:40:15 raregue Exp $ */
+/* $Id: ElementT.h,v 1.30 2003-10-02 21:05:04 hspark Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -53,20 +53,20 @@ kPenaltyContactElement3D = 34,
                     kEAM = 39,  /**< particles with EAM potental */
      kNonLinearDiffusion = 41,
        kMeshfreeBridging = 45,
-	     kFSMatForce = 60,    /*UpLag with material force calculation*/
-	     kSSMatForceD = 61,
-	     kSSMatForceS = 62,
-	     kDorganVoyiadjisMarin = 63,
-	     kSmallStrainQ2P1 = 64, /*small strain with mat force calculation*/		     
-	     kSSQ2P1MF = 65,
-	     kSmallStrainQ1P0 = 66,
-	     kSSQ1P0MF = 67,
-          kAPSgrad = 68,	     
-       kHyperElasticInitCSE = 111, /**< large strain solid that triggers CSE */
-     kPenaltyContactDrag = 114  /**< contact with constant drag traction */
-	     };    
-	     
- /** stream extraction operator */ 
+			 kFSMatForce = 60,    /*UpLag with material force calculation*/
+			kSSMatForceD = 61,
+			kSSMatForceS = 62,
+   kDorganVoyiadjisMarin = 63,
+		kSmallStrainQ2P1 = 64, /*small strain with mat force calculation*/		     
+			   kSSQ2P1MF = 65,
+		kSmallStrainQ1P0 = 66,
+			   kSSQ1P0MF = 67,
+				kAPSgrad = 68,	     
+   kHyperElasticInitCSE = 111, /**< large strain solid that triggers CSE */
+	kPenaltyContactDrag = 114, /**< contact with constant drag traction */
+kTotLagSplitIntegration = 117 };
+
+/** stream extraction operator */ 
 	friend istream& operator>>(istream& in, ElementT::TypeT& type);
 };
 

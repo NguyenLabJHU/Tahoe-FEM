@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.63 2003-09-24 21:40:15 raregue Exp $ */
+/* $Id: ElementListT.cpp,v 1.64 2003-10-02 21:05:04 hspark Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -104,7 +104,11 @@
 #include "SSQ2P1MF.h"
 #include "SmallStrainQ1P0.h"
 #include "SSQ1P0MF.h"
+#include "SmallStrainMF2.h"
 #endif /* MATERIAL_FORCE_ELEMENT_DEV */
+#ifdef SPLIT_INTEGRATION_DEV
+#include "SplitIntegrationT.h"
+#endif
 #endif
 
 using namespace Tahoe;
@@ -729,9 +733,18 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		  fArray[group] = new SSQ1P0MF(fSupport, *field);
 		  break;
 #else
-			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or MATERIAL_FORCE_ELEMENT_DEV not enabled: %d", code);
-#endif
+			ExceptionT::BadInputValue(caller, "DORGAN_VOYIADJIS_MARIN_DEV not enabled: %d", code);
+#endif			
 		}
+		case ElementT::kTotLagSplitIntegration:
+		{
+#if defined (SOLID_ELEMENT_DEV) && defined (SPLIT_INTEGRATION_DEV)
+			fArray[group] = new SplitIntegrationT(fSupport, *field);
+		    break;
+#else
+			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or SPLIT_INTEGRATION_DEV not enabled: %d", code);
+#endif				
+		}			
 		case ElementT::kDorganVoyiadjisMarin:
 		{
 #ifdef DORGAN_VOYIADJIS_MARIN_DEV
