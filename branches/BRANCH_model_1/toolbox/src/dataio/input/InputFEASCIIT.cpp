@@ -243,12 +243,11 @@ void InputFEASCIIT::ReadGeometryCode (StringT& name, GeometryT::CodeT& geocode)
 
   if (!AdvanceToBlock (geo, name, "Connectivities")) throw eDatabaseFail;
 
-  int num;
   StringT s;
   if (!geo.FindString ("Geometry code", s)) throw eDatabaseFail;
 
   // either this or write an operator= for Geometry::CodeT
-  char *h = strstr (s, "=");
+  char *h = strstr ((const char*) s, "=");
   h++;
   istringstream istr (h);
   istr >> geocode;
@@ -414,7 +413,7 @@ bool InputFEASCIIT::ScanGeometryFile (ifstreamT& in)
   StringT s;
   if (!in.FindString ("G E O M E T R Y", s)) return false;
 
-  int nid, eid, numnodes, numelems, dof;
+  int nid, eid, numelems;
   fNumNodes = 0;
   fNumElements = 0;
   fNumDOF = 0;
@@ -445,7 +444,10 @@ bool InputFEASCIIT::ScanGeometryFile (ifstreamT& in)
     }
 
   fNumNodes = nodes.Length();
-  if (fBlockID.Length() < 1) return false;
+  if (fBlockID.Length() < 1) 
+  	return false;
+  else
+  	return true;
 }
 
 bool InputFEASCIIT::ScanResultsFile (ifstreamT& in)
@@ -497,7 +499,10 @@ bool InputFEASCIIT::ScanResultsFile (ifstreamT& in)
 	      }
 	}
     }
-  if (fTimeSteps.Length() < 1) return false;
+  if (fTimeSteps.Length() < 1) 
+  	return false;
+  else
+  	return true;
 }
 
 bool InputFEASCIIT::AdvanceToBlock (ifstreamT& in, const StringT& name, const char* tname) const
@@ -511,6 +516,7 @@ bool InputFEASCIIT::AdvanceToBlock (ifstreamT& in, const StringT& name, const ch
 	  !in.FindString ("Block number", s) ||
 	  !s.Tail ('=', found)) return false;
     }
+	return true;
 }
 
 
