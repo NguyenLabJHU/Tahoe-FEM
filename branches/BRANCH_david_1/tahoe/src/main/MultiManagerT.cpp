@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.17.2.3 2004-08-09 20:57:59 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.17.2.4 2004-08-11 01:13:53 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -624,6 +624,7 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 	StringT continuum_output_file;
 	TaskT task = kRun;
 	continuum_output_file.Root(continuum_input);
+	if (fCoarseComm->Size() > 1) continuum_output_file.Append(".p", Rank());
 	continuum_output_file.Append(".out");
 	fCoarseOut.open(continuum_output_file);
 	fCoarse = TB_DYNAMIC_CAST(FEManagerT_bridging*, FEManagerT::New(continuum_params.Name(), continuum_input, fCoarseOut, *fCoarseComm, fArgv, task));
@@ -640,6 +641,7 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 	/* construct atomistic solver */
 	StringT atom_output_file;
 	atom_output_file.Root(atom_input);
+	if (fFineComm->Size() > 1) atom_output_file.Append(".p", Rank());
 	atom_output_file.Append(".out");
 	fFineOut.open(atom_output_file);
 	fFine = TB_DYNAMIC_CAST(FEManagerT_bridging*, FEManagerT::New(atom_params.Name(), atom_input, fFineOut, *fFineComm, fArgv, task));
