@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianAxiT.cpp,v 1.2.12.4 2004-05-03 23:53:46 paklein Exp $ */
+/* $Id: TotalLagrangianAxiT.cpp,v 1.2.12.5 2004-05-04 16:47:28 paklein Exp $ */
 #include "TotalLagrangianAxiT.h"
 
 #include "ShapeFunctionT.h"
@@ -201,7 +201,7 @@ void TotalLagrangianAxiT::FormKd(double constK)
 		if (CurrElementNumber() == output_element) {
 
 //TEMP - write stress and modulus to output to compare with ".ip4." output
-if (CurrIP() == 3) {
+if (CurrIP() == -99) {
 	cout << "reporting stress at ip 0" << endl;
 	ofstreamT& out = ElementSupport().Output();
 	int prec = out.precision();
