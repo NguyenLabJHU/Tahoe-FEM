@@ -1,4 +1,4 @@
-/* $Id: XML_Attribute_FormatterT.h,v 1.5 2003-08-19 08:02:36 paklein Exp $ */
+/* $Id: XML_Attribute_FormatterT.h,v 1.6 2004-03-18 17:40:49 paklein Exp $ */
 #ifndef _XML_ATTRIBUTE_FORMATTER_T_H_
 #define _XML_ATTRIBUTE_FORMATTER_T_H_
 
@@ -58,6 +58,15 @@ public:
 	virtual bool WriteDescription(ostream& out, const ParameterListT& list) const;
 	/*@}*/
 
+	/** \name accessors to counts 
+	 * counts are reset by calls to XML_Attribute_FormatterT::InitDescriptionFile and
+	 * accumulated during calls to XML_Attribute_FormatterT::WriteDescription */
+	/*@{*/
+	int ElementCount(void) const { return fElementCount; };
+	int AttributeCount(void) const { return fAttributeCount; };
+	int LimitCount(void) const { return fLimitCount; };
+	/*@}*/
+
 private:
 
 	/** write the data description. A list of tags is maintained in order to check
@@ -95,6 +104,14 @@ private:
 	DocTypeT fDocType;
 	StringT  fPath;
 	StringT  fDocumentRoot;
+	/*@}*/
+
+	/** \name counts
+	 * Counts reset with call to XML_Attribute_FormatterT::InitDescriptionFile */
+	/*@{*/
+	int fElementCount;
+	int fAttributeCount;
+	int fLimitCount;
 	/*@}*/
 };
 
