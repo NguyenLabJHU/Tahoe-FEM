@@ -241,12 +241,20 @@ const dMatrixT& FossumSSIsoT::cdisc_ijkl(void)
 * the normal for which the determinant is minimum. Returns 0
 * of the determinant is positive.
 */
+
 int FossumSSIsoT::IsLocalized(dArrayT& normal)
 {
+  
         DetCheckT checker(fStress, fModulus);
         //checker.SetElementGroup(ContinuumElement());
 
         int loccheck= checker.IsLocalized(normal);
+	/*
+  int loccheck = 0;
+normal[0] = 1.0;
+normal[1] = 1.0;
+normal[2] = 1.0;
+	*/
         return loccheck;
 }
 
@@ -315,7 +323,9 @@ output [6] = fKappa0;
 
         /* stress-like internal variable alpha */
 
-        if (element.IsAllocated())
+//if (element.IsAllocated())
+if (0)
+  //undo to check for localization
         {
 	  //output[0] = fInternal[kalpha];
                 const iArrayT& flags = element.IntegerData();
@@ -330,8 +340,8 @@ output [6] = fKappa0;
                         // continuous localization condition checker
                         DetCheckT checker(stress, modulus);
                         dArrayT normal(stress.Rows());
-                        output[10] = checker.IsLocalized_SS(normal);
-        
+                        output[10] = checker.IsLocalized_SS(normal);        
+
                         /* compute discontinuous bifurcation modulus */
                         const dMatrixT& modulusdisc = cdisc_ijkl();
 
@@ -637,16 +647,7 @@ double FossumSSIsoT::MeanStress(const dSymMatrixT& trialstrain,
 }
 
 /*---------------------------------------------------------------*/
-/* Auxiliary Functions for yield function */
-double FossumSSIsoT::YieldFnGamma(double J2, double J3)
-{
-  if (J2 <= 0.0)
-  	return 1.0;   //limit as s_ij -> 0
 
-  double sin3Beta = -3.0*sqrt3*J3/(2.0*J2*sqrt(J2));
-
-  return .5*(1 + sin3Beta + 1/fPsi*(1.0 - sin3Beta)); 
-}
 
 double FossumSSIsoT::YieldFnFfMinusN(double I1)
 {
@@ -1324,16 +1325,6 @@ double FossumSSIsoT::dFcdI1(double I1, double kappa)
   return HeavisideFn(Lfn(kappa) - I1) * -2 * (I1 - Lfn(kappa)) / ((Xfn(kappa) - Lfn(kappa))*(Xfn(kappa) - Lfn(kappa)));
 }
 
-double FossumSSIsoT::dfdJ2(double J2, double J3)
-{
-  return YieldFnGamma (J2, J3) * YieldFnGamma (J2, J3) + 2 * J2 * YieldFnGamma (J2, J3)* dGammadJ2 (J2, J3);
-}
-
-double FossumSSIsoT::dGammadJ2 (double J2, double J3)
-{
-  return 9 * sqrt3 * J3 * ( 1 - 1/fPsi) / (8 * pow(J2,2.5));
-}
-
 double FossumSSIsoT::dfdJ3(double J2, double J3)
 {
   return - YieldFnGamma (J2, J3) * (1 - 1/ fPsi) * 3 * sqrt3 / (2 * sqrt (J2)); 
@@ -1531,7 +1522,7 @@ return 2*(2 * gamma * dGdJ2 + J2 * dGdJ2 * dGdJ2 + J2 * gamma * d2GammadJ2dJ2(J2
 
 double FossumSSIsoT::d2GammadJ2dJ2(double J2, double J3)
 {
-  return (1 - 1/fPsi) * -45*sqrt3 * J3/ (16 * pow(J2, 3.5));
+  return (1 - 1/fPsi) * -45*sqrt3 * J3/ (16 * J2*J2*J2*sqrt(J2));
 }
 
 double FossumSSIsoT::d2fdJ2dJ3 (double J2, double J3)
@@ -1544,12 +1535,12 @@ double FossumSSIsoT::d2fdJ2dJ3 (double J2, double J3)
 
 double FossumSSIsoT::d2GammadJ2dJ3 (double J2)
 {
-  return ( 1 - 1/fPsi) * 9 * sqrt3 / (8 * pow(J2, 2.5));
+  return ( 1 - 1/fPsi) * 9 * sqrt3 / (8 * J2 * J2 * sqrt(J2));
 }
 
 double FossumSSIsoT::dGammadJ3(double J2)
 {
-  return ( 1 - 1/fPsi) * -3 * sqrt3 / (4 * pow(J2, 1.5));
+  return ( 1 - 1/fPsi) * -3 * sqrt3 / (4 * J2 * sqrt(J2));
 }
 
 double FossumSSIsoT::d2fdJ3dJ3 (double J2, double J3)
@@ -1804,6 +1795,16 @@ const dMatrixT& FossumSSIsoT::c_ijkl(void)
       //d2fdSigmadSigma = 0.0;
       //d2fdSigmadq = 0.0;
       //d2fdqdq = 0.0;
+
+       /*
+       if (fFossumDebug)
+	 {
+	 dMatrixT dummy(7);
+	 dummy.SetToScaled(-fInternal[kdgamma], dhdq);
+	 cout << "-fInternal[kdgamma]*dhdq = \n" << dummy << endl;
+	 }
+       */
+
 
        for (int i=0; i<6; i++)
 	 for (int j=0; j<6; j++)
@@ -2327,11 +2328,17 @@ if (fN != 0)
 
 	dGalphadAlpha.AddScaled(-1.0/(fN*sqrt(2.0)),ones);
       }
-
-    dGalphadAlpha.AddScaled(-1.0/(2.0*fN*sqrt(J2alpha)),alpha);
+    else
+      dGalphadAlpha.AddScaled(-1.0/(2.0*fN*sqrt(J2alpha)),alpha);
   }
+/*
+ cout << "Galpha = " << Galpha(alpha) << endl;
+ cout << "d2fdSdAlpha = \n" << d2fdSdAlpha << endl;
+ cout << "dfdDevStress = \n" << dfdDevStress << endl;
+ cout << "dGalphadAlpha = \n" << dGalphadAlpha << endl;
+*/
 
-  for (i=0; i<6; i++)
+ for (i=0; i<6; i++)
   	 for (j=0; j<6; j++) 
 	   dhdq(i,j)  = fCalpha * (Galpha(alpha) * d2fdSdAlpha(i,j)
 				   + dfdDevStress[i] * dGalphadAlpha [j]);

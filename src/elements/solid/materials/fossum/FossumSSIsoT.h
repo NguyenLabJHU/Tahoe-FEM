@@ -318,6 +318,28 @@ dSymMatrixT DfdDevStress(double I1, double J2, double J3, dArrayT principalEqStr
 dMatrixT D2fdDevStressdAlpha(double I1, double J2, double J3, dArrayT principalEqStress);
 
 };
+const double sqrt3__       = sqrt(3.0);
+
+/* Auxiliary Functions for yield function */
+inline double FossumSSIsoT::YieldFnGamma(double J2, double J3)
+{
+  if (J2 <= 0.0)
+  	return 1.0;   //limit as s_ij -> 0
+
+  double sin3Beta = -3.0*sqrt3__*J3/(2.0*J2*sqrt(J2));
+
+  return .5*(1 + sin3Beta + 1/fPsi*(1.0 - sin3Beta)); 
+}
+
+inline double FossumSSIsoT::dGammadJ2 (double J2, double J3)
+{
+  return 9 * sqrt3__ * J3 * ( 1 - 1/fPsi) / (8 * J2*J2*sqrt(J2));
+}
+
+inline double FossumSSIsoT::dfdJ2(double J2, double J3)
+{
+  return YieldFnGamma (J2, J3) * YieldFnGamma (J2, J3) + 2 * J2 * YieldFnGamma (J2, J3)* dGammadJ2 (J2, J3);
+}
 
 } // namespace Tahoe 
 
