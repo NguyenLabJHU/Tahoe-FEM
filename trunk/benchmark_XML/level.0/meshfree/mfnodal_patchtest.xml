@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tahoe author="cjkimme" geometry_file="../geometry/particles.geom"
+<tahoe author="cjkimme" geometry_file="../geometry/square.ss.geom"
     title="2D small strain scnimf" xmlns:x0="http://www.w3.org/2001/XMLSchema">
-    <time num_steps="2" output_inc="1" time_step="0.5">
+    <time num_steps="1" output_inc="1" time_step="0.5">
         <schedule_function>
             <piecewise_linear>
                 <OrderedPair x="0.0" y="0.0"/>
-                <OrderedPair x="10.0" y="2.0"/>
+                <OrderedPair x="10.0" y="10.0"/>
             </piecewise_linear>
         </schedule_function>
     </time>
@@ -15,23 +15,28 @@
                 <String value="D_X"/>
                 <String value="D_Y"/>
             </dof_labels>
-            <kinematic_BC dof="2" node_ID="9" type="fixed"/>
-            <augmented_Lagrangian_KBC_meshfree element_group="1" regularization="10.0">
-                <kinematic_BC dof="1" node_ID="4" schedule="1" type="u" value="-0.00125"/>
-                <kinematic_BC dof="1" node_ID="2" schedule="1" type="u" value="0.00125"/>
-            </augmented_Lagrangian_KBC_meshfree>
+		<kinematic_BC dof="1" node_ID="18" schedule="1" type="u" value="0.0"/>
+		<kinematic_BC dof="2" node_ID="18" schedule="1" type="u" value="0.0"/>
         </field>
     </nodes>
     <element_list>
-        <ss_mfparticle field_name="displacement" num_ip="4">
+        <ss_mfparticle compute_voronoi="false" field_name="displacement"
+            num_ip="1" voronoi_file="../geometry/big.vor">
             <meshfree_support_2D>
                 <RKPM>
                     <cubic_spline_window support_scaling="1.5"/>
                 </RKPM>
             </meshfree_support_2D>
             <mf_particle_ID_list>
-                <String value="9"/>
+                <String value="1"/>
             </mf_particle_ID_list>
+		<natural_bc schedule="1" side_set_ID="1">
+                <DoubleList>
+                    <Double value="200.000000000000"/>
+                    <Double value="100.000000000000"/>
+			  <Double value="50.0"/>
+                </DoubleList>
+            </natural_bc>
             <ss_connectivity_element_block>
                 <block_ID_list>
                     <String value="1"/>
@@ -45,7 +50,8 @@
         </ss_mfparticle>
     </element_list>
     <nonlinear_solver abs_tolerance="1.0e-10"
-        divergence_tolerance="1.0e+01" max_iterations="10" rel_tolerance="1.0e-12">
+        check_LHS_perturbation="1.0E1" check_code="print_RHS"
+        divergence_tolerance="1e2" max_iterations="10" rel_tolerance="1.0e-10">
         <profile_matrix/>
     </nonlinear_solver>
 </tahoe>
