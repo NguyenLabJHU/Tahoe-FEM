@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.7 2002-04-16 21:22:29 cjkimme Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.8 2002-04-17 23:53:44 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -235,7 +235,7 @@ void MeshFreeCSEAnisoT::Initialize(void)
 	        case SurfacePotentialT::kRateDep:
 		{
 		       if (fNumDOF == 2)
-			 fSurfacePotential == new RateDep2DT(in,FEManager().TimeStep());
+			 fSurfacePotential = new RateDep2DT(in,FEManager().TimeStep());
 		       else
 		       {
 			 cout << "\n MeshFreeCSEAnisoT::Initialize potential not implemented for 3D: " << code << endl;
