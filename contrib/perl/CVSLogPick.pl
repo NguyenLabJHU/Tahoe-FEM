@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: CVSLogPick.pl,v 1.1 2003-02-22 18:56:36 paklein Exp $
+# $Id: CVSLogPick.pl,v 1.2 2003-06-09 06:23:01 paklein Exp $
 #
 # Print the non-empty log messages to stdout
 #
@@ -15,6 +15,7 @@ if (scalar(@ARGV) == 0) {
 $cvs_log = $ARGV[0];
 open(IN, $cvs_log) || die "could not open file $cvs_log";
 
+$working_file = "none";
 $echo = 0;
 while ($line = <IN>) {
 
@@ -26,10 +27,15 @@ while ($line = <IN>) {
 		# end echo
 		if ($line =~ /=====/) { $echo = 0; }
 	}
+	elsif ($line =~ /Working\ file/) # looking for working file
+	{
+		$working_file = $line;
+	}
 
 	# look for selected revisions
 	if ($line =~ /selected\ revisions:\ [1-9]/) {
 		$echo = 1;
+		print STDOUT $working_file;
 		
 		# discard 2 lines
 		$line = <IN>;
