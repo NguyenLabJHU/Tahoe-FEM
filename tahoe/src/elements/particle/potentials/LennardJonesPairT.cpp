@@ -1,4 +1,4 @@
-/* $Id: LennardJonesPairT.cpp,v 1.9 2003-10-28 23:31:51 paklein Exp $ */
+/* $Id: LennardJonesPairT.cpp,v 1.10 2003-10-31 20:51:11 paklein Exp $ */
 #include "LennardJonesPairT.h"
 #include "toolboxConstants.h"
 #include <iostream.h>
@@ -115,7 +115,7 @@ void LennardJonesPairT::DefineParameters(ParameterListT& list) const
 
 	ParameterT alpha(f_alpha, "cut_off_distance");
 	alpha.AddLimit(0.0, LimitT::Lower);
-	list.AddParameter(sigma, ParameterListT::ZeroOrOnce);
+	list.AddParameter(alpha, ParameterListT::ZeroOrOnce);
 }
 
 /* accept parameter list */
