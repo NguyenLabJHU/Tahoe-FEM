@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.5 2002-02-10 00:52:33 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.6 2002-02-11 01:24:47 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT.h"
@@ -369,6 +369,7 @@ void SPOOLESMatrixT::BackSubstitute(dArrayT& result)
 		fOut.precision(12);
 		int d_width = fOut.precision() + kDoubleExtra;
 		fOut << "\n LHS matrix in {r,c,v} format:\n";
+		fOut << " Number of values = " << r.Length() << '\n';
 		for (int i = 0; i < r.Length(); i++)
 			fOut << setw(kIntWidth) << r[i] + 1
 			     << setw(kIntWidth) << c[i] + 1
