@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.55 2003-09-04 07:16:50 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.55.2.1 2003-09-15 17:17:04 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -293,7 +293,6 @@ void CSEAnisoT::Initialize(void)
 			{
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
 				if (NumDOF() == 2)
-//					fSurfPots[num] = new InelasticDuctile_RP2DT(in, ElementSupport().TimeStep(), fIPArea);
 					fSurfPots[num] = new InelasticDuctile_RP2DT(in, ElementSupport().TimeStep(), fIPArea, ElementSupport().Output());
 				else
 					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
@@ -472,6 +471,25 @@ void CSEAnisoT::Initialize(void)
 	/* For SIERRA, don't do anything. Wait until InitStep. */
 #endif
 
+}
+
+/* prepare for a sequence of time steps */
+void CSEAnisoT::InitialCondition(void)
+{
+	/* inherited */
+	CSEBaseT::InitialCondition();
+
+	/* set iteration pointers */
+	for (int i = 0; i < fSurfPots.Length(); i++)
+	{
+		SurfacePotentialT* potential = fSurfPots[i];
+		InelasticDuctile_RP2DT* ductile = dynamic_cast<InelasticDuctile_RP2DT*>(potential);
+		if (ductile)
+		{
+			const int& iteration = ElementSupport().IterationNumber(Group());	
+			ductile->SetIterationPointer(&iteration);
+		}
+	}
 }
 
 #ifdef _FRACTURE_INTERFACE_LIBRARY_	
