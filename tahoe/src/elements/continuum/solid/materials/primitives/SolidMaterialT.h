@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.24 2005-03-08 06:36:49 raregue Exp $ */
+/* $Id: SolidMaterialT.h,v 1.25 2005-03-09 19:25:48 raregue Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -134,7 +134,8 @@ public:
 	 * \param normals orientation of the localization if localized
 	 * \return true if the determinant of the acoustical tensor A is 
 	 * negative or false if the determinant is positive. */
-	//virtual int IsLocalized(dArrayT& normal);
+	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+							AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact);
 	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &detA);
 	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
 

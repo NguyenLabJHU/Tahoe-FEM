@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.19 2005-03-08 06:36:49 raregue Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.20 2005-03-09 19:25:48 raregue Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
@@ -104,8 +104,17 @@ void SolidMaterialT::WaveSpeeds(const dArrayT& normal, dArrayT& speeds)
 * for the current conditions (current integration point and strain
 * state). If localization is detected, the normals (current config)
 * to the various surfaces are returned in normals */
-bool SolidMaterialT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &detA)
-//virtual bool IsLocalized();
+bool SolidMaterialT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+								AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact)
+{
+#pragma unused(normals)
+
+	/* by default, no localization */
+	return false;
+}
+
+bool SolidMaterialT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+								double &detA)
 {
 #pragma unused(normals)
 
@@ -115,8 +124,8 @@ bool SolidMaterialT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArr
 
 bool SolidMaterialT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
 {
-  double dummyDetA;
-  return IsLocalized(normals, slipdirs, dummyDetA);
+	double dummyDetA;
+	return IsLocalized(normals, slipdirs, dummyDetA);
 }
 
 

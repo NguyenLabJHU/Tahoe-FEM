@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.15 2005-03-08 06:36:48 raregue Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.16 2005-03-09 19:25:48 raregue Exp $ */
 /* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
 #include "SSMatSupportT.h"
@@ -155,24 +155,38 @@ void SSSolidMatT::InitStep(void)
 * for the current conditions (current integration point and strain
 * state). If localization is detected, the normals (current config)
 * to the surface and slip directions are returned */
-bool SSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &detA)
-{
-  /* elastic modulus */
-  /* this uses same space as c_ijkl(), so save separatley first */
-  const dMatrixT modulus_e = ce_ijkl();
 
-  /* localization condition checker */
-  DetCheckT checker(s_ij(), c_ijkl(), modulus_e);
-  normals.Dimension(NumSD());
-  slipdirs.Dimension(NumSD());
-  return checker.IsLocalized_SS(normals, slipdirs, detA);
+bool SSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, 
+							AutoArrayT <double> &detAs, AutoArrayT <double> &dissipations_fact)
+{
+	/* elastic modulus */
+	/* this uses same space as c_ijkl(), so save separatley first */
+	const dMatrixT modulus_e = ce_ijkl();
+
+	/* localization condition checker */
+	DetCheckT checker(s_ij(), c_ijkl(), modulus_e);
+	normals.Dimension(NumSD());
+	slipdirs.Dimension(NumSD());
+	return checker.IsLocalized_SS(normals, slipdirs, detAs);
 }
 
+bool SSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &detA)
+{
+	/* elastic modulus */
+	/* this uses same space as c_ijkl(), so save separatley first */
+	const dMatrixT modulus_e = ce_ijkl();
+
+	/* localization condition checker */
+	DetCheckT checker(s_ij(), c_ijkl(), modulus_e);
+	normals.Dimension(NumSD());
+	slipdirs.Dimension(NumSD());
+	return checker.IsLocalized_SS(normals, slipdirs, detA);
+}
 
 bool SSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
 {
-  double dummyDetA = 0.0;
-  return IsLocalized(normals, slipdirs, dummyDetA);
+	double dummyDetA = 0.0;
+	return IsLocalized(normals, slipdirs, dummyDetA);
 }
 
 /*************************************************************************
