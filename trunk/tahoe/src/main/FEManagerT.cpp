@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.80 2004-09-28 15:35:37 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.81 2004-10-06 21:07:10 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -25,7 +25,6 @@
 #include "SolverT.h"
 #include "ParameterContainerT.h"
 
-// the includes below are from FEManagerT_mpi.cpp DEF 28 July 04
 #include <time.h> 
 #include "AutoArrayT.h"
 #include "RaggedArray2DT.h"
@@ -33,9 +32,6 @@
 #include "GraphT.h"
 #include "IOBaseT.h"
 #include "PartitionT.h"
-
-#include "ModelFileT.h"
-#include "ExodusT.h"
 
 using namespace Tahoe;
 
@@ -1202,14 +1198,6 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 	/* geometry file */
 	list.AddParameter(ParameterT(ParameterT::Word, "geometry_file"));
 
-	/* decomposition method */
-	ParameterT decomp_method(ParameterT::Enumeration, "decomposition_method");
-	decomp_method.AddEnumeration("graph", PartitionT::kGraph);
-	decomp_method.AddEnumeration("atom", PartitionT::kAtom);
-	decomp_method.AddEnumeration("spatial", PartitionT::kSpatial);
-	decomp_method.SetDefault(PartitionT::kGraph);
-	list.AddParameter(decomp_method, ParameterListT::ZeroOrOnce);
-
 	/* output format */
 	ParameterT output_format(ParameterT::Enumeration, "output_format");
 	output_format.AddEnumeration("Tahoe", IOBaseT::kTahoe);
@@ -1284,26 +1272,34 @@ cout << caller << ": START" << endl;
 				try {
 				
 					/* resolve decomposition method */
-					const ParameterT* decomp_method = list.Parameter("decomposition_method");
-					int method = PartitionT::kGraph;
+					const ParameterListT* decomp_method = list.ListChoice(*this, "decomp_method_choice");
+					ParameterListT decomp_method_tmp;
 					if (!decomp_method) {
 					
 						/* look for command line option */
+						decomp_method = &decomp_method_tmp;
 						int index = 0;
 						if (CommandLineOption("-decomp_method", index))
 						{
 							const char* opt = fArgv[index+1];
+							int method = PartitionT::kGraph;
 							if (strlen(opt) > 1 && isdigit(opt[1]))
-							method = atoi(opt+1); /* opt[0] = '-' */
+								method = atoi(opt+1); /* opt[0] = '-' */
+							
+							if (method == PartitionT::kGraph)
+								decomp_method_tmp.SetName("graph_decomposition");
+							else if (method == PartitionT::kIndex)
+								decomp_method_tmp.SetName("index_decomposition");
+							else
+								ExceptionT::GeneralFail(caller, "unsupported decomposition method");
+							
 						}
 						else
 							ExceptionT::GeneralFail(caller, "\"decomposition_method\" or \"-decomp_method -[0,1,2]\" required for multiprocessor calculations");
 					}
-					else
-						method = (*decomp_method);
 
 					/* do decomposition */
-					decompose.CheckDecompose(fInputFile, fComm.Size(), method, comm, database, format, fArgv);
+					decompose.CheckDecompose(fInputFile, fComm.Size(), *decomp_method, comm, database, format, fArgv);
 				}
 				catch (ExceptionT::CodeT error) {
 					cout << "\n " << caller << ": exception: " << ExceptionT::ToString(error) << endl;
@@ -1562,6 +1558,9 @@ void FEManagerT::DefineSubs(SubListT& sub_list) const
 	/* inherited */
 	ParameterInterfaceT::DefineSubs(sub_list);
 
+	/* parallel decomposition method */
+	sub_list.AddSub("decomp_method_choice", ParameterListT::ZeroOrOnce, true);
+
 	/* time manager */
 	sub_list.AddSub("time");
 
@@ -1618,6 +1617,28 @@ ParameterInterfaceT* FEManagerT::NewSub(const StringT& name) const
 		solver_phase->AddParameter(ParameterT::Integer, "pass_iterations");
 		
 		return solver_phase;
+	}
+	else if (name == "decomp_method_choice")
+	{
+		ParameterContainerT* decomp_method = new ParameterContainerT(name);
+		decomp_method->SetListOrder(ParameterListT::Choice);
+		
+		/* decomposition types */
+		decomp_method->AddSub("graph_decomposition");
+		decomp_method->AddSub("index_decomposition");
+
+		ParameterContainerT spatial_decomp("spatial_decomposition");
+		ParameterT n_grid(ParameterT::Integer, "n_1");
+		n_grid.AddLimit(1, LimitT::LowerInclusive);
+		n_grid.SetDefault(1);
+		spatial_decomp.AddParameter(n_grid, ParameterListT::ZeroOrOnce);
+		n_grid.SetName("n_2");
+		spatial_decomp.AddParameter(n_grid, ParameterListT::ZeroOrOnce);
+		n_grid.SetName("n_3");
+		spatial_decomp.AddParameter(n_grid, ParameterListT::ZeroOrOnce);
+		decomp_method->AddSub(spatial_decomp);
+		
+		return decomp_method;
 	}
 	else /* inherited */
 		return ParameterInterfaceT::NewSub(name);

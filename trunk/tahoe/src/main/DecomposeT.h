@@ -1,4 +1,4 @@
-/* $Id: DecomposeT.h,v 1.3 2004-09-28 16:08:05 paklein Exp $ */
+/* $Id: DecomposeT.h,v 1.4 2004-10-06 21:07:10 paklein Exp $ */
 #ifndef _FE_DECOMPOSE_T_H_
 #define _FE_DECOMPOSE_T_H_
 
@@ -16,6 +16,7 @@ class ModelManagerT;
 class CommunicatorT;
 class GraphT;
 class FEManagerT;
+class ParameterListT;
 
 /** class to handle decomposition of models for parallel execution */
 class DecomposeT
@@ -26,7 +27,7 @@ public:
 	DecomposeT(void);
 
 	/** decomposes model if */
-	void CheckDecompose(const StringT& input_file, int size, int decomp_type, CommunicatorT& comm,
+	void CheckDecompose(const StringT& input_file, int size, const ParameterListT& decomp_parameters, CommunicatorT& comm,
 		const StringT& model_file, IOBaseT::FileTypeT format, const ArrayT<StringT>& commandlineoptions) const;
 	
 	/** returns true if a new decomposition is needed */
@@ -58,12 +59,12 @@ private:
  		 p_i = floor \left( \frac{i n_p}{N} \right).
  	 \f]
  	 */
-	void Decompose_atom(const StringT& input_file, int size, const StringT& model_file,
+	void Decompose_index(const StringT& input_file, int size, const StringT& model_file,
 		IOBaseT::FileTypeT format, const ArrayT<StringT>& commandlineoptions) const;
 
 	/** spatial decomposition. Partition model based on a grid. */
-	void Decompose_spatial(const StringT& input_file, int size, const StringT& model_file,
-		IOBaseT::FileTypeT format) const;
+	void Decompose_spatial(const StringT& input_file, const iArrayT& grid_dims, const dArray2DT& min_max,
+		const StringT& model_file, IOBaseT::FileTypeT format) const;
 	/*@}*/
 	
 	/** \name graph decompositon methods */

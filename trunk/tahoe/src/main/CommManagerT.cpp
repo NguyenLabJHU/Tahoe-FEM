@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.9 2003-12-28 08:23:46 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.10 2004-10-06 21:07:10 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -121,7 +121,7 @@ void CommManagerT::EnforcePeriodicBoundaries(double skin)
 	if (!fNodeManager) ExceptionT::GeneralFail(caller, "node manager node set");
 
 	/* only implemented for atom decomposition (or serial) */
-	if (fPartition && fPartition->DecompType() != PartitionT::kAtom) return;
+	if (fPartition && fPartition->DecompType() != PartitionT::kIndex) return;
 	
 	/* reference coordinates */
 	const dArray2DT& reference_coords = fModelManager.Coordinates();
@@ -383,7 +383,7 @@ int CommManagerT::Init_AllGather(MessageT::TypeT t, int num_vals)
 		/* no ghost nodes allowed */
 		fGhostCommunications.Append(NULL);
 	}
-	else if (decomp_type == PartitionT::kAtom) /* all gather */
+	else if (decomp_type == PartitionT::kIndex) /* all gather */
 	{
 		/* new all gather */
 		AllGatherT* all_gather = new AllGatherT(fComm);
@@ -403,7 +403,7 @@ int CommManagerT::Init_AllGather(MessageT::TypeT t, int num_vals)
 		/* store */
 		fGhostCommunications.Append(ghost_all_gather);
 	}
-	else if (decomp_type == PartitionT::kAtom) /* shifts */
+	else if (decomp_type == PartitionT::kIndex) /* shifts */
 	{
 		ExceptionT::GeneralFail(caller, "not implemented yet");
 	}
@@ -463,7 +463,7 @@ void CommManagerT::AllGather(int id, nArray2DT<double>& values)
 		/* do it */
 		p2p->AllGather(values);
 	}
-	else if (decomp_type == PartitionT::kAtom) /* all gather */
+	else if (decomp_type == PartitionT::kIndex) /* all gather */
 	{
 		/* retrieve pointer */
 		AllGatherT* all_gather = TB_DYNAMIC_CAST(AllGatherT*, fCommunications[id]);
@@ -524,7 +524,7 @@ void CommManagerT::AllGather(int id, nArray2DT<int>& values)
 		/* do it */
 		p2p->AllGather(values);
 	}
-	else if (decomp_type == PartitionT::kAtom) /* all gather */
+	else if (decomp_type == PartitionT::kIndex) /* all gather */
 	{
 		/* retrieve communications pointer */
 		AllGatherT* all_gather = TB_DYNAMIC_CAST(AllGatherT*, fCommunications[id]);
@@ -598,7 +598,7 @@ void CommManagerT::FirstConfigure(void)
 	if (fPartition->DecompType() == PartitionT::kGraph)
 		return;
 	
-	if (fPartition->DecompType() == PartitionT::kAtom)
+	if (fPartition->DecompType() == PartitionT::kIndex)
 	{
 		/* change the numbering scope of partition data to global */
 		fPartition->SetScope(PartitionT::kGlobal);
