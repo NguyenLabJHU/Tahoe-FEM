@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.31.4.1 2004-03-08 17:09:42 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.31.4.2 2004-03-17 01:58:47 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -107,9 +107,6 @@ public:
 
 	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int) {};
-
-	/** continuum group solving displacements */
-	const SolidElementT& Solid(void) { return fSolid; };
 
 protected:
 
