@@ -1,4 +1,4 @@
-/* $Id $ */
+/* $Id: ModSmithFerrante.cpp,v 1.4 2003-11-11 01:49:32 rjones Exp $ */
 
 /* Smith Ferrante modified to have a linear branch */
 
@@ -38,17 +38,17 @@ void ModSmithFerrante::PrintName(ostream& out) const
 */
 double ModSmithFerrante::Function(double x) const
 {
-	return (x > 0) ? (-((fA*fB*(fB + (x)))/exp((x)/fB))) : 0.5*fB*x*x;
+	return (x > 0) ? (-((fA*fB*(fB + (x)))/exp((x)/fB))) : 0.5*fA*x*x;
 }
 
 double ModSmithFerrante::DFunction(double x) const
 {
-	return (x > 0) ? ((fA*(x))/exp((x)/fB)) : fB*x;
+	return (x > 0) ? ((fA*(x))/exp((x)/fB)) : fA*x;
 }
 
 double ModSmithFerrante::DDFunction(double x) const
 {
-	return (x > 0) ? ((fA*(fB - (x)))/(fB*exp((x)/fB))) : fB;
+	return (x > 0) ? ((fA*(fB - (x)))/(fB*exp((x)/fB))) : fA;
 }
 
 /*
@@ -70,7 +70,7 @@ dArrayT& ModSmithFerrante::MapFunction(const dArrayT& in, dArrayT& out) const
 	for (int i = 0; i < in.Length(); i++)
 	{
 		x = *pl++;
-		*pU++ = (x > 0) ? (-((fA*fB*(fB + (x)))/exp((x)/fB))) : 0.5*fB*x*x;
+		*pU++ = (x > 0) ? (-((fA*fB*(fB + (x)))/exp((x)/fB))) : 0.5*fA*x*x;
 	}
 	return(out);
 }
@@ -87,7 +87,7 @@ dArrayT& ModSmithFerrante::MapDFunction(const dArrayT& in, dArrayT& out) const
 	for (int i = 0; i < in.Length(); i++)
 	{
 		x = *pl++;
-		*pdU++ = (x > 0) ? ((fA*(x))/exp((x)/fB)) : fB*x;
+		*pdU++ = (x > 0) ? ((fA*(x))/exp((x)/fB)) : fA*x;
 	}
 	return(out);
 }
@@ -104,7 +104,7 @@ dArrayT& ModSmithFerrante::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	for (int i = 0; i < in.Length(); i++)
 	{
 		x = *pl++;
-		*pddU++ = (x > 0) ? ((fA*(x))/exp((x)/fB)) : fB*x;
+		*pddU++ = (x > 0) ? ((fA*(x))/exp((x)/fB)) : fA*x;
 	}
 	return(out);
 }
