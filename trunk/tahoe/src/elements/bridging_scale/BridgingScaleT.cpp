@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.28 2002-11-21 01:13:34 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.29 2002-11-25 07:16:24 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -77,7 +77,7 @@ void BridgingScaleT::Initialize(void)
 	const ParentDomainT& parent = ShapeFunction().ParentDomain();
 	int totalatoms = atoms_used.Length();
 	fTotalNodes = nodes_used.Length();
-	AutoFill2DT<int> auto_fill(fSolid.NumElements(), 10, 10);
+	AutoFill2DT<int> auto_fill(fSolid.NumElements(), 1, 10, 10);
 	dArrayT x_atom, centroid;
 	LocalArrayT cell_coords(LocalArrayT::kCurrCoords, fSolid.NumElementNodes(), NumSD());
 	cell_coords.SetGlobal(init_coords); // Sets address of cell_coords
@@ -134,7 +134,7 @@ void BridgingScaleT::Initialize(void)
 	iArrayT atom_nums, atoms;
 	dArrayT mapped(NumSD()), point(NumSD());
 	dArray2DT atom_coords(fParticlesInCell.MaxMinorDim(), NumSD());
-	AutoFill2DT<double> inverse(fParticlesInCell.MajorDim(),10,10);
+	AutoFill2DT<double> inverse(fParticlesInCell.MajorDim(), 1, 10, 10);
 	fAtomConnect.Dimension(fParticlesInCell.MajorDim(), fParticlesInCell.MaxMinorDim());
 	for (int i = 0; i < fParticlesInCell.MajorDim(); i++) {
 	 
