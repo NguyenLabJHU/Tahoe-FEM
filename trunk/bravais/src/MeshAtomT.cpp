@@ -32,7 +32,7 @@ using namespace Tahoe;
 MeshAtomT::MeshAtomT(StringT which_latticetype,int nsd,int nuca,
 		   dArrayT latticeparameter,StringT which_shape,
 		   int whichunit,dArray2DT len, iArrayT cel,int irot,
-		   dArray2DT mat_rot,double angle,iArrayT isort)
+		   dArray2DT mat_rot,double angle,iArrayT isort,iArrayT per)
 {
   if(which_latticetype == "FCC")
     Crystal = new FCCT(nsd,nuca,latticeparameter,irot,mat_rot,angle);
@@ -54,16 +54,16 @@ MeshAtomT::MeshAtomT(StringT which_latticetype,int nsd,int nuca,
   if(which_shape == "BOX")
     {
       if(whichunit==1) 
-	Shape = new BoxT(nsd,len,latticeparameter,isort,slt);
+	Shape = new BoxT(nsd,len,latticeparameter,isort,slt,per);
       else
-	Shape = new BoxT(nsd,cel,latticeparameter,isort,slt);
+	Shape = new BoxT(nsd,cel,latticeparameter,isort,slt,per);
     }
   else if(which_shape == "ASPERITY")
     {
       if(whichunit==1) 
-	Shape = new AsperityT(nsd,len,latticeparameter,isort);
+	Shape = new AsperityT(nsd,len,latticeparameter,isort,per);
       else
-	Shape = new AsperityT(nsd,cel,latticeparameter,isort);
+	Shape = new AsperityT(nsd,cel,latticeparameter,isort,per);
     }
   else
     {
@@ -131,7 +131,7 @@ void MeshAtomT::BuildIOFile(StringT& program_name,
 			   IOBaseT::FileTypeT output_format,
 			   iArrayT per)
 {
-  Shape->CalculateBounds(per,Crystal);
+  Shape->CalculateBounds(Crystal);
 
   if(IOLattice != 0) delete IOLattice;
   IOLattice = new OutPutLatticeT(cout,program_name,version,title,

@@ -52,7 +52,7 @@ class MeshAtomT {
   MeshAtomT(StringT which_latticetype,int nsd,int nuca,
 	   dArrayT latticeparameter,StringT which_shape,
 	   int whichunit,dArray2DT len, iArrayT cel,int irot,
-	   dArray2DT mat_rot,double angle,iArrayT isort);
+	   dArray2DT mat_rot,double angle,iArrayT isort,iArrayT per);
   
   // Destructor: not done yet. 
   ~MeshAtomT();

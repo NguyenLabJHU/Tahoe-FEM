@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: AsperityT.cpp,v 1.10 2003-07-15 01:38:35 saubry Exp $ */
+/* $Id: AsperityT.cpp,v 1.11 2003-07-25 18:18:34 jzimmer Exp $ */
 #include "AsperityT.h"
 #include "VolumeT.h"
 
@@ -16,7 +16,7 @@
 
 AsperityT::AsperityT(int dim, dArray2DT len,
 	   dArrayT lattice_parameter,
-	   iArrayT which_sort) : VolumeT(dim) 
+	   iArrayT which_sort, iArrayT per) : VolumeT(dim) 
 {
   nSD = dim;
   length.Dimension(nSD,2);
@@ -24,6 +24,9 @@ AsperityT::AsperityT(int dim, dArray2DT len,
 
   WhichSort.Dimension(nSD);
   WhichSort = which_sort;
+
+  pbc.Dimension(nSD);
+  pbc = per;
 
   for(int i=0;i<nSD;i++)
     {
@@ -58,7 +61,7 @@ AsperityT::AsperityT(int dim, dArray2DT len,
 
 AsperityT::AsperityT(int dim, iArrayT cel,
 	   dArrayT lattice_parameter,
-	   iArrayT which_sort) : VolumeT(dim) 
+	   iArrayT which_sort, iArrayT per) : VolumeT(dim) 
 {
   nSD = dim;
   length.Dimension(nSD,2);
@@ -66,6 +69,9 @@ AsperityT::AsperityT(int dim, iArrayT cel,
 
   WhichSort.Dimension(nSD);
   WhichSort = which_sort;
+
+  pbc.Dimension(nSD);
+  pbc = per;
 
   for(int i=0;i<nSD;i++)
       ncells[i] = cel[i];
@@ -88,9 +94,11 @@ AsperityT::AsperityT(const AsperityT& source) : VolumeT(source.nSD)
 
   volume = source.volume;
 
-
   WhichSort.Dimension(nSD);
   WhichSort = source.WhichSort;
+
+  pbc.Dimension(source.nSD);
+  pbc = source.pbc; 
 
   atom_names = source.atom_names;
 
@@ -367,7 +375,7 @@ void AsperityT::SortLattice(CrystalLatticeT* pcl)
   atom_parts = part;
 }
 
-void AsperityT::CalculateBounds(iArrayT per,CrystalLatticeT* pcl)
+void AsperityT::CalculateBounds(CrystalLatticeT* pcl)
 {
   const dArrayT& vLP = pcl->GetLatticeParameters();
 
@@ -375,17 +383,18 @@ void AsperityT::CalculateBounds(iArrayT per,CrystalLatticeT* pcl)
 
   for (int i=0; i < nSD; i++)
     {
-      if (per[i]==0) 
+      if (pbc[i]==0) 
 	{
 	  // non-periodic conditions
 	  atom_bounds(i,0) =  length(i)[0];    //-10000.;
 	  atom_bounds(i,1) =  length(i)[1] + 0.5*vLP[1];    //10000.;
 	}
-      else if (per[i]==1)
+      else if (pbc[i]==1)
 	{
 	  // periodic conditions
 	  atom_bounds(i,0) = length(i)[0];
-	  atom_bounds(i,1) = length(i)[1] + 0.5*vLP[1];
+	  // atom_bounds(i,1) = length(i)[1] + 0.5*vLP[1];
+	  atom_bounds(i,1) = length(i)[1];
 	}
       else
 	throw eBadInputValue;

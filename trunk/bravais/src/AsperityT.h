@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: AsperityT.h,v 1.5 2003-06-13 17:27:28 saubry Exp $ */
+/* $Id: AsperityT.h,v 1.6 2003-07-25 18:18:34 jzimmer Exp $ */
 
 #ifndef _ASPERITY_T_H_
 #define _ASPERITY_T_H_
@@ -20,6 +20,7 @@ class AsperityT : public VolumeT
   iArrayT ncells;
   dArray2DT length; // lower and upper bounds
   iArrayT WhichSort;
+  iArrayT pbc;
 
  protected:
 
@@ -31,9 +32,9 @@ class AsperityT : public VolumeT
   
   //Constructor
   AsperityT(int dim, dArray2DT len, dArrayT lattice_parameter,
-       iArrayT which_sort);
+       iArrayT which_sort, iArrayT per);
   AsperityT(int dim, iArrayT cel, dArrayT lattice_parameter,
-       iArrayT which_sort);
+       iArrayT which_sort, iArrayT per);
   
   //Destructor
   ~AsperityT(){};
@@ -44,7 +45,7 @@ class AsperityT : public VolumeT
   void CreateLattice(CrystalLatticeT* pcl); 
   void SortLattice(CrystalLatticeT* pcl);
 
-  void CalculateBounds(iArrayT per,CrystalLatticeT* pcl);
+  void CalculateBounds(CrystalLatticeT* pcl);
 
   iArrayT GetNCells();
   dArray2DT GetLength();

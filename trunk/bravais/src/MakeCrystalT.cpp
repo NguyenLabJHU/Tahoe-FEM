@@ -270,7 +270,7 @@ void MakeCrystalT::Run()
 
   MeshAtomT mesh_atom(latticetype,nsd,b,alat,
 		      shape,whichunit,len,cel,irot,mat_rot,
-		      angle,isort);
+		      angle,isort,per);
 
   StringT program = "bravais";
   StringT version = "v1.0";
