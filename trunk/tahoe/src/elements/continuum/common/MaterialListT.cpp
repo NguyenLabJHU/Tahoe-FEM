@@ -1,5 +1,5 @@
-/* $Id: MaterialListT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
-/* created: paklein (02/16/1997)                                          */
+/* $Id: MaterialListT.cpp,v 1.2 2001-10-24 02:01:32 paklein Exp $ */
+/* created: paklein (02/16/1997) */
 
 #include "MaterialListT.h"
 #include "ContinuumMaterialT.h"
@@ -33,4 +33,12 @@ void MaterialListT::InitStep(void)
 	/* loop over list */
 	for (int i = 0; i < fLength; i++)
 		fArray[i]->InitStep();
+}
+
+/* finalize the current time step */
+void MaterialListT::CloseStep(void)
+{
+	/* loop over list */
+	for (int i = 0; i < fLength; i++)
+		fArray[i]->CloseStep();
 }
