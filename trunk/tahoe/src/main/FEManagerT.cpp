@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.14 2001-06-29 16:26:42 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.15 2001-08-15 00:32:49 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "FEManagerT.h"
@@ -432,6 +432,9 @@ void FEManagerT::CloseStep(void) const
 	/* state */
 	SetStatus(GlobalT::kCloseStep);
 
+	/* write output BEFORE closing nodes and elements */
+	fTimeManager->CloseStep();
+
 	/* nodes */
 	fNodeManager->CloseStep();
 
@@ -439,9 +442,6 @@ void FEManagerT::CloseStep(void) const
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
 		fElementGroups[i]->CloseStep();
 		
-	/* write output */
-	fTimeManager->CloseStep(); //TEMP will move control here later
-	
 	/* write restart file */
 	WriteRestart();
 }
