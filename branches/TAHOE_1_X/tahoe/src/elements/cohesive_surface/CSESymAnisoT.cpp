@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.cpp,v 1.6 2003-12-01 23:53:15 cjkimme Exp $ */
+/* $Id: CSESymAnisoT.cpp,v 1.6.28.1 2005-02-24 01:14:15 thao Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSESymAnisoT.h"
 
@@ -167,8 +167,9 @@ void CSESymAnisoT::LHSDriver(GlobalT::SystemTypeT)
 	{
 		/* current element */
 		const ElementCardT& element = CurrentElement();
-	
-		/* surface potential */
+		if (element.Flag() != kOFF)
+		{
+			/* surface potential */
 		SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
 		int num_state = fNumStateVariables[element.MaterialNumber()];
 		state2.Dimension(num_state);
@@ -303,6 +304,7 @@ void CSESymAnisoT::LHSDriver(GlobalT::SystemTypeT)
 
 		/* assemble */
 		AssembleLHS();
+	}
 	}
 }
 
@@ -838,7 +840,7 @@ void CSESymAnisoT::ReadConnectivity(void)
 	iArrayT matnums;
 	ModelManagerT& model = ElementSupport().Model();
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	bool multiDatabaseSets = false;
+	bool multiDatabaseSets = true;
 	model.SideSetList(in, sideSet_ID, multiDatabaseSets);
 #else
 	/* For Sierra, can't use input stream */
@@ -852,10 +854,10 @@ void CSESymAnisoT::ReadConnectivity(void)
 	/* allocate block map */
 	int num_blocks = sideSet_ID.Length();
 	
-	if (num_blocks != 1)
+/*	if (num_blocks != 1)
 	{
 		ExceptionT::GeneralFail("CSESymAnisoT::ReadConnectivitiy","Multiple element blocks not implemented\n");
-	}
+	}*/
 	
 	fBlockData.Dimension(num_blocks);
 	fConnectivities.Allocate(num_blocks);
@@ -908,7 +910,10 @@ void CSESymAnisoT::ReadConnectivity(void)
 		new_id = model.FreeElementID(new_id);
 	    
 	    /* store block data  ASSUMING bth block is material number b*/
-	    fBlockData[b].Set(new_id, elem_count, num_elems, b); 
+//OLD	    fBlockData[b].Set(new_id, elem_count, num_elems, b); 
+
+	    /* store block data  ASSUMING bth block is material number 0*/
+	    fBlockData[b].Set(new_id, elem_count, num_elems, 0); 
 
 	    /* increment element count */
 	    elem_count += num_elems;

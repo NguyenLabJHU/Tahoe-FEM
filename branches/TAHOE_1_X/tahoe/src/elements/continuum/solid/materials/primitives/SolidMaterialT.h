@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.13 2004-01-10 04:41:25 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.13.28.1 2005-02-24 01:14:19 thao Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -138,6 +138,21 @@ public:
 	virtual void DefineParameters(ParameterListT& list) const;
 	/*@}*/
 	
+	/*inquire if dissipation variables used in material force calculation are needed*/
+	virtual bool HasDissipVar(void) const {return false;};
+
+	virtual const iArrayT& InternalDOF(void) const {
+		ExceptionT::GeneralFail("SSSolidMatT::InternalDOF", "not implemented");
+		return ijunk;};
+
+	virtual const dArrayT& InternalStressVars(void) {
+		ExceptionT::GeneralFail("SSSolidMatT::InternalStressVars", "not implemented");
+		return djunk;};
+
+	virtual const dArrayT& InternalStrainVars(void) {
+		ExceptionT::GeneralFail("SSSolidMatT::InternalStrainVars", "not implemented");
+		return djunk;};
+
 private:
 
 	/** return true if material implementation supports imposed thermal
@@ -156,6 +171,10 @@ private:
 
 	double fMassDamp;
 	double fStiffDamp;
+
+	/*junk arrays*/
+	iArrayT ijunk;
+	dArrayT djunk;
 };
 
 /* incremental heat generation */

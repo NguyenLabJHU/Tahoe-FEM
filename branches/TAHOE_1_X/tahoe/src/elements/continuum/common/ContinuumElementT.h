@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.26.24.1 2004-11-09 18:23:51 thao Exp $ */
+/* $Id: ContinuumElementT.h,v 1.26.24.2 2005-02-24 01:14:17 thao Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -72,7 +72,7 @@ public:
 	/** element coordinates.
 	 * \return initial nodal coordinates of current element: [nen] x [nsd] */
 	const LocalArrayT& InitialCoordinates() const;
-	
+
 	/** element displacements.
 	 * \return nodal displacements of current element: [nen] x [ndof] */
 	const LocalArrayT& Displacements() const;

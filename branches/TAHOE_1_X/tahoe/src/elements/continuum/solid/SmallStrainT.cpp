@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.13 2003-12-28 08:23:20 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.13.28.1 2005-02-24 01:14:18 thao Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -18,6 +18,7 @@ SmallStrainT::SmallStrainT(const ElementSupportT& support, const FieldT& field):
 	fGradU(NumSD()),
 	fSSMatSupport(NULL)
 {
+//	cout<< "\nSmallStrain Constructed\n";
 	SetName("small_strain");
 }
 

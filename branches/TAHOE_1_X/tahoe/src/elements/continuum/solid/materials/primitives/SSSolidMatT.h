@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.12.28.1 2004-09-22 06:13:33 paklein Exp $ */
+/* $Id: SSSolidMatT.h,v 1.12.28.2 2005-02-24 01:14:19 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
@@ -61,21 +61,6 @@ public:
 	/** return the strain in the material at the current integration point. 
 	 * Returns the small strain tensor. */
 	virtual void Strain(dSymMatrixT& strain) { strain = e(); };
-
-	/*inquire if dissipation variables used in material force calculation are needed*/
-	virtual bool HasDissipVar(void) const {return false;};
-
-	virtual const iArrayT& InternalDOF(void) const {
-		ExceptionT::GeneralFail("SSSolidMatT::InternalDOF", "not implemented");
-		return ijunk;};
-
-	virtual const dArrayT& InternalStressVars(void) {
-		ExceptionT::GeneralFail("SSSolidMatT::InternalStressVars", "not implemented");
-		return djunk;};
-
-	virtual const dArrayT& InternalStrainVars(void) {
-		ExceptionT::GeneralFail("SSSolidMatT::InternalStrainVars", "not implemented");
-		return djunk;};
 
 protected:
 
