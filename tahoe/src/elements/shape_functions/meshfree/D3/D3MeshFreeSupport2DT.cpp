@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeSupport2DT.cpp,v 1.3 2004-12-24 20:33:55 kyonten Exp $ */
+/* $Id: D3MeshFreeSupport2DT.cpp,v 1.4 2005-01-28 17:37:41 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D3MeshFreeSupport2DT.h"
 
@@ -36,9 +36,15 @@ void D3MeshFreeSupport2DT::SetCuttingFacets(const dArray2DT& facet_coords,
 	D3MeshFreeSupportT::SetCuttingFacets(facet_coords, num_facet_nodes);
 
 	/* checks */
-	if (fNumFacetNodes != 2)
+	/*if (fNumFacetNodes != 2)
 		ExceptionT::SizeMismatch("D3MeshFreeSupport2DT::SetCuttingFacets", "2D cutting facets must have 2 nodes: %d",
-			fNumFacetNodes);
+			fNumFacetNodes);*/
+	/* checks */
+	if (fNumFacetNodes != 0 && fNumFacetNodes != 2)
+		ExceptionT::SizeMismatch("D3MeshFreeSupport2DT::SetCuttingFacets", "2D cutting facets must have 2 nodes: %d", fNumFacetNodes);
+
+	if (fNumFacetNodes == 0 && facet_coords.MajorDim() != 0)
+		ExceptionT::SizeMismatch("D3MeshFreeSupport2DT::SetCuttingFacets", "found facets nodes = 0 with non-zero number of facets (%d)", facet_coords.MajorDim());
 }
 
 /*************************************************************************
