@@ -1,4 +1,4 @@
-/* $Id: PatranT.cpp,v 1.7 2001-12-16 23:52:41 paklein Exp $ */
+/* $Id: PatranT.cpp,v 1.8 2002-01-07 20:43:25 paklein Exp $ */
 /* created sawimme (05/17/2001) */
 
 #include "PatranT.h"
@@ -25,8 +25,8 @@ bool PatranT::OpenRead (const StringT& filename)
   ifstreamT tmp (filename);
   if (!tmp.is_open()) 
     {
-      fMessage << "PatranT::OpenRead, unable to open file: "
-	   << filename << "\n";
+      fMessage << "\n PatranT::OpenRead, unable to open file: "
+	   << filename << endl;
       return false;
     }
 
@@ -51,7 +51,7 @@ int PatranT::NumNodes (void) const
   ifstream in (file_name);
   if (!AdvanceTo (in, kSummary, ID, IV, KC)) 
     {
-      fMessage << "PatranT::NumNodes, no nodes found\n";
+      fMessage << "\n PatranT::NumNodes, no nodes found" << endl;
       return -1;
     }
   in >> num_nodes;
@@ -698,8 +698,8 @@ bool PatranT::WritePacketHeader (ostream& out, int tag, int ID, int IV, int KC, 
 {
   if (n.Length () != 5)
     {
-      fMessage << "\nPatranT::WritePacketHeader, wrong length for N\n"
-	       << tag << " " << ID << " " << n.Length() << "\n";
+      fMessage << "\n PatranT::WritePacketHeader, wrong length for N\n"
+	       << tag << " " << ID << " " << n.Length() << endl;
       return false;
     }
   out << setw (2) << tag;
