@@ -1,4 +1,4 @@
-# $Id: DEC.macros,v 1.4 2001-01-30 17:23:22 paklein Exp $
+# $Id: DEC.macros,v 1.5 2001-02-06 03:13:17 paklein Exp $
 # DEC
 MAKE        = make
 MAKE_DEPEND = makedepend
@@ -21,4 +21,6 @@ ARFLAGS     = -cruv
 MAKE_OPTS   =
 RM          = rm
 LN          = ln -sf
+ECHO        = echo
+CAT         = cat
 INC_FLAGS   = -I/usr/include/cxx

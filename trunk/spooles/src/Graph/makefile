@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1.1.1 2001-01-31 21:32:15 paklein Exp $
+# $Id: makefile,v 1.2 2001-02-06 03:12:55 paklein Exp $
 # object directory makefile - compilation instructions
 
 .SUFFIXES: .c .cpp .C .f .F .o .d .h .h_link
@@ -17,6 +17,9 @@ OBJ = \
 	Graph.wirebasket.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
+#OBJ = dummy
+#OBJ_LINK =
+#DEP = /dev/null
 
 # sources
 SRC = \
@@ -66,31 +69,35 @@ MACROS = \
 	"LN = $(LN)" \
 	"MAKE_DEPEND = $(MAKE_DEPEND)" \
 	"DEPEND_PATH = $(DEPEND_PATH)" \
-	"DEPEND = $(DEPEND)"
+	"DEPEND = $(DEPEND)" \
+	"ECHO = $(ECHO)" \
+	"CAT = $(CAT)"
 
 # debugging
 echo_all:
-	@ echo "MAKE = $(MAKE)"
-	@ echo "MAKE_OPTS = $(MAKE_OPTS)"
-	@ echo "INC_DIR = $(INC_DIR)"
-	@ echo "OBJ_DIR = $(OBJ_DIR)"
-	@ echo "LIB_DIR = $(LIB_DIR)"
-	@ echo "TR = $(TR)"
-	@ echo "COMP_C = $(COMP_C)"
-	@ echo "COMP_CC = $(COMP_CC)"
-	@ echo "COMP_F = $(COMP_F)"
-	@ echo "CFLAGS_C = $(CFLAGS_C)"
-	@ echo "CFLAGS_CC = $(CFLAGS_CC)"
-	@ echo "CFLAGS_F = $(CFLAGS_F)"
-	@ echo "LIBRARY = $(LIBRARY)"
-	@ echo "AR = $(AR)"
-	@ echo "ARFLAGS = $(ARFLAGS)"
-	@ echo "RM = $(RM)"
-	@ echo "RM_FILES = $(RM_FILES)"
-	@ echo "LN = $(LN)"
-	@ echo "MAKE_DEPEND = $(MAKE_DEPEND)"
-	@ echo "DEPEND_PATH = $(DEPEND_PATH)"
-	@ echo "DEPEND = $(DEPEND)"
+	@ $(ECHO) "MAKE = $(MAKE)"
+	@ $(ECHO) "MAKE_OPTS = $(MAKE_OPTS)"
+	@ $(ECHO) "INC_DIR = $(INC_DIR)"
+	@ $(ECHO) "OBJ_DIR = $(OBJ_DIR)"
+	@ $(ECHO) "LIB_DIR = $(LIB_DIR)"
+	@ $(ECHO) "TR = $(TR)"
+	@ $(ECHO) "COMP_C = $(COMP_C)"
+	@ $(ECHO) "COMP_CC = $(COMP_CC)"
+	@ $(ECHO) "COMP_F = $(COMP_F)"
+	@ $(ECHO) "CFLAGS_C = $(CFLAGS_C)"
+	@ $(ECHO) "CFLAGS_CC = $(CFLAGS_CC)"
+	@ $(ECHO) "CFLAGS_F = $(CFLAGS_F)"
+	@ $(ECHO) "LIBRARY = $(LIBRARY)"
+	@ $(ECHO) "AR = $(AR)"
+	@ $(ECHO) "ARFLAGS = $(ARFLAGS)"
+	@ $(ECHO) "RM = $(RM)"
+	@ $(ECHO) "RM_FILES = $(RM_FILES)"
+	@ $(ECHO) "LN = $(LN)"
+	@ $(ECHO) "MAKE_DEPEND = $(MAKE_DEPEND)"
+	@ $(ECHO) "DEPEND_PATH = $(DEPEND_PATH)"
+	@ $(ECHO) "DEPEND = $(DEPEND)"
+	@ $(ECHO) "ECHO = $(ECHO)"
+	@ $(ECHO) "CAT = $(CAT)"
 
 clean:
 	-@ $(RM) $(RM_FILES)
@@ -100,7 +107,7 @@ depend_init: all.depend
 	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = depend_init"
 
 all.depend: $(DEP)
-	@ echo "    cat: $(DEP) > all.depend"; cat $(DEP) > all.depend
+	@ $(ECHO) "    $(CAT): $(DEP) > all.depend"; $(CAT) $(DEP) > all.depend
 
 headers: $(HDR_LINK)
 	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = headers"
@@ -112,12 +119,12 @@ objects: all.depend
 update_objects: $(OBJ)
 
 library:
-	@ echo "\\" >> $(LIBRARY)
-	@ echo "\t$(OBJ_LINK)\c" >> $(LIBRARY)
+	@ $(ECHO) "\\" >> $(LIBRARY)
+	@ $(ECHO) "\t$(OBJ_LINK)\c" >> $(LIBRARY)
 	@ $(MAKE) $(MACROS) subdir_driver "COMMAND = library"
 
 $(SUB_DIR): dummy
-	@ echo " cd $@"; \
+	@ $(ECHO) " cd $@"; \
 	cd $@; $(MAKE) $(COMMAND) $(MACROS) "CURR_DIR = $(CURR_DIR)/$@"
 
 dummy:
@@ -125,62 +132,62 @@ dummy:
 # suffix rules
 
 .c.o:
-	@ echo "    $(COMP_C): "$<; \
+	@ $(ECHO) "    $(COMP_C): "$<; \
 	$(COMP_C) $(CFLAGS_C) $<
 	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
-	@echo "#touch" > $(LIB_DIR)/lib.junk
+	@$(ECHO) "#touch" > $(LIB_DIR)/lib.junk
 
 .cpp.o:
-	@ echo "    $(COMP_CC): "$<; \
+	@ $(ECHO) "    $(COMP_CC): "$<; \
 	$(COMP_CC) $(CFLAGS_CC) $<
 	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
-	@echo "#touch" > $(LIB_DIR)/lib.junk
+	@$(ECHO) "#touch" > $(LIB_DIR)/lib.junk
 
 .C.o:
-	@ echo "    $(COMP_CC): "$<; \
+	@ $(ECHO) "    $(COMP_CC): "$<; \
 	$(COMP_CC) $(CFLAGS_CC) $<
 	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
-	@echo "#touch" > $(LIB_DIR)/lib.junk
+	@$(ECHO) "#touch" > $(LIB_DIR)/lib.junk
 
 .f.o:
-	@ echo "    $(COMP_F): "$<; \
+	@ $(ECHO) "    $(COMP_F): "$<; \
 	$(COMP_F) $(CFLAGS_F) $<
 	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
-	@echo "#touch" > $(LIB_DIR)/lib.junk
+	@$(ECHO) "#touch" > $(LIB_DIR)/lib.junk
 
 .F.o:
-	@ echo "    $(COMP_F): "$<; \
+	@ $(ECHO) "    $(COMP_F): "$<; \
 	$(COMP_F) $(CFLAGS_F) $<
 	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
-	@echo "#touch" > $(LIB_DIR)/lib.junk
+	@$(ECHO) "#touch" > $(LIB_DIR)/lib.junk
 
 .h.h_link:
-	@ echo "    $(LN): "$<; \
+	@ $(ECHO) "    $(LN): "$<; \
 	$(LN) $(CURR_DIR)/$< $(INC_DIR)/$<
 
 .c.d:
-	@ echo "    $(MAKE_DEPEND): "$<; \
-	echo "" > $@; \
+	@ $(ECHO) "    $(MAKE_DEPEND): "$<; \
+	$(ECHO) "" > $@; \
 	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
 
 .cpp.d:
-	@ echo "    $(MAKE_DEPEND): "$<; \
-	echo "# DO NOT DELETE" > $@; \
+	@ $(ECHO) "    $(MAKE_DEPEND): "$<; \
+	$(ECHO) "# DO NOT DELETE" > $@; \
 	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
 
 .C.d:
-	@ echo "    $(MAKE_DEPEND): "$<; \
-	echo "# DO NOT DELETE" > $@; \
+	@ $(ECHO) "    $(MAKE_DEPEND): "$<; \
+	$(ECHO) "# DO NOT DELETE" > $@; \
 	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
 
 .f.d:
-	@ echo "    $(MAKE_DEPEND): "$<; \
-	echo "# DO NOT DELETE" > $@; \
+	@ $(ECHO) "    $(MAKE_DEPEND): "$<; \
+	$(ECHO) "# DO NOT DELETE" > $@; \
 	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
 
 .F.d:
-	@ echo "    $(MAKE_DEPEND): "$<; \
-	echo "# DO NOT DELETE" > $@; \
+	@ $(ECHO) "    $(MAKE_DEPEND): "$<; \
+	$(ECHO) "# DO NOT DELETE" > $@; \
 	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
 
 # dependencies

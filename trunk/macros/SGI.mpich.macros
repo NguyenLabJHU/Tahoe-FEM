@@ -1,4 +1,4 @@
-# $Id: SGI.mpich.macros,v 1.5 2001-01-31 21:36:05 paklein Exp $
+# $Id: SGI.mpich.macros,v 1.6 2001-02-06 03:13:18 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__MPI__
 MPI_LFLAGS = 
@@ -22,6 +22,8 @@ ARFLAGS     = -cruv
 MAKE_OPTS   = -sP
 RM          = rm -rf
 LN          = ln -sf
+ECHO        = echo
+CAT         = cat
 INC_FLAGS   = -I/usr/include/CC -I/usr/local/mpich/include
 # parallel builds
 # env. var. PARALLEL controls concurrency (default = 2)
