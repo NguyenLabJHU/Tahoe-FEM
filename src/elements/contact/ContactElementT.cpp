@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.34 2002-06-17 17:15:07 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.35 2002-07-01 18:22:41 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -122,7 +122,6 @@ void ContactElementT::Initialize(void)
 void ContactElementT::SetWorkspace(void)
 { 	/* workspace matrices */  // ARE THESE CORRECT?
 	n1.Allocate(NumSD());
-	l1.Allocate(NumSD());
    	RHS_man.SetWard    (kMaxNumFaceDOF,RHS);
    	tmp_RHS_man.SetWard(kMaxNumFaceDOF,tmp_RHS);
    	LHS_man.SetWard    (kMaxNumFaceDOF,LHS);
@@ -347,7 +346,12 @@ void ContactElementT::WriteOutput(IOBaseT::OutputModeT mode)
            }
 
            if (fOutputFlags[kMultipliers]) {
-				surface.PrintMultipliers(cout);
+//		surface.PrintMultipliers(cout);
+                StringT pressure_out;
+                pressure_out = pressure_out.Append(filename,".pre");
+                pressure_out = pressure_out.Append(s);
+                ofstream pressure_file (pressure_out);
+                surface.PrintMultipliers(pressure_file);
            }
 
            if (fOutputFlags[kArea]) {

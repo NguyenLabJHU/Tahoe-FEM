@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.23 2002-06-19 16:27:26 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.24 2002-07-01 18:22:41 rjones Exp $ */
 
 #include "LineL2FaceT.h"
 
@@ -62,22 +62,20 @@ LineL2FaceT::ComputeRadius(void) const
 
 void
 LineL2FaceT::NodeNormal(int local_node_number, double* normal) const
-{
-	int c = local_node_number;
-	int n = Next(c);
+{ // could just retrieve face normal
+	/* right to left */
 	double t1[2];
-	/* get sense of left and right */
-	(n > c) ? Diff(fx[c],fx[n],t1) : Diff(fx[n],fx[c],t1);
+	Diff(fx[0],fx[1],t1);
 	RCross(t1,normal);
 }
 
 void
 LineL2FaceT::CalcFaceNormal(void)
 {
-        /* right to left */
+	/* right to left */
 	double t1[2];
-        Diff(fx[0],fx[1],t1);
-        RCross(t1,fnormal);
+	Diff(fx[0],fx[1],t1);
+	RCross(t1,fnormal);
 }
 
 
@@ -98,14 +96,6 @@ LineL2FaceT::ComputeTangent1
 {
 	Diff(fx[0],fx[1],tangent1);
 	Scale(0.5,tangent1);
-}
-
-void
-LineL2FaceT::ComputeTangent2
-(const double* local_coordinates,double* tangent2) const
-{
-cout << "not implemented";
-throw;
 }
 
 
@@ -149,8 +139,8 @@ LineL2FaceT::ComputeShapeFunctionDerivatives
 (const double* local_coordinates, dArrayT& shape_derivatives) const
 {
 	double xi  = local_coordinates[0];
-	shape_derivatives[0] = 0.5 ;
-	shape_derivatives[1] = 0.5 ;
+	shape_derivatives[0] = -0.5 ;
+	shape_derivatives[1] =  0.5 ;
 
 }
 
@@ -160,7 +150,7 @@ LineL2FaceT::ComputeShapeFunctionDerivatives
 {
 	shape_derivatives = 0.0;
 	dArrayT shape_d(2);
-	ComputeShapeFunctions(local_coordinates, shape_d);
+	ComputeShapeFunctionDerivatives(local_coordinates, shape_d);
         shape_derivatives(0,0) = shape_d[0];
         shape_derivatives(1,1) = shape_d[0];
         shape_derivatives(2,0) = shape_d[1];
@@ -277,11 +267,9 @@ LineL2FaceT::LocalBasis
 (double* normal, double* tangent1) const
 {
 	/* calculate face tangent */
-        Diff(fx[0],fx[1],tangent1);
-        Proj(tangent1, normal, tangent1);
-        Normalize(tangent1);
-	
- 	/* NOTE: nothing is done with tangent2 (NULL) */
+  	Diff(fx[0],fx[1],tangent1);
+	Proj(tangent1, normal, tangent1);
+	Normalize(tangent1);
 
 }
 

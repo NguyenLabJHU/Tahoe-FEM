@@ -1,4 +1,4 @@
-/* $Id: LineQ3FaceT.cpp,v 1.8 2002-06-19 16:27:26 rjones Exp $ */
+/* $Id: LineQ3FaceT.cpp,v 1.9 2002-07-01 18:22:41 rjones Exp $ */
 
 #include "LineQ3FaceT.h"
 
@@ -123,15 +123,6 @@ LineQ3FaceT::ComputeTangent1
 	Add(tangent1,(xi+0.5),fx[1]);
 	Add(tangent1,-2.0*xi, fx[2]);
 }
-
-void
-LineQ3FaceT::ComputeTangent2
-(const double* local_coordinates,double* tangent2) const
-{
-cout << "not implemented";
-throw;
-}
-
 
 void
 LineQ3FaceT::ComputeShapeFunctions

@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.21 2002-06-19 16:27:26 rjones Exp $ */
+/* $Id: FaceT.h,v 1.22 2002-07-01 18:22:41 rjones Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
@@ -42,8 +42,10 @@ public:
 		(const double* local_coordinates, double* normal) const =0; 
 	virtual void ComputeTangent1 
                 (const double* local_coordinates, double* tangent1) const =0;
+// 3D only
   	virtual void ComputeTangent2 
-                (const double* local_coordinates, double* tangent2) const =0;
+                (const double* local_coordinates, double* tangent2) const
+		{throw;} 
   	virtual void NodeNormal(int local_node_number,double* normal) const =0; 
 	virtual void CalcFaceNormal(void)=0; 
 	virtual void ComputeShapeFunctions

@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.27 2002-06-29 16:12:52 paklein Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.28 2002-07-01 18:22:41 rjones Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -258,9 +258,7 @@ void PenaltyContactElement2DT::LHSDriver(void)
   ContactNodeT* node;
   double pre=0.0, dpre_dg=0.0;
   double gap=0.0;
-  double lm2[3];
-  dArrayT n1alphal1;
-  n1alphal1.Allocate(NumSD());
+  double l1[3],l2[3];
 
   /* for consistent stiffness */    
    dArrayT N1nl;
@@ -269,10 +267,13 @@ void PenaltyContactElement2DT::LHSDriver(void)
    nVariMatrixT<double> T1_man(kMaxNumFaceDOF,T1);
    dArrayT T1n;
    VariArrayT<double> T1n_man(kMaxNumFaceDOF,T1n);
+   dMatrixT Z1;
+   nVariMatrixT<double> Z1_man(kMaxNumFaceDOF,Z1);
 
    dMatrixT Perm(NumSD());
-   Perm(0,0) = 0.0 ; Perm(0,1) = -1.0;
-   Perm(1,0) = 1.0 ; Perm(1,1) =  0.0;
+   // exoII CCW coordinate
+   Perm(0,0) =  0.0 ; Perm(0,1) =  1.0;
+   Perm(1,0) = -1.0 ; Perm(1,1) =  0.0;
    double alpha;
 
 
@@ -288,10 +289,10 @@ void PenaltyContactElement2DT::LHSDriver(void)
         tmp_LHS_man.SetDimensions(num_nodes*nsd);
         N1_man.SetDimensions(num_nodes*nsd, nsd);
         N1n_man.SetLength(num_nodes*nsd,false);
-		//if consistent
-         N1nl_man.SetLength(num_nodes*nsd,false);
-         T1_man.SetDimensions(num_nodes*nsd, nsd);
-         T1n_man.SetLength(num_nodes*nsd,false);
+        N1nl_man.SetLength(num_nodes*nsd,false);
+        T1_man.SetDimensions(num_nodes*nsd, nsd);
+        Z1_man.SetDimensions(num_nodes*nsd, nsd);
+        T1n_man.SetLength(num_nodes*nsd,false);
         weights_man.SetLength(num_nodes,false);
         eqnums1_man.SetMajorDimension(num_nodes,false);
         /* form stiffness */
@@ -329,13 +330,24 @@ void PenaltyContactElement2DT::LHSDriver(void)
 						(node->OpposingLocalCoordinates(),N2);
 					const double* nm1 = node->Normal();
 					for (int j =0; j < nsd; j++) {n1[j] = nm1[j];}
+					N1.Multx(n1, N1nl);
+					if (consistent) {
+						/* average tangent */
+						for (int j =0;j<nsd; j++) {l1[j] =node->Tangent1()[j];}
+						node->OpposingFace()->
+						  ComputeTangent1(node->OpposingLocalCoordinates(),l2);
+						alpha = Dot(nm1,l2)/Dot(l1,l2);
+						for (int j =0;j< nsd; j++) {n1[j] -= alpha*l1[j];}
+
+						/* missing component that scales with g */
+					}
 					N1.Multx(n1, N1n);
 					N2.Multx(n1, N2n); 
 
 					/* N1n (x) D g */
 					/* Part:  dx1 (x) dx2 */
 					tmp_LHS_man.SetDimensions(opp_num_nodes*nsd);
-					tmp_LHS.Outer(N1n, N2n);
+					tmp_LHS.Outer(N1nl, N2n);
 					tmp_LHS.SetToScaled(-dpre_dg*weights[i], tmp_LHS);
 
 					/* get equation numbers */
@@ -344,38 +356,18 @@ void PenaltyContactElement2DT::LHSDriver(void)
 					ElementSupport().AssembleLHS(Group(), tmp_LHS, eqnums1,eqnums2);
 
 					/* Part:  dx1 (x) dx1 */
+					tmp_LHS.Outer(N1nl, N1n);
+					tmp_LHS.SetToScaled(dpre_dg*weights[i], tmp_LHS);
+					LHS += tmp_LHS;
 					if (consistent) {
-						for (int j =0; j < nsd; j++) 
-							{l1[j] =node->Tangent1()[j];}
-						node->OpposingFace()->
-						  ComputeTangent1(node->OpposingLocalCoordinates(),lm2);
-						alpha = Dot(node->Normal(),lm2) 
-							/ Dot(l1.Pointer(),  lm2);
-						for (int j =0; j < nsd; j++) 
-							{n1alphal1[j] = n1[j] - alpha*l1[j];}
-						N1.Multx(n1alphal1, N1nl);
-						tmp_LHS.Outer(N1n, N1nl);
-						tmp_LHS_man.SetDimensions(num_nodes*nsd);
-						tmp_LHS.SetToScaled(dpre_dg*weights[i], tmp_LHS);
-						LHS += tmp_LHS;
-
 						face->ComputeShapeFunctionDerivatives(points(i),T1);
 						double jac = face->ComputeJacobian(points(i));
 
-						T1.Multx(n1, T1n);
-						tmp_LHS.Outer(N1n, T1n);
-						tmp_LHS.SetToScaled(pre*alpha*weights[i]/jac, tmp_LHS);
+						Z1.MultABT(T1,Perm);
+						tmp_LHS.MultABT(N1, Z1);
+						tmp_LHS.SetToScaled(-pre*weights[i]/jac, tmp_LHS);
 						LHS += tmp_LHS;
-
-						T1.MultAB(T1,Perm);
-						tmp_LHS.MultABT(N1, T1);
-						tmp_LHS.SetToScaled(-pre*weights[i], tmp_LHS);
-						LHS += tmp_LHS;
-					} else {
-						tmp_LHS.Outer(N1n, N1n);
-						tmp_LHS.SetToScaled(dpre_dg*weights[i], tmp_LHS);
-						LHS += tmp_LHS;
-					}
+					} 
 				}
 			}
           	/* assemble primary-primary face stiffness */

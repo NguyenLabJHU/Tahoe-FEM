@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.26 2002-06-17 17:15:07 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.27 2002-07-01 18:22:41 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
@@ -342,17 +342,26 @@ ContactSurfaceT::PrintContactArea(ostream& out) const
   	dArrayT weights(this->NumNodesPerFace());	
 	dArray2DT points(this->NumNodesPerFace(),fNumSD);
 
-	double total_area = 0.0, contact_area = 0.0;
+	double total_area = 0.0, contact_area = 0.0; 	
+	double reaction[3]; reaction[0]=0; reaction[1]=0; reaction[2]=0;
+
     for (int f = 0;  f < fFaces.Length(); f++) {
-          const FaceT* face = fFaces[f];
-          face->Quadrature(points,weights);
-          for (int i = 0 ; i < weights.Length() ; i++) {
-             total_area += weights[i];
+		const FaceT* face = fFaces[f];
+		face->Quadrature(points,weights);
+		for (int i = 0 ; i < weights.Length() ; i++) {
+  			total_area += weights[i];
 	     // should be toleranced
-             if (fContactNodes[face->Node(i)]->Gap() < 0) { 
+			ContactNodeT* node = fContactNodes[face->Node(i)];
+			if (node->Gap() < 0) { 
                 contact_area += weights[i];
-             }
-          } 
+			}
+			if (node->Status() > ContactNodeT::kNoProjection) {
+				double pre =  node->nPressure();// need to fix for multipliers
+				const double* n1 = node->Normal(); 
+				for (int j =0; j < fNumSD; j++) 
+					{reaction[j] += pre*n1[j]*weights[i];}
+			}
+		} 
 	}
     int cn = 0;
     for (int n = 0;  n < fContactNodes.Length(); n++) {
@@ -363,6 +372,9 @@ ContactSurfaceT::PrintContactArea(ostream& out) const
 	    << ", contact " << contact_area 
 	    << ", " << cn << " / " << fContactNodes.Length()
 		<< '\n';
+	out << " REACTION: X " << reaction[0] 
+                 << ", Y " << reaction[1]
+                 << ", Z " << reaction[2] << "\n";
 }
 
 void
@@ -440,6 +452,43 @@ ContactSurfaceT::PrintMultipliers(ostream& out) const
         }
 	}
 }
+
+void
+ContactSurfaceT::PrintMultipliers(ofstream& out) const
+{
+    if (fNumMultipliers) {
+        out << "#Surface " << this->Tag() << " MULTIPLIER \n";
+
+        for (int n = 0 ; n < fMultiplierMap.Length(); n++) {
+            int tag = fMultiplierMap[n];
+            if (tag > -1) {
+                out << "# tag " << fContactNodes[n]->Tag() << "\n";
+                out << n << " ";
+                for (int i = 0; i < fNumSD; i++) {
+                        out << fContactNodes[n]->Position()[i] << " ";
+                }
+                out << "   "<< fMultiplierValues(tag,0) << "\n";
+            }
+            else {
+                out << "# tag " << fContactNodes[n]->Tag() << " ";
+                out << " no multipliers " << "\n";
+            }
+        }
+    } else { // penalty
+        out << "#Surface " << this->Tag() << " PRESSURE \n";
+
+        for (int n = 0 ; n < fContactNodes.Length(); n++) {
+            if (fContactNodes[n]->Status() > ContactNodeT::kNoProjection) {
+                out << "# tag " << fContactNodes[n]->Tag() << "\n";
+                for (int i = 0; i < fNumSD; i++) {
+                    out << fContactNodes[n]->Position()[i] << " ";
+                }
+                out << "   "<< fContactNodes[n]->nPressure() << "\n";
+            }
+        }
+    }
+}
+
 
 
 void

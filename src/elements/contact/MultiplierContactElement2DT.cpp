@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.cpp,v 1.8 2002-06-27 16:00:53 rjones Exp $ */
+/* $Id: MultiplierContactElement2DT.cpp,v 1.9 2002-07-01 18:22:41 rjones Exp $ */
 // created by : rjones 2001
 #include "MultiplierContactElement2DT.h"
 
@@ -239,7 +239,7 @@ void MultiplierContactElement2DT::LHSDriver(void)
   int consistent, num_nodes, opp_num_nodes;
   ContactNodeT* node;
   double sfac, gap;
-  double lm2[3];
+  double l1[3],lm2[3];
   dArrayT n1alphal1;
   n1alphal1.Allocate(NumSD());
 
@@ -331,7 +331,7 @@ void MultiplierContactElement2DT::LHSDriver(void)
 							opp_face->ComputeTangent1(
 							  node->OpposingLocalCoordinates(),lm2);
 							alpha = Dot(node->Normal(),lm2) 
-							      / Dot(l1.Pointer(),lm2);
+							      / Dot(l1,lm2);
 							for (int j =0; j < NumSD(); j++) 
 								{n1alphal1[j] = n1[j] - alpha*l1[j];}
 							N1.Multx(n1alphal1, N1nl);

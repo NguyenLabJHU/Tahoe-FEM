@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.21 2002-06-08 20:20:19 paklein Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.22 2002-07-01 18:22:41 rjones Exp $ */
 
 
 #ifndef _CONTACT_SURFACE_T_H_
@@ -58,6 +58,7 @@ class ContactSurfaceT : public SurfaceT
 	void PrintNormals(ofstream& out) const;
 	void PrintStatus(ostream& out) const;
 	void PrintMultipliers(ostream& out) const;
+	void PrintMultipliers(ofstream& out) const;
 
 
 	void InitializeMultiplierMap(void);

@@ -1,4 +1,4 @@
-/* $Id: vector2D.h,v 1.4 2001-06-12 22:14:33 rjones Exp $ */
+/* $Id: vector2D.h,v 1.5 2002-07-01 18:22:41 rjones Exp $ */
 
 #ifndef _VECTOR_2D_H_
 #define _VECTOR_2D_H_
@@ -13,6 +13,7 @@ inline static void LCross(const double* v,  double* vXe3)
 
 inline static void RCross(const double* v,  double* e3Xv)
 {
+// this follows the exoII sideset convection CCW coor
         e3Xv[0] =  v[1];
         e3Xv[1] = -v[0];
 };
@@ -71,8 +72,8 @@ inline static void Scale(double scale, double* v)
 inline static void Proj(double* v, double* n, double* proj_v)
 {
 	double dot = v[0]*n[0] + v[1]*n[1];
-        proj_v[0] = proj_v[0] - dot * n[0] ;
-        proj_v[1] = proj_v[1] - dot * n[1] ;
+	proj_v[0] = v[0] - dot * n[0] ;
+	proj_v[1] = v[1] - dot * n[1] ;
 };
 
 #if 0

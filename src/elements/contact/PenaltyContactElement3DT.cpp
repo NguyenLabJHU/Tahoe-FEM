@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement3DT.cpp,v 1.3 2002-06-29 16:12:52 paklein Exp $ */
+/* $Id: PenaltyContactElement3DT.cpp,v 1.4 2002-07-01 18:22:41 rjones Exp $ */
 #include "PenaltyContactElement3DT.h"
 
 #include <math.h>
@@ -339,7 +339,7 @@ void PenaltyContactElement3DT::LHSDriver(void)
 					const double* nm1 = node->Normal();
 					for (int j =0; j < nsd; j++) {n1[j] = nm1[j];}
 					N1.Multx(n1, N1nl);
-					if (consistent > 2 || consistent == 2) {
+					if (consistent)  {
 						/* D xi_a,  assuming g approx 0 */
 						/* unique tangents of node on surface 1*/
 						for (int j =0; j < nsd; j++) { 
@@ -363,6 +363,17 @@ void PenaltyContactElement3DT::LHSDriver(void)
 						
 						b[0] = Dot(nm1,l21);
 						b[1] = Dot(nm1,l22);
+#if 0
+cout << "LL" << "\n";
+cout << LL(0,0) << " " << LL(0,1) << "\n";
+cout << LL(1,0) << " " << LL(1,1) << "\n";
+cout << "LLi" << "\n";
+cout << LLi(0,0) << " " << LLi(0,1) << "\n";
+cout << LLi(1,0) << " " << LLi(1,1) << "\n";
+cout << "b" << "\n";
+cout << b[0] << " " << b[1] << "\n";
+
+#endif
 						 
 						for (int j =0; j < nsd; j++) {
 							n1[j] -= (b[0]*LLi(0,0) + b[1]*LLi(1,0))*l11[j]
@@ -382,7 +393,7 @@ void PenaltyContactElement3DT::LHSDriver(void)
 					ElementSupport().AssembleLHS(Group(), tmp_LHS, eqnums1,eqnums2);
 
 					/* Part:  dx1 (x) dx1 */
-					tmp_LHS.Outer(N1n, N1n);
+					tmp_LHS.Outer(N1nl, N1n);
 					tmp_LHS.SetToScaled(dpre_dg*weights[i], tmp_LHS);
 					LHS += tmp_LHS;
 					if (consistent) { /* D jn [dx] */

@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.23 2002-06-08 20:20:19 paklein Exp $ */
+/* $Id: ContactElementT.h,v 1.24 2002-07-01 18:22:41 rjones Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -153,7 +153,7 @@ protected:
 	/* additional workspace setup */
 	virtual void SetWorkspace(void);
 	/* workspace data */
-	dArrayT n1,l1;
+	dArrayT n1;
 	/* residual */
 	dArrayT RHS;
 	VariArrayT<double> RHS_man;

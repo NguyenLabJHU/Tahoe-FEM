@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.h,v 1.18 2002-06-19 16:27:26 rjones Exp $ */
+/* $Id: LineL2FaceT.h,v 1.19 2002-07-01 18:22:41 rjones Exp $ */
 
 #ifndef _LINEL2_FACE_T_H_
 #define _LINEL2_FACE_T_H_
@@ -38,8 +38,6 @@ public:
 		(const double* local_coordinates, double* normal) const; 
 	void ComputeTangent1 
 		(const double* local_coordinates, double* tangent1) const;
-	void ComputeTangent2 
-		(const double* local_coordinates, double* tangent2) const;
 	void NodeNormal(int local_node_number, double* normal) const; 
 	void CalcFaceNormal(void);
 	void LocalBasis

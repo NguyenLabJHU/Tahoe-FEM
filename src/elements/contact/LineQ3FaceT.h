@@ -1,4 +1,4 @@
-/* $Id: LineQ3FaceT.h,v 1.4 2002-06-19 16:27:26 rjones Exp $ */
+/* $Id: LineQ3FaceT.h,v 1.5 2002-07-01 18:22:41 rjones Exp $ */
 
 #ifndef _LINEQ3_FACE_T_H_
 #define _LINEQ3_FACE_T_H_
@@ -33,21 +33,19 @@ public:
 
         /* geometric computation */
         void ComputeCentroid(double* centroid) const; 
-	double ComputeRadius(void) const;
+			double ComputeRadius(void) const;
         void ComputeNormal
 		(const double* local_coordinates, double* normal) const; 
         void ComputeTangent1 
 		(const double* local_coordinates, double* tangent1) const;
-        void ComputeTangent2 
-		(const double* local_coordinates, double* tangent2) const;
         void NodeNormal(int local_node_number, double* normal) const; 
-	void CalcFaceNormal(void);
-	void LocalBasis
+		void CalcFaceNormal(void);
+		void LocalBasis
 		(double* normal, double* tangent1) const;
-	void ComputeShapeFunctions
+		void ComputeShapeFunctions
 	  	(const double* local_coordinates, dArrayT& shape_functions) 
 		const;
-	void ComputeShapeFunctions
+		void ComputeShapeFunctions
 	  	(const double* local_coordinates, dMatrixT& shape_functions) 
 		const;
         void ComputeShapeFunctionDerivatives
@@ -65,7 +63,7 @@ public:
         void InterpolateVector 
 		(const double* local_coordinates, dArray2DT& nodal_vectors, 
 		double* vector) const;
-	double ComputeJacobian (const double* local_coordinates) const;
+		double ComputeJacobian (const double* local_coordinates) const;
         bool Projection (ContactNodeT* node, dArrayT& parameters) const ;
         void Quadrature (dArray2DT& points, dArrayT& weights) const;
 
