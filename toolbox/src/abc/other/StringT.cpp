@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.3 2001-02-20 10:52:34 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.4 2001-04-10 17:57:14 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #include "StringT.h"
@@ -64,6 +64,16 @@ StringT& StringT::operator=(const char* string)
 	}
 
 	return(*this);
+}
+
+/* make string empty */
+void StringT::Clear(void)
+{
+	/* should have at least one character */
+	if (Length() < 1) throw eGeneralFail;
+	
+	/* zero string length */
+	fArray[0] = '\0';
 }
 
 /* copy what fits without resizing. new string length */
@@ -642,12 +652,31 @@ void StringT::ToMacOSPath(void)
 		
 		int len = strlen(fArray);
 		int i = 0;
+		int j_start = 0;
 
-		temp[i++] = ':';
-		for (int j = 0; j < len; j++)
+		/* relative path */
+		if (fArray[0] != '/' && fArray[0] != '\\')
+		{
+			temp[i++] = ':';
+			
+			/* forward */
+			if (fArray[0] == '.' && fArray[1] == '/')
+				j_start = 2;
+		}
+		/* forward */
+		else
+			while (fArray[j_start] == '/' || fArray[j_start] == '\\')
+				j_start++;
+
+		for (int j = j_start; j < len; j++)
 		{
 			if (fArray[j] == '\\' || fArray[j] == '/')
+			{
 				temp[i++] = ':';
+				
+				/* forward */
+				while (fArray[j+1] == '/' || fArray[j+1] == '\\') j++;
+			}
 			else if (fArray[j] == '.')
 			{
 				if (fArray[j+1] == '.')
