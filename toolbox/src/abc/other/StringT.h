@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.18 2003-03-08 01:59:52 paklein Exp $ */
+/* $Id: StringT.h,v 1.19 2003-03-09 17:09:02 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #ifndef _STRING_T_H_
 #define _STRING_T_H_
@@ -218,6 +218,14 @@ public:
 	 *        will not contain any leading or trailing white space
 	 * \return true if key found, else returns false */
 	bool Tail(char key, StringT& value) const;
+
+	/** \name scan for character
+	 * return the position of the first or last occurrence of the character
+	 * in the string. Returns -1 if the character is not present */
+	/*@{*/
+	int FirstPositionOf(char a) const;
+	int LastPositionOf(char a) const;
+	/*@}*/
 
 private:
 	
