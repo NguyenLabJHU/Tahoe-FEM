@@ -1,4 +1,4 @@
-/* $Id: J2SimoC0HardeningT.cpp,v 1.13 2004-07-15 08:28:54 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.cpp,v 1.14 2004-08-14 05:13:20 paklein Exp $ */
 /* created: paklein (05/01/2001) */
 #include "J2SimoC0HardeningT.h"
 
@@ -90,7 +90,7 @@ const dSymMatrixT& J2SimoC0HardeningT::TrialElasticState(const dMatrixT& F_mecha
 /* determine elastic or plastic loading for the current step */
 int J2SimoC0HardeningT::PlasticLoading(ElementCardT& element, double mu, int ip)
 {
-	/* compute relative stress */
+	/* compute relative stress (Kirchhoff) */
 	fRed2Temp.Deviatoric(fb_bar_trial);
 	fRelStress.SetToCombination(mu, fRed2Temp, -1.0, fbeta_bar_trial);
 
@@ -204,11 +204,11 @@ const dSymMatrixT& J2SimoC0HardeningT::StressCorrection(ElementCardT& element, d
 					ExceptionT::GeneralFail(caller, "local iteration failed after %d iterations", max_iteration);
 			}
 
-			/* plastic correction - to Cauchy stress */
+			/* plastic correction (Cauchy stress) */
 			fStressCorr.SetToScaled(-2.0*mu_bar_bar*dgamma/fInternal[kDetF_tot], fUnitNorm);
 
-			/* incremental heat generation - 90% of plastic work */
-			heat_incr = 0.9*sqrt23*dgamma*fInternal[kstressnorm];
+			/* incremental heat generation - 90% of plastic work (Cauchy stress) */
+			heat_incr = 0.9*dgamma*K(alpha + sqrt23*dgamma)/fInternal[kDetF_tot];
 				
 			/* debugging - check the results of the return mapping */
 			bool check_map = false;
