@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.32.2.2 2003-02-11 02:46:12 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.32.2.3 2003-02-14 02:49:04 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -116,6 +116,9 @@ public:
 
 	/** resolve the index of the given element group */
 	int ElementGroupNumber(const ElementBaseT* pgroup) const;
+
+	/** pointer to an element group */
+	SolverT* Solver(int group) { return fSolvers[group]; };
 	
 	/** the MP communicator */
 	CommunicatorT& Communicator(void) const { return fComm; };
