@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.h,v 1.11 2005-03-01 08:26:29 paklein Exp $ */
+/* $Id: FS_SCNIMF_AxiT.h,v 1.12 2005-03-06 04:02:35 cjkimme Exp $ */
 #ifndef _FS_SCNIMF_AXI_T_H_
 #define _FS_SCNIMF_AXI_T_H_
 
@@ -46,6 +46,8 @@ public:
 	/*@}*/
 
 protected: /* for derived classes only */
+
+	virtual dMatrixT& TransformModuli(const dMatrixT& moduli, const dMatrixT& F, dMatrixT& Csig);
 
 	/** return number of values for each output variable */
 	virtual void SetOutputCount(const iArrayT& flags, iArrayT& counts) const;
