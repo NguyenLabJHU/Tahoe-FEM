@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.45 2003-08-20 23:15:31 pgandhi Exp $ */
+/* $Id: EAMT.cpp,v 1.46 2003-10-09 23:02:32 bsun Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -138,6 +138,8 @@ void EAMT::WriteOutput(void)
   //dArray2DT vsvalues(non, num_stresses);
   num_output +=num_stresses; 
 
+  num_output +=1;
+
   /* output arrays length number of active nodes */
   dArray2DT n_values(non, num_output), e_values;
 
@@ -216,16 +218,22 @@ void EAMT::WriteOutput(void)
   fForce = 0.0;
 
   iArrayT neighbors;
-  dArrayT x_i, x_j, r_ij(ndof);
-
+ 
+  dArrayT x_i, x_j, x_k, r_ij(ndof), r_ik(ndof), DispVector(ndof);
+  AutoArrayT<dArrayT> NearestNeighbors[fNeighbors.MajorDim()];
   int current_property_i = -1;
   int current_property_j = -1;
       
   /* Loop i : run through neighbor list */
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
-    {
+    { //i
       /* row of neighbor list */
       fNeighbors.RowAlias(i, neighbors);
+
+      /*linked list for holding vector pair magnitudes*/
+      CSymmParamNode *CParamStart=new CSymmParamNode;
+      CParamStart->Next=NULL;
+      CParamStart->value=0.0;
 
       /* tags */
       int   tag_i = neighbors[0]; /* self is 1st spot */
@@ -250,7 +258,7 @@ void EAMT::WriteOutput(void)
       if(iEmb == 1) values_i[ndof] += fEmbeddingEnergy(tag_i,0);
       
       for (int j = 1; j < neighbors.Length(); j++)
-	{
+	{ //j
 	  /* tags */
 	  int   tag_j = neighbors[j];
 	  int  type_j = fType[tag_j];		
@@ -281,7 +289,39 @@ void EAMT::WriteOutput(void)
 	  /* connecting vector */
 	  r_ij.DiffOf(x_j, x_i);
 	  double r = r_ij.Magnitude();
+	  if (r<=NearestNeighborDistance) {
+	    dArrayT r_ji=*(new dArrayT(ndof));
+	    r_ji.DiffOf(x_i,x_j);
+	    /*add the vector pointing from j to i into the jth location in the array*/
+	    /*this is needed since the neighbor list only contains B as a neighbor of A for B>A*/
+	    NearestNeighbors[tag_j].Append(r_ji);
 
+	    /*for each i-j and i-k for k>j, sum the vectors, and added the magnitude of the pair into the list*/
+	    for (int k = j+1; k<neighbors.Length(); k++)
+	      {
+		int tag_k = neighbors[k];
+		coords.RowAlias(tag_k, x_k);
+		r_ik.DiffOf(x_k, x_i);
+		DispVector.SumOf(r_ij, r_ik);
+			      
+		if(r_ik.Magnitude()<=NearestNeighborDistance)
+		  {
+		    DispVector.SumOf(r_ij, r_ik);
+		    LLInsert(CParamStart, DispVector.Magnitude());
+		  }
+	      }
+	    /*for each j, add r_ij to the neighbors which are not included in the neighbor list*/
+	    NearestNeighbors[tag_i].Top();
+	    while( NearestNeighbors[tag_i].Next())
+	      {
+		
+		DispVector.SumOf(NearestNeighbors[tag_i].Current(), r_ij);
+		LLInsert(CParamStart, DispVector.Magnitude());
+			 
+			      
+	      }
+	    
+	  }
 
 
 	  /* Pair Potential : phi = 0.5 * z_i z_j /r */
@@ -352,12 +392,28 @@ void EAMT::WriteOutput(void)
 	}
 
 
-		 /*copy stress into array*/
-		 for (int cc = 0; cc < num_stresses; cc++) {
-			int ndex = ndof+2+cc;
-		   	values_i[ndex] += vs_i[cc];
-		 }		   
+      /*copy stress into array*/
+      for (int cc = 0; cc < num_stresses; cc++) {
+	int ndex = ndof+2+cc;
+	values_i[ndex] += vs_i[cc];
+      }
+      /*loop through the neighbors of i which are not included in the neighbor list, summing up vector pairs*/
+      NearestNeighbors[tag_i].Top();
+      while (NearestNeighbors[tag_i].Next())
+	{
+	  dArrayT MajorAlias = NearestNeighbors[tag_i].Current();
+	  int currentPosition = NearestNeighbors[tag_i].Position();
+	  while(NearestNeighbors[tag_i].Next()) 
+	    {
+	      DispVector.SumOf(MajorAlias, NearestNeighbors[tag_i].Current());
+	      LLInsert(CParamStart, DispVector.Magnitude());
+	    }
+	  NearestNeighbors[tag_i].Current(currentPosition);
 
+	}
+	   
+      /*given the list of vector pair magnitudes, returns first seven*/
+      n_values(i,num_output-1)=GenCSymmValue(CParamStart, ndof);
     
     }	
 
@@ -721,7 +777,7 @@ void EAMT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 	  stress[0] = "s11";
 	  }
 	num_labels+=num_stress;
-
+	num_labels++; //another label for the centrosymmetry
   labels.Dimension(num_labels);
   int dex = 0;
   for (dex = 0; dex < NumDOF(); dex++)
@@ -731,6 +787,7 @@ void EAMT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 
 	for (int ns =0 ; ns<num_stress; ns++)
 	  labels[dex++]=stress[ns];
+	labels[dex++]= "CS";
 }
 
 /* form group contribution to the stiffness matrix */
@@ -1615,7 +1672,9 @@ void EAMT::EchoProperties(ifstreamT& in, ofstreamT& out)
       
       fEAMProperties[i] = new ParadynEAMT(file);
     }
-
+  
+  in >> latticeParameter;
+  NearestNeighborDistance=latticeParameter*.79;
   /* echo particle properties */
   out << "\n Particle properties:\n\n";
   out << " Number of properties. . . . . . . . . . . . . . = " 
