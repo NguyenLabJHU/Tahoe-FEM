@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.14 2001-10-15 18:40:11 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.15 2001-10-16 22:27:00 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "vtkRenderer.h"
@@ -51,6 +51,7 @@ VTKConsoleT::VTKConsoleT(void)
   iAddVariable("numColors", numColors);
   iAddVariable("source_file", source_file);
   //iAddVariable("output_file", output_file);
+  //iAddVariable("scale_factor", scale_factor);
 
   /* add console commands */
   iAddCommand("Start_Rendering");
@@ -74,8 +75,8 @@ VTKConsoleT::VTKConsoleT(void)
   iAddCommand("Choose_variable");
  
   StringT file;
-  int test;
-  cout << "Choose number of File\n 1: heat.io0.exo\n 2: test.io0.exo\n 3: test2.io0.exo\n 4: big.exo: ";
+  //int test;
+  cout << "Choose number of File\n 1: heat.io0.exo\n 2: test.io0.exo\n 3: test2.io0.exo\n 4: big.exo\n 5: enter different .exo: ";
   cin >> test;
   char line[255];
   cin.getline(line, 254);
@@ -83,9 +84,12 @@ VTKConsoleT::VTKConsoleT(void)
   else if (test ==2) file ="test.io0.exo";
   else if (test == 3) file = "test2.io0.exo";
   else if (test == 4) file = "big.exo";
+  else if (test == 5) {
+    cout << "Enter file name with .exo: ";
+    cin >> file;
+    cin.getline(line, 254);
+  }
   else cout << "bad entry";
-  currentVarNum = 12;
-  frameNum = 0;
 
 
    ExodusT exo(cout);
@@ -102,7 +106,7 @@ VTKConsoleT::VTKConsoleT(void)
   int num_nodes = exo.NumNodes();
   int num_dim   = exo.NumDimensions();
   dArray2DT coordinates(num_nodes, num_dim);
- 
+
   // ArrayT<dArray2DT> coordinates(num_time_steps);
   exo.ReadCoordinates(coordinates);
   // exo.ReadCoordinates(coordinates(0));
@@ -180,9 +184,10 @@ VTKConsoleT::VTKConsoleT(void)
 		      exo.ReadNodalVariable(i+1, j+1, ndata);
 		      nodal_data.SetColumn(j, ndata);
 		      scalars[i][j] =  vtkScalars::New(VTK_DOUBLE);
-		      // if (j<3) 
+		    
+		      if (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z")
 			vectors[i][j] = vtkVectors::New(VTK_DOUBLE);
-		     
+		      
 		      // }
 		      scalarRange1[j] = 10000;
 		      scalarRange2[j] = -10000;
@@ -193,8 +198,14 @@ VTKConsoleT::VTKConsoleT(void)
 			if (nodal_data(k,j) < scalarRange1[j]) scalarRange1[j] = nodal_data(k,j);
 			if (nodal_data(k,j) > scalarRange2[j]) scalarRange2[j] = nodal_data(k,j);
 			scalars[i][j]->InsertScalar(k+1, nodal_data(k,j));
-			//if (j<3)                ////k???
-			vectors[i][j]->InsertVector(k+1, nodal_data(k,0),nodal_data(k,1),nodal_data(k,2));
+			//InsertVector(k,...)?????               
+			if (node_labels[0] == "D_X" && node_labels[1] == "D_Y" && node_labels[2] == "D_Z")              
+			  vectors[i][j]->InsertVector(k+1, nodal_data(k,0),nodal_data(k,1),nodal_data(k,2));
+			else if (node_labels[0] == "D_X" && node_labels[1] == "D_Y") 
+			   vectors[i][j]->InsertVector(k+1, nodal_data(k,0), nodal_data(k,1),0);
+			else if (node_labels[0] == "D_X")
+			  vectors[i][j]->InsertVector(k+1, nodal_data(k,0),0,0);
+			else;
 			
 		      }
 		    }
@@ -212,11 +223,11 @@ VTKConsoleT::VTKConsoleT(void)
  points = vtkPoints::New();
  for (int i=0; i<num_nodes; i++) points->InsertPoint(i+1,coordinates(i));
 
- warpGrid = vtkUnstructuredGrid::New();
- dPoints = vtkPoints::New();
- warp = vtkWarpVector::New();
- for (int i = 0; i<num_nodes; i++) dPoints->InsertPoint(i+1, nodal_data(i,0), nodal_data(i,1), nodal_data(i,2));
- warpGrid->SetPoints(dPoints);
+//  warpGrid = vtkUnstructuredGrid::New();
+//  dPoints = vtkPoints::New();
+
+//  for (int i = 0; i<num_nodes; i++) dPoints->InsertPoint(i+1, nodal_data(i,0), nodal_data(i,1), nodal_data(i,2));
+//  warpGrid->SetPoints(dPoints);
 
  
  
@@ -240,9 +251,10 @@ VTKConsoleT::VTKConsoleT(void)
  intArray->SetNumberOfComponents(vtk_connects.MinorDim()); //is this needed???
  intArray->SetArray(p_vtk_connects, vtk_connects.Length(), 0);
 
-  
+ warp = vtkWarpVector::New();
  ugrid = vtkUnstructuredGrid::New();
  warp->SetInput(ugrid);
+ warp->SetScaleFactor(5);
 
  /* create VTK array of cells */
  vtkCellArray* vtk_cell_array = vtkCellArray::New();
@@ -279,13 +291,15 @@ VTKConsoleT::VTKConsoleT(void)
  /* insert cells in the grid */
  //  vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
  ugrid->SetCells(cell_types.Pointer(), vtk_cell_array);
+   currentVarNum = num_node_variables-1;
  
 
 
   ugrid->SetPoints(points);
   points->Delete();
   ugrid->GetPointData()->SetScalars(scalars[frameNum][currentVarNum]);
-  ugrid->GetPointData()->SetVectors(vectors[frameNum][currentVarNum]);
+  if (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z")
+    ugrid->GetPointData()->SetVectors(vectors[frameNum][currentVarNum]);
   // ugrid->GetPointData()->SetScalars(scalars[0]);
   //ugrid->SetFieldData(fd[0]);
 
@@ -328,8 +342,12 @@ VTKConsoleT::VTKConsoleT(void)
   lut->SetNumberOfColors(numColors);
   lut->Build();
   
-  // ugridMapper->SetInput(ugrid);
-  ugridMapper->SetInput(warp->GetOutput());
+
+  if (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z")
+    ugridMapper->SetInput(warp->GetOutput());
+  else
+    ugridMapper->SetInput(ugrid);
+  if (test ==4){ scalarRange1[2] = 1.936; scalarRange1[3] = 1.936;}
   ugridMapper->SetScalarRange(scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
   ugridMapper->SetLookupTable(lut);
   ugridMapper->ImmediateModeRenderingOn();
@@ -391,13 +409,14 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 
   else if (command == "Update_Rendering")
   {
+
     ugridMapper->SetScalarRange(scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
     lut->SetHueRange(hueRange1, hueRange2);
     lut->SetSaturationRange(satRange1,satRange2);
     lut->SetValueRange(valRange1,valRange2);
     lut->SetAlphaRange(alphaRange1,alphaRange2);
     lut->SetNumberOfColors(numColors);
-
+    // warp->SetScaleFactor(scale_factor);
     renWin->Render();
     cout << "type 'e' in the graphics window to exit interactive mode" << endl;   
     iren->Start();
@@ -595,7 +614,8 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 	  sbTitle.Append(j,3);
 	 scalarBar->SetTitle(sbTitle);
 	 ugrid->GetPointData()->SetScalars(scalars[j][currentVarNum]);
-	 ugrid->GetPointData()->SetVectors(vectors[j][currentVarNum]);
+	 if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
+	   ugrid->GetPointData()->SetVectors(vectors[j][currentVarNum]);
 	 // ugrid->GetPointData()->SetScalars(scalars[j]);
 	 renWin->Render();
 
@@ -630,18 +650,14 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       
       for (int j = 0; j<num_time_steps; j++){
 
-	//	sbTitle = "Temperature for frame ";
-	//sbTitle.Append(j,3);
-	//	sbTitle = "";
-	//	sbTitle.Append(node_labels(0)); 
-	//sbTitle.Append(" for frame ");
 	sbTitle.Drop(-3);
 	sbTitle.Append(j,3);
 	scalarBar->SetTitle(sbTitle);	 
 	ugrid->GetPointData()->SetScalars(scalars[j][currentVarNum]);
-	 ugrid->GetPointData()->SetVectors(vectors[j][currentVarNum]);
-	//ugrid->GetPointData()->SetScalars(scalars[j]);
-
+	
+	if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
+	  ugrid->GetPointData()->SetVectors(vectors[j][currentVarNum]);
+	
 	renWin->Render();  
 	renSrc->SetInput(renderer);
 	renSrc->WholeWindowOn();
@@ -709,8 +725,9 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       // sbTitle.Append(j,3);
       scalarBar->SetTitle(sbTitle);
       // ugrid->GetPointData()->SetScalars(scalars[frameNum]);
-       ugrid->GetPointData()->SetScalars(scalars[frameNum][currentVarNum]);
-        ugrid->GetPointData()->SetVectors(vectors[frameNum][currentVarNum]);
+      ugrid->GetPointData()->SetScalars(scalars[frameNum][currentVarNum]);
+      if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
+	ugrid->GetPointData()->SetVectors(vectors[frameNum][currentVarNum]);
       renWin->Render();
       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
       iren->Start();
@@ -741,8 +758,8 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
      axes->SetCamera(renderer->GetActiveCamera());
     //  axes->SetLabelFormat("%6.4g");
      // axes->ShadowOn();
-      axes->SetFlyModeToOuterEdges();
-      //axes->SetFlyModeToClosestTriad();
+     // axes->SetFlyModeToOuterEdges();
+      axes->SetFlyModeToClosestTriad();
       axes->SetFontFactor(3.8);
       axes->GetProperty()->SetColor(0,1,1);
       // axes->SetBounds(0,1,0,1,0,1);
@@ -774,7 +791,8 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       cin.getline(line, 254);
       ugrid->GetPointData()->SetScalars(scalars[frameNum][currentVarNum]);
       ugridMapper->SetScalarRange(scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
-      ugrid->GetPointData()->SetVectors(vectors[frameNum][currentVarNum]);
+      if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
+	ugrid->GetPointData()->SetVectors(vectors[frameNum][currentVarNum]);
       sbTitle = "";
       sbTitle.Append(node_labels[currentVarNum]); 
       sbTitle.Append(" for frame ");

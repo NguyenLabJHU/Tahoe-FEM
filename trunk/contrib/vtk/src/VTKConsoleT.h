@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.h,v 1.12 2001-10-15 18:48:08 recampb Exp $ */
+/* $Id: VTKConsoleT.h,v 1.13 2001-10-16 22:27:00 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -50,9 +50,11 @@ class VTKConsoleT: public iConsoleObjectT
   double alphaRange1, alphaRange2;
   double scalarRange1[100], scalarRange2[100];
   double time;
+  // float scale_factor;
   int numColors;
   int num_node_variables;
   int currentVarNum;
+  int test;
   StringT source_file;
   StringT output_file;
   StringT outFileName;
