@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.h,v 1.18 2004-03-01 02:41:01 paklein Exp $ */
+/* $Id: dSymMatrixT.h,v 1.19 2004-08-01 00:52:39 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _DSYM_MATRIX_T_H_
 #define _DSYM_MATRIX_T_H_
@@ -281,6 +281,24 @@ inline void dSymMatrixT::Set(int nsd, double* array)
 inline double& dSymMatrixT::operator()(int row, int col) {
 	const double& a = ((const dSymMatrixT*) this)->operator()(row,col);
 	return const_cast<double&>(a);
+}
+
+inline void dSymMatrixT::ExpandIndex(DimensionT nsd, int dex, int& dex_1, int& dex_2)
+{
+#if __option(extended_errorcheck)
+	/* consistency check */
+	const char caller[] = "dSymMatrixT::ExpandIndex";
+	if (dex >= NumValues(nsd)) ExceptionT::OutOfRange(caller, "bad index %d", dex);
+#endif
+	
+	int  map_1D[2] = {0,0};
+	int  map_2D[6] = {0,0,1,1,0,1};
+	int map_3D[18] = {0,0,1,1,2,2,1,2,0,2,0,1};
+	int* map_list[4] = {NULL, map_1D, map_2D, map_3D};
+	int* map = map_list[nsd];
+	int* p = map + 2*dex;
+	dex_1 = p[0];
+	dex_2 = p[1];
 }
 
 } /* namespace Tahoe */
