@@ -1,21 +1,15 @@
-# $Id: makefile,v 1.6 2004-09-01 10:47:55 paklein Exp $
+# $Id: makefile,v 1.1 2004-09-01 10:47:56 paklein Exp $
 #
 # type "make clean" to remove test results
 #
 
 # list of sub-directories
 # NOTE: if list is empty, set SUB_DIR = NONE
-SUB_DIR = \
-	force.controller \
-	contact_simple  \
-	torsion \
-	K.field \
-	thermostats \
-	tied
+SUB_DIR = NONE 
 
 all:
 	@echo "make clean to remove test results"
-
+	
 clean:
 	@ for n in $(SUB_DIR); do \
 		if test -d $$n; then \
@@ -27,3 +21,4 @@ clean:
 			echo "*** WARNING: missing directory: $(CURR_DIR)/$$n"; \
 			fi; \
 	done
+	-@rm *.io*.ps* *.out *.geo *.run *.echo.xml *.valid.xml
