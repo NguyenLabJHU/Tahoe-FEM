@@ -1,4 +1,4 @@
-/* $Id: AutoFill2DT.h,v 1.9 2003-02-10 02:06:32 paklein Exp $ */
+/* $Id: AutoFill2DT.h,v 1.10 2003-02-19 19:58:05 paklein Exp $ */
 /* created: paklein (01/19/1999) */
 #ifndef _AUTO_ARRAY2D_T_H_
 #define _AUTO_ARRAY2D_T_H_
@@ -507,8 +507,8 @@ template <class TYPE>
 void AutoFill2DT<TYPE>::ChunkDimensions(int major_dim, int num_chunks, int& chunk_major_dim, int& last_major_dim)
 {
 	/* checks */
-	if (num_chunks < 1 || num_chunks > major_dim) 
-		ExceptionT::SizeMismatch("AutoFill2DT<TYPE>::ChunkDimensions", "bad number of chunks");
+	if (num_chunks < 0) 
+		ExceptionT::SizeMismatch("AutoFill2DT<TYPE>::ChunkDimensions", "bad number of chunks %d", num_chunks);
 
 	/* integer division truncates */
 	chunk_major_dim = major_dim/num_chunks;
