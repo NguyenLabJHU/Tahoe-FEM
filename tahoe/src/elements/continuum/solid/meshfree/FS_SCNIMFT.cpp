@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.16 2005-02-01 20:14:18 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.17 2005-02-01 20:18:37 cjkimme Exp $ */
 #include "FS_SCNIMFT.h"
 
 //#define VERIFY_B
@@ -326,26 +326,16 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			}		
 			Fdef.PlusIdentity(); // convert to F
 			fFSMatSupport->SetDeformationGradient(&Flist);
-		
-			const dMatrixT& moduli = fCurrMaterial->C_IJKL();
-			//fCurrMaterial->s_ij().ToMatrix(fCauchy);
-			//Finverse.Inverse(Fdef);
-			//Finverse *= Fdef.Det(); // compute J F^-1
-			//fStress.MultABT(fCauchy, Finverse); // compute PK1
-			//fCauchy.MultATB(Fdef, fStress);
-			//fStress = fCauchy;
-		
-			// FTs = F^T PK1
-			//FTs.MultATB(Fdef, fStress);
+				
+			// stress stiffness
 			// T_11 = T_22 = FTs_11 T_13 = T_24 = FTs_12
 			// T_31 = T_42 = FTs_21 T_33 = T_44 = FTs_22
-			
-			// stress stiffness
 			fCurrMaterial->S_IJ().ToMatrix(fStress);
 			Tijkl.Expand(fStress, fSD, dMatrixT::kOverwrite);
 			// Tijkl = 0.; //used to debug material stiffness
 			
 			// material stiffness
+			const dMatrixT& moduli = fCurrMaterial->C_IJKL();
 			Tijkl += TransformModuli(moduli, Fdef, Cijklsigma);
 			
 			// sum over pairs to get contribution to stiffness
@@ -452,9 +442,7 @@ void FS_SCNIMFT::RHSDriver(void)
 		Finverse.Inverse(Fdef);
 		Finverse *= J; // compute J F^-1
 		fStress.MultABT(fCauchy, Finverse); // compute PK1
-		
-		fCurrMaterial->S_IJ().ToMatrix(fStress);
-		
+				
 		supp_i = nodalCellSupports(i);
 		bVec_i = bVectorArray(i);
 		for (int j = 0; j < n_supp; j++) { 
