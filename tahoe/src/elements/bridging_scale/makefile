@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2002-07-16 16:21:43 hspark Exp $
+# $Id: makefile,v 1.1.12.1 2003-02-10 02:16:42 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,7 +6,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	BridgingScaleT.o
+	BridgingScaleT.o \
+	PointInCellDataT.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -15,11 +17,14 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	BridgingScaleT.cpp
+	BridgingScaleT.cpp \
+	PointInCellDataT.cpp
 
 # headers
 HDR = \
-	BridgingScaleT.h
+	BridgingScaleT.h \
+	PointInCellDataT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
