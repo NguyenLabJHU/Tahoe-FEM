@@ -1,0 +1,16 @@
+%
+*zone
+1-2 8
+
+*VERBOSE
+1	# write node set translation to log file
+
+*OUTPUTFORMAT
+1	# output file format
+
+*inputformat
+1 ../geometry/quad8tria6.geom
+
+
+
+*EOF
