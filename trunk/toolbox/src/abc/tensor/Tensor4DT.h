@@ -19,21 +19,18 @@ class Tensor4DT: public TensorT<MATHTYPE>
 {
   public:
 
-	/*
-	 * Constructor
-	 */
+	/* constructor */
 	Tensor4DT(void);
 	Tensor4DT(int dim0, int dim1, int dim2, int dim3);
 	Tensor4DT(const Tensor4DT& source);
 
-	/*
-	 * Post-constructor
-	 */
-	void Allocate(int dim0, int dim1, int dim2, int dim3);
+	/** dimensioning */
+	void Dimension(int dim0, int dim1, int dim2, int dim3);
 
-	/*
-	 * element and subdimension accessors.
-	 */
+	/** \deprecated replaced by Tensor4DT::Dimension on 02/13/2002 */
+	void Allocate(int dim0, int dim1, int dim2, int dim3) { Dimension(dim0, dim1, dim2, dim3); };
+
+	/* element and subdimension accessors */
 	MATHTYPE& operator()(int dim0, int dim1, int dim2, int dim3) const;
 	MATHTYPE* operator()(int dim0, int dim1, int dim2) const;
 	MATHTYPE* operator()(int dim0, int dim1) const;
@@ -69,7 +66,7 @@ template <class MATHTYPE>
 inline Tensor4DT<MATHTYPE>::Tensor4DT(int dim0, int dim1, int dim2, int dim3): 
 	TensorT<MATHTYPE>(dim0*dim1*dim2*dim3, 4)
 {
-	Allocate(dim0, dim1, dim2, dim3);
+	Dimension(dim0, dim1, dim2, dim3);
 }
 
 template <class MATHTYPE> 
@@ -83,10 +80,10 @@ inline Tensor4DT<MATHTYPE>::Tensor4DT(const Tensor4DT& source):
  * Post-constructor
  */
 template <class MATHTYPE>
-void Tensor4DT<MATHTYPE>::Allocate(int dim0, int dim1, int dim2, int dim3)
+void Tensor4DT<MATHTYPE>::Dimension(int dim0, int dim1, int dim2, int dim3)
 {
 	/* base class allocate */
-	TensorT<MATHTYPE>::Allocate(dim0*dim1*dim2*dim3, 4);
+	TensorT<MATHTYPE>::Dimension(dim0*dim1*dim2*dim3, 4);
 
 	/* dimensions */
 	fDim[0] = dim0;

@@ -1,4 +1,4 @@
-/* $Id: zArrayT.cpp,v 1.4 2001-12-10 23:38:10 paklein Exp $ */
+/* $Id: zArrayT.cpp,v 1.5 2002-02-18 08:48:40 paklein Exp $ */
 /* created: PAK/AFLP (05/19/1997)                                         */
 
 #include "zArrayT.h"
@@ -57,7 +57,7 @@ void zArrayT::toIm(dArrayT& im) const
 zArrayT& zArrayT::toZ(const dArrayT& re, const dArrayT& im)
 {
 	/* dimension */
-	Allocate(re.Length());
+	Dimension(re.Length());
 	
 	/* ComplexT function */
 	ComplexT::ReIm_to_z(re,im,*this);

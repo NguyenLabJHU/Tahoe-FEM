@@ -25,27 +25,22 @@ class Tensor3DT: public TensorT<MATHTYPE>
 {
   public:
 
-	/*
-	 * Constructor
-	 */
+	/* constructors */
 	Tensor3DT(void);
 	Tensor3DT(int dim0, int dim1, int dim2);
 	Tensor3DT(const Tensor3DT& source);
 
-	/*
-	 * Post-constructor
-	 */
-	void Allocate(int dim0, int dim1, int dim2);
+	/* dimensioning */
+	void Dimension(int dim0, int dim1, int dim2);
 
-  	/*
-  	 * Assignment operators
-  	 */
+	/** \deprecated replaced by Tensor3DT::Dimension on 02/13/2002 */
+	void Allocate(int dim0, int dim1, int dim2) { Dimension(dim0, dim1, dim2); };
+
+  	/* assignment operators */
   	Tensor3DT<MATHTYPE>& operator=(const Tensor3DT& RHS);
   	Tensor3DT<MATHTYPE>& operator=(const MATHTYPE& value);
 	
-	/*
-	 * element and subdimension accessors.
-	 */
+	/* element and subdimension accessors. */
 	MATHTYPE& operator()(int dim0, int dim1, int dim2) const;
 	MATHTYPE* operator()(int dim0, int dim1) const;
 	MATHTYPE* operator()(int dim0) const;
@@ -110,7 +105,7 @@ inline Tensor3DT<MATHTYPE>::Tensor3DT(void): fOffset0(0), fOffset1(0) { }
 template <class MATHTYPE>
 inline Tensor3DT<MATHTYPE>::Tensor3DT(int dim0, int dim1, int dim2)
 {
-	Allocate(dim0, dim1, dim2);
+	Dimension(dim0, dim1, dim2);
 }
 
 template <class MATHTYPE>
@@ -123,10 +118,10 @@ inline Tensor3DT<MATHTYPE>::Tensor3DT(const Tensor3DT& source)
  * Post-constructor
  */
 template <class MATHTYPE> 
-void Tensor3DT<MATHTYPE>::Allocate(int dim0, int dim1, int dim2)
+void Tensor3DT<MATHTYPE>::Dimension(int dim0, int dim1, int dim2)
 {
 	/* base class allocate */
-	TensorT<MATHTYPE>::Allocate(dim0*dim1*dim2, 3);
+	TensorT<MATHTYPE>::Dimension(dim0*dim1*dim2, 3);
 
 	/* dimensions */
 	fDim[0] = dim0;

@@ -1,4 +1,4 @@
-/* $Id: pArrayT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: pArrayT.h,v 1.2 2002-02-18 08:48:43 paklein Exp $ */
 /* created: paklein (11/21/1996)                                          */
 /* This is the interface for a pointer array class.  The data in the      */
 /* array is of type (TYPE*).  The members of the array is deleted when    */
@@ -29,8 +29,13 @@ public:
 	/* destructor */
 	~pArrayT(void);
 
-	/* allocate an array of the specified size */
-	void Allocate(int length);
+	/** set the array size to the given length. No change occurs if the array
+	 * is already the specified length. The previous contents of the array is
+	 * not preserved. */
+	void Dimension(int length);
+
+	/** \deprecated replaced by pArrayT::Dimension on 02/13/2002 */
+	void Allocate(int length) { Dimension(length); };
 
 	/* element accessor */
 	ProxyTYPEPtr<TYPEPtr> operator[](int index);
@@ -127,7 +132,7 @@ pArrayT<TYPEPtr>::pArrayT(void) { }
 template <class TYPEPtr>
 pArrayT<TYPEPtr>::pArrayT(int length)
 {
-	Allocate(length); 
+	Dimension(length); 
 }
 
 template <class TYPEPtr>
@@ -147,7 +152,7 @@ pArrayT<TYPEPtr>::~pArrayT(void)
 /* allocate an array of the specified size.  Frees any existing
 * memory */
 template <class TYPEPtr>
-void pArrayT<TYPEPtr>::Allocate(int length)
+void pArrayT<TYPEPtr>::Dimension(int length)
 {
 	/* reallocate if needed */
 	if (fLength != length)
@@ -156,7 +161,7 @@ void pArrayT<TYPEPtr>::Allocate(int length)
 		if (fLength > 0) DeleteAll();
 
 		/* allocate to new size */
-		ArrayT<TYPEPtr>::Allocate(length);
+		ArrayT<TYPEPtr>::Dimension(length);
 
 		/* NULL all pointers */
 		for (int i = 0; i < fLength; i++)

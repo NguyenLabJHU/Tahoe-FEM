@@ -1,4 +1,4 @@
-/* $Id: AutoArrayT.h,v 1.5 2001-11-28 22:07:34 paklein Exp $ */
+/* $Id: AutoArrayT.h,v 1.6 2002-02-18 08:48:39 paklein Exp $ */
 /* created: paklein (12/05/1997)                                          */
 /* Array that automatically increases its dimensions when                 */
 /* elements are inserted using Append() or AppendUnique.                  */
@@ -19,6 +19,10 @@
 /* base class */
 #include "ArrayT.h"
 
+/** array class with "smart" memory management. An allocation headroom
+ * can be specified to make the allocated array larger than the logical
+ * size of the array. This allows the array to change dimension without
+ * always requiring calls to memory allocation routines */
 template <class TYPE>
 class AutoArrayT: public ArrayT<TYPE>
 {
@@ -31,8 +35,17 @@ public:
 	AutoArrayT(const ArrayT<TYPE>& source);
 	AutoArrayT(const ArrayT<TYPE>& source, int headroom);
 
-	/* set logical size using "smart" memory management */
-	void Allocate(int length);
+	/** set the array size to the given length. No change occurs if the array
+	 * is already the specified length. The previous contents of the array is
+	 * not preserved. To preserve the array contents while changing the dimension
+	 * use AutoArrayT::Resize. */
+	void Dimension(int length);
+
+	/** \deprecated replaced by AutoArrayT::Dimension on 02/13/2002 */
+	void Allocate(int length) { Dimension(length); };
+
+	/** dimension the array to the new length keeping as much of the previous
+	 * data as fits in the new space. Added space is not initialized. */
 	void Resize(int new_length);
 	void Resize(int new_length, const TYPE& fill);
 
@@ -126,7 +139,7 @@ inline AutoArrayT<TYPE>::AutoArrayT(void):
 	fCurrElement(-1)
 {
 	/* initial memory */
-	Allocate(kAutoDefSize);
+	Dimension(kAutoDefSize);
 
 	/* no logical size */
 	fLength = 0;
@@ -150,7 +163,7 @@ inline AutoArrayT<TYPE>::AutoArrayT(int length, int headroom):
 {
 	/* check flags */
 	if (fHeadRoom < 0) throw eGeneralFail;
-	Allocate(length);	
+	Dimension(length);	
 }
 
 template <class TYPE>
@@ -176,13 +189,13 @@ inline AutoArrayT<TYPE>::AutoArrayT(const ArrayT<TYPE>& source, int headroom):
 
 /* set logical size using "smart" memory management */
 template <class TYPE>
-inline void AutoArrayT<TYPE>::Allocate(int length)
+inline void AutoArrayT<TYPE>::Dimension(int length)
 {
 	/* only grows */
 	if (length > fMemSize)
 	{
 		/* inherited */
-		ArrayT<TYPE>::Allocate(WithHeadRoom(length));
+		ArrayT<TYPE>::Dimension(WithHeadRoom(length));
 	
 		/* allocated size */
 		fMemSize = fLength;
@@ -269,7 +282,7 @@ AutoArrayT<TYPE>& AutoArrayT<TYPE>::operator=(const AutoArrayT<TYPE>& RHS)
 	{
 		/* set logical size */
 		if (fMemSize < RHS.Length())
-			Allocate(RHS.Length());
+			Dimension(RHS.Length());
 		else
 			fLength = RHS.Length();
 				
@@ -288,7 +301,7 @@ AutoArrayT<TYPE>& AutoArrayT<TYPE>::operator=(const ArrayT<TYPE>& RHS)
 	{
 		/* set logical size */
 		if (fMemSize < RHS.Length())
-			Allocate(RHS.Length());
+			Dimension(RHS.Length());
 		else
 			fLength = RHS.Length();
 				
@@ -318,7 +331,7 @@ void AutoArrayT<TYPE>::Append(const ArrayT<TYPE>& source)
 			olddata = Pointer();
 		
 		/* allocate more memory */
-		Allocate(fMemSize + source.Length());
+		Dimension(fMemSize + source.Length());
 		
 		/* reset logical size */
 		fLength = old_length;
@@ -356,7 +369,7 @@ void AutoArrayT<TYPE>::Append(const TYPE& value)
 			olddata = Pointer();
 
 		/* allocate larger block */
-		Allocate(fMemSize + 1);		
+		Dimension(fMemSize + 1);		
 
 		/* reset logical size */
 		fLength = old_length;

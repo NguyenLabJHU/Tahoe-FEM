@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.15 2002-01-27 22:32:45 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.16 2002-02-18 08:48:43 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #include "StringT.h"
@@ -64,7 +64,7 @@ StringT& StringT::operator=(const char* string)
 	{
 		/* allocate memory */
 		int length = strlen(string) + 1;
-		Allocate(length);
+		Dimension(length);
 	
 		/* byte copy */
 		memcpy(Pointer(), string, sizeof(char)*length);
@@ -211,7 +211,7 @@ StringT& StringT::Root(const char* s, char marker)
 		if (*p == marker)
 		{
 			int new_len = p - s + 1;
-			Allocate(new_len);
+			Dimension(new_len);
 			memcpy(fArray, s, sizeof(char)*new_len);
 			fArray[new_len - 1] = '\0';
 		} /* keep whole string */
@@ -517,7 +517,7 @@ StringT& StringT::Take(const StringT& source, int n)
 		if (n > strlen(source)) throw eOutOfRange;
 
 		/* allocate */
-		Allocate(size + 1);
+		Dimension(size + 1);
 		if (n > 0)
 		{
 			memcpy(Pointer(), source.Pointer(), size);
@@ -549,7 +549,7 @@ StringT& StringT::Take(const StringT& source, int start, int end)
 
 		/* allocate */
 		int n = end - start + 1;
-		Allocate(n + 1);
+		Dimension(n + 1);
 		if (n > 0) memcpy(Pointer(), source.Pointer(start), n);
 		(*this)[n] = '\0';
 		return *this;
@@ -632,7 +632,7 @@ StringT& StringT::FirstWord(const StringT& source, int& count, bool C_word_only)
 		}
 
 		/* copy word */
-		Allocate(word_count + 1);
+		Dimension(word_count + 1);
 		if (word_count > 0) memcpy(*this, start, word_count);
 		(*this)[word_count] = '\0';
 	

@@ -1,7 +1,5 @@
-/* $Id: dSymMatrixT.h,v 1.3 2001-06-20 22:49:58 paklein Exp $ */
-/* created: paklein (05/24/1996)                                          */
-/* Interface for a reduced index symmetric matrix, stored as a vector.    */
-/* Can be constructed in 2D or 3D.                                        */
+/* $Id: dSymMatrixT.h,v 1.4 2002-02-18 08:48:41 paklein Exp $ */
+/* created: paklein (05/24/1996) */
 
 #ifndef _DSYM_MATRIX_T_H_
 #define _DSYM_MATRIX_T_H_
@@ -12,6 +10,8 @@
 /* forward declarations */
 class dMatrixT;
 
+/* interface for a 1D/2D/3D reduced index symmetric matrix stored as 
+ * a reduced index vector */
 class dSymMatrixT: public dArrayT
 {
 public:
@@ -22,8 +22,13 @@ public:
 	dSymMatrixT(int nsd, double* array);
 	dSymMatrixT(const dSymMatrixT& source);
 
-	/* allocate an reduced matrix for the given spatial dimension */
-	void Allocate(int nsd);
+	/** dimension the matrix for the number of spatial dimensions. No change 
+	 * occurs if the array is already the specified length. The previous contents 
+	 * of the array is not preserved. */
+	void Dimension(int nsd);
+
+	/** \deprecated replaced by dSymMatrixT::Dimension on 02/13/2002 */
+	void Allocate(int nsd) { Dimension(nsd); };
 
 	/* set fields */
 	void Set(int nsd, double* array);

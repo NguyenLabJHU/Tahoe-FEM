@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.7 2001-07-02 21:56:32 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.8 2002-02-18 08:48:41 paklein Exp $ */
 /* created: paklein (03/03/1997)                                          */
 
 #include "dSymMatrixT.h"
@@ -18,7 +18,7 @@ inline double d_sign(double a, double b)
 
 /* constructor */
 dSymMatrixT::dSymMatrixT(void): fNumSD(0) { }
-dSymMatrixT::dSymMatrixT(int nsd) { Allocate(nsd); }
+dSymMatrixT::dSymMatrixT(int nsd) { Dimension(nsd); }
 dSymMatrixT::dSymMatrixT(int nsd, double* array) { Set(nsd,array); }
 dSymMatrixT::dSymMatrixT(const dSymMatrixT& source): fNumSD(0)
 {
@@ -26,14 +26,14 @@ dSymMatrixT::dSymMatrixT(const dSymMatrixT& source): fNumSD(0)
 }
 
 /* allocate an reduced matrix for the given spatial dimension */
-void dSymMatrixT::Allocate(int nsd)
+void dSymMatrixT::Dimension(int nsd)
 {
 	/* check  */
 	fNumSD = nsd;
 	if (fNumSD < 1 && fNumSD > 3) throw eGeneralFail;
 
 	/* inherited */
-	dArrayT::Allocate(NumValues(fNumSD));
+	dArrayT::Dimension(NumValues(fNumSD));
 }
 
 /* set fields */

@@ -1,4 +1,4 @@
-/* $Id: VariBaseT.h,v 1.1.1.1 2001-01-25 20:56:22 paklein Exp $ */
+/* $Id: VariBaseT.h,v 1.2 2002-02-18 08:48:45 paklein Exp $ */
 /* created: paklein (04/18/1998)                                          */
 /* base class for WRAPPERS of ArrayT<>'s, and derivatives,                */
 /* to add dynamic re-sizing using some headroom to cut down               */
@@ -86,7 +86,7 @@ void VariBaseT<TYPE>::SetAlias(ArrayT<TYPE>& array, int length, bool copy_in)
 			if (array.IsAllocated())	
 			{
 				/* allocate space */
-				fMemory.Allocate(memsize);
+				fMemory.Dimension(memsize);
 		
 				/* copy data from the ward */
 				if (copy_in)
@@ -98,7 +98,7 @@ void VariBaseT<TYPE>::SetAlias(ArrayT<TYPE>& array, int length, bool copy_in)
 			else if (copy_in)
 				fMemory.Resize(memsize);
 			else
-				fMemory.Allocate(memsize);
+				fMemory.Dimension(memsize);
 		}
 			
 		/* ward becomes shallow copy */
