@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.33 2003-10-20 23:31:07 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.34 2004-01-05 07:34:30 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -42,6 +42,9 @@ public:
 
 	/** initialize class data */
 	virtual void Initialize(void);
+
+	/** prepare for a sequence of time steps */
+	virtual void InitialCondition(void);
 
 	/** close current time increment */
 	virtual void CloseStep(void);
