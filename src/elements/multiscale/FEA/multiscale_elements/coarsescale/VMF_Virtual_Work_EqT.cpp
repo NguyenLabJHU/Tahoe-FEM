@@ -134,7 +134,7 @@ void VMF_Virtual_Work_EqT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n,i
   A[kFb]  		= npt.Get (	VMS::kFb				);	 	
 	A[kgrad_ub]	= npt.Get (	VMS::kgrad_ub		);
 
-	A[kF].Determinant	 		( S[kJ] 								);  
+	A[kF].Determinant	 	  ( S[kJ] 								);  
 	A[kFbT].Transpose  		( A[kFb] 								);
 	A[kF_sharp].MultAB  	( A[kgrad_ub], 	A[kFb] 	);
 
@@ -147,7 +147,7 @@ void VMF_Virtual_Work_EqT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n,i
 	
   Data_Pro.C_IJKL_E_KL	(  lamda, mu, A[kEb], A[kS] 	); // Untested Hooke's Law
 	A[kSigma].MultABCT 		(  A[kFb], 		A[kS], 	A[kFb] 	);
-	A[kSigma] *= S[kJ];
+	A[kSigma] /= S[kJ]; // not kJb !!
 
 	//----- 4th Order VMF Finite Strain Elasticity Tensor
 
