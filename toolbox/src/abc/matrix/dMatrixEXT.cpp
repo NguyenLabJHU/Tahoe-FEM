@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.cpp,v 1.5 2002-02-18 08:48:41 paklein Exp $ */
+/* $Id: dMatrixEXT.cpp,v 1.6 2002-02-22 19:26:16 xiang Exp $ */
 /* created: paklein (03/06/1998)                                          */
 
 #include "dMatrixEXT.h"
@@ -810,7 +810,7 @@ double reA, reB, imA, imB; //real and imag parts of coeffs
 double tol=10e-10;
 
 double sqrt3=sqrt(3.0);
-double pi = acos(0);
+double pi = acos(0.0);
 
 matrix=J;
 double det=J.Det();
@@ -911,13 +911,13 @@ reroot[2]=reroot[2]-p/3;
 
  // check to see if proper roots found
  
- if (fabs(matrix.Det()/det) < tol || (det==0  && fabs(matrix.Det()<tol) ))
+ if (fabs(matrix.Det()/det) < tol || (det==0  && fabs(double(matrix.Det()<tol)) ))
    {
      matrix(0,0)=J(0,0)-reroot[1];
      matrix(1,1)=J(1,1)-reroot[1];
      matrix(2,2)=J(2,2)-reroot[1];
      
-     if (fabs(matrix.Det()/det) < tol || (det==0  && fabs(matrix.Det()<tol) ))
+     if (fabs(matrix.Det()/det) < tol || (det==0  && fabs(double(matrix.Det()<tol)) ))
        {
 	 
 	 matrix(0,0)=J(0,0)-reroot[2];
