@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2004-08-23 16:43:16 cfoster Exp $
+# $Id: makefile,v 1.3 2004-08-24 23:29:53 cfoster Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,7 +20,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.2).
 #
 OBJ = \
-	SSEnhLocCraigT.o 
+	SmallStrainEnhLocT.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -40,7 +40,7 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	SSEnhLocCraigT.cpp 
+	SmallStrainEnhLocT.cpp 
 
 ##################### (3) headers
 #
@@ -52,7 +52,7 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	SSEnhLocCraigT.h
+	SmallStrainEnhLocT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
