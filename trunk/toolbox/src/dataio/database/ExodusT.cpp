@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.18 2002-07-02 19:57:00 cjkimme Exp $ */
+/* $Id: ExodusT.cpp,v 1.19 2002-07-08 12:17:23 sawimme Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -239,7 +239,10 @@ void ExodusT::WriteCoordinates(const dArray2DT& coords,
 	for (int i = 0; i < num_nodes; i++)
 	  {
 	    *px++ = coords(i,0);
-	    *py++ = coords(i,1);
+	    if (num_dim > 1)
+	      *py++ = coords(i,1);
+	    else
+	      *py++ = 0.0;
 	    if (num_dim==3)
 	      *pz++ = coords(i,2);
 	    else
@@ -959,20 +962,22 @@ void ExodusT::GetElementName(int elemnodes, GeometryT::CodeT code,
 	switch (code)
 	{
 		case GeometryT::kPoint:
-	    	if (num_dim == 1)
+	    	    if (num_dim == 1)
 	      		elem_name = "CIRCLE";
 			else
 				elem_name = "SPHERE";	
 			num_output_nodes = 1;
 		    break;
 
-	  //case GeometryT::kLine:
-	  //probably could use Exodus element type TRUSS or BEAM
+	        case GeometryT::kLine:
+		        elem_name = "BEAM";
+		        num_output_nodes = (elemnodes < 3) ? 2 : 3;
+		        break;
 
 		case GeometryT::kTriangle:
 			elem_name =  "TRIANGLE";
 			num_output_nodes = (elemnodes < 6) ? 3 : 6;
-	    	break;
+	    	        break;
 
 		case GeometryT::kQuadrilateral:
 			elem_name =  "QUAD";
@@ -1006,17 +1011,19 @@ void ExodusT::GetElementName(int elemnodes, GeometryT::CodeT code,
 /* return the geometry code for the given element name */
 GeometryT::CodeT ExodusT::ToGeometryCode(const StringT& elem_name) const
 {
-	const char *elem_names[7] = {
+	const char *elem_names[8] = {
 		"CIRCLE",
 		"SPHERE",
+	        "BEAM",
 		"TRIANGLE",
 		"QUAD",
 		"HEX",
 		"TETRA",
 		"WEDGE"};
-	GeometryT::CodeT geom_codes[7] = {
+	GeometryT::CodeT geom_codes[8] = {
 		GeometryT::kPoint,
 		GeometryT::kPoint,
+		GeometryT::kLine,
 		GeometryT::kTriangle,
 		GeometryT::kQuadrilateral,
 		GeometryT::kHexahedron,
