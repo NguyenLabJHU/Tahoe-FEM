@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.cpp,v 1.2 2003-04-18 19:01:56 cjkimme Exp $ */
+/* $Id: ThermostatBaseT.cpp,v 1.3 2003-04-22 01:23:16 cjkimme Exp $ */
 #include "ThermostatBaseT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -15,11 +15,13 @@ const double fkB = 0.00008617385;
 using namespace Tahoe;
 
 /* constructor */
-ThermostatBaseT::ThermostatBaseT(ifstreamT& in, int nsd, double dt):
+ThermostatBaseT::ThermostatBaseT(ifstreamT& in, const int& nsd, 
+	const double& dt):
 	fNodes(),
 	fTemperature(-1.),
 	fSD(nsd),
-	fTimeStep(dt)
+	fTimeStep(dt),
+	fTemperatureSchedule(NULL)
 {
 	in >> fBeta;
 }
@@ -129,6 +131,12 @@ void ThermostatBaseT::NodesInRegion(const dArray2DT& coords,
 	}
 	fNodes.Dimension(ihits);
 	tmpList.CopyInto(fNodes);
+}
+
+void ThermostatBaseT::SetTemperatureSchedule(const ScheduleT* schedule, const double& value)
+{
+	fTemperatureSchedule = schedule;
+	fTemperatureScale = value;
 }
 
 void ThermostatBaseT::CreateVelocities(const RaggedArray2DT<int>& neighbors, dArray2DT* velocities,

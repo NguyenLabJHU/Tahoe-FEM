@@ -1,4 +1,4 @@
-/* $Id: GaussIsokineticT.h,v 1.1 2003-04-18 19:01:56 cjkimme Exp $ */
+/* $Id: GaussIsokineticT.h,v 1.2 2003-04-22 01:23:16 cjkimme Exp $ */
 #ifndef _GAUSS_ISOKINETIC_T_H_
 #define _GAUSS_ISOKINETIC_T_H_
 
@@ -21,7 +21,7 @@ class GaussIsokineticT: public ThermostatBaseT
 public:
 
 	/** constructor */
-	GaussIsokineticT(ifstreamT& in, int nsd, double dt);
+	GaussIsokineticT(ifstreamT& in, const int& nsd, const double& dt);
 
 	/** destructor */
 	virtual ~GaussIsokineticT(void) {};

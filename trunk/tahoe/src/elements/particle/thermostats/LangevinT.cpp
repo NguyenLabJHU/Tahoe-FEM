@@ -1,4 +1,4 @@
-/* $Id: LangevinT.cpp,v 1.2 2003-04-18 19:01:56 cjkimme Exp $ */
+/* $Id: LangevinT.cpp,v 1.3 2003-04-22 01:23:16 cjkimme Exp $ */
 #include "LangevinT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -14,11 +14,11 @@ const double fkB = 0.00008617385;
 using namespace Tahoe;
 
 /* constructor */
-LangevinT::LangevinT(ifstreamT& in, int nsd, double dt):
+LangevinT::LangevinT(ifstreamT& in, const int& nsd, const double& dt):
 	ThermostatBaseT(in,nsd,dt)
 {
-	in >> fTemperature;
-	fAmp = sqrt(2.*fBeta*fkB*fTemperature/fTimeStep);
+//	in >> fTemperature;
+//	fAmp = sqrt(2.*fBeta*fkB*fTemperature/fTimeStep);
 }
 
 /* write properties to output */
@@ -26,7 +26,7 @@ void LangevinT::Write(ostream& out) const
 {
 	ThermostatBaseT::Write(out);
 	
-	out << " Temperature . . . . . . . . . . . . . . . . . . = " << fTemperature << '\n';
+	out << " Temperature . . . . . . . . . . . . . . . . . . = " << fTemperatureSchedule->Value()*fTemperatureScale << '\n';
 }
 
 /* restart files */
@@ -49,6 +49,11 @@ void LangevinT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2
 
 	dArrayT rArray(fSD); // random force
 	double* rf_i;
+	
+	fTemperature = fTemperatureSchedule->Value()*fTemperatureScale;
+	if (fTemperature < 0.)
+		ExceptionT::GeneralFail("LangevinT::ApplyDamping","schedule generated negative temperature");
+	fAmp = sqrt(2.*fBeta*fkB*fTemperature/fTimeStep);
 
 	if (fNodes.Length() == 0)
 	{ // All the nodes are damped, use neighbors

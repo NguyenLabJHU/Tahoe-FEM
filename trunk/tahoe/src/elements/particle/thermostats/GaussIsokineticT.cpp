@@ -1,4 +1,4 @@
-/* $Id: GaussIsokineticT.cpp,v 1.1 2003-04-18 19:01:56 cjkimme Exp $ */
+/* $Id: GaussIsokineticT.cpp,v 1.2 2003-04-22 01:23:16 cjkimme Exp $ */
 #include "GaussIsokineticT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -14,7 +14,7 @@ const double fkB = 0.00008617385;
 using namespace Tahoe;
 
 /* constructor */
-GaussIsokineticT::GaussIsokineticT(ifstreamT& in, int nsd, double dt):
+GaussIsokineticT::GaussIsokineticT(ifstreamT& in, const int& nsd, const double& dt):
 	ThermostatBaseT(in, nsd, dt)
 {
 	in >> fTemperature;
@@ -71,7 +71,7 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 			for (int i = 0; i < fSD; i++)
 			{
 				denom += (*v_j)*(*v_j);
-				num += (*f_j++)*(*v_j++);
+				num += mass*(*f_j++)*(*v_j++);
 			}
 		}
 	}
@@ -97,7 +97,12 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 			}
 	    }
 	}
-	fBeta = num/denom;
+	
+	/* compute damping coefficient */
+	if (abs(denom) > kSmall)
+		fBeta = num/denom;
+	else
+		fBeta = 0.; // turn it off for now. need IC's to fix it
 	
 	ThermostatBaseT::ApplyDamping(neighbors,velocities,forces,
 							types,particleProperties);
