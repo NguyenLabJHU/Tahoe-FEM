@@ -1,4 +1,4 @@
-/* $Id: ParabolaT.h,v 1.3 2003-05-21 06:41:35 thao Exp $ */
+/* $Id: ParabolaT.h,v 1.4 2003-05-21 16:04:08 thao Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #ifndef _PARABOLA_T_H_
@@ -14,41 +14,38 @@ class ParabolaT: public C1FunctionT
 {
 public:
 
-	/* constructor */
-	ParabolaT(double k, double B, double l0=1.0);
+        /* constructor */
+        ParabolaT(double k);
 
-	/* I/O */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-	
-	/* returning values */
-	virtual double Function(double x) const;
-	virtual double DFunction(double x) const;
-	virtual double DDFunction(double x) const;
+        /* I/O */
+        virtual void Print(ostream& out) const;
+        virtual void PrintName(ostream& out) const;
+        
+        /* returning values */
+        virtual double Function(double x) const;
+        virtual double DFunction(double x) const;
+        virtual double DDFunction(double x) const;
 
-	/* returning values in groups */
-	virtual dArrayT& MapFunction(const dArrayT& in, dArrayT& out) const;
-	virtual dArrayT& MapDFunction(const dArrayT& in, dArrayT& out) const;
-	virtual dArrayT& MapDDFunction(const dArrayT& in, dArrayT& out) const;
+        /* returning values in groups */
+        virtual dArrayT& MapFunction(const dArrayT& in, dArrayT& out) const;
+        virtual dArrayT& MapDFunction(const dArrayT& in, dArrayT& out) const;
+        virtual dArrayT& MapDDFunction(const dArrayT& in, dArrayT& out) const;
 
 private:
 
-	/* potential parameters */
-	double fk;
-	double fl0;
-	double fB;
+        /* potential parameters */
+        double fk;
 };
 
 /* inlines */
 
 /* returning values */
-inline double ParabolaT::Function(double x) const { 
-	return (0.5*fk*(x-fl0)*(x-fl0)-0.5*fk*fB); }
-inline double ParabolaT::DFunction(double x) const { return fk*(x-fl0); }
+inline double ParabolaT::Function(double x) const { return fk*x*x; }
+inline double ParabolaT::DFunction(double x) const { return fk*x; }
 inline double ParabolaT::DDFunction(double x) const
 {
 #pragma unused(x)
-	return fk;
+        return fk;
 }
 
 } // namespace Tahoe 
