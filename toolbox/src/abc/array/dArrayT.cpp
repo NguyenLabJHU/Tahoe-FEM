@@ -1,4 +1,4 @@
-/* $Id: dArrayT.cpp,v 1.10 2003-11-21 22:41:30 paklein Exp $ */
+/* $Id: dArrayT.cpp,v 1.11 2004-04-16 00:35:25 paklein Exp $ */
 /* created: paklein (08/11/1996) */
 #include "dArrayT.h"
 #include <iostream.h>
@@ -29,7 +29,7 @@ double dArrayT::Magnitude(void) const
 	else if (length == 3)
 		return sqrt(p[0]*p[0] + p[1]*p[1] + p[2]*p[2]);
 	else if (length == 1)
-		return p[0];
+		return fabs(p[0]);
 	else
 	{
 		register double magsqr = 0.0;
