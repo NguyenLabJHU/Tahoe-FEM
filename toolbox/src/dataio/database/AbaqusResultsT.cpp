@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.cpp,v 1.12 2002-01-08 13:56:51 sawimme Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.13 2002-01-09 18:36:06 paklein Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
@@ -76,7 +76,7 @@ void AbaqusResultsT::Create (const char* filename, bool binary, int numelems, in
   fFileName = filename;
   fBinary = binary;
   if (fBinary)
-    fBufferSize = 512 * sizeof (kDoubleSize);
+    fBufferSize = 512*kDoubleSize;
   else
     fBufferSize = 80;
   fBufferDone = 0;
@@ -115,7 +115,7 @@ void AbaqusResultsT::OpenWrite (const char *filename, bool binary, int bufferwri
   fFileName = filename;
   fBinary = binary;
   if (fBinary)
-    fBufferSize = 512 * sizeof (kDoubleSize);
+    fBufferSize = 512*kDoubleSize;
   else
     fBufferSize = 80;
   fBufferDone = bufferwritten;
@@ -969,7 +969,7 @@ void AbaqusResultsT::ResetFile (void)
   fIn.open (fFileName);
 
   if (fBinary)
-    fBufferSize = 512 * sizeof (kDoubleSize);
+    fBufferSize = 512*kDoubleSize;
   else
     fBufferSize = 0;
   fBufferDone = 0;
@@ -1542,17 +1542,17 @@ int AbaqusResultsT::ReadNextRecord (int& key)
 
 bool AbaqusResultsT::Read (StringT& s, int n)
 {
-  ArrayT<char> temp (n * sizeof (kDoubleSize) + 1);
+  ArrayT<char> temp (n*kDoubleSize + 1);
   char *ps = temp.Pointer();
   for (int i=0; i < n; i++)
     {
       if (fBinary)
 	{
 	  CheckBufferSize (fIn);
-	  fIn.read (ps, sizeof (kDoubleSize));
+	  fIn.read (ps, kDoubleSize);
 	  if (fIn.eof ()) return false;
-	  fBufferDone += sizeof (kDoubleSize);
-	  ps += sizeof (kDoubleSize);
+	  fBufferDone += kDoubleSize;
+	  ps += kDoubleSize;
 	}
       else
 	{
@@ -1580,9 +1580,9 @@ bool AbaqusResultsT::Read (int& i)
       CheckBufferSize (fIn);
       int temp;
       if (fIn.eof()) return false;
-      fIn.read (reinterpret_cast<char *> (&temp), sizeof (kDoubleSize));
+      fIn.read (reinterpret_cast<char *> (&temp), kDoubleSize);
       i = temp;
-      fBufferDone += sizeof (kDoubleSize);
+      fBufferDone += kDoubleSize;
     }
   else
     {
@@ -1615,9 +1615,9 @@ bool AbaqusResultsT::Read (double& d)
     {
       CheckBufferSize (fIn);
       double temp;
-      fIn.read (reinterpret_cast<char *> (&temp), sizeof (kDoubleSize));
+      fIn.read (reinterpret_cast<char *> (&temp), kDoubleSize);
       d = temp;
-      fBufferDone += sizeof (kDoubleSize);
+      fBufferDone += kDoubleSize;
     }
   else
     {
@@ -1684,13 +1684,13 @@ void AbaqusResultsT::CheckBufferSize (istream& in)
   // FORTRAN footer
   if (fBufferDone == fBufferSize)
     {
-      in.read (reinterpret_cast<char *> (&fBufferSize), sizeof (int));
+      in.read (reinterpret_cast<char *> (&fBufferSize), kIntSize);
       fBufferDone = 0;
     }
   
   // FORTRAN header
   if (fBufferDone == 0)
-    in.read (reinterpret_cast<char *> (&fBufferSize), sizeof (int));
+    in.read (reinterpret_cast<char *> (&fBufferSize), kIntSize);
 }
 
 void AbaqusResultsT::Write (int i)
@@ -1698,8 +1698,8 @@ void AbaqusResultsT::Write (int i)
   if (fBinary)
     {
       CheckBufferSize (fOut);
-      fOut.write (reinterpret_cast<char *> (&i), sizeof (kDoubleSize));
-      fBufferDone += sizeof (kDoubleSize);
+      fOut.write (reinterpret_cast<char *> (&i), kDoubleSize);
+      fBufferDone += kDoubleSize;
     }
   else
     {
@@ -1717,8 +1717,8 @@ void AbaqusResultsT::Write (double d)
   if (fBinary)
     {
       CheckBufferSize (fOut);
-      fOut.write (reinterpret_cast<char *> (&d), sizeof (kDoubleSize));
-      fBufferDone += sizeof (kDoubleSize);
+      fOut.write (reinterpret_cast<char *> (&d), kDoubleSize);
+      fBufferDone += kDoubleSize;
     }
   else
     {
@@ -1781,8 +1781,8 @@ void AbaqusResultsT::Write (const StringT& s, int blocks)
   if (fBinary)
     {
       CheckBufferSize (fOut);
-      fOut.write (ps, sizeof (kDoubleSize)*blocks);
-      fBufferDone += sizeof (kDoubleSize)*blocks;
+      fOut.write (ps, kDoubleSize*blocks);
+      fBufferDone += kDoubleSize*blocks;
     }
   else
     {
@@ -1834,13 +1834,13 @@ void AbaqusResultsT::CheckBufferSize (ostream& out)
   // FORTRAN footer
   if (fBufferDone == fBufferSize)
     {
-      out.write (reinterpret_cast<char *> (&fBufferSize), sizeof (int));
+      out.write (reinterpret_cast<char *> (&fBufferSize), kIntSize);
       fBufferDone = 0;
     }
 
   // FORTRAN header
   if (fBufferDone == 0)
-    out.write (reinterpret_cast<char *> (&fBufferSize), sizeof (int));
+    out.write (reinterpret_cast<char *> (&fBufferSize), kIntSize);
 }
 
 void AbaqusResultsT::SetVariableNames (void)
