@@ -53,24 +53,24 @@ class RGSplitT: public RGViscoelasticityT
 	PotentialT* fPot_NEQ;
 
 	const double fthird;
-   private:  
+  
+    private:  
 	/* spectral operations */
 	SpectralDecompT fSpectralDecompSpat;
-	SpectralDecompT fSpectralDecompRef;
-	SpectralDecompT fSpectralDecompTrial;
-
+	
 	/*work space*/
-	dSymMatrixT fb;
+	dSymMatrixT fStretch;
+	dSymMatrixT fInverse;
 	dSymMatrixT fb3D;
 	dSymMatrixT fbe;
 	dSymMatrixT fb_tr;
 	dMatrixT fF3D;
 
+	dArrayT     fEigs_dev;
 	dArrayT     fEigs;
 	dArrayT     fEigs_e;
-	dArrayT     fEigs_bar;
-	dArrayT     fEigs_ebar;
 	dArrayT     fEigs_v;
+	dArrayT		fEigs_tr;
 
 	dArrayT	    ftau_EQ;
 	dArrayT     ftau_NEQ;
