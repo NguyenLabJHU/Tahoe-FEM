@@ -1,7 +1,8 @@
-/* $Id: ElementListT.cpp,v 1.52 2003-06-09 07:00:22 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.53 2003-06-28 17:32:10 thao Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
+
 #ifdef __DEVELOPMENT__
 #include "DevelopmentElementsConfig.h"
 #endif
@@ -86,6 +87,7 @@
 #ifdef SOLID_ELEMENT_DEV
 #include "UpdatedLagrangianMF.h"
 #include "SmallStrainMF.h"
+#include "SmallStrainMF2.h"
 #endif
 
 using namespace Tahoe;
@@ -598,7 +600,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				fArray[group] = new UpdatedLagrangianMF(fSupport, *field);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
 #endif
 			}
 			case ElementT::kSSMatForce:
@@ -607,7 +609,16 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				fArray[group] = new SmallStrainMF(fSupport, *field);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
+#endif
+			}
+			case ElementT::kTest:
+			{
+#ifdef SOLID_ELEMENT_DEV
+				fArray[group] = new SmallStrainMF2(fSupport, *field);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
 #endif
 			}
 		default:

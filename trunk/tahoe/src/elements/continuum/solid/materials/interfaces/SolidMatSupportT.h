@@ -1,4 +1,4 @@
-/* $Id: SolidMatSupportT.h,v 1.4 2003-01-29 07:34:57 paklein Exp $ */
+/* $Id: SolidMatSupportT.h,v 1.5 2003-06-28 17:32:16 thao Exp $ */
 #ifndef _STRUCT_MAT_SUPPORT_T_H_
 #define _STRUCT_MAT_SUPPORT_T_H_
 
@@ -63,6 +63,7 @@ public:
 
 	const LocalArrayT* fTemperatures;
 	const LocalArrayT* fLastTemperatures;
+
 	/*@}*/
 };
 

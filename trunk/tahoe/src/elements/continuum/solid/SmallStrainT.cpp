@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.10 2003-01-29 07:34:34 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.11 2003-06-28 17:32:12 thao Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -165,6 +165,13 @@ void SmallStrainT::FormKd(double constK)
 	
 	/* collect incremental heat */
 	bool need_heat = fElementHeat.Length() == fShapes->NumIP();
+
+	/********DEBUG*******/
+	bool print = false; 
+	int pos = fElementCards.Position(); 
+	if (pos == 1&&0)  
+	  print = true; 
+	/*******************/
 	
 	fShapes->TopIP();
 	while (fShapes->NextIP())
@@ -177,6 +184,8 @@ void SmallStrainT::FormKd(double constK)
 
 		/* B^T * Cauchy stress */
 		fB.MultTx(fCurrMaterial->s_ij(), fNEEvec);
+
+		if (print) cout << "\nstress: "<<fCurrMaterial->s_ij();
 		
 		/* accumulate */
 		fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);
@@ -199,10 +208,18 @@ void SmallStrainT::FormStiffness(double constK)
 	/* integrate element stiffness */
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
+
+	/********DEBUG*******/
+	bool print = false; 
+	int pos = fElementCards.Position(); 
+	if (pos == 1&&0)  
+	  print = true; 
+	/*******************/
 	
 	fShapes->TopIP();
 	while ( fShapes->NextIP() )
 	{
+
 		double scale = constK*(*Det++)*(*Weight++);
 	
 		/* strain displacement matrix */
@@ -213,6 +230,7 @@ void SmallStrainT::FormStiffness(double constK)
 
 		/* get D matrix */
 		fD.SetToScaled(scale, fCurrMaterial->c_ijkl());
+		if (print) cout << "\nmodulus: "<<fCurrMaterial->c_ijkl();
 							
 		/* multiply b(transpose) * db, taking account of symmetry, */
 		/* and accumulate in elstif */

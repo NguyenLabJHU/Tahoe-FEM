@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB2D.cpp,v 1.9 2003-01-29 07:34:52 paklein Exp $ */
+/* $Id: OgdenIsoVIB2D.cpp,v 1.10 2003-06-28 17:32:15 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #include "OgdenIsoVIB2D.h"
 
@@ -95,8 +95,6 @@ void OgdenIsoVIB2D::dWdE(const dArrayT& eigenstretch2, dArrayT& eigenstress)
 
 	/* derivatives of the potential */
 	fPotential->MapDFunction(fLengths, fdU);
-
-	/* initialize kernel pointers */
 	double* pdU = fdU.Pointer();
 	double* pl  = fLengths.Pointer();
 	double* pj  = fjacobian.Pointer();
@@ -165,7 +163,6 @@ void OgdenIsoVIB2D::ddWddE(const dArrayT& eigenstretch2, dArrayT& eigenstress,
 		c11 += cfactor*(*pc11++);
 		c01 += cfactor*(*pc01++);
 	}
-
 	/* thickness */
 	s0  *= fThickness;
 	s1  *= fThickness;
