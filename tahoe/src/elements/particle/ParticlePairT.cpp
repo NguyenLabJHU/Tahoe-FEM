@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.21.4.1 2003-09-18 21:03:36 cjkimme Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.21.4.2 2003-10-02 19:33:11 cjkimme Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -118,6 +118,9 @@ void ParticlePairT::WriteOutput(void)
 	int num_stresses = vs_i.NumValues(ndof);
 	//dArray2DT vsvalues(non, num_stresses);
 	num_output += num_stresses;
+	
+	if (ndof == 3)
+		num_output += 6; // coarse and fine scale velocities 
 
 	/* output arrays length number of active nodes */
 	dArray2DT n_values(non, num_output), e_values;
@@ -168,6 +171,15 @@ void ParticlePairT::WriteOutput(void)
 		   		values_i[ndex] = -mass[type_i]*temp[cc];
 		 	}
 		} 
+		
+		if (ndof == 3)
+		{
+			/* coarse and fine scales of velocity */
+			vec.Set(ndof, values_i.Pointer() + ndof + 2 + num_stresses);
+			fCoarseVs.RowCopy(tag_i, vec);
+			vec.Set(ndof, values_i.Pointer() + ndof + 2 + num_stresses + 3);
+			fFineVs.RowCopy(tag_i, vec);
+		}
 	}
 	
 	/* run through neighbor list */
@@ -331,36 +343,39 @@ void ParticlePairT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 
 				/* set pair property (if not already set) */
 				int property = fPropertiesMap(type_i, type_j);
-				if (property != current_property)
+				if (property != ParticlePropertyT::kNull)
 				{
-					force_function = fPairProperties[property]->getForceFunction();
-					stiffness_function = fPairProperties[property]->getStiffnessFunction();
-					current_property = property;
+					if (property != current_property)
+					{
+						force_function = fPairProperties[property]->getForceFunction();
+						stiffness_function = fPairProperties[property]->getStiffnessFunction();
+						current_property = property;
+					}
+
+					/* global coordinates */
+					coords.RowAlias(tag_j, x_j);
+
+					/* connecting vector */
+					r_ij.DiffOf(x_j, x_i);
+					double r = r_ij.Magnitude();
+					r_ji.SetToScaled(-1.0, r_ij);
+
+					/* interaction functions */
+					double F = force_function(r, NULL, NULL);
+					double K = stiffness_function(r, NULL, NULL);
+					double Fbyr = F/r;
+
+					/* 1st term */
+					fLHS.Outer(fRHS, fRHS, (K - Fbyr)/r/r);
+
+					/* 2nd term */				
+					fLHS.AddScaled(Fbyr, fOneOne);
+
+					/* assemble */
+					for (int p = 0; p < row_eqnos.Length(); p++)
+						for (int q = 0; q < col_eqnos.Length(); q++)
+							stiffness.AddElement(row_eqnos[p]-1, col_eqnos[q]-1, fLHS(p,q));
 				}
-
-				/* global coordinates */
-				coords.RowAlias(tag_j, x_j);
-
-				/* connecting vector */
-				r_ij.DiffOf(x_j, x_i);
-				double r = r_ij.Magnitude();
-				r_ji.SetToScaled(-1.0, r_ij);
-
-				/* interaction functions */
-				double F = force_function(r, NULL, NULL);
-				double K = stiffness_function(r, NULL, NULL);
-				double Fbyr = F/r;
-
-				/* 1st term */
-				fLHS.Outer(fRHS, fRHS, (K - Fbyr)/r/r);
-
-				/* 2nd term */				
-				fLHS.AddScaled(Fbyr, fOneOne);
-
-				/* assemble */
-				for (int p = 0; p < row_eqnos.Length(); p++)
-					for (int q = 0; q < col_eqnos.Length(); q++)
-						stiffness.AddElement(row_eqnos[p]-1, col_eqnos[q]-1, fLHS(p,q));
 			}
 		}
 	}
@@ -404,6 +419,8 @@ void ParticlePairT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 	  stress[0] = "s11";
 	  }
 	num_labels+=num_stress;
+	if (ndof == 3)
+		num_labels += 6; //coarse and fine scale of velocities
 	labels.Dimension(num_labels);
 	int dex = 0;
 	for (dex = 0; dex < NumDOF(); dex++)
@@ -413,6 +430,16 @@ void ParticlePairT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 
 	for (int ns =0 ; ns<num_stress; ns++)
 	  labels[dex++]=stress[ns];
+	  
+	if (ndof == 3)
+	{
+		labels[dex++] = "vcx";
+		labels[dex++] = "vcy";
+		labels[dex++] = "vcz";
+		labels[dex++] = "vfx";
+		labels[dex++] = "vfy";
+		labels[dex++] = "vfz";
+	}
 }
 
 /* form group contribution to the stiffness matrix */
@@ -477,32 +504,35 @@ void ParticlePairT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			
 				/* set pair property (if not already set) */
 				int property = fPropertiesMap(type_i, type_j);
-				if (property != current_property)
+				if (property != ParticlePropertyT::kNull)
 				{
-					force_function = fPairProperties[property]->getForceFunction();
-					stiffness_function = fPairProperties[property]->getStiffnessFunction();
-					current_property = property;
-				}
-		
-				/* global coordinates */
-				coords.RowAlias(tag_j, x_j);
-		
-				/* connecting vector */
-				r_ij.DiffOf(x_j, x_i);
-				double r = r_ij.Magnitude();
+					if (property != current_property)
+					{
+						force_function = fPairProperties[property]->getForceFunction();
+						stiffness_function = fPairProperties[property]->getStiffnessFunction();
+						current_property = property;
+					}
 			
-				/* interaction functions */
-				double F = force_function(r, NULL, NULL);
-				double K = stiffness_function(r, NULL, NULL);
-				K = (K < 0.0) ? 0.0 : K;
+					/* global coordinates */
+					coords.RowAlias(tag_j, x_j);
+			
+					/* connecting vector */
+					r_ij.DiffOf(x_j, x_i);
+					double r = r_ij.Magnitude();
+				
+					/* interaction functions */
+					double F = force_function(r, NULL, NULL);
+					double K = stiffness_function(r, NULL, NULL);
+					K = (K < 0.0) ? 0.0 : K;
 
-				double Fbyr = F/r;
-				for (int k = 0; k < ndof; k++)
-				{
-					double r_k = r_ij[k]*r_ij[k]/r/r;
-					double K_k = constK*(K*r_k + Fbyr*(1.0 - r_k));
-					k_i[k] += K_k;
-					k_j[k] += K_k;
+					double Fbyr = F/r;
+					for (int k = 0; k < ndof; k++)
+					{
+						double r_k = r_ij[k]*r_ij[k]/r/r;
+						double K_k = constK*(K*r_k + Fbyr*(1.0 - r_k));
+						k_i[k] += K_k;
+						k_j[k] += K_k;
+					}
 				}
 			}
 		}
@@ -557,35 +587,38 @@ void ParticlePairT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			
 				/* set pair property (if not already set) */
 				int property = fPropertiesMap(type_i, type_j);
-				if (property != current_property)
+				if (property != ParticlePropertyT::kNull)
 				{
-					force_function = fPairProperties[property]->getForceFunction();
-					stiffness_function = fPairProperties[property]->getStiffnessFunction();
-					current_property = property;
-				}
-		
-				/* global coordinates */
-				coords.RowAlias(tag_j, x_j);
-		
-				/* connecting vector */
-				r_ij.DiffOf(x_j, x_i);
-				double r = r_ij.Magnitude();
-				r_ji.SetToScaled(-1.0, r_ij);
+					if (property != current_property)
+					{
+						force_function = fPairProperties[property]->getForceFunction();
+						stiffness_function = fPairProperties[property]->getStiffnessFunction();
+						current_property = property;
+					}
 			
-				/* interaction functions */
-				double F = constK*force_function(r, NULL, NULL);
-				double K = constK*stiffness_function(r, NULL, NULL);
-				double Fbyr = F/r;
-
-				/* 1st term */
-				fLHS.Outer(fRHS, fRHS, (K - Fbyr)/r/r);
-		
-				/* 2nd term */
-				fLHS.AddScaled(Fbyr, fOneOne);
+					/* global coordinates */
+					coords.RowAlias(tag_j, x_j);
+			
+					/* connecting vector */
+					r_ij.DiffOf(x_j, x_i);
+					double r = r_ij.Magnitude();
+					r_ji.SetToScaled(-1.0, r_ij);
 				
-				/* assemble */
-				pair_eqnos.RowCollect(pair, field_eqnos);
-				support.AssembleLHS(group, fLHS, pair_eqnos);
+					/* interaction functions */
+					double F = constK*force_function(r, NULL, NULL);
+					double K = constK*stiffness_function(r, NULL, NULL);
+					double Fbyr = F/r;
+
+					/* 1st term */
+					fLHS.Outer(fRHS, fRHS, (K - Fbyr)/r/r);
+			
+					/* 2nd term */
+					fLHS.AddScaled(Fbyr, fOneOne);
+					
+					/* assemble */
+					pair_eqnos.RowCollect(pair, field_eqnos);
+					support.AssembleLHS(group, fLHS, pair_eqnos);
+				}
 			}
 		}
 	}
