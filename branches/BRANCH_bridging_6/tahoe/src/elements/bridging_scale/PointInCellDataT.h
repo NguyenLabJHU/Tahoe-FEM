@@ -1,4 +1,4 @@
-/* $Id: PointInCellDataT.h,v 1.5.16.1 2004-04-24 19:57:28 paklein Exp $ */
+/* $Id: PointInCellDataT.h,v 1.5.16.2 2004-05-17 05:12:33 paklein Exp $ */
 #ifndef _POINT_IN_CELL_DATA_T_H_
 #define _POINT_IN_CELL_DATA_T_H_
 
@@ -34,6 +34,7 @@ public:
 	RaggedArray2DT<int>& PointInCell(void) { return fPointInCell; };
 	const RaggedArray2DT<int>& PointInCell(void) const { return fPointInCell; };
 	RaggedArray2DT<double>& PointInCellCoords(void) { return fPointInCellCoords; };
+	const RaggedArray2DT<double>& PointInCellCoords(void) const { return fPointInCellCoords; };
 	/*@}*/
 	
 	/** \name interpolation data
