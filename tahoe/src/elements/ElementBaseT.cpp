@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.3 2001-02-20 00:42:10 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.4 2001-03-15 21:37:50 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "ElementBaseT.h"
@@ -102,7 +102,32 @@ GlobalT::SystemTypeT ElementBaseT::TangentType(void) const
 /* solution calls */
 void ElementBaseT::FormLHS(void)
 {
-	LHSDriver();
+	try { LHSDriver(); }
+	catch (int error)
+	{
+		cout << "\n ElementBaseT::FormLHS: " << fFEManager.Exception(error);
+		cout << " in element " << fElementCards.Position() + 1 << " of group ";
+		cout << fFEManager.ElementGroupNumber(this) + 1 << ".\n";
+		
+		if (fElementCards.InRange())
+		{
+			ostream& out = fFEManager.Output();
+		
+			/* header */
+			out << "\n ElementBaseT::FormLHS: caught exception " << error << '\n';
+			out <<   "      Time: " << fFEManager.Time() << '\n';
+			out <<   "      Step: " << fFEManager.StepNumber() << '\n';
+			out <<   " Time step: " << fFEManager.TimeStep() << '\n';
+		
+			/* write current element information to main out */
+			CurrElementInfo(out);
+			cout << "     See output file for current element information\n";
+		}
+		else
+			cout << "     Current element information not available\n";
+		cout.flush();
+		throw error;
+	}
 }
 
 void ElementBaseT::FormRHS(void)
