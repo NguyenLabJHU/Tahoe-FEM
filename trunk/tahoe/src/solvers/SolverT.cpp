@@ -1,11 +1,12 @@
-/* $Id: SolverT.cpp,v 1.20 2004-03-21 05:19:21 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.21 2004-06-17 07:42:05 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
 #include <iostream.h>
 #include <string.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "FEManagerT.h"
 #include "CommunicatorT.h"
 #include "iArrayT.h"

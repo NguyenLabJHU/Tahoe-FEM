@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.19 2003-12-28 08:23:11 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.20 2004-06-17 07:39:59 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -8,7 +8,7 @@
 
 #include "toolboxConstants.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"
 #include "eIntegratorT.h"

@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.cpp,v 1.8 2003-01-29 07:34:38 paklein Exp $ */
+/* $Id: EAMFCC2D.cpp,v 1.9 2004-06-17 07:40:19 paklein Exp $ */
 /* created: paklein (12/09/1996) */
 #include "EAMFCC2D.h"
 
@@ -7,7 +7,7 @@
 
 #include "toolboxConstants.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "EAMFCC3DSym.h"
 #include "dMatrixT.h"
 

@@ -1,10 +1,10 @@
-/* $Id: K_FieldT.cpp,v 1.18 2004-04-02 16:48:27 jzimmer Exp $ */
+/* $Id: K_FieldT.cpp,v 1.19 2004-06-17 07:41:57 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 
 #include "ElementsConfig.h"
 #ifdef CONTINUUM_ELEMENT

@@ -1,11 +1,11 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.28 2004-02-09 08:23:43 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.29 2004-06-17 07:40:07 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "toolboxConstants.h"
 #include "SolidMaterialT.h"
 #include "MaterialListT.h" //NOTE - only needed for check in Initialize?

@@ -1,11 +1,11 @@
-/* $Id: SSLinearVE2D.cpp,v 1.3 2004-01-10 04:41:27 paklein Exp $ */
+/* $Id: SSLinearVE2D.cpp,v 1.4 2004-06-17 07:41:22 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSLinearVE2D.h"
 #include "SSMatSupportT.h"
 
 #include <math.h>
 #include <iostream.h>
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "ExceptionT.h"
 
 using namespace Tahoe;

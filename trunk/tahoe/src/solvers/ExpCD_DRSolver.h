@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.h,v 1.4 2002-07-05 22:28:41 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.h,v 1.5 2004-06-17 07:42:05 paklein Exp $ */
 /* created: paklein (08/19/1998) */
 
 #ifndef _EXPCD_DRSOLVER_H_
@@ -8,7 +8,7 @@
 #include "SolverT.h"
 
 /* direct members */
-#include "fstreamT.h"
+#include "ofstreamT.h"
 
 namespace Tahoe {
 

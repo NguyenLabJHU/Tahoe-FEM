@@ -1,4 +1,4 @@
-/* $Id: PenaltyCylinderT.cpp,v 1.2 2003-10-04 19:14:05 paklein Exp $ */
+/* $Id: PenaltyCylinderT.cpp,v 1.3 2004-06-17 07:41:53 paklein Exp $ */
 #include "PenaltyCylinderT.h"
 
 #include <iostream.h>
@@ -6,7 +6,7 @@
 
 #include "toolboxConstants.h"
 #include "FEManagerT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "eIntegratorT.h"
 
 using namespace Tahoe;

@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.cpp,v 1.7 2003-01-29 07:34:38 paklein Exp $ */
+/* $Id: EAMFCC3DMatT.cpp,v 1.8 2004-06-17 07:40:19 paklein Exp $ */
 /* created: paklein (10/25/1998) */
 #include "EAMFCC3DMatT.h"
 
@@ -7,7 +7,7 @@
 
 #include "toolboxConstants.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "EAMFCC3DSym.h"
 #include "dMatrixT.h"
 

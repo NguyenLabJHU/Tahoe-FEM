@@ -1,8 +1,8 @@
-/* $Id: EAMT.cpp,v 1.58 2004-04-21 08:14:39 paklein Exp $ */
-
+/* $Id: EAMT.cpp,v 1.59 2004-06-17 07:41:30 paklein Exp $ */
 #include "EAMT.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "eIntegratorT.h"
 #include "InverseMapT.h"
 #include "CommManagerT.h"

@@ -1,10 +1,10 @@
-/* $Id: FBD_EAMGlue.cpp,v 1.3 2002-10-20 22:48:40 paklein Exp $ */
+/* $Id: FBD_EAMGlue.cpp,v 1.4 2004-06-17 07:40:23 paklein Exp $ */
 /* created: paklein (01/30/2000)                                          */
 /* FBD_EAMGlue.cpp                                                        */
 
 #include "FBD_EAMGlue.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "PhiSplineT.h"
 
 /* Constructor */

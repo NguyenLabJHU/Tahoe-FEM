@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.60 2004-04-09 02:03:11 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.61 2004-06-17 07:41:45 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 #include "ofstreamT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "Environment.h"
 #include "toolboxConstants.h"
 #include "ExceptionT.h"

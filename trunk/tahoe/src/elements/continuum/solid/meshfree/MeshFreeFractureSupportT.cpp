@@ -1,9 +1,9 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.11 2003-12-28 08:23:37 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.12 2004-06-17 07:41:26 paklein Exp $ */
 /* created: paklein (02/15/2000) */
 #include "MeshFreeFractureSupportT.h"
 
 #include "StringT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "MeshFreeShapeFunctionT.h"
 #include "SolidMaterialT.h"
 #include "FSSolidMatT.h"

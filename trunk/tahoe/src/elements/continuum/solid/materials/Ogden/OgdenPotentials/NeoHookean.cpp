@@ -7,6 +7,7 @@
 #include "ExceptionT.h"
 #include <math.h>
 #include <iostream.h>
+#include "ifstreamT.h"
 
 using namespace Tahoe;
 

@@ -1,11 +1,11 @@
-/* $Id: MappedPeriodicT.cpp,v 1.7 2002-10-20 22:49:29 paklein Exp $ */
+/* $Id: MappedPeriodicT.cpp,v 1.8 2004-06-17 07:41:57 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 
 #include "MappedPeriodicT.h"
 
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "BasicFieldT.h"
 
 /* column indeces */

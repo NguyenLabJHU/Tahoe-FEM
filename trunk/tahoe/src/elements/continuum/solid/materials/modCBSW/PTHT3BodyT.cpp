@@ -1,11 +1,11 @@
-/* $Id: PTHT3BodyT.cpp,v 1.2 2002-07-02 19:56:06 cjkimme Exp $ */
+/* $Id: PTHT3BodyT.cpp,v 1.3 2004-06-17 07:41:03 paklein Exp $ */
 /* created: paklein (10/11/1997)                                          */
 
 #include "PTHT3BodyT.h"
 
 #include <math.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "dMatrixT.h"
 #include "iArray2DT.h"
 #include "ThermalDilatationT.h"

@@ -1,18 +1,15 @@
-/* $Id: Anisotropic2DT.cpp,v 1.3 2002-10-20 22:49:11 paklein Exp $ */
-/* created: paklein (06/11/1997)                                          */
-/* Base class for 2D anisotropic materials                                */
-
+/* $Id: Anisotropic2DT.cpp,v 1.4 2004-06-17 07:41:14 paklein Exp $ */
+/* created: paklein (06/11/1997) */
 #include "Anisotropic2DT.h"
 
 #include <iostream.h>
 
 #include "Rotate2DT.h"
-#include "fstreamT.h"
-
-/* constructors */
+#include "ifstreamT.h"
 
 using namespace Tahoe;
 
+/* constructors */
 Anisotropic2DT::Anisotropic2DT(ifstreamT& in): fRotator(NULL)
 {
 	double theta12;

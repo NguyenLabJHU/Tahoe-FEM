@@ -1,8 +1,9 @@
-/* $Id: AdhesionT.cpp,v 1.17 2004-05-10 17:02:34 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.18 2004-06-17 07:39:52 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "SurfaceShapeT.h"
 #include "iArrayT.h"
 #include "iNodeT.h"
