@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.14 2004-01-05 07:19:56 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.14.2.1 2004-03-31 16:16:32 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 
 #include "UnConnectedRodT.h"
@@ -70,7 +70,7 @@ GlobalT::RelaxCodeT UnConnectedRodT::RelaxSystem(void)
 		Connector.GetNeighors(rodconnects, fNeighborDist);
 		
 		/* update model manager */
-		ModelManagerT& model = ElementSupport().Model();
+		ModelManagerT& model = ElementSupport().ModelManager();
 		model.UpdateElementGroup(fBlockData[0].ID(), rodconnects, true);
 		fBlockData[0].SetDimension(rodconnects.MajorDim());
 
@@ -141,7 +141,7 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	else //only use specified nodes
 	{
 		/* model information */
-		ModelManagerT& model = ElementSupport().Model();
+		ModelManagerT& model = ElementSupport().ModelManager();
 	
 		/* model format specific */
 		if (model.DatabaseFormat() == IOBaseT::kTahoe)
@@ -180,7 +180,7 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	}
 
 	/* send connectivity data to ModelManagerT */
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 	StringT name("URod");
 	name.Append(ElementSupport().ElementGroupNumber(this) + 1);
 	GeometryT::CodeT code = GeometryT::kLine;

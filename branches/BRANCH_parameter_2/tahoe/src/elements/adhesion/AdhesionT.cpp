@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.16 2003-11-13 22:16:14 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.16.4.1 2004-03-31 16:16:20 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -1006,7 +1006,7 @@ void AdhesionT::InputSideSets(ifstreamT& in, GeometryT::CodeT& geom, iArray2DT& 
 	/* read data from parameter file */
 	ArrayT<StringT> ss_ID;
 	bool multidatabasesets = false; /* change to positive and the parameter file format changes */
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 	model.SideSetList(in, ss_ID, multidatabasesets);
 
 	if (ss_ID.Length () != 1) {
@@ -1035,7 +1035,7 @@ void AdhesionT::InputBodyBoundary(ifstreamT& in, ArrayT<GeometryT::CodeT>& geom,
 	/* get sets of facet */
 	GeometryT::CodeT geometry;
 	iArrayT surface_nodes;
-	ElementSupport().Model().SurfaceFacets(IDs, geometry, surfaces, surface_nodes);
+	ElementSupport().ModelManager().SurfaceFacets(IDs, geometry, surfaces, surface_nodes);
 	
 	/* face geometries */
 	geom.Dimension(surfaces.Length());

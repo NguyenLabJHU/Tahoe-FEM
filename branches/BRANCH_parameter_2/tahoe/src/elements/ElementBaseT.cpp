@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.43.2.5 2004-03-27 04:13:35 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.43.2.6 2004-03-31 16:16:19 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -30,7 +30,7 @@ ElementBaseT::ElementBaseT(const ElementSupportT& support, const FieldT& field):
 	fLHS(ElementMatrixT::kSymmetric)
 {
 	/* just cast it */
-	fIntegrator = fSupport.eIntegrator(field);
+	fIntegrator = &(fField->Integrator().eIntegrator());
 }
 
 ElementBaseT::ElementBaseT(const ElementSupportT& support):
@@ -150,7 +150,7 @@ void ElementBaseT::FormLHS(GlobalT::SystemTypeT sys_type)
 	catch (ExceptionT::CodeT error)
 	{
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-		cout << "\n ElementBaseT::FormLHS: " << fSupport.Exception(error);
+		cout << "\n ElementBaseT::FormLHS: " << ExceptionT::ToString(error);
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
 		cout << fSupport.ElementGroupNumber(this) + 1 << ".\n";
 		
@@ -182,7 +182,7 @@ void ElementBaseT::FormRHS(void)
 	catch (ExceptionT::CodeT error)
 	{
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-		cout << "\n ElementBaseT::FormRHS: " << fSupport.Exception(error);
+		cout << "\n ElementBaseT::FormRHS: " << ExceptionT::ToString(error);
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
 		cout << fSupport.ElementGroupNumber(this) + 1 << ".\n";
 		
@@ -550,7 +550,7 @@ void ElementBaseT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<
 	fConnectivities.Allocate (num_blocks);
 
 	/* get model manager */
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 
 	/* read from parameter file */
 	int elem_count = 0;
@@ -665,7 +665,7 @@ void ElementBaseT::ReadConnectivity(void)
 	/* read from parameter file */
 	ArrayT<StringT> elem_ID;
 	iArrayT matnums;
-	ModelManagerT& model = fSupport.Model();
+	ModelManagerT& model = fSupport.ModelManager();
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	model.ElementBlockList(in, elem_ID, matnums);
 #else
@@ -834,7 +834,7 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 	int local_el_number = fElementCards.Position() - block_data.StartNumber();
 
 	/* model manager - block processor number */
-	ModelManagerT& model = fSupport.Model();
+	ModelManagerT& model = fSupport.ModelManager();
 	iArrayT elem_map(block_data.Dimension());
 	model.ElementMap(block_ID, elem_map);
 

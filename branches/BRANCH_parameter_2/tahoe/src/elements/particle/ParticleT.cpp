@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.33 2003-12-28 08:23:41 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.33.2.1 2004-03-31 16:16:31 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -537,7 +537,7 @@ void ParticleT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	else
 	{
 		/* access to the model database */
-		ModelManagerT& model = ElementSupport().Model();
+		ModelManagerT& model = ElementSupport().ModelManager();
 
 		/* read sets */
 		for (int i = 0; i < fNumTypes; i++)
@@ -867,7 +867,7 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 				if (thermostat_i == ThermostatBaseT::kRampedDamping)
 					ExceptionT::BadInputValue(caller,"Ramped Damping requires spatial region");
 				
-				fThermostats[i]->InitNodeSets(in, ElementSupport().Model());
+				fThermostats[i]->InitNodeSets(in, ElementSupport().ModelManager());
 				
 				break;
 			}
