@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.cpp,v 1.5 2003-11-25 20:00:35 cjkimme Exp $ */
+/* $Id: CSESymAnisoT.cpp,v 1.6 2003-12-01 23:53:15 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSESymAnisoT.h"
 
@@ -23,6 +23,8 @@
 #include "ModelManagerT.h"
 #include "dSymMatrixT.h"
 #include "LocalArrayT.h"
+#include "iArrayT.h"
+#include "iArray2DT.h"
 
 /* potential functions */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
@@ -110,9 +112,9 @@ void CSESymAnisoT::RegisterOutput(void)
 	ArrayT<StringT> block_ID(fBlockData.Length());
 	for (int i = 0; i < block_ID.Length(); i++)
 		block_ID[i] = fBlockData[i].ID();
-
+	
 	/* set output specifier */
-	OutputSetT output_set(geo_code, block_ID, fOutput_Connectivities, n_labels, e_labels, false);
+	OutputSetT output_set(geo_code, block_ID, sideSet_ID, fOutput_Connectivities, n_labels, e_labels, false);
 
 	/* register and get output ID */
 	fOutputID = ElementSupport().RegisterOutput(output_set);
@@ -833,7 +835,6 @@ void CSESymAnisoT::ReadConnectivity(void)
 #endif
 	
 	/* read from parameter file */
-	ArrayT<StringT> sideSet_ID;
 	iArrayT matnums;
 	ModelManagerT& model = ElementSupport().Model();
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
@@ -900,22 +901,18 @@ void CSESymAnisoT::ReadConnectivity(void)
 #endif                 
 			throw ExceptionT::kBadInputValue;
 		}
-	    
-	    /* store block data  ASSUMING ith block is material number i*/
-	    fBlockData[b].Set(sideSet_ID[b], elem_count, num_elems, b); // offset
-
-	    /* increment element count */
-	    elem_count += num_elems;
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	    /* load connectivity from database into model manager */
-//	    model.ReadConnectivity(sideSet_ID[b]);
-#endif
+		
 		/* Make a new ID that's the last element group in the database */
 		StringT new_id;
 		new_id.Append(model.NumElementGroups()+1);
 		new_id = model.FreeElementID(new_id);
+	    
+	    /* store block data  ASSUMING bth block is material number b*/
+	    fBlockData[b].Set(new_id, elem_count, num_elems, b); 
 
+	    /* increment element count */
+	    elem_count += num_elems;
+		
 		if (!model.RegisterElementGroup(new_id, faces, ssArray[b], false))
 		{
 			ExceptionT::GeneralFail("CSESymAnisoT::ReadConnectivities","Cannot register element group\n");
