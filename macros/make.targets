@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.8 2001-09-19 19:04:54 paklein Exp $
+# $Id: make.targets,v 1.9 2001-09-19 19:10:29 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -59,7 +59,7 @@ OPT_INC = \
 	$(ACME_INC) \
 	$(AX_INC) \
 	$(VTK_INC)
-	
+
 #########################################################################
 # paths for file dependencies
 DEPEND_FILE = all.depend
