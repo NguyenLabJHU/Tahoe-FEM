@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.h,v 1.17 2005-02-04 22:01:54 paklein Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.18 2005-02-25 15:41:04 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #ifndef _GLOBAL_MATRIX_H_
 #define _GLOBAL_MATRIX_H_
@@ -57,6 +57,10 @@ public:
 	 * with AddEquationSet() for all equation sets */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
 	
+	/** write information to output stream after GlobalMatrixT::Initialize
+	 * has been called */
+	virtual void Info(ostream& out);
+	
 	/** clear values for next assembly */
 	virtual void Clear(void) {};
 	
@@ -90,6 +94,10 @@ public:
 	/** assembly of a diagonal matrix */
 	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos) = 0;
 	/*@}*/
+
+	/* compute the sum of the elements on the prescribed row/col,
+	 * where rownum = 0...fNumEQ-1 */
+	double AbsRowSum(int rownum) const;
 
 	/* strong manipulation functions 
 	 * NOTE: These must be overridden to provide support for these functions.

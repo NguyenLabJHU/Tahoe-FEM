@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.20 2005-02-04 22:01:54 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.21 2005-02-25 15:41:04 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "GlobalMatrixT.h"
 #include <iostream.h>
@@ -38,27 +38,28 @@ GlobalMatrixT::~GlobalMatrixT(void) { }
 */
 void GlobalMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 {
+	const char caller[] = "GlobalMatrixT::Initialize";
+
 	/* set dimensions */
 	fTotNumEQ = tot_num_eq;
 	fLocNumEQ = loc_num_eq;
 	fStartEQ  = start_eq;
 
-	/* output */
-	fOut << "\n E q u a t i o n    S y s t e m    D a t a :\n\n";
-	fOut << " Local number of equations . . . . . . . . . . . = " << fLocNumEQ << '\n';
-	fOut << " Total number of equations . . . . . . . . . . . = " << fTotNumEQ << '\n';
-	fOut.flush();
-
 	/* consistency */
-	const char caller[] = "GlobalMatrixT::Initialize";
 	if (fLocNumEQ > fTotNumEQ)
-		ExceptionT::GeneralFail(caller, "local number of equations %d cannot exceed the total number of equations %d", fLocNumEQ, fTotNumEQ);
+		ExceptionT::GeneralFail(caller, "local number of equations %d cannot exceed the total number of equations %d", 
+			fLocNumEQ, fTotNumEQ);
 
-	/* must have at least 1 active equation */
-	if (fLocNumEQ < 1)
-		cout << "\n GlobalMatrixT::Initialize: WARNING: no active equations" << endl;
- 	else if (fStartEQ < 1) /* active equation numbers must be > 0 */
-		ExceptionT::GeneralFail(caller, "active equation numbers must be > 0");
+	/* active equation numbers must be > 0 */
+	if (fStartEQ < 1) ExceptionT::GeneralFail(caller, "active equation numbers must be > 0");
+}
+
+/* write information to output stream */
+void GlobalMatrixT::Info(ostream& out) {
+	out << "\n E q u a t i o n    S y s t e m    D a t a :\n\n";
+	out << " Local number of equations . . . . . . . . . . . = " << fLocNumEQ << '\n';
+	out << " Total number of equations . . . . . . . . . . . = " << fTotNumEQ << '\n';
+	out.flush();
 }
 
 /*
@@ -126,6 +127,13 @@ void GlobalMatrixT::DisassembleDiagonal(dArrayT& diagonals, const nArrayT<int>& 
 #pragma unused(diagonals)
 #pragma unused(eqnos)
 	ExceptionT::GeneralFail("GlobalMatrixT::DisassembleDiagonal", "not implemented");
+}
+
+/* compute the sum of the elements on the prescribed row/col */
+double GlobalMatrixT::AbsRowSum(int rownum) const {
+#pragma unused(rownum)
+	ExceptionT::GeneralFail("GlobalMatrixT::AbsRowSum", "not implemented");
+	return 0.0;
 }
 
 /* assignment operator */
