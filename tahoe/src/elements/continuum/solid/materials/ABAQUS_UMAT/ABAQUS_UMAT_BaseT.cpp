@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.2.2.1 2001-06-06 16:22:53 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.2.2.2 2001-06-07 03:01:16 paklein Exp $ */
 /* created: paklein (05/14/2000)                                          */
 
 #include "ABAQUS_UMAT_BaseT.h"
@@ -20,7 +20,8 @@ ABAQUS_UMAT_BaseT::	ABAQUS_UMAT_BaseT(ifstreamT& in, const ElasticT& element):
 	FDStructMatT(in, element),
 	fRunState(ContinuumElement().RunState()),
 	fTangentType(GlobalT::kSymmetric),
-	fLocLastDisp(element.LastDisplacements()),
+//	fLocLastDisp(element.LastDisplacements()),
+//DEV
 	fModulus(dSymMatrixT::NumValues(NumSD())),
 	fStress(NumSD()),
 	fIPCoordinates(NumSD()),
@@ -910,15 +911,14 @@ void ABAQUS_UMAT_BaseT::Reset_UMAT_Increment(void)
 void ABAQUS_UMAT_BaseT::Set_UMAT_Arguments(void)
 {
 	/* integration point coordinates */
-	const ShapeFunctionT& shape_function = ShapeFunction();
-	shape_function.IPCoords(fIPCoordinates);	
+	ContinuumElement().IP_Coords(fIPCoordinates);	
 	fcoords[0] = doublereal(fIPCoordinates[0]);
 	fcoords[1] = doublereal(fIPCoordinates[1]);
 	if (NumSD() == 3)
 		fcoords[2] = doublereal(fIPCoordinates[2]);
 
 	/* deformation gradient at beginning of increment */
-	fA_nsd = F(fLocLastDisp);
+	fA_nsd = F_last();
 	dMatrixT_to_ABAQUS(fA_nsd, fdfgrd0);
 	
 	/* deformation gradient at end of increment */

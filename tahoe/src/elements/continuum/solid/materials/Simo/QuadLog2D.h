@@ -1,4 +1,4 @@
-/* $Id: QuadLog2D.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: QuadLog2D.h,v 1.1.1.1.2.1 2001-06-07 03:01:19 paklein Exp $ */
 /* created: paklein (06/28/1997)                                          */
 /* (2D <-> 3D) translator for the QuadLog3D.                              */
 
@@ -34,11 +34,9 @@ protected:
 	/* return values */
 	dSymMatrixT fStress2D;
 	dMatrixT    fModulus2D;
-	dSymMatrixT fb_2D;
 
-private:
-		 	 	
-	dSymMatrixT fb_3D;
+	/* workspace */
+	dSymMatrixT fb_2D;
 };
 
 #endif /* _QUAD_LOG_2D_ */

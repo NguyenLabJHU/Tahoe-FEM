@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.1.1.1.2.1 2001-06-07 03:01:27 paklein Exp $ */
 /* created: paklein (11/20/1996)                                          */
 
 #include "SolidMaterialT.h"
@@ -114,11 +114,6 @@ void SolidMaterialT::WaveSpeeds(const dArrayT& normal, dArrayT& speeds)
 		speeds[2] = (temp[2] > 0.0) ? sqrt(temp[2]/fDensity) : 0.0;
 	}
 }
-
-/* required parameter flags - (all FALSE by default) */
-bool SolidMaterialT::NeedDisp(void) const     { return false; }
-bool SolidMaterialT::NeedLastDisp(void) const { return false; }
-bool SolidMaterialT::NeedVel(void) const      { return false; }
 
 /* returns true if the material has internal forces in the unloaded
 * configuration, ie thermal strains */

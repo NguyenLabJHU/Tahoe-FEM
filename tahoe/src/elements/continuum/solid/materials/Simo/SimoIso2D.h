@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: SimoIso2D.h,v 1.1.1.1.2.1 2001-06-07 03:01:20 paklein Exp $ */
 /* created: paklein (03/04/1997)                                          */
 /* (2D <-> 3D) translator for the SimoIso3D.                              */
 
@@ -34,10 +34,9 @@ protected:
 	/* return values */
 	dSymMatrixT fStress2D;
 	dMatrixT    fModulus2D;
-		 	 	
-private:
-
-	dSymMatrixT fb_3D;
+	
+	/* workspace */
+	dSymMatrixT fb_2D;		 	 	
 };
 
 #endif /* _SIMO_ISO_2D_H_ */

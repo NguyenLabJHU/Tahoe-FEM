@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.h,v 1.2 2001-02-20 00:28:20 paklein Exp $ */
+/* $Id: SimoIso3D.h,v 1.2.2.1 2001-06-07 03:01:21 paklein Exp $ */
 /* created: paklein (03/02/1997)                                          */
 /* Hyperelastic material governed by Simo's split volumetric/deviatoric   */
 /* stored energy function.                                                */
@@ -49,15 +49,17 @@ protected:
 
 protected:
 
-	/* return value */
+	/* return values */
 	dSymMatrixT	fStress;
 	dMatrixT    fModulus;
 
+	/* work space */
+	dSymMatrixT	fb;	
+	dSymMatrixT	fb_bar;
+
 private:
 
-	/* work space */
-	dSymMatrixT	fb_bar;
-	dSymMatrixT	fnorm;
+//	dSymMatrixT	fnorm;
 	dMatrixT	frank4;
 	
 	/* fixed forms */

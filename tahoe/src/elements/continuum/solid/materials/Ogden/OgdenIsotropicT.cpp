@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.cpp,v 1.4.2.1 2001-06-06 16:24:14 paklein Exp $ */
+/* $Id: OgdenIsotropicT.cpp,v 1.4.2.2 2001-06-07 03:01:18 paklein Exp $ */
 /* created: paklein (10/01/2000)                                          */
 /* base class for large deformation isotropic material following          */
 /* Ogden's formulation.                                                   */
@@ -12,6 +12,7 @@
 OgdenIsotropicT::OgdenIsotropicT(ifstreamT& in, const ElasticT& element):
 	FDStructMatT(in, element),
 	fSpectralDecomp(NumSD()),
+	fC(NumSD()),
 	fEigs(NumSD()),
 	fdWdE(NumSD()),
 	fddWddE(NumSD()),
@@ -92,8 +93,11 @@ const dSymMatrixT& OgdenIsotropicT::s_ij(void)
 /* material description */
 const dMatrixT& OgdenIsotropicT::C_IJKL(void)
 {
+	/* stretch */
+	Compute_C(fC);
+
 	/* spectral decomposition */
-	fSpectralDecomp.SpectralDecomp_new(C(), false);
+	fSpectralDecomp.SpectralDecomp_Jacobi(fC, false);
 	//fSpectralDecomp.SpectralDecomp(C(), false); // closed-form decomposition
 
 	/* principal values */
@@ -153,8 +157,11 @@ const dMatrixT& OgdenIsotropicT::C_IJKL(void)
 
 const dSymMatrixT& OgdenIsotropicT::S_IJ(void)
 {
+	/* stretch */
+	Compute_C(fC);
+
 	/* spectral decomposition */
-	fSpectralDecomp.SpectralDecomp_new(C(), false);
+	fSpectralDecomp.SpectralDecomp_Jacobi(fC, false);
 	//fSpectralDecomp.SpectralDecomp(C(), false); // closed-form decomposition
 
 	/* principal values */

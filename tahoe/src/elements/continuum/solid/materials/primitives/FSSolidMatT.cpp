@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.1.1.1.2.1 2001-06-06 16:31:17 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.1.1.1.2.2 2001-06-07 03:01:26 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 
 #include "FSSolidMatT.h"
@@ -15,16 +15,14 @@ FSSolidMatT::FSSolidMatT(ifstreamT& in, const ElasticT& element):
 	StructuralMaterialT(in, element),
 	TensorTransformT(NumSD()),
 //	fShapes(element.ShapeFunction()),
+//	fLocDisp(element.Displacements()),
 //DEV
-	fLocDisp(element.Displacements()),
-	fQ(NumSD()),
-	fGradU(NumSD())
+	fQ(NumSD())
+//	fGradU(NumSD())
+//DEV
 {
 
 }
-
-/* required parameter flags */
-bool FSSolidMatT::NeedDisp(void) const { return true; }
 
 /* initialization */
 void FSSolidMatT::Initialize(void)
@@ -48,67 +46,6 @@ void FSSolidMatT::Initialize(void)
 	}
 }
 
-/* strains/deformation measures */
-const dMatrixT& FSSolidMatT::F(void)
-{
-	/* displacement gradient */
-	fShapes.GradU(fLocDisp, fGradU);
-
-	/* deformation gradient */
-	return FDContinuumT::F(fGradU);
-}
-//NOTE: with enhanced shape function gradients, F won't be
-//  a function of the nodal displacements alone. Better
-//  to pull the continuum out of the constitutive models
-//  and have the models prompt the elements for the deformation.
-//  This also allows consistency checks between the constitutive
-//  models and the element type. Would also need to deal with
-//  the stuff like S_to_s and C_to_c, but should move these
-//  functions into the matrix classes. Also need to take another
-//  look at dealing with the thermal strain. Could also add the
-//  idea of a "needs" array which is passed to the element and
-//  indicates which values the model needs to be calculated.
-
-const dMatrixT& FSSolidMatT::F(const LocalArrayT& disp)
-{
-	/* displacement gradient */
-	fShapes.GradU(disp, fGradU);
-
-	/* deformation gradient */
-	return FDContinuumT::F(fGradU);
-}
-
-//DEV
-#if 0
-const dSymMatrixT& FSSolidMatT::C(void)
-{
-	/* displacement gradient */
-	fShapes.GradU(fLocDisp, fGradU);
-
-	/* right stretch */
-	return FDContinuumT::C(fGradU);
-}
-
-const dSymMatrixT& FSSolidMatT::b(void)
-{
-	/* displacement gradient */
-	fShapes.GradU(fLocDisp, fGradU);
-
-	/* left stretch */
-	return FDContinuumT::b(fGradU);
-}
-
-const dSymMatrixT& FSSolidMatT::E(void)
-{
-	/* displacement gradient */
-	fShapes.GradU(fLocDisp, fGradU);
-
-	/* Green-Lagrange strain */
-	return FDContinuumT::E(fGradU);
-}
-#endif
-//DEV
-
 /* test for localization using "current" values for Cauchy
 * stress and the spatial tangent moduli. Returns 1 if the
 * determinant of the acoustic tensor is negative and returns
@@ -116,9 +53,11 @@ const dSymMatrixT& FSSolidMatT::E(void)
 * of the determinant is positive. */
 int FSSolidMatT::IsLocalized(dArrayT& normal)
 {
+#pragma unused(normal)
 cout << "\n FSSolidMatT::IsLocalized: broken" << endl;
 throw eGeneralFail;
 return 0;
+//DEV
 
 #if 0
 	if (FDContinuumT::IsLocalized(normal))
@@ -151,6 +90,71 @@ void FSSolidMatT::InitStep(void)
 /***********************************************************************
 * Protected
 ***********************************************************************/
+
+/** deformation gradient */
+const dMatrixT& FSSolidMatT::F(void) const
+{
+	return ContinuumElement().F();
+	
+	//DEV - what about corrections for thermal strains?
+}
+
+/** deformation gradient from end of previous step */
+const dMatrixT& FSSolidMatT::F_last(void) const
+{
+	return ContinuumElement().F_last();
+	
+	//DEV - what about corrections for thermal strains?
+}
+
+/** Green-Lagrangian strain. \param E return value */
+void FSSolidMatT::Compute_E(dSymMatrixT& E) const
+{
+	/* could optimize */
+	E.MultATA(F());
+	E.PlusIdentity(-1.0);
+	E *= 0.5;
+}
+
+//DEV
+#if 0
+const dMatrixT& FSSolidMatT::F(const LocalArrayT& disp)
+{
+	/* displacement gradient */
+	fShapes.GradU(disp, fGradU);
+
+	/* deformation gradient */
+	return FDContinuumT::F(fGradU);
+}
+
+const dSymMatrixT& FSSolidMatT::C(void)
+{
+	/* displacement gradient */
+	fShapes.GradU(fLocDisp, fGradU);
+
+	/* right stretch */
+	return FDContinuumT::C(fGradU);
+}
+
+const dSymMatrixT& FSSolidMatT::b(void)
+{
+	/* displacement gradient */
+	fShapes.GradU(fLocDisp, fGradU);
+
+	/* left stretch */
+	return FDContinuumT::b(fGradU);
+}
+
+const dSymMatrixT& FSSolidMatT::E(void)
+{
+	/* displacement gradient */
+	fShapes.GradU(fLocDisp, fGradU);
+
+	/* Green-Lagrange strain */
+	return FDContinuumT::E(fGradU);
+}
+#endif
+//DEV
 
 /* return the acoustical tensor and wave speeds */
 const dSymMatrixT& FSSolidMatT::AcousticalTensor(const dArrayT& normal)

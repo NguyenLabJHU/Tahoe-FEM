@@ -1,4 +1,4 @@
-/* $Id: FDHookeanMatT.cpp,v 1.1.1.1.2.1 2001-06-06 16:22:00 paklein Exp $ */
+/* $Id: FDHookeanMatT.cpp,v 1.1.1.1.2.2 2001-06-07 03:01:17 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "FDHookeanMatT.h"
@@ -7,6 +7,7 @@
 FDHookeanMatT::FDHookeanMatT(ifstreamT& in, const ElasticT& element):
 	FDStructMatT(in, element),
 	HookeanMatT(NumSD()),
+	fE(NumSD()),
 	fStress(NumSD()),
 	fModulus(dSymMatrixT::NumValues(NumSD()))
 {
@@ -32,8 +33,14 @@ const dMatrixT& FDHookeanMatT::c_ijkl(void)
 
 const dSymMatrixT& FDHookeanMatT::s_ij(void)
 {
-	HookeanStress(E(), fStress);
+	/* strain */
+	Compute_E(fE);
+
+	/* compute stress */
+	HookeanStress(fE, fStress);
 	const dMatrixT& F_mat = F();
+
+	/* push forward */
 	fStress = PushForward(F_mat, fStress);
 	fStress /= F_mat.Det();
 	return fStress;
@@ -47,12 +54,17 @@ const dMatrixT& FDHookeanMatT::C_IJKL(void)
 
 const dSymMatrixT& FDHookeanMatT::S_IJ(void)
 {
-	HookeanStress(E(), fStress);
+	/* strain */
+	Compute_E(fE);
+
+	/* compute stress */
+	HookeanStress(fE, fStress);
 	return fStress;
 }
 
 /* returns the strain energy density for the specified strain */
 double FDHookeanMatT::StrainEnergyDensity(void)
 {
-	return HookeanEnergy(E());
+	Compute_E(fE);
+	return HookeanEnergy(fE);
 }

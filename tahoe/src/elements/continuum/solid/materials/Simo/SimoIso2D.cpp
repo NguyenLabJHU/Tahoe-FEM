@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.cpp,v 1.3 2001-04-27 10:54:32 paklein Exp $ */
+/* $Id: SimoIso2D.cpp,v 1.3.2.1 2001-06-07 03:01:20 paklein Exp $ */
 /* created: paklein (03/04/1997)                                          */
 /* (2D <-> 3D) translator for the SimoIso3D.                              */
 
@@ -12,7 +12,7 @@ SimoIso2D::SimoIso2D(ifstreamT& in, const ElasticT& element):
 	Material2DT(in, kPlaneStrain),
 	fStress2D(2),
 	fModulus2D(dSymMatrixT::NumValues(2)),
-	fb_3D(3)
+	fb_2D(2)
 {
 	fDensity *= fThickness;
 }
@@ -20,17 +20,21 @@ SimoIso2D::SimoIso2D(ifstreamT& in, const ElasticT& element):
 /* moduli */
 const dMatrixT& SimoIso2D::c_ijkl(void)
 {
-	/* Compute plane strain stretch */
-	fb_3D.ExpandFrom2D(b());
-	fb_3D(2,2) = 1.0; //out-of-plane stretch
+	/* b */
+	Compute_b(fb_2D);
 	
-	/* 3D calculation */
-	double J = fb_3D.Det();
+	/* Compute plane strain stretch */
+	fb.ExpandFrom2D(fb_2D);
+	fb(2,2) = 1.0; /* plane strain */
+
+	/* compute b_bar */
+	double J = fb_2D.Det();
 	if (J <= 0.0) throw eBadJacobianDet;
 	J = sqrt(J);
-	fb_3D *= pow(J,-2.0/3.0);
+	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
 
-	ComputeModuli(J, fb_3D, fModulus);
+	/* 3D calculation */
+	ComputeModuli(J, fb, fModulus);
 
 	/* 3D -> 2D */
 	fModulus2D.Rank4ReduceFrom3D(fModulus);
@@ -42,17 +46,21 @@ const dMatrixT& SimoIso2D::c_ijkl(void)
 /* stresses */
 const dSymMatrixT& SimoIso2D::s_ij(void)
 {
+	/* b */
+	Compute_b(fb_2D);
+
 	/* Compute plane strain stretch */
-	fb_3D.ExpandFrom2D(b());
-	fb_3D(2,2) = 1.0; //out-of-plane stretch
+	fb.ExpandFrom2D(fb_2D);
+	fb(2,2) = 1.0; //out-of-plane stretch
 	
-	/* 3D calculation */
-	double J = fb_3D.Det();
+	/* compute b_bar */
+	double J = fb_2D.Det();
 	if (J <= 0.0) throw eBadJacobianDet;
 	J = sqrt(J);
-	fb_3D *= pow(J,-2.0/3.0);
+	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
 
-	ComputeCauchy(J, fb_3D, fStress);
+	/* 3D calculation */
+	ComputeCauchy(J, fb, fStress);
 
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(fStress);
@@ -64,17 +72,20 @@ const dSymMatrixT& SimoIso2D::s_ij(void)
 /* strain energy density */
 double SimoIso2D::StrainEnergyDensity(void)
 {
+	/* b */
+	Compute_b(fb_2D);
+
 	/* Compute plane strain stretch */
-	fb_3D.ExpandFrom2D(b());
-	fb_3D(2,2) = 1.0; //out-of-plane stretch
+	fb.ExpandFrom2D(fb_2D);
+	fb(2,2) = 1.0; //out-of-plane stretch
 	
-	/* 3D calculation */
-	double J = fb_3D.Det();
+	/* compute b_bar */
+	double J = fb_2D.Det();
 	if (J <= 0.0) throw eBadJacobianDet;
 	J = sqrt(J);
-	fb_3D *= pow(J,-2.0/3.0);
+	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
 
-	return fThickness*ComputeEnergy(J, fb_3D);
+	return fThickness*ComputeEnergy(J, fb);
 }
 
 /* print parameters */
