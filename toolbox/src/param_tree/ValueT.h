@@ -1,4 +1,4 @@
-/* $Id: ValueT.h,v 1.7 2004-01-21 17:06:45 paklein Exp $ */
+/* $Id: ValueT.h,v 1.8 2004-03-27 04:11:50 paklein Exp $ */
 #ifndef _VALUE_T_H_
 #define _VALUE_T_H_
 
@@ -19,15 +19,20 @@ public:
 		Double,
 		String,
 		Boolean,
-		Enumeration /**< string-integer pair */
+		Enumeration, /**< string-integer pair */
+		Word /**< nonzero length ValueT::String without whitespace */
 	};
 
 	/** \name constructors */
 	/*@{*/
 	ValueT(int a);
 	ValueT(double x);
-	ValueT(const char* s);
 	ValueT(bool b);
+	
+	/** construct with ValueT::String or ValueT::Word depending on whether or not
+	 * the source string contains whitespace. A string of length zero will be
+	 * classified as ValueT::String. */
+	ValueT(const char* s);
 
 	/** enumeration. Enumerations are string-integer pairs. For all operators
 	 * below, enumerations cast to both integers and strings. */
