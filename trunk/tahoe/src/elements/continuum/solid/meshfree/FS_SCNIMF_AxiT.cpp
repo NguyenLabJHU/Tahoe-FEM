@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.19 2005-01-26 20:21:00 cjkimme Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.20 2005-01-27 22:04:20 cjkimme Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 //#define VERIFY_B
@@ -212,16 +212,16 @@ void FS_SCNIMF_AxiT::WriteOutput(void)
 		*inp_val++ = fCellVolumes[i] * 2. * Pi * fCellCentroids(i,0);;
 
 		/* strain */
-		*inp_val++ = E3D(0,0);
-		*inp_val++ = E3D(1,1);
-		*inp_val++ = E3D(0,1);
-		*inp_val++ = E3D(2,2);
+		*inp_val++ = E3D(0,0); //rr
+		*inp_val++ = E3D(1,1); //zz
+		*inp_val++ = E3D(0,1); //rz
+		*inp_val++ = E3D(2,2); //tt
 
 		/* stress */
-		*inp_val++ = stress[0];
-		*inp_val++ = stress[1];
-		*inp_val++ = stress[2];
-		*inp_val = stress[5];
+		*inp_val++ = stress[0]; //rr
+		*inp_val++ = stress[1]; //zz
+		*inp_val++ = stress[5]; //rz
+		*inp_val = stress[2]; //tt
 	}
 
 	/* send */
@@ -548,7 +548,7 @@ void FS_SCNIMF_AxiT::AssembleParticleMass(const double rho)
     double* m = fForce(fNodes[i]);
 
     for (int j = 0; j < fSD; j++)
-      *m++ = *volume * 2 * Pi * fCellCentroids(i,0);
+      *m++ = *volume * 2. * Pi * fCellCentroids(i,0);
     volume++;
   }
 
@@ -601,7 +601,7 @@ void FS_SCNIMF_AxiT::RHSDriver(void)
 		{
 			acc = a(*nodes++);
 			for (int j = 0; j < fSD; j++)
-				*ma++ = *volume * *acc++;
+				*ma++ = *volume * 2. * Pi * fCellCentroids(i,0) * *acc++;
 			volume++;
 		}
 		fLHS *= fCurrMaterial->Density();
