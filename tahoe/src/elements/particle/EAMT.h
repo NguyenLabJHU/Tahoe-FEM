@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.18 2004-01-23 19:47:37 paklein Exp $ */
+/* $Id: EAMT.h,v 1.18.12.1 2004-03-19 01:49:47 jzimmer Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -86,6 +86,7 @@ protected:
 
 	/**nearest neighbor list**/
 	RaggedArray2DT<int> NearestNeighbors;
+	RaggedArray2DT<int> RefNearestNeighbors;
 
 private:
 

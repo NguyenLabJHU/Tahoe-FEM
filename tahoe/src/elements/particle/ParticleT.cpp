@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.35 2004-03-04 08:54:26 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.35.8.1 2004-03-19 01:49:47 jzimmer Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -13,6 +13,7 @@
 #include "RaggedArray2DT.h"
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
+#include "ExceptionCodes.h"
 
 /* Thermostatting stuff */
 #include "RandomNumberT.h"
@@ -944,18 +945,6 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 }
 
 
-
-void ParticleT::LLInsert (CSymmParamNode *ListStart, double value)
-{
-  while(ListStart->Next!=NULL && ListStart->Next->value <value) ListStart=ListStart->Next;
-  CSymmParamNode *newNode = new CSymmParamNode;
-  newNode->Next = ListStart->Next;
-  newNode->value=value;
-  ListStart->Next=newNode;
-
-}
-
-
 /* describe the parameters needed by the interface */
 void ParticleT::DefineParameters(ParameterListT& list) const
 {
@@ -1034,113 +1023,206 @@ ThermostatBaseT* ParticleT::New_Thermostat(const StringT& name, bool throw_on_fa
 	return NULL;
 }
 
-double ParticleT::GenCSymmValue (CSymmParamNode *CSymmParam, int ndof) 
-{
-#pragma unused(ndof)
-  
-  int counter=0;
-  double CSymmValue=0.0;
-  CSymmParamNode *CurrentAlias;
-  /* this loop adds up the first seven vector pairs (the first one is always zero) to form the centrosymmetry value*/
-  while (counter <= 6 && CSymmParam!=NULL ) 
-    {
-      CSymmValue+=CSymmParam->value;  
-      CurrentAlias=CSymmParam;
-      CSymmParam = CSymmParam->Next;
-      delete CurrentAlias;
-      counter++;
-    }
-  //  cout<<counter<<"\n";
-  /*deletes the rest of our data structure*/
-  while (CSymmParam!=NULL) {
-    CurrentAlias=CSymmParam;
-    CSymmParam = CSymmParam->Next;
-    delete CurrentAlias;
-  }
-  CSymmValue /= fLatticeParameter;
-  return CSymmValue;
-}
-
-
-void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CParamStart, dMatrixT *Strain, 
-	dArrayT *SlipVector, RaggedArray2DT<int> *NearestNeighbors, double& J) 
+void ParticleT::Calc_Slip_and_Strain(int non, int num_s_vals,dArray2DT &s_values, RaggedArray2DT<int> &RefNearestNeighbors, const int &kEulerLagr)
 {
   int ndof = NumDOF();
-  /* run through neighbor list */
+  int num_strains = num_s_vals - ndof - 1;
   iArrayT neighbors;
-  dArrayT x_i, x_j, x_k, r_ij(ndof), r_ik(ndof), DispVector(ndof), deltaX(ndof), X_i(ndof), X_j(ndof),SlipVectorTemp(ndof);  
-  dMatrixT Omega(ndof), Eta(ndof), OmegaTemp(ndof), EtaTemp(ndof), b_ij(ndof), F_iI(ndof) ;
+  dArrayT x_i(ndof), x_j(ndof), r_ij(ndof), R_ij(ndof), X_i(ndof), X_j(ndof);  
+  dArrayT slipvector(ndof), svtemp(ndof);
+  dMatrixT omega(ndof), eta(ndof), omegatemp(ndof), etatemp(ndof); 
+  dMatrixT C_IJ(ndof), b_ij(ndof), F_iI(ndof), strain(ndof);
+  dMatrixT etainverse(ndof), Id(ndof);
+  const double svtol =  0.5*NearestNeighborDistance/sqrt(3.0);
+  int nslip;
+  double J;
+
+  /* multi-processor information */
+  CommManagerT& comm_manager = ElementSupport().CommManager();
+  const ArrayT<int>* proc_map = comm_manager.ProcessorMap();
+  int rank = ElementSupport().Rank();
+  const InverseMapT* inverse_map = comm_manager.PartitionNodes_inv();
+  const dArray2DT& refcoords = ElementSupport().InitialCoordinates();
+  const dArray2DT& coords = ElementSupport().CurrentCoordinates();
+
+  cout << RefNearestNeighbors.MajorDim() << endl;
+  cout << s_values.MajorDim() << endl;
   /* row of neighbor list */
-  NearestNeighbors->RowAlias(i, neighbors);
-  const dArray2DT&  refcoords = ElementSupport().InitialCoordinates();
-  int   tag_i = neighbors[0]; /* self is 1st spot */
-  Eta=0.0;
-  Omega=0.0;
+  for (int i = 0; i < RefNearestNeighbors.MajorDim(); i++)
+  {
+   cout << i << endl;
+   cout << RefNearestNeighbors.MinorDim(i) << endl;
+   RefNearestNeighbors.RowAlias(i,neighbors);
+   cout << neighbors.Length() << endl;
+   int tag_i = neighbors[0];
+   cout << tag_i << endl;
+   int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
 
+   cout << i << "   " << tag_i << "    " << local_i << endl;
 
-  coords.RowAlias(tag_i, x_i);
-  refcoords.RowAlias(tag_i, X_i);
-  for (int j = 1; j < neighbors.Length(); j++)
-    { //run through j
-      /* tags */
-      int   tag_j = neighbors[j];
-   
-      
-      /* global coordinates */
-      coords.RowAlias(tag_j, x_j);
-  
-      /* connecting vector */
-      r_ij.DiffOf(x_j, x_i);
-      refcoords.RowAlias(tag_j, X_j);
-      deltaX.DiffOf(X_i, X_j);
-      dArrayT r_ji(ndof);
-      r_ji.DiffOf(x_i,x_j);
-      SlipVectorTemp.DiffOf(deltaX, r_ji);
-      if (fhas_periodic&& (SlipVectorTemp.Magnitude() > fPeriodicLengths.Max()/2.0)) 
-	{
-	  for (int i=0; i<ndof; i++) 
-	    {
-	      if (deltaX[i] > fPeriodicLengths[i]/2.0) deltaX[i]-=fPeriodicLengths[i];
-	      if (deltaX[i] < fPeriodicLengths[i]/-2.0) deltaX[i]+=fPeriodicLengths[i];
-	    }
-	  SlipVectorTemp.DiffOf(deltaX, r_ji);     
-	}
-      *SlipVector+=SlipVectorTemp;
+   eta = 0.0; omega = 0.0; strain = 0.0; slipvector = 0.0; nslip = 0;
+   J = 1.0;
 
-      
- 
-      OmegaTemp.Outer(r_ji, deltaX);
-      EtaTemp.Outer(deltaX, deltaX);
-      Omega+=OmegaTemp;
-      Eta+=EtaTemp;
-     
-      /*for each i-j and i-k for k>j, sum the vectors, and added the magnitude of the pair into the list*/
-      for (int k = j+1; k<neighbors.Length(); k++)
-	{
-	  int tag_k = neighbors[k];
-	  coords.RowAlias(tag_k, x_k);
-	  r_ik.DiffOf(x_k, x_i);
-	  DispVector.SumOf(r_ij, r_ik);
-	  
-	  LLInsert(CParamStart, DispVector.Magnitude());
-      
-	}
-
-    }
-  if(fabs(Eta.Det())>kSmall)
+   coords.RowAlias(tag_i,x_i);
+   refcoords.RowAlias(tag_i,X_i);
+   for (int j = 1; j<neighbors.Length(); j++)
+   {
+    int tag_j = neighbors[j];
+    coords.RowAlias(tag_j,x_j);
+    refcoords.RowAlias(tag_j,X_j);
+    r_ij.DiffOf(x_j,x_i);
+    R_ij.DiffOf(X_j,X_i);
+    svtemp.DiffOf(r_ij,R_ij);
+    if (fhas_periodic && (svtemp.Magnitude() > 0.5*fPeriodicLengths.Max()))
     {
-      dMatrixT EtaInverse = Eta.Inverse();
-      F_iI.MultAB(Omega, EtaInverse);
-      b_ij.MultABT(F_iI, F_iI);
-      double J2 = b_ij.Det();
-      if(fabs(J2) > kSmall) {
-      J = sqrt(J2);
-	dMatrixT Id(ndof);
-	Id=0.0;
-	for(int i=0; i<ndof;i++) Id(i,i)=1.0;
-	Strain->DiffOf(Id,b_ij.Inverse());
-      }
+     for (int m = 0; m < ndof;m++)
+     {
+      if (R_ij[m] > 0.5*fPeriodicLengths[m]) R_ij[m] -=fPeriodicLengths[m]; 
+      if (R_ij[m] < -0.5*fPeriodicLengths[m]) R_ij[m] +=fPeriodicLengths[m]; 
+      if (r_ij[m] > 0.5*fPeriodicLengths[m]) r_ij[m] -=fPeriodicLengths[m]; 
+      if (r_ij[m] < -0.5*fPeriodicLengths[m]) r_ij[m] +=fPeriodicLengths[m]; 
+     }
+     svtemp.DiffOf(r_ij,R_ij);
     }
-  *SlipVector /= neighbors.Length()-1;
+    slipvector += svtemp;
+    if (svtemp.Magnitude()>svtol) nslip += 1;
 
+    omegatemp.Outer(r_ij,R_ij);
+    etatemp.Outer(R_ij,R_ij);
+    omega += omegatemp;
+    eta += etatemp;
+   } /* end of j loop */
+
+   if (nslip>0) slipvector /= double(nslip);
+
+   if (fabs(eta.Det())>kSmall)
+   {
+    etainverse = eta.Inverse();
+    F_iI.MultAB(omega,etainverse);
+    if (kEulerLagr)
+    {
+     b_ij.MultABT(F_iI,F_iI);
+     double J2 = b_ij.Det();
+     if (fabs(J2)>kSmall)
+     {
+      J = sqrt(J2);
+      Id = 0.0;
+      for (int m=0; m<ndof; m++) Id(m,m) = 1.0;
+      strain.DiffOf(Id,b_ij.Inverse());
+      strain *= 0.5;
+     }
+    }
+    else
+    {
+     C_IJ.MultATB(F_iI,F_iI); 
+     double J2 = C_IJ.Det();
+     if (fabs(J2)>kSmall)
+     {
+      J = sqrt(J2);
+      Id = 0.0;
+      for (int m=0; m<ndof; m++) Id(m,m) = 1.0;
+      strain.DiffOf(C_IJ,Id);
+      strain *= 0.5;
+     }
+    }
+   }
+
+   /* put slip vector and strain info into global s_values array */
+   int valuep = 0;
+   for (int m = 0; m < ndof; m++)
+   {
+    for (int n = m; n < ndof; n++)
+    {
+     s_values(local_i,valuep++) = strain(m,n);
+    }
+   }
+
+   s_values(local_i,valuep++) = J;
+
+   for (int m = 0; m < ndof; m++)
+   {
+    s_values(local_i,valuep++) = slipvector[m];
+   }
+   cout << i << "  " << J << endl; 
+  } /* end of i loop */
+ 
+} 
+
+int ParticleT::Combination(int n,int k)
+  {
+   int num_nk = 1; 
+   int denom_nk = 1;
+   int combo_nk;
+   for (int i=(n-k+1); i<=n; i++) num_nk *= i;
+   for (int i=1; i<=k; i++) denom_nk *=i;
+   combo_nk = num_nk / denom_nk;
+   return combo_nk;
+  }
+
+void ParticleT::Calc_CSP(int non, int num_s_vals,dArray2DT &s_values, RaggedArray2DT<int> &NearestNeighbors)
+{
+  int ndof = NumDOF();
+  iArrayT neighbors;
+  dArrayT x_i(ndof), x_j(ndof), r_ij(ndof), rvec(ndof);  
+
+  /* multi-processor information */
+  CommManagerT& comm_manager = ElementSupport().CommManager();
+  const InverseMapT* inverse_map = comm_manager.PartitionNodes_inv();
+  const dArray2DT& coords = ElementSupport().CurrentCoordinates();
+
+  /* row of neighbor list */
+  for (int i = 0; i < NearestNeighbors.MajorDim(); i++)
+  {
+   NearestNeighbors.RowAlias(i,neighbors);
+   int tag_i = neighbors[0];
+   int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
+
+   int nlen = neighbors.Length();
+   dArray2DT neighdisp(nlen,ndof);
+   int ncombos = Combination(nlen-1,2); 
+   dArrayT ndsum(ncombos);
+
+   coords.RowAlias(tag_i,x_i);
+   for (int j = 1; j < nlen; j++)
+   {
+    int tag_j = neighbors[j];
+    coords.RowAlias(tag_j,x_j);
+    r_ij.DiffOf(x_j,x_i);
+    if (fhas_periodic && (r_ij.Magnitude() > 0.5*fPeriodicLengths.Max()))
+    {
+     for (int m = 0; m < ndof; m++)
+     {
+      if (r_ij[m] > 0.5*fPeriodicLengths[m]) r_ij[m] -=fPeriodicLengths[m]; 
+      if (r_ij[m] < -0.5*fPeriodicLengths[m]) r_ij[m] +=fPeriodicLengths[m]; 
+     }
+    }
+    for (int m = 0; m < ndof; m++)
+	{
+	 neighdisp(j,m) = r_ij[m];
+	}
+   }  /* end of j loop */
+
+   int icombos = 0;
+   for (int j = 1; j < nlen-1; j++)
+   {
+	for (int k = j+1; k < nlen; k++)
+	{
+	  for (int m = 0; m < ndof; m++) 
+	  {
+	   rvec[m] = neighdisp(j,m) + neighdisp(k,m);
+	  } /* end of m loop */
+	  ndsum[icombos++] = pow(rvec.Magnitude(),2);
+	} /* end of k loop */
+   } /* end of j looop */
+   if (icombos != ncombos) throw eSizeMismatch;
+   ndsum.SortAscending();
+   double csp = 0.0;
+   for (int m = 0; m < 6; m++) csp += ndsum[m];
+   csp /= pow(fLatticeParameter,2);  
+
+   /* put centrosymmetry parameter into global s_values array */
+   s_values(local_i, num_s_vals-1) = csp;
+
+  } /* end of i loop */
+ 
 }

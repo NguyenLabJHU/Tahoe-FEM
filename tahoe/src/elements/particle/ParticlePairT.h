@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.15 2004-01-23 06:47:50 paklein Exp $ */
+/* $Id: ParticlePairT.h,v 1.15.12.1 2004-03-19 01:49:47 jzimmer Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -102,7 +102,7 @@ protected:
 
 	/*nearest neighbor list*/
 	RaggedArray2DT<int> NearestNeighbors;
-
+	RaggedArray2DT<int> RefNearestNeighbors;
 
 	/** return a new pair property or NULL if the name is invalid */
 	PairPropertyT* New_PairProperty(const StringT& name, bool throw_on_fail) const;
