@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.5.2.4 2002-04-30 01:30:21 paklein Exp $ */
+/* $Id: TiedNodesT.h,v 1.5.2.5 2002-05-07 18:58:52 cjkimme Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -7,6 +7,7 @@
 #include "KBC_ControllerT.h"
 
 /* direct members */
+#include "dArray2DT.h"
 #include "iArray2DT.h"
 #include "iArrayT.h"
 #include "ScheduleT.h"
@@ -16,6 +17,9 @@
 class dArray2DT;
 class BasicFieldT;
 class FEManagerT;
+
+/* friends */
+#include "TiedPotentialT.h"
 
 /** class to tie nodes together and release them under specified conditions.
  * The class accomplishes this in the following way, most of which rely on the
@@ -113,6 +117,8 @@ protected:
 
 	/** copy kinematic information from the leader nodes to the follower nodes */
 	virtual void CopyKinematics(void);
+	
+	friend bool TiedPotentialT::InitiationQ(const dArrayT& sigma); 
 
 protected:
 
@@ -146,6 +152,7 @@ protected:
 	
 	/** needed to generate KBC_ControllerT::fKBC_Cards */
 	ScheduleT fDummySchedule;	
+	
 
 #pragma message("TiedNodesT.h: need an FEManagerT reference here?")
 	const FEManagerT& fFEManager;
