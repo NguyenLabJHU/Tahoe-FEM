@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.20.4.1 2004-04-08 07:33:59 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.20.4.2 2004-05-21 19:47:22 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -489,12 +489,7 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 			else if (type == GlobalT::kSymmetric)
 				fLHS = new CCSMatrixT(out, check_code);
 			else
-			{
-				cout << "\n SolverT::SetGlobalMatrix: global system type " << type;
-				cout << " is not\n";
-				cout <<   "     compatible with matrix type " << kProfileSolver;
-				cout << endl;
-			}
+				ExceptionT::GeneralFail(caller, "system type %d not compatible with matrix %d", type, kProfileSolver);
 			break;
 		}
 		case kFullMatrix:
