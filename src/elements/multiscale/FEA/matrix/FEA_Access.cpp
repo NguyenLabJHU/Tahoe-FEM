@@ -4,7 +4,7 @@
 
 #include "FEA.h"
 
-#if defined (__DEC__) || defined (__SUN__)
+#if defined (__DEC__) || defined (__SUN__) || defined(__MWERKS__)
 
 /* declare "global" within the Tahoe namespace */
 namespace Tahoe {
