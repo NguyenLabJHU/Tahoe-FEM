@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.24 2002-06-08 20:20:20 paklein Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.25 2002-06-19 16:27:26 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -410,9 +410,16 @@ void SurfaceT::ComputeSurfaceBasis(void)
 		}
 		Normalize(normal,fNumSD);
 		/* compute tangents */
-		double* tangent1 = fTangent1s(i);
-		double* tangent2 = (fNumSD ==3) ? fTangent2s(i) : NULL; 
 		FaceT* face = fNodeNeighbors(i)[0];
-		face->LocalBasis(normal,tangent1,tangent2);
+		double* tangent1 = fTangent1s(i);
+		if (fNumSD ==3) {
+			double* tangent2 = fTangent2s(i);
+			face->LocalBasis(normal,tangent1,tangent2);
+		} else {
+			face->LocalBasis(normal,tangent1);
+		}
+		
+//double* tangent2 = (fNumSD ==3) ? fTangent2s(i) : NULL; 
+//face->LocalBasis(normal,tangent1,tangent2);
   	}
 }

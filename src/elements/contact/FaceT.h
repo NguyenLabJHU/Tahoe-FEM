@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.20 2002-06-17 17:15:07 rjones Exp $ */
+/* $Id: FaceT.h,v 1.21 2002-06-19 16:27:26 rjones Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
@@ -46,8 +46,6 @@ public:
                 (const double* local_coordinates, double* tangent2) const =0;
   	virtual void NodeNormal(int local_node_number,double* normal) const =0; 
 	virtual void CalcFaceNormal(void)=0; 
-	virtual void LocalBasis
-		(double* normal, double* tangent1, double* tangent2) const=0;
 	virtual void ComputeShapeFunctions
 	  	(const double* local_coordinates, dArrayT& shape_functions)  
 		const=0;
@@ -61,6 +59,9 @@ public:
 	virtual void ComputeShapeFunctionDerivatives
 		(const double* local_coordinates, dMatrixT& shape_derivatives) 
 		const {throw ;}
+	virtual void LocalBasis
+		(double* normal, double* tangent1) const
+		{throw;}
 // 3D
 	virtual void ComputeShapeFunctionDerivatives
 		(const double* local_coordinates, 
@@ -70,6 +71,10 @@ public:
 		(const double* local_coordinates, 
 		dMatrixT& shape_derivatives1, dMatrixT& shape_derivatives2) 
 		const {throw ;}
+	virtual void LocalBasis
+		(double* normal, double* tangent1, double* tangent2) const
+		{throw;}
+
 	virtual void InterpolatePosition(const double* local_coordinates,
 		double* x) const =0;
 	virtual double Interpolate
@@ -107,7 +112,7 @@ public:
  	inline const int Node(int i) const {return fConnectivity[i];} 
 	inline const int NumVertexNodes(void) const {return fNumVertexNodes;}
 	inline const int Next(int i) const {return (i + 1)%fNumVertexNodes;}
-	inline const int Prev(int i) const {return (i - 1)%fNumVertexNodes;}
+	inline const int Prev(int i) const {return (i +fNumVertexNodes- 1)%fNumVertexNodes;}
 	inline const int LocalNodeNumber(int node_num) const
 	  {for (int i = 0; i < fConnectivity.Length(); i++) {
 		if (node_num == fConnectivity[i]) return i ; } return -1; }

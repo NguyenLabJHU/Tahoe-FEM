@@ -1,4 +1,4 @@
-/* $Id: LineQ3FaceT.cpp,v 1.7 2002-03-25 16:11:42 rjones Exp $ */
+/* $Id: LineQ3FaceT.cpp,v 1.8 2002-06-19 16:27:26 rjones Exp $ */
 
 #include "LineQ3FaceT.h"
 
@@ -304,7 +304,7 @@ LineQ3FaceT::Projection
 
 void
 LineQ3FaceT::LocalBasis
-(double* normal, double* tangent1, double* tangent2) const
+(double* normal, double* tangent1) const
 {
 	/* calculate face tangent */
         Diff(fx[0],fx[1],tangent1);

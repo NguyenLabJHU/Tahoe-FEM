@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.22 2002-03-25 16:11:42 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.23 2002-06-19 16:27:26 rjones Exp $ */
 
 #include "LineL2FaceT.h"
 
@@ -274,7 +274,7 @@ LineL2FaceT::Projection
 
 void
 LineL2FaceT::LocalBasis
-(double* normal, double* tangent1, double* tangent2) const
+(double* normal, double* tangent1) const
 {
 	/* calculate face tangent */
         Diff(fx[0],fx[1],tangent1);
