@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.9.2.2 2004-07-09 01:10:10 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.9.2.3 2004-07-12 06:45:01 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
@@ -87,8 +87,8 @@ void MFPenaltyContact2DT::DefineParameters(ParameterListT& list) const
 /* accept parameter list */
 void MFPenaltyContact2DT::TakeParameterList(const ParameterListT& list)
 {
-	/* inherited */
-	PenaltyContact2DT::TakeParameterList(list);
+	/* NOTE: fMeshFreeSupport must be resolved before calling PenaltyContact2DT::TakeParameterList
+	 *       because it is needed during MFPenaltyContact2DT:: ExtractContactGeometry */
 
 	/* resolve meshless element group */
 	int group = list.GetParameter("meshless_group");
@@ -117,6 +117,9 @@ void MFPenaltyContact2DT::TakeParameterList(const ParameterListT& list)
 
 	/* set map of node ID to meshfree point index */
 	fNodeToMeshFreePoint.SetMap(fMeshFreeSupport->NodesUsed());
+
+	/* inherited */
+	PenaltyContact2DT::TakeParameterList(list);
 }
 
 /***********************************************************************
@@ -246,6 +249,140 @@ void MFPenaltyContact2DT::RHSDriver(void)
 
 	/* set tracking */
 	SetTrackingData(num_contact, h_max);
+}
+
+/* echo contact bodies and striker nodes. After the read section, should have valid 
+ * nodes/facet connectivities for the local database. */
+void MFPenaltyContact2DT::ExtractContactGeometry(const ParameterListT& list)
+{
+	const char caller[] = "ContactT::ExtractContactGeometry";
+
+	/* output stream */
+	ofstreamT& out = ElementSupport().Output();
+	bool print_input = ElementSupport().PrintInput();
+
+	/* get surfaces */
+	int num_surfaces = list.NumLists("contact_surface");
+	fSurfaces.Dimension(num_surfaces);
+
+	/* read contact bodies */
+	for (int i = 0; i < fSurfaces.Length(); i++)
+	{
+		const ParameterListT& surface_spec = list.GetListChoice(*this, "contact_surface", i);
+
+		if (surface_spec.Name() == "surface_side_set")
+			InputSideSets(surface_spec, fSurfaces[i]);
+		else if (surface_spec.Name() == "body_boundary") 
+		{
+			/* may resize the surfaces array */
+			InputBodyBoundary(surface_spec, fSurfaces, i);
+			num_surfaces = fSurfaces.Length();
+		}
+		else
+			ExceptionT::GeneralFail(caller, "unrecognized contact surface \"%s\"",
+				surface_spec.Name().Pointer());
+	}
+	
+	/* echo data  */
+	out << " Contact surfaces:\n";
+	out << setw(kIntWidth) << "surface"
+	    << setw(kIntWidth) << "facets"
+	    << setw(kIntWidth) << "size" << '\n';
+	for (int j = 0; j < fSurfaces.Length(); j++)
+	{		
+	  	iArray2DT& surface = fSurfaces[j];
+
+	  	out << setw(kIntWidth) << j+1
+	  	    << setw(kIntWidth) << surface.MajorDim()
+	  	    << setw(kIntWidth) << surface.MinorDim() << "\n\n";
+  	
+		/* verbose */
+		if (print_input) {
+			surface++;
+			surface.WriteNumbered(out);
+			surface--;
+			out << '\n';
+	  	}
+	}
+
+	/* look for empty surfaces */
+	int surface_count = 0;	
+	for (int j = 0; j < fSurfaces.Length(); j++)
+		if (fSurfaces[j].MajorDim() > 0)
+			surface_count++;
+
+	/* remove empty surfaces */
+	if (surface_count != fSurfaces.Length())
+	{
+		out << " Found empty contact surfaces:\n\n";
+		ArrayT<iArray2DT> tmp_surfaces(surface_count);
+		surface_count = 0;
+		for (int i = 0; i < fSurfaces.Length(); i++)
+		{
+	  		iArray2DT& surface = fSurfaces[i];
+			if (surface.MajorDim() == 0)
+				out << " removing surface " << i+1 << '\n';
+			else
+				tmp_surfaces[surface_count++].Swap(surface);
+		}
+		
+		/* exchange */
+		fSurfaces.Swap(tmp_surfaces);
+	}
+
+	/* get strikers */
+	const ParameterListT& striker_spec = list.GetListChoice(*this, "contact_nodes");
+	if (striker_spec.Name() == "node_ID_list")
+		StrikersFromNodeSets(striker_spec);
+	else if (striker_spec.Name() == "side_set_ID_list")
+		StrikersFromSideSets(striker_spec);
+	else if (striker_spec.Name() == "all_surface_nodes")
+		StrikersFromSurfaces();
+	else if (striker_spec.Name() == "all_nodes_as_strikers")
+		fStrikerTags.Alias(fMeshFreeSupport->NodesUsed());
+	else
+		ExceptionT::GeneralFail(caller, "unrecognized contact node specification \"\"",
+			striker_spec.Name().Pointer());
+
+	/* check to see that all strikers are meshfree */
+	if (striker_spec.Name() != "all_nodes_as_strikers") {
+		InverseMapT map;
+		map.SetOutOfRange(InverseMapT::MinusOne);
+		map.SetMap(fMeshFreeSupport->NodesUsed());
+		for (int i = 0; i < fStrikerTags.Length(); i++)
+			if (map.Map(fStrikerTags[i]) == -1)
+				ExceptionT::GeneralFail(caller, "striker %d is not meshfree", fStrikerTags[i]+1);
+	}
+
+	/* echo */
+	if (print_input) {
+		out << "\n Striker nodes:\n";
+		fStrikerTags++;
+		out << fStrikerTags.wrap(8) << '\n';
+		fStrikerTags--;	
+	}
+
+	/* set connectivity name */
+	ModelManagerT& model = ElementSupport().ModelManager();
+	StringT name ("Contact");
+	name.Append (ElementSupport().ElementGroupNumber(this) + 1);
+
+	/* register with the model manager and let it set the ward */
+	int nen = fNumFacetNodes + 1; /* facet nodes + 1 striker */
+	if (!model.RegisterElementGroup(name, GeometryT::kLine, nen)) 
+		ExceptionT::GeneralFail(caller, "could not register contact facets");
+
+	/* set up fConnectivities */
+	fConnectivities.Dimension(1);
+	fConnectivities[0] = model.ElementGroupPointer(name);
+
+	/* set up fBlockData to store block ID */
+	fBlockData.Dimension(1);
+	fBlockData[0].Set(name, 0, fConnectivities[0]->MajorDim(), -1);
+
+	/* set managed equation numbers array */
+	fEqnos.Dimension(1);
+	fEqnos_man.SetWard(0, fEqnos[0], nen*NumDOF());
 }
 
 #if 0
