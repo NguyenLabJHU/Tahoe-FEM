@@ -1,5 +1,5 @@
-/* $Id: SolverT.h,v 1.3 2001-05-01 23:22:59 paklein Exp $ */
-/* created: paklein (05/23/1996)                                          */
+/* $Id: SolverT.h,v 1.4 2002-03-28 16:38:46 paklein Exp $ */
+/* created: paklein (05/23/1996) */
 
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -12,7 +12,7 @@
 
 /* direct members */
 #include "dArrayT.h"
-#include "GlobalMatrixT.h" // for the inlines
+#include "GlobalMatrixT.h"
 #include "GlobalT.h"
 
 /* forward declarations */
@@ -23,26 +23,34 @@ class dMatrixT;
 class ElementMatrixT;
 template <class TYPE> class RaggedArray2DT;
 
+/** solver base class. This class is responsible for driving the solution
+ * procedure over a given series of time increments. The class controls
+ * how the solution is determined over a given time step, what determines
+ * if the solution has been found, and how to handle failures to find a
+ * solution, or other irregularities that occur during the solution procedure.
+ * Derived types instantiate different nonlinear solution procedures. */
 class SolverT: public iConsoleObjectT
 {
 public:
 
 	/* nonlinear solver codes */
-	enum SolverTypeT {kNewtonSolver = 0, // standard Newton solver
-                   kK0_NewtonSolver = 1, // initial tangent, Newton solver
-                   kModNewtonSolver = 2, // modified Newton solver (development)
-                    kExpCD_DRSolver = 3, // central difference, dynamic relaxation
-                   kNewtonSolver_LS = 4, // Newton solver with line search
-                      kPCGSolver_LS = 5, // preconditioned, nonlinear conjugate gradient
-                  kiNewtonSolver_LS = 6};// interactive Newton solver (with line search)
+	enum SolverTypeT {kNewtonSolver = 0, /**< standard Newton solver */
+                   kK0_NewtonSolver = 1, /**< initial tangent, Newton solver */
+                   kModNewtonSolver = 2, /**< modified Newton solver (development) */
+                    kExpCD_DRSolver = 3, /**< central difference, dynamic relaxation */
+                   kNewtonSolver_LS = 4, /**< Newton solver with line search */
+                      kPCGSolver_LS = 5, /**< preconditioned, nonlinear conjugate gradient */
+                  kiNewtonSolver_LS = 6, /**< interactive Newton solver (with line search) */
+                               kNOX = 7  /**< NOX library solver */
+                               };
 
 	/* global matrix types */
-	enum MatrixTypeT {kDiagonalMatrix = 0,
-	                   kProfileSolver = 1,  // symmetric and nonsymmetric
-	                      kFullMatrix = 2,  // with pivoting
-					           kAztec = 3,  // sparse, iterative solver
-			            kSparseDirect = 4,  // sparse, direct solver: SuperLU
-			                 kSPOOLES = 5}; // sparse, direct solver: symbolic factorization
+	enum MatrixTypeT {kDiagonalMatrix = 0, /**< diagonal matrix for "matrix-free" methods */
+	                   kProfileSolver = 1, /**< symmetric and nonsymmetric profile solvers */
+	                      kFullMatrix = 2, /**< full matrix with pivoting */
+					           kAztec = 3, /**< sparse, iterative solver */
+			            kSparseDirect = 4, /**< sparse, direct solver: SuperLU */
+			                 kSPOOLES = 5};/**< sparse, direct solver: symbolic factorization */
 
 	/* constructor */
 	SolverT(FEManagerT& fe_manager);
