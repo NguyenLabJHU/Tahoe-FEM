@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="../geometry/cube.1.geom" title="3D uniaxial extension">
-    <time num_steps="2" output_inc="1" time_step="0.5">
+    <time num_steps="3" output_inc="1" time_step="0.5">
         <schedule_function>
             <piecewise_linear>
                 <OrderedPair x="0.0" y="0.0"/>
-                <OrderedPair x="1.0" y="0.1"/>
+                <OrderedPair x="2.0" y="0.2"/>
             </piecewise_linear>
         </schedule_function>
     </time>
