@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.16 2005-03-12 10:05:42 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.17 2005-04-06 01:28:00 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
@@ -459,7 +459,7 @@ void MFPenaltyContact2DT::ExtractContactGeometry(const ParameterListT& list)
 		fNodeToMeshFreePoint.SetMap(fStrikerTags);
 
 		/* map global ID to local numbering */
-		fSCNI_LocalID.Alias(fStrikerTags);
+		fSCNI_LocalID = fStrikerTags;
 		if (!fSCNI->GlobalToLocalNumbering(fSCNI_LocalID))
 			ExceptionT::GeneralFail(caller, "SCNI global->local failed");
 	
