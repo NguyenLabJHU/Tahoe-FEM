@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.10 2004-04-03 00:06:47 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.11 2004-04-05 18:12:39 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -900,7 +900,9 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
     // list of centroids of self-dual facets
     iArrayT* thisFacet;
     int thisFacetLength;
-    double pt[fSD];
+    dArrayT ptArray(fSD); // workspace for centroids
+    double *pt = ptArray.Pointer(); 
+    
     ctr = 0;
     for (int i = 0; i < fSelfDuals.Length(); i++)
       for (int j = 0; j < fSelfDuals[i].Length(); j++) {
