@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: VolumeT.cpp,v 1.8 2003-06-06 16:05:02 saubry Exp $ */
+/* $Id: VolumeT.cpp,v 1.9 2003-06-12 20:30:42 saubry Exp $ */
 #include "VolumeT.h"
 
 VolumeT::VolumeT(int n) 
@@ -54,6 +54,11 @@ iArray2DT* VolumeT::GetAtomConnectivities()
   return &atom_connectivities;
 }
 
+ArrayT< iArray2DT * > * VolumeT::GetAtomPartsConnectivities()
+{
+  return &atom_part_connect;
+}
+
 dArray2DT* VolumeT::GetAtomBounds()
 {
   return &atom_bounds;
@@ -62,5 +67,10 @@ dArray2DT* VolumeT::GetAtomBounds()
 iArrayT* VolumeT::GetAtomTypes()
 {
   return &atom_types;
+}
+
+iArrayT* VolumeT::GetAtomParts()
+{
+  return &atom_parts;
 }
 

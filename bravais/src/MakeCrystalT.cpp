@@ -70,8 +70,8 @@ void MakeCrystalT::Run()
 	{
 	  in >> len(0,0) >> len(0,1);
 	  in >> len(1,0) >> len(1,1);
-	  out << "   lengths: [" << len(0,0) << "," << len(0,1) << "]\n";
-	  out << "            [" << len(1,0) << "," << len(1,1) << "]\n";
+	  out << "   lengths: [" << float(len(0,0)) << "," << float(len(0,1)) << "]\n";
+	  out << "            [" << float(len(1,0)) << "," << float(len(1,1)) << "]\n";
 	  
 	}
       else if (nsd==3)
@@ -79,9 +79,9 @@ void MakeCrystalT::Run()
 	  in >> len(0,0) >>len(0,1);
 	  in >> len(1,0) >>len(1,1);
 	  in >> len(2,0) >>len(2,1);
-	  out << "   lengths:  [" << len(0,0) << "," << len(0,1) << "]\n";
-	  out << "             [" << len(1,0) << "," << len(1,1) << "]\n";
-	  out << "             [" << len(2,0) << "," << len(2,1) << "]\n";
+	  out << "   lengths:  [" << float(len(0,0)) << "," << float(len(0,1)) << "]\n";
+	  out << "             [" << float(len(1,0)) << "," << float(len(1,1)) << "]\n";
+	  out << "             [" << float(len(2,0)) << "," << float(len(2,1)) << "]\n";
 	}
     }
   else
@@ -225,9 +225,9 @@ void MakeCrystalT::Run()
         in >> mat_rot(0,2) >> mat_rot(1,2) >> mat_rot(2,2); 
       
         out << "   Rotation Matrix: " ;
-        out << mat_rot(0,0) << "  " <<  mat_rot(0,1) << "  " << mat_rot(0,2) << "\n";
-        out << "                    " << mat_rot(1,0) << "  " <<  mat_rot(1,1) << "  " << mat_rot(1,2) << "\n";
-        out << "                    " << mat_rot(2,0) << "  " <<  mat_rot(2,1) << "  " << mat_rot(2,2) << "\n";
+        out << float(mat_rot(0,0)) << "  " <<  float(mat_rot(0,1)) << "  " << float(mat_rot(0,2)) << "\n";
+        out << "                    " << float(mat_rot(1,0)) << "  " <<  float(mat_rot(1,1)) << "  " << float(mat_rot(1,2)) << "\n";
+        out << "                    " << float(mat_rot(2,0)) << "  " <<  float(mat_rot(2,1)) << "  " << float(mat_rot(2,2)) << "\n";
         out << "\n";
       }
     }
@@ -274,16 +274,16 @@ void MakeCrystalT::Run()
   out << "Dimensions of the simulation box : \n";
   if(nsd==2) 
     {
-      out << "[" << mesh_atom.Length()(0,0) << "," << mesh_atom.Length()(0,1) << "]\n";
-      out << "[" << mesh_atom.Length()(1,0) << "," << mesh_atom.Length()(1,1) << "]\n";
+      out << "[" << float(mesh_atom.Length()(0,0)) << "," << float(mesh_atom.Length()(0,1)) << "]\n";
+      out << "[" << float(mesh_atom.Length()(1,0)) << "," << float(mesh_atom.Length()(1,1)) << "]\n";
       out << "corresponding to " << mesh_atom.NumberOFCells()[0] << ", " 
 	  << mesh_atom.NumberOFCells()[1] << " cells.\n";
     }
   else if (nsd==3)
     {
-      out << "[" << mesh_atom.Length()(0,0) << "," << mesh_atom.Length()(0,1) << "]\n";
-      out << "[" << mesh_atom.Length()(1,0) << "," << mesh_atom.Length()(1,1) << "]\n";
-      out << "[" << mesh_atom.Length()(2,0) << "," << mesh_atom.Length()(2,1) << "]\n";
+      out << "[" << float(mesh_atom.Length()(0,0)) << "," << float(mesh_atom.Length()(0,1)) << "]\n";
+      out << "[" << float(mesh_atom.Length()(1,0)) << "," << float(mesh_atom.Length()(1,1)) << "]\n";
+      out << "[" << float(mesh_atom.Length()(2,0)) << "," << float(mesh_atom.Length()(2,1)) << "]\n";
       out << "corresponding to " << mesh_atom.NumberOFCells()[0] << ", " 
 	  << mesh_atom.NumberOFCells()[1] << ", "  << mesh_atom.NumberOFCells()[2] <<" cells.\n";
     }

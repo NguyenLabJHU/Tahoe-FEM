@@ -130,24 +130,19 @@ void MeshAtomT::BuildIOFile(StringT& program_name,
   Shape->CalculateType();
 
   if(IOLattice != 0) delete IOLattice;
-
   IOLattice = new OutPutLatticeT(cout,program_name,version,title,
-				 input_file,output_format,
-				 *(Shape->GetAtomBounds()),
-				 *(Shape->GetAtomTypes()));
+				 input_file,output_format);
   ArrayT<StringT> n_labels(1);
   n_labels[0] = "Atom";
 
   if(Set != 0) delete Set;
-
-  Set=new OutputSetT(GeometryT::kPoint, 
-		     *(Shape->GetAtomConnectivities()), n_labels);
-  
+  Set=new OutputSetT(GeometryT::kPoint,*(Shape->GetAtomConnectivities()), n_labels);
 
   IOLattice->SetCoordinates(*(Shape->GetAtomCoordinates()),(Shape->GetAtomID()));
 
   IOLattice->SetBounds(*(Shape->GetAtomBounds()));
   IOLattice->SetTypes(*(Shape->GetAtomTypes()));
+  IOLattice->SetParts(*(Shape->GetAtomParts()));
  
   IOLattice->AddElementSet(*Set);
   

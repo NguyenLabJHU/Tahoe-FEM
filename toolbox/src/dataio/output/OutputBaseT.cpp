@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.15 2003-04-18 23:46:45 saubry Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.16 2003-06-12 20:31:39 saubry Exp $ */
 /* created: sawimme (05/18/1999) */
 #include "OutputBaseT.h"
 #include "OutputSetT.h"
@@ -20,7 +20,8 @@ OutputBaseT::OutputBaseT(ostream& out, const ArrayT<StringT>& out_strings):
 	fNodeID(NULL),
 	fSequence(0),
 	fBounds(NULL),
-	fTypes(NULL)
+	fTypes(NULL),
+	fParts(NULL)
 {
 	if (out_strings.Length() > 3)
 {
@@ -78,7 +79,7 @@ void OutputBaseT::SetCoordinates(const dArray2DT& coordinates, const iArrayT* no
 	}
 }
 
-/* SA: add definition of special arrays for ParaDyn Format Output */
+/* SA: add definitions of special arrays for ParaDyn Format Output */
 void OutputBaseT::SetBounds(const dArray2DT& bounds)
 {
   fBounds = &bounds;
@@ -88,6 +89,12 @@ void OutputBaseT::SetTypes(const iArrayT& types)
 {
   fTypes = &types;
 }
+
+void OutputBaseT::SetParts(const iArrayT& parts)
+{
+  fParts = &parts;
+}
+/* end added definitions */
 
 int OutputBaseT::AddElementSet(const OutputSetT& output_set)
 {

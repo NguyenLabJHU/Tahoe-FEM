@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.23 2003-06-06 23:11:35 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.24 2003-06-12 20:30:42 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -166,15 +166,6 @@ void BoxT::CalculateType()
   for (int i=0; i < nATOMS; i++)
     atom_types[i] = 1; 
 }
-
-void BoxT::CalculatePart()
-{
-  atom_parts.Dimension(nATOMS);
-
-  for (int i=0; i < nATOMS; i++)
-    atom_parts[i] = 1; 
-}
-
 
 void BoxT::SortLattice(CrystalLatticeT* pcl) 
 {

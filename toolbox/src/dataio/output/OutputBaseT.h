@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.h,v 1.15 2003-04-18 23:46:45 saubry Exp $ */
+/* $Id: OutputBaseT.h,v 1.16 2003-06-12 20:31:39 saubry Exp $ */
 /* created: sawimme (05/18/1999) */
 #ifndef _OUTPUTBASE_T_H_
 #define _OUTPUTBASE_T_H_
@@ -60,6 +60,7 @@ public:
 
 	virtual void SetBounds(const dArray2DT& bounds);
 	virtual void SetTypes(const iArrayT& types);
+	virtual void SetParts(const iArrayT& parts);
 
 
 	/** return the node id list
@@ -126,6 +127,7 @@ protected:
 
 	const dArray2DT* fBounds; /**< pointer to bounds, paradyn format */
 	const iArrayT* fTypes; /**< pointer to types, paradyn format */
+	const iArrayT* fParts; /**< pointer to parts, paradyn format */
 
 	AutoArrayT<OutputSetT*> fElementSets; /**< list of output groups */
 	ArrayT<iArrayT> fElementBlockIDs; /**< integer blocks IDs created from string IDs */

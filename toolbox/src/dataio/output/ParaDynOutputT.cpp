@@ -30,7 +30,7 @@ void ParaDynOutputT::WriteGeometry (void)
       geo << fCoordinates->MajorDim() << "\n";
          
      for (int i=0; i < fElementSets.Length(); i++)
-	  WritePart (geo,par,i);
+	 WritePart (geo,par,i);
     }
 }
 
@@ -100,8 +100,12 @@ void ParaDynOutputT::WriteCoordinates (ostream& geo, ParaDynT& par,
   for (int i=0; i < fTypes->Length(); i++)
     tmp[i] = (*fTypes)[i];
 
+  iArrayT tmp2 (fParts->Length());
+  for (int i=0; i < fParts->Length(); i++)
+    tmp2[i] = (*fParts)[i];
+
   par.WriteCoordinateHeader (geo);
-  par.WriteCoordinates (geo, local, tmp);
+  par.WriteCoordinates (geo, local, tmp,tmp2);
 }
 
 

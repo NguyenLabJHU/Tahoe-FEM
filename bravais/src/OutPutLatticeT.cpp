@@ -25,8 +25,7 @@ OutPutLatticeT::OutPutLatticeT(ostream& outfile,
 			       const StringT& program_name,
 			       const StringT& version, const StringT& title, 
 			       const StringT& input_file,
-			       IOBaseT::FileTypeT output_format, dArray2DT bounds,
-			       iArrayT type):
+			       IOBaseT::FileTypeT output_format):
   fLog(outfile),
   fOutputFormat(output_format),
   fOutput(NULL),
@@ -34,7 +33,7 @@ OutPutLatticeT::OutPutLatticeT(ostream& outfile,
 {
   /* construct output formatter */
   fOutput = NewOutput(program_name, version, title, input_file, 
-		      fOutputFormat, fLog, bounds,type);
+		      fOutputFormat, fLog);
 }
 
 
@@ -50,8 +49,7 @@ OutputBaseT* OutPutLatticeT::NewOutput(const StringT& program_name,
 				       const StringT& title, 
 				       const StringT& input_file,
 				       IOBaseT::FileTypeT output_format, 
-				       ostream& log,
-				       dArray2DT bounds,iArrayT type)
+				       ostream& log)
 {
 	ArrayT<StringT> outstrings (4);
 	outstrings[0] = input_file;
@@ -137,7 +135,7 @@ void OutPutLatticeT::SetTypes(const iArrayT& types)
 
 void OutPutLatticeT::SetParts(const iArrayT& parts)
 {
-  //	fOutput->SetParts(parts); 
+        fOutput->SetParts(parts); 
 }
 
 /* register the output for an element set. returns the output ID */

@@ -45,7 +45,8 @@ enum VariableTypeT {kScalarElemental,
  void WriteCoordinateHeader (ostream& fgeo) const;
  void WriteCoordinates (ostream& fgeo, 
 			const dArray2DT& coords,
-			const iArrayT& types) const;
+			const iArrayT& types,
+			const iArrayT& parts) const;
  
  void WriteTime (ostream& fvar) const;
  
