@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainAxiT.h,v 1.2 2004-02-03 08:24:57 paklein Exp $ */
+/* $Id: FiniteStrainAxiT.h,v 1.3 2004-02-04 07:34:32 paklein Exp $ */
 #ifndef _FINITE_STRAIN_AXI_T_H_
 #define _FINITE_STRAIN_AXI_T_H_
 
@@ -48,7 +48,10 @@ class FiniteStrainAxiT: public FiniteStrainT
 
 	/** \name radius to integration points computed during FiniteStrainAxiT::SetGlobalShape */
 	/*@{*/
+	/** integration point radius in undeformed configuration */
 	dArrayT fRadius_X;
+
+	/** integration point radius in current configuration */
 	dArrayT fRadius_x;
 	/*@}*/
 };
