@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.45 2004-04-27 07:24:02 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.46 2004-11-19 22:56:08 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -38,28 +38,6 @@ bool ModelManagerT::Initialize (const IOBaseT::FileTypeT format, const StringT& 
 		return ScanModel(fInputName);
 	else
 		return true;
-}
-
-bool ModelManagerT::Initialize (void)
-{
-	/* clear any existing parameters */
-	Clear();
-
-  IOBaseT temp (cout);
-  temp.InputFormats (cout);
-  StringT database;
-  cout << "\n Enter the Model Format Type: ";
-  cin >> fFormat;
-  if (fFormat != IOBaseT::kTahoe)
-    {
-      cout << "\n Enter the Model File Name: ";
-      cin >> database;
-      database.ToNativePathName();
-    }
-  else
-    database = "\0";
-	fInputName = database;
-	return ScanModel(fInputName);
 }
 
 void ModelManagerT::EchoData (ostream& o) const
