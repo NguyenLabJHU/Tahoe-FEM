@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.25 2002-05-18 17:40:32 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.26 2002-06-08 19:33:38 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -498,11 +498,6 @@ void ModelManagerT::CoordinateDimensions (int& length, int& dof) const
 {
 	length = fCoordinateDimensions[0];
 	dof = fCoordinateDimensions[1];
-}
-
-const dArray2DT& ModelManagerT::CoordinateReference (void) const
-{
-  return fCoordinates;
 }
 
 const dArray2DT& ModelManagerT::Coordinates (void)
