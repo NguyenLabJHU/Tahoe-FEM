@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.4 2004-01-05 08:04:00 paklein Exp $
+# $Id: makefile.template,v 1.5 2004-01-05 23:02:48 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -81,8 +81,8 @@ include $(MACRO_DIR)/development.extras
 MOD_MAKE_INIT_XTRAS        = update_config
 MOD_MAKE_HEADERS_XTRAS     = nothing
 MOD_MAKE_DEPEND_INIT_XTRAS = nothing
-MOD_CLEAN_XTRAS            = clean_config
-MOD_BUILD_XTRAS            = nothing
+MOD_MAKE_CLEAN_XTRAS       = clean_config
+MOD_MAKEBUILD_XTRAS        = nothing
 
 # include common target definitions
 include $(MACRO_DIR)/make.targets
