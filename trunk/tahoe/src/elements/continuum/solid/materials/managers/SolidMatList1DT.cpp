@@ -1,4 +1,4 @@
-/* $Id: SolidMatList1DT.cpp,v 1.9 2003-07-29 21:17:49 rdorgan Exp $ */
+/* $Id: SolidMatList1DT.cpp,v 1.10 2003-08-07 17:09:39 paklein Exp $ */
 #include "SolidMatList1DT.h"
 #include "SolidMatSupportT.h"
 #include "fstreamT.h"
@@ -8,10 +8,10 @@
 #include "SSHookean1D.h"
 
 #ifdef __DEVELOPMENT__
-#include "DevelopmentMaterialsConfig.h"
+#include "DevelopmentElementsConfig.h"
 #endif
 
-#ifdef GRADJ2SS_MATERIAL_DEV
+#ifdef DORGAN_VOYIADJIS_MARIN_DEV
 #include "GradJ2SS1D.h"
 #endif
 
@@ -59,7 +59,7 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 		  	}
 			case kGradJ2SS:
 			{
-#ifdef GRADJ2SS_MATERIAL_DEV
+#ifdef DORGAN_VOYIADJIS_MARIN_DEV
 				/* check */
 				if (!fGradSSMatSupport) Error_no_small_strain(cout, matcode);
 
@@ -67,7 +67,7 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 #else
-				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "GRADJ2SS_MATERIAL_DEV not enabled: %d", matcode);
+				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "DORGAN_VOYIADJIS_MARIN_DEV not enabled: %d", matcode);
 #endif
 			}
 			default:

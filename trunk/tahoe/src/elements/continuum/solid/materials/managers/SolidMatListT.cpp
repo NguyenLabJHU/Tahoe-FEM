@@ -1,9 +1,15 @@
-/* $Id: SolidMatListT.cpp,v 1.9 2003-07-29 23:41:15 cjkimme Exp $ */
+/* $Id: SolidMatListT.cpp,v 1.10 2003-08-07 17:09:39 paklein Exp $ */
 #include "SolidMatListT.h"
+
+#ifdef __DEVELOPMENT__
+#include "DevelopmentMaterialsConfig.h"
+#include "DevelopmentElementsConfig.h"
+#endif
+
 #include "SolidMaterialT.h"
 #include "SSMatSupportT.h"
 #include "FSMatSupportT.h"
-#ifdef GRADJ2SS_MATERIALS_DEV
+#ifdef DORGAN_VOYIADJIS_MARIN_DEV
 #include "GradSSMatSupportT.h"
 #endif
 
@@ -34,7 +40,7 @@ SolidMatListT::SolidMatListT(int length, const SolidMatSupportT& support):
 
 	/* cast to finite strain support */
 	fFSMatSupport = dynamic_cast<const FSMatSupportT*>(&fSolidMatSupport);
-#ifdef GRADJ2SS_MATERIALS_DEV
+#ifdef DORGAN_VOYIADJIS_MARIN_DEV
 	/* cast to gradient enhanced small strain support */
 	fGradSSMatSupport = dynamic_cast<const GradSSMatSupportT*>(&fSolidMatSupport);
 #endif
