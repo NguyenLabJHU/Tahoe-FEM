@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.6 2002-10-23 18:40:32 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.7 2002-10-25 05:31:22 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -9,6 +9,7 @@
 #include "eControllerT.h"
 #include "iGridManagerT.h"
 #include "OutputSetT.h"
+#include "ScheduleT.h"
 
 /* interaction functions */
 #include "LennardJones612.h"
@@ -316,6 +317,10 @@ void AdhesionT::LHSDriver(void)
 		/* local face index */
 		int i1 = fFaceIndex(fSurface1[i], kLocalIndex);
 		int i2 = fFaceIndex(fSurface2[i], kLocalIndex);
+
+		/* interaction scaling function */
+		double scale = 0.5*(((fScaling[s1]) ? fScaling[s1]->Value(): 1.0) + 
+                            ((fScaling[s2]) ? fScaling[s2]->Value(): 1.0));
 		
 		/* face node numbers */
 		fSurfaces[s1].RowAlias(i1, nodes1);
@@ -388,7 +393,7 @@ void AdhesionT::LHSDriver(void)
 				    dArrayT::Dot(v_12, n1) > 0.0 &&
 				    dArrayT::Dot(v_12, n2) < 0.0)
 				{
-					double k  = j1w1*j2w2*constK;			
+					double k  = scale*j1w1*j2w2*constK;			
 					double k2 = k*(fAdhesion->DFunction(d))/d;
 					double k1 = (k*fAdhesion->DDFunction(d) - k2)/(d*d);
 					
@@ -455,6 +460,10 @@ void AdhesionT::RHSDriver(void)
 		/* local face index */
 		int i1 = fFaceIndex(fSurface1[i], kLocalIndex);
 		int i2 = fFaceIndex(fSurface2[i], kLocalIndex);
+
+		/* interaction scaling function */
+		double scale = 0.5*(((fScaling[s1]) ? fScaling[s1]->Value(): 1.0) + 
+                           ((fScaling[s2]) ? fScaling[s2]->Value(): 1.0));
 
 		/* face node numbers */
 		fSurfaces[s1].RowAlias(i1, nodes1);
@@ -528,7 +537,7 @@ void AdhesionT::RHSDriver(void)
 				    dArrayT::Dot(v_12, n2) < 0.0)
 				{
 					/* adhesive force */
-					double dphi =-j1w1*j2w2*constKd*(fAdhesion->DFunction(d));
+					double dphi =-scale*j1w1*j2w2*constKd*(fAdhesion->DFunction(d));
 					
 					/* face 2 shape functions */
 					Na.Set(shape2.NumFacetNodes(), jump.Pointer(shape1.NumFacetNodes()));
@@ -584,6 +593,7 @@ void AdhesionT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	if (num_surfaces < 1) throw ExceptionT::kBadInputValue;
 
 	/* read surfaces */
+	AutoArrayT<int> schedules;
 	AutoArrayT<iArray2DT*> surfaces;
 	AutoArrayT<GeometryT::CodeT> geom;
 	for (int i = 0; i < num_surfaces; i++)
@@ -630,6 +640,13 @@ void AdhesionT::EchoConnectivityData(ifstreamT& in, ostream& out)
 			surf->Swap(new_surfaces[j]);
 			surfaces.Append(surf);
 		}
+		
+		/* scaling schedule */
+		int sched = -1;
+		in >> sched;
+		if (sched < 0) throw ExceptionT::kBadInputValue;
+		sched--;
+		schedules.Append(sched);
 		
 		/* next */
 		num_surfaces += new_surfaces.Length() - 1;
@@ -700,6 +717,8 @@ void AdhesionT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	fShapes = NULL;
 	fCurrShapes.Dimension(fSurfaces.Length());
 	fCurrShapes = NULL;
+	fScaling.Dimension(fSurfaces.Length());
+	fScaling = NULL;
 	fFaceForce.Dimension(fSurfaces.Length());
 	fCurrentFaceArea.Dimension(fSurfaces.Length());
 	for (int i = 0; i < fSurfaces.Length(); i++)
@@ -734,6 +753,9 @@ void AdhesionT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		/* current area */
 		fCurrentFaceArea[i].Dimension(fSurfaces[i].MajorDim());
 		fCurrentFaceArea[i] = 0.0;
+		
+		/* get scaling function */
+		if (schedules[i] > -1) fScaling[i] = ElementSupport().Schedule(schedules[i]);
 	}
 	fOutputID.Dimension(fSurfaces.Length());
 	fOutputID = -1;
