@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.21 2003-08-23 20:24:15 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.21.2.1 2003-09-28 09:19:03 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -194,7 +194,7 @@ public:
 	void CopyNodeToNode(const ArrayT<int>& source, const ArrayT<int>& target);
 
 	/** reset fields (and configuration to the last known solution) */
-	virtual void ResetStep(int group);
+	virtual GlobalT::RelaxCodeT ResetStep(int group);
 
 	/** return the current values of the active degrees of freedom 
 	 * \param order order of derivative to collect */
@@ -386,6 +386,9 @@ private:
 	dArray2DT* fCurrentCoords;
 	nVariArray2DT<double> fCurrentCoords_man;
 	/*@}*/
+
+	/** highest precedence relaxation code return by XDOF_ManagerT::ResetTags */
+	ArrayT<GlobalT::RelaxCodeT> fXDOFRelaxCodes;
 };
 
 /* inlines */
