@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.38 2002-10-23 18:00:16 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.39 2002-10-23 19:15:29 paklein Exp $ */
 #include "VTKBodyT.h"
 
 /* tahoe toolbox headers */
@@ -652,7 +652,7 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 		/* found requested field */
 		if (vector_field) {
 			for (int i = 0; i < fBodyData->UGrids().Length(); i++)
-				fUGrids[i]->Glyphing(vector_field, fFrame->Renderer(), filter, warpArrows, scale, color);
+				fUGrids[i]->Glyphing(fBodyData, field, fFrame->Renderer(), filter, warpArrows, scale, color);
 			return true;
 		}
 		else /* no such field */ 

@@ -3,6 +3,8 @@
 
 #include "vtkDataSetToPolyDataFilter.h"
 
+class VTKBodyDataT;
+
 #define VTK_SCALE_BY_SCALAR 0
 #define VTK_SCALE_BY_VECTOR 1
 #define VTK_SCALE_BY_VECTORCOMPONENTS 2
@@ -142,7 +144,7 @@ public:
   vtkSetStringMacro(PointIdsName);
   vtkGetStringMacro(PointIdsName);
 
-  void SetVectors(vtkFloatArray* vectors);
+  void SetVectors(VTKBodyDataT* body, const StringT& field);
 
 protected:
   vtkTahoeGlyph3D();
@@ -169,8 +171,12 @@ protected:
 private:
   vtkTahoeGlyph3D(const vtkTahoeGlyph3D&);  // Not implemented.
   void operator=(const vtkTahoeGlyph3D&);  // Not implemented.
-  vtkDataArray *inVectors;
 
+	/** \name vector field information */
+	/*@{*/
+	VTKBodyDataT* fSourceBody;
+	StringT fVectorField;
+	/*@}*/
 };
 
 // Description:

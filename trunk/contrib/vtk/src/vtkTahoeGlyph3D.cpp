@@ -5,6 +5,8 @@
 #include "vtkUnsignedCharArray.h"
 #include "vtkFloatArray.h"
 
+#include "VTKBodyDataT.h"
+
 //------------------------------------------------------------------------
 vtkTahoeGlyph3D* vtkTahoeGlyph3D::New()
 {
@@ -38,9 +40,9 @@ vtkTahoeGlyph3D::vtkTahoeGlyph3D()
   this->GeneratePointIds = 0;
   this->PointIdsName = NULL;
   this->SetPointIdsName("InputPointIds");
-
-	/* initialize input vectors to nothing */
-  	this->inVectors = NULL;
+  
+  /* vector field source */
+  this->fSourceBody = NULL;
 }
 
 vtkTahoeGlyph3D::~vtkTahoeGlyph3D()
@@ -55,7 +57,7 @@ void vtkTahoeGlyph3D::Execute()
 {
   vtkPointData *pd;
   vtkDataArray *inScalars;
-  // vtkDataArray *inVectors;
+  vtkDataArray *inVectors;
   int requestedGhostLevel;
   unsigned char* inGhostLevels=0;
   vtkDataArray *inNormals, *sourceNormals = NULL;
@@ -90,8 +92,9 @@ void vtkTahoeGlyph3D::Execute()
   pd = input->GetPointData();
   inScalars = pd->GetScalars();
   
-  /* only reset vectors if not already defined */
-  if (!inVectors) inVectors = pd->GetVectors();
+  if (!fSourceBody) throw;
+  inVectors = fSourceBody->VectorField(fVectorField); 
+  if (!inVectors) throw;
   
   inNormals = pd->GetNormals();
 
@@ -687,8 +690,8 @@ void vtkTahoeGlyph3D::ComputeInputUpdateExtents( vtkDataObject *output )
 }
 
 
-void vtkTahoeGlyph3D::SetVectors( vtkFloatArray* vectors)
+void vtkTahoeGlyph3D::SetVectors(VTKBodyDataT* body, const StringT& field)
 {
-  inVectors = vectors;
-
+	fSourceBody = body;
+	fVectorField = field;
 }

@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.25 2002-10-23 04:52:05 paklein Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.26 2002-10-23 19:15:29 paklein Exp $ */
 #include "VTKUGridT.h"
 
 /* Tahoe toolbox headers */
@@ -551,7 +551,7 @@ void VTKUGridT::HideCuttingPlane(vtkRenderer* renderer)
 
 }
 
-void VTKUGridT::Glyphing(vtkFloatArray* vectors, vtkRenderer* renderer, bool filter, bool warpA, bool scale, bool color) 
+void VTKUGridT::Glyphing(VTKBodyDataT* body, const StringT& field, vtkRenderer* renderer, bool filter, bool warpA, bool scale, bool color) 
 {
   glyphFilter = filter;
   warpArrows = warpA;
@@ -590,7 +590,7 @@ void VTKUGridT::Glyphing(vtkFloatArray* vectors, vtkRenderer* renderer, bool fil
   else
     spikeMapper->ScalarVisibilityOff();
   
-  glyph->SetVectors(vectors);
+  glyph->SetVectors(body, field);
   
   spikeActor->SetVisibility(true);
   spikeActor->PickableOff();

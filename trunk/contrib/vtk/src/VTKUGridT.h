@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.h,v 1.19 2002-10-23 04:52:05 paklein Exp $ */
+/* $Id: VTKUGridT.h,v 1.20 2002-10-23 19:15:29 paklein Exp $ */
 #ifndef _VTK_U_GRID_T_H_
 #define _VTK_U_GRID_T_H_
 
@@ -36,6 +36,8 @@ class vtkTahoeGlyph3D;
 class vtkArrowSource;
 class vtkSelectVisiblePoints;
 class vtkRenderer;
+
+class VTKBodyDataT;
 
 /* toolbox forward declarations */
 namespace Tahoe {
@@ -89,7 +91,7 @@ class VTKUGridT
 
 	void HideCuttingPlane(vtkRenderer* renderer);
 
-	void Glyphing(vtkFloatArray* vectors, vtkRenderer* renderer, bool filter, bool warpA, bool scale, bool color);
+	void Glyphing(VTKBodyDataT* body, const StringT& field, vtkRenderer* renderer, bool filter, bool warpA, bool scale, bool color);
 	void SetGlyphScale(double scale);
 	void HideGlyphing(void);
 
