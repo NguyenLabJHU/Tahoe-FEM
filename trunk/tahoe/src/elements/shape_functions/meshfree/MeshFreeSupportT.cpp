@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.30 2004-09-03 20:23:59 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.31 2004-10-12 00:18:59 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "MeshFreeSupportT.h"
 
@@ -675,9 +675,9 @@ void MeshFreeSupportT::WriteStatistics(ostream& out) const
 		out << setw(d_width) << min
 	        << setw(d_width) << max;
 		if (fNodalParameters.MajorDim() > 0)
-			out << setw(d_width) << ((count > 0) ? sum/count : 0.0) << '\n';
+			out << setw(d_width) << ((count > 0) ? sum/count : 0.0);
 		else
-			out << setw(d_width) << 0.0 << '\n';
+			out << setw(d_width) << 0.0;
 		out << '\n';
 	}
 
