@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.32 2002-07-02 21:23:00 cjkimme Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.33 2002-07-03 18:55:59 recampb Exp $ */
 
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
@@ -154,7 +154,7 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	iAddCommand(glyph);
 
 	CommandSpecT pick("Pick", false);
-	ArgSpecT nodeNumber(ArgSpecT::int_, "nodeNumber");
+	ArgSpecT nodeNumber(ArgSpecT::int_, "node");
 	nodeNumber.SetDefault(1);
 	nodeNumber.SetPrompt("node number");
 	pick.AddArgument(nodeNumber);
@@ -695,13 +695,16 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 	
 	else if (command.Name() == "Pick")
 	  {
+
+	    bool warp = false;
+	    if (fBodyData->VectorField("D")) warp = true;
 	    vtkPolyDataMapper* sphereMapper = vtkPolyDataMapper::New();
 	    vtkActor* sphereActor = vtkActor::New();  
 	    vtkSphereSource *sphere = vtkSphereSource::New();
 	    sphere->SetThetaResolution(8); sphere->SetPhiResolution(8);
 	    //float* bounds = pointPicker->GetDataSet()->GetBounds();
-	    //sphere->SetRadius(.008*(bounds[1]-bounds[0]));
-	    sphere->SetRadius(.01);
+	    
+	    //sphere->SetRadius(.01);
 	    sphereMapper->SetInput(sphere->GetOutput());
 	    sphereActor->SetMapper(sphereMapper);
 	    sphereActor->GetProperty()->SetColor(1,1,1);
@@ -709,25 +712,41 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 	    sphereActor->PickableOff();
 	
 	    int nodeNum;
-	    command.Argument("nodeNumber").GetValue(nodeNum);
+	    command.Argument("node").GetValue(nodeNum);
+
+	    //map from node number to index in grid
+	    nodeNum = fBodyData->NodeMapIndex(nodeNum);
+	    if (nodeNum == -1) return false;
+
+
 	    Array2DT<vtkFloatArray*> scalars = fBodyData->getScalars();
 	    dArray2DT Coordinates = fBodyData->Coordinates();   	    
 	    
 	    
-
-	    if (nodeNum > 0){
+	    float* coords;
+	    float* bounds;
+	    if (nodeNum >= 0){
 	      //for (int i = 0; i < fUGrids.Length(); i++)
-		float* coords = fBodyData->UGrids()[0]->UGrid()->GetPoint(nodeNum-1);
-		//double* coords = Coordinates(nodeNum-1);
-	       
-	       sphereActor->SetPosition((float)coords[0], (float)coords[1], (float)coords[2]);
-	       fFrame->Renderer()->AddActor(sphereActor);
-	       VTKConsoleT::pickedPoints.Append(sphereActor);
-	       
-	       StringT dummy;
-	       const CommandSpecT* comm = iResolveCommand("Update", dummy);
-	       if (!comm) return false;
-	       iDoCommand(*comm, dummy);
+	      if (warp){
+		coords = fBodyData->UGrids()[0]->Warp()->GetOutput()->GetPoint(nodeNum);
+		bounds = fBodyData->UGrids()[0]->Warp()->GetOutput()->GetBounds();
+	      }
+	      else {
+		coords = fBodyData->UGrids()[0]->UGrid()->GetPoint(nodeNum);
+		bounds = fBodyData->UGrids()[0]->UGrid()->GetBounds();
+	      }
+
+	      //double* coords = Coordinates(nodeNum-1);
+	      sphere->SetRadius(.008*(bounds[1]-bounds[0]));
+	      sphereActor->SetPosition((float)coords[0], (float)coords[1], (float)coords[2]);
+	      fFrame->Renderer()->AddActor(sphereActor);
+	      VTKConsoleT::pickedPoints.Append(sphereActor);
+	      
+	      StringT dummy;
+	      const CommandSpecT* comm = iResolveCommand("Update", dummy);
+	      if (!comm) return false;
+	      iDoCommand(*comm, dummy);
+  
 
 
 
