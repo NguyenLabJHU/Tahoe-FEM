@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.cpp,v 1.13 2003-04-17 20:10:36 cjkimme Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.14 2003-04-18 17:22:12 manzari Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -162,7 +162,7 @@ else
 			state[nTiedFlag] = kFreeNode;
 	}
 	
-	if (jump_u[0] < kSmall && jump_u[1] < kSmall)
+	if (fabs(jump_u[0]) < kSmall && fabs(jump_u[1]) < kSmall)
 	{
 		fTraction = 0.;
 		return fTraction;
