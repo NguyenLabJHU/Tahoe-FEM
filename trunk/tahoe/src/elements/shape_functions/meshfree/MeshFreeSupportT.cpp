@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.12 2001-07-13 20:47:22 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.13 2001-07-13 21:14:31 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -99,6 +99,8 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 		
 		/* just one nodal field parameter */
 		fnodal_param_man.SetMinorDimension(1);
+		fNodalParameters.Allocate(fCoords.MajorDim(), 1);
+		fNodalParameters = -1;
 	}
 	else if (fMeshfreeType == kRKPM)
 	{
@@ -320,18 +322,7 @@ void MeshFreeSupportT::SynchronizeSupportParameters(dArray2DT& nodal_params)
 
 void MeshFreeSupportT::SetSupportParameters(const iArrayT& node, const dArray2DT& nodal_params)
 {
-	/* checks */
-	if (node.Length() != nodal_params.MajorDim()) throw eSizeMismatch;
-	if (node.Length() != fCoords.MajorDim())
-	{
-		cout << "\n MeshFreeSupportT::SetSupportParameters: must initialize field parameters\n"
-		     <<   "     for ALL nodes. Number of nodes is " << fCoords.MajorDim() 
-		     << ". Number of nodes in the\n"
-		     <<   "     parameters list is " << node.Length() << endl;
-		throw eGeneralFail;
-	}
-
-	/* make sure grid is set */
+	/* make sure grid is set - not a good place for this */
 	if (!fGrid)
 	{
 		fNodesUsed.Allocate(fCoords.MajorDim());
