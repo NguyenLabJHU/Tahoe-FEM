@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.h,v 1.7 2003-08-14 05:10:36 paklein Exp $ */
+/* $Id: ParameterInterfaceT.h,v 1.8 2004-01-31 07:15:57 paklein Exp $ */
 #ifndef _PARAMETER_INTERFACE_T_H_
 #define _PARAMETER_INTERFACE_T_H_
 
@@ -136,6 +136,10 @@ public:
 		bool is_inline = false); 
 	void AddSub(const SubListDescriptionT& sub);
 	/*@}*/
+	
+	/** remove the first instance of the given sublist. Returns true if the
+	 * sublist if found and removed. */
+	bool RemoveSub(const char* name);
 };
 
 inline SubListDescriptionT::SubListDescriptionT(const StringT& name, 

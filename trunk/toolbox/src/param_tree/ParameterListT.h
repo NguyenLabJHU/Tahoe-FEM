@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.13 2004-01-27 19:10:03 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.14 2004-01-31 07:15:57 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -96,10 +96,18 @@ public:
 	bool AddParameter(const char* s, const char* name, OccurrenceT occur = Once);
 	bool AddParameter(ValueT::TypeT t, const char* name, OccurrenceT occur = Once);
 
-	/** add a parameter list. Returns true of there where no conflicts with
+	/** remove the first instance of a parameter. Returns true if the given parameter 
+	 * was found and removed. */
+	bool RemoveParameter(const char* name); 
+
+	/** add a parameter list. Returns true if there where no conflicts with
 	 * existing parameter lists. The names of parameter lists cannot be repeated.
 	 * By default, the ParameterListT::OccurrenceT is ParameterListT::Once. */
 	bool AddList(const ParameterListT& param_list, OccurrenceT occur = Once); 
+
+	/** remove the first instance of a parameter list. Returns true if the given list 
+	 * was found and removed. */
+	bool RemoveList(const char* name); 
 
 	/** add a reference. Returns true of there where no conflicts with
 	 * existing references. The names of reference cannot be repeated.

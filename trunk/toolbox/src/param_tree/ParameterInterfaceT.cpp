@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.12 2004-01-27 19:09:15 paklein Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.13 2004-01-31 07:15:57 paklein Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
 #include "ParameterUtils.h"
@@ -214,4 +214,22 @@ ParameterInterfaceT* ParameterInterfaceT::NewSub(const StringT& list_name) const
 	}
 	else
 		return NULL;
+}
+
+/* remove the first instance of the given sublist */
+bool SubListT::RemoveSub(const char* name)
+{
+	/* scan */
+	int index = -1;
+	for (int i = 0; index == -1 && i < fLength; i++)
+		if (fArray[i].Name() == name)
+			index = i;
+
+	/* remove */
+	if (index != -1) {
+		DeleteAt(index);
+		return true;
+	}	
+	else
+		return false;
 }
