@@ -1,4 +1,4 @@
-# $Id: JANUS.macros,v 1.14 2003-09-24 23:56:25 paklein Exp $
+# $Id: JANUS.macros,v 1.15 2003-11-04 05:21:28 paklein Exp $
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpi
 
@@ -9,9 +9,10 @@ DEPENDFLAGS = -I/usr/local/intel/tflop/current/tflops/include -I/usr/local/intel
 COMP_C      = cicc
 COMP_CC     = ciCC
 COMP_F      = cif77
-MORE_CFLAGS = -O2 -DNDEBUG -D__JANUS__
+DEFINES     = -D__JANUS__
+MORE_CFLAGS = -O2 -DNDEBUG
 #MORE_CFLAGS = -g
-LOC_CFLAGS = -c -I$(INC_DIR) $(MORE_CFLAGS)
+LOC_CFLAGS = -c $(DEFINES) -I$(INC_DIR) $(MORE_CFLAGS)
 CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -Wc,-tlocal --display_error_number --diag_suppress 815
 CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)
