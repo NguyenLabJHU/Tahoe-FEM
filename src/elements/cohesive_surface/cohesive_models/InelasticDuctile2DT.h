@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile2DT.h,v 1.4 2003-02-05 09:56:12 paklein Exp $ */
+/* $Id: InelasticDuctile2DT.h,v 1.5 2003-03-19 01:10:24 cjkimme Exp $ */
 #ifndef _INELASTIC_DUCTILE_2D_T_H_
 #define _INELASTIC_DUCTILE_2D_T_H_
 
@@ -41,7 +41,7 @@ public:
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma);
+	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate);
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);

@@ -15,8 +15,7 @@ class MR2DT: public SurfacePotentialT
 {
 public:
 
-	/** constructor.
-	 * \param time_step reference to the current time step */
+	/** constructor */
 	MR2DT(ifstreamT& in);
 
 	/** return the number of state variables needed by the model.
@@ -41,7 +40,7 @@ public:
 
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma);
+	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate);
     
     double& Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff);
     dArrayT& qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar);

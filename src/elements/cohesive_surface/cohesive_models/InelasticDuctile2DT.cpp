@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile2DT.cpp,v 1.4 2003-02-05 09:56:12 paklein Exp $  */
+/* $Id: InelasticDuctile2DT.cpp,v 1.5 2003-03-19 01:10:24 cjkimme Exp $  */
 #include "InelasticDuctile2DT.h"
 #include "ifstreamT.h"
 #include "dArrayT.h"
@@ -103,7 +103,7 @@ double InelasticDuctile2DT::Potential(const dArrayT& jump_u, const ArrayT<double
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& InelasticDuctile2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
+const dArrayT& InelasticDuctile2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
 {
 	const char caller[] = "InelasticDuctile2DT::Traction";
 

@@ -125,7 +125,7 @@ void MR2DT::PrintName(ostream& out) const
 
 		
 /* traction vector given displacement jump vector */	
-const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
+const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
@@ -151,7 +151,7 @@ dArrayT dfdSig(2); dArrayT dq(4); dArrayT Y(6);
 
 double ff; double bott; double topp; double dlam; double dlam2; double normr;
 
-/* Calculate incremental jumps and initialize the neecessary vectors */
+	/* Calculate incremental jumps and initialize the neecessary vectors */
     for (i = 0; i<=1; ++i) {
        u[i] = jump_u[i];
        du[i] = u[i] - state[i+2];
@@ -550,6 +550,7 @@ dMatrixT& MR2DT::dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqba
 const dMatrixT& MR2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
 {
 #pragma unused(sigma)
+#pragma unused(jump_u)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
@@ -567,12 +568,6 @@ dArrayT  u(2), up(2), du(2), dup(2), qn(4), qo(4), Rvec(6),Cvec(6),
          R2(6), X(6), V_sig(2), V_q(4), dfdSig(2), K1(2), K2(2);
          
 double bott;
-	
-	/* temporary fix until CSEAnisoT gets changed */
-	ArrayT<double>& nonConstState = (ArrayT<double> &) state;
-	ArrayT<double> state2 = state;
-	Traction(jump_u,nonConstState,sigma);
-	/* done */
 	
 	fStiffness[1] = fStiffness[2] = 0.;
 	I_m(0,0) = 1.; I_m(0,1) =0.; I_m(1,0) = 0.; I_m(1,1) = 1.;
@@ -657,11 +652,6 @@ double bott;
 	   		fStiffness[3] = KEP(1,1);
 	       }
 	      
-// more temporary fix -- undo the changes we made
-  nonConstState = state2;
-// done
-
-
 	return fStiffness;
 
 }
