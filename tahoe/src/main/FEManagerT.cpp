@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.84 2004-11-17 23:38:34 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.85 2004-11-18 16:39:37 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1401,12 +1401,6 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	fIOManager = new IOManager(fMainOut, kProgramName, kCurrentVersion, fTitle, fInputFile, fOutputFormat);	
 	if (!fIOManager) ExceptionT::OutOfMemory(caller);
 
-	/* set communication manager */
-	fCommManager = New_CommManager();
-	if (!fCommManager) ExceptionT::OutOfMemory(caller);
-	fCommManager->SetPartition(fPartition);
-	fCommManager->Configure();
-
 	/* construct time manager */
 	const ParameterListT* time_params = list.List("time");
 	if (!time_params)
@@ -1415,6 +1409,12 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	if (!fTimeManager) ExceptionT::OutOfMemory(caller);
 	fTimeManager->TakeParameterList(*time_params);
 	iAddSub(*fTimeManager);	
+
+	/* set communication manager */
+	fCommManager = New_CommManager();
+	if (!fCommManager) ExceptionT::OutOfMemory(caller);
+	fCommManager->SetPartition(fPartition);
+	fCommManager->Configure();
 
 	/* set fields */
 	const ParameterListT* node_params = list.List("nodes");
