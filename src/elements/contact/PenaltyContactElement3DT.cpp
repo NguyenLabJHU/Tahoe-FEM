@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement3DT.cpp,v 1.7 2002-11-14 15:44:00 rjones Exp $ */
+/* $Id: PenaltyContactElement3DT.cpp,v 1.8 2002-11-21 01:13:36 paklein Exp $ */
 
 // DEVELOPMENT
 
@@ -86,10 +86,10 @@ void PenaltyContactElement3DT::Initialize(void)
 }
 
 /* print/compute element output quantities */
-void PenaltyContactElement3DT::WriteOutput(IOBaseT::OutputModeT mode)
+void PenaltyContactElement3DT::WriteOutput(void)
 {
 	/* call base class */
-	ContactElementT::WriteOutput(mode);
+	ContactElementT::WriteOutput();
 	
 	if (fOutputFlags[kArea] ) 
 //  (parameters[kPenaltyType]==PenaltyContactElement3DT::kGreenwoodWilliamson))

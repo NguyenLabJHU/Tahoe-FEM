@@ -1,4 +1,4 @@
-/* $Id: BEMelement.h,v 1.4 2002-07-05 22:27:57 paklein Exp $ */
+/* $Id: BEMelement.h,v 1.5 2002-11-21 01:13:33 paklein Exp $ */
 /* created: AFLP (02/28/1998) */
 
 #ifndef _BEM_ELEMENT_H_
@@ -34,7 +34,7 @@ public:
 	
 	/* output */
 	virtual void RegisterOutput(void);
-	virtual void WriteOutput(IOBaseT::OutputModeT mode);
+	virtual void WriteOutput(void);
 	virtual void SendOutput(int kincode);
 	 		
 protected: /* for derived classes only */

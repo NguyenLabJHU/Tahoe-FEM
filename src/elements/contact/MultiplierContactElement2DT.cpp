@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.cpp,v 1.13 2002-11-14 15:43:59 rjones Exp $ */
+/* $Id: MultiplierContactElement2DT.cpp,v 1.14 2002-11-21 01:13:36 paklein Exp $ */
 // created by : rjones 2001
 
 // DEVELOPMENT
@@ -31,13 +31,6 @@ MultiplierContactElement2DT::MultiplierContactElement2DT
 	ContactElementT(support, field, kNumEnfParameters, &support.XDOF_Manager())
 {
 	fNumMultipliers = 1;
-}
-
-/* print/compute element output quantities */
-void MultiplierContactElement2DT::WriteOutput(IOBaseT::OutputModeT mode)
-{
-	/* call base class */
-	ContactElementT::WriteOutput(mode);
 }
 
 /***********************************************************************

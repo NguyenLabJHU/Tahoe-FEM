@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.28 2002-11-14 15:43:59 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.29 2002-11-21 01:13:36 paklein Exp $ */
 
 // DEVELOPMENT
 
@@ -66,7 +66,7 @@ public:
 	
 	/* writing output */
 	virtual void RegisterOutput(void);
-	virtual void WriteOutput(IOBaseT::OutputModeT mode);
+	virtual void WriteOutput(void);
 
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);  // not implemented

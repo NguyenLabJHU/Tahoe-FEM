@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement3DT.h,v 1.3 2002-11-14 15:44:00 rjones Exp $ */
+/* $Id: PenaltyContactElement3DT.h,v 1.4 2002-11-21 01:13:36 paklein Exp $ */
 // created by : rjones 2002
 
 // DEVELOPMENT
@@ -26,7 +26,7 @@ class PenaltyContactElement3DT: public ContactElementT
 	virtual void Initialize(void);
 
 	/* writing output */
-	virtual void WriteOutput(IOBaseT::OutputModeT mode);
+	virtual void WriteOutput(void);
 
     enum EnforcementParametersT { 
                                 kConsistentTangent = 0 ,

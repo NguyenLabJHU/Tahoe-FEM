@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.38 2002-11-14 15:43:59 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.39 2002-11-21 01:13:36 paklein Exp $ */
 
 // DEVELOPMENT
 
@@ -309,10 +309,8 @@ void ContactElementT::ConnectsX(AutoArrayT<const iArray2DT*>& connects) const
 	connects.Append(NULL);
 }
 
-void ContactElementT::WriteOutput(IOBaseT::OutputModeT mode)
+void ContactElementT::WriteOutput(void)
 {
-#pragma unused(mode)
-
 // look at EXODUS output in continuumelementT
         /* contact statistics */
         ostream& out = ElementSupport().Output();

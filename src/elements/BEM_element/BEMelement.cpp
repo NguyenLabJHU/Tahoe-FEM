@@ -1,4 +1,4 @@
-/* $Id: BEMelement.cpp,v 1.4 2002-09-12 17:49:51 paklein Exp $ */
+/* $Id: BEMelement.cpp,v 1.5 2002-11-21 01:13:33 paklein Exp $ */
 /* created: AFLP (02/28/1998) */
 
 #include "BEMelement.h"
@@ -57,10 +57,7 @@ void BEMelement::RegisterOutput(void)
 
 }
 
-void BEMelement::WriteOutput(IOBaseT::OutputModeT mode)
-{
-#pragma unused(mode)
-}
+void BEMelement::WriteOutput(void) {}
 
 void BEMelement::SendOutput(int kincode)
 {

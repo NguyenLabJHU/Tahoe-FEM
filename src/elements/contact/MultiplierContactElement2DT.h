@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.h,v 1.5 2002-11-14 15:43:59 rjones Exp $ */
+/* $Id: MultiplierContactElement2DT.h,v 1.6 2002-11-21 01:13:36 paklein Exp $ */
 // created by : rjones 2001
 
 // DEVELOPMENT
@@ -18,9 +18,6 @@ class MultiplierContactElement2DT: public ContactElementT
 
 	/* constructor */
 	MultiplierContactElement2DT(const ElementSupportT& support, const FieldT& field);
-
-	/* writing output */
-	virtual void WriteOutput(IOBaseT::OutputModeT mode);
 
 	enum EnforcementParametersT { 
                                 kConsistentTangent = 0 ,
