@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.25 2002-07-02 21:22:59 cjkimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.26 2002-07-25 17:26:33 sawimme Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -10,7 +10,7 @@
 #include "ExodusOutputT.h"
 #include "TecPlotOutputT.h"
 #include "FE_ASCIIT.h"
-//#include "PatranOutputT.h"
+#include "PatranOutputT.h"
 
 using namespace Tahoe;
 
@@ -136,9 +136,9 @@ void TranslateIOManager::SetOutput (const StringT& program_name, const StringT& 
     case IOBaseT::kTecPlot:
       fOutput = new TecPlotOutputT (fMessage, outstrings, 4);
       break;
-      //case IOBaseT::kPatranNeutral:
-      //fOutput = new PatranOutputT (fMessage, outstrings, false);
-      //break;
+      case IOBaseT::kPatranNeutral:
+	fOutput = new PatranOutputT (fMessage, outstrings, false);
+	break;
     case IOBaseT::kAVS:
     case IOBaseT::kAVSBinary:
       fOutput = new AVSOutputT (fMessage, outstrings, false);
@@ -201,7 +201,7 @@ void TranslateIOManager::InitializeQuadVariables (void)
 {
   fNumQV = fModel.NumQuadratureVariables ();
   cout << "\n" << setw (10) << fNumQV << " Quadrature Variables\n\n";
-  fQuadratureLabels.Allocate (fNumQV);
+  fQuadratureLabels.Dimension (fNumQV);
   if (fNumQV > 0) fModel.QuadratureLabels (fQuadratureLabels);
 
   // query user as to which variables to translate
@@ -256,7 +256,7 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
   int numnodes, numdims, numpoints;
   fModel.CoordinateDimensions (numnodes, numdims);
   iArrayT nodeIDs (numnodes);
-  fNodeMap.Allocate (numnodes);
+  fNodeMap.Dimension (numnodes);
   fModel.AllNodeMap (fNodeMap);
   fModel.AllNodeIDs (nodeIDs);
   switch (selection)
@@ -267,8 +267,8 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
 	if (fWrite)
 	  cout << "\n Enter the number of nodes: ";
 	fIn >> numpoints;
-	nodes.Allocate (numpoints);
-	index.Allocate (numpoints);
+	nodes.Dimension (numpoints);
+	index.Dimension (numpoints);
 	for (int n=0; n < numpoints; n++)
 	  {
 	    if (fWrite)
@@ -304,8 +304,8 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
 	cout << "\n Node list defined by node set: " << ni << " " << nodesetnames[ni-1] << endl;
 	ni--;
 	numpoints = fModel.NodeSetLength (nodesetnames[ni]);
-	nodes.Allocate (numpoints);
-	index.Allocate (numpoints);
+	nodes.Dimension (numpoints);
+	index.Dimension (numpoints);
 	index = fModel.NodeSet (nodesetnames[ni]);
 	for (int n=0; n < numpoints; n++)
 	  nodes[n] = nodeIDs [index[n]];
@@ -322,8 +322,8 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
 	fIn >> freq;
 	cout << "\n Node list defined by every " << freq << "th node.\n";
 	numpoints = numnodes/freq;
-	nodes.Allocate (numpoints);
-	index.Allocate (numpoints);
+	nodes.Dimension (numpoints);
+	index.Dimension (numpoints);
 	for (int n=0; n < numpoints; n++)
 	  {
 	    nodes[n] = fNodeMap[n*freq];
@@ -339,7 +339,7 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
 void TranslateIOManager::InitializeTime (void)
 {
   fNumTS = fModel.NumTimeSteps ();
-  fTimeSteps.Allocate (fNumTS);
+  fTimeSteps.Dimension (fNumTS);
   if (fNumTS > 0)
     {
       fModel.TimeSteps (fTimeSteps);
@@ -365,7 +365,7 @@ void TranslateIOManager::InitializeTime (void)
 	case 1:
 	  {
 	    cout << "\n Translating all time steps.\n";
-	    fTimeIncs.Allocate (fNumTS);
+	    fTimeIncs.Dimension (fNumTS);
 	    fTimeIncs.SetValueToPosition ();
 	    break;
 	  }
@@ -376,7 +376,7 @@ void TranslateIOManager::InitializeTime (void)
 	      cout << "\n Enter the number of time steps to translate: ";
 	    fIn >> fNumTS;
 	    dArrayT temp (fNumTS);
-	    fTimeIncs.Allocate (fNumTS);
+	    fTimeIncs.Dimension (fNumTS);
 	    if (fWrite)
 	      cout << "\n Increments are numbered consequetively from 1.\n";
 	    for (int i=0; i < fNumTS; i++)
@@ -409,7 +409,7 @@ void TranslateIOManager::InitializeTime (void)
 	    if (start < 1) throw eGeneralFail;
 	    fNumTS = stop-start+1;
 	    dArrayT temp (fNumTS);
-	    fTimeIncs.Allocate (fNumTS);
+	    fTimeIncs.Dimension (fNumTS);
 	    fTimeIncs.SetValueToPosition();
 	    fTimeIncs += start;
 	    temp.Collect (fTimeIncs, fTimeSteps);
@@ -424,7 +424,7 @@ void TranslateIOManager::InitializeTime (void)
 	    fIn >> n;
 	    cout << "\nTranslating every " << n << "th time step.\n";
 	    fNumTS = fNumTS / n;
-	    fTimeIncs.Allocate (fNumTS);
+	    fTimeIncs.Dimension (fNumTS);
 	    dArrayT temp (fNumTS);
 	    for (int i=0; i < fNumTS; i++)
 	      {
@@ -617,9 +617,9 @@ void TranslateIOManager::WriteElements(void)
 	  if (geometry != fModel.ElementGroupGeometry (names[h]))
 	    fOneOutputSet = false;
 	if (fOneOutputSet)
-	  fOutputID.Allocate (1);
+	  fOutputID.Dimension (1);
 	else
-	  fOutputID.Allocate (num);
+	  fOutputID.Dimension (num);
 
 	for (int e = 0; e < num; e++)
 	  {
@@ -679,7 +679,7 @@ void TranslateIOManager::WriteSideSets (void)
 {
   int num = fModel.NumSideSets ();
   if (num <= 0) return;
-  fGlobalSideSets.Allocate (num);
+  fGlobalSideSets.Dimension (num);
   const ArrayT<StringT>& names = fModel.SideSetIDs();
 
   int selection;
@@ -728,6 +728,6 @@ void TranslateIOManager::VariableQuery (const ArrayT<StringT>& names, iArrayT& l
 	temp.Append (i);
     }
 
-  list.Allocate (temp.Length());
+  list.Dimension (temp.Length());
   list.CopyPart (0, temp, 0, temp.Length());  
 }
