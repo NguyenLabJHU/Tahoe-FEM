@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.13.8.1 2003-01-07 17:06:00 paklein Exp $
+# $Id: makefile.template,v 1.13.8.2 2003-01-07 17:08:50 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -25,7 +25,7 @@ ARCH =
 # see macros directory for choices $(ARCH).macros
 
 # default target name - root of library name or executable name
-TARGET  = tahoe.atom
+TARGET  = tahoe
 LIBRARY = $(HOME_DIR)/lib/lib$(TARGET).a
 
 # path to main, needed if primary target is an executable (not 
