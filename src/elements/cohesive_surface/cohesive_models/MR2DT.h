@@ -1,3 +1,4 @@
+/*$Id: MR2DT.h,v 1.9 2003-03-31 23:29:50 cjkimme Exp $*/
 /* created by manzari*/
 /* Elastoplastic Cohesive Model for Geomaterials*/
 #ifndef _MR_2D_T_H_

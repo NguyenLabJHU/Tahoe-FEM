@@ -1,3 +1,4 @@
+/*$Id: MR_RP2DT.cpp,v 1.6 2003-03-31 23:29:50 cjkimme Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -566,6 +567,12 @@ const dMatrixT& MR_RP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>&
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif
+
+	if (state[nTiedFlag] != -10. && state[nTiedFlag] != 1.)
+	{
+		fStiffness = 0.;
+		return fStiffness;
+	}
 
 int i, j;
 

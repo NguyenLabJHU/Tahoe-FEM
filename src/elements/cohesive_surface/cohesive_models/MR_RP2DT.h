@@ -1,3 +1,4 @@
+/*$Id: MR_RP2DT.h,v 1.5 2003-03-31 23:29:50 cjkimme Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #ifndef _MR_RP_2D_T_H_
