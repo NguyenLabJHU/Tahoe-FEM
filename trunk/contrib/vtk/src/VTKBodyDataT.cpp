@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.31 2002-10-23 04:52:05 paklein Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.32 2002-11-01 02:10:08 paklein Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -263,13 +263,14 @@ VTKBodyDataT::~VTKBodyDataT(void)
 		if (fUGrids[i])
 			delete fUGrids[i];
 
-	/* free memory for all stored results */
+	/* free vector fields */
 	for (int i = 0; i < fVectorFields.Length(); i++)
-	{
 		if (fVectorFields[i]) fVectorFields[i]->Delete();
+
+	/* free scalars */
+	for (int i = 0; i < fScalars.MajorDim(); i++)
     	for (int j = 0; j < fScalars.MinorDim(); j++)
     		if (fScalars(i,j)) fScalars(i,j)->Delete();
-	}
 }
 
 /* return the number of spatial dimensions */
