@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.30 2004-01-05 07:36:22 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.30.8.1 2004-02-25 07:45:15 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -653,6 +653,9 @@ ofstreamT& ElementSupportT::Output(void) const
 	return *ofst;
 #endif
 }
+
+/* format of the output files */
+IOBaseT::FileTypeT ElementSupportT::OutputFormat(void) const { return FEManager().OutputFormat(); }
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 int ElementSupportT::RegisterOutput(const OutputSetT& output_set) const
