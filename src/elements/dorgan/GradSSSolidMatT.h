@@ -73,6 +73,9 @@ public:
 
 	/** yield criteria moduli */
 	virtual double yc(void) = 0;
+
+	/** incremental change in R_bar */
+	virtual double del_RBar(void) = 0;
 	/*@}*/
 
 protected:
