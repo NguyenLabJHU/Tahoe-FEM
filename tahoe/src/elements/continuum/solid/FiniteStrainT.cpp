@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.17 2003-12-02 17:13:36 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.18 2003-12-11 00:38:06 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -146,22 +146,22 @@ MaterialListT* FiniteStrainT::NewMaterialList(int nsd, int size)
 			if (!fFSMatSupport) ExceptionT::GeneralFail("FiniteStrainT::NewMaterialList");
 		}
 
-		if (NumSD() == 1)
+		if (nsd == 1)
 			return new SolidMatList1DT(size, *fFSMatSupport);
-		else if (NumSD() == 2)
+		else if (nsd == 2)
 			return new SolidMatList2DT(size, *fFSMatSupport);
-		else if (NumSD() == 3)
+		else if (nsd == 3)
 			return new SolidMatList3DT(size, *fFSMatSupport);
 		else
 			return NULL;
 	}
 	else
 	{
-		if (NumSD() == 1)
+		if (nsd == 1)
 			return new SolidMatList1DT;
-		else if (NumSD() == 2)
+		else if (nsd == 2)
 			return new SolidMatList2DT;
-		else if (NumSD() == 3)
+		else if (nsd == 3)
 			return new SolidMatList3DT;
 		else
 			return NULL;
