@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman2DT.cpp,v 1.11 2002-08-05 19:27:55 cjkimme Exp $ */
+/* $Id: XuNeedleman2DT.cpp,v 1.11.4.1 2002-10-16 23:29:23 cjkimme Exp $ */
 /* created: paklein (11/14/1997) */
 
 #include "XuNeedleman2DT.h"
@@ -117,7 +117,7 @@ const dArrayT& XuNeedleman2DT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 	// limit compressive deformation
 	if (z7 > kExpMax)
 	{
-#ifndef _TAHOE_FRACTURE_INTERFACE_	
+#ifndef _SIERRA_TEST_	
 		cout << "\n XuNeedleman2DT::Traction: exp(x): x = " << z7 << " > kExpMax" << endl;
 #endif		
 		throw eBadJacobianDet;
@@ -237,7 +237,7 @@ SurfacePotentialT::StatusT XuNeedleman2DT::Status(const dArrayT& jump_u, const A
 
 void XuNeedleman2DT::PrintName(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << "    Xu-Needleman 2D\n";
 #endif
 }
@@ -245,7 +245,7 @@ void XuNeedleman2DT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void XuNeedleman2DT::Print(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << " Surface energy ratio (phi_t/phi_n). . . . . . . = " << q       << '\n';
 	out << " Critical opening ratio (delta_n* /d_n). . . . . = " << r       << '\n';
 	out << " Characteristic normal opening to failure. . . . = " << d_n     << '\n';

@@ -1,11 +1,7 @@
-/* $Id: CSEAnisoT.h,v 1.15.4.2 2002-10-15 23:03:48 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.15.4.3 2002-10-16 23:29:21 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
-
-#ifndef _SIERRA_TEST_
-#define _SIERRA_TEST_
-#endif
 
 /* base class */
 #include "CSEBaseT.h"

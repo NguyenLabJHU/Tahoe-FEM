@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.20.2.2 2002-10-15 23:03:46 cjkimme Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.20.2.3 2002-10-16 23:29:20 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -10,13 +10,13 @@
 #include "ModelManagerT.h"
 #include "fstreamT.h"
 #include "toolboxConstants.h"
+
 #ifndef _SIERRA_TEST_
 #include "FieldT.h"
-#endif
-#include "LocalArrayT.h"
-#ifndef _SIERRA_TEST_
 #include "eControllerT.h"
 #endif
+
+#include "LocalArrayT.h"
 
 /* array behavior */
 
@@ -45,8 +45,7 @@ ElementBaseT::ElementBaseT(const ElementSupportT& support):
 	fElementCards(0),
 	fLHS(ElementMatrixT::kSymmetric)
 {
-	/* just cast it */
-//	fController = fSupport.eController(field);
+	/* do nothing */
 }
 #endif
 
@@ -95,11 +94,13 @@ GlobalT::SystemTypeT ElementBaseT::TangentType(void) const
 	return GlobalT::kSymmetric;
 }
 
+#ifndef _SIERRA_TEST_
 /* the iteration number for the current time increment */
 const int& ElementBaseT::IterationNumber(void) const
 {
 	return ElementSupport().IterationNumber(Group());
 }
+#endif
 
 /* solution calls */
 void ElementBaseT::FormLHS(void)
@@ -107,9 +108,7 @@ void ElementBaseT::FormLHS(void)
 	try { LHSDriver(); }
 	catch (int error)
 	{
-#ifndef _SIERRA_TEST_
 		cout << "\n ElementBaseT::FormLHS: " << fSupport.Exception(error);
-#endif
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
 		cout << fSupport.ElementGroupNumber(this) + 1 << ".\n";
 		
@@ -405,9 +404,9 @@ void ElementBaseT::EchoConnectivityData(ifstreamT& in, ostream& out)
 /* resolve input format types */
 void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 {
+#pragma unused(out)
 #ifdef _SIERRA_TEST_
 #pragma unused(in)
-#pragma unused(out)
 #endif
 
 	/* read from parameter file */
@@ -417,15 +416,11 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 #ifndef _SIERRA_TEST_
 	model.ElementBlockList(in, elem_ID, matnums);
 #else
-	/* For Sierra, can't use input stream. Right now, make an array 
-	 * whose first entry is the number of element blocks (should be
-	 * 1) and then there are two entries for each element block. 
-	 * First entry is index for 1st block, 2nd etc. Second entry
-	 * is the element block number (should be 1 again)
-	 */
-	iArrayT inStream(3);
-	inStream = 1; 
-	model.ElementBlockList(inStream,elem_ID, matnums);
+	/* For Sierra, can't use input stream */
+	elem_ID.Dimension(1);
+	matnums.Dimension(1);
+	elem_ID = "1";
+	matnums = 1; 
 #endif
 
 	/* allocate block map */
@@ -440,8 +435,13 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 	{
 	    /* check number of nodes */
 	    int num_elems, num_nodes;
+#ifndef _SIERRA_TEST_
 	    model.ElementGroupDimensions(elem_ID[b], num_elems, num_nodes);
-	    
+#else
+		num_elems = fSupport.NumElements();
+		num_nodes = model.NumNodes(); 
+#endif
+
 	    /* set if unset */
 	    if (nen == 0) nen = num_nodes;
 	    
@@ -463,8 +463,10 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 	    /* increment element count */
 	    elem_count += num_elems;
 
+#ifndef _SIERRA_TEST_
 	    /* load connectivity from database into model manager */
 	    model.ReadConnectivity(elem_ID[b]);
+#endif
 
 	    /* set pointer to connectivity list */
 	    fConnectivities[b] = model.ElementGroupPointer(elem_ID[b]);
@@ -680,7 +682,7 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 
 	out <<   " equations:\n";
 	out << (CurrentElement().Equations()).wrap(4) << '\n';
-#endif
+#endif // ndef _SIERRA_TEST_
 }
 
 /* set element cards array */

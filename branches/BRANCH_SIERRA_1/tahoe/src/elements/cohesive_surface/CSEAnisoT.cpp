@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.23.2.2 2002-10-15 23:03:47 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.23.2.3 2002-10-16 23:29:21 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -25,10 +25,10 @@
 #include "RateDep2DT.h"
 #include "TiedPotentialT.h"
 #include "YoonAllen2DT.h"
-#include "TvergHutch3DT.h"
-#include "YoonAllen3DT.h"
 #endif
 
+#include "TvergHutch3DT.h"
+#include "YoonAllen3DT.h"
 #include "XuNeedleman3DT.h"
 
 using namespace Tahoe;
@@ -154,27 +154,36 @@ void CSEAnisoT::Initialize(void)
 #ifndef _SIERRA_TEST_
 					fSurfPots[num] = new XuNeedleman3DT(in);
 #else
-					double params[7];
-					params[0] = 1.;
-					params[1] = 0.;
-					params[2] = params[3] = .05;
-					params[4] = 1.;
-					params[5] = 100.;
-					params[6] = 10.;
+					double *params = ElementSupport().FloatInput();
 					fSurfPots[num] = new XuNeedleman3DT(params);
 #endif
 				}
 				break;
 			}
-#ifndef _SIERRA_TEST_
 			case SurfacePotentialT::kTvergaardHutchinson:
 			{
 				if (NumDOF() == 2)
+				{
+#ifndef _SIERRA_TEST_
 					fSurfPots[num] = new TvergHutch2DT(in);
+#else
+					cout << "\n CSEAnisoT::Initialize: potential not implemented for 2D: "
+					     << code << endl; 				
+					throw eBadInputValue;
+#endif
+				}
 				else
+				{
+#ifndef _SIERRA_TEST_
 					fSurfPots[num] = new TvergHutch3DT(in);
+#else
+					double *params = ElementSupport().FloatInput();
+					fSurfPots[num] = new TvergHutch3DT(params);				
+#endif
+				}
 				break;
 			}
+#ifndef _SIERRA_TEST_
 			case SurfacePotentialT::kViscTvergaardHutchinson:
 			{
 				if (NumDOF() == 2)
@@ -228,15 +237,30 @@ void CSEAnisoT::Initialize(void)
 				}
 				break;
 			}
+#endif
 			case SurfacePotentialT::kYoonAllen:
 			{	
 				if (NumDOF() == 2)
+				{
+#ifndef _SIERRA_TEST_
 					fSurfPots[num] = new YoonAllen2DT(in, ElementSupport().TimeStep());
+#else
+					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code << endl;
+					throw eBadInputValue;
+#endif
+				}
 				else
+				{
+#ifndef _SIERRA_TEST_
 					fSurfPots[num] = new YoonAllen3DT(in, ElementSupport().TimeStep());
+#else
+					double *fparams = ElementSupport().FloatInput();
+					int *iparams = ElementSupport().IntInput();
+					fSurfPots[num] = new YoonAllen3DT(fparams,iparams,ElementSupport().TimeStep());
+#endif
+				}	
 				break;
 			}
-#endif
 			default:
 				cout << "\n CSEAnisoT::Initialize: unknown potential code: " << code << endl;
 				throw eBadInputValue;

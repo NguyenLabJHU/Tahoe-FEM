@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.14 2002-08-05 19:27:55 cjkimme Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.14.4.1 2002-10-16 23:29:22 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -76,7 +76,7 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
 	if (fTimeStep <= 0.0) {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 		cout << "\n Tijssens2DT::Traction: expecting positive time increment: "
 		     << fTimeStep << endl;
 #endif
@@ -254,7 +254,7 @@ SurfacePotentialT::StatusT Tijssens2DT::Status(const dArrayT& jump_u,
 
 void Tijssens2DT::PrintName(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << "    Tijssens 2D \n";
 #endif
 }
@@ -262,7 +262,7 @@ void Tijssens2DT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void Tijssens2DT::Print(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << " Initial tangential stiffness. . . . . . . . . . = " << fk_t0 << '\n';
 	out << " Normal stiffness . . . .  . . . . . . . . . . . = " << fk_n     << '\n';
 	out << " Tangential stiffness rate constant. . . . . . . = " << fDelta_n_ccr*fc_1     << '\n';

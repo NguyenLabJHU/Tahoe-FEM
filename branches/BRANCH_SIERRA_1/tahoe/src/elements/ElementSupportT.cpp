@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.4.4.2 2002-10-15 23:03:47 cjkimme Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.4.4.3 2002-10-16 23:29:20 cjkimme Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -28,6 +28,14 @@ ElementSupportT::ElementSupportT(void)
 	fItNum = 0;
 	fCurrentCoordinates = NULL;
 	fInitialCoordinates = NULL;
+	iparams = NULL;
+	fparams = new double[7];
+	fparams[0] = 1.;
+	fparams[1] = 0.;
+	fparams[2] = fparams[3] = .05;
+	fparams[4] = 1.;
+	fparams[5] = 100.;
+	fparams[6] = 10.;
 #endif
 }
 
@@ -298,11 +306,6 @@ void ElementSupportT::SetCurrentCoordinates(dArray2DT* currentCoords)
 	fCurrentCoordinates = currentCoords;
 }
 
-void ElementSupportT::SetModelManager(ModelManagerT *modelManager)
-{
-	fModelManager = modelManager;
-}
-
 /* The following two functions can be called repeatedly to change the contents of
  * the coordinate arrays.
  */
@@ -316,11 +319,30 @@ void ElementSupportT::SetInitialCoordinates(double *initialCoords)
 
 void ElementSupportT::SetCurrentCoordinates(double *currentCoords)
 {
-	double *fcurr = fInitialCoordinates->Pointer();
+	double *fcurr = fCurrentCoordinates->Pointer();
 	
 	for (int i = 0; i < fCurrentCoordinates->Length(); i++)
 		*fcurr++ = *currentCoords++;
 }
+
+void ElementSupportT::UpdateCurrentCoordinates(double *displacements)
+{
+	double *fcurr = fCurrentCoordinates->Pointer();
+	double *finit = fInitialCoordinates->Pointer();
+	
+	for (int i = 0; i < fCurrentCoordinates->Length(); i++)
+		*fcurr++ = *finit++ + *displacements++;
+}
+
+void ElementSupportT::SetModelManager(ModelManagerT *modelManager)
+{
+	fModelManager = modelManager;
+}
+
+void ElementSupportT::SetNumElements(int nelem)
+{
+	fElem = nelem;
+}	
 
 #endif
 
@@ -335,6 +357,7 @@ const iArrayT* ElementSupportT::ElementMap(const StringT& block_ID) const
 #endif
 }
 
+#ifndef _SIERRA_TEST_
 /* MP */
 int ElementSupportT::Size(void) const 
 { 
@@ -389,6 +412,8 @@ void ElementSupportT::RecvExternalData(dArray2DT& external_data) const
 #pragma unused(external_data)
 #endif
 }
+
+#endif
 
 void ElementSupportT::AssembleLHS(int group, const ElementMatrixT& elMat, 
 	const nArrayT<int>& eqnos) const

@@ -1,9 +1,5 @@
-/* $Id: CSEBaseT.h,v 1.7.4.2 2002-10-15 23:03:48 cjkimme Exp $ */
+/* $Id: CSEBaseT.h,v 1.7.4.3 2002-10-16 23:29:22 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
-#ifndef _TAHOE_FRACTURE_INTERFACE_
-#define _TAHOE_FRACTURE_INTERFACE_
-#endif
-
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
 
@@ -68,8 +64,10 @@ public:
 	/* resets to the last converged solution */
 	virtual void ResetStep(void);
 
+#ifndef _SIERRA_TEST_
 	/* solution calls */
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
+#endif
 
 	/* returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void); //not implemented
