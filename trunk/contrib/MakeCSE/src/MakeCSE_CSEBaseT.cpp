@@ -1,14 +1,14 @@
-// file: CSEBaseT.cpp
+// file: MakeCSE_CSEBaseT.cpp
 
 // created: SAW 5/2/2000
 
-#include "CSEBaseT.h"
-#include "FEManager.h"
+#include "MakeCSE_CSEBaseT.h"
+#include "MakeCSEFEManager.h"
 #include "MakeCSEIOManager.h"
 
 using namespace Tahoe;
 
-CSEBaseT::CSEBaseT (ostream& fMainOut, int ID) :
+MakeCSE_CSEBaseT::MakeCSE_CSEBaseT (ostream& fMainOut, int ID) :
   ElementBaseT (fMainOut, ID),
   fSurfaceFacets (2)
 {
@@ -16,7 +16,7 @@ CSEBaseT::CSEBaseT (ostream& fMainOut, int ID) :
   fSurfaceFacets[1] = FEManager::kNotSet;
 }
 
-void CSEBaseT::Initialize (GeometryT::CodeT code, int numregfacenodes)
+void MakeCSE_CSEBaseT::Initialize (GeometryT::CodeT code, int numregfacenodes)
 {
   CSEType (code, numregfacenodes);
   SetFace ();
@@ -27,11 +27,11 @@ void CSEBaseT::Initialize (GeometryT::CodeT code, int numregfacenodes)
   out << "\n";
 }
 
-void CSEBaseT::SetNodes (int e1local, const iArrayT& regelemnodes)
+void MakeCSE_CSEBaseT::SetNodes (int e1local, const iArrayT& regelemnodes)
 {
   if (!IsElementValid (e1local)) 
     { 
-      cout << "CSEBaseT::SetNodes" << endl;
+      cout << "MakeCSE_CSEBaseT::SetNodes" << endl;
       throw eSizeMismatch;
     }
   
@@ -42,7 +42,7 @@ void CSEBaseT::SetNodes (int e1local, const iArrayT& regelemnodes)
 
 // *********** PRIVATE *************
 
-void CSEBaseT::CSEType (GeometryT::CodeT code, int numFaceNodes)
+void MakeCSE_CSEBaseT::CSEType (GeometryT::CodeT code, int numFaceNodes)
 {
   switch (code)
     {
@@ -86,14 +86,14 @@ void CSEBaseT::CSEType (GeometryT::CodeT code, int numFaceNodes)
       }
     default:
       {
-	cout << " CSEBaseT::CSEType not programmed for element type " 
+	cout << " MakeCSE_CSEBaseT::CSEType not programmed for element type " 
 	     << code << endl;
 	throw eGeneralFail;
       }
     }
 }
 
-void CSEBaseT::Set3DNodes (int linearfacenodes)
+void MakeCSE_CSEBaseT::Set3DNodes (int linearfacenodes)
 {
   for (int fe=0; fe < linearfacenodes; fe++)
     {

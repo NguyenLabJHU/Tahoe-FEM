@@ -5,14 +5,14 @@
 #ifndef _CSEBASET_H_
 #define _CSEBASET_H_
 
-#include "ElementBaseT.h"
+#include "MakeCSE_ElementBaseT.h"
 
 using namespace Tahoe;
 
-class CSEBaseT : public ElementBaseT
+class MakeCSE_CSEBaseT : public MakeCSE_ElementBaseT
 {
  public:
-  CSEBaseT (ostream& fMainOut, int ID);
+  MakeCSE_CSEBaseT (ostream& fMainOut, int ID);
 
   virtual void Initialize (GeometryT::CodeT code, int numregfacenodes);
 
@@ -29,5 +29,5 @@ class CSEBaseT : public ElementBaseT
   iArrayT fNodeNumberingMap;
 };
 
-inline void CSEBaseT::CSElemFaces (iArrayT& faces) const { faces = fSurfaceFacets; }
+inline void MakeCSE_CSEBaseT::CSElemFaces (iArrayT& faces) const { faces = fSurfaceFacets; }
 #endif

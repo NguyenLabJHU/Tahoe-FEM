@@ -4,7 +4,7 @@
 
 // program reads input file, runs MakeCSE, writes output file
 
-#include "FEManager.h"
+#include "MakeCSEFEManager.h"
 #include "MakeCSEIOManager.h"
 #include "ifstreamT.h"
 
@@ -45,7 +45,7 @@ int main (void)
       iodata.ReadParameters (in, interactive, program_name, program_version);
 
       /* set up node and element data */
-      FEManager maker (log, iodata);
+      MakeCSEFEManager maker (log, iodata);
 
       /* make cohesive surfaces */
       maker.CreateCSE ();

@@ -12,9 +12,9 @@
 #ifndef _GLOBAL_EDGE_FINDER_T_H_
 #define _GLOBAL_EDGE_FINDER_T_H_
 
-#include "ElementBaseT.h"
+#include "MakeCSE_ElementBaseT.h"
 
-class FEManager;
+class MakeCSEFEManager;
 
 using namespace Tahoe;
 
@@ -28,7 +28,7 @@ class GlobalEdgeFinderT
 	GlobalEdgeFinderT (ostream& out);
 	~GlobalEdgeFinderT (void);
 
-	void Initialize (FEManager& theBoss, int num_nodes);
+	void Initialize (MakeCSEFEManager& theBoss, int num_nodes);
 
 	// element group data
 	int ElementGroup (int groupid) const;
@@ -63,7 +63,7 @@ class GlobalEdgeFinderT
 
   private:
 	ostream& log;
-	ArrayT<ElementBaseT*> theElements;
+	ArrayT<MakeCSE_ElementBaseT*> theElements;
 
 	/* element maps */
 	iArrayT fElementID;

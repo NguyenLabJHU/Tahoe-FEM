@@ -9,7 +9,7 @@
 #include "iArrayT.h"
 #include "iAutoArrayT.h"
 
-class FEManager;
+class MakeCSEFEManager;
 class GlobalEdgeFinderT;
 class MakeCSEIOManager;
 
@@ -18,7 +18,7 @@ using namespace Tahoe;
 class NodeManagerPrimitive
 {
  public:
-  NodeManagerPrimitive (ostream& out, int comments, FEManager& FEM);
+  NodeManagerPrimitive (ostream& out, int comments, MakeCSEFEManager& FEM);
 
   void Initialize (MakeCSEIOManager& input);
 
@@ -62,7 +62,7 @@ class NodeManagerPrimitive
  private:
   ostream& out;
   int fPrintUpdate;
-  FEManager* theBoss;
+  MakeCSEFEManager* theBoss;
 
   dArray2DT fCoordinates;
   int fNumInitCoordinates;

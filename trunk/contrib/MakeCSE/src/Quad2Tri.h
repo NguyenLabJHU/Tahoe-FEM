@@ -5,7 +5,7 @@
 #ifndef _QUAD2TRI_H_
 #define _QUAD2TRI_H_
 
-#include "ElementBaseT.h"
+#include "MakeCSE_ElementBaseT.h"
 
 class NodeManagerPrimitive;
 class MakeCSEIOManager;

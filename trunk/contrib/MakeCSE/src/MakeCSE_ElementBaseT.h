@@ -1,21 +1,21 @@
-// file: ElementBaseT.h
+// file: MakeCSE_ElementBaseT.h
 
 // created: SAW 10/06/00
 
-#ifndef _ELEMENTBASET_H_
-#define _ELEMENTBASET_H_
+#ifndef _MAKECSE_ELEMENTBASET_H_
+#define _MAKECSE_ELEMENTBASET_H_
 
 #include "iArray2DT.h"
 #include "MakeCSEIOManager.h"
 
 using namespace Tahoe;
 
-class ElementBaseT
+class MakeCSE_ElementBaseT
 {
  public:
-  ElementBaseT (ostream& fMainOut, int ID);
+  MakeCSE_ElementBaseT (ostream& fMainOut, int ID);
 
-  virtual ~ElementBaseT (void);
+  virtual ~MakeCSE_ElementBaseT (void);
 
   // read from input that group's connectivity, create element cards
   void Initialize (MakeCSEIOManager& input);
@@ -107,17 +107,17 @@ class ElementBaseT
 
 };
 
-inline int ElementBaseT::NumElements (void) const { return fNodeNums.MajorDim(); }
-inline int ElementBaseT::NumElemFaces (void) const { return fFacetNodes.Length(); }
-inline void ElementBaseT::CSElemFaces (iArrayT& faces) const { };
-inline GeometryT::CodeT ElementBaseT::GeometryCode (void) const { return fGeometryCode; }
-inline int ElementBaseT::GroupNumber (void) const { return fGroupID; }
-inline int ElementBaseT::NumSideSets (void) const { return fSideSetData.Length(); }
-inline iArray2DT& ElementBaseT::SideSet (int g) const { return fSideSetData[g]; }
-inline int ElementBaseT::SideSetID (int g) const { return fSideSetID[g]; }
+inline int MakeCSE_ElementBaseT::NumElements (void) const { return fNodeNums.MajorDim(); }
+inline int MakeCSE_ElementBaseT::NumElemFaces (void) const { return fFacetNodes.Length(); }
+inline void MakeCSE_ElementBaseT::CSElemFaces (iArrayT& faces) const { };
+inline GeometryT::CodeT MakeCSE_ElementBaseT::GeometryCode (void) const { return fGeometryCode; }
+inline int MakeCSE_ElementBaseT::GroupNumber (void) const { return fGroupID; }
+inline int MakeCSE_ElementBaseT::NumSideSets (void) const { return fSideSetData.Length(); }
+inline iArray2DT& MakeCSE_ElementBaseT::SideSet (int g) const { return fSideSetData[g]; }
+inline int MakeCSE_ElementBaseT::SideSetID (int g) const { return fSideSetID[g]; }
 
-inline const iArray2DT& ElementBaseT::Connectivity (void) const {return fNodeNums; }
-inline int ElementBaseT::NumFaceNodes (int face) const 
+inline const iArray2DT& MakeCSE_ElementBaseT::Connectivity (void) const {return fNodeNums; }
+inline int MakeCSE_ElementBaseT::NumFaceNodes (int face) const 
 { 
   if(IsFaceValid (face)) 
     return fFacetNodes[face].Length(); 

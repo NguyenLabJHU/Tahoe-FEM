@@ -14,9 +14,9 @@
 #include "ClockT.h"
 #include "NodeManagerPrimitive.h"
 #include "GlobalEdgeFinderT.h"
-#include "ElementBaseT.h"
+#include "MakeCSE_ElementBaseT.h"
 
-class FEManager;
+class MakeCSE_FEManager;
 
 using namespace Tahoe;
 
@@ -32,13 +32,13 @@ class MakeCSE
   MakeCSE (ostream& log, GlobalEdgeFinderT& Edger);
   ~MakeCSE (void);
 
-  void Initialize (MakeCSEIOManager& theInput, FEManager& FEM, int comments);
+  void Initialize (MakeCSEIOManager& theInput, MakeCSEFEManager& FEM, int comments);
   void Create (void);
 
  private:
 
   // gather and initialze data
-  void SetFE (FEManager& FEM);
+  void SetFE (MakeCSEFEManager& FEM);
   void SetInput (MakeCSEIOManager& theInput);
   void InitializeContact (MakeCSEIOManager& theInput);
   void CollectFacets (MakeCSEIOManager& theInput, const iArrayT& facetdata);
@@ -75,8 +75,8 @@ class MakeCSE
   // links to data
   GlobalEdgeFinderT*    theEdger;
   NodeManagerPrimitive* theNodes;
-  ArrayT<ElementBaseT*> theElements;
-  ArrayT<ElementBaseT*> theCSEs;
+  ArrayT<MakeCSE_ElementBaseT*> theElements;
+  ArrayT<MakeCSE_ElementBaseT*> theCSEs;
   ClockT                cClock;
 
   // initial number of nodes and elements before adding CSEs
