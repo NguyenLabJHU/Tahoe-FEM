@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.25 2005-01-19 08:59:25 paklein Exp $ */
+/* $Id: SCNIMFT.h,v 1.26 2005-01-25 02:23:58 cjkimme Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -21,10 +21,6 @@
 #include "ScheduleT.h"
 #include "LinkedListT.h"
 
-#ifdef __QHULL__
-#include "CompGeomT.h"
-#endif
-
 namespace Tahoe {
 
 /** forward declarations */
@@ -36,6 +32,7 @@ class ifstreamT;
 class ofstreamT;
 class MeshFreeSupportT;
 class Traction_CardT;
+class CellGeometryT;
 
 /** base class for particle types */
 class SCNIMFT: public ElementBaseT
@@ -119,17 +116,6 @@ public:
 	
 	int SupportSize(int localNode) const;
 	/*@}*/
-
-	/** \name types needed for the Voronoi diagram calculation */
-	/*@{*/
-#ifndef __QHULL__
-	/** Basic structure -- hullMap[i][j] gives index of jth vertex of structure i */
-        typedef ArrayT<iArrayT> ConvexHullMap;
-
-        /** Voronoi diagram facet structure is an array of convex hulls  */
-        typedef ArrayT< ConvexHullMap > VoronoiDiagramMap;
-#endif
-	/*@}*/
 	
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -170,27 +156,6 @@ protected: /* for derived classes only */
 	/** assemble particle mass matrix into LHS of global equation system */
 	virtual void AssembleParticleMass(const double rho);
 
-	/** transfers data from QHULL and computes new data structures. This function 
-		initializes fNonDeloneEdges, fNonDeloneNormals, fSelfDualFacets, fBoundaryIntegrationWeights,
-		and fVoronoiCellCentroids. If qhull is not used, these data structures are
-		read in by VoronoiDiagramFromFile */
-	void InitializeVoronoiData(void);
-	
-	/** compute B matrices for strain smoothing/nodal integration */
-	virtual void ComputeBMatrices(void);
-	
-	/** write out Voronoi diagram data. This function is only called when qhull is used
-		to compute the clipped Voronoi diagram. */
-	void VoronoiDiagramToFile(ofstreamT& vout);
-	
-	/** read in Voronoi diagram data. This function reads in data structures when qhull
-		is not used to create them. It initializes fVoronoiVertices, fVoronoiCellVolumes,
-		fDeloneEdges, fDualFacets, fNonDeloneEdges, fNonDeloneNormals, fSelfDualFacets, 
-		fBoundaryIntegrationWeights, and fVoronoiCellCentroids. If qhull is used, these
-		data structures are either gotten directly from qhull or created in 
-		InitializeVoronoiData. */
-	void VoronoiDiagramFromFile(ifstreamT& vin);
-	
 protected:
 
 	MeshFreeSupportT* fMFSupport;
@@ -198,7 +163,7 @@ protected:
 	/** pointer to list parameters needed to construct shape functions */
 	const ParameterListT* fMeshfreeParameters;
 
-	/** reference ID for sending output */
+	/** reference for sending output */
 	int fOutputID;
 	
 	/** connectivities used to define the output set. */
@@ -215,84 +180,24 @@ protected:
 
 	/** indices of nodes */
 	iArrayT fNodes;
-	/** the coordinates of the nodes */
-	dArray2DT fDeloneVertices;
-	
-	/** \name Data Structures for Voronoi Decomposition */
-	/*@{*/
-	
-	/** these are dual to Voronoi facets. They have minor dimension of 2 . 
-	     Difference in the two points is parallel to the normal vector of the 
-	     Voronoi facet dual to the Delone edge. This data structure is created
-	     by qhull or read in from a text file. */
-	iArray2DT fDeloneEdges;
 
-	/** Voronoi facets dual to the Delone Edges -- This data structure is currently
-		a list of vertices of the facets. In 2D, all facets are simplicial and this
-		is fine. In 3D, it will change. */
-	RaggedArray2DT<int> fDualFacets; 
+	/** coordinates of nodes */	
+	dArray2DT fNodalCoordinates;
 	
-	/** boundary facets. See qhull/CompGeomT.h for a definition of the self-dual
-		terminology -- this data structure is 
-		created in InitializeVoronoiData based on qhull's clipped Voronoi diagram. It is then
-		written to the geometry text file. This is essentially a flattened version of
-		qhulls selfDual data structure */
-	iArray2DT fSelfDualFacets; 
-
-	/** connectivity of boundary nodes. Currently determined from an underlying 
-	    element connectivity */
-	iArray2DT fBoundaryConnectivity; 
-	
-	/** union of nodes in fBoundaryConnectivity */
-	iArrayT fBoundaryNodes; 
-	
-	/** true if boundary connectivity is simplicial */
-	bool fBoundaryIsTriangulated; 
-	
-	/** additional edges associated only with one node -- this data structure is 
-		created in InitializeVoronoiData based on qhull's clipped Voronoi diagram. It is then
-		written to the geometry text file. Since these facets are self dual, there is only
-		one Delone vertex per facet, and this vertex is the boundary vertex. The list of
-		boundary vertices for each self-dual facet is contained in this array of integers. */
-	iArrayT fNonDeloneEdges; 
-	
-	/** normal vectors of the facets for those edges -- this data structure is 
-		created in InitializeVoronoiData based on qhull's clipped Voronoi diagram. It is then
-		written to the geometry text file.*/
-	dArray2DT fNonDeloneNormals;
-	
-	/** areas of boundary facets -- this data structure is 
-		created in InitializeVoronoiData based on qhull's clipped Voronoi diagram. It is then
-		written to the geometry text file. */
-	dArrayT fBoundaryIntegrationWeights;
-
-	/** Compute or read the Voronoi Diagram -- these data structures are created by qhull */	
-#ifdef __QHULL__	
-	CompGeomT* fVoronoi;
-#else
-	void* fVoronoi;
-#endif
-	bool qComputeVoronoiCell, qJustVoronoiDiagram;
-	StringT vCellFile;
+	/** support class for nodal integration */
+	CellGeometryT* fCellGeometry;
 	
 	int fNumIP;
 
 	/** Volume associated with each node -- integration weight for nodal integration */
-	dArrayT fVoronoiCellVolumes;
-	/** The coordinates of the Voronoi diagram after it has been clipped by the body boundary */
-	dArray2DT fVoronoiVertices; 
-	/** The centroids of the clipped Voronoi cells. This data structure is created in 
-		InitializeVoronoiData or read in from a text file. The centroids are used to 
-		compute the mass matrix for the axisymmetric element. */
-	dArray2DT fVoronoiCellCentroids;
+	dArrayT fCellVolumes;
+	
+	/** The centroids of the nodal cells used to compute the mass matrix for the axisymmetric element. */
+	dArray2DT fCellCentroids;
 	/*@}*/
 
 	/** list of materials */
 	MaterialListT* fMaterialList;
-	
-	/** workspaces for strain smoothing */
-	ArrayT< LinkedListT<int> > nodeWorkSpace; // should be local?
-	ArrayT< LinkedListT<dArrayT> > facetWorkSpace; // should be local?
 
 	/** These are the actual data structures used for force and stiffness computations */
 	RaggedArray2DT<int> nodalCellSupports;
@@ -318,7 +223,15 @@ protected:
 	/* traction data */
 	dArray2DT fTractionVectors;
 	iArrayT fTractionBoundaryCondition;
-
+	
+	/** normal vectors around the body boundary -- created by geometry support classes */
+	dArray2DT fBoundaryFacetNormals;
+	
+	/** true if the formulation is Axisymmetric */
+	bool qIsAxisymmetric;
+	
+	/** 1/R information for axisymmetric elements */
+	RaggedArray2DT<double> circumferential_B;
 };
 
 } /* namespace Tahoe */

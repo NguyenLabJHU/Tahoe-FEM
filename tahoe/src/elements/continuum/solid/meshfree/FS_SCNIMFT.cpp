@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.13 2005-01-20 00:42:57 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.14 2005-01-25 02:23:58 cjkimme Exp $ */
 #include "FS_SCNIMFT.h"
 
 //#define VERIFY_B
@@ -180,8 +180,8 @@ void FS_SCNIMFT::WriteOutput(void)
 			vec.AddScaled(*phi_i++, u(*nodal_supp++));
 
 		// Convert initial coordinates to current coordinates
-	        for (int j = 0; j < ndof; j++) 
-		  values_i[j] += vec[j];
+		for (int j = 0; j < ndof; j++) 
+			values_i[j] += vec[j];
 		
 		// Compute smoothed deformation gradient
 		Fdef = 0.0;
@@ -210,7 +210,7 @@ void FS_SCNIMFT::WriteOutput(void)
 
 		double* inp_val = values_i.Pointer() + 2*ndof;
 		
-		*inp_val++ = fVoronoiCellVolumes[i];
+		*inp_val++ = fCellVolumes[i];
 		
 		E *= 0.5;
 		//for (int j = 0; j < num_stress; j++)
@@ -326,7 +326,7 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		LinkedListT<dArrayT> bVectors_j;
 		LinkedListT<int> nodeSupport_j;
 		for (int i = 0; i < nNodes; i++) {	
-			double w_i = fVoronoiCellVolumes[i]*constK; // integration weights
+			double w_i = fCellVolumes[i]*constK; // integration weights
 			
 			int n_supp = nodalCellSupports.MinorDim(i);
 			
@@ -438,7 +438,7 @@ void FS_SCNIMFT::RHSDriver(void)
 		double* ma = fLHS.Pointer();
 		const double* acc;
 		int* nodes = fNodes.Pointer();
-		double* volume = fVoronoiCellVolumes.Pointer();
+		double* volume = fCellVolumes.Pointer();
 		for (int i = 0; i < nNodes; i++) {
 			acc = a(*nodes++);
 			for (int j = 0; j < fSD; j++)
@@ -458,7 +458,7 @@ void FS_SCNIMFT::RHSDriver(void)
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
 	for (int i = 0; i < nNodes; i++) {
-		double w_i = fVoronoiCellVolumes[i]; // integration weight
+		double w_i = fCellVolumes[i]; // integration weight
 		
 		int n_supp = nodalCellSupports.MinorDim(i);
 
