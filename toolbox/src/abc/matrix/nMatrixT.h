@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.4 2001-06-20 22:49:59 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.5 2001-07-19 00:59:57 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 /* 2 dimensional matrix mathematics template object.                      */
 
@@ -1167,7 +1167,7 @@ void nMatrixT<nTYPE>::Outer(const nArrayT<nTYPE>& v1,
 
 /* identity operations - square matrices ONLY */
 template <class nTYPE>
-void nMatrixT<nTYPE>::PlusIdentity(const nTYPE& value)
+inline void nMatrixT<nTYPE>::PlusIdentity(const nTYPE& value)
 {
 /* must be square */
 #if __option (extended_errorcheck)
