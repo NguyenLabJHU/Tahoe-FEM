@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.9 2003-09-22 21:10:40 paklein Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.10 2003-09-23 19:31:42 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -142,12 +142,14 @@ void APS_AssemblyT::Initialize(void)
 	/* dimensions (notation as per Hughes' Book) */
 	n_ip = fNumIP;
 	n_sd = NumSD();
-	n_df = NumDOF(); 
+	//n_df = NumDOF(); 
+	n_df = 1+n_sd; 
 	n_en = NumElementNodes();
 	n_np = ElementSupport().NumNodes();
 	n_el = NumElements();
 
 	n_en_x_n_df = n_en*n_df;
+	n_en_x_n_sd = n_en*n_sd;
 
 	/* set local arrays for coarse scale */
 	u.Dimension (n_en, 1);
@@ -217,15 +219,15 @@ void APS_AssemblyT::Initialize(void)
 	fgrad_gamma_p_n.FEA_Dimension 	( fNumIP, n_sd,n_sd );
 
 //check these dims
-	fKdd.Dimension 			( n_en_x_n_df, n_en_x_n_df );
-	fKdeps.Dimension 		( n_en_x_n_df, n_en_x_n_df );
-	fKepsd.Dimension 		( n_en_x_n_df, n_en_x_n_df );
-	fKepseps.Dimension 		( n_en_x_n_df, n_en_x_n_df );
+	fKdd.Dimension 			( n_en, n_en );
+	fKdeps.Dimension 		( n_en, n_en_x_n_sd );
+	fKepsd.Dimension 		( n_en_x_n_sd, n_en );
+	fKepseps.Dimension 		( n_en_x_n_sd, n_en_x_n_sd );
 
-	fFd_int.Dimension 	( n_en_x_n_df );
-	fFd_ext.Dimension 	( n_en_x_n_df );
-	fFeps_int.Dimension 	( n_en_x_n_df );
-	fFeps_ext.Dimension 	( n_en_x_n_df );
+	fFd_int.Dimension 	( n_en );
+	fFd_ext.Dimension 	( n_en );
+	fFeps_int.Dimension ( n_en_x_n_sd );
+	fFeps_ext.Dimension ( n_en_x_n_sd );
 
 	fFEA_Shapes.Construct	( fNumIP,n_sd,n_en );
 
@@ -241,6 +243,7 @@ void APS_AssemblyT::Initialize(void)
 	//fForces_at_Node.Dimension ( n_sd );
 
 	/* body force specification */
+	#pragma message("APS_AssemblyT::Initialize: careful, no body force for gammap ")
 	fDOFvec.Dimension(n_df);
 	EchoBodyForce(in, out);
 
@@ -272,6 +275,7 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
 	/* doing monolithic solution */
 	if (fDispl.Group() == fPlast.Group())
 	{
+		#pragma message("APS_AssemblyT::Equations: how determine NumDOF for each field?")
 		int ndof_plast = fPlast.NumDOF();
 		int ndof_displ = fDispl.NumDOF();
 		int nen = NumElementNodes();
@@ -283,7 +287,7 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
 			const iArray2DT& connects = *(fConnectivities[i]);
 			int nel = connects.MajorDim();
 		
-			/* dimension */
+			/* dimension */ 
 			fEqnos[i].Dimension(nel, nen*(ndof_displ + ndof_plast));
 			iArray2DT displ_eq(nel, nen*ndof_plast);
 			iArray2DT plast_eq(nel, nen*ndof_plast);
@@ -346,7 +350,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)	// LHS too!	This was original RHSD
 		cout << "############### Displacement Group ###############\n";
 
 	if ( curr_group == fPlast.Group() )
-		cout << "############### Plasticity Group ###############\n";
+		cout << "############### Plastic Gradient Group ###############\n";
  
 	/* loop over elements */
 	int e,v,l;
@@ -364,18 +368,17 @@ void APS_AssemblyT::RHSDriver_staggered(void)	// LHS too!	This was original RHSD
 		del_gamma_p.DiffOf (gamma_p, gamma_p_n);
 
 	 	SetLocalX(fInitCoords); 
-	 	//current and initial coords the same for anti-plane shear problem
+	 	//current and initial coords are the same for anti-plane shear problem
 		fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
 		fShapes->SetDerivatives(); 
 		
-		// ?????
-		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradients 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
-		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
-		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
-		Convert.Displacements	(	del_u, 	del_u_vec  );
-		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
-		Convert.Na				(	n_en, fShapes, 	fFEA_Shapes );
+		// repackage data to forms compatible with FEA classes (very little cost in big picture)
+		Convert.Gradients 		( fShapes, u, u_n, fgrad_u, fgrad_u_n );
+		Convert.Gradients 		( fShapes, gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
+		Convert.Shapes			( fShapes, fFEA_Shapes );
+		Convert.Displacements	( del_u, del_u_vec  );
+		Convert.Displacements	( del_gamma_p, del_gamma_p_vec  );
+		Convert.Na				( n_en, fShapes, fFEA_Shapes );
 
 		/** Construct data used in BOTH PlastT and BalLinMomT (grad_u and gammap)
 		 * 	Presently, Tahoe cannot exploit this fact.  n and np1 are calculated for coarse field, then
@@ -387,7 +390,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)	// LHS too!	This was original RHSD
 		APS_VariableT   n(	fgrad_u_n, fgamma_p_n, fgrad_gamma_p_n );	// Many variables at time-step n		 
 		
 		/* which field */
-	  //SolverGroup 1 (gets field 1) <-- u (obtained by a rearranged Equation I)
+	  //SolverGroup 1 (gets field 1) <-- u (obtained by a rearranged Equation_d)
 		if ( curr_group == fDispl.Group() )	
 		{
 			if (bStep_Complete) { 
@@ -410,6 +413,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)	// LHS too!	This was original RHSD
 				fRHS *= -1.0; 
 
 				/** Compute Traction B.C. and Body Forces */
+				// contribution from plastic gradient
+				#pragma message("APS_AssemblyT::RHSDriver_staggered: how apply gammap=eps?")
 				Get_Fd_ext ( fFd_ext );
 				fRHS += fFd_ext;
 			
@@ -419,7 +424,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)	// LHS too!	This was original RHSD
 			}
 		}
 
-		// SolverGroup 2 (gets field 2) <-- gamma_p (obtained by a rearranged Equation II)
+		// SolverGroup 2 (gets field 2) <-- gamma_p (obtained by a rearranged Equation_eps)
 		else if (curr_group == fPlast.Group() )	
 		{
 
@@ -476,13 +481,13 @@ void APS_AssemblyT::Select_Equations (const int &iBalScale,const int &iPlastScal
 	switch ( iBalScale )	{
 
 		case BalLinMomT::kAPS_Bal_Eq :
-			fEquation_d 	= new APS_Bal_EqT;
+			fEquation_d = new APS_Bal_EqT;
 			fBalLinMomMaterial = new Shear_MatlT;
 			fBalLinMomMaterial -> Assign ( Shear_MatlT::kMu, fMaterial_Data[k__mu] );
 			break;
 
 		default :
-			cout << " APS_AssemblyT::Select_Equations() .. ERROR >> bad iBalScale \n";
+			cout << "APS_AssemblyT::Select_Equations() .. ERROR >> bad iBalScale \n";
 			break;
 	}
 
@@ -503,7 +508,7 @@ void APS_AssemblyT::Select_Equations (const int &iBalScale,const int &iPlastScal
 			break;
 			
 		default :
-			cout << " APS_AssemblyT::Select_Equations() .. ERROR >> bad iPlastScale \n";
+			cout << "APS_AssemblyT::Select_Equations() .. ERROR >> bad iPlastScale \n";
 			break;
 	}
 
@@ -591,12 +596,12 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		is_coarse = true;
 		element_force = &fFd_int;
 		num_force = fDispl.NumDOF();
-	}
+		}
 	else if (field.Name() == fPlast.Name()) {
 		is_coarse = false;
 		element_force = &fFeps_int;
 		num_force = fPlast.NumDOF();
-	}
+		}
 	else
 		return;
 
@@ -773,6 +778,8 @@ void APS_AssemblyT::RegisterOutput(void)
 	}		
 
 	/* output per node */
+	//ISVs??
+	#pragma message("APS_AssemblyT::RegisterOutput: ISVs at nodes?")
 	int num_node_output = fDispl.NumDOF() + fPlast.NumDOF() + n_stress;
 	ArrayT<StringT> n_labels(num_node_output);
 	count = 0;
@@ -848,7 +855,7 @@ void APS_AssemblyT::WriteOutput(void)
 			fShapes->Extrapolate(out_variable, nd_stress);
 		}
 	
-	/* accumulate - extrapolation done from ip's to corners => X nodes  */
+		/* accumulate - extrapolation done from ip's to corners => X nodes  */
 		ElementSupport().AssembleAverage(CurrentElement().NodesX(), nd_stress);
 	}
 
@@ -954,8 +961,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 		fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
 		fShapes->SetDerivatives(); 
 		
-		// ?????
-		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
+		//repackage data to forms compatible with FEA classes (very little cost in big picture)
 		Convert.Gradients 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
 		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
@@ -967,7 +973,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 		APS_VariableT   n(	fgrad_u_n, fgamma_p_n, fgrad_gamma_p_n );	// Many variables at time-step n
 		
 		/* which field */
-	  //SolverGroup 1 (gets field 1) <-- u (obtained by a rearranged Equation I)
+	  	//SolverGroup 1 (gets field 1) <-- u (obtained by a rearranged Equation_d)
 		if ( curr_group == fDispl.Group()  )	
 		{
 
@@ -1009,7 +1015,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 			}
 		}
 
-		// SolverGroup 2 (gets field 2) <-- gamma_p (obtained by a rearranged Equation II)
+		// SolverGroup 2 (gets field 2) <-- gamma_p (obtained by a rearranged Equation_eps)
 		else if (curr_group == fPlast.Group() )	
 		{
 
@@ -1109,7 +1115,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		else { //-- Still Iterating
 
 			/* residual and tangent for coarse scale */
-			fEquation_d -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, 
+			fEquation_d -> Construct (	fFEA_Shapes, fBalLinMomMaterial, np1, n, 
 										step_number, delta_t );
 			fEquation_d -> Form_LHS_Keps_Kd ( fKdeps, fKdd );
 			fEquation_d -> Form_RHS_F_int ( fFd_int, np1 );

@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.cpp,v 1.7 2003-09-22 20:53:15 raregue Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.8 2003-09-23 19:31:44 raregue Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -27,7 +27,8 @@ void APS_Bal_EqT::Construct ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_M
 //#pragma message("APS_Bal_EqT::Construct: FEA_dVectorT has no Cols() function")
 
 	n_en    	= Shapes.dNdx.Cols();
-	n_sd 		= n_rows_vector;	
+	n_sd    	= Shapes.dNdx.Rows();
+	//n_sd 		= n_rows_vector;	
 	n_sd_x_n_sd = n_sd * n_sd;
 	n_sd_x_n_en = n_sd * n_en;
 
@@ -105,11 +106,10 @@ void APS_Bal_EqT::Form_VB_List (void)
 
 void APS_Bal_EqT::Form_V_S_List (APS_VariableT &npt)
 {
-#pragma message("APS_Bal_EqT::Form_V_S_List: V[knueps] and V[keps] must be input for BC")
-
 		S.Construct 	( kNUM_S_TERMS, 	n_ip 		);
 		V.Construct 	( kNUM_V_TERMS, 	n_ip, n_sd 	);
-	
+		
+		#pragma message("APS_Bal_EqT::Form_V_S_List: V[knueps] and V[keps] must be input for BC")
 		V[knueps](0) = 1.0;
 		V[knueps](1) = 0.0;
 		V[keps](0) = 1.0;
@@ -136,7 +136,7 @@ void APS_Bal_EqT::Get ( StringT &Name, FEA_dMatrixT &tensor )
 	if ( Name == "grad_u" )
 		tensor = B_gradu[kgrad_u];
 	else
-		cout << " ...ERROR: APS_Bal_EqT::Get() >> Unknown vector '"<<Name<<"' requested. \n";
+		cout << " ...ERROR: APS_Bal_EqT::Get() >> Unknown tensor '"<<Name<<"' requested. \n";
 }
 
 

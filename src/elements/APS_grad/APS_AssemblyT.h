@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.7 2003-09-22 20:53:10 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.8 2003-09-23 19:31:42 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -20,8 +20,6 @@
 #include "APS_VariableT.h"
 #include "APS_Bal_EqT.h"
 #include "APS_BCJT.h"
-//#include "BalLinMomT.h"
-//#include "PlastT.h"
 #include "FEA_FormatT.h"
 
 namespace Tahoe {
@@ -30,9 +28,10 @@ namespace Tahoe {
 class ShapeFunctionT;
 class Traction_CardT;	/** mass types */
 
-/** APS_AssemblyT: This class contains methods pertaining to kinematics of
+/** APS_AssemblyT: This class contains kinematics of
  * a dual field formulation for strict anti-plane shear. These include a scalar 
- * out-of-plane displacement u and plastic gradient gamma_p
+ * out-of-plane displacement u and an in-plane plastic gradient vector gamma_p.
+ * This problem is two-dimensional.
  **/
 
 class APS_AssemblyT: public ElementBaseT
@@ -52,8 +51,8 @@ class APS_AssemblyT: public ElementBaseT
 									kNUM_FMAT_TERMS	}; // MAT for material here, not matrix
 
 	/** constructor */
-	APS_AssemblyT(const ElementSupportT& support, const FieldT& displ, 
-		const FieldT& gammap);
+	APS_AssemblyT(	const ElementSupportT& support, const FieldT& displ, 
+					const FieldT& gammap);
 
 	/** destructor */
 	~APS_AssemblyT(void);
@@ -164,8 +163,8 @@ private:
 	/*@{*/
 	LocalArrayT u;		//total out-of-plane displacement
 	LocalArrayT u_n; 	//total out-of-plane displacement from previous increment
-	LocalArrayT del_u;	//the Newton-R update i.e. del_u = u - u_n (u_{n+1}^{k+1} implied
-	LocalArrayT DDu;    //coarse scale acceleration (used for body force)
+	LocalArrayT del_u;	//the Newton-R update i.e. del_u = u - u_n (u_{n+1}^{k+1} implied)
+	LocalArrayT DDu;    //coarse scale accelleration (used for body force)
 	LocalArrayT gamma_p;		//plastic gradient
 	LocalArrayT gamma_p_n;
 	LocalArrayT del_gamma_p;	//the Newton-R update
@@ -173,7 +172,7 @@ private:
 	dArrayT		del_gamma_p_vec;	// vector form
 	/*@}*/
 
-	int n_ip, n_sd, n_df, n_en, n_en_x_n_df; 
+	int n_ip, n_sd, n_df, n_en, n_en_x_n_df, n_en_x_n_sd; 
 	int n_np, n_el, n_comps;
 	//int step_number_last_iter;
 	//bool New_Step;
