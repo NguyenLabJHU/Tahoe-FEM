@@ -1,4 +1,4 @@
-/* $Id: EdgeFinderT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: EdgeFinderT.cpp,v 1.2 2001-12-16 23:48:12 paklein Exp $ */
 /* created: paklein (02/14/1998)                                          */
 /* Class to determine element neighbors based on the connectivies.        */
 /* The neighboring element numbers (taken from position in the list       */
@@ -18,10 +18,12 @@ int kNeighbor   = 1;
 int kInvConnect = 2;
 
 /* constructor */
-EdgeFinderT::EdgeFinderT(const iArray2DT& connects,
+EdgeFinderT::EdgeFinderT(const ArrayT<const iArray2DT*>& connects,
 	const iArray2DT& nodefacetmap):
 	fCurrent(kNumFlags),
-	fConnects(connects),
+	fConnects(connects.Length()),
+	fStartNumber (connects.Length()),
+	fNumElements (0),
 	fNumFacets(nodefacetmap.MajorDim()),
 	fKeyNodes(nodefacetmap.Max() + 1), // assuming key nodes appear sequentially as
 	                                   // the first entries in the connectivities
@@ -30,6 +32,13 @@ EdgeFinderT::EdgeFinderT(const iArray2DT& connects,
 	/* check */
 	if (fNumFacets < 3) throw eGeneralFail; // at least tri's?
 	if (fKeyNodes < fNumFacets) throw eGeneralFail;
+
+	for (int i=0; i < connects.Length(); i++)
+	  {
+	    fStartNumber [i] = fNumElements;
+	    fConnects[i] = connects[i];
+	    fNumElements += connects[i]->MajorDim();
+	  }
 
 	/* initialize */
 	Clear();
@@ -65,21 +74,20 @@ const iArray2DT& EdgeFinderT::Neighbors(void)
 		SetInverseConnects();
 		
 		/* allocate and initialize neighbor data */
-		int nel = fConnects.MajorDim();
-		fNeighbors.Allocate(nel, fNumFacets);
+		fNeighbors.Allocate(fNumElements, fNumFacets);
 		fNeighbors = -1;
 
 		/* work space */
-		iArrayT hit_count(nel);
+		iArrayT hit_count(fNumElements);
 		hit_count = 0;
 		
 		/* set neighbors */
 		int nfn = fNodeFacetMap.MinorDim();
 		AutoArrayT<int> hit_elems;
-		for (int i = 0; i < nel; i++)
+		for (int i = 0; i < fNumElements; i++)
 		{
 			int* neigh_i = fNeighbors(i);
-			int* elem_i  = fConnects(i);
+			int* elem_i  = ElementNodes(i);
 			for (int j = 0; j < fNumFacets; j++)
 			{
 				/* neighbor not set */
@@ -118,7 +126,7 @@ const iArray2DT& EdgeFinderT::Neighbors(void)
 					if (neighbor != -1)
 					{
 						/* determine neighbor's facet */
-						int facet_l = FindMatchingFacet(j, elem_i, fConnects(neighbor));
+						int facet_l = FindMatchingFacet(j, elem_i, ElementNodes(neighbor));
 				
 					#if __option(extended_errorcheck)
 						/* neighbor's neighbor should be unset */
@@ -166,11 +174,24 @@ void EdgeFinderT::SetDimensions(void)
 		fCurrent[kDims] = 1;
 	
 		/* check */
-		if (fKeyNodes > fConnects.MinorDim()) throw eOutOfRange;
-	
+		int nen = fConnects[0]->MinorDim();
+		for (int i=0; i < fConnects.Length(); i++)
+		  {
+		    if (fKeyNodes > fConnects[i]->MinorDim()) throw eOutOfRange;
+		    if (nen != fConnects[i]->MinorDim()) throw eSizeMismatch;
+		  }
+
 		/* set node number range */
-		fMinNum   = fConnects.Min();
-		fMaxNum   = fConnects.Max();
+		iArrayT mins (fConnects.Length());
+		iArrayT maxes (fConnects.Length());
+		for (int i=0; i < fConnects.Length(); i++)
+		  {
+		    mins[i] = fConnects[i]->Min();
+		    maxes[i] = fConnects[i]->Max();
+		  }
+
+		fMinNum   = mins.Min();
+		fMaxNum   = maxes.Max();
 		fNumNodes = fMaxNum - fMinNum + 1;
 	}
 }
@@ -187,9 +208,9 @@ void EdgeFinderT::SetInverseConnects(void)
 		AutoFill2DT<int> invconnects(fNumNodes, 25, fNumFacets);
 
 		/* generate map */
-		int  nen = fConnects.MinorDim();
-		int* pel = fConnects(0);
-		for (int i = 0; i < fConnects.MajorDim(); i++)
+		int  nen = fConnects[0]->MinorDim();
+		int* pel = ElementNodes(0);
+		for (int i = 0; i < fNumElements; i++)
 		{
 			int* pel_i = pel;
 			for (int j = 0; j < fKeyNodes; j++)
@@ -198,7 +219,7 @@ void EdgeFinderT::SetInverseConnects(void)
 				invconnects.AppendUnique(row, i);
 			}
 
-			pel += nen;
+			pel = ElementNodes (i+1);
 		}		
 
 		/* copy data */
@@ -252,4 +273,22 @@ int EdgeFinderT::FindMatchingFacet(int facet_i, const int* elem_i,
 #endif
 
 	return facet_j;	
+}
+
+int* EdgeFinderT::ElementNodes (int index) const
+{
+  if (index < 0 || index >= fNumElements) throw eOutOfRange;
+
+  /* find the block */
+  int block = 0;
+  int offset = 0;
+  while (index > fStartNumber[block]) 
+    {
+      block++;
+      if (block > fConnects.Length()) throw eOutOfRange;
+    }
+
+  int localindex = index - fStartNumber[block];
+  const iArray2DT* conn = fConnects[block];
+  return (*conn)(localindex);
 }
