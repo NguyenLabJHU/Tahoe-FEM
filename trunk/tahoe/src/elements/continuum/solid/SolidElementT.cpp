@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.47 2003-05-27 06:56:45 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.48 2003-07-12 00:24:10 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -1113,6 +1113,8 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
                 linear_momentum.Set(ndof, pall); pall += ndof;
                 ip_velocity.Dimension(ndof);
         }
+        else if (e_codes[iKineticEnergy]) ip_velocity.Dimension(ndof);
+        
         dArray2DT ip_stress;
         if (e_codes[iIPStress])
         {
