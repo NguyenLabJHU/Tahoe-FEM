@@ -1,4 +1,4 @@
-/* $Id: ModelFileT.cpp,v 1.6 2002-01-09 22:20:38 paklein Exp $ */
+/* $Id: ModelFileT.cpp,v 1.7 2002-01-23 20:27:29 paklein Exp $ */
 /* created: paklein (12/15/1999)                                          */
 
 #include "ModelFileT.h"
@@ -687,18 +687,34 @@ ModelFileT::StatusT ModelFileT::AdvanceStream(istream& in,
 	const char* key) const
 {
 	int found = 0;
-	char word[255], line[255];
+	char line[255];
 	while (!found && in.good())
 	{
-		in >> word;
-		if (word[0] == '*')
+		in >> line;
+		if (line[0] == '*')
 		{
-			ToLower(word);
-			if (strcmp(word + 1, key) == 0)
+			ToLower(line);
+			if (strcmp(line + 1, key) == 0)
 				found = 1;
 		}
-		else
-			in.getline(line, 254);
+		else /* clear the next line */
+		{
+			bool done = false;
+			while (!done)
+			{
+				in.getline(line, 254);
+				
+				/* line longer than 254 char's */
+				if (!in.good())
+				{
+					if (in.fail()) /* ran out of buffer */
+						in.clear();
+					else /* die on all other errors */
+						done = true;
+				} 
+				else done = true;
+			}
+		}
 	}
 	
 	return found ? kOK : kFail;
