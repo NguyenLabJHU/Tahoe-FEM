@@ -1,8 +1,10 @@
-/* $Id: TotalLagrangianAxiT.cpp,v 1.2.2.1 2004-03-14 23:51:37 paklein Exp $ */
+/* $Id: TotalLagrangianAxiT.cpp,v 1.2.2.2 2004-03-15 00:08:32 paklein Exp $ */
 #include "TotalLagrangianAxiT.h"
 
 #include "ShapeFunctionT.h"
 #include "SolidMaterialT.h"
+#include "ofstreamT.h"
+#include "ifstreamT.h"
 
 const double Pi2 = 2.0*acos(-1.0);
 const int kRadialDirection = 0; /* x <-> r */
