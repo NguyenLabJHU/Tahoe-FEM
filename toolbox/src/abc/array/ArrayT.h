@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.5 2001-10-05 22:31:33 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.6 2001-12-17 00:00:11 paklein Exp $ */
 /* created: paklein (06/19/1996)                                          */
 /* Base class for handling memory allocation for arrays of TYPE           */
 
@@ -352,7 +352,11 @@ inline TYPE& ArrayT<TYPE>::operator[](int index) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (index < 0 || index >= fLength) throw eOutOfRange;
+	if (index < 0 || index >= fLength) {
+		cout << "\n ArrayT<TYPE>::operator[]: index " << index 
+		     << " is out of range {0," << Length()-1 << "}" << endl;
+		throw eOutOfRange;
+		}
 #endif
 	return fArray[index];
 }
