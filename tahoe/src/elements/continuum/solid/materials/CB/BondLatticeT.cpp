@@ -1,4 +1,4 @@
-/* $Id: BondLatticeT.cpp,v 1.4.46.1 2004-04-24 19:57:32 paklein Exp $ */
+/* $Id: BondLatticeT.cpp,v 1.4.46.2 2004-05-12 22:21:29 paklein Exp $ */
 /* created: paklein (01/07/1997) */
 #include "BondLatticeT.h"
 #include <math.h>
@@ -26,7 +26,7 @@ BondLatticeT::BondLatticeT(int numlatticedim, int numspatialdim,
 	if (fNumBonds < 1) ExceptionT::GeneralFail(caller);
 	
 	/* initialize values */
-	fBondCounts = 0.0;
+	fBondCounts = 0;
 	fDefLength = 1.0;
 }
 
