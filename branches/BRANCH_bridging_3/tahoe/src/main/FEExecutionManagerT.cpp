@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.51.2.1 2003-10-16 12:56:14 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.51.2.2 2003-10-21 19:14:29 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -452,7 +452,6 @@ void FEExecutionManagerT::RunStaticBridging_staggered(FEManagerT_bridging& conti
 	int order1 = 0;
 	StringT bridging_field = "displacement";
 	bool make_inactive = true;
-	bool active = false;
 	atoms.InitGhostNodes();
 	continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
 	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), make_inactive);
@@ -622,17 +621,7 @@ void FEExecutionManagerT::RunStaticBridging_monolithic(ifstreamT& in, FEManagerT
 {
 	const char caller[] = "FEExecutionManagerT::RunStaticBridging_monolithic";
 	    
-	/* configure ghost nodes */
-	int group = 0;
-	int order1 = 0;
-	StringT bridging_field = "displacement";
-	bool make_inactive = true;
-	bool active = false;
-	atoms.InitGhostNodes();
-	continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
-	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), make_inactive);
-
-	/* manage multiple FEManagerT's */
+	/* manager for multiple FEManagerT's */
 	CommunicatorT multi_comm;
 	StringT multi_out_file;
 	multi_out_file.Root(in.filename());
