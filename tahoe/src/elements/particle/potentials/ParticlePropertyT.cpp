@@ -1,4 +1,4 @@
-/* $Id: ParticlePropertyT.cpp,v 1.10.30.1 2004-07-06 06:54:18 paklein Exp $ */
+/* $Id: ParticlePropertyT.cpp,v 1.10.30.2 2004-07-08 00:49:14 paklein Exp $ */
 #include "ParticlePropertyT.h"
 #include "ArrayT.h"
 
@@ -38,38 +38,3 @@ void ParticlePropertyT::TakeParameterList(const ParameterListT& list)
 
 	fMass = list.GetParameter("mass");
 }
-
-#if 0
-namespace Tahoe {
-
-/* stream extraction operator */
-istream& operator>>(istream& in, ParticlePropertyT::TypeT& property)
-{
-	int i_property;
-	in >> i_property;
-	switch (i_property)
-	{
-		case ParticlePropertyT::kHarmonicPair:
-			property = ParticlePropertyT::kHarmonicPair;
-			break;
-		case ParticlePropertyT::kLennardJonesPair:
-			property = ParticlePropertyT::kLennardJonesPair;
-			break;
-		case ParticlePropertyT::kParadynPair:
-			property = ParticlePropertyT::kParadynPair;
-			break;
-		case ParticlePropertyT::kParadynEAM:
-			property = ParticlePropertyT::kParadynEAM;
-			break;
-		case ParticlePropertyT::kMatsuiPair:
-			property = ParticlePropertyT::kMatsuiPair;
-			break;	
-		default:
-			ExceptionT::BadInputValue("operator>>ParticlePropertyT::TypeT", 
-				"unknown code: %d", i_property);
-	}
-	return in;
-}
-
-} /* namespace Tahoe */
-#endif
