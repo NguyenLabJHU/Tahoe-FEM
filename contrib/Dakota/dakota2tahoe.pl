@@ -33,16 +33,30 @@ foreach $key (keys %varlist) {
 	print STDOUT "$key = $varlist{$key}\n";
 }
 
+print "\n";
+
 # echo file making variable subsitutions
 open(IN, "$source") || die "could not open input file $source";
 open(OUT, ">$outfile") || die "could not open output file $outfile";
 while (defined($line = <IN>)) {
 	chomp($line);
-	
-	# do variable substitution
+	# variable substitution
 	foreach $key (keys %varlist) {
 		$line =~ s/["']$key["']/"$varlist{$key}"/g;
 	}
+	# substitution & arithmatic (one expression per line)
+ 	if ($line =~ /{/) {
+ 		($begin,$end) = split /{/, $line;
+ 		($exp,$end)   = split /}/, $end;
+ 		print "exp : $exp - > ";
+		foreach $key (keys %varlist) {
+                	$exp =~ s/$key/$varlist{$key}/g;
+        	}
+ 		$nexp = eval($exp);
+ 		print " $nexp\n";
+ 		$line = "$begin"."$nexp"."$end";
+ 	}
+	
 	
 	# echo
 	print OUT "$line\n";
