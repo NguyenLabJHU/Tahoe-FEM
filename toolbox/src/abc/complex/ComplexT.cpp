@@ -10,6 +10,9 @@
 #include "Constants.h"
 #include "nArrayT.h"
 
+/* array behavior */
+const bool ArrayT<ComplexT>::fByteCopy = true;
+
 /*
 * Real and Imaginary parts of arrays - must be dimensioned BEFORE call
 */
