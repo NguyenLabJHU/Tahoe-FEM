@@ -1,5 +1,5 @@
-/* $Id: FBC_CardT.cpp,v 1.3 2001-07-16 22:41:02 rrsettg Exp $ */
-/* created: paklein (06/15/1996)                                          */
+/* $Id: FBC_CardT.cpp,v 1.4 2002-02-27 01:32:55 paklein Exp $ */
+/* created: paklein (06/15/1996) */
 
 #include "FBC_CardT.h"
 
@@ -13,8 +13,8 @@
 #include "LoadTime.h"
 
 /* copy behavior for arrays FBC_CardT's */
-const bool ArrayT<FBC_CardT*>::fByteCopy = true;
-const bool ArrayT<FBC_CardT>::fByteCopy = false;
+template<> const bool ArrayT<FBC_CardT*>::fByteCopy = true;
+template<> const bool ArrayT<FBC_CardT>::fByteCopy = false;
 
 /* constructor */
 FBC_CardT::FBC_CardT(void):

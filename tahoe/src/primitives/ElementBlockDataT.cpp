@@ -1,10 +1,10 @@
-/* $Id: ElementBlockDataT.cpp,v 1.1 2002-01-27 18:43:14 paklein Exp $ */
+/* $Id: ElementBlockDataT.cpp,v 1.2 2002-02-27 01:32:55 paklein Exp $ */
 
 #include "ElementBlockDataT.h"
 
 /* copy behavior for arrays FBC_CardT's */
-const bool ArrayT<ElementBlockDataT*>::fByteCopy = true;
-const bool ArrayT<ElementBlockDataT>::fByteCopy = false;
+template<> const bool ArrayT<ElementBlockDataT*>::fByteCopy = true;
+template<> const bool ArrayT<ElementBlockDataT>::fByteCopy = false;
 
 /* constructor */
 ElementBlockDataT::ElementBlockDataT(void):

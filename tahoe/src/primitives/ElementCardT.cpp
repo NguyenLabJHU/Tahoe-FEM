@@ -1,5 +1,5 @@
-/* $Id: ElementCardT.cpp,v 1.4 2001-09-05 21:56:41 paklein Exp $ */
-/* created: paklein (05/24/1996)                                          */
+/* $Id: ElementCardT.cpp,v 1.5 2002-02-27 01:32:55 paklein Exp $ */
+/* created: paklein (05/24/1996) */
 
 #include "ElementCardT.h"
 #include <iostream.h>
@@ -11,7 +11,7 @@
 #include "KBC_CardT.h"
 
 /* array behavior */
-const bool ArrayT<ElementCardT>::fByteCopy = false;
+template<> const bool ArrayT<ElementCardT>::fByteCopy = false;
 
 /* initialize static data */
 iArrayT ElementCardT::i_junk;
