@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2003-03-04 07:37:51 paklein Exp $
+# $Id: makefile,v 1.3 2003-04-03 01:11:07 saubry Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,6 +21,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 	ParticlePairT.o \
+	EAMT.o \
 	ParticleT.o
 
 OBJ_LINK = $(OBJ)
@@ -42,6 +43,7 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 	ParticlePairT.cpp \
+	EAMT.cpp \
 	ParticleT.cpp
 
 ##################### (3) headers
@@ -55,6 +57,7 @@ SRC = \
 #
 HDR = \
 	ParticlePairT.h \
+	EAMT.h \
 	ParticleT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
