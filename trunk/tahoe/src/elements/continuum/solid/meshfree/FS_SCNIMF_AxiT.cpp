@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.14 2005-01-24 18:34:33 cjkimme Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.15 2005-01-25 02:23:58 cjkimme Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 //#define VERIFY_B
@@ -231,7 +231,7 @@ void FS_SCNIMF_AxiT::WriteOutput(void)
 		double* inp_val = values_i.Pointer() + 2*ndof;
 
 		/* mass */		
-		*inp_val++ = fVoronoiCellVolumes[i];
+		*inp_val++ = fCellVolumes[i];
 		
 		/* strain */
 		*inp_val++ = E3D(0,0);
@@ -320,6 +320,9 @@ ParameterInterfaceT* FS_SCNIMF_AxiT::NewSub(const StringT& name) const
 /* accept parameter list */
 void FS_SCNIMF_AxiT::TakeParameterList(const ParameterListT& list)
 {
+	/* we are axisymmetric */
+	qIsAxisymmetric = true;
+
 	/* inherited */
 	SCNIMFT::TakeParameterList(list);
 
@@ -433,7 +436,7 @@ void FS_SCNIMF_AxiT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			/* set current element */
 			fElementCards.Current(i);
 		
-			double w_i = fVoronoiCellVolumes[i]*constK*twoPi*fDeloneVertices(i,0); // integration weights
+			double w_i = fCellVolumes[i]*constK*twoPi*fNodalCoordinates(i,0); // integration weights
 			
 			int n_supp = nodalCellSupports.MinorDim(i);
 			
@@ -573,14 +576,14 @@ void FS_SCNIMF_AxiT::AssembleParticleMass(const double rho)
   fForce = 0.0;
  
   int* nodes = fNodes.Pointer();
-  double* volume = fVoronoiCellVolumes.Pointer();
+  double* volume = fCellVolumes.Pointer();
   dArrayT cell_i_centroid(fSD);
   for (int i = 0; i < fNodes.Length(); i++) {
 
     double* m = fForce(fNodes[i]);
        
     for (int j = 0; j < fSD; j++)
-      *m++ = *volume * 2 * Pi * fVoronoiCellCentroids(i,0);
+      *m++ = *volume * 2 * Pi * fCellCentroids(i,0);
     volume++;
   }
   fForce *= rho;
@@ -628,7 +631,7 @@ void FS_SCNIMF_AxiT::RHSDriver(void)
 		double* ma = fLHS.Pointer();
 		const double* acc;
 		int* nodes = fNodes.Pointer();
-		double* volume = fVoronoiCellVolumes.Pointer();
+		double* volume = fCellVolumes.Pointer();
 		for (int i = 0; i < nNodes; i++)
 		{
 			acc = a(*nodes++);
@@ -659,7 +662,7 @@ void FS_SCNIMF_AxiT::RHSDriver(void)
 		/* set current element */
 		fElementCards.Current(i);
 	
-		double w_i = fVoronoiCellVolumes[i]*twoPi*fDeloneVertices(i,0); // integration weight
+		double w_i = fCellVolumes[i]*twoPi*fNodalCoordinates(i,0); // integration weight
 		
 		int n_supp = nodalCellSupports.MinorDim(i);
 
@@ -800,386 +803,4 @@ MaterialListT* FS_SCNIMF_AxiT::NewMaterialList(const StringT& name, int size)
 	
 	/* no match */
 	return NULL;
-}
-
-void FS_SCNIMF_AxiT::ComputeBMatrices(void)
-{
-	/* possible best implementation is to loop over all Delone edges
-	 * and compute all the necessary values only once per Voronoi
-	 * facet. This approach minimizes number of times that the support of
-	 * an arbitrary point in space (the Voronoi facet centroid) has to be
-	 * found.
-	 */
-
-	/* Here for the Axisymmetric case, I need to add a row to each B that is
-	 * {Psi_I(X_L)/R)L,0.} I have to redimension each B-vector. 
-	 */
-
-	const char caller[] = "FS_SCNIMF_AxiT::ComputeBMatrices";
-
-	const RaggedArray2DT<int>& nodeSupport = fNodalShapes->NodeNeighbors();
-	
-	int nNodes = fNodes.Length();
-	nodeWorkSpace.Dimension(nNodes);
-	facetWorkSpace.Dimension(nNodes);
-	circumferentialWorkSpace.Dimension(nNodes);
-	
-	dArrayT zeroFacet(3);
-	zeroFacet = 0.0;
-	double zeroSingle = 0.;
-	for (int i = 0; i < nNodes; i++) {
-		int l_supp_i = nodeSupport.MinorDim(i);
-		iArrayT supp_i(l_supp_i);
-		supp_i.Copy(nodeSupport(i));
-		supp_i.SortAscending();
-		nodeWorkSpace[i].AppendArray(l_supp_i, supp_i.Pointer());
-		facetWorkSpace[i].AppendArray(l_supp_i, zeroFacet);
-		circumferentialWorkSpace[i].AppendArray(l_supp_i, zeroSingle);
-	}
-	
-	/* integration */
-	int nfn = 2;
-	int nsd = 2;
-	ParentDomainT domain(GeometryT::kLine, fNumIP, nfn);
-	domain.Initialize();
-	LocalArrayT facet_coords(LocalArrayT::kInitCoords, nfn, nsd);
-	facet_coords.SetGlobal(fVoronoiVertices);
-	iArrayT keys;
-	dArrayT ip_coords(nsd);
-	dMatrixT jacobian(nsd, 1);
-	const double* ip_weight = domain.Weight();
-
-	dArrayT facetNormal(fSD), facetIntegral(fSD);
-	double* currentB, *currentI;
-	int n_0, n_1;
-	bool traverseQ_0, traverseQ_1;
-	int *next_0, *next_1;
-	for (int i = 0; i < fDeloneEdges.MajorDim(); i++) {
-		n_0 = fDeloneEdges(i,0);
-		n_1 = fDeloneEdges(i,1);
-
-		facetNormal.DiffOf(fDeloneVertices(n_1), fDeloneVertices(n_0));
-		facetNormal.UnitVector();
-		
-		fDualFacets.RowAlias(i,keys);
-		facet_coords.SetLocal(keys);
-		for (int ii = 0; ii < fNumIP; ii++) {
-
-		  /* jacobian of the coordinate transformation */
-		  domain.DomainJacobian(facet_coords, ii, jacobian);
-		  double jw = ip_weight[ii]*domain.SurfaceJacobian(jacobian);
-		  
-		  /* integration point coordinates */
-		  domain.Interpolate(facet_coords, ip_coords, ii);
-
-		  if (!fNodalShapes->SetFieldAt(ip_coords, NULL)) // shift = 0 or not ?
-		    ExceptionT::GeneralFail(caller,"Shape Function evaluation"
-				"failed at Delone edge %d\n",i);
-				
-		const dArrayT& phiValues = fNodalShapes->FieldAt();			
-		
-		iArrayT ip_cover(fNodalShapes->Neighbors());	
-		int n_ip_cover = ip_cover.Length();	
-		iArrayT ip_cover_key(n_ip_cover);
-		ip_cover_key.SetValueToPosition();
-		ip_cover_key.SortAscending(ip_cover);
-
-		LinkedListT<int>& supp_0 = nodeWorkSpace[n_0];
-		LinkedListT<int>& supp_1 = nodeWorkSpace[n_1];
-		LinkedListT< dArrayT >& bVectors_0 = facetWorkSpace[n_0];
-		LinkedListT< dArrayT >& bVectors_1 = facetWorkSpace[n_1];
-		LinkedListT< double >& circumf_0 = circumferentialWorkSpace[n_0];
-		LinkedListT< double >& circumf_1 = circumferentialWorkSpace[n_1];
-		int s_0 = -1;
-		int s_1 = -1;
-		/* Simultaneously loop over support of the two nodes that are endpoints of the
-		 * current Delone edge and the nodes in the support of the midpoint of this
-		 * edge. If a node covering the centroid is not in the support of n_0 or n_1,
-		 * insert that covering node into the sorted list.
-		 */
-		 
-		int* c = ip_cover.Pointer();
-		int* c_j = ip_cover_key.Pointer();
-		
-		supp_0.Top(); bVectors_0.Top(); circumf_0.Top();
-		supp_1.Top(); bVectors_1.Top(); circumf_1.Top();
-		next_0 = supp_0.CurrentValue();
-		next_1 = supp_1.CurrentValue();
-		for (int j = 0; j < n_ip_cover; j++, c++, c_j++)
-		{
-			facetIntegral = facetNormal;
-			facetIntegral *= phiValues[*c_j]*jw;	
-			
-			if (next_0)
-				traverseQ_0 = *next_0 <= *c;
-			else
-				traverseQ_0 = false;
-					
-			// advance supp_0 and supp_1 until they are greater than or equal to current node
-			while (traverseQ_0 && supp_0.Next(s_0) && bVectors_0.Next())
-			{
-				next_0 = supp_0.PeekAhead(); 
-				if (!next_0)
-					traverseQ_0 = false;
-				else
-					if (*next_0 > *c)
-						traverseQ_0 = false;
-			}
-				
-			if (s_0 != *c) // means we're not at the end of the linked list
-			{
-				supp_0.InsertAtCurrent(*c);
-				bVectors_0.InsertAtCurrent(zeroFacet);
-				circumf_0.InsertAtCurrent(0.);
-				s_0 = *c;
-				if (supp_0.AtTop()) // if we're inserting at the front, LinkedListT's behavior requires more work
-				{
-					supp_0.Next(); 
-					bVectors_0.Next();
-					circumf_0.Next();
-				}
-			}
-				
-			currentI = facetIntegral.Pointer();
-			currentB = bVectors_0.CurrentValue()->Pointer();
-			for (int k = 0; k < fSD; k++)
-				*currentB++ += *currentI++;
-				
-			if (next_1)
-				traverseQ_1 = *next_1 <= *c;
-			else
-				traverseQ_1 = false;
-				
-			// advance supp_0 and supp_1 until they are greater than or equal to current node
-			while (traverseQ_1 && supp_1.Next(s_1) && bVectors_1.Next())
-			{
-				next_1 = supp_1.PeekAhead(); 
-				if (!next_1)
-					traverseQ_1 = false;
-				else
-					if (*next_1 > *c)
-						traverseQ_1 = false;
-			}		
-								
-			if (s_1 != *c)
-			{
-				supp_1.InsertAtCurrent(*c);
-				bVectors_1.InsertAtCurrent(zeroFacet);
-				circumf_1.InsertAtCurrent(0.);
-				s_1 = *c;
-				if (supp_1.AtTop()) // if we're inserting at the front, LinkedListT's behavior requires more work
-				{
-					supp_1.Next(); 
-					bVectors_1.Next();
-					circumf_1.Next();
-				}
-			}
-				 
-			currentI = facetIntegral.Pointer();
-			currentB =  bVectors_1.CurrentValue()->Pointer();
-			for (int k = 0; k < fSD; k++)
-				*currentB++ -= *currentI++; //NB change in sign; facet normal is inverted!
-		}
-		}
-	}
-	
-	/** Loop over remaining edges */
-	for (int i = 0; i < fNonDeloneEdges.Length(); i++)
-	{
-		n_0 = fNonDeloneEdges[i];
-		facetNormal.Set(fSD, fNonDeloneNormals(i));
-		facetNormal.UnitVector();
-
-		/* copy face coordinates with local ordering */
-		fSelfDualFacets.RowAlias(i,keys);
-		facet_coords.SetLocal(keys);
-		for (int ii = 0; ii < fNumIP; ii++) {
-		  
-		  /* jacobian of the coordinate transformation */
-		  domain.DomainJacobian(facet_coords, ii, jacobian);
-		  double jw = ip_weight[ii]*domain.SurfaceJacobian(jacobian);
-
-		  /* integration point coordinates */
-		  domain.Interpolate(facet_coords, ip_coords, ii);
-		
-		if (!fNodalShapes->SetFieldAt(ip_coords, NULL)) // shift = 0 or not ?
-			ExceptionT::GeneralFail(caller,"Shape Function evaluation"
-				"failed at Delone edge %d\n",i);
-				
-		const dArrayT& phiValues = fNodalShapes->FieldAt();			
-				
-		iArrayT ip_cover(fNodalShapes->Neighbors());	
-		int n_ip_cover = ip_cover.Length();	
-		iArrayT ip_cover_key(n_ip_cover);
-		ip_cover_key.SetValueToPosition();
-		ip_cover_key.SortAscending(ip_cover);
-		
-		LinkedListT<int>& supp_0 = nodeWorkSpace[n_0];
-		LinkedListT< dArrayT >& bVectors_0 = facetWorkSpace[n_0];
-		LinkedListT< double >& circumf_0 = circumferentialWorkSpace[n_0];
-		int s_0;
-		
-		/* Merge support of the boundary node with covering of integration point
-		 */
-		int* c = ip_cover.Pointer();
-		int* c_j = ip_cover_key.Pointer();
-		
-		supp_0.Top(); bVectors_0.Top(); circumf_0.Top();
-		next_0 = supp_0.CurrentValue();
-		for (int j = 0; j < n_ip_cover; j++, c++, c_j++)
-		{
-			facetIntegral = facetNormal;
-			facetIntegral *= fBoundaryIntegrationWeights[i]*phiValues[*c_j];		
-		
-			if (next_0)
-				traverseQ_0 = *next_0 <= *c;
-			else
-				traverseQ_0 = false;
-					
-			// advance supp_0 and supp_1 until they are greater than or equal to current node
-			while (traverseQ_0 && supp_0.Next(s_0) && bVectors_0.Next())
-			{
-				next_0 = supp_0.PeekAhead(); 
-				if (!next_0)
-					traverseQ_0 = false;
-				else
-					if (*next_0 > *c)
-						traverseQ_0 = false;
-			}
-				
-			if (s_0 != *c) // means we're not at the end of the linked list
-			{
-				supp_0.InsertAtCurrent(*c);
-				bVectors_0.InsertAtCurrent(zeroFacet);
-				circumf_0.InsertAtCurrent(0.);
-				s_0 = *c;
-				if (supp_0.AtTop()) // if we're inserting at the front, LinkedListT's behavior requires more work
-				{
-					supp_0.Next(); 
-					bVectors_0.Next();
-					circumf_0.Next();
-				}
-			}
-				
-			currentI = facetIntegral.Pointer();
-			currentB =  bVectors_0.CurrentValue()->Pointer();
-			for (int k = 0; k < fSD; k++)
-				*currentB++ += *currentI++;
-		}
-		}
-	}
-	
-	// scale integrals by volumes of Voronoi cells
-	dArrayT* currFacetIntegral;
-	for (int i = 0; i < nNodes; i++)
-	{
-		LinkedListT<dArrayT>& bVectors_i = facetWorkSpace[i];
-		LinkedListT<int>& nodes_i = nodeWorkSpace[i];
-		bVectors_i.Top(); nodes_i.Top();
-		while ((currFacetIntegral = bVectors_i.Next()))
-			*currFacetIntegral *= 1./fVoronoiCellVolumes[i];
-	}
-	
-	// calculate Psi/R terms. These are evaluated nodally, so this additional loop
-	// is required
-	dArrayT phis, nodal_init_coords;
-	for (int i = 0; i < fDeloneVertices.MajorDim(); i++) {
-		nodal_init_coords.Set(fSD, fDeloneVertices(i)); // This is the nodal coordinate.
-		double R_i = nodal_init_coords[0];
-		
-		if (R_i >! kZeroTol)
-		{
-			if (!fNodalShapes->SetFieldAt(nodal_init_coords, NULL)) 
-				ExceptionT::GeneralFail(caller,"Shape Function evaluation"
-					"failed at node %d\n",i);
-					
-			const dArrayT& phiValues = fNodalShapes->FieldAt();	
-			
-			phis.Dimension(phiValues.Length());
-			phis = phiValues;	
-			phis /= R_i;
-		}
-		else
-		{
-			if (!fNodalShapes->SetDerivativesAt(nodal_init_coords))
-				ExceptionT::GeneralFail(caller,"Shape Function derivate evaluation"
-					"failed at node %d\n",i);
-			
-			const dArray2DT& DphiValues = fNodalShapes->DFieldAt();
-
-			phis.Dimension(DphiValues.MajorDim());
-			//Copy the first column of DphiValues, i.e. d phi / d R = lim_{R -> 0} phi/R
-			phis.Copy(DphiValues.Pointer());
-		} 		
-		
-		
-		iArrayT node_cover(fNodalShapes->Neighbors());	
-		int n_node_cover = node_cover.Length();	
-		iArrayT node_cover_key(node_cover);
-		node_cover_key.SetValueToPosition();
-		node_cover_key.SortAscending(node_cover);
-
-		LinkedListT<int>& supp_0 = nodeWorkSpace[i];
-		LinkedListT< double >& circumf_0 = circumferentialWorkSpace[i];
-		int s_0 = -1;
-		/* Simultaneously loop over support of the two nodes that are endpoints of the
-		 * current Delone edge and the nodes in the support of the midpoint of this
-		 * edge. If a node covering the centroid is not in the support of n_0 or n_1,
-		 * insert that covering node into the sorted list.
-		 */
-		 
-		int* n = node_cover.Pointer();
-		int* n_j = node_cover_key.Pointer();
-		
-		supp_0.Top(); circumf_0.Top();
-		next_0 = supp_0.CurrentValue();
-		for (int j = 0; j < n_node_cover; j++, n++, n_j++)
-		{			
-			if (next_0)
-				traverseQ_0 = *next_0 <= *n;
-			else
-				ExceptionT::GeneralFail(caller,"Support list does not exist\n");
-					
-			// advance supp_0 until it is equal to current node
-			// What we're really doing is skipping nodes in support of facet 
-			// centroids (our smoothed strain integration points) that are 
-			// not in support of the node
-			while (traverseQ_0 && supp_0.Next(s_0) && circumf_0.Next())
-			{
-				next_0 = supp_0.PeekAhead(); 
-				if (!next_0)
-					traverseQ_0 = false;
-				else
-					if (*next_0 > *n)
-						traverseQ_0 = false;
-			}
-				
-			if (s_0 != *n) 
-				ExceptionT::GeneralFail(caller,"Node %d in support of node %d but not in data\n",s_0,*n);
-			
-			currentI = facetIntegral.Pointer();
-			*(circumf_0.CurrentValue()) = phis[*n_j];
-				
-		}
-	}
-	
-	// move into more efficient storage for computation
-	nodalCellSupports.Configure(nodeWorkSpace);
-	bVectorArray.Configure(facetWorkSpace);
-	circumferential_B.Configure(circumferentialWorkSpace);
-	
-	for (int i = 0; i < nodalCellSupports.MajorDim(); i++) {
-		int* irow_i = nodalCellSupports(i);
-		dArrayT* drow_i = bVectorArray(i);
-		double* crow_i = circumferential_B(i);
-		LinkedListT<int>& ilist = nodeWorkSpace[i];
-		LinkedListT<dArrayT>& dlist = facetWorkSpace[i];
-		LinkedListT< double >& clist = circumferentialWorkSpace[i];
-		ilist.Top(); dlist.Top(); clist.Top();
-		while (ilist.Next() && dlist.Next()) {
-			*irow_i++ = *(ilist.CurrentValue());
-			*drow_i++ = *(dlist.CurrentValue());
-			*crow_i++ = *(clist.CurrentValue());
-		}
-	}
 }

@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.h,v 1.7 2004-10-28 20:30:53 gjwagne Exp $ */
+/* $Id: FS_SCNIMF_AxiT.h,v 1.8 2005-01-25 02:23:58 cjkimme Exp $ */
 #ifndef _FS_SCNIMF_AXI_T_H_
 #define _FS_SCNIMF_AXI_T_H_
 
@@ -77,18 +77,12 @@ protected: /* for derived classes only */
 	/** assemble particle mass matrix into LHS of global equation system */
 	virtual void AssembleParticleMass(const double rho);
 
-	/** compute B matrices for strain smoothing/nodal integration */
-	virtual void ComputeBMatrices(void);
-
 protected:
 
 	FSMatSupportT* fFSMatSupport;
 	int fNeedsOffset;
 	
 private:
-	ArrayT< LinkedListT<double> > circumferentialWorkSpace;
-	RaggedArray2DT<double> circumferential_B;
-
 	/* deformation gradients passed to the materials */
 	ArrayT<dMatrixT> fF_list;
 	ArrayT<dMatrixT> fF_last_list;

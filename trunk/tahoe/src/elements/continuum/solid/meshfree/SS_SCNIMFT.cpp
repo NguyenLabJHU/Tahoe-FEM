@@ -1,4 +1,4 @@
-/* $Id: SS_SCNIMFT.cpp,v 1.13 2005-01-20 00:42:57 cjkimme Exp $ */
+/* $Id: SS_SCNIMFT.cpp,v 1.14 2005-01-25 02:23:58 cjkimme Exp $ */
 
 #include "SS_SCNIMFT.h"
 
@@ -208,7 +208,7 @@ void SS_SCNIMFT::WriteOutput(void)
 		const double* stress = fCurrMaterial->s_ij().Pointer();
 		
 		double* inp_val = values_i.Pointer() + 2*ndof;
-		*inp_val++ = fVoronoiCellVolumes[i];
+		*inp_val++ = fCellVolumes[i];
 		for (int j = 0; j < num_stress; j++)
 			*inp_val++ = strain[j];
 
@@ -318,7 +318,7 @@ void SS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		LinkedListT<int> nodeSupport_j;
 
 		for (int i = 0; i < nNodes; i++) {	
-			double w_i = fVoronoiCellVolumes[i]*constK; // integration weight
+			double w_i = fCellVolumes[i]*constK; // integration weight
 			int n_supp = nodalCellSupports.MinorDim(i);
 			
 			// Compute smoothed strain 
@@ -406,7 +406,7 @@ void SS_SCNIMFT::RHSDriver(void)
 		double* ma = fLHS.Pointer();
 		const double* acc;
 		int* nodes = fNodes.Pointer();
-		double* volume = fVoronoiCellVolumes.Pointer();
+		double* volume = fCellVolumes.Pointer();
 
 		for (int i = 0; i < nNodes; i++) {
 			acc = a(*nodes++);
@@ -432,7 +432,7 @@ void SS_SCNIMFT::RHSDriver(void)
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
 	for (int i = 0; i < nNodes; i++) {
-		double w_i = fVoronoiCellVolumes[i]; // integration weight
+		double w_i = fCellVolumes[i]; // integration weight
 
 		int n_supp = nodalCellSupports.MinorDim(i);
 
