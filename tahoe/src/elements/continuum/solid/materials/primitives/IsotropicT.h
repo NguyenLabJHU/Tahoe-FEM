@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.h,v 1.2 2001-02-20 00:23:20 paklein Exp $ */
+/* $Id: IsotropicT.h,v 1.2.2.1 2001-06-06 16:29:27 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #ifndef _ISOTROPIC_T_H_
@@ -10,6 +10,9 @@
 class dMatrixT;
 #include "ios_fwd_decl.h"
 class ifstreamT;
+
+/* direct members */
+#include "Material2DT.h"
 
 class IsotropicT
 {
@@ -36,7 +39,11 @@ public:
 protected:
 
 	/* compute isotropic moduli tensor */
-	void ComputeModuli(dMatrixT& moduli, double mu, double lambda) const;
+	void ComputeModuli(dMatrixT& moduli) const;
+	void ComputeModuli2D(dMatrixT& moduli, Material2DT::ConstraintOptionT constraint) const;
+
+	/* scale factor for constrained dilatation */
+	double DilatationFactor2D(Material2DT::ConstraintOptionT constraint) const;   	
 
 private:
 
