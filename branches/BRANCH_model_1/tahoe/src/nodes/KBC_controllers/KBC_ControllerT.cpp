@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.cpp,v 1.1.1.1.6.1 2001-10-09 19:17:14 sawimme Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.1.1.1.6.2 2001-10-10 20:09:19 sawimme Exp $ */
 /* created: paklein (09/05/2000)                                          */
 
 #include "KBC_ControllerT.h"
@@ -63,12 +63,13 @@ void KBC_ControllerT::ReadNodes(ifstreamT& in, iArrayT& id_list,
 {
 	/* top level */
 	const FEManagerT& fe_man = fNodeManager.FEManager();
+	ModelManagerT* model = fe_man.ModelManager();
 
 	/* resolve format */
 	if (fe_man.InputFormat() == IOBaseT::kTahoe)
 	  {
 	    ifstreamT tmp;
-	    ifstreamT& in2 = fe_man.OpenExternal(in, tmp, cout, true,
+	    ifstreamT& in2 = model->OpenExternal(in, tmp, cout, true,
 		  "KBC_ControllerT::ReadNodes: could not open file");
 	    
 	    int num_nodes;
@@ -88,7 +89,6 @@ void KBC_ControllerT::ReadNodes(ifstreamT& in, iArrayT& id_list,
 		ArrayT<StringT> id_name (num_sets);
 
 		/* collect sets */
-		ModelManagerT* model = fe_man.ModelManager();
 		iAutoArrayT temp;
 		for (int i=0; i < num_sets; i++)
 		  {
