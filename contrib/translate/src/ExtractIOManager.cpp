@@ -1,4 +1,4 @@
-/* $Id: ExtractIOManager.cpp,v 1.14 2003-02-25 14:34:36 sawimme Exp $ */
+/* $Id: ExtractIOManager.cpp,v 1.15 2003-02-25 15:05:37 sawimme Exp $ */
 #include "ExtractIOManager.h"
 
 #include "ExceptionT.h"
@@ -152,7 +152,7 @@ void ExtractIOManager::WriteVarData (iArrayT& varsused, int ts) const
 	break;
       }
     default:
-      throw ExceptionT::kGeneralFail;
+      ExceptionT::BadInputValue ("ExtractIOManager::WriteVarData","Unacceptable output format %i", fOutputFormat);
     }
 }
 
@@ -174,10 +174,6 @@ void ExtractIOManager::OpenFile (ofstreamT& o, StringT& name, bool append) const
   else
     o.open_append (filename);
   if (!o.is_open())
-    {
-      fMessage << "\nExtractIOManager::OpenFile cannot open file: "
-	       << filename << "\n\n";
-      throw ExceptionT::kGeneralFail;
-    }
+    ExceptionT::GeneralFail ("ExtractIOManager::OpenFile","Unable to open %s", filename.Pointer());
 }
 

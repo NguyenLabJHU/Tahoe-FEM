@@ -1,4 +1,4 @@
-/* $Id: MergeResults.cpp,v 1.7 2003-02-25 14:34:36 sawimme Exp $ */
+/* $Id: MergeResults.cpp,v 1.8 2003-02-25 15:05:37 sawimme Exp $ */
 #include "MergeResults.h"
 #include "ExceptionT.h"
 #include "OutputSetT.h"
@@ -118,7 +118,7 @@ void MergeResults::Translate (const StringT& program, const StringT& version, co
 				for (int r = 0; dex == -1 && r < union_node_labels.Length(); r++)
 					if (labels[s] == union_node_labels[r])
 						dex = r;
-				if (dex == -1) throw;
+				if (dex == -1) throw ExceptionT::kOutOfRange;
 					
 				/* assemble */
 				for (int r = 0; r < block_n_values.MajorDim(); r++)
@@ -155,7 +155,7 @@ void MergeResults::SetInput(void)
 	cout << "\n Number of source files (> 1): ";
 	fIn >> num_files;
 	if (fEcho) fEchoOut << num_files << "\n";
-	if (num_files < 2) throw ExceptionT::kGeneralFail;
+	if (num_files < 2) ExceptionT::GeneralFail ("MergeResults::SetInput","Must have more than 1 file for merging.");
 	
 	fInputs.Dimension(num_files);
 	fInputs = NULL;
@@ -173,11 +173,7 @@ void MergeResults::SetInput(void)
 		/* new model manager */
 		ModelManagerT* model = new ModelManagerT(cout);
 		if (!model->Initialize(file_type, database, true))
-		{
-			cout << "\n MergeResults::SetInput: could not initialize results file: " 
-			     << database << endl;
-			throw ExceptionT::kGeneralFail;
-		}
+		  ExceptionT::GeneralFail ("MergeResults::SetInput","Could not initialize results file %s", database.Pointer());
 
 		fInputs[i] = model;
     }
@@ -188,7 +184,7 @@ void MergeResults::SetInput(void)
 	{
 		int this_num_steps = fInputs[i]->NumTimeSteps();
 		if (i > 0 && num_steps != this_num_steps)
-			throw ExceptionT::kSizeMismatch;
+ 		        ExceptionT::SizeMismatch ("MergeResults::SetInput","num_steps=%i, this_num_steps=%i", num_steps, this_num_steps);
 		else
 			num_steps = this_num_steps;
 	}

@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.34 2003-02-25 14:34:36 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.35 2003-02-25 15:05:37 sawimme Exp $  */
 #include "TranslateIOManager.h"
 
 #include "ExceptionT.h"
@@ -32,7 +32,8 @@ TranslateIOManager::TranslateIOManager (ostream& out, istream& in, bool write) :
 void TranslateIOManager::SetEcho (int s, const StringT& file)
 {
   fEchoOut.open (file);
-  if (!fEchoOut) throw ExceptionT::kGeneralFail;
+  if (!fEchoOut) 
+    ExceptionT::GeneralFail ("TranslateIOManager::SetEcho","Cannot open file %s", file.Pointer());
   fEcho = true;
   if (fEcho)
     fEchoOut << "%\n" << s << endl;
@@ -91,10 +92,7 @@ void TranslateIOManager::SetInput (void)
   if (fModel.Initialize (format, database, true))
     cout << "\n Input Format: " << format << " File: " << database << endl;
   else
-    {
-      cout << "\n Unable to initialize model file\n";
-      throw ExceptionT::kGeneralFail;
-    }
+    ExceptionT::DatabaseFail ("TranslateIOManager::SetInput", "Unable to initialize model file %s", database.Pointer());
 
   // echo
   if (fEcho) fEchoOut << format << " " << database << endl;
@@ -160,12 +158,9 @@ void TranslateIOManager::SetOutput (const StringT& program_name, const StringT& 
       fOutput = new AVSOutputT (fMessage, outstrings, false);
       break;
     default:
-      {
-	fMessage << "\n Unknown output format: " << outputformat << "\n";
-	throw ExceptionT::kDatabaseFail;
-      }
+      ExceptionT::DatabaseFail ("TranslateIOManager::SetOutput","Unknown output format %i", outputformat);
     }
-  if (!fOutput) throw ExceptionT::kOutOfMemory;
+  if (!fOutput) ExceptionT::OutOfMemory ("TranslateIOManager::SetOutput");
 }
 
 void TranslateIOManager::InitializeVariables (void)
@@ -240,10 +235,7 @@ void TranslateIOManager::InitializeQuadVariables (void)
 
   // query user as to which variables to translate
   if (fNumQV < 1)
-    {
-      fMessage << "\n No quadrature variables found.";
-      throw ExceptionT::kGeneralFail;
-    }
+    ExceptionT::GeneralFail ("TranslateIOManager::InitializeQuadVariables","No quadrature variables found");
   //cout << fNumQV << " " << fQuadratureLabels[0] <<endl;
   VariableQuery (fQuadratureLabels, fQVUsed);
 }
@@ -263,12 +255,7 @@ void TranslateIOManager::InitializeElements (int& group, StringT& groupname)
   fIn >> group;
   if (fEcho) fEchoOut << group << endl;
   if (group < 1 || group > elemsetnames.Length()) 
-    {
-      cout << "\n The number entered for an element group is invalid: "
-	   << group << "\n";
-      cout << "Minimum limit is 1 and maximum is " << elemsetnames.Length() << endl;
-      throw ExceptionT::kOutOfRange;
-    }
+    ExceptionT::OutOfRange ("TranslateIOManager::InitializeElements","Element Group Index %i is invalid", group);
   else
     cout << "\n Translating element group: " << group << " " << elemsetnames[group-1] << endl;
   group--;
@@ -318,11 +305,7 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
 	    int dex;
 	    nodeIDs.HasValue (nodes[n], dex);
 	    if (dex < 0 || dex >= numnodes) 
-	      {
-		cout << " ExtractIOManager::InitializeNodePoints\n";
-		cout << " Node " << nodes[n] << " was not found.\n";
-		throw ExceptionT::kOutOfRange;
-	      }
+	      ExceptionT::OutOfRange ("TranslateIOManager::InitializeNodePoints","Node %i was not found", nodes[n]);
 	    index [n] = dex;
 	  }
 	break;
@@ -373,7 +356,7 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
 	break;
       }
     default:
-      throw ExceptionT::kGeneralFail;
+      ExceptionT::GeneralFail("TranslateIOManager::InitializeNodePoints","Invalid node list type %i", selection);
     }
 }
 
@@ -533,8 +516,8 @@ void TranslateIOManager::InitializeTime (void)
 	    fIn >> stop;
 	    if (fEcho) fEchoOut << stop << endl;
 	    cout << "\n Translating time steps from " << start << " to " << stop << ".\n";
-	    if (stop < start) throw ExceptionT::kGeneralFail;
-	    if (start < 1) throw ExceptionT::kGeneralFail;
+	    if (stop < start || start < 1) 
+	      ExceptionT::GeneralFail ("TranslateIOManager::InitializeTime","Incorrect start/stop parameters");
 	    fNumTS = stop-start+1;
 	    dArrayT temp (fNumTS);
 	    fTimeIncs.Dimension (fNumTS);
@@ -577,10 +560,7 @@ void TranslateIOManager::TranslateVariables(void)
 {
 	/* output sets */
 	if (!fOutput) 
-	  {
-	    cout << "\n TranslateIOManager::TranslateVariables: output not initialized" << endl;
-	    throw ExceptionT::kGeneralFail;
-	  }
+	  ExceptionT::GeneralFail ("TranslateIOManager::TranslateVariables", "Output file not initialized");
 
 	const ArrayT<OutputSetT*>& output_sets = fOutput->ElementSets();
 	if (output_sets.Length() != fOutputID.Length()) throw ExceptionT::kSizeMismatch;
@@ -654,23 +634,11 @@ void TranslateIOManager::WriteNodes (void)
 	 */
   
 	/* node map should not be empty */
-	if (fNodeMap.Length() == 0) {
-		cout << "\n TranslateIOManager::WriteNodes: node number map is empty" << endl;
-		throw ExceptionT::kGeneralFail;
-		}
+	if (fNodeMap.Length() == 0)
+	  ExceptionT::GeneralFail ("TranslateIOManager::WriteNodes","Node number map is empty.");
   
 	/* do not need to do any mapping, fNodeMap is global and offset 
 	   when it comes from modelmanager */
-	/*int min, max;
-	  fNodeMap.MinMax(min, max);
-	  if (min != 0 || max >= nnd)
-	  {
-	  fCoordinates.Dimension(max + 1, nsd);
-	  fCoordinates.Assemble(fNodeMap, fModel.Coordinates());
-	  fCoordinates.WriteNumbered (cout);
-	  throw ExceptionT::kGeneralFail;
-	  }
-	  else fCoordinates.Alias(fModel.Coordinates()); */
   
 	fOutput->SetCoordinates (fModel.Coordinates(), &fNodeID);
 	cout << "\n Number of Nodes: " << nnd << " dim: " << nsd << endl;
@@ -716,10 +684,7 @@ void TranslateIOManager::WriteElements(void)
   // number of sets
 	int num = fModel.NumElementGroups ();
 	if (num == 0) 
-	  {
-	    cout << "\n TranslateIOManager::WriteElements: no element sets" << endl;
-	    throw ExceptionT::kGeneralFail;
-	  }
+	  ExceptionT::GeneralFail ("TranslateIOManager::WriteElements","No element sets");
 
 	// which to output
 	cout << "\n Number of Element Groups: " << num << endl;
