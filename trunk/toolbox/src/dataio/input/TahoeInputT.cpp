@@ -1,4 +1,4 @@
-/* $Id: TahoeInputT.cpp,v 1.13 2003-01-27 06:42:47 paklein Exp $ */
+/* $Id: TahoeInputT.cpp,v 1.14 2004-04-15 23:55:41 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "TahoeInputT.h"
 
@@ -298,10 +298,12 @@ void TahoeInputT::ReadSideSetGlobal (const StringT& name, iArray2DT& sides) cons
 
 void TahoeInputT::SetCode (int numelemnodes, int dof, GeometryT::CodeT& code) const
 {
-  code = GeometryT::kNone;
-  if (dof == 1 && numelemnodes == 1)
-    code = GeometryT::kPoint;
-  else if (dof == 2)
+	code = GeometryT::kNone;
+	if (dof == 1 && numelemnodes == 1)
+		code = GeometryT::kPoint;
+	else if (dof == 1 && numelemnodes == 2)
+		code = GeometryT::kLine;	
+	else if (dof == 2)
     switch (numelemnodes)
       {
       case 1: code = GeometryT::kPoint; break;
