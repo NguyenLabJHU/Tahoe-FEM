@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.7.2.4 2002-05-03 07:13:35 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.7.2.5 2002-05-03 09:55:34 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "NodeManagerT.h"
@@ -224,7 +224,7 @@ void NodeManagerT::ConnectsU(int group,
 const FieldT* NodeManagerT::Field(const char* name) const
 {
 	for (int i = 0; i < fFields.Length(); i++)
-		if (fFields[i]->Name() == name)
+		if (fFields[i] && fFields[i]->Name() == name)
 			return fFields[i];
 
 	/* not found */
