@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.34.4.1 2003-07-15 16:18:08 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.34.4.2 2003-08-15 15:41:39 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -207,7 +207,7 @@ void BridgingScaleT::InitInterpolation(const iArrayT& points_used, const dArray2
 	/* point in cells data */
 	const RaggedArray2DT<int>& point_in_cell = cell_data.PointInCell();
 	const RaggedArray2DT<double>& point_in_cell_coords = cell_data.PointInCellCoords();
-	
+
 	/* run through cells */
 	dArrayT Na;
 	dArrayT point_coords;
@@ -219,7 +219,7 @@ void BridgingScaleT::InitInterpolation(const iArrayT& points_used, const dArray2
 		if (np > 0)
 		{
 			int* points = point_in_cell(i);
-		
+			
 			/* mapped coordinates of points in this cell */
 			mapped_coords.Set(np, nsd, point_in_cell_coords(i));
 			
