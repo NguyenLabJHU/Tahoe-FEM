@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.h,v 1.4 2001-12-16 23:52:40 paklein Exp $ */
+/* $Id: AbaqusResultsT.h,v 1.5 2001-12-17 19:09:47 sawimme Exp $ */
 /*
    CREATED: S. Wimmer 9 Nov 2000
 
@@ -44,7 +44,7 @@ class AbaqusResultsT
   AbaqusResultsT (ostream& message);
 
   /** used to open a database, either binary or ASCII, it will determine */
-  void Initialize (char *filename);
+  void Initialize (const char *filename);
 
   /** used to create a new database
    * /param filename name of file
@@ -52,14 +52,14 @@ class AbaqusResultsT
    * /param numelems number of elements
    * /param numnodes number of nodes 
    * /param elemsize characteristic element size */
-  void Create (char *filename, bool binary, int numelems, int numnodes, 
+  void Create (const char *filename, bool binary, int numelems, int numnodes, 
 	       double elemsize);
 
   /** used to append variable data to preexisting file 
    * \param filename name of file
    * \param binary binary or ASCII format
    * \param bufferwritten amount of buffer already written to file */
-  void OpenWrite (char *filename, bool binary, int bufferwritten);
+  void OpenWrite (const char *filename, bool binary, int bufferwritten);
 
   /** close file and return amount of buffer written */
   int Close (void);
@@ -78,17 +78,17 @@ class AbaqusResultsT
   void NodeMap (iArrayT& n) const;
 
   /** acces num nodes in a set */
-  int  NumNodesInSet (StringT& name);
+  int  NumNodesInSet (const StringT& name) const;
 
   /** return the node set */
-  void NodeSet (StringT& name, iArrayT& nset);
+  void NodeSet (const StringT& name, iArrayT& nset) const;
 
   void ElementMap (iArrayT& e) const; /**< access element map */
-  int  NumElements (StringT& name); /**< number of elements in a set */
-  int  NumElementNodes (StringT& name); /**< number of element nodes in first element in the set */
-  int  NumElementQuadPoints (StringT& name); /**< number of quad pts in first element in the set */
-  void ElementSet (StringT& name, iArrayT& elset); /**< access element set */
-  void GeometryCode (StringT& name, GeometryT::CodeT& code); /**< access geometry code */
+  int  NumElements (const StringT& name) const; /**< number of elements in a set */
+  int  NumElementNodes (const StringT& name); /**< number of element nodes in first element in the set */
+  int  NumElementQuadPoints (const StringT& name) const; /**< number of quad pts in first element in the set */
+  void ElementSet (const StringT& name, iArrayT& elset) const; /**< access element set */
+  void GeometryCode (const StringT& name, GeometryT::CodeT& code); /**< access geometry code */
 
   int  NumNodeVariables (void) const;
   int  NumElementVariables (void) const;
@@ -102,11 +102,10 @@ class AbaqusResultsT
   void QuadratureVariables (iArrayT& keys, iArrayT& dims) const; /**< access quad keys and dimensions */
 
   /** returns dimensions of those variables used by this set name */
-  void VariablesUsed (StringT& name, AbaqusVariablesT::TypeT vt, iArrayT& used);
+  void VariablesUsed (const StringT& name, AbaqusVariablesT::TypeT vt, iArrayT& used);
 
   /** read all variables of the type specified for the step specified for either the node or element set */
-  void ReadVariables (AbaqusVariablesT::TypeT vt, int step, dArray2DT& values,
-		      StringT& name);
+  void ReadVariables (AbaqusVariablesT::TypeT vt, int step, dArray2DT& values, const StringT& name);
 
   const char* VariableName (int index) const; /**< convert index to name */
   int VariableKey (const char *name) const; /**< convert name to key */
@@ -219,6 +218,9 @@ class AbaqusResultsT
   /** scan the element for dimensions */
   void ScanElement (void);
 
+  /** store element or node set */
+  void StoreSet (iArrayT& set);
+
   /** read output definition record for output mode */
   void ReadOutputDefinitions (int &outputmode, StringT& setname);
 
@@ -236,15 +238,22 @@ class AbaqusResultsT
   /** is the variable written with the node number preceeding the component values */
   bool VariableWrittenWithNodeNumber (int key) const;
 
+  /** determines node or element list for ReadVariables
+   * \return true if subset of all nodes or elements */
+  bool DataPoints (AbaqusVariablesT::TypeT vt, const StringT& name, iArrayT& set) const;
+
+  /** advances fIn to the time index given */
+  void AdvanceToTimeIncrement (int step);
+
   /** determine variable type */
   bool CorrectType (int outputmode, int objnum, int intpt, int location, 
 		    AbaqusVariablesT::TypeT vt, int& ID) const;
 
-  int TranslateElementName (char *, GeometryT::CodeT &, int &); /**< translate element name into geometry code */
-  int TranslateContinuum (char *, GeometryT::CodeT &, int &); /**< translate continuum elements */
-  int Translate2D (char *, GeometryT::CodeT &, int &); /** translate 2D continuum elements */
-  int Translate3D (char *, GeometryT::CodeT &, int &); /** translate 3D continuum elements */
-  int TranslateShell (char *, GeometryT::CodeT &, int &); /** translate shell elements to quad or tris */
+  int TranslateElementName (const char *, GeometryT::CodeT &, int &) const; /**< translate element name into geometry code */
+  int TranslateContinuum (const char *, GeometryT::CodeT &, int &) const; /**< translate continuum elements */
+  int Translate2D (const char *, GeometryT::CodeT &, int &) const; /** translate 2D continuum elements */
+  int Translate3D (const char *, GeometryT::CodeT &, int &) const; /** translate 3D continuum elements */
+  int TranslateShell (const char *, GeometryT::CodeT &, int &) const; /** translate shell elements to quad or tris */
   /** generate element name and determine number of element nodes to write */
   void GetElementName (GeometryT::CodeT geometry_code, int elemnodes, 
 		       int& num_output_nodes, StringT& elem_name) const;
@@ -289,9 +298,10 @@ class AbaqusResultsT
 
   int fNumNodeSets; /**< num node sets in input file */
   AutoArrayT<StringT> fNodeSetNames; /**< node set names in input file */
+  AutoArrayT<iArrayT> fNodeSets; /**< node sets in input file */
   int fNumElementSets; /**< num element sets in input file */
   AutoArrayT<StringT> fElementSetNames; /**< element set names in input file */
-
+  AutoArrayT<iArrayT> fElementSets; /**< element sets in input file */
   int fStartCount; /**< number of start increments in input file */
   int fEndCount; /**< number of end increments in input file */
   int fModalCount; /**< number of mode records in input file */
@@ -302,6 +312,7 @@ class AbaqusResultsT
   int fNumQuadVars; /**< number of quad vars in input file */
 
   iAutoArrayT fElementNumber; /**< element IDs */
+  iAutoArrayT fNumElementQuadPoints; /**< num quad pts per element */
   iAutoArrayT fNodeNumber; /**< node IDs */
 
   iAutoArrayT fTimeIncs; /**< time incs */
