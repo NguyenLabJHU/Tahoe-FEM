@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.11 2002-07-02 19:56:47 cjkimme Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.12 2002-09-03 21:45:53 cfoster Exp $ */
 /* created: paklein (03/03/1997)                                          */
 
 #include "dSymMatrixT.h"
@@ -8,8 +8,12 @@
 #include "Constants.h"
 #include "dMatrixT.h"
 
-
 using namespace Tahoe;
+
+namespace Tahoe {
+const bool ArrayT<dSymMatrixT*>::fByteCopy = true; 
+const bool ArrayT<dSymMatrixT>::fByteCopy = false; 
+}
 
 const double Pi = acos(-1.0);
 inline double d_sign(double a, double b)
