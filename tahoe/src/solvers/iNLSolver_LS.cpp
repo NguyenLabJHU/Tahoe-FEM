@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.cpp,v 1.5 2001-12-10 23:58:24 paklein Exp $ */
+/* $Id: iNLSolver_LS.cpp,v 1.6 2002-03-22 02:27:53 paklein Exp $ */
 /* created: paklein (01/01/2001) */
 
 #include "iNLSolver_LS.h"
@@ -100,7 +100,7 @@ bool iNLSolver_LS::iDoCommand(const CommandSpecT& command, StringT& line)
 			command.Argument(0).GetValue(num_iterations);
 			
 			/* message */
-			if (DoIterate(num_iterations) == kFail)
+			if (DoIterate(num_iterations) == kFailed)
 				cout << "warning: iterations ended with FAIL" << endl;
 			return true;
 		}
