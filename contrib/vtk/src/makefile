@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2001-12-10 12:44:09 paklein Exp $
+# $Id: makefile,v 1.6 2001-12-30 20:17:36 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -11,7 +11,8 @@ OBJ = \
 	VTKBodyDataT.o \
 	VTKConsoleT.o \
 	VTKFrameT.o \
-	main.o
+	main.o \
+	gl2ps.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -25,7 +26,8 @@ SRC = \
 	VTKBodyDataT.cpp \
 	VTKConsoleT.cpp \
 	VTKFrameT.cpp \
-	main.cpp
+	main.cpp \
+	gl2ps.c
 
 # headers
 HDR = \
@@ -33,7 +35,8 @@ HDR = \
 	VTKUGridT.h \
 	VTKBodyDataT.h \
 	VTKConsoleT.h \
-	VTKFrameT.h
+	VTKFrameT.h \
+	gl2ps.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

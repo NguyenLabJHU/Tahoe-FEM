@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.35 2001-12-13 09:56:21 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.36 2001-12-30 20:17:35 paklein Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -10,12 +10,19 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRendererSource.h"
 #include "vtkTIFFWriter.h"
+#include "vtkJPEGWriter.h"
+#include "vtkWindowToImageFilter.h"
 //#include "vtkPostScriptWriter.h"
 //#include "vtkDataSetMapper.h"
 //#include "vtkRenderLargeImage.h"
 
+/* generating PostScript from OpenGL */
+#include "gl2ps.h"
+
 #include <iostream.h>
 #include <iomanip.h>
+#include <cstdio>
+
 #include "ExodusT.h"
 #include "dArray2DT.h"
 #include "iArray2DT.h"
@@ -62,19 +69,20 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   iAddCommand(CommandSpecT("ShowFrameNumbers"));
   iAddCommand(CommandSpecT("HideFrameNumbers"));
 
-  CommandSpecT save("Save");
-  ArgSpecT save_file(ArgSpecT::string_);
-  save_file.SetPrompt("image file name");
-  //ArgSpecT mag(ArgSpecT::int_, "mag");
-  //mag.SetDefault(1);
-  //mag.SetPrompt("magnification");
-  save.AddArgument(save_file);
-  //save.AddArgument(mag);
-  iAddCommand(save);
+	CommandSpecT save("Save");
+	ArgSpecT save_file(ArgSpecT::string_);
+	save_file.SetPrompt("image file name");
+	ArgSpecT save_format(ArgSpecT::string_);
+	save_format.SetPrompt("image file format (TIFF|JPG|PS)");
+	save_format.SetDefault("JPG");
+	save.AddArgument(save_file);
+	save.AddArgument(save_format);
+	iAddCommand(save);
 
-  CommandSpecT save_flip("SaveFlipBook");
-  save_flip.AddArgument(save_file);
-  iAddCommand(save_flip);
+	CommandSpecT save_flip("SaveFlipBook");
+	save_flip.AddArgument(save_file);
+	save_flip.AddArgument(save_format);
+	iAddCommand(save_flip);
 	
 	CommandSpecT flipbook("FlipBook", false);
 	ArgSpecT delay(ArgSpecT::double_, "delay");
@@ -369,38 +377,98 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 		iDoCommand(*iCommand("Update"), tmp);
 		return true;
 	}
-  else if (command.Name() == "Save")
-    {
-      /* arguments */
-      StringT name;
-	  command.Argument(0).GetValue(name);
-	  //int mag;
-	  //command.Argument("mag").GetValue(mag);
+	else if (command.Name() == "Save")
+	{
+		/* arguments */
+		StringT name, format;
+		command.Argument(0).GetValue(name);
+		command.Argument(1).GetValue(format);
+
+		/* PostScipt uses gl2ps library */
+		format.ToUpper();
+		if (format == "PS")
+		{
+			/* file name */
+			StringT ext;
+			ext.Suffix(name, '.');
+			if (ext != ".ps" && ext != ".PS")
+				name.Append(".ps");
+				
+			/* open stream */
+			FILE* fp = fopen(name, "w");
+			int buffsize = 0;
+			int state = GL2PS_OVERFLOW;
+			
+			/* loop on buffer size */
+			int iter;
+			while (state == GL2PS_OVERFLOW && iter++ < 20)
+			{
+				buffsize += 1024*1024;
+			
+				/* start redirect */
+				gl2psBeginPage(name, "VTK_for_Tahoe", GL2PS_PS, GL2PS_BSP_SORT,
+					GL2PS_SIMPLE_LINE_OFFSET, GL_RGBA, 0, NULL, 
+		      		buffsize, fp, NULL);
+		      		
+		      	/* draw */
+		      	renWin->Render();
+		      	
+		      	/* end redirect */
+		      	state = gl2psEndPage();
+			}
+			
+			/* close stream */
+			fclose(fp);
+		}
+		else /* VTK image writers */
+		{
+			/* window to image filter */
+			vtkRendererSource* image = vtkRendererSource::New();
+			image->SetInput(fFrames[0]->Renderer());
+			image->Update();
+			image->WholeWindowOn();
+			
+			/* file name extension */
+			StringT ext;
+			ext.Suffix(name, '.');
+			ext.ToUpper();
+			vtkImageWriter* writer;
+			if (format == "TIFF" || format == "TIF")
+			{
+				/* construct TIFF writer */
+				writer = vtkTIFFWriter::New();
+
+				/* add extension */
+      			if (ext != ".TIF" && ext != ".TIFF")
+      				name.Append(".tif");
+			}
+			else if (format == "JPG" || format == "JPEG")
+			{
+				/* construct JPEG writer */
+				writer = vtkJPEGWriter::New();
+			
+				/* add extension */
+      			if (ext != ".JPG" && ext != ".JPEG")
+      				name.Append(".jpg");
+			}
+			else
+			{
+				cout << "unrecognized file format: " << format << endl;
+				return false;
+			}
       
-      /* window to image filter */
-      vtkRendererSource* image = vtkRendererSource::New();
-      //vtkRenderLargeImage* image = vtkRenderLargeImage::New();
-      image->SetInput(fFrames[0]->Renderer());
-      //image->SetMagnification(mag);
-      image->Update();
-	  image->WholeWindowOn();
+      		/* write image */
+			writer->SetInput(image->GetOutput());      
+			writer->SetFileName(name);
+			writer->Write();
       
-      /* construct TIFF writer */
-	  vtkTIFFWriter* writer = vtkTIFFWriter::New();
-      //vtkPostScriptWriter* writer = vtkPostScriptWriter::New();
-      writer->SetInput(image->GetOutput());
+            /* clean up */
+			writer->Delete();
+			image->Delete();
+			//renWin->Render();
+		}
       
-      StringT ext;
-      ext.Suffix(name, '.');
-      if (ext != ".tif") name.Append(".tif");
-      writer->SetFileName(name);
-      writer->Write();
-      cout << name << " has been saved" << endl;
-   
-      /* clean up */
-      writer->Delete();
-      image->Delete();
-      renWin->Render();
+      cout << name << " has been saved" << endl;   
       return true;
     }
 
