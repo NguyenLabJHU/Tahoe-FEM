@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.25 2005-03-04 19:28:59 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.26 2005-03-05 19:04:07 cjkimme Exp $ */
 #include "FS_SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -267,8 +267,6 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		dMatrixT Tijkl(nsd*nsd), BJTCijkl(nsd, nsd*nsd), K_JK, Finverse(nsd);
 		dMatrixT Cijklsigma(nsd*nsd);
 		K_JK.Alias(fLHS);
-		LinkedListT<dArrayT> bVectors_j;
-		LinkedListT<int> nodeSupport_j;
 		for (int i = 0; i < nNodes; i++) 
 		{	
 			/* set current element */
@@ -464,7 +462,7 @@ void FS_SCNIMFT::bVectorToMatrix(double *bVector, dMatrixT& BJ)
 		Bptr[2] = *bVector;
 		Bptr[7] = *bVector;
 	} else { // nsd == 3
-		Bptr[10] = Bptr[19] = *bVector++;
+		Bptr[10] = Bptr[20] = *bVector++;
 		Bptr[3] = *bVector;
 		Bptr[13] = Bptr[23] = *bVector++;
 		Bptr[6] = *bVector;
@@ -473,6 +471,24 @@ void FS_SCNIMFT::bVectorToMatrix(double *bVector, dMatrixT& BJ)
 }
 
 dMatrixT& FS_SCNIMFT::TransformModuli(const dMatrixT& moduli, const dMatrixT& F, dMatrixT& Csig) {
+
+		/* B matrices are nsd^2 x nsd . B d gives F. Need B^T F_im F_kn Cmjnl B . 
+		 *  F_im F_kn Cmjnl no longer has minor symmetry, so it has nsd^4 
+		 * independent components, in general. These can be put in an nsd^2 x nsd^2
+		 * matrix. Each multiplication of C by F acts only on members of a row
+		 * or column of an nsd^2 x nsd^2 matrix. Because of Tahoe's matrix layout,
+		 * the structure of the matrix is dictated. Matrices are contiguous in 
+		 * memory by column, so aliasing a column to an nsd x nsd matrix and
+		 * mulitplying F by this column-alias matrix performs one operation of
+		 * F C. Since one F acts on the last two indices and one on the first,
+		 * the nsd^2 x nsd^2 matrix must be transposed at least once. So, 
+		 * transform the moduli from Voigt notation to Tahoe's column ordering
+		 * a column is 11 21 12 22 in 2D or 11 21 31 12 22 32 13 23 33 in 3D 
+		 * for the last two indices. The first two indices are constant in 
+		 * a column. The last two indices of the moduli have this ordering
+		 * along a row. Minor symmetry can be taken advantage of when
+		 * constructing the big matrix from the moduli. 
+		 */
 		
 		Csig = 0.;
 		
@@ -483,7 +499,7 @@ dMatrixT& FS_SCNIMFT::TransformModuli(const dMatrixT& moduli, const dMatrixT& F,
 		
 		if (nsd == 2) {
 			/* numbering scheme for incoming moduli is standard C_AB, 
-			 * I need matrix with DIFFERENT SCHEME 
+			 * I need matrix with DIFFERENT SCHEME for Tahoe's matrix ordering
 			 * indexing 1 <-> 11, 2 <-> 21, 3 <-> 12, 4 <-> 22 in 2D
 			 * so I can multiply entries by F_ij
 			 */
@@ -495,21 +511,21 @@ dMatrixT& FS_SCNIMFT::TransformModuli(const dMatrixT& moduli, const dMatrixT& F,
 			mtmp[offs1 + 3] = moduli[offs2 + 3]; // C_12
 			
 			// Column 2
-			offs1 += nsd*nsd;
+			offs1 += 4;
 			offs2 = 2;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_31
 			mtmp[offs1 + 1] = mtmp[offs1 + 2] = moduli[offs2 + 6]; // C_33
 			mtmp[offs1 + 3] = moduli[offs2 + 3]; // C_32
 			
 			// Column 3
-			offs1 += nsd*nsd;
+			offs1 += 4;
 			offs2 = 2;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_31
 			mtmp[offs1 + 1] = mtmp[offs1 + 2] = moduli[offs2 + 6]; // C_33
 			mtmp[offs1 + 3] = moduli[offs2 + 3]; // C_32
 			
 			// Column 4
-			offs1 += nsd*nsd;
+			offs1 += 4;
 			offs2 = 1;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_21
 			mtmp[offs1 + 1] = mtmp[offs1 + 2] = moduli[offs2 + 6]; // C_23
@@ -517,7 +533,7 @@ dMatrixT& FS_SCNIMFT::TransformModuli(const dMatrixT& moduli, const dMatrixT& F,
 			
 		} else {
 			/* numbering scheme for incoming modulie is standard C_AB, 
-			 * I need matrix with DIFFERENT SCHEME
+			 * I need matrix with DIFFERENT SCHEME for Tahoe's matrix ordering.
 			 * indexing 1 <-> 11, 2 <-> 21, 3 <-> 31, 4 <-> 12 5 <-> 22 6 <-> 32 
 			 *          7 <-> 13  8 <-> 23  9 <-> 33
 			 * in 3D so I can multiply entries by F_ij
@@ -534,7 +550,7 @@ dMatrixT& FS_SCNIMFT::TransformModuli(const dMatrixT& moduli, const dMatrixT& F,
 			mtmp[offs1 + 8] = moduli[offs2 + 12]; // C_31
 			
 			// Column 2
-			offs1 = 9; offs2 = 5;
+			offs1 += 9; offs2 = 5;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_16
 			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 30]; // C_66
 			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 24]; // C_56
@@ -543,7 +559,7 @@ dMatrixT& FS_SCNIMFT::TransformModuli(const dMatrixT& moduli, const dMatrixT& F,
 			mtmp[offs1 + 8] = moduli[offs2 + 12]; // C_36
 			
 			// Column 3
-			offs1 = 18; offs2 = 4;
+			offs1 += 9; offs2 = 4;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_15
 			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 30]; // C_65
 			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 24]; // C_55
@@ -552,7 +568,7 @@ dMatrixT& FS_SCNIMFT::TransformModuli(const dMatrixT& moduli, const dMatrixT& F,
 			mtmp[offs1 + 8] = moduli[offs2 + 12]; // C_35
 			
 			// Column 4
-			offs1 = 27; offs2 = 5;
+			offs1 += 9; offs2 = 5;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_16
 			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 30]; // C_66
 			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 24]; // C_56
@@ -561,7 +577,7 @@ dMatrixT& FS_SCNIMFT::TransformModuli(const dMatrixT& moduli, const dMatrixT& F,
 			mtmp[offs1 + 8] = moduli[offs2 + 12]; // C_36
 			
 			// Column 5
-			offs1 = 36; offs2 = 1;
+			offs1 += 9; offs2 = 1;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_12
 			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 30]; // C_62
 			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 24]; // C_52
@@ -570,7 +586,7 @@ dMatrixT& FS_SCNIMFT::TransformModuli(const dMatrixT& moduli, const dMatrixT& F,
 			mtmp[offs1 + 8] = moduli[offs2 + 12]; // C_32
 			
 			// Column 6
-			offs1 = 45; offs2 = 3;
+			offs1 += 9; offs2 = 3;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_14
 			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 30]; // C_64
 			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 24]; // C_54
@@ -579,7 +595,7 @@ dMatrixT& FS_SCNIMFT::TransformModuli(const dMatrixT& moduli, const dMatrixT& F,
 			mtmp[offs1 + 8] = moduli[offs2 + 12]; // C_34
 			
 			// Column 7 
-			offs1 = 54; offs2 = 4;
+			offs1 += 9; offs2 = 4;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_15
 			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 30]; // C_65
 			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 24]; // C_55
@@ -588,7 +604,7 @@ dMatrixT& FS_SCNIMFT::TransformModuli(const dMatrixT& moduli, const dMatrixT& F,
 			mtmp[offs1 + 8] = moduli[offs2 + 12]; // C_35
 			
 			// Column 8
-			offs1 = 63; offs2 = 3;
+			offs1 += 9; offs2 = 3;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_14
 			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 30]; // C_64
 			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 24]; // C_54
@@ -597,7 +613,7 @@ dMatrixT& FS_SCNIMFT::TransformModuli(const dMatrixT& moduli, const dMatrixT& F,
 			mtmp[offs1 + 8] = moduli[offs2 + 12]; // C_34
 			
 			// Column 9
-			offs1 = 72; offs2 = 2;
+			offs1 += 9; offs2 = 2;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_13
 			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 30]; // C_63
 			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 24]; // C_53
@@ -619,6 +635,58 @@ dMatrixT& FS_SCNIMFT::TransformModuli(const dMatrixT& moduli, const dMatrixT& F,
 			dMatrixT col_in(nsd, nsd, mtmp.Pointer(i*nsd*nsd));
 			dMatrixT col_out(nsd, nsd, Csig.Pointer(i*nsd*nsd));
 			col_out.MultAB(F, col_in);
+		}
+		
+		Csig.Transpose(Csig);
+		double dswap;
+		
+		if (nsd == 2) {
+		
+			dswap = Csig[1];
+			Csig[1] = Csig[4];
+			Csig[4] = dswap; 
+		
+			dswap = Csig[11];
+			Csig[11] = Csig[14];
+			Csig[14] = dswap; 
+		
+		} else {
+		
+			dswap = Csig[1];
+			Csig[1] = Csig[9];
+			Csig[9] = dswap; 
+		
+			dswap = Csig[2];
+			Csig[2] = Csig[18];
+			Csig[18] = dswap; 
+			
+			dswap = Csig[11];
+			Csig[11] = Csig[19];
+			Csig[19] = dswap; 
+		
+			dswap = Csig[31];
+			Csig[31] = Csig[39];
+			Csig[39] = dswap; 
+			
+			dswap = Csig[32];
+			Csig[32] = Csig[48];
+			Csig[48] = dswap; 
+		
+			dswap = Csig[41];
+			Csig[41] = Csig[49];
+			Csig[49] = dswap; 
+			
+			dswap = Csig[61];
+			Csig[61] = Csig[69];
+			Csig[69] = dswap; 
+			
+			dswap = Csig[62];
+			Csig[62] = Csig[78];
+			Csig[78] = dswap; 
+		
+			dswap = Csig[71];
+			Csig[71] = Csig[79];
+			Csig[79] = dswap; 
 		}
 		
 		return Csig;
