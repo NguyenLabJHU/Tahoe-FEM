@@ -69,8 +69,6 @@ protected:
 	virtual const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain,
 		const ElementCardT& element, int ip);
 			
-	
-
 	/* solve for the state at selected ip */
 	void SolveState(ElementCardT& element);
 
@@ -78,10 +76,12 @@ protected:
 	void AllocateAllElements();
 
 	/* indexes to access internal variable (scalars) array */
-	enum InternalVariablesT {kIsotHard   = 0,  // isotropic hardening
-				 kNlIsotHard = 1,  // nonlocal isotropic hardening
-                                 kdelLmbda   = 2,  // consistency parameter
-			         kYieldCrt   = 3}; // yield criteria
+	enum InternalVariablesT {kIsotHard    = 0,  // isotropic hardening
+				 kNlIsotHard  = 1,  // nonlocal isotropic hardening
+                                 kdelLmbda    = 2,  // consistency parameter
+			         kYieldCrt    = 3,  // yield criteria
+				 kIsotHard0   = 4,  // isotropic hardening at previous iteration
+				 kNlIsotHard0 = 5}; // nonlocal syisotropic hardening at previous iteration
 
 	/* returns the value of the yield function given the relative stress and isotropic hardening */
 	double YieldCondition(const dSymMatrixT& relstress, double isotropic) const;
@@ -93,19 +93,19 @@ private:
                                  kReset = 3}; // indicator not to repeat update
 
 	/* load element data for the specified integration point */
-	void LoadData(const ElementCardT& element, int ip);
+	void LoadData(const ElementCardT& element, int fCurrIP);
 
 	/* computes the increment in the plasticity parameter */
-	void IncrementPlasticParameter(double& varLambda);
+	void IncrementPlasticParameter(double& varLambda, const ElementCardT& element, int ip);
 
 	/* computes the increments in the stress and internal variables */
-	void IncrementState(const double& varLambda);
+	void IncrementState(const double& varLambda, const ElementCardT& element, int ip);
 
 	/* computes the unit normal and the yield condition */
-	void UpdateState();
+	void UpdateState(const ElementCardT& element, int ip);
 
 	/* computes the consistent tangent moduli */
-	void TangentModuli();
+	void TangentModuli(const ElementCardT& element, int ip);
 
 	/* check convergence of solution for all ip of element */
 	bool CheckElementState(const ElementCardT& element);
@@ -156,13 +156,12 @@ private:
 	dMatrixT	fModuliCorr;
 
         /* general workspaces */
-	dSymMatrixT fRelStress;
-        dSymMatrixT fsymmatx1;
-        dMatrixT    fmatx1;
-        dMatrixT    fmatx2;
-        dMatrixT    fmatx3;
-	dMatrixT    ftnsr1;
-
+	dSymMatrixT     fRelStress;
+        dSymMatrixT     fsymmatx1;
+        dMatrixT        fmatx1;
+        dMatrixT        fmatx2;
+        dMatrixT        fmatx3;
+	dMatrixT        ftnsr1;
 };
 
 } // namespace Tahoe
