@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: CrystalLatticeT.cpp,v 1.15 2003-04-15 21:55:24 saubry Exp $ */
+/* $Id: CrystalLatticeT.cpp,v 1.16 2003-06-06 23:11:35 saubry Exp $ */
 #include "CrystalLatticeT.h"
 
 #include <iostream>
@@ -163,4 +163,42 @@ dArray2DT  CrystalLatticeT::AxisRotation(dArray2DT A)
 	  }
     }
   return B;
+}
+
+
+dArrayT CrystalLatticeT::VectorRotation(dArrayT v)
+{
+  if(v.Length() != nLSD) throw eSizeMismatch;
+
+  dArrayT w(nLSD);
+  dMatrixT Q(nLSD,nLSD);
+
+  w = 0.0;
+  Q = 0.0;
+
+  if(nLSD==2)
+    {
+      if(fabs(angle_rotation) <= 1.e-5) return v;
+      Rotate2DT R(angle_rotation);
+      Q = R.Q();
+
+      for (int i=0; i<nLSD; i++)
+	for (int k=0; k<nLSD; k++)
+	      w[i] += Q(i,k)*v[k];
+    }
+  else if(nLSD==3)
+    {
+      double norm = norm_vec[0] + norm_vec[1] + norm_vec[2];
+      if (norm < 1.e-5) return v;
+
+      Rotate3DT R;
+      R.GiveTransfoMatrix(matrix_rotation);
+      Q = R.Q();
+      
+      for (int i=0; i<nLSD; i++)
+	for (int k=0; k<nLSD; k++)
+	  w[i] += Q(i,k)*v[k];
+    }
+
+  return w;
 }

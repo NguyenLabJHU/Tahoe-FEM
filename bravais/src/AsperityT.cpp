@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: AsperityT.cpp,v 1.1 2003-06-06 16:05:02 saubry Exp $ */
+/* $Id: AsperityT.cpp,v 1.2 2003-06-06 23:11:35 saubry Exp $ */
 #include "AsperityT.h"
 #include "VolumeT.h"
 
@@ -45,11 +45,6 @@ AsperityT::AsperityT(int dim, dArray2DT len,
       double dist = len(i,1)-len(i,0)+1;
       length(i,1) = len(i,0) + ncells[i]*lattice_parameter[i];
     }
-
-  cout << length;
-  cout << "\n";
-  cout << ncells;
-  cout << "\n";
 }
 
 AsperityT::AsperityT(int dim, iArrayT cel,
@@ -108,6 +103,7 @@ void AsperityT::CreateLattice(CrystalLatticeT* pcl)
   int natoms=0;
   int temp_nat=0;
   dArray2DT temp_atom;
+  iArrayT temp_parts;
 
   if(pcl->GetRotMeth() == 0) 
     {
@@ -120,11 +116,16 @@ void AsperityT::CreateLattice(CrystalLatticeT* pcl)
       if (nlsd==3) temp_nat = 16*nuca*ncells[0]*ncells[1]*ncells[2];
     }
   temp_atom.Dimension(temp_nat,nlsd);
+  temp_parts.Dimension(temp_nat);
 
   if(pcl->GetRotMeth() == 0)
-    nATOMS = RotateAtomInBox(pcl,&temp_atom,temp_nat);
+    nATOMS = RotateAtomInBox(pcl,&temp_atom,&temp_parts,temp_nat);
   else
-    nATOMS = RotateBoxOfAtom(pcl,&temp_atom,temp_nat);
+    nATOMS = RotateBoxOfAtom(pcl,&temp_atom,&temp_parts,temp_nat);
+
+  // Create parts here
+  atom_parts.Dimension(nATOMS);
+  atom_parts = temp_parts;
 
   // Get atoms coordinates
   atom_ID.Dimension(nATOMS);
@@ -161,14 +162,18 @@ void AsperityT::CreateLattice(CrystalLatticeT* pcl)
   if(WhichSort  != 0) SortLattice(pcl);
 }
 
-
-
 void AsperityT::CalculateType()
 {
   atom_types.Dimension(nATOMS);
 
   for (int i=0; i < nATOMS; i++)
     atom_types[i] = 1; 
+}
+
+void AsperityT::CalculatePart()
+{
+  // Do nothing.
+  // Everything is done while creating lattice.
 }
 
 
@@ -358,7 +363,7 @@ void AsperityT::CalculateBounds(iArrayT per,CrystalLatticeT* pcl)
 
 //////////////////// PRIVATE //////////////////////////////////
 
-void AsperityT::ComputeCircleParameters()
+double AsperityT::ComputeCircleParameters()
 {
   double rx,rz,h0;
 
@@ -373,9 +378,12 @@ void AsperityT::ComputeCircleParameters()
   if(nSD == 3)
     center[1] = length(1,0) + (length(1,1) - length(1,0))*0.5;
   center[nSD-1] = h0 + radius;
+
+  return h0;
 }
 
-int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat)
+int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
+			       iArrayT* temp_parts,int temp_nat)
 {
   int nlsd = pcl->GetNLSD();
   int nuca = pcl->GetNUCA();
@@ -389,7 +397,7 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int tem
 
 
   // Call circle parameters
-  ComputeCircleParameters();
+  double h0 = ComputeCircleParameters();
 
   int natom= 0;
 
@@ -421,10 +429,17 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int tem
 		    y += (c[k] + vB(k,m))*vA(k,1);
 		  }
 
-		if(x >= l00 && x <= l01 && y >= l10 && y <= l11 )
+		double r0 = x - center[0]; 
+		double r1 = y - center[1]; 
+		double R = r0*r0 + r1*r1;
+
+		if(x >= l00 && x <= l01 && y >= l10 && y <= l11)
+		   if(R <= radius*radius || z <= h0 )
 		  {
 		    (*temp_atom)(natom)[0] = x;
 		    (*temp_atom)(natom)[1] = y;
+		    (*temp_parts)[natom] = 1;
+		    if (z<= h0) (*temp_parts)[natom] = -1;
 		    natom++;
 		  }
 	      }
@@ -463,16 +478,16 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int tem
 		  double r2 = z - center[2]; 
 		  double R = r0*r0 + r1*r1 + r2*r2;
 
-		  //cout << "p=" << p << " q= " << q << " r=" << r << "\n";
-
-		  if(x >= l00 && x <= l01 && y >= l10 && y <= l11 &&
-		     z >= l20 && z <= l21 && R <= radius*radius)
-		    {
-		      (*temp_atom)(natom)[0] = x;
-		      (*temp_atom)(natom)[1] = y;
-		      (*temp_atom)(natom)[2] = z;
-		      natom++;                     
-		    }
+		  if(x >= l00 && x <= l01 && y >= l10 && y <= l11 && z >= l20 && z <= l21)
+		    if(R <= radius*radius || z <= h0 )
+		      {
+			(*temp_atom)(natom)[0] = x;
+			(*temp_atom)(natom)[1] = y;
+			(*temp_atom)(natom)[2] = z;
+			(*temp_parts)[natom] = 1;
+			if (z<= h0) (*temp_parts)[natom] = -1;
+			natom++;                     
+		      }
 		}
 	    }
     }
@@ -480,7 +495,8 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int tem
   return natom;
 }
 
-int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat)
+int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,
+			       iArrayT* temp_parts,int temp_nat)
 {
   int natom= 0;
 
@@ -489,6 +505,13 @@ int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int tem
   const dArrayT& vLP = pcl->GetLatticeParameters();
   const dArray2DT& vA = pcl->GetAxis();
   const dArray2DT& vB = pcl->GetBasis();
+
+  double x,y,z;
+
+  // Call circle parameters
+  double h0 = ComputeCircleParameters();
+  dArrayT rotated_center(nlsd);
+  rotated_center = pcl->VectorRotation(center);
 
   if (nSD==2) 
     {
@@ -501,19 +524,31 @@ int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int tem
 	      {
 		if (natom > temp_nat) {cout << "natoms wrong";throw eSizeMismatch;}
 		
-		  (*temp_atom)(natom)[0] = length(0,0);
-		  (*temp_atom)(natom)[1] = length(1,0);
-
+		x = length(0,0);
+		y = length(1,0);
 
 		for (int k=0;k<nlsd;k++) 
 		  {
-		    (*temp_atom)(natom)[0] += (c[k] + vB(k,m))*vA(k,0);
-		    (*temp_atom)(natom)[1] += (c[k] + vB(k,m))*vA(k,1);
+		    x += (c[k] + vB(k,m))*vA(k,0);
+		    y += (c[k] + vB(k,m))*vA(k,1);
 		  }
-		
-		natom++;
+
+		double r0 = x - rotated_center[0]; 
+		double r1 = y - rotated_center[1]; 
+		double R = r0*r0 + r1*r1;
+
+		if(R <= radius*radius || z <= h0 )
+		  {
+		    for (int k=0;k<nlsd;k++) 
+		      {
+			(*temp_atom)(natom)[0] += x;
+			(*temp_atom)(natom)[1] += y;
+		      }
+		    (*temp_parts)[natom] = 1;
+		    if (z<= h0) (*temp_parts)[natom] = -1;
+		    natom++;
+		  }
 	      }
-	    
 	  }
     }
   else if (nSD==3) 
@@ -529,18 +564,35 @@ int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int tem
 		  
 		  if (natom > temp_nat) {cout << "natoms wrong";throw eSizeMismatch;}
 		  
-		  (*temp_atom)(natom)[0] = length(0,0);
-		  (*temp_atom)(natom)[1] = length(1,0);
-		  (*temp_atom)(natom)[2] = length(2,0);
+		  x = length(0,0);
+		  y = length(1,0);
+		  z = length(2,0);
 		  
 		  for (int k=0;k<nlsd;k++) 
 		    {
-		      (*temp_atom)(natom)[0] += (c[k] + vB(k,m))*vA(k,0);
-		      (*temp_atom)(natom)[1] += (c[k] + vB(k,m))*vA(k,1);
-		      (*temp_atom)(natom)[2] += (c[k] + vB(k,m))*vA(k,2);
+		      x += (c[k] + vB(k,m))*vA(k,0);
+		      y += (c[k] + vB(k,m))*vA(k,1);
+		      z += (c[k] + vB(k,m))*vA(k,2);
 		    }
 		  
-		  natom++;        
+		  double r0 = x - rotated_center[0]; 
+		  double r1 = y - rotated_center[1]; 
+		  double r2 = z - rotated_center[2]; 
+		  double R = r0*r0 + r1*r1 + r2*r2;
+		  
+		  if( (R <= radius*radius) || (z <= h0) ) 
+		    {
+		      for (int k=0;k<nlsd;k++) 
+			{
+			  (*temp_atom)(natom)[0] += x;
+			  (*temp_atom)(natom)[1] += y;
+			  (*temp_atom)(natom)[2] += z;
+			}
+		      (*temp_parts)[natom] = 1;
+		      if (z<= h0) (*temp_parts)[natom] = -1;
+		      natom++;        
+		    }
+		  
 		}
 	      
 	    }

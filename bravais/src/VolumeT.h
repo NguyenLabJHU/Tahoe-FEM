@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: VolumeT.h,v 1.8 2003-04-18 23:46:05 saubry Exp $ */
+/* $Id: VolumeT.h,v 1.9 2003-06-06 23:11:36 saubry Exp $ */
 
 #ifndef _VOLUME_T_H_
 #define _VOLUME_T_H_
@@ -31,6 +31,7 @@ protected:
 	iArray2DT atom_connectivities;
 	dArray2DT atom_bounds;
 	iArrayT atom_types;
+	iArrayT atom_parts;
 
 	iArrayT WhichSort;
 	iArrayT Map;
@@ -50,6 +51,7 @@ public:
 
 	virtual void CalculateBounds(iArrayT per,CrystalLatticeT* pcl) = 0;
 	virtual void CalculateType()=0;
+	virtual void CalculatePart()=0;
 
 	virtual iArrayT GetNCells() = 0;
         virtual dArray2DT GetLength() = 0; 

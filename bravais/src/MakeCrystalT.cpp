@@ -44,11 +44,17 @@ void MakeCrystalT::Run()
   outputfile.Append(".out");
   ofstreamT out;
   out.open(outputfile);
+
+  inputfile.Append(".in");
+  out << "opening " << inputfile << "\n";
+  out << "creating " << outputfile << "\n";
+ 
+  out << "\nREADING DATA FROM INPUT FILE\n";
  
   // Start to read data
   int nsd=0; 
   in >> nsd;
-  out << "\n\nDimension: " << nsd << "\n";
+  out << "   dimensions:  " << nsd << "\n";
  
   int whichunit;
   iArrayT cel(nsd);
@@ -64,15 +70,16 @@ void MakeCrystalT::Run()
 	{
 	  in >> len(0,0) >> len(0,1);
 	  in >> len(1,0) >> len(1,1);
-	  out << "Length read: [" << len(0,0) << "," << len(0,1) << "]\n";
-	  out << "             [" << len(1,0) << "," << len(1,1) << "]\n";
+	  out << "   lengths: [" << len(0,0) << "," << len(0,1) << "]\n";
+	  out << "            [" << len(1,0) << "," << len(1,1) << "]\n";
+	  
 	}
       else if (nsd==3)
 	{
 	  in >> len(0,0) >>len(0,1);
 	  in >> len(1,0) >>len(1,1);
 	  in >> len(2,0) >>len(2,1);
-	  out << "Length read: [" << len(0,0) << "," << len(0,1) << "]\n";
+	  out << "   lengths:  [" << len(0,0) << "," << len(0,1) << "]\n";
 	  out << "             [" << len(1,0) << "," << len(1,1) << "]\n";
 	  out << "             [" << len(2,0) << "," << len(2,1) << "]\n";
 	}
@@ -82,18 +89,18 @@ void MakeCrystalT::Run()
       if(nsd==2) 
 	{
 	  in >> cel[0] >> cel[1];
-	  out << "Number of cells read: " << cel[0] << "  " << cel[1] <<  "\n";
+	  out << "   cells: " <<  cel[0] << "," << cel[1] << "\n";
 	}
-      else if (nsd==3)
+      if(nsd==3) 
 	{
 	  in >> cel[0] >> cel[1] >> cel[2];      
-	  out << "Number of cells read: " << cel[0] << "  " << cel[1] << "  " <<  cel[2] <<  "\n";
+	  out << "   cells: " <<  cel[0] << "," << cel[1] << "," << cel[2] << "\n";
 	}
     }
 
   StringT latticetype;
   in >> latticetype;
-  out << "Lattice Type: " << latticetype <<  "\n";
+  out << "   type of lattice:  " << latticetype << "\n";
   int b=0;
   if (latticetype=="FCC") 
     {
@@ -127,32 +134,33 @@ void MakeCrystalT::Run()
     }
 	
   dArrayT alat(nsd);
-  if(nsd == 2)
+  if(nsd == 2) 
     {
       in >> alat[0] >> alat[1];
-      out << "Lattice parameter: " 
-	   << alat[0] << "  " 
-	   << alat[1] << "\n";
+      out << "   lattice parameter:  ";
+      out << alat[0] << " " << alat[1] <<  "\n";
     }
-  else
+  if(nsd == 3) 
     {
       in >> alat[0] >> alat[1] >> alat[2];
-      out << "Lattice parameter: " 
-	   << alat[0] << "  " 
-	   << alat[1] << "  " 
-	   << alat[2] << "\n";
+      out << "   lattice parameter:  ";
+      out << alat[0] << " " << alat[1] << " " << alat[2] <<  "\n";
     }
 
   StringT shape;
   in >> shape;
-  out << "Shape of the domain:" << shape <<  "\n";
+  out << "   shape of the domain: " << shape <<  "\n";
 
   //read output format
   int intformat = 0;
   in >> intformat;
 
   IOBaseT::FileTypeT kformat = IOBaseT::int_to_FileTypeT(intformat);
-  out << "Output Format: " << kformat << "\n";
+
+  out << "   output Format:  "; 
+  if (kformat == 1)   out << "Tahoe \n";
+  if (kformat == 3)   out << "Ensight \n";
+  if (kformat == 12)  out << "ParaDyn \n";
  
   //Set Defaults on periodicity, rotation and output filenames
 
@@ -189,26 +197,24 @@ void MakeCrystalT::Run()
       if(nsd == 2)
       {
         in >> per[0] >> per[1] ;
-        out << "Periodic conditions:\n";
-        out << per[0] << "  " << per[1] << "\n";
+        out << "   periodic conditions: " << per[0] << "  " << per[1] << "\n";
       }
       else if(nsd == 3)
       {
         in >> per[0] >> per[1] >> per[2];
-        out << "Periodic conditions:\n";
-        out << per[0] << "  "  << per[1] << "  " << per[2] << "\n";
+        out << "   periodic conditions: " << per[0] << "  "  << per[1] << "  " << per[2] << "\n";
       }
     }
     else if (misc=="ROTATION")
     {
       in >> irot;
-      if (irot == 0) out << "Rotation atoms in box\n";
-      if (irot == 1) out << "Rotation box of atoms\n";
+      if (irot == 0) out << "   Rotation atoms in box\n";
+      if (irot == 1) out << "   Rotation box of atoms\n";
 
       if(nsd==2) 
       {
         in >> angle;
-        out << "Rotation Angle: " << angle << "\n";
+        out << "   Rotation Angle: " << angle << "\n";
       }
       else if (nsd==3)
       {
@@ -218,10 +224,11 @@ void MakeCrystalT::Run()
         in >> mat_rot(0,1) >> mat_rot(1,1) >> mat_rot(2,1);
         in >> mat_rot(0,2) >> mat_rot(1,2) >> mat_rot(2,2); 
       
-        out << "Rotation Matrix:\n";
+        out << "   Rotation Matrix: " ;
         out << mat_rot(0,0) << "  " <<  mat_rot(0,1) << "  " << mat_rot(0,2) << "\n";
-        out << mat_rot(1,0) << "  " <<  mat_rot(1,1) << "  " << mat_rot(1,2) << "\n";
-        out << mat_rot(2,0) << "  " <<  mat_rot(2,1) << "  " << mat_rot(2,2) << "\n";
+        out << "                    " << mat_rot(1,0) << "  " <<  mat_rot(1,1) << "  " << mat_rot(1,2) << "\n";
+        out << "                    " << mat_rot(2,0) << "  " <<  mat_rot(2,1) << "  " << mat_rot(2,2) << "\n";
+        out << "\n";
       }
     }
     else if (misc=="SORT")
@@ -229,13 +236,13 @@ void MakeCrystalT::Run()
 	if(nsd == 2) 
 	  {
 	    in >> isort[0] >> isort[1];
-	    out << "Sorting criteria: ";
+	    out << "   Sorting criteria:  ";
 	    out << "[" << isort[0] << " " << isort[1] << "]\n";
 	  }
 	if(nsd == 3) 
 	  {
 	    in >> isort[0] >> isort[1] >> isort[2];
-	    out << "Sorting criteria: ";
+	    out << "   Sorting criteria:  ";
 	    out << "[" << isort[0] << " " << isort[1] 
 		 << " " << isort[2] << "]\n";
 	  }
@@ -243,7 +250,7 @@ void MakeCrystalT::Run()
     else if (misc=="OUTPUT")
     {
       in >> input;
-      out << "Output file root: " << input << "\n";
+      out << "   output file root: " << input << "\n";
     } 
 
     in >> misc;
@@ -260,27 +267,32 @@ void MakeCrystalT::Run()
 
   StringT program = "bravais";
   StringT version = "v1.0";
-  StringT title = "Lattice for Atoms";
+  StringT title = "Bravais Lattice of Atoms";
 
-  int nb_atoms;
-  out << "\nCreating mesh of atom...\n";
-  nb_atoms = mesh_atom.CreateMeshAtom();
-  out << nb_atoms << " atoms in mesh\n";
+  out << "\nCREATING MESH OF ATOMS \n";
 
-  out << "\nActual Length of Atoms\n";
+  out << "Dimensions of the simulation box : \n";
   if(nsd==2) 
     {
       out << "[" << mesh_atom.Length()(0,0) << "," << mesh_atom.Length()(0,1) << "]\n";
       out << "[" << mesh_atom.Length()(1,0) << "," << mesh_atom.Length()(1,1) << "]\n";
+      out << "corresponding to " << mesh_atom.NumberOFCells()[0] << ", " 
+	  << mesh_atom.NumberOFCells()[1] << " cells.\n";
     }
   else if (nsd==3)
     {
       out << "[" << mesh_atom.Length()(0,0) << "," << mesh_atom.Length()(0,1) << "]\n";
       out << "[" << mesh_atom.Length()(1,0) << "," << mesh_atom.Length()(1,1) << "]\n";
       out << "[" << mesh_atom.Length()(2,0) << "," << mesh_atom.Length()(2,1) << "]\n";
+      out << "corresponding to " << mesh_atom.NumberOFCells()[0] << ", " 
+	  << mesh_atom.NumberOFCells()[1] << ", "  << mesh_atom.NumberOFCells()[2] <<" cells.\n";
     }
 
-  out << "\nThe total volume of the domain is " 
+  int nb_atoms = mesh_atom.CreateMeshAtom();
+  out << "Total number of atoms in the domain is " ;
+  out << nb_atoms  << "\n";
+
+  out << "Volume of the domain is " 
        << mesh_atom.Volume_of_Mesh()
        << " in Angstroms^3 \n";
 
