@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.34.6.1 2004-02-25 07:53:30 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.34.6.2 2004-02-26 07:28:59 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -331,8 +331,11 @@ GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
 		const ScheduleT* stretch = fStretchSchedule[i];
 		if (stretch)
 		{
+			/* time during next solution step */
+			double next_time = ElementSupport().Time() + ElementSupport().TimeStep();
+		
 			has_moving = true;
-			double scale = stretch->Value();
+			double scale = stretch->Value(next_time);
 			double x_min = scale*fPeriodicBounds(i,0);
 			double x_max = scale*fPeriodicBounds(i,1);
 	
