@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.5 2001-06-01 16:41:41 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.6 2001-07-19 06:48:06 paklein Exp $ */
 /* created: paklein (09/21/1997)                                          */
 
 #include "FEExecutionManagerT.h"
@@ -236,15 +236,28 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
 	/* prompt for decomp size */
 	int size = 0;
 	int count = 0;
+	int method = 0;
 	while (count == 0 || (count < 5 && size < 2))
 	{
 		count++;
+
+		/* number of partitions */					
 		cout << "\n Enter number of partitions > 1 (0 to quit): ";
 #if (defined __SGI__ && defined __MPI__)
 		cout << '\n';
 #endif
-		/* read number of partitions */					
 		cin >> size;
+
+		/* decomposition method */
+#ifdef __METIS__
+		cout << "\n Decomposition method (0: native, 1: METIS): ";
+#else
+		cout << "\n Decomposition method (0: native, 1: METIS(NOT installed)): ";
+#endif
+#if (defined __SGI__ && defined __MPI__)
+		cout << '\n';
+#endif
+		cin >> method;
 		
 		/* clear to end of line */
 		char line[255];
@@ -285,7 +298,7 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
 		map_file.Append(".io.map");
 
 		/* set output map and and generate decomposition */
-		Decompose(in, size, model_file, global_model_file, format, map_file);
+		Decompose(in, size, model_file, global_model_file, format, map_file, method);
 		t1 = clock();
 	}
 
@@ -682,7 +695,7 @@ void FEExecutionManagerT::GetModelFile(ifstreamT& in, StringT& model_file,
 /* initializations for rank 0 */
 void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 	const StringT& model_file, const StringT& global_model_file,
-	IOBaseT::FileTypeT format, const StringT& output_map_file) const
+	IOBaseT::FileTypeT format, const StringT& output_map_file, int method) const
 {
 	bool split_io = CommandLineOption("-split_io");
 	bool need_output_map = NeedOutputMap(in, output_map_file, size) && !split_io;
@@ -753,7 +766,7 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 			try
 			{
 				cout << "\n Decomposing: " << model_file << endl;
-				global_FEman.Decompose(partition, graph, true);
+				global_FEman.Decompose(partition, graph, true, method);
 				cout << " Decomposing: " << model_file << ": DONE"<< endl;
 			}
 			catch (int code)
