@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.59 2004-08-02 18:51:33 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.60 2004-08-02 23:54:07 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "APS_MatlT.h"
@@ -1107,13 +1107,18 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 		fLHS.SetFormat(ElementMatrixT::kDiagonal);
 	
 	/* get displacement field */
-	/* already done in ElementBaseT
+	/*
 	const StringT& displ_field_name = list.GetParameter("displ_field_name");
 	fDispl = ElementSupport().Field(displ_field_name);
 	if (!fDispl)
 		ExceptionT::GeneralFail(caller, "could not resolve \"%s\" displ_field", 
 		displ_field_name.Pointer());
-	*/
+		*/
+	const StringT& displ_field_name = list.GetParameter("field_name");
+	fDispl = ElementSupport().Field(displ_field_name);
+	if (!fDispl)
+		ExceptionT::GeneralFail(caller, "could not resolve \"%s\" displ_field", 
+		displ_field_name.Pointer());	
 
 	/* get plastic gradient field */
 	const StringT& plastic_grad_field_name = list.GetParameter("plastic_grad_field_name");
