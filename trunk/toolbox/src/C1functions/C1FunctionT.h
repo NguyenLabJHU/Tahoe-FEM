@@ -1,4 +1,4 @@
-/* $Id: C1FunctionT.h,v 1.16 2004-07-20 23:23:33 rdorgan Exp $ */
+/* $Id: C1FunctionT.h,v 1.17 2004-07-22 08:13:22 paklein Exp $ */
 /* created: paklein (12/04/1996) */
 #ifndef _C1_FUNCTION_T_H_
 #define _C1_FUNCTION_T_H_
@@ -54,8 +54,8 @@ public:
 	virtual double Function(double x) const = 0;
 	virtual double DFunction(double x) const = 0;
 	virtual double DDFunction(double x) const = 0;
-	virtual double DDDFunction(double x) const { return 0.;};
-	virtual double DDDDFunction(double x) const { return 0.;};
+	virtual double DDDFunction(double) const { return 0.;};
+	virtual double DDDDFunction(double) const { return 0.;};
 	/*@}*/
 
 	/** \name returning values in groups
