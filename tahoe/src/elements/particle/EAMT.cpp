@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.37 2003-07-15 23:31:49 saubry Exp $ */
+/* $Id: EAMT.cpp,v 1.38 2003-07-15 23:51:29 saubry Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -1160,8 +1160,8 @@ void EAMT::RHSDriver2D(void)
 	      f_i[0] += r_ij_0 * F1byr;
 	      f_j[0] += r_ij_0 * F2byr;
 	      
-	      f_i[1] += r_ij_1 * F1byr;
-	      f_j[1] += r_ij_1 * F2byr;
+	      f_i[1] += -r_ij_1 * F1byr;
+	      f_j[1] += -r_ij_1 * F2byr;
 	    }
 	}
     }
