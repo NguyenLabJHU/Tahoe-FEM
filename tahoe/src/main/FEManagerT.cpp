@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.83 2004-10-20 21:44:09 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.84 2004-11-17 23:38:34 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1255,7 +1255,9 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 		ExceptionT::BadInputValue(caller, "\"geometry_file\" is empty");
 	database.ToNativePathName();      
 	database.Prepend(path);
-	if (Size() > 1) /* decomposed geometry file */ {
+
+	/* multiprocessor calculation */
+	if (Size() > 1) {
 
 		int token = 1;
 
@@ -1334,7 +1336,7 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 		}
 
 		/* synch and check */
-		if (fComm.Sum(token) != Size()) ExceptionT::GeneralFail(caller, "parition file error");
+		if (fComm.Sum(token) != Size()) ExceptionT::GeneralFail(caller, "partition file error");
 
 		/* rename file */
 		StringT suffix;
