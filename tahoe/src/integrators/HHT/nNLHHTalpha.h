@@ -1,4 +1,4 @@
-/* $Id: nNLHHTalpha.h,v 1.10 2004-07-15 08:30:28 paklein Exp $ */
+/* $Id: nNLHHTalpha.h,v 1.10.4.1 2004-11-08 02:15:57 d-farrell2 Exp $ */
 /* created: paklein (10/17/1996) */
 #ifndef _N_NL_HHT_A_H_
 #define _N_NL_HHT_A_H_
@@ -23,8 +23,8 @@ public:
 	/** pseudo-boundary conditions for external nodes */
 	virtual KBC_CardT::CodeT ExternalNodeCondition(void) const;
 
-	/** predictor. Maps ALL degrees of freedom forward. */
-	virtual void Predictor(BasicFieldT& field);
+	/** predictor. Maps ALL degrees of freedom forward Unless specified otherwise */
+	virtual void Predictor(BasicFieldT& field, int fieldstart = 0, int fieldend = -1);
 
 	/** corrector. Maps ALL degrees of freedom forward. */
 	virtual void Corrector(BasicFieldT& field, const dArray2DT& update);

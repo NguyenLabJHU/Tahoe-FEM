@@ -1,4 +1,4 @@
-/* $Id: nExplicitCD.h,v 1.8 2003-01-29 07:35:15 paklein Exp $ */
+/* $Id: nExplicitCD.h,v 1.8.60.1 2004-11-08 02:16:00 d-farrell2 Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _N_EXP_CD_H_
@@ -25,8 +25,8 @@ public:
 	/** pseudo-boundary conditions for external nodes */
 	virtual KBC_CardT::CodeT ExternalNodeCondition(void) const;
 
-	/** predictor. Maps ALL degrees of freedom forward. */
-	virtual void Predictor(BasicFieldT& field);
+	/** predictor. Maps ALL degrees of freedom forward Unless specified otherwise */
+	virtual void Predictor(BasicFieldT& field, int fieldstart = 0, int fieldend = -1);
 
 	/** corrector. Maps ALL degrees of freedom forward. */
 	virtual void Corrector(BasicFieldT& field, const dArray2DT& update);

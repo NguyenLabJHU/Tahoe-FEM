@@ -1,4 +1,4 @@
-/* $Id: nVerlet.cpp,v 1.11 2004-07-15 08:30:57 paklein Exp $ */
+/* $Id: nVerlet.cpp,v 1.11.4.1 2004-11-08 02:16:05 d-farrell2 Exp $ */
 #include "nVerlet.h"
 #include "iArrayT.h"
 #include "dArrayT.h"
@@ -6,6 +6,13 @@
 #include "dArray2DT.h"
 #include "KBC_CardT.h"
 #include "BasicFieldT.h"
+
+// Dave added
+#include "CommManagerT.h"
+#include "ElementBaseT.h"
+#include "CommunicatorT.h"
+#include "ElementSupportT.h"
+#include "NodeManagerT.h"
 
 using namespace Tahoe;
 
@@ -64,18 +71,32 @@ void nVerlet::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 			ExceptionT::GeneralFail("nVerlet::ConsistentKBC", "unknown BC code %d", KBC.Code());
 	}
 }		
-
-/* predictors - map ALL */
-void nVerlet::Predictor(BasicFieldT& field)
+#pragma message ("roll up redundancy after it works")
+// predictors - map ALL, unless limit arguments are specified
+void nVerlet::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
-	/* displacement predictor */
-	field[0].AddCombination(dpred_v, field[1], dpred_a, field[2]);	
-
-	/* velocity predictor */
-	field[1].AddScaled(vpred_a, field[2]);
-
-	/* acceleratior predictor */
-	field[2] = 0.0;
+	if (fieldend == -1) // operate on full arrays
+	{
+		/* displacement predictor */
+		field[0].AddCombination(dpred_v, field[1], dpred_a, field[2]);
+		
+		/* velocity predictor */
+		field[1].AddScaled(vpred_a, field[2]);
+		
+		/* acceleratior predictor */
+		field[2] = 0.0;	
+	}
+	else // operate on restricted contiguous block of the arrays
+	{
+		/* displacement predictor */
+		field[0].AddCombination(dpred_v, field[1], dpred_a, field[2], fieldstart, fieldend);
+		
+		/* velocity predictor */
+		field[1].AddScaled(vpred_a, field[2], fieldstart, fieldend);
+		
+		/* acceleratior predictor */
+		field[2] = 0.0;	
+	}	
 }		
 
 /* correctors - map ALL */

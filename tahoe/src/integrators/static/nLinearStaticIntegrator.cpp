@@ -1,4 +1,4 @@
-/* $Id: nLinearStaticIntegrator.cpp,v 1.5 2003-11-21 22:47:42 paklein Exp $ */
+/* $Id: nLinearStaticIntegrator.cpp,v 1.5.34.1 2004-11-08 02:16:02 d-farrell2 Exp $ */
 /* created: paklein (10/14/1996) */
 #include "nLinearStaticIntegrator.h"
 #include "BasicFieldT.h"
@@ -10,7 +10,7 @@ using namespace Tahoe;
 nLinearStaticIntegrator::nLinearStaticIntegrator(void) { };
 
 /* predictor. Maps ALL degrees of freedom forward. */
-void nLinearStaticIntegrator::Predictor(BasicFieldT& field)
+void nLinearStaticIntegrator::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
 	/* clear all displacements */
 	field[0] = 0.0;

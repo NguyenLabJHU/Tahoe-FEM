@@ -1,4 +1,4 @@
-/* $Id: nLinearStaticIntegrator.h,v 1.5 2003-01-27 07:00:23 paklein Exp $ */
+/* $Id: nLinearStaticIntegrator.h,v 1.5.60.1 2004-11-08 02:16:02 d-farrell2 Exp $ */
 /* created: paklein (10/14/1996) */
 #ifndef _N_LINEAR_STATIC_CONTROLLER_H_
 #define _N_LINEAR_STATIC_CONTROLLER_H_
@@ -19,8 +19,8 @@ public:
 	/** constructor */
 	nLinearStaticIntegrator(void);
 
-	/** predictor. Maps ALL degrees of freedom forward. */
-	virtual void Predictor(BasicFieldT& field);	  	
+	/** predictor. Maps ALL degrees of freedom forward, Unless specified otherwise */
+	virtual void Predictor(BasicFieldT& field, int fieldstart = 0, int fieldend = -1);	  	
 
 	/** corrector. Maps ALL degrees of freedom forward. */
 	virtual void Corrector(BasicFieldT& field, const dArray2DT& update);

@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.9.32.1 2004-10-28 00:38:14 d-farrell2 Exp $ */
+/* $Id: CommManagerT.cpp,v 1.9.32.2 2004-11-08 02:16:06 d-farrell2 Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -701,6 +701,20 @@ void CommManagerT::FirstConfigure(void)
 			fExternalNodes[dex++] = i;
 		for (int i = upper+1; i < fNumRealNodes; i++)
 			fExternalNodes[dex++] = i;
+			
+		// get the first node owned by this partition (for start/end points of AddScaled/AddCombination
+		if (fPartitionNodes.Length() > 0) {
+			fPartStartNum = fPartitionNodes.First();
+			fPartEndNum = fPartitionNodes.Last();
+			fPartFieldStart = (nsd*fPartStartNum) - nsd; // start point in field arrays
+			fPartFieldEnd = (nsd*fPartEndNum) - nsd; // end point in field arrays
+			
+			// check that (End - Start) + 1 is the same as the number of nodes in partition
+			if ((fPartEndNum - fPartStartNum + 1) != npn )
+			{
+				cout << "\n problem with partition bounds \n" << endl; 
+			}
+		}
 	}
 }
 

@@ -1,4 +1,4 @@
-/* $Id: nExplicitCD.cpp,v 1.11 2003-11-21 22:47:34 paklein Exp $ */
+/* $Id: nExplicitCD.cpp,v 1.11.34.1 2004-11-08 02:16:00 d-farrell2 Exp $ */
 /* created: paklein (03/23/1997) */
 #include "nExplicitCD.h"
 #include "iArrayT.h"
@@ -64,18 +64,32 @@ void nExplicitCD::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 			ExceptionT::GeneralFail("nExplicitCD::ConsistentKBC","unknown BC code %d", KBC.Code());
 	}
 }		
-
-/* predictors - map ALL */
-void nExplicitCD::Predictor(BasicFieldT& field)
+#pragma message ("roll up redundancy after it works")
+// predictors - map ALL, unless limit arguments are specified
+void nExplicitCD::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
-	/* displacement predictor */
-	field[0].AddCombination(dpred_v, field[1], dpred_a, field[2]);	
-
-	/* velocity predictor */
-	field[1].AddScaled(vpred_a, field[2]);
-	
-	/* acceleratior predictor */
-	field[2] = 0.0;
+	if (fieldend == -1) // operate on full arrays
+	{
+		/* displacement predictor */
+		field[0].AddCombination(dpred_v, field[1], dpred_a, field[2]);
+		
+		/* velocity predictor */
+		field[1].AddScaled(vpred_a, field[2]);
+		
+		/* acceleratior predictor */
+		field[2] = 0.0;	
+	}
+	else // operate on restricted contiguous block of the arrays
+	{
+		/* displacement predictor */
+		field[0].AddCombination(dpred_v, field[1], dpred_a, field[2], fieldstart, fieldend);
+		
+		/* velocity predictor */
+		field[1].AddScaled(vpred_a, field[2], fieldstart, fieldend);
+		
+		/* acceleratior predictor */
+		field[2] = 0.0;	
+	}
 }		
 
 void nExplicitCD::Corrector(BasicFieldT& field, const dArray2DT& update)

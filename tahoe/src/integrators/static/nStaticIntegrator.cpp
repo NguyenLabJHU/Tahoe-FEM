@@ -1,4 +1,4 @@
-/* $Id: nStaticIntegrator.cpp,v 1.9 2004-02-06 17:34:08 cjkimme Exp $ */
+/* $Id: nStaticIntegrator.cpp,v 1.9.28.1 2004-11-08 02:16:02 d-farrell2 Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "nStaticIntegrator.h"
@@ -43,8 +43,8 @@ void nStaticIntegrator::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 	}
 }		
 
-/* predictor. Maps ALL degrees of freedom forward. */
-void nStaticIntegrator::Predictor(BasicFieldT& field)
+// predictors - map ALL, unless limit arguments are specified
+void nStaticIntegrator::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
 #pragma unused(field)
 	//nothing to do
