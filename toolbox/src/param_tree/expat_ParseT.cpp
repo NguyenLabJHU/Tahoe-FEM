@@ -1,11 +1,11 @@
-/* $Id: expat_ParseT.cpp,v 1.11 2004-07-22 08:15:03 paklein Exp $ */
+/* $Id: expat_ParseT.cpp,v 1.12 2004-10-21 22:37:11 paklein Exp $ */
 #include "expat_ParseT.h"
 #ifdef __EXPAT__
 
 #include "ParameterListT.h"
 
-/* C file I/O header */
-#if defined(__SGI__) || defined(__GNU__)
+/* C file I/O header - needed for BUFSIZ */
+#if defined(__SGI__) || defined(__GNU__) || defined(__AIX__)
 #include <stdio.h>
 #else
 //what do others use???
@@ -53,7 +53,7 @@ void expat_ParseT::Parse(const StringT& file, ParameterListT& params)
 	/* parse */
 	sRoot = &params;
 	int done;
-	char buf[BUFSIZ];
+	char buf[BUFSIZ]; /* BUFSIZE normally defined in stdio.h */
   	do {
 		size_t len = fread(buf, 1, sizeof(buf), fp);
 		done = len < sizeof(buf);
