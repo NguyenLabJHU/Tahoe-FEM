@@ -15,7 +15,7 @@ class InputFEASCIIT : public InputBaseT
 public:
   InputFEASCIIT (ostream& out);
 
-  virtual void Open (const StringT& filename);
+  virtual bool Open (const StringT& filename);
   virtual void Close (void);
 
   /* return names, Array must be preallocated */

@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.7 2002-01-02 06:28:05 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.8 2002-01-05 06:36:39 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -39,24 +39,31 @@ class ModelManagerT
    * is not cast and no data from the model file is registered. This option is
    * used when decomposing or joining parallel jobs.
    * \param in stream containing input file format and model file name 
-   * \param readonly flag to only read data, if false the InputBaseT class is initialized */
-  void Initialize (ifstreamT& in, bool readonly);
+   * \param readonly flag to only read data, if false the InputBaseT class is initialized 
+   * \return true if model database is open, false otherwise */
+  bool Initialize (ifstreamT& in, bool readonly);
+
   /** initialize
    * Use only 1 of the 3 initialize functions. This function initializes the
    * InputBaseT* and register array data found in the model file 
    * \param format IO database format.
-   * \param database Name of model file (null for inline text files */
-  void Initialize (const IOBaseT::FileTypeT format, const StringT& database);
+   * \param database Name of model file (null for inline text files
+   * \return true if model database is open, false otherwise */
+
+  bool Initialize (const IOBaseT::FileTypeT format, const StringT& database);
+
   /** initialize
    * Use only 1 of the 3 initialize functions. This function queriues the user
    * interactively for database format and model file name. It is meant to be used
    * with translator programs. It initializes the InputBaseT* and registers array 
-   * data found in the model file. */
-  void Initialize (void);
+   * data found in the model file.
+   * \return true if model database is open, false otherwise */
+  bool Initialize (void);
 
   /** echo database format and model file name to the ostream in the print format
    * used by Tahoe */
   void EchoData (ostream& o) const;
+  
   /** access function
    * \return format database format
    * \return name model file name */
@@ -365,8 +372,11 @@ class ModelManagerT
   void QARecords (ArrayT<StringT>& records);
 
  private:
-  /** sets the InputBaseT pointer, scans the model file, registers array data found */
-  void ScanModel (const StringT& database);
+
+  /** sets the InputBaseT pointer, scans the model file, registers array data found
+   * \return true if successful, false otherwise */
+  bool ScanModel (const StringT& database);
+
   /** scans the model file for element groups and registers them */
   bool ScanElements (void);
   /** scans the model file for node sets and registers them */
@@ -377,13 +387,18 @@ class ModelManagerT
   /** checks the name of the set being registered against names already in the registry */
   bool CheckName (const ArrayT<StringT>& list, const StringT& name, const char *type) const;
 
+	/** clear database parameters */
+	void Clear(void);
+
  protected:
+ 
   ostream& fMessage; /**< where to write error messages */
   IOBaseT::FileTypeT fFormat; /**< database format */
   InputBaseT *fInput; /**< database class */
   StringT fInputName; /**< model file name or basis */
 
  private:
+ 
   /* dimensional information */
   iArrayT fCoordinateDimensions; /**< num nodes and dof */
   iAutoArrayT fElementLengths; /**< number of elements */

@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.h,v 1.5 2001-12-17 19:09:47 sawimme Exp $ */
+/* $Id: AbaqusResultsT.h,v 1.6 2002-01-05 06:36:41 paklein Exp $ */
 /*
    CREATED: S. Wimmer 9 Nov 2000
 
@@ -13,6 +13,7 @@
 
 /* direct members */
 #include <fstream.h>
+#include "ifstreamT.h"
 #include "iArrayT.h"
 #include "dArrayT.h"
 #include "StringT.h"
@@ -43,8 +44,9 @@ class AbaqusResultsT
   /** constructor */
   AbaqusResultsT (ostream& message);
 
-  /** used to open a database, either binary or ASCII, it will determine */
-  void Initialize (const char *filename);
+  /** used to open a database, either binary or ASCII, it will determine.
+   * \return true if successful, false otherwise. */
+  bool Initialize (const char *filename);
 
   /** used to create a new database
    * /param filename name of file
@@ -64,9 +66,9 @@ class AbaqusResultsT
   /** close file and return amount of buffer written */
   int Close (void);
 
-  /** scan input database after initializing */
-  void ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
-		 int &nummodes);
+  /** scan input database after initializing. \return true if scan successful,
+   * false otherwise */
+  bool ScanFile (int &numelems, int &numnodes, int &numtimesteps, int &nummodes);
 
   /** access element set names */
   void ElementSetNames (ArrayT<StringT>& names) const;
@@ -262,8 +264,9 @@ class AbaqusResultsT
   void AdvanceTo (int target);
   /** skip the rest of the record */
   bool SkipAttributes (void);
+  
   /** read the start of the next record to figure out what it is */
-  int  ReadNextRecord (int &key);
+  int ReadNextRecord (int &key);
 
   bool Read (StringT& s, int n); /**< read the string attribute, n blocks */
   bool Read (int& i); /**< read the integer attribute */
@@ -280,7 +283,8 @@ class AbaqusResultsT
   void SetVariableNames (void); /**< set up the table of variable definitions */
 
  private:
-  ifstream fIn; /**< input file stream */
+  ifstreamT fIn; /**< input file stream */
+//ifstream fIn; /**< input file stream */
   ofstream fOut; /**< output file stream */
   ostream& fMessage; /**< error message stream */
   StringT fFileName; /**< file name */

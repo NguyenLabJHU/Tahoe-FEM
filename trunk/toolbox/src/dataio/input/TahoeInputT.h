@@ -1,4 +1,4 @@
-/* $Id: TahoeInputT.h,v 1.7 2001-12-16 23:53:46 paklein Exp $ */
+/* $Id: TahoeInputT.h,v 1.8 2002-01-05 06:36:48 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _TAHOEINPUT_T_H_
@@ -14,7 +14,7 @@ class TahoeInputT : public InputBaseT
  public:
   TahoeInputT (ostream& out);
   
-  virtual void Open (const StringT& filename);
+  virtual bool Open (const StringT& filename);
   virtual void Close (void);
 
   virtual void ElementGroupNames (ArrayT<StringT>& groupnames) const;

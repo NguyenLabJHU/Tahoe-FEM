@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.h,v 1.6 2001-12-16 23:53:45 paklein Exp $ */
+/* $Id: EnSightInputT.h,v 1.7 2002-01-05 06:36:47 paklein Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _ENSIGHTINPUT_T_H_
@@ -24,7 +24,7 @@ class EnSightInputT : public InputBaseT
 public:
   EnSightInputT (ostream& out, bool binary);
 
-  virtual void Open (const StringT& file);
+  virtual bool Open (const StringT& file);
   virtual void Close (void);
 
   /* virtual with InputManager base class */

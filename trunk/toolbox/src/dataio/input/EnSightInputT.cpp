@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.cpp,v 1.6 2001-12-16 23:53:44 paklein Exp $ */
+/* $Id: EnSightInputT.cpp,v 1.7 2002-01-05 06:36:47 paklein Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #include "EnSightInputT.h"
@@ -19,15 +19,21 @@ EnSightInputT::EnSightInputT (ostream& out, bool binary) :
 {
 }
 
-void EnSightInputT::Open (const StringT& file)
+bool EnSightInputT::Open (const StringT& file)
 {
-  fCaseFile = file;
-  ifstreamT in ('#', fCaseFile);
-  if (!fData.CaseFile (in, fGeometryFile))
-    {
-      cout << "\n\nEnSightInputT, case file format incorrect.\n ";
-      throw eGeneralFail;
-    }
+	fCaseFile = file;
+	ifstreamT in ('#', fCaseFile);
+	if (!in.is_open()) {
+		cout << "\n EnSightInputT::Open: error opening case file: " << in.filename() << endl;	
+		return false;
+	}
+	if (!fData.CaseFile (in, fGeometryFile)) {
+		cout << "\n EnSightInputT::Open: case file format incorrect: " << in.filename() << endl;
+		return false;
+	}
+	
+	/* must be OK */
+	return true;
 }
 
 void EnSightInputT::ElementGroupNames (ArrayT<StringT>& groupnames) const

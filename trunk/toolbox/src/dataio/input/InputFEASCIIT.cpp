@@ -1,4 +1,4 @@
-/* $Id: InputFEASCIIT.cpp,v 1.4 2001-12-17 19:04:55 sawimme Exp $ */
+/* $Id: InputFEASCIIT.cpp,v 1.5 2002-01-05 06:36:48 paklein Exp $ */
 #include "InputFEASCIIT.h"
 #include "ifstreamT.h"
 #include "dArrayT.h"
@@ -17,7 +17,7 @@ InputFEASCIIT::InputFEASCIIT (ostream& out) :
 {
 }
 
-void InputFEASCIIT::Open (const StringT& filename)
+bool InputFEASCIIT::Open (const StringT& filename)
 {
   /* create file root */
   StringT suffix;
@@ -27,17 +27,30 @@ void InputFEASCIIT::Open (const StringT& filename)
       strncmp (suffix.Pointer(), ".in", 3) == 0)
   fFileRoot.Root (filename);
 
-  /* scan geometry file */
-  ifstreamT geo;
-  if (!OpenFile (geo, ".geo") ||
-      !ScanGeometryFile (geo))
-    throw eDatabaseFail;
+	/* scan geometry file */
+	ifstreamT geo;
+	if (!OpenFile (geo, ".geo")) {
+		cout << "\n InputFEASCIIT::Open: error opening geometry file: " << geo.filename() << endl;
+		return false;
+	}
+	if (!ScanGeometryFile (geo)) {
+		cout << "\n InputFEASCIIT::Open: error scanning geometry file: " << geo.filename() << endl;
+		return false;
+	}
 
-  /* scan results file */
-  ifstreamT run;
-  if (OpenFile (run, ".run"))
-    if (!ScanResultsFile (run))
-      throw eDatabaseFail;
+	/* scan results file */
+	ifstreamT run;
+	if (!OpenFile (run, ".run")) {
+		cout << "\n InputFEASCIIT::Open: error opening results file: " << run.filename() << endl;
+		return false;
+	}
+    if (!ScanResultsFile (run)) {
+		cout << "\n InputFEASCIIT::Open: error scanning results file: " << run.filename() << endl;
+		return false;
+    }
+      
+	/* must be OK */
+	return true;
 }
 
 void InputFEASCIIT::Close (void)

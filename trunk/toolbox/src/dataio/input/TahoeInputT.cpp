@@ -1,4 +1,4 @@
-/* $Id: TahoeInputT.cpp,v 1.5 2001-12-16 23:53:45 paklein Exp $ */
+/* $Id: TahoeInputT.cpp,v 1.6 2002-01-05 06:36:48 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "TahoeInputT.h"
@@ -9,7 +9,7 @@ TahoeInputT::TahoeInputT (ostream& out) :
 {
 }
 
-void TahoeInputT::Open (const StringT& file)
+bool TahoeInputT::Open (const StringT& file)
 {
   if (fModel.OpenRead (file) == ModelFileT::kFail)
     {
@@ -17,8 +17,8 @@ void TahoeInputT::Open (const StringT& file)
       fout << file << "\n\n";
       cout << "\n\nTahoeInputT::Open unable to open file: ";
       cout << file << "\n\n";
-      throw eDatabaseFail;
-    }
+      return false;
+    } else return true;
 }
 
 void TahoeInputT::Close (void)

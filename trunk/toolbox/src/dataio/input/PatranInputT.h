@@ -1,4 +1,4 @@
-/* $Id: PatranInputT.h,v 1.6 2001-12-16 23:53:45 paklein Exp $ */
+/* $Id: PatranInputT.h,v 1.7 2002-01-05 06:36:48 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _PATRANINPUT_T_H_
@@ -15,7 +15,7 @@ class PatranInputT : public InputBaseT
  public:
   PatranInputT (ostream& out);
   
-  virtual void Open (const StringT& file);
+  virtual bool Open (const StringT& file);
   virtual void Close (void);
 
   virtual void ElementGroupNames (ArrayT<StringT>& groupnames) const;
