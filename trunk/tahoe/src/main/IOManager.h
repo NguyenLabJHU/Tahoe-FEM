@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.10 2002-03-04 06:53:55 paklein Exp $ */
+/* $Id: IOManager.h,v 1.11 2002-03-22 02:22:20 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 
 #ifndef _IOMANAGER_H_
@@ -121,10 +121,16 @@ protected:
 	
 private:
 
-	/* run time */
+	/** time label associated with the data written to IOManager::fOutput.
+	 * This value is set using IOManager::SetOutputTime. This value is
+	 * not directly tied to the simulation run time because this causes
+	 * problems with multiple output for the same time, i.e., iteration
+	 * output. In this case, some post-processors choke on the fact that
+	 * the time stamp is duplicated. The remedy is set some changing
+	 * stamp for the time. */
 	double fOutputTime;
 
-	/* store main out during diverions */
+	/** store main out during diversions set with IOManager::DivertOutput */
 	OutputBaseT* fOutput_tmp;	
 };
 
