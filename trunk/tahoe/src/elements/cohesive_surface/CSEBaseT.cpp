@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.18 2002-11-21 01:13:35 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.19 2002-12-01 19:53:38 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -449,6 +449,7 @@ void CSEBaseT::PrintControlData(ostream& out) const
 	ElementBaseT::PrintControlData(out);
 
 	/* control parameters */
+	out << " Associated field. . . . . . . . . . . . . . . . = \"" << Field().Name() << "\"\n";	
 	out << " Element geometry code . . . . . . . . . . . . . = " << fGeometryCode << '\n';
 	out << "    eq." << GeometryT::kLine          << ", line\n";
 	out << "    eq." << GeometryT::kQuadrilateral << ", quadrilateral\n";

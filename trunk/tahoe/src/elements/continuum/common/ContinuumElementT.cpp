@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.25 2002-11-21 01:13:37 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.26 2002-12-01 19:53:39 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -810,6 +810,7 @@ void ContinuumElementT::PrintControlData(ostream& out) const
 	/* inherited */
 	ElementBaseT::PrintControlData(out);
 
+	out << " Associated field. . . . . . . . . . . . . . . . = \"" << Field().Name() << "\"\n";
 	out << " Element geometry code . . . . . . . . . . . . . = " << fGeometryCode << '\n';
 	out << "    eq." << GeometryT::kPoint         << ", point\n";
 	out << "    eq." << GeometryT::kLine          << ", line\n";
