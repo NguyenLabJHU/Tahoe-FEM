@@ -1,4 +1,4 @@
-/* $Id: XML_Atomic_FormatterT.h,v 1.3 2002-11-21 01:08:37 paklein Exp $ */
+/* $Id: XML_Atomic_FormatterT.h,v 1.4 2002-11-27 19:52:07 paklein Exp $ */
 #ifndef _XML_ATOMIC_FORMATTER_T_H_
 #define _XML_ATOMIC_FORMATTER_T_H_
 
@@ -6,7 +6,7 @@
 #include "FormatterT.h"
 
 /* direct members */
-#include "StringT.h";
+#include "StringT.h"
 
 namespace Tahoe {
 
