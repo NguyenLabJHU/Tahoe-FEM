@@ -62,8 +62,7 @@ void CrystalElastMat::CalculateModuli(double DegC)
 {
   // check temperature range
   bool test = ( DegC <= 1098. && DegC >= 0.);
-  if (!test) throwRunTimeError("CrystalElastMat::CalculateModuli: Bad values of
- DegC");
+  if (!test) throwRunTimeError("CrystalElastMat::CalculateModuli: Bad values of DegC");
   // Temperature dependent elastic stiffness constants
   fC11 = TempDepModuli(DegC, 56.166, -8.497e-03, -5.292e-06);
   fC12 = TempDepModuli(DegC, 36.785, -6.715e-03, -2.229e-06);
@@ -77,8 +76,7 @@ void  CrystalElastMat::CalculateAlpha(dMatrixT& alpha, double DegC)
 
   // check temperature range
   bool test = ( DegC <= 1098. && DegC >= 0.);
-  if (!test) throwRunTimeError("CrystalElastMat::CalculateAlpha: Bad values of
-DegC");
+  if (!test) throwRunTimeError("CrystalElastMat::CalculateAlpha: Bad values of DegC");
 
   //Temperature dependent thermal expansion coefficients
   palpha[0] = 5.345e-06 + 8.373e-10*DegK;
