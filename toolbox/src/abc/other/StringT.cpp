@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.14 2002-01-08 17:59:59 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.15 2002-01-27 22:32:45 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #include "StringT.h"
@@ -58,7 +58,9 @@ ostream& operator<<(ostream& out, const StringT& string)
 /* assignment operator */
 StringT& StringT::operator=(const char* string)
 {
-	if (string != Pointer())
+	if (string == NULL)
+		Clear();
+	else if (string != Pointer())
 	{
 		/* allocate memory */
 		int length = strlen(string) + 1;
