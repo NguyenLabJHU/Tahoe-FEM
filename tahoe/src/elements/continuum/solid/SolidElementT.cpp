@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.9 2001-06-04 22:50:17 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.10 2001-06-06 16:45:46 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #include "SolidElementT.h"
@@ -1115,7 +1115,7 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 		for (int j = 0; j < fNumIP; j++)
 		{
 			StringT ip_label;
-			ip_label.Append("ip", j);
+			ip_label.Append("ip", j+1);
 			
 			/* over stress components */
 			for (int i = 0; i < dSymMatrixT::NumValues(fNumSD); i++)
@@ -1137,7 +1137,7 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 		for (int j = 0; j < fNumIP; j++)
 		{
 			StringT ip_label;
-			ip_label.Append("ip", j);
+			ip_label.Append("ip", j+1);
 			
 			/* over stress components */
 			for (int i = 0; i < matlabels.Length(); i++)
