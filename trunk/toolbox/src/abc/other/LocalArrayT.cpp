@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.cpp,v 1.9 2002-07-05 17:15:57 paklein Exp $ */
+/* $Id: LocalArrayT.cpp,v 1.10 2002-07-20 07:58:39 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 
 #include "LocalArrayT.h"
@@ -74,6 +74,22 @@ void LocalArrayT::BlockCopyAt(const LocalArrayT& source, int start_node)
 	int size = sizeof(double)*source.NumberOfNodes();
 	for (int i = 0; i < fMinorDim; i++)
 		memcpy((*this)(i) + start_node, source(i), size);
+}
+
+/* compute the array average value */
+void LocalArrayT::Average(dArrayT& avg) const
+{
+	/* dimension */
+	avg.Dimension(MinorDim());
+	avg = 0;
+	for (int i = 0; i < MinorDim(); i++)
+	{
+		double* p = (*this)(i);
+		double& s = avg[i];
+		for (int j = 0; j < NumberOfNodes(); j++)
+			s += *p++;
+	}
+	avg /= NumberOfNodes();
 }
 
 /* return the vector with transposed indexing */
