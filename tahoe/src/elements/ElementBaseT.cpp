@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.46 2004-06-17 06:42:45 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.46.4.1 2004-11-12 00:31:32 thao Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -271,12 +271,29 @@ void ElementBaseT::ReadRestart(istream& in)
 {
 	/* stream check */
 	if (!in.good()) throw ExceptionT::kGeneralFail;
+	
+	/*read status flag*/
+	for (int i = 0; i<fElementCards.Length(); i++)
+		in >> fElementCards[i].Flag();
 }
 
 void ElementBaseT::WriteRestart(ostream& out) const
 {
 	/* stream check */
 	if (!out.good()) throw ExceptionT::kGeneralFail;
+	
+	/*write status flag*/
+	int wrap = 10;
+	int count = 0;
+	for (int i = 0; i<fElementCards.Length(); i++)
+	{
+		out << fElementCards[i].Flag()<<" ";
+		if (++count == wrap) {
+			out <<'\n';
+			count = 0;
+		}
+	}
+	out<< '\n';
 }
 #else
 void ElementBaseT::ReadRestart(double* incomingData)
