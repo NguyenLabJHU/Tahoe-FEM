@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.h,v 1.15 2004-10-04 18:40:51 paklein Exp $ */
+/* $Id: FullMatrixT.h,v 1.16 2005-01-07 21:22:49 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 
 #ifndef _FULL_MATRIX_T_H_
@@ -61,8 +61,8 @@ public:
 	virtual GlobalT::SystemTypeT MatrixType(void) const { return GlobalT::kNonSymmetric; };
 
 	/** assignment operator */
-	virtual GlobalMatrixT& operator=(const GlobalMatrixT& rhs);
-	
+	FullMatrixT& operator=(const FullMatrixT& rhs);
+
 	/** return a clone of self. Caller is responsible for disposing of the matrix */
 	virtual GlobalMatrixT* Clone(void) const;
 

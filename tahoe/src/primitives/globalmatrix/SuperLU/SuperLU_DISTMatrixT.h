@@ -1,4 +1,4 @@
-/* $Id: SuperLU_DISTMatrixT.h,v 1.3 2004-03-21 17:03:37 paklein Exp $ */
+/* $Id: SuperLU_DISTMatrixT.h,v 1.4 2005-01-07 21:23:08 paklein Exp $ */
 #ifndef _SUPER_LU_DIST_MATRIX_T_H_
 #define _SUPER_LU_DIST_MATRIX_T_H_
 
@@ -62,7 +62,7 @@ public:
 	virtual GlobalT::SystemTypeT MatrixType(void) const { return GlobalT::kNonSymmetric; };
 
 	/** assignment operator */
-	virtual GlobalMatrixT& operator=(const GlobalMatrixT& rhs);
+	SuperLU_DISTMatrixT& operator=(const SuperLU_DISTMatrixT& rhs);
 
 	/** return a clone of self */
 	virtual GlobalMatrixT* Clone(void) const;

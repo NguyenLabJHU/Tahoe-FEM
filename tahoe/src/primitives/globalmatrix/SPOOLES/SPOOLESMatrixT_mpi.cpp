@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.15 2004-09-07 06:43:03 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.16 2005-01-07 21:23:02 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "SPOOLESMatrixT_mpi.h"
 
@@ -67,6 +67,13 @@ void SPOOLESMatrixT_mpi::Clear(void)
 
 	/* reset flag */
 	fIsFactorized = false;
+}
+
+/* assignment operator */
+SPOOLESMatrixT_mpi& SPOOLESMatrixT_mpi::operator=(const SPOOLESMatrixT_mpi&)
+{
+	ExceptionT::GeneralFail("SPOOLESMatrixT_mpi::operator=", "not implemented");
+	return *this;
 }
 
 /*************************************************************************

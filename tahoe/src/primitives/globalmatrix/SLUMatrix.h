@@ -1,4 +1,4 @@
-/* $Id: SLUMatrix.h,v 1.11 2004-07-15 08:31:42 paklein Exp $ */
+/* $Id: SLUMatrix.h,v 1.12 2005-01-07 21:22:50 paklein Exp $ */
 /* created: rbridson (06/30/2000) */
 #ifndef _SLU_MATRIX_H_
 #define _SLU_MATRIX_H_
@@ -67,6 +67,9 @@ public:
 	/** return the form of the matrix */
 	virtual GlobalT::SystemTypeT MatrixType(void) const { return GlobalT::kNonSymmetric; };
 
+	/** assignment operator */
+	SLUMatrix& operator=(const SLUMatrix&);
+	
 	/** return a clone of self */
 	virtual GlobalMatrixT* Clone(void) const;
 
@@ -134,9 +137,6 @@ private:
 
 	/** no copy constructor */
 	SLUMatrix(const SLUMatrix&);
-	
-	/** no assignment operator */
-	virtual const GlobalMatrixT& operator=(const GlobalMatrixT&);
 
 protected:
 

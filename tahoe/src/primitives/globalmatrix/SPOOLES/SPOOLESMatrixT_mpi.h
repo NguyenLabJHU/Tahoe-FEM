@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_mpi.h,v 1.7 2004-09-07 06:43:03 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.h,v 1.8 2005-01-07 21:23:02 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #ifndef _SPOOLES_MATRIX_T_MPI_H_
 #define _SPOOLES_MATRIX_T_MPI_H_
@@ -28,6 +28,9 @@ public:
 
 	/** clear values for next assembly */
 	virtual void Clear(void);
+
+	/** assignment operator */
+	SPOOLESMatrixT_mpi& operator=(const SPOOLESMatrixT_mpi& rhs);
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.h,v 1.15 2004-10-04 18:40:51 paklein Exp $ */
+/* $Id: CCSMatrixT.h,v 1.16 2005-01-07 21:22:49 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #ifndef _CCSMATRIX_T_H_
 #define _CCSMATRIX_T_H_
@@ -90,8 +90,8 @@ public:
 	void FindMinMaxPivot(double& min, double& max, double& abs_min, double& abs_max) const;
 
 	/** assignment operator */
-	virtual GlobalMatrixT& operator=(const GlobalMatrixT& rhs);
-	
+	CCSMatrixT& operator=(const CCSMatrixT& rhs);
+
 	/** return a clone of self. Caller is responsible for disposing of the matrix */
 	virtual GlobalMatrixT* Clone(void) const;
 
