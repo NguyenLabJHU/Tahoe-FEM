@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.cpp,v 1.2 2001-02-20 00:23:20 paklein Exp $ */
+/* $Id: ContinuumMaterialT.cpp,v 1.2.2.1 2001-06-06 16:30:34 paklein Exp $ */
 /* created: paklein (11/20/1996)                                          */
 
 #include "ContinuumMaterialT.h"
@@ -11,6 +11,7 @@
 ContinuumMaterialT::ContinuumMaterialT(const ContinuumElementT& element):
 	fContinuumElement(element),
 	fNumDOF(element.NumDOF()),
+	fNumSD(element.NumSD()),
 	fNumIP(element.NumIP()),
 	fCurrIP(element.CurrIP())
 {
