@@ -1,4 +1,4 @@
-/* $Id: AugLagSphereT.h,v 1.11 2004-12-16 07:12:28 paklein Exp $ */
+/* $Id: AugLagSphereT.h,v 1.12 2004-12-20 01:23:25 paklein Exp $ */
 /* created: paklein (03/24/1999) */
 #ifndef _AUGLAG_SPHERE_T_H_
 #define _AUGLAG_SPHERE_T_H_
@@ -111,6 +111,14 @@ private:
 
 	/** augmented multiplier (only used for Uzawa) */
 	dArrayT fDOF;
+
+	/** augmented multiplier from previous iteration. With line searching, the current
+	 * value of the multplier should depend on the value from the previous iteration not
+	 * on values calculated while performing the line search. Only used for Uzawa. */
+	dArrayT fDOFi;
+	
+	/** iteration number associated with AugLagSphereT::fDOFi */
+	int fIterationi;
 	
 	/** runtime flag */
 	bool fRecomputeForce;
