@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.41.2.20 2003-06-30 05:23:43 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.41.2.21 2003-07-03 00:14:11 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -597,7 +597,6 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	ghostonmap = 0;
 	ghostoffmap = 0;
 	ghostoffmap(1,0) = ghostoffmap(0,1) = 1;
-	int offset = (atoms.GhostNodes()).Length()/2;
 
 	/* time managers */
 	TimeManagerT* atom_time = atoms.TimeManager();
@@ -709,7 +708,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
             
 			/* calculate total displacement u = FE + fine scale here using updated FEM displacement */
-			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu, offset);
+			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu);
 		
 			/* calculate FE internal force as function of total displacement u here */
 			promap = ghostoffmap;  // turn off ghost atoms for f(u) calculations

@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.32.2.4 2003-06-30 05:23:41 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.32.2.5 2003-07-03 00:14:10 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -524,6 +524,16 @@ out << "\n residual =\n" << projection << endl;
 		fGlobalMass.Solve(u_tmp);
 		projection.SetColumn(i, u_tmp);
 	}	
+	//ofstream project;
+	//project.open("project.dat");
+	//project.precision(13);
+	//for (int i = 0; i < projection.MajorDim(); i++)
+	//{
+	//	project << i+1 << " " << 1 << " " << 1 << " " << projection(i,0) << endl;
+	//	project << i+1 << " " << 2 << " " << 1 << " " << projection(i,1) << endl;
+	//}
+	
+	//project.close();
 	u_tmp.Free();
 
 	/* initialize return values */
@@ -576,7 +586,7 @@ out << "\n residual =\n" << projection << endl;
 /* calculate the fine scale part of MD solution as well as total solution u - same as project Field
  * except for those changes */
 void BridgingScaleT::BridgingFields(const StringT& field, const PointInCellDataT& cell_data,
-	const dArray2DT& mddisp, const dArray2DT& fedisp, dArray2DT& projection, dArray2DT& totalu, int offset)
+	const dArray2DT& mddisp, const dArray2DT& fedisp, dArray2DT& projection, dArray2DT& totalu)
 {
 #pragma unused(field)
 
@@ -680,7 +690,8 @@ out << "\n residual =\n" << projection << endl;
 				
 			/* element info */
 			int* points = point_in_cell(i);
-			const ElementCardT& element_card = continuum->ElementCard(cell[points[0]-offset]);
+			int off = global_to_local.Map(points[0]);
+			const ElementCardT& element_card = continuum->ElementCard(cell[off]);
 			const iArrayT& fenodes = element_card.NodesU();
 			coarse.RowCollect(fenodes, fedisp);  
 		

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.5.2.10 2003-06-30 05:23:43 hspark Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.5.2.11 2003-07-03 00:14:11 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -504,7 +504,7 @@ int order)
 
 /* calculate the fine scale part of MD solution as well as total displacement u */
 void FEManagerT_bridging::BridgingFields(const StringT& field, NodeManagerT& atom_node_manager, 
-	NodeManagerT& fem_node_manager, dArray2DT& totalu, int offset)
+	NodeManagerT& fem_node_manager, dArray2DT& totalu)
 {
 	const char caller[] = "FEManagerT_bridging::ProjectField";
 
@@ -517,7 +517,7 @@ void FEManagerT_bridging::BridgingFields(const StringT& field, NodeManagerT& ato
 	/* compute the fine scale part of MD solution as well as total displacement u */
 	const dArray2DT& atom_values = (*atom_field)[0];
 	const dArray2DT& fem_values = (*fem_field)[0];
-	BridgingScale().BridgingFields(field, fDrivenCellData, atom_values, fem_values, fProjection, totalu, offset);
+	BridgingScale().BridgingFields(field, fDrivenCellData, atom_values, fem_values, fProjection, totalu);
 }
 
 
