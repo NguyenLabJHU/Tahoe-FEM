@@ -1,44 +1,41 @@
-/* $Id: AutoFill2DT.h,v 1.5 2002-10-20 22:38:55 paklein Exp $ */
-/* created: paklein (01/19/1999)                                          */
-/* NOTE: going to use this with a manager to help count and               */
-/* store edges in a graph. There have to be 2 modes of                    */
-/* usage.                                                                 */
-/* (1) just let AutoFill2DT go nuts with managing itself                  */
-/* (2) try to implement a "shuffle down", where vacated spots             */
-/* in the array are filled with same size blocks pulled                   */
-/* from the end of the list.                                              */
-/* Array that automatically increases its minor dimension when            */
-/* elements are inserted into the rows using Append() or                  */
-/* AppendUnique().                                                        */
-/* NOTE: An overloaded assignment operator is not used for                */
-/* duplicating the array contents. Contents is simply                     */
-/* byte copied.                                                           */
-
+/* $Id: AutoFill2DT.h,v 1.6 2002-11-25 07:05:50 paklein Exp $ */
+/* created: paklein (01/19/1999) */
 #ifndef _AUTO_ARRAY2D_T_H_
 #define _AUTO_ARRAY2D_T_H_
 
-#include <string.h>
-
-#include "Environment.h"
-#include "ExceptionT.h"
-
+/* direct members */
+#include "iArrayT.h"
 
 namespace Tahoe {
 
+/** class to facilitate dynamically building a two-dimensional
+ * data structure where every row can have its own length.
+ * Data is stored in chunks, which may be as small as a single
+ * row, or as large as the whole array, i.e., a single chunk.
+ * Values are added to the rows of the structure with the
+ * methods AutoFill2DT::Append and AutoFill2DT::AppendUnique.
+ * Currently, the structure just grows in memory.
+ * \note one possible future development would be to have the
+ *       array adaptively break into chunks based on the
+ *       distribution of row lengths.
+ */
 template <class TYPE>
 class AutoFill2DT
 {
 public:
 
-	/* constructors */
-	AutoFill2DT(int majordim, int headroom);
-	AutoFill2DT(int majordim, int headroom, int maxminordim);
-	AutoFill2DT(const AutoFill2DT<TYPE>& source);
+	/** \name constructors */
+	/*@{*/
+//	AutoFill2DT(int majordim, int headroom); //add later
+	AutoFill2DT(int majordim, int numchunks, int headroom, int maxminordim);
+//	AutoFill2DT(const AutoFill2DT<TYPE>& source);
+	/*@}*/
 
-	/* destructor */
+	/** destructor */
 	~AutoFill2DT(void);
 
-	/* dimensions */
+	/** \name dimensions */
+	/*@{*/
 	int MajorDim(void) const;
 	int HeadRoom(void) const;
 	int MinorDim(int row) const;
@@ -46,56 +43,116 @@ public:
 	int MinMinorDim(void) const;	
 	int LogicalSize(void) const; // size of data (<= total memory allocation)
 	int MinorDimCount(int dim) const; // returns number of rows with the specified size
+	
+	int NumChunks(void) const { return fChunkSize.Length(); };
+	/*@}*/
 
-	/* re-sizing */
-	void SetMaxMinorDim(int maxminordim, int make_headroom = 0);
+	/** re-sizing */
+	/*@{*/
+	void SetMaxMinorDim(int maxminordim, bool make_headroom = false);
 	void SetHeadRoom(int headroom);
+	/*@}*/
 	
-	/* accessors */
-	TYPE& operator()(int majordim, int minordim) const;
-	TYPE* operator()(int majordim) const;
+	/** \name accessors
+	 * Because the array is stored in chunks, each access requires an integer
+	 * division. Also, one cannot assume that the values from one row continue
+	 * to the values on the next row since the rows may be in separate chunks. */
+	/*@{*/
+	/** single element accessor */
+	TYPE& operator()(int row, int col) const;
 
-	/* set logical size = 0 */
-	void Reset(void);         // for all rows
-	void Reset(int majordim); // for the selected row
+	/** row accessor */
+	TYPE* operator()(int row) const;
+	/*@}*/
 
-	/* copy of source - dimensions must match */
-	void Copy(const AutoFill2DT<TYPE>& source);
+	/** \name (re-)set logical size to 0 */
+	/*@{*/
+	/** reset all rows */
+	void Reset(void);
 	
-	/* adding values to rows */
-	void Append(int majordim, const TYPE& value);
-	void Append(int majordim, const ArrayT<TYPE>& source);
+	/** reset just the specified row */
+	void Reset(int row);
+	/*@}*/
+
+	/** copy of source - dimensions must match */
+//	void Copy(const AutoFill2DT<TYPE>& source);
 	
-	int AppendUnique(int majordim, const TYPE& value);          // returns 1 if value added
-	int AppendUnique(int majordim, const ArrayT<TYPE>& source); // returns number appended
+	/** \name adding values to rows */
+	/*@{*/
+	void Append(int row, const TYPE& value);
+	void Append(int row, const ArrayT<TYPE>& source);
+	/*@}*/
+
+	/** \name add values only if not already present */
+	/*@{*/
+	/** append one value. Returns 1 if the value is added or 0 if it not */	
+	int AppendUnique(int row, const TYPE& value);
+
+	/** append an array of values. Returns the number of values that were appended */	
+	int AppendUnique(int row, const ArrayT<TYPE>& source);
+	/*@}*/	
 	
 private:
 
-	/* resize data and copy in previous values. fMaxMinorDim grows by at
-	 * least 1 with every call */
-	void Allocate(int maxminordim, int headroom);
+	/** dimension all chunks to the same minor dim */
+	void Dimension(int minordim, int headroom);
+
+	/** resize data and copy in previous values. Minor dimension of the chunk grows by 
+	 * at least 1 with every call */
+	void Dimension(int chunk, int maxminordim, int headroom);
 	
-	/* no assigment operator */
+	/** no assigment operator */
 	AutoFill2DT& operator=(AutoFill2DT&);
-	
+
+	/** compute chunk dimensions */
+	void ChunkDimensions(int major_dim, int num_chunks, int& chunk_major_dim, int& last_major_dim);
+
+	/** map the global row number to a chunk and chunk row offset */
+	void Chunk(int row, int& chunk, int& chunk_row) const;
+
 private:
 
-	/* dimensions */
+	/** \name dimensions */
+	/*@{*/
 	int fMajorDim;
-	int fHeadRoom; // percent over-allocation
+	int fHeadRoom; /**< percent over-allocation */
 	int fMaxMinorDim;
+	/*@}*/
 
-	/* row counts */
-	int* fCounts;
+	/** number of values per row */
+	iArrayT fCounts;
 
-	/* the data */
-	TYPE* fArray;
+	/** \name chunk dimensions */
+	/*@{*/
+	/** minor dimension of every chunk */
+	ArrayT<int> fChunkMinorDim;
+
+	/** number of rows in each chunk except the last. Needed because the number of rows
+	 * is probably not a multiple of the number of chunks */
+	int fChunkMajorDim;
+
+	/** number of rows in last chunk. Needed because the number of rows
+	 * is probably not a multiple of the number of chunks */
+	int fLastChunkMajorDim;
+	/*@}*/
+
+	/** the data as array of pointers to chunks */
+	ArrayT<TYPE*> fChunks;	
 };
 
 /*************************************************************************
-* Implementation
-*************************************************************************/
+ * Implementation
+ *************************************************************************/
 
+/* map the global row number to a chunk and chunk row offset */
+template <class TYPE>
+inline void AutoFill2DT<TYPE>::Chunk(int row, int& chunk, int& chunk_row) const
+{
+	chunk = row/fChunkMajorDim;
+	chunk_row = row - chunk*fChunkMajorDim;
+}
+
+#if 0
 /* constructors */
 template <class TYPE>
 inline AutoFill2DT<TYPE>::AutoFill2DT(int majordim, int headroom):
@@ -112,24 +169,37 @@ inline AutoFill2DT<TYPE>::AutoFill2DT(int majordim, int headroom):
 	/* initialize memory */
 	Allocate(0,0);	    
 }
+#endif
 
 template <class TYPE>
-AutoFill2DT<TYPE>::AutoFill2DT(int majordim, int headroom, int maxminordim):
+AutoFill2DT<TYPE>::AutoFill2DT(int majordim, int numchunks, int headroom, int maxminordim):
 	fMajorDim(majordim),
 	fHeadRoom(headroom),
 	fMaxMinorDim(0),
-	fCounts(NULL),
-	fArray(NULL)	
+	fCounts(fMajorDim),
+	fChunkMinorDim(numchunks),
+	fChunks(numchunks),
+	fLastChunkMajorDim(0),
+	fChunkMajorDim(0)
 {
 	/* check */
 	if (fMajorDim < 0 ||
 		fMaxMinorDim < 0 ||
-	    fHeadRoom < 0) throw ExceptionT::kGeneralFail;	
+	    fHeadRoom < 0) ExceptionT::GeneralFail("AutoFill2DT<TYPE>::AutoFill2DT");	
+
+	/* set major dimensions of each chunk */
+	ChunkDimensions(fMajorDim, numchunks, fChunkMajorDim, fLastChunkMajorDim);
+
+	/* initialize arrays */
+	fCounts = 0;
+	fChunkMinorDim = 0;
+	fChunks = NULL;
 
 	/* initialize memory */
-	Allocate(maxminordim, 0);
+	Dimension(maxminordim, 0);
 }
 
+#if 0
 template <class TYPE>
 AutoFill2DT<TYPE>::AutoFill2DT(const AutoFill2DT<TYPE>& source):
 	fMajorDim(source.fMajorDim),
@@ -144,15 +214,14 @@ AutoFill2DT<TYPE>::AutoFill2DT(const AutoFill2DT<TYPE>& source):
 	/* copy data */
 	this->Copy(source);
 }
+#endif
 
 template <class TYPE>
 AutoFill2DT<TYPE>::~AutoFill2DT(void)
 {
-	delete[] fCounts;
-	fCounts = NULL;
-
-	delete[] fArray;
-	fArray = NULL;
+	/* free memory */
+	for (int i = 0; i < fChunks.Length(); i++)
+		delete[] fChunks[i];
 }
 
 /* dimensions */
@@ -160,121 +229,102 @@ template <class TYPE>
 inline int AutoFill2DT<TYPE>::MajorDim(void) const { return fMajorDim; }
 
 template <class TYPE>
-int AutoFill2DT<TYPE>::HeadRoom(void) const { return fHeadRoom; }
+inline int AutoFill2DT<TYPE>::HeadRoom(void) const { return fHeadRoom; }
 
 template <class TYPE>
-inline int AutoFill2DT<TYPE>::MinorDim(int majordim) const
+inline int AutoFill2DT<TYPE>::MinorDim(int row) const
 {
 #if __option(extended_errorcheck)
 	/* range check */
-	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
+	if (row < 0 || row >= fMajorDim) ExceptionT::OutOfRange();
 #endif
-
-	return fCounts[majordim];
+	return fCounts[row];
 }
 
 template <class TYPE>
 int AutoFill2DT<TYPE>::MaxMinorDim(void) const { return fMaxMinorDim; }
 
 template <class TYPE>
-int AutoFill2DT<TYPE>::MinMinorDim(void) const
-{
-	int  min    = *fCounts;
-	int* pcount =  fCounts + 1;
-
-	for (int i = 1; i < fMajorDim; i++)
-	{
-		min  = (*pcount < min) ? *pcount : min;
-		pcount++;
-	}
-	
-	return min;
-}
+inline int AutoFill2DT<TYPE>::MinMinorDim(void) const { return fCounts.Min(); }
 
 template <class TYPE>
-int AutoFill2DT<TYPE>::LogicalSize(void) const
-{
-	int    size = 0;
-	int* pcount = fCounts;
-
-	for (int i = 0; i < fMajorDim; i++)
-		size += *pcount++;
-	
-	return size;
-}
+int AutoFill2DT<TYPE>::LogicalSize(void) const { return fCounts.Sum(); }
 
 template <class TYPE>
-int AutoFill2DT<TYPE>::MinorDimCount(int dim) const // returns number of rows with the specified size
-{
-	int   count = 0;
-	int* pcount = fCounts;
-	for (int i = 0; i < fMajorDim; i++)
-		if (*pcount++ == dim) count++;
-
-	return count;
-}
+inline int AutoFill2DT<TYPE>::MinorDimCount(int dim) const { return fCounts.Count(dim); }
 
 /* re-sizing */
 template <class TYPE>
-inline void AutoFill2DT<TYPE>::SetMaxMinorDim(int maxminordim, int make_headroom)
+inline void AutoFill2DT<TYPE>::SetMaxMinorDim(int maxminordim, bool make_headroom)
 {
 	//TEMP - size can only grow for now
-	if (maxminordim < fMaxMinorDim) throw ExceptionT::kGeneralFail;
+	if (maxminordim < fMaxMinorDim) ExceptionT::GeneralFail();
 
 	/* set memory */
-	Allocate(maxminordim, (make_headroom == 1) ? fHeadRoom : 0);
+	Dimension(maxminordim, (make_headroom == 1) ? fHeadRoom : 0);
 }
 
 template <class TYPE>
 inline void AutoFill2DT<TYPE>::SetHeadRoom(int headroom)
 {
-	if (headroom < 0) throw ExceptionT::kGeneralFail;
+	if (headroom < 0) ExceptionT::GeneralFail();
 	fHeadRoom = headroom;
 }
 
 /* accessors */
 template <class TYPE>
-inline TYPE& AutoFill2DT<TYPE>::operator()(int majordim, int minordim) const
+inline TYPE& AutoFill2DT<TYPE>::operator()(int row, int col) const
 {
 #if __option(extended_errorcheck)
 	/* checks */
-	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
-	if (minordim < 0 || minordim >= fCounts[majordim]) throw ExceptionT::kOutOfRange;
+	if (row < 0 || row >= fMajorDim) ExceptionT::OutOfRange();
+	if (col < 0 || col >= fCounts[row]) ExceptionT::OutOfRange();
 #endif
 
-	return fArray[majordim*fMaxMinorDim + minordim];
+	/* resolve chunk */
+	int chunk = 0;
+	int chunk_row = 0;
+	Chunk(row, chunk, chunk_row);
+
+	/* map to single element */
+	return *(fChunks[chunk] + chunk_row*fChunkMinorDim[chunk] + col);
 }
 
 template <class TYPE>
-inline TYPE* AutoFill2DT<TYPE>::operator()(int majordim) const
+inline TYPE* AutoFill2DT<TYPE>::operator()(int row) const
 {
 #if __option(extended_errorcheck)
 	/* checks */
-	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
+	if (row < 0 || row >= fMajorDim) ExceptionT::OutOfRange();
 #endif
 
-	return fArray + majordim*fMaxMinorDim;
+	/* resolve chunk */
+	int chunk = 0;
+	int chunk_row = 0;
+	Chunk(row, chunk, chunk_row);
+	
+	/* map to row pointer */
+	return fChunks[chunk] + chunk_row*fChunkMinorDim[chunk];
 }
 
 /* set logical size to 0 */
 template <class TYPE>
-//inline
-void AutoFill2DT<TYPE>::Reset(void)
+inline void AutoFill2DT<TYPE>::Reset(void)
 {
-	memset(fCounts, 0, sizeof(int)*fMajorDim);
+	memset(fCounts.Pointer(), 0, sizeof(int)*fMajorDim);
 }
 
 template <class TYPE>
-inline void AutoFill2DT<TYPE>::Reset(int majordim)
+inline void AutoFill2DT<TYPE>::Reset(int row)
 {
 #if __option(extended_errorcheck)
 	/* checks */
-	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
+	if (row < 0 || row >= fMajorDim) ExceptionT::OutOfRange();
 #endif
-
-	fCounts[majordim] = 0;
+	fCounts[row] = 0;
 }
 
+#if 0
 /* assignment operator - dimensions must match exactly */
 template <class TYPE>
 void AutoFill2DT<TYPE>::Copy(const AutoFill2DT<TYPE>& source)
@@ -293,74 +343,89 @@ void AutoFill2DT<TYPE>::Copy(const AutoFill2DT<TYPE>& source)
 		memcpy(fArray, source.fArray, sizeof(TYPE)*fMajorDim*fMaxMinorDim);
 	}
 }
+#endif
 
 /* adding values to rows */
 template <class TYPE>
-inline void AutoFill2DT<TYPE>::Append(int majordim, const TYPE& value)
+inline void AutoFill2DT<TYPE>::Append(int row, const TYPE& value)
 {
 #if __option(extended_errorcheck)
-	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
+	if (row < 0 || row >= fMajorDim) ExceptionT::OutOfRange();
 #endif
 
-	int& count = fCounts[majordim];
+	int& count = fCounts[row];
+	
+	/* resolve chunk */
+	int chunk, chunk_row;
+	Chunk(row, chunk, chunk_row);
 	
 	/* need more memory */
-	if (count == fMaxMinorDim) Allocate(fMaxMinorDim + 1, fHeadRoom);
-	
-	*((*this)(majordim) + count) = value;	
+	int& minor_dim = fChunkMinorDim[chunk];
+	if (count == minor_dim) Dimension(chunk, minor_dim + 1, fHeadRoom);
+
+	*(fChunks[chunk] + chunk_row*minor_dim + count) = value;
 	count++;	
 }
 
 template <class TYPE>
-void AutoFill2DT<TYPE>::Append(int majordim, const ArrayT<TYPE>& source)
+void AutoFill2DT<TYPE>::Append(int row, const ArrayT<TYPE>& source)
 {
 #if __option(extended_errorcheck)
-	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
+	if (row < 0 || row >= fMajorDim) ExceptionT::OutOfRange();
 #endif
 
 	int length = source.Length();
 	if (length > 0)
 	{
-		int& count  = fCounts[majordim];
+		int& count = fCounts[row];
+
+		/* resolve chunk */
+		int chunk, chunk_row;
+		Chunk(row, chunk, chunk_row);
 		
 		/* need more memory */
-		if (count + length >= fMaxMinorDim) Allocate(fMaxMinorDim + length, fHeadRoom);
+		int& minor_dim = fChunkMinorDim[chunk];
+		if (count + length >= minor_dim) Dimension(chunk, minor_dim + length, fHeadRoom);
 		
 		/* copy data */
-		memcpy((*this)(majordim) + count, source.Pointer(), sizeof(TYPE)*length);
+		TYPE* start = fChunks[chunk] + chunk_row*minor_dim + count;
+		memcpy(start, source.Pointer(), sizeof(TYPE)*length);
 		count += length;
 	}
 }
 
 /* add only if not already in the list - returns 1 if */
 template <class TYPE>
-int AutoFill2DT<TYPE>::AppendUnique(int majordim, const TYPE& value)
+int AutoFill2DT<TYPE>::AppendUnique(int row, const TYPE& value)
 {
 #if __option(extended_errorcheck)
-	if (majordim < 0 || majordim >= fMajorDim) throw ExceptionT::kOutOfRange;
+	if (row < 0 || row >= fMajorDim) throw ExceptionT::kOutOfRange;
 #endif
 
+	/* chunk information */
+	int chunk, chunk_row;
+	Chunk(row, chunk, chunk_row);
+
 	/* scan logical size for duplicates */
-	TYPE* pthis = fArray + majordim*fMaxMinorDim;
-	int   count = fCounts[majordim];
-	
+	TYPE* pthis = fChunks[chunk] + chunk_row*fChunkMinorDim[chunk];
+	int count = fCounts[row];
 	for (int i = 0; i < count; i++)
 		if (*pthis++ == value)
 			return 0;
 			
 	/* append value on fall through */
-	Append(majordim, value);			
+	Append(row, value);			
 	return 1;
 }
 
 template <class TYPE>
-inline int AutoFill2DT<TYPE>::AppendUnique(int majordim, const ArrayT<TYPE>& source)
+inline int AutoFill2DT<TYPE>::AppendUnique(int row, const ArrayT<TYPE>& source)
 {	
 	TYPE* psrc = source.Pointer();
 	int length = source.Length();
 	int count = 0;
 	for (int i = 0; i < length; i++)
-		count += AppendUnique(majordim, *psrc++);
+		count += AppendUnique(row, *psrc++);
 	
 	return count;
 }
@@ -369,30 +434,17 @@ inline int AutoFill2DT<TYPE>::AppendUnique(int majordim, const ArrayT<TYPE>& sou
 * Private
 ***********************************************************************/
 
+/* dimension all chunks */
 template <class TYPE>
-void AutoFill2DT<TYPE>::Allocate(int maxminordim, int headroom)
+inline void AutoFill2DT<TYPE>::Dimension(int minordim, int headroom)
 {
-	/* initialize count array */
-	int copy_in = 1;
-	if (!fCounts)
-	{
-#ifdef __NEW_THROWS__
-		try { fCounts = new int[fMajorDim]; }
-		catch (bad_alloc) { fCounts = NULL; }
-#else
-		fCounts = new int[fMajorDim];
-#endif
+	for (int i = 0; i < fChunks.Length(); i++)
+		Dimension(i, minordim, headroom);
+}
 
-		if (!fCounts)
-		{
-			cout << "\n AutoFill2DT<TYPE>::Allocate: out of memory"<< endl;
-			throw ExceptionT::kOutOfMemory;
-		}
-
-		memset(fCounts, 0, sizeof(int)*fMajorDim);
-		copy_in = 0;
-	}
-
+template <class TYPE>
+void AutoFill2DT<TYPE>::Dimension(int chunk, int maxminordim, int headroom)
+{
 	/* determine new memory size */
 	int memsize;
 	if (headroom > 0)
@@ -400,40 +452,50 @@ void AutoFill2DT<TYPE>::Allocate(int maxminordim, int headroom)
 	else
 		memsize = maxminordim;
 	
-	TYPE* newfArray;
-#ifdef __NEW_THROWS__
-	try { newfArray = new TYPE[fMajorDim*memsize]; }
-	catch (bad_alloc) { newfArray = NULL; }
-#else
-	newfArray = new TYPE[fMajorDim*memsize];
-#endif
+	/* row in the chunk */
+	int major_dim = (chunk == fChunks.Length() - 1) ? fLastChunkMajorDim : fChunkMajorDim;
 
-	if (!newfArray)
-	{
-		cout << "\n AutoFill2DT<TYPE>::Allocate: out of memory"<< endl;
-		throw ExceptionT::kOutOfMemory;
-	}
-
-	/* keep current data */
-	if (copy_in)
-	{
-		int* pcount = fCounts;
-		TYPE* pdata = fArray;
-		TYPE* pnew  = newfArray;
+	/* allocate new array */
+	TYPE* newfArray = ArrayT<TYPE>::New(memsize*major_dim);
 	
-		for (int i = 0; i < fMajorDim; i++)
+	/* copy current data */
+	TYPE* pdata = fChunks[chunk];
+	if (pdata)
+	{
+		int chunk_minor_dim = fChunkMinorDim[chunk];
+		int* pcount = fCounts.Pointer(chunk*fChunkMajorDim);
+		TYPE* pnew  = newfArray;
+		for (int i = 0; i < major_dim; i++)
 		{
-			memcpy(pnew, pdata, sizeof(TYPE)*(*pcount++));
+			int dim = *pcount++;
+			if (dim > 0) memcpy(pnew, pdata, sizeof(TYPE)*dim);
 			
-			pdata += fMaxMinorDim;
+			pdata += chunk_minor_dim;
 			pnew  += memsize;
 		}
 	}
 
-	delete[] fArray;
-	fArray = newfArray;
+	/* swap memory */
+	delete[] fChunks[chunk];
+	fChunks[chunk] = newfArray;
 
-	fMaxMinorDim = memsize;
+	/* save dimensions */
+	fChunkMinorDim[chunk] = memsize;
+}
+
+/* compute chunk dimensions */
+template <class TYPE>
+void AutoFill2DT<TYPE>::ChunkDimensions(int major_dim, int num_chunks, int& chunk_major_dim, int& last_major_dim)
+{
+	/* checks */
+	if (num_chunks < 1 || num_chunks > major_dim) 
+		ExceptionT::SizeMismatch("AutoFill2DT<TYPE>::ChunkDimensions", "bad number of chunks");
+
+	/* integer division truncates */
+	chunk_major_dim = major_dim/num_chunks;
+
+	/* collect remainder */
+	last_major_dim = major_dim - (num_chunks - 1)*chunk_major_dim;
 }
 
 } // namespace Tahoe 
