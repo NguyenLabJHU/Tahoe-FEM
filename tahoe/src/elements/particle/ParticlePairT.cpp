@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.29 2004-01-23 06:47:50 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.30 2004-01-27 19:11:58 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -298,7 +298,7 @@ void ParticlePairT::WriteOutput(void)
 		}
 
 		CalcValues(i, coords, CParamStart, &Strain, &SlipVector, &NearestNeighbors);
-		int valuep = 0.0;
+		int valuep = 0;
 		Strain /= 2.0;
 		for (int n = 0; n < ndof; n++)
 			for (int m = n;m < ndof; m++)
