@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.5.2.3 2002-04-25 01:34:00 paklein Exp $ */
+/* $Id: TiedNodesT.h,v 1.5.2.4 2002-04-30 01:30:21 paklein Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -43,7 +43,7 @@ class TiedNodesT: public KBC_ControllerT
 public:	
 
 	/** constructor */
-	TiedNodesT(NodeManagerPrimitive& node_manager, BasicFieldT& field);
+	TiedNodesT(NodeManagerT& node_manager, BasicFieldT& field);
 
 	/** initialize data. Must be called immediately after construction */
 	virtual void Initialize(ifstreamT& in);

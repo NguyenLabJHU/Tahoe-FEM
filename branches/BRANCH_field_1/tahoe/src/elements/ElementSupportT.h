@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.1.2.3 2002-04-30 00:07:04 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.1.2.4 2002-04-30 01:30:19 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -11,7 +11,7 @@
 
 /* forward declarations */
 class FEManagerT;
-class NodeManagerPrimitive;
+class NodeManagerT;
 class GroupAverageT;
 class XDOF_ManagerT;
 class ElementMatrixT;
@@ -44,8 +44,8 @@ public:
 	/** (re-)set the FEManagerT */
 	void SetFEManager(FEManagerT* fe);
 
-	/** (re-)set the NodeManagerPrimitive */
-	void SetNodes(NodeManagerPrimitive* nodes);
+	/** (re-)set the NodeManagerT */
+	void SetNodes(NodeManagerT* nodes);
 	/*@}*/
 
 	/** \name accessors */
@@ -202,7 +202,7 @@ private:
 	FEManagerT& FEManager(void) const;
 
 	/** the nodes */
-	NodeManagerPrimitive& Nodes(void) const;
+	NodeManagerT& Nodes(void) const;
 	/*@}*/
 
 private:
@@ -211,7 +211,7 @@ private:
 	FEManagerT* fFEManager;
 	
 	/** the nodes */
-	NodeManagerPrimitive* fNodes;
+	NodeManagerT* fNodes;
 	
 	/** \name cached parameters
 	 * Pre-set to allow fast access */
@@ -234,7 +234,7 @@ inline FEManagerT& ElementSupportT::FEManager(void) const
 }
 
 /* the nodes */
-inline NodeManagerPrimitive& ElementSupportT::Nodes(void) const
+inline NodeManagerT& ElementSupportT::Nodes(void) const
 {
 	if (!fNodes) {
 		cout << "\n ElementSupportT::Nodes: pointer not set" << endl;

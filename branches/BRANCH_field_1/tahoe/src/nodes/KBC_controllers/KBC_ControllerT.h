@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.5.2.3 2002-04-25 01:34:00 paklein Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.5.2.4 2002-04-30 01:30:21 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #ifndef _KBC_CONTROLLER_T_H_
@@ -14,7 +14,7 @@
 /* forward declarations */
 #include "ios_fwd_decl.h"
 class ifstreamT;
-class NodeManagerPrimitive;
+class NodeManagerT;
 class nControllerT;
 class iArrayT;
 class StringT;
@@ -36,7 +36,7 @@ public:
          kSymmetricNodes = 4};
 
 	/** constructor */
-	KBC_ControllerT(NodeManagerPrimitive& node_manager);
+	KBC_ControllerT(NodeManagerT& node_manager);
 
 	/** destructor */
 	virtual ~KBC_ControllerT(void);
@@ -106,7 +106,7 @@ protected:
 protected:
 
 	/* nodal data */
-	NodeManagerPrimitive& fNodeManager;
+	NodeManagerT& fNodeManager;
 	
 	/* boundary conditions cards - return value */
 	ArrayT<KBC_CardT> fKBC_Cards;  	

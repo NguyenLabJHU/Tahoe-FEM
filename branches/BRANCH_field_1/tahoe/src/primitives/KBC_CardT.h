@@ -1,4 +1,4 @@
-/* $Id: KBC_CardT.h,v 1.2.2.1 2002-04-24 01:29:28 paklein Exp $ */
+/* $Id: KBC_CardT.h,v 1.2.2.2 2002-04-30 01:30:22 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _KBC_CARD_T_H_
@@ -14,7 +14,7 @@ class KBC_CardT
 {
 public:
 
-	friend class NodeManagerPrimitive;
+	friend class NodeManagerT;
 	
 	/* codes */
 	enum CodeT {kFix = 0,

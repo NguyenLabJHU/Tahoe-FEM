@@ -1,9 +1,9 @@
-/* $Id: MappedPeriodicT.cpp,v 1.4.2.2 2002-04-25 01:34:00 paklein Exp $ */
+/* $Id: MappedPeriodicT.cpp,v 1.4.2.3 2002-04-30 01:30:21 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 
 #include "MappedPeriodicT.h"
 
-#include "NodeManagerPrimitive.h"
+#include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "fstreamT.h"
 #include "BasicFieldT.h"
@@ -13,7 +13,7 @@ const int kMaster = 0;
 const int kSlave  = 1;
 
 /* constructor */
-MappedPeriodicT::MappedPeriodicT(NodeManagerPrimitive& node_manager, BasicFieldT& field):
+MappedPeriodicT::MappedPeriodicT(NodeManagerT& node_manager, BasicFieldT& field):
 	KBC_ControllerT(node_manager),
 	fField(field),
 	fnumLTf(-1),

@@ -1,9 +1,9 @@
-/* $Id: K_FieldT.cpp,v 1.5.2.2 2002-04-25 01:34:00 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.5.2.3 2002-04-30 01:30:21 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #include "K_FieldT.h"
 
-#include "NodeManagerPrimitive.h"
+#include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "ContinuumElementT.h"
 #include "MaterialListT.h"
@@ -16,7 +16,7 @@
 const double Pi = acos(-1.0);
 
 /* constructor */
-K_FieldT::K_FieldT(NodeManagerPrimitive& node_manager):
+K_FieldT::K_FieldT(NodeManagerT& node_manager):
 	KBC_ControllerT(node_manager),
 	fLTf1(NULL),
 	fLTf2(NULL),

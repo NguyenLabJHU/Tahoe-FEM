@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.h,v 1.1.1.1.8.1 2002-04-25 01:37:48 paklein Exp $ */
+/* $Id: LinearSolver.h,v 1.1.1.1.8.2 2002-04-30 01:30:23 paklein Exp $ */
 /* created: paklein (05/30/1996) */
 
 #ifndef _LINEAR_SOLVER_H_
@@ -18,8 +18,8 @@ public:
 	/* configure system */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
 	
-	/* solve for the current time sequence */
-	 virtual void Run(void);
+	/** solve the system over the current time increment */
+	virtual int Solve(void);	
 	
 private:
 

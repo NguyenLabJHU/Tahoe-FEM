@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.h,v 1.3.4.3 2002-04-25 01:34:00 paklein Exp $ */
+/* $Id: MappedPeriodicT.h,v 1.3.4.4 2002-04-30 01:30:21 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 
 #ifndef _MAPPED_PERIODIC_T_H
@@ -34,7 +34,7 @@ class MappedPeriodicT: public KBC_ControllerT
 public:
 
 	/* constructor */
-	MappedPeriodicT(NodeManagerPrimitive& node_manager, BasicFieldT& field);
+	MappedPeriodicT(NodeManagerT& node_manager, BasicFieldT& field);
 
 	/* initialize data - called immediately after construction */
 	virtual void Initialize(ifstreamT& in);

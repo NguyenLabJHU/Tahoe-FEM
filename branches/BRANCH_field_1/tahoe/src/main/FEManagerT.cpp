@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.32.2.4 2002-04-30 00:07:11 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.32.2.5 2002-04-30 01:30:20 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -23,15 +23,7 @@
 #include "nControllerT.h"
 
 /* nodes */
-#include "NodeManagerPrimitive.h"
-
-#if 0
 #include "NodeManagerT.h"
-#include "FDNodeManager.h"
-#include "DynNodeManager.h"
-#include "FDDynNodeManagerT.h"
-#include "DuNodeManager.h"
-#endif
 
 /* solvers */
 #include "LinearSolver.h"
@@ -187,12 +179,41 @@ void FEManagerT::Solve(void)
 		/* read kinematic data from restart file */
 		ReadRestart();
 
-		/* step through sequence */
-//		fSolutionDriver->Run();
-#pragma message("FEManagerT::Solve????")
-		
-		/* write restart file */
-		//WriteRestart();
+		/* loop over time increments */
+		bool seq_OK = true;
+		while (seq_OK && fTimeManager->Step())
+		{
+			/* running status flag */
+			int error = eNoError;		
+
+			/* initialize the current time step */
+			if (error == eNoError) 
+				error = InitStep();
+			
+			/* solve the current time step */
+			if (error == eNoError) 
+				error = SolveStep();
+			
+			/* close the current time step */
+			if (error == eNoError) 
+				error = CloseStep();
+			
+			/* handle errors */
+			switch (error)
+			{
+				case eNoError;
+					break;
+
+				case eBadJacobianDet;
+				{
+				
+					break;
+				}
+				default:
+					cout << "FEManagerT::Solve: no recovery for error: " << Exception(error) << endl;
+					seq_OK = false;
+			}
+		}
 	}
 }
 
@@ -313,13 +334,6 @@ const char* FEManagerT::Exception(int code) const
 bool FEManagerT::DecreaseLoadStep(void) { return fTimeManager->DecreaseLoadStep(); }
 bool FEManagerT::IncreaseLoadStep(void) { return fTimeManager->IncreaseLoadStep(); }
 
-/* time sequence messaging */
-bool FEManagerT::Step(void)
-{
-	/* more steps */
-	return fTimeManager->Step();
-}
-
 void FEManagerT::ResetStep(void)
 {
 	/* state */
@@ -351,19 +365,6 @@ const int& FEManagerT::IterationNumber(int group) const
 { 
 	return fSolvers[group]->IterationNumber(); 
 }
-
-#if 0
-void FEManagerT::SetLocalEqnos(const iArray2DT& nodes,
-	iArray2DT& eqnos) const
-{
-	fNodeManager->SetLocalEqnos(nodes, eqnos);
-}
-
-void FEManagerT::RegisterLocal(LocalArrayT& array) const
-{
-	fNodeManager->RegisterLocal(array);
-}
-#endif
 
 /* solution messaging */
 void FEManagerT::FormLHS(int group) const
@@ -410,8 +411,9 @@ void FEManagerT::InternalForceOnNode(const FieldT& field, int node, dArrayT& for
 		fElementGroups[i]->AddNodalForce(field, node, force);
 }
 
-void FEManagerT::InitStep(void) const
+int FEManagerT::InitStep(void) const
 {
+	try {
 	/* state */
 	SetStatus(GlobalT::kInitStep);
 	
@@ -425,10 +427,41 @@ void FEManagerT::InitStep(void) const
 	/* elements */
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
 		fElementGroups[i]->InitStep();
+	}
+	
+	catch (int exc) {
+		cout << "\n FEManagerT::InitStep: caught exception: " 
+		     << Exception(exc) << endl;
+		return exc;
+	}
+	
+	/* OK */
+	return eNoError;
+}
+
+int FEManagerT::SolveStep(void) const
+{
+	int error = eNoError;
+	try {
+
+		/* one solver after the next */
+		for (int i = 0; error == eNoError && i < fSolvers.Length(); i++)
+			error = fSolvers[i]->Solve(); 
+
+	}
+
+	catch (int exc) {
+		cout << "\n FEManagerT::SolveStep: caught exception: " 
+		     << Exception(exc) << endl;
+	}
+	
+	/* done */
+	return error;
 }
 
 void FEManagerT::CloseStep(void) const
 {
+	try {
 	/* state */
 	SetStatus(GlobalT::kCloseStep);
 
@@ -445,6 +478,14 @@ void FEManagerT::CloseStep(void) const
 		
 	/* write restart file */
 	WriteRestart();
+	}
+	catch (int exc) {
+		cout << "\n FEManagerT::CloseStep: caught exception: " << Exception(exc) << endl;
+		return exc;
+	}
+	
+	/* OK */
+	return eNoError;
 }
 
 void FEManagerT::Update(int group, const dArrayT& update)
@@ -970,7 +1011,7 @@ void FEManagerT::WriteParameters(void) const
 void FEManagerT::SetNodeManager(void)
 {
 	/* construct */
-	fNodeManager = new NodeManagerPrimitive(*this);
+	fNodeManager = new NodeManagerT(*this);
 	if (!fNodeManager) throw eOutOfMemory;	
 	fNodeManager->Initialize();			
 

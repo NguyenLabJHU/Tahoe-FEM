@@ -1,4 +1,4 @@
-/* $Id: IntegratorT.cpp,v 1.2.2.1 2002-04-24 01:29:21 paklein Exp $ */
+/* $Id: IntegratorT.cpp,v 1.2.2.2 2002-04-30 01:30:18 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "IntegratorT.h"
@@ -6,7 +6,6 @@
 #include <iostream.h>
 
 #include "dArrayT.h"
-//#include "NodeManagerT.h"
 
 /* constructor */
 IntegratorT::IntegratorT(void): fdt(-1.0) { }
