@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.31 2003-11-21 22:46:00 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.32 2003-12-02 17:15:41 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -841,7 +841,7 @@ void ContinuumElementT::ReadMaterialData(ifstreamT& in)
 	/* construct material list */
 	int size;
 	in >> size;
-	fMaterialList = NewMaterialList(size);
+	fMaterialList = NewMaterialList(NumSD(), size);
 	if (!fMaterialList) throw ExceptionT::kOutOfMemory;
 
 	/* read */
@@ -1142,11 +1142,11 @@ void ContinuumElementT::DefineInlineSub(const StringT& sub, ParameterListT::List
 		order = ParameterListT::Choice;
 	
 		/* element geometries */
-		sub_sub_list.AddSub("line");
 		sub_sub_list.AddSub("quadrilateral");
 		sub_sub_list.AddSub("triangle");
 		sub_sub_list.AddSub("hexahedron");
 		sub_sub_list.AddSub("tetrahedron");
+		sub_sub_list.AddSub("line");
 	}
 	else
 		ElementBaseT::DefineInlineSub(sub, order, sub_sub_list);

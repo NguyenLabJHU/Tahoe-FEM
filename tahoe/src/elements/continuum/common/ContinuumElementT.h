@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.21 2003-11-04 17:45:09 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.22 2003-12-02 17:15:41 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -171,9 +171,11 @@ protected:
 	// shared but the output of what each code means is class-dependent
 	void EchoTractionBC(ifstreamT& in, ostream& out);
 
-	/** construct a new material list and return a pointer. Recipient is responsible for
-	 * for freeing the pointer. */
-	virtual MaterialListT* NewMaterialList(int size) = 0;
+	/** return a pointer to a new material list. Recipient is responsible for freeing 
+	 * the pointer. 
+	 * \param nsd number of spatial dimensions
+	 * \param size length of the list */
+	virtual MaterialListT* NewMaterialList(int nsd, int size) = 0;
 
 	/** construct a new material support and return a pointer. Recipient is responsible for
 	 * for freeing the pointer.
