@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.10 2002-08-15 08:59:36 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.11 2002-08-21 07:26:01 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 
 #ifndef _FE_MANAGER_MPI_H_
@@ -50,6 +50,9 @@ public:
 	/* system relaxation */
 	virtual GlobalT::RelaxCodeT RelaxSystem(int group) const;
 
+	/** update solution */
+	virtual void Update(int group, const dArrayT& update);
+
 	/** initiate the process of writing output from all output sets 
 	 * \param time time label associated with the output data */
 	virtual void WriteOutput(double time, IOBaseT::OutputModeT mode);
@@ -94,8 +97,15 @@ public:
 
 protected:
 
+	/** \name solution steps 
+	 * All steps return eNoError = 0 unless a problem occurs. */
+	/*@{*/
 	/** initialize the new time interval */
 	virtual int InitStep(void);
+
+	/** execute the solution procedure */
+	virtual int SolveStep(void);
+	/*@}*/
 
 	/* initialization functions */
 	virtual void ReadParameters(InitCodeT init);

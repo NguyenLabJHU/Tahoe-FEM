@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.17 2002-08-15 08:59:36 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.18 2002-08-21 07:26:01 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -104,6 +104,9 @@ public:
 
 	/** resolve the index of the given element group */
 	int ElementGroupNumber(const ElementBaseT* pgroup) const;
+	
+	/** the MP communicator */
+	CommunicatorT& Communicator(void) const { return fComm; };
 	/*@}*/
 
 	/** \name equation system */
@@ -298,7 +301,8 @@ protected:
 	/** collect element equations and send to solver */
 	void SendEqnsToSolver(int group) const;
 
-	/** \name solution steps */
+	/** \name solution steps 
+	 * All steps return eNoError = 0 unless a problem occurs. */
 	/*@{*/
 	/** initialize the current time increment for all groups */
 	virtual int InitStep(void);

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.36 2002-08-15 23:44:11 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.37 2002-08-21 07:26:01 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -56,7 +56,8 @@ const char* eExceptionStrings[] = {
 /* 7 */ "zero or negative jacobian",
 /* 8 */ "MPI message passing error",
 /* 9 */ "database read failure",
-/*10 */ "unknown"};	
+/*10 */ "bad MP heartbeat",
+/*11 */ "unknown"};	
 
 /* constructor */
 FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm):
@@ -201,7 +202,7 @@ void FEManagerT::Solve(void)
 			/* close the current time step */
 			if (error == eNoError) 
 				error = CloseStep();
-			
+
 			/* handle errors */
 			switch (error)
 			{
@@ -212,6 +213,8 @@ void FEManagerT::Solve(void)
 				case eGeneralFail:
 				case eBadJacobianDet:
 				{
+					cout << "\n FEManagerT::Solve: trying to recover: error: " << Exception(error) << endl;
+				
 					/* reset system configuration */
 					error = ResetStep();
 					
@@ -272,10 +275,10 @@ void FEManagerT::WriteExceptionCodes(ostream& out) const
 
 const char* FEManagerT::Exception(int code) const
 {
-	if (code >= 0 && code <= 8)
+	if (code >= 0 && code < eNumExceptions)
 		return eExceptionStrings[code];
 	else
-		return eExceptionStrings[9];
+		return eExceptionStrings[eNumExceptions];
 }
 
 /* load control functions */

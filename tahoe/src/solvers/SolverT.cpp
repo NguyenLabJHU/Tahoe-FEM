@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.6 2002-07-02 19:57:12 cjkimme Exp $ */
+/* $Id: SolverT.cpp,v 1.7 2002-08-21 07:26:03 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "SolverT.h"
@@ -7,8 +7,8 @@
 #include <string.h>
 
 #include "fstreamT.h"
-
 #include "FEManagerT.h"
+#include "CommunicatorT.h"
 #include "iArrayT.h"
 
 /* global matrix */
@@ -21,14 +21,12 @@
 #include "SPOOLESMatrixT.h"
 
 #ifdef __MPI__
-#include "mpi.h"
 #include "SPOOLESMatrixT_mpi.h"
 #endif
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 SolverT::SolverT(FEManagerT& fe_manager, int group):
 	fFEManager(fe_manager),
 	fGroup(group),
@@ -232,20 +230,10 @@ double SolverT::Residual(const dArrayT& force) const
 /* (distributed) inner product */	
 double SolverT::InnerProduct(const dArrayT& v1, const dArrayT& v2) const
 {
-	double dot = dArrayT::Dot(v1, v2);
+	/* check heart beat */
+	if (fFEManager.Communicator().Sum(eNoError) != 0) throw eBadHeartBeat;
 
-#ifdef __MPI__
-	int size = fFEManager.Size();
-	if (size > 1)
-	{
-		double sum;
-		if (MPI_Allreduce(&dot, &sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD)
-			!= MPI_SUCCESS) throw eMPIFail;
-		dot = sum;
-	}
-#endif
-
-	return dot;
+	return fFEManager.Communicator().Sum(dArrayT::Dot(v1, v2));
 }
 
 /*************************************************************************

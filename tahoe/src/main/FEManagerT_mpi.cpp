@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.17 2002-08-15 08:59:36 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.18 2002-08-21 07:26:01 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -53,6 +53,9 @@ FEManagerT_mpi::FEManagerT_mpi(ifstreamT& input, ofstreamT& output,
 		log_file.Append(".p", Rank());
 		log_file.Append(".log");
 		flog.open(log_file);
+		
+		/* redirect log messages */
+		fComm.SetLog(flog);
 		
 		//TEMP
 		TimeStamp("FEManagerT_mpi::FEManagerT_mpi");
@@ -113,17 +116,35 @@ FEManagerT_mpi::~FEManagerT_mpi(void)
 			}
 	}
 #endif /* __MPI__ */
+
+		/* restore log messages */
+		fComm.SetLog(cout);
 }
 
 int FEManagerT_mpi::InitStep(void)
 {
-//NOTE - check for errors on other processors
+	/* give heartbeat */
+	fComm.Log("FEManagerT_mpi::InitStep", "init", true);
 
 	/* set default output time stamp */
 	if (fExternIOManager) fExternIOManager->SetOutputTime(Time());
 
 	/* inherited */
-	return FEManagerT::InitStep();
+	int error = FEManagerT::InitStep();
+	if (error != eNoError) {
+		cout << "\n FEManagerT_mpi::InitStep: error: " << error << endl;
+	}
+	return error;
+}
+
+int FEManagerT_mpi::SolveStep(void)
+{
+	/* inherited */
+	int error = FEManagerT::SolveStep();
+	if (error != eNoError) {
+		cout << "\n FEManagerT_mpi::SolveStep: return: " << error << endl;
+	}
+	return error;
 }
 
 /* system relaxation */
@@ -157,6 +178,20 @@ GlobalT::RelaxCodeT FEManagerT_mpi::RelaxSystem(int group) const
 	return relax;
 }
 
+/* update solution */
+void FEManagerT_mpi::Update(int group, const dArrayT& update)
+{
+	//TEMP
+	TimeStamp("FEManagerT_mpi::Update");
+	
+	/* check sum */
+	if (fComm.Sum(eNoError) != 0) 
+		throw eBadHeartBeat; /* must trigger try block in FEManagerT::SolveStep */
+
+	/* inherited */
+	FEManagerT::Update(group, update);
+}
+
 #if 0
 /* writing results */
 const dArray2DT& FEManagerT_mpi::Coordinates(void) const
@@ -178,9 +213,6 @@ void FEManagerT_mpi::WriteOutput(double time, IOBaseT::OutputModeT mode)
 void FEManagerT_mpi::WriteOutput(int ID, const dArray2DT& n_values,
 	const dArray2DT& e_values)
 {
-	/* check for errors */
-	if (fComm.Sum(eNoError) != 0) throw eNoError;
-
 	/* output assembly mode */
 	if (!fExternIOManager)
 		/* do local IO */
@@ -318,9 +350,6 @@ void FEManagerT_mpi::SendExternalData(const dArray2DT& all_out_data)
 	//TEMP
 	//TimeStamp("FEManagerT_mpi::SendExternalData");
 
-	/* check for errors */
-	if (fComm.Sum(eNoError) != 0) throw eNoError;
-
 	/* check */
 	if (all_out_data.MajorDim() != fNodeManager->NumNodes())
 	{
@@ -393,9 +422,6 @@ void FEManagerT_mpi::SendRecvExternalData(const iArray2DT& all_out_data,
 		     <<   "    major dimension (number of nodes) " << fNodeManager->NumNodes() << endl;
 		throw eGeneralFail;
 	}
-
-	/* check for errors */
-	if (fComm.Sum(eNoError) != 0) throw eNoError;
 
 	/* communication list */
 	const iArrayT& commID = fPartition->CommID();
