@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2001-06-13 21:14:14 paklein Exp $
+# $Id: makefile,v 1.3 2001-06-19 23:25:05 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,7 +6,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	GaussianWindowT.o
+	GaussianWindowT.o \
+	RectangularGaussianWindowT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -16,11 +17,13 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	GaussianWindowT.cpp
+	GaussianWindowT.cpp \
+	RectangularGaussianWindowT.cpp
 
 # headers
 HDR = \
 	GaussianWindowT.h \
+	RectangularGaussianWindowT.h \
 	WindowT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
