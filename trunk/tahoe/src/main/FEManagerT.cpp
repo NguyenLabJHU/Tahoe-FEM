@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.19 2001-12-17 00:12:59 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.20 2002-01-03 03:02:29 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -1038,7 +1038,7 @@ void FEManagerT::ReadParameters(InitCodeT init)
 	/* read */
 	fMainIn >> fAnalysisCode;
 	
-	if (init == kFull)
+	if (init == kFull || init == kAllButSolver)
 	  fModelManager->Initialize (fMainIn, false);
 	else
 	  fModelManager->Initialize (fMainIn, true);
