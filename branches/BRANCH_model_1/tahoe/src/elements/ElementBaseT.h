@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.4 2001-09-05 00:26:04 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.4.2.1 2001-10-11 20:04:39 sawimme Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -178,12 +178,6 @@ protected: /* for derived classes only */
 	void SetElementCards(void);
 
 private:
-
-	/* I/O formats */
-	void ReadConnectivity_ASCII(ifstreamT& in, ostream& out, int num_blocks);
-	void ReadConnectivity_TahoeII(ifstreamT& in, ostream& out, int num_blocks);
-	void ReadConnectivity_ExodusII(ifstreamT& in, ostream& out, int num_blocks);
-	void WriteConnectivity_ASCII(ostream& out) const;
 
 	/** return the default number of element nodes. This function is needed
 	 * because ExodusII databases (see ExodusT) do not store ANY information about
