@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.2 2001-07-11 01:03:30 paklein Exp $ */
 /* created: paklein (06/26/1996)                                          */
 
 #include "ShapeFunctionT.h"
@@ -7,7 +7,7 @@
 
 /* constructor */
 ShapeFunctionT::ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
-	const LocalArrayT& coords, int B_option):
+	const LocalArrayT& coords, StrainOptionT B_option):
 DomainIntegrationT(geometry_code, numIP, coords.NumberOfNodes()),
 	fCoords(coords),
 	fB_option(B_option),
@@ -78,7 +78,7 @@ void ShapeFunctionT::B(const dArray2DT& DNa, dMatrixT& B_matrix) const
 #endif
 
 	int numnodes = DNa.MinorDim();
-double*   pB = B_matrix.Pointer();
+	double*   pB = B_matrix.Pointer();
 
 	/* standard strain-displacement operator */
 	if (fB_option == kStandardB)
@@ -302,15 +302,6 @@ double*   pB = B_matrix.Pointer();
 	}
 }
 
-/* extrapolate integration point values to the nodes
-*    IPvalues[numvals] : values from a single integration point
-*    nodalvalues[fNumNodes x numvals] : extrapolated values */
-void ShapeFunctionT::Extrapolate(const dArrayT& IPvalues,
-	dArray2DT& nodalvalues) const
-{
-	fDomain->NodalValues(IPvalues, nodalvalues, CurrIP());
-}	
-
 /* convert shape function derivatives by applying a chain rule
 * transformation:
 *
@@ -372,7 +363,7 @@ void ShapeFunctionT::Construct(void)
 	    fCoords.Type() != LocalArrayT::kCurrCoords) throw eGeneralFail;
 
 	/* dimensions */
-int numXnodes = fCoords.NumberOfNodes();
+	int numXnodes = fCoords.NumberOfNodes();
 	int numUnodes = numXnodes; // assume isoparametric
 	int numsd     = fCoords.MinorDim();
 

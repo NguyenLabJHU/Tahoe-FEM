@@ -1,16 +1,5 @@
-/* $Id: SurfaceShapeT.h,v 1.2 2001-04-27 10:48:33 paklein Exp $ */
+/* $Id: SurfaceShapeT.h,v 1.3 2001-07-11 01:03:31 paklein Exp $ */
 /* created: paklein (11/21/1997)                                          */
-/* Class to manage CSE integrals, where the dimension of                  */
-/* the field variable is 1 greater than the dimension of the parent       */
-/* domain. Jump quantities imply jump between any field variable          */
-/* across the CSE.                                                        */
-/* NOTE: Class operates in 2 modes depending on the dimension             */
-/* of coords which are passed in during construction:                     */
-/* (1) coords.NumNodes() == fNumFacetNodes: coords used                   */
-/* directly as the facet geometry                                         */
-/* (2) coords.NumNodes() == fTotalNodes: the facet geometry               */
-/* is assumed to be the average of the coordinates                        */
-/* on the upper and lower facets.                                         */
 
 #ifndef _SURFACE_SHAPE_T_H_
 #define _SURFACE_SHAPE_T_H_
@@ -23,6 +12,17 @@
 #include "Array2DT.h"
 #include "LocalArrayT.h"
 
+/** Class to manage CSE integrals, where the dimension of
+ * the field variable is 1 greater than the dimension of the parent
+ * domain. Jump quantities imply jump between any field variable
+ * across the CSE.
+ * \note Class operates in 2 modes depending on the dimension
+ * of coords which are passed in during construction:
+ * (1) coords.NumNodes() == fNumFacetNodes: coords used
+ * directly as the facet geometry
+ * (2) coords.NumNodes() == fTotalNodes: the facet geometry
+ * is assumed to be the average of the coordinates
+ * on the upper and lower facets. */
 class SurfaceShapeT: public DomainIntegrationT
 {
 public:
