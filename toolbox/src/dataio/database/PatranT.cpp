@@ -1,4 +1,4 @@
-/* $Id: PatranT.cpp,v 1.10 2002-02-11 18:58:49 sawimme Exp $ */
+/* $Id: PatranT.cpp,v 1.11 2002-02-14 20:57:29 sawimme Exp $ */
 /* created sawimme (05/17/2001) */
 
 #include "PatranT.h"
@@ -31,6 +31,7 @@ bool PatranT::OpenRead (const StringT& filename)
     }
 
   file_name = filename;
+  ScanFile ();
   return true;
 }
 
@@ -73,14 +74,7 @@ int PatranT::NumElements (void) const
 
 int PatranT::NumNamedComponents (void) const
 {
-  int ID, IV, KC, num = 0;
-  ifstream in (file_name);
-  while (AdvanceTo (in, kNamedComponents, ID, IV, KC)) 
-    {
-      num++;
-      ClearPackets (in, KC+1);
-    }
-  return num;
+  return fNamedComponents.Length();
 }
 
 int PatranT::NumDimensions (void) const
@@ -113,26 +107,10 @@ int PatranT::NumDimensions (void) const
 
 bool PatranT::NamedComponents (ArrayT<StringT>& names) const
 {
-  int ID, IV, KC, num = 0;
-  ifstream in (file_name);
-  while (AdvanceTo (in, kNamedComponents, ID, IV, KC)) 
-    {
-      if (num >= names.Length()) 
-	{
-	  fMessage << "PatranT::NamedComponents, incorrect allocation\n";
-	  return false;
-	}
-      ClearPackets (in, 1);
-      in >> names[num++];
-      ClearPackets (in, KC);
-    }
-  if (num != names.Length()) 
-    {
-      fMessage << "PatranT::NamedComponents, incorrect amount\n";
-      return false;
-    }
+  if (names.Length() != fNamedComponents.Length()) throw eSizeMismatch;
+  for (int i=0; i < names.Length(); i++)
+    names[i] = fNamedComponents[i];
   return true;
-  
 }
 
 bool PatranT::ReadGlobalNodeMap (iArrayT& map) const
@@ -188,8 +166,8 @@ bool PatranT::ReadGlobalElementMap (iArrayT& map) const
 bool PatranT::NumNodesInSet (const StringT& title, int& num) const
 {
   num = -1;
-  iArrayT list;
-  if (!ReadNamedComponent (title, list)) 
+  int index = LocateNamedComponent (title);
+  if (index < 0) 
     {
       fMessage << "PatranT::NumNodesInSet, unable to read named components\n";
       return false;
@@ -197,9 +175,10 @@ bool PatranT::NumNodesInSet (const StringT& title, int& num) const
 
   /* pull node IDs from component list */
   num = 0;
-  int *it = list.Pointer();
-  int *il = list.Pointer() + 1;
-  for (int i=0; i < list.Length()/2; i++, it += 2, il += 2)
+  int length = fNamedComponentsData[index].MajorDim();
+  int *it = fNamedComponentsData[index].Pointer();
+  int *il = fNamedComponentsData[index].Pointer() + 1;
+  for (int i=0; i < length; i++, it += 2, il += 2)
     if (*it == kNodeType)
       num++;
 
@@ -284,13 +263,17 @@ bool PatranT::ReadConnectivity (const StringT& title, int& namedtype, iArray2DT&
     {
       if (!AdvanceTo (in, kElement, ID, IV, KC)) 
 	{
-	  fMessage << "PatranT::ReadConnectivity, unable to find element";
+	  fMessage << "PatranT::ReadConnectivity, unable to find element\n";
+	  fMessage << "num elems " << elems.Length() << " " << connects.MajorDim() << endl;
+	  fMessage << "count " << count << endl;
+	  elems.WriteWithFormat (fMessage, 6, 0, 6);
+	  throw eDatabaseFail;
 	  return false;
 	}
+
       if (elems.HasValue (ID))
 	{
 	  ClearPackets (in, 1);
-	  KC--;
 
 	  in >> num_nodes;
 	  if (num_nodes != connects.MinorDim()) 
@@ -300,7 +283,6 @@ bool PatranT::ReadConnectivity (const StringT& title, int& namedtype, iArray2DT&
 		   << ", which doesn't match " << connects.MinorDim() << "\n";
 	    }
 	  ClearPackets (in, 1);
-	  KC--;
 
 	  in >> temp;
 	  connects.SetRow (count, temp);
@@ -348,8 +330,8 @@ bool PatranT::ReadAllElements (ArrayT<iArrayT>& connects, iArrayT& elementtypes)
 
 bool PatranT::ReadElementSet (const StringT& title, int& namedtype, iArrayT& elems) const
 {
-  iArrayT list;
-  if (!ReadNamedComponent (title, list)) 
+  int index = LocateNamedComponent (title);
+  if (index < 0) 
     {
       fMessage << "PatranT::ReadElementSet, unable to read named component\n";
       return false;
@@ -358,10 +340,10 @@ bool PatranT::ReadElementSet (const StringT& title, int& namedtype, iArrayT& ele
   /* pull element IDs from component list */
   iAutoArrayT set;
   namedtype = -1;
-  int *it = list.Pointer();
-  int *il = list.Pointer() + 1;
-  int geocode = -1;
-  for (int i=0; i < list.Length()/2; i++, it += 2, il += 2)
+  int length = fNamedComponentsData[index].MajorDim();
+  int *it = fNamedComponentsData[index].Pointer();
+  int *il = fNamedComponentsData[index].Pointer() + 1;
+  for (int i=0; i < length; i++, it += 2, il += 2)
     if ((*it >   5 && *it < 19) ||
 	(*it > 105 && *it < 119) ||
 	(*it > 205 && *it < 219))
@@ -378,8 +360,8 @@ bool PatranT::ReadElementSet (const StringT& title, int& namedtype, iArrayT& ele
 
 bool PatranT::ReadElementSetMixed (const StringT& title, iArrayT& namedtype, iArrayT& elems) const
 {
-  iArrayT list;
-  if (!ReadNamedComponent (title, list)) 
+  int index = LocateNamedComponent (title);
+  if (index < 0) 
     {
       fMessage << "PatranT::ReadElementSet, unable to read named component\n";
       return false;
@@ -388,9 +370,10 @@ bool PatranT::ReadElementSetMixed (const StringT& title, iArrayT& namedtype, iAr
   /* pull element IDs from component list */
   iAutoArrayT set;
   iAutoArrayT nt;
-  int *it = list.Pointer();
-  int *il = list.Pointer() + 1;
-  for (int i=0; i < list.Length()/2; i++, it += 2, il += 2)
+  int length = fNamedComponentsData[index].MajorDim();
+  int *it = fNamedComponentsData[index].Pointer();
+  int *il = fNamedComponentsData[index].Pointer() + 1;
+  for (int i=0; i < length; i++, it += 2, il += 2)
     if ((*it >   5 && *it < 19) ||
 	(*it > 105 && *it < 119) ||
 	(*it > 205 && *it < 219))
@@ -451,8 +434,8 @@ bool PatranT::ReadDistLoadSet (int setID, iArray2DT& facets) const
 
 bool PatranT::ReadNodeSet (const StringT& title, iArrayT& nodes) const
 {
-  iArrayT list;
-  if (!ReadNamedComponent (title, list)) 
+  int index = LocateNamedComponent (title);
+  if (index < 0) 
     {
       fMessage << "PatranT::ReadNodeSet, unable to read named components\n";
       return false;
@@ -460,9 +443,10 @@ bool PatranT::ReadNodeSet (const StringT& title, iArrayT& nodes) const
 
   /* pull node IDs from component list */
   iAutoArrayT set;
-  int *it = list.Pointer();
-  int *il = list.Pointer() + 1;
-  for (int i=0; i < list.Length()/2; i++, it += 2, il += 2)
+  int length = fNamedComponentsData[index].MajorDim();
+  int *it = fNamedComponentsData[index].Pointer();
+  int *il = fNamedComponentsData[index].Pointer() + 1;
+  for (int i=0; i < length; i++, it += 2, il += 2)
     if (*it == kNodeType)
       set.Append (*il);
     
@@ -677,27 +661,42 @@ bool PatranT::WriteClosure (ostream& out) const
 * Private
 **************************************************************************/
 
-bool PatranT::ReadNamedComponent (const StringT &title, iArrayT& list) const
+void PatranT::ScanFile (void)
 {
-  /* read list of elements */
-  int ID, IV, KC;
+  int ID, IV, KC, num=0;
   ifstream in (file_name);
-  bool foundtitle = false;
   StringT name;
-  while (!foundtitle)
+  // count number of named components 
+  while (AdvanceTo (in, kNamedComponents, ID, IV, KC))
     {
-      if (!AdvanceTo (in, kNamedComponents, ID, IV, KC)) return false;
-      ClearPackets (in, 1);
-      in >> name;
-      if (strncmp (name.Pointer(), title.Pointer(), title.Length()) == 0) 
-	foundtitle = true;
-      else 
-	ClearPackets (in, KC);
+      ClearPackets (in, KC + 1);
+      num++;
     }
-  list.Allocate (IV);
-  in >> list;
 
-  return true;
+  in.close ();
+  fNamedComponents.Allocate (num);
+  fNamedComponentsData.Allocate (num);
+
+  in.open (file_name);
+  // save data
+  int count = 0;
+  while (AdvanceTo (in, kNamedComponents, ID, IV, KC))
+    {
+      ClearPackets (in, 1);
+      in >> fNamedComponents[count];
+      fNamedComponentsData[count].Allocate (IV/2, 2);
+      in >> fNamedComponentsData[count];
+      count ++;
+      ClearPackets (in, 1);
+    }
+}
+
+int PatranT::LocateNamedComponent (const StringT &title) const
+{
+  for (int i=0; i < fNamedComponents.Length(); i++)
+    if (strncmp (title.Pointer(), fNamedComponents[i].Pointer(), title.StringLength()) == 0)
+      return i;
+  return -1;
 }
 
 bool PatranT::AdvanceTo (ifstream &in, int target, int& ID, int &IV, int &KC) const
@@ -713,6 +712,7 @@ bool PatranT::AdvanceTo (ifstream &in, int target, int& ID, int &IV, int &KC) co
       ClearPackets (in, KC + 1);
     }
 
+  //cout << target << " " << IT << " " << ID << endl;
   //fMessage << "PatranT::AdvanceTo: Cannot find: " << target << '\n';
   return false;
 }

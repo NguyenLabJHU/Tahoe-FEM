@@ -1,4 +1,4 @@
-/* $Id: PatranT.h,v 1.6 2002-02-11 18:58:49 sawimme Exp $ */
+/* $Id: PatranT.h,v 1.7 2002-02-14 20:57:29 sawimme Exp $ */
 /* created: sawimme (05/17/2001)  */
 
 #ifndef _PATRAN_T_H_
@@ -6,11 +6,11 @@
 
 /* direct members */
 #include "StringT.h"
+#include "iArray2DT.h"
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
 class iArrayT;
-class iArray2DT;
 class dArray2DT;
 
 class PatranT
@@ -109,7 +109,8 @@ class PatranT
 
   enum PrintFormatT { hwidth = 8, cwidth = 16, prec = 9 };
 
-  bool ReadNamedComponent (const StringT &title, iArrayT& list) const;
+  void ScanFile (void);
+  int LocateNamedComponent (const StringT &title) const;
   bool AdvanceTo (ifstream& in, int target, int &ID, int &IV, int &KC) const;
   void ClearPackets (ifstream &in, int KC) const;
 
@@ -118,6 +119,9 @@ class PatranT
  private:
   StringT file_name;
   ostream &fMessage;
+
+  ArrayT<StringT> fNamedComponents; /**< Named Components */
+  ArrayT<iArray2DT> fNamedComponentsData; /**< Named Component Data: Type, ID */
 };
 
 inline const StringT& PatranT::Filename (void) const { return file_name; }
