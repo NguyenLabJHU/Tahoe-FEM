@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.10 2001-09-15 01:20:34 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.11 2001-12-20 18:26:22 thao Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList2DT.h"
@@ -37,6 +37,7 @@
 #include "QuadLogOgden2DT.h"
 #include "OgdenViscVIB2D.h"
 #include "SKStVT2D.h"
+#include "MaxwellT2D.h"
 #include "tevp2D.h"
 #include "povirk2D.h"
 
@@ -83,10 +84,9 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 
 	/* read material data */
 	for (i = 0; i < fLength; i++)
-	{
+ 	{
 		in >> matnum; matnum--;
 		in >> matcode;
-		
 		/* checks */
 		if (matnum < 0  || matnum >= fLength) throw eBadInputValue;
 		
@@ -388,6 +388,14 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
 			
 				fArray[matnum] = new SKStVT2D(in, *fSmallStrain);
+				fHasHistory = true;
+				break;
+			}
+			case kMaxwellT:
+			{
+				/* check */
+				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
+				fArray[matnum] = new MaxwellT2D(in, *fSmallStrain);
 				fHasHistory = true;
 				break;
 			}
