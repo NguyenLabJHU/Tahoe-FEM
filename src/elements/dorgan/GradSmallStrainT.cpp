@@ -1,4 +1,4 @@
-/* $Id: GradSmallStrainT.cpp,v 1.7 2004-06-09 00:25:53 rdorgan Exp $ */ 
+/* $Id: GradSmallStrainT.cpp,v 1.8 2004-06-15 20:21:12 rdorgan Exp $ */ 
 #include "GradSmallStrainT.h"
 
 /* shape functions */
@@ -18,6 +18,9 @@
 #include "FieldSupportT.h"
 
 using namespace Tahoe;
+
+/* parameters */
+const double kYieldTol    = 1.0e-10;
 
 /* constructor */
 GradSmallStrainT::GradSmallStrainT(const ElementSupportT& support, 
@@ -480,8 +483,18 @@ void GradSmallStrainT::FormStiffness(double constK)
 	/* add constraint to Krr if elastic */
 	fK_ct = 0.;
 	for (int nd = 0; nd < NumElementNodes_Field(); nd ++)
-		if (fLocField1[nd] <= 0. || fLocField1[nd] <= fLocLastField1[nd]) // || fLocYield[nd] <= 0.)
+
+		// BEST CONVERGENCE / BETTER TOLERANCE CONVERGENCE
+		if (fLocField1[nd] <= 0. || fLocField1[nd] <= fLocLastField1[nd])
+
+		// 20ELEMENT KILLS EARLY / OTHER SOLUTIONS TAKE LONGER WITH WORSE TOLERANCE CONVERGENCE
+		//		if (fLocField1[nd] <= 0. || fLocField1[nd] <= fLocLastField1[nd] || fabs(fLocYield[nd]) < kYieldTol) 
+
+		// TAKES LONGER / WORSE TOLERANCE CONVERGENCE
+		//		if (fabs(fLocYield[nd]) < kYieldTol) 
+
 			fK_ct(nd)[nd] = fNodalConstraint;
+	
 	fLHS.AddBlock(fK_bb.Rows(), fK_bb.Cols(), fK_ct);
 
 	/********DEBUG*******/
