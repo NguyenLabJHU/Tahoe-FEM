@@ -1,5 +1,4 @@
-/* $Id: SolidElementT.h,v 1.14 2002-08-14 21:02:09 creigh Exp $ */
-
+/* $Id: SolidElementT.h,v 1.14.2.1 2002-09-21 09:09:58 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -83,6 +82,15 @@ public:
 
 protected:
 
+	/** strain-displacement options.
+	 * \note This really belongs in SmallStrainT; however, will be here for
+	 * not to allow input files to be unchanged. */
+	enum StrainOptionT {kStandardB = 0, /**< standard strain-displacement matrix */
+	                  kMeanDilBbar = 1  /**< mean dilatation for near incompressibility */ };
+
+	/** stream extraction operator */
+	friend istream& operator>>(istream& in, SolidElementT::StrainOptionT& type);
+
 	/** construct list of materials from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);
 
@@ -94,31 +102,44 @@ protected:
 	virtual void SetLocalArrays(void);
 	virtual void SetShape(void);
 
-	/* form shape functions and derivatives */
+	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);
 
-	/* construct the effective mass matrix */
+	/** compute the measures of strain/deformation over the element.
+	 * Use the current shape function derivatives to compute the strain or other
+	 * measure of deformation over the element. This should includes computing the 
+	 * B-matricies. The destinations for the results is understood to be class-dependent;
+	 * however, SolidElementT assumes the results will be stored in SolidElementT::fB_list.
+	 * Otherwise, derived classes need to override SolidElementT functions that use fB_list. */
+	//virtual void SetDeformation(void) = 0;
+
+	/** set the \e B matrix using the given shape function derivatives
+	 * Set strain displacement matrix as in Hughes (2.8.20)
+	 * \param derivatives of shape function derivatives: [nsd] x [nnd]
+	 * \param B destination for B */
+	void Set_B(const dArray2DT& derivatives, dMatrixT& B) const;
+
+	/** \name construct the effective mass matrix */
+	/*@{*/
 	virtual void LHSDriver(void);
 	void ElementLHSDriver(void);
+	/*@}*/
 
-	/* form the residual force vector */
+	/** \name form the residual force vector */
+	/*@{*/
 	virtual void RHSDriver(void);
 	void ElementRHSDriver(void);
+	/*@}*/
 
-	/* increment current element */
+	/** increment current element */
 	virtual bool NextElement(void);	
 	
-	/* form the element stiffness matrix */
-	virtual void FormStiffness(double constK);
+	/** form the element stiffness matrix
+	 * Compute the linearization of the force calculated by SolidElementT::FormKd */
+	virtual void FormStiffness(double constK) = 0;
 
-	/* body force */
-	void FormRayleighMassDamping(double constM);
-
-	/* damping force */
-	virtual void FormCv(double constC);
-	
-	/* internal force */
-	virtual void FormKd(double constK);
+	/** internal force */
+	virtual void FormKd(double constK) = 0;
 
 	/* return a pointer to a new material list */
 	virtual MaterialListT* NewMaterialList(int size) const;
@@ -142,9 +163,11 @@ protected:
 
 protected:
 
-	/* control data */
-	MassTypeT fMassType;	
-	int	fStrainDispOpt;
+	/** \name class parameters */
+	/*@{*/
+	MassTypeT     fMassType;	
+	StrainOptionT fStrainDispOpt;
+	/*@}*/
 
 	/* propagation direction for wave speeds */
 	dArrayT fNormal;
@@ -178,8 +201,9 @@ protected:
 	/** \name work space */
 	/*@{*/
 	dArrayT fElementHeat; /**< destination for heat generation. If not length nip, heat not needed */
-	dMatrixT    fD; /**< constitutive matrix */
-	dMatrixT    fB; /**< strain-displacement matrix */
+	dMatrixT fD; /**< constitutive matrix */
+	//ArrayT<dMatrixT> fB_list; /**< strain-displacement matricies: [nip] */
+	dMatrixT fB; /**< strain-displacement matrix */
 	dSymMatrixT fStress; /**< stress vector */	
 	/*@}*/
 
