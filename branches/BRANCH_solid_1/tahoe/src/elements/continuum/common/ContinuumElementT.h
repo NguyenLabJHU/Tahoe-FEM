@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.3.2.2 2001-06-28 01:24:11 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.3.2.3 2001-06-29 01:21:14 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 /* Interface for a general continuum element type, meaning the presence   */
 /* of shape functions, and the implied presence of a continuum mechanics  */
@@ -195,8 +195,7 @@ protected:
 	int fOutputID;
 
 	/* materials */
-	MaterialListT*        fMaterialList;  /**< list of materials */
-	ArrayT<ArrayT<bool> > fMaterialNeeds; /**< list of needs by material */
+	MaterialListT* fMaterialList;  /**< list of materials */
 	
 	/* output control */
 	iArrayT	fNodalOutputCodes;
@@ -218,9 +217,9 @@ protected:
 	LocalArrayT fLocDisp;	    /**< displacements with local ordering  */ 
 	
 	/* work space */
-	dArrayT fNEEvec; // [element DOF]
-	dArrayT fDOFvec; // [nodal DOF]
-	dArrayT fNSDvec; // [nodal dim]
+	dArrayT fNEEvec; /**< work space vector: [element DOF] */
+	dArrayT fDOFvec; /**< work space vector: [nodal DOF]   */
+	dArrayT fNSDvec; /**< work space vector: [nodal dim]   */
 };
 
 /* inlines */

@@ -1,4 +1,4 @@
-/* $Id: FDCubic2DT.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:01 paklein Exp $ */
+/* $Id: FDCubic2DT.cpp,v 1.1.1.1.2.3 2001-06-29 01:21:17 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #include "FDCubic2DT.h"
@@ -7,6 +7,7 @@
 /* constructor */
 FDCubic2DT::FDCubic2DT(ifstreamT& in, const FiniteStrainT& element):
 	FDCubicT(in, element),
+	Anisotropic2DT(in),
 	Material2DT(in)
 {
 	/* account for thickness */
@@ -18,6 +19,7 @@ void FDCubic2DT::Print(ostream& out) const
 {
 	/* inherited */
 	FDCubicT::Print(out);
+	Anisotropic2DT::Print(out);
 	Material2DT::Print(out);
 }
 
@@ -28,8 +30,12 @@ void FDCubic2DT::Print(ostream& out) const
 /* set (material) tangent modulus */
 void FDCubic2DT::SetModulus(dMatrixT& modulus)
 {
+	/* compute modulus in crystal coordinates */
 	CubicT::ComputeModuli2D(modulus, fConstraintOption);
 	modulus *= fThickness;
+	
+	/* transform modulus into global coords */
+	TransformOut(modulus);
 }
 
 /*************************************************************************

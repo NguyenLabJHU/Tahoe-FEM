@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.1.1.1.2.3 2001-06-22 14:18:31 paklein Exp $ */
+/* $Id: SSSolidMatT.h,v 1.1.1.1.2.4 2001-06-29 01:21:19 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 /* Defines the interface for elastic continuum materials.                 */
 
@@ -23,13 +23,20 @@ public:
 	virtual void PrintName(ostream& out) const;
 
 	/* required parameter flags */
-	virtual bool NeedDisp(void) const;
+	virtual bool Need_Strain(void) const { return true; };
+	virtual bool Need_Strain_last(void) const { return false; };
 
 	/** elastic strain */
 	const dSymMatrixT& e(void);
 
 	/** elastic strain at the given integration point */
 	const dSymMatrixT& e(int ip);
+
+	/** elastic strain */
+	const dSymMatrixT& e_last(void);
+
+	/** elastic strain at the given integration point */
+	const dSymMatrixT& e_last(int ip);
 
 	/* material description */
 	virtual const dMatrixT& C_IJKL(void);  // material tangent moduli

@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.1.2.2 2001-06-26 07:17:33 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.1.2.3 2001-06-29 01:21:15 paklein Exp $ */
 
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
@@ -13,6 +13,9 @@ class SmallStrainT: public ElasticT
       
 	/** constructor */
 	SmallStrainT(FEManagerT& fe_manager);
+
+	/** initialization. called immediately after constructor */
+	virtual void Initialize(void);
 
 	/** total strain */
 	const dSymMatrixT& LinearStrain(void) const;
@@ -32,24 +35,99 @@ class SmallStrainT: public ElasticT
 
   protected:
 
-	/** increment current element */
-	virtual bool NextElement(void);	
+	/** construct list of materials from the input stream */
+	virtual void ReadMaterialData(ifstreamT& in);
 
-  private:
-  
-  	/** matrix indicies */
-  	enum MatrixIndexT {kstrain = 0,
-  	                kstrain_ip = 1,
-  	              kstrain_last = 2,
-  	           Kstrain_last_ip = 3};
+	/** form shape functions and derivatives */
+	virtual void SetGlobalShape(void);
   	           
   private:
+
+	/** indicies of elements in the list of material needs */
+	enum MaterialNeedsT {kstrain = 0,
+	                kstrain_last = 1};
+
+  private:
+    
+	/** offset to material needs */
+	int fNeedsOffset; //NOTE - better to have this or a separate array?
   
   	/** return values */
-  	ArrayT<dSymMatrixT> fMatrixList;
+  	ArrayT<dSymMatrixT> fStrain_List;
+  	ArrayT<dSymMatrixT> fStrain_last_List;
   	
-  	/** cached matrices flags */
-  	iArrayT fIPSet;
+  	/** work space */
+  	dMatrixT fGradU;
 };
+
+/* inlines */
+
+inline const dSymMatrixT& SmallStrainT::LinearStrain(void) const
+{
+#if __option(extended_errorcheck)
+	/* check need */
+	int mat_num = CurrentElement().MaterialNumber();
+	const ArrayT<bool>& needs = fMaterialNeeds[mat_num];
+	if (!needs[fNeedsOffset + kstrain])
+	{
+		cout << "\n SmallStrainT::LinearStrain: material " << mat_num + 1 
+		     << " did not specify this need" << endl;
+		throw eGeneralFail;
+	}
+#endif
+
+	return fStrain_List[CurrIP()];
+}
+
+inline const dSymMatrixT& SmallStrainT::LinearStrain(int ip) const
+{
+#if __option(extended_errorcheck)
+	/* check need */
+	int mat_num = CurrentElement().MaterialNumber();
+	const ArrayT<bool>& needs = fMaterialNeeds[mat_num];
+	if (!needs[fNeedsOffset + kstrain])
+	{
+		cout << "\n SmallStrainT::LinearStrain: material " << mat_num + 1 
+		     << " did not specify this need" << endl;
+		throw eGeneralFail;
+	}
+#endif
+
+	return fStrain_List[ip];
+}
+
+inline const dSymMatrixT& SmallStrainT::LinearStrain_last(void) const
+{
+#if __option(extended_errorcheck)
+	/* check need */
+	int mat_num = CurrentElement().MaterialNumber();
+	const ArrayT<bool>& needs = fMaterialNeeds[mat_num];
+	if (!needs[fNeedsOffset + kstrain_last])
+	{
+		cout << "\n SmallStrainT::LinearStrain_last: material " << mat_num + 1 
+		     << " did not specify this need" << endl;
+		throw eGeneralFail;
+	}
+#endif
+
+	return fStrain_last_List[CurrIP()];
+}
+
+inline const dSymMatrixT& SmallStrainT::LinearStrain_last(int ip) const
+{
+#if __option(extended_errorcheck)
+	/* check need */
+	int mat_num = CurrentElement().MaterialNumber();
+	const ArrayT<bool>& needs = fMaterialNeeds[mat_num];
+	if (!needs[fNeedsOffset + kstrain_last])
+	{
+		cout << "\n SmallStrainT::LinearStrain_last: material " << mat_num + 1 
+		     << " did not specify this need" << endl;
+		throw eGeneralFail;
+	}
+#endif
+
+	return fStrain_last_List[ip];
+}
 
 #endif /* _SMALLSTRAIN_T_H_ */
