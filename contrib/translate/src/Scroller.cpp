@@ -1,4 +1,4 @@
-/* $Id: Scroller.cpp,v 1.2 2004-11-16 01:04:35 paklein Exp $ */
+/* $Id: Scroller.cpp,v 1.3 2005-01-11 17:57:01 paklein Exp $ */
 #include "Scroller.h"
 #include "ExceptionT.h"
 #include "OutputSetT.h"
@@ -68,7 +68,7 @@ void Scroller::Translate(const StringT& program, const StringT& version, const S
 	iArrayT element_nodes;
 
 	/* work space */
-	dArray2DT n_values(nnd, nnv), n_values_last;
+	dArray2DT n_values(nnd, nnv);
 	dArray2DT e_values, e_values_all(nel, nev);
 	nVariArray2DT<double> e_values_man(0, e_values, nev);
 
@@ -92,39 +92,34 @@ if (fDirection != 1)
 	    /* read element values (across all blocks) */
 		input->ReadAllElementVariables(j, e_values_all);
 
-		/* check for scrolling */
-		if (j > 0) {
-			double x_shift = fXLeft - fMeshSize;
-			bool shift = false;
-			for (int i = 0; i < fNodes.Length(); i++) 
-				if (fabs(n_values_last(fNodes[i], dy_index)) > fOpenLB && /* was "open" */
-					fabs(n_values(fNodes[i], dy_index)) < fCloseUB && /* now "closed" */
-				    coordinates(fNodes[i],0) > x_shift) /* point is farthest right */
-				{
-					x_shift = coordinates(fNodes[i],0);	
-					shift = true;
-				}
-					
-			
-			/* shift coordinates */
-			if (shift)
+		/* look for location where displacement jumps from closed to open */
+		double x_jump = fXLeft;
+		bool shift = false;
+		for (int i = 1; i < fNodes.Length(); i++)
+			if (fabs(n_values(fNodes[i-1], dy_index)) <  fCloseUB && 
+				fabs(n_values(fNodes[i  ], dy_index)) > fOpenLB)
 			{
-				/* include one more column of elements */
-				x_shift += fMeshSize;
+				x_jump = coordinates(fNodes[i],0);
+				shift = true;
+			}
 
-				/* reset reference coordinates */
-				double divider = fXLeft - fMeshSize/10.0;
-				for (int i = 0; i < coordinates.MajorDim(); i++)
-				{
-					double& x = coordinates(i,0);
-					x -= x_shift; /* scroll mesh */
-					if (x < divider)
-						x += fPeriodicLength; /* move ahead of crack */
-				}
+		/* shift coordinates */
+		if (shift)
+		{
+			/* move jump to left edge */
+			double x_shift = x_jump - fXLeft;
+
+			/* reset reference coordinates */
+			double divider = fXLeft - fMeshSize/10.0;
+			for (int i = 0; i < coordinates.MajorDim(); i++)
+			{
+				double& x = coordinates(i,0);
+				x -= x_shift; /* scroll mesh */
+				if (x < divider)
+					x += fPeriodicLength; /* move ahead of crack */
 			}
 		}
-		n_values_last = n_values;
-		
+
 		/* remove the "back" element */
 		int index_all = 0;
 		keep_all.Dimension(0);
@@ -224,16 +219,27 @@ void Scroller::SetInput(void)
 
 	/* look for nodes on the cleavage plane */
 	AutoArrayT<int> nodes(fModel.NumNodes()/10, 25);
+	AutoArrayT<double> nodes_y(fModel.NumNodes()/10, 25);
 	nodes.Dimension(0);
+	nodes_y.Dimension(0);
 	const dArray2DT& coordinates = fModel.Coordinates();
 	for (int i = 0; i < coordinates.MajorDim(); i++)
-		if (fabs(coordinates(i,1) - fCleavagePlane) < kSmall)
+		if (fabs(coordinates(i,1) - fCleavagePlane) < kSmall) {
 			nodes.Append(i);
+			nodes_y.Append(coordinates(i,0));
+		}
 
 	if (nodes.Length() == 0)
 		ExceptionT::GeneralFail(caller, "no nodes found on the cleavage plane y = %g", fCleavagePlane);
 	fNodes.Dimension(nodes.Length());
 	nodes.CopyInto(fNodes);
+	
+	/* sort from left to right */
+	fNodes.SortAscending(nodes_y);
+	
+	/* wrap the list */
+	fNodes.Resize(fNodes.Length() + 1);
+	fNodes.Last() = fNodes[0];
 
 	/* get bounds and periodic distance */
 	fMeshSize = 0.0;
