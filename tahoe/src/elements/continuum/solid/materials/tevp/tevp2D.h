@@ -1,4 +1,4 @@
-/* $Id: tevp2D.h,v 1.6 2001-05-15 20:32:45 hspark Exp $ */
+/* $Id: tevp2D.h,v 1.7 2001-05-16 03:29:49 hspark Exp $ */
 /* Thermoelasto-viscoplastic material used to generate shear bands */
 /* Created:  Harold Park (04/04/2001) */
 /* Last Updated:  Harold Park (05/10/2001) */
@@ -55,9 +55,6 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   virtual int NumOutputVariables(void) const;
   virtual void OutputLabels(ArrayT<StringT>& labels) const;
   virtual void ComputeOutput(dArrayT& output);
-  
-  /* accessor functions to be inlined - these should return the value from
-   * the previous timestep */
 
  private:
   /* computational functions */
