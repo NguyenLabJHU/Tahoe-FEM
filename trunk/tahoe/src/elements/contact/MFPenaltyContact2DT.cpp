@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.3 2003-11-05 20:34:47 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.4 2003-11-05 21:25:23 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
@@ -422,13 +422,11 @@ void MFPenaltyContact2DT::SetDerivativeArrays(const dArrayT& mf_shape)
 	fdvT_man.Dimension((mf_shape.Length() + kNumFacetNodes)*ndof, nsd);
 
 	/* facet nodes */	
+	fdv1T = 0.0;
 	fdv1T(0,0) =-1.0;
 	fdv1T(1,1) =-1.0;
-	fdv1T(2,0) = 0.0;
-	fdv1T(3,1) = 0.0;
 
-	fdv2T(0,0) = 0.0;
-	fdv2T(1,1) = 0.0;
+	fdv2T = 0.0;
 	fdv2T(2,0) =-1.0;
 	fdv2T(3,1) =-1.0;
 
