@@ -1,6 +1,5 @@
-/* $Id: ArrayT.h,v 1.6 2001-12-17 00:00:11 paklein Exp $ */
-/* created: paklein (06/19/1996)                                          */
-/* Base class for handling memory allocation for arrays of TYPE           */
+/* $Id: ArrayT.h,v 1.7 2002-01-02 06:25:56 paklein Exp $ */
+/* created: paklein (06/19/1996) */
 
 #ifndef _ARRAY_T_H_
 #define _ARRAY_T_H_
@@ -18,6 +17,7 @@
 
 #include "ExceptionCodes.h"
 
+/** templated class for arrays */
 template <class TYPE>
 class ArrayT
 {
@@ -280,16 +280,13 @@ inline bool ArrayT<TYPE>::IsAllocated(void) const { return fDelete != 0; }
 template <class TYPE>
 void ArrayT<TYPE>::Free(void)
 {
-	/* set size */
-	fLength = 0;
-
 	/* free memory */
-	if (fDelete)
-	{
-		delete[] fArray;
-		fArray  = NULL;
-		fDelete = 0;
-	}
+	if (fDelete) delete[] fArray;
+
+	/* "empty" parameters */
+	fLength = 0;
+	fArray  = NULL;
+	fDelete = 0;
 }
 
 /* resize to new dimension, copying in at most what fits.
