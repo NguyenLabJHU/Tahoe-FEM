@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4.24.2 2003-02-19 01:22:01 paklein Exp $
+# $Id: makefile,v 1.4.24.3 2003-02-21 01:16:32 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -10,6 +10,8 @@ OBJ = \
 	CBLatticeT.o \
 	HexLattice2DT.o \
 	Hex2D.o \
+	FCCLatticeT.o \
+	FCC3D.o \
 	LJTr2D.o \
 	SWDiamond100.o \
 	SWDiamond110.o \
@@ -26,6 +28,8 @@ SRC = \
 	CBLatticeT.cpp \
 	HexLattice2DT.cpp \
 	Hex2D.cpp \
+	FCCLatticeT.cpp \
+	FCC3D.cpp \
 	LJTr2D.cpp \
 	SWDiamond100.cpp \
 	SWDiamond110.cpp \
@@ -37,6 +41,8 @@ HDR = \
 	CBLatticeT.h \
 	HexLattice2DT.h \
 	Hex2D.h \
+	FCCLatticeT.h \
+	FCC3D.h \
 	LJTr2D.h \
 	SWDiamond100.h \
 	SWDiamond110.h \
