@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: regression.csh.template,v 1.15 2004-07-19 04:08:19 paklein Exp $
+# $Id: regression.csh.template,v 1.16 2004-07-21 19:07:57 paklein Exp $
 
 # username on Tahoe server
 set TAHOE_USER =
@@ -17,7 +17,7 @@ set ECHO = 'echo'
 setenv ACCESS /Users/paklein/Code/ACCESS
 
 # installed modules
-set MODULES= (macros toolbox tahoe benchmark_XML development)
+set MODULES= (macros toolbox tahoe benchmark_XML)
 
 ######### hopefully no changes will be required below #########
 
