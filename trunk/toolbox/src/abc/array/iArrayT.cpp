@@ -1,4 +1,4 @@
-/* $Id: iArrayT.cpp,v 1.4 2001-12-17 00:00:52 paklein Exp $ */
+/* $Id: iArrayT.cpp,v 1.5 2002-01-08 23:12:15 paklein Exp $ */
 /* created: paklein (08/10/1996)                                          */
 
 #include "iArrayT.h"
@@ -119,7 +119,7 @@ iArrayT& iArrayT::Union(const ArrayT<const nArrayT<int>*>& source)
 		iArrayT empty(source.Length());
 		empty = 1;
 		for (int i = 0; i < empty.Length(); i++)
-			if (source[i]->Length() > 0) empty = 0;
+			if (source[i]->Length() > 0) empty[i] = 0;
 	
 		/* range of data */
 		int count = empty.Count(0);
