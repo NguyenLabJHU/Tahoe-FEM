@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.8 2001-07-27 01:23:05 paklein Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.9 2001-08-10 19:09:46 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 
@@ -87,7 +87,37 @@ const dMatrixT& DPSSKStV::c_ijkl(void)
         //UpdateHistory();
 	fModulus.SumOf(HookeanMatT::Modulus(),
 		ModuliCorrection(CurrentElement(), CurrIP()));
+		
+	/* check for localization and store */
+	if (CurrentElement().IsAllocated())
+	{
+		/* stress tensor - updates state variables */
+		const dSymMatrixT& stress = s_ij();
+		cout << " stress= \n";
+		cout << stress << '\n';
+	
+		/* compute modulus (using last internal state) */
+//		const dMatrixT& modulus = c_ijkl();
+		const dMatrixT& modulus = fModulus;
+		cout << "modulus=\n";
+		cout << modulus << '\n';
 
+		/* compute discontinuous bifurcation modulus */
+		const dMatrixT& modulusdisc = cdisc_ijkl();
+		cout << "modulusdisc=\n";
+		cout << modulusdisc << '\n';
+
+		/* continuous localization condition checker */
+		DetCheckT checker(stress, modulus);
+		dArrayT normal(stress.Rows());
+		fInternal[kLocCheck] = checker.IsLocalized_SPINLOC(normal);
+   
+		/* discontinuous localization condition checker */
+		DetCheckT checkerdisc(stress, modulusdisc);
+		dArrayT normaldisc(stress.Rows());
+		fInternal[kLocCheckDisc] = checkerdisc.IsLocalized_SPINLOC(normaldisc);
+	}	
+		
 	return fModulus;
 }
 
@@ -157,43 +187,53 @@ void DPSSKStV::OutputLabels(ArrayT<StringT>& labels) const
 
 void DPSSKStV::ComputeOutput(dArrayT& output)
 {
-	/* stress tensor (loads element data) */
+#if 0
+	/* load data if allocated */
+	if (CurrentElement().IsAllocated()) LoadData(CurrentElement(), CurrIP());
+
+	/* compute modulus (using last internal state) */
+	const dMatrixT& modulus = c_ijkl();
+	cout << "modulus=\n";
+	cout << modulus << '\n';
+
+	/* compute discontinuous bifurcation modulus */
+	const dMatrixT& modulusdisc = cdisc_ijkl();
+	cout << "modulusdisc=\n";
+	cout << modulusdisc << '\n';
+#endif
+
+	/* stress tensor - updates state variables */
 	const dSymMatrixT& stress = s_ij();
 
 	/* pressure */
-	output[2] = fStress.Trace()/3.0;
-	
+	output[2] = fStress.Trace()/3.0;	
 	cout << " stress= \n";
-	  cout << stress << '\n';
+	cout << stress << '\n';
 
-
-
-	/* compute modulus */
-	const dMatrixT& modulus = c_ijkl();
-
-        cout << "modulus=\n";
-        cout << modulus << '\n';
-
-        /* continuous localization condition checker */
+#if 0
+    /* continuous localization condition checker */
 	DetCheckT checker(stress, modulus);
 	dArrayT normal(stress.Rows());
 	output[3] = checker.IsLocalized_SPINLOC(normal);
    
-        /* compute discontinuous bifurcationmodulus */
-	const dMatrixT& modulusdisc = cdisc_ijkl();
-
-        cout << "modulusdisc=\n";
-        cout << modulusdisc << '\n';
-
-
-
-
-        /* discontinuous localization condition checker */
+	/* discontinuous localization condition checker */
 	DetCheckT checkerdisc(stress, modulusdisc);
 	dArrayT normaldisc(stress.Rows());
 	output[4] = checkerdisc.IsLocalized_SPINLOC(normaldisc);
+#else
+	/* recall checks for localization */
+	if (CurrentElement().IsAllocated())
+	{
+		output[3] = fInternal[kLocCheck];
+		output[4] = fInternal[kLocCheckDisc];	
+	}
+	else
+	{
+		output[3] = 0.0;
+		output[4] = 0.0;
+	}
+#endif
    
-
 	/* deviatoric Von Mises stress */
 	fStress.Deviatoric();
 	double J2 = fStress.Invariant2();
