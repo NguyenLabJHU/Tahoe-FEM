@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.h,v 1.2 2001-06-12 03:25:24 paklein Exp $ */
+/* $Id: ComparatorT.h,v 1.3 2001-06-12 04:28:20 paklein Exp $ */
 
 #ifndef _COMPARATOR_T_H_
 #define _COMPARATOR_T_H_
@@ -63,7 +63,7 @@ private:
 	double fRelTol;
 
 	/* history */
-	StringT             fRoot;
+	bool    fIsRoot;
 	AutoArrayT<StringT> fFiles;
 	AutoArrayT<bool>    fPassFail;
 };

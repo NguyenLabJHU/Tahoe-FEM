@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.3 2001-06-12 03:25:24 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.4 2001-06-12 04:28:20 paklein Exp $ */
 
 #include "ComparatorT.h"
 
@@ -24,7 +24,8 @@ ComparatorT::ComparatorT(int argc, char* argv[], char job_char, char batch_char,
 	int jobcharputback):
 	FileCrawlerT(argc, argv, job_char, batch_char, jobcharputback),
 	fAbsTol(abs_tol),
-	fRelTol(rel_tol)
+	fRelTol(rel_tol),
+	fIsRoot(true)
 {
 	/* tolerances reset on command line */
 	int index;
@@ -62,10 +63,10 @@ void ComparatorT::RunBatch(ifstreamT& in, ostream& status)
 {
 	/* keep path to the root batch file */
 	bool is_root = false;
-	if (fRoot.StringLength() == 0) 
+	if (fIsRoot) 
 	{
-		fRoot.FilePath(in.filename());
-		is_root= true;
+		fIsRoot = false;
+		is_root = true;
 	}
 
 	/* inherited */
@@ -77,10 +78,14 @@ void ComparatorT::RunBatch(ifstreamT& in, ostream& status)
 		/* check */
 		if (fFiles.Length() != fPassFail.Length()) throw eGeneralFail;
 
+		/* relative path */
+		StringT path;
+		path.FilePath(in.filename());
+
 		/* open output stream */
 		StringT file_name = "compare.summary";
 		file_name.ToNativePathName();
-		file_name.Prepend(fRoot);
+		file_name.Prepend(path);
 		ofstreamT summary;
 		summary.open(file_name);
 		if (!summary.is_open())
@@ -107,8 +112,8 @@ void ComparatorT::RunBatch(ifstreamT& in, ostream& status)
 		fPassFail.Resize(0);
 		fFiles.Resize(0);
 		
-		/* clear root name */
-		fRoot.Clear();		
+		/* reset root */
+		fIsRoot = true;		
 	}
 }
 
