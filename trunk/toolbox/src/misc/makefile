@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8 2002-07-25 23:45:20 saubry Exp $
+# $Id: makefile,v 1.9 2002-11-25 07:08:30 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -13,7 +13,9 @@ OBJ = \
         Rotate2DT.o \
 	Rotate3DT.o \
 	SecantMethodT.o \
-	SpectralDecompT.o
+	SpectralDecompT.o \
+	InverseMapT.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -27,9 +29,10 @@ SRC = \
 	LocalParabolaT.cpp \
 	MonitorT.cpp \
 	Rotate2DT.cpp \
-        Rotate3DT.cpp \
+	Rotate3DT.cpp \
 	SecantMethodT.cpp \
-	SpectralDecompT.cpp
+	SpectralDecompT.cpp \
+	InverseMapT.cpp
 
 # headers
 HDR = \
@@ -41,7 +44,8 @@ HDR = \
 	Rotate3DT.h \
 	SecantMethodT.h \
 	SpectralDecompT.h \
-	MapSetT.h
+	MapSetT.h \
+	InverseMapT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
