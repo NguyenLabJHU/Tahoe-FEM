@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.h,v 1.9 2003-12-28 23:37:20 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.h,v 1.10 2004-01-27 01:26:19 cjkimme Exp $ */
 /* created: paklein (11/12/1999) */
 
 #ifndef _MFREE_SUPPORT_T_H_
@@ -19,6 +19,7 @@ namespace Tahoe {
 /* forward declarations */
 class ifstreamT;
 class MeshFreeShapeFunctionT;
+class MeshFreeNodalShapeFunctionT;
 class MeshFreeSupportT;
 class ElementCardT;
 class StringT;
@@ -88,6 +89,7 @@ protected:
 
 	/* mesh-free shape functions */
 	MeshFreeShapeFunctionT* fMFShapes;
+	MeshFreeNodalShapeFunctionT* fNodalShapes;
 
 	/* manager for dynamic local arrays */
 	LocalArrayGroupT fLocGroup;
