@@ -1,18 +1,18 @@
-/* $Id: SSSV_KStV2D.h,v 1.1 2002-10-05 00:49:21 thao Exp $ */
+/* $Id: SSSV_KStV2D.h,v 1.2 2002-10-05 03:44:33 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
-
 #ifndef _SS_SV_KStV_2D_H_
 #define _SS_SV_KStV_2D_H_
 
 #include "SSSimoViscoT.h"
 #include "Material2DT.h"
 
+namespace Tahoe {
+
+/* forward declarations */
 class ifstreamT;
 class IsotropicT;
 
-namespace Tahoe {
-
-/** baseclass for standard solid Kirchhoff St. Venant constitutive models 
+/** base class for standard solid Kirchhoff St. Venant constitutive models 
  * constitutive law */
 class SSSV_KStV2D: public SSSimoViscoT, public Material2DT
 {

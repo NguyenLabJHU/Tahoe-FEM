@@ -1,4 +1,4 @@
-/* $Id: RGBaseT.h,v 1.1 2002-10-04 23:59:00 thao Exp $ */
+/* $Id: RGBaseT.h,v 1.2 2002-10-05 03:44:30 paklein Exp $ */
 /* created : TDN (1/22/2001) */
 
 #ifndef _RG_BASE_T_H_
@@ -22,6 +22,14 @@ class RGBaseT: public FDStructMatT, public IsotropicT
   
 	/* constructor */
 	RGBaseT(ifstreamT& in, const FiniteStrainT& element);
+
+	/** return the pressure associated with the last call to 
+	 * StructuralMaterialT::s_ij. \note NOT IMPLEMENTED */
+	virtual double Pressure(void) const {
+		cout << "\n RGBaseT::Pressure: not implemented" << endl;
+		throw eGeneralFail;
+		return 0.0;
+	};
 
 	/* print parameters */	
 	virtual	void Print(ostream& out) const;	

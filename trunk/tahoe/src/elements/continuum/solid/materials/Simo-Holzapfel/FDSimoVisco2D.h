@@ -1,4 +1,4 @@
-/* $Id: FDSimoVisco2D.h,v 1.1 2002-10-05 00:49:19 thao Exp $ */
+/* $Id: FDSimoVisco2D.h,v 1.2 2002-10-05 03:44:32 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #ifndef _FD_SIMO_VISCO2D_H_
@@ -7,9 +7,10 @@
 #include "FDSimoViscoBaseT.h"
 #include "Material2DT.h"
 
-class ifstreamT;
-
 namespace Tahoe {
+
+/* forward declarations */
+class ifstreamT;
 
 class FDSimoVisco2D: public FDSimoViscoBaseT, public Material2DT
 {

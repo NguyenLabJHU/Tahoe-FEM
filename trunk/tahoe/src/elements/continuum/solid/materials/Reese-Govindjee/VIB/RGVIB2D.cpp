@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.cpp,v 1.1 2002-10-04 23:59:02 thao Exp $ */
+/* $Id: RGVIB2D.cpp,v 1.2 2002-10-05 03:44:31 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include <math.h>
@@ -595,7 +595,7 @@ void RGVIB2D::ComputeEigs_e(const dArrayT& eigenstretch,
 		       ep_e1 = 0;
 		       le0 = 1.0;
 		       le1 = 1.0;
-		       counter = 0.0;
+		       counter = 0;
 		       cout << "\nReset";
 		}
 	    
