@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Data.cpp,v 1.6 2003-05-05 00:58:29 paklein Exp $ */
+/* $Id: SIERRA_Material_Data.cpp,v 1.7 2004-07-29 18:33:02 paklein Exp $ */
 #include "SIERRA_Material_Data.h"
 
 using namespace Tahoe;
@@ -15,7 +15,8 @@ SIERRA_Material_Data::SIERRA_Material_Data(const StringT& name, int XML_command_
 	fNumStateVars(0),
 	fCheckFunction(NULL),
 	fCalcFunction(NULL),
-	fInitFunction(NULL)
+	fInitFunction(NULL),
+	fPCFunction(NULL)
 {
 	fXMLCommandID.Append(XML_command_id);
 //	fPropertyMap.SetCompareFunction(SIERRA_Material_Data::Compare);
@@ -31,6 +32,10 @@ void SIERRA_Material_Data::AddInputVariable(const StringT& input_var)
 		size = 6;
 	else if (input_var == "rot_strain_increment")
 		size = 6;
+	else if (input_var == "temperature_old")
+		size = 1;
+	else if (input_var == "temperature_new")
+		size = 1;
 	//others?
 	
 	/* not found */

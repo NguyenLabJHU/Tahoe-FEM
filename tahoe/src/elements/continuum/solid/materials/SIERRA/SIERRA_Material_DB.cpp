@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_DB.cpp,v 1.4 2003-03-09 21:58:50 paklein Exp $ */
+/* $Id: SIERRA_Material_DB.cpp,v 1.5 2004-07-29 18:33:02 paklein Exp $ */
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
 
@@ -34,6 +34,13 @@ void SIERRA_Material_DB::InitMaterial(const StringT& name, int XML_command_id, i
 	the_DB().fMaterialDataByID.Insert(data->ID(), data);
 }
 
+/* evaluate the given function */
+double SIERRA_Material_DB::Evaluate(const StringT& name, double arg)
+{
+	C1FunctionT* func = the_DB().fFunctionEval[name];
+	return func->Function(arg);
+}
+
 /***********************************************************************
  * Private
  ***********************************************************************/
@@ -48,5 +55,11 @@ SIERRA_Material_DB::~SIERRA_Material_DB(void)
 	ArrayT<SIERRA_Material_Data*> tmp;
 	fMaterialData.Ascending(tmp);
 	for (int i = 0; i < fMaterialData.Size(); i++)
-		delete tmp[i];		
+		delete tmp[i];	
+
+	/* collect all pointers and free */
+	ArrayT<C1FunctionT*> func;
+	fFunctionEval.Ascending(func);
+	for (int i = 0; i < fFunctionEval.Size(); i++)
+		delete func[i];	
 }
