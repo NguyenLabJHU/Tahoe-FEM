@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.71.12.4 2004-06-09 06:25:39 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.71.12.5 2004-06-29 16:16:54 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -462,12 +462,13 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 		bool all_pass = false;
 		SolverT::SolutionStatusT status = SolverT::kContinue;
 
+		/* clear status */
+		fSolverPhasesStatus = 0;
+
 		while (!all_pass && 
 			(fMaxSolverLoops == -1 || loop_count < fMaxSolverLoops) &&
 			status != SolverT::kFailed)
 		{
-			/* clear status */
-			fSolverPhasesStatus = 0;
 		 
 			/* one solver after the next */
 			all_pass = true;
@@ -483,13 +484,14 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 				
 				/* check result */
 				fSolverPhasesStatus(i, kGroup) = fCurrentGroup;
+				int last_iter = fSolverPhasesStatus(i, kIteration);
 				fSolverPhasesStatus(i, kIteration) = fSolvers[fCurrentGroup]->IterationNumber();
 				if (status == SolverT::kFailed) {
 					all_pass = false;
 					fSolverPhasesStatus(i, kPass) = -1;					
 				}
 				else if (status == SolverT::kConverged && 
-					(pass == -1 || fSolverPhasesStatus(i, kPass) <= pass))
+					(pass == -1 || (fSolverPhasesStatus(i, kIteration) - last_iter) <= pass))
 				{
 					all_pass = all_pass && true; /* must all be true */
 					fSolverPhasesStatus(i, kPass) = 1;
@@ -508,7 +510,7 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 			if (fSolverPhases.MajorDim() > 1)
 			{
 				cout << "\n Solver status: pass " << loop_count << '\n';
-				cout << setw(kIntWidth) << "#"
+				cout << setw(kIntWidth) << "phase"
 				     << setw(kIntWidth) << "solver"
 				     << setw(kIntWidth) << "its."
 				     << setw(kIntWidth) << "pass" << '\n';
