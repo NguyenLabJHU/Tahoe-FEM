@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.31 2003-05-28 17:45:38 cjkimme Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.32 2003-05-31 18:20:04 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -39,6 +39,7 @@
 #include "PeriodicNodesT.h"
 #include "ScaledVelocityNodesT.h"
 #include "SetOfNodesKBCT.h"
+#include "TorsionKBCT.h"
 
 using namespace Tahoe;
 
@@ -1777,6 +1778,11 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 		case KBC_ControllerT::kSetOfNodesKBC:
 		{
 			SetOfNodesKBCT* kbc = new SetOfNodesKBCT(*this, field);
+			return kbc;
+		}
+		case KBC_ControllerT::kTorsion:
+		{
+			TorsionKBCT* kbc = new TorsionKBCT(*this, fFEManager.Time());
 			return kbc;
 		}
 		default:
