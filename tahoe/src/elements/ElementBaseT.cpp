@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.16 2002-06-08 20:20:13 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.17 2002-06-10 07:00:37 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -19,33 +19,18 @@ const bool ArrayT<const RaggedArray2DT<int>*>::fByteCopy = true;
 
 /* constructor */
 ElementBaseT::ElementBaseT(const ElementSupportT& support, const FieldT& field):
-//	fFEManager(fe),
 	fSupport(support),
 	fField(field),
-//	fNodes(NULL),
 	fController(NULL),
-//	fNumElemNodes(0),
-//	fNumElemEqnos(0),
-//	fNumElements(0),
 	fElementCards(0),
 	fLHS(ElementMatrixT::kSymmetric)
 {
-	/* get pointer to the node manager */
-//	fNodes  = fFEManager.NodeManager();
-//	fNumSD  = fNodes->NumSD();
-//	fNumDOF = fField.NumDOF(); // NOTE: won't be good for multi-physics
-//	fAnalysisCode = fFEManager.Analysis();
-
 	/* just cast it */
 	fController = fSupport.eController(field);
 }
 
 /* destructor */
 ElementBaseT::~ElementBaseT(void) {	}
-
-/* run status */
-//const GlobalT::StateT& ElementBaseT::RunState(void) const
-//{ return fFEManager.RunState(); }
 
 /* allocates space and reads connectivity data */
 void ElementBaseT::Initialize(void)
@@ -82,14 +67,6 @@ void ElementBaseT::InitialCondition(void)
 {
 	//do nothing
 }
-
-/* set the controller */
-#if 0
-void ElementBaseT::SetController(eControllerT* controller)
-{
-	fController = controller;
-}
-#endif
 
 /* form of tangent matrix - symmetric by default */
 GlobalT::SystemTypeT ElementBaseT::TangentType(void) const
@@ -212,14 +189,6 @@ void ElementBaseT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 	/* by default field nodes are geometry nodes */
 	ConnectsX(connects_1);
 }
-
-#if 0
-/* returns a pointer to the specified LoadTime function */
-const ScheduleT* ElementBaseT::Schedule(int num) const
-{
-	return fFEManager.Schedule(num);
-}
-#endif
 
 void ElementBaseT::ReadRestart(istream& in)
 {
@@ -420,6 +389,15 @@ void ElementBaseT::WriteConnectivity(ostream& out) const
 {	
 	out << " Number of elements. . . . . . . . . . . . . . . = " << NumElements() << '\n';
 
+	/* write dimensions of blocks */
+	out << " Block dimensions:\n";
+	out << setw(kIntWidth) << "ID"
+	    << setw(kIntWidth) << "size" << '\n';
+	for (int i = 0; i < fBlockData.Length(); i++)
+		out << setw(kIntWidth) << fBlockData[i].ID()
+		    << setw(kIntWidth) << fBlockData[i].Dimension() << '\n';
+	out << endl;
+
 	/* verbose output */
 	if (fSupport.PrintInput())
 	{
@@ -454,6 +432,7 @@ void ElementBaseT::WriteConnectivity(ostream& out) const
 	}
 }
 
+#if 0
 /* generate connectivities with local numbering -
 * returns the number of nodes used by the element group */
 int ElementBaseT::MakeLocalConnects(iArray2DT& localconnects)
@@ -504,6 +483,7 @@ int ElementBaseT::MakeLocalConnects(iArray2DT& localconnects)
 
 	return localnum;
 }
+#endif
 
 void ElementBaseT::NodesUsed(ArrayT<int>& nodes_used) const
 {
