@@ -1,4 +1,4 @@
-/* $Id: GeometryT.h,v 1.5 2004-03-16 19:32:30 paklein Exp $ */
+/* $Id: GeometryT.h,v 1.6 2004-03-18 17:42:47 paklein Exp $ */
 /* created: paklein (10/10/1999) */
 
 #ifndef _GEOMETRY_T_H_
@@ -47,12 +47,12 @@ public:
 	static const char* ToString(GeometryT::CodeT code);
 	
 	/** return a pointer to a new GeometryBaseT. User is responsible for deleting class. */
-	static GeometryBaseT* NewGeometry(GeometryT::CodeT geometry, int nen);	
+	static GeometryBaseT* New(GeometryT::CodeT geometry, int nen);	
 
 	/** return a description of the given geometry name or NULL if the name
 	 * does not match any of the geometry names. The host code is responsible
 	 * for deleting the returned object. */
-	static ParameterInterfaceT* NewGeometry(const StringT& name);
+	static ParameterInterfaceT* New(const StringT& name);
 };
 
 /** stream extraction operator for GeometryT::CodeT */

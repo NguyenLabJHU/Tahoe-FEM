@@ -1,4 +1,4 @@
-/* $Id: GeometryT.cpp,v 1.7 2004-03-16 19:25:55 paklein Exp $ */
+/* $Id: GeometryT.cpp,v 1.8 2004-03-18 17:42:47 paklein Exp $ */
 /* created: paklein (10/10/1999) */
 #include "GeometryT.h"
 
@@ -111,7 +111,7 @@ int GeometryT::GeometryToNumSD(GeometryT::CodeT code)
 
 /* return a pointer to a new GeometryBaseT. User is responsible for deleting class. */
 namespace Tahoe {
-GeometryBaseT* GeometryT::NewGeometry(GeometryT::CodeT geometry, int nen)
+GeometryBaseT* GeometryT::New(GeometryT::CodeT geometry, int nen)
 {
 	GeometryBaseT* geom = NULL;
 	try {
@@ -142,12 +142,12 @@ GeometryBaseT* GeometryT::NewGeometry(GeometryT::CodeT geometry, int nen)
 			break;
 
 		default:
-			cout << "\n GeometryT::NewGeometry: unknown geometry code: " << geometry << endl;
+			cout << "\n GeometryT::New: unknown geometry code: " << geometry << endl;
 			throw ExceptionT::kGeneralFail;			
 	}
 	}
 	catch (ExceptionT::CodeT exception) {
-		cout << "\n GeometryT::NewGeometry: caught exception: " <<  ExceptionT::ToString(exception) << endl;
+		cout << "\n GeometryT::New: caught exception: " <<  ExceptionT::ToString(exception) << endl;
 		throw exception;
 	}
 	return geom;
@@ -156,7 +156,7 @@ GeometryBaseT* GeometryT::NewGeometry(GeometryT::CodeT geometry, int nen)
 
 /* return a description of the given geometry name or NULL */
 namespace Tahoe {
-ParameterInterfaceT* GeometryT::NewGeometry(const StringT& name)
+ParameterInterfaceT* GeometryT::New(const StringT& name)
 {
 	if (name == GeometryT::ToString(GeometryT::kLine))
 	{
