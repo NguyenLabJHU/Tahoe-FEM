@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.h,v 1.7 2002-11-21 01:13:39 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.h,v 1.8 2003-07-12 00:25:45 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 
 #ifndef _EFG_FDELASTIC_T_H_
@@ -84,6 +84,9 @@ protected:
 	nVariMatrixT<double>  fB_wrap;
 	nVariMatrixT<double>  fGradNa_wrap;
 	nVariArray2DT<double> fDNa_x_wrap;
+
+	/* connectivities over all element blocks */
+	iArray2DT fConnectsAll;
 };
 
 } // namespace Tahoe 
