@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.h,v 1.15 2004-03-14 02:51:35 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.h,v 1.16 2004-09-07 06:43:03 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #ifndef _SPOOLES_MATRIX_T_H_
 #define _SPOOLES_MATRIX_T_H_
@@ -21,7 +21,10 @@ namespace Tahoe {
 /* forward declarations */
 class MSRBuilderT;
 
-/** interface to SPOOLES sparse, direct linear solver */
+/** interface to SPOOLES sparse, direct linear solver. Solution driver supports
+ * multiple solves with the same factorized matrix. Sparsity and symbolic factorization
+ * is not preserved between matricies. All previous information about the previous
+ * matrix is delete with the call to SPOOLESMatrixT::Clear. */
 class SPOOLESMatrixT: public MSRMatrixT
 {
 public:
@@ -33,8 +36,14 @@ public:
 	/* copy constructor */
 	SPOOLESMatrixT(const SPOOLESMatrixT& source);
 
+	/** destructor */
+	virtual ~SPOOLESMatrixT(void);
+
 	/** SPOOLESMatrixT::Solve does preserve the data in the matrix */
 	virtual bool SolvePreservesData(void) const { return true; };	  
+
+	/** clear values for next assembly */
+	virtual void Clear(void);
 
 	/** return the form of the matrix */
 	virtual GlobalT::SystemTypeT MatrixType(void) const { return GlobalT::kNonSymmetric; };
@@ -49,14 +58,23 @@ public:
 	virtual GlobalMatrixT* Clone(void) const;
 
 protected:
-	
-	/* determine new search direction and put the results in result */
+
+	/** precondition matrix */
+	virtual void Factorize(void);
+
+	/** determine new search direction and put the results in result */
 	virtual void BackSubstitute(dArrayT& result);
 
 protected:
 
 	/** parameters */
 	bool fPivoting;	
+
+	/** data for repeated solves with the same matrix (not for MT) */
+	void* pLU_dat;
+
+	/** runtime flag */
+	bool fIsFactorized;
 };
 
 } // namespace Tahoe 
