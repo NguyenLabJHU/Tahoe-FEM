@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile2DT.cpp,v 1.7 2003-05-27 07:13:30 paklein Exp $  */
+/* $Id: InelasticDuctile2DT.cpp,v 1.8 2003-05-27 07:26:07 paklein Exp $  */
 #include "InelasticDuctile2DT.h"
 #include "ifstreamT.h"
 #include "dArrayT.h"
@@ -138,7 +138,7 @@ const dArrayT& InelasticDuctile2DT::Traction(const dArrayT& jump_u, ArrayT<doubl
 #endif
 
 	/* not initialized yet */
-	if (fabs(state[k_tied_flag] - kTiedNode) < kSmall) {
+	if (sigma.Length() > 0 && fabs(state[k_tied_flag] - kTiedNode) < kSmall) {
 		state[k_dex_phi]   = sigma[kBCJ_phi_dex];
 		state[k_dex_phi_s] = sigma[kBCJ_phi_dex];
 		if (fabs(sigma[kBCJ_kappa_dex]) > kSmall) /* protect against division by zero */
