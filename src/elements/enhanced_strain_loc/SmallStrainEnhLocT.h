@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.14 2005-03-17 22:35:56 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.15 2005-03-18 22:42:40 raregue Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
@@ -19,7 +19,6 @@ class SmallStrainEnhLocT: public SolidElementT
 public:
 
 	enum fElementLocScalars_T {
-							kLocFlag,
 							kdetAmin,
 							kdissip_max,
 							kJumpDispl,
@@ -160,7 +159,8 @@ private:
 	/** write output for debugging */
 	/*@{*/
 	/** flag to indicate first pass, and debugging */
-	static bool fFirstPass, fDeBug, fFirstTrace;
+	//static bool fFirstPass, fDeBug, fFirstTrace;
+	static bool fFirstPass, fDeBug;
 	/** output file stream */
 	ofstreamT ss_enh_out;
 	/** line output formating variables */
@@ -213,6 +213,8 @@ protected:
 	
 	iArray2DT fElementLocNodesActive;
 	
+	iArrayT fElementLocFlag;
+	
 	double psi_tmp, psi_chosen;
 	
 	/** from the last time step */
@@ -242,7 +244,8 @@ protected:
 	AutoArrayT <double> dissipations_fact_min;
 	AutoArrayT <double> grad_displ_mns_min;
 	
-	dArrayT grad_enh, mu_dir;
+	dArrayT grad_enh_IP, mu_dir;
+	dArray2DT grad_enh_IPs;
 		
 	dArrayT normal_tmp, normal_chosen;
 	dArrayT slipdir_tmp, slipdir_chosen;
@@ -261,6 +264,8 @@ protected:
 	ElementMatrixT fK_dd, fK_dzeta, fK_zetad;
 	
 	LocalArrayT displ_u;
+	
+	bool fFirstTrace;
 
 };
 

@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.15 2005-03-17 22:35:56 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.16 2005-03-18 22:42:40 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -22,7 +22,7 @@ const double smallnum = 1.0e-4;
 /* initialize static variables */
 bool SmallStrainEnhLocT::fFirstPass = true;
 bool SmallStrainEnhLocT::fDeBug = true;
-bool SmallStrainEnhLocT::fFirstTrace = false;
+//bool SmallStrainEnhLocT::fFirstTrace = false;
 
 /* constructor */
 SmallStrainEnhLocT::SmallStrainEnhLocT(const ElementSupportT& support):
@@ -94,15 +94,16 @@ void SmallStrainEnhLocT::CloseStep(void)
 		
 		elem_num = CurrElementNumber();
 		nen = NumElementNodes();
-		loc_flag = fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kLocFlag];
+		loc_flag = fElementLocFlag[elem_num];
 			
-		if ( fabs(loc_flag - 1.0) < smallnum )
+		//if ( fabs(loc_flag - 1.0) < smallnum )
+		if ( loc_flag == 1 )
 		{
 			/* choose normal and slip direction based on current element deformation */
 			ChooseNormalAndSlipDir(fLocDisp, elem_num, nen);
 		}
 	
-		if ( fabs(loc_flag - 1.0) < smallnum )
+		if ( loc_flag == 1 )
 		{
 			/* determine active nodes and band trace */
 			DetermineActiveNodesTrace(fLocInitCoords, elem_num, nen);
@@ -188,14 +189,14 @@ GlobalT::RelaxCodeT SmallStrainEnhLocT::RelaxSystem(void)
 		
 		elem_num = CurrElementNumber();
 		nen = NumElementNodes();
-		loc_flag = fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kLocFlag];
+		loc_flag = fElementLocFlag[elem_num];
 		const ElementCardT& element = CurrentElement();
 
 		/* until element is traced, i.e. loc_flag = 2, check for localization */
-		if ( loc_flag < 2.0 && element.IsAllocated() )
+		if ( loc_flag < 2 && element.IsAllocated() )
 		{
 			/* initialize element localization data */
-			fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kLocFlag] = 0.0;
+			fElementLocFlag[elem_num] = 0;
 			
 			fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kdetAmin] = 1.0e99;
 			
@@ -231,7 +232,8 @@ void SmallStrainEnhLocT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(strain_displacement);
 	
 	/* cohesive surface model constants */
-	double cohesion_r, cohesion_p, alpha_c, phi_r, phi_p, alpha_phi, psi_p, alpha_psi;
+	double cohesion_r, cohesion_p, alpha_c, phi_r, phi_p, alpha_phi, psi_p, alpha_psi,
+			start1, start2, start3;
 	list.AddParameter(cohesion_r, "residual_cohesion");
 	list.AddParameter(cohesion_p, "peak_cohesion");
 	list.AddParameter(alpha_c, "cohesion_softening_coefficient");
@@ -240,8 +242,11 @@ void SmallStrainEnhLocT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(alpha_phi, "friction_softening_coefficient");
 	list.AddParameter(psi_p, "peak_dilation_angle_rad");
 	list.AddParameter(alpha_psi, "dilation_softening_coefficient");
-	// add initial point for start of disc. surface, or use element centroid
-	
+	list.AddParameter(start1, "start_surface_vect_1");
+	list.AddParameter(start2, "start_surface_vect_2");
+	//if (NumSD() == 3) list.AddParameter(start3, "start_surface_vect_3");
+	//hardcode for 3D
+	list.AddParameter(start3, "start_surface_vect_3");	
 }
 
 /* information about subordinate parameter lists */
@@ -406,6 +411,8 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	fElementVolume = 0.0;
 	fElementVolume_last.Dimension(NumElements());
 	fElementVolume_last = 0.0;
+	fElementLocFlag.Dimension(NumElements());
+	fElementLocFlag = 0;
 	/*@}*/
 	
 	/* localization element arrays */
@@ -426,8 +433,11 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	
 	start_surface_vect_read.Dimension(NumSD());
 	
-	grad_enh.Dimension(NumSD()*NumIP());
-	
+	grad_enh_IP.Dimension(NumSD());
+	grad_enh_IP = 0.0;
+	grad_enh_IPs.Dimension(NumIP(),NumSD());
+	grad_enh_IPs = 0.0;
+
 	q_isv.Dimension(kNUM_ISV_TERMS);
 	h_q.Dimension(kNUM_ISV_TERMS);
 	DqDzeta.Dimension(kNUM_ISV_TERMS);
@@ -453,8 +463,10 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	node_displ = 0.0;
 	node_coords.Dimension(NumSD());
 	node_coords = 0.0;
-	node_coords.Dimension(NumSD());
+	node_shape_deriv.Dimension(NumSD());
 	node_shape_deriv = 0.0;
+	
+	fFirstTrace = false;
 	
 	/* need to initialize previous volume */
 	Top();
@@ -479,6 +491,13 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	fCohesiveSurface_Params[kalpha_phi] = list.GetParameter("friction_softening_coefficient");
 	fCohesiveSurface_Params[kpsi_p] = list.GetParameter("peak_dilation_angle_rad");
 	fCohesiveSurface_Params[kalpha_psi] = list.GetParameter("dilation_softening_coefficient");
+	
+	/* set start surface vector; most useful for coarse meshes; fine meshes should use element centroid */
+	start_surface_vect_read[0] = list.GetParameter("start_surface_vect_1");
+	start_surface_vect_read[1] = list.GetParameter("start_surface_vect_2");
+	//if (NumSD() == 3) start_surface_vect_read[2] = list.GetParameter("start_surface_vect_3");
+	//hardcode for 3D
+	start_surface_vect_read[2] = list.GetParameter("start_surface_vect_3");
 	
 	
 	/* create output file for debugging */
@@ -651,8 +670,8 @@ void SmallStrainEnhLocT::CheckLocalization(int& elem, LocalArrayT& displ_elem)
 								<< setw(outputFileWidth) <<  "IP" << ip;
 				}
 				
-				loc_flag = 1.0; // localized, not traced
-				fElementLocScalars[kNUM_SCALAR_TERMS*elem + kLocFlag] = loc_flag;
+				loc_flag = 1; // localized, not traced
+				fElementLocFlag[elem] = loc_flag;
 				
 				fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin] = detAmin;
 				
@@ -921,20 +940,28 @@ void SmallStrainEnhLocT::DetermineActiveNodesTrace(LocalArrayT& coords_elem, int
 	if (!fFirstTrace)
 	{
 		fElementLocStartSurface.SetRow(elem, start_surface_vect_read);
+		start_surface_vect = start_surface_vect_read;
 		fFirstTrace = true;
+		fElementLocFlag[elem] = 2;
 	}
 	else
 	{
+		//determine whether element is adjacent to traced element to see whether it can be traced
+		
+		//if found adjacent, set start_surface_vect
+		//fElementLocStartSurface.SetRow(elem, start_surface_vect);
+		
+		//fElementLocFlag[elem] = 2;
 		
 	}
 	
-	fElementLocStartSurface.RowCopy(elem, start_surface_vect);
 	/*
 	read first start point from input file;
 	calculate others based on slip surface intersection with adjacent elements
 	*/
 	
 	dArrayT diff_vector;
+	diff_vector.Dimension(NumSD());
 	double product;
 	
 	/* loop through nodes and determine active nodes */
@@ -958,6 +985,14 @@ void SmallStrainEnhLocT::DetermineActiveNodesTrace(LocalArrayT& coords_elem, int
 			node_coords[0] = coords_elem[i];
 			node_coords[1] = coords_elem[i+nen];
 			node_coords[2] = coords_elem[i+2*nen];
+			
+			diff_vector.DiffOf(node_coords,start_surface_vect);
+			product = dArrayT::Dot(normal_chosen,diff_vector);
+			if (product > 0.0)
+			{
+				fElementLocNodesActive[NumElementNodes()*elem + i] = 1;
+				//calculate enhancement in FormKd
+			}
 		}
 		
 	}
@@ -970,19 +1005,7 @@ void SmallStrainEnhLocT::DetermineActiveNodesTrace(LocalArrayT& coords_elem, int
 		fElementLocEdgeIntersect[elem,i] = ?;
 	}
 	*/
-	
-	/*
-	see function SetGlobalShape to see how to grab Grad of shape function and assemble GradEnh
-	knowing active nodes
-	*/
-	
-	/*
-	if (trace)
-	{
-		loc_flag = 2.0;
-		fElementLocScalars[kNUM_SCALAR_TERMS*elem + kLocFlag] = loc_flag;
-	}
-	*/
+
 }
 
 /* calculate the internal force contribution ("-k*d") */
@@ -996,7 +1019,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 
 	/* current element number */
 	int elem = CurrElementNumber();
-	loc_flag = fElementLocScalars[kNUM_SCALAR_TERMS*elem + kLocFlag];
+	loc_flag = fElementLocFlag[elem];
 	int nen = NumElementNodes();
 	
 	/* fetch normal and slipdir for element */
@@ -1019,21 +1042,24 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		/* accumulate */
 		fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);
 		
-		if ( fabs(loc_flag - 2.0) < smallnum ) 
+		//if ( fabs(loc_flag - 2.0) < smallnum )
+		if ( loc_flag == 2 )
 		{
-			const int ip = fShapes->CurrIP(); 
+			const int ip = fShapes->CurrIP();
+			// derivatives w.r.t natural or cartesian coordinates
 			const dArray2DT& DNa = fShapes->Derivatives_U();
 
 			/* loop through nodes and calculate enhancement function */
+			grad_enh_IP = 0.0;
 			for (int i=0; i < nen; i++)
 			{
-				DNa.RowCopy(i,node_shape_deriv);
+				DNa.ColumnCopy(i,node_shape_deriv);
 				if ( fElementLocNodesActive[NumElementNodes()*elem + i] == 1 )
 				{
-					grad_enh += node_shape_deriv;
+					grad_enh_IP += node_shape_deriv;
 				}		
 			}
-			fElementLocGradEnhIP.SetRow(ip, grad_enh);
+			fElementLocGradEnhIP.SetRow(ip, grad_enh_IP);
 			
 			//modify stiffness matrix
 			
@@ -1070,12 +1096,12 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 	
 	/* current element info */
 	int elem = CurrElementNumber();
-	loc_flag = fElementLocScalars[kNUM_SCALAR_TERMS*elem + kLocFlag];
+	loc_flag = fElementLocFlag[elem];
 	double vol = fElementVolume[elem];
 
 	/* element has localized and has been traced, thus fetch data to modify the stiffness matrix */
 	//if ( fabs(loc_flag - 2.0) < smallnum ) 
-	if ( fabs(loc_flag - 1.0) < smallnum ) 
+	if ( loc_flag == 2 ) 
 	{
 		/* fetch normal and slipdir for element */
 		fElementLocNormal.RowCopy(elem, normal_chosen);
@@ -1083,7 +1109,7 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 		fElementLocTangent.RowCopy(elem, tangent_chosen);
 		fElementLocMuDir.RowCopy(elem, mu_dir);
 		
-		fElementLocGradEnh.RowCopy(elem, grad_enh);
+		fElementLocGradEnh.RowCopy(elem, grad_enh_IPs);
 	
 		if (fDeBug)
 		{
@@ -1109,7 +1135,7 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 						<< setw(outputFileWidth) << "gamma_delta" <<  setw(outputFileWidth) << "Q"
 						<< setw(outputFileWidth) << "P" <<  setw(outputFileWidth) << "q_St"
 						<< setw(outputFileWidth) << "q_Sn" <<  setw(outputFileWidth) << "p_S"; 
-			ss_enh_out	<< endl << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kLocFlag] << setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kJumpDispl] 
+			ss_enh_out	<< endl << fElementLocFlag[elem] << setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kJumpDispl] 
 						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kgamma_delta] <<  setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kQ]
 						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kP] <<  setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kq_St]
 						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kq_Sn] <<  setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kp_S]; 
@@ -1148,15 +1174,16 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 		check for localization if element has not localized, or has localized
 		but not yet traced
 		*/
-		if ( fabs(loc_flag - 2.0) < smallnum ) 
+		//if ( fabs(loc_flag - 2.0) < smallnum ) 
+		if ( loc_flag == 2 ) 
 		{
 			//modify stiffness matrix
 			
 			const int ip = fShapes->CurrIP()+1;
 			int array_location = fShapes->CurrIP()*NumSD();
-			fElementLocGradEnhIP[CurrIP(),0] = grad_enh[array_location];
-			fElementLocGradEnhIP[CurrIP(),1] = grad_enh[array_location+1];
-			fElementLocGradEnhIP[CurrIP(),2] = grad_enh[array_location+2];
+			fElementLocGradEnhIP[CurrIP(),0] = grad_enh_IPs[array_location];
+			fElementLocGradEnhIP[CurrIP(),1] = grad_enh_IPs[array_location+1];
+			fElementLocGradEnhIP[CurrIP(),2] = grad_enh_IPs[array_location+2];
 			if (fDeBug)
 			{
 				ss_enh_out	<< endl << "GradEnh at IP" << ip
