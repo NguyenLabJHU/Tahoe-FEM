@@ -1,4 +1,4 @@
-/* $Id: LennardJonesPairT.cpp,v 1.5 2003-03-31 23:09:14 paklein Exp $ */
+/* $Id: LennardJonesPairT.cpp,v 1.5.10.1 2003-07-06 19:25:38 hspark Exp $ */
 #include "LennardJonesPairT.h"
 #include "toolboxConstants.h"
 #include <iostream.h>
@@ -102,12 +102,14 @@ double LennardJonesPairT::Energy(double r_ab, double* data_a, double* data_b)
 		return 0.0;
 	else
 	{
-		double r = s_sigma/r_ab;
-	
+		//double r = s_sigma/r_ab;
+		double r = r_ab;
 		double r_6 = r*r*r*r*r*r;
 		double r_12 = r_6*r_6;
-	
-		return 4.0*s_eps*(r_12 - r_6) - s_phi_rc - (r_ab - r_c)*s_dphi_rc;
+		double sigma_6 = s_sigma*s_sigma*s_sigma*s_sigma*s_sigma*s_sigma;
+		double sigma_12 = sigma_6*sigma_6;
+		//return 4.0*s_eps*(r_12 - r_6) - s_phi_rc - (r_ab - r_c)*s_dphi_rc;
+		return 4.0*s_eps*(sigma_12/r_12-sigma_6/r_6);
 	}
 }
 
