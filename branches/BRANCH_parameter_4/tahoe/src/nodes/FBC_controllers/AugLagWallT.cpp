@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.cpp,v 1.11.36.1 2004-07-06 06:54:40 paklein Exp $ */
+/* $Id: AugLagWallT.cpp,v 1.11.36.2 2004-07-13 16:42:44 paklein Exp $ */
 #include "AugLagWallT.h"
 #include "FieldT.h"
 #include "eIntegratorT.h"
@@ -17,32 +17,6 @@ AugLagWallT::AugLagWallT(void)
 {
 	SetName("wall_augmented_Lagrangian");
 }
-
-#if 0
-/* initialize data */
-void AugLagWallT::Initialize(void)
-{
-	/* inherited */
-	PenaltyWallT::Initialize();
-	
-	/* set dimensions */
-	int numDOF = rEqnos.MinorDim() + 1; // additional DOF
-	fContactEqnos.Dimension(fNumContactNodes*numDOF);
-	fContactEqnos2D.Set(fNumContactNodes, numDOF, fContactEqnos.Pointer());
-	fFloatingDOF.Dimension(fNumContactNodes);
-	fFloatingDOF = 0;
-	
-	/* allocate memory for force vector */
-	fContactForce2D.Dimension(fNumContactNodes, numDOF);
-	fContactForce.Set(fNumContactNodes*numDOF, fContactForce2D.Pointer());
-	fContactForce2D = 0.0;
-
-	/* register with node manager - sets initial fContactDOFtags */
-	iArrayT set_dims(1);
-	set_dims = kNumAugLagDOF;
-	fXDOF_Nodes->XDOF_Register(this, set_dims);	
-}
-#endif
 
 void AugLagWallT::SetEquationNumbers(void)
 {

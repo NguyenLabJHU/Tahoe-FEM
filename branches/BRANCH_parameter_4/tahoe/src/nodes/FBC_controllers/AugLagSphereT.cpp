@@ -1,4 +1,4 @@
-/* $Id: AugLagSphereT.cpp,v 1.11.36.1 2004-07-06 06:54:40 paklein Exp $ */
+/* $Id: AugLagSphereT.cpp,v 1.11.36.2 2004-07-13 16:42:44 paklein Exp $ */
 /* created: paklein (03/24/1999) */
 #include "AugLagSphereT.h"
 #include "FieldT.h"
@@ -18,30 +18,6 @@ AugLagSphereT::AugLagSphereT(void)
 {
 	SetName("sphere_augmented_Lagrangian");
 }
-
-#if 0
-/* initialize data */
-void AugLagSphereT::Initialize(void)
-{
-	/* inherited */
-	PenaltySphereT::Initialize();
-	
-	/* set dimensions */
-	int numDOF = rEqnos.MinorDim() + 1; // additional DOF
-	fContactEqnos.Dimension(fNumContactNodes*numDOF);
-	fContactEqnos2D.Set(fNumContactNodes, numDOF, fContactEqnos.Pointer());
-	
-	/* allocate memory for force vector */
-	fContactForce2D.Dimension(fNumContactNodes, numDOF);
-	fContactForce.Set(fNumContactNodes*numDOF, fContactForce2D.Pointer());
-	fContactForce2D = 0.0;
-
-	/* register with node manager - sets initial fContactDOFtags */
-	iArrayT set_dims(1);
-	set_dims = kNumAugLagDOF;
-	fXDOF_Nodes->XDOF_Register(this, set_dims);	
-}
-#endif
 
 void AugLagSphereT::SetEquationNumbers(void)
 {

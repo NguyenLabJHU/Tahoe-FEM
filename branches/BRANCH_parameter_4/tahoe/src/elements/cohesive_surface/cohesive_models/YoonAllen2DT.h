@@ -1,4 +1,4 @@
-/* $Id: YoonAllen2DT.h,v 1.8.42.2 2004-07-12 16:05:59 paklein Exp $ */
+/* $Id: YoonAllen2DT.h,v 1.8.42.3 2004-07-13 16:42:27 paklein Exp $ */
 /* created: cjkimme (05/28/2002) */
 #ifndef _YOON_ALLEN_2D_T_H_
 #define _YOON_ALLEN_2D_T_H_
@@ -19,7 +19,6 @@ class YoonAllen2DT: public SurfacePotentialT
 public:
 
 	/** constructor */
-	YoonAllen2DT(ifstreamT& in, const double &fTimeStep);
 	YoonAllen2DT(void);
 
 	/** set the source of the time step */

@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.23.2.2 2004-07-07 15:27:58 paklein Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.23.2.3 2004-07-13 16:42:27 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 #include "TiedPotentialT.h"
 
@@ -22,6 +22,7 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in):
 	SurfacePotentialT(knumDOF), TiedPotentialBaseT(),
 	qRetieNodes(false)
 {
+ExceptionT::GeneralFail("TiedPotentialT::TiedPotentialT", "out of date");
 #pragma unused(in)
 #if 0
     in >> fnvec1; /* read in direction to sample stress state at */

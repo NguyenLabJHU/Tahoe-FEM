@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.h,v 1.10.42.2 2004-07-12 16:05:59 paklein Exp $ */
+/* $Id: YoonAllen3DT.h,v 1.10.42.3 2004-07-13 16:42:27 paklein Exp $ */
 /* created: cjkimme (05/28/2002) */
 
 #ifndef _YOON_ALLEN_3D_T_H_
@@ -20,11 +20,8 @@ class YoonAllen3DT: public SurfacePotentialT
 public:
 
 	/** constructors */
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	YoonAllen3DT(ifstreamT& in, const double &fTimeStep);
-#endif
 	YoonAllen3DT(dArrayT& fparams, iArrayT& iparams, const double &fTimeStep);
-	YoonAllen3DT(void);	
+	YoonAllen3DT(void);
 
 	/** set the source of the time step */
 	virtual void SetTimeStep(const double& time_step) { fTimeStep = &time_step; };

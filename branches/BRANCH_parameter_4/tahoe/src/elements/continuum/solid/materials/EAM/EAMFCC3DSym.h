@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DSym.h,v 1.3.64.1 2004-07-06 06:53:26 paklein Exp $ */
+/* $Id: EAMFCC3DSym.h,v 1.3.64.2 2004-07-13 16:42:35 paklein Exp $ */
 /* created: paklein (12/06/1996) */
 #ifndef _EAMFCC3DSYM_H_
 #define _EAMFCC3DSYM_H_
@@ -17,7 +17,6 @@ public:
 
 	/** constructor */
 	EAMFCC3DSym(void);
-//	EAMFCC3DSym(ifstreamT& in, int EAMcode, int nsd);
 
 protected:
 

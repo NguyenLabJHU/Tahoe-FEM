@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.38.2.5 2004-07-12 16:06:29 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.38.2.6 2004-07-13 16:42:38 paklein Exp $ */
 #include "ParticlePairT.h"
 
 #include "PairPropertyT.h"
@@ -601,26 +601,6 @@ void ParticlePairT::TakeParameterList(const ParameterListT& list)
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-#if 0
-/* return a new pair property or NULL if the name is invalid */
-PairPropertyT* ParticlePairT::New_PairProperty(const StringT& name, bool throw_on_fail) const
-{
-	if (name == "harmonic")
-		return new HarmonicPairT;
-	else if (name == "Lennard_Jones")
-		return new LennardJonesPairT;
-	else if (name == "Paradyn_pair")
-		return new ParadynPairT(ElementSupport());
-	else if (name == "Matsui")
-		return new MatsuiPairT;
-	else if (throw_on_fail)
-		ExceptionT::GeneralFail("ParticlePairT::New_PairProperty",
-			"unrecognized potential \"%s\"", name.Pointer());
-		
-	return NULL;
-}
-#endif
 
 /* generate labels for output data */
 void ParticlePairT::GenerateOutputLabels(ArrayT<StringT>& labels) const

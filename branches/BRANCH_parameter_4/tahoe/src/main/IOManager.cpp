@@ -1,4 +1,4 @@
-/* $Id: IOManager.cpp,v 1.22.2.1 2004-07-12 05:12:16 paklein Exp $ */
+/* $Id: IOManager.cpp,v 1.22.2.2 2004-07-13 16:42:41 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 #include "IOManager.h"
 
@@ -25,23 +25,6 @@ IOManager::IOManager(ostream& log, const StringT& program_name,
 	/* construct output formatter */
 	fOutput = IOBaseT::NewOutput(program_name, version, title, input_file, fOutputFormat, fLog);
 }
-
-#if 0
-IOManager::IOManager(ifstreamT& in, const IOManager& io_man):
-	fLog(io_man.fLog),
-	fOutputFormat(io_man.fOutputFormat),
-	fOutput(NULL),
-	fEcho (false),
-	fOutputTime(0.0),
-	fOutput_tmp(NULL),
-	fChangingFlag(io_man.fChangingFlag)
-{
-	/* construct output formatter */
-	fOutput = IOBaseT::NewOutput((io_man.fOutput)->CodeName(),
-				(io_man.fOutput)->Version(),
-				(io_man.fOutput)->Title(), in.filename(), fOutputFormat, fLog);
-}
-#endif
 
 IOManager::~IOManager(void)
 {

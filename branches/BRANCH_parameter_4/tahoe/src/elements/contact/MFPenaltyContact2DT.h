@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.h,v 1.2.32.3 2004-07-12 08:08:43 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.h,v 1.2.32.4 2004-07-13 16:42:29 paklein Exp $ */
 #ifndef _MF_PENALTY_CONTACT2D_T_H_
 #define _MF_PENALTY_CONTACT2D_T_H_
 
@@ -42,13 +42,6 @@ protected:
 
 	/** \name steps in setting contact configuration */
 	/*@{*/
-	/** set contact surfaces and strikers. This implementation is based on
-	 * ContactT::EchoConnectivityData, but taking the strikers from the
-	 * list of meshfree nodes, so that all meshfree nodes can be potential
-	 * strikers. Also, since the connectivities will be oddly-shaped,
-	 * they will not be registered with the ModelManagerT. */
-//	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
-
 	/** Echo contact bodies and striker nodes. After the read section, should 
 	 * have valid nodes/facet connectivities for the local database. */
 	virtual void ExtractContactGeometry(const ParameterListT& list);

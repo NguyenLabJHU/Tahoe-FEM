@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.28.6.4 2004-07-12 16:06:30 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.28.6.5 2004-07-13 16:42:38 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -150,10 +150,6 @@ protected: /* for derived classes only */
 		ArrayT<ParticlePropertyT*>& properties, nMatrixT<int>& properties_map) = 0;
 	/*@}*/
 
-	/** echo element connectivity data. Reads parameters that define
-	 * which nodes belong to this ParticleT group. */
-	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
-	
 	/** generate labels for output data */
 	virtual void GenerateOutputLabels(ArrayT<StringT>& labels) const = 0;
 

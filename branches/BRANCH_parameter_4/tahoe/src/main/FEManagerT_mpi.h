@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.20.2.2 2004-07-12 05:10:57 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.20.2.3 2004-07-13 16:42:41 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #ifndef _FE_MANAGER_MPI_H_
 #define _FE_MANAGER_MPI_H_
@@ -80,12 +80,6 @@ protected:
 
 	/** execute the solution procedure */
 	virtual ExceptionT::CodeT SolveStep(void);
-	/*@}*/
-
-	/** \name initialization functions */
-	/*@{*/
-	virtual void ReadParameters(InitCodeT init);
-	virtual void SetElementGroups(void);  	
 	/*@}*/
 
 	/* (re-)set system to initial conditions */

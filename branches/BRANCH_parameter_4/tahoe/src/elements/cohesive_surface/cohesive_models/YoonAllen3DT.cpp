@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.cpp,v 1.14.2.3 2004-07-12 16:05:59 paklein Exp $ */
+/* $Id: YoonAllen3DT.cpp,v 1.14.2.4 2004-07-13 16:42:27 paklein Exp $ */
 #include "YoonAllen3DT.h"
 
 #include <iostream.h>
@@ -13,62 +13,6 @@ using namespace Tahoe;
 
 /* class parameters */
 const int knumDOF = 3;
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-/* constructor */
-YoonAllen3DT::YoonAllen3DT(ifstreamT& in, const double& time_step): 
-	SurfacePotentialT(knumDOF),
-	fTimeStep(&time_step)
-{
-	SetName("Yoon-Allen_3D");
-#pragma unused(in)
-#if 0
-	/* traction potential parameters */
-	in >> fsigma_0; if (fsigma_0 < 0) throw ExceptionT::kBadInputValue;
-	in >> fd_c_n; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
-	in >> fd_c_t; if (fd_c_t < 0) throw ExceptionT::kBadInputValue;
-	
-	/* moduli and time constants */
-	in >> fE_infty; if (fE_infty < 0) throw ExceptionT::kBadInputValue;
-	in >> n_prony; if (n_prony < 0) throw ExceptionT::kBadInputValue;
-
-
-	ftau.Dimension(n_prony);
-	fE_t.Dimension(n_prony);
-	fexp_tau.Dimension(n_prony);
-
-	for (int i = 0;i < n_prony; i++)
-	{
-		in >> fE_t[i]; if (fE_t[i] < 0) throw ExceptionT::kBadInputValue;
-		in >> ftau[i]; if (ftau[i] < 0) throw ExceptionT::kBadInputValue;
-	
-		fexp_tau[i] = exp(-fTimeStep/ftau[i]) - 1.;
-		
-		/* scale ftau by fE_t to reduce multiplications in traction
-		 * and stiffness routines
-		 */
-		ftau[i] *= fE_t[i];
-	}
-
-	in >> idamage; if (idamage < 1 && idamage > 3) throw ExceptionT::kBadInputValue;
-	/* damage evolution law parameters */
-	in >> falpha_exp; //if (falpha_exp < 1.) throw ExceptionT::kBadInputValue;
-	in >> falpha_0; if (falpha_0 <= kSmall) throw ExceptionT::kBadInputValue;
-	if (idamage == 2) 
-	{
-		in >> flambda_exp; if (flambda_exp > -1.) throw ExceptionT::kBadInputValue;	
-		in >> flambda_0; if (flambda_0 < 1.) throw ExceptionT::kBadInputValue;
-	}
-	
-	/* stiffness multiplier */
-	in >> fpenalty; if (fpenalty < 0) throw ExceptionT::kBadInputValue;
-
-	
-	/* penetration stiffness */
-	fK = fpenalty*fsigma_0/fd_c_n;
-#endif
-}
-#endif
 
 YoonAllen3DT::YoonAllen3DT(dArrayT& fparams, iArrayT& iparams, const double& time_step): 
 	SurfacePotentialT(knumDOF),

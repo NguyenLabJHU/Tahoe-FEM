@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.h,v 1.2.40.1 2004-07-06 06:54:42 paklein Exp $ */
+/* $Id: ConveyorT.h,v 1.2.40.2 2004-07-13 16:42:45 paklein Exp $ */
 #ifndef _CONVEYOR_T_H_
 #define _CONVEYOR_T_H_
 
@@ -25,9 +25,6 @@ public:
 
 	/** constructor */
 	ConveyorT(const BasicSupportT& support, FieldT& field);
-
-	/** initialization */
-	virtual void Initialize(ifstreamT& in);
 
 	/** not implemented - there's no going back */
 	virtual void Reset(void);

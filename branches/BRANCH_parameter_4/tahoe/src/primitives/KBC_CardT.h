@@ -1,13 +1,11 @@
-/* $Id: KBC_CardT.h,v 1.5.48.2 2004-07-08 07:40:24 paklein Exp $ */
+/* $Id: KBC_CardT.h,v 1.5.48.3 2004-07-13 16:42:47 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _KBC_CARD_T_H_
 #define _KBC_CARD_T_H_
 
-/* forward declarations */
-#include "ios_fwd_decl.h"
-
 namespace Tahoe {
 
+/* forward declaration */
 class ScheduleT;
 
 /** container to hold kinematic boundary condition specifications */
@@ -30,12 +28,9 @@ public:
 	KBC_CardT(int node, int dof, CodeT code, const ScheduleT* schedule, double value);
 	/*@}*/
 
-	/** \name modifiers */
-	/*@{*/
-	void SetValues(istream& in);
+	/** modifier */
 	void SetValues(int node, int dof, CodeT code, const ScheduleT* schedule, double value);
-	/*@}*/
-	
+
 	/** \name accessors */
 	/*@{*/
 	int Node(void) const;
@@ -46,10 +41,6 @@ public:
 
 	/* returns the value of the BC */
 	double Value(void) const;
-
-	/* I/O */
-//	static void WriteHeader(ostream& out);
-//	void WriteValues(ostream& out) const;
 
 	/* input operator for codes */
 	static CodeT int2CodeT(int i);

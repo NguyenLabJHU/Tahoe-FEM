@@ -1,6 +1,5 @@
-/* $Id: TvergHutch3DT.h,v 1.8.42.1 2004-07-06 06:53:10 paklein Exp $ */
+/* $Id: TvergHutch3DT.h,v 1.8.42.2 2004-07-13 16:42:27 paklein Exp $ */
 /* created: paklein (02/05/2000) */
-
 #ifndef _TVERG_HUTCH_3D_T_H_
 #define _TVERG_HUTCH_3D_T_H_
 
@@ -20,9 +19,6 @@ class TvergHutch3DT: public SurfacePotentialT
 public:
 
 	/** constructors */
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	TvergHutch3DT(ifstreamT& in);
-#endif
 	TvergHutch3DT(dArrayT& params);
 	TvergHutch3DT(void);	
 

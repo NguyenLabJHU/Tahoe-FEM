@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.20.40.1 2004-07-06 06:54:42 paklein Exp $ */
+/* $Id: TiedNodesT.h,v 1.20.40.2 2004-07-13 16:42:45 paklein Exp $ */
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
 
@@ -51,10 +51,6 @@ public:
 
 	/** constructor */
 	TiedNodesT(const BasicSupportT& support, BasicFieldT& field);
-
-	/** initialize data. Must be called immediately after construction */
-	virtual void Initialize(ifstreamT& in);
-	virtual void WriteParameters(ostream& out) const;
 
 	/** initialize directly instead of using TiedNodesT::Initialize */
 	virtual void SetTiedPairs(iArrayT& follower, iArrayT& leader);

@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.18.20.1 2004-07-12 05:12:16 paklein Exp $ */
+/* $Id: IOManager.h,v 1.18.20.2 2004-07-13 16:42:41 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 #ifndef _IOMANAGER_H_
 #define _IOMANAGER_H_
@@ -41,12 +41,6 @@ public:
 	/** constructor */
 	IOManager(ostream& log, const StringT& program_name, const StringT& version,
 		const StringT& title, const StringT& input_file, IOBaseT::FileTypeT output_format);
-
-	/** construct using the parameters from an existing io_man. This is not a copy
-	 * constructor. Only parameters passed to the multiple-argument constructor are
-	 * taken from the source to construct the output formatter. The output sets
-	 * themselves are not copied. */
-//	IOManager(ifstreamT& in, const IOManager& io_man);
 
 	/** destructor */
 	virtual ~IOManager(void);

@@ -1,4 +1,4 @@
-/* $Id: BondLatticeT.h,v 1.4.2.3 2004-07-08 07:50:15 paklein Exp $ */
+/* $Id: BondLatticeT.h,v 1.4.2.4 2004-07-13 16:42:34 paklein Exp $ */
 /* created: paklein (01/07/1997) */
 #ifndef _BONDLATTICET_H_
 #define _BONDLATTICET_H_
@@ -57,12 +57,6 @@ protected:
 	virtual void LoadBondTable(void) = 0;
 	
 protected:
-
-#if 0
-	int fNumLatticeDim;	/* dim of the bond vectors */
-	int	fNumSpatialDim;	/* dim of the model geometry */
-	int fNumBonds;
-#endif
 
 	iArrayT		fBondCounts;
 	dArray2DT	fBonds;			/* undeformed bond vector components */

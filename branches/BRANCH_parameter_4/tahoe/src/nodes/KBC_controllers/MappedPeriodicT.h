@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.h,v 1.6.64.2 2004-07-12 16:06:37 paklein Exp $ */
+/* $Id: MappedPeriodicT.h,v 1.6.64.3 2004-07-13 16:42:45 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 
 #ifndef _MAPPED_PERIODIC_T_H
@@ -37,10 +37,6 @@ public:
 
 	/** constructor */
 	MappedPeriodicT(const BasicSupportT& support, BasicFieldT& field);
-
-	/* initialize data - called immediately after construction */
-	virtual void Initialize(ifstreamT& in);
-	virtual void WriteParameters(ostream& out) const;
 
 	/* initial condition */
 	virtual void InitialCondition(void);

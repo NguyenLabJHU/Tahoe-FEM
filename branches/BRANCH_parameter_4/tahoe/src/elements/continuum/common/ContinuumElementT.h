@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.26.22.3 2004-07-12 16:06:01 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.26.22.4 2004-07-13 16:42:30 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -182,9 +182,6 @@ protected:
 
 	/* element data */
 	void EchoBodyForce(ifstreamT& in, ostream& out);
-	// could also break up. Input and defaults(per output format) are
-	// shared but the output of what each code means is class-dependent
-	void EchoTractionBC(ifstreamT& in, ostream& out);
 
 	/** extract natural boundary condition information */
 	void TakeNaturalBC(const ParameterListT& list);

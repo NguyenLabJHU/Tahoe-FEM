@@ -1,4 +1,4 @@
-/* $Id: From2Dto3DT.cpp,v 1.4.2.2 2004-07-07 15:27:57 paklein Exp $ */
+/* $Id: From2Dto3DT.cpp,v 1.4.2.3 2004-07-13 16:42:27 paklein Exp $ */
 /* created: paklein (06/23/1999)*/
 #include "From2Dto3DT.h"
 
@@ -22,6 +22,8 @@ const int    knumDOF = 3;
 /* constructor */
 From2Dto3DT::From2Dto3DT(ifstreamT& in, int code, const double& time_step): SurfacePotentialT(knumDOF)
 {
+ExceptionT::GeneralFail("From2Dto3DT::From2Dto3DT", "out of date");
+#if 0
 	switch(code)
 	{
 		case kXuNeedleman:
@@ -49,6 +51,7 @@ From2Dto3DT::From2Dto3DT(ifstreamT& in, int code, const double& time_step): Surf
 			ExceptionT::BadInputValue("From2Dto3DT::From2Dto3DT","Cohesive model code not supported\n");
 		}
 	}
+#endif
 }
 #endif
 

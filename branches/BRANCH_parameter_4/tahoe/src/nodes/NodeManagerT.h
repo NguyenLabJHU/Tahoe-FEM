@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.23.26.2 2004-07-12 16:06:35 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.23.26.3 2004-07-13 16:42:43 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -54,10 +54,6 @@ public:
 	
 	/** destructor */
 	virtual ~NodeManagerT(void);
-
-	/** initialize data. Called immediately after constructor to allow
-	 * use of virtual function in the initialization process */
-	virtual void Initialize(void);
 
 	/** \name basic MP info */
 	/*@{*/
@@ -243,14 +239,6 @@ public:
 	void ResizeNodes(int num_nodes);
 	/*@}*/
 
-#if 0
-	/** duplicate nodes.
-	 * \param nodes list of nodes to duplicate
-	 * \param new_node_tags returns with list of node numbers for the newly 
-	 * created nodes. must dimensioned before call. */
-	virtual void DuplicateNodes(const iArrayT& nodes, iArrayT& new_node_tags);
-#endif
-
 	/** return a pointer to the specified schedule. The schedule
 	 * number is passed to the FEManagerT for resolution. */
 	const ScheduleT* Schedule(int num) const;
@@ -298,9 +286,6 @@ protected:
 	/** \name steps of NodeManagerT::Initialize */
 	/*@{*/
 	void SetCoordinates(void);
-//	virtual void EchoCoordinates(ifstreamT& in, ostream& out);
-	virtual void EchoFields(ifstreamT& in, ostream& out);
-	virtual void EchoHistoryNodes(ifstreamT& in, ostream &out);
 	/*@}*/
 
 	/** simple output function */
@@ -318,15 +303,6 @@ private:
 
 	/** write nodal history data. Called by NodeManagerT:WriteOutput */
 	virtual void WriteNodalHistory(void);
-
-	/** \name steps of NodeManagerT::EchoFields */
-	/*@{*/
-	void EchoInitialConditions(FieldT& field, ifstreamT& in, ostream &out);
-	void EchoKinematicBC(FieldT& field, ifstreamT& in, ostream &out);
-	void EchoForceBC(FieldT& field, ifstreamT& in, ostream& out);
-	void EchoKinematicBCControllers(FieldT& field, ifstreamT& in, ostream& out);
-	void EchoForceBCControllers(FieldT& field, ifstreamT& in, ostream& out);
-	/*@}*/
 
 	/** \name not allowed */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.65.2.6 2004-07-12 05:12:16 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.65.2.7 2004-07-13 16:42:41 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -1876,29 +1876,6 @@ void FEExecutionManagerT::Rewind(ifstreamT& in, ostream& status) const
 	}
 	status << endl;
 }
-
-#if 0
-/* extract the model file name from the stream */
-void FEExecutionManagerT::GetModelFile(ifstreamT& in, StringT& model_file,
-	IOBaseT::FileTypeT& format) const
-{
-	/* partially construct FE manager */
-	ifstreamT in_temp(in.comment_marker(), in.filename());
-	if (!fJobCharPutBack)
-	{
-		char filetypechar;
-		in_temp >> filetypechar;
-	}
-
-	ofstreamT out;
-	FEManagerT fe_temp(in_temp, out, fComm, fCommandLineOptions);
-	fe_temp.Initialize(FEManagerT::kParametersOnly);
-
-	ModelManagerT* model = fe_temp.ModelManager();
-	format = model->DatabaseFormat();
-	model_file = model->DatabaseName();
-}
-#endif
 
 void FEExecutionManagerT::Decompose(const StringT& input_file, int size, int decomp_type, CommunicatorT& comm,
 	const StringT& model_file, IOBaseT::FileTypeT format) const

@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.cpp,v 1.16.2.2 2004-07-07 15:27:58 paklein Exp $  */
+/* $Id: RateDep2DT.cpp,v 1.16.2.3 2004-07-13 16:42:27 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 #include "RateDep2DT.h"
 
@@ -6,7 +6,6 @@
 #include <math.h>
 
 #include "ExceptionT.h"
-
 #include "StringT.h"
 #include "SecantMethodT.h"
 
@@ -20,35 +19,6 @@ const int ksigma_max = 4;
 const int kd_c_n = 6;
 const int kd_c_t = 8;
 const int kDelta = 10;
-
-/* constructor */
-RateDep2DT::RateDep2DT(ifstreamT& in, const double& time_step): 
-	SurfacePotentialT(knumDOF),
-	fTimeStep(&time_step)
-{
-	SetName("Tvergaard-Hutchinson_rate_dep_2D");
-#pragma unused(in)
-#if 0
-	/* traction potential parameters */
-	in >> fsigma_max; if (fsigma_max < 0) throw ExceptionT::kBadInputValue;
-	in >> fd_c_n; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
-	in >> fd_c_t; if (fd_c_t < 0) throw ExceptionT::kBadInputValue;
-	
-	/* non-dimensional opening parameters */
-	in >> fL_1; if (fL_1 < 0 || fL_1 > 1) throw ExceptionT::kBadInputValue;
-	in >> fL_2; if (fL_2 < fL_1 || fL_2 > 1) throw ExceptionT::kBadInputValue;
-	in >> fL_fail; if (fL_fail < 1.0) fL_fail = 1.0;
-
-	/* stiffness multiplier */
-	in >> fpenalty; if (fpenalty < 0) throw ExceptionT::kBadInputValue;
-	in >> L_2_b;
-	in >> L_2_m;
-  	in >> fslope;	
-	
-  	/* penetration stiffness */
-	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
-#endif
-}
 
 /* constructor */
 RateDep2DT::RateDep2DT(void): 

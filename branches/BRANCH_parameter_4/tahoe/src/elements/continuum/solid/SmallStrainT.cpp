@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.13.26.3 2004-07-12 16:06:05 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.13.26.4 2004-07-13 16:42:33 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -27,18 +27,6 @@ SmallStrainT::~SmallStrainT(void)
 {
 	delete fSSMatSupport;
 }
-
-#if 0
-/* TEMPORARY */
-void SmallStrainT::InitialCondition(void)
-{
-	/* inherited */
-	SolidElementT::InitialCondition();
-	
-	/* set the source for the iteration number */
-	fSSMatSupport->SetIterationNumber(ElementSupport().IterationNumber(Group()));
-}
-#endif
 
 /* implementation of the ParameterInterfaceT interface */
 void SmallStrainT::DefineParameters(ParameterListT& list) const

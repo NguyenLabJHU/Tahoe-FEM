@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.cpp,v 1.11.26.3 2004-07-12 16:06:31 paklein Exp $ */
+/* $Id: ThermostatBaseT.cpp,v 1.11.26.4 2004-07-13 16:42:40 paklein Exp $ */
 #include "ThermostatBaseT.h"
 
 #include "BasicSupportT.h"
@@ -213,56 +213,6 @@ void ThermostatBaseT::TakeParameterList(const ParameterListT& list)
 	else
 		ExceptionT::GeneralFail(caller, "unrecognized pick method \"%s\"", pick.Name().Pointer());
 }
-
-#if 0
-namespace Tahoe {
-
-/* stream extraction operator */
-istream& operator>>(istream& in, ThermostatBaseT::ThermostatT& property)
-{
-	int i_property;
-	in >> i_property;
-	switch (i_property)
-	{
-		case ThermostatBaseT::kFree:
-		{
-			property = ThermostatBaseT::kFree;
-			break;
-		}
-		case ThermostatBaseT::kDamped:
-		{
-			property = ThermostatBaseT::kDamped;
-			break;
-		}
-		case ThermostatBaseT::kLangevin:
-		{
-			property = ThermostatBaseT::kLangevin;
-			break;
-		}
-		case ThermostatBaseT::kNoseHoover:
-		{
-			property = ThermostatBaseT::kNoseHoover;
-			break;
-		}
-		case ThermostatBaseT::kGaussIsokinetic:
-		{
-			property = ThermostatBaseT::kGaussIsokinetic;
-			break;
-		}
-		case ThermostatBaseT::kRampedDamping:
-		{
-			property = ThermostatBaseT::kRampedDamping;
-			break;
-		}
-		default:
-			ExceptionT::BadInputValue("operator>>ThermostatBaseT::ThermostatT", 
-				"unknown code: %d", i_property);
-	}
-	return in;
-}
-
-} /* namespace Tahoe */
-#endif
 
 /***********************************************************************
  * Protected

@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.h,v 1.3.46.2 2004-07-12 16:06:37 paklein Exp $ */
+/* $Id: ScaledVelocityNodesT.h,v 1.3.46.3 2004-07-13 16:42:45 paklein Exp $ */
 #ifndef _SCALED_VELOCITY_NODES_T_H_
 #define _SCALED_VELOCITY_NODES_T_H_
 
@@ -26,9 +26,6 @@ public:
 
 	/** constructor */
 	ScaledVelocityNodesT(const BasicSupportT& support, BasicFieldT& field);
-
-	/** initialize data. Must be called immediately after construction */
-	virtual void Initialize(ifstreamT& in);
 
 	/** do at start of timestep */
 	virtual void InitStep(void);

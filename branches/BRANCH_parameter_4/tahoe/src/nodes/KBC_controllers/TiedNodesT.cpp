@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.26.28.2 2004-07-07 15:28:47 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.26.28.3 2004-07-13 16:42:45 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -28,10 +28,10 @@ TiedNodesT::TiedNodesT(const BasicSupportT& support, BasicFieldT& field):
 #endif
 }
 
+#if 0
 /* initialize data. Must be called immediately after construction */
 void TiedNodesT::Initialize(ifstreamT& in)
 {
-#if 0
 	/* read "leader" nodes */
 	iArrayT leader_nodes;
 	ReadNodes(in, fLeaderIds, leader_nodes);
@@ -94,8 +94,8 @@ void TiedNodesT::Initialize(ifstreamT& in)
 	
 	/* generate BC cards */
 	SetBCCards();
-#endif
 }
+#endif
 
 /* initialize directly instead of using TiedNodesT::Initialize */
 void TiedNodesT::SetTiedPairs(iArrayT& follower, iArrayT& leader)
@@ -129,27 +129,6 @@ void TiedNodesT::SetExternalNodes(const ArrayT<int>& ex_nodes) const
 
 	//pair interactions that involve external nodes that are followers
 	//can be removed from the list
-}
-
-void TiedNodesT::WriteParameters(ostream& out) const
-{
-	/* inherited */
-//	KBC_ControllerT::WriteParameters(out);
-
-	out << "\n T i e d   n o d e   p a r a m e t e r s :\n\n";
-	out << " Number of leader node set ids . . . . . . . . . = " << fLeaderIds.Length() << '\n';
-	for (int i = 0; i < fLeaderIds.Length(); i++)
-		out << '\t' << fLeaderIds[i] << '\n';
-	out << " Number of followers node set ids. . . . . . . . = " << fFollowerIds.Length() << '\n';
-	for (int i = 0; i < fFollowerIds.Length(); i++)
-		out << '\t' << fFollowerIds[i] << '\n';
-	out << " Follower-leader pairs:\n";
-	iArray2DT tmp;
-	tmp.Alias(fNodePairs);
-	tmp++;
-	fNodePairs.WriteNumbered(out);
-	tmp--;	
-	out << endl;
 }
 
 /* set to initial conditions. Reset all conditions to tied. */

@@ -1,4 +1,4 @@
-/* $Id: IC_CardT.h,v 1.5.64.1 2004-07-08 07:40:24 paklein Exp $ */
+/* $Id: IC_CardT.h,v 1.5.64.2 2004-07-13 16:42:47 paklein Exp $ */
 /* created: paklein (07/16/1997) */
 #ifndef _IC_CARD_T_H_
 #define _IC_CARD_T_H_
@@ -14,11 +14,8 @@ public:
 	/** constructor */
 	IC_CardT(void);
 
-	/** \name modifiers */
-	/*@{*/
-//	void SetValues(ifstreamT& in);
+	/** modifier */
 	void SetValues(int node, int dof, int order, double value);
-	/*@}*/
 	
 	/** \name accessors */
 	/*@{*/
@@ -28,12 +25,6 @@ public:
 	double Value(void) const;
 	/*@}*/
 
-	/** \name I/O methods */
-	/*@{*/
-//	static void WriteHeader(ostream& out);
-//	void WriteValues(ostream& out) const;
-	/*@}*/
-	
 private:
 
 	int    fnode;

@@ -1,6 +1,5 @@
-/* $Id: XuNeedleman3DT.h,v 1.15.42.1 2004-07-06 06:53:10 paklein Exp $ */
+/* $Id: XuNeedleman3DT.h,v 1.15.42.2 2004-07-13 16:42:27 paklein Exp $ */
 /* created: paklein (06/23/1999) */
-
 #ifndef _XU_NEEDLE_3D_T_H_
 #define _XU_NEEDLE_3D_T_H_
 
@@ -17,13 +16,12 @@ class XuNeedleman3DT: public SurfacePotentialT
 {
 public:
 
-	/** constructors */
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	XuNeedleman3DT(ifstreamT& in);
-#endif
+	/** \name constructors */
+	/*@{*/
 	/** constructor for use in SIERRA */
 	XuNeedleman3DT(dArrayT& params);
 	XuNeedleman3DT(void);
+	/*@}*/
 
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const { return 0; };

@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.h,v 1.8.42.1 2004-07-06 06:53:10 paklein Exp $ */
+/* $Id: RateDep2DT.h,v 1.8.42.2 2004-07-13 16:42:27 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 #ifndef _RATE_DEP_2D_T_H_
 #define _RATE_DEP_2D_T_H_
@@ -19,7 +19,6 @@ class RateDep2DT: public SurfacePotentialT
 public:
 
 	/** constructor */
-	RateDep2DT(ifstreamT& in, const double &fTimeStep);
 	RateDep2DT(void);	
 
 	/** set the source of the time step */

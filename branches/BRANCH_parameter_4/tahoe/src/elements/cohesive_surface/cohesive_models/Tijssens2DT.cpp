@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.23.2.2 2004-07-07 15:27:58 paklein Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.23.2.3 2004-07-13 16:42:27 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 #include "Tijssens2DT.h"
 
@@ -6,7 +6,6 @@
 #include <math.h>
 
 #include "ExceptionT.h"
-
 #include "StringT.h"
 #include "SecantMethodT.h"
 
@@ -18,43 +17,6 @@ const int ku_c = 5;
 const int kIntShift = 6;
 
 /* constructor */
-Tijssens2DT::Tijssens2DT(ifstreamT& in, const double& time_step): 
-	SurfacePotentialT(knumDOF),
-	fTimeStep(&time_step)
-{
-	SetName("Tijssens_2D");
-#pragma unused(in)
-#if 0
-	/* traction rate parameters */
-	in >> fk_t0; if (fk_t0 < 0) throw ExceptionT::kBadInputValue;
-	in >> fk_n; if (fk_n < 0) throw ExceptionT::kBadInputValue;
-	in >> fc_1; if (fc_1 < 0) throw ExceptionT::kBadInputValue;
-	in >> fDelta_n_ccr; if (fDelta_n_ccr < 0) throw ExceptionT::kBadInputValue;
-
-	/* craze initiation parameters */
-	in >> fA_0; if (fA_0 < 0) throw ExceptionT::kBadInputValue;
-	in >> fB_0; if (fB_0 < 0) throw ExceptionT::kBadInputValue;
-	in >> fQ_A; if (fQ_A < 0) throw ExceptionT::kBadInputValue;
-	in >> fQ_B; if (fQ_B < 0) throw ExceptionT::kBadInputValue;
-	
-	/* crazing state variables' parameters */
-	in >> fDelta_0; if (fDelta_0 < 0) throw ExceptionT::kBadInputValue;
-	in >> fsigma_c; if (fsigma_c < 0) throw ExceptionT::kBadInputValue;
-	in >> fastar; if (fastar < 0) throw ExceptionT::kBadInputValue;
-	in >> ftemp; if (ftemp < 0) throw ExceptionT::kBadInputValue;
-	in >> fGroup; if (fGroup <= 0) throw ExceptionT::kBadInputValue;
-	in >> fSteps; if (fSteps < 0) throw ExceptionT::kBadInputValue;
-
-	fA = fA_0/2.*exp(fQ_A/ftemp);
-	fB = fB_0/6.*exp(fQ_B/ftemp);
- 	fc_1 /= fDelta_n_ccr;
-	double root3 = sqrt(3.);
-	ftau_c = fsigma_c/root3;
-	fGamma_0 = fDelta_0*root3;
-	fastar /= ftemp;
-#endif
-}
-
 Tijssens2DT::Tijssens2DT(void): 
 	SurfacePotentialT(knumDOF),
 

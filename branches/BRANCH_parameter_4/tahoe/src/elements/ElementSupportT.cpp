@@ -1,8 +1,6 @@
-/* $Id: ElementSupportT.cpp,v 1.32.2.2 2004-07-07 15:27:53 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.32.2.3 2004-07-13 16:42:25 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
-
-
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 #include "FEManagerT.h"
@@ -51,15 +49,6 @@ int ElementSupportT::ElementGroupNumber(const ElementBaseT* group) const
 	return FEManager().ElementGroupNumber(group);
 #endif
 }
-
-#pragma message("need this?")
-#if 0
-/* return the element controller appropriate for the given field */
-const eIntegratorT* ElementSupportT::eIntegrator(const FieldT& field) const
-{
-	return &(field.nIntegrator().eIntegrator());
-}
-#endif
 
 #ifdef _FRACTURE_INTERFACE_LIBRARY_
 void ElementSupportT::SetNumNodes(int nn)

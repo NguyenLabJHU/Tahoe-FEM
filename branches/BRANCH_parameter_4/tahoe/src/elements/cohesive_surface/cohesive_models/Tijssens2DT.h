@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.h,v 1.14.42.1 2004-07-06 06:53:10 paklein Exp $ */
+/* $Id: Tijssens2DT.h,v 1.14.42.2 2004-07-13 16:42:27 paklein Exp $ */
 #ifndef _TIJSSENS_2D_T_H_
 #define _TIJSSENS_2D_T_H_
 
@@ -18,9 +18,7 @@ class Tijssens2DT: public SurfacePotentialT
 {
 public:
 
-	/** constructor.
-	 * \param time_step reference to the current time step */
-	Tijssens2DT(ifstreamT& in, const double& time_step);
+	/** constructor */
 	Tijssens2DT(void);
 
 	/** set the source of the time step */

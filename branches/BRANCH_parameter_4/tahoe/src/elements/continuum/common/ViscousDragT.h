@@ -1,4 +1,4 @@
-/* $Id: ViscousDragT.h,v 1.2.26.1 2004-07-12 08:08:44 paklein Exp $ */
+/* $Id: ViscousDragT.h,v 1.2.26.2 2004-07-13 16:42:30 paklein Exp $ */
 #ifndef _VISCOUS_DRAG_T_H_
 #define _VISCOUS_DRAG_T_H_
 
@@ -19,9 +19,6 @@ public:
 
 	/** constructor */
 	ViscousDragT(const ElementSupportT& support);
-
-	/** class initialization */
-	virtual void Initialize(void);
 
 	/** form of tangent matrix, symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const { return GlobalT::kDiagonal; };

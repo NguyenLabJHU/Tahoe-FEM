@@ -1,12 +1,10 @@
-/* $Id: LinearDamageT.cpp,v 1.17.2.2 2004-07-07 15:27:58 paklein Exp $ */
+/* $Id: LinearDamageT.cpp,v 1.17.2.3 2004-07-13 16:42:27 paklein Exp $ */
 /* created: paklein (08/21/2000) */
 #include "LinearDamageT.h"
 
 #include <iostream.h>
 #include <math.h>
-
 #include "ExceptionT.h"
-
 
 using namespace Tahoe;
 
@@ -20,6 +18,7 @@ LinearDamageT::LinearDamageT(ifstreamT& in, const dArrayT& init_traction):
 	SurfacePotentialT(init_traction.Length()),
 	fInitTraction(init_traction)
 {
+ExceptionT::GeneralFail("LinearDamageT::LinearDamageT", "out of date");
 #if 0
 	/* traction potential parameters */
 	in >> fd_c_n; if (fd_c_n < 0.0) throw ExceptionT::kBadInputValue;

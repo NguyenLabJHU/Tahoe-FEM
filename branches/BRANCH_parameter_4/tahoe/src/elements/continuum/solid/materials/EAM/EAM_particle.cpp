@@ -1,4 +1,4 @@
-/* $Id: EAM_particle.cpp,v 1.2.8.3 2004-07-08 16:11:52 paklein Exp $ */
+/* $Id: EAM_particle.cpp,v 1.2.8.4 2004-07-13 16:42:35 paklein Exp $ */
 /* created: hspark(02/25/2004) */
 #include "EAM_particle.h"
 #include <iostream.h> //TEMP
@@ -12,21 +12,6 @@ using namespace Tahoe;
 /* constructor */
 EAM_particle::EAM_particle(CBLatticeT& lattice, const StringT& param_file): 
 	fLattice(lattice),
-//	fCounts( fLattice.BondCounts() ), 
-//	fBonds( fLattice.DeformedLengths() ),
-//	fNumSpatialDim( fLattice.NumberOfSpatialDim() ),
-//	fNumBonds( fLattice.NumberOfBonds() ),
-//	fModuliDim(dSymMatrixT::NumValues(fNumSpatialDim)),
-
-#if 0
-	fBondTensor4(fModuliDim), 
-	fAmn(fNumBonds),
-	fBondTensor2(fModuliDim), 
-	//fBondTensor2b(fModuliDim),
-	fTensor2Table(fNumBonds,fModuliDim),
-	fBond1(fNumBonds), fBond2(fNumBonds), fBond3(fNumBonds),
-#endif
-
 	fEAMProperty(NULL),
 	fPairEnergy(NULL),
 	fPairForce(NULL),
