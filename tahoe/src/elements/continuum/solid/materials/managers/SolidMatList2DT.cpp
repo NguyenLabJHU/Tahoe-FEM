@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.16 2002-05-31 07:09:51 thao Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.17 2002-06-01 17:03:32 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 
 #include "SolidMatList2DT.h"
@@ -51,7 +51,7 @@
 #include "LocalCrystalPlastFp2D.h"
 #include "GradCrystalPlastFp2D.h"
 
-#include "OgdenViscVIB2Dold.h"
+//#include "OgdenViscVIB2Dold.h"
 
 /* constructor */
 SolidMatList2DT::SolidMatList2DT(int length, const ElasticT& element_group):
@@ -487,6 +487,8 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			}
 
 #endif //TEMP
+
+#if 0
 			case kOgdenViscVIBold:
 			{
 				/* check */
@@ -496,7 +498,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 			}
-
+#endif
 			default:
 			
 				cout << "\n SolidMatList2DT::ReadMaterialData: unknown material code: ";
