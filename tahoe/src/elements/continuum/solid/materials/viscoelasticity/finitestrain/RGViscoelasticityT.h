@@ -1,4 +1,4 @@
-/* $Id: RGViscoelasticityT.h,v 1.1.50.1 2005-02-22 00:17:49 thao Exp $ */
+/* $Id: RGViscoelasticityT.h,v 1.1.50.2 2005-04-05 23:34:03 thao Exp $ */
 /* created : TDN (1/22/2001) */
 #ifndef _RG_VISCO_T_H_
 #define _RG_VISCO_T_H_
@@ -6,7 +6,7 @@
 /* base classes */
 #include "FSSolidMatT.h"
 #include "IsotropicT.h"
-
+#include "ifstreamT.h"
 /* direct members */
 #include "SpectralDecompT.h"
 
