@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.1.2.1 2003-04-28 08:17:04 paklein Exp $
+# $Id: makefile.template,v 1.1.2.2 2003-05-03 09:08:41 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -26,7 +26,7 @@ ARCH =
 # from the files $(ARCH).macros
 
 # default target name - root of library name or executable name
-TARGET  = translate
+TARGET  = param_test
 LIBRARY = $(HOME_DIR)/lib/lib$(TARGET).a
 
 # path to main, needed if primary target is an executable (not 
@@ -50,6 +50,14 @@ TB_CFLAGS   = $(TB_INC)
 TB_LIB_NAME = toolbox
 TB_LIB      = $(TB_DIR)/lib/lib$(TB_LIB_NAME).a
 TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
+
+##### expat XML parsing library
+EXPAT_DEFINES  = -D__EXPAT__
+EXPAT_INC      = -I/usr/local/include
+EXPAT_CFLAGS   = $(EXPAT_INC) $(EXPAT_DEFINES)
+EXPAT_LIB_NAME = expat
+EXPAT_LIB      = /usr/local/lib/lib$(EXPAT_LIB_NAME).a
+EXPAT_LFLAGS   = -L/usr/local/lib -l$(EXPAT_LIB_NAME)
 
 #### METIS
 #METIS_DIR      = $(HOME_DIR)/../../metis
