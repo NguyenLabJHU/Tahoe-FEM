@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.36 2004-01-02 23:56:50 paklein Exp $
+# $Id: make.targets,v 1.37 2004-01-06 01:43:28 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -109,6 +109,9 @@ OPT_MAKEDEPENDFLAGS = $(OPT_INC) $(OPT_DEFINES)
 
 # Sun spends too much time searching standard directories
 #OPT_MAKEDEPENDFLAGS = -Y $(OPT_INC) $(DEFINES) $(OPT_DEFINES)
+
+# name of the dependency file in each subdirectory
+DEPEND_FILE = all.depend
 #########################################################################
 
 # default target
@@ -229,6 +232,7 @@ objects: $(MAKE_BUILD_XTRAS) $(MOD_MAKE_BUILD_XTRAS)
 	"MOD_LFLAGS = $(MOD_LFLAGS)" \
 	"OPT_MAKEDEPENDFLAGS = $(OPT_MAKEDEPENDFLAGS)" \
 	"MOD_MAKEDEPENDFLAGS = $(MOD_MAKEDEPENDFLAGS)" \
+	"DEPEND = $(DEPEND_FILE)" \
 	"CURR_DIR = $(BLD_SRC_DIR)"
 
 # dummy target
