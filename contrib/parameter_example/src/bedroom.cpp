@@ -1,9 +1,10 @@
-/* $Id: bedroom.cpp,v 1.1.2.2 2003-05-03 09:08:27 paklein Exp $ */
+/* $Id: bedroom.cpp,v 1.1.2.3 2003-05-03 17:45:23 paklein Exp $ */
 #include "bedroom.h"
 #include "window.h"
 
 bedroom::bedroom(void):
-	room("bedroom")
+	room("bedroom"),
+	floor(0)
 {
 
 }

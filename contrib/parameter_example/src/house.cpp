@@ -1,4 +1,4 @@
-/* $Id: house.cpp,v 1.1.2.4 2003-05-03 09:08:27 paklein Exp $ */
+/* $Id: house.cpp,v 1.1.2.5 2003-05-03 17:45:23 paklein Exp $ */
 #include "house.h"
 #include "lawn.h"
 #include "AutoArrayT.h"
@@ -23,10 +23,10 @@ house::house(void):
 }
 
 house::~house(void) {
-	delete lawn_;
-	delete basement_;
 	for (int i = 0; i < rooms_.Length(); i++)
 		delete rooms_[i];
+	delete lawn_;
+	delete basement_;
 }
 
 void house::DefineParameters(ParameterListT& list) const
