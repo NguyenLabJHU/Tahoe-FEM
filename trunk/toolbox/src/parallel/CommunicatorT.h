@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.h,v 1.11 2004-01-10 17:09:24 paklein Exp $ */
+/* $Id: CommunicatorT.h,v 1.12 2004-03-16 05:35:51 paklein Exp $ */
 #ifndef _COMMUNICATOR_T_H_
 #define _COMMUNICATOR_T_H_
 
@@ -108,17 +108,17 @@ class CommunicatorT
 	/** logging stream */
 	ostream& Log(void) const { return *fLog; };
 	
-	/** \name (re-)set the logging stream */
-	/*@{*/
 	void SetLog(ostream& log);
 	void SetLog(ofstreamT& log);
-	/*@}*/
 	
 	/** logging level */
 	LogLevelT LogLevel(void) const { return fLogLevel; };
 
 	/** (re-)set logging level */
 	void SetLogLevel(LogLevelT log_level) { fLogLevel = log_level; };
+
+	/** return elapsed time */
+	static double Time(void);
 	/*@}*/
 	
 	/** maximum over single integers returned to all */

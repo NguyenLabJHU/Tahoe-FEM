@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.cpp,v 1.14 2004-02-05 18:42:37 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.15 2004-03-16 05:35:51 paklein Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionT.h"
 #include <iostream.h>
@@ -159,6 +159,18 @@ void CommunicatorT::Log(LogLevelT priority, const char* caller, const char* fmt,
 		/* throw exception */
 		if (priority == kFail) ExceptionT::MPIFail(caller, message_buffer);
 	}
+}
+
+/* return elapsed time */
+double CommunicatorT::Time(void)
+{
+#ifdef __TAHOE_MPI__
+	return MPI_Wtime();
+#else
+	time_t t;
+	time(&t);
+	return double(t)/CLOCKS_PER_SEC;
+#endif
 }
 
 /* (re-)set the logging stream */
