@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.h,v 1.5.2.3 2001-06-19 21:00:20 hspark Exp $ */
+/* $Id: GaussianWindowT.h,v 1.5.2.4 2001-06-19 23:03:33 paklein Exp $ */
 
 #ifndef _GAUSSIAN_WINDOW_T_H_
 #define _GAUSSIAN_WINDOW_T_H_
@@ -17,7 +17,8 @@ class GaussianWindowT: public WindowT
   public:
 
 	/** constructor */
-	GaussianWindowT(double dilation_scaling, double sharpening_factor);
+	GaussianWindowT(double dilation_scaling, double sharpening_factor,
+		double cut_off_factor);
 	
 	/** window function name */
 	virtual const char* Name(void) const { return "Gaussian"; };
@@ -29,23 +30,23 @@ class GaussianWindowT: public WindowT
 	/** shared parameters
 	 * \return 1 since the function varies from node to node only
 	 * depending on the support radius. */
-	virtual int NumberOfNodalParameters(void) const { return 1; };
+	virtual int NumberOfSupportParameters(void) const { return 1; };
 
 	/** "synchronization" of nodal field parameters. 
 	 * Take "max" over both sets for each node
 	 * \params params_1 support size set 1
 	 * \params params_2 support size set 2 */
-	virtual void SynchronizeNodalParameters(dArray2DT& params_1, 
+	virtual void SynchronizeSupportParameters(dArray2DT& params_1, 
 		dArray2DT& params_2) const;
 
 	/** modify nodal shape function parameters */
-	virtual void ModifyNodalParameters(dArray2DT& nodal_params) const;
+	virtual void ModifySupportParameters(dArray2DT& nodal_params) const;
 	
 	/** write parameters to output stream */
 	virtual void WriteParameters(ostream& out) const;
 
 	/* single point evaluations */
-	virtual void Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
+	virtual bool Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
 		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw);
 
 	/* multiple point evaluations */
@@ -57,7 +58,7 @@ class GaussianWindowT: public WindowT
 	virtual bool Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT& param_n) const;
 
 	/* multiple points */
-	virtual void Covers(const dArray2DT& x_n, const dArrayT& x, 
+	virtual int Covers(const dArray2DT& x_n, const dArrayT& x, 
 		const dArray2DT& param_n, ArrayT<bool>& covers) const;
 	
   private:
@@ -65,6 +66,11 @@ class GaussianWindowT: public WindowT
   	/* window function adjustable parameters */
   	double fDilationScaling;
   	double fSharpeningFactor;
+  	double fCutOffFactor;
+  	
+	/* work space */
+	dArrayT     fNSD;
+	dSymMatrixT fNSDsym;
 };
 
 #endif /* _WINDOW_T_H_ */
