@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.9 2003-05-09 18:37:59 paklein Exp $ */
+/* $Id: EAMT.h,v 1.10 2003-05-23 17:28:43 saubry Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -81,12 +81,7 @@ private:
 
 	void GetRho2D(const dArray2DT& coords,dArray2DT& rho);
 	void GetRho3D(const dArray2DT& coords,dArray2DT& rho);
-
-	void GetRhoForce2D(const dArray2DT& coords,dArray2DT& rho);
-	void GetRhoForce3D(const dArray2DT& coords,dArray2DT& rho);
-
-	void GetRhoStiff2D(const dArray2DT& coords,dArray2DT& rho);
-	void GetRhoStiff3D(const dArray2DT& coords,dArray2DT& rho);
+	void GetRhop_r(const dArray2DT& coords,dArray2DT& rho);
 
 	void GetEmbEnergy(const dArray2DT& coords,const dArray2DT rho,
 			  dArray2DT& Emb);
@@ -95,6 +90,13 @@ private:
 
 	void GetEmbStiff(const dArray2DT& coords,const dArray2DT rho,
 			       dArray2DT& Emb);
+
+	void CheckDerivatives();
+	void CheckDiagonalStiffnesses();
+	void CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
+			      dArrayT& d3,dArrayT& d4,dArrayT& d5);
+
+	void GetNumRho3D(const dArray2DT& coords,dArray2DT& frho_i);
 
 	/** particle pair-properties list */
 	ArrayT<EAMPropertyT*> fEAMProperties;
@@ -110,16 +112,6 @@ private:
 	nVariArray2DT<double> fElectronDensity_man;
 	int fElectronDensityMessageID;
 
-	/** electron density force*/
-	dArray2DT fElectronDensityForce;
-	nVariArray2DT<double> fElectronDensityForce_man;
-	int fElectronDensityForceMessageID;
-
-	/** electron density stiffness*/
-	dArray2DT fElectronDensityStiff;
-	nVariArray2DT<double> fElectronDensityStiff_man;
-	int fElectronDensityStiffMessageID;
-
 	/** embedding energy */
 	dArray2DT fEmbeddingEnergy;
 	nVariArray2DT<double> fEmbeddingEnergy_man;
@@ -134,6 +126,35 @@ private:
 	dArray2DT fEmbeddingStiff;
 	nVariArray2DT<double> fEmbeddingStiff_man;
 	int fEmbeddingStiffMessageID;
+
+	/** rhop * r */
+	dArray2DT frhop_r;
+	nVariArray2DT<double> frhop_r_man;
+	int frhop_rMessageID;
+
+	/** Check Derivatives **/
+	/*@{*/
+	/** embedding force */
+	dArray2DT fEmbeddingForce_i;
+	nVariArray2DT<double> fEmbeddingForce_i_man;
+	int fEmbeddingForce_iMessageID;
+
+	dArray2DT fdFdx;
+	nVariArray2DT<double> fdFdx_man;
+	int fdFdxMessageID;
+
+	dArray2DT frho_i;
+	nVariArray2DT<double> frho_i_man;
+	int frho_iMessageID;
+
+	dArray2DT fEmb;
+	nVariArray2DT<double> fEmb_man;
+	int fEmbMessageID;
+
+	dArray2DT fEmb_i;
+	nVariArray2DT<double> fEmb_i_man;
+	int fEmb_iMessageID;
+	/*@}*/	
 
 
 	/** \name workspace for EAMT::RHSDriver. Used to accumulate the force for
