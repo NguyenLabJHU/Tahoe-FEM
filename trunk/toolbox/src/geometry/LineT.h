@@ -1,4 +1,4 @@
-/* $Id: LineT.h,v 1.5 2004-04-16 03:19:16 paklein Exp $ */
+/* $Id: LineT.h,v 1.6 2004-05-20 14:55:49 paklein Exp $ */
 /* created: paklein (04/25/1999) */
 #ifndef _LINE_T_H_
 #define _LINE_T_H_
@@ -59,6 +59,10 @@ public:
 	 * \param coords list of coordinates defining the domain
 	 * \param point test point coordinates */
 	virtual bool PointInDomain(const LocalArrayT& coords, const dArrayT& point) const;
+
+	/** return the integration point whose domain contains the given point in the
+	 * parent domain coordinates */
+	virtual int IPDomain(int nip, const dArrayT& coords) const;
 };
 
 } // namespace Tahoe 
