@@ -1,5 +1,5 @@
 %&LaTeX
-% $Id: tahoe.user.tex,v 1.4 2001-03-26 09:30:07 paklein Exp $
+% $Id: tahoe.user.tex,v 1.5 2001-04-10 01:57:49 paklein Exp $
 \documentclass[12pt]{article}
 %\documentclass[11pt,twoside]{article}
 \usepackage{amsmath}
@@ -10,7 +10,7 @@
 \usepackage{hhline}
 \usepackage{longtable}
 \usepackage{ulem}
-\usepackage{boldmath}
+%\usepackage{boldmath}
 \usepackage{graphicx}
 \usepackage{color}
 %\usepackage{overcite}
@@ -107,7 +107,7 @@
 %------------------------- format -----------------------
 
 %------------------ selective typesetting ---------------
-%\includeonly{\filepath{files}}
+%\includeonly{\filepath{ICandBC}}
 %\includeonly{\filepath{execution}}
 %------------------ selective typesetting ---------------
 
@@ -163,6 +163,7 @@ and bug reports to
 \pagestyle{fancy}
 \include{\filepath{introduction}}
 \include{\filepath{execution}}
+\include{\filepath{regression}}
 \include{\filepath{input}}
 \include{\filepath{analysis}}
 \include{\filepath{ICandBC}}
