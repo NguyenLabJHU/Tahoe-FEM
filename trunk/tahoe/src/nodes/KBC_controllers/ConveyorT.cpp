@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.1 2003-08-06 06:54:15 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.2 2003-08-08 16:33:55 paklein Exp $ */
 #include "ConveyorT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -6,6 +6,7 @@
 #include "LocalArrayT.h"
 #include "ElementBaseT.h"
 #include "KBC_PrescribedT.h"
+#include "ifstreamT.h"
 
 using namespace Tahoe;
 
