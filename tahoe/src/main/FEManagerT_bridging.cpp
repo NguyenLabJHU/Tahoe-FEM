@@ -1,18 +1,21 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.1.2.9 2003-02-15 02:41:05 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.1.2.10 2003-02-19 19:56:07 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #include "ModelManagerT.h"
 #include "NodeManagerT.h"
-#include "BridgingScaleT.h"
 #include "KBC_PrescribedT.h"
 #include "KBC_CardT.h"
 #include "ofstreamT.h"
 #include "NLSolver.h"
+
+#include "BridgingScaleT.h"
+#include "ParticleT.h"
 
 /* constructor */
 FEManagerT_bridging::FEManagerT_bridging(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
 	ifstreamT& bridging_input):
 	FEManagerT(input, output, comm),
 	fBridgingIn(bridging_input),
+	fParticle(NULL),
 	fBridgingScale(NULL),
 	fSolutionDriver(NULL)
 {
@@ -52,6 +55,11 @@ void FEManagerT_bridging::InitGhostNodes(void)
 	for (int j = 0; j < ndof; j++)
 		for (int i = 0; i < fGhostNodes.Length(); i++)
 			KBC_cards[dex++].SetValues(fGhostNodes[i], j, KBC_CardT::kDsp, 0, 0.0);
+	
+	/* reset neighbor lists */
+	ParticleT& particle = Particle();
+	particle.SetSkipParticles(fGhostNodes);
+	particle.SetConfiguration();
 	
 	/* reset the group equations numbers */
 	SetEquationSystem(the_field->Group());
@@ -220,6 +228,32 @@ void FEManagerT_bridging::SetReferenceError(int group, double error) const
 /*************************************************************************
  * Private
  *************************************************************************/
+
+/* the particle group */
+ParticleT& FEManagerT_bridging::Particle(void) const
+{
+	/* find bridging scale group */
+	if (!fParticle) {
+	
+		/* search through element groups */
+		for (int i = 0; !fParticle && i < fElementGroups.Length(); i++)
+		{
+			/* try cast */
+			ElementBaseT* element_base = fElementGroups[i];
+			
+			/* need non-const pointer to this */
+			FEManagerT_bridging* fe = (FEManagerT_bridging*) this;
+			fe->fParticle = dynamic_cast<ParticleT*>(element_base);
+		}
+		
+		/* not found */
+		if (!fParticle)
+			ExceptionT::GeneralFail("FEManagerT_bridging::Particle",
+				"did not find ParticleT group");
+	}
+	
+	return *fParticle;
+}
 
 /* the bridging scale element group */
 BridgingScaleT& FEManagerT_bridging::BridgingScale(void) const
