@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.17 2003-01-29 07:34:29 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.18 2003-03-19 00:53:25 cjkimme Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -483,7 +483,7 @@ void MeshFreeCSEAnisoT::WriteOutput(void)
 		
 					/* gap -> traction, in/out of local frame */
 					fQ.MultTx(delta, fdelta);
-					fQ.Multx(fSurfacePotential->Traction(fdelta, state, tensorIP), fT);
+					fQ.Multx(fSurfacePotential->Traction(fdelta, state, tensorIP, false), fT);
 
 					/* coordinates */
 					out << fMFSurfaceShape->IPCoords().no_wrap();
@@ -603,7 +603,7 @@ void MeshFreeCSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 			fddU_g.MultQBQT(fQ, K);
 			fddU_g *= j0*w*constK;
 		
-			const dArrayT& T = fSurfacePotential->Traction(fdelta, state,tensorIP);
+			const dArrayT& T = fSurfacePotential->Traction(fdelta, state, tensorIP, false);
 			fT.SetToScaled(j0*w*constK, T);
 
 			/* shape function table */
@@ -691,7 +691,7 @@ void MeshFreeCSEAnisoT::RHSDriver(void)
 				dArrayT tensorIP(3);	
 				/* gap -> traction, in/out of local frame */
 				fQ.MultTx(delta, fdelta);
-				fQ.Multx(fSurfacePotential->Traction(fdelta, state,tensorIP), fT);
+				fQ.Multx(fSurfacePotential->Traction(fdelta, state, tensorIP, true), fT);
 
 				/* expand */
 				fMFSurfaceShape->Grad_d().MultTx(fT, fNEEvec);

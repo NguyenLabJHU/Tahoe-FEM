@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.37 2003-02-21 22:32:20 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.38 2003-03-19 00:53:25 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -32,6 +32,7 @@
 
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
 #include "InelasticDuctile2DT.h"
+#include "MR2DT.h"
 #endif
 
 #include "TvergHutch3DT.h"
@@ -49,7 +50,8 @@ CSEAnisoT::CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool r
 	fQ(NumSD()),
 	fdelta(NumSD()),
 	fT(NumSD()),
-	fddU(NumSD())
+	fddU(NumSD()),
+	fRunState(support.RunState())
 {
 	/* reset format for the element stiffness matrix */
 	if (fRotate) fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
@@ -264,6 +266,18 @@ void CSEAnisoT::Initialize(void)
 				ExceptionT::BadInputValue(caller, "COHESIVE_SURFACE_ELEMENT_DEV not enabled: %d", code);
 #endif
 			}
+			case SurfacePotentialT::kMR:
+			{
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
+				if (NumDOF() == 2)
+					fSurfPots[num] = new MR2DT(in);
+				else
+					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "COHESIVE_SURFACE_ELEMENT_DEV not enabled: %d", code);
+#endif
+			}
 			default:
 #ifndef _SIERRA_TEST_
 				cout << "\n CSEAnisoT::Initialize: unknown potential code: " << code << endl;
@@ -363,6 +377,7 @@ void CSEAnisoT::Initialize(void)
 	fStateVariables_last = fStateVariables;
 	/* For SIERRA, don't do anything. Wait until InitStep. */
 #endif
+
 }
 
 #ifdef _SIERRA_TEST_	
@@ -521,7 +536,8 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 #endif
 
 		/* loop over integration points */
-		double* pstate = fStateVariables_last(CurrElementNumber());
+//		double* pstate = fStateVariables_last(CurrElementNumber());
+		double* pstate = fStateVariables(CurrElementNumber());
 		fShapes->TopIP();
 		while (fShapes->NextIP())
 		{  
@@ -560,12 +576,11 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 			}
 			
 			/* set a flag to tell traction and stiffness that the node is free */
-			if (nodalReleaseQ && fabs(state[0]) < kSmall)
-			{
-				state[0] = -10.;
-			}
+		//	if (nodalReleaseQ && fabs(state[0]) < kSmall)
+			//{
+				//state[0] = -10.;
+			//}
 
-			
 			/* stiffness in local frame */
 			const dMatrixT& K = surfpot->Stiffness(fdelta, state, tensorIP);
 			
@@ -574,7 +589,7 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 			{
 				/* traction in local frame */
 				state2 = state;
-				const dArrayT& T = surfpot->Traction(fdelta, state2, tensorIP);
+				const dArrayT& T = surfpot->Traction(fdelta, state2, tensorIP, false);
 
 				/* 1st term */
 				fT.SetToScaled(j0*w*constK, T);
@@ -590,7 +605,7 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 				fNEEmat.MultATB(fnsd_nee_2, fnsd_nee_1);
 				fLHS += fNEEmat;
 			}
-
+			
 			/* 3rd term */
 			fddU.MultQBQT(fQ, K);
 			fddU *= j0*w*constK;
@@ -772,7 +787,7 @@ void CSEAnisoT::RHSDriver(void)
 				}
 
 				/* traction vector in/out of local frame */
-				fQ.Multx(surfpot->Traction(fdelta, state,tensorIP), fT);
+				fQ.Multx(surfpot->Traction(fdelta, state, tensorIP, true), fT);
 				
 				/* expand */
 				fShapes->Grad_d().MultTx(fT, fNEEvec);
@@ -998,7 +1013,8 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			fShapes->TopIP();
 			while (fShapes->NextIP())
 			{
-				double* pstate = fStateVariables_last(CurrElementNumber()) + 
+//				double* pstate = fStateVariables_last(CurrElementNumber()) + 
+				double* pstate = fStateVariables(CurrElementNumber()) + 
 					fShapes->CurrIP()*num_state;
 			
 				/* element integration weight */
@@ -1017,10 +1033,10 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					fShapes->Extrapolate(fdelta, jump);
 					
 				/* set a flag to tell traction and stiffness that the node is free */
-				if (nodalReleaseQ && fabs(state[0]) < kSmall)
-				{
-					state[0] = -10.;
-				}
+			//	if (nodalReleaseQ && fabs(pstate[0]) < kSmall)
+				//{
+				//	pstate[0] = -10.;
+				//}
 	     
 				/* traction */
 				if (n_codes[NodalTraction] || e_codes[Traction])
@@ -1036,7 +1052,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					}
 						
 					/* compute traction in local frame */
-					const dArrayT& tract = surfpot->Traction(fdelta,state,tensorIP);
+					const dArrayT& tract = surfpot->Traction(fdelta, state, tensorIP, false);
 				       
 					/* project to nodes */
 					if (n_codes[NodalTraction])

@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.18 2003-03-06 23:40:28 manzari Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.19 2003-03-19 00:53:27 cjkimme Exp $ */
 /* created: paklein (06/20/1999) */
 
 #ifndef _SURFACE_POTENTIAL_T_H_
@@ -70,7 +70,7 @@ public:
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump, ArrayT<double>& state, const dArrayT& sigma) = 0;
+	virtual const dArrayT& Traction(const dArrayT& jump, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate) = 0;
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump, const ArrayT<double>& state, const dArrayT& sigma) = 0;
@@ -101,8 +101,6 @@ public:
 at the nodes. Returns false by default. */
 	virtual bool NeedsNodalInfo(void);
 	virtual int NodalQuantityNeeded(void);
-//	virtual double ComputeNodalValue(const dArrayT &); 
-//      virtual void UpdateStateVariables(const dArrayT & IPdata, ArrayT<double> &);
 	virtual int ElementGroupNeeded(void);
 
 	/** returns true if two materials have compatible nodal outputs */
