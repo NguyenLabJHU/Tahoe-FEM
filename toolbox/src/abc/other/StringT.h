@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.6 2001-06-11 01:57:47 paklein Exp $ */
+/* $Id: StringT.h,v 1.7 2001-06-11 02:00:12 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #ifndef _STRING_T_H_
@@ -110,15 +110,6 @@ public:
 	/** drop leading white space */
 	StringT& DropLeadingSpace(void);
 	StringT& DropTrailingSpace(void);
-	
-#if 0
-	/** return a string with the extension and suffix tacked into
-	 * the root of this. The default extension for this is ".in" */
-	StringT& DefaultName(const StringT& sourcename);
-	StringT& DefaultName(const StringT& sourcename, const char* extout, int suffix = -1);
-	StringT& DefaultName(const StringT& sourcename, const char* extint, const char* extout,
-		int suffix);
-#endif
 
 	/** convert string to native, relative file path */
 	void ToNativePathName(void);
@@ -189,20 +180,6 @@ inline int StringT::operator!=(const StringT& rhs) const
 
 /* string length */
 inline int StringT::StringLength(void) const { return strlen(*this); }
-
-#if 0
-/* redirects */
-inline StringT& StringT::DefaultName(const StringT& sourcename)
-{
-	return DefaultName(sourcename, ".in", ".out", -1);
-}
-
-inline StringT& StringT::DefaultName(const StringT& sourcename,
-	const char* extout, int suffix)
-{
-	return DefaultName(sourcename, ".in", extout, suffix);
-}
-#endif
 
 inline char StringT::DirectorySeparator(void)
 {

@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.8 2001-06-11 01:57:47 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.9 2001-06-11 02:00:12 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #include "StringT.h"
@@ -618,46 +618,6 @@ StringT& StringT::DropTrailingSpace(void)
 	if (dex != length - 1) str[dex + 1] = '\0';
 	return *this;
 }
-
-#if 0
-/* return a string with the extension and suffix tacked into
-* the root of this.  The default extension for this is ".in" */
-StringT& StringT::DefaultName(const StringT& sourcename, const char* extint,
-	const char* extout, int suffix)
-{
-	char* source = sourcename.Pointer();
-	char  defname[kLineLength];
-	
-	char  num[]     = "01234567890123456789";
-	char  teststr[] = "01234567890123456789";
-	
-	int lext  = strlen(extint);
-	int lroot = strlen(source) - lext;
-
-	strncpy(teststr, &source[lroot], lext+1);
-	
-	if ( strcmp(extint,teststr) == 0 )
-	{
-		strncpy(defname, source, lroot);
-		defname[lroot] = '\0';
-	}
-	else
-		strcpy(defname, source);
-	
-	strcat(defname,extout);
-	
-	if (suffix > -1)
-	{
-		IntegerToString(suffix,num);
-		strcat(defname, num);
-	}
-	
-	/* drop in the result */
-	operator=(defname);
-	
-	return *this;
-}
-#endif
 
 /* convert string to native, relative file path */
 void StringT::ToNativePathName(void)
