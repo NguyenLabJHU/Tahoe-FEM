@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BaseT.cpp,v 1.2 2004-01-05 07:23:55 paklein Exp $ */
+/* $Id: ABAQUS_BaseT.cpp,v 1.3 2004-01-05 08:11:26 paklein Exp $ */
 #include "ABAQUS_BaseT.h"
 
 #ifdef __F2C__
@@ -43,7 +43,7 @@ void ABAQUS_BaseT::dMatrixT_to_ABAQUS(const dMatrixT& A,
 	else
 	{
 		doublereal* pB = B.Pointer();
-		double* pA = A.Pointer();
+		const double* pA = A.Pointer();
 		*pB++ = doublereal(*pA++);
 		*pB++ = doublereal(*pA++);
 		*pB++ = doublereal(*pA++);
@@ -82,7 +82,7 @@ void ABAQUS_BaseT::dSymMatrixT_to_ABAQUS(const dSymMatrixT& A,
 	doublereal* pB, bool convert_shear) const
 {
 	doublereal shear_factor = (convert_shear) ? 2.0 : 1.0;
-	double* pA = A.Pointer();
+	const double* pA = A.Pointer();
 	if (A.Rows() == 2)
 	{
 		*pB++ = doublereal(pA[0]); // 11
