@@ -28,10 +28,10 @@
                     <nonlinear_diffusion_material conductivity="1.0"
                         density="1.0" specific_heat="1.0">
                         <conductivity_function>
-                            <linear_function intercept="1.0" slope="0.0"/>
+                            <linear_function a="0.0" b="1.0"/>
                         </conductivity_function>
                         <specificheat_function>
-                            <linear_function intercept="1.0" slope="0.0"/>
+                            <linear_function a="0.0" b="1.0"/>
                         </specificheat_function>
                     </nonlinear_diffusion_material>
                 </diffusion_material>
