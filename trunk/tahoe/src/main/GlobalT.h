@@ -1,4 +1,4 @@
-/* $Id: GlobalT.h,v 1.4 2001-12-17 00:13:00 paklein Exp $ */
+/* $Id: GlobalT.h,v 1.5 2002-01-22 02:14:22 paklein Exp $ */
 /* created: paklein (02/03/1999) */
 
 #ifndef _GLOBAL_T_H_
@@ -22,7 +22,8 @@ public:
 		  kLinExpDynamic = 6,
 		   kNLExpDynamic = 7,
 		  kLinStaticHeat = 19, /**< linear static heat conduction */
-		   kLinTransHeat = 20  /**< linear transient heat conduction */
+		   kLinTransHeat = 20, /**< linear transient heat conduction */
+		            kPML = 30  /**< perfectly matched layer formulation */
 		   };
 		
 	/** stream extraction operator */

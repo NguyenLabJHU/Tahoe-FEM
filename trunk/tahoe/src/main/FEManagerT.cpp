@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.23 2002-01-09 12:04:36 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.24 2002-01-22 02:14:22 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -261,7 +261,8 @@ void FEManagerT::HandleException(int exception)
 			if (fAnalysisCode == GlobalT::kLinExpDynamic   ||
 			    fAnalysisCode == GlobalT::kNLExpDynamic    ||
 			    fAnalysisCode == GlobalT::kVarNodeNLExpDyn ||
-			    fAnalysisCode == GlobalT::kNLExpDynKfield)
+			    fAnalysisCode == GlobalT::kNLExpDynKfield  ||
+			    fAnalysisCode == GlobalT::kPML)
 			{
 				cout << " FEManagerT::HandleException: no adaptive step for analysis code "
 				     << fAnalysisCode << endl;
@@ -859,6 +860,7 @@ void FEManagerT::WriteParameters(void) const
 	fMainOut << "    eq. " << GlobalT::kDR              << ", dynamic relaxation\n";   	
 	fMainOut << "    eq. " << GlobalT::kLinExpDynamic   << ", linear explicit dynamic\n";   	
 	fMainOut << "    eq. " << GlobalT::kNLExpDynamic    << ", nonlinear explicit dynamic\n";   	
+	fMainOut << "    eq. " << GlobalT::kPML             << ", perfectly matched layer (PML)\n";   	
 
 	fModelManager->EchoData (fMainOut);
 	IOBaseT temp (fMainOut);
@@ -895,6 +897,7 @@ void FEManagerT::SetNodeManager(void)
 			break;
 		case GlobalT::kLinDynamic:
 		case GlobalT::kLinExpDynamic:
+		case GlobalT::kPML:
 			fNodeManager = new DynNodeManager(*this);
 			break;
 		case GlobalT::kNLDynamic:
@@ -964,7 +967,8 @@ void FEManagerT::SetSolver(void)
 		case GlobalT::kNLExpDynKfield:
 		case GlobalT::kLinStaticHeat:
 		case GlobalT::kLinTransHeat:
-
+		case GlobalT::kPML:
+		
 			fSolutionDriver = new LinearSolver(*this);
 			break;
 
@@ -1122,6 +1126,7 @@ void FEManagerT::SetController(void)
 		case GlobalT::kNLExpDynamic:
 		case GlobalT::kVarNodeNLExpDyn:
 		case GlobalT::kNLExpDynKfield:
+		case GlobalT::kPML:
 		{
 			fController = new ExplicitCDController(fMainOut);
 			break;
