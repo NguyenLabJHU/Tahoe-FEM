@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.22 2002-09-12 17:46:46 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.23 2002-09-18 01:33:54 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 #include "IOManager_mpi.h"
 
@@ -135,13 +135,17 @@ IO_ID = i;
 					connects.Pointer(), elem_count.Pointer(), displ.Pointer(), MPI_INT,
 					fComm.Rank(), fComm) != MPI_SUCCESS) throw eMPIFail;
 
-//cout << fComm.Rank() << ": incoming:\n" << connects.wrap(5) << endl;			
+//cout << fComm.Rank() << ": incoming:\n" << connects.wrap(5) << endl;
+
+				/* generate dummy block ID for "connectivities" of free set nodes */
+				StringT dummy_ID = "900"; /* NOTE: same convention used in JoinOutputT::SetOutput */
+				dummy_ID.Append(set.ID());
 					
 				/* add connectivities to the output model manager */
-				fOutputGeometry->RegisterElementGroup(set.ID(), connects, set.Geometry(), true);
+				fOutputGeometry->RegisterElementGroup(dummy_ID, connects, set.Geometry(), true);
 									
 				/* construct output set */
-				OutputSetT global_set(set.Geometry(), fOutputGeometry->ElementGroup(set.ID()), 
+				OutputSetT global_set(set.Geometry(), fOutputGeometry->ElementGroup(dummy_ID), 
 					set.NodeOutputLabels());
 
 //cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: num nodes: " << global_set.NumNodes() << endl;
