@@ -1,0 +1,69 @@
+#!/bin/csh
+# $Id: parallel.csh.template,v 1.2 2002-03-22 17:29:06 paklein Exp $
+# 
+# template for running the parallel benchmarks - this script only runs
+# the benchmarks and verifies them with the comparator. It does not
+# update any files or executables.
+#
+
+# username on Tahoe server
+set TAHOE_USER =
+
+# directory containing working copies of the tahoe modules
+set W_DIR =
+
+# host name - used only for subject line of test report
+set HOST =
+
+# MPI stuff
+set MPI_EXE      = ${W_DIR}/tahoe/tahoe 
+set MPI_LAUNCH   = 'mpirun -np 4 '
+set MPI_TEST_DIR = ${W_DIR}/benchmark/level.3/parallel
+
+# need an echo that handles escape characters \n
+set ECHO = 'echo'
+
+######### hopefully no changes will be required below #########
+
+# set path
+set path=(${W_DIR}/benchmark/scripts /bin /usr/bin /usr/local/bin /usr/ccs/bin /usr/sbin /usr/local/ssh /usr/ucb /etc /usr/openwin/bin /project/local/bin $path)
+
+# CVS
+setenv CVSROOT ${TAHOE_USER}@tahoe.ca.sandia.gov:/usr/local/cvsrep
+setenv CVS_RSH ssh
+
+# update and run regression tests
+if (-e ${MPI_EXE} && -e ${W_DIR}/benchmark/comparator/compare) then
+    ${ECHO}  "running BENCHMARKs"
+    cd ${MPI_TEST_DIR}; \
+	make -s clean; \
+	${MPI_LAUNCH} ${MPI_EXE} -f run.batch >&! test.stdout
+    ${ECHO}  "running COMPARATOR"
+    cd ${MPI_TEST_DIR}; \
+    rm compare.summary compare.console; \
+    ${W_DIR}/benchmark/comparator/compare -f run.batch >&! compare.console
+    if(! -e ${MPI_TEST_DIR}/compare.summary) then
+#       test/s failed - did not complete
+	${ECHO} "BENCHMARKs failed"
+		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}\nTAHOE regression FAIL:" `date` > ${W_DIR}/benchmark/tmp_para
+		cat ${W_DIR}/benchmark/tmp_para ${W_DIR}/benchmark/compare.console > ${W_DIR}/benchmark/tmp_para_mail
+    else if(`grep -c "FAIL" ${MPI_TEST_DIR}/compare.summary` ) then
+#       test/s failed
+	${ECHO} "BENCHMARKs failed"
+		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}\nTAHOE regression FAIL:" `date` > ${W_DIR}/benchmark/tmp_para
+		cat ${W_DIR}/benchmark/tmp_para ${MPI_TEST_DIR}/compare.summary > ${W_DIR}/benchmark/tmp_para_mail
+    else
+	${ECHO} "BENCHMARKs passed"
+		${ECHO} "Subject: TAHOE: regression PASS ${HOST}\nTAHOE regression PASS:" `date` > ${W_DIR}/benchmark/tmp_para
+		cat ${W_DIR}/benchmark/tmp_para ${MPI_TEST_DIR}/compare.summary > ${W_DIR}/benchmark/tmp_para_mail
+	endif
+else
+#       make failed
+		${ECHO} "Subject: TAHOE: build FAIL ${HOST}\nTAHOE build FAIL:" `date` >
+		${W_DIR}/benchmark/tmp_para
+		cat ${W_DIR}/benchmark/tmp_para ${W_DIR}/make.stderr > ${W_DIR}/benchmark/tmp_para_mail
+endif
+
+# send it
+scp ${W_DIR}/benchmark/tmp_para_mail ${TAHOE_USER}@tahoe.ca.sandia.gov:/home/paklein/admin/distribute/mail.${HOST}
+
