@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.11 2003-09-24 21:43:15 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.12 2003-09-25 01:21:10 paklein Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -290,7 +290,7 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
 		
 			/* dimension */ 
 			fEqnos[i].Dimension(nel, nen*(ndof_displ + ndof_plast));
-			iArray2DT displ_eq(nel, nen*ndof_plast);
+			iArray2DT displ_eq(nel, nen*ndof_displ);
 			iArray2DT plast_eq(nel, nen*ndof_plast);
 			
 			/* get equation numbers */
