@@ -1,4 +1,4 @@
-/* $Id: MakeCrystalT.cpp,v 1.1.1.1 2002-02-28 02:13:08 jzimmer Exp $ */
+/* $Id: MakeCrystalT.cpp,v 1.2 2002-03-06 01:55:43 jzimmer Exp $ */
 #include "MakeCrystalT.h"
 
 #include <iostream>
@@ -7,9 +7,12 @@
 #include "ifstreamT.h"
 #include "ExceptionCodes.h"
 #include "VolumeT.h"
+#include "BoxT.h"
+#include "CrystalLatticeT.h"
+#include "FCCT.h"
 
 void MakeCrystalT::Run() {
-	cout << "Name of input file?" < "\n";
+	cout << "Name of input file?" << "\n";
 	StringT inputfile;
 	cin >> inputfile;
 
@@ -44,10 +47,30 @@ void MakeCrystalT::Run() {
 	  throw eBadInputValue;
 	}
 
-	pv1->DefineBoundary(in);
+	pv1->SetSize(in);
+
+	StringT latticetype;
+
+	in >> latticetype;
+
+	CrystalLatticeT* pl1;
+
+	if (latticetype=="FCC") {
+		pl1 = new FCCT;
+	}
+	else {
+		throw eBadInputValue;
+	}	
+
+	pl1->SetBasis();
+	pl1->SetLatticeParameters(in);
+	pl1->CalculateDensity();
+
+	pv1->DefineBoundary(pl1);
 	pv1->CalculateVolume();
         cout << "Volume equals " << pv1->GetVolume() << " cubic angstroms" << endl;
-	pv1->FillVolume();
+
+	pv1->FillVolume(pl1);
 	pv1->WriteFile();
 
 
