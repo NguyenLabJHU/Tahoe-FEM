@@ -1,4 +1,4 @@
-/* $Id: AztecBaseT.cpp,v 1.6 2003-02-28 02:07:17 paklein Exp $ */
+/* $Id: AztecBaseT.cpp,v 1.7 2003-02-28 02:18:13 paklein Exp $ */
 /* created: paklein (07/28/1998) */
 
 #include "AztecBaseT.h"
@@ -16,6 +16,7 @@
 #include "toolboxConstants.h"
 #include "az_aztec.h"
 #include "CommunicatorT.h"
+#include "ArrayT.h"
 
 using namespace Tahoe;
 
