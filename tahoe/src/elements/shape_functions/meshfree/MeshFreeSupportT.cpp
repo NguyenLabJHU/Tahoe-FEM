@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.5 2001-07-03 01:35:50 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.6 2001-07-06 18:58:25 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -254,7 +254,8 @@ void MeshFreeSupportT::SetNeighborData(void)
 
 	/* data and element integration point shape functions */
 	cout << " MeshFreeSupportT::SetNeighborData: setting integration point data" << endl;
-	SetElementNeighborData(fConnects);
+//	SetElementNeighborData(fConnects);
+	SetElementNeighborData_2(fConnects);
 }
 
 /* specify nodes/cells to skip when doing MLS calculations */
@@ -1049,6 +1050,139 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 	/* copy data in */
 	for (int j = 0; j < numelems; j++)
 		feNeighborData.SetRow(j, (*pthis)(j));
+		
+	/* space element calculation */
+	int maxsize = feNeighborData.MaxMinorDim();
+	felShapespace.Allocate(nip*maxsize*(1 + nsd));
+}
+
+/* generate lists of all nodes that fall within Dmax of the
+* element integration points */
+void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
+{
+	/* dimensions */
+	int numelems = connects.MajorDim();
+	int nen      = connects.MinorDim();
+	int nsd      = fCoords.MinorDim();
+	int nip      = fDomain.NumIP();
+	
+	/* initialize neighbor counts */
+	feNeighborCount.Allocate(numelems);
+	feNeighborCount = 0;
+
+	/* work space */
+	iArrayT allocator;
+	ArrayT<int*> pointers(numelems);
+	pointers = NULL;
+
+	/* domain coords */
+	iArrayT     elementnodes;
+	LocalArrayT loccoords(LocalArrayT::kUnspecified, nen, nsd);
+	loccoords.SetGlobal(fCoords);
+
+	/* integration point coordinate tables */	
+	dArray2DT x_ip_table(nip, nsd);
+	dArrayT   x_ip, x_node, nodal_params;
+
+	/* "big" system */
+	const int big = 25000;
+	bool big_system = numelems >= big;
+	if (big_system)
+		cout << setw(2*kIntWidth) << "count"
+		     << setw(kIntWidth) << "min"
+		     << setw(kIntWidth) << "max"
+		     << setw(kDoubleWidth) << "avg" << endl;
+	int max_count = -1, min_count = -1, sum_count = 0;
+
+	/* loop over elements */
+	AutoArrayT<int> nodeset;
+	iArrayT neighbors;
+	for (int i = 0; i < numelems; i++)
+	{
+		/* "big" system */
+		if (big_system && fmod(i + 1, big) == 0)
+		{
+			cout << setw(2*kIntWidth) << i + 1
+			     << setw(kIntWidth) << min_count
+			     << setw(kIntWidth) << max_count
+			     << setw(kDoubleWidth) << double(sum_count)/big <<endl;
+
+			/* reset */
+			max_count = -1, min_count = -1, sum_count = 0;
+		}
+
+		/* connectivity */
+		int* pelem = connects(i);
+		
+		/* integration point coordinates */
+		fConnects.RowAlias(i, elementnodes);
+		loccoords.SetLocal(elementnodes);
+		fDomain.Interpolate(loccoords, x_ip_table);
+	
+		/* collect unique list of neighboring nodes */
+		nodeset.Allocate(0);
+		for (int j = 0; j < nen; j++)
+		{
+			int node = pelem[j];
+		
+			/* fetch nodal neighors */
+			fnNeighborData.RowAlias(node, neighbors);
+			
+			/* add to element list */
+			for (int n = 0; n < neighbors.Length(); n++)
+			{
+				int neigh = neighbors[n];
+			
+				if (!nodeset.HasValue(neigh))
+				{
+					/* fetch nodal coords */
+					fCoords.RowAlias(neigh, x_node);
+				
+					/* loop over integration points */
+					int hit = 0;
+					for (int k = 0; k < nip && !hit; k++)
+					{
+						/* fetch ip coordinates */
+						x_ip_table.RowAlias(k, x_ip);
+						if (Covers(x_ip, x_node, neigh)) hit = 1;
+					}
+				
+					/* within the neighborhood */	
+					if (hit) nodeset.Append(neigh);
+				}
+			}
+		}
+		int setlength = nodeset.Length();
+
+		/* statistics for "big" systems */
+		if (big_system)
+		{
+			if (max_count == -1 || setlength > max_count)
+				max_count = setlength;			
+			if (min_count == -1 || setlength < min_count)
+				min_count = setlength;
+			sum_count += setlength;
+		}
+		
+		/* store count */
+		feNeighborCount[i] = setlength;
+
+		/* store neighbors */
+		allocator.Allocate(setlength);
+		nodeset.CopyInto(allocator);
+		allocator.ReleasePointer(pointers.Pointer(i));
+	}
+
+	/* configure element neighbor data */
+	feNeighborData.Configure(feNeighborCount);
+
+	/* copy data in */
+	for (int j = 0; j < numelems; j++)
+		feNeighborData.SetRow(j, pointers[j]);
+		
+	/* free all temp space */
+	for (int k = 0; k < numelems; k++)
+		delete[] pointers[k];
 		
 	/* space element calculation */
 	int maxsize = feNeighborData.MaxMinorDim();

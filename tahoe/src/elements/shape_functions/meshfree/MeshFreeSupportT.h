@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.h,v 1.3 2001-07-03 01:35:50 paklein Exp $ */
+/* $Id: MeshFreeSupportT.h,v 1.4 2001-07-06 18:58:25 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #ifndef _MF_SUPPORT_T_H_
@@ -128,6 +128,7 @@ protected:
 	/* generate lists of all nodes that fall within Dmax of the
 	 * element integration points */
 	void SetElementNeighborData(const iArray2DT& connects);
+	void SetElementNeighborData_2(const iArray2DT& connects);
 
 	/* compute all nodal shape functions and derivatives */
 	virtual void SetNodalShapeFunctions(void);
