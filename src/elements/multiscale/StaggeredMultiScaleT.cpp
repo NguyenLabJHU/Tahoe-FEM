@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.9 2002-12-04 22:54:27 creigh Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.10 2002-12-05 22:12:09 creigh Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -44,7 +44,6 @@ StaggeredMultiScaleT::StaggeredMultiScaleT(const ElementSupportT& support,
 	in >> fGeometryCode; //TEMP - should actually come from the geometry database
 	in >> fNumIP;
 
-	cout << "############### In Constructor ############### \n";
 	/* allocate the global stack object (once) */
 	extern FEA_StackT* fStack;
 	if (!fStack) fStack = new FEA_StackT;
@@ -81,8 +80,6 @@ void StaggeredMultiScaleT::Initialize(void)
 	int n_df = NumDOF(); 
 	int n_en = NumElementNodes();
 	int n_en_x_n_df = n_en*n_df;
-
-	cout << "############### In Initialize ############### \n";
 
 	/* set local arrays for coarse scale */
 	ub.Dimension (n_en, n_df);
@@ -162,7 +159,7 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 	//cout << "############### In RHS Driver ############### \n";
 
 	/** Time Step Increment */
-	double delta_t = 0.1;
+	double delta_t = 0.01;
 	iArrayT fine_eq;
 
 	/* loop over elements */
@@ -174,9 +171,6 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 		e++;
 		SetLocalU (ua);			 SetLocalU (ua_n);
 		SetLocalU (ub);			 SetLocalU (ub_n);
-
-		//cout << "ua = \n" << ua << "\n\n";
-		//cout << "ub = \n" << ub << "\n\n";
 
 		del_ua.DiffOf (ua, ua_n);
 		del_ub.DiffOf (ub, ub_n);
@@ -200,24 +194,27 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 
 		VMS_VariableT np1(	fGRAD_ua, 	fGRAD_ub 	 ); // Many variables at time-step n+1
 		VMS_VariableT   n(	fGRAD_ua_n, fGRAD_ub_n );	// Many variables at time-step n
-		cout << "############## In RHS Driver: {np1,n} BOTH DONE for Elmt number = "<<e<<" ############### \n";
 		
 		/* which field */
 		if (curr_group == fCoarse.Group())  // <-- ub (obtained by a rearranged Equation I)
 		{
-		cout << "|||||||||||||||||| COARSE ||||||||||||||||| \n";
-
 			/** Compute N-R matrix equations */
 			fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, FEA::kBackward_Euler );
-		cout << " >>> COARSE <<<< \n";
 			fEquation_I -> Form_LHS_Ka_Kb ( fKa_I, fKb_I );
 			fEquation_I -> Form_RHS_F_int ( fFint_I );
+
+#if 0	// Debugging Code
+			cout << "|||||||||||||||||| COARSE ||||||||||||||||| Elmt number = "<<e<<"\n";
 
 			if (e==1) {
 				cout << "  fKa_I = \n" << fKa_I << "\n\n";
 				cout << "  fKb_I = \n" << fKb_I << "\n\n";
 				cout << "  fFint_I = \n" << fFint_I << "\n\n";
 			}
+			cout << "ua = \n" << ua << "\n\n";
+			cout << "ub = \n" << ub << "\n\n";
+
+#endif
 
 			/** Set coarse LHS */
 			fLHS = fKb_I;
@@ -226,8 +223,6 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 			fKa_I.Multx ( del_ua_vec, fRHS );
 			fRHS += fFint_I; 
 			fRHS *= -1.0; 
-		
-		//cout << "############### In RHS Driver 2 ############### \n";
 
 			/* add to global equations */
 			ElementSupport().AssembleLHS	( fCoarse.Group(), fLHS, CurrentElement().Equations() );
@@ -235,18 +230,21 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 		}
 		else if (curr_group == fFine.Group())	// <-- ua (obtained by a rearranged Equation II)
 		{
-		cout << "------------------ FINE ----------------- \n";
 
 			/** Compute N-R matrix equations */
 			fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, delta_t, FEA::kBackward_Euler );
 			fEquation_II -> Form_LHS_Ka_Kb ( fKa_II, 	fKb_II );
 			fEquation_II -> Form_RHS_F_int ( fFint_II );
 
+#if 0	// Debugging Code
+			cout << ".................. FINE ................. Elmt number = "<<e<<"\n";
+
 			if (e==1) {
 				cout << "  fKa_II = \n" << fKa_II << "\n\n";
 				cout << "  fKb_II = \n" << fKb_II << "\n\n";
 				cout << "  fFint_II = \n" << fFint_II << "\n\n";
 			}
+#endif
 
 			/** Set LHS */
 			fLHS = fKa_II;	
@@ -258,8 +256,6 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 		
 			/* fine scale equation numbers */
 			fEqnos_fine.RowAlias ( CurrElementNumber(), fine_eq );
-		
-		//cout << "############### In RHS Driver 4 ############### \n";
 
 			/* add to global equations */
 			ElementSupport().AssembleLHS ( fFine.Group(), fLHS, fine_eq );
@@ -274,7 +270,7 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 void StaggeredMultiScaleT::LHSDriver(GlobalT::SystemTypeT)
 {
   /** Everything done in RHSDriver for efficiency */
-	cout << "############### In LHS Driver ############### \n";
+	//cout << "############### In LHS Driver ############### \n";
 
 }
 
