@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.57 2003-08-08 00:48:34 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.58 2003-08-08 23:28:38 thao Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -93,6 +93,7 @@
 #include "UpdatedLagrangianMF.h"
 #include "SmallStrainMF.h"
 #include "SmallStrainMF2.h"
+#include "SmallStrainQ2P1.h"
 #endif
 
 using namespace Tahoe;
@@ -620,53 +621,63 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 #endif				
 		}
 		case ElementT::kFSMatForce:
-			{
+	        {
 #ifdef SOLID_ELEMENT_DEV
-				fArray[group] = new UpdatedLagrangianMF(fSupport, *field);
-				break;
+		        fArray[group] = new UpdatedLagrangianMF(fSupport, *field);
+			break;
 #else
-				ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
+			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
 #endif
-			}
-			case ElementT::kSSMatForce:
-			{
+		}
+		case ElementT::kSSMatForceD:
+		{
 #ifdef SOLID_ELEMENT_DEV
-				fArray[group] = new SmallStrainMF(fSupport, *field);
-				break;
+		  fArray[group] = new SmallStrainMF(fSupport, *field);
+		  break;
 #else
-				ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
+		  ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
 #endif
-			}
+		}
+		case ElementT::kSSMatForceS:
+		{
+#ifdef SOLID_ELEMENT_DEV
+		  fArray[group] = new SmallStrainMF2(fSupport, *field);
+		  break;
+#else
+		  ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
+#endif
+		}
+		case ElementT::kSmallStrainQ2P1:
+		{
+#ifdef SOLID_ELEMENT_DEV
+		  fArray[group] = new SmallStrainQ2P1(fSupport, *field);
+		  break;
+#else
+		  ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
+#endif
+		}
 		case ElementT::kDorganVoyiadjisMarin:
 		{
 #ifdef DORGAN_VOYIADJIS_MARIN_DEV
-			/* displacement field read above */
-			const FieldT* disp = field;
-
-			/* hardness field */				
-			StringT hardness_field_name;
-			in >> hardness_field_name;
-			const FieldT* hardness = fSupport.Field(hardness_field_name);
-			if (!disp || !hardness)
-				ExceptionT::BadInputValue(caller, "error resolving field names");
-
-			fArray[group] = new DorganVoyiadjisMarin(fSupport, *disp, *hardness);
-			break;
+		  /* displacement field read above */
+		  const FieldT* disp = field;
+		  
+		  /* hardness field */				
+		  StringT hardness_field_name;
+		  in >> hardness_field_name;
+		  const FieldT* hardness = fSupport.Field(hardness_field_name);
+		  if (!disp || !hardness)
+		    ExceptionT::BadInputValue(caller, "error resolving field names");
+		  
+		  fArray[group] = new DorganVoyiadjisMarin(fSupport, *disp, *hardness);
+		  break;
 #else
-			ExceptionT::BadInputValue(caller, "DORGAN_VOYIADJIS_MARIN_DEV not enabled: %d", code);
+		  ExceptionT::BadInputValue(caller, "DORGAN_VOYIADJIS_MARIN_DEV not enabled: %d", code);
 #endif			
-			}
-			case ElementT::kTest:
-			{
-#ifdef SOLID_ELEMENT_DEV
-				fArray[group] = new SmallStrainMF2(fSupport, *field);
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
-#endif
 		}
+
 		default:
-			ExceptionT::BadInputValue(caller, "unknown element type: %d", code);
+		  ExceptionT::BadInputValue(caller, "unknown element type: %d", code);
 		}
 		
 		if (!fArray[group]) ExceptionT::OutOfMemory();
