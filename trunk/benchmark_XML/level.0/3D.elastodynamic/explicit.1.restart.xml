@@ -20,9 +20,9 @@
             <kinematic_BC dof="3" node_ID="1"/>
             <force_BC dof="1" node_ID="2" schedule="1" value="-0.01"/>
         </field>
-        <history_node_ID>
+        <history_node_ID_list>
             <String value="1"/>
-        </history_node_ID>
+        </history_node_ID_list>
     </nodes>
     <element_list>
         <updated_lagrangian field_name="displacement" mass_type="lumped_mass">

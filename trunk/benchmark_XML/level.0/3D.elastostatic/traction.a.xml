@@ -19,11 +19,11 @@
             <kinematic_BC dof="2" node_ID="3"/>
             <kinematic_BC dof="1" node_ID="4"/>
         </field>
-        <history_node_ID>
+        <history_node_ID_list>
             <String value="1"/>
             <String value="3"/>
             <String value="4"/>
-        </history_node_ID>
+        </history_node_ID_list>
     </nodes>
     <element_list>
         <small_strain field_name="displacement">

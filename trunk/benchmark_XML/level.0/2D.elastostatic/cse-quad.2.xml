@@ -19,9 +19,9 @@
             <kinematic_BC dof="1" node_ID="1"/>
             <kinematic_BC dof="2" node_ID="1"/>
         </field>
-        <history_node_ID>
+        <history_node_ID_list>
             <String value="3"/>
-        </history_node_ID>
+        </history_node_ID_list>
     </nodes>
     <element_list>
         <updated_lagrangian field_name="displacement">
