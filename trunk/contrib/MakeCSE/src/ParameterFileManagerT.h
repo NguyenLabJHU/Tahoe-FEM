@@ -32,6 +32,7 @@ class ParameterFileManagerT : public MakeCSE_IOManager
   void ReadIDValues (ifstreamT& in, sArrayT& names) const; /**< generic read */
   void ReadID_Parameter (ifstreamT& in, sArrayT& names, iArrayT& params) const; /**< generic read */
   void CheckIDList (sArrayT& names, int numcols, int check) const;
+  void CheckIDList (sArrayT& names, iArrayT& itemp) const;
 
  private:
   const StringT fInFile;

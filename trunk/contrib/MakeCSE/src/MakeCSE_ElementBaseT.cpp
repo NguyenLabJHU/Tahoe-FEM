@@ -1,4 +1,4 @@
-// $Id: MakeCSE_ElementBaseT.cpp,v 1.6 2002-10-28 21:36:33 sawimme Exp $
+// $Id: MakeCSE_ElementBaseT.cpp,v 1.7 2002-10-29 21:38:02 sawimme Exp $
 // created: SAW 10/06/99
 #include "MakeCSE_ElementBaseT.h"
 
@@ -189,14 +189,14 @@ bool MakeCSE_ElementBaseT::CheckSideSet (const iArray2DT& sides) const
     {
       if (*s > elem || *s < 0) 
 	{
-	  cout << "MakeCSE_ElementBaseT::CheckSideSet: element out of range"
+	  cout << "MakeCSE_ElementBaseT::CheckSideSet: element out of range  "
 	       << *s << " " << elem << " " << fGroupID << endl;
 	  return false;
 	}
       s++;
       if (*s > face || *s < 0)
 	{
-	  cout << "MakeCSE_ElementBaseT::CheckSideSet: facet out of range"
+	  cout << "MakeCSE_ElementBaseT::CheckSideSet: facet out of range  "
 	       << *s << " " << face << " " << fGroupID << endl;
 	  return false;
 	}
@@ -365,21 +365,19 @@ void MakeCSE_ElementBaseT::ReadSideSetData (ModelManagerT& model, MakeCSE_IOMana
   /* read side sets */
   for (int i=0; i < Data.Length(); i++)
     {
-      StringT sid;
-      sid.Append (ids[i]);
-      const iArray2DT temp = model.SideSet (sid);
-      bool local = model.IsSideSetLocal (sid);
-      const StringT elgroupid = model.SideSetGroupID (sid);
-      if (local)
-	model.SideSetLocalToGlobal (elgroupid, temp, Data[i]);
-      else
+      const iArray2DT temp = model.SideSet (ids[i]);
+      bool local = model.IsSideSetLocal (ids[i]);
+      const StringT elgroupid = model.SideSetGroupID (ids[i]);
+      //if (local)
+      //model.SideSetLocalToGlobal (elgroupid, temp, Data[i]);
+      //else
 	Data[i] = temp;
       out << "    Side Set . . . . . . . . . . . . . . . . . . = " 
 	  << ids[i] << '\n';
       out << "     Number of Facets in Set . . . . . . . . . . = "
 	  << Data[i].MajorDim() << '\n'; 
       fSideSetID[i] = ids[i];
-    }
+     }
 }
 
 void MakeCSE_ElementBaseT::CheckAllSideSets (void)
@@ -388,7 +386,7 @@ void MakeCSE_ElementBaseT::CheckAllSideSets (void)
     {
       if (!CheckSideSet (fSideSetData[i]))
 	{
-	  cout << "MakeCSE_ElementBaseT::CheckAllSideSets, side set " << i
+	  cout << "MakeCSE_ElementBaseT::CheckAllSideSets, side set " << fSideSetID[i]
 	       << "\nfails CheckSideSet for element group id: " 
 	       << fGroupID << " " << NumElements() << " " << NumElemFaces() << endl;
 	  fSideSetData[i].WriteNumbered(cout);

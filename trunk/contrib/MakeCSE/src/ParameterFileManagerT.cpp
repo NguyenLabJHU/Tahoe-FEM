@@ -1,4 +1,4 @@
-// $Id: ParameterFileManagerT.cpp,v 1.4 2002-10-28 21:36:33 sawimme Exp $
+// $Id: ParameterFileManagerT.cpp,v 1.5 2002-10-29 21:38:02 sawimme Exp $
 #include "ParameterFileManagerT.h"
 #include "ExceptionT.h"
 #include "ifstreamT.h"
@@ -198,16 +198,14 @@ void ParameterFileManagerT::SplitBlocks (sArrayT& names, ArrayT<CSEConstants::Sp
   names.Free();
   iArrayT temp;
   ifstreamT in ('#', fInFile);
-  if (AdvanceTo (in, "*SPLITELEMENT"))
+  if (AdvanceTo (in, "*SPLITELEM"))
     ReadID_Parameter (in, names, temp);
+
+  CheckIDList (names, temp);
 
   meths.Dimension (temp.Length());
   for (int i=0; i < temp.Length(); i++)
     meths[i] = int2SplitMethodT (temp[i]);
-  
-  int numcols = 2;
-  int check = 0;
-  CheckIDList (names, numcols, check);
 }
 
 
@@ -304,4 +302,48 @@ void ParameterFileManagerT::CheckIDList (sArrayT& names, int numcols, int check)
   names.Free ();
   names.Dimension (t.Length());
   names.CopyPart (0, t, 0, t.Length());
+}
+
+void ParameterFileManagerT::CheckIDList (sArrayT& names, iArrayT& itemp) const
+{
+  //* are there any?
+  int numrows = names.Length();
+  bool found = false;
+  int stop;
+  for (int i=0; i < numrows && !found; i++)
+    if (names[i].Tail ('-', stop))
+      found = true;
+  if (!found) return;
+
+  AutoArrayT<StringT> t;
+  iAutoArrayT it2;
+  for (int k=0; k < numrows; k++)
+    {
+      if (names[k].Tail ('-', stop))
+	{
+	  int start = atoi (names[k]);
+	  for (int m=start; m < stop+1; m++)
+	    {
+	      // append name
+	      StringT n;
+	      n.Append (m);
+	      t.Append (n);
+
+	      // append parameter
+	      it2.Append (itemp[k]);
+	    }
+	}
+      else
+	{
+	  t.Append (names[k]);
+	  it2.Append (itemp[k]);
+	}
+    }
+  names.Free ();
+  names.Dimension (t.Length());
+  names.CopyPart (0, t, 0, t.Length());
+
+  itemp.Free ();
+  itemp.Dimension (it2.Length());
+  itemp.CopyPart (0, it2, 0, it2.Length());
 }

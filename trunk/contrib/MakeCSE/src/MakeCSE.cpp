@@ -188,9 +188,9 @@ void MakeCSE::CollectFacets (ModelManagerT& theInput, const sArrayT& facetdata)
       // which might differ depending on the order of element block storage
       const iArray2DT temp = theInput.SideSet (facetdata[i]);
       bool local = theInput.IsSideSetLocal (facetdata[i]);
-      if (local)
-	theInput.SideSetLocalToGlobal (facetdata[i], temp, set);
-      else
+      //if (local)
+      //theInput.SideSetLocalToGlobal (facetdata[i], temp, set);
+      //else
 	set = temp;
 
       // check set validity
@@ -365,72 +365,118 @@ void MakeCSE::CollectZones (ModelManagerT& model, MakeCSE_IOManager& theInput, c
 void MakeCSE::CollectBoundaries (const sArrayT& boundarydata)
 {
   cout << "\n Collecting Boundary Data . . ." << endl;
-  out << " Element Group Boundaries. . . . . . . . . . . . = "
-      << boundarydata.Length()/4 << '\n';
-  if (fPrintUpdate)
+
+  sArrayT groupids;
+  ArrayT<sArrayT> bordergroupids;
+  sArrayT csegroupids;
+  int num = SetBoundarySearch (boundarydata, groupids, bordergroupids, csegroupids);
+  out << " Element Group Boundaries. . . . . . . . . . . . = " << num << '\n';
+  if (num == 0)
     {
-      out << "       BlockID1       BlockID2       OutputID\n";
-      boundarydata.WriteWrapped (out, 3);
-      out << '\n';
+      cout << "  MakeCSE::CollectBoundaries, unsuccessful search \n\n";
+      throw ExceptionT::kBadInputValue;
     }
 
   iArray2DT set;
   int cs = theEdger->TotalElements();
-  iArray2DT groupsdone;
-  for (int i=0; i < boundarydata.Length(); i += 3)
-    {
-      const StringT& groupid = boundarydata[i];
-      const StringT& bordergroupid = boundarydata[i + 1];
-      int group = theEdger->ElementGroup (groupid);
-      int bordergroup = theEdger->ElementGroup (bordergroupid);
+  for (int i=0; i < groupids.Length(); i++)
+    if (bordergroupids[i].Length() > 0)
+      {
+	const StringT& groupid = groupids[i];
+	const sArrayT& bordergroupid = bordergroupids[i];
+	
+	int group = theEdger->ElementGroup (groupid);
+	int cselemgroup = theEdger->ElementGroup (csegroupids[i]) - theElements.Length();
+	
+	InitializeSet (group, cselemgroup);
+	theEdger->BoundaryFacets (groupid, bordergroupid, set);
+	
+	// skip if there are no shared facets
+	if (set.MajorDim() > 0)
+	  {
+	    if (fPrintUpdate)
+	      {
+		out << " Examining: ElGroup " << groupid << " shares borders with:\n";
+		bordergroupid.WriteWrapped (out, 10);
+		out << '\n';
+	      }
+	    
+	    // insert cse
+	    int *pelem = set.Pointer();
+	    int *pface = set.Pointer(1);
+	    AddElements (set.MajorDim(), cselemgroup);
+	    for (int e=0; e < set.MajorDim(); e++, pelem += 2, pface += 2, cs++)
+	      {
+		InitializeFacet (*pelem, *pface, group, cs, cselemgroup);
+		if ((set.MajorDim() > kPrint && (e+1)%kPrint == 0) ||
+		    e+1 == set.MajorDim())
+		  cout << "   " << e+1 << " done initializing of " 
+		       << set.MajorDim() << " facets " << endl;
+	      }
+	  }
+      }
 
-      if (group != bordergroup &&
-	  !GroupComboDone (group, bordergroup, groupsdone))
-	{
-	  int cselemgroup = theEdger->ElementGroup (boundarydata [i+2]) - theElements.Length();
-	  InitializeSet (group, cselemgroup);
-
-	  theEdger->BoundaryFacets (groupid, bordergroupid, set);
-      
-	  // insert cse
-	  int *pelem = set.Pointer();
-	  int *pface = set.Pointer(1);
-	  AddElements (set.MajorDim(), cselemgroup);
-	  for (int e=0; e < set.MajorDim(); e++, pelem += 2, pface += 2, cs++)
-	    {
-	      InitializeFacet (*pelem, *pface, group, cs, cselemgroup);
-	      if ((set.MajorDim() > kPrint && (e+1)%kPrint == 0) ||
-		  e+1 == set.MajorDim())
-		cout << "   " << e+1 << " done initializing of " << set.MajorDim() << " facets " << endl;
-	    }
-	}
-    }
+  if (fPrintUpdate) out << endl;
   cout << "  Done with Boundary Data" << endl;
 }
 
-bool MakeCSE::GroupComboDone (int g, int b, iArray2DT& groupsdone) const
+int MakeCSE::SetBoundarySearch (const sArrayT& boundarydata, sArrayT& groupids, 
+             ArrayT<sArrayT>& bordergroupids, sArrayT& csegroupids) const
 {
-  if (groupsdone.Length() == 0)
-    {
-      groupsdone.Dimension (1,2);
-      groupsdone(0,0) = g;
-      groupsdone(0,1) = b;
-      return false;
-    }
-  
-  int length = groupsdone.MajorDim();
-  for (int i=0; i < length; i++)
-    {
-      if (groupsdone (i, 0) == g && groupsdone (i, 1) == b)
-	return true;
-      if (groupsdone (i, 0) == b && groupsdone (i, 1) == g)
-	return true;
-    }
+  AutoArrayT<StringT> names, cnames;
+  for (int g=0, gid=0; g < boundarydata.Length()/3; g++, gid += 3)
+    if (!names.HasValue (boundarydata [gid]))
+      {
+	names.Append (boundarydata [gid]);
+	cnames.Append (boundarydata [gid+2]);
+      }
+  int numg = names.Length();
+  groupids.Dimension (numg);
+  groupids.CopyPart (0, names, 0, numg);
+  csegroupids.Dimension (numg);
+  csegroupids.CopyPart (0, cnames, 0, numg);
+  names.Free ();
 
-  //append to groups done
-  groupsdone.Resize (length + 1, CSEConstants::kNotSet);
-  groupsdone(length, 0) = g;
-  groupsdone(length, 1) = b;
+  int numc = 0, i, dex, dex2;
+  bordergroupids.Dimension (numg);
+  StringT border;
+  for (int j=0, gi=0; j < boundarydata.Length()/3; j++, gi += 3)
+    if (groupids.HasValue (boundarydata [gi], i))
+	{
+	  bool add = false;
+	  border = boundarydata [gi+1];
+	  if (boundarydata [gi+1] != groupids [i]) // don't check self
+	    {
+	      groupids.HasValue (border, dex);
+	      if (dex > -1 && dex < numg) // check other grouping
+		{
+		  bordergroupids[dex].HasValue (groupids[i], dex2);
+		  if (dex2 < 0) // do not already have this combo
+		    add = true;
+		}
+	      else
+		{
+		  add = true;
+		}
+
+	      if (add)
+		{
+		  int l = bordergroupids[i].Length();
+		  if (l == 0)
+		    {
+		      bordergroupids[i].Dimension (1);
+		      bordergroupids[i][0] = border; // create
+		      numc ++;
+		    }
+		  else
+		    {
+		      bordergroupids[i].Resize (l + 1, border); // append
+		      numc ++;
+		    }
+		}
+	    }
+	}
+  return numc;
 }
 
 void MakeCSE::InitializeSet (int group, int cselemgroup)

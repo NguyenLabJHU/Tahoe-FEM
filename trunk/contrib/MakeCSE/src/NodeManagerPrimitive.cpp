@@ -1,4 +1,4 @@
-// $Id: NodeManagerPrimitive.cpp,v 1.7 2002-10-28 21:36:33 sawimme Exp $
+// $Id: NodeManagerPrimitive.cpp,v 1.8 2002-10-29 21:38:02 sawimme Exp $
 // created: SAW 10/07/99
 #include "NodeManagerPrimitive.h"
 
@@ -291,8 +291,10 @@ void NodeManagerPrimitive::EchoNodeSets (ModelManagerT& model, MakeCSE_IOManager
 
   out << " Node Set Transfer Methods . . . . . . . . . . . = "
       << fTransMethods.Length() << '\n';
+  out << "  Method  Set ID\n";
   for (int g=0; g < fNodeSetID.Length(); g++)
-    out << setw (kIntWidth) << fTransMethods[g] << " " << fNodeSetID[g] << '\n';
+    out << setw (kIntWidth) << fTransMethods[g] << setw (kIntWidth) 
+	<< fNodeSetID[g] << '\n';
 
   /* checks */
   bool okay = true;
