@@ -1,8 +1,8 @@
-/* $Id: SolidMatList3DT.cpp,v 1.43 2004-04-26 23:06:30 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.44 2004-06-22 19:33:27 cjkimme Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "SolidMaterialsConfig.h"
 
 #ifdef __DEVELOPMENT__
