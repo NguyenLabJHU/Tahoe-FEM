@@ -1,4 +1,4 @@
-// $Id: APS_VariableT.cpp,v 1.11 2003-10-02 19:13:20 raregue Exp $
+// $Id: APS_VariableT.cpp,v 1.12 2003-10-06 18:34:39 raregue Exp $
 #include "APS_VariableT.h"
 
 //---------------------------------------------------------------------
@@ -7,18 +7,18 @@
 using namespace Tahoe;
 
 //APS_VariableT::APS_VariableT (const FEA_dVectorT& grad_u, const FEA_dVectorT& gammap, const FEA_dMatrixT& grad_gammap) 
-APS_VariableT::APS_VariableT (const FEA_dMatrixT& grad_u, const FEA_dVectorT& gammap, const FEA_dMatrixT& grad_gammap, 
-								FEA_dVectorT& state)
+APS_VariableT::APS_VariableT (const FEA_dMatrixT& grad_u, const FEA_dMatrixT& grad_u_surf, const FEA_dVectorT& gammap, 
+								const FEA_dMatrixT& grad_gammap, FEA_dVectorT& state)
 {
-	Construct	(grad_u, gammap, grad_gammap, state);
+	Construct	(grad_u, grad_u_surf, gammap, grad_gammap, state);
 }
 
 //---------------------------------------------------------------------
 /** Data initialization: Allocate space for grad_u, gammap, grad_gammap  */
 
 //void APS_VariableT::Construct (const FEA_dVectorT& grad_u, const FEA_dVectorT& gammap,const FEA_dMatrixT& grad_gammap) 
-void APS_VariableT::Construct (const FEA_dMatrixT& grad_u, const FEA_dVectorT& gammap,const FEA_dMatrixT& grad_gammap, 
-								FEA_dVectorT& state)
+void APS_VariableT::Construct (const FEA_dMatrixT& grad_u, const FEA_dMatrixT& grad_u_surf, const FEA_dVectorT& gammap,
+								const FEA_dMatrixT& grad_gammap, FEA_dVectorT& state)
 {
   	n_vars_vector = APS::kNUM_APS_VECTOR_VARS;  
   	n_vars_matrix = APS::kNUM_APS_MATRIX_VARS; 
@@ -27,6 +27,7 @@ void APS_VariableT::Construct (const FEA_dMatrixT& grad_u, const FEA_dVectorT& g
 
 	//fVars_vector[APS::kgrad_u] = grad_u; // This = opr allocates if LHS Length=0
 	fVars_matrix[APS::kgrad_u] = grad_u; 
+	fVars_matrix[APS::kgrad_u_surf] = grad_u_surf; 
 	fVars_vector[APS::kgammap] = gammap; 
 	fVars_matrix[APS::kgrad_gammap] = grad_gammap; 
 	fVars_vector[APS::kstate] = state;
@@ -149,6 +150,10 @@ void APS_VariableT::Allocate_and_Compute_Variables(APS::VarT_matrix kVariable)
     
     	case APS::kgrad_u : // grad_u 
         fVars_matrix[APS::kgrad_u]; 
+				break;
+				
+		case APS::kgrad_u_surf : // grad_u 
+        fVars_matrix[APS::kgrad_u_surf]; 
 				break;
 				
       case APS::kgrad_gammap : // grad_gammap   

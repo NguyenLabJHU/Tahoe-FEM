@@ -1,12 +1,13 @@
-// $Id: APS_Bal_EqT.cpp,v 1.12 2003-09-27 00:04:02 raregue Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.13 2003-10-06 18:34:46 raregue Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
 
-APS_Bal_EqT::APS_Bal_EqT ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, APS_VariableT &np1, APS_VariableT &n, 
+APS_Bal_EqT::APS_Bal_EqT ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, APS_MaterialT *APS_Matl,
+								APS_VariableT &np1, APS_VariableT &n, 
 								int &fTime_Step, double fdelta_t, int Integration_Scheme) 
 {
-	Construct (Shapes,Shear_Matl,np1,n,Integration_Scheme);
+	Construct (Shapes, Shear_Matl, APS_Matl, np1, n, Integration_Scheme);
 }
 
 /* destructor */
@@ -15,8 +16,9 @@ APS_Bal_EqT::APS_Bal_EqT ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl
 
 //---------------------------------------------------------------------
 
-void APS_Bal_EqT::Construct ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, APS_VariableT &np1, APS_VariableT &n, 
-			int &fTime_Step, double fdelta_t, int Integration_Scheme) 
+void APS_Bal_EqT::Construct ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl,
+							APS_MaterialT *APS_Matl, APS_VariableT &np1, APS_VariableT &n, 
+							int &fTime_Step, double fdelta_t, int Integration_Scheme) 
 {
 	Time_Integration_Scheme = Integration_Scheme;
 
@@ -40,11 +42,11 @@ void APS_Bal_EqT::Construct ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_M
 
 	delta_t = fdelta_t;
 	
-	Data_Pro.Construct ( Shapes.dNdx 	);
-	Data_Pro.Insert_N  ( Shapes.N 		);
+	Data_Pro.Construct ( Shapes.dNdx	);
+	Data_Pro.Insert_N  ( Shapes.N );
 	Integral.Construct ( Shapes.j, Shapes.W ); 
 	
-	Form_C_List		( Shear_Matl );
+	Form_C_List		( Shear_Matl, APS_Matl );
 	Form_B_List		(  );
 	Form_V_S_List	( np1 );
 	Form_VB_List	(  );
@@ -54,18 +56,16 @@ void APS_Bal_EqT::Construct ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_M
 
 //---------------------------------------------------------------------
 
-void APS_Bal_EqT::Form_LHS_Keps_Kd	( dMatrixT &Keps, dMatrixT &Kd )  // Untested
+void APS_Bal_EqT::Form_LHS_Keps_Kd	( dMatrixT &Keps, dMatrixT &Kd )  
 {
 		Keps 	= Integral.of( B_d[kB], C[kMu], B_eps[kBgamma] );  
 		Keps 	*= -1.0;
 	 	Kd  	= Integral.of( B_d[kB], C[kMu], B_d[kB] );  	
-#pragma message("APS_Bal_EqT::Form_LHS_Keps_Kd: this domain over Gamma_eps")
-//		Kd		-= Integral.of( VB_d[kN], C[kMu], VB_d[knuB] );
 }
 
 //---------------------------------------------------------------------
 
-void APS_Bal_EqT::Form_RHS_F_int ( dArrayT &F_int, APS_VariableT &npt ) // Untested
+void APS_Bal_EqT::Form_RHS_F_int ( dArrayT &F_int, APS_VariableT &npt ) 
 {
 		//V[kgrad_u] = npt.Get ( APS::kgrad_u );
 		B_gradu[kgrad_u] = npt.Get ( APS::kgrad_u );
@@ -75,10 +75,47 @@ void APS_Bal_EqT::Form_RHS_F_int ( dArrayT &F_int, APS_VariableT &npt ) // Untes
 		//F_int = Integral.of( B[kB], C[kMu], V[kgrad_u] ); 
 		F_int = Integral.of( B_d[kB], C[kMu], V[kV_Temp2] ); 
 		F_int -= Integral.of( B_d[kB], C[kMu], V[kgammap] );
-#pragma message("APS_Bal_EqT::Form_RHS_F_int: this domain over Gamma_eps")
-/*		F_int -= Integral.of( VB_d[kN], C[kMu], S[knuepsgradu] ); 
-		F_int += Integral.of( VB_d[kN], C[kMu], S[knuepseps] );  */
 }
+
+
+//---------------------------------------------------------------------
+
+void APS_Bal_EqT::Form_LHS_Kd_Surf	( dMatrixT &Kd, FEA_SurfShapeFunctionT &SurfShapes,  const dArrayT& Normal)  
+{	
+		Data_Pro_Surf.Construct ( n_en, SurfShapes.dNdx	);
+		Data_Pro_Surf.Insert_N_surf  ( SurfShapes.N );
+		SurfIntegral.Construct ( SurfShapes.j, SurfShapes.W );
+		
+		Data_Pro_Surf.APS_B_surf(B_d[kB_surf]);
+		Data_Pro_Surf.APS_N(VB_d[kN]);
+
+		V[knueps] = Normal;
+
+ 		V[knueps].Dot( B_d[kB_surf], VB_d[knuB] ); 
+ 		
+		Kd		-= SurfIntegral.of( VB_d[kN], C[kMu], VB_d[knuB] );
+}
+
+//---------------------------------------------------------------------
+
+void APS_Bal_EqT::Form_RHS_F_int_Surf ( dArrayT &F_int, APS_VariableT &npt, double &wght ) 
+{
+		V[keps](0) = C[km1];
+		V[keps](0) *= wght;
+		V[keps](1) = C[km2];
+		V[keps](1) *= wght;
+		
+		B_gradu[kgrad_u_surf] = npt.Get ( APS::kgrad_u_surf );
+		V[kV_Temp2](0)=B_gradu[kgrad_u_surf](0,0);
+		V[kV_Temp2](1)=B_gradu[kgrad_u_surf](0,1);
+		V[knueps].Dot( V[kV_Temp2], S[knuepsgradu] );
+		V[knueps].Dot( V[keps], S[knuepseps] );
+
+		F_int -= SurfIntegral.of( VB_d[kN], C[kMu], S[knuepsgradu] ); 
+		F_int += SurfIntegral.of( VB_d[kN], C[kMu], S[knuepseps] );
+}
+
+
 
 //=== Private =========================================================
 	             				
@@ -97,14 +134,8 @@ void APS_Bal_EqT::Form_B_List (void)
 		
 void APS_Bal_EqT::Form_VB_List (void)
 {
-
 		VB_d.Construct 	( kNUM_VB_d_TERMS, 	n_ip, n_en 	);
-		VB_eps.Construct ( kNUM_VB_eps_TERMS, 	n_ip, n_sd_x_n_en 	);	
-						
-		Data_Pro.APS_N(VB_d[kN]);
-
- 		V[knueps].Dot( B_d[kB], VB_d[knuB] );
- 		V[knueps].Dot( B_eps[kBgamma], VB_eps[knuNgam] ); 
+		VB_eps.Construct ( kNUM_VB_eps_TERMS, 	n_ip, n_sd_x_n_en 	);				
 }
 
 
@@ -114,29 +145,16 @@ void APS_Bal_EqT::Form_V_S_List (APS_VariableT &npt)
 		V.Construct 	( kNUM_V_TERMS, 	n_ip, n_sd 	);
 		int dum=1;
 		VS.Construct 	( kNUM_VS_TERMS, 	n_ip, dum 	);
-		
-		#pragma message("APS_Bal_EqT::Form_V_S_List: V[knueps] and V[keps] must be input for BC")
-		V[knueps](0) = 1.0;
-		V[knueps](1) = 0.0;
-		V[keps](0) = 1.0;
-		V[keps](1) = 0.0;
-		//V[kgrad_u] = npt.Get ( APS::kgrad_u );
-		B_gradu[kgrad_u] = npt.Get ( APS::kgrad_u );
-		V[kV_Temp2](0)=B_gradu[kgrad_u](0,0);
-		V[kV_Temp2](1)=B_gradu[kgrad_u](0,1);
-		//V[knueps].Dot( V[kgrad_u], S[knuepsgradu] );
-		//V[knueps].Dot( B_gradu[kgrad_u], VS[kVS_Temp1] );
-		V[knueps].Dot( V[kV_Temp2], S[knuepsgradu] );
-		//S[knuepsgradu]=VS[kVS_Temp1](0);
-		V[knueps].Dot( V[keps], S[knuepseps] );
 }
 
 
-void APS_Bal_EqT::Form_C_List (APS_MaterialT *Shear_Matl)
+void APS_Bal_EqT::Form_C_List (APS_MaterialT *Shear_Matl, APS_MaterialT *APS_Matl)
 {
 		C.Dimension 	( kNUM_C_TERMS );
 		
 		C[kMu] 	= Shear_Matl -> Retrieve ( Shear_MatlT::kMu );
+		C[km1]  = APS_Matl -> Retrieve ( APS_MatlT::km1	);
+		C[km2]  = APS_Matl -> Retrieve ( APS_MatlT::km2	);
 }
 
 

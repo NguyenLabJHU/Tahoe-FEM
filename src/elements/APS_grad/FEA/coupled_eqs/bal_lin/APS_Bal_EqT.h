@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.h,v 1.8 2003-09-26 00:31:12 raregue Exp $
+// $Id: APS_Bal_EqT.h,v 1.9 2003-10-06 18:34:46 raregue Exp $
 #ifndef _APS_BALEQ_T_H_ 
 #define _APS_BALEQ_T_H_ 
 
@@ -18,7 +18,8 @@ class APS_Bal_EqT	: public BalLinMomT
 	public:
 
   	enum B_d_T { 
-								kB, 
+								kB,
+								kB_surf, 
 	             				kNUM_B_d_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 
   	enum B_eps_T {  
@@ -27,6 +28,7 @@ class APS_Bal_EqT	: public BalLinMomT
 
   	enum B_gradu_T { 
 						   		kgrad_u,
+						   		kgrad_u_surf,
 	             				kNUM_B_gradu_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 
 
@@ -43,8 +45,7 @@ class APS_Bal_EqT	: public BalLinMomT
 								kVB_eps_Temp2,
 	             				kNUM_VB_eps_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 
-	             				
-	             				
+	             					
 	enum V_T {
 								knueps,
 								keps,
@@ -67,24 +68,30 @@ class APS_Bal_EqT	: public BalLinMomT
 								
 	enum C_T { 
 								kMu,
+								km1,
+								km2,
 								kNUM_C_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 
 		//--------------------------------------------------------------
 		
 		APS_Bal_EqT 	( void ) { } 
 
-		APS_Bal_EqT 	( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, APS_VariableT &np1, APS_VariableT &n, 
+		APS_Bal_EqT 	( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, APS_MaterialT *APS_Matl, 
+						APS_VariableT &np1, APS_VariableT &n, 
 						int &fTime_Step, double fdelta_t = 0.0, int Integration_Scheme=FEA::kBackward_Euler);
 
-		void 	Construct 		( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, APS_VariableT &np1, APS_VariableT &n, 
-								int &fTime_Step, double fdelta_t = 0.0, int Integration_Scheme=FEA::kBackward_Euler); 
+		void 	Construct 	( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl, APS_MaterialT *APS_Matl, 
+							APS_VariableT &np1, APS_VariableT &n, 
+							int &fTime_Step, double fdelta_t = 0.0, int Integration_Scheme=FEA::kBackward_Euler); 
 
   		void 	Form_LHS_Keps_Kd	( dMatrixT &Keps, dMatrixT &Kd ); // add delta_t for dynamics
   		void 	Form_RHS_F_int		( dArrayT  &F_int, APS_VariableT &npt ); 
+  		void 	Form_LHS_Kd_Surf	( dMatrixT &Kd, FEA_SurfShapeFunctionT &SurfShapes, const dArrayT& Normal ); // add delta_t for dynamics
+  		void 	Form_RHS_F_int_Surf	( dArrayT  &F_int, APS_VariableT &npt, double &wght  ); 
 		void 	Form_B_List 		( void );  // Strain Displacement Matricies
 		void 	Form_VB_List 		( void );  // Strain Matricies
 		void 	Form_V_S_List 		( APS_VariableT &npt );  // vectors
- 		void 	Form_C_List 		( APS_MaterialT *Shear_Matl );  // Constant List
+ 		void 	Form_C_List 		( APS_MaterialT *Shear_Matl,  APS_MaterialT *APS_Matl );  // Constant List
 
 		void  	Get ( StringT &Name, FEA_dMatrixT &tensor );
 		void  	Get ( StringT &Name, FEA_dVectorT &vector );
@@ -101,7 +108,9 @@ class APS_Bal_EqT	: public BalLinMomT
 	protected:
 
 		FEA_IntegrationT 		Integral;
-		APS_FEA_Data_ProcessorT Data_Pro; 
+		FEA_SurfIntegrationT 	SurfIntegral;
+		APS_FEA_Data_ProcessorT Data_Pro;
+		APS_FEA_Data_Processor_SurfT Data_Pro_Surf; 
 
 		double delta_t;
 		int time_step;

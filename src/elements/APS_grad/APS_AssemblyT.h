@@ -1,9 +1,11 @@
-/* $Id: APS_AssemblyT.h,v 1.14 2003-10-03 00:36:18 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.15 2003-10-06 18:34:33 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
 
 #include "ContinuumT.h"
+
+#include "ModelManagerT.h"
 
 /* base classes */
 #include "ElementBaseT.h"
@@ -147,17 +149,18 @@ private:
 	//APS_VariableT n,np1; // <-- keep local scope in elmt loop for now 
 
 	/** Gradients with respect to reference coodinates */
-	FEA_dMatrixT fgrad_gamma_p, fgrad_gamma_p_n, fVars_matrix, fgrad_u, fgrad_u_n;
+	FEA_dMatrixT fgrad_gamma_p, fgrad_gamma_p_n, fVars_matrix, fgrad_u, fgrad_u_n, 
+				fgrad_u_surf, fgrad_u_surf_n;
 	//FEA_dVectorT fgrad_u, fgrad_u_n, fgamma_p, fgamma_p_n, fVars_vector;
 	FEA_dVectorT fgamma_p, fgamma_p_n, fVars_vector, fstate, fstate_n;
 
 	/** \name  values read from input in the constructor */
 	/*@{*/
 	/** element geometry */
-	GeometryT::CodeT fGeometryCode;
+	GeometryT::CodeT fGeometryCode, fGeometryCodeSurf;
 
 	/** number of integration points */
-	int	fNumIP, knum_d_state, knum_i_state, knumstress;
+	int	fNumIP, fNumIPSurf, knum_d_state, knum_i_state, knumstress, num_sidesets;
 	/*@}*/
 
 	/** \name element displacements in local ordering */
@@ -201,14 +204,18 @@ private:
 	 * coordinates in APS_AssemblyT::fCurrCoords, which are the
 	 * current coordinates */
 	ShapeFunctionT* fShapes;
+	ShapeFunctionT* fSurfShapes;
+	
+	dArrayT fNormal;
 	
 	FEA_ShapeFunctionT fFEA_Shapes;
+	FEA_SurfShapeFunctionT fFEA_SurfShapes;
 
 	/** reference coordinates */
 	LocalArrayT fInitCoords;     
 
 	/** current coordinates */
-	LocalArrayT fCurrCoords;
+	LocalArrayT fCurrCoords, fCurrCoordsSurf;
 	/*@}*/
 
 	/* Data Storage */
@@ -263,18 +270,22 @@ private:
 	dArray2DT fIPVariable;
 	/*@}*/
 
-	/** \name prescribed plastic gradient */
+	/** \name prescribed plastic gradient side set ID */
 	/*@{*/
-	ArrayT<StringT>   fSideSetID;
+	ArrayT<StringT> fSideSetID;
 	
-	/** prescribed plastic gradient over the side set */
-	ArrayT<dArrayT>   fPlasticGradient;
+	/** prescribed plastic gradient scalar weight over the side set;
+	    the direction is defined by {m1,m2} */
+	ArrayT<double> fPlasticGradientWght;
 
 	/** for each side set, the global nodes on the faces in the set */
 	ArrayT<iArray2DT> fPlasticGradientFaces;
 	
 	/** equation numbers for the nodes on each face */ 
 	ArrayT<iArray2DT> fPlasticGradientFaceEqnos;
+	
+	/** equation numbers for the nodes on each face */ 
+	ArrayT<iArrayT> fSideSetElements;
 	/*@}*/
 
 	//##########################################################################################

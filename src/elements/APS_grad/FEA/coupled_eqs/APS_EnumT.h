@@ -1,4 +1,4 @@
-// $Id: APS_EnumT.h,v 1.5 2003-09-29 23:28:51 raregue Exp $
+// $Id: APS_EnumT.h,v 1.6 2003-10-06 18:34:39 raregue Exp $
 #ifndef _APS_ENUM_H_ 
 #define _APS_ENUM_H_ 
 
@@ -24,7 +24,8 @@ class APS
 	                kNUM_APS_VECTOR_VARS }; // <-- Keep this one last !!
 	                
 	enum VarT_matrix {  
-					kgrad_u, 	 
+					kgrad_u, 
+					kgrad_u_surf, 	 
 					kgrad_gammap, 
 	                kNUM_APS_MATRIX_VARS }; // <-- Keep this one last !!
 };
