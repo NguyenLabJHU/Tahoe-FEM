@@ -1,4 +1,4 @@
-// $Id: FEA_FormatT.cpp,v 1.23 2003-10-11 01:30:22 raregue Exp $
+// $Id: FEA_FormatT.cpp,v 1.24 2003-10-12 23:47:48 raregue Exp $
 #include "FEA_FormatT.h"
 
 using namespace Tahoe;
@@ -31,15 +31,12 @@ void FEA_FormatT::SurfShapeGradient	(int n_en, const ParentDomainT& surf_shapes,
 	dMatrixT face_jacobian(2, 1);
 	dMatrixT face_Q(2);
 	dArrayT fNormal(2);
-	
-	int nip_surf = surf_shapes.NumIP();
-	
-	//fNormal.Dimension ( n_sd );
-	
 	dArrayT interp_ip(2), interp_ip_mapped(2);
 	bool ismapped;
 	dArrayT Na;
 	dArray2DT DNa;
+	
+	int nip_surf = surf_shapes.NumIP();
 	
 	FEA_SurfShapes.W = surf_shapes.Weight(); 	// IPWeights() returns double*
 	

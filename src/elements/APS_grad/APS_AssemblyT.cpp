@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.39 2003-10-12 02:51:19 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.40 2003-10-12 23:48:53 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -264,7 +264,8 @@ void APS_AssemblyT::Initialize(void)
 	/* construct the black boxs */  
 
 	Select_Equations ( BalLinMomT::kAPS_Bal_Eq, iPlastModelType );
-	fEquation_eps -> Initialize ( n_ip, n_sd, n_en, knum_d_state, ElementSupport().StepNumber() );
+	dum=knumstrain+knumstress;
+	fEquation_eps -> Initialize ( n_ip, n_sd, n_en, knum_d_state, dum, ElementSupport().StepNumber() );
 	//step_number_last_iter = 0; 
 	//step_number_last_iter = ElementSupport().StepNumber();  // This may crash or not work
 
@@ -1155,10 +1156,11 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 						Convert.SurfShapeGradient	( n_en_surf, surf_shape, fFEA_SurfShapes, face_coords,
 													parent, fInitCoords, *fShapes, u, u_n, fgrad_u_surf, fgrad_u_surf_n,
 													face_gamma_p, fgamma_p_surf, face_local_nodes );
-						APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); 
+						APS_VariableT np1_surf(	fgrad_u, fgrad_u_surf, fgamma_p, fgamma_p_surf, fgrad_gamma_p, fstate ); 
 						fEquation_d -> Form_LHS_Kd_Surf ( fKdd_face, fFEA_SurfShapes );
-						fEquation_d -> Form_RHS_F_int_Surf ( fFd_int_face, np1, fPlasticGradientWght[i] );
-
+						double wght = fPlasticGradientWght[i];
+						fEquation_d -> Form_RHS_F_int_Surf ( fFd_int_face, np1_surf, wght );
+						
 						ElementSupport().AssembleRHS(curr_group, fFd_int_face, face_equations);
 						ElementSupport().AssembleLHS(curr_group, fKdd_face, face_equations);
 					}

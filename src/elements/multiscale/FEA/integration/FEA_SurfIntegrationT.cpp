@@ -1,4 +1,4 @@
-// $Id: FEA_SurfIntegrationT.cpp,v 1.1 2003-10-07 19:38:52 raregue Exp $
+// $Id: FEA_SurfIntegrationT.cpp,v 1.2 2003-10-12 23:47:51 raregue Exp $
 #include "FEA.h" 
 
 using namespace Tahoe;
@@ -33,7 +33,7 @@ J 		= j;
 //########################################################## 
 
 
-dMatrixT FEA_SurfIntegrationT::of ( FEA_dVectorT &B1, double c, FEA_dVectorT &B2 )
+dMatrixT FEA_SurfIntegrationT::of ( FEA_dVectorT &B1, double &c, FEA_dVectorT &B2 )
 {
 	n_rows = B1.Rows(); // Since using it's transpose
 	n_cols = B2.Rows();
@@ -53,7 +53,7 @@ dMatrixT FEA_SurfIntegrationT::of ( FEA_dVectorT &B1, double c, FEA_dVectorT &B2
 
 
 
-dArrayT FEA_SurfIntegrationT::of ( FEA_dVectorT &B1, double c, FEA_dScalarT &s)
+dArrayT FEA_SurfIntegrationT::of ( FEA_dVectorT &B1, double &c, FEA_dScalarT &s)
 {
 	n_rows = B1.Rows();
 	FEA_dVectorT F(n_ip,n_rows); 

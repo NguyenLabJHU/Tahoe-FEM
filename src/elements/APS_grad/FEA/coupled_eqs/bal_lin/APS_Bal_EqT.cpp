@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.cpp,v 1.20 2003-10-12 02:51:21 raregue Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.21 2003-10-12 23:48:54 raregue Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -114,7 +114,7 @@ void APS_Bal_EqT::Form_RHS_F_int_Surf ( dArrayT &F_int_face, APS_VariableT &npt,
 		V[knueps].Dot( V[kV_Temp2], S[knuepsgradu] );
 		V[knueps].Dot( V[keps], S[knuepseps] );
 
-		F_int_face = SurfIntegral.of( VB_d[kN], C[kMu], S[knuepsgradu] ); 
+		F_int_face = SurfIntegral.of( VB_d[kN], C[kMu], S[knuepsgradu] );
 		F_int_face *= -1.0;
 		F_int_face += SurfIntegral.of( VB_d[kN], C[kMu], S[knuepseps] );
 }

@@ -1,4 +1,4 @@
-// $Id: FEA_SurfIntegrationT.h,v 1.1 2003-10-07 19:38:52 raregue Exp $
+// $Id: FEA_SurfIntegrationT.h,v 1.2 2003-10-12 23:47:51 raregue Exp $
 #ifndef _FEA_SURFINTEGRATIONT_H_ 
 #define _FEA_SURFINTEGRATIONT_H_ 
 
@@ -16,9 +16,9 @@ class FEA_SurfIntegrationT
 		FEA_SurfIntegrationT	(FEA_dScalarT &J, FEA_dScalarT &Weights);
 		void Construct 			(FEA_dScalarT &J, FEA_dScalarT &Weights);
   	
-  		dMatrixT of ( FEA_dVectorT &B1,	double c, FEA_dVectorT &B2 );
+  		dMatrixT of ( FEA_dVectorT &B1,	double &c, FEA_dVectorT &B2 );
   	
-  		dArrayT of ( FEA_dVectorT &B1,	double c, FEA_dScalarT &s );
+  		dArrayT of ( FEA_dVectorT &B1, double &c, FEA_dScalarT &s );
 
 	protected:
 		
