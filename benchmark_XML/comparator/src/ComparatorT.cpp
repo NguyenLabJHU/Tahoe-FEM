@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.6 2001-06-18 20:34:43 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.7 2001-09-05 18:35:27 paklein Exp $ */
 
 #include "ComparatorT.h"
 
@@ -38,6 +38,33 @@ ComparatorT::ComparatorT(int argc, char* argv[], char job_char, char batch_char)
 		istrstream in((const char *) fCommandLineOptions[index + 1]);
 		in >> rel_tol;
 	}
+}
+
+/* prompt input files until "quit" */
+void ComparatorT::Run(void)
+{
+	/* check for command line specification of the file names */
+	int index;
+	if (CommandLineOption("-f1", index))
+	{
+		/* first file */
+		StringT file_1(fCommandLineOptions[index + 1]);
+		if (CommandLineOption("-f2", index))
+		{
+			/* second file */
+			StringT file_2(fCommandLineOptions[index + 1]);
+
+			/* compare */
+			PassOrFail(file_1, file_2);
+		}
+		else
+		{
+			cout << "\n ComparatorT::Run: expecting command line option \"-f2\"" << endl;
+			throw eGeneralFail;
+		}
+	}
+	else /* inherited */
+		FileCrawlerT::Run();
 }
 
 /**********************************************************************
@@ -164,10 +191,6 @@ bool ComparatorT::PassOrFail(ifstreamT& in) //const
 	/* look for results file in current directory */
 	StringT current = path;
 	current.Append(file_root, ".run");
-	ifstreamT current_in(current);
-	cout << "looking for current results: " << current << ": "
-	     << ((current_in.is_open()) ? "found" : "not found") << '\n';
-	if (!current_in.is_open()) return false;
 
 	/* look for results file in benchmark directory */
 	StringT benchmark(kBenchmarkDirectory);
@@ -180,8 +203,23 @@ bool ComparatorT::PassOrFail(ifstreamT& in) //const
 	}
 	else
 		benchmark.Append(file_root, ".run");
-	ifstreamT bench_in(benchmark);
-	cout << "looking for benchmark results: " << benchmark << ": "
+
+	/* do compare */
+	 return PassOrFail(current, benchmark);
+}
+
+/* compare results */
+bool ComparatorT::PassOrFail(const StringT& file_1, const StringT& file_2)
+{
+	/* open file_1 -> "current" */
+	ifstreamT current_in(file_1);
+	cout << "looking for current results: " << file_1 << ": "
+	     << ((current_in.is_open()) ? "found" : "not found") << '\n';
+	if (!current_in.is_open()) return false;
+
+	/* open file_2 -> "benchmark" */
+	ifstreamT bench_in(file_2);
+	cout << "looking for benchmark results: " << file_2 << ": "
 	     << ((bench_in.is_open()) ? "found" : "not found") << '\n';
 	if (!bench_in.is_open()) return false;
 
