@@ -1,11 +1,5 @@
-/* $Id: nArrayT.h,v 1.4 2001-06-20 22:49:57 paklein Exp $ */
-/* created: paklein (05/23/1997)                                          */
-/* Base class for arrays of TYPE for which the following mathematical     */
-/* operators have been defined:                                           */
-/* {+=, -=, *=, /=} : MUST return references to this                      */
-/* { =, >>, < , > , fabs}                                                 */
-/* And must allow assignment to 0.0. TYPE must also contain no virtual    */
-/* functions, since the Clear() assumes all bytes can be set to 0.        */
+/* $Id: nArrayT.h,v 1.5 2001-09-06 02:10:47 paklein Exp $ */
+/* created: paklein (05/23/1997) */
 
 #ifndef _NARRAY_T_H_
 #define _NARRAY_T_H_
@@ -24,59 +18,90 @@
 /* forward declarations */
 template <class nTYPE> class OutputProxyT;
 
+/** templated base class for arrays of number types. The number type must
+ * have the following mathematical operators defined:\n
+ * (1) {+=, -=, *=, /=} : MUST return references to this\n
+ * (2) { =, >>, < , > , fabs}\n
+ * Additionally, the number type must allow assignment to 0.
+ * The class extends the basic memory operations inherited from ArrayT
+ * without adding any virtual functions. */
 template <class nTYPE>
 class nArrayT: public ArrayT<nTYPE>
 {
 public:
 
-	/* constructors */
+	/** default constructor. Constructs a zero length array. */
 	nArrayT(void);
+
+	/** construct an array of the specified length. The values
+	 * in the array are not initialized.
+	 * \param length length of dynamically allocated space */
 	explicit nArrayT(int length);
+
+	/** construct a shallow array.
+	 * \param length logical size of the array
+	 * \param TYPEPtr pointer to the memory to use */
 	nArrayT(int length, nTYPE* TYPEPtr);
+
+	/** copy constructor */
 	nArrayT(const nArrayT& source);
 
-	/* copy/assignment operators - by a scalar or element by element */  	
-	nArrayT<nTYPE>& operator=(const nArrayT& RHS);
-	nArrayT<nTYPE>& operator=(const nTYPE& value);
+	/* assignment operators */
+	nArrayT<nTYPE>& operator=(const nArrayT& RHS); /**< assignment operator. Redimensions the array too match the source. */
+	nArrayT<nTYPE>& operator=(const nTYPE& value); /**< set all elements in the array to value */
 
-	nArrayT<nTYPE>& operator+=(const nArrayT& RHS);
-	nArrayT<nTYPE>& operator+=(const nTYPE& value);
+	/* addition operators */
+	nArrayT<nTYPE>& operator+=(const nArrayT& RHS); /**< element-by-element addition with RHS */
+	nArrayT<nTYPE>& operator+=(const nTYPE* pRHS);  /**< element-by-element addition with pRHS (without range checking). */
+	nArrayT<nTYPE>& operator+=(const nTYPE& value); /**< add value to all elements */
 
-	nArrayT<nTYPE>& operator-=(const nArrayT& RHS);
-	nArrayT<nTYPE>& operator-=(const nTYPE& value);
+	/* subtraction operators */
+	nArrayT<nTYPE>& operator-=(const nArrayT& RHS); /**< element-by-element subtraction with RHS */
+	nArrayT<nTYPE>& operator-=(const nTYPE* pRHS);  /**< element-by-element subtraction with pRHS (without range checking). */
+	nArrayT<nTYPE>& operator-=(const nTYPE& value); /**< subtract value to all elements */
 
-	nArrayT<nTYPE>& operator*=(const nArrayT& RHS);
-	nArrayT<nTYPE>& operator*=(const nTYPE& value);
+	/* multiplication operators */
+	nArrayT<nTYPE>& operator*=(const nArrayT& RHS); /**< element-by-element multiplication by RHS */
+	nArrayT<nTYPE>& operator*=(const nTYPE& value); /**< multiply all elements by value */
 	
+	/** element-by-element division by RHS */
 	nArrayT<nTYPE>& operator/=(const nArrayT& RHS); 		  	
+
+	/** multiply all elements by value */
 	nArrayT<nTYPE>& operator/=(const nTYPE& value);
 
-	/* (post-)increment/decrement all */
+	/** (post-)increment all elements in the array */
 	nArrayT<nTYPE>& operator++(int);
+
+	/** (post-)decrement all elements in the array */
 	nArrayT<nTYPE>& operator--(int);
 	
-	/* sum, average, and product */
+	/** return the sum of all elements in the array */
 	nTYPE Sum(void) const;
+
+	/** return the average of the elements in the array */
 	nTYPE Average(void) const;
+
+	/** return the product of the elements in the array */
 	nTYPE Product(void) const;
 
-	/* inner product */
+	/** inner product of two nArrayT's */
 	static nTYPE Dot(const nArrayT<nTYPE>& A1, const nArrayT<nTYPE>& A2);
 	
-	/* distance */
+	/** norm of the difference of two nArrayT's */
 	static nTYPE Distance(const nArrayT<nTYPE>& A1, const nArrayT<nTYPE>& A2);
 
-	/* max and min */
-	nTYPE Max(void) const;
-	nTYPE Max(int& position) const;
-	nTYPE Min(void) const;
-	nTYPE Min(int& position) const;
-	nTYPE AbsMax(void) const;
-	nTYPE AbsMin(void) const;
-	void MinMax(nTYPE& min, nTYPE& max, bool positive_only = false) const;
-	void AbsMinMax(nTYPE& absmin, nTYPE& absmax) const;
+	/* max and min functions */
+	nTYPE Max(void) const;          /**< return the maximum value in the array */
+	nTYPE Max(int& position) const; /**< return the maximum value in the array and its position */
+	nTYPE Min(void) const;          /**< return the minimum value in the array */
+	nTYPE Min(int& position) const; /**< return the minimum value in the array and its position */
+	nTYPE AbsMax(void) const;       /**< return the value with maximum absolute value */
+	nTYPE AbsMin(void) const;       /**< return the value with minimum absolute value */
+	void MinMax(nTYPE& min, nTYPE& max, bool positive_only = false) const; /**< return min and max values */
+	void AbsMinMax(nTYPE& absmin, nTYPE& absmax) const; /**< return values values with the min and max absolute value */
 	
-	/* removing small values */
+	/** set all values with an absolute value smaller than tolerance to 0.0 */
 	void Chop(double tolerance = kSmall);
 	
 	/* sorting */
@@ -112,7 +137,7 @@ public:
 	                    const nTYPE& b, const nArrayT& B);
 	void AddCombination(const nArrayT& a, const ArrayT<nArrayT<nTYPE>*>& A);
 
-	/* fill the array with random numbers in the range [-1 1] */
+	/** fill the array with random numbers in the range [-1 1] */
 	void Random(int seed = 1);
 	
 	/* output */
@@ -331,15 +356,19 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator=(const nTYPE& value)
 }
 
 template <class nTYPE>
-nArrayT<nTYPE>& nArrayT<nTYPE>::operator+=(const nArrayT& RHS)
+inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator+=(const nArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
 	if (fLength != RHS.fLength) throw eSizeMismatch;
 #endif
+	operator+=(RHS.Pointer());
+}
 
+template <class nTYPE>
+inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator+=(const nTYPE* pRHS)
+{
 	nTYPE* pthis = Pointer();
-	nTYPE* pRHS  = RHS.Pointer();
 	for (int i = 0; i < fLength; i++)
 		*pthis++ += *pRHS++;
 		
@@ -347,7 +376,7 @@ nArrayT<nTYPE>& nArrayT<nTYPE>::operator+=(const nArrayT& RHS)
 }
 
 template <class nTYPE>
-nArrayT<nTYPE>& nArrayT<nTYPE>::operator+=(const nTYPE& value)
+inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator+=(const nTYPE& value)
 {
 	nTYPE* pA = Pointer();
 	for (int i = 0; i < fLength; i++)
@@ -357,16 +386,19 @@ nArrayT<nTYPE>& nArrayT<nTYPE>::operator+=(const nTYPE& value)
 }
 
 template <class nTYPE>
-nArrayT<nTYPE>& nArrayT<nTYPE>::operator-=(const nArrayT& RHS)
+inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator-=(const nArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
 	if (fLength != RHS.fLength) throw eSizeMismatch;
 #endif
+	operator-=(RHS.Pointer());
+}
 
+template <class nTYPE>
+inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator-=(const nTYPE* pRHS)
+{
 	nTYPE* pthis = Pointer();
-	nTYPE* pRHS  = RHS.Pointer();
-
 	for (int i = 0; i < fLength; i++)
 		*pthis++ -= *pRHS++;
 		
@@ -384,7 +416,7 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator-=(const nTYPE& value)
 }
 
 template <class nTYPE>
-nArrayT<nTYPE>& nArrayT<nTYPE>::operator*=(const nArrayT& RHS)
+inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator*=(const nArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
@@ -400,7 +432,7 @@ nArrayT<nTYPE>& nArrayT<nTYPE>::operator*=(const nArrayT& RHS)
 }
 
 template <class nTYPE>
-nArrayT<nTYPE>& nArrayT<nTYPE>::operator*=(const nTYPE& value)
+inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator*=(const nTYPE& value)
 {
 	nTYPE* pA = Pointer();
 	for (int i = 0; i < fLength; i++)
@@ -410,7 +442,7 @@ nArrayT<nTYPE>& nArrayT<nTYPE>::operator*=(const nTYPE& value)
 }
 
 template <class nTYPE>
-nArrayT<nTYPE>& nArrayT<nTYPE>::operator/=(const nArrayT& RHS)
+inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator/=(const nArrayT& RHS)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
@@ -426,7 +458,7 @@ nArrayT<nTYPE>& nArrayT<nTYPE>::operator/=(const nArrayT& RHS)
 }
 
 template <class nTYPE>
-nArrayT<nTYPE>& nArrayT<nTYPE>::operator/=(const nTYPE& value)
+inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator/=(const nTYPE& value)
 {
 	nTYPE* pA = Pointer();
 	for (int i = 0; i < fLength; i++)
@@ -462,7 +494,7 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator--(int)
 
 /* sum, average, and product */
 template <class nTYPE>
-nTYPE nArrayT<nTYPE>::Sum(void) const
+inline nTYPE nArrayT<nTYPE>::Sum(void) const
 {
 	register nTYPE sum = nTYPE(0.0);
 	nTYPE* p = Pointer();
@@ -480,7 +512,7 @@ inline nTYPE nArrayT<nTYPE>::Average(void) const
 }
 
 template <class nTYPE>
-nTYPE nArrayT<nTYPE>::Product(void) const
+inline nTYPE nArrayT<nTYPE>::Product(void) const
 {
 	register nTYPE product = nTYPE(1.0);
 	nTYPE* p = Pointer();
