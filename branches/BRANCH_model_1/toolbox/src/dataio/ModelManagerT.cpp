@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.4.2.4 2001-10-10 20:06:38 sawimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.4.2.5 2001-10-11 19:58:19 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -202,7 +202,6 @@ bool ModelManagerT::RegisterNodes (ifstreamT& in)
   in2 >> fCoordinateDimensions[0] >> fCoordinateDimensions[1];
   fCoordinates.Allocate (fCoordinateDimensions[0], fCoordinateDimensions[1]);
   fCoordinates.ReadNumbered (in2);
-  fCoordinates--;
   return true;
 }
 
@@ -228,10 +227,15 @@ bool ModelManagerT::RegisterNodeSet (ifstreamT& in, const StringT& name)
 
   int length;
   in2 >> length;
-  iArrayT n (length);
-  in2 >> n;
-  n--;
-  return RegisterNodeSet (name, n);
+  if (length > 0)
+    {
+      iArrayT n (length);
+      in2 >> n;
+      n--;
+      return RegisterNodeSet (name, n);
+    }
+  else
+    return false;
 }
 
 /* read dimensions and array, then offsets array */
@@ -242,10 +246,160 @@ bool ModelManagerT::RegisterSideSet (ifstreamT& in, const StringT& name, bool lo
 
   int length;
   in2 >> length;
-  iArray2DT s (length, 2);
-  in2 >> s;
-  s += -1;
-  return RegisterSideSet (name, s, local, groupindex);
+  if (length > 0)
+    {
+      iArray2DT s (length, 2);
+      in2 >> s;
+      s += -1;
+      return RegisterSideSet (name, s, local, groupindex);
+    }
+  else
+    return false;
+}
+
+void ModelManagerT::ReadInlineCoordinates (ifstreamT& in)
+{
+  if (fFormat == IOBaseT::kTahoe)
+    RegisterNodes (in);
+}
+
+void ModelManagerT::ElementBlockList (ifstreamT& in, iArrayT& indexes, iArrayT& matnums)
+{
+  /* number of blocks in element data */
+  int num_blocks = 0;
+  in >> num_blocks;
+  fMessage << " Number of connectivity data blocks. . . . . . . = " << num_blocks << '\n';
+  if (num_blocks < 1) throw eBadInputValue;
+
+  indexes.Allocate (num_blocks);
+  matnums.Allocate (num_blocks);
+  for (int i=0; i < num_blocks; i++)
+    {
+      /* read mat id */
+      in >> matnums[i];
+      fMessage << "                   material number: " << matnums[i] << '\n';
+
+      /* read element group name */
+      StringT name;
+      if (fFormat == IOBaseT::kTahoe)
+	{
+	  name = "ElementGroup";
+	  name.Append (fNumElementSets+1);
+	  RegisterElementGroup (in, name, GeometryT::kNone);
+	}
+      else
+	{
+	  in >> name;
+	}
+      fMessage << "                element block name: " << name << endl;
+
+      /* check with model manager */
+      indexes[i] = ElementGroupIndex (name);
+      if (indexes[i] < 0)
+	{
+	  cout << "\n ModelManagerT::ElementBlockList: "
+	       << " block " << i+1 << ": " << name << '\n';
+	  cout << "      does not match Model database " << endl;
+	  throw eBadInputValue;
+	}
+    }
+}
+
+void ModelManagerT::NodeSetList (ifstreamT& in, iArrayT& indexes)
+{
+  if (fFormat == IOBaseT::kTahoe)
+    {
+      StringT name = "InlineNS";
+      name.Append (fNumNodeSets+1);
+      RegisterNodeSet (in, name);
+
+      indexes.Allocate (1);
+      indexes[0] = NodeSetIndex (name);
+
+      /* account for no sets or all nodes */
+      if (indexes[0] > -1)
+	{
+	  fMessage << " Node Set Name . . . . . . . . . . . . . . . . . = ";
+	  fMessage << name << '\n';
+	  fMessage << " Node Set Index. . . . . . . . . . . . . . . . . = ";
+	  fMessage << indexes[0] << '\n';
+	  fMessage << " Node Set Length . . . . . . . . . . . . . . . . = ";
+	  fMessage << fNodeSetDimensions[indexes[0]] << '\n';
+	}
+    }
+  else
+    {
+      int num_sets;
+      in >> num_sets;
+
+      indexes.Allocate (num_sets);
+      for (int i=0; i < num_sets; i++)
+	{
+	  StringT name;
+	  in >> name;
+	  indexes[i] = NodeSetIndex (name);
+
+	  fMessage << " Node Set Name . . . . . . . . . . . . . . . . . = ";
+	  fMessage << name << '\n';
+	  fMessage << " Node Set Index. . . . . . . . . . . . . . . . . = ";
+	  fMessage << indexes[0] << '\n';
+	  fMessage << " Node Set Length . . . . . . . . . . . . . . . . = ";
+	  fMessage << fNodeSetDimensions[indexes[i]] << '\n';
+	}
+    }
+}
+
+void ModelManagerT::SideSetList (ifstreamT& in, iArrayT& indexes)\
+{
+}
+
+/* return the total number of nodes, read node lists, integer data and double values */
+int ModelManagerT::ReadCards (ifstreamT& in, ostream& out, ArrayT<iArrayT>& nodes, iArray2DT& data, dArrayT& value)
+{
+  const int numc = value.Length();
+  if (data.MajorDim() != numc ||
+      nodes.Length () != numc ) throw eSizeMismatch;
+  data = 0;
+  value = 0;
+
+  /* account for text file name instead of data */
+  ifstreamT tmp;
+  ifstreamT& in2 = OpenExternal (in, tmp, out, true, "ModelManagerT::ReadCards: could not open file");
+
+  int count = 0;
+  int *pd = data.Pointer();
+  StringT ID;
+  for (int i=0; i < numc; i++)
+    {
+      /* read node set name or node number */
+      in2 >> ID;
+
+      /* read nodes in set or create a set from node number */
+      if (fFormat == IOBaseT::kTahoe)
+	{
+	  nodes[i].Allocate (1);
+	  nodes[i] = atoi (ID) - 1; // offset
+	  count++;
+	}
+      else
+	{
+	  nodes[i] = NodeSet (NodeSetIndex (ID));
+	  if (i == 0)
+	    out << " Number of node sets . . . . . . . . . . . . . . = " 
+		<< numc << "\n\n";
+	  out << " Node Set Name . . . . . . . . . . . . . . . . . = ";
+	  out << ID << '\n';
+	  out << " Number of cards . . . . . . . . . . . . . . . . = ";
+	  out << nodes[i].Length() << endl;
+	  count += nodes[i].Length();
+	}
+
+      /* read card data */
+      for (int j=0; j < data.MinorDim(); j++)
+	in2 >> *pd++;
+      in2 >> value[i];
+    }  
+  return count;
 }
 
 void ModelManagerT::CoordinateDimensions (int& length, int& dof) const
@@ -393,6 +547,21 @@ const iArrayT& ModelManagerT::NodeSet (int index)
       fInput->ReadNodeSet (fNodeSetNames[index], fNodeSets[index]);
     }
   return fNodeSets [index];
+}
+
+void ModelManagerT::ManyNodeSets (const iArrayT& indexes, iArrayT& nodes)
+{
+  iAutoArrayT temp;
+  iArrayT tn;
+  for (int i=0; i < indexes.Length(); i++)
+    {
+      tn = NodeSet (indexes[i]);
+      temp.AppendUnique(tn);
+    }
+
+  nodes.Allocate (temp.Length());
+  nodes.CopyPart (0, temp, 0, temp.Length());
+  nodes.SortAscending ();
 }
 
 void ModelManagerT::SideSetNames (ArrayT<StringT>& names) const
