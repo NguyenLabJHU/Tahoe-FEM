@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2003-03-04 07:37:09 paklein Exp $
+# $Id: makefile,v 1.6 2003-03-31 23:14:38 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,7 +22,10 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	BondLatticeT.o \
 	CBLatticeT.o \
-	LJFCC111.o \
+	HexLattice2DT.o \
+	Hex2D.o \
+	FCCLatticeT.o \
+	FCC3D.o \
 	LJTr2D.o \
 	SWDiamond100.o \
 	SWDiamond110.o \
@@ -48,7 +51,10 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	BondLatticeT.cpp \
 	CBLatticeT.cpp \
-	LJFCC111.cpp \
+	HexLattice2DT.cpp \
+	Hex2D.cpp \
+	FCCLatticeT.cpp \
+	FCC3D.cpp \
 	LJTr2D.cpp \
 	SWDiamond100.cpp \
 	SWDiamond110.cpp \
@@ -66,7 +72,10 @@ SRC = \
 HDR = \
 	BondLatticeT.h \
 	CBLatticeT.h \
-	LJFCC111.h \
+	HexLattice2DT.h \
+	Hex2D.h \
+	FCCLatticeT.h \
+	FCC3D.h \
 	LJTr2D.h \
 	SWDiamond100.h \
 	SWDiamond110.h \

@@ -1,4 +1,4 @@
-/* $Id: BondLatticeT.cpp,v 1.3 2002-10-20 22:48:38 paklein Exp $ */
+/* $Id: BondLatticeT.cpp,v 1.4 2003-03-31 23:14:38 paklein Exp $ */
 /* created: paklein (01/07/1997)                                          */
 /* BondLatticeT.cpp                                                       */
 
@@ -106,10 +106,6 @@ const dArrayT& BondLatticeT::DeformedLengths(void) const { return fDefLength; }
 int BondLatticeT::NumberOfLatticeDim(void) const { return fNumLatticeDim; }
 int BondLatticeT::NumberOfSpatialDim(void) const { return fNumSpatialDim; }
 int BondLatticeT::NumberOfBonds(void) const { return fNumBonds; }
-
-/**********************************************************************
-* Protected
-**********************************************************************/
 
 /*
 * Compute deformed bond lengths from the given Green strain

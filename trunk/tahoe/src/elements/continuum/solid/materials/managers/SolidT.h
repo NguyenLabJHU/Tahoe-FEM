@@ -1,6 +1,5 @@
-/* $Id: SolidT.h,v 1.27 2003-03-19 17:09:02 thao Exp $ */
+/* $Id: SolidT.h,v 1.28 2003-03-31 23:14:40 paklein Exp $ */
 /* created: paklein (03/10/2001) */
-
 #ifndef _MATERIAL_T_H_
 #define _MATERIAL_T_H_
 
@@ -27,13 +26,14 @@ public:
            kJ2QL = 10,
        kDPSSKStV = 11,
          kLJTr2D = 12,
-       kLJFCC111 = 13,
+          kHex2D = 13,
          kFCCEAM = 14,
 kmodCauchyBornDC = 15,
             kVIB = 16,
      kIsoVIBSimo = 17,
     kIsoVIBOgden = 18,
    kIsoVIBSimoJ2 = 19,
+            kFCC = 20,
     kFossumSSIso = 26,
 kThermoViscoPlastic = 30,
        kPovirk2D = 31,

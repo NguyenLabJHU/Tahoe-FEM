@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.36 2003-03-27 16:53:25 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.37 2003-03-31 23:14:40 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 #include "fstreamT.h"
@@ -19,7 +19,7 @@
 #ifdef CAUCHY_BORN_MATERIAL
 #include "EAMFCC2D.h"
 #include "LJTr2D.h"
-#include "LJFCC111.h"
+#include "Hex2D.h"
 #endif
 
 #ifdef MODCBSW_MATERIAL
@@ -99,7 +99,7 @@ SolidMatList2DT::SolidMatList2DT(int length, const SolidMatSupportT& support):
 /* read material data from the input stream */
 void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 {
-	const char caller[] = "SolidMatList3DT::ReadMaterialData";
+	const char caller[] = "SolidMatList2DT::ReadMaterialData";
 
 	int i, matnum;
 	SolidT::TypeT matcode;
@@ -240,13 +240,13 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				ExceptionT::BadInputValue(caller, "CAUCHY_BORN_MATERIAL not enabled: %d", matcode);
 #endif
 			}
-			case kLJFCC111:
+			case kHex2D:
 			{
 #ifdef CAUCHY_BORN_MATERIAL
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new LJFCC111(in, *fFSMatSupport);
+				fArray[matnum] = new Hex2D(in, *fFSMatSupport);
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CAUCHY_BORN_MATERIAL not enabled: %d", matcode);
@@ -349,7 +349,11 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				ExceptionT::BadInputValue(caller, "VIB_MATERIAL not enabled: %d", matcode);
 #endif
 			}
-		        case kFossumSSIso:
+			case kFCC:
+			{
+				ExceptionT::BadInputValue(caller, "material %d is 3D only", matcode);
+			}
+			case kFossumSSIso:
 			{
 #ifdef FOSSUM_MATERIAL_DEV
 				/* check */
