@@ -1,4 +1,4 @@
-# $Id: SGI.mpich.macros,v 1.4 2001-01-31 02:12:21 paklein Exp $
+# $Id: SGI.mpich.macros,v 1.5 2001-01-31 21:36:05 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__MPI__
 MPI_LFLAGS = 
@@ -9,7 +9,7 @@ MAKE_DEPEND = makedepend
 COMP_C      = /usr/local/mpich/bin/mpicc
 COMP_CC     = /usr/local/mpich/bin/mpiCC
 COMP_F      = /usr/local/mpich/bin/mpif77
-MORE_CFLAGS = -O3 -OPT:Olimit=4000 -DNDEBUG 
+MORE_CFLAGS = -O3 -OPT:Olimit=10000 -DNDEBUG 
 #MORE_CFLAGS = -g
 MY_CFLAGS   = -c -mips4 -D__SGI__ -I$(INC_DIR) $(MORE_CFLAGS)
 CFLAGS_C    = $(MPI_CFLAGS) $(MY_CFLAGS) -woff 1110,1116
