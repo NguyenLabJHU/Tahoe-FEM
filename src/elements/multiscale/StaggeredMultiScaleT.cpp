@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.17 2002-12-21 01:41:57 creigh Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.18 2002-12-21 21:40:57 paklein Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -394,7 +394,7 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 			fEquation_II 	= new VMS_EZT;
 			fFineMaterial = new Iso_MatlT; // <-- not used
 			break;
-
+#if 0
 		case FineScaleT::kVMS_EZ2 : 
 			fEquation_II 	= new VMS_EZ2T;
 			fFineMaterial = new Iso_MatlT; // <-- not used
@@ -429,7 +429,7 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 			fFineMaterial -> E_Nu_2_Lamda_Mu	( BCJ_MatlT::kE,			BCJ_MatlT::kPr,	
 																					BCJ_MatlT::kLamda, 	BCJ_MatlT::kMu 	);
 			break;
-
+#endif
 		case FineScaleT::kPHEN :
 			//fEquation_II 	= new PHENT;
 			//fFineMaterial = new VMS_Phen_MaterialT;

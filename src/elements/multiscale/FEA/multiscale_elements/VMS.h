@@ -7,10 +7,12 @@
 	#include "VMS_VariableT.h"
 	#include "VMS_BCJT.h"
 	#include "VMS_EZT.h"
+#if 0
 	#include "VMS_EZ2T.h"
 	#include "VMS_EZ3T.h"
 	#include "VMS_EZ4T.h"
 	#include "VMS_EZ5T.h"
+#endif
 	#include "VMF_Virtual_Work_EqT.h"
   
 #endif
