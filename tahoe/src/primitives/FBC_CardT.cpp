@@ -1,4 +1,4 @@
-/* $Id: FBC_CardT.cpp,v 1.9 2002-09-12 17:50:06 paklein Exp $ */
+/* $Id: FBC_CardT.cpp,v 1.10 2003-03-31 23:01:56 paklein Exp $ */
 /* created: paklein (06/15/1996) */
 
 #include "FBC_CardT.h"
@@ -72,7 +72,10 @@ void FBC_CardT::SplitForce(void)
 /* return the current value */
 double FBC_CardT::CurrentValue(void) const
 {
-	return fValue*(fSchedule->Value());
+	if (!fSchedule)
+		return fValue;
+	else
+		return fValue*(fSchedule->Value());
 }
 
 /* I/O */

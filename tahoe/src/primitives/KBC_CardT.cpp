@@ -1,4 +1,4 @@
-/* $Id: KBC_CardT.cpp,v 1.10 2002-10-20 22:49:31 paklein Exp $ */
+/* $Id: KBC_CardT.cpp,v 1.11 2003-03-31 23:01:56 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "KBC_CardT.h"
@@ -72,12 +72,11 @@ double KBC_CardT::Value(void) const
 	if (fcode == kFix) /* does not have value fLTfPtr!!!! */
 		return 0.0;
 	else
-	  {
-#if __option(extended_errorcheck)
-		/* double check pointers are set */
-		if (!fSchedule) throw ExceptionT::kGeneralFail;
-#endif
-		return fvalue*(fSchedule->Value());
+	{
+		if (!fSchedule)
+			return fvalue;
+		else
+			return fvalue*(fSchedule->Value());
 	  }
 }
 
