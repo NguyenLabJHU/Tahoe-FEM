@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.70.2.9 2004-03-22 18:38:46 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.70.2.10 2004-03-27 04:16:09 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1142,6 +1142,10 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	ParameterInterfaceT::DefineParameters(list); 
 
+	/* information */
+	list.AddParameter(ParameterT::String, "title", ParameterListT::ZeroOrOnce);
+	list.AddParameter(ParameterT::String, "author", ParameterListT::ZeroOrOnce);
+
 	/* geometry file format */
 	ParameterT geometry_format(ParameterT::Enumeration, "geometry_format");
 	geometry_format.AddEnumeration("TahoeII", IOBaseT::kTahoeII);
@@ -1152,7 +1156,7 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(geometry_format);
 
 	/* geometry file */
-	list.AddParameter(ParameterT(ParameterT::String, "geometry_file"));
+	list.AddParameter(ParameterT(ParameterT::Word, "geometry_file"));
 
 	/* output format */
 	ParameterT output_format(ParameterT::Enumeration, "output_format");
@@ -1166,7 +1170,7 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(output_format);
 
 	/* restart file name */
-	list.AddParameter(ParameterT(ParameterT::String, "restart_file"), ParameterListT::ZeroOrOnce);
+	list.AddParameter(ParameterT(ParameterT::Word, "restart_file"), ParameterListT::ZeroOrOnce);
 
 	/* restart output increment */
 	ParameterT restart_output_inc(ParameterT::Integer, "restart_output_inc");
