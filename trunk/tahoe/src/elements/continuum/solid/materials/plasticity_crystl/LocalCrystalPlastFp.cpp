@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.16 2004-01-10 17:15:08 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.17 2004-04-13 18:41:21 ebmarin Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -709,7 +709,7 @@ void LocalCrystalPlastFp::IterateOnCrystalState(bool& stateConverged, int subInc
   int iterState = 0;
   int ierr = 0;
 
-  while (++iterState <= fMaxIterState && !stateConverged)
+//  while (++iterState <= fMaxIterState && !stateConverged)
      {
        try
           {
@@ -728,7 +728,8 @@ void LocalCrystalPlastFp::IterateOnCrystalState(bool& stateConverged, int subInc
             SolveForHardening();
       
             // check convergence of state
-            stateConverged = (Converged(fTolerState) && fHardening->Converged(fTolerState));
+//            stateConverged = (Converged(fTolerState) && fHardening->Converged(fTolerState));
+              stateConverged = true;
          }
 	  
        catch(ExceptionT::CodeT code)
@@ -737,7 +738,7 @@ void LocalCrystalPlastFp::IterateOnCrystalState(bool& stateConverged, int subInc
                cout << " ...... failed at subIncr # " << subIncr 
 	            << ";  elem # " << CurrElementNumber() 
                     << ";  IP # " << CurrIP() << endl;
-	    break;
+	    //break;
           }
      }
 
@@ -767,17 +768,18 @@ void LocalCrystalPlastFp::InitialEstimateForFp()
   fFpNorm0 = sqrt(fFp.ScalarProduct());
 }
 
-/*void LocalCrystalPlastFp::InitialEstimateForHardening()
+void LocalCrystalPlastFp::InitialEstimateForHardening()
 {
   // estimate for slip shearing rate (needed by slip hardening classes)
   fCeBar.MultATA(fFe_n);
   ResolveShearStress();
   for (int i = 0; i < fNumSlip; i++)
-     fDGamma[i] = fdt * fKinetics->Phi(fTau[i], i);
+//     fDGamma[i] = fdt * fKinetics->Phi(fTau[i], i);
+     fDGamma[i] = 0.0;
 
   // explicit update for hardening variables
   fHardening->ExplicitUpdateHard();
-}*/
+}
 
 void LocalCrystalPlastFp::SolveForPlasticDefGradient(int& ierr)
 {
@@ -1078,7 +1080,7 @@ void LocalCrystalPlastFp::AddGradTermToC_ijkl()
   // do nothing
 }
 
-void LocalCrystalPlastFp::InitialEstimateForHardening()
+/*void LocalCrystalPlastFp::InitialEstimateForHardening()
 {
   // reference to hardening/kinetics material properties
   const dArrayT& propH = fHardening->MaterialProperties();
@@ -1161,4 +1163,4 @@ void LocalCrystalPlastFp::InitialEstimateForHardening()
 
   // explicit update for hardening variables
   fHardening->ExplicitUpdateHard();
-}
+}*/
