@@ -1,4 +1,4 @@
-/* $Id: expat_ParseT.cpp,v 1.10 2004-07-12 20:49:25 paklein Exp $ */
+/* $Id: expat_ParseT.cpp,v 1.11 2004-07-22 08:15:03 paklein Exp $ */
 #include "expat_ParseT.h"
 #ifdef __EXPAT__
 
@@ -15,6 +15,7 @@ using namespace Tahoe;
 
 /* init static values */
 AutoArrayT<ParameterListT*> expat_ParseT::sListStack;
+ParameterListT* expat_ParseT::sRoot = NULL;
 
 /* constructor */
 expat_ParseT::expat_ParseT(void)
@@ -30,9 +31,7 @@ void expat_ParseT::Parse(const StringT& file, ParameterListT& params)
 	const char caller[] = "expat_ParseT::Parse";
 
 	/* check stack */
-	if (sListStack.Length() != 0)
-		ExceptionT::GeneralFail(caller, "list stack is not empty");
-	sListStack.Append(&params);
+	if (sListStack.Length() != 0) ExceptionT::GeneralFail(caller, "list stack is not empty");
 
 	/* create parser */
 	XML_Parser parser = XML_ParserCreate(NULL);
@@ -52,6 +51,7 @@ void expat_ParseT::Parse(const StringT& file, ParameterListT& params)
 	if (!fp) ExceptionT::GeneralFail(caller, "error opening file \"%s\"", file.Pointer());
 
 	/* parse */
+	sRoot = &params;
 	int done;
 	char buf[BUFSIZ];
   	do {
@@ -79,8 +79,8 @@ void expat_ParseT::Parse(const StringT& file, ParameterListT& params)
 	} while (!done);
 
 	/* stack check */
-	if (sListStack.Length() != 1)
-		ExceptionT::GeneralFail(caller, "stack depth should be 1: %d", sListStack.Length());
+	if (sListStack.Length() != 0)
+		ExceptionT::GeneralFail(caller, "stack depth should be 0: %d", sListStack.Length());
 
 	} /* end try */
 	
@@ -92,6 +92,7 @@ void expat_ParseT::Parse(const StringT& file, ParameterListT& params)
 	if (fp) fclose(fp);
 	XML_ParserFree(parser);
 	sListStack.Dimension(0);
+	sRoot = NULL;
 	
 	/* error */
 	if (error != ExceptionT::kNoError)
@@ -108,15 +109,26 @@ void expat_ParseT::startElement(void *userData, const char *name, const char **a
 	const char caller[] = "expat_ParseT::startElement";
 
 	/* check length */
-	if (sListStack.Length() < 1)
-		ExceptionT::GeneralFail(caller, "stack is empty");
+	if (sListStack.Length() < 0) ExceptionT::GeneralFail(caller, "bad stack");
 
-	/* parent list */
-	ParameterListT* parent = sListStack.Last();
+	/* lists */
+	ParameterListT* parent = NULL;
+	ParameterListT* current = NULL;
+	ParameterListT sublist;
 
-	/* new sublist */
-	ParameterListT sublist(name);
-	sublist.SetDuplicateListNames(parent->DuplicateListNames());
+	/* working on root element */
+	if (sListStack.Length() == 0)
+		current = sRoot;
+	else
+	{
+		/* parent list */
+		parent = sListStack.Last();
+
+		/* init sublist */
+		sublist.SetDuplicateListNames(parent->DuplicateListNames());
+		current = &sublist;
+	}
+	current->SetName(name);
 	
 	/* put attributes into the list */
 	while (*atts != NULL) {
@@ -127,29 +139,35 @@ void expat_ParseT::startElement(void *userData, const char *name, const char **a
 		const char* att_value = *atts++;
 
 		if (strcmp(att_name, "description") == 0)
-			sublist.SetDescription(att_value);
+			current->SetDescription(att_value);
 		else
 		{
 			/* add to the list */
 			ParameterT param(att_value, att_name);
-			if (!sublist.AddParameter(param))
+			if (!current->AddParameter(param))
 				ExceptionT::BadInputValue(caller, "could not add parameter \"%s\" to list \"%s\"",
-					param.Name().Pointer(), sublist.Name().Pointer());
+					param.Name().Pointer(), current->Name().Pointer());
 		}
 	}
 
-	/* append sublist to parent */
-	if (!parent->AddList(sublist))
-		ExceptionT::BadInputValue(caller, "could not add sublist \"%s\" to list \"%s\"",
-			sublist.Name().Pointer(), parent->Name().Pointer());
+	/* store */
+	if (parent)
+	{
+		/* append sublist to parent */
+		if (!parent->AddList(sublist))
+			ExceptionT::BadInputValue(caller, "could not add sublist \"%s\" to list \"%s\"",
+				current->Name().Pointer(), parent->Name().Pointer());
 
-	/* put newest sublist at the end of the stack */
-	const ArrayT<ParameterListT>& subs = parent->Lists();
-	const ParameterListT& last = subs.Last();
-	if (last.Name() != name)
-		ExceptionT::GeneralFail(caller, "last list should be \"%s\" not \"%s\"", 
-			name, last.Name().Pointer());
-	sListStack.Append((ParameterListT*) &last);
+		/* put newest sublist at the end of the stack */
+		const ArrayT<ParameterListT>& subs = parent->Lists();
+		const ParameterListT& last = subs.Last();
+		if (last.Name() != name)
+			ExceptionT::GeneralFail(caller, "last list should be \"%s\" not \"%s\"", 
+				name, last.Name().Pointer());
+		sListStack.Append((ParameterListT*) &last);
+	}
+	else /* root */
+		sListStack.Append(sRoot);
 }
 
 void expat_ParseT::endElement(void *userData, const char *name)
@@ -158,7 +176,7 @@ void expat_ParseT::endElement(void *userData, const char *name)
 	const char caller[] = "expat_ParseT::startElement";
 
 	/* check length */
-	if (sListStack.Length() < 2)
+	if (sListStack.Length() < 1)
 		ExceptionT::GeneralFail(caller, "stack too short %d", sListStack.Length());
 
 	/* pull from stack */
