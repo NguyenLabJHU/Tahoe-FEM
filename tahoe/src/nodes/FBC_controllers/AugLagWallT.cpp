@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.cpp,v 1.2 2002-04-19 17:22:21 paklein Exp $ */
+/* $Id: AugLagWallT.cpp,v 1.3 2002-04-19 19:21:52 paklein Exp $ */
 
 #include "AugLagWallT.h"
 
@@ -192,7 +192,7 @@ void AugLagWallT::ApplyLHS(void)
 			fLHS.SetBlock(0, nsd, mat);
 
 			/* augmented Lagrangian DOF */
-			if (fFloatingDOF[i]) {
+			if (fFloatingDOF[i] && fabs(g) < kSmall) {
 				int dex = fLHS.Rows() - 1;
 				fLHS(dex,dex) = -1.0/fk;							
 			}
