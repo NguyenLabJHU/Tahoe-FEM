@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.74 2004-11-17 23:39:12 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.75 2005-01-31 07:10:37 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -409,8 +409,19 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 
 		/* construction */
 		tahoe = FEManagerT::New(valid_list.Name(), input_file, out, fComm, fCommandLineOptions, FEManagerT::kRun);
+
+#if defined(__MWERKS__) && __option(profile)
+		/* start recording profiler information */
+		ProfilerSetStatus(1);
+#endif
 		
+		/* construct with given parameters */
 		tahoe->TakeParameterList(valid_list);
+
+#if defined(__MWERKS__) && __option(profile)
+		/* stop recording profiler information */
+		ProfilerSetStatus(0);
+#endif
 
 		if (fComm.Sum(token) != size && size > 1)
 		{
