@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.cpp,v 1.13 2004-09-14 18:20:24 paklein Exp $ */
+/* $Id: AugLagWallT.cpp,v 1.14 2004-09-14 19:30:54 paklein Exp $ */
 #include "AugLagWallT.h"
 #include "FieldT.h"
 #include "eIntegratorT.h"
@@ -389,7 +389,7 @@ void AugLagWallT::ComputeContactForce(double kforce)
 	{
 		/* check for update */
 		int iter = FieldSupport().IterationNumber();
-		if (!fRecomputeForce && (iter != -1 && fabs(fmod(iter+1, fPrimalIterations)) > kSmall)) return;
+		if (!fRecomputeForce && (iter != -1 && fabs(fmod(double(iter+1), fPrimalIterations)) > kSmall)) return;
 		fRecomputeForce = false;
 	
 		/* dimensions */
