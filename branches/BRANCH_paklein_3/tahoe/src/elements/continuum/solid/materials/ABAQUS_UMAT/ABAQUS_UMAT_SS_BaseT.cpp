@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.1.2.7 2003-12-05 17:57:49 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.1.2.8 2003-12-09 18:22:31 paklein Exp $ */
 #include "ABAQUS_UMAT_SS_BaseT.h"
 
 #ifdef __F2C__
@@ -531,8 +531,14 @@ if (MaterialSupport().RunState() == GlobalT::kFormRHS) {
 		dfgrd0, dfgrd1, &noel, &npt, &layer, &kspt, &kstep, &kinc, cmname_len);
 
 	/* check for step cut */
-	if (pnewdt/dtime < 0.55)
+	if (pnewdt/dtime < 0.55) {
+	
+		bool re_run_UMAT = false;
+		if (re_run_UMAT)
+			Call_UMAT(t, dt, step, iter);
+	
 		ExceptionT::BadJacobianDet("ABAQUS_UMAT_SS_BaseT::Call_UMAT", "material signaled step cut");
+	}
 
 #ifdef DEBUG
 if (MaterialSupport().RunState() == GlobalT::kFormRHS) {
