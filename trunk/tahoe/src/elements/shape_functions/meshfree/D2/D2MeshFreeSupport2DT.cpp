@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupport2DT.cpp,v 1.7 2003-11-21 22:47:18 paklein Exp $ */
+/* $Id: D2MeshFreeSupport2DT.cpp,v 1.8 2004-01-27 01:21:14 cjkimme Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupport2DT.h"
@@ -18,7 +18,7 @@ static    int Max(int a, int b) { return (a > b) ? a : b; };
 static double Max(double a, double b) { return (a > b) ? a : b; };
 
 /* constructor */
-D2MeshFreeSupport2DT::D2MeshFreeSupport2DT(const ParentDomainT& domain,
+D2MeshFreeSupport2DT::D2MeshFreeSupport2DT(const ParentDomainT* domain,
 	const dArray2DT& coords, const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in):
 	D2MeshFreeSupportT(domain, coords, connects, nongridnodes, in)
 {

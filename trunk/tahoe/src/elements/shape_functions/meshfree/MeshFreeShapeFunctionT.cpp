@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.cpp,v 1.10 2003-11-21 22:47:14 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.cpp,v 1.11 2004-01-27 01:21:11 cjkimme Exp $ */
 /* created: paklein (09/10/1998) */
 
 #include "MeshFreeShapeFunctionT.h"
@@ -22,10 +22,10 @@ MeshFreeShapeFunctionT::MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, i
 {
 	/* construct MLS support */
 	if (all_coords.MinorDim() == 2)
-		fMFSupport = new MeshFreeSupport2DT(*fDomain, all_coords, connects,
+		fMFSupport = new MeshFreeSupport2DT(fDomain, all_coords, connects,
 							nongridnodes, in);
 	else
-		fMFSupport = new MeshFreeSupport3DT(*fDomain, all_coords, connects,
+		fMFSupport = new MeshFreeSupport3DT(fDomain, all_coords, connects,
 							nongridnodes, in);
 
 	if (!fMFSupport) throw ExceptionT::kOutOfMemory;
