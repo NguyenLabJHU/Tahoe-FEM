@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.12 2003-01-29 07:35:12 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.12.2.1 2003-02-19 01:14:46 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -546,30 +546,3 @@ double ParticleT::MaxDisplacement(void) const
 	
 	return sqrt(dmax2);
 }
-
-namespace Tahoe {
-
-/** stream extraction operator */
-istream& operator>>(istream& in, ParticleT::PropertyT& property)
-{
-	int i_property;
-	in >> i_property;
-	switch (i_property)
-	{
-		case ParticleT::kHarmonicPair:
-			property = ParticleT::kHarmonicPair;
-			break;
-		case ParticleT::kLennardJonesPair:
-			property = ParticleT::kLennardJonesPair;
-			break;
-		case ParticleT::kParadynPair:
-			property = ParticleT::kParadynPair;
-			break;
-		default:
-			ExceptionT::BadInputValue("operator>>ParticleT::PropertyT", 
-				"unknown code: %d", i_property);
-	}
-	return in;
-}
-
-} /* namespace Tahoe */

@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.14 2003-01-29 07:35:12 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.14.2.1 2003-02-19 01:14:46 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -553,25 +553,25 @@ void ParticlePairT::EchoProperties(ifstreamT& in, ofstreamT& out)
 	fPairProperties = NULL;
 	for (int i = 0; i < fPairProperties.Length(); i++)
 	{
-		ParticleT::PropertyT property;
+		ParticlePropertyT::TypeT property;
 		in >> property;
 		switch (property)
 		{
-			case ParticleT::kHarmonicPair:
+			case ParticlePropertyT::kHarmonicPair:
 			{
 				double mass, R0, K;
 				in >> mass >> R0 >> K;
 				fPairProperties[i] = new HarmonicPairT(mass, R0, K);
 				break;
 			}
-			case ParticleT::kLennardJonesPair:
+			case ParticlePropertyT::kLennardJonesPair:
 			{
 				double mass, eps, sigma, alpha;
 				in >> mass >> eps >> sigma >> alpha;
 				fPairProperties[i] = new LennardJonesPairT(mass, eps, sigma, alpha);
 				break;
 			}
-			case ParticleT::kParadynPair:
+			case ParticlePropertyT::kParadynPair:
 			{
 				StringT file;
 				in >> file;

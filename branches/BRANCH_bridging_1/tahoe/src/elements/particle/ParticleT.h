@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.9 2003-01-27 07:00:26 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.9.2.1 2003-02-19 01:14:46 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -20,16 +20,6 @@ class ParticlePropertyT;
 class ParticleT: public ElementBaseT
 {
 public:
-
-	/** enum for particle property types */
-	enum PropertyT {
-        kHarmonicPair = 0, /**< harmonic pair potential */
-    kLennardJonesPair = 1, /**< Jennard-Jones 6/12 pair potential */
-         kParadynPair = 2  /**< pair potential in Paradyn (EAM) format */
-	};
-	
-	/** stream extraction operator */
-	friend istream& operator>>(istream& in, ParticleT::PropertyT& property);	
 
 	/** constructor */
 	ParticleT(const ElementSupportT& support, const FieldT& field);
