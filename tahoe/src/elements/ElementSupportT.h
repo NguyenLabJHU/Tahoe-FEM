@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.23 2003-05-28 23:26:42 cjkimme Exp $ */
+/* $Id: ElementSupportT.h,v 1.24 2003-08-08 16:20:53 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -306,8 +306,6 @@ public:
 	const OutputSetT& OutputSet(int ID) const;
 #endif
 	/*@}*/
-
-private:
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
  	/** \name verified access 
