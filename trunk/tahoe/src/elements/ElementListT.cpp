@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.73 2003-11-22 00:03:33 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.74 2003-12-02 17:17:10 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -905,6 +905,8 @@ void ElementListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrder
 
 #ifdef CONTINUUM_ELEMENT
 		sub_sub_list.AddSub("diffusion");
+		sub_sub_list.AddSub("nonlinear_diffusion");
+		sub_sub_list.AddSub("small_strain");
 #endif
 	}
 	else /* inherited */
@@ -938,6 +940,10 @@ ParameterInterfaceT* ElementListT::NewSub(const StringT& list_name) const
 #ifdef CONTINUUM_ELEMENT
 	else if (list_name == "diffusion")
 		return new DiffusionElementT(fSupport);
+	else if (list_name == "nonlinear_diffusion")
+		return new NLDiffusionElementT(fSupport);
+	else if (list_name == "small_strain")
+		return new SmallStrainT(fSupport);
 #endif
 
 	/* inherited */	
