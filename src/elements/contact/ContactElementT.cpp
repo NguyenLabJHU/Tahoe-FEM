@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.45 2003-11-21 22:54:34 paklein Exp $ */
+/* $Id: ContactElementT.cpp,v 1.46 2003-12-20 01:22:14 rjones Exp $ */
 #include "ContactElementT.h"
 
 #include <math.h>
@@ -26,7 +26,6 @@
 using namespace Tahoe;
 
 static const int kMaxNumFaceNodes = 4; // 4node quads
-static const int kMaxNumFaceDOF   = 12; // 4node quads in 3D
 
 
 /* constructor */
@@ -128,30 +127,34 @@ void ContactElementT::Initialize(void)
 }
 
 void ContactElementT::SetWorkspace(void)
-{ 	/* workspace matrices */  // ARE THESE CORRECT?
-	n1.Dimension(NumSD());
-   	RHS_man.SetWard    (kMaxNumFaceDOF,RHS);
-   	tmp_RHS_man.SetWard(kMaxNumFaceDOF,tmp_RHS);
-   	LHS_man.SetWard    (kMaxNumFaceDOF,LHS);
-   	tmp_LHS_man.SetWard(kMaxNumFaceDOF,tmp_LHS);
-   	N1_man.SetWard     (kMaxNumFaceDOF,N1);
-   	N2_man.SetWard     (kMaxNumFaceDOF,N2);
-   	N1n_man.SetWard    (kMaxNumFaceDOF,N1n);
-   	N2n_man.SetWard    (kMaxNumFaceDOF,N2n);
-   	eqnums1_man.SetWard(kMaxNumFaceDOF,eqnums1,NumSD());
-   	eqnums2_man.SetWard(kMaxNumFaceDOF,eqnums2,NumSD());
-   	weights_man.SetWard(kMaxNumFaceNodes,weights);
+{ 	/* workspace matrices */ 
+	int nsd = NumSD();
+	n1.Dimension(nsd);
+	int size_of_eqnum = kMaxNumFaceNodes*nsd;
+   	RHS_man.SetWard    (size_of_eqnum,RHS);
+   	tmp_RHS_man.SetWard(size_of_eqnum,tmp_RHS);
+   	N1_man.SetWard     (size_of_eqnum,N1);
+   	N2_man.SetWard     (size_of_eqnum*nsd,N2);
+   	LHS_man.SetWard    (size_of_eqnum*size_of_eqnum,LHS);
+   	tmp_LHS_man.SetWard(size_of_eqnum*size_of_eqnum,tmp_LHS);
+   	N1n_man.SetWard    (size_of_eqnum,N1n);
+   	N2n_man.SetWard    (size_of_eqnum,N2n);
+   	eqnums1_man.SetWard(size_of_eqnum,eqnums1,NumSD());
+   	eqnums2_man.SetWard(size_of_eqnum,eqnums2,NumSD());
+   	weights_man.SetWard(size_of_eqnum,weights);
 	
 	if (fXDOF_Nodes) {
-	P1_man.SetWard     (kMaxNumFaceNodes*fNumMultipliers,P1);
-	P2_man.SetWard     (kMaxNumFaceNodes*fNumMultipliers,P2);
-	P1values_man.SetWard(kMaxNumFaceNodes*fNumMultipliers,P1values);
-	P2values_man.SetWard(kMaxNumFaceNodes*fNumMultipliers,P2values);
-	xRHS_man.SetWard   (kMaxNumFaceNodes*fNumMultipliers,xRHS);
-   	xeqnums1_man.SetWard(kMaxNumFaceDOF,xeqnums1,fNumMultipliers);
-   	xeqnums2_man.SetWard(kMaxNumFaceDOF,xeqnums2,fNumMultipliers);
-   	xconn1_man.SetWard(kMaxNumFaceDOF,xconn1);
-   	xconn2_man.SetWard(kMaxNumFaceDOF,xconn2);
+	int size_of_xeqnum = kMaxNumFaceNodes*fNumMultipliers;
+	P1_man.SetWard     (size_of_xeqnum*fNumMultipliers,P1);
+	P2_man.SetWard     (size_of_xeqnum*fNumMultipliers,P2);
+	P1values_man.SetWard(0,P1values,size_of_xeqnum);
+	P2values_man.SetWard(0,P2values,size_of_xeqnum);
+	xRHS_man.SetWard   (size_of_xeqnum*fNumMultipliers,xRHS);
+	tmp_xRHS_man.SetWard   (size_of_xeqnum*fNumMultipliers,tmp_xRHS);
+   	xeqnums1_man.SetWard(size_of_xeqnum,xeqnums1,fNumMultipliers);
+   	xeqnums2_man.SetWard(size_of_xeqnum,xeqnums2,fNumMultipliers);
+   	xconn1_man.SetWard(kMaxNumFaceNodes,xconn1);
+   	xconn2_man.SetWard(kMaxNumFaceNodes,xconn2);
 	}
 }
 

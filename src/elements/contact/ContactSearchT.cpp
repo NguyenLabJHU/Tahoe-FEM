@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.cpp,v 1.28 2003-11-21 22:54:34 paklein Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.29 2003-12-20 01:22:14 rjones Exp $ */
 #include "ContactSearchT.h"
 
 #include "ContactSurfaceT.h"
@@ -90,8 +90,10 @@ bool ContactSearchT::SetInteractions(void)
 	
 	/* (re-)set grid boundaries */
 	fGrid->Reset();
+	/*
 	cout << "\nContact Search Grid Statistics for surface " << i <<'\n';
 	fGrid->WriteStatistics(cout);
+	*/
 		
 	for (j = 0 ; j < fSurfaces.Length() ; j++) {
 		ContactSurfaceT& surface2  = fSurfaces[j]; // "face" surface

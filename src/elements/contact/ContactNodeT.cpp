@@ -1,4 +1,4 @@
-/*  $Id: ContactNodeT.cpp,v 1.20 2003-07-17 20:32:50 rjones Exp $ */
+/*  $Id: ContactNodeT.cpp,v 1.21 2003-12-20 01:22:14 rjones Exp $ */
 #include "ContactNodeT.h"
 
 #include "FaceT.h"
@@ -68,3 +68,21 @@ ContactNodeT::ComputeSlip(double* slip)
 	}
 }
 
+double 
+ContactNodeT::ComputeSlip(void)
+{
+	double slip = 0.0;
+	/* current position of contact point on face */
+	if (fOriginalOpposingFace) {
+	 double x2_O [3] ;	
+	 fOriginalOpposingFace->InterpolatePosition(fxiO,x2_O);
+	 /* current position of node */
+	 const double* x1 =fSurface.Position(fNodeTag);	
+	 slip = (x2_O[0] - x1[0])* fSurface.Tangent1(fNodeTag)[0]
+	      + (x2_O[1] - x1[1])* fSurface.Tangent1(fNodeTag)[1]; 
+	}
+	else {
+	 slip = 0.0;
+	}
+	return slip;
+}

@@ -1,4 +1,4 @@
-/* $Id: ContactNodeT.h,v 1.19 2003-07-17 20:32:50 rjones Exp $ */
+/* $Id: ContactNodeT.h,v 1.20 2003-12-20 01:22:14 rjones Exp $ */
 #ifndef _CONTACT_NODE_T_H_
 #define _CONTACT_NODE_T_H_
 
@@ -39,6 +39,8 @@ class ContactNodeT
 			fxi[0]           = 0.0 ;
 			fxi[1]           = 0.0 ;
 			fPressure        = 0.0;
+			fTangTraction[0] = 0.0;
+			fTangTraction[1] = 0.0;
 	}
 
 	/** assign opposing point on surface */
@@ -67,6 +69,7 @@ class ContactNodeT
 	}
 
 	void ComputeSlip(double* slip);
+	double ComputeSlip(void);
 
 	
   protected:
@@ -86,6 +89,7 @@ class ContactNodeT
 	const FaceT*     fOriginalOpposingFace ; 
 	double     fxiO[2] ;
 	double fPressure;
+	double fTangTraction[2];
 	
 
   public:
@@ -94,12 +98,17 @@ class ContactNodeT
 	bool HasMultiplier(void) {return fSurface.HasMultiplier(fNodeTag);}
 	double& Pressure(void) {return fSurface.Multiplier(fNodeTag,0);}
 	double& nPressure(void) {return fPressure;}
+	double& TangTraction(void) {return fSurface.Multiplier(fNodeTag,1);}
+	double& TangTraction(int i) {return fSurface.Multiplier(fNodeTag,i);}
+	double& nTangTraction(int i) {return fTangTraction[i];}
 	inline const int Tag(void) const
 		{return fNodeTag;}
 	inline const double* Position(void) const
 		{return fSurface.Position(fNodeTag);}
 	inline const double* Normal(void) const
 		{return fSurface.Normal(fNodeTag);}
+	inline const double* Tangent(void) const
+		{return fSurface.Tangent1(fNodeTag);}
 	inline const double* Tangent1(void) const
 		{return fSurface.Tangent1(fNodeTag);}
 	inline const double* Tangent2(void) const

@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.33 2003-11-06 21:57:40 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.34 2003-12-20 01:22:14 rjones Exp $ */
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
 
@@ -220,6 +220,8 @@ protected:
 	VariArrayT<double> tmp_RHS_man;
 	dArrayT xRHS;
     VariArrayT<double> xRHS_man;
+	dArrayT tmp_xRHS;
+    VariArrayT<double> tmp_xRHS_man;
 	/* stiffness */
 	ElementMatrixT LHS; //should be using fLHS
 	nVariMatrixT <double> LHS_man;
@@ -257,10 +259,14 @@ protected:
     nVariMatrixT<double> P1_man;
     dMatrixT P2;
     nVariMatrixT<double> P2_man;
-	ArrayT<double*> P1values;
-    VariArrayT<double*> P1values_man;
-    ArrayT<double*> P2values;
-    VariArrayT<double*> P2values_man;
+	dArray2DT P1values;
+    nVariArray2DT<double> P1values_man;
+    dArray2DT P2values;
+    nVariArray2DT<double> P2values_man;
+	//nArray2DT<double*> P1values;
+    //nVariArray2DT<double*> P1values_man;
+    //nArray2DT<double*> P2values;
+    //nVariArray2DT<double*> P2values_man;
 
 
 

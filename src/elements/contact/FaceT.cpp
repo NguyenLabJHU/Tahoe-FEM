@@ -1,4 +1,4 @@
-/* $Id: FaceT.cpp,v 1.10 2003-05-24 03:26:01 paklein Exp $ */
+/* $Id: FaceT.cpp,v 1.11 2003-12-20 01:22:14 rjones Exp $ */
 #include "FaceT.h"
 
 #include "SurfaceT.h" // this is for global nodes
@@ -32,3 +32,20 @@ int num_face_nodes, int* connectivity):
 
 /*destructor*/ 
 FaceT::~FaceT (void) { }
+
+
+void
+FaceT::InterpolateVector
+(const dArrayT& local_coordinates, const dArray2DT& nodal_vectors, 
+ dArrayT& vector) const
+{
+	dArrayT shape_f(nodal_vectors.MajorDim());
+	ComputeShapeFunctions (local_coordinates.Pointer(), shape_f);
+	vector = 0.0;
+	for (int i=0; i<nodal_vectors.MajorDim(); i++) {
+		for (int j=0; j<nodal_vectors.MinorDim(); j++) {
+			vector[j] += shape_f[i]*nodal_vectors(i,j);
+		}
+	}
+}
+

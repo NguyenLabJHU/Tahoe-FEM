@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.40 2003-11-21 22:54:34 paklein Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.41 2003-12-20 01:22:14 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
@@ -291,8 +291,9 @@ ContactSurfaceT::ResetMultipliers(dArray2DT& multiplier_values) const
                 int new_map = fMultiplierMap[i];
 				//cout << old_map << " --> " << new_map ;
 				//cout << " value: " << fLastMultiplierValues[old_map] << "\n";
-                if (old_map > -1 && new_map > -1)
+                if (old_map > -1 && new_map > -1) {
 					multiplier_values[new_map] = fLastMultiplierValues[old_map];
+				}
         }
 }
 
@@ -312,15 +313,27 @@ ContactSurfaceT::MultiplierTags
 
 void
 ContactSurfaceT::MultiplierValues
-(const iArrayT& local_nodes, ArrayT<double*>& multiplier_values) const
+(const iArrayT& local_nodes, nArray2DT<double*>& multiplier_values) const
 {
-    for (int i = 0; i < local_nodes.Length(); i++)
-    {
-        multiplier_values[i]
-            = (double*) &fMultiplierValues[fMultiplierMap[local_nodes[i]]];
+    for (int i = 0; i < local_nodes.Length(); i++) {
+		for (int j = 0; j < fNumMultipliers; j++) {
+        	multiplier_values(i,j) = (double*) 
+					&fMultiplierValues(fMultiplierMap[local_nodes[i]],j);
+		}
     }
 }
 
+void
+ContactSurfaceT::MultiplierValues
+(const iArrayT& local_nodes, dArray2DT& multiplier_values) const
+{
+    for (int i = 0; i < local_nodes.Length(); i++) {
+		for (int j = 0; j < fNumMultipliers; j++) {
+        	multiplier_values(i,j) =
+					fMultiplierValues(fMultiplierMap[local_nodes[i]],j);
+		}
+    }
+}
 
 const iArray2DT& 
 ContactSurfaceT::DisplacementMultiplierNodePairs(void)
@@ -407,7 +420,7 @@ ContactSurfaceT::PrintContactArea(ostream& out) const
 void
 ContactSurfaceT::PrintGaps(ostream& out) const
 {
-        out << "#Surface " << this->Tag() << " GAP  LAST_GAP MIN_GAP \n";
+        out << "#Surface " << this->Tag() << " GAP  LAST_GAP MIN_GAP SLIP[0] \n";
 
         for (int n = 0 ; n < fContactNodes.Length(); n++) {
             if (fContactNodes[n]->Status() > ContactNodeT::kNoProjection) {
@@ -417,7 +430,10 @@ ContactSurfaceT::PrintGaps(ostream& out) const
                 }
                 out << "   "<< fContactNodes[n]->Gap() ;
                 out << "   "<< fContactNodes[n]->LastGap() ; 
-                out << "   "<< fContactNodes[n]->MinGap() << '\n';
+                out << "   "<< fContactNodes[n]->MinGap() ;
+				double slip[2] = {0.0,0.0};
+				fContactNodes[n]->ComputeSlip(slip);
+                out << "   "<< slip[0] << '\n' ;
 	    	}
 			else {
                 out << "# tag " << fContactNodes[n]->Tag() << " ";
@@ -429,7 +445,7 @@ ContactSurfaceT::PrintGaps(ostream& out) const
 void
 ContactSurfaceT::PrintGaps(ofstream& out) const
 {
-		out << "#Surface " << this->Tag() << " GAP  LAST_GAP MIN_GAP \n";
+		out << "#Surface " << this->Tag() << " GAP  LAST_GAP MIN_GAP SLIP[0] \n";
 
         for (int n = 0 ; n < fContactNodes.Length(); n++) {
             if (fContactNodes[n]->Status() > ContactNodeT::kNoProjection) {
@@ -439,7 +455,10 @@ ContactSurfaceT::PrintGaps(ofstream& out) const
                 }
                 out << "   "<< fContactNodes[n]->Gap() ;
                 out << "   "<< fContactNodes[n]->LastGap() ; 
-                out << "   "<< fContactNodes[n]->MinGap() << '\n';
+                out << "   "<< fContactNodes[n]->MinGap() ;
+				double slip[2] = {0.0,0.0};
+				fContactNodes[n]->ComputeSlip(slip);
+                out << "   "<< slip[0] << '\n' ;
 	    	}
 			else {
                 out << "# tag " << fContactNodes[n]->Tag() << " ";
@@ -463,7 +482,11 @@ ContactSurfaceT::PrintMultipliers(ostream& out) const
                 for (int i = 0; i < fNumSD; i++) {
                         out << fContactNodes[n]->Position()[i] << " ";
                 }
-                out << "   "<< fMultiplierValues(tag,0) << "\n";
+				out << "   ";
+                for (int i = 0; i < fNumMultipliers; i++) {
+                        out << fMultiplierValues(tag,i) << " ";
+                }
+                out << "\n";
 			}
 			else {
                 out << "# tag " << fContactNodes[n]->Tag() << " ";
@@ -499,7 +522,11 @@ ContactSurfaceT::PrintMultipliers(ofstream& out) const
                 for (int i = 0; i < fNumSD; i++) {
                         out << fContactNodes[n]->Position()[i] << " ";
                 }
-                out << "   "<< fMultiplierValues(tag,0) << "\n";
+				out << "   ";
+                for (int i = 0; i < fNumMultipliers; i++) {
+                        out << fMultiplierValues(tag,i) << " ";
+                }
+                out << "\n";
             }
             else {
                 out << "# tag " << fContactNodes[n]->Tag() << " ";
@@ -535,7 +562,7 @@ ContactSurfaceT::PrintStatus(ostream& out) const
                 	out << " status " << fContactNodes[n]->Status()  
 					<< " : " << fContactNodes[n]->EnforcementStatus() ;
 
-					out << "\n    face:" <<  
+					out << " ->   face:" <<  
 					fContactNodes[n]->OpposingFace() ;
 					out << ",  xi:" <<  
 					fContactNodes[n]->OpposingLocalCoordinates() [0];

@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.28 2003-11-21 22:54:34 paklein Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.29 2003-12-20 01:22:14 rjones Exp $ */
 #ifndef _CONTACT_SURFACE_T_H_
 #define _CONTACT_SURFACE_T_H_
 
@@ -7,6 +7,7 @@
 
 /* direct members */
 #include "ArrayT.h"
+#include "Array2DT.h"
 #include "dArray2DT.h"
 #include "nMatrixT.h"
 
@@ -76,7 +77,9 @@ class ContactSurfaceT : public SurfaceT
 	void MultiplierTags
 		(const iArrayT& local_nodes, iArrayT& multiplier_tags) const;
 	void MultiplierValues
-		(const iArrayT& local_nodes, ArrayT<double*>& multiplier_values) const;
+		(const iArrayT& local_nodes, nArray2DT<double*>& multiplier_values) const;
+	void MultiplierValues
+		(const iArrayT& local_nodes, dArray2DT& multiplier_values) const;
 	const iArray2DT& DisplacementMultiplierNodePairs(void);
 	inline bool HasMultiplier(int i) 
 		{return fMultiplierMap[i] > -1;} 

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.16 2003-11-21 23:23:37 rjones Exp $
+# $Id: makefile,v 1.17 2003-12-20 01:22:14 rjones Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -19,6 +19,7 @@ OBJ = \
 	LineQ3FaceT.o \
 	MultiplierContactElement3DT.o \
 	MultiplierContactElement2DT.o \
+	FrictionalContactElement2DT.o \
 	PenaltyContactElement2DT.o \
 	PenaltyContactElement3DT.o \
 	QuadL4FaceT.o \
@@ -46,6 +47,7 @@ SRC = \
 	LineQ3FaceT.cpp \
 	MultiplierContactElement3DT.cpp \
 	MultiplierContactElement2DT.cpp \
+	FrictionalContactElement2DT.cpp \
 	PenaltyContactElement2DT.cpp \
 	PenaltyContactElement3DT.cpp \
 	QuadL4FaceT.cpp \
@@ -67,6 +69,7 @@ HDR = \
 	LineQ3FaceT.h \
 	MultiplierContactElement3DT.h \
 	MultiplierContactElement2DT.h \
+	FrictionalContactElement2DT.h \
 	PenaltyContactElement2DT.h \
 	PenaltyContactElement3DT.h \
 	QuadL4FaceT.h \

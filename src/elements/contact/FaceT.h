@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.28 2003-11-21 22:54:34 paklein Exp $ */
+/* $Id: FaceT.h,v 1.29 2003-12-20 01:22:14 rjones Exp $ */
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
 
@@ -91,6 +91,9 @@ public:
 	virtual void InterpolateVector
 		(const double* local_coordinates, dArray2DT& nodal_vectors, 
 		double* vector) const=0;
+	virtual void InterpolateVector
+		(const dArrayT& local_coordinates, const dArray2DT& nodal_vectors, 
+		  dArrayT& vector) const;
 	virtual double ComputeJacobian 
 		(const double* local_coordinates) const =0;
 	virtual bool Projection 
