@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.59 2003-08-12 17:53:01 thao Exp $ */
+/* $Id: ElementListT.cpp,v 1.60 2003-08-14 06:00:11 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -54,6 +54,7 @@
 #include "AugLagContact2DT.h"
 #include "AugLagContact3DT.h"
 #include "ACME_Contact3DT.h"
+#include "PenaltyContactDrag2DT.h"
 #endif
 
 #ifdef PARTICLE_ELEMENT
@@ -90,19 +91,23 @@
 #endif
 
 #ifdef SOLID_ELEMENT_DEV
+#ifdef MATERIAL_FORCE_ELEMENT_DEV
 #include "SmallStrainQ2P1.h"
 #include "UpdatedLagrangianMF.h"
 #include "SmallStrainMF.h"
 #include "SSMF.h"
 #include "SSQ2P1MF.h"
+#endif /* MATERIAL_FORCE_ELEMENT_DEV */
 #endif
 
 using namespace Tahoe;
 
 /* constructors */
-ElementListT::ElementListT(void)
+ElementListT::ElementListT(FEManagerT& fe):
+	ParameterInterfaceT("element_list")
 {
-
+	/* initialize element support */
+	fSupport.SetFEManager(&fe);
 }
 
 /* destructor */
@@ -117,12 +122,9 @@ ElementListT::~ElementListT(void)
 }
 
 /* initialization functions */
-void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
+void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 {
 	const char caller[] = "ElementListT::EchoElementData";
-
-	/* initialize element support */
-	fSupport.SetFEManager(&fe);
 
 	/* print header */
 	out << "\n E l e m e n t   G r o u p   D a t a :\n\n";
@@ -448,6 +450,19 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
 #endif
 			}
+			case ElementT::kPenaltyContactDrag:
+			{
+#ifdef CONTACT_ELEMENT
+				int nsd = fSupport.NumSD();
+				if (nsd == 2)
+					fArray[group] = new PenaltyContactDrag2DT(fSupport, *field);
+				else
+					ExceptionT::GeneralFail(caller, "kPenaltyContactDrag only 2D");
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
+#endif
+			}
 			case ElementT::kAugLagContact:
 			{
 #ifdef CONTACT_ELEMENT
@@ -623,47 +638,47 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		}
 		case ElementT::kFSMatForce:
 	        {
-#ifdef SOLID_ELEMENT_DEV
+#if defined (SOLID_ELEMENT_DEV) && defined (MATERIAL_FORCE_ELEMENT_DEV)
 		        fArray[group] = new UpdatedLagrangianMF(fSupport, *field);
 			break;
 #else
-			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
+			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or MATERIAL_FORCE_ELEMENT_DEV not enabled: %d", code);
 #endif
 		}
 		case ElementT::kSSMatForceD:
 		{
-#ifdef SOLID_ELEMENT_DEV
+#if defined (SOLID_ELEMENT_DEV) && defined (MATERIAL_FORCE_ELEMENT_DEV)
 		  fArray[group] = new SmallStrainMF(fSupport, *field);
 		  break;
 #else
-		  ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
+			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or MATERIAL_FORCE_ELEMENT_DEV not enabled: %d", code);
 #endif
 		}
 		case ElementT::kSSMatForceS:
 		{
-#ifdef SOLID_ELEMENT_DEV
+#if defined (SOLID_ELEMENT_DEV) && defined (MATERIAL_FORCE_ELEMENT_DEV)
 		  fArray[group] = new SSMF(fSupport, *field);
 		  break;
 #else
-		  ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
+			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or MATERIAL_FORCE_ELEMENT_DEV not enabled: %d", code);
 #endif
 		}
 		case ElementT::kSmallStrainQ2P1:
 		{
-#ifdef SOLID_ELEMENT_DEV
+#if defined (SOLID_ELEMENT_DEV) && defined (MATERIAL_FORCE_ELEMENT_DEV)
 		  fArray[group] = new SmallStrainQ2P1(fSupport, *field);
 		  break;
 #else
-		  ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
+			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or MATERIAL_FORCE_ELEMENT_DEV not enabled: %d", code);
 #endif
 		}
 		case ElementT::kSSQ2P1MF:
 		{
-#ifdef SOLID_ELEMENT_DEV
+#if defined (SOLID_ELEMENT_DEV) && defined (MATERIAL_FORCE_ELEMENT_DEV)
 		  fArray[group] = new SSQ2P1MF(fSupport, *field);
 		  break;
 #else
-		  ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
+			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or MATERIAL_FORCE_ELEMENT_DEV not enabled: %d", code);
 #endif
 		}
 		case ElementT::kDorganVoyiadjisMarin:
@@ -771,4 +786,41 @@ void ElementListT::SetActiveElementGroupMask(const ArrayT<bool>& mask)
 	for (int i = 0; i < mask.Length(); i++)
 		if (mask[i])
 			element_list[num_active++] = fAllElementGroups[i];
+}
+
+/* information about subordinate parameter lists */
+void ElementListT::DefineSubs(SubListT& sub_list) const
+{
+#ifdef COHESIVE_SURFACE_ELEMENT
+	sub_list.AddSub("isotropic_CSE", ParameterListT::ZeroOrOnce);
+	sub_list.AddSub("anisotropic_CSE", ParameterListT::ZeroOrOnce);
+#endif
+
+#ifdef ADHESION_ELEMENT
+	sub_list.AddSub("adhesion", ParameterListT::ZeroOrOnce);
+#endif
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* ElementListT::NewSub(const StringT& list_name) const
+{
+	if (false) /* dummy */
+		return NULL;
+
+#ifdef COHESIVE_SURFACE_ELEMENT	
+	else if (list_name == "isotropic_CSE")
+		return new CSEIsoT(fSupport);
+		
+	else if (list_name == "anisotropic_CSE")
+		return new CSEAnisoT(fSupport);
+#endif
+
+#ifdef ADHESION_ELEMENT
+	else if (list_name == "adhesion")
+		return new AdhesionT(fSupport);
+#endif
+
+	/* inherited */	
+	else
+		return ParameterInterfaceT::NewSub(list_name);
 }
