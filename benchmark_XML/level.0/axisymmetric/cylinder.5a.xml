@@ -45,5 +45,5 @@
             </meshfree_fracture_support>
         </large_strain_meshfree_axi>
     </element_list>
-    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+01" max_iterations="5" rel_tolerance="1.0e-08"><profile_matrix/></nonlinear_solver>
+    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+01" max_iterations="6" rel_tolerance="1.0e-08"><profile_matrix/></nonlinear_solver>
 </tahoe>

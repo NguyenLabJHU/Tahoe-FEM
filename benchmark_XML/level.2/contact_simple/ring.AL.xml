@@ -68,5 +68,5 @@
             </contact_nodes>
         </contact_2D_multiplier>
     </element_list>
-    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+03" max_iterations="20" rel_tolerance="1.0e-12"><profile_matrix/></nonlinear_solver>
+    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+03" max_iterations="25" rel_tolerance="1.0e-12"><profile_matrix/></nonlinear_solver>
 </tahoe>
