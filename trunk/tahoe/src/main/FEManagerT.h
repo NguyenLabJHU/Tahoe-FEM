@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.2 2001-02-20 00:16:34 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #ifndef _FE_MANAGER_H_
@@ -111,6 +111,7 @@ public:
 	const int& IterationNumber(void) const;
 
 	/* I/O info */
+	const StringT& Version(void) const;
 	IOBaseT::FileTypeT InputFormat(void) const;
 	IOBaseT::FileTypeT OutputFormat(void) const;
 	const StringT& ModelFile(void) const;
@@ -254,6 +255,7 @@ protected:
 
 	/* I/O streams */
 	ifstreamT&  fMainIn;
+	StringT     fVersion;
 	StringT     fModelFile;
 	ofstreamT& 	fMainOut;
 	StringT		fTitle;
@@ -286,6 +288,7 @@ protected:
 };
 
 /* inlines */
+inline const StringT& FEManagerT::Version(void) const { return fVersion; }
 inline ifstreamT& FEManagerT::Input(void) const { return fMainIn;  }
 inline ofstreamT& FEManagerT::Output(void) const { return fMainOut; }
 inline const GlobalT::StateT& FEManagerT::RunState(void) const { return fStatus; }

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.1.1.1 2001-01-29 08:20:21 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.2 2001-02-20 00:16:33 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "FEManagerT.h"
@@ -47,7 +47,7 @@
 #include "iNLSolver_LS.h"
 
 /* File/Version Control */
-const char* kCurrentVersion = "v3.01"; //version marker
+const char* kCurrentVersion = "v3.02"; //version marker
 const char* kProgramName    = "tahoe";
 
 /* exception strings */
@@ -858,21 +858,22 @@ void FEManagerT::SetStatus(GlobalT::StateT status) const
 void FEManagerT::CheckInputFile(void)
 {
 	/* version check */
-	StringT version;
-	fMainIn >> version;
-		
-	if (strcmp(version, kCurrentVersion) != 0)
+	fMainIn >> fVersion;		
+	if (strcmp(fVersion, kCurrentVersion) != 0)
 	{
+//TEMP - until input is parsed, we will only have spotty support for backward
+//       compatibility of input files
+		cout << "\n #!!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n";
 		cout << "\n FEManagerT::CheckInputFile: input file version is not current. See\n"
 		     <<   "     VERSION_NOTES for description of changes:\n";
-		cout << "     file version: " << version << '\n';
-		cout << "  current version: " << kCurrentVersion << endl;
-		throw eBadInputValue;
+		cout << "     file version: " << fVersion << '\n';
+		cout << "  current version: " << kCurrentVersion << '\n';
+		cout << "\n WARNING: backward compatibility is not completely supported" << endl;
 	}	
 	else
-		cout    << "\n Input file version: " << version << '\n';
+		cout    << "\n Input file version: " << fVersion << '\n';
 
-	fMainOut << "\n Input file version: " << version << '\n';
+	fMainOut << "\n Input file version: " << fVersion << '\n';
 }
 
 void FEManagerT::WriteParameters(void) const
