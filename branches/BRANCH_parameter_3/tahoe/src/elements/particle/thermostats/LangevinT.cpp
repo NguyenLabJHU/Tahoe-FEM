@@ -1,19 +1,19 @@
-/* $Id: LangevinT.cpp,v 1.6 2003-11-21 22:47:11 paklein Exp $ */
+/* $Id: LangevinT.cpp,v 1.6.20.1 2004-05-25 16:36:43 paklein Exp $ */
 #include "LangevinT.h"
-#include "ArrayT.h"
-#include <iostream.h>
-#include "ifstreamT.h"
+
 #include <math.h>
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "ParticlePropertyT.h"
 #include "RaggedArray2DT.h"
+#include "BasicSupportT.h"
 
 const double fkB = 0.00008617385;
 
 using namespace Tahoe;
 
 /* constructor */
+#if 0
 LangevinT::LangevinT(ifstreamT& in, const int& nsd, const double& dt):
 	ThermostatBaseT(in,nsd,dt)
 {
@@ -21,47 +21,30 @@ LangevinT::LangevinT(ifstreamT& in, const int& nsd, const double& dt):
 //	in >> fTemperature;
 //	fAmp = sqrt(2.*fBeta*fkB*fTemperature/fTimeStep);
 }
+#endif
 
-LangevinT::LangevinT(void)
+LangevinT::LangevinT(const BasicSupportT& support)
 {
 	SetName("Langevin");
-}
-
-/* write properties to output */
-void LangevinT::Write(ostream& out) const
-{
-	ThermostatBaseT::Write(out);
-	
-	out << " Temperature . . . . . . . . . . . . . . . . . . = " << fTemperatureSchedule->Value()*fTemperatureScale << '\n';
-}
-
-/* restart files */
-void LangevinT::WriteRestart(ostream& out) const
-{
-	/* Base class */
-	ThermostatBaseT::WriteRestart(out);
-}
-
-void LangevinT::ReadRestart(istream& in) 
-{
-	/* Base class */
-	ThermostatBaseT::ReadRestart(in);
 }
 
 void LangevinT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2DT* velocities,
 			dArray2DT& forces, AutoArrayT<int>& types,
 			ArrayT<ParticlePropertyT*>& particleProperties)
 {
-
-	dArrayT rArray(fSD); // random force
+	int nsd = fSupport.NumSD();
+	dArrayT rArray(nsd); // random force
 	double* rf_i;
 	
 	fTemperature = fTemperatureSchedule->Value()*fTemperatureScale;
 	if (fTemperature < 0.)
 		ExceptionT::GeneralFail("LangevinT::ApplyDamping","schedule generated negative temperature");
-	fAmp = sqrt(2.*fBeta*fkB*fTemperature/fTimeStep);
+	double amp = sqrt(2.*fBeta*fkB*fTemperature/fTimeStep);
 
-	if (fNodes.Length() == 0)
+	if (fAllNodes)
+
+
+
 	{ // All the nodes are damped, use neighbors
 		int currType = types[*neighbors(0)];
 		double mass = particleProperties[currType]->Mass();
