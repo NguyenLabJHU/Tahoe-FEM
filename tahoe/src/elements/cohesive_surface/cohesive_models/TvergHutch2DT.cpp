@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.cpp,v 1.21 2004-07-15 08:26:02 paklein Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.22 2004-09-16 16:37:00 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 #include "TvergHutch2DT.h"
 
@@ -22,7 +22,8 @@ TvergHutch2DT::TvergHutch2DT(void):
 	fL_2(0.0),
 	fL_fail(0.0),
 	fpenalty(0.0),
-	fK(0.0)
+	fK(0.0),
+	fSecantStiffness(false)
 {
 	SetName("Tvergaard-Hutchinson_2D");
 }
@@ -114,8 +115,9 @@ const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 #pragma unused(state)
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
+	const char caller[] = "TvergHutch2DT::Stiffness";
+	if (jump_u.Length() != knumDOF) ExceptionT::SizeMismatch(caller);
+	if (state.Length() != NumStateVariables()) ExceptionT::GeneralFail(caller);
 #endif
 	
 	double u_t = jump_u[0];
@@ -125,34 +127,54 @@ const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 	double dnm2 = 1./fd_c_n/fd_c_n;
 	double L = sqrt(u_t*u_t*dtm2 + u_n*u_n*dnm2);
 	
-	if (L < fL_1) // K1
+	if (fSecantStiffness) /* positive-definite approximation */
 	{
-		fStiffness[0] = (fd_c_n/fd_c_t)*fsigma_max/(fL_1*fd_c_t);
+		/* slope */
+		double sigbyL;
+		if (L < fL_1)
+			sigbyL = fsigma_max/fL_1;
+		else if (L < fL_2)
+			sigbyL = fsigma_max/L;
+		else if (L < 1.)
+			sigbyL = fsigma_max*(1. - L)/(1. - fL_2)/L;
+		else
+			sigbyL = 0.0;	
+	
+		/* stiffness */
+		fStiffness[0] = (fd_c_n/fd_c_t)*sigbyL/fd_c_t;
 		fStiffness[1] = 0.0;
 		fStiffness[2] = 0.0;
-		fStiffness[3] = fsigma_max/(fL_1*fd_c_n);
+		fStiffness[3] = sigbyL/fd_c_n;
 	}
-	else 
+	else /* tangent stiffness */
 	{
-		double lt_0 = u_t*dtm2;
-		double lt_2 = u_n*dnm2;
-		
-		if (L < fL_2) // K2
+		if (L < fL_1) // K1
 		{
-			double dijTerm = fsigma_max/L*fd_c_n;
-			
-			fStiffness[0] = dijTerm*dtm2;
-			fStiffness[3] = dijTerm*dnm2;
-			dijTerm /= -L*L;
-			fStiffness[0] += dijTerm*lt_0*lt_0;
-			fStiffness[2] = fStiffness[1] = dijTerm*lt_0*lt_2;
-			fStiffness[3] += dijTerm*lt_2*lt_2;
+			fStiffness[0] = (fd_c_n/fd_c_t)*fsigma_max/(fL_1*fd_c_t);
+			fStiffness[1] = 0.0;
+			fStiffness[2] = 0.0;
+			fStiffness[3] = fsigma_max/(fL_1*fd_c_n);
 		}
 		else 
-			if (L < 1.) // K3
+		{
+			double lt_0 = u_t*dtm2;
+			double lt_2 = u_n*dnm2;
+		
+			if (L < fL_2) // K2
+			{
+				double dijTerm = fsigma_max/L*fd_c_n;
+			
+				fStiffness[0] = dijTerm*dtm2;
+				fStiffness[3] = dijTerm*dnm2;
+				dijTerm /= -L*L;
+				fStiffness[0] += dijTerm*lt_0*lt_0;
+				fStiffness[2] = fStiffness[1] = dijTerm*lt_0*lt_2;
+				fStiffness[3] += dijTerm*lt_2*lt_2;
+			}
+			else if (L < 1.) // K3
 			{
 				double dijTerm = fsigma_max*(1./L-1.)/(1.-fL_2)*fd_c_n;
-			
+				
 				fStiffness[0] = dijTerm*dtm2;
 				fStiffness[3] = dijTerm*dnm2;
 				dijTerm = -fsigma_max/(1.-fL_2)*fd_c_n/L/L/L;
@@ -167,6 +189,7 @@ const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 				fStiffness[2] = 0.0;
 				fStiffness[3] = 0.0;	
 			}
+		}
 	}
 
 	/* penetration */
@@ -276,6 +299,10 @@ void TvergHutch2DT::DefineParameters(ParameterListT& list) const
 	ParameterT penalty(fpenalty, "penalty");
 	penalty.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(penalty);
+
+	ParameterT secant(fSecantStiffness, "secant_stiffness");
+	secant.SetDefault(fSecantStiffness);
+	list.AddParameter(secant);
 }
 
 /* accept parameter list */
@@ -298,6 +325,9 @@ void TvergHutch2DT::TakeParameterList(const ParameterListT& list)
 
 	/* penetration stiffness */
 	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
+
+	/* secant stiffness */
+	fSecantStiffness = list.GetParameter("secant_stiffness");
 }
 
 /***********************************************************************
