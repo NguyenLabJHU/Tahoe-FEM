@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.5 2001-12-17 00:15:56 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.6 2002-02-20 09:45:48 paklein Exp $ */
 /* created: paklein (09/11/1998)                                          */
 /* small strain elasticity with MLS shapefunctions for the                */
 /* field (displacement) representation                                    */
@@ -229,11 +229,19 @@ GlobalT::RelaxCodeT MeshFreeSSSolidT::RelaxSystem(void)
 	GlobalT::RelaxCodeT relax = SmallStrainT::RelaxSystem();
 	if (HasActiveCracks())
 	{
+		//TEMP - need to replace material/element interface for evaluation
+		//       of stresses/material properties at the sampling points. This
+		//       includes the current element pointer, gradient operators,
+		//       state variables, etc. Not implemented
+		cout << "\n MeshFreeFDSolidT::RelaxSystem: crack growth not available" << endl;
+		throw eGeneralFail;
+		fElementCards.Current(0);
+
 		/* check for crack growth */
 		ContinuumMaterialT* pcont_mat = (*fMaterialList)[0];
 		StructuralMaterialT* pmat = (StructuralMaterialT*) pcont_mat;
 		bool verbose = false;
-	 	if (CheckGrowth(*pmat, fLocDisp, verbose))
+	 	if (CheckGrowth(pmat, &fLocDisp, verbose))
 	 	{
 	 		relax = GlobalT::MaxPrecedence(relax, GlobalT::kRelax);
 			//TEMP - currently, neighborlists are not reset when cutting
@@ -253,6 +261,11 @@ GlobalT::RelaxCodeT MeshFreeSSSolidT::RelaxSystem(void)
 			out.flush();	
 		}
 	}
+	else if (CheckGrowth(NULL, &fLocDisp, false)) {
+		cout << "\n MeshFreeFDSolidT::RelaxSystem: unexpected crack growth" << endl;
+		throw eGeneralFail;
+	}
+
 	return relax;
 }
 
