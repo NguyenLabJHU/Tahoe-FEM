@@ -1,4 +1,4 @@
-/* $Id: MFLagMultT.cpp,v 1.1 2004-05-06 18:54:47 cjkimme Exp $ */
+/* $Id: MFAugLagMultT.cpp,v 1.1 2004-05-06 18:55:49 cjkimme Exp $ */
 #include "MFAugLagMultT.h"
 
 #include <iostream.h>
@@ -14,11 +14,12 @@
 #include "SCNIMFT.h"
 #include "dMatrixT.h"
 #include "ifstreamT.h"
+#include "OutputSetT.h"
 
 using namespace Tahoe;
 
 /* parameters */
-const int kNumAugLagDOF = 1;
+const int kMFAugLagDOF = 1;
 
 /* constructor */
 MFAugLagMultT::MFAugLagMultT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes,
@@ -28,7 +29,6 @@ MFAugLagMultT::MFAugLagMultT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes,
 
 	/* references to NodeManagerT data */
 	rEqnos(field.Equations()),
-	rCoords(coords),
 	rDisp(disp),
 	fXDOF_Nodes(XDOF_nodes),
 	fField(field),
@@ -40,7 +40,14 @@ MFAugLagMultT::MFAugLagMultT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes,
 	
 	mfElemGroup(NULL)
 {
+#pragma unused(coords)
 	
+}
+
+/* Form of tangent matrix */
+GlobalT::SystemTypeT MFAugLagMultT::TangentType(void) const
+{
+	return GlobalT::kSymmetric;
 }
 
 /* get input data */
@@ -52,6 +59,14 @@ void MFAugLagMultT::EchoData(ifstreamT& in, ostream& out)
 	in >> numBCs;
 	if (numBCs <= 0)
 		ExceptionT::BadInputValue("MFAugLagMultT::Initialize","Expecting numBCs > 0");
+	
+	fNodeSetIDs.Dimension(numBCs);
+	fConstrainedDOFs.Dimension(numBCs);
+	fCodes.Dimension(numBCs);
+	fScheduleNums.Dimension(numBCs);
+	fCodes.Dimension(numBCs);
+	fNumConstraints.Dimension(numBCs);
+	fScales.Dimension(numBCs);
 	
 	const ScheduleT* pSchedule;
 	NodeManagerT* pNodeManager = fFEManager.NodeManager();
@@ -79,11 +94,18 @@ void MFAugLagMultT::EchoData(ifstreamT& in, ostream& out)
 				ExceptionT::BadInputValue("SetOfNodesKBCT::Initialize","Cannot get schedule %d \n",fScheduleNums[i]);
 		}
 		
-		fNumConstraints[i] = pModel->NodeSet(fNodeSetIDs[i]).Length();
+		fNumConstraints[i] = pModel->NodeSetLength(fNodeSetIDs[i]);
 		fNumConstrainedDOFs += fNumConstraints[i];
 	}
 	
-	// convert from nodes to DOFs
+	fNodeSets.Configure(fNumConstraints);
+	
+	for (int i = 0; i< numBCs; i++) {
+		const iArrayT& nodeSet_i = pModel->NodeSet(fNodeSetIDs[i]);	
+		fNodeSets.SetRow(i, nodeSet_i);
+	}
+	
+	//pModel->ManyNodeSets(fNodeSetIDs, fConstraintNodes); // Get all constrained nodes
 	
 	int numElementGroups;
 	in >> numElementGroups;
@@ -91,6 +113,9 @@ void MFAugLagMultT::EchoData(ifstreamT& in, ostream& out)
 		ExceptionT::BadInputValue("MFAugLagMultT::EchoData","Can only handle 1 element block\n");
 	
 	in >> fBlockID;
+	fBlockID--;
+	
+	in >> fk;
 }
 
 /* initialize data */
@@ -100,31 +125,15 @@ void MFAugLagMultT::Initialize(void)
 
 	/* set dimensions */
 	int numDOF = rEqnos.MinorDim() + fNumConstrainedDOFs; 
-	fConstraintEqnos.Dimension(fNumConstrainedDOFs); // Eqnos for LaGrange Mults
-	fConstraintEqnos2D.Set(fNumConstrainedDOFs, 1, fConstraintEqnos.Pointer());
-	fFloatingDOF.Dimension(fNumConstrainedDOFs);
-	fFloatingDOF = 0;
+	//fConstraintEqnos.Dimension(2*fNumConstrainedDOFs); // Eqnos for LaGrange Mults
+	//fConstraintEqnos2D.Set(fNumConstrainedDOFs, 2, fConstraintEqnos.Pointer());
+	//fFloatingDOF.Dimension(fNumConstrainedDOFs);
+	//fFloatingDOF = 0;
 	
 	/* allocate memory for force vector */
-	fConstraintForce2D.Dimension(fNumConstrainedDOFs, 1);
-	fConstraintForce.Set(fNumConstrainedDOFs, fConstraintForce2D.Pointer());
-	fConstraintForce2D = 0.0;
-
-	/* register with node manager - sets initial fConstraintDOFtags */
-	iArrayT set_dims(fNumConstrainedDOFs);
-	set_dims = kNumAugLagDOF;
-	fXDOF_Nodes->XDOF_Register(this, set_dims);	
-	
-	/* communicate with the meshfree element */
-	ElementBaseT* elemGroup = fFEManager.ElementGroup(fBlockID);
-	if (!elemGroup) 
-		ExceptionT::GeneralFail(caller,"Element group %d does not exist\n", fBlockID);
-	
-	mfElemGroup = dynamic_cast<SCNIMFT*>(elemGroup);
-	if (!mfElemGroup)
-		ExceptionT::GeneralFail(caller,"Cannot cast group %d to meshfree class\n",fBlockID);  
-	
-	mfElemGroup->GlobalToLocalNumbering(fConstraintNodes);
+	//fConstraintForce2D.Dimension(fNumConstrainedDOFs, 1);
+	fConstraintForce.Dimension(fNumConstrainedDOFs);
+	fConstraintForce = 0.0;
 
 }
 
@@ -139,43 +148,52 @@ void MFAugLagMultT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
 {
 #pragma unused(eq_2)
-#pragma message("Rewrite MFAugLagMultT::Equations")
+
 	/* dimensions */
-	int ndof_u = rCoords.MinorDim();
+	int ndof_u = rDisp.MinorDim();
 
 	/* collect displacement DOF's */
-	iArray2DT disp_eq(fConstraintNodes.Length(), ndof_u);
-	fField.SetLocalEqnos(fConstraintNodes, disp_eq);
+	RaggedArray2DT<int> disp_eq, nodesInSupport;
+	
+	fConstraintEqnos.Dimension(2*fNumEqs);
+	fConstraintEqnos2D.Set(fNumEqs, 2, fConstraintEqnos.Pointer());
+	
+	disp_eq.Configure(fSupportSizes, 1);
+	nodesInSupport.Configure(fSupportSizes, 1);
+	
+	LinkedListT<int> supp_j;
+	LinkedListT<double> phi_j;
+	int ctr = 0;
+	for (int i = 0; i < fLocallyNumberedNodeSets.MajorDim(); i++) {
+		int* row_i = fLocallyNumberedNodeSets(i);
+		for (int j = 0; j < fLocallyNumberedNodeSets.MinorDim(i); j++) {
+		
+			mfElemGroup->NodalSupportAndPhi(*row_i++, supp_j, phi_j);
+			
+			int* row_j = nodesInSupport(ctr++);
+			supp_j.Top();
+			while (supp_j.Next()) 
+				*row_j++ = *(supp_j.CurrentValue());
+		}
+	} 
+	
+	fField.SetLocalEqnos(nodesInSupport, disp_eq, fConstrainedDOFs);
 
-	int eq_col = 0;
-	iArrayT eq_temp(fConstraintNodes.Length());
-
-	/* displacement equations */
-	fFloatingDOF = 0;
-	for (int i = 0; i < ndof_u; i++)
-	{
-		disp_eq.ColumnCopy(i, eq_temp);
-		fConstraintEqnos2D.SetColumn(eq_col++, eq_temp);
-
-		/* check for floating DOF's */
-		for (int j = 0; j < eq_temp.Length(); j++)
-			if (eq_temp[j] < 1)
-				fFloatingDOF[j] = 1; /* mark */
+	/* copying eqs */
+	const int* lagMultEqs = fXDOF_Nodes->XDOF_Eqnos(this, 0).Pointer();
+	int* iptr = fConstraintEqnos.Pointer();
+	ctr = 0;
+	for (int i = 0; i < fNodeSets.MajorDim(); i++) {
+		int* rowptr = disp_eq(i);
+		for (int j = 0; j < fNodeSets.MinorDim(i); j++) {
+			for (int k = 0; k < fSupportSizes[ctr++]; k++) { 	
+				*iptr++ = *rowptr++;
+				*iptr++ = *lagMultEqs;
+			}
+		lagMultEqs++;
+		}
 	}
-
-	/* warning */
-	if (fFloatingDOF.HasValue(1))
-		cout << "\n MFAugLagMultT::Equations: node with constraint has prescribed DOF\n" 
-		     <<   "     Stiffness may be approximate." << endl;	
-
-	/* constraint equations */
-	const iArray2DT& auglageqs = fXDOF_Nodes->XDOF_Eqnos(this, 0);
-	for (int j = 0; j < auglageqs.MinorDim(); j++)
-	{
-		auglageqs.ColumnCopy(j, eq_temp);
-		fConstraintEqnos2D.SetColumn(eq_col++, eq_temp);
-	}
-
+	
 	/* send to solver */
 	eq_1.Append(&fConstraintEqnos2D);
 }
@@ -186,6 +204,14 @@ void MFAugLagMultT::Connectivities(AutoArrayT<const iArray2DT*>& connects_1,
 {
 #pragma unused(connects_2)
 #pragma unused(equivalent_nodes)
+
+	/* register with node manager - sets initial fConstraintDOFtags */
+	iArrayT set_dims(fNumConstrainedDOFs);
+	set_dims = kMFAugLagDOF;
+	
+	MFAugLagMultT* non_const_this = const_cast<MFAugLagMultT*>(this);
+	fXDOF_Nodes->XDOF_Register(non_const_this, set_dims);	
+
 	connects_1.Append(&fConstraintTags);
 }
 
@@ -205,10 +231,12 @@ void MFAugLagMultT::WriteRestart(ostream& out) const
 	//out << fLastDOF; // previous solution
 }
 
+void MFAugLagMultT::InitStep(void)
+{
+}
+
 void MFAugLagMultT::CloseStep(void)
 {
-	/* inherited */
-	FBC_ControllerT::CloseStep();
 
 	/* store last converged DOF array */
 	dArrayT constraints;
@@ -224,6 +252,11 @@ void MFAugLagMultT::ResetDOF(dArray2DT& DOF, int tag_set) const
 	dArrayT constraints;
 	constraints.Alias(DOF);
 	constraints = fLastDOF;
+}
+
+void MFAugLagMultT::InitialCondition(void)
+{
+	
 }
 
 /* compute the nodal contribution to the residual force vector */
@@ -254,32 +287,64 @@ void MFAugLagMultT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 	const dArray2DT& constr = fXDOF_Nodes->XDOF(this, 0);
 	const dArrayT force(constr.MajorDim(), constr.Pointer());
 	
-	LinkedListT<int>* supp_i;
-	LinkedListT<double>* phi_i;
+	LinkedListT<int> supp_i;
+	LinkedListT<double> phi_i;
 	iArrayT col_eqs(1), row_eqs(1);
  	
 	double& k_entry = fLHS[0];
 
 	/* DOF by DOF */
-	for (int i = 0; i < fNumConstrainedDOFs; i++)
+	const int* augLagEqnos = fXDOF_Nodes->XDOF_Eqnos(this, 0).Pointer();
+	int *row_i, *row_ptr = fConstraintEqnos.Pointer();
+	for (int i = 0; i < fLocallyNumberedNodeSets.MajorDim(); i++) // loop over constrained node sets
 	{
-		col_eqs[0] = 0; 
+		row_i = fLocallyNumberedNodeSets(i);
 		
-		supp_i = NULL;
-		phi_i = NULL;
-		mfElemGroup->NodalSupportAndPhi(fConstraintNodes[i], supp_i, phi_i);
-		
-		if ((supp_i == NULL) || (phi_i == NULL))
-			ExceptionT::GeneralFail("MFAugLagMultT::ApplyLHS","Cannot get shape function information from element block\n");
-		
-		supp_i->Top(); phi_i->Top();
-		while (supp_i->Next() && phi_i->Next()) {
-			k_entry = *(phi_i->CurrentValue()) * constK;
-			row_eqs[0] = 0;
-		}
+		for (int j = 0; j < fLocallyNumberedNodeSets.MinorDim(i); j++) { // loop over constrained DOFs
 			
-		fFEManager.AssembleLHS(fGroup, fLHS, row_eqs, col_eqs);	
+			col_eqs[0] = *augLagEqnos++;
+			
+			mfElemGroup->NodalSupportAndPhi(*row_i++, supp_i, phi_i);
+		
+			supp_i.Top(); phi_i.Top();
+			while (supp_i.Next() && phi_i.Next()) {
+				k_entry = *(phi_i.CurrentValue()) * constK;
+				row_eqs[0] = *row_ptr++;
+				row_ptr++; // have eq. nos. for LaGrange mults right now, too
+			}
+			
+			fFEManager.AssembleLHS(fGroup, fLHS, row_eqs, col_eqs);	
+			
+		}
+		
 	}
+}
+
+void MFAugLagMultT::Reset(void)
+{
+	
+}
+
+void MFAugLagMultT::RegisterOutput(void) 
+{
+	/* initialize connectivities */
+	//fContactNodes2D.Alias(fContactNodes.Length(), 1, fContactNodes.Pointer());
+	
+	/* output labels */
+	int num_output = 1;     /* force */
+	ArrayT<StringT> n_labels(num_output);
+	n_labels[0] = "LAMBDA";
+	
+	/* register output */
+	OutputSetT output_set(GeometryT::kPoint, fConstraintEqnos2D, n_labels);
+	fOutputID = fFEManager.RegisterOutput(output_set);
+	
+}
+
+void MFAugLagMultT::WriteOutput(ostream& out) const
+{
+	out << "\n M F  A u g  L a g  M u l t   D a t a :\n\n";
+	
 }
 
 /* returns the array for the DOF tags needed for the current config */
@@ -289,7 +354,7 @@ void MFAugLagMultT::SetDOFTags(void)
 //       and collect the list of active nodes
 
 	/* ALL constraints ALWAYS active */
-	fConstraintDOFtags.Dimension(fConstrainedDOFs.Length());
+	fConstraintDOFtags.Dimension(fNumConstrainedDOFs);
 }
 
 iArrayT& MFAugLagMultT::DOFTags(int tag_set)
@@ -298,15 +363,33 @@ iArrayT& MFAugLagMultT::DOFTags(int tag_set)
 	return fConstraintDOFtags;
 }
 
-/* generate nodal connectivities - does nothing here */
+/* generate nodal connectivities  */
 void MFAugLagMultT::GenerateElementData(void)
 {
+	ChatWithElementGroup();
+
 	/* allocate space */
-	fConstraintTags.Dimension(fConstrainedDOFs.Length(), 2);
+	fConstraintTags.Dimension(fNumEqs, 2);
 	
-	/* collect tags - {contact node, DOF tag} */
-	fConstraintTags.SetColumn(0, fConstrainedDOFs);
-	fConstraintTags.SetColumn(1, fConstraintDOFtags);
+	/* collect tags - {node in support of constrained node, DOF tag} */
+	LinkedListT<int> supp_j;
+	LinkedListT<double> phi_j;
+	int *conn_ptr = fConstraintTags.Pointer(); 
+	int *tag_ptr = fConstraintDOFtags.Pointer();
+	for (int i = 0; i < fNodeSets.MajorDim(); i++) {
+		int* row_i_global = fNodeSets(i);
+		int* row_i_local = fLocallyNumberedNodeSets(i);
+		for (int j = 0; j < fNodeSets.MinorDim(i); j++) {
+			mfElemGroup->NodalSupportAndPhi(*row_i_local++, supp_j, phi_j);
+		
+			supp_j.Top();
+			while (supp_j.Next()) {
+				*conn_ptr++ = *(supp_j.CurrentValue());
+				*conn_ptr++ = *tag_ptr;
+			}
+			tag_ptr++;
+		}
+	}
 }
 
 /* return the contact elements */
@@ -349,4 +432,35 @@ void MFAugLagMultT::ComputeConstraintValues(double kforce)
 		}
 	}
 	
+}
+
+void MFAugLagMultT::ChatWithElementGroup(void) {
+
+	const char caller[] = "MFAugLagMultT::ChatWithElementGroup";
+
+	if (mfElemGroup) 
+		ExceptionT::GeneralFail(caller,"MF element block communicator already exists!\n");
+
+	/* communicate with the meshfree element */
+	ElementBaseT* elemGroup = fFEManager.ElementGroup(fBlockID);
+	if (!elemGroup) 
+		ExceptionT::GeneralFail(caller,"Element group %d does not exist\n", fBlockID);
+	
+	mfElemGroup = dynamic_cast<SCNIMFT*>(elemGroup);
+	if (!mfElemGroup)
+		ExceptionT::GeneralFail(caller,"Cannot cast group %d to meshfree class\n",fBlockID);  
+	
+	fLocallyNumberedNodeSets = fNodeSets; // ouch! two of these data structures
+	mfElemGroup->GlobalToLocalNumbering(fLocallyNumberedNodeSets);
+	
+	int ctr = 0;
+	fSupportSizes.Dimension(fNumConstrainedDOFs);
+	for (int i = 0; i < fLocallyNumberedNodeSets.MajorDim(); i++) {
+		int *row_i = fLocallyNumberedNodeSets(i);
+		for (int j = 0; j < fLocallyNumberedNodeSets.MinorDim(i); j++) 
+			fSupportSizes[ctr++] = mfElemGroup->SupportSize(*row_i++);
+	}
+	
+	fNumEqs = fSupportSizes.Sum();
+
 }
