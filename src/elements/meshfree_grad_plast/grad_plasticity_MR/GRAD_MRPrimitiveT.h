@@ -1,46 +1,50 @@
-/* created: Majid T. Manzari (04/16/2003)                */
-/*
+/* created: Karma Yonten (03/04/2004)                   
+   MR version modified to incorporate gradient plasticity 
+   theory.
+*/
+   
 /* Base class for a nonassociative, small strain,        */
 /* pressure dependent gradient plasticity model          */
 /* with nonlinear isotropic hardening/softening.         */
-/* The model is consistent with the traction sepration   */
+/* The model is consistent with the traction separation  */
 /* cohesive surface models MR2DT and MR_RP2D.            */
 
 #ifndef _GRAD_MR_PRIMITIVET_H_ 
 #define _GRAD_MR_PRIMITIVET_H_
 
-/* project headers */
-#include "Environment.h"
-
-#include "ios_fwd_decl.h"
+/* base class */
+#include "ParameterInterfaceT.h"
 
 namespace Tahoe 
 {
 
 /* forward declarations */
-class ifstreamT;
 class dSymMatrixT;
 
-class GRAD_MRPrimitiveT
+class GRAD_MRPrimitiveT: public ParameterInterfaceT
 {
   public:
 
 	/* constructor */
-	GRAD_MRPrimitiveT(ifstreamT& in);
+	GRAD_MRPrimitiveT(void);
 
 	/* destructor */
 	virtual ~GRAD_MRPrimitiveT(void);
 
-	/* write parameters to stream */
-   	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+	
 	double YieldCondition(const dSymMatrixT& devstress, 
 			const double meanstress);
 
   protected:
 	
-	double fE;       /* elastic modulus */
-	double fnu;      /* Poisson's ratio */
 	double fGf_I;    /* Mode_I Fracture Energy */
 	double fGf_II;   /* Mode_II Fracture Energy */
 

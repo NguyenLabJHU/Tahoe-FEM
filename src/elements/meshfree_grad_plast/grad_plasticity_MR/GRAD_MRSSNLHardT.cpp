@@ -1,5 +1,7 @@
-/* created: Majid T. Manzari (04/16/2003)             */
-/* modified: Karma Yonten (03/04/2004)                */
+/* created: Karma Yonten (03/04/2004)                   
+   MR version modified to incorporate gradient plasticity 
+   theory.
+*/
 
 /* Interface for a nonassociative, small strain,      */
 /* pressure dependent gradient plasticity model       */
@@ -23,34 +25,20 @@ const double kYieldTol    = 1.0e-10;
 const int    kNSD         = 3;
 
 /* constructor */
-GRAD_MRSSNLHardT::GRAD_MRSSNLHardT(ifstreamT& in, int num_ip, double mu, double lambda):
-    GRAD_MRPrimitiveT(in),
-	fNumIP(num_ip),
+GRAD_MRSSNLHardT::GRAD_MRSSNLHardT(int num_ip, double mu, double lambda):
+    fNumIP(num_ip),
 	fmu(mu),
 	flambda(lambda),
 	fkappa(flambda + (2.0/3.0*fmu)),
 	fmu_ast(flse_s*flse_s*mu),
 	flambda_ast(flse_v*flse_v*lambda+2.*(flse_v*flse_v-flse_s*flse_s)*mu/3.),
 	fkappa_ast(flambda_ast + (2.0/3.0*fmu_ast)),
-	fElasticStrain(kNSD),
-	fGradElasticStrain(kNSD),
-	fStressCorr(kNSD),
-	fModuli(dSymMatrixT::NumValues(kNSD)),
-	fModuliDisc(dSymMatrixT::NumValues(kNSD)), //for disc check
-	fYieldFunction(0.0),
-	fDevStress(kNSD),
-	fDel2DevStress(kNSD),
-	fMeanStress(0.0),
-	fDel2MeanStress(0.0),
-	fDevStrain(kNSD), 
-	fDel2DevStrain(kNSD),
-	fTensorTemp(dSymMatrixT::NumValues(kNSD)),
-    IdentityTensor2(kNSD),
-	One(kNSD)
+	fYieldFunction(0.0)
 {
+	SetName("GRAD_MR_SS_nonlinear_hardening");
 }
 const dSymMatrixT& GRAD_MRSSNLHardT::ElasticStrain(const dSymMatrixT& totalstrain, 
-	const dSymMatrixT& del2_totalstrain, const ElementCardT& element, int ip) 
+	const ElementCardT& element, int ip) 
 	
 {
 	/* remove plastic strain */
@@ -62,20 +50,39 @@ const dSymMatrixT& GRAD_MRSSNLHardT::ElasticStrain(const dSymMatrixT& totalstrai
 		/* compute elastic strain */
 		/*fElasticStrain.DiffOf(totalstrain, fPlasticStrain);*/
 		fElasticStrain = totalstrain;
-	    /* compute gradelastic strain */
-		/*fGradElasticStrain.DiffOf(gradtotalstrain, fGradPlasticStrain);*/
-		fGradElasticStrain = del2_totalstrain;
-		return fElasticStrain; //return fGradElasticStrain;
+		
+		return fElasticStrain; 
 	}	
 	/* no plastic strain */
 	else	
-		return totalstrain; //return del2_totalstrain;
+		return totalstrain; 
+}
+
+const dSymMatrixT& GRAD_MRSSNLHardT::LapElasticStrain(const dSymMatrixT& lap_totalstrain, 
+	const ElementCardT& element, int ip) 
+	
+{
+	/* remove plastic strain */
+	if (element.IsAllocated()) 
+	{
+		/* load internal variables */
+		LoadData(element, ip);
+
+	    /* compute gradient elastic strain */
+		/*fLapElasticStrain.DiffOf(lap_totalstrain, fLapPlasticStrain);*/
+		fLapElasticStrain = lap_totalstrain;
+		
+		return fLapElasticStrain; 
+	}	
+	/* no plastic strain */
+	else	
+		return lap_totalstrain; 
 }
 
 /* return correction to stress vector computed by mapping the
  * stress back to the yield surface, if needed */
 const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialstrain, 
-                  const dSymMatrixT& del2_trialstrain, double& dlam, double& del2_dlam,
+                  const dSymMatrixT& lap_trialstrain, double& dlam, double& lap_dlam,
                   ElementCardT& element, int ip)
 {	
 
@@ -91,8 +98,8 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     LAdMatrixT dRR(10); // 10x10: set up matrix A for solving Ax=b system
      
     dArrayT u(6); dArrayT up(6); dArrayT du(6); dArrayT dup(6); dArrayT upo(6); 
-    dArrayT del2_u(6); dArrayT del2_up(6); dArrayT del2_du(6); dArrayT del2_dup(6); 
-    dArrayT del2_upo(6);  
+    dArrayT lap_u(6); dArrayT lap_up(6); dArrayT lap_du(6); dArrayT lap_dup(6); 
+    dArrayT lap_upo(6);  
     dArrayT qn(4); dArrayT qo(4);
     dArrayT Sig(6); dArrayT dSig(6); dArrayT Sig_I(6);
     dArrayT mm(6); dArrayT rr(4); dArrayT nn(6); 
@@ -118,7 +125,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 	//lambda_ast += 2.*(ls[1]*ls[1] - ls[2]*ls[2])*fmu/3.;
 	//mu_ast = ls[2]*ls[2]*fmu;
 	
-	// KE_AST for gradient terms
+	/* KE_AST for gradient terms */
 	KE_AST=0.;
 	KE_AST(2,2) = KE_AST(1,1) = KE_AST(0,0) = flambda_ast + 2.0*fmu_ast;
 	KE_AST(1,2) = KE_AST(0,1) = KE_AST(0,2) = flambda_ast;
@@ -134,17 +141,17 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 	u[4] = trialstrain(0,2);
 	u[5] = trialstrain(0,1);
 	
-	// include Laplacian of strain
-	del2_u[0] = del2_trialstrain(0,0); 
-	del2_u[1] = del2_trialstrain(1,1);
-	del2_u[2] = del2_trialstrain(2,2);
-	del2_u[3] = del2_trialstrain(1,2);
-	del2_u[4] = del2_trialstrain(0,2);
-	del2_u[5] = del2_trialstrain(0,1);
+	/* Laplacian of strain */
+	lap_u[0] = lap_trialstrain(0,0); 
+	lap_u[1] = lap_trialstrain(1,1);
+	lap_u[2] = lap_trialstrain(2,2);
+	lap_u[3] = lap_trialstrain(1,2);
+	lap_u[4] = lap_trialstrain(0,2);
+	lap_u[5] = lap_trialstrain(0,1);
 	
-	PLI = PlasticLoading(trialstrain, del2_trialstrain, element, ip);
+	PLI = PlasticLoading(trialstrain, lap_trialstrain, element, ip);
 	
-	if (PlasticLoading(trialstrain, del2_trialstrain, element, ip) && 
+	if (PlasticLoading(trialstrain, lap_trialstrain, element, ip) && 
 	    element.IsAllocated()) 
    {
 	  LoadData(element, ip);
@@ -154,7 +161,23 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
       }
 	}
     
-	if (!PlasticLoading(trialstrain, del2_trialstrain, element, ip) && 
+	if (!PlasticLoading(trialstrain, lap_trialstrain, element, ip) && 
+	    element.IsAllocated())
+	{
+		/* initialize element data */
+		double enp  = 0.;
+        double esp  = 0.;
+        double fchi = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
+        double fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
+        double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
+        double ftan_psi = (tan(fphi_p))*exp(-falpha_psi*esp);
+        state = 0.;
+        state[30] = fchi;
+        state[31] = fc;
+        state[32] = ftan_phi;
+        state[33] = ftan_psi;
+	}
+	if (!PlasticLoading(trialstrain, lap_trialstrain, element, ip) && 
 	    !element.IsAllocated())
 	{
 		/* initialize element data */
@@ -173,12 +196,12 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 	
 	/* initialize in the case of first plastic loading  */
 	/* check consistency and initialize plastic element */
-	if (PlasticLoading(trialstrain, del2_trialstrain, element, ip) && 
+	if (PlasticLoading(trialstrain, lap_trialstrain, element, ip) && 
 	    !element.IsAllocated())
 	{
 		/* new plastic element */
 		AllocateElement(element); 
-		PlasticLoading(trialstrain, del2_trialstrain, element, ip); 
+		PlasticLoading(trialstrain, lap_trialstrain, element, ip); 
 		/* initialize element data */
 		double enp  = 0.;
         double esp  = 0.;
@@ -197,11 +220,11 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     for (i = 0; i<=5; ++i) 
     {
        du[i] = u[i] - state[i+6];
-       del2_du[i] = del2_u[i] - state[i+12]; //laplacian of du
+       lap_du[i] = lap_u[i] - state[i+12]; //laplacian of du
        up[i] = state[i+18];	
-       del2_up[i] = state[i+24];	//laplacian of up
+       lap_up[i] = state[i+24];	//laplacian of up
        upo[i] = up[i];
-       del2_upo[i] = del2_up[i];
+       lap_upo[i] = lap_up[i];
        Sig_I[i] = 0.;
     }
     
@@ -216,19 +239,19 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     II_mat(3,3) = II_mat(4,4) = II_mat(5,5) = 1.;
      
     Sig = Sig_I;
-    dArrayT ue(6), del2_ue(6), Sig_e(6), del2_Sig_e(6); 
+    dArrayT ue(6), lap_ue(6), Sig_e(6), lap_Sig_e(6); 
     ue = u;
     ue -= up;
-    del2_ue = del2_u;
-    del2_ue -= del2_up;
+    lap_ue = lap_u;
+    lap_ue -= lap_up;
     KE.Multx(ue,Sig_e);
-    KE_AST.Multx(del2_ue,del2_Sig_e);
+    KE_AST.Multx(lap_ue,lap_Sig_e);
     Sig += Sig_e; 
-    Sig -= del2_Sig_e;
+    Sig -= lap_Sig_e;
     Sig_trial = Sig;
     
     int iplastic; 
-    //dlam, del2_dlam are passed from the global level 
+    //dlam, lap_dlam are passed from the global level 
     
 /* Check the yield function */
      
@@ -257,12 +280,12 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
         Sig = Sig_I;
         ue = u;
         ue -= up;
-        del2_ue = del2_u;
-        del2_ue -= del2_up;
+        lap_ue = lap_u;
+        lap_ue -= lap_up;
         KE.Multx(ue,Sig_e);
-        KE_AST.Multx(del2_ue,del2_Sig_e);
+        KE_AST.Multx(lap_ue,lap_Sig_e);
         Sig += Sig_e; 
-        Sig -= del2_Sig_e;
+        Sig -= lap_Sig_e;
         
         Yield_f(Sig, qn, ff);  //yield function
         m_f(Sig, qn, mm); //mm = dQdSig
@@ -276,12 +299,14 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
         dgdSig_f(Sig, qn, ls, dgdSig); 
         dgdq_f(Sig, qn, ls, dgdq);
         
+        /* Temporary matrices */
         dMatrixT tempMat(6,6), tempMat1(6,6); 
         dMatrixT tempMat2(4,6), tempMat3(4,4); 
+        
         tempMat = KE;          // find a more efficient way
         tempMat *= dlam;       // to do scalar*matrix
         tempMat1 = KE_AST;     // operation
-        tempMat1 *= del2_dlam;
+        tempMat1 *= lap_dlam;
         tempMat -= tempMat1;  
         dRSig_dSig.MultAB(tempMat,dmdSig);
         dRSig_dSig += II_mat; 
@@ -291,34 +316,35 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
         dRq_dSig += dhdSig;
         dRq_dSig *= -dlam;
         tempMat2 = dgdSig;
-        tempMat2 *= del2_dlam;
+        tempMat2 *= lap_dlam;
         dRq_dSig += tempMat2; 
         
         dRq_dq.MultAB(dhdm,dmdq);
         dRq_dq += dhdq;
         dRq_dq *= -dlam;
         tempMat3 = dgdq;
-        tempMat3 *= del2_dlam;
+        tempMat3 *= lap_dlam;
         dRq_dq += tempMat3;
         dRq_dq += I_mat;
          
         dArrayT RSig1(6), RSig2(6), RSig3(6), RSig4(6);
         dArrayT tempA(6), tempB(6), tempC(4);
+        
         KE.Multx(du,RSig1);
-        KE_AST.Multx(del2_du,RSig2);
+        KE_AST.Multx(lap_du,RSig2);
         KE.Multx(mm,RSig3);  
         KE_AST.Multx(mm,RSig4);
         RSig.DiffOf(RSig2,RSig1); // RSig2 - RSig1
         tempA.SetToScaled(dlam,RSig3); // dlam*RSig3;
         RSig += tempA;				   // dlam2 == dlam??
-        tempB.SetToScaled(del2_dlam,RSig4); // del2_dlam*RSig4;
-        RSig -= tempB;						//del2_dlam2 == del2_dlam?? 
-        Rq.SetToScaled(del2_dlam,gg);  //del2_dlam*gg;
-        Rq = tempC;						  //del2_dlam2 == del2_dlam?? 
+        tempB.SetToScaled(lap_dlam,RSig4); // lap_dlam*RSig4;
+        RSig -= tempB;						//lap_dlam2 == lap_dlam?? 
+        Rq.SetToScaled(lap_dlam,gg);  //lap_dlam*gg;
+        Rq = tempC;						  //lap_dlam2 == lap_dlam?? 
         tempC.SetToScaled(dlam,hh);  //dlam2 == dlam??
         Rq -= tempC; 
         
-        //form R (RHS) vector and dRR (10,10) matrix
+        /* Form R (RHS) vector and dRR (10,10) matrix */
         for (i = 0; i<=9; ++i) 
         {
          if (i<=5)
@@ -349,9 +375,11 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
             } 
           }
         }
-        //solve the linear sys. of eqs.
-        //dx_f(dRR, R, dx);
+        /* Solve the linear sys. of eqs. */
         dRR.LinearSolve(R); //RHS overwritten
+        
+        /* Extract stress vector and internal variables
+           from R										*/
         for (i = 0; i<=9; ++i) 
         {
             if (i<=5) 
@@ -363,13 +391,13 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
              dq[i-6] = R[i];
             }
         }
-       // update plastic strain, gradient plastic strain 
-       // and internal variables
-        dup.SetToScaled(del2_dlam,mm);
+       /* update plastic strain, gradient plastic strain 
+       	  and internal variables 						*/
+        dup.SetToScaled(lap_dlam,mm);
         up += dup;
-        del2_up.SetToScaled(del2_dlam,mm);  //del2_dlam2 == del2_dlam??
-        del2_up += del2_dup;
-        Sig += dSig;   // stress automatically updated when up & del2_up are updated??
+        lap_up.SetToScaled(lap_dlam,mm);  //lap_dlam2 == lap_dlam??
+        lap_up += lap_dup;
+        Sig += dSig;   // stress automatically updated when up & lap_up are updated??
         qn += dq;
         kk = kk + 1;
       }	//end while
@@ -389,13 +417,13 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 	state[10] = trialstrain(0,2);
 	state[11] = trialstrain(0,1);
 	
-	// gradient u
-	state[12] = del2_trialstrain(0,0);
-	state[13] = del2_trialstrain(1,1);
-	state[14] = del2_trialstrain(2,2);
-	state[15] = del2_trialstrain(1,2);
-	state[16] = del2_trialstrain(0,2);
-	state[17] = del2_trialstrain(0,1);
+	/* Laplacian of u */
+	state[12] = lap_trialstrain(0,0);
+	state[13] = lap_trialstrain(1,1);
+	state[14] = lap_trialstrain(2,2);
+	state[15] = lap_trialstrain(1,2);
+	state[16] = lap_trialstrain(0,2);
+	state[17] = lap_trialstrain(0,1);
 	
 	state[18] = up[0]; 
 	state[19] = up[1];
@@ -404,13 +432,13 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 	state[22] = up[4];
 	state[23] = up[5];
 	
-	// gradient up
-	state[24] = del2_up[0]; 
-	state[25] = del2_up[1];
-	state[26] = del2_up[2];
-	state[27] = del2_up[3];
-	state[28] = del2_up[4];
-	state[29] = del2_up[5];
+	/* Laplacian of up */
+	state[24] = lap_up[0]; 
+	state[25] = lap_up[1];
+	state[26] = lap_up[2];
+	state[27] = lap_up[3];
+	state[28] = lap_up[4];
+	state[29] = lap_up[5];
 	
 	state[30] = qn[0];
 	state[31] = qn[1];
@@ -419,7 +447,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 	
 	state[34] = ff; 
 	state[35] = dlam;
-	state[36] = del2_dlam;
+	state[36] = lap_dlam;
 	state[37] = double(iplastic);
 	state[38] = double(kk);
 	for (i = 0; i<=5; ++i) 
@@ -440,7 +468,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
 	      }
 	      else
 	      {
-	        fGradPlasticStrain[i] = state[i+18];
+	        fLapPlasticStrain[i] = state[i+18];
 	      } 
        }
 	}		
@@ -1051,38 +1079,6 @@ dMatrixT& GRAD_MRSSNLHardT::dhdm_f(const dArrayT& Sig, const dArrayT& qn, dMatri
     return dhdm;
 }
 
-/* Return the yield function (for enforcing consistency condition
-   in weak sense)
- * Current values of internal variables, and stress used */
-const double& GRAD_MRSSNLHardT::YieldFunction(const ElementCardT& element, 
-	int ip)
-{
-	dArrayT state(38); dArrayT Sig(6);
-	dArrayT qn(4); 
-	double ff;
- /* load internal state variables */
-    if(!element.IsAllocated()) 
-    {
-	  	LoadData(element,ip);
-	  	for (int i =0; i<=38; ++i) 
-	  	{
-		  state[i] = fInternal[i];
-		}
-	}
-	  	
-    for (int i = 0; i<=5; ++i) 
-    {
-       Sig[i] = state[i];
-    }
-    
-    for (int i = 0; i<=3; ++i)
-     {
-      qn[i] = state[i+30];
-     }
-     Yield_f(Sig, qn, ff);
-     fYieldFunction = ff;
-     return fYieldFunction; 
-}
  
 /* Return the consistent-elstoplastic-moduli-like matrix containing
  * the sub-matrices (C_UU1, C_UU2, C_ULambda1, C_ULambda2, C_LambdaU1, 
@@ -1112,8 +1108,8 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
     dMatrixT KGE(7,14); dMatrixT KGEP(7,14);
      
     dArrayT u(6); dArrayT up(6); dArrayT du(6); dArrayT dup(6); dArrayT upo(6); 
-    dArrayT del2_u(6); dArrayT del2_up(6); dArrayT del2_du(6); dArrayT del2_dup(6); 
-    dArrayT del2_upo(6);  
+    dArrayT lap_u(6); dArrayT lap_up(6); dArrayT lap_du(6); dArrayT lap_dup(6); 
+    dArrayT lap_upo(6);  
     dArrayT qn(4); dArrayT qo(4);
     dArrayT Sig(6); dArrayT Sig_I(6);
     dArrayT RSig(6), Rq(4);
@@ -1122,8 +1118,8 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
     dArrayT state(38); dArrayT Sig_trial(6);
     dArrayT R(10); dArrayT ls(4);
     
-    double mu_ast; double lambda_ast;
-    double dlam, del2_dlam;
+    //double mu_ast; double lambda_ast;
+    double dlam, lap_dlam;
 
 	KE = 0.;
 	KE(2,2) = KE(1,1) = KE(0,0) = flambda + 2.0*fmu;
@@ -1131,22 +1127,21 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 	KE(2,1) = KE(1,0) = KE(2,0) = flambda;
 	KE(5,5) = KE(4,4) = KE(3,3) = fmu;
 	
-	// lse_v: pore space length scale (elastic) 
-    // lse_s: grain size length scale (elastic)
-    // lsp_v: pore space length scale (plastic) 
-    // lsp_s: grain size length scale (plastic) 
-	ls[1] = flse_v;  ls[2] = flse_s;
-	ls[3] = flsp_v;  ls[4] = flsp_s;
-	lambda_ast = ls[1]*ls[1]*flambda;
-	lambda_ast += 2.*(ls[1]*ls[1] - ls[2]*ls[2])*fmu/3.;
-	mu_ast = ls[2]*ls[2]*fmu;
+	ls[1] = flse_v; // lse_v: pore space length scale (elastic)  
+	ls[2] = flse_s; // lse_s: grain size length scale (elastic)
+	ls[3] = flsp_v; // lsp_v: pore space length scale (plastic)   
+	ls[4] = flsp_s; // lsp_s: grain size length scale (plastic)
+	
+	//lambda_ast = ls[1]*ls[1]*flambda;
+	//lambda_ast += 2.*(ls[1]*ls[1] - ls[2]*ls[2])*fmu/3.;
+	//mu_ast = ls[2]*ls[2]*fmu;
 	
 	// KE_AST for gradient terms
 	KE_AST=0.;
-	KE_AST(2,2) = KE_AST(1,1) = KE_AST(0,0) = lambda_ast + 2.0*mu_ast;
-	KE_AST(1,2) = KE_AST(0,1) = KE_AST(0,2) = lambda_ast;
-	KE_AST(2,1) = KE_AST(1,0) = KE_AST(2,0) = lambda_ast;
-	KE_AST(5,5) = KE_AST(4,4) = KE_AST(3,3) = mu_ast;
+	KE_AST(2,2) = KE_AST(1,1) = KE_AST(0,0) = flambda_ast + 2.0*fmu_ast;
+	KE_AST(1,2) = KE_AST(0,1) = KE_AST(0,2) = flambda_ast;
+	KE_AST(2,1) = KE_AST(1,0) = KE_AST(2,0) = flambda_ast;
+	KE_AST(5,5) = KE_AST(4,4) = KE_AST(3,3) = fmu_ast;
 	
 	I_mat = 0.; II_mat = 0.;
 	KE_UU1 =0.; KE_UU2 = 0.;
@@ -1280,7 +1275,7 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
 	  	if (state[36] == 1.) 
 	  	{
 	  	    dlam = state[35];
-	  	    del2_dlam = state[36];
+	  	    lap_dlam = state[36];
 	  	    m_f(Sig, qn, mm); //mm = dQdSig
         	h_f(Sig, qn, hh); g_f(Sig, qn, ls, gg);   
         	dmdSig_f(qn, dmdSig); dmdq_f(Sig, qn, dmdq);
@@ -1293,7 +1288,7 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
         	tempMat1 = KE; 
         	tempMat1 *= dlam;
         	tempMat2 = KE_AST;
-        	tempMat2 *= del2_dlam;
+        	tempMat2 *= lap_dlam;
         	tempMat1 -= tempMat2;
         	dRSig_dSig.MultAB(tempMat1,dmdSig);
         	dRSig_dSig += II_mat; 
@@ -1303,30 +1298,30 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
         	dRq_dSig += dhdSig;
         	dRq_dSig *= -dlam;
         	tempMat3 = dgdSig;
-        	tempMat3 *= del2_dlam;
+        	tempMat3 *= lap_dlam;
         	dRq_dSig += tempMat3; 
         
         	dRq_dq.MultAB(dhdm,dmdq);
         	dRq_dq += dhdq;
         	dRq_dq *= -dlam;
         	tempMat4 = dgdq;
-        	tempMat4 *= del2_dlam;
+        	tempMat4 *= lap_dlam;
         	dRq_dq += tempMat4;
         	dRq_dq += I_mat;
          
         	dArrayT RSig1(6), RSig2(6), RSig3(6), RSig4(6);
         	dArrayT temp1(6), temp2(6), temp3(4);
         	KE.Multx(du,RSig1);
-       	 	KE_AST.Multx(del2_du,RSig2);
+       	 	KE_AST.Multx(lap_du,RSig2);
         	KE.Multx(mm,RSig3);  
         	KE_AST.Multx(mm,RSig4);
         	RSig.DiffOf(RSig2,RSig1); //RSig2-RSig1
         	temp1.SetToScaled(dlam,RSig3);  //dlam2 == dlam??
         	RSig += temp1;
-        	temp2.SetToScaled(del2_dlam,RSig4); // del2_dlam2 == dlam??	
+        	temp2.SetToScaled(lap_dlam,RSig4); // lap_dlam2 == dlam??	
         	RSig -= temp2;
         
-        	Rq.SetToScaled(del2_dlam,gg);   //del2_dlam2/del2_dlam??
+        	Rq.SetToScaled(lap_dlam,gg);   //lap_dlam2/lap_dlam??
         	temp3.SetToScaled(dlam,hh);     //dlam2/dlam??
         	Rq -= temp3; 
         
@@ -1438,12 +1433,12 @@ const dMatrixT& GRAD_MRSSNLHardT::Moduli(const ElementCardT& element,
  *   bifurcation */
 
 
-const dMatrixT& GRAD_MRSSNLHardT::ModuliDisc(const ElementCardT& element, 
+const dMatrixT& GRAD_MRSSNLHardT::ModuliPerfPlas(const ElementCardT& element, 
 	int ip)
 {
 	/* initialize */
 
-fModuliDisc = 0.0;
+fModuliPerfPlas = 0.0;
 
 	if (element.IsAllocated() && 
 	   (element.IntegerData())[ip] == kIsPlastic)
@@ -1451,10 +1446,41 @@ fModuliDisc = 0.0;
 
 	}
 
-
-	return fModuliDisc;
+	return fModuliPerfPlas;
 }	
 
+/* Return the yield function (for enforcing consistency condition
+   in weak sense)
+ * Current values of internal variables, and stress used */
+const double& GRAD_MRSSNLHardT::YieldFunction(const ElementCardT& element, 
+	int ip)
+{
+	dArrayT state(38); dArrayT Sig(6);
+	dArrayT qn(4); 
+	double ff;
+ /* load internal state variables */
+    if(!element.IsAllocated()) 
+    {
+	  	LoadData(element,ip);
+	  	for (int i =0; i<=38; ++i) 
+	  	{
+		  state[i] = fInternal[i];
+		}
+	}
+	  	
+    for (int i = 0; i<=5; ++i) 
+    {
+       Sig[i] = state[i];
+    }
+    
+    for (int i = 0; i<=3; ++i)
+     {
+      qn[i] = state[i+30];
+     }
+     Yield_f(Sig, qn, ff);
+     fYieldFunction = ff;
+     return fYieldFunction; 
+}
  	 	
 /* return a pointer to a new plastic element object constructed with
  * the data from element */
@@ -1477,17 +1503,32 @@ void GRAD_MRSSNLHardT::AllocateElement(ElementCardT& element)
 	element.DoubleData()  = 0.0;  // initialize all double types to 0.0
 }
 
+/* accept parameter list */
+void GRAD_MRSSNLHardT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	GRAD_MRPrimitiveT::TakeParameterList(list);
+
+	/* dimension work space */
+	fElasticStrain.Dimension(kNSD);
+	fLapElasticStrain.Dimension(kNSD);
+	fStressCorr.Dimension(kNSD);
+	fModuli.Dimension(dSymMatrixT::NumValues(kNSD));
+	fModuliPerfPlas.Dimension(dSymMatrixT::NumValues(kNSD));
+	fDevStress.Dimension(kNSD);
+	fLapDevStress.Dimension(kNSD);
+	fDevStrain.Dimension(kNSD);
+	fLapDevStrain.Dimension(kNSD); 
+	fTensorTemp.Dimension(dSymMatrixT::NumValues(kNSD));
+	IdentityTensor2.Dimension(kNSD);
+	One.Dimension(kNSD);
+    
+	/* initialize constant tensor */
+	One.Identity();
+}
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-void GRAD_MRSSNLHardT::PrintName(ostream& out) const
-{
-	/* inherited */
-	GRAD_MRPrimitiveT::PrintName(out);
-
-	out << "    Small Strain\n";
-}
 
 /* element level data */
 void GRAD_MRSSNLHardT::Update(ElementCardT& element)
@@ -1551,12 +1592,12 @@ void GRAD_MRSSNLHardT::LoadData(const ElementCardT& element, int ip)
 /* returns 1 if the trial elastic strain state lies outside of the 
  * yield surface */
 int GRAD_MRSSNLHardT::PlasticLoading(const dSymMatrixT& trialstrain, 
-	  const dSymMatrixT& del2_trialstrain, ElementCardT& element, int ip) //del2_trialstran??
+	  const dSymMatrixT& lap_trialstrain, ElementCardT& element, int ip) //del2_trialstran??
 {
 	/* not yet plastic */
 	if (!element.IsAllocated()) 
-		return( YieldCondition(DeviatoricStress(trialstrain,del2_trialstrain,element),//del2_trialstran??
-			   MeanStress(trialstrain,del2_trialstrain,element)) > kYieldTol );
+		return( YieldCondition(DeviatoricStress(trialstrain,lap_trialstrain,element),//lap_trialstrain??
+			   MeanStress(trialstrain,lap_trialstrain,element)) > kYieldTol );
         /* already plastic */
 	else 
 	{
@@ -1589,31 +1630,31 @@ int GRAD_MRSSNLHardT::PlasticLoading(const dSymMatrixT& trialstrain,
  * and elastic strain.  The function returns a reference to the
  * stress in fDevStress */
 dSymMatrixT& GRAD_MRSSNLHardT::DeviatoricStress(const dSymMatrixT& trialstrain,
-    const dSymMatrixT& del2_trialstrain, const ElementCardT& element)//del2_trialstrain??
+    const dSymMatrixT& lap_trialstrain, const ElementCardT& element)//del2_trialstrain??
 {
 #pragma unused(element)
 
 	/* deviatoric strain */
 	fDevStrain.Deviatoric(trialstrain); 
-	fDel2DevStrain.Deviatoric(del2_trialstrain);//del2_trialstrain??
+	fLapDevStrain.Deviatoric(lap_trialstrain);//lap_trialstrain??
 
 	/* compute deviatoric elastic stress */
 	fDevStress.SetToScaled(2.0*fmu,fDevStrain);
-	fDel2DevStress.SetToScaled(2.0*fmu_ast,fDel2DevStrain); //declare
-	fDevStress -= fDel2DevStress;
+	fLapDevStress.SetToScaled(2.0*fmu_ast,fLapDevStrain); //declare
+	fDevStress -= fLapDevStress;
 
 	return fDevStress;
 }
 
 /* computes the hydrostatic (mean) stress */
 double GRAD_MRSSNLHardT::MeanStress(const dSymMatrixT& trialstrain,
-    const dSymMatrixT& del2_trialstrain, const ElementCardT& element)//del2_trialstrain??
+    const dSymMatrixT& lap_trialstrain, const ElementCardT& element)//lap_trialstrain??
 {
 #pragma unused(element)
 
   fMeanStress = fkappa*trialstrain.Trace(); 
-  fDel2MeanStress = fkappa_ast*del2_trialstrain.Trace(); //del2_trialstrain??
-  fMeanStress -= fDel2MeanStress;  //declare fDel2MeanStress
+  fLapMeanStress = fkappa_ast*lap_trialstrain.Trace(); //lap_trialstrain??
+  fMeanStress -= fLapMeanStress;  //declare fLapMeanStress
   return fMeanStress;
 }
 

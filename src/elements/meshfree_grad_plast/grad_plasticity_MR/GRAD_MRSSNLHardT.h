@@ -1,6 +1,8 @@
-/* created: Majid T. Manzari (04/16/2003)            */
-/*  
- * Interface for a nonassociative, small strain,     */
+/* created: Karma Yonten (03/04/2004)                   
+   MR version modified to incorporate gradient plasticity 
+   theory.
+*/
+/* Interface for a nonassociative, small strain,     */
 /* pressure dependent gradient plasticity model      */
 /* with nonlinear isotropic hardening/softening.     */
 
@@ -30,26 +32,27 @@ class GRAD_MRSSNLHardT: public GRAD_MRPrimitiveT
 
 public:
 	/* constructor */
-	GRAD_MRSSNLHardT(ifstreamT& in, int num_ip, double mu, double lambda);
-
-  	/* output name */
-	virtual void PrintName(ostream& out) const;
-
-  protected:
+	GRAD_MRSSNLHardT(int num_ip, double mu, double lambda);
 
 	/* status flags */
 	enum LoadingStatusT {kIsPlastic = 0,
                          kIsElastic = 1,
+                         kIsLocalized = 2, 
                              kReset = 3}; // indicate not to repeat update
                              
+	/* returns elastic strain (3D) */
+	virtual const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain, 
+		const ElementCardT& element, int ip);
+		
+	/* returns Laplacian of elastic strain (3D) */
+	virtual const dSymMatrixT& LapElasticStrain(const dSymMatrixT& lap_totalstrain, 
+		const ElementCardT& element, int ip);
+		
 	/* return correction to stress vector computed by mapping the
 	 * stress back to the yield surface, if needed */
 	const dSymMatrixT& StressCorrection(const dSymMatrixT& trialstrain,
-	    const dSymMatrixT& del2_trialstrain, double& dlam, double& del2_dlam,  
-		ElementCardT& element, int ip); // dlam and del2_dlam at the ip
-		
-	virtual const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain, 
-	        const dSymMatrixT& del2_totalstrain, const ElementCardT& element, int ip);
+	    const dSymMatrixT& lap_trialstrain, double& dlam, double& lap_dlam,  
+		ElementCardT& element, int ip); // dlam and lap_dlam at the ip     
 		
 	double& Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff);
     dArrayT& h_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& hh);
@@ -75,9 +78,9 @@ public:
 	 *       internal variable values */
 	const dMatrixT& Moduli(const ElementCardT& element, int ip); 
 
-        /* Modulus for checking discontinuous bifurcation */
+        /* Modulus for checking perfectly plastic bifurcation */
 
-	const dMatrixT& ModuliDisc(const ElementCardT& element, int ip);
+	const dMatrixT& ModuliPerfPlas(const ElementCardT& element, int ip);
 	
 	/* return yield condition, f */
 	
@@ -95,6 +98,9 @@ public:
                          kplastic = 37,  // Plastic Index
                           kftrial = 34}; // yield function value
 
+	/** internal variables */
+	dArrayT& Internal(void) { return fInternal; };
+	
 	/* element level data */
 	void Update(ElementCardT& element);
 	void Reset(ElementCardT& element);
@@ -108,11 +114,17 @@ public:
 	 * and elastic strain.  The function returns a reference to the
 	 * stress in fDevStress */
 	dSymMatrixT& DeviatoricStress(const dSymMatrixT& trialstrain, 
-	          const dSymMatrixT& del2_trialstrain, const ElementCardT& element);
+	          const dSymMatrixT& lap_trialstrain, const ElementCardT& element);
 
 	/* computes the hydrostatic (mean) stress. */
-	double MeanStress(const dSymMatrixT& trialstrain, const dSymMatrixT& del2_trialstrain, 
+	double MeanStress(const dSymMatrixT& trialstrain, const dSymMatrixT& lap_trialstrain, 
 	       const ElementCardT& element);
+	
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
   private:
 
@@ -122,8 +134,8 @@ public:
   protected:
 
   	/* element level internal state variables */
-  	dSymMatrixT fPlasticStrain; //total plastic strain (deviatoric and volumetric)
-  	dSymMatrixT fGradPlasticStrain; //gradient total plastic strain (deviatoric and volumetric)
+  	dSymMatrixT fPlasticStrain; // total plastic strain (deviatoric and volumetric)
+  	dSymMatrixT fLapPlasticStrain; // Laplacian of total plastic strain (deviatoric and volumetric)
   	dArrayT     fInternal;      //internal variables
 
   private:
@@ -139,21 +151,21 @@ public:
 	double flambda_ast;
 	double fkappa_ast;
     double fMeanStress;
-    double fDel2MeanStress;
+    double fLapMeanStress;
   
   	/* return values */
   	dSymMatrixT	fElasticStrain;
-  	dSymMatrixT fGradElasticStrain;
+  	dSymMatrixT fLapElasticStrain;
   	dSymMatrixT	fStressCorr;
   	dMatrixT	fModuli;
-    dMatrixT    fModuliDisc;
+    dMatrixT    fModuliPerfPlas;
     double fYieldFunction;
   		
 	/* work space */
 	dSymMatrixT fDevStress;
-	dSymMatrixT fDel2DevStress;
+	dSymMatrixT fLapDevStress;
 	dSymMatrixT fDevStrain; /* deviatoric part of the strain tensor */
-	dSymMatrixT fDel2DevStrain; /* deviatoric part of the gradient of strain tensor */
+	dSymMatrixT fLapDevStrain; /* deviatoric part of the Laplacian of strain tensor */
 	dSymMatrixT IdentityTensor2;  
 
 	dMatrixT      fTensorTemp;

@@ -1,31 +1,35 @@
-/* created: Majid T. Manzari (04/16/2003) */
+/* created: Karma Yonten (03/04/2004)                   
+   MR version modified to incorporate gradient plasticity 
+   theory.
+*/
 #ifndef _GRAD_MR_SS_KSTV_H_
 #define _GRAD_MR_SS_KSTV_H_
 
 /* base classes */
-#include "SSSolidMatT.h"
-#include "IsotropicT.h"
+#include "SSIsotropicMatT.h"
 #include "HookeanMatT.h"
-#include "GRAD_MRSSNLHardT.h"
 
 namespace Tahoe 
 {
 
-class MRSSKStV: public SSSolidMatT,
-				public IsotropicT,
-				public HookeanMatT,
-				public GRAD_MRSSNLHardT
+/* forward declarations */
+class GRAD_MRSSNLHardT;
+
+class GRAD_MRSSKStV: public SSIsotropicMatT, public HookeanMatT
 {
   public:
 
 	/* constructor */
-	GRAD_MRSSKStV(ifstreamT& in, const SSMatSupportT& support);
+	GRAD_MRSSKStV(void);
 	
-	/* initialization */
-	virtual void Initialize(void);
+	/* destructor */
+	~GRAD_MRSSKStV(void);
 
 	/* form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
+
+	/** model has history variables */
+	virtual bool HasHistory(void) const { return true; };
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);
@@ -33,16 +37,22 @@ class MRSSKStV: public SSSolidMatT,
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
 
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
+	/** returns elastic strain (3D) */
+	virtual const dSymMatrixT& ElasticStrain(
+                const dSymMatrixT& totalstrain,
+				const ElementCardT& element, int ip);
+				
+	/** returns Laplacian of elastic strain (3D) */
+	virtual const dSymMatrixT& LapElasticStrain(
+                const dSymMatrixT& lap_totalstrain, 
+				const ElementCardT& element, int ip);
 
 	/** \name spatial description */
 	/*@{*/
 	/** spatial tangent modulus */
 	virtual const dMatrixT& c_ijkl(void);
 
-	virtual const dMatrixT& cdisc_ijkl(void);
+	virtual const dMatrixT& c_perfplas_ijkl(void);
 
 	/** Cauchy stress */
 	virtual const dSymMatrixT& s_ij(void);
@@ -50,7 +60,7 @@ class MRSSKStV: public SSSolidMatT,
 	/** Yield function */
 	// return the yield function to form the RHS of the 
 	// consistency equation
-	virtual double YieldFunction(void);
+	virtual const double& YieldF(void);
 
 	/** return the pressure associated with the last call to 
 	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
@@ -66,15 +76,21 @@ class MRSSKStV: public SSSolidMatT,
 	virtual int  NumOutputVariables(void) const;
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
+	
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
 
-        /*
-         * Test for localization using "current" values for Cauchy
-         * stress and the spatial tangent moduli. Returns 1 if the
-         * determinant of the acoustic tensor is negative and returns
-         * the normal for which the determinant is minimum. Returns 0
-         * of the determinant is positive.
-         */
-	 int IsLocalized(dArrayT& normal);
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+	
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
@@ -84,10 +100,13 @@ protected:
  
   private:
   
+  /** pressure sensitive plasticity with nonlinear hardening and localization*/
+	GRAD_MRSSNLHardT* fGRAD_MR;
+  
   	/* return values */
   	dSymMatrixT	fStress;
-  	dMatrixT	fModulus;
-    dMatrixT    fModulusdisc;
+  	dMatrixT	fModulus, fModulusCe;
+    dMatrixT    fModulusPerfPlas;
     double      fYieldFunction; //yield function
 
 };
