@@ -122,8 +122,9 @@ const dSymMatrixT& J2SSKStV1D::s_ij(void)
 	HookeanStress(e_els, fStress);
 
 	/* modify Cauchy stress (return mapping) */
-	fStress += StressCorrection(e_els, element, ip);
-
+	int iteration = fSSMatSupport.IterationNumber();
+	if (iteration > -1) /* elastic iteration */
+		fStress += StressCorrection(e_els, element, ip);
 	return fStress;	
 }
 
