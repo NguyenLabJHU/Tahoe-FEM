@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.96 2004-07-22 08:18:56 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.97 2004-07-27 20:08:50 raregue Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -288,6 +288,31 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 #ifdef GRAD_SMALL_STRAIN_DEV
 		sub_lists.AddSub("grad_small_strain");
 #endif
+
+/*
+#ifdef MULTISCALE_ELEMENT_DEV
+		sub_lists.AddSub("variational_multiscale");
+#endif
+*/
+
+#ifdef MULTISCALE_APS_DEV
+		sub_lists.AddSub("antiplane_shear_grad_plast");
+#endif
+
+/*
+#ifdef MULTISCALE_APS_V_DEV
+		sub_lists.AddSub("antiplane_shear_grad_plast_V");
+#endif
+
+#ifdef MESHFREE_GRAD_PLAST_DEV
+		sub_lists.AddSub("meshfree_grad_plast");
+#endif
+*/
+
+#ifdef ENHANCED_STRAIN_LOC_DEV
+		sub_lists.AddSub("ss_enhanced_strain_loc");
+#endif
+
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
@@ -432,6 +457,37 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 	else if (name == "grad_small_strain")
 		return new GradSmallStrainT(fSupport);
 #endif	
+
+/*
+#ifdef MULTISCALE_ELEMENT_DEV
+	else if (name == "variational_multiscale")
+		return new StaggeredMultiScaleT(fSupport);
+#endif
+*/
+
+#ifdef MULTISCALE_APS_DEV
+	else if (name == "antiplane_shear_grad_plast")
+		return new APS_AssemblyT(fSupport);
+#endif
+
+/*
+#ifdef MULTISCALE_APS_V_DEV
+	else if (name == "antiplane_shear_grad_plast_V")
+		return new APS_V_AssemblyT(fSupport);
+#endif
+
+#ifdef MESHFREE_GRAD_PLAST_DEV
+	else if (name == "meshfree_grad_plast")
+		return new MFGP_AssemblyT(fSupport);
+#endif
+*/
+
+/*
+#ifdef ENHANCED_STRAIN_LOC_DEV
+	else if (name == "ss_enhanced_strain_loc")
+		return new SmallStrainEnhLocT(fSupport);
+#endif
+*/
 
 	/* default */	
 	else
