@@ -1,11 +1,11 @@
-/* $Id: expat_ParseT.cpp,v 1.9 2004-07-08 22:55:43 paklein Exp $ */
+/* $Id: expat_ParseT.cpp,v 1.10 2004-07-12 20:49:25 paklein Exp $ */
 #include "expat_ParseT.h"
 #ifdef __EXPAT__
 
 #include "ParameterListT.h"
 
 /* C file I/O header */
-#if defined(__SGI__)
+#if defined(__SGI__) || defined(__GNU__)
 #include <stdio.h>
 #else
 //what do others use???
