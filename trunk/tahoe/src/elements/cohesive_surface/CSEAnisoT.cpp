@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.64 2004-09-09 16:16:38 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.65 2004-09-10 21:39:25 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -274,8 +274,8 @@ void CSEAnisoT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	CSEBaseT::DefineParameters(list);
 
-	ParameterT rotate_frame(ParameterT::Boolean, "rotate_frame");
-	rotate_frame.SetDefault(true);
+	ParameterT rotate_frame(fRotate, "rotate_frame");
+	rotate_frame.SetDefault(fRotate);
 	list.AddParameter(rotate_frame);
 }
 
