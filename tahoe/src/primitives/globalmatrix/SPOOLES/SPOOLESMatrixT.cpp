@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.12 2002-11-25 07:13:41 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.13 2003-03-11 07:21:30 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT.h"
@@ -169,7 +169,12 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& e
 						double value = (dex_j >= dex_i) ? // source is upper only
 							elMat(dex_i, dex_j) :
 							elMat(dex_j, dex_i);
-						fValVec[j - i] = value;
+							
+						/* off-diagonal in element, but global in diagonal */
+						if (eqnos[dex_i] == eqnos[dex_j] && dex_i != dex_j)
+							fValVec[j - i] = 2.0*value;
+						else
+							fValVec[j - i] = value;
 					}
 				
 					/* assemble (global) row */
