@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.h,v 1.8 2004-07-15 08:26:22 paklein Exp $ */
+/* $Id: DiffusionMaterialT.h,v 1.9 2005-01-07 02:16:03 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSION_MATERIALT_H_
 #define _DIFFUSION_MATERIALT_H_
@@ -39,6 +39,9 @@ public:
 	/** change in heat flux with temperature */
 	virtual const dArrayT& dq_i_dT(void) { return fdq_i; };
 
+	/** change in conductivity with temperature */
+	virtual const dMatrixT& dk_ij(void) { return fdk_ij; };
+
 	double Density(void) const;
 	virtual double SpecificHeat(void) const;
 	double Capacity(void) const;
@@ -75,6 +78,9 @@ protected:
 
 	/** heat flux variation return value */
 	dArrayT fdq_i;  
+
+	/** conductivity variation return value */
+	dMatrixT fdk_ij;  
 	/*@}*/
 };
 
