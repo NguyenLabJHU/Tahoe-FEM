@@ -1,4 +1,4 @@
-// $Id: MFGP_Bal_EqT.h,v 1.10 2004-10-21 03:27:09 kyonten Exp $
+// $Id: MFGP_Bal_EqT.h,v 1.11 2004-10-21 21:52:02 kyonten Exp $
 #ifndef _MFGP_BAL_EQ_T_H_ 
 #define _MFGP_BAL_EQ_T_H_ 
 
@@ -43,12 +43,9 @@ class MFGP_Bal_EqT
 
 	protected:
 		dMatrixT B1_d, B3_d; 
-		dMatrixT B4_lam, phi_lam; //dimension??
-		//dArrayT phi_lam;
+		dMatrixT B4_lam, phi_lam; 
   		dMatrixT Cuu1, Cuu2, Culam1, Culam2;
-  		dMatrixT Clamu1, Clamu2;
-  		//double Clamlam1, Clamlam2;
-  		dMatrixT Clamlam1, Clamlam2;
+  		dMatrixT Clamu1, Clamu2, Clamlam1, Clamlam2;
   		
 	protected:
 
@@ -64,7 +61,7 @@ class MFGP_Bal_EqT
 		dSymMatrixT stress;
 		dMatrixT moduli;
 
-		int ip, n_rows_vector, n_rows_matrix, n_cols_matrix, n_sd, n_en_displ, n_en_plast, n_sd_x_n_sd, 
+		int ip, n_rows_vector, n_rows_matrix, n_cols_matrix, n_sd, n_str, n_en_displ, n_en_plast, n_sd_x_n_sd, 
 			n_sd_x_n_en_displ, n_sd_x_n_en_plast, Time_Integration_Scheme;
   
 };

@@ -1,4 +1,4 @@
-// $Id: MFGP_Bal_EqT.cpp,v 1.10 2004-10-21 03:27:09 kyonten Exp $
+// $Id: MFGP_Bal_EqT.cpp,v 1.11 2004-10-21 21:52:02 kyonten Exp $
 #include "MFGP_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -29,8 +29,8 @@ void MFGP_Bal_EqT::Initialize(int& curr_ip, D3MeshFreeShapeFunctionT *Shapes_dis
 {
 	n_en_displ  = Shapes_displ->Derivatives_U(curr_ip).MinorDim(); //dN: [nsd]x[nnd]
 	n_en_plast  = Shapes_plast->Derivatives_U(curr_ip).MinorDim();
-	n_sd    	= Shapes_displ->Derivatives_U(curr_ip).MajorDim();	
-	int n_str = dSymMatrixT::NumValues(n_sd);
+	n_sd    	= Shapes_displ->Derivatives_U(curr_ip).MajorDim();
+	n_str = dSymMatrixT::NumValues(n_sd);	
 	n_sd_x_n_sd = n_sd * n_sd;
 	n_sd_x_n_en_displ = n_sd * n_en_displ;
 	n_sd_x_n_en_plast = n_sd * n_en_plast;
@@ -55,49 +55,49 @@ void MFGP_Bal_EqT::Initialize(int& curr_ip, D3MeshFreeShapeFunctionT *Shapes_dis
 
 //---------------------------------------------------------------------
 
-void MFGP_Bal_EqT::Form_LHS_Klambda_Ku(dMatrixT& Klambda, dMatrixT& Ku )  
+void MFGP_Bal_EqT::Form_LHS_Klambda_Ku(dMatrixT& Klambda, dMatrixT& Ku)  
 {
 	n_rows_matrix = Klambda.Rows();
 	n_cols_matrix = Klambda.Cols();
 	dMatrixT Klambdatemp(n_rows_matrix,n_cols_matrix);
-	Klambda.MultATBC(B1_d, Culam1, phi_lam  );
-	Klambdatemp.MultATBC(B1_d, Culam2, B4_lam );
-	Klambda += Klambdatemp;	 	
+	Klambda.MultATBC(B1_d, Culam1, phi_lam);
+	Klambdatemp.MultATBC(B1_d, Culam2, B4_lam);
+	Klambda += Klambdatemp;	// Klambda: [nsd*nnd]x[nnd] 	
 		
 	n_rows_matrix = Ku.Rows();
 	n_cols_matrix = Ku.Cols();
 	dMatrixT Kutemp(n_rows_matrix,n_cols_matrix);
 	Ku.MultATBC(B1_d, Cuu1, B1_d );
-	Kutemp.MultATBC(B1_d, Cuu2, B3_d );
-	Ku += Kutemp;
+	Kutemp.MultATBC(B1_d, Cuu2, B3_d);
+	Ku += Kutemp; // Ku: [nsd*nnd]x[nsd*nnd]
 }
 
 
-void MFGP_Bal_EqT::Form_RHS_F_int(dArrayT& F_int ) 
+void MFGP_Bal_EqT::Form_RHS_F_int(dArrayT& F_int) 
 {
-	B1_d.MultTx(stress, F_int );
+	
+	B1_d.MultTx(stress, F_int); // F_int: [nsd*nnd]x[1]
 }
 
 
 void MFGP_Bal_EqT::Form_B_List(void)
 {
-		B1_d.Dimension(n_sd, n_en_displ);
-		B3_d.Dimension(n_sd, n_en_displ);
+		B1_d.Dimension(n_str, n_sd_x_n_en_displ);
+		B3_d.Dimension(n_str, n_sd_x_n_en_displ);
 		int dum=1;
 		phi_lam.Dimension(dum, n_en_plast);
-		B4_lam.Dimension(dum, n_sd_x_n_en_plast);
-		//NTS: check the allocation of phi_lam and B4_lam
+		B4_lam.Dimension(dum, n_en_plast);
 		
 		/*
 		fData_Pro_Displ->Set_B1 (B1_d);
 		fData_Pro_Displ->Set_B3 (B3_d);
 		fData_Pro_Plast->Set_phi (phi_lam);
- 		fData_Pro_Plast->Set_B4 (B4_lam); //B4 is scalar  ????
+ 		fData_Pro_Plast->Set_B4 (B4_lam); 
  		*/
  		Data_Pro_Displ.Set_B1(B1_d);
 		Data_Pro_Displ.Set_B3(B3_d);
 		Data_Pro_Plast.Set_phi(phi_lam);
- 		Data_Pro_Plast.Set_B4(B4_lam); //B4 is scalar  ????
+ 		Data_Pro_Plast.Set_B4(B4_lam); 
 }
 
 
@@ -110,8 +110,8 @@ void MFGP_Bal_EqT::Form_C_List(GRAD_MRSSKStV *GRAD_MR_Plast)
 		Culam2.Dimension(n_str,1);
 		Clamu1.Dimension(1,n_str); 
 		Clamu2.Dimension(1,n_str);
-		//Clamlam1.Dimension(1); 
-		//Clamlam2.Dimension(1);
+		Clamlam1.Dimension(1); 
+		Clamlam2.Dimension(1);
 		
 		/* retrive Cgep/fmoduli: 2D: [4]x[8]; 3D: [7]x[14] 
 		*  and form the 8 C matrices
