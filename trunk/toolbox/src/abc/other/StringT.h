@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.9 2001-12-30 20:28:14 paklein Exp $ */
+/* $Id: StringT.h,v 1.10 2002-01-27 18:20:10 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #ifndef _STRING_T_H_
@@ -21,7 +21,7 @@ public:
 	StringT(void);
 	StringT(const StringT& string);
 	StringT(const char* string);
-	StringT(int length);
+	explicit StringT(int length);
 	
 	/** type conversion operator - allows use of StringT in all const char*
 	 * ANSI C functions. */
