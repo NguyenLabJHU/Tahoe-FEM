@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.4.2.2 2001-10-04 20:40:39 sawimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.4.2.3 2001-10-04 22:06:28 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -201,12 +201,18 @@ const dArray2DT& ModelManagerT::Coordinates (void)
 
 void ModelManagerT::ReadCoordinates (void)
 {
-  if (fCoordinates.Length() == 0 && fFormat == IOBaseT::kTahoe)
+  if (fFormat == IOBaseT::kTahoe)
     {
-      fMessage << "\n\nModelManagerT::Coordinates, coords not registered yet\n\n";
-      throw eGeneralFail;
+      if (fCoordinates.Length() == 0)
+	{
+	  fMessage << "\n\nModelManagerT::Coordinates, coords not registered yet\n\n";
+	  throw eGeneralFail;
+	}
+      else
+	return; // do nothing, already loaded
     }
-  fCoordinates.Allocate (fCoordinateDimensions[0], fCoordinateDimensions[1]);      
+  fCoordinates.Allocate (fCoordinateDimensions[0], fCoordinateDimensions[1]); 
+  if (!fInput) throw eGeneralFail;
   fInput->ReadCoordinates (fCoordinates);
 }
 
@@ -256,6 +262,7 @@ const iArray2DT& ModelManagerT::ElementGroup (int index)
 	  throw eGeneralFail;
 	}
       fElementSets[index].Allocate (fElementLengths[index], fElementNodes[index]);
+      if (!fInput) throw eGeneralFail;
       fInput->ReadConnectivity (fElementNames[index], fElementSets[index]);
     }
   return fElementSets [index];
@@ -263,16 +270,19 @@ const iArray2DT& ModelManagerT::ElementGroup (int index)
 
 void ModelManagerT::AllNodeMap (iArrayT& map)
 {
+  if (!fInput) throw eGeneralFail;
   fInput->ReadNodeMap (map);
 }
 
 void ModelManagerT::AllElementMap (iArrayT& map)
 {
+  if (!fInput) throw eGeneralFail;
   fInput->ReadAllElementMap (map);
 }
 
 void ModelManagerT::ElementMap (StringT& name, iArrayT& map)
 {
+  if (!fInput) throw eGeneralFail;
   fInput->ReadGlobalElementMap (name, map);
 }
 
@@ -312,6 +322,7 @@ const iArrayT& ModelManagerT::NodeSet (int index)
 	  throw eGeneralFail;
 	}
       fNodeSets[index].Allocate (fNodeSetDimensions[index]);
+      if (!fInput) throw eGeneralFail;
       fInput->ReadNodeSet (fNodeSetNames[index], fNodeSets[index]);
     }
   return fNodeSets [index];
@@ -353,6 +364,7 @@ const iArray2DT& ModelManagerT::SideSet (int index) const
 	  throw eGeneralFail;
 	}
       fSideSets[index].Allocate (fSideSetDimensions[index], 2);
+      if (!fInput) throw eGeneralFail;
       if (fSideSetIsLocal[index])
 	fInput->ReadSideSetLocal (fSideSetNames[index], fSideSets[index]);
       else
@@ -446,7 +458,7 @@ void ModelManagerT::DuplicateNodes (const iArrayT& nodes, iArrayT& new_node_tags
 
 void ModelManagerT::CloseModel (void)
 {
-  fInput->Close ();
+  if (fInput) fInput->Close ();
   delete fInput;
   fInput = NULL;
 }
@@ -489,6 +501,7 @@ void ModelManagerT::ScanModel (const StringT& database)
 
   if (fFormat != IOBaseT::kTahoe)
     {
+      if (!fInput) throw eGeneralFail;
       fInput->Close ();
       fInput->Open (database);
       
