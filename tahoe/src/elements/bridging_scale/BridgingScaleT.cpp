@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.24 2002-08-19 23:53:58 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.25 2002-09-04 15:58:20 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -31,9 +31,7 @@ BridgingScaleT::BridgingScaleT(const ElementSupportT& support,
 	fDOFvec(NumDOF()),
 	fGlobalMass(support.Output(),1),
 	fConnect(solid.NumElements(), solid.NumElementNodes()),
-	fWtempU(ShapeFunction().ParentDomain().NumNodes(), NumDOF()),
-	fWtempV(ShapeFunction().ParentDomain().NumNodes(), NumDOF()),
-	fWtempA(ShapeFunction().ParentDomain().NumNodes(), NumDOF())
+	fWtempU(ShapeFunction().ParentDomain().NumNodes(), NumDOF())
 {
 
 }
@@ -307,31 +305,19 @@ void BridgingScaleT::CoarseFineFields(void)
   const ParentDomainT& parent = ShapeFunction().ParentDomain();
   const FieldT& field = Field();
   iArrayT atoms, elemconnect(parent.NumNodes());
-  dArray2DT velocities, accelerations;
   const dArray2DT& displacements = field[0];
-  if (field.Order() > 0)
-    {
-      const dArray2DT& ve = field[1];
-      const dArray2DT& ac = field[2];
-      velocities = ve;
-      accelerations = ac;
-    }
   fFineScaleU.Dimension(fParticlesUsed.MajorDim(), displacements.MinorDim());
-  fFineScaleV.Dimension(fParticlesUsed.MajorDim(), displacements.MinorDim());
-  fFineScaleA.Dimension(fParticlesUsed.MajorDim(), displacements.MinorDim());
-  dArrayT map, shape(parent.NumNodes()), temp(NumSD()), disp, vel, acc;
+  dArrayT map, shape(parent.NumNodes()), temp(NumSD()), disp;
   dMatrixT tempmass(parent.NumNodes()), Nd(parent.NumNodes(), NumSD()), wglobalu(fTotalNodes, NumSD());
-  dMatrixT Nv(parent.NumNodes(), NumSD()), Na(parent.NumNodes(), NumSD());
-  dMatrixT wglobala(fTotalNodes, NumSD()), wglobalv(fTotalNodes, NumSD());
   /* set global matrices for bridging scale calculations */
   fGlobalMass.AddEquationSet(fConnect);
   fGlobalMass.Initialize(fTotalNodes,fTotalNodes,1); // hard wired for serial calculations
   fGlobalMass.Clear();
-  wglobalu = 0.0, wglobalv = 0.0, wglobala = 0.0;
+  wglobalu = 0.0;
 
   for (int i = 0; i < fParticlesInCell.MajorDim(); i++)
   {
-      fElMatU = 0.0, fWtempU = 0.0, fWtempV = 0.0, fWtempA = 0.0;
+      fElMatU = 0.0, fWtempU = 0.0;
       fParticlesInCell.RowAlias(i,atoms);
       fInverseMapInCell.RowAlias(i,map);
       fConnect.RowAlias(i,elemconnect);
@@ -345,15 +331,6 @@ void BridgingScaleT::CoarseFineFields(void)
 	  fElMatU += tempmass;
 	  Nd.Outer(shape, disp);
 	  fWtempU += Nd;
-	  if (field.Order() > 0)
-	    {
-	      velocities.RowAlias(atoms[j], vel);
-	      accelerations.RowAlias(atoms[j], acc);
-	      Nv.Outer(shape, vel);
-	      Na.Outer(shape, acc);
-	      fWtempV += Nv;
-	      fWtempA += Na;
-	    }
       }
       
       /* Assemble local equations to global equations for LHS */
@@ -363,14 +340,7 @@ void BridgingScaleT::CoarseFineFields(void)
       for (int i = 0; i < parent.NumNodes(); i++)
       {
 	for (int j = 0; j < NumSD(); j++)
-	  {
 	    wglobalu(elemconnect[i] - 1,j) += fWtempU(i,j);
-	    if (field.Order() > 0)
-	      {
-		wglobalv(elemconnect[i] - 1,j) += fWtempV(i,j);
-		wglobala(elemconnect[i] - 1,j) += fWtempA(i,j);
-	      }
-	  }
       }
   }
   
@@ -380,15 +350,6 @@ void BridgingScaleT::CoarseFineFields(void)
       wglobalu.ColumnAlias(0, fUx);
       fGlobalMass.Solve(fUx);
       cout << "Ux = \n" << fUx << endl;
-      if (field.Order() > 0)
-	{
-	  wglobalv.ColumnAlias(0, fVx);
-	  wglobala.ColumnAlias(0, fAx);
-	  fGlobalMass.Solve(fVx);
-	  fGlobalMass.Solve(fAx);
-	  cout << "Vx = \n" << fVx << endl;
-	  cout << "Ax = \n" << fAx << endl;
-	}
     }
   else if (NumSD() == 2)
     {
@@ -398,28 +359,12 @@ void BridgingScaleT::CoarseFineFields(void)
       fGlobalMass.Solve(fUy);
       cout << "Ux = \n" << fUx << endl;
       cout << "Uy = \n" << fUy << endl;
-      if (field.Order() > 0)
-	{
-	  wglobalv.ColumnAlias(0, fVx);
-	  wglobalv.ColumnAlias(1, fVy);
-	  wglobala.ColumnAlias(0, fAx);
-	  wglobala.ColumnAlias(1, fAy);
-	  fGlobalMass.Solve(fVx);
-	  fGlobalMass.Solve(fVy);
-	  fGlobalMass.Solve(fAx);
-	  fGlobalMass.Solve(fAy);
-	  cout << "Vx = \n" << fVx << endl;
-	  cout << "Vy = \n" << fVy << endl;
-	  cout << "Ax = \n" << fAx << endl;
-	  cout << "Ay = \n" << fAy << endl;
-	}
     }
 
   /* Compute resulting fine scale fields = MD - FE */
-  dArrayT ux(parent.NumNodes()), uy(parent.NumNodes()), vx(parent.NumNodes()), vy(parent.NumNodes());
-  dArrayT ax(parent.NumNodes()), ay(parent.NumNodes());
+  dArrayT ux(parent.NumNodes()), uy(parent.NumNodes());
   iArrayT atomconn, conn;
-  double nux, nuy, nvx, nvy, nax, nay;
+  double nux, nuy;
 
   for (int i = 0; i < fParticlesInCell.MajorDim(); i++)
   {
@@ -430,11 +375,6 @@ void BridgingScaleT::CoarseFineFields(void)
     atomconn -= 1;
     conn -= 1; // so that array indices start from 0
     ux.Collect(conn, fUx);
-    if (field.Order() > 0)
-      {
-	vx.Collect(conn, fVx);
-	ax.Collect(conn, fAx);
-      }
     for (int j = 0; j < fParticlesInCell.MinorDim(i); j++)
       {
 	displacements.RowAlias(atoms[j],disp);
@@ -444,43 +384,15 @@ void BridgingScaleT::CoarseFineFields(void)
 	int which = atomconn[j];
 	double fux = disp[0] - nux;
 	fFineScaleU(which,0) = fux;
-	if (field.Order() > 0)
-	  {
-	    velocities.RowAlias(atoms[j],vel);
-	    accelerations.RowAlias(atoms[j],acc);
-	    nvx = dArrayT::Dot(shape,vx);
-	    nax = dArrayT::Dot(shape,ax);
-	    double fvx = vel[0] - nvx;
-	    double fax = acc[0] - nax;
-	    fFineScaleV(which,0) = fvx;
-	    fFineScaleA(which,0) = fax;
-	  }
 	if (NumSD() == 2)
 	  {
 	    uy.Collect(conn, fUy);
 	    nuy = dArrayT::Dot(shape,uy);
 	    double fuy = disp[1] - nuy;
 	    fFineScaleU(which,1) = fuy; 
-	    if (field.Order() > 0)
-	      {
-		velocities.RowAlias(atoms[j],vel);
-		accelerations.RowAlias(atoms[j],acc);
-		vy.Collect(conn, fVy);
-		ay.Collect(conn, fAy);
-		nvy = dArrayT::Dot(shape,vy);
-		nay = dArrayT::Dot(shape,ay);
-		double fvy = vel[1] - nvy;
-		double fay = acc[1] - nay;
-		fFineScaleV(which,1) = fvy;
-		fFineScaleA(which,1) = fay;
-	      }
 	  }
       }
   }
   cout << "MD U = \n" << displacements << endl;
-  //cout << "MD V = \n" << field[1] << endl;
-  //cout << "MD A = \n" << field[2] << endl;
   cout << "fine scale U = \n" << fFineScaleU << endl; 
-  //cout << "fine scale V = \n" << fFineScaleV << endl;
-  //cout << "fine scale A = \n" << fFineScaleA << endl;
 }
