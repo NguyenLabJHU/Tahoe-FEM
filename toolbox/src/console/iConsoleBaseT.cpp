@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.cpp,v 1.2 2001-02-13 17:48:34 paklein Exp $ */
+/* $Id: iConsoleBaseT.cpp,v 1.3 2001-09-19 09:15:42 paklein Exp $ */
 /* created: paklein (12/21/2000)                                          */
 /* iConsoleBaseT.cpp                                                      */
 
@@ -610,13 +610,13 @@ bool iConsoleBaseT::Operate(double& variable, VariableOperator op, StringT& line
 
 bool iConsoleBaseT::Operate(StringT& variable, VariableOperator op, StringT& line) const
 {
-	if (op != kEQ || op != kPlusEQ)
+	if (op != kEQ && op != kPlusEQ)
 		return kFail;
 	else
 	{
 		int count;
 		StringT rhs;
-		rhs.FirstWord(line, count, true);
+		rhs.FirstWord(line, count, false);
 		line.Drop(count);
 		if (op == kEQ)	
 			variable = rhs;
