@@ -1,19 +1,25 @@
-/* $Id: CommunicatorT.cpp,v 1.2 2002-07-02 19:57:21 cjkimme Exp $ */
-
+/* $Id: CommunicatorT.cpp,v 1.3 2002-08-15 08:56:31 paklein Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionCodes.h"
 #include <iostream.h>
 #include <time.h>
 #include "ArrayT.h"
 
-/* create communicator including all processes */
-
 using namespace Tahoe;
 
+/* initialize static variables */
+int CommunicatorT::fCount = 0;
+int* CommunicatorT::fargc = NULL;
+char*** CommunicatorT::fargv = NULL;
+
+/* create communicator including all processes */
 CommunicatorT::CommunicatorT(void):
 	fLogLevel(kSilent),
 	fLog(&cout)
 {
+	/* check MPI environment */
+	Init();
+
 #ifdef __MPI__
 	fComm = MPI_COMM_WORLD;
 	if (MPI_Comm_size(fComm, &fSize) != MPI_SUCCESS) {
@@ -39,7 +45,15 @@ CommunicatorT::CommunicatorT(const CommunicatorT& source):
 	fLogLevel(source.fLogLevel),
 	fLog(source.fLog)
 {
+	/* check MPI environment */
+	Init();
+}
 
+/* destructor */
+CommunicatorT::~CommunicatorT(void)
+{
+	/* check MPI environment */
+	Finalize();
 }
 
 /* write message to log */
@@ -218,6 +232,19 @@ void CommunicatorT::AllGather(int a, ArrayT<int>& gather) const
 //      platforms where Allgather seems to be troublesome.
 }
 
+/* broadcast character array */
+void CommunicatorT::Broadcast(ArrayT<char>& data)
+{
+#ifdef __MPI__
+	if (MPI_Bcast(data.Pointer(), data.Length(), MPI_CHAR, 0, fComm) != MPI_SUCCESS) {
+		Log("CommunicatorT::Broadcast", "MPI_Bcast failed", true);
+		throw eMPIFail;
+	}
+#else
+#pragma unused(data)
+#endif
+}
+
 /*************************************************************************
 * Protected
 *************************************************************************/
@@ -237,4 +264,77 @@ ostream& CommunicatorT::LogHead(const char* caller) const
 	     << WallTime() << ": "
 	     << caller << ": ";
 	return *fLog;
+}
+
+/*************************************************************************
+* Private
+*************************************************************************/
+
+void CommunicatorT::Init(void)
+{
+	/* environment was shut down */
+	if (fCount == -1) {
+		cout << "\n CommunicatorT::Init: cannot restart MPI environment" << endl;
+		throw eMPIFail;
+	}
+
+	/* communicator count */
+	fCount++;
+
+#ifdef __MPI__
+	if (fCount == 1)
+	{
+		int *argc_ = fargc, argc = 1;
+		char ***argv_ = fargv, **argv = NULL;
+
+		/* need dummy arguments */
+		if (!fargv) {
+			argc_ = &argc;
+			argv_ = &argv;
+			argv = new char*[1];
+			argv[0] = new char[2];
+			argv[0][0] = 'a';
+			argv[0][1] = '\0';
+		}
+
+		/* initialize MPI environment */
+		if (MPI_Init(argc_, argv_) != MPI_SUCCESS) {
+			Log("CommunicatorT::Init", "MPI_Init failed", true);
+			throw eMPIFail;
+		}
+		
+		/* free */
+		if (!fargv) {
+			for (int i = 0; i < argc; i++)
+				delete[] argv[i];
+			delete[] argv;
+		}
+	}
+#endif	
+}
+
+void CommunicatorT::Finalize(void)
+{
+	/* environment was shut down */
+	if (fCount == -1) {
+		cout << "\n CommunicatorT::Finalize: MPI environment already down" << endl;
+		throw eMPIFail;
+	}
+
+	/* communicator count */
+	fCount--;
+
+#ifdef __MPI__
+	if (fCount == 0)
+	{
+		/* shut down MPI environment */
+		if (MPI_Finalize() != MPI_SUCCESS) {
+			Log("CommunicatorT::Finalize", "MPI_Finalized failed", true);
+			throw eMPIFail;
+		}
+	}
+#endif
+
+	/* close */
+	if (fCount == 0) fCount = -1;
 }
