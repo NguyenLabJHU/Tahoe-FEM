@@ -1,4 +1,4 @@
-/* $Id: NLCSolver_LS.cpp,v 1.5 2002-09-12 17:47:53 paklein Exp $ */
+/* $Id: NLCSolver_LS.cpp,v 1.6 2002-09-12 21:18:20 paklein Exp $ */
 #include "NLCSolver_LS.h"
 #include "Utils.h"
 #include "ExceptionCodes.h"
@@ -83,6 +83,7 @@ void NLCSolver_LS::ComputeTrialPoint(dArrayT& X)
   // check if value of tempLambda is NaN or <= 1.e-150 
 //  if ( is_NaN(tempLambda) || (fabs(tempLambda) <= 1.e-150 && fRejectionCount > 0) )
   //if ( is_NaN(tempLambda) )
+	if (fabs(tempLambda) <= 1.e-150 && fRejectionCount > 0)
     {
       //writeMessage("NLCSolver_LS::ComputeTrialPoint: lambda = NaN");
       if (NLCS_MESSAGES) {
