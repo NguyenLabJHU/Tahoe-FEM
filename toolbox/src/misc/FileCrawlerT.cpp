@@ -1,4 +1,4 @@
-/* $Id: FileCrawlerT.cpp,v 1.1 2001-06-12 17:32:25 paklein Exp $ */
+/* $Id: FileCrawlerT.cpp,v 1.2 2001-06-14 20:44:18 paklein Exp $ */
 
 #include "FileCrawlerT.h"
 
@@ -15,15 +15,11 @@
 const int kMaxRecursionDepth = 10;
 
 /* Constructor */
-FileCrawlerT::FileCrawlerT(int argc, char* argv[], char job_char, char batch_char,
-	int jobcharputback):
+FileCrawlerT::FileCrawlerT(int argc, char* argv[], char job_char, char batch_char):
 	fJobChar(job_char),
 	fBatchChar(batch_char),
-	fJobCharPutBack(jobcharputback),
 	fRecursionDepth(0)
 {
-	if (fJobCharPutBack != 1 && fJobCharPutBack != 0) throw eBadInputValue;
-
 	/* store command line arguments */
 	fCommandLineOptions.Allocate(argc);
 	for (int i = 0; i < fCommandLineOptions.Length(); i++)
@@ -204,9 +200,6 @@ void FileCrawlerT::JobOrBatch(ifstreamT& in, ostream& status)
 	/* JOB file */
 	if (filetypechar == fJobChar)
 	{
-		/* putback first character */
-		if (fJobCharPutBack) in.putback(filetypechar);
-		
 		/* derived */
 		RunJob(in, status);
 	}
