@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.1.2.8 2003-01-08 08:35:52 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.1.2.9 2003-01-09 09:43:03 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -86,12 +86,14 @@ void CommManagerT::SetPeriodicBoundaries(int i, double x_i_min, double x_i_max)
 		int len = i + 1;
 		fIsPeriodic.Resize(len, false);
 		fPeriodicBoundaries.Resize(len, 0.0);
+		fPeriodicLength.Resize(len, 0.0);
 	}
 
 	if (x_i_min > x_i_max) ExceptionT::GeneralFail();
 	fIsPeriodic[i] = true;
 	fPeriodicBoundaries(i,0) = x_i_min;
 	fPeriodicBoundaries(i,1) = x_i_max;
+	fPeriodicLength[i] = x_i_max - x_i_min;
 
 //TEMP
 ExceptionT::Stop("CommManagerT::SetPeriodicBoundaries", "not supported yet");
@@ -105,8 +107,8 @@ void CommManagerT::EnforcePeriodicBoundaries(dArray2DT& displacement, double ski
 {
 	const char caller[] = "CommManagerT::EnforcePeriodicBoundaries";
 
-	/* only implemented for atom decomposition */
-	if (fPartition->DecompType() != PartitionT::kAtom) return;
+	/* only implemented for atom decomposition (or serial) */
+	if (fPartition && fPartition->DecompType() != PartitionT::kAtom) return;
 
 	/* reference coordinates */
 	const dArray2DT& reference_coords = fModelManager.Coordinates();
@@ -116,26 +118,19 @@ void CommManagerT::EnforcePeriodicBoundaries(dArray2DT& displacement, double ski
 	const ArrayT<int>* partition_nodes = PartitionNodes();
 	int nnd = (partition_nodes) ? partition_nodes->Length() : reference_coords.MajorDim();
 
-	/* dimension node lists */
-	if (fNodes_x_min.Length() != fIsPeriodic.Length()) {
-		int nper = fIsPeriodic.Length();
-		fNodes_x_min.Dimension(nper);
-		fNodes_x_min_ghost.Dimension(nper);
-		fNodes_x_max.Dimension(nper);
-		fNodes_x_max_ghost.Dimension(nper);
-	}
-	
+	/* number of "real" nodes */
+	int ngn = fComm.Sum(fPBCNodes.Length());
+	int nrn = fModelManager.NumNodes() - ngn;
+
+	/* reset ghost nodes */
+	fPBCNodes.Dimension(0);
+	fPBCNodes_ghost.Dimension(0);
+	fPBCNodes_face.Dimension(0);
+
 	/* loop over directions */
-	int ghost_count = 0;
 	for (int i = 0; i < fIsPeriodic.Length(); i++)
 		if (fIsPeriodic[i])
-		{
-			/* clear lists of boundary nodes */
-			AutoArrayT<int>& nodes_x_min = fNodes_x_min[i];
-			nodes_x_min.Dimension(0);			
-			AutoArrayT<int>& nodes_x_max = fNodes_x_max[i];
-			nodes_x_max.Dimension(0);
-		
+		{		
 			/* coordinate limits */
 			double x_min = fPeriodicBoundaries(i,0);
 			double x_max = fPeriodicBoundaries(i,1);
@@ -159,26 +154,60 @@ void CommManagerT::EnforcePeriodicBoundaries(dArray2DT& displacement, double ski
 				/* collect nodes close to periodic boundaries */
 				x = X + d;
 				if (x - x_min < skin) {
-					nodes_x_min.Append(nd);
-					ghost_count++;
+					fPBCNodes.Append(nd);
+					fPBCNodes_face.Append(-(i+1));
 				}
 				if (x_max - x < skin) {
-					nodes_x_max.Append(nd);
-					ghost_count++;
+					fPBCNodes.Append(nd);
+					fPBCNodes_face.Append(i+1);
 				}
 			}
 		}
 		
 	/* configure ghost nodes */
-	if (ghost_count > 0)
+	if (fPBCNodes.Length() > 0)
 	{
-		int ghost_count_tot = fComm.Sum(ghost_count);
+		/* communicate number of ghost nodes per partition */
+		iArrayT ghost_count(fComm.Size());
+		fComm.AllGather(fPBCNodes.Length(), ghost_count);
+
+		/* local numbering of ghost nodes */
+		int ghost_num_start = nrn;
+		for (int i = 0; i < fComm.Rank(); i++)
+			ghost_num_start += ghost_count[i];
+
+		fPBCNodes_ghost.Dimension(fPBCNodes.Length());
+		int ghost_num = ghost_num_start;
+		for (int i = 0; i < fPBCNodes_ghost.Length(); i++)
+			fPBCNodes_ghost[i] = ghost_num++;
+
+		/* set up exchange */
+		int nsd = fModelManager.NumDimensions();
+		AllGatherT all_gather(fComm);
+
+		/* reference coordinates */
+		fModelManager.ResizeNodes(nrn + fPBCNodes_ghost.Length());
+		const dArray2DT& coords = fModelManager.Coordinates();
+		dArray2DT ghost_coords(fPBCNodes_ghost.Length(), coords.MinorDim(), coords(ghost_num_start));
+		for (int i = 0; i < fPBCNodes_ghost.Length(); i++)
+		{
+			/* copy coordinates */
+			ghost_coords.SetRow(i, coords(fPBCNodes[i]));
 		
-		/* coordinates */
+			/* periodic shift */
+			int face = fPBCNodes_face[i];
+			int dim = int(fabs(double(face))) - 1;
+			int shift = (face > 0) ? -1 : 1;
+			ghost_coords(i,dim) += shift*fPeriodicLength[dim];
+		}
+		all_gather.Initialize(ghost_coords);
+		all_gather.AllGather(ghost_coords);
+
 #pragma message("CommManagerT::EnforcePeriodicBoundaries: finish me")		
+
+		/* current coordinates */
 		
 		/* fields */
-		
 		
 		/* persistent communications */
 		
@@ -301,8 +330,17 @@ void CommManagerT::AllGather(int id, nArray2DT<double>& values)
 {
 	const char caller[] = "CommManagerT::AllGather";
 
-	/* not multiprocessor - nothing to do yet */
-	if (!fPartition) return;
+	/* not multiprocessor - ghost nodes only */
+	if (!fPartition) {
+
+		/* copy values to ghost nodes */
+		int ngh = fPBCNodes.Length();
+		for (int i = 0; i < ngh; i++)
+			values.SetRow(fPBCNodes_ghost[i], values(fPBCNodes[i]));
+
+		/* nothing else */
+		return;
+	}
 
 	PartitionT::DecompTypeT decomp_type = fPartition->DecompType();
 	if (decomp_type == PartitionT::kGraph) /* non-blocking send-receive */
@@ -320,8 +358,26 @@ void CommManagerT::AllGather(int id, nArray2DT<double>& values)
 		AllGatherT* all_gather = dynamic_cast<AllGatherT*>(fCommunications[id]);
 		if (!all_gather) ExceptionT::GeneralFail(caller);
 		
-		/* do it */
+		/* exchange */
 		all_gather->AllGather(values);
+
+		/* ghost nodes */
+		if (fPBCNodes.Length() > 0) {
+		
+			/* copy values to ghost nodes */
+			int ngh = fPBCNodes.Length();
+			for (int i = 0; i < ngh; i++)
+				values.SetRow(fPBCNodes_ghost[i], values(fPBCNodes[i]));
+
+			/* retrieve communications pointer */
+			AllGatherT* all_gather = dynamic_cast<AllGatherT*>(fGhostCommunications[id]);
+			if (!all_gather) ExceptionT::GeneralFail(caller);
+
+			/* exchange */
+			int nrn = fModelManager.NumNodes() - fPBCNodes.Length();
+			dArray2DT gh_values(fPBCNodes.Length(), values.MinorDim(), values(nrn));
+			all_gather->AllGather(gh_values);
+		}		
 	}
 	else if (decomp_type == PartitionT::kSpatial) /* shifts */
 	{
@@ -335,8 +391,17 @@ void CommManagerT::AllGather(int id, nArray2DT<int>& values)
 {
 	const char caller[] = "CommManagerT::AllGather";
 
-	/* not multiprocessor - nothing to do yet */
-	if (!fPartition) return;
+	/* not multiprocessor - ghost nodes only */
+	if (!fPartition) {
+
+		/* copy values to ghost nodes */
+		int ngh = fPBCNodes.Length();
+		for (int i = 0; i < ngh; i++)
+			values.SetRow(fPBCNodes_ghost[i], values(fPBCNodes[i]));
+
+		/* nothing else to do */
+		return;
+	}
 
 	PartitionT::DecompTypeT decomp_type = fPartition->DecompType();
 	if (decomp_type == PartitionT::kGraph) /* non-blocking send-receive */
@@ -350,12 +415,30 @@ void CommManagerT::AllGather(int id, nArray2DT<int>& values)
 	}
 	else if (decomp_type == PartitionT::kAtom) /* all gather */
 	{
-		/* retrieve pointer */
+		/* retrieve communications pointer */
 		AllGatherT* all_gather = dynamic_cast<AllGatherT*>(fCommunications[id]);
 		if (!all_gather) ExceptionT::GeneralFail(caller);
 		
-		/* do it */
+		/* exchange */
 		all_gather->AllGather(values);
+		
+		/* ghost nodes */
+		if (fPBCNodes.Length() > 0) {
+		
+			/* copy values to ghost nodes */
+			int ngh = fPBCNodes.Length();
+			for (int i = 0; i < ngh; i++)
+				values.SetRow(fPBCNodes_ghost[i], values(fPBCNodes[i]));
+
+			/* retrieve communications pointer */
+			AllGatherT* all_gather = dynamic_cast<AllGatherT*>(fGhostCommunications[id]);
+			if (!all_gather) ExceptionT::GeneralFail(caller);
+
+			/* exchange */
+			int nrn = fModelManager.NumNodes() - fPBCNodes.Length();
+			iArray2DT gh_values(fPBCNodes.Length(), values.MinorDim(), values(nrn));
+			all_gather->AllGather(gh_values);
+		}		
 	}
 	else if (decomp_type == PartitionT::kSpatial) /* shifts */
 	{

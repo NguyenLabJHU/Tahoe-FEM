@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.1.2.7 2003-01-08 08:35:52 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.1.2.8 2003-01-09 09:43:03 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -167,10 +167,12 @@ private:
 	/** rows give the lower and upper periodic bounds for that coordinate */
 	dArray2DT fPeriodicBoundaries;
 
-	ArrayT<AutoArrayT<int> > fNodes_x_min;
-	ArrayT<AutoArrayT<int> > fNodes_x_min_ghost;
-	ArrayT<AutoArrayT<int> > fNodes_x_max;
-	ArrayT<AutoArrayT<int> > fNodes_x_max_ghost;
+	/** periodic distance along each coordinate */
+	dArrayT fPeriodicLength;
+
+	AutoArrayT<int> fPBCNodes;
+	AutoArrayT<int> fPBCNodes_ghost;
+	AutoArrayT<int> fPBCNodes_face;
 	/*@}*/
 	
 	/** processor bounds */
@@ -205,7 +207,12 @@ private:
 	
 	/** \name persistent communications */
 	/*@{*/
+	/** communications for nodal values */
 	AutoArrayT<MessageT*> fCommunications;
+
+	/** communications for ghost nodes associated with the communications
+	 * in CommManagerT::fCommunications */
+	AutoArrayT<MessageT*> fGhostCommunications;
 	/*@}*/
 };
 
