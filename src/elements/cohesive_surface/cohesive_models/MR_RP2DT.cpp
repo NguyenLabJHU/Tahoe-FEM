@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.cpp,v 1.9 2003-04-15 17:15:43 manzari Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.10 2003-04-16 22:58:55 manzari Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -137,8 +137,6 @@ const dArrayT& MR_RP2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, 
 if (state[nTiedFlag] != 1. && state[nTiedFlag] != -10.)
 {
 	fTraction = 0.;
-	state[0] = sigma[2];
-	state[1] = sigma[1];
 
 	return fTraction;
 }
@@ -153,10 +151,14 @@ if (! qIntegrate)
 else
 {
 
-if (state[nTiedFlag] == -10.)
+if (state[nTiedFlag] == -10.){
     state[0] = sigma[2];
     state[1] = sigma[1];
 	state[nTiedFlag] = 1.;
+	fTraction = 0.;
+	
+	return fTraction;
+}
 	
 int i; int j; int kk; int iplastic;
 
@@ -255,7 +257,7 @@ double normr; double normflow; double normdup;
             } 
             if(i>1 & j >1) {
              AA_inv(i,j)  = -I_mat(i-2,j-2);
-             AA_inv(i,j) *= -1.;
+             AA_inv(i,j) *= 1.;
              AA_inv(i,j) += dlam*A_qq(i-2,j-2);
             } 
           }
@@ -576,7 +578,7 @@ const dMatrixT& MR_RP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>&
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif
 
-	if (state[nTiedFlag] != -10. && state[nTiedFlag] != 1.)
+	if (state[nTiedFlag] != 1.)
 	{
 		fStiffness = 0.;
 		return fStiffness;
