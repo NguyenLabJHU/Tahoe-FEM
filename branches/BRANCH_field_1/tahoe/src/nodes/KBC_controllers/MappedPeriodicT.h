@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.h,v 1.3.4.5 2002-05-10 00:08:18 cjkimme Exp $ */
+/* $Id: MappedPeriodicT.h,v 1.3.4.6 2002-05-11 19:47:09 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 
 #ifndef _MAPPED_PERIODIC_T_H
@@ -47,7 +47,7 @@ public:
 	virtual void InitStep(void);
 
 	/* output */
-	virtual void WriteOutput(ostream& out);
+	virtual void WriteOutput(ostream& out) const;
 	
 protected:
 

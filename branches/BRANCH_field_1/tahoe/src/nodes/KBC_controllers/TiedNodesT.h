@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.5.2.6 2002-05-10 00:08:18 cjkimme Exp $ */
+/* $Id: TiedNodesT.h,v 1.5.2.7 2002-05-11 19:47:09 paklein Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -121,7 +121,7 @@ protected:
 	friend bool TiedPotentialT::InitiationQ(const dArrayT& sigma); 
 
 	/** output current configuration */
-	virtual void WriteOutput(ostream& out);
+	virtual void WriteOutput(ostream& out) const;
 
 protected:
 
@@ -156,8 +156,6 @@ protected:
 	/** needed to generate KBC_ControllerT::fKBC_Cards */
 	ScheduleT fDummySchedule;	
 	
-
-#pragma message("TiedNodesT.h: need an FEManagerT reference here?")
 	const FEManagerT& fFEManager;
 };
 
