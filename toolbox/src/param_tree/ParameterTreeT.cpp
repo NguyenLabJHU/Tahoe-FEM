@@ -1,4 +1,4 @@
-/* $Id: ParameterTreeT.cpp,v 1.1 2003-04-26 19:08:43 paklein Exp $ */
+/* $Id: ParameterTreeT.cpp,v 1.1.2.1 2003-04-27 22:19:08 paklein Exp $ */
 #include "ParameterTreeT.h"
 #include "ParameterInterfaceT.h"
 
@@ -8,8 +8,13 @@ ParameterTreeT::ParameterTreeT(void) {}
 
 ParameterTreeT::~ParameterTreeT(void)
 {
+	/* free parameter list data */
 	for (int i = 0; i < fBranches.Length(); i++)
 		delete fBranches[i];
+
+	/* free instantiations */
+	for (int i = 0; i < fDeleteMe.Length(); i++)
+		delete fDeleteMe[i];
 }
 
 /* add a branch to the tree with the given root */
@@ -70,11 +75,24 @@ void ParameterTreeT::BuildBranch(ParameterInterfaceT& source, ParameterListT& pa
 	/* sublists */
 	ArrayT<StringT> sub_lists;
 	ArrayT<ParameterListT::OccurrenceT> occur;
-	source.SubListNames(sub_lists, occur);
+	ArrayT<bool> is_inline;
+	source.SubNames(sub_lists, occur, is_inline);
 	for (int i = 0; i < sub_lists.Length(); i++) {
 
+		/* list is inline */
+		if (is_inline[i])
+		{
+			/* source builds inline list */
+			ParameterListT inline_params(sub_lists[i]);
+			BuildBranch(source, inline_params);
+			
+			/* add list */
+			if (!params.AddList(inline_params, occur[i]))
+				ExceptionT::GeneralFail(caller, "could not add inline \"%s\" to list \"%s\"",
+					inline_params.Name().Pointer(), params.Name().Pointer());
+		}
 		/* already in the tree */
-		if (fDictionary.HasKey(sub_lists[i]))
+		else if (fDictionary.HasKey(sub_lists[i]))
 		{
 			/* add as reference */
 			if (!params.AddReference(sub_lists[i], occur[i]))
@@ -84,7 +102,7 @@ void ParameterTreeT::BuildBranch(ParameterInterfaceT& source, ParameterListT& pa
 		else
 		{
 			/* sublist */
-			ParameterInterfaceT* sub = source.SubList(sub_lists[i]);
+			ParameterInterfaceT* sub = source.NewSub(sub_lists[i]);
 			if (!sub)
 				ExceptionT::GeneralFail(caller, "source \"%s\" did not return sublist \"%s\"",
 					params.Name().Pointer(), sub_lists[i].Pointer());
@@ -97,6 +115,9 @@ void ParameterTreeT::BuildBranch(ParameterInterfaceT& source, ParameterListT& pa
 			if (!params.AddList(sub_params, occur[i]))
 				ExceptionT::GeneralFail(caller, "could not add sublist \"%s\" to list \"%s\"",
 					sub_params.Name().Pointer(), params.Name().Pointer());
+
+			/* add to list of items to delete */
+			fDeleteMe.Append(sub);
 		}
 	}
 }
@@ -121,7 +142,7 @@ void ParameterTreeT::BuildBranch(ParameterInterfaceT& source, const ParameterLis
 	for (int i = 0; i < sub_lists.Length(); i++) {
 
 		/* fetch sublist */
-		ParameterInterfaceT* sub = source.SubList(sub_lists[i].Name());
+		ParameterInterfaceT* sub = source.NewSub(sub_lists[i].Name());
 		if (!sub)
 			ExceptionT::GeneralFail(caller, "source \"%s\" did not return sublist \"%s\"",
 				params.Name().Pointer(), sub_lists[i].Name().Pointer());
@@ -134,5 +155,8 @@ void ParameterTreeT::BuildBranch(ParameterInterfaceT& source, const ParameterLis
 		if (!params.AddList(sub_params, occur[i]))
 			ExceptionT::GeneralFail(caller, "could not add sublist \"%s\" to list \"%s\"",
 				sub_params.Name().Pointer(), params.Name().Pointer());
+				
+		/* add to list of items to delete */
+		fDeleteMe.Append(sub);
 	}
 }
