@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.13 2002-01-06 06:57:50 cbhovey Exp $ */
+/* $Id: StringT.cpp,v 1.14 2002-01-08 17:59:59 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #include "StringT.h"
@@ -758,7 +758,10 @@ void StringT::ToMacOSPath(void)
 
 void StringT::ToWinNTPath(void)
 {
-	if (fArray[0] == '\\')
+	if (fArray[0] == '\\') /* native path starting with root */
+		return;
+	else if (fArray[1] == ':' && 
+	         (fArray[2] == '\\' || fArray[2] == '/')) /* native path starting with drive */
 		return;
 	else
 	{
@@ -964,12 +967,11 @@ void StringT::ToNTorUNIX(char from, char to)
 	/* check */
 	if ((from != '\\' && from != '/') ||
 	     ( to != '\\' &&   to != '/')) throw eGeneralFail;
-
+	     
 	char temp[kLineLength];
 
 	int len = strlen(fArray);
 	int i = 0;
-
 	for (int j = 0; j < len; j++)
 	{
 		if (fArray[j] == from)
