@@ -1,4 +1,4 @@
-/* $Id: SIERRA_HypoElasticT.h,v 1.2 2003-03-08 03:45:54 paklein Exp $ */
+/* $Id: SIERRA_HypoElasticT.h,v 1.3 2004-07-27 03:16:04 paklein Exp $ */
 #ifndef _SIERRA_HYPO_ELASTIC_T_H_
 #define _SIERRA_HYPO_ELASTIC_T_H_ 
 
@@ -13,7 +13,7 @@ class SIERRA_HypoElasticT: public SIERRA_Material_BaseT
 public:
 
 	/** constructor */
-	SIERRA_HypoElasticT(ifstreamT& in, const FSMatSupportT& support);
+	SIERRA_HypoElasticT(void);
 
 	/** returns the strain energy density for the specified strain. This
 	 * material write the strain energy density into the state variable

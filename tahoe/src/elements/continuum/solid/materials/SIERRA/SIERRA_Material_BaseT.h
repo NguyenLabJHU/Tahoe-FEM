@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.h,v 1.5 2004-07-15 08:27:31 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.h,v 1.6 2004-07-27 03:16:05 paklein Exp $ */
 #ifndef _SIERRA_MAT_BASE_T_H_
 #define _SIERRA_MAT_BASE_T_H_
 
@@ -27,7 +27,7 @@ class SIERRA_Material_BaseT: public FSIsotropicMatT
 public:
 
 	/** constructor */
-	SIERRA_Material_BaseT(ifstreamT& in, const FSMatSupportT& support);
+	SIERRA_Material_BaseT(void);
 
 	/** destructor */
 	~SIERRA_Material_BaseT(void);
@@ -38,11 +38,11 @@ public:
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
-	/** \name initialization */
+	/** \name history variables */
 	/*@{*/
-	/** initialization. Called immediately after constructor to allow
-	 * class specific initializations. */
-	virtual void Initialize(void);
+	/** return true if the material has history variables.
+	 * \return false by default. */
+	virtual bool HasHistory(void) const { return true; };
 
 	/** return true if model needs ContinuumMaterialT::PointInitialize
 	 * to be called for every integration point of every element as
@@ -53,7 +53,6 @@ public:
 	 * element using the model. Deformation variables are available
 	 * during this call. */
 	virtual void PointInitialize(void);
-	/*@}*/
 
 	/** update internal variables. Called once per element for all
 	 * elements using the model, hence no deformation variables are
@@ -65,6 +64,7 @@ public:
 	 * elements using the model, hence no deformation variables are
 	 * available during this call. */
 	virtual void ResetHistory(void);
+	/*@}*/
 
 	/** \name spatial description */
 	/*@{*/
@@ -106,6 +106,15 @@ public:
 
 	/** compute the output variables */
 	virtual void ComputeOutput(dArrayT& output);
+	/*@}*/
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
@@ -164,7 +173,7 @@ protected:
 private:
 
 	/** dump debug info */
-	int fDebug;
+	bool fDebug;
 
 	/** material name */
 	StringT fMaterialName;

@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.3 2004-07-22 21:10:04 paklein Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.4 2004-07-27 03:16:09 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -153,6 +153,11 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 #ifdef VISCOELASTICITY
 	sub_lists.AddSub("Reese-Govindjee_split");
 #endif
+
+#ifdef SIERRA_MATERIAL
+	sub_lists.AddSub("SIERRA_hypoelastic");
+#endif
+
 	}
 	else /* inherited */
 		SolidMatListT::DefineInlineSub(name, order, sub_lists);
@@ -248,6 +253,11 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #ifdef VISCOELASTICITY
 	else if (name == "Reese-Govindjee_split")
 		mat= new RGSplitT;
+#endif
+
+#ifdef SIERRA_MATERIAL
+	else if (name == "SIERRA_hypoelastic")
+		mat= new SIERRA_HypoElasticT;
 #endif
 
 	/* set support */
