@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.55.2.6 2004-02-12 19:38:00 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.55.2.7 2004-02-19 22:33:55 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -697,7 +697,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	int order3 = 2;
 	double dissipation = 0.0;
 	dArray2DT field_at_ghosts, totalu, fubig, fu, projectedu, boundghostdisp, boundghostvel, boundghostacc;
-	dArray2DT thkforce, gaussdisp, thkdisp, totaldisp;
+	dArray2DT thkforce, totaldisp;
 	dSPMatrixT ntf;
 	iArrayT activefenodes, boundaryghostatoms;
 	StringT bridging_field = "displacement";
@@ -713,8 +713,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	int numgatoms = (atoms.GhostNodes()).Length();	// total number of ghost atoms
 	int numbatoms = boundaryghostatoms.Length() - numgatoms;	// total number of boundary atoms
 	dArray2DT gadisp(numgatoms,nsd), gavel(numgatoms,nsd), gaacc(numgatoms,nsd);
-	dArray2DT badisp(numbatoms,nsd), bavel(numbatoms,nsd), baacc(numbatoms,nsd), mdu0(numbatoms,nsd), mdu1(numbatoms,nsd);
-	dArray2DT bdisplast(numbatoms,nsd), bdispcurr(numbatoms,nsd);
+	dArray2DT badisp(numbatoms,nsd), bavel(numbatoms,nsd), baacc(numbatoms,nsd);
 	iArrayT allatoms(boundaryghostatoms.Length()), gatoms(numgatoms), batoms(numbatoms), boundatoms(numbatoms);
 	allatoms.SetValueToPosition();
 	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);
@@ -811,7 +810,11 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		else
 		{
 			/* thkdisp = fine scale part of ghost atom displacement */
-			thkdisp = atoms.THKDisp(badisp);
+			totaldisp = atoms.THKDisp(badisp);
+			totaldisp+=gadisp;
+			
+			/* NEED TO ADD FEM SOLUTION FIRST BEFORE WRITING FIELD */
+			atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, totaldisp);
 		}
 		
 		/* figure out timestep ratio between fem and md simulations */
@@ -850,15 +853,14 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				else
 				{
 					/* calculate fine scale part of MD ghost atom displacements */
-					thkdisp = atoms.THKDisp(badisp);
+					totaldisp = atoms.THKDisp(badisp);
+					totaldisp+=gadisp;
 				
 					/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
-					//totaldisp = gadisp;
-					//totaldisp += thkdisp;
-					//atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, totaldisp);
-					/* rows of gadisp and thkdisp may need to be reordered to add same quantities for each atom */	
+					/* NEED TO ADD FEM SOLUTION FIRST BEFORE WRITING INTO FIELD */
+					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, totaldisp);
 				}
-																			
+				
 				/* solve MD equations of motion */
 				if (1 || error == ExceptionT::kNoError) {
 						atoms.ResetCumulativeUpdate(group);
