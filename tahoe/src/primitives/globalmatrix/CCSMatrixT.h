@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.h,v 1.9 2002-11-25 07:13:40 paklein Exp $ */
+/* $Id: CCSMatrixT.h,v 1.10 2002-11-30 16:31:03 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #ifndef _CCSMATRIX_T_H_
 #define _CCSMATRIX_T_H_
@@ -82,6 +82,9 @@ public:
 	/* number scope and reordering */
 	virtual EquationNumberScopeT EquationNumberScope(void) const;
 	virtual bool RenumberEquations(void) const;
+
+	/** return the form of the matrix */
+	virtual GlobalT::SystemTypeT MatrixType(void) const { return GlobalT::kSymmetric; };
 
 	/* find the smallest and largest diagonal value */
 	void FindMinMaxPivot(double& min, double& max, double& abs_min, double& abs_max) const;

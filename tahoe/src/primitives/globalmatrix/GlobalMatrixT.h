@@ -1,10 +1,10 @@
-/* $Id: GlobalMatrixT.h,v 1.10 2002-11-25 07:13:40 paklein Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.11 2002-11-30 16:31:03 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #ifndef _GLOBAL_MATRIX_H_
 #define _GLOBAL_MATRIX_H_
 
+#include "GlobalT.h"
 #include "Environment.h"
-
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
@@ -110,6 +110,9 @@ public:
 	int CheckCode(void) const;
 	int NumEquations(void) const;
 	int StartEquation(void) const;
+	
+	/** return the form of the matrix */
+	virtual GlobalT::SystemTypeT MatrixType(void) const = 0;
 	/*@}*/
 
 	/** assignment operator */
