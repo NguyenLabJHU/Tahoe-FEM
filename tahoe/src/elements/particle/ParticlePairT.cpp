@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.12.2.3 2003-01-05 23:42:04 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.12.2.4 2003-01-06 19:39:46 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -296,184 +296,22 @@ void ParticlePairT::LHSDriver(GlobalT::SystemTypeT sys_type)
 /* form group contribution to the residual */
 void ParticlePairT::RHSDriver(void)
 {
-	if (NumSD() == 3)
-		RHSDriver3D_3();
+	int nsd = NumSD();
+	if (nsd == 3)
+		RHSDriver3D();
+	else if (nsd == 2)
+		RHSDriver2D();
 	else
-	{
-		/* version with assembly after each neighbor list */
-//		RHSDriver_1();
-
-		/* version with assembly only once */
-//		RHSDriver_2();
-
-		/* version 2 specialized to 2D */
-		RHSDriver_3();
-	}
+		ExceptionT::GeneralFail("ParticlePairT::RHSDriver");
 }
 
-void ParticlePairT::RHSDriver_1(void)
+void ParticlePairT::RHSDriver2D(void)
 {
-	/* time integration parameters */
-	double constMa = 0.0;
-	double constKd = 0.0;
-	int formMa = fController->FormMa(constMa);
-	int formKd = fController->FormKd(constKd);
+	/* function name */
+	const char caller[] = "ParticlePairT::RHSDriver2D";
 
-//TEMP - interial force not implemented
-if (formMa) ExceptionT::GeneralFail("ParticlePairT::RHSDriver", "inertial force not implemented");
-
-	/* assembly information */
-	const ElementSupportT& support = ElementSupport();
-	int group = Group();
-	int ndof = NumDOF();
-	
-	/* global coordinates */
-	const dArray2DT& coords = support.CurrentCoordinates();
-
-	/* pair properties function pointers */
-	int current_property = -1;
-	PairPropertyT::ForceFunction force_function = NULL;
-
-	/* run through neighbor list */
-	iArrayT eqs;
-	iArrayT neighbors;
-	dArrayT x_i, x_j, r_ij(ndof);
-	for (int i = 0; i < fNeighbors.MajorDim(); i++)
-	{
-		/* row of neighbor list */
-		fNeighbors.RowAlias(i, neighbors);
-
-		/* type */
-		int  tag_i = neighbors[0]; /* self is 1st spot */
-		int type_i = fType[tag_i];
-	
-		/* initialize */
-		fForce_list_man.SetLength(fEqnos.MinorDim(i), false);
-		fForce_list = 0.0;
-		double* f_i = fForce_list.Pointer();
-		double* f_j = fForce_list.Pointer(ndof);
-		
-		/* run though neighbors for one atom - first neighbor is self */
-		fEqnos.RowAlias(i, eqs);
-		coords.RowAlias(tag_i, x_i);
-		for (int j = 1; j < neighbors.Length(); j++)
-		{
-			/* global tag */
-			int  tag_j = neighbors[j];
-			int type_j = fType[tag_j];
-			
-			/* set pair property (if not already set) */
-			int property = fPropertiesMap(type_i, type_j);
-			if (property != current_property)
-			{
-				force_function = fPairProperties[property]->getForceFunction();
-				current_property = property;
-			}
-		
-			/* global coordinates */
-			coords.RowAlias(tag_j, x_j);
-		
-			/* connecting vector */
-			r_ij.DiffOf(x_j, x_i);
-			double r = r_ij.Magnitude();
-			
-			/* interaction force */
-			double F = force_function(r, NULL, NULL);
-			double Fbyr = formKd*F/r;
-			for (int k = 0; k < ndof; k++)
-			{
-				double F_k = r_ij[k]*Fbyr;
-				f_i[k] += F_k;
-				*f_j++ +=-F_k;
-			}
-		}
-
-		/* assemble */
-		support.AssembleRHS(group, fForce_list, eqs);
-	}
-}
-
-void ParticlePairT::RHSDriver_2(void)
-{
-	/* time integration parameters */
-	double constMa = 0.0;
-	double constKd = 0.0;
-	int formMa = fController->FormMa(constMa);
-	int formKd = fController->FormKd(constKd);
-
-//TEMP - interial force not implemented
-if (formMa) ExceptionT::GeneralFail("ParticlePairT::RHSDriver", "inertial force not implemented");
-
-	/* assembly information */
-	const ElementSupportT& support = ElementSupport();
-	int group = Group();
-	int ndof = NumDOF();
-	
-	/* global coordinates */
-	const dArray2DT& coords = support.CurrentCoordinates();
-
-	/* pair properties function pointers */
-	int current_property = -1;
-	PairPropertyT::ForceFunction force_function = NULL;
-
-	/* run through neighbor list */
-	fForce = 0.0;
-	iArrayT neighbors;
-	dArrayT x_i, x_j, r_ij(ndof);
-	for (int i = 0; i < fNeighbors.MajorDim(); i++)
-	{
-		/* row of neighbor list */
-		fNeighbors.RowAlias(i, neighbors);
-
-		/* type */
-		int  tag_i = neighbors[0]; /* self is 1st spot */
-		int type_i = fType[tag_i];
-		double* f_i = fForce(tag_i);
-		
-		/* run though neighbors for one atom - first neighbor is self */
-		coords.RowAlias(tag_i, x_i);
-		for (int j = 1; j < neighbors.Length(); j++)
-		{
-			/* global tag */
-			int  tag_j = neighbors[j];
-			int type_j = fType[tag_j];
-			double* f_j = fForce(tag_j);
-			
-			/* set pair property (if not already set) */
-			int property = fPropertiesMap(type_i, type_j);
-			if (property != current_property)
-			{
-				force_function = fPairProperties[property]->getForceFunction();
-				current_property = property;
-			}
-		
-			/* global coordinates */
-			coords.RowAlias(tag_j, x_j);
-		
-			/* connecting vector */
-			r_ij.DiffOf(x_j, x_i);
-			double r = r_ij.Magnitude();
-			
-			/* interaction force */
-			double F = force_function(r, NULL, NULL);
-			double Fbyr = formKd*F/r;
-			for (int k = 0; k < ndof; k++)
-			{
-				double F_k = r_ij[k]*Fbyr;
-				f_i[k] += F_k;
-				f_j[k] +=-F_k;
-			}
-		}
-	}
-
-	/* assemble */
-	support.AssembleRHS(group, fForce, Field().Equations());
-}
-
-void ParticlePairT::RHSDriver_3(void)
-{
 	/* check 2D */
-	if (NumDOF() != 2) ExceptionT::GeneralFail("ParticlePairT::RHSDriver_3", "2D only: %d", NumDOF());
+	if (NumDOF() != 2) ExceptionT::GeneralFail(caller, "2D only: %d", NumDOF());
 
 	/* time integration parameters */
 	double constMa = 0.0;
@@ -481,8 +319,8 @@ void ParticlePairT::RHSDriver_3(void)
 	int formMa = fController->FormMa(constMa);
 	int formKd = fController->FormKd(constKd);
 
-//TEMP - interial force not implemented
-if (formMa) ExceptionT::GeneralFail("ParticlePairT::RHSDriver", "inertial force not implemented");
+	//TEMP - interial force not implemented
+	if (formMa) ExceptionT::GeneralFail(caller, "inertial force not implemented");
 
 	/* assembly information */
 	const ElementSupportT& support = ElementSupport();
@@ -495,6 +333,9 @@ if (formMa) ExceptionT::GeneralFail("ParticlePairT::RHSDriver", "inertial force 
 	/* pair properties function pointers */
 	int current_property = -1;
 	PairPropertyT::ForceFunction force_function = NULL;
+	const double* Paradyn_table = NULL;
+	double dr = 1.0;
+	int row_size = 0, num_rows = 0;
 
 	/* run through neighbor list */
 	fForce = 0.0;
@@ -523,7 +364,8 @@ if (formMa) ExceptionT::GeneralFail("ParticlePairT::RHSDriver", "inertial force 
 			int property = fPropertiesMap(type_i, type_j);
 			if (property != current_property)
 			{
-				force_function = fPairProperties[property]->getForceFunction();
+				if (!fPairProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
+					force_function = fPairProperties[property]->getForceFunction();
 				current_property = property;
 			}
 		
@@ -533,7 +375,20 @@ if (formMa) ExceptionT::GeneralFail("ParticlePairT::RHSDriver", "inertial force 
 			double r = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
 			
 			/* interaction force */
-			double F = force_function(r, NULL, NULL);
+			double F;
+			if (Paradyn_table)
+			{
+				double pp = r*dr;
+				int kk = int(pp);
+				int max_row = num_rows-2;
+				kk = (kk < max_row) ? kk : max_row;
+				pp -= kk;
+				pp = (pp < 1.0) ? pp : 1.0;				
+				const double* c = Paradyn_table + kk*row_size;
+				F = c[4] + pp*(c[5] + pp*c[6]);
+			}
+			else
+				F = force_function(r, NULL, NULL);
 			double Fbyr = formKd*F/r;
 
 			r_ij_0 *= Fbyr;
@@ -550,10 +405,10 @@ if (formMa) ExceptionT::GeneralFail("ParticlePairT::RHSDriver", "inertial force 
 	support.AssembleRHS(group, fForce, Field().Equations());
 }
 
-void ParticlePairT::RHSDriver3D_3(void)
+void ParticlePairT::RHSDriver3D(void)
 {
 	/* function name */
-	const char caller[] = "ParticlePairT::RHSDriver3D_3";
+	const char caller[] = "ParticlePairT::RHSDriver3D";
 
 	/* check 3D */
 	if (NumDOF() != 3) ExceptionT::GeneralFail(caller, "3D only: %d", NumDOF());
@@ -624,7 +479,7 @@ void ParticlePairT::RHSDriver3D_3(void)
 			double F;
 			if (Paradyn_table)
 			{
-				double pp = r*dr + 1.0;
+				double pp = r*dr;
 				int kk = int(pp);
 				int max_row = num_rows-2;
 				kk = (kk < max_row) ? kk : max_row;
