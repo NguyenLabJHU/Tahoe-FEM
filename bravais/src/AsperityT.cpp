@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: AsperityT.cpp,v 1.12 2003-08-01 23:40:31 saubry Exp $ */
+/* $Id: AsperityT.cpp,v 1.13 2003-08-02 00:21:33 saubry Exp $ */
 #include "AsperityT.h"
 #include "VolumeT.h"
 
@@ -157,17 +157,20 @@ AsperityT::AsperityT(const AsperityT& source) : VolumeT(source.nSD)
 
   atom_names = source.atom_names;
 
-  atom_ID.Dimension(source.nATOMS);
-  atom_ID = source.atom_ID;
-
   atom_coord.Dimension(source.nATOMS,source.nSD);
   atom_coord = source.atom_coord;
+
+  atom_number.Dimension(source.nATOMS);
+  atom_number = source.atom_number;
 
   atom_types.Dimension(source.nATOMS);
   atom_types = source.atom_types;
 
-  atom_connectivities.Dimension(source.nATOMS,source.nSD);
-  atom_connectivities = source.atom_connectivities;
+  atom_ID.Dimension(source.atom_ID.Length());
+  atom_ID = source.atom_ID;
+
+  atom_connect.Dimension(source.atom_connect.Length());
+  atom_connect = source.atom_connect;
 }
 
 void AsperityT::CreateLattice(CrystalLatticeT* pcl) 
@@ -202,33 +205,25 @@ void AsperityT::CreateLattice(CrystalLatticeT* pcl)
     nATOMS = RotateBoxOfAtom(pcl,&temp_atom,&temp_type,&temp_parts,temp_nat);
 
   // Get atoms coordinates
-  atom_ID.Dimension(nATOMS);
   atom_coord.Dimension(nATOMS,nlsd);
+  atom_number.Dimension(nATOMS);
   atom_types.Dimension(nATOMS);
-  atom_connectivities.Dimension(nATOMS,1);
 
-  for(int m=0; m < nATOMS ; m++) 
-    for (int k=0;k< nlsd;k++)
-      {
-	atom_coord(m)[k] = temp_atom(m)[k];
-	atom_types[m] = temp_type[m];
-      }
-  atom_names = "Box";
-
-  // Create connectivities and IDs
-  for (int p=0;p<nATOMS;p++)
+  for(int m=0; m < nATOMS ; m++)
     {
-      atom_ID[p] = p;
-      atom_connectivities(p)[0] = p;
+      atom_number[m] = m;
+      atom_types[m] = temp_type[m];
+      for (int k=0;k< nlsd;k++)
+	atom_coord(m)[k] = temp_atom(m)[k];
     }
 
+  atom_names = "Box";
 
   if(ntype > 2) 
     cout << "WARNING: ** nTypes == 2  maximum for ensight output ** \n";
 
-  atom_array_ID.Dimension(ntype);
-  atom_array_connect.Dimension(ntype);
-
+  atom_ID.Dimension(ntype);
+  atom_connect.Dimension(ntype);
 
   type1.Dimension(nATOMS,1);type1 = 0;
   type2.Dimension(nATOMS,1);type2 = 0;
@@ -248,13 +243,13 @@ void AsperityT::CreateLattice(CrystalLatticeT* pcl)
 	}	
     }
 
-  atom_array_ID[0] = "type1";
-  if (ntype > 1) atom_array_ID[1] = "type2";
+  atom_ID[0] = "type1";
+  if (ntype > 1) atom_ID[1] = "type2";
 
   if (n < nATOMS && n > 0) type1.Resize(n);
   if (m < nATOMS && m > 0) type2.Resize(m);
-  atom_array_connect[0] = &type1;
-  if (ntype > 1) atom_array_connect[1] = &type2;
+  atom_connect[0] = &type1;
+  if (ntype > 1) atom_connect[1] = &type2;
 
   // Create parts
   atom_parts.Dimension(nATOMS);
@@ -467,11 +462,8 @@ void AsperityT::SortLattice(CrystalLatticeT* pcl)
   atom_parts = part;
 }
 
-void AsperityT::CalculateBounds(CrystalLatticeT* pcl)
+void AsperityT::CalculateBounds()
 {
-  // const dArrayT& vLP = pcl->GetLatticeParameters();
-  // const dArray2DT& vAX = pcl->GetAxis();
-
   atom_bounds.Dimension(nSD,2);
 
   for (int i=0; i < nSD; i++)
@@ -479,16 +471,14 @@ void AsperityT::CalculateBounds(CrystalLatticeT* pcl)
       if (pbc[i]==0) 
 	{
 	  // non-periodic conditions
-	  atom_bounds(i,0) = -10000.;
-	  atom_bounds(i,1) =  10000.;
+          atom_bounds(i,0) = length(i,0);
+          atom_bounds(i,1) = length(i,1);
+	  //atom_bounds(i,0) = -10000.; -> different for Alex's code.
+	  //atom_bounds(i,1) =  10000.;
 	}
       else if (pbc[i]==1)
 	{
 	  // periodic conditions
-	  // atom_bounds(i,0) = length(i)[0];
-	  // atom_bounds(i,1) = length(i)[1] + 0.5*vLP[1];
-	  // atom_bounds(i,1) = length(i)[1] + 0.5*vAX(i,i);
-          // cout << vAX(i,i) << "\n";
           atom_bounds(i,0) = length(i,0);
           atom_bounds(i,1) = length(i,1);
 	}

@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.h,v 1.16 2003-08-01 23:40:31 saubry Exp $ */
+/* $Id: BoxT.h,v 1.17 2003-08-02 00:21:33 saubry Exp $ */
 
 #ifndef _BOX_T_H_
 #define _BOX_T_H_
@@ -43,7 +43,7 @@ class BoxT : public VolumeT
   void CreateLattice(CrystalLatticeT* pcl); 
   void SortLattice(CrystalLatticeT* pcl);
 
-  void CalculateBounds(CrystalLatticeT* pcl);
+  void CalculateBounds();
 
   iArrayT GetNCells();
   dArray2DT GetLength();

@@ -102,22 +102,11 @@ dArray2DT MeshAtomT::Length()
 iArrayT MeshAtomT::NumberOFCells()
 {
   return Shape->GetNCells();
-}
-
-
-iArrayT* MeshAtomT::ReturnAtomID()
-{
-  return Shape->GetAtomID();
-}  
+} 
 
 dArray2DT* MeshAtomT::ReturnCoordinates()
 {   
   return Shape->GetAtomCoordinates();
-}
-  
-iArray2DT* MeshAtomT::ReturnConnectivities()
-{
-  return Shape->GetAtomConnectivities();
 }
 
 dArray2DT* MeshAtomT::ReturnBounds()
@@ -131,7 +120,7 @@ void MeshAtomT::BuildIOFile(StringT& program_name,
 			   IOBaseT::FileTypeT output_format,
 			   iArrayT per)
 {
-  Shape->CalculateBounds(Crystal);
+  Shape->CalculateBounds();
 
   if(IOLattice != 0) delete IOLattice;
   IOLattice = new OutPutLatticeT(cout,program_name,version,title,
@@ -145,12 +134,12 @@ void MeshAtomT::BuildIOFile(StringT& program_name,
   //Set=new OutputSetT(GeometryT::kPoint,*(Shape->GetAtomConnectivities()), n_labels);
 
   if(Set != 0) delete Set;
-  Set=new OutputSetT(GeometryT::kPoint, *(Shape->GetAtomArrayID()), *(Shape->GetAtomArrayConnect()), 
+  Set=new OutputSetT(GeometryT::kPoint, *(Shape->GetAtomID()), *(Shape->GetAtomConnect()), 
 		     n_labels, e_labels, false);
 
 
 
-  IOLattice->SetCoordinates(*(Shape->GetAtomCoordinates()),(Shape->GetAtomID()));
+  IOLattice->SetCoordinates(*(Shape->GetAtomCoordinates()),(Shape->GetAtomNumber()));
 
   IOLattice->SetBounds(*(Shape->GetAtomBounds()));
   IOLattice->SetTypes(*(Shape->GetAtomTypes()));
