@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.8 2003-01-29 07:35:21 paklein Exp $ */
+/* $Id: FieldT.h,v 1.8.2.1 2003-02-10 02:14:28 paklein Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -11,7 +11,6 @@
 #include "IC_CardT.h"
 #include "KBC_CardT.h"
 #include "FBC_CardT.h"
-#include "pArrayT.h"
 #include "GlobalT.h"
 #include "AutoArrayT.h"
 
@@ -82,11 +81,11 @@ public:
 
 	/** special kinematic boundary conditions. Controllers put in this array
 	 * are deleted when this field goes out of scope. */
-	pArrayT<KBC_ControllerT*>& KBC_Controllers(void) { return fKBC_Controllers; };
+	ArrayT<KBC_ControllerT*>& KBC_Controllers(void) { return fKBC_Controllers; };
 
 	/** special force boundary conditions. Controllers put in this array
 	 * are deleted when this field goes out of scope. */
-	pArrayT<FBC_ControllerT*>& FBC_Controllers(void) { return fFBC_Controllers; };
+	ArrayT<FBC_ControllerT*>& FBC_Controllers(void) { return fFBC_Controllers; };
 	/*@}*/
 
 	/** \name time integration */
@@ -248,6 +247,10 @@ public:
 	const dArray2DT* Source(const StringT& ID) const;
 	/*@}*/
 
+	/** add the KBC controller to the field. The field takes ownership of the
+	 * controller and will take care of de-allocating it */
+	void AddKBCController(KBC_ControllerT* controller) { fKBC_Controllers.AppendUnique(controller); };
+
 private:
 
 	/** apply the IC_CardT to the field */
@@ -283,7 +286,7 @@ private:
 	ArrayT<KBC_CardT> fKBC;
 
 	/** special KBC objects */
-	pArrayT<KBC_ControllerT*> fKBC_Controllers;
+	AutoArrayT<KBC_ControllerT*> fKBC_Controllers;
 	/*@}*/
 
 	/** \name force boundary conditions */
@@ -298,7 +301,7 @@ private:
 	iArrayT fFBCEqnos;
 
 	/** special FBC objects */
-	pArrayT<FBC_ControllerT*> fFBC_Controllers;
+	AutoArrayT<FBC_ControllerT*> fFBC_Controllers;
 	/*@}*/
 	
 	/** \name update array */
