@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.22 2002-08-12 17:43:55 hspark Exp $ */
+/* $Id: RodT.cpp,v 1.23 2002-09-12 17:46:13 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -148,10 +148,8 @@ void RodT::RegisterOutput(void)
 		block_ID[i] = fBlockData[i].ID();
 
 	/* set output specifier */
-	StringT set_ID;
 	ArrayT<StringT> e_labels;
-	set_ID.Append(ElementSupport().ElementGroupNumber(this) + 1);
-	OutputSetT output_set(set_ID, GeometryT::kLine, block_ID, fConnectivities, 
+	OutputSetT output_set(GeometryT::kLine, block_ID, fConnectivities, 
 		Field().Labels(), e_labels, ChangingGeometry());
 		
 	/* register and get output ID */

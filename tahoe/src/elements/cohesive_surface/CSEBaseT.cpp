@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.13 2002-08-23 09:20:39 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.14 2002-09-12 17:44:12 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -8,7 +8,7 @@
 #include <iomanip.h>
 
 #include "fstreamT.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "SurfaceShapeT.h"
 #include "iAutoArrayT.h"
 #include "OutputSetT.h"
@@ -285,10 +285,7 @@ void CSEBaseT::RegisterOutput(void)
 	GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
 
 	/* set output specifier */
-	StringT set_ID;
-	set_ID.Append(ElementSupport().ElementGroupNumber(this) + 1);
-	OutputSetT output_set(set_ID, geo_code, block_ID, fOutput_Connectivities, 
-		n_labels, e_labels, false);
+	OutputSetT output_set(geo_code, block_ID, fOutput_Connectivities, n_labels, e_labels, false);
 		
 	/* register and get output ID */
 	fOutputID = ElementSupport().RegisterOutput(output_set);

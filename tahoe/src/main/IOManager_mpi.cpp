@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.21 2002-08-21 07:26:01 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.22 2002-09-12 17:46:46 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 #include "IOManager_mpi.h"
 
@@ -72,7 +72,7 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, CommunicatorT& comm,
 				}
 
 				/* construct output set */
-				OutputSetT global_set(set.ID(), set.Geometry(), block_ID, connect_list,
+				OutputSetT global_set(set.Geometry(), block_ID, connect_list,
 					set.NodeOutputLabels(), set.ElementOutputLabels(), set.Changing());
 
 //cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: num nodes: " << global_set.NumNodes() << endl;
@@ -141,7 +141,7 @@ IO_ID = i;
 				fOutputGeometry->RegisterElementGroup(set.ID(), connects, set.Geometry(), true);
 									
 				/* construct output set */
-				OutputSetT global_set(set.ID(), set.Geometry(), fOutputGeometry->ElementGroup(set.ID()), 
+				OutputSetT global_set(set.Geometry(), fOutputGeometry->ElementGroup(set.ID()), 
 					set.NodeOutputLabels());
 
 //cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: num nodes: " << global_set.NumNodes() << endl;
@@ -169,8 +169,7 @@ IO_ID = i;
 			ArrayT<const iArray2DT*> connects_list(set.BlockID().Length());
 			connects_list = &connects;
 			ArrayT<StringT> no_labels;
-			OutputSetT dummy_set(set.ID(), set.Geometry(), set.BlockID(), connects_list,
-				no_labels, no_labels, false);
+			OutputSetT dummy_set(set.Geometry(), set.BlockID(), connects_list, no_labels, no_labels, false);
 					
 			/* register */
 			int IO_ID = AddElementSet(dummy_set);
