@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.41 2003-02-20 02:30:06 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.42 2003-03-28 22:41:00 paklein Exp $ */
 #include "VTKBodyT.h"
 
 /* tahoe toolbox headers */
@@ -321,7 +321,7 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 					nodeLabelMapper->ShadowOff();
 
 					/* visibility */
-					if (ugrid->NumSD() == 3)
+					if (0 && ugrid->NumSD() == 3) // filter doesn't work correctly
 					{
 						/* visibility filter */
 						vtkSelectVisiblePoints* visPoints = vtkSelectVisiblePoints::New();
@@ -653,7 +653,13 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 		/* found requested field */
 		if (vector_field) {
 			for (int i = 0; i < fBodyData->UGrids().Length(); i++)
+			{
+				/* enable glyphs */
 				fUGrids[i]->Glyphing(fBodyData, field, fFrame->Renderer(), filter, warpArrows, scale, color);
+
+				/* resetting scale triggers internal update */
+				fUGrids[i]->SetGlyphScale(1.0);
+			}
 			return true;
 		}
 		else /* no such field */ 
