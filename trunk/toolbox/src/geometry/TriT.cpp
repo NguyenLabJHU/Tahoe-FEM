@@ -1,4 +1,4 @@
-/* $Id: TriT.cpp,v 1.5 2004-02-28 21:52:26 paklein Exp $ */
+/* $Id: TriT.cpp,v 1.6 2004-05-12 17:50:35 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "TriT.h"
 #include "QuadT.h"
@@ -21,18 +21,63 @@ TriT::TriT(int numnodes): GeometryBaseT(numnodes, kNumVertexNodes) {}
 /* evaluate the shape functions and gradients. */
 void TriT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
 {
-#pragma unused(coords)
-#pragma unused(Na)
-	ExceptionT::GeneralFail("TriT::EvaluateShapeFunctions", "not implemented");
+	const char caller[] = "TriT::EvaluateShapeFunctions";
+
+#if __option(extended_errorcheck)
+	if (coords.Length() != kTrinsd ||
+	        Na.Length() != fNumNodes) ExceptionT::SizeMismatch(caller);
+	if (fNumNodes != kNumVertexNodes) ExceptionT::GeneralFail(caller);
+#endif
+
+	/* coordinates */	
+	double r = coords[0];
+	double s = coords[1];
+	if (r < 0.0 || r > 1.0) ExceptionT::OutOfRange(caller);
+	if (s < 0.0 || s > 1.0) ExceptionT::OutOfRange(caller);
+
+	/* shape functions */
+	Na[0] = r;
+	Na[1] = s;
+	Na[2] = 1 - r - s;
 }
 
 /* evaluate the shape functions and gradients. */
 void TriT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT& DNa) const
 {
-#pragma unused(coords)
-#pragma unused(Na)
-#pragma unused(DNa)
-	ExceptionT::GeneralFail("TriT::EvaluateShapeFunctions", "not implemented");
+	const char caller[] = "TriT::EvaluateShapeFunctions";
+
+#if __option(extended_errorcheck)
+	if (coords.Length() != kTrinsd ||
+	        Na.Length() != fNumNodes ||
+	     DNa.MajorDim() != kTrinsd ||
+	     DNa.MinorDim() != fNumNodes) ExceptionT::SizeMismatch(caller);
+	if (fNumNodes != kNumVertexNodes) ExceptionT::GeneralFail(caller);
+#endif
+
+	/* coordinates */	
+	double r = coords[0];
+	double s = coords[1];
+	if (r < 0.0 || r > 1.0) ExceptionT::OutOfRange(caller);
+	if (s < 0.0 || s > 1.0) ExceptionT::OutOfRange(caller);
+
+	/* shape functions */
+	Na[0] = r;
+	Na[1] = s;
+	Na[2] = 1 - r - s;
+
+	/* derivatives */
+	double* nax = DNa(0);
+	double* nay = DNa(1);
+
+	/* Na,r */
+	nax[0] = 1.0;
+	nax[1] = 0.0;
+	nax[2] =-1.0;
+	
+	/* Na,s */
+	nay[0] = 0.0;
+	nay[1] = 1.0;
+	nay[2] =-1.0;
 }
 
 /* compute local shape functions and derivatives */
@@ -290,6 +335,23 @@ void TriT::SetExtrapolation(dMatrixT& extrap) const
 		
 			throw ExceptionT::kGeneralFail;
 	}
+}
+
+/* integration point gradient matrix */
+void TriT::IPGradientTransform(int ip, dMatrixT& transform) const
+{
+	const char caller[] = "TriT::IPGradientTransform";
+
+	/* dimensions */
+	int nsd = transform.Rows();
+	int nip = transform.Cols();
+	if (nsd != 2) ExceptionT::SizeMismatch(caller);
+	
+	//TEMP only implemented for 1 integration point
+	if (ip != 0 || nip != 1) ExceptionT::GeneralFail(caller, "only implemented for 1 integration point");
+
+	/* no gradient */
+	transform = 0.0;
 }
 
 /* return the local node numbers for each facet of the element
