@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.4 2002-02-11 01:24:47 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.5 2002-03-04 06:44:19 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT_mpi.h"
@@ -44,7 +44,7 @@ void SPOOLESMatrixT_mpi::BackSubstitute(dArrayT& result)
 	/* convert matrix to RCV */
 	iArrayT r, c;
 	dArrayT v;
-	GenerateRCV(r, c, v);
+	GenerateRCV(r, c, v, 1.0e-15);
 	
 	/* write matrix */
 	if (fCheckCode == kPrintLHS) {
