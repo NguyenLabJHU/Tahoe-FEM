@@ -25,6 +25,7 @@
             <dof_labels>
                 <String value="T"/>
             </dof_labels>
+            <initial_condition all_nodes="true" dof="1" type="u" value="1.0"/>
         </field>
     </nodes>
     <element_list>
