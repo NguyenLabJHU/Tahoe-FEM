@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.45.2.7 2004-03-24 02:00:33 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.45.2.8 2004-03-31 16:20:44 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -50,7 +50,7 @@ NodeManagerT::NodeManagerT(FEManagerT& fe_manager, CommManagerT& comm_manager):
 	ParameterInterfaceT("nodes"),
 	fFEManager(fe_manager),
 	fCommManager(comm_manager),
-	fFieldSupport(fe_manager, *this),
+	fFieldSupport(fe_manager),
 	fInitCoords(NULL),
 	fCoordUpdate(NULL),
 	fCurrentCoords(NULL),
@@ -1986,7 +1986,7 @@ FBC_ControllerT* NodeManagerT::NewFBC_Controller(FieldT& field, int code)
 	/* set time integrator */
 	if (fbc) {
 		const eIntegratorT& e_integrator = field.nIntegrator().eIntegrator();
-		fbc->SetController(&e_integrator);
+		//fbc->SetController(&e_integrator);
 	}
 	
 	return fbc;
@@ -2098,7 +2098,7 @@ void NodeManagerT::EchoForceBCControllers(FieldT& field, ifstreamT& in, ostream&
 		FBC_ControllerT* controller = NewFBC_Controller(field, type);
 		
 		/* echo data */
-		controller->EchoData(in2, out);
+		//controller->EchoData(in2, out);
 
 		/* initialize */
 		controller->Initialize();

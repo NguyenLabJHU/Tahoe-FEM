@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.18.2.3 2004-02-18 16:33:54 paklein Exp $ */
+/* $Id: FieldT.h,v 1.18.2.4 2004-03-31 16:20:44 paklein Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -62,6 +62,9 @@ public:
 
 	/** set all field values to 0.0 */
 	virtual void Clear(void);
+	
+	/* support class */
+	const FieldSupportT& FieldSupport(void) const { return fFieldSupport; };
 	/*@}*/
 	
 	/** \name accessors */
