@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.2 2001-07-06 22:28:02 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.3 2001-07-07 17:30:07 paklein Exp $ */
 /* created: paklein (09/10/1998)                                          */
 /* 2D array with arbitrary "row" lengths. NO functions are provided       */
 /* for data retrieval. derived classes should use RowAlias()              */
@@ -67,6 +67,10 @@ public:
 	/* I/O */
 	void Read(istream& in);
 	void Write(ostream& out) const;
+	
+	/* binary I/O of data (not offsets) */
+	void ReadDataBinary(istream& in) { fData.ReadBinary(in); };
+	void WriteDataBinary(ostream& out) const { fData.WriteBinary(out); };
 
 private:
 
