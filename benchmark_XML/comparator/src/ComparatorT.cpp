@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.17 2002-07-02 21:24:56 cjkimme Exp $ */
+/* $Id: ComparatorT.cpp,v 1.17.2.1 2002-10-17 05:15:05 paklein Exp $ */
 
 #include "ComparatorT.h"
 
@@ -7,6 +7,7 @@
 #include <time.h>
 #include <strstream.h>
 
+#include "ExceptionCodes.h"
 #include "ModelManagerT.h"
 #include "fstreamT.h"
 #include "dArrayT.h"
