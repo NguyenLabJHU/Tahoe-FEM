@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.1 2001-07-11 01:02:15 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.2 2001-07-19 01:05:47 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -64,6 +64,40 @@ void SimoFiniteStrainT::Initialize(void)
 		throw eGeneralFail;
 	}	
 
+	/* space for enhanced part of the deformation gradient */
+	if (Needs_F())
+	{
+		int nip = NumIP();
+		int nsd = NumSD();
+		fF_enh_all.Allocate(nip*nsd*nsd);
+		fF_Galerkin_all.Allocate(nip*nsd*nsd);
+		fF_enh_List.Allocate(NumIP());
+		fF_Galerkin_List.Allocate(NumIP());
+		for (int i = 0; i < NumIP(); i++)
+		{
+			int dex = i*nsd*nsd;
+			fF_enh_List[i].Set(nsd, nsd, fF_enh_all.Pointer(dex));
+			fF_Galerkin_List[i].Set(nsd, nsd, fF_Galerkin_all.Pointer(dex));
+		}
+	}
+	
+	/* space for enhanced part of the "last" deformation gradient */
+	if (Needs_F_last())
+	{
+		int nip = NumIP();
+		int nsd = NumSD();
+		fF_enh_last_all.Allocate(nip*nsd*nsd);
+		fF_Galerkin_last_all.Allocate(nip*nsd*nsd);
+		fF_enh_last_List.Allocate(NumIP());
+		fF_Galerkin_last_List.Allocate(NumIP());
+		for (int i = 0; i < NumIP(); i++)
+		{
+			int dex = i*nsd*nsd;
+			fF_enh_last_List[i].Set(nsd, nsd, fF_enh_last_all.Pointer(dex));
+			fF_Galerkin_last_List[i].Set(nsd, nsd, fF_Galerkin_last_all.Pointer(dex));
+		}
+	}
+
 	/* dimension */
 	fGradNa.Allocate(fNumSD, fNumElemNodes);
 	fStressStiff.Allocate(fNumElemNodes);
@@ -119,10 +153,41 @@ void SimoFiniteStrainT::SetGlobalShape(void)
 		ModifiedEnhancedDeformation();
 	else /* modification is strictly additive */
 	{
-		/* inherited */
+		/* what needs to get computed */
+		bool needs_F = Needs_F();
+		bool needs_F_last = Needs_F_last();
+
+		/* inherited - set Galerkin part of deformation gradient */
 		FiniteStrainT::SetGlobalShape();
 	
+		/* store Galerkin part/compute enhancement and total F */
+		if (needs_F)
+		{
+			for (int i = 0; i < NumIP(); i++)
+			{
+				/* store Galerking part */
+				fF_Galerkin_List[i] = fF_List[i];
+				
+			}
+		}		
+
+		if (needs_F_last)
+		{
+			for (int i = 0; i < NumIP(); i++)
+			{
+				fF_Galerkin_last_List[i] = fF_last_List[i];
+			}
+		}		
 	
+		/* compute enhanced part of the deformation gradient */
+		
+					/* displacement gradient */
+//			fShapes->GradU(fLocLastDisp, mat, i);
+
+
+			/* displacement gradient */
+//			fShapes->GradU(fLocLastDisp, mat, i);
+
 	
 	}
 }

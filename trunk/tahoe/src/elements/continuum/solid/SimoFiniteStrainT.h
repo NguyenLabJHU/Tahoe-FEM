@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.h,v 1.1 2001-07-11 01:02:16 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.h,v 1.2 2001-07-19 01:05:47 paklein Exp $ */
 
 #ifndef _SIMO_FINITE_STRAIN_T_H_
 #define _SIMO_FINITE_STRAIN_T_H_
@@ -67,6 +67,18 @@ protected:
 
 	/** enhanced shape functions */
 	SimoShapeFunctionT* fEnhancedShapes;
+
+  	/* return values */
+  	ArrayT<dMatrixT> fF_enh_List;
+  	dArrayT          fF_enh_all;
+  	ArrayT<dMatrixT> fF_enh_last_List;
+  	dArrayT          fF_enh_last_all;
+
+	/* Galerkin part of the deformation gradient */
+  	ArrayT<dMatrixT> fF_Galerkin_List;
+  	dArrayT          fF_Galerkin_all;
+  	ArrayT<dMatrixT> fF_Galerkin_last_List;
+  	dArrayT          fF_Galerkin_last_all;
 
 //need:
 //(1) element, enhanced DOF's
