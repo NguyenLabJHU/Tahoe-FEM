@@ -1,9 +1,14 @@
-/* $Id: ContinuumMaterialT.cpp,v 1.10 2004-07-15 08:26:13 paklein Exp $ */
+/* $Id: ContinuumMaterialT.cpp,v 1.11 2004-08-08 02:04:11 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "ContinuumMaterialT.h"
 #include "MaterialSupportT.h"
 #include "ArrayT.h"
 #include "StringT.h"
+
+namespace Tahoe {
+DEFINE_TEMPLATE_STATIC const bool ArrayT<ContinuumMaterialT>::fByteCopy = false;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<ContinuumMaterialT*>::fByteCopy = true;
+} /* namespace Tahoe */
 
 using namespace Tahoe;
 
