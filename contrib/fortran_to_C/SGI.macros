@@ -1,4 +1,4 @@
-# $Id: SGI.macros,v 1.1 2003-03-09 04:07:50 paklein Exp $
+# $Id: SGI.macros,v 1.2 2003-03-09 04:17:13 paklein Exp $
 .SUFFIXES: .c .cpp .f .F
 
 # SGI macros
@@ -13,6 +13,6 @@ F_FLAGS  = -D__SGI__
 LINK_C     = $(COMP_C) 
 LINK_CC    = $(COMP_CC)
 LINK_F     = $(COMP_F)
-L_FLAGS_C  =
-L_FLAGS_CC =
-L_FLAGS_F  =
+L_FLAGS_C  = -lftn -lm
+L_FLAGS_CC = -lftn -lm
+L_FLAGS_F  = -lftn
