@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.16 2003-10-20 23:31:07 cjkimme Exp $ */
+/* $Id: CSEBaseT.h,v 1.17 2003-11-25 20:00:35 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -132,16 +132,16 @@ protected:
 	/* number of facet nodes as a function of number of element nodes */
 	virtual int NumFacetNodes(void) { return NumElementNodes()/2; }
 	
-private:
-
-	/* close surfaces to zero gap */
-	void CloseSurfaces(void) const;
-
 	/* return the default number of element nodes */
 	virtual int DefaultNumElemNodes(void) const;
 	//NOTE: needed because ExodusII does not store ANY information about
 	//      empty element groups, which causes trouble for parallel execution
 	//      when a partition contains no element from a group.
+	
+private:
+
+	/* close surfaces to zero gap */
+	void CloseSurfaces(void) const;
 	
 protected:
 
