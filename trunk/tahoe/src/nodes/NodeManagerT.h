@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.21 2003-08-23 20:24:15 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.22 2003-11-04 17:36:48 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -376,7 +376,7 @@ private:
 	/** initial coordinate array. Owned by the ModelManagerT. Not initialized 
 	 * until NodeManagerT::EchoCoordinates. */
 	const dArray2DT* fInitCoords;
-
+	
 	/** the field that updates the current coordinates. Pointer is NULL if
 	 * there is no update from the initial coordinates to the current coords */
 	FieldT* fCoordUpdate;
@@ -385,6 +385,13 @@ private:
 	 * as the initial coordinates. */
 	dArray2DT* fCurrentCoords;
 	nVariArray2DT<double> fCurrentCoords_man;
+
+	/** true of initial coordinates requested through NodeManagerT::RegisterCoordinates
+	 * or through NodeManagerT::CurrentCoordinates.
+	 * \note This flag isn't used yet, but could be used to determine if the current
+	 *       coordinates need to be updated, which may be expensive if FEManagerT::InterpolantDOFs
+	 *       is 0, i.e., for meshfree methods. */
+	bool fNeedCurrentCoords;
 	/*@}*/
 };
 
@@ -402,16 +409,17 @@ inline FieldT* NodeManagerT::Field(const char* name)
 /* reference configuration */
 inline const dArray2DT& NodeManagerT::InitialCoordinates(void) const
 {
-	if (!fInitCoords) {
-		cout << "\n NodeManagerT::InitialCoordinates: array not set" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (!fInitCoords)
+		ExceptionT::GeneralFail("NodeManagerT::InitialCoordinates", "array not set");
 	return *fInitCoords;
 }
 
 /* current configuration */
 inline const dArray2DT& NodeManagerT::CurrentCoordinates(void) const
 {
+	/* non-const this */
+	NodeManagerT* non_const_this = (NodeManagerT*) this;
+	non_const_this->fNeedCurrentCoords = true;
 	if (fCurrentCoords)
 		return *fCurrentCoords;
 	else
