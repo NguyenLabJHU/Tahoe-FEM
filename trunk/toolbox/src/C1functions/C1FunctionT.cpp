@@ -1,4 +1,4 @@
-/* $Id: C1FunctionT.cpp,v 1.6 2004-03-17 17:55:24 paklein Exp $ */
+/* $Id: C1FunctionT.cpp,v 1.7 2004-07-20 23:23:33 rdorgan Exp $ */
 /* created: paklein (12/04/1996) */
 #include "C1FunctionT.h"
 #include "dArrayT.h"
@@ -74,6 +74,38 @@ dArrayT& C1FunctionT::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	/* fast mapping */
 	for (int i = 0; i < length; i++)
 		*pout++ = DDFunction(*pin++);	
+		
+	return out;
+}
+
+dArrayT& C1FunctionT::MapDDDFunction(const dArrayT& in, dArrayT& out) const
+{
+	/* dimension check */
+	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
+	
+	const double *pin  =  in.Pointer();
+	double *pout = out.Pointer();
+	int    length = in.Length();
+	
+	/* fast mapping */
+	for (int i = 0; i < length; i++)
+		*pout++ = DDDFunction(*pin++);	
+		
+	return out;
+}
+
+dArrayT& C1FunctionT::MapDDDDFunction(const dArrayT& in, dArrayT& out) const
+{
+	/* dimension check */
+	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
+	
+	const double *pin  =  in.Pointer();
+	double *pout = out.Pointer();
+	int    length = in.Length();
+	
+	/* fast mapping */
+	for (int i = 0; i < length; i++)
+		*pout++ = DDDDFunction(*pin++);	
 		
 	return out;
 }

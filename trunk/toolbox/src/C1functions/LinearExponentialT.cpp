@@ -1,4 +1,4 @@
-/* $Id: LinearExponentialT.cpp,v 1.5 2004-06-09 06:24:13 paklein Exp $ */
+/* $Id: LinearExponentialT.cpp,v 1.6 2004-07-20 23:23:33 rdorgan Exp $ */
 /* created: paklein (10/30/1997) */
 #include "LinearExponentialT.h"
 #include <math.h>
@@ -62,6 +62,18 @@ double LinearExponentialT::DDFunction(double x) const
 	return -fc*exp(-x/fd)/fd/fd;
 }
 
+/* evaluate third derivative function */
+double LinearExponentialT::DDDFunction(double x) const
+{
+	return fc*exp(-x/fd)/fd/fd/fd;
+}
+
+/* evaluate fourth derivative function */
+double LinearExponentialT::DDDDFunction(double x) const
+{
+	return -fc*exp(-x/fd)/fd/fd/fd/fd;
+}
+
 /* Returning values in groups */
 
 /* multiple function evaluations */
@@ -106,6 +118,34 @@ dArrayT& LinearExponentialT::MapDDFunction(const dArrayT& in, dArrayT& out) cons
 	const double* x = in.Pointer();
 	for (int i = 0; i < length; i++)
 		*y++ = -fc*exp(-(*x++)/fd)/fd/fd;
+	return out;
+}
+
+/* multiple third derivative evaluations */
+dArrayT& LinearExponentialT::MapDDDFunction(const dArrayT& in, dArrayT& out) const
+{
+	/* dimension checks */
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
+
+	int length = in.Length();
+	double* y = out.Pointer();
+	const double* x = in.Pointer();
+	for (int i = 0; i < length; i++)
+		*y++ = fc*exp(-(*x++)/fd)/fd/fd/fd;
+	return out;
+}
+
+/* multiple fourth derivative evaluations */
+dArrayT& LinearExponentialT::MapDDDDFunction(const dArrayT& in, dArrayT& out) const
+{
+	/* dimension checks */
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
+
+	int length = in.Length();
+	double* y = out.Pointer();
+	const double* x = in.Pointer();
+	for (int i = 0; i < length; i++)
+		*y++ = -fc*exp(-(*x++)/fd)/fd/fd/fd/fd;
 	return out;
 }
 
