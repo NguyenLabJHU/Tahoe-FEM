@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.76 2004-07-22 08:26:12 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.77 2004-08-03 06:06:24 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1284,7 +1284,7 @@ ParameterInterfaceT* FEManagerT::NewSub(const StringT& name) const
 		ParameterT max_loops(fMaxSolverLoops, "max_loops");
 		max_loops.AddLimit(1, LimitT::LowerInclusive);
 		max_loops.SetDefault(1);
-		solver_phases->AddParameter(max_loops, ParameterListT::ZeroOrOnce);
+		solver_phases->AddParameter(max_loops);
 	
 		/* phase description */
 		solver_phases->AddSub("solver_phase", ParameterListT::OnePlus);
