@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.cpp,v 1.8.20.1 2004-02-28 02:58:46 hspark Exp $ */
+/* $Id: ParadynEAMT.cpp,v 1.8.20.2 2004-03-05 15:06:48 hspark Exp $ */
 #include "ParadynEAMT.h"
 
 #include "toolboxConstants.h"
@@ -246,7 +246,7 @@ double ParadynEAMT::ElecDensEnergy(double r_ab, double* data_a, double* data_b)
 {
 #pragma unused(data_a)
 #pragma unused(data_b)
-
+	
   return EnergyAux(r_ab,s_nr,s_f_inc,s_ElecDenscoeff);
 }
 

@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.55.2.7 2004-02-19 22:33:55 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.55.2.8 2004-03-05 15:06:49 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -53,6 +53,7 @@
 #include "FieldT.h"
 #include "IntegratorT.h"
 #include "ElementBaseT.h"
+#include "EAMFCC3D.h"
 #endif
 
 using namespace Tahoe;
@@ -407,7 +408,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		
 			t1 = clock();
 			phase = 1;
-			RunDynamicBridging(continuum, atoms, log_out);
+			RunDynamicBridging(continuum, atoms, log_out, atom_in);
 #else
 			ExceptionT::GeneralFail(caller, "dynamic bridging requires the DEVELOPMENT module");
 #endif
@@ -685,7 +686,7 @@ void FEExecutionManagerT::RunStaticBridging_monolithic(ifstreamT& in, FEManagerT
 }
 
 #ifdef __DEVELOPMENT__
-void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_THK& atoms, ofstream& log_out) const
+void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_THK& atoms, ofstream& log_out, ifstreamT& in) const
 {
 	const char caller[] = "FEExecutionManagerT::RunDynamicBridging";
 	/* configure ghost nodes */
@@ -723,16 +724,16 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	//dArrayT mdmass;
 	//atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
 	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);			
-	//nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
-	nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for fracture problem
+	nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
+	//nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for fracture problem
 	//nMatrixT<int> ghostonmap(4), ghostoffmap(4);    // for planar wave propagation problem
 	ghostonmap = 0;
 	ghostoffmap = 0;
-	//ghostoffmap(1,0) = ghostoffmap(0,1) = 1;  // for wave propagation problem
-	ghostoffmap(4,0) = ghostoffmap(0,4) = ghostoffmap(4,1) = ghostoffmap(1,4) = 1;  // center MD crack
-	ghostoffmap(4,2) = ghostoffmap(2,4) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
-	ghostoffmap(4,3) = ghostoffmap(3,4) = 1;
-	ghostonmap(2,3) = ghostonmap(3,2) = 1;
+	ghostoffmap(1,0) = ghostoffmap(0,1) = 1;  // for wave propagation problem
+	//ghostoffmap(4,0) = ghostoffmap(0,4) = ghostoffmap(4,1) = ghostoffmap(1,4) = 1;  // center MD crack
+	//ghostoffmap(4,2) = ghostoffmap(2,4) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
+	//ghostoffmap(4,3) = ghostoffmap(3,4) = 1;
+	//ghostonmap(2,3) = ghostonmap(3,2) = 1;
 	//ghostoffmap(1,0) = ghostoffmap(0,1) = ghostoffmap(3,0) = ghostoffmap(0,3) = 1; // left edge MD crack
 	//ghostoffmap(1,3) = ghostoffmap(3,1) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
 	//ghostonmap(1,0) = ghostonmap(0,1) = 1;
@@ -744,6 +745,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	atom_time->Top();
 	continuum_time->Top();
 	int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
+	
 	while (atom_time->NextSequence() && continuum_time->NextSequence())
 	{	
 		/* set to initial condition */
@@ -811,9 +813,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		{
 			/* thkdisp = fine scale part of ghost atom displacement */
 			totaldisp = atoms.THKDisp(badisp);
-			totaldisp+=gadisp;
-			
-			/* NEED TO ADD FEM SOLUTION FIRST BEFORE WRITING FIELD */
+			totaldisp+=gadisp;	// add FEM coarse scale part of displacement
 			atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, totaldisp);
 		}
 		
@@ -854,10 +854,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				{
 					/* calculate fine scale part of MD ghost atom displacements */
 					totaldisp = atoms.THKDisp(badisp);
-					totaldisp+=gadisp;
+					totaldisp+=gadisp;	// FEM solution interpolated to ghost atom positions
 				
 					/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
-					/* NEED TO ADD FEM SOLUTION FIRST BEFORE WRITING INTO FIELD */
 					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, totaldisp);
 				}
 				
@@ -916,6 +915,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			badisp.RowCollect(batoms, boundghostdisp);
 			bavel.RowCollect(batoms, boundghostvel);
 			baacc.RowCollect(batoms, boundghostacc);
+			
+			/* Test functions to calculate EAM electron density/embedding terms using continuum information */
+			double edensity = continuum.ElecDensity(in, atoms.GhostNodes());
 			
 			/* close fe step */
 			if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
