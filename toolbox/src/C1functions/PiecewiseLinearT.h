@@ -1,4 +1,4 @@
-/* $Id: PiecewiseLinearT.h,v 1.2 2004-07-12 21:48:02 paklein Exp $ */
+/* $Id: PiecewiseLinearT.h,v 1.3 2004-09-02 18:40:12 rdorgan Exp $ */
 #ifndef _PIECEWISE_LINEAR_T_H_
 #define _PIECEWISE_LINEAR_T_H_
 
@@ -30,6 +30,8 @@ public:
 	virtual double Function(double x) const;
 	virtual double DFunction(double x) const;
 	virtual double DDFunction(double x) const;
+	virtual double DDDFunction(double x) const;
+	virtual double DDDDFunction(double x) const;
 	/*@}*/
 
 	/* returning values in groups - returns refence to out to allow:
@@ -39,6 +41,8 @@ public:
 	virtual dArrayT& MapFunction(const dArrayT& in, dArrayT& out) const;
 	virtual dArrayT& MapDFunction(const dArrayT& in, dArrayT& out) const;
 	virtual dArrayT& MapDDFunction(const dArrayT& in, dArrayT& out) const;
+	virtual dArrayT& MapDDDFunction(const dArrayT& in, dArrayT& out) const;
+	virtual dArrayT& MapDDDDFunction(const dArrayT& in, dArrayT& out) const;
 
 	/** Return 0th, 1st, and 2nd derivative in the respective fields of the dArrayT */  	
 	virtual void SetAll(double x, dArrayT& data) const;   	
@@ -61,6 +65,8 @@ protected:
 	double function(double x) const;
 	double Dfunction(double x) const;
 	double DDfunction(double x) const;
+	double DDDfunction(double x) const;
+	double DDDDfunction(double x) const;
 	void all_functions(double x, double& f, double& Df, double& DDf) const;
 
 private:
