@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.16 2002-10-20 22:49:46 paklein Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.17 2003-03-31 23:07:50 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -24,7 +24,9 @@ ParentDomainT::ParentDomainT(GeometryT::CodeT geometry_code, int numIP, int numn
 	fDNa(fNumIP),
 	fWeights(fNumIP),
 	fNodalExtrap(fNumNodes,fNumIP),
-	fJacobian(fNumSD)
+	fJacobian(fNumSD),
+	fNa_p(fNumNodes),
+	fDNa_p(fNumSD, fNumNodes)
 {
 	/* memory for the derivatives */
 	for (int i = 0; i < fDNa.Length(); i++)
@@ -407,7 +409,7 @@ void ParentDomainT::ComputeDNa(const LocalArrayT& coords,
 	ArrayT<dArray2DT>& DNa, dArrayT& det)
 {
 	/* loop over integration points */
-int numIP = fDNa.Length();
+	int numIP = fDNa.Length();
 	for (int i = 0; i < numIP; i++)	
 	{
 		/* calculate the Jacobian matrix */
@@ -540,111 +542,299 @@ void ParentDomainT::Print(ostream& out) const
 /* return true if the given point is within the domain */
 bool ParentDomainT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
 {
-  int x, y;
-  int dim = point.Length();
-  int numpoints = coords.Length();
-  if (dim == 1) /* 1D case */
-  {
-    dArrayT temp(2);
-    for (int i = 0; i < 2; i++) 
-      temp[i]=coords[i];
+	const char caller[] = "ParentDomainT::PointInDomain";
+	
+#if __option(extended_errorcheck)
+	if (coords.MinorDim() != point.Length()) ExceptionT::SizeMismatch(caller);
+#endif
 
-    temp.SortAscending();
-    /* if atom and node coincide, return true */
-    if (point[0] >= temp[0] && point[0] <= temp[1])
-      return true;
-    else
-      return false;
-  }
-  else if (dim == 2)
-  {
-    /* currently assuming square/rectangular elements */
-    if (point[0] >= coords(0,0) && point[0] <= coords(1,0))
-      x = 1;
-    else
-      x = 0;
-    if (point[1] >= coords(1,1) && point[1] <= coords(2,1))
-      y = 1;
-    else
-      y = 0;
-    if (x == 1 && y == 1)
-      return true;
-    else
-      return false;
-  }
-  else if (dim == 3)
-    int blah2=0;
-  else
-    int blah3=0;
-#pragma unused(coords)
-#pragma unused(point)
-  return false;
+	int dim = point.Length();
+	if (dim == 1) /* 1D case */
+	{
+#if __option(extended_errorcheck)
+		if (coords.NumberOfNodes() != 2) 
+			ExceptionT::GeneralFail(caller, "expecting only 2 points in 1D: %d", coords.NumberOfNodes());
+#endif
+
+		if (coords[1] > coords[0])
+		{
+			if (point[0] >= coords[0] && point[0] <= coords[1])
+				return true;
+			else
+				return false;
+		}
+		else
+		{
+			if (point[0] >= coords[1] && point[0] <= coords[0])
+				return true;
+			else
+				return false;
+		}
+	}
+	else if (dim == 2)
+	{
+		/* method: run around the perimeter of the element and see if
+		 *         the point always lies to the left of segment a-b */
+		int nen = coords.NumberOfNodes();
+		int a = nen - 1;
+		int b = 0;
+		bool in_domain = true;
+		for (int i = 0; in_domain && i < nen; i++)
+		{
+			double ab_0 = coords(b,0) - coords(a,0);
+			double ab_1 = coords(b,1) - coords(a,1);
+
+			double ap_0 = point[0] - coords(a,0);
+			double ap_1 = point[1] - coords(a,1);
+		
+			double cross = ab_0*ap_1 - ab_1*ap_0;
+			in_domain = cross >= 0.0;
+			a++; 
+			b++;
+			if (a == nen) a = 0;
+		}
+		
+		return in_domain;
+	}
+	else if (dim == 3)
+	{
+		//TEMP - only implemented for 8-node hex's
+		if (fGeometryCode != GeometryT::kHexahedron && fNumNodes != 8)
+			ExceptionT::GeneralFail(caller, "only implemented for 8-node hex's");
+
+#if __option(extended_errorcheck)
+		if (coords.NumberOfNodes() != 8) 
+			ExceptionT::GeneralFail(caller, "expecting 8 element nodes: %d", coords.NumberOfNodes());
+#endif
+
+		/* nodes-facet data - ordered for outward normals */
+		int dat8[] = {
+			0, 3, 2, 1,
+			4, 5, 6, 7,
+			0, 1, 5, 4,
+			1, 2, 6, 5,
+			2, 3, 7, 6,
+			3, 0, 4, 7};
+
+		/* method: check all faces and see of point lies inside, breaking
+		*          each face into 2 triangular facets */
+		bool in_domain = true;
+		int* facet_nodes = dat8;
+		for (int i = 0; in_domain && i < 6; i++)
+		{
+			/* facet 1 */
+			double ab_0 = coords(facet_nodes[1], 0) - coords(facet_nodes[0], 0);
+			double ab_1 = coords(facet_nodes[1], 1) - coords(facet_nodes[0], 1);
+			double ab_2 = coords(facet_nodes[1], 2) - coords(facet_nodes[0], 2);
+
+			double ac_0 = coords(facet_nodes[3], 0) - coords(facet_nodes[0], 0);
+			double ac_1 = coords(facet_nodes[3], 1) - coords(facet_nodes[0], 1);
+			double ac_2 = coords(facet_nodes[3], 2) - coords(facet_nodes[0], 2);
+
+			double ap_0 = point[0] - coords(facet_nodes[0], 0);
+			double ap_1 = point[1] - coords(facet_nodes[0], 1);
+			double ap_2 = point[2] - coords(facet_nodes[0], 2);
+			
+			/* vector triple product */
+			double ac_ab_0 = ac_1*ab_2 - ac_2*ab_1;
+			double ac_ab_1 = ac_2*ab_0 - ac_0*ab_2;
+			double ac_ab_2 = ac_0*ab_1 - ac_1*ab_0;			
+			double triple_product = ac_ab_0*ap_0 + ac_ab_1*ap_1 + ac_ab_2*ap_2;
+			in_domain = triple_product >= 0.0;
+
+			/* facet 2 */
+			if (in_domain) {
+
+				ab_0 = coords(facet_nodes[3], 0) - coords(facet_nodes[2], 0);
+				ab_1 = coords(facet_nodes[3], 1) - coords(facet_nodes[2], 1);
+				ab_2 = coords(facet_nodes[3], 2) - coords(facet_nodes[2], 2);
+
+				ac_0 = coords(facet_nodes[1], 0) - coords(facet_nodes[2], 0);
+				ac_1 = coords(facet_nodes[1], 1) - coords(facet_nodes[2], 1);
+				ac_2 = coords(facet_nodes[1], 2) - coords(facet_nodes[2], 2);
+
+				ap_0 = point[0] - coords(facet_nodes[2], 0);
+				ap_1 = point[1] - coords(facet_nodes[2], 1);
+				ap_2 = point[2] - coords(facet_nodes[2], 2);
+
+				/* vector triple product */
+				ac_ab_0 = ac_1*ab_2 - ac_2*ab_1;
+				ac_ab_1 = ac_2*ab_0 - ac_0*ab_2;
+				ac_ab_2 = ac_0*ab_1 - ac_1*ab_0;			
+				triple_product = ac_ab_0*ap_0 + ac_ab_1*ap_1 + ac_ab_2*ap_2;
+				in_domain = triple_product >= 0.0;
+			}
+
+			facet_nodes += 4;
+		}
+		
+		return in_domain;
+	}
+	
+	/* fall through */
+  	return false;
 }
 
 /* map domain coordinates into the parent coordinates */
 bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& point,
 	dArrayT& mapped) const
 {
-  int dim = point.Length();
-  int numpoints = coords.Length();
-  if (dim == 1) 
-    {
-      dArrayT temp(2);
-      for (int i = 0; i < 2; i++)
-	temp[i]=coords(i,0);
+	const char caller[] = "ParentDomainT::MapToParentDomain";
+#if __option(extended_errorcheck)
+	if (point.Length() != mapped.Length() ||
+	    point.Length() != coords.MinorDim()) ExceptionT::SizeMismatch(caller);
+#endif
 
-      temp.SortAscending();
-      mapped[0]=2*point[0]/(temp[1]-temp[0])-(temp[0]+temp[1])/(temp[1]-temp[0]);
-      /* mapped[0] = value in psi space, assuming parent coordinates go from -1 to 1 */
-    }
-  if (dim == 2)
-    {
-      /* solve iteratively via Newton method */
-      dArrayT Na(NumNodes()), Res(NumSD()), Current(NumSD()), Temp(NumSD());
-      Res = 0.0, Current = 0.0;
-      dArray2DT DNa(NumSD(), NumNodes());
-      dMatrixT Jacob(NumSD()), Jacobinv(NumSD());
-      EvaluateShapeFunctions(Current, Na, DNa);
-      Jacobian(coords, DNa, Jacob);
-      Jacobinv.Inverse(Jacob);
+	/* cast away const-ness of local work space */
+	dMatrixT& jacobian = (dMatrixT&) fJacobian;
+	dArrayT& Na_p = (dArrayT&) fNa_p;
+	dArray2DT& DNa_p = (dArray2DT&) fDNa_p;
+
+	int dim = point.Length();
+	if (dim == 1) 
+	{
+#if __option(extended_errorcheck)
+		if (coords.NumberOfNodes() != 2) 
+			ExceptionT::GeneralFail(caller, "expecting only 2 points in 1D: %d", coords.NumberOfNodes());
+#endif
+	
+		double dx = coords[0] - coords[1];
+		if (fabs(dx) < kSmall) ExceptionT::BadJacobianDet(caller, "det = %g", dx);
+		mapped[0] = (coords[0] + coords[1] - 2.0*point[0])/dx;
+		return true;
+	}
+	else if (dim == 2)
+	{
+		/* convergence tolerance */
+		double tol = 1.0e-14;
+	
+		/* initial guess */
+		mapped[0] = 0.0;
+		mapped[1] = 0.0;
+	
+		/* evaluate shape functions, derivatives at point */
+		EvaluateShapeFunctions(mapped, Na_p, DNa_p);
       
-      /* compute initial residual */
-      for (int i = 0; i < NumNodes(); i++)
-	{
-	  Res[0] += Na[i] * coords(i,0);
-	  Res[1] += Na[i] * coords(i,1);
-	}
-      Res[0] -= point[0];
-      Res[1] -= point[1];
-      double magres0 = Res.Magnitude();
-      /* perform Newton iterations */
-      if (magres0 < 10e-14) // if initial guess is exact, so don't divide by 0
-	  mapped = Current;
-      else
-	{
-	  int count = 0;
-	  while (count++ < 15 && Res.Magnitude()/magres0 > 10e-14)
-	    {
-	      Res *= -1.0;
-	      Jacobinv.Multx(Res,Temp);
-	      Current += Temp;
-	      EvaluateShapeFunctions(Current, Na);
-	      Res = 0.0;
-	      for (int i = 0; i < NumNodes(); i++)
+		/* compute initial residual */
+		double residual[2];
+		residual[0] = point[0];
+		residual[1] = point[1];
+		for (int i = 0; i < NumNodes(); i++)
 		{
-		  Res[0] += Na[i] * coords(i,0);
-		  Res[1] += Na[i] * coords(i,1);
+			residual[0] -= Na_p[i]*coords(i,0);
+			residual[1] -= Na_p[i]*coords(i,1);
 		}
-	      Res[0] -= point[0];
-	      Res[1] -= point[1];
-	    }
-	  mapped = Current;
-	}
+		double magres, magres0;
+		magres = magres0 = sqrt(residual[0]*residual[0] + residual[1]*residual[1]);
+		
+		/* initial isn't correct */
+		if (magres0 > tol)
+		{
+			/* perform Newton iterations */
+			int count = 0;
+			while (count++ < 15 && magres > tol && magres/magres0 > tol)
+			{
+				/* Newton update */
+				double update[2];
+				Jacobian(coords, DNa_p, jacobian);
+				jacobian.Inverse();
+				jacobian.Multx(residual, update);
+				mapped[0] += update[0];
+				mapped[1] += update[1];
+				
+				/* evaluate shape functions, derivatives at point */
+				EvaluateShapeFunctions(mapped, Na_p, DNa_p);
+				
+				/* new residual */
+				residual[0] = point[0];
+				residual[1] = point[1];
+				for (int i = 0; i < NumNodes(); i++)
+				{
+					residual[0] -= Na_p[i]*coords(i,0);
+					residual[1] -= Na_p[i]*coords(i,1);
+				}
+				magres = sqrt(residual[0]*residual[0] + residual[1]*residual[1]);
+			}
+		}
+		
+		/* check convergence */
+		if (magres < tol || magres/magres0 < tol)
+			return true;
+		else
+			return false;
     }
-#pragma unused(coords)
-#pragma unused(point)
-#pragma unused(mapped)
-  return true;
+    else if (dim == 3)
+    {
+		/* convergence tolerance */
+		double tol = 1.0e-14;
+
+		/* initial guess */
+		mapped[0] = 0.0;
+		mapped[1] = 0.0;
+		mapped[2] = 0.0;
+	
+		/* evaluate shape functions, derivatives at point */
+		EvaluateShapeFunctions(mapped, Na_p, DNa_p);
+      
+		/* compute initial residual */
+		double residual[3];
+		residual[0] = point[0];
+		residual[1] = point[1];
+		residual[2] = point[2];
+		for (int i = 0; i < NumNodes(); i++)
+		{
+			residual[0] -= Na_p[i]*coords(i,0);
+			residual[1] -= Na_p[i]*coords(i,1);
+			residual[2] -= Na_p[i]*coords(i,2);
+		}
+		double magres, magres0;
+		magres = magres0 = sqrt(residual[0]*residual[0] + 
+		                        residual[1]*residual[1] +
+		                        residual[2]*residual[2]);
+		
+		/* initial isn't correct */
+		if (magres0 > tol)
+		{
+			/* perform Newton iterations */
+			int count = 0;
+			while (count++ < 15 && magres > tol && magres/magres0 > tol)
+			{
+				/* Newton update */
+				double update[3];
+				Jacobian(coords, DNa_p, jacobian);
+				jacobian.Inverse();
+				jacobian.Multx(residual, update);
+				mapped[0] += update[0];
+				mapped[1] += update[1];
+				mapped[2] += update[2];
+				
+				/* evaluate shape functions, derivatives at point */
+				EvaluateShapeFunctions(mapped, Na_p, DNa_p);
+				
+				/* new residual */
+				residual[0] = point[0];
+				residual[1] = point[1];
+				residual[2] = point[2];
+				for (int i = 0; i < NumNodes(); i++)
+				{
+					residual[0] -= Na_p[i]*coords(i,0);
+					residual[1] -= Na_p[i]*coords(i,1);
+					residual[2] -= Na_p[i]*coords(i,2);
+				}
+				magres = sqrt(residual[0]*residual[0] + 
+                              residual[1]*residual[1] +
+                              residual[2]*residual[2]);
+			}
+		}
+		
+		/* check convergence */
+		if (magres < tol || magres/magres0 < tol)
+			return true;
+		else
+			return false;
+    }
+    else
+    	return false;
 }
 
 /* calculate a characteristic domain size */
