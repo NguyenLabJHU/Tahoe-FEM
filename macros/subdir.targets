@@ -1,4 +1,4 @@
-# $Id: subdir.targets,v 1.7 2003-03-15 16:54:31 paklein Exp $
+# $Id: subdir.targets,v 1.8 2003-09-03 19:12:42 paklein Exp $
 
 MACROS = \
 	"INC_DIR = $(INC_DIR)" \
@@ -85,9 +85,11 @@ subdir_loop:
 			|| exit 1; \
 			cd ../; \
 		else \
-			$(PRINTF) "\n*** missing directory: $(CURR_DIR)/$$n\n"; \
-			$(PRINTF) "*** try updating with \"cvs update -Pd\"\n"; \
-			exit 1; \
+			if test $$n != "NONE"; then \
+				$(PRINTF) "\n*** missing directory: $(CURR_DIR)/$$n\n"; \
+				$(PRINTF) "*** try updating with \"cvs update -Pd\"\n"; \
+				exit 1; \
+			fi; \
 		fi; \
 	done	
 
