@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.16 2004-08-14 05:15:33 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.17 2004-09-22 06:12:57 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -154,8 +154,6 @@ public:
 	virtual const dArrayT& InternalStrainVars(void);
 	/*@}*/
 	
-private:
-
 	/** return true if material implementation supports imposed thermal
 	 * strains. */
 	virtual bool SupportsThermalStrain(void) const { return false; };
