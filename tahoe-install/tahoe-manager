@@ -50,9 +50,9 @@ ARG: while (@ARGV) {
 		$count = @ARGV;
 		if ($script_status > 0 )   { failed();}
 		if (/^u|update/i)          { update(); next ARG; }
-		if (/^c|config/i)          { config(); next ARG; }
+		if (/^i|init/i)            { config(); next ARG; }
 		if (/^b|build/i)           { build(); next ARG; }
-		if (/clean/i)              { clean(); next ARG; }
+		if (/^c|clean/i)           { clean(); next ARG; }
 		if (/^t|test/i)            { test(); next ARG; }
 		if (/^a|all/i)             { update(); config(); build(); next ARG; }
 		if (/^u|usage|help|^h/i)   { usage();}
@@ -383,7 +383,7 @@ sub build{
 ##############################################################################
 sub config{
 	$time = localtime();
-	print "($count) config'ing: @modules, at $time\n";
+	print "($count) initializing: @modules, at $time\n";
 	foreach $dir (@modules) {
 		if (-e $dir) { 
 			chdir $dir; 
@@ -407,7 +407,7 @@ sub clean{
 			chdir $dir; 
 			if (-e "makefile") {
 				print "\tcleaning $dir";
-				system("make clean");
+				system("make clean >&! clean.log");
 				print " ...done\n";
 			}
 		 	chdir "..";
