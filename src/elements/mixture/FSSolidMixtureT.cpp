@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.7 2005-01-20 01:49:49 paklein Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.8 2005-01-24 07:00:45 paklein Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -113,21 +113,23 @@ const dSymMatrixT& FSSolidMixtureT::ds_ij_dc(int i)
 	double c_h = c_0 + eps;
 	double c_l = c_0 - eps;
 	c_l = (c_l < 0.0) ? c_0 : c_l;
-	double rel_conc;
+	double rel_conc, J_g;
 
 	/* "high" */
 	conc[i] = c_h;
 	rel_conc = conc[i]/conc_0[i];
 	fF_growth_inv.Identity(1.0/rel_conc);
 	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
-	fs_ij_tmp.SetToScaled(conc[i], fStressFunctions[i]->s_ij());
+	J_g = pow(rel_conc, fF_growth_inv.Rows());
+	fs_ij_tmp.SetToScaled(conc[i]/J_g, fStressFunctions[i]->s_ij());
 
 	/* "low" */
 	conc[i] = c_l;
 	rel_conc = conc[i]/conc_0[i];
 	fF_growth_inv.Identity(1.0/rel_conc);
 	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
-	fStress.SetToScaled(conc[i], fStressFunctions[i]->s_ij());
+	J_g = pow(rel_conc, fF_growth_inv.Rows());
+	fStress.SetToScaled(conc[i]/J_g, fStressFunctions[i]->s_ij());
 
 	/* finite difference */
 	double dc_inv = 1.0/(c_h - c_l);
