@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2002-02-12 02:04:06 paklein Exp $
+# $Id: makefile,v 1.7.8.1 2002-10-17 04:02:30 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -21,18 +21,19 @@ DEP = /dev/null
 
 # subdirectories
 SUB_DIR = \
-	abc \
 	common \
+	linkedlist \
+	abc \
+	geometry \
+	fstreamT \
 	console \
 	C1functions \
-	dataio \
 	front \
-	fstreamT \
 	graph \
-	linkedlist \
 	misc \
 	neighbors \
 	search \
+	dataio \
 	parallel
 
 subdir_driver: subdir_loop
