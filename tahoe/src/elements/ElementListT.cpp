@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.111 2005-03-30 00:44:20 cfoster Exp $ */
+/* $Id: ElementListT.cpp,v 1.112 2005-04-06 00:38:48 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -542,7 +542,7 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 		return new MixtureSpeciesT(fSupport);
 #endif
 
-#if defined(MATERIAL_FORCE_ELEMENT_DEV) && defined(MATERIAL_FORCE_ELEMENT_DEV)
+#if defined(SOLID_ELEMENT_DEV) && defined(MATERIAL_FORCE_ELEMENT_DEV)
 	else if (name == "small_strain_material_force")
 		return new SSMF(fSupport);
 #endif
