@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.15 2004-08-04 22:00:23 cjkimme Exp $ */
+/* $Id: SCNIMFT.h,v 1.16 2004-09-29 18:26:52 cjkimme Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -35,6 +35,8 @@ class InverseMapT;
 class ifstreamT;
 class ofstreamT;
 class MeshFreeSupportT;
+class Traction_CardT;
+
 /** base class for particle types */
 class SCNIMFT: public ElementBaseT
 {
@@ -87,7 +89,7 @@ public:
 	virtual void LHSDriver(GlobalT::SystemTypeT sys_type) = 0;
 	
 	/** Loop over nodes and compute internal force */
-	virtual void RHSDriver(void) = 0;
+	virtual void RHSDriver(void);
 	
 	/** Generate local equation numbers */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -103,10 +105,6 @@ public:
 	/** Return interpolated displacement field at selected nodes -- communication routine for MFLagMultT */
 	void InterpolatedFieldAtNodes(const iArrayT& nodes, dArray2DT& fieldAtNodes);
 
-	/** Return the data structure holding the support of the localNode and it's window function values 
-		-- communication routine for for MFLagMultT */
-	void NodalSupportAndPhi(int localNode, LinkedListT<int>& support, LinkedListT<double>& phi);
-	
 	/** Return the data structure holding the supports of the localNodes and their window function values 
 		-- communication routine for for MFLagMultT */
 	void NodalSupportAndPhi(iArrayT& localNodes, RaggedArray2DT<int>& support, RaggedArray2DT<double>& phi);
@@ -140,6 +138,8 @@ public:
 	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 	
 	virtual void TakeParameterList(const ParameterListT& list);
+	
+	void TakeNaturalBC(const ParameterListT& list);
 	/*@}*/
 
 
@@ -270,15 +270,15 @@ protected:
 	ArrayT<ArrayT<bool> > fMaterialNeeds;
 	
 	/** workspaces for strain smoothing */
-	ArrayT< LinkedListT<int> > nodeWorkSpace;
-	ArrayT< LinkedListT<dArrayT> > facetWorkSpace;
+	ArrayT< LinkedListT<int> > nodeWorkSpace; // should be local?
+	ArrayT< LinkedListT<dArrayT> > facetWorkSpace; // should be local?
 
 	RaggedArray2DT<int> nodalCellSupports;
 	RaggedArray2DT<dArrayT> bVectorArray;
 	
 	/** workspace for nodal shape functions */
-	ArrayT< LinkedListT<double> > fNodalPhi;
-	ArrayT< LinkedListT<int> > fNodalSupports;
+	RaggedArray2DT<double> fNodalPhi;
+	RaggedArray2DT<int> fNodalSupports;
 	  	
 	/* body force vector */
 	const ScheduleT* fBodySchedule; /**< body force schedule */
@@ -292,6 +292,10 @@ protected:
 
 	/** equation numbers */
 	RaggedArray2DT<int> fEqnos;
+
+	/* traction data */
+	dArray2DT fTractionVectors;
+	iArrayT fTractionBoundaryCondition;
 
 };
 

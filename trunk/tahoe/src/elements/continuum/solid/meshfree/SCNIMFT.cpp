@@ -1,7 +1,6 @@
-/* $Id: SCNIMFT.cpp,v 1.27 2004-09-23 00:54:26 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.28 2004-09-29 18:26:52 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
-//#define VERIFY_B
 
 #include "ArrayT.h"
 #include "ofstreamT.h"
@@ -10,7 +9,6 @@
 #include "eIntegratorT.h"
 #include "OutputSetT.h"
 #include "ElementSupportT.h"
-//#include "BasicSupportT.h"
 #include "ModelManagerT.h"
 #include "iGridManagerT.h"
 #include "iNodeT.h"
@@ -27,6 +25,8 @@
 #include "SolidMaterialT.h"
 #include "SolidMatSupportT.h"
 
+#include "Traction_CardT.h"
+
 /* materials lists */
 #include "SSSolidMatList1DT.h"
 #include "SSSolidMatList2DT.h"
@@ -37,6 +37,12 @@
 #endif
 
 using namespace Tahoe;
+
+/* uncomment this line for many, many boundary integration points;
+ * --set the number of points in the routine compute B matrices
+ */
+//#define SEPARATE_BOUNDARY_INTEGRATION
+const int kNoTractionVector = -1;
 
 /* constructors */
 SCNIMFT::SCNIMFT(const ElementSupportT& support, const FieldT& field):
@@ -68,7 +74,7 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support):
 	SetName("mfparticle");
 
 	/* set matrix format */
-	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
+	fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
 }
 
 /* destructor */
@@ -239,8 +245,10 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	/** store shape functions at nodes */
 	int nNodes = fNodes.Length();
 	dArrayT nodalCoords;
-	fNodalPhi.Dimension(nNodes);
-	fNodalSupports.Dimension(nNodes);
+	ArrayT< LinkedListT<double> > nodal_phi;
+	ArrayT< LinkedListT<int> > nodal_supports;
+	nodal_phi.Dimension(nNodes);
+	nodal_supports.Dimension(nNodes);
 	for (int i = 0; i < nNodes; i++) {
 		nodalCoords.Set(fSD, fDeloneVertices(fNodes[i]));
 	
@@ -248,10 +256,30 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 			ExceptionT::GeneralFail("SCNIMFT::TakeParameterList","Shape Function evaluation"
 				"failed at Delone edge %d\n",fNodes[i]);		
 		
-		fNodalPhi[i].AppendArray(fNodalShapes->FieldAt().Length(),
+		nodal_phi[i].AppendArray(fNodalShapes->FieldAt().Length(),
 									const_cast <double *> (fNodalShapes->FieldAt().Pointer()));
-		fNodalSupports[i].AppendArray(fNodalShapes->Neighbors().Length(),
+		nodal_supports[i].AppendArray(fNodalShapes->Neighbors().Length(),
 										const_cast <int *> (fNodalShapes->Neighbors().Pointer()));
+	}
+	
+	// move into RaggedArray2DT's
+	// move into more efficient storage for computation
+	fNodalPhi.Configure(nodal_phi);
+	fNodalSupports.Configure(nodal_supports);
+	
+	if (nodal_supports.Length() != nodal_phi.Length())
+		ExceptionT::GeneralFail(caller,"nodal support indices and shape function values do not match\n");
+		
+	for (int i = 0; i < nodal_supports.Length(); i++) {
+		int* irow_i = fNodalSupports(i);
+		double* drow_i = fNodalPhi(i);
+		LinkedListT<int>& ilist = nodal_supports[i];
+		LinkedListT<double>& dlist = nodal_phi[i];
+		ilist.Top(); dlist.Top();
+		while (ilist.Next() && dlist.Next()) {
+			*irow_i++ = *(ilist.CurrentValue());
+			*drow_i++ = *(dlist.CurrentValue());
+		}
 	}
 	
 	/** Material Data */
@@ -263,7 +291,182 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	  ExceptionT::GeneralFail(caller,"could not construct material list \"%s\"", mat_params.Name().Pointer());
 	fMaterialList->TakeParameterList(mat_params);
 	
+	/* body force */
+	const ParameterListT* body_force = list.List("body_force");
+	if (body_force) {
+		int schedule = body_force->GetParameter("schedule");
+		fBodySchedule = ElementSupport().Schedule(--schedule);
+
+		/* body force vector */
+		const ArrayT<ParameterListT>& body_force_vector = body_force->Lists();
+		if (body_force_vector.Length() != NumDOF())
+			ExceptionT::BadInputValue(caller, "body force is length %d not %d",
+				body_force_vector.Length(), NumDOF());
+		fBody.Dimension(NumDOF());
+		for (int i = 0; i < fBody.Length(); i++)
+			fBody[i] = body_force_vector[i].GetParameter("value");
+	}
+	
+	/* extract natural boundary conditions */
+	TakeNaturalBC(list);
 }
+
+/* extract natural boundary condition information */
+void SCNIMFT::TakeNaturalBC(const ParameterListT& list)
+{
+	const char caller[] = "SCNIMFT::TakeNaturalBC";
+
+	int num_natural_bc = list.NumLists("natural_bc");
+	
+	// allocate data structures
+	fTractionVectors.Dimension(num_natural_bc,fSD);
+	fTractionVectors = 0.;
+	
+	// 
+	fTractionBoundaryCondition.Dimension(fBoundaryIntegrationWeights.Length());
+	fTractionBoundaryCondition = -1;
+	
+	if (num_natural_bc > 0)
+	{
+		/* model manager */
+		ModelManagerT& model = ElementSupport().ModelManager();
+	
+		/* temp space */
+		ArrayT<StringT> block_ID(num_natural_bc);
+	    ArrayT<iArray2DT> localsides(num_natural_bc);
+	    iArrayT LTf(num_natural_bc);
+	    ArrayT<Traction_CardT::CoordSystemT> coord_sys(num_natural_bc);
+	    ArrayT<dArray2DT> values(num_natural_bc);
+
+	    /* nodes on element facets */
+	    iArrayT num_facet_nodes;
+	    num_facet_nodes = fSD;
+	    
+	    /* loop over natural BC's */
+	    int tot_num_sides = 0;
+	    for (int i = 0; i < num_natural_bc; i++) 
+	   	{
+	    	const ParameterListT& natural_bc = list.GetList("natural_bc", i);
+	    
+	    	/* side set */
+	    	const StringT& ss_ID = natural_bc.GetParameter("side_set_ID");
+			localsides[i] = model.SideSet(ss_ID);
+			int num_sides = localsides[i].MajorDim();
+			tot_num_sides += num_sides;
+			if (num_sides > 0)
+			{
+				block_ID[i] = model.SideSetGroupID(ss_ID);
+				LTf[i] = natural_bc.GetParameter("schedule");
+				coord_sys[i] = Traction_CardT::int2CoordSystemT(natural_bc.GetParameter("coordinate_system"));
+
+				/* switch to elements numbering within the group */
+				iArray2DT& side_set = localsides[i];
+				iArrayT elems(num_sides);
+				side_set.ColumnCopy(0, elems);
+				BlockToGroupElementNumbers(elems, block_ID[i]);
+				side_set.SetColumn(0, elems);
+
+				/* all facets in set must have the same number of nodes */
+				int num_nodes = num_facet_nodes[side_set(0,1)];
+				for (int f = 0; f < num_sides; f++)
+					if (num_facet_nodes[side_set(f,1)] != num_nodes)
+						ExceptionT::BadInputValue(caller, "faces side set \"%s\" have different numbers of nodes",
+							ss_ID.Pointer());
+
+				/* read traction nodal values */
+				dArray2DT& nodal_values = values[i];
+				nodal_values.Dimension(num_nodes, NumDOF());
+				int num_traction_vectors = natural_bc.NumLists("DoubleList");
+				if (num_traction_vectors != 1 && num_traction_vectors != num_nodes)
+					ExceptionT::GeneralFail(caller, "expecting 1 or %d vectors not %d",
+						num_nodes, num_traction_vectors);
+						
+				/* constant over the face */
+				if (num_traction_vectors == 1) {
+					const ParameterListT& traction_vector = natural_bc.GetList("DoubleList");
+					int dim = traction_vector.NumLists("Double");
+					if (dim != NumDOF())
+						ExceptionT::GeneralFail(caller, "expecting traction vector length %d not %d",
+							NumDOF(), dim);
+						
+					dArrayT t;
+					for (int j = 0; j < NumDOF(); j++)
+						t[j] = traction_vector.GetList("Double", j).GetParameter("value");	
+							
+					fTractionVectors.SetRow(fSD, t);
+
+					/* same for all face nodes */
+					//for (int f = 0; f < NumDOF(); f++) {
+					//	double t = traction_vector.GetList("Double", f).GetParameter("value");
+					//	nodal_values.SetColumn(f, t);
+					//}
+				}
+				else
+				{
+					ExceptionT::GeneralFail(caller,"Only constant traction over sideset implemented\n");
+				
+					/* read separate vector for each face node */
+					//dArrayT t;
+					//for (int f = 0; f < num_nodes; f++) {
+						//const ParameterListT& traction_vector = natural_bc.GetList("DoubleList", f);
+						//int dim = traction_vector.NumLists("Double");
+						//if (dim != NumDOF())
+							//ExceptionT::GeneralFail(caller, "expecting traction vector length %d not %d",
+								//NumDOF(), dim);
+
+						//nodal_values.RowAlias(f, t);
+						//for (int j = 0; j < NumDOF(); j++)
+							//t[j] = traction_vector.GetList("Double", j).GetParameter("value");
+					}
+				}
+			}
+	    }
+
+		/* allocate all traction BC cards */
+	    //fTractionList.Dimension(tot_num_sides);
+
+	    /* correct numbering offset */
+	    //LTf--;
+
+		/* define traction cards */
+		//if (tot_num_sides > 0)
+		//{
+			//iArrayT loc_node_nums;
+			//int dex = 0;
+			//for (int i = 0; i < num_natural_bc; i++)
+			//{
+				/* set traction BC cards */
+				//iArray2DT& side_set = localsides[i];
+				//int num_sides = side_set.MajorDim();
+				//for (int j = 0; j < num_sides; j++)
+				//{					
+					/* get facet local node numbers */
+					//We don't have a domain geometry. Can't call this.
+					//fNodalShapes->NodesOnFacet(side_set(j, 1), loc_node_nums);
+					//if (fSD != 2)
+					//	ExceptionT::GeneralFail(caller,"Specialized to 2D so far\n");
+					//loc_node_nums.Dimension(2);
+					//loc_node_nums[0] = side_set(j,1);
+					//if (side_set(j,1) != 3)
+					//	loc_node_nums[1] = side_set(j,1) + 1;
+					//else
+					//	loc_node_nums[1] = 0;
+					
+					/* set and echo */
+					//fTractionList[dex++].SetValues(ElementSupport(), side_set(j,0), side_set (j,1), LTf[i],
+					//	 coord_sys[i], loc_node_nums, values[i]);
+				//}
+			//}
+		//}
+
+		/* check coordinate system specifications */
+		//if (NumSD() != NumDOF())
+		//	for (int i = 0; i < fTractionList.Length(); i++)
+		//		if (fTractionList[i].CoordSystem() != Traction_CardT::kCartesian)
+		//			ExceptionT::BadInputValue(caller, "coordinate system must be Cartesian if (nsd != ndof) for card %d", i+1);
+	//}
+}
+
 
 /* form of tangent matrix */
 GlobalT::SystemTypeT SCNIMFT::TangentType(void) const
@@ -489,6 +692,41 @@ void SCNIMFT::AssembleParticleMass(const double rho)
 	ElementSupport().AssembleLHS(Group(), fForce, Field().Equations());
 }
 
+/* contribution from natural BCs */
+void SCNIMFT::RHSDriver(void) 
+{
+	// need a node to boundary facet map
+	//fBoundaryIntegrationWeights and fNonDeloneEdges have weights and node numbers
+	//I could also keep an fTractionBoundaryCondition which would have the number of
+	//the traction boundary condition or -1 for none
+	//that's the kludgiest way to get it going for now
+	if (fTractionVectors.MajorDim()) {
+	
+		fForce = 0.;
+	
+		for (int i = 0; i < fNonDeloneEdges.Length(); i++) 
+			if (fTractionBoundaryCondition[i] != kNoTractionVector) {
+				dArrayT traction_vector(fSD); 
+				fTractionVectors.RowCopy(fTractionBoundaryCondition[i],traction_vector.Pointer());
+			
+				int* supp_i = fNodalSupports(fNonDeloneEdges[i]) ;
+				double* phi_i = fNodalPhi(fNonDeloneEdges[i]);
+				double w_i = fBoundaryIntegrationWeights[i];
+				traction_vector *= w_i;
+				for (int j = 0; j < fNodalPhi.MinorDim(i); j++) {
+					double* fint = fForce(*supp_i++);
+					for (int k = 0; k < fSD; k++) 
+						*fint++ += traction_vector[k]*(*phi_i); 
+					phi_i++;
+				}
+			}
+
+		// fForce gets multiplied by constKd?
+
+		ElementSupport().AssembleRHS(Group(),fForce,Field().Equations());	
+	}
+}
+
 int SCNIMFT::GlobalToLocalNumbering(iArrayT& nodes)
 {
 	if (!fNodes.Length())
@@ -557,60 +795,40 @@ void SCNIMFT::InterpolatedFieldAtNodes(const iArrayT& nodes, dArray2DT& fieldAtN
 		/* copy in */
 		vec.Set(fSD, fieldAtNodes.Pointer() + i*fSD);
 		vec = 0.;	
-			
-		LinkedListT<int>& supp_i = fNodalSupports[nodes[i]];
-		LinkedListT<double>& phi_i = fNodalPhi[nodes[i]];
-		supp_i.Top(); phi_i.Top();
-		while (supp_i.Next() && phi_i.Next()) 
-			vec.AddScaled(*(phi_i.CurrentValue()), u(*(supp_i.CurrentValue())));
+		
+		int node_i = nodes[i];
+		int* nodal_supp = fNodalSupports(node_i);
+		double* phi_i = fNodalPhi(node_i);
+		for (int j = 0; j < fNodalPhi.MinorDim(node_i); j++)
+			vec.AddScaled(*phi_i++, u(*nodal_supp++));
 
 	}
 
 }
 
-/** localNode is a local Number, so GlobalToLocalNumbering needs to have been called in whatever class 
-  * calls this function. The node number returned in support are global. 
+/** localNodes are local Numbers, so GlobalToLocalNumbering needs to have been called in whatever class 
+  * calls this function. The node numbers returned in support are global. 
   */
-void SCNIMFT::NodalSupportAndPhi(int localNode, LinkedListT<int>& support, LinkedListT<double>& phi)
-{
-#if __option(extended_errorcheck)
-	if (localNode < 0 || localNode >= fNodes.Length()) throw ExceptionT::kSizeMismatch;
-#endif
-
-	support.Alias(fNodalSupports[localNode]);
-	phi.Alias(fNodalPhi[localNode]);
-}
-
 void SCNIMFT::NodalSupportAndPhi(iArrayT& localNodes, RaggedArray2DT<int>& support, RaggedArray2DT<double>& phi)
 {
 	int nlnd = localNodes.Length();
-	ArrayT<LinkedListT<int> > local_support(nlnd);
-	ArrayT<LinkedListT<double> > local_phi(nlnd);
+	iArrayT minorDims(localNodes.Length());
+	for (int i = 0; i < nlnd; i++) 
+		minorDims[i] = fNodalPhi.MinorDim(localNodes[i]);
+		
+	support.Configure(minorDims);
+	phi.Configure(minorDims);
 	
+	int *lndi = localNodes.Pointer();
 	for (int i = 0; i < nlnd; i++) {
-		local_support[i].Alias(fNodalSupports[localNodes[i]]);
-		local_phi[i].Alias(fNodalPhi[localNodes[i]]);
-	}
-	
-	support.Configure(local_support);
-	phi.Configure(local_phi);
-	
-	for (int i = 0; i < phi.MajorDim(); i++) {
-		int* irow_i = support(i);
-		double* drow_i = phi(i);
-		LinkedListT<int>& ilist = local_support[i];
-		LinkedListT<double>& dlist = local_phi[i];
-		ilist.Top(); dlist.Top();
-		while (ilist.Next() && dlist.Next()) {
-			*irow_i++ = *(ilist.CurrentValue());
-			*drow_i++ = *(dlist.CurrentValue());
-		}
+		support.SetRow(i, fNodalSupports(*lndi));
+		phi.SetRow(i, fNodalPhi(*lndi++));
 	}
 }
 
 int SCNIMFT::SupportSize(int localNode) 
 {
-	return fNodalPhi[localNode].Length();
+	return fNodalPhi.MinorDim(localNode);
 }
 
 void SCNIMFT::ComputeBMatrices(void)
@@ -621,7 +839,6 @@ void SCNIMFT::ComputeBMatrices(void)
 	 * an arbitrary point in space (the Voronoi facet centroid) has to be
 	 * found.
 	 */
-
 	const RaggedArray2DT<int>& nodeSupport = fNodalShapes->NodeNeighbors();
 	
 	int nNodes = fNodes.Length();
@@ -779,17 +996,36 @@ void SCNIMFT::ComputeBMatrices(void)
 		facetNormal.Set(fSD, fNonDeloneNormals(i));
 		facetNormal.UnitVector();
 		
+#ifdef SEPARATE_BOUNDARY_INTEGRATION
+		int num_bdry_pts = 101;
+		double jw = fBoundaryIntegrationWeights[i]/(num_bdry_pts);
+		double dl = 1./double(num_bdry_pts);
+		double* v1 = fVoronoiVertices(fSelfDualFacets(i,0));
+		double* v2 = fVoronoiVertices(fSelfDualFacets(i,1));
+		dArrayT ip_coord0(fSD,v1);
+		dArrayT edgeVector(fSD);
+		edgeVector.DiffOf(v2,v1);
+#endif
+		
 		/* copy face coordinates with local ordering */
 		fSelfDualFacets.RowAlias(i,keys);
 		facet_coords.SetLocal(keys);
+#ifdef SEPARATE_BOUNDARY_INTEGRATION
+		for (int ii = 1; ii <= num_bdry_pts; ii++)
+#else
 		for (int ii = 0; ii < fNumIP; ii++)
+#endif
 		{
+#ifdef SEPARATE_BOUNDARY_INTEGRATION
+			ip_coords.SetToCombination(1.,ip_coord0,(ii-.5)*dl,edgeVector);
+#else	
 			/* jacobian of the coordinate transformation */
 			domain.DomainJacobian(facet_coords, ii, jacobian);
 			double jw = ip_weight[ii]*domain.SurfaceJacobian(jacobian);
 
 			/* integration point coordinates */
-			domain.Interpolate(facet_coords, ip_coords, ii);			
+			domain.Interpolate(facet_coords, ip_coords, ii);		
+#endif				
 
 			if (!fNodalShapes->SetFieldAt(ip_coords, NULL)) // shift = 0 or not ?
 				ExceptionT::GeneralFail("SCNIMFT::ComputeBMatrices","Shape Function evaluation"
@@ -899,7 +1135,7 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
     for (int i = 0; i < fNodes.Length(); i++) {
 		vout << i <<"\n";
 
-		// number of vertices on its boundary
+		// number of vertices on the boundary of the Voronoi cell
 		vout << fVoronoiCells[i].Length() << " ";
 		for (int j = 0; j < fVoronoiCells[i].Length(); j++)
 		  vout << fVoronoiCells[i][j] << " ";
@@ -955,6 +1191,7 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
     }
   
     // write out self-duals and allocate storage for them
+    // self-duals are facets on the body boundary dual to only 1 node in the body
     fNonDeloneEdges.Dimension(fNumSelfDuals);
     fNonDeloneNormals.Dimension(fNumSelfDuals, fSD);
     fNonDeloneCentroids.Dimension(fNumSelfDuals, fSD);
@@ -1167,7 +1404,12 @@ void SCNIMFT::DefineSubs(SubListT& sub_list) const
 
 	/* list of node set ID's defining which nodes get integrated */
 	sub_list.AddSub("mf_particle_ID_list",ParameterListT::OnePlus);
-
+	
+	/* optional body force */
+	sub_list.AddSub("body_force", ParameterListT::ZeroOrOnce);
+	
+	/* tractions */
+	sub_list.AddSub("natural_bc", ParameterListT::Any);
 }
 
 /* return the description of the given inline subordinate parameter list */
@@ -1181,14 +1423,40 @@ void SCNIMFT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& o
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* SCNIMFT::NewSub(const StringT& name) const
 {
-  SCNIMFT* non_const_this = const_cast<SCNIMFT*>(this);
+	SCNIMFT* non_const_this = const_cast<SCNIMFT*>(this);
+	
+	/* try material list */
+	MaterialListT* material_list = non_const_this->NewMaterialList(name, 0);
 
-  /* try material list */
-  MaterialListT* material_list = non_const_this->NewMaterialList(name, 0);
-  if (material_list)
-    return material_list;
-  else if (name == "meshfree_support_2D")
-    return new MeshFreeSupport2DT;	
-  else /* inherited */
-    return ElementBaseT::NewSub(name);
+	if (material_list)
+		return material_list;
+  	else if (name == "meshfree_support_2D")
+    	return new MeshFreeSupport2DT;	
+  	else if (name == "body_force") { // body force
+		ParameterContainerT* body_force = new ParameterContainerT(name);
+	
+		/* schedule number */
+		body_force->AddParameter(ParameterT::Integer, "schedule");
+	
+		/* body force vector */
+		body_force->AddSub("Double", ParameterListT::OnePlus); 		
+		
+		return body_force;
+	} else if (name == "natural_bc") { /* traction bc */
+		ParameterContainerT* natural_bc = new ParameterContainerT(name);
+
+		natural_bc->AddParameter(ParameterT::Word, "side_set_ID");
+		natural_bc->AddParameter(ParameterT::Integer, "schedule");
+
+		ParameterT coord_sys(ParameterT::Enumeration, "coordinate_system");
+		coord_sys.AddEnumeration("global", Traction_CardT::kCartesian);
+		coord_sys.AddEnumeration( "local", Traction_CardT::kLocal);
+		coord_sys.SetDefault(Traction_CardT::kCartesian);
+		natural_bc->AddParameter(coord_sys);
+
+		natural_bc->AddSub("DoubleList", ParameterListT::OnePlus); 		
+		
+		return natural_bc;
+	} else /* inherited */
+    	return ElementBaseT::NewSub(name);
 }
