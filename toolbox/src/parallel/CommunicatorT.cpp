@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.cpp,v 1.12 2003-11-21 22:42:02 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.13 2004-01-10 17:09:24 paklein Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionT.h"
 #include <iostream.h>
@@ -31,6 +31,9 @@ char*** CommunicatorT::fargv = NULL;
 
 /* create communicator including all processes */
 CommunicatorT::CommunicatorT(void):
+	fComm(MPI_COMM_NULL),
+	fSize(1),
+	fRank(0),
 	fLogLevel(kUrgent),
 	fLog(&cout),
 	fLastTime(0)
@@ -51,23 +54,76 @@ CommunicatorT::CommunicatorT(void):
 	if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::CommunicatorT", "MPI_Comm_rank failed");
 #endif
 
-#else
-	fComm = 0;
-	fSize = 1;
-	fRank = 0;
 #endif
 }
 
 /* copy constructor */
 CommunicatorT::CommunicatorT(const CommunicatorT& source):
-	fComm(source.fComm),
-	fSize(source.fSize),
-	fRank(source.fRank),
+	fComm(MPI_COMM_NULL),
+	fSize(1),
+	fRank(0),
 	fLogLevel(source.fLogLevel),
 	fLog(source.fLog)
 {
 	/* check MPI environment */
 	Init();
+
+#ifdef __TAHOE_MPI__
+	/* ducplicate the communicator */
+	int ret = MPI_Comm_dup(source.fComm, &fComm);
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::CommunicatorT", "MPI_Comm_dup failed");
+#endif
+
+	/* get rank and size */
+	if (fComm != MPI_COMM_NULL) {
+
+		int ret = MPI_SUCCESS;
+		ret = MPI_Comm_size(fComm, &fSize);
+		ret = MPI_Comm_rank(fComm, &fRank);
+
+#ifdef CHECK_MPI_RETURN
+		if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::CommunicatorT", "MPI_Comm_size failed");
+		if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::CommunicatorT", "MPI_Comm_rank failed");
+#endif
+	}
+#endif
+}
+
+/* split communicator */
+CommunicatorT::CommunicatorT(const CommunicatorT& source, int color, int rank_key):
+	fComm(MPI_COMM_NULL),
+	fSize(1),
+	fRank(0),
+	fLogLevel(source.fLogLevel),
+	fLog(source.fLog)
+{
+	/* check MPI environment */
+	Init();
+
+#ifdef __TAHOE_MPI__
+	/* split the communicator */
+	int ret = MPI_Comm_split(source.fComm, color, rank_key, &fComm);
+#ifdef CHECK_MPI_RETURN
+	if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::CommunicatorT", "MPI_Comm_split failed");
+#endif
+
+	/* get rank and size */
+	if (fComm != MPI_COMM_NULL) {
+
+		int ret = MPI_SUCCESS;
+		ret = MPI_Comm_size(fComm, &fSize);
+		ret = MPI_Comm_rank(fComm, &fRank);
+
+#ifdef CHECK_MPI_RETURN
+		if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::CommunicatorT", "MPI_Comm_size failed");
+		if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::CommunicatorT", "MPI_Comm_rank failed");
+#endif
+	}
+#else
+#pragma unused(color)
+#pragma unused(rank_key)
+#endif
 }
 
 /* destructor */
@@ -991,12 +1047,21 @@ void CommunicatorT::Finalize(void)
 	fCount--;
 
 #ifdef __TAHOE_MPI__
-	if (fCount == 0)
+	if (fCount == 0) /* last communicator */
 	{
 		/* shut down MPI environment */
 		int ret = MPI_Finalize();
 #ifdef CHECK_MPI_RETURN
 		if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::Finalize", "MPI_Finalized failed");
+#endif
+	}
+
+	/* free communicator */
+	if (fComm != MPI_COMM_WORLD && fComm != MPI_COMM_NULL)
+	{
+		int ret = MPI_Comm_free(&fComm);
+#ifdef CHECK_MPI_RETURN
+		if (ret != MPI_SUCCESS) Log(kFail, "CommunicatorT::Finalize", "MPI_Comm_free failed");
 #endif
 	}
 #endif

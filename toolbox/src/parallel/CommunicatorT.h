@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.h,v 1.10 2003-11-11 07:38:01 paklein Exp $ */
+/* $Id: CommunicatorT.h,v 1.11 2004-01-10 17:09:24 paklein Exp $ */
 #ifndef _COMMUNICATOR_T_H_
 #define _COMMUNICATOR_T_H_
 
@@ -8,6 +8,8 @@
 #ifdef __TAHOE_MPI__
 #include "mpi.h"
 #else
+#define MPI_COMM_NULL  0
+#define MPI_UNDEFINED -1
 #define MPI_Comm    long
 #define MPI_Request long
 #define MPI_Status  long
@@ -30,6 +32,11 @@ class CommunicatorT
 {
   public:
 
+	/** class constants */
+	enum ConstantsT {
+		kNoColor = MPI_UNDEFINED
+	};
+
 	/** \name constructor */
 	/*@{*/
 	/** create communicator including all processes */
@@ -37,6 +44,18 @@ class CommunicatorT
 	
 	/** copy constructor */
 	CommunicatorT(const CommunicatorT& source); 
+
+	/** split communicator.
+	 * Construct a communicator as subset of the source based on color. Each
+	 * process returns a CommunicatorT which includes the other processes that
+	 * have called the constructor with the same color.
+	 * \param source communicator to split. All processes in source must be
+	 *        synchronized in calling this constructor.
+	 * \param color nonnegative key to determine subset of processes belong to this 
+	 *        group. Pass CommunicatorT::kNoColor to be left out of any new groups.
+	 * \param rank_key used to determine the rank in the new communicator by sorting
+	 *        keys in ascending order, breaking ties in a consistent way */
+	CommunicatorT(const CommunicatorT& source, int color, int rank_key = 0); 
 	/*@}*/
 
 	/** destructor */
