@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.h,v 1.5 2001-09-05 18:35:27 paklein Exp $ */
+/* $Id: ComparatorT.h,v 1.6 2001-10-11 16:32:25 paklein Exp $ */
 
 #ifndef _COMPARATOR_T_H_
 #define _COMPARATOR_T_H_
@@ -49,7 +49,8 @@ private:
 	// cannot be const until since tolerances are class data that can change
 
 	/** compare results */
-	bool PassOrFail(const StringT& file_1, const StringT& file_2);
+	bool PassOrFail(const StringT& file_1, const StringT& file_2, 
+		bool do_rel, bool do_abs);
 
 	/* read data block header */
 	bool ReadDataBlockInfo(ifstreamT& in, int& group, double& time) const;
@@ -62,7 +63,8 @@ private:
 
 	/* compare blocks - normalized by set 1 */
 	bool CompareDataBlocks(const ArrayT<StringT>& labels_1, const dArray2DT& data_1,
-		const ArrayT<StringT>& labels_2, const dArray2DT& data_2) const;
+		const ArrayT<StringT>& labels_2, const dArray2DT& data_2,
+		bool do_rel, bool do_abs) const;
 
 private:
 
@@ -74,6 +76,9 @@ private:
 	bool    fIsRoot;
 	AutoArrayT<StringT> fFiles;
 	AutoArrayT<bool>    fPassFail;
+	
+	/* labels to skip */
+	AutoArrayT<StringT> fSkipLabels;
 };
 
 #endif /* _COMPARATOR_T_H_ */
