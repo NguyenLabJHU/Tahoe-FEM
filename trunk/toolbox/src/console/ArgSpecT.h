@@ -1,4 +1,4 @@
-/* $Id: ArgSpecT.h,v 1.1 2001-11-28 22:05:44 paklein Exp $ */
+/* $Id: ArgSpecT.h,v 1.2 2001-11-29 00:04:42 recampb Exp $ */
 
 #ifndef _ARG_SPEC_T_H_
 #define _ARG_SPEC_T_H_
@@ -57,6 +57,7 @@ class ArgSpecT
 	void SetDefault(const StringT&);
 	void SetDefault(const bool&);
 	void SetDefault(const float&);
+	void SetDefault(const char* s) { SetDefault(StringT(s)); };
 
 	/* set default value */
 	void GetDefault(int&) const;
@@ -81,6 +82,7 @@ class ArgSpecT
 	void SetValue(const StringT&);
 	void SetValue(const bool&);
 	void SetValue(const float&);
+	void SetValue(const char* s) { SetValue(StringT(s)); };
 
 	/* set default value */
 	void GetValue(int&) const;
