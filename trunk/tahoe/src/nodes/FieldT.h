@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.11 2003-04-07 17:25:46 cjkimme Exp $ */
+/* $Id: FieldT.h,v 1.12 2003-05-20 10:25:12 paklein Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -51,6 +51,9 @@ public:
 
 	/** set the group number */
 	void SetGroup(int group) { fGroup = group; };
+
+	/** set number of nodes */
+	virtual void Dimension(int nnd, bool copy_in);
 
 	/** set all field values to 0.0 */
 	virtual void Clear(void);
@@ -261,8 +264,9 @@ public:
 
 private:
 
-	/** apply the IC_CardT to the field */
-	void Apply_IC(const IC_CardT& card);
+	/** apply the IC_CardT to the field. Return false if any initial conditions where
+	 * defined inactive equations. */
+	bool Apply_IC(const IC_CardT& card);
 
 	/** mark global equations with the specified BC */
 	void SetBCCode(const KBC_CardT& card);
