@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.h,v 1.13 2002-06-19 21:38:22 recampb Exp $ */
+/* $Id: VTKUGridT.h,v 1.14 2002-06-22 01:54:48 paklein Exp $ */
 #ifndef _VTK_U_GRID_T_H_
 #define _VTK_U_GRID_T_H_
 
@@ -100,7 +100,7 @@ class VTKUGridT
 	void SetVectors(vtkFloatArray* vectors);
 
 	/** set vectors that warp */
-	void SetWarpVectors(vtkFloatArray* vectors, dArray2DT coords);
+	void SetWarpVectors(vtkFloatArray* vectors, const dArray2DT& coords);
   
 	/** return the grid actor */
   	vtkActor* Actor(void) { return fActor; };
