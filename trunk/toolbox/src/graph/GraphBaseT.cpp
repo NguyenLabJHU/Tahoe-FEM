@@ -1,6 +1,5 @@
-/* $Id: GraphBaseT.cpp,v 1.11 2003-09-18 22:37:17 cjkimme Exp $ */
+/* $Id: GraphBaseT.cpp,v 1.12 2003-10-27 19:50:55 paklein Exp $ */
 /* created: paklein (04/13/1999) */
-
 #include "GraphBaseT.h"
 
 #include <iostream.h>
@@ -18,15 +17,14 @@
 #include "metis.h"
 #endif
 
-/* rounding floating point numbers */
-
 using namespace Tahoe;
 
+/* rounding floating point numbers */
 static inline int rnd(double number) { return int((2.0*number + 1.0)/2); }
 
 /* array behavior */
 namespace Tahoe {
-const bool ArrayT<GraphBaseT*>::fByteCopy = true;
+template<> const bool ArrayT<GraphBaseT*>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* constructor */

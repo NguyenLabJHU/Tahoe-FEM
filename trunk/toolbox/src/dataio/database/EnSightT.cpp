@@ -1,6 +1,5 @@
-/* $Id: EnSightT.cpp,v 1.12 2002-10-20 22:36:53 paklein Exp $ */
+/* $Id: EnSightT.cpp,v 1.13 2003-10-27 19:50:45 paklein Exp $ */
 /* created: sawimme (05/13/1999) */
-
 #include "EnSightT.h"
 
 #include <ctype.h>
@@ -14,12 +13,11 @@
 #include "ios_fwd_decl.h"
 #include "AutoArrayT.h"
 
-/* array behavior */
-
 using namespace Tahoe;
 
+/* array behavior */
 namespace Tahoe {
-const bool ArrayT<EnSightT::VariableTypeT>::fByteCopy = true;
+template<> const bool ArrayT<EnSightT::VariableTypeT>::fByteCopy = true;
 } /* namespace Tahoe */
 
 EnSightT::EnSightT (ostream& out, bool binary, int dof) :

@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.36 2003-08-19 08:02:02 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.37 2003-10-27 19:50:43 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -13,7 +13,7 @@ using namespace Tahoe;
 
 /* array behavior */
 namespace Tahoe {
-const bool ArrayT<ModelManagerT::SideSetScopeT>::fByteCopy = true;
+template<> const bool ArrayT<ModelManagerT::SideSetScopeT>::fByteCopy = true;
 } /* namespace Tahoe */
 
 ModelManagerT::ModelManagerT (ostream& message):

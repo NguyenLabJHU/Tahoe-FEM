@@ -1,6 +1,5 @@
-/* $Id: ifstreamT.cpp,v 1.22 2002-12-02 09:37:02 paklein Exp $ */
+/* $Id: ifstreamT.cpp,v 1.23 2003-10-27 19:50:51 paklein Exp $ */
 /* created: paklein (03/03/1999) */
-
 #include "ifstreamT.h"
 
 /* ANSI */
@@ -10,15 +9,14 @@
 
 #include "fstreamT.h"
 
-/* parameter */
-
 using namespace Tahoe;
 
+/* parameter */
 const int kLineLength = 255;
 
 /* static variables */
 namespace Tahoe {
-const bool ArrayT<ifstreamT*>::fByteCopy = true; // array behavior
+template<> const bool ArrayT<ifstreamT*>::fByteCopy = true; // array behavior
 } /* namespace Tahoe */
 
 /* constructors */

@@ -1,10 +1,8 @@
-/* $Id: CartesianGridT.cpp,v 1.6 2002-10-20 22:39:13 paklein Exp $ */
+/* $Id: CartesianGridT.cpp,v 1.7 2003-10-27 19:51:01 paklein Exp $ */
 /* created: paklein (11/10/2000) */
-
 #include "CartesianGridT.h"
 #include <math.h>
 #include "GraphT.h"
-
 
 using namespace Tahoe;
 
@@ -12,7 +10,7 @@ static int to_integer(double a) { return int((2.0*a + 1.0)/2.0); };
 
 /* array behavior */
 namespace Tahoe {
-const bool ArrayT<CartesianGridT::BoundaryConditionT>::fByteCopy = true;
+template<> const bool ArrayT<CartesianGridT::BoundaryConditionT>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* constructor */
