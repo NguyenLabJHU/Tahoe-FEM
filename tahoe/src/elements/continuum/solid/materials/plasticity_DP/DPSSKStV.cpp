@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.12 2002-02-20 23:36:02 raregue Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.13 2002-02-21 07:23:34 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 
@@ -176,7 +176,10 @@ void DPSSKStV::ComputeOutput(dArrayT& output)
 	output[3] = checker.IsLocalized_SS(normal);
 	output[5] = normal[0];
 	output[6] = normal[1];
-	output[7] = normal[2];
+	if (normal.Length() == 3)
+		output[7] = normal[2];
+	else
+		output[7] = 0.0;
 	
 	/* compute discontinuous bifurcation modulus */
 	const dMatrixT& modulusdisc = cdisc_ijkl();
@@ -187,7 +190,10 @@ void DPSSKStV::ComputeOutput(dArrayT& output)
 	output[4] = checkerdisc.IsLocalized_SS(normaldisc);
 	output[8] = normaldisc[0];
 	output[9] = normaldisc[1];
-	output[10] = normaldisc[2];
+	if (normaldisc.Length() == 3)
+		output[10] = normaldisc[2];
+	else
+		output[10] = 0.0;
 
 	/* deviatoric Von Mises stress */
 	fStress.Deviatoric();
