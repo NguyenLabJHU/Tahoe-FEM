@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.cpp,v 1.9 2003-10-20 23:32:57 cjkimme Exp $ */
+/* $Id: SurfaceShapeT.cpp,v 1.10 2003-11-20 01:43:49 cjkimme Exp $ */
 /* created: paklein (11/21/1997) */
 #include "SurfaceShapeT.h"
 
@@ -360,14 +360,14 @@ void SurfaceShapeT::SetNodesOnFacets(iArray2DT& facetnodes)
 		}
 		case GeometryT::kTriangle:
 		{
-			if (fTotalNodes == 6)
+			if (fNumFacetNodes == 3)
 			{
 				int dat_6[6] = {0, 1, 2,
 				                3, 4, 5};
 				iArray2DT temp(fNumFacets, 3, dat_6);
 				facetnodes = temp;
 			}
-			else if (fTotalNodes == 12)
+			else if (fNumFacetNodes == 6)
 			{
 				if (fNumFacets == 2)
 				{
@@ -394,14 +394,14 @@ void SurfaceShapeT::SetNodesOnFacets(iArray2DT& facetnodes)
 		}
 		case GeometryT::kQuadrilateral:
 		{
-			if (fTotalNodes == 8)
+			if (fNumFacetNodes == 4)
 			{
 				int dat_8[8] = {0, 1, 2, 3,
 				                4, 5, 6, 7};
-				iArray2DT temp(fNumFacets, 4, dat_8);
+				iArray2DT temp(fNumFacets, fNumFacetNodes, dat_8);
 				facetnodes = temp;
 			}
-			else if (fTotalNodes == 16)
+			else if (fNumFacetNodes == 8)
 			{
 				if (fNumFacets == 2)
 				{
@@ -537,14 +537,14 @@ void SurfaceShapeT::SetJumpVector(iArrayT& jump) const
 		}
 		case GeometryT::kTriangle:
 		{
-			if (fTotalNodes == 6)
+			if (fNumFacetNodes == 3)
 			{
 				iArray2DT temp(fNumFacets, 3, jump.Pointer());
 				temp.SetRow(0,-1);
 				if (fNumFacets == 2)
 					temp.SetRow(1, 1);
 			}
-			else if (fTotalNodes == 12)
+			else if (fNumFacetNodes == 6)
 			{
 				if (fNumFacets == 2)
 				{
@@ -567,14 +567,14 @@ void SurfaceShapeT::SetJumpVector(iArrayT& jump) const
 		}
 		case GeometryT::kQuadrilateral:
 		{
-			if (fTotalNodes == 8)
+			if (fNumFacetNodes == 4)
 			{
 				iArray2DT temp(fNumFacets, 4, jump.Pointer());
 				temp.SetRow(0,-1);
 				if (fNumFacets == 2)
 					temp.SetRow(1, 1);
 			}
-			else if (fTotalNodes == 16)
+			else if (fNumFacetNodes == 8)
 			{
 				if (fNumFacets == 2)
 				{
