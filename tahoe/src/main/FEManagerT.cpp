@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.70.2.11 2004-03-30 07:52:45 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.70.2.12 2004-03-31 16:18:35 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -761,8 +761,7 @@ void FEManagerT::WriteOutput(double time)
 	catch (ExceptionT::CodeT error) { ExceptionT::Throw(error, "FEManagerT::WriteOutput"); }
 }
 
-void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values,
-	const dArray2DT& e_values)
+void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const
 {
 	fIOManager->WriteOutput(ID, n_values, e_values);
 }

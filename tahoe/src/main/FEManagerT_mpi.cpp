@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.32 2003-10-28 07:39:38 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.32.6.1 2004-03-31 16:19:10 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -147,7 +147,7 @@ void FEManagerT_mpi::WriteOutput(double time)
 }
 	
 void FEManagerT_mpi::WriteOutput(int ID, const dArray2DT& n_values,
-	const dArray2DT& e_values)
+	const dArray2DT& e_values) const
 {
 	/* output assembly mode */
 	if (!fExternIOManager)
