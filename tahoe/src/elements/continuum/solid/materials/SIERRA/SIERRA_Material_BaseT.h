@@ -1,29 +1,25 @@
-/* $Id: SIERRA_Material_BaseT.h,v 1.1 2003-03-05 02:27:52 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.h,v 1.2 2003-03-06 17:23:31 paklein Exp $ */
 #ifndef _SIERRA_MAT_BASE_T_H_
 #define _SIERRA_MAT_BASE_T_H_
 
-/* base class */
+/* base classes */
 #include "FSSolidMatT.h"
-
-/* library support options */
-#ifdef __F2C__
+#include "IsotropicT.h"
 
 /* direct members */
 #include "StringT.h"
 #include "iArrayT.h"
 #include "dArray2DT.h"
 
-/* f2c */
-#include "f2c.h"
-
 namespace Tahoe {
 
 /* forward declarations */
 class SpectralDecompT;
-class SIERRA_Material_DB;
+class SIERRA_Material_Data;
+class ParameterListT;
 
 /** base class for wrappers around Sierra material models */
-class SIERRA_Material_BaseT: public FSSolidMatT
+class SIERRA_Material_BaseT: public FSSolidMatT, protected IsotropicT
 {
 public:
 
@@ -82,14 +78,22 @@ public:
 	virtual const dSymMatrixT& s_ij(void);
 
 	/** return the pressure associated with the last call to 
-	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
-	 * for more information. */
-	virtual double Pressure(void) const { return fPressure; };
+	 * SolidMaterialT::s_ij. The value is not guaranteed to
+	 * persist during intervening calls to any other non-const
+	 * accessor. \return 1/3 of the trace of the three-dimensional
+	 * stress tensor, regardless of the dimensionality of the
+	 * problem. */
+	virtual double Pressure(void) const;
 	/*@}*/
 
-	/* material description */
-	virtual const dMatrixT& C_IJKL(void);  // material tangent moduli
-	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
+	/** \name material description */
+	/*@{*/
+	/** material tangent moduli */
+	virtual const dMatrixT& C_IJKL(void);
+
+	/** 2nd Piola-Kirchhoff stress */
+	virtual const dSymMatrixT& S_IJ(void);
+	/*@}*/
 
 	/* returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);
@@ -107,123 +111,87 @@ public:
 
 protected:
 
-	/* I/O functions */
+	/** I/O functions */
 	virtual void PrintProperties(ostream& out) const;
 
 private:
 
-	/* conversion functions */
-	void dMatrixT_to_ABAQUS(const dMatrixT& A, nMatrixT<doublereal>& B) const;
-	void ABAQUS_to_dSymMatrixT(const doublereal* pA, dSymMatrixT& B) const;
-	void dSymMatrixT_to_ABAQUS(const dSymMatrixT& A, doublereal* pB) const;
+	/** \name conversion functions */
+	/*@{*/
+	void SIERRA_to_dSymMatrixT(const double* pA, dSymMatrixT& B) const;
+	void dSymMatrixT_to_SIERRA(const dSymMatrixT& A, double* pB) const;
+	/*@}*/
 
-	/* load element data for the specified integration point */
+	/** \name load/store element data */
+	/*@{*/
 	void Load(ElementCardT& element, int ip);
 	void Store(ElementCardT& element, int ip);
+	/*@}*/
 
-	/* make call to the UMAT */
-	void Call_UMAT(double t, double dt, int step, int iter);
-	void Reset_UMAT_Increment(void); // set back to last converged
-	void Set_UMAT_Arguments(void);   // compute strains, rotated stresses, etc.
-	void Store_UMAT_Modulus(void);   // write modulus to storage
+	/** compute strains, rotated stresses, etc. */
+	void Set_Calc_Arguments(void);
 
-	/* UMAT function wrapper */
-	virtual void UMAT(doublereal*, doublereal*, doublereal*, doublereal*,
-		doublereal*, doublereal*, doublereal*, doublereal*,
-		doublereal*, doublereal*, doublereal*, doublereal*,
-		doublereal*, doublereal*, doublereal*, doublereal*,
-		doublereal*, doublereal*, char*,
-		integer*, integer*, integer*, integer*,
-		doublereal*, integer*, doublereal*, doublereal*,
-		doublereal*, doublereal*, doublereal*, doublereal*,
-		integer*, integer*, integer*, integer*, integer*,
-		integer*, ftnlen) = 0;
+	/** \name parameter handling */
+	/*@{*/
+	/** read input parameters. Read until encountering a line beginning with
+	 * "end" and ending with the name of the ParameterListT. Nested "begin" is 
+	 * are processed recursively. Parameters must follow the pattern
+	 *    value_name = value
+	 */
+	void Read_SIERRA_Input(ifstreamT& in, ParameterListT& param_list) const;
 
-	/* read ABAQUS-format input */
-	void Read_ABAQUS_Input(ifstreamT& in);
-	bool Next_ABAQUS_Keyword(ifstreamT& in) const;
-	bool Skip_ABAQUS_Symbol(ifstreamT& in, char c) const; // returns true if c is next non-whitespace
-	void Skip_ABAQUS_Comments(ifstreamT& in);
-	void Read_ABAQUS_Word(ifstreamT& in, StringT& word, bool to_upper = true) const;
+	SIERRA_Material_Data* Process_SIERRA_Input(ParameterListT& param_list);
+	/*@}*/
 
 private:
 
-	//debugging
-	ofstream flog;
-	
-	/* material name */
-	StringT fUMAT_name;
+	/** tangent type */
 	GlobalT::SystemTypeT fTangentType;
-	//other options:
-	//  strain type
-	//  orientation (*ORIENTATION)
-	//  expansion   (*EXPANSION)
+	
+	/** material data card */
+	SIERRA_Material_Data* fSIERRA_Material_Data;
 
 	/* work space */
 	dMatrixT    fModulus;            // return value
 	dSymMatrixT fStress;             // return value
-	dArrayT fIPCoordinates;          // integration point coordinates
 	double fPressure; /**< pressure for the most recent calculation of the stress */
-
-	/* properties array */
-	nArrayT<doublereal> fProperties;
 	
-	/* material output data */
-	iArrayT fOutputIndex;
-	ArrayT<StringT> fOutputLabels;
+	/** \name Sierra_function_material_calc arguments */
+	/*@{*/
+	nArrayT<double> fdstran;     /**< rotated strain increment */
+	nArrayT<double> fstress_old; /**< (rotated) stress from the previous time increment */
+	nArrayT<double> fstress_new; /**< destination for updated stress */
+	nArrayT<double> fstate_old;  /**< state variables from the previous time increment */
+	nArrayT<double> fstate_new;  /**< destination for updated state variables */
+	nArrayT<double> fmatvals;    /**< array of material parameters */
+	/*@}*/
 	
-	/* dimensions */
-	int fModulusDim; // dimension of modulus storage --- need this???
-	int fBlockSize;  // storage block size (per ip)
-
-	/* UMAT dimensions */
-	integer ndi;    // number of direct stress components (always 3)
-	integer nshr;   // number of engineering shear stress components (2D: 1, 3D: 3)
-	integer ntens;  // stress/strain array dimension: ndi + nshr
-	integer nstatv; // number of state variables
-	
-	/* UMAT array arguments */
-	nMatrixT<doublereal> fddsdde;
-	nArrayT<doublereal>  fdstran;
-	nMatrixT<doublereal> fdrot;
-	nMatrixT<doublereal> fdfgrd0;
-	nMatrixT<doublereal> fdfgrd1;
-	nArrayT<doublereal>  fcoords;
-	
-	/* UMAT stored array arguments */
-	nArrayT<doublereal> fstress;
-	nArrayT<doublereal> fstrain;
-	nArrayT<doublereal> fsse_pd_cd;
-	nArrayT<doublereal> fstatv;
-
-	/* stored modulus */
-	nArrayT<doublereal> fmodulus;
-
-	/* reset-able history */
-	nArrayT<doublereal> fstress_last;
-	nArrayT<doublereal> fstrain_last;
-	nArrayT<doublereal> fsse_pd_cd_last;
-	nArrayT<doublereal> fstatv_last;
-	
-	/* UMAT argument array storage */
-	nArrayT<doublereal> fArgsArray;
-	
-	/* polar decomposition work space */
+	/** \name polar decomposition work space */
+	/*@{*/
 	SpectralDecompT* fDecomp;
 	dMatrixT fF_rel;
 	dMatrixT fA_nsd;
 	dSymMatrixT fU1, fU2, fU1U2;
+	/*@}*/
 
-	/** \name static data */
+	/** \name material output data */
 	/*@{*/
-	/** singleton to store parameters for Sierra materials */
-	static SIERRA_Material_DB* sSIERRA_Material_DB;
+	iArrayT fOutputIndex;
+	ArrayT<StringT> fOutputLabels;
+	/*@}*/
+
+	/** calc function argument array storage */
+	/*@{*/
+	nArrayT<double> fArgsArray;
+
+	/** storage block size (per ip) */
+	int fBlockSize;
+	/*@}*/
 
 	/** number of SIERRA_Material_BaseT instances.
 	 * SIERRA_Material_BaseT::sSIERRA_Material_DB is constructed when the
 	 * first one is instantiated and is deleted when the last one is freed. */
 	static int sSIERRA_Material_count;
-	/*@}*/
 };
 
 /* inlines */
@@ -234,5 +202,4 @@ inline GlobalT::SystemTypeT SIERRA_Material_BaseT::TangentType(void) const
 
 } /* namespace Tahoe */
 
-#endif /* __F2C__ */
 #endif /* _SIERRA_MAT_BASE_T_H_ */
