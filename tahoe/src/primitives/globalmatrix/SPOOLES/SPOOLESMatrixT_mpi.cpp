@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.11 2003-09-11 21:23:30 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.12 2003-09-11 21:41:34 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT_mpi.h"
@@ -76,7 +76,6 @@ void SPOOLESMatrixT_mpi::BackSubstitute(dArrayT& result)
 			r.Length(), r.Pointer(), c.Pointer(), v.Pointer());
 		if (OK != 1) 
 			ExceptionT::BadJacobianDet(caller, "LU_serial_driver returned: %d", OK);
-		}
 	}
 	else
 	{
