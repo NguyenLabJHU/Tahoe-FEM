@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.h,v 1.7.2.1 2004-08-05 23:13:20 d-farrell2 Exp $ */
+/* $Id: ExecutionManagerT.h,v 1.7.2.2 2004-09-15 02:14:15 d-farrell2 Exp $ */
 /* created: paklein (08/27/1997) */
 
 #ifndef _EXECMAN_T_H_
@@ -54,10 +54,6 @@ protected:
 	/** MUST be overloaded */
 	virtual void RunJob(ifstreamT& in, ostream& status) = 0;
 
-	// returns the index of the requested option -> moved to public so that the decompose methods may access DEF 3 Aug 04 
-	//bool CommandLineOption(const char* str) const;
-	//bool CommandLineOption(const char* str, int& index) const;
-
 	/** add the command line option to the list. \returns true if the option was
 	 * added, false otherwise. */
 	virtual bool AddCommandLineOption(const char* str);
@@ -88,9 +84,6 @@ protected:
 
 	/* put back flag */
 	int fJobCharPutBack;
-
-	// command line arguments -> moved to public so that the decompose methods may access DEF 3 Aug 04
-	//AutoArrayT<StringT> fCommandLineOptions;
 	
 private:  	
 

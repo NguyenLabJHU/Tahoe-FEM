@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.46.2.6 2004-08-11 01:10:23 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.46.2.7 2004-09-15 02:14:15 d-farrell2 Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -74,17 +74,9 @@ public:
 	/** constructor, does serial and parallel, has new argument task */
 	FEManagerT(const StringT& input_file, ofstreamT& output, CommunicatorT& comm,
 		const ArrayT<StringT>& argv, TaskT task);
-	
-	/* constructor, parallel - partition can be NULL for decomposition, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
-	/* was FEManagerT_mpi */
-	/*FEManagerT(const StringT& input, ofstreamT& output, CommunicatorT& comm,
-	 *	const ArrayT<StringT>& argv, PartitionT* partition, TaskT task);*/
 
 	/** destructor */
 	virtual ~FEManagerT(void);
-	
-	/* domain decomposition (graph is returned), formerly in FEManagerT_mpi.h, DEF 28 July 04 */
-	//void Decompose(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int method); moved to FEDecomposeT.h
 	
 	/* return reference to partition data, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
 	const PartitionT* Partition(void) const;
@@ -94,9 +86,6 @@ public:
 	
 	/** solve all the time sequences */
 	virtual void Solve(void);
-	
-	/* debugging, formerly in FEManagerT_mpi.h, DEF 28 July 04 (needed??) */
-	//virtual const iArrayT* ElementMap(const StringT& block_ID) const;
 	
 	/** \name accessors */
 	/*@{*/
@@ -459,12 +448,6 @@ private:
 	// These last ones were formerly in FEManagerT_mpi.h
 	/** write time stamp to log file */
 	void TimeStamp(const char* message) const;
-
-	/** \name decomposition methods */
-	/*@{*/
-	//void DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int method);
-	//void DoDecompose_2(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int method);		
-	/*@}*/
 		
 protected:
 
@@ -629,19 +612,6 @@ inline void FEManagerT::SetExternalIO(IOManager_mpi* externIO)
 {
 	fExternIOManager = externIO;
 }
-
-/* debugging */
-/*inline const iArrayT* FEManagerT::ElementMap(const StringT& block_ID) const
-{
-	if (fTask == kDecompose)
-		return NULL; // assume no map
-	else
-	{
-		if (!fPartition) throw ExceptionT::kGeneralFail;		
-		return &(fPartition->ElementMap(block_ID));
-	}
-}*/
-
 
 } // namespace Tahoe 
 #endif /* _FE_MANAGER_H_ */

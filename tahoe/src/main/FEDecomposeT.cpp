@@ -1,4 +1,4 @@
-/* $Id: FEDecomposeT.cpp,v 1.1.2.5 2004-08-11 01:08:05 paklein Exp $ */
+/* $Id: FEDecomposeT.cpp,v 1.1.2.6 2004-09-15 02:14:15 d-farrell2 Exp $ */
 /* created: d-farrell2 (08/03/2004) */
 #include "FEDecomposeT.h"
 
@@ -59,7 +59,7 @@
 using namespace Tahoe;
 #pragma message("clear out unneeded headers")
 
-// constructor (?)
+// constructor
 FEDecomposeT::FEDecomposeT()
 {
 	// should take values of command line
@@ -401,7 +401,7 @@ void FEDecomposeT::Decompose_graph(const StringT& input_file, int size,
 		ParameterListT valid_list;
 		FEManagerT::ParseInput(input_file, valid_list, true, false, false, commandlineoptions);
 // DEBUG
-cout << "\n" << caller << " Prepare to construct global problem \n" << endl;
+//cout << "\n" << caller << " Prepare to construct global problem \n" << endl;
 		/* construct global problem */
 		FEManagerT global_FEman(input_file, decomp_out, comm, commandlineoptions, FEManagerT::kDecompose);
 		try { 
@@ -432,7 +432,7 @@ cout << "\n" << caller << " Prepare to construct global problem \n" << endl;
 			GraphT graph;	
 			try {
 				cout << "\n Decomposing: " << model_file << endl;
-				Decompose(partition, graph, true, method, global_FEman); //*** have to create FEDecomposeT object, pass it the needed information then run Decompose
+				Decompose(partition, graph, true, method, global_FEman);
 				cout << " Decomposing: " << model_file << ": DONE"<< endl;
 			}
 			catch (ExceptionT::CodeT code) {
@@ -570,12 +570,12 @@ cout << "\n" << caller << " Prepare to construct global problem \n" << endl;
 			}
 		}
 
-// when generating decomposition during parallel run, this was skipped and each
-// processor wrote it's own partial geometry file. When computing decomposition
-// explicitly ("-decomp"), all partial geometry files are written here. 
+/* when generating decomposition during parallel run, this was skipped and each
+ * processor wrote it's own partial geometry file. When computing decomposition
+ * explicitly ("-decomp"), all partial geometry files are written here. 
+ */
 
 		/* write partial geometry files */
-		//if (CommandLineOption("-decomp"))
 		if (true)
 		{
 			/* model manager for the total geometry - can't use the one from global_FEman 
@@ -835,7 +835,6 @@ void FEDecomposeT::EchoPartialGeometry_ExodusII(const PartitionT& partition,
 		{
 			iArrayT elements_ALL(sideset_ALL.MajorDim());
 			sideset_ALL.ColumnCopy(0, elements_ALL);
-//			elements_ALL--;
 			sideset_ALL.SetColumn(0, elements_ALL);
 				
 			iArrayT local_indices;
@@ -850,7 +849,6 @@ void FEDecomposeT::EchoPartialGeometry_ExodusII(const PartitionT& partition,
 				iArrayT elements(sideset.MajorDim());
 				sideset.ColumnCopy(0, elements);
 				partition.SetElementScope(PartitionT::kLocal, element_set_ID, elements);
-//				elements++;
 				sideset.SetColumn(0, elements);
 			}
 
@@ -944,7 +942,6 @@ void FEDecomposeT::EchoPartialGeometry_TahoeII(const PartitionT& partition,
 		{
 			iArrayT elements_ALL(sideset_ALL.MajorDim());
 			sideset_ALL.ColumnCopy(0, elements_ALL);
-//			elements_ALL--;
 			sideset_ALL.SetColumn(0, elements_ALL);
 				
 			iArrayT local_indices;
@@ -958,7 +955,6 @@ void FEDecomposeT::EchoPartialGeometry_TahoeII(const PartitionT& partition,
 				iArrayT elements(sideset.MajorDim());
 				sideset.ColumnCopy(0, elements);
 				partition.SetElementScope(PartitionT::kLocal, element_set_ID, elements);
-//				elements++;
 				sideset.SetColumn(0, elements);
 			}
 		}

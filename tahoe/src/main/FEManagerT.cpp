@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.76.2.9 2004-08-11 01:09:42 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.76.2.10 2004-09-15 02:14:15 d-farrell2 Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -97,7 +97,7 @@ FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output,
 	{	
 		if (fTask == kRun)
 		{
-			const char caller[] = "FEManagerT::FEManagerT";// perhaps differentiate from serial??
+			const char caller[] = "FEManagerT::FEManagerT";
 		
 			/* log file */			
 			StringT log_file;
@@ -581,39 +581,6 @@ GlobalT::RelaxCodeT FEManagerT::RelaxSystem(int group) const
 	 }
 }
 
-/* system relaxation --> need to check the partition size to execute all gather, etc*/
-/* Here is the question, how best to key off which of these to use, use partition, comm ? */
-/*GlobalT::RelaxCodeT FEManagerT_mpi::RelaxSystem(int group) const
-{
-	/* inherited
-	GlobalT::RelaxCodeT relax = FEManagerT::RelaxSystem(group);
-	
-	/* gather codes
-	iArrayT all_relax(Size());
-	fComm.AllGather(relax, all_relax);
-	
-	/* code precedence
-	for (int i = 0; i < all_relax.Length(); i++)
-		relax = GlobalT::MaxPrecedence(relax, GlobalT::RelaxCodeT(all_relax[i]));
-	
-	/* report
-	if (relax != GlobalT::kNoRelax)
-	{
-		cout << "\n Relaxation code at time = " << Time() << '\n';
-		cout << setw(kIntWidth) << "proc";	
-		cout << setw(kIntWidth) << "code" << '\n';	
-		for (int i = 0; i < all_relax.Length(); i++)
-		{
-			cout << setw(kIntWidth) << i;	
-			cout << setw(kIntWidth) << all_relax[i];
-			cout << '\n';	
-		}
-	}
-
-	return relax;
-}*/
-
-
 /* global equation functions */
 void FEManagerT::AssembleLHS(int group, const ElementMatrixT& elMat,
 	const nArrayT<int>& eqnos) const
@@ -792,11 +759,6 @@ void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values,
 	}
 }
 
-/*void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const
-{
-	fIOManager->WriteOutput(ID, n_values, e_values);
-}*/
-
 /* write a snapshot */
 void FEManagerT::WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
 	const dArray2DT& values, const ArrayT<StringT>& labels) const
@@ -921,19 +883,6 @@ void FEManagerT::DivertOutput(const StringT& outfile)
 	}
 }
 
-/* (temporarily) direct output away from main out */
-/*void FEManagerT::DivertOutput(const StringT& outfile)
-{
-	// check
-	if (!fIOManager) ExceptionT::GeneralFail("FEManagerT::DivertOutput", "I/O manager not initialized");
-	fIOManager->DivertOutput(outfile);
-	
-	// resolved group
-	if (fCurrentGroup != -1)
-		fSO_DivertOutput[fCurrentGroup]	= true;
-	else
-		fSO_DivertOutput = true;
-}*/
 // same story as divert
 void FEManagerT::RestoreOutput(void)
 {
@@ -957,18 +906,6 @@ void FEManagerT::RestoreOutput(void)
 			fSO_DivertOutput[fCurrentGroup]	= false;
 	}
 }
-/*void FEManagerT::RestoreOutput(void)
-{
-	/* check 
-	if (!fIOManager) ExceptionT::GeneralFail("FEManagerT::RestoreOutput", "I/O manager not initialized");
-	fIOManager->RestoreOutput();
-
-	/* resolved group
-	if (fCurrentGroup != -1)
-		fSO_DivertOutput[fCurrentGroup]	= false;
-	else
-		fSO_DivertOutput = false;
-}*/
 
 /* cross-linking */
 ElementBaseT* FEManagerT::ElementGroup(int groupnumber) const
@@ -1045,15 +982,6 @@ int FEManagerT::GetGlobalEquationStart(int group, int start_eq_shift) const
 	}
 }
 
-
-/*int FEManagerT::GetGlobalEquationStart(int group, int start_eq_shift) const
-{
-#pragma unused(group)
-
-	// no other equations
-	return 1 + start_eq_shift;
-}*/
-
 int FEManagerT::GetGlobalNumEquations(int group) const
 {
 	if (Size() == 1)
@@ -1069,12 +997,6 @@ int FEManagerT::GetGlobalNumEquations(int group) const
 		return all_num_eq.Sum();
 	}
 }
-
-/*int FEManagerT::GetGlobalNumEquations(int group) const
-{
-	// no other equations
-	return fNodeManager->NumEquations(group);
-}*/
 
 void FEManagerT::SetTimeStep(double dt) const
 {
@@ -1504,7 +1426,7 @@ cout << caller << ": START" << endl;
 	fCommManager->SetNodeManager(fNodeManager);
 
 //DEBUG
-cout << caller << ": set fields" << endl; 
+//cout << caller << ": set fields" << endl; 
 
 	/* construct element groups */
 	fElementGroups = new ElementListT(*this);
@@ -1516,13 +1438,13 @@ cout << caller << ": set fields" << endl;
 	}
 
 //DEBUG
-cout << caller << ": set elements" << endl; 
+//cout << caller << ": set elements" << endl; 
 
 	/* set output manager */
 	SetOutput();
 
 //DEBUG
-cout << caller << ": set output" << endl; 
+//cout << caller << ": set output" << endl; 
 
 	/* construct solvers */
 	const ArrayT<ParameterListT>& lists = list.Lists();
@@ -1582,7 +1504,7 @@ cout << caller << ": set output" << endl;
 	if (solver_list.Length() != fSolvers.Length())
 		ExceptionT::BadInputValue(caller, "must have at least one phase per solver");
 // DEBUG
-cout << caller << ": fTask = " << fTask << endl;
+//cout << caller << ": fTask = " << fTask << endl;
 
 //TEMP - don't allocate the global equation system
 if (fTask == kDecompose) return;
@@ -1592,10 +1514,6 @@ if (fTask == kDecompose) return;
 	
 	if (Size() > 1) // if parallel
 	{
-		/* collect model file and input format from ModelManager */
-		//fInputFormat = fModelManager->DatabaseFormat();
-		//fModelFile = fModelManager->DatabaseName();
-	
 		/* correct restart file name */
 		if (fReadRestart)
 		{
@@ -1608,7 +1526,7 @@ if (fTask == kDecompose) return;
 	}
 
 //DEBUG
-cout << caller << ": END" << endl; 
+//cout << caller << ": END" << endl; 
 }
 
 /** return any field connectivities generated by the node manager. Some
@@ -1632,28 +1550,6 @@ void FEManagerT::ConnectsX( AutoArrayT<const iArray2DT*>& connects) const
 		for (int s = 0 ; s < fElementGroups->Length(); s++)
 			(*fElementGroups)[s]->ConnectsX(connects);
 	}	
-
-
-// because of the inherits, I am not really sure what to do with this
-/* accept parameter list */
-/*void FEManagerT_mpi::TakeParameterList(const ParameterListT& list)
-{
-	// inherited
-	FEManagerT::TakeParameterList(list);
-
-	// collect model file and input format from ModelManager
-	fInputFormat = fModelManager->DatabaseFormat();
-	fModelFile = fModelManager->DatabaseName();
-
-	// correct restart file name
-	if (fReadRestart) {
-		StringT suffix;
-		suffix.Suffix(fRestartFile);
-		fRestartFile.Root();
-		fRestartFile.Append(".p", Rank());
-		fRestartFile.Append(suffix);
-	}
-}*/
 
 /* information about subordinate parameter lists */
 void FEManagerT::DefineSubs(SubListT& sub_list) const
@@ -1854,20 +1750,6 @@ void FEManagerT::SetOutput(void)
 	/* register output from nodes */		
 	fNodeManager->RegisterOutput();
 }
-
-// not sure what to do with this guy, because of external IO
-/* (re-)set system to initial conditions */
-//ExceptionT::CodeT FEManagerT_mpi::InitialCondition(void)
-//{
-//	/* inherited */
-//	ExceptionT::CodeT error = FEManagerT::InitialCondition();
-//	
-//	/* set I/O */
-//	if (error == ExceptionT::kNoError && fExternIOManager) 
-//		fExternIOManager->NextTimeSequence(0);
-//		
-//	return error;
-//}
 
 /* (re-)set system to initial conditions */
 ExceptionT::CodeT FEManagerT::InitialCondition(void)
@@ -2084,7 +1966,7 @@ bool FEManagerT::WriteRestart(const StringT* file_name) const
 void FEManagerT::SetEquationSystem(int group, int start_eq_shift)
 {
 //DEBUG
-cout << "FEManagerT::SetEquationSystem: START" << endl;
+//cout << "FEManagerT::SetEquationSystem: START" << endl;
 
 	/* equation number scope */
 	GlobalT::EquationNumberScopeT equation_scope = 
@@ -2145,7 +2027,7 @@ cout << "FEManagerT::SetEquationSystem: START" << endl;
 		fActiveEquationStart[group]);
 
 //DEBUG
-cout << "FEManagerT::SetEquationSystem: END" << endl;
+//cout << "FEManagerT::SetEquationSystem: END" << endl;
 }
 
 void FEManagerT::SendEqnsToSolver(int group) const

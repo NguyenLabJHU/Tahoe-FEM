@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.cpp,v 1.17 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: ExecutionManagerT.cpp,v 1.17.2.1 2004-09-15 02:14:15 d-farrell2 Exp $ */
 /* created: paklein (08/27/1997) */
 #include "ExecutionManagerT.h"
 
@@ -115,11 +115,7 @@ void ExecutionManagerT::Run(void)
 	}
 }
 
-/**********************************************************************
- * Protected
- **********************************************************************/
-
-/* returns true if the option was passed on the command line */
+// returns true if the option was passed on the command line, moved to public DEF 3 Aug 04
 bool ExecutionManagerT::CommandLineOption(const char* str, int& index) const
 {
 	for (int i = 0; i < fCommandLineOptions.Length(); i++)
@@ -133,6 +129,11 @@ bool ExecutionManagerT::CommandLineOption(const char* str, int& index) const
 	index = 0;
 	return false;
 }
+
+
+/**********************************************************************
+ * Protected
+ **********************************************************************/
 
 bool ExecutionManagerT::AddCommandLineOption(const char* str)
 {

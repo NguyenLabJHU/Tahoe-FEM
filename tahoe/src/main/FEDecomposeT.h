@@ -1,4 +1,4 @@
-/* $Id: FEDecomposeT.h,v 1.1.2.1 2004-08-06 00:23:13 d-farrell2 Exp $ */
+/* $Id: FEDecomposeT.h,v 1.1.2.2 2004-09-15 02:14:15 d-farrell2 Exp $ */
 /* created: d-farrell2 (08/03/2004) */
 #ifndef _FE_DECOMPOSE_T_H_
 #define _FE_DECOMPOSE_T_H_
@@ -23,7 +23,6 @@
 #include "PartitionT.h"
 #include "dArray2DT.h"
 #include "ofstreamT.h"
-//DEF 4 Aug 04
 #include "SolverT.h"
 #include "IOManager.h"
 
