@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.7 2001-12-17 00:12:59 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.8 2002-01-09 12:03:44 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -13,14 +13,13 @@
 /* direct members */
 #include "StringT.h"
 #include "ElementListT.h"
-#include "LocalArrayT.h"
 #include "IOBaseT.h"
-#include "ModelManagerT.h"
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
 class ifstreamT;
 class ofstreamT;
+class ModelManagerT;
 class TimeManagerT;
 class NodeManagerT;
 class ControllerT;
