@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.3 2004-11-05 22:53:49 paklein Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.4 2005-01-03 21:54:47 paklein Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -275,7 +275,7 @@ void FSSolidMixtureT::DefineSubs(SubListT& sub_list) const
 	FSSolidMatT::DefineSubs(sub_list);
 
 	/* data for each species */
-	sub_list.AddSub("mixture_species", ParameterListT::OnePlus);
+	sub_list.AddSub("solid_mixture_species", ParameterListT::OnePlus);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
@@ -286,7 +286,7 @@ ParameterInterfaceT* FSSolidMixtureT::NewSub(const StringT& name) const
 	if (solid)
 		return solid;
 
-	if (name == "mixture_species")
+	if (name == "solid_mixture_species")
 	{
 		ParameterContainerT* species = new ParameterContainerT(name);
 		species->SetSubSource(this);
@@ -336,7 +336,7 @@ void FSSolidMixtureT::TakeParameterList(const ParameterListT& list)
 	fStressSupport->SetDeformationGradient(&fF_species);
 
 	/* species */
-	int num_species = list.NumLists("mixture_species");
+	int num_species = list.NumLists("solid_mixture_species");
 	fStressFunctions.Dimension(num_species);
 	fStressFunctions = NULL;
 	fFields.Dimension(num_species);
@@ -344,10 +344,10 @@ void FSSolidMixtureT::TakeParameterList(const ParameterListT& list)
 	for (int i = 0; i < num_species; i++)
 	{
 		/* species */
-		const ParameterListT& species = list.GetList("mixture_species", i);
+		const ParameterListT& species = list.GetList("solid_mixture_species", i);
 
 		/* concentration field */
-		const StringT& conc_field_name = list.GetParameter("concentration_field");
+		const StringT& conc_field_name = species.GetParameter("concentration_field");
 		const FieldT* conc_field = fFSMatSupport->Field(conc_field_name);
 		if (!conc_field)
 			ExceptionT::GeneralFail(caller, "could not resolve field \"%s\"", 
