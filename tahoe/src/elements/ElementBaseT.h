@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.33 2003-11-21 22:45:44 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.34 2003-12-11 00:39:30 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -79,6 +79,9 @@ public:
 
 	/** \name accessors */
 	/*@{*/
+	/** the index of this element group within the FEManagerT */
+	int ElementGroupNumber(void) const;
+	
 	/** number of elements */
 	int NumElements(void) const { return fElementCards.Length(); };
 

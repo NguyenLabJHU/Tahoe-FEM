@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.41 2003-11-21 22:45:44 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.42 2003-12-11 00:39:30 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -54,6 +54,12 @@ ElementBaseT::ElementBaseT(ElementSupportT& support):
 	/* do nothing */
 }
 #endif
+
+/* the index of this element group within the FEManagerT */
+int ElementBaseT::ElementGroupNumber(void) const
+{
+	return ElementSupport().ElementGroupNumber(this);
+}
 
 /* destructor */
 ElementBaseT::~ElementBaseT(void) {	}
