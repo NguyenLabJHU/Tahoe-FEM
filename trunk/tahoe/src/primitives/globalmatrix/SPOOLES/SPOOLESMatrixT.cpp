@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.15 2003-10-31 20:53:17 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.16 2003-11-01 16:09:36 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT.h"
@@ -472,8 +472,9 @@ void SPOOLESMatrixT::PrintZeroPivots(void) const
 //not implemented
 }
 
-void SPOOLESMatrixT::PrintLHS(void) const
+void SPOOLESMatrixT::PrintLHS(bool force) const
 {
+#pragma unused(force)
 //not implemented
 }
 

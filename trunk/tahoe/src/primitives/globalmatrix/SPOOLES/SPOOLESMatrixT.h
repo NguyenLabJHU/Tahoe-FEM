@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.h,v 1.12 2003-10-31 20:53:17 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.h,v 1.13 2003-11-01 16:09:36 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #ifndef _SPOOLES_MATRIX_T_H_
 #define _SPOOLES_MATRIX_T_H_
@@ -91,7 +91,7 @@ protected:
 	/* rank check functions */
 	virtual void PrintAllPivots(void) const;
 	virtual void PrintZeroPivots(void) const;
-	virtual void PrintLHS(void) const;
+	virtual void PrintLHS(bool force = false) const;
 
 	/** convert MSR data in SPOOLESMatrixT::fMSRBuilder to RCV format
 	 * \param drop_tol tolerance to drop values if absolute value is smaller

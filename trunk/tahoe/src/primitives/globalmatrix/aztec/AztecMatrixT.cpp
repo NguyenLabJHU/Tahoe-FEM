@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.13 2003-10-31 20:53:20 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.14 2003-11-01 16:09:39 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 #include "AztecMatrixT.h"
 
@@ -366,9 +366,9 @@ void AztecMatrixT::PrintZeroPivots(void) const
 //not implemented
 }
 
-void AztecMatrixT::PrintLHS(void) const
+void AztecMatrixT::PrintLHS(bool force) const
 {
-	if (fCheckCode != GlobalMatrixT::kPrintLHS) return;
+	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
 
 	/* inherited */
 	fAztec->PrintNonZero(fOut);
