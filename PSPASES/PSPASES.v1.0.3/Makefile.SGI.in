@@ -55,7 +55,7 @@ PSOBJS = dpotrf.o
 
 #----------------- Archival Mechanism            ----------------
 
-AR = ar rsv
+AR = ar rsvu
 
 ## for METIS and ParMETIS
 RANLIB = ar -ts 
