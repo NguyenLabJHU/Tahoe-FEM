@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.cpp,v 1.8 2003-02-22 18:20:48 paklein Exp $ */
+/* $Id: SimoQ1P0.cpp,v 1.9 2003-12-10 06:45:33 paklein Exp $ */
 #include "SimoQ1P0.h"
 
 #include "ShapeFunctionT.h"
@@ -18,29 +18,22 @@ SimoQ1P0::SimoQ1P0(const ElementSupportT& support, const FieldT& field):
 /* data initialization */
 void SimoQ1P0::Initialize(void)
 {
+	const char caller[] = "SimoQ1P0::Initialize";
+
 	/* inherited */
 	UpdatedLagrangianT::Initialize();
 
 	/* check geometry code and number of element nodes -> Q1 */
 	if (GeometryCode() == GeometryT::kQuadrilateral) {
-		if (NumElementNodes() != 4) {
-			cout << "\n SimoQ1P0::Initialize: expecting 4 node quad: " 
-			     << NumElementNodes() << endl;
-			throw ExceptionT::kBadInputValue;
-		}	
+		if (NumElementNodes() != 4) 
+			ExceptionT::BadInputValue(caller, "expecting 4 node quad: %d", NumElementNodes());
 	}
 	else if (GeometryCode() == GeometryT::kHexahedron) {
-		if (NumElementNodes() != 8) {
-			cout << "\n SimoQ1P0::Initialize: expecting 8 node hex: " 
-			     << NumElementNodes() << endl;
-			throw ExceptionT::kBadInputValue;
-		}	
+		if (NumElementNodes() != 8) 
+			ExceptionT::BadInputValue(caller, "expecting 8 node hex: %d", NumElementNodes());
 	}
-	else {
-		cout << "\n SimoQ1P0::Initialize: expecting hex or quad geometry: "
-		     << GeometryCode() << endl;
-		throw ExceptionT::kBadInputValue;
-	}
+	else
+		ExceptionT::BadInputValue(caller, "expecting hex or quad geometry: %d", GeometryCode());
 	
 	/* need to store last deformed element volume */
 	fElementVolume.Dimension(NumElements());	
@@ -319,10 +312,8 @@ void SimoQ1P0::ReadMaterialData(ifstreamT& in)
 	UpdatedLagrangianT::ReadMaterialData(in);
 
 	/* make sure 2D materials are plane strain */
-	if (StructuralMaterialList().HasPlaneStress()) {
-		cout << "\n SimoQ1P0::ReadMaterialData: 2D materials must be plane strain" << endl;
-		throw ExceptionT::kBadInputValue;					
-	}	
+	if (StructuralMaterialList().HasPlaneStress()) 
+		ExceptionT::BadInputValue("SimoQ1P0::ReadMaterialData", "2D materials must be plane strain");
 }
 
 /***********************************************************************
@@ -361,7 +352,7 @@ void SimoQ1P0::bSp_bRq_to_KSqRp(const dMatrixT& b, dMatrixT& K) const
 #if __option(extended_errorcheck)
 	/* dimension check */
 	if (b.Length() != K.Rows() ||
-	    K.Rows() != K.Cols()) throw ExceptionT::kSizeMismatch;
+	    K.Rows() != K.Cols()) ExceptionT::SizeMismatch("SimoQ1P0::bSp_bRq_to_KSqRp");
 #endif
 
 	int dim = K.Rows();
