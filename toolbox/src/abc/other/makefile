@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2001-07-06 22:22:35 paklein Exp $
+# $Id: makefile,v 1.8 2001-09-13 21:43:31 rjones Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -29,7 +29,8 @@ HDR = \
 	pArrayT.h \
 	RowAutoFill2DT.h \
 	StringT.h \
-	Vector3T.h
+	Vector3T.h \
+	Vector2T.h
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
