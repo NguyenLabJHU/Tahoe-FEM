@@ -1,8 +1,9 @@
-/* $Id: CommunicatorT.h,v 1.8.2.4 2003-01-06 18:37:52 paklein Exp $ */
+/* $Id: CommunicatorT.h,v 1.8.2.5 2003-01-17 00:24:52 cjkimme Exp $ */
 #ifndef _COMMUNICATOR_T_H_
 #define _COMMUNICATOR_T_H_
 
 #include "Environment.h"
+#include <time.h>
 
 #ifdef __TAHOE_MPI__
 #include "mpi.h"
