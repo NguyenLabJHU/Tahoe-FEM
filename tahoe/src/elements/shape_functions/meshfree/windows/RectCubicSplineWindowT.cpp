@@ -92,29 +92,29 @@ bool RectCubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, 
 
       /* check x-direction */
       if ((rx>=-2)&&(rx<-1)) 
-	wx = (1.0 / 6.0) * (2.0 + rx) * (2.0 + rx) * (2.0 + rx);
+	wx = 1.0 / (6.0 * param_n[0]) * (2.0 + rx) * (2.0 + rx) * (2.0 + rx);
       else if ((rx>=-1)&&(rx<0)) 
-	wx = 2.0 / 3.0 - rx * rx - .5 * rx * rx * rx;
+	wx = (2.0 / 3.0 - rx * rx - .5 * rx * rx * rx) / param_n[0];
       else if ((rx>=0)&&(rx<1)) 
-	wx = (2.0 / 3.0) - rx * rx + .5 * rx * rx * rx;
+	wx = (2.0 / 3.0 - rx * rx + .5 * rx * rx * rx) / param_n[0];
       else if ((rx>=1)&&(rx<=2)) 
-	wx = (1.0 / 6.0) * (2.0 - rx) * (2.0 - rx) * (2.0 - rx);
+	wx = 1.0 / (6.0 * param_n[0]) * (2.0 - rx) * (2.0 - rx) * (2.0 - rx);
       else
 	wx = 0.0;
 
       /* check y-direction */
       if ((ry>=-2)&&(ry<-1))
-	wy = 1.0 / 6.0 * (ry + 2.0) * (ry + 2.0) * (ry + 2.0);
+	wy = 1.0 / (6.0 * param_n[1]) * (ry + 2.0) * (ry + 2.0) * (ry + 2.0);
       else if ((ry>=-1)&&(ry<0))
-	wy = 2.0 / 3.0 - ry * ry - .5 * ry * ry * ry;
+	wy = (2.0 / 3.0 - ry * ry - .5 * ry * ry * ry) / param_n[1];
       else if ((ry>=0)&&(ry<1))
-	wy = 2.0 / 3.0 - ry * ry + .5 * ry * ry * ry;
+	wy = (2.0 / 3.0 - ry * ry + .5 * ry * ry * ry) / param_n[1];
       else if ((ry>=1)&&(ry<=2))
-	wy = 1.0 / 6.0 * (2.0 - ry) * (2.0 - ry) * (2.0 - ry);
+	wy = 1.0 / (6.0 * param_n[1]) * (2.0 - ry) * (2.0 - ry) * (2.0 - ry);
       else
 	wy = 0.0;
 
-      w = wx * wy / (param_n[0] * param_n[1]);
+      w = wx * wy;
 
       if (order > 0)
       {
@@ -168,6 +168,8 @@ bool RectCubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, 
 	  Dw[1] = .5 * wx / (param_n[1] * param_n[1]) * (2.0 - ry) * (2.0 - ry);
 	else
 	  Dw[1] = 0.0;
+
+	cout << "Derivatives of window function are" << Dw << '\n';
       }
     }
     else if (x.Length() == 3)     // 3D calculation
