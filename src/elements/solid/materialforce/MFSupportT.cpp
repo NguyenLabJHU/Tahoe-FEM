@@ -1,4 +1,4 @@
-/* $Id: MFSupportT.cpp,v 1.3 2003-08-25 20:37:22 thao Exp $ */
+/* $Id: MFSupportT.cpp,v 1.4 2003-11-10 18:50:15 thao Exp $ */
 #include "MFSupportT.h"
 
 #include "dArrayT.h"
@@ -44,7 +44,7 @@ MFSupportT::MFSupportT(const  ElementSupportT& support):
     int index = model.NodeSetIndex(name);
     if (index < 0) 
     {
-      cout << "\nMFSupportT2::MFSupportT:  Node set " << name << " is undefined: ";
+      cout << "\nMFSupportT::MFSupportT:  Node set " << name << " is undefined: ";
       throw ExceptionT::kDatabaseFail;
     }
     else
