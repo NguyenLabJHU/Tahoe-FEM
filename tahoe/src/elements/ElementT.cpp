@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.25 2003-08-12 17:53:01 thao Exp $ */
+/* $Id: ElementT.cpp,v 1.26 2003-08-14 05:54:42 paklein Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -150,6 +150,9 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		    break;
 		case ElementT::kHyperElasticInitCSE:
 		    type = ElementT::kHyperElasticInitCSE;
+		    break;
+		case ElementT::kPenaltyContactDrag:
+		    type = ElementT::kPenaltyContactDrag;
 		    break;
 		default:
 			cout << "\n operator>>ElementT::TypeT: unknown type: "
