@@ -1,51 +1,10 @@
-
-# objects
 OBJ = \
-	GlobalEdgeFinderT.o \
-	ElementBaseT.o \
-	CSEBaseT.o \
-	FEManager.o \
-	MakeCSE.o \
-	MakeCSEIOManager.o \
-	NodeManagerPrimitive.o \
-	Quad2Tri.o \
-	main.o \
-	dArrayT.o \
-	dArray2DT.o \
-	iArrayT.o \
-	iArray2DT.o \
-	iAutoArrayT.o \
-	IOBaseT.o \
-	IOManager.o \
-	ExodusT.o \
-	ModelFileT.o \
-	EnSightT.o \
-	AbaqusT.o \
-	TecPlotT.o \
-	InputBaseT.o \
-	ExodusInputT.o \
-	TextInput.o \
-	EnSightInputT.o \
-	AbaqusInputT.o \
-	ExodusOutputT.o \
-	FE_ASCIIT.o \
-	OutputBaseT.o \
-	OutputSetT.o \
-	EnSightOutputT.o \
-	AbaqusOutputT.o \
-	TecPlotOutputT.o \
-	GeometryBaseT.o \
-	GeometryT.o \
-	HexahedronT.o \
-	LineT.o \
-	PentahedronT.o \
-	QuadT.o \
-	TetrahedronT.o \
-	TriT.o \
-	ifstream_x.o \
-	StringT.o \
-	dMatrixT.o
-
-OBJ_1 = $(OBJ:.o=.o1)
-OBJ_2 = $(OBJ:.o=.o2)
-OBJ_3 = $(OBJ:.o=.o3)
+	GlobalEdgeFinderT.o  ElementBaseT.o  CSEBaseT.o  FEManager.o  MakeCSE.o  MakeCSEIOManager.o  NodeManagerPrimitive.o  Quad2Tri.o  main.o\
+	dArrayT.o  dArray2DT.o  iArrayT.o  iArray2DT.o  iAutoArrayT.o\
+	StringT.o  dMatrixT.o\
+	ifstream_x.o\
+	GeometryBaseT.o  GeometryT.o  HexahedronT.o  LineT.o  PentahedronT.o  QuadT.o  TetrahedronT.o  TriT.o\
+	IOBaseT.o  IOManager.o\
+	ExodusT.o  ModelFileT.o  EnSightT.o  AbaqusT.o  TecPlotT.o\
+	AbaqusInputT.o  EnSightInputT.o  ExodusInputT.o  InputBaseT.o  TextInput.o\
+	ExodusOutputT.o  FE_ASCIIT.o  OutputBaseT.o  OutputSetT.o  EnSightOutputT.o  AbaqusOutputT.o  TecPlotOutputT.o
