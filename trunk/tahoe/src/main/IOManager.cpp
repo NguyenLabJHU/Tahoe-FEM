@@ -1,4 +1,4 @@
-/* $Id: IOManager.cpp,v 1.20 2004-03-04 08:54:38 paklein Exp $ */
+/* $Id: IOManager.cpp,v 1.21 2004-03-04 19:10:56 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 #include "IOManager.h"
 
@@ -8,6 +8,7 @@
 #include "dArrayT.h"
 #include "OutputBaseT.h"
 #include "iArray2DT.h"
+#include "dArray2DT.h"
 
 using namespace Tahoe;
 

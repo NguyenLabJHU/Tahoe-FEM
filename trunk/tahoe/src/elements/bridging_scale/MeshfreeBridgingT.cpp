@@ -1,6 +1,7 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.4 2004-03-04 08:54:20 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.5 2004-03-04 19:10:52 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
+#include "ifstreamT.h"
 #include "PointInCellDataT.h"
 #include "ShapeFunctionT.h"
 #include "iGridManagerT.h"
