@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.cpp,v 1.7 2004-07-15 08:25:57 paklein Exp $ */
+/* $Id: CSESymAnisoT.cpp,v 1.8 2004-09-10 20:29:41 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSESymAnisoT.h"
 
@@ -109,6 +109,29 @@ void CSESymAnisoT::RegisterOutput(void)
 #else
 	ElementSupport().RegisterOutput(n_labels,e_labels);
 #endif
+}
+
+/* describe the parameters needed by the interface */
+void CSESymAnisoT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	CSEAnisoT::DefineParameters(list);
+
+	/* no rotating frame */
+	ParameterT& rotate_frame = list.GetParameter("rotate_frame");
+	rotate_frame.SetDefault(false);	
+}
+
+/* accept parameter list */
+void CSESymAnisoT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	CSEAnisoT::TakeParameterList(list);
+	
+	/* symmetric element does not have a rotating frame */
+	if (fRotate)
+		ExceptionT::GeneralFail("CSESymAnisoT::TakeParameterList",
+			"no rotating frame");
 }
 
 /***********************************************************************
