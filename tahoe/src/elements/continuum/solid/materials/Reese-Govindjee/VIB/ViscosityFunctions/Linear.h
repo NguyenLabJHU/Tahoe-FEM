@@ -1,4 +1,4 @@
-/* $Id: Linear.h,v 1.1 2002-10-04 23:59:03 thao Exp $ */
+/* $Id: Linear.h,v 1.2 2002-10-05 02:25:41 paklein Exp $ */
 
 #ifndef _LINEAR_H_
 #define _LINEAR_H_
@@ -42,12 +42,12 @@ inline double Linear::Function(double Jv, double Je) const
 
 inline double Linear::DFuncDJv(double Jv, double Je) const 
 { 
-  #pragma unused(Jv);
+#pragma unused(Jv)
   return (fA*Je); 
 }
 inline double Linear::DFuncDJe(double Jv, double Je) const
 { 
-  #pragma unused(Je);
+#pragma unused(Je)
   return (fA*Jv); 
 }
 }
