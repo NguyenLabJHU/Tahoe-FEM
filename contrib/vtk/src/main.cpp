@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.5 2001-11-07 02:34:45 paklein Exp $ */
+/* $Id: main.cpp,v 1.6 2002-04-11 17:06:40 paklein Exp $ */
 
 #include "VTKConsoleT.h"
 #include "iConsoleT.h"
@@ -14,6 +14,6 @@ int main (int argc, char* argv[])
   VTKConsoleT vtk_console(arguments);
 
   /* open console */
-  iConsoleT("vtk_console.log", vtk_console);
+  iConsoleT("vtk_console.log", vtk_console, &arguments);
 }
 
