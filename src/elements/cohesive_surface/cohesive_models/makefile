@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.14 2003-01-31 09:46:50 paklein Exp $
+# $Id: makefile,v 1.15 2003-03-19 17:26:51 cjkimme Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,7 +6,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	InelasticDuctile2DT.o
+	InelasticDuctile2DT.o \
+	MR2DT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -16,11 +17,13 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	InelasticDuctile2DT.cpp
+	InelasticDuctile2DT.cpp \
+	MR2DT.cpp
 
 # headers
 HDR = \
-	InelasticDuctile2DT.h
+	InelasticDuctile2DT.h \
+	MR2DT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
