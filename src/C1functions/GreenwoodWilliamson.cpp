@@ -1,4 +1,4 @@
-/* $Id: GreenwoodWilliamson.cpp,v 1.20 2003-02-03 04:40:16 paklein Exp $ */
+/* $Id: GreenwoodWilliamson.cpp,v 1.21 2003-04-25 20:01:39 dzeigle Exp $ */
 #include "GreenwoodWilliamson.h"
 #include <math.h>
 #include <iostream.h>
@@ -266,7 +266,7 @@ dArrayT& GreenwoodWilliamson::MapFunction(const dArrayT& in, dArrayT& out) const
 
 	double* pl   = in.Pointer();
 	double* pddU = out.Pointer();
-	double r, value = -10.0;
+	double r, value = 0.0;
 	
 	for (int i = 0; i < in.Length(); i++)
 	{
@@ -318,7 +318,7 @@ dArrayT& GreenwoodWilliamson::MapDFunction(const dArrayT& in, dArrayT& out) cons
 
 	double* pl = in.Pointer();
 	double* pU = out.Pointer();
-	double r, value=-10.0;
+	double r, value = 10.0;
 	
 	for (int i = 0; i < in.Length(); i++)
 	{	
@@ -402,7 +402,7 @@ dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) con
 
 	double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
-	double r, value=-1.0e10;
+	double r, value = 0.0;
 	
 	for (int i = 0; i < in.Length(); i++)
 	{

@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.34 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.35 2003-04-25 20:01:40 dzeigle Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -9,6 +9,7 @@
 #include "ParabolaT.h"
 #include "ModSmithFerrante.h"
 #include "GreenwoodWilliamson.h"
+#include "MajumdarBhushan.h"
 
 /* vector functions */
 #include "vector2D.h"
@@ -68,6 +69,19 @@ void PenaltyContactElement2DT::Initialize(void)
 				parameters[kPenalty] *= material_coeff; // overwrite pen value
 				fPenaltyFunctions[LookUp(i,j,num_surfaces)]
                                         = new GreenwoodWilliamson(1.5,gw_m,gw_s);
+				}
+				break;
+			case PenaltyContactElement2DT::kMajumdarBhushan:
+				{
+                /* parameters for Majumdar-Bhushan load formulation */
+                double mb_s = parameters[kSigma];
+                double mb_g = parameters[kRoughnessScale];
+                double mb_mod = parameters[kEPrime];
+                double mb_f = parameters[kFractalDimension];
+                double material_coeff=(4.0/3.0)*sqrt(2.0*PI)*mb_mod*pow(mb_g,mb_f-1);
+				parameters[kPenalty] *= material_coeff; // overwrite pen value
+				fPenaltyFunctions[LookUp(i,j,num_surfaces)]
+                                        = new MajumdarBhushan(mb_f,mb_s);
 				}
 				break;
 			default:
@@ -159,6 +173,15 @@ void PenaltyContactElement2DT::PrintControlData(ostream& out) const
 				out << "  Hertzian Modulus                   : "
 					<< enf_parameters[kHertzianModulus] << '\n';
 				break;	
+			  case kMajumdarBhushan:
+			  	out << " Asperity height standard deviation : "
+			  		<< enf_parameters[kSigma] << '\n';
+			  	out << " Asperity roughness scale : "
+			  		<< enf_parameters[kRoughnessScale] << '\n';
+			  	out << " Fractal dimension : "
+			  		<< enf_parameters[kFractalDimension] << '\n';
+			  	out << "  Hertzian Modulus                   : "
+					<< enf_parameters[kEPrime] << '\n';
 			  default:
 				throw ExceptionT::kBadInputValue;
 		  	  }
@@ -236,6 +259,15 @@ void PenaltyContactElement2DT::RHSDriver(void)
 			GreenwoodWilliamson GWArea(1.0,gw_m,gw_s); 	
   		  	double area_coeff = PI*gw_dens*gw_rad;
 		  	fRealArea[s] += (area_coeff*GWArea.Function(gap)*weights[i]);
+		  }
+		  
+		  if (parameters[kPenaltyType] 
+				== PenaltyContactElement2DT::kMajumdarBhushan) {
+			double mb_s = parameters[kAsperityHeightStandardDeviation];
+			double mb_f = parameters[kFractalDimension];
+
+			MajumdarBhushan MBArea(mb_f,mb_s); 	
+		  	fRealArea[s] += (MBArea.Function(gap)*weights[i]);
 		  }
 		}
 	  } 

@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.h,v 1.16 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: PenaltyContactElement2DT.h,v 1.17 2003-04-25 20:01:40 dzeigle Exp $ */
 // created by : rjones 2001
 #ifndef _PENALTY_CONTACT_ELEMENT_2D_T_H_
 #define _PENALTY_CONTACT_ELEMENT_2D_T_H_
@@ -35,6 +35,7 @@ class PenaltyContactElement2DT: public ContactElementT
 								kLinear = 0,
 								kModSmithFerrante,
 								kGreenwoodWilliamson,
+								kMajumdarBhushan,
 		kNumPenaltyTypes};
 	
 // material constants for the various penalty types
@@ -52,6 +53,13 @@ class PenaltyContactElement2DT: public ContactElementT
                                	kAsperityDensity,
                                	kAsperityTipRadius,
                                	kHertzianModulus  
+						};
+						
+	enum MBParametersT {
+								kSigma=3,
+								kFractalDimension,
+								kRoughnessScale,
+								kEPrime
 						};
 	 	
   protected:

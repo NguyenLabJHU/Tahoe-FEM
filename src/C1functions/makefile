@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.23 2003-01-31 09:46:45 paklein Exp $
+# $Id: makefile,v 1.24 2003-04-25 20:01:39 dzeigle Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,6 +6,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
+	MajumdarBhushan.o \
 	GreenwoodWilliamson.o \
 	ConHypGeom.o
 
@@ -17,11 +18,13 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
+	MajumdarBhushan.cpp \
 	GreenwoodWilliamson.cpp \
 	ConHypGeom.cpp
 
 # headers
 HDR = \
+	MajumdarBhushan.h \
 	GreenwoodWilliamson.h \
 	ConHypGeom.h
 
