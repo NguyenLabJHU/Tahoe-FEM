@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.cpp,v 1.12 2003-08-08 00:28:45 paklein Exp $ */
+/* $Id: IOBaseT.cpp,v 1.13 2003-09-10 00:14:57 paklein Exp $ */
 /* created: sawimme (09/28/1999) */
 #include "IOBaseT.h"
 
@@ -15,10 +15,10 @@
 #include "PatranInputT.h"
 #include "EnSightInputT.h"
 #include "AbaqusInputT.h"
-#include "InputFEASCIIT.h"
+#include "TextInputT.h"
 
 /* output formats */
-#include "FE_ASCIIT.h"
+#include "TextOutputT.h"
 #include "ExodusOutputT.h"
 #include "EnSightOutputT.h"
 #include "AbaqusOutputT.h"
@@ -83,7 +83,7 @@ istream& operator>>(istream& in, IOBaseT::FileTypeT& file_type)
 
 }
 
-void IOBaseT::InputFormats (ostream& log) const
+void IOBaseT::InputFormats (ostream& log)
 {
   log << "    eq. " << setw (2) << IOBaseT::kTahoe         << ". Tahoe\n";
   log << "    eq. " << setw (2) << IOBaseT::kTahoeII       << ". Tahoe II\n";
@@ -99,7 +99,7 @@ void IOBaseT::InputFormats (ostream& log) const
   log << "    eq. " << setw (2) << IOBaseT::kTahoeResults  << ". Tahoe Results (.geo/.run)\n";
 }
 
-void IOBaseT::OutputFormats (ostream& log) const
+void IOBaseT::OutputFormats (ostream& log)
 {
 //log << "    eq. " << setw (2) << IOBaseT::kTahoe         << ". Tahoe\n";
   log << "    eq. " << setw (2) << IOBaseT::kTahoeII       << ". Tahoe II\n";
@@ -181,7 +181,7 @@ InputBaseT* IOBaseT::NewInput(FileTypeT format, ostream& message)
 			break;
 
 		case kTahoeResults:
-			input = new InputFEASCIIT(message);
+			input = new TextInputT(message);
 			break;
 
 		default:
@@ -221,7 +221,7 @@ OutputBaseT* IOBaseT::NewOutput(const StringT& program_name,
 	  case IOBaseT::kTahoe:
 	  case IOBaseT::kTahoeII:
 	  case IOBaseT::kTahoeResults:
-	    output = new FE_ASCIIT(log, true, outstrings);
+	    output = new TextOutputT(log, true, outstrings);
 	    break;
 	  case IOBaseT::kEnSight:
 	    output = new EnSightOutputT(log, outstrings, kdigits, false);

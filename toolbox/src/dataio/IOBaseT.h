@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.h,v 1.11 2003-08-08 00:28:45 paklein Exp $ */
+/* $Id: IOBaseT.h,v 1.12 2003-09-10 00:14:57 paklein Exp $ */
 /* created: sawimme (09/28/1999) */
 #ifndef _IOBASE_T_H_
 #define _IOBASE_T_H_
@@ -51,10 +51,10 @@ public:
 	friend istream& operator>>(istream& in, IOBaseT::FileTypeT& file_type);
 
 	/** write list of input formats to log */
-	void InputFormats (ostream &log) const;
+	static void InputFormats (ostream &log);
 
 	/** write list of output formats to log */
-	void OutputFormats (ostream &log) const;
+	static void OutputFormats (ostream &log);
 	
 	/** try to guess the file format based on the file extension */
 	static FileTypeT name_to_FileTypeT(const char* file_name);
