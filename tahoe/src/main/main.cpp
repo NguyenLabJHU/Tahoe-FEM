@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.12 2002-09-10 22:48:44 cjkimme Exp $ */
+/* $Id: main.cpp,v 1.13 2002-09-12 17:47:20 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>
@@ -15,6 +15,10 @@ extern "C" int ccommand(char ***arg);
 #endif
 #endif
 
+#if defined(__MWERKS__) && defined(__MACH__)
+#include <unistd.h> //TEMP - needed for chdir
+#endif
+
 /* MP environment */
 #include "CommunicatorT.h"
 
@@ -28,7 +32,7 @@ static void ShutDown(CommunicatorT& comm);
 
 /* redirect of cout for parallel execution */
 ofstream console;
-#if defined (__DEC__) || defined (__SUN__)
+#if defined (__DEC__) || defined (__SUN__) || defined(__GCC_3__)
 streambuf* cout_buff = NULL,*cerr_buff = NULL;
 #endif
 
@@ -36,7 +40,7 @@ streambuf* cout_buff = NULL,*cerr_buff = NULL;
 int xargc;
 char **xargv;
 
-void main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 	/* f2c library global variables */
 	xargc = argc;
@@ -52,12 +56,20 @@ void main(int argc, char* argv[])
 	FEExec.Run();		
 
 	ShutDown(comm);
+	return 0;
 }
 
 static void StartUp(int* argc, char*** argv, CommunicatorT& comm)
 {
+#if defined(__MWERKS__) && defined(__MACH__)
+/* CW8 console apps launch with cwd = "/" */
+if (chdir("/Volumes/Uster/USERS/tahoe/bin") != 0) cout << " chdir failed" << endl;
+char cwd[255];
+if (getcwd(cwd, 255)) cout << " cwd: " << cwd << endl;
+#endif
+
 #if !defined(_MACOS_) && !defined(__INTEL__)
-#if defined (__DEC__) || defined (__SUN__)
+#if defined (__DEC__) || defined (__SUN__) || defined(__GCC_3__)
 	/* redirect cout and cerr */
 	if (comm.Rank() > 0)
 	{
