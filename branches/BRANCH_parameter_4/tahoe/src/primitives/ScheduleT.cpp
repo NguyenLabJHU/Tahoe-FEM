@@ -1,4 +1,4 @@
-/* $Id: ScheduleT.cpp,v 1.6.2.2 2004-07-12 16:06:39 paklein Exp $ */
+/* $Id: ScheduleT.cpp,v 1.6.2.3 2004-07-12 22:52:24 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ScheduleT.h"
 #include "dArray2DT.h"
@@ -11,7 +11,9 @@ using namespace Tahoe;
 /* constructor */
 ScheduleT::ScheduleT(void):
 	ParameterInterfaceT("schedule_function"),
-	fFunction(NULL)
+	fFunction(NULL),
+	fCurrentTime(0.0),
+	fCurrentValue(0.0)
 {
 
 }
@@ -25,6 +27,9 @@ ScheduleT::ScheduleT(double value):
 	points(0,0) = 0.0;
 	points(0,1) = value;
 	fFunction = new PiecewiseLinearT(points);
+	
+	/* initialize state */
+	SetTime(0.0);
 }
 
 /* destructor */
