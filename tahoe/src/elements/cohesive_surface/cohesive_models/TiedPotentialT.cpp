@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.19 2003-05-26 01:51:46 paklein Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.20 2003-05-27 07:01:58 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -357,17 +357,17 @@ void TiedPotentialT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& 
 	output[0] = 0.;//state[nTiedFlag];
 }
 
-bool TiedPotentialT::NeedsNodalInfo(void) { return true; }
+bool TiedPotentialT::NeedsNodalInfo(void) const { return true; }
 
-bool TiedPotentialT::NodesMayRetie(void) { return qRetieNodes; }
+bool TiedPotentialT::NodesMayRetie(void) const { return qRetieNodes; }
 
 
-int TiedPotentialT::NodalQuantityNeeded(void) 
+int TiedPotentialT::NodalQuantityNeeded(void) const
 { 
         return kAverageCode; /*get stress tensor from bulk */ 
 }
 
-bool TiedPotentialT::InitiationQ(const double* sigma) 
+bool TiedPotentialT::InitiationQ(const nArrayT<double>& sigma) const
 {
 	double t1 = sigma[0]*fnvec1+sigma[2]*fnvec2;
 	double t2 = sigma[2]*fnvec1+sigma[1]*fnvec2;
@@ -375,8 +375,8 @@ bool TiedPotentialT::InitiationQ(const double* sigma)
 	return t1*t1 + t2*t2 >= fsigma_critical;
 }
 
-bool TiedPotentialT::RetieQ(const double* sigma, const ArrayT<double>& state,
-							const dArrayT& jump_u)
+bool TiedPotentialT::RetieQ(const nArrayT<double>& sigma, const ArrayT<double>& state,
+							const dArrayT& jump_u) const
 {
 #pragma unused(state)
 #pragma unused(sigma)

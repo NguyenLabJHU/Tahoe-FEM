@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.h,v 1.15 2003-05-26 01:51:46 paklein Exp $ */
+/* $Id: TiedPotentialT.h,v 1.16 2003-05-27 07:01:58 paklein Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_T_H_
@@ -67,17 +67,20 @@ public:
 	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 		dArrayT& output);
 
-	virtual bool NeedsNodalInfo(void);
+	virtual bool NeedsNodalInfo(void) const;
 	
-	virtual int NodalQuantityNeeded(void);
+	virtual int NodalQuantityNeeded(void) const;
+
+	/** rotate nodal values to local frame */
+	virtual bool RotateNodalQuantity(void) const { return true; };
 	
-	virtual bool InitiationQ(const double* sigma);
+	virtual bool InitiationQ(const nArrayT<double>& sigma) const;
 	
 	/** whether or not potential may retie nodes */
-	virtual bool NodesMayRetie(void);
+	virtual bool NodesMayRetie(void) const;
 	
 	/** returns true if criterium for retieing is met */
-	virtual bool RetieQ(const double* sigma, const ArrayT<double>& state, const dArrayT& jump_u);
+	virtual bool RetieQ(const nArrayT<double>& sigma, const ArrayT<double>& state, const dArrayT& jump_u) const;
 	
 protected:
 
