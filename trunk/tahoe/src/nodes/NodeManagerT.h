@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.17 2003-05-21 23:48:17 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.18 2003-05-28 21:02:45 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -220,6 +220,9 @@ public:
 	
 	/** the local node to home processor map */
 	const ArrayT<int>* ProcessorMap(void) const;
+	
+	/** the communications manager */
+	CommManagerT& CommManager(void) const;
 
 	/** read/write access to the coordinate update field. Returns NULL if these is no
 	 * coordinate update field. */
