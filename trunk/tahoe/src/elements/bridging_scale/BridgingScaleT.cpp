@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.35 2003-10-02 21:05:07 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.36 2003-10-28 07:30:35 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -464,6 +464,13 @@ out << "\n residual =\n" << projection << endl;
 	}
 }
 
+/* compute the coarse scale part of the source field */
+void BridgingScaleT::CoarseField(const PointInCellDataT& cell_data, const dArray2DT& field, dArray2DT& coarse) const
+{
+	const char caller[] = "BridgingScaleT::CoarseField";
+	ExceptionT::GeneralFail(caller, "not implemented");
+}
+
 /* Project point values onto mesh, write into displacement field.  Used to compute initial
    displacements from point values to mesh. */
 void BridgingScaleT::InitialProject(const StringT& field, const PointInCellDataT& cell_data,
@@ -765,11 +772,9 @@ void BridgingScaleT::RegisterOutput(void)
 	fSolidOutputID = ElementSupport().RegisterOutput(output_set_solid);
 #endif
 
-#if 0
 	/* register output at particles */
-	OutputSetT output_set_particle(GeometryT::kPoint, fParticlesUsed, n_labels);
-	fParticleOutputID = ElementSupport().RegisterOutput(output_set_particle);
-#endif
+//	OutputSetT output_set_particle(GeometryT::kPoint, fParticlesUsed, n_labels);
+//	fParticleOutputID = ElementSupport().RegisterOutput(output_set_particle);
 }
 
 //NOTE - this function is/was identical to CSEBaseT::WriteOutput
