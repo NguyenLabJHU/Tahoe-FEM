@@ -1,6 +1,6 @@
-/* $Id: iGridManagerT.h,v 1.3 2001-06-19 00:52:19 paklein Exp $ */
+/* $Id: iGridManagerT.h,v 1.4 2002-06-29 22:07:07 hspark Exp $ */
 /* created: paklein (09/13/1998)                                          */
-/* iNodeT grid with unified interface for 2D/3D and lightweight           */
+/* iNodeT grid with unified interface for 1D/2D/3D and lightweight        */
 /* file dependencies                                                      */
 
 #ifndef _I_GRIDMANAGER_T_H_
@@ -15,6 +15,7 @@ class iArrayT;
 template <class TYPE> class ArrayT;
 class dArray2DT;
 class iNodeT;
+class iGridManager1DT;
 class iGridManager2DT;
 class iGridManager3DT;
 template <class TYPE> class AutoArrayT;
@@ -53,7 +54,8 @@ public:
 
 private:
 
-	/* 2D/3D search grids */
+	/* 1D/2D/3D search grids */
+	iGridManager1DT* fGrid1D;
 	iGridManager2DT* fGrid2D;
 	iGridManager3DT* fGrid3D;
 };
