@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.cpp,v 1.5 2002-01-02 06:28:04 paklein Exp $ */
+/* $Id: IOBaseT.cpp,v 1.6 2002-03-04 06:16:34 paklein Exp $ */
 /* created: sawimme (09/28/1999) */
 
 #include "IOBaseT.h"
@@ -103,7 +103,7 @@ IOBaseT::FileTypeT IOBaseT::name_to_FileTypeT(const char* file_name)
 		return kTahoeII;
 	else if (ext == ".case")
 		return kEnSight;
-	else if (ext == ".run")
+	else if (ext == ".run" || ext == ".geo")
 		return kTahoeResults;
 	else {
 		cout << "\n IOBaseT::name_to_FileTypeT: could not guess file type from name: " 
