@@ -1,12 +1,12 @@
-# $Id: SGI.64.macros,v 1.11 2003-11-19 20:43:03 rdorgan Exp $
-
+# $Id: SGI.64.macros,v 1.12 2004-01-02 01:17:40 paklein Exp $
 MAKE        = make
-MAKE_DEPEND = makedepend
-DEPENDFLAGS = -I/usr/include/CC
+DEFINES     = -D__SGI__
+MAKEDEPEND  = makedepend
+MAKEDEPEND_OUTPUT = -f
+MAKEDEPENDFLAGS = -I/usr/include/CC $(DEFINES)
 COMP_C      = cc 
 COMP_CC     = CC
 COMP_F      = f77
-DEFINES     = -D__SGI__
 MORE_CFLAGS = -O3 -OPT:Olimit=10000 -DNDEBUG 
 #MORE_CFLAGS = -g
 LOC_CFLAGS  = -64 -c -mips4 $(DEFINES) -I$(INC_DIR) $(MORE_CFLAGS)
@@ -18,6 +18,8 @@ LINK        = $(COMP_CC)
 LFLAGS      = $(F2C_LFLAG) -lm -w -64
 AR          = ar
 ARFLAGS     = -cruv
+RANLIB      = echo
+RANLIBFLAGS =
 MAKE_OPTS   = -P
 RM          = rm -rf
 RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
@@ -26,10 +28,15 @@ ECHO        = echo
 CAT         = cat
 PERL        = perl -w
 PRINTF      = printf
+GREP        = grep
+XARGS       = xargs
+
+# target-specific extras
+MAKE_INIT_XTRAS        =
+MAKE_HEADERS_XTRAS     =
+MAKE_DEPEND_INIT_XTRAS =
+MAKE_CLEAN_XTRAS       =
+MAKE_BUILD_XTRAS       =
 
 # parallel builds
 # env. var. PARALLEL controls concurrency (default = 2)
-
-# command needed build library
-#BUILD_LIBRARY = BUILD_LIBRARY_RANLIB
-BUILD_LIBRARY = BUILD_LIBRARY_AR

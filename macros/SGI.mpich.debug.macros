@@ -1,17 +1,17 @@
-# $Id: SGI.mpich.debug.macros,v 1.6 2003-11-04 05:21:28 paklein Exp $
+# $Id: SGI.mpich.debug.macros,v 1.7 2004-01-02 01:17:40 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = 
 
 # SGI Irix 6.2 (or newer)
 MAKE        = make
-MAKE_DEPEND = makedepend
-DEPENDFLAGS = -I/usr/include/CC -I/usr/local/mpich/include
+DEFINES     = -D__SGI__ -D__TAHOE_MPI__
+MAKEDEPEND  = makedepend
+MAKEDEPEND_OUTPUT = -f
+MAKEDEPENDFLAGS = -I/usr/include/CC -I/usr/local/mpich/include $(DEFINES)
 COMP_C      = /usr/local/mpich/bin/mpicc
 COMP_CC     = /usr/local/mpich/bin/mpiCC
 COMP_F      = /usr/local/mpich/bin/mpif77
-DEFINES     = -D__SGI__
-#MORE_CFLAGS = -O3 -OPT:Olimit=10000 -DNDEBUG 
 MORE_CFLAGS = -g -O -OPT:Olimit=10000
 LOC_CFLAGS  = -c -mips4 $(DEFINES) -I$(INC_DIR) $(MORE_CFLAGS)
 CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS) -woff 1110,1116
@@ -21,7 +21,9 @@ LINK        = $(COMP_CC)
 LFLAGS      = $(MPI_LFLAGS) -lm -w
 AR          = ar
 ARFLAGS     = -cruv
-MAKE_OPTS   = -sP
+RANLIB      = echo
+RANLIBFLAGS =
+MAKE_OPTS   = -P
 RM          = rm -rf
 RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf
@@ -29,10 +31,15 @@ ECHO        = echo
 CAT         = cat
 PERL        = perl -w
 PRINTF      = printf
+GREP        = grep
+XARGS       = xargs
+
+# target-specific extras
+MAKE_INIT_XTRAS        =
+MAKE_HEADERS_XTRAS     =
+MAKE_DEPEND_INIT_XTRAS =
+MAKE_CLEAN_XTRAS       =
+MAKE_BUILD_XTRAS       =
 
 # parallel builds
 # env. var. PARALLEL controls concurrency (default = 2)
-
-# command needed build library
-#BUILD_LIBRARY = BUILD_LIBRARY_RANLIB
-BUILD_LIBRARY = BUILD_LIBRARY_AR

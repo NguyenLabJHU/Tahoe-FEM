@@ -1,19 +1,19 @@
-# $Id: ROSS.macros,v 1.8 2003-03-15 16:54:31 paklein Exp $
+# $Id: ROSS.macros,v 1.9 2004-01-02 01:17:40 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__ -DAZTEC_MPI
 MPI_LFLAGS = -lmpi
 
 # Ross (DEC)
 MAKE        = make
-MAKE_DEPEND = makedepend
-DEPENDFLAGS = -I/usr/include/cxx -I/usr/local/cplant/ross/current/include
+DEFINES     = -D__DEC__ -D__CPLANT__ -D__ROSS__ -U__IEEE_FLOAT -D__TAHOE_MPI__ -DAZTEC_MPI
+MAKEDEPEND  = makedepend
+MAKEDEPEND_OUTPUT = -f
+MAKEDEPENDFLAGS = -I/usr/include/cxx -I/usr/local/cplant/ross/current/include $(DEFINES)
 COMP_CC     = c++
 COMP_C      = cc
 COMP_F      = f77
 TR          = $(MACRO_DIR)/cxx_repository
 MORE_CFLAGS = -O3 -DNDEBUG
-#MORE_CFLAGS = -g
-DEFINES     = -D__DEC__ -D__CPLANT__ -D__ROSS__ -U__IEEE_FLOAT
 LOC_CFLAGS  = -c -I$(INC_DIR) -I/usr/local/cplant/ross/current/include $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -ptr $(TR) -distinguish_nested_enums -msg_disable 161,111
@@ -23,6 +23,8 @@ LFLAGS      = $(MPI_LFLAGS) -lm -ptr $(TR) -L/usr/local/cplant/ross/current/lib
 AR          = ar
 ARFLAGS     = -cruv
 MAKE_OPTS   = 
+RANLIB      = echo
+RANLIBFLAGS =
 RM          = rm
 RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf
@@ -30,7 +32,12 @@ ECHO        = echo
 CAT         = cat
 PERL        = perl -w
 PRINTF      = printf
+GREP        = grep
+XARGS       = xargs
 
-# command needed build library
-#BUILD_LIBRARY = BUILD_LIBRARY_RANLIB
-BUILD_LIBRARY = BUILD_LIBRARY_AR
+# target-specific extras
+MAKE_INIT_XTRAS        =
+MAKE_HEADERS_XTRAS     =
+MAKE_DEPEND_INIT_XTRAS =
+MAKE_CLEAN_XTRAS       =
+MAKE_BUILD_XTRAS       =

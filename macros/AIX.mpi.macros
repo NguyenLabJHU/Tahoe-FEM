@@ -1,11 +1,13 @@
-# $Id: AIX.mpi.macros,v 1.8 2003-03-15 16:54:30 paklein Exp $
+# $Id: AIX.mpi.macros,v 1.9 2004-01-02 01:17:39 paklein Exp $
 # DEC
 MPI_CFLAGS  = -D__TAHOE_MPI__
 MPI_LFLAGS  =
 
 MAKE        = make
-MAKE_DEPEND = makedepend
-DEPENDFLAGS = -I/usr/vacpp/include -I/usr/lpp/ppe.poe/include
+DEFINES     = -D__AIX__ -D__TAHOE_MPI__
+MAKEDEPEND = makedepend
+MAKEDEPEND_OUTPUT = -f
+MAKEDEPENDFLAGS = -I/usr/vacpp/include -I/usr/lpp/ppe.poe/include $(DEFINES)
 COMP_C      = mpcc
 COMP_CC     = mpCC
 COMP_F      = mpxlf
@@ -19,8 +21,6 @@ MORE_CFLAGS = -O -DNDEBUG -qsuppress=1500-036
 #       See the class toolbox/src/misc/SpectralDecompT. Even higher levels
 #       of optimization were not tested.
 #
-#MORE_CFLAGS = -g 
-DEFINES     = -D__AIX__ 
 LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -qmaxmem=10000
 CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -qrtti
@@ -30,6 +30,8 @@ LINK        = $(COMP_CC)
 LFLAGS      = $(MPI_LFLAGS) $(F2C_LFLAG) -lm $(TR)
 AR          = ar
 ARFLAGS     = -cruv
+RANLIB      = echo
+RANLIBFLAGS =
 MAKE_OPTS   =
 RM          = rm
 RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
@@ -38,7 +40,12 @@ ECHO        = echo
 CAT         = cat
 PERL        = perl -w
 PRINTF      = printf
+GREP        = grep
+XARGS       = xargs
 
-# command needed build library
-#BUILD_LIBRARY = BUILD_LIBRARY_RANLIB
-BUILD_LIBRARY = BUILD_LIBRARY_AR
+# target-specific extras
+MAKE_INIT_XTRAS        =
+MAKE_HEADERS_XTRAS     =
+MAKE_DEPEND_INIT_XTRAS =
+MAKE_CLEAN_XTRAS       =
+MAKE_BUILD_XTRAS       =
