@@ -1,20 +1,29 @@
-/* $Id: SF2.cpp,v 1.4 2003-11-21 22:41:27 paklein Exp $ */
-/* created: paklein (10/30/1997)                                          */
-
+/* $Id: SF2.cpp,v 1.5 2004-06-19 23:27:18 paklein Exp $ */
+/* created: paklein (10/30/1997) */
 #include "SF2.h"
 #include <math.h>
 #include <iostream.h>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 
-/*
-* constructors
-*/
-
 using namespace Tahoe;
 
+/* constructors */
 SF2::SF2(double A, double B, double l_0):
-  fA(A), fB(B), fl_0(l_0) { cout << "Constructed \n";}
+	fA(A), 
+	fB(B), 
+	fl_0(l_0)
+{
+	SetName("Smith-Ferrante_2");
+}
+
+SF2::SF2(void):
+	fA(0.0), 
+	fB(0.0), 
+	fl_0(0.0)
+{
+	SetName("Smith-Ferrante_2");
+}
 
 /*
 * I/O
@@ -120,4 +129,29 @@ dArrayT& SF2::MapDDFunction(const dArrayT& in, dArrayT& out) const
 		*pddU++ = DDFunction(x);
 	}
 	return(out);
+}
+
+/* describe the parameters needed by the interface */
+void SF2::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	C1FunctionT::DefineParameters(list);
+	
+	list.SetDescription("F(dr) = A dr exp(-dr^2/B)");
+
+	// should insert some consistency checks on the parameters
+	list.AddParameter(fA, "A");
+	list.AddParameter(fB, "B");
+	list.AddParameter(fl_0, "l_0");
+}
+
+/* accept parameter list */
+void SF2::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	C1FunctionT::TakeParameterList(list);
+
+	fA = list.GetParameter("A");
+	fB = list.GetParameter("B");
+	fl_0 = list.GetParameter("l_0");
 }
