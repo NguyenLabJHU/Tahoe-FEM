@@ -1,4 +1,4 @@
-/* $Id: main_cpp.cpp,v 1.5 2005-01-16 19:42:39 paklein Exp $ */
+/* $Id: main_cpp.cpp,v 1.6 2005-01-16 19:50:35 paklein Exp $ */
 #include <iostream.h>
 #include <math.h>
 #include <iomanip.h>
@@ -41,6 +41,7 @@ int main (int, char**)
 	     << "sizeof(long int) = " << sizeof(long int) << '\n'
 	     << "sizeof(float) = " << sizeof(float) << '\n'
 	     << "sizeof(double) = " << sizeof(double) << '\n'
+	     << "sizeof(long double) = " << sizeof(long double) << '\n'
 	     << "sizeof(void*) = " << sizeof(void*) << "\n\n";
 
 	int wd = 15;

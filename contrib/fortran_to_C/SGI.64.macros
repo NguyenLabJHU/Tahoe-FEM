@@ -1,0 +1,18 @@
+# $Id: SGI.64.macros,v 1.1 2005-01-16 19:50:35 paklein Exp $
+.SUFFIXES: .c .cpp .f .F
+
+# SGI macros
+
+COMP_C  = cc
+COMP_CC = CC
+COMP_F  = f77 
+C_FLAGS  = -64 -D__SGI__
+CC_FLAGS = -64 -D__SGI__
+F_FLAGS  = -64 -D__SGI__
+
+LINK_C     = $(COMP_C) 
+LINK_CC    = $(COMP_CC)
+LINK_F     = $(COMP_F)
+L_FLAGS_C  = -64 -lftn -lm
+L_FLAGS_CC = -64 -lftn -lm
+L_FLAGS_F  = -64 -lftn
