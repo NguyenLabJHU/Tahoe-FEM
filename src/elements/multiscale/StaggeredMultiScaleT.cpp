@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.15 2002-12-17 02:44:34 creigh Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.16 2002-12-17 08:57:51 paklein Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -11,6 +11,7 @@
 #include "E_Pr_MatlT.h"
 #include "Iso_MatlT.h"
 #include "BCJ_MatlT.h"
+#include "OutputSetT.h"
 
 #include "ofstreamT.h"
 
@@ -466,14 +467,69 @@ void StaggeredMultiScaleT::PrintControlData(ostream& out) const
 
 void StaggeredMultiScaleT::RegisterOutput(void)
 {
-	//not implemented
+	/* collect block ID's */
+	ArrayT<StringT> block_ID(fBlockData.Length());
+	for (int i = 0; i < block_ID.Length(); i++)
+		block_ID[i] = fBlockData[i].ID();
+
+	/* output per element (none for now) */
+	ArrayT<StringT> e_labels;
+	
+	/* output per node */
+	int num_node_output = fCoarse.NumDOF() + fFine.NumDOF();
+	ArrayT<StringT> n_labels(num_node_output);
+	
+	int count = 0;
+
+	/* labels from fine scale */
+	const ArrayT<StringT>& fine_labels = fFine.Labels();
+	for (int i = 0; i < fine_labels.Length(); i++)
+		n_labels[count++] = fine_labels[i];
+
+	/* labels from coarse scale */
+	const ArrayT<StringT>& coarse_labels = fCoarse.Labels();
+	for (int i = 0; i < coarse_labels.Length(); i++)
+		n_labels[count++] = coarse_labels[i];
+
+
+	/* set output specifier */
+	OutputSetT output_set(fGeometryCode, block_ID, fConnectivities, n_labels, e_labels, false);
+		
+	/* register and get output ID */
+	fOutputID = ElementSupport().RegisterOutput(output_set);
 }
 
 //---------------------------------------------------------------------
 
 void StaggeredMultiScaleT::WriteOutput(void)
 {
-	//not implemented
+	/* my output set */
+	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
+	
+	/* my nodes used */
+	const iArrayT& nodes_used = output_set.NodesUsed();
+
+	/* temp space for group displacements */
+	int num_node_output = fCoarse.NumDOF() + fFine.NumDOF();
+	dArray2DT disp(nodes_used.Length(), num_node_output);
+
+	/* collect nodal values */
+	const dArray2DT& ua = fFine[0];
+	const dArray2DT& ub = fCoarse[0];
+	for (int i = 0; i < nodes_used.Length(); i++)
+	{
+		int node = nodes_used[i];
+		double* row = disp(i);
+		for (int j = 0; j < ua.MinorDim(); j++)
+			*row++ = ua(node,j);
+
+		for (int j = 0; j < ub.MinorDim(); j++)
+			*row++ = ub(node,j);
+	}
+
+	/* send */
+	dArray2DT e_values;
+	ElementSupport().WriteOutput(fOutputID, disp, e_values);
 }
 
 //---------------------------------------------------------------------

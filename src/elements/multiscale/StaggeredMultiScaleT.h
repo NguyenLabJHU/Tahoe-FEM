@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.h,v 1.8 2002-12-17 02:44:34 creigh Exp $ */ 
+/* $Id: StaggeredMultiScaleT.h,v 1.9 2002-12-17 08:57:51 paklein Exp $ */ 
 #ifndef _STAGGERED_MULTISCALE_T_H_ 
 #define _STAGGERED_MULTISCALE_T_H_ 
 //DEVELOPMENT
@@ -198,8 +198,10 @@ private:
 
 	iArray2DT fiState_new;
 	iArray2DT fiState;
-
 	/*@}*/
+	
+	/** output ID */
+	int fOutputID;
 };
 
 } // namespace Tahoe 
