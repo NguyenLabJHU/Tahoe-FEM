@@ -1,9 +1,9 @@
-/* $Id: GlobalT.cpp,v 1.6 2002-07-02 19:55:30 cjkimme Exp $ */
+/* $Id: GlobalT.cpp,v 1.6.4.1 2002-10-17 04:54:07 paklein Exp $ */
 /* created: paklein (04/01/2000) */
 
 #include "GlobalT.h"
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 
 using namespace Tahoe;
@@ -43,12 +43,12 @@ istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code)
 		case GlobalT::kCBStatic:
 		{
 			cout << "\n operator>>GlobalT::AnalysisCodeT: Cauchy-Born BC's converted to KBC controller" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		case GlobalT::kNLStaticKfield:
 		{
 			cout << "\n operator>>GlobalT::AnalysisCodeT: K-field converted to KBC controller" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		case GlobalT::kVarNodeNLStatic:
 		case GlobalT::kVarNodeNLExpDyn:
@@ -56,18 +56,18 @@ istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code)
 			cout << "\n operator>>GlobalT::AnalysisCodeT: analysis code is not longer\n"
 			     <<   "     supported. Support for changing geometry is being re-\n"
 			     <<   "     written: " << i_code << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		case GlobalT::kAugLagStatic:
 		{
 			cout << "\n operator>>GlobalT::AnalysisCodeT: external degrees of freedom no longer\n" 
 			     <<   "     require a specific analysis code: " << GlobalT::kAugLagStatic << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		case GlobalT::kNLExpDynKfield:
 		{
 			cout << "\n operator>>GlobalT::AnalysisCodeT: K-field converted to KBC controller" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		case GlobalT::kLinStaticHeat:
 			code = GlobalT::kLinStaticHeat;
@@ -84,7 +84,7 @@ istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code)
 		default:
 			cout << "\n operator>>GlobalT::AnalysisCodeT: unknown code: "
 			<< i_code<< endl;
-			throw eBadInputValue;	
+			throw ExceptionT::kBadInputValue;	
 	}
 	return in;
 }
@@ -111,7 +111,7 @@ GlobalT::RelaxCodeT GlobalT::MaxPrecedence(GlobalT::RelaxCodeT code1,
 	else
 	{
 		cout << "\n GlobalT::MaxPrecedence: unexpected combination" << endl;	
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	return result;

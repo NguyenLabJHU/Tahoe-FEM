@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.23 2002-09-18 01:33:54 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.23.4.1 2002-10-17 04:54:07 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 #include "IOManager_mpi.h"
 
@@ -26,7 +26,7 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, CommunicatorT& comm,
 		     << io_map.Length() << ") does not\n" 
 		     <<   "     match the number of output sets (" << 
 		     local_IO.ElementSets().Length() << ")" << endl;
-		throw eSizeMismatch;	
+		throw ExceptionT::kSizeMismatch;	
 	}
 
 	/* local output sets */
@@ -95,7 +95,7 @@ IO_ID = i;
 				iArrayT elem_count(fComm.Size());
 				elem_count[fComm.Rank()] = set.NumElements();
 				if (MPI_Gather(elem_count.Pointer(fComm.Rank()), 1, MPI_INT, 
-					elem_count.Pointer(), 1, MPI_INT, fComm.Rank(), fComm) != MPI_SUCCESS) throw eMPIFail;
+					elem_count.Pointer(), 1, MPI_INT, fComm.Rank(), fComm) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
 
 //cout << fComm.Rank() << ": counts:\n" << elem_count.wrap(5) << endl;			
 
@@ -133,7 +133,7 @@ IO_ID = i;
 				/* collect all */
 				if (MPI_Gatherv(send.Pointer(), send.Length(), MPI_INT, 
 					connects.Pointer(), elem_count.Pointer(), displ.Pointer(), MPI_INT,
-					fComm.Rank(), fComm) != MPI_SUCCESS) throw eMPIFail;
+					fComm.Rank(), fComm) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
 
 //cout << fComm.Rank() << ": incoming:\n" << connects.wrap(5) << endl;
 
@@ -163,7 +163,7 @@ IO_ID = i;
 				cout << "\n IOManager_mpi::IOManager_mpi: expecting global I/O ID "
 				     << IO_ID << " to be the\n" <<   "     same as the local I/O ID "
 				     << i << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 		}
 		else
@@ -190,7 +190,7 @@ cout << fComm.Rank() << ": skipping output set " << set.ID() << ": global free s
 				int* dummy;
 				int count = set.NumElements();
 				if (MPI_Gather(&count, 1, MPI_INT, dummy, 1, MPI_INT, fIO_map[i], fComm) 
-					!= MPI_SUCCESS) throw eMPIFail;
+					!= MPI_SUCCESS) throw ExceptionT::kMPIFail;
 
 				/* local connects */
 				const iArray2DT& my_connects = *(set.Connectivities(set.ID()));
@@ -210,7 +210,7 @@ cout << fComm.Rank() << ": skipping output set " << set.ID() << ": global free s
 					
 				/* gather to processor that will write */
 				if (MPI_Gatherv(send.Pointer(), send.Length(), MPI_INT, 
-					NULL, NULL, NULL, MPI_INT, fIO_map[i], fComm) != MPI_SUCCESS) throw eMPIFail;
+					NULL, NULL, NULL, MPI_INT, fIO_map[i], fComm) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
 #endif
 			}
 		}
@@ -281,7 +281,7 @@ void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values, const dArray2
 				/* receive nodes */
 				MPI_Status status;
 				if (MPI_Recv(n_values_in.Pointer(), n_values_in.Length(), MPI_DOUBLE,
-					i, message_tag, fComm, &status) != MPI_SUCCESS) throw eMPIFail;
+					i, message_tag, fComm, &status) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
 
 //cout << fComm.Rank() << ": posting received" << endl;
 //cout << n_values_in << endl;
@@ -291,7 +291,7 @@ void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values, const dArray2
 					all_n_values.Assemble(n_map, n_values_in);
 				else {
 					WriteStatus(cout, "IOManager_mpi::WriteOutput", status);
-					throw eMPIFail;
+					throw ExceptionT::kMPIFail;
 				}
 			}
 		}
@@ -300,7 +300,7 @@ void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values, const dArray2
  *********************************/
 
 		/* synchronize */
-		if (MPI_Barrier(fComm) != MPI_SUCCESS) throw eMPIFail;
+		if (MPI_Barrier(fComm) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
 
 /*********************************
  **** assemble element values ****
@@ -327,7 +327,7 @@ void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values, const dArray2
 				MPI_Status status;
 				if (MPI_Recv(e_values_in.Pointer(), e_values_in.Length(), MPI_DOUBLE,
 					i, message_tag, fComm, &status) !=
-					MPI_SUCCESS) throw eMPIFail;
+					MPI_SUCCESS) throw ExceptionT::kMPIFail;
 
 //cout << fComm.Rank() << ": posting received:" << endl;
 //cout << e_values_in << endl;
@@ -337,7 +337,7 @@ void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values, const dArray2
 					all_e_values.Assemble(e_map, e_values_in);
 				else {
 					WriteStatus(cout, "IOManager_mpi::WriteOutput", status);
-					throw eMPIFail;
+					throw ExceptionT::kMPIFail;
 				}
 			}
 /*********************************
@@ -354,7 +354,7 @@ void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values, const dArray2
 		if (fOutNodeCounts[ID] > 0) /* assumes ID is the same as the output set index */
 		{
 			/* check */
-			if (fOutNodeCounts[ID] > n_values.MajorDim()) throw eSizeMismatch;
+			if (fOutNodeCounts[ID] > n_values.MajorDim()) throw ExceptionT::kSizeMismatch;
 
 			/* send only values for resident nodes (assume first in sequence) */
 			dArray2DT out_n_values(fOutNodeCounts[ID], n_values.MinorDim(), n_values.Pointer());
@@ -367,19 +367,19 @@ void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values, const dArray2
 
 			/* send nodes */
 			if (MPI_Send(out_n_values.Pointer(), out_n_values.Length(), MPI_DOUBLE,
-				fIO_map[ID], message_tag, fComm) != MPI_SUCCESS) throw eMPIFail;
+				fIO_map[ID], message_tag, fComm) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
 
 //cout << fComm.Rank() << ": send received" << endl;
 		}
 		
 		/* synchronize */
-		if (MPI_Barrier(fComm) != MPI_SUCCESS) throw eMPIFail;
+		if (MPI_Barrier(fComm) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
 
 		/* send element values */
 		if (fElementCounts(fComm.Rank(), ID) > 0) /* assumes ID is the same as the output set index */
 		{
 			/* check */
-			if (fElementCounts(fComm.Rank(), ID) > e_values.MajorDim()) throw eSizeMismatch;
+			if (fElementCounts(fComm.Rank(), ID) > e_values.MajorDim()) throw ExceptionT::kSizeMismatch;
 
 //cout << fComm.Rank() << ": sending element data" << endl;
 //cout << fComm.Rank() << ": sending ID " << ID << endl;
@@ -389,14 +389,14 @@ void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values, const dArray2
 
 			/* send nodes */
 			if (MPI_Send(e_values.Pointer(), e_values.Length(), MPI_DOUBLE,
-				fIO_map[ID], message_tag, fComm) != MPI_SUCCESS) throw eMPIFail;
+				fIO_map[ID], message_tag, fComm) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
 
 //cout << fComm.Rank() << ": send received" << endl;
 		}
 	}
 	
 	/* synchronize */
-	if (MPI_Barrier(fComm) != MPI_SUCCESS) throw eMPIFail;
+	if (MPI_Barrier(fComm) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
 }
 #endif
 	
@@ -476,7 +476,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 	fNodeCounts.Allocate(num_proc, num_sets);
 	if (MPI_Allgather(fOutNodeCounts.Pointer(), num_sets, MPI_INT,
 	                     fNodeCounts.Pointer(), num_sets, MPI_INT, fComm)
-		!= MPI_SUCCESS) throw eMPIFail;
+		!= MPI_SUCCESS) throw ExceptionT::kMPIFail;
 
 //cout << fComm.Rank() << ": IOManager_mpi::SetCommunication: communicated nodes counts:\n" 
 //     << fNodeCounts << endl;
@@ -485,7 +485,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 	fElementCounts.Allocate(num_proc, num_sets);
 	if (MPI_Allgather(elem_counts.Pointer(), num_sets, MPI_INT,
                    fElementCounts.Pointer(), num_sets, MPI_INT, fComm)
-		!= MPI_SUCCESS) throw eMPIFail;
+		!= MPI_SUCCESS) throw ExceptionT::kMPIFail;
 
 //cout << fComm.Rank() << ": IOManager_mpi::SetCommunication: communicated element counts:\n" 
 //     << fElementCounts << endl;
@@ -540,7 +540,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 					/* post non-blocking receives */
 					if (MPI_Irecv(buffer[i].Pointer(), buffer[i].Length(),
 						MPI_INT, i, k, fComm, r_requ.Pointer(in_count++)) !=
-						MPI_SUCCESS) throw eMPIFail;
+						MPI_SUCCESS) throw ExceptionT::kMPIFail;
 				}
 			}
 #endif // __SGI__
@@ -572,7 +572,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 				int index;
 				MPI_Status status;
 				if (MPI_Waitany(r_requ.Length(), r_requ.Pointer(), &index, &status) !=
-					MPI_SUCCESS) throw eMPIFail;
+					MPI_SUCCESS) throw ExceptionT::kMPIFail;
 
 				/* process receive */
 				if (status.MPI_ERROR == MPI_SUCCESS)
@@ -588,7 +588,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 				{
 					cout << "\n IOManager_mpi::SetCommunication: Waitany error setting node maps: "
 					     << status.MPI_ERROR << " from " << status.MPI_SOURCE << endl;
-					throw eMPIFail;
+					throw ExceptionT::kMPIFail;
 				}				
 			}
 #endif // __SGI__
@@ -611,7 +611,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 					MPI_Status status;
 					if (MPI_Recv(buffer[j].Pointer(), buffer[j].Length(),
 						MPI_INT, j, k, fComm, &status) !=
-						MPI_SUCCESS) throw eMPIFail;
+						MPI_SUCCESS) throw ExceptionT::kMPIFail;
 				
 					/* process receive */
 					SetAssemblyMap(inv_global, shift, buffer[j], map_set.NodeMap(j));
@@ -631,7 +631,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 				/* post blocking send */
 				if (MPI_Send(nodes[k].Pointer(), nodes[k].Length(),
 					MPI_INT, fIO_map[k], k, fComm) != MPI_SUCCESS)
-					throw eMPIFail;			
+					throw ExceptionT::kMPIFail;			
 			}
 		}
 
@@ -676,7 +676,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 					/* post non-blocking receives */
 					if (MPI_Irecv(buffer[i].Pointer(), buffer[i].Length(),
 						MPI_INT, i, k, fComm, r_requ.Pointer(in_count++)) !=
-						MPI_SUCCESS) throw eMPIFail;
+						MPI_SUCCESS) throw ExceptionT::kMPIFail;
 				}
 			}
 #endif // __SGI__
@@ -709,7 +709,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 				int index;
 				MPI_Status status;
 				if (MPI_Waitany(r_requ.Length(), r_requ.Pointer(), &index, &status) !=
-					MPI_SUCCESS) throw eMPIFail;
+					MPI_SUCCESS) throw ExceptionT::kMPIFail;
 
 				/* process receive */
 				if (status.MPI_ERROR == MPI_SUCCESS)
@@ -740,7 +740,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 				{
 					cout << "\n IOManager_mpi::SetCommunication: Waitany error setting element maps: "
 					     << status.MPI_ERROR << " from " << status.MPI_SOURCE << endl;
-					throw eMPIFail;
+					throw ExceptionT::kMPIFail;
 				}				
 			}
 #endif // __SGI__
@@ -763,7 +763,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 					MPI_Status status;
 					if (MPI_Recv(buffer[j].Pointer(), buffer[j].Length(),
 						MPI_INT, j, k, fComm, &status) !=
-						MPI_SUCCESS) throw eMPIFail;
+						MPI_SUCCESS) throw ExceptionT::kMPIFail;
 
 //cout << fComm.Rank() << ": IOManager_mpi::SetCommunication: receiving from " << buffer[j].Length() << " from " << j << '\n'
 //     << buffer[j].wrap(10) << endl;
@@ -815,7 +815,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 						     << local_set.NumBlockElements(block_ID[i])
 						     << ") does not match the element map in the partition data (" 
 						     << map.Length() << ")"<< endl;
-						throw eSizeMismatch;
+						throw ExceptionT::kSizeMismatch;
 					}
 
 					sbuff[i] = map.Length();
@@ -831,7 +831,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 				/* post blocking send */
 				if (MPI_Send(sbuff.Pointer(), sbuff.Length(),
 					MPI_INT, fIO_map[k], k, fComm) != MPI_SUCCESS)
-					throw eMPIFail;			
+					throw ExceptionT::kMPIFail;			
 			}
 		}
 //###########################################################
@@ -839,7 +839,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 //###########################################################
 		
 		/* synchronize */
-		if (MPI_Barrier(fComm) != MPI_SUCCESS) throw eMPIFail;		
+		if (MPI_Barrier(fComm) != MPI_SUCCESS) throw ExceptionT::kMPIFail;		
 	}
 
 //cout << fComm.Rank() << ": IOManager_mpi::SetCommunication: checking maps" << endl;
@@ -931,7 +931,7 @@ void IOManager_mpi::SetAssemblyMap(const iArrayT& inv_global, int shift, const i
 		int dex = inv_global[*p++ - shift];
 		if (dex == -1) {
 			cout << "\n IOManager_mpi::SetAssemblyMap: an error has been detected setting the assembly maps" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		lg_map[j] = dex;
 	}	
@@ -947,7 +947,7 @@ void IOManager_mpi::BuildElementAssemblyMap(int set, const StringT& block_ID,
 		     << block_map.Length() << ")\n" 
 		     <<   "     does not match the length of the assembly map ("
 		     << map.Length() << ")"<< endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 
 	/* global output set */
@@ -958,7 +958,7 @@ void IOManager_mpi::BuildElementAssemblyMap(int set, const StringT& block_ID,
 		cout << "\n IOManager_mpi::BuildElementAssemblyMap: no element assembly map unless\n" 
 		     <<   "     output set mode is " << OutputSetT::kElementBlock 
 		     << ": " << output_set.Mode() << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}	
 
 	/* block ID's for the current set */
@@ -1025,7 +1025,7 @@ void IOManager_mpi::CheckAssemblyMaps(void)
 		cout << "\n IOManager_mpi::CheckAssemblyMaps: length of the fIO_map (" 
 		     << fIO_map.Length() << ") does not\n" 
 		     <<   "     match the number of output sets (" << element_sets.Length() << ")" << endl;
-		throw eSizeMismatch;	
+		throw ExceptionT::kSizeMismatch;	
 	}
 
 	for (int i = 0; i < fIO_map.Length(); i++)
@@ -1050,7 +1050,7 @@ void IOManager_mpi::CheckAssemblyMaps(void)
 				{
 					cout << "\n IOManager_mpi::CheckAssemblyMaps: node maps size error: " << node_count
 					     << " should be " << nodes_used.Length() << " for set " << i << endl;
-					throw eGeneralFail;
+					throw ExceptionT::kGeneralFail;
 				}
 
 				/* check fill */
@@ -1070,7 +1070,7 @@ void IOManager_mpi::CheckAssemblyMaps(void)
 							     << nodes_used[node_assem_map[j]] << "\n"
 							     <<   "     in assembly map " << k << " for output set ID "
 							     << set.ID() << endl;
-							throw eGeneralFail;
+							throw ExceptionT::kGeneralFail;
 						}
 						else
 							check = 1;
@@ -1081,7 +1081,7 @@ void IOManager_mpi::CheckAssemblyMaps(void)
 				if (fill_check.Count(0) != 0)
 				{
 					cout << "\n IOManager_mpi::CheckAssemblyMaps: node maps are incomplete" << endl;
-					throw eGeneralFail;
+					throw ExceptionT::kGeneralFail;
 				}
 			}
 			
@@ -1103,7 +1103,7 @@ void IOManager_mpi::CheckAssemblyMaps(void)
 				{
 					cout << "\n IOManager_mpi::CheckAssemblyMaps: element maps size error: " << element_count
 					     << " should be at least " << num_elements << " for set " << i << endl;
-					throw eGeneralFail;
+					throw ExceptionT::kGeneralFail;
 				}
 
 				/* check fill */
@@ -1131,7 +1131,7 @@ void IOManager_mpi::CheckAssemblyMaps(void)
 				if (fill_check.Count(0) != 0)
 				{
 					cout << "\n IOManager_mpi::CheckAssemblyMaps: element maps are incomplete" << endl;
-					throw eGeneralFail;
+					throw ExceptionT::kGeneralFail;
 				}
 			}
 		}
@@ -1143,11 +1143,11 @@ void IOManager_mpi::ReadOutputGeometry(const StringT& model_file,
 {
 	/* initialize model manager */
 	fOutputGeometry = new ModelManagerT(cout);
-	if (!fOutputGeometry) throw eGeneralFail;
+	if (!fOutputGeometry) throw ExceptionT::kGeneralFail;
 	if (!fOutputGeometry->Initialize(format, model_file, true)) {
 		cout << "\n IOManager_mpi::ReadOutputGeometry: error initializing database: " 
 		     << fOutputGeometry->DatabaseName() << endl;
-		throw eDatabaseFail;
+		throw ExceptionT::kDatabaseFail;
 	}
 	
 	/* set global coordinates */

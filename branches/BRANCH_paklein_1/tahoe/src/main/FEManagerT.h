@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.19 2002-09-10 13:43:56 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.19.4.1 2002-10-17 04:54:07 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -133,13 +133,7 @@ public:
 	/** total number of equations in the specified group */
 	int GlobalNumEquations(int group) const;
 	/*@}*/
-
-	/** \name exception handling */
-	/*@{*/
-	void WriteExceptionCodes(ostream& out) const;
-	const char* Exception(int code) const;
-	/*@}*/
-
+	
 	/** \name time */
 	/*@{*/
 	/* load control functions (returns true if successful) */
@@ -305,19 +299,19 @@ protected:
 	void SendEqnsToSolver(int group) const;
 
 	/** \name solution steps 
-	 * All steps return eNoError = 0 unless a problem occurs. */
+	 * All steps return ExceptionT::kNoError = 0 unless a problem occurs. */
 	/*@{*/
 	/** initialize the current time increment for all groups */
-	virtual int InitStep(void);
+	virtual ExceptionT::CodeT InitStep(void);
 
 	/** execute the solution procedure */
-	virtual int SolveStep(void);
+	virtual ExceptionT::CodeT SolveStep(void);
 
 	/** close the current time increment for all groups */
-	virtual int CloseStep(void);
+	virtual ExceptionT::CodeT CloseStep(void);
 
 	/** called for all groups if the solution procedure for any group fails */
-	virtual int ResetStep(void);
+	virtual ExceptionT::CodeT ResetStep(void);
 	/*@}*/
 
 private:
