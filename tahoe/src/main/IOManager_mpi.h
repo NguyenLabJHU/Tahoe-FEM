@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.h,v 1.1.1.1 2001-01-29 08:20:21 paklein Exp $ */
+/* $Id: IOManager_mpi.h,v 1.2 2001-02-27 00:16:14 paklein Exp $ */
 /* created: paklein (03/14/2000)                                          */
 
 #ifndef _IOMANAGER_MPI_H_
@@ -46,7 +46,7 @@ private:
 	void GlobalSetNodes(const iArrayT& local_set_nodes, iArrayT& nodes);
 
 	/* determine map from local nodes into global array, such that:
-*
+	 *
 	 *             global[lg_map[i]] = local[i]
 	 */
 	void SetInverseMap(const iArrayT& global, iArrayT& inv_global,

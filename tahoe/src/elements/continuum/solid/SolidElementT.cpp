@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.2 2001-02-20 00:42:13 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.3 2001-02-27 00:16:13 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #include "SolidElementT.h"
@@ -18,7 +18,6 @@
 #include "StructuralMaterialT.h"
 #include "MaterialListT.h"
 #include "iAutoArrayT.h"
-//#include "OutputSetT.h"
 
 /* materials lists */
 #include "MaterialList2DT.h"

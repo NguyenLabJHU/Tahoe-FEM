@@ -1,4 +1,4 @@
-/* $Id: IOManager.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* $Id: IOManager.cpp,v 1.2 2001-02-27 00:16:14 paklein Exp $ */
 /* created: sawimme (10/12/1999)                                          */
 /* this class creates InputBaseT and OutputBaseT pointers                 */
 
@@ -427,11 +427,11 @@ GroupNumbers (eids);
 for (int e=0; e < num_groups; e++)
 {
 ArrayT<StringT> n_labels (0), e_labels (0);
-iArrayT map;
+iArrayT map, block_ID;
 GeometryT::CodeT geocode;
 ReadConnectivity (eids[e], geocode, connects[e], map);
 ReadLabels (n_labels, e_labels, eids[e]);
-OutputSetT output_set (eids[e], geocode, connects[e], n_labels, e_labels, false);
+OutputSetT output_set (eids[e], geocode, block_ID, connects[e], n_labels, e_labels, false);
 outputID[e] = AddElementSet (output_set);
 fLog << "ElementSet " << eids[e]
 	   << "\n   Length: " << connects[e].MajorDim()
