@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.3.2.2 2001-10-28 23:40:53 paklein Exp $ */
+/* $Id: OutputSetT.cpp,v 1.3.2.3 2001-10-29 21:10:27 sawimme Exp $ */
 /* created: paklein (03/07/2000)                                          */
 
 #include "OutputSetT.h"
@@ -10,8 +10,10 @@ const bool ArrayT<OutputSetT*>::fByteCopy = true;
 
 /* constructor */
 OutputSetT::OutputSetT(int ID, GeometryT::CodeT geometry_code,
-	const iArrayT& block_ID, const ArrayT<const iArray2DT*> connectivities, 
-	const ArrayT<StringT>& n_labels, const ArrayT<StringT>& e_labels, bool changing):
+		       const iArrayT& block_ID, 
+		       const ArrayT<const iArray2DT*> connectivities, 
+		       const ArrayT<StringT>& n_labels, 
+		       const ArrayT<StringT>& e_labels, bool changing):
 	fPrintStep(-1),
 	fID(ID),
 	fChanging(changing),
@@ -19,6 +21,14 @@ OutputSetT::OutputSetT(int ID, GeometryT::CodeT geometry_code,
 	fBlockID(block_ID),
 	fConnectivities (connectivities.Length())
 {
+	if (fConnectivities.Length() != fBlockID.Length()) 
+	  {
+	    cout << "\n\nOutputSetT::OutputSetT size mismatch: \n";
+	    cout << " fConnectivities.Length = " << fConnectivities.Length();
+	    cout << "\n    fBlockID.Length = " << fBlockID.Length() << "\n\n";
+	    throw eSizeMismatch;
+	  }
+
 	for (int i=0; i < fConnectivities.Length(); i++)
 	        fConnectivities[i] = connectivities[i];
 
@@ -29,9 +39,6 @@ OutputSetT::OutputSetT(int ID, GeometryT::CodeT geometry_code,
 	fElementOutputLabels.Allocate(e_labels.Length());
 	for (int j = 0; j < fElementOutputLabels.Length(); j++)
 		fElementOutputLabels[j] = e_labels[j];
-
-	if (fConnectivities.Length() != fBlockID.Length()) 
-	  throw eSizeMismatch;
 
 	/* set the nodes used array */
 	if (!fChanging) SetNodesUsed();
@@ -85,7 +92,7 @@ const iArray2DT* OutputSetT::Connectivities(int index) const
 }
 
 //TEMP - used to write all set connectivities at once
-#if 0
+//#if 0
 void  OutputSetT::AllConnectivities (iArray2DT& connects) const
 {
   if (fConnectivities.Length() == 1)
@@ -100,7 +107,7 @@ void  OutputSetT::AllConnectivities (iArray2DT& connects) const
 	}
     }
 }
-#endif
+//#endif
 
 /* set nodes used */
 void OutputSetT::SetNodesUsed(void)
