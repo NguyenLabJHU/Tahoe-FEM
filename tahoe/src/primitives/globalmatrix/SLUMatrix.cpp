@@ -1,4 +1,4 @@
-/* $Id: SLUMatrix.cpp,v 1.4 2002-09-12 17:50:08 paklein Exp $ */
+/* $Id: SLUMatrix.cpp,v 1.4.4.1 2002-10-17 04:47:07 paklein Exp $ */
 /* created: rbridson (06/30/2000)                                         */
 /* Implementation of interface to SuperLU solver library.                 */
 
@@ -13,7 +13,7 @@
 #include <fstream.h>
 
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 /* types that we use in these methods */
 #include "dMatrixT.h"
@@ -41,7 +41,7 @@ SLUMatrix::SLUMatrix(ostream& out, int check_code):
 	fMatrix.nrow = fLocNumEQ;
 	fMatrix.ncol = fLocNumEQ;
 	fMatrix.Store = malloc(sizeof(NCformat));
-	if (!fMatrix.Store) throw eOutOfMemory;
+	if (!fMatrix.Store) throw ExceptionT::kOutOfMemory;
 
 	NCformat *A = (NCformat*)fMatrix.Store;
 	A->nnz = 0;
@@ -87,7 +87,7 @@ void SLUMatrix::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 		cout << "\n SLUMatrix::Initialize: expecting total number of equations\n"
 		     <<   "     " << tot_num_eq
 		     << " to be equal to the local number of equations " << loc_num_eq << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* A note on memory allocation: since SuperLU is a C library, */
@@ -100,12 +100,12 @@ void SLUMatrix::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	A->colptr = (int*) calloc(fLocNumEQ+1, sizeof(int));
 
 	fPerm_c = (int*) malloc (fLocNumEQ*sizeof(int));
-	if (!fPerm_c) throw eOutOfMemory;
+	if (!fPerm_c) throw ExceptionT::kOutOfMemory;
 	fIsColOrdered = false;
 	fPerm_r = (int*) malloc (fLocNumEQ*sizeof(int));
-	if (!fPerm_r) throw eOutOfMemory;
+	if (!fPerm_r) throw ExceptionT::kOutOfMemory;
 	fEtree = (int*) malloc (fLocNumEQ*sizeof(int));
-	if (!fEtree) throw eOutOfMemory;
+	if (!fEtree) throw ExceptionT::kOutOfMemory;
 
 	/* SuperLU statistics */
 	StatInit (kPanelSize, kSupernodeRelax);
@@ -134,7 +134,7 @@ void SLUMatrix::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	/* Now allocate enough room for row indices (wait until later for */
 	/* the nonzero values themselves) */
 	A->rowind = (int*) malloc (A->nnz*sizeof(int));
-	if (!A->rowind) throw eOutOfMemory;
+	if (!A->rowind) throw ExceptionT::kOutOfMemory;
 
 	/* Using the upper bounds in colLength, set up provisional column */
 	/* pointers */
@@ -151,9 +151,9 @@ void SLUMatrix::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 
 	/* and finish by reallocating A->rowind and allocating A->nzval */
 	A->rowind = (int*) realloc (A->rowind, A->nnz*sizeof(int));
-	if (!A->rowind) throw eOutOfMemory;
+	if (!A->rowind) throw ExceptionT::kOutOfMemory;
 	A->nzval = (void*) malloc (A->nnz*sizeof(double));
-	if (!A->nzval) throw eOutOfMemory;
+	if (!A->nzval) throw ExceptionT::kOutOfMemory;
 
 	/* output */
 	fOut <<" Number of nonzeros in global matrix = "<< A->nnz <<"\n"<<endl;
@@ -253,14 +253,14 @@ void SLUMatrix::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eq
 #pragma unused(col_eqnos)
 
 	cout << "\n SLUMatrix::Assemble(m,r,c): not implemented" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 /* assignment operator */
 GlobalMatrixT& SLUMatrix::operator=(const GlobalMatrixT& RHS)
 {
 	// not implemented yet
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 	return GlobalMatrixT::operator=(RHS);
 }
 
@@ -271,7 +271,7 @@ double SLUMatrix::Element(int row, int col) const
 	{
 		return (*this)(row,col);
 	}
-	catch (int code)
+	catch (ExceptionT::CodeT code)
 	{
 		if (code == eOutOfRange)
 			return 0.0;
@@ -359,7 +359,7 @@ fOut << endl;
 	free(((NCPformat*)AC.Store)->colend);
 	free(AC.Store);
 
-	if (info) throw eGeneralFail;
+	if (info) throw ExceptionT::kGeneralFail;
 }
 
 /* solution driver */
@@ -375,7 +375,7 @@ void SLUMatrix::BackSubstitute(dArrayT& result)
 	B.nrow = fLocNumEQ;
 	B.ncol = 1;
 	B.Store = malloc (sizeof(DNformat));
-	if (!B.Store) throw eGeneralFail;
+	if (!B.Store) throw ExceptionT::kGeneralFail;
 	((DNformat*)B.Store)->lda = fLocNumEQ;
 ((DNformat*)B.Store)->nzval = result.Pointer();
 
@@ -383,7 +383,7 @@ void SLUMatrix::BackSubstitute(dArrayT& result)
 	dgstrs ("N", &fLower, &fUpper, fPerm_r, fPerm_c, &B, &info);
 
 	/* check for errors */
-	if (info) throw eGeneralFail;
+	if (info) throw ExceptionT::kGeneralFail;
 
 	/* B (hence result) now contains the solution. */
 
@@ -416,8 +416,8 @@ void SLUMatrix::PrintLHS(void) const
 double& SLUMatrix::operator()(int row, int col) const
 {
 	/* range checks */
-	if (row < 0 || row >= fLocNumEQ) throw eGeneralFail;
-	if (col < 0 || col >= fLocNumEQ) throw eGeneralFail;
+	if (row < 0 || row >= fLocNumEQ) throw ExceptionT::kGeneralFail;
+	if (col < 0 || col >= fLocNumEQ) throw ExceptionT::kGeneralFail;
 
 	NCformat *A = (NCformat*)fMatrix.Store;
 
@@ -428,7 +428,7 @@ double& SLUMatrix::operator()(int row, int col) const
 			return ((double*)A->nzval)[i];
 	}
 	/* otherwise this nonzero wasn't present */
-	throw eOutOfRange;
+	throw ExceptionT::kOutOfRange;
 }
 
 /* (over)estimate the number of nonzeros, based on the equation sets */

@@ -1,4 +1,4 @@
-/* $Id: ModCB2DT.cpp,v 1.5 2002-09-12 17:50:03 paklein Exp $ */
+/* $Id: ModCB2DT.cpp,v 1.5.4.1 2002-10-17 04:38:13 paklein Exp $ */
 /* created: paklein (05/31/1997)                                          */
 
 #include "ModCB2DT.h"
@@ -84,11 +84,11 @@ ModCB2DT::ModCB2DT(ifstreamT& in, const FiniteStrainT& element, bool equilibrate
 
 			cout << "\nModCB2DT::ModCB2DT: unknown plane code:" << fPlaneCode;
 			cout << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 
 	fModCBSolver = new ModCBSolverT(Q, fThermal, in, equilibrate);
-	if (!fModCBSolver) throw(eOutOfMemory);
+	if (!fModCBSolver) throw ExceptionT::kOutOfMemory;
 }
 
 /* destructor */

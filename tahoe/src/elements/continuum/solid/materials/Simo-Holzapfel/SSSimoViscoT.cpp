@@ -1,8 +1,8 @@
-/* $Id: SSSimoViscoT.cpp,v 1.1 2002-10-05 02:48:19 thao Exp $ */
+/* $Id: SSSimoViscoT.cpp,v 1.1.2.1 2002-10-17 04:38:04 paklein Exp $ */
 #include "SSSimoViscoT.h"
 
 #include "fstreamT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "ContinuumElementT.h"
 #include "ElementSupportT.h"
 

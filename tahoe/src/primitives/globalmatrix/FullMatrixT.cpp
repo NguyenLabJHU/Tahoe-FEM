@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.9 2002-09-12 17:50:08 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.9.4.1 2002-10-17 04:47:07 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 
 #include "FullMatrixT.h"
@@ -42,7 +42,7 @@ void FullMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 		cout << "\n FullMatrixT::Initialize: expecting total number of equations\n"
 		     <<   "     " << tot_num_eq
 		     << " to be equal to the local number of equations " << loc_num_eq << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	/* allocate work space */
@@ -83,7 +83,7 @@ void FullMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqno
 #if __option(extended_errorcheck)
 	/* dimension checking */
 	if (elMat.Rows() != eqnos.Length() ||
-	    elMat.Cols() != eqnos.Length()) throw eSizeMismatch;
+	    elMat.Cols() != eqnos.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* element matrix format */
@@ -142,7 +142,7 @@ void FullMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_
 #if __option(extended_errorcheck)
 	/* dimension check */
 	if (elMat.Rows() != row_eqnos.Length() ||
-	    elMat.Cols() != col_eqnos.Length()) throw eSizeMismatch;
+	    elMat.Cols() != col_eqnos.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* element matrix format */
@@ -151,7 +151,7 @@ void FullMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_
 	if (format == ElementMatrixT::kDiagonal)
 	{
 		cout << "\n FullMatrixT::Assemble(m, r, c): cannot assemble diagonal matrix" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	else
 	{
@@ -181,7 +181,7 @@ void FullMatrixT::OverWrite(const ElementMatrixT& elMat, const nArrayT<int>& eqn
 #if __option(extended_errorcheck)
 	/* dimension checking */
 	if (elMat.Rows() != eqnos.Length() ||
-	    elMat.Cols() != eqnos.Length()) throw eSizeMismatch;
+	    elMat.Cols() != eqnos.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* copy to full symmetric */
@@ -216,7 +216,7 @@ void FullMatrixT::Disassemble(dMatrixT& elMat, const nArrayT<int>& eqnos) const
 #if __option(extended_errorcheck)
 	/* dimension checking */
 	if (elMat.Rows() != eqnos.Length() ||
-	    elMat.Cols() != eqnos.Length()) throw eSizeMismatch;
+	    elMat.Cols() != eqnos.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	int* peq = eqnos.Pointer();
@@ -254,7 +254,7 @@ void FullMatrixT::DisassembleDiagonal(dArrayT& diagonals, const nArrayT<int>& eq
 {
 #if __option(extended_errorcheck)
 	/* dimension checking */
-	if (diagonals.Length() != eqnos.Length()) throw eSizeMismatch;
+	if (diagonals.Length() != eqnos.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	for (int i = 0; i < eqnos.Length(); i++)
@@ -291,13 +291,13 @@ GlobalMatrixT& FullMatrixT::operator=(const GlobalMatrixT& rhs)
 {
 #ifdef __NO_RTTI__
 	cout << "\n FullMatrixT::operator= : requires RTTI" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 #endif
 
 	const FullMatrixT* full = dynamic_cast<const FullMatrixT*>(&rhs);
 	if (!full) {
 		cout << "\n FullMatrixT::operator= : cast failed" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return operator=(*full);
 }
@@ -350,7 +350,7 @@ void FullMatrixT::Factorize(void)
 void FullMatrixT::BackSubstitute(dArrayT& result)
 {
 //TEMP: no full, nonsymmetric factorization implemented
-	if (fIsFactorized) throw eGeneralFail;
+	if (fIsFactorized) throw ExceptionT::kGeneralFail;
 
 	fMatrix.LinearSolve(result);
 	fIsFactorized = true;

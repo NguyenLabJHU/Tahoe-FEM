@@ -1,4 +1,4 @@
-/* $Id: LJSpringT.cpp,v 1.2 2002-07-02 19:56:24 cjkimme Exp $ */
+/* $Id: LJSpringT.cpp,v 1.2.4.1 2002-10-17 04:38:20 paklein Exp $ */
 /* created: paklein (5/28/1996)                                           */
 
 #include "LJSpringT.h"
@@ -7,7 +7,7 @@
 #include <math.h>
 
 #include "Environment.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 #include "fstreamT.h"
 #include "ThermalDilatationT.h"
@@ -21,7 +21,7 @@ using namespace Tahoe;
 
 LJSpringT::LJSpringT(ifstreamT& in): RodMaterialT(in)
 {
-	in >> fLJConstant;	if (fLJConstant < 0.0) throw eBadInputValue;
+	in >> fLJConstant;	if (fLJConstant < 0.0) throw ExceptionT::kBadInputValue;
 }
 
 /*

@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp.cpp,v 1.9 2002-07-02 19:56:14 cjkimme Exp $ */
+/* $Id: GradCrystalPlastFp.cpp,v 1.9.4.1 2002-10-17 04:38:17 paklein Exp $ */
 #include "GradCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -654,7 +654,7 @@ void GradCrystalPlastFp::SolveCrystalState()
   // check if did not converge in max iterations
   if (!stateConverged) {
     writeWarning("... in GradCrystalPlastFp::SolveCrystalState: iters > MaxIters\n ...... will throw 'eBadJacobianDet' to cut dtime");
-    throw eBadJacobianDet;
+    throw ExceptionT::kBadJacobianDet;
   }
 
   // update iteration count for state
@@ -676,18 +676,18 @@ void GradCrystalPlastFp::SolveForPlasticDefGradient(int& ierr)
  
        // solve for incremental shear strain
        try { fSolver->Solve(fSolverPtr, fFpArray, ierr); }
-       catch(int code)
+       catch(ExceptionT::CodeT code)
            {
              fKinetics->RestoreRateSensitivity();
              writeWarning("... in GradCrystalPlastFp::SolveForPlasticDefGradient: caugth exception\n ...... will throw 'eBadJacobianDet' to cut dtime");
-             throw eBadJacobianDet;
+             throw ExceptionT::kBadJacobianDet;
            }
 
-       // throw exception if problems in NCLSolver
+       // throw ExceptionT::xception if problems in NCLSolver
        if (ierr != 0) {
           fKinetics->RestoreRateSensitivity();
           writeWarning("... in GradCrystalPlastFp::SolveForPlasticDefGradient: ierr!=0\n ...... will throw 'eBadJacobianDet' to cut dtime");
-          throw eBadJacobianDet;
+          throw ExceptionT::kBadJacobianDet;
        }
 
      } while (!fKinetics->IsMaxRateSensitivity());

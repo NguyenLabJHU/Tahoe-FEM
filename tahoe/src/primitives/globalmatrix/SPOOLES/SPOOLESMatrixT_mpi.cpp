@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.7 2002-07-02 19:56:48 cjkimme Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.7.4.1 2002-10-17 04:47:08 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT_mpi.h"
@@ -33,7 +33,7 @@ SPOOLESMatrixT_mpi::SPOOLESMatrixT_mpi(ostream& out, int check_code,
 void SPOOLESMatrixT_mpi::BackSubstitute(dArrayT& result)
 {
 	/* flag should not be set */
-	if (fIsFactorized) throw eGeneralFail;
+	if (fIsFactorized) throw ExceptionT::kGeneralFail;
 
 	/* convert matrix to RCV */
 	iArrayT r, c;
@@ -75,7 +75,7 @@ void SPOOLESMatrixT_mpi::BackSubstitute(dArrayT& result)
 		{
 			cout << "\n SPOOLESMatrixT_mpi::BackSubstitute: LU_serial_driver returned: "
 			     << OK << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	}
 	else
@@ -84,7 +84,7 @@ void SPOOLESMatrixT_mpi::BackSubstitute(dArrayT& result)
 
 		/* process rank */
 		int rank;
-		if (MPI_Comm_rank(comm, &rank) != MPI_SUCCESS) throw eMPIFail;
+		if (MPI_Comm_rank(comm, &rank) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
 
 		/* message file name */
 		StringT spooles_file(SPOOLES_FILE_ROOT);
@@ -109,7 +109,7 @@ void SPOOLESMatrixT_mpi::BackSubstitute(dArrayT& result)
 		{
 			cout << "\n SPOOLESMatrixT_mpi::BackSubstitute: LU_MPI_driver returned: "
 			     << OK << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	}
 }

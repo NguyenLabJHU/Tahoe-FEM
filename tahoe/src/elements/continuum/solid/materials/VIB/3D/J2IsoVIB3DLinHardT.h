@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB3DLinHardT.h,v 1.3 2002-07-02 19:55:58 cjkimme Exp $ */
+/* $Id: J2IsoVIB3DLinHardT.h,v 1.3.4.1 2002-10-17 04:38:07 paklein Exp $ */
 /* created: paklein (10/12/1998)                                          */
 /* VIB plus principal stretch elasticity                                  */
 /* Interface for a elastoplastic material that is linearly                */
@@ -51,7 +51,7 @@ public:
 	virtual const dMatrixT& C_IJKL(void); // material tangent moduli
 	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
 //TEMP - not yet optimized for total Lagrangian formulation.
-//       calls to these write error message and throw exception
+//       calls to these write error message and throw ExceptionT::xception
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);

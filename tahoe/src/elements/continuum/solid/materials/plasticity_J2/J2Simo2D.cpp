@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.cpp,v 1.8 2002-07-02 19:56:11 cjkimme Exp $ */
+/* $Id: J2Simo2D.cpp,v 1.8.4.1 2002-10-17 04:38:15 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 
 #include "J2Simo2D.h"
@@ -171,7 +171,7 @@ void J2Simo2D::ComputeOutput(dArrayT& output)
 	if (output.Length() < 4) {
 		cout << "\n J2Simo2D::ComputeOutput: expecting 4 output variables: " 
 		     << output.Length() << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* compute Cauchy stress (load state variables) */

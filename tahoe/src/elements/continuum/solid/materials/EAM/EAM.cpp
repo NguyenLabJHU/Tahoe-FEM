@@ -1,4 +1,4 @@
-/* $Id: EAM.cpp,v 1.2 2002-07-02 19:55:36 cjkimme Exp $ */
+/* $Id: EAM.cpp,v 1.2.4.1 2002-10-17 04:37:49 paklein Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAM.cpp                                                                */
 
@@ -24,7 +24,7 @@ EAM::EAM(CBLatticeT& lattice): fLattice(lattice),
 {
 	/* dimension checks */
 	if (fCounts.Length() != fNumBonds ||
-	     fBonds.Length() != fNumBonds) throw eGeneralFail;
+	     fBonds.Length() != fNumBonds) throw ExceptionT::kGeneralFail;
 }
 
 /* Destructor */

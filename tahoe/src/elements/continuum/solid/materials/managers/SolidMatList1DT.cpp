@@ -38,7 +38,7 @@ SolidMatList1DT::SolidMatList1DT(int length, const ElasticT& element_group):
 	{
 		cout << "\n SolidMatList1DT::SolidMatList1DT: could not cast element group to\n" 
 		     <<   "     either SmallStrainT, FiniteStrainT, or MultiScaleT" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 }
@@ -56,14 +56,14 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 		in >> matnum; matnum--;
 		in >> matcode;
 		/* checks */
-		if (matnum < 0  || matnum >= fLength) throw eBadInputValue;
+		if (matnum < 0  || matnum >= fLength) throw ExceptionT::kBadInputValue;
 		
 		/* repeated material number */
 		if (fArray[matnum] != NULL)
 		{
 			cout << "\n SolidMatList1DT::ReadMaterialData: repeated material number: ";
 			cout << matnum + 1 << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		
 		/* add to the list of materials */
@@ -80,13 +80,13 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 			
 				cout << "\n SolidMatList1DT::ReadMaterialData: unknown material code: ";
 				cout << matcode << '\n' << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 		}
 
 		/* safe cast since all structural */
 		StructuralMaterialT* pmat = (StructuralMaterialT*) fArray[matnum];
 		/* verify construction */
-		if (!pmat) throw eOutOfMemory;
+		if (!pmat) throw ExceptionT::kOutOfMemory;
 		
 		/* set thermal LTf pointer */
 		int LTfnum = pmat->ThermalStrainSchedule();
@@ -102,7 +102,7 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 		pmat->Initialize();
 	}  } /* end try */
 	
-	catch (int error)
+	catch (ExceptionT::CodeT error)
 	{
 		cout << "\n SolidMatList1DT::ReadMaterialData: exception constructing material " << i+1
 		     << '\n' << "     index " << matnum+1 << ", code " << matcode << endl;
@@ -117,20 +117,20 @@ void SolidMatList1DT::Error_no_small_strain(ostream& out, int matcode) const
 {
 	out << "\n SolidMatList1DT: material " << matcode
 		<< " requires a small strain element" << endl;
-	throw eBadInputValue;
+	throw ExceptionT::kBadInputValue;
 }
 
 void SolidMatList1DT::Error_no_finite_strain(ostream& out, int matcode) const
 {
 	out << "\n SolidMatList1DT: material " << matcode
 		<< " requires a finite strain element" << endl;
-	throw eBadInputValue;
+	throw ExceptionT::kBadInputValue;
 }
 
 void SolidMatList1DT::Error_no_multi_scale(ostream& out, int matcode) const
 {
 	out << "\n SolidMatList1DT: material " << matcode
 		<< " requires a variational multi-scale element" << endl;
-	throw eBadInputValue;
+	throw ExceptionT::kBadInputValue;
 }
 

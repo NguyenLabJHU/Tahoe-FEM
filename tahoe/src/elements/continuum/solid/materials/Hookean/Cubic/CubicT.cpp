@@ -1,4 +1,4 @@
-/* $Id: CubicT.cpp,v 1.3 2002-07-02 19:55:39 cjkimme Exp $ */
+/* $Id: CubicT.cpp,v 1.3.4.1 2002-10-17 04:37:57 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #include "CubicT.h"
@@ -53,7 +53,7 @@ void CubicT::ComputeModuli(dMatrixT& moduli)
 	else
 	{
 		cout << "\n CubicT::ComputeModuli: 3D only" << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 }
 
@@ -79,7 +79,7 @@ void CubicT::ComputeModuli2D(dMatrixT& moduli, Material2DT::ConstraintOptionT co
 		moduli(0,1) = moduli(1,0) = C12;
 		moduli(2,2) = fC44;
 	}
-	else throw eSizeMismatch;
+	else throw ExceptionT::kSizeMismatch;
 }
 
 /* scale factor for constrained dilatation */

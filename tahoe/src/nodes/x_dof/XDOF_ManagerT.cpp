@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.cpp,v 1.10 2002-07-02 19:56:39 cjkimme Exp $ */
+/* $Id: XDOF_ManagerT.cpp,v 1.10.4.1 2002-10-17 04:45:26 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 /* base class which defines the interface for a manager */
 /* of DOF's comprised of FE DOF's plus constrain DOF's */
@@ -25,7 +25,7 @@ XDOF_ManagerT::XDOF_ManagerT(void):
 XDOF_ManagerT::~XDOF_ManagerT(void)
 {
 	/* consistency check */
-	if (fXDOF_Eqnos.Length() != fXDOFs.Length()) throw eGeneralFail;
+	if (fXDOF_Eqnos.Length() != fXDOFs.Length()) throw ExceptionT::kGeneralFail;
 
 	for (int i = 0; i < fXDOF_Eqnos.Length(); i++)
 	{
@@ -42,7 +42,7 @@ void XDOF_ManagerT::XDOF_Register(DOFElementT* group, const iArrayT& numDOF)
 	{
 		cout << "\n XDOF_ManagerT::XDOF_Register: start tag has not been set: "
 		     << fStartTag << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* can only register once */
@@ -50,7 +50,7 @@ void XDOF_ManagerT::XDOF_Register(DOFElementT* group, const iArrayT& numDOF)
 	{
 		cout << "\n XDOF_ManagerT::XDOF_Register: group is already registered, requesting:\n" 
 		     << numDOF << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	/* keep number of tag sets for each group */
@@ -130,7 +130,7 @@ bool XDOF_ManagerT::ResetTags(int group)
 			{
 				cout << "\n XDOF_ManagerT::ResetTags: start tag has not been set: "
 				     << fStartTag << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 		
 			/* reset */
@@ -336,7 +336,7 @@ void XDOF_ManagerT::CheckEquationNumbers(ostream& out, iArray2DT& eqnos)
 					{	/* xdof node is the u node range */
 						cout << "\n XDOF_ManagerT: expecting external DOF tag in final slot: ";
 						cout << elem[nen-1] << endl;
-						throw eGeneralFail;
+						throw ExceptionT::kGeneralFail;
 					} else {
 		
 						/* get equations from 1st node in connect */
@@ -391,7 +391,7 @@ int XDOF_ManagerT::TagSetIndex(const DOFElementT* group, int tag_set) const
 	if (index < 0)
 	{
 		cout << "\n XDOF_ManagerT::TagSetIndex: no matching group found" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	/* check tag set */
@@ -399,7 +399,7 @@ int XDOF_ManagerT::TagSetIndex(const DOFElementT* group, int tag_set) const
 	{
 		cout << "\n XDOF_ManagerT::TagSetIndex: tag set number " << tag_set 
 		     << " is out of range {0, " << fNumTagSets[index] - 1 << "}" << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 	
 	/* offset to groups tag sets */
@@ -413,7 +413,7 @@ int XDOF_ManagerT::TagSetIndex(const DOFElementT* group, int tag_set) const
 	{
 		cout << "\n XDOF_ManagerT::TagSetIndex: error resolving tag set index: " 
 		     << offset << " > " << fXDOF_Eqnos.Length() << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}	
 	return offset;
 }

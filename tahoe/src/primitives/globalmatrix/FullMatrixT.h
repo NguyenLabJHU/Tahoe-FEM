@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.h,v 1.8 2002-07-05 22:28:34 paklein Exp $ */
+/* $Id: FullMatrixT.h,v 1.8.4.1 2002-10-17 04:47:07 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 
 #ifndef _FULL_MATRIX_T_H_
@@ -47,7 +47,7 @@ public:
 
 	/* strong manipulation functions */
 	//TEMP should be pure virtual, but no time to update others
-	//     so just throw exception for now
+	//     so just throw ExceptionT::xception for now
 	virtual void OverWrite(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
 	virtual void Disassemble(dMatrixT& matrix, const nArrayT<int>& eqnos) const;
 	virtual void DisassembleDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const;

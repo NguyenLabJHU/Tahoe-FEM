@@ -1,8 +1,8 @@
-/* $Id: RG_VDSplit3D.cpp,v 1.1 2002-10-04 23:59:00 thao Exp $ */
+/* $Id: RG_VDSplit3D.cpp,v 1.1.2.1 2002-10-17 04:38:00 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "fstreamT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "RG_VDSplit3D.h"
 
 #include <math.h>

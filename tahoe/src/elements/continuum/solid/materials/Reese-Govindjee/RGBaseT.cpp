@@ -1,4 +1,4 @@
-/* $Id: RGBaseT.cpp,v 1.1 2002-10-04 23:59:00 thao Exp $ */
+/* $Id: RGBaseT.cpp,v 1.1.2.1 2002-10-17 04:38:00 paklein Exp $ */
 /* created: TDN (01/22/2000) */
 
 #include "RGBaseT.h"
@@ -148,7 +148,7 @@ void RGBaseT::MixedRank4_2D(const dArrayT& a, const dArrayT& b,
 	if (a.Length() != 2 ||
 	    b.Length() != 2 ||
 	    rank4_ab.Rows() != 3 ||
-	    rank4_ab.Cols() != 3) throw eSizeMismatch;
+	    rank4_ab.Cols() != 3) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11;
@@ -207,7 +207,7 @@ void RGBaseT::MixedRank4_3D(const dArrayT& a, const dArrayT& b,
 	if (a.Length() != 3 ||
 	    b.Length() != 3 ||
 	    rank4_ab.Rows() != 6 ||
-	    rank4_ab.Cols() != 6) throw eSizeMismatch;
+	    rank4_ab.Cols() != 6) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12;

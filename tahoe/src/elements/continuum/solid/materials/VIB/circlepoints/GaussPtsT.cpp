@@ -1,11 +1,11 @@
-/* $Id: GaussPtsT.cpp,v 1.3 2002-09-12 17:50:01 paklein Exp $ */
+/* $Id: GaussPtsT.cpp,v 1.3.4.1 2002-10-17 04:38:09 paklein Exp $ */
 /* created: paklein (11/02/1997)                                          */
 
 #include "GaussPtsT.h"
 #include <math.h>
 #include <iostream.h>
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 
 using namespace Tahoe;
@@ -97,7 +97,7 @@ void GaussPtsT::SetCoords(int numint)
 
 		default:
 			
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 
 	/* calculate directions */	
@@ -152,7 +152,7 @@ void GaussPtsT::SetJacobians(int numint)
 
 		default:
 			
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 	
 	/* temp vector */

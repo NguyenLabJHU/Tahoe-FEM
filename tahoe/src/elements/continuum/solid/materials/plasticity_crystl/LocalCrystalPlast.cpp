@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.15 2002-07-02 19:56:14 cjkimme Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.15.4.1 2002-10-17 04:38:17 paklein Exp $ */
 #include "LocalCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -702,7 +702,7 @@ void LocalCrystalPlast::IterateOnCrystalState(bool& stateConverged, int subIncr)
 	      //stateConverged = (fHardening->Converged(fTolerState));
 	    }
 
-	  catch(int code)
+	  catch(ExceptionT::CodeT code)
 	    {
                if (XTAL_MESSAGES) {
                   writeWarning("LocalCrystalPlast::IterateOnCrystalState: exception caugth at SolveForDGamma -> subincrementation"); 
@@ -735,7 +735,7 @@ void LocalCrystalPlast::IterateOnCrystalState(bool& stateConverged, int subIncr)
 	      stateConverged = (Converged(fTolerState) && fHardening->Converged(fTolerState));
 	    }
 	  
-          catch(int code)
+          catch(ExceptionT::CodeT code)
 	    {
                if (XTAL_MESSAGES) {
                   writeWarning("LocalCrystalPlast::IterateOnCrystalState: exception caugth at SolveForDGamma -> subincrementation"); 
@@ -1032,7 +1032,7 @@ void LocalCrystalPlast::SolveForDGamma(int& ierr)
  
        // solve for incremental shear strain
        try { fSolver->Solve(fSolverPtr, fDGamma, ierr); }
-       catch(int code)
+       catch(ExceptionT::CodeT code)
            {
              fKinetics->RestoreRateSensitivity();
              throw;

@@ -1,4 +1,4 @@
-/* $Id: SolidMatListT.cpp,v 1.4 2002-10-05 20:04:16 paklein Exp $ */
+/* $Id: SolidMatListT.cpp,v 1.4.2.1 2002-10-17 04:38:12 paklein Exp $ */
 #include "SolidMatListT.h"
 #include "SolidMaterialT.h"
 
@@ -23,7 +23,7 @@ bool SolidMatListT::HasHeatSources(void) const
 		const ContinuumMaterialT* cont_mat = fArray[i];
 		const SolidMaterialT* struct_mat = 
 			dynamic_cast<const SolidMaterialT*>(cont_mat);
-		if (!struct_mat) throw eGeneralFail;
+		if (!struct_mat) throw ExceptionT::kGeneralFail;
 
 		/* test */
 		has_heat = struct_mat->HasIncrementalHeat();

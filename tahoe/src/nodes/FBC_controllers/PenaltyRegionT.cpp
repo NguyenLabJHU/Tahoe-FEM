@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.8 2002-09-12 17:50:05 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.8.4.1 2002-10-17 04:45:25 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltyRegionT.h"
@@ -85,9 +85,9 @@ void PenaltyRegionT::EchoData(ifstreamT& in, ostream &out)
 		out << " Mass. . . . . . . . . . . . . . . . . . . . . . = " << fMass << '\n';
 
 	/* checks */
-	if (fk <= 0.0) throw eBadInputValue;
-	if (fSlow != kImpulse && fSlow != kConstantVelocity && fSlow != kSchedule) throw eBadInputValue;
-	if (fSlow == kImpulse && fMass <= 0.0) throw eBadInputValue;
+	if (fk <= 0.0) throw ExceptionT::kBadInputValue;
+	if (fSlow != kImpulse && fSlow != kConstantVelocity && fSlow != kSchedule) throw ExceptionT::kBadInputValue;
+	if (fSlow == kImpulse && fMass <= 0.0) throw ExceptionT::kBadInputValue;
 		
 	/* read contact nodes */
 	ModelManagerT* model = fFEManager.ModelManager ();
@@ -156,7 +156,7 @@ void PenaltyRegionT::EchoData(ifstreamT& in, ostream &out)
 
 				cout << "\n PenaltyRegionT::EchoData: unsupported output format: ";
 				cout << fFEManager.OutputFormat() << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 		}
 }
 

@@ -1,4 +1,4 @@
-/* $Id: FDSV_KStV2D.cpp,v 1.4 2002-10-14 18:28:08 thao Exp $ */
+/* $Id: FDSV_KStV2D.cpp,v 1.4.2.1 2002-10-17 04:38:04 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "FDSV_KStV2D.h"
@@ -6,7 +6,7 @@
 #include <math.h>
 #include <iostream.h>
 #include "fstreamT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 using namespace Tahoe;
 
@@ -23,7 +23,7 @@ FDSV_KStV2D::FDSV_KStV2D(ifstreamT& in, const FiniteStrainT& element):
 	if (fConstraintOption == Material2DT::kPlaneStress)
 	{
 	        cout << "Plane Stress formulation is not implemented\n";
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 
 	in >> ftauS;

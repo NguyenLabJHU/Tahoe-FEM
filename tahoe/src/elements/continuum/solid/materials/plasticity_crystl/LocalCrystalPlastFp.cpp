@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.8 2002-07-02 19:56:14 cjkimme Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.8.4.1 2002-10-17 04:38:17 paklein Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -715,7 +715,7 @@ void LocalCrystalPlastFp::IterateOnCrystalState(bool& stateConverged, int subInc
             stateConverged = (Converged(fTolerState) && fHardening->Converged(fTolerState));
          }
 	  
-       catch(int code)
+       catch(ExceptionT::CodeT code)
 	  {
             if (XTAL_MESSAGES)
                cout << " ...... failed at subIncr # " << subIncr 
@@ -777,7 +777,7 @@ void LocalCrystalPlastFp::SolveForPlasticDefGradient(int& ierr)
  
        // solve for Fp
        try { fSolver->Solve(fSolverPtr, fFpArray, ierr); }
-       catch(int code) 
+       catch(ExceptionT::CodeT code) 
            {
              if (XTAL_MESSAGES) 
 		writeWarning("... in LocalCrystalPlastFp::SolveForPlasticDefGradient: exception caugth");

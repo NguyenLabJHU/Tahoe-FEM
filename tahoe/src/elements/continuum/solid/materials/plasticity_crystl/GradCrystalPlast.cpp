@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlast.cpp,v 1.7 2002-07-02 19:56:14 cjkimme Exp $ */
+/* $Id: GradCrystalPlast.cpp,v 1.7.4.1 2002-10-17 04:38:17 paklein Exp $ */
 
 #include "GradCrystalPlast.h"
 #include "SlipGeometry.h"
@@ -699,7 +699,7 @@ void GradCrystalPlast::SolveForDGamma()
     writeMessage("GradCrystalPlast::SolveForDGamma: Convergence problems");
     writeWarning("GradcrystalPlast::SolveForDGamma: Will set:  dgamma = dgamma_n");
     fDGamma = dgamma_n;
-    //    throw eGeneralFail;	
+    //    throw ExceptionT::kGeneralFail;	
   }
 
   // update iteration count from NLCSolver

@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.7 2002-10-05 20:04:19 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.7.2.1 2002-10-17 04:38:19 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 
 #include "SolidMaterialT.h"
@@ -17,11 +17,11 @@ SolidMaterialT::SolidMaterialT(ifstreamT& in,
 	const ContinuumElementT& element):
 	ContinuumMaterialT(element)
 {
-	in >> fMassDamp;	if (fMassDamp  <  0.0) throw eBadInputValue;
-	in >> fStiffDamp;	if (fStiffDamp <  0.0) throw eBadInputValue;
-	in >> fDensity;		if (fDensity   <= 0.0) throw eBadInputValue;
+	in >> fMassDamp;	if (fMassDamp  <  0.0) throw ExceptionT::kBadInputValue;
+	in >> fStiffDamp;	if (fStiffDamp <  0.0) throw ExceptionT::kBadInputValue;
+	in >> fDensity;		if (fDensity   <= 0.0) throw ExceptionT::kBadInputValue;
 	fThermal = new ThermalDilatationT(in);
-	if (!fThermal) throw eOutOfMemory;
+	if (!fThermal) throw ExceptionT::kOutOfMemory;
 
 //DEV - Rayleigh damping is being eliminated
 #if 0
@@ -48,7 +48,7 @@ void SolidMaterialT::Initialize(void)
 	{
 		cout << "\n SolidMaterialT::Initialize: material does not support\n"
 		     <<   "     imposed thermal strain." << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 }
 
@@ -69,7 +69,7 @@ void SolidMaterialT::Print(ostream& out) const
 void SolidMaterialT::WaveSpeeds(const dArrayT& normal, dArrayT& speeds)
 {
 #if __option(extended_errorcheck)
-	if (normal.Length() != speeds.Length()) throw eSizeMismatch;
+	if (normal.Length() != speeds.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* compute acoustical tensor */

@@ -1,9 +1,9 @@
-/* $Id: SV_NeoHookean3D.cpp,v 1.1 2002-10-05 00:49:22 thao Exp $ */
+/* $Id: SV_NeoHookean3D.cpp,v 1.1.2.1 2002-10-17 04:38:05 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "SV_NeoHookean3D.h"
 #include "ifstreamT.h"
 

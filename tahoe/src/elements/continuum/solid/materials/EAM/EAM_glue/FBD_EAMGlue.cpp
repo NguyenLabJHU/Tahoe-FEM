@@ -1,4 +1,4 @@
-/* $Id: FBD_EAMGlue.cpp,v 1.2 2002-07-02 19:55:37 cjkimme Exp $ */
+/* $Id: FBD_EAMGlue.cpp,v 1.2.4.1 2002-10-17 04:37:50 paklein Exp $ */
 /* created: paklein (01/30/2000)                                          */
 /* FBD_EAMGlue.cpp                                                        */
 
@@ -30,7 +30,7 @@ FBD_EAMGlue::FBD_EAMGlue(CBLatticeT& lattice, ifstreamT& in):
 	    dp < 0.0 ||
 	    nr < 2   ||
 	    dr < 0.0 ||
-	 r_cut < 0.0) throw eBadInputValue;
+	 r_cut < 0.0) throw ExceptionT::kBadInputValue;
 	
 	/* work space */
 	dArrayT tmp;
@@ -48,7 +48,7 @@ FBD_EAMGlue::FBD_EAMGlue(CBLatticeT& lattice, ifstreamT& in):
 		p += dp;
 	}
 	fEmbeddingEnergy =  new CubicSplineT(table, CubicSplineT::kParabolic);
-	if (!fEmbeddingEnergy) throw eOutOfMemory;
+	if (!fEmbeddingEnergy) throw ExceptionT::kOutOfMemory;
 	
 	/* phi function */
 	tmp.Allocate(nr);
@@ -75,13 +75,13 @@ FBD_EAMGlue::FBD_EAMGlue(CBLatticeT& lattice, ifstreamT& in):
 	}
 	//fPairPotential =  new PhiSplineT(table, CubicSplineT::kFreeRun, r_cut);
 	fPairPotential =  new CubicSplineT(table, CubicSplineT::kFreeRun);
-	if (!fPairPotential) throw eOutOfMemory;
+	if (!fPairPotential) throw ExceptionT::kOutOfMemory;
 	
 	/* electron density function */
 	in >> tmp;
 	table.SetColumn(1, tmp);
 	fElectronDensity =  new CubicSplineT(table, CubicSplineT::kParabolic);
-	if (!fElectronDensity) throw eOutOfMemory;
+	if (!fElectronDensity) throw ExceptionT::kOutOfMemory;
 }
 
 /* lattice parameter */

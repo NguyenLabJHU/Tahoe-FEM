@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.h,v 1.7 2002-07-02 19:56:45 cjkimme Exp $ */
+/* $Id: CCNSMatrixT.h,v 1.7.4.1 2002-10-17 04:47:07 paklein Exp $ */
 /* created: paklein (03/04/1998)                                          */
 /* This is the interface for a non-symmetric matrix stored in             */
 /* Compact Column form.                                                   */
@@ -37,7 +37,7 @@
 
 /* project headers */
 #include "Environment.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 /* base class */
 #include "GlobalMatrixT.h"
@@ -192,7 +192,7 @@ private:
 inline int CCNSMatrixT::BandWidth(int eqnum) const
 {
 #if __option (extended_errorcheck)
-	if (eqnum < 0 || eqnum >= fLocNumEQ) throw eGeneralFail;
+	if (eqnum < 0 || eqnum >= fLocNumEQ) throw ExceptionT::kGeneralFail;
 #endif
 	
 	return (eqnum == 0) ? 0 : famax[eqnum+1] - famax[eqnum];

@@ -1,4 +1,4 @@
-/* $Id: SSCubic2DT.cpp,v 1.4 2002-10-05 20:04:11 paklein Exp $ */
+/* $Id: SSCubic2DT.cpp,v 1.4.2.1 2002-10-17 04:37:57 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #include "SSCubic2DT.h"
@@ -32,7 +32,7 @@ double SSCubic2DT::Pressure(void) const
 		return SSCubicT::Pressure();
 	else {
 		cout << "\n SSCubic2DT::Pressure: not implemented for plane strain" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 

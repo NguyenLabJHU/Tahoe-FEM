@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB3D.cpp,v 1.5 2002-09-12 17:50:00 paklein Exp $ */
+/* $Id: OgdenIsoVIB3D.cpp,v 1.5.4.1 2002-10-17 04:38:07 paklein Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* 3D Isotropic VIB using Ogden's spectral formulation                    */
 
@@ -39,9 +39,9 @@ OgdenIsoVIB3D::OgdenIsoVIB3D(ifstreamT& in, const FiniteStrainT& element):
 			break;
 			
 		default:
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
-	if (!fSphere) throw eOutOfMemory;
+	if (!fSphere) throw ExceptionT::kOutOfMemory;
 
 	/* set tables */
 	Construct();

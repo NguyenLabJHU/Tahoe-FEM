@@ -1,4 +1,4 @@
-/* $Id: IC_CardT.cpp,v 1.10 2002-09-12 17:50:06 paklein Exp $ */
+/* $Id: IC_CardT.cpp,v 1.10.4.1 2002-10-17 04:47:06 paklein Exp $ */
 /* created: paklein (07/16/1997) */
 #include "IC_CardT.h"
 
@@ -6,7 +6,7 @@
 #include <iomanip.h>
 
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "fstreamT.h"
 
 /* copy behavior for arrays IC_CardT's */
@@ -53,7 +53,7 @@ void IC_CardT::SetValues(int node, int dof, int order, double value)
 	fvalue = value;			
 
 	/* check */
-	if (order < 0) throw eBadInputValue;
+	if (order < 0) throw ExceptionT::kBadInputValue;
 }
 
 /* I/O */

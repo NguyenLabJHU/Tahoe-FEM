@@ -1,4 +1,4 @@
-/* $Id: ViscVIB.cpp,v 1.1 2002-10-04 23:59:02 thao Exp $ */
+/* $Id: ViscVIB.cpp,v 1.1.2.1 2002-10-17 04:38:01 paklein Exp $ */
 /* created: TDN (1/19/2000) */
 
 #include <math.h>
@@ -6,7 +6,7 @@
 
 #include "ViscVIB.h"
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 #include "fstreamT.h"
 
@@ -51,7 +51,7 @@ ViscVIB::ViscVIB(ifstreamT& in, int nsd, int numstress, int nummoduli):
 		}
 		default:
 		
-			throw eBadInputValue;	
+			throw ExceptionT::kBadInputValue;	
 	}
 	in >> potentialcode;	
 	switch(potentialcode)
@@ -85,12 +85,12 @@ ViscVIB::ViscVIB(ifstreamT& in, int nsd, int numstress, int nummoduli):
 		}
         	default:
 		
-			throw eBadInputValue;	
+			throw ExceptionT::kBadInputValue;	
 	}
 	
 	/*set viscosity function*/
 	if (!fPotential_E || !fPotential_I || !fShearVisc || !fBulkVisc) 
-		throw eOutOfMemory;
+		throw ExceptionT::kOutOfMemory;
 }
 
 ViscVIB::~ViscVIB(void)

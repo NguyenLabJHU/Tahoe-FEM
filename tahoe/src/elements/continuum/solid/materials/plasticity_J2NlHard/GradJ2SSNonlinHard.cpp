@@ -57,12 +57,12 @@ GradJ2SSNonlinHard::GradJ2SSNonlinHard(ifstreamT& in, const SmallStrainT& elemen
 	if (yield < 0 )
 	{
                 cout << "\n GradJ2SSNonlinHard: yield <0" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	if (k1 < 0 || k2 < 0 || k3 < 0 || k4 <0)
 	{
 	        cout << "\n GradJ2SSNonlinHard: bad hardening parameter k1, k2, k3, or k4" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 }
 
@@ -568,7 +568,7 @@ void GradJ2SSNonlinHard::SolveState(ElementCardT& element)
 		{
 		        cout << "\n GradJ2SSNonlinHard::SolveState: local iteration failed after " 
 			     << max_iteration << " iterations" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	}
 
@@ -592,7 +592,7 @@ void GradJ2SSNonlinHard::SolveState(ElementCardT& element)
 		else
 	        {
 		        cout << "\n GradJ2SSNonlinHard::SolveState: bad flag value " ;
-		        throw eGeneralFail;
+		        throw ExceptionT::kGeneralFail;
 		}
 	}
 }
@@ -692,7 +692,7 @@ void GradJ2SSNonlinHard::IncrementPlasticParameter(double& varLmbda, const Eleme
 	if (dYieldCrt < kSmall)
 	{
 		cout << "\n GradJ2SSNonlinHardT::StressCorrection: consistency function is nonconvex" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 		
 	/* variation of plasticity multiplier */
@@ -868,7 +868,7 @@ dArrayT GradJ2SSNonlinHard::Laplacian(const dArrayT& ip_field, int field_length)
 	else
 	{
 	        cout << "\n GradJ2SSNonlinHardT::Laplacian: laplacian of multi-dimensional array not yet implemented" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	return dA_ip_lap_field;

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp_C.cpp,v 1.3 2002-07-02 19:56:14 cjkimme Exp $ */
+/* $Id: LocalCrystalPlastFp_C.cpp,v 1.3.4.1 2002-10-17 04:38:17 paklein Exp $ */
 #include "LocalCrystalPlastFp_C.h"
 #include "LatticeOrient.h"
 #include "CrystalElasticity.h"
@@ -399,5 +399,5 @@ void LocalCrystalPlastFp_C::DeformationGradient_C(const LocalArrayT& disp, dMatr
       F_3D(2, 2) = 1.0;
     }
   else 
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
 }

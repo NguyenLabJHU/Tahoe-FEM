@@ -1,4 +1,4 @@
-/* $Id: ModCB3DT.cpp,v 1.4 2002-09-12 17:50:03 paklein Exp $ */
+/* $Id: ModCB3DT.cpp,v 1.4.4.1 2002-10-17 04:38:13 paklein Exp $ */
 /* created: paklein (10/14/1998)                                          */
 
 #include "ModCB3DT.h"
@@ -89,12 +89,12 @@ ModCB3DT::ModCB3DT(ifstreamT& in, const FiniteStrainT& element, bool equilibrate
 
 			cout << "\nModCB3DT::ModCB3DT: unknown orientation code:" << fOrientationCode;
 			cout << endl;
-			throw eBadInputValue ;
+			throw ExceptionT::kBadInputValue ;
 	}
 
 
 	fModCBSolver = new ModCBSolverT(Q, fThermal, in, equilibrate);
-	if (!fModCBSolver) throw eOutOfMemory;
+	if (!fModCBSolver) throw ExceptionT::kOutOfMemory;
 }
 
 /* destructor */

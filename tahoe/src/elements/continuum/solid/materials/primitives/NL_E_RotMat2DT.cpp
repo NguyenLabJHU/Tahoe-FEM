@@ -1,4 +1,4 @@
-/* $Id: NL_E_RotMat2DT.cpp,v 1.3 2002-07-02 19:56:22 cjkimme Exp $ */
+/* $Id: NL_E_RotMat2DT.cpp,v 1.3.4.1 2002-10-17 04:38:19 paklein Exp $ */
 /* created: paklein (06/13/1997)                                          */
 /* Base class for materials with 2D nonlinear elastic behavior            */
 /* with in-plane orientation with respect to global coordinate            */
@@ -45,7 +45,7 @@ const dMatrixT& NL_E_RotMat2DT::c_ijkl(void)
 	
 	/* natural -> spatial -> material */
 	//return C_to_c(fModuli, Q());
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 	return fModuli;
 }
 	
@@ -66,7 +66,7 @@ const dSymMatrixT& NL_E_RotMat2DT::s_ij(void)
 
 	/* natural -> spatial -> material */
 	//return S_to_s(fPK2, Q());
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 	return fPK2;
 }
 

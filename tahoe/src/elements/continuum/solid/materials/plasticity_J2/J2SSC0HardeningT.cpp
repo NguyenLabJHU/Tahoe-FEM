@@ -1,4 +1,4 @@
-/* $Id: J2SSC0HardeningT.cpp,v 1.3 2002-07-02 19:56:11 cjkimme Exp $ */
+/* $Id: J2SSC0HardeningT.cpp,v 1.3.4.1 2002-10-17 04:38:15 paklein Exp $ */
 #include "J2SSC0HardeningT.h"
 
 #include <iostream.h>
@@ -112,7 +112,7 @@ const dSymMatrixT& J2SSC0HardeningT::StressCorrection(const dSymMatrixT& trialst
 					if (df < kSmall)
 					{
 						cout << "\n J2SSC0HardeningT::StressCorrection: consistency function is nonconvex" << endl;
-						throw eGeneralFail;
+						throw ExceptionT::kGeneralFail;
 					}
 				
 					/* increment update */
@@ -127,7 +127,7 @@ const dSymMatrixT& J2SSC0HardeningT::StressCorrection(const dSymMatrixT& trialst
 				{
 					cout << "\n J2SSC0HardeningT::StressCorrection: local iteration failed after " 
 					     << max_iteration << " iterations" << endl;
-					throw eGeneralFail;
+					throw ExceptionT::kGeneralFail;
 				}
 			}
 	
@@ -296,7 +296,7 @@ void J2SSC0HardeningT::Reset(ElementCardT& element)
 void J2SSC0HardeningT::LoadData(const ElementCardT& element, int ip)
 {
 	/* check */
-	if (!element.IsAllocated()) throw eGeneralFail;
+	if (!element.IsAllocated()) throw ExceptionT::kGeneralFail;
 
 	/* fetch arrays */
 	dArrayT& d_array = element.DoubleData();
@@ -398,7 +398,7 @@ void J2SSC0HardeningT::ConstructHardeningFunction(ifstreamT& in)
 			double yield = -1;
 			double dK = -1;
 			in >> yield >> dK;
-			if (yield < 0) throw eBadInputValue;
+			if (yield < 0) throw ExceptionT::kBadInputValue;
 			
 			dArray2DT points(2,2);
 			points(0,0) = 0.0;
@@ -432,7 +432,7 @@ void J2SSC0HardeningT::ConstructHardeningFunction(ifstreamT& in)
 			{
 				cout << "\n J2SSC0HardeningT::ConstructHardeningFunction: expecting at least 2 spline points:"
 				     << num_points << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 			dArray2DT points(num_points, 2);
 			in >> points;
@@ -444,6 +444,6 @@ void J2SSC0HardeningT::ConstructHardeningFunction(ifstreamT& in)
 		default:
 			cout << "\n J2SSC0HardeningT::ConstructHardeningFunction: unknown hardening function type: " 
 			     << type << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 }

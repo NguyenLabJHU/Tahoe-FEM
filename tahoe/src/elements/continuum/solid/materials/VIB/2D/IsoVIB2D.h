@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.h,v 1.5 2002-10-05 20:04:14 paklein Exp $ */
+/* $Id: IsoVIB2D.h,v 1.5.2.1 2002-10-17 04:38:06 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 
 #ifndef _ISO_VIB_2D_H_
@@ -50,7 +50,7 @@ public:
 	virtual const dMatrixT& C_IJKL(void); // material tangent moduli
 	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
 //TEMP - not yet optimized for total Lagrangian formulation.
-//       calls to these write error message and throw exception
+//       calls to these write error message and throw ExceptionT::xception
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);

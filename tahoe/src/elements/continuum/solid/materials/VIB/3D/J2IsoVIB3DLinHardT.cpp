@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB3DLinHardT.cpp,v 1.5 2002-09-12 17:50:00 paklein Exp $ */
+/* $Id: J2IsoVIB3DLinHardT.cpp,v 1.5.4.1 2002-10-17 04:38:07 paklein Exp $ */
 /* created: paklein (10/12/1998)                                          */
 /* VIB plus principal stretch elasticity                                  */
 /* Interface for a elastoplastic material that is linearly                */
@@ -147,7 +147,7 @@ void J2IsoVIB3DLinHardT::Print(ostream& out) const
 const dMatrixT& J2IsoVIB3DLinHardT::c_ijkl(void)
 {
 	cout << "\n J2IsoVIB3DLinHardT::c_ijkl: no tangent implemented" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 	
 	return fddW; // dummy
 }
@@ -189,7 +189,7 @@ const dMatrixT& J2IsoVIB3DLinHardT::C_IJKL(void)
 {
 	cout << "\n J2IsoVIB3DLinHardT::C_IJKL: not optimized for total Lagrangian formulation.";
 	cout <<   "    use updated Lagrangian formulation." << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 
 	return fddW; // dummy
 }
@@ -198,7 +198,7 @@ const dSymMatrixT& J2IsoVIB3DLinHardT::S_IJ(void)
 {
 	cout << "\n J2IsoVIB3DLinHardT::S_IJ: not optimized for total Lagrangian formulation.";
 	cout <<   "    use updated Lagrangian formulation." << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 
 	return fb_elastic; // dummy
 }
@@ -445,7 +445,7 @@ void J2IsoVIB3DLinHardT::ReturnMapping(const dSymMatrixT& b_tr, const dArrayT& b
 				cout << " tolerance         = " << kYieldTol << '\n';
 				cout << " consistency error = " << ftrial    << '\n';
 				cout << " log stretch error = " << mag_res_e << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 		}
 	}

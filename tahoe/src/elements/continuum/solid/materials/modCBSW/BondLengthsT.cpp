@@ -1,4 +1,4 @@
-/* $Id: BondLengthsT.cpp,v 1.2 2002-07-02 19:56:06 cjkimme Exp $ */
+/* $Id: BondLengthsT.cpp,v 1.2.4.1 2002-10-17 04:38:13 paklein Exp $ */
 /* created: paklein (05/20/1997)                                          */
 /* Class to compute/manage all bond lengths and derivatives               */
 /* for the 2 unit cell, diamond cubic, modified Cauchy-Born,              */
@@ -155,7 +155,7 @@ void BondLengthsT::dR(const dArray2DT& R, const dArrayT& l, const dMatrixT& C,
 void BondLengthsT::Symmetrized(dMatrixT& mat, const dArrayT& Rmod)
 {
 	/* strictly 3D */
-	if (Rmod.Length() != 3) throw eGeneralFail;
+	if (Rmod.Length() != 3) throw ExceptionT::kGeneralFail;
 
 	int dex[6][2] =
 		{{0,0},

@@ -1,4 +1,4 @@
-/* $Id: Aztec_fe.cpp,v 1.5 2002-09-12 17:50:09 paklein Exp $ */
+/* $Id: Aztec_fe.cpp,v 1.5.4.1 2002-10-17 04:47:09 paklein Exp $ */
 /* created: paklein (08/01/1998) */
 
 #include "Aztec_fe.h"
@@ -11,7 +11,7 @@
 #include <stdlib.h>
 
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "az_aztec.h"
 
 #include "fstreamT.h"
@@ -33,7 +33,7 @@ Aztec_fe::Aztec_fe(ifstreamT& in, ostream& msg):
 
 	/* construct MSR data builder */
 	fMSRBuilder = new MSRBuilderT(false);
-	if (!fMSRBuilder) throw eOutOfMemory;
+	if (!fMSRBuilder) throw ExceptionT::kOutOfMemory;
 }
 
 /* destructor */
@@ -83,8 +83,8 @@ void Aztec_fe::Solve(dArrayT& rhs2result)
 void Aztec_fe::Solve(const dArrayT& initguess, dArrayT& rhs2result)
 {
 	/* checks */
-	if (!fMSRSet) throw eGeneralFail;
-	if (rhs2result.Length() != fupdate.Length()) throw eSizeMismatch;
+	if (!fMSRSet) throw ExceptionT::kGeneralFail;
+	if (rhs2result.Length() != fupdate.Length()) throw ExceptionT::kSizeMismatch;
 
 	/* allocate initial guess */
 	finitguess.Allocate(InitGuessLength());
@@ -103,7 +103,7 @@ void Aztec_fe::Solve(const dArrayT& initguess, dArrayT& rhs2result)
 	else
 	{
 		/* check dimension */
-		if (initguess.Length() != rhs2result.Length()) throw eSizeMismatch;
+		if (initguess.Length() != rhs2result.Length()) throw ExceptionT::kSizeMismatch;
 	
 		/* copy guess */
 		finitguess.CopyPart(0, initguess, 0, initguess.Length());
@@ -128,7 +128,7 @@ void Aztec_fe::Solve(const dArrayT& initguess, dArrayT& rhs2result)
 	if (int(status[AZ_why]) != AZ_normal)
 	{
 		cout << "\n Aztec_fe::Solve: solver failed to converge" << endl;
-		throw eBadJacobianDet;
+		throw ExceptionT::kBadJacobianDet;
 	}
 	else
 		cout << endl;	
@@ -205,7 +205,7 @@ void Aztec_fe::ReadOptionsParameters(ifstreamT& in)
 	int num_options;
 	in >> num_options;
 	if (num_options < 0 || num_options > AZ_OPTIONS_SIZE)
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 //TEMP - num_options strictly can't be AZ_OPTIONS_SIZE, should
 //       get this limit from AztecReaderT
 	
@@ -226,7 +226,7 @@ void Aztec_fe::ReadOptionsParameters(ifstreamT& in)
 	int num_params;
 	in >> num_params;
 	if (num_params < 0 || num_params > AZ_PARAMS_SIZE)
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 //TEMP - num_params strictly can't be AZ_PARAMS_SIZE, should
 //       get this limit from AztecReaderT
 
@@ -285,7 +285,7 @@ void Aztec_fe::GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v)
 		cout << "\n SPOOLESMatrixT::GenerateRCV: translation error:\n"
 		     <<   "   expected number of values = " << num_vals << '\n'
 		     <<   "            number of values = " << count << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 

@@ -1,4 +1,4 @@
-/* $Id: SWDataT.cpp,v 1.3 2002-09-12 17:50:07 paklein Exp $ */
+/* $Id: SWDataT.cpp,v 1.3.4.1 2002-10-17 04:47:06 paklein Exp $ */
 /* created: paklein (03/22/1997)                                          */
 /* Container class for Stillinger-Weber potential parameters              */
 
@@ -9,7 +9,7 @@
 #include <iomanip.h>
 
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 #include "fstreamT.h"
 
@@ -32,18 +32,18 @@ SWDataT::SWDataT(ifstreamT& in)
 void SWDataT::Read(ifstreamT& in)
 {
 	/* unit scaling */
-	in >> feps;	if (feps <= 0.0) throw eBadInputValue;
+	in >> feps;	if (feps <= 0.0) throw ExceptionT::kBadInputValue;
 
 	/* 2 body potential */
-	in >> fA;		if (fA     <= 0.0) throw eBadInputValue;
-	in >> fdelta;	if (fdelta <= 0.0) throw eBadInputValue;
+	in >> fA;		if (fA     <= 0.0) throw ExceptionT::kBadInputValue;
+	in >> fdelta;	if (fdelta <= 0.0) throw ExceptionT::kBadInputValue;
 	
 	/* 3 body potential */
-	in >> fgamma;	if (fgamma  <= 0.0) throw eBadInputValue;
-	in >> flambda;	if (flambda <= 0.0) throw eBadInputValue;
+	in >> fgamma;	if (fgamma  <= 0.0) throw ExceptionT::kBadInputValue;
+	in >> flambda;	if (flambda <= 0.0) throw ExceptionT::kBadInputValue;
 	
-	in >> frcut;	if (frcut <= 0.0) throw eBadInputValue;		
-	in >> fa;		if (fa    <= 0.0) throw eBadInputValue;
+	in >> frcut;	if (frcut <= 0.0) throw ExceptionT::kBadInputValue;		
+	in >> fa;		if (fa    <= 0.0) throw ExceptionT::kBadInputValue;
 
 	/* compute B factor */
 	double a0 = pow(2.0,1.0/6.0);
