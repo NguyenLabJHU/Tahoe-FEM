@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.4 2002-11-18 09:59:03 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.5 2003-03-08 02:34:15 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -28,6 +28,9 @@ public:
 
 	/** constructor */
 	ParameterListT(const StringT& name): fName(name) { };
+
+	/** default constructor. Needed to allow making lists of lists */
+	ParameterListT(void) {};
 	
 	/** list name */
 	const StringT& Name(void) const { return fName; };
@@ -88,11 +91,6 @@ public:
 	void SetDescription(const StringT& description) { fDescription = description; };
 	const StringT& Description(void) const { return fDescription; };
 	/*@}*/
-
-private:
-
-	/** default constructor. Needed to allow making lists of lists */
-	ParameterListT(void) {};
 
 protected:
 
