@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.14 2004-01-29 01:03:32 hspark Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.14.2.1 2004-02-07 20:00:12 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -9,6 +9,7 @@
 #include "ofstreamT.h"
 #include "ifstreamT.h"
 #include "NLSolver.h"
+#include "CommManagerT.h"
 
 #include "BridgingScaleT.h"
 #include "ParticleT.h"
@@ -170,10 +171,24 @@ void FEManagerT_bridging::InitGhostNodes(void)
 		fGhostNodes--;
 	}
 
-	/* mark nodes as ghost */
-	fNonGhostNodes.Dimension(fModelManager->NumNodes() - fGhostNodes.Length());
-	iArrayT is_ghost(fModelManager->NumNodes());
-	is_ghost = 0;
+	/* mark nodes as ghost - check against PartitionNodes to make sure image atoms due to
+	   periodic BC's not counted as non-ghost */
+	CommManagerT* comm = FEManagerT::CommManager();
+	const ArrayT<int>* part_nodes = comm->PartitionNodes();
+	iArrayT is_ghost;
+	if (!part_nodes)
+	{
+		fNonGhostNodes.Dimension(fModelManager->NumNodes() - fGhostNodes.Length());
+		is_ghost.Dimension(fModelManager->NumNodes());
+		is_ghost = 0;
+	}
+	else
+	{
+		fNonGhostNodes.Dimension(part_nodes->Length() - fGhostNodes.Length());
+		is_ghost.Dimension(part_nodes->Length());
+		is_ghost = 0;
+	}
+		
 	for (int i = 0; i < fGhostNodes.Length(); i++)
 		is_ghost[fGhostNodes[i]] = 1;
 
