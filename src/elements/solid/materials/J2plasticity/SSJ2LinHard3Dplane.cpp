@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHard3Dplane.cpp,v 1.3 2004-01-28 00:23:58 thao Exp $ */
+/* $Id: SSJ2LinHard3Dplane.cpp,v 1.4 2004-07-15 08:28:34 paklein Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Plane Strain linearly                */
 /* isotropically elasto plastic material model subject to the Huber-von Mises yield             */
@@ -29,6 +29,7 @@ static const char* Labels[kNumOutput] = {"alpha", "VM", "press"};
 
 /* constructor */
 SSJ2LinHard3Dplane::SSJ2LinHard3Dplane(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("SSJ2LinHard3Dplane"),
 	SSJ2LinHardBaseT(in, support),
         fStress(4),
 	fModulus(dSymMatrixT::NumValues(4)){}

@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianFlatT.h,v 1.1 2003-12-10 06:42:05 paklein Exp $ */
+/* $Id: TotalLagrangianFlatT.h,v 1.2 2004-07-15 08:29:02 paklein Exp $ */
 #ifndef _TOTAL_LAGRANGRIAN_FLAT_T_H_
 #define _TOTAL_LAGRANGRIAN_FLAT_T_H_
 
@@ -13,7 +13,7 @@ class TotalLagrangianFlatT: public TotalLagrangianT
 public:
 	
 	/** constructor */
-	TotalLagrangianFlatT(const ElementSupportT& support, const FieldT& field);
+	TotalLagrangianFlatT(const ElementSupportT& support);
 
 protected:
 

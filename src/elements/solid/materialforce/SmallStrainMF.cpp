@@ -1,4 +1,4 @@
-/* $Id: SmallStrainMF.cpp,v 1.12 2004-03-16 10:05:15 paklein Exp $ */
+/* $Id: SmallStrainMF.cpp,v 1.13 2004-07-15 08:28:31 paklein Exp $ */
 #include "SmallStrainMF.h"
 
 #include "OutputSetT.h"
@@ -13,9 +13,12 @@
 #include "ofstreamT.h"
 
 /* materials lists */
+#include "MaterialListT.h"
+#if 0
 #include "SolidMatList1DT.h"
 #include "SolidMatList2DT.h"
 #include "SolidMatList3DT.h"
+#endif
 
 #include <iostream.h>
 #include <iomanip.h>
@@ -24,14 +27,16 @@ using namespace Tahoe;
 
 /* constructor */
 SmallStrainMF::SmallStrainMF(const ElementSupportT& support, const FieldT& field):
-	SmallStrainT(support, field),
+	SmallStrainT(support),
 	fNumGroupNodes(0),
 	fMatForceOutputID(-1)
 {
+ExceptionT::GeneralFail("SmallStrainMF::SmallStrainMF", "out of date");
+#if 0	
 	ifstreamT& in = ElementSupport().Input();
     ostream&  out = ElementSupport().Output();
 
-    ModelManagerT& model = ElementSupport().Model();
+    ModelManagerT& model = ElementSupport().ModelManager();
     const ArrayT<StringT>& nsetIDs = model.NodeSetIDs();
     in >> fnumset;
     fNID.Dimension (fnumset);
@@ -55,6 +60,7 @@ SmallStrainMF::SmallStrainMF(const ElementSupportT& support, const FieldT& field
     for (int j = 0; j<fnumset; j++) out << "\n\tNodeset: "<<fNID[j];
     out <<'\n';
     fopen = false;
+#endif
 }
 	
 SmallStrainMF::~SmallStrainMF(void)
@@ -64,11 +70,14 @@ SmallStrainMF::~SmallStrainMF(void)
 
 void SmallStrainMF::Initialize(void)
 {
+ExceptionT::GeneralFail("SmallStrainMF::Initialize", "out of date");
+#if 0
     SmallStrainT::Initialize();
     
     fGradU_List.Dimension(NumIP());
     for (int i = 0; i< NumIP(); i++)
         fGradU_List[i].Dimension(NumSD());
+#endif
 }
 
 void SmallStrainMF::SetGlobalShape(void)
@@ -204,11 +213,10 @@ void SmallStrainMF::ComputeMatForce(dArray2DT& output)
   }
 
   /*write summary of MF results to external file*/  
-  ModelManagerT& model = ElementSupport().Model();
+  ModelManagerT& model = ElementSupport().ModelManager();
   int numnset = model.NumNodeSets();
  
-  ifstreamT& in = ElementSupport().Input();
-  const StringT& input_file = in.filename();
+  const StringT& input_file = ElementSupport().InputFile();
   fsummary_file.Root(input_file);
   fsummary_file.Append(".sum");
  

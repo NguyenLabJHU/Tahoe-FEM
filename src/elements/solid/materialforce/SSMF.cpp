@@ -1,4 +1,4 @@
-/* $Id: SSMF.cpp,v 1.10 2004-03-16 10:05:15 paklein Exp $ */
+/* $Id: SSMF.cpp,v 1.11 2004-07-15 08:28:31 paklein Exp $ */
 #include "SSMF.h"
 
 #include "OutputSetT.h"
@@ -16,9 +16,12 @@
 #include "ofstreamT.h"
 
 /* materials lists */
+#include "MaterialListT.h"
+#if 0
 #include "SolidMatList1DT.h"
 #include "SolidMatList2DT.h"
 #include "SolidMatList3DT.h"
+#endif
 
 #include <iostream.h>
 #include <iomanip.h>
@@ -27,7 +30,7 @@ using namespace Tahoe;
 
 /* constructor */
 SSMF::SSMF(const ElementSupportT& support, const FieldT& field):
-  SmallStrainT(support, field),
+  SmallStrainT(support),
   fdynamic(false),
   MFSupportT(support),
   ftraction(LocalArrayT::kUnspecified),
@@ -39,6 +42,8 @@ SSMF::SSMF(const ElementSupportT& support, const FieldT& field):
 
 void SSMF::Initialize(void)
 {
+ExceptionT::GeneralFail("SSMF::Initialize", "out of date");
+#if 0	
   SmallStrainT::Initialize();
   
   int nsd = (NumSD() == 2) ? 4 : 3;
@@ -55,6 +60,7 @@ void SSMF::Initialize(void)
   fGradU_List.Dimension(NumIP());
   for (int i = 0; i< NumIP(); i++)
     fGradU_List[i].Dimension(NumSD());
+#endif
 }
 
 void SSMF::SetGlobalShape(void)

@@ -7,12 +7,10 @@
 #define _FOSSUM_SS_ISOT_H_
 
 #include "SolidMaterialT.h"
-#include "SSSolidMatT.h"
+#include "SSIsotropicMatT.h"
 #include "HookeanMatT.h"
 #include "SSHookeanMatT.h"
 #include "SpectralDecompT.h"
-
-#include "IsotropicT.h"
 
 /* direct members */
 #include "dMatrixT.h"
@@ -30,9 +28,7 @@ class dSymMatrixT;
 /* forward declarations */
 class ElementCardT;
 
-class FossumSSIsoT: public SSSolidMatT,
-                    public IsotropicT,
-                    public HookeanMatT
+class FossumSSIsoT: public SSIsotropicMatT, public HookeanMatT
 {
 
 public:
@@ -48,10 +44,18 @@ public:
 	/* destructor */
 	virtual ~FossumSSIsoT(void);
 
-	/* write parameters to stream */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-        
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+	
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/*

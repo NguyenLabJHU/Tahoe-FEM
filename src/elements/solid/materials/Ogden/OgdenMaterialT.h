@@ -1,4 +1,4 @@
-/* $Id: OgdenMaterialT.h,v 1.2 2003-03-21 06:29:09 thao Exp $ */
+/* $Id: OgdenMaterialT.h,v 1.3 2004-07-15 08:28:38 paklein Exp $ */
 /* created: tdn (3/17/2003) */
 #ifndef _OGDEN_Material_T_H_
 #define _OGDEN_Material_T_H_
@@ -19,10 +19,6 @@ public:
 	/* constructor/destructor */
 	OgdenMaterialT(ifstreamT& in, const FSMatSupportT& support);
 	~OgdenMaterialT(void);
-	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 
 protected:
 

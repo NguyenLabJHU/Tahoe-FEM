@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement3DT.cpp,v 1.13 2004-03-16 10:05:13 paklein Exp $ */
+/* $Id: PenaltyContactElement3DT.cpp,v 1.14 2004-07-15 08:28:08 paklein Exp $ */
 #include "PenaltyContactElement3DT.h"
 
 #include <math.h>
@@ -30,6 +30,8 @@ PenaltyContactElement3DT::PenaltyContactElement3DT(const ElementSupportT& suppor
 
 void PenaltyContactElement3DT::Initialize(void)
 {
+ExceptionT::GeneralFail("PenaltyContactElement3DT::Initialize", "out of date");
+#if 0
     ContactElementT::Initialize();
 
 	/* set up Penalty functions */
@@ -81,6 +83,7 @@ void PenaltyContactElement3DT::Initialize(void)
 	/* subsidary data for GW models */
     fRealArea.Dimension(fSurfaces.Length());
 	fRealArea = 0.0;
+#endif
 }
 
 /* print/compute element output quantities */
@@ -103,6 +106,7 @@ void PenaltyContactElement3DT::WriteOutput(void)
  * Protected
  ***********************************************************************/
 
+#if 0
 /* print element group data */
 void PenaltyContactElement3DT::PrintControlData(ostream& out) const
 {
@@ -169,6 +173,7 @@ void PenaltyContactElement3DT::PrintControlData(ostream& out) const
 	}
 	out <<'\n';
 }
+#endif
 
 /* called before LHSdriver during iteration process */
 void PenaltyContactElement3DT::RHSDriver(void)

@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.7 2004-03-04 19:43:58 paklein Exp $
+# $Id: makefile.template,v 1.8 2004-07-15 08:27:46 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -61,6 +61,15 @@ TB_LIB_NAME    = toolbox
 TAHOE_LIB_NAME = tahoe
 TB_LIB      = $(TAHOE_DIR)/lib/lib$(TAHOE_LIB_NAME).a $(TB_DIR)/lib/lib$(TB_LIB_NAME).a
 TB_LFLAGS   = -L$(TAHOE_DIR)/lib -l$(TAHOE_LIB_NAME) -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
+
+##### expat XML parsing library
+#EXPAT_PREFIX   = $(HOME_DIR)/../expat
+#EXPAT_DEFINES  = -D__EXPAT__
+#EXPAT_INC      = -I$(EXPAT_PREFIX)/include
+#EXPAT_CFLAGS   = $(EXPAT_INC) $(EXPAT_DEFINES)
+#EXPAT_LIB_NAME = expat
+#EXPAT_LIB      = $(EXPAT_PREFIX)/lib/lib$(EXPAT_LIB_NAME).a
+#EXPAT_LFLAGS   = -L$(EXPAT_PREFIX)/lib -l$(EXPAT_LIB_NAME)
 
 ##### F2C 1.4.3
 #F2C_DIR      = $(HOME_DIR)/../f2c

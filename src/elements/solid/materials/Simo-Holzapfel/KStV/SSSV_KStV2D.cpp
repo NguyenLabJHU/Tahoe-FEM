@@ -1,4 +1,4 @@
-/* $Id: SSSV_KStV2D.cpp,v 1.10 2004-06-22 19:45:46 cjkimme Exp $ */
+/* $Id: SSSV_KStV2D.cpp,v 1.11 2004-07-15 08:28:49 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSSV_KStV2D.h"
 #include "SSMatSupportT.h"
@@ -14,6 +14,7 @@ const int kNumOutputVar = 4;
 static const char* Labels[kNumOutputVar] = {"Dvisc","Er", "Iep_v", "IIe_v"};
 
 SSSV_KStV2D::SSSV_KStV2D(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("SSSV_KStV2D"),
 	SSSimoViscoT(in, support),
         fStress(2),
 	fModulus(3),
@@ -24,6 +25,7 @@ SSSV_KStV2D::SSSV_KStV2D(ifstreamT& in, const SSMatSupportT& support):
 	fKappa(2),
 	fthird(1.0/3.0)
 {
+ExceptionT::GeneralFail("SSSV_KStV2D::SSSV_KStV2D", "out of date");
     double& mu_EQ = fMu[kEquilibrium];
 	double& kappa_EQ = fKappa[kEquilibrium]; 
 
@@ -42,6 +44,7 @@ SSSV_KStV2D::SSSV_KStV2D(ifstreamT& in, const SSMatSupportT& support):
         IsotropicT::Set_mu_kappa(mu_EQ, kappa_EQ);
 }	
 
+#if 0
 void SSSV_KStV2D::Print(ostream& out) const
 {
 	/* inherited */
@@ -66,6 +69,7 @@ void SSSV_KStV2D::PrintName(ostream& out) const
 	out << "Kirchoff St. Venant\n";
 	out << "Kirchoff St. Venant\n";
 }
+#endif
 
 double SSSV_KStV2D::StrainEnergyDensity(void)
 {
@@ -338,3 +342,30 @@ void SSSV_KStV2D::ComputeOutput(dArrayT& output)
                   +2.0*fViscStrain[4]*fViscStrain[4]
                   +2.0*fViscStrain[5]*fViscStrain[5]));
 }	
+
+/* information about subordinate parameter lists */
+void SSSV_KStV2D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	IsotropicT::DefineSubs(sub_list);
+	SSSimoViscoT::DefineSubs(sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* SSSV_KStV2D::NewSub(const StringT& name) const
+{
+	/* inherited */
+	ParameterInterfaceT* sub = IsotropicT::NewSub(name);
+	if (sub)
+		return sub;
+	else
+		return SSSimoViscoT::NewSub(name);
+}
+
+/* accept parameter list */
+void SSSV_KStV2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	IsotropicT::TakeParameterList(list);
+	SSSimoViscoT::TakeParameterList(list);
+}

@@ -1,4 +1,4 @@
-/* $Id: BEMelement.h,v 1.6 2002-11-30 16:41:22 paklein Exp $ */
+/* $Id: BEMelement.h,v 1.7 2004-07-15 08:27:56 paklein Exp $ */
 /* created: AFLP (02/28/1998) */
 
 #ifndef _BEM_ELEMENT_H_
@@ -42,9 +42,6 @@ protected: /* for derived classes only */
 	/* called by FormRHS and FormLHS */
 	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
 	virtual void RHSDriver(void);
-
-	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: FrictionalContactElement2DT.cpp,v 1.2 2004-03-16 10:05:13 paklein Exp $ */
+/* $Id: FrictionalContactElement2DT.cpp,v 1.3 2004-07-15 08:28:08 paklein Exp $ */
 // created by : rjones 2003
 #include "FrictionalContactElement2DT.h"
 
@@ -37,6 +37,7 @@ FrictionalContactElement2DT::FrictionalContactElement2DT
  * Protected
  ***********************************************************************/
 
+#if 0
 /* print element group data */
 void FrictionalContactElement2DT::PrintControlData(ostream& out) const
 {
@@ -77,6 +78,7 @@ void FrictionalContactElement2DT::PrintControlData(ostream& out) const
 	}
 
 }
+#endif
 
 /* called before LHSDriver during iteration process */
 void FrictionalContactElement2DT::SetContactStatus(void)

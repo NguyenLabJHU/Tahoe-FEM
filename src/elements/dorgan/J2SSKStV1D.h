@@ -1,10 +1,9 @@
-/* $Id: J2SSKStV1D.h,v 1.7 2004-04-23 18:44:36 rdorgan Exp $ */
+/* $Id: J2SSKStV1D.h,v 1.8 2004-07-15 08:28:12 paklein Exp $ */
 #ifndef _J2_SS_KSTV_1D_H_
 #define _J2_SS_KSTV_1D_H_
 
 /* base classes */
-#include "SSSolidMatT.h"
-#include "IsotropicT.h"
+#include "SSIsotropicMatT.h"
 #include "HookeanMatT.h"
 
 /* direct members */
@@ -21,9 +20,7 @@ namespace Tahoe {
 class ElementCardT;
 class ifstreamT;
 
-class J2SSKStV1D: public SSSolidMatT,
-				  public IsotropicT,
-				  public HookeanMatT
+class J2SSKStV1D: public SSIsotropicMatT, public HookeanMatT
 {
 public:
 
@@ -39,10 +36,6 @@ public:
 
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 
 	/** \name spatial description */
 	/*@{*/

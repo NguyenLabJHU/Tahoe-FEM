@@ -1,4 +1,4 @@
-/* $Id: OgdenBaseT.cpp,v 1.3 2003-11-21 22:54:48 paklein Exp $ */
+/* $Id: OgdenBaseT.cpp,v 1.4 2004-07-15 08:28:37 paklein Exp $ */
 /* created: paklein (10/01/2000) */
 #include "OgdenBaseT.h"
 
@@ -9,7 +9,8 @@ using namespace Tahoe;
 
 /* constructor */
 OgdenBaseT::OgdenBaseT(ifstreamT& in, const FSMatSupportT& support):
-	FSSolidMatT(in, support),
+	ParameterInterfaceT("Ogden_base"),
+//	FSSolidMatT(in, support),
 	fSpectralDecomp(NumSD()),
 	fSpectralDecomp3D(3),
 	fb(NumSD()),
@@ -19,26 +20,15 @@ OgdenBaseT::OgdenBaseT(ifstreamT& in, const FSMatSupportT& support):
 	fModMat(dSymMatrixT::NumValues(NumSD())),
 	fModulus(dSymMatrixT::NumValues(NumSD())),
 	fStress(NumSD())
-{}
-
-void OgdenBaseT::Print(ostream& out) const
 {
-	/* inherited */
-	FSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-}
-
-void OgdenBaseT::PrintName(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::PrintName(out);
-
-	out << "    Ogden spectral formulation\n";
+ExceptionT::GeneralFail("OgdenBaseT::OgdenBaseT", "out of date");
 }
 
 /* class specific initializations */
 void OgdenBaseT::Initialize(void)
 {
+ExceptionT::GeneralFail("OgdenBaseT::Initialize", "out of date");
+#if 0
 	/* initial modulus */
 	fEigs = 1.0;
 	ddWddE(fEigs, fdWdE, fddWddE);
@@ -52,6 +42,7 @@ void OgdenBaseT::Initialize(void)
 		double kappa = lambda + 2.0/3.0*mu;
 		IsotropicT::Set_mu_kappa(mu, kappa);
 	}
+#endif
 }
 
 /* modulus */

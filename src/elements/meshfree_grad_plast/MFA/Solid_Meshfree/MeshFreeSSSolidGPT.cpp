@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidGPT.cpp,v 1.1 2004-07-08 20:01:13 kyonten Exp $ */
+/* $Id: MeshFreeSSSolidGPT.cpp,v 1.2 2004-07-15 08:28:21 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #include "MeshFreeSSSolidGPT.h"
 
@@ -44,6 +44,8 @@ MeshFreeSSSolidGPT::MeshFreeSSSolidGPT(const ElementSupportT& support, const Fie
 /* data initialization */
 void MeshFreeSSSolidGPT::Initialize(void)
 {
+ExceptionT::GeneralFail("MeshFreeSSSolidGPT::Initialize", "out of date");
+#if 0
 	/* inherited */
 	SmallStrainT::Initialize();
 
@@ -180,6 +182,7 @@ if (size == 1)
 else if (size == 2 && rank == 0)
 	hit_node = 5420 - 1;
 if (hit_node > 0) TraceNode(ElementSupport().Output(), hit_node, *this);
+#endif
 #endif
 }
 

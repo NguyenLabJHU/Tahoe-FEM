@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.cpp,v 1.15 2004-07-14 00:32:48 paklein Exp $ */
+/* $Id: FEManagerT_THK.cpp,v 1.16 2004-07-15 08:29:05 paklein Exp $ */
 
 #include "FEManagerT_THK.h"
 #ifdef BRIDGING_ELEMENT
@@ -23,7 +23,7 @@ const double tol = 1.0e-3;   // for neighbor searching tolerance 1.0e-8 original
 const double root32 = sqrt(3.0)/2.0;    // for neighbor searching tolerance
 
 /* constructor */
-FEManagerT_THK::FEManagerT_THK(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
+FEManagerT_THK::FEManagerT_THK(const StringT& input, ofstreamT& output, CommunicatorT& comm,
 	const ArrayT<StringT>& argv, ifstreamT& bridging_input):
 	FEManagerT_bridging(input, output, comm, argv, bridging_input)
 {
@@ -33,6 +33,8 @@ FEManagerT_THK::FEManagerT_THK(ifstreamT& input, ofstreamT& output, Communicator
 /* initialize members */
 void FEManagerT_THK::Initialize(InitCodeT init)
 {
+ExceptionT::GeneralFail("FEManagerT_THK::Initialize", "out of date");
+#if 0
 	/* inherited */
 	FEManagerT_bridging::Initialize(init);
 	
@@ -48,12 +50,14 @@ void FEManagerT_THK::Initialize(InitCodeT init)
 		const char caller[] = "FEManagerT_THK::Initialize";
 		ExceptionT::GeneralFail(caller, "1D BRIDGING SCALE NOT ENABLED");
 	}
-	
+#endif
 }
 
 /* 2D Bridging Scale Initialization */
 void FEManagerT_THK::Initialize2D(void)
 {
+ExceptionT::GeneralFail("FEManagerT_THK::Initialize2D", "out of date");
+#if 0
 	ModelManagerT* model = FEManagerT::ModelManager();
 
 	// read other parameters and initialize data
@@ -119,11 +123,14 @@ void FEManagerT_THK::Initialize2D(void)
 	data_file.ToNativePathName();
 	data_file.Prepend(path);
 	ComputeThetaTables2D(data_file);
+#endif
 }
 
 /* Bridging Scale 3D Initialization */
 void FEManagerT_THK::Initialize3D(void)
 {
+ExceptionT::GeneralFail("FEManagerT_THK::Initialize3D", "out of date");
+#if 0
 	/* Implement 3D version of initialize here */
 	/* Find neighbors of top 2 planes of atoms */
 	ModelManagerT* model = FEManagerT::ModelManager();
@@ -252,6 +259,7 @@ void FEManagerT_THK::Initialize3D(void)
 	data_file.ToNativePathName();
 	data_file.Prepend(path);
 	ComputeThetaTables3D(data_file);
+#endif
 }
 
 /* initialize the current time increment for all groups */
@@ -610,6 +618,8 @@ const dArray2DT& FEManagerT_THK::THKDisp(const dArray2DT& badisp)
 /* compute theta tables for 2D disp/force formulation */
 void FEManagerT_THK::ComputeThetaTables2D(const StringT& data_file)
 {
+ExceptionT::GeneralFail("FEManagerT_THK::ComputeThetaTables2D", "out of date");
+#if 0
 	const char caller[] = "FEManagerT_THK::ComputeThetaTables2D";
 	ifstreamT data(data_file);
 	if (!data.is_open())
@@ -714,11 +724,14 @@ void FEManagerT_THK::ComputeThetaTables2D(const StringT& data_file)
 			count++;
 		}
 	}
+#endif
 }
 
 /* compute theta tables for 3D disp/disp formulation */
 void FEManagerT_THK::ComputeThetaTables3D(const StringT& data_file)
 {
+ExceptionT::GeneralFail("FEManagerT_THK::ComputeThetaTables3D", "out of date");
+#if 0
 	const char caller[] = "FEManagerT_THK::ComputeThetaTables3D";
 	ifstreamT data(data_file);
 	if (!data.is_open())
@@ -826,6 +839,7 @@ void FEManagerT_THK::ComputeThetaTables3D(const StringT& data_file)
 			count++;
 		}
 	}
+#endif
 }
 
 #endif /* BRIDGING_ELEMENT */

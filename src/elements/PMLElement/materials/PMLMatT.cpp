@@ -1,4 +1,4 @@
-/* $Id: PMLMatT.cpp,v 1.8 2004-06-22 19:45:31 cjkimme Exp $ */
+/* $Id: PMLMatT.cpp,v 1.9 2004-07-15 08:28:02 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #include "PMLMatT.h"
 #include <math.h>
@@ -12,8 +12,9 @@ using namespace Tahoe;
 
 /* constructor */
 PMLMatT::PMLMatT(ifstreamT& in, const MaterialSupportT& support, const PMLT& element):
-	SolidMaterialT(in, support),
-	Material2DT(in),
+	ParameterInterfaceT("PML_material"),
+//	SolidMaterialT(support),
+//	Material2DT(in),
 	IsotropicT(in),
 	fPMLElement(element),
 	fNumSD(NumSD()),
@@ -90,25 +91,6 @@ PMLMatT::PMLMatT(ifstreamT& in, const MaterialSupportT& support, const PMLT& ele
 	pstatev += numstress;
 	
 }	
-
-void PMLMatT::Print(ostream& out) const
-{
-	/* inherited */
-	SolidMaterialT::Print(out);
-	Material2DT::Print(out);
-	IsotropicT::Print(out);
-	out << " Number of spatial dimensions. . . . . . . . . . = " << fNumSD << '\n';
-}
-
-void PMLMatT::PrintName(ostream& out) const
-{
-	/* inherited */
-	SolidMaterialT::PrintName(out);
-	out << " PML Constitutive Model \n";
-}
-
-void PMLMatT::Initialize(void)
-{}
 
 void PMLMatT::PointInitialize(void)
 {
@@ -195,7 +177,10 @@ void PMLMatT::Store(ElementCardT& element, int ip)
 /* spatial description */
 const dMatrixT& PMLMatT::c_ijkl(void) 
 { 
-	ComputeModuli2D(fModulus,fConstraintOption);
+ExceptionT::GeneralFail("PMLMatT::c_ijkl", "out of date");
+#if 0	
+	ComputeModuli2D(fModulus, fConstraintOption);
+#endif
 	return(fModulus);
 }
 

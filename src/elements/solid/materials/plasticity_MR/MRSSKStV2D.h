@@ -3,12 +3,12 @@
 #define _MR_SS_KSTV_2D_H_
 
 /* base class */
-#include "Material2DT.h"
+//#include "Material2DT.h"
 #include "MRSSKStV.h"
 
 namespace Tahoe {
 
-class MRSSKStV2D: public MRSSKStV, public Material2DT
+class MRSSKStV2D: public MRSSKStV//, public Material2DT
 {
   public:
 
@@ -18,10 +18,6 @@ class MRSSKStV2D: public MRSSKStV, public Material2DT
 	/* initialization */
 	virtual void Initialize(void);
 
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-	
 	/* returns 3D strain (3D) */
 	virtual const dSymMatrixT& ElasticStrain(
                 const dSymMatrixT& totalstrain, 

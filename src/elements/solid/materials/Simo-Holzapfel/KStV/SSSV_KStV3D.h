@@ -1,4 +1,4 @@
-/* $Id: SSSV_KStV3D.h,v 1.5 2003-05-15 05:18:16 thao Exp $ */
+/* $Id: SSSV_KStV3D.h,v 1.6 2004-07-15 08:28:50 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_SV_KStV_3D_H_
 #define _SS_SV_KStV_3D_H_
@@ -18,10 +18,6 @@ class SSSV_KStV3D: public SSSimoViscoT, public IsotropicT
 	
 	/*constructor*/
 	SSSV_KStV3D(ifstreamT& in, const SSMatSupportT& support);
-		
-	/*print parameters*/
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 
 	virtual double StrainEnergyDensity(void);
  
@@ -41,6 +37,18 @@ class SSSV_KStV3D: public SSSimoViscoT, public IsotropicT
 	virtual int NumOutputVariables() const;
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+	
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 	 
     protected: 
 	

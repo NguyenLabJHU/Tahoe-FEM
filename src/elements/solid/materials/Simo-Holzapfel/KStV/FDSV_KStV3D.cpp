@@ -1,4 +1,4 @@
-/* $Id: FDSV_KStV3D.cpp,v 1.3 2004-06-22 19:45:46 cjkimme Exp $ */
+/* $Id: FDSV_KStV3D.cpp,v 1.4 2004-07-15 08:28:49 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "FDSV_KStV3D.h"
@@ -11,6 +11,7 @@
 using namespace Tahoe;
 
 FDSV_KStV3D::FDSV_KStV3D(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("FDSV_KStV3D"),
 	FDSimoViscoBaseT(in, support),
 	fStress(3),
 	fModulus(6),
@@ -35,6 +36,7 @@ FDSV_KStV3D::FDSV_KStV3D(ifstreamT& in, const FSMatSupportT& support):
 	in >> kappa_NEQ;
 }	
 
+#if 0
 void FDSV_KStV3D::Print(ostream& out) const
 {
 	/* inherited */
@@ -58,6 +60,7 @@ void FDSV_KStV3D::PrintName(ostream& out) const
 	out << "Kirchoff St. Venant\n";
 	out << "Kirchoff St. Venant\n";
 }
+#endif
 
 const dMatrixT& FDSV_KStV3D::c_ijkl(void) 
 { 
@@ -77,7 +80,7 @@ const dSymMatrixT& FDSV_KStV3D::s_ij(void)
        
 const dMatrixT& FDSV_KStV3D::C_IJKL(void)
 {        
- 	double dt = fFSMatSupport.TimeStep();
+ 	double dt = fFSMatSupport->TimeStep();
 	double taudtS = dt/ftauS;
 	double taudtB = dt/ftauB;
 
@@ -123,7 +126,7 @@ const dMatrixT& FDSV_KStV3D::C_IJKL(void)
 
 const dSymMatrixT& FDSV_KStV3D::S_IJ(void)
 {
-	double dt = fFSMatSupport.TimeStep();
+	double dt = fFSMatSupport->TimeStep();
 	double taudtS = dt/ftauS;
 	double taudtB = dt/ftauB;
 
@@ -159,7 +162,7 @@ const dSymMatrixT& FDSV_KStV3D::S_IJ(void)
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
 
-	if(fFSMatSupport.RunState() == GlobalT::kFormRHS)
+	if(fFSMatSupport->RunState() == GlobalT::kFormRHS)
 	{
 		mu = fMu[kNonEquilibrium];
 		kappa = fKappa[kEquilibrium];

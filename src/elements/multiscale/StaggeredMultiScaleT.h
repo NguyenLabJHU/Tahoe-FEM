@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.h,v 1.20 2003-07-01 04:35:31 creigh Exp $ */ 
+/* $Id: StaggeredMultiScaleT.h,v 1.21 2004-07-15 08:28:27 paklein Exp $ */ 
 //DEVELOPMENT
 #ifndef _STAGGERED_MULTISCALE_T_H_ 
 #define _STAGGERED_MULTISCALE_T_H_ 
@@ -117,9 +117,6 @@ class StaggeredMultiScaleT: public ElementBaseT
 	
 	/** returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void);
-
-	/** write element group parameters to out */
-	virtual void PrintControlData(ostream& out) const;
 
 	/** register element for output */
 	virtual void RegisterOutput(void);

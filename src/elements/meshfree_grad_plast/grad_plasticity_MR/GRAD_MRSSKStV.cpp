@@ -47,8 +47,11 @@ GRAD_MRSSKStV::GRAD_MRSSKStV(ifstreamT& in, const SSMatSupportT& support):
 /* initialization */
 void GRAD_MRSSKStV::Initialize(void)
 {
+ExceptionT::GeneralFail("GRAD_MRSSKStV::Initialize", "out of date");
+#if 0
 	/* inherited */
 	HookeanMatT::Initialize();
+#endif
 }
 
 /* form of tangent matrix (symmetric by default) */

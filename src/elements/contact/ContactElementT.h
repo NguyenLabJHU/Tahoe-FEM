@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.35 2004-01-05 17:04:29 paklein Exp $ */
+/* $Id: ContactElementT.h,v 1.36 2004-07-15 08:28:08 paklein Exp $ */
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
 
@@ -19,7 +19,6 @@
 #include "ElementMatrixT.h"
 #include "ContactSurfaceT.h"
 #include "ContactSearchT.h"
-
 
 namespace Tahoe {
 
@@ -197,13 +196,8 @@ protected:
 	inline int LookUp (int s1,int s2,int n)
 		{return (s1>s2) ? (n*s2+s1) : (n*s1+s2);}
 
-
 	/* read element group data */
 	void ReadControlData(void);
-
-	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
-	
 	/* initialization steps */
 	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
 

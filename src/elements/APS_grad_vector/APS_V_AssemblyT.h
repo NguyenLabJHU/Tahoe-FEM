@@ -1,4 +1,4 @@
-/* $Id: APS_V_AssemblyT.h,v 1.1 2004-03-02 23:46:42 raregue Exp $ */ 
+/* $Id: APS_V_AssemblyT.h,v 1.2 2004-07-15 08:27:53 paklein Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_V_ASSEMBLY_T_H_ 
 #define _APS_V_ASSEMBLY_T_H_ 
@@ -99,9 +99,6 @@ class APS_V_AssemblyT: public ElementBaseT
 	/** returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void);
 
-	/** write element group parameters to out */
-	virtual void PrintControlData(ostream& out) const;
-	
 	/** register element for output */
 	virtual void RegisterOutput(void);
 

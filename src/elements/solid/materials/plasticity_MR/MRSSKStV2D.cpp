@@ -7,21 +7,25 @@ using namespace Tahoe;
 
 /* constructor */
 MRSSKStV2D::MRSSKStV2D(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("MRSSKStV2D"),
 	MRSSKStV(in, support),
-	Material2DT(in, kPlaneStrain),
+//	Material2DT(in, kPlaneStrain),
 	fStress2D(2),
 	fModulus2D(dSymMatrixT::NumValues(2)),
 	fTotalStrain3D(3)
 {
 	/* account for thickness */
-	fDensity *= fThickness;
+//	fDensity *= fThickness;
 }
 
 /* initialization */
 void MRSSKStV2D::Initialize(void)
 {
+ExceptionT::GeneralFail("MRSSKStV2D::Initialize", "out of date");
+#if 0
 	/* inherited */
 	HookeanMatT::Initialize();
+#endif
 }
 
 /* returns 3D total strain (3D) */
@@ -37,28 +41,12 @@ const dSymMatrixT& MRSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain,
 
 }
 
-/* print parameters */
-void MRSSKStV2D::Print(ostream& out) const
-{
-	/* inherited */
-	MRSSKStV::Print(out);
-	Material2DT::Print(out);
-}
-
-/* print name */
-void MRSSKStV2D::PrintName(ostream& out) const
-{
-	/* inherited */
-	MRSSKStV::PrintName(out);
-	out << "    2D\n";
-}
-
 /* moduli */
 const dMatrixT& MRSSKStV2D::c_ijkl(void)
 {
 	/* 3D -> 2D */
 	fModulus2D.Rank4ReduceFrom3D(MRSSKStV::c_ijkl());
-	fModulus2D *= fThickness;
+//	fModulus2D *= fThickness;
 	return fModulus2D;
 }
 
@@ -66,7 +54,7 @@ const dMatrixT& MRSSKStV2D::cdisc_ijkl(void)
 {
 	/* 3D -> 2D */
 	fModulus2D.Rank4ReduceFrom3D(MRSSKStV::cdisc_ijkl());
-	fModulus2D *= fThickness;
+//	fModulus2D *= fThickness;
 	return fModulus2D;
 }
 
@@ -76,12 +64,12 @@ const dSymMatrixT& MRSSKStV2D::s_ij(void)
 {
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(MRSSKStV::s_ij());
-	fStress2D *= fThickness;  
+//	fStress2D *= fThickness;  
 	return fStress2D;
 }
 
 /* returns the strain energy density for the specified strain */
 double MRSSKStV2D::StrainEnergyDensity(void)
 {
-	return fThickness*MRSSKStV::StrainEnergyDensity();
+	return MRSSKStV::StrainEnergyDensity();
 }

@@ -3,15 +3,13 @@
 #define _MR_SS_KSTV_H_
 
 /* base classes */
-#include "SSSolidMatT.h"
-#include "IsotropicT.h"
+#include "SSIsotropicMatT.h"
 #include "HookeanMatT.h"
 #include "MRSSNLHardT.h"
 
 namespace Tahoe {
 
-class MRSSKStV: public SSSolidMatT,
-				public IsotropicT,
+class MRSSKStV: public SSIsotropicMatT,
 				public HookeanMatT,
 				public MRSSNLHardT
 {
@@ -31,10 +29,6 @@ class MRSSKStV: public SSSolidMatT,
 
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 
 	/** \name spatial description */
 	/*@{*/

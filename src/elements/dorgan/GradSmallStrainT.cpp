@@ -27,7 +27,7 @@ const double kYieldTol    = 1.0e-10;
 /* constructor */
 GradSmallStrainT::GradSmallStrainT(const ElementSupportT& support, 
 									   const FieldT& disp, const FieldT& field):
-	SmallStrainT(support, disp), //pass the displacement field to the base class
+	SmallStrainT(support), //pass the displacement field to the base class
 	fDisplacement(disp),
 	fField(field),
 	
@@ -59,6 +59,8 @@ GradSmallStrainT::GradSmallStrainT(const ElementSupportT& support,
 	
 	fI(1)
 {
+ExceptionT::GeneralFail("GradSmallStrainT::GradSmallStrainT", "out of date");
+#if 0
 	const char caller[] = "GradSmallStrainT::GradSmallStrainT";
 
 	ifstreamT& in = ElementSupport().Input();
@@ -90,6 +92,7 @@ GradSmallStrainT::GradSmallStrainT(const ElementSupportT& support,
 	}	
 	else
 		ExceptionT::BadInputValue(caller, "fNumSD != 1");
+#endif
 }
 
 /* destructor */
@@ -98,8 +101,11 @@ GradSmallStrainT::~GradSmallStrainT(void)
 	delete fShapes_Field;
 }
 
+
 void GradSmallStrainT::Initialize(void)
 {
+ExceptionT::GeneralFail("GradSmallStrainT::Initialize", "out of date");
+#if 0	
 	const char caller[] = "GradSmallStrainT::Initialize";
 
 	/* inherited */
@@ -143,11 +149,14 @@ void GradSmallStrainT::Initialize(void)
 
 	/* allocate Laplacian shape functions */
 	fq.Dimension (1, fNumElementNodes_Field*fNumDOF_Field);
+#endif
 }
+
 
 void GradSmallStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 								 AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
 {
+#pragma unused(eq_2)
 	const char caller[] = "GradSmallStrainT::Equations";
 
 	/* loop over connectivity blocks */
@@ -669,7 +678,7 @@ GlobalT::SystemTypeT GradSmallStrainT::TangentType(void) const
 	return GlobalT::kNonSymmetric;
 }
 
-
+#if 0
 /* print element group data */
 void GradSmallStrainT::PrintControlData(ostream& out) const
 {
@@ -684,6 +693,7 @@ void GradSmallStrainT::PrintControlData(ostream& out) const
 	out << " Number of degrees of freedom. . . . . . . . . . = " << fNumDOF_Field             << '\n';
 	out << " Nodal constraint. . . . . . . . . . . . . . . . = " << fNodalConstraint          << '\n';
 }
+#endif
 
 /***********************************************************************
 * Private

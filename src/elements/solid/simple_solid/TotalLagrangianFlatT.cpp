@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianFlatT.cpp,v 1.1 2003-12-10 06:42:05 paklein Exp $ */
+/* $Id: TotalLagrangianFlatT.cpp,v 1.2 2004-07-15 08:29:02 paklein Exp $ */
 #include "TotalLagrangianFlatT.h"
 
 #include "ShapeFunctionT.h"
@@ -9,10 +9,10 @@
 using namespace Tahoe;
 
 /* constructor */
-TotalLagrangianFlatT::TotalLagrangianFlatT(const ElementSupportT& support, const FieldT& field):
-	TotalLagrangianT(support, field)
+TotalLagrangianFlatT::TotalLagrangianFlatT(const ElementSupportT& support):
+	TotalLagrangianT(support)
 {
-
+	SetName("total_lagrangian_flat");
 }
 
 void TotalLagrangianFlatT::RHSDriver(void)
@@ -164,7 +164,7 @@ void TotalLagrangianFlatT::RHSDriver(void)
 			/* body force contribution */
 			if (formBody) AddBodyForce(fLocAcc);
 		
-			FormMa(fMassType, -constMa*fCurrMaterial->Density(), &fLocAcc, NULL);
+			FormMa(fMassType, -constMa*fCurrMaterial->Density(), false, &fLocAcc, NULL);
 		}
 		
 		/* store incremental heat */

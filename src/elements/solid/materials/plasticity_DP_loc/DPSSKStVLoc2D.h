@@ -1,15 +1,15 @@
-/* $Id: DPSSKStVLoc2D.h,v 1.2 2004-06-09 17:27:39 raregue Exp $ */
+/* $Id: DPSSKStVLoc2D.h,v 1.3 2004-07-15 08:28:56 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_LOC_2D_H_
 #define _DP_SS_KSTV_LOC_2D_H_
 
 /* base class */
-#include "Material2DT.h"
+//#include "Material2DT.h"
 #include "DPSSKStVLoc.h"
 
 namespace Tahoe {
 
-class DPSSKStVLoc2D: public DPSSKStVLoc, public Material2DT
+class DPSSKStVLoc2D: public DPSSKStVLoc//, public Material2DT
 {
 public:
 
@@ -24,10 +24,6 @@ public:
 				const dSymMatrixT& totalstrain, 
 				const ElementCardT& element, int ip);
 
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-	
 	/* modulus */
 	virtual const dMatrixT& c_ijkl(void);
 	virtual const dMatrixT& c_perfplas_ijkl(void);

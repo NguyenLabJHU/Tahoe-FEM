@@ -1,4 +1,4 @@
-/* $Id: FDSimoViscoBaseT.cpp,v 1.2 2003-04-05 20:38:07 thao Exp $ */
+/* $Id: FDSimoViscoBaseT.cpp,v 1.3 2004-07-15 08:28:46 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 #include "FDSimoViscoBaseT.h"
 
@@ -12,8 +12,11 @@ static const char* Labels[kNumOutputVar] = {"r_dil","r_dev"};
 
 FDSimoViscoBaseT::FDSimoViscoBaseT(ifstreamT& in,  
 				   const FSMatSupportT& support):
-	FSSolidMatT(in, support)
+	ParameterInterfaceT("FDSimoViscoBaseT")
+//	FSSolidMatT(in, support)
 {
+ExceptionT::GeneralFail("FDSimoViscoBaseT::FDSimoViscoBaseT", "out of date");
+#if 0
 	int nsd = NumSD();
         int numstress = (nsd*(nsd+1))/2;
 		
@@ -49,20 +52,8 @@ FDSimoViscoBaseT::FDSimoViscoBaseT(ifstreamT& in,
 	fmeanQ_n.Set(1, pstatev);
 	pstatev ++;
 	fmeanSin_n.Set(1, pstatev);
+#endif
 }	
-
-void FDSimoViscoBaseT::Print(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::Print(out);
-}
-
-void FDSimoViscoBaseT::PrintName(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::PrintName(out);
-        out << "Finite Deformation Simo Viscoelastic Model \n";
-}
 
 void FDSimoViscoBaseT::PointInitialize(void)
 {

@@ -1,11 +1,11 @@
-/* $Id: PMLMatT.h,v 1.4 2003-01-29 07:34:44 paklein Exp $ */
+/* $Id: PMLMatT.h,v 1.5 2004-07-15 08:28:02 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _PML_H_
 #define _PML_H_
  
 #include "SolidMaterialT.h"
 #include "IsotropicT.h"
-#include "Material2DT.h"
+//#include "Material2DT.h"
 #include "dSymMatrixT.h"
 
 namespace Tahoe {
@@ -18,20 +18,13 @@ class ifstreamT;
 
 /** base class for small strain linear elastic viscoelastic 
  * constitutive law */
-class PMLMatT: public SolidMaterialT, IsotropicT, Material2DT
+class PMLMatT: public SolidMaterialT, IsotropicT//, Material2DT
 {
 	public:
 
 	/* constructor */
 	PMLMatT(ifstreamT& in, const MaterialSupportT& support, const PMLT& element);
-	
-	/* print parameters */
-	void Print(ostream& out) const;
-	void PrintName(ostream& out) const;
-		
-	/* calculate instantaneous moduli */
-	virtual void Initialize(void);
-		
+
 	/* apply pre-conditions at the current time step */
 	void InitStep(void);
 

@@ -1,4 +1,4 @@
-/* $Id: GradSSSolidMatT.h,v 1.10 2004-06-09 00:25:53 rdorgan Exp $ */
+/* $Id: GradSSSolidMatT.h,v 1.11 2004-07-15 08:28:12 paklein Exp $ */
 #ifndef _GRAD_SS_SOLID_MAT_T_H_
 #define _GRAD_SS_SOLID_MAT_T_H_
 
@@ -26,11 +26,6 @@ public:
 	/** destructor */
 	~GradSSSolidMatT(void);
 
-	virtual void Initialize(void);
-
-	/* I/O functions */
-	virtual void PrintName(ostream& out) const;
-	
 	/* apply pre-conditions at the current time step */
 	virtual void InitStep(void);
 	

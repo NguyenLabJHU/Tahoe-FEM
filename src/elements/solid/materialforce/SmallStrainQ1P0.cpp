@@ -1,25 +1,30 @@
-/* $Id: SmallStrainQ1P0.cpp,v 1.4 2004-01-05 08:26:37 paklein Exp $ */
+/* $Id: SmallStrainQ1P0.cpp,v 1.5 2004-07-15 08:28:31 paklein Exp $ */
 #include "SmallStrainQ1P0.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
 
 /* materials lists */
+#include "MaterialListT.h"
+#if 0
 #include "SolidMatList1DT.h"
 #include "SolidMatList2DT.h"
 #include "SolidMatList3DT.h"
 #include "SSMatSupportT.h"
+#endif
 
 using namespace Tahoe;
 
 /* constructor */
 SmallStrainQ1P0::SmallStrainQ1P0(const ElementSupportT& support, const FieldT& field):
-  SmallStrainT(support, field),
+  SmallStrainT(support),
   fthird(1.0/3.0)
 {}
 
 /* called immediately after constructor */
 void SmallStrainQ1P0::Initialize(void)
 {
+ExceptionT::GeneralFail("SmallStrainQ1P0::Initialize", "out of date");
+#if 0	
   /* inherited */
   SolidElementT::Initialize();
   
@@ -77,6 +82,7 @@ void SmallStrainQ1P0::Initialize(void)
   fTheta_List.Dimension(nel);
   fTheta_List_last.Dimension(nel);
   fPressure_List.Dimension(nel);
+#endif
 }
 
 void SmallStrainQ1P0::CloseStep(void)

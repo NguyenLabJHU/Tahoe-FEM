@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.1 2004-05-17 23:42:55 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.2 2004-07-15 08:28:15 paklein Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
@@ -37,16 +37,8 @@ class SmallStrainEnhLocT: public SolidElementT
 	const dSymMatrixT& LinearStrain_last(int ip) const;
 	/*@}*/
 
-	/** TEMPORARY. Need this extra call here to set the source for the iteration number
-	 * in SmallStrainEnhLocT::fSSMatSupport. The solvers are not constructed when the material
-	 * support is initialized */
-	virtual void InitialCondition(void);
-
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
@@ -59,6 +51,10 @@ class SmallStrainEnhLocT: public SolidElementT
 	/*@}*/
 
   protected:
+
+	/** strain-displacement options. */
+	enum StrainOptionT {kStandardB = 0, /**< standard strain-displacement matrix */
+	                  kMeanDilBbar = 1  /**< mean dilatation for near incompressibility */ };
 
 	/** indicies of elements in the list of material needs */
 	enum MaterialNeedsT {kstrain = 0,
@@ -100,6 +96,9 @@ class SmallStrainEnhLocT: public SolidElementT
     
 	/** offset to material needs */
 	int fNeedsOffset; //NOTE - better to have this or a separate array?
+  
+	/** form of B matrix */
+	StrainOptionT fStrainDispOpt;
   
   	/** \name return values */
 	/*@{*/

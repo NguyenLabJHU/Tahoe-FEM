@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardT.cpp,v 1.4 2004-01-28 00:23:58 thao Exp $ */
+/* $Id: SSJ2LinHardT.cpp,v 1.5 2004-07-15 08:28:34 paklein Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -29,6 +29,7 @@ static const char* Labels[kNumOutput] = {"alpha", "VM", "press"};
 
 /* constructor */
 SSJ2LinHardT::SSJ2LinHardT(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("SSJ2LinHardT"),
 	SSJ2LinHardBaseT(in, support),
 	fStress(3),
 	fModulus(dSymMatrixT::NumValues(3)){}

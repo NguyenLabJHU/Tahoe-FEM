@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV1D.cpp,v 1.8 2004-04-23 18:44:36 rdorgan Exp $ */ 
+/* $Id: J2SSKStV1D.cpp,v 1.9 2004-07-15 08:28:12 paklein Exp $ */ 
 #include "J2SSKStV1D.h"
 #include "SSMatSupportT.h"
 #include "ElementCardT.h"
@@ -33,8 +33,7 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 J2SSKStV1D::J2SSKStV1D(ifstreamT& in, const SSMatSupportT& support):
-	SSSolidMatT(in, support),
-	IsotropicT(in),
+	ParameterInterfaceT("J2SSKStV1D"),
 	HookeanMatT(kNSD),
 
 	fNumIP(NumIP()),
@@ -52,22 +51,26 @@ J2SSKStV1D::J2SSKStV1D(ifstreamT& in, const SSMatSupportT& support):
 	fStress(kNSD),
 	fModulus(dSymMatrixT::NumValues(kNSD))
 {
-	SetName("J2SSKStV1D");
+
 
 	/* construct hardening function from stream */
 	ConstructHardeningFunction(in);
 }
 
-J2SSKStV1D::J2SSKStV1D(void)
+J2SSKStV1D::J2SSKStV1D(void):
+	ParameterInterfaceT("J2SSKStV1D")
 {
-	SetName("J2SSKStV1D");
+
 }
 
 /* initialization */
 void J2SSKStV1D::Initialize(void)
 {
+ExceptionT::GeneralFail("J2SSKStV1D::Initialize", "out of date");
+#if 0
 	/* inherited */
 	HookeanMatT::Initialize();
+#endif
 }
 
 /* update internal variables */
@@ -86,6 +89,7 @@ void J2SSKStV1D::ResetHistory(void)
 	if (element.IsAllocated()) Reset(element);
 }
 
+#if 0
 /* print parameters */
 void J2SSKStV1D::Print(ostream& out) const
 {
@@ -109,6 +113,7 @@ void J2SSKStV1D::PrintName(ostream& out) const
 	out << "    Small Strain\n";
 	out << "    Kirchhoff-St.Venant\n";
 }
+#endif
 
 /* modulus */
 const dMatrixT& J2SSKStV1D::c_ijkl(void)

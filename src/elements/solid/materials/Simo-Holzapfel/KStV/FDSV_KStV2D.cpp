@@ -1,4 +1,4 @@
-/* $Id: FDSV_KStV2D.cpp,v 1.3 2004-06-22 19:45:46 cjkimme Exp $ */
+/* $Id: FDSV_KStV2D.cpp,v 1.4 2004-07-15 08:28:49 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "FDSV_KStV2D.h"
@@ -11,7 +11,8 @@
 using namespace Tahoe;
 
 FDSV_KStV2D::FDSV_KStV2D(ifstreamT& in, const FSMatSupportT& support):
-        Material2DT(in),
+	ParameterInterfaceT("FDSV_KStV2D"),
+//        Material2DT(in),
 	FDSimoViscoBaseT(in, support),
 	fStress(2),
 	fModulus(3),
@@ -21,6 +22,8 @@ FDSV_KStV2D::FDSV_KStV2D(ifstreamT& in, const FSMatSupportT& support):
 	fKappa(2),
 	fthird(1.0/3.0)
 {
+ExceptionT::GeneralFail("", "out of date");
+#if 0
 	if (fConstraintOption == Material2DT::kPlaneStress)
 	{
 	        cout << "Plane Stress formulation is not implemented\n";
@@ -39,8 +42,10 @@ FDSV_KStV2D::FDSV_KStV2D(ifstreamT& in, const FSMatSupportT& support):
 	in >> kappa_EQ;
 	in >> mu_NEQ;
 	in >> kappa_NEQ;
+#endif
 }	
 
+#if 0
 void FDSV_KStV2D::Print(ostream& out) const
 {
 	/* inherited */
@@ -65,6 +70,7 @@ void FDSV_KStV2D::PrintName(ostream& out) const
 	out << "Kirchoff St. Venant\n";
 	out << "Kirchoff St. Venant\n";
 }
+#endif
 
 const dMatrixT& FDSV_KStV2D::c_ijkl(void) 
 { 
@@ -85,7 +91,7 @@ const dSymMatrixT& FDSV_KStV2D::s_ij(void)
 const dMatrixT& FDSV_KStV2D::C_IJKL(void)
 {        
         /*equilibrium component*/
- 	double dt = fFSMatSupport.TimeStep();
+ 	double dt = fFSMatSupport->TimeStep();
 	double taudtS = dt/ftauS;
 	double taudtB = dt/ftauB;
 
@@ -127,7 +133,7 @@ const dMatrixT& FDSV_KStV2D::C_IJKL(void)
 
 const dSymMatrixT& FDSV_KStV2D::S_IJ(void)
 {
-	double dt = fFSMatSupport.TimeStep();
+	double dt = fFSMatSupport->TimeStep();
 	double taudtS = dt/ftauS;
 	double taudtB = dt/ftauB;
 
@@ -163,7 +169,7 @@ const dSymMatrixT& FDSV_KStV2D::S_IJ(void)
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
 
-	if(fFSMatSupport.RunState() == GlobalT::kFormRHS)
+	if(fFSMatSupport->RunState() == GlobalT::kFormRHS)
 	{
 		mu = fMu[kNonEquilibrium];
 		kappa = fKappa[kEquilibrium];

@@ -1,10 +1,10 @@
-/* $Id: FDSV_KStV2D.h,v 1.3 2003-05-12 16:51:29 thao Exp $ */
+/* $Id: FDSV_KStV2D.h,v 1.4 2004-07-15 08:28:49 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 #ifndef _FD_SV_KStV_2D_H_
 #define _FD_SV_KStV_2D_H_
 
 #include "FDSimoViscoBaseT.h"
-#include "Material2DT.h"
+//#include "Material2DT.h"
 
 namespace Tahoe {
 
@@ -14,16 +14,12 @@ class IsotropicT;
 
 /** base class for standard solid Kirchhoff St. Venant constitutive models 
  * constitutive law */
-class FDSV_KStV2D: public FDSimoViscoBaseT, public Material2DT
+class FDSV_KStV2D: public FDSimoViscoBaseT//, public Material2DT
 {
 	public:
 	
 	/*constructor*/
 	FDSV_KStV2D(ifstreamT& in, const FSMatSupportT& support);
-
-	/*print parameters*/
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 
         /* spatial description */ 
         virtual const dMatrixT& c_ijkl(void); // spatial tangent moduli 

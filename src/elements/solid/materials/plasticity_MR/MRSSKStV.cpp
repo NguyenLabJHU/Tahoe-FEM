@@ -32,8 +32,9 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 MRSSKStV::MRSSKStV(ifstreamT& in, const SSMatSupportT& support):
-	SSSolidMatT(in, support),
-	IsotropicT(in),
+	ParameterInterfaceT("MRSSKStV"),
+//	SSSolidMatT(in, support),
+//	IsotropicT(in),
 	HookeanMatT(3),
 	MRSSNLHardT(in, NumIP(), Mu(), Lambda()),
 	fStress(3),
@@ -46,8 +47,11 @@ MRSSKStV::MRSSKStV(ifstreamT& in, const SSMatSupportT& support):
 /* initialization */
 void MRSSKStV::Initialize(void)
 {
+ExceptionT::GeneralFail("MRSSKStV::Initialize", "out of date");
+#if 0
 	/* inherited */
 	HookeanMatT::Initialize();
+#endif
 }
 
 /* form of tangent matrix (symmetric by default) */
@@ -67,24 +71,6 @@ void MRSSKStV::ResetHistory(void)
 	/* reset if plastic */
 	ElementCardT& element = CurrentElement();
 	if (element.IsAllocated()) Reset(element);
-}
-
-/* print parameters */
-void MRSSKStV::Print(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-	MRSSNLHardT::Print(out);
-}
-
-/* print name */
-void MRSSKStV::PrintName(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::PrintName(out);
-	MRSSNLHardT::PrintName(out);
-	out << "    Kirchhoff-St.Venant\n";
 }
 
 /* modulus */

@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.47 2004-06-17 07:13:07 paklein Exp $ */
+/* $Id: ContactElementT.cpp,v 1.48 2004-07-15 08:28:08 paklein Exp $ */
 #include "ContactElementT.h"
 
 #include <math.h>
@@ -31,7 +31,7 @@ static const int kMaxNumFaceNodes = 4; // 4node quads
 /* constructor */
 ContactElementT::ContactElementT
 (const ElementSupportT& support, const FieldT& field, int num_enf_params):
-    ElementBaseT(support, field),
+    ElementBaseT(support),
     LHS(ElementMatrixT::kNonSymmetric),
     tmp_LHS(ElementMatrixT::kNonSymmetric),
     fContactSearch(NULL),
@@ -52,7 +52,7 @@ ContactElementT::ContactElementT
 
 ContactElementT::ContactElementT
 (const ElementSupportT& support, const FieldT& field, int num_enf_params, XDOF_ManagerT* xdof_nodes):
-    ElementBaseT(support, field),
+    ElementBaseT(support),
     fXDOF_Nodes(xdof_nodes),
     LHS(ElementMatrixT::kNonSymmetric),
     tmp_LHS(ElementMatrixT::kNonSymmetric),
@@ -79,6 +79,8 @@ GlobalT::SystemTypeT ContactElementT::TangentType(void) const
 /* initialization after construction */
 void ContactElementT::Initialize(void)
 {
+ExceptionT::GeneralFail("ContactElementT::Initialize", "out of date");
+#if 0
 	/* inherited, calls EchoConnectivityData */
 	ElementBaseT::Initialize();
 
@@ -123,7 +125,7 @@ void ContactElementT::Initialize(void)
 		/* set initial contact configuration */
 		bool changed = SetContactConfiguration();	
 	}
-
+#endif
 }
 
 void ContactElementT::SetWorkspace(void)
@@ -355,6 +357,8 @@ void ContactElementT::RegisterOutput(void)
 
 void ContactElementT::WriteOutput(void)
 {
+ExceptionT::GeneralFail("ContactElementT::WriteOutput", "out of date");
+#if 0
 // look at EXODUS output in continuumelementT
 	/* contact statistics */
 	ostream& out = ElementSupport().Output();
@@ -416,6 +420,7 @@ void ContactElementT::WriteOutput(void)
 		if (fOutputFlags[kStatus]) { surface.PrintStatus(cout); }
 		if (fOutputFlags[kArea]) { surface.PrintContactArea(cout); }
 	}
+#endif
 }
 
 /* compute specified output parameter and send for smoothing */
@@ -449,6 +454,8 @@ double ContactElementT::InternalEnergy(void)
 /* print element group data */
 void ContactElementT::ReadControlData(void)
 {
+ExceptionT::GeneralFail("ContactElementT::ReadControlData", "out of date");
+#if 0
     /* streams */
     ifstreamT& in = ElementSupport().Input(); 
     ostream&  out = ElementSupport().Output(); 
@@ -525,15 +532,7 @@ void ContactElementT::ReadControlData(void)
     fSearchParameters.CopySymmetric();
     fEnforcementParameters.CopySymmetric();
     fMaterialParameters.CopySymmetric();
-
-}
-
-/* print element group data */
-void ContactElementT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	ElementBaseT::PrintControlData(out);
-
+#endif
 }
 
 /* echo contact surfaces */

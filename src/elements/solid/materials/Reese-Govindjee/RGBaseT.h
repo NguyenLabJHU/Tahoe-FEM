@@ -1,11 +1,10 @@
-/* $Id: RGBaseT.h,v 1.4 2003-08-25 18:25:37 thao Exp $ */
+/* $Id: RGBaseT.h,v 1.5 2004-07-15 08:28:40 paklein Exp $ */
 /* created : TDN (1/22/2001) */
 #ifndef _RG_BASE_T_H_
 #define _RG_BASE_T_H_
 
 /* base classes */
-#include "FSSolidMatT.h"
-#include "IsotropicT.h"
+#include "FSIsotropicMatT.h"
 
 /* direct members */
 #include "SpectralDecompT.h"
@@ -14,7 +13,7 @@ namespace Tahoe {
 
 /** base class for large deformation isotropic material following
  * Ogden's formulation */
-class RGBaseT: public FSSolidMatT, public IsotropicT
+class RGBaseT: public FSIsotropicMatT
 {
   public:
   

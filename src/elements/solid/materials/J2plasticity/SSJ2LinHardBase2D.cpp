@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardBase2D.cpp,v 1.3 2004-06-22 19:45:36 cjkimme Exp $ */
+/* $Id: SSJ2LinHardBase2D.cpp,v 1.4 2004-07-15 08:28:34 paklein Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -19,15 +19,15 @@
 #include "ElementCardT.h"
 #include "StringT.h"
 
-/* class constants */
-
 using namespace Tahoe;
 
+/* class constants */
 const double fsqrt23 = sqrt(2.0/3.0);
 
 /* constructor */
 SSJ2LinHardBase2D::SSJ2LinHardBase2D(ifstreamT& in, const SSMatSupportT& support):
-	SSSolidMatT(in, support),
+	ParameterInterfaceT("SSJ2LinHardBase2D"),
+//	SSSolidMatT(in, support),
 	fthird(1.0/3.0),
 	fplastic(false),
 	fUnitNorm(3),

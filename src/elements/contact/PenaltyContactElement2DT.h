@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.h,v 1.21 2003-11-06 21:57:40 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.h,v 1.22 2004-07-15 08:28:08 paklein Exp $ */
 // created by : rjones 2001
 #ifndef _PENALTY_CONTACT_ELEMENT_2D_T_H_
 #define _PENALTY_CONTACT_ELEMENT_2D_T_H_
@@ -32,8 +32,9 @@ class PenaltyContactElement2DT: public ContactElementT
 								kNumEnfParameters}; 
 
   protected:
+
 	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
+//	virtual void PrintControlData(ostream& out) const;
 		 	
 	/* construct the residual force vector, called before LHS */
 	virtual void RHSDriver(void);

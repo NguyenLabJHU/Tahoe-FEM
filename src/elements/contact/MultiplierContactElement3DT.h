@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement3DT.h,v 1.1 2003-11-21 23:23:37 rjones Exp $ */
+/* $Id: MultiplierContactElement3DT.h,v 1.2 2004-07-15 08:28:08 paklein Exp $ */
 // created by : rjones 2003
 #ifndef _MULTIPLIER_CONTACT_ELEMENT_3D_T_H_
 #define _MULTIPLIER_CONTACT_ELEMENT_3D_T_H_
@@ -30,8 +30,9 @@ class MultiplierContactElement3DT: public ContactElementT
 					kGapZero};
 
   protected:
+
 	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
+//	virtual void PrintControlData(ostream& out) const;
 		 	
 	/* set contact status*/
 	virtual void SetContactStatus(void);

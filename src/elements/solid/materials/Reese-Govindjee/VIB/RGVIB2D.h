@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.h,v 1.8 2003-11-12 19:21:16 thao Exp $ */
+/* $Id: RGVIB2D.h,v 1.9 2004-07-15 08:28:44 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #ifndef _RG_VIB_2D_H_
@@ -28,10 +28,6 @@ class RGVIB2D: public RGBaseT, public ViscVIB
 
 	/* destructor */
 	~RGVIB2D(void);
-	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 
 	/* class specific initializations */ 
         virtual void Initialize(void); 

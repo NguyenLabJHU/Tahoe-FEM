@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.51 2004-06-17 07:13:07 paklein Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.52 2004-07-15 08:28:08 paklein Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -34,6 +34,8 @@ PenaltyContactElement2DT::PenaltyContactElement2DT(const ElementSupportT& suppor
 
 void PenaltyContactElement2DT::Initialize(void)
 {
+ExceptionT::GeneralFail("PenaltyContactElement2DT::Initialize", "out of date");
+#if 0
     ContactElementT::Initialize();
 
 	/* set up Penalty functions */
@@ -130,6 +132,7 @@ void PenaltyContactElement2DT::Initialize(void)
 	fRealArea = 0.0;
     fPlasticArea.Dimension(fSurfaces.Length());
 	fPlasticArea = 0.0;
+#endif
 }
 
 /* print/compute element output quantities */
@@ -141,7 +144,7 @@ void PenaltyContactElement2DT::WriteOutput(void)
 	int step_num = ElementSupport().StepNumber();
 
 	StringT filename;
-	filename.Root(ElementSupport().Input().filename());
+	filename.Root(ElementSupport().InputFile());
 	filename.Append(".contact_data");
 	ofstreamT data_file;
 	if (fFirstPass) {
@@ -197,6 +200,7 @@ void PenaltyContactElement2DT::WriteOutput(void)
  * Protected
  ***********************************************************************/
 
+#if 0
 /* print element group data */
 void PenaltyContactElement2DT::PrintControlData(ostream& out) const
 {
@@ -297,6 +301,7 @@ void PenaltyContactElement2DT::PrintControlData(ostream& out) const
 	}
 	out <<'\n';
 }
+#endif
 
 /* called before LHSDriver during iteration process */
 void PenaltyContactElement2DT::RHSDriver(void)

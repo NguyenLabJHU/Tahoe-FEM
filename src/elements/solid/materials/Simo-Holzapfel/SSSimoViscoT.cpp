@@ -1,4 +1,4 @@
- /* $Id: SSSimoViscoT.cpp,v 1.6 2003-11-04 18:10:34 thao Exp $ */
+ /* $Id: SSSimoViscoT.cpp,v 1.7 2004-07-15 08:28:46 paklein Exp $ */
 #include "SSSimoViscoT.h"
 #include "fstreamT.h"
 #include "ExceptionT.h"
@@ -6,8 +6,11 @@
 using namespace Tahoe;
 
 SSSimoViscoT::SSSimoViscoT(ifstreamT& in, const SSMatSupportT& support):
-	SSSolidMatT(in, support)
+	ParameterInterfaceT("SSSimoViscoT")
+//	SSSolidMatT(in, support)
 {
+ExceptionT::GeneralFail("SSSimoViscoT::SSSimoViscoT", "out of date");
+#if 0
         /*set internal dofs*/
 	int ndof = 3;
 	int numstress = dSymMatrixT::NumValues(ndof);
@@ -54,20 +57,8 @@ SSSimoViscoT::SSSimoViscoT(ifstreamT& in, const SSMatSupportT& support):
 	fmeanSin_n.Set(1, pstatev);
 	pstatev ++;
 	fViscStrain.Set(ndof,pstatev);
+#endif
 }	
-
-void SSSimoViscoT::Print(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::Print(out);
-}
-
-void SSSimoViscoT::PrintName(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::PrintName(out);
-        out << "Finite Deformation Simo Viscoelastic Model \n";
-}
 
 void SSSimoViscoT::PointInitialize(void)
 {

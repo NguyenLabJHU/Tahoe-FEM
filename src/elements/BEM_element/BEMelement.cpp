@@ -1,18 +1,16 @@
-/* $Id: BEMelement.cpp,v 1.6 2002-11-30 16:41:22 paklein Exp $ */
+/* $Id: BEMelement.cpp,v 1.7 2004-07-15 08:27:56 paklein Exp $ */
 /* created: AFLP (02/28/1998) */
-
 #include "BEMelement.h"
 #include <iostream.h>
 #include <iomanip.h>
 #include "toolboxConstants.h"
 #include "StringT.h"
 
-
 using namespace Tahoe;
 
 BEMelement::BEMelement(const ElementSupportT& support, const FieldT& field, 
 	const StringT& infile):
-	ElementBaseT(support, field),
+	ElementBaseT(support),
 	fInfile(infile)
 {
 	/* reset format */
@@ -77,13 +75,4 @@ void BEMelement::LHSDriver(GlobalT::SystemTypeT)
 void BEMelement::RHSDriver(void)
 {
 
-}
-
-/* print element group data */
-void BEMelement::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	ElementBaseT::PrintControlData(out);
-
-	// output your control data
 }

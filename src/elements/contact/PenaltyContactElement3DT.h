@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement3DT.h,v 1.7 2003-06-30 22:07:28 rjones Exp $ */
+/* $Id: PenaltyContactElement3DT.h,v 1.8 2004-07-15 08:28:08 paklein Exp $ */
 // created by : rjones 2002
 #ifndef _PENALTY_CONTACT_ELEMENT_3D_T_H_
 #define _PENALTY_CONTACT_ELEMENT_3D_T_H_
@@ -33,8 +33,9 @@ class PenaltyContactElement3DT: public ContactElementT
 
 	 	
   protected:
+
 	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
+//	virtual void PrintControlData(ostream& out) const;
 		 	
 	/* construct the residual force vector, called before LHS */
 	virtual void RHSDriver(void);
@@ -47,8 +48,6 @@ class PenaltyContactElement3DT: public ContactElementT
 
     /* penalty models */
 	pArrayT<C1FunctionT*> fPenaltyFunctions;
-
-
 };
 
 } // namespace Tahoe

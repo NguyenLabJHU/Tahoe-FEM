@@ -1,4 +1,4 @@
-/* $Id: Traction_and_Body_Force.cpp,v 1.3 2004-06-22 19:45:34 cjkimme Exp $ */
+/* $Id: Traction_and_Body_Force.cpp,v 1.4 2004-07-15 08:28:27 paklein Exp $ */
 #include "StaggeredMultiScaleT.h"
 
 #include "ifstreamT.h"
@@ -20,6 +20,8 @@
 
 void StaggeredMultiScaleT::EchoTractionBC(ifstreamT& in, ostream& out)
 {
+ExceptionT::GeneralFail("StaggeredMultiScaleT::EchoTractionBC", "out of date");
+#if 0	
 	const char caller[] = "StaggeredMultiScaleT::EchoTractionBC";
 	
 	/* read data from parameter file */
@@ -164,6 +166,7 @@ void StaggeredMultiScaleT::EchoTractionBC(ifstreamT& in, ostream& out)
 				throw ExceptionT::kBadInputValue;
 			}
 	}
+#endif
 }
 
 //---------------------------------------------------------------------

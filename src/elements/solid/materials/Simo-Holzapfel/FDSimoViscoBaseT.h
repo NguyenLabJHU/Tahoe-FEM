@@ -1,4 +1,4 @@
-/* $Id: FDSimoViscoBaseT.h,v 1.3 2003-05-12 16:51:27 thao Exp $ */
+/* $Id: FDSimoViscoBaseT.h,v 1.4 2004-07-15 08:28:46 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #ifndef _FD_SIMO_VISCO_BASE_H_
@@ -23,15 +23,10 @@ class FDSimoViscoBaseT: public FSSolidMatT
 	/** return the pressure associated with the last call to 
 	 * SolidMaterialT::s_ij. \note NOT IMPLEMENTED */
 	virtual double Pressure(void) const {
-		cout << "\n FDSimoViscoBaseT::Pressure: not implemented" << endl;
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail("FDSimoViscoBaseT::Pressure", "not implemented");
 		return 0.0;
 	};
 
-	/*print parameters*/
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-		
 	/* apply pre-conditions at the current time step */
 	virtual void InitStep(void){FSSolidMatT::InitStep();};
 

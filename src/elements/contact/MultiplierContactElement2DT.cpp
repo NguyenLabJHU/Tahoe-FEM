@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.cpp,v 1.22 2004-06-17 07:13:07 paklein Exp $ */
+/* $Id: MultiplierContactElement2DT.cpp,v 1.23 2004-07-15 08:28:08 paklein Exp $ */
 // created by : rjones 2001
 #include "MultiplierContactElement2DT.h"
 
@@ -38,6 +38,7 @@ MultiplierContactElement2DT::MultiplierContactElement2DT
  * Protected
  ***********************************************************************/
 
+#if 0
 /* print element group data */
 void MultiplierContactElement2DT::PrintControlData(ostream& out) const
 {
@@ -78,6 +79,7 @@ void MultiplierContactElement2DT::PrintControlData(ostream& out) const
 	}
 
 }
+#endif
 
 /* called before LHSDriver during iteration process */
 void MultiplierContactElement2DT::SetContactStatus(void)

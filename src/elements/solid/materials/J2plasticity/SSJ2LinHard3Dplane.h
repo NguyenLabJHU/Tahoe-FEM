@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHard3Dplane.h,v 1.1 2003-08-13 00:15:34 thao Exp $ */
+/* $Id: SSJ2LinHard3Dplane.h,v 1.2 2004-07-15 08:28:34 paklein Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -15,11 +15,11 @@
 /* base class */
 /* direct members */
 #include "SSJ2LinHardBaseT.h"
-#include "Material2DT.h"
+//#include "Material2DT.h"
 
 namespace Tahoe {
 
-class SSJ2LinHard3Dplane: public SSJ2LinHardBaseT, public Material2DT
+class SSJ2LinHard3Dplane: public SSJ2LinHardBaseT//, public Material2DT
 {
 public:
 

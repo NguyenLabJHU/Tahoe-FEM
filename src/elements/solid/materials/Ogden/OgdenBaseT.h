@@ -1,11 +1,10 @@
-/* $Id: OgdenBaseT.h,v 1.2 2003-03-26 22:57:43 thao Exp $ */
+/* $Id: OgdenBaseT.h,v 1.3 2004-07-15 08:28:37 paklein Exp $ */
 /* created: paklein (10/01/2000) */
 #ifndef _OGDEN_BASE_T_H_
 #define _OGDEN_BASE_T_H_
 
 /* base classes */
-#include "FSSolidMatT.h"
-#include "IsotropicT.h"
+#include "FSIsotropicMatT.h"
 
 /* direct members */
 #include "SpectralDecompT.h"
@@ -15,16 +14,12 @@ namespace Tahoe {
 /** base class for large deformation isotropic material following
  * Ogden's spectral formulation. Derived types need only to overload
  * OgdenBaseT::dWdE and OgdenBaseT::dWdE. */
-class OgdenBaseT: public FSSolidMatT, public IsotropicT
+class OgdenBaseT: public FSIsotropicMatT
 {
 public:
 
 	/* constructor */
 	OgdenBaseT(ifstreamT& in, const FSMatSupportT& support);
-	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 
 	/* class specific initializations */
 	virtual void Initialize(void);

@@ -1,11 +1,10 @@
-/* $Id: RGVIB2D.cpp,v 1.13 2003-11-21 22:54:52 paklein Exp $ */
+/* $Id: RGVIB2D.cpp,v 1.14 2004-07-15 08:28:44 paklein Exp $ */
 /* created: TDN (01/22/2001) */
+#include "RGVIB2D.h"
 
 #include <math.h>
 #include <iostream.h>
 #include <stdlib.h>
-
-#include "RGVIB2D.h"
 
 #include "fstreamT.h"
 #include "toolboxConstants.h"
@@ -30,6 +29,7 @@ static const char* Labels[kNumOutputVar] = {"Jv","Phi_visc"};
 
 /* constructors */
 RGVIB2D::RGVIB2D(ifstreamT& in, const FSMatSupportT& support): 
+	ParameterInterfaceT("RGVIB2D"),
 	RGBaseT(in, support),
 	ViscVIB(in, 2, 2, 3),
 	fCircle(NULL),
@@ -53,6 +53,8 @@ RGVIB2D::RGVIB2D(ifstreamT& in, const FSMatSupportT& support):
 	fGAB(2),
 	fDAB(2)
 {
+ExceptionT::GeneralFail("RGVIB2D::RGVIB2D", "out of date");
+#if 0
         fconst = 0.5;
 
   	/* point generator */
@@ -60,34 +62,13 @@ RGVIB2D::RGVIB2D(ifstreamT& in, const FSMatSupportT& support):
 
 	/* set tables */
 	Construct();
+#endif
 }
 
 /* destructor */
 RGVIB2D::~RGVIB2D(void)
 {
 	delete fCircle;
-}
-
-/* print parameters */
-void RGVIB2D::Print(ostream& out) const
-{
-	/* inherited */
-	RGBaseT::Print(out);
-	ViscVIB::Print(out);
-
-	fCircle->Print(out);
-}
-
-/* print name */
-void RGVIB2D::PrintName(ostream& out) const
-{
-	/* inherited */
-	RGBaseT::PrintName(out);
-	ViscVIB::PrintName(out);
-	out << "    2D\n";
-
-	/* integration rule */
-	fCircle->PrintName(out);
 }
 
 int RGVIB2D::NumOutputVariables() const {return kNumOutputVar;}
@@ -104,6 +85,8 @@ void RGVIB2D::OutputLabels(ArrayT<StringT>& labels) const
 /* class specific initializations */
 void RGVIB2D::Initialize(void)
 {
+ExceptionT::GeneralFail("RGVIB2D::Initialize", "out of date");
+#if 0
         RGBaseT::Initialize();
 
         /* initial modulus */
@@ -115,6 +98,7 @@ void RGVIB2D::Initialize(void)
         double mu = 0.5*((fDtauDep_E(0,0) - fDtauDep_E(0,1))+
                         (fDtauDep_I(0,0) - fDtauDep_I(0,1)));
 	IsotropicT::Set_PurePlaneStress_mu_lambda(mu, lambda);
+#endif
 }
 
 double RGVIB2D::StrainEnergyDensity(void)
@@ -222,7 +206,7 @@ const dSymMatrixT& RGVIB2D::s_ij(void)
         /*load the viscoelastic principal stretches from state variable arrays*/ 
         ElementCardT& element = CurrentElement(); 
         Load(element, CurrIP()); 
-	if (fFSMatSupport.RunState() == GlobalT::kFormRHS) 
+	if (fFSMatSupport->RunState() == GlobalT::kFormRHS) 
 	  { 
                 double Jvn = sqrt(fC_vn.Det()); 
                 if (Jvn < 1.2) 
@@ -496,7 +480,7 @@ void RGVIB2D::Calgorithm(const dArrayT& eigenstretch,
 
 	/*GAB= 1 + dt D/Dep(sig_Idev/nD+isostress/nV+deta_de*stress)*/
 
-	double dt = fFSMatSupport.TimeStep();
+	double dt = fFSMatSupport->TimeStep();
 	fGAB(0,0) = 1+0.5*dt*fietaS*(s0-sm)*(1+DietaSDep)+
 	               fconst*dt*fietaB*sm*(1+DietaBDep);
 	fGAB(1,1) = 1+0.5*dt*fietaS*(s1-sm)*(1+DietaSDep)+
@@ -573,7 +557,7 @@ void RGVIB2D::ComputeEigs_e(const dArrayT& eigenstretch,
 		ComputeiKAB(J,Je,eigenstress,eigenmodulus);
 	    
 		/*calculate the residual*/
-		double dt = fFSMatSupport.TimeStep();
+		double dt = fFSMatSupport->TimeStep();
 		double res0 = ep_e0 + dt*(0.5*fietaS*(s0-sm) +
 					   fconst*fietaB*sm) - ep_tr0;
 		double res1 = ep_e1 + dt*(0.5*fietaS*(s1-sm) +
@@ -639,7 +623,7 @@ void RGVIB2D::ComputeiKAB(double& J, double& Je,
 		
 	/*calculates  KAB = 1+dt*D(sig_Idev/nD+isostress/nV)/Dep_e*/
 
-	double dt = fFSMatSupport.TimeStep();
+	double dt = fFSMatSupport->TimeStep();
 	KAB(0,0) = 1+0.5*fietaS*dt*(c0-cm0-DietaSDep_e*(s0-sm))+
 	             fconst*fietaB*dt*(cm0 - DietaBDep_e*sm);
 

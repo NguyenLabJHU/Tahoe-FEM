@@ -1,4 +1,4 @@
-/* $Id: GradSSMatSupportT.cpp,v 1.8 2004-06-09 00:25:53 rdorgan Exp $ */ 
+/* $Id: GradSSMatSupportT.cpp,v 1.9 2004-07-15 08:28:12 paklein Exp $ */ 
 #include "GradSSMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -6,7 +6,7 @@ using namespace Tahoe;
 
 /* constructor */
 GradSSMatSupportT::GradSSMatSupportT(int nsd, int ndof_disp, int ndof_field, int nip_disp, int nip_field):
-	SSMatSupportT(nsd, ndof_disp, nip_disp),
+	SSMatSupportT(ndof_disp, nip_disp),
 
 	fField_List(NULL),
 	fField_last_List(NULL),

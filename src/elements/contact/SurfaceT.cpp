@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.35 2004-06-17 07:13:07 paklein Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.36 2004-07-15 08:28:08 paklein Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -123,7 +123,7 @@ void SurfaceT::InputSideSets
 	/* read data from parameter file */
 	ArrayT<StringT> ss_ID;
 	bool multidatabasesets = false; /* change to positive and the parameter file format changes */
-	ModelManagerT& model = support.Model();
+	ModelManagerT& model = support.ModelManager();
 	model.SideSetList(in, ss_ID, multidatabasesets);
 	if (ss_ID.Length () != 1) 
 	{

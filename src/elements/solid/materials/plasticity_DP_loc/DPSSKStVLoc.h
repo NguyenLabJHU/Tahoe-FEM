@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.h,v 1.3 2004-06-09 17:27:39 raregue Exp $ */
+/* $Id: DPSSKStVLoc.h,v 1.4 2004-07-15 08:28:56 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_LOC_H_
 #define _DP_SS_KSTV_LOC_H_
@@ -33,10 +33,6 @@ public:
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
 
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-
 	/** \name spatial description */
 	/*@{*/
 	/** spatial tangent modulus */
@@ -70,6 +66,18 @@ public:
 	*/
 	// not used; see ComputeOutput and DetCheckT
 	int IsLocalized(dArrayT& normal);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+	
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.38 2004-02-09 08:26:45 paklein Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.39 2004-07-15 08:28:27 paklein Exp $ */
 #include "StaggeredMultiScaleT.h"
 
 #include "ShapeFunctionT.h"
@@ -25,7 +25,7 @@ static int knum_i_state = 1; // int's needed per ip
 
 /* constructor */
 StaggeredMultiScaleT::StaggeredMultiScaleT(const ElementSupportT& support, const FieldT& coarse, const FieldT& fine):
-	ElementBaseT(support, coarse), //pass the coarse scale field to the base class
+	ElementBaseT(support),
 	ua(LocalArrayT::kDisp),
 	ua_n(LocalArrayT::kLastDisp),
 	ub(LocalArrayT::kDisp),
@@ -51,6 +51,8 @@ StaggeredMultiScaleT::StaggeredMultiScaleT(const ElementSupportT& support, const
 	iDesired_Force_Direction(0),
 	bStep_Complete(0)
 {
+ExceptionT::GeneralFail("StaggeredMultiScaleT::StaggeredMultiScaleT", "out of date");
+#if 0	
 	int i;
 	/* check - some code below assumes that both fields have the
 	 * same dimension. TEMP? */
@@ -176,6 +178,7 @@ StaggeredMultiScaleT::StaggeredMultiScaleT(const ElementSupportT& support, const
 	/* allocate the global stack object (once) */
 	extern FEA_StackT* fStack;
 	if (!fStack) fStack = new FEA_StackT;
+#endif
 }
 
 //---------------------------------------------------------------------
@@ -275,6 +278,8 @@ void StaggeredMultiScaleT::Echo_Input_Data(void) {
 
 void StaggeredMultiScaleT::Initialize(void)
 {
+ExceptionT::GeneralFail("StaggeredMultiScaleT::Initialize", "out of date");
+#if 0
 	/* inherited */
 	ElementBaseT::Initialize();
 	
@@ -402,6 +407,7 @@ void StaggeredMultiScaleT::Initialize(void)
 
 	 /* echo traction B.C.'s */
 	 EchoTractionBC(in, out);
+#endif
 }
 
 //---------------------------------------------------------------------
@@ -879,27 +885,6 @@ void StaggeredMultiScaleT::CloseStep(void)
 	/* store more recently updated values */
 	fdState = fdState_new;
 	fiState = fiState_new;
-}
-
-//---------------------------------------------------------------------
-
-/* write element group parameters to out */
-void StaggeredMultiScaleT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	ElementBaseT::PrintControlData(out);
-
-	out << " Coarse scale field. . . . . . . . . . . . . . . = \"" << fCoarse.Name() << "\"\n";
-	out << " Fine scale field. . . . . . . . . . . . . . . . = \"" << fFine.Name() << "\"\n";
-	out << " Element geometry code . . . . . . . . . . . . . = " << fGeometryCode << '\n';
-	out << "    eq." << GeometryT::kPoint         << ", point\n";
-	out << "    eq." << GeometryT::kLine          << ", line\n";
-	out << "    eq." << GeometryT::kQuadrilateral << ", quadrilateral\n";
-	out << "    eq." << GeometryT::kTriangle	  << ", triangle\n";
-	out << "    eq." << GeometryT::kHexahedron	  << ", hexahedron\n";
-	out << "    eq." << GeometryT::kTetrahedron   << ", tetrahedron\n";
-	out << " Number of integration points. . . . . . . . . . = " << fNumIP    << '\n';
-
 }
 
 //---------------------------------------------------------------------

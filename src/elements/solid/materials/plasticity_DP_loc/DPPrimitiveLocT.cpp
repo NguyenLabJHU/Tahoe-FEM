@@ -1,19 +1,17 @@
 
-/* $Id: DPPrimitiveLocT.cpp,v 1.2 2004-06-09 17:27:39 raregue Exp $ */
+/* $Id: DPPrimitiveLocT.cpp,v 1.3 2004-07-15 08:28:56 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 /* Base class for Druker-Prager, nonassociative, small strain,
    pressure dependent plasticity model with linear isotropic hardening
    and localization 
    */
-
-
 #include "DPPrimitiveLocT.h"
 
 #include <iostream.h>
 #include <math.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "dSymMatrixT.h"
 
 using namespace Tahoe;

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.h,v 1.9 2004-06-28 22:42:03 hspark Exp $ */
+/* $Id: FEManagerT_THK.h,v 1.10 2004-07-15 08:29:05 paklein Exp $ */
 
 #ifndef _FE_MANAGER_THK_H_
 #define _FE_MANAGER_THK_H_
@@ -22,7 +22,7 @@ class FEManagerT_THK: public FEManagerT_bridging
 public:
 
 	/** constructor */
-	FEManagerT_THK(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
+	FEManagerT_THK(const StringT& input, ofstreamT& output, CommunicatorT& comm,
 		const ArrayT<StringT>& argv, ifstreamT& bridging_input);
 
 	/** initialize members */

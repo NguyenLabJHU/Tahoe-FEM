@@ -1,4 +1,4 @@
-/* $Id: RigidCSEAnisoT.cpp,v 1.3 2004-06-17 06:43:18 paklein Exp $ */
+/* $Id: RigidCSEAnisoT.cpp,v 1.4 2004-07-15 08:28:05 paklein Exp $ */
 #include "RigidCSEAnisoT.h"
 
 #include "XDOF_ManagerT.h"
@@ -10,7 +10,7 @@ using namespace Tahoe;
 
 /* constructor */
 RigidCSEAnisoT::RigidCSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate):
-	CSEAnisoT(support, field, rotate),
+	CSEAnisoT(support),
 	fr(0),
 	fDisp(LocalArrayT::kDisp),
 	fLastDisp(LocalArrayT::kLastDisp),
@@ -160,6 +160,8 @@ int RigidCSEAnisoT::Reconfigure(void)
 /* allocates space and reads connectivity data */
 void RigidCSEAnisoT::Initialize(void)
 {
+ExceptionT::GeneralFail("RigidCSEAnisoT::Initialize", "out of date");
+#if 0
 	/* inherited */
 	CSEAnisoT::Initialize();
 
@@ -200,6 +202,7 @@ void RigidCSEAnisoT::Initialize(void)
 	iArrayT xdof_tags(1);
 	xdof_tags = 1;
 	ElementSupport().XDOF_Manager().XDOF_Register(this, xdof_tags);
+#endif
 }
 
 /* collecting element connectivities for the field */

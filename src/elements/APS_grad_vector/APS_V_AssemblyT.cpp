@@ -1,4 +1,4 @@
-/* $Id: APS_V_AssemblyT.cpp,v 1.1 2004-03-02 23:46:42 raregue Exp $ */
+/* $Id: APS_V_AssemblyT.cpp,v 1.2 2004-07-15 08:27:53 paklein Exp $ */
 #include "APS_V_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -19,7 +19,7 @@ using namespace Tahoe;
 /* constructor */
 APS_V_AssemblyT::APS_V_AssemblyT(const ElementSupportT& support, const FieldT& displ, 
 							const FieldT& gammap):
-	ElementBaseT(support, displ), //pass the displacement field to the base class
+	ElementBaseT(support), //pass the displacement field to the base class
 	u(LocalArrayT::kDisp),
 	u_n(LocalArrayT::kLastDisp),
 	DDu(LocalArrayT::kAcc),
@@ -43,7 +43,8 @@ APS_V_AssemblyT::APS_V_AssemblyT(const ElementSupportT& support, const FieldT& d
 	fEquation_eps(NULL),
 	bStep_Complete(0)
 {
-	
+ExceptionT::GeneralFail("APS_V_AssemblyT::APS_V_AssemblyT", "out of date");
+#if 0	
 	knum_d_state = 9; // double's needed per ip, state variables
 	knum_i_state = 0; // int's needed per ip, state variables
 	
@@ -145,6 +146,7 @@ APS_V_AssemblyT::APS_V_AssemblyT(const ElementSupportT& support, const FieldT& d
 	}
 	
 	Echo_Input_Data();
+#endif
 }
 
 //---------------------------------------------------------------------
@@ -210,6 +212,8 @@ void APS_V_AssemblyT::Echo_Input_Data(void) {
 
 void APS_V_AssemblyT::Initialize(void)
 {
+ExceptionT::GeneralFail("APS_V_AssemblyT::Initialize", "out of date");
+#if 0
 	const char caller[] = "APS_V_AssemblyT::Initialize";
 
 	/* inherited */
@@ -399,6 +403,7 @@ void APS_V_AssemblyT::Initialize(void)
 
 	/* echo traction B.C.'s */
 	EchoTractionBC(in, out);
+#endif
 }
 
 //---------------------------------------------------------------------
@@ -594,27 +599,6 @@ void APS_V_AssemblyT::CloseStep(void)
 	/* store more recently updated values */
 	fdState = fdState_new;
 	fiState = fiState_new;
-}
-
-//---------------------------------------------------------------------
-
-/* write element group parameters to out */
-void APS_V_AssemblyT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	ElementBaseT::PrintControlData(out);
-
-	out << " Displacement field. . . . . . . . . . . . . . . = \"" << fDispl.Name() << "\"\n";
-	out << " Plastic gradient field. . . . . . . . . . . . . = \"" << fPlast.Name() << "\"\n";
-	out << " Element geometry code . . . . . . . . . . . . . = " << fGeometryCode_displ << '\n';
-	out << "    eq." << GeometryT::kPoint         << ", point\n";
-	out << "    eq." << GeometryT::kLine          << ", line\n";
-	out << "    eq." << GeometryT::kQuadrilateral << ", quadrilateral\n";
-	out << "    eq." << GeometryT::kTriangle	  << ", triangle\n";
-	out << "    eq." << GeometryT::kHexahedron	  << ", hexahedron\n";
-	out << "    eq." << GeometryT::kTetrahedron   << ", tetrahedron\n";
-	out << " Number of integration points. . . . . . . . . . = " << fNumIP_plast    << '\n';
-
 }
 
 //---------------------------------------------------------------------

@@ -47,6 +47,7 @@ static const char* Labels[kNumOutput] = {
 
 /*constructor*/
 FossumSSIsoT::FossumSSIsoT(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("Fossum_small_strain"),
 	fA(-1.0),         
 	fB(-1.0),
 	fC(-1.0),
@@ -62,8 +63,8 @@ FossumSSIsoT::FossumSSIsoT(ifstreamT& in, const SSMatSupportT& support):
 	fNumIP(NumIP()),
 	fmu(Mu()),
 	flambda(Lambda()),
-	SSSolidMatT(in, support),
-	IsotropicT(in),
+//	SSSolidMatT(in, support),
+//	IsotropicT(in),
 	HookeanMatT(3),
 	fStress(3),
 	fModulus(dSymMatrixT::NumValues(3)),
@@ -135,6 +136,7 @@ FossumSSIsoT::FossumSSIsoT(ifstreamT& in, const SSMatSupportT& support):
 /* destructor */
 FossumSSIsoT::~FossumSSIsoT(void) { }
 
+#if 0
 /* write parameters to stream */
 void FossumSSIsoT::Print(ostream& out) const
 {
@@ -168,6 +170,7 @@ void FossumSSIsoT::PrintName(ostream& out) const
 	out << "compaction plasticity model w/ isotropic and kinematic hardening\n"; 
 	out << "    Kirchhoff-St.Venant\n";
 }
+#endif
         
 /*  protected: */
 
@@ -207,8 +210,11 @@ double FossumSSIsoT::YieldFn(double I1, double J2, double J3, double kappa)
 /* initialization */
 void FossumSSIsoT::Initialize(void)
 {
+ExceptionT::GeneralFail("FossumSSIsoT::Initialize", "out of date");
+#if 0
 	/* inherited */
 	HookeanMatT::Initialize();
+#endif
 }
 
 /* form of tangent matrix (symmetric by default) */
@@ -361,7 +367,6 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 		output[10] = 0.0;
 	}
 }
-
 
 /*************************************************************************
 * Protected

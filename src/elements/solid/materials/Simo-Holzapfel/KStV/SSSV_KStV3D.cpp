@@ -1,4 +1,4 @@
-/* $Id: SSSV_KStV3D.cpp,v 1.8 2004-06-22 19:45:46 cjkimme Exp $ */
+/* $Id: SSSV_KStV3D.cpp,v 1.9 2004-07-15 08:28:50 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSSV_KStV3D.h"
 #include "SSMatSupportT.h"
@@ -14,6 +14,7 @@ const int kNumOutputVar = 3;
 static const char* Labels[kNumOutputVar] = {"Dvisc","Iep_v", "IIe_v"};
 
 SSSV_KStV3D::SSSV_KStV3D(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("SSSV_KStV3D"),
 	SSSimoViscoT(in, support),
 	fe(3),
 	fStress(3),
@@ -41,6 +42,7 @@ SSSV_KStV3D::SSSV_KStV3D(ifstreamT& in, const SSMatSupportT& support):
 	IsotropicT::Set_mu_kappa(mu_EQ, kappa_EQ);
 }	
 
+#if 0
 void SSSV_KStV3D::Print(ostream& out) const
 {
 	/* inherited */
@@ -64,6 +66,7 @@ void SSSV_KStV3D::PrintName(ostream& out) const
 	out << "Kirchoff St. Venant\n";
 	out << "Kirchoff St. Venant\n";
 }
+#endif
 
 double SSSV_KStV3D::StrainEnergyDensity(void)
 {
@@ -319,3 +322,30 @@ void SSSV_KStV3D::ComputeOutput(dArrayT& output)
 		  +2.0*viscstrain[4]*viscstrain[4]
 		  +2.0*viscstrain[5]*viscstrain[5]));
 }	
+
+/* information about subordinate parameter lists */
+void SSSV_KStV3D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	IsotropicT::DefineSubs(sub_list);
+	SSSimoViscoT::DefineSubs(sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* SSSV_KStV3D::NewSub(const StringT& name) const
+{
+	/* inherited */
+	ParameterInterfaceT* sub = IsotropicT::NewSub(name);
+	if (sub)
+		return sub;
+	else
+		return SSSimoViscoT::NewSub(name);
+}
+
+/* accept parameter list */
+void SSSV_KStV3D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	IsotropicT::TakeParameterList(list);
+	SSSimoViscoT::TakeParameterList(list);
+}

@@ -1,4 +1,4 @@
-/* $Id: RGSplit3D.cpp,v 1.7 2004-06-22 19:45:41 cjkimme Exp $ */
+/* $Id: RGSplit3D.cpp,v 1.8 2004-07-15 08:28:40 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplit3D.h"
@@ -22,6 +22,7 @@ static const char* Labels[kNumOutputVar] = {"Dvisc"};
 
 /* constructors */
 RGSplit3D::RGSplit3D(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("RGSplit3D"),
   RGBaseT(in, support),
   fSpectralDecompSpat(3),
   fSpectralDecompRef(3),
@@ -49,6 +50,8 @@ RGSplit3D::RGSplit3D(ifstreamT& in, const FSMatSupportT& support):
   fiKAB(3),
   fthird(1.0/3.0)
 {
+ExceptionT::GeneralFail("RGSplit3D::RGSplit3D", "out of date");
+#if 0
   /*read in potential code*/
   int code;
   in >> code;
@@ -71,6 +74,7 @@ RGSplit3D::RGSplit3D(ifstreamT& in, const FSMatSupportT& support):
   fietaS = 1.0/etaS;
   in >> etaB;
   fietaB = 1.0/etaB;
+#endif
 }
 
 RGSplit3D::~RGSplit3D(void)
@@ -81,6 +85,8 @@ RGSplit3D::~RGSplit3D(void)
 
 void RGSplit3D::Initialize(void)
 {
+ExceptionT::GeneralFail("RGSplit3D::Initialize", "out of date");
+#if 0
     /*inheritance*/
     RGBaseT::Initialize();
     
@@ -90,6 +96,7 @@ void RGSplit3D::Initialize(void)
     pstatev +=numstress;  //fC_v
     pstatev +=numstress;  //fC_vn
     fMatInStress.Set(fndof,pstatev);
+#endif
 }
 
 /* print parameters */
@@ -349,7 +356,7 @@ const dSymMatrixT& RGSplit3D::s_ij(void)
 	/*load the viscoelastic principal stretches from state variable arrays*/
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
-	if (fFSMatSupport.RunState() == GlobalT::kFormRHS)
+	if (fFSMatSupport->RunState() == GlobalT::kFormRHS)
 	{
 		dSymMatrixT& iCvn = fC_vn;
 		iCvn.Inverse();
@@ -551,7 +558,7 @@ void RGSplit3D::ComputeEigs_e(const dArrayT& eigenstretch,
  	  	ComputeiKAB(eigenmodulus,cm);
 		
 	   	/*calculate the residual*/
-	   	double dt = fFSMatSupport.TimeStep();
+	   	double dt = fFSMatSupport->TimeStep();
 	 	double res0 = ep_e0 + dt*(0.5*fietaS*s0 +
 					fthird*fietaB*sm) - ep_tr0;
 	 	double res1 = ep_e1 + dt*(0.5*fietaS*s1 +
@@ -602,7 +609,7 @@ void RGSplit3D::ComputeiKAB(dSymMatrixT& eigenmodulus, double& bulkmodulus)
 		
 	/*calculates  KAB = 1+dt*D(dWdE_Idev/nD+isostress/nV)/Dep_e*/
 
-	double dt = fFSMatSupport.TimeStep();
+	double dt = fFSMatSupport->TimeStep();
 	KAB(0,0) = 1+0.5*fietaS*dt*c0+fthird*fietaB*dt*cm;
 	KAB(1,1) = 1+0.5*fietaS*dt*c1+fthird*fietaB*dt*cm;
 	KAB(2,2) = 1+0.5*fietaS*dt*c2+fthird*fietaB*dt*cm;

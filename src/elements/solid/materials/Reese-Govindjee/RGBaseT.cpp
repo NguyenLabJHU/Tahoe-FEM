@@ -1,4 +1,4 @@
-/* $Id: RGBaseT.cpp,v 1.6 2004-06-01 21:04:00 cjkimme Exp $ */
+/* $Id: RGBaseT.cpp,v 1.7 2004-07-15 08:28:40 paklein Exp $ */
 /* created: TDN (01/22/2000) */
 #include "RGBaseT.h"
 
@@ -6,13 +6,15 @@ using namespace Tahoe;
 
 /* constructor */
 RGBaseT::RGBaseT(ifstreamT& in, const FSMatSupportT& support):
-	FSSolidMatT(in, support)
+	ParameterInterfaceT("RGBaseT")
 {}
 
 void RGBaseT::Initialize(void)
 {
+ExceptionT::GeneralFail("RGBaseT::Initialize", "out of date");
+#if 0
     /*inheritance*/
-    FSSolidMatT::Initialize();
+    FSIsotropicMatT::Initialize();
  
     if (PurePlaneStress()) fndof = 2;
     else fndof = 3;
@@ -36,21 +38,7 @@ void RGBaseT::Initialize(void)
     fC_v.Set(fndof, pstatev);        
     pstatev += numstress;
     fC_vn.Set(fndof, pstatev);
-}
-
-void RGBaseT::Print(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-}
-
-void RGBaseT::PrintName(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::PrintName(out);
-
-	out << "    Reese-Govindjee Finite Nonlinear Viscoelastic Model\n";
+#endif
 }
 
 /*initializes history variable */

@@ -1,19 +1,21 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.1 2004-05-17 23:42:55 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.2 2004-07-15 08:28:15 paklein Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
 
 /* materials lists */
+#if 0
 #include "SolidMatList1DT.h"
 #include "SolidMatList2DT.h"
 #include "SolidMatList3DT.h"
+#endif
 #include "SSMatSupportT.h"
 
 using namespace Tahoe;
 
 /* constructor */
 SmallStrainEnhLocT::SmallStrainEnhLocT(const ElementSupportT& support, const FieldT& field):
-	SolidElementT(support, field),
+	SolidElementT(support),
 	fNeedsOffset(-1),
 	fGradU(NumSD()),
 	fSSMatSupport(NULL)
@@ -38,6 +40,8 @@ SmallStrainEnhLocT::~SmallStrainEnhLocT(void)
 /* called immediately after constructor */
 void SmallStrainEnhLocT::Initialize(void)
 {
+ExceptionT::GeneralFail("SmallStrainEnhLocT::Initialize", "out of date");
+#if 0
 	/* inherited */
 	SolidElementT::Initialize();
 
@@ -66,30 +70,7 @@ void SmallStrainEnhLocT::Initialize(void)
 		for (int i = 0; i < NumIP(); i++)
 			fStrain_last_List[i].Dimension(NumSD());
 	}
-}
-
-/* TEMPORARY */
-void SmallStrainEnhLocT::InitialCondition(void)
-{
-	/* inherited */
-	SolidElementT::InitialCondition();
-	
-	/* set the source for the iteration number */
-	fSSMatSupport->SetIterationNumber(ElementSupport().IterationNumber(Group()));
-}
-
-/* implementation of the ParameterInterfaceT interface */
-void SmallStrainEnhLocT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	SolidElementT::DefineParameters(list);
-
-	/* strain-displacement relation */
-	ParameterT strain_displacement(ParameterT::Enumeration, "strain_displacement");
-	strain_displacement.AddEnumeration("standard", kStandardB);
-    strain_displacement.AddEnumeration("B_bar", kMeanDilBbar);
-    strain_displacement.SetDefault(kStandardB);
-	list.AddParameter(strain_displacement);
+#endif
 }
 
 /* information about subordinate parameter lists */
@@ -120,6 +101,9 @@ void SmallStrainEnhLocT::DefineInlineSub(const StringT& sub, ParameterListT::Lis
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* SmallStrainEnhLocT::NewSub(const StringT& list_name) const
 {
+ExceptionT::GeneralFail("SmallStrainEnhLocT::NewSub", "out of date");
+return NULL;
+#if 0
 	/* create non-const this */
 	SmallStrainEnhLocT* non_const_this = const_cast<SmallStrainEnhLocT*>(this);
 
@@ -132,6 +116,7 @@ ParameterInterfaceT* SmallStrainEnhLocT::NewSub(const StringT& list_name) const
 	else /* inherited */
 
 		return SolidElementT::NewSub(list_name);
+#endif
 }
 
 /***********************************************************************
@@ -142,7 +127,7 @@ ParameterInterfaceT* SmallStrainEnhLocT::NewSub(const StringT& list_name) const
 MaterialSupportT* SmallStrainEnhLocT::NewMaterialSupport(MaterialSupportT* p) const
 {
 	/* allocate */
-	if (!p) p = new SSMatSupportT(NumSD(), NumDOF(), NumIP());
+	if (!p) p = new SSMatSupportT(NumDOF(), NumIP());
 
 	/* inherited initializations */
 	SolidElementT::NewMaterialSupport(p);
@@ -160,6 +145,9 @@ MaterialSupportT* SmallStrainEnhLocT::NewMaterialSupport(MaterialSupportT* p) co
 /* return a pointer to a new material list */
 MaterialListT* SmallStrainEnhLocT::NewMaterialList(int nsd, int size)
 {
+ExceptionT::GeneralFail("SmallStrainEnhLocT::NewSub", "out of date");
+return NULL;
+#if 0
 	/* full list */
 	if (size > 0)
 	{
@@ -191,11 +179,14 @@ MaterialListT* SmallStrainEnhLocT::NewMaterialList(int nsd, int size)
 		else
 			return NULL;
 	}	
+#endif
 }
 
 /* construct list of materials from the input stream */
 void SmallStrainEnhLocT::ReadMaterialData(ifstreamT& in)
 {
+ExceptionT::GeneralFail("SmallStrainEnhLocT::ReadMaterialData", "out of date");
+#if 0
 	/* inherited */
 	SolidElementT::ReadMaterialData(in);
 
@@ -223,6 +214,7 @@ void SmallStrainEnhLocT::ReadMaterialData(ifstreamT& in)
 		needs[kNeedDisp] = needs[kNeedDisp] || needs[fNeedsOffset + kstrain];
 		needs[KNeedLastDisp] = needs[KNeedLastDisp] || needs[fNeedsOffset + kstrain_last];
 	}
+#endif
 }
 
 /* initialize local field arrays. Allocate B-bar workspace if needed. */

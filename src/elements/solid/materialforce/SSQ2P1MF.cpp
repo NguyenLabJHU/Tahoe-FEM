@@ -1,4 +1,4 @@
-/* $Id: SSQ2P1MF.cpp,v 1.6 2004-03-16 10:05:15 paklein Exp $ */
+/* $Id: SSQ2P1MF.cpp,v 1.7 2004-07-15 08:28:31 paklein Exp $ */
 #include "SSQ2P1MF.h"
 
 #include "OutputSetT.h"
@@ -12,9 +12,12 @@
 #include "ofstreamT.h"
 
 /* materials lists */
+#include "MaterialListT.h"
+#if 0
 #include "SolidMatList1DT.h"
 #include "SolidMatList2DT.h"
 #include "SolidMatList3DT.h"
+#endif
 
 #include <iostream.h>
 #include <iomanip.h>
@@ -28,6 +31,8 @@ SSQ2P1MF::SSQ2P1MF(const ElementSupportT& support, const FieldT& field):
 	
 void SSQ2P1MF::Initialize(void)
 {
+ExceptionT::GeneralFail("SSQ2P1MF::Initialize", "out of date");
+#if 0	
   SmallStrainQ2P1::Initialize();
   
   int nsd = (NumSD() == 2) ? 4 : 3;
@@ -42,6 +47,7 @@ void SSQ2P1MF::Initialize(void)
   fGradU_List.Dimension(NumIP());
   for (int i = 0; i< NumIP(); i++)
     fGradU_List[i].Dimension(NumSD());
+#endif
 }
 
 void SSQ2P1MF::SetGlobalShape(void)

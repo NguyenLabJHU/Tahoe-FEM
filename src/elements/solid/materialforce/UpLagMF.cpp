@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.cpp,v 1.16 2004-03-16 10:05:15 paklein Exp $ */
+/* $Id: UpLagMF.cpp,v 1.17 2004-07-15 08:28:31 paklein Exp $ */
 #include <ctype.h>
 
 #include "UpLagMF.h"
@@ -15,15 +15,18 @@
 #include "ifstreamT.h"
 
 /* materials lists */
+#include "MaterialListT.h"
+#if 0
 #include "SolidMatList1DT.h"
 #include "SolidMatList2DT.h"
 #include "SolidMatList3DT.h"
+#endif
 
 using namespace Tahoe;
 
 /* constructor */
 UpLagMF::UpLagMF(const ElementSupportT& support, const FieldT& field):
-  UpdatedLagrangianT(support, field),
+  UpdatedLagrangianT(support),
   MFSupportT(support),
   LocalizeT(support),
   fdynamic(false),
@@ -36,6 +39,8 @@ UpLagMF::UpLagMF(const ElementSupportT& support, const FieldT& field):
 
 void UpLagMF::Initialize(void)
 {
+ExceptionT::GeneralFail("UpLagMF::Initialize", "out of date");
+#if 0	
   UpdatedLagrangianT::Initialize();
 
   int nel = ElementBaseT::NumElements();
@@ -89,6 +94,7 @@ void UpLagMF::Initialize(void)
   fVel.Dimension(NumSD());
   fAcc.Dimension(NumSD());
   fGradVel.Dimension(NumSD());
+#endif
 }
 
 void UpLagMF::SetGlobalShape(void)

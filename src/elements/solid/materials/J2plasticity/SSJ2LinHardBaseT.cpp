@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardBaseT.cpp,v 1.10 2004-06-22 19:45:36 cjkimme Exp $ */
+/* $Id: SSJ2LinHardBaseT.cpp,v 1.11 2004-07-15 08:28:34 paklein Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -19,17 +19,18 @@
 #include "ElementCardT.h"
 #include "StringT.h"
 
-/* class constants */
-
 using namespace Tahoe;
 
 /* constructor */
 SSJ2LinHardBaseT::SSJ2LinHardBaseT(ifstreamT& in, const SSMatSupportT& support):
-	SSSolidMatT(in, support),
+	ParameterInterfaceT("SSJ2LinHardBaseT"),
+//	SSSolidMatT(in, support),
 	fthird(1.0/3.0),
 	fsqrt23(sqrt(2.0/3.0)),
 	fplastic(false)
 {
+ExceptionT::GeneralFail("SSJ2LinHardBaseT::SSJ2LinHardBaseT", "out of date");
+#if 0
 	/* read parameters */	
 	in >> fMu;
 	in >> fKappa;
@@ -89,6 +90,7 @@ SSJ2LinHardBaseT::SSJ2LinHardBaseT(ifstreamT& in, const SSMatSupportT& support):
 	fBeta_n.Set(nsd,pstatev);
 	pstatev += numstress;
 	fPlasticStrain_n.Set(nsd,pstatev);
+#endif
 }
 
 /* output parameters to stream */

@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardBaseT.h,v 1.5 2003-11-04 18:11:55 thao Exp $ */
+/* $Id: SSJ2LinHardBaseT.h,v 1.6 2004-07-15 08:28:34 paklein Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -14,8 +14,7 @@
 
 /* base class */
 /* direct members */
-#include "SSSolidMatT.h"
-#include "IsotropicT.h"
+#include "SSIsotropicMatT.h"
 #include "dSymMatrixT.h"
 #include "dMatrixT.h"
 #include "dArrayT.h"
@@ -25,7 +24,7 @@ namespace Tahoe {
 /* forward declarations */
 class ElementCardT;
 
-class SSJ2LinHardBaseT: public SSSolidMatT, public IsotropicT
+class SSJ2LinHardBaseT: public SSIsotropicMatT
 {
 public:
 

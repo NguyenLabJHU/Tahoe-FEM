@@ -1,4 +1,4 @@
-/* $Id: SSSimoViscoT.h,v 1.5 2003-06-28 17:28:56 thao Exp $ */
+/* $Id: SSSimoViscoT.h,v 1.6 2004-07-15 08:28:46 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_SIMO_VISCO_H_
 #define _SS_SIMO_VISCO_H_
@@ -22,15 +22,10 @@ class SSSimoViscoT: public SSSolidMatT
 	/** return the pressure associated with the last call to 
 	 * SolidMaterialT::s_ij. \note NOT IMPLEMENTED */
 	virtual double Pressure(void) const {
-		cout << "\n SSSimoViscoT::Pressure: not implemented" << endl;
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail("SSSimoViscoT::Pressure", "not implemented");
 		return 0.0;
 	};
 
-	/*print parameters*/
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-		
 	/* apply pre-conditions at the current time step */
 	virtual void InitStep(void){SSSolidMatT::InitStep();}
 

@@ -1,4 +1,4 @@
-/* $Id: PMLT.cpp,v 1.12 2003-11-21 22:54:30 paklein Exp $ */
+/* $Id: PMLT.cpp,v 1.13 2004-07-15 08:27:59 paklein Exp $ */
 #include "PMLT.h"
 
 #include <iostream.h>
@@ -20,7 +20,7 @@ using namespace Tahoe;
 
 /* constructor */
 PMLT::PMLT(const ElementSupportT& support, const FieldT& field):
-	SolidElementT(support, field),
+	SolidElementT(support),
 	fNeedsOffset(-1),
 	fGradU(NumSD()),
 	fLHSa(fLHS.Format()),
@@ -30,6 +30,8 @@ PMLT::PMLT(const ElementSupportT& support, const FieldT& field):
 	fdt(ElementSupport().TimeStep())
 
 {
+ExceptionT::GeneralFail("PMLT::PMLT", "out of date");
+#if 0	
 #if __option(extended_errorcheck)
 	if (NumSD() > 2)
 	{
@@ -43,11 +45,14 @@ PMLT::PMLT(const ElementSupportT& support, const FieldT& field):
 //	NumDOF() = NumSD()*NumSD();             
 //	fNumElemEqnos = NumElementNodes()*NumDOF();
 	fNEESub = NumSD()*NumElementNodes();
+#endif
 }
 
 /* called immediately after constructor */
 void PMLT::Initialize(void)
 {
+ExceptionT::GeneralFail("PMLT::Initialize", "out of date");
+#if 0	
 	/* inherited */
 	SolidElementT::Initialize();
 	
@@ -106,6 +111,7 @@ void PMLT::Initialize(void)
 		for (int i = 0; i < NumIP(); i++)
 			fGradU_last_List[i].Dimension(NumSD());
 	}
+#endif
 }
 
 /* construct the field */
@@ -1447,6 +1453,8 @@ void PMLT::Bb(dMatrixT& Bb_matrix, dMatrixT& B_matrix)
 /* construct list of materials from the input stream */
 void PMLT::ReadMaterialData(ifstreamT& in)
 {
+ExceptionT::GeneralFail("PMLT::ReadMaterialData", "out of date");
+#if 0	
 	/* inherited */
 	SolidElementT::ReadMaterialData(in);
 
@@ -1474,6 +1482,7 @@ void PMLT::ReadMaterialData(ifstreamT& in)
 		needs[kNeedDisp] = needs[kNeedDisp] || needs[fNeedsOffset + kstrain];
 		needs[KNeedLastDisp] = needs[KNeedLastDisp] || needs[fNeedsOffset + kstrain_last];
 	}
+#endif
 }
 
 /* increment current element */

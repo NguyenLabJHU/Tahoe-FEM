@@ -1,4 +1,4 @@
-/* $Id: NodalRigidCSEAnisoT.cpp,v 1.3 2004-06-17 06:43:18 paklein Exp $ */
+/* $Id: NodalRigidCSEAnisoT.cpp,v 1.4 2004-07-15 08:28:05 paklein Exp $ */
 #include "NodalRigidCSEAnisoT.h"
 
 #include "XDOF_ManagerT.h"
@@ -16,7 +16,7 @@ using namespace Tahoe;
 
 /* constructor */
 NodalRigidCSEAnisoT::NodalRigidCSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate):
-	CSEAnisoT(support, field, rotate),
+	CSEAnisoT(support),
 	fr(0),
 	fCZRelation(NULL),
 	fCurrPair(-1)
@@ -229,6 +229,8 @@ void NodalRigidCSEAnisoT::ResetState(void)
 /* allocates space and reads connectivity data */
 void NodalRigidCSEAnisoT::Initialize(void)
 {
+ExceptionT::GeneralFail("NodalRigidCSEAnisoT::Initialize", "out of date");
+#if 0
 	const char caller[] = "NodalRigidCSEAnisoT::Initialize";
 
 	/* inherited */
@@ -395,6 +397,7 @@ void NodalRigidCSEAnisoT::Initialize(void)
 
 	/* set history */
 	fStateVariables_n = fStateVariables;
+#endif
 }
 
 /* collecting element connectivities for the field */

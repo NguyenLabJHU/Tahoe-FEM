@@ -1,4 +1,4 @@
-/* $Id: OgdenMaterialT.cpp,v 1.3 2004-06-22 19:45:39 cjkimme Exp $ */
+/* $Id: OgdenMaterialT.cpp,v 1.4 2004-07-15 08:28:37 paklein Exp $ */
 /* created: tdn (3/17/2003) */
 #include "OgdenMaterialT.h"
 #include "PotentialT.h"
@@ -14,9 +14,12 @@ using namespace Tahoe;
 
 /* constructor */
 OgdenMaterialT::OgdenMaterialT(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("Ogden_material"),
 	OgdenBaseT(in, support),
 	fthird(1.0/3.0)
 {
+ExceptionT::GeneralFail("OgdenMaterialT::OgdenMaterialT", "out of date");
+#if 0
   /*read in potential code*/
   int code;
   in >> code;
@@ -33,27 +36,12 @@ OgdenMaterialT::OgdenMaterialT(ifstreamT& in, const FSMatSupportT& support):
      }
   }
   cout.precision(12);
+#endif
 }
 
 OgdenMaterialT::~OgdenMaterialT(void)
 {
   delete fPot;
-}
-
-void OgdenMaterialT::Print(ostream& out) const
-{
-	/* inherited */
-	OgdenBaseT::Print(out);
-
-        fPot->Print(out);
-}
-
-void OgdenMaterialT::PrintName(ostream& out) const
-{
-	/* inherited */
-	OgdenBaseT::PrintName(out);
-
-        fPot->PrintName(out);
 }
 
 double OgdenMaterialT::StrainEnergyDensity(void)

@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.3 2004-06-09 17:27:39 raregue Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.4 2004-07-15 08:28:56 paklein Exp $ */
 /* created: myip (06/01/1999) */
 
 #include "DPSSKStVLoc.h"
@@ -26,7 +26,8 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 DPSSKStVLoc::DPSSKStVLoc(ifstreamT& in, const SSMatSupportT& support):
-	SSSolidMatT(in, support),
+	ParameterInterfaceT("DPSSKStVLoc"),
+//	SSSolidMatT(in, support),
 	IsotropicT(in),
 	HookeanMatT(3),
 	DPSSLinHardLocT(in, NumIP(), Mu(), Lambda()),
@@ -40,8 +41,11 @@ DPSSKStVLoc::DPSSKStVLoc(ifstreamT& in, const SSMatSupportT& support):
 /* initialization */
 void DPSSKStVLoc::Initialize(void)
 {
+ExceptionT::GeneralFail("DPSSKStVLoc::Initialize", "out of date");
+#if 0
 	/* inherited */
 	HookeanMatT::Initialize();
+#endif
 }
 
 /* form of tangent matrix (symmetric by default) */
@@ -61,24 +65,6 @@ void DPSSKStVLoc::ResetHistory(void)
 	/* reset if plastic */
 	ElementCardT& element = CurrentElement();
 	if (element.IsAllocated()) Reset(element);
-}
-
-/* print parameters */
-void DPSSKStVLoc::Print(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-	DPSSLinHardLocT::Print(out);
-}
-
-/* print name */
-void DPSSKStVLoc::PrintName(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::PrintName(out);
-	DPSSLinHardLocT::PrintName(out);
-	out << " Kirchhoff-St.Venant\n";
 }
 
 /* modulus */
@@ -201,6 +187,33 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 		output[3] = 0.0;
 	}
 
+}
+
+/* information about subordinate parameter lists */
+void DPSSKStVLoc::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	IsotropicT::DefineSubs(sub_list);
+	SSSolidMatT::DefineSubs(sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* DPSSKStVLoc::NewSub(const StringT& name) const
+{
+	/* inherited */
+	ParameterInterfaceT* sub = IsotropicT::NewSub(name);
+	if (sub)
+		return sub;
+	else
+		return SSSolidMatT::NewSub(name);
+}
+
+/* accept parameter list */
+void DPSSKStVLoc::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	IsotropicT::TakeParameterList(list);
+	SSSolidMatT::TakeParameterList(list);
 }
 
 /*************************************************************************

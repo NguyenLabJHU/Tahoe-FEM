@@ -1,4 +1,4 @@
-/* $Id: LocalizeT.cpp,v 1.6 2003-11-24 19:35:13 thao Exp $ */
+/* $Id: LocalizeT.cpp,v 1.7 2004-07-15 08:28:31 paklein Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "LocalizeT.h"
@@ -16,7 +16,8 @@ using namespace Tahoe;
 LocalizeT::LocalizeT(const ElementSupportT& support):
   fTime(support.Time()),
   fPi(acos(-1.0)){
-  
+ExceptionT::GeneralFail("LocalizeT::LocalizeT", "out of date");
+#if 0	  
   /*Dimension member data*/
   int nsd = support.NumSD();
   fStress.Dimension(nsd);
@@ -64,7 +65,7 @@ LocalizeT::LocalizeT(const ElementSupportT& support):
     cout << "\nLocalizeT::LocalizeT invalid input for check localization flag.";
     throw ExceptionT::kBadInputValue; 
   }
-  
+#endif  
 }
 
 

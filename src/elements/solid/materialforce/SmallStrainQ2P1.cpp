@@ -1,19 +1,22 @@
-/* $Id: SmallStrainQ2P1.cpp,v 1.5 2004-01-05 08:26:37 paklein Exp $ */
+/* $Id: SmallStrainQ2P1.cpp,v 1.6 2004-07-15 08:28:31 paklein Exp $ */
 #include "SmallStrainQ2P1.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
 
 /* materials lists */
+#include "MaterialListT.h"
+#if 0
 #include "SolidMatList1DT.h"
 #include "SolidMatList2DT.h"
 #include "SolidMatList3DT.h"
+#endif
 #include "SSMatSupportT.h"
 
 using namespace Tahoe;
 
 /* constructor */
 SmallStrainQ2P1::SmallStrainQ2P1(const ElementSupportT& support, const FieldT& field):
-  SmallStrainT(support, field),
+  SmallStrainT(support),
   fpdof(NumSD()+1),
   fthird(1.0/3.0)
 {}
@@ -21,6 +24,8 @@ SmallStrainQ2P1::SmallStrainQ2P1(const ElementSupportT& support, const FieldT& f
 /* called immediately after constructor */
 void SmallStrainQ2P1::Initialize(void)
 {
+ExceptionT::GeneralFail("SmallStrainQ2P1::Initialize", "out of date");
+#if 0	
   /* inherited */
   SolidElementT::Initialize();
   
@@ -90,6 +95,7 @@ void SmallStrainQ2P1::Initialize(void)
   fAVec.Dimension(fpdof);
   fAMat.Dimension(fpdof,NumSD());
   fBMat.Dimension(fpdof,NumSD());
+#endif
 }
 
 void SmallStrainQ2P1::CloseStep(void)

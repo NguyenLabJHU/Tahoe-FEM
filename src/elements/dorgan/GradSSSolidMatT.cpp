@@ -1,4 +1,4 @@
-/* $Id: GradSSSolidMatT.cpp,v 1.9 2004-06-09 00:25:53 rdorgan Exp $ */ 
+/* $Id: GradSSSolidMatT.cpp,v 1.10 2004-07-15 08:28:12 paklein Exp $ */ 
 #include "GradSSSolidMatT.h"
 #include <iostream.h>
 #include "GradSSMatSupportT.h"
@@ -8,7 +8,8 @@ using namespace Tahoe;
 
 /* constructor */
 GradSSSolidMatT::GradSSSolidMatT(ifstreamT& in, const GradSSMatSupportT& support):
-	SSSolidMatT(in, support),
+	ParameterInterfaceT("gradient_small_strain_solid_material"),
+//	SSSolidMatT(support),
 	fGradSSMatSupport(&support),
 
 	fNumDOF_Field(support.NumDOF_Field()),
@@ -16,33 +17,18 @@ GradSSSolidMatT::GradSSSolidMatT(ifstreamT& in, const GradSSMatSupportT& support
 
 	fNumIP_Field(support.NumIP_Field())
 {
-	SetName("gradient_small_strain_solid_material");
+
 }
 
 GradSSSolidMatT::GradSSSolidMatT(void):
+	ParameterInterfaceT("gradient_small_strain_solid_material"),
 	fGradSSMatSupport(NULL)
 {
-	SetName("gradient_small_strain_solid_material");
+
 }
 
 /* destructor */
 GradSSSolidMatT::~GradSSSolidMatT(void) { }
-
-/* initialization */
-void GradSSSolidMatT::Initialize(void)
-{
-	/* inherited */
-	SSSolidMatT::Initialize();
-}
-
-/* I/O */
-void GradSSSolidMatT::PrintName(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::PrintName(out);
-	
-	out << "    Multi Field solution\n";
-}
 
 /* field */
 const double& GradSSSolidMatT::Field(void) const

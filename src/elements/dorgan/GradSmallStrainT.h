@@ -1,4 +1,4 @@
-/* $Id: GradSmallStrainT.h,v 1.8 2004-06-24 03:08:35 rdorgan Exp $ */ 
+/* $Id: GradSmallStrainT.h,v 1.9 2004-07-15 08:28:12 paklein Exp $ */ 
 #ifndef _GRAD_SMALL_STRAIN_T_H_ 
 #define _GRAD_SMALL_STRAIN_T_H_ 
 
@@ -82,10 +82,7 @@ protected:
 	
 	/** return a const reference to the run state flag */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
-	
-	/** write element group parameters to out */
-	virtual void PrintControlData(ostream& out) const;
-	
+
 private:
 	/** set the shape function matrices using the given shape functions */
 	virtual void Set_h(dMatrixT& h) const;

@@ -1,4 +1,4 @@
-/* $Id: MFSupportT.cpp,v 1.9 2003-11-24 17:35:12 thao Exp $ */
+/* $Id: MFSupportT.cpp,v 1.10 2004-07-15 08:28:31 paklein Exp $ */
 #include "MFSupportT.h"
 
 #include "dArrayT.h"
@@ -19,6 +19,8 @@ MFSupportT::MFSupportT(const  ElementSupportT& support):
   fNumGroupNodes(0),
   fMatForceOutputID(-1)
 {
+ExceptionT::GeneralFail("MFSupportT::MFSupportT", "out of date");
+#if 0	
   ifstreamT& in = fSupport.Input();
   ostream&  out = fSupport.Output();
 
@@ -32,7 +34,7 @@ MFSupportT::MFSupportT(const  ElementSupportT& support):
   }
 
   /*read in node sets over which material forces are summed*/
-  ModelManagerT& model = fSupport.Model();
+  ModelManagerT& model = fSupport.ModelManager();
   const ArrayT<StringT>& nsetIDs = model.NodeSetIDs();
   in >> fnumset;
   fNID.Dimension (fnumset);
@@ -71,6 +73,7 @@ MFSupportT::MFSupportT(const  ElementSupportT& support):
 
   /*initialize fio boolean*/
   fopen = false;
+#endif
 }
 	
 MFSupportT::~MFSupportT(void)
@@ -105,7 +108,7 @@ void MFSupportT::MapOutput(void)
 
   if (strncmp(fBoundID,"0",1) != 0)
   {
-      const iArrayT& bound_nodes = fSupport.Model().NodeSet(fBoundID);
+      const iArrayT& bound_nodes = fSupport.ModelManager().NodeSet(fBoundID);
       //  cout << "\nboundary nodes: "<<bound_nodes;
       for (int i = 0; i< bound_nodes.Length(); i++)
       {
@@ -122,11 +125,10 @@ void MFSupportT::WriteSummary(dArray2DT& output)
   int nsd = fSupport.NumSD();
 
   /*write summary of MF results to external file*/  
-  ModelManagerT& model = fSupport.Model();
+  ModelManagerT& model = fSupport.ModelManager();
   int numnset = model.NumNodeSets();
 
-  ifstreamT& in = fSupport.Input();
-  const StringT& input_file = in.filename();
+  const StringT& input_file = fSupport.InputFile();
   fsummary_file.Root(input_file);
   fsummary_file.Append(".sum");
  

@@ -21,8 +21,11 @@ GRAD_MRSSKStV2D::GRAD_MRSSKStV2D(ifstreamT& in, const SSMatSupportT& support):
 /* initialization */
 void GRAD_MRSSKStV2D::Initialize(void)
 {
+ExceptionT::GeneralFail("GRAD_MRSSKStV2D::Initialize", "out of date");
+#if 0
 	/* inherited */
 	HookeanMatT::Initialize();
+#endif
 }
 
 /* returns 3D total strain (3D) */

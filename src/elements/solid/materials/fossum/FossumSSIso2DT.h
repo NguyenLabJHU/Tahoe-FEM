@@ -1,9 +1,9 @@
-/* $Id: FossumSSIso2DT.h,v 1.10 2004-05-10 21:06:55 raregue Exp $ */
+/* $Id: FossumSSIso2DT.h,v 1.11 2004-07-15 08:28:52 paklein Exp $ */
 #ifndef _FOSSUM_SS_ISO_2D_T_H_
 #define _FOSSUM_SS_ISO_2D_T_H_
 
 /* base class */
-#include "Material2DT.h"
+//#include "Material2DT.h"
 #include "FossumSSIsoT.h"
 
 #include "SSSolidMatT.h"
@@ -11,7 +11,7 @@
 
 namespace Tahoe {
 
-class FossumSSIso2DT: public FossumSSIsoT, public Material2DT
+class FossumSSIso2DT: public FossumSSIsoT//, public Material2DT
 {
 public:
 
@@ -26,10 +26,6 @@ public:
 			const dSymMatrixT& totalstrain, 
 			const ElementCardT& element, int ip);
 
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-        
 	/* moduli */
 	virtual const dMatrixT& c_ijkl(void);
 	virtual const dMatrixT& con_ijkl(void);

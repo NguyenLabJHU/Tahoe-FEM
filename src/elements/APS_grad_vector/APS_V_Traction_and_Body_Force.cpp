@@ -1,4 +1,4 @@
-/* $Id: APS_V_Traction_and_Body_Force.cpp,v 1.1 2004-03-02 23:46:42 raregue Exp $ */
+/* $Id: APS_V_Traction_and_Body_Force.cpp,v 1.2 2004-07-15 08:27:53 paklein Exp $ */
 #include "APS_V_AssemblyT.h"
 
 #include "fstreamT.h"
@@ -20,11 +20,13 @@
 
 void APS_V_AssemblyT::EchoTractionBC(ifstreamT& in, ostream& out)
 {
+ExceptionT::GeneralFail("APS_V_AssemblyT::EchoTractionBC", "out of date");
+#if 0	
 	const char caller[] = "APS_V_AssemblyT::EchoTractionBC";
 	
 	/* read data from parameter file */
 	int numlines, numsets;
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 	model.ReadNumTractionLines (in, numlines, numsets);
 
 	if (numlines > 0)
@@ -164,6 +166,7 @@ void APS_V_AssemblyT::EchoTractionBC(ifstreamT& in, ostream& out)
 				throw ExceptionT::kBadInputValue;
 			}
 	}
+#endif
 }
 
 //---------------------------------------------------------------------
@@ -368,6 +371,8 @@ void APS_V_AssemblyT::ApplyTractionBC(void)
 
 void APS_V_AssemblyT::EchoBodyForce(ifstreamT& in, ostream& out)
 {
+ExceptionT::GeneralFail("APS_V_AssemblyT::EchoBodyForce", "out of date");
+#if 0	
 	const char caller[] = "APS_V_AssemblyT::EchoBodyForce";
 
 	/* schedule number and body force vector */
@@ -394,6 +399,7 @@ void APS_V_AssemblyT::EchoBodyForce(ifstreamT& in, ostream& out)
 		out << fBody[j] << '\n';
 	}
 	out.flush();   	   	
+#endif
 }
 
 //---------------------------------------------------------------------

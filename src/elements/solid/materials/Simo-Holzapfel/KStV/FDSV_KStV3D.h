@@ -1,4 +1,4 @@
-/* $Id: FDSV_KStV3D.h,v 1.3 2003-05-12 16:51:29 thao Exp $ */
+/* $Id: FDSV_KStV3D.h,v 1.4 2004-07-15 08:28:49 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 #ifndef _FD_SV_KStV_3D_H_
 #define _FD_SV_KStV_3D_H_
@@ -19,10 +19,6 @@ class FDSV_KStV3D: public FDSimoViscoBaseT
 	
 	/*constructor*/
 	FDSV_KStV3D(ifstreamT& in, const FSMatSupportT& support);
-
-	/*print parameters*/
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 
         /* spatial description */ 
         virtual const dMatrixT& c_ijkl(void); // spatial tangent moduli 
