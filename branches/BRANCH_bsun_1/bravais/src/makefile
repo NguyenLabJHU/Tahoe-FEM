@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.9 2003-07-02 23:02:14 saubry Exp $
+# $Id: makefile,v 1.9.2.1 2004-07-08 23:26:18 bsun Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -13,6 +13,7 @@ OBJ = \
 	CrystalLatticeT.o \
 	BoxT.o \
 	AsperityT.o \
+	PolyT.o \
 	CUBT.o \
 	FCCT.o \
 	BCCT.o \
@@ -21,8 +22,8 @@ OBJ = \
 	CORUNT.o\
 	OutPutLatticeT.o \
 	MeshAtomT.o \
-	MakeCrystalT.o
-
+	MakeCrystalT.o 
+	
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -38,6 +39,7 @@ SRC = \
         CrystalLatticeT.cpp \
         BoxT.cpp \
 	AsperityT.cpp \
+	PolyT.cpp \
 	CUBT.cpp \
 	FCCT.cpp \
 	BCCT.cpp \
@@ -46,7 +48,7 @@ SRC = \
 	CORUNT.cpp\
 	OutPutLatticeT.cpp \
 	MeshAtomT.cpp \
-	MakeCrystalT.cpp
+	MakeCrystalT.cpp 
  
 # headers
 HDR = \
@@ -56,6 +58,7 @@ HDR = \
         CrystalLatticeT.h \
         BoxT.h \
 	AsperityT.h \
+	PolyT.h \
 	CUBT.h \
 	FCCT.h \
 	BCCT.h \
