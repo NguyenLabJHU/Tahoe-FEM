@@ -1,4 +1,4 @@
-/* $Id: GeometryT.cpp,v 1.6 2004-02-12 17:17:41 paklein Exp $ */
+/* $Id: GeometryT.cpp,v 1.7 2004-03-16 19:25:55 paklein Exp $ */
 /* created: paklein (10/10/1999) */
 #include "GeometryT.h"
 
@@ -13,6 +13,9 @@
 #include "HexahedronT.h"
 #include "TetrahedronT.h"
 #include "PentahedronT.h"
+#include "ParameterContainerT.h"
+
+#include <string.h>
 
 using namespace Tahoe;
 
@@ -31,47 +34,60 @@ const char* GeometryT::fNames[8] =
      "hexahedron",
     "tetrahedron",
     "pentahedron"};
+
+/* convert string to GeometryT::CodeT */
+GeometryT::CodeT GeometryT::string2CodeT(const char* name)
+{
+	CodeT codes[8] = {kNone, kPoint, kLine, kQuadrilateral, kTriangle, 
+		kHexahedron, kTetrahedron, kPentahedron};
+	for (int i = 0; i < 8; i++)
+		if (strcmp(name, fNames[i]) == 0)
+			return codes[i];
+
+	/* fail */
+	ExceptionT::GeneralFail("GeometryT::string2CodeT", "known geometry \"%s\"", name);
+	return kNone;
+}
+
 } /* namespace Tahoe */ 
 
 namespace Tahoe {
+
+/* convert int to GeometryT::CodeT */
+GeometryT::CodeT GeometryT::int2CodeT(int i) {
+	switch (i)
+	{
+		case GeometryT::kNone:
+			return GeometryT::kNone;
+		case GeometryT::kPoint:
+			return GeometryT::kPoint;
+		case GeometryT::kLine:
+			return GeometryT::kLine;
+		case GeometryT::kQuadrilateral:
+			return GeometryT::kQuadrilateral;
+		case GeometryT::kTriangle:
+			return GeometryT::kTriangle;
+		case GeometryT::kHexahedron:
+			return GeometryT::kHexahedron;
+		case GeometryT::kTetrahedron:
+			return GeometryT::kTetrahedron;
+		case GeometryT::kPentahedron:
+			return GeometryT::kPentahedron;
+		default:
+			ExceptionT::GeneralFail("GeometryT::int2CodeT", "unknown code %d", i);
+	}	
+	return GeometryT::kNone;
+}
+
 istream& operator>>(istream& in, GeometryT::CodeT& code)
 {
 	int i_code;
 	in >> i_code;
-	switch (i_code)
-	{
-		case GeometryT::kNone:
-			code = GeometryT::kNone;
-			break;
-		case GeometryT::kPoint:
-			code = GeometryT::kPoint;
-			break;
-		case GeometryT::kLine:
-			code = GeometryT::kLine;
-			break;
-		case GeometryT::kQuadrilateral:
-			code = GeometryT::kQuadrilateral;
-			break;
-		case GeometryT::kTriangle:
-			code = GeometryT::kTriangle;
-			break;
-		case GeometryT::kHexahedron:
-			code = GeometryT::kHexahedron;
-			break;
-		case GeometryT::kTetrahedron:
-			code = GeometryT::kTetrahedron;
-			break;
-		case GeometryT::kPentahedron:
-			code = GeometryT::kPentahedron;
-			break;
-		default:
-			cout << "\n operator>>GeometryT::CodeT: unknown code: "
-			<< i_code<< endl;
-			throw ExceptionT::kBadInputValue;	
-	}
+	code = GeometryT::int2CodeT(i_code); 
+
 	return in;
 }
-} // namespace Tahoe 
+} /* namespace Tahoe */
 
 /* geometry_code -> nsd macro */
 namespace Tahoe {
@@ -135,5 +151,88 @@ GeometryBaseT* GeometryT::NewGeometry(GeometryT::CodeT geometry, int nen)
 		throw exception;
 	}
 	return geom;
+}
+} /* namespace Tahoe */
+
+/* return a description of the given geometry name or NULL */
+namespace Tahoe {
+ParameterInterfaceT* GeometryT::NewGeometry(const StringT& name)
+{
+	if (name == GeometryT::ToString(GeometryT::kLine))
+	{
+		ParameterContainerT* line = new ParameterContainerT(name);
+	
+		/* integration rules */
+		ParameterT num_ip(ParameterT::Integer, "num_ip");
+		num_ip.AddLimit(1, LimitT::Only);
+		num_ip.AddLimit(2, LimitT::Only);
+		num_ip.AddLimit(3, LimitT::Only);
+		num_ip.AddLimit(4, LimitT::Only);
+		num_ip.SetDefault(2);
+		line->AddParameter(num_ip);
+
+		return line;
+	}
+	else if (name == GeometryT::ToString(GeometryT::kQuadrilateral))
+	{
+		ParameterContainerT* quad = new ParameterContainerT(name);
+	
+		/* integration rules */
+		ParameterT num_ip(ParameterT::Integer, "num_ip");
+		num_ip.AddLimit(1, LimitT::Only);
+		num_ip.AddLimit(4, LimitT::Only);
+		num_ip.AddLimit(5, LimitT::Only);
+		num_ip.AddLimit(9, LimitT::Only);
+		num_ip.AddLimit(16, LimitT::Only);
+		num_ip.SetDefault(4);
+		quad->AddParameter(num_ip);
+
+		return quad;
+	}
+	else if (name == GeometryT::ToString(GeometryT::kTriangle))
+	{
+		ParameterContainerT* tri = new ParameterContainerT(name);
+	
+		/* integration rules */
+		ParameterT num_ip(ParameterT::Integer, "num_ip");
+		num_ip.AddLimit(1, LimitT::Only);
+		num_ip.AddLimit(4, LimitT::Only);
+		num_ip.AddLimit(6, LimitT::Only);
+		num_ip.SetDefault(1);
+		tri->AddParameter(num_ip);
+
+		return tri;
+	}
+	else if (name == GeometryT::ToString(GeometryT::kHexahedron))
+	{
+		ParameterContainerT* hex = new ParameterContainerT(name);
+	
+		/* integration rules */
+		ParameterT num_ip(ParameterT::Integer, "num_ip");
+		num_ip.AddLimit(1, LimitT::Only);
+		num_ip.AddLimit(8, LimitT::Only);
+		num_ip.AddLimit(9, LimitT::Only);
+		num_ip.AddLimit(27, LimitT::Only);
+		num_ip.AddLimit(64, LimitT::Only);
+		num_ip.SetDefault(8);
+		hex->AddParameter(num_ip);
+
+		return hex;
+	}
+	else if (name == GeometryT::ToString(GeometryT::kTetrahedron))
+	{
+		ParameterContainerT* tet = new ParameterContainerT(name);
+	
+		/* integration rules */
+		ParameterT num_ip(ParameterT::Integer, "num_ip");
+		num_ip.AddLimit(1, LimitT::Only);
+		num_ip.AddLimit(4, LimitT::Only);
+		num_ip.SetDefault(1);
+		tet->AddParameter(num_ip);
+
+		return tet;
+	}
+	else
+		return NULL;
 }
 } /* namespace Tahoe */
