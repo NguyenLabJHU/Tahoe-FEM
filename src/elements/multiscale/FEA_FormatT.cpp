@@ -1,4 +1,4 @@
-// $Id: FEA_FormatT.cpp,v 1.20 2003-10-10 00:47:12 paklein Exp $
+// $Id: FEA_FormatT.cpp,v 1.21 2003-10-10 13:35:22 raregue Exp $
 #include "FEA_FormatT.h"
 
 using namespace Tahoe;
@@ -66,7 +66,7 @@ void FEA_FormatT::SurfShapeGradient	(int n_en, const ParentDomainT& surf_shapes,
 			dN_dx(1,a) = DNa_y[a];
 
 			dArrayT& N = FEA_SurfShapes.N[l];
-			N[a] = Na[a]; 
+			N[a] = Na[a];
 		}
 		
 //		FEA_SurfShapes.N[l] = surf_shapes.Shape(l); 
