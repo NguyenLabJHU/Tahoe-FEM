@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.17 2004-10-11 23:05:37 cjkimme Exp $ */
+/* $Id: SCNIMFT.h,v 1.18 2004-10-13 00:20:15 cjkimme Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -226,18 +226,11 @@ protected:
 	/** true if boundary connectivity is simplicial */
 	bool fBoundaryIsTriangulated; // Tag for Deletion
 	
-	/** centroids of the facets dual to Delone edges */
-	dArray2DT fDualFacetCentroids;
-	
 	/** additional edges associated only with one node */
 	iArrayT fNonDeloneEdges; 
 	
 	/** normal vectors of the facets for those edges */
-	dArray2DT fNonDeloneCentroids;
 	dArray2DT fNonDeloneNormals;
-	
-	/** dual of the Delone Edges -- areas of Voronoi Facets */
-	dArrayT fDualAreas;
 	
 	/** areas of boundary facets */
 	dArrayT fBoundaryIntegrationWeights;
