@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.4 2001-11-14 00:55:29 cjkimme Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.5 2001-11-16 00:22:42 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -37,6 +37,7 @@ Tijssens2DT::Tijssens2DT(ifstreamT& in, const double& time_step):
 	//        in >> ftau_c; if (ftau_c < 0) throw eBadInputValue;
 	in >> fastar; if (fastar < 0) throw eBadInputValue;
         in >> ftemp; if (ftemp < 0) throw eBadInputValue;
+	in >> fGroup; if (fGroup <= 0) throw eBadInputValue;
         //in >> fY; if (fY < 0) throw eBadInputValue;
 
 	fA = fA_0/2.*exp(fQ_A/ftemp);
@@ -81,7 +82,8 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 
 	/* see if crazing has been initiated */
 	double delta_tc, delta_nc, ddelta_tc;
-	if ((1.5*state[7] - fA + fB/state[7] - state[1]) > kSmall)
+//	if ((1.5*state[7] - fA + fB/state[7] - state[1]) > kSmall)
+	if (state[1]*state[1]+fA*state[1] < -fA*state[0]+fB+state[0]*state[0])
         {
 	        delta_tc = 0.;
 		delta_nc = 0.;
@@ -135,6 +137,7 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 
 	/* add to integrated energy */
         state[6] += fTraction[0]*du_t + fTraction[1]*du_n;
+	state[7] = (state[0]+state[1])/3.;
 	
 	return fTraction;
 }
@@ -251,7 +254,7 @@ bool Tijssens2DT::NeedsNodalInfo(void) { return true; }
 
 int Tijssens2DT::NodalQuantityNeeded(void) 
 { 
-        return 3; 
+        return 2; 
 }
 
 double Tijssens2DT::ComputeNodalValue(const dArrayT& nodalRow) 
@@ -262,6 +265,11 @@ double Tijssens2DT::ComputeNodalValue(const dArrayT& nodalRow)
 void Tijssens2DT::UpdateStateVariables(const dArrayT& IPdata, ArrayT<double>& state)
 {
         state[7] = IPdata[0];
+}
+
+int Tijssens2DT::ElementGroupNeeded(void) 
+{
+	return fGroup-1;
 }
 
 bool Tijssens2DT::CompatibleOutput(const SurfacePotentialT& potential) const

@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.7 2001-11-14 00:55:29 cjkimme Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.8 2001-11-16 00:22:42 cjkimme Exp $ */
 /* created: paklein (06/20/1999) */
 
 #ifndef _SURFACE_POTENTIAL_T_H_
@@ -88,6 +88,7 @@ at the nodes. Returns false by default. */
 	virtual int NodalQuantityNeeded(void);
 	virtual double ComputeNodalValue(const dArrayT &); 
         virtual void UpdateStateVariables(const dArrayT & IPdata, ArrayT<double> &);
+	virtual int ElementGroupNeeded(void);
 
 	/** returns true if two materials have compatible nodal outputs */
 	static bool CompatibleOutput(const SurfacePotentialT&, const SurfacePotentialT&);

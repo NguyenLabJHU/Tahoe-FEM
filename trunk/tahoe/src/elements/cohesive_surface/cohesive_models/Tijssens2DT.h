@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.h,v 1.3 2001-11-14 00:55:29 cjkimme Exp $ */
+/* $Id: Tijssens2DT.h,v 1.4 2001-11-16 00:22:42 cjkimme Exp $ */
 
 #ifndef _TIJSSENS_2D_T_H_
 #define _TIJSSENS_2D_T_H_
@@ -66,6 +66,7 @@ public:
 	virtual int NodalQuantityNeeded(void);
         virtual double ComputeNodalValue(const dArrayT &);
 	virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
+	virtual int ElementGroupNeeded(void);
 
 protected:
 
@@ -96,6 +97,7 @@ private:
 	double fastar; /* Material parameter */
 	double ftemp; /* Temperature */
 //	double fY; /* Bulk yield strength */
+	int fGroup;
 
 };
 
