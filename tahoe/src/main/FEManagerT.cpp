@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.52.2.2 2003-02-12 02:48:54 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.52.2.3 2003-02-14 02:49:04 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -358,6 +358,9 @@ void FEManagerT::FormRHS(int group) const
 	/* state */
 	SetStatus(GlobalT::kFormRHS);
 
+	/* unlock assembly into RHS */
+	fSolvers[group]->UnlockRHS();
+
 	/* nodal force contribution - F(t) */
 	fNodeManager->FormRHS(group);
 
@@ -369,6 +372,9 @@ void FEManagerT::FormRHS(int group) const
 	/* output system info (debugging) */
 	if (fSolvers[group]->Check() == GlobalMatrixT::kPrintRHS)
 		WriteSystemConfig(fMainOut, group);
+
+	/* lock assembly into RHS */
+	fSolvers[group]->LockRHS();
 }
 
 /* collect the internal force on the specified node */
@@ -1202,6 +1208,7 @@ void FEManagerT::SetSolver(void)
 	
 	/* dimension solver phase status array */
 	fSolverPhasesStatus.Dimension(fSolverPhases.MajorDim(), kNumStatusFlags);
+	fSolverPhasesStatus = 0;
 		
 	/* echo solver information */
 	fMainOut << "\n Multi-solver parameters: " << fSolverPhases.MajorDim() << '\n';
