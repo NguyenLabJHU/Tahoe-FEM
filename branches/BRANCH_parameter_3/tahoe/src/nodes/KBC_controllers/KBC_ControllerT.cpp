@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.cpp,v 1.11.22.3 2004-05-20 14:59:37 paklein Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.11.22.4 2004-05-22 01:17:38 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "KBC_ControllerT.h"
 
@@ -20,8 +20,10 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<KBC_ControllerT*>::fByteCopy = true;
 /* converts strings to KBC_ControllerT::CodeT */
 KBC_ControllerT::CodeT KBC_ControllerT::Code(const char* name)
 {
-	if (strcmp("K_field", name) == 0)
+	if (strcmp("K-field", name) == 0)
 		return kK_Field;
+	else if (strcmp("bi-material_K-field", name) == 0)
+		return kBimaterialK_Field;
 	else if (strcmp("torsion", name) == 0)
 		return kTorsion;
 	else if (strcmp("mapped_nodes", name) == 0)

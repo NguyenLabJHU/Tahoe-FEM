@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.h,v 1.8.18.3 2004-05-21 21:25:57 paklein Exp $ */
+/* $Id: K_FieldT.h,v 1.8.18.4 2004-05-22 01:17:38 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #ifndef _K_FIELD_T_H_
 #define _K_FIELD_T_H_
@@ -69,6 +69,9 @@ public:
 
 protected:
 
+	/** extract elastic constants */
+	void ResolveElasticProperties(const ParameterListT& list, int& group_number, int& material_number, double& mu, double& nu, double& kappa) const;
+
 	/* determine the new tip coordinates */
 	void GetNewTipCoordinates(dArrayT& tip_coords);
 
@@ -87,9 +90,7 @@ protected:
 
 	/** \name K-field specifications */
 	/*@{*/
-//	int    fnumLTf1;
 	double fK1;
-//	int    fnumLTf2;
 	double fK2;
 	/*@}*/
 
@@ -105,10 +106,10 @@ protected:
 	int fNearTipGroupNum;
 	
 	/** nodal output code from tip group used to locate crack tip */
-	int    fNearTipOutputCode;
+	int fNearTipOutputCode;
 
 	/** value within the output variables to locate tip */
-	int    fTipColumnNum;
+	int fTipColumnNum;
 
 	/** tip tracking method */
 	TrackingCodeT fTrackingCode;
@@ -153,5 +154,6 @@ protected:
 	dArrayT fLastTipCoords;
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _K_FIELD_T_H_ */
