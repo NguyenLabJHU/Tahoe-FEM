@@ -1,4 +1,4 @@
-/* $Id: PiecewiseLinearT.h,v 1.3 2004-09-02 18:40:12 rdorgan Exp $ */
+/* $Id: PiecewiseLinearT.h,v 1.4 2004-12-27 06:07:40 paklein Exp $ */
 #ifndef _PIECEWISE_LINEAR_T_H_
 #define _PIECEWISE_LINEAR_T_H_
 
@@ -20,6 +20,9 @@ public:
 	PiecewiseLinearT(void);	
 	PiecewiseLinearT(const dArray2DT& points);
 	/*@}*/
+
+	/** set function values */
+	void SetPoints(const dArray2DT& points);
 
 	/* I/O */
 	virtual void Print(ostream& out) const;     	    	   	

@@ -1,4 +1,4 @@
-/* $Id: PiecewiseLinearT.cpp,v 1.3 2004-09-02 18:40:11 rdorgan Exp $ */
+/* $Id: PiecewiseLinearT.cpp,v 1.4 2004-12-27 06:07:39 paklein Exp $ */
 #include "PiecewiseLinearT.h"
 #include "dArray2DT.h"
 
@@ -10,11 +10,17 @@ PiecewiseLinearT::PiecewiseLinearT(void)
 	SetName("piecewise_linear");
 }
 
-PiecewiseLinearT::PiecewiseLinearT(const dArray2DT& points):
-	fXPoints(0, points)
+PiecewiseLinearT::PiecewiseLinearT(const dArray2DT& points)
 {
 	SetName("piecewise_linear");
+	SetPoints(points);
+}
 
+/* set function values */
+void PiecewiseLinearT::SetPoints(const dArray2DT& points)
+{
+	/* collect data */
+	fXPoints.SetValues(0, points);
 	fYPoints.Dimension(fXPoints.Length());
 	points.ColumnCopy(1, fYPoints);
 
