@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.3 2001-04-29 21:11:08 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.4 2001-06-03 21:03:50 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #ifndef _ELASTIC_T_H_
@@ -35,7 +35,9 @@ public:
 		      iMass = 1, // element mass
 	  iStrainEnergy = 2, // strain energy
 	 iKineticEnergy = 3, // strain energy
-    iLinearMomentum = 4};// linear momentum
+    iLinearMomentum = 4, // linear momentum
+          iIPStress = 5, // integration point stresses
+    iIPMaterialData = 6};// integration point material model output
       
 	/* constructor */
 	SolidElementT(FEManagerT& fe_manager);
