@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.cpp,v 1.3 2003-04-11 23:07:03 paklein Exp $ */
+/* $Id: ParadynEAMT.cpp,v 1.4 2003-04-15 17:42:06 saubry Exp $ */
 #include "ParadynEAMT.h"
 
 #include "toolboxConstants.h"
@@ -67,19 +67,14 @@ ParadynEAMT::ParadynEAMT(const StringT& param_file):
   rho_inc = 1.0/dp;
     
   /* Pair Energy, zrin in ParaDyn 
-     Note: It is only z^2 at this point, not phi = z^2/r */
+     Note: It is only z at this point, not phi = z^2/r */
   tmp.Dimension(nr);
   in >> tmp;
   tmp *= sqrt(27.2*0.529);
   f_inc = 1.0/dr;
 
-  dArrayT z2;  
-  z2.Dimension(nr);
-  for (int j = 0; j < nr; j++) 
-    z2[j] = tmp[j]*tmp[j];
-
   /* compute spline coefficients for z^2 */
-  ComputeCoefficients(z2, dr, fPairCoeff);
+  ComputeCoefficients(tmp, dr, fPairCoeff);
 
   /* Electron Density, rhoin in ParaDyn, 
      assume that z and rho grids coincide */
@@ -221,15 +216,14 @@ bool ParadynEAMT::getParadynTable(const double** coeff, double& dr,
  * Private
  ***********************************************************************/
 
-// phi(r) = z2(r)/r
+// z(r)
 double ParadynEAMT::PairEnergy(double r_ab, double* data_a, double* data_b)
 {
 #pragma unused(data_a)
 #pragma unused(data_b)
 
-  double z2 = EnergyAux(r_ab,s_nr,s_f_inc,s_Paircoeff);
-  double phi = z2/r_ab;
-  return phi;
+  double z = EnergyAux(r_ab,s_nr,s_f_inc,s_Paircoeff);
+  return z;
 }
 
 // F(rho)
@@ -250,14 +244,11 @@ double ParadynEAMT::ElecDensEnergy(double r_ab, double* data_a, double* data_b)
   return EnergyAux(r_ab,s_nr,s_f_inc,s_ElecDenscoeff);
 }
 
-// phi(r)' = (z2)'/r - phi/r
+// z'(r)
 double ParadynEAMT::PairForce(double r_ab, double* data_a, double* data_b)
 {
-
-  double z2p = ForceAux(r_ab,s_nr,s_f_inc,s_Paircoeff);
-  double phi = PairEnergy(r_ab,data_a,data_b);
-  double phip = z2p/r_ab - phi/r_ab;
-  return phip;
+  double zp = ForceAux(r_ab,s_nr,s_f_inc,s_Paircoeff);
+  return zp;
 }
 
 // F'(rho)
@@ -278,13 +269,11 @@ double ParadynEAMT::ElecDensForce(double r_ab, double* data_a, double* data_b)
   return ForceAux(r_ab,s_nr,s_f_inc,s_ElecDenscoeff);
 }
 
-// phi(r)'' = z2''/r - 2*phi(r)'/r
+// z''(r)
 double ParadynEAMT::PairStiffness(double r_ab, double* data_a, double* data_b)
 {
-  double z2pp = StiffnessAux(r_ab,s_nr,s_f_inc,s_Paircoeff);
-  double phip = PairForce(r_ab,data_a,data_b);
-  double phipp = z2pp/r_ab - 2*phip/r_ab;
-  return phipp;
+  double zpp = StiffnessAux(r_ab,s_nr,s_f_inc,s_Paircoeff);
+  return zpp;
 }
 
 // F''(rho)
@@ -296,7 +285,7 @@ double ParadynEAMT::EmbeddingStiffness(double rho_ab, double* data_a, double* da
   return StiffnessAux(rho_ab,s_np,s_e_inc,s_Embcoeff);
 }
 
-// rho''
+// rho''(r)
 double ParadynEAMT::ElecDensStiffness(double r_ab, double* data_a, double* data_b)
 {
 #pragma unused(data_a)
