@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.7 2002-09-12 17:49:53 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.7.2.1 2002-09-21 09:05:17 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -232,8 +232,7 @@ void DiffusionElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const i
 /* set the correct shape functions */
 void DiffusionElementT::SetShape(void)
 {
-	fShapes = new ShapeFunctionT(GeometryCode(), NumIP(),
-		fLocInitCoords, ShapeFunctionT::kStandardB);
+	fShapes = new ShapeFunctionT(GeometryCode(), NumIP(), fLocInitCoords);
 	if (!fShapes ) throw eOutOfMemory;
 	fShapes->Initialize();
 }
@@ -348,6 +347,41 @@ void DiffusionElementT::RHSDriver(void)
 	}
 }
 
+/* set the \e B matrix at the specified integration point */
+void DiffusionElementT::B(int ip, dMatrixT& B_matrix) const
+{
+	const dArray2DT& DNa = fShapes->Derivatives_U(ip);
+	int nnd = DNa.MinorDim();
+	double* pB = B_matrix.Pointer();
+
+	/* 2D */
+	if (DNa.MajorDim() == 2)
+	{
+		double* pNax = DNa(0);
+		double* pNay = DNa(1);
+
+		for (int i = 0; i < nnd; i++)
+		{
+			*pB++ = *pNax++;
+			*pB++ = *pNay++;
+		}
+	}
+	/* 3D */
+	else		
+	{
+		double* pNax = DNa(0);
+		double* pNay = DNa(1);
+		double* pNaz = DNa(2);
+		
+		for (int i = 0; i < nnd; i++)
+		{
+			*pB++ = *pNax++;
+			*pB++ = *pNay++;
+			*pB++ = *pNaz++;
+		}
+	}
+}
+
 /* current element operations */
 bool DiffusionElementT::NextElement(void)
 {
@@ -386,7 +420,7 @@ void DiffusionElementT::FormStiffness(double constK)
 		double scale = constK*(*Det++)*(*Weight++);
 	
 		/* strain displacement matrix */
-		fShapes->B_q(fB);
+		B(fShapes->CurrIP(), fB);
 
 		/* get D matrix */
 		fD.SetToScaled(scale, fCurrMaterial->k_ij());
@@ -408,7 +442,7 @@ void DiffusionElementT::FormKd(double constK)
 	while ( fShapes->NextIP() )
 	{
 		/* get strain-displacement matrix */
-		fShapes->B_q(fB);
+		B(fShapes->CurrIP(), fB);
 
 		/* compute heat flow */
 		fB.MultTx(fCurrMaterial->q_i(), fNEEvec);
