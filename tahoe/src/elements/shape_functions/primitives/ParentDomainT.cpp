@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.24.4.1 2004-03-30 19:09:43 paklein Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.24.4.2 2004-05-03 23:53:08 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -430,7 +430,7 @@ void ParentDomainT::ComputeDNa(const LocalArrayT& coords,
 		Jacobian(coords, fDNa[i], fJacobian);
 		det[i] = fJacobian.Det();
 		/* element check */
-		if (det[i] <= 0.0) throw ExceptionT::kBadJacobianDet;
+		if (det[i] <= 0.0) ExceptionT::BadJacobianDet("ParentDomainT::ComputeDNa", "j = %d",  det[i]);
 
 		dMatrixT& jac_inv = fJacobian.Inverse();
 					
