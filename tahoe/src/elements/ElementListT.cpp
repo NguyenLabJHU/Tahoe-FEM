@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.86 2004-04-11 22:29:06 raregue Exp $ */
+/* $Id: ElementListT.cpp,v 1.87 2004-05-14 01:32:47 rdorgan Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -923,13 +923,16 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		  const FieldT* disp = field;
 		  
 		  /* hardness field */				
-		  StringT hardness_field_name;
-		  in >> hardness_field_name;
-		  const FieldT* hardness = fSupport.Field(hardness_field_name);
-		  if (!disp || !hardness)
+		  StringT hardness_field_name1;
+		  StringT hardness_field_name2;
+		  in >> hardness_field_name1;
+		  in >> hardness_field_name2;
+		  const FieldT* hardness1 = fSupport.Field(hardness_field_name1);
+		  const FieldT* hardness2 = fSupport.Field(hardness_field_name2);
+		  if (!disp || !hardness1 || !hardness2)
 		    ExceptionT::BadInputValue(caller, "error resolving field names");
 		  
-		  fArray[group] = new GradSmallStrainT(fSupport, *disp, *hardness);
+		  fArray[group] = new GradSmallStrainT(fSupport, *disp, *hardness1, *hardness2);
 		  break;
 #else
 		  ExceptionT::BadInputValue(caller, "GRAD_SMALL_STRAIN_DEV not enabled: %d", code);
