@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact2DT.cpp,v 1.1.1.1.6.1 2001-10-26 15:46:43 sawimme Exp $ */
+/* $Id: PenaltyContact2DT.cpp,v 1.1.1.1.6.2 2001-10-30 07:00:26 paklein Exp $ */
 /* created: paklein (12/11/1997)                                          */
 
 #include "PenaltyContact2DT.h"
@@ -69,11 +69,10 @@ void PenaltyContact2DT::LHSDriver(void)
 
 	/* loop over active elements */
 	dArrayT tangent(fNumSD);
-	//iArrayT eqnos;
-	for (int i = 0; i < fNumElements; i++)
+	iArrayT eqnos;
+	for (int i = 0; i < fContactConnectivities.MajorDim(); i++)
 	{
-	        const iArrayT& elemnodes = fElementCards[i].NodesX();
-		int* pelem = elemnodes.Pointer();
+		int* pelem = fContactConnectivities(i);
 	
 		/* get facet and striker coords */
 		coords.RowAlias(pelem[0], fx1);
@@ -142,8 +141,7 @@ void PenaltyContact2DT::LHSDriver(void)
 			fLHS.AddScaled(-fK*h*h/(magtan*magtan), fNEEmat);
 
 			/* get equation numbers */
-			const iArrayT& eqnos = fElementCards[i].Equations();
-			//fEqnos.RowAlias(i, eqnos);
+			fEqnos[0].RowAlias(i, eqnos);
 			
 			/* time integration factor */
 			fLHS *= constK;
@@ -171,11 +169,10 @@ void PenaltyContact2DT::RHSDriver(void)
 
 	/* loop over active elements */
 	dArrayT tangent(fNumSD);
-	//iArrayT eqnos;
-	for (int i = 0; i < fNumElements; i++)
+	iArrayT eqnos;
+	for (int i = 0; i < fContactConnectivities.MajorDim(); i++)
 	{
-	        const iArrayT& elemnodes = fElementCards[i].NodesX();
-		int* pelem = elemnodes.Pointer();
+		int* pelem = fContactConnectivities(i);
 
 		/* collect element configuration */
 		fElCoord.RowCollect(pelem, init_coords);
@@ -230,8 +227,7 @@ void PenaltyContact2DT::RHSDriver(void)
 				                dphi*fv1[1]/magtan, fColtemp2);
 					
 			/* get equation numbers */
-			const iArrayT& eqnos = fElementCards[i].Equations();
-			//fEqnos.RowAlias(i, eqnos);
+			fEqnos[0].RowAlias(i, eqnos);
 			
 			/* assemble */
 			fFEManager.AssembleRHS(fRHS, eqnos);
