@@ -1,4 +1,4 @@
-/* $Id: GraphT.cpp,v 1.12 2003-04-07 22:57:48 cjkimme Exp $ */
+/* $Id: GraphT.cpp,v 1.13 2003-06-03 18:56:19 cjkimme Exp $ */
 #include "GraphT.h"
 
 #include <time.h>
@@ -146,10 +146,11 @@ void GraphT::MakeGraph(void)
 	const iArray2DT* currEquiv;
 	fEquivalentData.Top();
 	while ( fEquivalentData.Next(currEquiv) )
-	{
+	{	
 		int  nel = currEquiv->MajorDim();
 		int  nen = currEquiv->MinorDim();
 		int* ien = currEquiv->Pointer();
+		iArrayT row_i, row_j;
 		for (int k = 0; k < nel; k++)
 		{
 			for (int i = 0; i < nen; i++)
@@ -165,20 +166,48 @@ void GraphT::MakeGraph(void)
 						int r_j = ien[j];
 						if (r_j > -1 && r_i != r_j) 	
 					    {
-					    	iArrayT row_i, row_j;
+					    	row_i.Dimension(edgedata.MinorDim(r_i - fShift));
+					    	row_i.Copy(edgedata(r_i - fShift));
+					    	row_j.Dimension(edgedata.MinorDim(r_j - fShift));
+					    	row_j.Copy(edgedata(r_j - fShift));
+							
+							edgedata.AppendUnique(r_j - fShift, row_i);
+							edgedata.AppendUnique(r_i - fShift, row_j);
+						}
+					}
+				}
+			}
+			ien += nen;
+		}
+	
+		/* Graph is no longer consistent, row_i and row_j
+		 * are identical, but nodes k that were adjacent to j do not
+		 * necessarily know about i.
+		 */
+		
+		ien = currEquiv->Pointer();
+		for (int k = 0; k < nel; k++)
+		{
+			for (int i = 0; i < nen; i++)
+			{	
+				int r_i = ien[i];
+				if (r_i > -1)
+				{
+					for (int j = i+1; j < nen; j++)
+					{
+						int r_j = ien[j];
+						if (r_j > -1 && r_i != r_j) 	
+					    {
+					    	
 					    	row_i.Dimension(edgedata.MinorDim(r_i - fShift));
 					    	row_i.Copy(edgedata(r_i - fShift));
 					    	row_j.Dimension(edgedata.MinorDim(r_j - fShift));
 					    	row_j.Copy(edgedata(r_j - fShift));
 					    
-					    	edgedata.AppendUnique(r_j - fShift, row_i);
-							edgedata.AppendUnique(r_i - fShift, row_j);
-							
-							iArrayT row_k, row_l;
-					    	row_k.Dimension(edgedata.MinorDim(r_i - fShift));
-					    	row_k.Copy(edgedata(r_i - fShift));
-					    	row_l.Dimension(edgedata.MinorDim(r_j - fShift));
-					    	row_l.Copy(edgedata(r_j - fShift));
+					    	for (int z = 0; z < row_i.Length(); z++)
+								edgedata.AppendUnique(row_i[z] - fShift,r_j);
+							for (int z = 0; z < row_j.Length(); z++)
+								edgedata.AppendUnique(row_j[z] - fShift,r_i);
 						}
 					}
 				}
@@ -186,11 +215,12 @@ void GraphT::MakeGraph(void)
 			ien += nen;
 		}
 	}
+	
 #endif
 		
 	/* copy/compress */
 	fEdgeList.Copy(edgedata);
-
+		
 	/* find node with smallest degree */
 	fMinDegree = fEdgeList.MinMinorDim(fMinDegreeNode, 0);
 	fMinDegreeNode += fShift;
