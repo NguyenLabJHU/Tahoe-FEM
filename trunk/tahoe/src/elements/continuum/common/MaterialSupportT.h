@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.h,v 1.9 2004-01-10 17:15:06 paklein Exp $ */
+/* $Id: MaterialSupportT.h,v 1.10 2004-01-31 07:20:45 paklein Exp $ */
 #ifndef _MATERIAL_SUPPORT_T_H_
 #define _MATERIAL_SUPPORT_T_H_
 
@@ -172,7 +172,7 @@ public:
   
   	/** \name dimensions */
   	/*@{*/
-	/** number of degrees of spatial dimensions */
+	/** number of spatial dimensions */
 	int fNumSD;
 
 	/** number of degrees of freedom */

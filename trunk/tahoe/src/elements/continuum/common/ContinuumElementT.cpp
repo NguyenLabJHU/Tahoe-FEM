@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.35 2004-01-10 17:15:05 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.36 2004-01-31 07:20:45 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -26,6 +26,8 @@
 #include "MaterialSupportT.h"
 #include "MaterialListT.h"
 #include "Material2DT.h"
+
+const double Pi = acos(-1.0);
 
 using namespace Tahoe;
 
@@ -455,10 +457,12 @@ void ContinuumElementT::RHSDriver(void)
 void ContinuumElementT::ApplyTractionBC(void)
 {
 	if (fTractionList.Length() > 0)
-	{
+	{		
 		/* dimensions */
 		int nsd = NumSD();
 		int ndof = NumDOF();
+		bool axi = Axisymmetric();
+		if (axi && nsd != 2) ExceptionT::GeneralFail();
 	
 		/* update equation numbers */
 		if (!fTractionBCSet) SetTractionBC();
@@ -481,10 +485,11 @@ void ContinuumElementT::ApplyTractionBC(void)
 		nVariArray2DT<double> ip_tract_man(25, ip_tract, ndof);
 		dArrayT tract_loc, tract_glb(ndof);
 		dMatrixT Q(ndof);
+		dArrayT ip_coords(2);
 		
 		/* Jacobian of the surface mapping */
 		dMatrixT jacobian(nsd, nsd-1);
-		
+		double Pi2 = 2.0*Pi;
 		for (int i = 0; i < fTractionList.Length(); i++)
 		{
 			const Traction_CardT& BC_card = fTractionList[i];
@@ -512,7 +517,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 #else
 			/* use thickness for 2D solid deformation elements */
 			double thick = 1.0;
-			if (ndof == 2 && nsd == 2) //better to do this once elsewhere?
+			if (!axi && ndof == 2 && nsd == 2) //better to do this once elsewhere?
 			{
 				/* get material pointer */
 				const ElementCardT& elem_card = fElementCards[elem];
@@ -546,6 +551,10 @@ void ContinuumElementT::ApplyTractionBC(void)
 	
 					/* ip weight */
 					double jwt = detj*w[j]*thick;
+					if (axi) {
+						surf_shape.Interpolate(coords, ip_coords, j);
+						jwt *= Pi2*ip_coords[0];
+					}
 					
 					/* ip traction */
 					const double* tj = ip_tract(j);
@@ -579,6 +588,10 @@ void ContinuumElementT::ApplyTractionBC(void)
 	
 					/* ip weight */
 					double jwt = detj*w[j]*thick;
+					if (axi) {
+						surf_shape.Interpolate(coords, ip_coords, j);
+						jwt *= Pi2*ip_coords[0];
+					}
 					
 					/* transform ip traction out of local frame */
 					ip_tract.RowAlias(j, tract_loc);

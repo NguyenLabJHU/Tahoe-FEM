@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.23 2003-12-02 17:13:36 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.24 2004-01-31 07:20:48 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -129,9 +129,17 @@ protected:
 
 	/** set the \e B matrix using the given shape function derivatives
 	 * Set strain displacement matrix as in Hughes (2.8.20)
-	 * \param derivatives of shape function derivatives: [nsd] x [nnd]
+	 * \param derivatives of shape function derivatives: [nsd] x [nen]
 	 * \param B destination for B */
 	void Set_B(const dArray2DT& derivatives, dMatrixT& B) const;
+
+	/** set the \e B matrix for 2D axysymmetric problems using the given shape functions
+	 * and derivative using the y-axis as the axis or revolution.
+	 * \param shapes shape function values: [nen]
+	 * \param derivatives of shape function derivatives: [nsd] x [nen]
+	 * \param r distance from the axis of revolution
+	 * \param B destination for B */
+	void Set_B_axi(const dArrayT& shapes, const dArray2DT& derivatives, double r, dMatrixT& B) const;
 
 	/** set B-bar as given by Hughes (4.5.11-16)*/
 	void Set_B_bar(const dArray2DT& derivatives, const dArray2DT& mean_gradient, 

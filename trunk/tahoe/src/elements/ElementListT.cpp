@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.79 2004-01-27 01:27:58 cjkimme Exp $ */
+/* $Id: ElementListT.cpp,v 1.80 2004-01-31 07:20:42 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -35,6 +35,7 @@
 #ifdef CONTINUUM_ELEMENT
 #include "ViscousDragT.h"
 #include "SmallStrainT.h"
+#include "SmallStrainAxiT.h"
 #include "UpdatedLagrangianT.h"
 #include "UpLagAdaptiveT.h"
 #include "TotalLagrangianT.h"
@@ -285,6 +286,15 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			{
 #ifdef CONTINUUM_ELEMENT
 				fArray[group] = new SmallStrainT(fSupport, *field);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
+			case ElementT::kElasticAxi:
+			{
+#ifdef CONTINUUM_ELEMENT
+				fArray[group] = new SmallStrainAxiT(fSupport, *field);
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);

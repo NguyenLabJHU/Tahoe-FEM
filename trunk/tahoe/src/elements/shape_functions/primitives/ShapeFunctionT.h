@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.18 2003-10-09 18:12:16 paklein Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.19 2004-01-31 07:20:50 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -58,6 +58,9 @@ public:
 	const dArray2DT& Derivatives_U(int ip) const { return (*pDNaU)[ip]; };
 	const dArray2DT& Derivatives_U(void) const { return (*pDNaU)[fCurrIP]; };
 	/*@}*/
+
+	/** coordinates of the given */
+	void IPCoords(dArrayT& coordinates, int ip) const;
 
 	/** coordinates of the current integration point */
 	void IPCoords(dArrayT& coordinates) const;
@@ -246,6 +249,11 @@ inline const double* ShapeFunctionT::IPShapeU(void) const
 inline void ShapeFunctionT::IPCoords(dArrayT& coordinates) const
 {
 	fDomain->Interpolate(fCoords, coordinates, fCurrIP);
+}
+
+inline void ShapeFunctionT::IPCoords(dArrayT& coordinates, int ip) const
+{
+	fDomain->Interpolate(fCoords, coordinates, ip);
 }
 
 /* spatial gradients */

@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.36 2004-01-27 01:27:58 cjkimme Exp $ */
+/* $Id: ElementT.cpp,v 1.37 2004-01-31 07:20:42 paklein Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -18,6 +18,9 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			break;
 		case ElementT::kElastic:
 			type = ElementT::kElastic;
+			break;
+		case ElementT::kElasticAxi:
+			type = ElementT::kElasticAxi;
 			break;
 		case ElementT::kHyperElastic:
 			type = ElementT::kHyperElastic;
