@@ -1,9 +1,12 @@
-/* $Id: ComplexT.h,v 1.4 2001-02-01 18:22:28 paklein Exp $ */
+/* $Id: ComplexT.h,v 1.5 2001-03-01 01:17:49 hspark Exp $ */
 /* created: PAK/AFLP (05/19/1997)                                         */
 /* 	                                                                      */
 
 #ifndef _COMPLEX_T_H_
 #define _COMPLEX_T_H_
+
+/* environment */
+#include "Environment.h"
 
 /* forward declarations */
 #include "ios_fwd_decl.h"

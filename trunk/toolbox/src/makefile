@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2001-02-22 23:45:12 paklein Exp $
+# $Id: makefile,v 1.6 2001-03-01 01:17:48 hspark Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -33,6 +33,7 @@ SUB_DIR = \
 	misc \
 	neighbors \
 	search
+
 subdir_driver: subdir_loop
 # SUB_DIR is empty
 #subdir_driver: 
