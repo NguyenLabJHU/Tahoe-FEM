@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.6 2003-03-09 21:58:50 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.7 2003-03-10 16:56:47 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -24,7 +24,8 @@ SIERRA_Material_BaseT::SIERRA_Material_BaseT(ifstreamT& in, const FSMatSupportT&
 	fDecomp(NULL),
 	fF_rel(NumSD()),
 	fA_nsd(NumSD()),
-	fU1(NumSD()), fU2(NumSD()), fU1U2(NumSD())
+	fU1(NumSD()), fU2(NumSD()), fU1U2(NumSD()),
+	fDebug(0)
 {
 	const char caller[] = "SIERRA_Material_BaseT::SIERRA_Material_BaseT";
 
@@ -86,6 +87,12 @@ void SIERRA_Material_BaseT::Initialize(void)
 
 	/* input stream */
 	ifstreamT& in = MaterialSupport().Input();
+
+	/* read debug flag */
+	fDebug = -1;
+	in >> fDebug;
+	if (fDebug != 0 && fDebug != 1)
+		ExceptionT::BadInputValue(caller, "debug flag must be 1 | 0: %d", fDebug);
 
 	/* read SIERRA-format input */
 	StringT line;
@@ -247,12 +254,30 @@ const dSymMatrixT& SIERRA_Material_BaseT::s_ij(void)
 		int matvals = fSIERRA_Material_Data->ID();
 		int ivars_size = fdstran.Length();
 
+		/* debug information */
+		if (fDebug) {
+			cout << "\n SIERRA_Material_BaseT::s_ij: IN\n"
+				 << " element: " << CurrElementNumber()+1 << '\n'
+				 << "      ip: " << CurrIP()+1 << '\n';
+			
+			cout << " rot strain inc = " << fdstran.no_wrap() << '\n';
+			cout << " old stress = " << fstress_old.no_wrap() << '\n';
+			cout << " old state =\n" << fstate_old.wrap(5) << '\n';
+		}
+
 		/* call the calc function */
 		Sierra_function_material_calc calc_func = fSIERRA_Material_Data->CalcFunction();
 		calc_func(&nelem, &dt, fdstran.Pointer(), &ivars_size,
 			fstress_old.Pointer(), fstress_new.Pointer(), 
 			&nsv, fstate_old.Pointer(), fstate_new.Pointer(), 
 			&matvals, &ncd);
+
+		/* debug information */
+		if (fDebug) {
+			cout << "\n SIERRA_Material_BaseT::s_ij: OUT\n";
+			cout << " new stress = " << fstress_new.no_wrap() << '\n';
+			cout << " new state =\n" << fstate_new.wrap(5) << '\n';
+		}
 
 		/* write to storage */
 		Store(CurrentElement(), CurrIP());

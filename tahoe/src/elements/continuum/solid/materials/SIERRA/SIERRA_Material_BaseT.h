@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.h,v 1.3 2003-03-08 01:56:20 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.h,v 1.4 2003-03-10 16:56:47 paklein Exp $ */
 #ifndef _SIERRA_MAT_BASE_T_H_
 #define _SIERRA_MAT_BASE_T_H_
 
@@ -169,6 +169,9 @@ protected:
 	/*@}*/
 
 private:
+
+	/** dump debug info */
+	int fDebug;
 
 	/** material name */
 	StringT fMaterialName;
