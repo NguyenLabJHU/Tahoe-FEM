@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.h,v 1.4 2005-01-07 02:18:16 paklein Exp $ */
+/* $Id: FSSolidMixtureT.h,v 1.5 2005-01-25 23:06:53 paklein Exp $ */
 #ifndef _FS_SOLID_MIX_T_H_
 #define _FS_SOLID_MIX_T_H_
 
@@ -84,11 +84,22 @@ public:
 	virtual void PointInitialize(void);
 	/*@}*/
 
+	/** \name material output variables.
+	 * See ContinuumMaterialT for more documentation */
+	/*@{*/
+	/** return the number of constitutive model output values. The material
+	 * returns the partial stresses. */
+	virtual int NumOutputVariables(void) const;
+
+	/** return the labels for model output parameters */
+	virtual void OutputLabels(Tahoe::ArrayT<StringT>& labels) const;
+
+	/** return material output variables */
+	virtual void ComputeOutput(Tahoe::dArrayT& output);
+	/*@}*/
+
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 

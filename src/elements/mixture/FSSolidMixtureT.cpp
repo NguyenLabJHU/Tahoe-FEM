@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.8 2005-01-24 07:00:45 paklein Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.9 2005-01-25 23:06:53 paklein Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -316,11 +316,57 @@ void FSSolidMixtureT::PointInitialize(void)
 	if (cip == nip - 1) UpdateHistory();
 }
 
-/* describe the parameters needed by the interface */
-void FSSolidMixtureT::DefineParameters(ParameterListT& list) const
+/* return the number of constitutive model output values */
+int FSSolidMixtureT::NumOutputVariables(void) const
 {
-	/* inherited */
-	FSSolidMatT::DefineParameters(list);
+	/* partial stress for each species */
+	return fIPConc.Length()*dSymMatrixT::NumValues(NumSD());
+}
+
+/* return the labels for model output parameters */
+void FSSolidMixtureT::OutputLabels(Tahoe::ArrayT<StringT>& labels) const
+{
+	int nsd = NumSD();
+	const char* slabels1D[] = {"s11"};
+	const char* slabels2D[] = {"s11", "s22", "s12"};
+	const char* slabels3D[] = {"s11", "s22", "s33", "s23", "s13", "s12"};
+	const char** slabellist[3] = {slabels1D, slabels2D, slabels3D};
+	const char** slabels = slabellist[nsd-1];
+	
+	int nsp = fIPConc.Length();
+	int nst = dSymMatrixT::NumValues(nsd);
+	labels.Dimension(nsp*nst);
+	
+	int index = 0;
+	for (int i = 0; i < nsp; i++) {
+	
+		/* field name */
+		const StringT& field_name = fFields[i]->FieldName();
+
+		/* stresses */
+		for (int j = 0; j < nst; j++) {
+			StringT label = slabels[j];
+			label.Append("_", field_name);
+			labels[index++] = label;
+		}
+	}
+}
+
+/* return material output variables */
+void FSSolidMixtureT::ComputeOutput(Tahoe::dArrayT& output)
+{
+	/* get current concentrations */
+	if (CurrIP() == 0) UpdateConcentrations();
+
+	/* collect partial stresses */
+	int offset = 0;
+	for (int i = 0; i < fIPConc.Length(); i++)
+	{
+		const dSymMatrixT& s_ij_i = s_ij(i);
+		int nstr = s_ij_i.Length();
+		output.CopyPart(offset, s_ij_i, 0, nstr);
+		offset += nstr;
+	}
 }
 
 /* information about subordinate parameter lists */
