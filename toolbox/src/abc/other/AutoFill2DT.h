@@ -1,4 +1,4 @@
-/* $Id: AutoFill2DT.h,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
+/* $Id: AutoFill2DT.h,v 1.2 2001-07-06 22:21:53 paklein Exp $ */
 /* created: paklein (01/19/1999)                                          */
 /* NOTE: going to use this with a manager to help count and               */
 /* store edges in a graph. There have to be 2 modes of                    */
@@ -108,7 +108,6 @@ inline AutoFill2DT<TYPE>::AutoFill2DT(int majordim, int headroom):
 }
 
 template <class TYPE>
-//inline
 AutoFill2DT<TYPE>::AutoFill2DT(int majordim, int headroom, int maxminordim):
 	fMajorDim(majordim),
 	fHeadRoom(headroom),
