@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.64 2004-01-02 04:26:34 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.65 2004-04-15 23:56:31 paklein Exp $ */
 #include "VTKConsoleT.h"
 
 /* ANSI headers */
@@ -60,7 +60,15 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   /* add console commands */
   iAddCommand(CommandSpecT("Interactive"));
   iAddCommand(CommandSpecT("Update"));
-
+  
+  /* forward commands from VTKFrameT */
+  iAddCommand(CommandSpecT("ShowNodeNumbers"));
+  iAddCommand(CommandSpecT("HideNodeNumbers"));
+  iAddCommand(CommandSpecT("ShowElementNumbers"));
+  iAddCommand(CommandSpecT("HideElementNumbers"));
+  iAddCommand(CommandSpecT("ShowColorBar"));
+  iAddCommand(CommandSpecT("HideColorBar"));
+ 
   CommandSpecT addbody("AddBody");
   ArgSpecT file(ArgSpecT::string_);
   file.SetPrompt("path to database file");
@@ -298,7 +306,13 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
   else if (command.Name() == "Rotate" || 
            command.Name() == "Zoom"   || 
            command.Name() == "Pan"    || 
-           command.Name() == "ResetView")
+           command.Name() == "ResetView" ||
+		   command.Name() == "ShowNodeNumbers" ||
+	       command.Name() == "HideNodeNumbers" ||
+		   command.Name() == "ShowElementNumbers" ||
+		   command.Name() == "HideElementNumbers" ||
+		   command.Name() == "ShowColorBar" ||
+		   command.Name() == "HideColorBar")
 	{
 		/* hold rendering */
 		fRenderHold = true;
@@ -314,9 +328,6 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 		iDoCommand(*iCommand("Update"), tmp);
 		return OK;
 	}
-
-
-
 	else if (command.Name() == "SelectTimeStep")	
 	{
 		/* no bodies */
