@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.ParseInput.cpp,v 1.2.2.1 2004-08-03 00:10:28 d-farrell2 Exp $ */
+/* $Id: FEManagerT.ParseInput.cpp,v 1.2.2.2 2004-08-09 20:56:17 paklein Exp $ */
 #include "FEManagerT.h"
 
 #include "ofstreamT.h"
@@ -42,7 +42,7 @@ void FEManagerT::ParseInput(const StringT& path, ParameterListT& params, bool va
 		/* parameters currently needed to construct an FEManagerT */
 		ofstreamT output;
 		CommunicatorT comm;
-		TaskT task;
+		TaskT task = kParameters;
 		
 		FEManagerT* fe = NULL;
 		try {
