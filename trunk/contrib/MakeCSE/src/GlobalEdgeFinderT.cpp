@@ -1,4 +1,4 @@
-/* $Id: GlobalEdgeFinderT.cpp,v 1.7 2002-10-29 21:38:02 sawimme Exp $ */
+/* $Id: GlobalEdgeFinderT.cpp,v 1.8 2002-11-05 13:26:26 sawimme Exp $ */
 #include "GlobalEdgeFinderT.h"
 #include "ExceptionT.h"
 #include "MakeCSE_FEManager.h"
@@ -267,9 +267,9 @@ void GlobalEdgeFinderT::ZoneFacets (const StringT& groupid, const sArrayT& zoneg
   iAutoArrayT data;
   for (int e=0; e < fElementMap[group].Length(); e++, *elem++)
     {
-      if ((fElementMap[group].Length() > kPrint && (e+1)%kPrint == 0) ||
-	  e+1 == fElementMap[group].Length())
-	cout << "   " << e+1 << " done of " << fElementMap[group].Length() << " elements " << endl;
+      //if ((fElementMap[group].Length() > kPrint && (e+1)%kPrint == 0) ||
+      //  e+1 == fElementMap[group].Length())
+      //cout << "   " << e+1 << " done of " << fElementMap[group].Length() << " elements " << endl;
       for (int f=0; f < fNeighbors[*elem].Length(); f++)
 	{
 	  // examine neighbor
@@ -310,9 +310,9 @@ void GlobalEdgeFinderT::BoundaryFacets (const StringT& groupid, const sArrayT& b
   iAutoArrayT data;
   for (int e=0; e < fElementMap[group].Length(); e++, *elem++)
     {
-      if ((fElementMap[group].Length() > kPrint && (e+1)%kPrint == 0) ||
-          e+1 == fElementMap[group].Length())
-        cout << "   " << e+1 << " done of " << fElementMap[group].Length() << " elements " << endl;
+      //if ((fElementMap[group].Length() > kPrint && (e+1)%kPrint == 0) ||
+      //  e+1 == fElementMap[group].Length())
+      //cout << "   " << e+1 << " done of " << fElementMap[group].Length() << " elements " << endl;
       for (int f=0; f < fNeighbors[*elem].Length(); f++)
         {
           // examine neighbor
@@ -331,39 +331,6 @@ void GlobalEdgeFinderT::BoundaryFacets (const StringT& groupid, const sArrayT& b
   sideset.Allocate (data.Length()/2, 2);
   sideset.CopyPart (0, data, 0, data.Length());
 }
-
-
-//void GlobalEdgeFinderT::BoundaryFacets (const StringT& groupid, const StringT& bordergroupid, iArray2DT& sideset)
-//{
-//  int group = ElementGroup (groupid);
-//  int bordergroup = ElementGroup (bordergroupid);
-// 
-//  int *elem = fElementMap[group].Pointer();
-//  iArrayT facenodes;
-//  iAutoArrayT data;
-//  for (int e=0; e < fElementMap[group].Length(); e++, *elem++)
-//    {
-//	if ((fElementMap[group].Length() > kPrint && (e+1)%kPrint == 0) ||
-//	    e+1 == fElementMap[group].Length())
-//	  cout << "   " << e+1 << " done   of " << fElementMap[group].Length() << " elements " << endl;
-//	for (int f=0; f < fNeighbors[*elem].Length(); f++)
-//	  {
-//	    // examine neighbor
-//	    int neighbor, neighborfacet;
-//	    NeighborFacet (*elem, f, neighbor, neighborfacet);
-//	    
-//	    // only look at groups numbered higher to remove cross reference
-//	    int neighborgroup = WhichGroup (neighbor);
-//	    if (neighborgroup == bordergroup)
-//	      {
-//		data.Append (*elem);
-//		data.Append (f);
-//	      }
-//	  }
-//    }
-//  sideset.Allocate (data.Length()/2, 2);
-//  sideset.CopyPart (0, data, 0, data.Length());
-//}
 
 bool GlobalEdgeFinderT::HasNode (int node, const ArrayT<int>& facets)
 {

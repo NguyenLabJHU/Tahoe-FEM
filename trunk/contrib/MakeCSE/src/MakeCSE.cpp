@@ -9,6 +9,7 @@
 
 // for debugging, this prints extra information
 //#define _PRINT_DEBUG_
+//#define _C_CLOCK_
 
 #include "MakeCSE.h"
 
@@ -26,12 +27,14 @@ MakeCSE::MakeCSE (ostream& log, GlobalEdgeFinderT& Edger) :
   fPrintUpdate (false),
   theEdger (&Edger)
 {
+#ifdef _C_CLOCK_
   ArrayT<StringT> cnames (4);
   cnames[0] = "initial setup";
   cnames[1] = "collect facets";
   cnames[2] = "connectivity renumbering";
   cnames[3] = "map node sets";
   cClock.Set (cnames);
+#endif
 }
 
 MakeCSE::~MakeCSE (void)
@@ -43,27 +46,39 @@ void MakeCSE::Initialize (ModelManagerT& model, MakeCSE_IOManager& theInput, Mak
   if (comments == 1) fPrintUpdate = true;
   fNumStartElements = theEdger->TotalElements();
 
+#ifdef _C_CLOCK_
   cClock.Initial ();
+#endif
   SetFE (FEM);
   SetInput (model, theInput);
+#ifdef _C_CLOCK_
   cClock.Sum (0);
+#endif
 }
 
 void MakeCSE::Create (void)
 {
   // Reconstruct Inverse connects using CSE's
+#ifdef _C_CLOCK_
   cClock.Initial ();
+#endif
   theEdger->ResetInvConnects(theNodes->NumNodes());
 
   // index over the number of side sets used to insert at
+#ifdef _C_CLOCK_
   cClock.Sum(0);
+#endif
   RenumberFaceNodes ();
+#ifdef _C_CLOCK_
   cClock.Sum (2);
+#endif
 
   // map node sets
   theEdger->ResetInvConnects(theNodes->NumNodes());
   theNodes->MapNodeSets (fSurface1Facets, *theEdger);
+#ifdef _C_CLOCK_
   cClock.Sum (3);
+#endif
 
   // collect data for use with contact algorithms
   if (fContact.Length() > 0) CollectSurfaceData ();
@@ -71,8 +86,9 @@ void MakeCSE::Create (void)
   // report mass less nodes
   CollectMassLessNodes ();
 
-  cClock.Print (cout);
+#ifdef _C_CLOCK_
   cClock.Print (out);
+#endif
   PrintControlEnd (out);
   PrintControlEnd (cout);
 
@@ -117,14 +133,21 @@ void MakeCSE::SetInput (ModelManagerT& model, MakeCSE_IOManager& theInput)
   if (zonedata.Length() > 0) nummeth++;
   if (facetdata.Length() > 0) nummeth++;
   if (nummeth > 1)
-    cout << "\n\n *** Warning, you are using more than one method. ***\n\n";
+    {
+      cout << "\n\n *** Warning, you are using more than one method. ***\n\n";
+      out << "\n\n *** Warning, you are using more than one method. ***\n\n";
+    }
 
   // collect data
+#ifdef _C_CLOCK_
   cClock.Initial();
+#endif
   if (facetdata.Length() > 0) CollectFacets (model, facetdata);
   if (zonedata.Length() > 0) CollectZones (model, theInput, zonedata);
   if (boundarydata.Length() > 0) CollectBoundaries (boundarydata);
+#ifdef _C_CLOCK_
   cClock.Sum (1);
+#endif
 
   // remove single nodes from potential split node list
   CollectSingleNodes (model, theInput);
@@ -216,11 +239,14 @@ void MakeCSE::CollectFacets (ModelManagerT& theInput, const sArrayT& facetdata)
       for (int e=0; e < set.MajorDim(); e++, pelem += 2, pface += 2, cs++)
 	{
 	  InitializeFacet (*pelem, *pface, group, cs, cselemgroup);
+#ifdef _PRINT_DEBUG_
 	  if ((set.MajorDim() > kPrint && (e+1)%kPrint == 0) ||
 	      e+1 == set.MajorDim())
 	    cout << "   " << e+1 << " done initializing of " << set.MajorDim() << " facets " << endl;
+#endif
 	}
     }
+  cout << "  Done with Facet Data" << endl;
 }
 
 void MakeCSE::CollectSingleNodes (ModelManagerT& model, MakeCSE_IOManager& theInput)
@@ -287,13 +313,17 @@ void MakeCSE::CollectZones (ModelManagerT& model, MakeCSE_IOManager& theInput, c
       for (int e=0; e < set.MajorDim(); e++, pelem += 2, pface += 2, cs++)
 	{
 	  InitializeFacet (*pelem, *pface, group, cs, cselemgroup);
+#ifdef _PRINT_DEBUG_
 	  if ((set.MajorDim() > kPrint && (e+1)%kPrint == 0) ||
 	      e+1 == set.MajorDim())
 	    cout << "   " << e+1 << " done initializing of " << set.MajorDim() << " facets " << endl;
+#endif
 	}
 
+#ifdef _PRINT_DEBUG_
       if (elemids.Length() < 10) 
 	cout << "  Done with Zone " << elemids[i] << endl;
+#endif
     }
 
   // based on user input, allow some boundary nodes to be split
@@ -358,7 +388,6 @@ void MakeCSE::CollectZones (ModelManagerT& model, MakeCSE_IOManager& theInput, c
     }
 
   RemoveSingleNodes (boundarynodes);  
-
   cout << "  Done with Zone Data" << endl;
 }
 
@@ -408,10 +437,12 @@ void MakeCSE::CollectBoundaries (const sArrayT& boundarydata)
 	    for (int e=0; e < set.MajorDim(); e++, pelem += 2, pface += 2, cs++)
 	      {
 		InitializeFacet (*pelem, *pface, group, cs, cselemgroup);
+#ifdef _PRINT_DEBUG_
 		if ((set.MajorDim() > kPrint && (e+1)%kPrint == 0) ||
 		    e+1 == set.MajorDim())
 		  cout << "   " << e+1 << " done initializing of " 
 		       << set.MajorDim() << " facets " << endl;
+#endif
 	      }
 	  }
       }
@@ -546,7 +577,7 @@ void MakeCSE::RemoveSingleNodes (const ArrayT<int>& nodes)
 
 void MakeCSE::RenumberFaceNodes (void)
 {
-  cout << "\n Potential Split Nodes " << fPotentialSplitNodes.Length() << "\n";
+  out << "\n Potential Split Nodes " << fPotentialSplitNodes.Length() << "\n";
   iArrayT checkelems (theEdger->TotalElements() - fNumStartElements);
   int *node = fPotentialSplitNodes.Pointer();
   int num = fPotentialSplitNodes.Length(), freq;
@@ -581,12 +612,10 @@ void MakeCSE::RenumberFaceNodes (void)
 	}
 
       // tell status to user
+#ifdef _PRINT_DEBUG_
       if ((n%freq == 0 && n > 0) || n == num - 1)
-	{
-	  cClock.Sum (2);
-	  cClock.Print (cout);
-	  cout << setw(5) << n + 1 << " Done of " << num << endl;
-	}
+	cout << setw(5) << n + 1 << " Done of " << num << endl;
+#endif
     }
 }
 
@@ -746,8 +775,6 @@ void MakeCSE::CollectMassLessNodes (void)
       RemoveRepeats (fNoMassNodes);
       out  << "\n Number of Massless Nodes Found. . . . . . . . . = "
 	   << fNoMassNodes.Length() << '\n';
-      cout << "\n Number of Massless Nodes Found. . . . . . . . . = "
-	   << fNoMassNodes.Length() << '\n';
       StringT nsetid;
       nsetid.Append (fNSetID++);
       theNodes->AddNodeSet (nsetid, fNoMassNodes, CSEConstants::kSurface2);
@@ -807,7 +834,6 @@ void MakeCSE::CollectSurfaceData (void)
     }
   
   out  << "\n Contact Data, Surface 1 Facets. . . \n";
-  cout  << "\n Contact Data, Surface 1 Facets. . . \n";
   for (int j=0; j < theElements.Length(); j++)
     if (faces1[j].Length() > 0)
       {
@@ -819,7 +845,6 @@ void MakeCSE::CollectSurfaceData (void)
       }
 
   out  << "\n Contact Data, Surface 2 Facets. . .  \n";
-  cout  << "\n Contact Data, Surface 2 Facets. . .  \n";
   for (int j2=0; j2 < theElements.Length(); j2++)
     if (faces2[j2].Length() > 0)
       {
@@ -831,7 +856,6 @@ void MakeCSE::CollectSurfaceData (void)
       }
 
   out  << "\n Contact Data, Surface 1 Nodes . . .  \n";
-  cout  << "\n Contact Data, Surface 1 Nodes . . .  \n";
   if (nodes1.Length() > 0)
     {
       RemoveRepeats (nodes1);
@@ -841,7 +865,6 @@ void MakeCSE::CollectSurfaceData (void)
     }
 
   out  << "\n Contact Data, Surface 2 Nodes . . . .\n";
-  cout  << "\n Contact Data, Surface 2 Nodes . . . .\n";
   if (nodes2.Length() > 0)
     {
       RemoveRepeats (nodes2);
