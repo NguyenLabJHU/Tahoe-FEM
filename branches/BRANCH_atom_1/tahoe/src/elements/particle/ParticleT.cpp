@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.10.2.7 2003-01-14 15:39:09 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.10.2.8 2003-01-25 23:43:58 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -270,7 +270,7 @@ void ParticleT::SetConfiguration(void)
 	
 	/* exchange type information */
 	iArray2DT type_wrapper(fType.Length(), 1, fType.Pointer());
-	ElementSupport().CommManager().AllGather(fTypeMessageID, type_wrapper);
+	comm_manager.AllGather(fTypeMessageID, type_wrapper);
 	
 	/* resize working arrays */
 	fForce_man.SetMajorDimension(nnd, false);
