@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.h,v 1.1 2003-04-16 18:15:54 cjkimme Exp $ */
+/* $Id: ThermostatBaseT.h,v 1.2 2003-04-18 19:01:56 cjkimme Exp $ */
 #ifndef _THERMOSTAT_BASE_T_H_
 #define _THERMOSTAT_BASE_T_H_
 
@@ -9,12 +9,14 @@
 #include "dArrayT.h"
 #include "RandomNumberT.h"
 #include "RaggedArray2DT.h"
+#include "AutoArrayT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
 class ifstreamT;
 class dArray2DT;
+class ParticlePropertyT;
 
 /** base class for thermostatting and damping */
 class ThermostatBaseT
@@ -25,8 +27,9 @@ public:
 					kFree = 0, /**< you figure it out */
     	  	  	  kDamped = 1, /**< velocity-dependent damping */
     			kLangevin = 2, /**< Langevin (stochastic) thermostat */
-	  	  	  kNoseHoover = 3,
-	  kGaussianIsokinetic = 4
+	  	  	  kNoseHoover = 3, /**< Nose-Hoover determistic thermostat */
+	  	 kGaussIsokinetic = 4, /**< Gaussian Isokinetic deterministic thermostat */
+	  	   kRampedDamping = 5  /**< Damping coefficient varies over space  */
 	};
    
 	enum ControlTypeT {
@@ -63,11 +66,15 @@ public:
 	
 	/** augment/overwrite forces with new ones */
 	virtual void ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2DT* velocities,
-					dArray2DT& forces);
+			dArray2DT& forces, AutoArrayT<int>& types,
+			ArrayT<ParticlePropertyT*>& particleProperties);
 	
 	void NodesInRegion(const dArray2DT& coords,	
 					const ArrayT<int>* partition_nodes);
 
+	void CreateVelocities(const RaggedArray2DT<int>& neighbors, dArray2DT* velocities,
+					AutoArrayT<int>& types,
+					ArrayT<ParticlePropertyT*>& particleProperties);
 	
 protected:
 

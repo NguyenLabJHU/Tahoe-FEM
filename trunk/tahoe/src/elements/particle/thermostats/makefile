@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2003-04-16 18:15:54 cjkimme Exp $
+# $Id: makefile,v 1.2 2003-04-18 19:01:56 cjkimme Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,7 +22,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	ThermostatBaseT.o \
 	LangevinT.o \
-	NoseHooverT.o 
+	NoseHooverT.o \
+	GaussIsokinetic.o \
+	RampedDamping.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -44,7 +46,9 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	ThermostatBaseT.cpp \
 	LangevinT.cpp \
-	NoseHooverT.cpp 
+	NoseHooverT.cpp \
+	GaussIsokinetic.cpp \
+	RampedDamping.cpp
 
 ##################### (3) headers
 #
@@ -58,7 +62,9 @@ SRC = \
 HDR = \
 	ThermostatBaseT.h \
 	LangevinT.h \
-	NoseHooverT.h
+	NoseHooverT.h \
+	GaussIsokinetic.h \
+	RampedDamping.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
