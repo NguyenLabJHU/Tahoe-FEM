@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.19 2002-07-02 19:56:21 cjkimme Exp $ */
+/* $Id: DetCheckT.cpp,v 1.20 2002-07-10 16:47:51 cfoster Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "DetCheckT.h"
@@ -9,8 +9,9 @@
 #include "dMatrixEXT.h"
 #include "dArrayT.h"
 #include "dTensor4DT.h"
-
-//#include <ofstream.h>
+//#include <fstream.h>
+#include "ofstreamT.h"
+# include "AutoArrayT.h"
 
 /* constants */
 
@@ -43,6 +44,28 @@ inline double DetCheckT::dddet(double t) const
 {
 	return -4.0*A2*sin(2.0*(phi2+t)) - 16.0*A4*sin(4.0*(phi4+t));
 }
+
+
+/* Tests whether two normals are equivalent, checking to see whether they
+ * are the same within a given tolerance tol, or opposites within that same
+ * tolerance (opposite normals are considered equilvalent for this purpose).
+ * Returns true if the normals are distinct, false if not. 
+ * Both vectors should be normalized before being passed into this function. 
+ */
+
+bool NormalCompare(const dArrayT& normal1, const dArrayT& normal2)
+{
+  double tol = 10e-10;
+  dArrayT resid(3), negResid(3);
+  
+  resid.DiffOf(normal1, normal2);
+  negResid.SumOf(normal1, normal2);
+
+  return ( resid [0]*resid[0] + resid[1]*resid[1] + resid[2]*resid[2] < tol ||
+  	  negResid [0]*negResid[0] + negResid[1]*negResid[1] + negResid[2]*negResid[2] < tol);
+};
+
+
 
 /*
 * Returns 1 if acoustic tensor isn't positive definite,
@@ -196,98 +219,58 @@ int DetCheckT::DetCheck2D(dArrayT& normal)
 /* assumes small strain formulation */
 int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 {
-  int i,j,k,l,m,n; // counters and control variable
-
-  //double C [3] [3] [3] [3]; // rank 4 tangent modulus 
+  int i,j,k,l,m,n; // counters 
 
   double theta, phi; //horizontal plane angle and polar angle for normal
   double detA [numThetaChecks] [numPhiChecks]; //determinant of acoustic tensor at each increment
   int localmin [numThetaChecks] [numPhiChecks]; //1 for local minimum, 0 if not
 
   int numev = 0; //number of eigenvectors for given eigenvalue
-  double tol=1.0e-10, tol1=1.0e-5; 
-  double leastmin=tol, leastmin0=tol,  leastmin1=tol,  leastmin2=tol, 
-    templeastmin0=0.0, templeastmin1=0.0; //, templeastmin2=0.0;
-  int newtoncounter=0, iloccount=0; //makes sure Newton iteration doesn't take too long
+  double tol=1.0e-10; 
+  double leastmin=2*tol; 
+  int newtoncounter=0; //makes sure Newton iteration doesn't take too long
   double resid=0.0, guess=0.0;
   
-  dMatrixEXT A(3), Ainverse(3); //acoustic tensor
+  dMatrixEXT A(3), Ainverse(3); //acoustic tensor and inverse
+  dTensor4DT C(3,3,3,3); // Rank 4 Tensor version of Tangent Modulus
   dMatrixEXT J(3); // det(A)*C*Ainverse
-  dMatrixT finalnormalmat(3);
-  dArrayT prevnormal(3), finalnormal(3), eigs(3), realev(3), imev(3), 
-    altnormal(3), altnormal2(3), normal0(3), normal1(3), normal2(3),
-    detAmin(3), finalnormal0(3), finalnormal1(3), finalnormal2(3),
-    normalmin0(3), normalmin1(3), normalmin2(3), tempfinalnormal0(3),
-    tempfinalnormal1(3), tempfinalnormal2(3), slipdir(3);
 
-  // double detA0, detA1, detA2, detAmin0, detAmin1, detAmin2;
-  double inprod0, inprod1, inprod2;
+  /* for eigen analysis */
+  dArrayT prevnormal(3), realev(3), imev(3), altnormal(3), altnormal2(3);
 
-  dTensor4DT C(3,3,3,3);
+  dArrayT slipdir(3); //normal in direction of slip plane
+
+
+
+  /* variables for normalSet output */
+  const int outputPrecision = 12;
+  const int outputFileWidth = outputPrecision + 4;
+  AutoArrayT <dArrayT> normalSet;
+
+  //const ElementCardT& element = CurrentElement();
+  //const ElementSupportT& support = ContinuumElement().ElementSupport();
   
-  //ofstream.out normal_file("normal.info");
-
-
-
-  //cout << "In DetCheck3d_SS " << endl;
-
+  /* Set up output file */
+  normalSet.Free();
+  ofstreamT normal_out("normal.info", ios::app);
+  normal_out << "\ntime step    element #    ip#\n";
+  // normal_out << support.StepNumber() << endl << endl;
+  normal_out << setw(outputFileWidth) << "approx normal0" << setw(outputFileWidth) << "approx normal1" <<  setw(outputFileWidth) << " approx normal2" <<  setw(outputFileWidth) << "normal0" <<  setw(outputFileWidth) << "normal1" <<  setw(outputFileWidth) << "normal2" << setw(outputFileWidth + 3) << "detA" <<  setw(outputFileWidth) << "in normalSet?\n";
+  
   // initialize variables
-  
-  //cout << "-2 " << endl;
-
-  //detA0 = 0.0;
-  //detA1 = 0.0;
-  //detA2 = 0.0;
-  // detAmin0 = 0.0;
-  //detAmin1 = 0.0;
-  //detAmin2 = 0.0;
-  inprod0 = 0;
-  inprod1 = 0;
-  inprod2 = 0;
-  
   normal=0.0;
   A = 0.0;
   C = 0.0;
   Ainverse = 0.0;
-  //detA = 0.0;
-  //localmin = 0.0;
   J = 0.0;
-  finalnormalmat = 0.0;
   prevnormal = 0.0;
-  finalnormal = 0.0;
-  eigs = 0.0;
   realev = 0.0;
   imev = 0.0;
   altnormal = 0.0;
   altnormal2 = 0.0;
-  normal0 = 0.0;
-  normal1 = 0.0;
-  normal2 = 0.0;
-  detAmin = 0.0;
   A0 = 0.0;
   A2 = 0.0;
-  finalnormal0=0.0;
-  finalnormal1=0.0;
-  finalnormal2=0.0;
-  normalmin0=0.0;
-  normalmin1=0.0;
-  normalmin2=0.0;
-  tempfinalnormal0=0.0;
-  tempfinalnormal1=0.0;
-  tempfinalnormal2=0.0;
-  slipdir=0.0;
-  
-
-  /* for (m=0;m<3;m++)
-   * for (n=0;n<3;n++)
-   *   for (k=0;k<3;k++)
-   *	for (l=0;l<3;l++){
-   *	  C [k] [m] [n] [l] = 0.0; 
-   *	}
-   */
-
-  ConvertTangentFrom2DTo4D(C);
-	
+  slipdir=0.0;	
   for (m=0; m<numThetaChecks; m++)
     for (n=0; n<numPhiChecks; n++)
       {
@@ -295,62 +278,49 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 	localmin [m] [n] = 0;
       }
   
+  /* Get C from fc_ijkl */
+  ConvertTangentFrom2DTo4D(C);
   FindApproxLocalMins(detA, localmin, C);
   
   /* Newton iteration to refine minima*/
-  
-  // cout << "new integration point" << endl;
   
   for (i=0; i<numThetaChecks; i++)
     {
       for (j=0 ;j<numPhiChecks; j++)
 	{
-	  
-	  // cout << " niv ";
 
 	  if (localmin [i] [j] ==1)
 	    {
-	      
-	      // 0 false, 1 true
-#if 1
-	      
+     
 	      theta=Pi/180.0*sweepIncr*i;
 	      phi=Pi/180.0*sweepIncr*j;
 
 	      normal[0]=cos(theta)*cos(phi);
 	      normal[1]=sin(theta)*cos(phi);
 	      normal[2]=sin(phi);
-	      
-				// cout << "initial vector = \n";
-				// cout << normal << endl;
-	
+	     
+	      normal_out << endl << setw(outputFileWidth) << normal[0] << setw(outputFileWidth) << normal[1] << setw(outputFileWidth) << normal[2];
+
 	      newtoncounter=0;	    
 	      resid=0.0;
 
 	      while ( resid < (1.0-tol) && newtoncounter <= 100 )
 		{
-
-		  //cout << "4.1 " << endl;
-
 		  newtoncounter++;
 		  if (newtoncounter > 100)
 		    {
-		      cout << "Newton refinement did not converge after 100 iterations-Localization check failed \n"; 
+		      cout << "Warning: Bifurcation check failed. Newton refinement did not converge after 100 iterations. \n"; 
+		      normal_out << setw(2*outputFileWidth) << "Did not converge";
 		      //return 8;
-		      normal=0.0;
-		      return 0;
+		      //normal=0.0;
+		      //return 0;
 		    }
 
 		  prevnormal=normal;
 		  
 		  // initialize acoustic tensor A
 		  A = 0.0;
-
-		  //cout << "4.4 " << endl;
 		  A.formacoustictensor(A, C, normal);
-		  
-		  //cout << "4.5 " << endl;
-		  
 		  detA [i] [j]= A.Det();
 		  Ainverse.Inverse(A);
 		  
@@ -363,152 +333,65 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 		      for (k=0;k<3;k++)
 			for (l=0;l<3;l++)
 			  {
-			    //J (m,n)+=detA [i] [j]*C [m] [k] [l] [n]*Ainverse (l,k); 
 			    J (m,n)+=detA [i] [j]*C(m,k,l,n)*Ainverse(l,k); 
 			  }
 
 		  // find least eigenvector of J
+		  normal = ChooseNewNormal(prevnormal, J, tol);
 		  
-		  //cout << prevnormal << endl << endl;
-		  //cout << J << endl << endl;
-		  //cout << C [2] [2] [2] [2] << endl <<endl;
-		  //cout << tol << endl <<endl;
-
-		  //cout << "4.8 " << endl;
-
-		  normal = ChooseNewNormal(prevnormal, J, C, tol);
-
-		  //cout << normal << endl << endl;
-
-		  // end choosing eigenvectors		  
 		  resid=fabs(prevnormal.Dot(prevnormal, normal));
-		  //resid=sqrt(resid);
-		
-		  //cout << "6.5 " << endl;
-  		  
+		  //possibly change resid for more accuracy
 		} //end while statement
-	      
-	      //cout << "6.6 " << endl;
 
-#endif
+	      /* output info to normal.info */
+		   normal_out << setw(outputFileWidth) <<  normal[0] << setw(outputFileWidth) << normal [1] << setw(outputFileWidth) << normal[2] << setw(outputFileWidth + 3) << detA [i] [j];
 
-	      if (detA [i] [j] < tol)
+	      if (detA [i] [j] - leastmin < - tol && (detA [i] [j] - leastmin)/fabs(leastmin) < -tol )
 		{
-		  //detAmin0=detA0;
-		  //detAmin1=detA1;
-		  //detAmin2=detA2;
-		  normalmin0=normal0;
-		  normalmin1=normal1;
-		  normalmin2=normal2;
+		  //clear auto array
+		  normalSet.Free();
+
+		  // add normal to auto array and reset leastmin
+		  normalSet.Append(normal);
+		  leastmin = detA [i] [j];
+
+		  /* output to normal.info */
+		  normal_out << setw(outputFileWidth) << "Yes - 1st";
 		}
-				/*
-				  if (leastmin > detA [i] [j])
-				  {
-				  leastmin = detA [i] [j];
-				  finalnormal=normal;
-				  }
-				*/
-	      templeastmin0=leastmin0;
-	      templeastmin1=leastmin1;
-	      //templeastmin2=leastmin2;
-	      tempfinalnormal0=finalnormal0;
-	      tempfinalnormal1=finalnormal1;
-	      tempfinalnormal2=finalnormal2;
-	      inprod0 = fabs(finalnormal0.Dot(finalnormal0, normal));
-	      inprod1 = fabs(finalnormal1.Dot(finalnormal1, normal));
-	      inprod2 = fabs(finalnormal2.Dot(finalnormal2, normal));
-	      if ( inprod0 < (1.0-tol1) && inprod1 < (1.0-tol1) && inprod2 < (1.0-tol1) )
+	      else if (fabs(detA [i] [j] - leastmin) < tol || fabs((detA [i] [j] - leastmin)/leastmin) < tol )
 		{
-		  if ( leastmin0 > detA [i] [j] )
-		    {
-		      leastmin0 = detA [i] [j];
-		      finalnormal0=normal;
-		      leastmin = detA [i] [j];
-		      finalnormal=normal;
-		      if ( templeastmin0 < tol )
-			{
-			  leastmin1=templeastmin0;
-			  finalnormal1=tempfinalnormal0;
-			  if ( templeastmin1 < tol )
-			    {
-			      leastmin2=templeastmin1;
-			      finalnormal2=tempfinalnormal1;
-			    }
-			}
-		    }
+		  // add normal to auto array and output to normal.info
+		  if (normalSet.AppendUnique(normal, NormalCompare))
+		    normal_out << setw(outputFileWidth) << "Yes - Added";
 		  else
-		    {
-		      if ( leastmin1 > detA [i] [j] )
-			{
-			  leastmin1 = detA [i] [j];
-			  finalnormal1=normal;
-			  if ( templeastmin1 < tol )
-			    {
-			      leastmin2=templeastmin1;
-			      finalnormal2=tempfinalnormal1;
-			    }
-			}
-		      else
-			{
-			  if ( leastmin2 > detA [i] [j] )
-			    {
-			      leastmin2 = detA [i] [j];
-			      finalnormal2=normal;
-			    }
-			}
-		    }
+		    normal_out << setw(outputFileWidth) << "Already Exists";
 		}
-	      
-				/*	  
-					  if (detA [i] [j] < tol)
-				  {
-					if (iloccount < 3)
-					  {
-						detAmin[iloccount]=detA [i] [j];
-						finalnormalmat(0,iloccount)=normal[0];
-						finalnormalmat(1,iloccount)=normal[1];
-						finalnormalmat(2,iloccount)=normal[2];
-					  }
-					else
-					  {
-						//cout << "iloccount = ";
-						//cout << iloccount << '\n';
-					  }
-					iloccount++;
-				  }
-				*/
+	      else
+		{
+		  /* output to normal.info */
+		  normal_out << setw(outputFileWidth) << "No";
+		}
 
-	    } //if localmin  
-	} //j		  
-    } //i
+	    } //end if localmin  
+	} //end j		  
+    } //end i
 
   /* output of function */
   
-  if (leastmin > 0)
+  if (leastmin > tol)  //no bifurcation occured
     {
-      //cout << "7.01 " << endl;
-
       normal=0.0;
-
-      // cout << "7.1 " << endl;
-
       return 0;
     }
-  else
+  else               //bifurcation occured
     {
 
-      //cout << "7.02 " << endl;
+      //choose normal from auto array
+      normal = ChooseNormalFromNormalSet(normalSet, C); 
 
-      normal=finalnormal;
-      normal0=finalnormal0;
-      normal1=finalnormal1;
-      normal2=finalnormal2;
-     
       //determine slip direction
-
       A.formacoustictensor(A, C, normal);
-      
-      //A.eigenvalue3x3(A, realev, imev);
+
       A.eigvalfinder(A, realev, imev);
       
       guess=realev[0];
@@ -517,16 +400,13 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
       if (realev[2]<guess)
 	guess=realev[2];
       
-      A.eigenvector3x3(A, guess, numev, slipdir, altnormal, altnormal2);
-      
-      // cout << "7.2 " << endl;
+      A.eigenvector3x3(A, guess, numev, slipdir, altnormal, altnormal2);      
 
       return 1;
     }
 } // end DetCheckT::DetCheck3D_SS
 
 void DetCheckT::ConvertTangentFrom2DTo4D(dTensor4DT& C)
-  //void DetCheckT::ConvertTangentFrom2DTo4D(double C [] [3] [3] [3])
 {
 	
 int i,j,k,l;
@@ -554,18 +434,6 @@ HughesIndexArray [2] [1] = 3;
        for (l=0; l<3; l++)
 	 C (i,j,k,l) = 
 	   fc_ijkl(HughesIndexArray[i] [j], HughesIndexArray[k] [l]);
-	
-
-
-	// use standard c def for modulus C
-        // i.e. 4d array of doubles
-
- //for (i=0; i<3; i++)
- // for (j=0; j<3; j++)
- //   for (k=0; k<3; k++)
- //     for (l=0; l<3; l++)
- //	C [i] [j] [k] [l] = 
- //         fc_ijkl(HughesIndexArray[i] [j], HughesIndexArray[k] [l]);
 
 } // end ConvertTangentFrom2DTo4D
 
@@ -575,19 +443,29 @@ HughesIndexArray [2] [1] = 3;
 
 void DetCheckT::FindApproxLocalMins(double detA [numThetaChecks] [numPhiChecks],
   int localmin [numThetaChecks] [numPhiChecks], dTensor4DT& C)
-
-  //void DetCheckT::FindApproxLocalMins(double detA [numThetaChecks] [numPhiChecks],
-  //int localmin [numThetaChecks] [numPhiChecks], double C [] [3] [3] [3])
 {
   int i,j,k,l,m,n;
   double theta, phi; //horizontal plane angle and polar angle for normal, resp
   dMatrixEXT A(3), Ainverse(3); //acoustic tensor and its inverse
   dArrayT normal (3);
 
+  //case where j = numPhiChecks - 1, i.e. pole
+
+  normal = 0.0;
+  normal [2] = 1.0;
+  
+  A = 0.0;
+  A.formacoustictensor(A, C, normal);
+
+  detA [0] [numPhiChecks - 1] = A.Det();
+
+  for (i = 1; i < numThetaChecks; i++)
+   detA [i] [numPhiChecks - 1] = detA [0] [numPhiChecks - 1];
+  
+  // general case
   for (i=0; i<numThetaChecks; i++)
-    for (j=0; j<numPhiChecks; j++)
+    for (j=0; j<numPhiChecks - 1; j++)
       {
-	// cout << "i= " << i << "; j= " << j << '\n';
 
 	theta=Pi/180.0*sweepIncr*i;
 	phi=Pi/180.0*sweepIncr*j;
@@ -596,17 +474,8 @@ void DetCheckT::FindApproxLocalMins(double detA [numThetaChecks] [numPhiChecks],
 	normal[1]=sin(theta)*cos(phi);
 	normal[2]=sin(phi);
 
-	// initialize acoustic tensor A
-	A = 0.0;
+	A.formacoustictensor(A, C, normal);	
 
-	// A=normal*C*normal       
-	for (m=0;m<3;m++)
-	  for (n=0;n<3;n++)
-	    for (k=0;k<3;k++)
-	      for (l=0;l<3;l++)
-		  A(m,n)+=normal[k]*C(k,m,n,l)*normal[l]; 
-	//A (m,n)+=normal[k]*C [k] [m] [n] [l]*normal[l];
-	
 	detA [i] [j]= A.Det();
       }
 	
@@ -615,16 +484,22 @@ void DetCheckT::FindApproxLocalMins(double detA [numThetaChecks] [numPhiChecks],
       {
 	if (j == numPhiChecks - 1)
 	  {
-	    for (k=0; k<numThetaChecks; k++)
-	      if (detA [i] [j] > detA [k] [j - 1])
-		break;
-	    localmin [i] [j] = 1;
+	    if (i == 0)
+	      {
+		localmin [i] [j] = 1;
+		for (k=0; k<numThetaChecks; k++)
+		  if (detA [i] [j] > detA [k] [j - 1])
+		    {
+		      localmin [i] [j] = 0;
+		      break;
+		    }
+	      }
 	  }
 	else
 	  {
 	    if (detA [i] [j] < detA [(i-1)%numThetaChecks] [j]) 
 	      if (detA [i] [j] <= detA [(i+1)%numThetaChecks] [j])
-		if (detA [i] [j] < detA [i] [(j+1)])
+		if (detA [i] [j] < detA [i] [j+1])
 		    if ( j == 0)
 		    {
 		      if (detA [i] [j] <= detA [i + numThetaChecks/2] [j+1])
@@ -632,7 +507,7 @@ void DetCheckT::FindApproxLocalMins(double detA [numThetaChecks] [numPhiChecks],
 		    }
 		    else
 		    {
-		      if (detA [i] [j] <= detA [i+1] [j-1])
+		      if (detA [i] [j] <= detA [i] [j-1])
 			localmin [i] [j] = 1;
 		    }
 	  }
@@ -640,62 +515,29 @@ void DetCheckT::FindApproxLocalMins(double detA [numThetaChecks] [numPhiChecks],
 } // end FindApproxLocalMins
 
 
-dArrayT DetCheckT::ChooseNewNormal(dArrayT& prevnormal, dMatrixEXT& J,
-				   dTensor4DT& C, double tol)
-  //dArrayT DetCheckT::ChooseNewNormal(dArrayT& prevnormal, dMatrixEXT& J,
-  //			   double C [3] [3] [3] [3], double tol)
+  dArrayT DetCheckT::ChooseNewNormal(dArrayT& prevnormal, dMatrixEXT& J,
+  			    double tol)
 {
 
-  //cout << "-3 " << endl;
-
-  dArrayT normal(3);
-
-  //cout << "-2.9 " << endl;
-
- dArrayT trialNormal(3);
-
- //cout << "-2.8 " << endl;
-
+  dArrayT normal(3), trialNormal(3);
   dArrayT altnormal(3), altnormal2(3);
-
-  //cout << "-2.5 " << endl; 
-
- dArrayT realev(3), imev(3);
-
- //cout << "-2.4 " << endl; 
-
- int numev = 0, i;
+  dArrayT realev(3), imev(3);
+  int numev = 0, i;
   dMatrixEXT Atrial(3); //trial acoustic tensor
   double inprod, maxInprod;
-
-  //cout << "-2 " << endl;
-
   Atrial = 0.0;
   trialNormal = 0.0;
 
-  // J(0,0)=1; J(0,1)=0; J(0,2)=0;
-  // J(1,0)=0; J(1,1)=1; J(1,2)=1;
-  // J(2,0)=0; J(2,1)=1; J(2,2)=1;
-  
-  // cout << "-1 " << endl;
-
   // chooses eigvector by closest approx to previous normal
   J.eigvalfinder(J, realev, imev);
-  //J.eigenvalue3x3(J, realev, imev);
-
-  //cout << realev << endl << endl;
-  //cout << imev << endl << endl;
-  //cout << J << endl << endl;
 
   for (i=0; i<3; i++)
     {  
       if ( fabs(imev[i])<tol || fabs(0.001*imev[i]/realev[i])<tol )
 	{
-	  
-	  //cout << "5 " << endl;
+
 	  J.eigenvector3x3(J, realev[i], numev, trialNormal, altnormal, altnormal2);
 	  //J.Eigenvector(realev[i], trialNormal);
-//cout << "6 " << endl;
 	  inprod = fabs(trialNormal.Dot(trialNormal, prevnormal));
 	  
 	  if ( i==0 )
@@ -710,11 +552,43 @@ dArrayT DetCheckT::ChooseNewNormal(dArrayT& prevnormal, dMatrixEXT& J,
 	    }	    
 	}
     }
-
-  // cout << "normal = " << normal << endl << endl;
   return normal;
 }
 
+
+
+dArrayT DetCheckT::ChooseNormalFromNormalSet(AutoArrayT <dArrayT> &normalSet, dTensor4DT &C)
+{
+  dMatrixEXT A(3);
+  dArrayT trialNormal(3), bestNormal(3);
+  int i;
+  double leastmin, detA;
+  
+  bestNormal = 0.0;
+
+  normalSet.Top();
+
+while (normalSet.Next())
+    {
+      /* Currently chooses normal by least minimum value of the determinant
+       * of the acoustic tensor A. Experience suggests that two unique 
+       * normals are created and that this choice is based simply on 
+       * numerical error. Better to choose another criterion. Wells and Sluys
+       * (2001) suggest maximum plastic dissipation, which may be best
+       * handled in the function calling IsLocalized_SS, after it is called.  
+       */
+
+      trialNormal = normalSet.Current();
+      A.formacoustictensor(A, C, trialNormal);
+      detA = A.Det();
+      if (detA < leastmin || normalSet.Position() == 0)
+	{
+	  leastmin = detA;
+	  bestNormal = trialNormal;
+	}
+    }      
+      return bestNormal;
+}
 
 /* compute coefficients of det(theta) function */
 void DetCheckT::ComputeCoefficients(void)
