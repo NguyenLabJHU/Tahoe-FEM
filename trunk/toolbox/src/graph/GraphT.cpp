@@ -1,4 +1,4 @@
-/* $Id: GraphT.cpp,v 1.11 2003-04-07 17:30:50 cjkimme Exp $ */
+/* $Id: GraphT.cpp,v 1.12 2003-04-07 22:57:48 cjkimme Exp $ */
 #include "GraphT.h"
 
 #include <time.h>
@@ -150,7 +150,7 @@ void GraphT::MakeGraph(void)
 		int  nel = currEquiv->MajorDim();
 		int  nen = currEquiv->MinorDim();
 		int* ien = currEquiv->Pointer();
-		for (int k = 0; k < 1; k++)
+		for (int k = 0; k < nel; k++)
 		{
 			for (int i = 0; i < nen; i++)
 			{	
