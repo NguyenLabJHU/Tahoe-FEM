@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden2DT.cpp,v 1.5.30.1 2004-01-21 19:10:10 paklein Exp $ */
+/* $Id: QuadLogOgden2DT.cpp,v 1.5.30.2 2004-03-02 17:46:16 paklein Exp $ */
 /* created: paklein (02/18/2001) */
 #include "QuadLogOgden2DT.h"
 #include <math.h>
@@ -11,11 +11,8 @@ using namespace Tahoe;
 QuadLogOgden2DT::QuadLogOgden2DT(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("quad_log_Ogden_2D"),
 	OgdenIsotropicT(in, support),
-	Material2DT(in, kPlaneStrain),
 	flogE(2)
 {
-	fDensity *= fThickness;
-	
 	/* read modulus */
 	double E, nu;
 	in >> E >> nu;
@@ -45,6 +42,17 @@ double QuadLogOgden2DT::StrainEnergyDensity(void)
 
 	return 0.5*Lambda()*pow(flogE.Sum(), 2.0) + 
 	           Mu()*dArrayT::Dot(flogE, flogE);
+}
+
+/* describe the parameters needed by the interface */
+void QuadLogOgden2DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	OgdenIsotropicT::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("2D_constraint");
+	constraint.SetDefault(kPlaneStrain);
 }
 
 /*************************************************************************

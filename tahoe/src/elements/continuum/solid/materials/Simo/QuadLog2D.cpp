@@ -1,4 +1,4 @@
-/* $Id: QuadLog2D.cpp,v 1.5.30.1 2004-01-21 19:10:12 paklein Exp $ */
+/* $Id: QuadLog2D.cpp,v 1.5.30.2 2004-03-02 17:46:17 paklein Exp $ */
 /* created: paklein (06/28/1997) */
 #include "QuadLog2D.h"
 #include <math.h>
@@ -10,12 +10,11 @@ using namespace Tahoe;
 QuadLog2D::QuadLog2D(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("quad_log_2D"),
 	QuadLog3D(in, support),
-	Material2DT(in, kPlaneStrain),
 	fb_2D(2),
 	fStress2D(2),
 	fModulus2D(dSymMatrixT::NumValues(2))
 {
-	fDensity *= fThickness;
+
 }
 
 /* modulus */
@@ -33,7 +32,6 @@ const dMatrixT& QuadLog2D::c_ijkl(void)
 
 	/* 3D -> 2D */
 	fModulus2D.Rank4ReduceFrom3D(fModulus);
-	fModulus2D *= fThickness;
 
 	return fModulus2D;
 }
@@ -53,7 +51,6 @@ const dSymMatrixT& QuadLog2D::s_ij(void)
 
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(fStress);
-	fStress2D *= fThickness;
 
 	return fStress2D;
 }
@@ -71,15 +68,18 @@ double QuadLog2D::StrainEnergyDensity(void)
 	/* logarithmic stretches */
 	LogStretches(fEigs);
 
-	return fThickness*ComputeEnergy(floge);
+	return ComputeEnergy(floge);
 }
 
-/* print parameters */
-void QuadLog2D::Print(ostream& out) const
+/* describe the parameters needed by the interface */
+void QuadLog2D::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	QuadLog3D::Print(out);
-	Material2DT::Print(out);
+	QuadLog3D::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("2D_constraint");
+	constraint.SetDefault(kPlaneStrain);
 }
 
 /*************************************************************************

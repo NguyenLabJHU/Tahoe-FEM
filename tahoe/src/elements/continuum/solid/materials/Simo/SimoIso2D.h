@@ -1,24 +1,20 @@
-/* $Id: SimoIso2D.h,v 1.7 2003-01-29 07:34:48 paklein Exp $ */
+/* $Id: SimoIso2D.h,v 1.7.30.1 2004-03-02 17:46:17 paklein Exp $ */
 /* created: paklein (03/04/1997) */
 #ifndef _SIMO_ISO_2D_H_
 #define _SIMO_ISO_2D_H_
 
 /* base classes */
 #include "SimoIso3D.h"
-#include "Material2DT.h"
 
 namespace Tahoe {
 
 /** (2D <-> 3D) translator for the SimoIso3D */
-class SimoIso2D: public SimoIso3D, public Material2DT
+class SimoIso2D: public SimoIso3D
 {
 public:
 
 	/** constructor */
 	SimoIso2D(ifstreamT& in, const FSMatSupportT& support);
-
-	/** print parameters */
-	virtual void Print(ostream& out) const;
 
 	/** print material model name */
 	virtual void PrintName(ostream& out) const;
@@ -36,6 +32,12 @@ public:
 
 	/** strain energy density */
 	virtual double StrainEnergyDensity(void);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
 protected:
 

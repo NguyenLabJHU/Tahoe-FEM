@@ -1,4 +1,4 @@
-/* $Id: CubicT.cpp,v 1.4.34.1 2004-01-21 19:10:06 paklein Exp $ */
+/* $Id: CubicT.cpp,v 1.4.34.2 2004-03-02 17:46:13 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #include "CubicT.h"
 
@@ -74,13 +74,13 @@ void CubicT::ComputeModuli(dMatrixT& moduli)
 	}
 }
 
-void CubicT::ComputeModuli2D(dMatrixT& moduli, Material2DT::ConstraintOptionT constraint) const
+void CubicT::ComputeModuli2D(dMatrixT& moduli, SolidMaterialT::ConstraintT constraint) const
 {
 	if (moduli.Rows() == 3)
 	{
 		/* reset moduli for plane stress */
 		double C11, C12;
-		if (constraint == Material2DT::kPlaneStress)
+		if (constraint == SolidMaterialT::kPlaneStress)
 		{
 			C11 = fC11 - (fC12*fC12/fC11);
 			C12 = fC12*(fC11 - fC12)/fC11;
@@ -100,10 +100,10 @@ void CubicT::ComputeModuli2D(dMatrixT& moduli, Material2DT::ConstraintOptionT co
 }
 
 /* scale factor for constrained dilatation */
-double CubicT::DilatationFactor2D(Material2DT::ConstraintOptionT constraint) const
+double CubicT::DilatationFactor2D(SolidMaterialT::ConstraintT constraint) const
 {
 	/* scale thermal strain */
-	if (constraint == Material2DT::kPlaneStrain)
+	if (constraint == SolidMaterialT::kPlaneStrain)
 		return 1.0 + (fC12/(fC12 + fC11));
 	else
 		 return 1.0;

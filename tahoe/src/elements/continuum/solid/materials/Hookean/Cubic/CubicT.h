@@ -1,4 +1,4 @@
-/* $Id: CubicT.h,v 1.4.40.1 2004-01-21 19:10:06 paklein Exp $ */
+/* $Id: CubicT.h,v 1.4.40.2 2004-03-02 17:46:13 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #ifndef _CUBIC_T_H_
 #define _CUBIC_T_H_
@@ -7,7 +7,7 @@
 #include "ParameterInterfaceT.h"
 
 /* direct members */
-#include "Material2DT.h"
+#include "SolidMaterialT.h"
 
 namespace Tahoe {
 
@@ -37,10 +37,10 @@ protected:
 
 	/* set modulus */
 	void ComputeModuli(dMatrixT& moduli);
-	void ComputeModuli2D(dMatrixT& moduli, Material2DT::ConstraintOptionT constraint) const;
+	void ComputeModuli2D(dMatrixT& moduli, SolidMaterialT::ConstraintT constraint) const;
 
 	/* scale factor for constrained dilatation */
-	double DilatationFactor2D(Material2DT::ConstraintOptionT constraint) const;   	
+	double DilatationFactor2D(SolidMaterialT::ConstraintT constraint) const;   	
 
 protected:
 

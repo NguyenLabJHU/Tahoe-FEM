@@ -1,4 +1,4 @@
-/* $Id: SSCubic2DT.h,v 1.6.30.1 2004-01-21 19:10:07 paklein Exp $ */
+/* $Id: SSCubic2DT.h,v 1.6.30.2 2004-03-02 17:46:14 paklein Exp $ */
 /* created: paklein (06/11/97) */
 #ifndef _SS_CUBIC_2D_T_H_
 #define _SS_CUBIC_2D_T_H_
@@ -6,11 +6,10 @@
 /* base classes */
 #include "SSCubicT.h"
 #include "Anisotropic2DT.h"
-#include "Material2DT.h"
 
 namespace Tahoe {
 
-class SSCubic2DT: public SSCubicT, public Anisotropic2DT, public Material2DT
+class SSCubic2DT: public SSCubicT, public Anisotropic2DT
 {
 public:
 
@@ -29,14 +28,15 @@ public:
 
 protected:
 
-	/* set modulus */
+	/** set modulus */
 	virtual void SetModulus(dMatrixT& modulus);
 
 private:
 
-	/* set the internal thermal strain */
+	/** set the internal thermal strain */
 	virtual bool SetThermalStrain(dSymMatrixT& thermal_strain);
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _SS_CUBIC_2D_T_H_ */
