@@ -1,4 +1,4 @@
-/* $Id: J2SimoC0HardeningT.cpp,v 1.6.2.1 2002-05-11 20:22:46 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.cpp,v 1.6.2.2 2002-05-23 01:04:53 paklein Exp $ */
 /* created: paklein (05/01/2001) */
 
 #include "J2SimoC0HardeningT.h"
@@ -259,8 +259,8 @@ const dSymMatrixT& J2SimoC0HardeningT::StressCorrection(ElementCardT& element, i
 				}
 			}
 
-			/* plastic correction */
-			fStressCorr.SetToScaled(-2.0*mu_bar_bar*dgamma, fUnitNorm);
+			/* plastic correction - to Cauchy stress */
+			fStressCorr.SetToScaled(-2.0*mu_bar_bar*dgamma/fInternal[kDetF_tot], fUnitNorm);
 
 			/* incremental heat generation - 90% of plastic work */
 			heat_incr = 0.9*sqrt23*dgamma*fInternal[kstressnorm];
@@ -285,8 +285,8 @@ const dSymMatrixT& J2SimoC0HardeningT::StressCorrection(ElementCardT& element, i
 				relative_stress *= fmu;
 				relative_stress -= fbeta_bar_trial;
 
-				/* return mapping */
-				relative_stress += fStressCorr;
+				/* return mapping - Kirchhoff stress */
+				relative_stress.AddScaled(1.0/fInternal[kDetF_tot], fStressCorr);
 
 				/* compute update yield condition */
 				double f = YieldCondition(relative_stress, alpha);
@@ -355,7 +355,7 @@ const dMatrixT& J2SimoC0HardeningT::ModuliCorrection(ElementCardT& element, int 
 		fModuliCorr.AddScaled(-d2, fRed4Temp1);
 
 		/* J factor: Simo's Kirchhoff to spatial tangent modulus */
-		//fModuliCorr /= fInternal[kDetF_tot];		
+		fModuliCorr /= fInternal[kDetF_tot];		
 	}
 
 	return fModuliCorr;
