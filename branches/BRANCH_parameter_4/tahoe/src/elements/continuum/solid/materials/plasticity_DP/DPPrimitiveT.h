@@ -1,4 +1,4 @@
-/* $Id: DPPrimitiveT.h,v 1.8.12.1 2004-07-06 06:53:55 paklein Exp $ */
+/* $Id: DPPrimitiveT.h,v 1.8.12.2 2004-07-08 00:21:07 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_PRIMITIVET_H_
 #define _DP_PRIMITIVET_H_
@@ -7,6 +7,9 @@
 #include "ParameterInterfaceT.h"
 
 namespace Tahoe {
+
+/* forward declarations */
+class dSymMatrixT;
 
 /** base class for Drucker-Prager, nonassociative, small-strain,
  * pressure dependent plastic model with linear isotropic hardening

@@ -1,4 +1,4 @@
-/* $Id: J2_C0HardeningT.h,v 1.1.4.1 2004-07-06 06:53:57 paklein Exp $ */
+/* $Id: J2_C0HardeningT.h,v 1.1.4.2 2004-07-08 00:21:08 paklein Exp $ */
 #ifndef _J2_C0_HARD_T_H_
 #define _J2_C0_HARD_T_H_
 
@@ -9,6 +9,9 @@
 #include "C1FunctionT.h"
 
 namespace Tahoe {
+
+/* forward declarations */
+class dSymMatrixT;
 
 /** parameters for J2 plasticity with general yield function */
 class J2_C0HardeningT: virtual public ParameterInterfaceT
