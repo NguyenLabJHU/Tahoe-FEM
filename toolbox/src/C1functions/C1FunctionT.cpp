@@ -1,4 +1,4 @@
-/* $Id: C1FunctionT.cpp,v 1.4 2003-11-21 22:41:27 paklein Exp $ */
+/* $Id: C1FunctionT.cpp,v 1.5 2004-01-27 19:07:23 paklein Exp $ */
 /* created: paklein (12/04/1996) */
 #include "C1FunctionT.h"
 #include "dArrayT.h"
@@ -7,10 +7,17 @@
 using namespace Tahoe;
 
 /* constructor */
-C1FunctionT::C1FunctionT(void) { }
+C1FunctionT::C1FunctionT(void):
+	ParameterInterfaceT("C1_function")
+{ 
+
+}
 
 /* destructor */
-C1FunctionT::~C1FunctionT(void) { }
+C1FunctionT::~C1FunctionT(void)
+{ 
+
+}
 
 /* returning values in groups - derived classes should define
 * their own non-virtual function called within this functon

@@ -1,23 +1,27 @@
-/* $Id: CubicSplineT.cpp,v 1.5 2003-11-21 22:41:27 paklein Exp $ */
-/* created: paklein (12/02/1996)                                          */
-/* CubicSplineT.cpp                                                       */
-
+/* $Id: CubicSplineT.cpp,v 1.6 2004-01-27 19:07:23 paklein Exp $ */
+/* created: paklein (12/02/1996) */
 #include "CubicSplineT.h"
 #include "dArray2DT.h"
 #include "dMatrixT.h"
 #include "TriDiagdMatrixT.h"
 #include "iArrayT.h"
 
-
 using namespace Tahoe;
 
 const int kNumSplineCoeffs = 4;
 
 /* constructor */
+CubicSplineT::CubicSplineT(void)
+{
+	SetName("cubic_spline");
+}
+
 CubicSplineT::CubicSplineT(const dArrayT& knots, const dArray2DT& coefficients):
 	fXPoints(knots),
 	fCoefficients(coefficients)
 {
+	SetName("cubic_spline");
+
 	/* check dimensions */
 	if (fCoefficients.MajorDim() != fXPoints.Length() + 1)
 	    throw ExceptionT::kSizeMismatch;
@@ -29,6 +33,8 @@ CubicSplineT::CubicSplineT(const dArray2DT& points, FixityT fixity):
 	fXPoints(0,points),
 	fCoefficients(fXPoints.Length() + 1, kNumSplineCoeffs)
 {
+	SetName("cubic_spline");
+
 	/* compute spline coefficients */
 	SetSpline(points, fixity);
 }
@@ -262,4 +268,56 @@ void CubicSplineT::SetSpline(const dArray2DT& points, FixityT fixity)
 		               (YPoints[dex] - YPoints[dex-1])/dxi[dex-1];
 	fCoefficients(dex+1,2) = DDY[dex]/2.0;
 	fCoefficients(dex+1,3) = 0.0;
+}
+
+/* describe the parameters needed by the interface */
+void CubicSplineT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	C1FunctionT::DefineParameters(list);
+
+	ParameterT fixity(ParameterT::Enumeration, "fixity");
+	fixity.AddEnumeration("parabolic", kParabolic);
+	fixity.AddEnumeration("free_run", kFreeRun);
+	fixity.SetDefault(kParabolic);
+	list.AddParameter(fixity);
+}
+
+/* information about subordinate parameter lists */
+void CubicSplineT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	C1FunctionT::DefineSubs(sub_list);
+	
+	/* spline points */
+	sub_list.AddSub("OrderedPair", ParameterListT::OnePlus);
+}
+
+/* accept parameter list */
+void CubicSplineT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	C1FunctionT::TakeParameterList(list);
+
+	/* fixity */
+	int i_fixity = list.GetParameter("fixity");
+	FixityT fixity = (i_fixity == kFreeRun) ? kFreeRun : kParabolic;
+
+	/* collect spline points */
+	dArray2DT knots(list.NumLists("OrderedPair"), 2);
+	for (int i = 0; i < knots.MajorDim(); i++)
+	{
+		const ParameterListT* knot = list.List("OrderedPair", i);
+		knots(i,0) = knot->GetParameter("x");
+		knots(i,1) = knot->GetParameter("y");
+	}
+
+	/* dimension internal data structures */
+	dArrayT x_points(knots.MajorDim());
+	knots.ColumnCopy(0, x_points);	
+	fXPoints.SetValues(x_points);
+	fCoefficients.Dimension(fXPoints.Length() + 1, kNumSplineCoeffs);	
+
+	/* compute spline coefficients */
+	SetSpline(knots, fixity);
 }
