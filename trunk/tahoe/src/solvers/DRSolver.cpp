@@ -1,4 +1,4 @@
-/* $Id: DRSolver.cpp,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* $Id: DRSolver.cpp,v 1.2 2002-04-02 23:25:16 paklein Exp $ */
 /* created: PAK/CBH (10/03/1996)                                          */
 
 #include "DRSolver.h"
@@ -126,8 +126,8 @@ void DRSolver::ComputeVelocity(void)
 void DRSolver::ComputeDamping(void)
 {
 	/* numerator */
-	fFEManager.ActiveDisplacements(fDisp);
-	fCCSLHS->MultKd(fDisp,fKd);
+	fFEManager.GetUnknowns(0, fDisp);
+	fCCSLHS->Multx(fDisp, fKd);
 	double numer = dArrayT::Dot(fDisp,fKd);
 	
 	/* denominator */
