@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.61.4.2 2004-05-25 16:35:59 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.61.4.3 2004-06-16 07:14:55 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -429,21 +429,16 @@ void CSEAnisoT::TakeParameterList(const ParameterListT& list)
 		const ParameterListT& block = list.GetList("anisotropic_CSE_element_block", i);
 		
 		/* resolve choices of properties choice by spatial dimension */
-		const ParameterListT* mat_list_choice_choice = block.ResolveListChoice(*this, "cohesive_relation_choice");
-		if (!mat_list_choice_choice)
-			ExceptionT::BadInputValue(caller, "could not resolve choice \"cohesive_relation_choice\"");
+		const ParameterListT& mat_list_choice_choice = block.GetListChoice(*this, "cohesive_relation_choice");
 
 		/* resolve material choice */
-		const ParameterListT* surf_pot_params = block.ResolveListChoice(*this, mat_list_choice_choice->Name());
-		if (!surf_pot_params)
-			ExceptionT::BadInputValue(caller, "could not resolve \"%s\"", mat_list_choice_choice->Name().Pointer());
+		const ParameterListT& surf_pot_params = block.GetListChoice(*this, mat_list_choice_choice.Name());
 
 		/* construct material */
-		SurfacePotentialT* surf_pot = SurfacePotentialT::New(surf_pot_params->Name());
-		if (!surf_pot)
-			ExceptionT::BadInputValue(caller, "could not construct \"%s\"", surf_pot_params->Name().Pointer());
+		SurfacePotentialT* surf_pot = SurfacePotentialT::New(surf_pot_params.Name());
+		if (!surf_pot) ExceptionT::BadInputValue(caller, "could not construct \"%s\"", surf_pot_params.Name().Pointer());
 		surf_pot->SetTimeStep(ElementSupport().TimeStep());
-		surf_pot->TakeParameterList(*surf_pot_params);
+		surf_pot->TakeParameterList(surf_pot_params);
 
 		/* number of state variables */
 		fNumStateVariables[i] = surf_pot->NumStateVariables();

@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.36.2.8 2004-05-26 03:56:14 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.36.2.9 2004-06-16 07:15:09 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -677,7 +677,7 @@ void ParticleT::SetDamping(const ParameterListT& list)
 
 	AutoArrayT<ThermostatBaseT*> thermostats;
 	int count = 0;
-	const ParameterListT* thermostat_params = list.ResolveListChoice(*this, "thermostats", count);
+	const ParameterListT* thermostat_params = list.ListChoice(*this, "thermostats", count);
 	while (thermostat_params) {
 	
 		/* construct new thermostat */
@@ -690,7 +690,7 @@ void ParticleT::SetDamping(const ParameterListT& list)
 		thermostats.Append(thermostat);
 		
 		/* look for another */	
-		thermostat_params = list.ResolveListChoice(*this, "thermostats", ++count);
+		thermostat_params = list.ListChoice(*this, "thermostats", ++count);
 	}
 
 	/* free existing */

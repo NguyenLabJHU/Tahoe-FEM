@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.17.18.9 2004-06-08 22:27:34 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.17.18.10 2004-06-16 07:15:07 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #include "MeshFreeSSSolidT.h"
 
@@ -286,7 +286,7 @@ void MeshFreeSSSolidT::TakeParameterList(const ParameterListT& list)
 	fMFFractureSupport->TakeParameterList(list.GetList("meshfree_fracture_support"));
 
 	/* get parameters needed to construct shape functions */
-	fMeshfreeParameters = list.ResolveListChoice(*this, "meshfree_support_choice");
+	fMeshfreeParameters = list.ListChoice(*this, "meshfree_support_choice");
 
 	/* inherited */
 	SmallStrainT::TakeParameterList(list);

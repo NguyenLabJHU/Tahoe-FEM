@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.16.20.4 2004-05-11 03:59:24 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.16.20.5 2004-06-16 07:14:53 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -433,11 +433,10 @@ void AdhesionT::TakeParameterList(const ParameterListT& list)
 	fCutOff = list.GetParameter("cut_off");
 
 	/* construct potential */
-	const ParameterListT* adhesion_potential = list.ResolveListChoice(*this, "adhesion_potential");
-	if (!adhesion_potential) ExceptionT::GeneralFail(caller, "could not resolve \"adhesion_potential\"");
-	fAdhesion = C1FunctionT::New(adhesion_potential->Name());
-	if (!fAdhesion) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", adhesion_potential->Name().Pointer());
-	fAdhesion->TakeParameterList(*adhesion_potential);
+	const ParameterListT& adhesion_potential = list.GetListChoice(*this, "adhesion_potential");
+	fAdhesion = C1FunctionT::New(adhesion_potential.Name());
+	if (!fAdhesion) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", adhesion_potential.Name().Pointer());
+	fAdhesion->TakeParameterList(adhesion_potential);
 
 	/* construct the adhesive surfaces */
 	ExtractSurfaces(list);
@@ -761,27 +760,26 @@ void AdhesionT::ExtractSurfaces(const ParameterListT& list)
 	AutoArrayT<GeometryT::CodeT> geom;
 	for (int i = 0; i < num_surfaces; i++)
 	{
-		const ParameterListT* surface_spec = list.ResolveListChoice(*this, "adhesion_surface", i);
-		if (!surface_spec) ExceptionT::GeneralFail(caller, "could not resolve \"adhesion_surface\" choice %d", i+1);
+		const ParameterListT& surface_spec = list.GetListChoice(*this, "adhesion_surface", i);
 	
 		ArrayT<GeometryT::CodeT> new_geom;
 		ArrayT<iArray2DT> new_surfaces;
 	
-		if (surface_spec->Name() == "surface_side_set") 
+		if (surface_spec.Name() == "surface_side_set") 
 		{
 			new_geom.Dimension(1);
 			new_surfaces.Dimension(1);
-			InputSideSets(*surface_spec, new_geom[0], new_surfaces[0]);
+			InputSideSets(surface_spec, new_geom[0], new_surfaces[0]);
 		}
-		else if (surface_spec->Name() == "block_boundaries")
+		else if (surface_spec.Name() == "block_boundaries")
 		{		
 			/* may resize the surfaces array */
-			InputBodyBoundary(*surface_spec, new_geom, new_surfaces);
+			InputBodyBoundary(surface_spec, new_geom, new_surfaces);
 			num_surfaces += new_surfaces.Length() - 1;
 		}
 		else
 			ExceptionT::GeneralFail(caller, "unrecognized adhesion surface \"%s\"",
-				surface_spec->Name().Pointer());
+				surface_spec.Name().Pointer());
 
 		/* collect */
 		geom.Append(new_geom);

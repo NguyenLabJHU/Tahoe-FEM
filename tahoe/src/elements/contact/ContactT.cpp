@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.16.18.5 2004-04-27 16:02:14 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.16.18.6 2004-06-16 07:14:57 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -235,20 +235,19 @@ void ContactT::ExtractContactGeometry(const ParameterListT& list)
 	/* read contact bodies */
 	for (int i = 0; i < fSurfaces.Length(); i++)
 	{
-		const ParameterListT* surface_spec = list.ResolveListChoice(*this, "contact_surface", i);
-		if (!surface_spec) ExceptionT::GeneralFail(caller, "could not find \"contact_surface\" %d", i+1);
+		const ParameterListT& surface_spec = list.GetListChoice(*this, "contact_surface", i);
 
-		if (surface_spec->Name() == "surface_side_set")
-			InputSideSets(*surface_spec, fSurfaces[i]);
-		else if (surface_spec->Name() == "body_boundary") 
+		if (surface_spec.Name() == "surface_side_set")
+			InputSideSets(surface_spec, fSurfaces[i]);
+		else if (surface_spec.Name() == "body_boundary") 
 		{
 			/* may resize the surfaces array */
-			InputBodyBoundary(*surface_spec, fSurfaces, i);
+			InputBodyBoundary(surface_spec, fSurfaces, i);
 			num_surfaces = fSurfaces.Length();
 		}
 		else
 			ExceptionT::GeneralFail(caller, "unrecognized contact surface \"%s\"",
-				surface_spec->Name().Pointer());
+				surface_spec.Name().Pointer());
 	}
 	
 	/* echo data  */
@@ -299,15 +298,14 @@ void ContactT::ExtractContactGeometry(const ParameterListT& list)
 	}
 
 	/* get strikers */
-	const ParameterListT* striker_spec = list.ResolveListChoice(*this, "contact_nodes");
-	if (!striker_spec) ExceptionT::GeneralFail(caller, "\"contact_nodes\" not found");
-	if (striker_spec->Name() == "node_ID_list")
-		StrikersFromNodeSets(*striker_spec);
-	else if (striker_spec->Name() == "side_set_ID_list")
-		StrikersFromSideSets(*striker_spec);
-	else if (striker_spec->Name() == "all_surface_nodes")
+	const ParameterListT& striker_spec = list.GetListChoice(*this, "contact_nodes");
+	if (striker_spec.Name() == "node_ID_list")
+		StrikersFromNodeSets(striker_spec);
+	else if (striker_spec.Name() == "side_set_ID_list")
+		StrikersFromSideSets(striker_spec);
+	else if (striker_spec.Name() == "all_surface_nodes")
 		StrikersFromSurfaces();
-	else if (striker_spec->Name() == "all_nodes_as_strikers") 
+	else if (striker_spec.Name() == "all_nodes_as_strikers") 
 	{
 		fStrikerCoords.Alias(ElementSupport().CurrentCoordinates());
 		
@@ -316,7 +314,7 @@ void ContactT::ExtractContactGeometry(const ParameterListT& list)
 	}
 	else
 		ExceptionT::GeneralFail(caller, "unrecognized contact node specification \"\"",
-			striker_spec->Name().Pointer());
+			striker_spec.Name().Pointer());
 
 	/* echo */
 	if (print_input) {

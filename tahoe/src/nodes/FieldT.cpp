@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.25.14.3 2004-06-07 13:47:34 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.25.14.4 2004-06-16 07:15:16 paklein Exp $ */
 #include "FieldT.h"
 
 #include "fstreamT.h"
@@ -922,16 +922,15 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 	const StringT& field_name = list.GetParameter("field_name");
 
 	/* number of degrees of freedom per node */
-	const ParameterListT* ndof_spec = list.ResolveListChoice(*this, "ndof_specification");
-	if (!ndof_spec) ExceptionT::BadInputValue(caller, "\"ndof_specification\" not found in \"%s\"", list.Name().Pointer());
+	const ParameterListT& ndof_spec = list.GetListChoice(*this, "ndof_specification");
 	ArrayT<StringT> labels;
 	int ndof = 0;
-	if (ndof_spec->Name() == "dof_count")
-		ndof = ndof_spec->GetParameter("ndof");
-	else if (ndof_spec->Name() == "dof_labels")
+	if (ndof_spec.Name() == "dof_count")
+		ndof = ndof_spec.GetParameter("ndof");
+	else if (ndof_spec.Name() == "dof_labels")
 	{
 		/* labels */
-		const ArrayT<ParameterListT>& dof_labels = ndof_spec->Lists();
+		const ArrayT<ParameterListT>& dof_labels = ndof_spec.Lists();
 		ndof = dof_labels.Length();
 		labels.Dimension(ndof);
 		for (int i = 0; i < ndof; i++)
@@ -939,7 +938,7 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 	}
 	else
 		ExceptionT::GeneralFail(caller, "not expecting \"%s\" for \"ndof_specification\" in \"%s\"",
-			ndof_spec->Name().Pointer(), list.Name().Pointer());
+			ndof_spec.Name().Pointer(), list.Name().Pointer());
 
 	/* solution group */
 	fGroup = list.GetParameter("solution_group");

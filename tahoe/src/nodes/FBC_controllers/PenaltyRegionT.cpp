@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.15.20.1 2004-04-08 07:33:51 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.15.20.2 2004-06-16 07:15:19 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltyRegionT.h"
 
@@ -308,7 +308,6 @@ ParameterInterfaceT* PenaltyRegionT::NewSub(const StringT& list_name) const
 void PenaltyRegionT::TakeParameterList(const ParameterListT& list)
 {
 	const char caller[] = "PenaltyRegionT::TakeParameterList";
-	const char msg[] = "\"%s\" did not resolve choice \"%s\"";
 
 	/* inherited */
 	FBC_ControllerT::TakeParameterList(list);
@@ -320,33 +319,30 @@ void PenaltyRegionT::TakeParameterList(const ParameterListT& list)
 	int nsd = FieldSupport().NumSD();
 
 	/* initial position */
-	const ParameterListT* x_vec = list.ResolveListChoice(*this, "bc_initial_position");
-	if (!x_vec) ExceptionT::GeneralFail(caller, msg, list.Name().Pointer(), "bc_initial_position");
-	VectorParameterT::Extract(*x_vec, fx0);
+	const ParameterListT& x_vec = list.GetListChoice(*this, "bc_initial_position");
+	VectorParameterT::Extract(x_vec, fx0);
 	if (fx0.Length() != nsd) 
 		ExceptionT::GeneralFail(caller, "\"bc_initial_position\" should be length %d not %d", nsd, fx0.Length());
 
 	/* velocity */
-	const ParameterListT* v_vec = list.ResolveListChoice(*this, "bc_velocity");
-	if (!v_vec) ExceptionT::GeneralFail(caller, msg, list.Name().Pointer(), "bc_velocity");
-	VectorParameterT::Extract(*v_vec, fv0);
+	const ParameterListT& v_vec = list.GetListChoice(*this, "bc_velocity");
+	VectorParameterT::Extract(v_vec, fv0);
 	if (fv0.Length() != nsd) 
 		ExceptionT::GeneralFail(caller, "\"bc_velocity\" should be length %d not %d", nsd, fv0.Length());
 	
 	/* motion control */
 	fSlow = kConstantVelocity;
-	const ParameterListT* motion = list.ResolveListChoice(*this, "motion_control_choice");
-	if (!motion) ExceptionT::GeneralFail(caller, "expecting \"motion_control_choice\"");
-	if (motion->Name() == "velocity_schedule") {
+	const ParameterListT& motion = list.GetListChoice(*this, "motion_control_choice");
+	if (motion.Name() == "velocity_schedule") {
 		fSlow = kSchedule;
-		int schedule = motion->GetParameter("schedule");
+		int schedule = motion.GetParameter("schedule");
 		schedule--;
 		fLTf = FieldSupport().Schedule(schedule);
 		if (!fLTf) ExceptionT::BadInputValue(caller, "could not resolve schedule %d", schedule+1);
 	}
-	else if (motion->Name() == "integrate_impulse") {
+	else if (motion.Name() == "integrate_impulse") {
 		fSlow = kImpulse;
-		fMass = motion->GetParameter("mass");
+		fMass = motion.GetParameter("mass");
 	}
 
 	/* affected nodes */

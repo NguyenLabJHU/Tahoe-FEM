@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.31.4.3 2004-05-25 16:35:59 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.31.4.4 2004-06-16 07:14:55 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
@@ -450,10 +450,9 @@ void CSEBaseT::TakeParameterList(const ParameterListT& list)
 	fOutputArea = list.GetParameter("output_area");
 
 	/* element geometry */
-	const ParameterListT* geom = list.ResolveListChoice(*this, "surface_geometry");
-	if (!geom) ExceptionT::BadInputValue(caller, "could not resolve \"surface_geometry\"");
-	fGeometryCode = GeometryT::string2CodeT(geom->Name());
-	fNumIntPts = geom->GetParameter("num_ip");
+	const ParameterListT& geom = list.GetListChoice(*this, "surface_geometry");
+	fGeometryCode = GeometryT::string2CodeT(geom.Name());
+	fNumIntPts = geom.GetParameter("num_ip");
 
 	/* nodal output codes */
 	fNodalOutputCodes.Dimension(NumNodalOutputCodes);

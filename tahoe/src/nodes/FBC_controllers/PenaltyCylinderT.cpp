@@ -1,4 +1,4 @@
-/* $Id: PenaltyCylinderT.cpp,v 1.2.28.1 2004-04-08 07:33:51 paklein Exp $ */
+/* $Id: PenaltyCylinderT.cpp,v 1.2.28.2 2004-06-16 07:15:19 paklein Exp $ */
 #include "PenaltyCylinderT.h"
 #include "FieldT.h"
 #include "eIntegratorT.h"
@@ -111,9 +111,8 @@ void PenaltyCylinderT::TakeParameterList(const ParameterListT& list)
 
 	/* initial position */
 	int nsd = FieldSupport().NumSD();
-	const ParameterListT* dir = list.ResolveListChoice(*this, "cylinder_penalty_axis");
-	if (!dir) ExceptionT::GeneralFail(caller, "\"%s\" did not resolve \"cylinder_penalty_axis\"", list.Name().Pointer());
-	VectorParameterT::Extract(*dir, fDirection);
+	const ParameterListT& dir = list.GetListChoice(*this, "cylinder_penalty_axis");
+	VectorParameterT::Extract(dir, fDirection);
 	fDirection.UnitVector();
 	if (fDirection.Length() != nsd) 
 		ExceptionT::GeneralFail(caller, "\"cylinder_penalty_axis\" should be length %d not %d", nsd, fDirection.Length());

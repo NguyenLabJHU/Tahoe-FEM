@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.39.14.6 2004-06-16 00:27:43 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.39.14.7 2004-06-16 07:14:59 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -1469,11 +1469,9 @@ void ContinuumElementT::TakeParameterList(const ParameterListT& list)
 	SetLocalArrays();
 
 	/* construct shape functions */
-	const ParameterListT* integration_domain = list.ResolveListChoice(*this, "element_geometry");
-	if (!integration_domain)
-		ExceptionT::BadInputValue(caller, "could not resolve \"element_geometry\"");
-	fGeometryCode = GeometryT::string2CodeT(integration_domain->Name());
-	fNumIP = integration_domain->GetParameter("num_ip");
+	const ParameterListT& integration_domain = list.GetListChoice(*this, "element_geometry");
+	fGeometryCode = GeometryT::string2CodeT(integration_domain.Name());
+	fNumIP = integration_domain.GetParameter("num_ip");
 	SetShape();
 
 	/* construct material list */

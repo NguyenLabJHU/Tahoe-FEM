@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.19.18.3 2004-06-14 04:56:30 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.19.18.4 2004-06-16 07:15:04 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -242,11 +242,8 @@ void FiniteStrainT::CollectMaterialInfo(const ParameterListT& all_params, Parame
 		
 		/* resolve material list name */
 		if (i == 0) {
-			const ParameterListT* mat_list_params = block.ResolveListChoice(*this, "large_strain_material_choice");
-			if (mat_list_params)
-				mat_params.SetName(mat_list_params->Name());
-			else
-				ExceptionT::GeneralFail(caller, "could resolve material list");
+			const ParameterListT& mat_list_params = block.GetListChoice(*this, "large_strain_material_choice");
+			mat_params.SetName(mat_list_params.	Name());
 		}
 		
 		/* collect material parameters */

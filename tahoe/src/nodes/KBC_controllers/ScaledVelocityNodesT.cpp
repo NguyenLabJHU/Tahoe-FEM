@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.cpp,v 1.7.20.4 2004-06-07 13:47:35 paklein Exp $ */
+/* $Id: ScaledVelocityNodesT.cpp,v 1.7.20.5 2004-06-16 07:15:20 paklein Exp $ */
 #include "ScaledVelocityNodesT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -357,46 +357,36 @@ void ScaledVelocityNodesT::TakeParameterList(const ParameterListT& list)
 	fRandom.sRand(rseed);
 
 	/* resolve IC/BC */
-	const ParameterListT* bc_or_ic = list.ResolveListChoice(*this, "BC_or_IC");
-	if (bc_or_ic)
-	{
-		if (bc_or_ic->Name() == "scale_as_BC") {
-			fTempScale = bc_or_ic->GetParameter("scale");
-			int schedule = bc_or_ic->GetParameter("schedule");
-			schedule--;
-			fTempSchedule = fSupport.Schedule(schedule);
-			if (!fTempSchedule) ExceptionT::BadInputValue(caller);
-		}
-		else if (bc_or_ic->Name() == "scale_as_IC")
-			fT_0 = bc_or_ic->GetParameter("temperature");
-		else
-			ExceptionT::GeneralFail(caller, "unrecognized \"BC_or_IC\" \"%s\"",
-				bc_or_ic->Name().Pointer());
+	const ParameterListT& bc_or_ic = list.GetListChoice(*this, "BC_or_IC");
+	if (bc_or_ic.Name() == "scale_as_BC") {
+		fTempScale = bc_or_ic.GetParameter("scale");
+		int schedule = bc_or_ic.GetParameter("schedule");
+		schedule--;
+		fTempSchedule = fSupport.Schedule(schedule);
+		if (!fTempSchedule) ExceptionT::BadInputValue(caller);
 	}
+	else if (bc_or_ic.Name() == "scale_as_IC")
+		fT_0 = bc_or_ic.GetParameter("temperature");
 	else
-		ExceptionT::GeneralFail(caller, "could not resolve \"BC_or_IC\"");
+		ExceptionT::GeneralFail(caller, "unrecognized \"BC_or_IC\" \"%s\"",
+			bc_or_ic.Name().Pointer());
 
 	/* method for specifying affected nodes */
 	const char choice[] = "node_pick_choice";
-	const ParameterListT* pick = list.ResolveListChoice(*this, choice);
+	const ParameterListT& pick = list.GetListChoice(*this, choice);
 	qAllNodes = false;
-	if (pick) {
-		if (pick->Name() == "pick_all_nodes") {		
-			qAllNodes = true;
-			fNodes.Dimension(fSupport.NumNodes());
-			fNodes.SetValueToPosition();
-		}
-		else if (pick->Name() == "pick_nodes_by_list")
-			InitNodeSets(*pick);
-//		else if (pick->Name() == "pick_nodes_by_region")
-//			InitRegion(*pick);
-		else
-			ExceptionT::GeneralFail(caller, "unrecognized pick method \"%s\"",
-				pick->Name().Pointer());
+	if (pick.Name() == "pick_all_nodes") {		
+		qAllNodes = true;
+		fNodes.Dimension(fSupport.NumNodes());
+		fNodes.SetValueToPosition();
 	}
+	else if (pick.Name() == "pick_nodes_by_list")
+		InitNodeSets(pick);
+//	else if (pick.Name() == "pick_nodes_by_region")
+//		InitRegion(*pick);
 	else
-		ExceptionT::GeneralFail(caller, "could not resolve choice \"%s\"", choice);
-
+		ExceptionT::GeneralFail(caller, "unrecognized pick method \"%s\"",
+			pick.Name().Pointer());
 
 #if 0
 
