@@ -10,7 +10,7 @@
 
 
 /* pass in shape function and it's laplacian of the plastic multiplier
- * to this class. form B4
+ * to this class. form psi_lam and B4 matrices
 */
 namespace Tahoe 
 {
@@ -25,17 +25,17 @@ class MFGP_MFA_Data_Processor_PlastT
 		/* destructor */
 		//~MFGP_MFA_Data_Processor_PlastT();
 		
-		void Initialize(const double *fN, const dArray2DT &fd2Ndx2 );
+		void Initialize(const double* fN, const dArray2DT& fd2Ndx2);
                         
-        /* phi: [1]x[nnd] */
-        void Set_phi(dMatrixT& phi);
+        /* psi_lam: [1]x[nnd] */
+        void Set_psi_lam(dMatrixT& psi_lam);
         
         /* B4: [1]x[nnd] */
 		void Set_B4(dMatrixT& B4);
 		
 	protected:
 		
-		const double *N;
+		const double* N;
 		dArray2DT d2N;
 	};
 
