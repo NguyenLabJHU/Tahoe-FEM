@@ -1,3 +1,4 @@
+/* $Id: YoonAllen2DT.cpp,v 1.1.2.2 2002-06-04 16:16:06 cjkimme Exp $ */
 
 #include "YoonAllen2DT.h"
 
@@ -41,8 +42,10 @@ YoonAllen2DT::YoonAllen2DT(ifstreamT& in, const double& time_step):
 	}
 
 	/* damage evolution law parameters */
-	in >> falpha_exp; 
+	in >> falpha_exp; //if (falpha_exp < 1.) throw eBadInputValue;
 	in >> falpha_0; if (falpha_0 <= kSmall) throw eBadInputValue;
+	in >> flambda_exp; if (flambda_exp > -1.) throw eBadInputValue;
+	in >> flambda_0; if (flambda_0 < 1.) throw eBadInputValue;
 
 	/* stiffness multiplier */
 	in >> fpenalty; if (fpenalty < 0) throw eBadInputValue;
@@ -140,18 +143,27 @@ const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 		return fTraction;
 	}
 	
-	double l_dot = (l_0*u_t_dot/fd_c_t+l_1*u_n_dot/fd_c_n)/l;
+//	double l_dot = (l_0*u_t_dot/fd_c_t+l_1*u_n_dot/fd_c_n)/l;
 	
 	double l_0_old = state2[0]/fd_c_t;
 	double l_1_old = state2[1]/fd_c_n;
-	double prefactold = sqrt(l_0_old*l_0_old+l_1_old*l_1_old)/(1-state2[2*knumDOF+1]);
+	double l_old = sqrt(l_0_old*l_0_old+l_1_old*l_1_old);
+	double prefactold = l_old/(1-state2[2*knumDOF+1]);
+//	cout << " l_dot comp : " << l_dot << " " << (l-l_old)/fTimeStep<<"\n";
+	double l_dot = (l-l_old)/fTimeStep;
+
+//	cout << "l_0_old " << l_0_old;
 
 	if (prefactold > kSmall)
 	{
 		/* do the bulk of the computation now */
-		fTraction[0] = prefactold/l_0_old*state2[knumDOF]; 
-		fTraction[1] = prefactold/l_1_old*state2[knumDOF+1];  
+		if (fabs(l_0_old) > kSmall)
+			fTraction[0] = prefactold/l_0_old*state2[knumDOF]; 
+		if (fabs(l_1_old) > kSmall)
+			fTraction[1] = prefactold/l_1_old*state2[knumDOF+1];  
 	}
+	
+//	cout << "fTraction (1st) : " << fTraction[0] << " " << fTraction[1] << "\n";
 	
 	double tmpSum = fE_infty*fTimeStep;
 	for (int i = 0; i < fNumRelaxTimes; i++)
@@ -159,7 +171,9 @@ const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 	tmpSum *= l_dot;
 	
 	fTraction += tmpSum;
-
+	
+//	cout << "fTraction (2nd) : " << fTraction[0] << " " << fTraction[1] << "\n";
+	
 	/* update the S coefficients */
 	for (int i = 0; i < fNumRelaxTimes; i++)
 	{
@@ -170,20 +184,23 @@ const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 	/* evolve the damage parameter */
 	double alpha = state2[2*knumDOF+1];
 	if (l_dot > kSmall)
-	 	alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
+//		alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
+//		alpha += fTimeStep*falpha_0*pow(1.-alpha,falpha_exp)*pow(1.-flambda_0*l,flambda_exp);
+		alpha += fTimeStep*falpha_0*pow(l_dot,falpha_exp);
+
 	 	
-	 if (alpha >= 1.)
-	 {
-	 	fTraction = 0.;
-	 	return fTraction;
-	 }
+	if (alpha >= 1.)
+	{
+		fTraction = 0.;
+		return fTraction;
+	}
 	
 	/* scale the final tractions */
 	fTraction[0] *= l_0/l*(1.-alpha);
 	fTraction[1] *= l_1/l*(1.-alpha);
 
 	/* handle penetration */
-	if (u_n < 0) fTraction[1] += fK*u_n;
+//	if (u_n < 0) fTraction[1] += fK*u_n;
 	
 	/* overwrite rates of change with gap vector increments in order to 
 	 * compute the work done in this step
@@ -199,6 +216,8 @@ const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 	state2[4] = l_dot;
 	state2[5] = alpha;
 	state2[6] += fTraction[0]*u_t_dot + fTraction[1]*u_n_dot;
+	
+//	cout << "fTraction : " << fTraction[0] << " " << fTraction[1] << " alpha " << alpha <<"\n";
 
 	return fTraction;
 	
@@ -235,11 +254,13 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 		return fStiffness;
 	}
 	
-	double l_dot = (l_0*u_t_dot/fd_c_t+l_1*u_n_dot/fd_c_n)/l;
+//	double l_dot = (l_0*u_t_dot/fd_c_t+l_1*u_n_dot/fd_c_n)/l;
 	
 	double l_0_old = state2[0]/fd_c_t;
 	double l_1_old = state2[1]/fd_c_n;
-	double prefactold = sqrt(l_0_old*l_0_old+l_1_old*l_1_old)/(1-state2[2*knumDOF+1]);
+	double l_old = sqrt(l_0_old*l_0_old+l_1_old*l_1_old);
+	double prefactold = l_old/(1-state2[2*knumDOF+1]);
+	double l_dot = (l-l_old)/fTimeStep;
 
 	dArrayT currTraction(2);
 	currTraction = 0.;
@@ -247,8 +268,10 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	if (prefactold > kSmall) 
 	{
 		/* do the bulk of the computation now */
-		currTraction[0] = prefactold/l_0_old*state2[knumDOF]; 
-		currTraction[1] = prefactold/l_1_old*state2[knumDOF+1];  
+		if (fabs(l_0_old) > kSmall)
+			currTraction[0] = prefactold/l_0_old*state2[knumDOF]; 
+		if (fabs(l_1_old) > kSmall)
+			currTraction[1] = prefactold/l_1_old*state2[knumDOF+1];  
 	}
 		
 	double tmpSum = fE_infty*fTimeStep;
@@ -270,14 +293,19 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	double alpha = state[fNumRelaxTimes+2*knumDOF+1];
 	if (l_dot > kSmall)
 	{
-		alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
+//		alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
+//		alpha += fTimeStep*falpha_0*pow(1.-alpha,falpha_exp)*pow(1.-flambda_0*l,flambda_exp);
+		alpha += fTimeStep*falpha_0*pow(l_dot,falpha_exp);
+	}
 		
-		if (alpha >= 1.)
-		{
-			fStiffness = 0.;
-			return fStiffness;
-		}
+	if (alpha >= 1.)
+	{
+		fStiffness = 0.;
+		return fStiffness;
+	}
 	
+	if (fabs(l_dot) > kSmall)
+	{
 		/* Now tackle some stiffnesses */
 		fStiffness = tmpSum/l_dot*(1-alpha)/l/l/fTimeStep;
 		fStiffness[0] *= l_0*l_0;
@@ -298,7 +326,11 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	currTraction[1] *= l_1;
 	
 	double scratch;
-	scratch = falpha_exp*pow(l,falpha_exp-2.)*falpha_0*fTimeStep/(1.-alpha) + 1./l/l;
+	scratch = 1./l/l;
+	if (l_dot > kSmall)
+//		scratch += falpha_exp*pow(l,falpha_exp-2.)*falpha_0*fTimeStep/(1.-alpha);
+//	    scratch -= flambda_0*fTimeStep*flambda_exp*pow(1.-flambda_0*l,flambda_exp-1.)/(1-alpha);
+		scratch += falpha_exp*pow(l_dot,falpha_exp-1)*falpha_0*fTimeStep/(1.-alpha)/l;
 	l_0 *= scratch;
 	l_1 *= scratch;
 	
@@ -314,7 +346,7 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	fStiffness[3] /= fd_c_n; 
 
 	/* penetration */
-	if (u_n < 0) fStiffness[3] += fK;
+//	if (u_n < 0) fStiffness[3] += fK;
 
 	return fStiffness;
 
@@ -358,6 +390,8 @@ void YoonAllen2DT::Print(ostream& out) const
 	}
 	out << " Damage evolution law exponent . . . . . . . . . = " << falpha_exp << "\n";
 	out << " Damage evolution law constant . . . . . . . . . = " << falpha_0 << "\n";
+	out << " Damage evolution law lambda exponent. . . . . . = " << flambda_exp << "\n";
+	out << " Damage evolution law lambda prefactor . . . . . = " << flambda_0 << "\n";
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fpenalty   << '\n';
 }
 
@@ -365,13 +399,14 @@ void YoonAllen2DT::Print(ostream& out) const
  * during for element output, ie. internal variables. Returns 0
  * by default 
  */
-int YoonAllen2DT::NumOutputVariables(void) const { return 2; }
+int YoonAllen2DT::NumOutputVariables(void) const { return 3; }
 
 void YoonAllen2DT::OutputLabels(ArrayT<StringT>& labels) const
 {
-	labels.Allocate(2);
+	labels.Allocate(3);
 	labels[0] = "lambda";
-	labels[1] = "alpha";
+	labels[1] = "lambda_dot";
+	labels[2] = "alpha";
 }
 
 void YoonAllen2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
@@ -387,14 +422,15 @@ void YoonAllen2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& st
 	double l_t = u_t/fd_c_t;
 	double l_n = u_n/fd_c_n;
 
-	output[0]  = sqrt(l_t*l_t + l_n*l_n); 
-	output[1] = state[fNumRelaxTimes+2*knumDOF+1];
+	output[0] = sqrt(l_t*l_t + l_n*l_n); 
+	output[1] = state[fNumRelaxTimes+4];
+	output[2] = state[fNumRelaxTimes+2*knumDOF+1];
 	
 	double u_t_dot = (u_t - state[fNumRelaxTimes])/fTimeStep;
 	double u_n_dot = (u_n - state[fNumRelaxTimes+1])/fTimeStep;
 	double l_dot = (l_t*u_t_dot/fd_c_t+l_t*u_n_dot/fd_c_n)/output[0];
 	if (l_dot > kSmall)
-		output[1] += falpha_0*pow(output[0],falpha_exp);
+		output[2] += falpha_0*pow(output[0],falpha_exp);
 	
 }
 
