@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.6 2001-03-12 18:36:29 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.7 2001-04-04 22:38:34 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "FEManagerT.h"
@@ -48,7 +48,7 @@
 #include "iNLSolver_LS.h"
 
 /* File/Version Control */
-const char* kCurrentVersion = "v3.02"; //version marker
+const char* kCurrentVersion = "v3.03"; //version marker
 const char* kProgramName    = "tahoe";
 
 /* exception strings */
