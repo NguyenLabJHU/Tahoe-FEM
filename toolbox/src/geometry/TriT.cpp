@@ -1,4 +1,4 @@
-/* $Id: TriT.cpp,v 1.8 2005-03-02 02:27:14 paklein Exp $ */
+/* $Id: TriT.cpp,v 1.9 2005-03-02 17:37:30 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "TriT.h"
 #include "QuadT.h"
@@ -437,12 +437,13 @@ bool TriT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
 	{
 		double ab_0 = coords(b,0) - coords(a,0);
 		double ab_1 = coords(b,1) - coords(a,1);
+		double L2 = ab_0*ab_0 + ab_1*ab_1;
 
 		double ap_0 = point[0] - coords(a,0);
 		double ap_1 = point[1] - coords(a,1);
 		
 		double cross = ab_0*ap_1 - ab_1*ap_0;
-		in_domain = cross >= 0.0;
+		in_domain = (cross/L2) > -kSmall;
 		a++; 
 		b++;
 		if (a == nen) a = 0;
