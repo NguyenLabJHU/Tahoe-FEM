@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.11.4.4 2004-04-03 20:18:58 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.11.4.5 2004-04-06 01:01:33 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -166,7 +166,7 @@ public:
 	/*@}*/
 	
 	/** compute internal correction for the overlap region */
-	void CorrectOverlap(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords);
+	void CorrectOverlap(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing);
 
 	/** (re-)set the equation number for the given group */
 	virtual void SetEquationSystem(int group, int start_eq_shift = 0);
@@ -198,6 +198,8 @@ protected:
 	/** the bridging scale element group */
 	BridgingScaleT& BridgingScale(void) const;
 
+	/** \name method needed to correct atomistic/continuum overlap */
+	/*@{*/
 	/** collect nodes and cells in the overlap region */
 	void CollectOverlapRegion(iArrayT& overlap_cell, iArrayT& overlap_node) const;
 
@@ -215,8 +217,21 @@ protected:
 	 *        overlap region
 	 * \param sum_R_N returns with the bond contribution to all the nodes in the overlap region
 	 */
-	void ComputeSum_R_dot_Na(const dArrayT& R_i, const RaggedArray2DT<int>& ghost_neighbors, 
+	void ComputeSum_signR_Na(const dArrayT& R_i, const RaggedArray2DT<int>& ghost_neighbors, 
 		const dArray2DT& coords, const InverseMapT& overlap_node_map, dArrayT& sum_R_N) const;
+
+	/** compute Cauchy-Born contribution to the nodal internal force
+	 * \param R bond vector
+	 * \param V_0 Cauchy-Born reference volume
+	 * \param coarse element group defining shape functions in the overlap region
+	 * \param overlap_cell list of elements from coarse in the overlap region
+	 * \param overlap_node_map map of global node number to index in sum_R_N for nodes in the
+	 *        overlap region
+	 */
+	void Compute_df_dp(const dArrayT& R, double V_0, const ContinuumElementT& coarse, 
+		const iArrayT& overlap_cell, const InverseMapT& overlap_node_map, const dArray2DT& rho, 
+		dArrayT& f_a, double smoothing, dArray2DT& df_dp, dArray2DT& ddf_dpdp) const;
+	/*@}*/
 
 private:
 
