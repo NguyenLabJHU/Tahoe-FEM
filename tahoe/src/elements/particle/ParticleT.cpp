@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.23.2.1 2003-10-06 22:04:53 bsun Exp $ */
+/* $Id: ParticleT.cpp,v 1.23.2.2 2003-10-07 21:54:14 bsun Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -42,8 +42,10 @@ ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 	fCommManager(support.CommManager()),
 	fDmax(0),
 	fForce_man(0, fForce, field.NumDOF()),
+
 	fActiveParticles(NULL),
 	fRandom(NULL)
+	
 {
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
@@ -149,9 +151,9 @@ void ParticleT::Initialize(void)
 
 	/* set the neighborlists */
 	SetConfiguration();
-	
+
 	EchoDamping(in, out);
-	
+
 }
 
 /* form of tangent matrix */
@@ -821,7 +823,6 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 		fRandom->sRand(randSeed);
 	}
 }
-
 
 
 void ParticleT::LLInsert (CSymmParamNode *ListStart, double value)

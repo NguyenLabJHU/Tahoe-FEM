@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.23 2003-10-02 21:05:10 hspark Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.23.2.1 2003-10-07 21:54:14 bsun Exp $ */
 
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
@@ -27,11 +27,13 @@ using namespace Tahoe;
 
 /* parameters */
 const int kMemoryHeadRoom = 15; /* percent */
+
 	
 /* constructor */
 ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field):
 	ParticleT(support, field),
 	fNeighbors(kMemoryHeadRoom),
+	fNearestNeighbors(kMemoryHeadRoom),
 	fEqnos(kMemoryHeadRoom),
 	fForce_list_man(0, fForce_list)
 {
@@ -106,7 +108,8 @@ void ParticlePairT::WriteOutput(void)
 	/* dimensions */
 	int ndof = NumDOF();
 	int num_output = ndof + 2; /* displacement + PE + KE */
-
+	num_output++; /*includes centrosymmetry*/
+	num_output+=ndof; /*some more for slip vector*/
 	/* number of nodes */
 	const ArrayT<int>* parition_nodes = fCommManager.PartitionNodes();
 	int non = (parition_nodes) ? 
@@ -120,13 +123,15 @@ void ParticlePairT::WriteOutput(void)
 	int num_stresses = vs_i.NumValues(ndof);
 	//dArray2DT vsvalues(non, num_stresses);
 	num_output += num_stresses;
-
+	num_output += num_stresses; //another for the strain
 	/* output arrays length number of active nodes */
 	dArray2DT n_values(non, num_output), e_values;
 	n_values = 0.0;
 
 	/* global coordinates */
 	const dArray2DT& coords = ElementSupport().CurrentCoordinates();
+	/* global reference coordinates*/
+	const dArray2DT&  refcoords = ElementSupport().InitialCoordinates();
 
 	/* pair properties function pointers */
 	int current_property = -1;
@@ -174,10 +179,13 @@ void ParticlePairT::WriteOutput(void)
 	
 	/* run through neighbor list */
 	iArrayT neighbors;
-	dArrayT x_i, x_j, r_ij(ndof);
-
+	dArrayT x_i, x_j, x_k, r_ij(ndof), r_ik(ndof), DispVector(ndof), deltaX(ndof), X_i(ndof), X_j(ndof);
+	AutoArrayT<dArrayT> *NearestNeighbors=new AutoArrayT<dArrayT> [fNeighbors.MajorDim()];
+	AutoArrayT<int> *NearestNeighborList=new AutoArrayT<int>[fNeighbors.MajorDim()];
+	dMatrixT Omega(ndof), Eta(ndof), OmegaTemp(ndof), EtaTemp(ndof), Strain(ndof), b_ij(ndof), F_iI(ndof);
 	for (int i = 0; i < fNeighbors.MajorDim(); i++)
-	{
+	  { //run through neighbor list
+	  
 		/* row of neighbor list */
 		fNeighbors.RowAlias(i, neighbors);
 
@@ -191,7 +199,18 @@ void ParticlePairT::WriteOutput(void)
 		
 		/* values for particle i */
 		n_values.RowAlias(local_i, values_i);
+
+		/*linked list for holding vector pair magnitudes*/
+		CSymmParamNode *CParamStart=new CSymmParamNode;
+ 		CParamStart->Next=NULL;
+ 		CParamStart->value=0.0;
+
+		Omega=0;
+		Eta=0;
 		
+		dArrayT SlipVector(ndof), SlipVectorTemp(ndof);
+		SlipVector=0;
+		int NNCount=0; //number of nearest neighbors
 		/* kinetic energy */
 		if (velocities)
 		{
@@ -202,8 +221,9 @@ void ParticlePairT::WriteOutput(void)
 		/* run though neighbors for one atom - first neighbor is self
 		 * to compute potential energy */
 		coords.RowAlias(tag_i, x_i);
+		refcoords.RowAlias(tag_i, X_i);
 		for (int j = 1; j < neighbors.Length(); j++)
-		{
+		  { //run through j
 			/* tags */
 			int   tag_j = neighbors[j];
 			int  type_j = fType[tag_j];
@@ -226,6 +246,57 @@ void ParticlePairT::WriteOutput(void)
 			r_ij.DiffOf(x_j, x_i);
 			double r = r_ij.Magnitude();
 			
+
+ 			if (r<=NearestNeighborDistance) {
+			  dArrayT r_ji(ndof);
+			  r_ji.DiffOf(x_i,x_j);
+
+			  refcoords.RowAlias(tag_j, X_j);
+			  deltaX.DiffOf(X_i, X_j);
+			  OmegaTemp.Outer(r_ji, deltaX);
+			  EtaTemp.Outer(deltaX, deltaX);
+			  Omega+=OmegaTemp;
+			  Eta+=EtaTemp;
+			  
+			  NNCount++;
+			  SlipVectorTemp.DiffOf(deltaX, r_ji);
+			  SlipVector+=SlipVectorTemp;
+			  /*add the vector pointing from j to i into the jth location in the array*/
+			  /*this is needed since the neighbor list only contains B as a neighbor of A for B>A*/
+			  NearestNeighbors[tag_j].Append(r_ji);
+			  NearestNeighborList[tag_j].Append(tag_i);
+
+			  /*for each i-j and i-k for k>j, sum the vectors, and added the magnitude of the pair into the list*/
+			  for (int k = j+1; k<neighbors.Length(); k++)
+			    {
+			      int tag_k = neighbors[k];
+			      coords.RowAlias(tag_k, x_k);
+			      r_ik.DiffOf(x_k, x_i);
+			      DispVector.SumOf(r_ij, r_ik);
+			      
+			      if(r_ik.Magnitude()<=NearestNeighborDistance)
+				{
+				  DispVector.SumOf(r_ij, r_ik);
+				  LLInsert(CParamStart, DispVector.Magnitude());
+				}
+			    }
+			  /*for each j, add r_ij to the neighbors which are not included in the neighbor list*/
+			  NearestNeighbors[tag_i].Top();
+			  while( NearestNeighbors[tag_i].Next())
+			    {
+			  
+			      DispVector.SumOf(NearestNeighbors[tag_i].Current(), r_ij);
+			      LLInsert(CParamStart, DispVector.Magnitude());
+			 
+			      
+			    }
+
+			}
+ 
+
+
+ 			  
+
 			/* split interaction energy */
 			double uby2 = 0.5*energy_function(r, NULL, NULL); 
 			values_i[ndof] += uby2;
@@ -254,14 +325,79 @@ void ParticlePairT::WriteOutput(void)
 		 			}
 				}
 			}
+		} //end of run through neighbors of one atom
+
+		/* copy stress into array */
+		for (int cc = 0; cc < num_stresses; cc++) {
+		  int ndex = ndof+2+cc;
+		  values_i[ndex] += vs_i[cc];
 		}
 
-		 /* copy stress into array */
-		 for (int cc = 0; cc < num_stresses; cc++) {
-			int ndex = ndof+2+cc;
-		   	values_i[ndex] += vs_i[cc];
-		 }
-	}
+		 
+		/*loop through the neighbors of i which are not included in the neighbor list, summing up vector pairs*/
+		NearestNeighbors[tag_i].Top();
+		NearestNeighborList[tag_i].Top();
+		
+		while (NearestNeighbors[tag_i].Next())
+		  {
+		    NearestNeighborList[tag_i].Next();
+		    dArrayT MajorAlias = NearestNeighbors[tag_i].Current();
+		    int currentPosition = NearestNeighbors[tag_i].Position();
+		    while(NearestNeighbors[tag_i].Next()) 
+		      {
+			DispVector.SumOf(MajorAlias, NearestNeighbors[tag_i].Current());
+			LLInsert(CParamStart, DispVector.Magnitude());
+		      }
+		    NearestNeighbors[tag_i].Current(currentPosition);
+		    coords.RowAlias(NearestNeighborList[tag_i].Current(), x_j);
+		    dArrayT r_ji(ndof);
+		    r_ji.DiffOf(x_i, x_j);
+		    refcoords.RowAlias(NearestNeighborList[tag_i].Current(), X_j);
+		    deltaX.DiffOf(X_i, X_j);
+		    OmegaTemp.Outer(r_ji, deltaX);
+		    EtaTemp.Outer(deltaX, deltaX);
+		    Omega+=OmegaTemp;
+		    Eta+=EtaTemp; 
+		    SlipVectorTemp.DiffOf(deltaX, r_ji);
+		    SlipVector += SlipVectorTemp;
+		    NNCount++;
+		  }
+
+		NearestNeighbors[tag_i].Free();
+		NearestNeighborList[tag_i].Free();
+		if(Eta.Det()==0) Strain=0;
+		else 
+		  {
+		    dMatrixT EtaInverse = Eta.Inverse();
+		    F_iI.MultAB(Omega, EtaInverse);
+		    b_ij.MultABT(F_iI, F_iI);
+		    if(b_ij.Det()!=0) {
+		      dMatrixT Id(ndof);
+		      Id=0;
+		      for(int i=0; i<ndof;i++) Id(i,i)=1;
+		      Strain.DiffOf(Id,b_ij.Inverse());
+		      // cout<<Strain<<"\n\n";
+		      Strain/=2;
+		    }
+		  }
+		SlipVector /= NNCount;
+		int valuep=0;
+		for(int n=0; n<ndof;n++)
+		  for(int m=n;m<ndof;m++)
+		    n_values(local_i,ndof+2+num_stresses+valuep++)=Strain(n,m);
+		for(int n=0; n<ndof; n++)
+		  n_values(local_i, ndof+2+num_stresses+num_stresses+n)=SlipVector[n];
+
+		/*given the list of vector pair magnitudes, returns first seven*/
+		n_values(local_i,num_output-1)=GenCSymmValue(CParamStart, ndof);
+
+	      
+	}//end of run through neighbor list
+
+	delete []NearestNeighbors;
+	delete []NearestNeighborList;
+
+
 
 	
 #if 0
@@ -364,8 +500,10 @@ void ParticlePairT::WriteOutput(void)
 	}
 #endif
 	   
+
 	/* send */
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
+
 }
 
 /* compute the part of the stiffness matrix */
@@ -479,12 +617,14 @@ void ParticlePairT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 
 	/* displacement labels */
 	const char* disp[3] = {"D_X", "D_Y", "D_Z"};
-	
+	const char* SV[3] = {"SV_X", "SV_Y", "SV_Z"};
 	int num_labels =
 		ndof // displacements
 		+ 2;     // PE and KE
 	int num_stress=0;
+
 	const char* stress[6];
+	const char* strain[6];
 	if (ndof==3){
 	  num_stress=6;
 	  stress[0]="s11";
@@ -504,7 +644,29 @@ void ParticlePairT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 	   num_stress=1;
 	  stress[0] = "s11";
 	  }
+	if (ndof==3){
+	  
+	  strain[0]="st11";
+	  strain[1]="st12";
+	  strain[2]="st13";
+	  strain[3]="st22";
+	  strain[4]="st23";
+	  strain[5]="st33";
+	  }
+	  else if (ndof==2) {
+	   
+	  strain[0]="st11";
+	  strain[1]="st12";
+	  strain[2]="st22";
+	  }
+	  else if (ndof==1) {
+
+	  strain[0] = "st11";
+	  }
 	num_labels+=num_stress;
+	num_labels++; //another label for the centrosymmetry
+	num_labels+=num_stress; //another for the strain
+	num_labels+=ndof; /*and another for the slip vector*/
 	labels.Dimension(num_labels);
 	int dex = 0;
 	for (dex = 0; dex < NumDOF(); dex++)
@@ -514,6 +676,11 @@ void ParticlePairT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 
 	for (int ns =0 ; ns<num_stress; ns++)
 	  labels[dex++]=stress[ns];
+	for (int ns =0 ; ns<num_stress; ns++)
+	  labels[dex++]=strain[ns];
+	for (int i=0; i<ndof; i++)
+	  labels[dex++]=SV[i];
+	labels[dex++]= "CS";
 }
 
 /* form group contribution to the stiffness matrix */
@@ -920,7 +1087,9 @@ void ParticlePairT::SetConfiguration(void)
 	const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
 	if (fActiveParticles) 
 		part_nodes = fActiveParticles;
+	GenerateNeighborList(part_nodes, NearestNeighborDistance, fNearestNeighbors, true, true);
 	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
+
 
 	/* output stream */
 	ofstreamT& out = ElementSupport().Output();
@@ -1002,6 +1171,9 @@ void ParticlePairT::EchoProperties(ifstreamT& in, ofstreamT& out)
 				ExceptionT::BadInputValue("ParticlePairT::ReadProperties", 
 					"unrecognized property type: %d", property);
 		}
+		
+		in >> latticeParameter;
+		NearestNeighborDistance=latticeParameter*.79;
 	}
 
 	/* echo particle properties */
@@ -1018,3 +1190,6 @@ void ParticlePairT::EchoProperties(ifstreamT& in, ofstreamT& out)
 	for (int i = 0; i < fPairProperties.Length(); i++)
 		fParticleProperties[i] = fPairProperties[i];
 }
+
+
+  

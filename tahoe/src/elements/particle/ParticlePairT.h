@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.10 2003-07-11 16:46:02 hspark Exp $ */
+/* $Id: ParticlePairT.h,v 1.10.8.1 2003-10-07 21:54:14 bsun Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -107,6 +107,9 @@ private:
 	ofstreamT fout, fout2;
 	StringT fsummary_file, fsummary_file2;
 	/*@}*/
+	RaggedArray2DT<int> fNearestNeighbors;
+	
+	
 };
 
 } /* namespace Tahoe */
