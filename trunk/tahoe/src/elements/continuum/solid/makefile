@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.16 2003-04-05 20:29:40 thao Exp $
+# $Id: makefile,v 1.17 2003-08-08 00:40:41 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -28,7 +28,8 @@ OBJ = \
 	SmallStrainT.o \
 	TotalLagrangianT.o \
 	UpdatedLagrangianT.o \
-	UpLagr_ExternalFieldT.o
+	UpLagr_ExternalFieldT.o \
+	UpLagAdaptiveT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -56,7 +57,8 @@ SRC = \
 	SmallStrainT.cpp \
 	TotalLagrangianT.cpp \
 	UpdatedLagrangianT.cpp \
-	UpLagr_ExternalFieldT.cpp
+	UpLagr_ExternalFieldT.cpp \
+	UpLagAdaptiveT.cpp
 
 ##################### (3) headers
 #
@@ -76,7 +78,8 @@ HDR = \
 	SmallStrainT.h \
 	TotalLagrangianT.h \
 	UpdatedLagrangianT.h \
-	UpLagr_ExternalFieldT.h
+	UpLagr_ExternalFieldT.h \
+	UpLagAdaptiveT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
