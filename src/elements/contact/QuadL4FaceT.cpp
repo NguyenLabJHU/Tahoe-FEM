@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.11 2001-04-24 18:17:38 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.12 2001-04-30 19:30:20 rjones Exp $ */
 
 #include "QuadL4FaceT.h"
 #include "FaceT.h"
@@ -22,6 +22,16 @@ int number_of_face_nodes, int* connectivity):
 	number_of_face_nodes,connectivity)
 {
 	fNumVertexNodes = 4;
+	fIntegrationPoints.Allocate(4,2);
+	double* ip;
+	ip = fIntegrationPoints(0);	
+	ip[0] = -1.0 ; ip[1] = -1.0;
+	ip = fIntegrationPoints(1);	
+	ip[0] =  1.0 ; ip[1] = -1.0;
+	ip = fIntegrationPoints(2);	
+	ip[0] =  1.0 ; ip[1] =  1.0;
+	ip = fIntegrationPoints(3);	
+	ip[0] = -1.0 ; ip[1] =  1.0;
 }
 
 QuadL4FaceT::~QuadL4FaceT (void)
@@ -78,13 +88,13 @@ QuadL4FaceT::CalcFaceNormal(void)
 }
 
 void
-QuadL4FaceT::ComputeNormal(dArrayT& local_coordinates,double& normal) const
+QuadL4FaceT::ComputeNormal(double* local_coordinates,double& normal) const
 {
 }
 
 void
 QuadL4FaceT::ComputeShapeFunctions 
-(dArrayT& local_coordinates, dArrayT& shape_functions) const
+(double* local_coordinates, dArrayT& shape_functions) const
 {
 	double xi  = local_coordinates[0];
 	double eta = local_coordinates[1];
@@ -96,7 +106,7 @@ QuadL4FaceT::ComputeShapeFunctions
 
 void
 QuadL4FaceT::ComputeShapeFunctions
-(dArrayT& local_coordinates, dMatrixT& shape_functions) const
+(double* local_coordinates, dMatrixT& shape_functions) const
 {
 	dArrayT shape_f;
 	ComputeShapeFunctions(local_coordinates, shape_f);
@@ -104,7 +114,7 @@ QuadL4FaceT::ComputeShapeFunctions
 }
 
 double
-QuadL4FaceT::ComputeJacobian (dArrayT& local_coordinates) const
+QuadL4FaceT::ComputeJacobian (double* local_coordinates) const
 {
 	//HACK
 	return 1.0;
@@ -191,5 +201,15 @@ QuadL4FaceT::LocalBasis
 	Normalize(tangent1);
 	Cross(normal,tangent1,tangent2);
 	Normalize(tangent2);
+}
+
+void
+QuadL4FaceT::Quadrature
+(dArray2DT& points, dArrayT& weights) const
+{
+	points = fIntegrationPoints;
+	for (int i = 0; i < fIntegrationPoints.Length(); i++) {
+		weights[i] = ComputeJacobian(points(i));
+	}
 }
 

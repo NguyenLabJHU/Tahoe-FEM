@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.9 2001-04-27 00:55:25 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.10 2001-04-30 19:30:19 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -83,9 +83,6 @@ void ContactElementT::Initialize(void)
 
 	/* set initial contact configuration */
 	bool changed = SetContactConfiguration();	
-	cout << "\nTHROWING EXCEPTION in ContactElementT::Initialize"
-	     << " to stop execution before getting into more trouble\n";
-	throw; //HACK
 }
 
 /* solution calls */
@@ -152,15 +149,25 @@ void ContactElementT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 {
 	/* inherited */
 	/* base class uses fConnectivities to create profile */
-	ElementBaseT::ConnectsU(connects_1, connects_2);
+//ElementBaseT::ConnectsU(connects_1, connects_2);
 
 	/* link surfaces with fictious node-to-node pairs*/
+	/* only necessary for bodies out-of-contact */
 	connects_1.AppendUnique(&fSurfaceLinks);
 	
+cout << "in ConnectsU \n";
 	/* add node-face interactions */
 	for (int i = 0; i < fSurfaces.Length(); i++) {
+cout << "surface " << i << '\n';
 	  const RaggedArray2DT<int>& connectivities   
 		= fSurfaces[i].Connectivities(); 
+for (int j = 0; j < connectivities.MajorDim(); j++) {
+for (int k = 0; k < connectivities.MinorDim(j); k++) {
+cout << connectivities(j)[k] << " ";
+}
+cout << '\n';
+}
+cout << '\n';
           connects_2.Append(&connectivities);
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.11 2001-04-25 17:26:44 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.12 2001-04-30 19:30:19 rjones Exp $ */
 
 #include "LineL2FaceT.h"
 #include "FaceT.h"
@@ -17,6 +17,13 @@ int number_of_face_nodes, int* connectivity):
 	number_of_face_nodes,connectivity)
 {
 	fNumVertexNodes = 2;
+        fIntegrationPoints.Allocate(2,1);
+        double* ip;
+        ip = fIntegrationPoints(0);
+        ip[0] = -1.0 ;
+        ip = fIntegrationPoints(1);   
+        ip[0] =  1.0 ; 
+
 }
 
 LineL2FaceT::~LineL2FaceT (void)
@@ -69,7 +76,7 @@ LineL2FaceT::CalcFaceNormal(void)
 
 
 void
-LineL2FaceT::ComputeNormal(dArrayT& local_coordinates, double& normal) const
+LineL2FaceT::ComputeNormal(double* local_coordinates, double& normal) const
 {
 	double t1[2];
 	Diff(fx[0],fx[1],t1);
@@ -80,7 +87,7 @@ LineL2FaceT::ComputeNormal(dArrayT& local_coordinates, double& normal) const
 
 void
 LineL2FaceT::ComputeShapeFunctions
-(dArrayT& local_coordinates, dArrayT& shape_functions) const
+(double* local_coordinates, dArrayT& shape_functions) const
 {
 	double xi  = local_coordinates[0];
 	shape_functions[0] = 0.5 * (1.0 - xi );
@@ -89,7 +96,7 @@ LineL2FaceT::ComputeShapeFunctions
 
 void
 LineL2FaceT::ComputeShapeFunctions
-(dArrayT& local_coordinates, dMatrixT& shape_functions) const
+(double* local_coordinates, dMatrixT& shape_functions) const
 {
 	dArrayT shape_f;
 	ComputeShapeFunctions(local_coordinates, shape_f);
@@ -99,7 +106,7 @@ LineL2FaceT::ComputeShapeFunctions
 #if 0
 void
 LineL2FaceT::Interpolate
-(dArrayT& local_coordinates, dArrayT& nodal_values, double value);
+(double* local_coordinates, dArrayT& nodal_values, double value);
 {
         ComputeShapeFunctions
                 (dArrayT& local_coordinates, dArrayT& shape_functions);
@@ -109,7 +116,7 @@ LineL2FaceT::Interpolate
 
 void
 LineL2FaceT::InterpolateVector
-(dArrayT& local_coordinates, dArray2DT& nodal_vectors, double& vector);
+(double* local_coordinates, dArray2DT& nodal_vectors, double& vector);
 {
 	ComputeShapeFunctions
 		(dArrayT& local_coordinates, dArrayT& shape_functions);
@@ -122,7 +129,7 @@ LineL2FaceT::InterpolateVector
 
 
 double
-LineL2FaceT::ComputeJacobian (dArrayT& local_coordinates) const
+LineL2FaceT::ComputeJacobian (double* local_coordinates) const
 {
 	//HACK
 	return 1.0;
@@ -147,18 +154,17 @@ LineL2FaceT::Projection
           const double* t1 = node->Tangent1();
           x1 = Dot(x0,t1);
           a1 = Dot(a,t1); b1 = Dot(b,t1);
-	  double xi[2];
-	  xi[0] = (x1 - a1)/b1;
-	  xi[1] = 0.0; // this is for 3D compatibility
+	  double xi;
+	  xi = (x1 - a1)/b1;
           if( CheckLocalCoordinates(xi,tol_xi) ) {
             double x3 = Dot(x0,nm);
             double a3 = Dot(a,nm);
             double b3 = Dot(b,nm);
             /* compute gap */
-            double g =  a3 + b3*xi[0] - x3;
+            double g =  a3 + b3*xi - x3;
             if (CheckGap(g,tol_g) ) {
                 /*assign opposite (chooses closest)*/
-                bool isbetter = node->AssignOpposing(fSurface,*this,xi,g);
+                bool isbetter = node->AssignOpposing(fSurface,*this,&xi,g);
                 return isbetter;
             }
           }
@@ -180,3 +186,14 @@ LineL2FaceT::LocalBasis
  	/* NOTE: nothing is done with tangent2 (NULL) */
 
 }
+
+void
+LineL2FaceT::Quadrature
+(dArray2DT& points, dArrayT& weights) const
+{
+        points = fIntegrationPoints;
+        for (int i = 0; i < fIntegrationPoints.Length(); i++) {
+                weights[i] = ComputeJacobian(points(i));
+        }
+}
+

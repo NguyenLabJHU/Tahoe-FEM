@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.h,v 1.10 2001-04-25 17:26:44 rjones Exp $ */
+/* $Id: LineL2FaceT.h,v 1.11 2001-04-30 19:30:19 rjones Exp $ */
 
 #ifndef _LINEL2_FACE_T_H_
 #define _LINEL2_FACE_T_H_
@@ -34,25 +34,30 @@ public:
         /* geometric computation */
         void ComputeCentroid(double& centroid) const; 
 	double ComputeRadius(void) const;
-        void ComputeNormal(dArrayT& local_coordinates, double& normal) const; 
+        void ComputeNormal(double* local_coordinates, double& normal) const; 
         void NodeNormal(int local_node_number, double& normal) const; 
 	void CalcFaceNormal(void);
 	void LocalBasis
 		(double* normal, double* tangent1, double* tangent2) const;
 	void ComputeShapeFunctions
-		(dArrayT& local_coordinates, dArrayT& shape_functions) const;
+		(double* local_coordinates, dArrayT& shape_functions) const;
 	void ComputeShapeFunctions
-		(dArrayT& local_coordinates, dMatrixT& shape_functions) const;
-	double ComputeJacobian (dArrayT& local_coordinates) const;
+		(double* local_coordinates, dMatrixT& shape_functions) const;
+	double ComputeJacobian (double* local_coordinates) const;
         bool Projection (ContactNodeT* node, dArrayT& parameters) const ;
         inline void Polynomial
                 (double* a, double* b) const ;
+        void Quadrature
+                (dArray2DT& points, dArrayT& weights) const;
 
 protected:
 
 private:
 	/* nodal coordinates */
 	double*  fx[2];
+	
+	/* integration points */  
+	dArray2DT fIntegrationPoints;// SHOULD BE STATIC
 
 };
 

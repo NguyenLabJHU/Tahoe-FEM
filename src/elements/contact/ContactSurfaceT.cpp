@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.4 2001-04-27 00:55:25 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.5 2001-04-30 19:30:19 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include "SurfaceT.h"
@@ -65,7 +65,6 @@ ContactSurfaceT::SetPotentialConnectivity(void)
           }
         }
 
-
 	/* configure connectivity and equation numbers */
 	fConnectivities.Configure(node_face_counts);
 	fEqNums.Configure(node_face_counts,fNumSD);
@@ -77,24 +76,23 @@ ContactSurfaceT::SetPotentialConnectivity(void)
 	  count = 0;
 	  /* connectivities for potential interactions, based on search tol */
 	  if (face) {
-	    int* node_face_connectivity = fConnectivities(j);
-            node_face_connectivity[count++] 
+	    int* node_face_connectivity = fConnectivities(i);
+            node_face_connectivity[count] 
 		= fGlobalNodes[i]; // node
-cout << fGlobalNodes[i] << " ";
+	    count++;
 	    /* inclusive of opposing face */
 	    const iArrayT& global_nodes=node->OpposingSurface()->GlobalNodes();
             const ArrayT<FaceT*>&  faces 
 		= node->OpposingFace()->Neighbors();
 	    for (j = 0; j < faces.Length() ; j++) {
-		face = faces[i] ; // this is cast
+		face = faces[j] ; // this is cast
                 const iArrayT& face_connectvity = face->Connectivity();
                 for (int k = 0; k < face_connectvity.Length(); k++ ) {
-                  node_face_connectivity[count++] 
+                  node_face_connectivity[count] 
 		    = global_nodes[face_connectvity[k]];// face nodes
-cout << global_nodes[face_connectvity[k]] << ",";
+		  count++;
                 }
 	    }
-cout << '\n';
 	  }
         }
 }
