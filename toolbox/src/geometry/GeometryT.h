@@ -1,4 +1,4 @@
-/* $Id: GeometryT.h,v 1.3 2002-10-20 22:32:08 paklein Exp $ */
+/* $Id: GeometryT.h,v 1.4 2004-03-16 19:25:55 paklein Exp $ */
 /* created: paklein (10/10/1999) */
 
 #ifndef _GEOMETRY_T_H_
@@ -12,6 +12,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class GeometryBaseT;
+class ParameterInterfaceT;
 
 /** class to define enumerations for element geometries and
  * associated operations */
@@ -29,6 +30,12 @@ public:
 	            kTetrahedron   = 4,
 	            kPentahedron   = 5  /**< not implemented, only cohesive surface output */};
 
+	/** convert int to GeometryT::CodeT */
+	static CodeT int2CodeT(int i);
+
+	/** convert string to GeometryT::CodeT */
+	static CodeT string2CodeT(const char* name);
+
 	/** geometry_code -> nsd macro: of the parent domain */
 	static int GeometryToNumSD(GeometryT::CodeT code);
 	
@@ -39,7 +46,12 @@ public:
 	static const char* ToString(GeometryT::CodeT code);
 	
 	/** return a pointer to a new GeometryBaseT. User is responsible for deleting class. */
-	static GeometryBaseT* NewGeometry(GeometryT::CodeT geometry, int nen);
+	static GeometryBaseT* NewGeometry(GeometryT::CodeT geometry, int nen);	
+
+	/** return a description of the given geometry name or NULL if the name
+	 * does not match any of the geometry names. The host code is responsible
+	 * for deleting the returned object. */
+	static ParameterInterfaceT* NewGeometry(const StringT& name);
 };
 
 /** stream extraction operator for GeometryT::CodeT */
