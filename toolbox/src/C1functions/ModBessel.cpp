@@ -1,4 +1,4 @@
-/* $Id: ModBessel.cpp,v 1.4 2002-04-19 18:55:09 dzeigle Exp $ */
+/* $Id: ModBessel.cpp,v 1.5 2002-04-19 19:55:40 dzeigle Exp $ */
 /* created: dzeigle (4/18/2002) */
 
 #include "ModBessel.h"
@@ -188,7 +188,7 @@ void ModBessel::beschb(double x, double *gam1, double *gam2, double *gampl, doub
 void ModBessel::bessk(double x, double xnu, double *rk, double *rkp) const
 {
     int i, l, nl;
-    double a, a1, b, c, d, del, del1, delh, dels, e, f, fact, fact2, ff, gam1, gam2, gammi, gampl, h, p, pimu, q, q1, q2, qnew, ril, ril1, rip1, ripl, ritemp, rk1, rkmu, rktemp, s, sum, sum1, x2, xi, xi2, xmu, xmu2;
+    double a, a1, b, c, d, del, del1, delh, dels, e, fact, fact2, ff, gam1, gam2, gammi, gampl, h, p, pimu, q, q1, q2, qnew, ril, ripl, ritemp, rk1, rkmu, rktemp, s, sum, sum1, x2, xi, xi2, xmu, xmu2;
     
     if (x <= 0.0)
         cout << "\n**Error - bad arguments in bessk.\n**";
@@ -221,8 +221,6 @@ void ModBessel::bessk(double x, double xnu, double *rk, double *rkp) const
         cout << "\n**Error - x too large in bessk; try asypmtotic expansion.\n**";
     ril = FPMIN;
     ripl = h*ril;
-    ril1 = ril;
-    rip1 = ripl;
     fact = xnu*xi;
     for (l=nl; l>=1; l--)
     {
@@ -231,7 +229,7 @@ void ModBessel::bessk(double x, double xnu, double *rk, double *rkp) const
         ripl = fact*ritemp+ril;
         ril = ritemp;
     }
-    f = ripl/ril;
+ 
     if (x<XMIN)
     {
         x2 = 0.5*x;
