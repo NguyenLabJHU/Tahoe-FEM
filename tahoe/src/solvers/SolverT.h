@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.9 2002-11-14 17:06:47 paklein Exp $ */
+/* $Id: SolverT.h,v 1.10 2002-11-25 07:28:57 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -90,6 +90,7 @@ public:
 	void AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
 	void AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 		const nArrayT<int>& col_eqnos);
+	void AssembleLHS(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos);
 	void OverWriteLHS(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
 	void DisassembleLHS(dMatrixT& matrix, const nArrayT<int>& eqnos) const;
 	void DisassembleLHSDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const;
@@ -166,6 +167,11 @@ inline void SolverT::AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>
 	const nArrayT<int>& col_eqnos)
 {
 	fLHS->Assemble(elMat, row_eqnos, col_eqnos);
+}
+
+inline void SolverT::AssembleLHS(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
+{
+	fLHS->Assemble(diagonal_elMat, eqnos);
 }
 
 inline void SolverT::OverWriteLHS(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
