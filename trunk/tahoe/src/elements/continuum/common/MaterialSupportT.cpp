@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.cpp,v 1.3 2002-11-14 17:06:21 paklein Exp $ */
+/* $Id: MaterialSupportT.cpp,v 1.4 2002-11-15 02:46:33 paklein Exp $ */
 #include "MaterialSupportT.h"
 #include "ContinuumElementT.h"
 
