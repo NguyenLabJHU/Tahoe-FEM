@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.12 2002-06-08 20:20:18 paklein Exp $
+# $Id: makefile,v 1.13 2002-08-05 19:44:05 cjkimme Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -15,7 +15,9 @@ OBJ = \
 	ViscTvergHutch2DT.o \
 	XuNeedleman2DT.o \
 	XuNeedleman3DT.o \
-	YoonAllen2DT.o
+	YoonAllen2DT.o \
+	YoonAllen3DT.o \
+	TvergHutch3DT.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -34,7 +36,9 @@ SRC = \
 	ViscTvergHutch2DT.cpp \
 	XuNeedleman2DT.cpp \
 	XuNeedleman3DT.cpp \
-	YoonAllen2DT.cpp
+	YoonAllen2DT.cpp \
+	YoonAllen3DT.cpp \
+	TvergHutch3DT.cpp
 
 # headers
 HDR = \
@@ -47,7 +51,9 @@ HDR = \
 	ViscTvergHutch2DT.h \
 	XuNeedleman2DT.h \
 	XuNeedleman3DT.h \
-	YoonAllen2DT.h
+	YoonAllen2DT.h \
+	YoonAllen3DT.h \
+	TvergHutch3DT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
