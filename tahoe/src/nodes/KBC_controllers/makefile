@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.16 2004-12-21 17:24:51 thao Exp $
+# $Id: makefile,v 1.17 2004-12-22 00:48:43 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -29,8 +29,7 @@ OBJ = \
 	ScaledVelocityNodesT.o \
 	SetOfNodesKBCT.o \
 	TorsionKBCT.o \
-	ConveyorT.o \
-	ConveyorSymT.o
+	ConveyorT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -59,8 +58,7 @@ SRC = \
 	ScaledVelocityNodesT.cpp \
 	SetOfNodesKBCT.cpp \
 	TorsionKBCT.cpp \
-	ConveyorT.cpp \
-	ConveyorSymT.cpp
+	ConveyorT.cpp
 
 ##################### (3) headers
 #
@@ -81,8 +79,7 @@ HDR = \
 	ScaledVelocityNodesT.h \
 	SetOfNodesKBCT.h \
 	TorsionKBCT.h \
-	ConveyorT.h \
-	ConveyorSymT.h
+	ConveyorT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
