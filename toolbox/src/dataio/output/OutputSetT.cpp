@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.8 2002-02-12 02:10:03 paklein Exp $ */
+/* $Id: OutputSetT.cpp,v 1.9 2002-02-18 09:01:42 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #include "OutputSetT.h"
@@ -65,7 +65,8 @@ OutputSetT::OutputSetT(const StringT& ID, GeometryT::CodeT geometry_code,
 {
 	/* keep reference to connectivities */
 	fConnectivities[0] = &connectivities;
-	fBlockID[0] = "<NONE>";
+	fBlockID[0] = fID; /* must give connectivities a reasonable ID for compatibility
+	                    * with the output classes */
 
 	/* copy node labels */
 	fNodeOutputLabels.Allocate(n_labels.Length());
