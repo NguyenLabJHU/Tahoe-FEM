@@ -1,5 +1,4 @@
-/* $Id: SSMF.h,v 1.3 2003-11-19 06:09:46 thao Exp $ */
-
+/* $Id: SSMF.h,v 1.4 2005-03-02 17:41:47 paklein Exp $ */
 #ifndef _SSMF_H_
 #define _SSMF_H_
 
@@ -20,11 +19,9 @@ class StringT;
 class SSMF: public SmallStrainT, public MFSupportT
 {
   public:
-    /** constructor */
-    SSMF(const ElementSupportT& support, const FieldT& field);
 
-    virtual void Initialize(void);
-    virtual void SetGlobalShape(void);
+    /** constructor */
+    SSMF(const ElementSupportT& support);
     
     /*accessor for displacement gradient*/
     const dMatrixT& DisplacementGradient(void) const;
@@ -40,7 +37,20 @@ class SSMF: public SmallStrainT, public MFSupportT
     virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 			   AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
  
+ 	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
  protected:
+
+	/** compute shape functions and derivatives */	
+    virtual void SetGlobalShape(void);
+
     /*material force evaluation*/
     void ComputeMatForce(dArray2DT& output);
     void MatForceVolMech(dArrayT& elem_val);
@@ -51,6 +61,9 @@ class SSMF: public SmallStrainT, public MFSupportT
     /*utility funtions*/
     /*extrapolate element ip state variables values to nodes*/
     void Extrapolate(void);
+	
+private:
+	const double& grad_dil(const dArray2DT& DNa, const dArray2DT& mean_gradient);
   
  protected:	
 
@@ -62,6 +75,9 @@ class SSMF: public SmallStrainT, public MFSupportT
 
  private:
     ArrayT<dMatrixT> fGradU_List;
+    dArrayT b_dil;
+	double tmp;
+	
     dMatrixT fEshelby;
 
     /*nodal and interpolated body force*/
@@ -73,6 +89,9 @@ class SSMF: public SmallStrainT, public MFSupportT
     dArrayT fDissipForce;
     dArrayT fDynForce;
     dArrayT felem_rhs;
+
+    /*displacement*/
+    dArrayT fGroupDisp;
 
     /*dynamic analysis variables*/
     bool fdynamic;           /*flag for dynamic analysis*/

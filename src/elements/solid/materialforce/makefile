@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.11 2003-11-14 22:56:12 thao Exp $
+# $Id: makefile,v 1.12 2005-03-02 17:41:48 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,15 +20,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-	SmallStrainMF.o \
-	SmallStrainQ2P1.o \
-	SmallStrainQ1P0.o \
 	MFSupportT.o \
-	SSMF.o \
-	SSQ2P1MF.o \
-	SSQ1P0MF.o \
-	UpLagMF.o \
-	LocalizeT.o  
+	SSMF.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -48,15 +41,8 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	SmallStrainMF.cpp \
-	SmallStrainQ1P0.cpp \
-	SmallStrainQ2P1.cpp \
 	MFSupportT.cpp \
-	SSMF.cpp \
-	SSQ2P1MF.cpp \
-	SSQ1P0MF.cpp \
-	UpLagMF.cpp \
-	LocalizeT.cpp  
+	SSMF.cpp 
 
 ##################### (3) headers
 #
@@ -68,15 +54,8 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	SmallStrainMF.h \
-	SmallStrainQ1P0.h \
-	SmallStrainQ2P1.h \
 	MFSupportT.h \
-	SSMF.h \
-	SSQ2P1MF.h \
-	SSQ1P0MF.h \
-	UpLagMF.h \
-	LocalizeT.h 
+	SSMF.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 

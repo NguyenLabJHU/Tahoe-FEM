@@ -1,5 +1,4 @@
-/* $Id: MFSupportT.h,v 1.5 2003-11-21 22:54:46 paklein Exp $ */
-
+/* $Id: MFSupportT.h,v 1.6 2005-03-02 17:41:47 paklein Exp $ */
 #ifndef _MFSupportT_
 #define _MFSupportT_
 
@@ -20,6 +19,7 @@ class StringT;
 class MFSupportT
 {
   public:
+
     /** constructor */
     MFSupportT(const ElementSupportT& support);
 
@@ -27,6 +27,10 @@ class MFSupportT
     ~MFSupportT(void);
 
   protected:
+
+	/** set nodes over which material force is calculated and nodes on the boundary */
+	void SetNodes(const ArrayT<StringT>& mf_nodes, const ArrayT<StringT>& boundary_nodes);
+
     /* map nodal ordering of element group*/
     void MapOutput(void);
 
@@ -34,6 +38,8 @@ class MFSupportT
     void WriteSummary(dArray2DT& output);
 
     /*utility funtions*/
+    /*Gather displacements for element group*/
+    void GatherDisp(const dArray2DT& global_disp, dArrayT& group_disp, const iArrayT& nodes);
     /*Assemble nodal material force vectors for element group*/
     void AssembleArray(const dArrayT& elem_val, dArrayT& global_val,const iArrayT& nodes);
     void AssembleArray2D(const dArray2DT& elem_val, dArray2DT& global_val,const iArrayT& nodes);
@@ -56,12 +62,11 @@ class MFSupportT
     iArrayT fMap;
 
     ArrayT<StringT> fNID;
-    int fnumset;
 
-    StringT fBoundID;
+	ArrayT<StringT> fBoundID;
     iArrayT fExclude;
 
-    int fhas_dissipation;
+    bool fhas_dissipation;
 
  private:
     /*fio for material support summary file*/ 

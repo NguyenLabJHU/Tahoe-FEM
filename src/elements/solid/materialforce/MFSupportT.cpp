@@ -1,4 +1,4 @@
-/* $Id: MFSupportT.cpp,v 1.10 2004-07-15 08:28:31 paklein Exp $ */
+/* $Id: MFSupportT.cpp,v 1.11 2005-03-02 17:41:47 paklein Exp $ */
 #include "MFSupportT.h"
 
 #include "dArrayT.h"
@@ -14,13 +14,15 @@
 using namespace Tahoe;
 
 /* constructor */
-MFSupportT::MFSupportT(const  ElementSupportT& support):
-  fSupport(support),
-  fNumGroupNodes(0),
-  fMatForceOutputID(-1)
+MFSupportT::MFSupportT(const ElementSupportT& support):
+	fSupport(support),
+	fNumGroupNodes(0),
+	fMatForceOutputID(-1),
+	fOutputSet(NULL),
+	fhas_dissipation(false),
+	fopen(false)
 {
-ExceptionT::GeneralFail("MFSupportT::MFSupportT", "out of date");
-#if 0	
+#if 0
   ifstreamT& in = fSupport.Input();
   ostream&  out = fSupport.Output();
 
@@ -34,7 +36,7 @@ ExceptionT::GeneralFail("MFSupportT::MFSupportT", "out of date");
   }
 
   /*read in node sets over which material forces are summed*/
-  ModelManagerT& model = fSupport.ModelManager();
+  ModelManagerT& model = fSupport.Model();
   const ArrayT<StringT>& nsetIDs = model.NodeSetIDs();
   in >> fnumset;
   fNID.Dimension (fnumset);
@@ -81,45 +83,53 @@ MFSupportT::~MFSupportT(void)
   delete fOutputSet;
 }
 
+/* set nodes over which material force is calculated and nodes on the boundary */
+void MFSupportT::SetNodes(const ArrayT<StringT>& mf_nodes, const ArrayT<StringT>& boundary_nodes)
+{
+	fNID = mf_nodes;
+	fBoundID = boundary_nodes;
+}
+
 /***************************I/0 functions***********************************/
 /* register self for output */
 void MFSupportT::MapOutput(void)
 {
+	/* check */
+	if (!fOutputSet) ExceptionT::GeneralFail("MFSupportT::MapOutput",
+		"no output set");
+
+  ModelManagerT& model = fSupport.ModelManager();  
+  int nnd = model.NumNodes();
+  
   const iArrayT& nodes_used = fOutputSet->NodesUsed();
 
   fNumGroupNodes = nodes_used.Length();
-  /*find maximum node number*/
-  int max=0;
-  const int* pnode = nodes_used.Pointer(); 
-  for (int i = 0; i<fNumGroupNodes; i++)
-  {
-     if (*pnode > max) max = *pnode;
-     pnode++;
-  }
-
+  
   /*map ordering*/
-  fMap.Dimension(max+1);
+  fMap.Dimension(nnd);
+  fMap = -1;
   for (int i = 0; i<fNumGroupNodes; i++)
   {
     fMap[nodes_used[i]]=i;
   }
+
   fExclude.Dimension(fNumGroupNodes);
   fExclude = 0;
 
-  if (strncmp(fBoundID,"0",1) != 0)
-  {
-      const iArrayT& bound_nodes = fSupport.ModelManager().NodeSet(fBoundID);
-      //  cout << "\nboundary nodes: "<<bound_nodes;
-      for (int i = 0; i< bound_nodes.Length(); i++)
-      {
-	fExclude[fMap[bound_nodes[i]]] = 1;
-      }
-      //  cout << "\nExcluded nodes: "<<fExclude;
-  }
+	if (fBoundID.Length() > 0) {
+		iArrayT bound_nodes;
+		model.ManyNodeSets(fBoundID, bound_nodes);
+		for (int i = 0; i< bound_nodes.Length(); i++)
+			fExclude[fMap[bound_nodes[i]]] = 1;
+	}
 }
 
 void MFSupportT::WriteSummary(dArray2DT& output)
 {
+	/* check */
+	if (!fOutputSet) ExceptionT::GeneralFail("MFSupportT::WriteSummary",
+		"no output set");
+
   /*obtain dimensions*/
   int nnd = fNumGroupNodes;
   int nsd = fSupport.NumSD();
@@ -148,7 +158,7 @@ void MFSupportT::WriteSummary(dArray2DT& output)
     /*sum components of material force over a given nodeset*/ 
     double MFx, MFy, DFx, DFy, KFx, KFy;  
     MFx = MFy = DFx = DFy = KFx = KFy = 0.0;
-    for (int i = 0; i<fnumset; i++)
+    for (int i = 0; i < fNID.Length(); i++)
     {
       StringT& ID = fNID[i];
       const int nlength = model.NodeSetLength(ID);
@@ -231,7 +241,7 @@ void MFSupportT::WriteSummary(dArray2DT& output)
     double MFx,MFy, MFz, DFx, DFy, DFz;  
     MFx = MFy = MFz = DFx = DFy = DFz = 0.0;
  
-    for (int i = 0; i<fnumset; i++)
+    for (int i = 0; i < fNID.Length(); i++)
     {
       StringT& ID = fNID[i];
       const int nlength = model.NodeSetLength(ID);
@@ -316,6 +326,21 @@ void MFSupportT::WriteSummary(dArray2DT& output)
 }
 
 /****************utitlity functions******************************/
+void MFSupportT::GatherDisp(const dArray2DT& global_disp, dArrayT& group_disp, const iArrayT& elem_nodes)
+{
+  int nen = elem_nodes.Length();
+  int nsd = fSupport.NumSD();
+  int group_index, node;
+  
+  for (int i = 0; i< nen; i++)
+  {  
+    node = elem_nodes[i]; 
+   group_index=fMap[node]*nsd;  
+    for (int j = 0; j<nsd; j++)
+      group_disp[group_index+j] = global_disp(node,j);
+  }
+}
+
 void MFSupportT::AssembleArray(const dArrayT& elem_val, dArrayT& global_val, const iArrayT& elem_nodes)
 {
   int nen = elem_nodes.Length();

@@ -1,4 +1,4 @@
-/* $Id: SSMF.cpp,v 1.12 2004-07-22 08:51:12 paklein Exp $ */
+/* $Id: SSMF.cpp,v 1.13 2005-03-02 17:41:47 paklein Exp $ */
 #include "SSMF.h"
 
 #include "OutputSetT.h"
@@ -6,68 +6,99 @@
 #include "ScheduleT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
-#include "FEManagerT.h"
 #include "GraphT.h"
 #include "GeometryT.h"
 #include "ModelManagerT.h"
 #include "CommunicatorT.h"
 #include "SSMatSupportT.h"
+#include "KBC_ControllerT.h"
+#include "KBC_CardT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
-
-/* materials lists */
-#include "MaterialListT.h"
-#if 0
-#include "SolidMatList1DT.h"
-#include "SolidMatList2DT.h"
-#include "SolidMatList3DT.h"
-#endif
+#include "ParameterUtils.h"
+#include "eIntegratorT.h"
+#include "SolidMatListT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 #include <stdlib.h>
+
 using namespace Tahoe;
 
 /* constructor */
-SSMF::SSMF(const ElementSupportT& support, const FieldT& field):
+SSMF::SSMF(const ElementSupportT& support):
   SmallStrainT(support),
-  fdynamic(false),
   MFSupportT(support),
+  fdynamic(false),
   ftraction(LocalArrayT::kUnspecified),
   fsurf_disp(LocalArrayT::kDisp),
-  fsurf_coords(LocalArrayT::kInitCoords) {
- 
-  //  fMassType = kConsistentMass;
+  fsurf_coords(LocalArrayT::kInitCoords) 
+{
+	SetName("small_strain_material_force");
 }
 
-void SSMF::Initialize(void)
+/* information about subordinate parameter lists */
+void SSMF::DefineSubs(SubListT& sub_list) const
 {
-ExceptionT::GeneralFail("SSMF::Initialize", "out of date");
-#if 0	
-  SmallStrainT::Initialize();
-  
-  int nsd = (NumSD() == 2) ? 4 : 3;
-   
-  /*dimension workspace*/
-  fEshelby.Dimension(NumSD());
+	/* inherited */
+	SmallStrainT::DefineSubs(sub_list);
+	
+	/* nodes where force will be calculated */
+	sub_list.AddSub("mf_nodes_ID_list");
 
-  fBodyForce.Dimension(NumSD()*NumElementNodes());
-  fip_body.Dimension(NumSD());
-  fVel.Dimension(NumSD());
-  fAcc.Dimension(NumSD());
-  fGradVel.Dimension(NumSD());
+	/* nodes on the boundary */
+	sub_list.AddSub("boundary_mf_nodes_ID_list", ParameterListT::ZeroOrOnce);
+}
+
+/* accept parameter list */
+void SSMF::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SmallStrainT::TakeParameterList(list);
+
+	/* dimension workspace */
+	fEshelby.Dimension(NumSD());
+
+	fBodyForce.Dimension(NumSD()*NumElementNodes());
+	fip_body.Dimension(NumSD());
+	fVel.Dimension(NumSD());
+	fAcc.Dimension(NumSD());
+	fGradVel.Dimension(NumSD());
     
-  fGradU_List.Dimension(NumIP());
-  for (int i = 0; i< NumIP(); i++)
-    fGradU_List[i].Dimension(NumSD());
-#endif
+	fGradU_List.Dimension(NumIP());
+	for (int i = 0; i< NumIP(); i++)
+		fGradU_List[i].Dimension(NumSD());
+
+	b_dil.Dimension(NumSD()*NumElementNodes());
+
+	/* nodes over which to calculate material forces */
+	const ParameterListT& mf_nodes = list.GetList("mf_nodes_ID_list");
+	StringListT::Extract(mf_nodes, fNID);
+
+	/* boundary nodes */
+	const ParameterListT* boundary_mf_nodes = list.List("boundary_mf_nodes_ID_list");
+	if (boundary_mf_nodes)
+		StringListT::Extract(*boundary_mf_nodes, fBoundID);
+
+	fhas_dissipation = fMaterialList->HasHistoryMaterials();
 }
 
 void SSMF::SetGlobalShape(void)
 {
-  SmallStrainT::SetGlobalShape();
-  for (int i = 0; i < NumIP(); i++)
-    fShapes->GradU(fLocDisp, fGradU_List[i], i);
+	SmallStrainT::SetGlobalShape();
+
+	for (int ip = 0; ip < NumIP(); ip++) 
+		fShapes->GradU(fLocDisp, fGradU_List[ip], ip);
+
+	if (fStrainDispOpt == kMeanDilBbar) {
+		SetMeanGradient(fMeanGradient);
+		for (int ip = 0; ip< NumIP(); ip++) {
+	
+			double mean_correction = (grad_dil(fShapes->Derivatives_U(ip), fMeanGradient))/3.0;
+			fGradU_List[ip](0,0) -= mean_correction;
+			fGradU_List[ip](1,1) -= mean_correction;
+		}
+	}
 }
 
 /***************************outputs managers***********************************/
@@ -117,13 +148,13 @@ void SSMF::WriteOutput(void)
   /* calculate output values */
   dArray2DT n_values; 
   dArray2DT e_values;
-  
+
   MapOutput();
   ComputeMatForce(n_values);
    /* send to output */
   const CommunicatorT& comm = ElementSupport().Communicator();
   if (comm.Size() == 1)
-     WriteSummary(n_values);
+      WriteSummary(n_values);
  
   /* send to output */
   ElementSupport().WriteOutput(fMatForceOutputID, n_values, e_values);
@@ -192,17 +223,19 @@ void SSMF::ComputeMatForce(dArray2DT& output)
   output.Dimension(nnd,4*NumSD());
   output = 0.0;
 
-  const dArray2DT& disp = Field()[0];
-  if (disp.MajorDim() != output.MajorDim()) throw ExceptionT::kGeneralFail;
-
+  const dArray2DT& global_disp = Field()[0];
+  
   fMatForce.Dimension(nmf);
   fDissipForce.Dimension(nmf);
   fDynForce.Dimension(nmf);
+  fGroupDisp.Dimension(nmf);
+
   felem_rhs.Dimension(NumSD()*nen);  
 
   fMatForce = 0.0;
   fDissipForce = 0.0;
   fDynForce = 0.0;
+  fGroupDisp = 0.0;
 
   /*if internal dissipation vars exists, extrapolate from element ip to nodes*/
   if (fhas_dissipation) { 
@@ -231,20 +264,14 @@ void SSMF::ComputeMatForce(dArray2DT& output)
   }
 
   /*check for dynamic analysis*/
-  ExceptionT::GeneralFail(caller, "check field's integrator for implicit/explicit");
-#if 0  
-  int analysiscode = ElementSupport().FEManager().Analysis();
-  if (analysiscode ==  GlobalT::kLinExpDynamic  ||
-      analysiscode == GlobalT::kNLExpDynamic    ||
-      analysiscode == GlobalT::kVarNodeNLExpDyn ||
-      analysiscode == GlobalT::kPML)
-#endif
-    fdynamic = true;
+  fdynamic = (fIntegrator->Order() > 0);
 
   /*evaluate volume contributions to material and dissipation force*/
   Top();
   while (NextElement())
   {
+    if (CurrentElement().Flag() != ElementCardT::kOFF)
+    {  
     ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
     fCurrSSMat = dynamic_cast<SSSolidMatT*>(pmat);
     if (!fCurrSSMat) ExceptionT::GeneralFail(caller);
@@ -269,9 +296,12 @@ void SSMF::ComputeMatForce(dArray2DT& output)
       ExtractArray2D(fGlobalVal, felem_val, CurrentElement().NodesX());
       MatForceDissip(felem_rhs, felem_val);
       AssembleArray(felem_rhs, fDissipForce, CurrentElement().NodesX());
+    } 
     }
-  }
-
+    /*gather displacements*/
+    GatherDisp(global_disp,fGroupDisp, CurrentElement().NodesX());   
+  }  
+  
   /*add surface contribution*/
   MatForceSurfMech(fMatForce);
 
@@ -284,34 +314,43 @@ void SSMF::ComputeMatForce(dArray2DT& output)
   double* pmat_force = fMatForce.Pointer();
   double* pmat_fdissip = fDissipForce.Pointer();
   double* pmat_fdyn = fDynForce.Pointer();
+  double* pmat_fdisp = fGroupDisp.Pointer();
 
-  for (int i = 0; i<nnd; i++)
-  {
-    for (int j = 0; j<NumSD(); j++)
-    {
-      *pout_disp++ = disp[i*NumSD()+j];
+  ModelManagerT& model = ElementSupport().ModelManager();
+ 			
+ const ArrayT<KBC_ControllerT*>& kbc_controllers = Field().KBC_Controllers();
+ for (int i = 0; i < kbc_controllers.Length(); i++)
+ {
+	const ArrayT<KBC_CardT>& kbc_cards = kbc_controllers[i]->KBC_Cards();
+	for (int j = 0; j < kbc_cards.Length(); j++) 
+	{
+		int mapped_node = fMap[kbc_cards[j].Node()];
+		if (mapped_node > -1)
+		{
+			fExclude[mapped_node] = 1;
+		}
+	}
+ }
+ 
+ for (int i = 0; i<nnd; i++)
+ {
+	for (int j = 0; j<NumSD(); j++)
+	{
+		if (fExclude[i] == 1) {
+			*pout_force++ = 0.0;
+			pmat_force++;
+		}
+		else
+			*pout_force++ = (*pmat_force++) - (*pmat_fdissip) - (*pmat_fdyn);
 
-      /*material force set to zero for kinematically constrained nodes*/
-      if (fExclude[i] == 1)
-      {
-	    *pout_force++ = 0.0;
-	    *pout_dissip++ = 0.0;
-	    *pout_dyn++ = 0.0;
-	    pmat_force++;
-	    pmat_fdissip++;
-	    pmat_fdyn++;
-      }
-      else
-      {
-	    *pout_force++ = (*pmat_force++) + (*pmat_fdissip) + (*pmat_fdyn);
-	    *pout_dissip++ = (*pmat_fdissip++);
-	    *pout_dyn++ = (*pmat_fdyn++);
-      } 
-    }
-    pout_force += 3*NumSD();
-    pout_dissip += 3*NumSD();
-    pout_dyn += 3*NumSD();
-    pout_disp += 3*NumSD();
+		*pout_dissip++ = (*pmat_fdissip++);
+		*pout_dyn++ = (*pmat_fdyn++);
+		*pout_disp++ = (*pmat_fdisp++);
+	}
+	pout_force += 3*NumSD();
+	pout_dissip += 3*NumSD();
+	pout_dyn += 3*NumSD();
+	pout_disp += 3*NumSD();
   }
 }
 
@@ -372,15 +411,15 @@ void SSMF::MatForceVolMech(dArrayT& elem_val)
       
       if (fdynamic)
       {
-	fShapes->InterpolateU(fLocVel, fVel);
-	fEshelby(0,0) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]);
-	fEshelby(1,1) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]);
-	if (elem ==6 && 0) { 
-	  cout << "\nstress: "<<Cauchy;
-	  cout << "\nenergy: "<<energy;
-	  cout << "\nfVel: "<<fVel; 
-	  cout << "\nfEshelby: "<<fEshelby;
-	}
+		fShapes->InterpolateU(fLocVel, fVel);
+		fEshelby(0,0) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]);
+		fEshelby(1,1) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]);
+		if (elem ==6 && 0) { 
+			cout << "\nstress: "<<Cauchy;
+			cout << "\nenergy: "<<energy;
+			cout << "\nfVel: "<<fVel; 
+			cout << "\nfEshelby: "<<fEshelby;
+		}
       }
 
       const double* pDQaX = DQa(0); 
@@ -507,8 +546,8 @@ void SSMF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch)
       /*integrate material force*/
       const dArrayT& internalstress = fCurrSSMat->InternalStressVars();
       const double* pstress = internalstress.Pointer();
-      double xval = ScalarProduct(pstress, pGradX, fInternalDOF);
-      double yval = ScalarProduct(pstress, pGradY, fInternalDOF);
+      double xval = -ScalarProduct(pstress, pGradX, fInternalDOF);
+      double yval = -ScalarProduct(pstress, pGradY, fInternalDOF);
 
       double* pelem_val = elem_val.Pointer();
       for (int i = 0; i<nen; i++)
@@ -543,9 +582,9 @@ void SSMF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch)
       /*integrate material force*/
       const dArrayT& internalstress = fCurrSSMat->InternalStressVars();
       const double* pstress = internalstress.Pointer();
-      double xval = ScalarProduct(pstress, pGradX, fInternalDOF);
-      double yval = ScalarProduct(pstress, pGradY, fInternalDOF);
-      double zval = ScalarProduct(pstress, pGradZ, fInternalDOF);
+      double xval = -ScalarProduct(pstress, pGradX, fInternalDOF);
+      double yval = -ScalarProduct(pstress, pGradY, fInternalDOF);
+      double zval = -ScalarProduct(pstress, pGradZ, fInternalDOF);
 
       double* pelem_val = elem_val.Pointer();
       for (int i = 0; i<nen; i++)
@@ -562,7 +601,7 @@ void SSMF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch)
 
 void SSMF::MatForceDynamic(dArrayT& elem_val)
 {
-  const char caller[] = "UpLagMF::MatForceDynamic";
+  const char caller[] = "SSMF::MatForceDynamic";
   int nen = NumElementNodes();
   int elem = CurrElementNumber();
   elem_val = 0.0;  
@@ -578,8 +617,8 @@ void SSMF::MatForceDynamic(dArrayT& elem_val)
   {
     /*get shape function and derivatives at integration point*/
     const double* pQa = fShapes->IPShapeX();
-    const double* pQaU = fShapes->IPShapeU();
-    const dArray2DT& DQa = fShapes->Derivatives_X();
+//    const double* pQaU = fShapes->IPShapeU();
+//    const dArray2DT& DQa = fShapes->Derivatives_X();
 
     /*integration point values*/
 
@@ -593,10 +632,10 @@ void SSMF::MatForceDynamic(dArrayT& elem_val)
     {
       for (int i = 0; i<nen; i++)
       {
-	double xval = density*(-fGradVel[0]*fVel[0]-fGradVel[1]*fVel[1]
-			       +gradU[0]*fAcc[0]+gradU[1]*fAcc[1]);
-	double yval = density*(-fGradVel[2]*fVel[0]-fGradVel[3]*fVel[1]
-			       +gradU[2]*fAcc[0]+gradU[3]*fAcc[1]);
+	double xval = density*(fGradVel[0]*fVel[0]+fGradVel[1]*fVel[1]
+			       -gradU[0]*fAcc[0]-gradU[1]*fAcc[1]);
+	double yval = density*(fGradVel[2]*fVel[0]+fGradVel[3]*fVel[1]
+			       -gradU[2]*fAcc[0]-gradU[3]*fAcc[1]);
 
     	*pelem_val++ += xval*(*pQa)*(*jac)*(*weight);
 	*pelem_val++ += yval*(*pQa++)*(*jac)*(*weight);      
@@ -606,16 +645,13 @@ void SSMF::MatForceDynamic(dArrayT& elem_val)
     {
       for (int i = 0; i<nen; i++)
       {
-	double xval = density*(-fGradVel(0,0)*fVel[0]-fGradVel(1,0)*fVel[1]
-			       -fGradVel(2,0)*fVel[2]
-			       +gradU(0,0)*fAcc[0]+gradU(1,0)*fAcc[1]+gradU(2,0)*fAcc[2]);
-	double yval = density*(-fGradVel(0,1)*fVel[0]-fGradVel(1,1)*fVel[1]
-			       -fGradVel(2,1)*fVel[2]
-			       +gradU(0,1)*fAcc[0]+gradU(1,1)*fAcc[1]+gradU(2,1)*fAcc[2]);
-	double zval = density*(-fGradVel(0,2)*fVel[0]-fGradVel(1,2)*fVel[1]
-			       -fGradVel(2,2)*fVel[2]
-			       +gradU(0,2)*fAcc[0]+gradU(1,2)*fAcc[1]+gradU(2,2)*fAcc[2]); 
-    	*pelem_val++ += xval*(*pQa)*(*jac)*(*weight);
+	double xval = density*(fGradVel(0,0)*fVel[0]+fGradVel(1,0)*fVel[1]+fGradVel(2,0)*fVel[2]
+			       -gradU(0,0)*fAcc[0]-gradU(1,0)*fAcc[1]-gradU(2,0)*fAcc[2]);
+	double yval = density*(fGradVel(0,1)*fVel[0]+fGradVel(1,1)*fVel[1]+fGradVel(2,1)*fVel[2]
+			       -gradU(0,1)*fAcc[0]-gradU(1,1)*fAcc[1]-gradU(2,1)*fAcc[2]);
+	double zval = density*(fGradVel(0,2)*fVel[0]+fGradVel(1,2)*fVel[1]+fGradVel(2,2)*fVel[2]
+			       -gradU(0,2)*fAcc[0]-gradU(1,2)*fAcc[1]-gradU(2,2)*fAcc[2]); 
+	*pelem_val++ += xval*(*pQa)*(*jac)*(*weight);
 	*pelem_val++ += yval*(*pQa)*(*jac)*(*weight);      
 	*pelem_val++ += zval*(*pQa++)*(*jac)*(*weight);      
       }
@@ -859,30 +895,14 @@ void SSMF::Extrapolate(void)
 
   int nen = NumElementNodes();
 
-  /****************************************
-  if (nen != ElementBaseT::fLHS.Rows()) {
-    cout<<"\nSSMF::Extrapolate: Dimension mismatch with fLHS and NumElementNodes()";
-    throw ExceptionT::kGeneralFail;
-  }
-  ****************************************/
-
   Top();
   while (NextElement())
   {
-    /*initialize element mass matrix*/
+    /*initialize element matrices*/
     felem_mass = 0.0;
 
-    /*****************************
-    ElementBaseT::fLHS = 0.0;
-    ContinuumElementT::FormMass(ContinuumElementT::kLumpedMass, 1.0);
-
-    const double* plhs = fLHS.Pointer();
-    for (int i=0; i<nen; i++)
+    if (CurrentElement().Flag() != ElementCardT::kOFF)
     {
-      felem_mass[i] = *plhs;
-      plhs += nen+1;
-    }
-    ********************************/
     ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
     fCurrSSMat = dynamic_cast<SSSolidMatT*>(pmat);
     if (!fCurrSSMat) throw ExceptionT::kGeneralFail;
@@ -895,31 +915,76 @@ void SSMF::Extrapolate(void)
     fShapes->TopIP();
     while(fShapes->NextIP())
     {
-	    const dArrayT& internalstrains = fCurrSSMat->InternalStrainVars();
+	const dArrayT& internalstrains = fCurrSSMat->InternalStrainVars();
         const double* pQbU = fShapes->IPShapeU();
 	
 	    for (int i=0; i<nen; i++)
         {
             const double* pQaU = fShapes->IPShapeU();
 
-            /*lumped element mass matrix
+            /*lumped element mass matrix*/
             for (int j = 0; j<NumElementNodes(); j++)
-	    felem_mass[i] += (*pQaU++)*(*pQbU)*(*jac)*(*weight);  */
+	    felem_mass[i] += (*pQaU++)*(*pQbU)*(*jac)*(*weight); 
 
             /*element forcing function*/
             for (int cnt = 0; cnt < fNumInternalVal; cnt++)
-	            felem_val(i,cnt) += (*pQbU)*(*jac)*(*weight)*internalstrains[cnt];
-
-	        pQbU++;
+	      felem_val(i,cnt) += (*pQbU)*(*jac)*(*weight)
+		*internalstrains[cnt];
+	    pQbU++;
         }
         weight++;
         jac++;
-    }    
+    } 
     AssembleArray(felem_mass, fGlobalMass, CurrentElement().NodesX());
     AssembleArray2D(felem_val, fGlobalVal, CurrentElement().NodesX());
+  }
   }  
   for (int i = 0; i< fNumGroupNodes; i++)
     for (int j = 0; j< fNumInternalVal; j++)
         fGlobalVal(i,j) /= fGlobalMass[i];
 }
 
+const double& SSMF::grad_dil(const dArray2DT& DNa, const dArray2DT& mean_gradient)
+{
+
+	int nnd = DNa.MinorDim();
+	double* pB = b_dil.Pointer();
+
+	/* 2D */
+	if (DNa.MajorDim() == 2)
+	{
+		const double* pNax = DNa(0);
+		const double* pNay = DNa(1);
+			
+		const double* pBmx = mean_gradient(0);
+		const double* pBmy = mean_gradient(1);
+			
+		for (int i = 0; i < nnd; i++)
+		{
+			*pB++ = ((*pBmx++) - (*pNax++))/3.0;
+			*pB++ = ((*pBmy++) - (*pNay++))/3.0;
+		}
+	}
+	/* 3D */
+	else		
+	{
+		const double* pNax = DNa(0);
+		const double* pNay = DNa(1);
+		const double* pNaz = DNa(2);
+
+		const double* pBmx = mean_gradient(0);
+		const double* pBmy = mean_gradient(1);
+		const double* pBmz = mean_gradient(2);
+			
+		for (int i = 0; i < nnd; i++)
+		{
+			*pB++ = ((*pBmx++) - (*pNax++))/3.0;
+			*pB++ = ((*pBmy++) - (*pNay++))/3.0;
+			*pB++ = ((*pBmz++) - (*pNaz++))/3.0;
+		}
+	}
+	fLocDisp.ReturnTranspose(fLocDispTranspose);
+	tmp = dArrayT::Dot(b_dil, fLocDispTranspose);
+
+	return(tmp);
+}
