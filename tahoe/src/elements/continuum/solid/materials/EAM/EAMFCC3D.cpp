@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.cpp,v 1.4.36.1 2004-02-26 19:08:16 hspark Exp $ */
+/* $Id: EAMFCC3D.cpp,v 1.4.36.2 2004-02-28 02:58:45 hspark Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAMFCC3D.cpp                                                           */
 
@@ -267,5 +267,5 @@ void EAMFCC3D::SetGlueFunctions(ifstreamT& in)
 		fEAM_particle->SetGlueFunctions(data_file);
 	}
 	else
-		fEAM->SetGlueFunctions();
+		fEAM->SetGlueFunctions();		
 }

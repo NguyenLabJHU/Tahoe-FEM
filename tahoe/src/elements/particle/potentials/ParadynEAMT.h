@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.h,v 1.3.20.2 2004-02-27 14:46:48 hspark Exp $ */
+/* $Id: ParadynEAMT.h,v 1.3.20.3 2004-02-28 02:58:46 hspark Exp $ */
 #ifndef _PARADYN_EAM_T_H_
 #define _PARADYN_EAM_T_H_
 
@@ -40,9 +40,9 @@ public:
 	virtual EDForceFunction getElecDensForce(void);
 
 	/** return a pointer to the stiffness function */
-	virtual PairEnergyFunction getPairStiffness(void);
-	virtual EmbedEnergyFunction getEmbedStiffness(void);
-	virtual EDEnergyFunction getElecDensStiffness(void);
+	virtual PairStiffnessFunction getPairStiffness(void);
+	virtual EmbedStiffnessFunction getEmbedStiffness(void);
+	virtual EDStiffnessFunction getElecDensStiffness(void);
 
 	/** return Paradyn-style coefficients table.
 	 * returns false if no table is available. */

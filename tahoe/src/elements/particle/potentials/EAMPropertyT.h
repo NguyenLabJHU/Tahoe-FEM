@@ -1,4 +1,4 @@
-/* $Id: EAMPropertyT.h,v 1.1.30.1 2004-02-27 14:46:48 hspark Exp $ */
+/* $Id: EAMPropertyT.h,v 1.1.30.2 2004-02-28 02:58:46 hspark Exp $ */
 #ifndef _EAM_PROPERTY_T_H_
 #define _EAM_PROPERTY_T_H_
 
@@ -49,9 +49,9 @@ public:
 	virtual EDForceFunction getElecDensForce(void) = 0;
 
 	/** return a pointer to the stiffness function */
-	virtual PairEnergyFunction getPairStiffness(void) = 0;
-	virtual EmbedEnergyFunction getEmbedStiffness(void) = 0;
-	virtual EDEnergyFunction getElecDensStiffness(void) = 0;
+	virtual PairStiffnessFunction getPairStiffness(void) = 0;
+	virtual EmbedStiffnessFunction getEmbedStiffness(void) = 0;
+	virtual EDStiffnessFunction getElecDensStiffness(void) = 0;
 	/*@}*/
 
 	/** return Paradyn-style coefficients table.
