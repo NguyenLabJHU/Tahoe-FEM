@@ -1,6 +1,5 @@
-/* $Id: SPOOLESMatrixT.h,v 1.11 2002-11-30 16:31:04 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.h,v 1.12 2003-10-31 20:53:17 paklein Exp $ */
 /* created: paklein (09/13/2000) */
-
 #ifndef _SPOOLES_MATRIX_T_H_
 #define _SPOOLES_MATRIX_T_H_
 
@@ -54,10 +53,10 @@ public:
 	/* assemble the element contribution into the LHS matrix - assumes
 	 * that elMat is square (n x n) and that eqnos is also length n.
 	 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
-	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
-		const nArrayT<int>& col_eqnos);
-	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos);
+	virtual void Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos);
+	virtual void Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
+		const ArrayT<int>& col_eqnos);
+	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos);
 
 	/* set all matrix values to 0.0 */
 	void Clear(void);

@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.14 2003-09-09 00:48:53 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.15 2003-10-31 20:53:17 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT.h"
@@ -81,7 +81,7 @@ void SPOOLESMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqnos)
 * that elMat is square (n x n) and that eqnos is also length n.
 *
 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
+void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
 {
 #if __option (extended_errorcheck)
 	if (elMat.Rows() != elMat.Cols()) throw ExceptionT::kGeneralFail;
@@ -115,8 +115,10 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& e
 		/* check completion */
 		if (!status)
 		{
+			iArrayT tmp;
+			tmp.Alias(eqnos);
 			cout << "\n SPOOLESMatrixT::Assemble: error with equations:\n";
-			cout << eqnos << endl;
+			cout << tmp << endl;
 			throw ExceptionT::kGeneralFail;
 		}
 	}
@@ -232,16 +234,18 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& e
 			/* check completion */
 			if (!status)
 			{
+				iArrayT tmp;
+				tmp.Alias(eqnos);
 				cout << "\n SPOOLESMatrixT::Assemble: error with equations:\n";
-				cout << eqnos << endl;
+				cout << tmp << endl;
 				throw ExceptionT::kGeneralFail;
 			}
 		}
 	}
 }
 
-void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
-	const nArrayT<int>& col_eqnos)
+void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
+	const ArrayT<int>& col_eqnos)
 {
 #if __option (extended_errorcheck)
 	/* check dimensions */
@@ -318,16 +322,19 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& r
 			/* check completion */
 			if (!status)
 			{
+				iArrayT tmp;
 				cout << "\n SPOOLESMatrixT::Assemble: error with equations:\n";
-				cout << " row:\n" << row_eqnos << endl;
-				cout << " col:\n" << col_eqnos << endl;
+				tmp.Alias(row_eqnos);
+				cout << " row:\n" << tmp << endl;
+				tmp.Alias(col_eqnos);
+				cout << " col:\n" << tmp << endl;
 				throw ExceptionT::kGeneralFail;
 			}
 		}
 	}
 }
 
-void SPOOLESMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
+void SPOOLESMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos)
 {
 #pragma unused(diagonal_elMat)
 #pragma unused(eqnos)

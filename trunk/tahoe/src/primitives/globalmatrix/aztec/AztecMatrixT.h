@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.h,v 1.9 2003-02-28 02:07:17 paklein Exp $ */
+/* $Id: AztecMatrixT.h,v 1.10 2003-10-31 20:53:20 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 #ifndef _AZTEC_MATRIX_T_H_
 #define _AZTEC_MATRIX_T_H_
@@ -53,10 +53,10 @@ public:
 	 * that elMat is square (n x n) and that eqnos is also length n.
 	 *
 	 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
-	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
-		const nArrayT<int>& col_eqnos);
-	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos);
+	virtual void Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos);
+	virtual void Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
+		const ArrayT<int>& col_eqnos);
+	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos);
 
 	/* number scope and reordering */
 	virtual EquationNumberScopeT EquationNumberScope(void) const;
@@ -85,7 +85,7 @@ protected:
 	/* rank check functions */
 	virtual void PrintAllPivots(void) const;
 	virtual void PrintZeroPivots(void) const;
-	virtual void PrintLHS(void) const;
+	virtual void PrintLHS(bool force = false) const;
 
 private:
 
