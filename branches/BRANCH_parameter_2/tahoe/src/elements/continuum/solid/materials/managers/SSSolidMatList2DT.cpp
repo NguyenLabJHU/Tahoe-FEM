@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList2DT.cpp,v 1.1.2.1 2004-01-21 19:10:18 paklein Exp $ */
+/* $Id: SSSolidMatList2DT.cpp,v 1.1.2.2 2004-02-10 07:17:54 paklein Exp $ */
 #include "SSSolidMatList2DT.h"
 #include "SSMatSupportT.h"
 
@@ -58,6 +58,8 @@ SSSolidMatList2DT::SSSolidMatList2DT(int length, const SSMatSupportT& support):
 	fGradSSMatSupport(NULL)
 {
 	SetName("small_strain_material_2D");
+	if (fSSMatSupport->NumSD() != 2)
+		ExceptionT::GeneralFail("SSSolidMatList2DT::SSSolidMatList2DT");
 
 #ifdef __NO_RTTI__
 	cout << "\n SSSolidMatList2DT::SSSolidMatList2DT: WARNING: environment has no RTTI. Some\n" 
@@ -324,10 +326,49 @@ void SSSolidMatList2DT::DefineInlineSub(const StringT& sub, ParameterListT::List
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* SSSolidMatList2DT::NewSub(const StringT& list_name) const
 {
+	/* try to construct material */
+	SSSolidMatT* ss_solid_mat = NewSSSolidMat(list_name);
+	if (ss_solid_mat)
+		return ss_solid_mat;
+	else /* inherited */
+		return SolidMatListT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void SSSolidMatList2DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SolidMatListT::TakeParameterList(list);
+
+	/* construct materials */
+	AutoArrayT<SSSolidMatT*> materials;
+	const ArrayT<ParameterListT>& subs = list.Lists();
+	for (int i = 0; i < subs.Length(); i++) {
+		const ParameterListT& sub = subs[i];
+		SSSolidMatT* mat = NewSSSolidMat(sub.Name());
+		if (mat) {
+			materials.Append(mat);
+			mat->TakeParameterList(sub);
+		}
+	}
+
+	/* transfer */
+	Dimension(materials.Length());
+	for (int i = 0; i < materials.Length(); i++)
+		fArray[i] = materials[i];
+}
+
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
+
+/* construct the specified material or NULL if the request cannot be completed */
+SSSolidMatT* SSSolidMatList2DT::NewSSSolidMat(const StringT& list_name) const
+{
 	if (list_name == "small_strain_cubic_2D")
 		return new SSCubic2DT;
 	else if (list_name == "small_strain_StVenant_2D")
 		return new SSKStV2D;
-	else /* inherited */
-		return SolidMatListT::NewSub(list_name);
+	else
+		return NULL;
 }

@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.1.2.1 2004-01-21 19:10:18 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.1.2.2 2004-02-10 07:17:54 paklein Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -88,6 +88,7 @@ FSSolidMatList2DT::FSSolidMatList2DT(int length, const FSMatSupportT& support):
 	SolidMatListT(length, support),
 	fFSMatSupport(&support)
 {
+#pragma message("check spatial dimension of material support")
 	SetName("large_strain_material_2D");
 }
 

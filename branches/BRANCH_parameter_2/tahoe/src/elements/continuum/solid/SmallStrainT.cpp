@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.13.2.2 2004-02-05 18:47:13 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.13.2.3 2004-02-10 07:17:53 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -153,17 +153,46 @@ void SmallStrainT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrder
 
 void SmallStrainT::TakeParameterList(const ParameterListT& list)
 {
+	const char caller[] = "SmallStrainT::TakeParameterList";
+
 	/* inherited */
 	SolidElementT::TakeParameterList(list);
 	
 	/* strain displacement option */
 	int b = list.GetParameter("strain_displacement");
 	fStrainDispOpt = (b == kStandardB) ? kStandardB : kMeanDilBbar;
+
+	/* run through element block declarations */
+	AutoArrayT<ElementBlockDataT> block_data;
+	int num_blocks = list.NumLists("small_strain_element_block");
+	for (int i = 0; i < num_blocks; i++) {
+		const ParameterListT& block = list.GetList("small_strain_element_block", i);
 	
+		// count blocks
+		
+		// define ElementBlockDataT
+	}
+	fBlockData.Swap(block_data);
+
+ExceptionT::GeneralFail(caller, "YOU ARE HERE");
+
+//TEMP - materials defined in blocks <small_strain_element_block>
+#if 0
 	/* construct the material list */
-	StringT mat_list_name = "small_strain_material_";
-//	mat_list_name.Append(NumSD(), "D");
-#pragma message("what to do here - 2D axi elements need 3D material list")
+	if (fMaterialList) ExceptionT::GeneralFail(caller, "material list already set");
+	StringT mat_list_name_root = "small_strain_material_";
+	for (int nsd = 1; !fMaterialList && nsd <= 3; nsd++) {
+		StringT mat_list_name = mat_list_name_root;
+		mat_list_name.Append(nsd);
+		mat_list_name.Append("D");
+		const ParameterListT* mat_list_params = list.List(mat_list_name);
+		if (mat_list_params) {
+			fMaterialList = NewMaterialList(nsd, 0);
+			fMaterialList->TakeParameterList(*mat_list_params);
+		}
+	}
+	if (!fMaterialList) ExceptionT::GeneralFail(caller, "could not construct material list");
+#endif
 
 	/* what's needed */
 	bool need_strain = false;
@@ -187,9 +216,6 @@ void SmallStrainT::TakeParameterList(const ParameterListT& list)
 		for (int i = 0; i < NumIP(); i++)
 			fStrain_last_List[i].Dimension(NumSD());
 	}
-
-//TEMP
-ExceptionT::GeneralFail("SmallStrainT::TakeParameterList", "under construction");
 }
 
 /***********************************************************************

@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.8.2.1 2004-01-21 19:10:27 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.8.2.2 2004-02-10 07:17:55 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
 #include <iostream.h>
@@ -7,6 +7,12 @@
 #include "ThermalDilatationT.h"
 
 using namespace Tahoe;
+
+/* array behavior */
+namespace Tahoe {
+DEFINE_TEMPLATE_STATIC const bool ArrayT<SSSolidMatT>::fByteCopy = false;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<SSSolidMatT*>::fByteCopy = true;
+} /* namespace Tahoe */
 
 /* perturbation used to compute c_ijkl from finite difference */
 const double strain_perturbation = 1.0e-08;
