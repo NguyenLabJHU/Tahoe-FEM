@@ -1,0 +1,8 @@
+@
+# $Id: run.batch,v 1.1 2004-06-09 06:22:47 paklein Exp $
+mat.09.a.in
+mat.09.b.in
+mat.09.c.in
+mat.09.d.in
+mat.09.thermal.1.in
+mat.09.thermal.2.in
