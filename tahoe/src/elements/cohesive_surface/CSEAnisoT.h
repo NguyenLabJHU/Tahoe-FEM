@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.35 2004-07-15 08:25:57 paklein Exp $ */
+/* $Id: CSEAnisoT.h,v 1.36 2004-09-09 16:16:38 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -70,6 +70,9 @@ public:
 
 	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
+
+	/** resolve the output variable label into the output code and offset within the output. */
+	virtual void ResolveOutputVariable(const StringT& variable, int& code, int& offset);
 
 	/** set the active elements.
 	 * \param array of status flags for all elements in the group */
