@@ -1,4 +1,4 @@
-/* $Id: FCC3D.h,v 1.1.2.2 2003-03-29 17:22:28 paklein Exp $ */
+/* $Id: FCC3D.h,v 1.1.2.3 2003-03-30 21:23:22 paklein Exp $ */
 #ifndef _FCC_3D_H_
 #define _FCC_3D_H_
 
@@ -39,7 +39,8 @@ protected:
 	/** strain energy density */
 	virtual double ComputeEnergyDensity(const dSymMatrixT& E);
 
-	/** return the equitriaxial stretch at which the stress is zero */
+	/** return the equi-axed stretch at which the stress is zero. This method
+	 * assumes the material is isotropic when subject to equi-axed stretch. */
 	double ZeroStressStretch(void);
 
 private:

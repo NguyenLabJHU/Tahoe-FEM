@@ -1,4 +1,4 @@
-/* $Id: Hex2D.cpp,v 1.1.2.2 2003-02-21 01:16:52 paklein Exp $ */
+/* $Id: Hex2D.cpp,v 1.1.2.3 2003-03-30 21:23:22 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"
@@ -12,8 +12,10 @@
 /* pair properties */
 #ifdef PARTICLE_ELEMENT
 #include "HarmonicPairT.h"
+#include "LennardJonesPairT.h"
 #else
 #pragma message("Hex2D requires PARTICLE_ELEMENT")
+#error "Hex2D requires PARTICLE_ELEMENT"
 #endif
 
 const double sqrt3 = sqrt(3.0);
@@ -48,6 +50,16 @@ Hex2D::Hex2D(ifstreamT& in, const FSMatSupportT& support):
 			fPairProperty = new HarmonicPairT(mass, fNearestNeighbor, K);
 			break;
 		}
+		case ParticlePropertyT::kLennardJonesPair:
+		{
+			double mass, eps, sigma, alpha;
+			in >> mass >> eps >> sigma >> alpha;
+			fPairProperty = new LennardJonesPairT(mass, eps, sigma, alpha);
+
+			/* equilibrium length of a single unmodified LJ bond */
+			fNearestNeighbor = pow(2.0,1.0/6.0)*sigma;
+			break;
+		}
 		default:
 			ExceptionT::BadInputValue(caller, "unrecognized property type %d", property);
 	}
@@ -62,6 +74,11 @@ Hex2D::Hex2D(ifstreamT& in, const FSMatSupportT& support):
 		ExceptionT::BadInputValue(caller, "nearest bond ! (%g > 0)", fNearestNeighbor);
 		
 	/* compute the cell volume */
+	fCellVolume = fNearestNeighbor*fNearestNeighbor*sqrt3/2.0;
+
+	/* compute stress-free dilatation */
+	double stretch = ZeroStressStretch();
+	fNearestNeighbor *= stretch;
 	fCellVolume = fNearestNeighbor*fNearestNeighbor*sqrt3/2.0;
 	
 	/* reset the continuum density (2 atoms per unit cell) */
@@ -165,4 +182,41 @@ double Hex2D::ComputeEnergyDensity(const dSymMatrixT& E)
 	tmpSum /= fCellVolume;
 	
 	return tmpSum;
+}
+
+/* return the equitriaxial stretch at which the stress is zero */
+double Hex2D::ZeroStressStretch(void)
+{
+	const char caller[] = "Hex2D::ZeroStress";
+
+	int nsd = 2;
+	dSymMatrixT E(nsd), PK2(nsd);
+	dMatrixT C(dSymMatrixT::NumValues(nsd));
+
+	E = 0.0;
+	ComputePK2(E, PK2);
+	
+	/* Newton iteration */
+	int count = 0;
+	double error, error0;
+	error = error0 = fabs(PK2(0,0));
+	while (count++ < 10 && error0 > kSmall && error/error0 > kSmall)
+	{
+		ComputeModuli(E, C);
+		double dE = -PK2(0,0)/(C(0,0) + C(0,1));
+		E.PlusIdentity(dE);
+		
+		ComputePK2(E, PK2);
+		error = fabs(PK2(0,0));
+	}
+
+	/* check convergence */
+	if (error0 > kSmall && error/error0 > kSmall) {
+		cout << "\n " << caller << ":\n";
+		cout << " E =\n" << E << '\n';
+		cout << " PK2 =\n" << PK2 << endl;
+		ExceptionT::GeneralFail(caller, "failed to find stress-free state");
+	}
+	
+	return sqrt(2.0*E(0,0) + 1.0);
 }
