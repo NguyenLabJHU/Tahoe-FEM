@@ -1,15 +1,28 @@
-/* $Id: IOBaseT.cpp,v 1.9 2002-08-01 16:32:56 saubry Exp $ */
+/* $Id: IOBaseT.cpp,v 1.9.2.1 2002-10-17 01:58:30 paklein Exp $ */
 /* created: sawimme (09/28/1999) */
-
 #include "IOBaseT.h"
 
 #include <iostream.h>
 #include <fstream.h>
 #include <iomanip.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "StringT.h"
 
+/* input formats */
+#include "TahoeInputT.h"
+#include "ExodusInputT.h"
+#include "PatranInputT.h"
+#include "EnSightInputT.h"
+#include "AbaqusInputT.h"
+#include "InputFEASCIIT.h"
+
+/* output formats */
+#include "FE_ASCIIT.h"
+#include "ExodusOutputT.h"
+#include "EnSightOutputT.h"
+#include "AbaqusOutputT.h"
+#include "TecPlotOutputT.h"
 
 using namespace Tahoe;
 
@@ -49,7 +62,7 @@ IOBaseT::FileTypeT IOBaseT::int_to_FileTypeT(int i)
 	                return IOBaseT::kParaDyn;
 		default:
 			cout << "\n int_to_IOFileType: could not convert: " << i << endl;
-			throw eOutOfRange;
+			throw ExceptionT::kOutOfRange;
 	}
 	
 	/* dummy */
@@ -120,11 +133,126 @@ IOBaseT::FileTypeT IOBaseT::name_to_FileTypeT(const char* file_name)
 	else {
 		cout << "\n IOBaseT::name_to_FileTypeT: could not guess file type from name: " 
 		    << file_name << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* dummy */
 	return kTahoe;
+}
+
+/* construct new input object */
+InputBaseT* IOBaseT::NewInput(FileTypeT format, ostream& message)
+{
+	InputBaseT* input = NULL;
+	try {
+	switch (format)
+    {
+		case kTahoe:
+      		/* do nothing, arrays will be registered via ElementBaseT and NodeManager */
+			input = NULL;
+			break;
+
+		case kTahoeII:
+			input = new TahoeInputT(message);
+			break;
+
+		case kEnSight:
+			input = new EnSightInputT(message, false);
+      		break;
+
+		case kEnSightBinary:
+			input = new EnSightInputT(message, true);
+			break;
+
+#ifdef __ACCESS__
+		case kExodusII:
+			input = new ExodusInputT(message);
+			break;
+#endif
+
+		case kPatranNeutral:
+			input = new PatranInputT(message);
+			break;
+
+		case kAbaqus:
+		case kAbaqusBinary:
+			input = new AbaqusInputT(message);
+			break;
+
+		case kTahoeResults:
+			input = new InputFEASCIIT(message);
+			break;
+
+		default:
+		{
+			cout << "\n IOBaseT::NewInput: unsupported model format: " << format << endl;
+			throw ExceptionT::kGeneralFail;
+		}
+    }
+    } /* end try */
+    
+    catch(ExceptionT::CodeT exception) {
+		cout << "\n IOBaseT::NewInput: caught exception: " <<  ExceptionT::ToString(exception) << endl;
+		throw exception;
+    }    
+    return input;
+}
+
+/* construct and return new output formatter */
+OutputBaseT* IOBaseT::NewOutput(const StringT& program_name,
+	const StringT& version, const StringT& title, const StringT& input_file,
+	FileTypeT output_format, ostream& log)
+{
+	ArrayT<StringT> outstrings (4);
+	outstrings[0] = input_file;
+	outstrings[1] = title;
+	outstrings[2] = program_name;
+	outstrings[3] = version;
+
+	const int kdigits = 4;
+	OutputBaseT* output = NULL;
+	try {
+	switch (output_format)
+	  {
+	  case IOBaseT::kExodusII:
+	    output = new ExodusOutputT(log, outstrings);
+	    break;
+	  case IOBaseT::kTahoe:
+	  case IOBaseT::kTahoeII:
+	  case IOBaseT::kTahoeResults:
+	    output = new FE_ASCIIT(log, true, outstrings);
+	    break;
+	  case IOBaseT::kEnSight:
+	    output = new EnSightOutputT(log, outstrings, kdigits, false);
+	    break;
+	  case IOBaseT::kEnSightBinary:
+	    output = new EnSightOutputT(log, outstrings, kdigits, true);
+	    break;
+	  case IOBaseT::kAbaqus:
+	    output = new AbaqusOutputT(log, outstrings, false);
+	    break;
+	  case IOBaseT::kAbaqusBinary:
+	    output = new AbaqusOutputT(log, outstrings, true);
+	    break;
+	  case IOBaseT::kTecPlot:
+	    output = new TecPlotOutputT(log, outstrings, kdigits);
+	    break;
+	  default:
+	    {			
+	      cout << "\n IOBaseT::SetOutput unknown output format:"
+		   << output_format << endl;
+	      log  << "\n IOBaseT::SetOutput unknown output format:"
+		    << output_format << endl;
+	      throw ExceptionT::kBadInputValue;
+	    }
+	}
+	} /* end try */  
+
+    catch(ExceptionT::CodeT exception) {
+		cout << "\n IOBaseT::NewOutput: caught exception: " <<  ExceptionT::ToString(exception) << endl;
+		throw exception;
+    }    
+	return output;
 }
 
 /*************************************************************************
