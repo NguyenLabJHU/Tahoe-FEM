@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.15.2.6 2002-05-03 07:16:22 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.15.2.7 2002-05-16 19:26:28 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -336,6 +336,18 @@ void ElementBaseT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	/* read */
 	ReadConnectivity(in, out);
 
+	/* derived dimensions */
+	int neq = NumElementNodes()*NumDOF();
+	fEqnos.Allocate(fBlockData.Length());
+	for (int be=0; be < fEqnos.Length(); be++)
+	  {
+	    int numblockelems = fConnectivities[be]->MajorDim();
+	    fEqnos[be].Allocate(numblockelems, neq);
+	  }
+
+	/* set pointers in element cards */
+	SetElementCards();
+
 	/* write */
 	WriteConnectivity(out);
 }
@@ -402,21 +414,7 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 		}
 	  
 	/* set dimensions */
-//	fNumElements  = elem_count;
-//	fNumElemNodes = nen;
 	fElementCards.Allocate(elem_count);
-
-	/* derived dimensions */	
-	int neq = nen*NumDOF();
-	fEqnos.Allocate (num_blocks);
-	for (int be=0; be < num_blocks; be++)
-	  {
-	    int numblockelems = fConnectivities[be]->MajorDim();
-	    fEqnos[be].Allocate(numblockelems, neq);
-	  }
-
-	/* set pointers in element cards */
-	SetElementCards();
 }
 
 /* resolve output formats */
