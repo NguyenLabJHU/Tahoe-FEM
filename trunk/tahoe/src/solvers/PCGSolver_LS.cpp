@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.15 2003-11-11 22:51:48 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.16 2003-11-12 00:24:17 jzimmer Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 
@@ -220,7 +220,7 @@ void PCGSolver_LS::CGSearch(void)
 
 		/* no division by zero */
 		double denominator = InnerProduct(fR_last, fdiff_R);
-		if (fabs(denominator) < 1.0e-16) {
+		if (fabs(denominator) < 1.0e-24) {
 			denominator = 1.0;
 			beta = 0.0; /* revert to steepest descent */
 		}
@@ -237,7 +237,7 @@ void PCGSolver_LS::CGSearch(void)
 		fu_last = fRHS;
 
 		/* output control */
-		fVerbose = 0;
+		fVerbose = 1; /* changed 0 to 1 */
 	}
 
 	/* check recalculation of LHS */
