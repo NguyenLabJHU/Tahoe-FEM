@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.27 2002-11-28 16:44:18 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.28 2002-12-01 19:56:30 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -87,7 +87,8 @@ public:
 	/** returns true for verbose echo of input */
 	bool PrintInput(void) const;
 
-	const StringT& Version(void) const;
+	/** version number */
+	static const char* Version(void);
 	IOBaseT::FileTypeT OutputFormat(void) const;
 	const StringT& Title(void) const { return fTitle; };
 
@@ -320,7 +321,7 @@ protected:
 	virtual int GetGlobalNumEquations(int group) const;
 	
 	/** collect element equations and send to solver */
-	void SendEqnsToSolver(int group) const;
+	void SendEqnsToSolver(int group);
 
 	/** \name solution steps 
 	 * All steps return ExceptionT::kNoError = 0 unless a problem occurs. */
@@ -364,7 +365,6 @@ protected:
 
 	/** \name info strings */
 	/*@{*/
-	StringT fVersion;
 	StringT fTitle;
 	StringT fRestartFile;
 	/*@}*/
@@ -420,7 +420,6 @@ protected:
 };
 
 /* inlines */
-inline const StringT& FEManagerT::Version(void) const { return fVersion; }
 inline ifstreamT& FEManagerT::Input(void) const { return fMainIn;  }
 inline ofstreamT& FEManagerT::Output(void) const { return fMainOut; }
 inline const GlobalT::StateT& FEManagerT::RunState(void) const { return fStatus; }
