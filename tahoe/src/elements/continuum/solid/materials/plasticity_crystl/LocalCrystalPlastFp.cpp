@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.5 2002-03-26 17:48:17 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.6 2002-03-28 02:37:07 ebmarin Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -170,10 +170,6 @@ const dSymMatrixT& LocalCrystalPlastFp::s_ij()
 	  // recover local data
 	  LoadCrystalData(element, intpt, igrn);
 	  
-	  // Schmidt tensor in Bbar configuration (sample axes)
-	  for (int i = 0; i < fNumSlip; i++)
-              fZ[i].MultQBQT(fRotMat, fZc[i]);
-
           // elasticity matrix in Bbar configuration
           if (!fElasticity->IsIsotropic())
              {
@@ -183,14 +179,42 @@ const dSymMatrixT& LocalCrystalPlastFp::s_ij()
           else
                 fElasticity->ComputeModuli(fcBar_ijkl);
 
-	  // compute crystal state
-	  SolveCrystalState();
+	  // compute crystal Cauchy stress (elastic predictor at first iteration)
+          if ( fContinuumElement.FEManager().StepNumber() >= 1 &&
+	       fContinuumElement.FEManager().IterationNumber() <= -1)
+	     {
+	       // defomation gradient
+               fMatx1.SetToCombination(1., fFtot, -1., fFtot_n);
+	       fFt.SetToCombination(1., fFtot_n, 100.0 / 100.0, fMatx1);
+
+	       // elastic tensors
+               fFpi.Inverse(fFp_n);
+	       fFe.MultAB(fFt, fFpi);
+	       fCeBar.MultATA(fFe);
+
+	       // 2nd Piola Kirchhoff stress
+               fEeBar.SetToCombination(0.5, fCeBar, -0.5, fISym);
+	       fSBar.A_ijkl_B_kl(fcBar_ijkl, fEeBar);
+
+	       // Cauchy stress
+               fs_ij.MultQBQT(fFe, fSBar);
+               fs_ij /= fFe.Det();
+	     }
+	  else
+             {
+	       // Schmidt tensor in Bbar configuration (sample axes)
+	       for (int i = 0; i < fNumSlip; i++)
+                   fZ[i].MultQBQT(fRotMat, fZc[i]);
+
+	       // compute crystal state
+	       SolveCrystalState();
 	  
-	  // compute crystal Cauchy stress
-	  CrystalS_ij();
+     	       // compute crystal Cauchy stress
+	       CrystalS_ij();
 	  
-	  // compute crystal moduli (consistent tangent)
-	  //CrystalC_ijkl();  // **do not use for LS**
+	       // compute crystal moduli (consistent tangent)
+	       //CrystalC_ijkl();  // **do not use for LS**
+	     }
 
 	  // add stress and moduli to corresponding averaged quantities
 	  fsavg_ij.AddScaled(1./fNumGrain, fs_ij);
@@ -234,10 +258,6 @@ const dMatrixT& LocalCrystalPlastFp::c_ijkl()
         // recover local data
 	LoadCrystalData(element, intpt, igrn);
 	  
-	// Schmidt tensor in Bbar configuration (sample axes)
-	for (int i = 0; i < fNumSlip; i++)
-            fZ[i].MultQBQT(fRotMat, fZc[i]);
-
         // elasticity matrix in Bbar configuration
         if (!fElasticity->IsIsotropic())
            {
@@ -247,8 +267,22 @@ const dMatrixT& LocalCrystalPlastFp::c_ijkl()
         else
               fElasticity->ComputeModuli(fcBar_ijkl);
 
-	// compute crystal moduli (consistent tangent)
-	CrystalC_ijkl();  
+	// compute consistent tangent (elastic predictor at fisrt iteration)
+        if ( fContinuumElement.FEManager().StepNumber() >= 1 &&
+	     fContinuumElement.FEManager().IterationNumber() <= 0)
+	    {
+               // elastic crystal stiffness
+               FFFFC_3D(fc_ijkl, fcBar_ijkl, fFe);
+	    }
+	else
+            {
+	       // Schmidt tensor in Bbar configuration (sample axes)
+	       for (int i = 0; i < fNumSlip; i++)
+                   fZ[i].MultQBQT(fRotMat, fZc[i]);
+
+	       // elasto-plastic crystal moduli (consistent tangent)
+	       CrystalC_ijkl();  
+	    }
 
 	// add moduli to corresponding averaged quantities
 	fcavg_ijkl.AddScaled(1./fNumGrain, fc_ijkl);
@@ -665,12 +699,10 @@ void LocalCrystalPlastFp::IterateOnCrystalState(bool& stateConverged, int subInc
             SolveForPlasticDefGradient(ierr);
             if (ierr != 0)
                {
-                 if (XTAL_MESSAGES) {
-                    writeWarning("LocalCrystalPlastFp::SolveCrystalState:\n ierr!=0 in SolveForPlastDefGradient -> subincrementation");
-                    cout << " elem # " << CurrElementNumber() 
+                 if (XTAL_MESSAGES)
+                    cout << " ...... failed at subIncr # " << subIncr 
+			 << ";  elem # " << CurrElementNumber() 
                          << ";  IP # " << CurrIP() << endl;
-                    cout << " subIncr # " << subIncr << endl;
-                 }
 	         return;
                }
       
@@ -683,12 +715,10 @@ void LocalCrystalPlastFp::IterateOnCrystalState(bool& stateConverged, int subInc
 	  
        catch(int code)
 	  {
-            if (XTAL_MESSAGES) {
-               writeWarning("LocalCrystalPlastFp::SolveCrystalState:\n exception thrown at SolveForPlasticDefGradient -> subincrementation");
-               cout << " elem # " << CurrElementNumber() 
+            if (XTAL_MESSAGES)
+               cout << " ...... failed at subIncr # " << subIncr 
+	            << ";  elem # " << CurrElementNumber() 
                     << ";  IP # " << CurrIP() << endl;
-               cout << " subIncr # " << subIncr << endl;
-            }
 	    break;
           }
      }
@@ -696,10 +726,10 @@ void LocalCrystalPlastFp::IterateOnCrystalState(bool& stateConverged, int subInc
   // check if did not converge in max iterations
   if (!stateConverged && iterState > fMaxIterState) {
      if (XTAL_MESSAGES) {
-        writeWarning("LocalCrystalPlastFp::SolveCrystalState:\n didn't converge in maxIters -> subincrementaion");
-        cout << " elem # " << CurrElementNumber() 
+	writeWarning("... in LocalCrystalPlastFp::IterateOnCrystalState: iters > maxIters");
+        cout << " ...... failed at subIncr # " << subIncr 
+	     << ";  elem # " << CurrElementNumber() 
              << ";  IP # " << CurrIP() << endl;
-        cout << " subIncr # " << subIncr << endl;
      }
     return;
   }
@@ -743,16 +773,20 @@ void LocalCrystalPlastFp::SolveForPlasticDefGradient(int& ierr)
        // current value for rate sensitivity exponent
        fKinetics->ComputeRateSensitivity();
  
-       // solve for incremental shear strain
+       // solve for Fp
        try { fSolver->Solve(fSolverPtr, fFpArray, ierr); }
        catch(int code) 
            {
+             if (XTAL_MESSAGES) 
+		writeWarning("... in LocalCrystalPlastFp::SolveForPlasticDefGradient: exception caugth");
              fKinetics->RestoreRateSensitivity();
              throw;
            }
 
        // return if problems in NCLSolver
        if (ierr != 0) {
+             if (XTAL_MESSAGES) 
+                writeWarning("... in LocalCrystalPlastFp::SolveForPlasticDefGradient: ierr!=0");
              fKinetics->RestoreRateSensitivity();
              return;
        }
