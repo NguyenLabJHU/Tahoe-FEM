@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.11 2002-01-06 06:58:42 cbhovey Exp $ */
+/* $Id: DetCheckT.cpp,v 1.12 2002-02-21 16:49:55 paklein Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "DetCheckT.h"
@@ -63,6 +63,9 @@ int DetCheckT::IsLocalized(dArrayT& normal)
 
 int DetCheckT::IsLocalized_SS(dArrayT& normal)
 {
+  /* clear normal */
+  normal = 0.0;
+
 	if (fs_jl.Rows() == 2)
 	{
 		/* call SPINLOC routine */
