@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.5 2001-07-27 01:32:50 cfoster Exp $ */
+/* $Id: DetCheckT.cpp,v 1.6 2001-08-17 00:47:58 cfoster Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "DetCheckT.h"
@@ -6,6 +6,7 @@
 #include "ExceptionCodes.h"
 #include "dSymMatrixT.h"
 #include "dMatrixT.h"
+#include "dMatrixEXT.h"
 #include "dArrayT.h"
 
 /* constants */
@@ -47,15 +48,19 @@ int DetCheckT::IsLocalized(dArrayT& normal)
 	if (fs_jl.Rows() == 2)
 		return DetCheck2D(normal);
 	else
-
+	  {
 	//TEMP - not implemented
-		return 5;
+	  cout << "Finite Strain Localization Check not implemented in 3D \n";
+	  return 5;
+	  }
 }
 
 
-/* check ellipticity of tangent modulus using closed form algorithm
- * taken from R.A.Regueiro's SPINLOC. */
-int DetCheckT::IsLocalized_SPINLOC(dArrayT& normal)
+/* check ellipticity of tangent modulus for small strain formulation 
+* 2D version is closed form solution taken from R.A.Regueiro's SPINLOC.
+* 3d is a numerical search algorithm after Ortiz, et. al. (1987) */
+
+int DetCheckT::IsLocalized_SS(dArrayT& normal)
 {
 	if (fs_jl.Rows() == 2)
 	{
@@ -71,8 +76,9 @@ int DetCheckT::IsLocalized_SPINLOC(dArrayT& normal)
 		return check;
 	}
 	else
-		//TEMP - not implemented
-		return 5;
+	  // cout << "before call to DetCheck3D_SS \n";
+	//return DetCheck3D_SS(normal);
+          return 7;    
 }
 
 
@@ -174,6 +180,380 @@ int DetCheckT::DetCheck2D(dArrayT& normal)
 		
 		return 1;
 	}
+}
+
+/* 3D determinant check function */
+/* assumes small strain formulation */
+int DetCheckT::DetCheck3D_SS(dArrayT& normal)
+{
+
+  cout << "In DetCheck3D_SS \n";
+
+  double theta, phi; //horizontal plane angle and polar angle for normal
+  int i,j,k,l,m,n, control;        // counters and control variable
+  double tol=10^-10; 
+  double leastmin, guess; 
+  /* initial sweep to determine approximate local minima */
+
+  double detA [72] [19]; //determinant of acoustic tensor at each increment
+  int localmin [72] [19]; // 1 for local minimum, 0 if not
+  dMatrixT A(3,3), Ainverse(3,3); //acoustic tensor
+  dMatrixEXT J(3); // det(A)*C*Ainverse
+  double prevnormal[3], finalnormal [3];
+
+
+  double C [3] [3] [3] [3]; // rank 4 tangent modulus
+
+ // convert fc_ijkl from rank 2 to rank 4
+           for (k=0;k<3;k++){
+	     for (l=0;l<3;l++){ 
+            C [k] [k] [l] [l] = fc_ijkl (k,l);
+	      }
+	   }
+	    
+           for (k=0;k<3;k++){
+             C [k] [k] [1] [2] = fc_ijkl (k,3);
+             C [k] [k] [2] [1] = fc_ijkl (k,3);
+             C [k] [k] [0] [2] = fc_ijkl (k,4);
+             C [k] [k] [2] [0] = fc_ijkl (k,4);
+             C [k] [k] [0] [1] = fc_ijkl (k,5);
+             C [k] [k] [1] [0] = fc_ijkl (k,5);
+           }
+
+           for (k=0;k<3;k++){
+             C [1] [2] [k] [k] = fc_ijkl (3,k);
+             C [2] [1] [k] [k] = fc_ijkl (3,k);
+             C [0] [2] [k] [k] = fc_ijkl (4,k);
+             C [2] [0] [k] [k] = fc_ijkl (4,k);
+             C [0] [1] [k] [k] = fc_ijkl (5,k);
+             C [1] [0] [k] [k] = fc_ijkl (5,k);
+           }
+
+          for (k=0;k<3;k++){
+             C [1] [2] [1] [2] = fc_ijkl (3,3);
+             C [1] [2] [2] [1] = fc_ijkl (3,3);
+             C [2] [1] [1] [2] = fc_ijkl (3,3);
+             C [2] [1] [2] [1] = fc_ijkl (3,3);
+             
+             C [0] [1] [0] [1] = fc_ijkl (5,5);
+             C [0] [1] [1] [0] = fc_ijkl (5,5);
+             C [1] [0] [0] [1] = fc_ijkl (5,5);
+             C [1] [0] [1] [0] = fc_ijkl (5,5);
+             
+             C [0] [2] [0] [2] = fc_ijkl (4,4);
+             C [0] [2] [2] [0] = fc_ijkl (4,4);
+             C [2] [0] [0] [2] = fc_ijkl (4,4);
+             C [2] [0] [2] [0] = fc_ijkl (4,4);
+             
+             C [1] [2] [0] [2] = fc_ijkl (3,4);
+             C [1] [2] [2] [0] = fc_ijkl (3,4);
+             C [2] [1] [0] [2] = fc_ijkl (3,4);
+             C [2] [1] [2] [0] = fc_ijkl (3,4);
+           
+             C [0] [2] [1] [2] = fc_ijkl (4,3);
+             C [0] [2] [2] [1] = fc_ijkl (4,3);
+             C [2] [0] [1] [2] = fc_ijkl (4,3);
+             C [2] [0] [2] [1] = fc_ijkl (4,3);
+
+             C [0] [2] [0] [1] = fc_ijkl (4,5);
+             C [0] [2] [1] [0] = fc_ijkl (4,5);
+             C [2] [0] [0] [1] = fc_ijkl (4,5);
+             C [2] [0] [1] [0] = fc_ijkl (4,5);
+             
+             C [0] [2] [0] [1] = fc_ijkl (5,4);
+             C [0] [2] [1] [0] = fc_ijkl (5,4);
+             C [2] [0] [0] [1] = fc_ijkl (5,4);
+             C [2] [0] [1] [0] = fc_ijkl (5,4);
+
+             C [1] [2] [0] [1] = fc_ijkl (3,5);
+             C [1] [2] [1] [0] = fc_ijkl (3,5);
+             C [2] [1] [0] [1] = fc_ijkl (3,5);
+             C [2] [1] [1] [0] = fc_ijkl (3,5);
+             
+             C [0] [2] [2] [1] = fc_ijkl (5,3);
+             C [0] [2] [1] [2] = fc_ijkl (5,3);
+             C [2] [0] [2] [1] = fc_ijkl (5,3);
+             C [2] [0] [1] [2] = fc_ijkl (5,3);
+
+ 
+           }
+
+
+  for (i=0;i<72;i++){
+    for (j=0;j<19; j++){
+
+      cout << "i= " << i << "; j= " << j << '\n';
+
+            theta=Pi/36*i;
+            phi=Pi/36*j;
+
+             normal[0]=cos(theta)*cos(phi);
+             normal[1]=sin(theta)*cos(phi);
+             normal[2]=sin(phi);
+
+	     // initialize acoustic tensor A
+   
+             for (m=0;m<3;i++){
+	       for (n=0;n<3;i++){
+		 A (m,n) =0;
+	       }
+	     }
+	    
+
+
+	     // A=normal*C*normal
+              
+             for (m=0;m<3;m++){
+	       for (n=0;n<3;n++){
+		 for (k=0;k<3;k++){
+		   for (l=0;l<3;l++){
+                     A (m,n)+=normal[k]*C [k] [m] [n] [l]*normal[l]; 
+		   }
+		 }
+	       }
+	     }
+
+             detA [i] [j]= A.Det();
+    
+	     /* if and case statement find approximations to local minima *
+              * by checking if it's less than neighbors on 4 sides. *
+              * Wraps around in theta and phi */
+if ((i==0) && (j==0))
+ control =1;
+else 
+  if ((i==0) && (j==18))
+    control = 3;
+  else
+     if (i==0)
+       control = 2;   
+     else 
+        if ((i==71) && (j==0))
+           control = 7;
+        else
+          if ((i==71) && (j==18))
+           control = 9;
+          else
+             if (i==71)
+                control = 8;
+             else
+               if (j==0)
+                 control = 4;
+               else
+                  if (j==17)
+                     control = 6;
+                  else
+                     control = 5;
+
+ switch(control){
+
+    case 1:
+          localmin [i] [j] = 1;
+          break;
+
+    case 2:
+          if (detA [i] [j] < detA [i] [j-1])
+            {
+                localmin [i] [j] = 1;
+                localmin [i] [j-1] =0;
+            }
+          else 
+                localmin [i] [j] = 0;
+          break;
+
+    case 3:
+	  if ((detA [i] [j] < detA [i] [j]) && (detA [i] [j] < detA [i] [0]))
+	    {
+                localmin [i] [j] = 1;
+                localmin [i] [j-1] = 0;
+                localmin [i] [0] = 0;
+	    }
+          else 
+                localmin [i] [j] =0;
+          break;
+
+     case 4:
+          if (detA [i] [j] < detA [i-1] [j])
+            {
+                localmin [i] [j] = 1;
+                localmin [i-1] [j] = 0;
+            }
+          else 
+                localmin [i] [j] = 0;
+          break;
+
+	
+    case 5:
+          if ((detA [i] [j] < detA [i-1] [j]) && (detA [i] [j] < detA [i] [j-1]))
+            {
+                localmin [i] [j] = 1;
+                localmin [i-1] [j] =0;
+                localmin [i] [j-1] =0;
+            }
+          else 
+                localmin [i] [j] = 0;
+          break;
+  
+
+    case 6:
+        	  if ((detA [i] [j] < detA [i-1] [j]) && (detA [i] [j] < detA [i] [0]) && (detA [i] [j] < detA [i] [j-1]))
+	    {
+                localmin [i] [j] = 1;
+                localmin [i-1] [j] = 0;
+                localmin [i] [0] = 0;
+                localmin [i] [j-1] =0;
+	    }
+          else
+                localmin [i] [j] = 0;
+          break;
+
+        
+
+    case 7:
+          if ((detA [i] [j] < detA [i-1] [j]) && (detA [i] [j] < detA [0] [j]))
+            {
+                localmin [i] [j] = 1;
+                localmin [i-1] [j] = 0;
+                localmin [0] [j] = 0;
+            }
+          else 
+                localmin [i] [j] = 0;
+          break;
+
+
+     case 8:
+          if ((detA [i] [j] < detA [i-1] [j]) && (detA [i] [j] < detA [i] [j-1]) && (detA [i] [j] < detA [0] [j]))
+            {
+                localmin [i] [j] = 1;
+                localmin [i-1] [j] =0;
+                localmin [i] [j-1] =0;
+                localmin [0] [j] =0;
+            }
+          else 
+                localmin [i] [j] = 0;
+          break;
+
+     case 9: 
+	  if ((detA [i] [j] < detA [i-1] [j]) && (detA [i] [j] < detA [i] [0]) && (detA [i] [j] < detA [i] [j-1]) && (detA [i] [j] < detA [0] [j]))
+	    {
+                localmin [i] [j] = 1;
+                localmin [i-1] [j] = 0;
+                localmin [i] [0] = 0;
+                localmin [i] [j-1] =0;
+                localmin [0] [j] =0;
+	    }
+          else
+                localmin [i] [j] = 0;
+          break; 
+ }
+    }   
+  }
+     /* Newton iteration to refine minima*/
+
+  cout << "At Refinement Step \n";
+
+
+ for (i=0;i<72;i++){
+    for (j=0;j<19; j++){
+
+       if (localmin [i] [j] ==1)
+	 {
+            theta=Pi/36*i;
+            phi=Pi/36*j;
+
+             normal[0]=cos(theta)*cos(phi);
+             normal[1]=sin(theta)*cos(phi);
+             normal[2]=sin(phi);
+
+
+
+	     while (sqrt((prevnormal[0]-normal[0])*(prevnormal[0]-normal[0])+(prevnormal[1]-normal[1])*(prevnormal[1]-normal[1])+(prevnormal[2]-normal[2])*(prevnormal[2]-normal[2]))>tol){  
+
+	       cout << "in Newton iteration \n";
+
+	       for (k=0;k<3;k++){
+	           prevnormal[k]=normal[k];
+	       }
+ // initialize acoustic tensor A
+              
+             for (m=0;m<3;i++){
+	       for (n=0;n<3;i++){
+		 A (m,n) =0;
+	       }
+	     }
+	    
+
+
+	     // A=normal*C*normal
+              
+             for (m=0;m<3;m++){
+	       for (n=0;n<3;n++){
+		 for (k=0;k<3;k++){
+		   for (l=0;l<3;l++){
+                     A (m,n)+=normal[k]*C [k] [m] [n] [l]*normal[l]; 
+		   }
+		 }
+	       }
+	     }
+
+             detA [i] [j]= A.Det();  
+ 	     Ainverse.Inverse(A);
+
+   // initialize J
+   
+             for (m=0;m<3;i++){
+	       for (n=0;n<3;i++){
+		 J (m,n) =0;
+	       }
+	     }
+
+	     //form Jmn=det(A)*Cmkjn*(A^-1)jk
+
+ for (m=0;m<3;m++){
+	       for (n=0;n<3;n++){
+		 for (k=0;k<3;k++){
+		   for (l=0;l<3;l++){
+                     J (m,n)+=detA [i] [j]*C [m] [k] [j] [n]*Ainverse (j,k); 
+		   }
+		 }
+	       }
+	     }
+ // find least eigenvector of J
+
+guess=0.0;
+J.Eigenvector(guess, normal);
+
+	     }
+
+if (leastmin > detA [i] [j])
+  {
+   leastmin = detA [i] [j];
+   finalnormal[0]=normal[0];
+   finalnormal[1]=normal[1];
+   finalnormal[2]=normal[2];
+
+  }
+
+
+	 }
+    
+    }
+ }
+
+
+  /* output of function */
+
+  if (leastmin > 0)
+      return 0;
+  else
+    {
+
+             normal[0]=finalnormal[0];
+             normal[1]=finalnormal[1];
+             normal[2]=finalnormal[2];
+
+             return 1;
+    }
+
 }
 
 /* compute coefficients of det(theta) function */

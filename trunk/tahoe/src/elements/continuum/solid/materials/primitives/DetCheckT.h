@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.h,v 1.3 2001-07-25 05:56:02 paklein Exp $ */
+/* $Id: DetCheckT.h,v 1.4 2001-08-17 00:47:58 cfoster Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _DETCHECK_T_H_
@@ -31,17 +31,20 @@ public:
 	 * \return 1 if acoustic tensor isn't positive definite,
 	 * and returns the normal to the surface of localization.
 	 * returns 0, otherwise */
-	int IsLocalized_SPINLOC(dArrayT& normal);
+	int IsLocalized_SS(dArrayT& normal);
 
 private:
 
 	/** closed-form check for localization, assuming plane strain conditions.
 	 * Taken from R.A.Regueiro's SPINLOC.
-	/* 1 is 11
-	/* 2 is 22
-	/* 3 is 12
-	/* angle theta subtends from the x1 axis to the band normal */
+	 * 1 is 11
+	 * 2 is 22
+	 * 3 is 12
+	 * angle theta subtends from the x1 axis to the band normal */
 	int SPINLOC_localize(double *c__, double *thetan, int *loccheck);
+
+        /*3D Small Strain check for localization */
+        int DetCheck3D_SS(dArrayT& normal);
 
 	/* 2D determinant check function */
 	int DetCheck2D(dArrayT& normal);
