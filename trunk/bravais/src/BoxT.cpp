@@ -1,4 +1,4 @@
-/* $Id: BoxT.cpp,v 1.7 2002-10-16 22:15:51 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.8 2002-10-18 01:16:02 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -90,7 +90,7 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
   // irotate = 0: rotate atoms in box
   //         = 1: rotate box of atoms
 
-  int irotate = 1;
+  int irotate = 0;
 
 
   if(irotate == 0) 

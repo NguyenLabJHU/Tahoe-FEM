@@ -1,4 +1,4 @@
-/* $Id: CrystalLatticeT.cpp,v 1.9 2002-10-16 22:15:51 saubry Exp $ */
+/* $Id: CrystalLatticeT.cpp,v 1.10 2002-10-18 01:16:02 saubry Exp $ */
 #include "CrystalLatticeT.h"
 
 #include <iostream>
@@ -85,20 +85,20 @@ CrystalLatticeT::CrystalLatticeT(int nlsd, int nuca,
 	    angle_rotation = 0;
 
 
-	    cout << "Matrix of rotation:" << "\n";
+	    cout << "Checked Matrix of Rotation:" << "\n";
 	    cout << matrix_rotation(0,0)* norm_vec[0]<< "  " 
-		 <<  matrix_rotation(1,0)* norm_vec[0]<< "  " 
-		 << matrix_rotation(2,0)* norm_vec[0] << "\n";
-	    cout << matrix_rotation(0,1)* norm_vec[1] << "  " 
-		 <<  matrix_rotation(1,1)* norm_vec[1] << "  " 
-		 << matrix_rotation(2,1)* norm_vec[1] << "\n";
-	    cout << matrix_rotation(0,2)* norm_vec[2] << "  " 
-		 <<  matrix_rotation(1,2)* norm_vec[2] << "  " 
+		 << matrix_rotation(0,1)* norm_vec[0]<< "  " 
+		 << matrix_rotation(0,2)* norm_vec[0] << "\n";
+	    cout << matrix_rotation(1,0)* norm_vec[1] << "  " 
+		 << matrix_rotation(1,1)* norm_vec[1] << "  " 
+		 << matrix_rotation(1,2)* norm_vec[1] << "\n";
+	    cout << matrix_rotation(2,0)* norm_vec[2] << "  " 
+		 << matrix_rotation(2,1)* norm_vec[2] << "  " 
 		 << matrix_rotation(2,2)* norm_vec[2] << "\n\n";
 
-	    cout << matrix_rotation(0,0) << "  " <<  matrix_rotation(1,0) << "  " << matrix_rotation(2,0) << "\n";
-	    cout << matrix_rotation(0,1) << "  " <<  matrix_rotation(1,1) << "  " << matrix_rotation(2,1) << "\n";
-	    cout << matrix_rotation(0,2) << "  " <<  matrix_rotation(1,2) << "  " << matrix_rotation(2,2) << "\n";
+	    cout << matrix_rotation(0,0) << "  " <<  matrix_rotation(0,1) << "  " << matrix_rotation(0,2) << "\n";
+	    cout << matrix_rotation(1,0) << "  " <<  matrix_rotation(1,1) << "  " << matrix_rotation(1,2) << "\n";
+	    cout << matrix_rotation(2,0) << "  " <<  matrix_rotation(2,1) << "  " << matrix_rotation(2,2) << "\n";
 
 
 
@@ -145,9 +145,11 @@ dArray2DT  CrystalLatticeT::AxisRotation(dArray2DT A)
   if(A.MajorDim() != nLSD || A.MinorDim() != nLSD) 
     throw eSizeMismatch;
 
+  dArray2DT Bt(nLSD,nLSD);
   dArray2DT B(nLSD,nLSD);
   dMatrixT Q(nLSD,nLSD);
 
+  Bt = 0.0;
   B = 0.0;
   Q = 0.0;
 
@@ -157,11 +159,20 @@ dArray2DT  CrystalLatticeT::AxisRotation(dArray2DT A)
       Rotate2DT R(angle_rotation);
       Q = R.Q();
 
+      // Bt = R.A
       for (int i=0; i<nLSD; i++)
 	for (int j=0; j<nLSD; j++)
 	  {
 	    for (int k=0; k<nLSD; k++)
-	      B(i,j) += Q(i,k)*A(k,j);
+	      Bt(i,j) += Q(i,k)*A(k,j);
+	  }
+
+      // B = Bt.R^t = R.A.R^t
+      for (int i=0; i<nLSD; i++)
+	for (int j=0; j<nLSD; j++)
+	  {
+	    for (int k=0; k<nLSD; k++)
+	      B(i,j) += Bt(i,k)*Q(j,k);
 	  }
       
       
@@ -175,10 +186,21 @@ dArray2DT  CrystalLatticeT::AxisRotation(dArray2DT A)
       R.GiveTransfoMatrix(matrix_rotation);
       Q = R.Q();
       
+      // Bt = R.A
       for (int i=0; i<nLSD; i++)
 	for (int j=0; j<nLSD; j++)
-	  for (int k=0; k<nLSD; k++)
-	    B(i,j) += Q(i,k)*A(k,j);
+	  {
+	    for (int k=0; k<nLSD; k++)
+	      B(i,j) += Q(i,k)*A(k,j);
+	  }
+
+      // B = Bt.R^t = R.A.R^t
+      for (int i=0; i<nLSD; i++)
+	for (int j=0; j<nLSD; j++)
+	  {
+	    for (int k=0; k<nLSD; k++)
+	      B(i,j) += Bt(i,k)*Q(j,k);
+	  }
     }
 
   return B;
