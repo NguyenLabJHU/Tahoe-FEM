@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.6 2002-07-02 19:57:09 cjkimme Exp $ */
+/* $Id: ParentDomainT.h,v 1.7 2002-07-05 22:28:40 paklein Exp $ */
 /* created: paklein (07/03/1996)                                          */
 /* interface for a finite element parent domain. manages integration      */
 /* information (points, weights, etc..) and mapping between the real      */
@@ -14,10 +14,9 @@
 #include "dArray2DT.h"
 #include "GeometryBaseT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class iArrayT;
 class LocalArrayT;
 

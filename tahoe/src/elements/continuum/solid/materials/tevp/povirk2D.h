@@ -9,10 +9,9 @@
 #include "iArrayT.h"
 #include "Material2DT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ElementCardT;
 
 /** Thermoelasto-viscoplastic material used to generate shear bands */

@@ -1,4 +1,4 @@
-/* $Id: IntegratorT.h,v 1.3 2002-07-02 19:55:07 cjkimme Exp $ */
+/* $Id: IntegratorT.h,v 1.4 2002-07-05 22:27:53 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _CONTROLLER_T_H_
@@ -6,10 +6,9 @@
 
 #include "Environment.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class dArrayT;
 class NodeManagerT;
 

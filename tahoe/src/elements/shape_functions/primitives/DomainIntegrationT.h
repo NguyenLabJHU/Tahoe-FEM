@@ -1,4 +1,4 @@
-/* $Id: DomainIntegrationT.h,v 1.5 2002-07-02 19:57:09 cjkimme Exp $ */
+/* $Id: DomainIntegrationT.h,v 1.6 2002-07-05 22:28:40 paklein Exp $ */
 /* created: paklein (09/04/1998) */
 
 #ifndef _DOMAIN_INTEGRATION_T_H_
@@ -8,15 +8,14 @@
 #include "ParentDomainT.h" // needed for inlines and geometry codes
 #include "iArrayT.h"
 
+namespace Tahoe {
+
 /** class to manage the parent domain. Includes construction for
  * shared parent domains, integration point iterations, and some
  * basic access to integration domain information. "copy" constructor
  * creates "linked" objects which (i) share the same parent domain and
  * (ii) are synchronized in integration through the current integration
  * point reference. */
-
-namespace Tahoe {
-
 class DomainIntegrationT
 {
 public:

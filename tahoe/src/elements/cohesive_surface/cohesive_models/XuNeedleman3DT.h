@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.h,v 1.7 2002-07-02 19:55:17 cjkimme Exp $ */
+/* $Id: XuNeedleman3DT.h,v 1.8 2002-07-05 22:28:00 paklein Exp $ */
 /* created: paklein (06/23/1999) */
 
 #ifndef _XU_NEEDLE_3D_T_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "SurfacePotentialT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 
 /** Xu-Needleman 3D cohesive surface potential */

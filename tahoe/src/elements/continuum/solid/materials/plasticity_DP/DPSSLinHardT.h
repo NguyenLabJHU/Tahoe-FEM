@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.h,v 1.10 2002-07-02 19:56:10 cjkimme Exp $ */
+/* $Id: DPSSLinHardT.h,v 1.11 2002-07-05 22:28:24 paklein Exp $ */
 /* created: myip (06/01/1999)                                      */
 /*  
  * Interface for Drucker-Prager, nonassociative, small strain,
@@ -18,10 +18,9 @@
 #include "dMatrixT.h"
 #include "dArrayT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ElementCardT;
 
 class DPSSLinHardT: public DPPrimitiveT

@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.h,v 1.3 2002-07-02 19:55:16 cjkimme Exp $ */
+/* $Id: TiedPotentialT.h,v 1.4 2002-07-05 22:27:59 paklein Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_T_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "SurfacePotentialT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class dArray2DT;
 

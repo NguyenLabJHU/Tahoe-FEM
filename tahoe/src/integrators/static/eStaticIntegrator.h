@@ -1,4 +1,4 @@
-/* $Id: eStaticIntegrator.h,v 1.4 2002-07-02 19:55:09 cjkimme Exp $ */
+/* $Id: eStaticIntegrator.h,v 1.5 2002-07-05 22:27:55 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _E_STATIC_CONTROLLER_H_
@@ -8,10 +8,9 @@
 #include "StaticT.h"
 #include "eIntegratorT.h"
 
-/** element component of the time integrator for quasi-static problems */ 
-
 namespace Tahoe {
 
+/** element component of the time integrator for quasi-static problems */ 
 class eStaticIntegrator: public virtual StaticT, public eIntegratorT
 {
 public:

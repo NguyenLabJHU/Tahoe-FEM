@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.11 2002-07-02 19:55:12 cjkimme Exp $ */
+/* $Id: ElementBaseT.h,v 1.12 2002-07-05 22:27:56 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -20,11 +20,11 @@
 #include "ElementSupportT.h"
 #include "FieldT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class LocalArrayT;
 class ScheduleT;
@@ -245,7 +245,6 @@ protected: /* for derived classes only */
 	/* generate connectivities with local numbering -
      * returns the number of nodes used by the element group */
 	int MakeLocalConnects(iArray2DT& localconnects);
-} // namespace Tahoe 
 #endif
 
 	void NodesUsed(ArrayT<int>& nodes_used) const;
@@ -324,7 +323,6 @@ inline int ElementBaseT::NumElementNodes(void) const
 		return 0;
 #else
 	return fConnectivities[0]->MinorDim();
-} // namespace Tahoe 
 #endif
 }
 

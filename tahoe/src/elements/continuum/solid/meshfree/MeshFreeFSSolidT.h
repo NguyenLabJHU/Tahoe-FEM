@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.h,v 1.5 2002-07-02 19:55:26 cjkimme Exp $ */
+/* $Id: MeshFreeFSSolidT.h,v 1.6 2002-07-05 22:28:04 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 
 #ifndef _EFG_FDELASTIC_T_H_
@@ -11,13 +11,12 @@
 /* direct members */
 #include "nVariMatrixT.h"
 
+namespace Tahoe {
+
 /** large deformation elasticity with MLS shapefunctions for the
  * field (displacement) representation
  * \note clean up code governing when crack growth algorithm
  * is used, initiation criteria, etc. (PAK 09/28/1999) */
-
-namespace Tahoe {
-
 class MeshFreeFSSolidT: public TotalLagrangianT,
 	public MeshFreeFractureSupportT
 {

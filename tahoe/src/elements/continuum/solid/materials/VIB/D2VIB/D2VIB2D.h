@@ -1,4 +1,4 @@
-/* $Id: D2VIB2D.h,v 1.2 2002-07-02 19:55:59 cjkimme Exp $ */
+/* $Id: D2VIB2D.h,v 1.3 2002-07-05 22:28:19 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #ifndef _D2_VIB_2D_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "VIB2D.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class D2MeshFreeFDElasticT;
 class D2MeshFreeShapeFunctionT;
 

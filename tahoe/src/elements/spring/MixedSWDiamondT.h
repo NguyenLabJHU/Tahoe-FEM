@@ -1,4 +1,4 @@
-/* $Id: MixedSWDiamondT.h,v 1.3 2002-07-02 19:55:28 cjkimme Exp $ */
+/* $Id: MixedSWDiamondT.h,v 1.4 2002-07-05 22:28:05 paklein Exp $ */
 /* created: paklein (03/22/1997) */
 
 #ifndef _MIXED_SWDIAMOND_T_H_
@@ -10,10 +10,9 @@
 /* direct members */
 #include "SWDataT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ScheduleT;
 
 class MixedSWDiamondT: public SWDiamondT

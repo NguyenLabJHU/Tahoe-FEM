@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.7 2002-07-02 19:56:35 cjkimme Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.8 2002-07-05 22:28:31 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #ifndef _KBC_CONTROLLER_T_H_
@@ -11,11 +11,11 @@
 #include "ArrayT.h"
 #include "KBC_CardT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class NodeManagerT;
 class nControllerT;

@@ -1,4 +1,4 @@
-/* $Id: IC_CardT.h,v 1.4 2002-07-02 19:56:42 cjkimme Exp $ */
+/* $Id: IC_CardT.h,v 1.5 2002-07-05 22:28:33 paklein Exp $ */
 /* created: paklein (07/16/1997) */
 
 #ifndef _IC_CARD_T_H_
@@ -6,11 +6,11 @@
 
 #include "Environment.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 
 /** container class for kinematic initial condition data.

@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.h,v 1.4 2002-07-02 19:56:28 cjkimme Exp $ */
+/* $Id: AugLagWallT.h,v 1.5 2002-07-05 22:28:30 paklein Exp $ */
 
 #ifndef _AUGLAG_WALL_T_H_
 #define _AUGLAG_WALL_T_H_
@@ -7,10 +7,9 @@
 #include "PenaltyWallT.h"
 #include "DOFElementT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class XDOF_ManagerT;
 class FieldT;
 

@@ -1,4 +1,4 @@
-/* $Id: LengthsAndAnglesT.h,v 1.2 2002-07-02 19:56:06 cjkimme Exp $ */
+/* $Id: LengthsAndAnglesT.h,v 1.3 2002-07-05 22:28:22 paklein Exp $ */
 /* created: paklein (05/26/1997)                                          */
 /* Class to compute/manage all bond angles and derivatives                */
 /* for the 2 unit cell, diamond cubic, modified Cauchy-Born,              */
@@ -10,10 +10,9 @@
 /* base class */
 #include "BondLengthsT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class iArray2DT;
 
 class LengthsAndAnglesT: public BondLengthsT

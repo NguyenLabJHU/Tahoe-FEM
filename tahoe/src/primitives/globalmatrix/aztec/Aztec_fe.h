@@ -1,4 +1,4 @@
-/* $Id: Aztec_fe.h,v 1.3 2002-07-02 19:56:49 cjkimme Exp $ */
+/* $Id: Aztec_fe.h,v 1.4 2002-07-05 22:28:35 paklein Exp $ */
 /* created: paklein (08/01/1998) */
 
 #ifndef _AZTEC_FE_H_
@@ -14,10 +14,9 @@
 #include "iArrayT.h"
 #include "dArrayT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class iArray2DT;
 class MSRBuilderT;

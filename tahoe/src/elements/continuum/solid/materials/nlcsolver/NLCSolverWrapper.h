@@ -14,7 +14,7 @@ class PolyCrystalMatT;
 class SlipHardening;
 class EVPFDBaseT;
 
-/* 
+/**
    abstract base class to wrap non-related 
    objects for using the NLCSolver class 
 */

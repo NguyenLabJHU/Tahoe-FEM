@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.h,v 1.9 2002-07-02 19:55:17 cjkimme Exp $ */
+/* $Id: Tijssens2DT.h,v 1.10 2002-07-05 22:28:00 paklein Exp $ */
 
 #ifndef _TIJSSENS_2D_T_H_
 #define _TIJSSENS_2D_T_H_
@@ -6,10 +6,9 @@
 /* base class */
 #include "SurfacePotentialT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 
 /** Rate dependence of traction as a function of the rate of change

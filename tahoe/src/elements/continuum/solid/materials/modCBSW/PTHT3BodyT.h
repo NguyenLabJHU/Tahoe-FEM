@@ -1,4 +1,4 @@
-/* $Id: PTHT3BodyT.h,v 1.2 2002-07-02 19:56:06 cjkimme Exp $ */
+/* $Id: PTHT3BodyT.h,v 1.3 2002-07-05 22:28:22 paklein Exp $ */
 /* created: paklein (10/11/1997)                                          */
 
 #ifndef _PTHT3_BODY_T_H_
@@ -7,11 +7,11 @@
 /* base class */
 #include "ThreeBodyT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 
 class PTHT3BodyT: public ThreeBodyT

@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.h,v 1.4 2002-07-02 19:56:22 cjkimme Exp $ */
+/* $Id: IsotropicT.h,v 1.5 2002-07-05 22:28:27 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #ifndef _ISOTROPIC_T_H_
@@ -6,20 +6,16 @@
 
 #include "Environment.h"
 
-/* forward declarations */
-
-namespace Tahoe {
-class dMatrixT;
-}
-#include "ios_fwd_decl.h"
-namespace Tahoe {
-class ifstreamT;
-}
-
 /* direct members */
 #include "Material2DT.h"
 
+#include "ios_fwd_decl.h"
+
 namespace Tahoe {
+
+/* forward declarations */
+class dMatrixT;
+class ifstreamT;
 
 class IsotropicT
 {

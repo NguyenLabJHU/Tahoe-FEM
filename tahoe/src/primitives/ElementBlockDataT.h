@@ -1,4 +1,4 @@
-/* $Id: ElementBlockDataT.h,v 1.2 2002-07-02 19:56:41 cjkimme Exp $ */
+/* $Id: ElementBlockDataT.h,v 1.3 2002-07-05 22:28:33 paklein Exp $ */
 
 #ifndef _ELEM_BLOCK_DATA_T_H_
 #define _ELEM_BLOCK_DATA_T_H_
@@ -6,12 +6,11 @@
 /* direct members */
 #include "StringT.h"
 
+namespace Tahoe {
+
 /** container for element block information. Used by ElementBaseT to
  * store information about multiple element blocks within an element
  * group. */
-
-namespace Tahoe {
-
 class ElementBlockDataT
 {
 public:

@@ -1,4 +1,4 @@
-/* $Id: AztecBaseT.h,v 1.3 2002-07-02 19:56:49 cjkimme Exp $ */
+/* $Id: AztecBaseT.h,v 1.4 2002-07-05 22:28:35 paklein Exp $ */
 /* created: paklein (07/28/1998) */
 
 #ifndef _AZTEC_BASE_T_H_
@@ -12,10 +12,9 @@
 /* forward declarations */
 #include "ios_fwd_decl.h"
 
-/** low-level interface to the Aztec iterative solver */
-
 namespace Tahoe {
 
+/** low-level interface to the Aztec iterative solver */
 class AztecBaseT
 {
 public:

@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.13 2002-07-02 19:55:30 cjkimme Exp $ */
+/* $Id: IOManager.h,v 1.14 2002-07-05 22:28:07 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 
 #ifndef _IOMANAGER_H_
@@ -15,10 +15,9 @@
 #include "IOBaseT.h"
 #include "GeometryT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class OutputBaseT;
 class iArray2DT;

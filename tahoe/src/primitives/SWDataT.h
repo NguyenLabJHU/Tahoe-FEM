@@ -1,4 +1,4 @@
-/* $Id: SWDataT.h,v 1.2 2002-07-02 19:56:42 cjkimme Exp $ */
+/* $Id: SWDataT.h,v 1.3 2002-07-05 22:28:33 paklein Exp $ */
 /* created: paklein (03/22/1997)                                          */
 /* Container class for Stillinger-Weber potential parameters              */
 
@@ -7,11 +7,11 @@
 
 #include "Environment.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 
 class SWDataT

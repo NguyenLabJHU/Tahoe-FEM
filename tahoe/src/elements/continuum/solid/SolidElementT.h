@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.12 2002-07-02 19:55:23 cjkimme Exp $ */
+/* $Id: SolidElementT.h,v 1.13 2002-07-05 22:28:02 paklein Exp $ */
 
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
@@ -11,10 +11,9 @@
 #include "LocalArrayT.h"
 #include "dSymMatrixT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ShapeFunctionT;
 class StructuralMaterialT;
 class StringT;

@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.6 2002-07-02 19:55:15 cjkimme Exp $ */
+/* $Id: CSEBaseT.h,v 1.7 2002-07-05 22:27:58 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #ifndef _CSE_BASE_T_H_
@@ -13,10 +13,9 @@
 #include "GeometryT.h"
 #include "fstreamT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class SurfaceShapeT;
 class StringT;
 

@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.18 2002-07-02 19:56:05 cjkimme Exp $ */
+/* $Id: SolidT.h,v 1.19 2002-07-05 22:28:21 paklein Exp $ */
 /* created: paklein (03/10/2001) */
 
 #ifndef _MATERIAL_T_H_
@@ -6,7 +6,6 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
-
 
 namespace Tahoe {
 
@@ -62,13 +61,11 @@ kABAQUS_VUMAT_BCJ = 90
 const int kSWDC100         = 24;//improper CB material
 const int kSWDC110         = 15;	//improper CB material
 const int kD2VIB           = 23; // plane stress VIB + gradient terms
-} // namespace Tahoe 
 #endif
 
 /* 3D types */
 #if 0
 const int kIsoVIB_X	    = 14; // remove
-} // namespace Tahoe 
 #endif
   
 };

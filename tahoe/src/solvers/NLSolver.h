@@ -1,4 +1,4 @@
-/* $Id: NLSolver.h,v 1.4 2002-07-02 19:57:11 cjkimme Exp $ */
+/* $Id: NLSolver.h,v 1.5 2002-07-05 22:28:41 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NL_SOLVER_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "SolverT.h"
 
-/** nonlinear Newton solver. */
-
 namespace Tahoe {
 
+/** nonlinear Newton solver. */
 class NLSolver: public SolverT
 {
 public:

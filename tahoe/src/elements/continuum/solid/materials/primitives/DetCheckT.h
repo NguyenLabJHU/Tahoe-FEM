@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.h,v 1.8 2002-07-02 19:56:21 cjkimme Exp $ */
+/* $Id: DetCheckT.h,v 1.9 2002-07-05 22:28:27 paklein Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _DETCHECK_T_H_
@@ -8,10 +8,9 @@
 #define numThetaChecks 72    // should be 360/sweepIncr and should be even
 #define numPhiChecks  19      // should be 90/sweepIncr+1
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class dSymMatrixT;
 class dMatrixT;
 class dMatrixEXT;

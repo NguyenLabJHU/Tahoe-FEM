@@ -1,11 +1,10 @@
-/* $Id: FieldSupportT.h,v 1.3 2002-07-02 19:56:26 cjkimme Exp $ */
+/* $Id: FieldSupportT.h,v 1.4 2002-07-05 22:28:30 paklein Exp $ */
 #ifndef _FIELD_SUPPORT_T_H_
 #define _FIELD_SUPPORT_T_H_
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class FEManagerT;
 class ElementMatrixT;
 template <class TYPE> class nArrayT;

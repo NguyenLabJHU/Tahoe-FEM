@@ -1,4 +1,4 @@
-/* $Id: FBC_CardT.h,v 1.4 2002-07-02 19:56:42 cjkimme Exp $ */
+/* $Id: FBC_CardT.h,v 1.5 2002-07-05 22:28:33 paklein Exp $ */
 /* created: paklein (06/15/1996) */
 
 #ifndef _FBC_CARD_T_H_
@@ -7,10 +7,9 @@
 #include "Environment.h"
 #include "ios_fwd_decl.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class NodeManagerT;
 class ifstreamT;
 class ScheduleT;

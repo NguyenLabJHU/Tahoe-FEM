@@ -1,4 +1,4 @@
-/* $Id: EvenSpacePtsT.h,v 1.2 2002-07-02 19:55:59 cjkimme Exp $ */
+/* $Id: EvenSpacePtsT.h,v 1.3 2002-07-05 22:28:19 paklein Exp $ */
 /* created: paklein (11/02/1997)                                          */
 
 #ifndef _EVENSPACE_PTS_T_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "CirclePointsT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 
 class EvenSpacePtsT: public CirclePointsT

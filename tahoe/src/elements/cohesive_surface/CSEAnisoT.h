@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.12 2002-07-02 19:55:15 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.13 2002-07-05 22:27:58 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #ifndef _CSE_ANISO_T_H_
@@ -14,13 +14,12 @@
 #include "Array2DT.h"
 #include "LocalArrayT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class SurfacePotentialT;
 
-/* Cohesive surface elements with vector argument cohesive relations. */
+/** Cohesive surface elements with vector argument cohesive relations. */
 class CSEAnisoT: public CSEBaseT
 {
 public:

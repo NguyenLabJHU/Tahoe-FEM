@@ -1,4 +1,4 @@
-/* $Id: nLinearStaticIntegrator.h,v 1.3 2002-07-02 19:55:09 cjkimme Exp $ */
+/* $Id: nLinearStaticIntegrator.h,v 1.4 2002-07-05 22:27:55 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _N_LINEAR_STATIC_CONTROLLER_H_
@@ -7,13 +7,12 @@
 /* base class */
 #include "nStaticIntegrator.h"
 
+namespace Tahoe {
+
 /** nodal integrator for linear quasistatic systems. This
  * integrator differs from nStaticIntegratorT only in that
  * the predictor for linear systems sets the displacement
  * of every node to 0.0. */
-
-namespace Tahoe {
-
 class nLinearStaticIntegrator: public nStaticIntegrator
 {
 public:

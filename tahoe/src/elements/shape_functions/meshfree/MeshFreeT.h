@@ -1,4 +1,4 @@
-/* $Id: MeshFreeT.h,v 1.5 2002-07-02 19:56:56 cjkimme Exp $ */
+/* $Id: MeshFreeT.h,v 1.6 2002-07-05 22:28:37 paklein Exp $ */
 /* created: paklein (12/08/1999)                                          */
 
 #ifndef _MESHFREE_T_H_
@@ -6,10 +6,10 @@
 
 #include "ios_fwd_decl.h"
 
-/* class to define enumerations for meshfree methods */
 
 namespace Tahoe {
 
+/** class to define enumerations for meshfree methods */
 class MeshFreeT
 {
 public:

@@ -1,4 +1,4 @@
-/* $Id: SLUMatrix.h,v 1.4 2002-07-02 19:56:46 cjkimme Exp $ */
+/* $Id: SLUMatrix.h,v 1.5 2002-07-05 22:28:34 paklein Exp $ */
 /* created: rbridson (06/30/2000) */
 
 #ifndef _SLU_MATRIX_H_
@@ -19,10 +19,9 @@
 /* external SuperLU stuff */
 #include "superlu.h"
 
-/** interface to SuperLU solver library */
-
 namespace Tahoe {
 
+/** interface to SuperLU solver library */
 class SLUMatrix: public GlobalMatrixT
 {
 public:

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.h,v 1.7 2002-07-02 19:56:56 cjkimme Exp $ */
+/* $Id: MeshFreeSupportT.h,v 1.8 2002-07-05 22:28:37 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #ifndef _MF_SUPPORT_T_H_
@@ -18,10 +18,9 @@
 #include "nVariArray2DT.h"
 #include "WindowT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class ofstreamT;
 class dArray2DT;

@@ -1,4 +1,4 @@
-/* $Id: LinearHHTalpha.h,v 1.3 2002-07-02 19:55:05 cjkimme Exp $ */
+/* $Id: LinearHHTalpha.h,v 1.4 2002-07-05 22:27:52 paklein Exp $ */
 /* created: paklein (10/11/1996) */
 
 #ifndef _LINEAR_HHT_ALPHA_H_
@@ -8,10 +8,9 @@
 #include "nLinearHHTalpha.h"
 #include "eLinearHHTalpha.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class NodeManagerT;
 class TimeManagerT;
 

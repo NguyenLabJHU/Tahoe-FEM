@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.7 2002-07-02 19:56:35 cjkimme Exp $ */
+/* $Id: TiedNodesT.h,v 1.8 2002-07-05 22:28:31 paklein Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -13,10 +13,9 @@
 #include "ScheduleT.h"
 #include "AutoArrayT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class dArray2DT;
 class BasicFieldT;
 class FEManagerT;

@@ -1,4 +1,4 @@
-/* $Id: nIntegratorT.h,v 1.5 2002-07-02 19:55:07 cjkimme Exp $ */
+/* $Id: nIntegratorT.h,v 1.6 2002-07-05 22:27:53 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _N_CONTROLLERT_H_
@@ -11,10 +11,9 @@
 #include "KBC_CardT.h"
 #include "ArrayT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class BasicFieldT;
 class dArray2DT;
 class iArray2DT;

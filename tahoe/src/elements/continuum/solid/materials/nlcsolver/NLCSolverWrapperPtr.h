@@ -13,7 +13,7 @@ namespace Tahoe {
 class dArrayT;
 class dMatrixT;
 
-/* handle class for NLCSolverWrapper objects */
+/** handle class for NLCSolverWrapper objects */
 
 class NLCSolverWrapperPtr
 {

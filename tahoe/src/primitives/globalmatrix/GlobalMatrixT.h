@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.h,v 1.7 2002-07-02 19:56:46 cjkimme Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.8 2002-07-05 22:28:34 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _GLOBAL_MATRIX_H_
@@ -6,11 +6,11 @@
 
 #include "Environment.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class dMatrixT;
 class ElementMatrixT;
 template <class nTYPE> class nArrayT;

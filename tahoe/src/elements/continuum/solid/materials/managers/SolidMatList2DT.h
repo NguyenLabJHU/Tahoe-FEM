@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.h,v 1.6 2002-07-02 19:56:05 cjkimme Exp $ */
+/* $Id: SolidMatList2DT.h,v 1.7 2002-07-05 22:28:21 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 
 #ifndef _MATLIST_2D_T_H_
@@ -8,10 +8,9 @@
 #include "StructuralMatListT.h"
 #include "MaterialT.h"
 
-/* forward declaration */
-
 namespace Tahoe {
 
+/* forward declaration */
 class ElasticT;
 class SmallStrainT;
 class FiniteStrainT;

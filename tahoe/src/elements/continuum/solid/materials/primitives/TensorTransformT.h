@@ -1,4 +1,4 @@
-/* $Id: TensorTransformT.h,v 1.4 2002-07-02 19:56:22 cjkimme Exp $ */
+/* $Id: TensorTransformT.h,v 1.5 2002-07-05 22:28:27 paklein Exp $ */
 
 #ifndef _TENSOR_TRANSFORM_T_H_
 #define _TENSOR_TRANSFORM_T_H_
@@ -7,10 +7,9 @@
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
 
-/** class to handle tensor transformations */
-
 namespace Tahoe {
 
+/** class to handle tensor transformations */
 class TensorTransformT
 {
 public:

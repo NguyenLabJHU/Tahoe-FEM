@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.h,v 1.3 2002-07-02 19:55:36 cjkimme Exp $ */
+/* $Id: EAMFCC3DMatT.h,v 1.4 2002-07-05 22:28:10 paklein Exp $ */
 /* created: paklein (10/25/1998)                                          */
 /* Plane strain EAM material                                              */
 
@@ -8,10 +8,9 @@
 /* base class */
 #include "NL_E_MatT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class EAMFCC3DSym;
 
 class EAMFCC3DMatT: public NL_E_MatT

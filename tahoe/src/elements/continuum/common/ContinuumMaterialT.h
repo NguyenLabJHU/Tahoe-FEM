@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.h,v 1.5 2002-07-02 19:56:21 cjkimme Exp $ */
+/* $Id: ContinuumMaterialT.h,v 1.6 2002-07-05 22:28:27 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 
 #ifndef _CONTINUUM_MATERIAL_T_H_
@@ -7,11 +7,11 @@
 #include "Environment.h"
 #include "GlobalT.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ElementCardT;
 class dArrayT;
 template <class TYPE> class ArrayT;

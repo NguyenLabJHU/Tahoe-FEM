@@ -1,4 +1,4 @@
-/* $Id: CubicT.h,v 1.3 2002-07-02 19:55:39 cjkimme Exp $ */
+/* $Id: CubicT.h,v 1.4 2002-07-05 22:28:15 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #ifndef _CUBIC_T_H_
@@ -6,11 +6,11 @@
 
 #include "Environment.h"
 
-/* forward declarations */
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class dMatrixT;
 

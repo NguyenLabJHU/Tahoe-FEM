@@ -1,4 +1,4 @@
-/* $Id: SamplingSurfaceT.h,v 1.2 2002-07-02 19:56:56 cjkimme Exp $ */
+/* $Id: SamplingSurfaceT.h,v 1.3 2002-07-05 22:28:37 paklein Exp $ */
 /* created: paklein (10/19/2000)                                          */
 
 #ifndef _SAMPLING_SURFACE_T_H_
@@ -13,10 +13,9 @@
 #include "LocalArrayT.h"
 #include "dMatrixT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class MeshFreeSupportT;
 template <class TYPE> class ArrayT;
 class SurfaceShapeT;

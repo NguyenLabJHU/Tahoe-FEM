@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.h,v 1.4 2002-07-02 19:55:16 cjkimme Exp $ */
+/* $Id: RateDep2DT.h,v 1.5 2002-07-05 22:27:59 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #ifndef _RATE_DEP_2D_T_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "SurfacePotentialT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 
 /** cohesive potential from Tvergaard and Hutchinson. This model is

@@ -1,4 +1,4 @@
-/* $Id: BimaterialK_FieldT.h,v 1.4 2002-07-02 19:56:35 cjkimme Exp $ */
+/* $Id: BimaterialK_FieldT.h,v 1.5 2002-07-05 22:28:31 paklein Exp $ */
 /* created: paklein (09/06/2000)*/
 
 #ifndef _BIMATERIAL_K_FIELD_T_H_
@@ -7,12 +7,11 @@
 /* base class */
 #include "K_FieldT.h"
 
+namespace Tahoe {
+
 /** Displacements for a bimaterial K-field.
  * Displacement field taken from\\
  * P.P.L.Matos et al (1989), Int. J. of Fract. \b 40, 235-254. */
-
-namespace Tahoe {
-
 class BimaterialK_FieldT: public K_FieldT
 {
 public:

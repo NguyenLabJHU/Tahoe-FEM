@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.h,v 1.8 2002-07-02 19:57:06 cjkimme Exp $ */
+/* $Id: GaussianWindowT.h,v 1.9 2002-07-05 22:28:39 paklein Exp $ */
 
 #ifndef _GAUSSIAN_WINDOW_T_H_
 #define _GAUSSIAN_WINDOW_T_H_
@@ -11,10 +11,9 @@
 #include "dArray2DT.h"
 #include "dSymMatrixT.h"
 
-/** Spherical/circular Gaussian window function */
-
 namespace Tahoe {
 
+/** Spherical/circular Gaussian window function */
 class GaussianWindowT: public WindowT
 {
   public:

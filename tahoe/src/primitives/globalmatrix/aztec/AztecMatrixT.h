@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.h,v 1.5 2002-07-02 19:56:49 cjkimme Exp $ */
+/* $Id: AztecMatrixT.h,v 1.6 2002-07-05 22:28:35 paklein Exp $ */
 /* created: paklein (08/10/1998)                                          */
 /* interface for using Aztec with fe++                                    */
 
@@ -15,10 +15,9 @@
 #include "AutoArrayT.h"
 #include "dMatrixT.h"
 
-/* foward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class Aztec_fe;
 class ifstreamT;
 

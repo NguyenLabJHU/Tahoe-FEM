@@ -1,4 +1,4 @@
-/* $Id: J2SimoC0HardeningT.h,v 1.5 2002-07-02 19:56:12 cjkimme Exp $ */
+/* $Id: J2SimoC0HardeningT.h,v 1.6 2002-07-05 22:28:25 paklein Exp $ */
 /* created: paklein (05/01/2001) */
 
 #ifndef _J2_SIMO_C0_HARD_T_H_
@@ -14,13 +14,13 @@
 #include "iArrayT.h"
 #include "C1FunctionT.h"
 
-/* forward declarations */
+#include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ElementCardT;
 class ifstreamT;
-#include "ios_fwd_decl.h"
 
 /** finite strain, J2 elastoplasticity following framework in
  * Simo, J.C. (1988) CMAME v66 and v68. */

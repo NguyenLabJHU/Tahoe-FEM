@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.h,v 1.5 2002-07-02 19:57:02 cjkimme Exp $ */
+/* $Id: D2MeshFreeSupportT.h,v 1.6 2002-07-05 22:28:38 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 
 #ifndef _D2_MF_SUPPORT_T_H_
@@ -7,10 +7,9 @@
 /* base class */
 #include "MeshFreeSupportT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class D2OrthoMLSSolverT;
 
 /** class for support of meshfree field calculations up to

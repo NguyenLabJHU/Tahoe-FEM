@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.11 2002-07-02 19:55:23 cjkimme Exp $ */
+/* $Id: ContinuumElementT.h,v 1.12 2002-07-05 22:28:02 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _CONTINUUM_ELEMENT_T_H_
@@ -11,10 +11,9 @@
 #include "LocalArrayT.h"
 #include "GeometryT.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class MaterialListT;
 class ShapeFunctionT;
 class Traction_CardT;

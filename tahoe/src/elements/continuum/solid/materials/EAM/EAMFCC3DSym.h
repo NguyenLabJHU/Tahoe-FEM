@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DSym.h,v 1.2 2002-07-02 19:55:36 cjkimme Exp $ */
+/* $Id: EAMFCC3DSym.h,v 1.3 2002-07-05 22:28:10 paklein Exp $ */
 /* created: paklein (12/06/1996)                                          */
 /* EAMFCC3DSym.h                                                          */
 
@@ -8,10 +8,9 @@
 /* base class */
 #include "EAMFCC3D.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class dMatrixT;
 
 /* bond parameters */

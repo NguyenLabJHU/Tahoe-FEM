@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.5 2002-07-02 19:55:24 cjkimme Exp $ */
+/* $Id: SmallStrainT.h,v 1.6 2002-07-05 22:28:02 paklein Exp $ */
 
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
@@ -6,10 +6,9 @@
 /* base class */
 #include "ElasticT.h"
 
-/** Interface for linear strain deformation and field gradients */
-
 namespace Tahoe {
 
+/** Interface for linear strain deformation and field gradients */
 class SmallStrainT: public ElasticT
 {
   public:

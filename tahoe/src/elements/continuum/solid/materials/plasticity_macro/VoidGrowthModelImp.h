@@ -8,7 +8,6 @@
 #include "ios_fwd_decl.h"
 #include "EVPFDBaseT.h"
 
-
 namespace Tahoe {
 
 class VoidGrowthModelImp
