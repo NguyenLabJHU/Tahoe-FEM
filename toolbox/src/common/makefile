@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8 2002-09-12 17:39:50 paklein Exp $
+# $Id: makefile,v 1.9 2002-10-17 01:33:52 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -24,6 +24,7 @@ HDR = \
 	ExceptionCodes.h \
 	GeometryT.h \
 	ios_fwd_decl.h \
+	math_utils.h \
 	NewMemory.h
 
 HDR_LINK = $(HDR:.h=.h_link)
