@@ -1,4 +1,4 @@
-/* $Id: UpLagr_ExternalFieldT.cpp,v 1.2 2001-07-14 01:27:46 paklein Exp $ */
+/* $Id: UpLagr_ExternalFieldT.cpp,v 1.3 2002-03-11 20:15:47 sawimme Exp $ */
 
 #include "UpLagr_ExternalFieldT.h"
 #include "fstreamT.h"
@@ -62,7 +62,7 @@ void UpLagr_ExternalFieldT::Initialize(void)
 	{
 		/* read nodal variable labels stored in file */
 		ArrayT<StringT> labels;
-		exo.ReadNodeLabels(labels);
+		exo.ReadLabels(labels, ExodusT::kNode);
 		
 		/* index list */
 		fFieldVariableIndex.Allocate(fExternalFieldLabels.Length());
