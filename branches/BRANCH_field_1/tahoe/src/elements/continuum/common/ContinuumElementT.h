@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.8.2.2 2002-04-26 02:24:17 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.8.2.3 2002-05-03 09:51:21 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _CONTINUUM_ELEMENT_T_H_
@@ -42,6 +42,9 @@ public:
 
 	/** interpolate the nodal field values to the current integration point */
     void IP_Interpolate(const LocalArrayT& nodal_u, dArrayT& ip_u) const;
+
+	/** interpolate the nodal field values to the specified integration point */
+    void IP_Interpolate(const LocalArrayT& nodal_u, dArrayT& ip_u, int ip) const;
 
 	/** field gradients.
 	 * compute the gradient of the field at the current integration point 
