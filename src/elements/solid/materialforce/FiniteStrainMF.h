@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainMF.h,v 1.1 2003-02-12 18:37:41 thao Exp $ */
+/* $Id: FiniteStrainMF.h,v 1.1 2003-03-19 18:46:05 thao Exp $ */
 #ifndef _FiniteStrain_MF_H_
 #define _FiniteStrain_MF_H_
 
@@ -10,6 +10,7 @@ namespace Tahoe {
 /* forward declarations */
 class FSMatSupportT;
 class FSSolidMatT;
+class OutputSetT;
 
 /** Interface for linear strain deformation and field gradients */
 class FiniteStrainMF: public FiniteStrainT
@@ -19,7 +20,7 @@ class FiniteStrainMF: public FiniteStrainT
 	/* constructor */
 	FiniteStrainMF(const ElementSupportT& support, const FieldT& field);
 	/*destructor*/
-        ~FiniteStrainMF(void);
+   ~FiniteStrainMF(void);
 
 	/* register self for output */
 	virtual void RegisterOutput(void);
@@ -46,11 +47,12 @@ class FiniteStrainMF: public FiniteStrainT
 	
 	/* material force output ID */
 	int fMatForceOutputID;
-	OutputSetT fOutputSet;
-	
+
+	OutputSetT* fOutputSet;
+
 	/*output dimension*/
 	int fNumGroupNodes;
-	dArrayT fMap;
+	iArrayT fMap;
 
 };
 

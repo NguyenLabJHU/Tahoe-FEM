@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2003-01-31 09:46:52 paklein Exp $
+# $Id: makefile,v 1.2 2003-03-19 18:46:04 thao Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -21,7 +21,8 @@ DEP = /dev/null
 
 # subdirectories
 SUB_DIR = \
-	materials
+	materials \
+	materialforce 
 
 subdir_driver: subdir_loop
 # SUB_DIR is empty
