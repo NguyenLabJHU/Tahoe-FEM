@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.6.2.1 2002-09-21 09:09:59 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.6.2.2 2002-09-22 23:08:57 paklein Exp $ */
 
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
@@ -163,8 +163,11 @@ void SmallStrainT::FormStiffness(double constK)
 }
 
 /* compute the measures of strain/deformation over the element */
-void SmallStrainT::SetDeformation(void)
+void SmallStrainT::SetGlobalShape(void)
 {
+	/* inherited */
+	ElasticT::SetGlobalShape();
+
 	/* material information */
 	int material_number = CurrentElement().MaterialNumber();
 	const ArrayT<bool>& needs = fMaterialNeeds[material_number];

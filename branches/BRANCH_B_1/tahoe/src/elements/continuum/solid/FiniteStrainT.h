@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.11.2.1 2002-09-21 09:09:58 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.11.2.2 2002-09-22 23:08:57 paklein Exp $ */
 
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
@@ -58,11 +58,8 @@ class FiniteStrainT: public ElasticT
 	/** construct list of materials from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);
 
-	/** compute deformation gradients over the element.
-	 * Use the current shape function derivatives to compute the deformation
-	 * gradients over the element. Also, compute the B-matricies and store
-	 * the results in ElasticT::fB_list. */
-	virtual void SetDeformation(void);
+	/** form shape functions and derivatives */
+	virtual void SetGlobalShape(void);
 
 	/** returns true if the material requires the deformation gradient */
 	bool Needs_F(int material_number) const;
