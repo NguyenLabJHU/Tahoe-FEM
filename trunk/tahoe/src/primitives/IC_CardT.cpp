@@ -1,4 +1,4 @@
-/* $Id: IC_CardT.cpp,v 1.4 2001-12-17 00:06:26 paklein Exp $ */
+/* $Id: IC_CardT.cpp,v 1.5 2002-02-27 01:32:55 paklein Exp $ */
 /* created: paklein (07/16/1997)                                          */
 /* Container class for kinematic initial condition data.                  */
 /* Handles mainly I/O and provides access to data via                     */
@@ -14,8 +14,8 @@
 #include "fstreamT.h"
 
 /* copy behavior for arrays IC_CardT's */
-const bool ArrayT<IC_CardT*>::fByteCopy = true;
-const bool ArrayT<IC_CardT>::fByteCopy = false;
+template<> const bool ArrayT<IC_CardT*>::fByteCopy = true;
+template<> const bool ArrayT<IC_CardT>::fByteCopy = false;
 	
 /* default constructor */
 IC_CardT::IC_CardT(void): fnode(-1), fdof(-1), fvalue(0.0)			

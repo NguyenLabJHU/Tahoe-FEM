@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.12 2002-02-11 01:39:02 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.13 2002-02-27 01:32:53 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -15,7 +15,7 @@
 #include "LocalArrayT.h"
 
 /* array behavior */
-const bool ArrayT<const RaggedArray2DT<int>*>::fByteCopy = true;
+template<> const bool ArrayT<const RaggedArray2DT<int>*>::fByteCopy = true;
 
 /* constructor */
 ElementBaseT::ElementBaseT(FEManagerT& fe_manager):
