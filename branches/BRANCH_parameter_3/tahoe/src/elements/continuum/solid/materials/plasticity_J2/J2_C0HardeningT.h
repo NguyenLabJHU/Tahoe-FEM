@@ -1,4 +1,4 @@
-/* $Id: J2_C0HardeningT.h,v 1.1.2.1 2004-06-09 06:25:37 paklein Exp $ */
+/* $Id: J2_C0HardeningT.h,v 1.1.2.2 2004-06-11 01:38:17 paklein Exp $ */
 #ifndef _J2_C0_HARD_T_H_
 #define _J2_C0_HARD_T_H_
 
@@ -21,6 +21,9 @@ public:
 	/* destructor */
 	virtual ~J2_C0HardeningT(void);
 
+	/** returns the value value of the yield function */
+	double YieldCondition(const dSymMatrixT& relstress, double alpha) const;
+
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** information about subordinate parameter lists */
@@ -36,9 +39,6 @@ public:
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
-
-	/** returns the value value of the yield function */
-	double YieldCondition(const dSymMatrixT& relstress, double alpha) const;
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.cpp,v 1.13.20.3 2004-06-09 16:32:57 paklein Exp $ */
+/* $Id: J2Simo2D.cpp,v 1.13.20.4 2004-06-11 01:38:17 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 #include "J2Simo2D.h"
 #include "StringT.h"
@@ -164,11 +164,8 @@ void J2Simo2D::OutputLabels(ArrayT<StringT>& labels) const
 void J2Simo2D::ComputeOutput(dArrayT& output)
 {
 	/* check */
-	if (output.Length() < 4) {
-		cout << "\n J2Simo2D::ComputeOutput: expecting 4 output variables: " 
-		     << output.Length() << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (output.Length() < 4)
+		ExceptionT::SizeMismatch("J2Simo2D::ComputeOutput", "expecting 4 output variables: %d", output.Length());
 
 	/* compute Cauchy stress (load state variables) */
 	s_ij();

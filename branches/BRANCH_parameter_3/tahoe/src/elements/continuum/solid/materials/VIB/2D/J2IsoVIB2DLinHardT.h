@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB2DLinHardT.h,v 1.6.46.2 2004-06-09 23:17:45 paklein Exp $ */
+/* $Id: J2IsoVIB2DLinHardT.h,v 1.6.46.3 2004-06-11 01:38:13 paklein Exp $ */
 /* created: paklein (10/18/1998) */
 #ifndef _J2_ISOVIB_2D_T_H_
 #define _J2_ISOVIB_2D_T_H_
@@ -63,6 +63,9 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 	
 protected:

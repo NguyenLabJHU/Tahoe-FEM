@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.1.4.5 2004-06-09 23:16:38 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.1.4.6 2004-06-11 01:38:15 paklein Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -638,6 +638,7 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& sub, ParameterListT::List
 		sub_sub_list.AddSub("quad_log_Ogden_2D");
 #ifdef PLASTICITY_J2_MATERIAL
 		sub_sub_list.AddSub("Simo_J2_2D");
+		sub_sub_list.AddSub("quad_log_J2_2D");
 #endif
 	}
 	else /* inherited */
@@ -704,6 +705,8 @@ FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& name) const
 #ifdef PLASTICITY_J2_MATERIAL
 	else if (name == "Simo_J2_2D")
 		mat = new J2Simo2D;
+	else if (name == "quad_log_J2_2D")
+		mat = new J2QL2DLinHardT;
 #endif
 
 	/* set support */

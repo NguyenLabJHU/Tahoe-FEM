@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.1.4.5 2004-06-09 23:16:38 paklein Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.1.4.6 2004-06-11 01:38:15 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -573,6 +573,7 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& sub, ParameterListT::List
 		sub_sub_list.AddSub("quad_log_Ogden");
 #ifdef PLASTICITY_J2_MATERIAL
 		sub_sub_list.AddSub("Simo_J2");
+		sub_sub_list.AddSub("quad_log_J2");
 #endif
 	}
 	else /* inherited */
@@ -639,6 +640,8 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #ifdef PLASTICITY_J2_MATERIAL
 	else if (name == "Simo_J2")
 		mat = new J2Simo3D;
+	else if (name == "quad_log_J2")
+		mat = new J2QLLinHardT;
 #endif
 
 	/* set support */

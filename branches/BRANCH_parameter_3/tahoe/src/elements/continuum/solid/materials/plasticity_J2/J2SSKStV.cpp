@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.9.18.4 2004-06-09 06:25:37 paklein Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.9.18.5 2004-06-11 01:38:17 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV.h"
 #include "SSMatSupportT.h"
@@ -19,7 +19,7 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 J2SSKStV::J2SSKStV(ifstreamT& in, const SSMatSupportT& support):
-	ParameterInterfaceT("small_strain_J2_StVenant"),
+	ParameterInterfaceT("small_strain_StVenant_J2"),
 	SSSolidMatT(in, support),
 	IsotropicT(in),
 	HookeanMatT(3),
@@ -31,7 +31,7 @@ J2SSKStV::J2SSKStV(ifstreamT& in, const SSMatSupportT& support):
 }
 
 J2SSKStV::J2SSKStV(void):
-	ParameterInterfaceT("small_strain_J2_StVenant"),
+	ParameterInterfaceT("small_strain_StVenant_J2"),
 	HookeanMatT(3),
 	fStress(3),
 	fModulus(dSymMatrixT::NumValues(3))

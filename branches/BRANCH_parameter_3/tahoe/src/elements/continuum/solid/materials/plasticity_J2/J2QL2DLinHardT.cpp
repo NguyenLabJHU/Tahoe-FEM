@@ -1,4 +1,4 @@
-/* $Id: J2QL2DLinHardT.cpp,v 1.13.20.2 2004-06-09 23:17:56 paklein Exp $ */
+/* $Id: J2QL2DLinHardT.cpp,v 1.13.20.3 2004-06-11 01:38:17 paklein Exp $ */
 /* created: paklein (06/29/1997) */
 #include "J2QL2DLinHardT.h"
 
@@ -57,7 +57,7 @@ static const char* Labels[kNumOutput] = {
 J2QL2DLinHardT::J2QL2DLinHardT(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("quad_log_J2_2D"),
 	QuadLog2D(in, support),
-	J2PrimitiveT(in),
+//	J2PrimitiveT(in),
 	fb_elastic(kNSD),
 	fEPModuli(kNSD),
 
@@ -77,6 +77,12 @@ J2QL2DLinHardT::J2QL2DLinHardT(ifstreamT& in, const FSMatSupportT& support):
 {
 	/* for intermediate config update */
 	fa_inverse.Inverse(fEigMod);
+}
+
+J2QL2DLinHardT::J2QL2DLinHardT(void):
+	ParameterInterfaceT("quad_log_J2_2D")
+{
+
 }
 
 /* update internal variables */
@@ -303,9 +309,44 @@ void J2QL2DLinHardT::ComputeOutput(dArrayT& output)
 		output[0] = 0.0;
 }
 
+/* describe the parameters needed by the interface */
+void J2QL2DLinHardT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	QuadLog2D::DefineParameters(list);
+	J2PrimitiveT::DefineParameters(list);
+}
+
+/* accept parameter list */
+void J2QL2DLinHardT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	QuadLog2D::TakeParameterList(list);
+	J2PrimitiveT::TakeParameterList(list);
+
+	/* work space */
+	fb_elastic.Dimension(kNSD);
+	fEPModuli.Dimension(kNSD);
+	fa_inverse.Dimension(kNSD);
+	fMatrixTemp1.Dimension(kNSD);
+	fMatrixTemp2.Dimension(kNSD);
+	fMatrixTemp3.Dimension(kNSD);
+	fdev_beta.Dimension(kNSD),
+	fFtot.Dimension(3);
+	ffrel.Dimension(3);
+	
+	/* 2D translation */
+	fF_temp.Dimension(2);
+	fFtot_2D.Dimension(2);
+	ffrel_2D.Dimension(2);	
+
+	/* for intermediate config update */
+	fa_inverse.Inverse(fEigMod);
+}
+
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* returns the elastic stretch */
 const dSymMatrixT& J2QL2DLinHardT::TrialStretch(const dMatrixT& F_total,

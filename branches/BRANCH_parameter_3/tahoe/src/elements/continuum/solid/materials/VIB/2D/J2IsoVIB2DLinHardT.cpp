@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.9.20.2 2004-06-09 23:17:45 paklein Exp $ */
+/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.9.20.3 2004-06-11 01:38:13 paklein Exp $ */
 /* created: paklein (10/18/1998) */
 #include "J2IsoVIB2DLinHardT.h"
 
@@ -53,7 +53,7 @@ static const char* Labels[kNumOutput] = {"s_max", "s_min", "VM stress", "alpha"}
 J2IsoVIB2DLinHardT::J2IsoVIB2DLinHardT(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("isotropic_VIB_J2_2D"),
 	IsoVIB3D(in, support),
-	J2PrimitiveT(in),
+//	J2PrimitiveT(in),
 
 //TEMP
 	fEigs(kNSD),
@@ -287,6 +287,13 @@ void J2IsoVIB2DLinHardT::DefineParameters(ParameterListT& list) const
 	/* 2D option must be plain stress */
 	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStrain);
+}
+
+/* accept parameter list */
+void J2IsoVIB2DLinHardT::TakeParameterList(const ParameterListT& list)
+{
+	IsoVIB3D::TakeParameterList(list);
+	J2PrimitiveT::TakeParameterList(list);
 }
 
 /***********************************************************************
