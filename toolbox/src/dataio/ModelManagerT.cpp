@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.11 2002-01-09 12:18:35 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.12 2002-01-27 18:24:23 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -32,46 +32,17 @@ ModelManagerT::~ModelManagerT (void)
   delete fInput;
 }
 
-bool ModelManagerT::Initialize (ifstreamT& in, bool readonly)
-{
-	/* clear any existing parameters */
-	Clear();
-
-  StringT database;
-  in >> fFormat;
-
-  if (fFormat != IOBaseT::kTahoe)
-    {
-      in >> database;
-
-      /* prepend full path name to database file */
-      database.ToNativePathName();
-      
-      /* patch from input file */
-      StringT path;
-      path.FilePath (in.filename());
-
-      /* prepend path */
-      database.Prepend (path);
-    }
-  else
-    database = "\0";
-
-	fInputName = database;
- 	if (!readonly)
- 		return ScanModel(fInputName);
- 	else
- 		return true;
-}
-
-bool ModelManagerT::Initialize (const IOBaseT::FileTypeT format, const StringT& database)
+bool ModelManagerT::Initialize (const IOBaseT::FileTypeT format, const StringT& database, bool scan_model)
 {
 	/* clear any existing parameters */
 	Clear();
 
 	fFormat = format;
 	fInputName = database;
-	return ScanModel(fInputName);
+	if (scan_model)
+		return ScanModel(fInputName);
+	else
+		return true;
 }
 
 bool ModelManagerT::Initialize (void)
@@ -88,6 +59,7 @@ bool ModelManagerT::Initialize (void)
     {
       cout << "\n Enter the Model File Name: ";
       cin >> database;
+      database.ToNativePathName();
     }
   else
     database = "\0";
@@ -111,11 +83,12 @@ bool ModelManagerT::RegisterNodes (int length, int dof)
   return true;
 }
 
-bool ModelManagerT::RegisterElementGroup (const StringT& name, int numelems, int numelemnodes, GeometryT::CodeT code)
+bool ModelManagerT::RegisterElementGroup (const StringT& ID, int numelems, 
+	int numelemnodes, GeometryT::CodeT code)
 {
-  if (!CheckName (fElementNames, name, "Element Group")) return false;
+  if (!CheckID (fElementNames, ID, "Element Group")) return false;
   
-  fElementNames.Append (name);
+  fElementNames.Append (ID);
   fElementLengths.Append (numelems);
   fElementNodes.Append (numelemnodes);
   fElementCodes.Append (code);
@@ -133,11 +106,11 @@ bool ModelManagerT::RegisterElementGroup (const StringT& name, int numelems, int
   return true;
 }
 
-bool ModelManagerT::RegisterNodeSet (const StringT& name, int length)
+bool ModelManagerT::RegisterNodeSet (const StringT& ID, int length)
 {
-  if (!CheckName (fElementNames, name, "Node Set")) return false;
+  if (!CheckID (fNodeSetNames, ID, "Node Set")) return false;
   
-  fNodeSetNames.Append (name);
+  fNodeSetNames.Append (ID);
   fNodeSetDimensions.Append (length);
 
   iArrayT temp;
@@ -151,15 +124,23 @@ bool ModelManagerT::RegisterNodeSet (const StringT& name, int length)
   return true;
 }
 
-bool ModelManagerT::RegisterSideSet (const StringT& name, int length, bool local, int elemgroupindex)
+bool ModelManagerT::RegisterSideSet (const StringT& ss_ID, int length, bool local, 
+	const StringT& element_ID)
 {
-  if (!CheckName (fElementNames, name, "Side Set")) return false;
+  if (!CheckID (fSideSetNames, ss_ID, "Side Set")) return false;
   
-  fSideSetNames.Append (name);
+  fSideSetNames.Append (ss_ID);
   fSideSetDimensions.Append (length);
   fSideSetIsLocal.Append (local);
   if (local)
-    fSideSetGroupIndex.Append (elemgroupindex);
+  {
+  	int index = ElementGroupIndex(element_ID);
+  	if (index == -1) {
+  		cout << "\n ModelManagerT::RegisterSideSet: element ID not found: " << element_ID << endl;
+  		throw eOutOfRange;
+  	}
+    fSideSetGroupIndex.Append (index);
+  }
   else
     fSideSetGroupIndex.Append (-1);
 
@@ -176,19 +157,19 @@ bool ModelManagerT::RegisterSideSet (const StringT& name, int length, bool local
   return true;
 }
 
-bool ModelManagerT::RegisterNodes (dArray2DT& coords)
+bool ModelManagerT::RegisterNodes (const dArray2DT& coords)
 {
-  if (!RegisterNodes (coords.MajorDim(), coords.MinorDim())) 
-    return false;
+  if (!RegisterNodes (coords.MajorDim(), coords.MinorDim())) return false;
   fCoordinates = coords;
   return true;
 }
 
-bool ModelManagerT::RegisterElementGroup (const StringT& name, iArray2DT& conn, GeometryT::CodeT code)
+bool ModelManagerT::RegisterElementGroup (const StringT& ID, const iArray2DT& conn, 
+	GeometryT::CodeT code)
 {
-  if (!CheckName (fElementNames, name, "Element Group")) return false;
+  if (!CheckID (fElementNames, ID, "Element Group")) return false;
   
-  fElementNames.Append (name);
+  fElementNames.Append (ID);
   fElementLengths.Append (conn.MajorDim());
   fElementNodes.Append (conn.MinorDim());
   fElementCodes.Append (code);
@@ -204,11 +185,11 @@ bool ModelManagerT::RegisterElementGroup (const StringT& name, iArray2DT& conn, 
   return true;
 }
 
-bool ModelManagerT::RegisterNodeSet (const StringT& name, iArrayT& set)
+bool ModelManagerT::RegisterNodeSet (const StringT& ID, const iArrayT& set)
 {
-  if (!CheckName (fElementNames, name, "Node Set")) return false;
+  if (!CheckID (fNodeSetNames, ID, "Node Set")) return false;
   
-  fNodeSetNames.Append (name);
+  fNodeSetNames.Append (ID);
   fNodeSetDimensions.Append (set.Length());
   fNodeSets.Append (set);
 
@@ -220,27 +201,12 @@ bool ModelManagerT::RegisterNodeSet (const StringT& name, iArrayT& set)
   return true;
 }
 
-bool ModelManagerT::RegisterSideSet (const StringT& name, iArray2DT& set, bool local, int groupindex)
+bool ModelManagerT::RegisterSideSet (const StringT& ss_ID, const iArray2DT& set, 
+	bool local, const StringT& element_ID)
 {
-  if (!CheckName (fElementNames, name, "Side Set")) return false;
-  
-  fSideSetNames.Append (name);
-  fSideSetDimensions.Append (set.MajorDim());
-  fSideSets.Append (set);
-  fSideSetIsLocal.Append (local);
-  if (local)
-    fSideSetGroupIndex.Append (groupindex);
-  else
-    fSideSetGroupIndex.Append (-1);
-
-  fNumSideSets++;
-  if (fNumSideSets != fSideSetNames.Length() ||
-      fNumSideSets != fSideSetDimensions.Length() ||
-      fNumSideSets != fSideSets.Length() ||
-      fNumSideSets != fSideSetIsLocal.Length() ||
-      fNumSideSets != fSideSetGroupIndex.Length() )
-    return false;
-  return true;
+	bool result = RegisterSideSet(ss_ID, set.MajorDim(), local, element_ID);
+	fSideSets.Append (set);
+	return result && fNumSideSets == fSideSets.Length();
 }
 
 /* reads dimensions and numbered array, then offsets array */
@@ -256,7 +222,7 @@ bool ModelManagerT::RegisterNodes (ifstreamT& in)
 }
 
 /* read dimensions and numbered array, then offsets array */
-bool ModelManagerT::RegisterElementGroup (ifstreamT& in, const StringT& name, GeometryT::CodeT code)
+bool ModelManagerT::RegisterElementGroup (ifstreamT& in, const StringT& ID, GeometryT::CodeT code)
 {
   ifstreamT tmp;
   ifstreamT& in2 = OpenExternal (in, tmp, fMessage, true, "ModelManagerT::RegisterElementGroup(ifstreamT): count not open file");
@@ -266,11 +232,11 @@ bool ModelManagerT::RegisterElementGroup (ifstreamT& in, const StringT& name, Ge
   iArray2DT temp (length, numnodes);
   temp.ReadNumbered (in2);
   temp += -1;
-  return RegisterElementGroup (name, temp, code);
+  return RegisterElementGroup (ID, temp, code);
 }
 
 /* read dimensions and array, then offsets array */
-bool ModelManagerT::RegisterNodeSet (ifstreamT& in, const StringT& name)
+bool ModelManagerT::RegisterNodeSet (ifstreamT& in, const StringT& ID)
 {
   ifstreamT tmp;
   ifstreamT& in2 = OpenExternal (in, tmp, fMessage, true, "ModelManagerT::RegisterNodeSet(ifstreamT): count not open file");
@@ -282,14 +248,15 @@ bool ModelManagerT::RegisterNodeSet (ifstreamT& in, const StringT& name)
       iArrayT n (length);
       in2 >> n;
       n--;
-      return RegisterNodeSet (name, n);
+      return RegisterNodeSet (ID, n);
     }
   else
     return false;
 }
 
 /* read dimensions and array, then offsets array */
-bool ModelManagerT::RegisterSideSet (ifstreamT& in, const StringT& name, bool local, int groupindex)
+bool ModelManagerT::RegisterSideSet (ifstreamT& in, const StringT& ss_ID, bool local, 
+	const StringT& element_ID)
 {
   ifstreamT tmp;
   ifstreamT& in2 = OpenExternal (in, tmp, fMessage, true, "ModelManagerT::RegisterSideSet (ifstreamT): count not open file");
@@ -300,8 +267,8 @@ bool ModelManagerT::RegisterSideSet (ifstreamT& in, const StringT& name, bool lo
     {
       iArray2DT s (length, 2);
       in2 >> s;
-      s += -1;
-      return RegisterSideSet (name, s, local, groupindex);
+      s--;
+      return RegisterSideSet (ss_ID, s, local, element_ID);
     }
   else
     return false;
@@ -313,7 +280,7 @@ void ModelManagerT::ReadInlineCoordinates (ifstreamT& in)
     RegisterNodes (in);
 }
 
-void ModelManagerT::ElementBlockList (ifstreamT& in, iArrayT& indexes, iArrayT& matnums)
+void ModelManagerT::ElementBlockList (ifstreamT& in, ArrayT<StringT>& ID, iArrayT& matnums)
 {
   /* number of blocks in element data */
   int num_blocks = 0;
@@ -321,7 +288,7 @@ void ModelManagerT::ElementBlockList (ifstreamT& in, iArrayT& indexes, iArrayT& 
   fMessage << " Number of connectivity data blocks. . . . . . . = " << num_blocks << '\n';
   if (num_blocks < 1) throw eBadInputValue;
 
-  indexes.Allocate (num_blocks);
+  ID.Allocate (num_blocks);
   matnums.Allocate (num_blocks);
   for (int i=0; i < num_blocks; i++)
     {
@@ -330,7 +297,7 @@ void ModelManagerT::ElementBlockList (ifstreamT& in, iArrayT& indexes, iArrayT& 
       fMessage << "                   material number: " << matnums[i] << '\n';
 
       /* read element group name */
-      StringT name;
+      StringT& name = ID[i];
       if (fFormat == IOBaseT::kTahoe)
 	{
 	  name = "ElementGroup";
@@ -343,115 +310,122 @@ void ModelManagerT::ElementBlockList (ifstreamT& in, iArrayT& indexes, iArrayT& 
 	}
       fMessage << "                element block name: " << name << endl;
 
-      /* check with model manager */
-      indexes[i] = ElementGroupIndex (name);
-      if (indexes[i] < 0)
-	{
-	  cout << "\n ModelManagerT::ElementBlockList: "
-		   << " block " << i+1 << ": " << name << '\n';
-	  cout << "      does not match Model database " << endl;
-	  throw eBadInputValue;
-	}
     }
 }
 
-void ModelManagerT::NodeSetList (ifstreamT& in, iArrayT& indexes)
+void ModelManagerT::NodeSetList (ifstreamT& in, ArrayT<StringT>& ID)
 {
-  if (fFormat == IOBaseT::kTahoe)
-    {
-      StringT name = "InlineNS";
-      name.Append (fNumNodeSets+1);
-      RegisterNodeSet (in, name);
-
-      indexes.Allocate (1);
-      indexes[0] = NodeSetIndex (name);
-
-      /* account for no sets or all nodes */
-      if (indexes[0] > -1)
+	if (fFormat == IOBaseT::kTahoe)
 	{
-	  fMessage << " Node Set Name . . . . . . . . . . . . . . . . . = ";
-	  fMessage << name << '\n';
-	  fMessage << " Node Set Index. . . . . . . . . . . . . . . . . = ";
-	  fMessage << indexes[0] << '\n';
-	  fMessage << " Node Set Length . . . . . . . . . . . . . . . . = ";
-	  fMessage << fNodeSetDimensions[indexes[0]] << '\n';
-	}
+		/* read set */
+		StringT name = "InlineNS";
+		name.Append (fNumNodeSets+1);
+		RegisterNodeSet (in, name);
+
+		/* account for no sets or all nodes */
+		int index = NodeSetIndex(name);
+		if (index > -1)
+		{
+			/* return name */
+			ID.Allocate(1);
+			ID[0] = name;
+		
+			fMessage << " Node Set Name . . . . . . . . . . . . . . . . . = ";
+			fMessage << name << '\n';
+			fMessage << " Node Set Index. . . . . . . . . . . . . . . . . = ";
+			fMessage << index << '\n';
+			fMessage << " Node Set Length . . . . . . . . . . . . . . . . = ";
+			fMessage << fNodeSetDimensions[index] << '\n';
+		}
+		else /* empty list */
+			ID.Allocate(0);
     }
   else
     {
       int num_sets;
       in >> num_sets;
 
-      indexes.Allocate (num_sets);
+      ID.Allocate (num_sets);
       for (int i=0; i < num_sets; i++)
 	{
-	  StringT name;
+	  StringT& name = ID[i];
 	  in >> name;
-	  indexes[i] = NodeSetIndex (name);
+	  int index = NodeSetIndex (name);
+	  if (index < 0) {
+	  	cout << "\n ModelManagerT::NodeSetList: error retrieving node set " << name << endl;
+	  	throw eDatabaseFail;
+	  }
 
 	  fMessage << " Node Set Name . . . . . . . . . . . . . . . . . = ";
 	  fMessage << name << '\n';
 	  fMessage << " Node Set Index. . . . . . . . . . . . . . . . . = ";
-	  fMessage << indexes[0] << '\n';
+	  fMessage << index << '\n';
 	  fMessage << " Node Set Length . . . . . . . . . . . . . . . . = ";
-	  fMessage << fNodeSetDimensions[indexes[i]] << '\n';
+	  fMessage << fNodeSetDimensions[index] << '\n';
 	}
     }
 }
 
-void ModelManagerT::SideSetList (ifstreamT& in, iArrayT& indexes, bool multidatabasesets)
+void ModelManagerT::SideSetList (ifstreamT& in, ArrayT<StringT>& ID, 
+	bool multidatabasesets)
 {
   if (fFormat == IOBaseT::kTahoe)
     {
       bool local = true;
 
-      int blockID;
+      StringT blockID;
       in >> blockID;
-      int groupindex = ElementGroupIndex (blockID);
 
       StringT name = "InlineSS";
       name.Append (fNumSideSets+1);
-      RegisterSideSet (in, name, local, groupindex);
-
-      indexes.Allocate (1);
-      indexes[0] = SideSetIndex (name);
+      RegisterSideSet (in, name, local, blockID);
 
       /* account for no sets */
-      if (indexes[0] > -1)
+      int index = SideSetIndex (name);
+      if (index > -1)
 	{
+      ID.Allocate (1);
+      ID[0] = name;
+
 	  fMessage << " Side Set Name . . . . . . . . . . . . . . . . . = ";
 	  fMessage << name << '\n';
 	  fMessage << " Side Set Index. . . . . . . . . . . . . . . . . = ";
-	  fMessage << indexes[0] << '\n';
+	  fMessage << index << '\n';
 	  fMessage << " Side Set Element Group Name . . . . . . . . . . = ";
 	  fMessage << blockID << '\n';
 	  fMessage << " Side Set Length . . . . . . . . . . . . . . . . = ";
-	  fMessage << fSideSetDimensions[indexes[0]] << '\n';
+	  fMessage << fSideSetDimensions[index] << '\n';
 	}
+	else /* empty list */
+		ID.Allocate(0);
     }
   else
     {
       int num_sets;
       if (multidatabasesets)
-	in >> num_sets;
+		in >> num_sets;
       else
-	num_sets = 1;
+		num_sets = 1;
 
-      indexes.Allocate (num_sets);
+      ID.Allocate (num_sets);
       for (int i=0; i < num_sets; i++)
 	{
-	  StringT name;
+	  StringT& name = ID[i];
 	  in >> name;
-	  indexes[i] = SideSetIndex (name);
+	  int index = SideSetIndex (name);
+	  if (index < 0) {
+	  	cout << "\n ModelManagerT::SideSetList: error retrieving side set " << name << endl;
+	  	throw eDatabaseFail;
+	  }
 
 	  fMessage << " Side Set Name . . . . . . . . . . . . . . . . . = ";
 	  fMessage << name << '\n';
 	  fMessage << " Side Set Index. . . . . . . . . . . . . . . . . = ";
-	  fMessage << indexes[0] << '\n';
+	  fMessage << index << '\n';
 	  fMessage << " Side Set Element Group Name . . . . . . . . . . = ";
 	  fMessage << fInput->SideSetGroupName (name) << '\n';
 	  fMessage << " Side Set Length . . . . . . . . . . . . . . . . = ";
-	  fMessage << fSideSetDimensions[indexes[i]] << '\n';
+	  fMessage << fSideSetDimensions[index] << '\n';
 	}
     }
 }
@@ -486,18 +460,7 @@ int ModelManagerT::ReadCards (ifstreamT& in, ostream& out, ArrayT<iArrayT>& node
 	}
       else
 	{
-	  int index = NodeSetIndex (ID);
-	  if (index < 0) 
-	    {
-	      cout << "ModelManagerT::ReadCards, cannot find node set\n";
-	      cout << "   asking for : " << ID << ".\n";
-	      cout << "   available sets: \n";
-	      for (int ig=0; ig < fNumNodeSets; ig++)
-		    cout << "       " << fNodeSetNames[ig] << ".\n";
-	      cout << endl;
-	      throw eBadInputValue;
-	    }
-	  nodes[i] = NodeSet (index);
+	  nodes[i] = NodeSet (ID);
 	  if (i == 0)
 	    out << " Number of node sets . . . . . . . . . . . . . . = " 
 		<< numc << "\n\n";
@@ -534,10 +497,10 @@ void ModelManagerT::ReadNumTractionLines (ifstreamT& in, int& numlines, int& num
     }
 }
 
-void ModelManagerT::ReadTractionSetData (ifstreamT& in, int& blockindex, int& setsize)
+void ModelManagerT::ReadTractionSetData (ifstreamT& in, StringT& element_ID, int& setsize)
 {
   if (fFormat == IOBaseT::kTahoe)
-    in >> blockindex >> setsize;
+    in >> element_ID >> setsize;
   else
     {
       setsize = 1;
@@ -545,7 +508,7 @@ void ModelManagerT::ReadTractionSetData (ifstreamT& in, int& blockindex, int& se
     }
 }
 
-void ModelManagerT::ReadTractionSideSet (ifstreamT& in, int& blockindex, iArray2DT& localsides)
+void ModelManagerT::ReadTractionSideSet (ifstreamT& in, StringT& element_ID, iArray2DT& localsides)
 {
   if (fFormat == IOBaseT::kTahoe)
     {
@@ -555,28 +518,19 @@ void ModelManagerT::ReadTractionSideSet (ifstreamT& in, int& blockindex, iArray2
     }
   else
     {
-      StringT name;
-      int index;
-      in >> name;
-      index = SideSetIndex (name);
-      if (index < 0) 
-	{
-	  cout << "\n ModelManagerT::ReadTractionSideSet: ";
-	  cout << "Side Set Name is not found in registered list: ";
-	  cout << name << "\n";
-	  throw eBadInputValue;
-	}
-      blockindex = SideSetGroupIndex (index);
+      StringT ss_ID;
+      in >> ss_ID;
+      element_ID = SideSetGroupID(ss_ID);
  
-      /* read set */
-      iArray2DT temp = SideSet (index);
-      if (!IsSideSetLocal(index))
-	SideSetGlobalToLocal (blockindex, localsides, temp);
+	  /* read set */
+      iArray2DT temp = SideSet (ss_ID);
+      if (!IsSideSetLocal(ss_ID))
+		SideSetGlobalToLocal (element_ID, localsides, temp);
       else
-	localsides = temp;
+		localsides = temp;
 
       fMessage << " Database side set name. . . . . . . . . . . . . = ";
-      fMessage << name << '\n';
+      fMessage << ss_ID << '\n';
       fMessage << " Number of traction BC cards . . . . . . . . . . = ";
       fMessage << localsides.MajorDim() << endl;
     }
@@ -635,53 +589,77 @@ bool ModelManagerT::AreElements2D (void) const
   return false;
 }
 
-void ModelManagerT::ElementGroupNames (ArrayT<StringT>& names) const
-{
-  for (int i=0; i < names.Length(); i++)
-    names[i] = fElementNames[i];
-}
-
-int ModelManagerT::ElementGroupIndex (const StringT& name) const
+int ModelManagerT::ElementGroupIndex (const StringT& ID) const
 {
   // account for space padding at end of name
-  int length1 = name.Length();
+  int length1 = ID.Length();
   for (int i=0; i < fNumElementSets; i++)
     {
       int length2 = fElementNames[i].Length();
       int length = (length1 < length2) ? length1 : length2;
-      if (strncmp (name.Pointer(), fElementNames[i].Pointer(), length-1) == 0)
+      if (strncmp (ID.Pointer(), fElementNames[i].Pointer(), length-1) == 0)
 	return i;
     }
   return -1;
 }
 
-void ModelManagerT::ElementGroupDimensions (int index, int& numelems, int& numelemnodes) const
+void ModelManagerT::ElementGroupDimensions (const StringT& ID, int& numelems, int& numelemnodes) const
 {
+	int index = ElementGroupIndex(ID);
+	if (index == -1) {
+		cout << "\n ModelManagerT::ElementGroupDimensions: ID not found: " << ID << endl;
+		throw eDatabaseFail;
+	}
+	numelems = fElementLengths[index];
+	numelemnodes = fElementNodes[index];
+
+//why accept a bad index?
+#if 0
   numelems = -1;
   numelemnodes = -1;
-  if (index < 0 && index >= fNumElementSets)
+  if (index == -1)
     return;
   numelems = fElementLengths[index];
   numelemnodes = fElementNodes[index];
+#endif
 }
 
-GeometryT::CodeT ModelManagerT::ElementGroupGeometry (int index) const
+GeometryT::CodeT ModelManagerT::ElementGroupGeometry (const StringT& ID) const
 {
-  if (index < 0 && index >= fNumElementSets)
+	int index = ElementGroupIndex(ID);
+	if (index == -1) {
+		cout << "\n ModelManagerT::ElementGroupGeometry: ID not found: " << ID << endl;
+		throw eDatabaseFail;
+	}
+	return fElementCodes[index];	
+
+//why accept a bad index?
+#if 0
+  if (index == -1)
     return GeometryT::kNone;
   return fElementCodes[index];
+#endif
 }
 
-const iArray2DT& ModelManagerT::ElementGroup (int index)
+const iArray2DT& ModelManagerT::ElementGroup (const StringT& ID)
 {
-  ReadConnectivity (index);
-  return fElementSets [index];
+	ReadConnectivity (ID);
+	int index = ElementGroupIndex(ID);
+	if (index == -1) {
+    	cout << "\n ModelManagerT::ElementGroup: ID not found: " << ID<< endl;
+    	throw eOutOfRange;
+    }
+	return fElementSets [index];
 }
 
-void ModelManagerT::ReadConnectivity (int index)
+void ModelManagerT::ReadConnectivity (const StringT& ID)
 {
-  if (index < 0 && index >= fNumElementSets)
-    throw eOutOfRange;
+	int index = ElementGroupIndex(ID);
+	if (index == -1) {
+    	cout << "\n ModelManagerT::ReadConnectivity: ID not found: " << ID<< endl;
+    	throw eOutOfRange;
+    }
+	
   if (fElementSets[index].Length() == 0)
     {
       if (fFormat == IOBaseT::kTahoe)
@@ -694,15 +672,18 @@ void ModelManagerT::ReadConnectivity (int index)
     	cout << "\n ModelManagerT::ReadConnectivity: input source is not initialized" << endl;
 		throw eDatabaseFail;
       }
-      fInput->ReadConnectivity (fElementNames[index], fElementSets[index]);
+      fInput->ReadConnectivity (ID, fElementSets[index]);
     }
 }
 
-const iArray2DT* ModelManagerT::ElementGroupPointer (int index) const
+const iArray2DT* ModelManagerT::ElementGroupPointer (const StringT& ID) const
 {
-  if (index < 0 && index >= fNumElementSets)
-    throw eOutOfRange;
-  return &fElementSets[index];
+	int index = ElementGroupIndex(ID);
+	if (index == -1) {
+    	cout << "\n ModelManagerT::ElementGroupPointer: ID not found: " << ID<< endl;
+    	throw eOutOfRange;
+    }
+	return fElementSets.Pointer(index);
 }
 
 void ModelManagerT::AllNodeMap (iArrayT& map)
@@ -710,6 +691,11 @@ void ModelManagerT::AllNodeMap (iArrayT& map)
 	if (!fInput) {
     	cout << "\n ModelManagerT::AllNodeMap: input source is not initialized" << endl;
 		throw eDatabaseFail;
+	}
+	if (map.Length() != fInput->NumNodes()) {
+    	cout << "\n ModelManagerT::AllNodeMap: map array is length " << map.Length()
+             << ", expecting length " << fInput->NumNodes() << endl;
+		throw eSizeMismatch;	
 	}
 	fInput->ReadNodeMap (map);
 }
@@ -720,49 +706,62 @@ void ModelManagerT::AllElementMap (iArrayT& map)
     	cout << "\n ModelManagerT::AllElementMap: input source is not initialized" << endl;
 		throw eDatabaseFail;
 	}
+	if (map.Length() != fInput->NumGlobalElements()) {
+    	cout << "\n ModelManagerT::AllElementMap: map array is length " << map.Length()
+             << ", expecting length " << fInput->NumGlobalElements() << endl;
+		throw eSizeMismatch;	
+	}
 	fInput->ReadAllElementMap (map);
 }
 
-void ModelManagerT::ElementMap (StringT& name, iArrayT& map)
+void ModelManagerT::ElementMap (const StringT& ID, iArrayT& map)
 {
 	if (!fInput) {
     	cout << "\n ModelManagerT::ElementMap: input source is not initialized" << endl;
 		throw eDatabaseFail;
 	}
-	fInput->ReadGlobalElementMap (name, map);
+	if (map.Length() != fInput->NumElements(ID)) {
+    	cout << "\n ModelManagerT::ElementMap: map array is length " << map.Length()
+             << ", expecting length " << fInput->NumElements(ID) << endl;
+		throw eSizeMismatch;	
+	}
+	fInput->ReadGlobalElementMap (ID, map);
 }
 
-void ModelManagerT::NodeSetNames (ArrayT<StringT>& names) const
-{
-  for (int i=0; i < names.Length(); i++)
-    names[i] = fNodeSetNames[i];
-}
-
-int ModelManagerT::NodeSetIndex (const StringT& name) const
+int ModelManagerT::NodeSetIndex (const StringT& ID) const
 {
   // account for space padding at end of name
-  int length1 = name.Length();
+  int length1 = ID.Length();
   for (int i=0; i < fNumNodeSets; i++)
     {
       int length2 = fNodeSetNames[i].Length();
       int length = (length1 < length2) ? length1 : length2;
-      if (strncmp (name.Pointer(), fNodeSetNames[i].Pointer(), length-1) == 0)
+      if (strncmp (ID.Pointer(), fNodeSetNames[i].Pointer(), length-1) == 0)
 	return i;
     }
   return -1;
 }
 
-int ModelManagerT::NodeSetLength (int index) const
+int ModelManagerT::NodeSetLength (const StringT& ID) const
 {
-  if (index < 0 && index >= fNumNodeSets)
-    return -1;
+	int index = NodeSetIndex(ID);	
+	if (index == -1) {
+		cout << "\n ModelManagerT::NodeSetLength: ID not found: " << ID << endl;
+		throw eDatabaseFail;
+	}
+	
+//    return -1; why allow bad name?
   return fNodeSetDimensions [index];
 }
 
-const iArrayT& ModelManagerT::NodeSet (int index)
+const iArrayT& ModelManagerT::NodeSet (const StringT& ID)
 {
-  if (index < 0 && index >= fNumNodeSets)
-    throw eOutOfRange;
+	int index = NodeSetIndex(ID);	
+	if (index == -1) {
+		cout << "\n ModelManagerT::NodeSet: ID not found: " << ID << endl;
+		throw eDatabaseFail;
+	}
+
   if (fNodeSets[index].Length() == 0)
     {
       if (fFormat == IOBaseT::kTahoe)
@@ -775,18 +774,18 @@ const iArrayT& ModelManagerT::NodeSet (int index)
     	cout << "\n ModelManagerT::NodeSet: input source is not initialized" << endl;
 		throw eDatabaseFail;
 	  }
-      fInput->ReadNodeSet (fNodeSetNames[index], fNodeSets[index]);
+      fInput->ReadNodeSet (ID, fNodeSets[index]);
     }
   return fNodeSets [index];
 }
 
-void ModelManagerT::ManyNodeSets (const iArrayT& indexes, iArrayT& nodes)
+void ModelManagerT::ManyNodeSets (const ArrayT<StringT>& ID, iArrayT& nodes)
 {
   iAutoArrayT temp;
   iArrayT tn;
-  for (int i=0; i < indexes.Length(); i++)
+  for (int i=0; i < ID.Length(); i++)
     {
-      tn = NodeSet (indexes[i]);
+      tn = NodeSet (ID[i]);
       temp.AppendUnique(tn);
     }
 
@@ -795,37 +794,38 @@ void ModelManagerT::ManyNodeSets (const iArrayT& indexes, iArrayT& nodes)
   nodes.SortAscending ();
 }
 
-void ModelManagerT::SideSetNames (ArrayT<StringT>& names) const
-{
-  for (int i=0; i < names.Length(); i++)
-    names[i] = fSideSetNames[i];
-}
-
-int ModelManagerT::SideSetIndex (const StringT& name) const
+int ModelManagerT::SideSetIndex (const StringT& ID) const
 {
   // account for space padding at end of name
-  int length1 = name.Length();
+  int length1 = ID.Length();
   for (int i=0; i < fNumSideSets; i++)
     {
       int length2 = fSideSetNames[i].Length();
       int length = (length1 < length2) ? length1 : length2;
-      if (strncmp (name.Pointer(), fSideSetNames[i].Pointer(), length-1) == 0)
+      if (strncmp (ID.Pointer(), fSideSetNames[i].Pointer(), length-1) == 0)
 	return i;
     }
   return -1;
 }
 
-int ModelManagerT::SideSetLength (int index) const
+int ModelManagerT::SideSetLength (const StringT& ID) const
 {
-  if (index < 0 && index >= fNumSideSets)
-    return -1;
-  return fSideSetDimensions [index];
+	int index = SideSetIndex(ID);
+	if (index == -1) {
+    	cout << "\n ModelManagerT::SideSetLength: ID not found: " << ID<< endl;
+    	throw eOutOfRange;
+    }
+	return fSideSetDimensions [index];
 }
 
-const iArray2DT& ModelManagerT::SideSet (int index) const
+const iArray2DT& ModelManagerT::SideSet (const StringT& ID) const
 {
-  if (index < 0 && index >= fNumSideSets)
-    throw eOutOfRange;
+	int index = SideSetIndex(ID);
+	if (index == -1) {
+    	cout << "\n ModelManagerT::SideSet: ID not found: " << ID<< endl;
+    	throw eOutOfRange;
+    }
+
   if (fSideSets[index].Length() == 0)
     {
       if (fFormat == IOBaseT::kTahoe)
@@ -846,26 +846,39 @@ const iArray2DT& ModelManagerT::SideSet (int index) const
   return fSideSets [index];
 }
 
-bool ModelManagerT::IsSideSetLocal (int index) const
+bool ModelManagerT::IsSideSetLocal (const StringT& ID) const
 {
-  if (index < 0 && index >= fNumSideSets)
-    throw eOutOfRange;
-  return fSideSetIsLocal [index];
+	int index = SideSetIndex(ID);
+	if (index == -1) {
+    	cout << "\n ModelManagerT::IsSideSetLocal: ID not found: " << ID << endl;
+    	throw eOutOfRange;
+    }
+	return fSideSetIsLocal [index];
 }
 
-int ModelManagerT::SideSetGroupIndex (int sidesetindex) const
+const StringT& ModelManagerT::SideSetGroupID (const StringT& ss_ID) const
 {
-  if (sidesetindex < 0 && sidesetindex >= fNumSideSets)
-    throw eOutOfRange;
+	int index = SideSetIndex(ss_ID);
+	if (index == -1) {
+    	cout << "\n ModelManagerT::SideSetGroupID: ID not found: " << ss_ID << endl;
+    	throw eOutOfRange;
+    }
 
-  /* need to check if group index < 0, then have global side set and
-     need to determine correct group index */
-
-  return fSideSetGroupIndex [sidesetindex];
+	int ss_group_index = fSideSetGroupIndex[index];
+	return fElementNames[ss_group_index];
+	
+	/* need to check if group index < 0, then have global side set and
+       need to determine correct group index */
 }
 
-void ModelManagerT::SideSetLocalToGlobal (const int localelemindex, const iArray2DT& local, iArray2DT& global)
+void ModelManagerT::SideSetLocalToGlobal (const StringT& element_ID, const iArray2DT& local, iArray2DT& global)
 {
+	int localelemindex = ElementGroupIndex(element_ID);
+	if (localelemindex == -1) {
+		cout << "\n ModelManagerT::SideSetLocalToGlobal: element ID not found " << element_ID << endl;
+		throw eOutOfRange;
+	}
+
   int offset = 0;
   for (int i=0; i < localelemindex; i++)
     offset += fElementLengths[i];
@@ -876,9 +889,9 @@ void ModelManagerT::SideSetLocalToGlobal (const int localelemindex, const iArray
     *pelem += offset;
 }
 
-void ModelManagerT::SideSetGlobalToLocal (int& localelemindex, iArray2DT& local, const iArray2DT& global)
+void ModelManagerT::SideSetGlobalToLocal (StringT& element_ID, iArray2DT& local, const iArray2DT& global)
 {
-#pragma unused(localelemindex)
+#pragma unused(element_ID)
 #pragma unused(local)
 #pragma unused(global)
   cout << "\n ModelManagerT::SideSetGlobalToLocal not implemented" << endl;
@@ -951,13 +964,13 @@ void ModelManagerT::AdjustCoordinatesto2D (void)
   RegisterNodes (temp);
 }
 
-bool ModelManagerT::RegisterVariElements (const StringT& name, nVariArray2DT<int>& conn, 
+bool ModelManagerT::RegisterVariElements (const StringT& ID, nVariArray2DT<int>& conn, 
 					  GeometryT::CodeT code, int numelemnodes,
 					  int headroom)
 {
-  if (!CheckName (fElementNames, name, "Element Group")) return false;
+  if (!CheckID (fElementNames, ID, "Element Group")) return false;
   
-  fElementNames.Append (name);
+  fElementNames.Append (ID);
   fElementLengths.Append (0);
   fElementNodes.Append (numelemnodes);
   fElementCodes.Append (code);
@@ -980,19 +993,27 @@ bool ModelManagerT::RegisterVariElements (const StringT& name, nVariArray2DT<int
 }
 
 /* call this function after the connectivity has been changed by outside classes */
-void ModelManagerT::UpdateConnectivity (int index, const iArray2DT& connects)
+void ModelManagerT::UpdateConnectivity (const StringT& ID, const iArray2DT& connects)
 {
-  if (index < 0 && index >= fNumElementSets) throw eOutOfRange;
-
-  fElementSets[index] = connects;
-
-  fElementLengths[index] = fElementSets[index].MajorDim();
-  fElementNodes[index] = fElementSets[index].MinorDim();
+	int index = ElementGroupIndex(ID);
+	if (index == -1) {
+		cout << "\n ModelManagerT::UpdateConnectivity: element ID not found " << ID << endl;
+		throw eOutOfRange;
+	}
+	fElementSets[index] = connects;
+	fElementLengths[index] = fElementSets[index].MajorDim();
+	fElementNodes[index] = fElementSets[index].MinorDim();
 }
 
-void ModelManagerT::AddElement (int index, const iArray2DT& connects, iArrayT& new_elem_tags, int& numelems)
+void ModelManagerT::AddElement (const StringT& ID, const iArray2DT& connects, 
+	iArrayT& new_elem_tags, int& numelems)
 {
-  if (index < 0 && index >= fNumElementSets) throw eOutOfRange;
+	int index = ElementGroupIndex(ID);
+	if (index == -1) {
+		cout << "\n ModelManagerT::AddElement: element ID not found " << ID << endl;
+		throw eOutOfRange;
+	}
+
   if (connects.MajorDim() != new_elem_tags.Length() ||
       connects.MinorDim() != fElementSets[index].MinorDim() ) throw eSizeMismatch;
 
@@ -1059,7 +1080,9 @@ ifstreamT& ModelManagerT::OpenExternal (ifstreamT& in, ifstreamT& in2, ostream& 
 	}  
 }
 
-/*********** PRIVATE **************/
+/*************************************************************************
+* Private
+*************************************************************************/
 
 bool ModelManagerT::ScanModel (const StringT& database)
 {
@@ -1217,19 +1240,19 @@ bool ModelManagerT::ScanSideSets (void)
 }
 
 
-bool ModelManagerT::CheckName (const ArrayT<StringT>& list, const StringT& name, const char *type) const
+bool ModelManagerT::CheckID (const ArrayT<StringT>& list, const StringT& ID, const char *type) const
 {
   // account for space padding at end of name
-  int l1 = name.Length();
+  int l1 = ID.Length();
 
   for (int i=0; i < list.Length(); i++)
     {
       int l2 = list[i].Length();
       int l = (l1 < l2) ? l1 : l2;
-      if (strncmp (list[i].Pointer(), name.Pointer(), l-1) == 0)
+      if (strncmp (list[i].Pointer(), ID.Pointer(), l-1) == 0)
 	{
-	  fMessage << "\nModelManagerT::CheckName\n";
-	  fMessage << "   " << type << " already has a registered set called " << name << "\n\n";
+	  fMessage << "\nModelManagerT::CheckID\n";
+	  fMessage << "   " << type << " already has a registered set called " << ID << "\n\n";
 	  fMessage << "  Sets: \n";
 	  for (int j=0; j < list.Length(); j++)
 	    fMessage << "       " << list[i] << "\n";
