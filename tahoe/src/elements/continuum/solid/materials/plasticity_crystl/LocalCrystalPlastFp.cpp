@@ -721,6 +721,7 @@ void LocalCrystalPlastFp::InitialEstimateForFp()
   // initial estimate for Fp
   fMatx1.Inverse(fFe_n);
   fFp.MultAB(fMatx1, fFt);
+  fFp /= pow(fFp.Det(), 1./3.);
 
   // norm of Fp (to check convergence of state iterations)
   fFpNorm0 = sqrt(fFp.ScalarProduct());
@@ -771,6 +772,7 @@ void LocalCrystalPlastFp::SolveForPlasticDefGradient(int& ierr)
 
   // recover 3x3 matrix form of Fp
   Rank2FromArray9x1(fFp, fFpArray);
+  fFp /= pow(fFp.Det(), 1./3.);
 
   // norm of Fp
   fFpNorm = sqrt(fFp.ScalarProduct());

@@ -660,6 +660,7 @@ void GradCrystalPlastFp::SolveForPlasticDefGradient(int& ierr)
 
   // recover 3x3 matrix form of Fp
   Rank2FromArray9x1(fFp, fFpArray);
+  fFp /= pow(fFp.Det(), 1./3.);
 
   // norm of Fp
   fFpNorm = sqrt(fFp.ScalarProduct());
