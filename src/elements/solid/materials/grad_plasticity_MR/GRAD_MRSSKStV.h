@@ -6,7 +6,7 @@
 #define _GRAD_MR_SS_KSTV_H_
 
 /* base classes */
-#include "SSIsotropicMatT.h"
+#include "MFGP_SSIsotropicMatT.h"
 #include "HookeanMatT.h"
 
 namespace Tahoe 
@@ -15,7 +15,7 @@ namespace Tahoe
 /* forward declarations */
 class GRAD_MRSSNLHardT;
 
-class GRAD_MRSSKStV: public SSIsotropicMatT, public HookeanMatT
+class GRAD_MRSSKStV: public MFGP_SSIsotropicMatT, public HookeanMatT
 {
   public:
 

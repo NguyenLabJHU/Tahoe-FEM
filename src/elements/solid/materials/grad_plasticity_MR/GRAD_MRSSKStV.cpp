@@ -3,7 +3,8 @@
    theory.
 */
 #include "GRAD_MRSSKStV.h"
-#include "SSMatSupportT.h"
+//#include "SSMatSupportT.h"
+#include "MFGP_MaterialSupportT.h"
 #include "GRAD_MRSSNLHardT.h"  
 
 #include "ElementCardT.h"
@@ -213,7 +214,7 @@ void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 void GRAD_MRSSKStV::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	SSIsotropicMatT::DefineParameters(list);
+	MFGP_SSIsotropicMatT::DefineParameters(list);
 	HookeanMatT::DefineParameters(list);
 }
 
@@ -221,7 +222,7 @@ void GRAD_MRSSKStV::DefineParameters(ParameterListT& list) const
 void GRAD_MRSSKStV::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
-	SSIsotropicMatT::DefineSubs(sub_list);
+	MFGP_SSIsotropicMatT::DefineSubs(sub_list);
 	HookeanMatT::DefineSubs(sub_list);
 	
 	/* parameters for pressure sensitive plasticity with localization */
@@ -236,7 +237,7 @@ ParameterInterfaceT* GRAD_MRSSKStV::NewSub(const StringT& name) const
 	else
 	{
 		/* inherited */
-		ParameterInterfaceT* params = SSIsotropicMatT::NewSub(name);
+		ParameterInterfaceT* params = MFGP_SSIsotropicMatT::NewSub(name);
 		if (params) 
 			return params;
 		else
@@ -248,7 +249,7 @@ ParameterInterfaceT* GRAD_MRSSKStV::NewSub(const StringT& name) const
 void GRAD_MRSSKStV::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	SSIsotropicMatT::TakeParameterList(list);
+	MFGP_SSIsotropicMatT::TakeParameterList(list);
 	HookeanMatT::TakeParameterList(list);
 	
 	fStress.Dimension(3);
