@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_DB.h,v 1.5 2004-07-29 18:33:02 paklein Exp $ */
+/* $Id: SIERRA_Material_DB.h,v 1.6 2004-08-08 02:02:57 paklein Exp $ */
 #ifndef _SIERRA_MAT_DB_H_
 #define _SIERRA_MAT_DB_H_
 
@@ -40,8 +40,14 @@ public:
 	static SIERRA_Material_Data* Material(int id);
 	/*@}*/
 
+	/** \name analytical functions */
+	/*@{*/
+	/** initialize new function with the given parameters */
+	static void InitFunction(const ParameterListT& params);
+
 	/** evaluate the given function */
 	static double Evaluate(const StringT& name, double arg);
+	/*@}*/
 
 private:
 

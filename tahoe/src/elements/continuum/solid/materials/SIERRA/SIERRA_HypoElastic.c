@@ -1,4 +1,4 @@
-/* $Id: SIERRA_HypoElastic.c,v 1.9 2003-12-28 08:21:22 paklein Exp $ */
+/* $Id: SIERRA_HypoElastic.c,v 1.10 2004-08-08 02:02:57 paklein Exp $ */
 #include "SIERRA_Material_Interface.h"
 #include <stdio.h>
 
@@ -13,13 +13,17 @@ void SIERRA_HypoElastic_reg(void);
 void SIERRA_HypoElastic_check(int* matvals);
 
 /* state variable init function */
-void SIERRA_HypoElastic_init(int* nelem, double* dt, int* nsv, 
-	double* state_old, double* state_new, int* matvals, int* ncd);
+void SIERRA_HypoElastic_init(int* nelem, double* dt, 
+	double* vars_input, int* ivars_size,
+	int* isize_state, double* state_old, double* state_new, 
+	int* matvals);
 
 /* calculation function */
 void SIERRA_HypoElastic_calc(int* nelem, double* dt,
-	double* vars_input, int* ivars_size, double* stress_old, double* stress_new, 
-	int* nsv, double* state_old, double* state_new, int* matvals, int* ncd);
+	double* vars_input, int* ivars_size, 
+	double* stress_old, double* stress_new, 
+	int* isize_state, double* state_old, double* state_new, 
+	int* matvals);
 
 /*******/
 
@@ -62,33 +66,37 @@ void SIERRA_HypoElastic_check(int* matvals)
 }
 
 /* function to do material initialization */
-void SIERRA_HypoElastic_init(int* nelem, double* dt, int* nsv, 
-	double* state_old, double* state_new, int* matvals, int* ncd)
+void SIERRA_HypoElastic_init(int* nelem, double* dt, 
+	double* vars_input, int* ivars_size,
+	int* isize_state, double* state_old, double* state_new, 
+	int* matvals)
 {
 #pragma unused(dt)
+#pragma unused(vars_input)
+#pragma unused(ivars_size)
 #pragma unused(matvals)
-#pragma unused(ncd)
 
 	int i, j;
 	for (j = 0; j < *nelem; j++)
 	{
-		for (i = 0; i < *nsv; i++)
+		for (i = 0; i < *isize_state; i++)
 		{
 			state_old[i] = 0.0;
 			state_new[i] = 0.0;
 		}
-		state_old += *nsv;
-		state_new += *nsv;
+		state_old += *isize_state;
+		state_new += *isize_state;
 	}
 }
 
 /* function to do material computations */
 void SIERRA_HypoElastic_calc(int* nelem, double* dt,
-	double* vars_input, int* ivars_size, double* stress_old, double* stress_new, 
-	int* nsv, double* state_old, double* state_new, int* matvals, int* ncd)
+	double* vars_input, int* ivars_size, 
+	double* stress_old, double* stress_new, 
+	int* isize_state, double* state_old, double* state_new, 
+	int* matvals)
 {
 #pragma unused(dt)
-#pragma unused(ncd)
 
 	const char model_name[] = "HYPOELASTIC";
 	int i, istrain;
@@ -129,8 +137,8 @@ void SIERRA_HypoElastic_calc(int* nelem, double* dt,
 		dstrain += *ivars_size;
 		stress_old += 6;
 		stress_new += 6;
-		state_old += *nsv;
-		state_new += *nsv;
+		state_old += *isize_state;
+		state_new += *isize_state;
 	}
 }
 

@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Interface.cpp,v 1.8 2004-07-29 18:33:02 paklein Exp $ */
+/* $Id: SIERRA_Material_Interface.cpp,v 1.9 2004-08-08 02:02:57 paklein Exp $ */
 #include "SIERRA_Material_Interface.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -35,7 +35,19 @@ void FORTRAN_NAME(get_real_constant)(double* destination, const int* mat_vals,
 void FORTRAN_NAME(get_var_index)(int* index, int* num_workset_elem, const char* variable_name, 
 	const char* material_name, int variable_name_len, int material_name_len)
 {
+#pragma unused(variable_name_len)
+
 	const char caller[] = "get_var_index";
+
+	//NOTE: until we also get information about the number of integration
+	//      points per element, we cannot figure out the offset into the
+	//      variable array to the start of the given variable. Data is assumed
+	//      to be stored across the workset as: 
+	//		{{{a}_1, {a}_2, ..., {a}_nwsn}, {{b}_1, {b}_2, ..., {b}_nwsn}, ...}
+	//
+	//      where {a}_i = the variables for all integration points of element i
+	if (*num_workset_elem != 1)
+		ExceptionT::GeneralFail(caller, "expecting 1 workset element: %d", *num_workset_elem);
 
 	/* fetch material */
 	f2c_string(material_name, material_name_len, StringBuffer, kStringBufferSize);
@@ -45,22 +57,16 @@ void FORTRAN_NAME(get_var_index)(int* index, int* num_workset_elem, const char* 
 	const AutoArrayT<StringT>& vars = mat->InputVariables();
 	const AutoArrayT<int>& sizes = mat->InputVariableSize();
 
-	if (vars.Length() != 1)
-		ExceptionT::GeneralFail(caller, "assuming only 1 variable: %d", vars.Length());
-	//NOTE: until we also get information about the number of integration
-	//      points per element, we cannot figure out the offset into the
-	//      variable array to the start of the given variable. Data is assumed
-	//      to be stored across the workset as: 
-	//		{{{a}_1, {a}_2, ..., {a}_nwsn}, {{b}_1, {b}_2, ..., {b}_nwsn}, ...}
-	//
-	//      where {a}_i = the variables for all integration points of element i
-#pragma unused(num_workset_elem)
-	
-	f2c_string(variable_name, variable_name_len, StringBuffer, kStringBufferSize);
-	if (vars[0] != StringBuffer)
-		ExceptionT::GeneralFail(caller, "variable not found: %s", StringBuffer);
-	else
-		*index = 1; // FORTRAN numbering!
+	/* compute offset */
+	*index = 1; /* FORTRAN numbering! */
+	for (int i = 0; i < vars.Length(); i++)
+		if (strncmp(vars[i], variable_name, vars[i].StringLength()) == 0)
+			return; /* found */
+		else
+			*index += sizes[i];
+
+	/* fail */
+	ExceptionT::GeneralFail(caller, "variable not found: %s", StringBuffer);
 }
 
 /* register the material model */
@@ -146,8 +152,16 @@ void FORTRAN_NAME(apub_fortran_fctn_eval)(const int* matvals, const double* arg,
 	const char* func_name, int func_name_len)
 {
 	/* fetch material */
+	SIERRA_Material_Data* mat = SIERRA_Material_DB::Material(*matvals);
+
+	/* name passed in is key to function's symbol */
 	f2c_string(func_name, func_name_len, StringBuffer, kStringBufferSize);
-	*out = SIERRA_Material_DB::Evaluate(func_name, *arg);
+
+	/* get symbol */
+	const StringT& function_symbol = mat->Symbol(StringBuffer);
+
+	/* evaluate function */
+	*out = SIERRA_Material_DB::Evaluate(function_symbol, *arg);
 }
 
 /* error reporting */

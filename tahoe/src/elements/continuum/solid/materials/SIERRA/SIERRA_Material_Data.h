@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Data.h,v 1.5 2004-07-29 18:33:02 paklein Exp $ */
+/* $Id: SIERRA_Material_Data.h,v 1.6 2004-08-08 02:02:57 paklein Exp $ */
 #ifndef _SIERRA_MAT_DATA_H_
 #define _SIERRA_MAT_DATA_H_
 
@@ -15,6 +15,15 @@ namespace Tahoe {
 class SIERRA_Material_Data
 {
 public:
+
+	/** enumeration of input variables */
+	enum InputVariableT {
+		kundefined,
+		krot_strain_increment,
+		krot_strain_inc,
+		ktemperature_old,
+		ktemperature_new
+	};
 
 	/** constructor */
 	SIERRA_Material_Data(const StringT& name, int XML_command_id, int modulus_flag);
@@ -40,9 +49,6 @@ public:
 
 	/** set the number of state variables */
 	void SetNumStateVariables(int nsv) { fNumStateVars = nsv; }; 
-
-	/** add a material property. Return the index of the value in the parameters array */
-	int AddProperty(const StringT& name, double value);
 	/*@}*/
 
 	/** \name accessors */
@@ -57,23 +63,32 @@ public:
 	const ArrayT<int>& XMLCommandID(void) const { return fXMLCommandID; };
 
 	/** return the number of state variables */
-	int NumStateVariables(void) { return fNumStateVars; }; 
+	int NumStateVariables(void) const { return fNumStateVars; }; 
 
 	/** return the list of input variable names */
-	const ArrayT<StringT>& InputVariables(void) { return fInputVariables; };
+	const ArrayT<StringT>& InputVariables(void) const { return fInputVariables; };
 
 	/** return the list sized per variable */
-	const ArrayT<int>& InputVariableSize(void) { return fInputVariableSize; };
+	const ArrayT<int>& InputVariableSize(void) const { return fInputVariableSize; };
+	
+	/** return the type of strain measure used by the model */
+	InputVariableT StrainMeasure(void) const { return fStrainMeasure; };
 
 	/** function to do checking/registration of parameters */
-	Sierra_function_param_check CheckFunction(void) { return fCheckFunction; };
+	Sierra_function_param_check CheckFunction(void) const { return fCheckFunction; };
 	
 	/** function to do material computations */
-	Sierra_function_material_calc CalcFunction(void) { return fCalcFunction; };
+	Sierra_function_material_calc CalcFunction(void) const { return fCalcFunction; };
 	
 	/** function to do material initialization */
-	Sierra_function_material_init InitFunction(void) { return fInitFunction; };
+	Sierra_function_material_init InitFunction(void) const { return fInitFunction; };
+	/*@}*/
 
+	/** \name real constants for material properties */
+	/*@{*/
+	/** add a material property. Return the index of the value in the parameters array */
+	int AddProperty(const StringT& name, double value);
+	
 	/** array property names */
 	const ArrayT<StringT>& PropertyNames(void) const { return fPropertyNames; };
 
@@ -82,7 +97,20 @@ public:
 
 	/** return property by name */
 	double Property(const StringT& name) const { return fPropertyMap[name]; }
+
+	/** return true of the property has been defined */
+	bool HasProperty(const StringT& name) const { return fPropertyMap.HasKey(name); }
 	/*@}*/
+
+	/** \name symbols */
+	/*@{*/
+	/** associate a symbol with a given name. Return true if the symbol or false if the name
+	 * was already assigned a symbol. */
+	bool AddSymbol(const StringT& name, const StringT& symbol);
+
+	/** return symbol by name */
+	const StringT& Symbol(const StringT& name) const { return fSymbolMap[name]; }
+	/*@}*/	
 
 	/** comparison function to use for finding real constant. Need to override
 	 * the default StringT::operator> and StringT::operator< because the strings
@@ -127,14 +155,20 @@ private:
 	/*@{*/
 	AutoArrayT<StringT> fInputVariables;
 	AutoArrayT<int>     fInputVariableSize;
+	
+	/** deformation measure determined from calls to SIERRA_Material_Data::AddInputVariable */
+	InputVariableT fStrainMeasure;
 	/*@}*/
 
-	/** \name material properties */
+	/** \name real constants for material properties */
 	/*@{*/
 	AutoArrayT<StringT> fPropertyNames;
 	AutoArrayT<double> fPropertyValues;
 	MapT<StringT, double> fPropertyMap;
 	/*@}*/
+
+	/** symbols */
+	MapT<StringT, StringT> fSymbolMap;
 
 private:
 
@@ -153,6 +187,11 @@ inline int SIERRA_Material_Data::AddProperty(const StringT& name, double value)
 	}
 	else 
 		return fPropertyNames.PositionOf(name);
+}
+
+/* add a symbol */
+inline bool SIERRA_Material_Data::AddSymbol(const StringT& name, const StringT& symbol) {
+	return fSymbolMap.Insert(name, symbol);
 }
 
 } /* namespace Tahoe */
