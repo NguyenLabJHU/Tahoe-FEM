@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.h,v 1.6 2004-12-21 17:24:51 thao Exp $ */
+/* $Id: ConveyorT.h,v 1.7 2004-12-27 07:00:55 paklein Exp $ */
 #ifndef _CONVEYOR_T_H_
 #define _CONVEYOR_T_H_
 
@@ -11,6 +11,7 @@
 #include "dArray2DT.h"
 #include "iArrayT.h"
 #include "ofstreamT.h"
+#include "PiecewiseLinearT.h"
 
 namespace Tahoe {
 
@@ -124,6 +125,13 @@ protected:
 	/*@{*/
 	KBC_ControllerT* fRightEdge;
 	AutoArrayT<int>  fShiftedNodes;
+
+	PiecewiseLinearT fUx_upper;
+	PiecewiseLinearT fUx_lower;
+	
+	int fUy_node_upper, fUy_node_lower;
+	AutoArrayT<double> fUy_samples_upper;
+	AutoArrayT<double> fUy_samples_lower;
 	/*@}*/
 
 	/** \name crack tip element group */
@@ -151,7 +159,9 @@ protected:
 	bool fDampingReset;
 	/*@}*/
 
-	/** \name nodes at upper and lower boundaries */
+	/** \name nodes at upper and lower boundaries
+	 * Either of these node lists may be empty if running a case assuming
+	 * symmetry across the cleavage plane */
 	/*@{*/
 	iArrayT fBottomNodes;
 	iArrayT fTopNodes;
