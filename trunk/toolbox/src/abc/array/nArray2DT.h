@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.16 2002-12-05 08:23:01 paklein Exp $ */
+/* $Id: nArray2DT.h,v 1.17 2003-02-12 02:47:18 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NARRAY2D_T_H_
@@ -125,9 +125,15 @@ public:
 	/* create sublist with transposed indexing */
 	void SetLocal(const ArrayT<int>& rows, nArrayT<nTYPE>& sublist) const;
 
-	/* assemble/add the rows of vals to the existing rows of data */
+	/** set the rows of vals to the existing rows of data */
 	void Assemble(const ArrayT<int>& rows, const nArray2DT& vals);
+
+	/** \name add the rows of vals to the existing rows of data */
+	/*@{*/
 	void Accumulate(const ArrayT<int>& rows, const nArray2DT& vals);
+	void Accumulate(int col, const ArrayT<int>& rows, const nArrayT<nTYPE>& vals);
+	void Accumulate(int col, const ArrayT<int>& rows, const nTYPE* vals);
+	/*@}*/
 
 	/* commonly used single row operations;
 	 *
@@ -140,9 +146,26 @@ public:
 	void SetToRowScaled(int row, const nTYPE& scale, const nArray2DT& RHS);
 	void AddRowScaled(int row, const nTYPE& scale, const nArray2DT& RHS);
 
-	/* map addition on rows */
+	/** \name add scaled values to rows */
+	/*@{*/
+	/** check dimensions and add */
 	void AddToRowScaled(int row, const nTYPE& scale, const nArrayT<nTYPE>& array);
+
+	/** add assuming array is length of a row */
+	void AddToRowScaled(int row, const nTYPE& scale, const nTYPE* array);
+	/*@}*/
+
+	/** add the same array to all columns */
 	void AddToRowsScaled(const nTYPE& scale, const nArrayT<nTYPE>& array);
+
+	/** \name add scaled values to columns */
+	/*@{*/
+	/** check dimensions and add */
+	void AddToColumnScaled(int col, const nTYPE& scale, const nArrayT<nTYPE>& array);
+
+	/** add assuming array is length of a column */
+	void AddToColumnScaled(int col, const nTYPE& scale, const nTYPE* array);
+	/*@}*/
 
 	/** copy all values from source into this array. This array must be
 	 * large enough to copy the contents of the source array at the
@@ -726,8 +749,7 @@ void nArray2DT<nTYPE>::Assemble(const ArrayT<int>& rows,
 }
 
 template <class nTYPE>
-void nArray2DT<nTYPE>::Accumulate(const ArrayT<int>& rows,
-	const nArray2DT& vals)
+void nArray2DT<nTYPE>::Accumulate(const ArrayT<int>& rows, const nArray2DT& vals)
 {
 	for (int i = 0; i < rows.Length(); i++)
 	{	
@@ -737,6 +759,23 @@ void nArray2DT<nTYPE>::Accumulate(const ArrayT<int>& rows,
 		for (int j = 0; j < vals.MinorDim(); j++)
 			*p++ += *pvals++;
 	}
+}
+
+template <class nTYPE>
+inline void nArray2DT<nTYPE>::Accumulate(int col, const ArrayT<int>& rows, const nArrayT<nTYPE>& vals)
+{
+#if __option(extended_errorcheck)
+	if (rows.Length() != vals.Length()) ExceptionT::GeneralFail();
+#endif
+
+	Accumulate(col, rows, vals.Pointer());
+}
+
+template <class nTYPE>
+void nArray2DT<nTYPE>::Accumulate(int col, const ArrayT<int>& rows, const nTYPE* vals)
+{
+	for (int i = 0; i < rows.Length(); i++)
+		(*this)(rows[i], col) += *vals++;
 }
 
 /*
@@ -792,7 +831,7 @@ void nArray2DT<nTYPE>::AddRowScaled(int row, const nTYPE& scale,
 
 /* map addition on rows */
 template <class nTYPE>
-void nArray2DT<nTYPE>::AddToRowScaled(int row, const nTYPE& scale,
+inline void nArray2DT<nTYPE>::AddToRowScaled(int row, const nTYPE& scale,
 	const nArrayT<nTYPE>& array)
 {
 /* range checking */
@@ -800,9 +839,15 @@ void nArray2DT<nTYPE>::AddToRowScaled(int row, const nTYPE& scale,
 	if (array.Length() != fMinorDim) ExceptionT::SizeMismatch();
 #endif
 
-	nTYPE  temp;
-	nTYPE* parray = array.Pointer();	
-	nTYPE* prow   = (*this)(row);
+	AddToRowScaled(row, scale, array.Pointer());
+}
+
+template <class nTYPE>
+void nArray2DT<nTYPE>::AddToRowScaled(int row, const nTYPE& scale, const nTYPE* array)
+{
+	nTYPE temp;
+	const nTYPE* parray = array;	
+	nTYPE* prow = (*this)(row);
 	for (int i = 0; i < fMinorDim; i++)
 	{
 		temp = *parray++;
@@ -854,6 +899,34 @@ void nArray2DT<nTYPE>::AddToRowsScaled(const nTYPE& scale,
 		}
 	}
 }
+
+/* map addition on columns */
+template <class nTYPE>
+inline void nArray2DT<nTYPE>::AddToColumnScaled(int col, const nTYPE& scale,
+	const nArrayT<nTYPE>& array)
+{
+/* range checking */
+#if __option (extended_errorcheck)
+	if (array.Length() != fMajorDim) ExceptionT::SizeMismatch();
+#endif
+
+	AddToColumnScaled(col, scale, array.Pointer());
+}
+
+template <class nTYPE>
+void nArray2DT<nTYPE>::AddToColumnScaled(int col, const nTYPE& scale, const nTYPE* array)
+{
+	nTYPE temp;
+	const nTYPE* parray = array;	
+	nTYPE* pcol = Pointer(col);
+	for (int i = 0; i < fMajorDim; i++)
+	{
+		temp = *parray++;
+		temp *= scale;
+		*pcol += temp;
+		pcol += fMinorDim;
+	}
+}	
 
 /* copy all rows/columns from source at start */
 template <class nTYPE>

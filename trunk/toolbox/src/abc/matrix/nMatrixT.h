@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.19 2003-02-09 00:47:53 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.20 2003-02-12 02:47:19 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _NMATRIX_T_H_
 #define _NMATRIX_T_H_
@@ -165,9 +165,10 @@ public:
 	nTYPE MultmBn(const nArrayT<nTYPE>& m, const nArrayT<nTYPE>& n) const;
 	   		
 	/** dyadic product
-	 * Set thisd to the the outer product of the 2 vectors, or
+	 * Set this to the the outer product of the two vectors, or
 	 * in dyadic notation \f$ \mathbf{v}_1 \otimes \mathbf{v}_2 \f$. */
-	void Outer(const nArrayT<nTYPE>& v1, const nArrayT<nTYPE>& v2);
+	void Outer(const nArrayT<nTYPE>& v1, const nArrayT<nTYPE>& v2, 
+		const nTYPE& scale = nTYPE(1.0), int fillmode = kOverwrite);
 
 	/** \name identity operations
 	 * For use with square matrices \e only */
@@ -1508,38 +1509,54 @@ nTYPE nMatrixT<nTYPE>::MultmBn(const nArrayT<nTYPE>& m,
 	return(product);
 }	
 
-/*
-* Returns the outer product of the 2 vectors, or
-* in dyadic notation:
-*
-*        v1 (x) v2
-*
-*/
+/* dyadic product */
 template <class nTYPE>
-void nMatrixT<nTYPE>::Outer(const nArrayT<nTYPE>& v1,
-	const nArrayT<nTYPE>& v2)
+void nMatrixT<nTYPE>::Outer(const nArrayT<nTYPE>& v1, const nArrayT<nTYPE>& v2,
+	const nTYPE& scale, int fillmode)
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)
 	if (v1.Length() != fRows || v2.Length() != fCols) throw ExceptionT::kSizeMismatch;
 #endif
 
-	nTYPE* pthis = Pointer();
-	nTYPE* pv1 = v1.Pointer();
-	nTYPE* pv2 = v2.Pointer();
-
-	for (int j = 0; j < fCols; j++)
+	if (fillmode == kOverwrite)
 	{
-		nTYPE* pcol = pv1;
-
-		for (int i = 0; i < fRows; i++)
+		nTYPE* pthis = Pointer();
+		nTYPE* pv1 = v1.Pointer();
+		nTYPE* pv2 = v2.Pointer();
+		for (int j = 0; j < fCols; j++)
 		{
-			*pthis    = *pcol++;
-			*pthis++ *= *pv2;
+			nTYPE* pcol = pv1;
+			for (int i = 0; i < fRows; i++)
+			{
+				*pthis    = scale;
+				*pthis   *= *pcol++;
+				*pthis++ *= *pv2;
+			}
+			pv2++;
 		}
-			
-		pv2++;
 	}
+	else if (fillmode == kAccumulate)
+	{
+		nTYPE* pthis = Pointer();
+		nTYPE* pv1 = v1.Pointer();
+		nTYPE* pv2 = v2.Pointer();
+		register nTYPE temp;
+		for (int j = 0; j < fCols; j++)
+		{
+			nTYPE* pcol = pv1;
+			for (int i = 0; i < fRows; i++)
+			{
+				temp  = scale;
+				temp *= *pcol++;
+				temp *= *pv2;
+				
+				*pthis++ += temp;
+			}
+			pv2++;
+		}
+	}
+	else ExceptionT::GeneralFail();
 }
 
 /* identity operations - square matrices ONLY */
