@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.21 2003-05-20 10:15:48 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.22 2004-02-26 08:54:34 paklein Exp $ */
 #include "ComparatorT.h"
 
 #include <iostream.h>
@@ -251,6 +251,18 @@ void ComparatorT::RunBatch(ifstreamT& in, ostream& status)
 		/* reset root */
 		fIsRoot = true;		
 	}
+}
+
+/* recursive dispatch */
+void ComparatorT::JobOrBatch(ifstreamT& in, ostream& status)
+{
+	/* catch XML job files */
+	StringT ext;
+	ext.Suffix(in.filename());
+	if (ext == ".xml")
+		RunJob(in, status);
+	else /* inherited */
+		FileCrawlerT::JobOrBatch(in, status);
 }
 
 /**********************************************************************
