@@ -1,4 +1,4 @@
-/* $Id: J2SimoC0HardeningT.cpp,v 1.5 2001-07-03 01:35:33 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.cpp,v 1.6 2001-10-24 02:20:04 paklein Exp $ */
 /* created: paklein (05/01/2001) */
 
 #include "J2SimoC0HardeningT.h"
@@ -50,7 +50,7 @@ J2SimoC0HardeningT::~J2SimoC0HardeningT(void) { delete fK; }
 * Protected
 ***********************************************************************/
 
-/** write parameters */
+/* write parameters */
 void J2SimoC0HardeningT::Print(ostream& out) const
 {
 	/* hardening function parameters */
@@ -83,9 +83,9 @@ void J2SimoC0HardeningT::PrintName(ostream& out) const
 	out << "    Hardening with Radial Return\n";
 }
 
-/** compute trial elastic state - return reference to isochoric,
+/* compute trial elastic state - return reference to isochoric,
  * trial elastic stretch */
-const dSymMatrixT& J2SimoC0HardeningT::TrialElasticState(const dMatrixT& F_total,
+const dSymMatrixT& J2SimoC0HardeningT::TrialElasticState(const dMatrixT& F_mechanical,
 	const dMatrixT& f_relative, ElementCardT& element, int ip)
 {
 	/* compute left Cauchy-Green */
@@ -98,7 +98,7 @@ const dSymMatrixT& J2SimoC0HardeningT::TrialElasticState(const dMatrixT& F_total
 		iArrayT& Flags = element.IntegerData();
 		if (Flags[ip] == kNotInit)
 		{
-			InitIntermediate(F_total, f_relative);
+			InitIntermediate(F_mechanical, f_relative);
 			Flags[ip] = kIsElastic;
 		}
 	
@@ -114,15 +114,15 @@ const dSymMatrixT& J2SimoC0HardeningT::TrialElasticState(const dMatrixT& F_total
 		fbeta_bar_trial.PlusIdentity(-ftrace_beta_trial/3.0); /* deviatoric part */
 		
 		/* save */
-		fInternal[kDetF_tot] = F_total.Det();
+		fInternal[kDetF_tot] = F_mechanical.Det();
 		fb_bar_trial_ = fb_bar_trial;
 		fbeta_bar_trial_ = fbeta_bar_trial;
 	}
 	else /* element is elastic */
 	{
 		/* trial stretch */
-		fb_bar_trial.MultAAT(F_total);
-		fb_bar_trial *= pow(F_total.Det(), -2.0/3.0);
+		fb_bar_trial.MultAAT(F_mechanical);
+		fb_bar_trial *= pow(F_mechanical.Det(), -2.0/3.0);
 		
 		/* trial kinematic hardening */
 		fbeta_bar_trial = 0.0;
@@ -133,24 +133,70 @@ const dSymMatrixT& J2SimoC0HardeningT::TrialElasticState(const dMatrixT& F_total
 	return fb_bar_trial;
 }
 
-/* return the correction to stress vector computed by the mapping the
-* stress back to the yield surface, if needed */
-const dSymMatrixT& J2SimoC0HardeningT::StressCorrection(const dMatrixT& F_total,
-	const dMatrixT& f_relative, ElementCardT& element, int ip)
+/* determine elastic or plastic loading for the current step */
+int J2SimoC0HardeningT::PlasticLoading(ElementCardT& element, int ip)
 {
-	/* check consistency and initialize plastic element */
-	if (PlasticLoading(F_total, f_relative, element, ip) &&
-	    !element.IsAllocated())
-	{
-		/* new element */
-		AllocateElement(element);
-		
-		/* set trial state and load data */
-		TrialElasticState(F_total, f_relative, element, ip);
+	/* compute relative stress */
+	fRed2Temp.Deviatoric(fb_bar_trial);
+	fRelStress.SetToCombination(fmu, fRed2Temp, -1.0, fbeta_bar_trial);
 
-		/* initialize element data */
-		PlasticLoading(F_total, f_relative, element, ip);
+	/* not yet plastic */
+	if (!element.IsAllocated()) 
+		return YieldCondition(fRelStress, 0.0) > kYieldTol;
+	else /* already plastic */
+	{
+		/* get flags */
+		iArrayT& Flags = element.IntegerData();
+
+		/* should not get here uninitialized */
+		if (Flags[ip] == kNotInit)
+		{
+			cout << "\n J2SimoC0HardeningT::PlasticLoading: should not arrive here\n"
+			     <<   "     with uninitialized state" << endl;
+			throw eGeneralFail;
+		}
+#if 0
+		{
+			InitIntermediate(F_total, f_relative);
+			Flags[ip] = kIsElastic;
+		}
+#endif
+	
+		/* set internal variables */		
+		fInternal[kftrial]     = YieldCondition(fRelStress, fInternal[kalpha]);
+		fInternal[kstressnorm] = sqrt(fRelStress.ScalarProduct());
+		fInternal[kmu_bar]     = fmu*fb_bar_trial.Trace()/3.0;
+		fInternal[kmu_bar_bar] = fInternal[kmu_bar] - ftrace_beta_trial/3.0;
+		
+		/* compute unit normal */
+		fUnitNorm.SetToScaled(1.0/fInternal[kstressnorm], fRelStress);
+		
+		/* plastic */
+		if (fInternal[kftrial] > kYieldTol)
+		{
+			/* compute unit normal */
+//			double& norm = fInternal[kstressnorm];
+//			norm = sqrt(fRelStress.ScalarProduct());
+//			fUnitNorm.SetToScaled(1.0/norm, fRelStress);
+		
+			/* set flag */
+			Flags[ip] = kIsPlastic;	
+			return 1;
+		}
+		else /* elastic */
+		{
+			/* set flag */
+			Flags[ip] = kIsElastic;
+			return 0;
+		}
 	}
+}
+
+/* return the correction to stress vector computed by the mapping the
+ * stress back to the yield surface, if needed */
+const dSymMatrixT& J2SimoC0HardeningT::StressCorrection(ElementCardT& element, int ip)
+{
+#pragma unused(ip)
 
 	/* initialize */
 	fStressCorr = 0.0;
@@ -408,12 +454,12 @@ void J2SimoC0HardeningT::Reset(ElementCardT& element)
 }
 
 /* initialize intermediate state from F_n */
-void J2SimoC0HardeningT::InitIntermediate(const dMatrixT& F_total,
+void J2SimoC0HardeningT::InitIntermediate(const dMatrixT& F_mechanical,
 	const dMatrixT& f_relative)
 {
 	/* compute F_n */
 	fMatrixTemp1.Inverse(f_relative);
-	fMatrixTemp2.MultAB(fMatrixTemp1, F_total);
+	fMatrixTemp2.MultAB(fMatrixTemp1, F_mechanical);
 	
 	/* b */
 	fb_bar.MultAAT(fMatrixTemp2);
@@ -444,66 +490,7 @@ void J2SimoC0HardeningT::LoadData(const ElementCardT& element, int ip)
     fInternal.Set(kNumInternal, &d_array[5*offset + ip*kNumInternal]);     	
 }
 
-/*
-* Returns 1 if the trial elastic strain state lies outside of the
-* yield surface.
-*
-* NOTE: pass (element = NULL) if element is not yet plastic, ie. has
-*       no stored internal variables.
-*/
-int J2SimoC0HardeningT::PlasticLoading(const dMatrixT& F_total,
-	const dMatrixT& f_relative, ElementCardT& element, int ip)
-{
-	/* compute relative stress */
-	fRed2Temp.Deviatoric(fb_bar_trial);
-	fRelStress.SetToCombination(fmu, fRed2Temp, -1.0, fbeta_bar_trial);
-
-	/* not yet plastic */
-	if (!element.IsAllocated()) 
-		return YieldCondition(fRelStress, 0.0) > kYieldTol;
-	else /* already plastic */
-	{
-		/* get flags */
-		iArrayT& Flags = element.IntegerData();
-
-		/* initialize intermediate state */
-		if (Flags[ip] == kNotInit)
-		{
-			InitIntermediate(F_total, f_relative);
-			Flags[ip] = kIsElastic;
-		}
-	
-		/* set internal variables */		
-		fInternal[kftrial]     = YieldCondition(fRelStress, fInternal[kalpha]);
-		fInternal[kstressnorm] = sqrt(fRelStress.ScalarProduct());
-		fInternal[kmu_bar]     = fmu*fb_bar_trial.Trace()/3.0;
-		fInternal[kmu_bar_bar] = fInternal[kmu_bar] - ftrace_beta_trial/3.0;
-		
-		/* compute unit normal */
-		fUnitNorm.SetToScaled(1.0/fInternal[kstressnorm], fRelStress);
-		
-		/* plastic */
-		if (fInternal[kftrial] > kYieldTol)
-		{
-			/* compute unit normal */
-//			double& norm = fInternal[kstressnorm];
-//			norm = sqrt(fRelStress.ScalarProduct());
-//			fUnitNorm.SetToScaled(1.0/norm, fRelStress);
-		
-			/* set flag */
-			Flags[ip] = kIsPlastic;	
-			return 1;
-		}
-		else /* elastic */
-		{
-			/* set flag */
-			Flags[ip] = kIsElastic;
-			return 0;
-		}
-	}
-}	
-
-/** returns the value value of the yield function given the
+/* returns the value value of the yield function given the
  * relative stress vector and state variables, where  alpha
  * represents isotropic hardening.  NOTE: the relative stress
  * should already contain the correction for any kinematic
