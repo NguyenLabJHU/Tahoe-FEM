@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.27 2002-10-30 00:35:49 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.28 2002-10-30 17:43:29 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -144,11 +144,10 @@ void CSEAnisoT::Initialize(void)
 				if (NumDOF() == 2)
 				{
 #ifndef _SIERRA_TEST_
-					fSurfPots[num] = new XuNeedleman2DT(in);
-					cout << "\n CSEAnisoT::Initialize: potential not implemented for 2D: "
-					     << code << endl; 				
-#endif
+					fSurfPots[num] = new XuNeedleman2DT(in);			
+#else
 					throw ExceptionT::kBadInputValue;
+#endif
 				}
 				else
 				{
@@ -167,10 +166,9 @@ void CSEAnisoT::Initialize(void)
 				{
 #ifndef _SIERRA_TEST_
 					fSurfPots[num] = new TvergHutch2DT(in);
-					cout << "\n CSEAnisoT::Initialize: potential not implemented for 2D: "
-					     << code << endl; 				
-#endif
+#else
 					throw ExceptionT::kBadInputValue;
+#endif
 				}
 				else
 				{
@@ -244,9 +242,9 @@ void CSEAnisoT::Initialize(void)
 				{
 #ifndef _SIERRA_TEST_
 					fSurfPots[num] = new YoonAllen2DT(in, ElementSupport().TimeStep());
-					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code << endl;
-#endif
+#else
 					throw ExceptionT::kBadInputValue;
+#endif
 				}
 				else
 				{
