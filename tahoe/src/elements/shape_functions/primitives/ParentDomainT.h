@@ -1,9 +1,5 @@
-/* $Id: ParentDomainT.h,v 1.11 2002-07-20 00:33:20 hspark Exp $ */
-/* created: paklein (07/03/1996)                                          */
-/* interface for a finite element parent domain. manages integration      */
-/* information (points, weights, etc..) and mapping between the real      */
-/* coordinates and the domain.                                            */
-
+/* $Id: ParentDomainT.h,v 1.12 2002-07-20 08:02:46 paklein Exp $ */
+/* created: paklein (07/03/1996) */
 #ifndef _PARENT_DOMAIN_T_H_
 #define _PARENT_DOMAIN_T_H_
 
@@ -36,11 +32,13 @@ class ParentDomainT
 	/** set all local parameters. call immediately after constructor */
 	void Initialize(void);
 
-	/* accessors */
+	/** \name accessors */
+	/*@{*/
 	int NumSD(void) const;
 	int NumIP(void) const;
 	int NumNodes(void) const;
 	GeometryT::CodeT GeometryCode(void) const;
+	/*@}*/
 
 	/** reference to the parent domain geometry */
 	const GeometryBaseT& Geometry(void) const;
@@ -198,26 +196,38 @@ class ParentDomainT
 	 * \param mapped point coordinates in the parent coordinates */
 	bool MapToParentDomain(const LocalArrayT& coords, const dArrayT& point,
 		dArrayT& mapped) const;
+
+	/** calculate a characteristic domain size. Calculate the maximum distance
+	 * between the average nodal position and each of the nodes. 
+	 * \param coords coordinates of the domain nodes
+	 * \param avg returns with the coordinate average */
+	double AverageRadius(const LocalArrayT& coords, dArrayT& avg) const;
 	
   private:
 
-	/* dimensions */
-	GeometryT::CodeT fGeometryCode; // geometry shape code
-	int fNumSD;        // number of spatial dimensions
-	int fNumIP;        // number of integration points
-	int fNumNodes;     // number of domain nodes
+	/** \name dimensions */
+	/*@{*/
+	GeometryT::CodeT fGeometryCode; /**< geometry shape code */
+	int fNumSD;    /**< number of spatial dimensions */
+	int fNumIP;    /**< number of integration points */
+	int fNumNodes; /**< number of domain nodes */
+	/*@}*/
 
-	/* parent domain shape functions and derivatives */
+	/** \name parent domain shape functions and derivatives */
+	/*@{*/
 	dArray2DT		  fNa;
 	ArrayT<dArray2DT> fDNa;
-	dArrayT           fWeights; // ip weights
+	dArrayT           fWeights; /**< integration weights */
+	/*@}*/
 
-	/* parent domain geometry */
+	/** parent domain geometry */
 	GeometryBaseT* fGeometry;
 
-	/* work space */
-	dMatrixT fNodalExtrap; // extrapolation matrix
-	dMatrixT fJacobian;    // jacobian matrix
+	/** \name work space */
+	/*@{*/
+	dMatrixT fNodalExtrap; /**< extrapolation matrix */
+	dMatrixT fJacobian;    /**< jacobian matrix */
+	/*@}*/
 };
 
 /* inlines */
