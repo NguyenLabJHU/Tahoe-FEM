@@ -1,23 +1,42 @@
-/* $Id: ParameterContainerT.cpp,v 1.2 2004-01-21 17:05:40 paklein Exp $ */
+/* $Id: ParameterContainerT.cpp,v 1.3 2004-03-28 09:53:29 paklein Exp $ */
 #include "ParameterContainerT.h"
 
 using namespace Tahoe;
 
+/* array behavior */
+namespace Tahoe {
+DEFINE_TEMPLATE_STATIC const bool ArrayT<ParameterContainerT>::fByteCopy = false;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<ParameterContainerT*>::fByteCopy = true;
+}
+
 /* constructor */
 ParameterContainerT::ParameterContainerT(const StringT& name):
-	ParameterListT(name),
 	ParameterInterfaceT(name),
 	fSubSource(NULL)
 {
-
+	/* take default from ParameterListT */
+	ParameterListT tmp;
+	fListOrder = tmp.ListOrder();
+	fInline = tmp.Inline();
 }
 
-/* define name */
-void ParameterContainerT::SetName(const StringT& name)
+ParameterContainerT::ParameterContainerT(void):
+	ParameterInterfaceT("container"),
+	fSubSource(NULL)
 {
-	/* inherited */
-	ParameterListT::SetName(name);
-	ParameterInterfaceT::SetName(name);
+	/* take default from ParameterListT */
+	ParameterListT tmp;
+	fListOrder = tmp.ListOrder();
+	fInline = tmp.Inline();
+}
+
+/* add parameter */
+bool ParameterContainerT::AddParameter(const ParameterT& param, ParameterListT::OccurrenceT occur)
+{
+	/* add to the list */
+	fParameters.Append(param);
+	fParametersOccur.Append(occur);
+	return true;
 }
 
 void ParameterContainerT::AddSub(const StringT& name, ParameterListT::OccurrenceT occur, 
@@ -29,6 +48,12 @@ void ParameterContainerT::AddSub(const StringT& name, ParameterListT::Occurrence
 void ParameterContainerT::AddSub(const SubListDescriptionT& sub)
 {
 	fSubs.AddSub(sub);
+}
+
+void ParameterContainerT::AddSub(const ParameterContainerT& sub, ParameterListT::OccurrenceT occur)
+{
+	fContainers.Append(sub);
+	fContainersOccur.Append(occur);
 }
 
 /* set source for subs not defined by the container */
@@ -46,6 +71,13 @@ ParameterInterfaceT* ParameterContainerT::NewSub(const StringT& list_name) const
 	/* inherited (get from self) */
 	ParameterInterfaceT* sub = ParameterInterfaceT::NewSub(list_name);
 	
+	/* check list of containers */
+	for (int i = 0; i < fContainers.Length(); i++)
+		if (fContainers[i].Name() == list_name) {
+			ParameterContainerT* container = new ParameterContainerT(fContainers[i]);
+			return container;
+		}
+
 	/* get from sub source */
 	if (!sub && fSubSource)
 		sub = fSubSource->NewSub(list_name);
@@ -75,6 +107,9 @@ void ParameterContainerT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	ParameterInterfaceT::DefineParameters(list);
 
+	/* set description */
+	list.SetDescription(fDescription);
+
 	/* register all parameters */
 	for (int i = 0; i < fParameters.Length(); i++)
 		list.AddParameter(fParameters[i], fParametersOccur[i]);
@@ -89,4 +124,8 @@ void ParameterContainerT::DefineSubs(SubListT& sub_list) const
 	/* register all sublists */
 	for (int i = 0; i < fSubs.Length(); i++)
 		sub_list.AddSub(fSubs[i]);
+
+	/* register all containers */
+	for (int i = 0; i < fContainers.Length(); i++)
+		sub_list.AddSub(fContainers[i].Name(), fContainersOccur[i]);	
 }

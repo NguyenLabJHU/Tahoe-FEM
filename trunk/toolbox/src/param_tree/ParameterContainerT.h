@@ -1,9 +1,11 @@
-/* $Id: ParameterContainerT.h,v 1.4 2004-03-24 17:20:35 paklein Exp $ */
+/* $Id: ParameterContainerT.h,v 1.5 2004-03-28 09:53:29 paklein Exp $ */
 #ifndef _PARAMETER_CONTAINER_T_H_
 #define _PARAMETER_CONTAINER_T_H_
 
 /* base classes */
 #include "ParameterInterfaceT.h"
+
+/* direct members */
 #include "ParameterListT.h"
 
 namespace Tahoe {
@@ -15,17 +17,30 @@ namespace Tahoe {
  * construct are those predefined for ParameterInterfaceT. All others will be
  * requested from the ParameterContainerT::fSubSource, if it has been set with
  * ParameterContainerT::SetSubSource. */
-class ParameterContainerT: public ParameterListT, public ParameterInterfaceT
+class ParameterContainerT: public ParameterInterfaceT
 {
 public:
 
-	/** constructor */
+	/** \name constructors */
+	/*@{*/
 	ParameterContainerT(const StringT& name);
 
-	/** \name identifier */
+	/** \name default constructor needed to define arrays */
+	ParameterContainerT(void);
+	/*@}*/
+
+	/** \name adding items to the list */
 	/*@{*/
-	const StringT& Name(void) const { return ParameterInterfaceT::Name(); };
-	void SetName(const StringT& name);
+	/** add a parameter. Returns true of there where no conflicts with
+	 * existing parameters. The names of parameters cannot be repeated.
+	 * By default, the ParameterListT::OccurrenceT is ParameterListT::Once. */
+	bool AddParameter(const ParameterT& param, ParameterListT::OccurrenceT occur = ParameterListT::Once); 
+
+	bool AddParameter(int a, const char* name, ParameterListT::OccurrenceT occur = ParameterListT::Once);
+	bool AddParameter(double x, const char* name, ParameterListT::OccurrenceT occur = ParameterListT::Once);
+	bool AddParameter(const char* s, const char* name, ParameterListT::OccurrenceT occur = ParameterListT::Once);
+	bool AddParameter(bool b, const char* name, ParameterListT::OccurrenceT occur = ParameterListT::Once);
+	bool AddParameter(ValueT::TypeT t, const char* name, ParameterListT::OccurrenceT occur = ParameterListT::Once);
 	/*@}*/
 
 	/** \name add a sublist */
@@ -34,6 +49,7 @@ public:
 		ParameterListT::OccurrenceT occur = ParameterListT::Once, 
 		bool is_inline = false); 
 	void AddSub(const SubListDescriptionT& sub);
+	void AddSub(const ParameterContainerT& sub, ParameterListT::OccurrenceT occur = ParameterListT::Once);
 	/*@}*/
 
 	/** set source for subs not defined by the container. The source must remain
@@ -53,11 +69,28 @@ public:
      virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
 		SubListT& sub_sub_list) const;
 
+	/** \name set/get list attributes */
+	/*@{*/
 	/** the order of subordinate lists */
 	virtual ParameterListT::ListOrderT ListOrder(void) const;
 
+	/** set/change the list order */
+	void SetListOrder(ParameterListT::ListOrderT list_order);
+
+#if 0
 	/** return true if the interface is inline */
 	virtual bool Inline(void) const;
+
+	/** set/change inlining flag */
+	void SetInline(bool is_inline);
+#endif
+
+	/** \name description */
+	/*@{*/
+	void SetDescription(const char* description) { fDescription = description; };
+	const StringT& Description(void) const { return fDescription; };
+	/*@}*/
+	/*@}*/
 
 protected:
 
@@ -73,24 +106,67 @@ protected:
 
 protected:
 
+	/** list order */
+	ParameterListT::ListOrderT fListOrder;
+
+	/** flag indicating if list is inline */
+	bool fInline;
+
+	/** description */
+	StringT fDescription;
+
+	/** \name simple parameters */
+	/*@{*/
+	AutoArrayT<ParameterT> fParameters;
+	AutoArrayT<ParameterListT::OccurrenceT> fParametersOccur;
+	/*@}*/
+
+	/** \name nested lists */
+	/*@{*/
 	/** sublists registered by ParameterContainerT::AddSub */
 	SubListT fSubs;
 	
+	/** nested ParameterContainerT's registered ParameterContainerT::AddSub */
+	AutoArrayT<ParameterContainerT> fContainers;
+	AutoArrayT<ParameterListT::OccurrenceT> fContainersOccur;
+	
 	/** source for subs that are not defined by the container */
 	const ParameterInterfaceT* fSubSource;
+	/*@}*/
 };
 
 /* inlines */
 
-/* the order of subordinate lists */
-inline ParameterListT::ListOrderT ParameterContainerT::ListOrder(void) const {
-	return ParameterListT::ListOrder();
+inline bool ParameterContainerT::AddParameter(int a, const char* name, ParameterListT::OccurrenceT occur)
+{
+	ParameterT parameter(a, name);
+	return AddParameter(parameter, occur);
+}
+inline bool ParameterContainerT::AddParameter(double x, const char* name, ParameterListT::OccurrenceT occur)
+{
+	ParameterT parameter(x, name);
+	return AddParameter(parameter, occur);
+}
+inline bool ParameterContainerT::AddParameter(const char* s, const char* name, ParameterListT::OccurrenceT occur)
+{
+	ParameterT parameter(s, name);
+	return AddParameter(parameter, occur);
+}
+inline bool ParameterContainerT::AddParameter(bool b, const char* name, ParameterListT::OccurrenceT occur)
+{
+	ParameterT parameter(b, name);
+	return AddParameter(parameter, occur);
+}
+inline bool ParameterContainerT::AddParameter(ValueT::TypeT t, const char* name, ParameterListT::OccurrenceT occur)
+{
+	ParameterT parameter(t, name);
+	return AddParameter(parameter, occur);
 }
 
-/* return true if the interface is inline */
-inline bool ParameterContainerT::Inline(void) const {
-	return ParameterListT::Inline();
-}
+inline ParameterListT::ListOrderT ParameterContainerT::ListOrder(void) const { return fListOrder; }
+inline void ParameterContainerT::SetListOrder(ParameterListT::ListOrderT list_order) { fListOrder = list_order; }
+//inline bool ParameterContainerT::Inline(void) const { return fInline; }
+//inline void ParameterContainerT::SetInline(bool is_inline) { fInline = is_inline; }
 
 } /* namespace Tahoe */
 
