@@ -1,4 +1,4 @@
-/* $Id: Chain1D.cpp,v 1.1.4.1 2004-04-24 19:57:32 paklein Exp $ */
+/* $Id: Chain1D.cpp,v 1.1.4.2 2004-04-28 05:29:04 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Chain1D.h"
 #include "ElementsConfig.h"
@@ -104,6 +104,10 @@ void Chain1D::Print(ostream& out) const
 	/* inherited */
 	NL_E_MatT::Print(out);
 
+	/* higher precision */
+	int prec = out.precision();
+	out.precision(12);
+
 	/* lattice parameters */
 	out << " Number of neighbor shells . . . . . . . . . . . = " << fLattice1D->NumShells() << '\n';
 	out << " Number of neighbors . . . . . . . . . . . . . . = " << fLattice1D->NumberOfBonds() << '\n';
@@ -112,6 +116,9 @@ void Chain1D::Print(ostream& out) const
 	/* write pair properties to output */
 	out << " Interaction potential parameters:\n";
 	fPairProperty->Write(out);
+
+	/* restore precision */
+	out.precision(prec);
 }
 
 /* return a reference to the bond lattice */

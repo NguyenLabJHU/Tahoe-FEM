@@ -1,4 +1,4 @@
-/* $Id: FCC3D.cpp,v 1.3.16.1 2004-04-24 19:57:32 paklein Exp $ */
+/* $Id: FCC3D.cpp,v 1.3.16.2 2004-04-28 05:29:04 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D.h"
 #include "ElementsConfig.h"
@@ -105,6 +105,10 @@ void FCC3D::Print(ostream& out) const
 	/* inherited */
 	NL_E_MatT::Print(out);
 
+	/* higher precision */
+	int prec = out.precision();
+	out.precision(12);
+
 	/* lattice parameters */
 	out << " Number of neighbor shells . . . . . . . . . . . = " << fFCCLattice->NumShells() << '\n';
 	out << " Number of neighbors . . . . . . . . . . . . . . = " << fFCCLattice->NumberOfBonds() << '\n';
@@ -113,6 +117,9 @@ void FCC3D::Print(ostream& out) const
 	/* write pair properties to output */
 	out << " Interaction potential parameters:\n";
 	fPairProperty->Write(out);
+
+	/* restore precision */
+	out.precision(prec);
 }
 
 /* return a reference to the bond lattice */
