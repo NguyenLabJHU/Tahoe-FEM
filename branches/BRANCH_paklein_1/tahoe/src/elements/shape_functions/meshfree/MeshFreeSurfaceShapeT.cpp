@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.4.4.1 2002-10-17 04:22:34 paklein Exp $ */
+/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.4.4.2 2002-10-19 17:43:54 paklein Exp $ */
 /* created: paklein (06/03/2000)                                          */
 
 #include "MeshFreeSurfaceShapeT.h"
@@ -459,8 +459,7 @@ void MeshFreeSurfaceShapeT::SetShapeFunctionTables(void)
 	for (int i = 0; i < num_ip; i++)
 	{
 		shNaMat.Set(1, nnd, fjump_phi(i));
-		fgrad_d[i] = 0.0;
-		fgrad_d[i].Expand(shNaMat, fFieldDim);
+		fgrad_d[i].Expand(shNaMat, fFieldDim, dMatrixT::kOverwrite);
 		fgrad_dTgrad_d[i].MultATB(fgrad_d[i], fgrad_d[i]);
 	}
 }
@@ -501,7 +500,6 @@ void MeshFreeSurfaceShapeT::SetJacobianDerivatives(void)
 		shNaMat.Set(1, nnd, fnnd_vec[j].Pointer());
 		
 		/* expand */
-		fdx_dsdu[j] = 0.0;
-		fdx_dsdu[j].Expand(shNaMat, fFieldDim);	
+		fdx_dsdu[j].Expand(shNaMat, fFieldDim, dMatrixT::kOverwrite);	
 	}
 }
