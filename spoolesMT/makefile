@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.1.1.1 2001-07-24 17:32:20 strohban Exp $
+# $Id: makefile,v 1.1.1.1 2001-07-24 17:32:20 strohban Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
