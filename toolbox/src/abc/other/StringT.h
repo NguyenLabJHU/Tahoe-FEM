@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.19.2.1 2003-05-03 09:04:39 paklein Exp $ */
+/* $Id: StringT.h,v 1.19.2.2 2003-05-03 18:47:29 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #ifndef _STRING_T_H_
 #define _STRING_T_H_
@@ -40,7 +40,7 @@ public:
 
 	/** \name assignment operators
 	 * There's no operator=(char) because it leads to ambiguous conversion
-	 * of int's and pointers.
+	 * of int's and pointers. */
 	/*@{*/
 	void Fill(char a);
 	StringT& operator=(const char* string);
