@@ -1,4 +1,4 @@
-/* $Id: BCJKineticEqn.h,v 1.3 2003-05-26 19:20:00 paklein Exp $ */
+/* $Id: BCJKineticEqn.h,v 1.4 2003-05-27 06:56:02 paklein Exp $ */
 #ifndef _BCJ_KINETIC_EQN_H_
 #define _BCJ_KINETIC_EQN_H_
 
@@ -78,7 +78,7 @@ class BCJKineticEqn : public KineticEqnBase
   /** temperature */
   double fTheta;
 
-  /** material constants */
+  /** \name material constants */
   /*@{*/
   double fC1, fC2, fC3, fC4, fC5, fC6;
   double fC19, fC20, fC21;
