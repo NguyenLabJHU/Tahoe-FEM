@@ -1,9 +1,9 @@
-/* $Id: TranslateIOManager.cpp,v 1.29 2002-09-12 17:52:11 paklein Exp $  */
-
+/* $Id: TranslateIOManager.cpp,v 1.30 2002-10-26 00:09:41 paklein Exp $  */
 #include "TranslateIOManager.h"
+
+#include "ExceptionCodes.h"
 #include "IOBaseT.h"
 #include "OutputSetT.h"
-
 #include "AbaqusOutputT.h"
 #include "AVSOutputT.h"
 #include "EnSightOutputT.h"
@@ -195,9 +195,8 @@ void TranslateIOManager::InitializeNodeVariables (void)
   
   if (answer[0] == 'y' || answer[0] == 'Y')
     {
-      fCoords = true;
-      int numnodes;
-      fModel.CoordinateDimensions (numnodes, fCoords);
+      fCoords = fModel.NumDimensions();
+      int numnodes = fModel.NumNodes();
       cout << "\n Adding coordinates to variable values.\n";
     }
   else
@@ -260,12 +259,13 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
     }
   fIn >> selection;
 
-  int numnodes, numdims, numpoints;
-  fModel.CoordinateDimensions (numnodes, numdims);
+  int numnodes = fModel.NumNodes();
+  int numdims = fModel.NumDimensions();
   iArrayT nodeIDs (numnodes);
   fNodeMap.Dimension (numnodes);
   fModel.AllNodeMap (fNodeMap);
   fModel.AllNodeIDs (nodeIDs);
+  int numpoints;
   switch (selection)
     {
     case 1: // List
@@ -518,8 +518,8 @@ void TranslateIOManager::WriteGeometry (void)
 
 void TranslateIOManager::WriteNodes (void)
 {
-	int nnd, nsd;
-	fModel.CoordinateDimensions(nnd, nsd);
+	int nnd = fModel.NumNodes();
+	int nsd = fModel.NumDimensions();
 	fNodeMap.Dimension(nnd);
 	fModel.AllNodeMap(fNodeMap);
 	fModel.AllNodeIDs(fNodeID);

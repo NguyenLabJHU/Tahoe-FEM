@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.2 2001-09-07 13:26:09 sawimme Exp $
+# $Id: makefile.template,v 1.3 2002-10-26 00:09:40 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -50,6 +50,14 @@ TB_CFLAGS   = $(TB_INC)
 TB_LIB_NAME = toolbox
 TB_LIB      = $(TB_DIR)/lib/lib$(TB_LIB_NAME).a
 TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
+
+#### METIS
+#METIS_DIR      = $(HOME_DIR)/../../metis
+#METIS_INC      = -I$(METIS_DIR)/inc
+#METIS_CFLAGS   = $(METIS_INC) -D__METIS__
+#METIS_LIB_NAME = metis
+#METIS_LIB      = $(METIS_DIR)/lib/lib$(METIS_LIB_NAME).a
+#METIS_LFLAGS   = -L$(METIS_DIR)/lib -l$(METIS_LIB_NAME)
 
 ##### SEACAS/ACCESS software
 #AX_INC    = -I$(ACCESS)/inc

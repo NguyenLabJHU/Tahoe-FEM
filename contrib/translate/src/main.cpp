@@ -1,5 +1,5 @@
-/* $Id: main.cpp,v 1.13 2002-08-16 17:55:54 sawimme Exp $ */
-
+/* $Id: main.cpp,v 1.14 2002-10-26 00:09:41 paklein Exp $ */
+#include "ExceptionCodes.h"
 #include "TranslateIOManager.h"
 #include "ExtractNode.h"
 #include "ExtractQuad.h"
