@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.14 2002-11-14 19:25:33 creigh Exp $ */
+/* $Id: ElementT.cpp,v 1.15 2002-11-25 07:24:51 paklein Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -117,6 +117,9 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			break;	
 		case ElementT::kAdhesion:
 			type = ElementT::kAdhesion;
+			break;	
+		case ElementT::kParticlePair:
+			type = ElementT::kParticlePair;
 			break;	
 		default:
 			cout << "\n operator>>ElementT::TypeT: unknown type: "
