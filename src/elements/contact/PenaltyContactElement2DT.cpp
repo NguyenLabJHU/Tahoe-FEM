@@ -1,12 +1,12 @@
-
-
-/* $Id: PenaltyContactElement2DT.cpp,v 1.44 2003-06-30 22:07:28 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.45 2003-07-03 00:04:38 rjones Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
 
+#include "ofstreamT.h"
+#include "fstreamT.h"
 #include "ContactNodeT.h"
 #include "ParabolaT.h"
 #include "ModSmithFerrante.h"
@@ -130,14 +130,48 @@ void PenaltyContactElement2DT::WriteOutput(void)
 {
 	/* call base class */
 	ContactElementT::WriteOutput();
-	
+
+	StringT filename;
+	filename.Root(ElementSupport().Input().filename());
+	filename.Append(".contact_data");
+	ofstreamT data_file;
+	if (fFirstPass) {
+		data_file.open(filename);
+        data_file << "#  gap gmin pre \n";
+		fFirstPass = false;
+	}
+	else
+		data_file.open_append(filename);
+
     if (fOutputFlags[kArea] )
-//  (parameters[kMaterialType]==PenaltyContactElement2DT::kGreenwoodWilliamson))
  	{
 		cout << "\n";
 		for (int i=0; i<fSurfaces.Length(); i++)
 			cout << "real contact area = " << fRealArea[i] << "\n";
 	}
+
+    if (fOutputFlags[kGaps] )
+ 	{
+    for(int s = 0; s < fSurfaces.Length(); s++) {
+        ContactSurfaceT& surface = fSurfaces[s];
+	    const ArrayT<ContactNodeT*>& nodes = surface.ContactNodes();
+        for (int j = 0; j < nodes.Length(); j++) {
+            ContactNodeT* node = nodes[j];
+			int s2 = node->OpposingFace()->Surface().Tag();
+			dArrayT& enf_parameters = fEnforcementParameters(s,s2);
+			C1FunctionT*  pen_function 
+				  = fPenaltyFunctions[LookUp(s,s2,fSurfaces.Length())];
+			double gap = node->Gap();
+			double f = -enf_parameters[kPenalty]*pen_function->DFunction(gap);
+			double df = -enf_parameters[kPenalty]*pen_function->DDFunction(gap);
+            double gmin = node->MinGap();
+            data_file <<  gap << " " << gmin << " " << f << " " << df 
+					<< "\n";
+
+        }
+	}
+	}
+
 }
 
 /***********************************************************************
@@ -253,7 +287,7 @@ void PenaltyContactElement2DT::RHSDriver(void)
 
   bool in_contact = 0;
   ContactNodeT* node;
-  double gap, pre;
+  double gap, gmin=0.0, pre;
   int num_nodes,s2;
 
 
@@ -291,9 +325,16 @@ void PenaltyContactElement2DT::RHSDriver(void)
 		  gap =  node->Gap();
 		  dArrayT& enf_parameters = fEnforcementParameters(s,s2);
 		  dArrayT& mat_parameters = fMaterialParameters(s,s2);
+		  C1FunctionT*  pen_function 
+				  = fPenaltyFunctions[LookUp(s,s2,num_surfaces)];
+		  if (enf_parameters[kMaterialType] 
+						  == PenaltyContactElement2DT::kGWPlastic)
+		  {
+			gmin = node->MinGap(); 
+			((GWPlastic*) pen_function)->ResetParameters(gmin);
+		  }
 		  /* First derivative represents force */
-          pre  = -enf_parameters[kPenalty] 
-				* fPenaltyFunctions[LookUp(s,s2,num_surfaces)]->DFunction(gap);
+          pre  = -enf_parameters[kPenalty] * pen_function->DFunction(gap);
 		  node->nPressure() = pre; // store value on ContactNode for output
 		  face->ComputeShapeFunctions(points(i),N1);
 		  for (int j =0; j < nsd; j++) {n1[j] = node->Normal()[j];}
@@ -322,9 +363,8 @@ void PenaltyContactElement2DT::RHSDriver(void)
 			GreenwoodWilliamson GWArea(1.0,gw_m,gw_s); 	
   		  	double area_coeff = PI*gw_dens*gw_rad;
 		  	fRealArea[s] += (area_coeff*GWArea.Function(gap)*weights[i]);
-		  }
-		  
-		  if (enf_parameters[kMaterialType] 
+		  } 
+		  else if (enf_parameters[kMaterialType] 
 				== PenaltyContactElement2DT::kMajumdarBhushan) {
 			double mb_s = mat_parameters[kAsperityHeightStandardDeviation];
 			double mb_f = mat_parameters[kFractalDimension];
@@ -415,12 +455,18 @@ void PenaltyContactElement2DT::LHSDriver(GlobalT::SystemTypeT)
 					face->ComputeShapeFunctions(points(i),N1);
 					dArrayT& enf_parameters = fEnforcementParameters(s,s2);		
 					dArrayT& mat_parameters = fMaterialParameters(s,s2);		
+					C1FunctionT* pen_function 
+							= fPenaltyFunctions[LookUp(s,s2,num_surfaces)];
+					if (enf_parameters[kMaterialType]
+							== PenaltyContactElement2DT::kGWPlastic)
+					{
+						double gmin = node->MinGap(); 
+						((GWPlastic*) pen_function)->ResetParameters(gmin);
+					}
 					pre  = enf_parameters[kPenalty]
-					     * fPenaltyFunctions[
-						  LookUp(s,s2,num_surfaces)]->DFunction(gap);
+					     * pen_function->DFunction(gap);
 					dpre_dg = enf_parameters[kPenalty]
-							* fPenaltyFunctions[
-							 LookUp(s,s2,num_surfaces)]->DDFunction(gap);
+							* pen_function->DDFunction(gap);
 					double jac = face->ComputeJacobian(points(i));
 					if (enf_parameters[kMaterialType] 
 							== PenaltyContactElement2DT::kMajumdarBhushan)
@@ -429,6 +475,7 @@ void PenaltyContactElement2DT::LHSDriver(GlobalT::SystemTypeT)
 							pre *= pow(jac,0.5*(1.0-frdim));
 							dpre_dg *= pow(jac,0.5*(1.0-frdim));
 		  			}
+
 					consistent = (int) enf_parameters[kConsistentTangent];
 					const FaceT* opp_face = node->OpposingFace();
 					opp_num_nodes = opp_face->NumNodes();
@@ -463,7 +510,8 @@ void PenaltyContactElement2DT::LHSDriver(GlobalT::SystemTypeT)
 					/* get equation numbers */
 					Field().SetLocalEqnos(conn2, eqnums2);
 					/* assemble primary-secondary face stiffness */
-					ElementSupport().AssembleLHS(Group(), tmp_LHS, eqnums1,eqnums2);
+					ElementSupport().AssembleLHS
+							(Group(), tmp_LHS, eqnums1,eqnums2);
 
 					/* Part:  dx1 (x) dx1 */
 					tmp_LHS.Outer(N1nl, N1n);
@@ -481,7 +529,8 @@ void PenaltyContactElement2DT::LHSDriver(GlobalT::SystemTypeT)
 							double frdim = mat_parameters[kFractalDimension];
 							double mbexp = 0.5*(1.0-frdim);
 							// this just adding d pre /d jac
-							tmp_LHS.SetToScaled(-pre*weights[i]*(1.0+mbexp/jac)/jac, tmp_LHS);
+							tmp_LHS.SetToScaled
+								(-pre*weights[i]*(1.0+mbexp/jac)/jac, tmp_LHS);
 						}
 		  				else
 		  					tmp_LHS.SetToScaled(-pre*weights[i]/jac, tmp_LHS);
@@ -495,8 +544,3 @@ void PenaltyContactElement2DT::LHSDriver(GlobalT::SystemTypeT)
 		}
 	}
 }
-
-/***********************************************************************
- * Private
- ***********************************************************************/
-

@@ -1,4 +1,4 @@
-/* $Id: GWPlastic.cpp,v 1.2 2003-06-30 22:07:25 rjones Exp $ */
+/* $Id: GWPlastic.cpp,v 1.3 2003-07-03 00:04:36 rjones Exp $ */
 #include "GWPlastic.h"
 #include <math.h>
 #include <iostream.h>
@@ -19,8 +19,8 @@
  * sigma : distribution standard deviation
  *
  * history:
+ * dmin : minimum approach
  * Np or Ap : number plastic or area plastic
- * gdot : loading direction
  */
 
 
@@ -37,7 +37,7 @@ GWPlastic::GWPlastic(double MU, double SIGMA,
 double MODULUS, double YIELD, double LENGTHSCALE, double ASPERITYAREA):
 		fM(MU), fS(SIGMA),
 		fE(MODULUS), fY(YIELD), fL(LENGTHSCALE), fa0(ASPERITYAREA),
-		fdmin(1.e8),fddot(-1),fAe(0.0),fAp(0.0) 
+		fdmin(1.e8),fAe(0.0),fAp(0.0) 
 {	
 		fmoment0 = new PolyDistributionT(0,fM,fS);
 		fmoment1 = new PolyDistributionT(1,fM,fS);
@@ -53,10 +53,9 @@ GWPlastic::~GWPlastic()
 		delete fmoment1;
 }
 
-void GWPlastic::ResetParameters(double DMIN, double DDOT)
+void GWPlastic::ResetParameters(double DMIN)
 {
 	fdmin=DMIN;
-	fddot=DDOT;	
 }
 
 /*
@@ -73,7 +72,6 @@ void GWPlastic::Print(ostream& out) const
 	out << "      LENGTHSCALE = " << fL << '\n';
 	out << "      ASPERITY AREA = " << fa0 << '\n';
 #if 0
-	out << "      GDOT = " << fddot << '\n';
 	out << "      ELASTIC AREA = " << fAe << '\n';
 	out << "      PLASTIC AREA = " << fAp << '\n';
 	out << "      MININUM APPROACH = " << fdmin << '\n';
@@ -85,30 +83,56 @@ void GWPlastic::PrintName(ostream& out) const
 	out << "    Greenwood and Williamson - Plastic \n";
 }
 
+double GWPlastic::PlasticArea(double d) const
+{
+	double value =  fa0*((1-(d+fdc)/fL) *fmoment0->Function(d+fdc)
+		  				  		  + 1/fL*fmoment1->Function(d+fdc));
+	return value;
+}
+
+double GWPlastic::DPlasticArea(double d) const
+{
+	double value=  fa0*(       (-1/fL)*fmoment0->Function(d+fdc)
+				      + (1-(d+fdc)/fL)*fmoment0->DFunction(d+fdc)
+		  			            + 1/fL*fmoment1->DFunction(d+fdc));
+	return value;
+}
+
 /*
 * Returning values
 */
 double GWPlastic::Function(double d) const
 { // calculate real area of contact
-	double value=0.0;
-	return value;
+	double Avalue=0.0;
+	if (d < fdmin) { // plastic loading
+		Avalue = fa0*(fmoment0->Function(d)
+				  	 -fmoment0->Function(d+fdc) )
+				+PlasticArea(d);
+	} else {
+		if (d-fdmin < fdc) { // elastic
+		   Avalue = fa0*(fmoment0->Function(d)
+				  	    -fmoment0->Function(fdmin+fdc) )
+				+PlasticArea(fdmin);
+		} else { // no contact
+			Avalue = 0.0;
+		}
+	}
+	return Avalue;
 }
 
 double GWPlastic::DFunction(double d) const
 { // calculate load
 	double Fvalue=0.0;
-	double Ap = fa0*((1-(fdmin+fdc)/fL) *fmoment0->Function(fdmin+fdc)
-					+ 1/fL*fmoment1->Function(fdmin+fdc));
 	// calculate plastic area as function of *current* dmin
-	if (fddot < 0.0 && d < fdmin) { // plastic loading
+	if (d < fdmin) { // plastic loading
 		Fvalue = fa0*fE*(fmoment1->Function(d)
 						-fmoment1->Function(d+fdc) )
-				+fY*Ap;
+				+fY*PlasticArea(d);
 	} else {
 		if (d-fdmin < fdc) { // elastic
 			Fvalue = fE*fa0*(fmoment1->Function(d)
 							-fmoment1->Function(fdmin+fdc) )
-					+fE*(fdc-(d-fdmin))*Ap;
+				   + fE*(fdc-(d-fdmin))*PlasticArea(fdmin);
 		} else { // no contact
 			Fvalue = 0.0;
 		}
@@ -119,17 +143,14 @@ double GWPlastic::DFunction(double d) const
 double GWPlastic::DDFunction(double d) const
 { // returns the load gradient
 	double dFvalue = 0.0;
-	double Ap = fa0*((1-(fdmin+fdc)/fL) *fmoment0->Function(fdmin+fdc)
-					+ 1/fL*fmoment1->Function(fdmin+fdc));
-	if (fddot < 0.0 && d < fdmin) { // plastic loading
+	if (d < fdmin) { // plastic loading
 		dFvalue = fa0*fE*(fmoment1->DFunction(d)
 						- fmoment1->DFunction(d+fdc) )
-				+fY*Ap;
+				+fY*DPlasticArea(d);
 	} else {
 		if (d-fdmin < fdc) { // elastic
-			dFvalue = fE*fa0*(fmoment1->DFunction(d)
-							- fmoment1->DFunction(fdmin+fdc))
-					-fE*d*Ap;
+			dFvalue = fE*fa0*fmoment1->DFunction(d)
+					- fE*PlasticArea(fdmin);
 		} else { // no contact
 			dFvalue = 0.0;
 		}

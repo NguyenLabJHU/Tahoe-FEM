@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.32 2003-02-03 04:40:18 paklein Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.33 2003-07-03 00:04:38 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -140,33 +140,33 @@ void SurfaceT::InputSideSets
 	int num_faces = faces_tmp.MajorDim();
 
 	/* make node list and convert connectivities to local numbering */
-        int num_nodes = support.NumNodes();
-        iArrayT counts(num_nodes);
-        iArrayT global2local(num_nodes);
-        counts = 0;
+    int num_nodes = support.NumNodes();
+    iArrayT counts(num_nodes);
+    iArrayT global2local(num_nodes);
+    counts = 0;
 
-        /* tally occurrences */
-        int* pnode  = faces_tmp.Pointer();
-        int  length = faces_tmp.Length();
-        for (int j = 0; j < length; j++)
-        {
+    /* tally occurrences */
+    int* pnode  = faces_tmp.Pointer();
+    int  length = faces_tmp.Length();
+    for (int j = 0; j < length; j++)
+    {
                 counts[*pnode]++;
                 pnode++;
-        }
+    }
 
-        /* count surface nodes */
-        int  node_count = 0;
-        int* pcount = counts.Pointer();
-        for (int j = 0; j < num_nodes; j++)
+    /* count surface nodes */
+    int  node_count = 0;
+    int* pcount = counts.Pointer();
+    for (int j = 0; j < num_nodes; j++)
 	{
                 if (*pcount++ > 0) node_count++;
 	}
 
-        /* collect */
-        fGlobalNodes.Dimension(node_count);
-        pcount = counts.Pointer();
-        int nsurf_nodes = 0;
-        for (int k = 0; k < num_nodes; k++)
+    /* collect */
+    fGlobalNodes.Dimension(node_count);
+    pcount = counts.Pointer();
+    int nsurf_nodes = 0;
+    for (int k = 0; k < num_nodes; k++)
 	{
                 if (*pcount++ > 0)
                 {
@@ -175,11 +175,11 @@ void SurfaceT::InputSideSets
                         nsurf_nodes++;
                 }
 	}
-        /* convert connectvities to local numbering */
-        for (int k = 0; k < length; k++) 
+    /* convert connectvities to local numbering */
+    for (int k = 0; k < length; k++) 
 	{
                 faces_tmp[k] = global2local[faces_tmp[k]];
-        }
+    }
 
 	/* create faces */
 	fFaces.Dimension(num_faces);
@@ -256,6 +256,12 @@ void SurfaceT::InputSideSets
 			<< " unknown face type " << fGeometryType <<"\n";
 		   throw ExceptionT::kGeneralFail;                    
 	  }
+	}
+
+    fGlobalNodeNumbers.Dimension(fGlobalNodes.Length(),1);
+	fGlobalNodeNumbers= -1;
+    for (int k = 0; k < fGlobalNodes.Length(); k++) {
+          fGlobalNodeNumbers(k,0) = fGlobalNodes[k];
 	}
 
 }

@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.31 2003-06-30 22:07:27 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.32 2003-07-03 00:04:38 rjones Exp $ */
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
 
@@ -205,6 +205,8 @@ protected:
 	/* returns pass type for surface pair */
     int PassType(int s1,int s2) const;
 
+	bool fFirstPass;
+
 	/* additional workspace setup */
 	virtual void SetWorkspace(void);
 	/* workspace data */
@@ -280,6 +282,8 @@ protected:
 private:
 	/* surface specification modes */
 	enum SurfaceSpecModeT { kSideSets = 1};
+	int fNumOutputVariables;
+	iArrayT fOutputID;
 };
 
 } // namespace Tahoe 

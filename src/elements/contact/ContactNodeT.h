@@ -1,4 +1,4 @@
-/* $Id: ContactNodeT.h,v 1.17 2003-06-30 22:07:28 rjones Exp $ */
+/* $Id: ContactNodeT.h,v 1.18 2003-07-03 00:04:38 rjones Exp $ */
 #ifndef _CONTACT_NODE_T_H_
 #define _CONTACT_NODE_T_H_
 
@@ -22,19 +22,26 @@ class ContactNodeT
 	/* constructor */
 	~ContactNodeT(void);
 
-	/* initialize data */
-	void Initialize(void);
-
 	/* print data */
 	void PrintData(ostream& out);
 
 	enum ContactNodeStatusT { 	kNoProjection = -1,
 								kProjection};
 
-	/** clear opposing data */
-	inline void ClearOpposing(void) 
-		{ fStatus = kNoProjection; fOpposingSurface = NULL; 
-		fOpposingFace= NULL; fGap = 1.0e8;}
+	/** initialize data */
+	inline void Initialize(void) { 
+			fStatus = kNoProjection; 
+			fEnforcementStatus = -10;
+			fOpposingSurface = NULL; 
+			fOpposingFace= NULL; 
+			fGap = 1.0e8;
+			fLastGap = 1.e8;
+			fMinGap = 1.e8;
+			fOriginalOpposingFace    = NULL;
+			fxi[0]           = 0.0 ;
+			fxi[1]           = 0.0 ;
+			fPressure        = 0.0;
+	}
 
 	/** assign opposing point on surface */
 	bool AssignOpposing
@@ -43,11 +50,23 @@ class ContactNodeT
 		double* xi, double g) ;
 
 	/** assign status at the beginning of the time step */
-	void AssignOriginal(void);
+	inline void AssignOriginal(void) {
+		fOriginalOpposingFace = fOpposingFace;
+		fxiO[0] = fxi[0];
+		fxiO[1] = fxi[1];
+	}
 
 	/** reset (current) status when node loses contact */
-	inline void ResetStatus(void)
-		{fStatus = kNoProjection; fGap = 1.0e8;}
+	inline void ResetStatus(void) {
+			fStatus = kNoProjection; 
+			fGap = 1.0e8;
+	}
+
+	/** assign value of gap for last timestep */
+	inline void AssignLastGap(void) {
+			fLastGap = fGap; 
+			if (fLastGap < fMinGap )  fMinGap=fLastGap  ;
+	}
 
 	void ComputeSlip(double* slip);
 
@@ -109,8 +128,6 @@ class ContactNodeT
 		{return fLastGap;}
 	inline double& MinGap(void) 
 		{return fMinGap;}
-	inline void LastGap(double value) 
-		{fLastGap = value; if (fLastGap < fMinGap )  fMinGap=fLastGap  ;}
 
   private:
 

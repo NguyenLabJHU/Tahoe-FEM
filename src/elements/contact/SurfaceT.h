@@ -1,4 +1,4 @@
-/* $Id: SurfaceT.h,v 1.19 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: SurfaceT.h,v 1.20 2003-07-03 00:04:38 rjones Exp $ */
 #ifndef _SURFACE_T_H_
 #define _SURFACE_T_H_
 
@@ -49,6 +49,9 @@ class SurfaceT
 	inline const int NumFaces(void) const {return fFaces.Length();}
 	inline const int NumSD(void) const {return fNumSD;}
 	inline const iArrayT&   GlobalNodes(void) const {return fGlobalNodes;}
+	// NOTE this copy of fGlobalNodes
+	inline const iArray2DT& GlobalNodeNumbers(void) const 
+		{return fGlobalNodeNumbers;}
 	inline const dArray2DT& Coordinates(void) const {return fCoordinates;}
 	inline const ArrayT<FaceT*>& Faces(void)  const  {return fFaces;}
 //inline ArrayT<FaceT*>& NeighborFaces(void) {return fFaces;}
@@ -59,6 +62,7 @@ class SurfaceT
 	/* these are predicated on the surfaces being homogeneous */
 	inline int NumNodesPerFace(void) const
 		{return fNumNodesPerFace;}
+	// NOTE if a surface has a single geometry type, why have FaceT's?
 	inline GeometryT::CodeT GeometryType(void) const
 		{return fGeometryType;}
 //inline int NumIPs(void) const
@@ -80,6 +84,7 @@ class SurfaceT
 
 	/* list of global node numbers i.e local->global map */
 	iArrayT fGlobalNodes;
+	iArray2DT fGlobalNodeNumbers;
 
  	/* Nodal data */
 	/* current surface coordinates */

@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.26 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.27 2003-07-03 00:04:38 rjones Exp $ */
 #ifndef _CONTACT_SURFACE_T_H_
 #define _CONTACT_SURFACE_T_H_
 
@@ -50,6 +50,8 @@ class ContactSurfaceT : public SurfaceT
 	bool IsInConnectivity
 		(int primary_local_node, int secondary_global_node) const;
 
+	/* output */
+	void CollectOutput(iArrayT& OutputFlags, dArray2DT& values) const;
 	void PrintContactArea(ostream& out) const;
 	void PrintGaps(ostream& out) const;
 	void PrintGaps(ofstream& out) const;

@@ -1,4 +1,4 @@
-/* $Id: GWPlastic.h,v 1.2 2003-06-30 22:07:25 rjones Exp $ */
+/* $Id: GWPlastic.h,v 1.3 2003-07-03 00:04:36 rjones Exp $ */
 #ifndef _GW_PLASTIC_H_
 #define _GW_PLASTIC_H_
 
@@ -25,7 +25,7 @@ public:
 	/*
 	 * Reset parameters
 	 */
-	void ResetParameters(double DMIN, double DDOT);
+	void ResetParameters(double DMIN);
 
 	/*
 	 * I/O
@@ -52,6 +52,9 @@ public:
 	virtual dArrayT& MapDDFunction(const dArrayT& in, dArrayT& out) const;
 
 private:
+	double GWPlastic::PlasticArea(double dmin) const;
+	double GWPlastic::DPlasticArea(double dmin) const;
+
 	/* moment function */
 	C1FunctionT *fmoment0, *fmoment1;
 
@@ -63,7 +66,6 @@ private:
 	double fM; // mean
 	double fS; // standard deviation
 	double fdmin; // mininum approach
-	double fddot; // loading direction
 	double fdc; // critical approach
 	double fAe; // elastic area
 	double fAp; // plastic area

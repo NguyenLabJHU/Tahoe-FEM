@@ -1,4 +1,4 @@
-/*  $Id: ContactNodeT.cpp,v 1.18 2003-06-30 22:07:27 rjones Exp $ */
+/*  $Id: ContactNodeT.cpp,v 1.19 2003-07-03 00:04:38 rjones Exp $ */
 #include "ContactNodeT.h"
 
 #include "FaceT.h"
@@ -9,26 +9,11 @@ ContactNodeT::ContactNodeT(ContactSurfaceT& surface, int node_tag):
 	fSurface(surface)
 {
 	fNodeTag         = node_tag;
-	fOpposingSurface = NULL;
-	fOpposingFace    = NULL;
-	fOriginalOpposingFace    = NULL;
-	fxi[0]           = 0.0 ;
-	fxi[1]           = 0.0 ;
-	fPressure        = 0.0; 
+	Initialize();
 }
 
 ContactNodeT::~ContactNodeT(void)
 {
-}
-
-void 
-ContactNodeT::Initialize(void)
-{
-	fStatus 	 	= kNoProjection;
-	fEnforcementStatus = -10;
-	fGap = 1.e8;
-	fLastGap = 1.e8;
-	fMinGap = 1.e8;
 }
 
 void
@@ -57,15 +42,6 @@ double* xi, double g)
 #endif
 	return 1;
 }
-
-void 
-ContactNodeT::AssignOriginal(void)
-{ 
-	fOriginalOpposingFace = fOpposingFace;
-	fxiO[0] = fxi[0];
-	fxiO[1] = fxi[1]; 
-}
-
 
 void 
 ContactNodeT::ComputeSlip(double* slip)

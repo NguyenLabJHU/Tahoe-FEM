@@ -1,10 +1,11 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.34 2003-06-30 22:07:28 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.35 2003-07-03 00:04:38 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
 #include "ofstreamT.h"
 
 #include "ContactNodeT.h"
+#include "ContactElementT.h"
 
 using namespace Tahoe;
 
@@ -338,6 +339,19 @@ ContactSurfaceT::IsInConnectivity
 	}
 	return 0;
 }
+void
+ContactSurfaceT::CollectOutput(iArrayT& OutputFlags, dArray2DT& values) const
+{
+	for (int n = 0 ; n < fContactNodes.Length(); n++) {
+
+		if (fContactNodes[n]->Status() > ContactNodeT::kNoProjection) {
+			if (OutputFlags[ContactElementT::kGaps]) {
+                values(n,0) = fContactNodes[n]->Gap() ; }
+			if (OutputFlags[ContactElementT::kMultipliers]) {
+                values(n,1) = fContactNodes[n]->nPressure() ; }
+		}
+	}
+}
 
 void
 ContactSurfaceT::PrintContactArea(ostream& out) const
@@ -383,7 +397,7 @@ ContactSurfaceT::PrintContactArea(ostream& out) const
 void
 ContactSurfaceT::PrintGaps(ostream& out) const
 {
-        out << "#Surface " << this->Tag() << " GAP \n";
+        out << "#Surface " << this->Tag() << " GAP  LAST_GAP MIN_GAP \n";
 
         for (int n = 0 ; n < fContactNodes.Length(); n++) {
             if (fContactNodes[n]->Status() > ContactNodeT::kNoProjection) {
@@ -391,7 +405,9 @@ ContactSurfaceT::PrintGaps(ostream& out) const
                 for (int i = 0; i < fNumSD; i++) {
                         out << fContactNodes[n]->Position()[i] << " ";
                 }
-                out << "   "<< fContactNodes[n]->Gap() << '\n';
+                out << "   "<< fContactNodes[n]->Gap() ;
+                out << "   "<< fContactNodes[n]->LastGap() ; 
+                out << "   "<< fContactNodes[n]->MinGap() << '\n';
 	    	}
 			else {
                 out << "# tag " << fContactNodes[n]->Tag() << " ";
@@ -403,7 +419,7 @@ ContactSurfaceT::PrintGaps(ostream& out) const
 void
 ContactSurfaceT::PrintGaps(ofstream& out) const
 {
-        out << "#Surface " << this->Tag() << " GAP \n";
+		out << "#Surface " << this->Tag() << " GAP  LAST_GAP MIN_GAP \n";
 
         for (int n = 0 ; n < fContactNodes.Length(); n++) {
             if (fContactNodes[n]->Status() > ContactNodeT::kNoProjection) {
@@ -411,7 +427,9 @@ ContactSurfaceT::PrintGaps(ofstream& out) const
                 for (int i = 0; i < fNumSD; i++) {
                         out << fContactNodes[n]->Position()[i] << " ";
                 }
-                out << "   "<< fContactNodes[n]->Gap() << '\n';
+                out << "   "<< fContactNodes[n]->Gap() ;
+                out << "   "<< fContactNodes[n]->LastGap() ; 
+                out << "   "<< fContactNodes[n]->MinGap() << '\n';
 	    	}
 			else {
                 out << "# tag " << fContactNodes[n]->Tag() << " ";

@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.41 2003-06-30 22:07:27 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.42 2003-07-03 00:04:38 rjones Exp $ */
 #include "ContactElementT.h"
 
 #include <math.h>
@@ -15,6 +15,11 @@
 #include "SurfaceT.h"
 #include "ContactSearchT.h"
 #include "ContactNodeT.h"
+#include "OutputSetT.h"
+
+
+#undef TEXT_OUTPUT
+#define TEXT_OUTPUT 0
 
 /* parameters */ // unfortunately these are also in the derived classes
 
@@ -23,6 +28,7 @@ using namespace Tahoe;
 static const int kMaxNumFaceNodes = 4; // 4node quads
 static const int kMaxNumFaceDOF   = 12; // 4node quads in 3D
 
+
 /* constructor */
 ContactElementT::ContactElementT
 (const ElementSupportT& support, const FieldT& field, int num_enf_params):
@@ -30,7 +36,8 @@ ContactElementT::ContactElementT
     LHS(ElementMatrixT::kNonSymmetric),
     tmp_LHS(ElementMatrixT::kNonSymmetric),
     fContactSearch(NULL),
-    fXDOF_Nodes(NULL)
+    fXDOF_Nodes(NULL),
+	fFirstPass(1)
 {
     fNumEnfParameters = num_enf_params;
     fNumMultipliers = 0;
@@ -117,7 +124,6 @@ void ContactElementT::Initialize(void)
 		/* set initial contact configuration */
 		bool changed = SetContactConfiguration();	
 	}
-
 
 }
 
@@ -306,58 +312,106 @@ void ContactElementT::ConnectsX(AutoArrayT<const iArray2DT*>& connects) const
 	connects.Append(NULL);
 }
 
+void ContactElementT::RegisterOutput(void) 
+{
+	int i = 0;
+	ArrayT<StringT> labels(2);
+    if (fOutputFlags[kGaps]) {
+		labels[i++] = "GAP";
+	}
+    if (fOutputFlags[kMultipliers]) {
+		labels[i++] = "PRE";
+	}
+	fNumOutputVariables = i;
+	ArrayT<StringT> n_labels(fNumOutputVariables); 
+	for (i = 0; i < fNumOutputVariables; i++) {n_labels[i] = labels[i];}
+
+	fOutputID.Dimension(fSurfaces.Length());
+	fOutputID = -1;
+
+    /* register each surface */
+	if (fNumOutputVariables) {
+    	for (i = 0; i < fOutputID.Length(); i++)
+    	{
+        	/* set output specifier */
+        	OutputSetT output_set
+				(GeometryT::kPoint, fSurfaces[i].GlobalNodeNumbers(), n_labels);
+
+        	/* register and get output ID */
+        	fOutputID[i] = ElementSupport().RegisterOutput(output_set);
+    	}
+    }
+}
+
+
 void ContactElementT::WriteOutput(void)
 {
 // look at EXODUS output in continuumelementT
-        /* contact statistics */
-        ostream& out = ElementSupport().Output();
-        out << "\n Contact tracking: group "
+	/* contact statistics */
+	ostream& out = ElementSupport().Output();
+	out << "\n Contact tracking: group "
                 << ElementSupport().ElementGroupNumber(this) + 1 << '\n';
-        out << " Time                           = "
+	out << " Time                           = "
                 << ElementSupport().Time() << '\n';
+	if (fNumOutputVariables) {
+		for(int s = 0; s < fSurfaces.Length(); s++) {
+			const ContactSurfaceT& surface = fSurfaces[s];
+			dArray2DT n_values(surface.GlobalNodeNumbers().Length(), 
+							fNumOutputVariables);
+			n_values = 0.0;
+			surface.CollectOutput(fOutputFlags,n_values);
+			dArray2DT e_values;
+			/* send to output */
+			ElementSupport().WriteOutput(fOutputID[s], n_values, e_values);
+		}
+	}
 
-        /* output files */
-        StringT filename;
-        filename.Root(ElementSupport().Input().filename());
-        filename.Append(".", ElementSupport().StepNumber());
-        filename.Append("of", ElementSupport().NumberOfSteps());
+	/* output files */
+	StringT filename;
+	filename.Root(ElementSupport().Input().filename());
+	filename.Append(".", ElementSupport().StepNumber());
+	filename.Append("of", ElementSupport().NumberOfSteps());
 
-        for(int s = 0; s < fSurfaces.Length(); s++) {
-            const ContactSurfaceT& surface = fSurfaces[s];
+	for(int s = 0; s < fSurfaces.Length(); s++) {
+		const ContactSurfaceT& surface = fSurfaces[s];
 
-           if (fOutputFlags[kGaps]) {
+#if TEXT_OUTPUT
+		if (fOutputFlags[kGaps]) {
                 StringT gap_out;
                 gap_out = gap_out.Append(filename,".gap");
                 gap_out = gap_out.Append(s);
                 ofstream gap_file (gap_out);
                 surface.PrintGaps(gap_file);
-           }
 
-           if (fOutputFlags[kNormals]) {
-                StringT normal_out;
-                normal_out = normal_out.Append(filename,".normal");
-                normal_out = normal_out.Append(s);
-                ofstream normal_file (normal_out);
-                surface.PrintNormals(normal_file);
-           }
 
-           if (fOutputFlags[kStatus]) {
-				surface.PrintStatus(cout);
-           }
-
-           if (fOutputFlags[kMultipliers]) {
+		}
+		if (fOutputFlags[kMultipliers]) {
 //		surface.PrintMultipliers(cout);
                 StringT pressure_out;
                 pressure_out = pressure_out.Append(filename,".pre");
                 pressure_out = pressure_out.Append(s);
                 ofstream pressure_file (pressure_out);
                 surface.PrintMultipliers(pressure_file);
-           }
-
-           if (fOutputFlags[kArea]) {
-              surface.PrintContactArea(cout);
-           }
 		}
+#endif
+
+		if (fOutputFlags[kNormals]) {
+                StringT normal_out;
+                normal_out = normal_out.Append(filename,".normal");
+                normal_out = normal_out.Append(s);
+                ofstream normal_file (normal_out);
+                surface.PrintNormals(normal_file);
+		}
+
+		if (fOutputFlags[kStatus]) {
+				surface.PrintStatus(cout);
+		}
+
+
+		if (fOutputFlags[kArea]) {
+              surface.PrintContactArea(cout);
+		}
+	}
 }
 
 /* compute specified output parameter and send for smoothing */
@@ -366,9 +420,6 @@ void ContactElementT::SendOutput(int kincode)
 #pragma unused(kincode)
 //not implemented: contact tractions/forces
 }
-
-/* writing output - nothing to write */
-void ContactElementT::RegisterOutput(void) {}
 
 /* solution calls */
 void ContactElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
