@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.2 2001-05-30 23:27:02 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.3 2001-07-09 17:23:47 paklein Exp $ */
 /* created: paklein (01/12/2000)                                          */
 
 #ifndef _FE_MANAGER_MPI_H_
@@ -121,6 +121,10 @@ private:
 
 	/* collect computation effort for each node */
 	void WeightNodalCost(iArrayT& weight) const;
+
+	/* decomposition methods */
+	void DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose);
+	void DoDecompose_2(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose);
 
 private:
 
