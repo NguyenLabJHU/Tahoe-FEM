@@ -1,6 +1,5 @@
-/* $Id: KBC_ControllerT.cpp,v 1.7 2002-07-02 19:56:35 cjkimme Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.7.12.1 2003-02-10 02:11:08 paklein Exp $ */
 /* created: paklein (09/05/2000) */
-
 #include "KBC_ControllerT.h"
 
 #include "NodeManagerT.h"
@@ -8,10 +7,15 @@
 #include "ModelManagerT.h"
 #include "fstreamT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* array behavior */
+namespace Tahoe {
+const bool ArrayT<KBC_ControllerT>::fByteCopy = false;
+const bool ArrayT<KBC_ControllerT*>::fByteCopy = true;
+} /* namespace Tahoe */
+
+/* constructor */
 KBC_ControllerT::KBC_ControllerT(NodeManagerT& node_manager):
 	fNodeManager(node_manager)
 {
