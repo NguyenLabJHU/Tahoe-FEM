@@ -1,4 +1,4 @@
-/* $Id: FCC3D.cpp,v 1.1.2.1 2003-02-21 01:16:32 paklein Exp $ */
+/* $Id: FCC3D.cpp,v 1.1.2.2 2003-03-30 21:23:22 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D.h"
 #include "ElementsConfig.h"
@@ -15,6 +15,7 @@
 #include "LennardJonesPairT.h"
 #else
 #pragma message("FCC3D requires PARTICLE_ELEMENT")
+#error "FCC3D requires PARTICLE_ELEMENT"
 #endif
 
 using namespace Tahoe;
@@ -189,8 +190,9 @@ double FCC3D::ZeroStressStretch(void)
 {
 	const char caller[] = "FCC3D::ZeroStress";
 
-	dSymMatrixT E(3), PK2(3);
-	dMatrixT C(dSymMatrixT::NumValues(3));
+	int nsd = 3;
+	dSymMatrixT E(nsd), PK2(nsd);
+	dMatrixT C(dSymMatrixT::NumValues(nsd));
 
 	E = 0.0;
 	ComputePK2(E, PK2);
