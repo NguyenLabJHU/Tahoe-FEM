@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.36 2004-01-31 07:20:45 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.37 2004-02-02 23:46:43 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -130,6 +130,9 @@ void ContinuumElementT::Initialize(void)
 {
 	/* inherited */
 	ElementBaseT::Initialize();
+	
+	/* set axisymmmetric flag */
+	fAxisymmetric = Axisymmetric();
 	
 	/* allocate work space */
 	fNEEvec.Dimension(NumElementNodes()*NumDOF());
@@ -461,8 +464,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 		/* dimensions */
 		int nsd = NumSD();
 		int ndof = NumDOF();
-		bool axi = Axisymmetric();
-		if (axi && nsd != 2) ExceptionT::GeneralFail();
+		if (fAxisymmetric && nsd != 2) ExceptionT::GeneralFail();
 	
 		/* update equation numbers */
 		if (!fTractionBCSet) SetTractionBC();
@@ -517,7 +519,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 #else
 			/* use thickness for 2D solid deformation elements */
 			double thick = 1.0;
-			if (!axi && ndof == 2 && nsd == 2) //better to do this once elsewhere?
+			if (!fAxisymmetric && ndof == 2 && nsd == 2) //better to do this once elsewhere?
 			{
 				/* get material pointer */
 				const ElementCardT& elem_card = fElementCards[elem];
@@ -551,7 +553,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 	
 					/* ip weight */
 					double jwt = detj*w[j]*thick;
-					if (axi) {
+					if (fAxisymmetric) {
 						surf_shape.Interpolate(coords, ip_coords, j);
 						jwt *= Pi2*ip_coords[0];
 					}
@@ -588,7 +590,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 	
 					/* ip weight */
 					double jwt = detj*w[j]*thick;
-					if (axi) {
+					if (fAxisymmetric) {
 						surf_shape.Interpolate(coords, ip_coords, j);
 						jwt *= Pi2*ip_coords[0];
 					}
@@ -663,26 +665,57 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 			int a = 0, zero = 0;
 			int& b_start = (fLHS.Format() == ElementMatrixT::kSymmetricUpper) ? a : zero;
 			
-			fShapes->TopIP();	
-			while ( fShapes->NextIP() )
+			if (fAxisymmetric)
 			{
-				double temp = constM*(*Weight++)*(*Det++);
-				const double* Na = fShapes->IPShapeU();
-								
-				for (a = 0; a < nen; a++)
-					for (int i = 0; i < ndof; i++)
-					{
-						int p = a*ndof + i;
-						
-						/* upper triangle only */
-						for (int b = b_start; b < nen; b++)
-							for (int j = 0; j < ndof; j++)
-								if(i == j)
-								{									
-									int q = b*ndof + j;
-									fLHS(p,q) += temp*Na[a]*Na[b];
-								}
-					}
+				const LocalArrayT& coords = fShapes->Coordinates();
+				fShapes->TopIP();	
+				while ( fShapes->NextIP() )
+				{
+					/* compute radius */
+					const double* NaX = fShapes->IPShapeX();
+					const double* x_r = coords(0); /* r is x-coordinate */
+					double r = 0.0;
+					for (a = 0; a < nen; a++)
+						r += (*NaX++)*(*x_r++);
+				
+					double temp = 2.0*Pi*r*constM*(*Weight++)*(*Det++);
+					const double* Na = fShapes->IPShapeU();		
+					for (a = 0; a < nen; a++)
+						for (int i = 0; i < ndof; i++)
+						{
+							int p = a*ndof + i;
+							
+							/* upper triangle only */
+							for (int b = b_start; b < nen; b++) //TEMP - interpolate at the same time?
+								for (int j = 0; j < ndof; j++)
+									if(i == j) {
+										int q = b*ndof + j;
+										fLHS(p,q) += temp*Na[a]*Na[b];
+									}
+						}
+				}
+			}			
+			else /* not axisymmetric */
+			{
+				fShapes->TopIP();	
+				while ( fShapes->NextIP() )
+				{
+					double temp = constM*(*Weight++)*(*Det++);
+					const double* Na = fShapes->IPShapeU();		
+					for (a = 0; a < nen; a++)
+						for (int i = 0; i < ndof; i++)
+						{
+							int p = a*ndof + i;
+							
+							/* upper triangle only */
+							for (int b = b_start; b < nen; b++)
+								for (int j = 0; j < ndof; j++)
+									if(i == j) {
+										int q = b*ndof + j;
+										fLHS(p,q) += temp*Na[a]*Na[b];
+									}
+						}
+				}
 			}
 			break;
 		}
@@ -700,18 +733,41 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 			const double* Weight = fShapes->IPWeights();
 
 			/* total mass and diagonal sum */
-			fShapes->TopIP();
-			while (fShapes->NextIP())
+			if (fAxisymmetric)
 			{
-				double temp1     = constM*(*Weight++)*(*Det++);
-				const double* Na = fShapes->IPShapeU();
+				const LocalArrayT& coords = fShapes->Coordinates();
+				fShapes->TopIP();
+				while (fShapes->NextIP()) {
 
-				totmas += temp1;
-				for (int lnd = 0; lnd < nen; lnd++)
-				{
-					double temp2 = temp1*Na[lnd]*Na[lnd];
-					dsum += temp2;
-					fNEEvec[lnd] += temp2;
+					/* compute radius */
+					const double* NaX = fShapes->IPShapeX();
+					const double* x_r = coords(0); /* r is x-coordinate */
+					double r = 0.0;
+					for (int a = 0; a < nen; a++)
+						r += (*NaX++)*(*x_r++);
+
+					double temp1     = 2.0*Pi*r*constM*(*Weight++)*(*Det++);
+					const double* Na = fShapes->IPShapeU();
+					totmas += temp1;
+					for (int lnd = 0; lnd < nen; lnd++) {
+						double temp2 = temp1*Na[lnd]*Na[lnd];
+						dsum += temp2;
+						fNEEvec[lnd] += temp2;
+					}
+				}
+			}
+			else /* not axisymmetric */
+			{
+				fShapes->TopIP();
+				while (fShapes->NextIP()) {
+					double temp1     = constM*(*Weight++)*(*Det++);
+					const double* Na = fShapes->IPShapeU();
+					totmas += temp1;
+					for (int lnd = 0; lnd < nen; lnd++) {
+						double temp2 = temp1*Na[lnd]*Na[lnd];
+						dsum += temp2;
+						fNEEvec[lnd] += temp2;
+					}
 				}
 			}	
 				
@@ -733,9 +789,7 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 			break;
 		}			
 		default:
-		
-			cout << "\n Elastic::FormMass: unknown mass matrix code\n" << endl;
-			throw ExceptionT::kBadInputValue;
+			ExceptionT::BadInputValue("Elastic::FormMass", "unknown mass matrix code");
 	}
 }
 
@@ -763,6 +817,8 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM,
 	const LocalArrayT* nodal_values,
 	const dArray2DT* ip_values)
 {
+	const char caller[] = "ContinuumElementT::FormMa";
+
 	/* quick exit */
 	if (!nodal_values && !ip_values) return;
 
@@ -770,12 +826,12 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM,
 	/* dimension checks */
 	if (nodal_values && 
 		fRHS.Length() != nodal_values->Length()) 
-		throw ExceptionT::kSizeMismatch;
+			ExceptionT::SizeMismatch(caller);
 
 	if (ip_values &&
 		(ip_values->MajorDim() != fShapes->NumIP() ||
 		 ip_values->MinorDim() != NumDOF()))
-		throw ExceptionT::kSizeMismatch;
+			ExceptionT::SizeMismatch(caller);
 #endif
 
 	switch (mass_type)
@@ -788,29 +844,66 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM,
 			const double* Det    = fShapes->IPDets();
 			const double* Weight = fShapes->IPWeights();
 
-			fShapes->TopIP();
-			while (fShapes->NextIP())
-			{					
-				/* interpolate nodal values to ip */
-				if (nodal_values)
-					fShapes->InterpolateU(*nodal_values, fDOFvec);
-					
-				/* ip sources */
-				if (ip_values)
-					fDOFvec -= (*ip_values)(fShapes->CurrIP());
-
-				/* accumulate in element residual force vector */				
-				double*	res      = fRHS.Pointer();
-				const double* Na = fShapes->IPShapeU();
-				
-				double temp = constM*(*Weight++)*(*Det++);				
-				for (int lnd = 0; lnd < nen; lnd++)
+			if (fAxisymmetric)
+			{
+				const LocalArrayT& coords = fShapes->Coordinates();
+				fShapes->TopIP();
+				while (fShapes->NextIP())
 				{
-					double temp2 = temp*(*Na++);
-					double* pacc = fDOFvec.Pointer();
+					/* compute radius */
+					const double* NaX = fShapes->IPShapeX();
+					const double* x_r = coords(0); /* r is x-coordinate */
+					double r = 0.0;
+					for (int a = 0; a < nen; a++)
+						r += (*NaX++)*(*x_r++);
+				
+					/* interpolate nodal values to ip */
+					if (nodal_values)
+						fShapes->InterpolateU(*nodal_values, fDOFvec);
+					
+					/* ip sources */
+					if (ip_values)
+						fDOFvec -= (*ip_values)(fShapes->CurrIP());
 
-					for (int dof = 0; dof < ndof; dof++)			
-						*res++ += temp2*(*pacc++);
+					/* accumulate in element residual force vector */				
+					double*	res      = fRHS.Pointer();
+					const double* Na = fShapes->IPShapeU();
+				
+					double temp = 2.0*Pi*r*constM*(*Weight++)*(*Det++);				
+					for (int lnd = 0; lnd < nen; lnd++)
+					{
+						double temp2 = temp*(*Na++);
+						double* pacc = fDOFvec.Pointer();
+						for (int dof = 0; dof < ndof; dof++)			
+							*res++ += temp2*(*pacc++);
+					}
+				}
+			}
+			else /* not axisymmteric */
+			{
+				fShapes->TopIP();
+				while (fShapes->NextIP())
+				{					
+					/* interpolate nodal values to ip */
+					if (nodal_values)
+						fShapes->InterpolateU(*nodal_values, fDOFvec);
+					
+					/* ip sources */
+					if (ip_values)
+						fDOFvec -= (*ip_values)(fShapes->CurrIP());
+
+					/* accumulate in element residual force vector */				
+					double*	res      = fRHS.Pointer();
+					const double* Na = fShapes->IPShapeU();
+				
+					double temp = constM*(*Weight++)*(*Det++);				
+					for (int lnd = 0; lnd < nen; lnd++)
+					{
+						double temp2 = temp*(*Na++);
+						double* pacc = fDOFvec.Pointer();
+						for (int dof = 0; dof < ndof; dof++)			
+							*res++ += temp2*(*pacc++);
+					}
 				}
 			}
 			break;
@@ -824,15 +917,12 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM,
 			if (nodal_values)
 				nodal_values->ReturnTranspose(fNEEvec);
 			else {
-				cout << "\n ContinuumElementT::FormMa: expecting nodal values for lumped mass" << endl;
-				throw ExceptionT::kGeneralFail;
+				ExceptionT::GeneralFail(caller, "expecting nodal values for lumped mass");
 			}
 				
 //TEMP - what to do with ip values?
-if (ip_values) {
-	cout << "\n ContinuumElementT::FormMa: lumped mass not implemented for ip sources" << endl;
-	throw ExceptionT::kGeneralFail;
-}
+if (ip_values)
+	ExceptionT::GeneralFail(caller, "lumped mass not implemented for ip sources");
 
 			double* pAcc = fNEEvec.Pointer();
 			double* pRes = fRHS.Pointer();
