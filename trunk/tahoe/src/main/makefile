@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2003-03-04 07:38:12 paklein Exp $
+# $Id: makefile,v 1.7 2003-03-31 23:20:27 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -24,6 +24,7 @@ OBJ = \
 	FEExecutionManagerT.o \
 	FEManagerT.o \
 	FEManagerT_mpi.o \
+	FEManagerT_bridging.o \
 	GlobalT.o \
 	IOManager.o \
 	IOManager_mpi.o \
@@ -53,6 +54,7 @@ SRC = \
 	FEExecutionManagerT.cpp \
 	FEManagerT.cpp \
 	FEManagerT_mpi.cpp \
+	FEManagerT_bridging.cpp \
 	GlobalT.cpp \
 	IOManager.cpp \
 	IOManager_mpi.cpp \
@@ -74,6 +76,7 @@ HDR = \
 	FEExecutionManagerT.h \
 	FEManagerT.h \
 	FEManagerT_mpi.h \
+	FEManagerT_bridging.h \
 	GlobalT.h \
 	IOManager.h \
 	IOManager_mpi.h \
