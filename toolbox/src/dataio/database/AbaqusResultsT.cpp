@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.cpp,v 1.21 2002-10-20 22:36:53 paklein Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.22 2003-09-18 22:37:15 cjkimme Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
@@ -1265,7 +1265,7 @@ bool AbaqusResultsT::DataPoints (AbaqusVariablesT::TypeT vt, const StringT& name
 {
   bool subset = true;
   if (name.Length() < 2) subset = false;
-  int numquadpts = 0;
+//  int numquadpts = 0;
   switch (vt)
     {
     case AbaqusVariablesT::kNode:
@@ -1289,13 +1289,13 @@ bool AbaqusResultsT::DataPoints (AbaqusVariablesT::TypeT vt, const StringT& name
 	  {
 	    set.Allocate (NumElements (name));
 	    ElementSet (name, set);
-	    numquadpts = NumElementQuadPoints (name);
+//	    numquadpts = NumElementQuadPoints (name);
 	  }
 	else
 	  {
 	    set.Allocate (fNumElements);
 	    ElementMap (set);
-	    numquadpts = NumElementQuadPoints (fElementSetNames[0]);
+//	    numquadpts = NumElementQuadPoints (fElementSetNames[0]);
 	  }
 	break;
       }
