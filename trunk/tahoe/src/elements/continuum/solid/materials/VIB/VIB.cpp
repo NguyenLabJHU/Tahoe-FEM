@@ -1,7 +1,5 @@
-/* $Id: VIB.cpp,v 1.3 2001-07-03 01:35:17 paklein Exp $ */
-/* created: paklein (10/30/1997)                                          */
-/* Base class for isotropic VIB materials.                                */
-
+/* $Id: VIB.cpp,v 1.4 2002-05-28 06:56:05 bhji Exp $ */
+/* created: paklein (10/30/1997) */
 #include "VIB.h"
 
 #include <math.h>
@@ -17,6 +15,9 @@
 #include "LennardJones612.h"
 #include "SmithFerrante.h"
 #include "GaoKlein.h"
+#include "GaoJi.h"
+#include "GaoJi2.h"
+#include "GaoVicky.h"
 #include "ParabolaT.h"
 #include "Triantafyllidis.h"
 
@@ -64,6 +65,27 @@ VIB::VIB(ifstreamT& in, int nsd, int numstress, int nummoduli):
 			double A;
 			in >> A;		
 			fPotential = new Triantafyllidis(A);
+			break;
+		}
+		case C1FunctionT::kGaoJi:
+		{
+			double A, B, C;
+			in >> A >> B >> C;		
+			fPotential = new GaoJi(A,B,C);
+			break;
+		}
+		case C1FunctionT::kGaoJi2:
+		{
+			double A, B, C;
+			in >> A >> B >> C;
+			fPotential = new GaoJi2(A,B,C);
+			break;
+		}
+		case C1FunctionT::kGaoVicky:
+		{
+			double A, B, C, D;
+			in >> A >> B >> C >>D;
+			fPotential = new GaoVicky(A,B,C,D);
 			break;
 		}
 		default:
