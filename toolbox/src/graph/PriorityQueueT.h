@@ -1,8 +1,11 @@
-/* $Id: PriorityQueueT.h,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
-/* created: paklein (8/06/1996)                                           */
+/* $Id: PriorityQueueT.h,v 1.2 2001-09-25 00:55:15 paklein Exp $ */
+/* created: paklein (8/06/1996) */
 
 #ifndef _PRIORITYQUEUET_H_
 #define _PRIORITYQUEUET_H_
+
+/* direct members */
+#include "AutoArrayT.h"
 
 /* forward declarations */
 class iArrayT;
@@ -51,11 +54,8 @@ private:
 	  	 	
 private:
 
-	int		fMode;
-
-	int		fLogicalSize;
-	int		fCurrSize;
-	int*	fQueue;
+	int fMode;
+	AutoArrayT<int> fQueue;
 
 	iArrayT& fPriorities;
 	

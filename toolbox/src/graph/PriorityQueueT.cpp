@@ -1,5 +1,5 @@
-/* $Id: PriorityQueueT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
-/* created: paklein (8/06/1996)                                           */
+/* $Id: PriorityQueueT.cpp,v 1.2 2001-09-25 00:55:15 paklein Exp $ */
+/* created: paklein (8/06/1996) */
 
 #include "PriorityQueueT.h"
 #include <math.h>
@@ -13,30 +13,25 @@ const int kIndexMapped  = 1;
 
 /* constructor */
 PriorityQueueT::PriorityQueueT(iArrayT& priorities, int size):
-	fMode(kDirectMapped), fLogicalSize(size), fCurrSize(0),
+	fMode(kDirectMapped),
+	fQueue(50),
 	fPriorities(priorities)
 {
-	fQueue = new int[fLogicalSize];
-	if (!fQueue) throw eOutOfMemory;
+#pragma unused(size)
 }
 
-PriorityQueueT::PriorityQueueT(const iArrayT& values,
-	iArrayT& priorities): fMode(kIndexMapped), fPriorities(priorities)
+PriorityQueueT::PriorityQueueT(const iArrayT& values, iArrayT& priorities): 
+	fMode(kIndexMapped), 
+	fQueue(values),
+	fPriorities(priorities)
 {
-	fLogicalSize = values.Length();
-	fQueue = new int[fLogicalSize];
-	if (!fQueue) throw eOutOfMemory;
-	
-	/* copy over */
-	memcpy(fQueue, values.Pointer(), sizeof(int)*fLogicalSize);
-	
-	fCurrSize = fLogicalSize;
+
 }
 
 /* destructor */
 PriorityQueueT::~PriorityQueueT(void)
 {
-	delete[] fQueue;
+
 }
 	
 /* add a value */
@@ -44,33 +39,16 @@ void PriorityQueueT::Add(int value)
 {	
 	/* check */
 	if (value >= fPriorities.Length()) throw eGeneralFail;
-
-	/* need to allocate more space */
-	if (fCurrSize == fLogicalSize)
-	{
-		int* temp     = fQueue;
-		fLogicalSize *= 2;
-		
-		fQueue = new int[fLogicalSize];
-		if (!fQueue) throw eOutOfMemory;
-		
-		/* byte copy */
-		memcpy(fQueue, temp, sizeof(int)*fCurrSize);
-		
-		delete[] temp;
-	}
-		
-	/* add value to the end */
-	fQueue[fCurrSize] = value;
 	
-	fCurrSize++;	
+	/* append to the queue */
+	fQueue.Append(value);
 }
 	
 /* remove values - both return 0 if the queue is empty */
 int	PriorityQueueT::PullHighest(int& value)
 {
 	/* queue is empty */
-	if (fCurrSize == 0) return 0;
+	if (fQueue.Length() == 0) return 0;
 
 	/* find maximum */
 	int dex;
@@ -88,8 +66,7 @@ int	PriorityQueueT::PullHighest(int& value)
 int	PriorityQueueT::PullLowest(int& value)
 {
 	/* queue is empty */
-	if (fCurrSize == 0)
-		return(0);
+	if (fQueue.Length() == 0) return(0);
 	
 	/* find minumum */	
 	int dex;
@@ -107,45 +84,31 @@ int	PriorityQueueT::PullLowest(int& value)
 /* take "half" */
 void PriorityQueueT::ShrinkToHighest(void)
 {
-	int newsize = int(floor((fCurrSize+2)/2.0));
-	
-	if (newsize < fCurrSize)
+	int newsize = int(floor((fQueue.Length() + 2)/2.0));	
+	if (newsize < fQueue.Length())
 	{
-		int* newqueue = new int[fLogicalSize];
-		if (!newqueue) throw eOutOfMemory;
-		
+		/* fill into temp */
+		ArrayT<int> new_queue(newsize);
 		for (int i = 0; i < newsize; i++)
-			PullHighest(newqueue[i]);
+			PullHighest(new_queue[i]);
 			
-		/* replace */
-		int* temp = fQueue;
-		fQueue    = newqueue;
-		fCurrSize = newsize;
-		
-		/* free space */
-		delete[] temp;
+		/* copy into the queue */
+		fQueue = new_queue;
 	}
 }
 
 void PriorityQueueT::ShrinkToLowest(void)
 {
-	int newsize = int(floor((fCurrSize+2)/2.0));
-	
-	if (newsize < fCurrSize)
+	int newsize = int(floor((fQueue.Length() + 2)/2.0));
+	if (newsize < fQueue.Length())
 	{
-		int* newqueue = new int[fLogicalSize];
-		if (!newqueue) throw eOutOfMemory;
-	
+		/* fill into temp */
+		ArrayT<int> new_queue(newsize);
 		for (int i = 0; i < newsize; i++)
-			PullLowest(newqueue[i]);
+			PullLowest(new_queue[i]);
 			
-		/* replace */
-		int* temp = fQueue;
-		fQueue    = newqueue;
-		fCurrSize = newsize;
-		
-		/* free space */
-		delete[] temp;
+		/* copy into the queue */
+		fQueue = new_queue;
 	}
 }
 
@@ -157,28 +120,20 @@ void PriorityQueueT::ShrinkToLowest(void)
 /* shift all values down, overwriting the value at position dex */
 void PriorityQueueT::ShiftDown(int dex)
 {
-	/* check  */
-	if (dex < 0) throw eGeneralFail;
-
-	int* p = fQueue + dex;
-	
-	/* copy bytes */
-	memmove(p, p+1, sizeof(int)*(fCurrSize - dex));
-	
-	/* update size */
-	fCurrSize--;
+	fQueue.DeleteAt(dex);
 }
 
 /* direct-mapped priorities:
 *
-*	priority = fPriorities[ fQueue[i] - 1] */
+*	priority = fPriorities[fQueue[i]] */
 void PriorityQueueT::DirectHighest(int& value, int& dex) const
 {
 	int highest = INT_MIN;
 	dex = -1;
 	
-	/* find maximum */	
-	for (int i = 0; i < fCurrSize; i++)
+	/* find maximum */
+	int curr_size = fQueue.Length();	
+	for (int i = 0; i < curr_size; i++)
 	{
 		int currpriority = fPriorities[fQueue[i]];
 	
@@ -189,11 +144,6 @@ void PriorityQueueT::DirectHighest(int& value, int& dex) const
 			dex     = i;
 		}	
 	}
-
-#if __option (extended_errorcheck)
-	if (dex < 0 || dex >= fCurrSize) throw eGeneralFail;
-#endif
-
 	value = fQueue[dex];
 }
 
@@ -203,7 +153,8 @@ void PriorityQueueT::DirectLowest(int& value, int& dex) const
 	dex = -1;
 	
 	/* find minumum */	
-	for (int i = 0; i < fCurrSize; i++)
+	int curr_size = fQueue.Length();	
+	for (int i = 0; i < curr_size; i++)
 	{
 		int currpriority = fPriorities[fQueue[i]];
 	
@@ -214,11 +165,6 @@ void PriorityQueueT::DirectLowest(int& value, int& dex) const
 			dex    = i;
 		}	
 	}
-
-#if __option (extended_errorcheck)
-	if (dex < 0 || dex >= fCurrSize) throw eGeneralFail;
-#endif
-
 	value = fQueue[dex];
 }
 
@@ -230,8 +176,9 @@ void PriorityQueueT::IndexHighest(int& value, int& dex) const
 	int highest = INT_MIN;
 	dex = -1;
 	
-	/* find maximum */	
-	for (int i = 0; i < fCurrSize; i++)
+	/* find maximum */
+	int curr_size = fQueue.Length();
+	for (int i = 0; i < curr_size; i++)
 	{
 		int currpriority = fPriorities[i];
 	
@@ -242,11 +189,6 @@ void PriorityQueueT::IndexHighest(int& value, int& dex) const
 			dex     = i;
 		}	
 	}
-
-#if __option (extended_errorcheck)
-	if (dex < 0 || dex >= fCurrSize) throw eGeneralFail;
-#endif
-
 	value = fQueue[dex];
 }
 
@@ -255,8 +197,9 @@ void PriorityQueueT::IndexLowest(int& value, int& dex) const
 	int lowest = INT_MAX;
 	dex = -1;
 	
-	/* find minumum */	
-	for (int i = 0; i < fCurrSize; i++)
+	/* find minumum */
+	int curr_size = fQueue.Length();
+	for (int i = 0; i < curr_size; i++)
 	{
 		int currpriority = fPriorities[i];
 	
@@ -267,10 +210,5 @@ void PriorityQueueT::IndexLowest(int& value, int& dex) const
 			dex    = i;
 		}	
 	}
-
-#if __option (extended_errorcheck)
-	if (dex < 0 || dex >= fCurrSize) throw eGeneralFail;
-#endif
-
 	value = fQueue[dex];
 }
