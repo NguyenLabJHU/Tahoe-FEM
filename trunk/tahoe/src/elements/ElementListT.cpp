@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.95 2004-07-20 23:21:24 rdorgan Exp $ */
+/* $Id: ElementListT.cpp,v 1.96 2004-07-22 08:18:56 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -278,7 +278,12 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("updated_lagrangian_Q1P0_axi");
 		sub_lists.AddSub("updated_lagrangian_Q1P0_inv_axi");
 		sub_lists.AddSub("large_strain_meshfree_axi");
+
+#ifdef BRIDGING_ELEMENT
+		sub_lists.AddSub("bridging");
+		sub_lists.AddSub("meshfree_bridging");
 #endif
+#endif /* CONTINUUM_ELEMENT */
 
 #ifdef GRAD_SMALL_STRAIN_DEV
 		sub_lists.AddSub("grad_small_strain");
@@ -414,7 +419,14 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 		return new SimoQ1P0Axi_inv(fSupport);
 	else if (name == "large_strain_meshfree_axi")
 		return new MeshFreeFSSolidAxiT(fSupport);
+
+#ifdef BRIDGING_ELEMENT
+	else if (name == "bridging")
+		return new BridgingScaleT(fSupport);
+	else if (name == "meshfree_bridging")
+		return new MeshfreeBridgingT(fSupport);
 #endif
+#endif /* CONTINUUM_ELEMENT */
 
 #ifdef GRAD_SMALL_STRAIN_DEV
 	else if (name == "grad_small_strain")
