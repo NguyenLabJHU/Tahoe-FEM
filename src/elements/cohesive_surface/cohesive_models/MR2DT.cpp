@@ -8,7 +8,6 @@
 #include "dArrayT.h"
 #include "dMatrixT.h"
 #include "nMatrixT.h"
-#include "utils.h"
 
 /* class parameters */
 
@@ -378,24 +377,24 @@ dArrayT& MR2DT::qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar)
  
    dMatrixT AMAT(4,2); dMatrixT BMAT(2,2); dArrayT DQDSIG(2);
    double A1 = -falpha_chi*(qn[0] - fchi_r);
-   double B1 = (Sig[1]+abs(Sig[1]))/2./fGf_I;
+   double B1 = (Sig[1]+fabs(Sig[1]))/2./fGf_I;
    double B2 = Sig[0]/fGf_I;
    double DQDN = 2.*qn[3]*(qn[1] - Sig[1]*qn[3]);
    double DQDT = 2.*Sig[0];
    double A2 = -falpha_c*(qn[1] - fc_r);
-   double TNA = (Sig[1]-abs(Sig[1]))/2.;
-   double B3 = (Sig[1] - abs(TNA*qn[2])*sign(Sig[0]))/fGf_II;
+   double TNA = (Sig[1]-fabs(Sig[1]))/2.;
+   double B3 = (Sig[1] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
    double A3 = -falpha_phi*(qn[2] - tan(fphi_r));
    double A4 = -falpha_psi*qn[3];
-   double DB3_DTn = -qn[2]*sign(Sig[0])*sign(TNA)*(1. - sign(Sig[1]))/fGf_II/2.;
+   double DB3_DTn = -qn[2]*signof(Sig[0])*signof(TNA)*(1. - signof(Sig[1]))/fGf_II/2.;
    double DB3_DTt = 1./fGf_II;
-   double DB3_DTanphi = -abs(TNA)*sign(Sig[0])/fGf_II;
+   double DB3_DTanphi = -fabs(TNA)*signof(Sig[0])/fGf_II;
    double DQDN2 = -2.*qn[3]*qn[3];
    double DQDT2 = 2.;
    double DQDTN = 0.;
    double DQDNT = 0.;
-   double SN = sign(Sig[1]);
-   double DB1DN = (SN +abs(SN))/2./fGf_I;
+   double SN = signof(Sig[1]);
+   double DB1DN = (SN +fabs(SN))/2./fGf_I;
    DQDSIG[0] = DQDT;
    DQDSIG[1] = DQDN;
    AMAT(0,0) = A1;
@@ -475,24 +474,24 @@ dMatrixT& MR2DT::dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dq
 {
 
    double A1 = -falpha_chi*(qn[0] - fchi_r);
-   double B1 = (Sig[1]+abs(Sig[1]))/2./fGf_I;
+   double B1 = (Sig[1]+fabs(Sig[1]))/2./fGf_I;
    double B2 = Sig[0]/fGf_I;
    double DQDN = 2.*qn[3]*(qn[1] - Sig[1]*qn[3]);
    double DQDT = 2.*Sig[0];
    double A2 = -falpha_c*(qn[1] - fc_r);
-   double TNA = (Sig[1]-abs(Sig[1]))/2.;
-   double B3 = (Sig[1] - abs(TNA*qn[2])*sign(Sig[0]))/fGf_II;
+   double TNA = (Sig[1]-fabs(Sig[1]))/2.;
+   double B3 = (Sig[1] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
    double A3 = -falpha_phi*(qn[2] - tan(fphi_r));
    double A4 = -falpha_psi*qn[3];
-   double DB3_DTn = -qn[2]*sign(Sig[0])*sign(TNA)*(1. - sign(Sig[1]))/fGf_II/2.;
+   double DB3_DTn = -qn[2]*signof(Sig[0])*signof(TNA)*(1. - signof(Sig[1]))/fGf_II/2.;
    double DB3_DTt = 1./fGf_II;
-   double DB3_DTanphi = -abs(TNA)*sign(Sig[0])/fGf_II;
+   double DB3_DTanphi = -fabs(TNA)*signof(Sig[0])/fGf_II;
    double DQDN2 = -2.*qn[3]*qn[3];
    double DQDT2 = 2.;
    double DQDTN = 0.;
    double DQDNT = 0.;
-   double SN = sign(Sig[1]);
-   double DB1DN = (SN +abs(SN))/2./fGf_I;
+   double SN = signof(Sig[1]);
+   double DB1DN = (SN +fabs(SN))/2./fGf_I;
    
    dqbardSig(0,1) = A1*B2*DQDT2 + A1*DQDT/fGf_I;
    dqbardSig(0,1) = A1*B1*DQDN2 + A1*DQDN*DB1DN;
@@ -512,24 +511,24 @@ dMatrixT& MR2DT::dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqba
 {
 
    double A1 = -falpha_chi*(qn[0] - fchi_r);
-   double B1 = (Sig[1]+abs(Sig[1]))/2./fGf_I;
+   double B1 = (Sig[1]+fabs(Sig[1]))/2./fGf_I;
    double B2 = Sig[0]/fGf_I;
    double DQDN = 2.*qn[3]*(qn[1] - Sig[1]*qn[3]);
    double DQDT = 2.*Sig[0];
    double A2 = -falpha_c*(qn[1] - fc_r);
-   double TNA = (Sig[1]-abs(Sig[1]))/2.;
-   double B3 = (Sig[1] - abs(TNA*qn[2])*sign(Sig[0]))/fGf_II;
+   double TNA = (Sig[1]-fabs(Sig[1]))/2.;
+   double B3 = (Sig[1] - fabs(TNA*qn[2])*signof(Sig[0]))/fGf_II;
    double A3 = -falpha_phi*(qn[2] - tan(fphi_r));
    double A4 = -falpha_psi*qn[3];
-   double DB3_DTn = -qn[2]*sign(Sig[0])*sign(TNA)*(1. - sign(Sig[1]))/fGf_II/2.;
+   double DB3_DTn = -qn[2]*signof(Sig[0])*signof(TNA)*(1. - signof(Sig[1]))/fGf_II/2.;
    double DB3_DTt = 1./fGf_II;
-   double DB3_DTanphi = -abs(TNA)*sign(Sig[0])/fGf_II;
+   double DB3_DTanphi = -fabs(TNA)*signof(Sig[0])/fGf_II;
    double DQDN2 = -2.*qn[3]*qn[3];
    double DQDT2 = 2.;
    double DQDTN = 0.;
    double DQDNT = 0.;
-   double SN = sign(Sig[1]);
-   double DB1DN = (SN +abs(SN))/2./fGf_I;
+   double SN = signof(Sig[1]);
+   double DB1DN = (SN +fabs(SN))/2./fGf_I;
    
    dqbardq(0,0) = -falpha_chi*(B1*DQDN + B2*DQDT);
    dqbardq(0,1) =  A1*B1*(2.*qn[3]);
@@ -571,6 +570,12 @@ dMatrixT I_m(2,2), Rmat(2,2), R_Inv(2,2), KE(2,2), KE_Inv(2,2),
 dArrayT  u(2), up(2), du(2), dup(2), qn(4), qo(4), Rvec(6),Cvec(6),
          R(6), Rmod(6), Sig(2), Sig_I(2), dQdSig(2), dfdq(4), qbar(4),
          R2(6), X(6), V_sig(2), V_q(4), dfdSig(2), K1(2), K2(2);
+	
+	/* temporary fix until CSEAnisoT gets changed */
+	ArrayT<double>& nonConstState = (ArrayT<double> &) state;
+	ArrayT<double> state2 = state;
+	Traction(jump_u,nonConstState,sigma);
+	/* done */
 	
 	fStiffness[1] = fStiffness[2] = 0.;
 	I_m(0,0) = 1.; I_m(0,1) =0.; I_m(1,0) = 0.; I_m(1,1) = 1.;
@@ -655,6 +660,10 @@ dArrayT  u(2), up(2), du(2), dup(2), qn(4), qo(4), Rvec(6),Cvec(6),
 	   		fStiffness[3] = KEP(1,1);
 	       }
 	      
+// more temporary fix -- undo the changes we made
+  nonConstState = state2;
+// done
+
 
 	return fStiffness;
 
@@ -725,10 +734,16 @@ int MR2DT::NodalQuantityNeeded(void)
         return 2; 
 }
 
-
-
 void MR2DT::SetElementGroupsNeeded(iArrayT& iGroups) 
 {	
 	iGroups[0] = 1;
+}
+
+double MR2DT::signof(double r)
+{
+	if (fabs(r) < kSmall)
+		return 0.;
+	else
+		return fabs(r)/r;
 }
 
