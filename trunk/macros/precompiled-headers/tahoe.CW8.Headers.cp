@@ -1,4 +1,4 @@
-/* $Id: tahoe.CW8.Headers.cp,v 1.5 2003-02-05 02:10:32 paklein Exp $ */
+/* $Id: tahoe.CW8.Headers.cp,v 1.6 2003-02-28 02:06:21 paklein Exp $ */
 /*************************************************************************/
 /************************ library support options ************************/
 /*************************************************************************/
@@ -6,7 +6,7 @@
 /* libraries - enabled from command line with -D[symbol] declarations */
 
 /* development: the Tahoe development module */
-//#define __DEVELOPMENT__
+#define __DEVELOPMENT__
 
 /* f2c: FORTRAN to C support */
 //#define __F2C__
@@ -30,7 +30,7 @@
 //#define __METIS__
 
 /* ACCESS: Sandia Engineering Sciences tools */
-//#define __ACCESS__
+#define __ACCESS__
 
 /* NOX: nonlinear solver library */
 //#define __NOX__
