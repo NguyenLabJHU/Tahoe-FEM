@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.39.2.1 2003-04-07 22:47:11 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.39.2.2 2003-04-28 22:14:53 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -42,6 +42,7 @@
 #include "NodeManagerT.h"
 #include "dSPMatrixT.h"
 #include "FieldT.h"
+#include "IntegratorT.h"
 #endif
 
 using namespace Tahoe;
@@ -245,6 +246,195 @@ bool FEExecutionManagerT::RemoveCommandLineOption(const char* str)
 /**********************************************************************
 * Private
 **********************************************************************/
+void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms, ofstream& log_out) const
+{
+        clock_t t1 = 0, t2 = 0;
+	int phase; // job phase
+        const char caller[] = "FEExecutionManagerT::RunBridging";
+            
+        /* configure ghost nodes */
+        int group = 0;
+        StringT bridging_field = "displacement";
+        atoms.InitGhostNodes();
+        continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
+        continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager());
+
+#if 0
+        /* cross coupling matricies */
+        int neq_A = atoms.NodeManager()->Field(bridging_field)->NumEquations();
+        int neq_C = continuum.NodeManager()->Field(bridging_field)->NumEquations();
+        dSPMatrixT K_AC(neq_A, neq_C, 0), K_G_NG;
+        dSPMatrixT K_CA(neq_C, neq_A, 0), G_Interpolation;
+        dArrayT F_A(neq_A), F_C(neq_C);
+        continuum.InterpolationMatrix(bridging_field, G_Interpolation);
+#endif
+
+        t1 = clock();
+
+        /* solution */
+        phase = 1;
+
+        /* time managers */
+        TimeManagerT* atom_time = atoms.TimeManager();
+        TimeManagerT* continuum_time = continuum.TimeManager();
+
+        dArray2DT field_at_ghosts;
+        atom_time->Top();
+        continuum_time->Top();
+        int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
+        while (atom_time->NextSequence() && continuum_time->NextSequence())
+        {	
+                /* set to initial condition */
+                atoms.InitialCondition();
+                continuum.InitialCondition();
+
+                /* read restart information */
+                atoms.ReadRestart();
+                continuum.ReadRestart();
+
+                /* loop over time increments */
+                AutoArrayT<int> loop_count, atom_iter_count, continuum_iter_count;
+                bool seq_OK = true;
+                while (seq_OK && 
+                        atom_time->Step() &&
+                        continuum_time->Step()) //TEMP - same clock
+                {
+                        log_out << "\n Step = " << atom_time->StepNumber() << '\n'
+                                << " Time = " << atom_time->Time() << endl;
+			
+                        /* running status flag */
+                        ExceptionT::CodeT error = ExceptionT::kNoError;		
+
+                        /* initialize step */
+                        if (error == ExceptionT::kNoError) error = atoms.InitStep();
+                        if (error == ExceptionT::kNoError) error = continuum.InitStep();
+			
+                        /* solver phase status */
+                        const iArray2DT& atom_phase_status = atoms.SolverPhasesStatus();
+                        const iArray2DT& continuum_phase_status = continuum.SolverPhasesStatus();
+
+#if 0
+                        /* set cross-coupling */
+                        atoms.Form_G_NG_Stiffness(bridging_field, K_G_NG);
+                        K_AC.MultAB(K_G_NG, G_Interpolation);
+                        K_CA.Transpose(K_AC);
+#endif
+		
+                        /* loop until both solved */
+                        int group_num = 0;
+                        double atoms_res, continuum_res, combined_res_0 = 0.0;
+                        int count = 0;
+                        int atom_last_iter, atom_iter, continuum_last_iter, continuum_iter;
+                        atom_last_iter = atom_iter = continuum_last_iter = continuum_iter = 0;
+                        while (count == 0 || (atom_iter > 0 || continuum_iter > 0)) //TEMP - assume just one phase
+
+//		        while (1 || error == ExceptionT::kNoError &&
+//			(atom_phase_status(0, FEManagerT::kIteration) > 0 ||
+//			continuum_phase_status(0, FEManagerT::kIteration) > 0)) //TEMP - assume just one phase
+                        {
+                                count++;
+
+                                /* solve atoms */
+                                if (1 || error == ExceptionT::kNoError) {
+                                        atoms.ResetCumulativeUpdate(group);
+                                        error = atoms.SolveStep();
+                                }
+
+#if 0
+                                /* set cross-coupling */
+                                atoms.Form_G_NG_Stiffness(bridging_field, K_G_NG);
+                                K_AC.MultAB(K_G_NG, G_Interpolation);
+                                K_CA.Transpose(K_AC);
+#endif
+					
+                                /* apply solution to continuum */
+                                continuum.ProjectField(bridging_field, *atoms.NodeManager());
+#if 0
+                                K_CA.Multx(atoms.CumulativeUpdate(group_num), F_C);
+                                F_C *= -1.0;
+                                continuum.SetExternalForce(group_num, F_C);
+#endif
+                                continuum.FormRHS(group_num);
+                                continuum_res = continuum.Residual(group_num).Magnitude(); //serial
+					
+                                /* solve continuum */
+                                if (1 || error == ExceptionT::kNoError) {
+                                        continuum.ResetCumulativeUpdate(group);
+                                        error = continuum.SolveStep();
+                                }
+				
+                                /* apply solution to atoms */
+                                continuum.InterpolateField(bridging_field, field_at_ghosts);
+                                atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
+#if 0
+                                K_AC.Multx(continuum.CumulativeUpdate(group_num), F_A);
+                                F_A *= -1.0;
+                                atoms.SetExternalForce(group_num, F_A);
+#endif
+                                atoms.FormRHS(group_num);
+                                atoms_res = atoms.Residual(group_num).Magnitude(); //serial
+
+                                /* reset the reference errors */
+                                if (count == 1) {
+                                        combined_res_0 = atoms_res + continuum_res;
+                                        atoms.SetReferenceError(group_num, combined_res_0);
+                                        continuum.SetReferenceError(group_num, combined_res_0);
+                                }
+					
+                                /* log residual */
+                                double tot_rel_error = (fabs(combined_res_0) > kSmall) ? 
+                                        (atoms_res + continuum_res)/combined_res_0 : 0.0;
+                                    log_out << setw(kIntWidth) << count << ": "
+                                        << setw(d_width) << atoms_res << " (A) | "
+                                        << setw(d_width) << continuum_res << " (C) | "
+                                        << setw(d_width) << tot_rel_error << endl;
+
+                                /* number of interations in last pass */
+                                int atom_total_iter = atom_phase_status(0, FEManagerT::kIteration);
+                                int continuum_total_iter = continuum_phase_status(0, FEManagerT::kIteration);
+                                atom_iter = atom_total_iter - atom_last_iter;
+                                continuum_iter = continuum_total_iter - continuum_last_iter;
+                                atom_last_iter = atom_total_iter;
+                                continuum_last_iter = continuum_total_iter;
+                        }
+				
+                        loop_count.Append(count);
+                        atom_iter_count.Append(atom_last_iter);
+                        continuum_iter_count.Append(continuum_last_iter);
+			
+                        /* close step */
+                        if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();
+                        if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
+
+                        /* check for error */
+                        if (0)
+//		if (error != ExceptionT::kNoError)
+                                ExceptionT::GeneralFail(caller, "hit error %d", error);
+                        //TEMP - no error recovery yet
+                }
+			
+                cout << "\n Number of bridging iterations:\n";
+                cout << setw(kIntWidth) << "step" 
+                        << setw(kIntWidth) << "cycles" 
+                        << setw(kIntWidth) << "a-its."
+                        << setw(kIntWidth) << "c-its."<< '\n';
+                for (int i = 0; i < loop_count.Length(); i++)
+                        cout << setw(kIntWidth) << i+1
+                                << setw(kIntWidth) << loop_count[i]
+                                << setw(kIntWidth) << atom_iter_count[i]
+                                << setw(kIntWidth) << continuum_iter_count[i] << '\n';
+        }
+        t2 = clock();
+}
+
+void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& fem, FEManagerT_bridging& md) const
+{
+
+
+
+
+}
+
 
 /* 2 Tahoe bridging calculation */
 #ifdef BRIDGING_ELEMENT
@@ -335,184 +525,26 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		continuum_in >> job_char;
 		FEManagerT_bridging continuum(continuum_in, continuum_out, fComm, bridge_continuum_in);
 		continuum.Initialize();
-
-		/* configure ghost nodes */
-		int group = 0;
-		StringT bridging_field = "displacement";
-		atoms.InitGhostNodes();
-		continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
-		continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager());
-
-#if 0
-		/* cross coupling matricies */
-		int neq_A = atoms.NodeManager()->Field(bridging_field)->NumEquations();
-		int neq_C = continuum.NodeManager()->Field(bridging_field)->NumEquations();
-		dSPMatrixT K_AC(neq_A, neq_C, 0), K_G_NG;
-		dSPMatrixT K_CA(neq_C, neq_A, 0), G_Interpolation;
-		dArrayT F_A(neq_A), F_C(neq_C);
-		continuum.InterpolationMatrix(bridging_field, G_Interpolation);
-#endif
-
-		t1 = clock();
-
-		/* solution */
-		phase = 1;
-
-		/* time managers */
-		TimeManagerT* atom_time = atoms.TimeManager();
-		TimeManagerT* continuum_time = continuum.TimeManager();
-
-		dArray2DT field_at_ghosts;
-		atom_time->Top();
-		continuum_time->Top();
-		int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
-		while (atom_time->NextSequence() && continuum_time->NextSequence())
-		{	
-			/* set to initial condition */
-			atoms.InitialCondition();
-			continuum.InitialCondition();
-
-			/* read restart information */
-			atoms.ReadRestart();
-			continuum.ReadRestart();
-
-			/* loop over time increments */
-			AutoArrayT<int> loop_count, atom_iter_count, continuum_iter_count;
-			bool seq_OK = true;
-			while (seq_OK && 
-				atom_time->Step() &&
-				continuum_time->Step()) //TEMP - same clock
-			{
-				log_out << "\n Step = " << atom_time->StepNumber() << '\n'
-				        << " Time = " << atom_time->Time() << endl;
-			
-				/* running status flag */
-				ExceptionT::CodeT error = ExceptionT::kNoError;		
-
-				/* initialize step */
-				if (error == ExceptionT::kNoError) error = atoms.InitStep();
-				if (error == ExceptionT::kNoError) error = continuum.InitStep();
-			
-				/* solver phase status */
-				const iArray2DT& atom_phase_status = atoms.SolverPhasesStatus();
-				const iArray2DT& continuum_phase_status = continuum.SolverPhasesStatus();
-
-#if 0
-				/* set cross-coupling */
-				atoms.Form_G_NG_Stiffness(bridging_field, K_G_NG);
-				K_AC.MultAB(K_G_NG, G_Interpolation);
-				K_CA.Transpose(K_AC);
-#endif
-		
-				/* loop until both solved */
-				int group_num = 0;
-				double atoms_res, continuum_res, combined_res_0 = 0.0;
-				int count = 0;
-				int atom_last_iter, atom_iter, continuum_last_iter, continuum_iter;
-				atom_last_iter = atom_iter = continuum_last_iter = continuum_iter = 0;
-				while (count == 0 || (atom_iter > 0 || continuum_iter > 0)) //TEMP - assume just one phase
-
-//				while (1 || error == ExceptionT::kNoError &&
-//					(atom_phase_status(0, FEManagerT::kIteration) > 0 ||
-//					continuum_phase_status(0, FEManagerT::kIteration) > 0)) //TEMP - assume just one phase
-				{
-					count++;
-
-					/* solve atoms */
-					if (1 || error == ExceptionT::kNoError) {
-						atoms.ResetCumulativeUpdate(group);
-						error = atoms.SolveStep();
-					}
-
-#if 0
-					/* set cross-coupling */
-					atoms.Form_G_NG_Stiffness(bridging_field, K_G_NG);
-					K_AC.MultAB(K_G_NG, G_Interpolation);
-					K_CA.Transpose(K_AC);
-#endif
-					
-					/* apply solution to continuum */
-					continuum.ProjectField(bridging_field, *atoms.NodeManager());
-#if 0
-					K_CA.Multx(atoms.CumulativeUpdate(group_num), F_C);
-					F_C *= -1.0;
-					continuum.SetExternalForce(group_num, F_C);
-#endif
-					continuum.FormRHS(group_num);
-					continuum_res = continuum.Residual(group_num).Magnitude(); //serial
-					
-					/* solve continuum */
-					if (1 || error == ExceptionT::kNoError) {
-						continuum.ResetCumulativeUpdate(group);
-						error = continuum.SolveStep();
-					}
-				
-					/* apply solution to atoms */
-					continuum.InterpolateField(bridging_field, field_at_ghosts);
-					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
-#if 0
-					K_AC.Multx(continuum.CumulativeUpdate(group_num), F_A);
-					F_A *= -1.0;
-					atoms.SetExternalForce(group_num, F_A);
-#endif
-					atoms.FormRHS(group_num);
-					atoms_res = atoms.Residual(group_num).Magnitude(); //serial
-
-					/* reset the reference errors */
-					if (count == 1) {
-						combined_res_0 = atoms_res + continuum_res;
-						atoms.SetReferenceError(group_num, combined_res_0);
-						continuum.SetReferenceError(group_num, combined_res_0);
-					}
-					
-					/* log residual */
-					double tot_rel_error = (fabs(combined_res_0) > kSmall) ? 
-						(atoms_res + continuum_res)/combined_res_0 : 0.0;
-					log_out << setw(kIntWidth) << count << ": "
-					        << setw(d_width) << atoms_res << " (A) | "
-					        << setw(d_width) << continuum_res << " (C) | "
-					        << setw(d_width) << tot_rel_error << endl;
-
-					/* number of interations in last pass */
-					int atom_total_iter = atom_phase_status(0, FEManagerT::kIteration);
-					int continuum_total_iter = continuum_phase_status(0, FEManagerT::kIteration);
-					atom_iter = atom_total_iter - atom_last_iter;
-					continuum_iter = continuum_total_iter - continuum_last_iter;
-					atom_last_iter = atom_total_iter;
-					continuum_last_iter = continuum_total_iter;
-				}
-				
-				loop_count.Append(count);
-				atom_iter_count.Append(atom_last_iter);
-				continuum_iter_count.Append(continuum_last_iter);
-			
-				/* close step */
-				if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();
-				if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
-
-				/* check for error */
-				if (0)
-//				if (error != ExceptionT::kNoError)
-					ExceptionT::GeneralFail(caller, "hit error %d", error);
-				//TEMP - no error recovery yet
-			}
-			
-			cout << "\n Number of bridging iterations:\n";
-			cout << setw(kIntWidth) << "step" 
-			     << setw(kIntWidth) << "cycles" 
-			     << setw(kIntWidth) << "a-its."
-			     << setw(kIntWidth) << "c-its."<< '\n';
-			for (int i = 0; i < loop_count.Length(); i++)
-				cout << setw(kIntWidth) << i+1
-				     << setw(kIntWidth) << loop_count[i]
-				     << setw(kIntWidth) << atom_iter_count[i]
-				     << setw(kIntWidth) << continuum_iter_count[i] << '\n';
-		}
-
-		t2 = clock();
-	}
-
-	/* job failure */
+                
+                // split here depending on whether integrators are explicit or implicit
+                // check only one integrator assuming they both are the same
+                IntegratorT* mdintegrate = atoms.Integrator(0);
+                IntegratorT::ImpExpFlagT flag = IntegratorT::kImplicit;
+                flag = mdintegrate->ImplicitExplicit();  // 0 = implicit, 1 = explicit
+                
+                if (flag == 0)
+                    RunStaticBridging(continuum, atoms, log_out);
+                else if (flag == 1)
+                    RunDynamicBridging(continuum, atoms);
+                else
+                {
+                    cout << "unknown integrator type\n" << endl;
+                    throw ExceptionT::kGeneralFail;
+                }
+                
+        }
+        
+        /* job failure */
 	catch (ExceptionT::CodeT code)
 	{
 		status << "\n \"" << in.filename() << "\" exit on exception during the\n";
@@ -533,7 +565,6 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		atom_out << endl;
 		continuum_out << endl;
 	}
-
 	/* stop day/date info */
 	time_t stoptime;
 	time(&stoptime);
