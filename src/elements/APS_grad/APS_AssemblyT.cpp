@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.61 2004-08-03 06:13:53 paklein Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.62 2004-08-04 01:18:46 paklein Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "APS_MatlT.h"
@@ -1192,7 +1192,7 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 	fPlasticGradientWght[4] = list.GetParameter("fPlasticGradientWght[4]");
 	*/
 
-	int n_en_surf=0;
+	n_en_surf = 0;
 	ArrayT<GeometryT::CodeT> facet_geom;
 	iArrayT facet_nodes;
 	for (int i = 0; i < num_sidesets; i++)
