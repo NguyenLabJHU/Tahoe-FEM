@@ -1,4 +1,4 @@
-/* $Id: ParameterT.h,v 1.2 2002-09-03 07:54:08 paklein Exp $ */
+/* $Id: ParameterT.h,v 1.3 2002-11-16 20:50:21 paklein Exp $ */
 #ifndef _PARAMETER_T_H_
 #define _PARAMETER_T_H_
 
@@ -27,7 +27,7 @@ public:
 	
 	/** default constructor. Should be used only to allow defining
 	 * arrays of ParameterT's */
-	ParameterT(void);
+	ParameterT(void) {};
 	/*@}*/
 
 	/** parameter name */

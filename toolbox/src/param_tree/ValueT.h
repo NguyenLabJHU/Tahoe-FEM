@@ -1,4 +1,4 @@
-/* $Id: ValueT.h,v 1.1 2002-09-03 07:04:33 paklein Exp $ */
+/* $Id: ValueT.h,v 1.2 2002-11-16 20:50:21 paklein Exp $ */
 #ifndef _VALUE_T_H_
 #define _VALUE_T_H_
 
@@ -14,9 +14,11 @@ public:
 
 	/** enumerator for value type */
 	enum TypeT {
+		None,
 		Integer,
 		Double,
-		String
+		String,
+		Enumeration /**< stores values as integer */
 	};
 
 	/** \name constructors */
@@ -27,7 +29,13 @@ public:
 
 	/** set type without assigning value */
 	ValueT(TypeT t);
+	
+	/** default constructor */
+	ValueT(void);
 	/*@}*/
+
+	/** write the value to the output stream */
+	void Write(ostream& out) const;
 
 	/** value type */
 	TypeT Type(void) { return fType; };

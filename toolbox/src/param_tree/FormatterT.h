@@ -1,12 +1,14 @@
-/* $Id: FormatterT.h,v 1.2 2002-09-22 23:05:29 paklein Exp $ */
+/* $Id: FormatterT.h,v 1.3 2002-11-16 20:50:21 paklein Exp $ */
 #ifndef _FORMATTER_T_H_
 #define _FORMATTER_T_H_
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
-class ValueT;
 
 namespace Tahoe {
+
+/* forward declarations */
+class ParameterT;
 
 /** base class for formatting output of ValueT's. There are
  * assumed to be two kinds of output for every format: value
@@ -19,29 +21,63 @@ public:
 
 	/** constructor */
 	FormatterT(void);
-	
-	/** \name writing values */
-	/*@{*/
-	/** initialize value file */
-	virtual void InitValueFile(ostream& out, const StringT path) const = 0;
 
-	/** close value file */
-	virtual void CloseValueFile(ostream& out) const = 0;
+	/** destructor */
+	virtual ~FormatterT(void) {};
+	
+	/** \name writing parameters
+	 * All methods return true if successful. */	
+	/*@{*/
+	/** initialize parameter output stream. Stream must be ready to be written to. */
+	virtual bool InitParameterFile(ostream& out) const = 0;
+
+	/** close parameter file */
+	virtual bool CloseParameterFile(ostream& out) const = 0;
 	
 	/** write the value */
-	virtual void WriteValue(ostream& out, const ValueT& value) const = 0;
+//	virtual bool WriteParameter(ostream& out, const ParameterT& parameter) const = 0;
 	/*@}*/
 
-	/** \name writing data descriptions */
+	/** \name writing data descriptions 
+	 * All methods return true if successful. */
 	/*@{*/
-	/** initialize description file */
-	virtual void InitDescriptionFile(ostream& out, const StringT path) const = 0;
+	/** initialize description output stream. Stream must be ready to be written to. */
+	virtual bool InitDescriptionFile(ostream& out) const = 0;
 
 	/** close description file */
-	virtual void CloseDescriptionFile(ostream& out) const = 0;
+	virtual bool CloseDescriptionFile(ostream& out) const = 0;
 	
 	/** write the data description */
-	virtual void WriteDescription(ostream& out, const ValueT& value) const = 0;
+	virtual bool WriteDescription(ostream& out, const ParameterT& parameter) const = 0;
+	/*@}*/
+
+protected:
+
+	/** \name tabbing */
+	/*@{*/
+	/** the tab string */
+	const char* Tab(void) const { return fTabs; };
+	
+	/** increases the tab level by one and returns tab string. \note Function
+	 * is not really const, but the tabbing info should not be used directly
+	 * by sub-classes. */
+	const char* TabOut(void) const;
+
+	/** decreases the tab level by one and returns tab string. \note Function
+	 * is not really const, but the tabbing info should not be used directly
+	 * by sub-classes. */
+	const char* TabIn(void) const;
+	/*@}*/
+
+private:
+
+	/** \name tabbing */
+	/*@{*/
+	/** string used to generate current level of tabbing */
+	char fTabs[11];
+
+	/** current tab depth */
+	int fTabCount;
 	/*@}*/
 };
 

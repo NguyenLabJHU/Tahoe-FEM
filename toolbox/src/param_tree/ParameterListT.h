@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.2 2002-09-03 07:54:08 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.3 2002-11-16 20:50:21 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -8,7 +8,12 @@
 
 namespace Tahoe {
 
-/** list of parameters */
+/** list of parameters.
+ * A ParameterListT can contain three types of entries:
+ *    -# plain ParameterT's
+ *    -# nested lists of ParameterListT's reproduced in entirety
+ *    -# references to ParameterListT's which are referred to by name and are not reproduced
+ */
 class ParameterListT
 {
 public:
@@ -23,17 +28,69 @@ public:
 	/** constructor */
 	ParameterListT(const StringT& name): fName(name) { };
 	
-	/** (re-)set namespace name */
+	/** list name */
+	const StringT& Name(void) const { return fName; };
+	
+	/** \name dimensions */
+	/*@{*/
+	/** number of parameters */
+	int NumParameters(void) const { return fParameters.Length(); };
+
+	/** number of nested parameter lists */
+	int NumLists(void) const { return fParameterLists.Length(); };
+
+	/** number of references to parameter lists */
+	int NumReferences(void) const { return fReferences.Length(); };
+	/*@}*/
+
+#if 0	
+	/** \name name space */
+	/*@{*/
+	/** (re-)set name space name */
 	void SetNameSpace(const StringT& ns_name) { fNameSpace = ns_name; };
-	
-	/** add parameter. Returns true of there where no conflicts with
-	 * existing parameters. The names of parameters cannot be repeated */
-	bool AddParameter(const ParameterT& param, OccurrenceT occur); 
-	
+
+	/** return the name space name */
+	const StringT& NameSpace(void) const { return fNameSpace; };
+	/*@}*/
+#endif
+
+	/** \name adding items to the list */
+	/*@{*/
+	/** add a parameter. Returns true of there where no conflicts with
+	 * existing parameters. The names of parameters cannot be repeated.
+	 * By default, the ParameterListT::OccurrenceT is ParameterListT::Once. */
+	bool AddParameter(const ParameterT& param, OccurrenceT occur = Once); 
+
+	/** add a parameter list. Returns true of there where no conflicts with
+	 * existing parameter lists. The names of parameter lists cannot be repeated.
+	 * By default, the ParameterListT::OccurrenceT is ParameterListT::Once. */
+	bool AddList(const ParameterListT& param_list, OccurrenceT occur = Once); 
+
+	/** add a reference. Returns true of there where no conflicts with
+	 * existing references. The names of reference cannot be repeated.
+	 * By default, the ParameterListT::OccurrenceT is ParameterListT::Once. */
+	bool AddReference(const StringT& ref, OccurrenceT occur = Once); 
+	/*@}*/
+
+	/** \name access to the list entries and occurrences */
+	/*@{*/
+	const ArrayT<ParameterT>&     Parameters(void) const           { return fParameters;          };
+	const ArrayT<OccurrenceT>&    ParameterOccurrences(void) const { return fParametersOccur;     };
+	const ArrayT<ParameterListT>& Lists(void) const                { return fParameterLists;      };
+	const ArrayT<OccurrenceT>&    ListOccurrences(void) const      { return fParameterListsOccur; };
+	const ArrayT<StringT>&        References(void) const           { return fReferences;          };
+	const ArrayT<OccurrenceT>&    ReferenceOccurrences(void) const { return fReferencesOccur;     };
+	/*@}*/
+
+private:
+
+	/** default constructor. Needed to allow making lists of lists */
+	ParameterListT(void) {};
+
 protected:
 
 	/** parameters name space */
-	StringT fNameSpace;
+//	StringT fNameSpace;
 
 	/** list name */
 	StringT fName;
@@ -43,7 +100,19 @@ protected:
 	AutoArrayT<ParameterT>  fParameters;
 	AutoArrayT<OccurrenceT> fParametersOccur;
 	/*@}*/
+
+	/** \name nested parameters lists */
+	/*@{*/
+	AutoArrayT<ParameterListT> fParameterLists;
+	AutoArrayT<OccurrenceT>    fParameterListsOccur;
+	/*@}*/
+
+	/** \name references to parameters lists */
+	/*@{*/
+	AutoArrayT<StringT>     fReferences;
+	AutoArrayT<OccurrenceT> fReferencesOccur;
+	/*@}*/
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
 #endif /* _PARAMETER_LIST_T_H_ */
