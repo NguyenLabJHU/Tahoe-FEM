@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.h,v 1.7 2002-01-05 06:36:47 paklein Exp $ */
+/* $Id: EnSightInputT.h,v 1.8 2002-01-23 20:01:59 sawimme Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _ENSIGHTINPUT_T_H_
@@ -12,6 +12,7 @@
 #include "iArray2DT.h"
 #include "iArrayT.h"
 #include "dArray2DT.h"
+#include "dArrayT.h"
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
@@ -69,6 +70,8 @@ public:
   virtual int  NumElementVariables (void) const;
   virtual int  NumQuadratureVariables (void) const;
 
+  virtual void ReadAllNodeVariable (int step, int varindex, dArrayT& values);
+  virtual void ReadNodeVariable (int step, StringT& name, int varindex, dArrayT& values);
   virtual void ReadNodeLabels (ArrayT<StringT>& nlabels) const;
   virtual void ReadElementLabels (ArrayT<StringT>& elabels) const;
   virtual void ReadQuadratureLabels (ArrayT<StringT>& qlabels) const;  
@@ -81,9 +84,13 @@ public:
   virtual void ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues);
   virtual void ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues);
 
+  virtual void ReadAllElementVariable (int step, int varindex, dArrayT& values);
+  virtual void ReadElementVariable (int step, StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllElementVariables (int step, dArray2DT& evalues);
   virtual void ReadElementVariables (int step, StringT& name, dArray2DT& evalues);
 
+  virtual void ReadAllQuadratureVariable (int step, int varindex, dArrayT& values);
+  virtual void ReadQuadratureVariable (int step, StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllQuadratureVariables (int step, dArray2DT& qvalues);
   virtual void ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues);
 
@@ -92,8 +99,14 @@ public:
   void ScanGeometryFile (void);
   
   StringT CreateVariableFile (const StringT& old, int inc) const;
+  int  ComponentIndex (int varindex, ArrayT<StringT>& labels) const;
+  void VarPrelims_Geo (int step, StringT& name, int& group_id, int& currentinc);
+  void VarPrelims_Case (AutoArrayT<bool>& vector, AutoArrayT<StringT>& labels, bool node);
+  void ReadOneVariableData (int component, StringT& label, int group_id, dArrayT& values, int currentinc, bool nodal) const;
   void ReadVariableData (ArrayT<bool>& vector, ArrayT<StringT>& labels, int group_id, dArray2DT& values, int currentinc, bool nodal) const;
   void VariableUsed (StringT& name, iArrayT& used, ArrayT<StringT>& labels, ArrayT<bool>& vector, bool nodal) const;  
+
+  enum PartDimensionsT { kNumNodes=0, kNumElements, kPartID, kPartDims };
 
  private:
   EnSightT fData;
@@ -162,6 +175,19 @@ inline void EnSightInputT::ReadNodeSetVariables (int step, StringT& nsetname, dA
 #pragma unused (step)
 #pragma unused (nsetname)
   nvalues.Free();
+}
+inline void EnSightInputT::ReadAllQuadratureVariable (int step, int varindex, dArrayT& values)
+{
+#pragma unused (step)
+#pragma unused (varindex)
+  values.Free();
+}
+inline void EnSightInputT::ReadQuadratureVariable (int step, StringT& name, int varindex, dArrayT& values)
+{
+#pragma unused (step)
+#pragma unused (name)
+#pragma unused (varindex)
+  values.Free();
 }
 inline void EnSightInputT::ReadAllQuadratureVariables (int step, dArray2DT& qvalues)
 {

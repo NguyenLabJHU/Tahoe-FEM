@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.h,v 1.9 2002-01-05 06:36:47 paklein Exp $ */
+/* $Id: AbaqusInputT.h,v 1.10 2002-01-23 20:01:58 sawimme Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _ABAQUSINPUT_T_H_
@@ -76,13 +76,19 @@ class AbaqusInputT : public InputBaseT
   void ElementVariablesUsed (StringT& name, iArrayT& used);
   void QuadratureVariablesUsed (StringT& name, iArrayT& used);  
 
+  void ReadAllNodeVariable (int step, int varindex, dArrayT& values);
+  void ReadNodeVariable (int step, StringT& name, int varindex, dArrayT& values);
   void ReadAllNodeVariables (int step, dArray2DT& nvalues);
   void ReadNodeVariables (int step, StringT& elsetname, dArray2DT& nvalues);
   void ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues);
 
+  void ReadAllElementVariable (int step, int varindex, dArrayT& values);
+  void ReadElementVariable (int step, StringT& name, int varindex, dArrayT& values);
   void ReadAllElementVariables (int step, dArray2DT& evalues);
   void ReadElementVariables (int step, StringT& name, dArray2DT& evalues);
 
+  void ReadAllQuadratureVariable (int step, int varindex, dArrayT& values);
+  void ReadQuadratureVariable (int step, StringT& name, int varindex, dArrayT& values);
   void ReadAllQuadratureVariables (int step, dArray2DT& qvalues);
   void ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues);
 

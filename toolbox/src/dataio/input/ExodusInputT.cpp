@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.9 2002-01-09 12:14:25 paklein Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.10 2002-01-23 20:01:59 sawimme Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #include "ExodusInputT.h"
@@ -238,6 +238,26 @@ void ExodusInputT::ElementVariablesUsed (StringT& name, iArrayT& used)
   used = 1;
 }
 
+void ExodusInputT::ReadAllNodeVariable (int step, int varindex, dArrayT& values)
+{
+  values.Allocate (NumNodes());
+  fData.ReadNodalVariable (step+1, varindex+1, values);
+}
+
+void ExodusInputT::ReadNodeVariable (int step, StringT& name, int varindex, dArrayT& values)
+{
+  iArray2DT connects (NumElements (name), NumElementNodes (name));
+  ReadConnectivity (name, connects);
+
+  iArrayT nodesused;
+  NodesUsed (connects, nodesused);
+
+  values.Allocate (nodesused.Length());
+  dArrayT temp (NumNodes());
+  fData.ReadNodalVariable (step+1, varindex+1, temp);
+  values.Collect (nodesused, temp);
+}
+
 void ExodusInputT::ReadAllNodeVariables (int step, dArray2DT& values)
 {
   if (values.MajorDim() != NumNodes() ||
@@ -250,6 +270,7 @@ void ExodusInputT::ReadAllNodeVariables (int step, dArray2DT& values)
       values.SetColumn (n, temp);
     }
 }
+
 
 void ExodusInputT::ReadNodeVariables (int step, StringT& name, dArray2DT& values)
 {
@@ -295,6 +316,34 @@ void ExodusInputT::ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT&
     }
 
   values.RowCollect (nodesused, temp2);
+}
+
+void ExodusInputT::ReadAllElementVariable (int step, int varindex, dArrayT& values)
+{
+  if (values.Length() != NumGlobalElements ()) throw eSizeMismatch;
+
+  int ng = NumElementGroups ();
+  iArrayT ids (ng);
+  fData.ElementBlockID (ids);
+
+  for (int i=0, offset=0; i < ng; i++)
+    {
+      int numelems, dim;
+      fData.ReadElementBlockDims (ids[i], numelems, dim);
+      dArrayT temp (numelems);
+      fData.ReadElementVariable (step+1, ids[i], varindex+1, temp);
+      values.CopyPart (offset, temp, 0, numelems);
+      offset += numelems;
+    }
+}
+
+void ExodusInputT::ReadElementVariable (int step, StringT& name, int varindex, dArrayT& values)
+{
+  int group_id = atoi (name.Pointer());
+  int numelems, dim;
+  fData.ReadElementBlockDims (group_id, numelems, dim);
+  if (values.Length() != numelems) throw eSizeMismatch;
+  fData.ReadElementVariable (step+1, group_id, varindex+1, values);
 }
 
 void ExodusInputT::ReadAllElementVariables (int step, dArray2DT& values)
