@@ -1,4 +1,4 @@
-/* $Id: ConHypGeom.cpp,v 1.1 2002-07-11 17:57:16 dzeigle Exp $ */
+/* $Id: ConHypGeom.cpp,v 1.2 2002-07-11 19:15:01 dzeigle Exp $ */
 
 // CONHYPGEOM is the confluent hypergeometric function of the 1st kind
 // (a.k.a. Kummer function) Because of the rapid growth/decay of individual
@@ -129,8 +129,8 @@ double ConHypGeom::Function(double x) const
 		
 		if (x<0)
 		{
-			term[0] *= (pow(abs(x),-fA)/g.Function(fB-fA));
-			term[1] *= (exp(x)*cos(PI*(fA-fB))*pow(abs(x),fA-fB)/g.Function(fA));
+			term[0] *= (pow(fabs(x),-fA)/g.Function(fB-fA));
+			term[1] *= (exp(x)*cos(PI*(fA-fB))*pow(fabs(x),fA-fB)/g.Function(fA));
 		}
 		else if (x>0)
 		{
@@ -176,50 +176,48 @@ dArrayT& ConHypGeom::MapFunction(const dArrayT& in, dArrayT& out) const
 	for (int i = 0; i < in.Length(); i++)
 	{
 		double r = *pl++;
-		
-		if (fabs(r)<MaxAn)		// r value in manageable range  
-		{
-			double next_term=0.0, gams, prat;
-			int k=1;   
+		double value = 1.0;
 	
+		if ((fabs(r) < MaxAn) && (fabs(r) > 0.0))
+		{
+			double sum=1.0, next_term=0.0;
+			int k=1;   
+		// need better method for determining accuracy - run the risk of infinite loop!
 			do {
-				prat = 100.0;//PochhammerRat(fA,fB,k);
-				gams = g.Function(float(k)+1.0);
-				next_term = prat*(pow(r,k)/gams);		
+				next_term = PochhammerRat(fA,fB,k)*pow(r,k);
 				sum += next_term;
 				k++;
-		
 			} while (fabs(next_term)>EPS);
+		
+			value = sum;
 		}
-		else 				// |r| large  
+		else if (fabs(r) >= MaxAn)
+		// Real portion of the asymptotic approximation of CHG function
+		// using 13.5.1 of Abramawitz/Stegun, pg. 508. 
 		{
-			double sum1=0.0, sum2=0.0, ga, gb, gbnota, gnfact;
-			double pa, p1anotb, pbnota, p1nota;	
-			double rsumm=0.0, ssumm=0.0, rco=0.0, sco=0.0;	
-			int rsindex=8;
-
-			ga = g.Function(fA);
-			gb = g.Function(fB);
-			gbnota = g.Function(fB-fA);
-			
-			for (int n=0; n<=rsindex; n++)
+			double term[2];
+			int i, maxterm = 8;	// number of terms in expansion
+			Gamma g;
+		
+			term[0] = term[1] = 1.0;	// initialize entries with index=0 value
+			for (i=1; i<maxterm; i++)
 			{
-				pa = 100.0;//PochhammerRat(fA,1.0,n);
-				p1anotb = 100.0;//PochhammerRat(1.0+fA-fB,1.0,n);
-				pbnota = 100.0;//PochhammerRat(fB-fA,1.0,n);
-				p1nota = 100.0;//PochhammerRat(1.0-fA,1.0,n);
-
-				gnfact = g.Function(1.0+double(n));
-	
-				rco = cos(PI*fA)/(gbnota*pow(r,fA));
-				sco = exp(r)*pow(r,fA-fB)/ga;
-				rsumm = pa*p1anotb/(gnfact*pow(r,n));
-				ssumm = pbnota*p1nota/(gnfact*pow(r,n));
-			
-				sum += (gb*(rco*rsumm+sco*ssumm));
+				term[0] += (PochhammerProd(fA,1+fA-fB,i)*pow(-r,-i));
+				term[1] += (PochhammerProd(fB-fA,1-fA,i)*pow(r,-i));
 			}
-		}
-						
+		
+			if (r<0)
+			{
+				term[0] *= (pow(fabs(r),-fA)/g.Function(fB-fA));
+				term[1] *= (exp(r)*cos(PI*(fA-fB))*pow(fabs(r),fA-fB)/g.Function(fA));
+			}
+			else if (r>0)
+			{
+				term[0] *= (cos(PI*fA)/(pow(r,fA)*g.Function(fB-fA)));
+				term[1] *= (exp(r)*pow(r,fA-fB)/g.Function(fA));
+			}	
+			value = g.Function(fB)*(term[0]+term[1]);
+		}				
 		*pU++ = sum;
 	}
 	return out;
