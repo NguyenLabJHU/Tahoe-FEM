@@ -1,4 +1,4 @@
-/* $Id: BCJHypo3D.cpp,v 1.8 2002-03-26 17:48:18 paklein Exp $ */
+/* $Id: BCJHypo3D.cpp,v 1.9 2002-03-26 18:52:40 ebmarin Exp $ */
 #include "BCJHypo3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -505,6 +505,8 @@ void BCJHypo3D::SolveState()
               throw eBadJacobianDet;
 	  }
           if (subIncr > 1) fInternal = fInt_save;
+	  if (BCJ_MESSAGES) cout << " BCJHypo3D::SolveState: will try " 
+		                 << subIncr << "/" << totSubIncrs << "\n";
         }
 
       // if converged, adjust subincrements
@@ -521,7 +523,11 @@ void BCJHypo3D::SolveState()
 
       // succesful return for subincrementation
       else
-        break;
+	{
+          if (BCJ_MESSAGES) cout << " BCJHypo3D::SolveState: SubIncrs worked!!! " 
+	                         << subIncr << "/" << totSubIncrs << "\n";
+          break;
+	}
  
       // time step
       double tmp = (float)subIncr/(float)totSubIncrs;
