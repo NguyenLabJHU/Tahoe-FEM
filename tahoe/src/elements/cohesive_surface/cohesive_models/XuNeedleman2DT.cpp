@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman2DT.cpp,v 1.15.34.1 2004-04-08 07:32:27 paklein Exp $ */
+/* $Id: XuNeedleman2DT.cpp,v 1.15.34.2 2004-04-21 16:52:37 paklein Exp $ */
 /* created: paklein (11/14/1997) */
 #include "XuNeedleman2DT.h"
 
@@ -299,7 +299,7 @@ void XuNeedleman2DT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(d_t_);
 
 	ParameterT phi_n_(d_t, "phi_n");
-	phi_n_.AddLimit(0.0, LimitT::Lower);
+	phi_n_.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(phi_n_);
 
 	ParameterT r_fail_(r_fail, "r_fail");
@@ -307,7 +307,7 @@ void XuNeedleman2DT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(r_fail_);
 
 	ParameterT Kratio(fKratio, "K_ratio");
-	Kratio.AddLimit(0.0, LimitT::Lower);
+	Kratio.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(Kratio);
 }
 
