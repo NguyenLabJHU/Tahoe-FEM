@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.33 2003-02-20 21:39:02 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.34 2003-02-25 14:34:36 sawimme Exp $  */
 #include "TranslateIOManager.h"
 
 #include "ExceptionT.h"
@@ -24,8 +24,18 @@ TranslateIOManager::TranslateIOManager (ostream& out, istream& in, bool write) :
   fNumEV (0),
   fNumQV (0),
   fNumTS (0),
-  fCoords (0)
+  fCoords (0),
+  fEcho (false)
 {
+}
+
+void TranslateIOManager::SetEcho (int s, const StringT& file)
+{
+  fEchoOut.open (file);
+  if (!fEchoOut) throw ExceptionT::kGeneralFail;
+  fEcho = true;
+  if (fEcho)
+    fEchoOut << "%\n" << s << endl;
 }
 
 void TranslateIOManager::Translate (const StringT& program, const StringT& version, const StringT& title)
@@ -85,6 +95,9 @@ void TranslateIOManager::SetInput (void)
       cout << "\n Unable to initialize model file\n";
       throw ExceptionT::kGeneralFail;
     }
+
+  // echo
+  if (fEcho) fEchoOut << format << " " << database << endl;
 }
 
 void TranslateIOManager::SetOutput (const StringT& program_name, const StringT& version, const StringT& title)
@@ -102,7 +115,10 @@ void TranslateIOManager::SetOutput (const StringT& program_name, const StringT& 
   if (fWrite)
     cout << "\n Enter the root of the output files: ";
   fIn >> fOutputName;
-  cout << "\n Output format: " << outputformat << "\n File: " << fOutputName << endl;
+  cout << "\n Output format: " << outputformat << "\n File: " << fOutputName << endl; 
+  
+  // echo
+  if (fEcho) fEchoOut << outputformat << " " << fOutputName << endl;
 
   fOutputName.ToNativePathName();
   fOutputName.Append(".ext"); //trimmed off by fOutput
@@ -192,6 +208,7 @@ void TranslateIOManager::InitializeNodeVariables (void)
   if (fWrite)
     cout << "\n Do you wish to translate coordinate values (y/n) ? ";
   fIn >> answer;
+  if (fEcho) fEchoOut << answer[0] << endl;
   
   if (answer[0] == 'y' || answer[0] == 'Y')
     {
@@ -231,7 +248,7 @@ void TranslateIOManager::InitializeQuadVariables (void)
   VariableQuery (fQuadratureLabels, fQVUsed);
 }
 
-void TranslateIOManager::InitializeElements (int& group, StringT& groupname) const
+void TranslateIOManager::InitializeElements (int& group, StringT& groupname)
 {
   int num = fModel.NumElementGroups ();
   const ArrayT<StringT>& elemsetnames = fModel.ElementGroupIDs();
@@ -244,6 +261,7 @@ void TranslateIOManager::InitializeElements (int& group, StringT& groupname) con
       cout << " Enter the number of the element group: ";
     }
   fIn >> group;
+  if (fEcho) fEchoOut << group << endl;
   if (group < 1 || group > elemsetnames.Length()) 
     {
       cout << "\n The number entered for an element group is invalid: "
@@ -269,6 +287,7 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
       cout << "\n How do you want to define your list of nodes: ";
     }
   fIn >> selection;
+  if (fEcho) fEchoOut << selection << endl;
 
   int numnodes = fModel.NumNodes();
   int numdims = fModel.NumDimensions();
@@ -285,6 +304,7 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
 	if (fWrite)
 	  cout << "\n Enter the number of nodes: ";
 	fIn >> numpoints;
+	if (fEcho) fEchoOut << numpoints << endl;
 	nodes.Dimension (numpoints);
 	index.Dimension (numpoints);
 	for (int n=0; n < numpoints; n++)
@@ -292,6 +312,7 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
 	    if (fWrite)
 	      cout << " Enter node " << n+1 << ": ";
 	    fIn >> nodes[n];
+	    if (fEcho) fEchoOut << nodes[n] << endl;
 
 	    // translate node numbers to index
 	    int dex;
@@ -319,6 +340,7 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
 	  }
 	int ni;
 	fIn >> ni;
+	if (fEcho) fEchoOut << ni << endl;
 	cout << "\n Node list defined by node set: " << ni << " " << nodesetnames[ni-1] << endl;
 	ni--;
 	numpoints = fModel.NodeSetLength (nodesetnames[ni]);
@@ -338,6 +360,7 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
 	    cout << "   Enter n: ";
 	  }
 	fIn >> freq;
+	if (fEcho) fEchoOut << freq << endl;
 	cout << "\n Node list defined by every " << freq << "th node.\n";
 	numpoints = numnodes/freq;
 	nodes.Dimension (numpoints);
@@ -367,6 +390,7 @@ void TranslateIOManager::SelectElements(StringT& ID, iArrayT& elements, iArrayT&
 		cout << "\n How do you want to define your list of elements: ";
 	}
 	fIn >> selection;
+	if (fEcho) fEchoOut << selection << endl;
 
 	int nel, nen;
 	fModel.ElementGroupDimensions(ID, nel, nen);
@@ -383,6 +407,7 @@ void TranslateIOManager::SelectElements(StringT& ID, iArrayT& elements, iArrayT&
 			if (fWrite)
 				cout << "\n Enter the number of elements: ";
 			fIn >> num_elements;
+			if (fEcho) fEchoOut << num_elements << endl;
 			
 			elements.Dimension(num_elements);
 			index.Dimension(num_elements);
@@ -391,6 +416,7 @@ void TranslateIOManager::SelectElements(StringT& ID, iArrayT& elements, iArrayT&
 			{
 				if (fWrite) cout << " Enter element " << n+1 << ": ";
 				fIn >> elements[n];
+				if (fEcho) fEchoOut << elements[n] << endl;
 
 				// translate node numbers to index
 				int dex;
@@ -413,6 +439,7 @@ void TranslateIOManager::SelectElements(StringT& ID, iArrayT& elements, iArrayT&
 				cout << "   Enter n: ";
 			}
 			fIn >> freq;
+			if (fEcho) fEchoOut << freq << endl;
 			cout << "\n Element list defined by every " << freq << "th element.\n";
 			int num_elem = nel/freq;
 			elements.Dimension(num_elem);
@@ -455,6 +482,7 @@ void TranslateIOManager::InitializeTime (void)
 	  cout << "\n Enter Selection: ";
 	}
       fIn >> selection;
+      if (fEcho) fEchoOut << selection << endl;
 
       switch (selection)
 	{
@@ -471,6 +499,7 @@ void TranslateIOManager::InitializeTime (void)
 	    if (fWrite)
 	      cout << "\n Enter the number of time steps to translate: ";
 	    fIn >> fNumTS;
+	    if (fEcho) fEchoOut << fNumTS << endl;
 	    dArrayT temp (fNumTS);
 	    fTimeIncs.Dimension (fNumTS);
 	    if (fWrite)
@@ -480,6 +509,7 @@ void TranslateIOManager::InitializeTime (void)
 		if (fWrite)
 		  cout << "    Enter time increment " << i+1 << ": ";
 		fIn >> fTimeIncs[i];
+		if (fEcho) fEchoOut << fTimeIncs[i] << endl;
 		fTimeIncs[i]--;
 		if (fTimeIncs[i] < 0 || fTimeIncs[i] >= fTimeSteps.Length())
 		  throw ExceptionT::kOutOfRange;
@@ -497,9 +527,11 @@ void TranslateIOManager::InitializeTime (void)
 		cout << " Enter the starting increment: ";
 	      }
 	    fIn >> start;
+	    if (fEcho) fEchoOut << start << endl;
 	    if (fWrite)
 	      cout << " Enter the end increment: ";
 	    fIn >> stop;
+	    if (fEcho) fEchoOut << stop << endl;
 	    cout << "\n Translating time steps from " << start << " to " << stop << ".\n";
 	    if (stop < start) throw ExceptionT::kGeneralFail;
 	    if (start < 1) throw ExceptionT::kGeneralFail;
@@ -518,6 +550,7 @@ void TranslateIOManager::InitializeTime (void)
 	    if (fWrite)
 	      cout << "\n Enter n: ";
 	    fIn >> n;
+	    if (fEcho) fEchoOut << n << endl;
 	    cout << "\nTranslating every " << n << "th time step.\n";
 	    fNumTS = fNumTS / n;
 	    fTimeIncs.Dimension (fNumTS);
@@ -659,6 +692,7 @@ void TranslateIOManager::WriteNodeSets (void)
       cout << "\n selection: ";
     }
   fIn >> selection;
+  if (fEcho) fEchoOut << selection << endl;
 
   if (selection == 3) return;
   for (int i=0; i < num; i++)
@@ -669,6 +703,7 @@ void TranslateIOManager::WriteNodeSets (void)
 	  if (fWrite)
 	    cout << "    Translate Node Set " << names[i] << " (y/n) ? ";
 	  fIn >> answer;
+	  if (fEcho) fEchoOut << answer[0] << endl;
 	}
       
       if (answer [0] == 'y' || answer[0] == 'Y') 
@@ -696,6 +731,7 @@ void TranslateIOManager::WriteElements(void)
 	  }
 	int selection;
 	fIn >> selection;
+	if (fEcho) fEchoOut << selection << endl;
 
 	/* work space */
 	AutoArrayT<const iArray2DT*> blocks;
@@ -725,6 +761,7 @@ void TranslateIOManager::WriteElements(void)
 		  {
 		    if (fWrite) cout << "    Translate Element Group " << names[e] << " (y/n) ? ";
 		    fIn >> answer;
+		    if (fEcho) fEchoOut << answer[0] << endl;
 		  }
       
 		if (answer [0] == 'y' || answer[0] == 'Y')
@@ -788,6 +825,7 @@ void TranslateIOManager::WriteSideSets (void)
       cout << "\n selection: ";
     }
   fIn >> selection;
+  if (fEcho) fEchoOut << selection << endl;
 
   if (selection == 3) return;
   for (int i=0; i < num; i++)
@@ -798,6 +836,7 @@ void TranslateIOManager::WriteSideSets (void)
 	  if (fWrite)
 	    cout << "    Translate Side Set " << names[i] << " (y/n) ? ";
 	  fIn >> answer;
+	  if (fEcho) fEchoOut << answer[0] << endl;
 	}
       
       if (answer [0] == 'y' || answer[0] == 'Y')
@@ -819,6 +858,7 @@ void TranslateIOManager::VariableQuery (const ArrayT<StringT>& names, iArrayT& l
       if (fWrite)
 	cout << " Extract variable " << names[i] << " (y/n) ? ";
       fIn >> answer;
+      if (fEcho) fEchoOut << answer[0] << endl;
 
       if (answer[0] == 'y' || answer[0] == 'Y')
 	temp.Append (i);
@@ -836,6 +876,7 @@ void TranslateIOManager::ReNameLabels(const StringT& data_type, ArrayT<StringT>&
 	  cout << "\n Rename " << data_type << " labels (y/n) ? ";
 	StringT reply;
 	fIn >> reply;
+	if (fEcho) fEchoOut << reply[0] << endl;
 
 	/* clear newline */
 	char line[255];
@@ -854,6 +895,7 @@ void TranslateIOManager::ReNameLabels(const StringT& data_type, ArrayT<StringT>&
 			if (test != '\n') {
 				fIn >> reply;
 				labels[i] = reply;
+				if (fEcho) fEchoOut << reply << endl;
 			} 	
 			
 			/* clear line */

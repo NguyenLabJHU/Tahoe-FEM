@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.h,v 1.13 2003-02-18 08:47:23 paklein Exp $ */
+/* $Id: TranslateIOManager.h,v 1.14 2003-02-25 14:34:36 sawimme Exp $ */
 
 #ifndef _TRANSLATE_IOMANAGER_H_
 #define _TRANSLATE_IOMANAGER_H_
@@ -10,6 +10,7 @@
 #include "iArrayT.h"
 #include "dArrayT.h"
 #include "iArray2DT.h"
+#include "ofstreamT.h"
 
 namespace Tahoe {
 
@@ -23,6 +24,9 @@ class TranslateIOManager
 	/** destructor */
 	virtual ~TranslateIOManager(void) {};
 
+	/** set up to echo input parameters */
+	void SetEcho (int selection, const StringT& file);
+
 	/** run program */
 	virtual void Translate (const StringT& program, const StringT& version, const StringT& title);
 
@@ -35,7 +39,7 @@ class TranslateIOManager
   void InitializeElementVariables(void);
   void InitializeQuadVariables (void);
 
-  void InitializeElements (int& elementgroup, StringT& name) const;
+  void InitializeElements (int& elementgroup, StringT& name);
   void InitializeNodePoints (iArrayT& nodes, iArrayT& index);
   void SelectElements(StringT& ID, iArrayT& elements, iArrayT& index);
 
@@ -80,6 +84,8 @@ class TranslateIOManager
   iArrayT fTimeIncs;
 
   OutputBaseT* fOutput;
+  bool fEcho;
+  ofstream fEchoOut;
 
  private:
   iArrayT fOutputID;

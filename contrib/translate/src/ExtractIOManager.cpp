@@ -1,4 +1,4 @@
-/* $Id: ExtractIOManager.cpp,v 1.13 2003-02-20 21:28:17 sawimme Exp $ */
+/* $Id: ExtractIOManager.cpp,v 1.14 2003-02-25 14:34:36 sawimme Exp $ */
 #include "ExtractIOManager.h"
 
 #include "ExceptionT.h"
@@ -59,10 +59,12 @@ void ExtractIOManager::SetOutput (const StringT& program, const StringT& version
 	  cout << "\n Enter the Output Format: ";
 	}
       fIn >> fOutputFormat;
+      if (fEcho) fEchoOut << fOutputFormat << "\n";
     }
   if (fWrite)
     cout << "\n Enter the root of the output files: ";
   fIn >> fOutputName;
+  if (fEcho) fEchoOut << fOutputName << "\n";
 
   switch (fOutputFormat)
     {

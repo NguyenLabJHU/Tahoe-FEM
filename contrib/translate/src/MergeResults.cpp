@@ -1,4 +1,4 @@
-/* $Id: MergeResults.cpp,v 1.6 2002-10-28 14:19:02 sawimme Exp $ */
+/* $Id: MergeResults.cpp,v 1.7 2003-02-25 14:34:36 sawimme Exp $ */
 #include "MergeResults.h"
 #include "ExceptionT.h"
 #include "OutputSetT.h"
@@ -154,6 +154,7 @@ void MergeResults::SetInput(void)
 	int num_files = 0;
 	cout << "\n Number of source files (> 1): ";
 	fIn >> num_files;
+	if (fEcho) fEchoOut << num_files << "\n";
 	if (num_files < 2) throw ExceptionT::kGeneralFail;
 	
 	fInputs.Dimension(num_files);
@@ -163,6 +164,7 @@ void MergeResults::SetInput(void)
 		StringT database;
 		cout << "file " << i+1 << ": ";
 		fIn >> database;
+		if (fEcho) fEchoOut << database << "\n";
 		database.ToNativePathName();
 	
 		/* try to guess file format */
