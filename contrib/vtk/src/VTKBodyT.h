@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.h,v 1.8 2001-11-20 01:04:04 recampb Exp $ */
+/* $Id: VTKBodyT.h,v 1.9 2001-11-29 21:22:43 recampb Exp $ */
 
 #ifndef _VTK_BODY_T_H_
 #define _VTK_BODY_T_H_
@@ -27,81 +27,35 @@ class vtkVectors;
 class vtkScalarBarActor;
 class ExodusT;
 class VTKBodyDataT;
+
 class VTKBodyT: public iConsoleObjectT
 {
  public:
 
+  /** default constuctor */
+  VTKBodyT(void) { body = NULL; };
+
   /** constructor */
-   VTKBodyT(VTKBodyDataT* body_data); 
-
-  /** destructor */
-  ~VTKBodyT(void);
+  VTKBodyT(VTKBodyDataT* body_data);
   
-  void SetLookupTable(void);
-  void UpdateData(void);
-  void DefaultValues(void);
-  bool ChangeVars(const StringT& var);
-  void SelectTimeStep(int);
-  void ChangeDataColor(int);
+  /** return pointer to the body data */
+  VTKBodyDataT* BodyData(void) { return body; };
 
-  /** list of node variables */
-  const ArrayT<StringT>& NodeLabels(void) const { return node_labels; };
+  /** comparison operator */
+  bool operator==(const VTKBodyT& rhs) { return body == rhs.body; };
 
-  /** return pointer to actor for the body */
-  vtkActor* Actor(void) { return ugridActor; };
-
-  vtkScalarBarActor* SBActor(void) {return scalarBar;}; 
-  
-/*   vtkDataSetMapper *Mapper(void) {return ugridMapper;}; */
-/*   StringT SBTitle(void) {return sbTitle;}; */
-/*   int CurrentVar (void) {return currentVarNum;}; */
-/*   StringT NodeLabels(const int i) {return node_labels[i];}; */
-  int num_node_variables;
- const StringT inFile;
-  StringT varList;
-int num_time_steps;
-  int currentVarNum;
-  int currentStepNum;
-  vtkWarpVector *warp;
-vtkUnstructuredGrid *ugrid;
+  /** rvalue - smart pointer */
+  VTKBodyDataT* operator->(); //CW wouldn't call functions with conversion
 
  private:
-  
-  /* source file */
 
-
-  /* model data */
-  int num_nodes;
-  int num_dim;
-  vtkPoints *points;
- /*  vtkCellArray *cells; */
-  vtkCellArray *vtk_cell_array;
- 
-  double hueRange1, hueRange2;
-  double satRange1, satRange2;
-  double valRange1, valRange2;
-  double alphaRange1, alphaRange2;
-  double scalarRange1[100], scalarRange2[100];
-  double scale_factor;
-  double time;
-  int numColors;
-  
-  ArrayT<StringT> node_labels;
-
-  StringT output_file;
-  
-  StringT sbTitle;
-
-  vtkScalarBarActor *scalarBar;
-  vtkLookupTable *lut;
-  vtkDataSetMapper *ugridMapper;
-  vtkActor *ugridActor;
-
-  
-  vtkScalars *scalars [100][20];
-  vtkVectors *vectors [100][20];
- 
-/*   ExodusT exo; */
+  VTKBodyDataT* body; 
 };
+
+inline VTKBodyDataT* VTKBodyT::operator->()
+{
+  return body;
+}
+
 
 #endif

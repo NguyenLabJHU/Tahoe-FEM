@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.14 2001-11-20 01:04:04 recampb Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.15 2001-11-29 21:22:43 recampb Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -33,6 +33,8 @@
 #include "dArrayT.h"
 #include "GeometryT.h"
 #include "VTKConsoleT.h"
+#include "CommandSpecT.h"
+#include "ArgSpecT.h"
 
 /* constructor */
 VTKFrameT::VTKFrameT(void):
@@ -42,28 +44,49 @@ VTKFrameT::VTKFrameT(void):
   renderer = vtkRenderer::New();
  
   /* add console commands */
-  iAddCommand("Interactive");
-  iAddCommand("Update");
-  iAddCommand("Reset_to_Default_Values");
-  iAddCommand("Reset_view");
-  iAddCommand("Save");
-  iAddCommand("Show_Node_Numbers");
-  iAddCommand("Hide_Node_Numbers");
-  iAddCommand("Color_bar_on");
-  iAddCommand("Color_bar_off");
-  iAddCommand("X_axis_rotation");
-  iAddCommand("Y_axis_rotation");
-  iAddCommand("Z_axis_rotation");
-  iAddCommand("Zoom");
-  iAddCommand("Change_background_color");
-  iAddCommand("ChangeDataColor");
-  iAddCommand("Select_time_step");
-  iAddCommand("Show_axes");
-  iAddCommand("Hide_axes");
-  iAddCommand("Choose_variable");
+  iAddCommand(CommandSpecT("Interactive"));
+  iAddCommand(CommandSpecT("Update"));
+  iAddCommand(CommandSpecT("Reset_to_Default_Values"));
+  iAddCommand(CommandSpecT("Reset_view"));
+  iAddCommand(CommandSpecT("Save"));
+  iAddCommand(CommandSpecT("Show_Node_Numbers"));
+  iAddCommand(CommandSpecT("Hide_Node_Numbers"));
+  iAddCommand(CommandSpecT("Color_bar_on"));
+  iAddCommand(CommandSpecT("Color_bar_off"));
 
-  iAddCommand("AddBody");
-  iAddCommand("RemoveBody");
+  CommandSpecT rotate("Rotate", false);
+  ArgSpecT rot_x(ArgSpecT::double_, "x");
+  rot_x.SetDefault(0.0);
+  rot_x.SetPrompt("x-axis rotation");
+  ArgSpecT rot_y(ArgSpecT::double_, "y");
+  rot_y.SetDefault(0.0);
+  rot_y.SetPrompt("y-axis rotation");
+  ArgSpecT rot_z(ArgSpecT::double_, "z");
+  rot_z.SetDefault(0.0);
+  rot_z.SetPrompt("y-axis rotation");
+  rotate.AddArgument(rot_x);
+  rotate.AddArgument(rot_y);
+  rotate.AddArgument(rot_z);
+  iAddCommand(rotate);
+
+  iAddCommand(CommandSpecT("Zoom"));
+  iAddCommand(CommandSpecT("Change_background_color"));
+  iAddCommand(CommandSpecT("ChangeDataColor"));
+  iAddCommand(CommandSpecT("Select_time_step"));
+  iAddCommand(CommandSpecT("Show_axes"));
+  iAddCommand(CommandSpecT("Hide_axes"));
+  iAddCommand(CommandSpecT("Choose_variable"));
+
+  ArgSpecT body_num(ArgSpecT::int_);
+  body_num.SetPrompt("body number");
+
+  CommandSpecT add_body("AddBody");
+  add_body.AddArgument(body_num);
+  iAddCommand(add_body);
+
+  CommandSpecT rem_body("RemoveBody");
+  rem_body.AddArgument(body_num);
+  iAddCommand(rem_body);
 }
 
 /* destructor */
@@ -84,36 +107,39 @@ void VTKFrameT::ResetView(void)
   renderer->ResetCamera();
 }
 
-bool VTKFrameT::AddBody(VTKBodyDataT* body)
+bool VTKFrameT::AddBody(VTKBodyDataT* body_data)
 {
-  if (bodies.AppendUnique(body))
+  /* add body to the list */
+  if (bodies.AppendUnique(body_data))
     {
-      renderer->AddActor(body->Actor());
+      renderer->AddActor(body_data->Actor());
       // renderer->AddActor(body->SBActor());
       // frame needs to keep track of the current visible scalar bar
       // so that at most one is visible and SBActors() can be exhanged
       // in renderer
       ResetView();
       StringT name = "body";
-      int index = bodies.PositionOf(body);
+      int index = bodies.PositionOf(body_data);
       name.Append(index);
       bodies[index]->iSetName(name);
-      iAddSub(*bodies[index]);
+      iAddSub(bodies[index]);
       return true;
     }
   else
     return false;
 }
 
-bool VTKFrameT::RemoveBody(VTKBodyDataT* body)
+bool VTKFrameT::RemoveBody(VTKBodyDataT* body_data)
 {
-  int index = bodies.PositionOf(body);
+  /* look for body data */
+  int index = bodies.PositionOf(body_data);
   if (index == -1)
     return false;
   else
     {
-      VTKBodyDataT* body = bodies[index];
-      iDeleteSub(*bodies[index]);
+      VTKBodyT& body = bodies[index];
+      iDeleteSub(body);
+
       /* remove from renderer */
       renderer->RemoveActor(body->Actor());
       renderer->RemoveActor(body->SBActor()); // if added to the renderer earlier
@@ -121,6 +147,7 @@ bool VTKFrameT::RemoveBody(VTKBodyDataT* body)
 
       /* remove from body list */
       bodies.DeleteAt(index);
+
       return true;
     }
 }
@@ -141,21 +168,21 @@ void VTKFrameT::ShowFrameNum(StringT Name)
 }
 
 /* execute given command - returns false on fail */
-bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
+bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 {
   int sfbTest;
   int  varNum;
   double xRot, yRot, zRot, zoom;
   double timeStep;
 
-  if (command == "Update")
+  if (command.Name() == "Update")
     {
       for (int i = 0; i < bodies.Length(); i++)
 		bodies[i]->UpdateData();
       fRenWin->Render();
       return true;
     }
-  else if (command == "Interactive")
+  else if (command.Name() == "Interactive")
   {
     for (int i = 0; i < bodies.Length(); i++)
       bodies[i]->UpdateData();
@@ -164,19 +191,15 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
     fIren->Start();
     return true;
   }
-  else if (command == "AddBody")
+  else if (command.Name() == "AddBody")
     {
-      /* list of bodies */
-      const ArrayT<VTKBodyDataT*>& bodies = fConsole->Bodies();
+      int body;
+      command.Argument(0).GetValue(body);
 
-      cout << "body to add (0," << bodies.Length()-1 << "): ";
-      int body = -99;
-      cin >> body;
-      char line[255];
-      cin.getline(line, 254);
-      if (body >= 0 && body < bodies.Length())
+      const ArrayT<VTKBodyDataT*>& all_bodies = fConsole->Bodies();
+      if (body >= 0 && body < all_bodies.Length())
 	{
-	  if (AddBody(bodies[body]))
+	  if (AddBody(all_bodies[body]))
 	    {
 	      
 	      fRenWin->Render();
@@ -194,16 +217,14 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
 	  return false;
 	}
     }
-  else if (command == "RemoveBody")
+  else if (command.Name() == "RemoveBody")
     {
-      cout << "body to remove (0," << bodies.Length()-1 << "): ";
-      int body = -99;
-      cin >> body;
-      char line[255];
-      cin.getline(line, 254);
+      int body;
+      command.Argument(0).GetValue(body);
+
       if (body >= 0 && body < bodies.Length())
 	{
-	  if (RemoveBody(bodies[body]))
+	  if (RemoveBody(bodies[body].BodyData()))
 	    {
 	      fRenWin->Render();
 	      return true;
@@ -242,7 +263,7 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
 //       return true;
 //     }
 
-  else if (command == "Reset_view")
+  else if (command.Name() == "Reset_view")
     {
       ResetView();
       renderer->ResetCamera();
@@ -252,7 +273,7 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
       return true;
     }
 
-  else if (command == "Show_Node_Numbers")
+  else if (command.Name() == "Show_Node_Numbers")
     {
       pointLabels = vtkActor2D::New();
       visPts = vtkSelectVisiblePoints::New();
@@ -273,7 +294,7 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
 
     }
 
-  else if (command == "Hide_Node_Numbers")
+  else if (command.Name() == "Hide_Node_Numbers")
     {
       pointLabels->VisibilityOff();
       pointLabels->Delete();
@@ -286,14 +307,14 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
 
 
 
-  else if (command == "Color_bar_off")
+  else if (command.Name() == "Color_bar_off")
     {
       renderer->RemoveActor(bodies[0]->SBActor());
       fRenWin->Render();
       return true;
     }
 
-  else if (command == "Color_bar_on")
+  else if (command.Name() == "Color_bar_on")
     {
       renderer->AddActor(bodies[0]->SBActor());
       fRenWin->Render();
@@ -301,7 +322,7 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
       return true;
     }
 
-  else if (command == "ChangeDataColor")
+  else if (command.Name() == "ChangeDataColor")
     {
       int color;
       char line[255];
@@ -313,44 +334,27 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
       return true;
     }
 
-  else if (command == "X_axis_rotation")
+  else if (command.Name() == "Rotate")
     {
- 
-      cout << "Using the right-hand rule, rotate by how many degrees?: ";
-      cin >> xRot;
-      char line[255];
-      cin.getline(line, 254);
-      renderer->GetActiveCamera()->Elevation(xRot);
+      double x, y, z;
+      command.Argument(0).GetValue(x);
+      command.Argument(1).GetValue(y);
+      command.Argument(2).GetValue(z);
+
+      if (fabs(x) > 1.0e-6)
+	renderer->GetActiveCamera()->Elevation(x);
+
+      if (fabs(y) > 1.0e-6)
+	renderer->GetActiveCamera()->Azimuth(y);
+
+      if (fabs(z) > 1.0e-6)
+	renderer->GetActiveCamera()->Roll(z);
+
       fRenWin->Render();
       return true;
     }
 
-
-  else if (command == "Y_axis_rotation")
-    {
-
-      cout << "Using the right-hand rule, rotate by how many degrees?: ";
-      cin >> yRot;
-      char line[255];
-      cin.getline(line, 254);
-      renderer->GetActiveCamera()->Azimuth(-yRot);
-      fRenWin->Render();
-      return true;
-    }
-
-  else if (command == "Z_axis_rotation")
-    {
-
-      cout << "Using the right-hand rule, rotate by how many degrees?: ";
-      cin >> zRot;
-      char line[255];
-      cin.getline(line, 254);
-      renderer->GetActiveCamera()->Roll(-zRot);
-      fRenWin->Render();
-      return true;
-    }
-
-  else if (command == "Zoom")
+  else if (command.Name() == "Zoom")
     {
 
       cout << "Zoom by what magnitude?: ";
@@ -362,7 +366,7 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
       return true;
     }
 	 
-  else if (command=="Change_background_color")
+  else if (command.Name() =="Change_background_color")
     {
       int bgColor;
       do {
@@ -393,7 +397,7 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
       return true;
     }
 
-  else if (command == "Select_time_step")
+  else if (command.Name() == "Select_time_step")
     {
       int step;
       cout << "choose frame number from 0 to " << bodies[0]->num_time_steps-1 <<" to be displayed: ";
@@ -410,7 +414,7 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
     }
 
   
-  else if (command == "Show_axes")
+  else if (command.Name() == "Show_axes")
     {
       
       // x,y,z axes
@@ -432,7 +436,7 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
       return true;
     }
   
-  else if (command == "Hide_axes")
+  else if (command.Name() == "Hide_axes")
     {
       axes->VisibilityOff();
       axes->Delete();
@@ -440,7 +444,7 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
       return true;
     }
 
-  else if (command == "Choose_variable")
+  else if (command.Name() == "Choose_variable")
     {
 	  //NOTE: collect list of variables from all bodies???
 
@@ -459,4 +463,21 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
   else
     /* drop through to inherited */
     return iConsoleObjectT::iDoCommand(command, line);
+}
+
+/* write prompt for the specific argument of the command */
+void VTKFrameT::ValuePrompt(const CommandSpecT& command, int index, ostream& out) const
+{
+  if (command.Name() == "AddBody")
+    {
+      /* list of bodies */
+      const ArrayT<VTKBodyDataT*>& bodies = fConsole->Bodies();
+      out << "body to add (0," << bodies.Length()-1 << ")\n";
+    }
+  else if (command.Name() == "RemoveBody")
+    {
+      out << "body to remove (0," << bodies.Length()-1 << ")\n";
+    }
+  else /* inherited */
+    iConsoleObjectT::ValuePrompt(command, index, out);
 }

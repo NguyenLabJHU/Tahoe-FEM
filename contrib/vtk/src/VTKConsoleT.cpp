@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.29 2001-11-20 01:04:04 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.30 2001-11-29 21:22:43 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -21,6 +21,9 @@
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
 
+#include "CommandSpecT.h"
+#include "ArgSpecT.h"
+
 VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   fArguments(arguments)
 {
@@ -28,17 +31,17 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   iSetName("vtk");
 
   /* add console commands */
-  iAddCommand("Interactive");
-  iAddCommand("Update");
-  iAddCommand("AddBody");
-  iAddCommand("RemoveBody");
-  iAddCommand("ResetView");
-  iAddCommand("Layout");
-  iAddCommand("Show_Frame_Numbers");
-  iAddCommand("Save");
-  iAddCommand("Large_Save");
-  iAddCommand("Save_flip_book_images");
-  iAddCommand("Flip_book");
+  iAddCommand(CommandSpecT("Interactive"));
+  iAddCommand(CommandSpecT("Update"));
+  iAddCommand(CommandSpecT("AddBody"));
+  iAddCommand(CommandSpecT("RemoveBody"));
+  iAddCommand(CommandSpecT("ResetView"));
+  iAddCommand(CommandSpecT("Layout"));
+  iAddCommand(CommandSpecT("Show_Frame_Numbers"));
+  iAddCommand(CommandSpecT("Save"));
+  iAddCommand(CommandSpecT("Large_Save"));
+  iAddCommand(CommandSpecT("Save_flip_book_images"));
+  iAddCommand(CommandSpecT("Flip_book"));
 
   /* display objects */
   renWin = vtkRenderWindow::New();
@@ -73,16 +76,16 @@ VTKConsoleT::~VTKConsoleT(void)
 }
 
 /* execute given command - returns false on fail */
-bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
+bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 {
-  if (command == "Interactive")
+  if (command.Name() == "Interactive")
     {
       renWin->Render();
       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
       iren->Start();
       return true;
     }  
-  else if (command == "Layout")
+  else if (command.Name() == "Layout")
 	{
 	  int num_x = -1, num_y = -1;
 	  cout << "horizontal: ";
@@ -93,21 +96,21 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 	  SetFrameLayout(num_x, num_y);
 	  return true;
 	}
-  else if (command == "Update")
+  else if (command.Name() == "Update")
     {
       for (int i = 0; i < fBodies.Length(); i++)
 	fBodies[i]->UpdateData();
       renWin->Render();
       return true;
     }
-  else if (command == "ResetView")
+  else if (command.Name() == "ResetView")
     {
       for (int i = 0; i < fFrames.Length(); i++)
 	fFrames[i]->ResetView();
       renWin->Render();
       return true;
 	}
-  else if (command == "AddBody")
+  else if (command.Name() == "AddBody")
     {
       StringT path;
       cout << "path to data file: ";
@@ -117,7 +120,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 	  
       return AddBody(path);
     }
-  else if (command == "RemoveBody")
+  else if (command.Name() == "RemoveBody")
     {
       int index;
       cout << "select body to remove (0," << fBodies.Length()-1 << "): ";
@@ -141,7 +144,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 	return true;
       }
     }
-  else if (command == "Flip_book")
+  else if (command.Name() == "Flip_book")
     {
       double timeStep;
       cout << "Enter time step in seconds: ";
@@ -174,7 +177,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       }
       return true;
     }
-  else if (command== "Save_flip_book_images")
+  else if (command.Name() == "Save_flip_book_images")
     {
       StringT fbName;
       cout << "Enter name for flipbook to be saved (without .tif extension): ";
@@ -224,7 +227,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       return true;
     }
   
-  else if (command == "Show_Frame_Numbers")
+  else if (command.Name() == "Show_Frame_Numbers")
   {
 
     for (int i = 0; i < fFrames.MajorDim(); i++)
@@ -239,7 +242,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 	}
     return true;
   }
-  //  else if (command == "Reset_to_Default_Values")
+  //  else if (command.Name() == "Reset_to_Default_Values")
   //{
   //  fBodies[0]->DefaultValues();
   //  fBodies[0]->UpdateData();
@@ -247,7 +250,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
   //  // iren->Start();
   //  return true;
   //}
-  else if (command == "Save")
+  else if (command.Name() == "Save")
     {
       StringT fbName;
       cout << "Enter name for image to be saved (without .tif extension): ";
@@ -287,7 +290,7 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       return true;
     }
 
-  else if (command == "Large_Save")
+  else if (command.Name() == "Large_Save")
     {
 
       StringT Name;
