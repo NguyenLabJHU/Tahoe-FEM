@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.3.2.10 2003-05-12 22:46:11 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.3.2.11 2003-05-13 00:19:30 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -326,9 +326,9 @@ void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& nodes) const
 	/* obtain global node numbers of nodes whose support intersects MD, create inverse map */
 	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();	// list of active nodes
 	InverseMapT gtlnodes;
-	InverseMapT& gtlatoms = fDrivenCellData.GlobalToLocal();
-	gtlnodes.SetMap(cell_nodes);	// create global to local map for active nodes
-	gtlatoms.SetMap(nodes);		// create global to local map for all atoms
+	const InverseMapT& gtlatoms = fDrivenCellData.GlobalToLocal();
+//	gtlnodes.SetMap(cell_nodes);	// create global to local map for active nodes
+//	gtlatoms.SetMap(nodes);		// create global to local map for all atoms
 	int numactivenodes = cell_nodes.Length();	// number of projected nodes
 	int numatoms = nodes.Length();	// total number of atoms
 
@@ -363,15 +363,6 @@ void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& nodes) const
 			ntf.SetElement(dex2, dex, weights(dex,j));  // dex = i...
 		}
 	}
-}
-
-/* add external force to RHS of equations */
-void FEManagerT_bridging::SetExternalForce(int group, const iArrayT& nodes, const dArray2DT& external_force)
-{
-	/* may not need nodes - can get from fDrivenCellData.CellNodes(); */
-	
-
-
 }
 
 /* initialize data for the driving field */
@@ -502,9 +493,6 @@ const dArray2DT& FEManagerT_bridging::InternalForce(int group) const
 /* initialize solver information */
 void FEManagerT_bridging::SetSolver(void)
 {
-	/* inherited */
-	FEManagerT::SetSolver();
-
 	/* dimension list of cumulative update vectors */
 	fCumulativeUpdate.Dimension(NumGroups());
 	
@@ -517,6 +505,9 @@ void FEManagerT_bridging::SetSolver(void)
 	fExternalForce2DEquations.Dimension(NumGroups());
 	fExternalForce2D = NULL;
 	fExternalForce2DNodes = NULL;
+
+	/* inherited */
+	FEManagerT::SetSolver();
 }
 
 /*************************************************************************
