@@ -14,7 +14,28 @@ MakeCSE_ExecutionT::MakeCSE_ExecutionT (void) :
   cout << "\n\n Build Date: " << __DATE__ " " << __TIME__ << "\n\n";
 }
 
-void MakeCSE_ExecutionT::Run (void)
+void MakeCSE_ExecutionT::Run (const sArrayT& lineoptions)
+{
+  int index;
+  lineoptions.HasValue ("-f", index);
+  if (index > 0 && index < lineoptions.Length())
+    {
+      ifstreamT in ('#', lineoptions [index + 1]);
+      if (!in.is_open ())
+	cout << "\n Unable to open -f file: " << lineoptions [index + 1] << endl;
+      else
+	{
+	  fInteractive = false;
+	  RunBatchOrJob (in);
+	}
+    }
+  else
+    RunInteractive ();
+}
+
+/***** PRIVATE ***********/
+
+void MakeCSE_ExecutionT::RunInteractive (void)
 {
   bool done = false;
   while (!done)
@@ -46,9 +67,6 @@ void MakeCSE_ExecutionT::Run (void)
     }
 }
 
-
-/***** PRIVATE ***********/
-
 void MakeCSE_ExecutionT::RunBatchOrJob (ifstreamT& in)
 {
   char filetype;
@@ -56,12 +74,18 @@ void MakeCSE_ExecutionT::RunBatchOrJob (ifstreamT& in)
 
   if (filetype == '@')
     {
+      cout << "\n\n\n Reading from batch file: " << in.filename () << "\n";
       StringT nextfile;
       in >> nextfile;
 
       while (in.good())
 	{
-	  nextfile.ToNativePathName ();
+	  /* fix up file name */
+	  //nextfile.ToNativePathName();
+	  StringT path;
+	  path.FilePath (in.filename());
+	  nextfile.Prepend (path);
+
 	  ifstreamT in2 ('#', nextfile);
 	  if (in2.good())
 	    RunBatchOrJob (in2);
@@ -100,20 +124,33 @@ void MakeCSE_ExecutionT::RunJob (ifstreamT& in)
 	  outfile.Append (".out");
 	}
      
+      cout << "\n\n Running Job: " << in.filename() << "\n\n";
       ofstream log (outfile);
       log << "\n Welcome to: " << fProgram << " " << fVersion;
       log << "\n\n Build Date: " << __DATE__ " " << __TIME__ << "\n\n";
-      MakeCSE_FEManager maker (log);
 
-      /* read geometry and parameters */
-      maker.InitializeInput (in, fInteractive);
+      try
+	{
+	  MakeCSE_FEManager maker (log);
 
-      /* initialize and register to OutputBaseT */
-      maker.InitializeOutput (in.filename(), fProgram, fVersion);
+	  /* read geometry and parameters */
+	  maker.InitializeInput (in, fInteractive);
 
-      /* make cohesive surfaces */
-      maker.CreateCSE ();
+	  /* initialize and register to OutputBaseT */
+	  maker.InitializeOutput (in.filename(), fProgram, fVersion);
 
-      /* print output data */
-      maker.WriteOutput ();
+	  /* make cohesive surfaces */
+	  maker.CreateCSE ();
+
+	  /* print output data */
+	  maker.WriteOutput ();
+	}
+      catch (ExceptionT::CodeT code)
+	{
+	  ExceptionT temp;
+	  cout << "\n \"" << in.filename() << "\" exit on exception: " 
+	       << code << ": " << temp.ToString(code) << "\n\n";
+	  log << "\n \"" << in.filename() << "\" exit on exception: " 
+	      << code << ": " << temp.ToString(code) << "\n\n";
+	}
 }

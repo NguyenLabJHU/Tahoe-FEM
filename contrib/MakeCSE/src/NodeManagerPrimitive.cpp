@@ -1,4 +1,4 @@
-// $Id: NodeManagerPrimitive.cpp,v 1.8 2002-10-29 21:38:02 sawimme Exp $
+// $Id: NodeManagerPrimitive.cpp,v 1.9 2002-11-05 13:26:26 sawimme Exp $
 // created: SAW 10/07/99
 #include "NodeManagerPrimitive.h"
 
@@ -80,8 +80,6 @@ void NodeManagerPrimitive::AddNodeSet (const StringT& setID, const ArrayT<int>& 
       RemoveRepeats (fNodeSetData[dex]);
       out << "            Added to Node Set. . . . . . . . . . = " 
 	  << setID << '\n' << endl;
-      cout << "            Added to Node Set. . . . . . . . . . = " 
-	   << setID << '\n' << endl;
     }
   else
     {
@@ -97,8 +95,6 @@ void NodeManagerPrimitive::AddNodeSet (const StringT& setID, const ArrayT<int>& 
 
       out << "            Added Node Set . . . . . . . . . . . = " 
 	  << setID << '\n' << endl;
-      cout << "            Added Node Set . . . . . . . . . . . = " 
-	   << setID << '\n' << endl;
     }  
 }
 
@@ -244,10 +240,11 @@ void NodeManagerPrimitive::RegisterOutput (OutputBaseT& output, MakeCSE_IOManage
       name.Append (nsetid + 1);
       out  << "\n Creating Node Set from Element Group ID . . . . = "
 	   << blocktonodesets[i] << '\n';
-      cout  << "\n Creating Node Set from Element Group ID . . . . = "
-	    << blocktonodesets[i] << '\n';
       theBoss->NodesUsed (blocktonodesets[i], nodes);
-      AddNodeSet (name, nodes, CSEConstants::kSplit);
+      if (nodes.Length() > 0)
+	AddNodeSet (name, nodes, CSEConstants::kSplit);
+      else
+	out << "\n     No nodes found...\n";
     }
 
   for (int n=0; n < fNodeSetData.Length(); n++)

@@ -6,13 +6,15 @@
 namespace Tahoe {
 
 class ifstreamT;
+class sArrayT;
 
 class MakeCSE_ExecutionT
 {
  public:
   MakeCSE_ExecutionT (void); /**< constructor */
-  void Run (void); /**< run program */
+  void Run (const sArrayT& lineoptions); /**< run program */
  private:
+  void RunInteractive (void); /**< prompt user for batch/job file */
   void RunBatchOrJob (ifstreamT& in); /**< batch or job */
   void RunJob (ifstreamT& in); /**< run individual job */
  private:

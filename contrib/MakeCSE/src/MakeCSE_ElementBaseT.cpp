@@ -1,4 +1,4 @@
-// $Id: MakeCSE_ElementBaseT.cpp,v 1.7 2002-10-29 21:38:02 sawimme Exp $
+// $Id: MakeCSE_ElementBaseT.cpp,v 1.8 2002-11-05 13:26:26 sawimme Exp $
 // created: SAW 10/06/99
 #include "MakeCSE_ElementBaseT.h"
 
@@ -227,10 +227,6 @@ void MakeCSE_ElementBaseT::AddSideSet (const StringT& setID, const iArray2DT& si
 	  << fGroupID << '\n';
       out << "    Added Side Set . . . . . . . . . . . . . . . = " 
 	  << setID << endl;
-      cout << "\n  Element Group ID . . . . . . . . . . . . . . . = " 
-	   << fGroupID << '\n';
-      cout << "    Added Side Set . . . . . . . . . . . . . . . = " 
-	   << setID << endl;
     }
 }
 

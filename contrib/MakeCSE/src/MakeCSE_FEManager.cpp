@@ -1,4 +1,4 @@
-// $Id: MakeCSE_FEManager.cpp,v 1.4 2002-10-28 21:36:33 sawimme Exp $
+// $Id: MakeCSE_FEManager.cpp,v 1.5 2002-11-05 13:26:26 sawimme Exp $
 // created: 11/10/99 SAW
 #include "MakeCSE_FEManager.h"
 #include "ExceptionT.h"
@@ -58,6 +58,9 @@ void MakeCSE_FEManager::InitializeInput (ifstreamT& in, bool interactive)
       fParameters->InputFormat (format, name);
       IOBaseT temp (fMainOut);
       format = temp.int_to_FileTypeT (format);
+      StringT path;
+      path.FilePath (in.filename());
+      name.Prepend (path);
       fModel.Initialize (format, name, true);
     }
 
@@ -168,7 +171,10 @@ void MakeCSE_FEManager::NodesUsed (const StringT& groupID, iArrayT& nodes) const
     if (fElementGroups[i]->GroupNumber() == groupID) g = i;
 
   nodes.Allocate (0);
-  if (g > -1) fElementGroups[g]->NodesUsed (nodes);
+  if (g > -1) 
+    fElementGroups[g]->NodesUsed (nodes);
+  else
+    nodes.Free();
 }
 
 void MakeCSE_FEManager::WriteOutput (void)
