@@ -1,4 +1,4 @@
-/* $Id: TecPlotT.cpp,v 1.5 2002-07-02 19:57:01 cjkimme Exp $ */
+/* $Id: TecPlotT.cpp,v 1.5.2.1 2002-10-17 03:57:48 paklein Exp $ */
 /* created: saw (06.06.2000)                                              */
 /* version 7.5                                                            */
 /* rules:                                                                 */
@@ -85,7 +85,7 @@ default:
 {
 	cout << "\n\nTecPlotT::WriteFEZone, unknown geometry code \"" << GeometryT::ToString(code) << "\" ("
 	     << code << ')' << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 }
 
@@ -124,7 +124,7 @@ void TecPlotT::WriteData (ostream& out, const ArrayT<double>& data, const int ro
   if (fPoint)
     {
       fOut << "\n\nTecPlot::WriteData, This function should not be used to write Point format data\n";
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
   else
     {
@@ -158,7 +158,7 @@ default:
 {
 	cout << "\n\nTecPlotT::WriteConnectivity, unknown geometry code "
 	     << code << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 }
 

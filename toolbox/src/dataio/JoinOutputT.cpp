@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.13 2002-09-18 01:33:07 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.13.2.1 2002-10-17 03:53:36 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 #include "JoinOutputT.h"
 
@@ -28,7 +28,7 @@ JoinOutputT::JoinOutputT(const StringT& param_file, const StringT& model_file,
 	if (!fModel->Initialize(model_file_type, model_file, true)) {
 		cout << "\n JoinOutputT::JoinOutputT: error opening geometry file: " 
 		     << fModel->DatabaseName() << endl;
-		throw eDatabaseFail;
+		throw ExceptionT::kDatabaseFail;
 	}
 
 	/* read partition data */
@@ -46,7 +46,7 @@ JoinOutputT::JoinOutputT(const StringT& param_file, const StringT& model_file,
 		{
 			cout << "\n JoinOutputT::JoinOutputT: could not open decomposition file: "
 			     << part_in.filename() << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		
 		/* read data */
@@ -132,7 +132,7 @@ void JoinOutputT::Join(void)
 						if (!results.Initialize(fResultsFileType, filename, true)) {
 							cout << "\n JoinOutputT::Join: error opening partial results file \""
 							     << results.DatabaseName() << '\"' << endl;
-							throw eDatabaseFail;
+							throw ExceptionT::kDatabaseFail;
 						}
 
 						/* get time */
@@ -163,7 +163,7 @@ void JoinOutputT::Join(void)
 								     <<   "     is longer than the number of nodes (" << num_nodes
 								     << ") in partial results file:\n"
 								     <<   "     " << results.DatabaseName() << endl;
-								throw eSizeMismatch;
+								throw ExceptionT::kSizeMismatch;
 							}
 							
 							/* set work space */
@@ -208,7 +208,7 @@ void JoinOutputT::Join(void)
 									     << "     file exceeds the number of elements (" << element_map.Length() 
 									     << ") in the map for block ID " << block_ID[l] << " in output\n"
 									     << "     set " << i << " in partition " << k << endl;
-									throw eSizeMismatch;
+									throw ExceptionT::kSizeMismatch;
 								}
 								
 								/* skip empty sets */
@@ -255,7 +255,7 @@ void JoinOutputT::SetOutput(void)
 		cout << "\n JoinOutputT::SetOutput: error opening: \"" << io_file << "\"\n"
 		     <<   "     file lists the element block ID's in each output ID:\n"
 		     <<   "        [output ID] [num blocks] [list of block ID's]" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* construct output sets for each ID */
@@ -300,14 +300,14 @@ void JoinOutputT::SetOutput(void)
 					if (!results.Initialize(fResultsFileType, data_file, true)) {
 						cout << "\n JoinOutputT::SetOutput: could not initialize file \""
 						     << data_file << '\"' << endl;
-						throw eDatabaseFail;
+						throw ExceptionT::kDatabaseFail;
 					}
 					
 					/* check */
 					if (results.NumElementGroups() != 1) {
 						cout << "\n JoinOutputT::SetOutput: only expecting 1 element group in free output set: " 
 						     << results.NumElementGroups() << endl;
-						throw eDatabaseFail;
+						throw ExceptionT::kDatabaseFail;
 					}
 				
 					/* part geometry */
@@ -354,7 +354,7 @@ void JoinOutputT::SetOutput(void)
 			/* store connectivities in the model manager */
 			if (!fModel->RegisterElementGroup(sID, all_connects, geometry_code, true)) {
 				cout << "\n JoinOutputT::SetOutput: error registering free set with the model manager: " << sID << endl;
-				throw eDatabaseFail;	
+				throw ExceptionT::kDatabaseFail;	
 			}
 		
 			/* construct output set */
@@ -395,7 +395,7 @@ void JoinOutputT::SetOutput(void)
 			
 			} /* end try */
 			
-			catch (int exc) {
+			catch (ExceptionT::CodeT exc) {
 				cout << "\n JoinOutputT::SetOutput: caught exception " << exc << " configuring\n"
 				     <<   "     output set ID " << ID << " with block ID's:\n";
 				for (int i = 0; i < block_ID.Length(); i++)
@@ -421,7 +421,7 @@ void JoinOutputT::SetOutput(void)
 void JoinOutputT::SetMaps(void)
 {
 	/* check */
-	if (!fOutput) throw eGeneralFail;
+	if (!fOutput) throw ExceptionT::kGeneralFail;
 
 	/* output sets data */
 	const ArrayT<OutputSetT*>& element_sets = fOutput->ElementSets();
@@ -517,7 +517,7 @@ void JoinOutputT::SetMaps(void)
 					     << " elements for output ID " << i << ",\n" 
 					     << "     found " << block_size.Sum() 
 					     << " counting by block in partitions" << endl;
-					throw eSizeMismatch;
+					throw ExceptionT::kSizeMismatch;
 				}
 				
 				/* loop over partitions */
@@ -578,7 +578,7 @@ void JoinOutputT::SetNodePartitionMap(iArrayT& node_partition)
 			{
 				cout << "\n JoinOutputT::SetNodePartitionMap: node already assigned "
 				     << node << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 			else
 				node_partition[node] = i;
@@ -591,7 +591,7 @@ void JoinOutputT::SetNodePartitionMap(iArrayT& node_partition)
 	{
 		cout << "\n JoinOutputT::SetNodePartitionMap: " << count
 		     << " nodes are unassigned" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -660,7 +660,7 @@ void JoinOutputT::SetAssemblyMap(const iArrayT& inv_global, int shift, const iAr
 	for (int j = 0; j < n_map; j++)
 	{
 		int dex = inv_global[*p++ - shift];
-		if (dex == -1) throw eGeneralFail;
+		if (dex == -1) throw ExceptionT::kGeneralFail;
 		lg_map[j] = dex;
 	}	
 }
@@ -730,7 +730,7 @@ void JoinOutputT::OutputLabels(int group, ArrayT<StringT>& node_labels,
 			if (!model.Initialize(fResultsFileType, filename, true)) {
 				cout << "\n JoinOutputT::OutputLabels: error opening database file \""
 				     << fModel->DatabaseName() << '\"' << endl;
-				throw eDatabaseFail;
+				throw ExceptionT::kDatabaseFail;
 			}
 		
 			/* read labels */
@@ -774,7 +774,7 @@ void JoinOutputT::CheckAssemblyMaps(void)
 			{
 				cout << "\n JoinOutputT::CheckAssemblyMaps: node maps size error: " << node_count
 				     << " should be " << nodes_used.Length() << " for set " << i << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 
 			/* check fill */
@@ -794,7 +794,7 @@ void JoinOutputT::CheckAssemblyMaps(void)
 						     << nodes_used[node_assem_map[j]] << "\n"
 						     <<   "     in assembly map " << k << " for output set ID "
 						     << set.ID() << endl;
-						throw eGeneralFail;
+						throw ExceptionT::kGeneralFail;
 					}
 					else
 						check = 1;
@@ -805,7 +805,7 @@ void JoinOutputT::CheckAssemblyMaps(void)
 			if (fill_check.Count(0) != 0)
 			{
 				cout << "\n JoinOutputT::CheckAssemblyMaps: node maps error" << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 		}
 			
@@ -827,7 +827,7 @@ void JoinOutputT::CheckAssemblyMaps(void)
 				{
 					cout << "\n JoinOutputT::CheckAssemblyMaps: element maps size error: " << element_count
 					     << " should be at least " << num_elements << " for set " << i << endl;
-					throw eGeneralFail;
+					throw ExceptionT::kGeneralFail;
 				}
 
 				/* check fill */
@@ -855,7 +855,7 @@ void JoinOutputT::CheckAssemblyMaps(void)
 				if (fill_check.Count(0) != 0)
 				{
 					cout << "\n JoinOutputT::CheckAssemblyMaps: element maps are incomplete" << endl;
-					throw eGeneralFail;
+					throw ExceptionT::kGeneralFail;
 				}
 			}
 	}
