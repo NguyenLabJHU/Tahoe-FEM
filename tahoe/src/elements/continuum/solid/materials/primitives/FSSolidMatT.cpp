@@ -1,8 +1,9 @@
-/* $Id: FSSolidMatT.cpp,v 1.12 2004-07-15 08:29:19 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.13 2004-08-01 00:56:58 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
 #include "FSMatSupportT.h"
 #include "ThermalDilatationT.h"
+#include "iArray2DT.h"
 
 using namespace Tahoe;
 
@@ -41,6 +42,101 @@ void FSSolidMatT::SetFSMatSupport(const FSMatSupportT* support)
 	fF_therm_inv.Identity();
 	fF_therm_inv_last.Identity();	
 	fF_mechanical.Identity();
+}
+
+const dMatrixT& FSSolidMatT::c_ijkl(void)
+{
+	/* basis vectors */
+	int nsd = NumSD();
+	double basis_1D[1*1] = {0.0};
+	double basis_2D[2*2] = {1.0, 0.0, 0.0, 1.0};
+	double basis_3D[3*3] = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+	double* basis_list[4] = {NULL, basis_1D, basis_2D, basis_3D};
+	dArray2DT basis(nsd, nsd, basis_list[nsd]);
+
+	/* work space */
+	dMatrixT& F = const_cast<dMatrixT&>(fFSMatSupport->DeformationGradient());
+	dMatrixT F_0 = F;
+	double J_0 = F_0.Det();
+	dArrayT vec(nsd), e_c, e_d;
+	dSymMatrixT stress(nsd);
+
+	/* compute perturbed stress (in columns) */
+	double eps = 1.0e-08;
+	for (int i = 0; i < fModulus.Cols(); i++) {
+
+		/* map column to symmetric indicies */
+		int c, d;
+		dSymMatrixT::ExpandIndex(nsd, i, c, d);
+		basis.RowAlias(c, e_c);
+		basis.RowAlias(d, e_d);
+
+		/* perturbed deformation gradient (2.17) */
+		F = F_0;
+		F_0.MultTx(e_d, vec);
+		F.Outer(e_c, vec, 0.5*eps, dMatrixT::kAccumulate); 
+		F_0.MultTx(e_c, vec);
+		F.Outer(e_d, vec, 0.5*eps, dMatrixT::kAccumulate); 
+		double J = F.Det();
+
+		/* compute stress */
+		stress.SetToScaled(J, s_ij());
+	
+		/* write into modulus */
+		fModulus.SetCol(i, stress);
+	}
+	
+	/* restore nominal state of deformation and stress */
+	F = F_0;
+	stress.SetToScaled(J_0, s_ij());
+	
+	/* compute finite difference and geometric contribution (2.18) */
+	for (int i = 0; i < fModulus.Cols(); i++) {
+
+		/* map column to symmetric indicies */
+		int c, d;
+		dSymMatrixT::ExpandIndex(nsd, i, c, d);
+		basis.RowAlias(c, e_c);
+		basis.RowAlias(d, e_d);
+
+		/* geometric contribution */
+		stress.Multx(e_d, vec);
+		F_0.Outer(e_c, vec, 0.5, dMatrixT::kOverwrite); 
+		F_0.Outer(vec, e_c, 0.5, dMatrixT::kAccumulate); 
+		stress.Multx(e_c, vec);
+		F_0.Outer(e_d, vec, 0.5, dMatrixT::kAccumulate); 
+		F_0.Outer(vec, e_d, 0.5, dMatrixT::kAccumulate); 
+		
+		/* combine results */
+		for (int j = 0; j < fModulus.Rows(); j++)
+		{
+			int a, b;
+			dSymMatrixT::ExpandIndex(nsd, j, a, b);
+			fModulus(j,i) = (fModulus(j,i) - stress[j])/eps - F_0(a,b);
+		}
+	}
+
+	/* J factor */
+	fModulus /= J_0;
+
+	return fModulus;
+}
+
+/* material description */
+const dMatrixT& FSSolidMatT::C_IJKL(void)
+{
+	/* spatial -> material */
+	const dMatrixT& Fmat = F(); // NOTE: use F or F_mechanical?
+	fModulus.SetToScaled(Fmat.Det(), PullBack(Fmat, c_ijkl()));	
+	return fModulus;
+}
+
+const dSymMatrixT& FSSolidMatT::S_IJ(void)
+{
+	/* spatial -> material */
+	const dMatrixT& Fmat = F(); // NOTE: use F or F_mechanical?
+	fStress.SetToScaled(Fmat.Det(), PullBack(Fmat, s_ij()));	
+	return fStress;
 }
 
 /* test for localization using "current" values for Cauchy
@@ -224,6 +320,10 @@ void FSSolidMatT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
 	SolidMaterialT::TakeParameterList(list);
+
+	/* dimension return values */
+	fStress.Dimension(NumSD());
+	fModulus.Dimension(dSymMatrixT::NumValues(NumSD()));
 
 	/* set multiplicative thermal transformation */
 	SetInverseThermalTransformation(fF_therm_inv);
