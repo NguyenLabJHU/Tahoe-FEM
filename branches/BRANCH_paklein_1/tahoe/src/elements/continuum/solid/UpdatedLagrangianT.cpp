@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.9.2.1 2002-10-17 04:28:55 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.9.2.2 2002-10-19 17:54:58 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpdatedLagrangianT.h"
 
@@ -133,7 +133,7 @@ void UpdatedLagrangianT::FormStiffness(double constK)
 	}
 						
 	/* stress stiffness into fLHS */
-	fLHS.Expand(fStressStiff, NumDOF());
+	fLHS.Expand(fStressStiff, NumDOF(), dMatrixT::kAccumulate);
 }
 
 /* calculate the internal force contribution ("-k*d") */

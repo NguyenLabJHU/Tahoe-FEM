@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.cpp,v 1.5.2.1 2002-10-17 04:28:54 paklein Exp $ */
+/* $Id: SimoQ1P0.cpp,v 1.5.2.2 2002-10-19 17:54:58 paklein Exp $ */
 #include "SimoQ1P0.h"
 
 #include "ShapeFunctionT.h"
@@ -247,7 +247,7 @@ void SimoQ1P0::FormStiffness(double constK)
 	}
 						
 	/* stress stiffness into fLHS */
-	fLHS.Expand(fStressStiff, NumDOF());
+	fLHS.Expand(fStressStiff, NumDOF(), dMatrixT::kAccumulate);
 	
 	/* $\bar{div}\bar{div}$ term */
 	fNEEmat.Outer(fb_bar, fb_bar);
