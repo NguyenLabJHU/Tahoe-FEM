@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.h,v 1.18 2002-07-17 16:52:22 recampb Exp $ */
+/* $Id: VTKUGridT.h,v 1.19 2002-10-23 04:52:05 paklein Exp $ */
 #ifndef _VTK_U_GRID_T_H_
 #define _VTK_U_GRID_T_H_
 
@@ -90,7 +90,7 @@ class VTKUGridT
 	void HideCuttingPlane(vtkRenderer* renderer);
 
 	void Glyphing(vtkFloatArray* vectors, vtkRenderer* renderer, bool filter, bool warpA, bool scale, bool color);
-
+	void SetGlyphScale(double scale);
 	void HideGlyphing(void);
 
 	/** set the scalar data range */
@@ -103,7 +103,6 @@ class VTKUGridT
 	void SetVectors(vtkFloatArray* vectors);
 
 	/** set vectors that warp */
-
 	void SetWarpVectors(vtkFloatArray* vectors);
   
 	/** return the grid actor */

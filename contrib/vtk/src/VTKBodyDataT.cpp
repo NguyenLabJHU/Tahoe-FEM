@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.30 2002-09-03 07:10:36 paklein Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.31 2002-10-23 04:52:05 paklein Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -12,6 +12,7 @@
 #include "vtkRenderer.h"
 #include "vtkFloatArray.h"
 
+#include "ExceptionCodes.h"
 #include "iArray2DT.h"
 #include "ModelManagerT.h"
 #include "dArray2DT.h"
