@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.h,v 1.4 2002-02-01 18:11:41 paklein Exp $ */
+/* $Id: VTKUGridT.h,v 1.5 2002-06-04 17:09:44 recampb Exp $ */
 #ifndef _VTK_U_GRID_T_H_
 #define _VTK_U_GRID_T_H_
 
@@ -19,6 +19,10 @@ class vtkFloatArray;
 class vtkIdTypeArray;
 class vtkLookupTable;
 class vtkScalarsToColors;
+class vtkContourFilter;
+class vtkPolyDataMapper;
+class vtkOutlineFilter;
+class vtkExtractEdges;
 
 /* toolbox forward declarations */
 class iArray2DT;
@@ -60,6 +64,10 @@ class VTKUGridT
 	/** set the scalar data */
 	void SetScalars(vtkFloatArray* scalars);
 
+	void ShowContours(vtkFloatArray* scalars, int numContours);
+	
+	void HideContours(vtkFloatArray* scalars);
+
 	/** set the scalar data range */
 	void SetScalarRange(double min, double max);
 	
@@ -74,6 +82,10 @@ class VTKUGridT
   
 	/** return the grid actor */
   	vtkActor* Actor(void) { return fActor; };
+
+	vtkActor* OutlineActor(void) { return fOutlineActor;};
+
+	vtkActor* EdgesActor(void) {return edgesActor;};
   	
   	/** return the grid wrap vector */
   	vtkWarpVector* Warp(void) { return fWarp; };
@@ -100,6 +112,8 @@ class VTKUGridT
 	
 	/** set the cell number map */
 	void SetCellNumberMap(const iArrayT& map) { fCellNumberMap = map; };
+
+	bool GetContoursBool(void) { return contours;};
 
  private:
 
@@ -136,6 +150,20 @@ class VTKUGridT
 
 	/** displaces grid */
 	vtkWarpVector* fWarp;
+
+	vtkContourFilter* fContour;
+	vtkPolyDataMapper* fContourMapper;
+	vtkActor* fContourActor;
+
+	bool contours;
+	vtkOutlineFilter* outline;
+	vtkDataSetMapper* outlineMapper;
+	vtkActor* fOutlineActor;
+
+	vtkExtractEdges* edges;
+	vtkDataSetMapper* edgesMapper;
+	vtkActor* edgesActor;
+      
 };
 
 #endif /* _VTK_U_GRID_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.h,v 1.9 2002-02-01 18:11:40 paklein Exp $ */
+/* $Id: VTKBodyDataT.h,v 1.10 2002-06-04 17:09:44 recampb Exp $ */
 #ifndef _VTK_BODY_DATA_T_H_
 #define _VTK_BODY_DATA_T_H_
 
@@ -45,6 +45,8 @@ public:
 
 	/** set the current time step */
 	bool SelectTimeStep(int);
+
+
 
  	/** add actors in self to the given renderer */
  	void AddToRenderer(vtkRenderer* renderer) const;
@@ -126,6 +128,8 @@ public:
 //	double alphaRange1, alphaRange2;
 	double scale_factor;
 	int numColors;
+	int numContours;
+	int numColorBarLabels;
 	double opacity;
 };
 

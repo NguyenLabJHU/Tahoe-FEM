@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.15 2002-05-07 07:28:40 paklein Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.16 2002-06-04 17:09:44 recampb Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -235,11 +235,14 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 	iAddVariable("numColors", numColors);
 	iAddVariable("scale_factor", scale_factor);
 	iAddVariable("opacity", opacity);
+	iAddVariable("numContours", numContours);
   	
   	/* commands */
   	iAddCommand(CommandSpecT("Wire"));
   	iAddCommand(CommandSpecT("Surface"));
   	iAddCommand(CommandSpecT("Point"));
+	iAddCommand(CommandSpecT("ShowContours"));
+	iAddCommand(CommandSpecT("HideContours"));
 }
 
 /* destructor */
@@ -275,16 +278,23 @@ int VTKBodyDataT::NumSD(void)
 void VTKBodyDataT::AddToRenderer(vtkRenderer* renderer) const
 {
 	/* add all actors */
-	for (int i = 0; i < fUGrids.Length(); i++)
+  for (int i = 0; i < fUGrids.Length(); i++){
 		renderer->AddActor(fUGrids[i]->Actor());
+		renderer->AddActor(fUGrids[i]->OutlineActor());
+		//renderer->AddActor(fUGrids[i]->EdgesActor());
+  }
 }
 
 /** remove actors in self to the given renderer */
 void VTKBodyDataT::RemoveFromRenderer(vtkRenderer* renderer) const
 {
 	/* remove all actors */
-	for (int i = 0; i < fUGrids.Length(); i++)
+  for (int i = 0; i < fUGrids.Length(); i++){
 		renderer->RemoveActor(fUGrids[i]->Actor());
+		renderer->RemoveActor(fUGrids[i]->OutlineActor());
+		//renderer->RemoveActor(fUGrids[i]->EdgesActor());
+  }
+		
 }
 
 
@@ -304,6 +314,9 @@ void VTKBodyDataT::UpdateData(void)
 				fUGrids[i]->SetScalarRange(scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
 				fUGrids[i]->SetOpacity(opacity);
 				fUGrids[i]->SetNumberOfColors(numColors);
+				if (fUGrids[i]->GetContoursBool())
+				  fUGrids[i]->ShowContours(fScalars(currentStepNum, currentVarNum), numContours);
+				//fUGrids[i]->SetNumberOfColorBarLabels(numColorBarLabels);
 			}
 		}
 	}	
@@ -379,6 +392,8 @@ bool VTKBodyDataT::SelectTimeStep(int stepNum)
   		return true;
 }
 
+
+
 /* execute console command. \return true is executed normally */
 bool VTKBodyDataT::iDoCommand(const CommandSpecT& command, StringT& line)
 {
@@ -403,6 +418,38 @@ bool VTKBodyDataT::iDoCommand(const CommandSpecT& command, StringT& line)
 				fUGrids[i]->SetRepresentation(VTKUGridT::kPoint);
 		return true;
 	}
+	else if (command.Name() == "ShowContours")
+	  {
+	     if (fScalars.MinorDim() > 0){
+	       for (int i = 0; i < fUGrids.Length(); i++)
+		 {
+		   fUGrids[i]->ShowContours(fScalars(currentStepNum, currentVarNum), numContours);
+		   //	if (fVectors.Length() > 0){
+		   //	if (!fVectors[currentStepNum]) throw eGeneralFail;
+		//	fUGrids[i]->SetWarpVectors(fVectors[currentStepNum]);
+		   //	}
+		 }
+	     }
+	     return true;
+	  }
+
+
+	else if (command.Name() == "HideContours")
+	  {
+	     if (fScalars.MinorDim() > 0){
+	       for (int i = 0; i < fUGrids.Length(); i++)
+		 {
+		   fUGrids[i]->HideContours(fScalars(currentStepNum, currentVarNum));
+		   //	if (fVectors.Length() > 0){
+		   //	if (!fVectors[currentStepNum]) throw eGeneralFail;
+		//	fUGrids[i]->SetWarpVectors(fVectors[currentStepNum]);
+		   //	}
+		 }
+	     }
+	     return true;
+	  }
+	
+
 	else /* inherited */
 		return iConsoleObjectT::iDoCommand(command, line);
 }
@@ -420,6 +467,7 @@ void VTKBodyDataT::DefaultValues(void)
 	numColors = 256;
 	opacity = 1;
 	scale_factor = 1.0;
+	numContours = 10;
 }
 
 /* load data for the current time step */

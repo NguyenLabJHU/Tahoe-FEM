@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.22 2002-04-07 19:15:41 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.23 2002-06-04 17:09:44 recampb Exp $ */
 
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
@@ -15,6 +15,7 @@
 #include "vtkSelectVisiblePoints.h"
 #include "vtkLabeledDataMapper.h"
 #include "vtkActor2D.h"
+#include "vtkContourGrid.h"
 
 /* array behavior */
 const bool ArrayT<VTKBodyT*>::fByteCopy = true;
@@ -65,7 +66,9 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	iAddCommand(CommandSpecT("HideElementNumbers"));
 	iAddCommand(CommandSpecT("ShowAxes"));
 	iAddCommand(CommandSpecT("HideAxes"));
+
 	
+
 	/* commands from body data */
 	command = fBodyData->iCommand("Wire");
 	if (!command) throw eGeneralFail;
@@ -76,6 +79,13 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	command = fBodyData->iCommand("Point");
 	if (!command) throw eGeneralFail;
 	iAddCommand(*command);
+	command = fBodyData->iCommand("ShowContours");
+	if (!command) throw eGeneralFail;
+	iAddCommand(*command);
+	command = fBodyData->iCommand("HideContours");
+	if (!command) throw eGeneralFail;
+	iAddCommand(*command);
+
 }
 
 /* destructor */
@@ -155,6 +165,11 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 		return fBodyData->iDoCommand(command, line);
 	else if (command.Name() == "Point")
 		return fBodyData->iDoCommand(command, line);
+	else if (command.Name() == "ShowContours")
+		return fBodyData->iDoCommand(command, line);
+	else if (command.Name() == "HideContours")
+		return fBodyData->iDoCommand(command, line);
+
 	else if (command.Name() == "ShowNodeNumbers")
 	{
 		if (fNodeLabelActor.Length() > 0)
@@ -518,6 +533,9 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 			return true;
 		}
 	}
+
+
+
 	else
 		/* inherited */
 		return iConsoleObjectT::iDoCommand(command, line);

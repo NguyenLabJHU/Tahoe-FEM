@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.43 2002-04-11 22:00:50 cjkimme Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.44 2002-06-04 17:09:44 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -167,6 +167,8 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   	iAddCommand(CommandSpecT("Wire"));
   	iAddCommand(CommandSpecT("Surface"));
   	iAddCommand(CommandSpecT("Point"));
+	iAddCommand(CommandSpecT("ShowContours"));
+	iAddCommand(CommandSpecT("HideContours"));
 
 	/* look for command line options */
 	int index, start = 0;
@@ -379,6 +381,32 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
   	}
   	return OK;
   }
+
+  else if (command.Name() == "ShowContours")
+  {
+	bool OK = true;
+  	for (int i = 0; OK && i < fBodies.Length(); i++)
+  	{
+  		const CommandSpecT* comm = fBodies[i]->iResolveCommand(command.Name(), line);
+  		if (!comm) return false;
+  		OK = fBodies[i]->iDoCommand(*comm, line);
+  	}
+  	return OK;
+  }
+
+  else if (command.Name() == "HideContours")
+  {
+	bool OK = true;
+  	for (int i = 0; OK && i < fBodies.Length(); i++)
+  	{
+  		const CommandSpecT* comm = fBodies[i]->iResolveCommand(command.Name(), line);
+  		if (!comm) return false;
+  		OK = fBodies[i]->iDoCommand(*comm, line);
+  	}
+  	return OK;
+  }
+
+
   else if (command.Name() == "Layout")
 	{
 		int nx, ny;

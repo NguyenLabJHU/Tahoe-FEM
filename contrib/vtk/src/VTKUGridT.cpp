@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.6 2002-04-18 00:27:49 paklein Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.7 2002-06-04 17:09:44 recampb Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -10,8 +10,10 @@
 #include "vtkFloatArray.h"
 #include "vtkLookupTable.h"
 #include "vtkProperty.h"
-
+#include "vtkContourFilter.h"
 #include "iArray2DT.h"
+#include "vtkOutlineFilter.h"
+#include "vtkExtractEdges.h"
 
 /* array behavior */
 const bool ArrayT<VTKUGridT*>::fByteCopy = true;
@@ -28,6 +30,7 @@ VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
 	fLookUpTable(NULL),
 	fActor(NULL),
 	fWarp(NULL)
+    
 {
 	/* initialize grid */
 	fUGrid = vtkUnstructuredGrid::New();
@@ -35,15 +38,41 @@ VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
 	/* the mapper */
 	fMapper = vtkDataSetMapper::New();
 	fMapper->SetInput(fUGrid); /* just map grid by default */
+
+	fContour = vtkContourFilter::New();
+	fContourMapper = vtkPolyDataMapper::New();
+	fContour->SetInput(fUGrid);
+	fContourMapper->SetInput(fContour->GetOutput());
+	
+	//vtkTriangleFilter* tri = vtkTriangleFilter::New();
+	//tri->SetInput(fUGrid);
+	//deci = vtkDecimatePro::New();
+	//smoother = vtkSmoothPolyDataFilter::New();
+	//deci->SetInput(tri->GetOutput()); 
+
+	outline = vtkOutlineFilter::New();
+	outline->SetInput(fUGrid);
+	outlineMapper = vtkDataSetMapper::New();
+	outlineMapper->SetInput(outline->GetOutput());
+
+	edges = vtkExtractEdges::New();
+	edgesMapper = vtkDataSetMapper::New();
+	edges->SetInput(fUGrid);
+	edgesMapper->SetInput(edges->GetOutput());
+	edgesActor = vtkActor::New();
+	edgesActor->SetMapper(edgesMapper);
 	
 	/* change color range from blue to red */
 	fLookUpTable = vtkLookupTable::New();
 	fLookUpTable->SetHueRange(0.6667, 0);
 	fMapper->SetLookupTable(fLookUpTable);
+	fContourMapper->SetLookupTable(fLookUpTable);
+	contours = false;
 
 	/* the actor */
 	fActor = vtkActor::New();
-	
+	//fActor->GetProperty()->SetInterpolationToGouraud();
+
 	/* line color */
 	if (fType == kElementSet)
 		fActor->GetProperty()->SetColor(1,0,0);
@@ -55,6 +84,9 @@ VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
 	else
 		fActor->GetProperty()->SetColor(0,1,0);
 	fActor->SetMapper(fMapper);
+
+	fOutlineActor = vtkActor::New();
+	fOutlineActor->SetMapper(outlineMapper);
 	fActor->AddPosition(0,0.001,0);
 }
 
@@ -69,6 +101,11 @@ VTKUGridT::~VTKUGridT(void)
 	if (fActor) fActor->Delete();
 	if (fWarp) fWarp->Delete();
 	if (fLookUpTable) fLookUpTable->Delete();
+	if (fContour) fContour->Delete();
+	if (fContourMapper) fContourMapper->Delete();
+	if (outlineMapper) outlineMapper->Delete();
+	if (outline) outline->Delete();
+	if (fOutlineActor) fOutlineActor->Delete();
 }
 
 /* set the point data */
@@ -188,8 +225,30 @@ void VTKUGridT::SetConnectivities(GeometryT::CodeT code, const iArray2DT& connec
 void VTKUGridT::SetScalars(vtkFloatArray* scalars)
 {
 	/* insert in grid */
-	fUGrid->GetPointData()->SetScalars(scalars); 
+	fUGrid->GetPointData()->SetScalars(scalars);
 }
+
+void VTKUGridT::ShowContours(vtkFloatArray* scalars, int numContours)
+{
+  
+  fContour->GenerateValues(numContours, scalars->GetRange());
+  fContourMapper->SetScalarRange(scalars->GetRange());
+  fActor->SetMapper(fContourMapper);
+  cout << "Contour Values:" << endl;
+  for (int i=0; i<numContours; i++)
+    cout << i <<"  " << fContour->GetValue(i) << endl;
+  contours = true;
+
+}
+
+void VTKUGridT::HideContours(vtkFloatArray* scalars)
+{
+  
+  contours = false;
+  fActor->SetMapper(fMapper);
+
+}
+
 
 /* set the scalar data range */
 void VTKUGridT::SetScalarRange(double min, double max)
@@ -213,13 +272,27 @@ void VTKUGridT::SetVectors(vtkFloatArray* vectors)
 /* set vectors that warp */
 void VTKUGridT::SetWarpVectors(vtkFloatArray* vectors)
 {
-	/* insert in grid */
-	SetVectors(vectors);
-	
-	/* set up warp vector */
-	if (!fWarp) fWarp = vtkWarpVector::New();
-	fWarp->SetInput(fUGrid);
-	fMapper->SetInput(fWarp->GetOutput());
+  /* insert in grid */
+  SetVectors(vectors);
+  
+
+
+    /* set up warp vector */
+    if (!fWarp) fWarp = vtkWarpVector::New();
+    fWarp->SetInput(fUGrid);
+    fMapper->SetInput(fWarp->GetOutput());
+    outline->SetInput(fWarp->GetOutput());
+    outlineMapper->SetInput(outline->GetOutput());
+
+    
+    if (contours){
+      
+      fContour->SetInput(fWarp->GetOutput());
+      fContourMapper->SetInput(fContour->GetOutput());
+      edges->SetInput(fWarp->GetOutput());
+      edgesMapper->SetInput(edges->GetOutput());
+    }  
+
 }
 
 /* set the wrap displacement scale factor */
@@ -235,18 +308,19 @@ bool VTKUGridT::SetRepresentation(RepresentationT rep)
 	vtkProperty* property = fActor->GetProperty();
 	switch (rep)
 	{
-		case kWire:
-			property->SetRepresentation(VTK_WIREFRAME);	
-			break;
-		case kSurface:
-			property->SetRepresentation(VTK_SURFACE);	
-			break;
-		case kPoint:
-			property->SetRepresentation(VTK_POINTS);	
-			break;		
-		default:
-			cout << "VTKUGridT::SetRepresentation: not a valid representation: " << rep << endl;
-			return false;
+	case kWire:
+	  property->SetRepresentation(VTK_WIREFRAME);	
+	  break;
+	case kSurface:
+	  property->SetRepresentation(VTK_SURFACE);	
+	  break;
+	case kPoint:
+	  property->SetRepresentation(VTK_POINTS);	
+	  break;
+	  
+	default:
+	  cout << "VTKUGridT::SetRepresentation: not a valid representation: " << rep << endl;
+	  return false;
 	}
 	return true;
 }
@@ -262,8 +336,10 @@ void VTKUGridT::SetOpacity(double opacity)
 	fActor->GetProperty()->SetOpacity(opacity);
 }
 
+
 /* return the look up table for the specified ugrid */
 vtkScalarsToColors* VTKUGridT::GetLookupTable(void)
 {
 	return fMapper->GetLookupTable();
 }
+
