@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.28 2005-03-07 18:45:18 paklein Exp $
+# $Id: tahoe-manager,v 1.29 2005-03-08 17:16:39 rjones Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -154,7 +154,7 @@ foreach my $key (sort(keys %ENV)) {
 		if ($key =~ /$lib/ ) { 
 			my $loc = $ENV{$key};
 			print "* found system library $lib \@ $loc \n"; 
-			push(@syslibs,$lib);
+			push(@syslibs,$syslib2module{$lib});
 		}
 	}
 }
@@ -162,6 +162,13 @@ foreach my $key (sort(keys %ENV)) {
 # configuration file
 if(-e "$config_file") { read_config();}
 else                  { write_default_config();}
+
+# remove system libraries from @modules
+foreach my $lib (@syslibs) {
+	for (my $i = 0; $i < scalar(@modules) ; $i++) {
+		if($modules[$i] =~ /$lib/) {  splice (@modules,$i,1);}
+	}
+}
 
 print ">   tahoe name: $tahoe_name\n";
 print ">   connection: $connection\n";
@@ -237,6 +244,7 @@ while(<CONFIG>) {
 			elsif ($type =~ /TAHOE_LOGIN/) { $tahoe_name = $tmp_list[0]; }
 			elsif  ($type  =~ /PROXY/){$proxy = $tmp_list[0];}
 			elsif  ($type  =~ /ARCH/){$arch = $tmp_list[0];}
+			elsif  ($type  =~ /USE_DEFAULT/){$use_default_arch = $tmp_list[0];}
 			elsif  ($type  =~ /VERBOSE/){ $verbose = $tmp_list[0]; }
  			elsif  ($type  =~ /MODU/){@modules = @tmp_list;}
  			$type = $list[1]; @tmp_list =();
@@ -266,6 +274,7 @@ print "* creating default config file $config_file\n";
 # look for environmental settings
 my $cvs_rsh;
 $verbose = "false";
+$use_default_arch = "true";
 $tahoe_name = "nobody";
 foreach my $key (sort(keys %ENV)) {
 	my $value =  $ENV{$key};
@@ -362,6 +371,10 @@ unless(-d "macros") {
 
 # architecture
 $arch = get_arch() unless(defined($arch));
+print "do want this to be the default architecture for all modules (y/n) [y]: "; 
+$use_default_arch = "true";
+$choice = <STDIN>;
+if ( $choice =~ /n/ ) { $use_default_arch = "false"; }
 
 # modules
 @modules = @defaultmodules;
@@ -576,7 +589,8 @@ sub build {
 
 	# need to sort modules based on dependencies
 	my @tmp_modules = sort_by_depend(@run_modules);
-	print "($count) building: @tmp_modules, at $time\n";
+	if (scalar(@tmp_modules) > 1 )  {
+		print "($count) building: @tmp_modules, at $time\n";}
 
 	DIR: foreach my $dir (@tmp_modules) {
 		if (-e "$dir/makefile" && !defined($up_to_date_modules{$dir})) {
@@ -593,10 +607,10 @@ sub build {
 			open(IN,"build.log");
 			my @lines = <IN>; $file = "@lines"; close(IN); 
 			my $errors = ($file =~ /\*\*\* ERROR:/);
-               if($errors > 0) {
-               	print " ERROR\n";
-               	$script_status++;
-               }
+               		if($errors > 0) {
+               			print " ERROR\n";
+               			$script_status++;
+               		}
 			else { print " ok\n"; }
 			chdir "..";
 		}
@@ -688,7 +702,7 @@ sub clean {
 			chdir $dir; 
 			if (-e "makefile") {
 				print "\tcleaning $dir...";
-				system("make clean >& clean.log");
+				system("make clean > clean.log 2>&1");
 				print " ok\n";
 				
 				# remove the makefile
@@ -827,6 +841,7 @@ sub fillin_makefile{
 	# no config file in this module
 	my $mod_arch = $arch;	
 	if (! -e ".tahoe_config") {
+		if( $use_default_arch =~ /false/i ) {
 		print " use default ARCH = $mod_arch (y/n) [y]: ";
 		$ans = <STDIN>;
 		chomp($ans);
@@ -835,6 +850,7 @@ sub fillin_makefile{
 			chdir("..");
 			$mod_arch = get_arch();
 			chdir($path);
+		}
 		}
 		print "...";
 
@@ -940,6 +956,7 @@ sub write_config {
 	print CONFIG  "# CONNECTION\n$connection\n\n";
 	print CONFIG  "# PROXY\n$proxy\n\n";
 	print CONFIG  "# ARCHITECTURE\n$arch\n\n";
+	print CONFIG  "# USE_DEFAULT\n$use_default_arch\n\n";
 	print CONFIG  "# MODULES\n@modules\n\n";
 	print CONFIG  "# VERBOSE\n$verbose\n\n";
 	print CONFIG  "# EOF";
