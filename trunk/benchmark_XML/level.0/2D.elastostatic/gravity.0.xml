@@ -39,5 +39,10 @@
 			</small_strain_element_block>        
 		</small_strain>    
 	</element_list>    
-	<nonlinear_solver abs_tolerance = "1.0e-10" divergence_tolerance = "1.0e+01" matrix_type = "profile" max_iterations = "10" rel_tolerance = "1.0e-12"/>
+	<nonlinear_solver
+		abs_tolerance = "1.0e-10"
+		rel_tolerance = "1.0e-12" 
+		divergence_tolerance = "1.0e+01" 
+		matrix_type = "profile" 
+		max_iterations = "10"/>
 </tahoe>

@@ -39,7 +39,10 @@
             </large_strain_element_block>
         </updated_lagrangian>
     </element_list>
-    <nonlinear_solver abs_tolerance="1.0e-10" check_code="print_LHS"
-        divergence_tolerance="1.0e+01" matrix_type="profile"
-        max_iterations="10" rel_tolerance="1.0e-12"/>
+    <nonlinear_solver
+    	abs_tolerance="1.0e-10"
+		rel_tolerance="1.0e-12"
+        divergence_tolerance="1.0e+01" 
+        matrix_type="profile"
+        max_iterations="10"/>
 </tahoe>
