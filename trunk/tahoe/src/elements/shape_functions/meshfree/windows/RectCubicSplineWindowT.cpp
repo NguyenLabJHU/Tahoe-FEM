@@ -1,4 +1,4 @@
-#include "RectangularCubicSplineWindowT.h"
+#include "RectCubicSplineWindowT.h"
 #include "ExceptionCodes.h"
 #include <math.h>
 
@@ -6,7 +6,7 @@ const double sqrtPi = sqrt(acos(-1.0));
 static double Max(double a, double b) { return (a > b) ? a : b; };
 
 /* constructor */
-RectangularCubicSplineWindowT::RectangularCubicSplineWindowT(const dArrayT& dilation_scaling, double sharpening_factor,
+RectCubicSplineWindowT::RectCubicSplineWindowT(const dArrayT& dilation_scaling, double sharpening_factor,
 						       double cut_off_factor):
 	fDilationScaling(dilation_scaling),
 	fSharpeningFactor(sharpening_factor),
@@ -23,7 +23,7 @@ RectangularCubicSplineWindowT::RectangularCubicSplineWindowT(const dArrayT& dila
 }
 
 /* "synchronization" of nodal field parameters. */
-void RectangularCubicSplineWindowT::SynchronizeSupportParameters(dArray2DT& params_1, 
+void RectCubicSplineWindowT::SynchronizeSupportParameters(dArray2DT& params_1, 
 	dArray2DT& params_2) const
 {
 	/* should be over the same global node set (marked by length) */
@@ -31,7 +31,7 @@ void RectangularCubicSplineWindowT::SynchronizeSupportParameters(dArray2DT& para
 	    params_1.MinorDim() != NumberOfSupportParameters() ||
 	    params_2.MinorDim() != NumberOfSupportParameters())
 	{
-		cout << "\n RectangularCubicSplineWindowT::SynchronizeSupportParameters: nodal\n"
+		cout << "\n RectCubicSplineWindowT::SynchronizeSupportParameters: nodal\n"
 		     << " parameters dimension mismatch" << endl;
 		throw eSizeMismatch;
 	}
@@ -48,14 +48,14 @@ void RectangularCubicSplineWindowT::SynchronizeSupportParameters(dArray2DT& para
 }
 
 /* modify nodal shape function parameters */
-void RectangularCubicSplineWindowT::ModifySupportParameters(dArray2DT& nodal_params) const
+void RectCubicSplineWindowT::ModifySupportParameters(dArray2DT& nodal_params) const
 {
 	/* scale supports */
 	for (int i = 0; i < fDilationScaling.Length(); i++)
 		nodal_params.ScaleColumn(i, fDilationScaling[i]);	
 }
 
-void RectangularCubicSplineWindowT::WriteParameters(ostream& out) const
+void RectCubicSplineWindowT::WriteParameters(ostream& out) const
 {
 	/* window function parameters */
 	out << " Dilation scaling factor . . . . . . . . . . . . :\n" << fDilationScaling << '\n';
@@ -64,13 +64,13 @@ void RectangularCubicSplineWindowT::WriteParameters(ostream& out) const
 }
 
 /* Single point evaluations */
-bool RectangularCubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
+bool RectCubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
 		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw)
 {
   /* Compute window function and its derivatives - accomplish by scalar product of individual
    * window functions in x/y/z directions */
 
-  if (!RectangularCubicSplineWindowT::Covers(x_n, x, param_n))
+  if (!RectCubicSplineWindowT::Covers(x_n, x, param_n))
   {
     w = 0.0;
     if (order > 0)
@@ -301,7 +301,7 @@ bool RectangularCubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& pa
 }
 
 /* multiple point calculations */
-int RectangularCubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
+int RectCubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
 		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw)
 {
   /* compute window function and derivatives for multiple field points */
@@ -322,7 +322,7 @@ int RectangularCubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT&
     x_n.RowAlias(i, x_node);
     param_n.RowAlias(i, param_node);
       
-    if (RectangularCubicSplineWindowT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym))
+    if (RectCubicSplineWindowT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym))
       count ++;
 
     /* store derivatives */
@@ -336,7 +336,7 @@ int RectangularCubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT&
   return count;
 }
 
-bool RectangularCubicSplineWindowT::Covers(const dArrayT& x_n, const dArrayT& x, 
+bool RectCubicSplineWindowT::Covers(const dArrayT& x_n, const dArrayT& x, 
 	const dArrayT& param_n) const
 {
   dArrayT dx(x.Length());
@@ -345,13 +345,14 @@ bool RectangularCubicSplineWindowT::Covers(const dArrayT& x_n, const dArrayT& x,
   /* check individual directions to see if outside the "box" */
   for (int i = 0; i < x.Length(); i++)
   {
-    if (fabs(dx[i] / param_n[i]) > 4.0)
+    //if (fabs(dx[i] / param_n[i]) > 2.0)
+    if (dx[i] > fCutOffFactor * param_n[i])
       return false;
   }
   return true;
 }
 
-int RectangularCubicSplineWindowT::Covers(const dArray2DT& x_n, const dArrayT& x, 
+int RectCubicSplineWindowT::Covers(const dArray2DT& x_n, const dArrayT& x, 
 	const dArray2DT& param_n, ArrayT<bool>& covers) const
 {
   int count = 0;
@@ -363,7 +364,7 @@ int RectangularCubicSplineWindowT::Covers(const dArray2DT& x_n, const dArrayT& x
     dx.DiffOf(x, temprow);
     for (int j = 0; j < x.Length(); j++)
     {
-      if (fabs(dx[j] / param_n(i,j)) > 4.0)
+      if (fabs(dx[j] / param_n(i,j)) > 2.0)
 		count++;
     }
     if (count == 0)
