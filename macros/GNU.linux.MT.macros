@@ -1,4 +1,4 @@
-# $Id: GNU.linux.MT.macros,v 1.9 2004-08-10 06:37:02 paklein Exp $
+# $Id: GNU.linux.MT.macros,v 1.10 2004-08-10 07:15:34 paklein Exp $
 # GNU
 
 # additional flags for multithreaded code (spoolesMT in particular)
@@ -19,15 +19,15 @@ CFLAGS_CC   = $(LOC_CFLAGS)
 CFLAGS_F    = $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = $(MT_LFLAGS) -lm 
-MAKEDEPEND_C         = gcc -MM
-MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES)
-MAKEDEPEND_OUTPUT_C  = -MF
-MAKEDEPEND_CC        = g++ -MM
-MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES)
-MAKEDEPEND_OUTPUT_CC = -MF
-MAKEDEPEND_F         = g77 -MM
-MAKEDEPENDFLAGS_F    = -I$(INC_DIR) $(DEFINES)
-MAKEDEPEND_OUTPUT_F  = -MF
+MAKEDEPEND_C         = makedepend
+MAKEDEPENDFLAGS_C    = -I$(INC_DIR) -I/usr/include/g++-3 -I/usr/include/g++-2 $(DEFINES)
+MAKEDEPEND_OUTPUT_C  = -f
+MAKEDEPEND_CC        = makedepend
+MAKEDEPENDFLAGS_CC   = $(MAKEDEPENDFLAGS_C)
+MAKEDEPEND_OUTPUT_CC = -f
+MAKEDEPEND_F         = makedepend
+MAKEDEPENDFLAGS_F    = $(MAKEDEPENDFLAGS_C)
+MAKEDEPEND_OUTPUT_F  = -f
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = echo

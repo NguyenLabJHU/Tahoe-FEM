@@ -1,9 +1,7 @@
-# $Id: GNU.linux.macros,v 1.17 2004-08-10 06:37:02 paklein Exp $
-# GNU
+# $Id: GNU.linux.macros,v 1.18 2004-08-10 07:15:34 paklein Exp $
+# GNU 2.9x
 MAKE        = make
 DEFINES     = -D__GNU__ -DNON_UNIX_STDIO
-# replace the line above with the one below if you are using gcc 3.x vs. 2.9x
-#DEFINES     = -D__GNU__ -DNON_UNIX_STDIOS -D__GCC_3__
 COMP_C      = gcc
 COMP_CC     = g++
 COMP_F      = g77
@@ -13,15 +11,15 @@ CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS)
 CFLAGS_F    = $(LOC_CFLAGS) -DEIGHT_BYTE_REAL
 LINK        = $(COMP_CC)
-MAKEDEPEND_C         = gcc -MM
-MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES)
-MAKEDEPEND_OUTPUT_C  = -MF
-MAKEDEPEND_CC        = g++ -MM
-MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES)
-MAKEDEPEND_OUTPUT_CC = -MF
-MAKEDEPEND_F         = g77 -MM
-MAKEDEPENDFLAGS_F    = -I$(INC_DIR) $(DEFINES)
-MAKEDEPEND_OUTPUT_F  = -MF
+MAKEDEPEND_C         = makedepend
+MAKEDEPENDFLAGS_C    = -I$(INC_DIR) -I/usr/include/g++-3 -I/usr/include/g++-2 $(DEFINES)
+MAKEDEPEND_OUTPUT_C  = -f
+MAKEDEPEND_CC        = makedepend
+MAKEDEPENDFLAGS_CC   = $(MAKEDEPENDFLAGS_C)
+MAKEDEPEND_OUTPUT_CC = -f
+MAKEDEPEND_F         = makedepend
+MAKEDEPENDFLAGS_F    = $(MAKEDEPENDFLAGS_C)
+MAKEDEPEND_OUTPUT_F  = -f
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = echo
