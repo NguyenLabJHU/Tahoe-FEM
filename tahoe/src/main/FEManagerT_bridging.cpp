@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.16.4.10 2004-04-16 03:22:59 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.16.4.11 2004-04-17 04:47:09 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -123,8 +123,8 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& neighbors, c
 	/* Cauchy-Born constitutive model */
 	const ContinuumElementT* coarse = fFollowerCellData.ContinuumElement();
 	const MaterialListT& mat_list = coarse->MaterialsList();
-	if (mat_list.Length() > 2) 
-		ExceptionT::GeneralFail(caller, "expecting at most 2 materials, not %d", mat_list.Length());
+	if (mat_list.Length() > 1) 
+		ExceptionT::GeneralFail(caller, "expecting only 1 material not %d", mat_list.Length());
 
 	ContinuumMaterialT* cont_mat = mat_list[0];
 	Hex2D* hex_2D = dynamic_cast<Hex2D*>(cont_mat);
@@ -323,6 +323,47 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& neighbors, c
 		
 		/* copy in densities */
 		element.DoubleData() = bond_densities(i);
+	}
+}
+
+/* enforce zero bond density in projected cells */
+void FEManagerT_bridging::DeactivateFollowerCells(void)
+{
+	const char caller[] = "FEManagerT_bridging::DeactivateFollowerCells";
+
+	/* the continuum element solving the coarse scale */
+	const ContinuumElementT* coarse = fDrivenCellData.ContinuumElement();
+	if (!coarse) ExceptionT::GeneralFail(caller, "projection data not set");
+	const MaterialListT& mat_list = coarse->MaterialsList();
+	if (mat_list.Length() > 1) 
+		ExceptionT::GeneralFail(caller, "expecting only 1 material not %d", mat_list.Length());
+
+	ContinuumMaterialT* cont_mat = mat_list[0];
+	Hex2D* hex_2D = dynamic_cast<Hex2D*>(cont_mat);
+	FCC3D* fcc_3D = dynamic_cast<FCC3D*>(cont_mat);
+	Chain1D* mat_1D = dynamic_cast<Chain1D*>(cont_mat);
+	if (!mat_1D && !hex_2D && !fcc_3D) ExceptionT::GeneralFail(caller, "could not resolve C-B material");
+
+	const BondLatticeT& bond_lattice = (hex_2D) ? hex_2D->BondLattice() : ((fcc_3D) ? fcc_3D->BondLattice() : mat_1D->BondLattice());
+	const dArray2DT& bonds = bond_lattice.Bonds();
+	int num_densities = coarse->NumIP()*bonds.MajorDim();	
+
+	/* collect cells in projected region */
+	iArrayT cells;
+	BridgingScale().CollectProjectedCells(fDrivenCellData, cells);
+
+	/* write unknowns into the state variable space */
+	ContinuumElementT* non_const_coarse = const_cast<ContinuumElementT*>(coarse);
+	for (int i = 0; i < cells.Length(); i++) {
+	
+		/* element information */
+		ElementCardT& element = non_const_coarse->ElementCard(cells[i]);
+	
+		/* allocate space */
+		element.Dimension(0, num_densities);
+		
+		/* zero bond densities */
+		element.DoubleData() = 0.0;
 	}
 }
 

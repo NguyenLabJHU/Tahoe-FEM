@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.9.4.7 2004-04-15 21:15:27 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.9.4.8 2004-04-17 04:47:10 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -98,6 +98,10 @@ void MultiManagerT::Initialize(InitCodeT)
 	in >> fFineToCoarse
 	   >> fCoarseToFine
 	   >> fCorrectOverlap;
+	   
+	/* enforce zero bond density in projected cells */
+	if (fCoarseToFine)
+		fCoarse->DeactivateFollowerCells();
 
 	/* correct overlap */
 	if (fCorrectOverlap) {
@@ -256,6 +260,17 @@ void MultiManagerT::FormRHS(int group) const
 	const dArray2DT& resid_fine = fFine->InternalForce(group);
 	int continuum_group = 0;
 	const dArray2DT& resid_coarse = fCoarse->InternalForce(continuum_group);
+
+//TEMP -debugging
+#if 0
+	fFineField = fFine->NodeManager()->Field(bridging_field);
+	if (!fFineField) ExceptionT::GeneralFail(caller, "could not resolve fine scale \"%s\" field", bridging_field.Pointer());
+	fCoarseField = fCoarse->NodeManager()->Field(bridging_field);
+
+
+
+
+#endif
 
 	/* fine scale contribution to the coarse scale residual */
 	dArray2DT& R_U = const_cast<dArray2DT&>(fR_U);
