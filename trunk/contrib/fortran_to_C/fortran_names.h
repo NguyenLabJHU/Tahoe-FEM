@@ -1,4 +1,4 @@
-/* $Id: fortran_names.h,v 1.2 2003-03-14 21:21:05 paklein Exp $ */
+/* $Id: fortran_names.h,v 1.3 2003-03-15 02:21:25 paklein Exp $ */
 #ifndef _FORTRAN_NAMES_H_
 #define _FORTRAN_NAMES_H_
 /*
@@ -31,12 +31,8 @@
 #endif
 
 /* DEC - single trailing underscore */
-#elif defined(__ALPHA__)
-#ifdef __STDC__
+#elif defined(__DEC__)
 #define FORTRAN_NAME(n_)	n_ ## _
-#else
-#define FORTRAN_NAME(n_)	n_/**/_
-#endif
 
 /* AIX - no mangling */
 #elif defined(__AIX__)
