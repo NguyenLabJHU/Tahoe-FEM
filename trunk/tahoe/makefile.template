@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.26 2003-11-21 22:24:48 paklein Exp $
+# $Id: makefile.template,v 1.27 2004-01-02 02:58:47 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -11,30 +11,34 @@
 #     dependencies.
 # (6) "make build" to (re-)compiler binaries.
 
-# full path to current directory
+# full path to the top level of this module
 HOME_DIR =
 
+# build architecture - see macros directory for choices $(ARCH).macros
+ARCH =
+
+# destination for the build 
+BLD_DIR = $(HOME_DIR)
+
 # working directories:
-OBJ_DIR = $(HOME_DIR)/obj
 INC_DIR = $(HOME_DIR)/inc
 SRC_DIR = $(HOME_DIR)/src
-LIB_DIR = $(HOME_DIR)/lib
-
-# build architecture
-ARCH =
-# see macros directory for choices $(ARCH).macros
+OBJ_DIR = $(BLD_DIR)/obj
+BLD_SRC_DIR = $(BLD_DIR)/src-mirror
+LIB_DIR = $(BLD_DIR)/lib
 
 # default target name - root of library name or executable name
 TARGET  = tahoe
-LIBRARY = $(HOME_DIR)/lib/lib$(TARGET).a
+LIBRARY = $(LIB_DIR)/lib$(TARGET).a
+PCH     = $(TARGET)Prefix.h
 
 # path to main, needed if primary target is an executable (not 
 # a library)
-MAIN    = $(SRC_DIR)/main/main.o
+MAIN = $(BLD_SRC_DIR)/main/main.o
 
 # target of "make build", i.e., the library $(LIBRARY) or
 # the executable $(TARGET)
-BUILD   = $(TARGET)
+BUILD = $(TARGET)
 
 # full path to compiler macros
 MACRO_DIR = $(HOME_DIR)/../macros
@@ -42,11 +46,11 @@ MACRO_DIR = $(HOME_DIR)/../macros
 ############################### build options ###########################
 # uncomment macros for installed models
 
-##### any additional user C, C++, fortran, or linker flags
-#MY_CFLAGS  =
-#MY_CCFLAGS = --load-pch $(TB_DIR)/pch
-#MY_FFLAGS  =
-#MY_LFLAGS  = -framework vecLib
+##### any additional C, C++, fortran, or linker flags specific to the module
+MOD_CFLAGS_C  =
+MOD_CFLAGS_CC =
+MOD_CFLAGS_F  =
+MOD_LFLAGS    =
 
 ##### toolbox
 TB_DIR      = $(HOME_DIR)/../toolbox
@@ -86,8 +90,7 @@ TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 ##### F2C 1.4.3
 #F2C_DIR      = $(HOME_DIR)/../f2c
 #F2C_INC      = -I$(F2C_DIR)/inc
-#F2C_DEFINES  = -D__F2C__
-#F2C_CFLAGS   = $(F2C_INC) $(F2C_DEFINES)
+#F2C_CFLAGS   = $(F2C_INC) -D__F2C__
 #F2C_LIB_NAME = f2c_
 #F2C_LIB      = $(F2C_DIR)/lib/lib$(F2C_LIB_NAME).a
 #F2C_LFLAGS   = -L$(F2C_DIR)/lib -l$(F2C_LIB_NAME)
@@ -95,8 +98,7 @@ TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 #### BLAS
 #BLAS_DIR      = $(HOME_DIR)/../CBLAS
 #BLAS_INC      = -I$(BLAS_DIR)/inc
-#BLAS_DEFINES  = -D__BLAS__
-#BLAS_CFLAGS   = $(BLAS_INC) $(BLAS_DEFINES)
+#BLAS_CFLAGS   = $(BLAS_INC) -D__BLAS__
 #BLAS_LIB_NAME = CBLAS
 #BLAS_LIB      = $(BLAS_DIR)/lib/lib$(BLAS_LIB_NAME).a
 #BLAS_LFLAGS   = -L$(BLAS_DIR)/lib -l$(BLAS_LIB_NAME)
@@ -140,8 +142,7 @@ TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 #### METIS
 #METIS_DIR      = $(HOME_DIR)/../metis
 #METIS_INC      = -I$(METIS_DIR)/inc
-#METIS_DEFINES  = -D__METIS__
-#METIS_CFLAGS   = $(METIS_INC) $(METIS_DEFINES)
+#METIS_CFLAGS   = $(METIS_INC) -D__METIS__
 #METIS_LIB_NAME = metis
 #METIS_LIB      = $(METIS_DIR)/lib/lib$(METIS_LIB_NAME).a
 #METIS_LFLAGS   = -L$(METIS_DIR)/lib -l$(METIS_LIB_NAME)
@@ -188,17 +189,13 @@ UP_TO_DATE = NONE
 # extra macros for specific modules
 include $(MACRO_DIR)/tahoe.extras
 
-# extras - targets brought up to date before other makefile
-# targets associated with "make init", "make build", and "make clean". 
-# To activate, uncomment the line defining MAKE_[]_XTRAS, and add any commands 
-# below to the associated make_[]extras target.
-# This two part approach is for backward compatibility between make.targets
-# and older versions of makefile.template
-MAKE_INIT_XTRAS        = update_config
-MAKE_HEADERS_XTRAS     = make_headers_extras
-MAKE_DEPEND_INIT_XTRAS = make_depend_init_extras
-MAKE_BUILD_XTRAS       = make_build_extras
-MAKE_CLEAN_XTRAS       = clean_config
+# "make build" extras - target brought up to date before other makefile
+# targets associated with "make build"
+MOD_MAKE_INIT_XTRAS        = update_config
+MOD_MAKE_HEADERS_XTRAS     = make_headers_extras
+MOD_MAKE_DEPEND_INIT_XTRAS = make_depend_init_extras
+MOD_CLEAN_XTRAS            = clean_config
+MOD_BUILD_XTRAS            = make_build_extras
 
 # include common target definitions
 include $(MACRO_DIR)/make.targets
@@ -250,4 +247,4 @@ do_up_to_date:
 				exit 1; \
 			fi; \
 		fi; \
-	done	
+	done
