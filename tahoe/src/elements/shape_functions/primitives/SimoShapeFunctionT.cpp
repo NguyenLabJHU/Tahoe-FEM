@@ -1,15 +1,14 @@
-/* $Id: SimoShapeFunctionT.cpp,v 1.5 2002-07-02 19:57:09 cjkimme Exp $ */
+/* $Id: SimoShapeFunctionT.cpp,v 1.5.2.1 2002-09-21 09:00:21 paklein Exp $ */
 
 #include "SimoShapeFunctionT.h"
 #include "LocalArrayT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 SimoShapeFunctionT::SimoShapeFunctionT(GeometryT::CodeT geometry_code, 
 	int numIP, const LocalArrayT& coords, const LocalArrayT& element_modes):
-	ShapeFunctionT(geometry_code, numIP, coords, kStandardB),
+	ShapeFunctionT(geometry_code, numIP, coords),
 	fElementModes(element_modes),
 	fHas3DIncompressibleMode(false)
 {
