@@ -1,9 +1,5 @@
-/* $Id: nVariArray2DT.h,v 1.6 2002-10-20 22:38:57 paklein Exp $ */
-/* created: paklein (04/18/1998)                                          */
-/* WRAPPER for nArray2DT<>'s to add dynamic re-sizing of the              */
-/* major dimension, using some headroom to cut down calls for             */
-/* memory de/re-allocation                                                */
-
+/* $Id: nVariArray2DT.h,v 1.7 2002-11-25 07:04:16 paklein Exp $ */
+/* created: paklein (04/18/1998) */
 #ifndef _N_VARI_ARRAY2D_T_H_
 #define _N_VARI_ARRAY2D_T_H_
 
@@ -13,38 +9,50 @@
 /* direct members */
 #include "nArray2DT.h"
 
-
 namespace Tahoe {
 
+/** wrapper for nArray2DT<>'s. Adds dynamic re-sizing of the
+ * major dimension, using some headroom to cut down calls for
+ * memory de/re-allocation
+ */
 template <class nTYPE>
 class nVariArray2DT: public VariBaseT<nTYPE>
 {
 public:
 
-	/* constructors */
+	/** \name constructors */
+	/*@{*/
 	nVariArray2DT(void);
 	nVariArray2DT(int headroom, nArray2DT<nTYPE>& ward, int minordim);
+	/*@}*/
 
-	/* set the managed array - can only be set once */
+	/** set the managed array - can only be set once */
 	void SetWard(int headroom, nArray2DT<nTYPE>& ward, int minordim);
 	
-	/* set length of the ward, fill extra space and copy old data if specified */
+	/** \name set length of the ward
+	 * Fills extra space and copy old data if specified */
+	/*@{*/
 	void Dimension(int majordim, int minordim);
 	void SetMajorDimension(int majordim, const nTYPE& fill, bool copy_in);
 	void SetMajorDimension(int majordim, bool copy_in);
+	/*@}*/
 
-	/* dimensions accessors - of the ward */
+	/** \name dimensions of the ward */
+	/*@{*/
 	int MajorDim(void) const;
 	int MinorDim(void) const;
+	/*@}*/
 	
-	/* reference to the ward */
+	/** reference to the ward */
 	const nArray2DT<nTYPE>& TheWard(void) const;
 		
 private:
 
-	/* the managed array */
+	/** \name the managed array */
+	/*@{*/
 	int fMinorDim;
 	nArray2DT<nTYPE>* fWard;
+	/*@}*/
 };
 
 /*************************************************************************
