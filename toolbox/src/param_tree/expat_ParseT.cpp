@@ -1,16 +1,8 @@
-/* $Id: expat_ParseT.cpp,v 1.6 2004-03-28 09:46:24 paklein Exp $ */
+/* $Id: expat_ParseT.cpp,v 1.7 2004-07-01 04:59:03 paklein Exp $ */
 #include "expat_ParseT.h"
 #ifdef __EXPAT__
 
 #include "ParameterListT.h"
-
-#if defined(__SGI__) || defined(__DELMAR__) || defined(__PGI__) || defined(__MWERKS__)
-#include <stdio.h>
-#include <stdarg.h>
-#else
-#include <cstdio>
-#include <cstdarg>
-#endif
 
 using namespace Tahoe;
 
