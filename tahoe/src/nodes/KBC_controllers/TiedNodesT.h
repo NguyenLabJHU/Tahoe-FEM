@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.21 2004-07-15 08:31:21 paklein Exp $ */
+/* $Id: TiedNodesT.h,v 1.22 2004-09-01 10:46:27 paklein Exp $ */
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
 
@@ -99,6 +99,18 @@ public:
 
 	virtual void SetEquations(void);
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/** check status of pairs.
@@ -127,17 +139,10 @@ protected:
 	/** output current configuration */
 	virtual void WriteOutput(ostream& out) const;
 
-	/** \name called by TiedNodesT::Initialize */
-	/*@{*/
-	/** read class parameters. Called after nodes information is read.
-	 * TiedNodesT::ReadParameters does nothing. */
-	virtual void ReadParameters(ifstreamT&) { };
-
 	/** set initial tied node pairs. Initializes the data in TiedNodesT::fLeaderIds,
 	 * TiedNodesT::fFollowerIds, TiedNodesT::fNodePairs, and TiedNodesT::fPairStatus.
 	 * TiedNodesT::InitTiedNodePairs pairs nodes that coincide. */
 	virtual void InitTiedNodePairs(const iArrayT& leader, iArrayT& follower);
-	/*@}*/
 
 protected:
 
