@@ -26,9 +26,7 @@
             <periodic_bc direction="3" x_max="12.24" x_min="-12.24"/>
             <particle_type all_particles="true" label="Au"/>
             <pair_particle_interaction label_1="Au" label_2="Au">
-                <Lennard_Jones cut_off_distance="2.63"
-                    energy_scaling="0.5678950796453064"
-                    length_scaling="2.62311730030557" mass="0.0204159405"/>
+                <Paradyn_pair parameter_file="./FCN/lj_au_3D"/>
             </pair_particle_interaction>
         </particle_pair>
     </element_list>
