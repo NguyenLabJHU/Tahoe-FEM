@@ -1,4 +1,4 @@
-/* $Id: IOManager.cpp,v 1.11 2002-01-09 18:28:50 paklein Exp $ */
+/* $Id: IOManager.cpp,v 1.12 2002-02-18 09:33:25 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 
 #include "IOManager.h"
@@ -43,7 +43,7 @@ IOManager::IOManager(ifstreamT& in, const IOManager& io_man):
 				(io_man.fOutput)->Title(), in.filename(), fOutputFormat, fLog);
 }
 
-// constructor to use in conjunction with ReadParameters
+#if 0
 IOManager::IOManager (ostream& out) :
 	fLog (out),
 	fOutput(NULL),
@@ -52,6 +52,7 @@ IOManager::IOManager (ostream& out) :
 {
 
 }
+#endif
 
 IOManager::~IOManager(void)
 {
@@ -127,6 +128,9 @@ void IOManager::WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& 
 	fOutput->WriteOutput(fOutputTime, ID, n_values, e_values);
 }
 
+/* return the list of nodes used by the output set */
+const iArrayT& IOManager::NodesUsed(int ID) const { return fOutput->NodesUsed(ID); }
+
 /* (temporarily) re-route output */
 void IOManager::DivertOutput(const StringT& outfile)
 {
@@ -195,6 +199,7 @@ OutputBaseT* IOManager::NewOutput(const StringT& program_name,
 	    break;
 	  case IOBaseT::kTahoe:
 	  case IOBaseT::kTahoeII:
+	  case IOBaseT::kTahoeResults:
 	    output = new FE_ASCIIT(log, true, outstrings);
 	    break;
 	  case IOBaseT::kEnSight:
