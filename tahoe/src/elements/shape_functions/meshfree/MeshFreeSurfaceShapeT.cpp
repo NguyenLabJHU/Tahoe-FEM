@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.2 2001-03-15 21:39:33 paklein Exp $ */
 /* created: paklein (06/03/2000)                                          */
 
 #include "MeshFreeSurfaceShapeT.h"
@@ -403,7 +403,7 @@ void MeshFreeSurfaceShapeT::Set_dQ(const dMatrixT& Q, double j, ArrayT<dMatrixT>
 		double* v_m1 = fJacobian(0);
 		double* v_m2 = fJacobian(1);
 		double    m1 = sqrt(v_m1[0]*v_m1[0] + v_m1[1]*v_m1[1] + v_m1[2]*v_m1[2]);
-		if (m1 < kSmall) throw eBadJacobianDet;
+		if (m1 <= 0.0) throw eBadJacobianDet;
 
 		/* tangent gradients */
 		ArrayT<dMatrixT>& grad_dd = fdx_dsdu;

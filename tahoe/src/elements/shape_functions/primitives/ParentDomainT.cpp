@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.2 2001-02-20 00:42:15 paklein Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.3 2001-03-15 21:39:34 paklein Exp $ */
 /* created: paklein (07/03/1996)                                          */
 
 #include "ParentDomainT.h"
@@ -249,7 +249,7 @@ double ParentDomainT::SurfaceJacobian(const dMatrixT& jacobian, dMatrixT& Q) con
 		double  j = sqrt(t[0]*t[0] + t[1]*t[1]);
 
 		/* check */
-		if (j < kSmall) throw eBadJacobianDet;
+		if (j <= 0.0) throw eBadJacobianDet;
 
 		/* column vectors */
 		double* n1 = Q(0);
@@ -277,12 +277,12 @@ double ParentDomainT::SurfaceJacobian(const dMatrixT& jacobian, dMatrixT& Q) con
 		double j1 = sqrt(m1[0]*m1[0] + m1[1]*m1[1] + m1[2]*m1[2]);
 
 		/* normalize */
-		if (jn < kSmall) throw eBadJacobianDet;
+		if (jn <= 0.0) throw eBadJacobianDet;
 		n3[0] /= jn;
 		n3[1] /= jn;
 		n3[2] /= jn;
 		
-		if (j1 < kSmall) throw eBadJacobianDet;
+		if (j1 <= 0.0) throw eBadJacobianDet;
 		n1[0] = m1[0]/j1;
 		n1[1] = m1[1]/j1;
 		n1[2] = m1[2]/j1;
@@ -307,7 +307,7 @@ int numIP = fDNa.Length();
 		det[i] = fJacobian.Det();
 		
 		/* element check */
-		if (det[i] < kSmall) throw eBadJacobianDet;
+		if (det[i] <= 0.0) throw eBadJacobianDet;
 
 		dMatrixT& jac_inv = fJacobian.Inverse();
 					
