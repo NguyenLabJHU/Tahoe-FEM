@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.cpp,v 1.7.2.1 2002-12-10 17:03:41 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.7.2.2 2002-12-19 03:09:13 paklein Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionT.h"
 #include <iostream.h>
@@ -267,19 +267,20 @@ void CommunicatorT::Barrier(void) const
 /* gather single integer to all processes. */
 void CommunicatorT::AllGather(int a, nArrayT<int>& gather) const
 {
-	Log(kModerate, "AllGather", "in = %d", a);
+	const char caller[] = "CommunicatorT::AllGather";
+	Log(kModerate, caller, "in = %d", a);
 
 	/* check */
 	if (gather.Length() != Size())
-		ExceptionT::SizeMismatch("CommunicatorT::AllGather", 
-			"buffer length %d does not match size %d", gather.Length(), Size());
+		ExceptionT::SizeMismatch(caller, "buffer length %d does not match size %d", 
+			gather.Length(), Size());
 
 	/* this */
 	gather[Rank()] = a;
 
 #ifdef __TAHOE_MPI__
 	if (MPI_Allgather(&a, 1, MPI_INT, gather.Pointer(), 1, MPI_INT, fComm) != MPI_SUCCESS)
-		Log(kFail, "CommunicatorT::Gather", "MPI_Allgather failed");
+		Log(kFail, caller, "MPI_Allgather failed");
 #endif
 
 //NOTE: need to implement gather with sends and receives for CPLANT and other
@@ -288,7 +289,7 @@ void CommunicatorT::AllGather(int a, nArrayT<int>& gather) const
 	/* verbose */
 	if (LogLevel() == kLow)
 	{
-		Log(kLow, "AllGather");
+		Log(kLow, caller);
 		Log() << gather.wrap(8) << '\n';
 	}
 }
@@ -447,6 +448,127 @@ void CommunicatorT::Broadcast(int source, ArrayT<char>& data)
 	{
 		Log(kModerate, "Broadcast", "received %d", data.Length());
 		if (LogLevel() == kLow) Log() << setw(10) << "data: " << data.Pointer() << '\n';
+	}
+}
+
+/* free any uncompleted requests */
+void CommunicatorT::FreeRequests(ArrayT<MPI_Request>& requests) const
+{
+#ifdef __TAHOE_MPI__
+	const char caller[] = "CommunicatorT::FreeRequests";
+
+	/* free any uncompleted receive requests */
+	for (int i = 0; i < requests.Length(); i++)
+		if (requests[i] != MPI_REQUEST_NULL)
+		{
+			Log(kLow, "caller", "cancelling request %d/%d", i+1, requests.Length());
+		
+			/* cancel request */
+			MPI_Cancel(&requests[i]);
+			MPI_Status status;
+			MPI_Wait(&requests[i], &status);
+			int flag;
+			MPI_Test_cancelled(&status, &flag);
+			if (flag )
+				Log(kLow, "caller", "cancelling request %d/%d: DONE", i+1, requests.Length());
+			else	
+				Log(kLow, "caller", "cancelling request %d/%d: FAIL", i+1, requests.Length());
+		}
+#else
+#pragma unused(requests)
+#endif
+}
+
+/* post non-blocking send */
+void CommunicatorT::PostSend(const nArrayT<double>& data, int destination, int tag, 
+	MPI_Request& request) const
+{
+	const char caller[] = "CommunicatorT::Send";
+
+	Log(kModerate, caller, "posting send of %d to %d with tag %d", 
+		data.Length(), destination, tag);
+	if (LogLevel() == kLow)
+		Log() << setw(10) << "data: " << data.wrap(5) << '\n';
+
+	if (destination < 0 || destination >= Size())
+		Log(kFail, caller, "destination ! (0 <= %d <= %d)", destination, Size());
+
+#ifdef __TAHOE_MPI__
+	/* post send */
+	if (MPI_Isend(data.Pointer(), data.Length(),
+		MPI_DOUBLE, destination, tag, fComm, &request) != MPI_SUCCESS)
+		Log(kFail, caller, "MPI_Isend failed");
+#else
+#pragma unused(request)
+#endif
+}
+
+/* post non-blocking send */
+void CommunicatorT::PostReceive(nArrayT<double>& data, int source, 
+	int tag, MPI_Request& request) const
+{
+	const char caller[] = "CommunicatorT::PostReceive";
+
+	Log(kModerate, caller, "posting receive of %d from %d with tag %d", 
+		data.Length(), source, tag);
+
+	if (source < 0 || source >= Size())
+		Log(kFail, caller, "source ! (0 <= %d <= %d)", source, Size());
+
+#ifdef __TAHOE_MPI__
+	/* post receive */
+	if (MPI_Irecv(data.Pointer(), data.Length(),
+		MPI_DOUBLE, source, tag, fComm, &request) != MPI_SUCCESS)
+		Log(kFail, caller, "MPI_Irecv failed");
+#else
+#pragma unused(request)
+#endif
+}
+
+/* return the index the next receive */
+int CommunicatorT::WaitReceive(const ArrayT<MPI_Request>& requests) const
+{
+	const char caller[] = "CommunicatorT::WaitReceive";
+	Log(kModerate, caller, "waiting for 1 of %d", requests.Length());
+
+	int index = -1;
+
+#ifdef __TAHOE_MPI__
+	/* grab completed receive */
+	MPI_Status status;
+	if (MPI_Waitany(requests.Length(), requests.Pointer(), &index, &status) != MPI_SUCCESS)
+		Log(kFail, caller, "MPI_Waitany failed");
+
+	if (status.MPI_ERROR != MPI_SUCCESS)
+		Log(kFail, caller, "bad status: %d", status.MPI_ERROR);
+#endif
+	
+	Log(kModerate, caller, "received request at index %d", index);
+	return index;
+}
+
+/* block until all sends posted with CommunicatorT::PostSend have completed */
+void CommunicatorT::WaitSends(const ArrayT<MPI_Request>& requests)
+{
+	const char caller[] = "CommunicatorT::WaitSends";
+	Log(kModerate, caller, "waiting for 1 of %d", requests.Length());
+
+	/* complete all sends */
+	for (int i = 0; i < requests.Length(); i++)
+	{
+		int index = -1;
+
+#ifdef __TAHOE_MPI__
+		/* grab completed receive */
+		MPI_Status status;
+		if (MPI_Waitany(requests.Length(), requests.Pointer(), &index, &status) != MPI_SUCCESS) 
+			Log(kFail, caller, "MPI_Waitany failed");
+
+		if (status.MPI_ERROR != MPI_SUCCESS)
+			Log(kFail, caller, "bad status: %d", status.MPI_ERROR);
+#endif
+
+		Log(kLow, caller, "completing send at index %d", index);
 	}
 }
 

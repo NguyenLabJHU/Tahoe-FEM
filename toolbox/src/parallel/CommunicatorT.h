@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.h,v 1.8.2.1 2002-12-10 17:03:41 paklein Exp $ */
+/* $Id: CommunicatorT.h,v 1.8.2.2 2002-12-19 03:09:13 paklein Exp $ */
 #ifndef _COMMUNICATOR_T_H_
 #define _COMMUNICATOR_T_H_
 
@@ -7,8 +7,10 @@
 #ifdef __TAHOE_MPI__
 #include "mpi.h"
 #else
-#define MPI_Comm long
+#define MPI_Comm    long
 #define MPI_Request long
+#define MPI_Status  long
+#define MPI_Op      long
 #endif
 
 #include "ios_fwd_decl.h"
@@ -161,6 +163,27 @@ class CommunicatorT
 	
 	/** synchronize all processes */
 	void Barrier(void) const;
+
+	/** free any uncompleted requests. This often doesn't return successfully
+	 * because one or more of the other processes has quit */
+	void FreeRequests(ArrayT<MPI_Request>& requests) const;
+
+	/** \name point-to-point communications */
+	/*@{*/
+	/** post non-blocking send */
+	void PostSend(const nArrayT<double>& data, int destination, int tag, MPI_Request& request) const;
+
+	/** post non-blocking receive */
+	void PostReceive(nArrayT<double>& data, int source, int tag, MPI_Request& request) const;
+	
+	/** return the index the next receive. Call blocks until the next message is received.
+	 * \param requests list of requests previously posted with CommunicatorT::PostReceive 
+	 * \return index in requests of the next received message*/
+	int WaitReceive(const ArrayT<MPI_Request>& requests) const;
+	
+	/** block until all sends posted with CommunicatorT::PostSend have completed */
+	void WaitSends(const ArrayT<MPI_Request>& requests);
+	/*@}*/
 
   private:
   
