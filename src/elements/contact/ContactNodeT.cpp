@@ -1,4 +1,4 @@
-/*  $Id: ContactNodeT.cpp,v 1.13 2001-09-19 15:27:15 rjones Exp $ */
+/*  $Id: ContactNodeT.cpp,v 1.14 2002-05-10 00:13:50 rjones Exp $ */
 #include "ContactNodeT.h"
 
 #include "FaceT.h"
@@ -16,6 +16,7 @@ ContactNodeT::ContactNodeT(ContactSurfaceT& surface, int node_tag):
 	fxi[0]           = 0.0 ;
 	fxi[1]           = 0.0 ;
 	fGap             = 1.e8; // NEED TO FIX THIS
+	fPressure        = 0.0; 
 }
 
 ContactNodeT::~ContactNodeT(void)

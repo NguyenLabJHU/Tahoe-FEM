@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.23 2002-04-16 16:10:30 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.24 2002-05-10 00:13:50 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
@@ -402,6 +402,7 @@ ContactSurfaceT::PrintGaps(ofstream& out) const
 void
 ContactSurfaceT::PrintMultipliers(ostream& out) const
 {
+	if (fNumMultipliers) {
         out << "#Surface " << this->Tag() << " MULTIPLIER \n";
 
         for (int n = 0 ; n < fMultiplierMap.Length(); n++) {
@@ -419,6 +420,17 @@ ContactSurfaceT::PrintMultipliers(ostream& out) const
                 out << " no multipliers " << "\n";
 			}
         }
+	} else { // penalty
+        out << "#Surface " << this->Tag() << " PRESSURE \n";
+
+        for (int n = 0 ; n < fContactNodes.Length(); n++) {
+            out << "# tag " << fContactNodes[n]->Tag() << "\n";
+			for (int i = 0; i < fNumSD; i++) {
+                        out << fContactNodes[n]->Position()[i] << " ";
+                }
+                out << "   "<< fContactNodes[n]->nPressure() << "\n";
+        }
+	}
 }
 
 
@@ -465,4 +477,6 @@ ContactSurfaceT::PrintNormals(ostream& out) const
                 out << '\n';
         }
 }
+
+
 

@@ -1,4 +1,4 @@
-/* $Id: ContactNodeT.h,v 1.11 2001-09-24 20:37:24 rjones Exp $ */
+/* $Id: ContactNodeT.h,v 1.12 2002-05-10 00:13:50 rjones Exp $ */
 
 
 #ifndef _CONTACT_NODE_T_H_
@@ -63,6 +63,7 @@ class ContactNodeT
 	int	   fEnforcementStatus;
 	const FaceT*     fOriginalOpposingFace ; 
 	double     fxiO[2] ;
+	double fPressure;
 	
 
   public:
@@ -70,6 +71,7 @@ class ContactNodeT
 	bool HasProjection(void) {return fStatus > kNoProjection;}
 	bool HasMultiplier(void) {return fSurface.HasMultiplier(fNodeTag);}
 	double& Pressure(void) {return fSurface.Multiplier(fNodeTag,0);}
+	double& nPressure(void) {return fPressure;}
 	inline const int Tag(void) const
 		{return fNodeTag;}
 	inline const double* Position(void) const

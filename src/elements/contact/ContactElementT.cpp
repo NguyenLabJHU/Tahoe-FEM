@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.31 2002-04-05 22:15:46 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.32 2002-05-10 00:13:50 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -423,9 +423,11 @@ void ContactElementT::ReadControlData(void)
     {
         in >> s1 >> s2;
         s1--; s2--;
+
         dArrayT& search_parameters = fSearchParameters(s1,s2);
         /* general parameters for search */
         search_parameters.Allocate (kSearchNumParameters);
+
         dArrayT& enf_parameters    = fEnforcementParameters(s1,s2);
         /* parameters specific to enforcement */
         enf_parameters.Allocate (fNumEnfParameters);
