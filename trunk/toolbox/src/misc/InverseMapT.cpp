@@ -1,6 +1,8 @@
-/* $Id: InverseMapT.cpp,v 1.1 2002-11-25 07:08:30 paklein Exp $ */
+/* $Id: InverseMapT.cpp,v 1.2 2003-05-04 22:57:33 paklein Exp $ */
 #include "InverseMapT.h"
 #include "nArrayT.h"
+
+using namespace Tahoe;
 
 /* construct the inverse map */
 void InverseMapT::SetMap(const nArrayT<int>& forward)
