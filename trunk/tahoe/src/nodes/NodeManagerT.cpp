@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.32 2003-05-31 18:20:04 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.33 2003-06-09 07:03:14 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -1292,12 +1292,9 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 				ExceptionT::BadInputValue(caller, "field at index %d is already set", index+1);
 
 			/* check for field with same name */
-			if (Field(name)) {
-				cout << "\n NodeManagerT::EchoFields: field with name " << name 
-				     << " already exists" << endl;
-				throw ExceptionT::kBadInputValue;
-			}
-			
+			if (Field(name)) 
+				ExceptionT::BadInputValue(caller, "field name %s already exists", name.Pointer());
+
 			/* read: dof labels */
 			ArrayT<StringT> labels(ndof);
 			for (int j = 0; j < labels.Length(); j++)
@@ -1305,7 +1302,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			
 			/* get integrator */
 			nIntegratorT* controller = fFEManager.nIntegrator(cont_num);
-			if (!controller) throw ExceptionT::kGeneralFail;
+			if (!controller) ExceptionT::GeneralFail(caller);
 
 			/* new field */			
 			FieldT* field = new FieldT(name, ndof, *controller);
@@ -1317,10 +1314,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 
 			/* coordinate update field */
 			if (name == "displacement") {
-				if (fCoordUpdate) {
-					cout << "\n NodeManagerT::EchoFields: \"displacement\" field already set" << endl;
-					throw ExceptionT::kBadInputValue;
-				}
+				if (fCoordUpdate) ExceptionT::BadInputValue(caller, "\"displacement\" field already set");
 				fCoordUpdate = field;
 				fCurrentCoords = new dArray2DT;
 				fCurrentCoords_man.SetWard(0, *fCurrentCoords, NumSD());
@@ -1349,7 +1343,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 		fFields = NULL;
 		fMessageID.Dimension(1);
 		nIntegratorT* controller = fFEManager.nIntegrator(0);
-		if (!controller) throw ExceptionT::kGeneralFail;
+		if (!controller) ExceptionT::GeneralFail(caller);
 		
 		/* field config set by analysis type */
 		FieldT* field = NULL;
@@ -1378,6 +1372,8 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			}
 			case GlobalT::kLinTransHeat:
 			case GlobalT::kLinStaticHeat:
+			case GlobalT::kNLStaticHeat:
+			case GlobalT::kNLTransHeat:
 			{
 				field = new FieldT("temperature", 1, *controller);				
 
@@ -1387,15 +1383,8 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 				field->SetLabels(labels);
 				break;
 			}
-			case GlobalT::kPML:
-			{
-				cout << "\n NodeManagerT::EchoFields: don't know how to configure\n"
-				     <<   "     fields for PML analysis code: " << GlobalT::kPML << endl;
-				throw ExceptionT::kGeneralFail;
-			}			
 			default:
-				cout << "\nFEManagerT::SetController: unknown controller type\n" << endl;
-				throw ExceptionT::kBadInputValue;
+				ExceptionT::GeneralFail(caller, "unrecognized analysis code %d", fFEManager.Analysis());
 		}
 		
 		/* check */
@@ -1413,10 +1402,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 
 		/* coordinate update field */
 		if (field->Name() == "displacement") {
-			if (fCoordUpdate) {
-				cout << "\n NodeManagerT::EchoFields: \"displacement\" field already set" << endl;
-				throw ExceptionT::kBadInputValue;
-			}
+			if (fCoordUpdate) ExceptionT::BadInputValue(caller, "\"displacement\" field already set");
 			fCoordUpdate = field;
 			fCurrentCoords = new dArray2DT(InitialCoordinates());
 		}
