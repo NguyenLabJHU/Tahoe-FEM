@@ -1,4 +1,4 @@
-/* $Id: pMatrixT.h,v 1.2 2002-07-02 19:56:50 cjkimme Exp $ */
+/* $Id: pMatrixT.h,v 1.3 2002-07-06 01:57:15 paklein Exp $ */
 
 #ifndef _P_MATRIX_T_H_
 #define _P_MATRIX_T_H_
@@ -6,11 +6,10 @@
 /* base class */
 #include "pArrayT.h"
 
-/** A class to help working with a matrix of pointers. See pArrayT
- * for details of how the class handles the pointers. */
-
 namespace Tahoe {
 
+/** A class to help working with a matrix of pointers. See pArrayT
+ * for details of how the class handles the pointers. */
 template <class TYPEPtr>
 class pMatrixT: public pArrayT<TYPEPtr>
 {
