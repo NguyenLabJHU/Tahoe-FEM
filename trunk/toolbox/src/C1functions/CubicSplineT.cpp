@@ -1,4 +1,4 @@
-/* $Id: CubicSplineT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: CubicSplineT.cpp,v 1.2 2001-05-05 19:05:21 paklein Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* CubicSplineT.cpp                                                       */
 
@@ -33,9 +33,14 @@ CubicSplineT::CubicSplineT(const dArray2DT& points, FixityT fixity):
 /* I/O */
 void CubicSplineT::Print(ostream& out) const
 {
+	int d_width = OutputWidth(out, &fXPoints[0]);
+
 	/* parameters */
-	out << " Knots:\n\n";
-	out << fXPoints;
+	out << " Knots:\n";
+	for (int i = 0; i < fXPoints.Length(); i++)
+		out << setw(kIntWidth) << i+1 
+		    << setw(d_width) << fXPoints[i] 
+		    << setw(d_width) << Function(fXPoints[i]) << '\n';
 }
 
 void CubicSplineT::PrintName(ostream& out) const
