@@ -1,17 +1,13 @@
-/* $Id: FEExecutionManagerT.h,v 1.26 2004-07-22 08:32:55 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.27 2004-07-25 06:44:12 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #ifndef _FE_EXECMAN_T_H_
 #define _FE_EXECMAN_T_H_
-
-/* element configuration header */
-#include "ElementsConfig.h"
 
 /* base class */
 #include "ExecutionManagerT.h"
 
 /* direct members */
 #include "IOBaseT.h"
-#include "ofstreamT.h"
 
 namespace Tahoe {
 
@@ -23,14 +19,9 @@ class IOManager;
 class FEManagerT;
 class PartitionT;
 class ModelManagerT;
-class FEManagerT_bridging;
 class dArray2DT;
-#ifdef __DEVELOPMENT__
-class FEManagerT_THK;
-#endif
 class dArray2DT;
 class StringT;
-class EAMFCC3D;
 class ParameterListT;
 
 /** class to handle file driven finite element simulations */
@@ -54,12 +45,6 @@ protected:
 
 	/** overloaded */
 	virtual void RunJob(ifstreamT& in, ostream& status);
-
-	/** \name basic MP support */
-	/*@{*/
-	int Rank(void) const;
-	int Size(void) const;
-	/*@}*/
 
 	/** Recursive dispatch */
 	virtual void JobOrBatch(ifstreamT& in, ostream& status);
@@ -90,34 +75,9 @@ private:
 	/** join parallel results files */
 	void RunJoin_serial(const StringT& input_file, ostream& status, int size = -1) const;
 
-#ifdef __DEVELOPMENT__
-	/** time history kernel tests */
-	void RunTHK(ifstreamT& in, ostream& status) const;
-#endif
-
 	/** dump current parameter description file */
 	void RunWriteDescription(int doc_type) const;
 	/*@}*/
-
-#ifdef BRIDGING_ELEMENT
-	/** \name bridging scale with different integrators */
-	/*@{*/
-#ifdef __DEVELOPMENT__
-	/** dynamic multi-Tahoe bridging scale */
-	void RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_THK& atoms,
-		ofstream& log_out, ifstreamT& in) const;
-#endif
-				
-	/** calculate MD internal force as a function of total displacement u */
-	const dArray2DT& InternalForce(dArray2DT& totalu, FEManagerT_bridging& atoms) const;
-	/*@}*/
-#endif
-
-	/** print message on exception */
-	void Rewind(ifstreamT& in, ostream& status) const;
-
-	/** extract the model file name from the stream */
-//	void GetModelFile(ifstreamT& in, StringT& model_file, IOBaseT::FileTypeT& format) const;
 
 	/** \name generate decomposition data */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.23 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: main.cpp,v 1.24 2004-07-25 06:44:12 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>
@@ -103,6 +103,9 @@ static void StartUp(int* argc, char*** argv, CommunicatorT& comm)
 #if defined(__MWERKS__) && defined (macintosh)
 	/* get command-line arguments */
 	*argc = ccommand(argv);
+#else
+#pragma unused(argc)
+#pragma unused(argv)
 #endif /* Carbon */
 
 	if (CommunicatorT::ActiveMP())

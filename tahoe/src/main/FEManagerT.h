@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.45 2004-07-22 08:26:12 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.46 2004-07-25 06:44:12 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -50,6 +50,14 @@ class FEManagerT: public iConsoleObjectT, public ParameterInterfaceT
 {
 public:
 
+	/** factory method */
+	static FEManagerT* New(const StringT& name, const StringT& input_file, ofstreamT& output, 
+		CommunicatorT& comm, const ArrayT<StringT>& argv);
+
+	/** parse input file and valid */
+	static void ParseInput(const StringT& path, ParameterListT& params, bool validate, 
+		bool echo_input, bool echo_valid, const ArrayT<StringT>& argv);
+
 	/** degree of initialization. Passed to FEManagerT::Initialize. */
 	enum InitCodeT {kFull = 0, /**< initialize to solve */
 	      kParametersOnly = 1, /**< read top-level parameters only */
@@ -61,10 +69,6 @@ public:
 
 	/** destructor */
 	virtual ~FEManagerT(void);
-
-	/** parse input file and valid */
-	static void ParseInput(const StringT& path, ParameterListT& params, bool validate, 
-		bool echo_input, bool echo_valid, const ArrayT<StringT>& argv);
 
 	/** solve all the time sequences */
 	virtual void Solve(void);

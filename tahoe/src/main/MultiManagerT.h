@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.h,v 1.6 2004-07-22 08:27:07 paklein Exp $ */
+/* $Id: MultiManagerT.h,v 1.7 2004-07-25 06:44:12 paklein Exp $ */
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
 
@@ -111,7 +111,7 @@ private:
 	/** driver for staggered solution with single clock for both systems */
 	ExceptionT::CodeT SolveStep_Staggered(void);
 
-private:
+protected:
 
 	/** \name sub-managers */
 	/*@{*/
@@ -141,10 +141,6 @@ private:
 	
 	/** \name workspace for cross terms */
 	/*@{*/
-	/** transpose of data for interpolating data from the coarse scale
-	 * onto the fine scale points */
-	//InterpolationDataT fFollowerCellTranspose;
-
 	dArray2DT fR_U; /**< coarse scale forces */
 	iArrayT   fR_U_eqnos; /**< equations for assembly for MultiManagerT::fR_U */
 	dArray2DT fR_Q; /**< fine scale forces */
@@ -158,9 +154,6 @@ private:
 	/*@{*/
 	bool fFineToCoarse; /**< fine scale contribution to coarse scale equations */ 
 	bool fCoarseToFine; /**< coarse scale contribution to fine scale equations */ 
-//	int  fCorrectOverlap; /**< adjust C-B bond densities to account for overlap */ 
-//	double fCBTikhonov; /**< regularization used to solve C-B bond densities in the overlap */
-//	double fK2; /**< penalization constant for density different from 1.0 */
 	/*@}*/
 };
 
