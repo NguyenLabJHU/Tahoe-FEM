@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.19 2003-01-08 00:28:13 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.20 2003-04-18 00:07:18 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -162,13 +162,16 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
 {
   int nlsd = pcl->GetNLSD();
   
-  dArray2DT new_coord(atom_coord.MajorDim(),atom_coord.MinorDim());   
+  dArray2DT new_coord;
+  new_coord.Dimension(atom_coord.MajorDim(),nlsd);   
+  new_coord = 0.0;
 
-  dArrayT x(atom_coord.MajorDim());
-  dArrayT y(atom_coord.MajorDim());
-  dArrayT z(atom_coord.MajorDim());
+  dArrayT x(atom_coord.MajorDim()); x = 0.0;
+  dArrayT y(atom_coord.MajorDim()); y = 0.0;
+  dArrayT z(atom_coord.MajorDim()); z = 0.0;
 
   iArrayT Map(atom_coord.MajorDim());
+  Map = 0;
 
   for(int m=0; m < nATOMS ; m++) 
     {
@@ -188,15 +191,20 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
       if (nlsd == 3)  new_coord(m)[WhichSort[2]] = z[Map[m]];
     } 
 
+  // Update sorted atoms
+  atom_coord = new_coord;
+
   // Sort 2nd criterium
+  new_coord = 0.0;
   iArrayT Ind(atom_coord.MajorDim());
+  Ind = 0;
 
   int is = 0;
-  Ind[0] = 0;
+  Ind[is] = 0;
   for(int m = 1; m < nATOMS ; m++) 
     {
       int ws = WhichSort[0];
-      if( fabs(new_coord(m)[ws] - new_coord(m-1)[ws]) >  1.e-6 ) 
+      if( fabs(atom_coord(m)[ws] - atom_coord(m-1)[ws]) >  1.e-10 ) 
 	{
 	  is++;
 	  Ind[is] = m ;
@@ -206,40 +214,102 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
   Ind[is] = nATOMS;
   is++;
 
+  x = 0;
   y = 0;
   z = 0;
-  
-  int p =0;
+  int p = 0;
   for(int n = 0; n < is-1; n++)
     {
       dArrayT aux(Ind[n+1]-Ind[n]);
+      dArrayT aux2(Ind[n+1]-Ind[n]);
+      aux = 0.0;
+      aux2= 0.0;
 
       int isa = 0;
       for(int m = Ind[n]; m < Ind[n+1]; m++)
 	{
-	  aux[isa] = new_coord(m)[WhichSort[1]];
+	  aux[isa] = atom_coord(m)[WhichSort[1]];
+	  if(nlsd == 3) aux2[isa]= atom_coord(m)[WhichSort[2]];
 	  isa++;
 	}
 
       iArrayT Map2(isa);
-
       Map2.SetValueToPosition();
       Map2.SortAscending(aux);
 
       for(int m = 0; m < isa; m++)
-      {
-	y[p] = aux[m];
-	if(nlsd == 3) z[p] = new_coord(Map2[m])[WhichSort[2]];
-	p++;
-      }
+	{
+	  y[p] = aux[m];
+	  if(nlsd == 3) z[p] = aux2[Map2[m]];
+	  p++;
+	}
     }
   
   for(int m=0; m < nATOMS ; m++) 
     {
+      new_coord(m)[WhichSort[0]] = atom_coord(m)[WhichSort[0]];
       new_coord(m)[WhichSort[1]] = y[m];
-      if (nlsd == 3)  new_coord(m)[WhichSort[2]] = z[m];
+      if (nlsd == 3) new_coord(m)[WhichSort[2]] = z[m];
     } 
 
+  // Sort 3nd criterium
+  if(nlsd == 3)
+  {
+    new_coord = 0.0;
+    iArrayT Ind(atom_coord.MajorDim());
+    Ind = 0;
+
+    int is = 0;
+    Ind[is] = 0;
+    for(int m = 1; m < nATOMS ; m++) 
+      {
+	int ws = WhichSort[1];
+	if( fabs(atom_coord(m)[ws] - atom_coord(m-1)[ws]) >  1.e-10 ) 
+	  {
+	    is++;
+	    Ind[is] = m ;
+	  }
+      }  
+    is++;
+    Ind[is] = nATOMS;
+    is++;
+    
+    x = 0;
+    y = 0;
+    z = 0;
+    int p = 0;
+    for(int n = 0; n < is-1; n++)
+      {
+	dArrayT aux(Ind[n+1]-Ind[n]);
+	aux = 0.0;
+
+	int isa = 0;
+	for(int m = Ind[n]; m < Ind[n+1]; m++)
+	  {
+	    aux[isa] = atom_coord(m)[WhichSort[2]];
+	    isa++;
+	  }
+	
+	iArrayT Map2(isa);
+	Map2.SetValueToPosition();
+	Map2.SortAscending(aux);
+	
+	for(int m = 0; m < isa; m++)
+	  {
+	    z[p] = aux[m];
+	    p++;
+	  }
+      }
+    
+    for(int m=0; m < nATOMS ; m++) 
+      {
+	new_coord(m)[WhichSort[0]] = atom_coord(m)[WhichSort[0]];
+	new_coord(m)[WhichSort[1]] = atom_coord(m)[WhichSort[1]];
+	new_coord(m)[WhichSort[2]] = z[m];
+      } 
+  }
+
+  // Update sorted atoms
   atom_coord = new_coord;
 }
 
