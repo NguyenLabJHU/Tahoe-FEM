@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.25 2002-09-19 05:43:03 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.26 2002-09-22 23:06:11 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 
 #include "StringT.h"
@@ -159,16 +159,28 @@ int num_chars = strlen(*this);
 * by a newline */
 void StringT::GetLineFromStream(istream& in)
 {
-	char string[kLineLength];
-	in.getline(string, kLineLength-1);	
-	operator=(string);
+	char str[kLineLength];
+//NOTE: GCC 3.1 has a bug with getline from cin
+#ifdef __GCC_3__
+	int ct = 0;
+	str[ct] = in.get();
+	while (in.good() && ct < kLineLength-1 && str[ct] != '\n') {
+		ct++;
+		str[ct] = in.get();
+	}
+	str[ct] = '\0';
+#else
+	in.getline(str, kLineLength-1);	
+#endif
+
+	operator=(str);
 }
 
 void StringT::GetLineFromStream(ifstreamT& in)
 {
-	char string[kLineLength];
-	in.getline(string, kLineLength-1);	
-	operator=(string);
+	char str[kLineLength];
+	in.getline(str, kLineLength-1);	
+	operator=(str);
 }
 
 /* append characters to the string */

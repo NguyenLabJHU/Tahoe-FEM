@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.20 2002-08-13 08:14:40 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.21 2002-09-22 23:06:12 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleT.h"
@@ -994,7 +994,17 @@ iConsoleT::CommandScope iConsoleT::ResolveCommandName(StringT& command) const
 			
 			/* clear (new)line */
 			char tmp[255];
+#ifdef __GCC_3__
+			int ct = 0;
+			tmp[ct] = cin.get();
+			while (cin.good() && ct < 254 && tmp[ct] != '\n') {
+				ct++;
+				tmp[ct] = cin.get();
+			}
+			tmp[ct] = '\0';
+#else
 			cin.getline(tmp, 254);
+#endif
 		}
 	}
 	return scope;
