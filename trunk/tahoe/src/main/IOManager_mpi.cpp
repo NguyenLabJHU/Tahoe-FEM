@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.28 2003-11-21 22:47:52 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.29 2003-11-22 06:44:45 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 #include "IOManager_mpi.h"
 
@@ -641,7 +641,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 					int offset = 0; 
 					for (int i = 0; i < block_ID.Length(); i++)
 					{
-						elem_map.Set(rbuff[i], rbuff.Pointer(offset + block_ID.Length())); /* skip over list of block dimensions */
+						elem_map.Alias(rbuff[i], rbuff.Pointer(offset + block_ID.Length())); /* skip over list of block dimensions */
 						block_assem_map.Set(elem_map.Length(), assem_map.Pointer(offset));
 						BuildElementAssemblyMap(k, block_ID[i], elem_map, block_assem_map);
 						
