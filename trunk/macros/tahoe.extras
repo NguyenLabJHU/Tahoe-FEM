@@ -1,4 +1,4 @@
-# $Id: tahoe.extras,v 1.1 2002-03-06 00:27:29 paklein Exp $
+# $Id: tahoe.extras,v 1.2 2002-03-19 18:17:24 paklein Exp $
 #
 # additional make commands for the tahoe module
 #
@@ -12,6 +12,7 @@ default:
 	@ $(ECHO) "       touch_f2c - f2c support"
 	@ $(ECHO) "    touch_SEACAS - Sandia tools"
 	@ $(ECHO) "       touch_MPI - support for parallel execution"
+	@ $(ECHO) "     touch_METIS - domain decomposition using METIS"
 
 touch_spooles:
 	@ $(ECHO) "removing object files depending on SPOOLES"
@@ -40,3 +41,7 @@ touch_MPI:
 	-@ $(MAKE) touch_spooles touch_Aztec
 	@ $(ECHO) "NOTE: toolbox must also be up to date"
 	
+touch_METIS:
+	@ $(ECHO) "removing object files depending on METIS"
+	-@ $(RM) $(SRC_DIR)/main/FEExecutionManagerT.o
+	@ $(ECHO) "NOTE: dependent modules must also be up to date"
