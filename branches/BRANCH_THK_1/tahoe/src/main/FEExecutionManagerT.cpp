@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.39.2.3 2003-04-29 00:55:02 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.39.2.4 2003-04-29 21:49:47 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -346,7 +346,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		if (impexp == IntegratorT::kImplicit)
 			RunStaticBridging(continuum, atoms, log_out);
 		else if (impexp == IntegratorT::kExplicit)
-			RunDynamicBridging(continuum, atoms);
+			RunDynamicBridging(continuum, atoms, log_out);
 		else
 			ExceptionT::GeneralFail(caller, "unknown integrator type %d", impexp);
 
@@ -411,7 +411,7 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 	/* time managers */
 	TimeManagerT* atom_time = atoms.TimeManager();
 	TimeManagerT* continuum_time = continuum.TimeManager();
-
+ 
 	dArray2DT field_at_ghosts;
 	atom_time->Top();
 	continuum_time->Top();
@@ -560,11 +560,88 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 	}
 }
 
-void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& fem, FEManagerT_bridging& md) const
+void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms, ofstream& log_out) const
 {
+	const char caller[] = "FEExecutionManagerT::RunDynamicBridging";
+	    
+	/* configure ghost nodes */
+	int group = 0;
+	StringT bridging_field = "displacement";
+	atoms.InitGhostNodes();
+	continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
+	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager());
 
+	/* time managers */
+	TimeManagerT* atom_time = atoms.TimeManager();
+	TimeManagerT* continuum_time = continuum.TimeManager();
 
+	dArray2DT field_at_ghosts;
+	atom_time->Top();
+	continuum_time->Top();
+	int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
+	while (atom_time->NextSequence() && continuum_time->NextSequence())
+	{	
+		/* set to initial condition */
+		atoms.InitialCondition();
+		continuum.InitialCondition();
 
+		/* read restart information */
+		atoms.ReadRestart();
+		continuum.ReadRestart();
+
+                /* figure out timestep ratio between fem and md simulations */
+                int nfesteps = continuum_time->NumberOfSteps();
+                double mddt = atom_time->TimeStep();
+                double fedt = continuum_time->TimeStep();
+                int ratio = fedt/mddt;		// # of MD timesteps per FE timestep (assume is an integer)
+                cout << "number of fe steps = " << nfesteps << endl;
+                cout << "md time step = " << mddt << endl;
+                cout << "fe time step = " << fedt << endl;
+                cout << "time step ratio = " << ratio << endl;
+
+                /* running status flag */
+                ExceptionT::CodeT error = ExceptionT::kNoError;		
+                        
+                /* now loop over continuum and atoms after initialization */
+                for (int i = 0; i < nfesteps; i++)	// FE loop
+                {
+                    for (int j = 0; j < ratio; j++)	// MD update first
+                    {
+                        atom_time->Step();	
+                        
+                        /* initialize step */
+                        if (error == ExceptionT::kNoError) error = atoms.InitStep();
+                        
+                        /* solve atoms */
+                        if (1 || error == ExceptionT::kNoError) {
+                                atoms.ResetCumulativeUpdate(group);
+                                error = atoms.SolveStep();
+                        }
+                        
+                        /* close  md step */
+                        if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();    
+                    }
+                    continuum_time->Step();
+                        
+                    /* initialize step */
+                    if (error == ExceptionT::kNoError) error = continuum.InitStep();
+                    
+                    /* solve continuum */
+                    if (1 || error == ExceptionT::kNoError) {
+                            continuum.ResetCumulativeUpdate(group);
+                            error = continuum.SolveStep();
+                    }
+                    
+                    /* close fe step */
+                    if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
+                        
+                }
+
+                /* check for error */
+                if (0)
+                    ExceptionT::GeneralFail(caller, "hit error %d", error);
+                
+        }
 
 }
 

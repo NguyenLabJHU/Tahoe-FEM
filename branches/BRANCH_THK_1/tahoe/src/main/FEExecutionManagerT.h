@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.13.2.3 2003-04-29 00:55:02 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.13.2.4 2003-04-29 21:49:47 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
@@ -93,7 +93,8 @@ private:
 		ofstream& log_out) const;
         
 	/** dynamic multi-Tahoe bridging scale */
-	void RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms) const;
+	void RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms,
+                ofstream& log_out) const;
 	/*@}*/
 #endif
 
