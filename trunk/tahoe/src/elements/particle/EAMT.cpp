@@ -1522,7 +1522,11 @@ void EAMT::EchoProperties(ifstreamT& in, ofstreamT& out)
     {
       int type_of_file;
       in >> type_of_file;
-      cout << type_of_file;
+      if (type_of_files == 2) 
+	{
+	  cout << "More than one potential. Not implemented yet.\n";
+	  exit(0);
+	}
 
       StringT file;
       in >> file;
