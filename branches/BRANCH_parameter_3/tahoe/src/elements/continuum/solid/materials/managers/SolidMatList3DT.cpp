@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.42 2004-01-05 07:18:21 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.42.18.1 2004-04-08 07:33:04 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 
@@ -118,12 +118,12 @@ using namespace Tahoe;
 SolidMatList3DT::SolidMatList3DT(int length, const SolidMatSupportT& support):
 	SolidMatListT(length, support)
 {
-	SetName("solid_materials_3D");
+	SetName("solid_material_3D");
 }
 
 SolidMatList3DT::SolidMatList3DT(void)
 {
-	SetName("solid_materials_3D");
+	SetName("solid_material_3D");
 }
 
 /* read material data from the input stream */

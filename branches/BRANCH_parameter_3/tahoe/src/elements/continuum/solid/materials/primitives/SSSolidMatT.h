@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.12 2004-01-10 04:41:25 paklein Exp $ */
+/* $Id: SSSolidMatT.h,v 1.12.18.1 2004-04-08 07:33:18 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
@@ -22,6 +22,9 @@ public:
 	/** constructor */
 	SSSolidMatT(ifstreamT& in, const SSMatSupportT& support);
 	SSSolidMatT(void);
+
+	/** set the material support or pass NULL to clear */
+	virtual void SetSSMatSupport(const SSMatSupportT* support);
 
 	/* I/O functions */
 	virtual void PrintName(ostream& out) const;

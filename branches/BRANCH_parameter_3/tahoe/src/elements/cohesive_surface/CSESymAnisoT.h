@@ -1,10 +1,9 @@
-/* $Id: CSESymAnisoT.h,v 1.3 2003-12-01 23:53:15 cjkimme Exp $ */
+/* $Id: CSESymAnisoT.h,v 1.3.18.1 2004-04-08 07:32:24 paklein Exp $ */
 #ifndef _CSE_SYM_ANISO_T_H_
 #define _CSE_SYM_ANISO_T_H_
 
 /* base class */
 #include "CSEAnisoT.h"
-
 
 namespace Tahoe {
 
@@ -32,15 +31,19 @@ public:
 	CSESymAnisoT(ElementSupportT& support, bool rotate);
 #endif
 
-	/* destructor */
-	~CSESymAnisoT(void);
-
 	/* writing output */
 	virtual void RegisterOutput(void);
 
-	/*@}*/
-
 protected:
+
+	/** \name construction of connectivities */
+	/*@{*/
+	/** extract element block info from parameter list to be used. Read element 
+	 * connectivity data as a sideset since only half the number of element nodes 
+	 * are expected from a single face of the continuum elements*/
+	virtual void CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  
+		ArrayT<int>& mat_index) const;
+	/*@}*/
 
 	/** read element connectivity data as a sideset since only half the
 	    number of element nodes are expected from a single face of the
@@ -80,7 +83,7 @@ private:
 	dMatrixT fK;
 	
 	/** information about the side sets for OutputSetT */
-	ArrayT<StringT> sideSet_ID;
+	ArrayT<StringT> fSideSet_ID;
 
 };
 

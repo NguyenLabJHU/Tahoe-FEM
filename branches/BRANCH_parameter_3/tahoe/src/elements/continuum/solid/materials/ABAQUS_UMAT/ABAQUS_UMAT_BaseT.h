@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.10 2004-01-05 07:23:56 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.10.18.1 2004-04-08 07:32:36 paklein Exp $ */
 /* created: paklein (05/09/2000) */
 #ifndef _ABAQUS_UMAT_BASE_T_H_
 #define _ABAQUS_UMAT_BASE_T_H_
@@ -7,7 +7,6 @@
 #include "ABAQUS_BaseT.h"
 #include "FSSolidMatT.h"
 #include "IsotropicT.h"
-#include "Material2DT.h"
 
 /* library support options */
 #ifdef __F2C__

@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.27 2004-04-02 16:48:22 jzimmer Exp $ */
+/* $Id: ParticleT.h,v 1.27.2.1 2004-04-08 07:33:29 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -117,7 +117,47 @@ public:
 	/*@}*/
 #endif
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list. Properties information is extracted from the
+	 * list with the call to ParticleT::ExtractProperties, a purely virtual
+	 * method that should be overridden by derived types specifying their own
+	 * properties information. */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected: /* for derived classes only */
+
+	/** \name initialization methods */
+	/*@{*/
+	/** extract element block info from parameter list to be used. Override inherited
+	 * method to disable default method for defining connectivities. */
+	virtual void CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  
+		ArrayT<int>& mat_index) const;
+
+	/** extract the properties information from the parameter list
+	 * \name list source for parameters 
+	 * \name type_names list of type names
+	 * \name properties passed in empty and should return with a list of pointers to properties
+	 *       information. The pointers should be dynamically allocated and will be freed by
+	 *       ParticleT on destruction.
+	 * \name properties_map map dimension (number of types) x (number of types) w */
+	virtual void ExtractProperties(const ParameterListT& list, const ArrayT<StringT>& type_names,
+		ArrayT<ParticlePropertyT*>& properties, nMatrixT<int>& properties_map) = 0;
+	/*@}*/
 
 	/** echo element connectivity data. Reads parameters that define
 	 * which nodes belong to this ParticleT group. */
@@ -157,7 +197,7 @@ protected: /* for derived classes only */
 		RaggedArray2DT<int>& neighbors, bool double_list, bool full_list);
 
 	/** construct the list of properties from the given input stream */
-	virtual void EchoProperties(ifstreamT& in, ofstreamT& out) = 0;
+	virtual void EchoProperties(ifstreamT& in, ofstreamT& out) {};// = 0;
 
 	/** assemble particle mass matrix into LHS of global equation system
 	 * \param mass mass associated with each particle type */
@@ -174,22 +214,6 @@ protected: /* for derived classes only */
 	/** Read in damping and thermostatting paramters. Called from
 	 *  Initialize */
 	virtual void EchoDamping(ifstreamT& in, ofstreamT& out);
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-		SubListT& sub_sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
-	/*@}*/
 
 	/** return a new pair property or NULL if the name is invalid */
 	ThermostatBaseT* New_Thermostat(const StringT& name, bool throw_on_fail) const;
@@ -213,6 +237,12 @@ protected:
 
 	/** the neighboring cut-off distance */
 	double fNeighborDistance;
+
+	/** distance to nearest neighbors */
+	double fLatticeParameter;
+
+	/** characteristic distance to nearest neighbor */
+	double fNearestNeighborDistance;	
 
 	/** maximum distance an atom can displace before the neighbor lists are reset */
 	double fReNeighborDisp;
@@ -238,7 +268,10 @@ protected:
 	/** \name particle properties */
 	/*@{*/
 	/** number of types. Read during ParticleT::EchoConnectivityData. */
-	int fNumTypes;
+//	int fNumTypes;
+
+	/** names of each particle type */
+	ArrayT<StringT> fTypeNames;
 
 	/** particle type for global tag */
 	AutoArrayT<int> fType;
@@ -297,10 +330,6 @@ protected:
 	/** constant matrix needed to compute the stiffness */
 	dMatrixT fOneOne;
 	/*@}*/
-
-	/*This parameter is defined at input, and is used to determine the nearest neighbors in the neighbor list*/
-	double fLatticeParameter;
-	double NearestNeighborDistance; 
 	
 	/* calculate slip vector and strain tensor */
 	void Calc_Slip_and_Strain(int non, int num_s_vals,dArray2DT &s_values, RaggedArray2DT<int> &RefNearestNeighbors, const int &kEulerLagr) ;

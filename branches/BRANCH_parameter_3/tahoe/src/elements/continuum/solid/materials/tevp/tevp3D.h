@@ -1,11 +1,10 @@
-/* $Id: tevp3D.h,v 1.10 2003-11-21 22:46:58 paklein Exp $ */
+/* $Id: tevp3D.h,v 1.10.20.1 2004-04-08 07:33:23 paklein Exp $ */
 /* created:  Harold Park (06/25/2001) */
 #ifndef _TEVP_3D_H_
 #define _TEVP_3D_H_
 
 /* base classes */
-#include "FSSolidMatT.h"
-#include "IsotropicT.h"
+#include "FSIsotropicMatT.h"
 #include "iArrayT.h"
 
 namespace Tahoe {
@@ -14,7 +13,7 @@ namespace Tahoe {
 class ElementCardT;
 
 /** Thermoelasto-viscoplastic material used to generate shear bands */
-class tevp3D: public FSSolidMatT, public IsotropicT
+class tevp3D: public FSIsotropicMatT
 {
  public:
   /* constructor */

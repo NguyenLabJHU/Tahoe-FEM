@@ -1,4 +1,4 @@
-/* $Id: TorsionKBCT.cpp,v 1.3 2003-08-18 03:45:17 paklein Exp $ */
+/* $Id: TorsionKBCT.cpp,v 1.3.32.1 2004-04-08 07:33:54 paklein Exp $ */
 #include "TorsionKBCT.h"
 #include "NodeManagerT.h"
 #include "ifstreamT.h"
@@ -68,10 +68,7 @@ void TorsionKBCT::Initialize(ifstreamT& in)
 		for (int j = 0; j < n_cards; j++)
 		{
 			/* set values */
-			pcard->SetValues(fNodes[i], dir[j], KBC_CardT::kDsp, 0, 0.0);
-	
-			/* dummy schedule */
-			pcard->SetSchedule(&fDummySchedule);
+			pcard->SetValues(fNodes[i], dir[j], KBC_CardT::kDsp, &fDummySchedule, 0.0);
 			pcard++;
 		}	
 }
@@ -149,11 +146,11 @@ void TorsionKBCT::InitStep(void)
 		
 		KBC_CardT& card_1 = fKBC_Cards[dex++];
 		int dof_1 = card_1.DOF();
-		card_1.SetValues(node, dof_1, KBC_CardT::kDsp, 0, x[dof_1] - X[dof_1]);
+		card_1.SetValues(node, dof_1, KBC_CardT::kDsp, NULL, x[dof_1] - X[dof_1]);
 
 		KBC_CardT& card_2 = fKBC_Cards[dex++];
 		int dof_2 = card_2.DOF();
-		card_2.SetValues(node, dof_2, KBC_CardT::kDsp, 0, x[dof_2] - X[dof_2]);
+		card_2.SetValues(node, dof_2, KBC_CardT::kDsp, NULL, x[dof_2] - X[dof_2]);
 	}
 }
 

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.18 2003-05-20 10:38:45 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.18.36.1 2004-04-08 07:33:48 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #ifndef _FE_MANAGER_MPI_H_
 #define _FE_MANAGER_MPI_H_
@@ -46,7 +46,7 @@ public:
 	 * \param ID output set ID for the given data
 	 * \param n_values nodal output values
 	 * \param e_values element output values */
-	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
+	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const;
 
 	/* (temporarily) direct output away from main out */
 	virtual void DivertOutput(const StringT& outfile);

@@ -1,4 +1,4 @@
-/* $Id: DRSolver.h,v 1.4 2002-07-05 22:28:41 paklein Exp $ */
+/* $Id: DRSolver.h,v 1.4.56.1 2004-04-08 07:33:59 paklein Exp $ */
 /* created: PAK/CBH (10/03/1996) */
 
 #ifndef _DRSOLVER_H_
@@ -17,7 +17,7 @@ class DRSolver: public NLSolver
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	DRSolver(FEManagerT& fe_manager, int group);
 
 	/* configure the global equation system */

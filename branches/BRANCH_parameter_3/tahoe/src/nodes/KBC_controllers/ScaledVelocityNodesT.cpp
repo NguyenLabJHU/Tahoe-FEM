@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.cpp,v 1.7 2003-11-21 22:47:59 paklein Exp $ */
+/* $Id: ScaledVelocityNodesT.cpp,v 1.7.20.1 2004-04-08 07:33:54 paklein Exp $ */
 #include "ScaledVelocityNodesT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -249,10 +249,7 @@ void ScaledVelocityNodesT::InitialCondition(void)
 	    	for (int j = 0; j < ndof; j++)
 			{	
 				/* set values */
-				pcard->SetValues(myNodes[i], j, KBC_CardT::kVel, 0, *v_i++);
-
-				/* dummy schedule */
-				pcard->SetSchedule(&fDummySchedule);
+				pcard->SetValues(myNodes[i], j, KBC_CardT::kVel, &fDummySchedule, *v_i++);
 				pcard++;
 			}
 		} 
@@ -354,10 +351,7 @@ void ScaledVelocityNodesT::SetBCCards(void)
 		    	for (int j = 0; j < ndof; j++)
 				{	
 					/* set values */
-					pcard->SetValues(myNodes[i], j, KBC_CardT::kVel, 0, (*v_i++-vCOM[j])*vscale);
-
-					/* dummy schedule */
-					pcard->SetSchedule(&fDummySchedule);
+					pcard->SetValues(myNodes[i], j, KBC_CardT::kVel, &fDummySchedule, (*v_i++-vCOM[j])*vscale);
 					pcard++;
 				}
 			} 

@@ -1,9 +1,9 @@
-/* $Id: Hex2D.h,v 1.2 2003-03-31 23:14:38 paklein Exp $ */
+/* $Id: Hex2D.h,v 1.2.42.1 2004-04-08 07:32:39 paklein Exp $ */
 #ifndef _HEX_2D_H_
 #define _HEX_2D_H_
 
 /* base class */
-#include "NL_E_Mat2DT.h"
+#include "NL_E_MatT.h"
 
 namespace Tahoe {
 
@@ -12,7 +12,7 @@ class HexLattice2DT;
 class PairPropertyT;
 
 /** plane stress hexagonal lattice */
-class Hex2D: public NL_E_Mat2DT
+class Hex2D: public NL_E_MatT
 {
 public:
 
@@ -26,6 +26,12 @@ public:
 	/*@{*/
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
+	/*@}*/
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
 	/*@}*/
 
 protected:

@@ -1,4 +1,4 @@
-/* $Id: BimaterialK_FieldT.h,v 1.5 2002-07-05 22:28:31 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.h,v 1.5.56.1 2004-04-08 07:33:53 paklein Exp $ */
 /* created: paklein (09/06/2000)*/
 
 #ifndef _BIMATERIAL_K_FIELD_T_H_
@@ -52,7 +52,7 @@ protected:
 	
 	/* external links */
 	const IsotropicT*  fIsotropic_2;
-	const Material2DT* fMaterial2D_2;
+	const SolidMaterialT* fSolidMaterial_2;
 
 	dArray2DT fK1Disp_1;
 	dArray2DT fK2Disp_1;

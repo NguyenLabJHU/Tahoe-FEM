@@ -1,4 +1,4 @@
-/* $Id: RGSplitT.cpp,v 1.2 2003-11-21 22:47:01 paklein Exp $ */
+/* $Id: RGSplitT.cpp,v 1.2.20.1 2004-04-08 07:33:25 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplitT.h"
@@ -22,7 +22,8 @@ static const char* Labels[kNumOutputVar] = {"Dvisc"};
 
 /* constructors */
 RGSplitT::RGSplitT(ifstreamT& in, const FSMatSupportT& support):
-  RGViscoelasticityT(in, support),
+	ParameterInterfaceT("Reese_Govindjee_split"),
+	RGViscoelasticityT(in, support),
   fSpectralDecompSpat(3),
   fSpectralDecompRef(3),
   fSpectralDecompTrial(3),
@@ -341,7 +342,7 @@ const dSymMatrixT& RGSplitT::s_ij(void)
     /*load the viscoelastic principal stretches from state variable arrays*/
     ElementCardT& element = CurrentElement();
     Load(element, CurrIP());
-    if (fFSMatSupport.RunState() == GlobalT::kFormRHS)
+    if (fFSMatSupport->RunState() == GlobalT::kFormRHS)
     {
         dSymMatrixT& iCvn = fC_vn;
 	iCvn.Inverse();
@@ -534,7 +535,7 @@ void RGSplitT::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_
 	    ComputeiKAB(eigenmodulus,cm);
 	    
 	    /*calculate the residual*/
-	    double dt = fFSMatSupport.TimeStep();
+	    double dt = fFSMatSupport->TimeStep();
 	    double res0 = ep_e0 + dt*(0.5*fietaS*s0 +
 			  fthird*fietaB*sm) - ep_tr0;
 	    double res1 = ep_e1 + dt*(0.5*fietaS*s1 +
@@ -583,7 +584,7 @@ void RGSplitT::ComputeiKAB(dSymMatrixT& eigenmodulus, double& bulkmodulus)
 		
 	/*calculates  KAB = 1+dt*D(dWdE_Idev/nD+isostress/nV)/Dep_e*/
 
-	double dt = fFSMatSupport.TimeStep();
+	double dt = fFSMatSupport->TimeStep();
 	KAB(0,0) = 1+0.5*fietaS*dt*c0+fthird*fietaB*dt*cm;
 	KAB(1,1) = 1+0.5*fietaS*dt*c1+fthird*fietaB*dt*cm;
 	KAB(2,2) = 1+0.5*fietaS*dt*c2+fthird*fietaB*dt*cm;

@@ -1,7 +1,6 @@
+/* $Id: Verlet.h,v 1.3.46.1 2004-04-08 07:33:46 paklein Exp $ */
 #ifndef _VERLET_H_
 #define _VERLET_H_
-
-#include "Environment.h"
 
 /* base class */
 #include "IntegratorT.h"

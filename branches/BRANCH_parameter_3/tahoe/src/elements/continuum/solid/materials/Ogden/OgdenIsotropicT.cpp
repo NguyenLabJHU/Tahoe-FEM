@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.cpp,v 1.13 2003-06-28 17:32:13 thao Exp $ */
+/* $Id: OgdenIsotropicT.cpp,v 1.13.34.1 2004-04-08 07:32:52 paklein Exp $ */
 /* created: paklein (10/01/2000) */
 #include "OgdenIsotropicT.h"
 
@@ -9,7 +9,7 @@ using namespace Tahoe;
 
 /* constructor */
 OgdenIsotropicT::OgdenIsotropicT(ifstreamT& in, const FSMatSupportT& support):
-	FSSolidMatT(in, support),
+	ParameterInterfaceT("Ogden_isotropic"),
 	fSpectralDecomp(NumSD()),
 	fC(NumSD()),
 	fEigs(NumSD()),
@@ -167,8 +167,8 @@ double OgdenIsotropicT::Pressure(void) const
 }
 
 /*************************************************************************
-* Private
-*************************************************************************/
+ * Private
+ *************************************************************************/
 
 /* construct symmetric rank-4 mixed-direction tensor (6.1.44) */
 void OgdenIsotropicT::MixedRank4_2D(const dArrayT& a, const dArrayT& b,

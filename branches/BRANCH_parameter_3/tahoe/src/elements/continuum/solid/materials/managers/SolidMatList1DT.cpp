@@ -1,4 +1,4 @@
-/* $Id: SolidMatList1DT.cpp,v 1.16 2004-01-14 22:04:44 rdorgan Exp $ */
+/* $Id: SolidMatList1DT.cpp,v 1.16.18.1 2004-04-08 07:33:04 paklein Exp $ */
 #include "SolidMatList1DT.h"
 #include "SolidMatSupportT.h"
 #include "fstreamT.h"
@@ -23,12 +23,12 @@ using namespace Tahoe;
 SolidMatList1DT::SolidMatList1DT(int length, const SolidMatSupportT& support):
 	SolidMatListT(length, support)
 {
-	SetName("solid_materials_1D");
+	SetName("solid_material_1D");
 }
 
 SolidMatList1DT::SolidMatList1DT(void)
 {
-	SetName("solid_materials_1D");
+	SetName("solid_material_1D");
 }
 
 /* read material data from the input stream */

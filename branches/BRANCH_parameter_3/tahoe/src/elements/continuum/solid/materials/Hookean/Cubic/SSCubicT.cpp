@@ -1,4 +1,4 @@
-/* $Id: SSCubicT.cpp,v 1.4 2002-11-14 17:06:04 paklein Exp $ */
+/* $Id: SSCubicT.cpp,v 1.4.48.1 2004-04-08 07:32:46 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #include "SSCubicT.h"
 
@@ -6,8 +6,15 @@ using namespace Tahoe;
 
 /* constructor */
 SSCubicT::SSCubicT(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("small_strain_cubic"),
 	SSHookeanMatT(in, support),
 	CubicT(in)
+{
+
+}
+
+SSCubicT::SSCubicT(void):
+	ParameterInterfaceT("small_strain_cubic")
 {
 
 }
@@ -28,9 +35,17 @@ void SSCubicT::PrintName(ostream& out) const
 	CubicT::PrintName(out);
 }
 
+/* describe the parameters needed by the interface */
+void SSCubicT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SSHookeanMatT::DefineParameters(list);
+	CubicT::DefineParameters(list);
+}
+
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* set modulus */
 void SSCubicT::SetModulus(dMatrixT& modulus)

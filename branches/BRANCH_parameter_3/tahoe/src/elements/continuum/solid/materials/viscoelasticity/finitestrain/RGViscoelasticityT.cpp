@@ -1,4 +1,4 @@
-/* $Id: RGViscoelasticityT.cpp,v 1.1 2003-04-05 20:06:59 thao Exp $ */
+/* $Id: RGViscoelasticityT.cpp,v 1.1.40.1 2004-04-08 07:33:25 paklein Exp $ */
 /* created: TDN (01/22/2000) */
 #include "RGViscoelasticityT.h"
 
@@ -6,8 +6,10 @@ using namespace Tahoe;
 
 /* constructor */
 RGViscoelasticityT::RGViscoelasticityT(ifstreamT& in, const FSMatSupportT& support):
-	FSSolidMatT(in, support)
-{}
+	ParameterInterfaceT("Reese_Govindjee_viscoelastic")
+{
+
+}
 
 void RGViscoelasticityT::Initialize(void)
 {

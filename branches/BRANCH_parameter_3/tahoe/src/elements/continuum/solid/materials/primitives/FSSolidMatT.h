@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.14 2003-11-10 18:53:59 thao Exp $ */
+/* $Id: FSSolidMatT.h,v 1.14.20.1 2004-04-08 07:33:18 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -32,13 +32,17 @@ public:
 
 	/** constructor */
 	FSSolidMatT(ifstreamT& in, const FSMatSupportT& support);
+	FSSolidMatT(void);
 
 	/** initialization. If active, initialize the history of
 	 * prescribed thermal strains. */
 	virtual void Initialize(void);
 
+	/** set the material support or pass NULL to clear */
+	virtual void SetFSMatSupport(const FSMatSupportT* support);
+
 	/** finite strain materials support */
-	const FSMatSupportT& FSMatSupport(void) const { return fFSMatSupport; };
+	const FSMatSupportT& FSMatSupport(void) const;
 
 	/** write name to output stream */
 	virtual void PrintName(ostream& out) const;
@@ -136,6 +140,12 @@ public:
 		throw ExceptionT::kGeneralFail;
 		return  djunk;};
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/** enum for use by derived classes to to track last stress called */
@@ -185,7 +195,7 @@ protected:
 	 * method is not guaranteed to be supported. If no FiniteStrainT is
 	 * available, this function will return NULL.
 	 * \return a const pointer to the supporting element group */
-	const FiniteStrainT* FiniteStrain(void) const { return fFSMatSupport.FiniteStrain(); };
+	const FiniteStrainT* FiniteStrain(void) const { return fFSMatSupport->FiniteStrain(); };
 
 private:
 
@@ -213,7 +223,7 @@ private:
 protected:
 
 	/** support for finite strain materials */
-	const FSMatSupportT& fFSMatSupport;
+	const FSMatSupportT* fFSMatSupport;
 
 private:
 
@@ -241,5 +251,17 @@ private:
 	dArrayT djunk;
 };
 
-} // namespace Tahoe 
+/* finite strain materials support */
+inline const FSMatSupportT& FSSolidMatT::FSMatSupport(void) const
+{ 
+#if __option(extended_errorcheck)
+	if (!fFSMatSupport) 
+		ExceptionT::GeneralFail("FSSolidMatT::FSMatSupport", "pointer not set");
+#endif
+
+	return *fFSMatSupport; 
+}
+
+} /* namespace Tahoe */
+
 #endif /* _FD_STRUCT_MAT_T_H_ */

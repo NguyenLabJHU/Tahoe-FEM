@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.20 2004-03-21 05:19:21 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.20.4.1 2004-04-08 07:33:59 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -28,23 +28,12 @@
 
 using namespace Tahoe;
 
-SolverT::SolverT(FEManagerT& fe_manager):
-	ParameterInterfaceT("solver"),
-	fFEManager(fe_manager),
-	fGroup(-1),
-	fLHS(NULL),
-	fNumIteration(0),
-	fLHS_lock(kOpen),
-	fLHS_update(true),
-	fRHS_lock(kOpen),
-	fPerturbation(0.0)
-{
-	/* console */
-	iSetName("solver");
-	iAddVariable("print_equation_numbers", fPrintEquationNumbers);
-}
+/* array behavior */
+namespace Tahoe {
+DEFINE_TEMPLATE_STATIC const bool ArrayT<SolverT>::fByteCopy = false;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<SolverT*>::fByteCopy = true;
+} /* namespace Tahoe */
 
-/* constructor */
 SolverT::SolverT(FEManagerT& fe_manager, int group):
 	ParameterInterfaceT("solver"),
 	fFEManager(fe_manager),
@@ -56,65 +45,6 @@ SolverT::SolverT(FEManagerT& fe_manager, int group):
 	fRHS_lock(kOpen),
 	fPerturbation(0.0)
 {
-	const char caller[] = "SolverT::SolverT";
-
-	/* read parameters */
-	ifstreamT& in = fFEManager.Input();
-	int check_code;
-	in >> fMatrixType;
-	in >> fPrintEquationNumbers;
-	in >> check_code;
-	if (check_code == GlobalMatrixT::kCheckLHS) {
-		in >> fPerturbation;
-		if (fabs(fPerturbation) < kSmall)
-			ExceptionT::BadInputValue(caller, "perturbation is too small: %g", fPerturbation);
-	}
-
-	ostream& out = fFEManager.Output();
-	out << "\n S o l v e r   p a r a m e t e r s:\n\n";
-	out << " Group . . . . . . . . . . . . . . . . . . . . . = " << fGroup << '\n';
-	out << " Global equation type. . . . . . . . . . . . . . = " << fMatrixType << '\n';
-	out << "    eq. " << kDiagonalMatrix   << ", diagonal matrix\n";
-	out << "    eq. " << kProfileSolver    << ", profile solver (symmetric and nonsymmetric)\n";
-	out << "    eq. " << kFullMatrix       << ", full matrix (most general)\n";   	
-
-#ifdef __AZTEC__
-	out << "    eq. " << kAztec            << ", Aztec-based, sparse matrix with iterative solvers\n";   	
-#else
-	out << "    eq. " << kAztec            << ", NOT AVAILABLE\n";
-#endif
-
-#if defined(__SUPERLU__) || defined(__SUPERLU_DIST__)
-	out << "    eq. " << kSuperLU     << ", fully sparse matrix with direct solver: SuperLU\n";
-#else
-	out << "    eq. " << kSuperLU     << ", NOT AVAILABLE\n";
-#endif
-
-#ifdef __SPOOLES__
-	out << "    eq. " << kSPOOLES     << ", sparse matrix with direct solver: SPOOLES\n";
-#else
-	out << "    eq. " << kSPOOLES     << ", NOT AVAILABLE\n";
-#endif
-
-	out << " Output global equation numbers. . . . . . . . . = " << fPrintEquationNumbers << '\n';
-	out << " Check code. . . . . . . . . . . . . . . . . . . = " << check_code << '\n';
-	out << "    eq. " << GlobalMatrixT::kNoCheck       << ", no check\n";
-	out << "    eq. " << GlobalMatrixT::kZeroPivots    << ", print zero/negative pivots\n";
-	out << "    eq. " << GlobalMatrixT::kAllPivots     << ", print all pivots\n";
-	out << "    eq. " << GlobalMatrixT::kPrintLHS      << ", print LHS matrix\n";
-	out << "    eq. " << GlobalMatrixT::kPrintRHS      << ", print RHS vector\n";
-	out << "    eq. " << GlobalMatrixT::kPrintSolution << ", print vector\n";   	
-	out << "    eq. " << GlobalMatrixT::kCheckLHS      << ", check LHS matrix\n";
-	if (check_code == GlobalMatrixT::kCheckLHS)
-		out << " Finite difference perturbation. . . . . . . . . = " << fPerturbation << '\n';
-
-	/* check matrix type against analysis code */
-	if (fPrintEquationNumbers != 0 && fPrintEquationNumbers != 1)
-		ExceptionT::BadInputValue(caller, "\"print equation numbers\" out of range: {0,1}");
-	
-	/* construct global matrix */
-	SetGlobalMatrix(fMatrixType, check_code);
-	
 	/* console */
 	iSetName("solver");
 	iAddVariable("print_equation_numbers", fPrintEquationNumbers);
@@ -281,6 +211,7 @@ void SolverT::DefineParameters(ParameterListT& list) const
 #ifdef __SPOOLES__
 	matrix_type.AddEnumeration("SPOOLES", kSPOOLES);
 #endif
+	matrix_type.SetDefault(kProfileSolver);
 	list.AddParameter(matrix_type);
 
 	/* print equation numbers */
@@ -295,13 +226,34 @@ void SolverT::DefineParameters(ParameterListT& list) const
 	check_code.AddEnumeration("print_LHS", GlobalMatrixT::kPrintLHS);
 	check_code.AddEnumeration("print_RHS", GlobalMatrixT::kPrintRHS);
 	check_code.AddEnumeration("print_solution", GlobalMatrixT::kPrintSolution);
+	check_code.AddEnumeration("check_LHS", GlobalMatrixT::kCheckLHS);
 	check_code.SetDefault(GlobalMatrixT::kNoCheck);
-	list.AddParameter(print_eqnos);
+	list.AddParameter(check_code);
+	
+	/* perturbation used to compute LHS check */
+	ParameterT check_LHS_perturbation(fPerturbation, "check_LHS_perturbation");
+	check_LHS_perturbation.AddLimit(0.0, LimitT::LowerInclusive);
+	check_LHS_perturbation.SetDefault(1.0e-08);
+	list.AddParameter(check_LHS_perturbation);
+}
+
+/* accept parameter list */
+void SolverT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+	
+	/* construct matrix */
+	fPrintEquationNumbers = list.GetParameter("print_eqnos");
+	fMatrixType = list.GetParameter("matrix_type");
+	int check_code = list.GetParameter("check_code");
+	fPerturbation = list.GetParameter("check_LHS_perturbation");
+	SetGlobalMatrix(fMatrixType, check_code);
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* return the magnitude of the residual force */
 double SolverT::Residual(const dArrayT& force) const
@@ -521,10 +473,12 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 	switch (matrix_type)
 	{
 		case kDiagonalMatrix:
-
-			fLHS = new DiagonalMatrixT(out, check_code, DiagonalMatrixT::kNoAssembly);
+		{
+			DiagonalMatrixT* diag = new DiagonalMatrixT(out, check_code, DiagonalMatrixT::kNoAssembly);
+			diag->SetAssemblyMode(DiagonalMatrixT::kDiagOnly);
+			fLHS = diag;
 			break;
-
+		}
 		case kProfileSolver:
 		{
 			/* global system properties */

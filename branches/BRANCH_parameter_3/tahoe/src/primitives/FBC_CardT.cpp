@@ -1,4 +1,4 @@
-/* $Id: FBC_CardT.cpp,v 1.12 2003-11-04 01:32:06 paklein Exp $ */
+/* $Id: FBC_CardT.cpp,v 1.12.22.1 2004-04-08 07:33:55 paklein Exp $ */
 /* created: paklein (06/15/1996) */
 #include "FBC_CardT.h"
 
@@ -22,7 +22,6 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<FBC_CardT>::fByteCopy = false;
 FBC_CardT::FBC_CardT(void):
 	fNode(-1),
 	fDOF(-1),
-	fSchedNum(-1),
 	fValue(0.0),
 	fSchedule(NULL)
 {
@@ -30,8 +29,11 @@ FBC_CardT::FBC_CardT(void):
 }
 
 /* modifiers */
-void FBC_CardT::SetValues(const NodeManagerT& theBoss, ifstreamT& in)
+void FBC_CardT::SetValues(const NodeManagerT&, ifstreamT&)
 {
+#pragma message("delete me")
+ExceptionT::GeneralFail();
+#if 0
 	/* parameters */
 	int    node;
 	int    dof;
@@ -46,19 +48,16 @@ void FBC_CardT::SetValues(const NodeManagerT& theBoss, ifstreamT& in)
 
 	/* set */	
 	SetValues(theBoss, node, dof, nLTf, value);
+#endif
 }
 
-void FBC_CardT::SetValues(const NodeManagerT& theBoss, int node, int dof,
-	int schedule, double value)
+void FBC_CardT::SetValues(int node, int dof, const ScheduleT* schedule, double value)
 {
 	/* set */
 	fNode     = node;
 	fDOF      = dof;
-	fSchedNum = schedule;
+	fSchedule = schedule;
 	fValue    = value;
-	
-	/* resolve the pointer to the schedule */
-	fSchedule = theBoss.Schedule(fSchedNum);
 }
 
 /* split force value in half */
@@ -94,7 +93,7 @@ void FBC_CardT::WriteValues(ostream& out) const
 
 	out << setw(kIntWidth) << fNode + 1
 	    << setw(kIntWidth) << fDOF + 1
-<< setw(kIntWidth) << fSchedNum + 1
+<< setw(kIntWidth) << fSchedule
 << setw(d_width)   << fValue
 << '\n';
 }

@@ -1,4 +1,4 @@
-/* $Id: D2VIB2D_a.cpp,v 1.7 2003-01-29 07:34:55 paklein Exp $ */
+/* $Id: D2VIB2D_a.cpp,v 1.7.46.1 2004-04-08 07:33:01 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2VIB2D_a.h"
 
@@ -15,6 +15,7 @@ using namespace Tahoe;
 
 /* constructors */
 D2VIB2D_a::D2VIB2D_a(ifstreamT& in, const D2FSMatSupportT& support):
+	ParameterInterfaceT("gradient_VIB_a_2D"),
 	D2VIB2D(in, support),
 	fLocDisp(support.D2MeshFreeFDElastic()->Displacements()),
 	/* work space */

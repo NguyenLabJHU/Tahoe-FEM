@@ -1,10 +1,10 @@
-/* $Id: VIB2D.h,v 1.6 2003-01-29 07:34:52 paklein Exp $ */
+/* $Id: VIB2D.h,v 1.6.46.1 2004-04-08 07:32:57 paklein Exp $ */
 /* created: paklein (04/09/1997) */
 #ifndef _VIB_2D_H_
 #define _VIB_2D_H_
 
 /* base classes */
-#include "NL_E_Mat2DT.h"
+#include "NL_E_MatT.h"
 #include "VIB_E_MatT.h"
 
 namespace Tahoe {
@@ -14,7 +14,7 @@ class dMatrixT;
 class CirclePointsT;
 
 /** 2D VIB solver */
-class VIB2D: public NL_E_Mat2DT, public VIB_E_MatT
+class VIB2D: public NL_E_MatT, public VIB_E_MatT
 {
 public:
 
@@ -40,6 +40,12 @@ public:
 	 * evenly spaced intervals of number AtoF.Length() for the
 	 * current state of deformation */
 	void Perturb(dArrayT& dU, double eps);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
 protected:
 

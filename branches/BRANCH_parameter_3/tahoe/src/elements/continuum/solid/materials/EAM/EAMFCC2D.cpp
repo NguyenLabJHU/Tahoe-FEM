@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.cpp,v 1.8 2003-01-29 07:34:38 paklein Exp $ */
+/* $Id: EAMFCC2D.cpp,v 1.8.46.1 2004-04-08 07:32:41 paklein Exp $ */
 /* created: paklein (12/09/1996) */
 #include "EAMFCC2D.h"
 
@@ -21,7 +21,8 @@ const double sqrt3 = sqrt(3.0);
 
 /* constructor */
 EAMFCC2D::EAMFCC2D(ifstreamT& in, const FSMatSupportT& support, PlaneCodeT plane_code):
-	NL_E_Mat2DT(in, support, kPlaneStrain),
+	ParameterInterfaceT("EAM_FCC_2D"),
+	NL_E_MatT(in, support),
 	fPlaneCode(plane_code),
 	fEAM(NULL)
 {
@@ -100,10 +101,21 @@ EAMFCC2D::~EAMFCC2D(void)
 void EAMFCC2D::Print(ostream& out) const
 {
 	/* inherited */
-	NL_E_Mat2DT::Print(out);
+	NL_E_MatT::Print(out);
 
 	/* print EAM solver data */
 	fEAM->Print(out);
+}
+
+/* describe the parameters needed by the interface */
+void EAMFCC2D::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	NL_E_MatT::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStrain);
 }
 
 /*************************************************************************
@@ -113,7 +125,7 @@ void EAMFCC2D::Print(ostream& out) const
 void EAMFCC2D::PrintName(ostream& out) const
 {
 	/* inherited */
-	NL_E_Mat2DT::PrintName(out);
+	NL_E_MatT::PrintName(out);
 
 	const char* planes[] = {"001", "101", "111"};
 	out << "    EAM FCC 2D <" << planes[fPlaneCode] << "> Plane Strain\n";

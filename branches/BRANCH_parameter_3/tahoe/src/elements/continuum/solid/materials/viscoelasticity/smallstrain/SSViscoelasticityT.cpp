@@ -1,4 +1,4 @@
- /* $Id: SSViscoelasticityT.cpp,v 1.1 2003-04-05 20:05:37 thao Exp $ */
+ /* $Id: SSViscoelasticityT.cpp,v 1.1.40.1 2004-04-08 07:33:26 paklein Exp $ */
 #include "SSViscoelasticityT.h"
 #include "fstreamT.h"
 #include "ExceptionT.h"
@@ -6,6 +6,7 @@
 using namespace Tahoe;
 
 SSViscoelasticityT::SSViscoelasticityT(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("linear_viscoelastic"),
 	SSSolidMatT(in, support)
 {
 	int ndof = 3;

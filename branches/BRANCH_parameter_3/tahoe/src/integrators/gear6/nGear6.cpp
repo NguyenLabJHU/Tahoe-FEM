@@ -1,3 +1,4 @@
+/* $Id: nGear6.cpp,v 1.11.20.1 2004-04-08 07:33:41 paklein Exp $ */
 #include "nGear6.h"
 #include "iArrayT.h"
 #include "dArrayT.h"

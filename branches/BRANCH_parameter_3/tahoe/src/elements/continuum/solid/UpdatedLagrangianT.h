@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.h,v 1.8 2002-10-10 01:38:22 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.h,v 1.8.54.1 2004-04-08 07:32:34 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 
 #ifndef _UPDATED_LAGRANGIAN_T_H_
@@ -17,14 +17,21 @@ class UpdatedLagrangianT: public FiniteStrainT
 {
 public:
 
-	/* constructors */
+	/** constructor */
 	UpdatedLagrangianT(const ElementSupportT& support, const FieldT& field);
+	UpdatedLagrangianT(const ElementSupportT& support);
 
 	/* destructors */
 	virtual ~UpdatedLagrangianT(void);
 
 	/* data initialization */
 	virtual void Initialize(void);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 		
 protected:
 

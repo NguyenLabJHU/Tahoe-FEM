@@ -1,4 +1,4 @@
-/* $Id: povirk2D.cpp,v 1.9 2003-11-21 22:46:58 paklein Exp $ */
+/* $Id: povirk2D.cpp,v 1.9.20.1 2004-04-08 07:33:23 paklein Exp $ */
 /* Created:  Harold Park (09/10/2001) */
 #include "povirk2D.h"
 
@@ -23,9 +23,7 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 povirk2D::povirk2D(ifstreamT& in, const FSMatSupportT& support):
-  FSSolidMatT(in, support),
-  IsotropicT(in),
-  Material2DT(in),        // Currently reads in plane strain from file...
+	ParameterInterfaceT("povirk_2D"),
   /* initialize references */
 //  fRunState(ContinuumElement().RunState()),
 //  fDt(ContinuumElement().ElementSupport().TimeStep()),
@@ -133,7 +131,6 @@ void povirk2D::Print(ostream& out) const
   /* inherited */
   FSSolidMatT::Print(out);
   IsotropicT::Print(out);
-  Material2DT::Print(out);
 }
 
 void povirk2D::PrintName(ostream& out) const

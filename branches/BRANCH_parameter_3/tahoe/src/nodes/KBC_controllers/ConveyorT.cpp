@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.3 2003-11-21 22:47:59 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.3.20.1 2004-04-08 07:33:53 paklein Exp $ */
 #include "ConveyorT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -92,23 +92,21 @@ void ConveyorT::Initialize(ifstreamT& in)
 	double valueby2 = fULBC_Value/2.0;
 	for (int i = 0; i < fBottomNodes.Length(); i++) {
 		KBC_CardT& card = fKBC_Cards[node++];
-		card.SetValues(fBottomNodes[i], 1, fULBC_Code, fULBC_ScheduleNumber, -valueby2);
-		card.SetSchedule(fULBC_Schedule);
+		card.SetValues(fBottomNodes[i], 1, fULBC_Code, fULBC_Schedule, -valueby2);
 	}
 	for (int i = 0; i < fTopNodes.Length(); i++) {
 		KBC_CardT& card = fKBC_Cards[node++];
-		card.SetValues(fTopNodes[i], 1, fULBC_Code, fULBC_ScheduleNumber, valueby2);
-		card.SetSchedule(fULBC_Schedule);
-	}
+		card.SetValues(fTopNodes[i], 1, fULBC_Code, fULBC_Schedule, valueby2);
+		}
 
 	/* set stretching tangent cards */
 	for (int i = 0; i < fBottomNodes.Length(); i++) {
 		KBC_CardT& card = fKBC_Cards[node++];
-		card.SetValues(fBottomNodes[i], 0, KBC_CardT::kFix, 0, 0);
+		card.SetValues(fBottomNodes[i], 0, KBC_CardT::kFix, NULL, 0);
 	}
 	for (int i = 0; i < fTopNodes.Length(); i++) {
 		KBC_CardT& card = fKBC_Cards[node++];
-		card.SetValues(fTopNodes[i], 0, KBC_CardT::kFix, 0, 0);
+		card.SetValues(fTopNodes[i], 0, KBC_CardT::kFix, NULL, 0);
 	}
 
 	/* find boundaries */
@@ -419,7 +417,7 @@ bool ConveyorT::SetSystemFocus(double focus)
 	cards.Dimension(fShiftedNodes.Length());
 	for (int i = 0; i < cards.Length(); i++) {
 		KBC_CardT& card = cards[i];
-		card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, 0, 0.0);
+		card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, NULL, 0.0);
 	}
 
 	/* mark elements linking left to right edge as inactive */

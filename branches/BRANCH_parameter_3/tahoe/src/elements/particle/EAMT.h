@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.19 2004-04-02 16:48:22 jzimmer Exp $ */
+/* $Id: EAMT.h,v 1.19.2.1 2004-04-08 07:33:29 paklein Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -77,6 +77,10 @@ protected:
 	 * based on the current information. Uses ParticleT::GenerateNeighborList
 	 * to determine the neighborlists. */
 	virtual void SetConfiguration(void);
+
+	/** extract the properties information from the parameter list. See ParticleT::ExtractProperties */
+	virtual void ExtractProperties(const ParameterListT& list, const ArrayT<StringT>& type_names,
+		ArrayT<ParticlePropertyT*>& properties, nMatrixT<int>& properties_map);
 
 	/** construct the list of properties from the given input stream */
 	virtual void EchoProperties(ifstreamT& in, ofstreamT& out);

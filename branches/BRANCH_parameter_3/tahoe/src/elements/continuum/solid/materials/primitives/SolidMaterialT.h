@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.13 2004-01-10 04:41:25 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.13.18.1 2004-04-08 07:33:18 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -29,6 +29,12 @@ class SolidMaterialT: public ContinuumMaterialT
 {
 public:
 
+	/** \name 2D constrain options */
+	enum ConstraintT {
+		kNoConstraint = 0, /**< no constraint, material is 3D */
+		kPlaneStress = 1, /**< plane stress */
+		kPlaneStrain = 2  /**< plane strain */};
+
 	/** constructor */
 	SolidMaterialT(ifstreamT& in, const MaterialSupportT& support);
 	SolidMaterialT(void);
@@ -40,9 +46,6 @@ public:
 	 * checks if thermal strain are being imposed and if the material
 	 * supports thermal strain, using SolidMaterialT::SupportsThermalStrain. */
 	virtual void Initialize(void);
-
-	/** write parameters */
-	virtual void Print(ostream& out) const;
 
 	/** \name spatial description */
 	/*@{*/
@@ -69,6 +72,10 @@ public:
 	/** 2nd Piola-Kirchhoff stress */
 	virtual const dSymMatrixT& S_IJ(void) = 0;
 	/*@}*/
+
+	/** 2D constrain options or kNoConstraint::kNoConstraint if the material
+	 * is not 2D */
+	ConstraintT Constraint(void) const { return fConstraint; };
 
 	/** incremental heat generation. Associated with the stress calculated with the
 	 * most recent call to SolidMaterialT::s_ij or SolidMaterialT::S_IJ */
@@ -118,12 +125,6 @@ public:
 	 	
 	/** \return mass density */
 	double Density(void) const;
-	
-	/** Rayleigh damping. \return mass proportional damping coefficient */
-	double MassDamping(void) const;
-
-	/** Rayleigh damping. \return stiffness proportional damping coefficient */
-	double StiffnessDamping(void) const;
 
 	/** test for localization. check for bifurcation using current
 	 * Cauchy stress and the spatial tangent moduli.
@@ -136,6 +137,15 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 	
 private:
@@ -152,10 +162,11 @@ protected:
 	/* mass density */
 	double fDensity;
 
-private:	
+	/** 2D constrain option */
+	ConstraintT fConstraint;
 
-	double fMassDamp;
-	double fStiffDamp;
+	/** coefficient of thermal expansion in strain/unit temperature */
+	double fCTE;
 };
 
 /* incremental heat generation */
@@ -164,10 +175,6 @@ inline bool SolidMaterialT::HasIncrementalHeat(void) const { return false; }
 
 /* returns the density */
 inline double SolidMaterialT::Density(void) const { return fDensity; }
-
-/* access to Rayleigh damping parameters */
-inline double SolidMaterialT::MassDamping(void) const { return fMassDamp; }
-inline double SolidMaterialT::StiffnessDamping(void) const { return fStiffDamp;}
 
 /* imposed thermal strains */
 inline int SolidMaterialT::HasThermalStrain(void) const { return fThermal->IsActive(); }

@@ -1,4 +1,4 @@
-/* $Id: J2QL2DLinHardT.cpp,v 1.13 2003-11-21 22:46:48 paklein Exp $ */
+/* $Id: J2QL2DLinHardT.cpp,v 1.13.20.1 2004-04-08 07:33:09 paklein Exp $ */
 /* created: paklein (06/29/1997) */
 #include "J2QL2DLinHardT.h"
 
@@ -55,6 +55,7 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 J2QL2DLinHardT::J2QL2DLinHardT(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("quad_log_J2_2D"),
 	QuadLog2D(in, support),
 	J2PrimitiveT(in),
 	fb_elastic(kNSD),
@@ -162,7 +163,7 @@ const dMatrixT& J2QL2DLinHardT::c_ijkl(void)
 	     fabs(fEigs[1] - 1.0) < kSmall &&
 	     fabs(fEigs[2] - 1.0) < kSmall ) //now explicitly check 3rd dim
 	{
-		IsotropicT::ComputeModuli2D(fModulus2D, fConstraintOption);
+		IsotropicT::ComputeModuli2D(fModulus2D, Constraint());
 	}
 	/* compute moduli */
 	else
@@ -196,7 +197,6 @@ const dMatrixT& J2QL2DLinHardT::c_ijkl(void)
 		fModulus2D.Rank4ReduceFrom3D(fModulus);
 	}
 
-	fModulus2D *= fThickness;
 	return fModulus2D;
 }
 	
@@ -231,7 +231,6 @@ const dSymMatrixT& J2QL2DLinHardT::s_ij(void)
 
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(fStress);
-	fStress2D *= fThickness;
 
 	return fStress2D;
 }
@@ -252,7 +251,7 @@ double J2QL2DLinHardT::StrainEnergyDensity(void)
 	/* logarithmic stretches */
 	LogStretches(fEigs);
 
-	return fThickness*ComputeEnergy(floge);
+	return ComputeEnergy(floge);
 }
 
 /*

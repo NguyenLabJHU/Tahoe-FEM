@@ -1,6 +1,5 @@
-/* $Id: TvergHutch2DT.cpp,v 1.19 2003-05-28 23:15:27 cjkimme Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.19.34.1 2004-04-08 07:32:26 paklein Exp $ */
 /* created: paklein (02/05/2000) */
-
 #include "TvergHutch2DT.h"
 
 #include <iostream.h>
@@ -10,15 +9,17 @@
 #include "fstreamT.h"
 #include "StringT.h"
 
-/* class parameters */
-
 using namespace Tahoe;
 
+/* class parameters */
 const int knumDOF = 2;
 
 /* constructor */
-TvergHutch2DT::TvergHutch2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
+TvergHutch2DT::TvergHutch2DT(ifstreamT& in): 
+	SurfacePotentialT(knumDOF)
 {
+	SetName("Tvergaard-Hutchinson_2D");
+
 	/* traction potential parameters */
 	in >> fsigma_max; if (fsigma_max < 0) throw ExceptionT::kBadInputValue;
 	in >> fd_c_n; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
@@ -34,6 +35,20 @@ TvergHutch2DT::TvergHutch2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 
 	/* penetration stiffness */
 	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
+}
+
+TvergHutch2DT::TvergHutch2DT(void): 
+	SurfacePotentialT(knumDOF),
+	fsigma_max(0.0),
+	fd_c_n(0.0),
+	fd_c_t(0.0),
+	fL_1(0.0),
+	fL_2(0.0),
+	fL_fail(0.0),
+	fpenalty(0.0),
+	fK(0.0)
+{
+	SetName("Tvergaard-Hutchinson_2D");
 }
 
 /* surface potential */
@@ -254,6 +269,69 @@ void TvergHutch2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& s
 	double r_n = u_n/fd_c_n;
 	output[0]  = sqrt(r_t*r_t + r_n*r_n); // (1.1)
 }
+
+/* describe the parameters  */
+void TvergHutch2DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SurfacePotentialT::DefineParameters(list);
+
+	ParameterT sigma_max(fsigma_max, "sigma_max");
+	sigma_max.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(sigma_max);
+
+	ParameterT d_c_n(fd_c_n, "d_c_n");
+	d_c_n.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(d_c_n);
+
+	ParameterT d_c_t(fd_c_t, "d_c_t");
+	d_c_t.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(d_c_t);
+
+	ParameterT L_1(fL_1, "L_1");
+	L_1.AddLimit(0.0, LimitT::Lower);
+	L_1.AddLimit(1.0, LimitT::Upper);
+	list.AddParameter(L_1);
+
+	ParameterT L_2(fL_2, "L_2");
+	L_2.AddLimit(0.0, LimitT::Lower);
+	L_2.AddLimit(1.0, LimitT::Upper);
+	list.AddParameter(L_2);
+
+	ParameterT L_fail(fL_fail, "L_fail");
+	L_fail.AddLimit(1.0, LimitT::LowerInclusive);
+	list.AddParameter(L_fail);
+
+	ParameterT penalty(fpenalty, "penalty");
+	penalty.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(penalty);
+}
+
+/* accept parameter list */
+void TvergHutch2DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SurfacePotentialT::TakeParameterList(list);
+
+	fsigma_max = list.GetParameter("sigma_max");
+	fd_c_n = list.GetParameter("d_c_n");
+	fd_c_t = list.GetParameter("d_c_t");
+
+	fL_1 = list.GetParameter("L_1");
+	fL_2 = list.GetParameter("L_2");
+	if (fL_2 < fL_1) ExceptionT::BadInputValue("TvergHutch2DT::TakeParameterList",
+		"L2 < L1: %g < %g", fL_2, fL_1);
+
+	fL_fail = list.GetParameter("L_fail");
+	fpenalty = list.GetParameter("penalty");
+
+	/* penetration stiffness */
+	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
+}
+
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
 
 bool TvergHutch2DT::CompatibleOutput(const SurfacePotentialT& potential) const
 {

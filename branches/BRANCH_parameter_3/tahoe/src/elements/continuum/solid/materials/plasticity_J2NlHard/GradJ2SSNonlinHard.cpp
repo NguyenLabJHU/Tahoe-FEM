@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSNonlinHard.cpp,v 1.13 2004-01-10 04:41:23 paklein Exp $ */
+/* $Id: GradJ2SSNonlinHard.cpp,v 1.13.18.1 2004-04-08 07:33:11 paklein Exp $ */
 #include "GradJ2SSNonlinHard.h"
 
 #include "iArrayT.h"
@@ -34,8 +34,7 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 GradJ2SSNonlinHard::GradJ2SSNonlinHard(ifstreamT& in, const SSMatSupportT& support):
-	SSSolidMatT (in, support),
-	IsotropicT   (in),
+	ParameterInterfaceT("small_strain_J2_nonlocal"),
 	HookeanMatT  (kNSD),
 	fNumIP       (NumIP()),
 	fmu          (Mu()),
