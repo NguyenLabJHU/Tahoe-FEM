@@ -1,11 +1,11 @@
-/* $Id: ArgSpecT.cpp,v 1.5 2002-02-27 01:24:02 paklein Exp $ */
+/* $Id: ArgSpecT.cpp,v 1.6 2002-02-27 16:47:14 paklein Exp $ */
 
 #include "ArgSpecT.h"
 #include <ctype.h>
 
 /* array copy behavior */
-template<> const bool ArrayT<ArgSpecT*>::fByteCopy = true; 
-template<> const bool ArrayT<ArgSpecT>::fByteCopy = false;
+const bool ArrayT<ArgSpecT*>::fByteCopy = true; 
+const bool ArrayT<ArgSpecT>::fByteCopy = false;
 
 /* type names */
 static const char* type_names[] = {

@@ -1,4 +1,4 @@
-/* $Id: KBC_CardT.cpp,v 1.4 2002-02-27 01:32:55 paklein Exp $ */
+/* $Id: KBC_CardT.cpp,v 1.5 2002-02-27 16:47:49 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "KBC_CardT.h"
@@ -12,8 +12,8 @@
 #include "LoadTime.h"
 
 /* copy behavior for arrays KBC_CardT's */
-template<> const bool ArrayT<KBC_CardT*>::fByteCopy = true;
-template<> const bool ArrayT<KBC_CardT>::fByteCopy = false;
+const bool ArrayT<KBC_CardT*>::fByteCopy = true;
+const bool ArrayT<KBC_CardT>::fByteCopy = false;
 
 /* constructor */
 KBC_CardT::KBC_CardT(void):fLTfPtr(NULL) { }

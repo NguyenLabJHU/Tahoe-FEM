@@ -1,4 +1,4 @@
-/* $Id: iArrayT.cpp,v 1.8 2002-02-27 01:23:58 paklein Exp $ */
+/* $Id: iArrayT.cpp,v 1.9 2002-02-27 16:47:11 paklein Exp $ */
 /* created: paklein (08/10/1996) */
 
 #include "iArrayT.h"
@@ -7,9 +7,9 @@
 #include "Constants.h"
 
 /* array behavior */
-template<> const bool ArrayT<iArrayT*>::fByteCopy = true;
-template<> const bool ArrayT<const iArrayT*>::fByteCopy = true;
-template<> const bool ArrayT<iArrayT>::fByteCopy = false; 
+const bool ArrayT<iArrayT*>::fByteCopy = true;
+const bool ArrayT<const iArrayT*>::fByteCopy = true;
+const bool ArrayT<iArrayT>::fByteCopy = false; 
 
 /* constructor */
 iArrayT::iArrayT(void) { }

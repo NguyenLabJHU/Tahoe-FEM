@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.11 2002-02-27 01:24:02 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.12 2002-02-27 16:47:14 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleT.h"
@@ -18,7 +18,7 @@
 #include "ArgSpecT.h"
 
 /* array behavior */
-template<> const bool ArrayT<iConsoleT::CommandScope>::fByteCopy = true;
+const bool ArrayT<iConsoleT::CommandScope>::fByteCopy = true;
 
 /* constructor */
 iConsoleT::iConsoleT(const StringT& log_file, iConsoleObjectT& current):
