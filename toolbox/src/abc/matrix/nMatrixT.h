@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.6 2001-08-20 06:24:38 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.7 2001-09-11 05:54:50 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 /* 2 dimensional matrix mathematics template object.                      */
 
@@ -113,10 +113,14 @@ public:
 	void PlusIdentity(const nTYPE& value = nTYPE(1.0));
 	nMatrixT<nTYPE>& Identity(const nTYPE& value = nTYPE(1.0));
 
-	/* writing to rows/columns */
+	/* writing to rows */
 	void SetRow(int row, const nArrayT<nTYPE>& vec);
+	void SetRow(int row, const nTYPE* vec);
 	void SetRow(int row, const nTYPE& value);
+
+	/* writing to cols */
 	void SetCol(int col, const nArrayT<nTYPE>& vec);
+	void SetCol(int col, const nTYPE* vec);
 	void SetCol(int col, const nTYPE& value);
 
 	/* dot the specified row/column number with the array */
@@ -1388,26 +1392,30 @@ nMatrixT<nTYPE>& nMatrixT<nTYPE>::Identity(const nTYPE& value)
 
 /* writing to rows/columns */
 template <class nTYPE>
-void nMatrixT<nTYPE>::SetRow(int row, const nArrayT<nTYPE>& vec)
+inline void nMatrixT<nTYPE>::SetRow(int row, const nArrayT<nTYPE>& vec)
 {
 	/* dimension check */
 #if __option (extended_errorcheck)
 	if (vec.Length() != fCols) throw eSizeMismatch;
 	if (row < 0 || row >= fRows) throw(eOutOfRange);
 #endif
-
-	nTYPE* pvec = vec.Pointer();
-	nTYPE* pcol = Pointer() + row;
 	
+	SetRow(row, vec.Pointer());
+}
+
+template <class nTYPE>
+inline void nMatrixT<nTYPE>::SetRow(int row, const nTYPE* vec)
+{
+	nTYPE* pcol = Pointer() + row;	
 	for (int i = 0; i < fCols; i++)
 	{
-		*pcol = *pvec++;
+		*pcol = *vec++;
 		pcol += fRows;
 	}
 }
 
 template <class nTYPE>
-void nMatrixT<nTYPE>::SetRow(int row, const nTYPE& value)
+inline void nMatrixT<nTYPE>::SetRow(int row, const nTYPE& value)
 {
 	nTYPE* pcol = Pointer() + row;	
 	for (int i = 0; i < fCols; i++)
@@ -1418,22 +1426,26 @@ void nMatrixT<nTYPE>::SetRow(int row, const nTYPE& value)
 }
 
 template <class nTYPE>
-void nMatrixT<nTYPE>::SetCol(int col, const nArrayT<nTYPE>& vec)
+inline void nMatrixT<nTYPE>::SetCol(int col, const nArrayT<nTYPE>& vec)
 {
 /* dimension check */
 #if __option (extended_errorcheck)
 	if (vec.Length() != fRows) throw(eOutOfRange);
 #endif
 
-	nTYPE* pvec = vec.Pointer();
-	nTYPE* pcol = (*this)(col);
-	
-	for (int i = 0; i < fRows; i++)
-		*pcol++ = *pvec++;
+	SetCol(col, vec.Pointer());
 }
 
 template <class nTYPE>
-void nMatrixT<nTYPE>::SetCol(int col, const nTYPE& value)
+inline void nMatrixT<nTYPE>::SetCol(int col, const nTYPE* vec)
+{
+	nTYPE* pcol = (*this)(col);	
+	for (int i = 0; i < fRows; i++)
+		*pcol++ = *vec++;
+}
+
+template <class nTYPE>
+inline void nMatrixT<nTYPE>::SetCol(int col, const nTYPE& value)
 {
 	nTYPE* pcol = (*this)(col);	
 	for (int i = 0; i < fRows; i++)
