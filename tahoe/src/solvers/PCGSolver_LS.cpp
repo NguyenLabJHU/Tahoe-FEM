@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.14 2003-08-18 03:37:23 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.15 2003-11-11 22:51:48 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 
@@ -187,11 +187,13 @@ SolverT::SolutionStatusT PCGSolver_LS::Solve(int max_iterations)
 
 void PCGSolver_LS::CGSearch(void)
 {
+	const char caller[] = "PCGSolver_LS::CGSearch";
+
 	/* restart */
 	fRestart_count++;
 	if (fRestart_count == 0 || fRestart_count == fRestart) {
 		fR_last = fRHS;
-		if (!fLHS->Solve(fRHS)) throw ExceptionT::kBadJacobianDet;
+		if (!fLHS->Solve(fRHS)) ExceptionT::BadJacobianDet(caller);
 		fu_last = fRHS;
 		fRestart_count = 0;
 
@@ -211,18 +213,26 @@ void PCGSolver_LS::CGSearch(void)
 //		              InnerProduct(fR_last, fR_last);
 
 		/* with scaling matrix Bertsekas (6.32) */
-		if (!fLHS->Solve(fdiff_R)) throw ExceptionT::kBadJacobianDet; /* apply scaling */
+		if (!fLHS->Solve(fdiff_R)) ExceptionT::BadJacobianDet(caller); /* apply scaling */
 		double beta = InnerProduct(fRHS, fdiff_R);
 		fdiff_R = fR_last;     /* copy */
-		if (!fLHS->Solve(fdiff_R)) throw ExceptionT::kBadJacobianDet; /* apply scaling */
-		beta /= InnerProduct(fR_last, fdiff_R);
+		if (!fLHS->Solve(fdiff_R)) ExceptionT::BadJacobianDet(caller); /* apply scaling */
+
+		/* no division by zero */
+		double denominator = InnerProduct(fR_last, fdiff_R);
+		if (fabs(denominator) < 1.0e-16) {
+			denominator = 1.0;
+			beta = 0.0; /* revert to steepest descent */
+		}
+		else
+			beta /= denominator;		
 		
 		/* limit beta */
 		//beta = (beta < 0.0) ? 0.0 : beta;
 		
 		/* compute new update (in last update) */
 		fR_last = fRHS;
-		if (!fLHS->Solve(fRHS)) throw ExceptionT::kBadJacobianDet; /* apply preconditioner */
+		if (!fLHS->Solve(fRHS)) ExceptionT::BadJacobianDet(caller); /* apply preconditioner */
 		fRHS.AddScaled(beta, fu_last);
 		fu_last = fRHS;
 
