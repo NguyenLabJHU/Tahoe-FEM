@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.18 2004-03-16 06:56:28 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.19 2004-03-17 20:02:24 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #include "CCNSMatrixT.h"
 
@@ -414,8 +414,10 @@ void CCNSMatrixT::Factorize(void)
 	/* quick exit */
 	if (fIsFactorized)
 		return;
-	else /* factorization routine (GRF) */
+	else /* factorization routine (GRF) */ {
 		SolNonSymSysSkyLine(fKU, fKL, fKD, famax, fLocNumEQ);
+		fIsFactorized = true;
+	}
 }
 
 /* solves system. K has already been decomposed in LU form. */
