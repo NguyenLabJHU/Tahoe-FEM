@@ -1,4 +1,4 @@
-/* $Id: ThreeBodyPropertyT.h,v 1.2 2004-11-23 01:55:38 cjkimme Exp $ */
+/* $Id: ThreeBodyPropertyT.h,v 1.3 2004-12-03 20:33:50 cjkimme Exp $ */
 #ifndef _THREE_BODY_PROPERTY_T_H_
 #define _THREE_BODY_PROPERTY_T_H_
 
@@ -41,7 +41,7 @@ public:
 	 * \param rj
 	 * \param rk
 	 * \return the pair energy */
-	typedef double (*EnergyFunction)(double* ri, double* rj, double* rk);
+	typedef double (*EnergyFunction)(const double* ri, const double* rj, const double* rk);
 
 	/** definition of function that returns three-body force
 	 * \param ri -- coords of outer loop particle

@@ -1,4 +1,4 @@
-/* $Id: ParticleThreeBodyT.cpp,v 1.2 2004-12-01 02:19:32 cjkimme Exp $ */
+/* $Id: ParticleThreeBodyT.cpp,v 1.3 2004-12-03 20:33:42 cjkimme Exp $ */
 #include "ParticleThreeBodyT.h"
 
 #include "ThreeBodyPropertyT.h"
@@ -204,6 +204,7 @@ void ParticleThreeBodyT::WriteOutput(void)
 		/* run though neighbors for one atom - first neighbor is self
 		 * to compute potential energy */
 		coords.RowAlias(tag_i, x_i);
+		const double* x_ip = coords(tag_i);
 
 		for (int j = 1; j < neighbors.Length(); j++)
 		{
@@ -215,12 +216,15 @@ void ParticleThreeBodyT::WriteOutput(void)
 			int property = fPropertiesMap(type_i, type_j);
 			if (property != current_property) {
 				energy_function_2body = fThreeBodyProperties[property]->getEnergyFunction();
+				energy_function_3body = fThreeBodyProperties[property]->getThreeBodyEnergyFunction();
 				force_function_2body = fThreeBodyProperties[property]->getForceFunction();
+				force_function_3body = fThreeBodyProperties[property]->getThreeBodyForceFunction();
 				current_property = property;
 			}
 		
 			/* global coordinates */
 			coords.RowAlias(tag_j, x_j);
+			const double* x_jp = coords(tag_j);
 
 			/* connecting vector */
 			r_ij.DiffOf(x_j, x_i);
@@ -239,10 +243,11 @@ void ParticleThreeBodyT::WriteOutput(void)
 			vs_i.AddScaled(0.5*Fbyr, temp);
 #endif
 
+			int local_j;
 			/* second node may not be on processor */
 			if (!proc_map || (*proc_map)[tag_j] == rank) 
 			{
-				int local_j = (inverse_map) ? inverse_map->Map(tag_j) : tag_j;	
+				local_j = (inverse_map) ? inverse_map->Map(tag_j) : tag_j;	
 				if (local_j < 0 || local_j >= n_values.MajorDim())
 					cout << caller << ": out of range: " << local_j << '\n';
 				else {
@@ -259,8 +264,89 @@ void ParticleThreeBodyT::WriteOutput(void)
 #endif
 				}
 			}
-		}
+			
+			// additional loop over neighbors for 3-body terms
+			for (int k = 1; k < neighbors.Length(); k++) {
+			
+				/* global tag */
+				int   tag_k = neighbors[k];
+				if (tag_k < tag_j) {
+					int  type_k = fType[tag_k];
+					double* f_k = fForce(tag_k);
+					const double* x_kp = coords(tag_k);
+				
+					/* connecting vector */
+					double r_ik[3];
+					r_ik[0] = x_kp[0] - x_ip[0];
+					r_ik[1] = x_kp[1] - x_ip[1];
+					r_ik[2] = x_kp[2] - x_ip[2];
+					double rik = sqrt(r_ik[0]*r_ik[0] + r_ik[1]*r_ik[1] + r_ik[2]*r_ik[2]);
+					
+					/* interaction energy */
+					double uby3 = energy_function_3body(x_ip, x_jp, x_kp)/3.;
+					values_i[ndof] += uby3;
+					
+					/* interaction force */
+					double f_ij[3], f_ik[3];
+					if (force_function_3body(x_ip, x_jp, x_kp, f_ij, f_ik)) {
+						/*cout << "3 body " << f_ij[0] << " " << f_ij[1] << " " << f_ij[2] << " ";
+						cout << f_ik[0] << " " << f_ik[1] << " " << f_ik[2] << "\n";
+						
+						f_ij[0] *= formKd; 
+						f_i[0] -= f_ij[0] + f_ik[0];
+						f_j[0] += f_ij[0];
+						f_k[0] += f_ik[0]; 
 
+						f_ij[1] *= formKd; 
+						f_i[1] -= f_ij[1] + f_ik[1];
+						f_j[1] += f_ij[1];
+						f_k[1] += f_ik[1]; 
+					
+						f_ij[0] *= formKd; 
+						f_i[2] -= f_ij[2] + f_ik[2];
+						f_j[2] += f_ij[2];
+						f_k[2] += f_ik[2];*/
+					} 
+					
+					/* second and third atoms may not be on processor */
+					if (!proc_map || (*proc_map)[tag_j] == rank) 
+					{
+						// loop over j has already error-checked this
+						/* potential energy */
+						n_values(local_j, ndof) += uby3;
+
+#ifndef NO_PARTICLE_STRESS_OUTPUT
+				 		/* accumulate into stress into array */
+			 			for (int cc = 0; cc < num_stresses; cc++) {
+							int ndex = ndof+2+cc;
+			   				n_values(local_j, ndex) += (fabs(V0) > kSmall) ? 0.5*Fbyr*temp[cc]/V0 : 0.0;
+			 			}
+#endif
+					}
+					
+					if (!proc_map || (*proc_map)[tag_k] == rank) 
+					{
+						int local_k = (inverse_map) ? inverse_map->Map(tag_k) : tag_k;	
+						if (local_k < 0 || local_k >= n_values.MajorDim())
+							cout << caller << ": out of range: " << local_k << '\n';
+						else {
+
+							/* potential energy */
+							n_values(local_k, ndof) += uby3;
+
+#ifndef NO_PARTICLE_STRESS_OUTPUT
+					 		/* accumulate into stress into array */
+				 			for (int cc = 0; cc < num_stresses; cc++) {
+								int ndex = ndof+2+cc;
+				   				n_values(local_k, ndex) += (fabs(V0) > kSmall) ? 0.5*Fbyr*temp[cc]/V0 : 0.0;
+				 			}
+#endif
+						}
+					}
+				}
+			}
+			 
+		}
 
 #ifndef NO_PARTICLE_STRESS_OUTPUT
 		/* copy stress into array */
@@ -309,106 +395,6 @@ void ParticleThreeBodyT::WriteOutput(void)
 			n_values(local_i, ndof+2+num_stresses+num_stresses+n) = s_values(local_i, num_stresses+1+n);
 
 		n_values(local_i, num_output-1) = s_values(local_i, num_s_vals-1);
-	}
-#endif
-
-#if 0
-	/* temporary to calculate crack propagation velocity */
-	ifstreamT& in = ElementSupport().Input();
-	ModelManagerT& model = ElementSupport().Model();
-	const ArrayT<StringT> id_list = model.NodeSetIDs();
-	iArrayT nodelist;
-	dArray2DT partial;
-	nodelist = model.NodeSet(id_list[id_list.Length()-1]); // want last nodeset
-	const StringT& input_file = in.filename();
-	fsummary_file.Root(input_file);
-	fsummary_file.Append(".crack");
-	double xcoord = coords(nodelist[0],0);
-	double ydispcrit = .13;
-	const double& time = ElementSupport().Time();
-	for (int i = 0; i < nodelist.Length(); i++)
-	{
-	    int node = nodelist[i];
-	    if (fabs(displacement(node,1)) >= ydispcrit)
-	      xcoord = coords(node,0);
-	}
-
-	if (fopen)
-	{
-		fout.open_append(fsummary_file);
-	  	fout.precision(13);
-	  	fout << xcoord 
-	  	     << setw(25) << time
-	  	     << endl;
-	}
-	else
-	{
-	  	fout.open(fsummary_file);
-		fopen = true;
-	  	fout.precision(13);
-	  	fout << "x-coordinate"
-	  	     << setw(25) << "Time"
-	  	     << endl;
-	  	fout << xcoord 
-	  	     << setw(25) << time
-	  	     << endl;
-	}
-#endif
-
-#if 0
-	/* Temporary to calculate MD energy history and write to file */
-	ifstreamT& in = ElementSupport().Input();
-	ModelManagerT& model = ElementSupport().Model();
-	const ArrayT<StringT> id_list = model.NodeSetIDs();
-	iArrayT nodelist;
-	dArray2DT partial;
-	nodelist = model.NodeSet(id_list[id_list.Length()-1]);
-	nodelist = model.NodeSet(id_list[3]);  // id_list[3]
-	partial.Dimension(nodelist.Length(), n_values.MinorDim());
-	partial.RowCollect(nodelist, n_values);
-	const StringT& input_file = in.filename();
-	fsummary_file.Root(input_file);
-	fsummary_file2.Root(input_file);
-	fsummary_file.Append(".sum");
-	fsummary_file2.Append(".full");
-	if (fopen)
-	{
-	        fout.open_append(fsummary_file);
-			fout2.open_append(fsummary_file2);
-			fout.precision(13);
-			fout2.precision(13);
-			fout << n_values.ColumnSum(3) 
-				 << setw(25) << n_values.ColumnSum(2)
-				 << setw(25) << n_values.ColumnSum(3) + n_values.ColumnSum(2)
-				 << endl;
-			fout2 << partial.ColumnSum(3) 
-				 << setw(25) << partial.ColumnSum(2)
-				 << setw(25) << partial.ColumnSum(3) + partial.ColumnSum(2)
-				 << endl;
-	}
-	else
-	{
-			fout.open(fsummary_file);
-			fout2.open(fsummary_file2);
-			fopen = true;
-			fout.precision(13);
-			fout2.precision(13);
-			fout << "Kinetic Energy"
-				 << setw(25) << "Potential Energy"
-				 << setw(25) << "Total Energy"
-				 << endl;
-			fout << n_values.ColumnSum(3) 
-				 << setw(25) << n_values.ColumnSum(2)
-				 << setw(25) << n_values.ColumnSum(3) + n_values.ColumnSum(2)
-				 << endl;
-			fout2 << "Kinetic Energy"
-				 << setw(25) << "Potential Energy"
-				 << setw(25) << "Total Energy"
-				 << endl;
-			fout2 << partial.ColumnSum(3) 
-				 << setw(25) << partial.ColumnSum(2)
-				 << setw(25) << partial.ColumnSum(3) + partial.ColumnSum(2)
-				 << endl;
 	}
 #endif
 
@@ -737,66 +723,64 @@ void ParticleThreeBodyT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			{
 				/* global tag */
 				int  tag_j = neighbors[j];
-				if (tag_j < tag_i) {
-					int type_j = fType[tag_j];
-					double* k_j = fForce(tag_j);
-				
-					/* set pair property (if not already set) */
-					int property = fPropertiesMap(type_i, type_j);
-					if (property != current_property)
-					{
-						force_function = fThreeBodyProperties[property]->getForceFunction();
-						stiffness_function = fThreeBodyProperties[property]->getStiffnessFunction();
-						current_property = property;
-					}
+				int type_j = fType[tag_j];
+				double* k_j = fForce(tag_j);
 			
-					/* global coordinates */
-					coords.RowAlias(tag_j, x_j);
-					x_jp = coords(tag_j);
+				/* set pair property (if not already set) */
+				int property = fPropertiesMap(type_i, type_j);
+				if (property != current_property)
+				{
+					force_function = fThreeBodyProperties[property]->getForceFunction();
+					stiffness_function = fThreeBodyProperties[property]->getStiffnessFunction();
+					current_property = property;
+				}
+		
+				/* global coordinates */
+				coords.RowAlias(tag_j, x_j);
+				x_jp = coords(tag_j);
+		
+				/* connecting vector */
+				r_ij.DiffOf(x_j, x_i);
+				double r = r_ij.Magnitude();
 			
-					/* connecting vector */
-					r_ij.DiffOf(x_j, x_i);
-					double r = r_ij.Magnitude();
+				/* interaction functions */
+				double F = force_function(r, NULL, NULL);
+				double K = stiffness_function(r, NULL, NULL);
+				K = (K < 0.0) ? 0.0 : K;
+
+				double Fbyr = F/r;
+				for (int k = 0; k < ndof; k++)
+				{
+					double r_k = r_ij[k]*r_ij[k]/r/r;
+					double K_k = constK*(K*r_k + Fbyr*(1.0 - r_k));
+					k_i[k] += K_k;
+					k_j[k] += K_k;
+				}
 				
-					/* interaction functions */
-					double F = force_function(r, NULL, NULL);
-					double K = stiffness_function(r, NULL, NULL);
-					K = (K < 0.0) ? 0.0 : K;
+				// additional loop over neighbors for 3-body terms
+				for (int k = 1; k < neighbors.Length(); j++)
+				{
+					/* global tag */
+					int   tag_k = neighbors[k];
+					if (tag_k < tag_j) {
+						int  type_k = fType[tag_k];
+						double* f_k = fForce(tag_k);
+						x_kp = coords(tag_k);
 
-					double Fbyr = F/r;
-					for (int k = 0; k < ndof; k++)
-					{
-						double r_k = r_ij[k]*r_ij[k]/r/r;
-						double K_k = constK*(K*r_k + Fbyr*(1.0 - r_k));
-						k_i[k] += K_k;
-						k_j[k] += K_k;
-					}
-					
-					// additional loop over neighbors for 3-body terms
-					for (int k = 1; k < neighbors.Length(); j++)
-					{
-						/* global tag */
-						int   tag_k = neighbors[k];
-						if (tag_k < tag_j) {
-							int  type_k = fType[tag_k];
-							double* f_k = fForce(tag_k);
-							x_kp = coords(tag_k);
-
-							/* set pair property (if not already set) */
-							int property = fPropertiesMap(type_i, type_j);
-							if (property != current_property)
-							{
-								stiffness_function_3body = fThreeBodyProperties[property]->getThreeBodyStiffnessFunction();
-								current_property = property;
-							}
-						
-							/* stiffness matrix */
-							dMatrixT K_ijk(3*ndof);
-							if (stiffness_function_3body(x_ip, x_jp, x_kp, K_ijk)) {
-								// check signs and make sure I don't need factors of 1/3
-								
-							} 
+						/* set pair property (if not already set) */
+						int property = fPropertiesMap(type_i, type_j);
+						if (property != current_property)
+						{
+							stiffness_function_3body = fThreeBodyProperties[property]->getThreeBodyStiffnessFunction();
+							current_property = property;
 						}
+					
+						/* stiffness matrix */
+						dMatrixT K_ijk(3*ndof);
+						if (stiffness_function_3body(x_ip, x_jp, x_kp, K_ijk)) {
+							// check signs and make sure I don't need factors of 1/3
+							
+						} 
 					}
 				}
 			}
@@ -988,92 +972,92 @@ void ParticleThreeBodyT::RHSDriver3D(void)
 		{
 			/* global tag */
 			int   tag_j = neighbors[j];
-			if (tag_j < tag_i) {
-				int  type_j = fType[tag_j];
-				double* f_j = fForce(tag_j);
-				const double* x_j = coords(tag_j);
+			int  type_j = fType[tag_j];
+			double* f_j = fForce(tag_j);
+			const double* x_j = coords(tag_j);
 
-				/* set pair property (if not already set) */
-				int property = fPropertiesMap(type_i, type_j);
-				if (property != current_property)
-				{
-					if (!fThreeBodyProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
-						force_function = fThreeBodyProperties[property]->getForceFunction();
-					force_function_3body = fThreeBodyProperties[property]->getThreeBodyForceFunction();
-					current_property = property;
-				}
+			/* set pair property (if not already set) */
+			int property = fPropertiesMap(type_i, type_j);
+			if (property != current_property)
+			{
+				if (!fThreeBodyProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
+					force_function = fThreeBodyProperties[property]->getForceFunction();
+				force_function_3body = fThreeBodyProperties[property]->getThreeBodyForceFunction();
+				current_property = property;
+			}
+		
+			/* connecting vector */
+			double r_ij_0 = x_j[0] - x_i[0];
+			double r_ij_1 = x_j[1] - x_i[1];
+			double r_ij_2 = x_j[2] - x_i[2];
+			double r = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
+		
+			/* interaction force */
+			double F;
+			if (Paradyn_table)
+			{
+				double pp = r*dr;
+				int kk = int(pp);
+				int max_row = num_rows-2;
+				kk = (kk < max_row) ? kk : max_row;
+				pp -= kk;
+				pp = (pp < 1.0) ? pp : 1.0;				
+				const double* c = Paradyn_table + kk*row_size;
+				F = c[4] + pp*(c[5] + pp*c[6]);
+			}
+			else
+				F = force_function(r, NULL, NULL);
+			double Fbyr = formKd*F/r;
+
+			r_ij_0 *= Fbyr;
+			f_i[0] += r_ij_0;
+			f_j[0] +=-r_ij_0;
+
+			r_ij_1 *= Fbyr;
+			f_i[1] += r_ij_1;
+			f_j[1] +=-r_ij_1;
+
+			r_ij_2 *= Fbyr;
+			f_i[2] += r_ij_2;
+			f_j[2] +=-r_ij_2;
 			
-				/* connecting vector */
-				double r_ij_0 = x_j[0] - x_i[0];
-				double r_ij_1 = x_j[1] - x_i[1];
-				double r_ij_2 = x_j[2] - x_i[2];
-				double r = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
-			
-				/* interaction force */
-				double F;
-				if (Paradyn_table)
-				{
-					double pp = r*dr;
-					int kk = int(pp);
-					int max_row = num_rows-2;
-					kk = (kk < max_row) ? kk : max_row;
-					pp -= kk;
-					pp = (pp < 1.0) ? pp : 1.0;				
-					const double* c = Paradyn_table + kk*row_size;
-					F = c[4] + pp*(c[5] + pp*c[6]);
-				}
-				else
-					F = force_function(r, NULL, NULL);
-				double Fbyr = formKd*F/r;
-
-				r_ij_0 *= Fbyr;
-				f_i[0] += r_ij_0;
-				f_j[0] +=-r_ij_0;
-
-				r_ij_1 *= Fbyr;
-				f_i[1] += r_ij_1;
-				f_j[1] +=-r_ij_1;
-
-				r_ij_2 *= Fbyr;
-				f_i[2] += r_ij_2;
-				f_j[2] +=-r_ij_2;
+			// additional loop over neighbors for 3-body terms
+			for (int k = 1; k < neighbors.Length(); k++)
+			{
+				/* global tag */
+				int   tag_k = neighbors[k];
+				if (tag_k < tag_j) {
+					int  type_k = fType[tag_k];
+					double* f_k = fForce(tag_k);
+					const double* x_k = coords(tag_k);
 				
-				// additional loop over neighbors for 3-body terms
-				for (int k = 1; k < neighbors.Length(); k++)
-				{
-					/* global tag */
-					int   tag_k = neighbors[k];
-					if (tag_k < tag_j) {
-						int  type_k = fType[tag_k];
-						double* f_k = fForce(tag_k);
-						const double* x_k = coords(tag_k);
+					/* connecting vector */
+					double r_ik[3];
+					r_ik[0] = x_k[0] - x_i[0];
+					r_ik[1] = x_k[1] - x_i[1];
+					r_ik[2] = x_k[2] - x_i[2];
 					
-						/* connecting vector */
-						double r_ik[3];
-						r_ik[0] = x_k[0] - x_i[0];
-						r_ik[1] = x_k[1] - x_i[1];
-						r_ik[2] = x_k[2] - x_i[2];
-						double rik = sqrt(r_ik[0]*r_ik[0] + r_ik[1]*r_ik[1] + r_ik[2]*r_ik[2]);
-						
-						/* interaction force */
-						double f_ij[3], f_ik[3];
-						if (force_function_3body(x_i, x_j, x_k, f_ij, f_ik)) {
-							f_ij[0] *= formKd; 
-							f_i[0] -= f_ij[0] + f_ik[0];
-							f_j[0] += f_ij[0];
-							f_k[0] += f_ik[0]; 
+					/* interaction force */
+					double f_ij[3], f_ik[3];
+					if (force_function_3body(x_i, x_j, x_k, f_ij, f_ik)) {
+						/*cout << "3 body " << f_ij[0] << " " << f_ij[1] << " " << f_ij[2] << " ";
+						cout << f_ik[0] << " " << f_ik[1] << " " << f_ik[2] << "\n";
+						*/
+						f_ij[0] *= formKd; 
+						f_i[0] -= f_ij[0] + f_ik[0];
+						f_j[0] += f_ij[0];
+						f_k[0] += f_ik[0]; 
 
-							f_ij[1] *= formKd; 
-							f_i[1] -= f_ij[1] + f_ik[1];
-							f_j[1] += f_ij[1];
-							f_k[1] += f_ik[1]; 
-						
-							f_ij[0] *= formKd; 
-							f_i[2] -= f_ij[2] + f_ik[2];
-							f_j[2] += f_ij[2];
-							f_k[2] += f_ik[2];
-						} 
-					}
+						f_ij[1] *= formKd; 
+						f_i[1] -= f_ij[1] + f_ik[1];
+						f_j[1] += f_ij[1];
+						f_k[1] += f_ik[1]; 
+					
+						f_ij[0] *= formKd; 
+						f_i[2] -= f_ij[2] + f_ik[2];
+						f_j[2] += f_ij[2];
+						f_k[2] += f_ik[2];
+					} 
 				}
 			}
 		}
@@ -1093,8 +1077,7 @@ void ParticleThreeBodyT::SetConfiguration(void)
 		part_nodes = fActiveParticles;
 		
 	GenerateNeighborList(part_nodes, fNearestNeighborDistance, fNearestNeighbors, true, true);
-	// need full neighbor list for now
-	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, true, true);
+	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
 
 	/* output stream */
 	ofstreamT& out = ElementSupport().Output();

@@ -1,4 +1,4 @@
-/* $Id: StillingerWeberT.cpp,v 1.3 2004-12-01 02:19:38 cjkimme Exp $ */
+/* $Id: StillingerWeberT.cpp,v 1.4 2004-12-03 20:33:50 cjkimme Exp $ */
 #include "StillingerWeberT.h"
 #include <iostream.h>
 #include <math.h>
@@ -265,7 +265,7 @@ double StillingerWeberT::TwoBodyEnergy(double r_ab, double* data_a, double* data
 			
 			double r = 1./r_c;
 			double r_4 = r*r*r*r*s_B;
-			r = exp(1./(r_c - s_b));
+			r = exp(1./(r_c - s_b));	
 			
 			return s_A*(r_4-1)*r;
 		}
@@ -284,13 +284,14 @@ double StillingerWeberT::TwoBodyForce(double r_ab, double* data_a, double* data_
 		if (use_pow) {
 			return 0.; // later
 		} else {
+	  		
 	  		double r = 1./r_c;
 	  		double rms = 1./(r_c - s_b);
 	  		double r_4 = r*r*r*r*s_B;
 	  		double r_5 = -4.0*r*r_4;
 	  		r = exp(rms);
-	  
-	  		return s_A/s_sigma*r*(r_5 - (r_4 - 1.)*rms*rms);
+		
+			return s_A/s_sigma*r*(r_5 - (r_4 - 1.)*rms*rms);
 	  	}
 	}
 }
@@ -307,19 +308,22 @@ double StillingerWeberT::TwoBodyStiffness(double r_ab, double* data_a, double* d
 	  	if (use_pow) {
 	  		return 0.0; // later
 	  	} else {
+	  				
 	  		double r = 1./r_c;
 	  		double r_4 = r*r*r*r*s_B;
 	  		double r_5 = -4.0*r*r_4;
 	  		double r_6 = -5.0*r*r_5;
 	  		double rms = 1./(r_c - s_b);
 	  		r = exp(rms);
-	  
-	  		return s_A/s_sigma/s_sigma*r*(r_6 + rms*rms*rms*((r_4 - 1.)*rms +  2.*r_5));
+	  		r_4 -= 1.;
+	  		r_c = rms*rms;
+	  		
+	  		return s_A/s_sigma/s_sigma*r*(r_6 + r_c*(r_4*r_c -  2.*(r_5 + r_4*rms)));
 	  	} 
 	}
 }
 
-double StillingerWeberT::ThreeBodyEnergy(double* ri, double* rj, double* rk)
+double StillingerWeberT::ThreeBodyEnergy(const double* ri, const double* rj, const double* rk)
 {
 	//compute rij, rik, thetaijk;
 	double r_ij[3], r_ik[3], rij, rik, costheta;
@@ -344,9 +348,9 @@ double StillingerWeberT::ThreeBodyEnergy(double* ri, double* rj, double* rk)
 		costheta += s_costheta_ideal;
 		costheta *= costheta;
 		
-		rij = 1./rij - s_b;
-		rik = 1./rik - s_b;
-		rij = exp(s_gamma*(1./rij + 1./rik));
+		rij = 1./(rij - s_b);
+		rik = 1./(rik - s_b);
+		rij = exp(s_gamma*(rij + rik));
 		
 		return s_lambda*rij*costheta;
 	}
@@ -371,6 +375,9 @@ double* StillingerWeberT::ThreeBodyForce(const double* ri, const double* rj, con
 	rij /= s_sigma;
 	rik /= s_sigma;
 	
+	dMatrixT bigbadK(6); bigbadK = 0.;
+	ThreeBodyStiffness(ri,rj,rk,bigbadK);
+	
 	// compare with cutoff
 	if (rij > s_b || rik > s_b) {
 		return NULL;
@@ -378,21 +385,22 @@ double* StillingerWeberT::ThreeBodyForce(const double* ri, const double* rj, con
 		double exp_ij, exp_ik;
 		exp_ij = 1./(rij - s_b);
 		exp_ik = 1./(rik - s_b);
-		double com_fact = s_lambda/s_sigma/s_sigma*exp(s_gamma*(exp_ij + exp_ik));
+		double com_fact = s_lambda*exp(s_gamma*(exp_ij + exp_ik));
 		double angle_stretch = costheta + s_costheta_ideal;
 		com_fact *= angle_stretch;
 		exp_ij *= s_gamma*exp_ij;		
 		exp_ik *= s_gamma*exp_ik;
 		
+		rij *= s_sigma;
+		rik *= s_sigma;
+		
 		for (int i = 0; i < 3; i++) {
-			r_ij[i] *= com_fact/rij;
+			r_ij[i] *= com_fact/rij; // r_ij^hat \left(\cos \theta + \frac{1}{3}\right)\lambda\exp{}
 			r_ik[i] *= com_fact/rik;
-			fij[i] = -r_ij[i]*(costheta + s_costheta_ideal)*exp_ij;
-			fik[i] = -r_ik[i]*(costheta + s_costheta_ideal)*exp_ik;
-			fij[i] += 2.*r_ik[i]/rij;
-			fik[i] += 2.*r_ij[i]/rik;
-			fij[i] -= r_ij[i]*costheta/rij;
-			fik[i] -= r_ik[i]*costheta/rik;
+			fij[i] = -r_ij[i]*angle_stretch*exp_ij/s_sigma;
+			fik[i] = -r_ik[i]*angle_stretch*exp_ik/s_sigma;
+			fij[i] += 2.*(r_ik[i] - r_ij[i]*costheta)/rij;
+			fik[i] += 2.*(r_ij[i] - r_ik[i]*costheta)/rik;
 		}
 		
 		return fij;
@@ -426,16 +434,33 @@ double* StillingerWeberT::ThreeBodyStiffness(const double* ri, const double* rj,
 		double exp_ij, exp_ik;
 		exp_ij = 1./(rij - s_b);
 		exp_ik = 1./(rik - s_b);
-		double com_fact = s_lambda/s_sigma/s_sigma*exp(s_gamma*(exp_ij + exp_ik));	
+		double com_fact = s_lambda*exp(s_gamma*(exp_ij + exp_ik));	
 		double angle_stretch = costheta + s_costheta_ideal;
 		double angle_stretch_2 = angle_stretch*angle_stretch;
-		exp_ij *= s_gamma*exp_ij;		
-		exp_ik *= s_gamma*exp_ik;
+		exp_ij *= s_gamma*exp_ij/s_sigma;		
+		exp_ik *= s_gamma*exp_ik/s_sigma;
+		
+		rij *= s_sigma;
+		rik *= s_sigma;
+		for (int i = 0; i < 3; i++) {
+			r_ij[i] /= rij;
+			r_ik[i] /= rik;
+		}	
+		
+		/* K_jk entry proportional to r_ik x r_ij */
+		/*double term1, term2, term3, term4, term5, term6;
+		term1 = angle_stretch_2*exp_ij*exp_ik;
+		term2 = 2.*angle_stretch*costheta*(exp_ij)/rik;
+		term3 = 2.*angle_stretch*costheta*(1./rij)/rik;
+		term4 = 2.*(costheta*costheta)/rij/rik;
+		term5 = 2.*(1/rik)/rij;
+		term6 = 2.*(exp_ik*angle_stretch*costheta)/rij;*/
+		double jk_fac_kj = angle_stretch_2*exp_ij*exp_ik;
+		jk_fac_kj += 2.*angle_stretch*costheta*(exp_ij/rik + exp_ik/rij + 1./(rij*rik));
+		jk_fac_kj += 2.*(costheta*costheta)/rij/rik;
 		
 		/* K_jk entry proportional to r_ij x r_ik */
-		double jk_fac_jk = -angle_stretch_2*exp_ij*exp_ik;
-		jk_fac_jk += 2.*angle_stretch*costheta*(exp_ij/rik+exp_ik/rij + 1./(rik*rij));
-		jk_fac_jk += 2.*(costheta*costheta + 1)/rij/rik;
+		double jk_fac_jk = 2./(rik*rij);
 		
 		/* K_jk entry proportional to r_ij x r_ij */
 		double jk_fac_jj = -2./rik*(angle_stretch*exp_ij + angle_stretch/rij + costheta/rij);
@@ -447,30 +472,30 @@ double* StillingerWeberT::ThreeBodyStiffness(const double* ri, const double* rj,
 		double jk_fac_diag = 2.*angle_stretch/rij/rik;
 		
 		/* K_jj entry proportional to r_ij x r_ik */
-		double jj_fac_jk = -4./rij*(angle_stretch*exp_ij + angle_stretch/rij + costheta/rij);
+		double jj_fac_jk = -2./rij*(angle_stretch*exp_ij + angle_stretch/rij + costheta/rij);
 
 		/* K_jj entry proportional to r_ij x r_ij */
-		double jj_fac_jj = -angle_stretch_2*exp_ij*exp_ij + angle_stretch*costheta/rij*(4.*exp_ij/rij + 6./rij/rij);
-		jj_fac_jj += 2.*costheta*costheta/rij/rij + 2.*s_gamma*pow(exp_ij/s_gamma,1.5);
+		double jj_fac_jj = angle_stretch_2*exp_ij*(1./rij+exp_ij) + angle_stretch*costheta/rij*(4.*exp_ij + 6./rij);
+		jj_fac_jj += 2.*costheta*costheta/rij/rij + 2.*angle_stretch_2*exp_ij/s_sigma/(rij/s_sigma-s_b);
 		
 		/* K_jj entry proportional to r_ik x r_ik */
 		double jj_fac_kk = 2./rij/rij;
 		
 		/* K_jj entry proportional to 1 */
-		double jj_fac_diag = (angle_stretch_2*exp_ij - 2.*angle_stretch*costheta/rij)/rij;
+		double jj_fac_diag = -(angle_stretch_2*exp_ij + 2.*angle_stretch*costheta/rij)/rij;
 		
 		/* K_kk entry proportional to r_ij x r_ik */
-		double kk_fac_jk = -4./rik*(angle_stretch*exp_ik + angle_stretch/rik + costheta/rik); 
+		double kk_fac_jk = -2./rik*(angle_stretch*exp_ik + angle_stretch/rik + costheta/rik); 
 		
 		/* K_kk entry proportional to r_ik x r_ik */
-		double kk_fac_kk =  -angle_stretch_2*exp_ik*exp_ik + angle_stretch*costheta/rik*(4.*exp_ik/rik + 6./rik/rik);
-		kk_fac_kk += 2.*costheta*costheta/rik/rik + 2.*s_gamma*pow(exp_ik/s_gamma,1.5);
+		double kk_fac_kk =  angle_stretch_2*exp_ik*(1./rik+exp_ik) + angle_stretch*costheta/rik*(4.*exp_ik + 6./rik);
+		kk_fac_kk += 2.*costheta*costheta/rik/rik + 2.*angle_stretch_2*exp_ik/s_sigma/(rik/s_sigma-s_b);
 		
 		/* K_kk entry proportional to r_ij x r_ij */
 		double kk_fac_jj = 2./rik/rik;
 		
 		/* K_kk entry proportional to 1 */
-		double kk_fac_diag = (angle_stretch_2*exp_ik - 2.*angle_stretch*costheta/rik)/rik;;
+		double kk_fac_diag = -(angle_stretch_2*exp_ik + 2.*angle_stretch*costheta/rik)/rik;;
 		
 		dMatrixT tempSpace(3,3);
 		dArrayT v1, v2;
@@ -478,9 +503,11 @@ double* StillingerWeberT::ThreeBodyStiffness(const double* ri, const double* rj,
 		v2.Set(3,r_ij);
 		tempSpace.Outer(v1,v2,jk_fac_jj);
 		v2.Set(3,r_ik);
-		tempSpace.Outer(v1,v2,jk_fac_jk,dMatrixT::kAccumulate);
+		tempSpace.Outer(v1,v2,jk_fac_kj,dMatrixT::kAccumulate);
+		tempSpace.Outer(v2,v1,jk_fac_jk,dMatrixT::kAccumulate);
 		v1.Set(3,r_ik);
 		tempSpace.Outer(v1,v2,jk_fac_kk,dMatrixT::kAccumulate);
+		K_ijk.SetBlock(0,3,tempSpace);
 		K_ijk(0,3) += jk_fac_diag;
 		K_ijk(1,4) += jk_fac_diag;
 		K_ijk(2,5) += jk_fac_diag;
@@ -490,8 +517,10 @@ double* StillingerWeberT::ThreeBodyStiffness(const double* ri, const double* rj,
 		tempSpace.Outer(v1,v2,jj_fac_jj);
 		v2.Set(3,r_ik);
 		tempSpace.Outer(v1,v2,jj_fac_jk,dMatrixT::kAccumulate);
+		tempSpace.Outer(v2,v1,jj_fac_jk,dMatrixT::kAccumulate);
 		v1.Set(3,r_ik);
 		tempSpace.Outer(v1,v2,jj_fac_kk,dMatrixT::kAccumulate);
+		K_ijk.SetBlock(0,0,tempSpace);
 		K_ijk(0,0) += jj_fac_diag;
 		K_ijk(1,1) += jj_fac_diag;
 		K_ijk(2,2) += jj_fac_diag;
@@ -501,11 +530,13 @@ double* StillingerWeberT::ThreeBodyStiffness(const double* ri, const double* rj,
 		tempSpace.Outer(v1,v2,kk_fac_kk);
 		v2.Set(3,r_ij);
 		tempSpace.Outer(v1,v2,kk_fac_jk,dMatrixT::kAccumulate);
+		tempSpace.Outer(v2,v1,kk_fac_jk,dMatrixT::kAccumulate);
 		v1.Set(3,r_ij);
 		tempSpace.Outer(v1,v2,kk_fac_jj,dMatrixT::kAccumulate);
-		K_ijk(3,3) += jj_fac_diag;
-		K_ijk(4,4) += jj_fac_diag;
-		K_ijk(5,5) += jj_fac_diag;
+		K_ijk.SetBlock(3,3,tempSpace);
+		K_ijk(3,3) += kk_fac_diag;
+		K_ijk(4,4) += kk_fac_diag;
+		K_ijk(5,5) += kk_fac_diag;
 		
 		K_ijk *= com_fact;
 		
