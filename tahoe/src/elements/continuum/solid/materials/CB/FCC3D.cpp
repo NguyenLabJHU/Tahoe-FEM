@@ -1,4 +1,4 @@
-/* $Id: FCC3D.cpp,v 1.9 2005-02-13 22:25:17 paklein Exp $ */
+/* $Id: FCC3D.cpp,v 1.10 2005-02-17 17:38:53 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D.h"
 
@@ -341,7 +341,7 @@ double FCC3D::ZeroStressStretch(void)
 	int count = 0;
 	double error, error0;
 	error = error0 = fabs(PK2(0,0));
-	while (count++ < 10 && error0 > kSmall && error/error0 > kSmall)
+	while (count++ < 10 && error > kSmall && error/error0 > kSmall)
 	{
 		ComputeModuli(E, C);
 		double dE = -PK2(0,0)/(C(0,0) + 2.0*C(0,1));
@@ -352,7 +352,7 @@ double FCC3D::ZeroStressStretch(void)
 	}
 
 	/* check convergence */
-	if (error0 > kSmall && error/error0 > kSmall) {
+	if (error > kSmall && error/error0 > kSmall) {
 		cout << "\n " << caller << ":\n";
 		cout << " E =\n" << E << '\n';
 		cout << " PK2 =\n" << PK2 << endl;
