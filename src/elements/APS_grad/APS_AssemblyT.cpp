@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.29 2003-10-07 06:57:38 paklein Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.30 2003-10-08 17:45:09 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -48,10 +48,11 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	bStep_Complete(0)
 {
 	
-	knum_d_state = 2; // double's needed per ip
+	knum_d_state = 3; // double's needed per ip
 	knum_i_state = 0; // int's needed per ip
 	
-	knumstress = 2; // int's needed per ip
+	knumstrain = 2; 
+	knumstress = 2; 
 	
 	output = "out";
 
@@ -113,7 +114,6 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 		in >> fPlasticGradientWght[i];
 	
 		// get nodes-on-faces
-		//??how partition between facets to define fSurfShapes??
 		model.SideSet(fSideSetID[i], facet_geom, facet_nodes, fPlasticGradientFaces[i]);
 		
 		// get the side set information {element, face number} for each
@@ -136,7 +136,6 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 APS_AssemblyT::~APS_AssemblyT(void) 
 {  
 	delete fShapes;
-	delete fSurfShapes;
 	delete fEquation_d; 
 	delete fEquation_eps; 
 	delete fBalLinMomMaterial; 
@@ -196,6 +195,9 @@ void APS_AssemblyT::Initialize(void)
 	n_en = NumElementNodes();
 	n_np = ElementSupport().NumNodes();
 	n_el = NumElements();
+	
+	n_sd_surf = n_sd;
+	n_en_surf = n_en/2;
 
 	n_en_x_n_df = n_en*n_df;
 	n_en_x_n_sd = n_en*n_sd;
@@ -225,10 +227,6 @@ void APS_AssemblyT::Initialize(void)
 	fCurrCoords.Dimension(n_en, n_sd);
 	fShapes = new ShapeFunctionT(fGeometryCode, fNumIP, fCurrCoords);
 	fShapes->Initialize();
-	//fCurrSurfCoords??
-//	fCurrCoordsSurf.Dimension(n_en/2, n_sd);
-//	fSurfShapes = new ShapeFunctionT(fGeometryCodeSurf, fNumIPSurf, fCurrCoordsSurf);
-//	fSurfShapes->Initialize();
 	
 	fNormal.Dimension ( n_sd );
 	
@@ -293,11 +291,11 @@ void APS_AssemblyT::Initialize(void)
 	fFeps_ext.Dimension 	( n_en_x_n_sd );
 
 	fFEA_Shapes.Construct	( fNumIP,n_sd,n_en );
-	fFEA_SurfShapes.Construct	( fNumIPSurf,n_sd-1,n_en/2 );
+	fFEA_SurfShapes.Construct	( fNumIPSurf,n_sd_surf,n_en_surf );
 	
 	Render_Vector.Dimension ( n_el );
 	for (int e=0; e<n_el; e++) {
-		Render_Vector[e].Construct ( 1, n_ip, knumstress+knum_d_state );	
+		Render_Vector[e].Construct ( 1, n_ip, knumstrain+knumstress+knum_d_state );	
 	}
 
 
@@ -305,9 +303,8 @@ void APS_AssemblyT::Initialize(void)
 	ifstreamT& in  = ElementSupport().Input();
 	ofstreamT& out = ElementSupport().Output();
 
-	/* storage for integration point stresses */
-	//fIPVariable.Dimension (n_el, fNumIP*(dSymMatrixT::NumValues(n_sd)+knum_d_state));
-	fIPVariable.Dimension (n_el, fNumIP*(knumstress+knum_d_state));
+	/* storage for integration point strain, stress, and ISVs*/
+	fIPVariable.Dimension (n_el, fNumIP*(knumstrain+knumstress+knum_d_state));
 	fIPVariable = 0.0;
 
 	/* allocate storage for nodal forces */
@@ -599,7 +596,6 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
 		Convert.Interpolate 	( fShapes, 	gamma_p, gamma_p_n, fgamma_p, fgamma_p_n );
 		Convert.Shapes			(	fShapes, fFEA_Shapes );
-		Convert.SurfShapes		(	fSurfShapes, fFEA_SurfShapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
 		Convert.Na				(	n_en, fShapes, 	fFEA_Shapes );
@@ -702,22 +698,20 @@ void APS_AssemblyT::RegisterOutput(void)
 	for (int i = 0; i < block_ID.Length(); i++)
 		block_ID[i] = fBlockData[i].ID();
 
-	/* output per element - stresses at the integration points */
-	//int n_stress = dSymMatrixT::NumValues(NumSD());
-	int n_stress = knumstress;
-	ArrayT<StringT> e_labels(fNumIP*(n_stress+knum_d_state));
+	/* output per element - strain, stress, and ISVs at the integration points */
+	ArrayT<StringT> e_labels(fNumIP*(knumstrain+knumstress+knum_d_state));
 
 	/* over integration points */
-	const char* slabels2D[] = {"s13", "s23"};
-	const char* svlabels2D[] = {"xi", "kappa"};
+	const char* slabels2D[] = {"gamma1", "gamma2","s13", "s23"};
+	const char* svlabels2D[] = {"xi", "kappa", "gamma_dot"};
 	int count = 0;
 	for (int j = 0; j < fNumIP; j++)
 	{
 		StringT ip_label;
 		ip_label.Append("ip", j+1);
 			
-		/* over stress components */
-		for (int i = 0; i < n_stress; i++)
+		/* over strain and stress components */
+		for (int i = 0; i < knumstrain+knumstress; i++)
 		{
 			e_labels[count].Clear();
 			e_labels[count].Append(ip_label, ".", slabels2D[i]);
@@ -734,7 +728,7 @@ void APS_AssemblyT::RegisterOutput(void)
 	}		
 
 	/* output per node */
-	int num_node_output = fDispl.NumDOF() + fPlast.NumDOF() + n_stress + knum_d_state;
+	int num_node_output = fDispl.NumDOF() + fPlast.NumDOF() + knumstrain + knumstress + knum_d_state;
 	ArrayT<StringT> n_labels(num_node_output);
 	count = 0;
 
@@ -748,8 +742,8 @@ void APS_AssemblyT::RegisterOutput(void)
 	for (int i = 0; i < coarse_labels.Length(); i++)
 		n_labels[count++] = coarse_labels[i];
 
-	/* labels from stresses at the nodes */
-	for (int i = 0; i < n_stress; i++)
+	/* labels from strains and stresses at the nodes */
+	for (int i = 0; i < knumstrain+knumstress; i++)
 		n_labels[count++] = slabels2D[i];
 		
 	/* labels from state variables at the nodes */
@@ -775,15 +769,6 @@ void APS_AssemblyT::RegisterOutput(void)
 
 void APS_AssemblyT::WriteOutput(void)
 {
-
-	cout << "####################################################################" << endl; 
-	cout << "####################################################################" << endl; 
-	cout << "####################################################################" << endl; 
-	cout << "########################## STEP COMPLETE ###########################" << endl; 
-	cout << "####################################################################" << endl; 
-	cout << "####################################################################" << endl; 
-	cout << "####################################################################" << endl; 
-
 	bStep_Complete=1;
 	RHSDriver();
 	bStep_Complete=0;
@@ -795,22 +780,20 @@ void APS_AssemblyT::WriteOutput(void)
 	const iArrayT& nodes_used = output_set.NodesUsed();
 
 	/* smooth stresses to nodes */
-	//int n_stress = dSymMatrixT::NumValues(NumSD());
-	int n_stress = knumstress;
-	ElementSupport().ResetAverage(n_stress+knum_d_state);
+	ElementSupport().ResetAverage(knumstrain+knumstress+knum_d_state);
 	dArray2DT out_variable_all;
 	dArrayT out_variable;
-	dArray2DT nd_var(NumElementNodes(), n_stress+knum_d_state);
+	dArray2DT nd_var(NumElementNodes(), knumstrain+knumstress+knum_d_state);
 	Top();
 	while (NextElement())
 	{
 		/* extrapolate */
 		nd_var = 0.0;
-		out_variable_all.Alias(fNumIP, n_stress+knum_d_state, fIPVariable(CurrElementNumber()));
+		out_variable_all.Alias(fNumIP, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
 		fShapes->TopIP();
 		while (fShapes->NextIP())
 		{
-			out_variable.Alias(knumstress+knum_d_state, out_variable_all(fShapes->CurrIP()));
+			out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(fShapes->CurrIP()));
 			fShapes->Extrapolate(out_variable, nd_var);
 		}
 	
@@ -823,7 +806,7 @@ void APS_AssemblyT::WriteOutput(void)
 	ElementSupport().OutputUsedAverage(extrap_values);
 
 	/* temp space for group displacements */
-	int num_node_output = fDispl.NumDOF() + fPlast.NumDOF() + n_stress + knum_d_state;
+	int num_node_output = fDispl.NumDOF() + fPlast.NumDOF() + knumstrain + knumstress + knum_d_state;
 	dArray2DT n_values(nodes_used.Length(), num_node_output);
 
 	/* collect nodal values */
@@ -840,7 +823,7 @@ void APS_AssemblyT::WriteOutput(void)
 			*row++ = fU(node,j);
 
 		double* p_stress = extrap_values(i);
-		for (int j = 0; j < (n_stress+knum_d_state); j++)
+		for (int j = 0; j < (knumstrain+knumstress+knum_d_state); j++)
 			*row++ = p_stress[j];
 	}
 
@@ -884,8 +867,6 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 	int curr_group = ElementSupport().CurrentGroup();
 
 	/* stress output work space */
-	//int n_stress = dSymMatrixT::NumValues(NumSD());
-	int n_stress = knumstress;
 	dArray2DT out_variable_all, fdstatenew_all, fdstate_all;
 	dArrayT out_variable;
 
@@ -930,7 +911,6 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
 		Convert.Interpolate 	( fShapes, 	gamma_p, gamma_p_n, fgamma_p, fgamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
-		Convert.SurfShapes		(	fSurfShapes, fFEA_SurfShapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
 		Convert.Na				(	n_en, fShapes, 	fFEA_Shapes );
@@ -993,9 +973,9 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 				fEquation_eps -> Get ( output, Render_Vector[e][0] );
 			
 				//-- Store/Register data in classic tahoe manner 
-				out_variable_all.Alias(fNumIP, n_stress+knum_d_state, fIPVariable(CurrElementNumber()));
+				out_variable_all.Alias(fNumIP, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
 				for (l=0; l < fNumIP; l++) {
-					out_variable.Alias(n_stress+knum_d_state, out_variable_all(l));
+					out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(l));
 					out_variable=Render_Vector[e][0][l];
 					} 
 			
@@ -1045,8 +1025,6 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 	int curr_group = ElementSupport().CurrentGroup();
 
 	/* stress output work space */
-	//int n_stress = dSymMatrixT::NumValues(NumSD());
-	int n_stress = knumstress;
 	dArray2DT	out_variable_all, fdstatenew_all, fdstate_all;
 	dArrayT		out_variable;
 
@@ -1098,7 +1076,6 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
 		Convert.Interpolate 	( fShapes, 	gamma_p, gamma_p_n, fgamma_p, fgamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
-
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
 		Convert.Na				(	n_en, fShapes, 	fFEA_Shapes );
@@ -1114,9 +1091,9 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 			fEquation_eps -> Get ( output, Render_Vector[e][0] );
 			
 			//-- Store/Register data in classic tahoe manner 
-			out_variable_all.Alias(fNumIP, n_stress+knum_d_state, fIPVariable(CurrElementNumber()));
+			out_variable_all.Alias(fNumIP, knumstrain+knumstress+knum_d_state, fIPVariable(CurrElementNumber()));
 			for (l=0; l < fNumIP; l++) {
-				out_variable.Alias(n_stress+knum_d_state, out_variable_all(l));
+				out_variable.Alias(knumstrain+knumstress+knum_d_state, out_variable_all(l));
 				out_variable=Render_Vector[e][0][l];
 			} 
 	
@@ -1130,84 +1107,30 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 			fEquation_d -> Form_RHS_F_int ( fFd_int, np1 );
 			
 			
-			// add on contribution from sidesets
-			
-			//determine element facet nodes??
-//			GeometryT::CodeT geometry_code;
-//			iArray2DT& surface_facets;
-//			iArrayT& surface_nodes;
-//			iArrayT& facet_numbers;
-//			iArrayT& elem_numbers;
-//			const GeometryBaseT* geometry;
-//			model.SurfaceFacets(fSideSetID, geometry_code,
-//								surface_facets, surface_nodes,
-//								facet_numbers, elem_numbers,
-//								geometry = NULL);					
-												
+			// add on contribution from sidesets								
 			for (int i = 0; i < num_sidesets; i++)
 			{
 				for (int j = 0; j < fSideSetElements[i].Length(); j++)
 				{
+					//??? how check to see if element e is in sideset i??
 					if (e == fSideSetElements[i][j])
 					{
-						/* shape functions over the given face */
-						int face = fSideSetElements[i][j];
-						const ParentDomainT& surf_shape = fShapes.FacetShapeFunction(face);
-						int nip = surf_shape.NumIP();
-						
 						/* collect coordinates over the face */
 						fPlasticGradientFaces[i].RowAlias(j, face_nodes);
 						face_coords.SetLocal(face_nodes);
-
-						/* loop over integration points */
-						const double* w = surf_shape.Weight();
-						for (int ip = 0; ip < nip; ip++)
-						{
-							/* coordinate mapping */
-							surf_shape.DomainJacobian(face_coords, ip, face_jacobian);
-							double det_ip = surf_shape.SurfaceJacobian(face_jacobian, face_Q);
-							
-							/* last column is the normal (I think) */
-							face_Q.ColumnAlias(face_Q.Cols()-1, fNormal);
 						
-							/* integration weight */
-							double jw = w[ip]*det_ip;
-							
-							//integrate the force and stiffness for the nodes on the face
-						}
-
+						/* shape functions over the given face */
+						int face = fSideSetElements[i][j];
+						const ParentDomainT& surf_shape = fShapes.FacetShapeFunction(face);
+						
 						/* equations for the nodes on the face */
 						fPlasticGradientFaceEqnos[i].RowAlias(j, face_equations);
-
-						//assemble the force and stiffness using face_equations
 						
-
-							//set SurfShapes and derivatives for this facet
-							//??set nodes and nodal coords for fSurfShapes??
-							//fCurrCoordsSurf = "coords of this e's facet nodes";
-							//fSurfShapes->SetDerivatives(); 
-							//fCoords = fCurrCoordsSurf;
-						
-							//taken from SurfaceShapeT to find fNormal
-							/* compute facet coordinates */
-							//int fNumFacetNodes = 2;
-							//if (fCoords.NumberOfNodes() != fNumFacetNodes) ComputeFacetCoords();
-							/* Jacobian matrix of the surface transformation */
-							//const LocalArrayT& fFacetCoords = fCurrCoordsSurf;
-							//int fCurrIP = 0;
-							//dMatrixT& fJacobian;
-							//fDomain->DomainJacobian(fFacetCoords, fCurrIP, fJacobian);
-							//dMatrixT& Q;
-							//double jac = fDomain->SurfaceJacobian(fJacobian, Q);
-							//fNormal = Q(1);
-							
-							//iArrayT fFacetNodes = ?;
-							
-							Convert.SurfShapes	( fSurfShapes, fFEA_SurfShapes );
-							Convert.Gradients 	( fSurfShapes, 	u, u_n, fgrad_u_surf, fgrad_u_surf_n );
-							APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgrad_gamma_p, fstate ); 
-							fEquation_d -> Form_LHS_Kd_Surf ( fKdd, fFEA_SurfShapes, fNormal );
-							fEquation_d -> Form_RHS_F_int_Surf ( fFd_int, np1, fPlasticGradientWght[i] );		
+						Convert.SurfShapes	( surf_shape, fFEA_SurfShapes, face_coords );
+						Convert.GradientSurface ( surf_shape, u, u_n, fgrad_u_surf, fgrad_u_surf_n );
+						APS_VariableT np1(	fgrad_u, fgrad_u_surf, fgamma_p, fgrad_gamma_p, fstate ); 
+						fEquation_d -> Form_LHS_Kd_Surf ( fKdd, fFEA_SurfShapes, face_equations );
+						fEquation_d -> Form_RHS_F_int_Surf ( fFd_int, np1, fPlasticGradientWght[i], face_equations );
 					}
 				}
 			}

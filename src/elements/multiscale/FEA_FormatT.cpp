@@ -1,4 +1,4 @@
-// $Id: FEA_FormatT.cpp,v 1.15 2003-10-06 18:31:48 raregue Exp $
+// $Id: FEA_FormatT.cpp,v 1.16 2003-10-08 17:44:24 raregue Exp $
 #include "FEA_FormatT.h"
 
 using namespace Tahoe;
@@ -19,14 +19,30 @@ void FEA_FormatT::Shapes	(ShapeFunctionT *fShapes, FEA_ShapeFunctionT &FEA_Shape
 
 //---------------------------------------------------------------------
 
-void FEA_FormatT::SurfShapes	(ShapeFunctionT *fSurfShapes, FEA_SurfShapeFunctionT &FEA_SurfShapes )
+void FEA_FormatT::SurfShapes	(const ParentDomainT& fSurfShapes, FEA_SurfShapeFunctionT &FEA_SurfShapes, 
+								LocalArrayT& face_coords )
 {
-	FEA_SurfShapes.j = fSurfShapes->IPDets(); 		// IPDets() returns double*
-	FEA_SurfShapes.W = fSurfShapes->IPWeights(); 	// IPWeights() returns double*
+	dMatrixT face_jacobian(2, 1);
+	dMatrixT face_Q(2);
+	dArrayT fNormal(2);
 	
-	for	(int l=0; l<fSurfShapes->NumIP(); l++) {
+	//fNormal.Dimension ( n_sd );
+
+	FEA_SurfShapes.W = fSurfShapes.Weight();; 	// IPWeights() returns double*
+	int nip_surf = fSurfShapes.NumIP();
+	
+	for	(int l=0; l<nip_surf; l++) {
+	
+		fSurfShapes.DomainJacobian(face_coords, l, face_jacobian);
+		FEA_SurfShapes.j[l] = fSurfShapes.SurfaceJacobian(face_jacobian, face_Q); 	// IPDets() returns double*
+		//fix this
 		fSurfShapes->SetIP(l);
 		fSurfShapes->GradNa		( FEA_SurfShapes.dNdx[l] 	); 
+		
+		/* last column is the normal (I think) */
+		face_Q.ColumnAlias(face_Q.Cols()-1, fNormal);
+		FEA_SurfShapes.normal[l] = fNormal;
+						
 	}
 
 }
@@ -112,6 +128,19 @@ void FEA_FormatT::Gradients (	ShapeFunctionT *fShapes,LocalArrayT &u_np1,LocalAr
 		fShapes->SetIP(l);
 		fShapes->GradU	( u_n, 		GRAD_u_n[l], 	l );
 		fShapes->GradU 	( u_np1, 	GRAD_u_np1[l], l );
+	}
+}
+
+//---------------------------------------------------------------------
+
+void FEA_FormatT::GradientSurface (	const ParentDomainT& fSurfShapes ,LocalArrayT &u_np1,LocalArrayT &u_n, 
+								FEA_dMatrixT &GRAD_u_np1, FEA_dMatrixT &GRAD_u_n)
+{
+	int nip_surf = fSurfShapes.NumIP();
+	for	(int l=0; l<nip_surf; l++) {
+		fSurfShapes->SetIP(l);
+		fSurfShapes->GradU	( u_n, 		GRAD_u_n[l], l );
+		fSurfShapes->GradU 	( u_np1, 	GRAD_u_np1[l], l );
 	}
 }
 

@@ -1,4 +1,4 @@
-// $Id: FEA_SurfShapeFunctionT.h,v 1.1 2003-10-07 19:37:49 raregue Exp $
+// $Id: FEA_SurfShapeFunctionT.h,v 1.2 2003-10-08 17:44:26 raregue Exp $
 #ifndef _FEA_SURFSHAPEFUNCTIONT_H_
 #define _FEA_SURFSHAPEFUNCTIONT_H_
 
@@ -17,7 +17,7 @@ class FEA_SurfShapeFunctionT
     	void Construct 		(int &nip,int &nsd,int &nen); 
 		void Print 			( char* name);
 
-		FEA_dVectorT N;						
+		FEA_dVectorT N, normal;						
 		FEA_dMatrixT dNdx;						
 		FEA_dScalarT W;						
 		FEA_dScalarT j;						
@@ -35,6 +35,7 @@ inline FEA_SurfShapeFunctionT::FEA_SurfShapeFunctionT (int &nip,int &nsd,int &ne
   		dNdx.FEA_Dimension	(	nip,nsd,nen	); 
  	     W.FEA_Dimension	(	nip	); 
  	     j.FEA_Dimension	(	nip	); 
+ 	     normal.FEA_Dimension	(	nip,nsd	); 
 }
 
 //------------------------------------------------------------------------
@@ -47,6 +48,7 @@ inline void FEA_SurfShapeFunctionT::Construct (int &nip,int &nsd,int &nen)
   		dNdx.FEA_Dimension	(	nip,nsd,nen	); 
  	     W.FEA_Dimension	(	nip	); 
  	     j.FEA_Dimension	(	nip	); 
+ 	     normal.FEA_Dimension	(	nip,nsd	);
 }
 
 //------------------------------------------------------------------------
@@ -58,6 +60,7 @@ inline void FEA_SurfShapeFunctionT::Print (char* name)
 	dNdx.Print("dNdx");
 	W.Print("W");
 	j.Print("j");
+	normal.Print("normal");
 
 }
 

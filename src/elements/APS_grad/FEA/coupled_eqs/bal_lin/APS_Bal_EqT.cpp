@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.cpp,v 1.13 2003-10-06 18:34:46 raregue Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.14 2003-10-08 17:45:13 raregue Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -80,25 +80,27 @@ void APS_Bal_EqT::Form_RHS_F_int ( dArrayT &F_int, APS_VariableT &npt )
 
 //---------------------------------------------------------------------
 
-void APS_Bal_EqT::Form_LHS_Kd_Surf	( dMatrixT &Kd, FEA_SurfShapeFunctionT &SurfShapes,  const dArrayT& Normal)  
+void APS_Bal_EqT::Form_LHS_Kd_Surf	( dMatrixT &Kd, FEA_SurfShapeFunctionT &SurfShapes, iArrayT& face_equations )  
 {	
-		Data_Pro_Surf.Construct ( n_en, SurfShapes.dNdx	);
+		Data_Pro_Surf.Construct ( SurfShapes.dNdx	);
 		Data_Pro_Surf.Insert_N_surf  ( SurfShapes.N );
 		SurfIntegral.Construct ( SurfShapes.j, SurfShapes.W );
 		
 		Data_Pro_Surf.APS_B_surf(B_d[kB_surf]);
 		Data_Pro_Surf.APS_N(VB_d[kN]);
 
-		V[knueps] = Normal;
+		V[knueps] = SurfShapes.normal;
+		//V[knueps](1) = SurfShapes.normal[1];
 
  		V[knueps].Dot( B_d[kB_surf], VB_d[knuB] ); 
  		
+ 		//use face_equations here, somehow
 		Kd		-= SurfIntegral.of( VB_d[kN], C[kMu], VB_d[knuB] );
 }
 
 //---------------------------------------------------------------------
 
-void APS_Bal_EqT::Form_RHS_F_int_Surf ( dArrayT &F_int, APS_VariableT &npt, double &wght ) 
+void APS_Bal_EqT::Form_RHS_F_int_Surf ( dArrayT &F_int, APS_VariableT &npt, double &wght, iArrayT& face_equations  ) 
 {
 		V[keps](0) = C[km1];
 		V[keps](0) *= wght;
@@ -111,6 +113,7 @@ void APS_Bal_EqT::Form_RHS_F_int_Surf ( dArrayT &F_int, APS_VariableT &npt, doub
 		V[knueps].Dot( V[kV_Temp2], S[knuepsgradu] );
 		V[knueps].Dot( V[keps], S[knuepseps] );
 
+		//use face_equations here, somehow
 		F_int -= SurfIntegral.of( VB_d[kN], C[kMu], S[knuepsgradu] ); 
 		F_int += SurfIntegral.of( VB_d[kN], C[kMu], S[knuepseps] );
 }

@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.16 2003-10-07 06:57:38 paklein Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.17 2003-10-08 17:45:09 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -160,7 +160,7 @@ private:
 	GeometryT::CodeT fGeometryCode, fGeometryCodeSurf;
 
 	/** number of integration points */
-	int	fNumIP, fNumIPSurf, knum_d_state, knum_i_state, knumstress, num_sidesets;
+	int	fNumIP, fNumIPSurf, knum_d_state, knum_i_state, knumstress, knumstrain, num_sidesets;
 	/*@}*/
 
 	/** \name element displacements in local ordering */
@@ -178,6 +178,7 @@ private:
 
 	int n_ip, n_sd, n_df, n_en, n_en_x_n_df, n_en_x_n_sd; 
 	int n_np, n_el, n_comps;
+	int n_sd_surf, n_en_surf;
 	//int step_number_last_iter;
 	//bool New_Step;
 	int step_number;
@@ -204,7 +205,6 @@ private:
 	 * coordinates in APS_AssemblyT::fCurrCoords, which are the
 	 * current coordinates */
 	ShapeFunctionT* fShapes;
-//	ShapeFunctionT* fSurfShapes;
 	
 	dArrayT fNormal;
 	
@@ -215,7 +215,7 @@ private:
 	LocalArrayT fInitCoords;     
 
 	/** current coordinates */
-	LocalArrayT fCurrCoords, fCurrCoordsSurf;
+	LocalArrayT fCurrCoords;
 	/*@}*/
 
 	/* Data Storage */

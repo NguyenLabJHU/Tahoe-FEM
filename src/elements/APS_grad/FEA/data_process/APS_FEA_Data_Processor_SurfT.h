@@ -1,4 +1,4 @@
-// $Id: APS_FEA_Data_Processor_SurfT.h,v 1.1 2003-10-07 19:40:43 raregue Exp $
+// $Id: APS_FEA_Data_Processor_SurfT.h,v 1.2 2003-10-08 17:45:17 raregue Exp $
 #ifndef _APS_FEA_DATAPROCESSORSURFT_H_
 #define _APS_FEA_DATAPROCESSORSURFT_H_
 
@@ -15,8 +15,8 @@ class APS_FEA_Data_Processor_SurfT
 					
 		 APS_FEA_Data_Processor_SurfT 	(); 
 		~APS_FEA_Data_Processor_SurfT 	(); 
-		APS_FEA_Data_Processor_SurfT 	( int &n_en, iArrayT &face_nodes, FEA_dMatrixT &fdNdx_surf  );
-		void Construct 					( int &n_en, iArrayT &face_nodes, FEA_dMatrixT &fdNdx_surf  ); 
+		APS_FEA_Data_Processor_SurfT 	( FEA_dMatrixT &fdNdx_surf  );
+		void Construct 					( FEA_dMatrixT &fdNdx_surf  ); 
 		
 		void APS_B_surf     		(FEA_dMatrixT &B);
 		void APS_N					(FEA_dVectorT &B);
@@ -26,8 +26,6 @@ class APS_FEA_Data_Processor_SurfT
     	nMatrixT<int> Map;		
 	  	FEA_dMatrixT	dN_surf;	
 	  	FEA_dVectorT	N_surf;	
-	  	
-	  	iArrayT face_nodes;
 	  	
 		int n_ip, n_en, n_sd;
 };
