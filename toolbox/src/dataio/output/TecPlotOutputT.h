@@ -1,4 +1,4 @@
-/* $Id: TecPlotOutputT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: TecPlotOutputT.h,v 1.1.1.1.2.1 2001-11-01 19:44:36 sawimme Exp $ */
 /* created: sawimme (06/06/2000)                                          */
 
 #ifndef _TECPLOTOUTPUT_T_H_
@@ -22,7 +22,7 @@ public:
 private:
 
 	/* generate database file name for the given ID */
-	void FileName(int ID, StringT& filename) const;
+	void FileName(int ID, StringT& filename, int printstep) const;
 
 private:
 	bool fBinary;
