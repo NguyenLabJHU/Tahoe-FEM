@@ -1,4 +1,4 @@
-/* $Id: UpLagAdaptiveT.h,v 1.2 2003-10-28 07:24:05 paklein Exp $ */
+/* $Id: UpLagAdaptiveT.h,v 1.3 2005-02-13 22:18:02 paklein Exp $ */
 #ifndef _UPDATED_LAGRANGIAN_ADAPTIVE_T_H_
 #define _UPDATED_LAGRANGIAN_ADAPTIVE_T_H_
 
@@ -46,10 +46,10 @@ private:
 
 	/** determine the tied nodes and reset the constraints based on the list of
 	 * active elements */
-	void SetNetwork(const ArrayT<StatusT>& active_elements);
+	void SetNetwork(const ArrayT<ElementCardT::StatusT>& active_elements);
 
 	/** generate the list of leaders for all nodes based on the active element list */
-	void FindLeaders(const iArray2DT& connects, const ArrayT<StatusT>& active, iArrayT& same_as) const;
+	void FindLeaders(const iArray2DT& connects, const ArrayT<ElementCardT::StatusT>& active, iArrayT& same_as) const;
 
 protected:
 
@@ -69,7 +69,7 @@ protected:
 	iArray2DT fConnectivitiesCSELocal;
 	
 	/** active flag */
-	ArrayT<StatusT> fCSEActive;
+	ArrayT<ElementCardT::StatusT> fCSEActive;
 
 	/** inverse connectivities of CSE, elements per node */
 	RaggedArray2DT<int> fInverseConnectivitiesCSELocal;

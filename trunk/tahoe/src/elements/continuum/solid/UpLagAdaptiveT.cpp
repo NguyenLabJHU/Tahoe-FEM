@@ -1,4 +1,4 @@
-/* $Id: UpLagAdaptiveT.cpp,v 1.6 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: UpLagAdaptiveT.cpp,v 1.7 2005-02-13 22:18:02 paklein Exp $ */
 #include "UpLagAdaptiveT.h"
 
 /* requires cohesive surface elements */
@@ -189,7 +189,7 @@ if (NumSD() != 2) ExceptionT::GeneralFail("UpLagAdaptiveT::RelaxSystem", "2D onl
 	dSymMatrixT Cauchy(NumSD());
 	dArrayT traction(NumSD()), tangent(NumSD()), normal(NumSD());
 	for (int i = 0; i < fCSEActive.Length(); i++)
-		if (fCSEActive[i] == kOFF) /* only test rigid surfaces */
+		if (fCSEActive[i] == ElementCardT::kOFF) /* only test rigid surfaces */
 		{
 			int* pface = fConnectivitiesCSELocal(i);
 			int n1 = fCSENodesUsed[pface[0]];
@@ -222,7 +222,7 @@ if (NumSD() != 2) ExceptionT::GeneralFail("UpLagAdaptiveT::RelaxSystem", "2D onl
 			
 			/* tensile release */
 			if (t_mag2 > fReleaseThreshold*fReleaseThreshold && sense > 0.0) {
-				fCSEActive[i] = kMarkON;
+				fCSEActive[i] = ElementCardT::kMarkON;
 				release_count++;
 
 				/* write traction into state variables */
@@ -243,7 +243,7 @@ if (NumSD() != 2) ExceptionT::GeneralFail("UpLagAdaptiveT::RelaxSystem", "2D onl
 
 /* determine the tied nodes and reset the constraints based on the list of
  * active elements */
-void UpLagAdaptiveT::SetNetwork(const ArrayT<StatusT>& active_elements)
+void UpLagAdaptiveT::SetNetwork(const ArrayT<ElementCardT::StatusT>& active_elements)
 {
 	/* determine duplicate nodes */
 	FindLeaders(fConnectivitiesCSELocal, active_elements, fSameAs);
@@ -271,7 +271,7 @@ void UpLagAdaptiveT::SetNetwork(const ArrayT<StatusT>& active_elements)
 }
 
 /* generate the list of leaders for all nodes based on the active element list */
-void UpLagAdaptiveT::FindLeaders(const iArray2DT& connects, const ArrayT<StatusT>& active, iArrayT& same_as) const
+void UpLagAdaptiveT::FindLeaders(const iArray2DT& connects, const ArrayT<ElementCardT::StatusT>& active, iArrayT& same_as) const
 {
 	const char caller[] = "UpLagAdaptiveT::FindLeaders";
 
@@ -296,7 +296,7 @@ void UpLagAdaptiveT::FindLeaders(const iArray2DT& connects, const ArrayT<StatusT
 	/* initialize leader list */
 	int nfn = connects.MinorDim()/2;
 	for (int i = 0; i < active.Length(); i++)
-	if (active[i] == kOFF)
+	if (active[i] == ElementCardT::kOFF)
 	{
 		const int* pelem = connects(i);
 		for (int j = 0; j < nfn; j++)
