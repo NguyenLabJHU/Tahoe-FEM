@@ -1,5 +1,6 @@
-/* $Id: ParameterListT.cpp,v 1.13 2004-02-11 16:34:45 paklein Exp $ */
+/* $Id: ParameterListT.cpp,v 1.14 2004-02-12 17:18:21 paklein Exp $ */
 #include "ParameterListT.h"
+#include "ParameterInterfaceT.h"
 
 using namespace Tahoe;
 
@@ -182,7 +183,38 @@ const ParameterListT* ParameterListT::FindList(const char* search_name, int inst
 				return &list;
 	}
 	
-	/* not match */
+	/* no match */
+	return NULL;
+}
+
+/* return the list associated a choice */
+const ParameterListT* ParameterListT::ResolveListChoice(const ParameterInterfaceT& source, 
+	const char* choice_name, int instance) const
+{
+	const char caller[] = "ParameterListT::ResolveListChoice";
+
+	/* get choice definition */
+	ParameterListT::ListOrderT order;
+	SubListT sub_sub_list;
+	source.DefineInlineSub(choice_name, order, sub_sub_list);
+	if (order != ParameterListT::Choice)
+		ExceptionT::GeneralFail(caller, "\"%s\" in \"%s\" is not a choice",
+			choice_name, source.Name().Pointer());
+
+	/* search */
+	int count = 0;
+	for (int i = 0; i < fParameterLists.Length(); i++)
+	{
+		const StringT& name = fParameterLists[i].Name();
+		
+		/* run through choices */
+		for (int j = 0; j < sub_sub_list.Length(); j++)
+			if (name == sub_sub_list[j].Name())
+				if (count++ == instance)
+					return fParameterLists.Pointer(i);
+	}
+
+	/* failed */
 	return NULL;
 }
 
