@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.20 2002-03-06 20:56:18 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.21 2002-03-11 16:30:02 sawimme Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -571,7 +571,8 @@ void TranslateIOManager::WriteNodeSets (void)
       
       if (answer [0] == 'y' || answer[0] == 'Y') 
 	{
-	  int ID = atoi(names[i]);
+	  //int ID = atoi(names[i]);
+	  int ID = i+1;
 	  fOutput->AddNodeSet (fModel.NodeSet(names[i]), ID);
 	}
     }
@@ -706,8 +707,9 @@ void TranslateIOManager::WriteSideSets (void)
 	  fGlobalSideSets[i] = fModel.SideSet (names[i]);
 	  const StringT& g = fModel.SideSetGroupID(names[i]);
 	    
-	  int g_int = atoi(g);
-	  int ID = atoi(names[i]);
+	  int g_int = fModel.ElementGroupIndex (g) + 1;
+	  //int ID = atoi(names[i]);
+	  int ID = i+1;
 	  fOutput->AddSideSet (fGlobalSideSets [i], ID, g_int);
 	}
     }
