@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.3 2001-06-20 22:53:18 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.4 2001-06-22 15:46:27 hspark Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -134,6 +134,19 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 					
 				break;
 			}
+		        case kCubicSpline:
+			{
+				/* parameters = dilation scaling in each direction
+				 *             + sharpening factor
+				 *             + cut-off factor */
+				window_params.Allocate(fDomain.NumSD() + 2);
+				
+				/* allow for line-by-line comments */
+				for (int i = 0; i < window_params.Length(); i++)
+					in >> window_params[i];
+					
+				break;
+			}  
 			default:
 				cout << "\n MeshFreeSupportT::MeshFreeSupportT: unsupported window function type: "
 				     << window_type << endl;
