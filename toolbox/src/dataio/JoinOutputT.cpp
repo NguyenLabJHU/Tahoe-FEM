@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.3 2002-01-09 18:28:01 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.4 2002-01-10 00:00:25 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 
 #include "JoinOutputT.h"
@@ -181,17 +181,6 @@ void JoinOutputT::Join(void)
 							/* element map: global_output_block_ID[partition_output_block_ID] */
 							const iArrayT& element_map = map_set.ElementMap(k);
 
-							/* dimension check */
-							if (output_set.NumElements() != element_map.Length())
-							{
-								cout << "\n JoinOutputT::Join: number of elements (" << output_set.NumElements() 
-								     << ") in the partial results\n"
-								     << "     file does not match the number of elements (" << element_map.Length() 
-								     << ") expected for output\n"
-								     << "     set " << i << " in partition " << k << endl;
-								throw eSizeMismatch;
-							}
-
 							/* set work space */
 							part_e_man.Dimension(element_map.Length(), all_e_values.MinorDim());
 
@@ -212,6 +201,17 @@ void JoinOutputT::Join(void)
 								/* block dimensions */
 								int nel, nen;
 								results.ElementGroupDimensions(block_index, nel, nen);
+
+								/* weak check */
+								if (nel > element_map.Length())
+								{
+									cout << "\n JoinOutputT::Join: number of elements (" << nel 
+									     << ") in the partial results\n"
+									     << "     file exceeds the number of elements (" << element_map.Length() 
+									     << ") in the map for block ID " << block_ID[l] << " in output\n"
+									     << "     set " << i << " in partition " << k << endl;
+									throw eSizeMismatch;
+								}
 							
 								/* alias */
 								dArray2DT block_values(nel, all_e_values.MinorDim(), all_e_values(row_offset));
