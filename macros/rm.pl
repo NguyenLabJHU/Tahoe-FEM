@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
-# $Id: rm.pl,v 1.1 2004-08-10 01:03:04 paklein Exp $
+# $Id: rm.pl,v 1.2 2004-08-10 01:06:47 paklein Exp $
 if (scalar(@ARGV) < 1 || $ARGV[0] =~ /-h/) {
     print STDOUT "\tusage : rm.pl [files or file patterns to remove]\n";
-    exit 0;
+    exit 1;
 }
 
 for ($i = 0; $i < scalar(@ARGV); $i++) {
@@ -36,4 +36,4 @@ for ($i = 0; $i < scalar(@ARGV); $i++) {
     close(LS);
 }
 
-exit 1;
+exit 0;
