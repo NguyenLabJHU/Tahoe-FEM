@@ -27,7 +27,7 @@ LatticeOrient::LatticeOrient(PolyCrystalMatT& poly)
 
   // main input file
   ifstreamT& in = poly.Input_x();
-
+  
   // input file for texture data
   ifstreamT tmp;
   ifstreamT& input = OpenExternal(in, tmp, "LatticeOrient data");
@@ -35,6 +35,11 @@ LatticeOrient::LatticeOrient(PolyCrystalMatT& poly)
   // ouput file for texture data
   StringT outfilename;
   outfilename.Root(input.filename());
+  if (poly.Size() > 1) 
+    {
+      outfilename.Append(".n", poly.Size());
+      outfilename.Append(".p", poly.Rank());
+    }
   outfilename.Append(".dat");
   fTextOut.open(outfilename);
   SetStreamPrefs(fTextOut);

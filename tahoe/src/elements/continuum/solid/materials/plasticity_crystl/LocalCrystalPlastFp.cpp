@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.14 2004-01-07 22:55:28 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.15 2004-01-08 01:14:15 ebmarin Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -183,8 +183,12 @@ const dSymMatrixT& LocalCrystalPlastFp::s_ij()
                 fElasticity->ComputeModuli(fcBar_ijkl);
 
 	  // compute crystal Cauchy stress (elastic predictor at first iteration)
+          /* use these two lines when MPS */
+          //if (fFSMatSupport.StepNumber() == 0 &&        
+	  //        fFSMatSupport.IterationNumber() <= -1)
+          /* use these two lines when FEM */
           if (fFSMatSupport.StepNumber() >= 0 &&
-	          fFSMatSupport.IterationNumber() <= -1)
+                  fFSMatSupport.IterationNumber() <= -1)
 	     {
 	       // defomation gradient
                fMatx1.SetToCombination(1., fFtot, -1., fFtot_n);
