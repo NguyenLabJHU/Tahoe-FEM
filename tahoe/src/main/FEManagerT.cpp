@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.17 2001-08-27 17:16:49 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.17.2.1 2001-10-02 20:54:25 sawimme Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -61,7 +61,8 @@ const char* eExceptionStrings[] = {
 /* 6 */ "invalid value read from input",
 /* 7 */ "zero or negative jacobian",
 /* 8 */ "MPI message passing error",
-/* 9 */ "unknown"};	
+/* 9 */ "database read failure",
+/*10 */ "unknown"};	
 
 /* constructor */
 FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output):
@@ -102,6 +103,7 @@ FEManagerT::~FEManagerT(void)
 	delete fSolutionDriver;
 	delete fController;
 	delete fIOManager;
+	delete fModelManager;
 	fStatus = GlobalT::kNone;	
 }
 
@@ -130,6 +132,10 @@ void FEManagerT::Initialize(InitCodeT init)
 	WriteParameters();
 	if (verbose) cout << "    FEManagerT::Initialize: execution parameters" << endl;
 	
+	/* set model manager */
+	SetInput ();
+	if (verbose) cout << "    FEManagerT::Initialize: input" << endl;
+
 	/* construct the managers */
 	fTimeManager = new TimeManagerT(*this);
 	if (!fTimeManager) throw eOutOfMemory;
@@ -148,8 +154,8 @@ void FEManagerT::Initialize(InitCodeT init)
 	SetElementGroups();
 	if (verbose) cout << "    FEManagerT::Initialize: element groups" << endl;
 
-	/* set I/O manager */
-	SetIO();
+	/* set output manager */
+	SetOutput();
 	if (verbose) cout << "    FEManagerT::Initialize: io" << endl;
 	if (init == kAllButSolver) return;
 
@@ -1232,8 +1238,15 @@ void FEManagerT::SetController(void)
 	if (!fController) throw eOutOfMemory;
 }
 
-/* construct I/O */
-void FEManagerT::SetIO(void)
+/* constrcut input */
+void FEManagerT::SetInput (void)
+{
+  fModelManager = new ModelManagerT (fMainOut);
+  fModelManager->Initialize (fInputFormat, fModelFile);
+}
+
+/* construct output */
+void FEManagerT::SetOutput(void)
 {
 	StringT file_name(fMainIn.filename());
 	fIOManager = new IOManager(fMainOut, kProgramName, kCurrentVersion, fTitle,
