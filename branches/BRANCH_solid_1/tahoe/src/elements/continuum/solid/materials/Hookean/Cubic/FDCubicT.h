@@ -1,4 +1,4 @@
-/* $Id: FDCubicT.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: FDCubicT.h,v 1.1.1.1.2.1 2001-06-06 16:22:02 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #ifndef _FD_CUBIC_T_H_
@@ -18,6 +18,11 @@ public:
 	/* print parameters */
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
+
+protected:
+
+	/* set (material) tangent modulus */
+	virtual void SetModulus(dMatrixT& modulus);
 };
 
 #endif /* _FD_CUBIC_T_H_ */
