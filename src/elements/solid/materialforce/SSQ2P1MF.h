@@ -1,4 +1,4 @@
-/* $Id: SSQ2P1MF.h,v 1.1 2003-08-10 23:30:41 thao Exp $ */
+/* $Id: SSQ2P1MF.h,v 1.2 2003-08-18 03:28:34 thao Exp $ */
 
 #ifndef _SS_Q2P1_MF_H_
 #define _SS_Q2P1_MF_H_
@@ -69,7 +69,7 @@ class SSQ2P1MF: public SmallStrainQ2P1, public MFSupportT
 
     /*internal variables*/
     iArrayT fInternalDOF;
-    double fNumInternalVal;
+    int fNumInternalVal;
 
     dArrayT fGlobalMass;
     dArray2DT fGlobalVal;

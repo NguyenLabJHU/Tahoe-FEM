@@ -1,4 +1,4 @@
-/* $Id: SSMF.h,v 1.1 2003-08-11 00:22:10 thao Exp $ */
+/* $Id: SSMF.h,v 1.2 2003-08-18 03:28:34 thao Exp $ */
 
 #ifndef _SSMF_H_
 #define _SSMF_H_
@@ -66,7 +66,7 @@ class SSMF: public SmallStrainT, public MFSupportT
 
     /*internal variables*/
     iArrayT fInternalDOF;
-    double fNumInternalVal;
+    int fNumInternalVal;
 
     dArrayT fGlobalMass;
     dArray2DT fGlobalVal;
