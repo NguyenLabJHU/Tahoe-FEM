@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.17.4.1 2003-07-15 16:18:09 hspark Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.17.4.2 2003-08-12 20:00:09 hspark Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -210,61 +210,102 @@ void ParticlePairT::WriteOutput(void)
 			}
 		}
 	}	
-	/* Temporary to calculate MD quantities and write to file */
+	/* Temporary to calculate crack propagation velocity */
 	ifstreamT& in = ElementSupport().Input();
 	ModelManagerT& model = ElementSupport().Model();
 	const ArrayT<StringT> id_list = model.NodeSetIDs();
 	iArrayT nodelist;
 	dArray2DT partial;
-	//nodelist = model.NodeSet(id_list[id_list.Length()-1]);
-	nodelist = model.NodeSet(id_list[3]);  // id_list[3]
-	partial.Dimension(nodelist.Length(), n_values.MinorDim());
-	partial.RowCollect(nodelist, n_values);
+	nodelist = model.NodeSet(id_list[id_list.Length()-1]); // want last nodeset
 	const StringT& input_file = in.filename();
 	fsummary_file.Root(input_file);
-	fsummary_file2.Root(input_file);
         fsummary_file.Append(".sum");
-	fsummary_file2.Append(".full");
+	double xcoord = 0.0;
+	double ydispcrit = .14;
+	const double& time = ElementSupport().Time();
+	for (int i = 0; i < nodelist.Length(); i++)
+	{
+	  int node = nodelist[i];
+	  if (fabs(displacement(node,1)) >= ydispcrit)
+	    xcoord = coords(node,0);
+	}
 	if (fopen)
 	{
 	        fout.open_append(fsummary_file);
-	  	fout2.open_append(fsummary_file2);
 	  	fout.precision(13);
-	  	fout2.precision(13);
-	  	fout << n_values.ColumnSum(3) 
-	  	     << setw(25) << n_values.ColumnSum(2)
-	  	     << setw(25) << n_values.ColumnSum(3) + n_values.ColumnSum(2)
-	  	     << endl;
-	  	fout2 << partial.ColumnSum(3) 
-	  	     << setw(25) << partial.ColumnSum(2)
-	  	     << setw(25) << partial.ColumnSum(3) + partial.ColumnSum(2)
+	  	fout << xcoord 
+	  	     << setw(25) << time
 	  	     << endl;
 	}
 	else
 	{
 	  	fout.open(fsummary_file);
-	  	fout2.open(fsummary_file2);
 	  	fopen = true;
 	  	fout.precision(13);
-	  	fout2.precision(13);
-	  	fout << "Kinetic Energy"
-	  	     << setw(25) << "Potential Energy"
-	  	     << setw(25) << "Total Energy"
+	  	fout << "x-coordinate"
+	  	     << setw(25) << "Time"
 	  	     << endl;
-	  	fout << n_values.ColumnSum(3) 
-	  	     << setw(25) << n_values.ColumnSum(2)
-	  	     << setw(25) << n_values.ColumnSum(3) + n_values.ColumnSum(2)
-	  	     << endl;
-	  	fout2 << "Kinetic Energy"
-	  	     << setw(25) << "Potential Energy"
-	  	     << setw(25) << "Total Energy"
-	  	     << endl;
-	  	fout2 << partial.ColumnSum(3) 
-	  	     << setw(25) << partial.ColumnSum(2)
-	  	     << setw(25) << partial.ColumnSum(3) + partial.ColumnSum(2)
+	  	fout << xcoord 
+	  	     << setw(25) << time
 	  	     << endl;
 	}
 	
+
+	/* Temporary to calculate MD energy history and write to file */
+	//ifstreamT& in = ElementSupport().Input();
+	//ModelManagerT& model = ElementSupport().Model();
+	//const ArrayT<StringT> id_list = model.NodeSetIDs();
+	//iArrayT nodelist;
+	//dArray2DT partial;
+	//nodelist = model.NodeSet(id_list[id_list.Length()-1]);
+	//nodelist = model.NodeSet(id_list[3]);  // id_list[3]
+	//partial.Dimension(nodelist.Length(), n_values.MinorDim());
+	//partial.RowCollect(nodelist, n_values);
+	//const StringT& input_file = in.filename();
+	//fsummary_file.Root(input_file);
+	//fsummary_file2.Root(input_file);
+        //fsummary_file.Append(".sum");
+	//fsummary_file2.Append(".full");
+	//if (fopen)
+	//{
+	//        fout.open_append(fsummary_file);
+	//  	fout2.open_append(fsummary_file2);
+	//  	fout.precision(13);
+	//  	fout2.precision(13);
+	//  	fout << n_values.ColumnSum(3) 
+	//  	     << setw(25) << n_values.ColumnSum(2)
+	//  	     << setw(25) << n_values.ColumnSum(3) + n_values.ColumnSum(2)
+	//  	     << endl;
+	//  	fout2 << partial.ColumnSum(3) 
+	//  	     << setw(25) << partial.ColumnSum(2)
+	//  	     << setw(25) << partial.ColumnSum(3) + partial.ColumnSum(2)
+	//  	     << endl;
+	//}
+	//else
+	//{
+	//  	fout.open(fsummary_file);
+	//  	fout2.open(fsummary_file2);
+	//  	fopen = true;
+	//  	fout.precision(13);
+	//  	fout2.precision(13);
+	//  	fout << "Kinetic Energy"
+	//  	     << setw(25) << "Potential Energy"
+	//  	     << setw(25) << "Total Energy"
+	//  	     << endl;
+	//  	fout << n_values.ColumnSum(3) 
+	//  	     << setw(25) << n_values.ColumnSum(2)
+	//  	     << setw(25) << n_values.ColumnSum(3) + n_values.ColumnSum(2)
+	//  	     << endl;
+	//  	fout2 << "Kinetic Energy"
+	//  	     << setw(25) << "Potential Energy"
+	//  	     << setw(25) << "Total Energy"
+	//  	     << endl;
+	//  	fout2 << partial.ColumnSum(3) 
+	//  	     << setw(25) << partial.ColumnSum(2)
+	//  	     << setw(25) << partial.ColumnSum(3) + partial.ColumnSum(2)
+	//  	     << endl;
+	//}
+      
 	/* send */
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
 }
