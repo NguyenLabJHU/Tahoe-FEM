@@ -1,11 +1,11 @@
 
  Input file version: v3.4.1
 
- T i t l e : 2D finite deformation RKPM example with autoborder
+ T i t l e : 2D finite deformation RKPM example - explicit dynamics
 
  E x e c u t i o n   C o n t r o l   I n f o r m a t i o n :
 
- Analysis code . . . . . . . . . . . . . . . . . = 3
+ Analysis code . . . . . . . . . . . . . . . . . = 7
     eq. 1, linear elastostatic
     eq. 2, linear elastodynamic
     eq. 3, nonlinear elastostatic
@@ -37,9 +37,10 @@
     eq.  8. AVS UCD ASCII
     eq. 10. PATRAN Neutral
     eq. 12. PARADYN
- Read restart file code  . . . . . . . . . . . . = 0
+ Read restart file code  . . . . . . . . . . . . = 1
     eq. 0, do not read restart file
     eq. 1, read restart file
+ Restart file. . . . . . . . . . . . . . . . . . = RKPM.2D.expdyn.rs50of100
  Restart file increment (at current step size) . = 0
  Input data print code . . . . . . . . . . . . . = 0
     eq. 0, non verbose echo of input data
@@ -52,10 +53,10 @@
  Number of time sequences  . . . . . . . . . . . = 1
 
  Sequence number . . . . . . . . . . . . . . . . = 1
- Number of time steps. . . . . . . . . . . . . . = 2
- Output print increment (< 0: current step size) = 1
+ Number of time steps. . . . . . . . . . . . . . = 50
+ Output print increment (< 0: current step size) = 50
  Maximum number of load step cuts. . . . . . . . = 0
- Time step . . . . . . . . . . . . . . . . . . . = 5.000000e-01
+ Time step . . . . . . . . . . . . . . . . . . . = 2.000000e-02
 
 
  L o a d - T i m e   F u n c t i o n   D a t a :
@@ -64,13 +65,12 @@
  Loadtime function number. . . . . . . . . . . . = 1
 
            time         factor
-   0.000000e+00   0.000000e+00
-   1.000000e+00   1.000000e+00
+   0.000000e+00   1.000000e+00
 
 
  T i m e   I n t e g r a t o r s:
 
- Static controller parameters: NONE
+ Explicit central-difference parameters: NONE
 
  N o d a l   D a t a :
 
@@ -84,18 +84,16 @@
 
  Kinematic boundary conditions:
 
- Number of node sets . . . . . . . . . . . . . . = 4
+ Number of node sets . . . . . . . . . . . . . . = 3
 
  Node Set Name . . . . . . . . . . . . . . . . . = 1
  Number of cards . . . . . . . . . . . . . . . . = 6
- Node Set Name . . . . . . . . . . . . . . . . . = 2
- Number of cards . . . . . . . . . . . . . . . . = 6
- Node Set Name . . . . . . . . . . . . . . . . . = 3
- Number of cards . . . . . . . . . . . . . . . . = 6
- Node Set Name . . . . . . . . . . . . . . . . . = 4
- Number of cards . . . . . . . . . . . . . . . . = 6
+ Node Set Name . . . . . . . . . . . . . . . . . = 5
+ Number of cards . . . . . . . . . . . . . . . . = 1
+ Node Set Name . . . . . . . . . . . . . . . . . = 8
+ Number of cards . . . . . . . . . . . . . . . . = 1
 
- Number of kinematic boundary condition cards. . = 24
+ Number of kinematic boundary condition cards. . = 8
 
 
  K i n e m a t i c   B C   C o n t r o l l e r s :
@@ -105,7 +103,11 @@
 
  Force boundary conditions:
 
- Number of nodal force cards . . . . . . . . . . = 0
+ Number of node sets . . . . . . . . . . . . . . = 1
+
+ Node Set Name . . . . . . . . . . . . . . . . . = 3
+ Number of cards . . . . . . . . . . . . . . . . = 6
+ Number of nodal force cards . . . . . . . . . . = 6
 
 
  N o d a l   F o r c e   C o n t r o l l e r s :
@@ -166,14 +168,14 @@
     eq.3, hexahedron
     eq.4, tetrahedron
  Number of integration points. . . . . . . . . . = 16
- Mass type code. . . . . . . . . . . . . . . . . = 1
+ Mass type code. . . . . . . . . . . . . . . . . = 2
     eq.0, no mass matrix
     eq.1, consistent mass matrix
     eq.2, lumped mass matrix
  Strain-displacement option. . . . . . . . . . . = 0
     eq.0, standard
     eq.1, B-bar (mean dilatation)
- Auto selection/generation of border transition. = 1 (ACTIVE)
+ Auto selection/generation of border transition. = 0 (INACTIVE)
 
  Element Connectivity:
  Number of connectivity data blocks. . . . . . . = 1
@@ -248,13 +250,17 @@
     eq.2, plane strain
 
  Number of nodes off the integration grid. . . . = 0
- Number of interpolant shape function nodes. . . = 0
+ Node Set Name . . . . . . . . . . . . . . . . . = 1
+ Node Set Index. . . . . . . . . . . . . . . . . = 0
+ Node Set Length . . . . . . . . . . . . . . . . = 6
+ Node Set Name . . . . . . . . . . . . . . . . . = 3
+ Node Set Index. . . . . . . . . . . . . . . . . = 2
+ Node Set Length . . . . . . . . . . . . . . . . = 6
+ Number of interpolant shape function nodes. . . = 12
  Number of pure EFG shape function nodes . . . . = 0
- Final number of interpolant nodes . . . . . . . = 20
-       1       7       2      13      19      25
-      31      32       3      33       4      34
-       5      35      12       6      18      24
-      30      36
+ Final number of interpolant nodes . . . . . . . = 12
+       1       6       7      12      13      18
+      19      24      25      30      31      36
  Number of cutting facets. . . . . . . . . . . . = 0
  Number of sampling surfaces . . . . . . . . . . = 0
 
@@ -320,7 +326,7 @@
  S o l v e r   p a r a m e t e r s:
 
  Group . . . . . . . . . . . . . . . . . . . . . = 0
- Global equation type. . . . . . . . . . . . . . = 1
+ Global equation type. . . . . . . . . . . . . . = 0
     eq. 0, diagonal matrix
     eq. 1, profile solver (symmetric and nonsymmetric)
     eq. 2, full matrix (most general)
@@ -337,17 +343,6 @@
     eq. 5, print vector
     eq. 6, check LHS matrix
 
- O p t i m i z a t i o n   P a r a m e t e r s :
-
- Maximum number of iterations. . . . . . . . . . = 10
- Minimum number of iterations. . . . . . . . . . = 0
- Absolute convergence tolerance. . . . . . . . . = 1.000000e-10
- Relative convergence tolerance. . . . . . . . . = 1.000000e-12
- Divergence tolerance. . . . . . . . . . . . . . = 1.000000e+01
- Quick solution iteration count. (-1 to disable) = 6
- Number of quick solutions before step increase. = 3
- Iteration output print increment. . . . . . . . = 0
-
  Multi-solver parameters: 1
     rank   group       loop its.       pass its.
        1       0              -1              -1
@@ -355,38 +350,22 @@
 
  E q u a t i o n    S y s t e m    D a t a :
 
- Local number of equations . . . . . . . . . . . = 48
- Total number of equations . . . . . . . . . . . = 48
- Number of terms in global matrix. . . . . . . . = 1176
- Mean half bandwidth . . . . . . . . . . . . . . = 25
- Bandwidth . . . . . . . . . . . . . . . . . . . = 48
- Number of non-zero values (pre-factorization) . = 1176
- Storage efficiency (% non-zero) . . . . . . . . = 1.000000e+02
-
+ Local number of equations . . . . . . . . . . . = 64
+ Total number of equations . . . . . . . . . . . = 64
 
  T i m e   S e q u e n c e : 1
 
 
- Converged at time = 5.000000e-01
+ Time = 2.000000e+00
+ Step 50 of 50
 
- Time = 5.000000e-01
- Step 1 of 2
-
- time = 5.000000e-01
+ time = 2.000000e+00
  Crack path data:
 
- Converged at time = 1.000000e+00
-
- Time = 1.000000e+00
- Step 2 of 2
-
- time = 1.000000e+00
- Crack path data:
-
-   Start time: Fri Jun 25 19:49:21 2004
- Construction: 2.000000e-02 sec.
-     Solution: 4.400000e-01 sec.
-    Stop time: Fri Jun 25 19:49:21 2004
+   Start time: Fri Jun 25 19:51:33 2004
+ Construction: 0.000000e+00 sec.
+     Solution: 3.300000e-01 sec.
+    Stop time: Fri Jun 25 19:51:34 2004
 
  End Execution
 

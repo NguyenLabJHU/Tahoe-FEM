@@ -14,6 +14,7 @@
     eq. 6, linear explicit dynamic
     eq. 7, nonlinear explicit dynamic
     eq. 30, perfectly matched layer (PML)
+    eq. 99, general multiple field problem
  Input format. . . . . . . . . . . . . . . . . . = 1
     eq.  0. Tahoe
     eq.  1. Tahoe II
@@ -24,7 +25,7 @@
     eq.  7. ABAQUS Binary (.fil)
     eq. 10. PATRAN Neutral
     eq. 11. Tahoe Results (.geo/.run)
- Geometry file . . . . . . . . . . . . . . . . . = level.0/meshfree/../geometry/rect.1.geom
+ Geometry file . . . . . . . . . . . . . . . . . = ../benchmark/level.0/meshfree/../geometry/rect.1.geom
  Output format . . . . . . . . . . . . . . . . . = 0
     eq.  1. Tahoe II
     eq.  2. TecPlot 7.5
@@ -34,6 +35,8 @@
     eq.  6. ABAQUS ASCII (.fin)
     eq.  7. ABAQUS Binary (.fil)
     eq.  8. AVS UCD ASCII
+    eq. 10. PATRAN Neutral
+    eq. 12. PARADYN
  Read restart file code  . . . . . . . . . . . . = 0
     eq. 0, do not read restart file
     eq. 1, read restart file
@@ -41,6 +44,7 @@
  Input data print code . . . . . . . . . . . . . = 0
     eq. 0, non verbose echo of input data
     eq. 1, echo all input data
+ Number of solver groups . . . . . . . . . . . . = 1
 
 
  T i m e   S e q u e n c e   D a t a :
@@ -64,7 +68,7 @@
    1.000000e+00   1.000000e+00
 
 
- T i m e   I n t e g r a t i o n   C o n t r o l l e r:
+ T i m e   I n t e g r a t o r s:
 
  Static controller parameters: NONE
 
@@ -72,15 +76,13 @@
 
  Number of nodal points. . . . . . . . . . . . . = 36
  Number of spatial dimensions. . . . . . . . . . = 2
- Number of nodal degrees of freedom. . . . . . . = 2
 
-
- I n i t i a l   C o n d i t i o n s :
+ Initial conditions:
 
  Number of initial condition cards . . . . . . . = 0
 
 
- K i n e m a t i c   B o u n d a r y   C o n d i t i o n s :
+ Kinematic boundary conditions:
 
  Number of node sets . . . . . . . . . . . . . . = 4
 
@@ -101,7 +103,7 @@
  Number of controllers . . . . . . . . . . . . . = 0
 
 
- F o r c e   B o u n d a r y   C o n d i t i o n s :
+ Force boundary conditions:
 
  Number of nodal force cards . . . . . . . . . . = 0
 
@@ -130,6 +132,7 @@
     eq. 9, self-connecting rods with periodic BC's
     eq. 10, diamond cubic lattice with periodic BC's
     eq. 11, cohesive surface element
+    eq. 12, thermal surface element
     eq. 14, penalty contact
     eq. 16, augmented Lagrangian contact
     eq. 17, hyperelastic (total Lagrangian)
@@ -138,11 +141,23 @@
     eq. 20, hyperelastic MLS (total Lagrangian)
     eq. 21, linear diffusion element
     eq. 22, meshfree cohesive surface element
+    eq. 31, Staggered MultiScale Element (for VMS) 
+    eq. 68, Strict Anti-plane Shear gradient plasticity 
+    eq. 85, Meshfree gradient plasticity 
+    eq. 90, Enhanced strain embedded discontinuity 
+    eq. 70, Small Strain Stabilized, Conforming Nodally-Integrated Galerkin Mesh-free 
+    eq. 71, Finite Strain Stabilized Conforming Nodally-Integrated Galerkin Mesh-free 
     eq. 23, 3D contact using ACME
     eq. 24, 3D contact using Lagrange multipliers
-    eq. 25, 2D adhesion contact elements
+    eq. 28, 2D Lagrange multiplier contact elements
     eq. 30, 2D penalty contact elements
-    eq. 28, 2D contact using Lagrange multipliers
+    eq. 34, 3D penalty contact elements
+    eq. 35, Bridging Scale
+    eq. 36, Q1P0 mixed element
+    eq. 37, surface adhesion
+    eq. 38, Pair Potential
+    eq. 39, EAM Potential
+ Associated field. . . . . . . . . . . . . . . . = "displacement"
  Element geometry code . . . . . . . . . . . . . = 1
     eq.-1, point
     eq.0, line
@@ -165,6 +180,10 @@
                    material number: 1
                 element block name: 1
  Number of elements. . . . . . . . . . . . . . . = 25
+ Block dimensions:
+      ID    size
+       1      25
+
 
  Meshfree support parameters:
  Store shape functions . . . . . . . . . . . . . = TRUE
@@ -195,7 +214,7 @@
     [0]: strain energy
     [0]: kinetic energy
     [0]: linear momentum
-    [0]: ip stresses
+    [0]: ip stresses and strains
     [0]: ip material output parameters
 
  Body force vector:
@@ -224,6 +243,7 @@
  Poisson's ratio . . . . . . . . . . . . . . . . = 2.500000e-01
  Shear modulus . . . . . . . . . . . . . . . . . = 4.000000e+01
  Bulk modulus. . . . . . . . . . . . . . . . . . = 6.666667e+01
+ Lame modulus  . . . . . . . . . . . . . . . . . = 4.000000e+01
  Thickness . . . . . . . . . . . . . . . . . . . = 1.000000e+00
  2D constraint option. . . . . . . . . . . . . . = 1
     eq.1, plane stress
@@ -237,30 +257,46 @@
  Number of sampling surfaces . . . . . . . . . . = 0
 
  MLS shape function data:
- Minimum number of nodal neighbors . . . . . . . = 4
- Maximum number of nodal neighbors . . . . . . . = 9
- Average number of nodal neighbors . . . . . . . = 7
+ Minimum number of nodal neighbors . . . . . . . = 9
+ Maximum number of nodal neighbors . . . . . . . = 25
+ Average number of nodal neighbors . . . . . . . = 16
  Nodal neighbor number distribution:
   number   count
        0       0
        1       0
        2       0
        3       0
-       4       4
+       4       0
        5       0
-       6      16
+       6       0
        7       0
        8       0
-       9      16
+       9       4
+      10       0
+      11       0
+      12       8
+      13       0
+      14       0
+      15       8
+      16       4
+      17       0
+      18       0
+      19       0
+      20       8
+      21       0
+      22       0
+      23       0
+      24       0
+      25       4
  Support size distribution:
             min            max            avg
-   1.010000e+00   1.010000e+00   1.010000e+00
-   5.050000e-01   5.050000e-01   5.050000e-01
+   1.000000e+00   1.000000e+00   1.000000e+00
+   5.000000e-01   5.000000e-01   5.000000e-01
 
  MLS storage requirements:
- Total number of nodal neighbors . . . . . . . . = 256
- Nodal shape function storage. . . . . . . . . . = 2048 bytes
- Nodal shape function derivatives storage. . . . = 4096 bytes
+ Total number of nodal neighbors . . . . . . . . = 576
+ Nodal shape function storage. . . . . . . . . . = 4608 bytes
+ Nodal shape function derivatives storage. . . . = 9216 bytes
  Total number of integration point neighbors . . = 324
  i.p. shape function storage . . . . . . . . . . = 10368 bytes
  i.p. shape function derivatives storage . . . . = 20736 bytes
@@ -276,25 +312,28 @@
 
  S o l v e r   p a r a m e t e r s:
 
+ Group . . . . . . . . . . . . . . . . . . . . . = 0
  Global equation type. . . . . . . . . . . . . . = 1
     eq. 0, diagonal matrix
     eq. 1, profile solver (symmetric and nonsymmetric)
     eq. 2, full matrix (most general)
-    eq. 3, Aztec-based, sparse matrix with iterative solvers
+    eq. 3, NOT AVAILABLE
     eq. 4, NOT AVAILABLE
     eq. 5, sparse matrix with direct solver: SPOOLES
  Output global equation numbers. . . . . . . . . = 0
  Check code. . . . . . . . . . . . . . . . . . . = 0
-    eq. 0, do not perform rank check
-    eq. 1, zero/negative pivots
-    eq. 2, all pivots
-    eq. 3, entire LHS matrix
-    eq. 4, entire RHS vector
-    eq. 5, solution vector
+    eq. 0, no check
+    eq. 1, print zero/negative pivots
+    eq. 2, print all pivots
+    eq. 3, print LHS matrix
+    eq. 4, print RHS vector
+    eq. 5, print vector
+    eq. 6, check LHS matrix
 
  O p t i m i z a t i o n   P a r a m e t e r s :
 
  Maximum number of iterations. . . . . . . . . . = 10
+ Minimum number of iterations. . . . . . . . . . = 0
  Absolute convergence tolerance. . . . . . . . . = 1.000000e-10
  Relative convergence tolerance. . . . . . . . . = 1.000000e-12
  Divergence tolerance. . . . . . . . . . . . . . = 1.000000e+01
@@ -302,15 +341,20 @@
  Number of quick solutions before step increase. = 3
  Iteration output print increment. . . . . . . . = 0
 
+ Multi-solver parameters: 1
+    rank   group       loop its.       pass its.
+       1       0              -1              -1
+ Maximum number of solver loops. . . . . . . . . = 1
+
  E q u a t i o n    S y s t e m    D a t a :
 
  Local number of equations . . . . . . . . . . . = 58
  Total number of equations . . . . . . . . . . . = 58
- Number of terms in global matrix. . . . . . . . = 1547
- Mean half bandwidth . . . . . . . . . . . . . . = 27
- Bandwidth . . . . . . . . . . . . . . . . . . . = 54
+ Number of terms in global matrix. . . . . . . . = 1569
+ Mean half bandwidth . . . . . . . . . . . . . . = 28
+ Bandwidth . . . . . . . . . . . . . . . . . . . = 51
  Number of non-zero values (pre-factorization) . = 1324
- Storage efficiency (% non-zero) . . . . . . . . = 8.558500e+01
+ Storage efficiency (% non-zero) . . . . . . . . = 8.438496e+01
 
 
  T i m e   S e q u e n c e : 1
@@ -318,18 +362,24 @@
 
  Converged at time = 5.000000e-01
 
+ Time = 5.000000e-01
+ Step 1 of 2
+
  time = 5.000000e-01
  Crack path data:
 
  Converged at time = 1.000000e+00
 
+ Time = 1.000000e+00
+ Step 2 of 2
+
  time = 1.000000e+00
  Crack path data:
 
-   Start time: Sun Mar  3 14:30:49 2002
- Construction: 4.000000e-02 sec.
-     Solution: 3.200000e-01 sec.
-    Stop time: Sun Mar  3 14:30:49 2002
+   Start time: Fri Jun 25 20:32:51 2004
+ Construction: 3.000000e-02 sec.
+     Solution: 1.400000e-01 sec.
+    Stop time: Fri Jun 25 20:33:05 2004
 
  End Execution
 

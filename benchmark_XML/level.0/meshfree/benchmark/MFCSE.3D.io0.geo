@@ -1,7 +1,7 @@
 
  G E O M E T R Y   D A T A:
 
- Group number. . . . . . . . . . . . . . . . . . = 1
+ Group number. . . . . . . . . . . . . . . . . . = 0
  Output ID . . . . . . . . . . . . . . . . . . . = 0
  Number of blocks. . . . . . . . . . . . . . . . = 1
 
