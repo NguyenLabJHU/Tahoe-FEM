@@ -1,5 +1,5 @@
 // DEVELOPMENT
-#include "MeshAtom.h"
+#include "MeshAtomT.h"
 
 #include "ExceptionCodes.h"
 
@@ -28,7 +28,7 @@
 using namespace Tahoe;
 
 // Constructor
-MeshAtom::MeshAtom(StringT which_latticetype,int nsd,int nuca,
+MeshAtomT::MeshAtomT(StringT which_latticetype,int nsd,int nuca,
 		   dArrayT latticeparameter,StringT which_shape,
 		   int whichunit,dArray2DT len, iArrayT cel,int irot,
 		   dArray2DT mat_rot,double angle,iArrayT isort)
@@ -69,7 +69,7 @@ MeshAtom::MeshAtom(StringT which_latticetype,int nsd,int nuca,
   IOLattice = 0;
 }
 
-MeshAtom:: ~MeshAtom()
+MeshAtomT:: ~MeshAtomT()
 {
   delete Crystal;
   delete Shape;
@@ -78,49 +78,49 @@ MeshAtom:: ~MeshAtom()
 }
 
 
-int MeshAtom::CreateMeshAtom()
+int MeshAtomT::CreateMeshAtom()
 {
   Shape->CreateLattice(Crystal);
   return Shape->GetNumberAtoms();
 }
 
-double MeshAtom::Volume_of_Mesh()
+double MeshAtomT::Volume_of_Mesh()
 {
   return Shape->GetVolume();
 }
 
-dArray2DT MeshAtom::Length()
+dArray2DT MeshAtomT::Length()
 {
   return Shape->GetLength();
 }
 
-iArrayT MeshAtom::NumberOFCells()
+iArrayT MeshAtomT::NumberOFCells()
 {
   return Shape->GetNCells();
 }
 
 
-iArrayT* MeshAtom::ReturnAtomID()
+iArrayT* MeshAtomT::ReturnAtomID()
 {
   return Shape->GetAtomID();
 }  
 
-dArray2DT* MeshAtom::ReturnCoordinates()
+dArray2DT* MeshAtomT::ReturnCoordinates()
 {   
   return Shape->GetAtomCoordinates();
 }
   
-iArray2DT* MeshAtom::ReturnConnectivities()
+iArray2DT* MeshAtomT::ReturnConnectivities()
 {
   return Shape->GetAtomConnectivities();
 }
 
-dArray2DT* MeshAtom::ReturnBounds()
+dArray2DT* MeshAtomT::ReturnBounds()
 {   
   return Shape->GetAtomBounds();
 }
   
-void MeshAtom::BuildIOFile(StringT& program_name,
+void MeshAtomT::BuildIOFile(StringT& program_name,
 			   StringT& version, StringT& title, 
 			   StringT& input_file,
 			   IOBaseT::FileTypeT output_format,
