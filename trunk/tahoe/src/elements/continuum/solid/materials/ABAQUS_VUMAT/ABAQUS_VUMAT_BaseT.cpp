@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.5 2001-07-20 17:03:52 hspark Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.6 2001-07-23 23:13:21 hspark Exp $ */
 
 #include "ABAQUS_VUMAT_BaseT.h"
 
@@ -889,8 +889,8 @@ void ABAQUS_VUMAT_BaseT::Call_VUMAT(double t, double dt, int step, int iter)
 	doublereal  tempOld = 0.0;
 	doublereal  tempNew = 0.0;                          // i: these are set to 0 because BCJ VUMAT uses the state
 	                                                    //    variables arrays (SV) to track the temperature evolution
-	doublereal* stretchold = fUOld.Pointer();           // i: Stretch tensor at beginning of increment
-	doublereal* stretchnew = fUNew.Pointer();           // i: Stretch tensor at end of increment
+	doublereal* stretchold = fUOld2.Pointer();           // i: Stretch tensor at beginning of increment
+	doublereal* stretchnew = fUNew2.Pointer();           // i: Stretch tensor at end of increment
 	doublereal* relspininc = fRelSpin.Pointer();        // i: Relative spin increment
 	doublereal  density = fAbDensity;                   // i: Density of material
 	doublereal* stressnew = fstress.Pointer();          // o: This is the stress to be updated
@@ -972,6 +972,7 @@ void ABAQUS_VUMAT_BaseT::Set_VUMAT_Arguments(void)
 	/* stretch at beginning of increment */
 	bool perturb_repeated_roots = false;
 	fDecomp->PolarDecomp(fA_nsd, fROld, fUOld, perturb_repeated_roots);
+	fUOld2 = fUOld;
 
 	/* deformation gradient at end of increment */
 	const dMatrixT& F_n = F();
@@ -979,6 +980,7 @@ void ABAQUS_VUMAT_BaseT::Set_VUMAT_Arguments(void)
 
 	/* stretch at end of increment */
 	fDecomp->PolarDecomp(F_n, fRNew, fUNew, perturb_repeated_roots);
+	fUNew2 = fUNew;
 
 	/* relative deformation gradient */
 	fA_nsd.Inverse();
