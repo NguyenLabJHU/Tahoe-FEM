@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.18 2004-01-05 07:34:30 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.19 2004-03-19 17:16:53 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -153,15 +153,20 @@ protected:
 	int fCloseSurfaces;
 	int fOutputArea;
 
-	/* output control */
+	/** \name output control */
+	/*@{*/
 	int fOutputID;
 	iArrayT	fNodalOutputCodes;
 	iArrayT	fElementOutputCodes;
 	iArrayT fNodesUsed;
+	bool fOutputGlobalTractions;
+	/*@}*/
 
-	/* output stream for fracture area */
+	/** \name output of fracture area */
+	/*@{*/
 	ofstreamT farea_out;
 	double fFractureArea;
+	/*@}*/
 
 	/* shape functions */
 	SurfaceShapeT* fShapes;
