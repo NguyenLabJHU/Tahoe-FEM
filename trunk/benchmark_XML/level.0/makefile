@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2004-03-28 09:41:14 paklein Exp $
+# $Id: makefile,v 1.6 2004-03-30 07:40:41 paklein Exp $
 #
 # type "make clean" to remove test results
 #
@@ -9,7 +9,8 @@ SUB_DIR = \
 	2D.elastostatic \
 	3D.elastostatic \
 	3D.elastodynamic \
-	diffusion
+	diffusion \
+	coupled
 
 all:
 	@echo "make clean to remove test results"
