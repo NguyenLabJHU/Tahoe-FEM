@@ -1,4 +1,4 @@
-/* $Id: GWPlastic.cpp,v 1.4 2003-07-17 20:32:49 rjones Exp $ */
+/* $Id: GWPlastic.cpp,v 1.5 2003-11-06 21:59:11 rjones Exp $ */
 #include "GWPlastic.h"
 #include <math.h>
 #include <iostream.h>
@@ -29,19 +29,28 @@
 using namespace Tahoe;
 
 const double PI = 2.0*acos(0.0);
+static double BIG = 1.e8;
 
 /*
 * constructors
 */
 GWPlastic::GWPlastic(double MU, double SIGMA,
-double MODULUS, double YIELD, double LENGTHSCALE, double ASPERITYAREA):
+double MODULUS, double YIELD, double LENGTHSCALE, double ASPERITYAREA,
+double ADHESION_ENERGY, double ADHESION_MODULUS):
 		fM(MU), fS(SIGMA),
 		fE(MODULUS), fY(YIELD), fL(LENGTHSCALE), fa0(ASPERITYAREA),
-		fdmin(1.e8),fAe(0.0),fAp(0.0) 
+		fW(ADHESION_ENERGY),fK(ADHESION_MODULUS),
+		fdmin(BIG),fAe(0.0),fAp(0.0) 
 {	
 		fmoment0 = new PolyDistributionT(0,fM,fS);
 		fmoment1 = new PolyDistributionT(1,fM,fS);
 		fdc = fL*fY/fE;
+		if (fW > 0.0) {
+			fda = sqrt(2*fW/fK);
+		} else {
+			fda = 0.0;
+			fK = 0.0;
+		}
 }
 
 /*
@@ -71,6 +80,8 @@ void GWPlastic::Print(ostream& out) const
 	out << "      YIELD = " << fY << '\n';
 	out << "      LENGTHSCALE = " << fL << '\n';
 	out << "      ASPERITY AREA = " << fa0 << '\n';
+	out << "      ADHESION ENERGY = " << fW << '\n';
+	out << "      ADHESION MODULUS = " << fK << '\n';
 #if 0
 	out << "      ELASTIC AREA = " << fAe << '\n';
 	out << "      PLASTIC AREA = " << fAp << '\n';
@@ -127,14 +138,24 @@ double GWPlastic::DFunction(double d) const
 	if (d < fdmin) { // plastic loading
 		Fvalue = fa0*fE/fL*(fmoment1->Function(d)
 						-fmoment1->Function(d+fdc) )
-				+fY*PlasticArea(d);
+				+fY*PlasticArea(d)
+				-fa0*fK*(fmoment1->Function(d-fda)
+						-fmoment1->Function(d) ) ;
 	} else {
 		if (d-fdmin < fdc) { // elastic
-			Fvalue = fE/fL*fa0*(fmoment1->Function(d)
+			Fvalue = fa0*fE/fL*(fmoment1->Function(d)
 							-fmoment1->Function(fdmin+fdc) )
-				   + fE/fL*(fdc-(d-fdmin))*PlasticArea(fdmin);
+				   + fE/fL*(fdc-(d-fdmin))*PlasticArea(fdmin)
+				   - fa0*fK*(fmoment1->Function(d-fda)
+						    -fmoment1->Function(d) ) ;
 		} else { // no contact
-			Fvalue = 0.0;
+			if (d-fdmin < fdc +fda) {
+				Fvalue = - fa0*fK*(fmoment1->Function(d-fda)
+								  -fmoment1->Function(fdmin+fdc) ) 
+						 - fK*(fdc+fda-(d-fdmin))*PlasticArea(fdmin);
+			} else {
+				Fvalue = 0.0;
+			}
 		}
 	}
 	return (-Fvalue);
@@ -146,13 +167,22 @@ double GWPlastic::DDFunction(double d) const
 	if (d < fdmin) { // plastic loading
 		dFvalue = fa0*fE/fL*(fmoment1->DFunction(d)
 						- fmoment1->DFunction(d+fdc) )
-				+fY*DPlasticArea(d);
+				+ fY*DPlasticArea(d)
+				- fa0*fK*(fmoment1->DFunction(d-fda)
+						 -fmoment1->DFunction(d) ) ;
 	} else {
 		if (d-fdmin < fdc) { // elastic
 			dFvalue = fE/fL*fa0*fmoment1->DFunction(d)
-					- fE/fL*PlasticArea(fdmin);
+					- fE/fL*PlasticArea(fdmin)
+				- fa0*fK*(fmoment1->DFunction(d-fda)
+						 -fmoment1->DFunction(d) ) ;
 		} else { // no contact
-			dFvalue = 0.0;
+			if (d-fdmin < fdc +fda) {
+				dFvalue = - fa0*fK*(fmoment1->DFunction(d-fda) )
+						 + fK*PlasticArea(fdmin);
+			} else {
+				dFvalue = 0.0;
+			}
 		}
 	}
 	return (-dFvalue);

@@ -1,4 +1,4 @@
-/* $Id: GWPlastic.h,v 1.4 2003-09-22 02:05:10 paklein Exp $ */
+/* $Id: GWPlastic.h,v 1.5 2003-11-06 21:59:11 rjones Exp $ */
 #ifndef _GW_PLASTIC_H_
 #define _GW_PLASTIC_H_
 
@@ -15,7 +15,8 @@ public:
 	 * Constructor
 	 */
 	GWPlastic( double MU, double SIGMA,
-	double MODULUS, double YIELD, double LENGTHSCALE, double ASPERITYAREA); 
+	double MODULUS, double YIELD, double LENGTHSCALE, double ASPERITYAREA,
+	double ADHESION_ENERGY, double ADHESION_MODULUS); 
 	
 	/*
 	 * Destructor
@@ -51,9 +52,9 @@ public:
 	virtual dArrayT& MapDFunction(const dArrayT& in, dArrayT& out) const;
 	virtual dArrayT& MapDDFunction(const dArrayT& in, dArrayT& out) const;
 
+	double GWPlastic::PlasticArea(double dmin) const;
+	double GWPlastic::DPlasticArea(double dmin) const;
 private:
-	double PlasticArea(double dmin) const;
-	double DPlasticArea(double dmin) const;
 
 	/* moment function */
 	C1FunctionT *fmoment0, *fmoment1;
@@ -65,8 +66,12 @@ private:
 	double fa0; // asperity area
 	double fM; // mean
 	double fS; // standard deviation
+	double fW; // adhesion energy
+	double fK; // adhesion modulus
+
 	double fdmin; // mininum approach
-	double fdc; // critical approach
+	double fdc; // critical approach plastic
+	double fda; // critical approach adhesion
 	double fAe; // elastic area
 	double fAp; // plastic area
 };
