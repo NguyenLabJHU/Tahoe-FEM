@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.h,v 1.7 2004-12-27 07:00:55 paklein Exp $ */
+/* $Id: ConveyorT.h,v 1.8 2005-01-09 21:00:25 paklein Exp $ */
 #ifndef _CONVEYOR_T_H_
 #define _CONVEYOR_T_H_
 
@@ -91,7 +91,13 @@ protected:
 
 	/** deactivate elements to create a pre-crack */
 	void CreatePrecrack(void);
-	
+
+	/** resolve the given node number into the area above or below the
+	 * crack plane
+	 * \return 1 if the node is above the crack plane or -1 if it lies
+	 *         below the crack plane. */
+	int UpperLower(int node) const;
+
 protected:
 
 	/** the field */
@@ -112,8 +118,7 @@ protected:
 	/*@}*/
 
 	/** \name stretching boundary
-	 * Stretching as a displacement, velocity, or acceleration jump 
-	 * split equally between the upper and lower surfaces. */
+	 * Stretching as a displacement, velocity, or acceleration */
 	/*@{*/
 	KBC_CardT::CodeT fULBC_Code;
 	double           fULBC_Value;
@@ -124,11 +129,13 @@ protected:
 	/** \name boundary condition for the far right edge */
 	/*@{*/
 	KBC_ControllerT* fRightEdge;
-	AutoArrayT<int>  fShiftedNodes;
+	AutoArrayT<int>  fShiftedNodesU;
+	AutoArrayT<int>  fShiftedNodesL;
 
-	PiecewiseLinearT fUx_upper;
-	PiecewiseLinearT fUx_lower;
+//	PiecewiseLinearT fUx_upper;
+//	PiecewiseLinearT fUx_lower;
 	
+	int fNumSamples;
 	int fUy_node_upper, fUy_node_lower;
 	AutoArrayT<double> fUy_samples_upper;
 	AutoArrayT<double> fUy_samples_lower;
