@@ -1,4 +1,4 @@
-/* $Id: J2PrimitiveT.h,v 1.3.64.1 2004-07-06 06:53:56 paklein Exp $ */
+/* $Id: J2PrimitiveT.h,v 1.3.64.2 2004-07-08 00:21:08 paklein Exp $ */
 /* created: paklein (02/17/1997) */
 #ifndef _J2_PRIMITIVET_H_
 #define _J2_PRIMITIVET_H_
@@ -7,6 +7,9 @@
 #include "ParameterInterfaceT.h"
 
 namespace Tahoe {
+
+/* forward declarations */
+class dSymMatrixT;
 
 /** base class for a J2 plastic material with linear kinematic and
  * isotropic hardening laws defined by:
