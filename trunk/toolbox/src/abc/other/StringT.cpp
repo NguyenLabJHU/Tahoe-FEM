@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.4 2001-04-10 17:57:14 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.5 2001-04-27 10:43:55 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #include "StringT.h"
@@ -171,15 +171,15 @@ StringT& StringT::Append(const char* s)
 }
 
 /* drop the last ".xxx" extension to the string */
-StringT& StringT::Root(void)
+StringT& StringT::Root(char marker)
 {
-	/* find last "." */
+	/* find last instance or marker */
 	int len = strlen(*this);
 	char* p = fArray + len - 1;
-	for (int i = 1; i < len && *p != '.'; i++) p--;
+	for (int i = 1; i < len && *p != marker; i++) p--;
 	
 	/* drop tail */
-	if (*p == '.')
+	if (*p == marker)
 	{
 		int new_len = p - fArray + 1;
 		Resize(new_len, true);
@@ -188,20 +188,20 @@ StringT& StringT::Root(void)
 	return *this;
 }
 
-StringT& StringT::Root(const char* s)
+StringT& StringT::Root(const char* s, char marker)
 {
 	/* check for self */
 	if (s == Pointer())
-		return Root();
+		return Root(marker);
 	else
 	{	
-		/* find last "." */
+		/* find last marker */
 		int len = strlen(s);
 		const char* p = s + len - 1;
-		for (int i = 0; i < len && *p != '.'; i++) p--;
+		for (int i = 0; i < len && *p != marker; i++) p--;
 
 		/* drop tail */
-		if (*p == '.')
+		if (*p == marker)
 		{
 			int new_len = p - s + 1;
 			Allocate(new_len);
@@ -213,16 +213,16 @@ StringT& StringT::Root(const char* s)
 }
 
 /* returns the last ".xxx" extension to the string */
-StringT& StringT::Suffix(void)
+StringT& StringT::Suffix(char marker)
 {
-	/* find last "." */
+	/* find last instance of marker */
 	int len = strlen(*this);
 	char* p = fArray + len - 1;
 	int i;
-	for (i = 1; i < len && *p != '.'; i++) p--;
+	for (i = 1; i < len && *p != marker; i++) p--;
 	
 	/* take tail */
-	if (*p == '.')
+	if (*p == marker)
 	{
 		/* copy down */
 		memmove(fArray, p, i + 1);
@@ -236,24 +236,64 @@ StringT& StringT::Suffix(void)
 	return *this = "\0";
 }
 
-StringT& StringT::Suffix(const char* s)
+StringT& StringT::Suffix(const char* s, char marker)
 {
 	/* check for self */
 	if (s == Pointer())
-		return Suffix();
+		return Suffix(marker);
 	else
 	{	
-		/* find last "." */
+		/* find last instance of marker */
 		int len = strlen(s);
 		const char* p = s + len - 1;
-		for (int i = 0; i < len && *p != '.'; i++) p--;
+		for (int i = 0; i < len && *p != marker; i++) p--;
 
 		/* drop tail */
-		if (*p == '.')
+		if (*p == marker)
 			return *this = p;
 		else
 			return *this = "\0";
 	}
+}
+
+/* returns the path part of the full path to a file - drops the file
+ * from the full path to a file, keeping the directory separator */
+StringT& StringT::FilePath(void)
+{
+	/* convert to native file path */
+	ToNativePathName();
+
+	/* directory separator */
+	char separator = DirectorySeparator();
+
+	/* find last instance of separator */
+	int len = strlen(*this);
+	char* p = fArray + len - 1;
+	int i;
+	for (i = 1; i < len && *p != separator; i++) p--;
+	
+	/* take tail including separator (unless MacOS) */
+	if (*p == separator)
+	{
+#ifdef _MACOS_
+		int offset = 1;
+#else
+		int offset = 2;		
+#endif
+		int new_len = p - fArray + offset;
+		Resize(new_len, true);
+		fArray[new_len - 1] = '\0';
+	}
+	return *this;
+}
+
+StringT& StringT::FilePath(const char* s)
+{
+	/* copy */
+	if (s != Pointer()) *this = s;
+	
+	/* drop file name */
+	return FilePath();
 }
 
 StringT& StringT::Append(const char* s1, const char* s2)
