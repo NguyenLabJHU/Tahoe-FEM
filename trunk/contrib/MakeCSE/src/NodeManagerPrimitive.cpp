@@ -1,8 +1,8 @@
-// file: NodeManagerPrimitive.cpp
-
+// $Id: NodeManagerPrimitive.cpp,v 1.6 2002-10-25 21:02:59 paklein Exp $
 // created: SAW 10/07/99
-
 #include "NodeManagerPrimitive.h"
+
+#include "ExceptionCodes.h"
 #include "MakeCSE_IOManager.h"
 #include "MakeCSE_FEManager.h"
 #include "dArrayT.h"

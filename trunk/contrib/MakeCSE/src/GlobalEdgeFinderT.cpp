@@ -1,17 +1,9 @@
-/*
- * File: GlobalEdgeFinderT.cpp
- *
- */
-
-/*
- * created      : PAK (02/14/98)
- * last modified: 
- */
-
+/* $Id: GlobalEdgeFinderT.cpp,v 1.5 2002-10-25 21:02:59 paklein Exp $ */
 #include "GlobalEdgeFinderT.h"
+#include "ExceptionCodes.h"
 #include "MakeCSE_FEManager.h"
 
-const int fill = GlobalEdgeFinderT::kNoNeighbor;
+const int fill_ = GlobalEdgeFinderT::kNoNeighbor;
 const int kPrint = 20000;
 
 using namespace Tahoe;
@@ -87,7 +79,7 @@ void GlobalEdgeFinderT::AddElements (int numelems, int numfaces, int group)
   // resize element map
   int length = fElementMap[group].Length();
   int numold = fNumElements;
-  fElementMap[group].Resize (length + numelems, fill);
+  fElementMap[group].Resize (length + numelems, fill_);
 
   // resize neighbor data
   fNumElements += numelems;
@@ -109,7 +101,7 @@ void GlobalEdgeFinderT::AddElements (int numelems, int numfaces, int group)
 
   // resize reverse element map
   int revlength = fRevElementMap.MajorDim();
-  fRevElementMap.Resize (revlength + numelems, fill);
+  fRevElementMap.Resize (revlength + numelems, fill_);
   int *rev = fRevElementMap(numold);
   for (int c=0; c < numelems; c++)
     {

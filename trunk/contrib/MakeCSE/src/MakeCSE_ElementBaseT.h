@@ -1,7 +1,5 @@
-// file: ElementBaseT.h
-
+// $Id: MakeCSE_ElementBaseT.h,v 1.5 2002-10-25 21:02:59 paklein Exp $
 // created: SAW 10/06/00
-
 #ifndef _MakeCSE_ELEMENTBASET_H_
 #define _MakeCSE_ELEMENTBASET_H_
 
@@ -17,7 +15,7 @@ namespace Tahoe {
 class MakeCSE_IOManager;
 class OutputBaseT;
 class ModelManagerT;
-class AutoArrayT;
+template <class TYPE> class AutoArrayT;
 
 /** Class similar to ElementBaseT, however, it also has facet data capabilities */
 class MakeCSE_ElementBaseT
