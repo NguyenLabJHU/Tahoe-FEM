@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: MirrorTree.pl,v 1.2 2004-01-02 03:52:38 paklein Exp $
+# $Id: MirrorTree.pl,v 1.3 2004-11-09 21:27:15 paklein Exp $
 #
 # Mirror all contents of a directory tree using symbolic links.
 #
@@ -90,7 +90,7 @@ sub mirror_sub
 		elsif (-f $source_path) {
 
 			# filter files
-			if ($file !~ /\.h$|\.o$/) {
+			if ($file !~ /\.o$/) {
 
 				# create symbolic link
 				print STDOUT "$ln $source_path $dest_path\n";
