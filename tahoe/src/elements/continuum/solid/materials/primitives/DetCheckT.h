@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.h,v 1.20 2005-01-25 23:13:22 raregue Exp $ */
+/* $Id: DetCheckT.h,v 1.21 2005-02-03 23:52:36 raregue Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _DETCHECK_T_H_
@@ -64,8 +64,9 @@ public:
 
 private:
 
-	/** closed-form check for localization, assuming plane strain conditions.
-	 * Taken from R.A.Regueiro's SPINLOC.
+	/** closed-form check for localization, assuming small strain, plane strain conditions
+	 * Taken from R.A.Regueiro's SPINLOC
+	 * assumes c__ is the modulus formed from principal stresses
 	 * 1 is 11
 	 * 2 is 22
 	 * 3 is 12
