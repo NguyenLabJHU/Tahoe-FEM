@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.42 2003-05-22 01:29:33 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.43 2003-05-30 18:08:02 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -401,10 +401,10 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 	/* configure ghost nodes */
 	int group = 0;
 	StringT bridging_field = "displacement";
-	bool active;
+	bool make_inactive = true;
 	atoms.InitGhostNodes();
 	continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
-	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), active);
+	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), make_inactive);
 
 #if 0
 	/* cross coupling matricies */
