@@ -1,6 +1,10 @@
-/* $Id: FEManagerT_bridging.h,v 1.2 2003-03-31 23:20:27 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.3 2003-04-01 18:23:48 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
+
+/* element configuration header */
+#include "ElementsConfig.h"
+#ifdef BRIDGING_ELEMENT
 
 /* base class */
 #include "FEManagerT.h"
@@ -183,4 +187,5 @@ inline void FEManagerT_bridging::SetExternalForce(int group, const dArrayT& exte
 
 } /* namespace Tahoe */
 
+#endif /* BRIDGING_ELEMENT */
 #endif /* _FE_MANAGER_BRIDGING_H_ */
