@@ -1,4 +1,4 @@
-/* $Id: NOXSolverT.cpp,v 1.4 2002-07-02 19:57:16 cjkimme Exp $ */
+/* $Id: NOXSolverT.cpp,v 1.5 2002-07-03 23:11:10 paklein Exp $ */
 #include "NOXSolverT.h"
 
 /* optional */
@@ -20,9 +20,7 @@
 
 
 using namespace Tahoe;
-
 using namespace NOX::Status;
-using namespace NOX::Tahoe;
 using namespace NOX::Solver;
 
 inline static int Max(int a, int b) { return (a > b) ? a : b; };
@@ -194,7 +192,7 @@ SolverT::SolutionStatusT NOXSolverT::Solve(int num_iterations)
 	/* set up group */
 	dArrayT u(fRHS.Length());
 	fFEManager.GetUnknowns(fGroup, fUnknownsOrder, u);
-	NOX::Tahoe::Group group(*this, u, *fLHS);
+	Tahoe::Group group(*this, u, *fLHS);
 	fLastSolution = u;
 			
 	/* compute initial residual */

@@ -1,4 +1,4 @@
-/* $Id: NOX_Tahoe_Group.h,v 1.4 2002-07-02 19:57:16 cjkimme Exp $ */
+/* $Id: NOX_Tahoe_Group.h,v 1.5 2002-07-03 23:11:11 paklein Exp $ */
 #ifndef NOX_TAHOE_GROUP_H
 #define NOX_TAHOE_GROUP_H
 
@@ -14,23 +14,22 @@
 #include "dArrayT.h"
 
 /* forward declarations */
-
-namespace Tahoe {
-
 namespace NOX {
 	namespace Parameter {
 		class List;
 	}
 }
-class SolverInterfaceT;
-class GlobalMatrixT;
+namespace Tahoe {
+  class SolverInterfaceT;
+  class GlobalMatrixT;
+}
 
-namespace NOX {
+namespace Tahoe {
 
-//! %NOX %Tahoe support. 
+//! %Tahoe support. 
 
 /** implementation of NOX::Abstract::Group for %Tahoe groups */
-class Group: public Abstract::Group {
+class Group: public NOX::Abstract::Group {
 
 public:
   
@@ -40,7 +39,7 @@ public:
 
 	/** copy constructor. The resulting object owns the Jacobian matrix used 
 	 * by the class */
-	Group(const Group& source, CopyType type);
+	Group(const Group& source, NOX::CopyType type);
 
 	/** destructor */
 	virtual ~Group(void);
@@ -51,10 +50,10 @@ public:
     source group to this group.  (May invalidate shared data for
     source group.)
   */
-  virtual Abstract::Group& operator=(const Group& source);
+  virtual NOX::Abstract::Group& operator=(const Group& source);
       
   //! See above.
-  virtual Abstract::Group& operator=(const Abstract::Group& source);
+  virtual NOX::Abstract::Group& operator=(const NOX::Abstract::Group& source);
       
   //@{ \name "Compute" functions.
 
@@ -62,7 +61,7 @@ public:
   virtual bool computeX(const Group& grp, const Vector& d, double step);
 
   //! See above.
-  virtual bool computeX(const Abstract::Group& grp, const Abstract::Vector& d, double step);
+  virtual bool computeX(const NOX::Abstract::Group& grp, const NOX::Abstract::Vector& d, double step);
 
   //! Compute and return RHS. Also computes and stores norm of RHS.
   virtual bool computeRHS(void);
@@ -76,7 +75,7 @@ public:
 
   //! Compute and return Newton direction, using parameters for nonlinear solve.
   //! Throws an error if RHS and Jacobian have not been computed.
-  virtual bool computeNewton(Parameter::List& params);
+  virtual bool computeNewton(NOX::Parameter::List& params);
 
   //@}
 
@@ -94,19 +93,19 @@ public:
     Returns false is any errors occur, such as the Jacobian not being
     computed.
   */
-  virtual bool applyJacobian(const Abstract::Vector& input, Abstract::Vector& result) const;
+  virtual bool applyJacobian(const NOX::Abstract::Vector& input, NOX::Abstract::Vector& result) const;
 
   /*! 
     \brief If supported, returns true and calculates result =
     Jacobian^T * input.  Otherwise, returns false.  Throws an error if
     the Jacobian has not been computed. 
   */
-  virtual bool applyJacobianTranspose(const Abstract::Vector& input, Abstract::Vector& result) const;
+  virtual bool applyJacobianTranspose(const NOX::Abstract::Vector& input, NOX::Abstract::Vector& result) const;
   
   /*!
     \brief Applies the Jacobian Diagonal to the given input vector.
   */
-  virtual bool applyJacobianDiagonalInverse(const Abstract::Vector& input, Abstract::Vector& result) const;
+  virtual bool applyJacobianDiagonalInverse(const NOX::Abstract::Vector& input, NOX::Abstract::Vector& result) const;
     
 
   //@}
@@ -140,19 +139,19 @@ public:
   //@{ 
 
   //! Return solution vector.  
-  virtual const Abstract::Vector& getX() const { return fSolution; };
+  virtual const NOX::Abstract::Vector& getX() const { return fSolution; };
 
   //! Return right-hand-side (RHS). 
-  virtual const Abstract::Vector& getRHS() const { return fRHS; };
+  virtual const NOX::Abstract::Vector& getRHS() const { return fRHS; };
 
   //! Return 2-norm of RHS.
   virtual double getNormRHS() const { return fRHSNorm; };
 
   //! Return gradient.
-  virtual const Abstract::Vector& getGrad() const { return fGradient; };
+  virtual const NOX::Abstract::Vector& getGrad() const { return fGradient; };
 
   //! Return Newton direction.
-  virtual const Abstract::Vector& getNewton() const { return fNewton; };
+  virtual const NOX::Abstract::Vector& getNewton() const { return fNewton; };
 
   //@}
 
@@ -166,7 +165,7 @@ public:
     "this". Otherwise, if type is "CopyShape", we need only replicate
     the shape of "this". Returns NULL if clone is not supported.
   */
-  virtual Abstract::Group* clone(CopyType type = DeepCopy) const;
+  virtual NOX::Abstract::Group* clone(NOX::CopyType type = NOX::DeepCopy) const;
 
   //@}
 
@@ -202,7 +201,6 @@ public:
 	/** 2-norm of RHS. Computed during Group::computeRHS */
 	double fRHSNorm;	
 };
-} // namespace NOX
 
 } // namespace Tahoe 
 #endif /* __NOX__ */

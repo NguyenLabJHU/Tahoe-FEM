@@ -1,4 +1,4 @@
-// $Id: NOX_Tahoe_Vector.cpp,v 1.4 2002-07-02 19:57:16 cjkimme Exp $
+// $Id: NOX_Tahoe_Vector.cpp,v 1.5 2002-07-03 23:11:12 paklein Exp $
 #include "NOX_Tahoe_Vector.h"
 
 /* optional */
@@ -6,11 +6,8 @@
 
 #include "dArrayT.h"
 
-
 using namespace Tahoe;
-
 using namespace NOX;
-using namespace NOX::Tahoe;
 
 Vector::Vector(void) { fArray = new dArrayT; }
 
@@ -31,35 +28,35 @@ Vector::Vector(const dArrayT& source, CopyType type):
 
 Vector::~Vector() { delete fArray; }
 
-Abstract::Vector& Vector::operator=(const dArrayT& source)
+NOX::Abstract::Vector& Vector::operator=(const dArrayT& source)
 {
 	*fArray = source;
 	return *this;
 }
 
-Abstract::Vector& Vector::operator=(const Abstract::Vector& source)
+NOX::Abstract::Vector& Vector::operator=(const NOX::Abstract::Vector& source)
 {
 	return operator=(dynamic_cast<const Vector&>(source));
 }
 
-Abstract::Vector& Vector::operator=(const Vector& source)
+NOX::Abstract::Vector& Vector::operator=(const Vector& source)
 {
 	*fArray = source;
 	return *this;
 }
 
-Abstract::Vector& Vector::init(double value)
+NOX::Abstract::Vector& Vector::init(double value)
 {
 	*fArray = value;
 	return *this;
 }
 
-Abstract::Vector& Vector::abs(const Abstract::Vector& base)
+NOX::Abstract::Vector& Vector::abs(const NOX::Abstract::Vector& base)
 {
 	return abs(dynamic_cast<const Vector&>(base));
 }
 
-Abstract::Vector& Vector::abs(const Vector& base)
+NOX::Abstract::Vector& Vector::abs(const Vector& base)
 {
 	const dArrayT& src = base;
 #if __option(extended_errorcheck)
@@ -70,12 +67,12 @@ Abstract::Vector& Vector::abs(const Vector& base)
 	return *this;
 }
 
-Abstract::Vector& Vector::reciprocal(const Abstract::Vector& base)
+NOX::Abstract::Vector& Vector::reciprocal(const NOX::Abstract::Vector& base)
 {
 	return reciprocal(dynamic_cast<const Vector&>(base));
 }
 
-Abstract::Vector& Vector::reciprocal(const Vector& base)
+NOX::Abstract::Vector& Vector::reciprocal(const Vector& base)
 {
 	const dArrayT& src = base;
 #if __option(extended_errorcheck)
@@ -86,32 +83,32 @@ Abstract::Vector& Vector::reciprocal(const Vector& base)
 	return *this;
 }
 
-Abstract::Vector& Vector::scale(double alpha)
+NOX::Abstract::Vector& Vector::scale(double alpha)
 {
 	*fArray *= alpha;
 	return *this;
 }
 
-Abstract::Vector& Vector::update(double alpha, const Abstract::Vector& a, double gamma)
+NOX::Abstract::Vector& Vector::update(double alpha, const NOX::Abstract::Vector& a, double gamma)
 {
 	return update(alpha, dynamic_cast<const Vector&>(a), gamma);
 }
 
-Abstract::Vector& Vector::update(double alpha, const Vector& a, double gamma)
+NOX::Abstract::Vector& Vector::update(double alpha, const Vector& a, double gamma)
 {
 	fArray->SetToCombination(alpha, a, gamma, *this);
 	return *this;
 }
 
-Abstract::Vector& Vector::update(double alpha, const Abstract::Vector& a, 
-				 double beta, const Abstract::Vector& b,
+NOX::Abstract::Vector& Vector::update(double alpha, const NOX::Abstract::Vector& a, 
+				 double beta, const NOX::Abstract::Vector& b,
 				 double gamma)
 {
   	return update(alpha, dynamic_cast<const Vector&>(a), 
                    beta, dynamic_cast<const Vector&>(b), gamma);
 }
 
-Abstract::Vector& Vector::update(double alpha, const Vector& a, 
+NOX::Abstract::Vector& Vector::update(double alpha, const Vector& a, 
 				 double beta, const Vector& b,
 				 double gamma)
 {
@@ -120,23 +117,23 @@ Abstract::Vector& Vector::update(double alpha, const Vector& a,
 }
 
 
-Abstract::Vector* Vector::clone(CopyType type) const
+NOX::Abstract::Vector* Vector::clone(NOX::CopyType type) const
 {
 	Vector* newVec = new Vector(*fArray, type);
 	return newVec;
 }
 
-double Vector::norm(Abstract::Vector::NormType type) const
+double Vector::norm(NOX::Abstract::Vector::NormType type) const
 {
 	double n = 0.0;
 	switch (type) {
-		case INF:
+		case NOX::Abstract::Vector::INF:
 			n = fArray->AbsMax();
 			break;
-		case ONE:
+		case NOX::Abstract::Vector::ONE:
 			n = fArray->AbsSum();
 			break;
-		case TWO:
+		case NOX::Abstract::Vector::TWO:
 		default:
 			n = fArray->Magnitude();
 			break;
@@ -144,12 +141,12 @@ double Vector::norm(Abstract::Vector::NormType type) const
 	return n;
 }
 
-double Vector::norm(const Abstract::Vector& weights, Abstract::Vector::NormType type) const
+double Vector::norm(const NOX::Abstract::Vector& weights, NOX::Abstract::Vector::NormType type) const
 {
 	return norm(dynamic_cast<const Vector&>(weights), type);
 }
 
-double Vector::norm(const Vector& weights, Abstract::Vector::NormType type) const
+double Vector::norm(const Vector& weights, NOX::Abstract::Vector::NormType type) const
 {
 	double n = 0.0;
 	switch (type) {
