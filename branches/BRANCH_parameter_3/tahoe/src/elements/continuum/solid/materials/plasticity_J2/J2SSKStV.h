@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.h,v 1.8.24.1 2004-04-08 07:33:09 paklein Exp $ */
+/* $Id: J2SSKStV.h,v 1.8.24.2 2004-06-08 16:01:34 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #ifndef _J2_SS_KSTV_H_
 #define _J2_SS_KSTV_H_
@@ -11,6 +11,7 @@
 
 namespace Tahoe {
 
+/** small strain J2 plastic material */
 class J2SSKStV: public SSSolidMatT,
 				public IsotropicT,
 				public HookeanMatT,
@@ -18,8 +19,9 @@ class J2SSKStV: public SSSolidMatT,
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	J2SSKStV(ifstreamT& in, const SSMatSupportT& support);
+	J2SSKStV(void);
 
 	/* initialization */
 	virtual void Initialize(void);
@@ -29,10 +31,6 @@ public:
 
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 	
 	/** \name spatial description */
 	/*@{*/

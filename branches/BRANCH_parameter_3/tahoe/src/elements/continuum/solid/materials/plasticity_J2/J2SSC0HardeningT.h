@@ -1,7 +1,9 @@
-/* $Id: J2SSC0HardeningT.h,v 1.6 2003-12-28 23:37:16 paklein Exp $ */
-
+/* $Id: J2SSC0HardeningT.h,v 1.6.18.1 2004-06-08 16:01:34 paklein Exp $ */
 #ifndef _J2_SS_C0_HARD_T_H_
 #define _J2_SS_C0_HARD_T_H_
+
+/* base class */
+#include "ParameterInterfaceT.h"
 
 /* direct members */
 #include "dSymMatrixT.h"
@@ -17,19 +19,31 @@ namespace Tahoe {
 class ElementCardT;
 class ifstreamT;
 
-class J2SSC0HardeningT
+class J2SSC0HardeningT: virtual public ParameterInterfaceT
 {
 public:
 
-	/* constructor */
-	J2SSC0HardeningT(ifstreamT& in, int num_ip, double mu);
+	/** constructor */
+	J2SSC0HardeningT(void);
 
 	/* destructor */
 	virtual ~J2SSC0HardeningT(void);
 
-	/* output name */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
@@ -100,7 +114,7 @@ private:
 		const ElementCardT& element);
 
 	/* construct isotropic hardening function */
-	void ConstructHardeningFunction(ifstreamT& in);
+//	void ConstructHardeningFunction(ifstreamT& in);
 
 protected:
 
@@ -122,7 +136,7 @@ private:
 	double ftheta;
 
 	/** C1 isotropic hardening function */
-	HardeningFunctionT fType;
+	bool fIsLinear;
 	C1FunctionT* fK;	
 
 	/* return values */
