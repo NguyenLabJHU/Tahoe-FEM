@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2003-01-27 07:00:22 paklein Exp $
+# $Id: makefile,v 1.3 2003-01-30 00:43:34 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -18,7 +18,7 @@ DEP = /dev/null
 # headers
 HDR = \
 	ElementsConfig.h \
-	MaterialsConfig.h
+	SolidMaterialsConfig.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

@@ -1,7 +1,7 @@
-/* $Id: SolidMatList3DT.cpp,v 1.27 2003-01-29 07:34:58 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.28 2003-01-30 00:43:39 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
-#include "MaterialsConfig.h"
+#include "SolidMaterialsConfig.h"
 #include "fstreamT.h"
 
 /* 3D material type codes */

@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.38 2003-01-29 09:10:44 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.39 2003-01-30 00:43:36 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -10,13 +10,10 @@
 #include "ElementSupportT.h"
 #include "GeometryT.h"
 
-/* elements */
 #include "ElementBaseT.h"
-#include "BEMelement.h"
-#include "AdhesionT.h"
 
-#ifdef MULTISCALE_ELEMENT
-#include "StaggeredMultiScaleT.h"
+#ifdef ADHESION_ELEMENT
+#include "AdhesionT.h"
 #endif
 
 #ifdef COHESIVE_SURFACE_ELEMENT
@@ -41,15 +38,11 @@
 #include "BridgingScaleT.h"
 #endif
 
-#ifdef DEV_CONTACT_ELEMENT
+#ifdef CONTACT_ELEMENT
 #include "PenaltyContact2DT.h"
 #include "PenaltyContact3DT.h"
 #include "AugLagContact2DT.h"
 #include "ACME_Contact3DT.h"
-#include "MultiplierContact3DT.h"
-#include "MultiplierContactElement2DT.h"
-#include "PenaltyContactElement2DT.h"
-#include "PenaltyContactElement3DT.h"
 #endif
 
 #ifdef PARTICLE_ELEMENT
@@ -63,6 +56,21 @@
 #include "RodT.h"
 #include "UnConnectedRodT.h"
 #include "VirtualRodT.h"
+#endif
+
+#ifdef DEV_CONTACT_ELEMENT
+#include "MultiplierContact3DT.h"
+#include "MultiplierContactElement2DT.h"
+#include "PenaltyContactElement2DT.h"
+#include "PenaltyContactElement3DT.h"
+#endif
+
+#ifdef BEM_ELEMENT
+#include "BEMelement.h"
+#endif
+
+#ifdef MULTISCALE_ELEMENT
+#include "StaggeredMultiScaleT.h"
 #endif
 
 using namespace Tahoe;
@@ -300,20 +308,20 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			}
 			case ElementT::kSWDiamond:
 			{
-#ifdef LATTICE_ELEMENT
+#ifdef SPRING_ELEMENT
 				fArray[group] = new SWDiamondT(fSupport, *field);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "LATTICE_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "SPRING_ELEMENT not enabled: %d", code);
 #endif
 			}	
 			case ElementT::kMixedSWDiamond:
 			{
-#ifdef LATTICE_ELEMENT
+#ifdef SPRING_ELEMENT
 				fArray[group] = new MixedSWDiamondT(fSupport, *field);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "LATTICE_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "SPRING_ELEMENT not enabled: %d", code);
 #endif
 			}	
 			case ElementT::kUnConnectedRod:
@@ -336,11 +344,11 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			}
 			case ElementT::kVirtualSWDC:
 			{
-#ifdef LATTICE_ELEMENT
+#ifdef SPRING_ELEMENT
 				fArray[group] = new VirtualSWDC(fSupport, *field);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "LATTICE_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "SPRING_ELEMENT not enabled: %d", code);
 #endif
 			}	
 			case ElementT::kCohesiveSurface:
@@ -379,7 +387,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			}
 			case ElementT::kPenaltyContact:
 			{
-#ifdef DEV_CONTACT_ELEMENT
+#ifdef CONTACT_ELEMENT
 				int nsd = fSupport.NumSD();
 				if (nsd == 2)
 					fArray[group] = new PenaltyContact2DT(fSupport, *field);
@@ -388,25 +396,29 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 					
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "DEV_CONTACT_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
 #endif
 			}
 			case ElementT::kAugLagContact2D:
 			{
-#ifdef DEV_CONTACT_ELEMENT
+#ifdef CONTACT_ELEMENT
 				fArray[group] = new AugLagContact2DT(fSupport, *field);	
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "DEV_CONTACT_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
 #endif
 			}
 			case ElementT::kBEMelement:
 			{
+#ifdef BEM_ELEMENT
 				StringT BEMfilename;
 				in >> BEMfilename;
 			
 				fArray[group] = new BEMelement(fSupport, *field, BEMfilename);	
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "BEM_ELEMENT not enabled: %d", code);
+#endif
 			}
 			case ElementT::kLinearDiffusion:
 			{
@@ -437,15 +449,15 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			}				
 			case ElementT::kACME_Contact:
 			{
-#ifdef DEV_CONTACT_ELEMENT
+#ifdef CONTACT_ELEMENT
 #ifdef __ACME__
 				fArray[group] = new ACME_Contact3DT(fSupport, *field);
 #else
 				ExceptionT::GeneralFail(caller, "ACME not installed");
 #endif /* __ACME__ */			
 				break;
-#else /* DEV_CONTACT_ELEMENT */
-				ExceptionT::BadInputValue(caller, "DEV_CONTACT_ELEMENT not enabled: %d", code);
+#else /* CONTACT_ELEMENT */
+				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
 #endif				
 			}
 			case ElementT::kMultiplierContact3D:
@@ -508,8 +520,12 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		}
 		case ElementT::kAdhesion:
 		{
+#ifdef ADHESION_ELEMENT
 			fArray[group] = new AdhesionT(fSupport, *field);
 			break;
+#else
+			ExceptionT::BadInputValue(caller, "ADHESION_ELEMENT not enabled: %d", code);
+#endif
 		}
 		case ElementT::kParticlePair:
 		{

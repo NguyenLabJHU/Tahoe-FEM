@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:24 paklein Exp $
+# $Id: makefile,v 1.5 2003-01-30 00:43:38 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -11,6 +11,7 @@ OBJ = \
 	EAMFCC3D.o \
 	EAMFCC3DMatT.o \
 	EAMFCC3DSym.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -32,6 +33,7 @@ HDR = \
 	EAMFCC3DMatT.h \
 	EAMFCC3DSym.h \
 	EAM.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.20 2003-01-29 09:10:50 paklein Exp $
+# $Id: makefile,v 1.21 2003-01-30 00:43:37 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -20,23 +20,18 @@ DEP = /dev/null
 #HDR_LINK = $(HDR:.h=.h_link)
 
 # materials configuration files
-include $(SRC_DIR)/config/MaterialsConfig.make
+include $(SRC_DIR)/config/SolidMaterialsConfig.make
 
 # subdirectories
 SUB_DIR = \
 	primitives \
 	managers \
 	interfaces \
-	ABAQUS_UMAT \
-	ABAQUS_VUMAT \
 	Hookean \
 	Ogden \
-	plasticity_DP \
-	plasticity_J2NlHard \
 	Simo \
 	nlcsolver \
-	tevp \
-	$(MATERIALS_CONFIG_DIRECTORIES)
+	$(SOLID_MATERIALS_CONFIG_DIRECTORIES)
 
 subdir_driver: subdir_loop
 # SUB_DIR is empty

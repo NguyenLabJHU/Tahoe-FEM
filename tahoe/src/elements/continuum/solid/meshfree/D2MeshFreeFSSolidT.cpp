@@ -1,7 +1,7 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.10 2003-01-29 07:35:11 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.11 2003-01-30 00:43:41 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2MeshFreeFSSolidT.h"
-#include "MaterialsConfig.h"
+#include "SolidMaterialsConfig.h"
 
 #include <iostream.h>
 #include <iomanip.h>

@@ -1,6 +1,6 @@
-/* $Id: NLCSolverWrapper.cpp,v 1.3 2003-01-27 07:00:28 paklein Exp $ */
+/* $Id: NLCSolverWrapper.cpp,v 1.4 2003-01-30 00:43:40 paklein Exp $ */
 #include "NLCSolverWrapper.h"
-#include "MaterialsConfig.h"
+#include "SolidMaterialsConfig.h"
 #include "ExceptionT.h"
 
 #ifdef PLASTICITY_CRYSTAL_MATERIAL
