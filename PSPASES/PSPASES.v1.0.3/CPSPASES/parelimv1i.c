@@ -1,4 +1,4 @@
-/* $Id: parelimv1i.c,v 1.2 2005-01-05 16:51:31 paklein Exp $ */
+/* $Id: parelimv1i.c,v 1.3 2005-01-15 03:09:50 paklein Exp $ */
 /* parelimv1i.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -65,7 +65,7 @@ static integer c__72 = 72;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: parelimv1i.c,v 1.2 2005-01-05 16:51:31 paklein Exp $ +/ */
+/* /+ $Id: parelimv1i.c,v 1.3 2005-01-15 03:09:50 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -690,6 +690,8 @@ L70:
 	    while(npending > 0) {
 /*<             call mpi_waitany(4,req,msgid,mpistat,ierr) >*/
 		MPI_Waitany(4, req, &msgid, mpistat);
+		msgid++; /* completed requests numbered from 1 in FORTRAN */
+
 /*<             call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
 		myMPI_Get_count(mpistat, MPI_BYTE, &nbytes);
 /*<             if (msgid .eq. 2 .and. nsent1 .eq. 0) then >*/
@@ -946,6 +948,8 @@ L90:
 	    while(npending != 0) {
 /*<             call mpi_waitany(4,req,msgid,mpistat,ierr) >*/
 		MPI_Waitany(4, req, &msgid, mpistat);
+		msgid++; /* completed requests numbered from 1 in FORTRAN */
+
 /*<             call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
 		myMPI_Get_count(mpistat, MPI_BYTE, &nbytes);
 /*<             npending = npending - 1 >*/
