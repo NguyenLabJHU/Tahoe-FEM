@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.18.2.7 2002-05-17 01:29:56 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.18.2.8 2002-05-29 00:22:47 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -22,6 +22,7 @@
 #include "Tijssens2DT.h"
 #include "RateDep2DT.h"
 #include "TiedPotentialT.h"
+#include "YoonAllen2DT.h"
 
 /* constructor */
 CSEAnisoT::CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate):
@@ -162,10 +163,27 @@ void CSEAnisoT::Initialize(void)
 			case SurfacePotentialT::kTiedPotential:
 			{	
 				if (NumDOF() == 2)
+				{
 					fSurfPots[num] = new TiedPotentialT(in, ElementSupport().TimeStep());
+					freeNodeQ.Dimension(fElementCards.Length(),NumElementNodes()/2);
+					freeNodeQ = false;
+					freeNodeQ_last = freeNodeQ;
+				}
 				else
 				{
-					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code <<  endl;
+					cout << "\n TiedPotentialT::Initialize: potential not implemented for 3D: " << code <<  endl;
+
+					throw eBadInputValue;
+				}
+				break;
+			}
+			case SurfacePotentialT::kYoonAllen:
+			{	
+				if (NumDOF() == 2)
+					fSurfPots[num] = new YoonAllen2DT(in, ElementSupport().TimeStep());
+				else
+				{
+					cout << "\n AllenT::Initialize: potential not implemented for 3D: " << code <<  endl;
 
 					throw eBadInputValue;
 				}
@@ -269,6 +287,8 @@ void CSEAnisoT::CloseStep(void)
 
 	/* reset state variables from history */
 	fStateVariables_last = fStateVariables;
+	if (freeNodeQ.IsAllocated())
+		freeNodeQ_last = freeNodeQ;
 }
 
 /* write restart data to the output stream. */
@@ -293,6 +313,8 @@ void CSEAnisoT::ReadRestart(istream& in)
 
 	/* set history */
 	fStateVariables_last = fStateVariables;
+	if (freeNodeQ.IsAllocated()) //This is useless
+		freeNodeQ_last = freeNodeQ;
 }
 
 /***********************************************************************
@@ -313,13 +335,6 @@ void CSEAnisoT::LHSDriver(void)
 	/* node map of facet 1 */
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
-
-/*	if (fCalcNodalInfo) 
-	{
-		ElementBaseT& surroundingGroup = ElementSupport().ElementGroup(fBulkGroup);
-		surroundingGroup.SendOutput(fNodalInfoCode);
-		fNodalQuantities = ElementSupport().OutputAverage();
-	}*/
 
 	AutoArrayT<double> state2;
 	dArrayT state;
@@ -344,7 +359,9 @@ void CSEAnisoT::LHSDriver(void)
 		/* initialize */
 		fLHS = 0.0;
 
+//		bool nodalReleaseQ = false;
 		LocalArrayT fNodalValues(LocalArrayT::kUnspecified);
+//		int currElNum;
 		if (surfpot->NeedsNodalInfo()) 
 		{
 		  	int numNodes = element.NodesX().Length();
@@ -353,6 +370,14 @@ void CSEAnisoT::LHSDriver(void)
 		  	fNodalValues.Allocate(numNodes,fNodalQuantities.MinorDim());
 		  	for (int iIndex = 0; iIndex < numNodes; iIndex++) 
 		    	elementVals.SetRow(iIndex,fNodalQuantities(ndIndices[iIndex]));
+			
+			/* if any nodes are tied, state variables for initial
+			 * conditions may have to be changed
+			 */
+//			currElNum = CurrElementNumber();
+//			for (int i = 0; i < facet1.Length(); i++)
+//				if (!freeNodeQ(currElNum,i) && TiedPotentialT::InitiationQ(elementVals(i)))  
+//					freeNodeQ(currElNum,i) = nodalReleaseQ = true;
 		  //	ndIndices[0] = 3;ndIndices[3] = 0;ndIndices[1] = 2;ndIndices[2] =1;
 		  //	dArray2DT sbntma;
 		  //	sbntma = elementVals;
@@ -368,6 +393,8 @@ void CSEAnisoT::LHSDriver(void)
 
 		/* loop over integration points */
 		double* pstate = fStateVariables_last(CurrElementNumber());
+//		if (freeNodeQ.IsAllocated()) 
+//			freeNodeQ = freeNodeQ_last; 
 		fShapes->TopIP();
 		while (fShapes->NextIP())
 		{  
@@ -402,14 +429,7 @@ void CSEAnisoT::LHSDriver(void)
 			dArrayT tensorIP(fNodalValues.MinorDim());
 			if (surfpot->NeedsNodalInfo()) 
 			{
-//			    dArrayT tensorIP(fNodalValues.MinorDim());
-			    fShapes->Interpolate(fNodalValues,tensorIP);
-//			    double gapMag = sqrt(fdelta[0]*fdelta[0]+fdelta[1]*fdelta[1]);
-//			    dArrayT wv = vectorIP;
-//			    wv[0] = tensorIP[0]*fdelta[0]+tensorIP[1]*fdelta[1];
-//			    wv[1] = tensorIP[1]*fdelta[0]+tensorIP[2]*fdelta[1];
-//			    wv /= gapMag;
-//			    fQ.MultTx(wv,vectorIP);
+				fShapes->Interpolate(fNodalValues,tensorIP);
 			}
 			
 			/* stiffness in local frame */
@@ -420,6 +440,12 @@ void CSEAnisoT::LHSDriver(void)
 			{
 				/* traction in local frame */
 				state2 = state;
+//				if (nodalReleaseQ && state2[0] == 0.)
+//				{
+//					state2[0] = -10.;
+					/*set initial traction here */
+//					cout << "Released an IP!\n";
+//				}
 				const dArrayT& T = surfpot->Traction(fdelta, state2,tensorIP);
 
 				/* 1st term */
@@ -437,10 +463,12 @@ void CSEAnisoT::LHSDriver(void)
 				fLHS += fNEEmat;
 			}
 
+
 			/* 3rd term */
 			fddU.MultQBQT(fQ, K);
 			fddU *= j0*w*constK;
 			fLHS.MultQTBQ(d_delta, fddU, format, dMatrixT::kAccumulate);	
+
 		}
 
 		/* assemble */
@@ -454,7 +482,6 @@ void CSEAnisoT::RHSDriver(void)
 	double constKd = 0.0;
 	int formKd = fController->FormKd(constKd);
 	if (!formKd) return;
-	//SurfacePotentialT::ResetTimeFlags();
 
 	/* heat source if needed */
 	const FieldT* temperature = ElementSupport().Field("temperature");
@@ -483,7 +510,8 @@ void CSEAnisoT::RHSDriver(void)
 	
 	/* set state to start of current step */
 	fStateVariables = fStateVariables_last;
-
+	if (freeNodeQ.IsAllocated())
+		freeNodeQ = freeNodeQ_last;
 	/* node map of facet 1 */
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
@@ -496,13 +524,12 @@ void CSEAnisoT::RHSDriver(void)
 	{
 		ElementBaseT& surroundingGroup = ElementSupport().ElementGroup(fBulkGroup);
 		surroundingGroup.SendOutput(fNodalInfoCode);
-		if (fNodalQuantities.Length() > 0)
+		if (fNodalQuantities.Length() > 0) 
+		{
 			fNodalQuantities.Free();
+		}
 		fNodalQuantities = ElementSupport().OutputAverage();
 	}
-
-	//fNeedsNewTimeStep = false;
-	//ElementSupport().ClearCSEFlags();
 	
 	int block_count = 0, block_dex = 0;
 	dArrayT state;
@@ -527,8 +554,10 @@ void CSEAnisoT::RHSDriver(void)
 	
 	  		/* initialize */
 	  		fRHS = 0.0;
-
+	  		
+			bool nodalReleaseQ = false;
 			LocalArrayT fNodalValues(LocalArrayT::kUnspecified);
+			int currElNum;
 			if (surfpot->NeedsNodalInfo()) 
 			{
 			  	int numNodes = element.NodesX().Length();
@@ -541,6 +570,10 @@ void CSEAnisoT::RHSDriver(void)
 			  //	dArray2DT sbntma;
 			  //	sbntma = elementVals;
 			  //	elementVals.Accumulate(ndIndices,sbntma);
+			  	currElNum = CurrElementNumber();
+				for (int i = 0; i < facet1.Length(); i++)
+					if (!freeNodeQ(currElNum,i) && TiedPotentialT::InitiationQ(elementVals(i)))  
+						freeNodeQ(currElNum,i) = nodalReleaseQ = true;
 			  	fNodalValues.SetGlobal(elementVals);
 			  	for (int i = 0;i < ndIndices.Length();i++)
 		  		{ 
@@ -585,36 +618,25 @@ void CSEAnisoT::RHSDriver(void)
 	
 				/* gap vector in local frame */
 				fQ.MultTx(delta, fdelta);
-				
-		                /*if (surfpot->PotentialTimeChangeQ())
-				{
-				  if (!fNeedsNewTimeStep) 
-				  {
-				    fNeedsNewTimeStep = true;
-				    fNewTimeStep = surfpot->TimeStepRequested();
-				  }
-				  else
-				    if (fNewTimeStep > surfpot->TimeStepRequested())
-				      fNewTimeStep = surfpot->TimeStepRequested();
-				}*/
 	
 				/* Interpolate nodal info to IPs */
 				dArrayT tensorIP(fNodalValues.MinorDim());
 				if (surfpot->NeedsNodalInfo()) 
 				{
-//				    dArrayT tensorIP(fNodalValues.MinorDim());
 				    fShapes->Interpolate(fNodalValues,tensorIP);
-//				    double gapMag = sqrt(fdelta[0]*fdelta[0]+fdelta[1]*fdelta[1]);
-//				    dArrayT wv = vectorIP;
-//				    wv[0] = tensorIP[0]*fdelta[0]+tensorIP[1]*fdelta[1];
-//				    wv[1] = tensorIP[1]*fdelta[0]+tensorIP[2]*fdelta[1];
-//				    wv /= gapMag;
-//				    fQ.MultTx(wv,vectorIP);
+				}
+
+				if (nodalReleaseQ && fabs(state[0]) < kSmall)
+				{
+					state[0] = -10.;
+					/*set initial traction here */
+					//cout << "Released an IP!\n";
 				}
 
 				/* traction vector in/out of local frame */
 				fQ.Multx(surfpot->Traction(fdelta, state,tensorIP), fT);
-
+				
+			
 				/* expand */
 				fShapes->Grad_d().MultTx(fT, fNEEvec);
 	
@@ -659,9 +681,6 @@ void CSEAnisoT::RHSDriver(void)
 			block_dex++;
 		}
 	}
-
-	//if (fNeedsNewTimeStep)
-	 // ElementSupport().CSESendsTimeStep(fNewTimeStep);
 }
 
 /* nodal value calculations */
@@ -757,22 +776,16 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 
-	/* If the potential needs info from the nodes, start to gather it now */
-/*	if (fCalcNodalInfo) 
-	{
-		ElementBaseT& surroundingGroup = ElementSupport().ElementGroup(fBulkGroup);
-		surroundingGroup.SendOutput(fNodalInfoCode);
-		fNodalQuantities = ElementSupport().OutputAverage();
-	}	
-	ElementSupport().ResetAverage(n_out);
-*/	
+//	if (freeNodeQ.IsAllocated())
+//		freeNodeQ = freeNodeQ_last;
+
 	AutoArrayT<double> state;
 	Top();
 	while (NextElement())
 	{
 		/* current element */
 		ElementCardT& element = CurrentElement();
-	
+		
 		/* initialize */
 		nodal_space = 0.0;
 		element_values = 0.0;
@@ -815,6 +828,8 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			if (e_codes[Traction]) traction = 0.0;
 
 			LocalArrayT fNodalValues(LocalArrayT::kUnspecified);
+//			bool nodalReleaseQ = false;
+//			int currElNum;
 			if (surfpot->NeedsNodalInfo()) 
 			{
 			  	int numNodes = element.NodesX().Length();
@@ -827,6 +842,13 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			  //	dArray2DT sbntma;
 			  //	sbntma = elementVals;
 			  //	elementVals.Accumulate(ndIndices,sbntma);
+			  	/* if any nodes are tied, state variables for initial
+			 * conditions may have to be changed
+			 */
+//				currElNum = CurrElementNumber();
+//				for (int i = 0; i < facet1.Length(); i++)
+//					if (!freeNodeQ(currElNum,i) && TiedPotentialT::InitiationQ(elementVals(i)))  
+//						freeNodeQ(currElNum,i) = nodalReleaseQ = true;
 			  	fNodalValues.SetGlobal(elementVals);
 			  	for (int i = 0;i < ndIndices.Length();i++)
 		  		{ 
@@ -868,16 +890,16 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					dArrayT tensorIP(fNodalValues.MinorDim());
 					if (surfpot->NeedsNodalInfo()) 
 					{
-//					  dArrayT tensorIP(fNodalValues.MinorDim());
 					  fShapes->Interpolate(fNodalValues,tensorIP);
-//					  double gapMag = sqrt(gap[0]*gap[0]+gap[1]*gap[1]);
-//					  dArrayT wv = vectorIP;
-//					  wv[0] = tensorIP[0]*gap[0]+tensorIP[1]*gap[1];
-//					  wv[1] = tensorIP[1]*gap[0]+tensorIP[2]*gap[1];
-//					  wv /= gapMag;
-//					  fQ.MultTx(wv,vectorIP);
 					}
 				
+//					if (nodalReleaseQ && state[0] == 0.)
+//					{
+//						state[0] = -10.;
+						/*set initial traction here */
+//						cout << "Released an IP in ComputeOutput()!\n";
+//					} 
+					
 					/* compute traction in local frame */
 					const dArrayT& tract = surfpot->Traction(fdelta, state,tensorIP);
 				       
@@ -949,7 +971,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				while (fShapes->NextIP())
 				{
 
-				        double* pstate = fStateVariables_last(CurrElementNumber()) + fShapes->CurrIP()*num_state;
+					double* pstate = fStateVariables_last(CurrElementNumber()) + fShapes->CurrIP()*num_state;
 					/* element integration weight */
 					double ip_w = fShapes->Jacobian()*fShapes->IPWeight();
 					area += ip_w;
@@ -962,7 +984,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					if (e_codes[CohesiveEnergy])
 					  {  
 						/* surface potential */
-					        state.Copy(pstate);
+						state.Copy(pstate);
 						double potential = surfpot->FractureEnergy(state);
 	
 						/* integrate */

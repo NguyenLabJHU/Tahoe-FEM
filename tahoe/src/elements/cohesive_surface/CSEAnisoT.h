@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.10.2.3 2002-05-17 01:29:56 paklein Exp $ */
+/* $Id: CSEAnisoT.h,v 1.10.2.4 2002-05-29 00:22:47 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #ifndef _CSE_ANISO_T_H_
@@ -11,6 +11,7 @@
 #include "pArrayT.h"
 #include "RaggedArray2DT.h"
 #include "dArray2DT.h"
+#include "Array2DT.h"
 #include "LocalArrayT.h"
 
 /* forward declarations */
@@ -110,12 +111,9 @@ protected:
 	int fNodalInfoCode;
 	int fBulkGroup;
 	dArray2DT fNodalQuantities;
-
-	/* change the time Step */
-	/*double fNewTimeStep;
-	bool fNeedsNewTimeStep;
-	bool NewTimeStepQ(void);
-	double NewTimeStep(void);*/
+	
+	/* if nodes are tied, keep track of free nodes per element */
+	Array2DT<bool> freeNodeQ, freeNodeQ_last;
 };
 
 #endif /* _CSE_ANISO_T_H_ */

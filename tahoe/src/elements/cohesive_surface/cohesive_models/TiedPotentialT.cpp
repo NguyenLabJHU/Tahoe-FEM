@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.1.2.3 2002-05-11 20:49:19 paklein Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.1.2.4 2002-05-29 00:22:48 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -23,25 +23,30 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in, const double& time_step):
 {
 #pragma unused(time_step)
 
-	in >> q; // phi_t/phi_n
-	in >> r; // delta_n* /d_n
-	if (q < 0.0 || r < 0.0) throw eBadInputValue;
-	
-	in >> d_n; // characteristic normal opening
-	in >> d_t; // characteristic tangent opening
-	if (d_n < 0.0 || d_t < 0.0) throw eBadInputValue;
-	
-	in >> phi_n; // mode I work to fracture
-	if (phi_n < 0.0) throw eBadInputValue;
+	in >> q; /*Traction plateau*/
+	in >> r; /*Critical Length*/
 
-	in >> r_fail; // d/d_(n/t) for which surface is considered failed
-	if (r_fail < 1.0) throw eBadInputValue;
-
-	in >> fKratio; // stiffening ratio
-	if (fKratio < 0.0) throw eBadInputValue;
-	fK = fKratio*phi_n/(d_n*d_n);
+	//in >> q; // phi_t/phi_n
+	//in >> r; // delta_n* /d_n
+	//if (q < 0.0 || r < 0.0) throw eBadInputValue;
 	
-	fsigma_critical = phi_n/exp(1.)/d_n;
+	//in >> d_n; // characteristic normal opening
+	//in >> d_t; // characteristic tangent opening
+	//if (d_n < 0.0 || d_t < 0.0) throw eBadInputValue;
+	
+	//in >> phi_n; // mode I work to fracture
+	//if (phi_n < 0.0) throw eBadInputValue;
+
+	//in >> r_fail; // d/d_(n/t) for which surface is considered failed
+	//if (r_fail < 1.0) throw eBadInputValue;
+
+	//in >> fKratio; // stiffening ratio
+	//if (fKratio < 0.0) throw eBadInputValue;
+	//fK = fKratio*phi_n/(d_n*d_n);
+	
+	//fsigma_critical = phi_n/exp(1.)/d_n;
+	d_n = r; 
+	fsigma_critical = q;
 }
 
 /*initialize state variables with values from the rate-independent model */
@@ -51,14 +56,14 @@ void TiedPotentialT::InitStateVariables(ArrayT<double>& state)
 }
 
 /* return the number of state variables needed by the model */
-int TiedPotentialT::NumStateVariables(void) const { return 2; }
+int TiedPotentialT::NumStateVariables(void) const { return 3; }
 
 /* surface potential */ 
 double TiedPotentialT::FractureEnergy(const ArrayT<double>& state) 
 {
 #pragma unused(state)
 
-   	return phi_n*(1.-2./exp(1.)); 
+   	return q*r;//phi_n*(1.-2./exp(1.)); 
 }
 
 double TiedPotentialT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
@@ -70,12 +75,12 @@ double TiedPotentialT::Potential(const dArrayT& jump_u, const ArrayT<double>& st
 	if (state[0] < kSmall && state[1] < kSmall) 
 		return 0.;
 
-	double z1, z2, z3, z4, z5, z6, z7, z8;
+	//double z1, z2, z3, z4, z5, z6, z7, z8;
 
 	double u_t = jump_u[0] + state[0];
 	double u_n = jump_u[1] + state[1];
 
-	z1 = 1./d_n;
+	/*z1 = 1./d_n;
 	z2 = 1./(d_t*d_t);
 	z3 = -q;
 	z4 = -1. + r;
@@ -98,10 +103,10 @@ double TiedPotentialT::Potential(const dArrayT& jump_u, const ArrayT<double>& st
 	z1 = phi_n*z1*z6;
 	// phi_n + z1
 
-	/* penetration */
 	if (u_n < 0.0) z1 += 0.5*u_n*u_n*fK;
 
-	return phi_n + z1;
+	return phi_n + z1;*/
+	return 0.;
 }
 	
 /* traction vector given displacement jump vector */	
@@ -117,26 +122,42 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 	}
 #endif
 
-	if (state[0] < kSmall && state[1] < kSmall)
+	if (state[0] != 1./* && state[1] < kSmall*/)
 	{
-		if (!InitiationQ(sigma))
+		/* state variables should be updated only when nodes
+		 * are released. The way it's done here is ambiguous.
+		 */
+		/*if (InitiationQ(sigma)jump_u[1] > kSmall)
 		{
-			fTraction = 0.;
-			return fTraction;
-		}
+			//state[1] = d_n; 
+			//state[0] = 0.;
+//			cout << "Initiation sigma " << sigma[0] << " " << sigma[1]<<" " << sigma[2] <<" " << jump_u[1] << "\n";
+		}*/
+		if (state[0] == -10.)
+			state[0] = 1.;
+		fTraction = 0.;
+		return fTraction;
+	}
+	else
+	{
+		fTraction[0] = 0.;
+		if (jump_u[1] < d_n)
+			fTraction[1] = fsigma_critical; //Dugdale model
 		else
-		{
-			state[1] = d_n; 
-			state[0] = 0.;
-		}
+			fTraction[1] = 0.;
+//		state[2] = fTraction[0];
+//		state[3] = fTraction[1];
+//		state[4] = jump_u[0];
+//		state[5] = jump_u[1];
+		return fTraction;
 	}
 
-	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11;
+	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10;
 
 	double u_t = jump_u[0] + state[0];
 	double u_n = jump_u[1] + state[1];
 
-	z1 = 1./d_n;
+/*	z1 = 1./d_n;
 	z2 = 1./(d_t*d_t);
 	z3 = -q;
 	z4 = -1. + r;
@@ -174,19 +195,18 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 	//z1 = List(z2,z1);
 
 	fTraction[0] = z2;
-	fTraction[1] = z1;
+	fTraction[1] = z1;*/
 
 	/* penetration */
-	if (u_n < 0.0) fTraction[1] += u_n*fK;
+//	if (u_n < 0.0) fTraction[1] += u_n*fK;
 
-	return fTraction;
+//	return fTraction;
 	
 }
 
 /* potential stiffness */
 const dMatrixT& TiedPotentialT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
 {
-#pragma unused(sigma)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
@@ -200,18 +220,19 @@ const dMatrixT& TiedPotentialT::Stiffness(const dArrayT& jump_u, const ArrayT<do
 	
 	if (state[0] < kSmall && state[1] < kSmall)
 	{
-		if (!InitiationQ(sigma))
-		{
-			fStiffness = 0.;
-			return fStiffness;
-		}
-		else
-		{
-			u_n += d_n;
-		}
+		fStiffness = 0.;
+		return fStiffness;
+	}
+	else
+	{
+		fStiffness = 0.;
+//		fStiffness[0] = (sigma[1] - state[2])/(jump_u[0]-state[4]);
+//	  	fStiffness[1] = fStiffness[2] = 0.;
+//	  	fStiffness[3] = (sigma[0] - state[3])/(jump_u[1]-state[5]); 
+		return fStiffness;
 	}
 
-	z1 = 1./(d_n*d_n);
+/*	z1 = 1./(d_n*d_n);
 	z2 = 1./d_n;
 	z3 = pow(d_t,-4.);
 	z4 = 1./(d_t*d_t);
@@ -253,11 +274,11 @@ const dMatrixT& TiedPotentialT::Stiffness(const dArrayT& jump_u, const ArrayT<do
 	fStiffness[1] = z4;
 	fStiffness[2] = z4;
 	fStiffness[3] = z1 + z2;
-
+*/
 	/* penetration */
-	if (u_n < 0.0) fStiffness[3] += fK;
+//	if (u_n < 0.0) fStiffness[3] += fK;
 
-	return fStiffness;
+//	return fStiffness;
 }
 
 /* surface status */
@@ -269,14 +290,16 @@ SurfacePotentialT::StatusT TiedPotentialT::Status(const dArrayT& jump_u,
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
 #endif
        
-	double u_t1 = jump_u[0] + state[0];
+	double u_t1 = jump_u[0];
 	double u_t  = sqrt(u_t1*u_t1);
-	double u_n  = jump_u[1] + state[0];
+	double u_n  = jump_u[1];
 	
 	/* square box for now */
-	if (u_t > r_fail*d_t || u_n > r_fail*d_n)
+//	if (u_t > r_fail*d_t || u_n > r_fail*d_n)
+	if (u_n > r)
 		return Failed;
-	else if (u_t > d_t || u_n > d_n)
+	else //if (u_t > d_t || u_n > d_n)
+		if (u_n > 0)
 		return Critical;
 	else
 		return Precritical;
@@ -302,13 +325,14 @@ void TiedPotentialT::Print(ostream& out) const
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0
 * by default */
-int TiedPotentialT::NumOutputVariables(void) const { return 2; }
+int TiedPotentialT::NumOutputVariables(void) const { return 1; }
 
 void TiedPotentialT::OutputLabels(ArrayT<StringT>& labels) const
 {
-	labels.Allocate(2);
-	labels[0] = "D_t_0";
-	labels[1] = "D_n_0";
+	labels.Allocate(1);
+	labels[0] = "state[1]";
+//	labels[0] = "D_t_0";
+//	labels[1] = "D_n_0";
 }
 
 void TiedPotentialT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
@@ -319,8 +343,9 @@ void TiedPotentialT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& 
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
 #endif	
 
-	output[0] = state[0];
-	output[1] = state[1];
+	output[0] = state[1];
+//	output[0] = state[0];
+//	output[1] = state[1];
 
 }
 
@@ -328,7 +353,7 @@ bool TiedPotentialT::NeedsNodalInfo(void) { return true; }
 
 int TiedPotentialT::NodalQuantityNeeded(void) 
 { 
-        return 2; /*get stress tensor from bulk */ 
+        return kAverageCode; /*get stress tensor from bulk */ 
 }
 
 /*double TiedPotentialT::ComputeNodalValue(const dArrayT& nodalRow) 
@@ -346,13 +371,20 @@ int TiedPotentialT::ElementGroupNeeded(void)
 	return 0;
 }
 
-bool TiedPotentialT::InitiationQ(const dArrayT& sigma) 
+bool TiedPotentialT::InitiationQ(const double* sigma) 
 {
 #pragma unused(sigma)
-//	if (sigma[0] >= fsigma_critical) 
-//		cout << ":::InitiationQ " << sigma[0] <<" " << fsigma_critical<<"\n";
-	return sigma[0] >= fsigma_critical;
+if (sigma[1] >= fsigma_critical) 
+	cout << ":::InitiationQ " << sigma[0] <<" " << sigma[1] << " " << sigma[2] <<"\n";
+	return sigma[1] >= fsigma_critical;
 }
+
+/*void TiedPotentialT::AllocateSpace(int MajorDim, int MinorDim) 
+{
+  	
+  	nodal_stresses.Allocate(MajorDim,MinorDim);
+  	
+}*/
 
 bool TiedPotentialT::CompatibleOutput(const SurfacePotentialT& potential) const
 {
