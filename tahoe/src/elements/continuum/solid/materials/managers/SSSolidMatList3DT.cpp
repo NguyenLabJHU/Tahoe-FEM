@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList3DT.cpp,v 1.3 2004-07-21 20:51:14 raregue Exp $ */
+/* $Id: SSSolidMatList3DT.cpp,v 1.4 2004-07-22 00:37:01 raregue Exp $ */
 #include "SSSolidMatList3DT.h"
 #include "SSMatSupportT.h"
 
@@ -97,6 +97,10 @@ void SSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 		sub_lists.AddSub("small_strain_StVenant_DP");
 #endif
 
+#ifdef PLASTICITY_MR_MATERIAL_DEV
+		sub_lists.AddSub("small_strain_StVenant_MR");
+#endif
+
 #ifdef PLASTICITY_DP_LOC_MATERIAL_DEV
 		sub_lists.AddSub("small_strain_StVenant_DP_Loc");
 #endif
@@ -168,6 +172,11 @@ SSSolidMatT* SSSolidMatList3DT::NewSSSolidMat(const StringT& name) const
 #ifdef PLASTICITY_DP_MATERIAL
 	else if (name == "small_strain_StVenant_DP")
 		mat = new DPSSKStV;
+#endif
+
+#ifdef PLASTICITY_MR_MATERIAL_DEV
+	else if (name == "small_strain_StVenant_MR")
+		mat = new MRSSKStV;
 #endif
 
 #ifdef PLASTICITY_DP_LOC_MATERIAL_DEV
