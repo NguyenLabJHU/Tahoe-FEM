@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.h,v 1.2.2.1 2003-04-27 22:13:45 paklein Exp $ */
+/* $Id: ParameterInterfaceT.h,v 1.2.2.2 2003-04-28 08:40:14 paklein Exp $ */
 #ifndef _PARAMETER_INTERFACE_T_H_
 #define _PARAMETER_INTERFACE_T_H_
 
@@ -45,7 +45,7 @@ public:
 	/** a pointer to the ParameterInterfaceT of the given subordinate
 	 * or NULL if the name is invalid. Responsibility for deleteting instantiations
 	 * resides with the client who requested them. */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name);
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
 	/*@}*/
 
 private:
