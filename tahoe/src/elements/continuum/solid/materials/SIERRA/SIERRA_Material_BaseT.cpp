@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.21 2004-08-12 17:43:46 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.22 2004-08-16 17:27:17 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -324,9 +324,12 @@ void SIERRA_Material_BaseT::TakeParameterList(const ParameterListT& list)
 	const ArrayT<int>& input_sizes = fSIERRA_Material_Data->InputVariableSize();
 	int total_size = 0;
 	int strain_offset = -1;
+	int strain_size = -1;
 	for (int i = 0; i < input_sizes.Length(); i++) {
-		if (input[i] == "rot_strain_increment" || input[i] == "rot_strain_inc")
+		if (input[i] == "rot_strain_increment" || input[i] == "rot_strain_inc" || input[i] == "velocity_gradient") {
 			strain_offset = total_size;
+			strain_size = input_sizes[i];
+		}
 	
 		/* accumulate */
 		total_size += input_sizes[i];
@@ -334,7 +337,14 @@ void SIERRA_Material_BaseT::TakeParameterList(const ParameterListT& list)
 	if (strain_offset < 0) ExceptionT::GeneralFail(caller, "did not resolve strain measure");
 	vars_input.Dimension(total_size);
 	vars_input = 0.0;
-	fdstran.Alias(kSIERRA_stress_dim, vars_input.Pointer(strain_offset));	
+	fdstran.Alias(strain_size, vars_input.Pointer(strain_offset));
+	
+	/* dimension workspace */
+	if (fSIERRA_Material_Data->StrainMeasure() == SIERRA_Material_Data::kvelocity_gradient) {
+		 fdudX.Dimension(3);
+		 fh.Dimension(3);
+		 fhTh.Dimension(3);
+	}
 
 	/* check parameters */
 	Sierra_function_param_check param_check = fSIERRA_Material_Data->CheckFunction();
@@ -680,6 +690,36 @@ void SIERRA_Material_BaseT::Set_Calc_Arguments(void)
 		fdstran[3] = k*fU1U2[5]; // 12
 		fdstran[4] = k*fU1U2[3]; // 23
 		fdstran[5] = k*fU1U2[4]; // 31
+	}
+	/* velocity gradient */
+	else if (strain_measure == SIERRA_Material_Data::kvelocity_gradient)
+	{
+		double dt = fFSMatSupport->TimeStep();
+		if (fabs(dt) > kSmall)
+		{
+			/* compute h (Simo: 8.1.7) */
+			fdudX = F_n;
+			fdudX(0,0) -= 1.0;
+			fdudX(1,1) -= 1.0;
+			fdudX(2,2) -= 1.0;
+			fhTh.Inverse(F_n);
+			fh.MultAB(fdudX, fhTh);
+		
+			/* compute velocity gradient (Simo: 8.1.22) and (Simo: 8.3.13) */
+			fhTh.MultATB(fh, fh);
+			double by_dt = 1.0/dt;
+			fdstran[0] = by_dt*(fh[0] - 0.5*fhTh[0]); // 11
+			fdstran[1] = by_dt*(fh[1] - 0.5*fhTh[1]); // 21
+			fdstran[2] = by_dt*(fh[2] - 0.5*fhTh[2]); // 31
+			fdstran[3] = by_dt*(fh[3] - 0.5*fhTh[3]); // 12
+			fdstran[4] = by_dt*(fh[4] - 0.5*fhTh[4]); // 22
+			fdstran[5] = by_dt*(fh[5] - 0.5*fhTh[5]); // 32
+			fdstran[6] = by_dt*(fh[6] - 0.5*fhTh[6]); // 13
+			fdstran[7] = by_dt*(fh[7] - 0.5*fhTh[7]); // 23
+			fdstran[8] = by_dt*(fh[8] - 0.5*fhTh[8]); // 33
+		}
+		else /* dt -> 0 */
+			fdstran = 0.0;
 	}
 	else 
 		ExceptionT::GeneralFail(caller, "unrecognized input \"%s\"", 

@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Data.h,v 1.6 2004-08-08 02:02:57 paklein Exp $ */
+/* $Id: SIERRA_Material_Data.h,v 1.7 2004-08-16 17:27:17 paklein Exp $ */
 #ifndef _SIERRA_MAT_DATA_H_
 #define _SIERRA_MAT_DATA_H_
 
@@ -21,6 +21,7 @@ public:
 		kundefined,
 		krot_strain_increment,
 		krot_strain_inc,
+		kvelocity_gradient,
 		ktemperature_old,
 		ktemperature_new
 	};
