@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.20 2002-02-07 20:59:43 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.21 2002-03-18 19:24:23 rjones Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -78,9 +78,10 @@ public:
 	virtual void ConnectsX(AutoArrayT<const iArray2DT*>& connects) const;
 	 	
 	/* surface specification modes */
-	enum SearchParametersT {	kGapTol = 0,
-					kXiTol ,
-					kSearchNumParameters};
+	enum SearchParametersT { 	kGapTol = 0,
+								kXiTol ,
+								kPass,
+								kSearchNumParameters};
 	int fNumEnfParameters;
 
 	iArrayT fOutputFlags;
@@ -115,6 +116,13 @@ public:
 
 	inline bool HasMultipliers (void) {return fXDOF_Nodes;}
 
+    enum PassTypeT {kSymmetric = 0,
+                    kPrimary,
+                    kSecondary,
+                    kDeformable,
+                    kRigid};
+
+
 protected:
 	/* contact surfaces */
 	ArrayT<ContactSurfaceT> fSurfaces; 
@@ -132,6 +140,9 @@ protected:
 	
 	/* initialization steps */
 	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
+
+	/* returns pass type for surface pair */
+    int PassType(int s1,int s2) const;
 
 	/* additional workspace setup */
 	virtual void SetWorkspace(void);
@@ -168,6 +179,17 @@ protected:
 	nVariArray2DT<int> eqnums_man;
 	iArray2DT opp_eqnums;
 	nVariArray2DT<int> opp_eqnums_man;
+	iArray2DT xeqnums;
+	nVariArray2DT<int> xeqnums_man;
+	/* pressure interpolations */
+	dMatrixT P1;
+    nVariMatrixT<double> P1_man;
+    dMatrixT P2;
+    nVariMatrixT<double> P2_man;
+	dArrayT xRHS;
+    VariArrayT<double> xRHS_man;
+
+
 
 	/* generate contact element data  */
 	bool SetContactConfiguration(void);

@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.16 2001-09-24 20:37:25 rjones Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.17 2002-03-18 19:24:23 rjones Exp $ */
 
 
 #ifndef _CONTACT_SURFACE_T_H_
@@ -16,7 +16,6 @@
 class ofstreamT;
 class FEManagerT;
 class ContactNodeT;
-class ContactFaceT;
 
 /* 
 a ContactSurface will only have one opposing face per
@@ -59,6 +58,7 @@ class ContactSurfaceT : public SurfaceT
 	void PrintStatus(ostream& out) const;
 	void PrintMultipliers(ostream& out) const;
 
+
 	inline void InitializeMultiplierMap(void)
 		{fMultiplierMap = -1;}
 	void DetermineMultiplierExtent(void);
@@ -71,8 +71,11 @@ class ContactSurfaceT : public SurfaceT
 		{return fMultiplierMap;}	
 	void AllocateMultiplierTags(void);
 	void ResetMultipliers(dArray2DT& multiplier_values);
-	void MultiplierTags(const iArrayT& local_nodes, iArrayT& multiplier_tags);
-	iArray2DT& RealGhostNodePairs(void);
+	void MultiplierTags
+		(const iArrayT& local_nodes, iArrayT& multiplier_tags);
+	void MultiplierValues
+		(const iArrayT& local_nodes, ArrayT<double*>& multiplier_values);
+	iArray2DT& DisplacementMultiplierNodePairs(void);
 	inline bool HasMultiplier(int i) 
 		{return fMultiplierMap[i] > -1;} 
 	inline void AliasMultipliers(const dArray2DT& multipliers)
@@ -83,9 +86,6 @@ class ContactSurfaceT : public SurfaceT
   protected:
 	/* contact nodes */
 	ArrayT <ContactNodeT*>  fContactNodes ; 
-
-	/* contact faces */
-	ArrayT <ContactFaceT*>  fContactFaces ; 
 
 	int fNumMultipliers;
 	int fNumPotentialContactNodes;
@@ -103,12 +103,12 @@ class ContactSurfaceT : public SurfaceT
 	dArray2DT fMultiplierValues; 
 	/* global multiplier "node" tags for active nodes */
 	iArrayT fMultiplierTags; 
-	/* hash for local node to active nodes */
+	/* hash for local u node to active p nodes */
 	iArrayT fMultiplierMap; 
 	/* multiplier history */
 	iArrayT fLastMultiplierMap; 
 	dArray2DT fLastMultiplierValues; 
-	iArray2DT fRealGhostNodePairs;
+	iArray2DT fDisplacementMultiplierNodePairs;
 
 
 };

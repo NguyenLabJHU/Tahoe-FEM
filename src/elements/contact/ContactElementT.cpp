@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.26 2002-02-07 20:59:43 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.27 2002-03-18 19:24:22 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -19,36 +19,36 @@
 #include "ContactSearchT.h"
 
 /* parameters */ // unfortunately these are also in the derived classes
-static const int kMaxNumFaceNodes = 4;
-static const int kMaxNumFaceDOF   = 12;
+static const int kMaxNumFaceNodes = 4; // 4node quads
+static const int kMaxNumFaceDOF   = 12; // 4node quads in 3D
 
 /* constructor */
 ContactElementT::ContactElementT
 (FEManagerT& fe_manager, int num_enf_params):
-	ElementBaseT(fe_manager),
-	LHS(ElementMatrixT::kNonSymmetric),
-	tmp_LHS(ElementMatrixT::kNonSymmetric),
-	opp_LHS(ElementMatrixT::kNonSymmetric),
-	fContactSearch(NULL),
-	fXDOF_Nodes(NULL)
+    ElementBaseT(fe_manager),
+    LHS(ElementMatrixT::kNonSymmetric),
+    tmp_LHS(ElementMatrixT::kNonSymmetric),
+    opp_LHS(ElementMatrixT::kNonSymmetric),
+    fContactSearch(NULL),
+    fXDOF_Nodes(NULL)
 {
-	fNumEnfParameters = num_enf_params;
-	fNumMultipliers = 0;
-	ReadControlData();
+    fNumEnfParameters = num_enf_params;
+    fNumMultipliers = 0;
+    ReadControlData();
 }
 
 ContactElementT::ContactElementT
 (FEManagerT& fe_manager, int num_enf_params, XDOF_ManagerT* xdof_nodes):
-        ElementBaseT(fe_manager),
-	fXDOF_Nodes(xdof_nodes),
-	LHS(ElementMatrixT::kNonSymmetric),
-	tmp_LHS(ElementMatrixT::kNonSymmetric),
-	opp_LHS(ElementMatrixT::kNonSymmetric),
-	fContactSearch(NULL)
+    ElementBaseT(fe_manager),
+    fXDOF_Nodes(xdof_nodes),
+    LHS(ElementMatrixT::kNonSymmetric),
+    tmp_LHS(ElementMatrixT::kNonSymmetric),
+    opp_LHS(ElementMatrixT::kNonSymmetric),
+    fContactSearch(NULL)
 {
-	fNumEnfParameters = num_enf_params;
-	if (!fXDOF_Nodes) throw eGeneralFail;
-	ReadControlData();
+    fNumEnfParameters = num_enf_params;
+    if (!fXDOF_Nodes) throw eGeneralFail;
+    ReadControlData();
 }
 
 
@@ -113,29 +113,28 @@ void ContactElementT::Initialize(void)
 }
 
 void ContactElementT::SetWorkspace(void)
-{
-	// ARE THESE RIGHT?
-	/* workspace matrices */
+{ 	/* workspace matrices */  // ARE THESE CORRECT?
 	n1.Allocate(fNumSD);
 	l1.Allocate(fNumSD);
-   	RHS_man.SetWard(kMaxNumFaceDOF,RHS);
+   	RHS_man.SetWard    (kMaxNumFaceDOF,RHS);
    	tmp_RHS_man.SetWard(kMaxNumFaceDOF,tmp_RHS);
-   	LHS_man.SetWard(kMaxNumFaceDOF,LHS);
+   	LHS_man.SetWard    (kMaxNumFaceDOF,LHS);
    	opp_LHS_man.SetWard(kMaxNumFaceDOF,opp_LHS);
    	tmp_LHS_man.SetWard(kMaxNumFaceDOF,tmp_LHS);
-   	N1_man.SetWard(kMaxNumFaceDOF,N1);
-   	N2_man.SetWard(kMaxNumFaceDOF,N2);
-   	N1n_man.SetWard(kMaxNumFaceDOF,N1n);
-   	N2n_man.SetWard(kMaxNumFaceDOF,N2n);
-   	weights_man.SetWard(kMaxNumFaceNodes,weights);
-   	eqnums_man.SetWard(kMaxNumFaceDOF,eqnums,fNumSD);
+   	N1_man.SetWard     (kMaxNumFaceDOF,N1);
+   	N2_man.SetWard     (kMaxNumFaceDOF,N2);
+   	N1n_man.SetWard    (kMaxNumFaceDOF,N1n);
+   	N2n_man.SetWard    (kMaxNumFaceDOF,N2n);
+   	eqnums_man.SetWard (kMaxNumFaceDOF,eqnums,fNumSD);
    	opp_eqnums_man.SetWard(kMaxNumFaceDOF,opp_eqnums,fNumSD);
-#if 0
-  	/* dynamic work space managers for element arrays */
-	fXDOFConnectivities_man.SetWard(0, fXDOFConnectivities, fNumElemNodes + 1);
-	fXDOFEqnos_man.SetWard(0, fXDOFEqnos, fNumElemEqnos);
-
-#endif
+   	weights_man.SetWard(kMaxNumFaceNodes,weights);
+	
+	if (fXDOF_Nodes) {
+	P1_man.SetWard     (kMaxNumFaceNodes,P1);
+	P2_man.SetWard     (kMaxNumFaceNodes,P2);
+	xRHS_man.SetWard   (kMaxNumFaceNodes,xRHS);
+   	xeqnums_man.SetWard(kMaxNumFaceDOF,xeqnums,fNumMultipliers);
+	}
 }
 
 /* done once per time-step */
@@ -238,7 +237,9 @@ void ContactElementT::ResetDOF(dArray2DT& XDOF, int tag_set) const
 /* return the displacement-ghost node pairs to avoid pivoting*/
 const iArray2DT& ContactElementT::DOFConnects(int tag_set) const
 { 
-	return fSurfaces[tag_set].RealGhostNodePairs();
+#if 0
+	return fSurfaces[tag_set].DisplacementMultiplierNodePairs();
+#endif
 }
 
 /* append element equations numbers to the list */
@@ -345,9 +346,8 @@ void ContactElementT::WriteOutput(IOBaseT::OutputModeT mode)
 
            if (fOutputFlags[kArea]) {
               surface.PrintContactArea(cout);
-		   }
-  }
-
+           }
+		}
 }
 
 /* compute specified output parameter and send for smoothing */
@@ -394,7 +394,10 @@ void ContactElementT::ReadControlData(void)
     }
 	out << " Print gaps                 = " << fOutputFlags[kGaps] << '\n';
 	out << " Print normals              = " << fOutputFlags[kNormals] << '\n';
-	out << " Print contact area         = " << fOutputFlags[kArea] << '\n';
+	out << " Print status               = " << fOutputFlags[kStatus] << '\n';
+	out << " Print multipliers          = " << fOutputFlags[kMultipliers] << '\n';
+    out << " Print contact area         = " << fOutputFlags[kArea] << '\n';
+
 
     int num_surfaces;
     in >> num_surfaces;
@@ -502,3 +505,32 @@ bool ContactElementT::UpdateContactConfiguration(void)
 	bool changed = fContactSearch->UpdateInteractions();
 	return changed;
 }
+
+int ContactElementT::PassType (int s1, int s2) const
+{
+    dArrayT& parameters = fEnforcementParameters(s1,s2);
+    int pass_code = (int) parameters[kPass];
+    if (s1 == s2 || pass_code == 0) {
+        return kSymmetric;
+    }
+    else if (s1 < s2) {
+        switch (pass_code) {
+            case  1: return kPrimary; break;
+            case  2: return kSecondary; break;
+            case -1: return kDeformable; break;
+            case -2: return kRigid; break;
+        }
+    }
+    else {//(s1 > s2)
+        switch (pass_code) {
+            case  2: return kPrimary; break;
+            case  1: return kSecondary; break;
+            case -2: return kDeformable; break;
+            case -1: return kRigid; break;
+        }
+    }
+
+    /* dummy return value */
+    return kPrimary;
+}
+

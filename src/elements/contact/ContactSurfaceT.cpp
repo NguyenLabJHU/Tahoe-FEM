@@ -1,14 +1,10 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.18 2001-09-24 20:37:24 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.19 2002-03-18 19:24:23 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
 #include "ofstreamT.h"
 
 #include "ContactNodeT.h"
-#include "ContactFaceT.h"
-#include "ContactLineL2FaceT.h"
-#include "ContactLineQ3FaceT.h"
-#include "ContactQuadL4FaceT.h"
 
 
 /* parameters */
@@ -24,9 +20,6 @@ ContactSurfaceT::~ContactSurfaceT(void)
                 delete fContactNodes[i];
         }
 
-		for (int i=0 ; i < fContactFaces.Length() ; i++) {
-                delete fContactFaces[i];
-        }
 }
 
 void
@@ -45,64 +38,28 @@ ContactSurfaceT::Initialize
 		fContactNodes[i] = new ContactNodeT(*this,i);
 	}
 
-	/* allocate contact faces */
-	fContactFaces.Allocate(fFaces.Length());
-	/* attach them to the geometry faces */
-    for (int i = 0 ; i < fContactFaces.Length() ; i++)
-    {
-      switch (fGeometryType)
-      {
-        case GeometryT::kLine :
-          switch (fNumNodesPerFace)
-          {
-            case 2: fContactFaces[i] = new ContactLineL2FaceT(fFaces[i]);
-            break;
-            case 3: fContactFaces[i] = new ContactLineQ3FaceT(fFaces[i]);
-            break;
-            default: throw eGeneralFail;
-          }
-          break;
-        case GeometryT::kTriangle :
-          switch (fNumNodesPerFace)
-          {
-#if 0
-			case 3: fContactFaces[i] = new ContactTriaL3FaceT(fFaces[i]);
-			break;
-#endif
-			default: throw eGeneralFail;
-          }
-          break;
-        case GeometryT::kQuadrilateral :
-          switch (fNumNodesPerFace)
-          {
-            case 4: fContactFaces[i] = new ContactQuadL4FaceT(fFaces[i]);
-            break;
-            default: throw eGeneralFail;
-          }
-          break;
-        default: throw eGeneralFail;
-      }
-	}
-
 	if (fNumMultipliers) {
 		fMultiplierMap.Allocate(fGlobalNodes.Length());
 		fLastMultiplierMap.Allocate(fGlobalNodes.Length());
-		fRealGhostNodePairs.Allocate(fGlobalNodes.Length(),2);
+		fDisplacementMultiplierNodePairs.Allocate(fGlobalNodes.Length(),2);
 		/* fill real node column */
 		for(int i = 0; i < fContactNodes.Length(); i++){
-			fRealGhostNodePairs(i,0) = fGlobalNodes[i];
+			fDisplacementMultiplierNodePairs(i,0) = fGlobalNodes[i];
 		}
 	}
 }
 
-void 
+void
 ContactSurfaceT::SetMultiplierConnectivity(void)
 {
-	ContactFaceT* face = NULL;
-	for (int i = 0; i < fContactFaces.Length(); i++){
-		face = fContactFaces[i];
-		face->SetMultiplierConnectivity();
-	}
+#if 0
+    ContactFaceT* face = NULL;
+    for (int i = 0; i < fContactFaces.Length(); i++){
+        face = fContactFaces[i];
+        face->SetMultiplierConnectivity();
+        face->LinkMultiplierValues();
+    }
+#endif
 }
 
 void 
@@ -147,6 +104,8 @@ ContactSurfaceT::SetPotentialConnectivity(void)
 	}
 
 	/* fill connectivity */
+	/* THIS SHOULD use the GlobalConnectivty and MultiplierConnectivty 
+     * stored on each face OR append only unique values .. */
 	for (i = 0; i < fContactNodes.Length(); i++){
 		node = fContactNodes[i];
 		face = node->OpposingFace();
@@ -220,6 +179,7 @@ ContactSurfaceT::SetPotentialConnectivity(void)
 		}
 	}
 }
+
 
 /* this is for debugging */
 bool 
@@ -426,16 +386,28 @@ ContactSurfaceT::MultiplierTags
 	}
 }
 
+void
+ContactSurfaceT::MultiplierValues
+(const iArrayT& local_nodes, ArrayT<double*>& multiplier_values)
+{
+    for (int i = 0; i < local_nodes.Length(); i++)
+    {
+        multiplier_values[i]
+            = &fMultiplierValues[fMultiplierMap[local_nodes[i]]];
+    }
+}
+
+
 iArray2DT& 
-ContactSurfaceT::RealGhostNodePairs(void)
+ContactSurfaceT::DisplacementMultiplierNodePairs(void)
 { // for ConnectsDOF
 	int ghostnode;
-	for (int i = 0; i < fRealGhostNodePairs.MajorDim(); i++) {
+	for (int i = 0; i < fDisplacementMultiplierNodePairs.MajorDim(); i++) {
 	     if(fMultiplierMap[i] > -1) {
-		fRealGhostNodePairs(i,1) = fMultiplierTags[fMultiplierMap[i]]; 
+		fDisplacementMultiplierNodePairs(i,1) = fMultiplierTags[fMultiplierMap[i]]; 
 	     } else {
-		fRealGhostNodePairs(i,1) = -1;
+		fDisplacementMultiplierNodePairs(i,1) = -1;
 	     }
 	}
-	return  fRealGhostNodePairs;
+	return  fDisplacementMultiplierNodePairs;
 }

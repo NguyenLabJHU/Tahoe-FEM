@@ -1,10 +1,14 @@
-/* $Id: PenaltyContactElement2DT.h,v 1.6 2002-02-06 22:23:05 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.h,v 1.7 2002-03-18 19:24:23 rjones Exp $ */
 
 #ifndef _PENALTY_CONTACT_ELEMENT_2D_T_H_
 #define _PENALTY_CONTACT_ELEMENT_2D_T_H_
 
 /* base classes */
 #include "ContactElementT.h"
+
+#include "pArrayT.h"
+
+class C1FunctionT;
 
 class PenaltyContactElement2DT: public ContactElementT
 {
@@ -19,18 +23,39 @@ class PenaltyContactElement2DT: public ContactElementT
 	/* writing output */
 	virtual void WriteOutput(IOBaseT::OutputModeT mode);
 
-        enum EnforcementParametersT { kPass = 0,
+    enum EnforcementParametersT { 
+                                kConsistentTangent = 0 ,
                                 kPenalty ,
-                                kConsistentTangent ,
-                                kAsperityHeightMean,
+                                kPenaltyType ,
+		kNumEnfParameters=8}; //this has to the max of all the Penalty types
+
+	enum PenaltyTypesT {
+								kLinear = 0,
+								kModSmithFerrante,
+								kGreenwoodWilliamson,
+		kNumPenaltyTypes};
+	
+// material constants for the various penalty types
+	enum LinParametersT { 
+						};
+								
+	enum SFParametersT {
+								kSmithFerranteA=3,
+								kSmithFerranteB
+						};
+	
+	enum GWParametersT {
+                                kAsperityHeightMean=3,
                                 kAsperityHeightStandardDeviation,
                                	kAsperityDensity,
                                	kAsperityTipRadius,
-                               	kHertzianModulus, 
-				kNumEnfParameters};
-
+                               	kHertzianModulus  
+						};
 	 	
   protected:
+	/* look-up for symmetric matrix stored as a vector */
+	inline int LookUp (int s1,int s2,int n) 
+		{return (s1>s2) ? (n*s2+s1) : (n*s1+s2);} 
 
 	/* print element group data */
 	virtual void PrintControlData(ostream& out) const;
@@ -43,6 +68,10 @@ class PenaltyContactElement2DT: public ContactElementT
 	
 	/* total _real_ area of contact for each surface */
 	dArrayT fRealArea; 
+
+    /* penalty models */
+	pArrayT<C1FunctionT*> fPenaltyFunctions;
+
 
 };
 

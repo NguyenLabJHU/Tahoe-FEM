@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.22 2002-01-27 23:06:34 paklein Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.23 2002-03-18 19:24:23 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -15,6 +15,7 @@
 #include "LineL2FaceT.h"
 #include "LineQ3FaceT.h"
 #include "QuadL4FaceT.h"
+#include "TriaL3FaceT.h"
 #include "AutoFill2DT.h"
 
 /* parameters */
@@ -93,7 +94,7 @@ void SurfaceT::PrintConnectivityData(ostream& out)
 
 	/* face connectivities */
 	out << " faces:" << setw(kIntWidth) << fFaces.Length() 
-	    << ", geometry type :" << GeometryT::ToString(fGeometryType) <<  '\n' ;
+	    << ", geometry type : " << GeometryT::ToString(fGeometryType) <<  '\n' ;
 	for (int i = 0 ; i < fFaces.Length() ; i++) {
 		iArrayT connectivity = fFaces[i]->Connectivity();
 		connectivity++;
@@ -137,7 +138,7 @@ void SurfaceT::InputSideSets
 
 	/* read side set: element, local face pair */
 	iArray2DT side_set;
-	out <<" Surface: "<< fTag ;
+	out <<" Surface: "<< fTag << "\n" ;
 
 	/* read data from parameter file */
 	ArrayT<StringT> ss_ID;
@@ -246,21 +247,19 @@ void SurfaceT::InputSideSets
 		case GeometryT::kTriangle :
 		  switch (fNumNodesPerFace)
 	 	  { 
-#if 0
-                        case 3:
-                        fFaces[i] =
-                          new TriaL3FaceT(*this,fCoordinates, 
+			case 3:
+			fFaces[i] =
+			  new TriaL3FaceT(*this,fCoordinates, 
 			  fNumNodesPerFace,faces_tmp(i) );
-                        break;
-#endif
+			break;
 
-                        default:
-                        cout << "\n SurfaceT::InputSideSets:"
-                             << " no TriangleFace " << fGeometryType
-                             << " with " << fNumNodesPerFace 
-                             << " face nodes \n" ;
-
-                        throw eGeneralFail;
+			default:
+			cout << "\n SurfaceT::InputSideSets:"
+		   	     << " no TriangleFace " << fGeometryType
+			     << " with " << fNumNodesPerFace 
+    			 << " face nodes \n" ;
+			
+			throw eGeneralFail;
 
 		  }
 		  break;
