@@ -1,4 +1,4 @@
-/* $Id: InputFEASCIIT.cpp,v 1.3 2001-12-17 00:39:15 paklein Exp $ */
+/* $Id: InputFEASCIIT.cpp,v 1.4 2001-12-17 19:04:55 sawimme Exp $ */
 #include "InputFEASCIIT.h"
 #include "ifstreamT.h"
 #include "dArrayT.h"
@@ -248,9 +248,8 @@ void InputFEASCIIT::ReadGeometryCode (StringT& name, GeometryT::CodeT& geocode)
   if (!geo.FindString ("Geometry code", s)) throw eDatabaseFail;
 
   // either this or write an operator= for Geometry::CodeT
-  char *h = strstr ((const char*) s, "=");
-  h++;
-  istrstream istr (h);
+  const char *h = strstr ((const char*) s, "=");
+  istrstream istr (h+1);
   istr >> geocode;
 }
 
