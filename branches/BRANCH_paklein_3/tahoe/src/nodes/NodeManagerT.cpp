@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.36.2.1 2003-09-28 09:19:03 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.36.2.2 2003-10-15 23:57:08 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -503,9 +503,6 @@ GlobalT::RelaxCodeT NodeManagerT::ResetStep(int group)
 
 	/* inherited - reset external DOF */
 	return GlobalT::MaxPrecedence(relax, XDOF_ManagerT::ResetTags(group));
-
-	/* history of XDOF changes over the step */
-	//return GlobalT::MaxPrecedence(relax, fXDOFRelaxCodes[group]);
 }
 
 void NodeManagerT::WriteOutput(void)
