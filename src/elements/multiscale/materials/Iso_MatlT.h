@@ -1,4 +1,4 @@
-// $Id: Iso_MatlT.h,v 1.3 2003-03-17 22:05:33 creigh Exp $
+// $Id: Iso_MatlT.h,v 1.4 2003-03-28 21:36:39 creigh Exp $
 #ifndef _ISO_MATLT_ 
 #define _ISO_MATLT_ 
 
@@ -21,6 +21,7 @@ class Iso_MatlT : public VMF_MaterialT
 						kBulk, 	// Bulk Modulus
 						kPi, 		// Used for Eb control 
 						kRho, 	// Used for Eb control 
+						kDensity, 
 		        kNUM_ISO_MATL_PARAMS };
 
 		void Allocate (void) { n_mp = kNUM_ISO_MATL_PARAMS; Parameter.Dimension ( n_mp ); }
