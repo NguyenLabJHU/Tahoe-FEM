@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.13 2002-10-20 22:36:55 paklein Exp $ */
+/* $Id: OutputSetT.h,v 1.14 2002-11-21 01:07:40 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #ifndef _OUTPUTSET_T_H_
@@ -85,9 +85,11 @@ public:
 	 *        output formatters retain a reference to these connectivities
 	 *        for use during output. These connectivities are not copied.
 	 * \param n_labels list of labels for the nodal variables. The length of
-	 *        this list defines the number of nodal output variables */
+	 *        this list defines the number of nodal output variables
+	 * \param changing flag to indicate whether the connectivities may change
+	 *        from output step to output step. */
 	OutputSetT(GeometryT::CodeT geometry_code,
-		const iArray2DT& connectivities, const ArrayT<StringT>& n_labels);
+		const iArray2DT& connectivities, const ArrayT<StringT>& n_labels, bool changing = false);
 
 	/** copy constructor */
 	OutputSetT(const OutputSetT& source);
