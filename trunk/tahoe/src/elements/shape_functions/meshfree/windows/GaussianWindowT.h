@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.h,v 1.6 2001-06-19 23:22:08 paklein Exp $ */
+/* $Id: GaussianWindowT.h,v 1.7 2001-06-27 17:40:06 hspark Exp $ */
 
 #ifndef _GAUSSIAN_WINDOW_T_H_
 #define _GAUSSIAN_WINDOW_T_H_
@@ -73,4 +73,4 @@ class GaussianWindowT: public WindowT
 	dSymMatrixT fNSDsym;
 };
 
-#endif /* _WINDOW_T_H_ */
+#endif /* _GAUSSIAN_WINDOW_T_H_ */
