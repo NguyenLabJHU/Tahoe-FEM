@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.6 2003-09-21 22:14:36 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.7 2003-09-21 23:12:32 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -366,8 +366,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)	// LHS too!	This was original RHSD
 		
 		// ?????
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradiants 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
-		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
+		Convert.Gradients 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
+		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
@@ -635,8 +635,8 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		
 		// ?????
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradiants 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
-		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
+		Convert.Gradients 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
+		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
@@ -952,8 +952,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 		
 		// ?????
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradiants 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
-		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
+		Convert.Gradients 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
+		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
@@ -1089,8 +1089,8 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		fShapes->SetDerivatives(); 
 		
 		/* repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradiants 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
-		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
+		Convert.Gradients 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
+		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
