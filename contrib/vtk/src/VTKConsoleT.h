@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.h,v 1.15 2001-10-24 00:52:08 recampb Exp $ */
+/* $Id: VTKConsoleT.h,v 1.16 2001-10-25 21:40:19 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -49,18 +49,17 @@ class VTKConsoleT: public iConsoleObjectT
 
  private:
 
-  double time;
 
   int test;
   double numRen;
   // StringT source_file;
+  StringT inFile;
 
   vtkRenderWindow *renWin;
   vtkRenderWindowInteractor *iren;
+  vtkRendererSource *renSrc;
  
   vtkTIFFWriter *writer;
-   
-  /* vtkScalars *scalars[num_time_steps]; */
  
 
   ArrayT<VTKFrameT> fFrames;
