@@ -1,0 +1,64 @@
+/* $Id: tahoe.pch,v 1.1 2002-04-30 23:11:28 paklein Exp $ */
+/* include this file to generate a precompiled headers file (.mch) */
+/* with one of the names listed below, depending on your target    */
+/* platform. */
+
+#pragma check_header_flags on  
+
+/* name for the resulting precompiled header file */
+#if __POWERPC__
+	#if __MACH__
+		#pragma precompile_target "tahoe.Mach.mch"
+	#else
+	#pragma precompile_target "tahoe.Carbon.mch"
+	#endif
+#elif __INTEL__
+# if __option(k63d)
+	#pragma precompile_target "tahoe.3dnow.mch"
+# else
+	#pragma precompile_target "tahoe.x86.mch"
+# endif	
+#else
+	#error "target currently unsupported"
+#endif
+
+/* selected MSL headers */
+#include "tahoeMSLHeaders++.cp"
+
+/*************************************************************************/
+/************************ library support options ************************/
+/*************************************************************************/
+
+/* Tahoe options - enabled with -D[symbol] declarations when using command */
+/* line compiler tools. Uncomment #define statements to enable. */
+
+/* f2c: FORTRAN to C support */
+//#define __F2C__
+
+/* MPI: message passing interface */
+//#define __MPI__
+
+/* Aztec: sparse, iterative linear algebra library */
+//#define __AZTEC__
+
+/* SPOOLES: sparse, direct solver */
+//#define __SPOOLES__
+
+/* ACME: contact library */
+//#define __ACME__
+
+/* METIS: graph partitioning package */
+//#define __METIS__
+
+/* ACCESS: Sandia Engineering Sciences tools */
+//#define __ACCESS__
+
+/* NOX: nonlinear solver library */
+//#define __NOX__
+
+/*************************************************************************/
+/******************************* profiling *******************************/
+/*************************************************************************/
+
+/* sets profiling options across targets */
+#pragma profile off

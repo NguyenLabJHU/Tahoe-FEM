@@ -1,0 +1,152 @@
+## C:/Program Files/Cubit 6.0/Program/Cubit.exe
+## Cubit Version 6.0-01290
+## Revised 10/17/2001 11:56 AM
+## Running 02/12/2002 10:32:04 AM
+## Command Options:
+## -warning = On
+## -information = On
+##
+## Parameters
+# {length = 139.7}
+# {width = 25.4}
+# {thickness = 5.0}
+# {a_over_w = 0.5}
+# {a_over_w_end = 0.55}
+# {notch_width = 3.175}  
+# {notch_height = 7.008} 
+# {notch_angle = 45}
+# {pin_offset = 19.05}
+##
+## Webcutting planes - offset from center
+## 
+# {plane1 = 0.20}
+# {plane2 = 0.40}
+# {plane3 = 0.80}
+# {plane4 = 1.60}
+# {plane5 = 3.20}
+# {plane6 = 6.40}
+# {plane7 = 12.80}
+##
+## Meshing parameters - specify densities
+##
+# {level1 = 0.005}
+# {level2 = 0.010}
+# {level3 = 0.020}
+# {level4 = 0.040}
+# {level5 = 0.080}
+# {level6 = 0.160}
+# {level7 = 0.320}
+# {level8 = 0.640}
+# {level9 = 1.280}
+##
+## Calculated parameters
+##
+# {notch_mid = notch_height - tand(notch_angle)*(notch_width/2.0)}
+##
+create vertex 0 0 0 
+create vertex {length/2.0 - notch_width/2.0} 0 0 
+create vertex {length/2.0 - notch_width/2.0} {notch_mid} 0 
+create vertex {length/2.0} {notch_height} 0 
+create vertex {length/2.0 + notch_width/2.0} {notch_mid} 0 
+create vertex {length/2.0 + notch_width/2.0} 0 0 
+create vertex {length} 0 0 
+create vertex {length} {width} 0 
+create vertex 0 {width} 0 
+create curve vertex 1 2 
+create curve vertex 2 3 
+create curve vertex 3 4 
+create curve vertex 4 5 
+create curve vertex 5 6 
+create curve vertex 6 7 
+create curve vertex 7 8 
+create curve vertex 8 9 
+create curve vertex 9 1 
+create surface curve 9 1 to 8 
+create surface from surface 1 
+sweep surface 2 vector 0.0000000000 0.0000000000 1.0000000000 distance {thickness} 
+## Webcutting to pin locations
+webcut body 2 with plane xplane offset {pin_offset} 
+webcut body 2 with plane xplane offset {length-pin_offset} 
+## Webcutting down the center
+webcut body 4 with plane xplane offset {length/2.0} 
+## Webcutting plane 7
+webcut body 5 with plane xplane offset {length/2.0-plane7} 
+webcut body 4 with plane xplane offset {length/2.0+plane7} 
+## Webcutting plane 6  
+webcut body 5 with plane xplane offset {length/2.0-plane6} 
+webcut body 7 with plane xplane offset {length/2.0+plane6}
+## Webcutting crack location 
+webcut body 5 9 with plane yplane offset {a_over_w*width}
+## Webcutting to end crack plane  
+webcut body 10 11 with plane yplane offset {a_over_w_end*width}
+## Webcutting plane 5
+webcut body 10 with plane xplane offset  {length/2.0-plane5}
+webcut body 11 with plane xplane offset {length/2.0+plane5} 
+## Webcutting plane 4
+webcut body 10 with plane xplane offset {length/2.0-plane4}
+webcut body 15 with plane xplane offset {length/2.0+plane4}
+## Webcutting plane 3
+webcut body 10 with plane xplane offset {length/2.0-plane3}
+webcut body 17 with plane xplane offset {length/2.0+plane3}
+## Webcutting plane 2
+webcut body 10 with plane xplane offset {length/2.0-plane2}
+webcut body 19 with plane xplane offset {length/2.0+plane2}
+## Webcutting plane 1 
+webcut body 10 with plane xplane offset {length/2.0-plane1}
+webcut body 21 with plane xplane offset {length/2.0+plane1}
+## Webcutting cylinder transitions
+webcut body 5 9 with cylinder radius {plane1} axis z center {length/2.0} {a_over_w*width} 0
+webcut body 5 9 with cylinder radius {plane2} axis z center {length/2.0} {a_over_w*width} 0 
+webcut body 5 9 with cylinder radius {plane3} axis z center {length/2.0} {a_over_w*width} 0 
+webcut body 5 9 with cylinder radius {plane4} axis z center {length/2.0} {a_over_w*width} 0
+webcut body 5 9 with cylinder radius {plane5} axis z center {length/2.0} {a_over_w*width} 0
+webcut body 12 13 with cylinder radius {plane1} axis z center {length/2.0} {a_over_w_end*width} 0
+webcut body 12 13 with cylinder radius {plane2} axis z center {length/2.0} {a_over_w_end*width} 0
+webcut body 12 13 with cylinder radius {plane3} axis z center {length/2.0} {a_over_w_end*width} 0
+webcut body 12 13 with cylinder radius {plane4} axis z center {length/2.0} {a_over_w_end*width} 0
+webcut body 12 13 with cylinder radius {plane5} axis z center {length/2.0} {a_over_w_end*width} 0
+imprint all
+merge body 3 6 8 12 14 5 42 16 32 40 18 30 38 20 28 36 22 26 34 10 24
+merge body 2 4 7 13 11 9 43 15 33 41 17 31 39 19 29 37 21 27 35 23 25
+merge body 12 13 42 43 40 41 38 39 36 37 34 35 10 23
+##
+## Set mesh sizes and schemes
+##
+surface 330 337 205 217 size {level2} 
+surface 330 337 205 217 scheme pave 
+curve 181 size {level1} 
+curve 181 interval hard
+surface 227 240 size {level1}
+surface 227 240 scheme pave
+curve 371 385 size {level2}
+curve 371 385 interval hard
+mesh surface 330 337 205 217 227 240
+surface 207 347 360 215 257 250 size {level3} 
+surface 207 347 360 215 257 250 scheme pave 
+mesh surface 207 347 360 215 257 250
+surface 190 370 377 192 280 267 size {level4} 
+surface 190 370 377 192 280 267 scheme pave 
+mesh surface 190 370 377 192 280 267
+surface 167 387 400 173 297 290 size {level5} 
+surface 167 387 400 173 297 290 scheme pave 
+mesh surface 167 387 400 173 297 290
+surface 150 410 417 154 320 307 size {level6} 
+surface 150 410 417 154 320 307 scheme pave 
+mesh surface 150 410 417 154 320 307
+surface 305 127 403 415 135 313 size {level7}
+surface 305 127 403 415 135 313 scheme pave
+mesh surface 305 127 403 415 135 313 
+surface 69 75 size {level8} 
+surface 69 75 scheme pave 
+mesh surface 69 75
+surface 22 48 52 27 size {level9}
+surface 22 48 52 27 scheme pave
+mesh surface 22 48 52 27  
+block 1 surface 227 240 207 347 360 215 257 250 190 370 377 192 280 267 167 387 400 173 297 290 150 410 417 154 320 307 305 127 403 415 135 313 69 75 22 48 52 27    
+block 2 surface 205 330
+block 3 surface 217 337 
+block 1 2 3 element type quad4
+nodeset 1 vertex 37 
+nodeset 2 vertex 48
+nodeset 3 vertex 53
+export genesis "3point_rev_fine2.exo" 
