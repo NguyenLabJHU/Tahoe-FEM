@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.41.2.3 2003-05-24 14:39:15 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.41.2.4 2003-05-24 17:58:37 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -336,6 +336,10 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		FEManagerT_bridging continuum(continuum_in, continuum_out, fComm, bridge_continuum_in);
 		continuum.Initialize();
 
+		/* initialize FEManager_THK using atom values */
+		FEManagerT_THK thk(atom_in, atom_out, fComm, bridge_atom_in);
+		thk.Initialize();
+	
 		t1 = clock();
 		phase = 1;
                 
@@ -347,7 +351,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		if (impexp == IntegratorT::kImplicit)
 			RunStaticBridging(continuum, atoms, log_out);
 		else if (impexp == IntegratorT::kExplicit)
-			RunDynamicBridging(continuum, atoms, log_out);
+			RunDynamicBridging(continuum, atoms, thk, log_out);
 		else
 			ExceptionT::GeneralFail(caller, "unknown integrator type %d", impexp);
 
@@ -559,13 +563,13 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 	}
 }
 
-void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms, ofstream& log_out) const
+void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms, FEManagerT_THK& thk, ofstream& log_out) const
 {
 	const char caller[] = "FEExecutionManagerT::RunDynamicBridging";
 	
 	/* configure ghost nodes */
 	int group = 0;
-	int order1 = 0;	// For interpolate field, 3 calls to obtain displacement/velocity/acceleration
+	int order1 = 0;	// For InterpolateField, 3 calls to obtain displacement/velocity/acceleration
 	int order2 = 1;
 	int order3 = 2;
 	StringT bridging_field = "displacement";
