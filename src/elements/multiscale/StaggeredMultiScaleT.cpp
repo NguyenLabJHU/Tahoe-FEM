@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.18 2002-12-21 21:40:57 paklein Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.19 2002-12-24 19:27:51 creigh Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -132,11 +132,6 @@ void StaggeredMultiScaleT::Initialize(void)
 	/* construct the black boxs */  
 
 	Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_BCJ ); 
-	//Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_EZ ); 
-	//Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_EZ2 ); 
-	//Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_EZ3 ); 
-	//Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_EZ4 ); 
-	//Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_EZ5 ); 
 	
 	/* FEA Allocation */
 
@@ -338,7 +333,7 @@ void StaggeredMultiScaleT::LHSDriver(GlobalT::SystemTypeT)
 
 }
 
-//--------------------------------------------------------------------
+//---------------------------------------------------------------------
 
 void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &iFineScale )
 {
@@ -351,8 +346,8 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 			fCoarseMaterial = new Iso_MatlT;
 			//fCoarseMaterial -> Assign ( Iso_MatlT::kE, 	29000000.0 		);
 			//fCoarseMaterial -> Assign ( Iso_MatlT::kPr, 	0.30 				); 
-			fCoarseMaterial -> Assign ( Iso_MatlT::kE, 	100.00 		);
-			fCoarseMaterial -> Assign ( Iso_MatlT::kPr, 	0.25 		); 
+			fCoarseMaterial -> Assign ( Iso_MatlT::kE, 	 	168.0 	); // 100.0
+			fCoarseMaterial -> Assign ( Iso_MatlT::kPr, 	0.34 		); // .25 
 			fCoarseMaterial -> E_Nu_2_Lamda_Mu	( Iso_MatlT::kE,			Iso_MatlT::kPr,	
 																						Iso_MatlT::kLamda, 	Iso_MatlT::kMu 	);
 			break;
@@ -394,7 +389,9 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 			fEquation_II 	= new VMS_EZT;
 			fFineMaterial = new Iso_MatlT; // <-- not used
 			break;
+
 #if 0
+
 		case FineScaleT::kVMS_EZ2 : 
 			fEquation_II 	= new VMS_EZ2T;
 			fFineMaterial = new Iso_MatlT; // <-- not used
@@ -429,11 +426,12 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 			fFineMaterial -> E_Nu_2_Lamda_Mu	( BCJ_MatlT::kE,			BCJ_MatlT::kPr,	
 																					BCJ_MatlT::kLamda, 	BCJ_MatlT::kMu 	);
 			break;
-#endif
+
 		case FineScaleT::kPHEN :
 			//fEquation_II 	= new PHENT;
 			//fFineMaterial = new VMS_Phen_MaterialT;
 			break;
+#endif
 
 		default :
 			cout << " StaggeredMultiScaleT::Select_Equations() .. ERROR >> bad iFineScale \n";
