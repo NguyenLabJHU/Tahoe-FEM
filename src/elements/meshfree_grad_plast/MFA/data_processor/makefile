@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2004-06-19 01:23:50 raregue Exp $
+# $Id: makefile,v 1.2 2005-02-07 18:41:24 raregue Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,8 +20,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.2).
 #
 OBJ = \
-	MFGP_MFA_Data_Processor_DisplT.o \
-	MFGP_MFA_Data_Processor_PlastT.o
+	MFGP_MFA_Data_ProcessorT.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -40,8 +39,8 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	MFGP_MFA_Data_Processor_DisplT.cpp \
-	MFGP_MFA_Data_Processor_PlastT.cpp
+	MFGP_MFA_Data_ProcessorT.cpp 
+
 #
 ##################### (3) headers
 #
@@ -53,8 +52,7 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	MFGP_MFA_Data_Processor_DisplT.h \
-	MFGP_MFA_Data_Processor_PlastT.h
+	MFGP_MFA_Data_ProcessorT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 #
