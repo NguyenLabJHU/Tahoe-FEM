@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.16 2003-11-13 22:16:14 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.17 2004-05-10 17:02:34 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -59,9 +59,9 @@ AdhesionT::AdhesionT(const ElementSupportT& support, const FieldT& field):
 	{
 		case C1FunctionT::kLennardJones:
 		{	
-			double A;
-			in >> A;
-			fAdhesion = new LennardJones612(A);
+			double A, B;
+			in >> A >> B;
+			fAdhesion = new LennardJones612(A,B);
 			break;
 		}	
 		case C1FunctionT::kSmithFerrante:
