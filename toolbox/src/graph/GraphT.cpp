@@ -1,6 +1,4 @@
-/* $Id: GraphT.cpp,v 1.9 2002-10-20 22:39:01 paklein Exp $ */
-/* created: paklein (08/05/1996)                                          */
-
+/* $Id: GraphT.cpp,v 1.10 2002-11-14 16:55:52 paklein Exp $ */
 #include "GraphT.h"
 
 #include <time.h>
@@ -8,17 +6,15 @@
 #include "iArrayT.h"
 #include "iArray2DT.h"
 #include "RaggedArray2DT.h"
-//#include "AutoFill2DT.h"
 #include "RowAutoFill2DT.h"
 #include "AutoArrayT.h"
 #include "RootedLevelT.h"
 #include "PartitionT.h"
 
-/* inlines */
-/* return true if node is in range and active */
-
 using namespace Tahoe;
 
+/* inlines */
+/* return true if node is in range and active */
 inline bool GraphT::Active(int node, const iArrayT& active) const
 {
 	return node > -1 &&
