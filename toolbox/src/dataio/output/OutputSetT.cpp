@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.16 2002-11-21 01:07:40 paklein Exp $ */
+/* $Id: OutputSetT.cpp,v 1.17 2003-04-21 16:47:36 sawimme Exp $ */
 /* created: paklein (03/07/2000) */
 #include "OutputSetT.h"
 #include "iArrayT.h"
@@ -40,11 +40,17 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 
 	fNodeOutputLabels.Dimension(n_labels.Length());
 	for (int i = 0; i < fNodeOutputLabels.Length(); i++)
+	  {
 		fNodeOutputLabels[i] = n_labels[i];
+		fNodeOutputLabels[i].Replace (' ', '_');
+	  }
 
 	fElementOutputLabels.Dimension(e_labels.Length());
 	for (int j = 0; j < fElementOutputLabels.Length(); j++)
+	  {
 		fElementOutputLabels[j] = e_labels[j];
+		fElementOutputLabels[j].Replace (' ', '_');
+	  }
 
 	/* set the nodes used array */
 	fChanging = true; // force calculation of nodes used
@@ -74,7 +80,10 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 	/* copy node labels */
 	fNodeOutputLabels.Dimension(n_labels.Length());
 	for (int i = 0; i < fNodeOutputLabels.Length(); i++)
+	  {
 		fNodeOutputLabels[i] = n_labels[i];
+		fNodeOutputLabels[i].Replace (' ', '_');
+	  }
 
 	/* set the nodes used array */
 	fChanging = true; // force calculation of nodes used
@@ -100,11 +109,17 @@ OutputSetT::OutputSetT(const OutputSetT& source):
 
 	fNodeOutputLabels.Dimension(source.fNodeOutputLabels.Length());
 	for (int i = 0; i < fNodeOutputLabels.Length(); i++)
+	  {
 		fNodeOutputLabels[i] = source.fNodeOutputLabels[i];
+		fNodeOutputLabels[i].Replace (' ', '_');
+	  }
 
 	fElementOutputLabels.Dimension(source.fElementOutputLabels.Length());
 	for (int j = 0; j < fElementOutputLabels.Length(); j++)
+	  {
 		fElementOutputLabels[j] = source.fElementOutputLabels[j];
+		fElementOutputLabels[j].Replace (' ', '_');
+	  }
 
 	if (fMode == kElementBlock &&
 	    fConnectivities.Length() != fBlockID.Length()) throw ExceptionT::kSizeMismatch;
