@@ -130,7 +130,6 @@ void MeshAtom::BuildIOFile(StringT& program_name,
   IOLattice->SetCoordinates(*(Shape->GetAtomCoordinates()),(Shape->GetAtomID()));
   IOLattice->AddElementSet(*Set);
   
-  cout << "Writing geometry...\n";
   IOLattice->WriteGeometry();
 }
 

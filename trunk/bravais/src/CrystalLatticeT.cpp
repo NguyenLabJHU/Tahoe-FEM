@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: CrystalLatticeT.cpp,v 1.14 2002-11-14 01:47:32 saubry Exp $ */
+/* $Id: CrystalLatticeT.cpp,v 1.15 2003-04-15 21:55:24 saubry Exp $ */
 #include "CrystalLatticeT.h"
 
 #include <iostream>
@@ -77,7 +77,6 @@ CrystalLatticeT::CrystalLatticeT(int nlsd, int nuca,int which_rot,
     {
       // input angle has to be in degrees
       angle_rotation = angle;
-      cout << "Angle of rotation is: " << angle_rotation << "\n";
     }
 }
 

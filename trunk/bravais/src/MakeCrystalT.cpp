@@ -10,6 +10,7 @@
 #include <fstream>
 #include "StringT.h"
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "ExceptionCodes.h"
 
 #include "VolumeT.h"
@@ -28,20 +29,26 @@
 
 #include "MeshAtom.h"
 
-void MakeCrystalT::Run() {
-
+void MakeCrystalT::Run() 
+{
   // Get name of input data file
   StringT inputfile;
-  cout << "Name of input file?" << "\n";
   cin >> inputfile;
- 
+
   ifstreamT in('%');
   in.open(inputfile);
 
+  // Create output file
+  StringT outputfile;
+  outputfile = inputfile.Root();
+  outputfile.Append(".out");
+  ofstreamT out;
+  out.open(outputfile);
+ 
   // Start to read data
   int nsd=0; 
   in >> nsd;
-  cout << "\n\nDimension: " << nsd << "\n";
+  out << "\n\nDimension: " << nsd << "\n";
  
   int whichunit;
   iArrayT cel(nsd);
@@ -57,17 +64,17 @@ void MakeCrystalT::Run() {
 	{
 	  in >> len(0,0) >> len(0,1);
 	  in >> len(1,0) >> len(1,1);
-	  cout << "Length read: [" << len(0,0) << "," << len(0,1) << "]\n";
-	  cout << "             [" << len(1,0) << "," << len(1,1) << "]\n";
+	  out << "Length read: [" << len(0,0) << "," << len(0,1) << "]\n";
+	  out << "             [" << len(1,0) << "," << len(1,1) << "]\n";
 	}
       else if (nsd==3)
 	{
 	  in >> len(0,0) >>len(0,1);
 	  in >> len(1,0) >>len(1,1);
 	  in >> len(2,0) >>len(2,1);
-	  cout << "Length read: [" << len(0,0) << "," << len(0,1) << "]\n";
-	  cout << "             [" << len(1,0) << "," << len(1,1) << "]\n";
-	  cout << "             [" << len(2,0) << "," << len(2,1) << "]\n";
+	  out << "Length read: [" << len(0,0) << "," << len(0,1) << "]\n";
+	  out << "             [" << len(1,0) << "," << len(1,1) << "]\n";
+	  out << "             [" << len(2,0) << "," << len(2,1) << "]\n";
 	}
     }
   else
@@ -75,18 +82,18 @@ void MakeCrystalT::Run() {
       if(nsd==2) 
 	{
 	  in >> cel[0] >> cel[1];
-	  cout << "Number of cells read: " << cel[0] << "  " << cel[1] <<  "\n";
+	  out << "Number of cells read: " << cel[0] << "  " << cel[1] <<  "\n";
 	}
       else if (nsd==3)
 	{
 	  in >> cel[0] >> cel[1] >> cel[2];      
-	  cout << "Number of cells read: " << cel[0] << "  " << cel[1] << "  " <<  cel[2] <<  "\n";
+	  out << "Number of cells read: " << cel[0] << "  " << cel[1] << "  " <<  cel[2] <<  "\n";
 	}
     }
 
   StringT latticetype;
   in >> latticetype;
-  cout << "Lattice Type: " << latticetype <<  "\n";
+  out << "Lattice Type: " << latticetype <<  "\n";
   int b=0;
   if (latticetype=="FCC") 
     {
@@ -115,7 +122,7 @@ void MakeCrystalT::Run() {
     }
   else 
     {
-      cout << "Lattice type has to be CUB, FCC, BCC, DIA or HEX...\n";
+      out << "Lattice type has to be CUB, FCC, BCC, DIA or HEX...\n";
       throw eBadInputValue;
     }
 	
@@ -123,14 +130,14 @@ void MakeCrystalT::Run() {
   if(nsd == 2)
     {
       in >> alat[0] >> alat[1];
-      cout << "Lattice parameter: " 
+      out << "Lattice parameter: " 
 	   << alat[0] << "  " 
 	   << alat[1] << "\n";
     }
   else
     {
       in >> alat[0] >> alat[1] >> alat[2];
-      cout << "Lattice parameter: " 
+      out << "Lattice parameter: " 
 	   << alat[0] << "  " 
 	   << alat[1] << "  " 
 	   << alat[2] << "\n";
@@ -138,14 +145,14 @@ void MakeCrystalT::Run() {
 
   StringT shape;
   in >> shape;
-  cout << "Shape of the domain:" << shape <<  "\n";
+  out << "Shape of the domain:" << shape <<  "\n";
 
   //read output format
   int intformat = 0;
   in >> intformat;
 
   IOBaseT::FileTypeT kformat = IOBaseT::int_to_FileTypeT(intformat);
-  cout << "Output Format: " << kformat << "\n";
+  out << "Output Format: " << kformat << "\n";
  
   //Set Defaults on periodicity, rotation and output filenames
 
@@ -182,26 +189,26 @@ void MakeCrystalT::Run() {
       if(nsd == 2)
       {
         in >> per[0] >> per[1] ;
-        cout << "Periodic conditions:\n";
-        cout << per[0] << "  " << per[1] << "\n";
+        out << "Periodic conditions:\n";
+        out << per[0] << "  " << per[1] << "\n";
       }
       else if(nsd == 3)
       {
         in >> per[0] >> per[1] >> per[2];
-        cout << "Periodic conditions:\n";
-        cout << per[0] << "  "  << per[1] << "  " << per[2] << "\n";
+        out << "Periodic conditions:\n";
+        out << per[0] << "  "  << per[1] << "  " << per[2] << "\n";
       }
     }
     else if (misc=="ROTATION")
     {
       in >> irot;
-      if (irot == 0) cout << "Rotation atoms in box\n";
-      if (irot == 1) cout << "Rotation box of atoms\n";
+      if (irot == 0) out << "Rotation atoms in box\n";
+      if (irot == 1) out << "Rotation box of atoms\n";
 
       if(nsd==2) 
       {
         in >> angle;
-        cout << "Rotation Angle: " << angle << "\n";
+        out << "Rotation Angle: " << angle << "\n";
       }
       else if (nsd==3)
       {
@@ -211,10 +218,10 @@ void MakeCrystalT::Run() {
         in >> mat_rot(0,1) >> mat_rot(1,1) >> mat_rot(2,1);
         in >> mat_rot(0,2) >> mat_rot(1,2) >> mat_rot(2,2); 
       
-        cout << "Rotation Matrix:\n";
-        cout << mat_rot(0,0) << "  " <<  mat_rot(0,1) << "  " << mat_rot(0,2) << "\n";
-        cout << mat_rot(1,0) << "  " <<  mat_rot(1,1) << "  " << mat_rot(1,2) << "\n";
-        cout << mat_rot(2,0) << "  " <<  mat_rot(2,1) << "  " << mat_rot(2,2) << "\n";
+        out << "Rotation Matrix:\n";
+        out << mat_rot(0,0) << "  " <<  mat_rot(0,1) << "  " << mat_rot(0,2) << "\n";
+        out << mat_rot(1,0) << "  " <<  mat_rot(1,1) << "  " << mat_rot(1,2) << "\n";
+        out << mat_rot(2,0) << "  " <<  mat_rot(2,1) << "  " << mat_rot(2,2) << "\n";
       }
     }
     else if (misc=="SORT")
@@ -222,21 +229,21 @@ void MakeCrystalT::Run() {
 	if(nsd == 2) 
 	  {
 	    in >> isort[0] >> isort[1];
-	    cout << "Sorting criteria: ";
-	    cout << "[" << isort[0] << " " << isort[1] << "]\n";
+	    out << "Sorting criteria: ";
+	    out << "[" << isort[0] << " " << isort[1] << "]\n";
 	  }
 	if(nsd == 3) 
 	  {
 	    in >> isort[0] >> isort[1] >> isort[2];
-	    cout << "Sorting criteria: ";
-	    cout << "[" << isort[0] << " " << isort[1] 
+	    out << "Sorting criteria: ";
+	    out << "[" << isort[0] << " " << isort[1] 
 		 << " " << isort[2] << "]\n";
 	  }
       }
     else if (misc=="OUTPUT")
     {
       in >> input;
-      cout << "Output file root: " << input << "\n";
+      out << "Output file root: " << input << "\n";
     } 
 
     in >> misc;
@@ -256,24 +263,24 @@ void MakeCrystalT::Run() {
   StringT title = "Lattice for Atoms";
 
   int nb_atoms;
-  cout << "\nCreating mesh of atom...\n";
+  out << "\nCreating mesh of atom...\n";
   nb_atoms = mesh_atom.CreateMeshAtom();
-  cout << nb_atoms << " atoms in mesh\n";
+  out << nb_atoms << " atoms in mesh\n";
 
-  cout << "\nActual Length of Atoms\n";
+  out << "\nActual Length of Atoms\n";
   if(nsd==2) 
     {
-      cout << "[" << mesh_atom.Length()(0,0) << "," << mesh_atom.Length()(0,1) << "]\n";
-      cout << "[" << mesh_atom.Length()(1,0) << "," << mesh_atom.Length()(1,1) << "]\n";
+      out << "[" << mesh_atom.Length()(0,0) << "," << mesh_atom.Length()(0,1) << "]\n";
+      out << "[" << mesh_atom.Length()(1,0) << "," << mesh_atom.Length()(1,1) << "]\n";
     }
   else if (nsd==3)
     {
-      cout << "[" << mesh_atom.Length()(0,0) << "," << mesh_atom.Length()(0,1) << "]\n";
-      cout << "[" << mesh_atom.Length()(1,0) << "," << mesh_atom.Length()(1,1) << "]\n";
-      cout << "[" << mesh_atom.Length()(2,0) << "," << mesh_atom.Length()(2,1) << "]\n";
+      out << "[" << mesh_atom.Length()(0,0) << "," << mesh_atom.Length()(0,1) << "]\n";
+      out << "[" << mesh_atom.Length()(1,0) << "," << mesh_atom.Length()(1,1) << "]\n";
+      out << "[" << mesh_atom.Length()(2,0) << "," << mesh_atom.Length()(2,1) << "]\n";
     }
 
-  cout << "\nThe total volume of the domain is " 
+  out << "\nThe total volume of the domain is " 
        << mesh_atom.Volume_of_Mesh()
        << " in Angstroms^3 \n";
 
@@ -284,41 +291,44 @@ void MakeCrystalT::Run() {
 
   if(nb_atoms <= 50) 
     {
-      cout << "\nCoordinates:\n";
+      out << "\nCoordinates:\n";
       if(nsd==2)
 	{
 	  for (int j=0; j<nb_atoms; j++) 
-	    cout << coords(j)[0] <<  "  " << coords(j)[1]<<  "\n";
+	    out << coords(j)[0] <<  "  " << coords(j)[1]<<  "\n";
 	}
       else 
 	{
 	  for (int j=0; j<nb_atoms; j++) 
-	    cout << coords(j)[0] <<  "  " << coords(j)[1] <<  "  " << coords(j)[2] << "\n";
+	    out << coords(j)[0] <<  "  " << coords(j)[1] <<  "  " << coords(j)[2] << "\n";
 	}
       
     }
 
 
   //Output in a file
-  /*FILE *out=NULL;
-  out = fopen("lala","w");
-
-      if(nsd==2)
-	{
-	  for (int j=0; j<nb_atoms; j++) 
-	    fprintf(out,"%lf %lf\n",coords(j)[0],coords(j)[1]);
-	}
-      else 
-	{
-	  for (int j=0; j<nb_atoms; j++) 
-	    fprintf(out,"%lf %lf\n",coords(j)[0],coords(j)[1],coords(j)[2]);
-	}
-  */
+  /* StringT outputfile = "coord.txt";
+  ofstreamT out_coord;
+  out_coord.open(outputfile);
   
+  if(nsd==2)
+    {
+      for (int j=0; j<nb_atoms; j++) 
+	out_coord << coords(j)[0] << "  " << coords(j)[1] <<  "\n";
+    }
+  else 
+    {
+      for (int j=0; j<nb_atoms; j++) 
+	out_coord << coords(j)[0] << "  " << coords(j)[1] 
+		  << "  " <<coords(j)[2] <<  "\n";
+    }
 
+  out_coord.close();
+  */
 
-
-  cout << "\nWriting geometry in specified format file...\n";
+  out << "\nWriting geometry in specified format file...\n";
   mesh_atom.BuildIOFile(program,version,title,input,kformat,per);
+
+    } 
 }
 
