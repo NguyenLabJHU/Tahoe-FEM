@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.48 2003-04-07 06:29:28 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.49 2003-04-07 15:59:28 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -38,9 +38,6 @@
 #include "MeshFreeFSSolidT.h"
 #include "D2MeshFreeFSSolidT.h"
 #include "UpLagr_ExternalFieldT.h"
-/**************************/
-#include "UpdatedLagrangianMF.h"
-#include "SmallStrainMF.h"
 #endif
 
 #ifdef BRIDGING_ELEMENT
