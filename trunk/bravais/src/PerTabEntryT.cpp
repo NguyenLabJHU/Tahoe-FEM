@@ -1,4 +1,4 @@
-/* $Id: PerTabEntryT.cpp,v 1.1 2002-03-13 02:25:55 jzimmer Exp $ */
+/* $Id: PerTabEntryT.cpp,v 1.2 2002-06-03 22:20:43 jzimmer Exp $ */
 
 #include "PerTabEntryT.h"
 
@@ -43,23 +43,23 @@ void PerTabEntryT::SetLattType(const char * s) {
 	latticetype = s;
 } 
 
-const StringT& GetName() {
+const StringT& PerTabEntryT::GetName() {
 	return name;
 }
 
-const StringT& GetSymbol() {
+const StringT& PerTabEntryT::GetSymbol() {
 	return symbol;
 }
 
-const dArrayT& GetLattParams() {
-	return latt_params;
+const dArrayT& PerTabEntryT::GetLattParams() {
+	return latt_params[1];
 }
 
-const double& GetMass() {
+const double& PerTabEntryT::GetMass() {
 	return atomicmass;
 }
 
-const StringT& GetLattType() {
+const StringT& PerTabEntryT::GetLattType() {
 	return latticetype;
 }
 

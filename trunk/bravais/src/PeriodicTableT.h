@@ -1,4 +1,4 @@
-/* $Id: PeriodicTableT.h,v 1.1 2002-03-13 02:25:55 jzimmer Exp $ */
+/* $Id: PeriodicTableT.h,v 1.2 2002-06-03 22:20:43 jzimmer Exp $ */
 
 #ifndef _PERIODIC_TABLE_T_H_
 #define _PERIODIC_TABLE_T_H_
@@ -12,13 +12,15 @@
 
 class PeriodicTableT {
 public:
-	ArrayT <PerTabEntryT> PT(110);	
-	
+
+	ArrayT <PerTabEntryT> PT;
+
 	PeriodicTableT();
 	~PeriodicTableT();
 
 	void Initialize();
 	PerTabEntryT operator[] (const char * s);
+	PerTabEntryT operator[] (const int m);
 };
 
 #endif

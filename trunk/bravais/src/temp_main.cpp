@@ -1,18 +1,17 @@
-/* $Id: main.cpp,v 1.2 2002-06-03 22:20:43 jzimmer Exp $ */
+/* $Id: temp_main.cpp,v 1.1 2002-06-03 22:20:43 jzimmer Exp $ */
 #include <iostream>
 #include "ExceptionCodes.h"
-#include "PeriodicTableT.h"
-#include "StringT.h"
+#include "MakeCrystalT.h"
 
 int main()
 {
+	cout << "Starting up Bravais program..." << endl;
 
+	MakeCrystalT MC;
 	try {
-		cout << "Starting up Bravais program..." << endl;
-		PeriodicTableT BobTable;
-		cout << BobTable[1].GetName() << "\n";
-
-	}	
+		MC.Run();
+	}
+	
 	catch (int ErrorCode) {
 		cout << "\n\n Exiting due to error . . . ";
 		switch (ErrorCode) {
@@ -35,7 +34,7 @@ int main()
 		cout << "\n\n Game Over\n\n";
 	}
 
-	cout << "Exiting Bravais program.\n";
+	cout << "Exiting Bravais program." << endl;
 
 	return 0;
 }	
