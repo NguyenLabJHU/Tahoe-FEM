@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.44 2003-07-11 16:46:07 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.45 2003-07-12 08:07:42 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -335,30 +335,46 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		/* construction */
 		phase = 0;
 		char job_char;
-		atom_in >> job_char;
-		
-		/* initialize FEManager_THK using atom values */
-		FEManagerT_THK atoms(atom_in, atom_out, fComm, bridge_atom_in);
-		atoms.Initialize();
-	    	continuum_in >> job_char;
+
+		/* construct continuum solver */
+		continuum_in >> job_char;
 		FEManagerT_bridging continuum(continuum_in, continuum_out, fComm, bridge_continuum_in);
 		continuum.Initialize();
-		t1 = clock();
-		phase = 1;
-                
+
 		/* split here depending on whether integrators are explicit or implicit
 		 * check only one integrator assuming they both are the same */
-		const IntegratorT* mdintegrate = atoms.Integrator(0);
+		const IntegratorT* mdintegrate = continuum.Integrator(0);
 		IntegratorT::ImpExpFlagT impexp = mdintegrate->ImplicitExplicit();
-       
+
 		if (impexp == IntegratorT::kImplicit)
-			RunStaticBridging(continuum, atoms, log_out);
+		{
+			/* construct atomistic solver */
+			atom_in >> job_char;
+			FEManagerT_bridging atoms(atom_in, atom_out, fComm, bridge_atom_in);
+			atoms.Initialize();
+
+			t1 = clock();
+			phase = 1;
+			RunStaticBridging(continuum, atoms, log_out);	
+		}
 		else if (impexp == IntegratorT::kExplicit)
+		{
+#ifdef __DEVELOPMENT__
+			/* initialize FEManager_THK using atom values */
+			atom_in >> job_char;
+			FEManagerT_THK atoms(atom_in, atom_out, fComm, bridge_atom_in);
+			atoms.Initialize();
+		
+			t1 = clock();
+			phase = 1;
 			RunDynamicBridging(continuum, atoms, log_out);
+#else
+			ExceptionT::GeneralFail(caller, "dynamic bridging requires the DEVELOPMENT module");
+#endif
+		}
 		else
 			ExceptionT::GeneralFail(caller, "unknown integrator type %d", impexp);
-		
-	
+
 		t2 = clock();
 	}
         
@@ -396,7 +412,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 	status << "\n End Execution\n" << endl;
 }
 
-void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEManagerT_THK& atoms, ofstream& log_out) const
+void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms, ofstream& log_out) const
 {
 	const char caller[] = "FEExecutionManagerT::RunStaticBridging";
 	    
