@@ -1,4 +1,4 @@
-/* $Id: VirtualRodT.cpp,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* $Id: VirtualRodT.cpp,v 1.1.1.1.6.1 2001-10-29 00:10:03 paklein Exp $ */
 /* created: paklein (05/01/1997)                                          */
 /* UnConnectedRodT plus virtual elements for periodic boundary            */
 /* conditions.                                                            */
@@ -30,7 +30,7 @@ void VirtualRodT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 
 	/* substitute in virtual node numbers */
 	iArray2DT tempnodes; //temp copy to be modified
-	tempnodes = fConnectivities;
+	tempnodes = fRodConnectivities;
 	
 	/* swap nodes to get periodic local equation numbers */
 	SwapVirtualNodes(tempnodes);
@@ -38,10 +38,10 @@ void VirtualRodT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		//accounted for in bandwidth reduction.
 
 	/* set local equations numbers */
-	fNodes->SetLocalEqnos(tempnodes, fEqnos);
+	fNodes->SetLocalEqnos(tempnodes, fEqnos[0]);
 
 	/* add to list */
-	eq_1.Append(&fEqnos);
+	eq_1.Append(&fEqnos[0]);
 }
 
 /***********************************************************************
