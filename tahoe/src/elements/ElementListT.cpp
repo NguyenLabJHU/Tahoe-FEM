@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.61 2003-08-22 20:19:31 thao Exp $ */
+/* $Id: ElementListT.cpp,v 1.62 2003-08-23 16:13:37 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -55,6 +55,7 @@
 #include "AugLagContact3DT.h"
 #include "ACME_Contact3DT.h"
 #include "PenaltyContactDrag2DT.h"
+#include "PenaltyContactDrag3DT.h"
 #endif
 
 #ifdef PARTICLE_ELEMENT
@@ -458,8 +459,10 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				int nsd = fSupport.NumSD();
 				if (nsd == 2)
 					fArray[group] = new PenaltyContactDrag2DT(fSupport, *field);
+				else if (nsd == 3)				
+					fArray[group] = new PenaltyContactDrag3DT(fSupport, *field);
 				else
-					ExceptionT::GeneralFail(caller, "kPenaltyContactDrag only 2D");
+					ExceptionT::GeneralFail(caller, "kPenaltyContactDrag only 2D and 3D");
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
@@ -671,12 +674,12 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		  fArray[group] = new SmallStrainQ2P1(fSupport, *field);
 		  break;
 #else
-		  ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
+			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or MATERIAL_FORCE_ELEMENT_DEV not enabled: %d", code);
 #endif
 		}
 		case ElementT::kSmallStrainQ1P0:
 		{
-#ifdef SOLID_ELEMENT_DEV
+#if defined (SOLID_ELEMENT_DEV) && defined (MATERIAL_FORCE_ELEMENT_DEV)
 		  fArray[group] = new SmallStrainQ1P0(fSupport, *field);
 		  break;
 #else
@@ -689,12 +692,12 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		  fArray[group] = new SSQ2P1MF(fSupport, *field);
 		  break;
 #else
-		  ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
+			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or MATERIAL_FORCE_ELEMENT_DEV not enabled: %d", code);
 #endif
 		}
 		case ElementT::kSSQ1P0MF:
 		{
-#ifdef SOLID_ELEMENT_DEV
+#if defined (SOLID_ELEMENT_DEV) && defined (MATERIAL_FORCE_ELEMENT_DEV)
 		  fArray[group] = new SSQ1P0MF(fSupport, *field);
 		  break;
 #else
@@ -812,12 +815,12 @@ void ElementListT::SetActiveElementGroupMask(const ArrayT<bool>& mask)
 void ElementListT::DefineSubs(SubListT& sub_list) const
 {
 #ifdef COHESIVE_SURFACE_ELEMENT
-	sub_list.AddSub("isotropic_CSE", ParameterListT::ZeroOrOnce);
-	sub_list.AddSub("anisotropic_CSE", ParameterListT::ZeroOrOnce);
+	sub_list.AddSub("isotropic_CSE", ParameterListT::Any);
+	sub_list.AddSub("anisotropic_CSE", ParameterListT::Any);
 #endif
 
 #ifdef ADHESION_ELEMENT
-	sub_list.AddSub("adhesion", ParameterListT::ZeroOrOnce);
+	sub_list.AddSub("adhesion", ParameterListT::Any);
 #endif
 }
 
