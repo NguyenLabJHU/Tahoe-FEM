@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.9 2002-06-05 18:51:32 recampb Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.10 2002-06-10 18:55:11 recampb Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -14,6 +14,7 @@
 #include "iArray2DT.h"
 #include "vtkOutlineFilter.h"
 #include "vtkExtractEdges.h"
+#include "vtkLODActor.h"
 
 
 /* array behavior */
@@ -84,6 +85,7 @@ VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
 
 	/* the actor */
 	fActor = vtkActor::New();
+	//fActor = vtkLODActor::New();
 	//fActor->GetProperty()->SetInterpolationToGouraud();
 
 	/* line color */
@@ -242,15 +244,35 @@ void VTKUGridT::SetScalars(vtkFloatArray* scalars)
 }
 
 /* show contour surfaces for 3D or contour lines for 2D */
-void VTKUGridT::ShowContours(vtkFloatArray* scalars, int numContours)
+void VTKUGridT::ShowContours(vtkFloatArray* scalars, int numContours, double min, double max)
 {
   
-  fContour->GenerateValues(numContours, scalars->GetRange());
-  fContourMapper->SetScalarRange(scalars->GetRange());
+  // fContour->GenerateValues(numContours, scalars->GetRange());
+  //fContourMapper->SetScalarRange(scalars->GetRange());
+
+//   double temp = (max - min)/ (numContours+1);
+//   fContour->SetNumberOfContours(numContours);
+//   //fContour->SetValue(0,min);
+//   //fContour->SetValue(1,min+.001);
+//   //fContour->SetValue(numContours+1, max);
+//   //fContour->SetValue(numContours, max-.001);
+  
+//   for (int i = 0; i<numContours; i++)
+//     {
+//       fContour->SetValue(i, min+temp*(i+1));
+
+//     }
+  
+
+  fContour->GenerateValues(numContours+2, min, max);
+
+  fContourMapper->SetScalarRange(min,max);
+
   fActor->SetMapper(fContourMapper);
   boundBoxActor->SetVisibility(true);
+  boundBoxActor->PickableOff();
   cout << "Contour Values:" << endl;
-  for (int i=0; i<numContours; i++)
+  for (int i=0; i<numContours+2; i++) 
     cout << i <<"  " << fContour->GetValue(i) << endl;
   contours = true;
 

@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.h,v 1.7 2002-06-05 18:51:32 recampb Exp $ */
+/* $Id: VTKUGridT.h,v 1.8 2002-06-10 18:55:11 recampb Exp $ */
 #ifndef _VTK_U_GRID_T_H_
 #define _VTK_U_GRID_T_H_
 
@@ -23,6 +23,7 @@ class vtkContourFilter;
 class vtkPolyDataMapper;
 class vtkOutlineFilter;
 class vtkExtractEdges;
+class vtkLODActor;
 
 
 /* toolbox forward declarations */
@@ -66,7 +67,7 @@ class VTKUGridT
 	void SetScalars(vtkFloatArray* scalars);
 
 	/** display data as contour surfaces in 3D or contour lines in 2D */
-	void ShowContours(vtkFloatArray* scalars, int numContours);
+	void ShowContours(vtkFloatArray* scalars, int numContours, double min, double max);
 	
 	/** remove contours */
 	void HideContours(vtkFloatArray* scalars);

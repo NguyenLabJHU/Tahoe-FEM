@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.47 2002-06-05 20:37:07 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.48 2002-06-10 18:55:10 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -32,6 +32,9 @@
 #include "ArgSpecT.h"
 #include "vtkPointPicker.h"
 #include "vtkFloatArray.h"
+#include "vtkActor.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkSphereSource.h"
 
 VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   fArguments(arguments),
@@ -44,7 +47,6 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   /* add console commands */
   iAddCommand(CommandSpecT("Interactive"));
   iAddCommand(CommandSpecT("Update"));
-  //iAddCommand(CommandSpecT("PickPoints"));
 
   CommandSpecT addbody("AddBody");
   ArgSpecT file(ArgSpecT::string_);
@@ -137,14 +139,18 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
 	renWin = vtkRenderWindow::New();
 	renWin->SetWindowName("VTK for Tahoe");
 	renWin->SetPosition(10,10);
+
+	//renWin->SetDesiredUpdateRate(30.0);
 //  renWin->SetSize(600,700);
 	iren = vtkRenderWindowInteractor::New();
 	iren->SetRenderWindow(renWin);
 
-	picker = vtkPointPicker::New();
-	picker->SetTolerance(0.01);
-	iren->SetPicker(picker);
+	pointPicker = vtkPointPicker::New();
+	pointPicker->SetTolerance(0.01);
+	
+	iren->SetPicker(pointPicker);
 	iren->SetEndPickMethod(PickPoints,(void *)iren);  
+	//iren->SetDesiredUpdateRate(30.0);
 	
 	/* set interator style to trackball instead of joystick in the
 	 * same way it occurs from the window */
@@ -830,12 +836,53 @@ void VTKConsoleT::SetFrameLayout(int num_x, int num_y)
 void VTKConsoleT::PickPoints(void *arg)
 {
   vtkRenderWindowInteractor *iren = (vtkRenderWindowInteractor *)arg;
-  vtkPointPicker *picker = (vtkPointPicker *)iren->GetPicker();
-
-  cout <<"Point: " << picker->GetPointId()+1 << endl;
+  vtkPointPicker *pointPicker = (vtkPointPicker *)iren->GetPicker();
+ 
+  vtkPolyDataMapper* sphereMapper = vtkPolyDataMapper::New();
+  vtkActor* sphereActor = vtkActor::New();  
+  vtkSphereSource *sphere = vtkSphereSource::New();
+  sphere->SetThetaResolution(8); sphere->SetPhiResolution(8);
+  sphere->SetRadius(0.01);
+  sphereMapper->SetInput(sphere->GetOutput());
+  sphereActor->SetMapper(sphereMapper);
+  sphereActor->SetPosition(pointPicker->GetSelectionPoint());
+  sphereActor->GetProperty()->SetColor(1,1,1);
+  sphereActor->VisibilityOn();
+  sphereActor->PickableOff();
+  //fFrames(0,0)->Renderer()->AddActor(sphereActor);
+ 
   
-  if (picker->GetPointId() != -1)
-    cout <<"Value: " << (picker->GetDataSet()->GetPointData()->GetScalars()->GetComponent(picker->GetPointId(), 0)) << endl;
+  
+  if (pointPicker->GetPointId() != -1){
+    if (pointPicker->GetDataSet() != NULL ){
+      float* values = pointPicker->GetDataSet()->GetPointData()->GetScalars()->GetTuple(pointPicker->GetPointId()); 
+      float* coords = pointPicker->GetDataSet()->GetPoint(pointPicker->GetPointId());
+      int num_values = pointPicker->GetDataSet()->GetPointData()->GetScalars()->GetNumberOfComponents(); 
+      cout <<"Point: " << pointPicker->GetPointId()+1 << endl;
+      cout <<"Coordinates: " << "(" << coords[0] << ", " << coords[1] << ", " << coords[2] << ")" << endl;
+      cout <<"Value: " << (pointPicker->GetDataSet()->GetPointData()->GetScalars()->GetComponent(pointPicker->GetPointId(), 0)) << endl;
+    }
+    
+    else
+      cout <<"Point: " << pointPicker->GetPointId()+1 << endl;
+     
+
+//     cout << "Value: ";
+//     for (int i = 0; i < num_values; i++) {
+//       if (i = num_values-1)
+// 	cout << values[i] << endl; 
+//       else
+// 	cout << values[i] << '\n';
+//     }
+//   }
+//   else
+//     cout << "Invalid Point" << endl;
+     
+  }
+  else
+    cout << "Invalid Point" << endl;
+  
+  cout << endl;
 }
 
 /* returns the index of the requested option */

@@ -1,5 +1,5 @@
 
-/* $Id: VTKConsoleT.h,v 1.26 2002-06-05 18:51:32 recampb Exp $ */
+/* $Id: VTKConsoleT.h,v 1.27 2002-06-10 18:55:11 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -20,6 +20,7 @@
 class VTKBodyT;
 class VTKBodyDataT;
 class vtkPointPicker;
+class vtkCellPicker;
 
 class VTKConsoleT: public iConsoleObjectT
 {
@@ -79,7 +80,8 @@ class VTKConsoleT: public iConsoleObjectT
   /** list of display objects */
   int fBodyCount;
   AutoArrayT<VTKBodyDataT*> fBodies;
-  vtkPointPicker* picker;
+  vtkPointPicker* pointPicker;
+  vtkCellPicker* cellPicker;
 
 };
 
