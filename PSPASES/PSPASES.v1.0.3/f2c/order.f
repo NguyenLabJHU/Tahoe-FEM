@@ -39,17 +39,24 @@ C/* constitutes an implicit agreement to these terms.  These terms and        */
 C/* conditions are subject to change at any time without prior notice.        */
 C/*                                                                           */
 C/*****************************************************************************/
-C/* $Id: order.f,v 1.1 2004-12-10 20:28:27 paklein Exp $ */
+C/* $Id: order.f,v 1.2 2004-12-11 01:44:15 paklein Exp $ */
 C/*****************************************************************************/
 
       subroutine porder(rowdist,aptrs,ainds,order,sizes,myid,pp,
-     +      serialorder,dbgpp,comm)
+     +      serialorder,dbgpp,comm, 
+     +      xadj, adjncy, sorder, counts,
+     +      mynnodes2, ioasize2)
 
       implicit none
       include 'mpif.h'
 
       integer rowdist(0:*),aptrs(2,0:*),ainds(*),order(0:*),sizes(0:*)
-      integer, allocatable :: xadj(:),adjncy(:), sorder(:), counts(:)
+C      integer, allocatable :: xadj(:),adjncy(:), sorder(:), counts(:)
+      integer xadj, adjncy, sorder, counts
+      integer mynnodes2, ioasize2
+      dimension xadj(0:mynnodes2)
+      dimension adjncy(0:ioasize2 - mynnodes2 - 1)
+
       integer mynnodes,opts(5),i,j,k,l,m,ierr,ioasize,offdnz
       integer comm,myid,pp,serialorder
       integer dbgpp
@@ -58,12 +65,12 @@ C/*****************************************************************************/
 
       ioasize = aptrs(2,mynnodes-1)+aptrs(1,mynnodes-1)-1
 
-      allocate(xadj(0:mynnodes),stat=i)
+C      allocate(xadj(0:mynnodes),stat=i)
       if(i.ne.0) then
         print *,myid,':memory allocation failure'
         call mpi_abort(comm,0,ierr)
       end if
-      allocate(adjncy(0:ioasize-mynnodes-1),stat=i)
+C      allocate(adjncy(0:ioasize-mynnodes-1),stat=i)
       if(i.ne.0) then
         print *,myid,':memory allocation failure'
         call mpi_abort(comm,0,ierr)
@@ -85,8 +92,8 @@ C/*****************************************************************************/
       end do
       xadj(mynnodes) = xadj(mynnodes-1)+aptrs(2,mynnodes-1)-1
 
-      call mpi_allreduce(xadj(mynnodes),offdnz,1,MPI_INTEGER,MPI_SUM,
-     +                   comm,ierr);
+C      call mpi_allreduce(xadj(mynnodes),offdnz,1,MPI_INTEGER,MPI_SUM,
+C     +                   comm,ierr);
 
       if(offdnz.eq.0) then
         
@@ -116,7 +123,7 @@ C/*****************************************************************************/
 
       end if
 
-      deallocate(xadj)
-      deallocate(adjncy)
+C      deallocate(xadj)
+C      deallocate(adjncy)
 
       end
