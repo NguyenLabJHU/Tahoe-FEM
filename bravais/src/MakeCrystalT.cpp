@@ -1,4 +1,4 @@
-/* $Id: MakeCrystalT.cpp,v 1.5 2002-07-25 23:48:07 saubry Exp $ */
+/* $Id: MakeCrystalT.cpp,v 1.6 2002-07-26 20:55:44 jzimmer Exp $ */
 
 
 /* Build a mesh of atoms with a format-independent output
@@ -30,10 +30,11 @@
 
 void MakeCrystalT::Run() {
 
-  // Read and store data from "data" file	
+  // Get name of input "data" file
   StringT inputfile;
-  inputfile = "data5";
-  
+  cout << "Name of input file?" << "\n";
+  cin >> inputfile;
+ 
   ifstreamT in('%');
   in.open(inputfile);
 
@@ -86,19 +87,26 @@ void MakeCrystalT::Run() {
   in >> shape;
   cout << "Shape of the domain:" << shape <<  "\n";
 
+  StringT misc;
+  in >> misc;
+ 
   dArrayT rot_vec(nsd);
-  if(nsd==2) 
-    {
-      in >> rot_vec[0] >> rot_vec[1];
-      cout << "Rotation Vector: " << rot_vec[0] << "  " 
-	   <<  rot_vec[1] << "\n";
-	}
-  else if (nsd==3)
-    {
-      in >> rot_vec[0] >> rot_vec[1] >> rot_vec[2];
-      cout << "Rotation Vector: " << rot_vec[0] << "  " 
-	   <<  rot_vec[1] << "  " << rot_vec[2] << "\n";
-    }
+  rot_vec = 0.0;
+  if(misc=="ROT") 
+   {
+    if(nsd==2) 
+      {
+        in >> rot_vec[0] >> rot_vec[1];
+        cout << "Rotation Vector: " << rot_vec[0] << "  " 
+	     <<  rot_vec[1] << "\n";
+      }
+    else if (nsd==3)
+      {
+        in >> rot_vec[0] >> rot_vec[1] >> rot_vec[2];
+        cout << "Rotation Vector: " << rot_vec[0] << "  " 
+             <<  rot_vec[1] << "  " << rot_vec[2] << "\n";
+      }
+   }
 
   in.close();
   
