@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.13 2001-09-06 01:03:26 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.14 2001-09-10 23:26:18 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include "SurfaceT.h"
@@ -155,8 +155,10 @@ ContactSurfaceT::SetPotentialConnectivity(int num_multipliers)
 		      if (local_multiplier_node > -1){
                         node_face_connectivity[count]
                         = fMultiplierTags[local_multiplier_node];
-                        count++;
+		      } else {
+			node_face_connectivity[count] = -1;
 		      }
+                      count++;
                     }
                 }
                 /* all nodes in opposing neighbor faces */
@@ -176,8 +178,10 @@ ContactSurfaceT::SetPotentialConnectivity(int num_multipliers)
                       if (local_multiplier_node > -1){
                         node_face_connectivity[count]
                         = opp_multiplier_tags[local_multiplier_node];
-                        count++;
+		      } else {
+			node_face_connectivity[count] = -1;
                       }
+                      count++;
                     }
                 }
 

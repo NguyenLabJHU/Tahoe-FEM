@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.13 2001-09-06 01:03:26 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.14 2001-09-10 23:26:18 rjones Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -36,10 +36,11 @@ class ContactElementT: public ElementBaseT, public DOFElementT
 public:
 
 	/* constructor */
-	ContactElementT(FEManagerT& fe_manager);
+	ContactElementT(FEManagerT& fe_manager, int num_enf_params);
 
 	/* constructor for elements with multipliers */
-	ContactElementT(FEManagerT& fe_manager, XDOF_ManagerT* xdof_nodes);
+	ContactElementT(FEManagerT& fe_manager, int num_enf_params, 
+		XDOF_ManagerT* xdof_nodes);
 
 	/* destructor */
 	virtual ~ContactElementT(void);
@@ -80,15 +81,8 @@ public:
         enum SearchParametersT { kGapTol = 0,
 				kXiTol ,
 				kSearchNumParameters};
-        enum EnforcementParametersT { kPass = 0, // these are enf. specific!!
-				kPenalty ,
-				kConsistentTangent ,
-				kSmithFerranteA,
-				kSmithFerranteB,
-				kCoulombCoefficient,
-				ktol_gap,
-				ktol_pre,
-				kEnfNumParameters};
+	int fNumEnfParameters;
+
 	iArrayT fOutputFlags;
 	enum OutputFlagsT {kGaps = 0,
 			kNormals,

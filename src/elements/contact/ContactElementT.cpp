@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.19 2001-09-06 01:03:25 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.20 2001-09-10 23:26:17 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -22,24 +22,27 @@ static const int kMaxNumFaceNodes = 4;
 static const int kMaxNumFaceDOF   = 12;
 
 /* constructor */
-ContactElementT::ContactElementT(FEManagerT& fe_manager):
+ContactElementT::ContactElementT
+(FEManagerT& fe_manager, int num_enf_params):
 	ElementBaseT(fe_manager),
 	LHS(ElementMatrixT::kNonSymmetric),
 	tmp_LHS(ElementMatrixT::kNonSymmetric),
 	opp_LHS(ElementMatrixT::kNonSymmetric)
 {
+	fNumEnfParameters = num_enf_params;
 	fXDOF_Nodes = NULL;
 	fNumMultipliers = 0;
 }
 
 ContactElementT::ContactElementT
-(FEManagerT& fe_manager, XDOF_ManagerT* xdof_nodes):
+(FEManagerT& fe_manager, int num_enf_params, XDOF_ManagerT* xdof_nodes):
         ElementBaseT(fe_manager),
 	fXDOF_Nodes(xdof_nodes),
 	LHS(ElementMatrixT::kNonSymmetric),
 	tmp_LHS(ElementMatrixT::kNonSymmetric),
 	opp_LHS(ElementMatrixT::kNonSymmetric)
 {
+	fNumEnfParameters = num_enf_params;
 	if (!fXDOF_Nodes) throw eGeneralFail;
 	fNumMultipliers = 1;
 }
@@ -411,6 +414,11 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	in >> num_pairs;
 	out << " Number of surface pairs with data . . . . . . . . = "
 	    << num_pairs << '\n';
+	out << " Number of search parameters = " 
+	    << kSearchNumParameters << '\n'
+	    << " Number of enforcement parameters = " 
+	    << fNumEnfParameters
+	    << '\n';
 	int s1, s2;
 	for (int i = 0; i < num_pairs ; i++) 
 	{
@@ -420,12 +428,12 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		search_parameters.Allocate (kSearchNumParameters);
 		dArrayT& enf_parameters    = fEnforcementParameters(s1,s2);
 		// add parameters specific to enforcement
-		enf_parameters.Allocate (kEnfNumParameters);
-		for (int j = 0 ; j < kSearchNumParameters ; j++)
+		enf_parameters.Allocate (fNumEnfParameters);
+		for (int j = 0 ; j < search_parameters.Length() ; j++)
 		{
 			in >> search_parameters[j]; 
 		}
-		for (int j = 0 ; j < kEnfNumParameters ; j++)
+		for (int j = 0 ; j < enf_parameters.Length() ; j++)
 		{
 			in >> enf_parameters[j]; 
 		}
@@ -439,19 +447,15 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
         {
                 for (int j = 0 ; j < num_surfaces ; j++)
                 {
-			dArrayT& search_parameters = fSearchParameters(i,j);
-			dArrayT& enf_parameters = fEnforcementParameters(i,j);
-			out << "(" << i << "," << j << ")" ;
-			if (search_parameters.Length() 
-				== kSearchNumParameters) {
-			  for (int k = 0 ; k < kSearchNumParameters ; k++)
-			  {
-				out << search_parameters[k];
-				out << '\n';
-				out << enf_parameters[k];
-			  }
-			}
-			out << '\n';
+					dArrayT& search_parameters = fSearchParameters(i,j);
+					dArrayT& enf_parameters = fEnforcementParameters(i,j);
+					/* only print allocated parameter arrays */
+					if (search_parameters.Length() 
+						== kSearchNumParameters) {
+			  		out << "(" << i << "," << j << ")\n" ;
+			  		out << search_parameters << '\n';
+			  		out << enf_parameters << '\n'; 
+					}
                 }
         }
 

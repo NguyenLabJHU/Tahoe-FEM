@@ -1,4 +1,4 @@
-/*  $Id: ContactNodeT.cpp,v 1.11 2001-09-06 01:03:26 rjones Exp $ */
+/*  $Id: ContactNodeT.cpp,v 1.12 2001-09-10 23:26:18 rjones Exp $ */
 #include "ContactNodeT.h"
 
 #include "FaceT.h"
@@ -75,12 +75,15 @@ ContactNodeT::AssignStatus(nMatrixT<dArrayT>& enforcement_parameters)
 	if (fOpposingSurface) {
 		dArrayT& parameters = enforcement_parameters
 			(fSurface.Tag(),fOpposingSurface->Tag()) ;
+#if 0
 		if(fGap < parameters[ContactElementT::ktol_gap]) {
 			fStatus = kContact;
 		}
 		else {
 			fStatus = kProjection;
 		}
+#endif 
+		fStatus = kProjection;
 	}
 	else {
 		fStatus = kNoProjection;
