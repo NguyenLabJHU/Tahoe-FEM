@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.19 2004-07-29 23:42:06 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.20 2004-07-30 15:14:12 paklein Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -52,7 +52,9 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support, const FieldT& field):
 SCNIMFT::SCNIMFT(const ElementSupportT& support):
 	ElementBaseT(support),
 	//fFakeGeometry(NULL),
-	fVoronoi(NULL)
+	fVoronoi(NULL),
+	fMaterialList(NULL),
+	fNodalShapes(NULL)
 {
 	SetName("mfparticle");
 

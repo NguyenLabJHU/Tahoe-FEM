@@ -1,4 +1,4 @@
-/* $Id: SS_SCNIMFT.cpp,v 1.6 2004-07-29 23:42:06 cjkimme Exp $ */
+/* $Id: SS_SCNIMFT.cpp,v 1.7 2004-07-30 15:14:12 paklein Exp $ */
 #include "SS_SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -35,7 +35,8 @@ SS_SCNIMFT::SS_SCNIMFT(const ElementSupportT& support, const FieldT& field):
 }
 
 SS_SCNIMFT::SS_SCNIMFT(const ElementSupportT& support):
-	SCNIMFT(support)
+	SCNIMFT(support),
+	fSSMatSupport(NULL)
 {
 	SetName("ss_mfparticle");
 }
