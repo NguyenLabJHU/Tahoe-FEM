@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.56 2004-12-22 00:48:28 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.57 2004-12-26 21:09:42 d-farrell2 Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -64,6 +64,10 @@ NodeManagerT::NodeManagerT(FEManagerT& fe_manager, CommManagerT& comm_manager):
 	/* init support */
 	fFieldSupport.SetFEManager(&fe_manager);
 	fFieldSupport.SetNodeManager(this);
+	
+	// initialize the partition ends to everything
+	fPartFieldStart = 0;
+	fPartFieldEnd = - 1;
 }
 
 /* destructor */
@@ -309,18 +313,53 @@ GlobalT::SystemTypeT NodeManagerT::TangentType(int group) const
 			type = GlobalT::MaxPrecedence(type, fFields[i]->SystemType());
 	return type;
 }
-
+#pragma message("clean up the redundancy here when works")
 /* apply kinematic boundary conditions */
 void NodeManagerT::InitStep(int group)
 {
 	/* apply to fields */
 	for (int i = 0; i < fFields.Length(); i++)
+	{
 		if (fFields[i]->Group() == group)
-			fFields[i]->InitStep();
+		{
+			if (fPartFieldEnd != -1)
+			{
+				fFields[i]->InitStep(fPartFieldStart, fPartFieldEnd);
+			}
+			else if(fPartFieldEnd == -1)
+			{
+				fFields[i]->InitStep();
+			}
+			else
+			{
+			ExceptionT::GeneralFail("NodeManagerT::InitStep, apply to fields","fPartFieldEnd does not fit expected values");
+			}
+		}
+		
+	}
 
 	/* update current configurations */
 	if (fCoordUpdate && fCoordUpdate->Group() == group)
-		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+	{
+		if (fPartFieldEnd != -1)
+		{
+			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0], fPartFieldStart, fPartFieldEnd);
+			
+			// communicate the updated coords
+			fCommManager.AllGather(fMessageCurrCoordsID, *fCurrentCoords);
+		}
+		else if (fPartFieldEnd == -1)
+		{
+			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+		}
+		else
+		{
+			ExceptionT::GeneralFail("NodeManagerT::InitStep, update current config","fPartFieldEnd does not fit expected values");
+		}
+	}
+	
+	// Need to comunicate the update to ensure uniformity
+#pragma message("NodeManagerT::InitStep, need to put in all gather on updated coords")
 
 	/* clear history of relaxation over tbe last step */
 	fXDOFRelaxCodes[group] = GlobalT::kNoRelax;
@@ -375,6 +414,7 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 {
 	/* update fields */
 	for (int i = 0; i < fFields.Length(); i++)
+	{
 		if (fFields[i]->Group() == group)
 		{
 			/* assemble contribution from local solver */
@@ -383,9 +423,12 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 			/* gather/distribute external contribution */
 			fCommManager.AllGather(fMessageID[i], fFields[i]->Update());
 			
-			/* apply the update */
-			fFields[i]->ApplyUpdate();
+//			/* apply the update */
+//			fFields[i]->ApplyUpdate();
+			// apply the update to owned nodes
+			fFields[i]->ApplyUpdate(fPartFieldStart, fPartFieldEnd);
 		}
+	}
 
 	/* update current configurations */
 	if (fCoordUpdate && fCoordUpdate->Group() == group)
@@ -407,7 +450,21 @@ void NodeManagerT::UpdateCurrentCoordinates(void)
 	
 		/* simple update assuming displacement degrees of freedom are the
 		 * nodal values */
-		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+		if (fPartFieldEnd != -1)
+		{
+			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0], fPartFieldStart, fPartFieldEnd);
+			
+			// communicate the updated coords
+			fCommManager.AllGather(fMessageCurrCoordsID, *fCurrentCoords);
+		}
+		else if (fPartFieldEnd == -1)
+		{
+			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+		}
+		else
+		{
+			ExceptionT::GeneralFail("NodeManagerT::InitStep, update current config","fPartFieldEnd does not fit expected values");
+		}
 	}	
 }
 
@@ -439,9 +496,56 @@ void NodeManagerT::InitialCondition(void)
 		for (int j = 0; j <= field.Order(); j++)
 			fCommManager.AllGather(fMessageID[i], field[j]);
 	}
+	
+	// get some information from the FEManager, to be used in the solution
+	fCommSize = fCommManager.Size();
+	const PartitionT* part = fFEManager.Partition();
+	if (part)
+	{
+		fDecomp_Type = part->DecompType();
+		if (fDecomp_Type == PartitionT::kIndex) 
+		{
+			// get the limits for the field
+			fPartFieldStart = fCommManager.GetPartFieldStart();
+			fPartFieldEnd = fCommManager.GetPartFieldEnd();			
+		}
+		else // set the start/end to the default values of 0, - 1 (full array) for any other decomposition
+		{
+			fPartFieldStart = 0;
+			fPartFieldEnd = - 1;
+		}
+	}
+	else // set the start/end to the default values of 0, - 1 (full array)
+	{
+//DEBUG
+//cout << "NodeManagerT::InitialCondition: no partition information" << endl;
+
+		fPartFieldStart = 0;
+		fPartFieldEnd = - 1;
+	}
+	
+//DEBUG
+//cout << "fPartFieldStart = " << fPartFieldStart << endl;
+//cout << "fPartFieldEnd = " << fPartFieldEnd << endl;
 
 	/* update current configurations */
-	if (fCoordUpdate) fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+	if (fCoordUpdate)
+	{
+		if (fPartFieldEnd != -1 && fDecomp_Type == PartitionT::kIndex)
+		{
+			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0], fPartFieldStart, fPartFieldEnd);
+//DEBUG
+//cout << "NodeManagerT::InitialCondition, preparing to do AllGather" << endl;			
+			// communicate the updated coords
+			fCommManager.AllGather(fMessageCurrCoordsID, *fCurrentCoords); // I see a problem here, should only send part of the array, that which was updated		
+//DEBUG
+//cout << "NodeManagerT::InitialCondition, after AllGather" << endl;		
+		}
+		else
+		{
+			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+		}
+	}
 }
 
 void NodeManagerT::ReadRestart(ifstreamT& in)
@@ -1288,10 +1392,17 @@ void NodeManagerT::TakeParameterList(const ParameterListT& list)
 			fCurrentCoords_man.SetWard(0, *fCurrentCoords, NumSD());
 			fCurrentCoords_man.SetMajorDimension(NumNodes(), false);
 			(*fCurrentCoords) = InitialCoordinates();
+//DEBUG
+cout << "NodeManagerT::TakeParameterList, before InitAllGather" << endl;
+			// set up communication of the current coordinates
+			fMessageCurrCoordsID = fCommManager.Init_AllGather(*fCurrentCoords);
+#pragma message("need another ID for the updated coords communication??")
 		}
 			
 		/* set up communication of field */
-		fMessageID[i] = fCommManager.Init_AllGather(fFields[i]->Update());	
+		fMessageID[i] = fCommManager.Init_AllGather(fFields[i]->Update());
+//DEBUG
+cout << "NodeManagerT::TakeParameterList, after InitAllGather" << endl;			
 	}
 }
 

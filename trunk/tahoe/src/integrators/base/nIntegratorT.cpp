@@ -1,4 +1,4 @@
-/* $Id: nIntegratorT.cpp,v 1.7 2003-05-20 10:27:06 paklein Exp $ */
+/* $Id: nIntegratorT.cpp,v 1.8 2004-12-26 21:08:50 d-farrell2 Exp $ */
 /* created: paklein (10/14/1996) */
 #include "nIntegratorT.h"
 #include "ExceptionT.h"
@@ -18,7 +18,7 @@ void nIntegratorT::Dimension(const BasicFieldT& field)
 }
 
 /* corrector. Maps ALL degrees of freedom forward. */
-void nIntegratorT::Corrector(BasicFieldT& field, const dArray2DT& update)
+void nIntegratorT::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
 {
 #pragma unused(field)
 #pragma unused(update)
