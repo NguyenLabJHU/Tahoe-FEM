@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.h,v 1.4 2001-06-14 20:52:09 paklein Exp $ */
+/* $Id: ComparatorT.h,v 1.5 2001-09-05 18:35:27 paklein Exp $ */
 
 #ifndef _COMPARATOR_T_H_
 #define _COMPARATOR_T_H_
@@ -28,6 +28,9 @@ public:
 	/* constructors */
 	ComparatorT(int argc, char* argv[], char job_char, char batch_char);
 
+	/* prompt input files until "quit" */
+	virtual void Run(void);
+
 protected:
 
 	/* MUST be overloaded */
@@ -38,9 +41,15 @@ protected:
 	
 private:
 
-	/* compare results against benchmarks */
+	/** compare results against benchmarks. The input stream is expected
+	 * to be a Tahoe parameters file. The results are expected to be in
+	 * the same directory, while the benchmark results are expected to be
+	 * in a "benchmark" subdirectory. */
 	bool PassOrFail(ifstreamT& in); //const;
 	// cannot be const until since tolerances are class data that can change
+
+	/** compare results */
+	bool PassOrFail(const StringT& file_1, const StringT& file_2);
 
 	/* read data block header */
 	bool ReadDataBlockInfo(ifstreamT& in, int& group, double& time) const;
