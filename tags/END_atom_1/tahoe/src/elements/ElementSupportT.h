@@ -1,0 +1,415 @@
+/* $Id: ElementSupportT.h,v 1.16.2.4 2003-01-13 19:53:09 paklein Exp $ */
+#ifndef _ELEMENT_SUPPORT_T_H_
+#define _ELEMENT_SUPPORT_T_H_
+
+/* headers */
+#include <iostream.h>
+#include "ExceptionT.h"
+
+/* direct members */
+#include "GlobalT.h"
+#include "dArray2DT.h"
+#ifndef _SIERRA_TEST_
+#include "FieldT.h"
+#endif
+
+namespace Tahoe {
+
+/* forward declarations */
+#ifndef _SIERRA_TEST_
+class FEManagerT;
+class NodeManagerT;
+class XDOF_ManagerT;
+class FieldT;
+class eControllerT;
+#else
+class dMatrixT;
+#endif
+class GroupAverageT;
+class ElementMatrixT;
+template <class TYPE> class nArrayT;
+class dArrayT;
+class ifstreamT;
+class ofstreamT;
+class ElementBaseT;
+class ModelManagerT;
+class iArrayT;
+class ScheduleT;
+class StringT;
+class OutputSetT;
+class LocalArrayT;
+class CommManagerT;
+
+/** support for the ElementBaseT class hierarchy. A limited interface to get 
+ * information in and out of an ElementBaseT */
+class ElementSupportT
+{
+public:
+
+	/** constructor */
+	ElementSupportT(void);
+
+#ifndef _SIERRA_TEST_
+
+	/** \name initialization 
+	 * Cached values are reset when source are reset */
+	/*@{*/
+	/** (re-)set the FEManagerT */
+	void SetFEManager(FEManagerT* fe);
+
+	/** (re-)set the NodeManagerT */
+	void SetNodes(NodeManagerT* nodes);
+	/*@}*/
+
+	/** \name accessors */
+	/*@{*/
+	/** Tahoe version string */
+	const char* Version(void) const;
+
+#endif // ndef _SIERRA_TEST_
+
+	/** verbose echo */
+	bool PrintInput(void) const;
+	
+#ifdef _SIERRA_TEST_
+
+	/** set the number of nodes in the fracture interface */
+	void SetNumNodes(int nn);	
+	
+	void SetInitialCoordinates(double *InitialCoords);
+
+	/** set the memory used to hold the reference configuration */
+	void SetInitialCoordinates(dArray2DT *InitialCoords);
+
+	void SetCurrentCoordinates(double *CurrentCoords);
+	
+	/** set the memory used to hold the current configuration */
+	void SetCurrentCoordinates(dArray2DT *CurrentCoords);
+
+	/** use the displacements and reference configuration to update the current one */
+	void UpdateCurrentCoordinates(double *displacements);
+
+	/** set the time step in the fracture interface */
+	void SetTimeStep(double dt);
+
+	/** set the model manager in the fracture interface */
+	void SetModelManager(ModelManagerT* modelManager);
+
+	/** set the number of elements in the fracture interface */
+	void SetNumElements(int nelem);
+
+	/** accessor for the number of elements in the fracture interface */
+	int NumElements(void) const;
+
+	/** accessor for element floating point input when streams are not available */
+	dArrayT *FloatInput(void) const;
+	
+	/** accessor for element integer input when streams are not available */
+	int *IntInput(void) const;
+	
+	/** generate equation numbers based on connectivity information */
+	void SetEqnos(int *conn, const int& nelem, const int& nElemNodes, const int&nNodes);
+
+	dArrayT& Residual(void) const { return *fResidual; };
+	
+	dMatrixT& Stiffness(void) const { return *fStiffness; };
+	
+	void SetInput(double *inputFloats, int length);
+	
+	void Setfmap(map<string,double>& inputDoubles);
+	
+	void Setimap(map<string,int>& inputInts);
+		
+	double ReturnInputDouble(string label);
+	
+	int ReturnInputInt(string label);
+	
+	double *StateVariableArray(void);
+	
+	void SetStateVariableArray(double *incomingArray);
+
+#endif // def _SIERRA_TEST_
+
+	/** number of nodes */
+	int NumNodes(void) const;
+	
+	/** number of spatial dimensions */
+	int NumSD(void) const;
+
+	/** initial coordinates */
+	const dArray2DT& InitialCoordinates(void) const;
+	
+	/** current coordinates */
+	const dArray2DT& CurrentCoordinates(void) const;
+
+	/** register the local coordinate array with its source */
+	void RegisterCoordinates(LocalArrayT& array) const;
+
+	/** global analysis type */
+	GlobalT::AnalysisCodeT Analysis(void) const { return fAnalysis; };
+
+	/** return a const reference to the run state flag */
+	const GlobalT::StateT& RunState(void) const;
+
+	/** return a pointer to the specified schedule function. Returns
+	 * NULL if the number is out of range. */
+	const ScheduleT* Schedule(int num) const;
+
+	/** solver iteration number for the specified group */
+	const int& IterationNumber(int group) const;
+	
+	/** return the iteration number for the current solver group. Returns
+	 * -1 of no solver group is current */
+	int IterationNumber(void) const;
+
+	/** the group number being solved or -1 if not defined */
+	int CurrentGroup(void) const;
+	
+	/** exception string */
+	const char* Exception(ExceptionT::CodeT exception) const;
+	
+	/** simulation time */
+	const double& Time(void) const;
+	
+	/** simulation step number */
+	const int& StepNumber(void) const;
+
+	/** total number of simulations steps at the current step size */
+	const int& NumberOfSteps(void) const;
+	
+	/** time increment */
+	const double& TimeStep(void) const;
+	
+	/** index of the element group in the list of elements */
+	int ElementGroupNumber(const ElementBaseT* element) const;
+
+#ifndef _SIERRA_TEST_
+
+	/** the element group at the specified index in the element list */
+	ElementBaseT& ElementGroup(int index) const;
+
+	/** XDOF support */
+	XDOF_ManagerT& XDOF_Manager(void) const;
+
+	/** return a pointer to the field with the specified name. returns NULL
+	 * if a field with the given name is not found. */
+	const FieldT* Field(const char* name) const;
+
+	/** return the element controller appropriate for the given field */
+	const eControllerT* eController(const FieldT& field) const;
+	/*@}*/
+
+	/** \name basic MP support */
+	/*@{*/
+	/** total number of processes */
+	int Size(void) const;
+
+	/** rank of this process */
+	int Rank(void) const;
+
+	/** the nodes not native to this processor. Returns NULL if there is no 
+	 * list, indicating \e all nodes are owned by this partition */
+	const ArrayT<int>* ExternalNodes(void) const;
+
+	/** the nodes native to this processor that appear on other processors.
+	 * Returns NULL if there is no list, indicating \e all nodes are owned by 
+	 * this partition */
+	const ArrayT<int>* BorderNodes(void) const;
+	/*@}*/	
+#endif
+	
+	/** geometry information */
+	ModelManagerT& Model(void) const;
+
+	/** comm information */
+	CommManagerT& CommManager(void) const;
+
+	/** node number map. returns NULL if there is not map */
+	const ArrayT<int>* NodeMap(void) const;
+	
+	/** element number map for the given block ID */
+	const iArrayT* ElementMap(const StringT& block_ID) const;
+
+	/** \name assembly functions */
+	/*@{*/
+	void AssembleLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& eqnos) const;
+	void AssembleLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+		const nArrayT<int>& col_eqnos) const;
+	void AssembleLHS(int group, const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos) const;
+	void AssembleRHS(int group, const nArrayT<double>& elRes, const nArrayT<int>& eqnos) const;
+	/*@}*/
+
+	/** \name nodal averaging */
+	/*@{*/
+	/** initialize work space to the number of values to be averaged */
+	void ResetAverage(int n_values) const;
+
+	/** assemble values 
+	 * \param nodes list of nodes for the values being assembled: [nnd] 
+	 * \param vals values to be assembled: [nnd] x [nvals] */
+	void AssembleAverage(const iArrayT& nodes, const dArray2DT& vals) const;
+
+	/** average assembled values and return the array of averages 
+	 * values: [nnd] x [nvals] */
+	const dArray2DT& OutputAverage(void) const;
+
+	/** return averaged values for the nodes with assembled values. Returned
+	 * nodes are ordered by increasing node number */
+	void OutputUsedAverage(dArray2DT& average_values) const;
+	/*@}*/
+
+	/** \name input/output */
+	/*@{*/
+	/** the parameters stream */
+	ifstreamT& Input(void) const;
+
+	/** the echo file */
+	ofstreamT& Output(void) const;
+
+	/** register the output set. returns the ID that should be used with
+	 * ElementSupport::WriteOutput */
+	int RegisterOutput(const OutputSetT& output_set) const;
+
+	/** write results for a single output set
+	 * \param ID output set ID for the given data
+	 * \param n_values nodal output values
+	 * \param e_values element output values */
+	void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const;
+	/*@}*/
+
+private:
+
+#ifndef _SIERRA_TEST_
+ 	/** \name verified access 
+	 * Use these if you don't want to keep checking that the pointers
+	 * have been initialized. */
+	/*@{*/
+	/** the top-level manager */
+	FEManagerT& FEManager(void) const;
+
+	/** the nodes */
+	NodeManagerT& Nodes(void) const;
+	/*@}*/
+#endif
+
+private:
+
+	/** \name managers */
+	/*@{*/
+	/** the boss */
+	FEManagerT* fFEManager;
+	
+	/** the nodes */
+	NodeManagerT* fNodes;
+
+	/** the model manager */
+ 	ModelManagerT* fModelManager;	
+
+	/** the communication manager */
+	CommManagerT* fCommManager;
+	/*@}*/
+	
+	/** \name cached parameters
+	 * Pre-set to allow fast access */
+	/*@{*/
+	GlobalT::AnalysisCodeT fAnalysis;
+	const GlobalT::StateT* fRunState;
+	const dArray2DT *fInitialCoordinates;
+	const dArray2DT *fCurrentCoordinates;
+	/*@}*/
+
+#ifdef _SIERRA_TEST_	
+ 
+	dArrayT *fResidual;
+	dMatrixT *fStiffness;
+
+	int fItNum, fElem;
+	
+	double fTimeStep;
+	
+	ifstreamT *ifst;
+	ofstreamT *ofst;
+	
+//	double *fparams;
+	dArrayT *fparams;
+	map<string,double> fmap;
+	map<string,int> imap;
+	
+	int *iparams;
+
+	iArrayT *ieqnos;
+	
+	double *fStateVars;
+
+#endif
+	
+};
+
+#ifndef _SIERRA_TEST_
+/* the top-level manager */
+inline FEManagerT& ElementSupportT::FEManager(void) const
+{
+	if (!fFEManager)
+		ExceptionT::GeneralFail("ElementSupportT::FEManager", "pointer not set");
+	return *fFEManager;
+}
+
+/* the nodes */
+inline NodeManagerT& ElementSupportT::Nodes(void) const
+{
+	if (!fNodes) 
+		ExceptionT::GeneralFail("ElementSupportT::Nodes", "pointer not set");
+	return *fNodes;
+}
+#else
+inline int ElementSupportT::NumElements(void) const { return fElem; }
+inline dArrayT *ElementSupportT::FloatInput(void) const { return fparams; }
+inline int *ElementSupportT::IntInput(void) const { return iparams; }
+#endif
+
+/* return a const reference to the run state flag */
+inline const GlobalT::StateT& ElementSupportT::RunState(void) const
+{
+	if (!fRunState)
+		ExceptionT::GeneralFail("ElementSupportT::RunState", "not set");
+	return *fRunState;
+}
+
+/* geometry information */
+inline ModelManagerT& ElementSupportT::Model(void) const
+{
+	if (!fModelManager) 
+		ExceptionT::GeneralFail("ElementSupportT::Model", "pointer not set");
+	return *fModelManager;
+}
+
+/* comm information */
+inline CommManagerT& ElementSupportT::CommManager(void) const
+{
+	if (!fCommManager) 
+		ExceptionT::GeneralFail("ElementSupportT::CommManager", "pointer not set");
+	return *fCommManager;
+}
+
+/* number of nodes */
+inline int ElementSupportT::NumNodes(void) const
+{
+#if __option(extended_errorcheck)
+	if (!fInitialCoordinates) ExceptionT::GeneralFail("ElementSupportT::NumNodes", 
+		"no initial coordinates");
+#endif
+	return fInitialCoordinates->MajorDim();
+}
+	
+/* number of spatial dimensions */
+inline int ElementSupportT::NumSD(void) const
+{
+#if __option(extended_errorcheck)
+	if (!fInitialCoordinates) ExceptionT::GeneralFail("ElementSupportT::NumSD", 
+		"no initial coordinates");
+#endif
+	return fInitialCoordinates->MinorDim();
+}
+
+} // namespace Tahoe 
+#endif /* _ELEMENT_SUPPORT_T_H_ */

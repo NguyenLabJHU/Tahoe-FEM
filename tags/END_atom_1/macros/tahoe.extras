@@ -1,0 +1,60 @@
+# $Id: tahoe.extras,v 1.6.2.1 2002-12-10 16:53:17 paklein Exp $
+#
+# additional make commands for the tahoe module
+#
+
+default:
+	@ $(MAKE) help
+	@ $(ECHO) " "
+	@ $(ECHO) " additional targets for configuration:"
+	@ $(ECHO) "   update_config - update config files in src/config"
+	@ $(ECHO) "    clean_config - remove config files in src/config"
+	@ $(ECHO) " "
+	@ $(ECHO) " additional targets for (un-)installing optional modules:"
+	@ $(ECHO) "   touch_spooles - sparse, direct solver library"
+	@ $(ECHO) "     touch_Aztec - sparse, iterative solver library"
+	@ $(ECHO) "       touch_f2c - f2c support"
+	@ $(ECHO) "    touch_SEACAS - Sandia tools"
+	@ $(ECHO) "       touch_MPI - support for parallel execution"
+	@ $(ECHO) "     touch_METIS - domain decomposition using METIS"
+	@ $(ECHO) "       touch_NOX - NOX nonlinear solver library"
+
+touch_spooles:
+	@ $(ECHO) "removing object files depending on SPOOLES"
+	-@ $(RM) $(SRC_DIR)/solvers/SolverT.o
+	-@ $(RM) $(SRC_DIR)/solvers/NLSolver.o
+	-@ $(RM) $(SRC_DIR)/primitives/globalmatrix/SPOOLES/*.o
+
+touch_Aztec:
+	@ $(ECHO) "removing object files depending on Aztec"
+	-@ $(RM) $(SRC_DIR)/solvers/SolverT.o
+	-@ $(RM) $(SRC_DIR)/solvers/NLSolver.o
+	-@ $(RM) $(SRC_DIR)/primitives/globalmatrix/aztec/*.o
+
+touch_f2c:
+	@ $(ECHO) "removing object files depending on f2c"
+	-@ $(RM) $(SRC_DIR)/material/managers/*.o
+	-@ $(RM) $(SRC_DIR)/material/ABAQUS_UMAT/*.o
+	-@ $(RM) $(SRC_DIR)/material/ABAQUS_VUMAT/*.o
+
+touch_SEACAS:
+	@ $(ECHO) "removing object files depending on SEACAS"
+	-@ $(RM) $(SRC_DIR)/main/IO*.o
+	@ $(ECHO) "NOTE: toolbox must also be up to date"
+
+touch_MPI:
+	@ $(ECHO) "removing object files depending on MPI"
+	-@ $(RM) $(SRC_DIR)/main/*.o
+	-@ $(RM) $(SRC_DIR)/elements/continuum/meshfree/MeshFreeElementSupportT.o
+	-@ $(MAKE) touch_spooles touch_Aztec
+	@ $(ECHO) "NOTE: toolbox must also be up to date"
+	
+touch_METIS:
+	@ $(ECHO) "removing object files depending on METIS"
+	-@ $(RM) $(SRC_DIR)/main/FEExecutionManagerT.o
+	@ $(ECHO) "NOTE: dependent modules must also be up to date"
+
+touch_NOX:
+	@ $(ECHO) "removing object files depending on NOX"
+	-@ $(RM) $(SRC_DIR)/main/FEManagerT.o
+	-@ $(RM) $(SRC_DIR)/solvers/NOX/*.o

@@ -1,0 +1,91 @@
+#!/bin/csh
+# $Id: regression.csh.template,v 1.8 2002-03-22 17:29:06 paklein Exp $
+
+# username on Tahoe server
+set TAHOE_USER =
+
+# directory containing working copies of the tahoe modules
+set W_DIR =
+
+# host name - used only for subject line of test report
+set HOST =
+
+# need an echo that handles escape characters \n
+set ECHO = 'echo'
+
+# SEACAS - Sandia-only, ignore otherwise  
+setenv ACCESS 
+
+######### hopefully no changes will be required below #########
+
+# set path
+set path=(${W_DIR}/benchmark/scripts /bin /usr/bin /usr/local/bin /usr/ccs/bin /usr/sbin /usr/local/ssh /usr/ucb /etc /usr/openwin/bin /project/local/bin $path)
+
+# CVS
+setenv CVSROOT ${TAHOE_USER}@tahoe.ca.sandia.gov:/usr/local/cvsrep
+setenv CVS_RSH ssh
+
+# remove toolbox library
+if (-e ${W_DIR}/toolbox/lib/libtoolbox.a) then
+	/bin/rm ${W_DIR}/toolbox/lib/libtoolbox.a
+endif
+#        remove tahoe
+if (-e ${W_DIR}/tahoe/tahoe) then
+	/bin/rm ${W_DIR}/tahoe/tahoe
+endif
+#        update macros
+${ECHO} "updating MACROS"
+cd ${W_DIR}/macros; cvs -q update -Pd
+#        update and build toolbox
+${ECHO} "checking out and building TOOLBOX"
+cd ${W_DIR}/toolbox; cvs -q update -Pd ; make -s init ; \
+ (make -s build >!  ../make.stdout) >&! ../make.stderr
+#        update and build tahoe
+if (-e ${W_DIR}/toolbox/lib/libtoolbox.a) then
+	${ECHO} "checking out and building TAHOE"
+	cd ${W_DIR}/tahoe;   cvs -q update -Pd ; make -s init ; \
+ 	(make -s build >>! ../make.stdout) >>&! ../make.stderr
+endif
+#        update and build comparator
+if (-e ${W_DIR}/toolbox/lib/libtoolbox.a) then
+	${ECHO} "checking out and building COMPARATOR"
+	cd ${W_DIR}/benchmark/comparator;   cvs -q update -Pd ; make -s init ; \
+ 	(make -s build >>! ../../make.stdout) >>&! ../../make.stderr
+endif
+#        update and run regression tests
+if (-e ${W_DIR}/tahoe/tahoe && -e ${W_DIR}/benchmark/comparator/compare) then
+    ${ECHO}  "running BENCHMARKs"
+    cd ${W_DIR}/benchmark; \
+	cvs -q update -Pd ; \
+	make -s clean; \
+	${W_DIR}/tahoe/tahoe -f ${W_DIR}/benchmark/run.batch >&! test.stdout
+    ${ECHO}  "running COMPARATOR"
+    cd ${W_DIR}/benchmark; \
+    rm compare.summary compare.console; \
+    ${W_DIR}/benchmark/comparator/compare -f run.batch >&! compare.console
+    if(! -e ${W_DIR}/benchmark/compare.summary) then
+#       test/s failed - did not complete
+	${ECHO} "BENCHMARKs failed"
+		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}\nTAHOE regression FAIL:" `date` > ${W_DIR}/benchmark/tmp
+		cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.console > ${W_DIR}/benchmark/tmp_mail
+    else if(`grep -c "FAIL" ${W_DIR}/benchmark/compare.summary` ) then
+#       test/s failed
+	${ECHO} "BENCHMARKs failed"
+		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}\nTAHOE regression FAIL:" `date` > ${W_DIR}/benchmark/tmp
+		cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.summary > ${W_DIR}/benchmark/tmp_mail
+    else
+	${ECHO} "BENCHMARKs passed"
+		${ECHO} "Subject: TAHOE: regression PASS ${HOST}\nTAHOE regression PASS:" `date` > ${W_DIR}/benchmark/tmp
+		cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.summary > ${W_DIR}/benchmark/tmp_mail
+	endif
+else
+#       make failed
+		${ECHO} "Subject: TAHOE: build FAIL ${HOST}\nTAHOE build FAIL:" `date` > ${W_DIR}/benchmark/tmp
+		cat ${W_DIR}/benchmark/tmp ${W_DIR}/make.stderr > ${W_DIR}/benchmark/tmp_mail
+endif
+
+# send it
+scp ${W_DIR}/benchmark/tmp_mail ${TAHOE_USER}@tahoe.ca.sandia.gov:/home/paklein/admin/distribute/mail.${HOST}
+
+# run additional tests
+# cd ${W_DIR}/benchmark/scripts; csh -f parallel.csh >& parallel.LOG
