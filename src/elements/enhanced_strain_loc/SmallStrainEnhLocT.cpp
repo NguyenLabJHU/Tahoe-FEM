@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.8 2005-02-16 17:25:04 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.9 2005-02-16 22:26:51 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -88,46 +88,7 @@ void SmallStrainEnhLocT::CloseStep(void)
 		elem_num = CurrElementNumber();
 		nen = NumElementNodes();
 		loc_flag = fElementLocScalars[elem_num,kLocFlag];
-		const ElementCardT& element = CurrentElement();
-
-		/* until element is traced, i.e. loc_flag = 2, check for localization */
-		if ( loc_flag < 2 && element.IsAllocated() )
-		{
-			/* initialize element localization data */
-			loc_flag = 0;
-			fElementLocScalars[elem_num,kLocFlag] = loc_flag;
-			
-			normal1 = 0.0;
-			fElementLocNormal1.SetRow(elem_num, normal1);
-			normal2 = 0.0;
-			fElementLocNormal2.SetRow(elem_num, normal2);
-			normal3 = 0.0;
-			fElementLocNormal3.SetRow(elem_num, normal3);
-			
-			slipdir1 = 0.0;
-			fElementLocSlipDir1.SetRow(elem_num, slipdir1);
-			slipdir2 = 0.0;
-			fElementLocSlipDir2.SetRow(elem_num, slipdir2);
-			slipdir3 = 0.0;
-			fElementLocSlipDir3.SetRow(elem_num, slipdir3);
-	
-			tangent1 = 0.0;
-			fElementLocTangent1.SetRow(elem_num, tangent1);
-			tangent2 = 0.0;
-			fElementLocTangent2.SetRow(elem_num, tangent2);
-			tangent3 = 0.0;
-			fElementLocTangent3.SetRow(elem_num, tangent3);
-			
-			normal_chosen = 0.0;
-			fElementLocNormal.SetRow(elem_num, normal_chosen);
-			slipdir_chosen = 0.0;
-			fElementLocSlipDir.SetRow(elem_num, slipdir_chosen);
-			tangent_chosen = 0.0;
-			fElementLocTangent.SetRow(elem_num, tangent_chosen);
-
-			/* check for localization */
-			CheckLocalization(elem_num);
-		}
+		//sconst ElementCardT& element = CurrentElement();
 	
 		if ( loc_flag == 1)
 		{
@@ -200,6 +161,69 @@ void SmallStrainEnhLocT::WriteRestart(ostream& out) const
 	out << fElementLocMuDir << '\n';
 	out << fElementLocInternalVars << '\n';
 	out << fElementVolume << '\n';
+}
+
+/* see if pair status has changed */
+GlobalT::RelaxCodeT SmallStrainEnhLocT::RelaxSystem(void)
+{
+	/* inherited */
+	GlobalT::RelaxCodeT code = SolidElementT::RelaxSystem();
+	
+	int nen, elem_num;
+	
+	Top();
+	while (NextElement())
+	{
+		/* shape function derivatives, jacobians, local coords */
+		SetGlobalShape();
+		
+		elem_num = CurrElementNumber();
+		nen = NumElementNodes();
+		loc_flag = fElementLocScalars[elem_num,kLocFlag];
+		const ElementCardT& element = CurrentElement();
+
+		/* until element is traced, i.e. loc_flag = 2, check for localization */
+		if ( loc_flag < 2 && element.IsAllocated() )
+		{
+			/* initialize element localization data */
+			loc_flag = 0;
+			fElementLocScalars[elem_num,kLocFlag] = loc_flag;
+			
+			normal1 = 0.0;
+			fElementLocNormal1.SetRow(elem_num, normal1);
+			normal2 = 0.0;
+			fElementLocNormal2.SetRow(elem_num, normal2);
+			normal3 = 0.0;
+			fElementLocNormal3.SetRow(elem_num, normal3);
+			
+			slipdir1 = 0.0;
+			fElementLocSlipDir1.SetRow(elem_num, slipdir1);
+			slipdir2 = 0.0;
+			fElementLocSlipDir2.SetRow(elem_num, slipdir2);
+			slipdir3 = 0.0;
+			fElementLocSlipDir3.SetRow(elem_num, slipdir3);
+	
+			tangent1 = 0.0;
+			fElementLocTangent1.SetRow(elem_num, tangent1);
+			tangent2 = 0.0;
+			fElementLocTangent2.SetRow(elem_num, tangent2);
+			tangent3 = 0.0;
+			fElementLocTangent3.SetRow(elem_num, tangent3);
+			
+			normal_chosen = 0.0;
+			fElementLocNormal.SetRow(elem_num, normal_chosen);
+			slipdir_chosen = 0.0;
+			fElementLocSlipDir.SetRow(elem_num, slipdir_chosen);
+			tangent_chosen = 0.0;
+			fElementLocTangent.SetRow(elem_num, tangent_chosen);
+
+			/* check for localization */
+			CheckLocalization(elem_num);
+		}
+	
+	} // while next element
+
+	return code;
 }
 
 /* implementation of the ParameterInterfaceT interface */

@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.8 2005-02-16 17:25:04 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.9 2005-02-16 22:26:51 raregue Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
@@ -144,6 +144,9 @@ protected:
 
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);
+	
+	/** element level localization checks */
+	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 
 private:
 
