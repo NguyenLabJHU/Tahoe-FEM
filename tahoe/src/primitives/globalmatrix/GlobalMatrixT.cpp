@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.4 2001-05-01 23:22:56 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.5 2001-05-09 17:31:38 paklein Exp $ */
 /* created: paklein (03/23/1997)                                          */
 /* Virtual base class for all global matrix objects                       */
 
@@ -52,13 +52,10 @@ void GlobalMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	/* must have at least 1 active equation */
 	if (fLocNumEQ < 1)
 	{
-		cout << "\n GlobalMatrixT::Initialize: expecting at least one active equation"
+		cout << "\n GlobalMatrixT::Initialize: WARNING: no active equations"
 		     << endl;
-		throw eGeneralFail;
 	}
-	
-	/* active equation numbers must be > 0 */
-	if (fStartEQ < 1)
+	else if (fStartEQ < 1) /* active equation numbers must be > 0 */
 	{
 		cout << "\n GlobalMatrixT::Initialize: active equation must be > 0" << endl;
 		throw eGeneralFail;
