@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.43 2003-11-21 22:54:26 paklein Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.44 2003-12-01 22:15:06 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -210,8 +210,8 @@ void APS_AssemblyT::Initialize(void)
 	//n_df = 1+n_sd; 
 	n_en_displ = NumElementNodes();
 	//n_en_plast = ??;
-	#pragma message("APS_AssemblyT::Initialize: n_en_plast=4 hardcoded ")
-	n_en_plast = 4;
+	#pragma message("APS_AssemblyT::Initialize: n_en_plast=n_en_displ hardcoded ")
+	n_en_plast = n_en_displ;
 	//n_np = ElementSupport().NumNodes();
 	n_el = NumElements();
 	
