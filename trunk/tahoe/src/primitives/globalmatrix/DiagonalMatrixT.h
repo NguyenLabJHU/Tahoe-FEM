@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: DiagonalMatrixT.h,v 1.2 2001-02-28 02:36:00 paklein Exp $ */
 /* created: paklein (03/23/1997)                                          */
 /* Virtual base class for all global matrix objects                       */
 
@@ -44,6 +44,9 @@ public:
 	 * that elMat is square (n x n) and that eqnos is also length n.
 	 * NOTE: assembly positions (equation numbers) = 1...fDimension */
 	virtual void Assemble(const ElementMatrixT& elMat, const iArrayT& eqnos);
+
+	/* fetch values */
+	virtual void DisassembleDiagonal(dArrayT& diagonals, const iArrayT& eqnos) const;
 
 	/* assignment operator */
 	virtual GlobalMatrixT& operator=(const GlobalMatrixT& RHS);
