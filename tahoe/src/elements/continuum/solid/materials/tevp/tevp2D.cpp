@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.19 2001-07-23 01:38:47 hspark Exp $ */
+/* $Id: tevp2D.cpp,v 1.20 2001-08-13 22:55:45 hspark Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (04/04/2001) */
 /* Last Updated:  Harold Park (06/12/2001) */
@@ -13,14 +13,15 @@
 #include "ElementCardT.h"
 
 /* element output data */
-const int kNumOutput = 3;   // # of internal variables
+const int kNumOutput = 4;   // # of internal variables
 const double kYieldTol = 1.0e-16;   // Yield stress criteria
 const int kVoigt = 4;    // 4 components in 2D voigt notation
 const int kNSD = 3;      // 3 2D stress components (11, 12=21, 22)
 static const char* Labels[kNumOutput] = {
   "Temp",       // Temperature
   "Eff._Strain",    // effective strain
-  "Eff._Stress"};   // effective stress
+  "Eff._Stress",
+  "Eff._StrainRate"};   // effective stress
 
 /* constructor */
 tevp2D::tevp2D(ifstreamT& in, const FiniteStrainT& element):
@@ -62,6 +63,8 @@ tevp2D::tevp2D(ifstreamT& in, const FiniteStrainT& element):
   fStressArray(kVoigt),
   fSmlp(kVoigt),
   fVisc(0.0),
+  fViscoStrainRate(0.0),
+  fFluidStrainRate(0.0),
   fJ(0.0)
   
 {
@@ -75,6 +78,12 @@ tevp2D::tevp2D(ifstreamT& in, const FiniteStrainT& element):
 		cout << "\n tevp2D::tevp2D: Mu must be > 0: " << Mu_d << endl;
 		throw eBadInputValue;
 	}
+
+        in >> Bvisc;
+	if (Bvisc < 0.0)
+        {
+                cout << "\n tevp2D::tevp2D: Bvisc must be > 0: " << Bvisc << endl;
+        }
 
   /* initialize material constants */
   El_E = 2.0E11;
@@ -226,7 +235,7 @@ const dSymMatrixT& tevp2D::s_ij(void)
 
       /* add a dynamic viscosity term */
       double* mu_d = &Mu_d;
-      *mu_d = fVisc * exp((temp-Temp_0) / Temp_0);
+      *mu_d = fVisc * exp(-Bvisc * (temp-Temp_0) / Temp_0);
       dMatrixT eye_cm(3), dtemp(3);
       eye_cm = 0.0;
       eye_cm.PlusIdentity(1.0);
@@ -241,14 +250,6 @@ const dSymMatrixT& tevp2D::s_ij(void)
       fInternal[kTemp] = ComputeFluidTemperature();
       fInternal[kEb] = ComputeFluidEffectiveStrain();
     }  
-    else if (flags[ip + fNumIP] == kCrack) {
-      fStress = 0.0;
-      fInternal[kSb] = 0.0;
-      fInternal[kTemp] = Temp_0;
-      fInternal[kEb] = 0.0;
-      fTempKirchoff = 0.0;
-      fTempCauchy = 0.0;
-    }
     else {
       /* Incremental stress update part - if critical strain criteria not
        * exceeded */
@@ -296,12 +297,6 @@ const dSymMatrixT& tevp2D::s_ij(void)
     /* check for model switch criteria - visco to fluid and ductile to brittle */
     CheckCriticalCriteria(element, ip);
     /* add if statement here to 0 stress if crack initiation criteria is met */
-    if (flags[ip + fNumIP] == kCrack)       
-    {
-      fStress = 0.0;
-      fTempCauchy = 0.0;
-      fTempKirchoff = 0.0;
-    }
   }
   else
   {
@@ -340,6 +335,11 @@ void tevp2D::ComputeOutput(dArrayT& output)
   output[0] = fInternal[kTemp];        // Temperature
   output[1] = fInternal[kEb];          // Effective strain
   output[2] = fInternal[kSb];          // Effective stress
+  iArrayT& flags = element.IntegerData();
+  if (flags[ip + fNumIP] == kFluid)
+    output[3] = fViscoStrainRate;
+  else
+    output[3] = fFluidStrainRate;
 }
 
 /*******************************************************************
@@ -366,7 +366,7 @@ void tevp2D::ComputeD(void)
   /* Compute rate of deformation */
   fDtot = 0.0;
   dMatrixT* tempd = &fDtot;
-	FiniteStrain().ComputeGradient(fLocVel, fGradV_2D);
+  FiniteStrain().ComputeGradient(fLocVel, fGradV_2D);
   fGradV.Rank2ExpandFrom2D(fGradV_2D);
   (*tempd).MultAB(fGradV, fF_temp, 0);
   (*tempd).Symmetrize();
@@ -376,7 +376,7 @@ double tevp2D::ComputeSpin(void)
 {
   /* Compute the spin scalar */
   fSpin = 0.0;
-	FiniteStrain().ComputeGradient(fLocVel, fGradV_2D);
+  FiniteStrain().ComputeGradient(fLocVel, fGradV_2D);
   fGradV.Rank2ExpandFrom2D(fGradV_2D);
   fSpin = fGradV(0,0) * fF_temp(0,1) + fGradV(0,1) * fF_temp(1,1);
   fSpin = fSpin - fGradV(1,0) * fF_temp(0,0) - fGradV(1,1) * fF_temp(1,0);
@@ -418,13 +418,15 @@ double tevp2D::ComputeFluidEffectiveStrain(void)
   /* Computes the effective strain - 2 different methods of computing,
    * which depends upon whether fluid model was used or not */
   const double eb_last = fInternal[kEb];
+  
   double temp1 = fDtot(0,0) * fDtot(0,0);
   double temp2 = fDtot(1,1) * fDtot(1,1);
   double temp3 = fDtot(0,1) * fDtot(0,1);
-  //double ebar = 2.0 * (temp1 + temp2) / 3.0 + 2.0 * temp3;  
-  double ebar = 1.5 * (temp1 + temp2) + 2.0 * temp3;
-  ebar = sqrt(ebar);
-  fEb = ebar * fDt + eb_last;
+  //double ebar = 2.0 * (temp1 + temp2) / 3.0 + 2.0 * temp3;
+  double *ebar = &fFluidStrainRate;
+  *ebar = 1.5 * (temp1 + temp2) + 2.0 * temp3;
+  *ebar = sqrt(*ebar);
+  fEb = *ebar * fDt + eb_last;
 
   return fEb;
 }
@@ -436,8 +438,9 @@ double tevp2D::ComputeViscoEffectiveStrain(void)
   double ecc = ComputeEcc();
   
   /* access necessary data */
-  double ebtot_c = fEbtot / (1.0 + fXxii) + fCtcon * ecc;
-  fEb = eb_last + fDt * ebtot_c;
+  double *ebtot_c = &fViscoStrainRate;
+  *ebtot_c = fEbtot / (1.0 + fXxii) + fCtcon * ecc;
+  fEb = eb_last + fDt * (*ebtot_c);
 
   return fEb;
 }
@@ -468,26 +471,15 @@ void tevp2D::CheckCriticalCriteria(const ElementCardT& element, int ip)
   /* if already fluid, no need to check criterion */
   if (flags[ip + fNumIP] == kFluid)
     *criticalstrain = 1;
-  else if (flags[ip + fNumIP] == kCrack)
-    *criticalstrain = 2;
   else
   {  
     const double eb = fInternal[kEb];
     double ebar_cr = Epsilon_1 + (Epsilon_2 - Epsilon_1) * Epsilon_rate;
     ebar_cr /= (Epsilon_rate + fEbtot);
-    double RR = .25 * (pow((fTempKirchoff[0] - fTempKirchoff[1]), 2)) + pow(fTempKirchoff[3], 2);
-    RR = sqrt(RR);
-    double sigmax = RR + .5 * (fTempKirchoff[0] + fTempKirchoff[1]);
     if (eb >= ebar_cr)
     {
       flags[ip + fNumIP] = kFluid;
       *criticalstrain = 1;        // Indicator to switch to fluid model
-    }
-    else if (sigmax >= SigCr)
-    {
-      /* check for ductile to brittle criteria */
-      flags[ip + fNumIP] = kCrack;
-      *criticalstrain = 2;
     }
     else
     {
