@@ -1,4 +1,4 @@
-/* $Id: RGBaseT.cpp,v 1.5 2003-08-25 18:25:37 thao Exp $ */
+/* $Id: RGBaseT.cpp,v 1.6 2004-06-01 21:04:00 cjkimme Exp $ */
 /* created: TDN (01/22/2000) */
 #include "RGBaseT.h"
 
@@ -69,7 +69,7 @@ void  RGBaseT::PointInitialize(void)
 		      /* load state variables */
 		      Load(element, ip);
 		      
-		      fstatev = 0;
+		      fstatev = 0.;
 		      fC_vn.Identity();
 		      fC_v.Identity();
 
