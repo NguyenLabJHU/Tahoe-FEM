@@ -243,7 +243,7 @@ const dMatrixT& FossumSSIsoT::con_perfplas_ijkl(void)
 
 int FossumSSIsoT::IsLocalized(dArrayT& normal)
 {
-	DetCheckT checker(fStress, fModulus);
+	DetCheckT checker(fStress, fModulus, fModulusCe);
 	//checker.SetElementGroup(ContinuumElement());
 	checker.SetfStructuralMatSupport(*fSSMatSupport);
 
@@ -278,6 +278,7 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 	const ElementCardT& element = CurrentElement();
 	int i, ip = CurrIP();
 	LoadData(element, ip);
+	dMatrixT Ce = HookeanMatT::Modulus();
 
 	/*OUTPUT FOR ALPHA, KAPPA */ 
 	if (element.IsAllocated())
@@ -327,7 +328,7 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 			const dMatrixT& modulus = con_ijkl();
 
 			// localization condition checker
-			DetCheckT checker(stress, modulus);
+			DetCheckT checker(stress, modulus, Ce);
 			dArrayT normal(stress.Rows());
 			output[10] = checker.IsLocalized_SS(normal);  
 			output[12] = normal[0];
@@ -348,7 +349,7 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 			const dMatrixT& modulusperfplas = con_perfplas_ijkl();
 
 			/* perfectly plastic localization condition checker */
-			DetCheckT checkerperfplas(stress, modulusperfplas);
+			DetCheckT checkerperfplas(stress, modulusperfplas, Ce);
 			dArrayT normalperfplas(stress.Rows());
 			output[11] = checkerperfplas.IsLocalized_SS(normalperfplas);
 			output[15] = normalperfplas[0];

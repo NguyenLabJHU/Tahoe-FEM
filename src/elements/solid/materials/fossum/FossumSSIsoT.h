@@ -132,6 +132,7 @@ private:
 	/* return values */
 	dSymMatrixT fStress;
 	dMatrixT fModulus;
+	dMatrixT fModulusCe;
 	dMatrixT fModulusPerfPlas;
 	dMatrixT fModulusContinuum;
 	dMatrixT fModulusContinuumPerfPlas;
