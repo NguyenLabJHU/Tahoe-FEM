@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.11 2002-10-20 22:49:46 paklein Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.12 2003-10-09 18:07:08 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #include "ShapeFunctionT.h"
@@ -45,14 +45,20 @@ void ShapeFunctionT::SetDerivatives(void)
 }
 
 /* field gradients at specific parent domain coordinates. */
-void ShapeFunctionT::GradU(const LocalArrayT& nodal, dMatrixT& grad_U, 
-	const dArrayT& coord) const
+void ShapeFunctionT::GradU(const LocalArrayT& nodal, dArrayT& Na, dArray2DT& DNa, 
+	dMatrixT& grad_U, const dArrayT& coord) const
 {
-#pragma unused(nodal)
-#pragma unused(grad_U)
-#pragma unused(coord)
-	cout << "\n ShapeFunctionT::GradU: not implemented yet" << endl;
-	throw ExceptionT::kGeneralFail;
+	/* dimensions */
+	int nnd = fCoords.NumberOfNodes();
+	int nsd = fCoords.MinorDim();
+	Na.Dimension(nnd);
+	DNa.Dimension(nsd, nnd);
+
+	/* compute the shape function derivatives */
+	EvaluateShapeFunctions(coord, Na, DNa);
+
+	/* compute the gradient */
+	fDomain->Jacobian(nodal, DNa, grad_U);
 }
 
 /************************ for the current integration point *********************/
