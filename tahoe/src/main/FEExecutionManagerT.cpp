@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.36.2.13 2003-03-29 17:27:13 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.36.2.14 2003-03-30 21:25:45 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -77,12 +77,13 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 
 	/* check second char */
 	if (mode == kJob) {
-		char next_char;
-		in >> next_char;
-		if (next_char == fJobChar)
+		
+		/* peek at next char */
+		char a = in.next_char();
+		if (a == fJobChar) {
 			mode = kBridging;
-		else
-			in.putback(next_char);	
+			in >> a; /* clear character */	
+		}
 	}
 
 	switch (mode)
@@ -414,14 +415,13 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 					
 					/* apply solution to continuum */
 					continuum.ProjectField(bridging_field, *atoms.NodeManager());
-
 #if 0
 					K_CA.Multx(atoms.CumulativeUpdate(group_num), F_C);
 					F_C *= -1.0;
 					continuum.SetExternalForce(group_num, F_C);
+#endif
 					continuum.FormRHS(group_num);
 					continuum_res = continuum.Residual(group_num).Magnitude(); //serial
-#endif
 					
 					/* solve continuum */
 					if (1 || error == ExceptionT::kNoError) {
