@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.2 2003-01-27 07:00:27 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.3 2003-01-27 16:48:04 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -583,7 +583,7 @@ void CommManagerT::CollectPartitionNodes(const ArrayT<int>& n2p_map, int part,
 /* perform actions needed the first time CommManagerT::Configure is called. */
 void CommManagerT::FirstConfigure(void)
 {
-	/* nothing to do in serial */
+	/* serial */
 	if (!fPartition) {
 		fNumRealNodes = fModelManager.NumNodes();
 		fProcessor.Dimension(fNumRealNodes);
@@ -591,9 +591,9 @@ void CommManagerT::FirstConfigure(void)
 		return;
 	}
 	
-	//TEMP
+	/* graph decomposition - nothing to do? */
 	if (fPartition->DecompType() == PartitionT::kGraph)
-		ExceptionT::GeneralFail("CommManagerT::FirstConfigure", "not yet implemented for kGraph");
+		return;
 	
 	if (fPartition->DecompType() == PartitionT::kAtom)
 	{
