@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.1.2.2 2002-05-07 19:00:19 cjkimme Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.1.2.3 2002-05-11 20:49:19 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -18,7 +18,8 @@ double TiedPotentialT::fsigma_critical = 0.;
 
 /* constructor */
 TiedPotentialT::TiedPotentialT(ifstreamT& in, const double& time_step): 
-	SurfacePotentialT(knumDOF)
+	SurfacePotentialT(knumDOF),
+	fTimeStep(time_step)
 {
 #pragma unused(time_step)
 
