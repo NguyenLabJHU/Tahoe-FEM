@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.h,v 1.7 2002-07-02 19:56:47 cjkimme Exp $ */
+/* $Id: dMatrixT.h,v 1.8 2002-10-04 01:36:34 thao Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _DMATRIX_T_H_
@@ -84,10 +84,6 @@ public:
 	 * \return reference to *this */
 	dMatrixT& Symmetrize(void);
 
-	/** special matrix multiplication.
-	 * \author thao */
-	void MultSymAB(const dSymMatrixT& A, const dMatrixT& B);
-	
 /***********************************************
 * Symmetric matrix specializations
 **********************************************/
@@ -115,9 +111,27 @@ public:
 	 */
 	dMatrixT& ReducedIndexI(void);
 
+	/*
+	 *	IxI = d_ij d_kl 
+	 *
+	 */
+	dMatrixT& ReducedIndexII(void);
 /***********************************************
 * Specializations added for element stiffness matrices - new class?
 **********************************************/
+	/*multiplies symmetric A with non symmetric B*/
+	/*used to calculate Calg in OgdenViscVIB2D*/
+	void MultSymAB(const dSymMatrixT& A, const dMatrixT& B);
+
+	/*Reduced symmetric 4th rank tensor formed from general symmetric 
+	 * matrix
+         *
+	 *     I_Cijkl = 1/2(C_ik C_jl + C_il C_jk)
+	 */
+	void ReducedI_C(const dSymMatrixT& C);
+  
+	/*dyad symmetric A with symmetric B*/
+	dMatrixT& DyadAB(const dSymMatrixT& A, const dSymMatrixT& B);
 	
 	/* expand into block by block diagonal submatrices - factor made
 	 * argument to save division to calculate it */

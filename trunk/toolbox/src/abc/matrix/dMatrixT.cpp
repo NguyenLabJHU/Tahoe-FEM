@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.cpp,v 1.11 2002-09-12 16:40:17 paklein Exp $ */
+/* $Id: dMatrixT.cpp,v 1.12 2002-10-04 01:36:34 thao Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "dMatrixT.h"
@@ -257,41 +257,6 @@ dMatrixT& dMatrixT::Symmetrize(const dMatrixT& matrix)
 	return *this;
 }
 
-//Created by TDN: 03/4/01.  Multiplies a symmetric matrix A with nonsymmetric matrix B.
-//Used to calculate Calg.
-void dMatrixT::MultSymAB(const dSymMatrixT& A, const dMatrixT& B)
-{
-	/* dimension checks */
-#if __option (extended_errorcheck)
-	if (fRows != fCols ||
-		fCols != A.Rows() ||
-	  	A.Rows() != B.Rows() ||
-	  	B.Rows() != B.Cols()) throw eSizeMismatch; 
-	if(fCols < 2 || fCols > 3) throw eGeneralFail;
-#endif		   
-	double* pB = B.Pointer();
-	double* pA = A.Pointer();
-	if (fCols == 2)
-	{
-		fArray[0] = pA[0]*pB[0]+pA[2]*pB[1];
-		fArray[3] = pA[2]*pB[2]+pA[1]*pB[3];
-		fArray[2] = pA[0]*pB[2]+pA[2]*pB[3];
-		fArray[1] = pA[2]*pB[0]+pA[1]*pB[1];
-	}
-	else
-	{
-		fArray[0] = pA[0]*pB[0]+pA[5]*pB[1]+pA[4]*pB[2];
-		fArray[4] = pA[5]*pB[3]+pA[1]*pB[4]+pA[3]*pB[5];
-		fArray[8] = pA[4]*pB[6]+pA[3]*pB[7]+pA[2]*pB[8];
-		/*the following enforces the symmetry of C*/
-		fArray[7] = pA[5]*pB[6]+pA[1]*pB[7]+pA[3]*pB[8];
-		fArray[5] = pA[4]*pB[3]+pA[3]*pB[4]+pA[2]*pB[5];
-		fArray[6] = pA[0]*pB[6]+pA[5]*pB[7]+pA[4]*pB[8];
-		fArray[2] = pA[4]*pB[0]+pA[3]*pB[1]+pA[2]*pB[2];
-		fArray[3] =	pA[0]*pB[3]+pA[5]*pB[4]+pA[4]*pB[5];
-		fArray[1] = pA[5]*pB[0]+pA[1]*pB[1]+pA[3]*pB[2];
-	}
-}
 /***********************************************
 *
 * Symmetric matrix specializations
@@ -388,11 +353,174 @@ dMatrixT& dMatrixT::ReducedIndexI(void)
 	return *this;
 }
 
+/*	1 x 1 = d_ij d_ik 
+*
+* Returns a reference to this. */
+dMatrixT& dMatrixT::ReducedIndexII(void)
+{
+#if __option (extended_errorcheck)
+	/* check */
+	if (fRows != fCols || (fRows != 3 && fRows != 6)) throw eGeneralFail;
+#endif
+
+	*this = 0.0;
+
+	if (fRows == 3)
+	{
+		(*this)(0,0) = (*this)(1,1) = 1.0;
+		(*this)(0,1) = (*this)(1,0) = 1.0;
+	}
+	else
+	{
+		(*this)(0,0) = (*this)(1,1) = (*this)(2,2) = 1.0;
+		(*this)(0,1) = (*this)(0,2) = (*this)(1,2) = 1.0;
+		(*this)(1,0) = (*this)(2,0) = (*this)(2,1) = 1.0;
+	}
+
+	return *this;
+}
+
 /***********************************************
 *
 * Specializations added for element stiffness matrices - new class?
 *
 **********************************************/
+/*Multiplies symmetric matrix A with nonsymmetric matrix B.*/
+void dMatrixT::MultSymAB(const dSymMatrixT& A, const dMatrixT& B)
+{
+	/* dimension checks */
+#if __option (extended_errorcheck)
+	if (fRows != fCols ||
+		fCols != A.Rows() ||
+	  	A.Rows() != B.Rows() ||
+	  	B.Rows() != B.Cols()) throw eSizeMismatch; 
+	if(fCols < 2 || fCols > 3) throw eGeneralFail;
+#endif		   
+	double* pB = B.Pointer();
+	double* pA = A.Pointer();
+	if (fCols == 2)
+	{
+		fArray[0] = pA[0]*pB[0]+pA[2]*pB[1];
+		fArray[1] = pA[2]*pB[0]+pA[1]*pB[1];
+
+		fArray[2] = pA[0]*pB[2]+pA[2]*pB[3];
+		fArray[3] = pA[2]*pB[2]+pA[1]*pB[3];
+	}
+	else
+	{
+		fArray[0] = pA[0]*pB[0]+pA[5]*pB[1]+pA[4]*pB[2];
+		fArray[1] = pA[5]*pB[0]+pA[1]*pB[1]+pA[3]*pB[2];
+		fArray[2] = pA[4]*pB[0]+pA[3]*pB[1]+pA[2]*pB[2];
+		
+		fArray[3] = pA[0]*pB[3]+pA[5]*pB[4]+pA[4]*pB[5];
+		fArray[4] = pA[5]*pB[3]+pA[1]*pB[4]+pA[3]*pB[5];
+		fArray[5] = pA[4]*pB[3]+pA[3]*pB[4]+pA[2]*pB[5];
+
+
+		fArray[6] = pA[0]*pB[6]+pA[5]*pB[7]+pA[4]*pB[8];
+		fArray[7] = pA[5]*pB[6]+pA[1]*pB[7]+pA[3]*pB[8];
+		fArray[8] = pA[4]*pB[6]+pA[3]*pB[7]+pA[2]*pB[8];
+		
+	}
+}
+/* symmetric 4th rank tensor formed from general symmetric matrix C:
+*
+*	I_Cijkl = 1/2 (C_ik C_jl + C_il C_jk)
+*
+* Returns a reference to this. */
+void dMatrixT::ReducedI_C(const dSymMatrixT& C)
+{
+      int nummod = dSymMatrixT::NumValues(C.Rows());
+
+#if __option (extended_errorcheck)
+	/* check */
+	if (fRows != fCols || fCols < nummod ) throw eGeneralFail;
+#endif
+	
+	double* pC = C.Pointer();
+
+	if (nummod == 3)
+	{
+	        fArray[0] = pC[0]*pC[0];
+		fArray[1] = pC[2]*pC[2];
+		fArray[2] = pC[0]*pC[2];
+	
+		fArray[3] = pC[2]*pC[2];
+		fArray[4] = pC[1]*pC[1];
+		fArray[5] = pC[2]*pC[1];
+
+		fArray[6] = pC[0]*pC[2];
+		fArray[7] = pC[2]*pC[1];
+		fArray[8] = 0.5*(pC[0]*pC[1]+pC[2]*pC[2]);
+	}
+	else
+	{
+	        fArray[0] = pC[0]*pC[0];
+		fArray[1] = pC[5]*pC[5];
+		fArray[2] = pC[4]*pC[4];
+		fArray[3] = pC[4]*pC[5];
+		fArray[4] = pC[4]*pC[0];
+		fArray[5] = pC[5]*pC[0];
+
+		fArray[6] = pC[5]*pC[5];
+		fArray[7] = pC[1]*pC[1];
+		fArray[8] = pC[3]*pC[3];
+		fArray[9] = pC[3]*pC[1];
+		fArray[10] = pC[3]*pC[5];
+		fArray[11] = pC[1]*pC[5];
+
+		fArray[12] = pC[4]*pC[4];
+		fArray[13] = pC[3]*pC[3];
+		fArray[14] = pC[2]*pC[2];
+		fArray[15] = pC[2]*pC[3];
+		fArray[16] = pC[2]*pC[4];
+		fArray[17] = pC[3]*pC[4];
+
+		fArray[18] = pC[5]*pC[4];
+		fArray[19] = pC[1]*pC[3];
+		fArray[20] = pC[3]*pC[2];
+		fArray[21] = 0.5*(pC[1]*pC[2] + pC[3]*pC[3]);
+		fArray[22] = 0.5*(pC[5]*pC[2] + pC[3]*pC[4]);
+		fArray[23] = 0.5*(pC[5]*pC[3] + pC[1]*pC[4]);
+
+		fArray[24] = pC[0]*pC[4];
+		fArray[25] = pC[5]*pC[3];
+		fArray[26] = pC[4]*pC[2];
+		fArray[27] = 0.5*(pC[5]*pC[2] + pC[4]*pC[3]);
+		fArray[28] = 0.5*(pC[0]*pC[2] + pC[4]*pC[4]);
+		fArray[29] = 0.5*(pC[0]*pC[3] + pC[5]*pC[4]);
+
+		fArray[30] = pC[0]*pC[5];
+		fArray[31] = pC[5]*pC[1];
+		fArray[32] = pC[4]*pC[3];
+		fArray[33] = 0.5*(pC[5]*pC[3] + pC[4]*pC[1]);
+		fArray[34] = 0.5*(pC[0]*pC[3] + pC[4]*pC[5]);
+		fArray[35] = 0.5*(pC[0]*pC[1] + pC[5]*pC[5]);
+
+	}
+}
+/*Evaluates A x B where A and B are both symmetric matrices*/
+dMatrixT&  dMatrixT::DyadAB(const dSymMatrixT& A, const dSymMatrixT& B)
+{
+
+      int nummod = dSymMatrixT::NumValues(A.Rows());
+        /*dimension check*/
+#if __option (extended_errorcheck)
+	if (fRows != fCols || A.Rows() != B.Rows() 
+	    || fCols < nummod) throw eGeneralFail;
+#endif	
+	double* pthis = fArray;
+	double* pB = B.Pointer();
+	
+	for (int i = 0; i < nummod; i++)
+	{
+	     double* pA = A.Pointer();
+	     for (int j  = 0; j < nummod; j++)
+	            *pthis++ = (*pA++) * (*pB);
+	     pB++;
+	}
+	return(*this);
+}
 
 /* expand into block diagonal submatrices if dimension factor */
 void dMatrixT::Expand(const dMatrixT& B, int factor)

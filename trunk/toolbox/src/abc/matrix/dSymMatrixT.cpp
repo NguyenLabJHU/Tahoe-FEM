@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.13 2002-09-12 16:32:38 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.14 2002-10-04 01:36:34 thao Exp $ */
 /* created: paklein (03/03/1997)                                          */
 
 #include "dSymMatrixT.h"
@@ -327,6 +327,28 @@ double dSymMatrixT::ScalarProduct(void) const
 		       fArray[5]*fArray[5]);
 	else
 		return fArray[0]*fArray[0];
+}
+/*             A:B = A_ij B_ij */
+double dSymMatrixT::ScalarProduct(const dSymMatrixT& matrix) const
+{
+#if __option(extended_errorcheck)
+	if (fNumSD == 0) throw eGeneralFail;
+#endif	
+
+	//return( 2.0*Invariant2() + pow(Trace(),2) );
+	if (fNumSD == 2)
+		return fArray[0]*matrix.fArray[0] +
+		       fArray[1]*matrix.fArray[1] +
+		   2.0*fArray[2]*matrix.fArray[2];
+	else if (fNumSD == 3)
+		return fArray[0]*matrix.fArray[0] +
+		       fArray[1]*matrix.fArray[1] +
+		       fArray[2]*matrix.fArray[2] +
+		  2.0*(fArray[3]*matrix.fArray[3] +
+		       fArray[4]*matrix.fArray[4] +
+		       fArray[5]*matrix.fArray[5]);
+	else
+		return fArray[0]*matrix.fArray[0];
 }
 
 /* returns the magnitude of the second invariant of the reduced index
