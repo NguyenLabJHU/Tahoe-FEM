@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.1 2001-12-10 12:44:08 paklein Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.2 2001-12-13 02:57:59 paklein Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -8,6 +8,8 @@
 #include "vtkWarpVector.h"
 #include "vtkIdTypeArray.h"
 #include "vtkFloatArray.h"
+#include "vtkLookupTable.h"
+#include "vtkProperty.h"
 
 #include "iArray2DT.h"
 
@@ -33,12 +35,14 @@ VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
 	/* the mapper */
 	fMapper = vtkDataSetMapper::New();
 	fMapper->SetInput(fUGrid); /* just map grid by default */
+	
+	/* change color range from blue to red */
+	fLookUpTable = vtkLookupTable::New();
+	fLookUpTable->SetHueRange(0.6667, 0);
+	fMapper->SetLookupTable(fLookUpTable);
 
 	/* the actor */
 	fActor = vtkActor::New();
-
-//TEMP
-//	fActor->GetProperty()->SetOpacity(0.1);
 	
 	/* line color */
 	if (fType == kElementSet)
@@ -144,3 +148,44 @@ void VTKUGridT::SetWarpVectors(vtkFloatArray* vectors)
 	fWarp->SetInput(fUGrid);
 	fMapper->SetInput(fWarp->GetOutput());
 }
+
+/* set grid representation.
+ * \param code grid representation, either VTK_SURFACE, VTK_WIRE, or VTK_POINTS */
+bool VTKUGridT::SetRepresentation(RepresentationT rep)
+{
+	vtkProperty* property = fActor->GetProperty();
+	switch (rep)
+	{
+		case kWire:
+			property->SetRepresentation(VTK_WIREFRAME);	
+			break;
+		case kSurface:
+			property->SetRepresentation(VTK_SURFACE);	
+			break;
+		case kPoint:
+			property->SetRepresentation(VTK_POINTS);	
+			break;		
+		default:
+			cout << "VTKUGridT::SetRepresentation: not a valid representation: " << rep << endl;
+			return false;
+	}
+	return true;
+}
+
+/* set the grid opacity */
+void VTKUGridT::SetOpacity(double opacity)
+{
+	/* bounds */
+	if (opacity > 1) opacity = 1;
+	else if (opacity < 0 ) opacity = 0;
+
+	/* set */
+	fActor->GetProperty()->SetOpacity(opacity);
+}
+
+/* return the look up table for the specified ugrid */
+vtkScalarsToColors* VTKUGridT::GetLookupTable(void)
+{
+	return fMapper->GetLookupTable();
+}
+ 

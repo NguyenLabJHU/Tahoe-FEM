@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.16 2001-12-12 15:52:58 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.17 2001-12-13 02:57:59 paklein Exp $ */
 
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
@@ -50,6 +50,10 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	iAddCommand(*command);
 
 	command = fFrame->iCommand("Interactive");
+	if (!command) throw eGeneralFail;
+	iAddCommand(*command);
+
+	command = fFrame->iCommand("Rotate");
 	if (!command) throw eGeneralFail;
 	iAddCommand(*command);
 	
@@ -106,6 +110,8 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 	if (command.Name() == "Update")
 		return fFrame->iDoCommand(command, line);
 	else if (command.Name() == "Interactive")
+		return fFrame->iDoCommand(command, line);
+	else if (command.Name() == "Rotate")
 		return fFrame->iDoCommand(command, line);
 	else if (command.Name() == "ShowNodeNumbers")
 	{
@@ -173,7 +179,9 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 					/* labels */
 					vtkActor2D* nodeLabelActor = vtkActor2D::New();
 					nodeLabelActor->SetMapper(nodeLabelMapper);
-					nodeLabelActor->VisibilityOn();		
+					nodeLabelActor->VisibilityOn();
+					nodeLabelActor->GetProperty()->SetColor(0,1,1);
+							
 					fFrame->Renderer()->AddActor(nodeLabelActor);
 					
 					/* add to lists */
@@ -281,6 +289,34 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 	else
 		/* inherited */
 		return iConsoleObjectT::iDoCommand(command, line);
+}
+
+/* change the plot variable */
+bool VTKBodyT::ChangeVars(const StringT& var)
+{
+	fBodyData->iWriteVariables(cout);
+
+	if (fBodyData->ChangeVars(var))
+	{
+		fBodyData->iWriteVariables(cout);
+
+		/* remove all variables */
+		DeleteVariables();
+		
+		//TEMP
+		cout << "VTKBodyT::ChangeVars: number of variable = " << fVariables.Length() << endl;
+		
+		/* re-add all the VTKBodyDataT variables */
+		AddVariables(*fBodyData);
+		
+		iWriteVariables(cout);
+
+		//TEMP
+		cout << "VTKBodyT::ChangeVars: number of variable = " << fVariables.Length() << endl;
+		
+		return true;
+	}
+	else return false;
 }
 
 /* add actors in self to the given renderer */
