@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.9.4.2 2004-03-17 01:58:03 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.9.4.3 2004-03-20 16:48:49 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -20,7 +20,9 @@ MultiManagerT::MultiManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT&
 	fCoarse(coarse),
 	fDivertOutput(false),
 	fFineField(NULL),
-	fCoarseField(NULL)
+	fCoarseField(NULL),
+	fFineToCoarse(true),
+	fCoarseToFine(true)
 {
 	const char caller[] = "MultiManagerT::MultiManagerT";
 
@@ -62,9 +64,6 @@ void MultiManagerT::Initialize(InitCodeT)
 	fCoarse->InitInterpolation(fFine->GhostNodes(), fFineField->Name(), *(fFine->NodeManager()));
 	fCoarse->InitProjection(*(fFine->CommManager()), fFine->NonGhostNodes(), fFineField->Name(), *(fFine->NodeManager()), make_inactive);
 
-	/* transposed shape function arrays needed for cross terms */
-	//fCoarse->TransposeFollowerCellData(fFollowerCellTranspose);
-
 	/* send coarse/fine output through the fFine output */
 	int ndof = fFine->NodeManager()->NumDOF(group);
 	ArrayT<StringT> labels(2*ndof);
@@ -85,6 +84,11 @@ void MultiManagerT::Initialize(InitCodeT)
 	fSolvers.Dimension(n1);
 	fSolvers = NULL;
 	SetSolver();
+
+	/* read the cross term flags */
+	ifstreamT& in = Input();
+	in >> fFineToCoarse
+	   >> fCoarseToFine;
 }
 
 /* (re-)set the equation number for the given group */
@@ -219,6 +223,9 @@ void MultiManagerT::FormRHS(int group) const
 	fCoarse->FormRHS(group);
 	coarse_solver->LockRHS();
 	fSolvers[group]->AssembleRHS(coarse_rhs, fEqnos2);
+	
+	/* skip all cross terms */
+	if (!fFineToCoarse && !fCoarseToFine) return;
 
 	/* total internal force vectors */
 	int atoms_group = 0;
@@ -230,19 +237,23 @@ void MultiManagerT::FormRHS(int group) const
 	dArray2DT& R_U = const_cast<dArray2DT&>(fR_U);
 	R_U.Dimension(resid_coarse.MajorDim(), resid_coarse.MinorDim());
 	R_U = 0.0;
-	const iArrayT& ghost_atoms = fFine->GhostNodes();
-	const PointInCellDataT& interpolation_data = fCoarse->InterpolationData();
-	fCoarse->MultNTf(interpolation_data, resid_fine, ghost_atoms, R_U);
-	fSolvers[group]->AssembleRHS(R_U, fCoarseField->Equations());	
+	if (fFineToCoarse) {
+		const iArrayT& ghost_atoms = fFine->GhostNodes();
+		const PointInCellDataT& interpolation_data = fCoarse->InterpolationData();
+		fCoarse->MultNTf(interpolation_data, resid_fine, ghost_atoms, R_U);
+		fSolvers[group]->AssembleRHS(R_U, fCoarseField->Equations());
+	}
 
 	/* mixed contribution to the fine scale residual */
-	dArray2DT& R_Q = const_cast<dArray2DT&>(fR_Q);
-	R_Q.Dimension(resid_fine.MajorDim(), resid_fine.MinorDim());
-	R_Q = 0.0;
-	R_U += resid_coarse;
-	const PointInCellDataT& projection_data = fCoarse->ProjectionData();
-	fCoarse->MultNTf(projection_data.PointToNode(), R_U, projection_data.CellNodes(), R_Q);	
-	fSolvers[group]->AssembleRHS(R_Q, fFineField->Equations());	
+	if (fCoarseToFine) {
+		dArray2DT& R_Q = const_cast<dArray2DT&>(fR_Q);
+		R_Q.Dimension(resid_fine.MajorDim(), resid_fine.MinorDim());
+		R_Q = 0.0;
+		R_U += resid_coarse;
+		const PointInCellDataT& projection_data = fCoarse->ProjectionData();
+		fCoarse->MultNTf(projection_data.PointToNode(), R_U, projection_data.CellNodes(), R_Q);	
+		fSolvers[group]->AssembleRHS(R_Q, fFineField->Equations());	
+	}
 }
 
 /* send update of the solution to the NodeManagerT */
