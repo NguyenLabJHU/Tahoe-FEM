@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.h,v 1.7 2004-08-01 01:00:59 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.h,v 1.8 2004-08-08 02:02:57 paklein Exp $ */
 #ifndef _SIERRA_MAT_BASE_T_H_
 #define _SIERRA_MAT_BASE_T_H_
 
@@ -117,6 +117,9 @@ protected:
 		ArrayT<StringT>& output_labels) const = 0;
 	/*@}*/
 
+	/** access to the material data */
+	const SIERRA_Material_Data& MaterialData(void) const;
+
 	/** \name load/store element data */
 	/*@{*/
 	void Load(ElementCardT& element, int ip);
@@ -143,20 +146,25 @@ private:
 	 */
 	void Read_SIERRA_Input(ifstreamT& in, ParameterListT& param_list) const;
 
-	SIERRA_Material_Data* Process_SIERRA_Input(ParameterListT& param_list);
+	SIERRA_Material_Data* Process_SIERRA_Input(const ParameterListT& param_list);
 	/*@}*/
 
 protected:
 
 	/** \name Sierra_function_material_calc arguments */
 	/*@{*/
-	nArrayT<double> fdstran;     /**< rotated strain increment */
+	nArrayT<double> vars_input;  /**< vector of input variables */
 	nArrayT<double> fstress_old; /**< stress from the previous time increment */
 	nArrayT<double> fstress_new; /**< destination for updated stress */
 	nArrayT<double> fstate_old;  /**< state variables from the previous time increment */
 	nArrayT<double> fstate_new;  /**< destination for updated state variables */
-	nArrayT<double> fstress_old_rotated; /**< rotated stress from the previous time increment */
 	nArrayT<double> fmatvals;    /**< array of material parameters */
+	/*@}*/
+
+	/** \name other argument work space */
+	/*@{*/
+	nArrayT<double> fdstran; /**< rotated strain increment */
+	nArrayT<double> fstress_old_rotated; /**< rotated stress from the previous time increment */
 	/*@}*/
 
 private:
@@ -208,9 +216,15 @@ private:
 };
 
 /* inlines */
-inline GlobalT::SystemTypeT SIERRA_Material_BaseT::TangentType(void) const
-{
+inline GlobalT::SystemTypeT SIERRA_Material_BaseT::TangentType(void) const {
 	return fTangentType;
+}
+
+/* access to the material data */
+inline const SIERRA_Material_Data& SIERRA_Material_BaseT::MaterialData(void) const {
+	if (!fSIERRA_Material_Data) 
+		ExceptionT::GeneralFail("SIERRA_Material_BaseT::MaterialData", "pointer not set");
+	return *fSIERRA_Material_Data;
 }
 
 } /* namespace Tahoe */

@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.18 2004-08-06 07:27:15 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.19 2004-08-08 02:02:57 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -6,6 +6,13 @@
 #include "ParameterListT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
+#include "DotLine_FormatterT.h"
+#if defined(__GCC_3__)
+#include <strstream>
+#else
+#include <strstream.h>
+#endif
+#include <string.h>
 
 using namespace Tahoe;
 
@@ -19,7 +26,6 @@ SIERRA_Material_BaseT::SIERRA_Material_BaseT(void):
 	fTangentType(GlobalT::kSymmetric),
 	fSIERRA_Material_Data(NULL),
 	fPressure(0.0),
-	fdstran(kSIERRA_stress_dim),
 	fDecomp(NULL),
 	fDebug(false)
 {
@@ -58,17 +64,21 @@ void SIERRA_Material_BaseT::PointInitialize(void)
 
 	/* load stored data */
 	Load(CurrentElement(), CurrIP());
+
+	/* compute strains and other calc functions */
+	Set_Calc_Arguments();
 	
 	/* parameters */
 	int nelem = 1;
-	double dt = 0.0; //OK?
-	int nsv = fstate_old.Length();
-	int ncd = 0;
+	double dt = MaterialSupport().TimeStep();
+	int isize_state = fstate_old.Length();
 	int matvals = fSIERRA_Material_Data->ID();
+	int ivars_size = fSIERRA_Material_Data->InputVariables().Length();
 
 	/* call the initialization function */
 	Sierra_function_material_init init_func = fSIERRA_Material_Data->InitFunction();
-	init_func(&nelem, &dt, &nsv, fstate_old.Pointer(), fstate_new.Pointer(), &matvals, &ncd);
+	init_func(&nelem, &dt, fdstran.Pointer(), &ivars_size, 
+		&isize_state, fstate_old.Pointer(), fstate_new.Pointer(), &matvals);
 
 	/* write to storage */
 	Store(CurrentElement(), CurrIP());
@@ -130,7 +140,6 @@ const dSymMatrixT& SIERRA_Material_BaseT::s_ij(void)
 		int nelem = 1;
 		double dt = fFSMatSupport->TimeStep();
 		int nsv = fstate_old.Length();
-		int ncd = 0;
 		int matvals = fSIERRA_Material_Data->ID();
 		int ivars_size = fSIERRA_Material_Data->InputVariables().Length();
 
@@ -151,7 +160,7 @@ const dSymMatrixT& SIERRA_Material_BaseT::s_ij(void)
 		calc_func(&nelem, &dt, fdstran.Pointer(), &ivars_size,
 			fstress_old_rotated.Pointer(), fstress_new.Pointer(), 
 			&nsv, fstate_old.Pointer(), fstate_new.Pointer(), 
-			&matvals, &ncd);
+			&matvals);
 
 		/* debug information */
 		if (fDebug) {
@@ -253,6 +262,9 @@ void SIERRA_Material_BaseT::TakeParameterList(const ParameterListT& list)
 	int nsd = NumSD();
 	if (nsd != 3) ExceptionT::GeneralFail(caller, "3D only");
 
+	/* extract parameters */
+	fDebug = list.GetParameter("debug");
+
 	/* dimension work space */
 	fstress_old_rotated.Dimension(kSIERRA_stress_dim);
 	fF_rel.Dimension(nsd);
@@ -267,9 +279,6 @@ void SIERRA_Material_BaseT::TakeParameterList(const ParameterListT& list)
 	/* call SIERRA registration function */
 	Register_SIERRA_Material();
 
-	/* extract parameters */
-	fDebug = list.GetParameter("debug");
-	
 	/* open Sierra parameters file */
 	StringT path;
 	path.FilePath(MaterialSupport().InputFile());
@@ -282,18 +291,49 @@ void SIERRA_Material_BaseT::TakeParameterList(const ParameterListT& list)
 			params.Pointer());
 
 	/* read SIERRA-format input */
-	StringT line;
-	line.GetLineFromStream(in);
-	StringT word;
-	int count;
-	word.FirstWord(line, count, true);
-	if (word != "begin")
-		ExceptionT::BadInputValue(caller, "expecting \"begin\":\n%s", line.Pointer());
-	line.Tail(' ', word);
-	word.ToUpper();
-	ParameterListT param_list(word);
+	ParameterListT param_list("sierra_params");
 	Read_SIERRA_Input(in, param_list);
-	fSIERRA_Material_Data = Process_SIERRA_Input(param_list);
+	DotLine_FormatterT formatter;
+	formatter.WriteParameterList(MaterialSupport().Output(), param_list);
+
+	/* process input */
+	const ArrayT<ParameterListT>& lists = param_list.Lists();
+	for (int i = 0; i < lists.Length(); i++)
+	{
+		const StringT& description = lists[i].Description();
+	
+		/* process entries */
+		if (description == "FUNCTION")
+			SIERRA_Material_DB::InitFunction(lists[i]);
+		else if (description == "MATERIAL")
+		{
+			/* error check */
+			if (fSIERRA_Material_Data)
+				ExceptionT::GeneralFail(caller, "only one \"MATERIAL\" allowed");
+		
+			/* process material parameters */
+			fSIERRA_Material_Data = Process_SIERRA_Input(lists[i]);
+		}
+		else
+			ExceptionT::GeneralFail(caller, "unrecognized entry \"%s\"", description.Pointer());
+	}
+
+	/* resolve input variables array */
+	const ArrayT<StringT>& input = fSIERRA_Material_Data->InputVariables();
+	const ArrayT<int>& input_sizes = fSIERRA_Material_Data->InputVariableSize();
+	int total_size = 0;
+	int strain_offset = -1;
+	for (int i = 0; i < input_sizes.Length(); i++) {
+		if (input[i] == "rot_strain_increment" || input[i] == "rot_strain_inc")
+			strain_offset = total_size;
+	
+		/* accumulate */
+		total_size += input_sizes[i];
+	}
+	if (strain_offset < 0) ExceptionT::GeneralFail(caller, "did not resolve strain measure");
+	vars_input.Dimension(total_size);
+	vars_input = 0.0;
+	fdstran.Alias(kSIERRA_stress_dim, vars_input.Pointer(strain_offset));	
 
 	/* check parameters */
 	Sierra_function_param_check param_check = fSIERRA_Material_Data->CheckFunction();
@@ -303,10 +343,19 @@ void SIERRA_Material_BaseT::TakeParameterList(const ParameterListT& list)
 	/* set density */
 	fDensity = fSIERRA_Material_Data->Property("DENSITY");
 
-	/* set the modulus */
-	double kappa  = fSIERRA_Material_Data->Property("BULK_MODULUS");
-	double mu = fSIERRA_Material_Data->Property("TWO_MU")/2.0;
-	IsotropicT::Set_mu_kappa(mu, kappa);
+	/* set the isotropic modulus */
+	if (fSIERRA_Material_Data->HasProperty("BULK_MODULUS")) {
+		double kappa  = fSIERRA_Material_Data->Property("BULK_MODULUS");
+		double mu = fSIERRA_Material_Data->Property("TWO_MU")/2.0;
+		IsotropicT::Set_mu_kappa(mu, kappa);
+	}
+	else if (fSIERRA_Material_Data->HasProperty("YOUNGS_MODULUS")) {
+		double E  = fSIERRA_Material_Data->Property("YOUNGS_MODULUS");
+		double nu = fSIERRA_Material_Data->Property("POISSONS_RATIO");
+		IsotropicT::Set_E_nu(E, nu);	
+	}
+	else /* model must be isotropic */
+		ExceptionT::GeneralFail(caller, "could not resolve isotropic moduli");
 
 	/* storage block size (per ip) */
 	int nsv = fSIERRA_Material_Data->NumStateVariables();
@@ -398,7 +447,7 @@ void SIERRA_Material_BaseT::Read_SIERRA_Input(ifstreamT& in,
 	StringT line;
 	line.GetLineFromStream(in);
 	bool done = false;
-	while (!done)
+	while (!done && in.good())
 	{
 		StringT word;
 		word.FirstWord(line, char_count, C_word_only);
@@ -414,9 +463,24 @@ void SIERRA_Material_BaseT::Read_SIERRA_Input(ifstreamT& in,
 			if (name.StringLength() == 0)
 				ExceptionT::BadInputValue(caller, "could not list name from line:\n%s",
 					line.Pointer());
-					
-			/* recursively construct list */
+
+			/* init sub-list */
 			ParameterListT param_sub_list(name);
+
+			/* look for more description */
+			char* key = strstr(line, " for ");
+			if (key)
+			{
+				int count;
+				StringT description;
+				description.FirstWord(key + strlen(" for "), count, true);
+				description.ToUpper();
+				param_sub_list.SetDescription(description);			
+			}
+			else
+				param_sub_list.SetDescription("NONE");
+
+			/* recursively construct list */
 			Read_SIERRA_Input(in, param_sub_list);
 			
 			/* add list to parameter list */
@@ -435,31 +499,72 @@ void SIERRA_Material_BaseT::Read_SIERRA_Input(ifstreamT& in,
 					param_list.Name().Pointer(), name.Pointer());
 			done = true;
 		}
+		else if (param_list.Name() == "VALUES") /* expecting list of ordered pairs */
+		{
+			ParameterListT ordered_pair("OrderedPair");
+			istrstream in(line.Pointer());
+			double x, y;
+			in >> x >> y;
+			ordered_pair.AddParameter(x, "x");
+			ordered_pair.AddParameter(y, "y");
+			param_list.AddList(ordered_pair);
+		}
 		else /* split parameter name and value */
 		{
-			/* find equals sign */
-			int equal_dex = line.FirstPositionOf('=');
-			if (equal_dex < 1)
-				ExceptionT::BadInputValue(caller, "line does not contain \"=\":\n%s",
+			/* drop end-of-line comment - text following '$' */
+			int tail_pos = line.LastPositionOf('$');
+			if (tail_pos > 0)
+				line.Drop(tail_pos - line.StringLength());
+
+			/* split line at delimiter */
+			int name_end = 0, value_start = 0;
+			char* delim = strstr(line, " is ");
+			int equal_pos = line.FirstPositionOf('=');
+			if (delim != NULL)
+			{
+				name_end = line.StringLength() - strlen(delim);
+				value_start = name_end + strlen(" is ");
+			}
+			else if (equal_pos > 0)
+			{
+				name_end = equal_pos - 1;
+				value_start = equal_pos + 1;
+			}
+			else
+				ExceptionT::GeneralFail(caller, "could not find delimiter in \"%s\"",
 					line.Pointer());
+
+			/* name */
 			StringT param_name;
-			param_name.Take(line, equal_dex);
+			param_name.Take(line, name_end);
 			param_name.DropLeadingSpace();
 			param_name.DropTrailingSpace();
 			param_name.Replace(' ', '_');
 			param_name.ToUpper();
-		
-			/* get value */
-			double value;
-			if (!line.Tail('=', value))
-				ExceptionT::BadInputValue(caller, "could not extract value from line:\n%s",
-					line.Pointer());
 			
-			/* new parameter */
-			ParameterT param(value, param_name);
-			if (!param_list.AddParameter(param))
-				ExceptionT::BadInputValue(caller, "parameter is duplicate: \"%s\"",
-					param_name.Pointer());
+			/* value */
+			StringT value;
+			value.Take(line, value_start - line.StringLength());
+			value.DropLeadingSpace();
+			value.DropTrailingSpace();
+			value.Replace(' ', '_');
+			value.ToUpper();
+			
+			/* looks like a number */
+			if (value[0] == '+' || value[0] == '-' || value[0] == '.' || isdigit(value[0]))
+			{
+				ParameterT param(atof(value), param_name);
+				if (!param_list.AddParameter(param))
+					ExceptionT::BadInputValue(caller, "parameter is duplicate: \"%s\"",
+						param_name.Pointer());
+			}
+			else /* string parameter */ 
+			{
+				ParameterT param(value, param_name);
+				if (!param_list.AddParameter(param))
+					ExceptionT::BadInputValue(caller, "parameter is duplicate: \"%s\"",
+						param_name.Pointer());
+			}
 		}
 		
 		/* get next line */
@@ -470,7 +575,7 @@ void SIERRA_Material_BaseT::Read_SIERRA_Input(ifstreamT& in,
 	in.set_marker(old_comment_marker);
 }
 
-SIERRA_Material_Data* SIERRA_Material_BaseT::Process_SIERRA_Input(ParameterListT& param_list)
+SIERRA_Material_Data* SIERRA_Material_BaseT::Process_SIERRA_Input(const ParameterListT& param_list)
 {
 	const char caller[] = "SIERRA_Material_BaseT::Process_SIERRA_Input";
 	fMaterialName = param_list.Name();
@@ -487,12 +592,22 @@ SIERRA_Material_Data* SIERRA_Material_BaseT::Process_SIERRA_Input(ParameterListT
 	/* first add top level parameters */
 	const ArrayT<ParameterT>& params = param_list.Parameters();
 	for (int i = 0; i < params.Length(); i++)
-		mat_data->AddProperty(params[i].Name(), params[i]);
+	{
+		if (params[i].Type() == ParameterT::Word)
+			mat_data->AddSymbol(params[i].Name(), params[i]);
+		else
+			mat_data->AddProperty(params[i].Name(), params[i]);
+	}
 
 	/* add model parameters */
 	const ArrayT<ParameterT>& model_params = model_param_list.Parameters();
 	for (int i = 0; i < model_params.Length(); i++)
-		mat_data->AddProperty(model_params[i].Name(), model_params[i]);
+	{
+		if (model_params[i].Type() == ParameterT::Word)
+			mat_data->AddSymbol(model_params[i].Name(), model_params[i]);
+		else
+			mat_data->AddProperty(model_params[i].Name(), model_params[i]);
+	}
 
 	return mat_data;
 }
@@ -523,10 +638,6 @@ void SIERRA_Material_BaseT::Set_Calc_Arguments(void)
 
 	/* determine material input */
 	const ArrayT<StringT>& input = fSIERRA_Material_Data->InputVariables();
-	
-//TEMP
-if (input.Length() != 1)
-	ExceptionT::GeneralFail(caller, "expecting just 1 material input not %d", input.Length());
 
 	/* relative deformation gradient */
 	fA_nsd = F_total_last();
@@ -542,9 +653,10 @@ if (input.Length() != 1)
 	fU2.PlusIdentity( 1.0);
 	fU2.Inverse();
 	fU1U2.MultAB(fU1, fU2);
-	
+
 	/* incremental strain */
-	if (input[0] == "rot_strain_increment")
+	SIERRA_Material_Data::InputVariableT strain_measure = fSIERRA_Material_Data->StrainMeasure();
+	if (strain_measure == SIERRA_Material_Data::krot_strain_increment)
 	{
 		fdstran[0] = 2.0*fU1U2[0]; // 11
 		fdstran[1] = 2.0*fU1U2[1]; // 22
@@ -554,7 +666,7 @@ if (input.Length() != 1)
 		fdstran[5] = 2.0*fU1U2[4]; // 31
 	}
 	/* incremental strain rate */
-	else if (input[0] == "rot_strain_inc")
+	else if (strain_measure == SIERRA_Material_Data::krot_strain_inc)
 	{
 		double dt = fFSMatSupport->TimeStep();
 		double k = (fabs(dt) > kSmall) ? 2.0/dt : 0.0;

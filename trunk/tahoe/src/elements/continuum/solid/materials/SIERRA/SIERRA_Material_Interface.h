@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Interface.h,v 1.7 2004-07-29 18:33:02 paklein Exp $ */
+/* $Id: SIERRA_Material_Interface.h,v 1.8 2004-08-08 02:02:57 paklein Exp $ */
 #ifndef __SIERRA_MAT_INTERFACE_H__
 #define __SIERRA_MAT_INTERFACE_H__
 
@@ -41,27 +41,32 @@ typedef void (*Sierra_function_param_check)(int* mat_vals);
  * \param ivars_size number of input variables per stress point
  * \param stress_old (rotated) stress from the previous time increment
  * \param stress_new destination for current stress
- * \param nsv number of state variables per stress point
+ * \param isize_state number of state variables per stress point
  * \param state_old state variables from the previous time increment
  * \param state_new destination for updated state variables
  * \param matvals array of material parameters
- * \param ncd
  */
 typedef void (*Sierra_function_material_calc)(int* nelem, double* dt,
-	double* vars_input, int* ivars_size, double* stress_old, double* stress_new, 
-	int* nsv, double* state_old, double* state_new, int* matvals, int* ncd);
+	double* vars_input, int* ivars_size, 
+	double* stress_old, double* stress_new, 
+	int* isize_state, double* state_old, double* state_new, 
+	int* matvals);
 
 /** function to do material initialization
  * \param nelem number of elements in the workset
  * \param dt time step
- * \param nsv number of state variables
+ * \param vars_input array of driving input variables, i.e., strain, temperature, etc.
+ *        The array is dimension [nelem] x [ivars_size]    
+ * \param ivars_size number of input variables per stress point
+ * \param isize_state number of state variables
  * \param state_old state variables from the previous time increment
  * \param state_new destination for updated state variables
  * \param matvals array of material parameters
- * \param ncd
  */
-typedef void (*Sierra_function_material_init)(int* nelem, double* dt, int* nsv, 
-	double* state_old, double* state_new, int* matvals, int* ncd);
+typedef void (*Sierra_function_material_init)(int* nelem, double* dt, 
+	double* vars_input, int* ivars_size,
+	int* isize_state, double* state_old, double* state_new, 
+	int* matvals);
 
 /** function to compute tangent moduli (not used) */
 typedef void (*Sierra_pc_elastic_moduli_func)(void);

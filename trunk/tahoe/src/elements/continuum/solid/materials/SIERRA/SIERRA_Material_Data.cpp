@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Data.cpp,v 1.7 2004-07-29 18:33:02 paklein Exp $ */
+/* $Id: SIERRA_Material_Data.cpp,v 1.8 2004-08-08 02:02:57 paklein Exp $ */
 #include "SIERRA_Material_Data.h"
 
 using namespace Tahoe;
@@ -16,7 +16,8 @@ SIERRA_Material_Data::SIERRA_Material_Data(const StringT& name, int XML_command_
 	fCheckFunction(NULL),
 	fCalcFunction(NULL),
 	fInitFunction(NULL),
-	fPCFunction(NULL)
+	fPCFunction(NULL),
+	fStrainMeasure(kundefined)
 {
 	fXMLCommandID.Append(XML_command_id);
 //	fPropertyMap.SetCompareFunction(SIERRA_Material_Data::Compare);
@@ -27,21 +28,29 @@ SIERRA_Material_Data::SIERRA_Material_Data(const StringT& name, int XML_command_
 /* register input variable name */
 void SIERRA_Material_Data::AddInputVariable(const StringT& input_var)
 {
+	const char caller[] = "SIERRA_Material_Data::AddInputVariable";
+
 	int size = -1;
-	if (input_var == "rot_strain_inc")
+	if (input_var == "rot_strain_inc") {
+		if (fStrainMeasure != kundefined)
+			ExceptionT::GeneralFail(caller, "strain type is already set"); 
+		fStrainMeasure = krot_strain_inc;
 		size = 6;
-	else if (input_var == "rot_strain_increment")
+	}
+	else if (input_var == "rot_strain_increment") {
+		if (fStrainMeasure != kundefined)
+			ExceptionT::GeneralFail(caller, "strain type is already set"); 
+		fStrainMeasure = krot_strain_increment;
 		size = 6;
+	}
 	else if (input_var == "temperature_old")
 		size = 1;
 	else if (input_var == "temperature_new")
 		size = 1;
-	//others?
 	
 	/* not found */
 	if (size == -1)
-		ExceptionT::GeneralFail("SIERRA_Material_Data::AddInputVariable",
-			"unrecognized variable: \"%s\"", input_var.Pointer());
+		ExceptionT::GeneralFail(caller, "unrecognized variable: \"%s\"", input_var.Pointer());
 	else if (fInputVariables.AppendUnique(input_var))
 		fInputVariableSize.Append(size);
 }
