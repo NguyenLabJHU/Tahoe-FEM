@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.66 2003-12-01 23:52:28 cjkimme Exp $ */
+/* $Id: FEManagerT.cpp,v 1.67 2003-12-02 01:20:37 cjkimme Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -233,7 +233,7 @@ void FEManagerT::Solve(void)
 				case ExceptionT::kNoError:
 					/* nothing to do */
 					break;
-
+				case ExceptionT::kGeneralFail:
 				case ExceptionT::kBadJacobianDet:
 				{
 					cout << '\n' << caller << ": trying to recover from error: " << ExceptionT::ToString(error) << endl;
