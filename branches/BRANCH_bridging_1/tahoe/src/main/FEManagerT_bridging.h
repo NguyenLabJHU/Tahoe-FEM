@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.1.2.6 2003-02-15 02:41:05 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.1.2.7 2003-02-19 19:56:07 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -11,6 +11,7 @@
 namespace Tahoe {
 
 /* forward declarations */
+class ParticleT;
 class BridgingScaleT;
 class KBC_PrescribedT;
 
@@ -80,6 +81,9 @@ private:
 	void MaptoCells(const iArrayT& nodes, const dArray2DT& coords, iArrayT& cell_num,
 		dArray2DT& cell_coords) const;
 
+	/** the particle element group */
+	ParticleT& Particle(void) const;
+
 	/** the bridging scale element group */
 	BridgingScaleT& BridgingScale(void) const;
 
@@ -90,6 +94,8 @@ private:
 
 	/** \name ghost node information */
 	/*@{*/
+	ParticleT* fParticle;
+	
 	/** list of my ghost nodes */
 	iArrayT fGhostNodes;
 
