@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.9.2.2 2003-02-19 19:57:36 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.9.2.3 2003-02-23 02:40:26 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -15,6 +15,8 @@ namespace Tahoe {
 class iGridManagerT;
 class CommManagerT;
 class ParticlePropertyT;
+class dSPMatrixT; //TEMP
+class InverseMapT;
 
 /** base class for particle types */
 class ParticleT: public ElementBaseT
@@ -82,6 +84,10 @@ public:
 	 * which is used to determine if SetConfiguration needs to be called
 	 * again. */
 	virtual void SetConfiguration(void);
+
+	/** compute the part of the stiffness matrix */
+	virtual void FormStiffness(const InverseMapT& col_to_col_eq_row_map,
+		const iArray2DT& col_eq, dSPMatrixT& stiffness) = 0;
 
 protected: /* for derived classes only */
 
