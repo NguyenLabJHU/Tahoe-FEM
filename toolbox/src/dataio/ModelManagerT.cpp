@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.24 2002-03-26 17:24:08 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.25 2002-05-18 17:40:32 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -1362,8 +1362,16 @@ bool ModelManagerT::ScanSideSets (void)
 			if (fSideSetScope[i] == kLocal && 
 			    fSideSetDimensions[i] > 0) /* don't try this with an empty set */
 			{
-				const StringT& name = fInput->SideSetGroupName(fSideSetNames[i]);
-				fSideSetGroupIndex[i] = ElementGroupIndex(name);
+				/* reads side set */
+				try {
+					const StringT& name = fInput->SideSetGroupName(fSideSetNames[i]);
+					fSideSetGroupIndex[i] = ElementGroupIndex(name);
+				}
+				catch (int exception) {
+					cout << "\n ModelManagerT::ScanSideSets: error scanning side set "
+					     << fSideSetNames[i] << endl;				
+					fSideSetGroupIndex[i] = -1;
+				}
 			}
 			
 			/* create empty set */
