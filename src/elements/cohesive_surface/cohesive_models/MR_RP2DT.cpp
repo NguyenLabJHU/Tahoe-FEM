@@ -16,7 +16,8 @@ using namespace Tahoe;
 const int knumDOF = 2;
 
 /* constructor */
-MR_RP2DT::MR_RP2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
+MR_RP2DT::MR_RP2DT(ifstreamT& in): SurfacePotentialT(knumDOF),
+	TiedPotentialBaseT()
 {
 	/* Elastic and Fracrure Energy parameters */
 	in >> fGf_I; if (fGf_I < 0) throw ExceptionT::kBadInputValue;
@@ -36,6 +37,9 @@ MR_RP2DT::MR_RP2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 	in >> falpha_psi; if (falpha_psi < 0) throw ExceptionT::kBadInputValue;
 	in >> fTol_1; if (fTol_1 < 0) throw ExceptionT::kBadInputValue;
 	in >> fTol_2; if (fTol_2 < 0) throw ExceptionT::kBadInputValue;
+	
+	iBulkGroups.Dimension(1);
+	iBulkGroups = 0;
 }
 
 /* return the number of state variables needed by the model */
@@ -742,17 +746,14 @@ void MR_RP2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
 	
 }
 
-
-bool MR_RP2DT::NeedsNodalInfo(void) { return false; }
+bool MR_RP2DT::NeedsNodalInfo(void) 
+{ 
+	return true; 
+}
 
 int MR_RP2DT::NodalQuantityNeeded(void) 
 { 
         return 2; 
-}
-
-void MR_RP2DT::SetElementGroupsNeeded(iArrayT& iGroups) 
-{	
-	iGroups[0] = 1;
 }
 
 double MR_RP2DT::signof(double& r)
@@ -763,7 +764,7 @@ double MR_RP2DT::signof(double& r)
 		return fabs(r)/r;
 }
 
-bool MR_RP2DT::InitiationQ(const dArrayT& Sig) 
+bool MR_RP2DT::InitiationQ(const double *Sig)
 {
 
   double tmp1, tmp11, tmp12, tmp2, tmp3, tmp31, tmp32, ff;
@@ -797,5 +798,5 @@ bool MR_RP2DT::InitiationQ(const dArrayT& Sig)
   ff -=tmp12;
   ff +=tmp32;
   
-  return ff>=0.;
+  return ff >= 0.;
 }

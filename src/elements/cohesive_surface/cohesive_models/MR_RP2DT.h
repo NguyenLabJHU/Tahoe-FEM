@@ -3,6 +3,7 @@
 
 /* base class */
 #include "SurfacePotentialT.h"
+#include "TiedPotentialBaseT.h"
 
 namespace Tahoe {
 
@@ -11,7 +12,7 @@ class ifstreamT;
 
 /** An elastoplastic Traction-Displacement Model for Geometrials.*/
 
-class MR_RP2DT: public SurfacePotentialT
+class MR_RP2DT: public SurfacePotentialT, public TiedPotentialBaseT
 {
 public:
 
@@ -74,22 +75,20 @@ public:
 	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 		dArrayT& output);
 
-	/** For MR_RP2DT, returns true to compute nodal tractions. */
+	/* functions needed for using TiedNodes KBC controller */
+	
+	/** For MR_RP2DT, returns true to compute nodal stresses. */
 	virtual bool NeedsNodalInfo(void);
+	
+	virtual int NodalQuantityNeeded(void);
+	
+	virtual bool InitiationQ(const double *sigma);
+	
+protected:
 	
 	double signof(double& r);
 	
-	virtual int NodalQuantityNeeded(void);
-	//        virtual double ComputeNodalValue(const dArrayT &);
-	//	virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
-	virtual void SetElementGroupsNeeded(iArrayT& iGroups);
-	
-	//  Criteria for activation of the embedded cohesive surface
-	virtual bool InitiationQ(const dArrayT& Sig);
-	
 private:
-
-	//bool initiationQ(const ArrayT<double>&);
 
 	/* Fracture Energy parameters */
 	double fGf_I;    /* Mode_I Fracture Energy */
