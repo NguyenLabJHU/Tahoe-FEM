@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.cpp,v 1.9 2003-01-29 07:34:48 paklein Exp $ */
+/* $Id: SimoIso3D.cpp,v 1.9.30.1 2004-01-21 19:10:12 paklein Exp $ */
 /* created: paklein (03/02/1997) */
 #include "SimoIso3D.h"
 #include <iostream.h>
@@ -8,6 +8,7 @@ using namespace Tahoe;
 
 /* constructor */
 SimoIso3D::SimoIso3D(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("Simo_isotropic_3D"),
 	FSSolidMatT(in, support),
 	IsotropicT(in),
 	fStress(3),

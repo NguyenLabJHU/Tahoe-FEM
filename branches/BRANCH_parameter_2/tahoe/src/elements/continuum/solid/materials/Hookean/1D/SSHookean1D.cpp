@@ -1,19 +1,22 @@
-/* $Id: SSHookean1D.cpp,v 1.6 2004-01-10 04:41:14 paklein Exp $ */
+/* $Id: SSHookean1D.cpp,v 1.6.2.1 2004-01-21 19:10:05 paklein Exp $ */
 #include "SSHookean1D.h"
 
 using namespace Tahoe;
 
 /* constructor */
 SSHookean1D::SSHookean1D(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("small_strain_StVenant_1D"),
 	SSHookeanMatT(in, support),
 	IsotropicT(in)
 {
-	SetName("small_strain_Hookean_1D");
+
 }
 
-SSHookean1D::SSHookean1D(void)
+SSHookean1D::SSHookean1D(void):
+	ParameterInterfaceT("small_strain_StVenant_1D")
+
 {
-	SetName("small_strain_Hookean_1D");
+
 }
 
 /* print parameters */

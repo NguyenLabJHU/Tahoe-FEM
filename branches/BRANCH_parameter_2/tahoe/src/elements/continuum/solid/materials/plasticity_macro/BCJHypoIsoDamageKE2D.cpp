@@ -1,4 +1,4 @@
-/* $Id: BCJHypoIsoDamageKE2D.cpp,v 1.4 2003-01-29 07:35:06 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageKE2D.cpp,v 1.4.30.1 2004-01-21 19:10:25 paklein Exp $ */
 #include "BCJHypoIsoDamageKE2D.h"
 #include "ifstreamT.h"
 #include "Utils.h"
@@ -9,6 +9,7 @@ using namespace Tahoe;
 const int kNSD = 2;
 
 BCJHypoIsoDamageKE2D::BCJHypoIsoDamageKE2D(ifstreamT& in, const FSMatSupportT& support) :
+	ParameterInterfaceT("BCJHypoIsoDamageKE_2D"),
   BCJHypoIsoDamageKE3D   (in, support),  
   Material2DT (in, Material2DT::kPlaneStrain),
   f2Ds_ij   (kNSD),

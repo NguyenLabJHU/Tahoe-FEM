@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.cpp,v 1.9 2003-01-29 07:34:48 paklein Exp $ */
+/* $Id: SimoIso2D.cpp,v 1.9.30.1 2004-01-21 19:10:12 paklein Exp $ */
 /* created: paklein (03/04/1997) */
 #include "SimoIso2D.h"
 #include <math.h>
@@ -8,6 +8,7 @@ using namespace Tahoe;
 
 /* constructor */
 SimoIso2D::SimoIso2D(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("Simo_isotropic_2D"),
 	SimoIso3D(in, support),
 	Material2DT(in, kPlaneStrain),
 	fStress2D(2),

@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV2D.cpp,v 1.8 2002-11-14 17:06:24 paklein Exp $ */
+/* $Id: DPSSKStV2D.cpp,v 1.8.32.1 2004-01-21 19:10:20 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV2D.h"
 #include "ElementCardT.h"
@@ -8,6 +8,7 @@ using namespace Tahoe;
 
 /* constructor */
 DPSSKStV2D::DPSSKStV2D(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("small_strain_StVenant_DP_2D"),
 	DPSSKStV(in, support),
 	Material2DT(in, kPlaneStrain),
 	fStress2D(2),

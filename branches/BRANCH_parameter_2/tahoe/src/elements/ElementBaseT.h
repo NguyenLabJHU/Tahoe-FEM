@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.35 2004-01-05 07:37:04 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.35.2.1 2004-01-21 19:09:55 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -295,9 +295,6 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;

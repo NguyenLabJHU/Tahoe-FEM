@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.21 2004-01-10 04:41:18 paklein Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.21.2.1 2004-01-21 19:10:20 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV.h"
 #include "SSMatSupportT.h"
@@ -31,6 +31,7 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 DPSSKStV::DPSSKStV(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("small_strain_StVenant_DP"),
 	SSSolidMatT(in, support),
 	IsotropicT(in),
 	HookeanMatT(3),

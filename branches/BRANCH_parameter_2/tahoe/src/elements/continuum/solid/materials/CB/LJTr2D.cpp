@@ -1,4 +1,4 @@
-/* $Id: LJTr2D.cpp,v 1.9 2003-10-15 23:03:41 cjkimme Exp $ */
+/* $Id: LJTr2D.cpp,v 1.9.6.1 2004-01-21 19:10:02 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "LJTr2D.h"
 
@@ -13,6 +13,7 @@ const double sqrt3 = sqrt(3.0);
 
 /* constructor */
 LJTr2D::LJTr2D(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("LJ_triangular_2D"),
 	NL_E_Mat2DT(in, support, kPlaneStress),
 	CBLatticeT(2,2,3)
 {

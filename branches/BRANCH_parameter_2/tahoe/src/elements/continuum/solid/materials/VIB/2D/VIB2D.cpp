@@ -1,4 +1,4 @@
-/* $Id: VIB2D.cpp,v 1.8 2003-11-21 22:46:35 paklein Exp $ */
+/* $Id: VIB2D.cpp,v 1.8.4.1 2004-01-21 19:10:14 paklein Exp $ */
 /* created: paklein (04/09/1997) */
 #include "VIB2D.h"
 
@@ -23,6 +23,7 @@ const double Pi = acos(-1.0);
 
 /* constructors */
 VIB2D::VIB2D(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("VIB_2D"),
 	NL_E_Mat2DT(in, support, kPlaneStress),
 	VIB_E_MatT(in, 2)
 {
@@ -76,7 +77,7 @@ void VIB2D::SetAngle(double angleoffset)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Dimension(numpoints);
+	VIB::Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fCircle->Jacobians();

@@ -1,4 +1,4 @@
-/* $Id: LocalJ2SSNonlinHard.cpp,v 1.10 2004-01-10 04:41:23 paklein Exp $ */
+/* $Id: LocalJ2SSNonlinHard.cpp,v 1.10.2.1 2004-01-21 19:10:22 paklein Exp $ */
 #include "LocalJ2SSNonlinHard.h"
 
 #include "iArrayT.h"
@@ -27,6 +27,7 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 LocalJ2SSNonlinHard::LocalJ2SSNonlinHard(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("small_strain_J2_local"),
 	SSSolidMatT  (in, support),
 	IsotropicT   (in),
 	HookeanMatT  (kNSD),

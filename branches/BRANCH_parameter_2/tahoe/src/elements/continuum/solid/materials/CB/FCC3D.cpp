@@ -1,4 +1,4 @@
-/* $Id: FCC3D.cpp,v 1.2 2003-03-31 23:14:38 paklein Exp $ */
+/* $Id: FCC3D.cpp,v 1.2.26.1 2004-01-21 19:10:02 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D.h"
 #include "ElementsConfig.h"
@@ -22,6 +22,7 @@ using namespace Tahoe;
 
 /* constructor */
 FCC3D::FCC3D(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("FCC_3D"),
 	NL_E_MatT(in, support),
 	fNearestNeighbor(-1),
 	fQ(3),

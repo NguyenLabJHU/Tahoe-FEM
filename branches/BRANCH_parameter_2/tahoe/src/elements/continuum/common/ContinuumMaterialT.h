@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.h,v 1.8 2003-12-10 07:14:21 paklein Exp $ */
+/* $Id: ContinuumMaterialT.h,v 1.8.2.1 2004-01-21 19:09:56 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _CONTINUUM_MATERIAL_T_H_
 #define _CONTINUUM_MATERIAL_T_H_
@@ -22,7 +22,7 @@ template <class TYPE> class ArrayT;
 class StringT;
 
 /** interface for continuum materials. */
-class ContinuumMaterialT: public ParameterInterfaceT
+class ContinuumMaterialT: virtual public ParameterInterfaceT
 {
 public:
 

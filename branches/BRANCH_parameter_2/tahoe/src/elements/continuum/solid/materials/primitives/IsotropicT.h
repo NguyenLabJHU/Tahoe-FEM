@@ -1,10 +1,10 @@
-/* $Id: IsotropicT.h,v 1.7 2003-08-16 01:31:48 rdorgan Exp $ */
-/* created: paklein (06/10/1997)                                          */
-
+/* $Id: IsotropicT.h,v 1.7.16.1 2004-01-21 19:10:26 paklein Exp $ */
+/* created: paklein (06/10/1997) */
 #ifndef _ISOTROPIC_T_H_
 #define _ISOTROPIC_T_H_
 
-#include "Environment.h"
+/* base class */
+#include "ParameterInterfaceT.h"
 
 /* direct members */
 #include "Material2DT.h"
@@ -17,7 +17,7 @@ namespace Tahoe {
 class dMatrixT;
 class ifstreamT;
 
-class IsotropicT
+class IsotropicT: virtual public ParameterInterfaceT
 {
 public:
 
@@ -25,20 +25,40 @@ public:
 	IsotropicT(ifstreamT& in);
 	IsotropicT(void);
 
-	/* set moduli */
+	/** \name set moduli */
+	/*@{*/
 	void Set_E_nu(double E, double nu);
 	void Set_mu_kappa(double mu, double kappa);
 	void Set_PurePlaneStress_mu_lambda(double mu, double lambda);
+	/*@}*/
 	
-	/* accessors */
+	/** \name accessors */
+	/*@{*/
 	double Young(void) const;
 	double Poisson(void) const;
 	double Mu(void) const;
 	double Kappa(void) const;
 	double Lambda(void) const;
+	/*@}*/
 	
 	/* print parameters */
 	void Print(ostream& out) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
@@ -52,12 +72,14 @@ protected:
 
 private:
 
-	/* moduli */
+	/** \name moduli */
+	/*@{*/
 	double fYoung;
 	double fPoisson;
 	double fMu;
 	double fKappa;
 	double fLambda;
+	/*@}*/
 };
 
 /* inline functions */

@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp2D.cpp,v 1.4 2003-01-29 07:35:04 paklein Exp $ */
+/* $Id: GradCrystalPlastFp2D.cpp,v 1.4.30.1 2004-01-21 19:10:24 paklein Exp $ */
 #include "GradCrystalPlastFp2D.h"
 #include "Utils.h"
 
@@ -10,6 +10,7 @@ using namespace Tahoe;
 const int kNSD = 2;
 
 GradCrystalPlastFp2D::GradCrystalPlastFp2D(ifstreamT& in, const FSMatSupportT& support) :
+	ParameterInterfaceT("gradient_crystal_plasticity_Fp_2D"),
   GradCrystalPlastFp (in, support),  
   Material2DT        (in, Material2DT::kPlaneStrain),
   f2Ds_ij    (kNSD),

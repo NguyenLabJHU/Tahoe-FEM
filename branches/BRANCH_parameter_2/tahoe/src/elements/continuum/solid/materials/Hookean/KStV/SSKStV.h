@@ -1,4 +1,4 @@
-/* $Id: SSKStV.h,v 1.4 2002-11-14 17:06:06 paklein Exp $ */
+/* $Id: SSKStV.h,v 1.4.32.1 2004-01-21 19:10:08 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #ifndef _SS_KSTV_H_
 #define _SS_KSTV_H_
@@ -15,6 +15,7 @@ public:
 
 	/* constructor */
 	SSKStV(ifstreamT& in, const SSMatSupportT& support);
+	SSKStV(void);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.10 2003-11-21 22:46:55 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.10.4.1 2004-01-21 19:10:26 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
 #include <iostream.h>
@@ -10,9 +10,10 @@ using namespace Tahoe;
 
 /* constructor */
 FSSolidMatT::FSSolidMatT(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("large_strain_material"),
 	SolidMaterialT(in, support),
 	TensorTransformT(NumSD()),
-	fFSMatSupport(support),
+	fFSMatSupport(&support),
 	fQ(NumSD()),
 	fF_therm_inv(NumSD()),
 	fF_therm_inv_last(NumSD()),
@@ -27,6 +28,14 @@ FSSolidMatT::FSSolidMatT(ifstreamT& in, const FSMatSupportT& support):
 	fF_mechanical.Identity();
 }
 
+FSSolidMatT::FSSolidMatT(void):
+	ParameterInterfaceT("large_strain_material"),
+	fFSMatSupport(NULL),
+	fTemperatureField(false)
+{
+
+}
+
 /* initialization */
 void FSSolidMatT::Initialize(void)
 {
@@ -38,13 +47,13 @@ void FSSolidMatT::Initialize(void)
 	fF_therm_inv_last = fF_therm_inv;
 	
 	/* check for temperature field */
-	if (fFSMatSupport.Temperatures() && fFSMatSupport.LastTemperatures()) {
+	if (fFSMatSupport->Temperatures() && fFSMatSupport->LastTemperatures()) {
 
 		/* set flag */
 		fTemperatureField = true;
 		
 		/* work space */
-		fTemperature.Dimension(fFSMatSupport.Temperatures()->MinorDim());
+		fTemperature.Dimension(fFSMatSupport->Temperatures()->MinorDim());
 		
 		/* disable prescribed dilatation */
 		fThermal->SetSchedule(NULL);
@@ -101,24 +110,24 @@ void FSSolidMatT::CloseStep(void)
 /* deformation gradients */
 const dMatrixT& FSSolidMatT::F(void) const
 {
-	return fFSMatSupport.DeformationGradient();
+	return fFSMatSupport->DeformationGradient();
 	//DEV - what about corrections for thermal strains?
 }
 
 const dMatrixT& FSSolidMatT::F(int ip) const
 {
-	return fFSMatSupport.DeformationGradient(ip);
+	return fFSMatSupport->DeformationGradient(ip);
 	//DEV - what about corrections for thermal strains?
 }
 
 const dMatrixT& FSSolidMatT::F_total(void) const
 {
-	return fFSMatSupport.DeformationGradient();
+	return fFSMatSupport->DeformationGradient();
 }
 
 const dMatrixT& FSSolidMatT::F_total(int ip) const
 {
-	return fFSMatSupport.DeformationGradient(ip);
+	return fFSMatSupport->DeformationGradient(ip);
 }
 
 const dMatrixT& FSSolidMatT::F_mechanical(void)
@@ -127,7 +136,7 @@ const dMatrixT& FSSolidMatT::F_mechanical(void)
 	if (fTemperatureField)
 	{
 		/* integration point temperature */
-		fFSMatSupport.Interpolate(*(fFSMatSupport.Temperatures()), fTemperature);
+		fFSMatSupport->Interpolate(*(fFSMatSupport->Temperatures()), fTemperature);
 	
 		/* expansion factor */
 //TEMP - the old stiffness damping factor for the %CTE for now
@@ -135,16 +144,16 @@ const dMatrixT& FSSolidMatT::F_mechanical(void)
 
 		/* remove thermal strain */
 		fF_therm_inv.Identity(1.0/dilatation);
-		fF_mechanical.MultAB(fFSMatSupport.DeformationGradient(), fF_therm_inv);
+		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient(), fF_therm_inv);
 		return fF_mechanical;
 	}
 	else if (fThermal->IsActive())
 	{	
-		fF_mechanical.MultAB(fFSMatSupport.DeformationGradient(), fF_therm_inv);
+		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient(), fF_therm_inv);
 		return fF_mechanical;
 	}
 	else /* no thermal strain */
-		return fFSMatSupport.DeformationGradient();
+		return fFSMatSupport->DeformationGradient();
 }
 
 const dMatrixT& FSSolidMatT::F_mechanical(int ip)
@@ -153,7 +162,7 @@ const dMatrixT& FSSolidMatT::F_mechanical(int ip)
 	if (fTemperatureField)
 	{
 		/* integration point temperature */
-		fFSMatSupport.Interpolate(*(fFSMatSupport.Temperatures()), fTemperature, ip);
+		fFSMatSupport->Interpolate(*(fFSMatSupport->Temperatures()), fTemperature, ip);
 	
 		/* expansion factor */
 //TEMP - the old stiffness damping factor for the %CTE for now
@@ -161,28 +170,28 @@ const dMatrixT& FSSolidMatT::F_mechanical(int ip)
 
 		/* remove thermal strain */
 		fF_therm_inv.Identity(1.0/dilatation);
-		fF_mechanical.MultAB(fFSMatSupport.DeformationGradient(), fF_therm_inv);
+		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient(), fF_therm_inv);
 		return fF_mechanical;
 	}
 	/* has thermal strain */
 	else if (fThermal->IsActive())
 	{
-		fF_mechanical.MultAB(fFSMatSupport.DeformationGradient(ip), fF_therm_inv);
+		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient(ip), fF_therm_inv);
 		return fF_mechanical;
 	}
 	else /* no thermal strain */
-		return fFSMatSupport.DeformationGradient(ip);
+		return fFSMatSupport->DeformationGradient(ip);
 }
 
 /* deformation gradient from end of previous step */
 const dMatrixT& FSSolidMatT::F_total_last(void) const
 {
-	return fFSMatSupport.DeformationGradient_last();
+	return fFSMatSupport->DeformationGradient_last();
 }
 
 const dMatrixT& FSSolidMatT::F_total_last(int ip) const
 {
-	return fFSMatSupport.DeformationGradient_last(ip);
+	return fFSMatSupport->DeformationGradient_last(ip);
 }
 
 const dMatrixT& FSSolidMatT::F_mechanical_last(void)
@@ -191,7 +200,7 @@ const dMatrixT& FSSolidMatT::F_mechanical_last(void)
 	if (fTemperatureField)
 	{
 		/* integration point temperature */
-		fFSMatSupport.Interpolate(*(fFSMatSupport.LastTemperatures()), fTemperature);
+		fFSMatSupport->Interpolate(*(fFSMatSupport->LastTemperatures()), fTemperature);
 	
 		/* expansion factor */
 //TEMP - the old stiffness damping factor for the %CTE for now
@@ -199,18 +208,18 @@ const dMatrixT& FSSolidMatT::F_mechanical_last(void)
 
 		/* remove thermal strain */
 		fF_therm_inv.Identity(1.0/dilatation);
-		fF_mechanical.MultAB(fFSMatSupport.DeformationGradient_last(), fF_therm_inv);
+		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient_last(), fF_therm_inv);
 		return fF_mechanical;
 	}
 	/* has thermal strain */
 	else if (fThermal->IsActive())
 	{
-		fF_mechanical.MultAB(fFSMatSupport.DeformationGradient_last(), 
+		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient_last(), 
 			fF_therm_inv_last);
 		return fF_mechanical;
 	}
 	else /* no thermal strain */
-		return fFSMatSupport.DeformationGradient_last();
+		return fFSMatSupport->DeformationGradient_last();
 }
 
 const dMatrixT& FSSolidMatT::F_mechanical_last(int ip)
@@ -219,7 +228,7 @@ const dMatrixT& FSSolidMatT::F_mechanical_last(int ip)
 	if (fTemperatureField)
 	{
 		/* integration point temperature */
-		fFSMatSupport.Interpolate(*(fFSMatSupport.LastTemperatures()), fTemperature, ip);
+		fFSMatSupport->Interpolate(*(fFSMatSupport->LastTemperatures()), fTemperature, ip);
 	
 		/* expansion factor */
 //TEMP - the old stiffness damping factor for the %CTE for now
@@ -227,18 +236,18 @@ const dMatrixT& FSSolidMatT::F_mechanical_last(int ip)
 
 		/* remove thermal strain */
 		fF_therm_inv.Identity(1.0/dilatation);
-		fF_mechanical.MultAB(fFSMatSupport.DeformationGradient(), fF_therm_inv);
+		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient(), fF_therm_inv);
 		return fF_mechanical;
 	}
 	/* has thermal strain */
 	else if (fThermal->IsActive())
 	{
-		fF_mechanical.MultAB(fFSMatSupport.DeformationGradient_last(ip), 
+		fF_mechanical.MultAB(fFSMatSupport->DeformationGradient_last(ip), 
 			fF_therm_inv_last);
 		return fF_mechanical;
 	}
 	else /* no thermal strain */
-		return fFSMatSupport.DeformationGradient_last(ip);
+		return fFSMatSupport->DeformationGradient_last(ip);
 }
 
 /***********************************************************************
@@ -248,19 +257,19 @@ const dMatrixT& FSSolidMatT::F_mechanical_last(int ip)
 /* left stretch tensor */
 void FSSolidMatT::Compute_b(dSymMatrixT& b) const
 {
-	Compute_b(fFSMatSupport.DeformationGradient(), b);
+	Compute_b(fFSMatSupport->DeformationGradient(), b);
 }
 
 /* right stretch tensor */
 void FSSolidMatT::Compute_C(dSymMatrixT& C) const
 {
-	Compute_C(fFSMatSupport.DeformationGradient(), C);
+	Compute_C(fFSMatSupport->DeformationGradient(), C);
 }
 
 /* Green-Lagrangian strain */
 void FSSolidMatT::Compute_E(dSymMatrixT& E) const
 {
-	Compute_E(fFSMatSupport.DeformationGradient(), E);
+	Compute_E(fFSMatSupport->DeformationGradient(), E);
 }
 
 /* left stretch tensor */

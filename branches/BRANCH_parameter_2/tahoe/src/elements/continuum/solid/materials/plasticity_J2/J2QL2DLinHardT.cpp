@@ -1,4 +1,4 @@
-/* $Id: J2QL2DLinHardT.cpp,v 1.13 2003-11-21 22:46:48 paklein Exp $ */
+/* $Id: J2QL2DLinHardT.cpp,v 1.13.4.1 2004-01-21 19:10:21 paklein Exp $ */
 /* created: paklein (06/29/1997) */
 #include "J2QL2DLinHardT.h"
 
@@ -55,6 +55,7 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 J2QL2DLinHardT::J2QL2DLinHardT(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("quad_log_J2_2D"),
 	QuadLog2D(in, support),
 	J2PrimitiveT(in),
 	fb_elastic(kNSD),

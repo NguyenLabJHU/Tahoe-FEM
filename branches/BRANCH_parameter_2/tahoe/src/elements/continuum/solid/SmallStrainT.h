@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.13 2003-12-02 17:13:36 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.13.2.1 2004-01-21 19:09:58 paklein Exp $ */
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
 
@@ -50,11 +50,11 @@ class SmallStrainT: public SolidElementT
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
-	/** return the description of the given inline subordinate parameter list */
+	/* return the description of the given inline subordinate parameter list. */
 	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
 		SubListT& sub_sub_list) const;
 
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	/* return the description of the given inline subordinate parameter list */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
 	/*@}*/
 

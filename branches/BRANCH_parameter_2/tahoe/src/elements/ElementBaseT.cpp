@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.43 2004-01-05 07:37:04 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.43.2.1 2004-01-21 19:09:55 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -9,13 +9,13 @@
 #include "ModelManagerT.h"
 #include "fstreamT.h"
 #include "toolboxConstants.h"
+#include "LocalArrayT.h"
+#include "ParameterUtils.h"
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 #include "FieldT.h"
 #include "eIntegratorT.h"
 #endif
-
-#include "LocalArrayT.h"
 
 using namespace Tahoe;
 
@@ -406,20 +406,11 @@ void ElementBaseT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(ParameterT::String, "field_name");
 }
 
-/*information about subordinate parameter lists */
-void ElementBaseT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	ParameterInterfaceT::DefineSubs(sub_list);
-
-	sub_list.AddSub("element_block", ParameterListT::OnePlus);
-}
-
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* ElementBaseT::NewSub(const StringT& list_name) const
 {
-	if (list_name == "element_block")
-		return new ElementBlockDataT;
+	if (list_name == "block_ID_list") /* predefine list of block ID's */
+		return new StringListT("block_ID_list");
 	else
 		return ParameterInterfaceT::NewSub(list_name);
 }

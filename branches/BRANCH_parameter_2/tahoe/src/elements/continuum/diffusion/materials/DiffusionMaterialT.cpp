@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.cpp,v 1.7 2003-12-10 07:14:28 paklein Exp $ */
+/* $Id: DiffusionMaterialT.cpp,v 1.7.2.1 2004-01-21 19:09:57 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionMaterialT.h"
 #include "DiffusionMatSupportT.h"
@@ -12,14 +12,13 @@ using namespace Tahoe;
 
 /* constructor */
 DiffusionMaterialT::DiffusionMaterialT(ifstreamT& in, const DiffusionMatSupportT& support):
+	ParameterInterfaceT("linear_diffusion"),
 	ContinuumMaterialT(support),
 	fDiffusionMatSupport(&support),
 	fConductivity(NumSD()),
 	fq_i(NumSD()),
 	fdq_i(NumSD())	
 {
-	SetName("linear_diffusion");
-
 	in >> fDensity;		 if (fDensity <= 0.0) throw ExceptionT::kBadInputValue;
 	in >> fSpecificHeat; if (fSpecificHeat <= 0.0) throw ExceptionT::kBadInputValue;
 	in >> fConductivity;
@@ -27,11 +26,12 @@ DiffusionMaterialT::DiffusionMaterialT(ifstreamT& in, const DiffusionMatSupportT
 }
 
 DiffusionMaterialT::DiffusionMaterialT(void):
+	ParameterInterfaceT("linear_diffusion"),
 	fDiffusionMatSupport(NULL),
 	fDensity(0.0),
 	fSpecificHeat(0.0)
 {
-	SetName("linear_diffusion");
+
 }
 
 /* I/O functions */

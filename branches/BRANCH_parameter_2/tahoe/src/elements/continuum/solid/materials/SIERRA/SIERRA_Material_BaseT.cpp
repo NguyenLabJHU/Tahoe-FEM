@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.12 2003-11-21 22:46:29 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.12.4.1 2004-01-21 19:10:11 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -14,6 +14,7 @@ const int kSIERRA_stress_dim = 6;
 
 /* constructor */
 SIERRA_Material_BaseT::SIERRA_Material_BaseT(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("SIERRA_material"),
 	FSSolidMatT(in, support),
 	fTangentType(GlobalT::kSymmetric),
 	fSIERRA_Material_Data(NULL),
@@ -243,7 +244,7 @@ const dSymMatrixT& SIERRA_Material_BaseT::s_ij(void)
 	
 		/* parameters */
 		int nelem = 1;
-		double dt = fFSMatSupport.TimeStep();
+		double dt = fFSMatSupport->TimeStep();
 		int nsv = fstate_old.Length();
 		int ncd = 0;
 		int matvals = fSIERRA_Material_Data->ID();
@@ -579,7 +580,7 @@ if (input.Length() != 1)
 	/* incremental strain rate */
 	else if (input[0] == "rot_strain_inc")
 	{
-		double dt = fFSMatSupport.TimeStep();
+		double dt = fFSMatSupport->TimeStep();
 		double k = (fabs(dt) > kSmall) ? 2.0/dt : 0.0;
 		fdstran[0] = k*fU1U2[0]; // 11
 		fdstran[1] = k*fU1U2[1]; // 22

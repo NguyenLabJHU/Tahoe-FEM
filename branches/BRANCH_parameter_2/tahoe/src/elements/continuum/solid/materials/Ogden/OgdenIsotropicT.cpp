@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.cpp,v 1.13 2003-06-28 17:32:13 thao Exp $ */
+/* $Id: OgdenIsotropicT.cpp,v 1.13.18.1 2004-01-21 19:10:10 paklein Exp $ */
 /* created: paklein (10/01/2000) */
 #include "OgdenIsotropicT.h"
 
@@ -9,6 +9,7 @@ using namespace Tahoe;
 
 /* constructor */
 OgdenIsotropicT::OgdenIsotropicT(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("Ogden_isotropic"),
 	FSSolidMatT(in, support),
 	fSpectralDecomp(NumSD()),
 	fC(NumSD()),

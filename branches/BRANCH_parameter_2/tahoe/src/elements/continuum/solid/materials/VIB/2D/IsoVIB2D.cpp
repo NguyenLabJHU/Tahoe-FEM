@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.cpp,v 1.9 2003-11-21 22:46:35 paklein Exp $ */
+/* $Id: IsoVIB2D.cpp,v 1.9.4.1 2004-01-21 19:10:13 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoVIB2D.h"
 
@@ -16,6 +16,7 @@ using namespace Tahoe;
 
 /* constructors */
 IsoVIB2D::IsoVIB2D(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("isotropic_VIB_2D"),
 	FSSolidMatT(in, support),
 	Material2DT(in, kPlaneStress),
 	VIB(in, 2, 2, 3),
@@ -346,7 +347,7 @@ void IsoVIB2D::Construct(void)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Dimension(numpoints);
+	VIB::Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fCircle->Jacobians();

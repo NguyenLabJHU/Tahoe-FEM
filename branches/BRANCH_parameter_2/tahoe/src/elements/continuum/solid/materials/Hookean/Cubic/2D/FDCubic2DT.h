@@ -1,4 +1,4 @@
-/* $Id: FDCubic2DT.h,v 1.6 2003-01-29 07:34:41 paklein Exp $ */
+/* $Id: FDCubic2DT.h,v 1.6.30.1 2004-01-21 19:10:07 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #ifndef _FD_CUBIC_2D_T_H_
 #define _FD_CUBIC_2D_T_H_
@@ -14,8 +14,9 @@ class FDCubic2DT: public FDCubicT, public Anisotropic2DT, public Material2DT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	FDCubic2DT(ifstreamT& in, const FSMatSupportT& support);
+	FDCubic2DT(void);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

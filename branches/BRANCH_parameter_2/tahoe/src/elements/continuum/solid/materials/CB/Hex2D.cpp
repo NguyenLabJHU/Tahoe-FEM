@@ -1,4 +1,4 @@
-/* $Id: Hex2D.cpp,v 1.2 2003-03-31 23:14:38 paklein Exp $ */
+/* $Id: Hex2D.cpp,v 1.2.26.1 2004-01-21 19:10:02 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"
@@ -24,6 +24,7 @@ using namespace Tahoe;
 
 /* constructor */
 Hex2D::Hex2D(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("hex_2D"),
 	NL_E_Mat2DT(in, support, kPlaneStress),
 	fNearestNeighbor(-1),
 	fQ(2),
