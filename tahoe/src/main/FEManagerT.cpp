@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.76.2.7 2004-08-09 16:46:04 d-farrell2 Exp $ */
+/* $Id: FEManagerT.cpp,v 1.76.2.8 2004-08-09 20:57:37 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -68,8 +68,7 @@ FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output,
 	fActiveEquationStart(0),
 	fGlobalNumEquations(0),
 	fCurrentGroup(-1),
-	fInitCode(kFull),
-	fPartition(NULL),// problem calling NULL??
+	fPartition(NULL),
 	fTask(task),
 	fExternIOManager(NULL)
 {
@@ -96,9 +95,6 @@ FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output,
 	
 	if (Size() > 1) // if size > 1 check for decomposition, etc
 	{	
-		//fPartition(partition),
-		//fTask(task),					
-		//fExternIOManager(NULL)
 		if (fTask == kRun)
 		{
 			const char caller[] = "FEManagerT::FEManagerT";// perhaps differentiate from serial??
@@ -110,13 +106,7 @@ FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output,
 			fInputFile.Append(".p", Rank());
 			fInputFile.Append(suffix);
 		
-			/* checks */
-			if (!fPartition)
-				ExceptionT::BadInputValue(caller, "partition information required for task %d", kRun);
-			else if (fPartition->ID() != Rank())
-				ExceptionT::MPIFail(caller, "partition ID %d does not match process rank %d",
-					fPartition->ID(), Rank());
-			
+			/* log file */			
 			StringT log_file;
 			log_file.Root(fInputFile);
 			log_file.Append(".log");
@@ -128,8 +118,6 @@ FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output,
 			/* log */
 			TimeStamp(caller);
 		}
-		else if (fTask == kDecompose)
-			fInitCode = kAllButSolver;
 	}
 }
 
@@ -1444,6 +1432,26 @@ cout << caller << ": START" << endl;
 	if (!fModelManager->Initialize(format, database, true)) /* conditions under which to scan model */
 		ExceptionT::BadInputValue(caller, "error initializing model manager");
 
+	/* read partition information */
+	if (Size() > 1)
+	{
+		/* open stream */
+		StringT part_file;
+		part_file.Root(database); /* drop extension */
+		part_file.Root();         /* drop ".pN" */
+		part_file.Append(".part", Rank());
+		ifstreamT part_in('#', part_file);
+		if (!part_in.is_open())
+			ExceptionT::GeneralFail(caller, "could not open file \"%s\"", part_file.Pointer());
+
+		/* read partition information */
+		fPartition = new PartitionT;
+		part_in >> (*fPartition);
+		if (fPartition->ID() != Rank())
+			ExceptionT::MPIFail(caller, "partition ID %d does not match process rank %d",
+				fPartition->ID(), Rank());
+	}
+
 	/* construct IO manager - configure in SetOutput below */
 	StringT file_name(fInputFile);
 	fIOManager = new IOManager(fMainOut, kProgramName, kCurrentVersion, fTitle, file_name, fOutputFormat);	
@@ -1452,6 +1460,7 @@ cout << caller << ": START" << endl;
 	/* set communication manager */
 	fCommManager = New_CommManager();
 	if (!fCommManager) ExceptionT::OutOfMemory(caller);
+	fCommManager->SetPartition(fPartition);
 	fCommManager->Configure();
 
 	/* construct time manager */
@@ -1550,12 +1559,10 @@ cout << caller << ": set output" << endl;
 	if (solver_list.Length() != fSolvers.Length())
 		ExceptionT::BadInputValue(caller, "must have at least one phase per solver");
 // DEBUG
-cout << caller << ": fInitCode = " << fInitCode << endl;
-cout << caller << ": kAllButSolver = "<< kAllButSolver << endl;
-cout << caller << ": kFull = " << kFull << endl;
+cout << caller << ": fTask = " << fTask << endl;
 
 //TEMP - don't allocate the global equation system
-if (fInitCode == kAllButSolver) return;
+if (fTask == kDecompose) return;
 
 	/* set equation systems */
 	SetSolver();

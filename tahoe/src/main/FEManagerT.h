@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.46.2.4 2004-08-04 22:35:08 d-farrell2 Exp $ */
+/* $Id: FEManagerT.h,v 1.46.2.5 2004-08-09 20:57:37 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -60,7 +60,8 @@ public:
 
 	/** task codes, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
 	enum TaskT {kDecompose = 0,
-	                  kRun = 1};
+	                  kRun = 1,
+               kParameters = 2};
 	                  
 	/** factory method */
 	static FEManagerT* New(const StringT& name, const StringT& input_file, ofstreamT& output, 
@@ -69,12 +70,6 @@ public:
 	/** parse input file and valid */
 	static void ParseInput(const StringT& path, ParameterListT& params, bool validate, 
 		bool echo_input, bool echo_valid, const ArrayT<StringT>& argv);
-
-	/** degree of initialization. Passed to FEManagerT::Initialize. */
-	enum InitCodeT {kFull = 0, /**< initialize to solve */
-	      kParametersOnly = 1, /**< read top-level parameters only */
-	        kAllButSolver = 2  /**< do everything except initialize the equation system and solvers */
-	        };
 
 	/** constructor, does serial and parallel, has new argument task */
 	FEManagerT(const StringT& input_file, ofstreamT& output, CommunicatorT& comm,
@@ -470,20 +465,6 @@ private:
 	//void DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int method);
 	//void DoDecompose_2(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int method);		
 	/*@}*/
-	
-	/* task */
-	TaskT fTask;
-
-	/* external IO */
-	IOManager_mpi* fExternIOManager;
-	//IOBaseT::FileTypeT fInputFormat;
-	//StringT fModelFile;
-
-	/* partition information */
-	PartitionT* fPartition;
-	
-	/** log file */
-	ofstreamT flog;
 		
 protected:
 
@@ -495,7 +476,7 @@ protected:
 	 * to FEManagerT::kFull. Derived classes should redefine the value before
 	 * FEManagerT::TakeParameterListT is called. This will be eliminated when
 	 * procedure for initializing the global equation system is revised. */
-	InitCodeT fInitCode;
+	TaskT fTask;
 
 	/** \name I/O streams */
 	/*@{*/
@@ -575,6 +556,18 @@ protected:
 	/** point connectivities used by all solver groups */
 	iArray2DT fSO_Connects;
 	/*@}*/
+
+private:
+	/* external IO */
+	IOManager_mpi* fExternIOManager;
+	//IOBaseT::FileTypeT fInputFormat;
+	//StringT fModelFile;
+
+	/* partition information */
+	PartitionT* fPartition;
+	
+	/** log file */
+	ofstreamT flog;
 };
 
 /* inlines */
