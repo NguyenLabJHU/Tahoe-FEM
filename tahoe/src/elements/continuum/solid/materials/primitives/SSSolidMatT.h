@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.10.2.1 2003-11-24 00:47:32 paklein Exp $ */
+/* $Id: SSSolidMatT.h,v 1.10.2.2 2003-12-05 17:05:26 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
@@ -50,6 +50,10 @@ public:
 		// per call. for efficiency, each derived SSSolidMatT should
 		// overload these.
 
+	/** return modulus. This default implementation computes the material
+	 * modulus using a finite difference approach */
+	virtual const dMatrixT& c_ijkl(void);	 
+
 	/* apply pre-conditions at the current time step */
 	virtual void InitStep(void);
 
@@ -90,6 +94,9 @@ protected:
 
 	/** small strain material support */
 	const SSMatSupportT& fSSMatSupport;
+
+	/** return value for the modulus */
+	dMatrixT fModulus;
 
 private:
 	
