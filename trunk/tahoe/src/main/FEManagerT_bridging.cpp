@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.27 2004-09-28 15:35:37 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.28 2004-11-06 01:49:49 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -402,16 +402,15 @@ void FEManagerT_bridging::LumpedMass(const iArrayT& nodes, dArrayT& mass) const
 }
 
 /* initialize nodes that follow the field computed by this instance */
-void FEManagerT_bridging::InitInterpolation(const StringT& field, const iArrayT& nodes, 
-	NodeManagerT& node_manager)
+void FEManagerT_bridging::InitInterpolation(const StringT& field, const iArrayT& nodes,
+	const dArray2DT& coordinates)
 {
 #pragma unused(field)
 
 	fMainOut << "\n Number of interpolation points. . . . . . . . . = " << nodes.Length() << '\n';
 
-	/* compute interpolation data (using reference coordinates) */
-	const dArray2DT& init_coords = node_manager.InitialCoordinates();
-	BridgingScale().InitInterpolation(nodes, &init_coords, NULL, fFollowerCellData);
+	/* compute interpolation data */
+	BridgingScale().InitInterpolation(nodes, &coordinates, NULL, fFollowerCellData);
 }
 
 /* field interpolations */

@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.18 2004-09-28 15:35:37 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.19 2004-11-06 01:49:49 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -694,7 +694,7 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 	int order1 = 0;
 	bool make_inactive = true;
 	fFine->InitGhostNodes(fFineField->FieldName(), ghost_atom_ID, fCoarse->ProjectImagePoints());
-	fCoarse->InitInterpolation(fFineField->FieldName(), fFine->GhostNodes(), fine_node_manager);
+	fCoarse->InitInterpolation(fFineField->FieldName(), fFine->GhostNodes(), fine_node_manager.InitialCoordinates());
 	fCoarse->InitProjection(fFineField->FieldName(), *(fFine->CommManager()), fFine->NonGhostNodes(), fine_node_manager, make_inactive);
 
 	/* send coarse/fine output through the fFine output */
