@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.7 2001-05-15 20:32:45 hspark Exp $ */
+/* $Id: tevp2D.cpp,v 1.8 2001-05-16 03:29:48 hspark Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (04/04/2001) */
 /* Last Updated:  Harold Park (05/10/2001) */
@@ -243,11 +243,12 @@ const dSymMatrixT& tevp2D::s_ij(void)
     int checkplastic = CheckIfPlastic(element, ip);
     //cout << "Check plastic = " << checkplastic << endl;
     //cout << "CriticalStrain = " << criticalstrain << endl;
+    ComputeGradients();
 
     if (criticalstrain == kFluid) {
       /* Fluid model part - if critical strain criteria is exceeded */
       //cout << "FAILURE MODEL SWITCH!!" << endl;
-      ComputeGradients();   // Need determinant of deformation gradient
+      //ComputeGradients();   // Need determinant of deformation gradient
       double J = fFtot.Det();  // Determinant of deformation gradient
       double temp = fInternal[kTemp];   // Use the PREVIOUS temperature
       double cm = -Gamma_d * El_E * (1.0 - J + Alpha_T * (temp - Temp_0));
@@ -270,7 +271,7 @@ const dSymMatrixT& tevp2D::s_ij(void)
       dArrayT sig_jrate(kVoigt), dtot(kVoigt), sts_dot(kVoigt);
       sig_jrate = 0.0;
       c_ijkl();               // Need the tangent modulus
-      ComputeGradients();
+      //ComputeGradients();
       double J = fFtot.Det();   // Need to convert Kirchoff to Cauchy later
       //cout << "Jacobian = " << J << endl;
       /* Flatten out the Rate of Deformation tensor into Voigt notation */    
@@ -395,30 +396,35 @@ void tevp2D::ComputeGradients(void)
   /* Compute the deformation gradient, rate of deformation and spin */
   /* compute deformation gradient */
   //cout << "ComputeGradients called" << endl;
+  double& tempspin = fSpin;
+  dMatrixT& tempf = fFtot;
+  dMatrixT& tempd = fDtot;
+  tempf = tempd = 0.0;
+
   fFtot_2D = F();        
-  fFtot.Rank2ExpandFrom2D(fFtot_2D);
-  fFtot(2,2) = 1.0;
+  tempf.Rank2ExpandFrom2D(fFtot_2D);
+  tempf(2,2) = 1.0;
   //cout << "F = \n" << fFtot << endl;
   /* compute rate of deformation */
-  fF_temp.Inverse(fFtot);         // Inverse of deformation gradient  
+  fF_temp.Inverse(tempf);         // Inverse of deformation gradient  
   //cout << "fLocVel = \n" << fLocVel << '\n';
   //cout << "Inverse of deformation gradient = \n" << fF_temp << '\n';
   fShapes.GradU(fLocVel, fGradV_2D);    // Velocity gradient
   //cout << "Velocity Gradient = \n" << fGradV_2D << '\n';
   fGradV.Rank2ExpandFrom2D(fGradV_2D);
   //fDtot.MultAB(fGradV, fF_temp, 0);  // D = dv/dx*inv(F)
-  fDtot(0,0) = fGradV(0,0) * fF_temp(0,0) + fGradV(0,1) * fF_temp(1,0);
-  fDtot(1,1) = fGradV(1,0) * fF_temp(0,1) + fGradV(1,1) * fF_temp(1,1);
-  fDtot(2,2) = fDtot(1,2) = fDtot(2,1) = 0.0;
-  fDtot(0,1) = fDtot(1,0) = fGradV(0,0) * fF_temp(0,1) + fGradV(0,1) * fF_temp(1,1) + fGradV(1,0) * fF_temp(0,0) + fGradV(1,1) * fF_temp(1,0);
-  fDtot(0,1) *= .5;
-  fDtot(1,0) *= .5;
+  tempd(0,0) = fGradV(0,0) * fF_temp(0,0) + fGradV(0,1) * fF_temp(1,0);
+  tempd(1,1) = fGradV(1,0) * fF_temp(0,1) + fGradV(1,1) * fF_temp(1,1);
+  tempd(2,2) = tempd(1,2) = tempd(2,1) = 0.0;
+  tempd(0,1) = tempd(1,0) = fGradV(0,0) * fF_temp(0,1) + fGradV(0,1) * fF_temp(1,1) + fGradV(1,0) * fF_temp(0,0) + fGradV(1,1) * fF_temp(1,0);
+  tempd(0,1) *= .5;
+  tempd(1,0) *= .5;
   //cout << "D = \n" << fDtot << '\n';
   //cout << "fGradV = \n" << fGradV << '\n';
   /* compute spin */
-  fSpin = fGradV(0,0) * fF_temp(0,1) + fGradV(0,1) * fF_temp(1,1);
-  fSpin = fSpin - fGradV(1,0) * fF_temp(0,0) - fGradV(1,1) * fF_temp(1,0);
-  fSpin *= .5;
+  tempspin = fGradV(0,0) * fF_temp(0,1) + fGradV(0,1) * fF_temp(1,1);
+  tempspin = tempspin - fGradV(1,0) * fF_temp(0,0) - fGradV(1,1) * fF_temp(1,0);
+  tempspin *= .5;
   //cout << "fSpin = " << fSpin << '\n';
 }
 
@@ -435,7 +441,7 @@ double tevp2D::ComputeTemperature(void)
   /* Case where fluid model was used */
     dMatrixT temp_stress(3); 
     temp_stress = ArrayToMatrix(fTempKirchoff);
-    ComputeGradients();
+    //ComputeGradients();
     double wpdot = temp_stress(0,0) * fDtot(0,0) + temp_stress(1,1) * fDtot(1,1) + 2.0 * Mu_d * pow(fDtot(0,1), 2);
     double temp_rate = Chi * Xi * wpdot;
     fTemperature = temp_rate * fDt + temp_last;
@@ -468,7 +474,7 @@ double tevp2D::ComputeEffectiveStrain(void)
 
   if (fCriticalStrain == kFluid) {
   /* If fluid model is used (ie shear band has formed) */
-    ComputeGradients();
+    //ComputeGradients();
     double temp1 = pow(fDtot(0,0), 2);
     double temp2 = pow(fDtot(1,1), 2);
     double temp3 = pow(fDtot(0,1), 2);
@@ -617,7 +623,7 @@ double tevp2D::ComputeEcc(void)
   /* Access ecc */
   //cout << "ComputeEcc called" << endl;
   fEcc = 0.0;
-  ComputeGradients();
+  //ComputeGradients();
   if (fInternal[kSb] <= kYieldTol)   // If hasn't yielded yet...
     fEcc = 0.0;
   else
