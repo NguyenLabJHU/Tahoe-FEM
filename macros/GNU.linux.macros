@@ -1,7 +1,9 @@
-# $Id: GNU.linux.macros,v 1.14 2004-01-02 01:37:20 paklein Exp $
+# $Id: GNU.linux.macros,v 1.15 2004-01-06 16:46:26 rjones Exp $
 # GNU
 MAKE        = make
 DEFINES     = -D__GNU__ -DNON_UNIX_STDIO
+# replace the line above with the one below if you are using gcc 3.x vs. 2.9x
+#DEFINES     = -D__GNU__ -DNON_UNIX_STDIOS -D__GCC_3__
 MAKEDEPEND  = makedepend
 MAKEDEPEND_OUTPUT = -f
 MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/include/g++-3 -I/usr/include/g++-2 $(DEFINES)
