@@ -1,4 +1,4 @@
-/* $Id: Chain1D.h,v 1.1.2.1 2004-04-15 21:10:19 paklein Exp $ */
+/* $Id: Chain1D.h,v 1.1.2.2 2004-04-16 03:20:55 paklein Exp $ */
 #ifndef _CHAIN_1D_H_
 #define _CHAIN_1D_H_
 
@@ -75,6 +75,9 @@ private:
 
 	/** atomic volume */
 	double fAtomicVolume;
+
+	/** dummy full bond density array */
+	dArrayT fFullDensity;
 };
 
 } /* namespace Tahoe */
