@@ -1,11 +1,11 @@
-/* $Id: ExceptionT.cpp,v 1.8 2003-05-22 21:05:43 cjkimme Exp $ */
+/* $Id: ExceptionT.cpp,v 1.9 2003-09-08 13:04:32 paklein Exp $ */
 #include "ExceptionT.h"
 #include "ArrayT.h"
 #include <iostream.h>
 #include <iomanip.h>
 #include <time.h>
 
-#if defined(__SGI__) || defined(__DELMAR__)
+#if defined(__SGI__) || defined(__DELMAR__) || defined(__PGI__)
 #include <stdio.h>
 #include <stdarg.h>
 #else
