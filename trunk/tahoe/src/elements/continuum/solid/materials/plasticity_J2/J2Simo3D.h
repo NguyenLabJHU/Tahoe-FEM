@@ -1,4 +1,4 @@
-/* $Id: J2Simo3D.h,v 1.3 2001-07-03 01:35:33 paklein Exp $ */
+/* $Id: J2Simo3D.h,v 1.4 2001-09-15 01:21:01 paklein Exp $ */
 /* created: paklein (04/30/2001)                                          */
 
 #ifndef _J2_SIMO_3D_H_
@@ -55,6 +55,12 @@ public:
 	virtual void ComputeOutput(dArrayT& output);
 
 private:
+
+	/** return true if material implementation supports imposed thermal
+	 * strains. This material does not support multiplicative thermal
+	 * strains. SimoIso3D has been updated, but this class needs
+	 * another look. */
+	virtual bool SupportsThermalStrain(void) const { return false; };
 
 	/** compute F_total and f_relative */
 	void ComputeGradients(void);

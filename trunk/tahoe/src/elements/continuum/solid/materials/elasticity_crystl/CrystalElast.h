@@ -1,4 +1,4 @@
-/* $Id: CrystalElast.h,v 1.2 2001-08-20 22:15:40 rdorgan Exp $ */
+/* $Id: CrystalElast.h,v 1.3 2001-09-15 01:21:00 paklein Exp $ */
 /*
   File: CrystalElast.h
 */
@@ -59,6 +59,13 @@ class CrystalElast : public FDHookeanMatT
   void AllocateElements();
 
  private:
+ 
+ 	/** return true if material implementation supports imposed thermal
+	 * strains. This material does not support multiplicative thermal
+	 * strains. FDHookeanMatT has been updated, but this class needs
+	 * another look. */
+	virtual bool SupportsThermalStrain(void) const { return false; };
+
   // read lattice orientation data, construct array fEuler
   void SetLatticeOrientation() ;
 
