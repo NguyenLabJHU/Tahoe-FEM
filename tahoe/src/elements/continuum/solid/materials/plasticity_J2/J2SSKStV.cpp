@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.11 2004-07-22 21:10:13 paklein Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.12 2004-08-05 23:17:59 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV.h"
 #include "SSMatSupportT.h"
@@ -135,14 +135,10 @@ void J2SSKStV::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& 
 	SubListT& sub_lists) const
 {
 	/* inherited */
-	if (sub_lists.Length() == 0)
-		SSSolidMatT::DefineInlineSub(name, order, sub_lists);
-	if (sub_lists.Length() == 0)
-		IsotropicT::DefineInlineSub(name, order, sub_lists);
-	if (sub_lists.Length() == 0)
-		HookeanMatT::DefineInlineSub(name, order, sub_lists);
-	if (sub_lists.Length() == 0)
-		J2SSC0HardeningT::DefineInlineSub(name, order, sub_lists);
+	SSSolidMatT::DefineInlineSub(name, order, sub_lists);
+	IsotropicT::DefineInlineSub(name, order, sub_lists);
+	HookeanMatT::DefineInlineSub(name, order, sub_lists);
+	J2SSC0HardeningT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */

@@ -1,4 +1,4 @@
-/* $Id: VIB3D.cpp,v 1.10 2004-07-15 08:27:51 paklein Exp $ */
+/* $Id: VIB3D.cpp,v 1.11 2004-08-05 23:17:53 paklein Exp $ */
 /* created: paklein (04/20/1997) */
 #include "VIB3D.h"
 
@@ -113,8 +113,7 @@ void VIB3D::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& ord
 {
 	/* inherited */
 	NL_E_MatT::DefineInlineSub(name, order, sub_lists);
-	if (sub_lists.Length() == 0)
-		VIB_E_MatT::DefineInlineSub(name, order, sub_lists);
+	VIB_E_MatT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
