@@ -1,10 +1,11 @@
-/* $Id: ParameterListT.h,v 1.8 2003-04-26 19:11:32 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.9 2003-05-04 22:59:53 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
 /* direct members */
 #include "ParameterT.h"
 #include "AutoArrayT.h"
+#include "enum2int.h"
 
 namespace Tahoe {
 
@@ -18,24 +19,50 @@ class ParameterListT
 {
 public:
 
-	/** parameter occurrence */
+	/** parameter and list occurrence */
 	enum OccurrenceT {
+		Undefined,  /**< undefined */
 		Once,       /**< exactly once */
 		ZeroOrOnce, /**< zero or one time */
 		OnePlus,    /**< one or more times */
 		Any         /**< zero or any number of times */
 	};
 
+	/** ordering of list items */
+	enum ListOrderT {
+		Sequence,  /**< ordered sequence of sublists */
+		Choice     /**< choice of one the sublists */
+	};
+
 	/** constructor */
-	ParameterListT(const StringT& name): fName(name) { };
+	ParameterListT(const char* name);
 
 	/** default constructor. Needed to allow making lists of lists */
-	ParameterListT(void) {};
-	
+	ParameterListT(void);
+
 	/** \name list name */
 	/*@{*/
 	const StringT& Name(void) const { return fName; };
-	void SetName(const StringT& name) { fName = name; };
+	void SetName(const char* name) { fName = name; };
+	/*@}*/
+	
+	/** \name set/get list attributes */
+	/*@{*/
+	/** the list order. Note that if the ParameterListT::ListOrderT is ParameterListT::Choice,
+	 * the ParameterListT::OccurrenceT for each entry is ParameterListT::Once */
+	ListOrderT ListOrder(void) const { return fListOrder; };
+
+	/** set/change the list order */
+	void SetListOrder(ListOrderT list_order);
+	
+	bool Inline(void) const { return fInline; };
+	
+	/** set/change inlining flag. ParameterListT::PlainList's with parameters cannot
+	 * be converted to ParameterListT::Group's. */
+	void SetInline(bool is_inline);
+
+	bool DuplicateListNames(void) const { return fDuplicateListNames; };
+	void SetDuplicateListNames(bool dup) { fDuplicateListNames = dup; };
 	/*@}*/
 	
 	/** \name dimensions */
@@ -45,6 +72,9 @@ public:
 
 	/** number of nested parameter lists */
 	int NumLists(void) const { return fParameterLists.Length(); };
+
+	/** number of nested parameter lists with the given name */
+	int NumLists(const char* name) const;
 
 	/** number of references to parameter lists */
 	int NumReferences(void) const { return fReferences.Length(); };
@@ -57,9 +87,10 @@ public:
 	 * By default, the ParameterListT::OccurrenceT is ParameterListT::Once. */
 	bool AddParameter(const ParameterT& param, OccurrenceT occur = Once); 
 
-	bool AddParameter(int a, const StringT& name, OccurrenceT occur = Once);
-	bool AddParameter(double x, const StringT& name, OccurrenceT occur = Once);
-	bool AddParameter(const StringT& s, const StringT& name, OccurrenceT occur = Once);
+	bool AddParameter(int a, const char* name, OccurrenceT occur = Once);
+	bool AddParameter(double x, const char* name, OccurrenceT occur = Once);
+	bool AddParameter(const char* s, const char* name, OccurrenceT occur = Once);
+	bool AddParameter(ValueT::TypeT t, const char* name, OccurrenceT occur = Once);
 
 	/** add a parameter list. Returns true of there where no conflicts with
 	 * existing parameter lists. The names of parameter lists cannot be repeated.
@@ -69,7 +100,7 @@ public:
 	/** add a reference. Returns true of there where no conflicts with
 	 * existing references. The names of reference cannot be repeated.
 	 * By default, the ParameterListT::OccurrenceT is ParameterListT::Once. */
-	bool AddReference(const StringT& ref, OccurrenceT occur = Once);
+	bool AddReference(const char* ref, OccurrenceT occur = Once);
 	/*@}*/
 
 	/** \name access to the list entries and occurrences */
@@ -81,44 +112,36 @@ public:
 	const ArrayT<StringT>&                     References(void) const { return fReferences; };
 	const ArrayT<ParameterListT::OccurrenceT>& ReferenceOccurrences(void) const { return fReferencesOccur; };
 
-	/** return the pointer to the given list or NULL if the list is not found */
-	const ParameterListT* List(const StringT& name) const;
+	/** return the pointer to the given list. Returns a points to the nth instance of the
+	 * given list or NULL if the list is not found or the instance is out of range. */
+	const ParameterListT* List(const char* name, int instance = 1) const;
 
-	/** return the non-const pointer to the given list or NULL if the list is not found */
-	ParameterListT* List(const StringT& name);
+	/** return the non-const pointer to the given list. Returns a points to the nth 
+	 * instance of the given list or NULL if the list is not found or the instance is 
+	 * out of range. */
+	ParameterListT* List(const char* name, int instance = 1);
 
 	/** return the pointer to the given parameter or NULL if the list is not found */
-	const ParameterT* Parameter(const StringT& name) const;
+	const ParameterT* Parameter(const char* name) const;
 
 	/** return the non-const pointer to the given parameter or NULL if the list is not found */
-	ParameterT* Parameter(const StringT& name);
+	ParameterT* Parameter(const char* name);
 	/*@}*/
 
 	/** \name retrieving parameter values 
 	 * Methods throw ExceptionT::kGeneralFail if the parameter is not found. */
 	/*@{*/
-	void GetParameter(const StringT& name, int& a) const;
-	void GetParameter(const StringT& name, double& a) const;
-	void GetParameter(const StringT& name, StringT& a) const;
+	void GetParameter(const char* name, int& a) const;
+	void GetParameter(const char* name, double& a) const;
+	void GetParameter(const char* name, StringT& a) const;
+	void GetParameter(const char* name, bool& a) const;
 	/*@}*/	
 
 	/** \name description */
 	/*@{*/
-	void SetDescription(const StringT& description) { fDescription = description; };
+	void SetDescription(const char* description) { fDescription = description; };
 	const StringT& Description(void) const { return fDescription; };
 	/*@}*/
-	
-	/** create a validated parameter list. Take a raw list of parameters and a parameter 
-	 * description and produce a validated parameter list. If the validated list cannot be 
-	 * produced for any reason, the class throws a ExceptionT::kBadInputValue 
-	 * \param source raw source list in which all parameters are stored as
-	 *        strings as read from a file. 
-	 * \param description parameter description list which is used to translate
-	 *        values from the source to the appropriate data type, validating
-	 *        against constraints and applying any unspecified default values. */
-	void Validate(const ParameterListT& source, const ParameterListT& description);
-
-private:
 
 	/** clear all lists */
 	void Clear(void);
@@ -127,6 +150,15 @@ protected:
 
 	/** list name */
 	StringT fName;
+	
+	/** list order */
+	ListOrderT fListOrder;
+
+	/** flag indicating if list is inline */
+	bool fInline;
+	
+	/** flag indicating whether sublists may have duplicate names */
+	bool fDuplicateListNames;
 
 	/** description */
 	StringT fDescription;
@@ -150,31 +182,36 @@ protected:
 	/*@}*/
 };
 
-inline bool ParameterListT::AddParameter(int a, const StringT& name, OccurrenceT occur)
+inline bool ParameterListT::AddParameter(int a, const char* name, OccurrenceT occur)
 {
 	ParameterT parameter(a, name);
 	return AddParameter(parameter, occur);
 }
-inline bool ParameterListT::AddParameter(double x, const StringT& name, OccurrenceT occur)
+inline bool ParameterListT::AddParameter(double x, const char* name, OccurrenceT occur)
 {
 	ParameterT parameter(x, name);
 	return AddParameter(parameter, occur);
 }
-inline bool ParameterListT::AddParameter(const StringT& s, const StringT& name, OccurrenceT occur)
+inline bool ParameterListT::AddParameter(const char* s, const char* name, OccurrenceT occur)
 {
 	ParameterT parameter(s, name);
 	return AddParameter(parameter, occur);
 }
+inline bool ParameterListT::AddParameter(ValueT::TypeT t, const char* name, OccurrenceT occur)
+{
+	ParameterT parameter(t, name);
+	return AddParameter(parameter, occur);
+}
 
-inline ParameterListT* ParameterListT::List(const StringT& name)
+inline ParameterListT* ParameterListT::List(const char* name, int instance)
 {
 	/* const this */
 	const ParameterListT* const this_ = (const ParameterListT* const) this;
-	const ParameterListT* list = this_->List(name);
+	const ParameterListT* list = this_->List(name, instance);
 	return (ParameterListT*) list;
 }
 
-inline ParameterT* ParameterListT::Parameter(const StringT& name)
+inline ParameterT* ParameterListT::Parameter(const char* name)
 {
 	/* const this */
 	const ParameterListT* const this_ = (const ParameterListT* const) this;
