@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.cpp,v 1.9 2003-01-29 07:35:22 paklein Exp $ */
+/* $Id: AugLagWallT.cpp,v 1.10 2003-04-07 17:25:48 cjkimme Exp $ */
 #include "AugLagWallT.h"
 
 #include <iostream.h>
@@ -108,9 +108,11 @@ void AugLagWallT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 }
 
 void AugLagWallT::Connectivities(AutoArrayT<const iArray2DT*>& connects_1,
-	AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const
+	AutoArrayT<const RaggedArray2DT<int>*>& connects_2,
+	AutoArrayT<const iArray2DT*>& equivalent_nodes) const
 {
 #pragma unused(connects_2)
+#pragma unused(equivalent_nodes)
 	connects_1.Append(&fContactTags);
 }
 

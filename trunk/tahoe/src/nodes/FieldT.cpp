@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.12 2003-03-31 23:05:20 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.13 2003-04-07 17:25:46 cjkimme Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nIntegratorT.h"
@@ -108,15 +108,16 @@ void FieldT::EquationSets(AutoArrayT<const iArray2DT*>& eq_1,
 
 /* append connectivities */
 void FieldT::Connectivities(AutoArrayT<const iArray2DT*>& connects_1,
-	AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const
+	AutoArrayT<const RaggedArray2DT<int>*>& connects_2,
+	AutoArrayT<const iArray2DT*>& equivalents) const
 {
 	/* KBC controllers */
 	for (int i = 0; i < fKBC_Controllers.Length(); i++)
-		fKBC_Controllers[i]->Connectivities(connects_1);
+		fKBC_Controllers[i]->Connectivities(connects_1, equivalents);
 
 	/* FBC controllers */
 	for (int i = 0; i < fFBC_Controllers.Length(); i++)
-		fFBC_Controllers[i]->Connectivities(connects_1, connects_2);
+		fFBC_Controllers[i]->Connectivities(connects_1, connects_2, equivalents);
 }
 
 /* return the GlobalT::SystemTypeT for the  group */

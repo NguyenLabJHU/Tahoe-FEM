@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.53 2003-03-31 23:20:27 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.54 2003-04-07 17:26:49 cjkimme Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1578,9 +1578,10 @@ void FEManagerT::SetEquationSystem(int group)
 		/* lists of connectivities */
 		AutoArrayT<const iArray2DT*> connects_1;
 		AutoArrayT<const RaggedArray2DT<int>*> connects_2;
+		AutoArrayT<const iArray2DT*> equivalent_nodes;
 	
 		/* collect nodally generated DOF's */
-		fNodeManager->ConnectsU(group, connects_1, connects_2);
+		fNodeManager->ConnectsU(group, connects_1, connects_2, equivalent_nodes);
 	
 		/* collect element groups */
 		for (int i = 0 ; i < fElementGroups.Length(); i++)

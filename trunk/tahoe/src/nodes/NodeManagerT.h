@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.13 2003-03-31 23:05:20 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.14 2003-04-07 17:25:46 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -90,7 +90,8 @@ public:
 	 * FBC_ControllerT and KBC_ControllerT do generate connectivities */
 	virtual void ConnectsU(int group, 
 		AutoArrayT<const iArray2DT*>& connects_1,
-		AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
+		AutoArrayT<const RaggedArray2DT<int>*>& connects_2,
+		AutoArrayT<const iArray2DT*>& equivalent_nodes) const;
 
 	/** return the implicit-explicit flag for the given group. If the group contains
 	 * fields with both implicit and explicit time integrators, the group is considered
