@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile2DT.h,v 1.7 2003-05-27 07:13:30 paklein Exp $ */
+/* $Id: InelasticDuctile2DT.h,v 1.8 2003-06-09 07:20:38 paklein Exp $ */
 #ifndef _INELASTIC_DUCTILE_2D_T_H_
 #define _INELASTIC_DUCTILE_2D_T_H_
 
@@ -91,6 +91,9 @@ public:
 	
 	/** true if node should be retied */
 	virtual bool RetieQ(const nArrayT<double>&, const ArrayT<double>&, const dArrayT&) const { return false; }; 
+
+	/** location in state variable array of the state flag */
+	virtual int TiedStatusPosition(void) const;
 	/*@}*/
 
 protected:
@@ -114,7 +117,7 @@ protected:
 	/** evaluate the Jacobian of the local iteration */
 	void Jacobian_1(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
 		const dArrayT& dq, dMatrixT& K);
-	
+
 private:
 
 	/** reference to the time step */
@@ -130,6 +133,9 @@ private:
 
 	/** critical void volume fraction */
 	double fphi_init;
+
+	/** strength multiplication */
+	double fkappa_scale;
 
 	/** true if damage is reversible */
 	bool fReversible;
@@ -148,7 +154,7 @@ private:
 	ArrayT<double> fState;
 	
 	dArrayT fDelta;
-	dArrayT fTraction;
+//	dArrayT fTraction;
 	dArrayT fdq;
 	double& fkappa;
 	double& fphi;
