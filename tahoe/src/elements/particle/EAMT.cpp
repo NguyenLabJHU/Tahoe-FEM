@@ -265,6 +265,9 @@ void EAMT::WriteOutput(void)
 void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 			 const iArray2DT& col_eq, dSPMatrixT& stiffness)
 {
+
+  cout << "ENTERS EAMT::FormStiffness\n";
+
   const char caller[] = "EAMT::FormStiffness";
 
   /* map should return -1 of out of range */
@@ -545,8 +548,13 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 
 	      /* Component of force coming from Pair potential */
 	      double E = pair_energy_i(r, NULL, NULL)*pair_energy_j(r, NULL, NULL)/r;
-	      double F = pair_force_i(r, NULL, NULL)*pair_force_j(r, NULL, NULL)/r - E/r;
-	      double K = pair_stiffness_i(r, NULL, NULL)*pair_stiffness_j(r, NULL, NULL) -2*F/r;
+	      double F = pair_energy_i(r,NULL,NULL)*pair_force_j(r,NULL,NULL)/r +
+   	                 pair_force_i(r,NULL,NULL)*pair_energy_j(r,NULL,NULL)/r - 
+	                 E/r;
+	      double K = pair_stiffness_i(r, NULL, NULL)*pair_energy_j(r, NULL, NULL) +
+                         2*pair_force_i(r, NULL, NULL)*pair_force_j(r, NULL, NULL) +
+                         pair_energy_i(r, NULL, NULL)*pair_stiffness_j(r, NULL, NULL) -
+		         2*F/r;
 	      double Fbyr = F/r;
 
 	      /* 1st term */
@@ -648,6 +656,9 @@ void EAMT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 /* form group contribution to the stiffness matrix */
 void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 {
+  cout << "ENTERS EAMT::LHSDriver\n";
+
+
   /* time integration parameters */
   double constK = 0.0;
   double constM = 0.0;
@@ -669,6 +680,9 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
   /* assemble diagonal stiffness */
   if (formK && sys_type == GlobalT::kDiagonal)
     {
+      
+      cout << "ENTERS EAMT::LHSDriver - Diagonal form\n";
+
       /* assembly information */
       const ElementSupportT& support = ElementSupport();
       int group = Group();
@@ -808,11 +822,17 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			
 	      /* Component of force coming from Pair potential */
 	      double E = pair_energy_i(r, NULL, NULL)*pair_energy_j(r, NULL, NULL)/r;
-	      double F = pair_force_i(r, NULL, NULL)*pair_force_j(r, NULL, NULL)/r-E/r;
-	      double K = pair_stiffness_i(r, NULL, NULL)*pair_stiffness_j(r, NULL, NULL)-2*F/r;
-	      K = (K < 0.0) ? 0.0 : K;
+	      double F = pair_energy_i(r,NULL,NULL)*pair_force_j(r,NULL,NULL)/r +
+   	                 pair_force_i(r,NULL,NULL)*pair_energy_j(r,NULL,NULL)/r - 
+	                 E/r;
+	      double K = pair_stiffness_i(r, NULL, NULL)*pair_energy_j(r, NULL, NULL) +
+                         2*pair_force_i(r, NULL, NULL)*pair_force_j(r, NULL, NULL) +
+                         pair_energy_i(r, NULL, NULL)*pair_stiffness_j(r, NULL, NULL) -
+		         2*F/r;
 
 	      double Fbyr = F/r;
+	      K = (K < 0.0) ? 0.0 : K;
+
 	      for (int k = 0; k < ndof; k++)
 		{
 		  double r_k = r_ij[k]*r_ij[k]/r/r;
@@ -857,6 +877,8 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
     }
   else if (formK)
     {
+      cout << "ENTERS EAMT::LHSDriver - Non-Diagonal form\n";
+
       /* assembly information */
       const ElementSupportT& support = ElementSupport();
       int group = Group();
@@ -1091,8 +1113,14 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			
 	      /* Component of force coming from Pair potential */
 	      double E = constK*pair_energy_i(r, NULL, NULL)*pair_energy_j(r, NULL, NULL)/r;
-	      double F = constK*pair_force_i(r, NULL, NULL)*pair_force_j(r, NULL, NULL)/r -E/r;
-	      double K = constK*pair_stiffness_i(r, NULL, NULL)*pair_stiffness_j(r, NULL, NULL)-2*F/r;
+	      double F = constK*pair_energy_i(r,NULL,NULL)*pair_force_j(r,NULL,NULL)/r +
+   	                 constK*pair_force_i(r,NULL,NULL)*pair_energy_j(r,NULL,NULL)/r - 
+	                 E/r;
+	      double K = constK*pair_stiffness_i(r, NULL, NULL)*pair_energy_j(r, NULL, NULL) +
+                         constK*2*pair_force_i(r, NULL, NULL)*pair_force_j(r, NULL, NULL) +
+                         constK*pair_energy_i(r, NULL, NULL)*pair_stiffness_j(r, NULL, NULL) -
+		         2*F/r;
+
 	      double Fbyr = F/r;
 
 	      /* 1st term */
@@ -1189,6 +1217,8 @@ void EAMT::RHSDriver(void)
 
 void EAMT::RHSDriver2D(void)
 {
+  cout << "ENTERS EAMT::RHSDriver2D\n";
+
   /* function name */
   const char caller[] = "EAMT::RHSDriver2D";
 
@@ -1231,7 +1261,6 @@ void EAMT::RHSDriver2D(void)
       /* type */
       int   tag_i = neighbors[0]; /* self is 1st spot */
       int  type_i = fType[tag_i];
-      double* f_i = fForce(tag_i);
       double* x_i = coords(tag_i);
 		
       for (int j = 1; j < neighbors.Length(); j++)
@@ -1321,7 +1350,9 @@ void EAMT::RHSDriver2D(void)
 			
 	  /* Component of force coming from Pair potential */
 	  double E = pair_energy_i(r,NULL,NULL)*pair_energy_j(r,NULL,NULL)/r;
-	  double F = pair_force_i(r,NULL,NULL)*pair_force_j(r,NULL,NULL)/r - E/r;
+	  double F = pair_energy_i(r,NULL,NULL)*pair_force_j(r,NULL,NULL)/r +
+ 	             pair_force_i(r,NULL,NULL)*pair_energy_j(r,NULL,NULL)/r - 
+	             E/r;
 	  double Fbyr = formKd*F/r;
 
 	  r_ij_0 *= Fbyr;
@@ -1354,6 +1385,8 @@ void EAMT::RHSDriver2D(void)
 
 void EAMT::RHSDriver3D(void)
 {
+  cout << "ENTERS EAMT::RHSDriver3D\n";
+
   /* function name */
   const char caller[] = "EAMT::RHSDriver3D";
 
@@ -1487,8 +1520,9 @@ void EAMT::RHSDriver3D(void)
 			
 	  /* Component of force coming from Pair potential */
 	  double E = pair_energy_i(r,NULL,NULL)*pair_energy_j(r,NULL,NULL)/r;
-	  double F = pair_force_i(r,NULL,NULL)*pair_force_j(r,NULL,NULL)/r - E/r;
-
+	  double F = pair_energy_i(r,NULL,NULL)*pair_force_j(r,NULL,NULL)/r +
+ 	             pair_force_i(r,NULL,NULL)*pair_energy_j(r,NULL,NULL)/r - 
+	             E/r;
 	  double Fbyr = formKd*F/r;
 
 	  r_ij_0 *= Fbyr;
