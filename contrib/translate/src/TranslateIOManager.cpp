@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.22 2002-05-19 17:45:42 paklein Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.23 2002-06-25 14:19:58 sawimme Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -10,6 +10,7 @@
 #include "ExodusOutputT.h"
 #include "TecPlotOutputT.h"
 #include "FE_ASCIIT.h"
+#include "PatranOutputT.h"
 
 TranslateIOManager::TranslateIOManager (ostream& out, istream& in, bool write) :
   fMessage (out),
@@ -133,6 +134,9 @@ void TranslateIOManager::SetOutput (const StringT& program_name, const StringT& 
     case IOBaseT::kTecPlot:
       fOutput = new TecPlotOutputT (fMessage, outstrings, 4);
       break;
+    case IOBaseT::kPatranNeutral:
+      fOutput = new PatranOutputT (fMessage, outstrings, false);
+      break;
     case IOBaseT::kAVS:
     case IOBaseT::kAVSBinary:
       fOutput = new AVSOutputT (fMessage, outstrings, false);
@@ -156,8 +160,8 @@ void TranslateIOManager::InitializeVariables (void)
   cout << setw (10) << fNumEV << " Element Variables\n";
   cout << setw (10) << fNumQV << " Quadrature Variables\n";
 
-  fNodeLabels.Allocate (fNumNV);
-  fElementLabels.Allocate (fNumEV);
+  fNodeLabels.Dimension (fNumNV);
+  fElementLabels.Dimension (fNumEV);
 
   if (fNumNV > 0) fModel.NodeLabels (fNodeLabels);
   if (fNumEV > 0) fModel.ElementLabels (fElementLabels);
@@ -169,7 +173,7 @@ void TranslateIOManager::InitializeNodeVariables (void)
 {
   fNumNV = fModel.NumNodeVariables ();
   cout << "\n" << setw (10) << fNumNV << " Node Variables\n\n";
-  fNodeLabels.Allocate (fNumNV);
+  fNodeLabels.Dimension (fNumNV);
   if (fNumNV > 0) fModel.NodeLabels (fNodeLabels);
 
   // query user as to which variables to translate
@@ -570,11 +574,7 @@ void TranslateIOManager::WriteNodeSets (void)
 	}
       
       if (answer [0] == 'y' || answer[0] == 'Y') 
-	{
-	  //int ID = atoi(names[i]);
-	  int ID = i+1;
-	  fOutput->AddNodeSet (fModel.NodeSet(names[i]), ID);
-	}
+	fOutput->AddNodeSet (fModel.NodeSet(names[i]), names[i]);
     }
 }
  
@@ -681,9 +681,9 @@ void TranslateIOManager::WriteSideSets (void)
   const ArrayT<StringT>& names = fModel.SideSetIDs();
 
   int selection;
+  cout << "\n Number of Side Sets: " << num << endl;
   if (fWrite)
     {
-      cout << "\n Number of Side Sets: " << num << endl;
       cout << "\n1. Translate All\n";
       cout << "2. Translate Some\n";
       cout << "3. Translate None\n";
@@ -698,7 +698,7 @@ void TranslateIOManager::WriteSideSets (void)
       if (selection == 2)
 	{
 	  if (fWrite)
-	    cout << "    Translate Node Set " << names[i] << " (y/n) ? ";
+	    cout << "    Translate Side Set " << names[i] << " (y/n) ? ";
 	  fIn >> answer;
 	}
       
@@ -707,10 +707,7 @@ void TranslateIOManager::WriteSideSets (void)
 	  fGlobalSideSets[i] = fModel.SideSet (names[i]);
 	  const StringT& g = fModel.SideSetGroupID(names[i]);
 	    
-	  int g_int = fModel.ElementGroupIndex (g) + 1;
-	  //int ID = atoi(names[i]);
-	  int ID = i+1;
-	  fOutput->AddSideSet (fGlobalSideSets [i], ID, g_int);
+	  fOutput->AddSideSet (fGlobalSideSets [i], names[i], g);
 	}
     }
 }

@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.10 2002-05-19 17:45:42 paklein Exp $ */
+/* $Id: main.cpp,v 1.11 2002-06-25 14:19:58 sawimme Exp $ */
 
 #include "TranslateIOManager.h"
 #include "ExtractNode.h"
@@ -7,78 +7,94 @@
 #include "MergeResults.h"
 #include "ifstreamT.h"
 #include "StringT.h"
+#include "AutoArrayT.h"
 
-istream& Open (int c, char* a [], ifstreamT& tmp, bool& w);
+void ReadArgs (int c, char* a[], AutoArrayT<StringT>& list);
+istream& Open (ifstreamT& tmp, const StringT& f);
 
 int main (int c, char* a [])
 {
   try 
     {
       bool write = true;
+      AutoArrayT<StringT> filelist;
       ifstreamT tmp;
-      istream& in = Open (c, a, tmp, write);
 
-      int selection;
-      if (write)
+      ReadArgs (c, a, filelist);
+      int numruns = 1;
+      if (filelist.Length() > 0) 
 	{
-	  cout << "\n1. Datafile Translation \n";
-	  cout << "2. Nodal Data Extraction to XY Data \n";
-	  cout << "3. Quadrature Data Extraction to XY Data \n";
-	  cout << "4. Quadrature Data Extraction for Point Plots \n";
-	  cout << "5. Merge Results Files \n";
-	  cout << "\n Select type of translation: ";
+	  write = false;
+	  numruns = filelist.Length();
 	}
-      in >> selection;
-      cout << "\n Type of translation: " << selection << ".";
-      
-      TranslateIOManager *dataio;
-      StringT program, version;
-      switch (selection)
+      for (int f=0; f < numruns; f++)
 	{
-	case 1:
-	  {
-	    cout << " Translate data files.\n\n";
-	    program = "Translate";
-	    version = "v1.4";
-	    dataio = new TranslateIOManager (cout, in, write);
-	    break;
-	  }
-	case 2:
-	  {
-	    cout << " Extract nodal data.\n\n";
-	    program = "Extract";
-	    version = "v1.1";
-	    dataio = new ExtractNode (cout, in, write);
-	    break;
-	  }
-	case 3:
-	  {
-	    cout << " Extract quadrature data.\n\n";
-	    program = "Extract";
-	    version = "v1.1";
-	    dataio = new ExtractQuad (cout, in, write);
-	    break;
-	  }
-	case 4:
-	  {
-	    cout << " Extract quadrature data for point plots.\n\n";
-	    program = "PointPlot";
-	    version = "v1.0";
-	    dataio = new PointPlots (cout, in, write);
-	    break;
-	  }
-	case 5:
-	  {
-	    cout << " Merge data from multiple files.\n\n";
-	    program = "Merge";
-	    version = "v1.0";
-	    dataio = new MergeResults (cout, in, write);
-	    break;
-	  }
-	default:
-	  throw eGeneralFail;
+	  if (write == true)
+	    filelist.Append ("");
+	  istream& in = Open (tmp, filelist[f]);
+
+	  int selection;
+	  if (write)
+	    {
+	      cout << "\n1. Datafile Translation \n";
+	      cout << "2. Nodal Data Extraction to XY Data \n";
+	      cout << "3. Quadrature Data Extraction to XY Data \n";
+	      cout << "4. Quadrature Data Extraction for Point Plots \n";
+	      cout << "5. Merge Results Files \n";
+	      cout << "\n Select type of translation: ";
+	    }
+	  in >> selection;
+	  cout << "\n Type of translation: " << selection << ".";
+	  
+	  TranslateIOManager *dataio;
+	  StringT program, version;
+	  switch (selection)
+	    {
+	    case 1:
+	      {
+		cout << " Translate data files.\n\n";
+		program = "Translate";
+		version = "v1.4";
+		dataio = new TranslateIOManager (cout, in, write);
+		break;
+	      }
+	    case 2:
+	      {
+		cout << " Extract nodal data.\n\n";
+		program = "Extract";
+		version = "v1.1";
+		dataio = new ExtractNode (cout, in, write);
+		break;
+	      }
+	    case 3:
+	      {
+		cout << " Extract quadrature data.\n\n";
+		program = "Extract";
+		version = "v1.1";
+		dataio = new ExtractQuad (cout, in, write);
+		break;
+	      }
+	    case 4:
+	      {
+		cout << " Extract quadrature data for point plots.\n\n";
+		program = "PointPlot";
+		version = "v1.0";
+		dataio = new PointPlots (cout, in, write);
+		break;
+	      }
+	    case 5:
+	      {
+		cout << " Merge data from multiple files.\n\n";
+		program = "Merge";
+		version = "v1.0";
+		dataio = new MergeResults (cout, in, write);
+		break;
+	      }
+	    default:
+	      throw eGeneralFail;
+	    }
+	  dataio->Translate (program, version, program);
 	}
-      dataio->Translate (program, version, program);
       cout << "\n\n Progam Complete.\n\n";
     }
   catch (int ErrorCode)
@@ -107,15 +123,60 @@ int main (int c, char* a [])
   return 1;
 }
 
-istream& Open (int c, char* a [], ifstreamT& tmp, bool& w)
+void ReadArgs (int c, char* a[], AutoArrayT<StringT>& list)
 {
+  ifstreamT tmp;
+  StringT s;
   if (c == 2)
     {
       tmp.open (a[1]);
-      cout << "\n Reading answers from: " << a[1] << endl;
-      w = false;
+      s.GetLineFromStream (tmp);
+      switch (s[0])
+	{
+	case '%':
+	  {
+	    list.Append (a[1]);
+	    break;
+	  }
+	case '@':
+	  {
+	    while (tmp.good())
+	      {
+		s.Clear();
+		s.GetLineFromStream(tmp);
+		if (s.StringLength() > 1)
+		  list.Append (s);
+	      }
+	    break;
+	  }
+	default:
+	  {
+	    cout << "\n You must put either % or @ at the beginning of your input file.\n\n";
+	    cout << "\n The code is being somewhat aligned with Tahoe.\n\n";
+	    throw eBadInputValue;
+	  }
+	}
+    }
+  else
+    list.Free();
+}
+
+istream& Open (ifstreamT& tmp, const StringT& f)
+{
+  if (f.StringLength() >= 1)
+    {
+      tmp.open (f);
+      cout << "\n Reading answers from: " << f << endl;
+
+      char c;
+      tmp >> c;
+      if (c != '%')
+	{
+	  cout << "\nExpecting % at the start of the input file.\n\n";
+	  throw eBadInputValue;
+	}
       return tmp;
     }
-  w = true;
+
   return cin;
 }
