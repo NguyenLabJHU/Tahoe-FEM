@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.9 2003-03-04 06:41:16 paklein Exp $
+# $Id: makefile,v 1.10 2003-09-10 00:14:17 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -24,7 +24,7 @@ OBJ = \
 	AbaqusOutputT.o \
 	EnSightOutputT.o \
 	ExodusOutputT.o \
-	FE_ASCIIT.o \
+	TextOutputT.o \
 	OutputBaseT.o \
 	OutputSetT.o \
 	TecPlotOutputT.o \
@@ -53,7 +53,7 @@ SRC = \
 	AbaqusOutputT.cpp \
 	EnSightOutputT.cpp \
 	ExodusOutputT.cpp \
-	FE_ASCIIT.cpp \
+	TextOutputT.cpp \
 	OutputBaseT.cpp \
 	OutputSetT.cpp \
 	TecPlotOutputT.cpp \
@@ -73,7 +73,7 @@ HDR = \
 	AbaqusOutputT.h \
 	EnSightOutputT.h \
 	ExodusOutputT.h \
-	FE_ASCIIT.h \
+	TextOutputT.h \
 	OutputBaseT.h \
 	OutputSetT.h \
 	TecPlotOutputT.h \

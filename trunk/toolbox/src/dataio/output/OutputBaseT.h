@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.h,v 1.16 2003-06-12 20:31:39 saubry Exp $ */
+/* $Id: OutputBaseT.h,v 1.17 2003-09-10 00:14:17 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 #ifndef _OUTPUTBASE_T_H_
 #define _OUTPUTBASE_T_H_
@@ -119,7 +119,7 @@ protected:
 	StringT fTitle;    /**< title: description of problem */
 	StringT fCodeName; /**<	qa_record codename and version */
 	StringT fVersion;  /**<	qa_record inputfile version */
-	StringT fOutroot;  /**<	root of all output files */
+	StringT fOutroot;  /**<	root of all output files including the path */
 
 	/* output data */
 	const dArray2DT* fCoordinates; /**< pointer to coordinates */

@@ -1,8 +1,7 @@
-/* $Id: FE_ASCIIT.h,v 1.7 2002-07-05 22:26:27 paklein Exp $ */
+/* $Id: TextOutputT.h,v 1.1 2003-09-10 00:14:17 paklein Exp $ */
 /* created: sawimme (05/20/1999) */
-
-#ifndef _FE_ASCII_T_H_
-#define _FE_ASCII_T_H_
+#ifndef _TEXT_OUTPUT_T_H_
+#define _TEXT_OUTPUT_T_H_
 
 /* base class */
 #include "OutputBaseT.h"
@@ -13,7 +12,7 @@
 namespace Tahoe {
 
 /** text file output */
-class FE_ASCIIT: public OutputBaseT
+class TextOutputT: public OutputBaseT
 {
 public:
 
@@ -21,7 +20,7 @@ public:
    * \param out error stream
    * \param external flag to write array data in external files
    * \param out_strings see OutputBaseT::OutputBaseT */
-	FE_ASCIIT(ostream& out, bool external, const ArrayT<StringT>& out_strings);
+	TextOutputT(ostream& out, bool external, const ArrayT<StringT>& out_strings);
 
 	/** register the output for an element set. returns the output ID */
 	virtual int AddElementSet(const OutputSetT& output_set);
@@ -71,4 +70,4 @@ private:
 };
 
 } // namespace Tahoe 
-#endif // _FE_ASCII_T_H_
+#endif // _TEXT_OUTPUT_T_H_

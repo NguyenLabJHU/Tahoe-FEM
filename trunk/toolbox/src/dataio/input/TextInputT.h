@@ -1,6 +1,6 @@
-/* $Id: InputFEASCIIT.h,v 1.10 2002-07-05 22:26:26 paklein Exp $ */
-#ifndef _INPUTFEASCII_T_H_
-#define _INPUTFEASCII_T_H_
+/* $Id: TextInputT.h,v 1.1 2003-09-10 00:14:15 paklein Exp $ */
+#ifndef _TEXT_INPUT_T_H_
+#define _TEXT_INPUT_T_H_
 
 /* base classes */
 #include "InputBaseT.h"
@@ -15,10 +15,10 @@ namespace Tahoe {
 class ifstreamT;
 class dArrayT;
 
-class InputFEASCIIT : public InputBaseT
+class TextInputT : public InputBaseT
 {
 public:
-  InputFEASCIIT (ostream& out);
+  TextInputT (ostream& out);
 
   virtual bool Open (const StringT& filename);
   virtual void Close (void);
@@ -108,11 +108,27 @@ public:
   bool OpenFile (ifstreamT& in, const char *ext) const;
   bool ScanGeometryFile (ifstreamT& in);
   bool ScanResultsFile (ifstreamT& in);
+  bool ScanResultsFile_old (ifstreamT& in);
   bool AdvanceToBlock (ifstreamT& in, const StringT& name, const char *tname) const;
   void DataBlock (ifstreamT& in, iArrayT& used, iArrayT& ids, dArray2DT& vals, bool nodal) const;
 
+	/** \name backward compatibility */
+	/*@{*/
+	/** return true if results file uses the pre-TOC format */
+	bool is_old_format(const StringT& file) const;
+ 	void ReadNodeVariables_old(int step, const StringT& name, dArray2DT& nvalues);
+	void ReadAllNodeVariables_old(int step, dArray2DT& nvalues);
+	void ReadAllElementVariables_old(int step, dArray2DT& evalues);
+	void ReadElementVariables_old(int step, const StringT& name, dArray2DT& evalues);
+	/*@}*/
+
+	/** return the results file name for the given output step */
+	void ResultsFile(const StringT& toc_file, int step, StringT& file) const;
+
  private:
-  StringT fFileRoot;
+
+	StringT fFileRoot;
+	StringT fFilePath;
 
   AutoArrayT<StringT> fBlockID;
   AutoArrayT<int> fBlockNumElem;
@@ -127,57 +143,57 @@ public:
   AutoArrayT<StringT> fElementVariable;
 };
 
-inline void InputFEASCIIT::SideSetNames (ArrayT<StringT>& sidenames) const
+inline void TextInputT::SideSetNames (ArrayT<StringT>& sidenames) const
 { sidenames.Free(); }
-inline void InputFEASCIIT::NodeSetNames (ArrayT<StringT>& nodenames) const
+inline void TextInputT::NodeSetNames (ArrayT<StringT>& nodenames) const
 { nodenames.Free(); }
-inline int InputFEASCIIT::NumElementGroups (void) const
+inline int TextInputT::NumElementGroups (void) const
 { return fBlockID.Length(); }
-inline int InputFEASCIIT::NumSideSets (void) const
+inline int TextInputT::NumSideSets (void) const
 { return 0; }
-inline int InputFEASCIIT::NumNodeSets (void) const
+inline int TextInputT::NumNodeSets (void) const
 { return 0; }
-inline int InputFEASCIIT::NumNodes (void) const
+inline int TextInputT::NumNodes (void) const
 { return fNumNodes; }
-inline int InputFEASCIIT::NumDimensions (void) const
+inline int TextInputT::NumDimensions (void) const
 { return fNumDOF; }
-inline int InputFEASCIIT::NumElementQuadPoints(const StringT& name)
+inline int TextInputT::NumElementQuadPoints(const StringT& name)
 { 
 #pragma unused(name)
 	return 0; 
 }
-inline int InputFEASCIIT::NumGlobalElements (void) const
+inline int TextInputT::NumGlobalElements (void) const
 { return fNumElements; }
-inline int InputFEASCIIT::NumNodesInSet (const StringT& name)
+inline int TextInputT::NumNodesInSet (const StringT& name)
 {
 #pragma unused (name)
   return 0;
 }
-inline bool InputFEASCIIT::AreSideSetsLocal (void) const
+inline bool TextInputT::AreSideSetsLocal (void) const
 { return true; }
-inline int InputFEASCIIT::NumSidesInSet (const StringT& setname) const
+inline int TextInputT::NumSidesInSet (const StringT& setname) const
 { 
 #pragma unused (setname)
   return 0; 
 }
 
-inline StringT InputFEASCIIT::SideSetGroupName (const StringT& setname) const
+inline StringT TextInputT::SideSetGroupName (const StringT& setname) const
 { 
 #pragma unused (setname)
   StringT s = "";
   return s;
 }
 
-inline void InputFEASCIIT::QARecords (ArrayT<StringT>& records)
+inline void TextInputT::QARecords (ArrayT<StringT>& records)
 {
 #pragma unused (records)
 }
-inline int InputFEASCIIT::NumTimeSteps (void) const { return fTimeSteps.Length(); }
-inline int InputFEASCIIT::NumNodeVariables (void) const
+inline int TextInputT::NumTimeSteps (void) const { return fTimeSteps.Length(); }
+inline int TextInputT::NumNodeVariables (void) const
 { return fNodeVariable.Length(); }
-inline int InputFEASCIIT::NumElementVariables (void) const
+inline int TextInputT::NumElementVariables (void) const
 { return fElementVariable.Length(); }
-inline int InputFEASCIIT::NumQuadratureVariables (void) const
+inline int TextInputT::NumQuadratureVariables (void) const
 { return 0; }
 
 
