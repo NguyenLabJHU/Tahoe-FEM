@@ -66,7 +66,7 @@ void FEA_Data_ProcessorT::Form_Order_Reduction_Map(void)
 
 //---------------------------------------------------------------------
 
-void FEA_Data_ProcessorT::grad_u	(FEA_dMatrixT &B,const int T_flag) 
+void FEA_Data_ProcessorT::grad_u	(FEA_dMatrixT &B,int T_flag) 
 {
 					
 	int j1,j2,j3;				
