@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.cpp,v 1.19.18.1 2004-03-18 17:51:46 paklein Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.19.18.2 2004-03-24 01:59:18 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 #include "TvergHutch2DT.h"
 
@@ -276,7 +276,7 @@ void TvergHutch2DT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	SurfacePotentialT::DefineParameters(list);
 
-	ParameterT sigma_max(fsigma_max, "fsigma_max");
+	ParameterT sigma_max(fsigma_max, "sigma_max");
 	sigma_max.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(sigma_max);
 
@@ -299,11 +299,11 @@ void TvergHutch2DT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(L_2);
 
 	ParameterT L_fail(fL_fail, "L_fail");
-	L_fail.AddLimit(1.0, LimitT::Lower);
+	L_fail.AddLimit(1.0, LimitT::LowerInclusive);
 	list.AddParameter(L_fail);
 
 	ParameterT penalty(fpenalty, "penalty");
-	penalty.AddLimit(0.0, LimitT::Lower);
+	penalty.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(penalty);
 }
 
