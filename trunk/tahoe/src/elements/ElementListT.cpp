@@ -1,7 +1,11 @@
-/* $Id: ElementListT.cpp,v 1.39 2003-01-30 00:43:36 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.40 2003-01-31 10:00:32 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
+
+#ifdef __DEVELOPMENT__
+#include "DevelopmentElementsConfig.h"
+#endif
 
 #include <iostream.h>
 #include "fstreamT.h"
@@ -58,18 +62,18 @@
 #include "VirtualRodT.h"
 #endif
 
-#ifdef DEV_CONTACT_ELEMENT
+#ifdef CONTACT_ELEMENT_DEV
 #include "MultiplierContact3DT.h"
 #include "MultiplierContactElement2DT.h"
 #include "PenaltyContactElement2DT.h"
 #include "PenaltyContactElement3DT.h"
 #endif
 
-#ifdef BEM_ELEMENT
+#ifdef BEM_ELEMENT_DEV
 #include "BEMelement.h"
 #endif
 
-#ifdef MULTISCALE_ELEMENT
+#ifdef MULTISCALE_ELEMENT_DEV
 #include "StaggeredMultiScaleT.h"
 #endif
 
@@ -258,7 +262,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			}
 			case ElementT::kStaggeredMultiScale:
 			{
-#ifdef MULTISCALE_ELEMENT
+#ifdef MULTISCALE_ELEMENT_DEV
 				/* must be using multi-field solver */
 				if (fSupport.Analysis() != GlobalT::kMultiField)				
 					ExceptionT::BadInputValue(caller, "multi field required");
@@ -276,7 +280,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				fArray[group] = new StaggeredMultiScaleT(fSupport, *coarse_scale, *fine_scale);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "MULTISCALE_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "MULTISCALE_ELEMENT_DEV not enabled: %d", code);
 #endif
 			}
 			case ElementT::kMeshFreeFDElastic:
@@ -410,7 +414,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			}
 			case ElementT::kBEMelement:
 			{
-#ifdef BEM_ELEMENT
+#ifdef BEM_ELEMENT_DEV
 				StringT BEMfilename;
 				in >> BEMfilename;
 			
@@ -462,38 +466,38 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			}
 			case ElementT::kMultiplierContact3D:
 			{
-#ifdef DEV_CONTACT_ELEMENT
+#ifdef CONTACT_ELEMENT_DEV
 				fArray[group] = new MultiplierContact3DT(fSupport, *field);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "DEV_CONTACT_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT_DEV not enabled: %d", code);
 #endif				
 			}
 			case ElementT::kMultiplierContactElement2D:
 			{
-#ifdef DEV_CONTACT_ELEMENT
+#ifdef CONTACT_ELEMENT_DEV
 				fArray[group] = new MultiplierContactElement2DT(fSupport, *field);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "DEV_CONTACT_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT_DEV not enabled: %d", code);
 #endif				
 			}
 			case ElementT::kPenaltyContactElement2D:
 			{
-#ifdef DEV_CONTACT_ELEMENT
+#ifdef CONTACT_ELEMENT_DEV
 				fArray[group] = new PenaltyContactElement2DT(fSupport, *field);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "DEV_CONTACT_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT_DEV not enabled: %d", code);
 #endif				
 			}
 			case ElementT::kPenaltyContactElement3D:
 			{
-#ifdef DEV_CONTACT_ELEMENT
+#ifdef CONTACT_ELEMENT_DEV
 				fArray[group] = new PenaltyContactElement3DT(fSupport, *field);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "DEV_CONTACT_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT_DEV not enabled: %d", code);
 #endif				
 			}
 		case ElementT::kBridgingScale:
@@ -574,15 +578,15 @@ bool ElementListT::HasContact(void) const
 	cout << "\n ElementListT::HasContact: needs RTTI: returning false" << endl;
 	return false; // safe default??
 #else /* __NO_RTTI__ */
-#ifdef DEV_CONTACT_ELEMENT
+#ifdef CONTACT_ELEMENT
 	for (int i = 0; i < Length(); i++)
 	{
 		ContactT* contact_elem = dynamic_cast<ContactT*>(fArray[i]);
 		if (contact_elem) return true;
 	}
 	return false;
-#else  /* DEV_CONTACT_ELEMENT */
+#else  /* CONTACT_ELEMENT */
 	return false;
-#endif /* DEV_CONTACT_ELEMENT */
+#endif /* CONTACT_ELEMENT */
 #endif /* __NO_RTTI__ */
 }

@@ -1,10 +1,13 @@
-/* $Id: SolidMatList2DT.cpp,v 1.30 2003-01-30 00:43:39 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.31 2003-01-31 10:00:33 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
-#include "SolidMaterialsConfig.h"
 #include "fstreamT.h"
+#include "SolidMaterialsConfig.h"
 
-/* 2D material types codes */
+#ifdef __DEVELOPMENT__
+#include "DevelopmentMaterialsConfig.h"
+#endif
+
 #include "SSKStV2D.h"
 #include "FDKStV2D.h"
 #include "SSCubic2DT.h"
@@ -80,7 +83,7 @@
 #include "povirk2D.h"
 #endif
 
-#ifdef FOSSUM_MATERIAL
+#ifdef FOSSUM_MATERIAL_DEV
 #include "FossumSSIso2DT.h"
 #endif
 
@@ -344,7 +347,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			}
 		        case kFossumSSIso:
 			{
-#ifdef FOSSUM_MATERIAL
+#ifdef FOSSUM_MATERIAL_DEV
 				/* check */
 				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 			

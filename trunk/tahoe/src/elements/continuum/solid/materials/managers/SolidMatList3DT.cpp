@@ -1,23 +1,20 @@
-/* $Id: SolidMatList3DT.cpp,v 1.28 2003-01-30 00:43:39 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.29 2003-01-31 10:00:33 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
-#include "SolidMaterialsConfig.h"
 #include "fstreamT.h"
+#include "SolidMaterialsConfig.h"
 
-/* 3D material type codes */
+#ifdef __DEVELOPMENT__
+#include "DevelopmentMaterialsConfig.h"
+#endif
+
 #include "SSKStV.h"
 #include "FDKStV.h"
 #include "SSCubicT.h"
 #include "FDCubicT.h"
 #include "QuadLog3D.h"
 #include "SimoIso3D.h"
-#include "DPSSKStV.h"
 #include "QuadLogOgden3DT.h"
-#include "tevp3D.h"
-#include "LocalJ2SSNonlinHard.h"
-#include "GradJ2SSNonlinHard.h"
-#include "ABAQUS_BCJ.h"
-#include "ABAQUS_VUMAT_BCJ.h"
 
 #ifdef CAUCHY_BORN_MATERIAL
 #include "EAMFCC3DMatT.h"
@@ -64,13 +61,28 @@
 #include "J2Simo3D.h"
 #include "J2SSKStV.h"
 #include "J2QLLinHardT.h"
+#include "LocalJ2SSNonlinHard.h"
+#include "GradJ2SSNonlinHard.h"
 #endif
 
 #ifdef ELASTICITY_CRYSTAL_MATERIAL
 #include "FDCrystalElast.h"
 #endif
 
-#ifdef FOSSUM_MATERIAL
+#ifdef THERMO_VISCO_PLASTIC_MATERIAL
+#include "tevp3D.h"
+#endif
+
+#ifdef ABAQUS_MATERIAL
+#include "ABAQUS_BCJ.h"
+#include "ABAQUS_VUMAT_BCJ.h"
+#endif
+
+#ifdef PLASTICITY_DP_MATERIAL
+#include "DPSSKStV.h"
+#endif
+
+#ifdef FOSSUM_MATERIAL_DEV
 #include "FossumSSIsoT.h"
 #endif
 
@@ -210,12 +222,16 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 			}
 			case kDPSSKStV:
 			{
+#ifdef PLASTICITY_DP_MATERIAL
 				/* check */
 				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 	
 				fArray[matnum] = new DPSSKStV(in, *fSSMatSupport);
 				fHasHistory = true;															
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "PLASTICITY_DP_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 			case kFCCEAM:
 			{
@@ -296,7 +312,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 			}	
 			case kFossumSSIso:
 			{
-#ifdef FOSSUM_MATERIAL
+#ifdef FOSSUM_MATERIAL_DEV
 				/* check */
 				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 
@@ -309,12 +325,16 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 			}
 			case kThermoViscoPlastic:
 			{
+#ifdef THERMO_VISCO_PLASTIC_MATERIAL
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 				
 				fArray[matnum] = new tevp3D(in, *fFSMatSupport);
 				fHasHistory = true;
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "THERMO_VISCO_PLASTIC_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 			case kHyperEVP:
 			{
@@ -460,25 +480,34 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 			}
 			case kLocJ2SSNlHard:
 			{
+#ifdef PLASTICITY_J2_MATERIAL
 				/* check */
 				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 	
 				fArray[matnum] = new LocalJ2SSNonlinHard(in, *fSSMatSupport);
 				fHasHistory = true;														
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "PLASTICITY_J2_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 			case kGrdJ2SSNlHard:
 			{
+#ifdef PLASTICITY_J2_MATERIAL
 				/* check */
 				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 	
 				fArray[matnum] = new GradJ2SSNonlinHard(in, *fSSMatSupport);
 				fHasHistory = true;														
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "PLASTICITY_J2_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 			case kABAQUS_BCJ:
 			{
-#ifdef __F2C__			
+#ifdef __F2C__
+#ifdef ABAQUS_MATERIAL
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 
@@ -486,18 +515,25 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 #else
+				ExceptionT::BadInputValue(caller, "ABAQUS_MATERIAL not enabled: %d", matcode);
+#endif
+#else
 				ExceptionT::BadInputValue(caller, "model requires f2c support: %d", kABAQUS_BCJ);
 #endif /* __F2C__ */	
 			}			
 			case kABAQUS_VUMAT_BCJ:
 			{
 #ifdef __F2C__			
+#ifdef ABAQUS_MATERIAL
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 
 				fArray[matnum] = new ABAQUS_VUMAT_BCJ(in, *fFSMatSupport);
 				fHasHistory = true;
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "ABAQUS_MATERIAL not enabled: %d", matcode);
+#endif
 #else
 				ExceptionT::BadInputValue(caller, "model requires f2c support: %d", kABAQUS_VUMAT_BCJ);
 #endif /* __F2C__ */
@@ -554,19 +590,6 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				ExceptionT::BadInputValue(caller, "SIMO_HOLZAPFEL_MATERIAL not enabled: %d", matcode);
 #endif
 			}
-//TEMP
-#if 0
-			case kIsoVIB_X:
-			{
-				/* check */
-				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
-
-				fArray[matnum] = new IsoVIB3D_X(in, *fFSMatSupport);
-				fHasLocalizers = true;
-				break;
-			}			
-#endif
-//TEMP
 			default:
 				ExceptionT::BadInputValue(caller, "unknown material code: %d", matcode);
 		}
