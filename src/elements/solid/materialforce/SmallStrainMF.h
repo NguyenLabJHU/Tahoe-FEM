@@ -1,4 +1,4 @@
-/* $Id: SmallStrainMF.h,v 1.1 2003-03-19 18:46:05 thao Exp $ */
+/* $Id: SmallStrainMF.h,v 1.2 2003-04-05 20:39:11 thao Exp $ */
 
 #ifndef _SMALL_STRAIN_MF_H_
 #define _SMALL_STRAIN_MF_H_
@@ -37,10 +37,11 @@ class SmallStrainMF: public SmallStrainT
     /*material force evaluation*/
     void ComputeMatForce(dArray2DT& output);
     void MatForceVolMech(dArrayT& elem_val);
+    void MatForceDissip(dArrayT& elem_val, const dArrayT& statev);
     void MatForceSurfMech(dArrayT& global_val);
 
     /*Assemble nodal material force vectors for element group*/
-    void AssembleMatForce(const dArrayT& elem_val, dArrayT& global_val,			      const iArrayT& nodes);
+    void AssembleMatForce(const dArrayT& elem_val, dArrayT& global_val,	const iArrayT& nodes);
 
     /* map nodal ordering of element group*/
     void MapOutput(void);
@@ -63,6 +64,9 @@ class SmallStrainMF: public SmallStrainT
 
  private:
     ArrayT<dMatrixT> fGradU_List;
+    dArrayT fgrad_viscstretch;
+    dSymMatrixT fdevQ;
+    dSymMatrixT fviscstress;
 };
 
 /* inlines */

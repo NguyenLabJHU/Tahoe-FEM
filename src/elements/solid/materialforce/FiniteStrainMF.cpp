@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainMF.cpp,v 1.3 2003-03-21 06:30:50 thao Exp $ */
+/* $Id: FiniteStrainMF.cpp,v 1.4 2003-04-05 20:39:11 thao Exp $ */
 #include "FiniteStrainMF.h"
 
 #include "OutputSetT.h"
@@ -352,10 +352,23 @@ void FiniteStrainMF::MatForceVolMech(dArrayT& elem_val)
 
 void FiniteStrainMF::MatForceDissip(dArrayT& elem_val, const dArrayT& statev)
 {
+
   /*obtain dimensions*/
-  int nsd = NumSD();
-  int numstress = nsd*(nsd+1)/2;
   int nen = NumElementNodes();
+  int nsd = NumSD();
+  int nip = fShapes->NumIP();
+  /* for now hardwire the dimension of the history variables for 3D*/
+  int ndof = 3;
+  int numstress = 6;
+  int nstatev = statev.Length()/nip;
+
+  double* pstatev = statev.Pointer();
+  double* pInStretch = pstatev;
+  pstatev += numstress;  
+  /*skip over stresses from previous time step*/
+  pstatev += numstress; 
+  double* pInStress = pstatev;
+
   
   /*initialize workspaces*/
   dMatrixT ExtrapMatrix(nen);
@@ -365,40 +378,26 @@ void FiniteStrainMF::MatForceDissip(dArrayT& elem_val, const dArrayT& statev)
   {
     dSymMatrixT& ip_val = IP_iInStretch[i];
     dSymMatrixT& nodal_val = Nodal_iInStretch[i];
-    ip_val.Allocate(nsd);
-    nodal_val.Allocate(nsd);
+    ip_val.Allocate(ndof);
+    ip_val = 0.0;
+    nodal_val.Allocate(ndof);
+    nodal_val = 0.0;
   }
   dArrayT Grad_iInStretch(nsd*numstress);
 
   elem_val = 0;
     
   /*get shape function data*/
-  int nip = fShapes->NumIP();
   const double* jac = fShapes->IPDets();;
   const double* weight = fShapes->IPWeights();
-
-  /*set inelastic stretch to current values*/
-  int nstatev = statev.Length()/nip;
-  double* pstatev = statev.Pointer();
-  double* pInStretch = pstatev;
-  pstatev += numstress;
-  /*skip over previous value of inelastic stretch
-    and set inelastic stress measure*/
-  pstatev += numstress;
-  double* pInStress = pstatev;
 
   /*extrapolate iInStretch to nodes*/
   ExtrapMatrix = 0;
   /*initialize workspace*/
   fShapes->TopIP();
-  for (int i = 0; i<nen; i++)
-  {
-    dSymMatrixT& ip_val = IP_iInStretch[i];
-    ip_val = 0;
-  }
   while(fShapes->NextIP())
   {
-    dSymMatrixT InStretch(nsd, pInStretch);
+    dSymMatrixT InStretch(ndof, pInStretch);
     dSymMatrixT iInStretch = InStretch;
     iInStretch.Inverse();
 
@@ -434,7 +433,6 @@ void FiniteStrainMF::MatForceDissip(dArrayT& elem_val, const dArrayT& statev)
             nodal_val[cnt] += M*ip_val[cnt];
 	}
   }
-  
   jac = fShapes->IPDets();
   weight = fShapes->IPWeights();
   fShapes->TopIP();
@@ -454,26 +452,25 @@ void FiniteStrainMF::MatForceDissip(dArrayT& elem_val, const dArrayT& statev)
       for (int i = 0; i<nen; i++)
       {
 	    dSymMatrixT& nodal_val = Nodal_iInStretch[i];
-
-        pGradX[0] += (*pDQaX)*nodal_val[0];
-	    pGradX[1] += (*pDQaX)*nodal_val[1];
-	    pGradX[2] += (*pDQaX++)*nodal_val[2];
-	
-	    pGradY[0] += (*pDQaY)*nodal_val[0];
-	    pGradY[1] += (*pDQaY)*nodal_val[1];
-	    pGradY[2] += (*pDQaY++)*nodal_val[2];
+        for (int cnt = 0; cnt < numstress; cnt++)
+        {
+          pGradX[cnt] += (*pDQaX)*nodal_val[cnt];
+	      pGradY[cnt] += (*pDQaY)*nodal_val[cnt];
+	    }
       }
       /*get inelastic stress*/
-      dSymMatrixT InStress(nsd, pInStress);
+      dSymMatrixT InStress(ndof, pInStress);
       
       /*integrate material force*/
       double* pelem_val = elem_val.Pointer();
       for (int i = 0; i<nen; i++)
       {
-	    (*pelem_val++) -=0.5*(InStress[0]*pGradX[0]+InStress[1]*pGradX[1]
-	        +2.0* InStress[2]*pGradX[2])*(*pQa)*(*jac)*(*weight);
-	    (*pelem_val++) -=0.5*(InStress[0]*pGradY[0]+InStress[1]*pGradY[1]
-	        +2.0* InStress[2]*pGradY[2])*(*pQa++)*(*jac)*(*weight);
+	    (*pelem_val++) -= 0.5*(InStress[0]*pGradX[0]+InStress[1]*pGradX[1]
+	        +InStress[2]*pGradX[2]+2.0*InStress[3]*pGradX[3]+2.0*InStress[4]*pGradX[4]
+	        +2.0*InStress[5]*pGradX[5])*(*pQa)*(*jac)*(*weight);
+	    (*pelem_val++) -= 0.5*(InStress[0]*pGradY[0]+InStress[1]*pGradY[1]
+	        +InStress[2]*pGradY[2]+2.0*InStress[3]*pGradY[3]+2.0*InStress[4]*pGradY[4]
+	        +2.0*InStress[5]*pGradY[5])*(*pQa)*(*jac)*(*weight);
       }
     }
     else if (nsd ==3)
@@ -489,37 +486,29 @@ void FiniteStrainMF::MatForceDissip(dArrayT& elem_val, const dArrayT& statev)
       for (int i = 0; i<nen; i++)
       {	
 	    dSymMatrixT& nodal_val = Nodal_iInStretch[i];
-
-	    pGradX[0] += (*pDQaX)*nodal_val[0];
-	    pGradX[1] += (*pDQaX)*nodal_val[1];
-	    pGradX[2] += (*pDQaX)*nodal_val[2];
-	    pGradX[3] += (*pDQaX)*nodal_val[3];
-	    pGradX[4] += (*pDQaX)*nodal_val[4];
-	    pGradX[5] += (*pDQaX++)*nodal_val[5];
-	
-	    pGradY[0] += (*pDQaY)*nodal_val[0];
-	    pGradY[1] += (*pDQaY)*nodal_val[1];
-	    pGradY[2] += (*pDQaY)*nodal_val[2];
-    	pGradY[3] += (*pDQaY)*nodal_val[3];
-	    pGradY[4] += (*pDQaY)*nodal_val[4];
-	    pGradY[5] += (*pDQaY++)*nodal_val[5];
+        for (int cnt = 0; cnt < numstress; cnt++)
+        {
+          pGradX[cnt] += (*pDQaX)*nodal_val[cnt];
+	      pGradY[cnt] += (*pDQaY)*nodal_val[cnt];
+	      pGradZ[cnt] += (*pDQaZ)*nodal_val[cnt];
+	    }
       }
       /*get inelastic stress*/
-      dSymMatrixT InStress(nsd, pInStress);
+      dSymMatrixT InStress(ndof, pInStress);
       
       /*integrate material force*/
       double* pelem_val = elem_val.Pointer();
       for (int i = 0; i<nen; i++)
       {
 	    (*pelem_val++) -= 0.5*(InStress[0]*pGradX[0]+InStress[1]*pGradX[1]
-	            +InStress[2]*pGradX[2]+2.0*InStress[3]*pGradX[3]
-	            +2.0*InStress[4]*pGradX[4]+2.0*InStress[5]*pGradX[5])*(*pQa)*(*jac)*(*weight);
+	        +InStress[2]*pGradX[2]+2.0*InStress[3]*pGradX[3]+2.0*InStress[4]*pGradX[4]
+	        +2.0*InStress[5]*pGradX[5])*(*pQa)*(*jac)*(*weight);
 	    (*pelem_val++) -= 0.5*(InStress[0]*pGradY[0]+InStress[1]*pGradY[1]
-	            +InStress[2]*pGradY[2]+2.0*InStress[3]*pGradY[3]
-	            +2.0*InStress[4]*pGradY[4]+2.0*InStress[5]*pGradY[5])*(*pQa)*(*jac)*(*weight);
+	        +InStress[2]*pGradY[2]+2.0*InStress[3]*pGradY[3]+2.0*InStress[4]*pGradY[4]
+	        +2.0*InStress[5]*pGradY[5])*(*pQa)*(*jac)*(*weight);
 	    (*pelem_val++) -= 0.5*(InStress[0]*pGradZ[0]+InStress[1]*pGradZ[1]
-	            +InStress[2]*pGradZ[2]+2.0*InStress[3]*pGradZ[3]
-	            +2.0*InStress[4]*pGradZ[4]+2.0*InStress[5]*pGradZ[5])*(*pQa++)*(*jac)*(*weight);
+	        +InStress[2]*pGradZ[2]+2.0*InStress[3]*pGradZ[3]+2.0*InStress[4]*pGradZ[4]
+	        +2.0*InStress[5]*pGradZ[5])*(*pQa)*(*jac)*(*weight);
       }
     }
     jac++;

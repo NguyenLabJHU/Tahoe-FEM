@@ -1,4 +1,4 @@
-/* $Id: SmallStrainMF.cpp,v 1.3 2003-03-21 06:30:50 thao Exp $ */
+/* $Id: SmallStrainMF.cpp,v 1.4 2003-04-05 20:39:11 thao Exp $ */
 #include "SmallStrainMF.h"
 
 #include "OutputSetT.h"
@@ -20,6 +20,9 @@ using namespace Tahoe;
 /* constructor */
 SmallStrainMF::SmallStrainMF(const ElementSupportT& support, const FieldT& field):
 	SmallStrainT(support, field),
+	fdevQ(NULL),
+	fviscstress(NULL),
+	fgrad_viscstretch(NULL),
 	fNumGroupNodes(0),
 	fMatForceOutputID(-1){}
 	
@@ -128,6 +131,11 @@ void SmallStrainMF::ComputeMatForce(dArray2DT& output)
     SetGlobalShape();
     MatForceVolMech(elem_data);
     AssembleMatForce(elem_data, mat_force, CurrentElement().NodesX());
+    if (fCurrSSMat->HasDissipVar()) 
+    {
+      MatForceDissip(elem_data, CurrentElement().DoubleData());
+      AssembleMatForce(elem_data, mat_fdissip, CurrentElement().NodesX());
+    }
   }
 
   /*add surface contribution*/
@@ -147,15 +155,15 @@ void SmallStrainMF::ComputeMatForce(dArray2DT& output)
       /*material force set to zero for kinematically constrained nodes*/
       if(eqno[i*nsd+j] < 1)
       {
-	*pout_force++ = 0.0;
-	*pout_dissip++ = 0.0;
-	pmat_force++;
-	pmat_fdissip++;
+	    *pout_force++ = 0.0;
+	    *pout_dissip++ = 0.0;
+	    pmat_force++;
+	    pmat_fdissip++;
       }
       else
       {
-	*pout_force++ = (*pmat_force++) + (*pmat_fdissip);
-	*pout_dissip++ = (*pmat_fdissip++);
+	    *pout_force++ = (*pmat_force++) + (*pmat_fdissip);
+	    *pout_dissip++ = (*pmat_fdissip++);
       }
       *pout_disp++ = disp[i*nsd+j];
     }
@@ -356,6 +364,179 @@ void SmallStrainMF::MatForceVolMech(dArrayT& elem_val)
   }
 }
 
+void SmallStrainMF::MatForceDissip(dArrayT& elem_val, const dArrayT& statev)
+{
+
+  /*obtain dimensions*/
+  int nen = NumElementNodes();
+  int nsd = NumSD();
+  int nip = fShapes->NumIP();
+  /* for now hardwire the dimension of the history variables for 3D*/
+  int ndof = 3;
+  int numstress = 6;
+  int nstatev = statev.Length()/nip;
+
+  double* pstatev = statev.Pointer();
+  double* pdevQ = pstatev;
+  pstatev += numstress;
+  double* pmeanQ = pstatev;
+  pstatev ++;
+  /*skip over stresses from previous time step*/
+  pstatev += numstress;
+  pstatev ++;
+  double* pviscstretch = pstatev;
+ 
+  /*initialize workspaces*/
+  dMatrixT ExtrapMatrix(nen);
+  nArrayT<dSymMatrixT> nodal_viscstretch(nen);
+  nArrayT<dSymMatrixT> ip_viscstretch(nen);
+  for (int i = 0; i<nen; i++)
+  {
+    dSymMatrixT& ip_val = ip_viscstretch[i];
+    dSymMatrixT& nodal_val = nodal_viscstretch[i];
+    ip_val.Allocate(ndof);
+    ip_val = 0.0;
+    nodal_val.Allocate(ndof);
+    nodal_val = 0.0;
+  }
+ fgrad_viscstretch.Dimension(nsd*numstress);
+
+  elem_val = 0;
+    
+  /*get shape function data*/
+  const double* jac = fShapes->IPDets();;
+  const double* weight = fShapes->IPWeights();
+
+  /*extrapolate iInStretch to nodes*/
+  ExtrapMatrix = 0;
+  /*initialize workspace*/
+  fShapes->TopIP();
+  while(fShapes->NextIP())
+  {
+    dSymMatrixT viscstretch(ndof, pviscstretch);
+    const double* pQbU = fShapes->IPShapeU();
+    for (int i=0; i<nen; i++)
+    {
+      const double* pQaU = fShapes->IPShapeU();
+      for (int j = 0; j<nen; j++)
+      {
+	    //Note: The extrapolation matrix is symmetric
+	    ExtrapMatrix(i,j) += (*pQaU++)*(*pQbU)*(*jac)*(*weight);  
+      }
+      
+      dSymMatrixT& ip_val = ip_viscstretch[i];
+      for (int cnt = 0; cnt < numstress; cnt++)
+    	  ip_val[cnt] += (*pQbU)*(*jac)*(*weight)*viscstretch[cnt];
+      pQbU++;  
+    }
+    pviscstretch += nstatev;
+    weight++;
+    jac++;
+  }
+  ExtrapMatrix.Inverse();
+  for (int i = 0; i<nen; i++)
+  {
+    dSymMatrixT& nodal_val = nodal_viscstretch[i];
+    nodal_val = 0;
+    for (int j = 0; j<nen; j++)
+    {
+        dSymMatrixT& ip_val = ip_viscstretch[j];
+        double M = ExtrapMatrix(i,j);
+        for (int cnt = 0; cnt < numstress; cnt++)
+            nodal_val[cnt] += M*ip_val[cnt];
+	}
+  }
+  jac = fShapes->IPDets();
+  weight = fShapes->IPWeights();
+  fShapes->TopIP();
+  while(fShapes->NextIP())
+  {
+    const double* pQa = fShapes->IPShapeX();
+    const dArray2DT& DQa = fShapes->Derivatives_X();
+    if (nsd ==2)
+    {
+      const double* pDQaX = DQa(0);
+      const double* pDQaY = DQa(1);
+      fgrad_viscstretch = 0;
+
+      /*Interpolate grad of iverse inelastic stretch to ip*/
+      double* pGradX = fgrad_viscstretch.Pointer();
+      double* pGradY = pGradX+numstress;
+      for (int i = 0; i<nen; i++)
+      {
+	    dSymMatrixT& nodal_val = nodal_viscstretch[i];
+        for (int cnt = 0; cnt < numstress; cnt++)
+        {
+          pGradX[cnt] += (*pDQaX)*nodal_val[cnt];
+	      pGradY[cnt] += (*pDQaY)*nodal_val[cnt];
+	    }
+      }
+      /*get inelastic stress*/
+      fdevQ.Set(ndof, pdevQ);
+      fviscstress = fdevQ;
+      fviscstress[0] += *pmeanQ;
+      fviscstress[1] += *pmeanQ;
+      fviscstress[2] += *pmeanQ;      
+      
+      /*integrate material force*/
+      double* pelem_val = elem_val.Pointer();
+      for (int i = 0; i<nen; i++)
+      {
+	    (*pelem_val++) -= 0.5*(fviscstress[0]*pGradX[0]+fviscstress[1]*pGradX[1]
+	        +fviscstress[2]*pGradX[2]+2.0*fviscstress[3]*pGradX[3]
+	        +2.0*fviscstress[4]*pGradX[4]+2.0*fviscstress[5]*pGradX[5])*(*pQa)*(*jac)*(*weight);
+	    (*pelem_val++) -= 0.5*(fviscstress[0]*pGradY[0]+fviscstress[1]*pGradY[1]
+	        +fviscstress[2]*pGradY[2]+2.0*fviscstress[3]*pGradY[3]
+	        +2.0*fviscstress[4]*pGradY[4]+2.0*fviscstress[5]*pGradY[5])*(*pQa)*(*jac)*(*weight);
+      }
+    }
+    else if (nsd ==3)
+    {
+      const double* pDQaX = DQa(0);
+      const double* pDQaY = DQa(1);
+      const double* pDQaZ = DQa(2);
+      fgrad_viscstretch = 0;
+      
+      /*Interpolate grad of iverse inelastic stretch to ip*/
+      double* pGradX = fgrad_viscstretch.Pointer();
+      double* pGradY = pGradX+numstress;
+      double* pGradZ = pGradY+numstress;
+      for (int i = 0; i<nen; i++)
+      {	
+	    dSymMatrixT& nodal_val = nodal_viscstretch[i];
+        for (int cnt = 0; cnt < numstress; cnt++)
+        {
+          pGradX[cnt] += (*pDQaX)*nodal_val[cnt];
+	      pGradY[cnt] += (*pDQaY)*nodal_val[cnt];
+	      pGradZ[cnt] += (*pDQaZ)*nodal_val[cnt];
+	    }
+      }
+      /*get inelastic stress*/
+      fdevQ.Set(ndof, pdevQ);
+      fviscstress = fdevQ;
+      fviscstress[0] += *pmeanQ;
+      fviscstress[1] += *pmeanQ;
+      fviscstress[2] += *pmeanQ;      
+      
+      /*integrate material force*/
+      double* pelem_val = elem_val.Pointer();
+      for (int i = 0; i<nen; i++)
+      {
+	    (*pelem_val++) -= 0.5*(fviscstress[0]*pGradX[0]+fviscstress[1]*pGradX[1]
+	        +fviscstress[2]*pGradX[2]+2.0*fviscstress[3]*pGradX[3]
+	        +2.0*fviscstress[4]*pGradX[4]+2.0*fviscstress[5]*pGradX[5])*(*pQa)*(*jac)*(*weight);
+	    (*pelem_val++) -= 0.5*(fviscstress[0]*pGradY[0]+fviscstress[1]*pGradY[1]
+	        +fviscstress[2]*pGradY[2]+2.0*fviscstress[3]*pGradY[3]
+	        +2.0*fviscstress[4]*pGradY[4]+2.0*fviscstress[5]*pGradY[5])*(*pQa)*(*jac)*(*weight);
+	    (*pelem_val++) -= 0.5*(fviscstress[0]*pGradZ[0]+fviscstress[1]*pGradZ[1]
+	        +fviscstress[2]*pGradZ[2]+2.0*fviscstress[3]*pGradZ[3]
+	        +2.0*fviscstress[4]*pGradZ[4]+2.0*fviscstress[5]*pGradZ[5])*(*pQa)*(*jac)*(*weight);
+      }
+    }
+    jac++;
+    weight++;
+  }
+}
 void SmallStrainMF::MatForceSurfMech(dArrayT& global_val)
 {
 
