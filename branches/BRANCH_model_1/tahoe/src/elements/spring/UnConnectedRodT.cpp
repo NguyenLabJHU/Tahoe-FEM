@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.1.1.1.6.1 2001-10-29 00:10:03 paklein Exp $ */
 /* created: paklein (04/05/1997)                                          */
 
 #include "UnConnectedRodT.h"
@@ -61,7 +61,7 @@ GlobalT::RelaxCodeT UnConnectedRodT::RelaxSystem(void)
 	
 		/* re-connect - more neighbors and greater distance */
 		FindNeighborT Connector(fNodes->CurrentCoordinates(), fMaxNeighborCount);
-		Connector.GetNeighors(fConnectivities, fNeighborDist);
+		Connector.GetNeighors(fRodConnectivities, fNeighborDist);
 
 		/* reset local equation number lists */	
 		ConfigureElementData();
@@ -118,7 +118,7 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		FindNeighborT Connector(fNodes->CurrentCoordinates(), fMaxNeighborCount);
 	
 		/* connect nodes - dimensions lists */
-		Connector.GetNeighors(fConnectivities, fNeighborDist);
+		Connector.GetNeighors(fRodConnectivities, fNeighborDist);
 	}
 	else                      //only use specified nodes
 	{
@@ -138,7 +138,7 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 							    fMaxNeighborCount);
 	
 		/* connect nodes - dimensions lists */
-		Connector.GetNeighors(fConnectivities, fNeighborDist);		
+		Connector.GetNeighors(fRodConnectivities, fNeighborDist);		
 	}
 	
 	/* set element equation and node lists */
@@ -155,34 +155,39 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 /* call AFTER 2 and 3 body node lists are set */
 void UnConnectedRodT::ConfigureElementData(void)
 {
-	fNumElements = fConnectivities.MajorDim();
+	/* base class connectivity and equations arrays */
+	fConnectivities.Allocate(1);
+	fConnectivities[0] = &fRodConnectivities;
+	fEqnos.Allocate(1);
+	iArray2DT& rod_eqnos = fEqnos[0];
 
 	/* allocate memory */
+	fNumElements = fRodConnectivities.MajorDim();
 	fElementCards.Allocate(fNumElements);
-	fEqnos.Allocate(fNumElements, fNumElemEqnos);
+	rod_eqnos.Allocate(fNumElements, fNumElemEqnos);
 
 	/* set 2 body element data */
 	for (int i = 0; i < fNumElements; i++)	
 	{
 		/* node and equation numbers */			
-		(fElementCards[i].NodesX()).Set(fNumElemNodes, fConnectivities(i) );		
-		(fElementCards[i].Equations()).Set(fNumElemEqnos, fEqnos(i) );
+		(fElementCards[i].NodesX()).Set(fNumElemNodes, fRodConnectivities(i) );		
+		(fElementCards[i].Equations()).Set(fNumElemEqnos, rod_eqnos(i) );
 	}
 }
 
 /* print connectivity element data */
 void UnConnectedRodT::PrintConnectivityData(ostream& out)
 {
-	out << " Number of 2 body interactions . . . . . . . . . = " << fConnectivities.MajorDim() << '\n';
+	out << " Number of 2 body interactions . . . . . . . . . = " << fRodConnectivities.MajorDim() << '\n';
 
 	/* 2-body connectivities */
 	out << "\n Connectivities:\n\n";
-	out << setw(kIntWidth) << "no.";
+	out << setw(kIntWidth) << "no."; 
 	for (int i = 1; i <= 2; i++)
 	{
 		out << setw(kIntWidth - 2) << "n[";
 		out << i << "]";
 	}
 	out << '\n';
-	fConnectivities.WriteNumbered(out);
+	fRodConnectivities.WriteNumbered(out);
 }	

@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.h,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* $Id: UnConnectedRodT.h,v 1.1.1.1.6.1 2001-10-29 00:10:03 paklein Exp $ */
 /* created: paklein (04/05/1997)                                          */
 /* Interface for a rod element group that connects itself based on the    */
 /* nodes placed in the group. All the rods in the group are assumed to    */
@@ -44,6 +44,11 @@ private:
 	/* print data */
 	void PrintConnectivityData(ostream& out);
 
+protected:
+
+	/** changing connectivities */
+	iArray2DT fRodConnectivities;
+
 private:
 
 	/* neighbor resetting increment */
@@ -56,7 +61,7 @@ private:
 	//need to store NodesUsed for reconnection. Not implemented
 	
 	/* runtime data */
-	int fReconnectCount;	
+	int fReconnectCount;
 };
 
 #endif /* _UNCONN_ROD_T_H_ */
