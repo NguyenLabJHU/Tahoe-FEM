@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.cpp,v 1.5 2004-03-14 02:27:48 paklein Exp $ */
+/* $Id: PSPASESMatrixT.cpp,v 1.6 2004-03-14 06:11:13 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "PSPASESMatrixT.h"
 
@@ -261,7 +261,7 @@ void PSPASESMatrixT::PrintLHS(bool force) const
 		const double* val = favals.Pointer(index);
 	
 		for (int j = 0; j < count; j++)
-			fOut << i+fStartEQ << " " << *col++ << " " << *val++ << '\n';
+			fOut << i+fStartEQ << " " << (*col++)+1 << " " << *val++ << '\n';
 	}
 	fOut << endl;
 }

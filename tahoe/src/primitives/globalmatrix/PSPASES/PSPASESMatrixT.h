@@ -1,12 +1,9 @@
-/* $Id: PSPASESMatrixT.h,v 1.3 2004-03-14 02:27:48 paklein Exp $ */
+/* $Id: PSPASESMatrixT.h,v 1.4 2004-03-14 06:11:13 paklein Exp $ */
 #ifndef _PSPASES_MATRIX_T_H_
 #define _PSPASES_MATRIX_T_H_
 
 /* base class */
 #include "GlobalMatrixT.h"
-
-//TEMP
-#define __PSPASES__
 
 /* library support options */
 #ifdef __PSPASES__
