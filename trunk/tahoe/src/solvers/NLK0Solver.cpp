@@ -1,4 +1,4 @@
-/* $Id: NLK0Solver.cpp,v 1.2 2002-03-22 02:27:26 paklein Exp $ */
+/* $Id: NLK0Solver.cpp,v 1.3 2002-04-02 23:27:27 paklein Exp $ */
 /* created: paklein (10/01/1996) */
 
 #include "NLK0Solver.h"
@@ -48,7 +48,7 @@ double NLK0Solver::SolveAndForm(bool junk)
 
 		/* solve equation system */
 		fUpdate = fRHS;
-		pCCSLHS->Solve(fRHS);
+		if(!pCCSLHS->Solve(fRHS)) throw eBadJacobianDet;
 	
 		/* check for positive definiteness */
 		if ( pCCSLHS->HasNegativePivot() )
@@ -64,7 +64,7 @@ double NLK0Solver::SolveAndForm(bool junk)
 	
 	/* use last positive definite tangent */
 	if (!fFormTangent)
-		fLastTangent.Solve(fRHS);
+		if (!fLastTangent.Solve(fRHS)) throw eBadJacobianDet;
 			 		
 	/* update system */
 	fFEManager.Update(fRHS);
