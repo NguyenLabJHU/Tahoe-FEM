@@ -1,4 +1,4 @@
-/* $Id: ExodusT.h,v 1.2 2001-02-20 00:04:44 paklein Exp $ */
+/* $Id: ExodusT.h,v 1.3 2001-06-14 14:49:51 sawimme Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #ifndef _EXODUS_T_H_
@@ -85,9 +85,11 @@ public:
 	void ReadGlobalLabels(ArrayT<StringT>& labels) const;
 	int NumTimeSteps(void) const;
 	void ReadTime(int step, double& time) const;
+	int NumNodeVariables (void) const;
+	int NumElementVariables (void) const;
+	int NumGlobalVariables (void) const;
 	void ReadNodalVariable(int step, int index, dArrayT& fValues) const;
-	void ReadElementVariable(int step, int block_ID, int index,
-		dArrayT& fValues) const;
+	void ReadElementVariable(int step, int block_ID, int index, dArrayT& fValues) const;
 	void ReadGlobalVariable(int step, dArrayT& fValues) const;
 
 	/* convert global element numbers to block local numbers. assumes

@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.7 2001-06-11 02:01:53 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.8 2001-06-14 14:49:51 sawimme Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -659,6 +659,33 @@ void ExodusT::ReadTime(int step, double& time) const
 		true);
 }
 
+int ExodusT::NumNodeVariables (void) const
+{
+	int num_labels;
+	Try("ExodusT::NumNodeVariables: ex_get_var_param",
+		ex_get_var_param(exoid, "n", &num_labels),
+		true);
+	return num_labels;
+}
+
+int ExodusT::NumElementVariables (void) const
+{
+	int num_labels;
+	Try("ExodusT::NumElementVariables: ex_get_var_param",
+		ex_get_var_param(exoid, "e", &num_labels),
+		true);
+	return num_labels;
+}
+
+int ExodusT::NumGlobalVariables (void) const
+{
+	int num_labels;
+	Try("ExodusT::NumGlobalVariables: ex_get_var_param",
+		ex_get_var_param(exoid, "g", &num_labels),
+		true);
+	return num_labels;
+}
+
 void ExodusT::ReadNodalVariable(int step, int index, dArrayT& fValues) const
 {
 	if (exoid < 0) throw eGeneralFail;
@@ -1201,6 +1228,9 @@ void ExodusT::ReadElementLabels(ArrayT<StringT>& labels) const { throw eGeneralF
 void ExodusT::ReadGlobalLabels(ArrayT<StringT>& labels) const { throw eGeneralFail; }
 int ExodusT::NumTimeSteps(void) const { return 0; }
 void ExodusT::ReadTime(int step, double& time) const { throw eGeneralFail; }
+int ExodusT::NumNodeVariables (void) const { return 0; }
+int ExodusT::NumElementVariables (void) const {	return 0; }
+int ExodusT::NumGlobalVariables (void) const { return 0; }
 void ExodusT::ReadNodalVariable(int step, int index, dArrayT& fValues) const { throw eGeneralFail; }
 void ExodusT::ReadElementVariable(int step, int block_ID, int index, dArrayT& fValues) const { throw eGeneralFail; }
 void ExodusT::ReadGlobalVariable(int step, dArrayT& fValues) const { throw eGeneralFail; }
