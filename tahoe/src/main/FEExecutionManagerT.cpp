@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.48 2003-08-18 03:43:29 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.49 2003-08-19 08:03:49 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -68,6 +68,9 @@ FEExecutionManagerT::FEExecutionManagerT(int argc, char* argv[], char job_char,
 
 	/* check for -dtd */
 	if (CommandLineOption("-dtd")) AddCommandLineOption("-dtd");
+
+	/* check for -xsd */
+	if (CommandLineOption("-xsd")) AddCommandLineOption("-xsd");
 }
 
 /**********************************************************************
@@ -210,7 +213,11 @@ bool FEExecutionManagerT::AddCommandLineOption(const char* str)
 		}
 	}
 	else if (option == "-dtd") {
-		RunDTD();
+		RunWriteDescription(XML_Attribute_FormatterT::DTD);
+		return true;
+	}
+	else if (option == "-xsd") {
+		RunWriteDescription(XML_Attribute_FormatterT::XSD);
 		return true;
 	}
 	
@@ -940,7 +947,7 @@ void FEExecutionManagerT::RunTHK(ifstreamT& in, ostream& status) const
 #endif /* __DEVELOPMENT__ */
 
 /* dump current DTD file */
-void FEExecutionManagerT::RunDTD(void) const
+void FEExecutionManagerT::RunWriteDescription(int doc_type) const
 {
 	try {
 //TEMP - parameters currently needed to construct an FEManagerT
@@ -959,10 +966,20 @@ void FEExecutionManagerT::RunDTD(void) const
 
 	/* write description */
 	cout << " writing description..." << endl;
-	StringT out_path("tahoe.dtd");
+	StringT out_path("tahoe");
+	XML_Attribute_FormatterT::DocTypeT doc_type_ = XML_Attribute_FormatterT::Undefined;
+	if (doc_type == XML_Attribute_FormatterT::DTD) {
+		doc_type_ = XML_Attribute_FormatterT::DTD;
+		out_path.Append(".dtd");
+	}
+	else if (doc_type == XML_Attribute_FormatterT::XSD) {
+		doc_type_ = XML_Attribute_FormatterT::XSD;
+		out_path.Append(".xsd");
+	}
+	XML_Attribute_FormatterT attribute(doc_type_);
+
 	ofstreamT out;
 	out.open(out_path);
-	XML_Attribute_FormatterT attribute;
 	attribute.InitDescriptionFile(out);
 	
 	const ArrayT<ParameterListT*>& branches = tree.Branches();

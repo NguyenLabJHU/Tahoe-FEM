@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.19 2003-08-18 03:43:29 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.20 2003-08-19 08:03:49 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #ifndef _FE_EXECMAN_T_H_
 #define _FE_EXECMAN_T_H_
@@ -90,8 +90,8 @@ private:
 	void RunTHK(ifstreamT& in, ostream& status) const;
 #endif
 
-	/** dump current DTD file */
-	void RunDTD(void) const;
+	/** dump current parameter description file */
+	void RunWriteDescription(int doc_type) const;
 	/*@}*/
 
 #ifdef BRIDGING_ELEMENT
