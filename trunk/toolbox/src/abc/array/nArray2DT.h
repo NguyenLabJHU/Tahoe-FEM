@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.6 2001-08-29 07:05:40 paklein Exp $ */
+/* $Id: nArray2DT.h,v 1.7 2001-10-16 21:00:15 paklein Exp $ */
 /* created: paklein (07/09/1996)                                          */
 /* nArrayT with subdimension - row major storage                          */
 
@@ -55,7 +55,9 @@ public:
 	/* return transposed list (re-dimensions) - don't call with self! */
 	void Transpose(const nArray2DT<nTYPE>& source);
 	  	
-	/** copy the specified row into array. */
+	/** copy the specified row into array.
+	 * \param array destination for row data. Returns with
+	 *        length equation to the minor dimension of *this. */
 	void RowCopy(int row, nArrayT<nTYPE>& array) const;
 
 	/** copy the specified row into array without range checking. */
@@ -404,9 +406,8 @@ inline void nArray2DT<nTYPE>::RowCopy(int row, nTYPE* array) const
 template <class nTYPE>
 inline void nArray2DT<nTYPE>::RowCopy(int row, nArrayT<nTYPE>& array) const
 {
-#if __option(extended_errorcheck)
-	if (array.Length() < MinorDim()) throw eSizeMismatch;
-#endif
+	/* redimension if needed */
+	if (array.Length() != MinorDim()) array.Allocate(MinorDim());
 
 	/* call wrapper */
 	RowCopy(row, array.Pointer());
