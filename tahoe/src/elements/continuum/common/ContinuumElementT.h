@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.34 2005-02-13 22:17:21 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.35 2005-02-26 22:41:47 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -86,10 +86,12 @@ public:
 	/** form of tangent matrix - symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
-	/* initialize/finalize time increment */
+	/** \name initialize/finalize time increment */
+	/*@{*/
 	virtual void InitStep(void);
 	virtual void CloseStep(void);
 	virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
+	/*@}*/
 
 	/** read restart information from stream */
 	virtual void ReadRestart(istream& in);
