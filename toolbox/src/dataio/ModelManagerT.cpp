@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.47 2005-01-13 01:47:36 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.48 2005-01-31 19:15:13 cjkimme Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -1091,8 +1091,10 @@ void ModelManagerT::ManyNodeSets (const ArrayT<StringT>& ID, iArrayT& nodes)
 	/* quick exits */
 	if (ID.Length() == 0)
 		nodes.Dimension(0);
-	else if (ID.Length() == 1)
+	else if (ID.Length() == 1) {
 		nodes = NodeSet(ID[0]);
+	        nodes.SortAscending();
+	}
 	else
 	{
 		ArrayT<char> flag(NumNodes());
