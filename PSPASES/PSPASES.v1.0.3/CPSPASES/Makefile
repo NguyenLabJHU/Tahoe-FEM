@@ -28,6 +28,8 @@ auxil.o:	pspaces.h
 dpotrf.o:
 	$(FC) -c $(BLASFLAG) dpotrf.f
 
+#$(FC) -c $(BLASFLAG) dpotrf.f
+
 .f.o:
 	$(FC) -c $(FFLAGS) $(INCLUDE_DIR) $*.f
 .c.o: 
