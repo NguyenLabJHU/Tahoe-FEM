@@ -1,4 +1,4 @@
-/* $Id: SSMF.cpp,v 1.8 2003-11-24 17:35:12 thao Exp $ */
+/* $Id: SSMF.cpp,v 1.9 2003-11-26 23:17:05 thao Exp $ */
 #include "SSMF.h"
 
 #include "OutputSetT.h"
@@ -32,7 +32,10 @@ SSMF::SSMF(const ElementSupportT& support, const FieldT& field):
   MFSupportT(support),
   ftraction(LocalArrayT::kUnspecified),
   fsurf_disp(LocalArrayT::kDisp),
-  fsurf_coords(LocalArrayT::kInitCoords) {}
+  fsurf_coords(LocalArrayT::kInitCoords) {
+ 
+  //  fMassType = kConsistentMass;
+}
 
 void SSMF::Initialize(void)
 {
@@ -560,11 +563,7 @@ void SSMF::MatForceDynamic(dArrayT& elem_val)
   /*intialize shape function data*/
   const double* jac = fShapes->IPDets();
   const double* weight = fShapes->IPWeights();
-    if (elem ==6 && 0) {
-      cout << "\nAcc: "<<fLocAcc;
-      cout << "\nVel: "<<fLocVel;
-      cout <<"\n fDisp: "<<fLocDisp;
-    }
+
   fShapes->TopIP();
   while(fShapes->NextIP())
   {
@@ -579,14 +578,7 @@ void SSMF::MatForceDynamic(dArrayT& elem_val)
     fShapes->GradU(fLocVel,fGradVel); 
     fShapes->InterpolateU(fLocVel, fVel);
     fShapes->InterpolateU(fLocAcc, fAcc);
-    if (elem ==6 && 0)
-    {
-      cout << "\nelem "<<elem<<" ip "<<CurrIP()<<endl; 
-      cout << "\nfGradVel: "<<fGradVel;
-      cout <<"\n gradU: "<< gradU;
-      cout <<"\n fVel: "<<fVel;
-      cout <<"\n fAcc: "<<fAcc;
-      }
+
     double* pelem_val = elem_val.Pointer();
     if (NumSD() ==2)
     {
