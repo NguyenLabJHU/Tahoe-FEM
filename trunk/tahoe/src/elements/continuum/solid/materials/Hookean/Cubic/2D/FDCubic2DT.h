@@ -1,4 +1,4 @@
-/* $Id: FDCubic2DT.h,v 1.7 2004-07-15 08:27:09 paklein Exp $ */
+/* $Id: FDCubic2DT.h,v 1.8 2005-01-13 00:11:24 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #ifndef _FD_CUBIC_2D_T_H_
 #define _FD_CUBIC_2D_T_H_
@@ -21,6 +21,15 @@ public:
 	 * for more information. \note plane strain not implemented, but 
 	 * could be using CubicT::DilatationFactor2D. */
 	virtual double Pressure(void) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
