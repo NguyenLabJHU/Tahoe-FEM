@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.11 2001-08-20 15:09:41 rdorgan Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.12 2001-09-15 01:20:34 paklein Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList3DT.h"
@@ -385,10 +385,10 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		if (!pmat) throw eOutOfMemory;
 		
 		/* set thermal LTf pointer */
-		int LTfnum = pmat->ThermalLTfNumber();
+		int LTfnum = pmat->ThermalStrainSchedule();
 		if (LTfnum > -1)
 		{
-			pmat->SetThermalLTfPtr(fElementGroup.GetLTfPtr(LTfnum));
+			pmat->SetThermalSchedule(fElementGroup.GetLTfPtr(LTfnum));
 			
 			/* set flag */
 			fHasThermal = true;
