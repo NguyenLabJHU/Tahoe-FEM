@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.8 2002-06-08 20:20:48 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.9 2002-06-09 22:44:01 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "NodeManagerT.h"
@@ -340,19 +340,6 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 		if (fFields[i]->Group() == group)
 			fFields[i]->Update(update, eq_start, num_eq);
 
-	/* update current configurations */
-	if (fCoordUpdate && fCoordUpdate->Group() == group)
-	{
-		/* should be allocated */
-		if (!fCurrentCoords) {
-			cout << "\n NodeManagerT::Update: current coords not initialized" << endl;
-			throw eGeneralFail;
-		}
-	
-		/* update */
-		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
-	}	
-
 	/* external nodes */
 	if (Size() > 1)
 		for (int i = 0; i < fFields.Length(); i++)
@@ -373,6 +360,19 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 			/* apply update - external nodes to be updated are marked with 1 */
 			integrator.MappedCorrector(field, fExNodes, xeqnos, update);
 		}
+
+	/* update current configurations */
+	if (fCoordUpdate && fCoordUpdate->Group() == group)
+	{
+		/* should be allocated */
+		if (!fCurrentCoords) {
+			cout << "\n NodeManagerT::Update: current coords not initialized" << endl;
+			throw eGeneralFail;
+		}
+	
+		/* update */
+		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+	}	
 	
 	/* inherited - update external DOF */
 	XDOF_ManagerT::Update(group, update);
@@ -492,13 +492,13 @@ void NodeManagerT::SetEquationNumbers(int group)
 			/* mark active external nodes for update of active
 			 * external using controller */
 			for (int j = 0; j < xeqnos.Length(); j++)
-				if (xeqnos[j] >= 0) 
+				if (xeqnos[j] >= FieldT::kInit) 
 					xeqnos[j] = 1;
 
 			/* mark all external as inactive for setting local
 			 * equation numbers */
 			for (int j = 0; j < fExNodes.Length(); j++)
-				eqnos.SetRow(fExNodes[i], FieldT::kExternal);	
+				eqnos.SetRow(fExNodes[j], FieldT::kExternal);	
 		}
 
 	/* assign active equation numbers node-by-node across fields
