@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.6 2001-08-01 16:06:14 strohban Exp $
+# $Id: makefile.template,v 1.7 2002-03-06 00:29:20 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -119,6 +119,9 @@ TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 #AX_CFLAGS = $(AX_INC) -D__ACCESS__
 #AX_LFLAGS = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
 ############################### build options ###########################
+
+# extra macros for specific modules
+include $(MACRO_DIR)/tahoe.extras
 
 # include common target definitions
 include $(MACRO_DIR)/make.targets
