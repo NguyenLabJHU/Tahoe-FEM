@@ -1,4 +1,4 @@
-/* $Id: FBC_CardT.cpp,v 1.11 2003-10-28 07:13:09 paklein Exp $ */
+/* $Id: FBC_CardT.cpp,v 1.12 2003-11-04 01:32:06 paklein Exp $ */
 /* created: paklein (06/15/1996) */
 #include "FBC_CardT.h"
 
@@ -14,8 +14,8 @@ using namespace Tahoe;
 
 /* copy behavior for arrays FBC_CardT's */
 namespace Tahoe {
-template<> const bool ArrayT<FBC_CardT*>::fByteCopy = true;
-template<> const bool ArrayT<FBC_CardT>::fByteCopy = false;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<FBC_CardT*>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<FBC_CardT>::fByteCopy = false;
 } /* namespace Tahoe */
 
 /* constructor */

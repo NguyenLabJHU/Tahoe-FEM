@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.cpp,v 1.10 2003-10-28 07:15:37 paklein Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.11 2003-11-04 01:37:05 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "KBC_ControllerT.h"
 
@@ -11,8 +11,8 @@ using namespace Tahoe;
 
 /* array behavior */
 namespace Tahoe {
-template<> const bool ArrayT<KBC_ControllerT>::fByteCopy = false;
-template<> const bool ArrayT<KBC_ControllerT*>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<KBC_ControllerT>::fByteCopy = false;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<KBC_ControllerT*>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* constructor */
