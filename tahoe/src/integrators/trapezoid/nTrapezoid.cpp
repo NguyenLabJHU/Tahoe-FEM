@@ -1,4 +1,4 @@
-/* $Id: nTrapezoid.cpp,v 1.2.4.2 2002-04-24 01:29:23 paklein Exp $ */
+/* $Id: nTrapezoid.cpp,v 1.2.4.3 2002-05-07 07:27:46 paklein Exp $ */
 /* created: paklein (10/03/1999) */
 
 #include "nTrapezoid.h"
@@ -73,7 +73,7 @@ void nTrapezoid::Corrector(BasicFieldT& field, const dArrayT& update,
 		{
 			double v = update[eq];
 			*pd += dcorr_v*v;
-			*pv += v;
+			*pv = v;
 		}
 		pd++;
 		pv++;
@@ -101,7 +101,7 @@ void nTrapezoid::MappedCorrector(BasicFieldT& field, const iArrayT& map,
 			{
 				double v = *pupdate;
 				*pd += dcorr_v*v;
-				*pv += v;
+				*pv = v;
 			}
 			
 			/* next */
