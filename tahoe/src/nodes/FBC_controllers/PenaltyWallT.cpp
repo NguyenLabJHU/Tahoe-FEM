@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.2 2001-09-07 00:54:13 paklein Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.3 2001-09-11 06:01:45 paklein Exp $ */
 /* created: paklein (02/25/1997)                                          */
 
 #include "PenaltyWallT.h"
@@ -11,6 +11,7 @@
 #include "fstreamT.h"
 #include "FEManagerT.h"
 #include "eControllerT.h"
+#include "Vector3T.h"
 
 const double Pi = acos(-1.0);
 
@@ -36,12 +37,14 @@ PenaltyWallT::PenaltyWallT(FEManagerT& fe_manager,
 /* tangent */
 void PenaltyWallT::ApplyLHS(void)
 {	
+#if 0
 	//TEMP
 	if (fmu > kSmall)
 	{
 		cout << "\n PenaltyWallT::ApplyLHS: tangent is frictionless only" << endl;
 		throw eGeneralFail;
 	}
+#endif
 
 	double constK = 0.0;
 	int formK = fController->FormK(constK);
@@ -76,10 +79,34 @@ void PenaltyWallT::EchoData(ifstreamT& in, ostream& out)
 
 	/* echo parameters */
 	in >> fnormal; fnormal.UnitVector();
-	in >> fmu;    if (fmu < 0.0) throw eBadInputValue;
+	out << " Wall normal:\n" << fnormal << '\n';
+	
+	/* transformation tensor */
+	if (rCoords.MinorDim() == 2)
+	{
+		/* set column vectors */
+		fQ.SetCol(0, fnormal);
+		fQ(0,1) =-fnormal[1];
+		fQ(1,1) = fnormal[0];
+	}
+	else if (rCoords.MinorDim() == 3)
+	{
+		Vector3T<double> v0(fnormal.Pointer()), v1, v2; 
+		
+		/* find non-colinear directions */
+		int i = 0;
+		v2.Random(++i);
+		while (v2.Norm() < 1.0e-06 || Vector3T<double>::Dot(v0,v2) > 0.99)
+			v2.Random(++i);	
+		v1.Cross(v0,v2);
+		v2.Cross(v0,v1);
 
-	out << " Wall normal:\n " << fnormal << '\n';
-	out << " Penalty stiffness . . . . . . . . . . . . . . . = " << fk << '\n';
+		/* write column vectors */
+		fQ.SetCol(0,v0);
+		fQ.SetCol(1,v1);
+		fQ.SetCol(2,v2);
+	}
+	else throw eGeneralFail;
 }
 
 /* initialize data */
@@ -101,7 +128,8 @@ void PenaltyWallT::Initialize(void)
 void PenaltyWallT::ComputeContactForce(double kforce)
 {
 	/* with "friction */
-	if (fmu > kSmall)
+//	if (fmu > kSmall)
+	if (false)
 	{
 		//TEMP
 		cout << "\n PenaltyWallT::ComputeContactForce: general (2D/3D) friction implementation\n";
