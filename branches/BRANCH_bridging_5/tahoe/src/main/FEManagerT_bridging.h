@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.11.4.14 2004-04-23 20:25:59 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.11.4.15 2004-04-24 01:43:37 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -234,6 +234,16 @@ protected:
 		const RaggedArray2DT<int>& ghost_neighbors_all, RaggedArray2DT<int>& ghost_neighbors_i, 
 		AutoArrayT<int>& overlap_cell_i, AutoArrayT<int>& overlap_node_i) const;
 
+	/** generate "inverse" connectivities for active elements in the support of active nodes.
+	 * For each node in the forward map, collect the elements which are part of its support
+	 * \param element_group source of element connectivities
+	 * \param active_nodes list of nodes for which to generate an element list
+	 * \param active_elements list of elements to include in the connectivities
+	 * \param transpose_connects returns with the list of active elements in the support of 
+	 *        active nodes. The major dimension is the number of active nodes */
+	void TransposeConnects(const ContinuumElementT& element_group, const ArrayT<int>& active_nodes,
+		const ArrayT<int>& active_elements, RaggedArray2DT<int>& transpose_connects);
+
 	/** compute bond contribution to the nodal internal force
 	 * \param R_i bond vector
 	 * \param ghost_neighbors neighbor list containing only bond from free points to
@@ -253,12 +263,6 @@ protected:
 	void ComputeSum_signR_Na(const dArrayT& R_i, const RaggedArray2DT<int>& ghost_neighbors, 
 		const dArray2DT& point_coords, const InverseMapT& overlap_node_map, dArrayT& sum_R_N) const;
 
-#if 0
-	void ComputeSum_signR_Na(const dArrayT& R_i, const RaggedArray2DT<int>& ghost_neighbors, 
-		const dArray2DT& point_coords, const InverseMapT& overlap_node_map, dArrayT& sum_R_N,
-		AutoArrayT<int>& overlap_cell_i, AutoArrayT<double>& sum_R, AutoArrayT<int>& overlap_atom_i) const;
-#endif
-
 	/** compute Cauchy-Born contribution to the nodal internal force
 	 * \param R bond vector
 	 * \param V_0 Cauchy-Born reference volume
@@ -276,12 +280,12 @@ protected:
 		const dArray2DT& rho, dArrayT& f_a, double smoothing, double k2, dArray2DT& df_dp, 
 		LAdMatrixT& ddf_dpdp) const;
 
-#if 0
-	void Compute_df_dp_all(const dArrayT& R, double V_0, const ContinuumElementT& coarse, 
-		const ArrayT<int>& overlap_cell, const ArrayT<int>& overlap_node, const InverseMapT& overlap_node_map,
-		const dArray2DT& rho, dArrayT& f_a, const ArrayT<int>& overlap_atom, const InverseMapT& overlap_atom_map,
-		ArrayT<double>& f_alpha, double smoothing, double k2, dArray2DT& df_dp, LAdMatrixT& ddf_dpdp) const;
-#endif
+	void Compute_df_dp(const dArrayT& R, double V_0, const ArrayT<char>& cell_type, 
+		const InverseMapT& overlap_cell_map, const ArrayT<int>& overlap_node, const InverseMapT& overlap_node_map,
+		const iArray2DT& cell_eq_i,
+		const RaggedArray2DT<int>& inv_connects_i, const RaggedArray2DT<int>& inv_equations_i,
+		const dArray2DT& rho, dArrayT& f_a, double smoothing, double k2, dArray2DT& df_dp, 
+		GlobalMatrixT& ddf_dpdp) const;
 	/*@}*/
 
 private:
