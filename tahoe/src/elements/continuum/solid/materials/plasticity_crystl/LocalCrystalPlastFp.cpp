@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.9.2.2 2002-11-13 08:44:25 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.9.2.3 2002-11-13 22:47:18 paklein Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -1067,6 +1067,7 @@ void LocalCrystalPlastFp::InitialEstimateForHardening()
   const dArrayT& propH = fHardening->MaterialProperties();
   const dArrayT& propKE = fKinetics->MaterialProperties();
   double m = propKE[0];
+  double time = fFDMatSupport.Time();
 
   // some local tensors
   dSymMatrixT fCeDot (kNSD);
@@ -1112,7 +1113,7 @@ void LocalCrystalPlastFp::InitialEstimateForHardening()
       fA[i].ToMatrix(fMatx2);
 
       double tmp =  2. * fdt * dArrayT::Dot(fMatx2, fMatx3);
-      if (ftime >= 0.0) 
+      if (time >= 0.0) 
       //if (ftime <= fdt)
         fDGamma[i] = tmp;
       else
@@ -1126,7 +1127,7 @@ void LocalCrystalPlastFp::InitialEstimateForHardening()
 	   // (Z*SBar)_s+0.5*(Cijkl*(CeBar*Z)_s):(2*CeBar*Z)_s
 	   lhs(i,j) = dArrayT::Dot(fMatx2, fMatx1);
 
-	   if (ftime >= 0.0) {
+	   if (time >= 0.0) {
 	   //if (ftime <= fdt) {
 	      //if (i == j) lhs(i, j) += fHardening->HardeningModulus();
 	      if (i == j) lhs(i, j) += 1.;

@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.cpp,v 1.11.2.2 2002-11-13 08:44:25 paklein Exp $ */
+/* $Id: PolyCrystalMatT.cpp,v 1.11.2.3 2002-11-13 22:47:19 paklein Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -31,8 +31,8 @@ const int kNSD = 3;
 
 PolyCrystalMatT::PolyCrystalMatT(ifstreamT& in, const FDMatSupportT& support) :
   FDHookeanMatT(in, support),
-  //fdt           (element.FEManager().TimeStep()),
-  ftime         (FDMatSupport().Time()),
+  fdt           (FDMatSupport().TimeStep()),
+  //ftime       (FDMatSupport().Time()),
   fLocLastDisp  (FDMatSupport().FiniteStrain()->LastDisplacements()),
   fLocDisp      (FDMatSupport().FiniteStrain()->Displacements()),
   fSlipGeometry (NULL),
