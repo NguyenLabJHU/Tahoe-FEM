@@ -1,4 +1,4 @@
-/* $Id: MeshFreeNodalShapeFunctionT.cpp,v 1.5 2004-07-29 23:42:12 cjkimme Exp $ */
+/* $Id: MeshFreeNodalShapeFunctionT.cpp,v 1.6 2005-01-27 02:03:31 cjkimme Exp $ */
 #include "MeshFreeNodalShapeFunctionT.h"
 #include "toolboxConstants.h"
 #include "MeshFreeSupport2DT.h"
@@ -65,6 +65,21 @@ int MeshFreeNodalShapeFunctionT::SetFieldAt(const dArrayT& x, const dArrayT* shi
 {
 	/* compute derivatives */
 	if (fMFSupport->SetFieldAt(x, shift))
+	{
+		/* keep neighbors data */
+		fNeighbors.Alias(fMFSupport->NeighborsAt());
+		
+		return 1;
+	}
+	else
+		return 0;
+}
+
+/* compute shape function at arbitrary point with given neighbor list*/
+int MeshFreeNodalShapeFunctionT::SetFieldUsing(const dArrayT& x, const ArrayT<int>& nodes)
+{
+	/* compute derivatives */
+	if (fMFSupport->SetFieldUsing(x, nodes))
 	{
 		/* keep neighbors data */
 		fNeighbors.Alias(fMFSupport->NeighborsAt());
