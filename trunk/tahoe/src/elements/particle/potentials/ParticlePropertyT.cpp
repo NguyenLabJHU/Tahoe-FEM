@@ -1,4 +1,4 @@
-/* $Id: ParticlePropertyT.cpp,v 1.7 2003-08-07 21:11:35 fwdelri Exp $ */
+/* $Id: ParticlePropertyT.cpp,v 1.8 2003-10-28 07:08:39 paklein Exp $ */
 #include "ParticlePropertyT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -6,8 +6,8 @@
 using namespace Tahoe;
 
 namespace Tahoe {
-const bool ArrayT<ParticlePropertyT*>::fByteCopy = true; 
-const bool ArrayT<ParticlePropertyT>::fByteCopy = false; 
+template<> const bool ArrayT<ParticlePropertyT*>::fByteCopy = true; 
+template<> const bool ArrayT<ParticlePropertyT>::fByteCopy = false; 
 }
 
 /* constructor */
