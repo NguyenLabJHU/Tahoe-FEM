@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.h,v 1.8.2.3 2002-12-27 23:02:41 paklein Exp $ */
+/* $Id: CommunicatorT.h,v 1.8.2.4 2003-01-06 18:37:52 paklein Exp $ */
 #ifndef _COMMUNICATOR_T_H_
 #define _COMMUNICATOR_T_H_
 
@@ -20,6 +20,7 @@ namespace Tahoe {
 /* forward declarations */
 template <class TYPE> class nArrayT;
 template <class TYPE> class ArrayT;
+class ofstreamT;
 
 /** interface to handle process to process communication. If compiled
  * with -D__TAHOE_MPI__, will implemented process-to-process communication
