@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.20 2004-02-03 08:24:57 paklein Exp $
+# $Id: makefile,v 1.20.12.1 2004-05-05 18:37:40 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -34,7 +34,9 @@ OBJ = \
 	FiniteStrainAxiT.o \
 	TotalLagrangianAxiT.o \
 	UpdatedLagrangianAxiT.o \
-	SimoQ1P0Axi.o
+	SimoQ1P0Axi.o \
+	SimoQ1P0_inv.o \
+	SimoQ1P0Axi_inv.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -68,7 +70,9 @@ SRC = \
 	FiniteStrainAxiT.cpp \
 	TotalLagrangianAxiT.cpp \
 	UpdatedLagrangianAxiT.cpp \
-	SimoQ1P0Axi.cpp
+	SimoQ1P0Axi.cpp \
+	SimoQ1P0_inv.cpp \
+	SimoQ1P0Axi_inv.cpp
 
 ##################### (3) headers
 #
@@ -94,7 +98,9 @@ HDR = \
 	FiniteStrainAxiT.h \
 	TotalLagrangianAxiT.h \
 	UpdatedLagrangianAxiT.h \
-	SimoQ1P0Axi.h
+	SimoQ1P0Axi.h \
+	SimoQ1P0_inv.h \
+	SimoQ1P0Axi_inv.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
