@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.h,v 1.6 2001-12-16 23:50:57 paklein Exp $ */
+/* $Id: ifstreamT.h,v 1.7 2002-01-05 06:55:01 paklein Exp $ */
 /* created: paklein (03/03/1999) */
 
 #ifndef _IFSTREAM_T_H_
@@ -70,10 +70,6 @@ public:
 	 * \param line entire line from string containing key
 	 * \return true if key found, else false */
 	bool FindString(const char* key, StringT& line);
-
-	/** C-C++(2.4.6)/MSL doesn't to path's right. temporarily needed to
-	 * remove "ups" and "downs" from pathnames. Used only for Mac */
-	void FixPath(const char* path_old, StringT& path) const; 
 
 private:
 

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2001-02-22 23:45:23 paklein Exp $
+# $Id: makefile,v 1.6 2002-01-05 06:55:01 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,7 +7,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	ifstreamT.o \
-	ofstreamT.o
+	ofstreamT.o \
+	fstreamT.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -17,7 +19,8 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	ifstreamT.cpp \
-	ofstreamT.cpp
+	ofstreamT.cpp \
+	fstreamT.cpp
 
 # headers
 HDR = \
