@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.h,v 1.3.38.1 2004-05-13 16:43:36 paklein Exp $ */
+/* $Id: ScaledVelocityNodesT.h,v 1.3.38.2 2004-05-26 18:09:43 paklein Exp $ */
 #ifndef _SCALED_VELOCITY_NODES_T_H_
 #define _SCALED_VELOCITY_NODES_T_H_
 
@@ -26,9 +26,6 @@ public:
 	/** constructor */
 	ScaledVelocityNodesT(NodeManagerT& node_manager, BasicFieldT& field);
 
-	/** destructor */
- 	~ScaledVelocityNodesT(void);
-
 	/** initialize data. Must be called immediately after construction */
 	virtual void Initialize(ifstreamT& in);
 
@@ -40,10 +37,24 @@ public:
 	
 	virtual bool IsICController(void) { return true; }
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 	
 	void SetBCCards(void);
-	/*@}*/
 
 protected:
 
@@ -80,7 +91,8 @@ protected:
 	double fMass;
 	
 	/** initial velocity distribution random number gen */
-	RandomNumberT* fRandom;
+	RandomNumberT fRandom;
+
 	/** initial temperature */
 	double fT_0;
 };

@@ -1,4 +1,4 @@
-/* $Id: TorsionKBCT.cpp,v 1.3.32.4 2004-05-21 21:25:57 paklein Exp $ */
+/* $Id: TorsionKBCT.cpp,v 1.3.32.5 2004-05-26 18:09:43 paklein Exp $ */
 #include "TorsionKBCT.h"
 #include "NodeManagerT.h"
 #include "ifstreamT.h"
@@ -18,9 +18,8 @@ inline static void CrossProduct(const dArrayT& A, const dArrayT& B, dArrayT& AxB
 };
 
 /* constructor */
-TorsionKBCT::TorsionKBCT(NodeManagerT& node_manager, const double& time):
-	KBC_ControllerT(node_manager),
-	fTime(time),
+TorsionKBCT::TorsionKBCT(const BasicSupportT& support):
+	KBC_ControllerT(support),
 	fStartTime(0.0),
 	fw(0.0),
 	fAxis(-1),
@@ -33,7 +32,7 @@ TorsionKBCT::TorsionKBCT(NodeManagerT& node_manager, const double& time):
 void TorsionKBCT::InitialCondition(void)
 {
 	/* store start time */
-	fStartTime = fTime;
+	fStartTime = fSupport.Time();
 }
 
 /* initialize/finalize/reset step */

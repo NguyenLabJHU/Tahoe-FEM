@@ -1,4 +1,4 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.9.2.5 2004-05-22 01:17:38 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.9.2.6 2004-05-26 18:09:42 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "BimaterialK_FieldT.h"
 
@@ -20,8 +20,8 @@ using namespace Tahoe;
 const double Pi = acos(-1.0);
 
 /* constructor */
-BimaterialK_FieldT::BimaterialK_FieldT(NodeManagerT& node_manager):
-	K_FieldT(node_manager),
+BimaterialK_FieldT::BimaterialK_FieldT(const BasicSupportT& support):
+	K_FieldT(support),
 	fmu_1(-1.0), fnu_1(-1.0), fkappa_1(-1.0),	
 	fGroupNumber_1(-1), fMaterialNumber_1(-1),
 	fmu_2(-1.0), fnu_2(-1.0), fkappa_2(-1.0),	
@@ -69,7 +69,7 @@ void BimaterialK_FieldT::TakeParameterList(const ParameterListT& list)
 	K_FieldT::TakeParameterList(list);
 
 	/* only 2D for now */
-	int nsd = fNodeManager.NumSD();
+	int nsd = fSupport.NumSD();
 	if (nsd != 2) ExceptionT::GeneralFail(caller, "must be 2D: %d", nsd);
 
 	/* resolve elastic properties */
@@ -164,7 +164,7 @@ void BimaterialK_FieldT::TakeParameterList(const ParameterListT& list)
 	fUHP = UpperHalfPlane();
 	
 //TEMP - tip tracking not supporting for parallel execution
-	if (fNearTipGroupNum != -1 && fNodeManager.Size() > 1) 
+	if (fNearTipGroupNum != -1 && fSupport.Size() > 1) 
 		ExceptionT::BadInputValue(caller, "tip tracking not implemented in parallel");
 
 #if 0
@@ -250,7 +250,7 @@ void BimaterialK_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 		fmu_1 = iso->Mu();
 		fnu_1 = iso->Poisson();	
 		fkappa_1 = 3.0 - 4.0*fnu_1;
-		if (fNodeManager.NumSD() == 2 && mat->Constraint() == SolidMaterialT::kPlaneStress)
+		if (fSupport.NumSD() == 2 && mat->Constraint() == SolidMaterialT::kPlaneStress)
 			fkappa = (3.0 - fnu_1)/(1.0 + fnu_1);
 	}
 
@@ -266,7 +266,7 @@ void BimaterialK_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 		fmu_2 = iso->Mu();
 		fnu_2 = iso->Poisson();	
 		fkappa_2 = 3.0 - 4.0*fnu_2;
-		if (fNodeManager.NumSD() == 2 && mat->Constraint() == SolidMaterialT::kPlaneStress)
+		if (fSupport.NumSD() == 2 && mat->Constraint() == SolidMaterialT::kPlaneStress)
 			fkappa = (3.0 - fnu_2)/(1.0 + fnu_2);
 	}
 
@@ -330,8 +330,8 @@ void BimaterialK_FieldT::SetFieldFactors(int side, double eps, double mu,
 	if (side != 1 && side != -1) ExceptionT::GeneralFail("BimaterialK_FieldT::SetFieldFactors");
 
 	/* (initial) nodal coordinates */
-	int nsd = fNodeManager.NumSD();
-	const dArray2DT& init_coords = fNodeManager.InitialCoordinates();
+	int nsd = fSupport.NumSD();
+	const dArray2DT& init_coords = fSupport.InitialCoordinates();
 
 	/* coefficient */
 	double a = exp(Pi*eps)/(1.0 + exp(2.0*Pi*eps))/(2.0*G)/sqrt(2.0*Pi);
@@ -403,7 +403,7 @@ int BimaterialK_FieldT::UpperHalfPlane(void) const
 	if (fNodes_1.Length() == 0 && fNodes_2.Length() == 0) return 1;
 
 	/* undeformed coordinates */
-	const dArray2DT& init_coords = fNodeManager.InitialCoordinates();
+	const dArray2DT& init_coords = fSupport.InitialCoordinates();
 	int nsd = init_coords.MinorDim();
 
 	/* compute polar angles */

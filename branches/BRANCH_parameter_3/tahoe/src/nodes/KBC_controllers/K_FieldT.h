@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.h,v 1.8.18.4 2004-05-22 01:17:38 paklein Exp $ */
+/* $Id: K_FieldT.h,v 1.8.18.5 2004-05-26 18:09:42 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #ifndef _K_FIELD_T_H_
 #define _K_FIELD_T_H_
@@ -32,7 +32,7 @@ public:
 	};
 
 	/* constructor */
-	K_FieldT(NodeManagerT& node_manager);
+	K_FieldT(const BasicSupportT& support);
 
 	/* initial condition/restart functions
 	 *

@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.18.2.5 2004-05-22 01:17:38 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.18.2.6 2004-05-26 18:09:42 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
@@ -27,8 +27,8 @@ const double Pi = acos(-1.0);
 //const double TipNoise = 1.0e-06;
 
 /* constructor */
-K_FieldT::K_FieldT(NodeManagerT& node_manager):
-	KBC_ControllerT(node_manager),
+K_FieldT::K_FieldT(const BasicSupportT& support):
+	KBC_ControllerT(support),
 	fLTf1(NULL),
 	fLTf2(NULL),
 	fK1(0.0),
@@ -306,7 +306,7 @@ void K_FieldT::TakeParameterList(const ParameterListT& list)
 	KBC_ControllerT::TakeParameterList(list);
 
 	/* only 2D for now */
-	int nsd = fNodeManager.NumSD();
+	int nsd = fSupport.NumSD();
 	if (nsd != 2) ExceptionT::GeneralFail(caller, "must be 2D: %d", nsd);
 
 	/* K_I */
@@ -315,7 +315,7 @@ void K_FieldT::TakeParameterList(const ParameterListT& list)
 		fK1 = K1->GetParameter("K");
 		int num_LTf1 = K1->GetParameter("schedule");
 		num_LTf1--;
-		fLTf1 = fNodeManager.Schedule(num_LTf1);
+		fLTf1 = fSupport.Schedule(num_LTf1);
 		if (!fLTf1) ExceptionT::BadInputValue(caller, "could not resolve schedule %d", num_LTf1+1);	
 	}
 
@@ -325,7 +325,7 @@ void K_FieldT::TakeParameterList(const ParameterListT& list)
 		fK2 = K2->GetParameter("K");
 		int num_LTf2 = K2->GetParameter("schedule");
 		num_LTf2--;
-		fLTf2 = fNodeManager.Schedule(num_LTf2);
+		fLTf2 = fSupport.Schedule(num_LTf2);
 		if (!fLTf2) ExceptionT::BadInputValue(caller, "could not resolve schedule %d", num_LTf2+1);	
 	}
 
@@ -410,7 +410,7 @@ void K_FieldT::TakeParameterList(const ParameterListT& list)
 	fK2Disp.Dimension(fNodes.Length(), nsd);
 	
 //TEMP - tip tracking not supporting for parallel execution
-	if (fNearTipGroupNum != -1 && fNodeManager.Size() > 1) 
+	if (fNearTipGroupNum != -1 && fSupport.Size() > 1) 
 		ExceptionT::BadInputValue(caller, "tip tracking not implemented in parallel");
 
 #if 0
@@ -489,7 +489,7 @@ void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
 	const char caller[] = "K_FieldT::GetNewTipCoordinates";
 
 	/* near tip element group */
-	const FEManagerT& fe_man = fNodeManager.FEManager();
+	const FEManagerT& fe_man = fSupport.FEManager();
 	ElementBaseT* neartip_group = fe_man.ElementGroup(fNearTipGroupNum);
 	if (!neartip_group)
 		ExceptionT::GeneralFail(caller, "could not resolve near tip element group number %d", fNearTipGroupNum+1);
@@ -512,14 +512,14 @@ void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
 			/* get new tip coordinates */
 			double tip_noise = fTrackingParameters[0];
 			if (maxval > tip_noise)
-				fNodeManager.InitialCoordinates().RowCopy(maxrow, tip_coords);
+				fSupport.InitialCoordinates().RowCopy(maxrow, tip_coords);
 
 			break;
 		}
 		case kThreshold:
 		{
 			/* nodal coordinates */
-			const dArray2DT& initial_coordinates = fNodeManager.InitialCoordinates();
+			const dArray2DT& initial_coordinates = fSupport.InitialCoordinates();
 		
 			/* get all nodal values */
 			const dArray2DT& nodal_values = fNodeManager.OutputAverage(); 
@@ -559,7 +559,7 @@ void K_FieldT::ResolveMaterialReference(int element_group,
 
 #ifdef CONTINUUM_ELEMENT
 	/* resolve element group */
-	const FEManagerT& fe_man = fNodeManager.FEManager();
+	const FEManagerT& fe_man = fSupport.FEManager();
 	const ElementBaseT* element = fe_man.ElementGroup(element_group);
 	if (!element) ExceptionT::GeneralFail(caller, "could not resolve element group");
 
@@ -580,7 +580,7 @@ void K_FieldT::ResolveMaterialReference(int element_group,
 	ExceptionT::GeneralFail("K_FieldT::ResolveMaterialReference", "requires RTTI");
 #endif
 
-	if (fNodeManager.NumSD() == 2)
+	if (fSupport.NumSD() == 2)
 	{
 		*mat = TB_DYNAMIC_CAST(SolidMaterialT*, cont_mat);
 		if (!(*mat))
@@ -600,8 +600,8 @@ ExceptionT::GeneralFail(caller);
 void K_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 {
 	/* (initial) nodal coordinates */
-	int nsd = fNodeManager.NumSD();
-	const dArray2DT& init_coords = fNodeManager.InitialCoordinates();
+	int nsd = fSupport.NumSD();
+	const dArray2DT& init_coords = fSupport.InitialCoordinates();
 
 	/* resolve elastic constants */
 	if (fmu < 0.0 && fGroupNumber > -1) 
@@ -615,7 +615,7 @@ void K_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 		fmu = iso->Mu();
 		fnu = iso->Poisson();	
 		fkappa = 3.0 - 4.0*fnu;
-		if (fNodeManager.NumSD() == 2 && mat->Constraint() == SolidMaterialT::kPlaneStress)
+		if (fSupport.NumSD() == 2 && mat->Constraint() == SolidMaterialT::kPlaneStress)
 			fkappa = (3.0 - fnu)/(1.0 + fnu);
 	}
 	else

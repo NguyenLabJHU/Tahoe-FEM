@@ -1,4 +1,4 @@
-/* $Id: TorsionKBCT.h,v 1.3.32.1 2004-05-13 16:43:36 paklein Exp $ */
+/* $Id: TorsionKBCT.h,v 1.3.32.2 2004-05-26 18:09:43 paklein Exp $ */
 #ifndef _TORSION_KBC_T_H_
 #define _TORSION_KBC_T_H_
 
@@ -18,7 +18,7 @@ class TorsionKBCT: public KBC_ControllerT
 public:
 
 	/** constructor */
-	TorsionKBCT(NodeManagerT& node_manager, const double& time);
+	TorsionKBCT(const BasicSupportT& support);
 
 	/** set initial conditions */
 	void InitialCondition(void);
@@ -44,7 +44,6 @@ public:
 protected:
 
 	/** time increment */
-	const double& fTime;
 	double fStartTime;
 
 	/** rotation rate (rad/s) */
