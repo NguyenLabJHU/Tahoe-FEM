@@ -1,17 +1,26 @@
-/* $Id: BasicFieldT.cpp,v 1.6 2003-03-04 08:37:16 paklein Exp $ */
+/* $Id: BasicFieldT.cpp,v 1.7 2003-08-14 05:34:21 paklein Exp $ */
 #include "BasicFieldT.h"
 #include "iArrayT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-BasicFieldT::BasicFieldT(const StringT& name, int ndof, int order):
-	fName(name),
-	fField(order+1),
-	fEqnos(0, ndof),
-	fdArray2DGroup(0, false, ndof),
-	fiArray2DGroup(0, false, ndof)
+BasicFieldT::BasicFieldT(void):
+	fdArray2DGroup(0, false),
+	fiArray2DGroup(0, false)
 {
+
+}
+
+/* initialize field */
+void BasicFieldT::Initialize(const StringT& name, int ndof, int order)
+{
+	fName = name;
+	fField.Dimension(order+1);
+	fEqnos.Dimension(0, ndof),
+	fdArray2DGroup.SetMinorDimension(ndof);
+	fiArray2DGroup.SetMinorDimension(ndof);
+
 	/* set default labels */
 	fLabels.Dimension(ndof);
 	for (int i = 0; i < fLabels.Length(); i++)

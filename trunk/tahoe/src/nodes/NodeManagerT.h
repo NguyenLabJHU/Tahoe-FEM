@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.18 2003-05-28 21:02:45 cjkimme Exp $ */
+/* $Id: NodeManagerT.h,v 1.19 2003-08-14 05:34:22 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -7,6 +7,7 @@
 #include "iConsoleObjectT.h"
 #include "XDOF_ManagerT.h"
 #include "GroupAverageT.h"
+#include "ParameterInterfaceT.h"
 
 /* direct members */
 #include "dArray2DT.h"
@@ -42,7 +43,8 @@ class KBC_ControllerT;
 class NodeManagerT: 
 	public iConsoleObjectT, 
 	public XDOF_ManagerT, 
-	public GroupAverageT
+	public GroupAverageT,
+	public ParameterInterfaceT
 {
 public:
 
@@ -272,6 +274,15 @@ public:
 	virtual void XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& nodes, RaggedArray2DT<int>& eqnos) const;
 	/*@}*/
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	/*@}*/
+
 protected:
 
 	/** \name steps of NodeManagerT::Initialize */
@@ -370,7 +381,6 @@ private:
 	dArray2DT* fCurrentCoords;
 	nVariArray2DT<double> fCurrentCoords_man;
 	/*@}*/
-
 };
 
 /* inlines */
