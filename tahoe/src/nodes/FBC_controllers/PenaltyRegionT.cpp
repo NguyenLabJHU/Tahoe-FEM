@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.18 2004-07-22 08:31:56 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.19 2004-09-29 23:20:28 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltyRegionT.h"
 
@@ -22,6 +22,7 @@
 #include "ParameterContainerT.h"
 #include "ParameterUtils.h"
 #include "FieldSupportT.h"
+#include "SecantMethodT.h"
 
 using namespace Tahoe;
 
@@ -31,10 +32,15 @@ PenaltyRegionT::PenaltyRegionT(void):
 	fMass(0.0),
 	fLTf(NULL),
 	fOutputID(-1),
-	fk(-1.0)
+	fk(-1.0),
+	fRollerDirection(-1),
+	fSecantSearch(NULL)
 {
 
 }
+
+/* destructor */
+PenaltyRegionT::~PenaltyRegionT(void) { delete fSecantSearch; }
 
 /* form of tangent matrix */
 GlobalT::SystemTypeT PenaltyRegionT::TangentType(void) const
@@ -113,6 +119,11 @@ void PenaltyRegionT::InitStep(void)
 	/* the time step */
 	double time_step = FieldSupport().TimeStep();
 
+	/* store */
+	double x;
+	if (fRollerDirection != -1)
+		x = fx[fRollerDirection];
+
 	/* compute impulse acting on region */
 	if (fSlow == kImpulse)
 		for (int i = 0; i < fContactForce2D.MinorDim(); i++)
@@ -122,6 +133,13 @@ void PenaltyRegionT::InitStep(void)
 	
 	/* compute new position */
 	fx.AddScaled(time_step, fv);
+
+	/* override motion */
+	if (fRollerDirection != -1)
+		fx[fRollerDirection] = x;
+	
+	/* reset search */
+	if (fSecantSearch) fSecantSearch->Reset();
 }
 
 /* finalize step */
@@ -138,6 +156,65 @@ void PenaltyRegionT::Reset(void)
 	/* restore position and velocity */
 	fx = fxlast;
 	fv = fvlast;
+}
+
+/* update constrain forces */
+GlobalT::RelaxCodeT PenaltyRegionT::RelaxSystem(void)
+{
+	GlobalT::RelaxCodeT relax = FBC_ControllerT::RelaxSystem();
+	
+	/* re-center */
+	GlobalT::RelaxCodeT my_relax = GlobalT::kNoRelax;
+	if (fRollerDirection != -1)
+	{
+		int num_its = fSecantSearch->Iterations();
+		if (num_its == -1) {
+			double error = -fContactForce2D.ColumnSum(fRollerDirection);
+			if (fabs(error) > kSmall)
+			{
+				/* init guess 1 */
+				fSecantSearch->NextPoint(fx[fRollerDirection], error);
+				
+				/* next position */
+				//fx[fRollerDirection] += (error/fabs(error))*fRadius/100.0;
+				fx[fRollerDirection] += error/fk;
+				
+				/* keep solving */
+				my_relax = GlobalT::kRelax;
+			}	
+		}
+		else if (num_its == 0)
+		{
+			/* init guess 2 */
+			fSecantSearch->NextPoint(fx[fRollerDirection], -fContactForce2D.ColumnSum(fRollerDirection));
+		
+			/* next position */
+			fx[fRollerDirection] = fSecantSearch->NextGuess();
+
+			/* keep solving */
+			my_relax = GlobalT::kRelax;
+		}
+		else
+		{
+			/* check error */
+			int status = fSecantSearch->NextPoint(fx[fRollerDirection], -fContactForce2D.ColumnSum(fRollerDirection));			
+			if (status == SecantMethodT::kContinue)
+			{
+				/* next position */
+				fx[fRollerDirection] = fSecantSearch->NextGuess();
+
+				/* keep solving */
+				my_relax = GlobalT::kRelax;
+			}
+			else if (status == SecantMethodT::kConverged)
+				my_relax = GlobalT::kNoRelax;
+			else
+				ExceptionT::GeneralFail("PenaltyRegionT::RelaxSystem", "secant search failed");
+		}
+	}
+
+	/* return */
+	return GlobalT::MaxPrecedence(relax, my_relax);
 }
 
 /* register data for output */
@@ -256,6 +333,9 @@ void PenaltyRegionT::DefineSubs(SubListT& sub_list) const
 	/* motion control */
 	sub_list.AddSub("motion_control_choice", ParameterListT::Once, true);	
 
+	/* roller conditions */
+	sub_list.AddSub("roller_condition", ParameterListT::ZeroOrOnce);	
+
 	/* nodes */
 	sub_list.AddSub("node_ID_list");
 }
@@ -301,6 +381,15 @@ ParameterInterfaceT* PenaltyRegionT::NewSub(const StringT& name) const
 		
 		return motion;
 	}
+	else if (name == "roller_condition")
+	{
+		ParameterContainerT* roller = new ParameterContainerT(name);
+	
+		roller->AddParameter(ParameterT::Integer, "direction");
+		roller->AddParameter(ParameterT::Double, "force_tolerance");
+	
+		return roller;
+	}
 	else /* inherited */
 		return FBC_ControllerT::NewSub(name);
 }
@@ -318,6 +407,21 @@ void PenaltyRegionT::TakeParameterList(const ParameterListT& list)
 
 	/* dimension */
 	int nsd = FieldSupport().NumSD();
+
+	/* get parameters */
+	const ParameterListT* roller = list.List("roller_condition");
+	if (roller) {
+		fRollerDirection = roller->GetParameter("direction");
+		fRollerDirection--;
+		if (fRollerDirection < 0 || fRollerDirection >= nsd)
+			ExceptionT::GeneralFail(caller, "\"zero_force_direction\" %d is out of range {1,%d}",
+				fRollerDirection, nsd+1);
+
+		/* initialize secont search object */
+		if (fSecantSearch) delete fSecantSearch;
+		double tolerance = roller->GetParameter("force_tolerance");
+		fSecantSearch = new SecantMethodT(100, tolerance);
+	}
 
 	/* initial position */
 	const ParameterListT& x_vec = list.GetListChoice(*this, "bc_initial_position");
