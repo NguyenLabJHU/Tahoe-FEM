@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.38 2004-02-02 23:48:35 paklein Exp $ */
+/* $Id: ElementT.cpp,v 1.39 2004-02-03 01:47:41 paklein Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -82,6 +82,9 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			break;
 		case ElementT::kMeshFreeFDElastic:
 			type = ElementT::kMeshFreeFDElastic;
+			break;
+		case ElementT::kMeshFreeFDElasticAxi:
+			type = ElementT::kMeshFreeFDElasticAxi;
 			break;
 		case ElementT::kD2MeshFreeFDElastic:
 			type = ElementT::kD2MeshFreeFDElastic;

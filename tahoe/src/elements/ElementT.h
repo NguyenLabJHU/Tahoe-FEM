@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.38 2004-02-02 23:48:35 paklein Exp $ */
+/* $Id: ElementT.h,v 1.39 2004-02-03 01:47:41 paklein Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -69,6 +69,7 @@ kPenaltyContactElement3D = 34,
        kHyperElasticAxi = 103, /**<  total Lagragian, large strain axisymmetric solid */
  kTotLagHyperElasticAxi = 104, /**<  updated Lagragian, large strain axisymmetric solid */
            kSimoQ1P0Axi = 105, /**<  Q1P0 (mixed), large strain axisymmetric solid */
+  kMeshFreeFDElasticAxi = 106, /**<  total Lagragian, large strain axisymmetric meshfree solid */     
    kHyperElasticInitCSE = 111, /**< large strain solid that triggers CSE */
 	kPenaltyContactDrag = 114, /**< contact with constant drag traction */
 kMeshfreePenaltyContact = 115, /**< contact with meshfree strikers */
