@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.h,v 1.10 2005-02-03 19:53:42 cjkimme Exp $ */
+/* $Id: FS_SCNIMF_AxiT.h,v 1.11 2005-03-01 08:26:29 paklein Exp $ */
 #ifndef _FS_SCNIMF_AXI_T_H_
 #define _FS_SCNIMF_AXI_T_H_
 
@@ -19,30 +19,13 @@ public:
 	/** constructor */
 	FS_SCNIMF_AxiT(const ElementSupportT& support);
 
-	/** destructor */
-	~FS_SCNIMF_AxiT(void);
-
 	/** write output. ParticleT::WriteOutput only writes search grid statistics.
 	 * Sub-classes are responsible for writing data for each particle, given the
 	 * variables names returned by ParticleT::GenerateOutputLabels. */
 	virtual void WriteOutput(void);
 
-	/* compute specified output parameter and send for smoothing */
-	virtual void SendOutput(int kincode);
-
 	/** trigger reconfiguration */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
-
-	/** \name restart functions */
-	/*@{*/
-	/** write restart data to the output stream. Should be paired with
-	 * the corresponding ElementBaseT::ReadRestart implementation. */
-	virtual void WriteRestart(ostream& out) const;
-
-	/** read restart data to the output stream. Should be paired with
-	 * the corresponding ElementBaseT::WriteRestart implementation. */
-	virtual void ReadRestart(istream& in);
-	/*@}*/
 
 	/** */
 	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
@@ -63,6 +46,9 @@ public:
 	/*@}*/
 
 protected: /* for derived classes only */
+
+	/** return number of values for each output variable */
+	virtual void SetOutputCount(const iArrayT& flags, iArrayT& counts) const;
 	
 	virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
 			

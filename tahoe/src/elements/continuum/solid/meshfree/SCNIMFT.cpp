@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.55 2005-02-26 22:43:36 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.56 2005-03-01 08:26:29 paklein Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -42,10 +42,19 @@ using namespace Tahoe;
 
 const int kNoTractionVector = -1;
 
+const int kNumOutput = 6;
+static const char* OutputNames[kNumOutput] = {
+	"coordinates",
+	"displacement",
+	"mass",
+	"strain",
+	"stress",
+	"material_output",	
+};
+
 /* constructors */
 SCNIMFT::SCNIMFT(const ElementSupportT& support, const FieldT& field):
 	ElementBaseT(support),
-	fSD(ElementSupport().NumSD()),
 	fMaterialList(NULL),
 	fNodalShapes(NULL),
 	fCellGeometry(NULL),
@@ -61,7 +70,6 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support, const FieldT& field):
 
 SCNIMFT::SCNIMFT(const ElementSupportT& support):
 	ElementBaseT(support),
-	fSD(0),
 	fMaterialList(NULL),
 	fNodalShapes(NULL),
 	fCellGeometry(NULL),
@@ -87,8 +95,8 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 {
 	const char caller[] = "SCNIMFT::TakeParameterList";
 	
-	/* What dimension? */
-	fSD = ElementSupport().NumSD();
+	/* dimension */
+	int nsd = NumSD();
 	
 	/* get parameters needed to construct shape functions */
 	fMeshfreeParameters = list.ListChoice(*this, "meshfree_support_choice");
@@ -126,10 +134,10 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	ElementBaseT::TakeParameterList(list);
 
 	/* re-dimension "element" force and stiffness contributions */
-	fLHS.Dimension(fSD);
+	fLHS.Dimension(nsd);
 	
 	/* allocate work space */
-	fForce_man.SetWard(0, fForce, fSD);
+	fForce_man.SetWard(0, fForce, nsd);
 	fForce_man.SetMajorDimension(ElementSupport().NumNodes(), false);
 
 	/* write parameters */
@@ -143,7 +151,7 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 
 	/* construct shape functions */
 	// see what to pass in place of fNodalCoordinates
-	fNodalShapes = new MeshFreeNodalShapeFunctionT(fSD,
+	fNodalShapes = new MeshFreeNodalShapeFunctionT(nsd,
 		ElementSupport().InitialCoordinates(), *fElementConnectivities[0], 
 		fNodalCoordinates, *fMeshfreeParameters);
 	if (!fNodalShapes) throw ExceptionT::kOutOfMemory;
@@ -206,7 +214,7 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	nodal_supports.Dimension(nNodes);
 	for (int i = 0; i < nNodes; i++) {
 		int node_i = fNodes[i];
-		nodalCoords.Set(fSD, fNodalCoordinates(i));
+		nodalCoords.Alias(nsd, fNodalCoordinates(i));
 	
 		neighbor_list.Dimension(nodeSupport.MinorDim(node_i));
 		neighbor_list.Copy(nodeSupport(node_i));
@@ -243,7 +251,7 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	// store shape function information for boundary integration
 	fCellGeometry->BoundaryShapeFunctions(fBoundaryPhi, fBoundarySupports, fBoundaryFacetNormals);
 	
-	/** Material Data */
+	/* material Data */
 	ParameterListT mat_params;
 	CollectMaterialInfo(list, mat_params);
 	fMaterialList = NewMaterialList(mat_params.Name(), mat_params.NumLists());
@@ -270,6 +278,25 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	
 	/* extract natural boundary conditions */
 	TakeNaturalBC(list);
+
+	/* output variables */
+	fOutputFlags.Dimension(kNumOutput);
+	fOutputFlags = 0;
+	const ParameterListT* output = list.List("scni_output");
+	if (output) 
+	{
+		/* set flags */
+		for (int i = 0; i < kNumOutput; i++)
+		{
+			/* look for entry */
+			const ParameterT* value = output->Parameter(OutputNames[i]);
+			if (value) {
+				int do_write = *value;
+				if (do_write)
+					fOutputFlags[i] = 1;
+			}
+		}
+	}
 }
 
 /* extract natural boundary condition information */
@@ -278,9 +305,10 @@ void SCNIMFT::TakeNaturalBC(const ParameterListT& list)
 	const char caller[] = "SCNIMFT::TakeNaturalBC";
 
 	int num_natural_bc = list.NumLists("natural_bc");
+	int nsd = NumSD();
 	
 	// allocate data structures
-	fTractionVectors.Dimension(num_natural_bc, fSD == 2 ? 3 : 6);
+	fTractionVectors.Dimension(num_natural_bc, nsd == 2 ? 3 : 6);
 	fTractionVectors = 0.;
 	
 	// 
@@ -329,7 +357,7 @@ void SCNIMFT::TakeNaturalBC(const ParameterListT& list)
 					const ParameterListT& traction_vector = natural_bc.GetList("DoubleList");
 					int dim = traction_vector.NumLists("Double");
 						
-					int minor_dim = fSD == 2 ? 3 : 6;
+					int minor_dim = nsd == 2 ? 3 : 6;
 					if (dim != minor_dim)
 						ExceptionT::GeneralFail(caller, "expecting traction vector length %d not %d",
 							NumDOF(), dim);
@@ -454,59 +482,93 @@ void SCNIMFT::RegisterOutput(void)
 /* generate labels for output data */
 void SCNIMFT::GenerateOutputLabels(ArrayT<StringT>& labels)
 {
-  	/* Reference Configuration */
-	const char* ref[3] = {"X", "Y", "Z"};
+	const char caller[] = "SCNIMFT::GenerateOutputLabels";
+	int ndof = NumDOF();
+	if (ndof > 3) ExceptionT::GeneralFail(caller);
 
-	/* displacement labels */
-	int num_labels = 2*fSD; // displacements
-	int num_stress=0;
+	/* number of output variables */
+	iArrayT counts;
+	SetOutputCount(fOutputFlags, counts);
+	int num_output = counts.Sum();
 
-	const char* stress[6];
-	const char* strain[6];
-	
-	stress[0] = "s11";
-	stress[1] = "s22";
-	strain[0] = "e11";
-	strain[1] = "e22";
-	num_stress = 3;
-	
-	if (fSD == 3) {
-		num_stress=6;
-		stress[2] = "s33";
-	  	stress[3] = "s23";
-	 	stress[4] = "s13";
-	  	stress[5] = "s12";
-	  	strain[2] = "e33";
-	  	strain[3] = "e23";
-	  	strain[4] = "e13";
-	  	strain[5] = "e12";
-	} 
-	
-	if (fSD == 2) {
-	  	stress[2] = "s12";
-	  	strain[2] = "e12";
+	/* offsets to the different output values */
+	iArrayT offsets(fOutputFlags.Length());
+	offsets = 0;
+	for (int i = 1; i < offsets.Length(); i++)
+		offsets[i] = offsets[i-1] + counts[i-1];
+
+	/* initialize */
+	labels.Dimension(num_output);
+
+	/* coordinates */
+	if (fOutputFlags[kCoordinates]) {
+		const char* ref[3] = {"X", "Y", "Z"};
+		int index = offsets[kCoordinates];
+		for (int i = 0; i < ndof; i++)
+			labels[index++] = ref[i];
 	}
+
+	/* displacements */
+	if (fOutputFlags[kDisplacement]) {
+
+		/* labels from the field */
+		const ArrayT<StringT>& field_labels = Field().Labels();
+
+		int index = offsets[kDisplacement];
+		for (int i = 0; i < ndof; i++)
+			labels[index++] = field_labels[i];
+	}
+
+	/* mass */
+	if (fOutputFlags[kMass])
+		labels[offsets[kMass]] = "mass";
+
+	/* strain */
+	if (fOutputFlags[kStrain]) {
+		const char* e1D[1] = {"e11"};
+		const char* e2D[3] = {"e11", "e22", "e12"};
+		const char* e3D[6] = {"e11", "e22", "e33", "e23", "e13", "e12"};
+
+		const char** elabels = NULL;
+		if (ndof == 1) elabels = e1D;
+		else if (ndof == 2) elabels = e2D;
+		else if (ndof == 3) elabels = e3D;
+		else ExceptionT::GeneralFail(caller);	
 		
-	num_labels += 2 * num_stress + 1; 
-	labels.Dimension(num_labels);
-	int dex = 0;
-	for (dex = 0; dex < fSD; dex++)
-		labels[dex] = ref[dex];
+		int nstrs = dSymMatrixT::NumValues(ndof);
+		int index = offsets[kStrain];
+		for (int i = 0; i < nstrs; i++)
+			labels[index++] = elabels[i];
+	}
 
-	const ArrayT<StringT>& disp_labels = Field().Labels();
-	for (int ns = 0 ; ns < fSD; ns++)
-	  	labels[dex++] = disp_labels[ns];
+	/* stress */
+	if (fOutputFlags[kStress]) {
+		const char* s1D[1] = {"s11"};
+		const char* s2D[3] = {"s11", "s22", "s12"};
+		const char* s3D[6] = {"s11", "s22", "s33", "s23", "s13", "s12"};
 
-	labels[dex++] = "mass";
-	for (int ns = 0 ; ns < num_stress; ns++)
-		labels[dex++] = strain[ns];
-	for (int ns = 0 ; ns < num_stress; ns++)
-		labels[dex++] = stress[ns];
-}
+		const char** slabels = NULL;
+		if (ndof == 1) slabels = s1D;
+		else if (ndof == 2) slabels = s2D;
+		else if (ndof == 3) slabels = s3D;
+		else ExceptionT::GeneralFail(caller);	
+		
+		int nstrs = dSymMatrixT::NumValues(ndof);
+		int index = offsets[kStress];
+		for (int i = 0; i < nstrs; i++)
+			labels[index++] = slabels[i];
+	}
 
-void SCNIMFT::WriteOutput(void)
-{
-	//Nothin' to do -- moved to SS_SCNIMFT.cpp
+	/* material output labels */
+	if (fOutputFlags[kMaterialOutput])
+	{
+		ArrayT<StringT> mat_labels;
+		(*fMaterialList)[0]->OutputLabels(mat_labels);	
+		
+		int index = offsets[kMaterialOutput];
+		for (int i = 0; i < mat_labels.Length(); i++)
+			labels[index++] = mat_labels[i];
+	}
 }
 
 /* compute specified output parameter(s) */
@@ -577,6 +639,29 @@ void SCNIMFT::ReadRestart(istream& in)
  * Protected
  ***********************************************************************/
 
+/* return number of values for each output variable */
+void SCNIMFT::SetOutputCount(const iArrayT& flags, iArrayT& counts) const
+{
+	/* dimension check */
+	if (flags.Length() != kNumOutput)
+		ExceptionT::SizeMismatch("SCNIMFT::SetOutputCount");
+	
+	/* initialize */
+	counts.Dimension(flags.Length());
+	counts = 0;
+
+	/* set output flags */
+	if (flags[kCoordinates]) counts[kCoordinates] = NumSD();
+	if (flags[kDisplacement]) counts[kDisplacement] = NumDOF();
+	if (flags[kMass]) counts[kMass] = 1;
+	if (flags[kStrain]) counts[kStrain] = dSymMatrixT::NumValues(NumSD());
+	if (flags[kStress]) counts[kStress] = dSymMatrixT::NumValues(NumSD());
+
+	/* material output variables */
+	if (flags[kMaterialOutput])
+		counts[kMaterialOutput] = (*fMaterialList)[0]->NumOutputVariables();
+}
+
 /* return true if connectivities are changing */
 bool SCNIMFT::ChangingGeometry(void) const
 {
@@ -605,7 +690,8 @@ void SCNIMFT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>&
 	fElementConnectivities[0] = model.ElementGroupPointer(block_ID[0]);
 
 	// Get nodal coordinates 
-	fNodalCoordinates.Dimension(fNodes.Length(), fSD);
+	int nsd = NumSD();
+	fNodalCoordinates.Dimension(fNodes.Length(), nsd);
 	fNodalCoordinates.RowCollect(fNodes, model.Coordinates());
 
 	/* set up element cards for state variable storage */
@@ -635,13 +721,13 @@ void SCNIMFT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 /* assemble particle mass matrix into LHS of global equation system */
 void SCNIMFT::AssembleParticleMass(const double rho)
 {
-	
+	int nsd = NumSD();
 	fForce = 0.0;
 	int* nodes = fNodes.Pointer();
 	double* volume = fCellVolumes.Pointer();
 	for (int i = 0; i < fNodes.Length(); i++) {
 		double* m = fForce(*nodes++);
-		for (int j = 0; j < fSD; j++)
+		for (int j = 0; j < nsd; j++)
 			*m++ = *volume;
 		volume++;
 	}
@@ -655,14 +741,14 @@ void SCNIMFT::AssembleParticleMass(const double rho)
 void SCNIMFT::RHSDriver(void) 
 {
 	if (fTractionVectors.MajorDim()) {
-	
+		int nsd = NumSD();
 		fForce = 0.;
 		int numBoundaryFacets = fBoundaryFacetNormals.MajorDim();
-		dArrayT traction_vector(fSD), normal_vector;
-		dSymMatrixT workspace(fSD); 
+		dArrayT traction_vector(nsd), normal_vector;
+		dSymMatrixT workspace(nsd); 
 		for (int i = 0; i < numBoundaryFacets; i++) 
 			if (fTractionBoundaryCondition[i] != kNoTractionVector) {
-				normal_vector.Set(fSD, fBoundaryFacetNormals(i));
+				normal_vector.Alias(nsd, fBoundaryFacetNormals(i));
 				fTractionVectors.RowCopy(fTractionBoundaryCondition[i], workspace.Pointer());
 				//compute sigma dot n
 				workspace.Multx(normal_vector, traction_vector);
@@ -672,7 +758,7 @@ void SCNIMFT::RHSDriver(void)
 				int n_supp = fBoundaryPhi.MinorDim(i);
 				for (int j = 0; j < n_supp; j++) {
 					double* fint = fForce(*supp_i++);
-					for (int k = 0; k < fSD; k++) 
+					for (int k = 0; k < nsd; k++) 
 						*fint++ += traction_vector[k]*(*phi_i); 
 					phi_i++;
 				}
@@ -710,11 +796,12 @@ int SCNIMFT::GlobalToLocalNumbering(RaggedArray2DT<int>& nodes)
 void SCNIMFT::InterpolatedFieldAtNodes(const ArrayT<int>& nodes, dArray2DT& fieldAtNodes) const
 {
 	/* displacements */
+	int nsd = NumSD();
 	const dArray2DT& u = Field()(0,0);
 	dArrayT vec, values_i;
 	for (int i = 0; i < nodes.Length(); i++) {
 		/* copy in */
-		vec.Set(fSD, fieldAtNodes.Pointer() + i*fSD);
+		vec.Alias(nsd, fieldAtNodes.Pointer(i*nsd));
 		vec = 0.;	
 		
 		int node_i = nodes[i];
@@ -780,6 +867,9 @@ void SCNIMFT::DefineSubs(SubListT& sub_list) const
 	
 	/* tractions */
 	sub_list.AddSub("natural_bc", ParameterListT::Any);
+
+	/* output variables */
+	sub_list.AddSub("scni_output", ParameterListT::ZeroOrOnce);
 }
 
 /* return the description of the given inline subordinate parameter list */
@@ -851,6 +941,20 @@ ParameterInterfaceT* SCNIMFT::NewSub(const StringT& name) const
 		natural_bc->AddSub("DoubleList", ParameterListT::OnePlus); 		
 		
 		return natural_bc;
-	} else /* inherited */
+	} 
+	else if (name == "scni_output") 
+	{
+		ParameterContainerT* output = new ParameterContainerT(name);
+		
+		/* all true by default */
+		for (int i = 0; i < kNumOutput; i++) {
+			ParameterT var(ParameterT::Integer, OutputNames[i]);
+			var.SetDefault(1);
+			output->AddParameter(var, ParameterListT::ZeroOrOnce);
+		}
+
+		return output;	
+	}
+	else /* inherited */
     	return ElementBaseT::NewSub(name);
 }

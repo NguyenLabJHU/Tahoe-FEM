@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.29 2005-02-26 22:43:36 paklein Exp $ */
+/* $Id: SCNIMFT.h,v 1.30 2005-03-01 08:26:29 paklein Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -66,11 +66,6 @@ public:
 	 * small- and finite- strain implementations of this base class.
 	 */
 	virtual void RegisterOutput(void);
-
-	/** write output. ParticleT::WriteOutput only writes search grid statistics.
-	 * Sub-classes are responsible for writing data for each particle, given the
-	 * variables names returned by ParticleT::GenerateOutputLabels. */
-	virtual void WriteOutput(void);
 
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
@@ -147,8 +142,20 @@ public:
 	void TakeNaturalBC(const ParameterListT& list);
 	/*@}*/
 
-
 protected: /* for derived classes only */
+
+	/** list/index of output values */
+	enum SCNIOutputCodeT {
+		kCoordinates = 0,
+		kDisplacement = 1,
+		kMass = 2,
+		kStrain = 3,
+		kStress = 4,
+		kMaterialOutput = 5,
+	};
+
+	/** return number of values for each output variable */
+	virtual void SetOutputCount(const iArrayT& flags, iArrayT& counts) const;
 
 	/** echo element connectivity data. Reads parameters that define
 	 * which nodes belong to this ParticleT group. */
@@ -173,9 +180,6 @@ protected:
 	/** pointer to list parameters needed to construct shape functions */
 	const ParameterListT* fMeshfreeParameters;
 
-	/** reference for sending output */
-	int fOutputID;
-	
 	/** connectivities used to define the output set. */
 	iArray2DT fPointConnectivities;
 
@@ -184,9 +188,6 @@ protected:
 	dArray2DT fForce;
 	nVariArray2DT<double> fForce_man;
 	/*@}*/
-	
-	/** spatial dimensionality */
-	int fSD;
 
 	/** indices of nodes */
 	iArrayT fNodes;
@@ -244,6 +245,9 @@ protected:
 	
 	/** 1/R information for axisymmetric elements */
 	RaggedArray2DT<double> circumferential_B;
+
+	/** output flags */
+	iArrayT fOutputFlags;
 };
 
 } /* namespace Tahoe */
