@@ -1,4 +1,4 @@
-/* $Id: FDKStV2D.cpp,v 1.2 2001-07-03 01:35:10 paklein Exp $ */
+/* $Id: FDKStV2D.cpp,v 1.3 2001-08-27 17:19:21 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "FDKStV2D.h"
@@ -17,7 +17,7 @@ FDKStV2D::FDKStV2D(ifstreamT& in, const FiniteStrainT& element):
 void FDKStV2D::Print(ostream& out) const
 {
 	/* inherited */
-	FDHookeanMatT::Print(out);
+	FDKStV::Print(out);
 	Material2DT::Print(out);
 }
 
