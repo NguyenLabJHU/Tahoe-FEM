@@ -1,4 +1,4 @@
-# $Id: DARWIN.LAM.X.macros,v 1.2 2003-01-25 02:01:25 paklein Exp $
+# $Id: DARWIN.LAM.X.macros,v 1.1 2002-03-18 23:25:00 paklein Exp $
 #
 # macros for Mac OS X using the GNU distribution provided with
 # the Apple Developer tools in addition to the LAM implementation
@@ -7,7 +7,6 @@
 #
 # The lam tools were modified only to rename mpiCC -> mpic++ since
 # OS X does not distinguish mpicc from mpiCC.
-#
 
 # additional for X windows
 X_INC_FLAGS = -I/usr/X11R6/include
