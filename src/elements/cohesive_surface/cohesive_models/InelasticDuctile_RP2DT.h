@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile_RP2DT.h,v 1.3 2003-09-04 07:18:45 paklein Exp $ */
+/* $Id: InelasticDuctile_RP2DT.h,v 1.4 2003-09-04 13:43:31 paklein Exp $ */
 #ifndef _INELASTIC_DUCTILE_RP_2D_T_H_
 #define _INELASTIC_DUCTILE_RP_2D_T_H_
 
@@ -15,6 +15,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class ifstreamT;
+class ofstreamT;
 
 /** Inelastic cohesive zone model for ductile fracture. A cohesive zone model
  * which is in complementary to the kinetic equations for the BCJ model, which

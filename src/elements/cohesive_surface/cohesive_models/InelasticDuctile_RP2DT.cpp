@@ -1,6 +1,7 @@
-/* $Id: InelasticDuctile_RP2DT.cpp,v 1.3 2003-09-04 07:18:45 paklein Exp $  */
+/* $Id: InelasticDuctile_RP2DT.cpp,v 1.4 2003-09-04 13:43:31 paklein Exp $  */
 #include "InelasticDuctile_RP2DT.h"
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "dArrayT.h"
 
 using namespace Tahoe;
