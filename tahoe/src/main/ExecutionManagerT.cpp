@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.cpp,v 1.6 2002-02-18 09:20:14 paklein Exp $ */
+/* $Id: ExecutionManagerT.cpp,v 1.7 2002-03-02 20:17:14 paklein Exp $ */
 /* created: paklein (08/27/1997) */
 
 #include "ExecutionManagerT.h"
@@ -33,27 +33,6 @@ ExecutionManagerT::ExecutionManagerT(int argc, char* argv[], char job_char, char
 	fCommandLineOptions.Allocate(argc);
 	for (int i = 0; i < fCommandLineOptions.Length(); i++)
 		fCommandLineOptions[i] = argv[i];
-
-//TEMP - no command line arguments for Mac
-#ifdef _MACOS_	
-	bool decomp_test = false;
-	if (decomp_test)
-	{
-		cout << "\n ExecutionManagerT::ExecutionManagerT: command-line test" << endl;
-		fCommandLineOptions.Allocate(2);
-		fCommandLineOptions[0] = "tahoe";
-		fCommandLineOptions[1] = "-decomp";
-	}
-#endif
-
-	//TEMP
-	if (0 && fCommandLineOptions.Length() > 1)
-	{
-		cout << "\n command line arguments:\n";
-		for (int j = 0; j < fCommandLineOptions.Length(); j++)
-			cout << setw(kIntWidth) << j << ":" << fCommandLineOptions[j] << '\n';
-		cout.flush();
-	}
 
 	/* format standard output */
 	ofstreamT::format_stream(cout);	
@@ -275,7 +254,8 @@ void ExecutionManagerT::JobOrBatch(ifstreamT& in, ostream& status)
 /* Batch file processing */
 void ExecutionManagerT::RunBatch(ifstreamT& in, ostream& status)
 {
-#ifdef __MPI__
+#if 0
+//#ifdef __MPI__
 	int size;
 	if (MPI_Comm_size(MPI_COMM_WORLD, &size) != MPI_SUCCESS) throw eMPIFail;
 	if (size > 1)
