@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.52 2004-07-27 23:39:06 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.53 2004-07-28 00:17:31 paklein Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -625,8 +625,8 @@ void APS_AssemblyT::WriteOutput(void)
 	dArray2DT n_values(nodes_used.Length(), num_node_output);
 
 	/* collect nodal values */
-	const dArray2DT& fGamma_p = fPlast[0];
-	const dArray2DT& fU = fDispl[0];
+	const dArray2DT& fGamma_p = (*fPlast)[0];
+	const dArray2DT& fU = (*fDispl)[0];
 	for (int i = 0; i < nodes_used.Length(); i++)
 	{
 		int node = nodes_used[i];
