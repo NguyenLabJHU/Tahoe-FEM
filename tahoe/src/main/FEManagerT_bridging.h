@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.1.2.2 2003-02-10 02:22:04 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.1.2.3 2003-02-11 02:46:12 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -34,19 +34,33 @@ public:
 
 	/** return list of ghost nodes */
 	const iArrayT& NonGhostNodes(void) const { return fNonGhostNodes; };
+
+	/** set the field at the ghost nodes */
+	void SetGhostNodeField(const StringT& field, const dArray2DT& values);
 	/*@}*/
 
+	/** \name interpolation and projection operators */
+	/*@{*/
 	/** initialize interpolation data. Initialize data structures needed to interpolate
 	 * field values to the given list of points. Requires that this FEManagerT has
 	 * a BridgingScaleT in its element list. */
 	void InitInterpolation(const iArrayT& nodes, const StringT& field,
 		NodeManagerT& node_manager);
 
+	/** field interpolations. Interpolate the field to the nodes initialized
+	 * with the latest call to FEManagerT_bridging::InitInterpolation. */
+	void InterpolateField(const StringT& field, dArray2DT& nodal_values);
+
 	/** initialize projection data. Initialize data structures needed to project
 	 * field values to the given list of points. Requires that this FEManagerT has
 	 * a BridgingScaleT in its element list. */
 	void InitProjection(const iArrayT& nodes, const StringT& field,
 		NodeManagerT& node_manager);
+
+	/** project the point values onto the mesh. Project to the nodes using
+	 * projection initialized with the latest call to FEManagerT_bridging::InitProjection. */
+	void ProjectField(const StringT& field, NodeManagerT& node_manager);
+	/*@}*/
 
 private:
 
@@ -84,9 +98,6 @@ private:
 	/*@{*/
 	/** the KBC_ControllerT applying the external solution */
 	KBC_PrescribedT* fSolutionDriver;
-	
-	/** list of nodes in elements being driven */
-	iArrayT fDrivenCellNodes;
 	
 	/** map data of driver points into the mesh */
 	PointInCellDataT fDrivenCellData;
