@@ -1,6 +1,5 @@
-/* $Id: MSRBuilderT.h,v 1.4 2002-07-05 22:26:30 paklein Exp $ */
+/* $Id: MSRBuilderT.h,v 1.5 2004-03-14 00:44:31 paklein Exp $ */
 /* created: paklein (07/30/1998) */
-
 #ifndef _MSR_BUILDER_T_H_
 #define _MSR_BUILDER_T_H_
 
@@ -25,14 +24,23 @@ public:
 
 	/** constructor */
 	MSRBuilderT(bool upper_only);
-	
+
+	/** \name MSR structure */
+	/*@{*/
 	/** return the MSR data structure */
 	void SetMSRData(const iArrayT& activerows, iArrayT& MSRdata);
 
 	/** write MSR data to output stream */
 	void WriteMSRData(ostream& out, const iArrayT& activerows,
 		const iArrayT& MSRdata) const;
-	
+	/*@}*/
+
+	/** \name PSPASES structure */
+	/*@{*/
+	/** return the PSPASES data structure */
+	void SetPSPASESData(const iArrayT& activerows, iArray2DT& aptrs, iArrayT& ainds);
+	/*@}*/
+
 private:
 
 	/** active equations must be within range and in ascending order */
@@ -41,6 +49,10 @@ private:
 	/** generate MSR structure */
 	void GenerateMSR(int row_shift, const RaggedArray2DT<int>& edgelist,
 		const iArrayT& activerows, iArrayT& MSRdata) const;
+
+	/** generate PSPASES structure */
+	void GeneratePSPASES(int row_shift, const RaggedArray2DT<int>& edgelist, const iArrayT& activerows, 
+		iArray2DT& aptrs, iArrayT& ainds);
 
 	/** This routine was taken from Knuth: Sorting and Searching. It puts the input
 	 * data list into a heap and then sorts it. */
