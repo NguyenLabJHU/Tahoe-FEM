@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.4 2001-05-01 23:22:53 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.5 2001-05-30 23:27:02 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #ifndef _FE_MANAGER_H_
@@ -153,7 +153,7 @@ public:
 	void DisassembleRHS(dArrayT& elRes, const nArrayT<int>& eqnos) const;
 	
 	/* writing results */
-	void WriteOutput(IOBaseT::OutputModeT mode);
+	void WriteOutput(double time, IOBaseT::OutputModeT mode);
 	virtual int RegisterOutput(const OutputSetT& output_set);
 	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
 	IOManager* OutputManager(void) const;
@@ -161,8 +161,8 @@ public:
 	const OutputSetT& OutputSet(int ID) const;
 
 	/* (temporarily) direct output away from main out */
-	void DivertOutput(const StringT& outfile);
-	void RestoreOutput(void);
+	virtual void DivertOutput(const StringT& outfile);
+	virtual void RestoreOutput(void);
 	
 	/* cross-linking - create your own trouble */
 	NodeManagerT* NodeManager(void) const;
