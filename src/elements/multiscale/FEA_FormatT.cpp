@@ -1,4 +1,4 @@
-// $Id: FEA_FormatT.cpp,v 1.12 2003-09-24 21:42:02 raregue Exp $
+// $Id: FEA_FormatT.cpp,v 1.13 2003-09-30 20:02:12 raregue Exp $
 #include "FEA_FormatT.h"
 
 using namespace Tahoe;
@@ -42,6 +42,14 @@ void FEA_FormatT::Interpolate (	ShapeFunctionT *fShapes,LocalArrayT &gammap_np1,
 		fShapes->InterpolateU	( gammap_n, 	Fgammap_n[l], 	l );
 		fShapes->InterpolateU 	( gammap_np1, 	Fgammap_np1[l], l );
 	}
+}
+
+void FEA_FormatT::State	( int n_ip, int num_state, dArrayT& fState, FEA_dVectorT& state )
+{
+	int a,i;
+	for (a=0; a<n_ip; a++)
+		for (i=0; i<num_state; i++)
+			state[a,i] = fState[a*num_state+i];
 }
 
 

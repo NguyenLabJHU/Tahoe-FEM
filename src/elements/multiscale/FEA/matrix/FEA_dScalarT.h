@@ -1,4 +1,4 @@
-// $Id: FEA_dScalarT.h,v 1.7 2003-09-15 19:27:57 raregue Exp $
+// $Id: FEA_dScalarT.h,v 1.8 2003-09-30 20:02:13 raregue Exp $
 #ifndef _FEA_DSCALART_H_
 #define _FEA_DSCALART_H_
 
@@ -39,6 +39,7 @@ class FEA_dScalarT: public dArrayT // For the name sake only
 		void Sech 		( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = 1.0/cosh ( s[i] ); }
 		void Sqrt		( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = sqrt ( s[i] ); }
 		void Macaulay 	( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) if (s[i]<0.0) (*this)[i] = s[i]; else (*this)[i] = 0.0; }
+		//void Macaulay 	( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) if (s[i]<0.0) (*this)[i] = 0.0; else (*this)[i] = s[i]; }
 		void Pow		( FEA_dScalarT &s, FEA_dScalarT &t ) { for (int i=0; i<fLength; i++) (*this)[i] = pow ( s[i],t[i] ); }
 		void Pow		( FEA_dScalarT &s, double &t ) { for (int i=0; i<fLength; i++) (*this)[i] = pow ( s[i],t ); }
 		void Pow		( double &s, FEA_dScalarT &t ) { for (int i=0; i<fLength; i++) (*this)[i] = pow ( s,t[i] ); }
@@ -53,7 +54,7 @@ class FEA_dScalarT: public dArrayT // For the name sake only
 		void Tanh			( void ) 	{ for (int i=0; i<fLength; i++) (*this)[i] = tanh ( (*this)[i] ); }
 		void Sech			( void ) 	{ for (int i=0; i<fLength; i++) (*this)[i] = 1.0/cosh ( (*this)[i] ); }
 		void Sqrt			( void ) 	{ for (int i=0; i<fLength; i++) (*this)[i] = sqrt ( (*this)[i] ); }
-		void Macaulay 		( void )	{ for (int i=0; i<fLength; i++) if ((*this)[i]<0.0) (*this)[i]=0.0; }
+		void Macaulay 		( void )	{ for (int i=0; i<fLength; i++) if ( (*this)[i]<0.0 ) (*this)[i]=0.0; }
 
 		void Squared  		( void )	{ for (int i=0; i<fLength; i++) (*this)[i] *= (*this)[i]; }
 
@@ -79,6 +80,8 @@ class FEA_dScalarT: public dArrayT // For the name sake only
 
 		bool operator == (const double  a) {   for(int i=0; i<fLength; i++) { if((*this)[i] == a){return 1;} }  return 0;  }
 		bool operator != (const double  a) {   for(int i=0; i<fLength; i++) { if((*this)[i] == a){return 0;} }  return 1;  }
+		bool operator >  (const double  a) {   for(int i=0; i<fLength; i++) { if((*this)[i] > a){return 1;} }  return 0;  }
+		bool operator <  (const double  a) {   for(int i=0; i<fLength; i++) { if((*this)[i] < a){return 1;} }  return 0;  }
 
 		void Dot 				 		( FEA_dVectorT 	&a, FEA_dVectorT &b ); 
 		void Double_Dot  		( FEA_dMatrixT 	&A, FEA_dMatrixT &B ); 
