@@ -1,4 +1,4 @@
-/* $Id: MSRMatrixT.h,v 1.1 2004-03-14 00:10:38 paklein Exp $ */
+/* $Id: MSRMatrixT.h,v 1.2 2004-03-14 02:28:09 paklein Exp $ */
 #ifndef _MSR_MATRIX_T_H_
 #define _MSR_MATRIX_T_H_
 
@@ -84,7 +84,7 @@ protected:
 	 * \param drop_tol tolerance to drop values if absolute value is smaller
 	 *        than the tolerance. Passing a negative value causes no
 	 *        values to be dropped. */
-	void GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v, double drop_tol);
+	void GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v, double drop_tol) const;
 
 private:
 
