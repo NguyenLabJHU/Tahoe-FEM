@@ -1,4 +1,4 @@
-/* $Id: GreenwoodWilliamson.cpp,v 1.15 2002-07-02 19:56:31 cjkimme Exp $ */
+/* $Id: GreenwoodWilliamson.cpp,v 1.16 2002-07-02 20:15:09 dzeigle Exp $ */
 
 #include "GreenwoodWilliamson.h"
 #include <math.h>
@@ -16,7 +16,7 @@
 using namespace Tahoe;
 
 const double PI = 2.0*acos(0.0);
-const double EXTOL = 75.0;
+const double GWMaxDom = 25.0;
 
 /*
 * constructors
@@ -52,6 +52,7 @@ void GreenwoodWilliamson::PrintName(ostream& out) const
 * Returning values
 */
 double GreenwoodWilliamson::Function(double x) const
+// Returns the area value (p=1) ONLY.
 {
 	double value=0.0;
 
@@ -94,6 +95,7 @@ double GreenwoodWilliamson::Function(double x) const
 }
 
 double GreenwoodWilliamson::DFunction(double x) const
+// Returns the load (p=3/2) ONLY.
 {
 	double value=0.0;
 	
@@ -134,7 +136,6 @@ double GreenwoodWilliamson::DFunction(double x) const
 		{
 			double term[4], expo, m5, m7, gn, gp;
 			Gamma h;
-			Kummer f5(5.0/4.0,0.5), f7(7.0/4.0,1.5);
 		
 			for (int i=0; i<4; i++)	// clear entries
 				term[i] = 0.0;
@@ -143,14 +144,37 @@ double GreenwoodWilliamson::DFunction(double x) const
 			gp = h.Function(0.25);
 			expo = 0.5*((fM-x)/fS)*((fM-x)/fS);
 			
-			m5 = f5.Function(expo);
-			m7 = f7.Function(expo);
+			if (expo < GWMaxDom)
+			{
+				Kummer f5(5.0/4.0,0.5), f7(7.0/4.0,1.5);
+				m5 = f5.Function(expo);
+				m7 = f7.Function(expo);
 			
 	
-			term[0] = -2.0*sqrt(2.0)*fS*gp*m5;
-			term[1] = 3.0*(fM-x)*gn*m7;
-			term[2] = exp(-expo)*sqrt(PI*fS*(fM-x))*(term[0]+term[1]);
-			term[3] = 2.0*pow(2.0,0.25)*sqrt(fM-x)*gp*gn;
+				term[0] = -2.0*sqrt(2.0)*fS*gp*m5;
+				term[1] = 3.0*(fM-x)*gn*m7;
+				term[2] = exp(-expo)*sqrt(PI*fS)*(term[0]+term[1]);
+			}
+			else	// domain value too large - will yield error; use anayltic cancellation to evaluate
+			{
+				double gb5, ga5, gb7, ga7, a5, b5, a7, b7;
+				
+				a5 = 5.0/4.0;
+				b5 = 0.5;
+				a7 = 7.0/4.0;
+				b7 = 1.5;
+				
+				gb5 = h.Function(b5);
+				ga5 = h.Function(a5);
+				gb7 = h.Function(b7);
+				ga7 = h.Function(a7);
+				
+				term[0] = -2.0*sqrt(2.0)*fS*gp*gb5*pow(expo,a5-b5)/ga5;
+				term[1] = 3.0*(fM-x)*gn*gb7*pow(expo,a7-b7)/ga7;
+				term[2] = sqrt(PI*fS*(fM-x))*(term[0]+term[1]);
+			}
+			
+			term[3] = 2.0*pow(2.0,0.25)*gp*gn;
 			
 			if (term[3]==0)
 			{
@@ -158,7 +182,7 @@ double GreenwoodWilliamson::DFunction(double x) const
 				throw eBadInputValue;
 			}
 		
-			value = term[2]/term[3]; 
+			value = term[2]/term[3];
 		}
 	}
 	else
@@ -173,6 +197,7 @@ double GreenwoodWilliamson::DFunction(double x) const
 }
 
 double GreenwoodWilliamson::DDFunction(double x) const
+// Returns the load gradient ONLY.
 {
 	double value = 0.0;
 
@@ -234,7 +259,7 @@ double GreenwoodWilliamson::DDFunction(double x) const
 			gp = h.Function(0.25);
 			expo = 0.5*((fM-x)/fS)*((fM-x)/fS);
 			
-			if (expo > EXTOL)
+			if (expo > GWMaxDom)
 			{
 				double a[4], b[4], ga[4], gb[4], app[4];
 				
@@ -411,7 +436,7 @@ dArrayT& GreenwoodWilliamson::MapDFunction(const dArrayT& in, dArrayT& out) cons
 				gp = h.Function(0.25);
 				expo = 0.5*((fM-r)/fS)*((fM-r)/fS);
 			
-				if (expo > EXTOL)		// geometric cancellation of 
+				if (expo > GWMaxDom)		// geometric cancellation of 
 										// Kummer function and exponential function
 				{
 					double a[2], b[2], ga[2], gb[2];
@@ -536,7 +561,7 @@ dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) con
 				gp = h.Function(0.25);
 				expo = 0.5*((fM-r)/fS)*((fM-r)/fS);
 			
-				if (expo > EXTOL)
+				if (expo > GWMaxDom)
 				{
 					double a[4], b[4], ga[4], gb[4], app[4];
 				
