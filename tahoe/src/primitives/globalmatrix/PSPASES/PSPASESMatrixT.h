@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.h,v 1.1 2004-03-14 00:09:40 paklein Exp $ */
+/* $Id: PSPASESMatrixT.h,v 1.2 2004-03-14 01:08:09 paklein Exp $ */
 #ifndef _PSPASES_MATRIX_T_H_
 #define _PSPASES_MATRIX_T_H_
 
@@ -15,6 +15,7 @@
 /* direct members */
 #include "AutoArrayT.h"
 #include "iArrayT.h"
+#include "dArrayT.h"
 #include "iArray2DT.h"
 #include "nVariArray2DT.h"
 
