@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.cpp,v 1.6.2.2 2003-04-28 08:41:12 paklein Exp $ */
+/* $Id: ParameterListT.cpp,v 1.6.2.3 2003-05-03 09:06:52 paklein Exp $ */
 #include "ParameterListT.h"
 
 using namespace Tahoe;
@@ -11,10 +11,11 @@ const bool ArrayT<ParameterListT::OccurrenceT>::fByteCopy = false;
 }
 
 /* constructor */
-ParameterListT::ParameterListT(const StringT& name, ListOrderT list_order, bool is_inline):
+ParameterListT::ParameterListT(const char* name):
 	fName(name),
-	fListOrder(list_order),
-	fInline(is_inline)
+	fListOrder(Sequence),
+	fInline(false),
+	fDuplicateListNames(true)
 {
 
 }
@@ -22,7 +23,8 @@ ParameterListT::ParameterListT(const StringT& name, ListOrderT list_order, bool 
 /* default constructor */
 ParameterListT::ParameterListT(void):
 	fListOrder(Sequence),
-	fInline(false)
+	fInline(false),
+	fDuplicateListNames(true)
 {
 
 }
@@ -34,6 +36,31 @@ void ParameterListT::SetInline(bool is_inline)
 		ExceptionT::GeneralFail("ParameterListT::SetInline", 
 			"lists with parameters cannot inlined");
 	fInline = is_inline;
+}
+
+/* set/change the list order */
+void ParameterListT::SetListOrder(ListOrderT list_order)
+{
+	if (list_order == Choice) {
+	
+		/* all list occurrences must be Once */
+		for (int i = 0; i < fParameterListsOccur.Length(); i++)
+			if (fParameterListsOccur[i] != Once)
+			ExceptionT::GeneralFail("ParameterListT::SetListOrder", 
+				"for list order \"Choice\" all lists must occur \"Once\"");
+	}
+
+	fListOrder = list_order;
+}
+
+/* number of nested parameter lists with the given name */
+int ParameterListT::NumLists(const char* name) const
+{
+	int count = 0;
+	for (int i = 0; i < fParameterLists.Length(); i++)
+		if (fParameterLists[i].Name() == name)
+			count ++;
+	return count;
 }
 
 /* add parameter */
@@ -63,19 +90,25 @@ bool ParameterListT::AddParameter(const ParameterT& param, OccurrenceT occur)
 /* add a parameter list */
 bool ParameterListT::AddList(const ParameterListT& param_list, OccurrenceT occur)
 {	
+	/* check occurrence */
+	if (fListOrder == Choice && occur != Once)
+		ExceptionT::GeneralFail("ParameterListT::AddList", 
+			"for list order \"Choice\" all lists must occur \"Once\"");
+
 	/* scan name */
-	for (int i = 0; i < fParameterLists.Length(); i++)
-		if (fParameterLists[i].Name() == param_list.Name())
-			return false;
-	
-	/* add if no matches */
+	if (!fDuplicateListNames)
+		for (int i = 0; i < fParameterLists.Length(); i++)
+			if (fParameterLists[i].Name() == param_list.Name())
+				return false;
+
+	/* add to list */
 	fParameterLists.Append(param_list);
 	fParameterListsOccur.Append(occur);
 	return true;
 }
 
 /* add a reference */
-bool ParameterListT::AddReference(const StringT& ref, OccurrenceT occur)
+bool ParameterListT::AddReference(const char* ref, OccurrenceT occur)
 {
 	/* scan name */
 	for (int i = 0; i < fReferences.Length(); i++)
@@ -89,19 +122,21 @@ bool ParameterListT::AddReference(const StringT& ref, OccurrenceT occur)
 }
 
 /* return the pointer to the given list or NULL if the list is not found */
-const ParameterListT* ParameterListT::List(const StringT& name) const
+const ParameterListT* ParameterListT::List(const char* name, int instance) const
 {
 	/* search list */
+	int count = 0;
 	for (int i = 0; i < fParameterLists.Length(); i++)
 		if (fParameterLists[i].Name() == name)
-			return fParameterLists.Pointer(i);
+			if (++count == instance) 
+				return fParameterLists.Pointer(i);
 
 	/* fail */
 	return NULL;
 }
 
 /* return the non-const pointer to the given parameter or NULL if the list is not found */
-const ParameterT* ParameterListT::Parameter(const StringT& name) const
+const ParameterT* ParameterListT::Parameter(const char* name) const
 {
 	/* search list */
 	for (int i = 0; i < fParameters.Length(); i++)
@@ -112,39 +147,43 @@ const ParameterT* ParameterListT::Parameter(const StringT& name) const
 	return NULL;
 }
 
-void ParameterListT::GetParameter(const StringT& name, int& a) const
+void ParameterListT::GetParameter(const char* name, int& a) const
 {
 	const char caller[] = "ParameterListT::GetParameter";
 	const ParameterT* parameter = Parameter(name);
 	if (!parameter)
-		ExceptionT::GeneralFail(caller, "parameter \"%s\" not found", name.Pointer());
+		ExceptionT::GeneralFail(caller, "parameter \"%s\" not found in \"%s\"", 
+			name, Name().Pointer());
 	a = *parameter;
 }
 
-void ParameterListT::GetParameter(const StringT& name, double& a) const
+void ParameterListT::GetParameter(const char* name, double& a) const
 {
 	const char caller[] = "ParameterListT::GetParameter";
 	const ParameterT* parameter = Parameter(name);
 	if (!parameter)
-		ExceptionT::GeneralFail(caller, "parameter \"%s\" not found", name.Pointer());
+		ExceptionT::GeneralFail(caller, "parameter \"%s\" not found in \"%s\"", 
+			name, Name().Pointer());
 	a = *parameter;
 }
 
-void ParameterListT::GetParameter(const StringT& name, StringT& a) const
+void ParameterListT::GetParameter(const char* name, StringT& a) const
 {
 	const char caller[] = "ParameterListT::GetParameter";
 	const ParameterT* parameter = Parameter(name);
 	if (!parameter)
-		ExceptionT::GeneralFail(caller, "parameter \"%s\" not found", name.Pointer());
+		ExceptionT::GeneralFail(caller, "parameter \"%s\" not found in \"%s\"", 
+			name, Name().Pointer());
 	a = *parameter;
 }
 
-void ParameterListT::GetParameter(const StringT& name, bool& a) const
+void ParameterListT::GetParameter(const char* name, bool& a) const
 {
 	const char caller[] = "ParameterListT::GetParameter";
 	const ParameterT* parameter = Parameter(name);
 	if (!parameter)
-		ExceptionT::GeneralFail(caller, "parameter \"%s\" not found", name.Pointer());
+		ExceptionT::GeneralFail(caller, "parameter \"%s\" not found in \"%s\"", 
+			name, Name().Pointer());
 	a = *parameter;
 }
 
@@ -195,7 +234,10 @@ void ParameterListT::Validate(const ParameterListT& source, const ParameterListT
 				if (source_parameters[j].Type() == parameter.Type())
 					new_parameter = source_parameters[j];
 				else if (source_parameters[j].Type() == ParameterT::String)
-					new_parameter.FromString(source_parameters[j]);
+				{
+					const StringT& value_str = source_parameters[j];
+					new_parameter.FromString(value_str);	
+				}
 				else
 					ExceptionT::BadInputValue(caller, "source for \"%s\" must have type %d or %d: %d", 
 						parameter.Name().Pointer(), ParameterT::String, parameter.Type());
@@ -248,42 +290,96 @@ void ParameterListT::Validate(const ParameterListT& source, const ParameterListT
 	const ArrayT<ParameterListT>& lists = description.Lists();
 	const ArrayT<ParameterListT::OccurrenceT>& lists_occur = description.ListOccurrences();
 	const ArrayT<ParameterListT>& source_lists = source.Lists();
-
-	/* validate parameters */
-	for (int i = 0; i < lists.Length(); i++)
+	switch (description.ListOrder())
 	{
-		const ParameterListT& list = lists[i];
-		OccurrenceT occurrence = lists_occur[i];
+		/* ordered sequence */
+		case ParameterListT::Sequence:
+		{
+			int source_dex = 0;
+			int descript_dex = 0;
+			for (descript_dex = 0; descript_dex < lists.Length() && source_dex < source_lists.Length(); descript_dex++)
+			{
+				const ParameterListT& list = lists[descript_dex];
+				ParameterListT::OccurrenceT occur = lists_occur[descript_dex];
+				switch (occur)
+				{
+					case ParameterListT::Once:
+					case ParameterListT::ZeroOrOnce:
+					{
+						/* look for one */
+						int count = 0;
+						if (source_lists[source_dex].Name() == list.Name()) 
+						{
+							count++;
+							
+							/* create validated sub-list */
+							ParameterListT new_list;
+							new_list.Validate(source_lists[source_dex], list);
 
-		/* search through sublists */
-		int count = 0;
-		for (int j = 0; j < source_lists.Length(); j++) {
-				
-			/* name match */
-			if (source_lists[j].Name() == list.Name()) {
-			
-				/* check occurrence */
-				if (count > 0 && (occurrence == Once || occurrence == ZeroOrOnce))
-					ExceptionT::BadInputValue(caller, "parameter list \"%s\" cannot appear in \"%s\" more than once",
-						list.Name().Pointer(), source.Name().Pointer());
-									
-				/* create validated sub-list */
-				ParameterListT new_list;
-				new_list.Validate(source_lists[j], list);
+							/* add it */
+							AddList(new_list);
+						
+							/* next source item */
+							source_dex++;
+						}
 
-				/* add it */
-				AddList(new_list);
+						/* check */
+						if (occur == ParameterListT::Once && count != 1)
+							ExceptionT::BadInputValue(caller, "item %d in \"%s\" must be \"%s\"",
+								NumLists() + 1, source.Name().Pointer(), list.Name().Pointer());
+						
+						break;
+					}
+					case ParameterListT::OnePlus:
+					case ParameterListT::Any:
+					{
+						/* accept many */
+						int count = 0;
+						while (source_dex < source_lists.Length() && source_lists[source_dex].Name() == list.Name())
+						{
+							count++;
 
-				/* increment count */
-				count++;
+							/* create validated sub-list */
+							ParameterListT new_list;
+							new_list.Validate(source_lists[source_dex], list);
+
+							/* add it */
+							AddList(new_list);
+						
+							/* next source item */
+							source_dex++;
+						}
+						
+						/* must have at least one */
+						if (lists_occur[descript_dex] == ParameterListT::OnePlus && count < 1)
+							ExceptionT::BadInputValue(caller, "list \"%s\" must contain at least one \"%s\" beginning at position %d",
+								source.Name().Pointer(), list.Name().Pointer(), NumLists() + 1);		
+						break;
+					}
+					default:
+						ExceptionT::GeneralFail(caller, "unrecognized occurrence %d", occur);
+				}
 			}
+			
+			/* check any remaining */
+			for (; descript_dex < lists.Length(); descript_dex++)
+				if (lists_occur[descript_dex] != ParameterListT::ZeroOrOnce &&
+				    lists_occur[descript_dex] != ParameterListT::Any)
+					ExceptionT::GeneralFail(caller, "\"%s\" required by \"%s\"",
+						lists[descript_dex].Name().Pointer(), source.Name().Pointer());
+			
+			break;
 		}
-		
-		/* check for required lists */
-		if (count == 0 && (occurrence == Once || occurrence == OnePlus))
-			ExceptionT::BadInputValue(caller,
-				"required parameter list \"%s\" is missing from \"%s\"",
-				list.Name().Pointer(), source.Name().Pointer());		
+#if 0
+		/* unordered list */
+		case ParameterListT::Choice:
+		{
+			//not implemented
+			break;
+		}
+#endif
+		default:
+			ExceptionT::GeneralFail(caller, "unrecognized list order %d", description.ListOrder());
 	}
 
 	} /* catch all exceptions */ 

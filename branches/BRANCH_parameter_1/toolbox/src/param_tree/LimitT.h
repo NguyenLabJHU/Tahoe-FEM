@@ -1,4 +1,4 @@
-/* $Id: LimitT.h,v 1.5 2003-04-22 22:11:31 paklein Exp $ */
+/* $Id: LimitT.h,v 1.5.2.1 2003-05-03 09:06:52 paklein Exp $ */
 #ifndef _LIMIT_T_H_
 #define _LIMIT_T_H_
 
@@ -26,10 +26,10 @@ public:
 	/*@{*/
 	LimitT(int a, BoundT bound);
 	LimitT(double x, BoundT bound);
-	LimitT(const StringT& s, BoundT bound);
+	LimitT(const char* s, BoundT bound);
 	
 	/** enumeration value. String-integer pair that bounds as LimitT::Only */
-	LimitT(const StringT& name, int value);
+	LimitT(const char* name, int value);
 	
 	/** default constructor */
 	LimitT(void): fBound(None) {};

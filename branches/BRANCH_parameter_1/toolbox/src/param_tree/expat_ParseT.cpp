@@ -1,4 +1,4 @@
-/* $Id: expat_ParseT.cpp,v 1.1 2003-04-22 18:32:16 paklein Exp $ */
+/* $Id: expat_ParseT.cpp,v 1.1.2.1 2003-05-03 09:06:52 paklein Exp $ */
 #include "expat_ParseT.h"
 #ifdef __EXPAT__
 
@@ -84,8 +84,12 @@ void expat_ParseT::startElement(void *userData, const char *name, const char **a
 	if (sListStack.Length() < 1)
 		ExceptionT::GeneralFail(caller, "stack is empty");
 
+	/* parent list */
+	ParameterListT* parent = sListStack.Last();
+
 	/* new sublist */
 	ParameterListT sublist(name);
+	sublist.SetDuplicateListNames(parent->DuplicateListNames());
 	
 	/* put attributes into the list */
 	while (*atts != NULL) {
@@ -108,7 +112,6 @@ void expat_ParseT::startElement(void *userData, const char *name, const char **a
 	}
 
 	/* append sublist to parent */
-	ParameterListT* parent = sListStack.Last();
 	if (!parent->AddList(sublist))
 		ExceptionT::BadInputValue(caller, "could not add sublist \"%s\" to list \"%s\"",
 			sublist.Name().Pointer(), parent->Name().Pointer());
