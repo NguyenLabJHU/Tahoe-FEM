@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.74 2003-12-02 17:17:10 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.75 2003-12-10 06:44:03 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -42,6 +42,9 @@
 #include "MeshFreeFSSolidT.h"
 #include "D2MeshFreeFSSolidT.h"
 #include "UpLagr_ExternalFieldT.h"
+#ifdef SIMPLE_SOLID_DEV
+#include "TotalLagrangianFlatT.h"
+#endif
 #endif
 
 #ifdef BRIDGING_ELEMENT
@@ -303,6 +306,15 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
+			case ElementT::kTotLagFlat:
+			{
+#if defined(CONTINUUM_ELEMENT) && defined(SIMPLE_SOLID_DEV)
+				fArray[group] = new TotalLagrangianFlatT(fSupport, *field);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT or SIMPLE_SOLID_DEV not enabled: %d", code);
 #endif
 			}
 			case ElementT::kSimoFiniteStrain:
