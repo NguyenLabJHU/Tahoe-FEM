@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.7 2004-07-29 23:42:06 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.8 2004-07-30 15:14:12 paklein Exp $ */
 #include "FS_SCNIMFT.h"
 
 //#define VERIFY_B
@@ -36,7 +36,8 @@ FS_SCNIMFT::FS_SCNIMFT(const ElementSupportT& support, const FieldT& field):
 }
 
 FS_SCNIMFT::FS_SCNIMFT(const ElementSupportT& support):
-	SCNIMFT(support)
+	SCNIMFT(support),
+	fFSMatSupport(NULL)
 {
 	SetName("fd_mfparticle");
 }
