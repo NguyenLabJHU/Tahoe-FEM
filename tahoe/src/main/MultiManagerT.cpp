@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.20 2005-02-03 17:05:59 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.21 2005-02-06 01:24:17 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -598,6 +598,10 @@ ParameterInterfaceT* MultiManagerT::NewSub(const StringT& name) const
 		bound_tolerance.SetDefault(0.02);
 		bound_tolerance.AddLimit(0.0, LimitT::Lower);
 		by_bond_p.AddParameter(bound_tolerance);
+		ParameterT stiffness_jump(ParameterT::Double, "stiffness_jump");
+		stiffness_jump.SetDefault(2.0);
+		stiffness_jump.AddLimit(0.0, LimitT::Lower);
+		by_bond_p.AddParameter(stiffness_jump);
 		choice->AddSub(by_bond_p);
 			
 		return choice;
@@ -795,11 +799,12 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 		double smoothing = overlap.GetParameter("smoothing");
 		double bind_1 = overlap.GetParameter("bind_to_1.0");
 		double bound_tol = overlap.GetParameter("bound_tolerance");
+		double stiffness_jump = overlap.GetParameter("stiffness_jump");
 		int nip = overlap.GetParameter("density_nip");
 		
 		/* compute overlap correction */
 		fCoarse->CorrectOverlap_22(particle_pair->Neighbors(), fine_init_coords, 
-			overlap_path, smoothing, bind_1, bound_tol, nip);
+			overlap_path, smoothing, bind_1, bound_tol, stiffness_jump, nip);
 	}
 	else
 		ExceptionT::GeneralFail(caller, "unrecognized overlap correction method \"%s\"",

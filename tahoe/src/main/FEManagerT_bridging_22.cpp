@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_22.cpp,v 1.7 2005-02-03 17:33:37 paklein Exp $ */
+/* $Id: FEManagerT_bridging_22.cpp,v 1.8 2005-02-06 01:24:17 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -52,9 +52,12 @@ const double sqrt2 = sqrt(2.0);
 using namespace Tahoe;
 
 void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_neighbors, const dArray2DT& point_coords, 
-	const StringT& overlap_file, double smoothing, double k2, double bound_tol, int nip)
+	const StringT& overlap_file, double smoothing, double k2, double bound_tol, double scale_jump_0, int nip)
 {
 	const char caller[] = "FEManagerT_bridging::CorrectOverlap_22";
+
+	/* total jump is actually 1 + scale_jump */
+	scale_jump_0 -= 1.0;
 
 	/* coarse scale element group */
 	const ContinuumElementT* coarse = fFollowerCellData.ContinuumElement();
@@ -302,7 +305,7 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 		K_scale = k_penalty;
 
 		/* solve bond densities */
-		double scale_jump = 1.0; /* total jump is actually 1 + scale_jump */
+		double scale_jump = (scale_jump_0 < 1.0) ? 1.0 : scale_jump_0; /* total jump is actually 1 + scale_jump */
 		double constraint_tol = bound_tol;
 		double abs_tol = 1.0e-10;
 		double rel_tol = 1.0e-10;
@@ -361,7 +364,7 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 			}
 
 			error_0 = error = sqrt(dArrayT::Dot(rhs, rhs));
-			cout << i+1 << '/' << bonds.MajorDim() << ": {e, bound, ||fa||} = {" 
+			cout << i+1 << '/' << bonds.MajorDim() << ": {e, ||fa||} = {" 
 			     << error << ", "
 			     <<  sqrt(dArrayT::Dot(f_a, f_a)) << "}" << endl;
 
@@ -520,7 +523,7 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 					}
 					
 					/* report */
-					cout << "{max, min, scale_jump} = " << "{" << min << ", " << max << ", " << scale_jump <<"}"<< endl;
+					cout << "{max, min, scale_jump} = " << "{" << min << ", " << max << ", " << 1+scale_jump <<"}"<< endl;
 				}
 			}
 			else /* did not converge */
