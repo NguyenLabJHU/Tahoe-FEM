@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.41.2.14 2003-06-03 20:16:45 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.41.2.15 2003-06-11 18:56:03 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -333,8 +333,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		/* initialize FEManager_THK using atom values */
 		FEManagerT_THK atoms(atom_in, atom_out, fComm, bridge_atom_in);
 		atoms.Initialize();
-		
-		continuum_in >> job_char;
+	    	continuum_in >> job_char;
 		FEManagerT_bridging continuum(continuum_in, continuum_out, fComm, bridge_continuum_in);
 		continuum.Initialize();
 		t1 = clock();
@@ -344,14 +343,15 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		 * check only one integrator assuming they both are the same */
 		const IntegratorT* mdintegrate = atoms.Integrator(0);
 		IntegratorT::ImpExpFlagT impexp = mdintegrate->ImplicitExplicit();
-                
+       
 		if (impexp == IntegratorT::kImplicit)
 			RunStaticBridging(continuum, atoms, log_out);
 		else if (impexp == IntegratorT::kExplicit)
 			RunDynamicBridging(continuum, atoms, log_out);
 		else
 			ExceptionT::GeneralFail(caller, "unknown integrator type %d", impexp);
-
+		
+	
 		t2 = clock();
 	}
         
@@ -650,8 +650,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		/* Write interpolated FEM values at MD ghost nodes into MD field - displacement only */
 		atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);
 		
-		/* INITIALIZE TIME HISTORY VARIABLES HERE USING BADISP ARRAY */
-		
+		/* store initial MD boundary displacement histories */
+		thkforce = atoms.THKForce(badisp);
+
 		/* figure out timestep ratio between fem and md simulations */
 		int nfesteps = continuum_time->NumberOfSteps();
 		double mddt = atom_time->TimeStep();
@@ -680,11 +681,8 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	
 				/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
 				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);				
-				
-				/* UPDATE TIME HISTORY VARIABLES HERE USING BADISP ARRAY */
-														
-				/* calculate THK force on boundary atoms */
-				//thkforce = atoms.THKForce(badisp);
+			       	/* calculate THK force on boundary atoms, update displacement histories */
+				thkforce = atoms.THKForce(badisp);
 																			
 				/* solve MD equations of motion */
 				if (1 || error == ExceptionT::kNoError) {
