@@ -9,19 +9,23 @@
 using namespace Tahoe;
 
 /* parameters */
-const int    kNumInternal = 4;
+const int    kNumInternal = 6;
+const int    kNSD         = 3;
 const double sqrt23       = sqrt(2.0/3.0);
 const double kYieldTol    = 1.0e-10;
-const int    kNSD         = 3;
+const double fStateTol    = 1.0e-1;
 
 /* element output data */
-const int    kNumOutput = 5;
+const int    kNumOutput = 8;
 static const char* Labels[kNumOutput] = {
-        "EqPStrn",  // equivalent plastic strain
-	"VMStrss",  // Von Mises stress
-        "Prssure",  // pressure
-        "IsoHard",  // isotropic hardening
-        "NlIsoHard"}; // nonlocal isotropic hardening
+	"VMStrss",   // Von Mises stress
+        "Prssure",   // pressure
+        "EqPStrn",   // equivalent plastic strain
+	"dEqPStrn",  // increment of equivalent plastic strain
+	"PlsMult",   // plastic multiplier
+        "IsoHard",   // isotropic hardening
+        "NlIsoHard", // nonlocal isotropic hardening
+	"YldCrit"};  // Yield criteria
 
 /* constructor */
 GradJ2SSNonlinHard::GradJ2SSNonlinHard(ifstreamT& in, const SmallStrainT& element):
@@ -88,14 +92,102 @@ void GradJ2SSNonlinHard::UpdateHistory(void)
         {
 	        LoadData(element, ip);
 		
-	        /* update state */
-	        fStress_n     = fStress;
-	        fPlstStrn_n   = fPlstStrn;
-	        fUnitNorm_n   = fUnitNorm;
-	        fKineHard_n   = fKineHard;
-	        fNlKineHard_n = fNlKineHard;
-	        fInternal_n   = fInternal;
-        }
+		/* update state */
+		fStress_n     = fStress;
+		fPlstStrn_n   = fPlstStrn;
+		fUnitNorm_n   = fUnitNorm;
+		fKineHard_n   = fKineHard;
+		fNlKineHard_n = fNlKineHard;
+		fInternal_n   = fInternal;
+	}
+
+	//	/* get flags */
+	//	iArrayT& flags = element.IntegerData();
+	//
+	//	/* check if reset state (is same for all ip) */
+	//	if (flags[0] == kReset)
+	//	{
+	//		flags = kIsElastic; //don't update again
+	//		return;
+	//	}
+	//
+	//	/* update plastic variables */
+	//	for (int ip = 0; ip < fNumIP; ip++)
+	//		if (flags[ip] ==  kIsPlastic) /* plastic update */
+	//		{
+	//			/* do not repeat if called again */
+	//			flags[ip] = kReset;
+	//			/* NOTE: ComputeOutput writes the updated internal variables
+	//			 *       for output even during iteration output, which is
+	//			 *       called before UpdateHistory */
+	//
+	//			/* fetch element data */
+	//		        LoadData(element, ip);
+	//
+	//			/* plastic increment */
+	//			double& delLmbda = fInternal[kdelLmbda];
+	//		
+	//			/* update plastic strain */
+	//			fsymmatx1.SetToScaled(delLmbda, fUnitNorm_n);
+	//			fPlstStrn_n += fsymmatx1;
+	//
+	//			/* update stress */
+	//			const dSymMatrixT& e_tot = e(ip);
+	//			const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
+	//			HookeanStress(e_els, fStress_n);
+	//
+	//			/* update kinematic hardening */
+	//			fsymmatx1.SetToScaled(k1*delLmbda, fUnitNorm_n);
+	//			fsymmatx1.AddScaled(-1.0*k1*k3*delLmbda, fNlKineHard_n);
+	//			fKineHard_n += fsymmatx1;
+	//
+	//			/* update isotropic hardening */
+	//			fInternal_n[kIsotHard] += k2*delLmbda*(sqrt23-k4*fInternal_n[kNlIsotHard]);
+	//		}
+	//
+	//	dArrayT  ip_IsotHard(fNumIP);
+	//	ip_IsotHard = 0.;
+	//
+	//        for (int ip = 0; ip < fNumIP; ip++)
+	//        {
+	//	        /* load internal variables */
+	//	        LoadData(element, ip);
+	//
+	//		/* store isotropic hardening at ip in array */
+	//		ip_IsotHard[ip] = fInternal_n[kIsotHard];
+	//	}
+	//
+	//	dArrayT ip_LapIsotHard(fNumIP);
+	//	ip_LapIsotHard = Laplacian(ip_IsotHard, 1);
+	//
+	//        for (int ip = 0; ip < fNumIP; ip ++)
+	//	{
+	//	        /* load internal variables */
+	//	        LoadData(element, ip);
+	//
+	//	        /* update nonlocal variables */
+	//		fInternal[kNlIsotHard] = fInternal_n[kIsotHard] + c2 * ip_LapIsotHard[ip];
+	//
+	//		if (fInternal[kNlIsotHard] > fInternal_n[kNlIsotHard])
+	//		{
+	//		        fInternal_n[kNlIsotHard] = fInternal[kNlIsotHard];
+	//		}
+	//
+	//		fNlKineHard_n = fKineHard_n;
+	//	}		
+	//
+	//        for (int ip = 0; ip < fNumIP; ip++)
+	//        {
+	//	        /* load internal variables */
+	//	        LoadData(element, ip);
+	//
+	//		/* compute relative stress */
+	//		fRelStress.Deviatoric(fStress_n);
+	//		fRelStress.AddScaled(-1.0, fNlKineHard_n);
+	//
+	//		/* update unit normal */
+	//		fUnitNorm_n.SetToScaled(1.0/ sqrt(fRelStress.ScalarProduct()), fRelStress);
+	//        }
 }
 
 /* reset internal variables to last converged solution */
@@ -228,27 +320,110 @@ void GradJ2SSNonlinHard::ComputeOutput(dArrayT& output)
 {
         /* gather element/integ point information */
         ElementCardT& element = CurrentElement();
-        int ip = CurrIP();
+        int fCurrIP = CurrIP();
 
         /* load element data */
-        LoadData(element, ip);
-
-	/* pressure */
-	output[2] = fStress.Trace()/3.0;
+        LoadData(element, fCurrIP);
 
 	/* deviatoric Von Mises stress */
-	fStress.Deviatoric();
-	double J2 = fStress.Invariant2();
+	fsymmatx1.Deviatoric(fStress);
+	double J2 = fsymmatx1.Invariant2();
 	J2 = (J2 < 0.0) ? 0.0 : J2;
-	output[1] = sqrt(3.0*J2);
+	output[0] = sqrt(3.0*J2);
+
+	/* pressure */
+	output[1] = fStress.Trace()/3.0;
 
 	/* equivalent plastic strain */
-        output[0] = sqrt23*sqrt(fPlstStrn.ScalarProduct());
+        output[2] = sqrt23*sqrt(fPlstStrn.ScalarProduct());
+
+	/* plastic multiplier */
+	output[3] = fInternal[kdelLmbda];
+
+	/* evolution equivalent plastic strain */
+	fsymmatx1.SetToScaled(fInternal[kdelLmbda], fUnitNorm_n);
+	output[4] = sqrt23*sqrt(fsymmatx1.ScalarProduct());
 
 	/* isotropic hardening */
-	output[3] = fInternal[kIsotHard];
+	output[5] = fInternal[kIsotHard];
 
-	output[4] = fInternal[kNlIsotHard];
+	/* nonlocal isotropic hardening */
+	output[6] = fInternal[kNlIsotHard];
+
+	/* compute yield criteria */ 
+	output[7] = (fInternal[kYieldCrt] = YieldCondition(fRelStress,fInternal[kNlIsotHard]));
+	//
+	//	/* plastic increment */
+	//	double& delLmbda = fInternal[kdelLmbda];
+	//	output[3] = delLmbda;
+	//
+	//	/* evolution equivalent plastic strain */
+	//	fsymmatx1.SetToScaled(delLmbda, fUnitNorm_n);
+	//	output[4] = sqrt23*sqrt(fsymmatx1.ScalarProduct());
+	//
+	//	/* equivalent plastic strain */
+	//	fsymmatx1.SetToScaled(delLmbda, fUnitNorm_n);
+	//	fPlstStrn = fPlstStrn_n;
+	//	fPlstStrn += fsymmatx1;
+	//        output[2] = sqrt23*sqrt(fPlstStrn.ScalarProduct());
+	//
+	//	/* deviatoric Von Mises stress */
+	//	const dSymMatrixT& e_tot = e(fCurrIP);
+	//	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, fCurrIP);
+	//	HookeanStress(e_els, fStress);
+	//	fsymmatx1.Deviatoric(fStress);
+	//	double J2 = fsymmatx1.Invariant2();
+	//	J2 = (J2 < 0.0) ? 0.0 : J2;
+	//	output[0] = sqrt(3.0*J2);
+	//
+	//	/* pressure */
+	//	output[1] = fStress.Trace()/3.0;
+	//
+	//	/* kinematic hardening */
+	//	fsymmatx1.SetToScaled(k1*delLmbda, fUnitNorm_n);
+	//	fsymmatx1.AddScaled(-1.0*k1*k3*delLmbda, fNlKineHard_n);
+	//	fKineHard = fKineHard_n;
+	//	fKineHard += fsymmatx1;
+	//
+	//	/* isotropic hardening */
+	//	fInternal[kIsotHard] = fInternal_n[kIsotHard];
+	//	output[5] = (fInternal[kIsotHard] += k2*delLmbda*(sqrt23-k4*fInternal_n[kNlIsotHard]));
+	//
+	//	/* nonlocal isotropic hardening */
+	//	dArrayT  ip_IsotHard(fNumIP);
+	//	ip_IsotHard = 0.;
+	//
+   	//     for (int ip = 0; ip < fNumIP; ip ++)
+	//	{
+	//	        /* load internal variables */
+	//	        LoadData(element, ip);
+	//
+	//		/* store isotropic hardening at ip in array */
+	//		ip_IsotHard[ip] = fInternal[kIsotHard];
+	//	}
+	//
+	//	dArrayT ip_LapIsotHard(fNumIP);
+	//	ip_LapIsotHard = Laplacian(ip_IsotHard, 1);
+	//
+ 	//       /* update nonlocal variables */
+	//	fInternal[kNlIsotHard] = fInternal[kIsotHard] + c2 * ip_LapIsotHard[fCurrIP];
+	//
+	//	/* ensure that evolution of kNlIsotHard is positive */
+	//	if (fInternal[kNlIsotHard] < fInternal_n[kNlIsotHard])
+	//	{
+	//	        fInternal[kNlIsotHard] = fInternal_n[kNlIsotHard];
+	//	}
+	//	output[6] = fInternal[kNlIsotHard];
+	//	
+   	//     /* compute relative stress */
+	//	fRelStress.Deviatoric(fStress);
+	//	fRelStress.AddScaled(-1.0, fNlKineHard);
+	//
+	//	/* compute unit normal to yield surface */
+	//	fUnitNorm.SetToScaled(1.0/ sqrt(fRelStress.ScalarProduct()), fRelStress);
+	//
+	//	/* compute yield criteria */ 
+	//	output[7] = (fInternal[kYieldCrt] = YieldCondition(fRelStress,fInternal[kNlIsotHard]));
 }
 
 /*************************************************************************
@@ -294,11 +469,22 @@ void GradJ2SSNonlinHard::SolveState(ElementCardT& element)
 		const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
 		HookeanStress(e_els, fStress);
 
-		/* step 3. initialize unit normal and yield criteria */
-		UpdateState();
+		/* step 3. update yield criteria */
+		UpdateState(element, ip);
+
+	        LoadData(element, ip);
 
 		if (fInternal[kYieldCrt] > kYieldTol)
 		        flags[ip] = kIsPlastic;
+		else
+		        flags[ip] = kIsElastic;
+
+		//		/* Set initial values for state variables */
+		//		fInternal[kIsotHard0] = fInternal[kIsotHard];
+		//		fInternal[kNlIsotHard0] = fInternal[kNlIsotHard];
+
+	        /* step 4. zero the increment in plasticity parameter */
+	        fInternal[kdelLmbda] = 0.;
 	}
 
         /* check for inelastic processes at any ip in element */
@@ -309,15 +495,6 @@ void GradJ2SSNonlinHard::SolveState(ElementCardT& element)
 	        /* local Newton iteration */
 	        int max_iteration = 30;
 	        int count = 0;
-
-	        for (int ip = 0; ip < fNumIP; ip ++)
-		{
-		        /* load internal variables */
-		        LoadData(element, ip);
-
-		        /* step 4. zero the increment in plasticity parameter */
-		        fInternal[kdelLmbda] = 0.;
-		}
 
 		while (!Converged && ++count <= max_iteration)
 		{
@@ -330,19 +507,27 @@ void GradJ2SSNonlinHard::SolveState(ElementCardT& element)
 			        /* load internal variables */
 			        LoadData(element, ip);
 
+				//			        /* Reset previous iteration state variables */
+				//			        fInternal[kIsotHard0] = fInternal[kIsotHard];
+				//				fInternal[kNlIsotHard0] = fInternal[kNlIsotHard];
+
 				/* check for inelastic processes */
 				if (flags[ip] == kIsPlastic && fInternal[kYieldCrt] > kYieldTol)
 				{
-				        double varLambda;
+				        double varLmbda;
 
 					/* step 5. increment plasticity parameter */
-					IncrementPlasticParameter(varLambda);
+					IncrementPlasticParameter(varLmbda,element,ip);
 
 					/* step 6. increment stress and state variables */
-					IncrementState(varLambda);
-
-					ip_IsotHard[ip] = fInternal[kIsotHard];
+					IncrementState(varLmbda,element,ip);
 				}
+
+			        /* load internal variables */
+			        LoadData(element, ip);
+
+				/* store isotropic hardening at ip in array */
+				ip_IsotHard[ip] = fInternal[kIsotHard];
 			}
 
 			dArrayT ip_LapIsotHard(fNumIP);
@@ -354,11 +539,21 @@ void GradJ2SSNonlinHard::SolveState(ElementCardT& element)
 			        LoadData(element, ip);
 
 			        /* update nonlocal variables */
-			        fInternal[kNlIsotHard] = fInternal[kIsotHard] + c2 * ip_LapIsotHard[ip];
+				fInternal[kNlIsotHard] = fInternal[kIsotHard] + c2 * ip_LapIsotHard[ip];
+
+				/* ensure that evolution of kNlIsotHard is positive */
+				if (fInternal[kNlIsotHard] < fInternal_n[kNlIsotHard])
+				{
+				        fInternal[kNlIsotHard] = fInternal_n[kNlIsotHard];
+				}
+
 				fNlKineHard = fKineHard;
 
 				/* step 7. update unit normal and yield criteria */
-				UpdateState();
+				UpdateState(element, ip);
+
+			        /* load internal variables */
+			        LoadData(element, ip);
 
 				if (fInternal[kYieldCrt] > kYieldTol)
 				        flags[ip] = kIsPlastic;
@@ -382,13 +577,17 @@ void GradJ2SSNonlinHard::SolveState(ElementCardT& element)
 	        /* load internal variables */
 	        LoadData(element, ip);
 
+		//		if (fabs(fInternal[kIsotHard] - fInternal[kIsotHard0]) <= fStateTol*fInternal[kIsotHard0] ||
+		//		    fabs(fInternal[kNlIsotHard] - fInternal[kNlIsotHard0]) <= fStateTol*fInternal[kNlIsotHard0])
+		//		        cout << "\nNonconverged State Variable";
+
 		/* check for inelastic processes */
 		if (flags[ip] == kIsPlastic)
 		        /* step 8. compute consistent tangent moduli */
-		        TangentModuli();
+		        TangentModuli(element, ip);
 
 		else if (flags[ip] == kIsElastic)
-		        /* step 4. compute elastic modulus */
+		        /* step 5. compute elastic modulus */
 		        fModulus = HookeanMatT::Modulus();
 		else
 	        {
@@ -474,9 +673,12 @@ void GradJ2SSNonlinHard::LoadData(const ElementCardT& element, int fCurrIP)
 }
 
 /* computes the increment in the plasticity parameter */
-void GradJ2SSNonlinHard::IncrementPlasticParameter(double& varLambda)
+void GradJ2SSNonlinHard::IncrementPlasticParameter(double& varLmbda, const ElementCardT& element, int ip)
 {
-        /* operations to compute dot product for varLambda */
+	/* load internal variables */
+	LoadData(element, ip);
+
+        /* operations to compute dot product for varLmbda */
         fUnitNorm.ToMatrix(fmatx1);
         fUnitNorm_n.ToMatrix(fmatx2);
         fNlKineHard_n.ToMatrix(fmatx3);
@@ -485,7 +687,7 @@ void GradJ2SSNonlinHard::IncrementPlasticParameter(double& varLambda)
 
 	/* stiffness */
 	double dYieldCrt = (2*fmu+k1)*cnn - k1*k3*cnx
-			     + k2*(sqrt23-k4*fInternal_n[kNlIsotHard]);
+			     + sqrt23*k2*(sqrt23-k4*fInternal_n[kNlIsotHard]);
 
 	if (dYieldCrt < kSmall)
 	{
@@ -494,35 +696,64 @@ void GradJ2SSNonlinHard::IncrementPlasticParameter(double& varLambda)
 	}
 		
 	/* variation of plasticity multiplier */
-	varLambda = fInternal[kYieldCrt]/dYieldCrt;
+	varLmbda = fInternal[kYieldCrt]/dYieldCrt;
 
 	/* increment of plasticity */
-	fInternal[kdelLmbda] += varLambda;
+	fInternal[kdelLmbda] += varLmbda;
 }
 
 /* computes the increments in the stress and internal variables */
-void GradJ2SSNonlinHard::IncrementState(const double& varLambda)
+void GradJ2SSNonlinHard::IncrementState(const double& varLmbda, const ElementCardT& element, int ip)
 {
+	/* load internal variables */
+	LoadData(element, ip);
+
 	/* increment stress */
-	fsymmatx1.SetToScaled(-2.0*fmu*varLambda, fUnitNorm_n);
+	fsymmatx1.SetToScaled(-2.0*fmu*varLmbda, fUnitNorm_n);
 	fStress += fsymmatx1;
 
 	/* increment kinematic hardening */
-	fsymmatx1.SetToScaled(k1*varLambda, fUnitNorm_n);
-	fsymmatx1.AddScaled(-1.0*k1*k3*varLambda, fNlKineHard_n);
+	fsymmatx1.SetToScaled(k1*varLmbda, fUnitNorm_n);
+	fsymmatx1.AddScaled(-1.0*k1*k3*varLmbda, fNlKineHard_n);
 	fKineHard += fsymmatx1;
 
 	/* increment isotropic hardening */
-	fInternal[kIsotHard] += k2*varLambda*(sqrt23-k4*fInternal_n[kNlIsotHard]);
+	fInternal[kIsotHard] += k2*varLmbda*(sqrt23-k4*fInternal_n[kNlIsotHard]);
 
 	/* increment plastic strain */
-	fPlstStrn = fPlstStrn_n;
-	fPlstStrn.AddScaled(fInternal[kdelLmbda], fUnitNorm_n);
+	fsymmatx1.SetToScaled(varLmbda, fUnitNorm_n);
+	fPlstStrn += fsymmatx1;
+
+	//	/* plastic increment */
+	//	double& delLmbda = fInternal[kdelLmbda];
+	//
+	//	/* update plastic strain */
+	//	fsymmatx1.SetToScaled(delLmbda, fUnitNorm_n);
+	//	fPlstStrn = fPlstStrn_n;
+	//	fPlstStrn += fsymmatx1;
+	//
+	//	/* update stress */
+	//	const dSymMatrixT& e_tot = e(ip);
+	//	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
+	//	HookeanStress(e_els, fStress);
+	//
+	//	/* update kinematic hardening */
+	//	fsymmatx1.SetToScaled(k1*delLmbda, fUnitNorm_n);
+	//	fsymmatx1.AddScaled(-1.0*k1*k3*delLmbda, fNlKineHard_n);
+	//	fKineHard = fKineHard_n;
+	//	fKineHard += fsymmatx1;
+	//
+	//	/* update isotropic hardening */
+	//	fInternal[kIsotHard] = fInternal_n[kIsotHard];
+	//	fInternal[kIsotHard] += k2*delLmbda*(sqrt23-k4*fInternal_n[kNlIsotHard]);
 }
 
 /* computes the unit normal and the yield condition */
-void GradJ2SSNonlinHard::UpdateState()
+void GradJ2SSNonlinHard::UpdateState(const ElementCardT& element, int ip)
 {
+	/* load internal variables */
+	LoadData(element, ip);
+
         /* compute relative stress */
 	fRelStress.Deviatoric(fStress);
 	fRelStress.AddScaled(-1.0, fNlKineHard);
@@ -535,8 +766,11 @@ void GradJ2SSNonlinHard::UpdateState()
 }
 
 /* computes the consistent tangent moduli */
-void GradJ2SSNonlinHard::TangentModuli()
+void GradJ2SSNonlinHard::TangentModuli(const ElementCardT& element, int ip)
 {
+	/* load internal variables */
+	LoadData(element, ip);
+
 	/* initialize moduli correction */
 	fModuliCorr = 0.0;
 
@@ -548,7 +782,7 @@ void GradJ2SSNonlinHard::TangentModuli()
 	double cnx = dMatrixT::Dot(fmatx1, fmatx3);
 
 	ftnsr1.Outer(fUnitNorm_n,fUnitNorm);
-	double h = 2.0*fmu*cnn + k1*(cnn - k3*cnx) + k2*(sqrt23 - k4*fInternal_n[kNlIsotHard]);
+	double h = 2.0*fmu*cnn + k1*(cnn - k3*cnx) + sqrt23*k2*(sqrt23 - k4*fInternal_n[kNlIsotHard]);
 	fModuliCorr.AddScaled(-4*fmu*fmu/h,ftnsr1);
 
 	/* make corrections to elastic moduli */
@@ -562,7 +796,9 @@ bool GradJ2SSNonlinHard::CheckElementState(const ElementCardT& element)
 	while (ip < fNumIP && test)
 	{
 	        LoadData(element, ip);
-	        test = (fInternal[kYieldCrt] < kYieldTol);
+	        test = (fInternal[kYieldCrt] < kYieldTol);// && 
+		//			fabs(fInternal[kIsotHard] - fInternal[kIsotHard0]) <= fStateTol*fInternal[kIsotHard0] &&
+		//			fabs(fInternal[kNlIsotHard] - fInternal[kNlIsotHard0]) <= fStateTol*fInternal[kNlIsotHard0] );
 		ip++;
 	}
 	return test;

@@ -9,18 +9,20 @@
 using namespace Tahoe;
 
 /* parameters */
-const int    kNumInternal = 4;
+const int    kNumInternal = 3;
 const double sqrt23       = sqrt(2.0/3.0);
 const double kYieldTol    = 1.0e-10;
 const int    kNSD         = 3;
 
 /* element output data */
-const int    kNumOutput = 4;
+const int    kNumOutput = 6;
 static const char* Labels[kNumOutput] = {
-        "EqPStrn",  // equivalent plastic strain
-	"VMStrss",  // Von Mises stress
-        "Prssure",  // pressure
-        "IsoHard"}; // isotropic hardening
+	"VMStrss",   // Von Mises stress
+        "Prssure",   // pressure
+        "EqPStrn",   // equivalent plastic strain
+	"dEqPStrn",  // increment of equivalent plastic strain
+	"PlsMult",   // plastic multiplier
+        "IsoHard"};  // isotropic hardening
 
 /* constructor */
 LocalJ2SSNonlinHard::LocalJ2SSNonlinHard(ifstreamT& in, const SmallStrainT& element):
@@ -222,20 +224,27 @@ void LocalJ2SSNonlinHard::ComputeOutput(dArrayT& output)
         /* load element data */
         LoadData(element, ip);
 
-	/* pressure */
-	output[2] = fStress.Trace()/3.0;
-
 	/* deviatoric Von Mises stress */
-	fStress.Deviatoric();
-	double J2 = fStress.Invariant2();
+	fsymmatx1.Deviatoric(fStress);
+	double J2 = fsymmatx1.Invariant2();
 	J2 = (J2 < 0.0) ? 0.0 : J2;
-	output[1] = sqrt(3.0*J2);
+	output[0] = sqrt(3.0*J2);
+
+	/* pressure */
+	output[1] = fStress.Trace()/3.0;
 
 	/* equivalent plastic strain */
-        output[0] = sqrt23*sqrt(fPlstStrn.ScalarProduct());
+        output[2] = sqrt23*sqrt(fPlstStrn.ScalarProduct());
+
+	/* plastic multiplier */
+	output[3] = fInternal[kdelLmbda];
+
+	/* evolution equivalent plastic strain */
+	fsymmatx1.SetToScaled(fInternal[kdelLmbda], fUnitNorm_n);
+	output[4] = sqrt23*sqrt(fsymmatx1.ScalarProduct());
 
 	/* isotropic hardening */
-	output[3] = fInternal[kIsotHard];
+	output[5] = fInternal[kIsotHard];
 }
 
 /*************************************************************************
@@ -421,7 +430,7 @@ void LocalJ2SSNonlinHard::IncrementPlasticParameter(double& varLambda)
 
 	/* stiffness */
 	double dYieldCrt = (2*fmu+k1)*cnn - k1*k3*cnx
-			     + k2*(sqrt23-k4*fInternal_n[kIsotHard]);
+			     + sqrt23*k2*(sqrt23-k4*fInternal_n[kIsotHard]);
 
 	if (dYieldCrt < kSmall)
 	{
@@ -452,8 +461,8 @@ void LocalJ2SSNonlinHard::IncrementState(const double& varLambda)
 	fInternal[kIsotHard] += k2*varLambda*(sqrt23-k4*fInternal_n[kIsotHard]);
 
 	/* increment plastic strain */
-	fPlstStrn = fPlstStrn_n;
-	fPlstStrn.AddScaled(fInternal[kdelLmbda], fUnitNorm_n);
+	fsymmatx1.SetToScaled(varLambda, fUnitNorm_n);
+	fPlstStrn += fsymmatx1;
 }
 
 /* computes the unit normal and the yield condition */
@@ -484,7 +493,7 @@ void LocalJ2SSNonlinHard::TangentModuli()
 	double cnx = dMatrixT::Dot(fmatx1, fmatx3);
 
 	ftnsr1.Outer(fUnitNorm_n,fUnitNorm);
-	double h = 2.0*fmu*cnn + k1*(cnn - k3*cnx) + k2*(sqrt23 - k4*fInternal_n[kIsotHard]);
+	double h = 2.0*fmu*cnn + k1*(cnn - k3*cnx) + sqrt23*k2*(sqrt23 - k4*fInternal_n[kIsotHard]);
 	fModuliCorr.AddScaled(-4*fmu*fmu/h,ftnsr1);
 
 	/* make corrections to elastic moduli */
