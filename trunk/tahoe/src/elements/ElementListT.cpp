@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.68 2003-10-28 23:30:53 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.69 2003-11-01 21:12:50 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -886,6 +886,10 @@ void ElementListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrder
 #ifdef PARTICLE_ELEMENT
 		sub_sub_list.AddSub("particle_pair");
 #endif
+
+#ifdef CONTINUUM_ELEMENT
+		sub_sub_list.AddSub("diffusion");
+#endif
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
@@ -913,6 +917,11 @@ ParameterInterfaceT* ElementListT::NewSub(const StringT& list_name) const
 #ifdef PARTICLE_ELEMENT
 	else if (list_name == "particle_pair")
 		return new ParticlePairT(fSupport);
+#endif
+
+#ifdef CONTINUUM_ELEMENT
+	else if (list_name == "diffusion")
+		return new DiffusionElementT(fSupport);
 #endif
 
 	/* inherited */	

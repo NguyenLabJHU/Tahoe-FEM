@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.28 2003-06-09 06:49:33 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.29 2003-11-01 21:12:53 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -14,6 +14,7 @@
 #include "iAutoArrayT.h"
 #include "OutputSetT.h"
 #include "ScheduleT.h"
+#include "ParameterContainerT.h"
 
 //TEMP: all this for general traction BC implementation?
 #include "VariArrayT.h"
@@ -40,12 +41,26 @@ ContinuumElementT::ContinuumElementT(const ElementSupportT& support,
 	fLocDisp(LocalArrayT::kDisp),
 	fDOFvec(NumDOF())
 {
+	SetName("continuum_element");
 	ifstreamT& in = ElementSupport().Input();
 	ostream&  out = ElementSupport().Output();
 		
 	/* control parameters */
 	in >> fGeometryCode; //TEMP - should actually come from the geometry database
 	in >> fNumIP;
+}
+
+/* constructor */
+ContinuumElementT::ContinuumElementT(const ElementSupportT& support):
+	ElementBaseT(support),
+	fMaterialList(NULL),
+	fBodySchedule(NULL),
+	fTractionBCSet(0),
+	fShapes(NULL),
+	fLocInitCoords(LocalArrayT::kInitCoords),
+	fLocDisp(LocalArrayT::kDisp)
+{
+	SetName("continuum_element");
 }
 
 /* destructor */
@@ -1103,9 +1118,39 @@ bool ContinuumElementT::CheckMaterialOutput(void) const
 	return true;
 }
 
+/* information about subordinate parameter lists */
+void ContinuumElementT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ElementBaseT::DefineSubs(sub_list);
+
+	/* optional body force */
+	sub_list.AddSub("body_force", ParameterListT::ZeroOrOnce);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
+{
+	/* body force */
+	if (list_name == "body_force")
+	{
+		ParameterContainerT* body_force = new ParameterContainerT("body_force");
+	
+		/* schedule number */
+		body_force->AddParameter(ParameterT::Integer, "schedule");
+	
+		/* body force vector */
+		body_force->AddSub("Double", ParameterListT::OnePlus); 		
+		
+		return body_force;
+	}
+	else /* inherited */
+		return ElementBaseT::NewSub(list_name);
+}
+
 /***********************************************************************
-* Private
-***********************************************************************/
+ * Private
+ ***********************************************************************/
 
 /* update traction BC data */
 void ContinuumElementT::SetTractionBC(void)
