@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.23 2005-03-05 07:40:26 paklein Exp $
+# $Id: tahoe-manager,v 1.24 2005-03-07 01:38:51 paklein Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -26,6 +26,8 @@ access	AX_
 development DEV_
 Sierra SIERRA_
 qhull  QHULL_
+contrib NODEFINE
+benchmark_XML NODEFINE
 );
 
 # location of module on the server
@@ -45,6 +47,7 @@ development /cvs/private/tahoe
 Sierra /cvs/private/tahoe
 qhull /cvs/private/tahoe
 benchmark_XML /cvs/protected/tahoe
+contrib /cvs/protected/tahoe
 );
 
 # "touch" targets
@@ -74,6 +77,8 @@ metis 1
 spooles 1
 spoolesMPI 1
 spoolesMT 1
+contrib 1
+benchmark_XML 1
 );
 
 # minimum required installation
@@ -116,11 +121,22 @@ ARG: while (@ARGV) {
 		if (/^cl|clean/i)          { clean(); next ARG; }
 		if (/^t|test/i)            { test(); next ARG; }
 		if (/^u|usage|help|^h/i)   { usage();}
+		if (/^s|selfupdate/i)   { selfupdate(); exit 0; }
 		print "ERROR: unknown option: $_ \n"; usage();
 	}
 }
 
 exit 0;
+
+###############################################################################
+sub selfupdate {
+	if ($connection =~ /cvs/) {
+		print "updating...\n";
+		system("cvs update tahoe-manager");
+	} else {
+		print "no selfupdate for connection $connection\n";
+	}
+}
 
 ###############################################################################
 sub initialize {
@@ -131,8 +147,6 @@ foreach my $key (@defaultmodules) {
 	delete $tmp{$key};
 }
 @optionalmodules = sort(keys (%tmp));
-
-print "opt = @optionalmodules\n";
 
 # search for system libs 
 foreach my $key (sort(keys %ENV)) {
@@ -183,7 +197,8 @@ if ($connection =~ "cvs") {
 sub config {
 	@config_options = ("add optional modules", "remove optional modules", "configure options within modules");
 
-	print "\nmodules: \@modules\n";
+	my @mods = @modules;
+	print "\n> installed modules: @mods\n";
 	print "configuration options:\n";
 	my $i = 0;
 	foreach my $option (@config_options) {
@@ -222,6 +237,7 @@ while(<CONFIG>) {
 			elsif ($type =~ /TAHOE_LOGIN/) { $tahoe_name = $tmp_list[0]; }
 			elsif  ($type  =~ /PROXY/){$proxy = $tmp_list[0];}
 			elsif  ($type  =~ /ARCH/){$arch = $tmp_list[0];}
+			elsif  ($type  =~ /VERBOSE/){ $verbose = $tmp_list[0]; }
  			elsif  ($type  =~ /MODU/){@modules = @tmp_list;}
  			$type = $list[1]; @tmp_list =();
  		} 
@@ -248,6 +264,8 @@ sub write_default_config{
 print "* creating default config file $config_file\n";
 
 # look for environmental settings
+my $cvs_rsh;
+$verbose = "false";
 $tahoe_name = "nobody";
 foreach my $key (sort(keys %ENV)) {
 	my $value =  $ENV{$key};
@@ -256,10 +274,10 @@ foreach my $key (sort(keys %ENV)) {
 		$connection = $value;}
 	if ($key =~ "TAHOE_ARCH") { 
 		print "* found environmental var : $key = $value\n";
-		$arch = $value;}
+		$arch = $value; }
 	if ($key =~ "CVS_RSH") { 
 		print "* found CVS_RSH env var, using cvs connection\n"; 
-		$connection = "cvs"; }
+		$cvs_rsh = $value; }
 	
 	# get user name on local machine
 	if ($key =~ /^USER$/) {
@@ -277,11 +295,13 @@ unless(defined($connection)) {
 		print "$i $choice\n"; 
 		$i++; 
 	}
-	print "connection type [0]: ";
+	my $connect_default = 1;
+	$connect_default = 0 if (defined($cvs_rsh));
+	print "connection type [$connect_default]: ";
 	$i = <STDIN>; 
 	chomp($i);
 	if (length($i) == 0) { # default
-		$i = 0;
+		$i = $connect_default;
 	}
 	$connection = $connections[$i];
 	if ($connection =~ "http") { # ask for proxy
@@ -341,22 +361,7 @@ unless(-d "macros") {
 }
 
 # architecture
-unless(defined($arch))	{
-	chdir "macros"; 
-	my @macros = glob("*.macros"); 
-	foreach my $choice (@macros) { 
-		$choice =~ s/\.macros//; 
-		push(@choices,$choice);
-	}
-	chdir "..";
-	print "no default build architecture, choices (".scalar(@choices)."):\n";
-	my $i=0;	
-	print_in_columns(3, @choices);
-	print "\nmacro number: "; 
-	$i = <STDIN>; 
-	$arch = $choices[$i]; 
-	print "* you chose : $arch\n";
-}
+$arch = get_arch() unless(defined($arch));
 
 # modules
 @modules = @defaultmodules;
@@ -431,12 +436,36 @@ sub update_cvs {
 		# check for failures
 		my ($errors, $patches, $updates, $merges) = (0, 0, 0, 0);
 		open(IN,"cvs.log");
+		my $first_line = 0;
 		while (defined(my $line = <IN>)) {
-			$errors++ if ($line =~ /^C /);
-			$patches++ if ($line =~ /^P /);
-			$updates++ if ($line =~ /^U /);
-			$merges++ if ($line =~ /^M /);
+			my $hit = 0;
+			if ($line =~ /^C /) {
+				$errors++;
+				$hit = 1 if ($verbose =~ /true/i);
+			}
+			if ($line =~ /^P /) {
+				$patches++;
+				$hit = 1 if ($verbose =~ /true/i);
+			}
+			if ($line =~ /^U /) {
+				$updates++;
+				$hit = 1 if ($verbose =~ /true/i);
+			}
+			if ($line =~ /^M /) {
+				$merges++;			
+				$hit = 1 if ($verbose =~ /true/i);
+			}
+			
+			# write it
+			if ($hit == 1) {
+				if ($first_line == 0) {
+					print "\n";
+					$first_line = 1;
+				}
+				print $line;
+			}
 		}
+		print "\t... " if ($first_line > 0);
 		print " {U($updates), M($merges), P($patches), C($errors)}";
 		if ($errors > 0) {
 			$script_status++;
@@ -531,10 +560,26 @@ sub build {
 	DIR: foreach my $dir (@tmp_modules) {
 
 		# needs initialization
-		if (-e "$dir/.status") { 
-			my $status = $script_status;
-			init($dir); 
-			next DIR if ($status != $script_status);
+		if (-e "$dir/.status" || (! -e "$dir/makefile" && -e "$dir/makefile.template")) { 
+
+			if (defined($up_to_date_modules{$dir}))
+			{
+				# generate makefile
+				print "\tcreating makefile in $dir...";
+				chdir($dir);
+				fillin_makefile();
+				chdir("..");
+				print " ok\n";
+			
+				# move flag
+				unlink("$dir/.status");
+				system("echo 'init' > tahoe/.status");
+			}
+			else {
+				my $status = $script_status;
+				init($dir); 
+				next DIR if ($status != $script_status);
+			}
 		}
 
 		# build
@@ -686,10 +731,11 @@ sub failed{
 
 ##############################################################################
 sub usage {
-	print "\nusage: tahoe-manager [list of keywords and options]\n";
+	print "\nusage: tahoe-manager [list options]\n";
 	print "       build   : builds modules (calls init if needed)\n";
 	print "       config  : change build options\n";
 	print "       update  : updates or checks out modules\n";
+	print "   selfupdate  : updates this script\n";
 	print "       init    : creates makefiles and initializes modules\n";
 	print "       clean   : cleans modules\n";
 	print "       test    : runs regression tests\n";
@@ -761,6 +807,31 @@ sub by_depend {
 ##############################################################################
 sub fillin_makefile{
 
+	# no config file in this module
+	my $mod_arch = $arch;	
+	if (! -e ".tahoe_config") {
+		print " use default ARCH = $mod_arch (y/n) [y]: ";
+		my $ans = <STDIN>;
+		if ($ans =~ /n/i) {
+			my $path = cwd();
+			chdir("..");
+			$mod_arch = get_arch();
+			chdir($path);
+		}
+		print "...";
+
+		# write module config file
+		open (ARCH, ">.tahoe_config") || die "could not open .tahoe_config\n";
+		print ARCH "$mod_arch\n";
+		close (ARCH);
+	}
+	
+	# read the arch 
+	open (ARCH, ".tahoe_config") || die "could not open .tahoe_config\n";
+	$mod_arch = <ARCH>;
+	close(ARCH);
+	chomp($mod_arch);
+
 	# if makefile exists, preserve MOD_ macros in makefile
 	my %mod_macros = qw(
 		MOD_CFLAGS_C 0
@@ -795,7 +866,7 @@ sub fillin_makefile{
 	
 		# configuration
 		$line =~ s/^HOME_DIR =/HOME_DIR = $path/;
-		$line =~ s/^ARCH =/ARCH = $arch/;
+		$line =~ s/^ARCH =/ARCH = $mod_arch/;
 		
 		# restore MOD_ macros
 		foreach my $key (@mod_macros_keys) {
@@ -852,6 +923,7 @@ sub write_config {
 	print CONFIG  "# PROXY\n$proxy\n\n";
 	print CONFIG  "# ARCHITECTURE\n$arch\n\n";
 	print CONFIG  "# MODULES\n@modules\n\n";
+	print CONFIG  "# VERBOSE\n$verbose\n\n";
 	print CONFIG  "# EOF";
 	close(CONFIG);
 }
@@ -1265,4 +1337,23 @@ sub print_in_columns {
 		print "$line\n";
 		$i++;
 	}
+}
+
+##############################################################################
+sub get_arch {
+	chdir "macros"; 
+	my @macros = glob("*.macros"); 
+	foreach my $choice (@macros) { 
+		$choice =~ s/\.macros//; 
+		push(@choices,$choice);
+	}
+	chdir "..";
+	print "no default build architecture, choices (".scalar(@choices)."):\n";
+	my $i=0;	
+	print_in_columns(3, @choices);
+	print "\ndefault build achitecture number: "; 
+	$i = <STDIN>; 
+	my $arch = $choices[$i]; 
+	print "* you chose : $arch\n";
+	return $arch;
 }
