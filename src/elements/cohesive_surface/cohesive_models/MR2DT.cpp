@@ -141,10 +141,10 @@ dArrayT qo(4); dArrayT Rvec(6); dArrayT Cvec(6); dArrayT upo(2);
 dArrayT R(6); dArrayT Rmod(6); dArrayT Sig(2); dArrayT Sig_I(2);
 dArrayT dQdSig(2); dArrayT dfdq(4); dArrayT qbar(4);
 dArrayT R2(6); dMatrixT X(6,1); dArrayT V_sig(2); dArrayT V_q(4); 
-dArrayT dfdSig(2); dArrayT dq(4);
+dArrayT dfdSig(2); dArrayT dq(4); dArrayT Y(6);
 
 
-double ff; double dlam; double dlam2; double normr;
+double ff; double bott; double topp; double dlam; double dlam2; double normr;
 
 /* Calculate incremental jumps and initialize the neecessary vectors */
     for (i = 0; i<=1; ++i) {
@@ -155,18 +155,16 @@ double ff; double dlam; double dlam2; double normr;
        Sig_I[i] = state[i+10];
     }
     
-       KE(0,0) = fE_t;
-       KE(1,1) = fE_n;
-       KE(0,1) = 0.;
-       KE(1,0) = 0.;
-       I_mat(0,1)=0.;I_mat(0,2)=0.;I_mat(0,3)=0.;I_mat(1,0)=0.;
-       I_mat(1,2)=0.;I_mat(1,3)=0.;I_mat(2,0)=0.;I_mat(2,1)=0.;
-       I_mat(2,3)=0.;I_mat(3,0)=0.;I_mat(3,1)=0.;I_mat(3,2)=0.;
-       ZMAT = 0.; ZMATP = 0.;
-
-      KE_Inv.Inverse(KE);
+    KE = 0.;
+    KE(0,0) = fE_t;
+    KE(1,1) = fE_n;
+    I_mat = 0.;
+    ZMAT = 0.; ZMATP = 0.;
+    
+    KE_Inv.Inverse(KE);
+    
     for (i = 0; i<=3; ++i) {
-        qn[i] = state[i+5];
+        qn[i] = state[i+6];
         qo[i] = qn[i];
         I_mat(i,i) = 1.;
     }
@@ -181,9 +179,12 @@ double ff; double dlam; double dlam2; double normr;
     int iplastic;
     dlam = 0.; dlam2 = 0.; normr = 0.;
 /* Check the yield function */
-    ff = Sig[0]*Sig[0] - (qn[1] - Sig[1]*qn[2])*(qn[1] - Sig[1]*qn[2]) + (qn[1] - qn[0]*qn[2])*(qn[1] - qn[0]*qn[2]);
+    /*ff = Sig[0]*Sig[0] - (qn[1] - Sig[1]*qn[2])*(qn[1]
+     - Sig[1]*qn[2]) + (qn[1] - qn[0]*qn[2])*(qn[1] - qn[0]*qn[2]);*/
+     
+    Yield_f(Sig, qn, ff);
     if (ff <0.) {
-      int iplastic = 0;
+      iplastic = 0;
       state[10] = ff;
       normr = 0.;
       state[13] = normr;
@@ -202,7 +203,10 @@ double ff; double dlam; double dlam2; double normr;
         KE.MultTx(ue,Sig_e);
         Sig +=Sig_e;
         
-        ff = Sig[0]*Sig[0] - (qn[0] - Sig[1]*qn[2])*(qn[1] - Sig[1]*qn[2]) + (qn[1] - qn[0]*qn[2])*(qn[1] - qn[0]*qn[2]);
+        /*ff = Sig[0]*Sig[0] - (qn[0] - Sig[1]*qn[2])*(qn[1] -
+         Sig[1]*qn[2]) + (qn[1] - qn[0]*qn[2])*(qn[1] - qn[0]*qn[2]);*/
+         
+        Yield_f(Sig, qn, ff);
         dQdSig[0] = 2.*Sig[0];
         dQdSig[1] = 2.*qn[3]*qn[1] - Sig[1]*qn[3];
         
@@ -217,12 +221,12 @@ double ff; double dlam; double dlam2; double normr;
           R[i+2] -=qn[i];
           R[i+2] +=dlam*qbar[i];
         }
-        R[0] = -upo[0] + up[0] + dlam*dQdSig[0];
-        R[1] = -upo[1] + up[1] + dlam*dQdSig[1];
-        R[2] = -qo[1] + qn[1] + dlam*qbar[0];
-        R[3] = -qo[1] + qn[1] + dlam*qbar[1];
-        R[4] = -qo[1] + qn[1] + dlam*qbar[2];
-        R[5] = -qo[1] + qn[1] + dlam*qbar[3];
+        /*R[0] = -up[0] + upo[0] + dlam*dQdSig[0];
+        R[1] = -up[1] + upo[1] + dlam*dQdSig[1];
+        R[2] = -qn[0] + qo[0] + dlam*qbar[0];
+        R[3] = -qn[1] + qo[1] + dlam*qbar[1];
+        R[4] = -qn[2] + qo[2] + dlam*qbar[2];
+        R[5] = -qn[3] + qo[3] + dlam*qbar[3];*/
                 
         normr = R.Magnitude();
         dQdSig2_f(qn,dQdSig2);
@@ -242,12 +246,13 @@ double ff; double dlam; double dlam2; double normr;
              AA_inv(i,j) = A_qu(i-2,j);
             } 
             if(i>1 & j >1) {
-             AA_inv(i,j)  = -I_mat(i-2,j-2); 
+             AA_inv(i,j)  = I_mat(i-2,j-2);
+             AA_inv(i,j)  *= -1.; 
              AA_inv(i,j) += dlam*A_qq(i-2,j-2);
             } 
           }
         }
-        AA_inv.Inverse(AA);
+        AA.Inverse(AA_inv);
         dfdSig_f(Sig, qn, dfdSig);
         V_sig = dfdSig;
         dfdq_f(Sig, qn, dfdq);
@@ -264,10 +269,11 @@ double ff; double dlam; double dlam2; double normr;
         }
         dArrayT tmpVec(6);
         AA.Multx(R,tmpVec);
-        double topp = ff - Rvec.Dot(Rvec,tmpVec);        
+        topp = ff;
+        topp -= dArrayT::Dot(Rvec,tmpVec);        
         AA.Multx(Cvec,tmpVec);
-        double bott = Rvec.Dot(Rvec,tmpVec); 		
-        double dlam2 = topp/bott;
+        bott = dArrayT::Dot(Rvec,tmpVec); 		
+        dlam2 = topp/bott;
         for (i = 0; i<=5; ++i) {
           for (j = 0; j<=5; ++j) {
             if (i<=1 & j<=1){
@@ -296,13 +302,13 @@ double ff; double dlam; double dlam2; double normr;
         R2 = R;
         R2 += Rmod;
         AA.Multx(R2,X);
-        CMAT.Multx(X,X);
+        CMAT.Multx(X,Y);
         for (i = 0; i<=5; ++i) {
             if (i<=1) {
-             dup[i] = X[i];
+             dup[i] = Y[i];
             }
             if (i > 1) {
-             dq[i-2] = X[i];
+             dq[i-2] = Y[i];
             }
         }
         up += dup;
@@ -326,9 +332,44 @@ double ff; double dlam; double dlam2; double normr;
 	state[10] = ff;
 	state[11] = dlam;
 	state[12] = double(iplastic);
+	state[13] = normr;
 
 	return fTraction;
 }
+
+
+/* calculation of Yield_f */
+
+double& MR2DT::Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff)
+{
+  double tmp1, tmp11, tmp12, tmp2, tmp3, tmp31, tmp32;
+  
+  tmp1   = qn[0];
+  tmp11  = Sig[1];
+  tmp11 *= qn[2];
+  tmp1  -= tmp11;
+  tmp12 = tmp1;
+  tmp12 *=tmp1;
+  tmp2  = Sig[0];
+  tmp2 *= Sig[0];
+  tmp3  = qn[1];
+  tmp31 = qn[0];
+  tmp31 *= qn[2];
+  tmp3 -= tmp31;
+  tmp32 = tmp3;
+  tmp32 *=tmp3;
+  
+  /*ff = Sig[0]*Sig[0] - (qn[0] - Sig[1]*qn[2])*
+  (qn[1] - Sig[1]*qn[2]) + 
+  (qn[1] - qn[0]*qn[2])*(qn[1] - qn[0]*qn[2]);*/
+  
+  ff = tmp2;
+  ff -=tmp12;
+  ff +=tmp32;
+  
+  return ff;
+}
+
 
 /* calculation of qbar_f */
 
@@ -393,7 +434,7 @@ dMatrixT& MR2DT::dQdSig2_f(const dArrayT& qn, dMatrixT& dQdSig2)
 dArrayT& MR2DT::dfdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdSig)
 {
   dfdSig[0] = 2.*Sig[0];
-  dfdSig[1] = 2.*qn[2]*qn[1] - Sig[1]*qn[2];
+  dfdSig[1] = 2.*qn[2]*(qn[1] - Sig[1]*qn[2]);
   
   return dfdSig;
 }
@@ -404,7 +445,7 @@ dArrayT& MR2DT::dfdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdSig)
 dArrayT& MR2DT::dfdq_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdq)
 {
   dfdq[0] = -2.*qn[2]*(qn[1]-qn[0]*qn[2]);
-  dfdq[1] = 2.*(Sig[1] - qn[0]*qn[2]);
+  dfdq[1] = 2.*(Sig[1] - qn[0])*qn[2];
   dfdq[2] = 2.*Sig[1]*(qn[1] - Sig[1]*qn[2]) - 2.*qn[0]*(qn[1]-qn[0]*qn[2]);
   dfdq[3] = 0.;
   
@@ -533,27 +574,27 @@ dArrayT  u(2), up(2), du(2), dup(2), qn(4), qo(4), Rvec(6),Cvec(6),
 	
 	fStiffness[1] = fStiffness[2] = 0.;
 	I_m(0,0) = 1.; I_m(0,1) =0.; I_m(1,0) = 0.; I_m(1,1) = 1.;
-	I_mat(0,1)=0.;I_mat(0,2)=0.;I_mat(0,3)=0.;I_mat(1,0)=0.;
-    I_mat(1,2)=0.;I_mat(1,3)=0.;I_mat(2,0)=0.;I_mat(2,1)=0.;
-    I_mat(2,3)=0.;I_mat(3,0)=0.;I_mat(3,1)=0.;I_mat(3,2)=0.;
+	I_mat = 0.;
 	Sig[0] = state[0];
 	Sig[1] = state[1];
 	KE = 0.;
 	KE(0,0) = fE_t;
     KE(1,1) = fE_n;
+    
     KE_Inv.Inverse(KE);
+    
     for (i = 0; i<=3; ++i) {
       qn[i] = state[i+6];
       I_mat(i,i) = 1.;
     }
 
-	if (state[10] < 0.) 
+	if (state[12] == 0.) 
 	{
 	    fStiffness[3] = fE_n;
 	    fStiffness[0] = fE_t;
 	}
 	else 
-	  	if (state[10] > 0.) 
+	  	if (state[12] == 1.) 
 	  	{
 	  	    dQdSig2_f(qn,dQdSig2);
 	  	    Rmat = dQdSig2;
@@ -578,7 +619,7 @@ dArrayT  u(2), up(2), du(2), dup(2), qn(4), qo(4), Rvec(6),Cvec(6),
                }
              }
             }
-            AA_inv.Inverse(AA);
+            AA.Inverse(AA_inv);
             dfdSig_f(Sig, qn, dfdSig);
             V_sig = dfdSig;
             dfdq_f(Sig,qn, dfdq);

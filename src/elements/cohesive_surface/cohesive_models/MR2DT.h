@@ -43,6 +43,7 @@ public:
 	 * time step. */	
 	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma);
    
+    double& Yield_f(const dArrayT& Sig, const dArrayT& qns, double& ff);   
     dArrayT& qbar_f(const dArrayT& Sig, const dArrayT& qns, dArrayT& qbar);
     dArrayT& dfdSig_f(const dArrayT& Sig, const dArrayT& qns, dArrayT& dfdSig);
     dArrayT& dfdq_f(const dArrayT& Sig, const dArrayT& qns, dArrayT& dfdq);    
