@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.21 2003-05-28 23:15:27 cjkimme Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.22 2003-06-09 06:44:36 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -387,6 +387,9 @@ bool TiedPotentialT::RetieQ(const nArrayT<double>& sigma, const ArrayT<double>& 
 	else 
 		return false;
 }
+
+/* location in state variable array of the state flag */
+int TiedPotentialT::TiedStatusPosition(void) const { return nTiedFlag; }
 
 bool TiedPotentialT::CompatibleOutput(const SurfacePotentialT& potential) const
 {

@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.h,v 1.16 2003-05-27 07:01:58 paklein Exp $ */
+/* $Id: TiedPotentialT.h,v 1.17 2003-06-09 06:44:36 paklein Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_T_H_
@@ -81,6 +81,9 @@ public:
 	
 	/** returns true if criterium for retieing is met */
 	virtual bool RetieQ(const nArrayT<double>& sigma, const ArrayT<double>& state, const dArrayT& jump_u) const;
+
+	/** location in state variable array of the state flag */
+	virtual int TiedStatusPosition(void) const;
 	
 protected:
 
