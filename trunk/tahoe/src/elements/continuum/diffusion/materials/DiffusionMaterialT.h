@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.h,v 1.5 2002-11-14 17:06:39 paklein Exp $ */
+/* $Id: DiffusionMaterialT.h,v 1.6 2003-06-09 06:54:30 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSION_MATERIALT_H_
 #define _DIFFUSION_MATERIALT_H_
@@ -34,13 +34,13 @@ public:
 	/** \name parameters at the current field point */
 	/*@{*/
 	/** conductivity */
-	const dMatrixT& k_ij(void);
+	virtual const dMatrixT& k_ij(void);
 
 	/** heat flux */
-	const dArrayT& q_i(void);
+	virtual const dArrayT& q_i(void);
 
 	double Density(void) const;
-	double SpecificHeat(void) const;
+	virtual double SpecificHeat(void) const;
 	double Capacity(void) const;
 	/*@}*/
 
@@ -53,18 +53,15 @@ protected:
 	double   fDensity;
 	double   fSpecificHeat;
 	dMatrixT fConductivity;	// always symmetric?
-	
-	/* derived */
-	double fCapacity;
 
-	/** heat flux return value*/
+	/** heat flux return value */
 	dArrayT fq_i;  
 };
 
 /* returns the density */
 inline double DiffusionMaterialT::Density(void) const { return fDensity; }
 inline double DiffusionMaterialT::SpecificHeat(void) const { return fSpecificHeat; }
-inline double DiffusionMaterialT::Capacity(void) const { return fCapacity; }
+inline double DiffusionMaterialT::Capacity(void) const { return fDensity*SpecificHeat(); }
 
 /* conductivity */
 inline const dMatrixT& DiffusionMaterialT::k_ij(void) { return fConductivity; }
