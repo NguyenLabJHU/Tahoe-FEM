@@ -1,7 +1,7 @@
-/* $Id: XDOF_ManagerT.cpp,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
-/* created: paklein (06/01/1998)                                          */
-/* base class which defines the interface for a manager                   */
-/* of DOF's comprised of FE DOF's plus constrain DOF's                    */
+/* $Id: XDOF_ManagerT.cpp,v 1.2 2001-08-15 18:36:21 paklein Exp $ */
+/* created: paklein (06/01/1998) */
+/* base class which defines the interface for a manager */
+/* of DOF's comprised of FE DOF's plus constrain DOF's */
 
 #include "XDOF_ManagerT.h"
 
@@ -27,38 +27,38 @@ XDOF_ManagerT::~XDOF_ManagerT(void)
 }
 
 /* add element group to list */
-void XDOF_ManagerT::Register(DOFElementT* group, int numDOF)
+void XDOF_ManagerT::Register(DOFElementT* group, const iArrayT& numDOF)
 {
 	/* can only register once */
-	if ( !fDOFElements.AppendUnique(group) ) throw eGeneralFail;
+	if (!fDOFElements.AppendUnique(group)) 
+	{
+		cout << "\n XDOF_ManagerT::Register: group is already registered, requesting:\n" 
+		     << numDOF << endl;
+		throw eGeneralFail;
+	}
+	
+	/* keep number of tag sets for each group */
+	fNumTagSets.Append(numDOF.Length());
 
 	/* add to lists */
-	fXDOF_Eqnos.Append(new iArray2DT(0, numDOF));
-	fXDOFs.Append(new dArray2DT(0, numDOF));
+	for (int i = 0; i < numDOF.Length(); i++)
+	{
+		fXDOF_Eqnos.Append(new iArray2DT(0, numDOF[i]));
+		fXDOFs.Append(new dArray2DT(0, numDOF[i]));
+	}
 }
 
 /* get equation numbers for the specified constraint tags */
-const iArray2DT& XDOF_ManagerT::XDOF_Eqnos(const DOFElementT* group) const
+const iArray2DT& XDOF_ManagerT::XDOF_Eqnos(const DOFElementT* group, 
+	int tag_set) const
 {
-	/* find matching element group */
-	for (int i = 0; i < fDOFElements.Length(); i++)
-		if (fDOFElements[i] == group) return *(fXDOF_Eqnos[i]);
-
-	/* should never fall through */
-	throw eGeneralFail;
-	return *(fXDOF_Eqnos[0]);
+	return *(fXDOF_Eqnos[TagSetIndex(group, tag_set)]);
 }
 
 /* returns reference to current constraint values */
-const dArray2DT& XDOF_ManagerT::XDOF(const DOFElementT* group) const
+const dArray2DT& XDOF_ManagerT::XDOF(const DOFElementT* group, int tag_set) const
 {
-	/* find matching element group */
-	for (int i = 0; i < fDOFElements.Length(); i++)
-		if (fDOFElements[i] == group) return *(fXDOFs[i]);
-
-	/* should never fall through */
-	throw eGeneralFail;
-	return *(fXDOFs[0]);
+	return *(fXDOFs[TagSetIndex(group, tag_set)]);
 }
 
 /**********************************************************************
@@ -68,15 +68,19 @@ const dArray2DT& XDOF_ManagerT::XDOF(const DOFElementT* group) const
 /* call groups to reset external DOF's */
 void XDOF_ManagerT::Reset(void)
 {
-	/* reset */
+	/* loop over groups */
+	int index = 0;
 	for (int i = 0; i < fDOFElements.Length(); i++)
-		fDOFElements[i]->ResetDOF(*fXDOFs[i]);
+		/* loop over tag sets */
+		for (int j = 0; j < fNumTagSets[i]; j++)
+			fDOFElements[i]->ResetDOF(*fXDOFs[index++], j);
 }
 
 /* update DOF's using the global update vector */
 void XDOF_ManagerT::Update(const dArrayT& update)
 {
-	for (int i = 0; i < fDOFElements.Length(); i++)
+	/* loop over all tag sets */
+	for (int i = 0; i < fXDOF_Eqnos.Length(); i++)
 	{
 		/* group data */
 		iArray2DT& XDOF_eqnos = *fXDOF_Eqnos[i];
@@ -95,19 +99,35 @@ void XDOF_ManagerT::Update(const dArrayT& update)
 /* (self-)configure element group */
 void XDOF_ManagerT::ConfigureElementGroup(int group_number, int& tag_num)
 {
-	/* get current DOF tags array */
-	iArrayT& DOFtags = fDOFElements[group_number]->SetDOFTags();
-							
-	/* resize global arrays */
-	fXDOF_Eqnos[group_number]->Resize(DOFtags.Length(), false);
-	fXDOFs[group_number]->Resize(DOFtags.Length(), false);
+	/* first tag in set */
+	int index = 0;
+	for (int i = 0; i < group_number; i++)
+		index += fNumTagSets[i];
+		
+	/* reset DOF tags arrays */	
+	fDOFElements[group_number]->SetDOFTags();
 
-	/* initialize */
-	*(fXDOFs[group_number]) = 0.0;
+	/* loop over tag sets */
+	int num_sets = fNumTagSets[group_number];
+	for (int set = 0; set < num_sets; set++)
+	{
+		/* get current DOF tags array */
+		iArrayT& DOF_tags = fDOFElements[group_number]->DOFTags(set);
+							
+		/* resize global arrays */
+		fXDOF_Eqnos[index]->Resize(DOF_tags.Length(), false);
+		fXDOFs[index]->Resize(DOF_tags.Length(), false);
+
+		/* initialize */
+		*(fXDOFs[index]) = 0.0;
 			
-	/* generate new DOF tags */
-	for (int k = 0; k < DOFtags.Length(); k++)
-		DOFtags[k] = tag_num++;
+		/* generate new DOF tags */
+		for (int k = 0; k < DOF_tags.Length(); k++)
+			DOF_tags[k] = tag_num++;
+	
+		/* next set */
+		index++;
+	}
 	
 	/* call to (self-)configure */
 	fDOFElements[group_number]->GenerateElementData();
@@ -116,8 +136,8 @@ void XDOF_ManagerT::ConfigureElementGroup(int group_number, int& tag_num)
 /* assign equation numbers */
 void XDOF_ManagerT::SetEquations(int& num_eq)
 {
-	int num_groups = fXDOF_Eqnos.Length();
-	for (int i = 0; i < num_groups; i++)
+	int num_sets = fXDOF_Eqnos.Length();
+	for (int i = 0; i < num_sets; i++)
 	{
 		int* peqno = fXDOF_Eqnos[i]->Pointer();
 		int length = fXDOF_Eqnos[i]->Length();
@@ -142,63 +162,103 @@ void XDOF_ManagerT::CheckEquationNumbers(ostream& out, iArray2DT& eqnos)
 	int col = 0;
 
 	/* put external equation number after displacement equations */
+	int set_index =-1;
 	for (int i = 0; i < fDOFElements.Length(); i++)
-	{
-		iArray2DT& XDOF_eqnos = *fXDOF_Eqnos[i];
-		if (XDOF_eqnos.MinorDim() > 1)
+		for (int set = 0; set < fNumTagSets[i]; set++)
 		{
-			cout << "\n XDOF_ManagerT::CheckNewEquationNumbers: expecting only 1 DOF" << endl;
-			throw eGeneralFail;
-		}
-		iArrayT eq_temp;
-		eq_temp.Alias(XDOF_eqnos);
-
-		/* constraint connectivities */
-		const iArray2DT& connects = fDOFElements[i]->DOFConnects();
-		iArrayT elem;
-		iArrayT eq_u;
-		int nen = connects.MinorDim();
-		for (int j = 0; j < connects.MajorDim(); j++)
-		{
-			connects.RowAlias(j, elem);
-			if (elem[nen-1] + 1 <= eqnos.MajorDim()) /* eqnos has disp DOF's */
+			/* next */
+			set_index++;
+			
+			iArray2DT& XDOF_eqnos = *fXDOF_Eqnos[set_index];
+			if (XDOF_eqnos.MinorDim() > 1)
 			{
-				cout << "\n XDOF_ManagerT: expecting external DOF tag in final slot: ";
-				cout << elem[nen-1] << endl;
+				cout << "\n XDOF_ManagerT::CheckNewEquationNumbers: expecting only 1 DOF" << endl;
 				throw eGeneralFail;
 			}
+			iArrayT eq_temp;
+			eq_temp.Alias(XDOF_eqnos);
+
+			/* constraint connectivities */
+			const iArray2DT& connects = fDOFElements[i]->DOFConnects(set);
+			iArrayT elem;
+			iArrayT eq_u;
+			int nen = connects.MinorDim();
+			for (int j = 0; j < connects.MajorDim(); j++)
+			{
+				connects.RowAlias(j, elem);
+				if (elem[nen-1] + 1 <= eqnos.MajorDim()) /* eqnos has disp DOF's */
+				{
+					cout << "\n XDOF_ManagerT: expecting external DOF tag in final slot: ";
+					cout << elem[nen-1] << endl;
+					throw eGeneralFail;
+				}
 		
-			/* get equations from 1st node in connect */
-			eqnos.RowAlias(elem[0], eq_u); // connects are 1,...
+				/* get equations from 1st node in connect */
+				eqnos.RowAlias(elem[0], eq_u); // connects are 1,...
 
-			/* find highest equation of the node */
-			int max_eq = eq_u.Max();
-			if (max_eq < 0)
-			{
-				cout << "\n XDOF_ManagerT: no active equations found with contact tag ";
-				cout << elem[nen-1] << '\n';
-				cout << " connectivity: ";
-				cout << elem.no_wrap() << '\n';
-				cout << endl;
-				throw eGeneralFail;
-			}
+				/* find highest equation of the node */
+				int max_eq = eq_u.Max();
+				if (max_eq < 0)
+				{
+					cout << "\n XDOF_ManagerT: no active equations found with contact tag ";
+					cout << elem[nen-1] << '\n';
+					cout << " connectivity: ";
+					cout << elem.no_wrap() << '\n';
+					cout << endl;
+					throw eGeneralFail;
+				}
 			
-			/* swap */
-			eq_u.ChangeValue(max_eq, XDOF_eqnos(j,0));
-			XDOF_eqnos(j,0) = max_eq;
+				/* swap */
+				eq_u.ChangeValue(max_eq, XDOF_eqnos(j,0));
+				XDOF_eqnos(j,0) = max_eq;
 			
-			out << setw(kIntWidth) << elem[0];
-			out << setw(kIntWidth) << elem[nen-1];
-			if (++col == num_cols)
-			{
-				out << '\n';
-				col = 0;
+				out << setw(kIntWidth) << elem[0];
+				out << setw(kIntWidth) << elem[nen-1];
+				if (++col == num_cols)
+				{
+					out << '\n';
+					col = 0;
+				}
+				else
+					out << setw(kIntWidth) << " ";			
 			}
-			else
-				out << setw(kIntWidth) << " ";			
 		}
-	}
 	
 	/* mid-line */
 	if (col != 0) out << '\n';
+}
+
+/* resolve index of the tag set */
+int XDOF_ManagerT::TagSetIndex(const DOFElementT* group, int tag_set) const
+{
+	/* find matching element group */
+	int index = fDOFElements.PositionOf((DOFElementT*) group);
+	if (index < 0)
+	{
+		cout << "\n XDOF_ManagerT::TagSetIndex: no matching group found" << endl;
+		throw eGeneralFail;
+	}
+	
+	/* check tag set */
+	if (tag_set < 0 || tag_set >= fNumTagSets[index])
+	{
+		cout << "\n XDOF_ManagerT::TagSetIndex: tag set number " << tag_set 
+		     << " is out of range {0, " << fNumTagSets[index] - 1 << "}" << endl;
+		throw eOutOfRange;
+	}
+	
+	/* offset to groups tag sets */
+	int offset = 0;
+	for (int i = 0; i < index; i++)
+		offset += fNumTagSets[index];
+
+	/* resolve set index */
+	offset += tag_set;
+	if (offset >= fXDOF_Eqnos.Length())
+	{
+		cout << "\n XDOF_ManagerT::TagSetIndex: error resolving tag set index: " 
+		     << offset << " > " << fXDOF_Eqnos.Length() << endl;
+		throw eGeneralFail;
+	}	
+	return offset;
 }
