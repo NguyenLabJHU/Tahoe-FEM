@@ -1,4 +1,4 @@
-/* $Id: tevp3D.h,v 1.1 2001-06-25 20:48:15 hspark Exp $ */
+/* $Id: tevp3D.h,v 1.2 2001-06-26 15:17:14 hspark Exp $ */
 /* Thermoelasto-viscoplastic material used to generate shear bands */
 /* Created:  Harold Park (06/25/2001) */
 /* Last Updated:  Harold Park (06/25/2001) */
@@ -10,13 +10,12 @@
 #include "FDStructMatT.h"
 #include "IsotropicT.h"
 #include "iArrayT.h"
-#include "Material2DT.h"
 
 /* forward declarations */
 class ShapeFunctionT;
 class ElementCardT;
 
-class tevp3D: public FDStructMatT, public IsotropicT, public Material2DT
+class tevp3D: public FDStructMatT, public IsotropicT
 {
  public:
   /* constructor */
@@ -60,7 +59,6 @@ class tevp3D: public FDStructMatT, public IsotropicT, public Material2DT
   /* computational functions */
 
   /* deformation gradient, rate of deformation, spin */
-  //void ComputeGradients(void);
   void ComputeF(void);
   void ComputeD(void);
   dMatrixT& ComputeSpin(void);
@@ -71,7 +69,7 @@ class tevp3D: public FDStructMatT, public IsotropicT, public Material2DT
   dArrayT& ComputeEP_tan(void);  // Modulus correction
   void ComputeSmlp(void);
   enum LoadingStatusT {kIsPlastic = 0, kIsElastic = 1, kReset = 3};
-  // Should LoadingStatusT be protected?
+
   void AllocateElement(ElementCardT& element); // If element/IP goes plastic
 
   /* Enumerated data types/definitions */
@@ -113,9 +111,9 @@ class tevp3D: public FDStructMatT, public IsotropicT, public Material2DT
 /* element level internal variables */
   dArrayT fInternal;             // Internal variables
   dArrayT fTempKirchoff;      // Store the Kirchoff stress from the previous
-                            // timestep (Sig11, Sig12=Sig21, Sig22, Sig33)
+                            // timestep (S11, S22, S33, S32, S31, S21)
   dArrayT fTempCauchy;      // Store the Cauchy stress from the previous
-                            // timestep (Sig11, Sig12=Sig21, Sig22, Sig33)
+                            // timestep (S11, S22, S33, S32, S31, S21)
  private:
 
   const double& fDt;           // Timestep
