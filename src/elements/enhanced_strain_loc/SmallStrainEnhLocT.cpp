@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.13 2005-03-09 19:27:51 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.14 2005-03-12 00:12:00 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -198,29 +198,6 @@ GlobalT::RelaxCodeT SmallStrainEnhLocT::RelaxSystem(void)
 			
 			fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kdissip_max] = 0.0;
 			
-			/*
-			normal1 = 0.0;
-			fElementLocNormal1.SetRow(elem_num, normal1);
-			normal2 = 0.0;
-			fElementLocNormal2.SetRow(elem_num, normal2);
-			normal3 = 0.0;
-			fElementLocNormal3.SetRow(elem_num, normal3);
-			
-			slipdir1 = 0.0;
-			fElementLocSlipDir1.SetRow(elem_num, slipdir1);
-			slipdir2 = 0.0;
-			fElementLocSlipDir2.SetRow(elem_num, slipdir2);
-			slipdir3 = 0.0;
-			fElementLocSlipDir3.SetRow(elem_num, slipdir3);
-	
-			tangent1 = 0.0;
-			fElementLocTangent1.SetRow(elem_num, tangent1);
-			tangent2 = 0.0;
-			fElementLocTangent2.SetRow(elem_num, tangent2);
-			tangent3 = 0.0;
-			fElementLocTangent3.SetRow(elem_num, tangent3);
-			*/
-			
 			normal_chosen = 0.0;
 			fElementLocNormal.SetRow(elem_num, normal_chosen);
 			slipdir_chosen = 0.0;
@@ -260,6 +237,7 @@ void SmallStrainEnhLocT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(alpha_phi, "friction_softening_coefficient");
 	list.AddParameter(psi_p, "peak_dilation_angle_rad");
 	list.AddParameter(alpha_psi, "dilation_softening_coefficient");
+	// add initial point for start of disc. surface, or use element centroid
 	
 }
 
@@ -387,27 +365,8 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	fElementLocNormal = 0.0;
 	fElementLocTangent.Dimension(NumElements(),NumSD());
 	fElementLocTangent = 0.0;
-	fElementLocNormal1.Dimension(NumElements(),NumSD());
-	fElementLocNormal1 = 0.0;
-	fElementLocNormal2.Dimension(NumElements(),NumSD());
-	fElementLocNormal2 = 0.0;
-	fElementLocNormal3.Dimension(NumElements(),NumSD());
-	fElementLocNormal3 = 0.0;
-	fElementLocSlipDir1.Dimension(NumElements(),NumSD());
-	fElementLocSlipDir1 = 0.0;
-	fElementLocSlipDir2.Dimension(NumElements(),NumSD());
-	fElementLocSlipDir2 = 0.0;
-	fElementLocSlipDir3.Dimension(NumElements(),NumSD());
-	fElementLocSlipDir3 = 0.0;
-	fElementLocTangent1.Dimension(NumElements(),NumSD());
-	fElementLocTangent1 = 0.0;
-	fElementLocTangent2.Dimension(NumElements(),NumSD());
-	fElementLocTangent2 = 0.0;
-	fElementLocTangent3.Dimension(NumElements(),NumSD());
-	fElementLocTangent3 = 0.0;
-	// there are 3 possible normals, so 3 possible psi's
-	fElementLocPsiSet.Dimension(NumElements(),3);
-	fElementLocPsiSet = 0.0;
+	fElementLocPsi.Dimension(NumElements());
+	fElementLocPsi = 0.0;
 	fElementLocGradEnh.Dimension(NumElements(),NumSD()*NumIP());
 	fElementLocGradEnh = 0.0;
 	fElementLocGradEnhIP.Dimension(NumIP(),NumSD());
@@ -450,17 +409,12 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	normals.Dimension(NumSD());
 	slipdirs.Dimension(NumSD());
 	
-	normal1.Dimension(NumSD());
-	normal2.Dimension(NumSD());
-	normal3.Dimension(NumSD());
+	normal_tmp.Dimension(NumSD());
+	slipdir_tmp.Dimension(NumSD());
+	tangent_tmp.Dimension(NumSD());
+	
 	normal_chosen.Dimension(NumSD());
-	slipdir1.Dimension(NumSD());
-	slipdir2.Dimension(NumSD());
-	slipdir3.Dimension(NumSD());
 	slipdir_chosen.Dimension(NumSD());
-	tangent1.Dimension(NumSD());
-	tangent2.Dimension(NumSD());
-	tangent3.Dimension(NumSD());
 	tangent_chosen.Dimension(NumSD());
 	
 	mu_dir.Dimension(NumSD());
@@ -671,9 +625,15 @@ void SmallStrainEnhLocT::CheckLocalization(int& elem)
 			}
 			
 			/* if maximum dissipation, do further localization calcs */
-			//if (dissip_max> fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdissip_max])
+			if ( dissip_max > fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdissip_max] || 
+				(dissip_max/fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdissip_max] < 1.1 &&
+				dissip_max/fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdissip_max] > 0.0) )
 			/* if minimum determinant, do further localization calcs */
-			if (detAmin < fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin])
+			/*
+			if ( detAmin < fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin] || 
+				(detAmin/fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin] < 1.1 &&
+				detAmin/fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin] > 0.0) )
+			*/
 			{
 				if (fDeBug)
 				{
@@ -694,46 +654,47 @@ void SmallStrainEnhLocT::CheckLocalization(int& elem)
 				normals.Top();
 				slipdirs.Top();
 				tangents.Free();
+				psis.Free();
 				detAs.Top();
 				dissipations_fact.Top();
 				int num_normals = normals.Length();
 				dArrayT dummyt;
 				while (normals.Next())
 				{
-					normal1 = normals.Current();
+					normal_tmp = normals.Current();
 					slipdirs.Next();
-					slipdir1 = slipdirs.Current();
-					double product = dArrayT::Dot(normal1,slipdir1);
-					psi1 = asin(product);
-					fElementLocPsiSet[elem,0] = psi1;
-					double sec = 1.0/cos(psi1);
-					if (fabs(psi1-Pi/2.0) < smallnum)
+					slipdir_tmp = slipdirs.Current();
+					double product = dArrayT::Dot(normal_tmp,slipdir_tmp);
+					psi_tmp = asin(product);
+					psis.Append(psi_tmp);
+					double sec = 1.0/cos(psi_tmp);
+					if (fabs(psi_tmp-Pi/2.0) < smallnum)
 					{
-						tangent1 = 0.0;
+						tangent_tmp = 0.0;
 					}
 					else 
 					{
-						tangent1 = slipdir1;
-						tangent1 *= sec;
-						dummyt = normal1;
-						dummyt *= tan(psi1);
-						tangent1 -= dummyt;
+						tangent_tmp = slipdir_tmp;
+						tangent_tmp *= sec;
+						dummyt = normal_tmp;
+						dummyt *= tan(psi_tmp);
+						tangent_tmp -= dummyt;
 					}
-					tangents.Append(tangent1);
+					tangents.Append(tangent_tmp);
 					if (fDeBug)
 					{
 						detAs.Next();
 						detA_tmp = detAs.Current();
 						dissipations_fact.Next();
 						dissip_tmp = dissipations_fact.Current();
-						ss_enh_out	<< endl << "detA: " << setw(outputFileWidth) << detA_tmp << setw(outputFileWidth)
-									<< "dissipation: " << setw(outputFileWidth) << dissip_tmp; 			
-						ss_enh_out	<< endl << "normal: " << setw(outputFileWidth) << normal1[0] 
-									<< setw(outputFileWidth) << normal1[1] <<  setw(outputFileWidth) << normal1[2]
-									<< setw(outputFileWidth) << "slipdir: " << setw(outputFileWidth) << slipdir1[0] 
-									<< setw(outputFileWidth) << slipdir1[1] <<  setw(outputFileWidth) << slipdir1[2]; 
-						ss_enh_out	<< endl << "tangent:" << setw(outputFileWidth) << tangent1[0] 
-									<< setw(outputFileWidth) << tangent1[1] <<  setw(outputFileWidth) << tangent1[2];
+						ss_enh_out	<< endl << "detA_min" << setw(outputFileWidth) << "dissip_max"  <<  setw(outputFileWidth) << "psi (rad)";
+						ss_enh_out	<< endl << detA_tmp << setw(outputFileWidth) << dissip_tmp << setw(outputFileWidth) << psi_tmp; 			
+						ss_enh_out	<< endl << "normal: " << setw(outputFileWidth) << normal_tmp[0] 
+									<< setw(outputFileWidth) << normal_tmp[1] <<  setw(outputFileWidth) << normal_tmp[2]
+									<< setw(outputFileWidth) << "slipdir: " << setw(outputFileWidth) << slipdir_tmp[0] 
+									<< setw(outputFileWidth) << slipdir_tmp[1] <<  setw(outputFileWidth) << slipdir_tmp[2]; 
+						ss_enh_out	<< endl << "tangent:" << setw(outputFileWidth) << tangent_tmp[0] 
+									<< setw(outputFileWidth) << tangent_tmp[1] <<  setw(outputFileWidth) << tangent_tmp[2];
 					}
 				} // while normals.Next
 				
@@ -742,233 +703,15 @@ void SmallStrainEnhLocT::CheckLocalization(int& elem)
 				normals_min.Free();
 				slipdirs_min.Free();
 				tangents_min.Free();
+				psis_min.Free();
 				detAs_min.Free();
 				dissipations_fact_min.Free();
 				normals_min = normals;
 				slipdirs_min = slipdirs;
 				tangents_min = tangents;
+				psis_min = psis;
 				detAs_min = detAs;
 				dissipations_fact_min = dissipations_fact;
-				
-			
-			
-			/*
-			if (num_normals == 1)
-			{
-				normals.Next();
-				normal1 = normals.Current();
-				fElementLocNormal1.SetRow(elem, normal1);
-				normal2 = 0.0;
-				fElementLocNormal2.SetRow(elem, normal2);
-				normal3 = 0.0;
-				fElementLocNormal3.SetRow(elem, normal3);
-				
-				slipdirs.Next();
-				slipdir1 = slipdirs.Current();
-				fElementLocSlipDir1.SetRow(elem, slipdir1);
-				slipdir2 = 0.0;
-				fElementLocSlipDir2.SetRow(elem, slipdir2);
-				slipdir3 = 0.0;
-				fElementLocSlipDir3.SetRow(elem, slipdir3);
-				
-				//calculate tangents
-				double product = dArrayT::Dot(normal1,slipdir1);
-				psi1 = asin(product);
-				fElementLocPsiSet[elem,0] = psi1;
-				double sec = 1.0/cos(psi1);
-				if (fabs(psi1-Pi/2.0) < smallnum)
-				{
-					tangent1 = 0.0;
-				}
-				else 
-				{
-					tangent1 = slipdir1;
-					tangent1 *= sec;
-					dummyt = normal1;
-					dummyt *= tan(psi1);
-					tangent1 -= dummyt;
-				}
-				fElementLocTangent1.SetRow(elem, tangent1);
-				
-				tangent2 = 0.0;
-				fElementLocTangent2.SetRow(elem, tangent2);
-				
-				tangent3 = 0.0;
-				fElementLocTangent3.SetRow(elem, tangent3);
-			}
-			else if (num_normals == 2)
-			{
-				normals.Next();
-				normal1 = normals.Current();
-				fElementLocNormal1.SetRow(elem, normal1);
-				normals.Next();
-				normal2 = normals.Current();
-				fElementLocNormal2.SetRow(elem, normal2);
-				normal3 = 0.0;
-				fElementLocNormal3.SetRow(elem, normal3);
-				
-				slipdirs.Next();
-				slipdir1 = slipdirs.Current();
-				fElementLocSlipDir1.SetRow(elem, slipdir1);
-				slipdirs.Next();
-				slipdir2 = slipdirs.Current();
-				fElementLocSlipDir2.SetRow(elem, slipdir2);
-				slipdir3 = 0.0;
-				fElementLocSlipDir3.SetRow(elem, slipdir3);
-				
-				//calculate tangents
-				double product = dArrayT::Dot(normal1,slipdir1);
-				psi1 = asin(product);
-				fElementLocPsiSet[elem,0] = psi1;
-				double sec = 1.0/cos(psi1);
-				if (fabs(psi1-Pi/2.0) < smallnum)
-				{
-					tangent1 = 0.0;
-				}
-				else 
-				{
-					tangent1 = slipdir1;
-					tangent1 *= sec;
-					dummyt = normal1;
-					dummyt *= tan(psi1);
-					tangent1 -= dummyt;
-				}
-				fElementLocTangent1.SetRow(elem, tangent1);
-				
-				product = dArrayT::Dot(normal2,slipdir2);
-				psi2 = asin(product);
-				fElementLocPsiSet[elem,1] = psi2;
-				sec = 1.0/cos(psi2);
-				if (fabs(psi2-Pi/2.0) < smallnum) 
-				{
-					tangent2 = 0.0;
-				}
-				else 
-				{
-					tangent2 = slipdir2;
-					tangent2 *= sec;
-					dummyt = normal2;
-					dummyt *= tan(psi2);
-					tangent2 -= dummyt;
-				}
-				fElementLocTangent2.SetRow(elem, tangent2);
-				
-				tangent3 = 0.0;
-				fElementLocTangent3.SetRow(elem, tangent3);
-			}
-			else if (num_normals == 3)
-			{
-				normals.Next();
-				normal1 = normals.Current();
-				fElementLocNormal1.SetRow(elem, normal1);
-				normals.Next();
-				normal2 = normals.Current();
-				fElementLocNormal2.SetRow(elem, normal2);
-				normals.Next();
-				normal3 = normals.Current();
-				fElementLocNormal3.SetRow(elem, normal3);
-				
-				slipdirs.Next();
-				slipdir1 = slipdirs.Current();
-				fElementLocSlipDir1.SetRow(elem, slipdir1);
-				slipdirs.Next();
-				slipdir2 = slipdirs.Current();
-				fElementLocSlipDir2.SetRow(elem, slipdir2);
-				slipdirs.Next();
-				slipdir3 = slipdirs.Current();
-				fElementLocSlipDir3.SetRow(elem, slipdir3);
-			
-				//calculate tangent
-				double product = dArrayT::Dot(normal1,slipdir1);
-				psi1 = asin(product);
-				fElementLocPsiSet[elem,0] = psi1;
-				double sec = 1.0/cos(psi1);
-				if (fabs(psi1-Pi/2.0) < smallnum)
-				{
-					tangent1 = 0.0;
-				}
-				else 
-				{
-					tangent1 = slipdir1;
-					tangent1 *= sec;
-					dummyt = normal1;
-					dummyt *= tan(psi1);
-					tangent1 -= dummyt;
-				}
-				fElementLocTangent1.SetRow(elem, tangent1);
-				
-				product = dArrayT::Dot(normal2,slipdir2);
-				psi2 = asin(product);
-				fElementLocPsiSet[elem,1] = psi2;
-				sec = 1.0/cos(psi2);
-				if (fabs(psi2-Pi/2.0) < smallnum) 
-				{
-					tangent2 = 0.0;
-				}
-				else 
-				{
-					tangent2 = slipdir2;
-					tangent2 *= sec;
-					dummyt = normal2;
-					dummyt *= tan(psi2);
-					tangent2 -= dummyt;
-				}
-				fElementLocTangent2.SetRow(elem, tangent2);
-				
-				product = dArrayT::Dot(normal3,slipdir3);
-				psi3 = asin(product);
-				fElementLocPsiSet[elem,2] = psi3;
-				// doesn't work
-				//if (fabs(psi3-Pi/2.0) < 1.0e-3) tangent3 = 0.0;
-				//else tangent3 = slipdir3/cos(psi3) - tan(psi3)*normal3;
-				sec = 1.0/cos(psi3);
-				if (fabs(psi3-Pi/2.0) < smallnum) 
-				{
-					tangent3 = 0.0;
-				}
-				else 
-				{
-					tangent3 = slipdir3;
-					tangent3 *= sec;
-					dummyt = normal3;
-					dummyt *= tan(psi3);
-					tangent3 -= dummyt;
-				}
-				fElementLocTangent3.SetRow(elem, tangent3);
-			}
-			else
-			{
-				ExceptionT::GeneralFail("SmallStrainEnhLocT::FormStiffness - incorrect number of normals");
-			}
-		
-			
-			if (fDeBug)
-			{
-				const int ip = fShapes->CurrIP()+1;
-				ss_enh_out	<< endl 
-							<< setw(outputFileWidth) << "element " << elem 
-							<< setw(outputFileWidth) <<  "IP" << ip;
-				ss_enh_out	<< endl << "detAmin: " << setw(outputFileWidth) << detAmin; 			
-				ss_enh_out	<< endl << "normal1: " << setw(outputFileWidth) << normal1[0] 
-							<< setw(outputFileWidth) << normal1[1] <<  setw(outputFileWidth) << normal1[2]
-							<< setw(outputFileWidth) << "slipdir1: " << setw(outputFileWidth) << slipdir1[0] 
-							<< setw(outputFileWidth) << slipdir1[1] <<  setw(outputFileWidth) << slipdir1[2]; 
-				ss_enh_out	<< endl << "tangent1:" << setw(outputFileWidth) << tangent1[0] 
-							<< setw(outputFileWidth) << tangent1[1] <<  setw(outputFileWidth) << tangent1[2];
-				ss_enh_out	<< endl << "normal2: " << setw(outputFileWidth) << normal2[0] 
-							<< setw(outputFileWidth) << normal2[1] <<  setw(outputFileWidth) << normal2[2]
-							<< setw(outputFileWidth) << "slipdir2: " << setw(outputFileWidth) << slipdir2[0] 
-							<< setw(outputFileWidth) << slipdir2[1] <<  setw(outputFileWidth) << slipdir2[2]; 
-				ss_enh_out	<< endl << "tangent2:" << setw(outputFileWidth) << tangent2[0] 
-							<< setw(outputFileWidth) << tangent2[1] <<  setw(outputFileWidth) << tangent2[2];
-				ss_enh_out	<< endl << "normal3: " << setw(outputFileWidth) << normal3[0] 
-							<< setw(outputFileWidth) << normal3[1] <<  setw(outputFileWidth) << normal3[2]
-							<< setw(outputFileWidth) << "slipdir3: " << setw(outputFileWidth) << slipdir3[0] 
-							<< setw(outputFileWidth) << slipdir3[1] <<  setw(outputFileWidth) << slipdir3[2];
-				ss_enh_out	<< endl << "tangent3:" << setw(outputFileWidth) << tangent3[0] 
-							<< setw(outputFileWidth) << tangent3[1] <<  setw(outputFileWidth) << tangent3[2] << endl;
-			}
-			*/
 			
 			} // if (detAmin < fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin])
 
@@ -983,25 +726,15 @@ void SmallStrainEnhLocT::CheckLocalization(int& elem)
 void SmallStrainEnhLocT::ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int& elem, int& nen)
 {
 	int i, nodeindex;
-	double product, sum1, sum2, sum3;
-
-	/* fetch normals and slipdirs for element */
-	/*
-	fElementLocNormal1.RowCopy(elem, normal1);
-	fElementLocNormal2.RowCopy(elem, normal2);
-	fElementLocNormal3.RowCopy(elem, normal3);
-	fElementLocTangent1.RowCopy(elem, tangent1);
-	fElementLocTangent2.RowCopy(elem, tangent2);
-	fElementLocTangent3.RowCopy(elem, tangent3);
-	fElementLocSlipDir1.RowCopy(elem, slipdir1);
-	fElementLocSlipDir2.RowCopy(elem, slipdir2);
-	fElementLocSlipDir3.RowCopy(elem, slipdir3);
-	*/
+	double product, sum, sum_min, sum_tmp;
+	AutoArrayT <double> sums, sum_products;
 	
 	/* determine normal by using minimum determinant associated with normal */
+	/*
 	normals_min.Top();
 	slipdirs_min.Top();
 	tangents_min.Top();
+	psis_min.Top();
 	detAs_min.Top();
 	detAmin = 1.0e99;
 	while (normals_min.Next())
@@ -1016,14 +749,17 @@ void SmallStrainEnhLocT::ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int& el
 			slipdir_chosen = slipdirs_min.Current();
 			tangents_min.Next();
 			tangent_chosen = tangents_min.Current();
+			psis_min.Next();
+			psi_chosen = psis_min.Current();
 		}
 	}
+	*/
 
-	/* determine normal based on minimum dissipation calculation */
-	/*
+	/* determine normal based on maximum dissipation calculation */
 	normals_min.Top();
 	slipdirs_min.Top();
 	tangents_min.Top();
+	psis_min.Top();
 	dissipations_fact_min.Top();
 	dissip_max = 0.0;
 	while (normals_min.Next())
@@ -1038,20 +774,28 @@ void SmallStrainEnhLocT::ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int& el
 			slipdir_chosen = slipdirs_min.Current();
 			tangents_min.Next();
 			tangent_chosen = tangents_min.Current();
+			psis_min.Next();
+			psi_chosen = psis_min.Current();
 		}
 	}
-	*/
+
 
 	/* determines normal for shear loading,
 	 * which is not applicable for cracking under pure tension, 
 	 * or compaction banding under compression */
-	//comment out for now
-	/*
-	sum1 = 0.0;
-	sum2 = 0.0;
-	sum3 = 0.0;
+	
+	//initialize sums
+	sums.Free();
+	normals_min.Top();
+	while (normals_min.Next())
+	{
+		sum = 0.0;
+		sums.Append(sum);
+	}
+		
 	for (i=0; i < nen; i++)
 	{
+		// grab nodal displacement vector
 		if (NumSD() == 2)
 		{
 			node_displ[0] = displ_elem[i];
@@ -1064,75 +808,59 @@ void SmallStrainEnhLocT::ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int& el
 			node_displ[2] = displ_elem[i+2*nen];
 		}
 		
-		//while normals.Next
-		product = dArrayT::Dot(normal1,node_displ);
-		sum1 += product;
-		product = dArrayT::Dot(normal2,node_displ);
-		sum2 += product;
-		product = dArrayT::Dot(normal3,node_displ);
-		sum3 += product;
+		// take inner product of nodal displacement vector and normal;
+		// then sum up inner products over nodes
+		normals_min.Top();
+		sum_products.Free();
+		sums.Top();
+		while (normals_min.Next())
+		{
+			normal_tmp = normals_min.Current();
+			product = dArrayT::Dot(normal_tmp,node_displ);
+			sums.Next();
+			sum = sums.Current();
+			sum += product;
+			sum_products.Append(sum);
+		}
+		// put back sum on sums list
+		sums.Free();
+		sum_products.Top();
+		while (sum_products.Next())
+		{
+			sum = sum_products.Current();
+			sums.Append(sum);
+		}
 	}
 	
-	if ( normal3.Magnitude() > smallnum && normal2.Magnitude() > smallnum )
+	normals_min.Top();
+	slipdirs_min.Top();
+	tangents_min.Top();
+	psis_min.Top();
+	sums.Top();
+	sum_min = 1.0e99;
+	while (normals_min.Next())
 	{
-		if ( fabs(sum1) < fabs(sum2) && fabs(sum1) < fabs(sum3))
+		sums.Next();
+		sum_tmp = sums.Current();
+		// this check works for shear localization, not for pure tension or compression
+		if (sum_tmp < sum_min)
 		{
-			normal_chosen = normal1;
-			slipdir_chosen = slipdir1;
-			tangent_chosen = tangent1;
-		}
-		else if ( fabs(sum2) < fabs(sum1) && fabs(sum2) < fabs(sum3))
-		{
-			normal_chosen = normal2;
-			slipdir_chosen = slipdir2;
-			tangent_chosen = tangent2;
-		}
-		else if ( fabs(sum3) < fabs(sum1) && fabs(sum3) < fabs(sum2))
-		{
-			normal_chosen = normal3;
-			slipdir_chosen = slipdir3;
-			tangent_chosen = tangent3;
-		}
-		else
-		{
-			normal_chosen = normal1;
-			slipdir_chosen = slipdir1;
-			tangent_chosen = tangent1;
+			sum_min = sum_tmp;
+			normal_chosen = normals_min.Current();
+			slipdirs_min.Next();
+			slipdir_chosen = slipdirs_min.Current();
+			tangents_min.Next();
+			tangent_chosen = tangents_min.Current();
+			psis_min.Next();
+			psi_chosen = psis_min.Current();
 		}
 	}
-	else if ( normal2.Magnitude() > smallnum )
-	{
-		if ( fabs(sum1) < fabs(sum2) )
-		{
-			normal_chosen = normal1;
-			slipdir_chosen = slipdir1;
-			tangent_chosen = tangent1;
-		}
-		else if ( fabs(sum2) < fabs(sum1) )
-		{
-			normal_chosen = normal2;
-			slipdir_chosen = slipdir2;
-			tangent_chosen = tangent2;
-		}
-		else
-		{
-			normal_chosen = normal1;
-			slipdir_chosen = slipdir1;
-			tangent_chosen = tangent1;
-		}
-	}
-	else
-	{
-		normal_chosen = normal1;
-		slipdir_chosen = slipdir1;
-		tangent_chosen = tangent1;
-	}
-	*/
 	
 	/* store chosen normal and slip direction vectors */
 	fElementLocNormal.SetRow(elem, normal_chosen);
 	fElementLocSlipDir.SetRow(elem, slipdir_chosen);
 	fElementLocTangent.SetRow(elem, tangent_chosen);
+	fElementLocPsi[elem] = psi_chosen;
 	
 }
 
@@ -1318,8 +1046,9 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 						
 			ss_enh_out	<< endl << endl << "element volume:" << setw(outputFileWidth) << vol; 
 						
-			ss_enh_out	<< endl << endl << "detA_min:" << setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin]
-						<< setw(outputFileWidth) << "dissip_max:" << setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdissip_max]; 
+			ss_enh_out	<< endl << endl << "detA_min" << setw(outputFileWidth) << "dissip_max"  <<  setw(outputFileWidth) << "psi (rad)";
+			ss_enh_out	<< endl << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin] << setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdissip_max]
+						<< setw(outputFileWidth) << fElementLocPsi[elem]; 
 			ss_enh_out	<< endl << " normal_chosen: " << setw(outputFileWidth) << normal_chosen[0] 
 						<< setw(outputFileWidth) << normal_chosen[1] <<  setw(outputFileWidth) << normal_chosen[2]; 
 			ss_enh_out	<< endl << "slipdir_chosen: " << setw(outputFileWidth) << slipdir_chosen[0] 

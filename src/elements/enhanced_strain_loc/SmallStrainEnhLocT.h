@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.12 2005-03-09 19:27:51 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.13 2005-03-12 00:12:01 raregue Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
@@ -200,18 +200,9 @@ protected:
 	/** current time step */
 	dArray2DT fElementLocScalars;
 	dArray2DT fElementLocNormal;
-	dArray2DT fElementLocNormal1;
-	dArray2DT fElementLocNormal2;
-	dArray2DT fElementLocNormal3;
 	dArray2DT fElementLocTangent;
-	dArray2DT fElementLocTangent1;
-	dArray2DT fElementLocTangent2;
-	dArray2DT fElementLocTangent3;
 	dArray2DT fElementLocSlipDir;
-	dArray2DT fElementLocSlipDir1;
-	dArray2DT fElementLocSlipDir2;
-	dArray2DT fElementLocSlipDir3;
-	dArray2DT fElementLocPsiSet;
+	dArrayT fElementLocPsi;
 	dArray2DT fElementLocMuDir;
 	dArray2DT fElementLocInternalVars;
 	dArray2DT fElementLocGradEnh; // varies for each IP
@@ -222,7 +213,7 @@ protected:
 	
 	iArray2DT fElementLocNodesActive;
 	
-	double psi1, psi2, psi3;
+	double psi_tmp, psi_chosen;
 	
 	/** from the last time step */
 	dArray2DT fElementLocScalars_last;
@@ -239,17 +230,22 @@ protected:
 	AutoArrayT <dArrayT> normals;
 	AutoArrayT <dArrayT> slipdirs;
 	AutoArrayT <dArrayT> tangents;
+	AutoArrayT <double> psis;
 	AutoArrayT <double> detAs;
 	AutoArrayT <double> dissipations_fact;
 	AutoArrayT <dArrayT> normals_min;
 	AutoArrayT <dArrayT> slipdirs_min;
 	AutoArrayT <dArrayT> tangents_min;
+	AutoArrayT <double> psis_min;
 	AutoArrayT <double> detAs_min;
 	AutoArrayT <double> dissipations_fact_min;
+	
 	dArrayT grad_enh, mu_dir;
-	dArrayT normal1, normal2, normal3, normal_chosen;
-	dArrayT slipdir1, slipdir2, slipdir3, slipdir_chosen;
-	dArrayT tangent1, tangent2, tangent3, tangent_chosen;
+		
+	dArrayT normal_tmp, normal_chosen;
+	dArrayT slipdir_tmp, slipdir_chosen;
+	dArrayT tangent_tmp, tangent_chosen;
+	
 	int loc_flag, numedges;
 	dArrayT node_displ, node_coords, node_shape_deriv;
 	dArrayT start_surface_vect, start_surface_vect_read;
