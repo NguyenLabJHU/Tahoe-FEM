@@ -96,6 +96,22 @@ public:
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 						AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
+	/** Translate global node numbers to local ones -- communication routine for MFLagMultT */
+	/** returns 0 if unsucessful, i.e. nodes not contained in fNodes */
+	int GlobalToLocalNumbering(iArrayT& nodes);
+	
+	/* Translate global node numbers to local ones -- communication routine for MFLagMultT */
+	int GlobalToLocalNumbering(RaggedArray2DT<int>& nodes);
+
+	/** Return interpolated displacement field at selected nodes -- communication routine for MFLagMultT */
+	void InterpolatedFieldAtNodes(iArrayT& nodes, dArray2DT& fieldAtNodes);
+
+	/** Return the data structure holding the support of the localNode and it's window function values 
+		-- communication routine for for MFLagMultT */
+	void NodalSupportAndPhi(int localNode, LinkedListT<int>& support, LinkedListT<double>& phi);
+	
+	int SupportSize(int localNode);
+
 	/** \name types needed for the Voronoi diagram calculation */
 	/*@{*/
 #ifndef __QHULL__

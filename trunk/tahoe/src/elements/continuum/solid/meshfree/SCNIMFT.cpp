@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.13 2004-04-13 17:19:11 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.14 2004-05-06 18:58:15 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -138,7 +138,7 @@ void SCNIMFT::Initialize(void)
 #endif
 	} 
 	else 
-	  {	// read in Voronoi information from a file
+	{	// read in Voronoi information from a file
 	  	StringT vCellFile;
 		in >> vCellFile;
 	    
@@ -169,8 +169,6 @@ void SCNIMFT::Initialize(void)
 	
 	/* initialize */
 //	fNodalShapes->Initialize();
-
-	/* Set nodal integration weights -- ?? */
 
 	/* MLS stuff */
 	fNodalShapes->SetSupportSize();
@@ -524,12 +522,7 @@ void SCNIMFT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 #pragma unused(eq_1)
 
 	/* dimension equations array */
-	//fEqnos.Configure(fNodalShapes->NodeNeighbors(), NumDOF());
-	iArrayT numBVectors(fNodes.Length());
-	for (int i = 0; i < fNodes.Length(); i++)
-		numBVectors[i] = nodeWorkSpace[i].Length();
-		
-	fEqnos.Configure(numBVectors, NumDOF());
+	fEqnos.Configure(nodeWorkSpace, NumDOF());
 
 	/* get local equations numbers */
 	Field().SetLocalEqnos(nodeWorkSpace, fEqnos);
@@ -591,6 +584,104 @@ void SCNIMFT::WriteMaterialData(ostream& out) const
 
 	/* flush buffer */
 	out.flush();
+}
+
+int SCNIMFT::GlobalToLocalNumbering(iArrayT& nodes)
+{
+	if (!fNodes.Length())
+		if (!nodes.Length())
+			return 1;
+		else 
+			ExceptionT::GeneralFail("SCNIMFT::GlobalToLocalNumbering","No nodes exist\n");
+	
+	// Basic Idea: fNodes is sorted (it came from ModelManagerT::ManyNodeSets)
+	// So, sort nodes with a key array and march down and compare. 
+	iArrayT nodeMap(nodes.Length());
+	nodeMap.SetValueToPosition();
+	iArrayT nodeCopy(nodes.Length());
+	nodeCopy = nodes;
+	nodeMap.SortAscending(nodeCopy);
+
+	// nodes[nodeMap[0]] is the smallest node in global numbering scheme
+	// nodes[nodeMap[0]] should be that global node's position in fNodes
+	int fNodesLen = fNodes.Length();
+	int nodeMapLen = nodeMap.Length();
+	int fNodesCtr = 0;
+	int nodeMapCtr = 0.;
+	int *fNodesPtr = fNodes.Pointer();
+	int *nodeMapPtr = nodeCopy.Pointer();
+	
+	if (*nodeMapPtr > *fNodesPtr)
+		return 0;
+	
+	while (fNodesCtr < fNodesLen && nodeMapCtr < nodeMapLen) {
+		while (*nodeMapPtr != *fNodesPtr && fNodesCtr < fNodesLen) {
+			fNodesPtr++; 
+			fNodesCtr++;
+		}
+		
+		if (fNodesCtr != fNodesLen) {
+			nodes[nodeMap[nodeMapCtr]] = fNodesCtr; // local numbering!
+			nodeMapCtr++;
+			nodeMapPtr++;
+		}
+	}
+	
+	if (nodeMapCtr != nodeMapLen)
+		return 0;
+	else
+		return 1;
+}
+
+int SCNIMFT::GlobalToLocalNumbering(RaggedArray2DT<int>& nodes)
+{
+	iArrayT row_i;
+	for (int i = 0; i < nodes.MajorDim(); i++) {
+		row_i.Set(nodes.MinorDim(i), nodes(i)); 
+		if (!GlobalToLocalNumbering(row_i))
+			return 0;
+	}
+	
+	return 1;
+}
+
+void SCNIMFT::InterpolatedFieldAtNodes(iArrayT& nodes, dArray2DT& fieldAtNodes)
+{
+	/* displacements */
+	const dArray2DT& u = Field()(0,0);
+	dArrayT vec, values_i;
+	for (int i = 0; i < nodes.Length(); i++) 
+	{
+		/* copy in */
+		vec.Set(fSD, fieldAtNodes.Pointer() + i*fSD);
+		vec = 0.;	
+			
+		LinkedListT<int>& supp_i = fNodalSupports[i];
+		LinkedListT<double>& phi_i = fNodalPhi[i];
+		supp_i.Top(); phi_i.Top();
+		while (supp_i.Next() && phi_i.Next()) 
+			vec.AddScaled(*(phi_i.CurrentValue()), u(*(supp_i.CurrentValue())));
+
+	}
+
+}
+
+/** localNode is a local Number, so GlobalToLocalNumbering needs to have been called in whatever class 
+  * calls this function. The node number returned in support are global. 
+  */
+void SCNIMFT::NodalSupportAndPhi(int localNode, LinkedListT<int>& support, LinkedListT<double>& phi)
+{
+#if __option(extended_errorcheck)
+	if (localNode < 0 || localNode >= fNodes.Length()) throw ExceptionT::kSizeMismatch;
+#endif
+
+	support.Alias(fNodalSupports[localNode]);
+	phi.Alias(fNodalPhi[localNode]);
+}
+
+int SCNIMFT::SupportSize(int localNode) 
+{
+	return fNodalPhi[localNode].Length();
 }
 
 void SCNIMFT::ComputeBMatrices(void)
