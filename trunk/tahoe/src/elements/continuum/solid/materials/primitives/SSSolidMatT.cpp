@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.11 2005-01-29 01:28:40 raregue Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.12 2005-01-31 07:09:14 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
 #include "SSMatSupportT.h"
@@ -133,6 +133,11 @@ const dMatrixT& SSSolidMatT::c_ijkl(void)
 	}
 
 	return fModulus;
+}
+
+/* spatial elastic modulus */
+const dMatrixT& SSSolidMatT::ce_ijkl(void) {
+	return c_ijkl();
 }
 
 /* apply pre-conditions at the current time step */

@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.16 2005-01-29 01:28:40 raregue Exp $ */
+/* $Id: SSSolidMatT.h,v 1.17 2005-01-31 07:09:14 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
@@ -56,15 +56,7 @@ public:
 	virtual const dMatrixT& c_ijkl(void);	 
 	
 	/** spatial elastic modulus */
-	//virtual const dMatrixT& ce_ijkl(void) = 0;
-	virtual const dMatrixT& ce_ijkl(void)
-	{
-		dMatrixT dummymat;
-		dummymat.Dimension(NumSD()+NumSD());
-		//dummymat.Dimension(dSymMatrixT::NumValues(3));
-		dummymat = 0.0;
-		return dummymat;
-	}
+	virtual const dMatrixT& ce_ijkl(void);
 
 	/* apply pre-conditions at the current time step */
 	virtual void InitStep(void);
