@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.cpp,v 1.3 2001-04-27 10:54:31 paklein Exp $ */
+/* $Id: OgdenIsotropicT.cpp,v 1.4 2001-05-04 19:16:48 paklein Exp $ */
 /* created: paklein (10/01/2000)                                          */
 /* base class for large deformation isotropic material following          */
 /* Ogden's formulation.                                                   */
@@ -82,7 +82,7 @@ const dSymMatrixT& OgdenIsotropicT::s_ij(void)
 const dMatrixT& OgdenIsotropicT::C_IJKL(void)
 {
 	/* spectral decomposition */
-	fSpectralDecomp.SpectralDecomp_new(C());
+	fSpectralDecomp.SpectralDecomp_new(C(), false);
 	//fSpectralDecomp.SpectralDecomp(C(), false); // closed-form decomposition
 
 	/* principal values */
@@ -143,7 +143,7 @@ const dMatrixT& OgdenIsotropicT::C_IJKL(void)
 const dSymMatrixT& OgdenIsotropicT::S_IJ(void)
 {
 	/* spectral decomposition */
-	fSpectralDecomp.SpectralDecomp_new(C());
+	fSpectralDecomp.SpectralDecomp_new(C(), false);
 	//fSpectralDecomp.SpectralDecomp(C(), false); // closed-form decomposition
 
 	/* principal values */
