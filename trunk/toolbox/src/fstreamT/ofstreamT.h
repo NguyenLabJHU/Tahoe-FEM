@@ -1,6 +1,5 @@
-/* $Id: ofstreamT.h,v 1.3 2002-07-02 19:57:13 cjkimme Exp $ */
-/* created: paklein (12/30/2000)                                          */
-
+/* $Id: ofstreamT.h,v 1.4 2004-01-31 07:17:19 paklein Exp $ */
+/* created: paklein (12/30/2000) */
 #ifndef _OFSTREAM_T_H_
 #define _OFSTREAM_T_H_
 
@@ -11,7 +10,6 @@
 
 /* direct members */
 #include "StringT.h"
-
 
 namespace Tahoe {
 
@@ -36,6 +34,11 @@ public:
 
 	/* set stream formats */
 	static void format_stream(ostream& out);
+
+private:
+
+	/** copy constructor not allowed */
+	ofstreamT(const ofstreamT&);
 
 private:
 
