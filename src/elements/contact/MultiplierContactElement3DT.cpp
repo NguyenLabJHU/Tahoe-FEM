@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement3DT.cpp,v 1.1 2003-11-21 23:23:37 rjones Exp $ */
+/* $Id: MultiplierContactElement3DT.cpp,v 1.2 2003-11-22 00:02:37 paklein Exp $ */
 #include "MultiplierContactElement3DT.h"
 
 #include <math.h>
@@ -42,8 +42,8 @@ void MultiplierContactElement3DT::PrintControlData(ostream& out) const
     {
         for (int j = i ; j < num_surfaces ; j++)
         {
-            dArrayT& search_parameters = fSearchParameters(i,j);
-            dArrayT& enf_parameters = fEnforcementParameters(i,j);
+            const dArrayT& search_parameters = fSearchParameters(i,j);
+            const dArrayT& enf_parameters = fEnforcementParameters(i,j);
             /* only print allocated parameter arrays */
             if (search_parameters.Length() == kSearchNumParameters) {
               out << "  surface pair: ("  << i << "," << j << ")\n" ;
