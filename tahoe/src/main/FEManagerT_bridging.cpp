@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.5.2.8 2003-06-17 07:20:07 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.5.2.9 2003-06-17 18:46:25 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -560,6 +560,18 @@ const dArray2DT& FEManagerT_bridging::InternalForce(int group) const
 	if (!element) ExceptionT::GeneralFail(caller, "no elements in solver group %d", group);
 
 	return element->InternalForce(group);
+}
+
+/* return the properties map for the given element group */
+nMatrixT<int>& FEManagerT_bridging::PropertiesMap(int element_group)
+{
+	/* try cast to particle type */
+	ElementBaseT* element_base = fElementGroups[element_group];
+	ParticleT* particle = dynamic_cast<ParticleT*>(element_base);
+	if (!particle)
+		ExceptionT::GeneralFail("FEManagerT_bridging::PropertiesMap",
+			"group %d is not a particle group", element_group);
+	return particle->PropertiesMap();
 }
 
 /*************************************************************************
