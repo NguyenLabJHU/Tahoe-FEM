@@ -1,4 +1,4 @@
-/* $Id: VIB3D.cpp,v 1.11 2004-08-05 23:17:53 paklein Exp $ */
+/* $Id: VIB3D.cpp,v 1.12 2005-03-16 10:20:55 paklein Exp $ */
 /* created: paklein (04/20/1997) */
 #include "VIB3D.h"
 
@@ -196,6 +196,9 @@ void VIB3D::TakeParameterList(const ParameterListT& list)
 
 	/* set point arrangement */
 	SetAngles(0.0, 0.0);
+
+	/* set the unstressed energy density */
+	SetReferenceEnergy();
 }
 
 /***********************************************************************

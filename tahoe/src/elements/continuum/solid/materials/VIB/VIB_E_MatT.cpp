@@ -1,4 +1,4 @@
-/* $Id: VIB_E_MatT.cpp,v 1.6 2004-07-15 08:27:40 paklein Exp $ */
+/* $Id: VIB_E_MatT.cpp,v 1.7 2005-03-16 10:20:42 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "VIB_E_MatT.h"
 
@@ -13,14 +13,23 @@ using namespace Tahoe;
 /* constructors */
 VIB_E_MatT::VIB_E_MatT(int nsd):
 	ParameterInterfaceT("VIB_Green_material"),
-	VIB(nsd, dSymMatrixT::NumValues(nsd), (nsd == 2) ? 5 : 15)
+	VIB(nsd, dSymMatrixT::NumValues(nsd), (nsd == 2) ? 5 : 15),
+	fU_0(0.0)
 {
-
 }
 
 /*************************************************************************
  * Protected
  *************************************************************************/
+
+/* set reference energy */
+void VIB_E_MatT::SetReferenceEnergy(void)
+{
+	dSymMatrixT E_0(fNumSD);
+	E_0 = 0.0;
+	fU_0 = 0.0;
+	fU_0 = VIBEnergyDensity(E_0);
+}
 
 /* returns the strain energy density for the specified strain */
 double VIB_E_MatT::VIBEnergyDensity(const dSymMatrixT& E)
@@ -39,7 +48,7 @@ double VIB_E_MatT::VIBEnergyDensity(const dSymMatrixT& E)
 	for (int i = 0; i < fLengths.Length(); i++)
 		energy += (*pU++)*(*pj++);
 	
-	return( energy );
+	return( energy - fU_0 );
 }
 
 /* compute strained lengths */
