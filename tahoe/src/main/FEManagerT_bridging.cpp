@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.16.4.14 2004-04-20 23:34:56 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.16.4.15 2004-04-21 08:07:58 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -232,7 +232,7 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& point_neighb
 		
 		/* compute residual - add Cauchy-Born contribution */
 		f_a = sum_R_N;
-		Compute_df_dp(R_i, V_0, *coarse, cell_type, overlap_cell_i_map, overlap_node_i_map, p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
+		Compute_df_dp(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i_map, p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
 		
 		/* solve bond densities */
 		double abs_tol = 1.0e-10;
@@ -261,7 +261,7 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& point_neighb
 
 				/* recompute residual */			
 				f_a = sum_R_N;
-				Compute_df_dp(R_i, V_0, *coarse, cell_type, overlap_cell_i_map, overlap_node_i_map, p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
+				Compute_df_dp(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i_map, p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
 				error = sqrt(dArrayT::Dot(df_dp_i,df_dp_i));
 				cout << setw(kIntWidth) << iter << ": e/e_0 = " << error/error_0 << endl;
 
@@ -1779,24 +1779,28 @@ void FEManagerT_bridging::Compute_df_dp(const dArrayT& R, double V_0, const Cont
 #endif
 }
 
-void FEManagerT_bridging::Compute_df_dp(const dArrayT& R, double V_0, const ContinuumElementT& coarse,
+void FEManagerT_bridging::Compute_df_dp(const dArrayT& R, double V_0,
 	const ArrayT<char>& cell_type, const InverseMapT& overlap_cell_map, const InverseMapT& overlap_node_map, 
 	const dArray2DT& rho, dArrayT& f_a, double smoothing, double k2, dArray2DT& df_dp, LAdMatrixT& ddf_dpdp) const
 {
 	const char caller[] = "FEManagerT_bridging::Compute_df_dp";
 
+	/* the continuum element solving the coarse scale */
+	const ContinuumElementT* coarse = fFollowerCellData.ContinuumElement();
+	if (!coarse) ExceptionT::GeneralFail(caller, "interpolation data not set");
+
 	/* dimensions */
 	NodeManagerT* node_manager = NodeManager();
 	int nsd = node_manager->NumSD();
-	int nen = coarse.NumElementNodes();
-	int nip = coarse.NumIP();
+	int nen = coarse->NumElementNodes();
+	int nip = coarse->NumIP();
 
 	/* element coordinates */
 	LocalArrayT element_coords(LocalArrayT::kInitCoords, nen, nsd);
 	node_manager->RegisterCoordinates(element_coords);
 
 	/* shape functions */
-	ShapeFunctionT shapes = ShapeFunctionT(coarse.ShapeFunction(), element_coords);
+	ShapeFunctionT shapes = ShapeFunctionT(coarse->ShapeFunction(), element_coords);
 	shapes.Initialize();
 
 	/* integrate bond density term */
@@ -1807,7 +1811,7 @@ void FEManagerT_bridging::Compute_df_dp(const dArrayT& R, double V_0, const Cont
 		if (cell_type[i] != p_0) /* non-zero bond density */ 
 		{
 			/* set element information */
-			const iArrayT& nodesX = coarse.ElementCard(i).NodesX();
+			const iArrayT& nodesX = coarse->ElementCard(i).NodesX();
 			element_coords.SetLocal(nodesX);
 			shapes.SetDerivatives();
 
@@ -1883,7 +1887,7 @@ void FEManagerT_bridging::Compute_df_dp(const dArrayT& R, double V_0, const Cont
 			if (overlap_cell_index) ExceptionT::GeneralFail(caller);
 		
 			/* set element information */
-			const iArrayT& nodesX = coarse.ElementCard(i).NodesX();
+			const iArrayT& nodesX = coarse->ElementCard(i).NodesX();
 			element_coords.SetLocal(nodesX);
 			shapes.SetDerivatives();
 
@@ -1929,7 +1933,7 @@ void FEManagerT_bridging::Compute_df_dp(const dArrayT& R, double V_0, const Cont
 						double R_dot_dN = grad_Na.DotCol(k, R);
 				
 						/* assemble */
-						df(k, ip) += (overlap_node_index*jw_by_V);
+						df(k, ip) += (R_dot_dN*jw_by_V);
 					}
 				}
 			}
@@ -1963,9 +1967,9 @@ void FEManagerT_bridging::Compute_df_dp(const dArrayT& R, double V_0, const Cont
 			ddf_dpdp.AddBlock(overlap_cell_index*nip, overlap_cell_index*nip, ATA_int);
 		}
 
-		//TEMP - add coupling term
-		for (int i = 0; i < df_a_dp.MajorDim(); i++)
-			ddf_dpdp.Outer(df_a_dp(i), df_a_dp(i), 1.0, dMatrixT::kAccumulate);
+	//TEMP - add coupling term
+	for (int i = 0; i < df_a_dp.MajorDim(); i++)
+		ddf_dpdp.Outer(df_a_dp(i), df_a_dp(i), 1.0, dMatrixT::kAccumulate);
 }
 
 /* compute reduced connectivity list */
