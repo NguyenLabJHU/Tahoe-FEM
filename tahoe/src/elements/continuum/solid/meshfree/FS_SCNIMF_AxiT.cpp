@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.15 2005-01-25 02:23:58 cjkimme Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.16 2005-01-25 18:22:05 cjkimme Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 //#define VERIFY_B
@@ -577,7 +577,6 @@ void FS_SCNIMF_AxiT::AssembleParticleMass(const double rho)
  
   int* nodes = fNodes.Pointer();
   double* volume = fCellVolumes.Pointer();
-  dArrayT cell_i_centroid(fSD);
   for (int i = 0; i < fNodes.Length(); i++) {
 
     double* m = fForce(fNodes[i]);

@@ -106,7 +106,7 @@ void VoronoiDiagramT::DefineElements(const ArrayT<StringT>& block_ID, const Arra
 }
 
 void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, RaggedArray2DT<dArrayT>& bVectors,
-									   dArrayT& cellVolumes, RaggedArray2DT<double>& circumferential_B)
+									   dArrayT& cellVolumes, dArray2DT& cellCentroids, RaggedArray2DT<double>& circumferential_B)
 {
 
 	/* Here for the Axisymmetric case, also computes {Psi_I(X_L)/R)L,0.} 
@@ -158,6 +158,9 @@ void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, Ragged
  
 		vin.close();
 	}
+	
+	// centroid information is already here
+	cellCentroids.Alias(fVoronoiCellCentroids);
 
 	/* possible best implementation is to loop over all Delone edges
 	 * and compute all the necessary values only once per Voronoi
