@@ -1,9 +1,11 @@
-/* $Id: BridgingScaleT.h,v 1.24 2003-05-21 23:48:07 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.25 2003-05-23 22:55:08 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
-/* direct members */
+/* base class */
 #include "SolidElementT.h"
+
+/* direct members */
 #include "RaggedArray2DT.h"
 #include "ElementMatrixT.h"
 #include "CCSMatrixT.h"
@@ -12,9 +14,9 @@ namespace Tahoe {
 
 /* forward declarations */
 class PointInCellDataT;
-//class RodT;
 
-/** base class for elements using shape functions */
+/** class to handle interpolation of data from the nodes to an arbitrary set of
+ * points and from a arbitrary set of points into the nodes. */
 class BridgingScaleT: public ElementBaseT
 {
 public:
@@ -23,25 +25,19 @@ public:
 	BridgingScaleT(const ElementSupportT& support, const FieldT& field,
 		const SolidElementT& solid);
 
-	/** map points into cells in the group's connectivities.
-	 * Map points into the initial or current configuration of the mesh. Only
-	 * one of the two pointers must be passed as NULL.
+	/** \name field interpolation */
+	/*@{*/
+	/** initialize interpolation data. Calculate and store interpolation data
+	 * within the given PointInCellDataT. Maps points into the initial or current 
+	 * configuration of the mesh. Only one of the two pointers must be passed as NULL.
 	 * \param points_used indecies of points in the coordinate lists which should be
 	 *        mapped into cells
 	 * \param init_coords point to the initial coordinates array if available
 	 * \param curr_coords point to the initial coordinates array if available
 	 * \param point_in_cell destination for map data
 	 */
-	void MaptoCells(const iArrayT& points_used, const dArray2DT* init_coords, 
+	void InitInterpolation(const iArrayT& points_used, const dArray2DT* init_coords, 
 		const dArray2DT* curr_coords, PointInCellDataT& cell_data);
-
-	/** \name field interpolation */
-	/*@{*/
-	/** initialize interpolation data. Calculate and store interpolation data
-	* within the given PointInCellDataT. This data must first be initialized
-	* with a call to BridgingScaleT::MaptoCells, which maps the points
-	* from real space to coordinates in the parent domain. */
-	void InitInterpolation(const iArrayT& points_used, PointInCellDataT& cell_data) const;
 
 	/** interpolate field.
 	 * \param field name of field to interpolate
@@ -55,14 +51,22 @@ public:
 
 	/** \name project external field onto mesh */
 	/*@{*/
-	/** compute the projection matrix */
-	void InitProjection(const PointInCellDataT& cell_data);
+	/** initialize projection data. Maps points into the initial or current 
+	 * configuration of the mesh. Only one of the two pointers must be passed as NULL.
+	 * \param points_used indecies of points in the coordinate lists which should be
+	 *        mapped into cells
+	 * \param init_coords point to the initial coordinates array if available
+	 * \param curr_coords point to the initial coordinates array if available
+	 * \param point_in_cell destination for map data
+	 */
+	virtual void InitProjection(const iArrayT& points_used, const dArray2DT* init_coords, 
+		const dArray2DT* curr_coords, PointInCellDataT& cell_data);
 
 	/** project the point values onto the mesh. Requires a previous call to
 	 * BridgingScaleT::InitProjection in order to compute the mass-like
 	 * matrix. */
-	void ProjectField(const StringT& field, const PointInCellDataT& cell_data,
-		const dArray2DT& values, dArray2DT& projection);
+	virtual void ProjectField(const PointInCellDataT& cell_data,
+		const dArray2DT& point_values, dArray2DT& projection);
 	/*@}*/
 
 	/** Same as ProjectField, except that computes and returns total solution u 
@@ -98,6 +102,18 @@ public:
 	virtual void SendOutput(int) {};
 
 protected:
+
+	/** map points into cells in the group's connectivities.
+	 * Map points into the initial or current configuration of the mesh. Only
+	 * one of the two pointers must be passed as NULL.
+	 * \param points_used indecies of points in the coordinate lists which should be
+	 *        mapped into cells
+	 * \param init_coords point to the initial coordinates array if available
+	 * \param curr_coords point to the initial coordinates array if available
+	 * \param point_in_cell destination for map data
+	 */
+	void MaptoCells(const iArrayT& points_used, const dArray2DT* init_coords, 
+		const dArray2DT* curr_coords, PointInCellDataT& cell_data);
 
 	/** continuum shape functions */
 	const ShapeFunctionT& ShapeFunction(void) const;
