@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.21 2004-01-05 08:11:35 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.22 2004-01-05 23:36:06 paklein Exp $ */
 #include "ABAQUS_VUMAT_BaseT.h"
 
 #ifdef __F2C__
@@ -35,7 +35,7 @@ ABAQUS_VUMAT_BaseT::ABAQUS_VUMAT_BaseT(ifstreamT& in, const FSMatSupportT& suppo
 	/* read ABAQUS-format input */
 	nstatv = 0;
 	bool nonsym = false;
-	Read_ABAQUS_Input(in, fVUMAT_name, fProperties, nstatv, nonsym);
+	Read_ABAQUS_Input(in, fVUMAT_name, fProperties, fDensity, nstatv, nonsym);
 
 	/* set (material tangent) modulus tensor (fixed) */
 	double   Young = double(fProperties[0]);

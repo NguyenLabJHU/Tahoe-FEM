@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BaseT.cpp,v 1.3 2004-01-05 08:11:26 paklein Exp $ */
+/* $Id: ABAQUS_BaseT.cpp,v 1.4 2004-01-05 23:36:01 paklein Exp $ */
 #include "ABAQUS_BaseT.h"
 
 #ifdef __F2C__
@@ -114,7 +114,7 @@ void ABAQUS_BaseT::dSymMatrixT_to_ABAQUS(const dSymMatrixT& A,
 *    *DEPVAR
 */
 void ABAQUS_BaseT::Read_ABAQUS_Input(ifstreamT& in, StringT& name, nArrayT<doublereal>& properties,
-	integer& nstatv, bool& nonsym) const
+	double& density, integer& nstatv, bool& nonsym) const
 {
 	const char caller[] = "ABAQUS_BaseT::Read_ABAQUS_Input";
 
@@ -227,6 +227,16 @@ void ABAQUS_BaseT::Read_ABAQUS_Input(ifstreamT& in, StringT& name, nArrayT<doubl
 			in >> nstatv;
 			if (nstatv < 0)
 				ExceptionT::BadInputValue(caller, "error reading %s", next_word.Pointer());
+
+			/* clear trailing comma */
+			Skip_ABAQUS_Symbol(in, ',');
+		}
+		else if (next_word == "DENSITY")
+		{
+			density = -1.0;
+			in >> density;
+			if (density < 0.0)
+				ExceptionT::BadInputValue(caller, caller, "bad %s: %g", next_word.Pointer(), density);
 
 			/* clear trailing comma */
 			Skip_ABAQUS_Symbol(in, ',');
