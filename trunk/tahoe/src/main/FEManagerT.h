@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.33 2003-03-31 23:20:27 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.34 2003-05-20 10:39:56 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -302,7 +302,7 @@ public:
 	 * All steps return ExceptionT::kNoError = 0 unless a problem occurs. */
 	/*@{*/
 	/** (re-)set system to initial conditions */
-	virtual void InitialCondition(void);
+	virtual ExceptionT::CodeT InitialCondition(void);
 
 	/** initialize the current time increment for all groups */
 	virtual ExceptionT::CodeT InitStep(void);
@@ -328,10 +328,11 @@ public:
 	};
 	/*@}*/
 
-	/** \name initialize/restart functions */
+	/** \name initialize/restart functions 
+	 * Return true if a restart file was written/read; otherwise, return false. */
 	/*@{*/
-	void ReadRestart(const StringT* file_name = NULL);
-	void WriteRestart(const StringT* file_name = NULL) const;
+	bool ReadRestart(const StringT* file_name = NULL);
+	bool WriteRestart(const StringT* file_name = NULL) const;
 	/*@}*/
 
 protected:
@@ -406,6 +407,7 @@ protected:
 	bool fReadRestart;
 	int  fWriteRestart;
 	bool fPrintInput;
+	bool fComputeInitialCondition;
 	/*@}*/
 	
 	/** \name the managers */
