@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.54 2005-02-01 20:11:38 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.55 2005-02-26 22:43:36 paklein Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -356,6 +356,69 @@ GlobalT::SystemTypeT SCNIMFT::TangentType(void) const
 	return GlobalT::kSymmetric;
 }
 
+void SCNIMFT::InitStep(void)
+{
+	/* inherited */
+	ElementBaseT::InitStep();
+
+	/* set material variables */
+	if (fMaterialList)  fMaterialList->InitStep();
+}
+
+void SCNIMFT::CloseStep(void)
+{
+	/* inherited */
+	ElementBaseT::CloseStep();
+
+	if (fMaterialList) 
+	{
+		/* set material variables */
+		fMaterialList->CloseStep();
+
+		/* update element level internal variables */
+		if (fMaterialList->HasHistoryMaterials())
+		{
+			Top();
+			while (NextElement())
+			{
+				const ElementCardT& element = CurrentElement();
+				if (element.IsAllocated())
+				{
+					ContinuumMaterialT* pmat = (*fMaterialList)[element.MaterialNumber()];
+
+				/* material update function */
+					pmat->UpdateHistory();
+				}
+			}
+		}
+	}
+}
+
+GlobalT::RelaxCodeT SCNIMFT::ResetStep(void)
+{
+	/* inherited */
+	GlobalT::RelaxCodeT relax = ElementBaseT::ResetStep();
+
+	/* update material internal variables */
+	if (fMaterialList && fMaterialList->HasHistoryMaterials())
+	{
+		Top();
+		while (NextElement())
+		{
+			const ElementCardT& element = CurrentElement();		
+			if (element.IsAllocated())
+			{
+				ContinuumMaterialT* pmat = (*fMaterialList)[element.MaterialNumber()];
+
+				/* material reset function */
+				pmat->ResetHistory();
+			}
+		}
+	}
+
+	return relax;
+}
+
 /* NOT implemented. Returns an zero force vector */
 void SCNIMFT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
@@ -477,13 +540,37 @@ void SCNIMFT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 /* write restart data to the output stream */
 void SCNIMFT::WriteRestart(ostream& out) const
 {
+	/* inherited */
 	ElementBaseT::WriteRestart(out);
+
+	/* update element level internal variables */
+	if (fMaterialList && fMaterialList->HasHistoryMaterials())
+	{
+		for (int i = 0; i < fElementCards.Length(); i++)
+		{
+			const ElementCardT& element = fElementCards[i];
+			out << element.IsAllocated() << '\n';
+			if (element.IsAllocated()) element.WriteRestart(out);
+		}
+	}
 }
 
 /* read restart data to the output stream */
 void SCNIMFT::ReadRestart(istream& in)
 {
+	/* inherited */
 	ElementBaseT::ReadRestart(in);
+
+	/* update element level internal variables */
+	if (fMaterialList && fMaterialList->HasHistoryMaterials())
+	{
+		for (int i = 0; i < fElementCards.Length(); i++)
+		{
+			int isallocated;
+			in >> isallocated;
+			if (isallocated) fElementCards[i].ReadRestart(in);
+		}
+	}
 }
 
 /***********************************************************************
@@ -499,9 +586,12 @@ bool SCNIMFT::ChangingGeometry(void) const
 /* echo element connectivity data */
 void SCNIMFT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index) 
 {
-#pragma unused(mat_index)
-
 	const char caller[] = "SCNIMFT::DefineElements";
+
+	//TEMP
+	if (block_ID.Length() > 1)
+		ExceptionT::GeneralFail(caller, "mutliple block ID's not supported %d",
+			block_ID.Length());
 	
 	/* access to the model database */
 	ModelManagerT& model = ElementSupport().ModelManager();
@@ -520,6 +610,8 @@ void SCNIMFT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>&
 
 	/* set up element cards for state variable storage */
 	fElementCards.Dimension(fNodes.Length()); /* one card per node */
+	for (int i = 0; i < fElementCards.Length(); i++)
+		fElementCards[i].SetMaterialNumber(mat_index[0]);
 	
 	fCellGeometry->DefineElements(block_ID, mat_index);
 }

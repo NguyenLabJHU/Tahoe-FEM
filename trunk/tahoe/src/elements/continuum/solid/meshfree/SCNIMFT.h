@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.28 2005-01-28 02:47:41 paklein Exp $ */
+/* $Id: SCNIMFT.h,v 1.29 2005-02-26 22:43:36 paklein Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -48,6 +48,13 @@ public:
 	
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
+
+	/** \name initialize/finalize time increment */
+	/*@{*/
+	virtual void InitStep(void);
+	virtual void CloseStep(void);
+	virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
+	/*@}*/
 
 	/** NOT implemented. Returns an zero force vector */
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
