@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.40 2002-02-01 18:11:41 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.41 2002-03-21 18:59:21 paklein Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -333,17 +333,24 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 		int step;
 		command.Argument("delay").GetValue(delay);
 		command.Argument("step").GetValue(step);
+		
+		/* the select time step command */
+		StringT empty_line;
+		CommandSpecT* set_step = iCommand("SelectTimeStep");
+		if (!set_step) throw eGeneralFail;
       
 		/* assume all the bodies have the same number of steps as body 0 */
 		int j;
 		for (j = 0; j<fBodies[0]->NumTimeSteps(); j += step){
+
 			/* time delay */
 			clock_t start_time, cur_time;
 			start_time = clock();
 			while((clock() - start_time) < delay * CLOCKS_PER_SEC) { }
-			for (int i = 0; i < fBodies.Length(); i++)
-				fBodies[i]->SelectTimeStep(j);
-			renWin->Render();
+
+			/* set step */
+			set_step->Argument(0).SetValue(j);
+			iDoCommand(*set_step, empty_line);
       	}
       	
       	/* make sure to hit last frame */
@@ -354,10 +361,12 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 			start_time = clock();
 			while((clock() - start_time) < delay * CLOCKS_PER_SEC) { }
       	
+			/* get last step number */
       		j = fBodies[0]->NumTimeSteps() - 1;
-			for (int i = 0; i < fBodies.Length(); i++)
-				fBodies[i]->SelectTimeStep(j);
-			renWin->Render();      	
+
+			/* set step */
+			set_step->Argument(0).SetValue(j);
+			iDoCommand(*set_step, empty_line);
       	}
       	
       return true;
