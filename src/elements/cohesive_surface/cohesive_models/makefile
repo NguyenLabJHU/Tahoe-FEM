@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.9 2002-04-16 21:19:33 cjkimme Exp $
+# $Id: makefile,v 1.10 2002-04-17 00:48:43 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -9,7 +9,6 @@ OBJ = \
 	RateDep2DT.o \
 	LinearDamageT.o \
 	SurfacePotentialT.o \
-	TiedPotentialT.o \
 	Tijssens2DT.o \
 	TvergHutch2DT.o \
 	ViscTvergHutch2DT.o \
@@ -26,8 +25,7 @@ SRC = \
 	RateDep2DT.cpp \
 	LinearDamageT.cpp \
 	SurfacePotentialT.cpp \
-	TiedPotentialT.cpp \
-        Tijssens2DT.cpp \
+	Tijssens2DT.cpp \
 	TvergHutch2DT.cpp \
 	ViscTvergHutch2DT.cpp \
 	XuNeedleman2DT.cpp \
@@ -37,7 +35,6 @@ HDR = \
 	RateDep2DT.h \
 	LinearDamageT.h \
 	SurfacePotentialT.h \
- 	TiedPotentialT.h \
 	Tijssens2DT.h \
 	TvergHutch2DT.h \
 	ViscTvergHutch2DT.h \
