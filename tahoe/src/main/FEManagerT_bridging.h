@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.1.2.8 2003-02-23 02:41:23 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.1.2.9 2003-02-27 07:57:46 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -23,6 +23,29 @@ public:
 	/** constructor */
 	FEManagerT_bridging(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
 		ifstreamT& bridging_input);
+
+	/** \name solution update */
+	/*@{*/
+	/** compute RHS-side, residual force vector and assemble to solver. Aside from
+	 * calling FEManagerT::FormRHS, this call also assembles any contributions set
+	 * with FEManagerT_bridging::SetExternalForce.
+	 * \param group equation group to solve */
+	virtual void FormRHS(int group) const;
+
+	/** send update of the solution to the NodeManagerT */
+	virtual void Update(int group, const dArrayT& update);
+
+	/** reset the cumulative update vector */
+	void ResetCumulativeUpdate(int group);
+
+	/** return the cumulative update. The total update since the last call to
+	 * FEManagerT_bridging::ResetCumulativeUpdate */
+	const dArrayT& CumulativeUpdate(int group) const { return fCumulativeUpdate[group]; };
+
+	/** set pointer to an external force vector or pass NULL to clear. The array
+	 * the length of the number of unknowns for the given group. */
+	void SetExternalForce(int group, const dArrayT& external_force);
+	/*@}*/
 
 	/** \name ghost nodes 
 	 * The ghost node database must be initialized by calling
@@ -82,6 +105,11 @@ public:
 	void SetReferenceError(int group, double error) const;
 	/*@}*/
 
+protected:
+
+	/** initialize solver information */
+	virtual void SetSolver(void);
+
 private:
 
 	/** map coordinates into elements. Temporarily limited to elements
@@ -136,8 +164,22 @@ private:
 	
 	/** projected solution */
 	dArray2DT fProjection;
+	
+	/** cumulative update for each solver group */
+	ArrayT<dArrayT> fCumulativeUpdate;
 	/*@}*/
+	
+	/** external force vector by group */
+	ArrayT<const dArrayT*> fExternalForce;
 };
+
+/* inlines */
+
+/* set pointer to an external force vector or pass NULL to clear */
+inline void FEManagerT_bridging::SetExternalForce(int group, const dArrayT& external_force)
+{
+	fExternalForce[group] = &external_force;
+}
 
 } /* namespace Tahoe */
 
