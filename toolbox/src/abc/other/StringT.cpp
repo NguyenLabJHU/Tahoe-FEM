@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.38 2004-03-27 04:04:49 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.39 2004-07-19 20:32:07 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #include "StringT.h"
 #include "ifstreamT.h"
@@ -12,6 +12,8 @@
 #include <iomanip.h>
 #ifdef _MSC_VER
 #include <strstrea.h>
+#elif defined(__GCC_3__)
+#include <strstream>
 #else
 #include <strstream.h>
 #endif
