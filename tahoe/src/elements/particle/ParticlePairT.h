@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.12 2003-10-09 23:26:19 paklein Exp $ */
+/* $Id: ParticlePairT.h,v 1.13 2003-10-28 23:31:48 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -23,6 +23,7 @@ public:
 
 	/** constructor */
 	ParticlePairT(const ElementSupportT& support, const FieldT& field);
+	ParticlePairT(const ElementSupportT& support);
 
 	/** collecting element group equation numbers */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -57,6 +58,22 @@ public:
 
 	/** access to the neighbor pair list */
 	const RaggedArray2DT<int>& Neighbors(void) const { return fNeighbors; };
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	/*@}*/
 	
 protected:
 
@@ -81,6 +98,9 @@ protected:
 
 	/** generate labels for output data */
 	virtual void GenerateOutputLabels(ArrayT<StringT>& labels) const;
+
+	/** return a new pair property or NULL if the name is invalid */
+	PairPropertyT* New_PairProperty(const StringT& name, bool throw_on_fail) const;
 
 private:
 

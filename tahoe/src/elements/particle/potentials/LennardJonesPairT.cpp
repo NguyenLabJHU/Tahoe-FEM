@@ -1,4 +1,4 @@
-/* $Id: LennardJonesPairT.cpp,v 1.8 2003-10-02 21:05:12 hspark Exp $ */
+/* $Id: LennardJonesPairT.cpp,v 1.9 2003-10-28 23:31:51 paklein Exp $ */
 #include "LennardJonesPairT.h"
 #include "toolboxConstants.h"
 #include <iostream.h>
@@ -20,6 +20,7 @@ LennardJonesPairT::LennardJonesPairT(double mass, double eps, double sigma, doub
 	f_dphi_rc(0.0),
 	f_phi_rc(0.0)
 {
+	SetName("Lennard_Jones");
 	SetRange(f_sigma*f_alpha);
 	SetMass(mass);
 	
@@ -36,6 +37,16 @@ LennardJonesPairT::LennardJonesPairT(double mass, double eps, double sigma, doub
 	}
 	else
 		f_alpha = 0.0;
+}
+
+LennardJonesPairT::LennardJonesPairT(void):
+	f_eps(0.0),
+	f_sigma(0.0),
+	f_alpha(0.0),
+	f_dphi_rc(0.0),
+	f_phi_rc(0.0)
+{
+	SetName("Lennard_Jones");
 }
 
 /* return a pointer to the energy function */
@@ -86,6 +97,55 @@ void LennardJonesPairT::Write(ostream& out) const
 	out << " Energy scaling (epsilon). . . . . . . . . . . . = " << f_eps << '\n';
 	out << " Length scaling (sigma). . . . . . . . . . . . . = " << f_sigma << '\n';
 	out << " Cut-off parameter (alpha) . . . . . . . . . . . = " << f_alpha << '\n';
+}
+
+/* describe the parameters needed by the interface */
+void LennardJonesPairT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	PairPropertyT::DefineParameters(list);
+
+	ParameterT eps(f_eps, "energy_scaling");
+	eps.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(eps);
+
+	ParameterT sigma(f_sigma, "length_scaling");
+	sigma.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(sigma);
+
+	ParameterT alpha(f_alpha, "cut_off_distance");
+	alpha.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(sigma, ParameterListT::ZeroOrOnce);
+}
+
+/* accept parameter list */
+void LennardJonesPairT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	PairPropertyT::TakeParameterList(list);
+
+	f_eps = list.GetParameter("energy_scaling");
+	f_sigma = list.GetParameter("length_scaling");
+	
+	/* optional cut-off distance */
+	const ParameterT* alpha = list.Parameter("cut_off_distance");
+	if (alpha)
+		f_alpha = *alpha;
+	else
+		f_alpha = 0.0;
+	SetRange(f_sigma*f_alpha);
+
+	/* evaluate unmodified force at the cut-off */
+	if (f_alpha > kSmall) {
+		s_eps = f_eps;
+		s_sigma = f_sigma;
+		s_alpha = -1.0;
+		s_phi_rc = 0.0;
+		s_dphi_rc = 0.0;
+		
+		f_phi_rc = Energy(f_sigma*f_alpha, NULL, NULL);
+		f_dphi_rc = Force(f_sigma*f_alpha, NULL, NULL);
+	}
 }
 
 /***********************************************************************

@@ -1,5 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.25 2003-10-09 23:26:19 paklein Exp $ */
-
+/* $Id: ParticlePairT.cpp,v 1.26 2003-10-28 23:31:48 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -35,6 +34,18 @@ ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field
 	fEqnos(kMemoryHeadRoom),
 	fForce_list_man(0, fForce_list)
 {
+	SetName("particle_pair");
+	fopen = false;
+}
+
+/* constructor */
+ParticlePairT::ParticlePairT(const ElementSupportT& support):
+	ParticleT(support),
+	fNeighbors(kMemoryHeadRoom),
+	fEqnos(kMemoryHeadRoom),
+	fForce_list_man(0, fForce_list)
+{
+	SetName("particle_pair");
 	fopen = false;
 }
 
@@ -108,13 +119,13 @@ void ParticlePairT::WriteOutput(void)
 	int num_output = ndof + 2; /* displacement + PE + KE */
 
 	/* number of nodes */
-	const ArrayT<int>* parition_nodes = fCommManager.PartitionNodes();
+	const ArrayT<int>* parition_nodes = comm_manager.PartitionNodes();
 	int non = (parition_nodes) ? 
 		parition_nodes->Length() : 
 		ElementSupport().NumNodes();
 
 	/* map from partition node index */
-	const InverseMapT* inverse_map = fCommManager.PartitionNodes_inv();
+	const InverseMapT* inverse_map = comm_manager.PartitionNodes_inv();
 
 	dSymMatrixT vs_i(ndof), temp(ndof);
 	int num_stresses = vs_i.NumValues(ndof);
@@ -467,9 +478,79 @@ void ParticlePairT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 	}
 }
 
+/* describe the parameters needed by the interface */
+void ParticlePairT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	ParticleT::DefineParameters(list);
+}
+
+/* information about subordinate parameter lists */
+void ParticlePairT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ParticleT::DefineSubs(sub_list);
+
+	/* the pair properties - array of choices */
+	sub_list.AddSub("property_list", ParameterListT::OnePlus, true);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void ParticlePairT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	if (sub == "property_list")
+	{
+		order = ParameterListT::Choice;
+		
+		/* harmonic pair potential */
+		sub_sub_list.AddSub("harmonic");
+
+		/* Lennard-Jones 6/12 */
+		sub_sub_list.AddSub("Lennard_Jones");
+
+		/* Paradyn pair potential */
+		sub_sub_list.AddSub("Paradyn_pair");
+
+		/* Matsui pair potential */
+		sub_sub_list.AddSub("Matsui");
+	}
+	else /* inherited */
+		ParticleT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* ParticlePairT::NewSub(const StringT& list_name) const
+{
+	/* try to construct potential */
+	PairPropertyT* pair_property = New_PairProperty(list_name, false);
+	if (pair_property)
+		return pair_property;
+	else /* inherited */
+		return ParticleT::NewSub(list_name);
+}
+
 /***********************************************************************
  * Protected
  ***********************************************************************/
+
+/* return a new pair property or NULL if the name is invalid */
+PairPropertyT* ParticlePairT::New_PairProperty(const StringT& name, bool throw_on_fail) const
+{
+	if (name == "harmonic")
+		return new HarmonicPairT;
+	else if (name == "Lennard_Jones")
+		return new LennardJonesPairT;
+	else if (name == "Paradyn_pair")
+		return new ParadynPairT;
+	else if (name == "Matsui")
+		return new MatsuiPairT;
+	else if (throw_on_fail)
+		ExceptionT::GeneralFail("ParticlePairT::New_PairProperty",
+			"unrecognized potential \"%s\"", name.Pointer());
+		
+	return NULL;
+}
 
 /* generate labels for output data */
 void ParticlePairT::GenerateOutputLabels(ArrayT<StringT>& labels) const
@@ -917,7 +998,8 @@ void ParticlePairT::SetConfiguration(void)
 	ParticleT::SetConfiguration();
 
 	/* reset neighbor lists */
-	const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
+	CommManagerT& comm_manager = ElementSupport().CommManager();
+	const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
 	if (fActiveParticles) 
 		part_nodes = fActiveParticles;
 	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
