@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.32 2003-05-04 22:54:54 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.33 2003-09-10 04:18:38 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #include "StringT.h"
 #include "ifstreamT.h"
@@ -1024,10 +1024,20 @@ bool StringT::Tail(char key, StringT& value) const
 	value.Clear();
 	if (*p == key)
 	{
-		istrstream in(p + 1);
-		in >> value;
-		return true;
-		
+		const char* str = Pointer();
+	
+		/* find first non-whitespace */
+		int start = (p - str) + 1;
+		while (str[start] != '\0' && isspace(str[start]))
+			start++;
+	
+		/* find last non-whitespace */
+		int end = StringLength() - 1;
+		while (end >= 0 && isspace(str[end]))
+			end--;
+
+		if (end >= start) value.Take(*this, start, end);
+		return true;	
 	}
 	return false;
 }
