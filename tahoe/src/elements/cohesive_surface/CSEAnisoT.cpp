@@ -1,6 +1,10 @@
-/* $Id: CSEAnisoT.cpp,v 1.35 2003-01-29 07:34:29 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.36 2003-02-05 02:38:08 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
+
+#ifdef __DEVELOPMENT__
+#include "DevelopmentElementsConfig.h"
+#endif
 
 #include <math.h>
 #include <iostream.h>
@@ -24,6 +28,10 @@
 #include "RateDep2DT.h"
 #include "TiedPotentialT.h"
 #include "YoonAllen2DT.h"
+#endif
+
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
+#include "InelasticDuctile2DT.h"
 #endif
 
 #include "TvergHutch3DT.h"
@@ -83,6 +91,8 @@ GlobalT::SystemTypeT CSEAnisoT::TangentType(void) const
 
 void CSEAnisoT::Initialize(void)
 {
+	const char caller[] = "CSEAnisoT::Initialize";
+
 	/* inherited */
 	CSEBaseT::Initialize();
 	
@@ -187,11 +197,7 @@ void CSEAnisoT::Initialize(void)
 				if (NumDOF() == 2)
 					fSurfPots[num] = new ViscTvergHutch2DT(in, ElementSupport().TimeStep());
 				else
-				{
-					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: "
-					     << code << endl; 				
-					throw ExceptionT::kBadInputValue;
-				}
+					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
 				break;
 			}
 			case SurfacePotentialT::kTijssens:
@@ -199,11 +205,7 @@ void CSEAnisoT::Initialize(void)
 				if (NumDOF() == 2)
 					fSurfPots[num] = new Tijssens2DT(in, ElementSupport().TimeStep());
 				else
-				{
-					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code <<  endl;
-
-					throw ExceptionT::kBadInputValue;
-				}
+					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
 				break;
 			}
 			case SurfacePotentialT::kRateDep:
@@ -211,11 +213,7 @@ void CSEAnisoT::Initialize(void)
 				if (NumDOF() == 2)
 					fSurfPots[num] = new RateDep2DT(in, ElementSupport().TimeStep());
 				else
-				{
-					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code <<  endl;
-
-					throw ExceptionT::kBadInputValue;
-				}
+					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
 				break;
 			}
 			case SurfacePotentialT::kTiedPotential:
@@ -228,11 +226,7 @@ void CSEAnisoT::Initialize(void)
 					freeNodeQ_last = freeNodeQ;
 				}
 				else
-				{
-					cout << "\n TiedPotentialT::Initialize: potential not implemented for 3D: " << code <<  endl;
-
-					throw ExceptionT::kBadInputValue;
-				}
+					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
 				break;
 			}
 #endif
@@ -257,6 +251,18 @@ void CSEAnisoT::Initialize(void)
 #endif
 				}	
 				break;
+			}
+			case SurfacePotentialT::kInelasticDuctile:
+			{
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
+				if (NumDOF() == 2)
+					fSurfPots[num] = new InelasticDuctile2DT(in, ElementSupport().TimeStep());
+				else
+					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "COHESIVE_SURFACE_ELEMENT_DEV not enabled: %d", code);
+#endif
 			}
 			default:
 #ifndef _SIERRA_TEST_
