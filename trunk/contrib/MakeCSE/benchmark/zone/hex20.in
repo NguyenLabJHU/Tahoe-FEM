@@ -1,0 +1,16 @@
+%
+*VERBOSE 
+1
+
+*outputformat
+1
+
+*inputformat
+1 ../geometry/hex20.geom
+
+*zone
+3 1
+
+
+
+*EOF

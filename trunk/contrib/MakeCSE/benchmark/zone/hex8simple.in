@@ -1,0 +1,15 @@
+%
+*VERBOSE 
+1
+
+*outputformat
+1
+
+*inputformat
+1 ../geometry/hex8simple.geom
+
+*zone
+1 2
+
+
+*EOF
