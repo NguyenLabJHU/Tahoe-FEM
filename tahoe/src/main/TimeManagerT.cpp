@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.18 2003-08-14 06:02:49 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.19 2003-10-28 07:36:49 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 
@@ -79,7 +79,6 @@ TimeManagerT::TimeManagerT(FEManagerT& FEM):
 	fTime(0.0),
 	fNumStepCuts(0),
 	fStepCutStatus(kSameStep),
-	fOutputCount(0),
 	
 	fNumSteps(0), fOutputInc(1), fMaxCuts(0), fTimeStep(1.0),
 	fIsTimeShifted(0), fTimeShift(0.0)
@@ -137,7 +136,6 @@ bool TimeManagerT::NextSequence(void)
 		fTime          = 0.0;
 		fNumStepCuts   = 0;
 		fStepCutStatus = kSameStep;
-		fOutputCount   = 0;
 		
 		/* copy from current sequence */
 		fNumSteps  = curr_sequence.fNumSteps;
@@ -335,20 +333,17 @@ void TimeManagerT::WriteRestart(ostream& restart_out) const
 	restart_out << fTimeStep        << '\n';
 }
 
-/* finalize step (trigger output) */
-void TimeManagerT::CloseStep(void) //TEMP? - let FEManager control/monitor output?
+/* return true if output should be written for the current step */
+bool TimeManagerT::WriteOutput(void) const
 {
 	if (fabs(fTimeStep) > kSmall && /* no output if clock is not running */
 		fOutputInc != 0 &&
-	   (++fOutputCount >= ((fOutputInc > 0) ? fOutputInc :-fOutputInc) || // at increment
-	    fStepNum == fNumSteps)) // at end
-	{
-		/* run time output */
-		theBoss.WriteOutput(Time());
-			
-		/* reset count */
-		fOutputCount = 0;
-	}
+	   		(fmod(double(fStepNum), fOutputInc) == 0 || /* at increment */
+	    	fStepNum == fNumSteps) /* at end */
+	)
+		return true;
+	else
+		return false;
 }
 
 /* return a pointer to a integrator of the specified type */
@@ -547,7 +542,6 @@ void TimeManagerT::DoDecreaseStep(void)
 	fOutputInc   *= (fOutputInc < 0) ? 1 : 2;
 	fNumSteps    *= 2;
 	fStepNum     *= 2;
-	fOutputCount *= 2;
 	
 	/* broadcast time step change */
 	theBoss.SetTimeStep(fTimeStep);
@@ -564,7 +558,6 @@ void TimeManagerT::DoIncreaseStep(void)
 	fOutputInc   /= (fOutputInc < 0) ? 1 : 2;
 	fNumSteps    /= 2;	
 	fStepNum     /= 2;
-	fOutputCount /= 2;
 
 	/* broadcast time step change */
 	theBoss.SetTimeStep(fTimeStep);
