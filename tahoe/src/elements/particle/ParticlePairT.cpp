@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.11 2002-12-04 18:55:26 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.12 2002-12-05 08:28:57 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -14,10 +14,6 @@ using namespace Tahoe;
 
 /* parameters */
 const int kMemoryHeadRoom = 15; /* percent */
-
-/* utility */
-static inline int Min(int a, int b) { return (a < b) ? a : b; };
-static inline double Min(double a, double b) { return (a < b) ? a : b; };
 
 /* constructor */
 ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field):
@@ -628,9 +624,10 @@ void ParticlePairT::RHSDriver3D_3(void)
 			{
 				double pp = r*dr + 1.0;
 				int kk = int(pp);
-				kk = Min(kk, num_rows-2);
+				int max_row = num_rows-2;
+				kk = (kk < max_row) ? kk : max_row;
 				pp -= kk;
-				pp = Min(pp, 1.0);
+				pp = (pp < 1.0) ? pp : 1.0;				
 				const double* c = Paradyn_table + kk*row_size;
 				F = c[4] + pp*(c[5] + pp*c[6]);
 			}
