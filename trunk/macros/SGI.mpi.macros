@@ -1,4 +1,4 @@
-# $Id: SGI.mpi.macros,v 1.17 2003-03-15 16:54:31 paklein Exp $
+# $Id: SGI.mpi.macros,v 1.18 2003-11-04 05:21:28 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__  -DAZTEC_MPI
 MPI_LFLAGS = -lmpi
@@ -10,9 +10,10 @@ DEPENDFLAGS = -I/usr/include/CC
 COMP_C      = cc
 COMP_CC     = CC
 COMP_F      = f77
+DEFINES     = -D__SGI__
 MORE_CFLAGS = -O3 -OPT:Olimit=10000 -DNDEBUG 
 #MORE_CFLAGS = -g
-LOC_CFLAGS  = -c -mips4 -D__SGI__ -I$(INC_DIR) $(MORE_CFLAGS)
+LOC_CFLAGS  = -c -mips4 $(DEFINES) -I$(INC_DIR) $(MORE_CFLAGS)
 CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS) -woff 1110,1116
 CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -ptused -woff 1110,1155,1174,1188,1682,3303 -LANG:exceptions=ON -LANG:ansi-for-init-scope=ON
 CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS) -DEIGHT_BYTE_REAL
