@@ -259,7 +259,9 @@ typedef doublereal E_f;	/* real function with -R not specified */
 #undef u3b
 #undef u3b2
 #undef u3b5
+#ifndef __ALPHA_LINUX__ /* Alpha-Linux compiler doesn't like this - PAK (02/21/2001) */
 #undef unix
+#endif
 #undef vax
 #endif
 #endif
