@@ -1,4 +1,4 @@
-/* $Id: EnSightOutputT.cpp,v 1.3 2001-06-11 02:01:54 paklein Exp $ */
+/* $Id: EnSightOutputT.cpp,v 1.3.2.1 2001-10-25 19:49:00 sawimme Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "EnSightOutputT.h"
@@ -183,15 +183,19 @@ ens.WriteCoordinates (geo, local);
 
 void EnSightOutputT::WriteConnectivity (ostream& geo, EnSightT& ens, const iArrayT& nodes_used, int i) const
 {
-const iArray2DT& connects = fElementSets[i]->Connectivities();
-int numelems = connects.MajorDim();
-int numelemnodes = connects.MinorDim();
-int outputnodes = ens.WriteConnectivityHeader (geo, fElementSets[i]->Geometry(), numelems, numelemnodes);
-
-iArray2DT localconn (numelems, numelemnodes);
-LocalConnectivity (nodes_used, connects, localconn);
-localconn++;
-ens.WriteConnectivity (geo, outputnodes, localconn);
+  const iArray2DT* connects = fElementSets[i]->Connectivities(0);
+  int numelems = fElementSets[i]->NumElements();
+  int numelemnodes = connects->MinorDim();
+  int outputnodes = ens.WriteConnectivityHeader (geo, fElementSets[i]->Geometry(), numelems, numelemnodes);
+  
+  for (int ic=0; ic < fElementSets[i]->NumBlocks(); ic++)
+    {
+      const iArray2DT* connects = fElementSets[i]->Connectivities(ic);
+      iArray2DT localconn (connects->MinorDim(), numelemnodes);
+      LocalConnectivity (nodes_used, *connects, localconn);
+      localconn++;
+      ens.WriteConnectivity (geo, outputnodes, localconn);
+    }
 }
 
 void EnSightOutputT::WriteVariable (EnSightT& ens, bool nodal, int ID,
@@ -223,8 +227,8 @@ ens.WriteHeader (var, header);
 StringT name = "coordinates";
 if (!nodal)
 	{
-	  const iArray2DT& connects = fElementSets[ID]->Connectivities();
-	  int numelemnodes = connects.MinorDim();
+	  const iArray2DT* connects = fElementSets[ID]->Connectivities(0);
+	  int numelemnodes = connects->MinorDim();
 	  ens.GetElementName (name, numelemnodes, fElementSets[ID]->Geometry());
 	}
 ens.WritePartInfo (var, fElementSets[ID]->ID(), name);

@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.cpp,v 1.2 2001-04-27 10:46:15 paklein Exp $ */
+/* $Id: FE_ASCIIT.cpp,v 1.2.2.1 2001-10-25 19:49:01 sawimme Exp $ */
 /* created: sawimme (05/20/1999)                                          */
 
 #include "FE_ASCIIT.h"
@@ -39,45 +39,48 @@ void FE_ASCIIT::WriteGeometry(void)
 	ModelFileT mf;
 	StringT filename = fOutroot;
 
-/* changing geometry */
-bool change = false;
-for (int j=0; j < fElementSets.Length() && !change; j++)
-if (fElementSets[j]->Changing()) change = true;
-if (change)
-filename.Append(".ps", fElementSets[0]->PrintStep() + 1);
-filename.Append (".geom");
-mf.OpenWrite (filename, fExternTahoeII);
+	/* changing geometry */
+	bool change = false;
+	for (int j=0; j < fElementSets.Length() && !change; j++)
+	  if (fElementSets[j]->Changing()) change = true;
+	if (change)
+	  filename.Append(".ps", fElementSets[0]->PrintStep() + 1);
+	filename.Append (".geom");
+	mf.OpenWrite (filename, fExternTahoeII);
+	
+	mf.PutTitle (fTitle);
+	mf.PutCoordinates (*fCoordinates);
+	
+	for (int e=0; e < fElementSets.Length(); e++)
+	  {
+	    const iArray2DT* c = fElementSets[e]->Connectivities(0);
+	    iArray2DT conn (fElementSets[e]->NumElements(), c->MinorDim());
+	    fElementSets[e]->AllConnectivities (conn);
 
-mf.PutTitle (fTitle);
-mf.PutCoordinates (*fCoordinates);
+	    iArrayT tmp(conn.Length(), conn.Pointer());
+	    tmp++;
+	    mf.PutElementSet (fElementSets[e]->ID(), conn);
+	    tmp--;
+	  }
+	
+	for (int n=0; n < fNodeSets.Length(); n++)
+	  {
+	    iArrayT& set = *((iArrayT*) fNodeSets[n]);
+	    set++;
+	    mf.PutNodeSet (fNodeSetIDs[n], set);
+	    set--;
+	  }
 
-for (int e=0; e < fElementSets.Length(); e++)
-{
-const iArray2DT& conn = fElementSets[e]->Connectivities();
-iArrayT tmp(conn.Length(), conn.Pointer());
-tmp++;
-mf.PutElementSet (fElementSets[e]->ID(), conn);
-tmp--;
-}
+	for (int s=0; s < fSideSets.Length(); s++)
+	  {
+	    iArray2DT& set = *((iArray2DT*) fSideSets[s]);
+	    set++;
+	    int block_ID = fElementSets[fSSGroupID[s]]->ID();
+	    mf.PutSideSet (fSideSetIDs[s], block_ID, set);
+	    set--;
+	  }
 
-for (int n=0; n < fNodeSets.Length(); n++)
-{
-iArrayT& set = *((iArrayT*) fNodeSets[n]);
-set++;
-mf.PutNodeSet (fNodeSetIDs[n], set);
-set--;
-}
-
-for (int s=0; s < fSideSets.Length(); s++)
-{
-iArray2DT& set = *((iArray2DT*) fSideSets[s]);
-set++;
-int block_ID = fElementSets[fSSGroupID[s]]->ID();
-mf.PutSideSet (fSideSetIDs[s], block_ID, set);
-set--;
-}
-
-mf.Close(); // datafile actually written here
+	mf.Close(); // datafile actually written here
 }
 
 void FE_ASCIIT::WriteOutput(double time, int ID, const dArray2DT& n_values,
@@ -202,14 +205,16 @@ void FE_ASCIIT::WriteGeometryData(ostream& out, int ID)
 	WriteNodeValues(out, nodes_used, local_coordinates);
 	
 	/* write connectivities */
-	const iArray2DT& connectivities = fElementSets[ID]->Connectivities();
+	const iArray2DT* c = fElementSets[ID]->Connectivities(0);
+	iArray2DT connectivities (fElementSets[ID]->NumElements(), c->MinorDim());
+	fElementSets[ID]->AllConnectivities (connectivities);
 	out << "\n Connectivities:\n";
 	out << " Number of elements .  . . . . . . . . . . . . . = "
-<< connectivities.MajorDim() << '\n';
+	    << connectivities.MajorDim() << '\n';
 	out << " Number of element nodes . . . . . . . . . . . . = "
-<< connectivities.MinorDim() << '\n';
+	    << connectivities.MinorDim() << '\n';
 	out << " Geometry code . . . . . . . . . . . . . . . . . = "
-<< fElementSets[ID]->Geometry() << "\n\n";
+	    << fElementSets[ID]->Geometry() << "\n\n";
 	out << setw(kIntWidth) << "element";
 	for (int j = 0; j < connectivities.MinorDim(); j++)
 		out << setw(kIntWidth - 1) << "n" << j+1;

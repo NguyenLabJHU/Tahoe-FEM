@@ -1,4 +1,4 @@
-/* $Id: TecPlotOutputT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: TecPlotOutputT.cpp,v 1.1.1.1.2.1 2001-10-25 19:49:01 sawimme Exp $ */
 /* created: sawimme (06/06/2000)                                          */
 
 #include "TecPlotOutputT.h"
@@ -47,7 +47,10 @@ if (fElementSets[e]->NumNodes() > 0)
 	local_coords.RowCollect(nodes_used, *fCoordinates);
 	tec.WriteData (out, local_coords);
 	
-	const iArray2DT& connects = fElementSets[e]->Connectivities();
+	const iArray2DT* c = fElementSets[e]->Connectivities(0);
+	iArray2DT connects (fElementSets[e]->NumElements(), c->MinorDim());
+	fElementSets[e]->AllConnectivities (connects);
+
 	iArray2DT local_connects(connects.MajorDim(), connects.MinorDim());
 	LocalConnectivity(nodes_used, connects, local_connects);
 	local_connects++;
@@ -58,61 +61,64 @@ if (fElementSets[e]->NumNodes() > 0)
 
 void TecPlotOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values, const dArray2DT& e_values)
 {
-OutputBaseT::WriteOutput (time, ID, n_values, e_values);
-if (fElementSets[ID]->NumNodes() == 0) return;
+  OutputBaseT::WriteOutput (time, ID, n_values, e_values);
+  if (fElementSets[ID]->NumNodes() == 0) return;
+  
+  // open file
+  StringT filename;
+  FileName (ID, filename);
+  ofstream out;
+  TecPlotT tec (fout, false);
+  if (fElementSets[ID]->PrintStep() == 0)
+    out.open (filename);
+  else
+    out.open (filename, ios::app);
+  
+  // write header
+  int dof = fCoordinates->MinorDim();
+  const ArrayT<StringT>& node_labels = fElementSets[ID]->NodeOutputLabels();
+  ArrayT<StringT> vars (dof + node_labels.Length());
+  char x= 'X';
+  for (int j=0; j < dof; j++)
+    vars[j].Append (x++);
+  for (int i=0; i < node_labels.Length(); i++)
+    vars[i+dof] = node_labels[i];
+  tec.WriteHeader (out, fTitle, vars);
+  
+  // writing one zone to the file per print increment
+  StringT title = "Grp ";
+  title.Append (fElementSets[ID]->ID());
+  if (fElementSets[ID]->PrintStep() == 0 || fElementSets[ID]->Changing())
+    tec.WriteFEZone (out, title, fElementSets[ID]->NumNodes(), fElementSets[ID]->NumElements(), fElementSets[ID]->Geometry(), true);
+  else
+    tec.WriteFEZone (out, title, fElementSets[ID]->NumNodes(), fElementSets[ID]->NumElements(), fElementSets[ID]->Geometry(), false);
+  
+  // write coordinates
+  iArrayT nodes_used;
+  nodes_used.Alias (fElementSets[ID]->NodesUsed());
+  dArray2DT local_coords (nodes_used.Length(), fCoordinates->MinorDim());
+  local_coords.RowCollect (nodes_used, *fCoordinates);
+  tec.WriteData (out, local_coords);
+  
+  // write variable data, since we are using BLOCK format,
+  // can write separately from coordinate list
+  tec.WriteData (out, n_values);
+  
+  // write connectivity
+  if (fElementSets[ID]->PrintStep() == 0 || fElementSets[ID]->Changing())
+    {
+      const iArray2DT* c = fElementSets[ID]->Connectivities(0);
+      iArray2DT connects (fElementSets[ID]->NumElements(), c->MinorDim());
+      fElementSets[ID]->AllConnectivities (connects);
 
-// open file
-StringT filename;
-FileName (ID, filename);
-ofstream out;
-TecPlotT tec (fout, false);
-if (fElementSets[ID]->PrintStep() == 0)
-out.open (filename);
-else
-out.open (filename, ios::app);
-
-// write header
-int dof = fCoordinates->MinorDim();
-const ArrayT<StringT>& node_labels = fElementSets[ID]->NodeOutputLabels();
-ArrayT<StringT> vars (dof + node_labels.Length());
-char x= 'X';
-for (int j=0; j < dof; j++)
-vars[j].Append (x++);
-for (int i=0; i < node_labels.Length(); i++)
-vars[i+dof] = node_labels[i];
-tec.WriteHeader (out, fTitle, vars);
-
-// writing one zone to the file per print increment
-StringT title = "Grp ";
-title.Append (fElementSets[ID]->ID());
-if (fElementSets[ID]->PrintStep() == 0 || fElementSets[ID]->Changing())
-tec.WriteFEZone (out, title, fElementSets[ID]->NumNodes(), fElementSets[ID]->NumElements(), fElementSets[ID]->Geometry(), true);
-else
-tec.WriteFEZone (out, title, fElementSets[ID]->NumNodes(), fElementSets[ID]->NumElements(), fElementSets[ID]->Geometry(), false);
-
-// write coordinates
-iArrayT nodes_used;
-nodes_used.Alias (fElementSets[ID]->NodesUsed());
-dArray2DT local_coords (nodes_used.Length(), fCoordinates->MinorDim());
-local_coords.RowCollect (nodes_used, *fCoordinates);
-tec.WriteData (out, local_coords);
-
-// write variable data, since we are using BLOCK format,
-// can write separately from coordinate list
-tec.WriteData (out, n_values);
-
-// write connectivity
-if (fElementSets[ID]->PrintStep() == 0 || fElementSets[ID]->Changing())
-{
-const iArray2DT& connects = fElementSets[ID]->Connectivities();
-iArray2DT local_connects(connects.MajorDim(), connects.MinorDim());
-LocalConnectivity(nodes_used, connects, local_connects);
-local_connects++;
-tec.WriteConnectivity (out, fElementSets[ID]->Geometry(), local_connects);
-local_connects--;
-}
-
-out.flush ();
+      iArray2DT local_connects(connects.MajorDim(), connects.MinorDim());
+      LocalConnectivity(nodes_used, connects, local_connects);
+      local_connects++;
+      tec.WriteConnectivity (out, fElementSets[ID]->Geometry(), local_connects);
+      local_connects--;
+    }
+  
+  out.flush ();
 }
 
 /*************************************************************************

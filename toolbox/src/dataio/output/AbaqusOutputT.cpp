@@ -1,4 +1,4 @@
-/* $Id: AbaqusOutputT.cpp,v 1.2 2001-06-29 16:24:57 paklein Exp $ */
+/* $Id: AbaqusOutputT.cpp,v 1.2.2.1 2001-10-25 19:49:00 sawimme Exp $ */
 /* created: sawimme (05/31/2000)                                          */
 
 #include "AbaqusOutputT.h"
@@ -72,8 +72,8 @@ const dArray2DT& e_values)
 	// gather variable data
 	const ArrayT<StringT>& n_labels = fElementSets[ID]->NodeOutputLabels();	
 	const ArrayT<StringT>& e_labels = fElementSets[ID]->ElementOutputLabels();
-	const iArray2DT& connects = fElementSets[ID]->Connectivities();
-	int numelemnodes = connects.MinorDim();
+	const iArray2DT* connects = fElementSets[ID]->Connectivities(0);
+	int numelemnodes = connects->MinorDim();
 
 	// write variable data
 	if (n_labels.Length() > 0)
@@ -145,52 +145,56 @@ bool AbaqusOutputT::OpenFile (ofstreamT& out, const StringT& filename, AbaqusT& 
 
 void AbaqusOutputT::CreateResultsFile (int ID, AbaqusT& aba, ofstreamT& out)
 {
-// file name
-StringT filename;
-FileName (ID, filename);
+  // file name
+  StringT filename;
+  FileName (ID, filename);
 
-fBufferWritten = 0;
-if (!OpenFile (out, filename, aba)) return;
+  fBufferWritten = 0;
+  if (!OpenFile (out, filename, aba)) return;
 
-// create new file
-int numelems = fElementSets[ID]->NumElements();
-int numnodes = fElementSets[ID]->NumNodes();
-double elemsize = 1; // default for now
-aba.Create (out, numelems, numnodes, elemsize);
+  // create new file
+  int numelems = fElementSets[ID]->NumElements();
+  int numnodes = fElementSets[ID]->NumNodes();
+  double elemsize = 1; // default for now
+  aba.Create (out, numelems, numnodes, elemsize);
+  
+  // write element records
+  int startelemnum = 1;
+  for (int ic=0; ic < fElementSets[ID]->NumBlocks(); ic++)
+    {
+      const iArray2DT* connects = fElementSets[ID]->Connectivities(ic);
+      iArray2DT unoffset = *connects;
+      unoffset++;
+      aba.WriteConnectivity (out, fElementSets[ID]->Geometry(), startelemnum, unoffset);
+      startelemnum += connects->MajorDim();
+    }
 
-// write element records
-int startelemnum = 1;
-const iArray2DT& connects = fElementSets[ID]->Connectivities();
-iArray2DT unoffset = connects;
-unoffset++;
-aba.WriteConnectivity (out, fElementSets[ID]->Geometry(), startelemnum, unoffset);
-
-// write coordinate records
-iArrayT nodes_used;
-nodes_used.Alias(fElementSets[ID]->NodesUsed());
-nodes_used++;
-aba.WriteCoordinates (out, nodes_used, *fCoordinates);
-nodes_used--;
-
-// write element set
-iArrayT elem_map (numelems);
-elem_map.SetValueToPosition ();
-elem_map++;
-StringT name = "Grp ";
-name.Append (fElementSets[ID]->ID());
-aba.WriteElementSet (out, name, elem_map);
-
-// write active dof
-iArrayT activedof (fCoordinates->MinorDim());
-activedof.SetValueToPosition();
-activedof++;
-aba.WriteActiveDOF (out, activedof);
-
-// write heading
-aba.WriteHeading (out, fTitle);
-
-// write end increment
-aba.WriteEndIncrement (out, true);
+  // write coordinate records
+  iArrayT nodes_used;
+  nodes_used.Alias(fElementSets[ID]->NodesUsed());
+  nodes_used++;
+  aba.WriteCoordinates (out, nodes_used, *fCoordinates);
+  nodes_used--;
+  
+  // write element set
+  iArrayT elem_map (numelems);
+  elem_map.SetValueToPosition ();
+  elem_map++;
+  StringT name = "Grp ";
+  name.Append (fElementSets[ID]->ID());
+  aba.WriteElementSet (out, name, elem_map);
+  
+  // write active dof
+  iArrayT activedof (fCoordinates->MinorDim());
+  activedof.SetValueToPosition();
+  activedof++;
+  aba.WriteActiveDOF (out, activedof);
+  
+  // write heading
+  aba.WriteHeading (out, fTitle);
+  
+  // write end increment
+  aba.WriteEndIncrement (out, true);
 }
 
 void AbaqusOutputT::SetRecordKey (const ArrayT<StringT>& labels, ArrayT<AbaqusT::VariableKeyT>& keys) const

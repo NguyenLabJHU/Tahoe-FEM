@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: ExodusOutputT.cpp,v 1.1.1.1.2.1 2001-10-25 19:49:01 sawimme Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "ExodusOutputT.h"
@@ -233,7 +233,10 @@ void ExodusOutputT::WriteCoordinates (ExodusT& exo, iArrayT& nodes_used)
 
 void ExodusOutputT::WriteConnectivity (int ID, ExodusT& exo, const iArrayT& nodes_used)
 {
-	const iArray2DT& connects = fElementSets[ID]->Connectivities();
+	const iArray2DT* c = fElementSets[ID]->Connectivities(0);
+	iArray2DT connects (fElementSets[ID]->NumElements(), c->MinorDim());
+	fElementSets[ID]->AllConnectivities (connects);
+
 	iArray2DT local_connects(connects.MajorDim(), connects.MinorDim());
 	LocalConnectivity(nodes_used, connects, local_connects);
 	local_connects++;
