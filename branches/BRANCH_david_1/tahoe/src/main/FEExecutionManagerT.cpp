@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.69.2.7 2004-08-11 01:08:56 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.69.2.8 2004-09-15 02:14:15 d-farrell2 Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -121,12 +121,10 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 		case kJob:
 		{
 			if (fComm.Size() == 1) {
-				cout << "\n RunJob_serial: " << in.filename() << endl;
-				//RunJob_serial(in.filename(), status);
+				cout << "\n RunJob_analysis, serial version: " << in.filename() << endl;
 				RunJob_analysis(in.filename(), status);
 			} else {
-				cout << "\n RunJob_parallel: " << in.filename() << endl;
-				//RunJob_parallel(in.filename(), status);
+				cout << "\n RunJob_analysis, parallel version: " << in.filename() << endl;
 				RunJob_analysis(in.filename(), status);
 			}
 			break;
@@ -357,120 +355,7 @@ void FEExecutionManagerT::JobOrBatch(ifstreamT& in, ostream& status)
 	else /* inherited */
 		ExecutionManagerT::JobOrBatch(in, status);
 }
-#if 0
-void FEExecutionManagerT::RunJob_serial(const StringT& input_file, ostream& status) const
-{
-	const char* caller = "FEExecutionManagerT::RunJob_serial_XML";
 
-	/* output stream */
-	StringT outfilename;
-	outfilename.Root(input_file);
-	outfilename.Append(".out");
-	ofstreamT out;
-	out.open(outfilename);
-
-#ifdef __MWERKS__
-	if (!out.is_open()) {
-		cout << "\n " << caller << ": could not open file: " << outfilename << endl;
-		return;
-	}
-#endif
-
-	clock_t t0 = 0, t1 = 0, t2 = 0;
-
-	/* start day/date info */
-	time_t starttime;
-	time(&starttime);
-
-	int phase; // job phase
-	FEManagerT* tahoe = NULL;
-	try
-	{
-		t0 = clock();
-		phase = 0;
-
-		/* generate validated parameter list */
-		ParameterListT valid_list;
-		FEManagerT::ParseInput(input_file, valid_list, true, true, true, fCommandLineOptions);
-
-		/* write the validated list as formatted text */
-		if (true) {
-			DotLine_FormatterT pp_format;
-			pp_format.SetTabWidth(4);
-			pp_format.InitParameterFile(out);
-			pp_format.WriteParameterList(out, valid_list);
-			pp_format.CloseParameterFile(out);
-			out << endl;
-		}
-
-		/* construction */
-		tahoe = FEManagerT::New(valid_list.Name(), input_file, out, fComm, fCommandLineOptions, task);
-		tahoe->TakeParameterList(valid_list);
-
-#if defined(__MWERKS__) && __option(profile)
-		/* start recording profiler information */
-		ProfilerSetStatus(1);
-#endif
-		
-		/* solution */
-		phase = 1;
-		t1 = clock();
-		tahoe->Solve();
-		t2 = clock();
-
-#if defined(__MWERKS__) && __option(profile)
-		/* stop recording profiler information */
-		ProfilerSetStatus(0);
-#endif
-
-		/* clean up */
-		delete tahoe;
-	}
-
-	/* job failure */
-	catch (ExceptionT::CodeT code)
-	{
-		/* clean up */
-		delete tahoe;
-	
-		status << "\n \"" << input_file << "\" exit on exception during the\n";
-		if (phase == 0)
-		{
-			status << " construction phase. Check the input file for errors." << endl;
-		}
-		else
-		{
-			status << " solution phase. See \"" << outfilename << "\" for a list";
-			status << " of the codes.\n";
-		}
-		
-		/* fix clock values */
-		if (t1 == 0) t1 = clock();
-		if (t2 == 0) t2 = clock();		
-
-		out << endl;
-	}
-
-	/* stop day/date info */
-	time_t stoptime;
-	time(&stoptime);
-
-	/* output timing */
-	status << "\n     Filename: " << input_file << '\n';
-	status <<   "   Start time: " << ctime(&starttime);
-	status <<   " Construction: " << double(t1 - t0)/CLOCKS_PER_SEC << " sec.\n";
-	status <<   "     Solution: " << double(t2 - t1)/CLOCKS_PER_SEC << " sec.\n";
-	
-	out << "\n   Start time: " << ctime(&starttime);
-	out <<   " Construction: " << double(t1 - t0)/CLOCKS_PER_SEC << " sec.\n";
-	out <<   "     Solution: "   << double(t2 - t1)/CLOCKS_PER_SEC << " sec.\n";
-	status << "    Stop time: " << ctime(&stoptime);
-	out   << "    Stop time: " << ctime(&stoptime);
-
-	status << "\n End Execution\n" << endl;
-	out    << "\n End Execution\n" << endl;
-}	
-#endif
 void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& status) const
 {
 	const char* caller = "FEExecutionManagerT::RunJob_analysis";
@@ -512,8 +397,7 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 
 		/* generate validated parameter list */
 		ParameterListT valid_list;
-		FEManagerT::ParseInput(input_file, valid_list, true, true, true, fCommandLineOptions);
-// in the parallel version, the bools are true, false, false
+		FEManagerT::ParseInput(input_file, valid_list, true, true, true, fCommandLineOptions); // in the old parallel version, the bools were true, false, false
 		/* write the validated list as formatted text */
 		if (true) {
 			DotLine_FormatterT pp_format;
@@ -523,114 +407,9 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 			pp_format.CloseParameterFile(out);
 			out << endl;
 		}
-//		PartitionT partition; // declaration moved out from below
-//		StringT model_file;
-//		IOBaseT::FileTypeT format;
-		
-#if 0
-		if (valid_list.Name() == "tahoe") // if straight atomistic or continuum calculation do decompose here
-		{
-			// check to see if decomposition is needed -> this works with all but the coupled calcs
-			/* extract model file and file format */
-			int i_format = valid_list.GetParameter("geometry_format"); // problem with format not appearing in MultiMangerT, gives error when called
-			//IOBaseT::FileTypeT format = IOBaseT::int_to_FileTypeT(i_format);			
-			//StringT model_file = valid_list.GetParameter("geometry_file");
-			format = IOBaseT::int_to_FileTypeT(i_format);			
-			model_file = valid_list.GetParameter("geometry_file");
-			
-			/* name translation */
-			StringT path;
-			path.FilePath(input_file);
-			model_file.ToNativePathName();      
-			model_file.Prepend(path);
-			
-			/* generate decomposition if needed */
-			token = 1;
-			
-			// generate decompose instance
-			FEDecomposeT decompose;
-			if (decompose.NeedDecomposition(model_file, size) || !CommandLineOption("-split_io"))
-			{
-				/* 'serial' communicator */
-				int rank = fComm.Rank();
-				CommunicatorT comm(fComm, (rank == 0) ? rank : CommunicatorT::kNoColor);
-				
-				/* decompose on rank 0 */
-				if (rank == 0) RunDecomp_serial(input_file, status, comm, fComm.Size());
-				
-				/* synch */
-				fComm.Barrier();	
-			 }	
-	    	
-			/* synch and check status */
-			if (fComm.Sum(token) != size) ExceptionT::GeneralFail();
-
-			if (size > 1)
-			{
-				/* read partition information */
-				StringT part_file;
-				part_file.Root(model_file);
-				part_file.Append(".n", size);
-				part_file.Append(".part", rank);
-				ifstreamT part_in('#', part_file);
-				token = 1;
-				
-				if (part_in.is_open()) 
-				{
-					cout << "\n" << " partition files opened on: " << rank << endl;
-				}
-				if (!part_in.is_open())
-				{
-					cout << "\nû " << caller << ": could not open file: " << part_file << endl;
-					token = 0;
-				}
-				else
-				{
-					part_in >> partition;
-					if (partition.ID() != rank)
-					{
-						cout << "\n " << caller << ": rank and partition ID mismatch" << endl;
-						token = 0;
-					}
-					
-					/* set correct numbering scope */
-					partition.SetScope(PartitionT::kLocal);
-				}
-
-// written in FEDecomposeT::Decompose 
-#if 0
-				/* write partial geometry files (if needed) */
-				StringT suffix;
-				suffix.Suffix(model_file);
-				StringT partial_file;
-				partial_file.Root(model_file);
-				partial_file.Append(".n", size);
-				partial_file.Append(".p", rank);
-				partial_file.Append(suffix);
-				if (decompose.NeedModelFile(partial_file, format))
-				{
-					/* original model file */
-					ModelManagerT model_ALL(cout);
-					if (!model_ALL.Initialize(format, model_file, true))
-						ExceptionT::GeneralFail(caller, 
-							"error opening file: %s", (const char*) model_file);
-				
-					cout << "\n " << caller << ": writing partial geometry file: " << partial_file << endl;
-					decompose.EchoPartialGeometry(partition, model_ALL, partial_file, format);
-					cout << " " << caller << ": writing partial geometry file: partial_file: "
-						 << partial_file << ": DONE" << endl;
-				}	
-#endif
-			}
-			
-			/* synch and check status */
-			if (fComm.Sum(token) != size) ExceptionT::GeneralFail();
-				
-		} // end if (valid_list.Name() == "tahoe")
-#endif
 
 		/* construction */
-		tahoe = FEManagerT::New(valid_list.Name(), input_file, out, fComm, fCommandLineOptions, FEManagerT::kRun);	// FEManagerT::kRun	??
+		tahoe = FEManagerT::New(valid_list.Name(), input_file, out, fComm, fCommandLineOptions, FEManagerT::kRun);
 		
 		tahoe->TakeParameterList(valid_list);
 
@@ -685,7 +464,7 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 				}
 			}
 		}
-		if (fComm.Sum(token) != size && size > 1) // need to make sure tokens are correct in the coupled cases
+		if (fComm.Sum(token) != size && size > 1)
 		{
 			/* gather tokens to rank 0 */
 			if (rank == 0)
