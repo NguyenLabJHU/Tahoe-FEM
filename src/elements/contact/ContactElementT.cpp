@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.30 2002-04-01 19:04:29 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.31 2002-04-05 22:15:46 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -98,7 +98,7 @@ void ContactElementT::Initialize(void)
 	}
 
 	if (fXDOF_Nodes) {
-		iArrayT numDOF(fSurfaces.Length());
+		iArrayT numDOF(fSurfaces.Length());// the number of tag-sets
 		numDOF = fNumMultipliers;
 		/* this calls GenerateElementData */
 		/* register with node manager */
@@ -189,19 +189,23 @@ void ContactElementT::SetDOFTags(void)
 { 
 	bool changed = fContactSearch->SetInteractions();
 
+	/* Initialize */
 	for (int i = 0; i < fSurfaces.Length(); i++) {
+		/* form potential connectivity for step */
+ 		fSurfaces[i].SetPotentialConnectivity();
+
 		fSurfaces[i].InitializeMultiplierMap();
 	}
 
+	/* Tag potentially active nodes */
 	for (int i = 0; i < fSurfaces.Length(); i++) {
-		/* tag potentially active nodes */
 		fSurfaces[i].DetermineMultiplierExtent();
 	}
 	
+	/* Number active nodes and total */
+	/* Store last dof tag and value */
+	/* Resize DOF tags array for number of potential contacts */
 	for (int i = 0; i < fSurfaces.Length(); i++) {
-		/* number active nodes and total */
-        /* store last dof tag and value */
-        /* resize DOF tags array for number of potential contacts */
 	    fSurfaces[i].AllocateMultiplierTags();
 	}
 }
@@ -221,16 +225,14 @@ void ContactElementT::GenerateElementData(void)
 		fSurfaces[i].AliasMultipliers(multipliers);
 
 		/* form potential connectivity for step */
- 		fSurfaces[i].SetPotentialConnectivity();
+ 		fSurfaces[i].SetMultiplierConnectivity();
  	}
 }
 
 /* set DOF values to the last converged solution, this is called after SetDOF */
 void ContactElementT::ResetDOF(dArray2DT& XDOF, int tag_set) const
 {
-	for (int i = 0; i < fSurfaces.Length(); i++) {
-		fSurfaces[tag_set].ResetMultipliers(XDOF);
-	}
+	fSurfaces[tag_set].ResetMultipliers(XDOF);
 }
 
 /* return the displacement-ghost node pairs to avoid pivoting*/
@@ -505,7 +507,7 @@ bool ContactElementT::UpdateContactConfiguration(void)
 
 int ContactElementT::PassType (int s1, int s2) const
 {
-    dArrayT& parameters = fEnforcementParameters(s1,s2);
+    dArrayT& parameters = fSearchParameters(s1,s2);
     int pass_code = (int) parameters[kPass];
     if (s1 == s2 || pass_code == 0) {
         return kSymmetric;

@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.19 2002-04-01 19:04:29 rjones Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.20 2002-04-05 22:15:46 rjones Exp $ */
 
 
 #ifndef _CONTACT_SURFACE_T_H_
@@ -38,6 +38,10 @@ class ContactSurfaceT : public SurfaceT
 	/* potential connectivities based on growing/sliding contact */
 	void SetPotentialConnectivity(void);
 
+	/* potential connectivities for multipliers */
+	void SetMultiplierConnectivity(void);
+
+
 	/* access functions */
 	inline ArrayT<ContactNodeT*>& ContactNodes(void) 
 		{return fContactNodes;}
@@ -51,13 +55,13 @@ class ContactSurfaceT : public SurfaceT
 	void PrintContactArea(ostream& out) const;
 	void PrintGaps(ostream& out) const;
 	void PrintGaps(ofstream& out) const;
+	void PrintNormals(ostream& out) const;
 	void PrintNormals(ofstream& out) const;
 	void PrintStatus(ostream& out) const;
 	void PrintMultipliers(ostream& out) const;
 
 
-	inline void InitializeMultiplierMap(void)
-		{fMultiplierMap = -1;}
+	void InitializeMultiplierMap(void);
 	void DetermineMultiplierExtent(void);
 	void TagMultiplierMap(const ArrayT<FaceT*>&  faces);
 	inline iArrayT&  MultiplierTags(void) 
@@ -105,6 +109,7 @@ class ContactSurfaceT : public SurfaceT
 	/* multiplier history */
 	iArrayT fLastMultiplierMap; 
 	dArray2DT fLastMultiplierValues; 
+	/* u-x pairs for ContactElementT::DOFConnects */
 	iArray2DT fDisplacementMultiplierNodePairs;
 
 

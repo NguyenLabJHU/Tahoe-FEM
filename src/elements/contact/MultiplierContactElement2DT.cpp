@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.cpp,v 1.4 2002-04-01 19:04:29 rjones Exp $ */
+/* $Id: MultiplierContactElement2DT.cpp,v 1.5 2002-04-05 22:15:46 rjones Exp $ */
 // created by : rjones 2001
 #include "MultiplierContactElement2DT.h"
 
@@ -113,7 +113,9 @@ void MultiplierContactElement2DT::SetStatus(void)
 		}
 	}
 // DEBUG
+	cout << "\n\n";
 	surface.PrintGaps(cout);
+	surface.PrintNormals(cout);
 	surface.PrintMultipliers(cout);
 	surface.PrintStatus(cout);
   }
@@ -185,7 +187,7 @@ void MultiplierContactElement2DT::RHSDriver(void)
 					face->ComputeShapeFunctions(points(i),N1);
 					for (int j =0; j < fNumSD; j++) {n1[j] = node->Normal()[j];}
 					N1.Multx(n1, tmp_RHS);
-					tmp_RHS.SetToScaled(pre*weights[i], tmp_RHS);
+					tmp_RHS.SetToScaled(-pre*weights[i], tmp_RHS);
 					RHS += tmp_RHS;
 				}
 
