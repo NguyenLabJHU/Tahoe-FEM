@@ -1,10 +1,17 @@
-/* $Id: ExceptionT.cpp,v 1.4 2002-11-22 01:55:28 paklein Exp $ */
+/* $Id: ExceptionT.cpp,v 1.5 2002-11-22 02:04:28 paklein Exp $ */
 #include "ExceptionT.h"
 #include "ArrayT.h"
 #include <iostream.h>
 #include <iomanip.h>
 #include <time.h>
+
+#ifdef __SGI__
+#include <stdio.h>
+#include <stdarg.h>
+#else
+#include <cstdio>
 #include <cstdarg> /* to handle the variable number of arguments in Throw() */
+#endif
 
 /* initialize static data */
 namespace Tahoe {
