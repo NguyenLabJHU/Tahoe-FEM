@@ -1,0 +1,14 @@
+####### common material parameters
+0.0    0.0    1.0
+0      0.0
+####### 2D parameters
+1.0   # thickness
+1     # constraint option (override)
+####### potential parameters
+1     # potential code          
+1.0   # A 
+0.05  # B
+####### integration parameters
+0     # integration rule      
+11    # number of integration points
+
