@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.cpp,v 1.11 2003-04-18 23:46:42 saubry Exp $ */
+/* $Id: IOBaseT.cpp,v 1.12 2003-08-08 00:28:45 paklein Exp $ */
 /* created: sawimme (09/28/1999) */
 #include "IOBaseT.h"
 
@@ -201,11 +201,11 @@ InputBaseT* IOBaseT::NewInput(FileTypeT format, ostream& message)
 
 /* construct and return new output formatter */
 OutputBaseT* IOBaseT::NewOutput(const StringT& program_name,
-	const StringT& version, const StringT& title, const StringT& input_file,
+	const StringT& version, const StringT& title, const StringT& output_file,
 	FileTypeT output_format, ostream& log)
 {
 	ArrayT<StringT> outstrings (4);
-	outstrings[0] = input_file;
+	outstrings[0] = output_file;
 	outstrings[1] = title;
 	outstrings[2] = program_name;
 	outstrings[3] = version;
