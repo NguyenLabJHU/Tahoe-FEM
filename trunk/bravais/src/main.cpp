@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.2 2002-06-03 22:20:43 jzimmer Exp $ */
+/* $Id: main.cpp,v 1.3 2002-06-04 00:12:47 jzimmer Exp $ */
 #include <iostream>
 #include "ExceptionCodes.h"
 #include "PeriodicTableT.h"
@@ -11,6 +11,10 @@ int main()
 		cout << "Starting up Bravais program..." << endl;
 		PeriodicTableT BobTable;
 		cout << BobTable[1].GetName() << "\n";
+		cout << BobTable["Au"].GetName() << "\n";
+		cout << BobTable["Au"].GetMass() << "\n";
+		cout << BobTable["Au"].GetLattType() << "\n";
+		cout << BobTable["Ro"].GetName() << "\n";
 
 	}	
 	catch (int ErrorCode) {
