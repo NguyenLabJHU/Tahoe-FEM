@@ -73,9 +73,7 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 		  {
 			/* check */
                         if (!fSmallStrain) Error_no_small_strain(cout, matcode);
-			cout << "Got to case kSSHookean1D!" << endl;
                         fArray[matnum] = new SSHookean1D(in, *fSmallStrain);
-			cout << "Constructed new SSHookean1D!" << endl;
                         break;
 		  }
 			default:
@@ -87,7 +85,6 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 
 		/* safe cast since all structural */
 		StructuralMaterialT* pmat = (StructuralMaterialT*) fArray[matnum];
-		cout << "Past StructuralMaterialT!" << endl;
 		/* verify construction */
 		if (!pmat) throw eOutOfMemory;
 		
