@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.cpp,v 1.10 2002-08-05 19:27:55 cjkimme Exp $ */
+/* $Id: XuNeedleman3DT.cpp,v 1.11 2002-08-23 00:00:54 cjkimme Exp $ */
 /* created: paklein (06/23/1999)*/
 
 #include "XuNeedleman3DT.h"
@@ -34,6 +34,28 @@ XuNeedleman3DT::XuNeedleman3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 	if (r_fail < 1.0) throw eBadInputValue;
 
 	in >> fKratio; // stiffening ratio
+	if (fKratio < 0.0) throw eBadInputValue;
+	
+	fK = fKratio*phi_n/(d_n*d_n);
+}
+
+XuNeedleman3DT::XuNeedleman3DT(double *params): SurfacePotentialT(knumDOF)
+{
+	q = params[0];; // phi_t/phi_n
+	r = params[1]; // delta_n* /d_n
+	if (q < 0.0 || r < 0.0) throw eBadInputValue;
+	
+	d_n = params[2]; // characteristic normal opening
+	d_t = params[3]; // characteristic tangent opening
+	if (d_n < 0.0 || d_t < 0.0) throw eBadInputValue;
+	
+	phi_n = params[4]; // mode I work to fracture
+	if (phi_n < 0.0) throw eBadInputValue;
+
+	r_fail = params[5]; // d/d_(n/t) for which surface is considered failed
+	if (r_fail < 1.0) throw eBadInputValue;
+
+	fKratio = params[6]; // stiffening ratio
 	if (fKratio < 0.0) throw eBadInputValue;
 	
 	fK = fKratio*phi_n/(d_n*d_n);

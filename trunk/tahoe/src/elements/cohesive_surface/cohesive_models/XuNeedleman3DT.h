@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.h,v 1.8 2002-07-05 22:28:00 paklein Exp $ */
+/* $Id: XuNeedleman3DT.h,v 1.9 2002-08-23 00:00:53 cjkimme Exp $ */
 /* created: paklein (06/23/1999) */
 
 #ifndef _XU_NEEDLE_3D_T_H_
@@ -19,6 +19,8 @@ public:
 
 	/** constructor */
 	XuNeedleman3DT(ifstreamT& in);
+	/** constructor for use in SIERRA */
+	XuNeedleman3DT(double *params);
 
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const { return 0; };
