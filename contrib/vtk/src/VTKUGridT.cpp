@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.27 2003-01-08 22:20:15 rjones Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.28 2003-01-09 00:46:00 paklein Exp $ */
 #include "VTKUGridT.h"
 
 /* Tahoe toolbox headers */
@@ -134,6 +134,7 @@ VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
 
 	/* the actor */
 	fActor = vtkActor::New();
+	fActor->GetProperty()->SetPointSize(3.0);
 	//fActor = vtkLODActor::New();
 	//fActor->GetProperty()->SetInterpolationToGouraud();
 
@@ -141,10 +142,7 @@ VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
 	if (fType == kElementSet)
 		fActor->GetProperty()->SetColor(1,0,0);
 	else if (fType == kNodeSet)
-	{
 		fActor->GetProperty()->SetColor(0,0,1);
-		fActor->GetProperty()->SetPointSize(3.0);
-	}
 	else
 		fActor->GetProperty()->SetColor(0,1,0);
 	fActor->SetMapper(fMapper);
@@ -703,9 +701,11 @@ bool VTKUGridT::SetRepresentation(RepresentationT rep)
 	  property->SetRepresentation(VTK_SURFACE);	
 	  break;
 	case kPoint:
+	{
 	  property->SetRepresentation(VTK_POINTS);	
+	  property->SetPointSize(3.0);	
 	  break;
-	  
+	} 
 	default:
 	  cout << "VTKUGridT::SetRepresentation: not a valid representation: " << rep << endl;
 	  return false;
