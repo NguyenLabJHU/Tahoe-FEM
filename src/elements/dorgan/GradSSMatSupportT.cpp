@@ -1,4 +1,4 @@
-/* $Id: GradSSMatSupportT.cpp,v 1.4 2003-11-19 20:38:22 rdorgan Exp $ */ 
+/* $Id: GradSSMatSupportT.cpp,v 1.5 2004-01-14 19:31:16 rdorgan Exp $ */ 
 #include "GradSSMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -68,6 +68,7 @@ void GradSSMatSupportT::SetContinuumElement(const ContinuumElementT* p)
 
 #ifdef CONTINUUM_ELEMENT
         /* cast to GradSmallStrainT pointer */
-        fGradSmallStrainT = dynamic_cast<const GradSmallStrainT*>(p);
+        fGradSmallStrainT = TB_DYNAMIC_CAST(const GradSmallStrainT*, p);
+//        fGradSmallStrainT = dynamic_cast<const GradSmallStrainT*>(p);
 #endif
 }
