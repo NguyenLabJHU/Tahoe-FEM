@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.20 2002-10-20 22:36:53 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.21 2002-11-07 20:25:46 sawimme Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -1016,6 +1016,7 @@ void ExodusT::GetElementName(int elemnodes, GeometryT::CodeT code,
 /* return the geometry code for the given element name */
 GeometryT::CodeT ExodusT::ToGeometryCode(const StringT& elem_name) const
 {
+        const int num_elem_codes = 8;
 	const char *elem_names[8] = {
 		"CIRCLE",
 		"SPHERE",
@@ -1039,7 +1040,7 @@ GeometryT::CodeT ExodusT::ToGeometryCode(const StringT& elem_name) const
 	elem_name_upper.ToUpper();
 	
 	GeometryT::CodeT code = GeometryT::kNone;
-	for (int i = 0; i < 7 && code == GeometryT::kNone; i++)
+	for (int i = 0; i < num_elem_codes && code == GeometryT::kNone; i++)
 		if (strncmp(elem_name_upper, elem_names[i], 3) == 0)
 			code = geom_codes[i];
 
@@ -1047,7 +1048,7 @@ GeometryT::CodeT ExodusT::ToGeometryCode(const StringT& elem_name) const
 	if (code == GeometryT::kNone)
 	{
 		cout << "\n ExodusT::ToGeometryCode: code not resolve element name "
-		     << elem_name << endl;
+		     << elem_name << " "<< elem_name_upper << endl;
 		throw ExceptionT::kGeneralFail;
 	}
 	
