@@ -1,4 +1,4 @@
-/* $Id: LocalJ2SSNonlinHard.h,v 1.5.6.1 2002-10-28 06:49:21 paklein Exp $ */
+/* $Id: LocalJ2SSNonlinHard.h,v 1.5.6.2 2002-11-13 08:44:23 paklein Exp $ */
 #ifndef _LOCAL_J2_SS_NONLIN_HARD_H_
 #define _LOCAL_J2_SS_NONLIN_HARD_H_
 
@@ -114,9 +114,6 @@ private:
 	void TangentModuli();
 
 protected:
-
-	/* status flag */
-	const GlobalT::StateT& fStatus;
 
 	/* element level internal variables at current time step*/
 	dSymMatrixT fStress;        //stress

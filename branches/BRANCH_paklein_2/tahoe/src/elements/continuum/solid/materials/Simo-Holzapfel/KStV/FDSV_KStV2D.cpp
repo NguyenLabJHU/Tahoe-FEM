@@ -1,4 +1,4 @@
-/* $Id: FDSV_KStV2D.cpp,v 1.5.2.1 2002-10-28 06:49:08 paklein Exp $ */
+/* $Id: FDSV_KStV2D.cpp,v 1.5.2.2 2002-11-13 08:44:17 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "FDSV_KStV2D.h"
@@ -123,8 +123,9 @@ const dMatrixT& FDSV_KStV2D::C_IJKL(void)
 
 const dSymMatrixT& FDSV_KStV2D::S_IJ(void)
 {
-	double taudtS = fdt/ftauS;
-	double taudtB = fdt/ftauB;
+	double dt = fFDMatSupport.TimeStep();
+	double taudtS = dt/ftauS;
+	double taudtB = dt/ftauB;
 
 	falphaS = exp(-0.5*taudtS);
 	falphaB = exp(-0.5*taudtB);
@@ -158,7 +159,7 @@ const dSymMatrixT& FDSV_KStV2D::S_IJ(void)
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
 
-	if(fRunState == GlobalT::kFormRHS)
+	if(fFDMatSupport.RunState() == GlobalT::kFormRHS)
 	{
 	        mu = fMu[kNonEquilibrium];
 		kappa = fKappa[kEquilibrium];

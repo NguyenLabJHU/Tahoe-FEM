@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.h,v 1.6.8.1 2002-10-28 06:49:22 paklein Exp $ */
+/* $Id: PolyCrystalMatT.h,v 1.6.8.2 2002-11-13 08:44:25 paklein Exp $ */
 #ifndef _POLY_CRYSTAL_MAT_T_H_
 #define _POLY_CRYSTAL_MAT_T_H_
 
@@ -137,9 +137,6 @@ class PolyCrystalMatT : public FDHookeanMatT
   // current time & time step
   const double& ftime;
   double fdt;
-
-  // status flag
-  const GlobalT::StateT& fStatus;
 
   // references to displacements 
   const LocalArrayT& fLocLastDisp;

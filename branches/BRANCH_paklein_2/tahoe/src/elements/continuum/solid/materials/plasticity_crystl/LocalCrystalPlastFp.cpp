@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.9.2.1 2002-10-28 06:49:22 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.9.2.2 2002-11-13 08:44:25 paklein Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -12,7 +12,7 @@
 #include "ElementCardT.h"
 #include "ifstreamT.h"
 #include "Utils.h"
-#include "ContinuumElementT.h"
+//#include "ContinuumElementT.h"
 
 using namespace Tahoe;
 
@@ -149,7 +149,7 @@ const dSymMatrixT& LocalCrystalPlastFp::s_ij()
   LoadAggregateData(element, intpt);
 
   // compute state, stress and moduli 
-  if (fStatus == GlobalT::kFormRHS)
+  if (fFDMatSupport.RunState() == GlobalT::kFormRHS)
     {
       // reset iteration counter to check NLCSolver and state convergence
       if (CurrIP() == 0) 
@@ -181,8 +181,8 @@ const dSymMatrixT& LocalCrystalPlastFp::s_ij()
                 fElasticity->ComputeModuli(fcBar_ijkl);
 
 	  // compute crystal Cauchy stress (elastic predictor at first iteration)
-          if (ContinuumElement().ElementSupport().StepNumber() >= 1 &&
-	          ContinuumElement().ElementSupport().IterationNumber(ContinuumElement().Group()) <= -1)
+          if (fFDMatSupport.StepNumber() >= 1 &&
+	          fFDMatSupport.IterationNumber() <= -1)
 	     {
 	       // defomation gradient
                fMatx1.SetToCombination(1., fFtot, -1., fFtot_n);
@@ -269,8 +269,8 @@ const dMatrixT& LocalCrystalPlastFp::c_ijkl()
               fElasticity->ComputeModuli(fcBar_ijkl);
 
 	// compute consistent tangent (elastic predictor at fisrt iteration)
-        if (ContinuumElement().ElementSupport().StepNumber() >= 1 &&
-	        ContinuumElement().ElementSupport().IterationNumber(ContinuumElement().Group()) <= 0)
+        if (fFDMatSupport.StepNumber() >= 1 &&
+	        fFDMatSupport.IterationNumber() <= 0)
 	    {
                // elastic crystal stiffness
                FFFFC_3D(fc_ijkl, fcBar_ijkl, fFe);
@@ -463,7 +463,7 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
   // cout << "    fsavg_ij = " << endl << fsavg_ij << endl;
   // cout << "    fAvgStress = " << endl << fAvgStress << endl;
   if (elem == (NumElements()-1) && intpt == (NumIP()-1))
-     cerr << " step # " << ContinuumElement().ElementSupport().StepNumber() 
+     cerr << " step # " << fFDMatSupport.StepNumber() 
           << "    S_eq_avg = " 
           << sqrt(fSymMatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23 << endl; 
 
@@ -472,8 +472,8 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
   output[2] = fIterState;
 
   // compute texture of aggregate, if requested
-  const int& step = ContinuumElement().ElementSupport().StepNumber();
-  const int& nsteps = ContinuumElement().ElementSupport().NumberOfSteps();
+  int step = fFDMatSupport.StepNumber();
+  int nsteps = fFDMatSupport.NumberOfSteps();
 
   if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
     {

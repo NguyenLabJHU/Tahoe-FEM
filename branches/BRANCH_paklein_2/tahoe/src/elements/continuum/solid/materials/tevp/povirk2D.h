@@ -1,4 +1,4 @@
-/* $Id: povirk2D.h,v 1.4.6.1 2002-10-28 06:49:32 paklein Exp $ */
+/* $Id: povirk2D.h,v 1.4.6.2 2002-11-13 08:44:30 paklein Exp $ */
 /* created: Harold Park (09/10/2001) */
 
 #ifndef _POVIRK_2D_H_
@@ -123,10 +123,8 @@ class povirk2D: public FDStructMatT, public IsotropicT, public Material2DT
   dSymMatrixT fStress;
   dMatrixT fModulus;
   double fStrainEnergyDensity;   // How do I define this for this material?
-  /* execution stage */
-//  const GlobalT::StateT& fRunState;  
 
-/* element level internal variables */
+  /* element level internal variables */
   dArrayT fInternal;             // Internal variables
   dArrayT fTempKirchoff;      // Store the Kirchoff stress from the previous
                             // timestep (Sig11, Sig12=Sig21, Sig22, Sig33)

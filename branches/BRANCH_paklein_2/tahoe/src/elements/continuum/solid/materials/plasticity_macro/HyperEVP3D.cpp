@@ -1,7 +1,7 @@
-/* $Id: HyperEVP3D.cpp,v 1.8.2.1 2002-10-28 06:49:24 paklein Exp $ */
+/* $Id: HyperEVP3D.cpp,v 1.8.2.2 2002-11-13 08:44:27 paklein Exp $ */
 #include "HyperEVP3D.h"
 
-#include "ContinuumElementT.h"
+//#include "ContinuumElementT.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
 #include "ifstreamT.h"
@@ -118,7 +118,7 @@ const dSymMatrixT& HyperEVP3D::s_ij()
       Compute_Ftot_3D(fFtot);
 
       // time step
-      fdt = ContinuumElement().ElementSupport().TimeStep();
+      fdt = fFDMatSupport.TimeStep();
 
       // compute state (stress and state variables)
       IntegrateConstitutiveEqns();
@@ -240,7 +240,7 @@ void HyperEVP3D::ComputeOutput(dArrayT& output)
   output[3] = fIterCount;
 
   if (Hyper_MESSAGES && intpt == 0)
-     cerr << " step # " << ContinuumElement().ElementSupport().StepNumber()
+     cerr << " step # " << fFDMatSupport.StepNumber()
           << " EQP-strain  "  << output[0] 
           << " VM-stress  "   << output[1] 
           << " pressure  "    << output[2] 

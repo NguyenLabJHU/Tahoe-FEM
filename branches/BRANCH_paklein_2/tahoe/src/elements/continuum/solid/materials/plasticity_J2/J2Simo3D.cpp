@@ -1,9 +1,9 @@
-/* $Id: J2Simo3D.cpp,v 1.11.2.1 2002-10-28 06:49:19 paklein Exp $ */
+/* $Id: J2Simo3D.cpp,v 1.11.2.2 2002-11-13 08:44:22 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 #include "J2Simo3D.h"
 #include "ElementCardT.h"
 #include "StringT.h"
-#include "ContinuumElementT.h"
+//#include "ContinuumElementT.h"
 
 using namespace Tahoe;
 
@@ -103,7 +103,7 @@ const dSymMatrixT& J2Simo3D::s_ij(void)
 	ComputeCauchy(J, b_els, fStress);
 
 	/* modify Cauchy stress (return mapping) */
-	int iteration = ContinuumElement().IterationNumber();
+	int iteration = fFDMatSupport.IterationNumber();
 	if (iteration > -1 && PlasticLoading(element, ip)) /* 1st iteration is elastic */
 //	if (PlasticLoading(element, ip)) /* no iteration is elastic */
 	{

@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.4.8.1 2002-10-28 06:49:28 paklein Exp $ */
+/* $Id: SSSolidMatT.h,v 1.4.8.2 2002-11-13 08:44:29 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
@@ -67,14 +67,13 @@ private:
 	void Q_2D(const dMatrixT& c_ijkl, const dArrayT& n, dSymMatrixT& Q) const;
 	void Q_3D(const dMatrixT& c_ijkl, const dArrayT& n, dSymMatrixT& Q) const;
 
-private:
+protected:
 
 	/** small strain material support */
 	const SSMatSupportT& fSSMatSupport;
-	
-	/* nodal displacements */
-//	const LocalArrayT& fLocDisp;
 
+private:
+	
 	/* work space */
 	dSymMatrixT	fStrainTemp; // elastic strain (w/o thermal)
 	dSymMatrixT fQ;          // return value

@@ -1,4 +1,4 @@
-/* $Id: EVPFDBaseT.h,v 1.6.8.1 2002-10-28 06:49:24 paklein Exp $ */
+/* $Id: EVPFDBaseT.h,v 1.6.8.2 2002-11-13 08:44:27 paklein Exp $ */
 #ifndef _EVP_FD_BASE_T_H_
 #define _EVP_FD_BASE_T_H_
 
@@ -108,9 +108,6 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
 
 	// temperature
 	double fTheta;
-
-	// status flag
-	//const GlobalT::StateT& fStatus;
 
   // pointers to displacements
   const LocalArrayT* fLocDisp;

@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.8.6.2 2002-10-30 09:18:13 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.8.6.3 2002-11-13 08:44:29 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -190,10 +190,12 @@ private:
 	void ComputeQ_3D(const dMatrixT& CIJKL, const dSymMatrixT& SIJ,
 		const dMatrixT& FkK, const dArrayT& N, dSymMatrixT& Q) const;
 
-private:
+protected:
 
 	/** support for finite strain materials */
 	const FDMatSupportT& fFDMatSupport;
+
+private:
 
 	/** return value for FSSolidMatT::AcousticalTensor */
 	dSymMatrixT fQ;  

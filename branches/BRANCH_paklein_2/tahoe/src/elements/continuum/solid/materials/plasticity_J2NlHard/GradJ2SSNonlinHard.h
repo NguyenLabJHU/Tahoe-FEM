@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSNonlinHard.h,v 1.6.6.1 2002-10-28 06:49:20 paklein Exp $ */
+/* $Id: GradJ2SSNonlinHard.h,v 1.6.6.2 2002-11-13 08:44:23 paklein Exp $ */
 #ifndef _GRAD_J2_SS_NONLIN_HARD_H_
 #define _GRAD_J2_SS_NONLIN_HARD_H_
 
@@ -123,9 +123,6 @@ private:
 	dArrayT Laplacian(const dArrayT& ip_field, int field_length);
 
 protected:
-
-	/* status flag */
-	const GlobalT::StateT& fStatus;
 
 	/* element level internal variables at current time step*/
 	dSymMatrixT fStress;        //stress

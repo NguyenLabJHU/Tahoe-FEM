@@ -1,4 +1,4 @@
-/* $Id: tevp2D.h,v 1.20.6.1 2002-10-28 06:49:32 paklein Exp $ */
+/* $Id: tevp2D.h,v 1.20.6.2 2002-11-13 08:44:30 paklein Exp $ */
 /* Created:  Harold Park (04/04/2001) */
 #ifndef _TEVP_2D_H_
 #define _TEVP_2D_H_
@@ -124,10 +124,8 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   dSymMatrixT fStress;
   dMatrixT fModulus;
   double fStrainEnergyDensity;   // How do I define this for this material?
-  /* execution stage */
-//  const GlobalT::StateT& fRunState;  
 
-/* element level internal variables */
+  /* element level internal variables */
   dArrayT fInternal;             // Internal variables
   dArrayT fTempKirchoff;      // Store the Kirchoff stress from the previous
                             // timestep (Sig11, Sig12=Sig21, Sig22, Sig33)

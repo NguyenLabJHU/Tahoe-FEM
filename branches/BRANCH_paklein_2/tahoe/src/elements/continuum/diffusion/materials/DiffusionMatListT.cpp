@@ -1,8 +1,7 @@
-/* $Id: DiffusionMatListT.cpp,v 1.3.2.1 2002-10-28 06:49:16 paklein Exp $ */
+/* $Id: DiffusionMatListT.cpp,v 1.3.2.2 2002-11-13 08:44:20 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "DiffusionMatListT.h"
-
-#include "ContinuumElementT.h"
+#include "DiffusionMatSupportT.h"
 #include "fstreamT.h"
 
 /* diffusion materials */
@@ -16,11 +15,9 @@ const int kMaterialMin = 1;
 const int kMaterialMax = 1;
 
 /* constructors */
-DiffusionMatListT::	DiffusionMatListT(int length,
-	const DiffusionT& element_group):
+DiffusionMatListT::	DiffusionMatListT(int length, const DiffusionMatSupportT& support):
 	MaterialListT(length),
-	fElementGroup(element_group),
-	fDiffMatSupport(NULL)
+	fDiffusionMatSupport(support)
 {
 
 }
@@ -53,8 +50,7 @@ void DiffusionMatListT::ReadMaterialData(ifstreamT& in)
 		{
 			case kLinear:
 			{
-				if (!fDiffMatSupport) throw ExceptionT::kGeneralFail;
-				fArray[matnum] = new DiffusionMaterialT(in, *fDiffMatSupport);
+				fArray[matnum] = new DiffusionMaterialT(in, fDiffusionMatSupport);
 				break;
 			}
 			default:

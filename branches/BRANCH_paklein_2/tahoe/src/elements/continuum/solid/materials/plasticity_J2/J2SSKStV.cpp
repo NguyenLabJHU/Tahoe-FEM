@@ -1,11 +1,12 @@
-/* $Id: J2SSKStV.cpp,v 1.5.2.1 2002-10-28 06:49:19 paklein Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.5.2.2 2002-11-13 08:44:22 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV.h"
+#include "SSMatSupportT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
 
 /* getting the iteration number */
-#include "ContinuumElementT.h"
+//#include "ContinuumElementT.h"
 
 using namespace Tahoe;
 
@@ -95,7 +96,7 @@ const dSymMatrixT& J2SSKStV::s_ij(void)
 	HookeanStress(e_els, fStress);
 
 	/* modify Cauchy stress (return mapping) */
-	int iteration = ContinuumElement().IterationNumber();
+	int iteration = fSSMatSupport.IterationNumber();
 	if (iteration > -1) /* elastic iteration */
 		fStress += StressCorrection(e_els, element, ip);
 	return fStress;	
