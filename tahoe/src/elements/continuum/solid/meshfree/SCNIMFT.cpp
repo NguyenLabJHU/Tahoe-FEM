@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.5 2004-02-10 17:45:11 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.6 2004-02-11 01:05:03 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -369,17 +369,21 @@ void SCNIMFT::GenerateOutputLabels(ArrayT<StringT>& labels)
 	if (fSD == 2) 
 	{
 	  	stress[2] = "s12";
-	  	strain[2] = "e22";
+	  	strain[2] = "e12";
 	}
 		
-	num_labels++; 
+	num_labels += 2 * num_stress + 1; 
 	labels.Dimension(num_labels);
 	int dex = 0;
 	for (dex = 0; dex < fSD; dex++)
 		labels[dex] = ref[dex];
-	for (int ns =0 ; ns < fSD; ns++)
+	for (int ns = 0 ; ns < fSD; ns++)
 	  	labels[dex++] = disp[ns];
-	labels[dex] = "mass";
+	labels[dex++] = "mass";
+	for (int ns = 0 ; ns < num_stress; ns++)
+		labels[dex++] = strain[ns];
+	for (int ns = 0 ; ns < num_stress; ns++)
+		labels[dex++] = stress[ns];
 }
 
 void SCNIMFT::WriteOutput(void)
@@ -395,7 +399,8 @@ void SCNIMFT::WriteOutput(void)
 
 	/* dimensions */
 	int ndof = NumDOF();
-	int num_output = 2*ndof + 1; /* ref. coords, displacements, and mass */
+	int num_stress = fSD == 2 ? 3 : 6;
+	int num_output = 2*ndof + 1 + 2 * num_stress; /* ref. coords, displacements, mass, e, s */
 
 	/* number of nodes */
 	const ArrayT<int>* partition_nodes = comm_manager.PartitionNodes();
@@ -414,13 +419,36 @@ void SCNIMFT::WriteOutput(void)
 
 	/* the field */
 	const FieldT& field = Field();
-	const dArray2DT& displacement = field[0];
 	const dArray2DT* velocities = NULL;
 	if (field.Order() > 0) velocities = &(field[1]);
 
+	/* check 2D */
+	if (NumDOF() != 2) ExceptionT::GeneralFail(caller, "2D only: %d", NumDOF());
+
+	/* For now, just one material. Grab it */
+	ContinuumMaterialT *mat = (*fMaterialList)[0];
+	SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
+	if (!fCurrMaterial)
+	{
+		ExceptionT::GeneralFail("SCNIMFT::RHSDriver","Cannot get material\n");
+	}
+	
+	int nNodes = fNodes.Length();
+
+	const RaggedArray2DT<int>& nodeSupport = fNodalShapes->NodeNeighbors();
+	
+	ArrayT<dSymMatrixT> strainList(1);
+	strainList[0].Dimension(fSD);
+	dSymMatrixT& strain = strainList[0];
+	dMatrixT BJ(fSD == 2 ? 3 : 6, fSD);
+	
+	/* displacements */
+	const dArray2DT& u = Field()(0,0);
+
 	/* collect displacements */
 	dArrayT vec, values_i;
-	for (int i = 0; i < non; i++) {
+	for (int i = 0; i < nNodes; i++) 
+	{
 		int   tag_i = (partition_nodes) ? (*partition_nodes)[i] : i;
 		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
 
@@ -431,9 +459,28 @@ void SCNIMFT::WriteOutput(void)
 		vec.Set(ndof, values_i.Pointer());
 		coords.RowCopy(tag_i, vec);
 		vec.Set(ndof, values_i.Pointer() + ndof);
-		displacement.RowCopy(tag_i, vec);
+		u.RowCopy(tag_i, vec);
 		
-		n_values(i, num_output-1) = fVoronoiCellVolumes[i];
+		// Compute smoothed strain
+		strain = 0.0;
+		for (int j = 0; j < nodeSupport.MinorDim(i); j++)
+		{
+			bVectorToMatrix(bVectors[i](j), BJ);
+			BJ.Multx(u(nodeSupport(i,j)), strain.Pointer(), 1.0, 1);
+		}	
+		fSSMatSupport->SetLinearStrain(&strainList);
+		
+		const double* stress = fCurrMaterial->s_ij().Pointer();
+
+		double* inp_val = values_i.Pointer() + 2*ndof;
+		
+		*inp_val++ = fVoronoiCellVolumes[i];
+
+		for (int j = 0; j < num_stress; j++)
+			*inp_val++ = strain[j];
+		for (int j = 0; j < num_stress; j++)
+			*inp_val++ = stress[j]; 
+
 	}
 
 	/* send */
@@ -891,8 +938,10 @@ void SCNIMFT::ComputeBMatrices(void)
 	 */
 
 	const RaggedArray2DT<int>& nodeSupport = fNodalShapes->NodeNeighbors();
-	int nNodes = fNodes.Length();
 	
+	int nNodes = fNodes.Length();
+//	ArrayT<AutoArrayT<int>> workSpace(nNodes);
+		
 	/* allocate space for strain smoothing workspace */
 	bVectors.Dimension(nNodes);
 	for (int i = 0; i < nNodes; i++)
@@ -906,7 +955,6 @@ void SCNIMFT::ComputeBMatrices(void)
 	double* currentB, *currentI;
 	int n_0, n_1, l_0, l_1;
 	bool integralIsCurrent;
-	dArray2DT& params = fNodalShapes->NodalParameters();
 	for (int i = 0; i < fDeloneEdges.MajorDim(); i++)
 	{
 		facetCentroid = 0.; 
