@@ -1,4 +1,4 @@
-/* $Id: LennardJonesPairT.h,v 1.6 2003-10-28 23:31:51 paklein Exp $ */
+/* $Id: LennardJonesPairT.h,v 1.5 2003-03-31 23:09:14 paklein Exp $ */
 #ifndef _LENNARD_JONES_PAIR_T_H_
 #define _LENNARD_JONES_PAIR_T_H_
 
@@ -36,7 +36,6 @@ public:
 
 	/** constructor */
 	LennardJonesPairT(double mass, double eps, double sigma, double alpha);
-	LennardJonesPairT(void);
 
 	/** \name return interaction functions */
 	/*@{*/
@@ -52,15 +51,6 @@ public:
 
 	/** write properties to output */
 	virtual void Write(ostream& out) const;
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: nExplicitCD.cpp,v 1.11 2003-11-21 22:47:34 paklein Exp $ */
+/* $Id: nExplicitCD.cpp,v 1.10 2003-05-20 10:29:34 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "nExplicitCD.h"
 #include "iArrayT.h"
@@ -102,7 +102,7 @@ void nExplicitCD::Corrector(BasicFieldT& field, const dArrayT& update,
 	const iArray2DT& eqnos = field.Equations();
 
 	/* add update - assumes that fEqnos maps directly into dva */
-	const int *peq = eqnos.Pointer();
+	int    *peq = eqnos.Pointer();
 	double *pv  = field[1].Pointer();
 	double *pa  = field[2].Pointer();
 	for (int i = 0; i < eqnos.Length(); i++)
@@ -131,7 +131,7 @@ void nExplicitCD::MappedCorrector(BasicFieldT& field, const iArrayT& map,
 	for (int i = 0; i < map.Length(); i++)
 	{
 		int row = map[i];
-		const int* pflags = flags(i);
+		int* pflags = flags(i);
 
 		double* pv = (field[1])(row);
 		double* pa = (field[2])(row);

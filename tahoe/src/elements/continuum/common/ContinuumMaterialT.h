@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.h,v 1.8 2003-12-10 07:14:21 paklein Exp $ */
+/* $Id: ContinuumMaterialT.h,v 1.7 2002-11-14 17:06:39 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _CONTINUUM_MATERIAL_T_H_
 #define _CONTINUUM_MATERIAL_T_H_
@@ -6,9 +6,6 @@
 #include "Environment.h"
 #include "GlobalT.h"
 #include "ios_fwd_decl.h"
-
-/* base class */
-#include "ParameterInterfaceT.h"
 
 /* direct members */
 #include "MaterialSupportT.h"
@@ -22,16 +19,13 @@ template <class TYPE> class ArrayT;
 class StringT;
 
 /** interface for continuum materials. */
-class ContinuumMaterialT: public ParameterInterfaceT
+class ContinuumMaterialT
 {
 public:
 
-	/** constructor
+	/** constructor.
 	 * \param support reference to the host element */
 	ContinuumMaterialT(const MaterialSupportT& support);
-
-	/** constructor */
-	ContinuumMaterialT(void);
 
 	/** destructor */
 	virtual ~ContinuumMaterialT(void);
@@ -40,7 +34,7 @@ public:
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
 	/** reference to the material support */
-	const MaterialSupportT& MaterialSupport(void) const;
+	const MaterialSupportT& MaterialSupport(void) { return fMaterialSupport; };
 
 	/** reference to the host element */
 	const ContinuumElementT& ContinuumElement(void) const;
@@ -57,7 +51,8 @@ public:
 	int NumIP(void) const;
 
 	/** the current integration point within the element of evaluation. */
-	int CurrIP(void) const;
+//	const int& CurrIP(void) const;
+	int CurrIP(void) const { return fMaterialSupport.CurrIP(); };
 
 	/** return the total number of elements in the host element
 	 * group. */
@@ -146,7 +141,7 @@ public:
 protected:
 
 	/** support from the host code */
-	const MaterialSupportT* fMaterialSupport;
+	const MaterialSupportT& fMaterialSupport;
 	
 	/** number of degrees of freedom */
 	int fNumDOF;
@@ -156,28 +151,19 @@ protected:
 	
 	/** number of integration points */
 	int fNumIP;
+
+	/** reference to the current integration point for the
+	 * current element of evaluation. */
+//	const int& fCurrIP;
 };
 
 /* inlines */
 inline int ContinuumMaterialT::NumDOF(void) const { return fNumDOF; }
 inline int ContinuumMaterialT::NumSD(void) const { return fNumSD; }
 inline int ContinuumMaterialT::NumIP(void) const { return fNumIP; }
-
-inline const MaterialSupportT& ContinuumMaterialT::MaterialSupport(void) const
-{ 
-#if __option(extended_errorcheck)
-	if (!fMaterialSupport)
-		ExceptionT::GeneralFail("ContinuumMaterialT::MaterialSupport", "material support not set");
-#endif
-	return *fMaterialSupport; 
-}
-
-inline int ContinuumMaterialT::CurrIP(void) const { return MaterialSupport().CurrIP(); };
-
-inline const ContinuumElementT& ContinuumMaterialT::ContinuumElement(void) const { 
-	return *(MaterialSupport().ContinuumElement()); 
-}
+//inline const int& ContinuumMaterialT::CurrIP(void) const { return fCurrIP; }
+inline const ContinuumElementT& ContinuumMaterialT::ContinuumElement(void) const
+{ return *fMaterialSupport.ContinuumElement(); }
 
 } // namespace Tahoe 
-
 #endif /* _CONTINUUM_MATERIAL_T_H_ */

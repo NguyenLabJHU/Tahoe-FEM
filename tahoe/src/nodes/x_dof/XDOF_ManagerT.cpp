@@ -1,8 +1,7 @@
-/* $Id: XDOF_ManagerT.cpp,v 1.12 2003-03-02 19:02:49 paklein Exp $ */
+/* $Id: XDOF_ManagerT.cpp,v 1.12.12.1 2003-09-28 09:16:57 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 /* base class which defines the interface for a manager */
 /* of DOF's comprised of FE DOF's plus constrain DOF's */
-
 #include "XDOF_ManagerT.h"
 
 #include "DOFElementT.h"
@@ -10,10 +9,9 @@
 #include "iArray2DT.h"
 #include "dArray2DT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 XDOF_ManagerT::XDOF_ManagerT(void): 
 	fNumTags(0),
 	fStartTag(-1) 
@@ -52,7 +50,7 @@ void XDOF_ManagerT::XDOF_Register(DOFElementT* group, const iArrayT& numDOF)
 		     << numDOF << endl;
 		throw ExceptionT::kGeneralFail;
 	}
-	
+
 	/* keep number of tag sets for each group */
 	fNumTagSets.Append(numDOF.Length());
 
@@ -88,8 +86,8 @@ const dArray2DT& XDOF_ManagerT::XDOF(const DOFElementT* group, int tag_set) cons
 }
 
 /**********************************************************************
-* Protected
-**********************************************************************/
+ * Protected
+ **********************************************************************/
 
 /* return the number of XDOF equations in the specified group */
 int XDOF_ManagerT::NumEquations(int group) const
@@ -108,8 +106,16 @@ int XDOF_ManagerT::NumEquations(int group) const
 	return neq;
 }
 
+/* prompt elements to restore their internal states */
+void XDOF_ManagerT::ResetState(int group)
+{
+	for (int j = 0; j < fDOFElements.Length(); j++)
+		if (fDOFElements[j]->Group() == group)
+			fDOFElements[j]->ResetState();
+}
+
 /* prompt element groups to reset tags */
-bool XDOF_ManagerT::ResetTags(int group)
+GlobalT::RelaxCodeT XDOF_ManagerT::ResetTags(int group)
 {
 	if (fDOFElements.Length() > 0)
 	{
@@ -122,16 +128,12 @@ bool XDOF_ManagerT::ResetTags(int group)
 			if (fDOFElements[j]->Group() == group && 
 			    fDOFElements[j]->Reconfigure() == 1)
 				relax = 1;
-	
+
 		if (relax)
 		{
 			/* check */
 			if (fStartTag == -1)
-			{
-				cout << "\n XDOF_ManagerT::ResetTags: start tag has not been set: "
-				     << fStartTag << endl;
-				throw ExceptionT::kGeneralFail;
-			}
+				ExceptionT::GeneralFail("XDOF_ManagerT::ResetTags", "start tag has not been set: %d", fStartTag);
 		
 			/* reset */
 			fNumTags = fStartTag;
@@ -149,13 +151,14 @@ bool XDOF_ManagerT::ResetTags(int group)
 						fDOFElements[i]->ResetDOF(*fXDOFs[index++], j);
 				}
 
-			return true;
+			/* signal equation need to be reset */
+			return GlobalT::kReEQ;
 		}
 		else
-			return false;
+			return GlobalT::kNoRelax;
 	}
 	else	
-		return false;
+		return GlobalT::kNoRelax;
 }
 
 /* call groups to reset external DOF's */

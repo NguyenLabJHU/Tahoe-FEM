@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.h,v 1.12 2003-10-31 20:53:14 paklein Exp $ */
+/* $Id: FullMatrixT.h,v 1.11 2002-11-30 16:31:03 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 
 #ifndef _FULL_MATRIX_T_H_
@@ -41,10 +41,10 @@ public:
 	/* assemble the element contribution into the LHS matrix - assumes
 	 * that elMat is square (n x n) and that eqnos is also length n.
 	 * NOTE: assembly positions (equation numbers) = 1...fDimension */
-	virtual void Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos);
-	virtual void Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
-		const ArrayT<int>& col_eqnos);
-	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos);
+	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
+	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+		const nArrayT<int>& col_eqnos);
+	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos);
 
 	/* strong manipulation functions */
 	//TEMP should be pure virtual, but no time to update others
@@ -87,7 +87,7 @@ protected:
 	/* rank check functions */
 	virtual void PrintAllPivots(void) const;
 	virtual void PrintZeroPivots(void) const;
-	virtual void PrintLHS(bool force = false) const;
+	virtual void PrintLHS(void) const;
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.33 2003-12-10 06:44:03 paklein Exp $ */
+/* $Id: ElementT.h,v 1.28.2.1 2003-09-10 17:56:36 paklein Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -26,6 +26,7 @@ public:
             kVirtualSWDC = 10,
         kCohesiveSurface = 11,
          kThermalSurface = 12,
+            kViscousDrag = 13,
          kPenaltyContact = 14,
              kBEMelement = 15,
           kAugLagContact = 16,
@@ -53,23 +54,18 @@ kPenaltyContactElement3D = 34,
                     kEAM = 39,  /**< particles with EAM potental */
      kNonLinearDiffusion = 41,
        kMeshfreeBridging = 45,
-			 kFSMatForce = 60,    /*UpLag with material force calculation*/
-			kSSMatForceD = 61,
-			kSSMatForceS = 62,
-        kGradSmallStrain = 63,
-		kSmallStrainQ2P1 = 64, /*small strain with mat force calculation*/		     
-			   kSSQ2P1MF = 65,
-		kSmallStrainQ1P0 = 66,
-			   kSSQ1P0MF = 67,
-				kAPSgrad = 68,	     
-   kHyperElasticInitCSE = 111, /**< large strain solid that triggers CSE */
-	kPenaltyContactDrag = 114, /**< contact with constant drag traction */
-kMeshfreePenaltyContact = 115, /**< contact with meshfree strikers */
-kTotLagSplitIntegration = 117,
-            kTotLagFlat = 217  /**< simplified total Lagragian solid */
- };
-
-/** stream extraction operator */ 
+	     kFSMatForce = 60,    /*UpLag with material force calculation*/
+	     kSSMatForceD = 61,
+	     kSSMatForceS = 62,
+	     kSmallStrainQ2P1 = 64, /*small strain with mat force calculation*/		     kSSQ2P1MF = 65,
+	     kSmallStrainQ1P0 = 66,
+	     kSSQ1P0MF = 67,
+     kDorganVoyiadjisMarin = 63,	     
+       kHyperElasticInitCSE = 111, /**< large strain solid that triggers CSE */
+     kPenaltyContactDrag = 114  /**< contact with constant drag traction */
+	     };    
+	     
+ /** stream extraction operator */ 
 	friend istream& operator>>(istream& in, ElementT::TypeT& type);
 };
 

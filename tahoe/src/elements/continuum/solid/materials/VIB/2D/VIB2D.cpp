@@ -1,4 +1,4 @@
-/* $Id: VIB2D.cpp,v 1.8 2003-11-21 22:46:35 paklein Exp $ */
+/* $Id: VIB2D.cpp,v 1.7 2003-01-29 07:34:52 paklein Exp $ */
 /* created: paklein (04/09/1997) */
 #include "VIB2D.h"
 
@@ -91,7 +91,7 @@ void VIB2D::SetAngle(double angleoffset)
 	for (int i = 0; i < numpoints; i++)
 	{
 		/* direction cosines */
-		const double *xsi = points(i);
+		double *xsi = points(i);
 		double cosi = xsi[0];
 		double sini = xsi[1];
 		

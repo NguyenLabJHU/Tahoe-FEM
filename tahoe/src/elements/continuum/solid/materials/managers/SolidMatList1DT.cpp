@@ -1,4 +1,4 @@
-/* $Id: SolidMatList1DT.cpp,v 1.13 2003-12-02 17:12:22 paklein Exp $ */
+/* $Id: SolidMatList1DT.cpp,v 1.11 2003-08-16 01:33:20 rdorgan Exp $ */
 #include "SolidMatList1DT.h"
 #include "SolidMatSupportT.h"
 #include "fstreamT.h"
@@ -11,7 +11,7 @@
 #include "DevelopmentElementsConfig.h"
 #endif
 
-#ifdef GRAD_SMALL_STRAIN_DEV
+#ifdef DORGAN_VOYIADJIS_MARIN_DEV
 #include "GradJ2SS1D.h"
 #include "J2SSKStV1D.h"
 #endif
@@ -22,12 +22,7 @@ using namespace Tahoe;
 SolidMatList1DT::SolidMatList1DT(int length, const SolidMatSupportT& support):
 	SolidMatListT(length, support)
 {
-	SetName("solid_materials_1D");
-}
 
-SolidMatList1DT::SolidMatList1DT(void)
-{
-	SetName("solid_materials_1D");
 }
 
 /* read material data from the input stream */
@@ -65,7 +60,7 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 		  	}
 			case kGradJ2SS:
 			{
-#ifdef GRAD_SMALL_STRAIN_DEV
+#ifdef DORGAN_VOYIADJIS_MARIN_DEV
 				/* check */
 				if (!fGradSSMatSupport) Error_no_small_strain(cout, matcode);
 
@@ -73,12 +68,12 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 #else
-				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "GRAD_SMALL_STRAIN_DEV not enabled: %d", matcode);
+				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "DORGAN_VOYIADJIS_MARIN_DEV not enabled: %d", matcode);
 #endif
 			}
 			case kJ2SSKStV1D:
 			{
-#ifdef GRAD_SMALL_STRAIN_DEV
+#ifdef DORGAN_VOYIADJIS_MARIN_DEV
 				/* check */
 				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 			
@@ -86,7 +81,7 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;															
 				break;
 #else
-				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "GRAD_SMALL_STRAIN_DEV not enabled: %d", matcode);
+				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "DORGAN_VOYIADJIS_MARIN_DEV not enabled: %d", matcode);
 #endif
 			}
 			default:
@@ -106,7 +101,7 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 		int LTfnum = pmat->ThermalStrainSchedule();
 		if (LTfnum > -1)
 		{
-			pmat->SetThermalSchedule(fSolidMatSupport->Schedule(LTfnum));
+			pmat->SetThermalSchedule(fSolidMatSupport.Schedule(LTfnum));
 			
 			/* set flag */
 			fHasThermal = true;

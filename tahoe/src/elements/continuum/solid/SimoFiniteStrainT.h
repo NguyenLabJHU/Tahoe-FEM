@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.h,v 1.14 2002-07-05 22:28:02 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.h,v 1.14.24.1 2003-09-28 09:11:50 paklein Exp $ */
 
 #ifndef _SIMO_FINITE_STRAIN_T_H_
 #define _SIMO_FINITE_STRAIN_T_H_
@@ -46,7 +46,7 @@ public:
 	virtual void CloseStep(void);
 	
 	/** restore last converged state */
-	virtual void ResetStep(void);
+	virtual GlobalT::RelaxCodeT ResetStep(void);
 
 	/** read restart information from stream */
 	virtual void ReadRestart(istream& in);
@@ -87,6 +87,9 @@ public:
 	 * This function returns 0. No reconfiguration is needed unless
 	 * the number of elements is changing. */
 	virtual int Reconfigure(void) { return 0; };		
+
+	/** restore any state data to the previous converged state */
+	virtual void ResetState(void) { };
 
 	/** return the equation group to which the generate degrees of
 	 * freedom belong. */

@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.3 2003-11-21 22:47:59 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.2 2003-08-08 16:33:55 paklein Exp $ */
 #include "ConveyorT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -373,7 +373,7 @@ bool ConveyorT::SetSystemFocus(double focus)
 	/* shift reference coordinates and correct fields */
 	int nnd = initial_coords.MajorDim();
 	int nsd = initial_coords.MinorDim();
-	const double* px = initial_coords.Pointer();
+	double* px = initial_coords.Pointer();
 	dArrayT new_coords(nsd);
 	fShiftedNodes.Dimension(0);
 	fDampingNodes.Dimension(0);

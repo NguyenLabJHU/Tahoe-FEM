@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.h,v 1.6 2003-08-18 03:37:24 paklein Exp $ */
+/* $Id: PCGSolver_LS.h,v 1.6.2.1 2003-12-09 21:43:29 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #ifndef _PCG_SOLVER_LS_H_
 #define _PCG_SOLVER_LS_H_
@@ -41,7 +41,7 @@ protected:
 
 	/** form and solve the equation system - returns the magnitude
 	 * of the residual */
-	virtual double SolveAndForm(void);
+	virtual double SolveAndForm(int& iteration);
 
 private:
 

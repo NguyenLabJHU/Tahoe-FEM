@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.6 2003-10-28 07:38:02 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.5 2003-07-11 16:46:07 hspark Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -112,12 +112,8 @@ public:
 
 	/** project the point values onto the mesh. Project to the nodes using
 	 * projection initialized with the latest call to FEManagerT_bridging::InitProjection. */
-	void ProjectField(const StringT& field, const NodeManagerT& node_manager, int order);
-
-	/** compute the coarse scale projection at the source points. Project the solution to the source
-	 * points initialized with the latest call to FEManagerT_bridging::InitProjection. In other words,
-	 * filter out the fine scale part of the solution. */
-	void CoarseField(const StringT& field, const NodeManagerT& node_manager, int order, dArray2DT& coarse);
+	void ProjectField(const StringT& field, NodeManagerT& node_manager, int order);
+	/*@}*/
 
 	/** calculate the fine scale part of MD solution as well as total displacement u.  Does not
 	  * write into the displacement field */
@@ -132,9 +128,16 @@ public:
 
 	/** (re-)set the equation number for the given group */
 	virtual void SetEquationSystem(int group);
+	
+	/** \name solver control */
+	/*@{*/
+	/** the residual for the given group. The array contains the residual from
+	 * the latest call to FEManagerT::FormRHS */
+	const dArrayT& Residual(int group) const;
 
 	/** set the reference error for the given group */
 	void SetReferenceError(int group, double error) const;
+	/*@}*/
 
 	/** return the internal forces for the given solver group associated with the
 	 * most recent call to FEManagerT_bridging::FormRHS. */

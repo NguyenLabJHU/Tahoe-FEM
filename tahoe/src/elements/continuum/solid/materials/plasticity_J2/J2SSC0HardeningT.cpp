@@ -1,4 +1,4 @@
-/* $Id: J2SSC0HardeningT.cpp,v 1.5 2003-11-21 22:46:48 paklein Exp $ */
+/* $Id: J2SSC0HardeningT.cpp,v 1.4 2002-10-20 22:49:05 paklein Exp $ */
 #include "J2SSC0HardeningT.h"
 
 #include <iostream.h>
@@ -299,24 +299,23 @@ void J2SSC0HardeningT::LoadData(const ElementCardT& element, int ip)
 	if (!element.IsAllocated()) throw ExceptionT::kGeneralFail;
 
 	/* fetch arrays */
-	const dArrayT& d_array = element.DoubleData();
+	dArrayT& d_array = element.DoubleData();
 	
 	/* decode */
-	dSymMatrixT::DimensionT dim = dSymMatrixT::int2DimensionT(kNSD);
 	int stressdim = dSymMatrixT::NumValues(kNSD);
 	int offset    = stressdim*fNumIP;
 	int dex       = ip*stressdim;
 	
-	fPlasticStrain.Alias(         dim, &d_array[           dex]);
-	     fUnitNorm.Alias(         dim, &d_array[  offset + dex]);
-	         fBeta.Alias(         dim, &d_array[2*offset + dex]);
-	     fInternal.Alias(kNumInternal, &d_array[3*offset + ip*kNumInternal]);     	
+	fPlasticStrain.Set(        kNSD, &d_array[           dex]);
+	     fUnitNorm.Set(        kNSD, &d_array[  offset + dex]);
+	         fBeta.Set(        kNSD, &d_array[2*offset + dex]);
+	     fInternal.Set(kNumInternal, &d_array[3*offset + ip*kNumInternal]);     	
 }
 
 /* returns 1 if the trial elastic strain state lies outside of the
 * yield surface */
 int J2SSC0HardeningT::PlasticLoading(const dSymMatrixT& trialstrain,
-	ElementCardT& element, int ip)
+	const ElementCardT& element, int ip)
 {
 	/* not yet plastic */
 	if (!element.IsAllocated())

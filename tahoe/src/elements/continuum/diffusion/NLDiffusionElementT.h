@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.h,v 1.3 2003-12-10 07:14:24 paklein Exp $ */
+/* $Id: NLDiffusionElementT.h,v 1.1 2003-06-09 06:57:14 paklein Exp $ */
 #ifndef _NL_DIFFUSE_T_H_
 #define _NL_DIFFUSE_T_H_
 
@@ -17,7 +17,6 @@ public:
 	
 	/** constructor */
 	NLDiffusionElementT(const ElementSupportT& support, const FieldT& field);
-	NLDiffusionElementT(const ElementSupportT& support);
 	
 	/** data initialization */
 	virtual void Initialize(void);
@@ -37,6 +36,9 @@ protected:
 
 	/** form the residual force vector */
 	virtual void RHSDriver(void);
+
+	/** increment current element */
+	virtual bool NextElement(void);	
 
 	/** calculate the internal force contribution ("-k*d") */
 	virtual void FormKd(double constK);
@@ -69,6 +71,9 @@ protected:
 	 * an integration point at a time and stored. */
 	dArrayT fField_list;
 
+	/** run time */
+	NLDiffusionMaterialT* fCurrNLMaterial;
+	
 	/** \name mixed boundary condition parameters 
 	 * Nonlinear, mixed boundary conditions of the form
 	   \f[

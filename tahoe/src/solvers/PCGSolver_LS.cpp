@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.17 2003-11-19 23:29:32 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.14.2.1 2003-12-09 21:43:29 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 
@@ -135,7 +135,7 @@ void PCGSolver_LS::DefineParameters(ParameterListT& list) const
  * Protected
  *************************************************************************/
 
-double PCGSolver_LS::SolveAndForm(void)
+double PCGSolver_LS::SolveAndForm(int& iteration)
 {
 	/* form the stiffness matrix (must be cleared previously) */
 	if (fLHS_update) {
@@ -155,7 +155,7 @@ double PCGSolver_LS::SolveAndForm(void)
 	fLHS_lock = kLocked;
 									
 	/* recalculate residual */
-	fNumIteration++;
+	iteration++;
 	if (fLHS_update) {
 		fLHS->Clear();
 		fLHS_lock = kOpen; /* LHS open for assembly, too! */
@@ -187,13 +187,11 @@ SolverT::SolutionStatusT PCGSolver_LS::Solve(int max_iterations)
 
 void PCGSolver_LS::CGSearch(void)
 {
-	const char caller[] = "PCGSolver_LS::CGSearch";
-
 	/* restart */
 	fRestart_count++;
 	if (fRestart_count == 0 || fRestart_count == fRestart) {
 		fR_last = fRHS;
-		if (!fLHS->Solve(fRHS)) ExceptionT::BadJacobianDet(caller);
+		if (!fLHS->Solve(fRHS)) throw ExceptionT::kBadJacobianDet;
 		fu_last = fRHS;
 		fRestart_count = 0;
 
@@ -213,26 +211,18 @@ void PCGSolver_LS::CGSearch(void)
 //		              InnerProduct(fR_last, fR_last);
 
 		/* with scaling matrix Bertsekas (6.32) */
-		if (!fLHS->Solve(fdiff_R)) ExceptionT::BadJacobianDet(caller); /* apply scaling */
+		if (!fLHS->Solve(fdiff_R)) throw ExceptionT::kBadJacobianDet; /* apply scaling */
 		double beta = InnerProduct(fRHS, fdiff_R);
 		fdiff_R = fR_last;     /* copy */
-		if (!fLHS->Solve(fdiff_R)) ExceptionT::BadJacobianDet(caller); /* apply scaling */
-
-		/* no division by zero */
-		double denominator = InnerProduct(fR_last, fdiff_R);
-		if (fabs(denominator) < 1.0e-24) {
-			denominator = 1.0;
-			beta = 0.0; /* revert to steepest descent */
-		}
-		else
-			beta /= denominator;		
+		if (!fLHS->Solve(fdiff_R)) throw ExceptionT::kBadJacobianDet; /* apply scaling */
+		beta /= InnerProduct(fR_last, fdiff_R);
 		
 		/* limit beta */
 		//beta = (beta < 0.0) ? 0.0 : beta;
 		
 		/* compute new update (in last update) */
 		fR_last = fRHS;
-		if (!fLHS->Solve(fRHS)) ExceptionT::BadJacobianDet(caller); /* apply preconditioner */
+		if (!fLHS->Solve(fRHS)) throw ExceptionT::kBadJacobianDet; /* apply preconditioner */
 		fRHS.AddScaled(beta, fu_last);
 		fu_last = fRHS;
 

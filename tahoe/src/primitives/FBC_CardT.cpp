@@ -1,5 +1,6 @@
-/* $Id: FBC_CardT.cpp,v 1.12 2003-11-04 01:32:06 paklein Exp $ */
+/* $Id: FBC_CardT.cpp,v 1.10 2003-03-31 23:01:56 paklein Exp $ */
 /* created: paklein (06/15/1996) */
+
 #include "FBC_CardT.h"
 
 #include <iostream.h>
@@ -10,12 +11,13 @@
 #include "fstreamT.h"
 #include "ScheduleT.h"
 
+/* copy behavior for arrays FBC_CardT's */
+
 using namespace Tahoe;
 
-/* copy behavior for arrays FBC_CardT's */
 namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<FBC_CardT*>::fByteCopy = true;
-DEFINE_TEMPLATE_STATIC const bool ArrayT<FBC_CardT>::fByteCopy = false;
+const bool ArrayT<FBC_CardT*>::fByteCopy = true;
+const bool ArrayT<FBC_CardT>::fByteCopy = false;
 } /* namespace Tahoe */
 
 /* constructor */

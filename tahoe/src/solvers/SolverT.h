@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.17 2003-10-31 20:55:16 paklein Exp $ */
+/* $Id: SolverT.h,v 1.15 2003-08-14 05:31:46 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -119,7 +119,6 @@ public:
 	/** debugging */
 	int Check(void) const;
 	const dArrayT& RHS(void) const;
-	const GlobalMatrixT& LHS(void) const;
 
 	/* return the required equation numbering scope - local by default */
 	GlobalT::EquationNumberScopeT EquationNumberScope(void) const;
@@ -151,27 +150,15 @@ protected:
 	/** inner product */	
 	double InnerProduct(const dArrayT& v1, const dArrayT& v2) const;
 
-	/** \name method needed for check code GlobalMatrixT::kCheckLHS */
-	/*@{*/
-	/** return approximate stiffness matrix. Compute and approximate stiffness
-	 * matrix by perturbing each degree of freedom in the system. Caller is 
-	 * responsible for disposing of the matrix. */
-	GlobalMatrixT* ApproximateLHS(const GlobalMatrixT& template_LHS);
-
-	/** compare the two stiffness matricies. Write the results of the comparison
-	 * to FEManagerT::Output */
-	void CompareLHS(const GlobalMatrixT& ref_LHS, const GlobalMatrixT& test_LHS) const;
-	/*@}*/
-
 private:
 
-	/** check matrix type against analysis code, return 1 if
+	/* check matrix type against analysis code, return 1 if
 	 * compatible, 0 otherwise */
 	int CheckMatrixType(int matrix_type, int analysis_code) const;
 
-	/** set global equation matrix */
+	/* set global equation matrix */
 	void SetGlobalMatrix(int matrix_type, int check_code);
-
+		 	
 protected:
 
 	/** the Boss */	
@@ -197,10 +184,7 @@ protected:
 	/** runtime flag. Set to true to signal LHS matrix needs to be recalculated. By
 	 * default, this is set to true during the call to SolverT::InitStep. */
 	bool fLHS_update;
-	
-	/** perturbation for computing finite difference version of LHS */
-	double fPerturbation;
-
+		
 	/** residual */
 	dArrayT fRHS;
 	
@@ -279,10 +263,6 @@ inline void SolverT::DisassembleLHSDiagonal(dArrayT& diagonals, const nArrayT<in
 /* debugging */
 inline int SolverT::Check(void) const { return fLHS->CheckCode(); }
 inline const dArrayT& SolverT::RHS(void) const { return fRHS; }
-inline const GlobalMatrixT& SolverT::LHS(void) const {
-	if (!fLHS) ExceptionT::GeneralFail("SolverT::LHS", "LHS not set");
-	return *fLHS; 
-}
 
 /* accessor */
 inline const int& SolverT::IterationNumber(void) const { return fNumIteration; }

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.42 2003-11-21 22:47:56 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.36.2.2 2003-10-15 23:57:08 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -30,13 +30,13 @@
 #include "PenaltySphereT.h"
 #include "AugLagSphereT.h"
 #include "MFPenaltySphereT.h"
-#include "PenaltyCylinderT.h"
 
 /* kinematic BC controllers */
 #include "K_FieldT.h"
 #include "BimaterialK_FieldT.h"
 #include "MappedPeriodicT.h"
 #include "TiedNodesT.h"
+#include "SymmetricNodesT.h"
 #include "PeriodicNodesT.h"
 #include "ScaledVelocityNodesT.h"
 #include "SetOfNodesKBCT.h"
@@ -53,8 +53,7 @@ NodeManagerT::NodeManagerT(FEManagerT& fe_manager, CommManagerT& comm_manager):
 	fFieldSupport(fe_manager, *this),
 	fInitCoords(NULL),
 	fCoordUpdate(NULL),
-	fCurrentCoords(NULL),
-	fNeedCurrentCoords(false)
+	fCurrentCoords(NULL)
 {
 	/* set console */
 	iSetName("nodes");
@@ -132,15 +131,15 @@ void NodeManagerT::Initialize(void)
 
 	/* history nodes */
 	EchoHistoryNodes(in, out);
+
+	/* relaxation flags */
+	fXDOFRelaxCodes.Dimension(fFEManager.NumGroups());
+	fXDOFRelaxCodes = GlobalT::kNoRelax;
 }
 
 /* register data for output */
 void NodeManagerT::RegisterOutput(void)
 {
-	/* register output from fields */
-	for (int j = 0; j < fFields.Length(); j++)
-		fFields[j]->RegisterOutput();
-
 	/* configure output for history node sets */
 	int num_sets = fHistoryNodeSetIDs.Length();
 	if (num_sets > 0)
@@ -290,8 +289,6 @@ void NodeManagerT::RegisterCoordinates(LocalArrayT& array) const
 		case LocalArrayT::kCurrCoords:
 		{
 			array.SetGlobal(CurrentCoordinates());
-			NodeManagerT* non_const_this = (NodeManagerT*) this;
-			non_const_this->fNeedCurrentCoords = true;
 			break;					
 		}
 		default:
@@ -337,6 +334,9 @@ void NodeManagerT::InitStep(int group)
 	/* update current configurations */
 	if (fCoordUpdate && fCoordUpdate->Group() == group)
 		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+
+	/* clear history of relaxation over tbe last step */
+	fXDOFRelaxCodes[group] = GlobalT::kNoRelax;
 }
 
 /* compute the nodal contribution to the tangent */
@@ -420,8 +420,7 @@ void NodeManagerT::UpdateCurrentCoordinates(void)
 		if (!fCurrentCoords)
 			ExceptionT::GeneralFail("NodeManagerT::UpdateCurrentCoordinates", "current coords not initialized");
 	
-		/* simple update assuming displacement degrees of freedom are the
-		 * nodal values */
+		/* update */
 		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
 	}	
 }
@@ -489,15 +488,21 @@ void NodeManagerT::WriteRestart(ofstreamT& out) const
 }
 
 /* reset displacements (and configuration to the last known solution) */
-void NodeManagerT::ResetStep(int group)
+GlobalT::RelaxCodeT NodeManagerT::ResetStep(int group)
 {
+	/* initialize return value */
+	GlobalT::RelaxCodeT relax = GlobalT::kNoRelax;
+
 	/* reset fields */
 	for (int i = 0; i < fFields.Length(); i++)
 		if (fFields[i]->Group() == group)
-			fFields[i]->ResetStep();
+			relax = GlobalT::MaxPrecedence(relax, fFields[i]->ResetStep());
+
+	/* reset the XDOF elements */
+	XDOF_ManagerT::ResetState(group);
 
 	/* inherited - reset external DOF */
-	XDOF_ManagerT::Reset(group);
+	return GlobalT::MaxPrecedence(relax, XDOF_ManagerT::ResetTags(group));
 }
 
 void NodeManagerT::WriteOutput(void)
@@ -941,7 +946,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArrayT& nodes,
 	int nen = nodes.Length();
 	int neq = eqnos.Length();
 
-	const int* ien = nodes.Pointer();
+	int* ien = nodes.Pointer();
 	int* peq = eqnos.Pointer();
 		
 	/* count assigned equation numbers */
@@ -1027,7 +1032,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArray2DT& nodes,
 	int nen = nodes.MinorDim();
 	int neq = eqnos.MinorDim();
 
-	const int* ien = nodes.Pointer();
+	int* ien = nodes.Pointer();
 	int* peq = eqnos.Pointer();
 	for (int i = 0; i < nel; i++)
 	{
@@ -1120,7 +1125,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& node
 	int nnd = NumNodes();
 	int nel = nodes.MajorDim();
 
-	const int* ien = nodes.Pointer();
+	int* ien = nodes.Pointer();
 	int* peq = eqnos.Pointer();
 	for (int i = 0; i < nel; i++)
 	{
@@ -1783,6 +1788,11 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 			TiedNodesT* kbc = new TiedNodesT(*this, field);
 			return kbc;
 		}
+		case KBC_ControllerT::kSymmetricNodes:
+		{
+			SymmetricNodesT* kbc = new SymmetricNodesT(*this, field);
+			return kbc;
+		}
 		case KBC_ControllerT::kPeriodicNodes:
 		{
 			PeriodicNodesT* kbc = new PeriodicNodesT(*this, field);
@@ -1817,11 +1827,6 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 
 FBC_ControllerT* NodeManagerT::NewFBC_Controller(FieldT& field, int code)
 {
-  const char caller[] = "NodeManagerT::NewFBC_Controller";
-
-	/* displacement field */
-	const dArray2DT& disp = field[0];
-
 	/* velocity field */
 	dArray2DT* velocity = NULL;
 	if (field.Order() > 0)
@@ -1837,40 +1842,35 @@ FBC_ControllerT* NodeManagerT::NewFBC_Controller(FieldT& field, int code)
 	switch(code)
 	{
 		case FBC_ControllerT::kPenaltyWall:
-			fbc = new PenaltyWallT(fFEManager, field.Group(), eqnos, coords, disp, velocity);
+			fbc = new PenaltyWallT(fFEManager, field.Group(), eqnos, coords, velocity);
 			break;
 
 		case FBC_ControllerT::kAugLagWall:
-			fbc = new AugLagWallT(fFEManager, this, field, coords, disp);
+			fbc = new AugLagWallT(fFEManager, this, field, coords);
 			break;
 
 		case FBC_ControllerT::kPenaltySphere:	
-			fbc = new PenaltySphereT(fFEManager, field.Group(), eqnos, coords, disp, velocity);
-			break;
-
-		case FBC_ControllerT::kPenaltyCylinder:	
-			fbc = new PenaltyCylinderT(fFEManager, field.Group(), eqnos, coords, disp, velocity);
+			fbc = new PenaltySphereT(fFEManager, field.Group(), eqnos, coords, velocity);
 			break;
 
 		case FBC_ControllerT::kAugLagSphere:	
-			fbc = new AugLagSphereT(fFEManager, this, field, coords, disp);
+			fbc = new AugLagSphereT(fFEManager, this, field, coords);
 			break;
 
 		case FBC_ControllerT::kMFPenaltySphere:	
-			fbc = new MFPenaltySphereT(fFEManager, field.Group(), eqnos, coords, disp, velocity);
+			fbc = new MFPenaltySphereT(fFEManager, field.Group(), eqnos, coords, velocity);
 			break;
 
 		default:
-			ExceptionT::BadInputValue(caller, "FBC controller code %d is not supported", code);
+			ExceptionT::BadInputValue("NodeManagerT::NewFBC_Controller",
+				"FBC controller code %d is not supported", code);
 	}
 	
 	/* set time integrator */
 	if (fbc) {
-		const nIntegratorT& n_integrator = field.nIntegrator();
-		const IntegratorT* integrator = &n_integrator;
-		const eIntegratorT* e_integrator = dynamic_cast<const eIntegratorT*>(integrator);
-		if (!e_integrator) ExceptionT::GeneralFail(caller, "could not resolve eIntegratorT");
-		fbc->SetController(e_integrator);
+		const nIntegratorT& n_cont = field.nIntegrator();
+		const eIntegratorT* e_cont = dynamic_cast<const eIntegratorT*>(&n_cont);
+		fbc->SetController(e_cont);
 	}
 	
 	return fbc;

@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.33 2003-10-20 23:31:07 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.32.2.1 2003-09-15 17:17:04 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -42,6 +42,9 @@ public:
 
 	/** initialize class data */
 	virtual void Initialize(void);
+
+	/** prepare for a sequence of time steps */
+	virtual void InitialCondition(void);
 
 	/** close current time increment */
 	virtual void CloseStep(void);
@@ -105,6 +108,8 @@ protected:
 	/* write all current element information to the stream */
 	virtual void CurrElementInfo(ostream& out) const;
 
+private:
+
 	/* operations with pseudo rank 3 (list in j) matrices */
 	void u_i__Q_ijk(const dArrayT& u, const ArrayT<dMatrixT>& Q,
 		dMatrixT& Qu);
@@ -113,24 +118,7 @@ protected:
 		dMatrixT& Qu);
 		
 	/* Fake output to send to TiedNodesT */
-	void ComputeFreeNodesForOutput(void);
-
-	/* get output from surrounding continuum */
-	void StoreBulkOutput(void);
-
-	/* Compute surface values from bulk values */	
-	void SurfaceValuesFromBulk(const ElementCardT& element, iArrayT& ndIndices,
-			dArray2DT& elementVals, LocalArrayT& nodal_values);
-		
-	/* Interpolate bulk quantities to integration points, rotating to local frame if desired */	
-	void FromNodesToIPs(bool rotate, dArrayT& localFrameIP, LocalArrayT& nodal_values);
-
-	/* Query tied cohesive model to see if nodes' status will change */	
-	void UntieOrRetieNodes(int elNum, int nnd, const TiedPotentialBaseT* tiedpot, 
-							ArrayT<double>& state, dArrayT& localFrameIP);
-
-	/* initialize thermal source terms*/
-	void InitializeTemperature(const FieldT* temperature);
+	void ComputeFreeNodesForOutput();
 
 protected:
 
@@ -184,6 +172,7 @@ protected:
 	dMatrixT fnsd_nee_2;
 
 	/* variables for calculating nodal info */
+	/* Added by cjkimme 11/07/01 */
 	bool fCalcNodalInfo;
 	int fNodalInfoCode, iTiedFlagIndex;
 	dArray2DT fNodalQuantities;

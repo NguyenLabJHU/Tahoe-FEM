@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.17 2003-11-25 20:00:35 cjkimme Exp $ */
+/* $Id: CSEBaseT.h,v 1.15.2.3 2003-09-28 09:11:47 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -27,7 +27,8 @@ public:
 	enum FormulationT {Isotropic = 0,
 	                 Anisotropic = 1, 
 	         NoRotateAnisotropic = 2,
-	         	ModeIAnisotropic = 3};
+	            RigidAnisotropic = 3,
+	       NodalRigidAnisotropic = 4};
 
 	/** indicies for nodal output */
 	enum NodalOutputCodeT {
@@ -66,7 +67,7 @@ public:
 	virtual void CloseStep(void);
 
 	/* resets to the last converged solution */
-	virtual void ResetStep(void);
+	virtual GlobalT::RelaxCodeT ResetStep(void);
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* solution calls */
@@ -129,19 +130,16 @@ protected:
 	/* write current element information to the output */
 	void CurrElementInfo(ostream& out) const;
 	
-	/* number of facet nodes as a function of number of element nodes */
-	virtual int NumFacetNodes(void) { return NumElementNodes()/2; }
-	
+private:
+
+	/* close surfaces to zero gap */
+	void CloseSurfaces(void) const;
+
 	/* return the default number of element nodes */
 	virtual int DefaultNumElemNodes(void) const;
 	//NOTE: needed because ExodusII does not store ANY information about
 	//      empty element groups, which causes trouble for parallel execution
 	//      when a partition contains no element from a group.
-	
-private:
-
-	/* close surfaces to zero gap */
-	void CloseSurfaces(void) const;
 	
 protected:
 

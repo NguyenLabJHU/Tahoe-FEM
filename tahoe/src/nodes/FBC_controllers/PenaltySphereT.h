@@ -1,4 +1,4 @@
-/* $Id: PenaltySphereT.h,v 1.6 2003-10-04 19:14:05 paklein Exp $ */
+/* $Id: PenaltySphereT.h,v 1.5 2003-08-18 03:44:36 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #ifndef _PENATLY_SPHERE_T_H_
 #define _PENATLY_SPHERE_T_H_
@@ -18,10 +18,13 @@ public:
 
 	/* constructor */
 	PenaltySphereT(FEManagerT& fe_manager, int group, const iArray2DT& eqnos, 
-		const dArray2DT& coords, const dArray2DT& disp, const dArray2DT* vels);
+		const dArray2DT& coords, const dArray2DT* vels);
 
 	/* input processing */
 	virtual void EchoData(ifstreamT& in, ostream& out);
+
+	/* initialize data */
+	virtual void Initialize(void);
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -40,23 +43,23 @@ public:
 	
 protected:
 
-	/** accumulate the contact force vector fContactForce */
+	/* accumulate the contact force vector fContactForce */
 	virtual void ComputeContactForce(double kforce);
 
 protected:
 
-	/** sphere radius */
+	/* sphere radius */
 	double fRadius;
 	
-	/** \name workspace */
-	/*@{*/
-	dArrayT        fv_OP; /**< vector from center to contact node */
-	ElementMatrixT fLHS;  /**< tangent matrix */
+	/* center to striker distances */
+	dArrayT	fDistances;
+	
+	/* workspace */
+	dArrayT        fv_OP; //vector from center to contact node
+	ElementMatrixT fLHS;  //tangent matrix
 	dArrayT        fd_sh; //shallow
 	iArrayT        fi_sh; //shallow
-	/*@}*/
 };
 
-} /* namespace Tahoe */
-
+} // namespace Tahoe 
 #endif /* _PENATLY_SPHERE_T_H_ */

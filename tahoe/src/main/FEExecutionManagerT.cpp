@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.52 2003-10-28 07:42:16 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.49 2003-08-19 08:03:49 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -6,9 +6,7 @@
 #include <iomanip.h>
 #include <time.h>
 #include <ctype.h>
-#include <stdlib.h>
 
-#include "ofstreamT.h"
 #include "fstreamT.h"
 #include "Environment.h"
 #include "toolboxConstants.h"
@@ -42,7 +40,6 @@
 /* needed for bridging calculations FEExecutionManagerT::RunBridging */
 #ifdef BRIDGING_ELEMENT
 #include "FEManagerT_bridging.h"
-#include "MultiManagerT.h"
 #ifdef __DEVELOPMENT__
 #include "FEManagerT_THK.h"
 #endif
@@ -377,16 +374,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 
 			t1 = clock();
 			phase = 1;
-			
-			/* check for multi solver */
-			int multi = -99;
-			in >> multi;
-			if (multi == 0)
-				RunStaticBridging_staggered(continuum, atoms, log_out);	
-			else if (multi == 1)
-				RunStaticBridging_monolithic(in, continuum, atoms, log_out);	
-			else
-				ExceptionT::BadInputValue(caller, "expecting 1|0 for multi-solver: %d", multi);
+			RunStaticBridging(continuum, atoms, log_out);	
 		}
 		else if (impexp == IntegratorT::kExplicit)
 		{
@@ -443,22 +431,21 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 	status << "\n End Execution\n" << endl;
 }
 
-void FEExecutionManagerT::RunStaticBridging_staggered(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms, ofstream& log_out) const
+void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms, ofstream& log_out) const
 {
-	const char caller[] = "FEExecutionManagerT::RunStaticBridging_staggered";
+	const char caller[] = "FEExecutionManagerT::RunStaticBridging";
 	    
 	/* configure ghost nodes */
 	int group = 0;
 	int order1 = 0;
 	StringT bridging_field = "displacement";
 	bool make_inactive = true;
+	bool active = false;
 	atoms.InitGhostNodes();
 	continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
 	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), make_inactive);
 
-#undef DO_COUPLING
-
-#ifdef DO_COUPLING
+#if 0
 	/* cross coupling matricies */
 	int neq_A = atoms.NodeManager()->Field(bridging_field)->NumEquations();
 	int neq_C = continuum.NodeManager()->Field(bridging_field)->NumEquations();
@@ -503,9 +490,9 @@ void FEExecutionManagerT::RunStaticBridging_staggered(FEManagerT_bridging& conti
 			const iArray2DT& atom_phase_status = atoms.SolverPhasesStatus();
 			const iArray2DT& continuum_phase_status = continuum.SolverPhasesStatus();
 
-#ifdef DO_COUPLING
+#if 0
 			/* set cross-coupling */
-			atoms.Form_G_NG_Stiffness(bridging_field, 0, K_G_NG);
+			atoms.Form_G_NG_Stiffness(bridging_field, K_G_NG);
 			K_AC.MultAB(K_G_NG, G_Interpolation);
 			K_CA.Transpose(K_AC);
 #endif
@@ -530,22 +517,22 @@ void FEExecutionManagerT::RunStaticBridging_staggered(FEManagerT_bridging& conti
 					error = atoms.SolveStep();
 				}
 
-#ifdef DO_COUPLING
+#if 0
 				/* set cross-coupling */
-				atoms.Form_G_NG_Stiffness(bridging_field, 0, K_G_NG);
+				atoms.Form_G_NG_Stiffness(bridging_field, K_G_NG);
 				K_AC.MultAB(K_G_NG, G_Interpolation);
 				K_CA.Transpose(K_AC);
 #endif
 					
 				/* apply solution to continuum */
 				continuum.ProjectField(bridging_field, *atoms.NodeManager(), order1);
-#ifdef DO_COUPLING
+#if 0
 				K_CA.Multx(atoms.CumulativeUpdate(group_num), F_C);
 				F_C *= -1.0;
 				continuum.SetExternalForce(group_num, F_C);
 #endif
 				continuum.FormRHS(group_num);
-				continuum_res = continuum.RHS(group_num).Magnitude(); //serial
+				continuum_res = continuum.Residual(group_num).Magnitude(); //serial
 					
 				/* solve continuum */
 				if (1 || error == ExceptionT::kNoError) {
@@ -557,13 +544,13 @@ void FEExecutionManagerT::RunStaticBridging_staggered(FEManagerT_bridging& conti
 				int order = 0;  // displacement only for static case
 				continuum.InterpolateField(bridging_field, order, field_at_ghosts);
 				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order, field_at_ghosts);
-#ifdef DO_COUPLING
+#if 0
 				K_AC.Multx(continuum.CumulativeUpdate(group_num), F_A);
 				F_A *= -1.0;
 				atoms.SetExternalForce(group_num, F_A);
 #endif
 				atoms.FormRHS(group_num);
-				atoms_res = atoms.RHS(group_num).Magnitude(); //serial
+				atoms_res = atoms.Residual(group_num).Magnitude(); //serial
 
 				/* reset the reference errors */
 				if (count == 1) {
@@ -617,73 +604,16 @@ void FEExecutionManagerT::RunStaticBridging_staggered(FEManagerT_bridging& conti
 	}
 }
 
-void FEExecutionManagerT::RunStaticBridging_monolithic(ifstreamT& in, FEManagerT_bridging& continuum, FEManagerT_bridging& atoms, ofstream& log_out) const
-{
-	const char caller[] = "FEExecutionManagerT::RunStaticBridging_monolithic";
-	    
-	/* manager for multiple FEManagerT's */
-	CommunicatorT multi_comm;
-	StringT multi_out_file;
-	multi_out_file.Root(in.filename());
-	multi_out_file.Append(".out");
-	ofstreamT multi_out;
-	multi_out.open(multi_out_file);
-	MultiManagerT multi_manager(in, multi_out, multi_comm, &atoms, &continuum);
-	multi_manager.Initialize();
-
-	/* time managers */
-	TimeManagerT* atom_time = atoms.TimeManager();
-	TimeManagerT* continuum_time = continuum.TimeManager();
- 
-	dArray2DT field_at_ghosts;
-	atom_time->Top();
-	continuum_time->Top();
-	int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
-	while (atom_time->NextSequence() && continuum_time->NextSequence())
-	{	
-		/* set to initial condition */
-		atoms.InitialCondition();
-		continuum.InitialCondition();
-
-		/* loop over time increments */
-		AutoArrayT<int> loop_count, atom_iter_count, continuum_iter_count;
-		bool seq_OK = true;
-		while (seq_OK && 
-			atom_time->Step() &&
-			continuum_time->Step()) //TEMP - same clock
-		{
-			/* running status flag */
-			ExceptionT::CodeT error = ExceptionT::kNoError;		
-
-			/* initialize the current time step */
-			if (error == ExceptionT::kNoError) 
-				error = multi_manager.InitStep();
-
-			/* solve the current time step */
-			if (error == ExceptionT::kNoError) 
-				error = multi_manager.SolveStep();
-			
-			/* close the current time step */
-			if (error == ExceptionT::kNoError)
-				error = multi_manager.CloseStep();
-				
-			/* handle errors */
-			if (error != ExceptionT::kNoError)
-				ExceptionT::GeneralFail(caller, "no recovery");
-		}
-	}
-}
-
 #ifdef __DEVELOPMENT__
 void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_THK& atoms, ofstream& log_out) const
 {
 	const char caller[] = "FEExecutionManagerT::RunDynamicBridging";
+
 	/* configure ghost nodes */
 	int group = 0;
 	int order1 = 0;	// For InterpolateField, 3 calls to obtain displacement/velocity/acceleration
 	int order2 = 1;
 	int order3 = 2;
-	double dissipation = 0.0;
 	dArray2DT field_at_ghosts, totalu, fubig, fu, projectedu, boundghostdisp, boundghostvel, boundghostacc;
 	dArray2DT thkforce, gaussdisp;
 	dSPMatrixT ntf;
@@ -691,46 +621,26 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	StringT bridging_field = "displacement";
 	atoms.InitGhostNodes();
 	bool makeinactive = false;	
+	
 	/* figure out boundary atoms for use with THK boundary conditions, 
 	   ghost atoms for usage with MD force calculations */
 	const iArrayT& boundaryghostatoms = atoms.InterpolationNodes();
 	int numgatoms = (atoms.GhostNodes()).Length();	// total number of ghost atoms
 	int numbatoms = boundaryghostatoms.Length() - numgatoms;	// total number of boundary atoms
 	dArray2DT gadisp(numgatoms,2), gavel(numgatoms,2), gaacc(numgatoms,2);
-	dArray2DT badisp(numbatoms,2), bavel(numbatoms,2), baacc(numbatoms,2), mdu0(numbatoms,2), mdu1(numbatoms,2);
-	dArray2DT bdisplast(numbatoms,2), bdispcurr(numbatoms,2);
+	dArray2DT badisp(numbatoms,2), bavel(numbatoms,2), baacc(numbatoms,2);
 	iArrayT allatoms(boundaryghostatoms.Length()), gatoms(numgatoms), batoms(numbatoms), boundatoms(numbatoms);
 	allatoms.SetValueToPosition();
-	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);
-	gatoms.CopyPart(0, allatoms, 0, numgatoms);        
+	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);  
+	gatoms.CopyPart(0, allatoms, 0, numgatoms);          
 	boundatoms.CopyPart(0, boundaryghostatoms, numgatoms, numbatoms);
 	continuum.InitInterpolation(boundaryghostatoms, bridging_field, *atoms.NodeManager());
 	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);
-	//nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
-	nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for fracture problem
-	//nMatrixT<int> ghostonmap(4), ghostoffmap(4);    // for planar wave propagation problem
+	nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
 	ghostonmap = 0;
 	ghostoffmap = 0;
-	//ghostoffmap(1,0) = ghostoffmap(0,1) = 1;  // for wave propagation problem
-	ghostoffmap(4,0) = ghostoffmap(0,4) = ghostoffmap(4,1) = ghostoffmap(1,4) = 1;  // center MD crack
-	ghostoffmap(4,2) = ghostoffmap(2,4) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
-	ghostoffmap(4,3) = ghostoffmap(3,4) = 1;
-	ghostonmap(2,3) = ghostonmap(3,2) = 1;
-	//ghostoffmap(1,0) = ghostoffmap(0,1) = ghostoffmap(3,0) = ghostoffmap(0,3) = 1; // left edge MD crack
-	//ghostoffmap(1,3) = ghostoffmap(3,1) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
-	//ghostonmap(1,0) = ghostonmap(0,1) = 1;
+	ghostoffmap(1,0) = ghostoffmap(0,1) = 1;
 
-#if 0
-	/* temporary code to output dissipation due to THK forces */
-	bool fopen = false;
-	ofstreamT fout;
-	StringT fsummary_file;
-	ifstreamT& in = atoms.Input();
-	const StringT& input_file = in.filename();
-	fsummary_file.Root(input_file);
-	fsummary_file.Append(".diss");
-#endif
-	
 	/* time managers */
 	TimeManagerT* atom_time = atoms.TimeManager();
 	TimeManagerT* continuum_time = continuum.TimeManager();
@@ -742,7 +652,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	{	
 		/* set to initial condition */
 		atoms.InitialCondition();
-		
+
 		/* calculate fine scale part of MD displacement and total displacement u */
 		continuum.InitialProject(bridging_field, *atoms.NodeManager(), projectedu, order1);
 		
@@ -786,7 +696,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		badisp.RowCollect(batoms, boundghostdisp);
 		bavel.RowCollect(batoms, boundghostvel);
 		baacc.RowCollect(batoms, boundghostacc);
-	
+
 		/* Write interpolated FEM values at MD ghost nodes into MD field - displacement only */
 		atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);
 		
@@ -804,16 +714,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		/* running status flag */
 		ExceptionT::CodeT error = ExceptionT::kNoError;	
 		
-#if 0
-		/* first obtain the MD displacement field */
-		FieldT* atomfield = atoms.NodeManager()->Field(bridging_field);
-		dArray2DT mddisplast = (*atomfield)[0];	
-		dArrayT aa(boundatoms.Length()), ab(boundatoms.Length()), sub1(boundatoms.Length()); 
-		dArrayT ac(boundatoms.Length()), ad(boundatoms.Length()), sub2(boundatoms.Length());
-		dArrayT ua(boundatoms.Length()), ub(boundatoms.Length()), uc(boundatoms.Length()), ud(boundatoms.Length());
-		dArrayT sub3(boundatoms.Length()), sub4(boundatoms.Length()), sub5(boundatoms.Length()), sub6(boundatoms.Length());
-#endif
-			
+		/* now loop over continuum and atoms after initialization */
 		for (int i = 0; i < nfesteps; i++)	
 		{
 			for (int j = 0; j < ratio; j++)	// MD update first
@@ -826,10 +727,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				/* update FEM solution interpolated at boundary atoms and ghost atoms assuming 
 				constant acceleration - because of constant acceleration assumption, predictor and 
 				corrector are combined into one function */
-				bdisplast = badisp;
 				atoms.BAPredictAndCorrect(mddt, badisp, bavel, baacc);
 				atoms.BAPredictAndCorrect(mddt, gadisp, gavel, gaacc);
-				
+	
 				/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
 				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);				
 				
@@ -841,56 +741,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 						atoms.ResetCumulativeUpdate(group);
 						error = atoms.SolveStep();
 				}
-
-#if 0
-				/* first obtain the MD displacement field */
-				FieldT* atomfielda = atoms.NodeManager()->Field(bridging_field);
-				dArray2DT mddispcurr = (*atomfielda)[0];	
-				mdu0.RowCollect(boundatoms,mddisplast);
-				mdu1.RowCollect(boundatoms,mddispcurr); 
-				mdu0.ColumnCopy(0,aa);
-				mdu0.ColumnCopy(1,ab);
-				mdu1.ColumnCopy(0,ac);
-				mdu1.ColumnCopy(1,ad);
-				sub1.DiffOf(ac,aa); // q(n+1)-q(n) (x-comp)
-				sub2.DiffOf(ad,ab); // q(n+1)-q(n) (y-comp)
-				bdisplast.ColumnCopy(0,ua);
-				bdisplast.ColumnCopy(1,ub);
-				badisp.ColumnCopy(0,uc);
-				badisp.ColumnCopy(1,ud);
-				sub3.DiffOf(ua,uc);  // ubar(n)-ubar(n+1) (x-comp)
-				sub4.DiffOf(ub,ud);  // ubar(n)-ubar(n+1) (x-comp)
-				sub5.SumOf(sub1,sub3);
-				sub6.SumOf(sub2,sub4);
-				double d0 = thkforce.DotColumn(0,sub5);
-				double d1 = thkforce.DotColumn(1,sub6);
-				dissipation += d0;
-				dissipation += d1;
 				
-				const double& time = atoms.Time();
-				if (fopen)
-				{
-					fout.open_append(fsummary_file);
-					fout.precision(13);
-					fout << dissipation
-					     << setw(25) << time
-					     << endl;
-				}
-				else
-				{
-					fout.open(fsummary_file);
-					fopen = true;
-					fout.precision(13);
-					fout << "Dissipation"
-					     << setw(25) << "Time"
-					     << endl;
-					fout << dissipation
-					     << setw(25) << time
-					     << endl;
-				}
-				mddisplast = mddispcurr;
-#endif
-
 				/* close  md step */
 				if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();    
 			}
@@ -1342,7 +1193,7 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
 		map_file.Append(".io.map");
 
 		/* set output map and and generate decomposition */
-		Decompose(in, size, method, model_file, format);
+		Decompose(in, size, method, model_file, format, map_file);
 		t1 = clock();
 	}
 
@@ -1497,6 +1348,12 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	StringT model_file, suffix;
 	IOBaseT::FileTypeT format;
 	GetModelFile(in, model_file, format);
+	
+	/* output map file */
+	StringT map_file;
+	map_file.Root(in.filename());
+	map_file.Append(".n", size);
+	map_file.Append(".io.map");
 
 	/* set output map and generate decomposition */
 	token = 1;
@@ -1515,7 +1372,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 			}
 		}
 
-		if (NeedDecomposition(model_file, size) || !CommandLineOption("-split_io"))
+		if (NeedDecomposition(model_file, size) || (!CommandLineOption("-split_io") && NeedOutputMap(in, map_file, size)))
 		  {
 		/* prompt if not found */
 		if (method == -1)
@@ -1535,7 +1392,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		}
 	
 		/* run decomp */
-		try { Decompose(in, size, method, model_file, format); }
+		try { Decompose(in, size, method, model_file, format, map_file); }
 		catch (ExceptionT::CodeT code)
 		{
 			cout << "\n " << caller << ": exception on decomposition: " << code << endl;
@@ -1643,14 +1500,18 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	if (partition.DecompType() == PartitionT::kGraph && !CommandLineOption("-split_io"))
 	{
 		try {
-			/* set-up local IO */
-			IOMan = new IOManager_mpi(in, fComm, *(FEman.OutputManager()), FEman.Partition(), model_file, format);
-			if (!IOMan) throw ExceptionT::kOutOfMemory;
+		/* read output map */
+		iArrayT output_map;
+		ReadOutputMap(in, map_file, output_map);
+
+		/* set-up local IO */
+		IOMan = new IOManager_mpi(in, fComm, output_map, *(FEman.OutputManager()), FEman.Partition(), model_file, format);
+		if (!IOMan) throw ExceptionT::kOutOfMemory;
 		
-			/* set external IO */
-			FEman.SetExternalIO(IOMan);
+		/* set external IO */
+		FEman.SetExternalIO(IOMan);
 		}
-	
+		
 		catch (ExceptionT::CodeT code)
 		{
 			token = 0;
@@ -1788,17 +1649,18 @@ void FEExecutionManagerT::GetModelFile(ifstreamT& in, StringT& model_file,
 }
 
 void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
-	int decomp_type, const StringT& model_file, IOBaseT::FileTypeT format) const
+	int decomp_type, const StringT& model_file, IOBaseT::FileTypeT format, 
+	const StringT& output_map_file) const
 {	
 	/* dispatch */
 	switch (decomp_type)
 	{
 		case PartitionT::kGraph:
-			Decompose_graph(in, size, model_file, format);
+			Decompose_graph(in, size, model_file, format, output_map_file);
 			break;
 
 		case PartitionT::kAtom:
-			Decompose_atom(in, size, model_file, format);
+			Decompose_atom(in, size, model_file, format, output_map_file);
 			break;
 			
 		case PartitionT::kSpatial:
@@ -1811,7 +1673,8 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 }
 
 void FEExecutionManagerT::Decompose_atom(ifstreamT& in, int size,
-	const StringT& model_file, IOBaseT::FileTypeT format) const
+	const StringT& model_file, IOBaseT::FileTypeT format, 
+	const StringT& output_map_file) const
 {
 #pragma unused(in)
 	const char caller[] = "FEExecutionManagerT::Decompose_atom";
@@ -1910,24 +1773,32 @@ void FEExecutionManagerT::Decompose_atom(ifstreamT& in, int size,
 		part_out << partition << '\n';
 		part_out.close();
 	}
+
+	/* output map file? - not needed for PartitionT::DecompTypeT == kAtom */
+#pragma unused(output_map_file)
 }
 
 void FEExecutionManagerT::Decompose_spatial(ifstreamT& in, int size,
-	const StringT& model_file, IOBaseT::FileTypeT format) const
+	const StringT& model_file, IOBaseT::FileTypeT format, 
+	const StringT& output_map_file) const
 {
 #pragma unused(in)
 #pragma unused(size)
 #pragma unused(model_file)
 #pragma unused(format)
+#pragma unused(output_map_file)
 	cout << "\n FEExecutionManagerT::Decompose_spatial: not implemented" << endl;
 }
 
 /* graph-based decomposition */
 void FEExecutionManagerT::Decompose_graph(ifstreamT& in, int size,
-	const StringT& model_file, IOBaseT::FileTypeT format) const
+	const StringT& model_file, IOBaseT::FileTypeT format, 
+	const StringT& output_map_file) const
 {
+	bool split_io = CommandLineOption("-split_io");
+	bool need_output_map = NeedOutputMap(in, output_map_file, size) && !split_io;
 	bool need_decomp = NeedDecomposition(model_file, size);
-	if (need_decomp)
+	if (need_output_map || need_decomp)
 	{
 		/* echo stream */
 		StringT decomp_file;
@@ -1953,6 +1824,25 @@ void FEExecutionManagerT::Decompose_graph(ifstreamT& in, int size,
 			throw code;
 		}
 
+		/* set output map */
+		if (need_output_map)
+		{
+			cout << "\n Generating output map: " << output_map_file << endl;
+			IOManager* global_IOman = global_FEman.OutputManager();
+			iArrayT output_map;
+			SetOutputMap(global_IOman->ElementSets(), output_map, size);
+	
+			/* write map file */
+			ofstreamT map_out(output_map_file);
+			map_out << "# number of processors\n";
+			map_out << size << '\n';
+			map_out << "# number of output sets\n";
+			map_out << output_map.Length() << '\n';
+			map_out << "# set to processor output map\n";
+			map_out << output_map.wrap(8) << '\n';
+			cout << " Generating output map: " << output_map_file << ": DONE"<< endl;
+		}
+	
 		/* decompose */
 		ArrayT<PartitionT> partition(size);
 		if (need_decomp)
@@ -2217,6 +2107,100 @@ bool FEExecutionManagerT::NeedModelFile(const StringT& model_file,
 			else
 				return true;
 		}
+	}
+}
+
+/* returns true if a new output map is needed */
+bool FEExecutionManagerT::NeedOutputMap(ifstreamT& in, const StringT& map_file,
+	int size) const
+{
+	/* open map file */
+	ifstreamT map_in(in.comment_marker(), map_file);
+	if (map_in.is_open())
+	{
+		int num_parts;
+		map_in >> num_parts;
+		if (num_parts != size) return true;
+	
+		int num_sets;
+		map_in >> num_sets;
+		iArrayT map(num_sets);
+		map_in >> map;
+		
+		int min, max;
+		map.MinMax(min, max);
+		if (min < 0 || max >= size)
+			return true;
+		else
+			return false;
+	}
+	else
+		return true;
+}
+
+void FEExecutionManagerT::ReadOutputMap(ifstreamT& in, const StringT& map_file,
+	iArrayT& map) const
+{
+	/* map file */
+	ifstreamT map_in(in.comment_marker(), map_file);
+	if (!map_in.is_open())
+		ExceptionT::GeneralFail("FEExecutionManagerT::ReadOutputMap", 
+			"could not open io map file: %s", (const char*) map_file);
+
+	/* read map */
+	int size, num_sets;
+	map_in >> size >> num_sets;
+	map.Dimension(num_sets);
+	map_in >> map;
+
+	/* check */
+	int min, max;
+	map.MinMax(min, max);
+	if (min < 0 || max >= size)
+	{
+		cout << "\n FEExecutionManagerT::ReadOutputMap: map error\n";
+		cout << map.wrap(5) << '\n';
+		cout.flush();
+		ExceptionT::GeneralFail();
+	}
+}
+
+/* set output map based on length of map */
+void FEExecutionManagerT::SetOutputMap(const ArrayT<OutputSetT*>& output_sets,
+	iArrayT& output_map, int size) const
+{
+	/* initialize map - processor number for each element block */
+	output_map.Dimension(output_sets.Length());
+	output_map = 0;
+	
+	iArrayT output_counts(size);
+	output_counts = 0;
+	
+	/* output set size */
+	iArrayT set_size(output_sets.Length());
+	for (int i = 0; i < output_sets.Length(); i++)
+	{
+		const OutputSetT& set = *(output_sets[i]);
+	
+		int size = 0;
+		size += set.NumNodes()*set.NodeOutputLabels().Length();
+		size += set.NumElements()*set.ElementOutputLabels().Length();
+		
+		set_size[i] = size;
+	}
+
+	/* map output sets to processors */
+	for (int j = 0; j < output_sets.Length(); j++)
+	{
+		int max_at;
+		set_size.Max(max_at);
+	
+		int min_at;
+		output_counts.Min(min_at);
+	
+		output_map[max_at] = min_at;
+		output_counts[min_at] += set_size[max_at];
+		set_size[max_at] = 0;
 	}
 }
 

@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.16 2003-11-21 22:48:06 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.14 2002-11-25 07:13:40 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "GlobalMatrixT.h"
 #include <iostream.h>
@@ -18,7 +18,8 @@ GlobalMatrixT::GlobalMatrixT(ostream& out, int check_code):
 	fStartEQ(0),
 	fIsFactorized(0)
 {
-
+	if (fCheckCode < kNoCheck ||
+	    fCheckCode > kPrintSolution) ExceptionT::BadInputValue();
 }
 
 GlobalMatrixT::GlobalMatrixT(const GlobalMatrixT& source):
@@ -180,7 +181,7 @@ void GlobalMatrixT::PrintRHS(const dArrayT& RHS) const
 	if (fCheckCode != kPrintRHS) return;
 	
 	/* increase output stream precision */
-	const double* p = RHS.Pointer();
+	double* p = RHS.Pointer();
 
 	int high_precision = 12;
 	fOut.precision(high_precision);
@@ -205,7 +206,7 @@ void GlobalMatrixT::PrintSolution(const dArrayT& solution) const
 	if (fCheckCode != kPrintSolution) return;
 	
 	/* increase output stream precision */
-	const double* p = solution.Pointer();
+	double* p = solution.Pointer();
 
 	int high_precision = 12;
 	fOut.precision(high_precision);

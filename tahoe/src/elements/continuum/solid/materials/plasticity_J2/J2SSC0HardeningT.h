@@ -1,4 +1,4 @@
-/* $Id: J2SSC0HardeningT.h,v 1.5 2003-11-21 22:46:48 paklein Exp $ */
+/* $Id: J2SSC0HardeningT.h,v 1.4 2002-07-05 22:28:24 paklein Exp $ */
 
 #ifndef _J2_SS_C0_HARD_T_H_
 #define _J2_SS_C0_HARD_T_H_
@@ -91,7 +91,8 @@ private:
 
 	/* returns 1 if the trial elastic strain state lies outside of the
 	 * yield surface */
-	int PlasticLoading(const dSymMatrixT& trialstrain, ElementCardT& element, int intpt);
+	int PlasticLoading(const dSymMatrixT& trialstrain, const ElementCardT& element,
+		int intpt);
 
 	/* computes the relative stress corresponding for the given element
 	 * and elastic strain.  The functions returns a reference to the

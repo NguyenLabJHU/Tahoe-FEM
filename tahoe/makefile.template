@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.26 2003-11-21 22:24:48 paklein Exp $
+# $Id: makefile.template,v 1.24 2003-09-06 08:52:45 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -155,15 +155,6 @@ TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 #ACME_LIB      = $(ACME_DIR)/lib$(ACME_LIB_NAME).a
 #ACME_LFLAGS   = -L$(ACME_DIR) -l$(ACME_LIB_NAME)
 
-#### QHULL
-#QHULL_DIR      = $(HOME_DIR)/../qhull
-#QHULL_INC      = -I$(QHULL_DIR)/inc
-#QHULL_DEFINES  = -D__QHULL__
-#QHULL_CFLAGS   = $(QHULL_INC) $(QHULL_DEFINES)
-#QHULL_LIB_NAME = qhull
-#QHULL_LIB      = $(QHULL_DIR)/lib/lib$(QHULL_LIB_NAME).a
-#QHULL_LFLAGS   = -L$(QHULL_DIR)/lib -l$(QHULL_LIB_NAME)
-
 ##### SEACAS/ACCESS software
 #AX_INC     = -I$(ACCESS)/inc
 #AX_DEFINES = -D__ACCESS__
@@ -241,7 +232,6 @@ clean_config:
 do_up_to_date:
 	@ for module in $(UP_TO_DATE); do \
 		if test -d $$module; then \
-			$(ECHO) "executing \"make $(COMMAND)\" in $$module"; \
 			cd $$module; \
 			$(MAKE) $(COMMAND) "HOME_DIR = $$module" || exit 1; \
 		else \

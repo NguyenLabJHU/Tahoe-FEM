@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.h,v 1.9 2003-10-04 19:14:05 paklein Exp $ */
+/* $Id: PenaltyWallT.h,v 1.8 2003-08-18 03:44:36 paklein Exp $ */
 /* created: paklein (02/25/1997) */
 #ifndef _PENATLY_WALL_T_H_
 #define _PENATLY_WALL_T_H_
@@ -18,7 +18,7 @@ public:
 
 	/* constructor */
 	PenaltyWallT(FEManagerT& fe_manager, int group, const iArray2DT& eqnos,
-		const dArray2DT& coords, const dArray2DT& disp, const dArray2DT* vels);
+		const dArray2DT& coords, const dArray2DT* vels);
 
 	/* input processing */
 	virtual void EchoData(ifstreamT& in, ostream& out);

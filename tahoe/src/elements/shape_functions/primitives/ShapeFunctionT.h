@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.18 2003-10-09 18:12:16 paklein Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.16 2002-10-20 22:49:46 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -82,8 +82,6 @@ public:
 	/** array of shape function values defining the field */
 	const double* IPShapeU(void) const;
 
-	/** \name field gradients */
-	/*@{*/
 	/** field gradients at the current integration point. 
 	 * \param nodal array of nodal values: [nnd] x [nu]
 	 * \param grad_U field gradient matrix: [nu] x [nsd] */
@@ -95,16 +93,11 @@ public:
 	 * \param IPnumber integration point number */
 	void GradU(const LocalArrayT& nodal, dMatrixT& grad_U, int IPnumber) const;
 
-	/** field gradients at arbitrary parent domain coordinates. 
+	/** field gradients at specific parent domain coordinates. 
 	 * \param nodal array of nodal values: [nnd] x [nu]
-	 * \param grad_U returns with the field gradient matrix: [nu] x [nsd] 
-	 * \param coord coordinates in the parent domain
-	 * \param Na returns with array of nodal shape functions (dimensioned during the call): [nnd]
-	 * \param DNa returns with array of shape function derivatives 
-	 *        (dimensioned during the call): [nsd] x [nnd] */
-	void GradU(const LocalArrayT& nodal, dMatrixT& grad_U, const dArrayT& coord, 
-		dArrayT& Na, dArray2DT& DNa) const;
-	/*@}*/
+	 * \param grad_U field gradient matrix: [nu] x [nsd] 
+	 * \param coord coordinates in the parent domain */
+	void GradU(const LocalArrayT& nodal, dMatrixT& grad_U, const dArrayT& coord) const;
 
 	/** compute the curl of a vector that is of dimension 3x1
 	 *  Values for vector at the node points must be provided 
@@ -124,14 +117,12 @@ public:
 
 	/** convert derivatives of the enhanced modes by applying a chain rule
 	 * transformation:
-		\f[
-			\frac{\partial N_A}{\partial x_i} =
-				\frac{\partial N_A}{\partial X_J} \frac{\partial X_J}{\partial x_i}
-		\f]
+	 *
+	 *      d Na / d x_i = (d Na / d X_J) (d X_J/d x_i)
 	 *
 	 * \param changeofvar jacobian matrix of the coordinate transformation
 	 * \param derivatives transformed shape function derivatives. This array is
-	 *        dimensioned during the call: [nsd] x [num_nodes] */
+	 *        dimensioned during the call: [nsd] x [num_modes] */
 	void TransformDerivatives(const dMatrixT& changeofvar, dArray2DT& derivatives);
 
 	/** shape function gradients matrix at the current integration point
@@ -140,7 +131,7 @@ public:
 	 *        respect to the coordinates passes to ShapeFunctionT::ShapeFunctionT.
 	   \f[
 	      \left[\nabla \mathbf{N}\right]_{iA} =
-	          \left( \frac{\partial N_A}{\partial x_i} \right)^{T}
+	          \left( \frac{\partial N_a}{\partial x_i} \right)^{T}
 	   \f] */
 	void GradNa(dMatrixT& grad_Na) const;
 

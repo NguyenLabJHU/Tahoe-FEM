@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.29 2003-11-21 22:45:50 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.27.2.2 2003-12-09 18:21:28 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -153,7 +153,7 @@ void CSEBaseT::Initialize(void)
 	ElementBaseT::Initialize();
 
 	/* dimensions */
-	int num_facet_nodes = NumFacetNodes();
+	int num_facet_nodes = NumElementNodes()/2;
 
 	/* initialize local arrays */
 	fLocInitCoords1.Dimension(num_facet_nodes, NumSD());
@@ -162,8 +162,8 @@ void CSEBaseT::Initialize(void)
 	ElementSupport().RegisterCoordinates(fLocCurrCoords);
 
 	/* construct surface shape functions */
-	fShapes = new SurfaceShapeT(fGeometryCode, fNumIntPts, NumElementNodes(), 
-		num_facet_nodes, NumDOF(), fLocInitCoords1);
+	fShapes = new SurfaceShapeT(fGeometryCode, fNumIntPts, NumElementNodes(), NumDOF(),
+		fLocInitCoords1);
 	if (!fShapes) throw ExceptionT::kOutOfMemory;
 	fShapes->Initialize();
 
@@ -303,10 +303,10 @@ void CSEBaseT::CloseStep(void)
 }
 
 /* resets to the last converged solution */
-void CSEBaseT::ResetStep(void)
+GlobalT::RelaxCodeT CSEBaseT::ResetStep(void)
 {
 	/* inherited */
-	ElementBaseT::ResetStep();
+	GlobalT::RelaxCodeT relax = ElementBaseT::ResetStep();
 
 	/* unset marks */
 	int nel = NumElements();
@@ -315,6 +315,8 @@ void CSEBaseT::ResetStep(void)
 		int& flag = fElementCards[i].Flag();
 		flag = (flag == kMarked) ? kON : flag;
 	}
+	
+	return relax;
 }
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
@@ -442,13 +444,11 @@ void CSEBaseT::SendOutput(int kincode)
 		case NodalTraction:
 		    flags[NodalTraction] = 1;
 			break;
+		case MaterialData:
+		    flags[MaterialData] = 1;
+			break;
 		default:
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-			cout << "\n CSEBaseT::SendKinematic: invalid output code: ";
-			cout << kincode << endl;
-#else
-			throw ExceptionT::kBadInputValue;
-#endif
+			ExceptionT::BadInputValue("CSEBaseT::SendKinematic", "invalid output code: %d", kincode);
 	}
 
 	/* number of output values */
@@ -580,7 +580,7 @@ void CSEBaseT::ReadConnectivity(void)
 				for (int i = 0; i < dest.MajorDim(); i++)
 				{
 					int* a = dest(i);
-					const int* b = source(i);
+					int* b = source(i);
 					for (int j = 0; j < map.Length(); j++)
 						*a++ = b[map[j]];	
 				}
@@ -731,16 +731,16 @@ void CSEBaseT::CloseSurfaces(void) const
 	int nel = NumElements();
 	for (int i = 0; i < nel; i++)
 	{			
-		const int* pfacet1 = facetnodes(0);
-		const int* pfacet2 = facetnodes(1);
-		const iArrayT& elemnodes = fElementCards[i].NodesX();
-		const int* nodes = elemnodes.Pointer();
+		int* pfacet1 = facetnodes(0);
+		int* pfacet2 = facetnodes(1);
+	        const iArrayT& elemnodes = fElementCards[i].NodesX();
+		int* nodes = elemnodes.Pointer();
 
 		for (int j = 0; j < facetnodes.MinorDim(); j++)
 		{
 			/* facet coordinates */		
-			double* px1 = const_cast<double*>(init_coords(nodes[*pfacet1++]));
-			double* px2 = const_cast<double*>(init_coords(nodes[*pfacet2++]));
+			double* px1 = init_coords(nodes[*pfacet1++]);
+			double* px2 = init_coords(nodes[*pfacet2++]);
 				
 			for (int k = 0; k < NumSD(); k++)
 			{

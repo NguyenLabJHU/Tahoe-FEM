@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.h,v 1.11 2003-12-02 17:14:53 paklein Exp $ */
+/* $Id: DiffusionElementT.h,v 1.9 2003-06-09 06:58:12 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSE_T_H_
 #define _DIFFUSE_T_H_
@@ -33,7 +33,6 @@ public:
 
 	/** constructor */
 	DiffusionElementT(const ElementSupportT& support, const FieldT& field);
-	DiffusionElementT(const ElementSupportT& support);
 
 	/** destructor */
 	~DiffusionElementT(void);
@@ -93,24 +92,13 @@ protected:
 	 *        a new MaterialSupportT and initialize it. */
 	virtual MaterialSupportT* NewMaterialSupport(MaterialSupportT* p = NULL) const;
 
-	/** return a pointer to a new material list. Recipient is responsible for freeing 
-	 * the pointer. 
-	 * \param nsd number of spatial dimensions
-	 * \param size length of the list */
-	virtual MaterialListT* NewMaterialList(int nsd, int size);
+	/** return a pointer to a new material list. Recipient is responsible for
+	 * for freeing the pointer. */
+	virtual MaterialListT* NewMaterialList(int size);
 
 	/** driver for calculating output values */
 	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	                           const iArrayT& e_codes, dArray2DT& e_values);
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
-	/*@}*/
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.15 2003-11-21 22:48:06 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.13 2003-07-12 08:24:51 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "DiagonalMatrixT.h"
 #include <iostream.h>
@@ -80,12 +80,12 @@ void DiagonalMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 /* assemble the element contribution into the LHS matrix - assumes
 * that elMat is square (n x n) and that eqnos is also length n.
 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
+void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 	if (elMat.Format() == ElementMatrixT::kDiagonal)
 	{
 		/* from diagonal only */
-		const double* pelMat = elMat.Pointer();
+		double* pelMat = elMat.Pointer();
 		int inc = elMat.Rows() + 1;
 
 		int numvals = eqnos.Length();
@@ -123,7 +123,7 @@ void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& e
 				for (int i = 0; i < numrows; i++)
 					if (eqnos[i] > 0)
 					{
-						const double* prow = elMat.Pointer(i);
+						double* prow = elMat.Pointer(i);
 						double sum = 0.0;					
 						for (int j = 0; j < numrows; j++)
 						{				
@@ -143,8 +143,8 @@ void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& e
 	}
 }
 
-void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
-	const ArrayT<int>& col_eqnos)
+void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+	const nArrayT<int>& col_eqnos)
 {
 	/* pick out diagonal values */
 	for (int row = 0; row < row_eqnos.Length(); row++)
@@ -157,7 +157,7 @@ void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& r
 			}
 }
 
-void DiagonalMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos)
+void DiagonalMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
@@ -337,9 +337,9 @@ void DiagonalMatrixT::PrintZeroPivots(void) const
 	if (!firstline) fOut << '\n';
 }
 
-void DiagonalMatrixT::PrintLHS(bool force) const
+void DiagonalMatrixT::PrintLHS(void) const
 {
-	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
+	if (fCheckCode != GlobalMatrixT::kPrintLHS) return;
 		
 	fOut << "\nLHS matrix:\n\n";
 	fOut << fMatrix << "\n\n";

@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.16 2003-11-04 17:35:35 paklein Exp $ */
+/* $Id: FieldT.h,v 1.14.2.1 2003-09-28 09:19:03 paklein Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -165,7 +165,7 @@ public:
 	void CloseStep(void);
 
 	/** reset displacements (and configuration to the last known solution) */
-	void ResetStep(void);
+	GlobalT::RelaxCodeT ResetStep(void);
 
 	/** \name equation numbers
 	 * FieldT assumes equation numbers will be assigned by the host. The array can be 
@@ -226,7 +226,7 @@ public:
 	void SetLocalEqnos(const RaggedArray2DT<int>& nodes, RaggedArray2DT<int>& eqnos) const;
 
 	/** collect equation numbers */
-	void SetLocalEqnos(const ArrayT<int>& tags, iArray2DT& eqnos) const;
+	void SetLocalEqnos(const iArrayT& tags, iArray2DT& eqnos) const;
 	/*@}*/
 
 	/** \name restart functions
@@ -238,9 +238,6 @@ public:
 	void WriteRestart(ofstreamT& out, const ArrayT<int>* nodes) const;
 	void ReadRestart(ifstreamT& in, const ArrayT<int>* nodes);
 	/*@}*/ 
-
-	/** register results for output */
-	void RegisterOutput(void);
 
 	/** write output data */
 	void WriteOutput(ostream& out) const;
@@ -401,7 +398,7 @@ inline const dArray2DT& FieldT::operator()(int step, int order) const
 		return fField_last[order];
 }
 
-inline void FieldT::SetLocalEqnos(const ArrayT<int>& tags,
+inline void FieldT::SetLocalEqnos(const iArrayT& tags,
 	iArray2DT& eqnos) const
 {
 	eqnos.RowCollect(tags,fEqnos);

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.20 2003-11-05 20:34:47 paklein Exp $
+# $Id: makefile,v 1.19 2003-08-23 16:15:35 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -29,7 +29,6 @@ OBJ = \
 	Contact3DT_K.o \
 	PenaltyContact2DT.o \
 	PenaltyContact3DT.o \
-	MFPenaltyContact2DT.o \
 	PenaltyContactDrag2DT.o \
 	PenaltyContactDrag3DT.o
 
@@ -60,7 +59,6 @@ SRC = \
 	Contact3DT_K.cpp \
 	PenaltyContact2DT.cpp \
 	PenaltyContact3DT.cpp \
-	MFPenaltyContact2DT.cpp \
 	PenaltyContactDrag2DT.cpp \
 	PenaltyContactDrag3DT.cpp
 
@@ -82,7 +80,6 @@ HDR = \
 	Contact3DT.h \
 	PenaltyContact2DT.h \
 	PenaltyContact3DT.h \
-	MFPenaltyContact2DT.h \
 	PenaltyContactDrag2DT.h \
 	PenaltyContactDrag3DT.h
 

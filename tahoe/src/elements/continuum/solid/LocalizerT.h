@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.h,v 1.5 2002-11-21 01:13:38 paklein Exp $ */
+/* $Id: LocalizerT.h,v 1.5.16.1 2003-09-28 09:11:50 paklein Exp $ */
 /* created: paklein (02/19/1998) */
 
 #ifndef _LOCALIZER_T_H_
@@ -46,7 +46,7 @@ public:
 	virtual void WriteRestart(ostream& out) const;
 	
 	/* resets to the last converged solution */
-	virtual void ResetStep(void);
+	virtual GlobalT::RelaxCodeT ResetStep(void);
 		
 protected:
 

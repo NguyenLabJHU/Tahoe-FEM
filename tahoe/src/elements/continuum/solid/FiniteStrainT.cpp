@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.17 2003-12-02 17:13:36 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.16 2003-01-29 07:34:34 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -136,36 +136,22 @@ MaterialSupportT* FiniteStrainT::NewMaterialSupport(MaterialSupportT* p) const
 }
 
 /* construct materials manager and read data */
-MaterialListT* FiniteStrainT::NewMaterialList(int nsd, int size)
+MaterialListT* FiniteStrainT::NewMaterialList(int size)
 {
-	if (size > 0)
-	{
-		/* material support */
-		if (!fFSMatSupport) {
-			fFSMatSupport = dynamic_cast<FSMatSupportT*>(NewMaterialSupport());
-			if (!fFSMatSupport) ExceptionT::GeneralFail("FiniteStrainT::NewMaterialList");
-		}
+	/* material support */
+	if (!fFSMatSupport) {
+		fFSMatSupport = dynamic_cast<FSMatSupportT*>(NewMaterialSupport());
+		if (!fFSMatSupport) throw ExceptionT::kGeneralFail;
+	}
 
-		if (NumSD() == 1)
-			return new SolidMatList1DT(size, *fFSMatSupport);
-		else if (NumSD() == 2)
-			return new SolidMatList2DT(size, *fFSMatSupport);
-		else if (NumSD() == 3)
-			return new SolidMatList3DT(size, *fFSMatSupport);
-		else
-			return NULL;
-	}
+	if (NumSD() == 1)
+		return new SolidMatList1DT(size, *fFSMatSupport);
+	else if (NumSD() == 2)
+		return new SolidMatList2DT(size, *fFSMatSupport);
+	else if (NumSD() == 3)
+		return new SolidMatList3DT(size, *fFSMatSupport);
 	else
-	{
-		if (NumSD() == 1)
-			return new SolidMatList1DT;
-		else if (NumSD() == 2)
-			return new SolidMatList2DT;
-		else if (NumSD() == 3)
-			return new SolidMatList3DT;
-		else
-			return NULL;
-	}
+		return NULL;			
 }
 
 /* construct list of materials from the input stream */

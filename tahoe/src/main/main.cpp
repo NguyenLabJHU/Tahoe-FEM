@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.20 2003-10-07 18:46:05 paklein Exp $ */
+/* $Id: main.cpp,v 1.19.2.1 2003-10-08 00:11:48 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>
@@ -96,7 +96,7 @@ if (getcwd(cwd, 255)) cout << " cwd: " << cwd << endl;
 		cout = console;
 		cerr = console;
 	}
-#endif /* __DEC__ || __SUN__ || __GCC_3__ || __INTEL_CC__ */
+#endif /* __DEC__ */
 #else /* __MACOS__ && __INTEL__ */
 #pragma unused(comm)
 #endif /* __MACOS__ && __INTEL__ */

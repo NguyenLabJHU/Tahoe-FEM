@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.13 2003-09-02 07:03:12 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.13.2.1 2003-12-09 18:26:52 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 #include "NodeManagerT.h"
@@ -75,6 +75,31 @@ void K_FieldT::Initialize(ifstreamT& in)
 	in >> fNearTipGroupNum;   // -1: no nearfield group
 	in >> fNearTipOutputCode; // variable to locate crack tip
 	in >> fTipColumnNum;      // column of output variable to locate tip
+
+	/* tracking type */
+	int tracking_type = -99;
+	in >> tracking_type;
+	switch (tracking_type)
+	{
+		case kMaximum:
+		{
+			fTrackingCode = kMaximum;
+			break;
+		}
+		case kThreshold:
+		{
+			fTrackingCode = kThreshold;
+		
+			/* threshold value */
+			fTrackingParameters.Dimension(1);
+			in >> fTrackingParameters;
+			break;
+		}
+		default:
+			ExceptionT::BadInputValue(caller, "unrecognized tip tracking method: %d", tracking_type);
+	}
+
+	/* growth limiting */
 	in >> fMaxGrowthDistance; if (fMaxGrowthDistance < 0.0) ExceptionT::BadInputValue(caller);
 	in >> fMaxGrowthSteps; if (fMaxGrowthSteps < 1) ExceptionT::BadInputValue(caller);
 
@@ -135,6 +160,8 @@ void K_FieldT::WriteParameters(ostream& out) const
 	else out << "<none>\n";
 	out << " Fracture path output code . . . . . . . . . . . = " << fNearTipOutputCode + 1 << '\n';
 	out << " Fracture path test value column number. . . . . = " << fTipColumnNum + 1  << '\n';
+	out << " Tip tracking method . . . . . . . . . . . . . . = " << fTrackingCode << '\n';
+	if (fTrackingParameters.Length() > 0) out << " parameters: " << fTrackingParameters.no_wrap() << '\n';
 	out << " Maximum extension distance per load step. . . . = " << fMaxGrowthDistance << '\n';
 	out << " Maximum number of extensions per load step. . . = " << fMaxGrowthSteps    << '\n';
 	out << " Far field element group number. . . . . . . . . = " << fFarFieldGroupNum + 1 << '\n';
@@ -258,7 +285,7 @@ GlobalT::RelaxCodeT K_FieldT::RelaxSystem(void)
 		if (advance < 0.0)
 		{
 			/* tip moving backwards */
-			cout << " K_FieldT::RelaxSystem: tip moving backwards: IGNORED\n";
+			cout << " K_FieldT::RelaxSystem: tip moving backwards: IGNORED: " << advance << '\n';
 			cout << " current position: " << fTipCoords[0] << '\n';
 			return relax;
 		}
@@ -334,18 +361,58 @@ void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
 
 	/* signal to accumulate nodal values */
 	neartip_group->SendOutput(fNearTipOutputCode);
-	
-	/* find the node with max opening stress */
-	int maxrow;
-	double maxval;
-	fNodeManager.MaxInColumn(fTipColumnNum, maxrow, maxval);
-	if (maxrow == -1) ExceptionT::GeneralFail(caller);
 
-	/* get new tip coordinates */
-	if (maxval > TipNoise)
-		fNodeManager.InitialCoordinates().RowAlias(maxrow, tip_coords);
-	else /* keep current tip position */
-		tip_coords = fTipCoords;
+	/* find new tip coordinates */
+	tip_coords = fTipCoords;
+	switch (fTrackingCode)
+	{
+		case kMaximum:
+		{
+			/* find the node with maximum value */
+			int maxrow;
+			double maxval;
+			fNodeManager.MaxInColumn(fTipColumnNum, maxrow, maxval);
+			if (maxrow == -1) ExceptionT::GeneralFail(caller);
+
+			/* get new tip coordinates */
+			if (maxval > TipNoise)
+				fNodeManager.InitialCoordinates().RowCopy(maxrow, tip_coords);
+
+			break;
+		}
+		case kThreshold:
+		{
+			/* nodal coordinates */
+			const dArray2DT& initial_coordinates = fNodeManager.InitialCoordinates();
+		
+			/* get all nodal values */
+			const dArray2DT& nodal_values = fNodeManager.OutputAverage(); 
+		
+			/* test threshold */
+			double threshold = fTrackingParameters[0];
+			int max_growth = 0.0;
+			dArrayT advance(fGrowthDirection.Length());
+			dArrayT x_node;
+			for (int i = 0; i < nodal_values.MajorDim(); i++)
+				if (nodal_values(i,fTipColumnNum) > threshold) {
+			
+					/* crack extension increment */
+					initial_coordinates.RowAlias(i, x_node);
+					advance.DiffOf(x_node, fTipCoords);
+					double growth = dArrayT::Dot(fGrowthDirection, advance);
+			
+					/* maximum extension */
+					if (growth > max_growth) {
+						max_growth = growth;
+						tip_coords = x_node;
+					}
+				}
+
+			break;
+		}
+		default:
+			ExceptionT::GeneralFail(caller, "unrecognized tracking method %d", fTrackingCode);
+	}
 }
 
 /* resolve element info to isotropic material */

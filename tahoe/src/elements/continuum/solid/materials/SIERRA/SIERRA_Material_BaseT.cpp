@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.12 2003-11-21 22:46:29 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.11 2003-07-24 16:48:22 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -392,7 +392,7 @@ void SIERRA_Material_BaseT::SIERRA_to_dSymMatrixT(const double* pA,
 void SIERRA_Material_BaseT::dSymMatrixT_to_SIERRA(const dSymMatrixT& A,
 	double* pB) const
 {
-	const double* pA = A.Pointer();	
+	double* pA = A.Pointer();	
 	*pB++ = pA[0]; // 11
 	*pB++ = pA[1]; // 22
 	*pB++ = pA[2]; // 33

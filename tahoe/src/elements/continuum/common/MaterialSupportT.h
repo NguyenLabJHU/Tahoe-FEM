@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.h,v 1.8 2003-11-21 22:46:00 paklein Exp $ */
+/* $Id: MaterialSupportT.h,v 1.7 2003-08-25 21:42:42 paklein Exp $ */
 #ifndef _MATERIAL_SUPPORT_T_H_
 #define _MATERIAL_SUPPORT_T_H_
 
@@ -110,7 +110,7 @@ public:
 	const ContinuumElementT* ContinuumElement(void) const;
 	
 	/** set the source for element cards */
-	void SetElementCards(AutoArrayT<ElementCardT>* element_cards);
+	void SetElementCards(const AutoArrayT<ElementCardT>* element_cards);
 
 	/** return the number of elements. If the element cards pointer
 	 * is not set with MaterialSupportT::SetElementCards, this will return 0 */
@@ -122,7 +122,6 @@ public:
 
 	/** return the specified card.  If the element cards pointer
 	 * is not set with MaterialSupportT::SetElementCards, this will return NULL */
-	//ElementCardT* ElementCard(int card);
 	ElementCardT* ElementCard(int card) const;
 
 	/** return the current card.  If the element cards pointer
@@ -197,7 +196,7 @@ public:
 	/*@}*/
 
 	/** pointer to element card information */
-	AutoArrayT<ElementCardT>* fElementCards;	
+	const AutoArrayT<ElementCardT>* fElementCards;	
   
   	/** pointer to the continuum element */
   	const ContinuumElementT* fContinuumElement;
@@ -216,7 +215,7 @@ inline const ContinuumElementT* MaterialSupportT::ContinuumElement(void) const
 }
 
 /* set the source for element cards */
-inline void MaterialSupportT::SetElementCards(AutoArrayT<ElementCardT>* element_cards)
+inline void MaterialSupportT::SetElementCards(const AutoArrayT<ElementCardT>* element_cards)
 {
 	fElementCards = element_cards;
 }

@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.cpp,v 1.13 2003-11-21 22:46:48 paklein Exp $ */
+/* $Id: J2Simo2D.cpp,v 1.11 2003-01-29 07:35:02 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 #include "J2Simo2D.h"
 #include "StringT.h"
@@ -12,6 +12,7 @@ const double sqrt23 = sqrt(2.0/3.0);
 /* constructor */
 J2Simo2D::J2Simo2D(ifstreamT& in, const FSMatSupportT& support):
 	SimoIso2D(in, support),
+//	J2SimoLinHardT(in, NumIP(), Mu()),
 	J2SimoC0HardeningT(in, NumIP(), Mu()),
 	fFmech(3),
 	ffrel(3),
@@ -49,6 +50,7 @@ void J2Simo2D::Print(ostream& out) const
 {
 	/* inherited */
 	SimoIso2D::Print(out);
+//	J2SimoLinHardT::Print(out);
 	J2SimoC0HardeningT::Print(out);
 }
 
@@ -139,7 +141,7 @@ double J2Simo2D::StrainEnergyDensity(void)
 double J2Simo2D::IncrementalHeat(void)
 {
 	/* trust the "current" element is already loaded */
-	const ElementCardT& element = CurrentElement();
+	ElementCardT& element = CurrentElement();
 	if (element.IsAllocated())
 		return fInternal[kHeatIncr];
 	else
@@ -231,6 +233,7 @@ void J2Simo2D::PrintName(ostream& out) const
 {
 	/* inherited */
 	SimoIso2D::PrintName(out);
+//	J2SimoLinHardT::PrintName(out);
 	J2SimoC0HardeningT::PrintName(out);
 }
 

@@ -1,4 +1,4 @@
-
+/* $Id: EAMT.h,v 1.15 2003-08-04 16:36:10 saubry Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -21,7 +21,6 @@ public:
 
 	/** constructor */
 	EAMT(const ElementSupportT& support, const FieldT& field);
-	EAMT(const ElementSupportT& support);
 
 	/** collecting element group equation numbers */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -54,12 +53,6 @@ public:
 	virtual void FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 		const iArray2DT& col_eq, dSPMatrixT& stiffness);
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-	/*@}*/
-
 protected:
 
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
@@ -83,9 +76,6 @@ protected:
 
 	/** generate labels for output data */
 	virtual void GenerateOutputLabels(ArrayT<StringT>& labels) const;
-
-	/**nearest neighbor list**/
-	RaggedArray2DT<int> NearestNeighbors;
 
 private:
 

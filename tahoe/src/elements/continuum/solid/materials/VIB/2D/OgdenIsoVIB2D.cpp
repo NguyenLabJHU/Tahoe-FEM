@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB2D.cpp,v 1.11 2003-11-21 22:46:35 paklein Exp $ */
+/* $Id: OgdenIsoVIB2D.cpp,v 1.10 2003-06-28 17:32:15 thao Exp $ */
 /* created: paklein (11/08/1997) */
 #include "OgdenIsoVIB2D.h"
 
@@ -214,7 +214,7 @@ void OgdenIsoVIB2D::Construct(void)
 	for (int i = 0; i < numpoints; i++)
 	{
 		/* direction cosines */
-		const double *xsi = points(i);
+		double *xsi = points(i);
 		double cosi = xsi[0];
 		double sini = xsi[1];
 		

@@ -1,4 +1,4 @@
-/* $Id: MatsuiPairT.cpp,v 1.2 2003-10-28 23:31:51 paklein Exp $ */
+/* $Id: MatsuiPairT.cpp,v 1.1 2003-08-07 21:29:31 fwdelri Exp $ */
 
 #include "MatsuiPairT.h"
 #include "toolboxConstants.h"
@@ -28,13 +28,13 @@ MatsuiPairT::MatsuiPairT(double mass, double sqr_q, double two_A, double two_B, 
 	f_dphi_rc(0.0),
 	f_phi_rc(0.0)
 {
-	SetName("Matsui");
 	SetRange(f_rc);
 	SetMass(mass);
 	
 	/* evaluate unmodified force at the cut-off */
 	if (f_rc > kSmall)
-	{
+	  {
+
 		s_f = f_f;
 		s_rc = f_rc;
 		s_phi_rc = 0.0;
@@ -44,24 +44,11 @@ MatsuiPairT::MatsuiPairT(double mass, double sqr_q, double two_A, double two_B, 
 		s_two_B = f_two_B;
 		s_sqr_C = f_sqr_C;
 
-		f_phi_rc = Energy(f_rc, NULL, NULL);
-		f_dphi_rc = Force(f_rc, NULL, NULL);
-	}
+		f_phi_rc = Energy(rc, NULL, NULL);
+		f_dphi_rc = Force(rc, NULL, NULL);
+	  }
 	else
 		f_rc = 0.0;
-}
-
-MatsuiPairT::MatsuiPairT(void):
-	f_sqr_q(0.0),
-	f_two_A(0.0),
-	f_two_B(0.0),
-	f_sqr_C(0.0),
-	f_f(0.0),
-	f_rc(0.0),
-	f_dphi_rc(0.0),
-	f_phi_rc(0.0)
-{
-	SetName("Matsui");
 }
 
 /* return a pointer to the energy function */
@@ -124,57 +111,6 @@ void MatsuiPairT::Write(ostream& out) const
 	out << " C1 * C2 (sqr_C) . . . . . . . . . . . . . . . . = " << f_sqr_C << '\n';
 	out << " Standard Force (f). . . . . . . . . . . . . . . = " << f_f << '\n';
 	out << " Cut-off radius (rc) . . . . . . . . . . . . . . = " << f_rc << '\n';
-}
-
-/* describe the parameters needed by the interface */
-void MatsuiPairT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	PairPropertyT::DefineParameters(list);
-
-	list.AddParameter(f_sqr_q, "sqr_q");
-	list.AddParameter(f_two_A, "two_A");
-	list.AddParameter(f_two_B, "two_B");
-	list.AddParameter(f_sqr_C, "sqr_C");
-	list.AddParameter(f_f    , "f");
-	list.AddParameter(f_rc   , "rc", ParameterListT::ZeroOrOnce);
-}
-
-/* accept parameter list */
-void MatsuiPairT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	PairPropertyT::TakeParameterList(list);
-
-	f_sqr_q = list.GetParameter("sqr_q");
-	f_two_A = list.GetParameter("two_A");
-	f_two_B = list.GetParameter("two_B");
-	f_sqr_C = list.GetParameter("sqr_C");
-	f_f     = list.GetParameter("f");
-
-	/* optional cut-off */
-	const ParameterT* rc = list.Parameter("rc");
-	if (rc)
-		f_rc = *rc;
-	else
-		f_rc = 0.0;
-	SetRange(f_rc);
-	
-	/* evaluate unmodified force at the cut-off */
-	if (f_rc > kSmall)
-	{
-		s_f = f_f;
-		s_rc = f_rc;
-		s_phi_rc = 0.0;
-		s_dphi_rc = 0.0;
-		s_sqr_q = f_sqr_q;
-		s_two_A = f_two_A;
-		s_two_B = f_two_B;
-		s_sqr_C = f_sqr_C;
-
-		f_phi_rc = Energy(f_rc, NULL, NULL);
-		f_dphi_rc = Force(f_rc, NULL, NULL);
-	}
 }
 
 /***********************************************************************

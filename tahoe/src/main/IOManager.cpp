@@ -1,4 +1,4 @@
-/* $Id: IOManager.cpp,v 1.19 2003-10-05 18:08:37 paklein Exp $ */
+/* $Id: IOManager.cpp,v 1.18 2003-08-08 00:38:38 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 #include "IOManager.h"
 
@@ -31,8 +31,7 @@ IOManager::IOManager(ifstreamT& in, const IOManager& io_man):
 	fOutput(NULL),
 	fEcho (false),
 	fOutputTime(0.0),
-	fOutput_tmp(NULL),
-	fChangingFlag(io_man.fChangingFlag)
+	fOutput_tmp(NULL)
 {
 	/* construct output formatter */
 	fOutput = IOBaseT::NewOutput((io_man.fOutput)->CodeName(),

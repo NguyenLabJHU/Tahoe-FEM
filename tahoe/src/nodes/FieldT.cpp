@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.22 2003-11-21 22:47:56 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.19.2.1 2003-09-28 09:19:03 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nIntegratorT.h"
@@ -359,7 +359,7 @@ GlobalT::RelaxCodeT FieldT::RelaxSystem(void)
 }
 
 /* reset displacements (and configuration to the last known solution) */
-void FieldT::ResetStep(void)
+GlobalT::RelaxCodeT FieldT::ResetStep(void)
 {
 	/* reset field */
 	fField = fField_last;
@@ -371,6 +371,8 @@ void FieldT::ResetStep(void)
 	/* FBC controllers */
 	for (int i = 0; i < fFBC_Controllers.Length(); i++)
 		fFBC_Controllers[i]->Reset();
+		
+	return GlobalT::kNoRelax;
 }
 
 /* mark prescribed equations */
@@ -429,7 +431,7 @@ void FieldT::SetLocalEqnos(const iArray2DT& nodes, iArray2DT& eqnos) const
 	int ndof  = NumDOF();
 	for (int i = 0; i < numel; i++)
 	{
-		const int* pnodes = nodes(i);
+		int* pnodes = nodes(i);
 		int* pien   = eqnos(i);
 		for (int j = 0; j < nen; j++)
 		{
@@ -482,7 +484,7 @@ void FieldT::SetLocalEqnos(const RaggedArray2DT<int>& nodes,
 		//must have enough space (and maybe more)
 #endif
 		int  nen    = nodes.MinorDim(i);
-		const int* pnodes = nodes(i);
+		int* pnodes = nodes(i);
 		int* pien   = eqnos(i);
 		int ndof    = NumDOF();
 		for (int j = 0; j < nen; j++)
@@ -582,14 +584,6 @@ void FieldT::WriteRestart(ofstreamT& out, const ArrayT<int>* nodes) const
 	/* FBC controllers */
 	for (int i = 0; i < fFBC_Controllers.Length(); i++)
 		fFBC_Controllers[i]->WriteRestart(out);
-}
-
-/* register results for output */
-void FieldT::RegisterOutput(void)
-{
-	/* FBC controllers */
-	for (int i = 0; i < fFBC_Controllers.Length(); i++)
-		fFBC_Controllers[i]->RegisterOutput();
 }
 
 /* write output data */
@@ -729,9 +723,6 @@ void FieldT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& ord
 
 		/* flat barrier */
 		sub_sub_list.AddSub("wall_penalty");
-
-		/* cylindrical barrier */
-		sub_sub_list.AddSub("cylinder_penalty");
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);

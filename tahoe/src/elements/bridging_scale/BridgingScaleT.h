@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.27 2003-10-28 07:30:35 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.26 2003-07-11 16:45:59 hspark Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -67,10 +67,6 @@ public:
 	 * matrix. */
 	virtual void ProjectField(const PointInCellDataT& cell_data,
 		const dArray2DT& point_values, dArray2DT& projection);
-
-	/** compute the coarse scale part of the source field */
-	virtual void CoarseField(const PointInCellDataT& cell_data,
-		const dArray2DT& field, dArray2DT& coarse) const;
 	/*@}*/
 
 	/** Same as ProjectField, except that computes and returns total solution u 

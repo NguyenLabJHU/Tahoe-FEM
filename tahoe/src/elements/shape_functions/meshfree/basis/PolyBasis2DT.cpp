@@ -1,4 +1,4 @@
-/* $Id: PolyBasis2DT.cpp,v 1.4 2003-11-21 22:47:21 paklein Exp $ */
+/* $Id: PolyBasis2DT.cpp,v 1.3 2002-10-20 22:49:43 paklein Exp $ */
 /* created: paklein (12/13/1999)                                          */
 
 #include "PolyBasis2DT.h"
@@ -72,7 +72,7 @@ void PolyBasis2DT::SetBasis(const dArray2DT& coords, int order)
 		}
 		case 1: // linear basis
 		{
-			const double* px = coords.Pointer();
+			double*   px = coords.Pointer();
 			double*  pP0 = fP(0);
 			double*  pP1 = fP(1);
 			double*  pP2 = fP(2);

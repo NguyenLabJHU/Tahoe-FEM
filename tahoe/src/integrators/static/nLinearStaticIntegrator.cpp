@@ -1,4 +1,4 @@
-/* $Id: nLinearStaticIntegrator.cpp,v 1.5 2003-11-21 22:47:42 paklein Exp $ */
+/* $Id: nLinearStaticIntegrator.cpp,v 1.4 2003-01-27 07:00:23 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 #include "nLinearStaticIntegrator.h"
 #include "BasicFieldT.h"
@@ -30,8 +30,8 @@ void nLinearStaticIntegrator::Corrector(BasicFieldT& field, const dArrayT& updat
 	const iArray2DT& eqnos = field.Equations();
 
 	/* add update - assumes that fEqnos maps directly into dva */
-	const int* peq = eqnos.Pointer();
-	double* pd  = field[0].Pointer();
+	int    *peq = eqnos.Pointer();
+	double *pd  = field[0].Pointer();
 	for (int i = 0; i < eqnos.Length(); i++)
 	{
 		int eq = *peq++ - eq_start;

@@ -1,5 +1,6 @@
-/* $Id: MFPenaltySphereT.cpp,v 1.6 2003-10-04 19:14:05 paklein Exp $ */
+/* $Id: MFPenaltySphereT.cpp,v 1.5 2002-10-20 22:49:27 paklein Exp $ */
 /* created: paklein (04/17/2000) */
+
 #include "MFPenaltySphereT.h"
 
 #include <iostream.h>
@@ -9,12 +10,13 @@
 #include "ElementBaseT.h"
 #include "fstreamT.h"
 
+/* constructor */
+
 using namespace Tahoe;
 
-/* constructor */
 MFPenaltySphereT::MFPenaltySphereT(FEManagerT& fe_manager, int group,
-	const iArray2DT& eqnos, const dArray2DT& coords, const dArray2DT& disp, const dArray2DT* vels):
-	PenaltySphereT(fe_manager, group, eqnos, coords, disp, vels),
+	const iArray2DT& eqnos, const dArray2DT& coords, const dArray2DT* vels):
+	PenaltySphereT(fe_manager, group, eqnos, coords, vels),
 	fElementGroup(NULL)
 {
 
@@ -63,6 +65,7 @@ void MFPenaltySphereT::ComputeContactForce(double kforce)
 	fCurrCoords += fCoords; //EFFECTIVE DVA
 
 	/* loop over strikers */
+	fh_max = 0.0;
 	fContactForce2D = 0.0;	
 	for (int i = 0; i < fNumContactNodes; i++)
 	{
@@ -72,18 +75,21 @@ void MFPenaltySphereT::ComputeContactForce(double kforce)
 		
 		/* penetration */
 		double dist = fv_OP.Magnitude();
-		double pen  = dist - fRadius;
-		if (pen < 0.0)
+		double pen  = fRadius - dist;
+		if (pen > 0.0)
 		{
+			/* store max penetration */
+			fh_max = (pen > fh_max) ? pen : fh_max;
+		
 			/* convert to force*outward normal */
-			fv_OP *= (-pen*fk*kforce/dist);
+			fv_OP *= (pen*fk*kforce/dist);
 		
 			/* accumulate */
 			fContactForce2D.SetRow(i, fv_OP);
 		}
 
 		/* store */
-		fGap[i] = pen;
+		fDistances[i] = dist;
 	}
 }
 

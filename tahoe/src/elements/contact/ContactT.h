@@ -1,4 +1,4 @@
-/* $Id: ContactT.h,v 1.11 2003-11-13 22:19:25 paklein Exp $ */
+/* $Id: ContactT.h,v 1.9 2003-08-23 16:15:35 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #ifndef _CONTACT_T_H_
 #define _CONTACT_T_H_
@@ -46,11 +46,9 @@ public:
 	/** Returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void); // not implemented
 	
-	/** \name writing output */
-	/*@{*/
+	/** writing output */
 	virtual void RegisterOutput(void);
 	virtual void WriteOutput(void);
-	/*@}*/
 
 	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);  // not implemented
@@ -86,9 +84,6 @@ protected:
 	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
 	virtual void SetWorkSpace(void);
 	/*@}*/
-
-	/** write information about contact interactions */
-	void WriteContactInfo(ostream& out) const;
 
 	/** generate contact element data. Returns true if configuration has
 	 * changed since the last call */
@@ -154,19 +149,18 @@ protected:
 	AutoArrayT<int> fActiveStrikers; /**< global numbers of active strikers       */
 	AutoArrayT<int> fHitSurface;     /**< contact surface for each active striker */
 	AutoArrayT<int> fHitFacets;      /**< facet of contact surface                */
-	AutoArrayT<double> fActiveStrikersForce; /**< contact force on active strikers */
 	/*@}*/
 
 	/** link surfaces in ConnectsU needed for graph */
 	iArray2DT fSurfaceLinks;
+	
+private:
 
 	/** \name dynamic work space managers for element arrays */
 	/*@{*/
 	nVariArray2DT<int> fConnectivities_man;		
 	nVariArray2DT<int> fEqnos_man;
 	/*@}*/
-	
-private:
 
 	/** \name tracking data. Parameters should be set using ContactT::SetTrackingData
 	 * and are written during ContactT::WriteOutput. */

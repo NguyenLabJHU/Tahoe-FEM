@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8 2003-10-20 23:31:07 cjkimme Exp $
+# $Id: makefile,v 1.7 2003-03-04 07:36:58 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -24,7 +24,6 @@ OBJ = \
 	CSEAnisoT.o \
 	CSEBaseT.o \
 	CSEIsoT.o \
-	CSESymAnisoT.o \
 	MeshFreeCSEAnisoT.o
 
 OBJ_LINK = $(OBJ)
@@ -49,7 +48,6 @@ SRC = \
 	CSEAnisoT.cpp \
 	CSEBaseT.cpp \
 	CSEIsoT.cpp \
-	CSESymAnisoT.cpp \
 	MeshFreeCSEAnisoT.cpp
 
 ##################### (3) headers
@@ -66,7 +64,6 @@ HDR = \
 	CSEAnisoT.h \
 	CSEBaseT.h \
 	CSEIsoT.h \
-	CSESymAnisoT.h \
 	MeshFreeCSEAnisoT.h
 
 HDR_LINK = $(HDR:.h=.h_link)

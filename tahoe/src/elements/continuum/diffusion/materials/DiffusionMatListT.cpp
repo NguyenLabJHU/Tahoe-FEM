@@ -1,4 +1,4 @@
-/* $Id: DiffusionMatListT.cpp,v 1.7 2003-12-10 07:14:28 paklein Exp $ */
+/* $Id: DiffusionMatListT.cpp,v 1.5 2003-06-09 06:53:11 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "DiffusionMatListT.h"
 #include "DiffusionMatSupportT.h"
@@ -13,15 +13,9 @@ using namespace Tahoe;
 /* constructors */
 DiffusionMatListT::	DiffusionMatListT(int length, const DiffusionMatSupportT& support):
 	MaterialListT(length),
-	fDiffusionMatSupport(&support)
+	fDiffusionMatSupport(support)
 {
-	SetName("diffusion_materials");
-}
 
-DiffusionMatListT::	DiffusionMatListT(void):
-	fDiffusionMatSupport(NULL)
-{
-	SetName("diffusion_materials");
 }
 
 /* read material data from the input stream */
@@ -48,12 +42,12 @@ void DiffusionMatListT::ReadMaterialData(ifstreamT& in)
 		{
 			case kLinear:
 			{
-				fArray[matnum] = new DiffusionMaterialT(in, *fDiffusionMatSupport);
+				fArray[matnum] = new DiffusionMaterialT(in, fDiffusionMatSupport);
 				break;
 			}
 			case kNonLinear:
 			{
-				fArray[matnum] = new NLDiffusionMaterialT(in, *fDiffusionMatSupport);
+				fArray[matnum] = new NLDiffusionMaterialT(in, fDiffusionMatSupport);
 				break;
 			}
 			default:
@@ -64,26 +58,3 @@ void DiffusionMatListT::ReadMaterialData(ifstreamT& in)
 		if (!fArray[matnum]) ExceptionT::OutOfMemory(caller);
 	}
 }
-
-/* information about subordinate parameter lists */
-void DiffusionMatListT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	MaterialListT::DefineSubs(sub_list);
-
-	/* diffusion materials */
-	sub_list.AddSub("linear_diffusion");
-	sub_list.AddSub("nonlinear_diffusion");
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* DiffusionMatListT::NewSub(const StringT& list_name) const
-{
-	if (list_name == "linear_diffusion")
-		return new DiffusionMaterialT;	
-	else if (list_name == "nonlinear_diffusion")
-		return new NLDiffusionMaterialT;
-	else /* inherited */
-		return MaterialListT::NewSub(list_name);
-}
-

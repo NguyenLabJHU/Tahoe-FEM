@@ -1,4 +1,4 @@
-/* $Id: BondLengthsT.cpp,v 1.4 2003-11-21 22:46:41 paklein Exp $ */
+/* $Id: BondLengthsT.cpp,v 1.3 2002-10-20 22:49:03 paklein Exp $ */
 /* created: paklein (05/20/1997)                                          */
 /* Class to compute/manage all bond lengths and derivatives               */
 /* for the 2 unit cell, diamond cubic, modified Cauchy-Born,              */
@@ -129,7 +129,7 @@ void BondLengthsT::dR(const dArray2DT& R, const dArrayT& l, const dMatrixT& C,
 
 	for (int i = 0; i < l.Length(); i++)
 	{
-		shR.Alias(kNSD, R(i));		
+		shR.Set(kNSD, R(i));		
 		C.MultTx(shR,fTempVec);				
 						
 		/* dl/dC */

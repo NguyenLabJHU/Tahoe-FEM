@@ -1,4 +1,4 @@
-/* $Id: Contact2DT.h,v 1.5 2003-11-04 17:37:50 paklein Exp $ */
+/* $Id: Contact2DT.h,v 1.4 2002-07-05 22:28:01 paklein Exp $ */
 /* created: paklein (05/26/1999) */
 #ifndef _CONTACT2D_T_H_
 #define _CONTACT2D_T_H_
@@ -29,29 +29,20 @@ public:
 
 protected:
 
-	/** \name steps in setting contact configuration */
-	/*@{*/
-	/** set "internal" data */
-	virtual bool SetActiveInteractions(void);
-
-	/** set "external" data to send to FEManager */
-	virtual void SetConnectivities(void);
-	/*@}*/
-
-	/** \name called by Contact2DT::SetActiveInteractions */
-	/*@{*/
-	/* update by-body stored data */
-	void SetSurfacesData(void);
-
-	/* sets active striker data (based on current bodies data). Produces
-	 * one contact per striker */
-	void SetActiveStrikers(void);
-	/*@}*/
+	/* steps in setting contact configuration */
+	virtual bool SetActiveInteractions(void); // "internal" data
+	virtual void SetConnectivities(void); // "external" data - interface to FEManager
 
 private:
 
 	/* set working arrays */
 	void SetShapeFunctionArrays(void);
+
+	/* update by-body stored data */
+	void SetSurfacesData(void);
+
+	/* sets active striker data (based on current bodies data) */
+	void SetActiveStrikers(void); // one contact per striker
 
 protected:
 	

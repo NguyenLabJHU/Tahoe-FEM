@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.27 2003-11-13 22:15:17 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.25.2.1 2003-10-08 00:11:47 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -6,7 +6,6 @@
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 #include "FEManagerT.h"
-#include "TimeManagerT.h"
 #include "CommManagerT.h"
 #include "NodeManagerT.h"
 #include "eIntegratorT.h"
@@ -58,9 +57,6 @@ void ElementSupportT::SetFEManager(FEManagerT* fe)
 		/* set model manager */
 		fModelManager = fe->ModelManager();
 
-		/* set time manager */
-		fTimeManager = fe->TimeManager();
-
 		/* set comm manager */
 		fCommManager = fe->CommManager();
 	}
@@ -74,9 +70,6 @@ void ElementSupportT::SetFEManager(FEManagerT* fe)
 
 		/* clear model manager */
 		fModelManager = NULL;
-		
-		/* clear time manager */
-		fTimeManager = NULL;
 
 		/* clear comm manager */
 		fCommManager = NULL;
@@ -695,16 +688,6 @@ void ElementSupportT::WriteOutput(int ID, const dArray2DT& n_values,
 	ftmp2 = e_values.Pointer();
 	for (int i = 0; i < e_values.Length(); i++)
 		*ftmp1++ = *ftmp2++;
-#endif
-}
-
-/* return true if output is going to be written for the current time step */
-bool ElementSupportT::WriteOutput(void) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return TimeManager().WriteOutput();
-#else
-	return false;
 #endif
 }
 

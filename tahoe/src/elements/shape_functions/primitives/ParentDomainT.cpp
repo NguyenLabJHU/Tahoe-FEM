@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.22 2003-11-22 06:45:56 paklein Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.19 2003-07-11 16:46:06 hspark Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -94,7 +94,7 @@ jac.Rows() != nodal.MinorDim()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double *pjac = jac.Pointer();
-	const double *pval = nodal.Pointer();
+	double *pval = nodal.Pointer();
 	
 	int nnd   = nodal.NumberOfNodes();
 	int num_u = jac.Rows();
@@ -102,40 +102,26 @@ jac.Rows() != nodal.MinorDim()) throw ExceptionT::kSizeMismatch;
 	
 	if (num_d == 2 && num_u == 2)
 	{
-		if (nnd == 4)
-		{
-			const double* pu1 = nodal(0);
-			const double* pu2 = nodal(1);
-			const double* dx1 = DNa(0);
-			const double* dx2 = DNa(1);
-			pjac[0] = pu1[0]*dx1[0] + pu1[1]*dx1[1] + pu1[2]*dx1[2] + pu1[3]*dx1[3];
-	    	pjac[1] = pu2[0]*dx1[0] + pu2[1]*dx1[1] + pu2[2]*dx1[2] + pu2[3]*dx1[3];
-			pjac[2] = pu1[0]*dx2[0] + pu1[1]*dx2[1] + pu1[2]*dx2[2] + pu1[3]*dx2[3];
-			pjac[3] = pu2[0]*dx2[0] + pu2[1]*dx2[1] + pu2[2]*dx2[2] + pu2[3]*dx2[3];
-		}
-		else
-		{
-			double& j11 = *pjac++;
-			double& j21 = *pjac++;
-			double& j12 = *pjac++;
-			double& j22 = *pjac;
+		double& j11 = *pjac++;
+		double& j21 = *pjac++;
+		double& j12 = *pjac++;
+		double& j22 = *pjac;
 	
-			j11 = j21 = j12 = j22 = 0.0;
+		j11 = j21 = j12 = j22 = 0.0;
 
-			const double* pu1 = nodal(0);
-			const double* pu2 = nodal(1);
-			const double* dx1 = DNa(0);
-			const double* dx2 = DNa(1);
+		double* pu1 = nodal(0);
+		double* pu2 = nodal(1);
+		double* dx1 = DNa(0);
+		double* dx2 = DNa(1);
 
-			for (int i = 0; i < nnd; i++)
-			{
-				j11 += (*pu1)*(*dx1);
-	    		j21 += (*pu2)*(*dx1);
-				j12 += (*pu1)*(*dx2);
-				j22 += (*pu2)*(*dx2);
-				
-				pu1++; pu2++; dx1++; dx2++;	
-			}
+		for (int i = 0; i < nnd; i++)
+		{
+			j11 += (*pu1)*(*dx1);
+	    	j21 += (*pu2)*(*dx1);
+			j12 += (*pu1)*(*dx2);
+			j22 += (*pu2)*(*dx2);
+			
+			pu1++; pu2++; dx1++; dx2++;	
 		}
 	}
 	else if (num_d == 3 && num_u == 3)
@@ -152,12 +138,12 @@ jac.Rows() != nodal.MinorDim()) throw ExceptionT::kSizeMismatch;
 	
 		j11 = j21 = j31 = j12 = j22 = j32 = j13 = j23 = j33 = 0.0;
 
-		const double* pu1 = nodal(0);
-		const double* pu2 = nodal(1);
-		const double* pu3 = nodal(2);
-		const double* dx1 = DNa(0);
-		const double* dx2 = DNa(1);
-		const double* dx3 = DNa(2);
+		double* pu1 = nodal(0);
+		double* pu2 = nodal(1);
+		double* pu3 = nodal(2);
+		double* dx1 = DNa(0);
+		double* dx2 = DNa(1);
+		double* dx3 = DNa(2);
 
 		for (int i = 0; i < nnd; i++)
 		{
@@ -212,9 +198,9 @@ void ParentDomainT::Curl(const ArrayT<dArrayT>& T, const dArray2DT& DNa, dArrayT
 	
 		c1 = c2 = c3 = 0.0;
 
-		const double* dx1 = DNa(0);
-		const double* dx2 = DNa(1);
-		const double* dx3;
+		double* dx1 = DNa(0);
+		double* dx2 = DNa(1);
+		double* dx3;
 
 		if (DNa.MajorDim() == 3) { // 3D Problem
 		  dx3 = DNa(2);
@@ -230,15 +216,15 @@ void ParentDomainT::Curl(const ArrayT<dArrayT>& T, const dArray2DT& DNa, dArrayT
 		  throw ExceptionT::kSizeMismatch;
 		}
 
-		const double *pT;
+		double *pT;
 
 		for (int i = 0; i < nnd; i++) {
 	
 		  pT  = T[i].Pointer();
 
-		  const double& T1 = *pT++;
-		  const double& T2 = *pT++;
-		  const double& T3 = *pT;
+		  double& T1 = *pT++;
+		  double& T2 = *pT++;
+		  double& T3 = *pT;
 
 		  c1 +=  T3*(*dx2) - T2*(*dx3) ;
 		  c2 +=  T1*(*dx3) - T3*(*dx1) ;
@@ -276,9 +262,9 @@ void ParentDomainT::Curl(const ArrayT<dMatrixT>& T, const dArray2DT& DNa, dMatri
 	
 		c11 = c21 = c31 = c12 = c22 = c32 = c13 = c23 = c33 = 0.0;
 
-		const double* dx1 = DNa(0);
-		const double* dx2 = DNa(1);
-		const double* dx3;
+		double* dx1 = DNa(0);
+		double* dx2 = DNa(1);
+		double* dx3;
 
 		if (DNa.MajorDim() == 3) { // 3D Problem
 		  dx3 = DNa(2);
@@ -294,21 +280,21 @@ void ParentDomainT::Curl(const ArrayT<dMatrixT>& T, const dArray2DT& DNa, dMatri
 		  throw ExceptionT::kSizeMismatch;
 		}
 
-		const double *pT;
+		double *pT;
 
 		for (int i = 0; i < nnd; i++) {
 	
 		  pT  = T[i].Pointer();
 
-		  const double& T11 = *pT++;
-		  const double& T21 = *pT++;
-		  const double& T31 = *pT++;
-		  const double& T12 = *pT++;
-		  const double& T22 = *pT++;
-		  const double& T32 = *pT++;
-		  const double& T13 = *pT++;
-		  const double& T23 = *pT++;
-		  const double& T33 = *pT  ;
+		  double& T11 = *pT++;
+		  double& T21 = *pT++;
+		  double& T31 = *pT++;
+		  double& T12 = *pT++;
+		  double& T22 = *pT++;
+		  double& T32 = *pT++;
+		  double& T13 = *pT++;
+		  double& T23 = *pT++;
+		  double& T33 = *pT  ;
 
 		  c11 += ( T12*(*dx3) - T13*(*dx2) );
 		  c21 += ( T22*(*dx3) - T23*(*dx2) );
@@ -340,7 +326,7 @@ double ParentDomainT::SurfaceJacobian(const dMatrixT& jacobian) const
 
 	if (fNumSD == 1)
 	{
-		const double* n = jacobian.Pointer();
+		double* n = jacobian.Pointer();
 		return sqrt(n[0]*n[0] + n[1]*n[1]);
 	}
 	else
@@ -369,7 +355,7 @@ double ParentDomainT::SurfaceJacobian(const dMatrixT& jacobian, dMatrixT& Q) con
 	/* surface dimension */
 	if (fNumSD == 1)
 	{
-		const double* t = jacobian.Pointer();
+		double* t = jacobian.Pointer();
 		double  j = sqrt(t[0]*t[0] + t[1]*t[1]);
 
 		/* check */
@@ -393,8 +379,8 @@ double ParentDomainT::SurfaceJacobian(const dMatrixT& jacobian, dMatrixT& Q) con
 		double* n2 = Q(1);
 		double* n3 = Q(2);
 		
-		const double* m1 = jacobian(0);
-		const double* m2 = jacobian(1);
+		double* m1 = jacobian(0);
+		double* m2 = jacobian(1);
 		CrossProduct(m1, m2, n3);
 		
 		double jn = sqrt(n3[0]*n3[0] + n3[1]*n3[1] + n3[2]*n3[2]);
@@ -510,12 +496,12 @@ void ParentDomainT::NodalValues(const dArrayT& IPvalues,
 	/* single integration point */
 	if (numIP == 1)
 	{
-		const double* pip = IPvalues.Pointer();
+		double* pip = IPvalues.Pointer();
 		double* pnv = nodalvalues.Pointer();
 	
 		for (int i = 0; i < fNumNodes; i++)
 		{									
-			const double* prep = pip;
+			double* prep = pip;
 		
 			/* just overwrite */
 			for (int j = 0; j < numvals; j++)
@@ -525,13 +511,13 @@ void ParentDomainT::NodalValues(const dArrayT& IPvalues,
 /* more than 1 integration point */
 	else
 	{	
-		const double* psmooth = fNodalExtrap(IPnum);
-		double* pnv = nodalvalues.Pointer();
-		const double* pip = IPvalues.Pointer();
+		double* psmooth = fNodalExtrap(IPnum);
+		double* pnv     = nodalvalues.Pointer();
+		double* pip     = IPvalues.Pointer();
 		
 		for (int i = 0; i < fNumNodes; i++)
 		{
-			const double* prep = pip;
+			double* prep = pip;
 		
 			for (int j = 0; j < numvals; j++)
 				*pnv++ += (*psmooth)*(*prep++);
@@ -719,8 +705,8 @@ bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& 
 	else if (dim == 2)
 	{
 		/* convergence tolerance */
-	        double tol = 1.0e-10;  // originally 10-10;
-
+	        double tol = 1.0e-10;  // originally 10-14;
+	
 		/* initial guess */
 		mapped[0] = 0.0;
 		mapped[1] = 0.0;

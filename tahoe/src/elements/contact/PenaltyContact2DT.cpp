@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact2DT.cpp,v 1.12 2003-11-21 22:45:57 paklein Exp $ */
+/* $Id: PenaltyContact2DT.cpp,v 1.10 2003-08-14 05:36:49 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContact2DT.h"
 
@@ -53,7 +53,7 @@ void PenaltyContact2DT::LHSDriver(GlobalT::SystemTypeT)
 	/* loop over active elements */
 	dArrayT tangent(NumSD());
 	iArrayT eqnos;
-	const int* pelem = fConnectivities[0]->Pointer();
+	int* pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{
@@ -153,7 +153,7 @@ void PenaltyContact2DT::RHSDriver(void)
 	/* loop over active elements */
 	dArrayT tangent(NumSD());
 	iArrayT eqnos;
-	const int* pelem = fConnectivities[0]->Pointer();
+	int* pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{
@@ -214,12 +214,7 @@ void PenaltyContact2DT::RHSDriver(void)
 
 			/* assemble */
 			ElementSupport().AssembleRHS(Group(), fRHS, eqnos);
-
-			/* store for output */
-			fActiveStrikersForce[i] = dphi;
 		}
-		else /* zero force */
-			fActiveStrikersForce[i] = 0.0;
 	}
 
 	/* set tracking */

@@ -1,4 +1,4 @@
-/* $Id: povirk2D.cpp,v 1.9 2003-11-21 22:46:58 paklein Exp $ */
+/* $Id: povirk2D.cpp,v 1.8 2003-01-29 07:35:09 paklein Exp $ */
 /* Created:  Harold Park (09/10/2001) */
 #include "povirk2D.h"
 
@@ -496,7 +496,7 @@ dArrayT& povirk2D::ComputeEP_tan(void)
   return fEP_tan;
 }
 
-int povirk2D::CheckIfPlastic(ElementCardT& element, int ip)
+int povirk2D::CheckIfPlastic(const ElementCardT& element, int ip)
 {
   /* Checks to see if the gauss point has gone plastic yet via a
    * test on the effective stress */
@@ -553,10 +553,10 @@ void povirk2D::LoadData(const ElementCardT& element, int ip)
   int offset = fNumIP * 4;
   int offset2 = kNSD * offset / kVoigt;
   /* fetch arrays */
-  const dArrayT& d_array = element.DoubleData();
-  fTempKirchoff.Alias(kVoigt, &d_array[dex]);
-  fTempCauchy.Alias(kNSD, &d_array[offset + dex2]);
-  fInternal.Alias(kNumStateVariables, &d_array[offset + offset2 + ip * kNumStateVariables]); 
+  dArrayT& d_array = element.DoubleData();
+  fTempKirchoff.Set(kVoigt, &d_array[dex]);
+  fTempCauchy.Set(kNSD, &d_array[offset + dex2]);
+  fInternal.Set(kNumStateVariables, &d_array[offset + offset2 + ip * kNumStateVariables]); 
 }
 
 void povirk2D::Update(ElementCardT& element)

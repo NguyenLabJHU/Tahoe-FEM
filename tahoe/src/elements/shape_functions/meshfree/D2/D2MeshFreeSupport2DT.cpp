@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupport2DT.cpp,v 1.7 2003-11-21 22:47:18 paklein Exp $ */
+/* $Id: D2MeshFreeSupport2DT.cpp,v 1.6 2002-10-20 22:49:42 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupport2DT.h"
@@ -60,11 +60,12 @@ void D2MeshFreeSupport2DT::ProcessBoundaries(const dArray2DT& coords,
 	if (!fCutCoords) return;
 	
 	/* exhaustive search for now */
-	const double* pnode = x_node.Pointer();
+	double* pnode = x_node.Pointer();
 	for (int j = 0; j < fCutCoords->MajorDim(); j++)
 	{
-		const double* p1 = (*fCutCoords)(j);
-		const double* p2 = p1 + 2;
+		double* p1 = (*fCutCoords)(j);
+		double* p2 = p1 + 2;
+	
 		for (int i = 0; i < coords.MajorDim(); i++)
 			if (Intersect(p1, p2, pnode, coords(i))) 
 				nodal_params.SetRow(i, -1.0);
@@ -80,8 +81,9 @@ int D2MeshFreeSupport2DT::Visible(const double* x1, const double* x2)
 	/* exhaustive search for now */
 	for (int j = 0; j < fCutCoords->MajorDim(); j++)
 	{
-		const double* p1 = (*fCutCoords)(j);
-		const double* p2 = p1 + 2;
+		double* p1 = (*fCutCoords)(j);
+		double* p2 = p1 + 2;
+	
 		if (Intersect(x1, x2, p1, p2)) return 0;
 	}
 	return 1;

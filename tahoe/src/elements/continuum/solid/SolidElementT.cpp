@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.53 2003-12-02 17:13:36 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.50.2.2 2003-12-03 19:51:48 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -41,8 +41,6 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	fD(dSymMatrixT::NumValues(NumSD())),
 	fStoreInternalForce(false)
 {
-	SetName("solid_element");
-
 	/* check base class initializations */
 	if (NumDOF() != NumSD()) throw ExceptionT::kGeneralFail;
 
@@ -61,18 +59,6 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	    fIntegrator->ImplicitExplicit() == eIntegratorT::kExplicit &&
 	    ElementSupport().Analysis() != GlobalT::kMultiField)
 	    fMassType = kLumpedMass;
-}
-
-SolidElementT::SolidElementT(const ElementSupportT& support):
-	ContinuumElementT(support),
-	fLocLastDisp(LocalArrayT::kLastDisp),
-	fLocVel(LocalArrayT::kVel),
-	fLocAcc(LocalArrayT::kAcc),
-	fLocTemp(NULL),
-	fLocTemp_last(NULL),
-	fStoreInternalForce(false)
-{
-	SetName("solid_element");
 }
 
 /* destructor */
@@ -247,6 +233,9 @@ double SolidElementT::InternalEnergy(void)
 		/* global shape function derivatives, jacobians, local coords */
 		SetGlobalShape();
 
+		/* compute strain and B matricies */
+		//SetDeformation();
+		
 		/* integration */
 		const double* Det    = fShapes->IPDets();
 		const double* Weight = fShapes->IPWeights();
@@ -321,24 +310,9 @@ const dArray2DT& SolidElementT::InternalForce(int group)
 	return fForce;
 }
 
-/* describe the parameters needed by the interface */
-void SolidElementT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	ContinuumElementT::DefineParameters(list);
-
-	/* mass type */
-	ParameterT mass_type(ParameterT::Enumeration, "mass_type");
-	mass_type.AddEnumeration("no_mass", kNoMass);
-    mass_type.AddEnumeration("consistent_mass", kConsistentMass);
-    mass_type.AddEnumeration("lumped_mass", kLumpedMass);
-    mass_type.SetDefault(kConsistentMass);
-	list.AddParameter(mass_type);
-}
-
 /***********************************************************************
- * Protected
- ***********************************************************************/
+* Protected
+***********************************************************************/
 
 namespace Tahoe {
 
@@ -668,15 +642,15 @@ void SolidElementT::Set_B(const dArray2DT& DNa, dMatrixT& B) const
 	/* 1D */
 	if (DNa.MajorDim() == 1)
 	{
-		const double* pNax = DNa(0);
+		double* pNax = DNa(0);
 		for (int i = 0; i < nnd; i++)
 			*pB++ = *pNax++;
 	}
 	/* 2D */
 	else if (DNa.MajorDim() == 2)
 	{
-		const double* pNax = DNa(0);
-		const double* pNay = DNa(1);
+		double* pNax = DNa(0);
+		double* pNay = DNa(1);
 		for (int i = 0; i < nnd; i++)
 		{
 			/* see Hughes (2.8.20) */
@@ -692,9 +666,9 @@ void SolidElementT::Set_B(const dArray2DT& DNa, dMatrixT& B) const
 	/* 3D */
 	else		
 	{
-		const double* pNax = DNa(0);
-		const double* pNay = DNa(1);
-		const double* pNaz = DNa(2);
+		double* pNax = DNa(0);
+		double* pNay = DNa(1);
+		double* pNaz = DNa(2);
 		for (int i = 0; i < nnd; i++)
 		{
 			/* see Hughes (2.8.21) */
@@ -746,11 +720,11 @@ void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradie
 	/* 2D */
 	else if (DNa.MajorDim() == 2)
 	{
-		const double* pNax = DNa(0);
-		const double* pNay = DNa(1);
+		double* pNax = DNa(0);
+		double* pNay = DNa(1);
 			
-		const double* pBmx = mean_gradient(0);
-		const double* pBmy = mean_gradient(1);
+		double* pBmx = mean_gradient(0);
+		double* pBmy = mean_gradient(1);
 			
 		for (int i = 0; i < nnd; i++)
 		{
@@ -772,13 +746,13 @@ void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradie
 	/* 3D */
 	else		
 	{
-		const double* pNax = DNa(0);
-		const double* pNay = DNa(1);
-		const double* pNaz = DNa(2);
+		double* pNax = DNa(0);
+		double* pNay = DNa(1);
+		double* pNaz = DNa(2);
 
-		const double* pBmx = mean_gradient(0);
-		const double* pBmy = mean_gradient(1);
-		const double* pBmz = mean_gradient(2);
+		double* pBmx = mean_gradient(0);
+		double* pBmy = mean_gradient(1);
+		double* pBmz = mean_gradient(2);
 			
 		for (int i = 0; i < nnd; i++)
 		{
@@ -854,6 +828,9 @@ void SolidElementT::ElementLHSDriver(void)
 			/* set shape function derivatives */
 			SetGlobalShape();
 
+			/* compute strain and B matricies */
+			//SetDeformation();
+		
 			/* element mass */
 			if (fabs(constMe) > kSmall)
 				FormMass(fMassType, constMe*(fCurrMaterial->Density()));
@@ -938,7 +915,7 @@ void SolidElementT::ElementRHSDriver(void)
 		}
 
 		/* current element */
-		const ElementCardT& element = CurrentElement();
+		ElementCardT& element = CurrentElement();
 
 		if (element.Flag() != kOFF)
 		{
@@ -1195,6 +1172,9 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			/* global shape function values */
 			SetGlobalShape();
 
+			/* compute strain/deformation */
+			//SetDeformation();
+
                 /* collect nodal values */
                 if (e_codes[iKineticEnergy] || e_codes[iLinearMomentum])
                         SetLocalU(fLocVel);
@@ -1423,20 +1403,31 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         dArray2DT extrap_values;
         ElementSupport().OutputUsedAverage(extrap_values);
 
-	int tmpDim = extrap_values.MajorDim();
+		int tmpDim = extrap_values.MajorDim();
         n_values.Dimension(tmpDim,n_out);
         n_values.BlockColumnCopyAt(extrap_values,0);
         if (qUseSimo)
         {        
         	int rowNum = 0;
-        	dArray2DT tmp_simo(tmpDim,n_simo);
-                for (int i = 0; i < simo_force.MajorDim();i++)
-		  if (simo_counts[i] > 0)
-		  {
-                        simo_force.ScaleRow(i,1./simo_mass(i,0));
-			tmp_simo.SetRow(rowNum++,simo_force(i));
-		  }
-                n_values.BlockColumnCopyAt(tmp_simo,simo_offset);
+        	iArrayT nodes_used(tmpDim);
+        	dArray2DT tmp_simo(tmpDim, n_simo);
+			for (int i = 0; i < simo_force.MajorDim(); i++)
+				if (simo_counts[i] > 0)
+				{
+					nodes_used[rowNum] = i;
+					simo_force.ScaleRow(i, 1./simo_mass(i,0));
+					tmp_simo.SetRow(rowNum, simo_force(i));
+					rowNum++;
+		  		}
+			
+			/* collect final values */
+			n_values.BlockColumnCopyAt(tmp_simo, simo_offset);
+			
+			/* write final values back into the averaging workspace */
+			if (extrap_values.MinorDim() != n_values.MinorDim()) {
+				ElementSupport().ResetAverage(n_values.MinorDim());
+				ElementSupport().AssembleAverage(nodes_used, n_values);
+			}
         }
 }
 

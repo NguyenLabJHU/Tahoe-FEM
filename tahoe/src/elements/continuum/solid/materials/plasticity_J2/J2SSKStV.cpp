@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.8 2003-11-21 22:46:48 paklein Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.7 2003-01-29 07:35:02 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV.h"
 #include "SSMatSupportT.h"
@@ -140,7 +140,7 @@ void J2SSKStV::ComputeOutput(dArrayT& output)
 		output[0] = fInternal[kalpha];
 		
 		/* status flags */
-		const iArrayT& flags = element.IntegerData();
+		iArrayT& flags = element.IntegerData();
 		if (flags[CurrIP()] == kIsPlastic) // output with update
 			output[0] += sqrt23*fInternal[kdgamma];
 	}

@@ -41,9 +41,9 @@ void NeoHookean::DevStress(const dArrayT& lambda_bar,dArrayT& tau)
 {
   int nsd = tau.Length();
   
-  const double& l0 = lambda_bar[0];
-  const double& l1 = lambda_bar[1];
-  const double& l2 = lambda_bar[2];
+  double& l0 = lambda_bar[0];
+  double& l1 = lambda_bar[1];
+  double& l2 = lambda_bar[2];
   
   tau[0] = fMu*fthird*(2.0*l0-l1-l2);
   tau[1] = fMu*fthird*(2.0*l1-l0-l2);
@@ -59,9 +59,9 @@ void NeoHookean::DevMod(const dArrayT& lambda_bar, dSymMatrixT& eigenmodulus)
   int nsd = eigenmodulus.Rows();
   double ninth = fthird*fthird;
   
-  const double& l0 = lambda_bar[0];
-  const double& l1 = lambda_bar[1];
-  const double& l2 = lambda_bar[2];
+  double& l0 = lambda_bar[0];
+  double& l1 = lambda_bar[1];
+  double& l2 = lambda_bar[2];
   
   eigenmodulus[0] = 2.0*fMu*ninth*(4.0*l0+l1+l2);
   eigenmodulus[1] = 2.0*fMu*ninth*(4.0*l1+l2+l0);

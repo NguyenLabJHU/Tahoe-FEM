@@ -1,10 +1,6 @@
-/* $Id: UpLagAdaptiveT.h,v 1.2 2003-10-28 07:24:05 paklein Exp $ */
+/* $Id: UpLagAdaptiveT.h,v 1.1 2003-08-08 00:40:42 paklein Exp $ */
 #ifndef _UPDATED_LAGRANGIAN_ADAPTIVE_T_H_
 #define _UPDATED_LAGRANGIAN_ADAPTIVE_T_H_
-
-/* configuration */
-#include "ElementsConfig.h"
-#ifdef COHESIVE_SURFACE_ELEMENT
 
 /* base class */
 #include "UpdatedLagrangianT.h"
@@ -88,8 +84,6 @@ protected:
 	/*@}*/
 };
 
-} /* namespace Tahoe */
-
-#endif /* COHESIVE_SURFACE_ELEMENT */
+} // namespace Tahoe
 
 #endif /* _UPDATED_LAGRANGIAN_ADAPTIVE_T_H_ */

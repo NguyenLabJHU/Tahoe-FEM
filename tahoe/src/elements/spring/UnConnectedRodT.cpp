@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.13 2003-11-21 22:47:27 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.12 2003-01-27 07:00:26 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 
 #include "UnConnectedRodT.h"
@@ -227,8 +227,8 @@ void UnConnectedRodT::ConfigureElementData(void)
 		ElementCardT& card = fElementCards[i];
 	
 		/* node and equation numbers */			
-		card.NodesX().Alias(NumElementNodes(), (*connects)(i));
-		card.Equations().Alias(rod_eqnos.MinorDim(), rod_eqnos(i));
+		card.NodesX().Set(NumElementNodes(), (*connects)(i));
+		card.Equations().Set(rod_eqnos.MinorDim(), rod_eqnos(i));
 		
 		/* material number */
 		card.SetMaterialNumber(fBlockData[block_index].MaterialID());

@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactDrag3DT.cpp,v 1.3 2003-11-21 22:45:57 paklein Exp $ */
+/* $Id: PenaltyContactDrag3DT.cpp,v 1.2 2003-08-25 04:42:34 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContactDrag3DT.h"
 #include "fstreamT.h"
@@ -98,7 +98,7 @@ void PenaltyContactDrag3DT::RHSDriver(void)
 	int num_contact = 0;
 	double h_max = 0.0;
 
-	const int* pelem = fConnectivities[0]->Pointer();
+	int* pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{
@@ -253,7 +253,7 @@ void PenaltyContactDrag3DT::LHSDriver(GlobalT::SystemTypeT)
 	const iArray2DT& connects = *(fConnectivities[0]);
 	for (int i = 0; i < connects.MajorDim(); i++)
 	{
-		const int* pelem = connects(i);
+		int* pelem = connects(i);
 
 		/* collect element configuration */
 		fElRefCoord.RowCollect(pelem, init_coords);

@@ -1,4 +1,4 @@
-/* $Id: SetOfNodesKBCT.cpp,v 1.3 2003-11-21 22:47:59 paklein Exp $ */
+/* $Id: SetOfNodesKBCT.cpp,v 1.2 2003-05-30 23:18:58 cjkimme Exp $ */
 #include "SetOfNodesKBCT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -116,7 +116,7 @@ void SetOfNodesKBCT::Initialize(ifstreamT& in)
 
 		double* xmin = fxmin.Pointer();
 		double* xmax = fxmax.Pointer(); 
-		const double* x_j;
+		double* x_j;
 		int ihits = 0;
 		int nnd = coords.MajorDim();
 		for (int j = 0; j < nnd; j++)

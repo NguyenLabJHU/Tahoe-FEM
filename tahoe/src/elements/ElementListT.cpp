@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.75 2003-12-10 06:44:03 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.62.2.3 2003-09-19 06:25:54 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -23,12 +23,16 @@
 #ifdef COHESIVE_SURFACE_ELEMENT
 #include "CSEIsoT.h"
 #include "CSEAnisoT.h"
-#include "CSESymAnisoT.h"
 #include "MeshFreeCSEAnisoT.h"
 #include "ThermalSurfaceT.h"
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
+#include "RigidCSEAnisoT.h"
+#include "NodalRigidCSEAnisoT.h"
+#endif
 #endif
 
 #ifdef CONTINUUM_ELEMENT
+#include "ViscousDragT.h"
 #include "SmallStrainT.h"
 #include "UpdatedLagrangianT.h"
 #include "UpLagAdaptiveT.h"
@@ -42,9 +46,6 @@
 #include "MeshFreeFSSolidT.h"
 #include "D2MeshFreeFSSolidT.h"
 #include "UpLagr_ExternalFieldT.h"
-#ifdef SIMPLE_SOLID_DEV
-#include "TotalLagrangianFlatT.h"
-#endif
 #endif
 
 #ifdef BRIDGING_ELEMENT
@@ -60,9 +61,6 @@
 #include "ACME_Contact3DT.h"
 #include "PenaltyContactDrag2DT.h"
 #include "PenaltyContactDrag3DT.h"
-#ifdef CONTINUUM_ELEMENT /* need meshfree code */
-#include "MFPenaltyContact2DT.h"
-#endif
 #endif
 
 #ifdef PARTICLE_ELEMENT
@@ -80,7 +78,7 @@
 #endif
 
 #ifdef CONTACT_ELEMENT_DEV
-#include "MultiplierContactElement3DT.h"
+#include "MultiplierContact3DT.h"
 #include "MultiplierContactElement2DT.h"
 #include "PenaltyContactElement2DT.h"
 #include "PenaltyContactElement3DT.h"
@@ -94,28 +92,20 @@
 #include "StaggeredMultiScaleT.h"
 #endif
 
-#ifdef MULTISCALE_APS_DEV
-#include "APS_AssemblyT.h"
-#endif
-
-#ifdef GRAD_SMALL_STRAIN_DEV
-#include "GradSmallStrainT.h"
+#ifdef DORGAN_VOYIADJIS_MARIN_DEV
+#include "DorganVoyiadjisMarin.h"
 #endif
 
 #ifdef SOLID_ELEMENT_DEV
 #ifdef MATERIAL_FORCE_ELEMENT_DEV
 #include "SmallStrainQ2P1.h"
-#include "UpLagMF.h"
+#include "UpdatedLagrangianMF.h"
 #include "SmallStrainMF.h"
 #include "SSMF.h"
 #include "SSQ2P1MF.h"
 #include "SmallStrainQ1P0.h"
 #include "SSQ1P0MF.h"
 #endif /* MATERIAL_FORCE_ELEMENT_DEV */
-
-#ifdef SPLIT_INTEGRATION_DEV
-#include "SplitIntegrationT.h"
-#endif
 #endif
 
 using namespace Tahoe;
@@ -237,7 +227,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		out << "    eq. " << ElementT::kLinearDiffusion    << ", linear diffusion element\n";
 		out << "    eq. " << ElementT::kMFCohesiveSurface  << ", meshfree cohesive surface element\n";
 		out << "    eq. " << ElementT::kStaggeredMultiScale << ", Staggered MultiScale Element (for VMS) \n";
-		out << "    eq. " << ElementT::kAPSgrad 			<< ", Strict Anti-plane Shear gradient plasticity \n";
 		out << "    eq. " << ElementT::kACME_Contact       << ", 3D contact using ACME\n";
 		out << "    eq. " << ElementT::kMultiplierContact3D       << ", 3D contact using Lagrange multipliers\n";
 		out << "    eq. " << ElementT::kMultiplierContactElement2D       << ", 2D Lagrange multiplier contact elements\n";
@@ -261,6 +250,15 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "SPRING_ELEMENT not enabled: %d", code);
+#endif
+			}
+			case ElementT::kViscousDrag:
+			{
+#ifdef CONTINUUM_ELEMENT
+				fArray[group] = new ViscousDragT(fSupport, *field);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
 #endif
 			}
 			case ElementT::kElastic:
@@ -292,11 +290,11 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			}
 			case ElementT::kHyperElasticInitCSE:
 			{
-#if defined(CONTINUUM_ELEMENT) && defined(COHESIVE_SURFACE_ELEMENT)
+#ifdef CONTINUUM_ELEMENT
 				fArray[group] = new UpLagAdaptiveT(fSupport, *field);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT or COHESIVE_SURFACE_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
 #endif
 			}
 			case ElementT::kTotLagHyperElastic:
@@ -306,15 +304,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
-#endif
-			}
-			case ElementT::kTotLagFlat:
-			{
-#if defined(CONTINUUM_ELEMENT) && defined(SIMPLE_SOLID_DEV)
-				fArray[group] = new TotalLagrangianFlatT(fSupport, *field);
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT or SIMPLE_SOLID_DEV not enabled: %d", code);
 #endif
 			}
 			case ElementT::kSimoFiniteStrain:
@@ -356,29 +345,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "MULTISCALE_ELEMENT_DEV not enabled: %d", code);
-#endif
-			}
-			case ElementT::kAPSgrad:
-			{
-#ifdef MULTISCALE_APS_DEV
-				/* must be using multi-field solver */
-				if (fSupport.Analysis() != GlobalT::kMultiField)				
-					ExceptionT::BadInputValue(caller, "multi field required");
-			
-				/* coarse scale field read above */
-				const FieldT* displ = field;
-
-				/* fine scale field */				
-				StringT plast_name;
-				in >> plast_name;
-				const FieldT* plast = fSupport.Field(plast_name);
-				if (!displ || !plast)
-					ExceptionT::BadInputValue(caller, "error resolving field names");
-			
-				fArray[group] = new APS_AssemblyT(fSupport, *displ, *plast);
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "MULTISCALE_APS_DEV not enabled: %d", code);
 #endif
 			}
 			case ElementT::kMeshFreeFDElastic:
@@ -462,16 +428,21 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				out << "    eq. " << CSEBaseT::Isotropic   << ", isotropic\n";
 				out << "    eq. " << CSEBaseT::Anisotropic << ", anisotropic\n";
 				out << "    eq. " << CSEBaseT::NoRotateAnisotropic << ", fixed-frame anisotropic\n";
-				out << "    eq. " << CSEBaseT::ModeIAnisotropic << ", anisotropic mode I\n";
-
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
+				out << "    eq. " << CSEBaseT::RigidAnisotropic << ", anisotropic with rigid constraints\n";
+#endif
 				if (CSEcode == CSEBaseT::Isotropic)
 					fArray[group] = new CSEIsoT(fSupport, *field);	
 				else if (CSEcode == CSEBaseT::Anisotropic)
 					fArray[group] = new CSEAnisoT(fSupport, *field, true);
 				else if (CSEcode == CSEBaseT::NoRotateAnisotropic)
 					fArray[group] = new CSEAnisoT(fSupport, *field, false);
-				else if (CSEcode == CSEBaseT::ModeIAnisotropic)
-					fArray[group] = new CSESymAnisoT(fSupport, *field, false);
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
+				else if (CSEcode == CSEBaseT::RigidAnisotropic)
+					fArray[group] = new RigidCSEAnisoT(fSupport, *field, false);
+				else if (CSEcode == CSEBaseT::NodalRigidAnisotropic)
+					fArray[group] = new NodalRigidCSEAnisoT(fSupport, *field, false);
+#endif
 				else
 				{
 					ExceptionT::BadInputValue(caller, "unknown CSE formulation: %d", CSEcode);
@@ -502,19 +473,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
-#endif
-			}
-			case ElementT::kMeshfreePenaltyContact:
-			{
-#if defined(CONTACT_ELEMENT) && defined(CONTINUUM_ELEMENT)
-				int nsd = fSupport.NumSD();
-				if (nsd == 2)
-					fArray[group] = new MFPenaltyContact2DT(fSupport, *field);
-				else
-					ExceptionT::BadInputValue(caller, "meshfree contact not implemented in 3D");
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT or CONTINUUM_ELEMENT not enabled: %d", code);
 #endif
 			}
 			case ElementT::kPenaltyContactDrag:
@@ -610,7 +568,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			case ElementT::kMultiplierContact3D:
 			{
 #ifdef CONTACT_ELEMENT_DEV
-				fArray[group] = new MultiplierContactElement3DT(fSupport, *field);
+				fArray[group] = new MultiplierContact3DT(fSupport, *field);
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT_DEV not enabled: %d", code);
@@ -708,7 +666,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		case ElementT::kFSMatForce:
 	        {
 #if defined (SOLID_ELEMENT_DEV) && defined (MATERIAL_FORCE_ELEMENT_DEV)
-		        fArray[group] = new UpLagMF(fSupport, *field);
+		        fArray[group] = new UpdatedLagrangianMF(fSupport, *field);
 			break;
 #else
 			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or MATERIAL_FORCE_ELEMENT_DEV not enabled: %d", code);
@@ -765,21 +723,12 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		  fArray[group] = new SSQ1P0MF(fSupport, *field);
 		  break;
 #else
-			ExceptionT::BadInputValue(caller, "GRAD_SMALL_STRAIN_DEV not enabled: %d", code);
-#endif			
+			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or MATERIAL_FORCE_ELEMENT_DEV not enabled: %d", code);
+#endif
 		}
-		case ElementT::kTotLagSplitIntegration:
+		case ElementT::kDorganVoyiadjisMarin:
 		{
-#if defined (SOLID_ELEMENT_DEV) && defined (SPLIT_INTEGRATION_DEV)
-			fArray[group] = new SplitIntegrationT(fSupport, *field);
-		    break;
-#else
-			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or SPLIT_INTEGRATION_DEV not enabled: %d", code);
-#endif				
-		}			
-		case ElementT::kGradSmallStrain:
-		{
-#ifdef GRAD_SMALL_STRAIN_DEV
+#ifdef DORGAN_VOYIADJIS_MARIN_DEV
 		  /* displacement field read above */
 		  const FieldT* disp = field;
 		  
@@ -790,10 +739,10 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		  if (!disp || !hardness)
 		    ExceptionT::BadInputValue(caller, "error resolving field names");
 		  
-		  fArray[group] = new GradSmallStrainT(fSupport, *disp, *hardness);
+		  fArray[group] = new DorganVoyiadjisMarin(fSupport, *disp, *hardness);
 		  break;
 #else
-		  ExceptionT::BadInputValue(caller, "GRAD_SMALL_STRAIN_DEV not enabled: %d", code);
+		  ExceptionT::BadInputValue(caller, "DORGAN_VOYIADJIS_MARIN_DEV not enabled: %d", code);
 #endif			
 		}
 
@@ -887,42 +836,14 @@ void ElementListT::SetActiveElementGroupMask(const ArrayT<bool>& mask)
 /* information about subordinate parameter lists */
 void ElementListT::DefineSubs(SubListT& sub_list) const
 {
-	/* inherited */
-	ParameterInterfaceT::DefineSubs(sub_list);
-
-	/* the element groups - an array of choices */
-	sub_list.AddSub("element_groups", ParameterListT::OnePlus, true);
-}
-
-/* return the description of the given inline subordinate parameter list */
-void ElementListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
-{
-	if (sub == "element_groups")
-	{
-		order = ParameterListT::Choice;
-
 #ifdef COHESIVE_SURFACE_ELEMENT
-		sub_sub_list.AddSub("isotropic_CSE");
-		sub_sub_list.AddSub("anisotropic_CSE");
+	sub_list.AddSub("isotropic_CSE", ParameterListT::Any);
+	sub_list.AddSub("anisotropic_CSE", ParameterListT::Any);
 #endif
 
 #ifdef ADHESION_ELEMENT
-		sub_sub_list.AddSub("adhesion");
+	sub_list.AddSub("adhesion", ParameterListT::Any);
 #endif
-
-#ifdef PARTICLE_ELEMENT
-		sub_sub_list.AddSub("particle_pair");
-#endif
-
-#ifdef CONTINUUM_ELEMENT
-		sub_sub_list.AddSub("diffusion");
-		sub_sub_list.AddSub("nonlinear_diffusion");
-		sub_sub_list.AddSub("small_strain");
-#endif
-	}
-	else /* inherited */
-		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
@@ -942,20 +863,6 @@ ParameterInterfaceT* ElementListT::NewSub(const StringT& list_name) const
 #ifdef ADHESION_ELEMENT
 	else if (list_name == "adhesion")
 		return new AdhesionT(fSupport);
-#endif
-
-#ifdef PARTICLE_ELEMENT
-	else if (list_name == "particle_pair")
-		return new ParticlePairT(fSupport);
-#endif
-
-#ifdef CONTINUUM_ELEMENT
-	else if (list_name == "diffusion")
-		return new DiffusionElementT(fSupport);
-	else if (list_name == "nonlinear_diffusion")
-		return new NLDiffusionElementT(fSupport);
-	else if (list_name == "small_strain")
-		return new SmallStrainT(fSupport);
 #endif
 
 	/* inherited */	

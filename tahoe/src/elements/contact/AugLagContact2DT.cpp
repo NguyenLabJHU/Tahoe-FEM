@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.16 2003-11-21 22:45:57 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.14 2003-03-02 18:59:07 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 #include "AugLagContact2DT.h"
 
@@ -73,6 +73,17 @@ void AugLagContact2DT::SetDOFTags(void)
 
 	/* resize DOF tags array */
 	fContactDOFtags.Dimension(fActiveStrikers.Length());
+
+	/* write list of active strikers */
+	iArrayT tmp;
+	tmp.Alias(fActiveStrikers);	
+	ostream& out = ElementSupport().Output();
+	out << "\n            time: " << ElementSupport().Time() << '\n';
+	out <<   " previous active: " << ElementSupport().XDOF_Manager().XDOF(this, 0).MajorDim() << '\n';
+	out <<   "  current active: " << tmp.Length()   << '\n';
+	tmp++;
+	out << tmp.wrap(8) << '\n';
+	tmp--;
 }
 
 iArrayT& AugLagContact2DT::DOFTags(int tag_set)
@@ -103,7 +114,7 @@ void AugLagContact2DT::GenerateElementData(void)
 	/* resize work space */
 	fXDOFConnectivities_man.SetMajorDimension(num_active, false);
 	fXDOFEqnos_man.SetMajorDimension(num_active, false);
-	const int *pelem = fConnectivities[0]->Pointer();
+	int *pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
 	for (int i = 0; i < num_active; i++, pelem += rowlength)
 	{	
@@ -282,9 +293,6 @@ void AugLagContact2DT::LHSDriver(GlobalT::SystemTypeT)
 		/* augmented Lagragian multiplier */
 		double g = force[i] + fr*h;
 
-		/* store for output */
-		fActiveStrikersForce[i] = force[i];
-
 		/* contact */
 		if (g < 0.0)
 		{
@@ -341,7 +349,7 @@ void AugLagContact2DT::LHSDriver(GlobalT::SystemTypeT)
 			/* augmented Lagrangian DOF */
 			int dex = neq - 1;
 			fLHS.SetRow(dex, fRHS);
-			fLHS.SetCol(dex, fRHS);
+			fLHS.SetCol(dex, fRHS);			
 		}
 		else /* gap */
 		{

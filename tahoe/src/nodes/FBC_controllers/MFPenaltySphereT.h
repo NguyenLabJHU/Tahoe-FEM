@@ -1,5 +1,6 @@
-/* $Id: MFPenaltySphereT.h,v 1.6 2003-10-04 19:14:05 paklein Exp $ */
+/* $Id: MFPenaltySphereT.h,v 1.5 2002-11-28 16:44:20 paklein Exp $ */
 /* created: paklein (04/17/2000) */
+
 #ifndef _MF_PENALTY_SPHERE_T_H_
 #define _MF_PENALTY_SPHERE_T_H_
 
@@ -17,7 +18,7 @@ public:
 
 	/* constructor */
 	MFPenaltySphereT(FEManagerT& fe_manager, int group, const iArray2DT& eqnos,
-		const dArray2DT& coords, const dArray2DT& disp, const dArray2DT* vels);
+		const dArray2DT& coords, const dArray2DT* vels);
 
 	/* input processing */
 	virtual void EchoData(ifstreamT& in, ostream& out);

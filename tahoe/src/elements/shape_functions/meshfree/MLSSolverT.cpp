@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.cpp,v 1.12 2003-11-21 22:47:14 paklein Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.11 2003-05-23 23:01:18 paklein Exp $ */
 /* created: paklein (12/08/1999)                                          */
 
 #include "MLSSolverT.h"
@@ -392,9 +392,9 @@ void MLSSolverT::ComputeM(const dArrayT& volume)
 			for (int j = i; j < dim; j++)
 			{
 				double*   w = fw.Pointer();
-				const double* pi = basis(i);
-				const double* pj = basis(j);
-				const double* vol = volume.Pointer();
+				double*  pi = basis(i);
+				double*  pj = basis(j);
+				double* vol = volume.Pointer();
 				double  mij = 0.0;
 				for (int k = 0; k < fNumNeighbors; k++)
 					mij += (*pi++)*(*w++)*(*pj++)*(*vol++);
@@ -407,10 +407,10 @@ void MLSSolverT::ComputeM(const dArrayT& volume)
 	if (dim == 2)
 	{
 		const dArray2DT& basis = fBasis->P();
-		const double* p0 = basis(0);
-		const double* p1 = basis(1);
+		double*  p0 = basis(0);
+		double*  p1 = basis(1);
 		double*   w = fw.Pointer();
-		const double* vol = volume.Pointer();
+		double* vol = volume.Pointer();
 
 		/* integrate */
 		double m00 = 0.0;
@@ -433,11 +433,11 @@ void MLSSolverT::ComputeM(const dArrayT& volume)
 	if (dim == 3)
 	{
 		const dArray2DT& basis = fBasis->P();
-		const double* p0 = basis(0);
-		const double* p1 = basis(1);
-		const double* p2 = basis(2);
-		double* w = fw.Pointer();
-		const double* vol = volume.Pointer();
+		double*  p0 = basis(0);
+		double*  p1 = basis(1);
+		double*  p2 = basis(2);
+		double*   w = fw.Pointer();
+		double* vol = volume.Pointer();
 
 		/* integrate */
 		double m00 = 0.0;
@@ -469,12 +469,12 @@ void MLSSolverT::ComputeM(const dArrayT& volume)
 	if (dim == 4)
 	{
 		const dArray2DT& basis = fBasis->P();
-		const double* p0 = basis(0);
-		const double* p1 = basis(1);
-		const double* p2 = basis(2);
-		const double* p3 = basis(3);
-		double* w = fw.Pointer();
-		const double* vol = volume.Pointer();
+		double*  p0 = basis(0);
+		double*  p1 = basis(1);
+		double*  p2 = basis(2);
+		double*  p3 = basis(3);
+		double*  w = fw.Pointer();
+		double* vol = volume.Pointer();
 
 		/* integrate */
 		double m00 = 0.0;
@@ -521,10 +521,10 @@ void MLSSolverT::ComputeM(const dArrayT& volume)
 		for (int i = 0; i < dim; i++)
 			for (int j = i; j < dim; j++)
 			{
-				double* w = fw.Pointer();
-				const double* pi = basis(i);
-				const double* pj = basis(j);
-				const double* vol = volume.Pointer();
+				double*   w = fw.Pointer();
+				double*  pi = basis(i);
+				double*  pj = basis(j);
+				double* vol = volume.Pointer();
 				double  mij = 0.0;
 				for (int k = 0; k < fNumNeighbors; k++)
 					mij += (*pi++)*(*w++)*(*pj++)*(*vol++);
@@ -544,13 +544,13 @@ void MLSSolverT::ComputeDM(const dArrayT& volume)
 		for (int i = 0; i < dim; i++)
 			for (int j = i; j < dim; j++)
 			{
-				double*  w = fw.Pointer();
-				double* Dw = fDw(m);
-				const double* pi = basis(i);
-				const double* pj = basis(j);
-				const double* Dpi = Dbasis(i);
-				const double* Dpj = Dbasis(j);
-				const double* vol = volume.Pointer();
+				double*   w = fw.Pointer();
+				double*  Dw = fDw(m);
+				double*  pi = basis(i);
+				double*  pj = basis(j);
+				double* Dpi = Dbasis(i);
+				double* Dpj = Dbasis(j);
+				double* vol = volume.Pointer();
 				double Dmij = 0.0;
 				for (int k = 0; k < fNumNeighbors; k++)
 				{
@@ -589,16 +589,16 @@ void MLSSolverT::ComputeDDM(const dArrayT& volume)
 				double*  Dw_s = fDw(s);
 				double*  DDw  = fDDw(rs);
 
-				const double*    pi = basis(i);
-				const double*    pj = basis(j);
-				const double* Dpi_r = Dbasis_r(i);
-				const double* Dpi_s = Dbasis_s(i);
-				const double* Dpj_r = Dbasis_r(j);
-				const double* Dpj_s = Dbasis_s(j);
-				const double*  DDpi = DDbasis(i);
-				const double*  DDpj = DDbasis(j);
+				double*    pi = basis(i);
+				double*    pj = basis(j);
+				double* Dpi_r = Dbasis_r(i);
+				double* Dpi_s = Dbasis_s(i);
+				double* Dpj_r = Dbasis_r(j);
+				double* Dpj_s = Dbasis_s(j);
+				double*  DDpi = DDbasis(i);
+				double*  DDpj = DDbasis(j);
 
-				const double* vol = volume.Pointer();
+				double* vol = volume.Pointer();
 				double DDmij = 0.0;
 				for (int k = 0; k < fNumNeighbors; k++)
 				{
@@ -671,8 +671,8 @@ void MLSSolverT::SetCorrection(void)
 	for (int j = 0; j < fb.Length(); j++)
 	{
 		double* C = fC.Pointer();
-		const double* P = basis(j);
-		double b = fb[j];
+		double* P = basis(j);
+		double  b = fb[j];
 		for (int n = 0; n < fNumNeighbors; n++)
 			*C++ += (*P++)*b;
 	}
@@ -686,9 +686,9 @@ void MLSSolverT::SetCorrection(void)
 			const dArray2DT& Dbasis = fBasis->DP(i);
 			for (int j = 0; j < fb.Length(); j++)
 			{
-				const double*  P = basis(j);				
-				const double* DP = Dbasis(j);				
 				double* DC = fDC(i);
+				double*  P = basis(j);				
+				double* DP = Dbasis(j);				
 				double   b = fb[j];
 				double  Db = fDb[i][j];
 				for (int n = 0; n < fNumNeighbors; n++)
@@ -711,10 +711,10 @@ void MLSSolverT::SetCorrection(void)
 				for (int m = 0; m < fb.Length(); m++)
 				{
 					double* DDC = fDDC(ij);
-					const double*   P = basis(m);
-					const double* DPi = Dbasis_i(m);
-					const double* DPj = Dbasis_j(m);
-					const double* DDP = DDbasis(m);
+					double*   P = basis(m);
+					double* DPi = Dbasis_i(m);
+					double* DPj = Dbasis_j(m);
+					double* DDP = DDbasis(m);
 					double    b = fb[m];
 					double  Dbi = fDb[i][m];
 					double  Dbj = fDb[j][m];
@@ -738,7 +738,7 @@ void MLSSolverT::SetShapeFunctions(const dArrayT& volume)
 	double* phi = fphi.Pointer();
 	double*   C = fC.Pointer();
 	double*   w = fw.Pointer();
-	const double* vol = volume.Pointer();
+	double* vol = volume.Pointer();
 	for (int i = 0; i < fNumNeighbors; i++)
 		*phi++ = (*C++)*(*w++)*(*vol++);
 
@@ -751,7 +751,7 @@ void MLSSolverT::SetShapeFunctions(const dArrayT& volume)
 			double*   DC = fDC(j);
 			double*    w = fw.Pointer();
 			double*   Dw = fDw(j);
-			const double*  vol = volume.Pointer();
+			double*  vol = volume.Pointer();
 			for (int i = 0; i < fNumNeighbors; i++)
 				*Dphi++ = ((*DC++)*(*w++)
 				         + (*C++)*(*Dw++))*(*vol++);
@@ -774,7 +774,7 @@ void MLSSolverT::SetShapeFunctions(const dArrayT& volume)
 				double*  Dw_i = fDw(i);
 				double*  Dw_j = fDw(j);
 				double*   DDw = fDDw(ij);
-				const double*   vol = volume.Pointer();
+				double*   vol = volume.Pointer();
 				for (int n = 0; n < fNumNeighbors; n++)
 					*DDphi++ = ((*DDC++)*(*w++)
 					          + (*DC_i++)*(*Dw_j++)

@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.38 2003-11-21 22:45:47 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.34 2003-07-11 16:45:59 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -99,7 +99,7 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 			/* not mapped yet */
 			if (found_in_cell[local] == -1)
 			{
-				x_atom.Alias(NumSD(), hits[j].Coords());
+				x_atom.Set(NumSD(), hits[j].Coords());
 				if (parent.PointInDomain(loc_cell_coords, x_atom)) 
 				{
 					found_in_cell[local] = i;
@@ -207,7 +207,7 @@ void BridgingScaleT::InitInterpolation(const iArrayT& points_used, const dArray2
 	/* point in cells data */
 	const RaggedArray2DT<int>& point_in_cell = cell_data.PointInCell();
 	const RaggedArray2DT<double>& point_in_cell_coords = cell_data.PointInCellCoords();
-
+	
 	/* run through cells */
 	dArrayT Na;
 	dArrayT point_coords;
@@ -218,10 +218,10 @@ void BridgingScaleT::InitInterpolation(const iArrayT& points_used, const dArray2
 		int np = point_in_cell.MinorDim(i);
 		if (np > 0)
 		{
-			const int* points = point_in_cell(i);
-			
+			int* points = point_in_cell(i);
+		
 			/* mapped coordinates of points in this cell */
-			mapped_coords.Alias(np, nsd, point_in_cell_coords(i));
+			mapped_coords.Set(np, nsd, point_in_cell_coords(i));
 			
 			/* run through points */
 			for (int j = 0; j < np; j++)
@@ -320,7 +320,7 @@ void BridgingScaleT::InitProjection(const iArrayT& points_used, const dArray2DT*
 		if (np > 0)
 		{
 			fElMatU = 0.0;
-			const int* points = point_in_cell(i);
+			int* points = point_in_cell(i);
 			for (int j = 0; j < np; j++)
 			{
 				/* fetch interpolation weights */
@@ -378,7 +378,7 @@ void BridgingScaleT::ProjectField(const PointInCellDataT& cell_data,
 		int np = point_in_cell.MinorDim(i);
 		if (np > 0)
 		{
-			const int* points = point_in_cell(i);
+			int* points = point_in_cell(i);
 			Nd = 0.0;
 			for (int j = 0; j < np; j++)
 			{
@@ -441,7 +441,7 @@ out << "\n residual =\n" << projection << endl;
 			cell_connects.RowAlias(cell_dex++, cell_connect);
 			cell_projection.RowCollect(cell_connect, projection);
 		
-			const int* points = point_in_cell(i);
+			int* points = point_in_cell(i);
 			for (int j = 0; j < np; j++)
 			{
 				int point = points[j];
@@ -462,17 +462,6 @@ out << "\n residual =\n" << projection << endl;
 			}
 		}
 	}
-}
-
-/* compute the coarse scale part of the source field */
-void BridgingScaleT::CoarseField(const PointInCellDataT& cell_data, const dArray2DT& field, dArray2DT& coarse) const
-{
-#pragma unused(cell_data)
-#pragma unused(field)
-#pragma unused(coarse)
-
-	const char caller[] = "BridgingScaleT::CoarseField";
-	ExceptionT::GeneralFail(caller, "not implemented");
 }
 
 /* Project point values onto mesh, write into displacement field.  Used to compute initial
@@ -504,7 +493,7 @@ void BridgingScaleT::InitialProject(const StringT& field, const PointInCellDataT
 		int np = point_in_cell.MinorDim(i);
 		if (np > 0)
 		{
-			const int* points = point_in_cell(i);
+			int* points = point_in_cell(i);
 			Nd = 0.0;
 			for (int j = 0; j < np; j++)
 			{
@@ -547,28 +536,24 @@ out << "\n residual =\n" << projection << endl;
 		fGlobalMass.Solve(u_tmp);
 		projection.SetColumn(i, u_tmp);
 	}	
-
-#if 0
-	ofstream project, fenodes1, fenodes2;
-	project.open("project.dat");
-	fenodes1.open("fenodes1.dat");
-	fenodes2.open("fenodes2.dat");
-	project.precision(13);
-	for (int i = 0; i < projection.MajorDim(); i++)
-	{
-		project << i+1 << " " << 1 << " " << 1 << " " << projection(i,0) << endl;
-		project << i+1 << " " << 2 << " " << 1 << " " << projection(i,1) << endl;
-		fenodes1 << "*set" << endl;
-		fenodes1 << 1 << endl;
-		fenodes1 << cell_nodes[i]+1 << endl;
-		fenodes2 << i+1 << " " << 1 << endl;
-	}
+	//ofstream project, fenodes1, fenodes2;
+	//project.open("project.dat");
+	//fenodes1.open("fenodes1.dat");
+	//fenodes2.open("fenodes2.dat");
+	//project.precision(13);
+	//for (int i = 0; i < projection.MajorDim(); i++)
+	//{
+	//	project << i+1 << " " << 1 << " " << 1 << " " << projection(i,0) << endl;
+	//	project << i+1 << " " << 2 << " " << 1 << " " << projection(i,1) << endl;
+	//	fenodes1 << "*set" << endl;
+	//	fenodes1 << 1 << endl;
+	//	fenodes1 << cell_nodes[i]+1 << endl;
+	//	fenodes2 << i+1 << " " << 1 << endl;
+	//}
 	
-	project.close();
-	fenodes1.close();
-	fenodes2.close();
-#endif
-	
+	//project.close();
+	//fenodes1.close();
+	//fenodes2.close();
 	u_tmp.Free();
 
 	fFineScale.Dimension(point_values);
@@ -591,7 +576,7 @@ out << "\n residual =\n" << projection << endl;
 			cell_connects.RowAlias(cell_dex++, cell_connect);
 			cell_projection.RowCollect(cell_connect, projection);
 		
-			const int* points = point_in_cell(i);
+			int* points = point_in_cell(i);
 			for (int j = 0; j < np; j++)
 			{
 				int point = points[j];
@@ -647,7 +632,7 @@ void BridgingScaleT::BridgingFields(const StringT& field, const PointInCellDataT
 		int np = point_in_cell.MinorDim(i);
 		if (np > 0)
 		{
-			const int* points = point_in_cell(i);
+			int* points = point_in_cell(i);
 			Nd = 0.0;
 			for (int j = 0; j < np; j++)
 			{
@@ -723,7 +708,7 @@ out << "\n residual =\n" << projection << endl;
 			cell_projection.RowCollect(cell_connect, projection);
 				
 			/* element info */
-			const int* points = point_in_cell(i);
+			int* points = point_in_cell(i);
 			int off = global_to_local.Map(points[0]);
 			const ElementCardT& element_card = continuum->ElementCard(cell[off]);
 			const iArrayT& fenodes = element_card.NodesU();
@@ -776,9 +761,11 @@ void BridgingScaleT::RegisterOutput(void)
 	fSolidOutputID = ElementSupport().RegisterOutput(output_set_solid);
 #endif
 
+#if 0
 	/* register output at particles */
-//	OutputSetT output_set_particle(GeometryT::kPoint, fParticlesUsed, n_labels);
-//	fParticleOutputID = ElementSupport().RegisterOutput(output_set_particle);
+	OutputSetT output_set_particle(GeometryT::kPoint, fParticlesUsed, n_labels);
+	fParticleOutputID = ElementSupport().RegisterOutput(output_set_particle);
+#endif
 }
 
 //NOTE - this function is/was identical to CSEBaseT::WriteOutput

@@ -1,5 +1,4 @@
-/* $Id: ElementT.cpp,v 1.33 2003-12-10 06:44:03 paklein Exp $ */
-
+/* $Id: ElementT.cpp,v 1.27.2.1 2003-09-10 17:56:36 paklein Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -53,6 +52,9 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			break;
 		case ElementT::kThermalSurface:
 			type = ElementT::kThermalSurface;
+			break;
+		case ElementT::kViscousDrag:
+			type = ElementT::kViscousDrag;
 			break;
 		case ElementT::kPenaltyContact:
 			type = ElementT::kPenaltyContact;
@@ -152,30 +154,19 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		case ElementT::kSSQ1P0MF:
 		    type = ElementT::kSSQ1P0MF;
 		    break;
-		case ElementT::kGradSmallStrain:
-		    type = ElementT::kGradSmallStrain;
+		case ElementT::kDorganVoyiadjisMarin:
+		    type = ElementT::kDorganVoyiadjisMarin;
 		    break;
-		case ElementT::kAPSgrad:
-		    type = ElementT::kAPSgrad;
-		    break;    
 		case ElementT::kHyperElasticInitCSE:
 		    type = ElementT::kHyperElasticInitCSE;
 		    break;
 		case ElementT::kPenaltyContactDrag:
 		    type = ElementT::kPenaltyContactDrag;
-			break;
-		case ElementT::kMeshfreePenaltyContact:
-		    type = ElementT::kMeshfreePenaltyContact;
-			break;
-		case ElementT::kTotLagSplitIntegration:
-		    type = ElementT::kTotLagSplitIntegration;
-		    break;
-		case ElementT::kTotLagFlat:
-		    type = ElementT::kTotLagFlat;
 		    break;
 		default:
-			ExceptionT::BadInputValue("operator>>ElementT::TypeT",
-				"unknown type: %d", i_type);
+			cout << "\n operator>>ElementT::TypeT: unknown type: "
+			<< i_type<< endl;
+			throw ExceptionT::kBadInputValue;	
 	}
 	return in;
 }

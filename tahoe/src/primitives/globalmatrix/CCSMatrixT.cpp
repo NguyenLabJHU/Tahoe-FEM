@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.17 2003-11-21 22:48:06 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.15 2003-03-11 07:21:29 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "CCSMatrixT.h"
 
@@ -154,7 +154,7 @@ void CCSMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 /* assemble the element contribution into the LHS matrix - assumes
 * that elMat is square (n x n) and that eqnos is also length n.
 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
+void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 	/* element matrix format */
 	ElementMatrixT::FormatT format = elMat.Format();
@@ -164,7 +164,7 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
 	else if (format == ElementMatrixT::kDiagonal)
 	{
 		/* from diagonal only */
-		const double* pelMat = elMat.Pointer();
+		double* pelMat = elMat.Pointer();
 		int inc = elMat.Rows() + 1;
 		
 		int size = eqnos.Length();
@@ -222,8 +222,8 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
 	}
 }
 
-void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
-	const ArrayT<int>& col_eqnos)
+void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+	const nArrayT<int>& col_eqnos)
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
@@ -254,7 +254,7 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eq
 	}
 }
 
-void CCSMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos)
+void CCSMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
@@ -278,7 +278,7 @@ double CCSMatrixT::ResidualNorm(const dArrayT& result) const
 	if (result.Length() != fLocNumEQ) throw ExceptionT::kGeneralFail;
 
 	double  norm = 0.0;
-	const double* p = result.Pointer();
+	double* p = result.Pointer();
 
 	for (int i = 0; i < fLocNumEQ; i++)
 	{
@@ -763,9 +763,9 @@ void CCSMatrixT::PrintAllPivots(void) const
 	fOut << '\n';
 }
 
-void CCSMatrixT::PrintLHS(bool force) const
+void CCSMatrixT::PrintLHS(void) const
 {
-	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
+if (fCheckCode != GlobalMatrixT::kPrintLHS) return;
 	
 	fOut << "\nLHS matrix:\n\n";
 	fOut << (*this) << "\n\n";
@@ -915,8 +915,8 @@ void CCSMatrixT::SetColumnHeights(const iArray2DT& eqnos)
 
 	for (int j = 0; j < nel; j++)
 	{
-		const int* eleqnos = eqnos(j);
-		int min = fLocNumEQ;
+		int* eleqnos = eqnos(j);
+		int  min     = fLocNumEQ;
 	
 		/* find the smallest eqno > 0 */
 		for (int k = 0; k < nee; k++)
@@ -953,8 +953,8 @@ void CCSMatrixT::SetColumnHeights(const RaggedArray2DT<int>& eqnos)
 	int nel = eqnos.MajorDim();
 	for (int j = 0; j < nel; j++)
 	{
-		int nee = eqnos.MinorDim(j);
-		const int* eleqnos = eqnos(j);
+		int      nee = eqnos.MinorDim(j);
+		int* eleqnos = eqnos(j);
 	
 		/* find the smallest eqno > 0 */
 		int min = fLocNumEQ;

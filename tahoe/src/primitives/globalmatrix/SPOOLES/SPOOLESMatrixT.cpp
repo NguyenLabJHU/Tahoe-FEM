@@ -1,6 +1,5 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.16 2003-11-01 16:09:36 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.14.2.1 2003-12-09 18:23:37 paklein Exp $ */
 /* created: paklein (09/13/2000) */
-
 #include "SPOOLESMatrixT.h"
 
 /* library support options */
@@ -14,10 +13,9 @@
 #include "SPOOLESMT.h"
 #endif
 
-/* message file name */
-
 using namespace Tahoe;
 
+/* log file */
 const char SPOOLES_FILE[] = "SPOOLES.out";
 
 /* constuctor */
@@ -30,14 +28,13 @@ SPOOLESMatrixT::SPOOLESMatrixT(ostream& out, int check_code,
 	fSolveCount(0)	
 {
 	fMSRBuilder = new MSRBuilderT(fSymmetric);
-	if (!fMSRBuilder) throw ExceptionT::kOutOfMemory;
+	if (!fMSRBuilder) ExceptionT::OutOfMemory("SPOOLESMatrixT::SPOOLESMatrixT");
 }
 
 SPOOLESMatrixT::SPOOLESMatrixT(const SPOOLESMatrixT& source):
 	GlobalMatrixT(source)
 {
-	cout << "\n SPOOLESMatrixT::SPOOLESMatrixT: not implemented" << endl;
-	throw ExceptionT::kGeneralFail;
+	ExceptionT::GeneralFail("SPOOLESMatrixT::SPOOLESMatrixT", "not implemented");
 }
 
 /* destructor */
@@ -81,7 +78,7 @@ void SPOOLESMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqnos)
 * that elMat is square (n x n) and that eqnos is also length n.
 *
 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
+void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 #if __option (extended_errorcheck)
 	if (elMat.Rows() != elMat.Cols()) throw ExceptionT::kGeneralFail;
@@ -115,10 +112,8 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eq
 		/* check completion */
 		if (!status)
 		{
-			iArrayT tmp;
-			tmp.Alias(eqnos);
 			cout << "\n SPOOLESMatrixT::Assemble: error with equations:\n";
-			cout << tmp << endl;
+			cout << eqnos << endl;
 			throw ExceptionT::kGeneralFail;
 		}
 	}
@@ -234,18 +229,16 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eq
 			/* check completion */
 			if (!status)
 			{
-				iArrayT tmp;
-				tmp.Alias(eqnos);
 				cout << "\n SPOOLESMatrixT::Assemble: error with equations:\n";
-				cout << tmp << endl;
+				cout << eqnos << endl;
 				throw ExceptionT::kGeneralFail;
 			}
 		}
 	}
 }
 
-void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
-	const ArrayT<int>& col_eqnos)
+void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+	const nArrayT<int>& col_eqnos)
 {
 #if __option (extended_errorcheck)
 	/* check dimensions */
@@ -322,19 +315,16 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& ro
 			/* check completion */
 			if (!status)
 			{
-				iArrayT tmp;
 				cout << "\n SPOOLESMatrixT::Assemble: error with equations:\n";
-				tmp.Alias(row_eqnos);
-				cout << " row:\n" << tmp << endl;
-				tmp.Alias(col_eqnos);
-				cout << " col:\n" << tmp << endl;
+				cout << " row:\n" << row_eqnos << endl;
+				cout << " col:\n" << col_eqnos << endl;
 				throw ExceptionT::kGeneralFail;
 			}
 		}
 	}
 }
 
-void SPOOLESMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos)
+void SPOOLESMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
 {
 #pragma unused(diagonal_elMat)
 #pragma unused(eqnos)
@@ -472,9 +462,8 @@ void SPOOLESMatrixT::PrintZeroPivots(void) const
 //not implemented
 }
 
-void SPOOLESMatrixT::PrintLHS(bool force) const
+void SPOOLESMatrixT::PrintLHS(void) const
 {
-#pragma unused(force)
 //not implemented
 }
 

@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.cpp,v 1.7 2003-12-10 07:14:28 paklein Exp $ */
+/* $Id: DiffusionMaterialT.cpp,v 1.6 2003-06-09 06:54:30 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionMaterialT.h"
 #include "DiffusionMatSupportT.h"
@@ -13,25 +13,13 @@ using namespace Tahoe;
 /* constructor */
 DiffusionMaterialT::DiffusionMaterialT(ifstreamT& in, const DiffusionMatSupportT& support):
 	ContinuumMaterialT(support),
-	fDiffusionMatSupport(&support),
+	fDiffusionMatSupport(support),
 	fConductivity(NumSD()),
-	fq_i(NumSD()),
-	fdq_i(NumSD())	
+	fq_i(NumSD())
 {
-	SetName("linear_diffusion");
-
 	in >> fDensity;		 if (fDensity <= 0.0) throw ExceptionT::kBadInputValue;
-	in >> fSpecificHeat; if (fSpecificHeat <= 0.0) throw ExceptionT::kBadInputValue;
+	in >> fSpecificHeat; if (fDensity <= 0.0) throw ExceptionT::kBadInputValue;
 	in >> fConductivity;
-	fdq_i = 0.0;
-}
-
-DiffusionMaterialT::DiffusionMaterialT(void):
-	fDiffusionMatSupport(NULL),
-	fDensity(0.0),
-	fSpecificHeat(0.0)
-{
-	SetName("linear_diffusion");
 }
 
 /* I/O functions */
@@ -49,20 +37,8 @@ void DiffusionMaterialT::Print(ostream& out) const
 const dArrayT& DiffusionMaterialT::q_i(void)
 {
 	/* should be 1 row */
-	fConductivity.Multx(fDiffusionMatSupport->Gradient(), fq_i, -1.0);
+	fConductivity.Multx(fDiffusionMatSupport.Gradient(), fq_i, -1.0);
 	return fq_i;
-}
-
-/* describe the parameters needed by the interface */
-void DiffusionMaterialT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	ContinuumMaterialT::DefineParameters(list);
-
-	/* define parameters */
-	list.AddParameter(fDensity, "density");
-	list.AddParameter(fSpecificHeat, "specific_heat");
-	list.AddParameter(ParameterT::Double, "conductivity");
 }
 
 /*************************************************************************

@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.15 2003-11-21 22:48:06 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.13 2003-04-08 23:00:17 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #include "CCNSMatrixT.h"
 
@@ -166,7 +166,7 @@ void CCNSMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 /* assemble the element contribution into the LHS matrix - assumes
 * that elMat is square (n x n) and that eqnos is also length n.
 * NOTE: assembly positions (equation numbers) = 1...fLocNumEQ */
-void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
+void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 	/* element matrix format */
 	ElementMatrixT::FormatT format = elMat.Format();
@@ -174,7 +174,7 @@ void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos
 	if (format == ElementMatrixT::kDiagonal)
 	{
 		/* from diagonal only */
-		const double* pelMat = elMat.Pointer();
+		double* pelMat = elMat.Pointer();
 		int inc = elMat.Rows() + 1;
 		
 		int size = eqnos.Length();
@@ -219,8 +219,8 @@ void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos
 	}
 }
 
-void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
-	const ArrayT<int>& col_eqnos)
+void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+	const nArrayT<int>& col_eqnos)
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
@@ -258,7 +258,7 @@ void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_e
 	}
 }
 
-void CCNSMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos)
+void CCNSMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
@@ -476,9 +476,9 @@ void CCNSMatrixT::PrintAllPivots(void) const
 	fOut << '\n';
 }
 
-void CCNSMatrixT::PrintLHS(bool force) const
+void CCNSMatrixT::PrintLHS(void) const
 {
-	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS)
+	if (fCheckCode != GlobalMatrixT::kPrintLHS)
 		return;
 		
 	fOut << "\nLHS matrix:\n\n";
@@ -610,8 +610,8 @@ void CCNSMatrixT::SetSkylineHeights(const iArray2DT& eqnos)
 
 	for (int j = 0; j < nel; j++)
 	{
-		const int* eleqnos = eqnos(j);
-		int  min = fLocNumEQ;
+		int* eleqnos = eqnos(j);
+		int  min     = fLocNumEQ;
 	
 		/* find the smallest eqno > 0 */
 		for (int k = 0; k < nee; k++)
@@ -648,8 +648,8 @@ void CCNSMatrixT::SetSkylineHeights(const RaggedArray2DT<int>& eqnos)
 	int nel = eqnos.MajorDim();
 	for (int j = 0; j < nel; j++)
 	{
-		int nee = eqnos.MinorDim(j);
-		const int* eleqnos = eqnos(j);
+		int      nee = eqnos.MinorDim(j);
+		int* eleqnos = eqnos(j);
 	
 		/* find the smallest eqno > 0 */
 		int min = fLocNumEQ;

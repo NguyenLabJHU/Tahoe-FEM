@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.6 2003-01-29 07:35:08 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.6.14.2 2003-12-05 17:05:26 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
 #include <iostream.h>
@@ -8,14 +8,18 @@
 
 using namespace Tahoe;
 
+/* perturbation used to compute c_ijkl from finite difference */
+const double strain_perturbation = 1.0e-08;
+
 /* constructor */
 SSSolidMatT::SSSolidMatT(ifstreamT& in,const SSMatSupportT& support):
 	SolidMaterialT(in, support),
 	fSSMatSupport(support),
-//	fLocDisp(fSmallStrain.Displacements()),	
+	fModulus(dSymMatrixT::NumValues(NumSD())),
 	fStrainTemp(NumSD()),
 	fQ(NumSD()),
-	fThermalStrain(NumSD())
+	fThermalStrain(NumSD()),
+	fHasThermalStrain(false)
 {
 
 }
@@ -64,11 +68,7 @@ const dSymMatrixT& SSSolidMatT::e_last(void)
 {
 	/* cannot have thermal strain */
 	if (fHasThermalStrain)
-	{
-		cout << "\n SSSolidMatT::e_last: not available with thermal strains" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-	
+		ExceptionT::GeneralFail("SSSolidMatT::e_last", "not available with thermal strains");
 	return fSSMatSupport.LinearStrain_last();
 }
 
@@ -77,17 +77,55 @@ const dSymMatrixT& SSSolidMatT::e_last(int ip)
 {
 	/* cannot have thermal strain */
 	if (fHasThermalStrain)
-	{
-		cout << "\n SSSolidMatT::e_last: not available with thermal strains" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-	
+		ExceptionT::GeneralFail("SSSolidMatT::e_last", "not available with thermal strains");
 	return fSSMatSupport.LinearStrain_last(ip);
 }
 
 /* material description */
 const dMatrixT& SSSolidMatT::C_IJKL(void)  { return c_ijkl(); }
 const dSymMatrixT& SSSolidMatT::S_IJ(void) { return s_ij();   }
+
+/* return modulus */
+const dMatrixT& SSSolidMatT::c_ijkl(void)
+{
+	/* get the strain tensor for the current ip - use the strain
+	 * from the material support since the return values from ensure e()
+	 * is recomputed when there are thermal strains */
+	dSymMatrixT& strain = const_cast<dSymMatrixT&>(fSSMatSupport.LinearStrain());
+
+	/* compute columns of modulus */
+	for (int i = 0; i < fModulus.Cols(); i++) {
+
+		/* perturb strain */
+		strain[i] += strain_perturbation;
+	
+		/* compute stress */
+		const dSymMatrixT& stress = s_ij();
+	
+		/* write into modulus */
+		fModulus.SetCol(i, stress);
+		
+		/* undo perturbation */
+		strain[i] -= strain_perturbation;
+	}
+	
+	/* restore stress to unperturbed state */
+	const dSymMatrixT& stress = s_ij();
+	
+	/* compute modulus from finite difference */
+	int nsdm1 = NumSD() - 1;
+	double den = strain_perturbation;
+	for (int i = 0; i < fModulus.Cols(); i++) {
+
+		/* shear strains */
+		if (i == nsdm1) den *= 2.0;
+
+		for (int j = 0; j < fModulus.Rows(); j++)
+			fModulus(j,i) = (fModulus(j,i) - stress[j])/den;
+	}
+
+	return fModulus;
+}
 
 /* apply pre-conditions at the current time step */
 void SSSolidMatT::InitStep(void)

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupport3DT.cpp,v 1.8 2003-11-21 22:47:14 paklein Exp $ */
+/* $Id: MeshFreeSupport3DT.cpp,v 1.7 2002-10-20 22:49:40 paklein Exp $ */
 /* created: paklein (09/13/1998) */
 
 #include "MeshFreeSupport3DT.h"
@@ -64,7 +64,7 @@ void MeshFreeSupport3DT::ProcessBoundaries(const dArray2DT& coords,
 	/* quick exit if there are no facets */
 	if (!fCutCoords || fCutCoords->MajorDim() == 0) return;
 
-	const double* x = x_node.Pointer();
+	double* x = x_node.Pointer();
 	for (int i = 0; i < coords.MajorDim(); i++)
 		if (!Visible(x, coords(i)))
 			nodal_params.SetRow(i, -1.0);
@@ -81,9 +81,9 @@ int MeshFreeSupport3DT::Visible(const double* x1, const double* x2)
 		/* exhaustive search for now */
 		for (int j = 0; j < fCutCoords->MajorDim(); j++)
 		{
-			const double* v0 = (*fCutCoords)(j);
-			const double* v1 = v0 + 3;
-			const double* v2 = v1 + 3;
+			double* v0 = (*fCutCoords)(j);
+			double* v1 = v0 + 3;
+			double* v2 = v1 + 3;
 			if (Intersect(v0, v1, v2, x1, x2)) return 0;
 		}
 	}
@@ -92,10 +92,10 @@ int MeshFreeSupport3DT::Visible(const double* x1, const double* x2)
 		/* exhaustive search for now */
 		for (int j = 0; j < fCutCoords->MajorDim(); j++)
 		{
-			const double* v0 = (*fCutCoords)(j);
-			const double* v1 = v0 + 3;
-			const double* v2 = v1 + 3;
-			const double* v3 = v2 + 3;
+			double* v0 = (*fCutCoords)(j);
+			double* v1 = v0 + 3;
+			double* v2 = v1 + 3;
+			double* v3 = v2 + 3;
 			if (Intersect(v0, v1, v2, x1, x2) ||
 			    Intersect(v0, v2, v3, x1, x2)) return 0;
 		}
@@ -194,10 +194,10 @@ void MeshFreeSupport3DT::CutCircle(const dArray2DT& coords, const dArrayT& x_nod
 	double z_c =  0.0;
 	double r   = 15.0;
 	
-	const double* pa = x_node.Pointer();
+	double* pa = x_node.Pointer();
 	for (int i = 0; i < coords.MajorDim(); i++)
 	{
-		const double* pb = coords(i);
+		double* pb = coords(i);
 	
 		/* must be on opposite size of z = zc */
 		if ((pa[2] - z_c)*(pb[2] - z_c) < kSmall)
@@ -244,10 +244,10 @@ void MeshFreeSupport3DT::CutEllipse(const dArray2DT& coords, const dArrayT& x_no
 	double a_x = 10.0; // x-direction axis
 	double a_y =  7.5; // y-direction axis
 	
-	const double* pa = x_node.Pointer();
+	double* pa = x_node.Pointer();
 	for (int i = 0; i < coords.MajorDim(); i++)
 	{
-		const double* pb = coords(i);
+		double* pb = coords(i);
 	
 		/* must be on opposite size of z = zc */
 		if ((pa[2] - z_c)*(pb[2] - z_c) < kSmall)

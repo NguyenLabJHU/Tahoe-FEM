@@ -1,4 +1,4 @@
-/* $Id: SolidMatListT.h,v 1.8 2003-12-02 17:12:22 paklein Exp $ */
+/* $Id: SolidMatListT.h,v 1.7 2003-07-29 21:17:49 rdorgan Exp $ */
 #ifndef _STRUCT_MAT_LIST_T_H_
 #define _STRUCT_MAT_LIST_T_H_
 
@@ -20,7 +20,6 @@ public:
 
 	/** constructor */
 	SolidMatListT(int length, const SolidMatSupportT& support);
-	SolidMatListT(void);
 
 	/** returns true if any of the materials in the list can undergo
 	 * strain localization */
@@ -49,7 +48,7 @@ protected:
 	 * into the constructor */
 	/*@{*/
 	/** base class for structural material support */
-	const SolidMatSupportT* fSolidMatSupport; 
+	const SolidMatSupportT& fSolidMatSupport; 
 	
 	/** support for small strain materials */
 	const SSMatSupportT* fSSMatSupport;

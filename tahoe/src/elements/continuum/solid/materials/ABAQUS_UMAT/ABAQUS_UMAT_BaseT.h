@@ -1,10 +1,13 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.9 2003-11-21 22:46:10 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.7.2.3 2003-12-03 19:52:53 paklein Exp $ */
 /* created: paklein (05/09/2000) */
 #ifndef _ABAQUS_UMAT_BASE_T_H_
 #define _ABAQUS_UMAT_BASE_T_H_
 
-/* base class */
+/* base classes */
+#include "ABAQUS_BaseT.h"
 #include "FSSolidMatT.h"
+#include "IsotropicT.h"
+#include "Material2DT.h"
 
 /* library support options */
 #ifdef __F2C__
@@ -25,7 +28,11 @@ namespace Tahoe {
 /* forward declarations */
 class SpectralDecompT;
 
-class ABAQUS_UMAT_BaseT: public FSSolidMatT
+class ABAQUS_UMAT_BaseT: 
+	protected ABAQUS_BaseT, 
+	public FSSolidMatT, 
+	public IsotropicT,
+	public Material2DT
 {
 public:
 
@@ -95,13 +102,8 @@ protected:
 
 private:
 
-	/* conversion functions */
-	void dMatrixT_to_ABAQUS(const dMatrixT& A, nMatrixT<doublereal>& B) const;
-	void ABAQUS_to_dSymMatrixT(const doublereal* pA, dSymMatrixT& B) const;
-	void dSymMatrixT_to_ABAQUS(const dSymMatrixT& A, doublereal* pB) const;
-
 	/* load element data for the specified integration point */
-	void Load(const ElementCardT& element, int ip);
+	void Load(ElementCardT& element, int ip);
 	void Store(ElementCardT& element, int ip);
 
 	/* make call to the UMAT */
@@ -122,12 +124,12 @@ private:
 		integer*, integer*, integer*, integer*, integer*,
 		integer*, ftnlen) = 0;
 
-	/* read ABAQUS-format input */
-	void Read_ABAQUS_Input(ifstreamT& in);
-	bool Next_ABAQUS_Keyword(ifstreamT& in) const;
-	bool Skip_ABAQUS_Symbol(ifstreamT& in, char c) const; // returns true if c is next non-whitespace
-	void Skip_ABAQUS_Comments(ifstreamT& in);
-	void Read_ABAQUS_Word(ifstreamT& in, StringT& word, bool to_upper = true) const;
+protected:
+
+	GlobalT::SystemTypeT fTangentType;
+
+	/** properties array */
+	nArrayT<doublereal> fProperties;
 	
 private:
 
@@ -136,7 +138,6 @@ private:
 	
 	/* material name */
 	StringT fUMAT_name;
-	GlobalT::SystemTypeT fTangentType;
 	//other options:
 	//  strain type
 	//  orientation (*ORIENTATION)
@@ -147,9 +148,6 @@ private:
 	dSymMatrixT fStress;             // return value
 	dArrayT fIPCoordinates;          // integration point coordinates
 	double fPressure; /**< pressure for the most recent calculation of the stress */
-
-	/* properties array */
-	nArrayT<doublereal> fProperties;
 	
 	/* material output data */
 	iArrayT fOutputIndex;
@@ -204,8 +202,6 @@ inline GlobalT::SystemTypeT ABAQUS_UMAT_BaseT::TangentType(void) const
 	return fTangentType;
 }
 
-} /* namespace Tahoe */
-
 #else /* __F2C__ */
 
 #ifndef __MWERKS__
@@ -213,5 +209,7 @@ inline GlobalT::SystemTypeT ABAQUS_UMAT_BaseT::TangentType(void) const
 #endif
 
 #endif /* __F2C__ */
+
+} /* namespace Tahoe */
 
 #endif /* _ABAQUS_UMAT_BASE_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: nLinearHHTalpha.cpp,v 1.12 2003-11-21 22:47:31 paklein Exp $ */
+/* $Id: nLinearHHTalpha.cpp,v 1.11 2003-05-22 08:25:44 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 #include "nLinearHHTalpha.h"
 #include "dArrayT.h"
@@ -141,7 +141,7 @@ void nLinearHHTalpha::Corrector(BasicFieldT& field, const dArrayT& update,
 	/* add update - assumes that fEqnos maps directly into dva */
 	const iArray2DT& eqnos = field.Equations();
 	
-	const int *peq = eqnos.Pointer();
+	int   *peq = eqnos.Pointer();
 	double *pd = field[0].Pointer();
 	double *pv = field[1].Pointer();
 	double *pa = field[2].Pointer();
@@ -178,7 +178,7 @@ void nLinearHHTalpha::MappedCorrector(BasicFieldT& field, const iArrayT& map,
 	for (int i = 0; i < map.Length(); i++)
 	{
 		int row = map[i];
-		const int* pflags = flags(i);
+		int* pflags = flags(i);
 
 		double* pd = (field[0])(row);
 		double* pv = (field[1])(row);

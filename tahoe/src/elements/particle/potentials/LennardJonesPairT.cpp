@@ -1,4 +1,4 @@
-/* $Id: LennardJonesPairT.cpp,v 1.10 2003-10-31 20:51:11 paklein Exp $ */
+/* $Id: LennardJonesPairT.cpp,v 1.7 2003-07-11 16:46:04 hspark Exp $ */
 #include "LennardJonesPairT.h"
 #include "toolboxConstants.h"
 #include <iostream.h>
@@ -20,7 +20,6 @@ LennardJonesPairT::LennardJonesPairT(double mass, double eps, double sigma, doub
 	f_dphi_rc(0.0),
 	f_phi_rc(0.0)
 {
-	SetName("Lennard_Jones");
 	SetRange(f_sigma*f_alpha);
 	SetMass(mass);
 	
@@ -37,16 +36,6 @@ LennardJonesPairT::LennardJonesPairT(double mass, double eps, double sigma, doub
 	}
 	else
 		f_alpha = 0.0;
-}
-
-LennardJonesPairT::LennardJonesPairT(void):
-	f_eps(0.0),
-	f_sigma(0.0),
-	f_alpha(0.0),
-	f_dphi_rc(0.0),
-	f_phi_rc(0.0)
-{
-	SetName("Lennard_Jones");
 }
 
 /* return a pointer to the energy function */
@@ -99,55 +88,6 @@ void LennardJonesPairT::Write(ostream& out) const
 	out << " Cut-off parameter (alpha) . . . . . . . . . . . = " << f_alpha << '\n';
 }
 
-/* describe the parameters needed by the interface */
-void LennardJonesPairT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	PairPropertyT::DefineParameters(list);
-
-	ParameterT eps(f_eps, "energy_scaling");
-	eps.AddLimit(0.0, LimitT::Lower);
-	list.AddParameter(eps);
-
-	ParameterT sigma(f_sigma, "length_scaling");
-	sigma.AddLimit(0.0, LimitT::Lower);
-	list.AddParameter(sigma);
-
-	ParameterT alpha(f_alpha, "cut_off_distance");
-	alpha.AddLimit(0.0, LimitT::Lower);
-	list.AddParameter(alpha, ParameterListT::ZeroOrOnce);
-}
-
-/* accept parameter list */
-void LennardJonesPairT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	PairPropertyT::TakeParameterList(list);
-
-	f_eps = list.GetParameter("energy_scaling");
-	f_sigma = list.GetParameter("length_scaling");
-	
-	/* optional cut-off distance */
-	const ParameterT* alpha = list.Parameter("cut_off_distance");
-	if (alpha)
-		f_alpha = *alpha;
-	else
-		f_alpha = 0.0;
-	SetRange(f_sigma*f_alpha);
-
-	/* evaluate unmodified force at the cut-off */
-	if (f_alpha > kSmall) {
-		s_eps = f_eps;
-		s_sigma = f_sigma;
-		s_alpha = -1.0;
-		s_phi_rc = 0.0;
-		s_dphi_rc = 0.0;
-		
-		f_phi_rc = Energy(f_sigma*f_alpha, NULL, NULL);
-		f_dphi_rc = Force(f_sigma*f_alpha, NULL, NULL);
-	}
-}
-
 /***********************************************************************
  * Private
  ***********************************************************************/
@@ -156,17 +96,20 @@ double LennardJonesPairT::Energy(double r_ab, double* data_a, double* data_b)
 {
 #pragma unused(data_a)
 #pragma unused(data_b)
+
 	double r_c = s_sigma*s_alpha;
 	if (s_alpha > kSmall && r_ab > r_c)
 		return 0.0;
 	else
 	{
-		double r = s_sigma/r_ab;
+	        double r = s_sigma/r_ab;
+		//double r = r_ab;
 		double r_6 = r*r*r*r*r*r;
 		double r_12 = r_6*r_6;
-		double sigma_6 = s_sigma*s_sigma*s_sigma*s_sigma*s_sigma*s_sigma;
-		double sigma_12 = sigma_6*sigma_6;
+		//double sigma_6 = s_sigma*s_sigma*s_sigma*s_sigma*s_sigma*s_sigma;
+		//double sigma_12 = sigma_6*sigma_6;
 		return 4.0*s_eps*(r_12 - r_6) - s_phi_rc - (r_ab - r_c)*s_dphi_rc;
+		//return 4.0*s_eps*(sigma_12/r_12-sigma_6/r_6);
 	}
 }
 

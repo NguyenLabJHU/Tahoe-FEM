@@ -1,4 +1,4 @@
-/* $Id: tevp2D.h,v 1.23 2003-11-21 22:46:58 paklein Exp $ */
+/* $Id: tevp2D.h,v 1.22 2003-01-29 07:35:09 paklein Exp $ */
 /* Created:  Harold Park (04/04/2001) */
 #ifndef _TEVP_2D_H_
 #define _TEVP_2D_H_
@@ -105,8 +105,8 @@ class tevp2D: public FSSolidMatT, public IsotropicT, public Material2DT
   double ComputeEffectiveStress(void);
   double ComputeFluidEffectiveStrain(double& effectivestrainrate);
   double ComputeViscoEffectiveStrain(double& effectivestrainrate);
-  void CheckCriticalCriteria(ElementCardT& element, int ip);
-  int CheckIfPlastic(ElementCardT& element, int ip);
+  void CheckCriticalCriteria(const ElementCardT& element, int ip);
+  int CheckIfPlastic(const ElementCardT& element, int ip);
   /* load element data for the specified integration point */
   void LoadData(const ElementCardT& element, int ip); 
   /* element level data */

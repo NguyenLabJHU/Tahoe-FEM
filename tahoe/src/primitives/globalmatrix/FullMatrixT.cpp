@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.13 2003-11-21 22:48:06 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.11 2002-11-25 07:13:40 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 #include "FullMatrixT.h"
 #include <iostream.h>
@@ -75,7 +75,7 @@ void FullMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 /* assemble the element contribution into the LHS matrix - assumes
 * that elMat is square (n x n) and that eqnos is also length n.
 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
-void FullMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
+void FullMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)
 {
 #if __option(extended_errorcheck)
 	/* dimension checking */
@@ -89,10 +89,10 @@ void FullMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos
 	if (format == ElementMatrixT::kDiagonal)
 	{
 		/* from diagonal only */
-		const double* pelMat = elMat.Pointer();
+		double* pelMat = elMat.Pointer();
 		int inc = elMat.Rows() + 1;
 	
-		const int* peq = eqnos.Pointer();		
+		int*    peq    = eqnos.Pointer();		
 		for (int i = 0; i < elMat.Length(); i++)
 		{
 			int eq = *peq++;
@@ -108,16 +108,17 @@ void FullMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos
 		/* copy to full symmetric */
 		if (elMat.Format() == ElementMatrixT::kSymmetricUpper) elMat.CopySymmetric();
 
-		const int* peq = eqnos.Pointer();	
+		int*    peq    = eqnos.Pointer();	
 		for (int col = 0; col < elMat.Cols(); col++)
 		{
-			int eqc = eqnos[col];
-			const double* pelMat = elMat(col);
+			int        eqc = eqnos[col];
+			double* pelMat = elMat(col);
 		
 			/* active dof's only */
 			if (eqc-- > 0)
 			{		
-				const int* peqr = eqnos.Pointer();
+				int* peqr = eqnos.Pointer();
+						
 				for (int row = 0; row < elMat.Rows(); row++)
 				{
 					int eqr = *peqr++;
@@ -132,8 +133,8 @@ void FullMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos
 	}
 }
 
-void FullMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eqnos,
-	const ArrayT<int>& col_eqnos)
+void FullMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+	const nArrayT<int>& col_eqnos)
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
@@ -171,7 +172,7 @@ void FullMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_e
 	}
 }
 
-void FullMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos)
+void FullMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
@@ -198,16 +199,17 @@ void FullMatrixT::OverWrite(const ElementMatrixT& elMat, const nArrayT<int>& eqn
 	/* copy to full symmetric */
 	if (elMat.Format() == ElementMatrixT::kSymmetricUpper) elMat.CopySymmetric();
 
-	const int* peq = eqnos.Pointer();	
+	int* peq = eqnos.Pointer();	
 	for (int col = 0; col < elMat.Cols(); col++)
 	{
-		int eqc = eqnos[col];
-		const double* pelMat = elMat(col);
+		int        eqc = eqnos[col];
+		double* pelMat = elMat(col);
 		
 		/* active dof's only */
 		if (eqc-- > 0)
 		{		
-			const int* peqr = eqnos.Pointer();
+			int* peqr = eqnos.Pointer();
+					
 			for (int row = 0; row < elMat.Rows(); row++)
 			{
 				int eqr = *peqr++;
@@ -229,7 +231,8 @@ void FullMatrixT::Disassemble(dMatrixT& elMat, const nArrayT<int>& eqnos) const
 	    elMat.Cols() != eqnos.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
-	const int* peq = eqnos.Pointer();
+	int* peq = eqnos.Pointer();
+	
 	for (int col = 0; col < elMat.Cols(); col++)
 	{
 		int        eqc = eqnos[col];
@@ -238,7 +241,8 @@ void FullMatrixT::Disassemble(dMatrixT& elMat, const nArrayT<int>& eqnos) const
 		/* active dof's only */
 		if (eqc-- > 0)
 		{		
-			const int* peqr = eqnos.Pointer();
+			int* peqr = eqnos.Pointer();
+					
 			for (int row = 0; row < elMat.Rows(); row++)
 			{
 				int eqr = *peqr++;
@@ -375,9 +379,9 @@ void FullMatrixT::PrintZeroPivots(void) const
 //TEMP: no full, nonsymmetric factorization implemented
 }
 
-void FullMatrixT::PrintLHS(bool force) const
+void FullMatrixT::PrintLHS(void) const
 {
-	if (!force && fCheckCode != GlobalMatrixT::kPrintLHS) return;
+	if (fCheckCode != GlobalMatrixT::kPrintLHS) return;
 		
 	fOut << "\nLHS matrix:\n\n";
 	fOut << fMatrix << "\n\n";

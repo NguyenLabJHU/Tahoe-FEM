@@ -1,4 +1,4 @@
-/* $Id: LocalJ2SSNonlinHard.cpp,v 1.9 2003-11-21 22:46:51 paklein Exp $ */
+/* $Id: LocalJ2SSNonlinHard.cpp,v 1.8 2003-05-15 22:39:47 rdorgan Exp $ */
 #include "LocalJ2SSNonlinHard.h"
 
 #include "iArrayT.h"
@@ -398,25 +398,24 @@ double LocalJ2SSNonlinHard::YieldCondition(const dSymMatrixT& relstress,
 void LocalJ2SSNonlinHard::LoadData(const ElementCardT& element, int fCurrIP)
 {
 	/* fetch arrays */
-	const dArrayT& d_array = element.DoubleData();
+	dArrayT& d_array = element.DoubleData();
 	
 	/* decode */
-	dSymMatrixT::DimensionT sdim = dSymMatrixT::int2DimensionT(kNSD);
 	int dim   = dSymMatrixT::NumValues(kNSD);
 	int block = 8*dim + 2*kNumInternal + dim*dim;
 	int dex   = fCurrIP*block;
 
-	fStress.Alias     (sdim,         &d_array[dex                ]);
-	fStress_n.Alias   (sdim,         &d_array[dex += dim         ]);
-	fPlstStrn.Alias   (sdim,         &d_array[dex += dim         ]);
-	fPlstStrn_n.Alias (sdim,         &d_array[dex += dim         ]);
-	fUnitNorm.Alias   (sdim,         &d_array[dex += dim         ]);
-	fUnitNorm_n.Alias (sdim,         &d_array[dex += dim         ]);
-	fKineHard.Alias   (sdim,         &d_array[dex += dim         ]);
-	fKineHard_n.Alias (sdim,         &d_array[dex += dim         ]);
-	fInternal.Alias   (kNumInternal, &d_array[dex += dim         ]);
-	fInternal_n.Alias (kNumInternal, &d_array[dex += kNumInternal]);
-	fModulus.Alias    (dim,dim,      &d_array[dex += kNumInternal]);
+        fStress.Set     (kNSD,         &d_array[dex                ]);
+        fStress_n.Set   (kNSD,         &d_array[dex += dim         ]);
+        fPlstStrn.Set   (kNSD,         &d_array[dex += dim         ]);
+        fPlstStrn_n.Set (kNSD,         &d_array[dex += dim         ]);
+        fUnitNorm.Set   (kNSD,         &d_array[dex += dim         ]);
+        fUnitNorm_n.Set (kNSD,         &d_array[dex += dim         ]);
+        fKineHard.Set   (kNSD,         &d_array[dex += dim         ]);
+        fKineHard_n.Set (kNSD,         &d_array[dex += dim         ]);
+        fInternal.Set   (kNumInternal, &d_array[dex += dim         ]);
+        fInternal_n.Set (kNumInternal, &d_array[dex += kNumInternal]);
+        fModulus.Set    (dim,dim,      &d_array[dex += kNumInternal]);
 }
 
 /* computes the increment in the plasticity parameter */

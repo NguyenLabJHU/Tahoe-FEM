@@ -1,4 +1,5 @@
-/* $Id: AugLagWallT.h,v 1.8 2003-10-04 19:14:05 paklein Exp $ */
+/* $Id: AugLagWallT.h,v 1.7.8.1 2003-09-28 09:13:04 paklein Exp $ */
+
 #ifndef _AUGLAG_WALL_T_H_
 #define _AUGLAG_WALL_T_H_
 
@@ -20,7 +21,7 @@ public:
 
 	/* constructor */
 	AugLagWallT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes, const FieldT& field,
-		const dArray2DT& coords, const dArray2DT& disp);
+		const dArray2DT& coords);
 
 	/* initialize data */
 	virtual void Initialize(void);
@@ -61,6 +62,9 @@ public:
 
 	/* returns 1 if group needs to reconfigure DOF's, else 0 */
 	virtual int Reconfigure(void);
+
+	/** restore any state data to the previous converged state */
+	virtual void ResetState(void) { };
 
 	/** return the equation group to which the generate degrees of
 	 * freedom belong. */

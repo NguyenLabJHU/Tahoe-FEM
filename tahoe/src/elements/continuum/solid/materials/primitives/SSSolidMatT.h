@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.10 2003-06-28 17:32:18 thao Exp $ */
+/* $Id: SSSolidMatT.h,v 1.10.2.2 2003-12-05 17:05:26 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
@@ -50,6 +50,10 @@ public:
 		// per call. for efficiency, each derived SSSolidMatT should
 		// overload these.
 
+	/** return modulus. This default implementation computes the material
+	 * modulus using a finite difference approach */
+	virtual const dMatrixT& c_ijkl(void);	 
+
 	/* apply pre-conditions at the current time step */
 	virtual void InitStep(void);
 
@@ -61,19 +65,16 @@ public:
 	virtual bool HasDissipVar(void) const {return false;};
 
 	virtual const iArrayT& InternalDOF(void) const {
-		cout << "\n InternalDOF not implement";
-		throw ExceptionT::kGeneralFail;
-		return  ijunk;};
+		ExceptionT::GeneralFail("SSSolidMatT::InternalDOF", "not implemented");
+		return ijunk;};
 
 	virtual const dArrayT& InternalStressVars(void) {
-		cout << "\n InternalStressVars not implemented";
-		throw ExceptionT::kGeneralFail;
-		return  djunk;};
+		ExceptionT::GeneralFail("SSSolidMatT::InternalStressVars", "not implemented");
+		return djunk;};
 
 	virtual const dArrayT& InternalStrainVars(void) {
-		cout << "\n InternalStressVars not implemented.";
-		throw ExceptionT::kGeneralFail;
-		return  djunk;};
+		ExceptionT::GeneralFail("SSSolidMatT::InternalStrainVars", "not implemented");
+		return djunk;};
 
 protected:
 
@@ -93,6 +94,9 @@ protected:
 
 	/** small strain material support */
 	const SSMatSupportT& fSSMatSupport;
+
+	/** return value for the modulus */
+	dMatrixT fModulus;
 
 private:
 	
