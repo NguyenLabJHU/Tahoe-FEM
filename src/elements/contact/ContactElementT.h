@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.7 2001-06-12 22:14:32 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.8 2001-06-28 23:57:14 rjones Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -64,6 +64,8 @@ public:
         enum EnforcementParametersT { kPass = 0, // these are enf. specific!!
 				kPenalty ,
 				kConsistentTangent ,
+				kSmithFerranteA,
+				kSmithFerranteB,
 				kEnfNumParameters};
 	
 
