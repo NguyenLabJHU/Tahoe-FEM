@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.3.2.4 2003-05-06 22:14:05 hspark Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.3.2.5 2003-05-09 08:50:25 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -381,6 +381,20 @@ void FEManagerT_bridging::SetReferenceError(int group, double error) const
 
 	/* silent in failuer */
 	if (solver) solver->SetReferenceError(error);
+}
+
+/* return the internal forces for the given solver group associated with the
+ * most recent call to FEManagerT_bridging::FormRHS. */
+const dArray2DT& FEManagerT_bridging::InternalForce(int group) const
+{
+//TEMP - only look for the contribution from the particle group
+	const char caller[] = "FEManagerT_bridging::InternalForce";
+	if (!fParticle)
+		ExceptionT::GeneralFail(caller, "particle group not set");
+	else if (!fParticle->InGroup(group))
+		ExceptionT::GeneralFail(caller, "particles are not in group %d", group);
+		
+	return fParticle->InternalForce(group);
 }
 
 /*************************************************************************
