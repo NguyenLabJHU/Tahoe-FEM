@@ -1,4 +1,4 @@
-/* $Id: ArgSpecT.cpp,v 1.2 2001-12-14 19:51:01 paklein Exp $ */
+/* $Id: ArgSpecT.cpp,v 1.3 2001-12-14 20:35:15 paklein Exp $ */
 
 #include "ArgSpecT.h"
 #include <ctype.h>
@@ -43,12 +43,27 @@ ArgSpecT::ArgSpecT(const ArgSpecT& arg):
 }
 
 /* destructor */
-ArgSpecT::~ArgSpecT(void) { delete fDefault; }
+ArgSpecT::~ArgSpecT(void) 
+{
+	ClearDefault();
+	ClearValue();
+}
 
 /* clear the default value */
 void ArgSpecT::ClearDefault(void)
 {
-	delete fDefault;
+	if (fType == int_)
+		delete (int*) fDefault;
+	else if (fType == float_)
+		delete (float*) fDefault;
+	else if (fType == double_)
+		delete (double*) fDefault;
+	else if (fType == string_)
+		delete (StringT*) fDefault;
+	else {
+		cout << "\n ArgSpecT::ClearDefault: type mismatch" << endl;
+		throw eGeneralFail;
+	}
 	fDefault = NULL;
 }
 
@@ -58,7 +73,18 @@ const char* ArgSpecT::TypeName(void) const { return type_names[Type()]; }
 /* clear the value */
 void ArgSpecT::ClearValue(void)
 {
-	delete fValue;
+	if (fType == int_)
+		delete (int*) fValue;
+	else if (fType == float_)
+		delete (float*) fValue;
+	else if (fType == double_)
+		delete (double*) fValue;
+	else if (fType == string_)
+		delete (StringT*) fValue;
+	else {
+		cout << "\n ArgSpecT::ClearValue: type mismatch" << endl;
+		throw eGeneralFail;
+	}
 	fValue = NULL;
 }
 
@@ -66,10 +92,10 @@ void ArgSpecT::ClearValue(void)
 void ArgSpecT::SetDefault(const int& a)
 {
 	if (fType == int_) {
-		delete fDefault;
+		
 		int* tmp = new int;
 		*tmp = a;
-		fDefault = tmp;
+		fDefault = (void*) tmp;
 	}
 	else if (fType == float_)
 		SetDefault(float(a));
@@ -84,10 +110,10 @@ void ArgSpecT::SetDefault(const int& a)
 void ArgSpecT::SetDefault(const double& a)
 {
 	if (fType == double_) {
-		delete fDefault;
+		ClearDefault();
 		double* tmp = new double;
 		*tmp = a;
-		fDefault = tmp;
+		fDefault = (void*) tmp;
 	}
 	else {
 		cout << "\n ArgSpecT::SetDefault: type mismatch" << endl;
@@ -98,10 +124,10 @@ void ArgSpecT::SetDefault(const double& a)
 void ArgSpecT::SetDefault(const StringT& a)
 {
 	if (fType == string_) {
-		delete fDefault;
+		ClearDefault();
 		StringT* tmp = new StringT;
 		*tmp = a;
-		fDefault = tmp;
+		fDefault = (void*) tmp;
 	}
 	else {
 		cout << "\n ArgSpecT::SetDefault: type mismatch" << endl;
@@ -112,10 +138,10 @@ void ArgSpecT::SetDefault(const StringT& a)
 void ArgSpecT::SetDefault(const bool& a)
 {
 	if (fType == bool_) {
-		delete fDefault;
+		ClearDefault();
 		bool* tmp = new bool;
 		*tmp = a;
-		fDefault = tmp;
+		fDefault = (void*) tmp;
 	}
 	else {
 		cout << "\n ArgSpecT::SetDefault: type mismatch" << endl;
@@ -126,10 +152,10 @@ void ArgSpecT::SetDefault(const bool& a)
 void ArgSpecT::SetDefault(const float& a)
 {
 	if (fType == float_) {
-		delete fDefault;
+		ClearDefault();
 		float* tmp = new float;
 		*tmp = a;
-		fDefault = tmp;
+		fDefault = (void*) tmp;
 	}
 	else if (fType == double_)
 		SetDefault(double(a));
@@ -426,7 +452,7 @@ bool ArgSpecT::ReadValue(istream& in)
 void ArgSpecT::SetValue(const int& a)
 {
 	if (fType == int_) {
-		delete fValue;
+		ClearValue();
 		int* tmp = new int;
 		*tmp = a;
 		fValue = (void*) tmp;
@@ -444,7 +470,7 @@ void ArgSpecT::SetValue(const int& a)
 void ArgSpecT::SetValue(const double& a)
 {
 	if (fType == double_) {
-		delete fValue;
+		ClearValue();
 		double* tmp = new double;
 		*tmp = a;
 		fValue = (void*) tmp;
@@ -458,7 +484,7 @@ void ArgSpecT::SetValue(const double& a)
 void ArgSpecT::SetValue(const StringT& a)
 {
 	if (fType == string_) {
-		delete fValue;
+		ClearValue();
 		StringT* tmp = new StringT;
 		*tmp = a;
 		fValue = (void*) tmp;
@@ -472,7 +498,7 @@ void ArgSpecT::SetValue(const StringT& a)
 void ArgSpecT::SetValue(const bool& a)
 {
 	if (fType == bool_) {
-		delete fValue;
+		ClearValue();
 		bool* tmp = new bool;
 		*tmp = a;
 		fValue = (void*) tmp;
@@ -486,7 +512,7 @@ void ArgSpecT::SetValue(const bool& a)
 void ArgSpecT::SetValue(const float& a)
 {
 	if (fType == float_) {
-		delete fValue;
+		ClearValue();
 		float* tmp = new float;
 		*tmp = a;
 		fValue = (void*) tmp;
