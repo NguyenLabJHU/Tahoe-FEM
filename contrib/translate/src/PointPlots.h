@@ -8,7 +8,7 @@
 class PointPlots : public TranslateIOManager
 {
  public:
-  PointPlots (ostream& message);
+  PointPlots (ostream& message, istream& in, bool write);
   virtual void Translate (const StringT& program, const StringT& version, const StringT& title);
 
  private:

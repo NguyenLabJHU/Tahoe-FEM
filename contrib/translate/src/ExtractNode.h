@@ -6,7 +6,7 @@
 class ExtractNode : public ExtractIOManager
 {
  public:
-  ExtractNode (ostream& message);
+  ExtractNode (ostream& message, istream& in, bool write);
   
  protected:
   void Initialize (void);

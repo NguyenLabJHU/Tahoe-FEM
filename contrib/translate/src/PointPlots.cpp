@@ -4,8 +4,8 @@
 #include "AVST.h"
 #include <stdio.h>
 
-PointPlots::PointPlots (ostream& out) :
-  TranslateIOManager (out)
+PointPlots::PointPlots (ostream& out, istream& in, bool write) :
+  TranslateIOManager (out, in, write)
 {
 }
 
@@ -30,13 +30,18 @@ void PointPlots::Translate (const StringT& program, const StringT& version, cons
 
 void PointPlots::SetOutput (const StringT& program, const StringT& version, const StringT& title)
 {
-  cout << "\n    eq.  " << IOBaseT::kTahoe   << ". Text\n";
-  cout << "    eq.  " << IOBaseT::kTecPlot << ". TecPlot 7.5\n";
-  cout << "    eq.  " << IOBaseT::kAVS << ". AVS UCD ASCII\n";
-  cout << "\n Enter the Output Format: ";
-  cin >> fOutputFormat;
-  cout << "\n Enter the root of the output files: ";
-  cin >> fOutputName;
+  if (fWrite)
+    {
+      cout << "\n    eq.  " << IOBaseT::kTahoe   << ". Text\n";
+      cout << "    eq.  " << IOBaseT::kTecPlot << ". TecPlot 7.5\n";
+      cout << "    eq.  " << IOBaseT::kAVS << ". AVS UCD ASCII\n";
+      cout << "\n Enter the Output Format: ";
+    }
+  fIn >> fOutputFormat;
+  if (fWrite)
+    cout << "\n Enter the root of the output files: ";
+  fIn >> fOutputName;
+  cout << "\n Output Format: " << fOutputFormat << " File: " << fOutputName << endl;
 }
 
 void PointPlots::TranslateVariables (void)

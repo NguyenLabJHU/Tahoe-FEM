@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.h,v 1.5 2001-11-08 13:36:13 sawimme Exp $ */
+/* $Id: TranslateIOManager.h,v 1.6 2002-02-13 18:08:32 sawimme Exp $ */
 
 #ifndef _TRANSLATE_IOMANAGER_H_
 #define _TRANSLATE_IOMANAGER_H_
@@ -15,10 +15,11 @@ class TranslateIOManager
 {
  public:
 
-  TranslateIOManager (ostream& message);
+  TranslateIOManager (ostream& message, istream& in, bool write);
   virtual void Translate (const StringT& program, const StringT& version, const StringT& title);
 
  protected:
+  void SetInput (void);
   virtual void SetOutput (const StringT& program, const StringT& version, const StringT& title);
 
   void InitializeVariables (void);
@@ -42,6 +43,8 @@ class TranslateIOManager
 
  protected:
   ostream& fMessage;
+  istream& fIn;
+  bool fWrite;
   ModelManagerT fModel;
 
   int fOutputFormat;
