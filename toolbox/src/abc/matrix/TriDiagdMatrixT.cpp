@@ -1,4 +1,4 @@
-/* $Id: TriDiagdMatrixT.cpp,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: TriDiagdMatrixT.cpp,v 1.2 2001-05-07 06:13:42 paklein Exp $ */
 /* created: paklein (01/15/1998)                                          */
 /* Triadiagonal matrix with Gauss elimination. The                        */
 /* matrix is stored in row major form.                                    */
@@ -22,6 +22,12 @@ TriDiagdMatrixT::TriDiagdMatrixT(int rows):
 /* Gaussian elimination with the given RHS vector or RHS matrix */
 void TriDiagdMatrixT::LinearSolve(dArrayT& RHS)
 {
+	/* dimension check */
+	if (RHS.Length() != fRows) throw eSizeMismatch;
+	
+	/* quick exit */
+	if (fRows == 0) return;
+
 	double *pdiag  = pD;
 	double *upper  = pR;
 	double *pdiag1 = pD + 1;
