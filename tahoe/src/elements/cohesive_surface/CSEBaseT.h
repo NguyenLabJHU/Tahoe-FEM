@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.21 2004-07-15 08:25:57 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.22 2005-03-15 07:15:35 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -86,6 +86,9 @@ public:
 	virtual void InitStep(void);
 #endif
 
+	/** return true if element type is axisymmetric */
+	bool Axisymmetric(void) const { return fAxisymmetric; };
+
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** describe the parameters needed by the interface */
@@ -153,6 +156,7 @@ protected:
 	/* parameters */
 	GeometryT::CodeT fGeometryCode;
 	int fNumIntPts;
+	bool fAxisymmetric;
 	bool fCloseSurfaces;
 	bool fOutputArea;
 

@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.13 2005-02-13 22:13:26 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.14 2005-03-15 07:15:35 paklein Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -13,6 +13,8 @@
 #include "ParameterContainerT.h"
 
 using namespace Tahoe;
+
+const double Pi = acos(-1.0);
 
 /* constructor */
 ThermalSurfaceT::ThermalSurfaceT(const ElementSupportT& support):
@@ -105,7 +107,11 @@ void ThermalSurfaceT::LHSDriver(GlobalT::SystemTypeT)
 	dArrayT gap(fLocCurrCoords.MinorDim());
 	dArrayT jump_Na;
 	dMatrixT K_temp(fLHS.Rows());
-	
+
+	/* ip coordinates needed for axisymmetric problems */
+	dArrayT x_ip;
+	if (fAxisymmetric) x_ip.Dimension(2);
+
 	Top();
 	while (NextElement())
 	{
@@ -140,6 +146,10 @@ void ThermalSurfaceT::LHSDriver(GlobalT::SystemTypeT)
 			
 			/* integration weights */
 			double j = fShapes->Jacobian();
+			if (fAxisymmetric) {
+				fShapes->Interpolate(fLocInitCoords1, x_ip);
+				j *= 2.0*Pi*x_ip[0];
+			}			
 			double w = fShapes->IPWeight();
 
 			/* integration point jump shape functions */
@@ -177,6 +187,10 @@ void ThermalSurfaceT::RHSDriver(void)
 	dArrayT ip_source;
 	if (block_source) ip_source.Dimension(fShapes->NumIP());
 	int block_count = 0;
+
+	/* coordinates needed for axisymmetry */
+	dArrayT x_ip;
+	if (fAxisymmetric) x_ip.Dimension(2);
 
 	double dt = ElementSupport().TimeStep();
 	Top();
@@ -234,6 +248,10 @@ void ThermalSurfaceT::RHSDriver(void)
 			/* temperature jump */
 			const dArrayT& temp_jump = fShapes->InterpolateJumpU(fLocTemperatures);
 			double j = fShapes->Jacobian();
+			if (fAxisymmetric) {
+				fShapes->Interpolate(fLocInitCoords1, x_ip);
+				j *= 2.0*Pi*x_ip[0];
+			}			
 			double w = fShapes->IPWeight();
 
 			/* integration point jump shape functions */
@@ -320,6 +338,10 @@ void ThermalSurfaceT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 
+	/* coordinates needed for axisymmetry */
+	dArrayT x_ip;
+	if (fAxisymmetric) x_ip.Dimension(2);
+
 	dArrayT gap(fLocCurrCoords.MinorDim());
 	Top();
 	while (NextElement())
@@ -370,6 +392,10 @@ void ThermalSurfaceT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			{
 				/* element integration weight */
 				double ip_w = fShapes->Jacobian()*fShapes->IPWeight();
+				if (fAxisymmetric) {
+					fShapes->Interpolate(fLocInitCoords1, x_ip);
+					ip_w *= 2.0*Pi*x_ip[0];
+				}			
 				area += ip_w;
 
 				/* gap */
@@ -446,6 +472,10 @@ void ThermalSurfaceT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				{
 					/* element integration weight */
 					double ip_w = fShapes->Jacobian()*fShapes->IPWeight();
+					if (fAxisymmetric) {
+						fShapes->Interpolate(fLocInitCoords1, x_ip);
+						ip_w *= 2.0*Pi*x_ip[0];
+					}			
 					area += ip_w;
 		
 					/* moment */

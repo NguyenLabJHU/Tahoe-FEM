@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.cpp,v 1.12 2005-02-13 22:13:26 paklein Exp $ */
+/* $Id: CSESymAnisoT.cpp,v 1.13 2005-03-15 07:15:35 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSESymAnisoT.h"
 
@@ -32,6 +32,8 @@
 #endif
 
 using namespace Tahoe;
+
+const double Pi = acos(-1.0);
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* constructor */
@@ -235,6 +237,10 @@ void CSESymAnisoT::LHSDriver(GlobalT::SystemTypeT)
 			}
 			else
 				j0 = j = fShapes->Jacobian(fQ);
+			if (fAxisymmetric) {
+				fShapes->Interpolate(fLocInitCoords1, fdelta);
+				j0 *= 2.0*Pi*fdelta[0];
+			}	
 			fIPArea = w*j0;
 
 			/* check */
@@ -444,6 +450,10 @@ void CSESymAnisoT::RHSDriver(void)
 				}
 				else
 					j0 = j = fShapes->Jacobian(fQ);
+				if (fAxisymmetric) {
+					fShapes->Interpolate(fLocInitCoords1, fdelta);
+					j0 *= 2.0*Pi*fdelta[0];
+				}	
 				fIPArea = w*j0;
 
 				/* check */
@@ -518,6 +528,10 @@ void CSESymAnisoT::RHSDriver(void)
 			fShapes->TopIP();
 			while (fShapes->NextIP())
 				fFractureArea += (fShapes->Jacobian())*(fShapes->IPWeight());
+				if (fAxisymmetric) {
+					fShapes->Interpolate(fLocInitCoords1, fdelta);
+					fFractureArea *= 2.0*Pi*fdelta[0];
+				}
 		}
 
 		/* next in block */
@@ -686,6 +700,10 @@ void CSESymAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			
 				/* element integration weight */
 				double ip_w = fShapes->Jacobian()*fShapes->IPWeight();
+				if (fAxisymmetric) {
+					fShapes->Interpolate(fLocInitCoords1, fdelta);
+					ip_w *= 2.0*Pi*fdelta[0];
+				}				
 				area += ip_w;
 
 				/* gap */
@@ -793,6 +811,10 @@ void CSESymAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					double* pstate = fStateVariables_last(CurrElementNumber()) + fShapes->CurrIP()*num_state;
 					/* element integration weight */
 					double ip_w = fShapes->Jacobian()*fShapes->IPWeight();
+					if (fAxisymmetric) {
+						fShapes->Interpolate(fLocInitCoords1, fdelta);
+						ip_w *= 2.0*Pi*fdelta[0];
+					}				
 					area += ip_w;
 		
 					/* moment */

@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.22 2005-02-13 22:13:26 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.23 2005-03-15 07:15:35 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -21,6 +21,8 @@
 #include "SmithFerrante.h"
 
 using namespace Tahoe;
+
+const double Pi = acos(-1.0);
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* constructor */
@@ -151,6 +153,10 @@ void CSEIsoT::LHSDriver(GlobalT::SystemTypeT)
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 
+	/* ip coordinates needed for axisymmetry */
+	dArrayT x_ip;
+	if (fAxisymmetric) x_ip.Dimension(2);
+
 	/* loop over elements */
 	Top();
 	while ( NextElement() )
@@ -177,9 +183,13 @@ void CSEIsoT::LHSDriver(GlobalT::SystemTypeT)
 		{
 			/* gap vector from facet1 to facet2 */
 			const dArrayT& gap = fShapes->InterpolateJumpU(fLocCurrCoords);
-			double           d = gap.Magnitude();
-			double           j = fShapes->Jacobian();
-			double           w = fShapes->IPWeight();
+			double d = gap.Magnitude();
+			double j = fShapes->Jacobian();
+			if (fAxisymmetric) {
+				fShapes->Interpolate(fLocInitCoords1, x_ip);
+				j *= 2.0*Pi*x_ip[0];
+			}
+			double w = fShapes->IPWeight();
 					
 			if (fabs(d) > kSmall)
 			{
@@ -219,6 +229,10 @@ void CSEIsoT::RHSDriver(void)
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 	
+	/* ip coordinates needed for axisymmetry */
+	dArrayT x_ip;
+	if (fAxisymmetric) x_ip.Dimension(2);
+	
 	Top();
 	while ( NextElement() )
 	{
@@ -248,8 +262,12 @@ void CSEIsoT::RHSDriver(void)
 			
 			if (fabs(d) > kSmall)
 			{
-				double    j = fShapes->Jacobian();
-				double    w = fShapes->IPWeight();
+				double j = fShapes->Jacobian();
+				if (fAxisymmetric) {
+					fShapes->Interpolate(fLocInitCoords1, x_ip);
+					j *= 2.0*Pi*x_ip[0];
+				}
+				double w = fShapes->IPWeight();
 				double dphi =-j*w*constKd*(surfpot->DFunction(d));
 				
 				/* accumulate */
@@ -334,6 +352,10 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 
+	/* ip coordinates needed for axisymmetry */
+	dArrayT x_ip;
+	if (fAxisymmetric) x_ip.Dimension(2);
+
 	Top();
 	while (NextElement())
 	{
@@ -381,6 +403,10 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			{
 				/* element integration weight */
 				double ip_w = fShapes->Jacobian()*fShapes->IPWeight();
+				if (fAxisymmetric) {
+					fShapes->Interpolate(fLocInitCoords1, x_ip);
+					ip_w *= 2.0*Pi*x_ip[0];
+				}
 				area += ip_w;
 
 				/* gap */
@@ -453,6 +479,10 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				{
 					/* element integration weight */
 					double ip_w = fShapes->Jacobian()*fShapes->IPWeight();
+					if (fAxisymmetric) {
+						fShapes->Interpolate(fLocInitCoords1, x_ip);
+						ip_w *= 2.0*Pi*x_ip[0];
+					}
 					area += ip_w;
 		
 					/* moment */
