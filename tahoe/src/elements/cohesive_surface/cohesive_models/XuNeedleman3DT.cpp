@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.cpp,v 1.19.34.1 2004-06-23 00:51:58 paklein Exp $ */
+/* $Id: XuNeedleman3DT.cpp,v 1.19.34.2 2004-06-24 04:56:17 paklein Exp $ */
 /* created: paklein (06/23/1999)*/
 #include "XuNeedleman3DT.h"
 
@@ -18,6 +18,7 @@ const double kExpMax = 20;
 /* constructor */
 XuNeedleman3DT::XuNeedleman3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 {
+	SetName("Xu-Needleman_3D");
 #pragma unused(in)
 #if 0
 	in >> q; // phi_t/phi_n
@@ -44,6 +45,8 @@ XuNeedleman3DT::XuNeedleman3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 
 XuNeedleman3DT::XuNeedleman3DT(dArrayT& params): SurfacePotentialT(knumDOF)
 {
+	SetName("Xu-Needleman_3D");
+
 	q = params[0];; // phi_t/phi_n
 	r = params[1]; // delta_n* /d_n
 	if (q < 0.0 || r < 0.0) throw ExceptionT::kBadInputValue;
@@ -62,6 +65,20 @@ XuNeedleman3DT::XuNeedleman3DT(dArrayT& params): SurfacePotentialT(knumDOF)
 	if (fKratio < 0.0) throw ExceptionT::kBadInputValue;
 	
 	fK = fKratio*phi_n/(d_n*d_n);
+}
+
+XuNeedleman3DT::XuNeedleman3DT(void): 
+	SurfacePotentialT(knumDOF),
+	q(0.0),
+	r(0.0),
+	d_n(0.0),
+	d_t(0.0),
+	phi_n(0.0),
+	r_fail(0.0),
+	fKratio(0.0),
+	fK(0.0)
+{
+	SetName("Xu-Needleman_3D");
 }
 
 /* surface potential */
@@ -314,3 +331,60 @@ void XuNeedleman3DT::Print(ostream& out) const
 #endif
 }
 #endif
+
+/* describe the parameters  */
+void XuNeedleman3DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SurfacePotentialT::DefineParameters(list);
+
+	ParameterT q_(q, "q");
+	q_.AddLimit(0.0, LimitT::Lower);
+	q_.AddLimit(1.0, LimitT::UpperInclusive);
+	q_.SetDefault(1.0);
+	list.AddParameter(q_);
+
+	ParameterT r_(r, "r");
+	r_.AddLimit(0.0, LimitT::LowerInclusive);
+	r_.AddLimit(1.0, LimitT::Upper);
+	r_.SetDefault(0.0);
+	list.AddParameter(r_);
+
+	ParameterT d_n_(d_n, "d_n");
+	d_n_.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(d_n_);
+
+	ParameterT d_t_(d_t, "d_t");
+	d_t_.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(d_t_);
+
+	ParameterT phi_n_(d_t, "phi_n");
+	phi_n_.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(phi_n_);
+
+	ParameterT r_fail_(r_fail, "r_fail");
+	r_fail_.AddLimit(1.0, LimitT::LowerInclusive);
+	list.AddParameter(r_fail_);
+
+	ParameterT Kratio(fKratio, "K_ratio");
+	Kratio.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(Kratio);
+}
+
+/* accept parameter list */
+void XuNeedleman3DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SurfacePotentialT::TakeParameterList(list);
+
+	q = list.GetParameter("q");
+	r = list.GetParameter("r");
+	d_n = list.GetParameter("d_n");
+	d_t = list.GetParameter("d_t");
+	phi_n = list.GetParameter("phi_n");
+	r_fail = list.GetParameter("r_fail");
+	fKratio = list.GetParameter("K_ratio");
+
+	/* penetration stiffness */
+	fK = fKratio*phi_n/(d_n*d_n);
+}

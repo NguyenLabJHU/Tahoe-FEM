@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.h,v 1.15.34.1 2004-06-23 00:51:58 paklein Exp $ */
+/* $Id: XuNeedleman3DT.h,v 1.15.34.2 2004-06-24 04:56:17 paklein Exp $ */
 /* created: paklein (06/23/1999) */
 
 #ifndef _XU_NEEDLE_3D_T_H_
@@ -23,6 +23,7 @@ public:
 #endif
 	/** constructor for use in SIERRA */
 	XuNeedleman3DT(dArrayT& params);
+	XuNeedleman3DT(void);
 
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const { return 0; };
@@ -42,6 +43,15 @@ public:
 
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump_u, const ArrayT<double>& state);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters  */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.61.4.4 2004-06-23 00:52:23 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.61.4.5 2004-06-24 04:56:26 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -318,7 +318,7 @@ void CSEAnisoT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& 
 		
 		/* function types */
 		sub_sub_list.AddSub("cohesive_relation_2D");
-		//sub_sub_list.AddSub("cohesive_relation_3D");
+		sub_sub_list.AddSub("cohesive_relation_3D");
 	}
 	else /* inherited */
 		CSEBaseT::DefineInlineSub(sub, order, sub_sub_list);
@@ -374,6 +374,7 @@ ParameterInterfaceT* CSEAnisoT::NewSub(const StringT& list_name) const
 		/* choices */
 		cz->AddSub("Xu-Needleman_3D");
 		cz->AddSub("Tvergaard-Hutchinson_3D");
+		cz->AddSub("Yoon-Allen_3D");
 	
 		return cz;	
 	}
