@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.cpp,v 1.11 2002-01-07 20:44:05 paklein Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.12 2002-01-08 13:56:51 sawimme Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
@@ -76,7 +76,7 @@ void AbaqusResultsT::Create (const char* filename, bool binary, int numelems, in
   fFileName = filename;
   fBinary = binary;
   if (fBinary)
-    fBufferSize = 512 * sizeof (double);
+    fBufferSize = 512 * sizeof (kDoubleSize);
   else
     fBufferSize = 80;
   fBufferDone = 0;
@@ -115,7 +115,7 @@ void AbaqusResultsT::OpenWrite (const char *filename, bool binary, int bufferwri
   fFileName = filename;
   fBinary = binary;
   if (fBinary)
-    fBufferSize = 512 * sizeof (double);
+    fBufferSize = 512 * sizeof (kDoubleSize);
   else
     fBufferSize = 80;
   fBufferDone = bufferwritten;
@@ -969,7 +969,7 @@ void AbaqusResultsT::ResetFile (void)
   fIn.open (fFileName);
 
   if (fBinary)
-    fBufferSize = 512 * sizeof (double);
+    fBufferSize = 512 * sizeof (kDoubleSize);
   else
     fBufferSize = 0;
   fBufferDone = 0;
@@ -1542,18 +1542,17 @@ int AbaqusResultsT::ReadNextRecord (int& key)
 
 bool AbaqusResultsT::Read (StringT& s, int n)
 {
-  ArrayT<char> temp (n * sizeof (double) + 1);
+  ArrayT<char> temp (n * sizeof (kDoubleSize) + 1);
   char *ps = temp.Pointer();
   for (int i=0; i < n; i++)
     {
       if (fBinary)
 	{
 	  CheckBufferSize (fIn);
-	  fIn.read (ps, sizeof (double));
-	  if (fIn.eof ())
-	  	return false;
-	  fBufferDone += sizeof (double);
-	  ps += sizeof (double);
+	  fIn.read (ps, sizeof (kDoubleSize));
+	  if (fIn.eof ()) return false;
+	  fBufferDone += sizeof (kDoubleSize);
+	  ps += sizeof (kDoubleSize);
 	}
       else
 	{
@@ -1581,9 +1580,9 @@ bool AbaqusResultsT::Read (int& i)
       CheckBufferSize (fIn);
       int temp;
       if (fIn.eof()) return false;
-      fIn.read (reinterpret_cast<char *> (&temp), sizeof (double));
+      fIn.read (reinterpret_cast<char *> (&temp), sizeof (kDoubleSize));
       i = temp;
-      fBufferDone += sizeof(double);
+      fBufferDone += sizeof (kDoubleSize);
     }
   else
     {
@@ -1616,9 +1615,9 @@ bool AbaqusResultsT::Read (double& d)
     {
       CheckBufferSize (fIn);
       double temp;
-      fIn.read (reinterpret_cast<char *> (&temp), sizeof (double));
+      fIn.read (reinterpret_cast<char *> (&temp), sizeof (kDoubleSize));
       d = temp;
-      fBufferDone += sizeof (double);
+      fBufferDone += sizeof (kDoubleSize);
     }
   else
     {
@@ -1699,8 +1698,8 @@ void AbaqusResultsT::Write (int i)
   if (fBinary)
     {
       CheckBufferSize (fOut);
-      fOut.write (reinterpret_cast<char *> (&i), sizeof (double));
-      fBufferDone += sizeof (double);
+      fOut.write (reinterpret_cast<char *> (&i), sizeof (kDoubleSize));
+      fBufferDone += sizeof (kDoubleSize);
     }
   else
     {
@@ -1718,8 +1717,8 @@ void AbaqusResultsT::Write (double d)
   if (fBinary)
     {
       CheckBufferSize (fOut);
-      fOut.write (reinterpret_cast<char *> (&d), sizeof (double));
-      fBufferDone += sizeof (double);
+      fOut.write (reinterpret_cast<char *> (&d), sizeof (kDoubleSize));
+      fBufferDone += sizeof (kDoubleSize);
     }
   else
     {
@@ -1782,8 +1781,8 @@ void AbaqusResultsT::Write (const StringT& s, int blocks)
   if (fBinary)
     {
       CheckBufferSize (fOut);
-      fOut.write (ps, sizeof (double)*blocks);
-      fBufferDone += sizeof (double)*blocks;
+      fOut.write (ps, sizeof (kDoubleSize)*blocks);
+      fBufferDone += sizeof (kDoubleSize)*blocks;
     }
   else
     {

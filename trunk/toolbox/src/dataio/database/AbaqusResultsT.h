@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.h,v 1.6 2002-01-05 06:36:41 paklein Exp $ */
+/* $Id: AbaqusResultsT.h,v 1.7 2002-01-08 13:56:51 sawimme Exp $ */
 /*
    CREATED: S. Wimmer 9 Nov 2000
 
@@ -49,11 +49,11 @@ class AbaqusResultsT
   bool Initialize (const char *filename);
 
   /** used to create a new database
-   * /param filename name of file
-   * /param binary binary or ASCII format
-   * /param numelems number of elements
-   * /param numnodes number of nodes 
-   * /param elemsize characteristic element size */
+   * \param filename name of file
+   * \param binary binary or ASCII format
+   * \param numelems number of elements
+   * \param numnodes number of nodes 
+   * \param elemsize characteristic element size */
   void Create (const char *filename, bool binary, int numelems, int numnodes, 
 	       double elemsize);
 
@@ -204,7 +204,7 @@ class AbaqusResultsT
 		     STARTINCREMENT = 2000,
 		     ENDINCREMENT = 2001 };
 
-  enum OutputParamsT { dprecision = 15 };
+  enum OutputParamsT { dprecision = 15, kDoubleSize = 8 };
 
   enum StatusT { OKAY = -101, BAD = -102, END = -103 };
 
