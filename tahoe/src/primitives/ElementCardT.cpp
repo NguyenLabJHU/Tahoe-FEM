@@ -1,4 +1,4 @@
-/* $Id: ElementCardT.cpp,v 1.3 2001-06-03 21:09:19 paklein Exp $ */
+/* $Id: ElementCardT.cpp,v 1.4 2001-09-05 21:56:41 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "ElementCardT.h"
@@ -96,8 +96,8 @@ void ElementCardT::WriteRestart(ostream& out) const
 	if (!fData) throw eGeneralFail;
 
 	/* output data size */
-	out << setw(kIntWidth) << IntegerData().Length();
-	out << setw(kIntWidth) << DoubleData().Length();
+	out << " " << IntegerData().Length();
+	out << " " << DoubleData().Length();
 	out << '\n';
 
 	/* output data */
@@ -141,7 +141,8 @@ istream& operator>>(istream& in, ElementStorageT& data)
 
 ostream& operator<<(ostream& out, const ElementStorageT& data)
 {
-	out << data.fIntegerData << '\n' << data.fDoubleData  << '\n';
+	out << data.fIntegerData.wrap_tight(1) << '\n' 
+	    << data.fDoubleData.wrap_tight(1) << '\n';
 
 	return out;
 }
