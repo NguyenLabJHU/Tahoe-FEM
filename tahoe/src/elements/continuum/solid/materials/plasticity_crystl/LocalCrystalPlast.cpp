@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.12 2002-03-26 17:48:17 paklein Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.13 2002-04-04 00:42:51 ebmarin Exp $ */
 #include "LocalCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -509,6 +509,52 @@ GlobalT::SystemTypeT LocalCrystalPlast::TangentType() const
 
 /* PROTECTED MEMBER FUNCTIONS */
 
+void LocalCrystalPlast::InitializeCrystalVariables(ElementCardT& element)
+{
+	// current element number
+	int elem = CurrElementNumber();
+
+	// ... at each integration point and ...
+	for (int intpt = 0; intpt < NumIP(); intpt++)
+	{
+	  // load aggregate data at integration point
+	  LoadAggregateData(element, intpt);
+
+	  // initialilize average stress and moduli
+	  fsavg_ij = 0.;
+	  fcavg_ijkl = 0.;
+
+	  // ... at each crystal
+	  for (int igrn = 0; igrn < fNumGrain; igrn++)
+	    {
+	      // fetch crystal data 
+	      LoadCrystalData(element, intpt, igrn);
+	      
+	      // fetch euler angles
+	      dArrayT& angles = fEuler[elem](intpt, igrn);
+	      
+	      // storage rotation matrix from Euler angles
+	      fLatticeOrient->AnglesToRotMatrix(angles, fRotMat);
+	      
+	      // plastic deformation gradients 
+	      fFpi_n.Identity();
+	      fFpi.Identity();
+
+	      // shear rates on slip systems
+	      fDGamma_n = 0.;
+	      fDGamma   = 0.;
+
+	      // elastic deformation gradient
+	      fFe.Identity();
+
+	      // crystal Cauchy stress
+	      fs_ij = 0.;
+
+	      // hardening variables
+	      fHardening->InitializeHardVariables(); 
+	    }
+	}
+}
 
 void LocalCrystalPlast::LoadCrystalData(ElementCardT& element,
 					int intpt, int igrain)
@@ -639,8 +685,10 @@ void LocalCrystalPlast::IterateOnCrystalState(bool& stateConverged, int subIncr)
 	      // iter level 1: solve for fDGamma; Hardness = constant
 	      SolveForDGamma(ierr);
 	      if (ierr != 0) {
-		writeWarning("LocalCrystalPlast::SolveCrystalState:");
-		writeWarning("   Will use continuation method");
+		writeWarning("LocalCrystalPlast::IterateOnCrystalState: ierr != 0 in SolveForDGamma -> subincrementation");
+		cout << " elem # " << CurrElementNumber()
+	             << ";  IP # " << CurrIP() << endl;
+		cout << " sunIncr # " << subIncr << endl;
 		return;
 	      }
 	      
@@ -655,8 +703,10 @@ void LocalCrystalPlast::IterateOnCrystalState(bool& stateConverged, int subIncr)
 	  catch(int code)
 	    {
                if (XTAL_MESSAGES) {
-                  writeWarning("LocalCrystalPlast::SolveCrystalState:exception caugth at SolveForDGamma -> subincrementation method"); 
-                  cout << " IP # " << CurrIP() << endl;
+                  writeWarning("LocalCrystalPlast::IterateOnCrystalState: exception caugth at SolveForDGamma -> subincrementation"); 
+		  cout << " elem # " << CurrElementNumber()
+    	               << ";  IP # " << CurrIP() << endl;
+		  cout << " subIncr # " << subIncr << endl;
                }
 	       break;
 	    }
@@ -686,7 +736,7 @@ void LocalCrystalPlast::IterateOnCrystalState(bool& stateConverged, int subIncr)
           catch(int code)
 	    {
                if (XTAL_MESSAGES) {
-                  writeWarning("LocalCrystalPlast::SolveCrystalState:exception caugth at SolveForDGamma -> subincrementation method"); 
+                  writeWarning("LocalCrystalPlast::IterateOnCrystalState: exception caugth at SolveForDGamma -> subincrementation"); 
                   cout << " IP # " << CurrIP() << endl;
                }
 	       break;
@@ -709,14 +759,16 @@ void LocalCrystalPlast::IterateOnCrystalState(bool& stateConverged, int subIncr)
       break;
 
     default:
-      throwRunTimeError("LocalCrystalPlast::SolveCrytalState: Bad fAlgorCode");
+      throwRunTimeError("LocalCrystalPlast::IterateOnCrystalState: Bad fAlgorCode");
     }
 
   // check if did not converge in max iterations
   if (!stateConverged && iterState > fMaxIterState) {
-    // writeWarning("LocalCrystalPlast::SolveCrystalState: 
-    //   didn't converge in maxIters, Will try continuation method");
-    return;
+     writeWarning("LocalCrystalPlast::IterateOnCrystalState: didn't converge in maxIters -> subincrementation");
+     cout << " elem # " << CurrElementNumber()
+          << ";  IP # " << CurrIP() << endl;
+     cout << " sunIncr # " << subIncr << endl;
+     return;
   }
   
   // update iteration counter for state
@@ -976,9 +1028,6 @@ void LocalCrystalPlast::SolveForDGamma(int& ierr)
        // current value for rate sensitivity exponent
        fKinetics->ComputeRateSensitivity();
  
-       if (XTAL_MESSAGES && CurrIP() == IPprnt)
-         cout << " BEFORE Solve : fDGamma = \n" << fDGamma << endl;
-
        // solve for incremental shear strain
        try { fSolver->Solve(fSolverPtr, fDGamma, ierr); }
        catch(int code)
@@ -987,12 +1036,8 @@ void LocalCrystalPlast::SolveForDGamma(int& ierr)
              throw;
            }
 
-       if (XTAL_MESSAGES && CurrIP() == IPprnt)
-         cout << " AFTER Solve : fDGamma = \n" << fDGamma << endl;
-
+       // return if problems in NLCSolver
        if (ierr != 0) {
-          writeWarning("LocalCrystalPlast::SolveForDGamma:");
-          writeWarning("   Convergence problems in NLCSolver");
           fKinetics->RestoreRateSensitivity();
           return;
        }
@@ -1118,50 +1163,3 @@ void LocalCrystalPlast::dTaudCe(const dMatrixT& Z, const dSymMatrixT& P,
 void LocalCrystalPlast::CrystalC_ijkl_Elastic() { }
 
 void LocalCrystalPlast::CrystalC_ijkl_Plastic() { }
-
-void LocalCrystalPlast::InitializeCrystalVariables(ElementCardT& element)
-{
-	// current element number
-	int elem = CurrElementNumber();
-
-	// ... at each integration point and ...
-	for (int intpt = 0; intpt < NumIP(); intpt++)
-	{
-	  // load aggregate data at integration point
-	  LoadAggregateData(element, intpt);
-
-	  // initialilize average stress and moduli
-	  fsavg_ij = 0.;
-	  fcavg_ijkl = 0.;
-
-	  // ... at each crystal
-	  for (int igrn = 0; igrn < fNumGrain; igrn++)
-	    {
-	      // fetch crystal data 
-	      LoadCrystalData(element, intpt, igrn);
-	      
-	      // fetch euler angles
-	      dArrayT& angles = fEuler[elem](intpt, igrn);
-	      
-	      // storage rotation matrix from Euler angles
-	      fLatticeOrient->AnglesToRotMatrix(angles, fRotMat);
-	      
-	      // plastic deformation gradients 
-	      fFpi_n.Identity();
-	      fFpi.Identity();
-
-	      // shear rates on slip systems
-	      fDGamma_n = 0.;
-	      fDGamma   = 0.;
-
-	      // elastic deformation gradient
-	      fFe.Identity();
-
-	      // crystal Cauchy stress
-	      fs_ij = 0.;
-
-	      // hardening variables
-	      fHardening->InitializeHardVariables(); 
-	    }
-	}
-}
