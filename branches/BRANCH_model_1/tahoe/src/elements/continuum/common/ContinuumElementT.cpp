@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.11.2.1 2001-10-15 19:39:49 sawimme Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.11.2.2 2001-10-26 18:42:57 sawimme Exp $ */
 /* created: paklein (10/22/1996)                                          */
 
 #include "ContinuumElementT.h"
@@ -438,7 +438,8 @@ void ContinuumElementT::SurfaceFacets(GeometryT::CodeT& geometry,
 	for (int i = 0; i < border_elems.Length(); i++)
 	{
 		/* element connectivity */
-		int* elem = fConnectivities(border_elems[i]);
+	        const iArrayT& elemnodes = fElementCards[border_elems[i]].NodesX();
+		int* elem = elemnodes.Pointer();
 
 		/* find open sides */
 		int found_open = 0;
@@ -563,7 +564,8 @@ void ContinuumElementT::SurfaceNodes(iArrayT& surface_nodes) const
 	for (int i = 0; i < border_elems.Length(); i++)
 	{
 		/* element connectivity */
-		int* elem = fConnectivities(border_elems[i]);
+	        const iArrayT& elemnodes = fElementCards[border_elems[i]].NodesX();
+		int* elem = elemnodes.Pointer();
 
 		/* find open sides */
 		int found_open = 0;
@@ -1228,7 +1230,7 @@ void ContinuumElementT::BoundingElements(iArrayT& elements, iArray2DT& neighbors
 	/* collect list of bounding elements */
 	AutoArrayT<int> borders;
 	iArrayT element;
-	for (int i = 0; i < fConnectivities.MajorDim(); i++)
+	for (int i = 0; i < fNumElements; i++)
 	{
 		all_neighbors.RowAlias(i, element);
 	

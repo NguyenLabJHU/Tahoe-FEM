@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.14 2001-09-15 01:16:39 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.14.2.1 2001-10-26 18:42:58 sawimme Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -269,6 +269,7 @@ void SimoFiniteStrainT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 void SimoFiniteStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
 {
+#if 0
 	/* inherited */
 	if (fModeSolveMethod != kMonolithic)
 		FiniteStrainT::Equations(eq_1, eq_2);
@@ -297,6 +298,7 @@ void SimoFiniteStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		/* add to list */
 		eq_1.AppendUnique(&fEqnos);
 	}
+#endif
 }
 
 /* determine number of tags needed. See DOFElementT. */
@@ -328,10 +330,14 @@ void SimoFiniteStrainT::GenerateElementData(void)
 	/* just link tags with (one of) the element nodes */
 	fEnhancedConnectivities.Allocate(fNumElements, 2);
 	
-	iArrayT tmp(fNumElements);
-	fConnectivities.ColumnCopy(0, tmp);
-	fEnhancedConnectivities.SetColumn(0, tmp);
-	fEnhancedConnectivities.SetColumn(1, fEnhancedModeTags);
+	int *pt = fEnhancedConnectivities.Pointer();
+	int *mt = fEnhancedModeTags.Pointer();
+	for (int i=0; i < fNumElements; i++)
+	  {
+	    const iArrayT& elemnodes = fElementCards[i].NodesX();
+	    *pt++ = elemnodes[0];
+	    *pt++ = *mt++;
+	  }
 }
 
 /* return the connectivities associated with the element generated
