@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.3 2002-10-21 22:03:46 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.4 2002-10-23 05:03:29 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -8,6 +8,7 @@
 #include "iNodeT.h"
 #include "eControllerT.h"
 #include "iGridManagerT.h"
+#include "OutputSetT.h"
 
 /* interaction functions */
 #include "LennardJones612.h"
@@ -125,7 +126,32 @@ double AdhesionT::InternalEnergy(void)
 }
 
 /* writing output - nothing to write */
-void AdhesionT::RegisterOutput(void) { }
+void AdhesionT::RegisterOutput(void)
+{ 
+	/* output labels */
+	const char* displ_labels[3] = {"D_X", "D_Y", "D_Z"};
+	const char* tract_labels[3] = {"t_X", "t_Y", "t_Z"};
+	if (NumDOF() > 3) throw ExceptionT::kSizeMismatch;	
+	ArrayT<StringT> n_labels(2*NumDOF());
+	const char** label = displ_labels;
+	for (int i = 0; i < n_labels.Length(); i++)
+	{
+		n_labels[i] = *label++;
+		if (i == NumDOF() - 1)
+			label = tract_labels;
+	}
+
+	/* register each surface */
+	for (int i = 0; i < fOutputID.Length(); i++)
+	{
+		/* set output specifier */
+		OutputSetT output_set(fShapes[i]->GeometryCode(), fSurfaces[i], n_labels);
+		
+		/* register and get output ID */
+		fOutputID[i] = ElementSupport().RegisterOutput(output_set);
+	}
+}
+
 void AdhesionT::WriteOutput(IOBaseT::OutputModeT mode)
 {
 #pragma unused(mode)
@@ -162,6 +188,62 @@ void AdhesionT::WriteOutput(IOBaseT::OutputModeT mode)
 	out << " Search grid statistics:\n";
 	fGrid->WriteStatistics(out);
 	out.flush();
+	
+	/* loop over surfaces */
+	int ndof = NumDOF();
+	const int nout = 2*ndof;
+	for (int i = 0; i < fOutputID.Length();i++)
+	{
+		const iArray2DT& surface = fSurfaces[i];
+		int nfn = surface.MinorDim();
+	
+		/* reset averaging workspace */
+		ElementSupport().ResetAverage(nout);
+	
+		/* work space */
+		dArray2DT nodal_all(nfn, nout);
+		dArray2DT disp(nfn, ndof), force(nfn, ndof);
+
+		/* local array */
+		LocalArrayT loc_disp(LocalArrayT::kDisp, nfn, ndof);
+		Field().RegisterLocal(loc_disp);
+
+		/* loop over faces */
+		iArrayT face_nodes, face_num(nfn);
+		for (int j = 0; j < surface.MajorDim(); j++)
+		{
+			/* face nodes */
+			surface.RowAlias(j, face_nodes);
+		
+			/* displacements */
+			loc_disp.SetLocal(face_nodes);
+			loc_disp.ReturnTranspose(disp);
+			
+			/* nodal tractions - same over whole face */
+			double area = fCurrentFaceArea[i][j];
+			if (area > kSmall) {
+				face_num = j;
+				force.RowCollect(face_num, fFaceForce[i]);
+				force /= area;
+			} else force = 0.0;
+
+			/* copy in the cols (in sequence of output) */
+			int colcount = 0;
+			nodal_all.BlockColumnCopyAt(disp , colcount); colcount += disp.MinorDim();
+			nodal_all.BlockColumnCopyAt(force, colcount); 
+
+			/* accumulate */
+			ElementSupport().AssembleAverage(face_nodes, nodal_all);
+		}
+
+		/* get nodally averaged values */
+		dArray2DT n_values(surface.MinorDim(), nout);
+		ElementSupport().OutputUsedAverage(n_values);
+
+		/* send to output */
+		dArray2DT e_values;
+		ElementSupport().WriteOutput(fOutputID[i], n_values, e_values);
+	}
 }
 
 /* compute specified output parameter and send for smoothing */
@@ -353,6 +435,16 @@ void AdhesionT::RHSDriver(void)
 	dMatrixT Q1(nsd), Q2(nsd), shNaMat;
 	AutoArrayT<double> j2w2_list, jump;
 
+	/* init cached values */
+	for (int i = 0; i < fSurfaces.Length(); i++)
+	{
+		fFaceForce[i] = 0.0;
+		fCurrentFaceArea[i] = 0.0;
+	}
+	
+	/* current area */
+	double a1, a2;
+
 	/* loop over active face pairs */
 	for (int i = 0; i < fSurface1.Length(); i++)
 	{
@@ -392,6 +484,7 @@ void AdhesionT::RHSDriver(void)
 		fFace2_man.SetMajorDimension(nip2, false);
 
 		/* double-loop over integration points */
+		a1 = a2 = 0.0;
 		shape1.TopIP();
 		while (shape1.NextIP())
 		{
@@ -400,7 +493,7 @@ void AdhesionT::RHSDriver(void)
 			/* integration point coordinates */
 			ipx1 = curr_shape1.IPCoords();
 			double j1w1 = shape1.Jacobian()*shape1.IPWeight();
-			curr_shape1.Jacobian(Q1);
+			a1 += curr_shape1.Jacobian(Q1)*shape1.IPWeight();
 			Q1.ColumnAlias(nsd-1, n1);
 			
 			/* face 1 shape functions */
@@ -422,7 +515,7 @@ void AdhesionT::RHSDriver(void)
 				{
 					ipx2 = curr_shape2.IPCoords();
 					j2w2 = shape2.Jacobian()*shape2.IPWeight();
-					curr_shape2.Jacobian(Q2);
+					a2 += curr_shape2.Jacobian(Q2)*shape2.IPWeight();
 					Q2.CopyColumn(nsd-1, n2);
 				}
 			
@@ -448,9 +541,18 @@ void AdhesionT::RHSDriver(void)
 					/* accumulate */
 					fGrad_d.MultTx(v_12, fNEE_vec);
 					fRHS.AddScaled(dphi/d, fNEE_vec);
+					
+					/* integrate force on face */
+					double f = dphi/constKd/d;
+					fFaceForce[s1].AddToRowScaled(i1, f, v_12);
+					fFaceForce[s2].AddToRowScaled(i2,-f, v_12);
 				}
 			}
 		}
+		
+		/* store current area */
+		fCurrentFaceArea[s1][i1] = a1;
+		fCurrentFaceArea[s2][i2] = a2;
 		
 		/* assemble */
 		fFaceEquations.RowAlias(i, equations);
@@ -534,47 +636,17 @@ void AdhesionT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		i += new_surfaces.Length() - 1;
 	}
 	
-	/* set per surface data */
+	/* grab surface data */
 	fSurfaces.Dimension(num_surfaces);
-	fLocInitCoords.Dimension(fSurfaces.Length());
-	fLocCurrCoords.Dimension(fSurfaces.Length());
-	fShapes.Dimension(fSurfaces.Length());
-	fShapes = NULL;
-	fCurrShapes.Dimension(fSurfaces.Length());
-	fCurrShapes = NULL;
 	for (int i = 0; i < fSurfaces.Length(); i++)
 	{
 		/* facets data */
 		fSurfaces[i].Swap(*surfaces[i]);
 
-		/* local array for initial coordinates */
-		fLocInitCoords[i].SetType(LocalArrayT::kInitCoords);
-		fLocInitCoords[i].Dimension(fSurfaces[i].MinorDim(), NumSD());
-		ElementSupport().RegisterCoordinates(fLocInitCoords[i]);
-
-		/* local array for current coordinates */
-		fLocCurrCoords[i].SetType(LocalArrayT::kCurrCoords);
-		fLocCurrCoords[i].Dimension(fSurfaces[i].MinorDim(), NumSD());
-		ElementSupport().RegisterCoordinates(fLocCurrCoords[i]);
-	
-		/* surface shape functions over undeformed configuration */
-		fShapes[i] = new SurfaceShapeT(geom[i], NumIP(geom[i]), 
-			2*fLocInitCoords[i].NumberOfNodes(), NumSD(), fLocInitCoords[i]);
-
-		/* initialize */
-		fShapes[i]->Initialize();
-
-		/* surface shape functions over current configuration */
-		fCurrShapes[i] = new SurfaceShapeT(*fShapes[i], fLocCurrCoords[i]), 			
-
-		/* initialize */
-		fCurrShapes[i]->Initialize();
+		/* delete temp space */
+		delete surfaces[i];
 	}
 	
-	/* delete temp space */
-	for (int i = 0; i < surfaces.Length(); i++)
-		delete surfaces[i];
-
 	/* echo data and correct numbering offset */
 	out << " Adhesive surfaces:\n";
 	out << setw(kIntWidth) << "surface"
@@ -620,6 +692,51 @@ void AdhesionT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		/* exchange */
 		fSurfaces.Swap(tmp_surfaces);
 	}
+
+	/* other per surface data */
+	fLocInitCoords.Dimension(fSurfaces.Length());
+	fLocCurrCoords.Dimension(fSurfaces.Length());
+	fShapes.Dimension(fSurfaces.Length());
+	fShapes = NULL;
+	fCurrShapes.Dimension(fSurfaces.Length());
+	fCurrShapes = NULL;
+	fFaceForce.Dimension(fSurfaces.Length());
+	fCurrentFaceArea.Dimension(fSurfaces.Length());
+	for (int i = 0; i < fSurfaces.Length(); i++)
+	{
+		/* local array for initial coordinates */
+		fLocInitCoords[i].SetType(LocalArrayT::kInitCoords);
+		fLocInitCoords[i].Dimension(fSurfaces[i].MinorDim(), NumSD());
+		ElementSupport().RegisterCoordinates(fLocInitCoords[i]);
+
+		/* local array for current coordinates */
+		fLocCurrCoords[i].SetType(LocalArrayT::kCurrCoords);
+		fLocCurrCoords[i].Dimension(fSurfaces[i].MinorDim(), NumSD());
+		ElementSupport().RegisterCoordinates(fLocCurrCoords[i]);
+	
+		/* surface shape functions over undeformed configuration */
+		fShapes[i] = new SurfaceShapeT(geom[i], NumIP(geom[i]), 
+			2*fLocInitCoords[i].NumberOfNodes(), NumSD(), fLocInitCoords[i]);
+
+		/* initialize */
+		fShapes[i]->Initialize();
+
+		/* surface shape functions over current configuration */
+		fCurrShapes[i] = new SurfaceShapeT(*fShapes[i], fLocCurrCoords[i]), 			
+
+		/* initialize */
+		fCurrShapes[i]->Initialize();
+		
+		/* space to store face forces */
+		fFaceForce[i].Dimension(fSurfaces[i].MajorDim(), NumDOF());
+		fFaceForce[i] = 0.0;
+
+		/* current area */
+		fCurrentFaceArea[i].Dimension(fSurfaces[i].MajorDim());
+		fCurrentFaceArea[i] = 0.0;
+	}
+	fOutputID.Dimension(fSurfaces.Length());
+	fOutputID = -1;
 }
 
 void AdhesionT::SetWorkSpace(void)

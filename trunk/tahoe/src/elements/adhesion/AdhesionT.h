@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.h,v 1.2 2002-10-20 22:39:28 paklein Exp $ */
+/* $Id: AdhesionT.h,v 1.3 2002-10-23 05:03:29 paklein Exp $ */
 #ifndef _ADHESION_T_H_
 #define _ADHESION_T_H_
 
@@ -147,6 +147,18 @@ protected:
 	/** current coordinates. Current coordinates in local ordering 
 	 * particular to the topology of faces in each surface. */
 	ArrayT<LocalArrayT> fLocCurrCoords;
+
+	/** IDs for writing output data. Because each surface may have
+	 * its own face geometry, they each need a separate output ID. */
+	iArrayT fOutputID;
+
+	/** total force on each face. For each surface, the integrated force
+	 * on each face. This is calculated and stored during AdhesionT::RHSDriver. */
+	ArrayT<dArray2DT> fFaceForce;
+
+	/** current face area. For each surface, the current area
+	 * of each face. This is calculated and stored during AdhesionT::RHSDriver. */
+	ArrayT<dArrayT> fCurrentFaceArea;
 	/*@}*/
 	
 	/** \name grouped facet data */
