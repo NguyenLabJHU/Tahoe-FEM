@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.16 2003-04-09 20:22:26 cjkimme Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.16.6.1 2003-07-02 04:06:08 hspark Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -6,6 +6,11 @@
 #include "InverseMapT.h"
 #include "CommManagerT.h"
 #include "dSPMatrixT.h"
+#include "ofstreamT.h"
+#include "ifstreamT.h"
+#include <iostream.h>
+#include <iomanip.h>
+#include <stdlib.h>
 
 /* pair property types */
 #include "LennardJonesPairT.h"
@@ -16,7 +21,7 @@ using namespace Tahoe;
 
 /* parameters */
 const int kMemoryHeadRoom = 15; /* percent */
-
+	
 /* constructor */
 ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field):
 	ParticleT(support, field),
@@ -24,7 +29,7 @@ ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field
 	fEqnos(kMemoryHeadRoom),
 	fForce_list_man(0, fForce_list)
 {
-
+	fopen = false;
 }
 
 /* collecting element group equation numbers */
@@ -204,7 +209,35 @@ void ParticlePairT::WriteOutput(void)
 			}
 		}
 	}	
-
+	/* Temporary to calculate MD quantities and write to file */
+	ifstreamT& in = ElementSupport().Input();
+	const StringT& input_file = in.filename();
+	fsummary_file.Root(input_file);
+	fsummary_file.Append(".sum");
+	if (fopen)
+	{
+		fout.open_append(fsummary_file);
+		fout.precision(13);
+		fout << n_values.ColumnSum(3) 
+			 << setw(25) << n_values.ColumnSum(2)
+			 << setw(25) << n_values.ColumnSum(3) + n_values.ColumnSum(2)
+		     << endl;
+	}
+	else
+	{
+		fout.open(fsummary_file);
+		fopen = true;
+		fout.precision(13);
+		fout << "Kinetic Energy"
+			 << setw(25) << "Potential Energy"
+			 << setw(25) << "Total Energy"
+			 << endl;
+		fout << n_values.ColumnSum(3) 
+			 << setw(25) << n_values.ColumnSum(2)
+			 << setw(25) << n_values.ColumnSum(3) + n_values.ColumnSum(2)
+		     << endl;
+	}
+	
 	/* send */
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
 }
