@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.3 2001-07-03 01:34:58 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.4 2001-10-24 02:23:31 paklein Exp $ */
 /* created: paklein (05/14/2000)                                          */
 
 #include "ABAQUS_UMAT_BaseT.h"
@@ -911,7 +911,7 @@ void ABAQUS_UMAT_BaseT::Set_UMAT_Arguments(void)
 		fcoords[2] = doublereal(fIPCoordinates[2]);
 
 	/* deformation gradient at beginning of increment */
-	fA_nsd = F_last();
+	fA_nsd = F_total_last();
 	dMatrixT_to_ABAQUS(fA_nsd, fdfgrd0);
 	
 	/* deformation gradient at end of increment */

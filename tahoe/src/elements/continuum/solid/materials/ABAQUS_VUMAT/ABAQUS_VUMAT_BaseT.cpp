@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.7 2001-08-14 22:28:09 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.8 2001-10-24 02:24:21 paklein Exp $ */
 
 #include "ABAQUS_VUMAT_BaseT.h"
 
@@ -895,7 +895,7 @@ void ABAQUS_VUMAT_BaseT::Set_VUMAT_Arguments(void)
 		fcoords[2] = doublereal(fIPCoordinates[2]);
 
 	/* deformation gradient at beginning of increment */
-	fA_nsd = F_last();
+	fA_nsd = F_total_last();
 	dMatrixT_to_ABAQUS(fA_nsd, fdfgrd0);
 
 	/* stretch at beginning of increment */

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.6 2001-10-09 16:30:13 ebmarin Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.7 2001-10-24 02:24:24 paklein Exp $ */
 /*
   File: LocalCrystalPlast.cpp
 */
@@ -1247,11 +1247,11 @@ void LocalCrystalPlast::Compute_Ftot_last_3D(dMatrixT& F_3D) const
 {
 	int nsd = NumSD();
 	if (nsd == 3)
-		F_3D =  F_last();
+		F_3D =  F_total_last();
 	else if (nsd == 2)
 	{
 		// expand total deformation gradient: 2D -> 3D (plane strain)
-		F_3D.Rank2ExpandFrom2D(F_last());    // fFtot or fFtot_n
+		F_3D.Rank2ExpandFrom2D(F_total_last());    // fFtot or fFtot_n
 		F_3D(2, 2) = 1.0;
 	}
 	else 
