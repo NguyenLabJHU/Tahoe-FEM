@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.18 2003-11-21 22:41:30 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.19 2004-03-06 17:29:11 paklein Exp $ */
 /* created: paklein (06/19/1996) */
 #ifndef _ARRAY_T_H_
 #define _ARRAY_T_H_
@@ -367,11 +367,17 @@ template <class TYPE>
 inline void ArrayT<TYPE>::Alias(int length, const TYPE* TYPEPtr)
 {
 	/* release memory if allocated */
-	if (fDelete)
-	{
+	if (fDelete) {
 		delete[] fArray;
 		fDelete = 0;
 	}
+	
+#if __option(extended_errorcheck)
+	const char caller[] = "ArrayT<TYPE>::Alias";
+	if (length < 0) ExceptionT::GeneralFail(caller, "bad length %d", length);
+	if (length > 0 && TYPEPtr == NULL) ExceptionT::GeneralFail(caller, "pointer is NULL");
+#endif
+
 	fLength = length;
 	fArray = const_cast<TYPE*>(TYPEPtr);	
 }
