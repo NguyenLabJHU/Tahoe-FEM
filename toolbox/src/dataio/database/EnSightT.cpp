@@ -1,4 +1,4 @@
-/* $Id: EnSightT.cpp,v 1.3 2001-09-04 14:38:54 sawimme Exp $ */
+/* $Id: EnSightT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
 /* created: sawimme (05/13/1999)                                          */
 /* ******EnSight6 Format Gold, ASCII or Binary******                      */
 
@@ -183,31 +183,18 @@ fvar << "FORMAT\ntype:\t ensight gold\n\n";
 
 void EnSightT::WriteCaseGeometry (ostream& fvar, int sequence, StringT& geofile) const
 {
-	/* remove file path */
-	StringT path, file(geofile);
-	path.FilePath(file);
-	file.Drop(path.StringLength());
-	file.ToUNIXPath();
-	fvar << "GEOMETRY\nmodel:\t " << sequence << "\t " << file << "\n\n";
+fvar << "GEOMETRY\nmodel:\t " << sequence << "\t " << geofile << "\n\n";
 }
 
 void EnSightT::WriteVariableLabels (ostream& fvar, const ArrayT<StringT>& labels, const ArrayT<StringT>& filenames, const ArrayT<EnSightT::VariableTypeT>& t) const
 {
-	char *type [4] = {"scalar per element", "vector per element",
-                      "scalar per node", "vector per node"};
+char *type [4] = {"scalar per element", "vector per element",
+		    "scalar per node", "vector per node"};
 
-	fvar << "VARIABLE\n";
-	for (int i=0; i < labels.Length(); i++)
-	{
-		/* remove file path */
-		StringT path, file(filenames[i]);
-		path.FilePath(file);
-		file.Drop(path.StringLength());
-		file.ToUNIXPath();
-		
-		fvar << type[t[i]] << ":\t " << labels[i] << "\t " << file << "\n";
-	}
-	fvar << '\n';
+fvar << "VARIABLE\n";
+for (int i=0; i < labels.Length(); i++)
+fvar << type[t[i]] << ":\t " << labels[i] << "\t " << filenames[i] << "\n";
+fvar << '\n';
 }
 
 void EnSightT::WriteTime (ostream& fvar, int sequence, int start, int increment, const ArrayT<double>& timesteps) const
@@ -386,21 +373,6 @@ else
 in >> vector;
 }
 return true;
-}
-
-int EnSightT::NumTimeSteps (ifstreamT& in) const
-{
-  char c = 'c';
-  int timeset, num;
-
-  while (c != ':') in >> c;
-  in >> timeset;
-  c = 'c';
-  
-  while (c != ':') in >> c;
-  in >> num;
-
-  return num;
 }
 
 bool EnSightT::ReadTimeSection (ifstreamT& in, int& start, int& increment, dArrayT& timesteps) const

@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.cpp,v 1.5 2001-08-15 00:36:01 paklein Exp $ */
+/* $Id: J2Simo2D.cpp,v 1.4 2001-07-03 01:35:32 paklein Exp $ */
 /* created: paklein (06/22/1997)                                          */
 
 #include "J2Simo2D.h"
@@ -169,11 +169,11 @@ void J2Simo2D::ComputeOutput(dArrayT& output)
 			double k = 2.0*mu_bar_bar*dgamma/fmu;
 		
 			/* update variables */
-			alpha += sqrt23*dgamma;
+			fInternal[kalpha] += sqrt23*dgamma;
 			fbeta_bar_trial_.SetToCombination(1.0, fbeta_bar, k*dH(alpha)/3.0, fUnitNorm);
 
 			/* write output */
-			output[0] = alpha;
+			output[0] = alpha + sqrt23*dgamma;
 			output[1] = sqrt(fbeta_bar_trial_.ScalarProduct());
 			stress -= fbeta_bar_trial_;
 		}

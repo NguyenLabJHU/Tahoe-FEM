@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.7 2001-07-19 16:08:59 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.5 2001-06-01 16:41:41 paklein Exp $ */
 /* created: paklein (09/21/1997)                                          */
 
 #include "FEExecutionManagerT.h"
@@ -236,28 +236,15 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
 	/* prompt for decomp size */
 	int size = 0;
 	int count = 0;
-	int method = 0;
 	while (count == 0 || (count < 5 && size < 2))
 	{
 		count++;
-
-		/* number of partitions */					
 		cout << "\n Enter number of partitions > 1 (0 to quit): ";
 #if (defined __SGI__ && defined __MPI__)
 		cout << '\n';
 #endif
+		/* read number of partitions */					
 		cin >> size;
-
-		/* decomposition method */
-#ifdef __METIS__
-		cout << "\n Decomposition method (0: native, 1: METIS): ";
-#else
-		cout << "\n Decomposition method (0: native, 1: METIS(NOT installed)): ";
-#endif
-#if (defined __SGI__ && defined __MPI__)
-		cout << '\n';
-#endif
-		cin >> method;
 		
 		/* clear to end of line */
 		char line[255];
@@ -298,7 +285,7 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
 		map_file.Append(".io.map");
 
 		/* set output map and and generate decomposition */
-		Decompose(in, size, model_file, global_model_file, format, map_file, method);
+		Decompose(in, size, model_file, global_model_file, format, map_file);
 		t1 = clock();
 	}
 
@@ -447,24 +434,11 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	map_file.Append(".n", size);
 	map_file.Append(".io.map");
 
-	/* set output map and generate decomposition */
+	/* set output map and and generate decomposition */
 	token = 1;
 	if (rank == 0)
 	{
-		/* prompt for method if alternative is available */
-		int method = 0;
-#ifdef __METIS__
-		cout << "\n Decomposition method (0: native, 1: METIS): ";
-#endif
-#if (defined __SGI__ && defined __MPI__)
-		cout << '\n';
-#endif
-		cin >> method;
-		char line[255];
-		cin.getline(line, 254);
-
-		/* run decomp */
-		try { Decompose(in, size, model_file, global_model_file, format, map_file, method); }
+		try { Decompose(in, size, model_file, global_model_file, format, map_file); }
 		catch (int code)
 		{
 			cout << " ::RunJob_parallel: exception on decomposition: " << code << endl;
@@ -708,7 +682,7 @@ void FEExecutionManagerT::GetModelFile(ifstreamT& in, StringT& model_file,
 /* initializations for rank 0 */
 void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 	const StringT& model_file, const StringT& global_model_file,
-	IOBaseT::FileTypeT format, const StringT& output_map_file, int method) const
+	IOBaseT::FileTypeT format, const StringT& output_map_file) const
 {
 	bool split_io = CommandLineOption("-split_io");
 	bool need_output_map = NeedOutputMap(in, output_map_file, size) && !split_io;
@@ -779,7 +753,7 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 			try
 			{
 				cout << "\n Decomposing: " << model_file << endl;
-				global_FEman.Decompose(partition, graph, true, method);
+				global_FEman.Decompose(partition, graph, true);
 				cout << " Decomposing: " << model_file << ": DONE"<< endl;
 			}
 			catch (int code)

@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.7 2001-09-11 05:54:50 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.4 2001-06-20 22:49:59 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 /* 2 dimensional matrix mathematics template object.                      */
 
@@ -83,13 +83,7 @@ public:
 	void MultABT(const nMatrixT& a, const nMatrixT& b, int upper = 0);
 	void MultATBT(const nMatrixT& a, const nMatrixT& b);
 
-	/* matrix-matrix-matrix operations */
-	void MultABCT(const nMatrixT& a, const nMatrixT& b, const nMatrixT& c,
-		int range = kWhole, int fillmode = kOverwrite);
-	void MultATBC(const nMatrixT& a, const nMatrixT& b, const nMatrixT& c,
-		int range = kWhole, int fillmode = kOverwrite);
-
-	/* symmetric matrix-matrix-matrix operations, ie. tensor basis transformations */
+	/* matrix-matrix-matrix operations, ie. tensor basis transformations */
 	void MultQBQT(const nMatrixT& q, const nMatrixT& b,
 		int range = kWhole, int fillmode = kOverwrite);
 	void MultQTBQ(const nMatrixT& q, const nMatrixT& b,
@@ -113,14 +107,10 @@ public:
 	void PlusIdentity(const nTYPE& value = nTYPE(1.0));
 	nMatrixT<nTYPE>& Identity(const nTYPE& value = nTYPE(1.0));
 
-	/* writing to rows */
+	/* writing to rows/columns */
 	void SetRow(int row, const nArrayT<nTYPE>& vec);
-	void SetRow(int row, const nTYPE* vec);
 	void SetRow(int row, const nTYPE& value);
-
-	/* writing to cols */
 	void SetCol(int col, const nArrayT<nTYPE>& vec);
-	void SetCol(int col, const nTYPE* vec);
 	void SetCol(int col, const nTYPE& value);
 
 	/* dot the specified row/column number with the array */
@@ -896,142 +886,6 @@ A.fRows != B.fCols) throw eSizeMismatch;
 
 /* matrix-matrix-matrix operations, ie. tensor basis transformations */
 
-/* this_ij = p_iI b_IJ q_jJ */
-template <class nTYPE>
-void nMatrixT<nTYPE>::MultABCT(const nMatrixT& p, const nMatrixT& b, const nMatrixT& q,
-	int range, int fillmode)
-{
-	/* dimension checks */
-#if __option (extended_errorcheck)	
-	if (fRows != p.fRows ||
-	    fCols != q.fRows ||
-	  b.fRows != p.fCols ||
-	  b.fCols != q.fCols) throw eSizeMismatch;
-#endif
-
-	/* initialize */
-	if (fillmode == kOverwrite) *this = 0;
-
-	register nTYPE temp;
-	register nTYPE bqT_Ij;
-	
-	nTYPE* pthisj =   Pointer();
-	nTYPE* pqj    = q.Pointer();
-	for (int j = 0; j < fCols; j++)
-	{
-		int istop = (range == kUpperOnly) ? j + 1 : fRows;
-	
-		nTYPE* pbI = b.Pointer();
-		nTYPE* ppI = p.Pointer();
-		for (int I = 0; I < b.fRows; I++)
-		{			
-			nTYPE* pbJ = pbI++;
-			nTYPE* pqJ = pqj;
-			bqT_Ij = 0.0;
-			for (int J = 0; J < b.fCols; J++)
-			{
-				temp  = *pbJ;
-				temp *= *pqJ;
-				
-				bqT_Ij += temp;
-				
-				pbJ += b.fRows;
-				pqJ += q.fRows;
-			}
-
-			nTYPE* ppi    = ppI;
-			nTYPE* pthisi = pthisj;
-			for (int i = 0; i < istop; i++)
-			{
-				temp  = *ppi++;
-				temp *= bqT_Ij;
-				
-				*pthisi++ += temp;
-			}
-			ppI += p.fRows;
-		}
-		pthisj += fRows;
-		pqj++;
-	}
-}
-
-/* this_IJ = p_iI b_ij q_jJ */
-template <class nTYPE>
-void nMatrixT<nTYPE>::MultATBC(const nMatrixT& p, const nMatrixT& b, const nMatrixT& q,
-	int range, int fillmode)
-{
-	/* dimension checks */
-#if __option (extended_errorcheck)	
-	if (fRows != p.fCols ||
-	    fCols != q.fCols ||
-	  b.fRows != p.fRows ||
-	  b.fCols != q.fRows) throw eSizeMismatch;
-#endif
-
-	/* initialize */
-	if (fillmode == kOverwrite) *this = 0;
-
-	register nTYPE temp;
-	register nTYPE bq_iJ;
-	
-	nTYPE* pthisJ =   Pointer();
-	nTYPE* pqJ    = q.Pointer();
-	for (int J = 0; J < fCols; J++)
-	{
-		int Istop = (range == kUpperOnly) ? J + 1 : fRows;
-	
-		nTYPE* ppi = p.Pointer();
-		nTYPE* pbi = b.Pointer();
-		for (int i = 0; i < b.fRows; i++)
-		{			
-			nTYPE* pbj = pbi++;
-			nTYPE* pqj = pqJ;
-			bq_iJ = 0.0;
-			for (int j = 0; j < b.fCols; j++)
-			{
-				temp  = *pbj;
-				temp *= *pqj++;
-				
-				bq_iJ += temp;
-				
-				pbj += b.fRows;
-			}
-
-			nTYPE* ppI    = ppi++;
-			nTYPE* pthisI = pthisJ;
-			for (int I = 0; I < Istop; I++)
-			{
-				temp  = *ppI;
-				temp *= bq_iJ;
-				
-				*pthisI++ += temp;
-				
-				ppI += p.fRows;
-			}
-		}
-		pthisJ += fRows;
-		pqJ    += q.fRows;
-	}
-}
-
-//TEMP
-#if 1
-/* this_ij = q_iI b_IJ q_jJ */
-template <class nTYPE>
-inline void nMatrixT<nTYPE>::MultQBQT(const nMatrixT& q,
-	const nMatrixT& b, int range, int fillmode) 
-{
-	MultABCT(q, b, q, range, fillmode);
-}
-
-/* this_IJ = q_iI b_ij q_jJ */
-template <class nTYPE>
-inline void nMatrixT<nTYPE>::MultQTBQ(const nMatrixT& q,
-	const nMatrixT& b, int range, int fillmode)
-{
-	MultATBC(q, b, q, range, fillmode);
-}
-#else
 /* this_ij = q_iI b_IJ q_jJ */
 template <class nTYPE>
 void nMatrixT<nTYPE>::MultQBQT(const nMatrixT& q,
@@ -1160,7 +1014,6 @@ void nMatrixT<nTYPE>::MultQTBQ(const nMatrixT& q,
 		pqJ    += q.fRows;
 	}
 }
-#endif
 
 /* matrix-vector multiplication */
 
@@ -1314,7 +1167,7 @@ void nMatrixT<nTYPE>::Outer(const nArrayT<nTYPE>& v1,
 
 /* identity operations - square matrices ONLY */
 template <class nTYPE>
-inline void nMatrixT<nTYPE>::PlusIdentity(const nTYPE& value)
+void nMatrixT<nTYPE>::PlusIdentity(const nTYPE& value)
 {
 /* must be square */
 #if __option (extended_errorcheck)
@@ -1392,30 +1245,26 @@ nMatrixT<nTYPE>& nMatrixT<nTYPE>::Identity(const nTYPE& value)
 
 /* writing to rows/columns */
 template <class nTYPE>
-inline void nMatrixT<nTYPE>::SetRow(int row, const nArrayT<nTYPE>& vec)
+void nMatrixT<nTYPE>::SetRow(int row, const nArrayT<nTYPE>& vec)
 {
 	/* dimension check */
 #if __option (extended_errorcheck)
 	if (vec.Length() != fCols) throw eSizeMismatch;
 	if (row < 0 || row >= fRows) throw(eOutOfRange);
 #endif
-	
-	SetRow(row, vec.Pointer());
-}
 
-template <class nTYPE>
-inline void nMatrixT<nTYPE>::SetRow(int row, const nTYPE* vec)
-{
-	nTYPE* pcol = Pointer() + row;	
+	nTYPE* pvec = vec.Pointer();
+	nTYPE* pcol = Pointer() + row;
+	
 	for (int i = 0; i < fCols; i++)
 	{
-		*pcol = *vec++;
+		*pcol = *pvec++;
 		pcol += fRows;
 	}
 }
 
 template <class nTYPE>
-inline void nMatrixT<nTYPE>::SetRow(int row, const nTYPE& value)
+void nMatrixT<nTYPE>::SetRow(int row, const nTYPE& value)
 {
 	nTYPE* pcol = Pointer() + row;	
 	for (int i = 0; i < fCols; i++)
@@ -1426,26 +1275,22 @@ inline void nMatrixT<nTYPE>::SetRow(int row, const nTYPE& value)
 }
 
 template <class nTYPE>
-inline void nMatrixT<nTYPE>::SetCol(int col, const nArrayT<nTYPE>& vec)
+void nMatrixT<nTYPE>::SetCol(int col, const nArrayT<nTYPE>& vec)
 {
 /* dimension check */
 #if __option (extended_errorcheck)
 	if (vec.Length() != fRows) throw(eOutOfRange);
 #endif
 
-	SetCol(col, vec.Pointer());
-}
-
-template <class nTYPE>
-inline void nMatrixT<nTYPE>::SetCol(int col, const nTYPE* vec)
-{
-	nTYPE* pcol = (*this)(col);	
+	nTYPE* pvec = vec.Pointer();
+	nTYPE* pcol = (*this)(col);
+	
 	for (int i = 0; i < fRows; i++)
-		*pcol++ = *vec++;
+		*pcol++ = *pvec++;
 }
 
 template <class nTYPE>
-inline void nMatrixT<nTYPE>::SetCol(int col, const nTYPE& value)
+void nMatrixT<nTYPE>::SetCol(int col, const nTYPE& value)
 {
 	nTYPE* pcol = (*this)(col);	
 	for (int i = 0; i < fRows; i++)

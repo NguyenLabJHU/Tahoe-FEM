@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.12 2001-09-15 01:20:34 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.9 2001-07-03 01:35:28 paklein Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList3DT.h"
@@ -29,14 +29,12 @@
 #include "SKStVT3D.h"
 #include "HyperEVP3D.h"
 #include "BCJHypo3D.h"
-#include "FDCrystalElast.h"
 #include "LocalCrystalPlast.h"
 #include "LocalCrystalPlast_C.h"
 #include "GradCrystalPlast.h"
 #include "tevp3D.h"
 
 #include "ABAQUS_BCJ.h"
-#include "ABAQUS_VUMAT_BCJ.h"
 
 /* constructors */
 SolidMatList3DT::SolidMatList3DT(int length, const ElasticT& element_group):
@@ -291,14 +289,6 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 			}
-                        case kFDXtalElast:
-                        {
-                                /* check */
-                                if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
-
-                                fArray[matnum] = new FDCrystalElast(in, *fFiniteStrain);
-                                break;
-                        }
 			case kLocXtalPlast:
 			{
 				/* check */
@@ -342,22 +332,6 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 	
 				break;
 			}			
-			case kABAQUS_VUMAT_BCJ:
-			{
-#ifdef __F2C__			
-				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
-
-				fArray[matnum] = new ABAQUS_VUMAT_BCJ(in, *fFiniteStrain);
-				fHasHistory = true;
-#else
-				cout << "\n SolidMatList3DT::ReadMaterialData: model requires f2c support: "
-				     << kABAQUS_VUMAT_BCJ << endl;
-				throw eBadInputValue;
-#endif /* __F2C__ */
-	
-				break;
-			}			
 //TEMP
 #if 0
 			case kIsoVIB_X:
@@ -385,10 +359,10 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		if (!pmat) throw eOutOfMemory;
 		
 		/* set thermal LTf pointer */
-		int LTfnum = pmat->ThermalStrainSchedule();
+		int LTfnum = pmat->ThermalLTfNumber();
 		if (LTfnum > -1)
 		{
-			pmat->SetThermalSchedule(fElementGroup.GetLTfPtr(LTfnum));
+			pmat->SetThermalLTfPtr(fElementGroup.GetLTfPtr(LTfnum));
 			
 			/* set flag */
 			fHasThermal = true;

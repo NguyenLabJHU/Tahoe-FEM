@@ -1,7 +1,7 @@
-/* $Id: DPSSLinHardT.h,v 1.9 2001-09-20 23:46:00 cfoster Exp $ */
+/* $Id: DPSSLinHardT.h,v 1.4 2001-07-13 23:15:06 cfoster Exp $ */
 /* created: myip (06/01/1999)                                      */
 /*  
- * Interface for Drucker-Prager, nonassociative, small strain,
+ * Interface for Druker-Prager, nonassociative, small strain,
  * pressure-dependent plasticity model with linear isotropic hardening.
  *
  *	Note: all calculations are peformed in 3D.
@@ -54,22 +54,19 @@ class DPSSLinHardT: public DPPrimitiveT
 	 *       internal variable values */
 	const dMatrixT& ModuliCorrection(const ElementCardT& element, int ip); 
 
-        /* Modulus for checking discontinuous bifurcation */
-
-	const dMatrixT& ModuliCorrDisc(const ElementCardT& element, int ip);
-
 	/* return a pointer to a new plastic element object constructed with
 	 * the data from element */
 	void AllocateElement(ElementCardT& element);
 
-	enum InternalVariablesT {kalpha = 0,  // stress-like internal state variable
-                        kstressnorm = 1,  // norm of stress
-                            kdgamma = 2,  // consistency parameter
-                            kftrial = 3, // yield function value
-			    kdgamma2 = 4}; // 2nd consistency par. at vertex
+	enum InternalVariablesT {    kalpha = 0,  // stress-like internal state variable
+	                        kstressnorm = 1,  // norm of stress
+	       	                    kdgamma = 2,  // consistency parameter
+				    kftrial = 3}; // yield function value
+	                        
 	/* element level data */
 	void Update(ElementCardT& element);
 	void Reset(ElementCardT& element);
+	
 
 	/* returns 1 if the trial elastic strain state lies outside of the 
 	 * yield surface */
@@ -86,6 +83,7 @@ class DPSSLinHardT: public DPPrimitiveT
 	/* computes the hydrostatic (mean) stress. */
 	double MeanStress(const dSymMatrixT& trialstrain,
 		const ElementCardT& element);
+	
 
   private:
 
@@ -125,14 +123,12 @@ class DPSSLinHardT: public DPPrimitiveT
 	double flambda;
 	double fkappa;
 	double fX_H;
-        double fX;
         double fMeanStress;
   
   	/* return values */
   	dSymMatrixT	fElasticStrain;
   	dSymMatrixT	fStressCorr;
   	dMatrixT	fModuliCorr;
-        dMatrixT        fModuliCorrDisc;
   		
 	/* work space */
 	dSymMatrixT fDevStress;

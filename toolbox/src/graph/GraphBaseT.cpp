@@ -1,5 +1,6 @@
-/* $Id: GraphBaseT.cpp,v 1.4 2001-07-19 06:46:56 paklein Exp $ */
-/* created: paklein (04/13/1999) */
+/* $Id: GraphBaseT.cpp,v 1.2 2001-04-18 23:54:17 paklein Exp $ */
+/* created: paklein (04/13/1999)                                          */
+/* base class for graph class. does not handle making the graph.          */
 
 #include "GraphBaseT.h"
 
@@ -12,11 +13,6 @@
 #include "AutoFill2DT.h"
 #include "AutoArrayT.h"
 #include "iArray2DT.h"
-
-#ifdef __METIS__
-/* partitioning package */
-#include "metis.h"
-#endif
 
 /* rounding floating point numbers */
 static inline int rnd(double number) { return int((2.0*number + 1.0)/2); }
@@ -176,103 +172,6 @@ void GraphBaseT::Partition(const iArrayT& config, const iArrayT& weight,
 		delete maps[j];
 		delete weights[j];
 	}
-}	
-
-/* generate partition using METIS */
-void GraphBaseT::Partition_METIS(int num_partitions, const iArrayT& weight,
-	iArrayT& partition, int volume_or_edgecut)
-{
-#ifndef __METIS__
-#pragma unused(num_partitions)
-#pragma unused(weight)
-#pragma unused(partition)
-#pragma unused(volume_or_edgecut)
-	/* error message */
-	cout << "\n GraphBaseT::Partition_METIS: requires metis module" << endl;
-	throw eGeneralFail;
-#else
-	
-	/* NOTE: based on "kmetis.c" */
-
-	/* dimension check */
-	if (weight.Length() != fEdgeList.MajorDim()) throw eSizeMismatch;
-
-	/* options check */
-	if (volume_or_edgecut != 0 && volume_or_edgecut != 1)
-	{
-		cout << "\n GraphBaseT::Partition_METIS: volume_or_edgecut must be 0 or 1: " 
-		     << volume_or_edgecut << endl;
-		throw eGeneralFail;
-	}
-
-	/* initialize partition map */
-	partition.Allocate(fEdgeList.MajorDim());
-	partition = 0;
-	if (num_partitions < 2) return;
-
-	/* timing info */
-	timer TOTALTmr, METISTmr;    
-  	cleartimer(TOTALTmr);
-  	cleartimer(METISTmr);
-
-	starttimer(TOTALTmr);
-	cout << "**********************************************************************\n";
-	cout << METISTITLE;
-	cout << "Graph Information ---------------------------------------------------\n";
-	cout << "#Vertices: " << fEdgeList.MajorDim() << '\n';
-	cout << "   #Edges: " << fEdgeList.Length()/2 << '\n';
-	cout << "   #Parts: " << num_partitions << '\n';
-	cout << "  Balancing Constraints: " << 0 << '\n';
-	cout << "\nK-way Partitioning... -----------------------------------------------\n" << endl;
-
-	/* offset vector for adjacency list */
-	iArrayT offsets;
-	fEdgeList.GenerateOffsetVector(offsets);
-	
-	/* partition weights - even */
-	ArrayT<float> tpwgts(num_partitions);
-	tpwgts = 1.0/num_partitions;
-
-  	/* METIS options */
-	iArrayT options(5);
-	options[0] = 0; /* use all default values */
-
-	/* other arguments */
-	int num_vertices = fEdgeList.MajorDim();
-	int edgecut; /* returns with number of edges cut by the partitioning */
-	int num_flag = 0;
-	int weight_flag = 2;
-	int* adjwgt = NULL;
-
-	/* partitioning method */
-	starttimer(METISTmr);
-	if (volume_or_edgecut == 0)
-		METIS_WPartGraphVKway(&num_vertices, offsets.Pointer(), fEdgeList.Pointer(), weight.Pointer(), 
-			adjwgt, &weight_flag, &num_flag, &num_partitions, 
-			tpwgts.Pointer(), options.Pointer(), &edgecut, partition.Pointer());
-	else if (volume_or_edgecut == 1)
-		METIS_WPartGraphKway(&num_vertices, offsets.Pointer(), fEdgeList.Pointer(), weight.Pointer(), 
-			adjwgt, &weight_flag, &num_flag, &num_partitions, 
-			tpwgts.Pointer(), options.Pointer(), &edgecut, partition.Pointer());
-	else throw;
-	stoptimer(METISTmr);
-
-	/* assess partition quality */
-	GraphType* graph = CreateGraph();
-	int ncon = 1; /* just 1 constraint per vertex - the weight */
-	SetUpGraph(graph, OP_KMETIS, num_vertices, ncon, offsets.Pointer(), fEdgeList.Pointer(), 
-		weight.Pointer(), NULL, 2);	
-	ComputePartitionInfo(graph, num_partitions, partition.Pointer());
-  	FreeGraph(graph);
-
-	/* write timing info */
-	stoptimer(TOTALTmr);
-	cout << "\nTiming Information --------------------------------------------------\n";
-	cout << "  Partitioning: \t\t " << gettimer(METISTmr) << "   (KMETIS time)\n";
-	cout << "  Total:        \t\t " << gettimer(TOTALTmr) << '\n';
-	cout << "**********************************************************************\n";
-	cout.flush();
-#endif
 }	
 
 /* fill in the degrees for the specified nodes */

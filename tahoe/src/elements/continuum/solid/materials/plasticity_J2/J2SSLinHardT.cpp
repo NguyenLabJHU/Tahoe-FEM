@@ -1,4 +1,4 @@
-/* $Id: J2SSLinHardT.cpp,v 1.2 2001-07-25 08:13:34 paklein Exp $ */
+/* $Id: J2SSLinHardT.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -183,29 +183,22 @@ void J2SSLinHardT::Update(ElementCardT& element)
 
 	/* update plastic variables */
 	for (int ip = 0; ip < fNumIP; ip++)
-		if (flags[ip] ==  kIsPlastic) /* plastic update */
-		{
-			/* do not repeat if called again */
-			flags[ip] = kReset;
-			/* NOTE: ComputeOutput writes the updated internal variables
-			 *       for output even during iteration output, which is
-			 *       called before UpdateHistory */
-
-			/* fetch element data */
-			LoadData(element, ip);
+	{
+		/* fetch element data */
+		LoadData(element, ip);
 		
-			/* plastic increment */
-			double& dgamma = fInternal[kdgamma];
+		/* plastic increment */
+		double& dgamma = fInternal[kdgamma];
 		
-			/* internal variables */
-			fInternal[kalpha] += sqrt23*dgamma;
+		/* internal variables */
+		fInternal[kalpha] += sqrt23*dgamma;
 	
-			/* kinematic hardening */
-			fBeta.AddScaled(2.0*(1.0 - ftheta)*fH_bar*dgamma/3.0, fUnitNorm);
+		/* kinematic hardening */
+		fBeta.AddScaled(2.0*(1.0 - ftheta)*fH_bar*dgamma/3.0, fUnitNorm);
 				
-			/* dev plastic strain increment	*/
-			fPlasticStrain.AddScaled(dgamma, fUnitNorm);			
-		}
+		/* dev plastic strain increment	*/
+		fPlasticStrain.AddScaled(dgamma, fUnitNorm);			
+	}
 }
 
 /* resets to the last converged solution */

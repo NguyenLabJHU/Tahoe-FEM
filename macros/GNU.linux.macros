@@ -1,4 +1,4 @@
-# $Id: GNU.linux.macros,v 1.6 2001-07-30 16:52:54 strohban Exp $
+# $Id: GNU.linux.macros,v 1.5 2001-04-28 01:18:41 paklein Exp $
 # GNU
 MAKE        = make
 MAKE_DEPEND = makedepend
@@ -14,6 +14,7 @@ CFLAGS_C    = $(MY_CFLAGS)
 CFLAGS_CC   = $(MY_CFLAGS)
 CFLAGS_F    = $(MY_CFLAGS)
 LINK        = $(COMP_CC)
+LFLAGS      = 
 AR          = ar
 ARFLAGS     = -cruv
 MAKE_OPTS   = -s

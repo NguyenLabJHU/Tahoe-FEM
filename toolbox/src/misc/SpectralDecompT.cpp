@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.cpp,v 1.6 2001-07-16 21:25:04 paklein Exp $ */
+/* $Id: SpectralDecompT.cpp,v 1.5 2001-06-23 00:49:16 thao Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -259,14 +259,11 @@ bool SpectralDecompT::PerturbRepeated(dArrayT& values) const
 
 	/* perturb repeated values */
 	bool perturbed = false;
-	if (values.Length() == 2)
+	if (values.Length() == 2 && fabs(values[0] - values[1]) < kSameRoot)
 	{
-		if (fabs(values[0] - values[1]) < kSameRoot)
-		{
-			values[0] *= (1.0 + kpert);
-			values[1] /= (1.0 + kpert);
-			perturbed = true;
-		}
+		values[0] *= (1.0 + kpert);
+		values[1] /= (1.0 + kpert);
+		perturbed = true;
 	}
 	else
 	{

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.8 2001-07-19 06:48:06 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.7 2001-07-09 17:23:47 paklein Exp $ */
 /* created: paklein (01/12/2000)                                          */
 
 #include "FEManagerT_mpi.h"
@@ -586,7 +586,7 @@ void FEManagerT_mpi::Wait(void)
 
 /* domain decomposition */
 void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
-	bool verbose, int method)
+	bool verbose)
 {
 	//TEMP
 	//TimeStamp("FEManagerT_mpi::Decompose");
@@ -611,9 +611,9 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 	bool use_new_methods = false; //TEMP
 	bool dual_graph = (InterpolantDOFs() == 0);
 	if (dual_graph && use_new_methods)
-		DoDecompose_2(partition, graphU, verbose, method);
+		DoDecompose_2(partition, graphU, verbose);
 	else
-		DoDecompose_1(partition, graphU, verbose, method);
+		DoDecompose_1(partition, graphU, verbose);
 
 	if (fInputFormat == IOBaseT::kTahoeII)
 	{
@@ -1018,8 +1018,7 @@ const char* FEManagerT_mpi::WallTime(void) const
 }
 
 /* decomposition methods */
-void FEManagerT_mpi::DoDecompose_2(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int
-	method)
+void FEManagerT_mpi::DoDecompose_2(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose)
 {
 	/* connectivities for partititioning */
 	AutoArrayT<const iArray2DT*> connects_1;
@@ -1055,11 +1054,10 @@ void FEManagerT_mpi::DoDecompose_2(ArrayT<PartitionT>& partition, GraphT& graph,
 	config[0] = partition.Length();	
 	iArrayT weight;
 	WeightNodalCost(weight);
-	graphX.Partition(config, weight, connects_1, connects_2, partition, true, method);
+	graphX.Partition(config, weight, connects_1, connects_2, partition, true);
 }
 
-void FEManagerT_mpi::DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph, 
-	bool verbose, int method)
+void FEManagerT_mpi::DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose)
 {
 	/* connectivities for partititioning */
 	AutoArrayT<const iArray2DT*> connects_1;
@@ -1116,7 +1114,7 @@ void FEManagerT_mpi::DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph,
 	iArrayT weight;
 	WeightNodalCost(weight);
 	if (dual_graph == 1)
-		graphX.Partition(config, weight, graphU, partition, true, method);
+		graphX.Partition(config, weight, graphU, partition, true);
 	else
-		graphU.Partition(config, weight, partition, true, method);
+		graphU.Partition(config, weight, partition, true);
 }

@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.3 2001-07-19 00:58:09 paklein Exp $ */
+/* $Id: OutputSetT.cpp,v 1.2 2001-02-27 00:16:26 paklein Exp $ */
 /* created: paklein (03/07/2000)                                          */
 
 #include "OutputSetT.h"
@@ -28,7 +28,7 @@ OutputSetT::OutputSetT(int ID, GeometryT::CodeT geometry_code,
 		fElementOutputLabels[j] = e_labels[j];
 		
 	/* set the nodes used array */
-	if (!fChanging) SetNodesUsed();
+	SetNodesUsed();
 }
 
 OutputSetT::OutputSetT(const OutputSetT& source):

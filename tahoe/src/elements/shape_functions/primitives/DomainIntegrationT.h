@@ -1,4 +1,4 @@
-/* $Id: DomainIntegrationT.h,v 1.4 2001-08-20 06:54:24 paklein Exp $ */
+/* $Id: DomainIntegrationT.h,v 1.3 2001-07-11 01:03:30 paklein Exp $ */
 /* created: paklein (09/04/1998) */
 
 #ifndef _DOMAIN_INTEGRATION_T_H_
@@ -87,17 +87,6 @@ public:
 	
 	/** reference to the parent domain */
 	const ParentDomainT& ParentDomain(void) const;
-
-	/** evaluate the shape functions and gradients. Compute the values of the
-	 * shape functions and their gradients at an arbirary point in the
-	 * in the parent domain. Coordinates must fall within the domain.
-	 * \param coords point in the parent domain
-	 * \param Na destination for shape function values for each of the domain
-	 *        nodes. Must be dimensioned: [nnd]
-	 * \param DNa destination for shape function derivatives. Must be 
-	 *        dimensioned: [nsd] x [nnd] */
-	void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
-		dArray2DT& DNa) const;
 
 protected:
 
@@ -226,13 +215,6 @@ inline const ParentDomainT& DomainIntegrationT::ParentDomain(void) const
 {
 	if (!fDomain) throw eGeneralFail;
 	return *fDomain;
-}
-
-/* evaluate the shape functions and gradients. */
-inline void DomainIntegrationT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
-	dArray2DT& DNa) const
-{
-	fDomain->EvaluateShapeFunctions(coords, Na, DNa);
 }
 
 /* access to domain shape functions */

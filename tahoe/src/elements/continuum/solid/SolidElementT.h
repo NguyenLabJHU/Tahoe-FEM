@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.7 2001-07-17 00:12:52 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.6 2001-07-11 01:02:15 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #ifndef _ELASTIC_T_H_
@@ -143,6 +143,8 @@ protected:
 	enum MaterialNeedsT {kNeedDisp = 0,
 	                     kNeedVel  = 1,
 	                 KNeedLastDisp = 2};
+
+private:
 
 	/* construct output labels array */
 	virtual void SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,

@@ -1,4 +1,4 @@
-/* $Id: AutoArrayT.h,v 1.4 2001-08-21 01:07:45 paklein Exp $ */
+/* $Id: AutoArrayT.h,v 1.3 2001-06-05 19:50:06 paklein Exp $ */
 /* created: paklein (12/05/1997)                                          */
 /* Array that automatically increases its dimensions when                 */
 /* elements are inserted using Append() or AppendUnique.                  */
@@ -503,7 +503,7 @@ inline bool AutoArrayT<TYPE>::Next(void) { return ++fCurrElement < fLength; }
 template <class TYPE>
 inline bool AutoArrayT<TYPE>::InRange(void) const
 {
-	return fCurrElement > -1 && fCurrElement < fLength;
+	return fCurrElement >= 0 && fCurrElement < fLength;
 }
 
 /* returns the current position in the list */
@@ -515,12 +515,7 @@ inline TYPE& AutoArrayT<TYPE>::Current(void) const
 {
 #if __option(extended_errorcheck)
 	/* range check */
-	if (fCurrElement < 0 || fCurrElement >= fLength) 
-	{
-		cout << "\n AutoArrayT<TYPE>::Current: current element is out of range: "
-		     << fCurrElement << endl;
-		throw eOutOfRange;
-	}
+	if (fCurrElement < 0 || fCurrElement >= fLength) throw eOutOfRange;
 #endif
 	return *(fArray + fCurrElement);
 }

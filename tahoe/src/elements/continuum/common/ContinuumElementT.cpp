@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.11 2001-09-05 22:29:16 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.8 2001-07-13 22:00:22 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 
 #include "ContinuumElementT.h"
@@ -70,13 +70,6 @@ void ContinuumElementT::IP_Coords(dArrayT& ip_coords) const
 {
 	/* computed by shape functions */
 	ShapeFunction().IPCoords(ip_coords);
-}
-
-/* interpolate the nodal field values to the current integration point */
-void ContinuumElementT::IP_Interpolate(const LocalArrayT& nodal_u, dArrayT& ip_u) const
-{
-    /* computed by shape functions */
-    ShapeFunction().InterpolateU(nodal_u, ip_u);
 }
 
 /* field gradients */
@@ -225,11 +218,12 @@ void ContinuumElementT::ReadRestart(istream& in)
 	/* update element level internal variables */
 	if (fMaterialList->HasHistoryMaterials())
 	{
-		for (int i = 0; i < fElementCards.Length(); i++)
+		Top();
+		while (NextElement())
 		{
 			int isallocated;
 			in >> isallocated;
-			if (isallocated) fElementCards[i].ReadRestart(in);
+			if (isallocated) CurrentElement().ReadRestart(in);
 		}
 	}
 }
@@ -245,7 +239,7 @@ void ContinuumElementT::WriteRestart(ostream& out) const
 		for (int i = 0; i < fElementCards.Length(); i++)
 		{
 			const ElementCardT& element = fElementCards[i];
-			out << element.IsAllocated() << '\n';
+			out << setw(kIntWidth) << element.IsAllocated() << '\n';
 			if (element.IsAllocated()) element.WriteRestart(out);
 		}
 	}

@@ -1,25 +1,21 @@
-/* $Id: DPSSKStV.cpp,v 1.11 2001-08-17 00:51:03 cfoster Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.5 2001-07-13 23:14:13 cfoster Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 
 #include "DPSSKStV.h"
 #include "ElementCardT.h"
 #include "StringT.h"
-#include "DetCheckT.h"
-#include <iostream.h>
 
 /* parameters */
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
-const int kNumOutput = 5;
+const int kNumOutput = 3;
 static const char* Labels[kNumOutput] = {
 	    "alpha",  // stress-like internal state variable
                       //  (isotropic linear hardening)
 	       "VM",  // Von Mises stress
-	    "press", // pressurefmo
-	    "loccheck",
-            "loccheckd"}; // localization check
+	    "press"}; // pressure
 
 /* constructor */
 DPSSKStV::DPSSKStV(ifstreamT& in, const SmallStrainT& element):
@@ -28,10 +24,9 @@ DPSSKStV::DPSSKStV(ifstreamT& in, const SmallStrainT& element):
 	HookeanMatT(3),
 	DPSSLinHardT(in, NumIP(), Mu(), Lambda()),
 	fStress(3),
-	fModulus(dSymMatrixT::NumValues(3)),
-        fModulusdisc(dSymMatrixT::NumValues(3))
+	fModulus(dSymMatrixT::NumValues(3))
 {
- 
+
 }
 
 /* initialization */
@@ -81,20 +76,10 @@ void DPSSKStV::PrintName(ostream& out) const
 /* modulus */
 const dMatrixT& DPSSKStV::c_ijkl(void)
 {
-
+	/* elastoplastic correction */
 	fModulus.SumOf(HookeanMatT::Modulus(),
 		ModuliCorrection(CurrentElement(), CurrIP()));
-	
 	return fModulus;
-}
-
-/*discontinuous modulus */
-const dMatrixT& DPSSKStV::cdisc_ijkl(void)
-{
-	/* elastoplastic correction */
-	fModulusdisc.SumOf(HookeanMatT::Modulus(),
-		ModuliCorrDisc(CurrentElement(), CurrIP()));
-	return fModulusdisc;
 }
 
 /* stress */
@@ -112,25 +97,6 @@ const dSymMatrixT& DPSSKStV::s_ij(void)
 	fStress += StressCorrection(e_els, element, ip);
 	return fStress;	
 }
-
-
-/*
-* Test for localization using "current" values for Cauchy
-* stress and the spatial tangent moduli. Returns 1 if the
-* determinant of the acoustic tensor is negative and returns
-* the normal for which the determinant is minimum. Returns 0
-* of the determinant is positive.
-*/
-int DPSSKStV::IsLocalized(dArrayT& normal)
-{
-        DetCheckT checker(fStress, fModulus);
-
-        int loccheck= checker.IsLocalized(normal);
-        return loccheck;
-}
-
-
-
 
 /* returns the strain energy density for the specified strain */
 double DPSSKStV::StrainEnergyDensity(void)
@@ -154,34 +120,12 @@ void DPSSKStV::OutputLabels(ArrayT<StringT>& labels) const
 
 void DPSSKStV::ComputeOutput(dArrayT& output)
 {
-	
-	/* stress tensor (load state) */
-	const dSymMatrixT& stress = s_ij();
+	/* stress tensor (loads element data) */
+	s_ij();
 
 	/* pressure */
 	output[2] = fStress.Trace()/3.0;
-
-
-	/* compute modulus */
-
-	const dMatrixT& modulus = c_ijkl();
-
-        /* continuous localization condition checker */
-	DetCheckT checker(stress, modulus);
-	dArrayT normal(stress.Rows());
-	output[3] = checker.IsLocalized_SS(normal);
-
-	/* compute discontinuous bifurcation modulus */
-	const dMatrixT& modulusdisc = cdisc_ijkl();
 	
-
-	/* discontinuous localization condition checker */
-
-	DetCheckT checkerdisc(stress, modulusdisc);
-	dArrayT normaldisc(stress.Rows());
-	output[4] = checkerdisc.IsLocalized_SS(normaldisc);
-
-   
 	/* deviatoric Von Mises stress */
 	fStress.Deviatoric();
 	double J2 = fStress.Invariant2();
@@ -193,9 +137,14 @@ void DPSSKStV::ComputeOutput(dArrayT& output)
 	if (element.IsAllocated())
 	{
 		output[0] = fInternal[kalpha];
-		const iArrayT& flags = element.IntegerData();
-		if (flags[CurrIP()] == kIsPlastic)
-			output[0] -= fH_prime*fInternal[kdgamma];
+		/* status flags */
+		iArrayT& flags = element.IntegerData();
+		if (flags[CurrIP()] == kIsPlastic) // output with update
+		{
+			output[0] -= fH_prime*fInternal[kdgamma]; 
+		}
+		// alpha not incremented until Update(), which 
+		// hasn't occurred yet
 	}
 	else
 	{

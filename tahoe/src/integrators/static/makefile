@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2001-08-27 17:12:15 paklein Exp $
+# $Id: makefile,v 1.4 2001-02-22 23:46:11 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -8,8 +8,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	eStaticController.o \
 	nStaticController.o \
-	nLinearStaticController.o \
-	LinearStaticController.o \
 	StaticController.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -21,16 +19,12 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	eStaticController.cpp \
 	nStaticController.cpp \
-	nLinearStaticController.cpp \
-	LinearStaticController.cpp \
 	StaticController.cpp
 
 # headers
 HDR = \
 	eStaticController.h \
 	nStaticController.h \
-	nLinearStaticController.h \
-	LinearStaticController.h \
 	StaticController.h
 HDR_LINK = $(HDR:.h=.h_link)
 

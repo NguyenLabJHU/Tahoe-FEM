@@ -1,4 +1,4 @@
-/* $Id: GraphT.cpp,v 1.7 2001-07-19 06:46:56 paklein Exp $ */
+/* $Id: GraphT.cpp,v 1.6 2001-07-09 17:21:39 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "GraphT.h"
@@ -456,7 +456,7 @@ void GraphT::LabelBranches(const iArrayT& nodes, iArrayT& branch_map)
 }
 
 void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
-	ArrayT<PartitionT>& partition, bool verbose, int method)
+	ArrayT<PartitionT>& partition, bool verbose)
 {
 	//TEMP
 	if (fShift != 0)
@@ -471,15 +471,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 
 	/* generate partition */
 	iArrayT part_map(nnd);
-	if (method == 0)
-		GraphBaseT::Partition(config, weight, part_map, verbose);
-	else if (method == 1)
-	{
-		int num_partitions = config.Sum();
-		int volume_or_edgecut = 1;
-		Partition_METIS(num_partitions, weight, part_map, volume_or_edgecut);	
-	}
-	else throw;
+	GraphBaseT::Partition(config, weight, part_map, verbose);
 
 	/* time */
 	clock_t t0 = clock();
@@ -523,7 +515,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 /* using external graph to classify nodes */
 void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 	const GraphT& node_graph, ArrayT<PartitionT>& partition,
-	bool verbose, int method)
+	bool verbose)
 {
 	//TEMP
 	if (fShift != 0)
@@ -538,15 +530,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 
 	/* generate partition */
 	iArrayT part_map(nnd);
-	if (method == 0)
-		GraphBaseT::Partition(config, weight, part_map, verbose);
-	else if (method == 1)
-	{
-		int num_partitions = config.Sum();
-		int volume_or_edgecut = 1;
-		Partition_METIS(num_partitions, weight, part_map, volume_or_edgecut);	
-	}
-	else throw;
+	GraphBaseT::Partition(config, weight, part_map, verbose);
 	
 	/* time */
 	clock_t t0 = clock();
@@ -589,7 +573,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 
 void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 	const ArrayT<const iArray2DT*>& connects_1, const ArrayT<const RaggedArray2DT<int>*>& connects_2, 
-	ArrayT<PartitionT>& partition, bool verbose, int method)
+	ArrayT<PartitionT>& partition, bool verbose)
 {
 	//TEMP
 	if (fShift != 0)
@@ -604,15 +588,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 
 	/* generate partition */
 	iArrayT part_map(nnd);
-	if (method == 0)
-		GraphBaseT::Partition(config, weight, part_map, verbose);
-	else if (method == 1)
-	{
-		int num_partitions = config.Sum();
-		int volume_or_edgecut = 1;
-		Partition_METIS(num_partitions, weight, part_map, volume_or_edgecut);	
-	}
-	else throw;
+	GraphBaseT::Partition(config, weight, part_map, verbose);
 
 	/* time */
 	clock_t t0 = clock();

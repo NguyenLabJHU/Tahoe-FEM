@@ -1,5 +1,6 @@
-/* $Id: GraphBaseT.h,v 1.2 2001-07-19 01:01:23 paklein Exp $ */
-/* created: paklein (04/13/1999) */
+/* $Id: GraphBaseT.h,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* created: paklein (04/13/1999)                                          */
+/* base class for graph class. does not handle making the graph.          */
 
 #ifndef _GRAPHBASE_T_H_
 #define _GRAPHBASE_T_H_
@@ -11,8 +12,6 @@
 class iArrayT;
 class iArray2DT;
 
-/** base class for graph manipulations. Actual construction of the graph is
- * must be handled by the derived classes */
 class GraphBaseT
 {
 public:
@@ -35,19 +34,12 @@ public:
 	/* set adjacency list */
 	void SetAdjacency(const RaggedArray2DT<int>& edge_list);
 
-	/** generate partition.
-	 * \param config i x j x k x ...  rectangular partition dimensions
-	 * \param weight nodal weights used for load balancing
-	 * \param partition partition[node] = partition of the node */
+	/* partition -
+	 *      config: i x j x k x ...  rectangular partition dimensions
+	 *      weight: nodal weights used for load balancing
+	 *   partition: partition[node] = partition of the node */
 	void Partition(const iArrayT& config, const iArrayT& weight,
 		iArrayT& partition, bool verbose);
-
-	/** generate partition using METIS
-	 * \param num_partitions number of partitions
-	 * \param weight nodal weights used for load balancing
-	 * \param partition partition[node] = partition of the node */
-	void Partition_METIS(int num_partitions, const iArrayT& weight,
-		iArrayT& partition, int volume_or_edgecut);
 
 	/* fill in the degrees for the specified nodes */
 	void ReturnDegrees(const ArrayT<int>& nodes, ArrayT<int>& degrees) const;

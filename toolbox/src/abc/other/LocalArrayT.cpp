@@ -1,5 +1,5 @@
-/* $Id: LocalArrayT.cpp,v 1.4 2001-09-05 00:24:57 paklein Exp $ */
-/* created: paklein (07/10/1996) */
+/* $Id: LocalArrayT.cpp,v 1.2 2001-03-08 00:18:58 paklein Exp $ */
+/* created: paklein (07/10/1996)                                          */
 
 #include "LocalArrayT.h"
 #include "dArray2DT.h"
@@ -9,15 +9,6 @@
 const bool ArrayT<LocalArrayT::TypeT>::fByteCopy = true;
 
 /* cconstructors */
-LocalArrayT::LocalArrayT(void):
-	fType(kUnspecified),
-	fNumNodes(0),
-	fMinorDim(0),
-	fGlobal(NULL)
-{
-
-}
-
 LocalArrayT::LocalArrayT(TypeT type):
 	fType(type),
 	fNumNodes(0),
@@ -91,20 +82,7 @@ void LocalArrayT::ReturnTranspose(nArrayT<double>& transpose) const
 	}
 }
 
-void LocalArrayT::FromTranspose(const double* transpose)
-{
-	for (int i = 0; i < fNumNodes; i++)
-	{
-		double* pthis = fArray + i;	
-		for (int j = 0; j < fMinorDim; j++)
-		{
-			*pthis = *transpose++;
-			pthis += fNumNodes;
-		}
-	}
-}
-
-void LocalArrayT::AddScaledTranspose(double scale, const nArrayT<double>& transpose)
+void LocalArrayT::FromTranspose(const nArrayT<double>& transpose)
 {
 #if __option (extended_errorcheck)
 	/* dimension check */
@@ -117,7 +95,7 @@ void LocalArrayT::AddScaledTranspose(double scale, const nArrayT<double>& transp
 		double* pthis = fArray + i;	
 		for (int j = 0; j < fMinorDim; j++)
 		{
-			*pthis += scale*(*ptrans++);
+			*pthis = *ptrans++;
 			pthis += fNumNodes;
 		}
 	}
