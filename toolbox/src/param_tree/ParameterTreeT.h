@@ -1,10 +1,11 @@
-/* $Id: ParameterTreeT.h,v 1.1 2003-04-26 19:08:43 paklein Exp $ */
+/* $Id: ParameterTreeT.h,v 1.2 2003-04-26 19:22:36 paklein Exp $ */
 #ifndef _PARAMETER_TREE_T_H_
 #define _PARAMETER_TREE_T_H_
 
 /* direct members */
 #include "MapT.h"
 #include "AutoArrayT.h"
+#include "StringT.h"
 
 namespace Tahoe {
 
