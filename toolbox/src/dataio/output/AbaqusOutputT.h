@@ -1,4 +1,4 @@
-/* $Id: AbaqusOutputT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: AbaqusOutputT.h,v 1.2 2001-06-29 16:24:58 paklein Exp $ */
 /* created: sawimme (05/31/2000)                                          */
 
 #ifndef _ABAQUSOUTPUT_T_H_
@@ -9,6 +9,7 @@
 #include "AbaqusT.h"
 
 /* forward declarations */
+class ofstreamT;
 
 class AbaqusOutputT: public OutputBaseT
 {
@@ -23,9 +24,9 @@ private:
 
 	/* generate database file name for the given ID */
 	void FileName(int ID, StringT& filename) const;
-	bool OpenFile (ofstream& out, const StringT& filename, AbaqusT& aba);
+	bool OpenFile (ofstreamT& out, const StringT& filename, AbaqusT& aba);
 	
-	void CreateResultsFile (int ID, AbaqusT& aba, ofstream& out);
+	void CreateResultsFile (int ID, AbaqusT& aba, ofstreamT& out);
 	void SetRecordKey (const ArrayT<StringT>& labels, ArrayT<AbaqusT::VariableKeyT>& keys) const;
 	
 private:
