@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.3.8.8 2002-05-13 07:58:29 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.3.8.9 2002-05-16 19:34:23 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -298,7 +298,7 @@ void DiffusionElementT::RHSDriver(void)
 	while (NextElement())
 	{
 		/* reset block info */
-		if (block_count++ == block_data->Dimension()) {
+		if (block_count == block_data->Dimension()) {
 			block_data = fBlockData.Pointer(++block_dex);
 			block_source = Field().Source(block_data->ID());
 			block_count = 0;
@@ -306,9 +306,10 @@ void DiffusionElementT::RHSDriver(void)
 		
 		/* convert heat increment/volume to rate */
 		if (block_source) {
-			block_source->RowCopy(CurrElementNumber(), ip_source);
+			block_source->RowCopy(block_count, ip_source);
 			ip_source /= ElementSupport().TimeStep();
 		}
+		block_count++;
 
 		/* nodal temperature */
 		if (formKd) 
