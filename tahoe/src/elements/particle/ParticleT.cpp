@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.8 2002-11-28 01:08:39 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.9 2002-11-30 16:37:25 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -17,30 +17,6 @@ using namespace Tahoe;
 /* class parameters */
 const int kAvgNodesPerCell = 20;
 const int kMaxNumCells     =- 1; /* -1: no max */
-
-namespace Tahoe {
-
-/** stream extraction operator */
-istream& operator>>(istream& in, ParticleT::PropertyT& property)
-{
-	int i_property;
-	in >> i_property;
-	switch (i_property)
-	{
-		case ParticleT::kHarmonicPair:
-			property = ParticleT::kHarmonicPair;
-			break;
-		case ParticleT::kLennardJonesPair:
-			property = ParticleT::kLennardJonesPair;
-			break;
-		default:
-			ExceptionT::BadInputValue("operator>>ParticleT::PropertyT", 
-				"unknown code: %d", i_property);
-	}
-	return in;
-}
-
-} /* namespace Tahoe */
 
 /* constructors */
 ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
@@ -373,3 +349,27 @@ void ParticleT::AssembleParticleMass(const dArrayT& mass)
 	/* assemble all */
 	ElementSupport().AssembleLHS(Group(), fForce, Field().Equations());
 }
+
+namespace Tahoe {
+
+/** stream extraction operator */
+istream& operator>>(istream& in, ParticleT::PropertyT& property)
+{
+	int i_property;
+	in >> i_property;
+	switch (i_property)
+	{
+		case ParticleT::kHarmonicPair:
+			property = ParticleT::kHarmonicPair;
+			break;
+		case ParticleT::kLennardJonesPair:
+			property = ParticleT::kLennardJonesPair;
+			break;
+		default:
+			ExceptionT::BadInputValue("operator>>ParticleT::PropertyT", 
+				"unknown code: %d", i_property);
+	}
+	return in;
+}
+
+} /* namespace Tahoe */

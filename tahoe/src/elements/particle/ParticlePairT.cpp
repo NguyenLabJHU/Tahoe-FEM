@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.8 2002-11-28 01:10:30 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.9 2002-11-30 16:37:25 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -189,16 +189,13 @@ void ParticlePairT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 }
 
 /* form group contribution to the stiffness matrix */
-void ParticlePairT::LHSDriver(void)
+void ParticlePairT::LHSDriver(GlobalT::SystemTypeT sys_type)
 {
 	/* time integration parameters */
 	double constK = 0.0;
 	double constM = 0.0;
 	int formK = fController->FormK(constK);
 	int formM = fController->FormM(constM);
-
-//TEMP - no stiffness implemented
-if (formK) ExceptionT::GeneralFail("ParticlePairT::LHSDriver", "stiffness not implemented");
 
 	/* assemble particle mass */
 	if (formM) {
@@ -210,6 +207,84 @@ if (formK) ExceptionT::GeneralFail("ParticlePairT::LHSDriver", "stiffness not im
 		mass *= constM;
 	
 		AssembleParticleMass(mass);
+	}
+	
+	/* assemble stiffness */
+	if (formK)
+	{
+		if (sys_type != GlobalT::kDiagonal && ElementSupport().IterationNumber() == 1)
+			cout << "\n ParticlePairT::LHSDriver: WARNING: LHS matrix is a diagonal approximation" << endl;
+	
+		/* assembly information */
+		const ElementSupportT& support = ElementSupport();
+		int group = Group();
+		int ndof = NumDOF();
+	
+		/* global coordinates */
+		const dArray2DT& coords = support.CurrentCoordinates();
+
+		/* pair properties function pointers */
+		int current_property = -1;
+		PairPropertyT::ForceFunction force_function = NULL;
+		PairPropertyT::StiffnessFunction stiffness_function = NULL;
+
+		/* run through neighbor list */
+		fForce = 0.0;
+		iArrayT neighbors;
+		dArrayT x_i, x_j, r_ij(ndof);
+		for (int i = 0; i < fNeighbors.MajorDim(); i++)
+		{
+			/* row of neighbor list */
+			fNeighbors.RowAlias(i, neighbors);
+
+			/* type */
+			int  tag_i = neighbors[0]; /* self is 1st spot */
+			int type_i = fType[tag_i];
+			double* k_i = fForce(tag_i);
+		
+			/* run though neighbors for one atom - first neighbor is self */
+			coords.RowAlias(tag_i, x_i);
+			for (int j = 1; j < neighbors.Length(); j++)
+			{
+				/* global tag */
+				int  tag_j = neighbors[j];
+				int type_j = fType[tag_j];
+				double* k_j = fForce(tag_j);
+			
+				/* set pair property (if not already set) */
+				int property = fPropertiesMap(type_i, type_j);
+				if (property != current_property)
+				{
+					force_function = fProperties[property]->getForceFunction();
+					stiffness_function = fProperties[property]->getStiffnessFunction();
+					current_property = property;
+				}
+		
+				/* global coordinates */
+				coords.RowAlias(tag_j, x_j);
+		
+				/* connecting vector */
+				r_ij.DiffOf(x_j, x_i);
+				double r = r_ij.Magnitude();
+			
+				/* interaction functions */
+				double F = force_function(r, NULL, NULL);
+				double K = stiffness_function(r, NULL, NULL);
+				K = (K < 0.0) ? 0.0 : K;
+
+				double Fbyr = F/r;
+				for (int k = 0; k < ndof; k++)
+				{
+					double r_k = r_ij[k]*r_ij[k]/r/r;
+					double K_k = constK*(K*r_k + Fbyr*(1.0 - r_k));
+					k_i[k] += K_k;
+					k_j[k] += K_k;
+				}
+			}
+		}
+
+		/* assemble */
+		support.AssembleLHS(group, fForce, Field().Equations());
 	}
 }
 
@@ -298,13 +373,13 @@ if (formMa) ExceptionT::GeneralFail("ParticlePairT::RHSDriver", "inertial force 
 			double r = r_ij.Magnitude();
 			
 			/* interaction force */
-			double f = force_function(r, NULL, NULL);
-			double fbyr = formKd*f/r;
+			double F = force_function(r, NULL, NULL);
+			double Fbyr = formKd*F/r;
 			for (int k = 0; k < ndof; k++)
 			{
-				double f_k = r_ij[k]*fbyr;
-				f_i[k] += f_k;
-				*f_j++ +=-f_k;
+				double F_k = r_ij[k]*Fbyr;
+				f_i[k] += F_k;
+				*f_j++ +=-F_k;
 			}
 		}
 
@@ -375,13 +450,13 @@ if (formMa) ExceptionT::GeneralFail("ParticlePairT::RHSDriver", "inertial force 
 			double r = r_ij.Magnitude();
 			
 			/* interaction force */
-			double f = force_function(r, NULL, NULL);
-			double fbyr = formKd*f/r;
+			double F = force_function(r, NULL, NULL);
+			double Fbyr = formKd*F/r;
 			for (int k = 0; k < ndof; k++)
 			{
-				double f_k = r_ij[k]*fbyr;
-				f_i[k] += f_k;
-				f_j[k] +=-f_k;
+				double F_k = r_ij[k]*Fbyr;
+				f_i[k] += F_k;
+				f_j[k] +=-F_k;
 			}
 		}
 	}
@@ -453,14 +528,14 @@ if (formMa) ExceptionT::GeneralFail("ParticlePairT::RHSDriver", "inertial force 
 			double r = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
 			
 			/* interaction force */
-			double f = force_function(r, NULL, NULL);
-			double fbyr = formKd*f/r;
+			double F = force_function(r, NULL, NULL);
+			double Fbyr = formKd*F/r;
 
-			r_ij_0 *= fbyr;
+			r_ij_0 *= Fbyr;
 			f_i[0] += r_ij_0;
 			f_j[0] +=-r_ij_0;
 
-			r_ij_1 *= fbyr;
+			r_ij_1 *= Fbyr;
 			f_i[1] += r_ij_1;
 			f_j[1] +=-r_ij_1;
 		}
@@ -537,18 +612,18 @@ void ParticlePairT::RHSDriver3D_3(void)
 			double r = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
 			
 			/* interaction force */
-			double f = force_function(r, NULL, NULL);
-			double fbyr = formKd*f/r;
+			double F = force_function(r, NULL, NULL);
+			double Fbyr = formKd*F/r;
 
-			r_ij_0 *= fbyr;
+			r_ij_0 *= Fbyr;
 			f_i[0] += r_ij_0;
 			f_j[0] +=-r_ij_0;
 
-			r_ij_1 *= fbyr;
+			r_ij_1 *= Fbyr;
 			f_i[1] += r_ij_1;
 			f_j[1] +=-r_ij_1;
 
-			r_ij_2 *= fbyr;
+			r_ij_2 *= Fbyr;
 			f_i[2] += r_ij_2;
 			f_j[2] +=-r_ij_2;
 		}
