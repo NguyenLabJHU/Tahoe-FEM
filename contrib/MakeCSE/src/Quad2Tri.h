@@ -1,4 +1,4 @@
-// $Id: Quad2Tri.h,v 1.4 2002-10-08 20:51:51 paklein Exp $
+// file: Quad2Tri.h
 
 // created: SAW 12/21/99
 
@@ -6,26 +6,22 @@
 #define _QUAD2TRI_H_
 
 #include "MakeCSE_ElementBaseT.h"
+#include "CSEConstants.h"
+
+namespace Tahoe {
 
 class NodeManagerPrimitive;
-class MakeCSE_IOManager;
-
-using namespace Tahoe;
+class MakeCSEIOManager;
 
 class Quad2Tri : public MakeCSE_ElementBaseT
 {
  public:
 
-  enum Methods { kXMethod = 0,
-		 kSlashMethod,
-		 kBackSlashMethod,
-		 kStarMethod };
-
-  Quad2Tri (ostream& fMainOut, NodeManagerPrimitive& NMP, int method, int ID);
+  Quad2Tri (ostream& fMainOut, NodeManagerPrimitive& NMP, CSEConstants::SplitMethodT method, const StringT& ID);
 
  protected:
-  virtual void EchoConnectivity (MakeCSE_IOManager& theInput);
-  virtual void EchoSideSets (MakeCSE_IOManager& theInput);
+  virtual void EchoConnectivity (ModelManagerT& theInput);
+  virtual void EchoSideSets (ModelManagerT& model, MakeCSE_IOManager& theInput);
 
  private:
 
@@ -46,7 +42,7 @@ class Quad2Tri : public MakeCSE_ElementBaseT
  private:
   iArray2DT fConn;
   NodeManagerPrimitive* theNodes;
-  int fMethod;
+  CSEConstants::SplitMethodT fMethod;
 };
-
+}
 #endif

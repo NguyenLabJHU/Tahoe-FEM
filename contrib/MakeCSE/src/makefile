@@ -3,7 +3,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	main.o \
 	MakeCSE_IOManager.o \
 	MakeCSE_FEManager.o \
 	MakeCSE_ElementBaseT.o \
@@ -11,7 +10,11 @@ OBJ = \
 	MakeCSE_CSEBaseT.o \
 	MakeCSE.o \
 	GlobalEdgeFinderT.o \
-	NodeManagerPrimitive.o 
+	NodeManagerPrimitive.o \
+	CSEConstants.o \
+	InteractiveIOManagerT.o \
+	main.o \
+	ParameterFileManagerT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -29,6 +32,9 @@ SRC = \
 	MakeCSE_IOManager.cpp \
 	NodeManagerPrimitive.cpp \
 	Quad2Tri.cpp \
+	CSEConstants.cpp \
+	InteractiveIOManagerT.cpp \
+	ParameterFileManagerT.cpp \
 	main.cpp
 
 # headers
@@ -41,15 +47,18 @@ HDR = \
 	MakeCSE_IOManager.h \
 	NodeManagerPrimitive.h \
 	Quad2Tri.h \
+	CSEConstants.h \
+	InteractiveIOManagerT.h \
+	ParameterFileManagerT.h \
 	ClockT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
-SUB_DIR =
-#subdir_driver: subdir_loop
+SUB_DIR = geometry
+subdir_driver: subdir_loop
 # SUB_DIR is empty
-subdir_driver: 
+#subdir_driver: 
 
 # instructions for subdirectories
 include $(MACRO_DIR)/subdir.targets

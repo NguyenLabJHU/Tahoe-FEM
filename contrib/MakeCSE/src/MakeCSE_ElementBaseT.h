@@ -1,24 +1,32 @@
-// file: MakeCSE_ElementBaseT.h
+// file: ElementBaseT.h
 
 // created: SAW 10/06/00
 
-#ifndef _MAKECSE_ELEMENTBASET_H_
-#define _MAKECSE_ELEMENTBASET_H_
+#ifndef _MakeCSE_ELEMENTBASET_H_
+#define _MakeCSE_ELEMENTBASET_H_
 
 #include "iArray2DT.h"
-#include "MakeCSE_IOManager.h"
+#include "StringT.h"
+#include "GeometryT.h"
+#include "iArrayT.h"
+#include "iAutoArrayT.h"
+#include "AutoArrayT.h"
+#include "ModelManagerT.h"
+#include "sArrayT.h"
 
-using namespace Tahoe;
+namespace Tahoe {
+
+class MakeCSE_IOManager;
 
 class MakeCSE_ElementBaseT
 {
  public:
-  MakeCSE_ElementBaseT (ostream& fMainOut, int ID);
+  MakeCSE_ElementBaseT (ostream& fMainOut, const StringT& ID);
 
   virtual ~MakeCSE_ElementBaseT (void);
 
   // read from input that group's connectivity, create element cards
-  void Initialize (MakeCSE_IOManager& input);
+  void Initialize (ModelManagerT& model, MakeCSE_IOManager& theInput);
 
   // initialize element group for newly created data
   virtual void Initialize (GeometryT::CodeT geocode, int numnodes);
@@ -39,7 +47,7 @@ class MakeCSE_ElementBaseT
   void ResetOneFaceNode (int e1global, int f1, int oldnode, int newnode);
 
   // add a side set to the list, or append facets to preexisting set
-  void AddSideSet (int setID, const iArray2DT& sides);
+  void AddSideSet (const StringT& setID, const iArray2DT& sides);
 
   // renumber node numbering
   void Renumber (const iArrayT& map);
@@ -49,7 +57,7 @@ class MakeCSE_ElementBaseT
   int NumElemFaces (void) const;
   virtual void CSElemFaces (iArrayT& faces) const;
   GeometryT::CodeT GeometryCode (void) const;
-  int GroupNumber (void) const; // exterior numbering
+  const StringT& GroupNumber (void) const; // exterior numbering
   int NumSideSets (void) const;
 
   int NumFaceNodes (int face) const;
@@ -57,7 +65,7 @@ class MakeCSE_ElementBaseT
   void FaceNodes (int e1, int f1, iArrayT& nodes) const;
   void AbbrFaceNodes (int e1, int f1, iArrayT& nodes) const;
   iArray2DT& SideSet (int g) const;
-  int SideSetID (int g) const;
+  const StringT& SideSetID (int g) const;
   iArray2DT& Neighbors (void);
 
   /* accessor for output manager */
@@ -66,7 +74,7 @@ class MakeCSE_ElementBaseT
 
   void NodesUsed (iArrayT& nodes) const;
   void RegisterOutput (MakeCSE_IOManager& theIO);
-  void WriteOutput (MakeCSE_IOManager& theIO, IOBaseT::OutputModeT mode) const;
+  void WriteOutput (void) const;
 
   /* returns true if side set is contained within this element group */
   bool CheckSideSet (const iArray2DT& sides) const;
@@ -76,11 +84,11 @@ class MakeCSE_ElementBaseT
   bool IsFaceValid (int face) const;
 
  protected:
-  virtual void EchoConnectivity (MakeCSE_IOManager& theInput);
-  void ReadConnectivity (MakeCSE_IOManager& theInput, GeometryT::CodeT& geocode, iArray2DT& conn) const;
+  virtual void EchoConnectivity (ModelManagerT& theInput);
+  void ReadConnectivity (ModelManagerT& theInput, GeometryT::CodeT& geocode, iArray2DT& conn) const;
   void InitializeConnectivity (void);
-  virtual void EchoSideSets (MakeCSE_IOManager& theInput);
-  void ReadSideSetData (MakeCSE_IOManager& theInput, ArrayT<iArray2DT>& sides);
+  virtual void EchoSideSets (ModelManagerT& model, MakeCSE_IOManager& theInput);
+  void ReadSideSetData (ModelManagerT& model, MakeCSE_IOManager& theInput, ArrayT<iArray2DT>& sides);
   void CheckAllSideSets (void);
 
   /* determines facenode map from GeometryT */
@@ -90,14 +98,14 @@ class MakeCSE_ElementBaseT
 
  protected: // share with derived classes
   ostream&          out;
-  int               fGroupID;    // external numbering
+  const StringT     fGroupID;    // external numbering
   int               fOutputID;   // output set ID
 
   iArray2DT         fNodeNums;
   int               fNumElemNodes;
   GeometryT::CodeT  fGeometryCode;
   ArrayT<iArray2DT> fSideSetData;
-  iArrayT           fSideSetID;
+  sArrayT           fSideSetID;
 
  private:
   // data from shape class
@@ -111,10 +119,10 @@ inline int MakeCSE_ElementBaseT::NumElements (void) const { return fNodeNums.Maj
 inline int MakeCSE_ElementBaseT::NumElemFaces (void) const { return fFacetNodes.Length(); }
 inline void MakeCSE_ElementBaseT::CSElemFaces (iArrayT& faces) const { };
 inline GeometryT::CodeT MakeCSE_ElementBaseT::GeometryCode (void) const { return fGeometryCode; }
-inline int MakeCSE_ElementBaseT::GroupNumber (void) const { return fGroupID; }
+inline const StringT& MakeCSE_ElementBaseT::GroupNumber (void) const { return fGroupID; }
 inline int MakeCSE_ElementBaseT::NumSideSets (void) const { return fSideSetData.Length(); }
 inline iArray2DT& MakeCSE_ElementBaseT::SideSet (int g) const { return fSideSetData[g]; }
-inline int MakeCSE_ElementBaseT::SideSetID (int g) const { return fSideSetID[g]; }
+inline const StringT& MakeCSE_ElementBaseT::SideSetID (int g) const { return fSideSetID[g]; }
 
 inline const iArray2DT& MakeCSE_ElementBaseT::Connectivity (void) const {return fNodeNums; }
 inline int MakeCSE_ElementBaseT::NumFaceNodes (int face) const 
@@ -123,6 +131,6 @@ inline int MakeCSE_ElementBaseT::NumFaceNodes (int face) const
     return fFacetNodes[face].Length(); 
   return -1;
 }
-
+}
 
 #endif

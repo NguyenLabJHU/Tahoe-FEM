@@ -1,8 +1,17 @@
-/* $Id: GlobalEdgeFinderT.cpp,v 1.3 2002-10-08 20:51:50 paklein Exp $ */
+/*
+ * File: GlobalEdgeFinderT.cpp
+ *
+ */
+
+/*
+ * created      : PAK (02/14/98)
+ * last modified: 
+ */
+
 #include "GlobalEdgeFinderT.h"
 #include "MakeCSE_FEManager.h"
 
-const int mapfill = GlobalEdgeFinderT::kNoNeighbor;
+const int fill = GlobalEdgeFinderT::kNoNeighbor;
 const int kPrint = 20000;
 
 using namespace Tahoe;
@@ -78,7 +87,7 @@ void GlobalEdgeFinderT::AddElements (int numelems, int numfaces, int group)
   // resize element map
   int length = fElementMap[group].Length();
   int numold = fNumElements;
-  fElementMap[group].Resize (length + numelems, mapfill);
+  fElementMap[group].Resize (length + numelems, fill);
 
   // resize neighbor data
   fNumElements += numelems;
@@ -100,7 +109,7 @@ void GlobalEdgeFinderT::AddElements (int numelems, int numfaces, int group)
 
   // resize reverse element map
   int revlength = fRevElementMap.MajorDim();
-  fRevElementMap.Resize (revlength + numelems, mapfill);
+  fRevElementMap.Resize (revlength + numelems, fill);
   int *rev = fRevElementMap(numold);
   for (int c=0; c < numelems; c++)
     {
@@ -109,7 +118,7 @@ void GlobalEdgeFinderT::AddElements (int numelems, int numfaces, int group)
     }
 }
 
-int GlobalEdgeFinderT::ElementGroup (int groupid) const
+int GlobalEdgeFinderT::ElementGroup (const StringT& groupid) const
 {
   int group = -1;
   fElementID.HasValue (groupid, group);
@@ -124,10 +133,10 @@ int GlobalEdgeFinderT::ElementGroup (int groupid) const
 
 int GlobalEdgeFinderT::WhichGroup (int elem) const
 {
-  int group = MakeCSE_FEManager::kNotSet;
+  int group = CSEConstants::kNotSet;
   if (elem < fNumElements && elem > -1)
     group = fRevElementMap (elem, 0);
-  if (group == MakeCSE_FEManager::kNotSet && elem > -1)
+  if (group == CSEConstants::kNotSet && elem > -1)
     cout << "GlobalEdgeFinderT::WhichGroup, unable to find " << elem << endl; 
   return group;
 }
@@ -152,7 +161,7 @@ void GlobalEdgeFinderT::NeighborFacet (int elem, int face, int& neighbor, int& n
       HitElements (facenodes1, hit_elems);
       
       // search for matching facet
-      int matchelem = MakeCSE_FEManager::kNotSet, matchface = MakeCSE_FEManager::kNotSet;
+      int matchelem = CSEConstants::kNotSet, matchface = CSEConstants::kNotSet;
       int *elem2 = hit_elems.Pointer();
       iArrayT facenodes2;
       int local2, group2;
@@ -221,14 +230,14 @@ void GlobalEdgeFinderT::SetNeighbor (int elem, int face, int neighbor, int neigh
 
 void GlobalEdgeFinderT::LocalElement (int global, int& local, int& group) const
 {
-  local = MakeCSE_FEManager::kNotSet;
-  group = MakeCSE_FEManager::kNotSet;
+  local = CSEConstants::kNotSet;
+  group = CSEConstants::kNotSet;
   if (global < fNumElements && global > -1)
     {
       group = fRevElementMap (global, 0);
       local = fRevElementMap (global, 1);
     }
-  if (local == MakeCSE_FEManager::kNotSet)
+  if (local == CSEConstants::kNotSet)
     {
     cout << "GlobalEdgeFinderT::LocalElement, unable to convert " << global << " " << fNumElements  << endl;
     fRevElementMap.WriteNumbered (cout);
@@ -247,14 +256,14 @@ int GlobalEdgeFinderT::LocalElement (int global, int group) const
 
 int GlobalEdgeFinderT::GlobalElement (int local, int group) const
 {
-  int global = MakeCSE_FEManager::kNotSet;
+  int global = CSEConstants::kNotSet;
   if (local < fElementMap[group].Length()) return fElementMap[group][local];
-  if (global == MakeCSE_FEManager::kNotSet)
+  if (global == CSEConstants::kNotSet)
     cout << "GlobalEdgeFinderT::GlobalElement, unable to convert " << local << " " << group << endl;
   return global;
 }
 
-void GlobalEdgeFinderT::ZoneFacets (int groupid, const iArrayT& zonegroupids, iArray2DT& sideset, iAutoArrayT& boundarynodes)
+void GlobalEdgeFinderT::ZoneFacets (const StringT& groupid, const sArrayT& zonegroupids, iArray2DT& sideset, iAutoArrayT& boundarynodes)
 {
   int group = ElementGroup (groupid);
   iArrayT zonegroups (zonegroupids.Length());
@@ -297,12 +306,10 @@ void GlobalEdgeFinderT::ZoneFacets (int groupid, const iArrayT& zonegroupids, iA
   sideset.CopyPart (0, data, 0, data.Length());
 }
 
-void GlobalEdgeFinderT::BoundaryFacets (int groupid, const iArrayT& bordergroupids, iArray2DT& sideset)
+void GlobalEdgeFinderT::BoundaryFacets (const StringT& groupid, const StringT& bordergroupid, iArray2DT& sideset)
 {
   int group = ElementGroup (groupid);
-  iArrayT bordergroups (bordergroupids.Length());
-  for (int z=0; z < bordergroupids.Length(); z++)
-    bordergroups[z] = ElementGroup (bordergroupids[z]);
+  int bordergroup = ElementGroup (bordergroupid);
 
   int *elem = fElementMap[group].Pointer();
   iArrayT facenodes;
@@ -320,8 +327,7 @@ void GlobalEdgeFinderT::BoundaryFacets (int groupid, const iArrayT& bordergroupi
 	  
 	  // only look at groups numbered higher to remove cross reference
 	  int neighborgroup = WhichGroup (neighbor);
-	  if (neighborgroup > group &&
-	      bordergroups.HasValue(neighborgroup))
+	  if (neighborgroup == bordergroup)
 	    {
 	      data.Append (*elem);
 	      data.Append (f);

@@ -6,20 +6,21 @@
 #include "MakeCSE_IOManager.h"
 #include "MakeCSE_FEManager.h"
 #include "dArrayT.h"
+#include "CSEConstants.h"
 
 using namespace Tahoe;
 
-NodeManagerPrimitive::NodeManagerPrimitive (ostream& fMainOut, int comments, MakeCSE_FEManager& FEM) :
+NodeManagerPrimitive::NodeManagerPrimitive (ostream& fMainOut, bool comments, MakeCSE_FEManager& FEM) :
   out (fMainOut),
   fPrintUpdate (comments),
   theBoss (&FEM)
 {
 }
 
-void NodeManagerPrimitive::Initialize (MakeCSE_IOManager& theInput)
+void NodeManagerPrimitive::Initialize (ModelManagerT& model, MakeCSE_IOManager& theInput)
 {
-  EchoCoordinates (theInput);
-  EchoNodeSets (theInput);
+  EchoCoordinates (model);
+  EchoNodeSets (model, theInput);
 
   fNew2Old.Allocate (fCoordinates.MajorDim());
   for (int i=0; i < fNew2Old.Length(); i++)
@@ -34,7 +35,7 @@ int NodeManagerPrimitive::AddCoord (const dArrayT& p)
   fCoordinates.Resize (newnode + 1, fill);
   fCoordinates.SetRow(newnode, p);
   
-  fNew2Old.Resize (newnode + 1, MakeCSE_FEManager::kNotSet);
+  fNew2Old.Resize (newnode + 1, CSEConstants::kNotSet);
   fNew2Old[newnode] = newnode;
 
   return newnode;
@@ -47,7 +48,7 @@ int NodeManagerPrimitive::AddDuplicateCoord (const int oldnode)
   fCoordinates.Resize (newnode + 1);
   fCoordinates.CopyRowFromRow (newnode, oldnode);
 
-  fNew2Old.Resize (newnode + 1, MakeCSE_FEManager::kNotSet);
+  fNew2Old.Resize (newnode + 1, CSEConstants::kNotSet);
   fNew2Old[newnode] = oldnode;
 
   if (fSplitNodes.AppendUnique (oldnode))
@@ -65,7 +66,7 @@ int NodeManagerPrimitive::AddDuplicateCoord (const int oldnode)
   return newnode;
 }
 
-void NodeManagerPrimitive::AddNodeSet (int setID, const ArrayT<int>& nodes, int transfermethod)
+void NodeManagerPrimitive::AddNodeSet (const StringT& setID, const ArrayT<int>& nodes, CSEConstants::NodeMapMethodT transfermethod)
 {
   int dex;
   fNodeSetID.HasValue (setID, dex);
@@ -73,7 +74,7 @@ void NodeManagerPrimitive::AddNodeSet (int setID, const ArrayT<int>& nodes, int 
     {
       int num = nodes.Length();
       int length = fNodeSetData[dex].Length();
-      fNodeSetData[dex].Resize (length + num, MakeCSE_FEManager::kNotSet);
+      fNodeSetData[dex].Resize (length + num, CSEConstants::kNotSet);
       fNodeSetData[dex].CopyPart (length, nodes, 0, num);
       RemoveRepeats (fNodeSetData[dex]);
       out << "            Added to Node Set. . . . . . . . . . = " 
@@ -85,7 +86,7 @@ void NodeManagerPrimitive::AddNodeSet (int setID, const ArrayT<int>& nodes, int 
     {
       int length = fNodeSetID.Length();
       fNodeSetData.Resize (length + 1);
-      fNodeSetID.Resize (length + 1, MakeCSE_FEManager::kNotSet);
+      fNodeSetID.Resize (length + 1, "");
       fNodeSetData[length].Allocate (nodes.Length());
       fNodeSetData[length].CopyPart (0, nodes, 0, nodes.Length());
       fNodeSetID[length] = setID;
@@ -116,27 +117,27 @@ void NodeManagerPrimitive::MapNodeSets (const ArrayT<int>& surface1facets, Globa
       out << "\n   Mapping Node Set " << fNodeSetID[set];
       switch (fTransMethods[set])
 	{
-	case kSurface1:
+	case CSEConstants::kSurface1:
 	  {
 	    out << " to Surface 1.\n";
 	    SurfaceNodeSet (fNodeSetData[set], true, surface1facets, E);
 	    break;
 	  }
-	case kSurface2:
+	case CSEConstants::kSurface2:
 	  {
 	    out << " to Surface 2.\n";
 	    SurfaceNodeSet (fNodeSetData[set], false, surface1facets, E);
 	    break;
 	  }
 	  
-	case kMap: // use only one node from one surface 
+	case CSEConstants::kMap: // use only one node from one surface 
 	  {
 	    out << " to one side.\n";
 	    MapNodeSet (fNodeSetData[set], surface1facets, E);
 	    break;
 	  }
 	  
-	case kSplit: // use all nodes on all surfaces
+	case CSEConstants::kSplit: // use all nodes on all surfaces
 	  {
 	    out << " by adding all split nodes.\n";
 	    Split (fNodeSetData[set]);
@@ -148,7 +149,7 @@ void NodeManagerPrimitive::MapNodeSets (const ArrayT<int>& surface1facets, Globa
 }
 
 // renumbers nodes by geometric location
-void NodeManagerPrimitive::Renumber (int option, iArrayT& map)
+void NodeManagerPrimitive::Renumber (CSEConstants::RenumberMethodT option, iArrayT& map)
 {
   cout << "\n Renumbering Nodes " << endl;
   int num = fCoordinates.MajorDim();
@@ -159,7 +160,7 @@ void NodeManagerPrimitive::Renumber (int option, iArrayT& map)
 
   // determine if all nodes are to be renumbered
   int start = 1;
-  if (option == MakeCSE_FEManager::kRenumberAdded) 
+  if (option == CSEConstants::kRenumberAdded) 
     {
       start = fNumInitCoordinates;
       for (int j=0; j < fNumInitCoordinates; j++)
@@ -222,12 +223,12 @@ void NodeManagerPrimitive::RegisterOutput (MakeCSE_IOManager& theIO)
   iArrayT nodemap (0);
   //theIO.SetCoordinates (fCoordinates, &nodemap);
 
-  iArrayT blocktonodesets;
-  theIO.InputData (blocktonodesets, MakeCSE_IOManager::kBlockToNode);
+  sArrayT blocktonodesets;
+  theIO.BlockToNode (blocktonodesets);
 
   iArrayT nodes;
-  int setID = fNodeSetID.Max();
-  setID++;
+  //int setID = fNodeSetID.Max();
+  //setID++;
   for (int i=0; i < blocktonodesets.Length(); i++)
     {
       out  << "\n Creating Node Set from Element Group ID . . . . = "
@@ -244,7 +245,7 @@ void NodeManagerPrimitive::RegisterOutput (MakeCSE_IOManager& theIO)
 
 /********** private *****************/
 
-void NodeManagerPrimitive::EchoCoordinates (MakeCSE_IOManager& theInput)
+void NodeManagerPrimitive::EchoCoordinates (ModelManagerT& theInput)
 {
   iArrayT map;
   fCoordinates = theInput.Coordinates ();
@@ -257,43 +258,38 @@ void NodeManagerPrimitive::EchoCoordinates (MakeCSE_IOManager& theInput)
       << fCoordinates.MinorDim() << endl << endl;
 }
 
-void NodeManagerPrimitive::EchoNodeSets (MakeCSE_IOManager& theInput)
+void NodeManagerPrimitive::EchoNodeSets (ModelManagerT& model, MakeCSE_IOManager& theInput)
 {
   /* read in nodes set that are to be transferred */
-  iArrayT ids;
-  theInput.InputData (ids, MakeCSE_IOManager::kMapNodes);
-
-  fNodeSetData.Allocate (ids.Length()/2);
-  fTransMethods.Allocate (ids.Length()/2);
-  fNodeSetID.Allocate (ids.Length()/2);
+  theInput.NodeSetsMapped (fNodeSetID, fTransMethods);
+  fNodeSetData.Allocate (fNodeSetID.Length());
 
   out << "\n N o d e   S e t   D a t a :\n\n";
   out << " Number of Node Sets . . . . . . . . . . . . . . = " 
       << fNodeSetData.Length() << endl;
 
   /* read node sets */
-  for (int i=0, j=0; i < fNodeSetData.Length(); i++, j += 2)
+  for (int i=0; i < fNodeSetData.Length(); i++)
     {
-      fTransMethods[i] = ids[j+1];
-      StringT sids;
-      sids.Append (ids[j]);
-      fNodeSetData[i] = theInput.NodeSet (sids);
+      fNodeSetData[i] = model.NodeSet (fNodeSetID[i]);
       out << "  Node Set . . . . . . . . . . . . . . . . . . . = " 
-	  << ids[j] << '\n';
+	  << fNodeSetID[i] << '\n';
       out << "   Number of Nodes in Set. . . . . . . . . . . . = "
 	  << fNodeSetData[i].Length() << '\n'; 
-
-      /* save node set id for output manager */
-      fNodeSetID[i] = ids[j];
     }
 
   out << " Node Set Transfer Methods . . . . . . . . . . . = "
       << fTransMethods.Length() << '\n';
-  ids.WriteWrapped (out, 2);
+  for (int g=0; g < fNodeSetID.Length(); g++)
+    out << setw (kIntWidth) << fTransMethods[g] << " " << fNodeSetID[g] << '\n';
 
   /* checks */
-  if (fTransMethods.Length() > 0 && 
-      (fTransMethods.Min() < kSurface1 || fTransMethods.Max() > kSplit))
+  bool okay = true;
+  if (fTransMethods.Length() < 0) okay = false;
+  for (int t=0; t < fTransMethods.Length() && okay; t++)
+    if (fTransMethods[t] < CSEConstants::kSurface1 || fTransMethods[t] > CSEConstants::kSplit)
+      okay = false;
+  if (!okay)
     {
       cout << "Invalid Node Transfer Method" << endl;
       throw eBadInputValue;

@@ -2,17 +2,17 @@
 
 // created: SAW 5/2/2000
 
-#ifndef _CSEBASET_H_
-#define _CSEBASET_H_
+#ifndef _MakeCSE_CSEBASET_H_
+#define _MakeCSE_CSEBASET_H_
 
 #include "MakeCSE_ElementBaseT.h"
 
-using namespace Tahoe;
+namespace Tahoe {
 
 class MakeCSE_CSEBaseT : public MakeCSE_ElementBaseT
 {
  public:
-  MakeCSE_CSEBaseT (ostream& fMainOut, int ID);
+  MakeCSE_CSEBaseT (ostream& fMainOut, const StringT& ID);
 
   virtual void Initialize (GeometryT::CodeT code, int numregfacenodes);
 
@@ -30,4 +30,6 @@ class MakeCSE_CSEBaseT : public MakeCSE_ElementBaseT
 };
 
 inline void MakeCSE_CSEBaseT::CSElemFaces (iArrayT& faces) const { faces = fSurfaceFacets; }
+
+} //namespace Tahoe
 #endif
