@@ -1,6 +1,5 @@
-/* $Id: AugLagContact2DT.cpp,v 1.13 2003-01-29 07:34:30 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.14 2003-03-02 18:59:07 paklein Exp $ */
 /* created: paklein (05/31/1998) */
-
 #include "AugLagContact2DT.h"
 
 #include <math.h>
@@ -12,10 +11,9 @@
 #include "ElementSupportT.h"
 #include "XDOF_ManagerT.h"
 
-/* parameters */
-
 using namespace Tahoe;
 
+/* parameters */
 const int kNumAugLagDOF  = 1;
 
 /* constructor */
@@ -351,11 +349,9 @@ void AugLagContact2DT::LHSDriver(GlobalT::SystemTypeT)
 			/* augmented Lagrangian DOF */
 			int dex = neq - 1;
 			fLHS.SetRow(dex, fRHS);
-			fLHS.SetCol(dex, fRHS);
-			
+			fLHS.SetCol(dex, fRHS);			
 		}
-		/* gap */
-		else
+		else /* gap */
 		{
 			/* initialize */
 			fLHS = 0.0;
@@ -364,7 +360,7 @@ void AugLagContact2DT::LHSDriver(GlobalT::SystemTypeT)
 			int dex = neq - 1;
 			fLHS(dex,dex) = -1.0/fr;							
 		}
-		
+
 		/* get equation numbers */
 		fXDOFEqnos.RowAlias(i, eqnos);
 			
@@ -385,6 +381,10 @@ void AugLagContact2DT::RHSDriver(void)
 	const dArray2DT& constr = ElementSupport().XDOF_Manager().XDOF(this, 0);
 	const dArrayT force(constr.MajorDim(), constr.Pointer()); // general for all
 	                                                          // value of kNumAugLagDOF
+	/* reset tracking data */
+	int num_contact = 0;
+	double h_max = 0.0;
+
 	/* loop over active elements */
 	int neq = NumElementNodes()*NumDOF() + 1;
 	dArrayT tangent(NumSD());
@@ -419,6 +419,10 @@ void AugLagContact2DT::RHSDriver(void)
 		/* contact */
 		if (g < 0.0)
 		{
+			/* tracking data */
+			num_contact++;
+			h_max = (h < h_max) ? h : h_max;
+
 			/* initialize */
 			fRHS = 0.0;
 			
@@ -426,21 +430,21 @@ void AugLagContact2DT::RHSDriver(void)
 					
 			/* d_tan contribution */
 			fdtanT.Multx(tangent,fNEEvec);
-			uRHS.AddScaled(-g*h/(magtan*magtan),fNEEvec);
+			uRHS.AddScaled(g*h/(magtan*magtan),fNEEvec);
 						
 			/* d_area */
 			fColtemp1.Set(neq - 1, fdv1T(0));
 			fColtemp2.Set(neq - 1, fdv2T(1));
-			uRHS.AddCombination(-g*fv2[1]/magtan, fColtemp1,
-				                -g*fv1[0]/magtan, fColtemp2);
+			uRHS.AddCombination(g*fv2[1]/magtan, fColtemp1,
+				                g*fv1[0]/magtan, fColtemp2);
 			
 			fColtemp1.Set(neq - 1, fdv1T(1));
 			fColtemp2.Set(neq - 1, fdv2T(0));
-			uRHS.AddCombination(g*fv2[0]/magtan, fColtemp1,
-				                g*fv1[1]/magtan, fColtemp2);
+			uRHS.AddCombination(-g*fv2[0]/magtan, fColtemp1,
+				                -g*fv1[1]/magtan, fColtemp2);
 				
 			/* augmented Lagrangian DOF */				
-			fRHS[neq - 1] = h;					
+			fRHS[neq - 1] = -h;					
 		}
 		/* gap */
 		else
@@ -449,12 +453,8 @@ void AugLagContact2DT::RHSDriver(void)
 			fRHS = 0.0;
 
 			/* augmented Lagrangian DOF */				
-			fRHS[neq - 1] = -force[i]/fr;							
+			fRHS[neq - 1] = force[i]/fr;							
 		}
-
-		//NOTE: Contact force is the negative of the element
-		//      force in Heegaard.
-		fRHS *= -1.0;
 
 		/* get equation numbers */
 		fXDOFEqnos.RowAlias(i, eqnos);
@@ -462,4 +462,7 @@ void AugLagContact2DT::RHSDriver(void)
 		/* assemble */
 		ElementSupport().AssembleRHS(Group(), fRHS, eqnos);
 	}
+
+	/* set tracking */
+	SetTrackingData(num_contact, h_max);
 }
