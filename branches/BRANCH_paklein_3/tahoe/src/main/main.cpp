@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.19 2003-06-14 00:34:54 paklein Exp $ */
+/* $Id: main.cpp,v 1.19.2.1 2003-10-08 00:11:48 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>
@@ -33,7 +33,7 @@ static void DumpLicense(void);
 
 /* redirect of cout for parallel execution */
 ofstream console;
-#if defined (__DEC__) || defined (__SUN__) || defined(__GCC_3__)
+#if defined (__DEC__) || defined (__SUN__) || defined(__GCC_3__) || defined(__INTEL_CC__)
 streambuf* cout_buff = NULL,*cerr_buff = NULL;
 #endif
 
@@ -70,7 +70,7 @@ if (getcwd(cwd, 255)) cout << " cwd: " << cwd << endl;
 #endif
 
 #if !defined(_MACOS_) && !defined(__INTEL__)
-#if defined (__DEC__) || defined (__SUN__) || defined(__GCC_3__)
+#if defined (__DEC__) || defined (__SUN__) || defined(__GCC_3__) || defined(__INTEL_CC__)
 	/* redirect cout and cerr */
 	if (comm.Rank() > 0)
 	{
