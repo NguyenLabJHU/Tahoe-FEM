@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.cpp,v 1.1.1.1.6.2 2001-10-10 20:09:19 sawimme Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.1.1.1.6.3 2001-10-11 19:59:44 sawimme Exp $ */
 /* created: paklein (09/05/2000)                                          */
 
 #include "KBC_ControllerT.h"
@@ -65,43 +65,12 @@ void KBC_ControllerT::ReadNodes(ifstreamT& in, iArrayT& id_list,
 	const FEManagerT& fe_man = fNodeManager.FEManager();
 	ModelManagerT* model = fe_man.ModelManager();
 
-	/* resolve format */
-	if (fe_man.InputFormat() == IOBaseT::kTahoe)
-	  {
-	    ifstreamT tmp;
-	    ifstreamT& in2 = model->OpenExternal(in, tmp, cout, true,
-		  "KBC_ControllerT::ReadNodes: could not open file");
-	    
-	    int num_nodes;
-	    in2 >> num_nodes;
-	    nodes.Allocate(num_nodes);
-	    in2 >> nodes;
-	  }
-	else
-	  {
-	    /* number of node sets */
-	    int num_sets;
-	    in >> num_sets;
-	    if (num_sets > 0)
-	      {
-		/* echo set ID's */
-		id_list.Allocate(num_sets); // future: change to string
-		ArrayT<StringT> id_name (num_sets);
+	/* read node set indexes */
+	model->NodeSetList (in, id_list);
 
-		/* collect sets */
-		iAutoArrayT temp;
-		for (int i=0; i < num_sets; i++)
-		  {
-		    in >> id_name[i];
-		    int index = model->NodeSetIndex (id_name[i]);
-		    id_list[i] = index+1;
-		    iArrayT tn = model->NodeSet (index);
-		    temp.AppendUnique (tn);
-		  }
+	/* collect sets */
+	model->ManyNodeSets (id_list, nodes);
 
-		nodes.Allocate (temp.Length());
-		nodes.CopyPart (0, temp, 0, temp.Length());
-		nodes.SortAscending ();
-	      }
-	  }
+	/* offset to make ID's from indexes */
+	id_list ++;
 }
