@@ -1,4 +1,4 @@
-/* $Id: J2QLLinHardT.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: J2QLLinHardT.cpp,v 1.2 2001-02-20 00:28:23 paklein Exp $ */
 /* created: paklein (10/26/2000)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -169,9 +169,7 @@ const dMatrixT& J2QLLinHardT::c_ijkl(void)
 	     fabs(fEigs[1] - 1.0) < kSmall &&
 	     fabs(fEigs[2] - 1.0) < kSmall )
 	{
-		double mu, lambda;
-		Lame(mu, lambda);
-		IsotropicT::ComputeModuli(fModulus, mu, lambda);
+		IsotropicT::ComputeModuli(fModulus, Mu(), Lambda());
 	}
 	/* compute moduli */
 	else
@@ -404,10 +402,10 @@ void J2QLLinHardT::ReturnMapping(const dSymMatrixT& b_tr, dArrayT& beta, int ip)
 		if (ftrial > kYieldTol)
 		{	
 			/* update internal variables */
-			dgamma = (3.0*ftrial)/(6.0*fmu + 2.0*fH_bar);
+			dgamma = (3.0*ftrial)/(6.0*Mu() + 2.0*fH_bar);
 		
 			/* corrected principal stresses */
-			beta.AddScaled(-2.0*fmu*dgamma,fUnitNorm);
+			beta.AddScaled(-2.0*Mu()*dgamma,fUnitNorm);
 		}
 		else
 			dgamma = 0.0;
@@ -444,15 +442,15 @@ void J2QLLinHardT::ElastoPlasticCorrection(dMatrixT& a_ep, dArrayT& beta,
 		{
 			/* compute constants */
 			double alpha    = fInternal[kalpha];
-			double thetahat = 2.0*fmu*fInternal[kdgamma]/
+			double thetahat = 2.0*Mu()*fInternal[kdgamma]/
 			                          fInternal[kstressnorm];
-			double thetabar = (3.0/(3.0 + (dK(alpha) + dH(alpha))/fmu)) - thetahat;
+			double thetabar = (3.0/(3.0 + (dK(alpha) + dH(alpha))/Mu())) - thetahat;
 			
 			/* moduli corrections */
 			fMatrixTemp1.Outer(fUnitNorm,fUnitNorm);
 	
-			a_ep.AddScaled(-2.0*fmu*thetabar, fMatrixTemp1);
-			a_ep.AddScaled(-2.0*fmu*thetahat, fDevOp3);
+			a_ep.AddScaled(-2.0*Mu()*thetabar, fMatrixTemp1);
+			a_ep.AddScaled(-2.0*Mu()*thetahat, fDevOp3);
 		}					
 	}
 }	

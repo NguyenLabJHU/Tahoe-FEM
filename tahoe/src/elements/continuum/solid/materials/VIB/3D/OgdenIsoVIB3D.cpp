@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB3D.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: OgdenIsoVIB3D.cpp,v 1.2 2001-02-20 00:28:21 paklein Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* 3D Isotropic VIB using Ogden's spectral formulation                    */
 
@@ -97,11 +97,12 @@ double OgdenIsoVIB3D::StrainEnergyDensity(void)
 * Protected
 ***********************************************************************/
 
-/* principal values given principal stretches */
-void OgdenIsoVIB3D::dWdE(const dArrayT& eigenstretch, dArrayT& eigenstress)
+/* principal values given principal values of the stretch tensors,
+ * i.e., the principal stretches squared */
+void OgdenIsoVIB3D::dWdE(const dArrayT& eigenstretch2, dArrayT& eigenstress)
 {
 	/* stretched bonds */
-	ComputeLengths(eigenstretch);
+	ComputeLengths(eigenstretch2);
 
 	/* derivatives of the potential */
 	fPotential->MapDFunction(fLengths, fdU);
@@ -128,11 +129,11 @@ void OgdenIsoVIB3D::dWdE(const dArrayT& eigenstretch, dArrayT& eigenstress)
 	}
 }
 
-void OgdenIsoVIB3D::ddWddE(const dArrayT& eigenstretch, dArrayT& eigenstress,
+void OgdenIsoVIB3D::ddWddE(const dArrayT& eigenstretch2, dArrayT& eigenstress,
 	dSymMatrixT& eigenmod)
 {
 	/* stretched bonds */
-	ComputeLengths(eigenstretch);
+	ComputeLengths(eigenstretch2);
 
 	/* derivatives of the potential */
 	fPotential->MapDFunction(fLengths, fdU);

@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.2 2001-02-20 00:28:22 paklein Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList3DT.h"
@@ -23,29 +23,32 @@
 #include "J2SSKStV.h"
 #include "J2QLLinHardT.h"
 #include "OgdenIsoVIB3D.h"
+#include "QuadLogOgden3DT.h"
 
 #include "ABAQUS_BCJ.h"
 
 /* 3D material type codes */
-const int kSSKStV      = 1;
-const int kFDKStV      = 2;
-const int kSSCubic	   = 3;			
-const int kFDCubic	   = 4;			
-const int kVIB	       = 5;			
-const int kIsoVIB      = 6;			
-const int kQuadLog	   = 7;			
-const int kIsoVIB_X	   = 8;			
-const int kIsoVIB_J2   = 9;
-const int kmodCBDC     = 10;
-const int kCBDC        = 11; // no internal DOF
-const int kEAM_FCC     = 12;
-const int kSimoIso3D   = 13;
-const int kJ2SSKStV    = 14;
-const int kDPSSKStV    = 15;
-const int kOgdenIsoVIB = 16;			
-const int kJ2QL        = 18;
+const int kSSKStV       = 1;
+const int kFDKStV       = 2;
+const int kSSCubic	    = 3;			
+const int kFDCubic	    = 4;			
+const int kVIB	        = 5;			
+const int kIsoVIB       = 6;			
+const int kQuadLog	    = 7;			
+const int kIsoVIB_X	    = 8;			
+const int kIsoVIB_J2    = 9;
+const int kmodCBDC      = 10;
+const int kCBDC         = 11; // no internal DOF
+const int kEAM_FCC      = 12;
+const int kSimoIso3D    = 13;
+const int kJ2SSKStV     = 14;
+const int kDPSSKStV     = 15;
+const int kOgdenIsoVIB  = 16;			
+const int kJ2QL         = 18;
 
-const int kABAQUS_BCJ = 80;
+const int kQuadLogOgden = 24;
+
+const int kABAQUS_BCJ   = 80;
 
 const int kMaterialMin = 1;
 const int kMaterialMax = 100;
@@ -161,6 +164,10 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 			case kJ2QL:
 				fArray[matnum] = new J2QLLinHardT(in, fElementGroup);
 				fHasHistory = true;														
+				break;
+
+			case kQuadLogOgden:
+				fArray[matnum] = new QuadLogOgden3DT(in, fElementGroup);												
 				break;
 
 			case kABAQUS_BCJ:

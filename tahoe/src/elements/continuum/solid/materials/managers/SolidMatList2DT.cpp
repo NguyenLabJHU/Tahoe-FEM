@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.2 2001-02-20 00:28:22 paklein Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList2DT.h"
@@ -32,6 +32,7 @@
 #include "D2VIB2D_a.h"
 #include "OgdenIsoVIB2D.h"
 #include "ABAQUS_BCJ.h"
+#include "QuadLogOgden2DT.h"
 
 /* 2D material types codes */
 const int kSSKStV          = 1;			
@@ -57,6 +58,7 @@ const int kOgdenIsoVIB     = 20;
 const int kJ2VIB2D         = 21; // plane strain VIB 3D with J2
 const int kDPSSKStV2D      = 22;
 const int kD2VIB           = 23; // plane stress VIB + gradient terms
+const int kQuadLogOgden    = 24;
 
 const int kABAQUS_BCJ      = 80;
 
@@ -225,6 +227,10 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				     << kABAQUS_BCJ << endl;
 				throw eBadInputValue;
 #endif /* __F2C__ */
+				break;
+
+			case kQuadLogOgden:
+				fArray[matnum] = new QuadLogOgden2DT(in, fElementGroup);												
 				break;
 
 			default:

@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: SimoIso3D.cpp,v 1.2 2001-02-20 00:28:19 paklein Exp $ */
 /* created: paklein (03/02/1997)                                          */
 
 #include "SimoIso3D.h"
@@ -24,8 +24,6 @@ SimoIso3D::SimoIso3D(ifstreamT& in, const ElasticT& element):
 	fIdentity4(dSymMatrixT::NumValues(3)),
 	fDevOp4(dSymMatrixT::NumValues(3))
 {	
-	MuAndKappa(fmu, fkappa);
-	
 	/* initialize work matricies */
 	fIdentity.Identity();
 	fIcrossI.Outer(fIdentity, fIdentity);
@@ -122,10 +120,10 @@ void SimoIso3D::ComputeModuli(double J, const dSymMatrixT& b_bar,
 	moduli.AddScaled(-2.0*du,fIdentity4);
 	
 	/* deviatoric */
-	double mu_bar = fmu*b_bar.Trace()/(J*3.0);
+	double mu_bar = Mu()*b_bar.Trace()/(J*3.0);
 	moduli.AddScaled(2.0*mu_bar, fDevOp4);
 
-	fStress.SetToScaled(fmu,b_bar);
+	fStress.SetToScaled(Mu(), b_bar);
 	fStress.Deviatoric();
 	
 	frank4.Outer(fStress,fIdentity);
@@ -137,7 +135,7 @@ void SimoIso3D::ComputeCauchy(double J, const dSymMatrixT& b_bar,
 	dSymMatrixT& cauchy)
 {
 	/* deviatoric */
-	cauchy.SetToScaled(fmu/J,b_bar);
+	cauchy.SetToScaled(Mu()/J,b_bar);
 	cauchy.Deviatoric();
 	
 	/* volumetric */
@@ -147,21 +145,21 @@ void SimoIso3D::ComputeCauchy(double J, const dSymMatrixT& b_bar,
 double SimoIso3D::ComputeEnergy(double J, const dSymMatrixT& b_bar)
 {
 	return U(J) +                         /* volumetric */
-	       0.5*fmu*(b_bar.Trace() - 3.0); /* deviatoric */
+	       0.5*Mu()*(b_bar.Trace() - 3.0); /* deviatoric */
 }
 
 /* Volumetric energy function and derivatives */
 double SimoIso3D::U(double J) const
 {
-	return 0.5*fkappa*(0.5*(J*J - 1.0) - log(J));
+	return 0.5*Kappa()*(0.5*(J*J - 1.0) - log(J));
 }
 
 double SimoIso3D::dU(double J) const
 {
-	return 0.5*fkappa*(J - 1.0/J);
+	return 0.5*Kappa()*(J - 1.0/J);
 }
 
 double SimoIso3D::ddU(double J) const
 {
-	return 0.5*fkappa*(1.0 + 1.0/(J*J));
+	return 0.5*Kappa()*(1.0 + 1.0/(J*J));
 }

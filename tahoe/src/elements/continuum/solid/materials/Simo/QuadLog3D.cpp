@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: QuadLog3D.cpp,v 1.2 2001-02-20 00:28:19 paklein Exp $ */
 /* created: paklein (06/27/1997)                                          */
 /* Hyperelastic material governed by quadratic logarithmic potential.     */
 
@@ -49,12 +49,8 @@ QuadLog3D::QuadLog3D(ifstreamT& in, const ElasticT& element):
 	f1x1 = 1.0;
 	fDevOp3.SetToCombination(1.0, fIdentity3, -1.0/3.0, f1x1);
 	
-	/* bulk and shear moduli */
-	Lame(fmu, flambda);
-	double kappa = flambda + 2.0/3.0*fmu;
-	
 	/* elastic modulis in principal stress space */
-	fEigMod.SetToCombination(kappa, f1x1, 2.0*fmu, fDevOp3);	
+	fEigMod.SetToCombination(Kappa(), f1x1, 2.0*Mu(), fDevOp3);	
 	
 	/* dimension rank 1 matrices */
 	fn0xn0.Allocate(3);
@@ -141,10 +137,7 @@ void QuadLog3D::ComputeModuli(const dSymMatrixT& b, dMatrixT& moduli)
 	     fabs(fEigs[1] - 1.0) < kSmall &&
 	     fabs(fEigs[2] - 1.0) < kSmall )
 	{
-		double mu, lambda;
-		Lame(mu, lambda);
-		
-		IsotropicT::ComputeModuli(moduli, mu, lambda);
+		IsotropicT::ComputeModuli(moduli, Mu(), Lambda());
 	}
 	/* compute moduli */
 	else
@@ -214,8 +207,8 @@ void QuadLog3D::ComputeCauchy(const dSymMatrixT& b, dSymMatrixT& cauchy)
 
 double QuadLog3D::ComputeEnergy(const dArrayT& loge)
 {
-	return 0.5*flambda*pow(loge.Sum(),2.0) +
-	           fmu*dArrayT::Dot(loge,floge);
+	return 0.5*Lambda()*pow(loge.Sum(), 2.0) +
+	           Mu()*dArrayT::Dot(loge, loge);
 }
 
 /* compute spectral decomposition of b

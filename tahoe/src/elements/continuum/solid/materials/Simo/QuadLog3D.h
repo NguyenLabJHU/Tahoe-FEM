@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: QuadLog3D.h,v 1.2 2001-02-20 00:28:19 paklein Exp $ */
 /* created: paklein (06/27/1997)                                          */
 /* Hyperelastic material governed by quadratic logarithmic potential.     */
 
@@ -66,10 +66,6 @@ protected:
 	dSymMatrixT	fStress;
 	dMatrixT	fModulus;
 
-/* elastic constants */
-double fmu;
-double flambda;
-	
 	/* fixed forms */
 	dSymMatrixT	fISym;
 	dMatrixT	fIdentity3;
