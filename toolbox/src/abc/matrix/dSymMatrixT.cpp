@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.3 2001-06-05 17:27:18 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.4 2001-06-23 00:52:41 thao Exp $ */
 /* created: paklein (03/03/1997)                                          */
 
 #include "dSymMatrixT.h"
@@ -205,18 +205,62 @@ void dSymMatrixT::Eigensystem(dArrayT& val, dMatrixT& vec, bool sort_descending)
 		val[0] = fArray[0];
 		vec[0] = 1.0;
 	}
+//Modified by TDN 3/23/01:  2x2 symmetric schur decomposition for Classical Jacobi Algorithm
 	else if (fNumSD == 2)
 	{
-	double mean = 0.5*(fArray[0] + fArray[1]);
+	double a = fArray[0];
+	double c = fArray[1];
+	double b = fArray[2];
+	double cos;
+	double sin;
+	if (abs(b) < 1e-14)
+	{
+		cos = 1.0;
+		sin = 0.0;
+	}
+	else
+	{
+		double tau = .5*(c-a)/b;
+		double r = sqrt(1.0+tau*tau);
+		double t = (tau >= 0) ? (-tau + r) : (-tau - r);
+		cos = 1.0/sqrt(1+t*t);
+		sin = t*cos;
+	}
+	double eig1 = a*cos*cos-2*b*sin*cos+c*sin*sin;
+	double eig2 = a*sin*sin+2*b*sin*cos+c*cos*cos;
+	if(eig1 > eig2)
+	{
+		val[0] = eig1;
+		val[1] = eig2;
+		
+		vec[0] = cos;
+		vec[1] = -sin;
+		
+		vec[2] = sin;
+		vec[3] = cos;
+	}
+	else
+	{	
+		val[0] = eig2;
+		val[1] = eig1;
+		
+		vec[0] = sin;
+		vec[1] = cos;
+		
+		vec[2] = cos;
+		vec[3] = -sin;
+	}
+			
+/*	double mean = 0.5*(fArray[0] + fArray[1]);
 	double diff = 0.5*(fArray[0] - fArray[1]);
 	double r    = sqrt(fArray[2]*fArray[2] + diff*diff);
 
 		/* eigenvalues (sorted) */
-	val[0] = mean + r;
+/*	val[0] = mean + r;
 	val[1] = mean - r;
 	
 	/* eigenvectors */
-	double t;
+/*	double t;
 	if (fabs(val[0] - val[1]) < kSmall)
 		t = 0.0;
 	else
@@ -231,8 +275,9 @@ void dSymMatrixT::Eigensystem(dArrayT& val, dMatrixT& vec, bool sort_descending)
 		vec[1] = sin(t);
 		
 		vec[2] =-vec[1];
-		vec[3] = vec[0];
+		vec[3] = vec[0];*/
 	}
+
 	else if (fNumSD == 3)
 		Eigensystem3D(val, vec, sort_descending);
 	else
