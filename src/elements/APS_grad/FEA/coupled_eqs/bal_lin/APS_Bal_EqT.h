@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.h,v 1.6 2003-09-21 22:14:40 raregue Exp $
+// $Id: APS_Bal_EqT.h,v 1.7 2003-09-22 20:53:15 raregue Exp $
 #ifndef _APS_BALEQ_T_H_ 
 #define _APS_BALEQ_T_H_ 
 
@@ -17,26 +17,41 @@ class APS_Bal_EqT	: public BalLinMomT
 
 	public:
 
-  	enum B_T { 
+  	enum B_d_T { 
 								kB, 
-						   		kBgamma,
-	             				kNUM_B_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
+	             				kNUM_B_d_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 
-	enum VB_T {
+  	enum B_eps_T {  
+						   		kBgamma,
+	             				kNUM_B_eps_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
+
+  	enum B_gradu_T { 
+						   		kgrad_u,
+	             				kNUM_B_gradu_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
+
+
+	enum VB_d_T {
 								kN,
 								knuB,
+								kVB_d_Temp1,
+								kVB_d_Temp2,
+	             				kNUM_VB_d_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
+
+	enum VB_eps_T {
 								knuNgam,
-								kVB_Temp1,
-								kVB_Temp2,
-	             				kNUM_VB_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
+								kVB_eps_Temp1,
+								kVB_eps_Temp2,
+	             				kNUM_VB_eps_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
+
 	             				
 	             				
 	enum V_T {
 								knueps,
 								keps,
-								kgrad_u,
+								//kgrad_u,
 								kgammap,
 								kV_Temp1,
+								kV_Temp2,
 	             				kNUM_V_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 	             				
 	enum S_T {
@@ -66,14 +81,15 @@ class APS_Bal_EqT	: public BalLinMomT
 		void 	Form_V_S_List 		( APS_VariableT &npt );  // vectors
  		void 	Form_C_List 		( APS_MaterialT *Shear_Matl );  // Constant List
 
+		void  	Get ( StringT &Name, FEA_dMatrixT &tensor );
 		void  	Get ( StringT &Name, FEA_dVectorT &vector );
 		void  	Get ( StringT &Name, FEA_dScalarT &scalar );
 		//void 	Get ( int scalar_code, FEA_dScalarT &scalar  ) { scalar = S[scalar_code]; } 
 
 	protected:
 
-  		FEA_dMatrix_ArrayT B; 
-  		FEA_dVector_ArrayT VB, V;
+  		FEA_dMatrix_ArrayT B_d, B_eps, B_gradu; 
+  		FEA_dVector_ArrayT VB_d, VB_eps, V;
   		FEA_dScalar_ArrayT S; 
   		dArrayT 			C;
 

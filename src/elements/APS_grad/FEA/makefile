@@ -1,4 +1,4 @@
-#/* $Id: makefile,v 1.3 2003-09-03 00:06:01 raregue Exp $ */
+#/* $Id: makefile,v 1.4 2003-09-22 20:53:12 raregue Exp $ */
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -17,7 +17,7 @@ DEP = $(OBJ:.o=.d)
 SRC =  all_depend.cpp
 
 # headers
-HDR = FEA.h
+HDR = APS_FEA.h
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories

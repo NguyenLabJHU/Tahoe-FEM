@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.cpp,v 1.6 2003-09-21 22:14:40 raregue Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.7 2003-09-22 20:53:15 raregue Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -11,6 +11,7 @@ APS_Bal_EqT::APS_Bal_EqT ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_Matl
 
 /* destructor */
 //APS_Bal_EqT::~APS_Bal_EqT(void) { }
+
 
 //---------------------------------------------------------------------
 
@@ -52,55 +53,72 @@ void APS_Bal_EqT::Construct ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_M
 
 void APS_Bal_EqT::Form_LHS_Keps_Kd	( dMatrixT &Keps, dMatrixT &Kd )  // Untested
 {
-		Keps 	= Integral.of( B[kB], C[kMu], B[kBgamma] );  
+		Keps 	= Integral.of( B_d[kB], C[kMu], B_eps[kBgamma] );  
 		Keps 	*= -1.0;
-	 	Kd  	= Integral.of( B[kB], C[kMu], B[kB] );  	
+	 	Kd  	= Integral.of( B_d[kB], C[kMu], B_d[kB] );  	
 #pragma message("APS_Bal_EqT::Form_LHS_Keps_Kd: this domain over Gamma_eps")
-//		Kd		-= Integral.of( VB[kN], C[kMu], VB[knuB] );
+//		Kd		-= Integral.of( VB_d[kN], C[kMu], VB_d[knuB] );
 }
 
 //---------------------------------------------------------------------
 
 void APS_Bal_EqT::Form_RHS_F_int ( dArrayT &F_int, APS_VariableT &npt ) // Untested
 {
-		V[kgrad_u] = npt.Get ( APS::kgrad_u );
+		//V[kgrad_u] = npt.Get ( APS::kgrad_u );
+		B_gradu[kgrad_u] = npt.Get ( APS::kgrad_u );
+		V[kV_Temp2](0)=B_gradu[kgrad_u](0,0);
+		V[kV_Temp2](1)=B_gradu[kgrad_u](1,0);
 		V[kgammap] = npt.Get ( APS::kgammap );
-		F_int = Integral.of( B[kB], C[kMu], V[kgrad_u] ); 
-		F_int -= Integral.of( B[kB], C[kMu], V[kgammap] );
+		//F_int = Integral.of( B[kB], C[kMu], V[kgrad_u] ); 
+		F_int = Integral.of( B_d[kB], C[kMu], V[kV_Temp2] ); 
+		F_int -= Integral.of( B_d[kB], C[kMu], V[kgammap] );
 #pragma message("APS_Bal_EqT::Form_RHS_F_int: this domain over Gamma_eps")
-/*		F_int -= Integral.of( VB[kN], C[kMu], S[knuepsgradu] ); 
-		F_int += Integral.of( VB[kN], C[kMu], S[knuepseps] );  */
+/*		F_int -= Integral.of( VB_d[kN], C[kMu], S[knuepsgradu] ); 
+		F_int += Integral.of( VB_d[kN], C[kMu], S[knuepseps] );  */
 }
 
 //=== Private =========================================================
 	             				
 void APS_Bal_EqT::Form_B_List (void)
 {
-		B.Construct ( kNUM_B_TERMS, n_ip, n_sd_x_n_sd, n_sd_x_n_en );	
+		B_d.Construct 	( kNUM_B_d_TERMS, n_ip, n_sd, n_en);
+		B_eps.Construct ( kNUM_B_eps_TERMS, n_ip, n_sd, n_sd_x_n_en);
+		B_gradu.Construct ( kNUM_B_gradu_TERMS, n_ip, 1, n_sd);		
 		
-		Data_Pro.APS_B(B[kB]);
- 		Data_Pro.APS_Ngamma(B[kBgamma]);
+		Data_Pro.APS_B(B_d[kB]);
+ 		Data_Pro.APS_Ngamma(B_eps[kBgamma]);
 }
 
 		
 void APS_Bal_EqT::Form_VB_List (void)
-{					
-		Data_Pro.APS_N(VB[kN]);
+{
 
- 		V[knueps].Dot( B[kB], VB[knuB] );
- 		V[knueps].Dot( B[kBgamma], VB[knuNgam] ); 
+		VB_d.Construct 	( kNUM_VB_d_TERMS, 	n_ip, n_en 	);
+		VB_eps.Construct ( kNUM_VB_eps_TERMS, 	n_ip, n_sd_x_n_en 	);	
+						
+		Data_Pro.APS_N(VB_d[kN]);
+
+ 		V[knueps].Dot( B_d[kB], VB_d[knuB] );
+ 		V[knueps].Dot( B_eps[kBgamma], VB_eps[knuNgam] ); 
 }
 
 
 void APS_Bal_EqT::Form_V_S_List (APS_VariableT &npt)
 {
 #pragma message("APS_Bal_EqT::Form_V_S_List: V[knueps] and V[keps] must be input for BC")
+
+		S.Construct 	( kNUM_S_TERMS, 	n_ip 		);
+		V.Construct 	( kNUM_V_TERMS, 	n_ip, n_sd 	);
+	
 		V[knueps](0) = 1.0;
 		V[knueps](1) = 0.0;
 		V[keps](0) = 1.0;
 		V[keps](1) = 0.0;
-		V[kgrad_u] = npt.Get ( APS::kgrad_u );
-		V[knueps].Dot( V[kgrad_u], S[knuepsgradu] );
+		//V[kgrad_u] = npt.Get ( APS::kgrad_u );
+		B_gradu[kgrad_u] = npt.Get ( APS::kgrad_u );
+		//V[knueps].Dot( V[kgrad_u], S[knuepsgradu] );
+		V[knueps].Dot( B_gradu[kgrad_u], V[kV_Temp1] );
+		S[knuepsgradu]=V[kV_Temp1](0);
 		V[knueps].Dot( V[keps], S[knuepseps] );
 }
 
@@ -108,16 +126,25 @@ void APS_Bal_EqT::Form_V_S_List (APS_VariableT &npt)
 void APS_Bal_EqT::Form_C_List (APS_MaterialT *Shear_Matl)
 {
 		C.Dimension 	( kNUM_C_TERMS );
+		
 		C[kMu] 	= Shear_Matl -> Retrieve ( Shear_MatlT::kMu );
 }
 
 
+void APS_Bal_EqT::Get ( StringT &Name, FEA_dMatrixT &tensor )
+{
+	if ( Name == "grad_u" )
+		tensor = B_gradu[kgrad_u];
+	else
+		cout << " ...ERROR: APS_Bal_EqT::Get() >> Unknown vector '"<<Name<<"' requested. \n";
+}
+
 
 void APS_Bal_EqT::Get ( StringT &Name, FEA_dVectorT &vector )
 {
-	if ( Name == "grad_u" )
-		vector = V[kgrad_u];
-	else if ( Name == "gammap" )
+/*	if ( Name == "grad_u" )
+		vector = V[kgrad_u]; */
+	if ( Name == "gammap" )
 		vector = V[kgammap];
 	else
 		cout << " ...ERROR: APS_Bal_EqT::Get() >> Unknown vector '"<<Name<<"' requested. \n";

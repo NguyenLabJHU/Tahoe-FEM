@@ -1,4 +1,4 @@
-#/* $Id: makefile,v 1.1 2003-07-10 17:20:21 raregue Exp $ */
+#/* $Id: makefile,v 1.2 2003-09-22 20:53:14 raregue Exp $ */
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -17,7 +17,6 @@ SRC = \
 
 # headers
 HDR =	\
-	APS.h	\
 	APS_EnumT.h	\
 	APS_VariableT.h	
 

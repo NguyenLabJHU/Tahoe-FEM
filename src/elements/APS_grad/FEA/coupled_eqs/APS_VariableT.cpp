@@ -1,4 +1,4 @@
-// $Id: APS_VariableT.cpp,v 1.7 2003-09-21 22:14:38 raregue Exp $
+// $Id: APS_VariableT.cpp,v 1.8 2003-09-22 20:53:14 raregue Exp $
 #include "APS_VariableT.h"
 
 //---------------------------------------------------------------------
@@ -6,7 +6,8 @@
 
 using namespace Tahoe;
 
-APS_VariableT::APS_VariableT (const FEA_dVectorT& grad_u, const FEA_dVectorT& gammap, const FEA_dMatrixT& grad_gammap) 
+//APS_VariableT::APS_VariableT (const FEA_dVectorT& grad_u, const FEA_dVectorT& gammap, const FEA_dMatrixT& grad_gammap) 
+APS_VariableT::APS_VariableT (const FEA_dMatrixT& grad_u, const FEA_dVectorT& gammap, const FEA_dMatrixT& grad_gammap)
 {
 	Construct	(grad_u, gammap, grad_gammap);
 }
@@ -14,14 +15,16 @@ APS_VariableT::APS_VariableT (const FEA_dVectorT& grad_u, const FEA_dVectorT& ga
 //---------------------------------------------------------------------
 /** Data initialization: Allocate space for grad_u, gammap, grad_gammap  */
 
-void APS_VariableT::Construct (const FEA_dVectorT& grad_u, const FEA_dVectorT& gammap,const FEA_dMatrixT& grad_gammap) 
+//void APS_VariableT::Construct (const FEA_dVectorT& grad_u, const FEA_dVectorT& gammap,const FEA_dMatrixT& grad_gammap) 
+void APS_VariableT::Construct (const FEA_dMatrixT& grad_u, const FEA_dVectorT& gammap,const FEA_dMatrixT& grad_gammap)
 {
   	n_vars_vector = APS::kNUM_APS_VECTOR_VARS;  
   	n_vars_matrix = APS::kNUM_APS_MATRIX_VARS; 
   	fVars_vector[ n_vars_vector ];
   	fVars_matrix.Dimension( n_vars_matrix );  
 
-	fVars_vector[APS::kgrad_u] = grad_u; // This = opr allocates if LHS Length=0
+	//fVars_vector[APS::kgrad_u] = grad_u; // This = opr allocates if LHS Length=0
+	fVars_matrix[APS::kgrad_u] = grad_u; // This = opr allocates if LHS Length=0
 	fVars_vector[APS::kgammap] = gammap; // This = opr allocates if LHS Length=0
 	fVars_matrix[APS::kgrad_gammap] = grad_gammap; 
 }
@@ -52,6 +55,16 @@ void APS_VariableT::Print(char *c) { // overload << later
   		cout << "\n Vector "<<l<<" evaluated at "<<fVars_vector[l].IPs() <<" integration points (ip): \n"; 
   		for (int i=0; i<fVars_vector[l].IPs(); i++) 
    	 		cout <<"\n "<< c <<" @ ip "<<i<<": \n\n"<< fVars_vector[l][i] << "\n";
+			cout << "\n";
+		}
+		
+	for (int l=0; l<n_vars_matrix; l++) 
+		if (fVars_matrix[l].IPs() == 0)
+			cout << "APS_VariableT n["<<l<<"] Unallocated \n\n";
+    else {
+  		cout << "\n Vector "<<l<<" evaluated at "<<fVars_matrix[l].IPs() <<" integration points (ip): \n"; 
+  		for (int i=0; i<fVars_matrix[l].IPs(); i++) 
+   	 		cout <<"\n "<< c <<" @ ip "<<i<<": \n\n"<< fVars_matrix[l][i] << "\n";
 			cout << "\n";
 		}
 	
@@ -89,9 +102,10 @@ void APS_VariableT::Allocate_and_Compute_Variables(APS::VarT_vector kVariable)
 
     switch (kVariable) {
 
-      case APS::kgrad_u : // grad_u 
+      /*case APS::kgrad_u : // grad_u 
         fVars_vector[APS::kgrad_u]; 
 				break;
+				*/
 
       case APS::kgammap : // gammap   
         fVars_vector[APS::kgammap]; 
@@ -111,6 +125,10 @@ void APS_VariableT::Allocate_and_Compute_Variables(APS::VarT_matrix kVariable)
 {
 
     switch (kVariable) {
+    
+    	case APS::kgrad_u : // grad_u 
+        fVars_matrix[APS::kgrad_u]; 
+				break;
 				
       case APS::kgrad_gammap : // grad_gammap   
         fVars_matrix[APS::kgrad_gammap]; 

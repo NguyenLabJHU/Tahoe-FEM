@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.7 2003-09-21 23:12:32 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.8 2003-09-22 20:53:10 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -50,8 +50,8 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	int i;
 	/* check - some code below assumes that both fields have the
 	 * same dimension. TEMP?  get rid of this!!!!!! */ 
-	    if (fDispl.NumDOF() != fPlast.NumDOF()) 
-				ExceptionT::BadInputValue("APS_AssemblyT::APS_AssemblyT");
+	/*    if (fDispl.NumDOF() != fPlast.NumDOF()) 
+				ExceptionT::BadInputValue("APS_AssemblyT::APS_AssemblyT"); */
 
 	/* read parameters from input */
 	ifstreamT& in = ElementSupport().Input();
@@ -150,19 +150,19 @@ void APS_AssemblyT::Initialize(void)
 	n_en_x_n_df = n_en*n_df;
 
 	/* set local arrays for coarse scale */
-	u.Dimension (n_en, n_df);
-	u_n.Dimension (n_en, n_df);
-	DDu.Dimension (n_en, n_df);
-	del_u.Dimension (n_en, n_df);
-	del_u_vec.Dimension (n_en_x_n_df);
+	u.Dimension (n_en, 1);
+	u_n.Dimension (n_en, 1);
+	DDu.Dimension (n_en, 1);
+	del_u.Dimension (n_en, 1);
+	del_u_vec.Dimension (n_en);
 	fDispl.RegisterLocal(u);
 	fDispl.RegisterLocal(u_n);
 
 	/* set local arrays for fine scale */
-	gamma_p.Dimension (n_en, 2);
-	gamma_p_n.Dimension (n_en, 2);
-	del_gamma_p.Dimension (n_en, 2);
-	int dum = n_en*2;
+	gamma_p.Dimension (n_en, n_sd);
+	gamma_p_n.Dimension (n_en, n_sd);
+	del_gamma_p.Dimension (n_en, n_sd);
+	int dum = n_en*n_sd;
 	del_gamma_p_vec.Dimension (dum);
 	fPlast.RegisterLocal(gamma_p);
 	fPlast.RegisterLocal(gamma_p_n);
@@ -175,6 +175,7 @@ void APS_AssemblyT::Initialize(void)
 	fShapes->Initialize();
 	
 	/* allocate state variable storage */
+	#pragma message("APS_AssemblyT::Initialize: how determine number of ips?")
 	int num_ip = 1; //TEMP - need to decide where to set the number of integration
 	fdState_new.Dimension(n_el, num_ip*knum_d_state);
 	fdState.Dimension(n_el, num_ip*knum_d_state);
@@ -182,7 +183,7 @@ void APS_AssemblyT::Initialize(void)
 	fiState.Dimension(n_el, num_ip*knum_i_state);
 	
 	/* storage for the fine scale equation numbers */
-	fEqnos_plast.Dimension(n_el, n_en*2);
+	fEqnos_plast.Dimension(n_el, n_en*n_sd);
 	fEqnos_plast = -1;
 
 	/* initialize state variables */
@@ -206,10 +207,12 @@ void APS_AssemblyT::Initialize(void)
 	// these dimensions should be different since want to use quadratic interp for u
 	// and linear interp for gamma_p
 	
-	fgrad_u.FEA_Dimension 			( fNumIP, n_sd );
+	//fgrad_u.FEA_Dimension 			( fNumIP, n_sd );
+	fgrad_u.FEA_Dimension 			( fNumIP, n_sd, 1 );
 	fgamma_p.FEA_Dimension 			( fNumIP, n_sd );
 	fgrad_gamma_p.FEA_Dimension 	( fNumIP, n_sd,n_sd );
-	fgrad_u_n.FEA_Dimension 		( fNumIP, n_sd );
+	//fgrad_u_n.FEA_Dimension 		( fNumIP, n_sd );
+	fgrad_u_n.FEA_Dimension 		( fNumIP, n_sd, 1 );
 	fgamma_p_n.FEA_Dimension 		( fNumIP, n_sd );
 	fgrad_gamma_p_n.FEA_Dimension 	( fNumIP, n_sd,n_sd );
 
@@ -317,6 +320,7 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
 	}
 }
 
+//ignore the following code??
 #if 0
 //---------------------------------------------------------------------
 
@@ -658,7 +662,7 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 				fEquation_d -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, 
 											step_number, delta_t );
 				fEquation_d -> Form_LHS_Keps_Kd ( fKdeps, fKdd );
-				fEquation_d -> Form_RHS_F_int ( fFd_int );
+				fEquation_d -> Form_RHS_F_int ( fFd_int, np1 );
 				fFd_int *= -1.0;  
 
 				/* add body force */
@@ -976,7 +980,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 				fEquation_d -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, 
 											step_number, delta_t );
 				fEquation_d -> Form_LHS_Keps_Kd ( fKdeps, fKdd );
-				fEquation_d -> Form_RHS_F_int ( fFd_int );
+				fEquation_d -> Form_RHS_F_int ( fFd_int, np1 );
 
 				/** Set coarse LHS */
 				fLHS = fKdd;
@@ -1108,7 +1112,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 			fEquation_d -> Construct ( fFEA_Shapes, fBalLinMomMaterial, np1, n, 
 										step_number, delta_t );
 			fEquation_d -> Form_LHS_Keps_Kd ( fKdeps, fKdd );
-			fEquation_d -> Form_RHS_F_int ( fFd_int );
+			fEquation_d -> Form_RHS_F_int ( fFd_int, np1 );
 			fFd_int *= -1.0;
 
 			/* add body force */

@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.6 2003-09-21 22:14:36 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.7 2003-09-22 20:53:10 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -147,8 +147,9 @@ private:
 	//APS_VariableT n,np1; // <-- keep local scope in elmt loop for now 
 
 	/** Gradients with respect to reference coodinates */
-	FEA_dMatrixT fgrad_gamma_p, fgrad_gamma_p_n, fVars_matrix;
-	FEA_dVectorT fgrad_u, fgrad_u_n, fgamma_p, fgamma_p_n, fVars_vector;
+	FEA_dMatrixT fgrad_gamma_p, fgrad_gamma_p_n, fVars_matrix, fgrad_u, fgrad_u_n;
+	//FEA_dVectorT fgrad_u, fgrad_u_n, fgamma_p, fgamma_p_n, fVars_vector;
+	FEA_dVectorT fgamma_p, fgamma_p_n, fVars_vector;
 
 	/** \name  values read from input in the constructor */
 	/*@{*/
