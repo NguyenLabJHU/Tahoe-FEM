@@ -1,4 +1,4 @@
-/* $Id: VIB2D.cpp,v 1.11 2004-09-10 22:39:17 paklein Exp $ */
+/* $Id: VIB2D.cpp,v 1.12 2005-03-16 10:20:48 paklein Exp $ */
 /* created: paklein (04/09/1997) */
 #include "VIB2D.h"
 
@@ -222,6 +222,9 @@ void VIB2D::TakeParameterList(const ParameterListT& list)
 
 	/* default construction */
 	SetAngle(0.0);
+
+	/* set the unstressed energy density */
+	SetReferenceEnergy();
 }
 
 /***********************************************************************

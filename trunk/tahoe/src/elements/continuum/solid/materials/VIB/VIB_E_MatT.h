@@ -1,4 +1,4 @@
-/* $Id: VIB_E_MatT.h,v 1.3 2004-07-15 08:27:40 paklein Exp $ */
+/* $Id: VIB_E_MatT.h,v 1.4 2005-03-16 10:20:42 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _VIB_E_H_
 #define _VIB_E_H_
@@ -18,6 +18,9 @@ public:
 
 protected:
 
+	/* set reference energy */
+	void SetReferenceEnergy(void);
+
 	/* returns the strain energy density for the specified strain */
 	double VIBEnergyDensity(const dSymMatrixT& E);
 
@@ -35,6 +38,10 @@ protected:
 	                         double*&, double*&, double*&, double*&, double*&,
 	                         double*&, double*&, double*&, double*&, double*&);
 
+protected:
+
+	/** reference energy */
+	double fU_0;
 };
 
 } /* namespace Tahoe */
