@@ -1,4 +1,4 @@
-/* $Id: CellGeometryT.cpp,v 1.1 2005-01-25 02:24:04 cjkimme Exp $ */
+/* $Id: CellGeometryT.cpp,v 1.2 2005-01-25 19:08:14 cjkimme Exp $ */
 #include "CellGeometryT.h"
 
 using namespace Tahoe;
@@ -84,3 +84,4 @@ void CellGeometryT::TakeParameterList(const ParameterListT& list)
 	/* number of integration points used for surface integrals */
 	fNumIP = list.GetParameter("num_ip");
 }
+

@@ -330,13 +330,13 @@ void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, Ragged
 					supp_1.InsertAtCurrent(*c);
 					bVectors_1.InsertAtCurrent(zeroFacet);
 					if (qIsAxisymmetric)
-							circumf_0->InsertAtCurrent(0.);
+							circumf_1->InsertAtCurrent(0.);
 					s_1 = *c;
 					if (supp_1.AtTop()) { // if we're inserting at the front, LinkedListT's behavior requires more work
 						supp_1.Next(); 
 						bVectors_1.Next();
 						if (qIsAxisymmetric)
-							circumf_0->Next();
+							circumf_1->Next();
 					}
 				}
 					 

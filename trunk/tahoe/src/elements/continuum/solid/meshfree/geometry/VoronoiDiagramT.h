@@ -157,3 +157,4 @@ protected:
 
 
 #endif /* _VORONOI_DIAGRAM_T_ */
+
