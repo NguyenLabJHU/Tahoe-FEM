@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.11 2002-09-10 13:46:20 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.12 2002-09-10 19:20:08 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "NodeManagerT.h"
@@ -106,11 +106,11 @@ void NodeManagerT::Initialize(void)
 	/* echo nodal coordinate data */
 	EchoCoordinates(in, out);
 
-	/* external nodes (parallel execution) */
-	EchoExternalNodes(out);
-
 	/* set fields */
 	EchoFields(in, out);
+
+	/* external nodes (parallel execution) */
+	EchoExternalNodes(out);
 
 	/* history nodes */
 	EchoHistoryNodes(in, out);
