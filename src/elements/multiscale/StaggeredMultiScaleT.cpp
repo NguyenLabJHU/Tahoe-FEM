@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.29 2003-04-23 23:34:20 creigh Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.30 2003-05-09 19:05:49 paklein Exp $ */
 #include "StaggeredMultiScaleT.h"
 
 #include "ShapeFunctionT.h"
@@ -899,10 +899,122 @@ GlobalT::SystemTypeT StaggeredMultiScaleT::TangentType(void) const
 /* accumulate the residual force on the specified node */
 void StaggeredMultiScaleT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
-//not implemented
-#pragma unused(field)
-#pragma unused(node)
-#pragma unused(force)
+	const char caller[] = "StaggeredMultiScaleT::AddNodalForce";
+
+	/* coarse, fine, or neither */
+	bool is_coarse = false;
+	dArrayT* element_force = NULL;
+	int num_force = 0;
+	if (field.Name() == fCoarse.Name()) {
+		is_coarse = true;
+		element_force = &fFint_I;
+		num_force = fCoarse.NumDOF();
+	}
+	else if (field.Name() == fFine.Name()) {
+		is_coarse = false;
+		element_force = &fFint_II;
+		num_force = fFine.NumDOF();
+	}
+	else
+		return;
+
+	/* time Step Increment */
+	double delta_t = ElementSupport().TimeStep();
+	time = ElementSupport().Time();
+	step_number = ElementSupport().StepNumber();
+
+ 	/* has (coarse scale) body forces */
+	int formBody = 0;
+	if (fBodySchedule && fBody.Magnitude() > kSmall)
+		formBody = 1;
+
+	/* temp for nodal force */
+	dArrayT nodalforce;
+
+	/* loop over elements */
+	int e,v,l;
+	Top();
+	while (NextElement())
+	{
+		int nodeposition;
+		const iArrayT& nodes_u = CurrentElement().NodesU();
+		if (nodes_u.HasValue(node, nodeposition))
+		{
+			e = CurrElementNumber();
+
+			SetLocalU (ua);			 SetLocalU (ua_n);
+			SetLocalU (ub);			 SetLocalU (ub_n);
+
+			del_ua.DiffOf (ua, ua_n);
+			del_ub.DiffOf (ub, ub_n);
+
+			SetLocalX(fInitCoords); 
+			fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, ua, 1.0, ub); 
+			fShapes->SetDerivatives(); 
+		
+			/* repackage data to forms compatible with FEA classes (very little cost in big picture) */
+			Convert.Gradiants 		( fShapes, 	ua, ua_n, fGRAD_ua, fGRAD_ua_n );
+			Convert.Gradiants 		( fShapes, 	ub, ub_n, fGRAD_ub, fGRAD_ub_n );
+			Convert.Shapes				(	fShapes, 	fFEA_Shapes );
+			Convert.Displacements	(	del_ua, 	del_ua_vec  );
+			Convert.Displacements	(	del_ub, 	del_ub_vec  );
+			Convert.Na(	n_en, fShapes, 	fFEA_Shapes );
+
+			/* Construct data used in BOTH FineScaleT and CoarseScaleT (F,Fa,Fb,grad_ua,...etc.)
+			 * 	Presently, Tahoe cannot exploit this fact.  n and np1 are calculated for coarse field, then
+			 * 	calculated again for fine field -- this is a waste and defeats the putpose of VMS_VariableT. 
+			 *  Note: n is last time step (known data), no subscript,np1 or (n+1) is the 
+			 *  next time step (what were solving for)   */
+			VMS_VariableT np1(	fGRAD_ua, 	fGRAD_ub 	 ); // Many variables at time-step n+1
+			VMS_VariableT   n(	fGRAD_ua_n, fGRAD_ub_n );	// Many variables at time-step n
+
+			/* calculate coarse scale nodal force */
+			if (is_coarse)
+			{
+				/* residual and tangent for coarse scale */
+				fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, step_number, delta_t );
+				fEquation_I -> Form_LHS_Ka_Kb ( fKa_I, fKb_I );
+				fEquation_I -> Form_RHS_F_int ( fFint_I );
+				fFint_I *= -1.0;
+
+				/* add body force */
+				if (formBody) {
+//					double density = fCoarseMaterial->Retrieve(Iso_MatlT::kDensity);
+					double density = 1.0;
+					DDub = 0.0;
+					AddBodyForce(DDub);
+				
+					/* add body force to fRHS */
+					fRHS = 0.0;
+					FormMa(kConsistentMass, -density, &DDub, NULL);
+					fFint_I += fRHS;
+				}
+			}
+			else /* fine scale nodal force */
+			{
+				/* residual and tangent for fine scale */
+				fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t, FEA::kBackward_Euler );
+				fEquation_II -> Form_LHS_Ka_Kb ( fKa_II, 	fKb_II );
+				fEquation_II -> Form_RHS_F_int ( fFint_II );
+				fFint_II *= -1.0;
+			}
+
+			/* loop over nodes (double-noding OK) */
+			int dex = 0;
+			for (int i = 0; i < nodes_u.Length(); i++)
+			{
+				if (nodes_u[i] == node)
+				{
+					/* components for node */
+					nodalforce.Set(num_force, element_force->Pointer(dex));
+	
+					/* accumulate */
+					force += nodalforce;
+				}
+				dex += NumDOF();
+			}			
+		}
+	}
 }
 
 //---------------------------------------------------------------------
