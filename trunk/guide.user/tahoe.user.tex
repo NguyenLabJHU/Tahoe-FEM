@@ -1,8 +1,10 @@
 %&LaTeX
-% $Id: tahoe.user.tex,v 1.8 2001-06-04 01:32:53 paklein Exp $
+% $Id: tahoe.user.tex,v 1.9 2002-04-13 02:17:29 paklein Exp $
 \documentclass[12pt]{article}
-%\documentclass[11pt,twoside]{article}
-\usepackage{amsmath}
+%\usepackage[mtbold]{mathtime} %-- Times fonts
+\usepackage{amsmath} %-- good stuff for math
+\usepackage{bm} %-- bold math
+\usepackage{ulem}\usepackage{color}
 \usepackage{alltt}
 \usepackage{xspace}
 %\usepackage{array}
@@ -10,29 +12,36 @@
 \usepackage{hhline}
 \usepackage{longtable}
 \usepackage{ulem}
-\usepackage{graphicx}
-\usepackage{color}
 %\usepackage{overcite}
 \usepackage{hangcaption}
 \usepackage{fancyhdr}
-\usepackage[textures,%
+\usepackage[pdftex,%
     bookmarks=true,%
 	colorlinks=true,%
 	bookmarksnumbered=true]{hyperref}
+
+%--------------------------- pdf -----------------------\newif\ifpdf
+\ifx\pdfoutput\undefined
+\pdffalse % we are not running PDFLaTeX
+\else
+\pdfoutput=1 % we are running PDFLaTeX
+\pdftrue
+\fi
+
+\ifpdf
+\usepackage[pdftex]{graphicx}
+\else
+\usepackage{graphicx}
+\fi
+%--------------------------- pdf -----------------------
+
 %-------------------------- macros ----------------------
-%- NOTE: latex2html has trouble expanding nested macros -
+%\newcommand{\eqref}[1]{(\ref{#1})} %-- defined in amsmath
 \newcommand{\mathvec}[1]{\mbox{\boldmath $#1$}}
 \newcommand{\labeleq}[2]{\begin{equation} \label{#1} #2 \end{equation}}
-\newcommand{\rbrkt}[1]{\left(#1\right)}
-\newcommand{\sbrkt}[1]{\left[#1\right]}
-\newcommand{\cbrkt}[1]{\left\{#1\right\}}
-\newcommand{\abrkt}[1]{\left<#1\right>}
-\newcommand{\farg}[1]{\negmedspace \left(#1\right)}
-\newcommand{\etal}[0]{\textit{et al.}\@ }
-\newcommand{\dbyd}[2]{\frac{\partial#1}{\partial#2}}
-\newcommand{\ddbydd}[3]{\frac{\partial^{2}#1}{\partial#2\partial#3}}
-\newcommand{\invar}[1]{\textrm{[\textit{#1}]}}
-%-------------------------- macros ----------------------
+\newcommand{\rbrkt}[1]{\left(#1\right)}\newcommand{\sbrkt}[1]{\left[#1\right]}\newcommand{\cbrkt}[1]{\left\{#1\right\}}\newcommand{\abrkt}[1]{\left<#1\right>}\newcommand{\farg}[1]{\hspace{-0.2em}\rbrkt{#1}}\newcommand{\etal}[0]{\textit{et al.}\@ }\newcommand{\dbyd}[2]{\frac{\partial#1}{\partial#2}}\newcommand{\ddbydd}[3]{\frac{\partial^{2}#1}{\partial#2\partial#3}}
+\newcommand{\textscript}[1]{\scriptsize{\textrm{#1}}}\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\newcommand{\invar}[1]{\textrm{[\textit{#1}]}}%-------------------------- macros ----------------------
 
 %----------------------- environments -------------------
 % inputfile: requires the package alltt because the 
@@ -71,9 +80,9 @@
 %---------------------- table macros --------------------
 
 %---------------------- editing macros ------------------
-\newcommand{\todo}[1]{\textcolor{red}{\textit{[To do: #1]}}}
-\newcommand{\strike}[1]{\textcolor{red}{\sout{#1}}}
-%---------------------- editing macros ------------------
+%-- requires package color\newcommand{\todo}[1]{\textcolor{red}{\textit{[To do: #1]}}}
+\newcommand{\temp}[1]{\textcolor{red}{[\textit{author's note: #1}]}}%-- requires package color and ulem
+\newcommand{\strike}[1]{\textcolor{red}{\sout{#1}}}%---------------------- editing macros ------------------
 
 %----------------------- figure path --------------------
 \newcommand{\figpath}{fig.color}
@@ -82,18 +91,17 @@
 
 %----------------- platform dependent macros ------------
 %-- Mac pathnames
-\newcommand{\filepath}[1]{:#1}
-\newcommand{\dirfilepath}[2]{:#1:#2}
-\newcommand{\dirdirfilepath}[3]{:#1:#2:#3}
+%\newcommand{\filepath}[1]{:#1}
+%\newcommand{\dirfilepath}[2]{:#1:#2}
+%\newcommand{\dirdirfilepath}[3]{:#1:#2:#3}
 
 %-- UNIX pathnames
-%\newcommand{\filepath}[1]{./#1}
-%\newcommand{\dirfilepath}[2]{./#1/#2}
-%\newcommand{\dirdirfilepath}[3]{./#1/#2/#3}
+\newcommand{\filepath}[1]{./#1}
+\newcommand{\dirfilepath}[2]{./#1/#2}
+\newcommand{\dirdirfilepath}[3]{./#1/#2/#3}
 %----------------- platform dependent macros ------------
 
-%------------------------- format -----------------------
-%-- page layout
+%------------------------ page layout -------------------
 \setlength{\headsep}{20pt}
 \setlength{\topmargin}{0pt}
 \setlength{\headheight}{14pt}
@@ -103,7 +111,7 @@
 \setlength{\voffset}{-0.25in}
 \setlength{\evensidemargin}{0.0in}
 \setlength{\oddsidemargin}{0.0in}
-%------------------------- format -----------------------
+%------------------------ page layout -------------------
 
 %------------------ selective typesetting ---------------
 %\includeonly{\filepath{input}, \filepath{files}, \filepath{ICandBC}}
@@ -114,14 +122,22 @@
 \newcommand{\tahoe}{\textsf{Tahoe}\xspace}
 %------------------- document variables -----------------
 
-\begin{document}
-\setcounter{tocdepth}{5}
+%-------------------------- main ------------------------
+\begin{document}                                                                                  \setcounter{tocdepth}{5}
 \setcounter{secnumdepth}{5}
 \numberwithin{equation}{section}
 \numberwithin{figure}{section}
 \numberwithin{table}{section}
 \normalem %-- restore normal behavior for \em
-%----------------------- front matter -------------------
+
+%--- graphics
+\ifpdf
+\DeclareGraphicsExtensions{.pdf, .jpg, .tif}
+\else
+\DeclareGraphicsExtensions{.eps, .jpg}
+\fi
+%--- graphics
+
 \begin{center}
 \vspace{0.25in}
 {\Huge \tahoe \\}
@@ -134,7 +150,7 @@ last updated \today \\
 %------------------------ abstract ----------------------
 \begin{figure}[h]
 \centerline{\includegraphics[scale = 0.75]
-{\dirfilepath{\figpath}{Tahoe.eps}}}
+{\dirfilepath{\figpath}{Tahoe.pdf}}}
 \end{figure}
 \protect\vspace{0.15in}
 \begin{abstract}
@@ -183,3 +199,4 @@ and bug reports to
    \dirfilepath{bibliography}{atomistic},%
    \dirfilepath{bibliography}{meshfree}}
 \end{document}
+%-------------------------- main ------------------------
