@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.4 2001-05-31 00:46:05 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.5 2001-06-29 16:26:42 paklein Exp $ */
 /* created: paklein (01/12/2000)                                          */
 
 #include "FEManagerT_mpi.h"
@@ -1048,6 +1048,8 @@ void FEManagerT_mpi::TimeStamp(const char* message, bool flush_stream) const
 
 #if __option(extended_errorcheck)
 	if (flush_stream) tmp->flog.flush();
+#else
+#pragma unused(flush_stream)	
 #endif
 
 	/* store last */
