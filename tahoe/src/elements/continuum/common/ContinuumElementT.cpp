@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.35.2.5 2004-03-09 08:57:16 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.35.2.6 2004-03-15 19:44:38 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -899,6 +899,137 @@ void ContinuumElementT::EchoBodyForce(ifstreamT& in, ostream& out)
 	out.flush();   	   	
 }
 
+/* extract natural boundary condition information */
+void ContinuumElementT::TakeNaturalBC(const ParameterListT& list)
+{
+	const char caller[] = "ContinuumElementT::TakeTractionBC";
+
+	int num_natural_bc = list.NumLists("natural_bc");
+	if (num_natural_bc > 0)
+	{
+		/* model manager */
+		ModelManagerT& model = ElementSupport().Model();
+	
+		/* temp space */
+		ArrayT<StringT> block_ID(num_natural_bc);
+	    ArrayT<iArray2DT> localsides(num_natural_bc);
+	    iArrayT LTf(num_natural_bc);
+	    ArrayT<Traction_CardT::CoordSystemT> coord_sys(num_natural_bc);
+	    ArrayT<dArray2DT> values(num_natural_bc);
+
+	    /* nodes on element facets */
+	    iArrayT num_facet_nodes;
+	    fShapes->NumNodesOnFacets(num_facet_nodes);
+	    
+	    /* loop over natural BC's */
+	    int tot_num_sides = 0;
+	    for (int i = 0; i < num_natural_bc; i++) 
+	   	{
+	    	const ParameterListT& natural_bc = list.GetList("natural_bc", i);
+	    
+	    	/* side set */
+	    	const StringT& ss_ID = natural_bc.GetParameter("side_set_ID");
+			localsides[i] = model.SideSet(ss_ID);
+			int num_sides = localsides[i].MajorDim();
+			tot_num_sides += num_sides;
+			if (num_sides > 0)
+			{
+				block_ID[i] = model.SideSetGroupID(ss_ID);
+				LTf[i] = natural_bc.GetParameter("schedule");
+				coord_sys[i] = Traction_CardT::int2CoordSystemT(natural_bc.GetParameter("coordinate_system"));
+
+				/* switch to elements numbering within the group */
+				iArray2DT& side_set = localsides[i];
+				iArrayT elems(num_sides);
+				side_set.ColumnCopy(0, elems);
+				BlockToGroupElementNumbers(elems, block_ID[i]);
+				side_set.SetColumn(0, elems);
+
+				/* all facets in set must have the same number of nodes */
+				int num_nodes = num_facet_nodes[side_set(0,1)];
+				for (int f = 0; f < num_sides; f++)
+					if (num_facet_nodes[side_set(f,1)] != num_nodes)
+						ExceptionT::BadInputValue(caller, "faces side set \"%s\" have different numbers of nodes",
+							ss_ID.Pointer());
+
+				/* read traction nodal values */
+				dArray2DT& nodal_values = values[i];
+				nodal_values.Dimension(num_nodes, NumDOF());
+				int num_traction_vectors = natural_bc.NumLists("DoubleList");
+				if (num_traction_vectors != 1 && num_traction_vectors != num_nodes)
+					ExceptionT::GeneralFail(caller, "expecting 1 or %d vectors not %d",
+						num_nodes, num_traction_vectors);
+						
+				/* constant over the face */
+				if (num_traction_vectors == 1) {
+					const ParameterListT& traction_vector = natural_bc.GetList("DoubleList");
+					int dim = traction_vector.NumLists("Double");
+					if (dim != NumDOF())
+						ExceptionT::GeneralFail(caller, "expecting traction vector length %d not %d",
+							NumDOF(), dim);
+
+					/* same for all face nodes */
+					for (int f = 0; f < NumDOF(); f++) {
+						double t = traction_vector.GetList("Double", f).GetParameter("value");
+						nodal_values.SetColumn(f, t);
+					}
+				}
+				else
+				{
+					/* read separate vector for each face node */
+					dArrayT t;
+					for (int f = 0; f < num_nodes; f++) {
+						const ParameterListT& traction_vector = natural_bc.GetList("DoubleList", f);
+					int dim = traction_vector.NumLists("Double");
+						if (dim != NumDOF())
+							ExceptionT::GeneralFail(caller, "expecting traction vector length %d not %d",
+								NumDOF(), dim);
+
+						nodal_values.RowAlias(f, t);
+						for (int j = 0; j < NumDOF(); j++)
+							t[j] = traction_vector.GetList("Double", j).GetParameter("value");
+					}
+				}
+			}
+	    }
+#pragma message("OK with empty side sets?")
+
+		/* allocate all traction BC cards */
+	    fTractionList.Dimension(tot_num_sides);
+
+	    /* correct numbering offset */
+	    LTf--;
+
+		/* define traction cards */
+		if (tot_num_sides > 0)
+		{
+			iArrayT loc_node_nums;
+			int dex = 0;
+			for (int i = 0; i < num_natural_bc; i++)
+			{
+				/* set traction BC cards */
+				iArray2DT& side_set = localsides[i];
+				int num_sides = side_set.MajorDim();
+				for (int j = 0; j < num_sides; j++)
+				{					
+					/* get facet local node numbers */
+					fShapes->NodesOnFacet(side_set(j, 1), loc_node_nums);
+					
+					/* set and echo */
+					fTractionList[dex++].SetValues(ElementSupport(), side_set(j,0), side_set (j,1), LTf[i],
+						 coord_sys[i], loc_node_nums, values[i]);
+				}
+			}
+		}
+
+		/* check coordinate system specifications */
+		if (NumSD() != NumDOF())
+			for (int i = 0; i < fTractionList.Length(); i++)
+				if (fTractionList[i].CoordSystem() != Traction_CardT::kCartesian)
+					ExceptionT::BadInputValue(caller, "coordinate system must be Cartesian if (nsd != ndof) for card %d", i+1);
+	}
+}
+
 void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 {
 	const char caller[] = "ContinuumElementT::EchoTractionBC";
@@ -1192,7 +1323,7 @@ ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
 		coord_sys.SetDefault(Traction_CardT::kCartesian);
 		natural_bc->AddParameter(coord_sys);
 
-		natural_bc->AddSub("Double", ParameterListT::OnePlus); 		
+		natural_bc->AddSub("DoubleList", ParameterListT::OnePlus); 		
 		
 		return natural_bc;
 	}
@@ -1346,17 +1477,8 @@ void ContinuumElementT::TakeParameterList(const ParameterListT& list)
 			fBody[i] = body_force_vector[i].GetParameter("value");
 	}
 	
-#pragma message("finish me")
-#if 0
-	/* output print specifications */
-	EchoOutputCodes(in, out);
-
-	/* body force specification (non virtual) */
-	EchoBodyForce(in, out);
-	
-	/* echo traction B.C.'s (non virtual) */
-	EchoTractionBC(in, out);
-#endif
+	/* extract natural boundary conditions */
+	TakeNaturalBC(list);
 }
 
 /* extract the list of material parameters */
