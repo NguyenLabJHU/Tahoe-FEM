@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: regression.csh.template,v 1.6 2002-03-12 19:05:42 paklein Exp $
+# $Id: regression.csh.template,v 1.7 2002-03-15 19:36:04 paklein Exp $
 
 # username on Tahoe server
 set TAHOE_USER =
@@ -19,7 +19,7 @@ setenv ACCESS
 ######### hopefully no changes will be required below #########
 
 # set path
-set path=(/bin /usr/bin /usr/local/bin /usr/ccs/bin /usr/sbin /usr/local/ssh /usr/ucb /etc /project/local/bin $path)
+set path=(/bin /usr/bin /usr/local/bin /usr/ccs/bin /usr/sbin /usr/local/ssh /usr/ucb /etc /usr/openwin/bin /project/local/bin $path)
 
 # CVS
 setenv CVSROOT ${TAHOE_USER}@tahoe.ca.sandia.gov:/usr/local/cvsrep
