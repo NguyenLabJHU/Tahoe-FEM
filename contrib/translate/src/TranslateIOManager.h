@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.h,v 1.6 2002-02-13 18:08:32 sawimme Exp $ */
+/* $Id: TranslateIOManager.h,v 1.7 2002-02-18 09:44:07 paklein Exp $ */
 
 #ifndef _TRANSLATE_IOMANAGER_H_
 #define _TRANSLATE_IOMANAGER_H_
@@ -71,6 +71,7 @@ class TranslateIOManager
   OutputBaseT* fOutput;
   iArrayT fOutputID;
 
+  dArray2DT fCoordinates;
   iArrayT fNodeMap; // not stored in ModelManager
   ArrayT<iArray2DT> fGlobalSideSets; 
   // need to store here instead of in ModelManager so that they are all global
