@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.h,v 1.6.12.2 2004-04-01 08:35:05 paklein Exp $ */
+/* $Id: PenaltyRegionT.h,v 1.6.12.3 2004-04-04 03:05:58 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #ifndef _PENALTY_REGION_T_H_
@@ -94,16 +94,6 @@ private:
 	virtual void ComputeContactForce(double kforce) = 0;
 
 protected:
-
-#if 0
-	/** \name references to data from the associated FieldT */
-	/*@{*/
-	const iArray2DT* fEqnos;  /**< nodal equation numbers */
-	const dArray2DT* fCoords; /**< nodal coordinates */
-	const dArray2DT* fDisp;   /**< nodal displacement */
-	const dArray2DT* fVels;   /**< nodal velocities */
-	/*@}*/
-#endif
 
 	/** \name wall input parameters */
 	/*@{*/
