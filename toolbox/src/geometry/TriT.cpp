@@ -1,4 +1,4 @@
-/* $Id: TriT.cpp,v 1.7 2005-01-30 00:38:53 paklein Exp $ */
+/* $Id: TriT.cpp,v 1.8 2005-03-02 02:27:14 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "TriT.h"
 #include "QuadT.h"
@@ -32,8 +32,10 @@ void TriT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
 	/* coordinates */	
 	double r = coords[0];
 	double s = coords[1];
+#if 0
 	if (r < 0.0 || r > 1.0) ExceptionT::OutOfRange(caller);
 	if (s < 0.0 || s > 1.0) ExceptionT::OutOfRange(caller);
+#endif
 
 	/* shape functions */
 	Na[0] = r;
@@ -57,8 +59,10 @@ void TriT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT&
 	/* coordinates */	
 	double r = coords[0];
 	double s = coords[1];
+#if 0
 	if (r < 0.0 || r > 1.0) ExceptionT::OutOfRange(caller);
 	if (s < 0.0 || s > 1.0) ExceptionT::OutOfRange(caller);
+#endif
 
 	/* shape functions */
 	Na[0] = r;

@@ -1,4 +1,4 @@
-/* $Id: QuadT.cpp,v 1.15 2005-01-26 19:52:10 paklein Exp $ */
+/* $Id: QuadT.cpp,v 1.16 2005-03-02 02:27:14 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "QuadT.h"
 #include <math.h>
@@ -28,19 +28,21 @@ QuadT::QuadT(int numnodes): GeometryBaseT(numnodes, kNumVertexNodes) { }
 /* evaluate the shape functions and gradients. */
 void QuadT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
 {
+	const char caller[] = "QuadT::EvaluateShapeFunctions";
+
 #if __option(extended_errorcheck)
 	if (coords.Length() != 2 ||
-	        Na.Length() != fNumNodes) throw ExceptionT::kSizeMismatch;
+	        Na.Length() != fNumNodes) ExceptionT::SizeMismatch(caller);
 	if (fNumNodes < kNumVertexNodes && 
-	    fNumNodes > 9) throw ExceptionT::kGeneralFail;
+	    fNumNodes > 9) ExceptionT::GeneralFail(caller);
 #endif
 
 	/* coordinates */	
 	double r = coords[0];
 	double s = coords[1];
 #if 0
-	if (r < -1.0 || r > 1.0) throw ExceptionT::kOutOfRange;
-	if (s < -1.0 || s > 1.0) throw ExceptionT::kOutOfRange;
+	if (r < -1.0 || r > 1.0) ExceptionT::OutOfRange(caller);
+	if (s < -1.0 || s > 1.0) ExceptionT::OutOfRange(caller);
 #endif
 
 	/* destinations */
@@ -114,21 +116,23 @@ void QuadT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
 /* evaluate the shape functions and gradients. */
 void QuadT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT& DNa) const
 {
+	const char caller[] = "HexahedronT::EvaluateShapeFunctions";
+
 #if __option(extended_errorcheck)
 	if (coords.Length() != 2 ||
 	        Na.Length() != fNumNodes ||
 	     DNa.MajorDim() != 2 ||
-	     DNa.MinorDim() != fNumNodes) throw ExceptionT::kSizeMismatch;
+	     DNa.MinorDim() != fNumNodes) ExceptionT::SizeMismatch(caller);
 	if (fNumNodes < kNumVertexNodes && 
-	    fNumNodes > 9) throw ExceptionT::kGeneralFail;
+	    fNumNodes > 9) ExceptionT::GeneralFail(caller);
 #endif
 
 	/* coordinates */	
 	double r = coords[0];
 	double s = coords[1];
 #if 0
-	if (r < -1.0 || r > 1.0) throw ExceptionT::kOutOfRange;
-	if (s < -1.0 || s > 1.0) throw ExceptionT::kOutOfRange;
+	if (r < -1.0 || r > 1.0) ExceptionT::OutOfRange(caller, "r = %15.12e", r);
+	if (s < -1.0 || s > 1.0) ExceptionT::OutOfRange(caller, "s = %15.12e", s);
 #endif
 
 	/* destinations */

@@ -1,4 +1,4 @@
-/* $Id: TetrahedronT.cpp,v 1.7 2004-10-05 17:20:57 paklein Exp $ */
+/* $Id: TetrahedronT.cpp,v 1.8 2005-03-02 02:27:14 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "TetrahedronT.h"
 #include "QuadT.h"
@@ -34,9 +34,11 @@ void TetrahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) co
 	double r = coords[0];
 	double s = coords[1];
 	double t = coords[2];
+#if 0
 	if (r < 0.0 || r > 1.0) ExceptionT::OutOfRange(caller);
 	if (s < 0.0 || s > 1.0) ExceptionT::OutOfRange(caller);
 	if (t < 0.0 || t > 1.0) ExceptionT::OutOfRange(caller);
+#endif
 
 	if (fNumNodes == 4)
 	{
@@ -84,9 +86,11 @@ void TetrahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dA
 	double r = coords[0];
 	double s = coords[1];
 	double t = coords[2];
+#if 0
 	if (r < 0.0 || r > 1.0) ExceptionT::OutOfRange(caller);
 	if (s < 0.0 || s > 1.0) ExceptionT::OutOfRange(caller);
 	if (t < 0.0 || t > 1.0) ExceptionT::OutOfRange(caller);
+#endif
 
 	if (fNumNodes == 4)
 	{

@@ -1,4 +1,4 @@
-/* $Id: HexahedronT.cpp,v 1.7 2005-01-30 00:38:53 paklein Exp $ */
+/* $Id: HexahedronT.cpp,v 1.8 2005-03-02 02:27:14 paklein Exp $ */
 /* created: paklein (10/22/1997) */
 #include "HexahedronT.h"
 #include <math.h>
@@ -43,9 +43,11 @@ void HexahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) con
 	double r = coords[0];
 	double s = coords[1];
 	double t = coords[2];
+#if 0
 	if (r < -1.0 || r > 1.0) ExceptionT::OutOfRange(caller);
 	if (s < -1.0 || s > 1.0) ExceptionT::OutOfRange(caller);
 	if (t < -1.0 || t > 1.0) ExceptionT::OutOfRange(caller);
+#endif
 
 	/* vertex nodes */
 	double* na  = Na.Pointer();
@@ -189,22 +191,26 @@ void HexahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) con
 void HexahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
 	dArray2DT& DNa) const
 {
+	const char caller[] = "HexahedronT::EvaluateShapeFunctions";
+
 #if __option(extended_errorcheck)
 	if (coords.Length() != 3 ||
 	        Na.Length() != fNumNodes ||
 	     DNa.MajorDim() != 3 ||
-	     DNa.MinorDim() != fNumNodes) throw ExceptionT::kSizeMismatch;
+	     DNa.MinorDim() != fNumNodes) ExceptionT::SizeMismatch(caller);
 	if (fNumNodes != kNumVertexNodes && 
-	    fNumNodes != 20) throw ExceptionT::kGeneralFail;
+	    fNumNodes != 20) ExceptionT::GeneralFail(caller);
 #endif
 
 	/* coordinates */	
 	double r = coords[0];
 	double s = coords[1];
 	double t = coords[2];
-	if (r < -1.0 || r > 1.0) throw ExceptionT::kOutOfRange;
-	if (s < -1.0 || s > 1.0) throw ExceptionT::kOutOfRange;
-	if (t < -1.0 || t > 1.0) throw ExceptionT::kOutOfRange;
+#if 0
+	if (r < -1.0 || r > 1.0) ExceptionT::OutOfRange(caller, "r = %15.12e", r);
+	if (s < -1.0 || s > 1.0) ExceptionT::OutOfRange(caller, "s = %15.12e", s);
+	if (t < -1.0 || t > 1.0) ExceptionT::OutOfRange(caller, "t = %15.12e", t);
+#endif
 
 	/* vertex nodes */
 	double* na  = Na.Pointer();
@@ -1057,7 +1063,7 @@ bool HexahedronT::PointInDomain(const LocalArrayT& coords, const dArrayT& point)
 		double ac_ab_1 = ac_2*ab_0 - ac_0*ab_2;
 		double ac_ab_2 = ac_0*ab_1 - ac_1*ab_0;			
 		double triple_product = ac_ab_0*ap_0 + ac_ab_1*ap_1 + ac_ab_2*ap_2;
-		in_domain = triple_product >= 0.0;
+		in_domain = triple_product > -kSmall;
 
 		/* facet 2 */
 		if (in_domain) {
@@ -1079,7 +1085,7 @@ bool HexahedronT::PointInDomain(const LocalArrayT& coords, const dArrayT& point)
 			ac_ab_1 = ac_2*ab_0 - ac_0*ab_2;
 			ac_ab_2 = ac_0*ab_1 - ac_1*ab_0;			
 			triple_product = ac_ab_0*ap_0 + ac_ab_1*ap_1 + ac_ab_2*ap_2;
-			in_domain = triple_product >= 0.0;
+			in_domain = triple_product > -kSmall;
 		}
 		
 		facet_nodes += 4;
