@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2004-10-31 17:06:31 paklein Exp $
+# $Id: makefile,v 1.2 2004-11-12 21:00:03 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,7 +21,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-FSSolidMixtureT.o
+FSSolidMixtureT.o \
+MixtureSpeciesT.o \
+UpdatedLagMixtureT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -41,7 +43,9 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-FSSolidMixtureT.cpp
+FSSolidMixtureT.cpp \
+MixtureSpeciesT.cpp \
+UpdatedLagMixtureT.cpp
 
 ##################### (3) headers
 #
@@ -53,7 +57,9 @@ FSSolidMixtureT.cpp
 # HDR and HDR_LINK macro   
 #
 HDR = \
-FSSolidMixtureT.h
+FSSolidMixtureT.h \
+MixtureSpeciesT.h \
+UpdatedLagMixtureT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
