@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.16.2.4 2002-05-03 09:51:21 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.16.2.5 2002-05-11 20:56:53 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "ContinuumElementT.h"
@@ -617,6 +617,30 @@ void ContinuumElementT::SurfaceNodes(iArrayT& surface_nodes) const
 * Protected
 ***********************************************************************/
 
+/* stream extraction operator */
+istream& operator>>(istream& in, ContinuumElementT::MassTypeT& type)
+{
+	int i_type;
+	in >> i_type;
+	switch (i_type)
+	{
+		case ContinuumElementT::kNoMass:
+			type = ContinuumElementT::kNoMass;
+			break;
+		case ContinuumElementT::kConsistentMass:
+			type = ContinuumElementT::kConsistentMass;
+			break;
+		case ContinuumElementT::kLumpedMass:
+			type = ContinuumElementT::kLumpedMass;
+			break;
+		default:
+			cout << "\n ContinuumElementT::MassTypeT: unknown type: "
+			<< i_type<< endl;
+			throw eBadInputValue;	
+	}
+	return in;
+}
+
 /* initialize local arrays */
 void ContinuumElementT::SetLocalArrays(void)
 {
@@ -933,37 +957,56 @@ void ContinuumElementT::AddBodyForce(LocalArrayT& body_force) const
 }
 
 /* calculate the body force contribution */
-void ContinuumElementT::FormMa(int mass_type, double constM, const LocalArrayT& body_force)
+void ContinuumElementT::FormMa(MassTypeT mass_type, double constM, 
+	const LocalArrayT* nodal_values,
+	const dArray2DT* ip_values)
 {
+	/* quick exit */
+	if (!nodal_values && !ip_values) return;
+
+#if __option(extended_errorcheck)
+	/* dimension checks */
+	if (nodal_values && 
+		fRHS.Length() != nodal_values->Length()) 
+		throw eSizeMismatch;
+
+	if (ip_values &&
+		(ip_values->MajorDim() != fShapes->NumIP() ||
+		 ip_values->MinorDim() != NumDOF()))
+		throw eSizeMismatch;
+#endif
+
 	switch (mass_type)
 	{
-		case kConsistentMass:	
+		case kConsistentMass:
 		{
-#if __option(extended_errorcheck)
-			if (fRHS.Length() != body_force.Length()) throw eSizeMismatch;
-#endif
 			int ndof = NumDOF();
-			int nen = body_force.NumberOfNodes();
+			int  nen = NumElementNodes();
 
 			const double* Det    = fShapes->IPDets();
 			const double* Weight = fShapes->IPWeights();
 
 			fShapes->TopIP();
-			while ( fShapes->NextIP() )
+			while (fShapes->NextIP())
 			{					
-				/* integration point accelerations */
-				fShapes->InterpolateU(body_force, fDOFvec);
+				/* interpolate nodal values to ip */
+				if (nodal_values)
+					fShapes->InterpolateU(*nodal_values, fDOFvec);
+					
+				/* ip sources */
+				if (ip_values)
+					fDOFvec -= (*ip_values)(fShapes->CurrIP());
 
 				/* accumulate in element residual force vector */				
 				double*	res      = fRHS.Pointer();
 				const double* Na = fShapes->IPShapeU();
-
+				
 				double temp = constM*(*Weight++)*(*Det++);				
 				for (int lnd = 0; lnd < nen; lnd++)
 				{
-					double  temp2 = temp*(*Na++);
-					double*  pacc = fDOFvec.Pointer();
-					
+					double temp2 = temp*(*Na++);
+					double* pacc = fDOFvec.Pointer();
+
 					for (int dof = 0; dof < ndof; dof++)			
 						*res++ += temp2*(*pacc++);
 				}
@@ -972,28 +1015,28 @@ void ContinuumElementT::FormMa(int mass_type, double constM, const LocalArrayT& 
 		}	
 		case kLumpedMass:
 		{
-			//cout << "\n ContinuumElementT::FormMa: inertial forces with lumped mass not supported";
-			//cout << endl;
-			//throw eGeneralFail;
-			
-			//for now, no inertial force for lumped mass
-			//but should probably generalize the FormMass and
-			//FormStiffness routines by passing in a target object
-			//in which to place the data
-
-#if __option(extended_errorcheck)
-			if (fLHS.Rows() != body_force.Length()) throw eSizeMismatch;
-#endif
-			
 			fLHS = 0.0; //hope there's nothing in there!
 			FormMass(kLumpedMass, constM);
-			body_force.ReturnTranspose(fNEEvec);
+
+			/* init nodal values */
+			if (nodal_values)
+				nodal_values->ReturnTranspose(fNEEvec);
+			else {
+				cout << "\n ContinuumElementT::FormMa: expecting nodal values for lumped mass" << endl;
+				throw eGeneralFail;
+			}
+				
+//TEMP - what to do with ip values?
+if (ip_values) {
+	cout << "\n ContinuumElementT::FormMa: lumped mass not implemented for ip sources" << endl;
+	throw eGeneralFail;
+}
 
 			double* pAcc = fNEEvec.Pointer();
 			double* pRes = fRHS.Pointer();
 			int     massdex = 0;
 			
-			int nee = body_force.Length();
+			int nee = nodal_values->Length();
 			for (int i = 0; i < nee; i++)
 			{
 				*pRes++ += (*pAcc++)*fLHS(massdex,massdex);
