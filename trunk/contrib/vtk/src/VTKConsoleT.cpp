@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.7 2001-10-01 18:17:34 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.8 2001-10-01 22:42:05 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "vtkRenderer.h"
@@ -59,6 +59,7 @@ VTKConsoleT::VTKConsoleT(void)
   iAddCommand("X_axis_rotation");
   iAddCommand("Y_axis_rotation");
   iAddCommand("Z_axis_rotation");
+  iAddCommand("Flip_book");
  
 
    StringT file = "../../example_files/heat/heat.io0.exo";
@@ -71,8 +72,8 @@ VTKConsoleT::VTKConsoleT(void)
 	  cout << " ERROR: could not open file: " << file << endl;
 	  throw;
 	}
- //  else
-// 	cout << "read database file: " << file << endl;
+  else
+	cout << "read database file: " << file << endl;
 
 
 
@@ -121,6 +122,7 @@ VTKConsoleT::VTKConsoleT(void)
 
 /* look for results data */
   int num_time_steps = exo.NumTimeSteps();
+  double time;
   //if (num_time_steps > 0)
   //	{
 	  /* variables defined at the nodes */
@@ -144,13 +146,19 @@ VTKConsoleT::VTKConsoleT(void)
 	  dArray2DT nodal_data(num_nodes, num_node_variables);
 	  dArrayT ndata(num_nodes);
 
+// 	  for (int i=0; i<num_time_steps; i++) 
+// 	    {
+// 	      scalars[i] =  vtkScalars::New(VTK_DOUBLE);
+// 	    }
+
+
 	  if (num_time_steps > 0)
 	    {
 	      for (int i = 0; i < num_time_steps; i++)
 		{
-		  double time;
+		  //  double time;
 		  exo.ReadTime(i+1, time);
-		  
+		  scalars[i] =  vtkScalars::New(VTK_DOUBLE);
 		  
 		  /* loop over variables */
 		  for (int j = 0; j < num_node_variables; j++)
@@ -158,7 +166,7 @@ VTKConsoleT::VTKConsoleT(void)
 		      exo.ReadNodalVariable(i+1, j+1, ndata);
 		      nodal_data.SetColumn(j, ndata);
 		    }
-		  
+		  for (int k = 0; k<num_nodes; k++) scalars[i]->InsertScalar(k+1, nodal_data[k]);
 // 		  cout << " time: " << time << endl;
 // 		  cout << " nodal data:\n" << nodal_data << endl;
 		}
@@ -224,13 +232,47 @@ VTKConsoleT::VTKConsoleT(void)
  /* insert cells in the grid */
  //  vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
  ugrid->SetCells(cell_types.Pointer(), vtk_cell_array);
+ 
+//  vtkScalars *scalars = vtkScalars::New(VTK_DOUBLE);
+//  for (int i=0; i<num_nodes; i++) scalars->InsertScalar(i+1,nodal_data[i]);
+ 
 
-  vtkScalars *scalars = vtkScalars::New(VTK_DOUBLE);
-  for (int i=0; i<num_nodes; i++) scalars->InsertScalar(i+1,nodal_data[i]);
+ /* moved up above  */
+//  for (int i=0; i<num_time_steps; i++) 
+//    {
+//      scalars[i] =  vtkScalars::New(VTK_DOUBLE);
+//    }
+
+
+//  if (num_time_steps > 0)
+// 	    {
+// 	      for (int i = 0; i < num_time_steps; i++)
+// 		{
+// 		  // double time;
+// 		  exo.ReadTime(i+1, time);
+		  
+		  
+// 		  /* loop over variables */
+// 		  for (int j = 0; j < num_node_variables; j++)
+// 		    {
+// 		      exo.ReadNodalVariable(i+1, j+1, ndata);
+// 		      nodal_data.SetColumn(j, ndata);
+// 		    }
+		  
+// 		  for (int k = 0; k<num_nodes; k++) scalars[i]->InsertScalar(k+1, nodal_data[k]);
+// 		}
+// 	    }
+		  
+
+
+
+
+
+
 
   ugrid->SetPoints(points);
   points->Delete();
-  ugrid->GetPointData()->SetScalars(scalars);
+  ugrid->GetPointData()->SetScalars(scalars[0]);
 
 
   source_file = "../../example_files/heat/data_file1.vtk";
@@ -241,7 +283,7 @@ VTKConsoleT::VTKConsoleT(void)
   satRange1 = 1; satRange2 = 1;
   alphaRange1 = 1; alphaRange2 = 1;
   scalarRange1 = 6; scalarRange2 = 17;
-  ugr = vtkUnstructuredGridReader::New();
+  // ugr = vtkUnstructuredGridReader::New();
   renderer = vtkRenderer::New();
   renWin = vtkRenderWindow::New();
   iren = vtkRenderWindowInteractor::New();
@@ -257,7 +299,7 @@ VTKConsoleT::VTKConsoleT(void)
   ldm = vtkLabeledDataMapper::New();
   pointLabels = vtkActor2D::New();
   
-  ugr->SetFileName(source_file);
+  // ugr->SetFileName(source_file);
 
   renWin->AddRenderer(renderer);
  
@@ -291,7 +333,7 @@ VTKConsoleT::VTKConsoleT(void)
   renWin->SetSize(600, 700);
 
   scalarBar->SetLookupTable(ugridMapper->GetLookupTable());
-  scalarBar->SetTitle("Temperature for time .50000");
+  scalarBar->SetTitle("Temperature for time .5000");
   scalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
   scalarBar->GetPositionCoordinate()->SetValue(0.1,0.01);
   scalarBar->SetOrientationToHorizontal();
@@ -342,6 +384,8 @@ double xRot, yRot, zRot;
       satRange1 = 1; satRange2 = 1;
       alphaRange1 = 1; alphaRange2 = 1;
       scalarRange1 = 6; scalarRange2 = 17;
+      renWin->Render();
+      iren->Start();
       return true;
     }
 
@@ -449,6 +493,37 @@ double xRot, yRot, zRot;
       return true;
     }
 
+  else if (command == "Flip_book")
+    {
+      time_t start_time, cur_time;
+      double timeStep;
+      cout << "Enter time step: ";
+      cin >> timeStep;
+      char line[255];
+      cin.getline(line, 254);
+      
+      for (int j=2; j<12; j++){
+	time(&start_time);    
+	if (j % 2 == 0) {
+	  do {
+	    time(&cur_time);
+	    ugrid->GetPointData()->SetScalars(scalars[0]);
+	    renWin->Render();
+	  } while((cur_time - start_time) < timeStep);
+	}
+	else {
+	  do {
+	    time(&cur_time);
+	    ugrid->GetPointData()->SetScalars(scalars[1]);
+	    renWin->Render();
+	  } while((cur_time - start_time) < timeStep);
+	}
+      }
+
+      renWin->Render();
+      iren->Start();
+      return true;
+    }
 
 
 

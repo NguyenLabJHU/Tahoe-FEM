@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.h,v 1.5 2001-09-28 21:36:36 recampb Exp $ */
+/* $Id: VTKConsoleT.h,v 1.6 2001-10-01 22:42:05 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -24,6 +24,7 @@ class vtkIdFilter;
 class vtkSelectVisiblePoints;
 class vtkLabeledDataMapper;
 class vtkActor2D;
+class vtkScalars;
 
 
 class VTKConsoleT: public iConsoleObjectT
@@ -61,7 +62,8 @@ class VTKConsoleT: public iConsoleObjectT
   vtkLabeledDataMapper *ldm;
   vtkActor2D *pointLabels;
   vtkUnstructuredGrid *ugrid;  
-
+  /* vtkScalars *scalars[num_time_steps]; */
+  vtkScalars *scalars[10000];
 
 };
 
