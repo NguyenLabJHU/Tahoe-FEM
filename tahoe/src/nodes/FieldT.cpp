@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.35 2004-09-14 18:19:06 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.36 2004-09-16 16:50:23 paklein Exp $ */
 #include "FieldT.h"
 
 #include "ifstreamT.h"
@@ -847,6 +847,7 @@ void FieldT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& or
 		sub_lists.AddSub("wall_penalty");
 		sub_lists.AddSub("wall_augmented_Lagrangian");
 		sub_lists.AddSub("cylinder_penalty");
+		sub_lists.AddSub("cylinder_augmented_Lagrangian");
 		sub_lists.AddSub("augmented_Lagrangian_KBC_meshfree");
 	}
 	else /* inherited */
