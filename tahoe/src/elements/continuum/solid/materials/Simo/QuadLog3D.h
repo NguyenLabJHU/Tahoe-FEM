@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.h,v 1.3 2001-05-04 19:12:46 paklein Exp $ */
+/* $Id: QuadLog3D.h,v 1.4 2001-07-03 01:35:14 paklein Exp $ */
 /* created: paklein (06/27/1997)                                          */
 /* Hyperelastic material governed by quadratic logarithmic potential.     */
 
@@ -15,7 +15,7 @@ class QuadLog3D: public FDStructMatT, public IsotropicT
 public:
 
 	/* constructor */
-	QuadLog3D(ifstreamT& in, const ElasticT& element);
+	QuadLog3D(ifstreamT& in, const FiniteStrainT& element);
 	
 	/* print parameters */
 	virtual void Print(ostream& out) const;
@@ -51,7 +51,10 @@ protected:
 	/* spectral decomposition solver */
 	SpectralDecompT fSpectral;
 
-	/* return value */
+	/* left stretch */
+	dSymMatrixT fb;
+
+	/* return values */
 	dSymMatrixT	fStress;
 	dMatrixT	fModulus;
 

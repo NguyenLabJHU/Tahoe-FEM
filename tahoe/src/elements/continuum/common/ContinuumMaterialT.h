@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.h,v 1.2 2001-02-20 00:23:20 paklein Exp $ */
+/* $Id: ContinuumMaterialT.h,v 1.3 2001-07-03 01:35:41 paklein Exp $ */
 /* created: paklein (11/20/1996)                                          */
 /* Defines the interface for continuum materials.                         */
 
@@ -32,8 +32,9 @@ public:
 	/* element information */
 	const ContinuumElementT& ContinuumElement(void) const;
 
-	/* number of nodal degrees of freedom */
+	/* dimensions */
 	int NumDOF(void) const;
+	int NumSD(void) const;
 
 	/* integration information */
 	int NumIP(void) const;
@@ -80,6 +81,7 @@ protected:
 	
 	/* nodal degrees of freedom */
 	int fNumDOF;
+	int fNumSD;
 	
 	/* integration point info */
 	int fNumIP;
@@ -88,6 +90,7 @@ protected:
 
 /* inlines */
 inline int ContinuumMaterialT::NumDOF(void) const { return fNumDOF; }
+inline int ContinuumMaterialT::NumSD(void) const { return fNumSD; }
 inline int ContinuumMaterialT::NumIP(void) const { return fNumIP; }
 inline int ContinuumMaterialT::CurrIP(void) const { return fCurrIP; }
 inline const ContinuumElementT& ContinuumMaterialT::ContinuumElement(void) const

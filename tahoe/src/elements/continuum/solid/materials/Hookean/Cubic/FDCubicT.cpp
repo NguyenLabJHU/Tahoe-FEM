@@ -1,12 +1,12 @@
-/* $Id: FDCubicT.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: FDCubicT.cpp,v 1.2 2001-07-03 01:35:06 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #include "FDCubicT.h"
 
 /* constructor */
-FDCubicT::FDCubicT(ifstreamT& in, const ElasticT& element):
+FDCubicT::FDCubicT(ifstreamT& in, const FiniteStrainT& element):
 	FDHookeanMatT(in, element),
-	CubicT(in, fModulus)
+	CubicT(in)
 {
 
 }
@@ -19,14 +19,20 @@ void FDCubicT::Print(ostream& out) const
 	CubicT::Print(out);
 }
 
-/*************************************************************************
-* Protected
-*************************************************************************/
-
 /* print name */
 void FDCubicT::PrintName(ostream& out) const
 {
 	/* inherited */
 	FDHookeanMatT::PrintName(out);
 	CubicT::PrintName(out);
+}
+
+/*************************************************************************
+* Protected
+*************************************************************************/
+
+/* set modulus */
+void FDCubicT::SetModulus(dMatrixT& modulus)
+{
+	CubicT::ComputeModuli(modulus);
 }

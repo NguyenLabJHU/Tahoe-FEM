@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.2 2001-07-03 01:35:17 paklein Exp $ */
 /* created: paklein (10/18/1998)                                          */
 /* VIB plus principal stretch elasticity                                  */
 /* Interface for a elastoplastic material that is linearly                */
@@ -16,7 +16,6 @@
 #include <math.h>
 #include "Constants.h"
 
-#include "ElasticT.h"
 #include "iArrayT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
@@ -59,12 +58,10 @@ const int kNumOutput = 4;
 static const char* Labels[kNumOutput] = {"s_max", "s_min", "VM stress", "alpha"};
 
 /* constructor */
-J2IsoVIB2DLinHardT::J2IsoVIB2DLinHardT(ifstreamT& in, const ElasticT& element):
+J2IsoVIB2DLinHardT::J2IsoVIB2DLinHardT(ifstreamT& in, const FiniteStrainT& element):
 	IsoVIB3D(in, element),
 	Material2DT(in, kPlaneStrain),
 	J2PrimitiveT(in),
-
-	fLocLastDisp(element.LastDisplacements()),
 
 //TEMP
 	fEigs(kNSD),
@@ -91,14 +88,6 @@ J2IsoVIB2DLinHardT::J2IsoVIB2DLinHardT(ifstreamT& in, const ElasticT& element):
 	fStress2D(2),
 	fb_2D(2)
 {
-	/* check last displacements */
-	if (!fLocLastDisp.IsRegistered() ||
-		 fLocLastDisp.MinorDim() != NumDOF())
-	{
-		cout << "\n J2IsoVIB2DLinHardT::J2IsoVIB2DLinHardT: last local displacement vector is invalid" << endl;
-		throw eGeneralFail;
-	}
-
 	/* 2D */
 	fDensity *= fThickness;
 }
@@ -517,7 +506,7 @@ void J2IsoVIB2DLinHardT::ComputeGradients(void)
 {
 	/* compute relative displacement */
 	fFtot_2D = F();
-	fF_temp.Inverse( F(fLocLastDisp) );
+	fF_temp.Inverse(F_last());
 	ffrel_2D.MultAB(fFtot_2D,fF_temp);
 
 	/* 2D -> 3D */

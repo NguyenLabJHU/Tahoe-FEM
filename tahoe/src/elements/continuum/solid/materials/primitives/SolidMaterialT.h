@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.2 2001-07-03 01:35:42 paklein Exp $ */
 /* created: paklein (11/20/1996)                                          */
 /* Defines the interface for elastic continuum materials.                 */
 
@@ -23,38 +23,45 @@ class dSymMatrixT;
 class LocalArrayT;
 class ElasticT;
 
+/** base class for constitutive models for solids */
 class SolidMaterialT: public ContinuumMaterialT
 {
 public:
 
-	/* constructor */
-	SolidMaterialT(ifstreamT& in, const ElasticT& element);
+	/** constructor */
+	SolidMaterialT(ifstreamT& in, const ContinuumElementT& element);
 
-	/* destructor */
+	/** destructor */
 	~SolidMaterialT(void);
 
-	/* print parameters */
+	/** write parameters */
 	virtual void Print(ostream& out) const;
 
 	/* spatial description */
-	virtual const dMatrixT& c_ijkl(void) = 0;	// spatial tangent moduli
-	virtual const dSymMatrixT& s_ij(void) = 0;	// Cauchy stress
+	virtual const dMatrixT& c_ijkl(void) = 0;  /**< spatial tangent modulus */
+	virtual const dSymMatrixT& s_ij(void) = 0; /**< Cauchy stress */
 
 	/* material description */
-	virtual const dMatrixT& C_IJKL(void) = 0;	// material tangent moduli
-	virtual const dSymMatrixT& S_IJ(void) = 0;	// PK2 stress
+	virtual const dMatrixT& C_IJKL(void) = 0;  /**< material tangent moduli */
+	virtual const dSymMatrixT& S_IJ(void) = 0; /**< 2nd Piola-Kirchhoff stress */
 
-	/* returns the strain energy density for the specified strain */
+	/** strain energy density */
 	virtual double StrainEnergyDensity(void) = 0;
 
-	/* return the acoustical tensor and wave speeds */
+	/** acoustical tensor.
+	 * \param normal wave propagation direction
+	 * \return acoustical tensor */
 	virtual const dSymMatrixT& AcousticalTensor(const dArrayT& normal) = 0;
+
+	/** acoustic wave speeds.
+	 * \param normal wave propagation direction
+	 * \param speeds the computed acoustic wave speeds */
 	void WaveSpeeds(const dArrayT& normal, dArrayT& speeds);
 
-	/* required parameter flags */
-	virtual bool NeedDisp(void) const;
-	virtual bool NeedLastDisp(void) const;
-	virtual bool NeedVel(void) const;
+	/* required parameter flags - all false by default */
+	virtual bool NeedDisp(void) const     { return false; };
+	virtual bool NeedLastDisp(void) const { return false; };
+	virtual bool NeedVel(void) const      { return false; };
 
 	/* returns true if the material has internal forces in the unloaded
 	 * configuration, ie thermal strains */
@@ -64,36 +71,34 @@ public:
 	int ThermalLTfNumber(void) const;
 	void SetThermalLTfPtr(const LoadTime* LTfPtr);
 	
-	//double& PlanarDilatationFactor(void);
-	//DEV - this is messy
-	
 	double ThermalElongation(void) const; //percentage
 		//wrapper functions exist to complete construction of fThermal
 		//w/o requiring the header file. For efficiency, actual communication
 		//with fThermal is done directly, and therefore requires the header
 	 	
-	/* returns the density */
+	/** \return mass density */
 	double Density(void) const;
 	
-	/* access to Rayleigh damping parameters */
+	/** Rayleigh damping. \return mass proportional damping coefficient */
 	double MassDamping(void) const;
+
+	/** Rayleigh damping. \return stiffness proportional damping coefficient */
 	double StiffnessDamping(void) const;
 
-	/* returns 1 if the strain localization conditions if satisfied,
-	 * .ie if the acoustic tensor has zero (or negative eigenvalues),
-	 * for the current conditions (current integration point and strain
-	 * state). If localization is detected, the normal (current config)
-	 * to the surface is returned in normal */
+	/** test for localization. check for bifurcation using current
+	 * Cauchy stress and the spatial tangent moduli.
+	 * \param normal orientation of the localization if localized
+	 * \return 1 if the determinant of the acoustical tensor is negative
+	 * or 0 if the determinant is positive. */
 	virtual int IsLocalized(dArrayT& normal);
 
 protected:
 
-//DEV
-//	dMatrixT fModuli;	
-	double   fDensity;
-
 	/* thermal */
 	ThermalDilatationT*	fThermal;
+
+	/* mass density */
+	double fDensity;
 
 private:	
 

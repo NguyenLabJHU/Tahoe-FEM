@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:38 paklein Exp $
+# $Id: makefile,v 1.5 2001-07-03 01:35:21 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,7 +7,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	IsoVIB3D.o \
-	IsoVIB3D_X.o \
 	J2IsoVIB3DLinHardT.o \
 	OgdenIsoVIB3D.o \
 	VIB3D.o
@@ -20,7 +19,6 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	IsoVIB3D.cpp \
-	IsoVIB3D_X.cpp \
 	J2IsoVIB3DLinHardT.cpp \
 	OgdenIsoVIB3D.cpp \
 	VIB3D.cpp
@@ -28,7 +26,6 @@ SRC = \
 # headers
 HDR = \
 	IsoVIB3D.h \
-	IsoVIB3D_X.h \
 	J2IsoVIB3DLinHardT.h \
 	OgdenIsoVIB3D.h \
 	VIB3D.h

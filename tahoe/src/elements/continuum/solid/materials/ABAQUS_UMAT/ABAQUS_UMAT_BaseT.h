@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.2 2001-07-03 01:34:58 paklein Exp $ */
 /* created: paklein (05/09/2000)                                          */
 /* NOTE: pick the base class for this based on the                        */
 /* weak form equations it's supposed to fit into                          */
@@ -33,10 +33,13 @@ class ABAQUS_UMAT_BaseT: public FDStructMatT
 public:
 
 	/* constructor */
-	ABAQUS_UMAT_BaseT(ifstreamT& in, const ElasticT& element);
+	ABAQUS_UMAT_BaseT(ifstreamT& in, const FiniteStrainT& element);
 
 	/* destructor */
 	~ABAQUS_UMAT_BaseT(void);
+
+	/** required parameter flags */
+	virtual bool Need_F_last(void) const { return true; };
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -55,11 +58,6 @@ public:
 	/* update/reset internal variables */
 	virtual void UpdateHistory(void); // per element
 	virtual void ResetHistory(void);  // per element
-
-	/* required parameter flags */
-	virtual bool NeedDisp(void) const;
-	virtual bool NeedLastDisp(void) const;
-	virtual bool NeedVel(void) const;
 
 	/* spatial description */
 	virtual const dMatrixT& c_ijkl(void);  // spatial tangent moduli
@@ -143,7 +141,6 @@ private:
 	//  expansion   (*EXPANSION)
 
 	/* work space */
-	const LocalArrayT& fLocLastDisp; // displacements from the last time step
 	dMatrixT    fModulus;            // return value
 	dSymMatrixT fStress;             // return value
 	dArrayT fIPCoordinates;          // integration point coordinates

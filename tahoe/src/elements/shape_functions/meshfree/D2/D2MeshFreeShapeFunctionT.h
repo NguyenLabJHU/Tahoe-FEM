@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeShapeFunctionT.h,v 1.2 2001-06-19 23:22:05 paklein Exp $ */
+/* $Id: D2MeshFreeShapeFunctionT.h,v 1.3 2001-07-03 01:35:52 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #ifndef _D2_MF_SHAPE_T_H_

@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.2 2001-05-09 17:27:27 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.3 2001-07-03 01:34:58 paklein Exp $ */
 /* created: paklein (05/14/2000)                                          */
 
 #include "ABAQUS_UMAT_BaseT.h"
@@ -10,17 +10,16 @@
 
 #include "fstreamT.h"
 #include "FEManagerT.h"
-#include "ElasticT.h"
-#include "ShapeFunctionT.h"
+#include "ContinuumElementT.h"
+
 #include "SpectralDecompT.h"
 #include "ThermalDilatationT.h"
 
 /* constructor */
-ABAQUS_UMAT_BaseT::	ABAQUS_UMAT_BaseT(ifstreamT& in, const ElasticT& element):
+ABAQUS_UMAT_BaseT::	ABAQUS_UMAT_BaseT(ifstreamT& in, const FiniteStrainT& element):
 	FDStructMatT(in, element),
 	fRunState(ContinuumElement().RunState()),
 	fTangentType(GlobalT::kSymmetric),
-	fLocLastDisp(element.LastDisplacements()),
 	fModulus(dSymMatrixT::NumValues(NumSD())),
 	fStress(NumSD()),
 	fIPCoordinates(NumSD()),
@@ -143,7 +142,7 @@ void ABAQUS_UMAT_BaseT::Initialize(void)
 		     <<   "    be handled within the UMAT\n" << endl;
 	
 	/* disable thermal transform */
-	SetFmodMult(NULL);	
+	//SetFmodMult(NULL);	
 }
 
 
@@ -208,11 +207,6 @@ void ABAQUS_UMAT_BaseT::ResetHistory(void)
 		Store(element, ip);
 	}
 }
-
-/* required parameter flags */
-bool ABAQUS_UMAT_BaseT::NeedDisp(void) const     { return true; }
-bool ABAQUS_UMAT_BaseT::NeedLastDisp(void) const { return true; }
-bool ABAQUS_UMAT_BaseT::NeedVel(void) const      { return false; }
 
 /* spatial description */
 const dMatrixT& ABAQUS_UMAT_BaseT::c_ijkl(void)
@@ -318,20 +312,22 @@ const dSymMatrixT& ABAQUS_UMAT_BaseT::s_ij(void)
 /* material description */
 const dMatrixT& ABAQUS_UMAT_BaseT::C_IJKL(void)
 {
-	/* set deformation gradient */
-	F();
+	/* spatial tangent moduli */
+	const dMatrixT& c = ABAQUS_UMAT_BaseT::c_ijkl();
 
-	/* transform */
-	return c_to_C(ABAQUS_UMAT_BaseT::c_ijkl());
+	/* spatial -> material */
+	fModulus.SetToScaled(F().Det(), PushForward(F(), c));	
+	return fModulus;
 }
 
 const dSymMatrixT& ABAQUS_UMAT_BaseT::S_IJ(void)
 {
-//NOTE: F(), the current deformation gradient must be the last
-//      one computed in s_ij()
+	/* Cauchy stress */
+	const dSymMatrixT& s = ABAQUS_UMAT_BaseT::s_ij();
 
-	/* transform */
-	return  s_to_S(ABAQUS_UMAT_BaseT::s_ij());
+	/* spatial -> material */
+	fStress.SetToScaled(F().Det(), PushForward(F(), s));	
+	return fStress;
 }
 
 /* returns the strain energy density for the specified strain */
@@ -908,15 +904,14 @@ void ABAQUS_UMAT_BaseT::Reset_UMAT_Increment(void)
 void ABAQUS_UMAT_BaseT::Set_UMAT_Arguments(void)
 {
 	/* integration point coordinates */
-	const ShapeFunctionT& shape_function = ShapeFunction();
-	shape_function.IPCoords(fIPCoordinates);	
+	ContinuumElement().IP_Coords(fIPCoordinates);	
 	fcoords[0] = doublereal(fIPCoordinates[0]);
 	fcoords[1] = doublereal(fIPCoordinates[1]);
 	if (NumSD() == 3)
 		fcoords[2] = doublereal(fIPCoordinates[2]);
 
 	/* deformation gradient at beginning of increment */
-	fA_nsd = F(fLocLastDisp);
+	fA_nsd = F_last();
 	dMatrixT_to_ABAQUS(fA_nsd, fdfgrd0);
 	
 	/* deformation gradient at end of increment */

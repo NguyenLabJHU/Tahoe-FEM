@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: DPSSKStV.h,v 1.2 2001-07-03 01:35:30 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 #ifndef _DP_SS_KSTV_H_
@@ -6,19 +6,22 @@
 
 /* base classes */
 #include "SSStructMatT.h"
-#include "KStV.h"
+#include "IsotropicT.h"
 #include "HookeanMatT.h"
 #include "DPSSLinHardT.h"
 
 class DPSSKStV: public SSStructMatT,
-				public KStV,
+				public IsotropicT,
 				public HookeanMatT,
 				public DPSSLinHardT
 {
 public:
 
 	/* constructor */
-	DPSSKStV(ifstreamT& in, const ElasticT& element);
+	DPSSKStV(ifstreamT& in, const SmallStrainT& element);
+
+	/* initialization */
+	virtual void Initialize(void);
 
 	/* form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -48,14 +51,16 @@ public:
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
 
+protected:
+
+	/* set modulus */
+	virtual void SetModulus(dMatrixT& modulus);
+
 private:
 
 	/* return values */
 	dSymMatrixT	fStress;
 	dMatrixT	fModulus;
-
-	/* elastic modulus */
-	dMatrixT    fElasticModulus;
 };
 
 #endif /* _DP_SS_KSTV_H_ */

@@ -1,4 +1,4 @@
-/* $Id: SSKStV2D.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: SSKStV2D.cpp,v 1.2 2001-07-03 01:35:11 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "SSKStV2D.h"
@@ -10,27 +10,20 @@ const int kNumOutput = 3;
 static const char* Labels[kNumOutput] = {"phi", "J2_dev", "p"};
 
 /* constructor */
-SSKStV2D::SSKStV2D(ifstreamT& in, const ElasticT& element):
-	SSHookeanMatT(in, element),
-	KStV2D(in, fModulus, fDensity)
+SSKStV2D::SSKStV2D(ifstreamT& in, const SmallStrainT& element):
+	SSKStV(in, element),
+	Material2DT(in)
 {
-
+	/* account for thickness */
+	fDensity *= fThickness;
 }
 
 /* print parameters */
 void SSKStV2D::Print(ostream& out) const
 {
 	/* inherited */
-	SSHookeanMatT::Print(out);
-	KStV2D::Print(out);
-}
-
-/* print name */
-void SSKStV2D::PrintName(ostream& out) const
-{
-	/* inherited */
-	SSHookeanMatT::PrintName(out);
-	KStV2D::PrintName(out);
+	SSKStV::Print(out);
+	Material2DT::Print(out);
 }
 
 /* returns the number of variables computed for nodal extrapolation
@@ -74,6 +67,17 @@ void SSKStV2D::ComputeOutput(dArrayT& output)
 }
 
 /*************************************************************************
+* Protected
+*************************************************************************/
+
+/* set (material) tangent modulus */
+void SSKStV2D::SetModulus(dMatrixT& modulus)
+{
+	IsotropicT::ComputeModuli2D(modulus, fConstraintOption);
+	modulus *= fThickness;
+}
+
+/*************************************************************************
 * Private
 *************************************************************************/
 
@@ -83,7 +87,7 @@ bool SSKStV2D::SetThermalStrain(dSymMatrixT& thermal_strain)
 	thermal_strain = 0.0;
 	if (fThermal->IsActive())
 	{
-		double factor = DilatationFactor();
+		double factor = IsotropicT::DilatationFactor2D(fConstraintOption);
 		thermal_strain.PlusIdentity(factor*fThermal->PercentElongation());
 		return true;
 	}

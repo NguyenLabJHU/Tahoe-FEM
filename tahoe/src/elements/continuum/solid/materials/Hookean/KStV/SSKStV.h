@@ -1,4 +1,4 @@
-/* $Id: SSKStV.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: SSKStV.h,v 1.2 2001-07-03 01:35:09 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #ifndef _SS_KSTV_H_
@@ -6,18 +6,23 @@
 
 /* base classes */
 #include "SSHookeanMatT.h"
-#include "KStV.h"
+#include "IsotropicT.h"
 
-class SSKStV: public SSHookeanMatT, public KStV
+class SSKStV: public SSHookeanMatT, public IsotropicT
 {
 public:
 
 	/* constructor */
-	SSKStV(ifstreamT& in, const ElasticT& element);
+	SSKStV(ifstreamT& in, const SmallStrainT& element);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
+
+protected:
+
+	/* set modulus */
+	virtual void SetModulus(dMatrixT& modulus);
 };
 
 #endif /* _SS_KSTV_H_ */

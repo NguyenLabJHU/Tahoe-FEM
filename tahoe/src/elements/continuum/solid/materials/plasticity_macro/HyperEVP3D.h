@@ -23,7 +23,7 @@ class HyperEVP3D : public EVPFDBaseT
 {
  public:
   // constructor
-  HyperEVP3D(ifstreamT& in, const ElasticT& element);
+  HyperEVP3D(ifstreamT& in, const FiniteStrainT& element);
 
   // destructor
   ~HyperEVP3D();

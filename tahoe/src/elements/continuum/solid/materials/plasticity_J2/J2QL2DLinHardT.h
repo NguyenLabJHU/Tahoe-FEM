@@ -1,4 +1,4 @@
-/* $Id: J2QL2DLinHardT.h,v 1.3 2001-05-04 19:16:05 paklein Exp $ */
+/* $Id: J2QL2DLinHardT.h,v 1.4 2001-07-03 01:35:31 paklein Exp $ */
 /* created: paklein (06/29/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -27,7 +27,10 @@ class J2QL2DLinHardT: public QuadLog2D, public J2PrimitiveT
 public:
 
 	/* constructor */
-	J2QL2DLinHardT(ifstreamT& in, const ElasticT& element);
+	J2QL2DLinHardT(ifstreamT& in, const FiniteStrainT& element);
+
+	/** required parameter flags */
+	virtual bool Need_F_last(void) const { return true; };
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);
@@ -46,9 +49,6 @@ public:
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
-
-	/* required parameter flags */
-	virtual bool NeedLastDisp(void) const;
 
 	/* returns the number of variables computed for nodal extrapolation
 	 * during for element output, ie. internal variables */
@@ -98,9 +98,6 @@ private:
 	double YieldCondition(const dArrayT& devpstress, double alpha) const;
 
 private:
-
-	/* displacements from the last time step */
-	const LocalArrayT& fLocLastDisp;
 
 	/* return values */
 	dSymMatrixT fb_elastic; //return value

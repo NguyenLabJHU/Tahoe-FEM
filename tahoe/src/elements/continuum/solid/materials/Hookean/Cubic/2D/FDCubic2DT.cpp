@@ -1,32 +1,41 @@
-/* $Id: FDCubic2DT.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: FDCubic2DT.cpp,v 1.2 2001-07-03 01:35:08 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #include "FDCubic2DT.h"
 #include "ThermalDilatationT.h"
 
 /* constructor */
-FDCubic2DT::FDCubic2DT(ifstreamT& in, const ElasticT& element):
-	FDHookeanMatT(in, element),
-	Cubic2DT(in, fModulus, fDensity)
+FDCubic2DT::FDCubic2DT(ifstreamT& in, const FiniteStrainT& element):
+	FDCubicT(in, element),
+	Anisotropic2DT(in),
+	Material2DT(in)
 {
-	/* transform modulus into global coords */
-	TransformOut(fModulus);
+	/* account for thickness */
+	fDensity *= fThickness;
 }
 
 /* print parameters */
 void FDCubic2DT::Print(ostream& out) const
 {
 	/* inherited */
-	FDHookeanMatT::Print(out);
-	Cubic2DT::Print(out);
+	FDCubicT::Print(out);
+	Anisotropic2DT::Print(out);
+	Material2DT::Print(out);
 }
 
-/* print name */
-void FDCubic2DT::PrintName(ostream& out) const
+/*************************************************************************
+* Protected
+*************************************************************************/
+
+/* set (material) tangent modulus */
+void FDCubic2DT::SetModulus(dMatrixT& modulus)
 {
-	/* inherited */
-	FDHookeanMatT::PrintName(out);
-	Cubic2DT::PrintName(out);
+	/* compute modulus in crystal coordinates */
+	CubicT::ComputeModuli2D(modulus, fConstraintOption);
+	modulus *= fThickness;
+	
+	/* transform modulus into global coords */
+	TransformOut(modulus);
 }
 
 /*************************************************************************
@@ -38,7 +47,7 @@ bool FDCubic2DT::SetInverseThermalTransformation(dMatrixT& F_trans_inv)
 {
 	if (fThermal->IsActive())
 	{
-		double factor = DilatationFactor();
+		double factor = CubicT::DilatationFactor2D(fConstraintOption);
 
 		/* assuming isotropic expansion */
 		double Fii_inv = 1.0/(1.0 + factor*fThermal->PercentElongation());

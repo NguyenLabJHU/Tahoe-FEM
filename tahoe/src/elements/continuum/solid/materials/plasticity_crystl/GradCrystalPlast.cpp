@@ -1,3 +1,4 @@
+/* $Id: GradCrystalPlast.cpp,v 1.2 2001-07-03 01:35:34 paklein Exp $ */
 /*
   File: GradCrystalPlast.cpp
 */
@@ -14,8 +15,7 @@
 #include "FEManagerT.h"
 #include "ElementCardT.h"
 #include "ifstreamT.h"
-#include "ElasticT.h"
-#include "ShapeFunctionT.h"
+#include "ContinuumElementT.h"
 
 /* spatial dimensions of the problem */
 const int kNSD = 3;
@@ -26,9 +26,9 @@ const double sqrt23 = sqrt(2.0/3.0);
 const int kNumOutput = 3;
 static const char* Labels[kNumOutput] = {"VM_stress", "IterNewton", "IterState"};
 
-GradCrystalPlast::GradCrystalPlast(ifstreamT& in, const ElasticT& element) :
+GradCrystalPlast::GradCrystalPlast(ifstreamT& in, const FiniteStrainT& element) :
   LocalCrystalPlast(in, element),  
-  fLocInitX (element.InitialCoordinates()),
+  fLocInitX (ContinuumElement().InitialCoordinates()),
   fLocCurrX (LocalArrayT::kCurrCoords),
   fFeIP     (NumIP()),    
   fFeTrIP   (NumIP()),    
@@ -341,7 +341,7 @@ void GradCrystalPlast::ComputeOutput(dArrayT& output)
   if (elem == 0 && intpt == 0) fAvgStress = 0.0;
   fAvgStress.AddScaled(1./(NumIP()*NumElements()), fs_ij);
   if (elem == (NumElements()-1) && intpt == (NumIP()-1))
-     cerr << " step # " << fContinuumElement.FEManager().StepNumber()
+     cerr << " step # " << ContinuumElement().FEManager().StepNumber()
           << "    S_eq_avg = " 
           << sqrt(fsymmatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23 << endl; 
 
@@ -350,8 +350,8 @@ void GradCrystalPlast::ComputeOutput(dArrayT& output)
   output[2] = fIterState;
 
   // compute euler angles
-  const int& step = fContinuumElement.FEManager().StepNumber();
-  const int& nsteps = fContinuumElement.FEManager().NumberOfSteps();
+  const int& step = ContinuumElement().FEManager().StepNumber();
+  const int& nsteps = ContinuumElement().FEManager().NumberOfSteps();
 
   if (fmod(step, fODFOutInc) == 0 || step == nsteps)
   {
@@ -543,7 +543,8 @@ void GradCrystalPlast::SolveCrystalState()
   for (fIP = 0; fIP < NumIP(); fIP++) 
     {
       // deformation gradient at integration point IP
-      fFtot = DeformationGradient(fLocDisp);
+      //fFtot = DeformationGradient(fLocDisp); //DEV - deprecated
+      Compute_Ftot_3D(fFtot, fIP);
 
       // fetch crystal data
       LoadCrystalData(element, fIP, igrn);
@@ -686,12 +687,6 @@ void GradCrystalPlast::DeltaFPInverse(const dArrayT& dgamma)
     {
       fDFpi.AddScaled(-dgamma[i], fZ[i]);
     }
-}
-
-const dMatrixT& GradCrystalPlast::DeformationGradient(const LocalArrayT& disp)
-{
-  ShapeFunction().GradU(disp, fGradU, fIP);
-  return  FDContinuumT::F(fGradU);
 }
 
 /* PRIVATE MEMBER FUNCTIONS */

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:18 paklein Exp $
+# $Id: makefile,v 1.5 2001-07-03 01:34:53 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -9,9 +9,12 @@ OBJ = \
 	ContinuumElementT.o \
 	DiffusionT.o \
 	ElasticT.o \
+	FiniteStrainT.o \
 	LocalizerT.o \
-	TotLag_FDElasticT.o \
-	UpLag_FDElasticT.o
+	SmallStrainT.o \
+	TotalLagrangianT.o \
+	UpdatedLagrangianT.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -23,23 +26,29 @@ SRC = \
 	ContinuumElementT.cpp \
 	DiffusionT.cpp \
 	ElasticT.cpp \
+	FiniteStrainT.cpp \
 	LocalizerT.cpp \
-	TotLag_FDElasticT.cpp \
-	UpLag_FDElasticT.cpp
+	SmallStrainT.cpp \
+	TotalLagrangianT.cpp \
+	UpdatedLagrangianT.cpp
 
 # headers
 HDR = \
 	ContinuumElementT.h \
 	DiffusionT.h \
 	ElasticT.h \
+	FiniteStrainT.h \
 	LocalizerT.h \
-	TotLag_FDElasticT.h \
-	UpLag_FDElasticT.h
+	SmallStrainT.h \
+	TotalLagrangianT.h \
+	UpdatedLagrangianT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
 SUB_DIR = \
 	meshfree
+
 subdir_driver: subdir_loop
 # SUB_DIR is empty
 #subdir_driver: 

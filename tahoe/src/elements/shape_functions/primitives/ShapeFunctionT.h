@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.4 2001-06-19 23:22:09 paklein Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.5 2001-07-03 01:35:53 paklein Exp $ */
 /* created: paklein (06/26/1996)                                          */
 /* interface for element shape functions. controls domain representation  */
 /* and field representation and spatial derivatives. integration control  */
@@ -47,7 +47,7 @@ public:
 	const double* IPShapeU(void) const;	// at field nodes
 
 	void GradU(const LocalArrayT& nodal, dMatrixT& grad_U) const;
-        void GradU(const LocalArrayT& nodal, dMatrixT& grad_U, int IPnumber) const;
+	void GradU(const LocalArrayT& nodal, dMatrixT& grad_U, int IPnumber) const;
 
 	/* extrapolate integration point values to the nodes
 	 *    IPvalues[numvals] : values from a single integration point

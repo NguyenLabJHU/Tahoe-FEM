@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: EAMFCC3DMatT.h,v 1.2 2001-07-03 01:35:01 paklein Exp $ */
 /* created: paklein (10/25/1998)                                          */
 /* Plane strain EAM material                                              */
 
@@ -24,7 +24,7 @@ public:
 	  kPrescribed = 4};
 
 	/* constructor */
-	EAMFCC3DMatT(ifstreamT& in, const ElasticT& element);
+	EAMFCC3DMatT(ifstreamT& in, const FiniteStrainT& element);
 
 	/* destructor */
 	virtual ~EAMFCC3DMatT(void);

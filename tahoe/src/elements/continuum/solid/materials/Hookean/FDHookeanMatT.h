@@ -1,4 +1,4 @@
-/* $Id: FDHookeanMatT.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: FDHookeanMatT.h,v 1.2 2001-07-03 01:35:05 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #ifndef _FD_HOOKEAN_MAT_H_
@@ -13,7 +13,10 @@ class FDHookeanMatT: public FDStructMatT, public HookeanMatT
 public:
 
 	/* constructor */
-	FDHookeanMatT(ifstreamT& in, const ElasticT& element);
+	FDHookeanMatT(ifstreamT& in, const FiniteStrainT& element);
+
+	/* initialization */
+	virtual void Initialize(void);
 
 	/* spatial description */
 	virtual const dMatrixT& c_ijkl(void); // spatial tangent moduli
@@ -26,10 +29,13 @@ public:
 	/* returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);
 	
-protected:
+private:
+
+	/* Green-Lagrangian strain */
+	dSymMatrixT fE;
 
 	/* return values */
-	dSymMatrixT fStress;
+	dSymMatrixT fStress;	
 	dMatrixT    fModulus;	
 };
 

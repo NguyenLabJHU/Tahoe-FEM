@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.cpp,v 1.2 2001-06-11 02:06:19 paklein Exp $ */
+/* $Id: LocalizerT.cpp,v 1.3 2001-07-03 01:34:50 paklein Exp $ */
 /* created: paklein (02/19/1998)                                          */
 
 #include "LocalizerT.h"
@@ -36,7 +36,7 @@ const int kLocCheckAtPrint =-1;
 
 /* constructor */
 LocalizerT::LocalizerT(FEManagerT& fe_manager):
-	UpLag_FDElasticT(fe_manager),
+	UpdatedLagrangianT(fe_manager),
 	fAvgStretch(fNumSD)
 {
 	/* flags */
@@ -66,7 +66,7 @@ LocalizerT::LocalizerT(FEManagerT& fe_manager):
 void LocalizerT::Initialize(void)
 {
 	/* inherited */
-	UpLag_FDElasticT::Initialize();
+	UpdatedLagrangianT::Initialize();
 
 	/* dimension */
 	fKloc.Allocate(fNumElemNodes*fNumDOF);
@@ -139,7 +139,7 @@ void LocalizerT::Initialize(void)
 void LocalizerT::CloseStep(void)
 {
 	/* inherited */
-	UpLag_FDElasticT::CloseStep();
+	UpdatedLagrangianT::CloseStep();
 	
 	/* set flag to OFF for elements marked last time */
 	fElementMonitor.MarkedToOFF();
@@ -149,7 +149,7 @@ void LocalizerT::CloseStep(void)
 void LocalizerT::WriteOutput(IOBaseT::OutputModeT mode)
 {	
 	/* inherited */
-	UpLag_FDElasticT::WriteOutput(mode);
+	UpdatedLagrangianT::WriteOutput(mode);
 
 	ostream& out = fFEManager.Output();
 
@@ -204,7 +204,7 @@ void LocalizerT::WriteOutput(IOBaseT::OutputModeT mode)
 GlobalT::RelaxCodeT LocalizerT::RelaxSystem(void)
 {
 	/* inherited */
-	GlobalT::RelaxCodeT relax = UpLag_FDElasticT::RelaxSystem();
+	GlobalT::RelaxCodeT relax = UpdatedLagrangianT::RelaxSystem();
 
 	/* check localization at intervals */
 	if (++fLocCheckCount == fLocCheckInc)
@@ -243,7 +243,7 @@ GlobalT::RelaxCodeT LocalizerT::RelaxSystem(void)
 void LocalizerT::InitialCondition(void)
 {
 	/* inherited */
-	UpLag_FDElasticT::InitialCondition();
+	UpdatedLagrangianT::InitialCondition();
 
 	fLocCheckCount = 0;
 
@@ -303,7 +303,7 @@ void LocalizerT::WriteRestart(ostream& out) const
 void LocalizerT::ResetStep(void)
 {
 	/* inherited */
-	UpLag_FDElasticT::ResetStep();
+	UpdatedLagrangianT::ResetStep();
 
 	/* reset flagged elements */
 	fElementMonitor.MarkedToON();
@@ -318,7 +318,7 @@ void LocalizerT::ResetStep(void)
 void LocalizerT::PrintControlData(ostream& out) const
 {
 	/* inherited */
-	UpLag_FDElasticT::PrintControlData(out);
+	UpdatedLagrangianT::PrintControlData(out);
 	
 	/* control parameters */
 	out << " Strain check flag . . . . . . . . . . . . . . . = " << fStrainCheckFlag << '\n';
@@ -337,14 +337,14 @@ void LocalizerT::PrintControlData(ostream& out) const
 bool LocalizerT::NextElement(void)
 {
 	/* inherited */
-	bool notend = UpLag_FDElasticT::NextElement();
+	bool notend = UpdatedLagrangianT::NextElement();
 	
 	/* skip OFF elements */
 	if (fStrainCheckFlag != kStrainCheckNever)
 	{
 		while (notend &&
 			fElementMonitor.Status(fElementCards.Position()) == MonitorT::kOFF)
-			notend = UpLag_FDElasticT::NextElement();
+			notend = UpdatedLagrangianT::NextElement();
 	}
 		
 	return notend;
@@ -354,7 +354,7 @@ bool LocalizerT::NextElement(void)
 void LocalizerT::ReadMaterialData(ifstreamT& in)
 {
 	/* inherited */
-	UpLag_FDElasticT::ReadMaterialData(in);
+	UpdatedLagrangianT::ReadMaterialData(in);
 	
 	/* check for localizing materials */
 	if (!fMaterialList->HasLocalizingMaterials())
@@ -371,7 +371,7 @@ void LocalizerT::ReadMaterialData(ifstreamT& in)
 void LocalizerT::FormStiffness(double constK)
 {		
 	/* inherited */
-	UpLag_FDElasticT::FormStiffness(constK);
+	UpdatedLagrangianT::FormStiffness(constK);
 	
 	/* disable the rest */
 	return;
@@ -624,9 +624,6 @@ int LocalizerT::CheckLocalization(ostream& out)
 	/* compute global shape functions */
 	SetGlobalShape();
 		
-	/* get local displacements */
-	SetLocalU(fLocDisp);
-
 	int numloc = 0;
 	fShapes->TopIP();
 	while (fShapes->NextIP())
@@ -683,7 +680,10 @@ void LocalizerT::PrintLocalized(ostream& out)
 
 /* check strain magnitude */
 void LocalizerT::CheckStrain(void)
-{	
+{
+	/* work space */
+	dSymMatrixT temp(NumSD());
+
 	/* initialize */
 	fAvgStretch = 0.0;
 
@@ -691,11 +691,11 @@ void LocalizerT::CheckStrain(void)
 	fShapes->TopIP();
 	while (fShapes->NextIP())
 	{
-		//assume case if OK
-		FDStructMatT* FDmat = (FDStructMatT*) fCurrMaterial;
+		/* compute the stretch */
+		temp.MultATA(DeformationGradient());
 	
 		/* accumulate over element */
-		fAvgStretch += FDmat->C();
+		fAvgStretch += temp;
 	}	
 		
 	/* element average */

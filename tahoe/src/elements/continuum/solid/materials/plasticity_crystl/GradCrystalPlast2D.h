@@ -1,3 +1,4 @@
+/* $Id: GradCrystalPlast2D.h,v 1.2 2001-07-03 01:35:34 paklein Exp $ */
 /*
   File: GradCrystalPlast2D.h
 */
@@ -16,7 +17,7 @@ class GradCrystalPlast2D: public GradCrystalPlast, public Material2DT
 {
  public:
   // constructor
-  GradCrystalPlast2D(ifstreamT& in, const ElasticT& element);
+  GradCrystalPlast2D(ifstreamT& in, const FiniteStrainT& element);
 
   // destructor
   ~GradCrystalPlast2D();
@@ -32,10 +33,7 @@ class GradCrystalPlast2D: public GradCrystalPlast, public Material2DT
   virtual void PrintName(ostream& out) const;
 
  protected: 
-  // deformation gradient 
-  virtual const dMatrixT& DeformationGradient(const LocalArrayT& disp);
 
- protected: 
   // crystal Cauchy stress in 2D
   dSymMatrixT f2Ds_ij;
   

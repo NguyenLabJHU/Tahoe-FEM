@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.h,v 1.2 2001-06-06 23:15:51 paklein Exp $ */
+/* $Id: MappedPeriodicT.h,v 1.3 2001-07-03 01:35:46 paklein Exp $ */
 /* created: paklein (04/07/1997)                                          */
 /* Manager class for finite deformation elasto-static with 2 additional   */
 /* types of kinematic boundary conditions:                                */

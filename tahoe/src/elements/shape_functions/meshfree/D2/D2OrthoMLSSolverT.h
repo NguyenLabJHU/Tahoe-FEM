@@ -1,4 +1,4 @@
-/* $Id: D2OrthoMLSSolverT.h,v 1.2 2001-06-19 23:22:06 paklein Exp $ */
+/* $Id: D2OrthoMLSSolverT.h,v 1.3 2001-07-03 01:35:52 paklein Exp $ */
 /* created: paklein (10/10/1999)                                          */
 /* base class for orthogonal basis, moving least squares, interpolants    */
 /* (from Lu et al, Comp Meth App Mech Eng, 126, 1995, 131-153)            */

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.4 2001-06-03 21:03:50 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.5 2001-07-03 01:34:49 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #ifndef _ELASTIC_T_H_
@@ -17,29 +17,32 @@ class ShapeFunctionT;
 class StructuralMaterialT;
 class StringT;
 
+/** base class of elements for deformation of solids */
 class SolidElementT: public ContinuumElementT
 {
 public:
 	
+	/** list/index of nodal outputs */
 	enum NodalOutputCodeT {
-		iNodalCoord = 0, // (reference) nodal coordinates
- 	     iNodalDisp = 1, // nodal displacements
-       iNodalStress = 2, // nodal stresses
-         iPrincipal = 3, // principal stresses
-     iEnergyDensity = 4, // nodal strain energy density
-        iWaveSpeeds = 5, // wave speeds
-      iMaterialData = 6};// material model output
+		iNodalCoord = 0, /**< (reference) coordinates */
+ 	     iNodalDisp = 1, /**< displacements */
+       iNodalStress = 2, /**< extrapolated stresses */
+         iPrincipal = 3, /**< extrapolated principal stresses */
+     iEnergyDensity = 4, /**< extrapolated strain energy density */
+        iWaveSpeeds = 5, /**< extrapolated local wave speeds */
+      iMaterialData = 6};/**< extrapolated  model output */
 
+	/** list/index of element outputs */
 	enum ElementOutputCodeT {
-	      iCentroid = 0, // (reference) coordinates
-		      iMass = 1, // element mass
-	  iStrainEnergy = 2, // strain energy
-	 iKineticEnergy = 3, // strain energy
-    iLinearMomentum = 4, // linear momentum
-          iIPStress = 5, // integration point stresses
-    iIPMaterialData = 6};// integration point material model output
+	      iCentroid = 0, /**< (reference) centroid coordinates */
+		      iMass = 1, /**< integrated element mass */
+	  iStrainEnergy = 2, /**< integrated strain energy */
+	 iKineticEnergy = 3, /**< integrated kinetic energy */
+    iLinearMomentum = 4, /**< integrated linear momentum */
+          iIPStress = 5, /**< integration point stresses */
+    iIPMaterialData = 6};/**< integration point material model output */
       
-	/* constructor */
+	/** constructor */
 	SolidElementT(FEManagerT& fe_manager);
 
 	/* accessors */
@@ -47,13 +50,13 @@ public:
 	const LocalArrayT& Velocities(void) const;
 	const LocalArrayT& Accelerations(void) const;
 	
-	/* data initialization */
+	/** initialization. called immediately after constructor */
 	virtual void Initialize(void);
 
-	/* set the controller */
+	/** set the controller */
 	virtual void SetController(eControllerT* controller);
 
-	/* form of tangent matrix */
+	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
 	/* solution calls */
@@ -65,8 +68,11 @@ public:
 
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
-
+	
 protected:
+
+	/** construct list of materials from the input stream */
+	virtual void ReadMaterialData(ifstreamT& in);
 
 	/* print element group data */
 	virtual void PrintControlData(ostream& out) const;
@@ -93,6 +99,8 @@ protected:
 	/* form the element stiffness matrix */
 	virtual void FormStiffness(double constK);
 	
+//DEV - Rayleigh damping should be added to the constitutive level
+#if 0
 	/* compute the effective acceleration and velocities based
 	 * on the algorithmic flags formXx and the given constants
 	 * constXx.
@@ -111,6 +119,7 @@ protected:
 	virtual void ComputeEffectiveDVA(int formBody,
 		int formMa, double constMa, int formCv, double constCv,
 		int formKd, double constKd);
+#endif
 
 	/* body force */
 	void FormRayleighMassDamping(double constM);
@@ -127,6 +136,11 @@ protected:
 	/* driver for calculating output values */
 	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	                           const iArrayT& e_codes, dArray2DT& e_values);
+
+	/** indicies of elements in the list of material needs */
+	enum MaterialNeedsT {kNeedDisp = 0,
+	                     kNeedVel  = 1,
+	                 KNeedLastDisp = 2};
 
 private:
 
@@ -148,12 +162,13 @@ protected:
 	dArrayT fNormal;
 	
 	/* arrays with local ordering */
-	LocalArrayT fLocLastDisp; // last converged disp's local ordering
-	LocalArrayT fLocVel;      // velocities with local ordering
-	LocalArrayT fLocAcc;      // accelerations with local ordering
+	LocalArrayT fLocLastDisp; /**< last converged displacements */
+	LocalArrayT fLocVel;      /**< nodal velocities */
+	LocalArrayT fLocAcc;      /**< nodal accelerations */
 
 	/* run time */
-	StructuralMaterialT* fCurrMaterial;
+	StructuralMaterialT*  fCurrMaterial;
+	ArrayT<ArrayT<bool> > fMaterialNeeds;
 
 	/* work space */
 	dMatrixT    fD;      /* constitutive matrix        */

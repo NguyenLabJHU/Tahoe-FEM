@@ -1,3 +1,4 @@
+/* $Id: EVPFDBaseT.cpp,v 1.4 2001-07-03 01:35:38 paklein Exp $ */
 /*
   File: EVPFDBaseT.cpp
 */
@@ -8,7 +9,7 @@
 #include "Utils.h"
 
 #include "FEManagerT.h"
-#include "ElasticT.h"
+#include "FiniteStrainT.h"
 #include "StringT.h"
 
 /* initialization flag value */
@@ -17,7 +18,7 @@ const int kIsInit = 1;
 /* spatial dimensions of the problem */
 const int kNSD = 3;
 
-EVPFDBaseT::EVPFDBaseT(ifstreamT& in, const ElasticT& element) :
+EVPFDBaseT::EVPFDBaseT(ifstreamT& in, const FiniteStrainT& element) :
   FDHookeanMatT(in, element),
   IsotropicT  (in),
   //fdt         (element.FEManager().TimeStep()),
@@ -28,7 +29,7 @@ EVPFDBaseT::EVPFDBaseT(ifstreamT& in, const ElasticT& element) :
   fKineticEqn (NULL),
   fSolver     (NULL),
   fSolverPtr  (new SolverWrapperEVPBase(*this)),
-  fFtot       (kNSD,kNSD),
+  fFtot       (kNSD),
   fs_ij       (kNSD),
   fc_ijkl     (dSymMatrixT::NumValues(kNSD))
 {
@@ -94,6 +95,12 @@ void EVPFDBaseT::Print(ostream& out) const
   fSolver->Print(out);
 }
 
+/* set (material) tangent modulus */
+void EVPFDBaseT::SetModulus(dMatrixT& modulus)
+{
+	IsotropicT::ComputeModuli(modulus);
+}
+
 void EVPFDBaseT::PrintName(ostream& out) const
 {
   // inherited
@@ -131,6 +138,37 @@ void EVPFDBaseT::AllocateElements()
     }
 }
 
+// compute 3D deformation gradient
+void EVPFDBaseT::Compute_Ftot_3D(dMatrixT& F_3D) const
+{
+	int nsd = NumSD();
+	if (nsd == 3)
+		F_3D = F();
+	else if (nsd == 2)
+	{
+		// expand total deformation gradient: 2D -> 3D (plane strain)
+		F_3D.Rank2ExpandFrom2D(F());
+		F_3D(2, 2) = 1.0;
+	}
+	else 
+		throw eGeneralFail;
+}
+
+void EVPFDBaseT::Compute_Ftot_last_3D(dMatrixT& F_3D) const
+{
+	int nsd = NumSD();
+	if (nsd == 3)
+		F_3D = F_last();
+	else if (nsd == 2)
+	{
+		// expand total deformation gradient: 2D -> 3D (plane strain)
+		F_3D.Rank2ExpandFrom2D(F_last());
+		F_3D(2, 2) = 1.0;
+	}
+	else 
+		throw eGeneralFail;
+}
+
 void EVPFDBaseT::SetConstitutiveSolver()
 {
   // input solver code
@@ -164,9 +202,4 @@ void EVPFDBaseT::SetConstitutiveSolver()
   double gradtol;
   fInput >> gradtol;
   fSolver->SetGradTol(gradtol);
-}
-
-const dMatrixT& EVPFDBaseT::DeformationGradient(const LocalArrayT& disp)
-{ 
-  return F(disp);
 }

@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden3DT.cpp,v 1.1 2001-02-20 00:26:51 paklein Exp $ */
+/* $Id: QuadLogOgden3DT.cpp,v 1.2 2001-07-03 01:35:13 paklein Exp $ */
 /* created: paklein (02/17/2001)                                          */
 /* principal stretch version of Quad Log model                            */
 
@@ -9,7 +9,7 @@
 #include "fstreamT.h"
 
 /* constructor */
-QuadLogOgden3DT::QuadLogOgden3DT(ifstreamT& in, const ElasticT& element):
+QuadLogOgden3DT::QuadLogOgden3DT(ifstreamT& in, const FiniteStrainT& element):
 	OgdenIsotropicT(in, element),
 	flogE(3)
 {
@@ -29,8 +29,11 @@ void QuadLogOgden3DT::PrintName(ostream& out) const
 /* strain energy density */
 double QuadLogOgden3DT::StrainEnergyDensity(void)
 {
+	/* stretch */
+	Compute_C(fC);
+
 	/* principal stretches */
-	C().PrincipalValues(fEigs);
+	fC.PrincipalValues(fEigs);
 	
 	/* log strain */
 	flogE[0] = 0.5*log(fEigs[0]);

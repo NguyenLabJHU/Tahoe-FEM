@@ -31,7 +31,7 @@ class PolyCrystalMatT : public FDHookeanMatT
 {
  public:
   // constructor
-  PolyCrystalMatT(ifstreamT& in, const ElasticT& element);
+  PolyCrystalMatT(ifstreamT& in, const FiniteStrainT& element);
 
   // destructor
   virtual ~PolyCrystalMatT();
@@ -42,6 +42,9 @@ class PolyCrystalMatT : public FDHookeanMatT
 
   // required parameter flag
   virtual bool NeedLastDisp() const;
+
+  	/** required parameter flags */
+	virtual bool Need_F_last(void) const { return true; };
 
   // some methods to set/initialize member data
   virtual void SetSlipKinetics() = 0;
@@ -72,6 +75,10 @@ class PolyCrystalMatT : public FDHookeanMatT
   virtual void Print(ostream& out) const;
 
  protected:
+
+	/* set (material) tangent modulus */
+	virtual void SetModulus(dMatrixT& modulus);
+
   // print name
   virtual void PrintName(ostream& out) const;
 

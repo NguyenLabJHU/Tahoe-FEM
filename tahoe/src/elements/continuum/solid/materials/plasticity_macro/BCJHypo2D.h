@@ -19,7 +19,7 @@ class BCJHypo2D : public BCJHypo3D, public Material2DT
 {
  public:
   // constructor
-  BCJHypo2D(ifstreamT& in, const ElasticT& element);
+  BCJHypo2D(ifstreamT& in, const FiniteStrainT& element);
 
   // destructor
   ~BCJHypo2D();
@@ -35,10 +35,7 @@ class BCJHypo2D : public BCJHypo3D, public Material2DT
   virtual void PrintName(ostream& out) const;
 
  protected:
-  // deformation gradient
-  virtual const dMatrixT& DeformationGradient(const LocalArrayT& disp);
 
- protected:
   // Cauchy stress in 2D
   dSymMatrixT f2Ds_ij;
 

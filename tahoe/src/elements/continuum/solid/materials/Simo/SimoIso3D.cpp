@@ -1,21 +1,20 @@
-/* $Id: SimoIso3D.cpp,v 1.3 2001-04-27 10:54:32 paklein Exp $ */
+/* $Id: SimoIso3D.cpp,v 1.4 2001-07-03 01:35:14 paklein Exp $ */
 /* created: paklein (03/02/1997)                                          */
 
 #include "SimoIso3D.h"
 #include <iostream.h>
 #include <math.h>
-#include "ElasticT.h"
 
 /* constructor */
-SimoIso3D::SimoIso3D(ifstreamT& in, const ElasticT& element):
+SimoIso3D::SimoIso3D(ifstreamT& in, const FiniteStrainT& element):
 	FDStructMatT(in, element),
 	IsotropicT(in),
 	fStress(3),
 	fModulus(dSymMatrixT::NumValues(3)),
 	
 	/* work space */
+	fb(3),
 	fb_bar(3),
-	fnorm(3),
 	frank4(dSymMatrixT::NumValues(3)),
 	
 	/* fixed forms */
@@ -42,10 +41,14 @@ void SimoIso3D::Print(ostream& out) const
 /* modulus */
 const dMatrixT& SimoIso3D::c_ijkl(void)
 {
+	/* b */
+	Compute_b(fb);
+
 	/* compute b_bar */
-	const dSymMatrixT& b_3D = b();
-	double J = sqrt(b_3D.Det());
-	fb_bar.SetToScaled(pow(J,-2.0/3.0),b_3D);
+	double J = fb.Det();
+	if (J <= 0.0) throw eBadJacobianDet;
+	J = sqrt(J);
+	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
 
 	ComputeModuli(J, fb_bar, fModulus);
 	
@@ -55,10 +58,14 @@ const dMatrixT& SimoIso3D::c_ijkl(void)
 /* stress */
 const dSymMatrixT& SimoIso3D::s_ij(void)
 {
+	/* b */
+	Compute_b(fb);
+
 	/* compute b_bar */
-	const dSymMatrixT& b_3D = b();
-	double J = sqrt(b_3D.Det());
-	fb_bar.SetToScaled(pow(J,-2.0/3.0),b_3D);
+	double J = fb.Det();
+	if (J <= 0.0) throw eBadJacobianDet;
+	J = sqrt(J);
+	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
 
 	ComputeCauchy(J, fb_bar, fStress);
 	
@@ -85,10 +92,14 @@ const dSymMatrixT& SimoIso3D::S_IJ(void)
 /* returns the strain energy density for the specified strain */
 double SimoIso3D::StrainEnergyDensity(void)
 {
+	/* b */
+	Compute_b(fb);
+
 	/* compute b_bar */
-	const dSymMatrixT& b_3D = b();
-	double J = sqrt(b_3D.Det());
-	fb_bar.SetToScaled(pow(J,-2.0/3.0),b_3D);
+	double J = fb.Det();
+	if (J <= 0.0) throw eBadJacobianDet;
+	J = sqrt(J);
+	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
 
 	return ComputeEnergy(J, fb_bar);
 }

@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.cpp,v 1.2 2001-06-12 22:14:18 paklein Exp $ */
+/* $Id: iNLSolver_LS.cpp,v 1.3 2001-07-03 01:35:54 paklein Exp $ */
 /* created: paklein (01/01/2001)                                          */
 
 #include "iNLSolver_LS.h"

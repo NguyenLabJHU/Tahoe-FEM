@@ -1,7 +1,5 @@
-/* $Id: tevp2D.h,v 1.13 2001-06-12 14:03:05 hspark Exp $ */
-/* Thermoelasto-viscoplastic material used to generate shear bands */
+/* $Id: tevp2D.h,v 1.14 2001-07-03 01:35:45 paklein Exp $ */
 /* Created:  Harold Park (04/04/2001) */
-/* Last Updated:  Harold Park (06/12/2001) */
 
 #ifndef _TEVP_2D_H_
 #define _TEVP_2D_H_
@@ -13,14 +11,14 @@
 #include "Material2DT.h"
 
 /* forward declarations */
-class ShapeFunctionT;
 class ElementCardT;
 
+/** Thermoelasto-viscoplastic material used to generate shear bands */
 class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
 {
  public:
   /* constructor */
-  tevp2D(ifstreamT& in, const ElasticT& element);
+  tevp2D(ifstreamT& in, const FiniteStrainT& element);
   
   /* materials initialization */
   virtual bool NeedsPointInitialization(void) const { return true; }
@@ -166,10 +164,6 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   double Alpha_T, Delta, Theta, Kappa, Cp, Chi, Ccc, Pcp;
   double Epsilon_1, Epsilon_2, Epsilon_rate, Gamma_d, Mu_d, SigCr;
   double Xi;
-
-  /* shape functions */
-  const ShapeFunctionT& fShapes;   // Needed to compute velocity gradient
-
 };
 
 #endif /* _TEVP_2D_H_ */

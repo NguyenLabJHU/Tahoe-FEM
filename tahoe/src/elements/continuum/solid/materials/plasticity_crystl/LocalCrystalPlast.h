@@ -1,3 +1,4 @@
+/* $Id: LocalCrystalPlast.h,v 1.2 2001-07-03 01:35:35 paklein Exp $ */
 /*
   File: LocalCrystalPlast.h
 */
@@ -22,7 +23,7 @@ class LocalCrystalPlast : public PolyCrystalMatT
 {
  public:
   // constructor
-  LocalCrystalPlast(ifstreamT& in, const ElasticT& element);
+  LocalCrystalPlast(ifstreamT& in, const FiniteStrainT& element);
 
   // destructor
   ~LocalCrystalPlast();
@@ -125,8 +126,12 @@ class LocalCrystalPlast : public PolyCrystalMatT
   // polar decomposition of deformation gradient
   void PolarDecomp();
 
-  // deformation gradient
-  virtual const dMatrixT& DeformationGradient(const LocalArrayT& disp);
+	// function to compute 3D deformations regardless of dimensionality of the
+	// problem. For 2D, the out-of-plane direction is x3 and the deformation
+	// is assumed to be plane strain
+	void Compute_Ftot_3D(dMatrixT& F_3D) const;	
+	void Compute_Ftot_3D(dMatrixT& F_3D, int ip) const;	
+	void Compute_Ftot_last_3D(dMatrixT& F_3D) const;	
 
   // 4th order tensor: c_ijkl=0.5*(b_ik b_jl + b_il b_jk)
   void Set_I_b_Tensor(const dSymMatrixT& b, dMatrixT& c);

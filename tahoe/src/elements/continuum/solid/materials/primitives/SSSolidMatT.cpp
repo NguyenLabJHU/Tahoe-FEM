@@ -1,22 +1,19 @@
-/* $Id: SSSolidMatT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.2 2001-07-03 01:35:42 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 
 #include "SSSolidMatT.h"
 #include <iostream.h>
-#include "ElasticT.h"
-#include "ShapeFunctionT.h"
+#include "SmallStrainT.h"
 #include "dSymMatrixT.h"
 #include "ThermalDilatationT.h"
 
 /* constructor */
-SSSolidMatT::SSSolidMatT(ifstreamT& in, const ElasticT& element):
-	ContinuumT(element.NumSD()),
+SSSolidMatT::SSSolidMatT(ifstreamT& in, const SmallStrainT& element):
 	StructuralMaterialT(in, element),
-	fShapes(element.ShapeFunction()),
-	fLocDisp(element.Displacements()),	
-	fStrainTemp(element.NumSD()),
-	fQ(element.NumSD()),
-	fGradU(element.NumSD()),
+	fSmallStrain(element),
+	fLocDisp(fSmallStrain.Displacements()),	
+	fStrainTemp(NumSD()),
+	fQ(NumSD()),
 	fThermalStrain(NumSD())
 {
 
@@ -31,25 +28,60 @@ void SSSolidMatT::PrintName(ostream& out) const
 	out << "    Small strain\n";
 }
 
-/* required parameter flags */
-bool SSSolidMatT::NeedDisp(void) const { return true; }
-
 /* strain - returns the elastic strain, ie. thermal removed */
 const dSymMatrixT& SSSolidMatT::e(void)
 {
-	/* displacement gradient */
-	fShapes.GradU(fLocDisp, fGradU);
-
 	/* remove thermal strain */
 	if (fHasThermalStrain)
 	{
 		/* thermal strain is purely dilatational */
-		fStrainTemp = ContinuumT::e(fGradU);
+		fStrainTemp  = fSmallStrain.LinearStrain();
 		fStrainTemp -= fThermalStrain;
 		return fStrainTemp;
 	}
 	else
-		return ContinuumT::e(fGradU);
+		return fSmallStrain.LinearStrain();
+}
+
+/* elastic strain at the given integration point */
+const dSymMatrixT& SSSolidMatT::e(int ip)
+{
+	/* remove thermal strain */
+	if (fHasThermalStrain)
+	{
+		/* thermal strain is purely dilatational */
+		fStrainTemp  = fSmallStrain.LinearStrain(ip);
+		fStrainTemp -= fThermalStrain;
+		return fStrainTemp;
+	}
+	else
+		return fSmallStrain.LinearStrain(ip);
+}
+
+/* strain - returns the elastic strain, ie. thermal removed */
+const dSymMatrixT& SSSolidMatT::e_last(void)
+{
+	/* cannot have thermal strain */
+	if (fHasThermalStrain)
+	{
+		cout << "\n SSSolidMatT::e_last: not available with thermal strains" << endl;
+		throw eGeneralFail;
+	}
+	
+	return fSmallStrain.LinearStrain_last();
+}
+
+/* elastic strain at the given integration point */
+const dSymMatrixT& SSSolidMatT::e_last(int ip)
+{
+	/* cannot have thermal strain */
+	if (fHasThermalStrain)
+	{
+		cout << "\n SSSolidMatT::e_last: not available with thermal strains" << endl;
+		throw eGeneralFail;
+	}
+	
+	return fSmallStrain.LinearStrain_last(ip);
 }
 
 /* material description */

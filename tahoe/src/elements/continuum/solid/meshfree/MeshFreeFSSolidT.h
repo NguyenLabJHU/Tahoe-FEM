@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.h,v 1.2 2001-02-20 00:42:14 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.h,v 1.3 2001-07-03 01:34:55 paklein Exp $ */
 /* created: paklein (09/16/1998)                                          */
 /* large deformation elasticity with MLS shapefunctions for the           */
 /* field (displacement) representation                                    */
@@ -9,13 +9,13 @@
 #define _EFG_FDELASTIC_T_H_
 
 /* base classes */
-#include "TotLag_FSSolidT.h"
+#include "TotalLagrangianT.h"
 #include "MeshFreeFractureSupportT.h"
 
 /* direct members */
 #include "nVariMatrixT.h"
 
-class MeshFreeFSSolidT: public TotLag_FSSolidT,
+class MeshFreeFSSolidT: public TotalLagrangianT,
 	public MeshFreeFractureSupportT
 {
 public:

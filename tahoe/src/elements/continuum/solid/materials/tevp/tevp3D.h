@@ -1,7 +1,5 @@
-/* $Id: tevp3D.h,v 1.2 2001-06-26 15:17:14 hspark Exp $ */
-/* Thermoelasto-viscoplastic material used to generate shear bands */
+/* $Id: tevp3D.h,v 1.3 2001-07-03 01:35:45 paklein Exp $ */
 /* Created:  Harold Park (06/25/2001) */
-/* Last Updated:  Harold Park (06/25/2001) */
 
 #ifndef _TEVP_3D_H_
 #define _TEVP_3D_H_
@@ -12,14 +10,14 @@
 #include "iArrayT.h"
 
 /* forward declarations */
-class ShapeFunctionT;
 class ElementCardT;
 
+/** Thermoelasto-viscoplastic material used to generate shear bands */
 class tevp3D: public FDStructMatT, public IsotropicT
 {
  public:
   /* constructor */
-  tevp3D(ifstreamT& in, const ElasticT& element);
+  tevp3D(ifstreamT& in, const FiniteStrainT& element);
   
   /* materials initialization */
   virtual bool NeedsPointInitialization(void) const { return true; }
@@ -152,10 +150,6 @@ class tevp3D: public FDStructMatT, public IsotropicT
   double Alpha_T, Delta, Theta, Kappa, Cp, Chi, Ccc, Pcp;
   double Epsilon_1, Epsilon_2, Epsilon_rate, Gamma_d, Mu_d, SigCr;
   double Xi;
-
-  /* shape functions */
-  const ShapeFunctionT& fShapes;   // Needed to compute velocity gradient
-
 };
 
 #endif /* _TEVP_3D_H_ */

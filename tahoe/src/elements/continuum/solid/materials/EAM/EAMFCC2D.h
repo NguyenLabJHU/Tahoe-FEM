@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.h,v 1.2 2001-04-27 10:54:31 paklein Exp $ */
+/* $Id: EAMFCC2D.h,v 1.3 2001-07-03 01:35:01 paklein Exp $ */
 /* created: paklein (12/09/1996)                                          */
 /* Plane strain EAM material                                              */
 
@@ -22,7 +22,7 @@ public:
                      kFCC111 = 2};
 
 	/* constructor */
-	EAMFCC2D(ifstreamT& in, const ElasticT& element, PlaneCodeT plane_code);
+	EAMFCC2D(ifstreamT& in, const FiniteStrainT& element, PlaneCodeT plane_code);
 
 	/* destructor */
 	virtual ~EAMFCC2D(void);

@@ -1,4 +1,4 @@
-/* $Id: VIB3D.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: VIB3D.cpp,v 1.2 2001-07-03 01:35:20 paklein Exp $ */
 /* created: paklein (04/20/1997)                                          */
 /* Base class for general 3D probabolistic Cauchy-Born materials.         */
 
@@ -21,7 +21,7 @@
 #include "FCCPtsT.h"
 
 /* constructors */
-VIB3D::VIB3D(ifstreamT& in, const ElasticT& element):
+VIB3D::VIB3D(ifstreamT& in, const FiniteStrainT& element):
 	NL_E_MatT(in, element),
 	VIB_E_MatT(in, 3)
 {
@@ -92,8 +92,8 @@ void VIB3D::SetAngles(double phi, double theta)
 	double *C16, *C22, *C23, *C24, *C25;
 	double *C26, *C33, *C34, *C35, *C36;
 	SetModuliPointers3D(C11, C12, C13, C14, C15,
-C16, C22, C23, C24, C25,
-C26, C33, C34, C35, C36);
+                        C16, C22, C23, C24, C25,
+                        C26, C33, C34, C35, C36);
 
 	/* set tables */
 	for (int i = 0; i < numpoints; i++)

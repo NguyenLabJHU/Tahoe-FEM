@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV2D.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: J2SSKStV2D.cpp,v 1.2 2001-07-03 01:35:31 paklein Exp $ */
 /* created: paklein (06/18/1997)                                          */
 
 #include "J2SSKStV2D.h"
@@ -6,14 +6,22 @@
 #include "StringT.h"
 
 /* constructor */
-J2SSKStV2D::J2SSKStV2D(ifstreamT& in, const ElasticT& element):
+J2SSKStV2D::J2SSKStV2D(ifstreamT& in, const SmallStrainT& element):
 J2SSKStV(in, element),
 	Material2DT(in, Material2DT::kPlaneStrain),
 	fStress2D(2),
 	fModulus2D(dSymMatrixT::NumValues(2)),
 	fTotalStrain3D(3)
 {
+	/* acccount for thickness */
+	fDensity *= fThickness;
+}
 
+/* initialization */
+void J2SSKStV2D::Initialize(void)
+{
+	/* inherited */
+	HookeanMatT::Initialize();
 }
 
 /* returns elastic strain (3D) */

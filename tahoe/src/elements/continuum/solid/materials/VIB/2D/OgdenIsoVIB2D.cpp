@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB2D.cpp,v 1.2 2001-02-20 00:28:20 paklein Exp $ */
+/* $Id: OgdenIsoVIB2D.cpp,v 1.3 2001-07-03 01:35:18 paklein Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* 2D Isotropic VIB using Ogden's spectral formulation                    */
 
@@ -7,8 +7,6 @@
 #include <math.h>
 #include <iostream.h>
 #include "Constants.h"
-
-#include "ElasticT.h"
 #include "C1FunctionT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
@@ -17,7 +15,7 @@
 #include "EvenSpacePtsT.h"
 
 /* constructors */
-OgdenIsoVIB2D::OgdenIsoVIB2D(ifstreamT& in, const ElasticT& element):
+OgdenIsoVIB2D::OgdenIsoVIB2D(ifstreamT& in, const FiniteStrainT& element):
 	OgdenIsotropicT(in, element),
 	Material2DT(in, kPlaneStress),
 	VIB(in, 2, 2, 3),
@@ -62,8 +60,11 @@ void OgdenIsoVIB2D::PrintName(ostream& out) const
 /* strain energy density */
 double OgdenIsoVIB2D::StrainEnergyDensity(void)
 {
+	/* stretch */
+	Compute_C(fC);
+
 	/* principal stretches */
-	C().PrincipalValues(fEigs);
+	fC.PrincipalValues(fEigs);
 
 	/* stretched bonds */
 	ComputeLengths(fEigs);

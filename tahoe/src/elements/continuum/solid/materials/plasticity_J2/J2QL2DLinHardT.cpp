@@ -1,4 +1,4 @@
-/* $Id: J2QL2DLinHardT.cpp,v 1.4 2001-05-05 19:13:56 paklein Exp $ */
+/* $Id: J2QL2DLinHardT.cpp,v 1.5 2001-07-03 01:35:31 paklein Exp $ */
 /* created: paklein (06/29/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -14,7 +14,7 @@
 #include <math.h>
 
 #include "Constants.h"
-#include "ElasticT.h"
+
 #include "iArrayT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
@@ -60,7 +60,7 @@ static const char* Labels[kNumOutput] = {
 	    "s_min"}; // min in-plane principal stress
 
 /* constructor */
-J2QL2DLinHardT::J2QL2DLinHardT(ifstreamT& in, const ElasticT& element):
+J2QL2DLinHardT::J2QL2DLinHardT(ifstreamT& in, const FiniteStrainT& element):
 	QuadLog2D(in, element),
 	J2PrimitiveT(in),
 	fb_elastic(kNSD),
@@ -72,8 +72,6 @@ J2QL2DLinHardT::J2QL2DLinHardT(ifstreamT& in, const ElasticT& element):
 	fMatrixTemp2(kNSD),
 	fMatrixTemp3(kNSD),
 	fdev_beta(kNSD),
-	/* deformation gradient stuff */
-	fLocLastDisp(element.LastDisplacements()),
 	fFtot(3),
 	ffrel(3),
 	
@@ -82,14 +80,6 @@ J2QL2DLinHardT::J2QL2DLinHardT(ifstreamT& in, const ElasticT& element):
 	fFtot_2D(2),
 	ffrel_2D(2)	
 {
-	/* check last displacements */
-	if (!fLocLastDisp.IsRegistered() ||
-		 fLocLastDisp.MinorDim() != NumDOF())
-	{
-		cout << "\n J2QL2DLinHardT::J2QL2DLinHardT: last local displacement vector is invalid" << endl;
-		throw eGeneralFail;
-	}
-
 	/* for intermediate config update */
 	fa_inverse.Inverse(fEigMod);
 }
@@ -177,7 +167,7 @@ const dMatrixT& J2QL2DLinHardT::c_ijkl(void)
 	     fabs(fEigs[1] - 1.0) < kSmall &&
 	     fabs(fEigs[2] - 1.0) < kSmall ) //now explicitly check 3rd dim
 	{
-		IsotropicT::ComputeModuli(fModulus2D, Mu(), Lambda());
+		IsotropicT::ComputeModuli2D(fModulus2D, fConstraintOption);
 	}
 	/* compute moduli */
 	else
@@ -269,9 +259,6 @@ double J2QL2DLinHardT::StrainEnergyDensity(void)
 
 	return fThickness*ComputeEnergy(floge);
 }
-
-/* required parameter flags */
-bool J2QL2DLinHardT::NeedLastDisp(void) const { return true; }
 
 /*
 * Returns the number of variables computed for nodal extrapolation
@@ -498,7 +485,7 @@ void J2QL2DLinHardT::ComputeGradients(void)
 {
 	/* compute relative displacement */
 	fFtot_2D = F();
-	fF_temp.Inverse(F(fLocLastDisp));
+	fF_temp.Inverse(F_last());
 	ffrel_2D.MultAB(fFtot_2D,fF_temp);
 
 	/* 2D -> 3D */

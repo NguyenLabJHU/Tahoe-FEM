@@ -13,7 +13,7 @@
 #include "Utils.h"
 
 #include "FEManagerT.h"
-#include "ElasticT.h"
+#include "FiniteStrainT.h"
 #include "StringT.h"
 
 /* number of elastic material properties : isotropic and cubic */
@@ -30,7 +30,7 @@ const int kIsInit = 1;
 /* spatial dimensions of the problem */
 const int kNSD = 3;
 
-PolyCrystalMatT::PolyCrystalMatT(ifstreamT& in, const ElasticT& element) :
+PolyCrystalMatT::PolyCrystalMatT(ifstreamT& in, const FiniteStrainT& element) :
   FDHookeanMatT(in, element),
   //fdt           (element.FEManager().TimeStep()),
   ftime         (element.FEManager().Time()),
@@ -137,6 +137,12 @@ void PolyCrystalMatT::Print(ostream& out) const
   out << "    Convergence control for state\n";
   out << "       Max# iterations . . . . . . . . . . . . . = " << fMaxIterState << "\n";
   out << "       Tolerance convergence . . . . . . . . . . = " << fTolerState   << "\n";
+}
+
+/* set (material) tangent modulus */
+void PolyCrystalMatT::SetModulus(dMatrixT& modulus)
+{
+	fElasticity->ComputeModuli(modulus);
 }
 
 void PolyCrystalMatT::PrintName(ostream& out) const

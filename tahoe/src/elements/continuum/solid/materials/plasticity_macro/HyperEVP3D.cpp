@@ -3,13 +3,13 @@
 */
 
 #include "HyperEVP3D.h"
+
+#include "ContinuumElementT.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
 #include "ifstreamT.h"
 #include "Utils.h"
 #include "SimplePowerLaw.h"
-
-#include "ElasticT.h"
 #include "FEManagerT.h"
 
 const double sqrt32 = sqrt(3.0/2.0);
@@ -27,7 +27,7 @@ const int kNumInternal = 5;
 const int kNumOutput = 4;
 static const char* Labels[kNumOutput] = {"EQP_strain","VM_stress","Pressure","Hardness"};
 
-HyperEVP3D::HyperEVP3D(ifstreamT& in, const ElasticT& element) :
+HyperEVP3D::HyperEVP3D(ifstreamT& in, const FiniteStrainT& element) :
   EVPFDBaseT(in, element),  
 
   // elastic def gradients
@@ -113,8 +113,11 @@ const dSymMatrixT& HyperEVP3D::s_ij()
 
       // total deformation gradient
       // fFtot = F();
-      fFtot = DeformationGradient(fLocDisp);
+      //fFtot = DeformationGradient(fLocDisp);
       // fFtot = fContinuumElement.FEManager().DeformationGradient();
+
+      //compute 3D total deformation gradient
+      Compute_Ftot_3D(fFtot);
 
       // time step
       fdt = fContinuumElement.FEManager().TimeStep();

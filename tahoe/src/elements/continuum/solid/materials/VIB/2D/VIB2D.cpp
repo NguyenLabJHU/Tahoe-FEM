@@ -1,4 +1,4 @@
-/* $Id: VIB2D.cpp,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* $Id: VIB2D.cpp,v 1.2 2001-07-03 01:35:18 paklein Exp $ */
 /* created: paklein (04/09/1997)                                          */
 /* 2D VIB solver                                                          */
 
@@ -22,7 +22,7 @@
 const double Pi = acos(-1.0);
 
 /* constructors */
-VIB2D::VIB2D(ifstreamT& in, const ElasticT& element):
+VIB2D::VIB2D(ifstreamT& in, const FiniteStrainT& element):
 	NL_E_Mat2DT(in, element, kPlaneStress),
 	VIB_E_MatT(in, 2)
 {

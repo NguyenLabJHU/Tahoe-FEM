@@ -1,4 +1,4 @@
-/* $Id: CubicT.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: CubicT.h,v 1.2 2001-07-03 01:35:06 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #ifndef _CUBIC_T_H_
@@ -11,12 +11,15 @@
 class ifstreamT;
 class dMatrixT;
 
+/* direct members */
+#include "Material2DT.h"
+
 class CubicT
 {
 public:
 
 	/* constructor */
-	CubicT(ifstreamT& in, dMatrixT& moduli);
+	CubicT(ifstreamT& in);
 		
 	/* print parameters */
 	void Print(ostream& out) const;
@@ -25,7 +28,11 @@ public:
 protected:
 
 	/* set modulus */
-	void ComputeModuli(dMatrixT& moduli, double C11, double C12, double C44);
+	void ComputeModuli(dMatrixT& moduli);
+	void ComputeModuli2D(dMatrixT& moduli, Material2DT::ConstraintOptionT constraint) const;
+
+	/* scale factor for constrained dilatation */
+	double DilatationFactor2D(Material2DT::ConstraintOptionT constraint) const;   	
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.cpp,v 1.2 2001-02-20 00:23:20 paklein Exp $ */
+/* $Id: IsotropicT.cpp,v 1.3 2001-07-03 01:35:41 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "IsotropicT.h"
@@ -67,24 +67,53 @@ void IsotropicT::Print(ostream& out) const
 *************************************************************************/
 
 /* compute the symetric Cij reduced index matrix */
-void IsotropicT::ComputeModuli(dMatrixT& moduli, double mu, double lambda) const
+void IsotropicT::ComputeModuli(dMatrixT& moduli) const
 {
-	moduli = 0.0;
-
-	if (moduli.Rows() == 3) //StressDimension in dSymMatrixT
+	if (moduli.Rows() == 6)
 	{
-		moduli(1,1) = moduli(0,0) = lambda + 2.0*mu;
-		moduli(0,1) = lambda;
-		moduli(2,2) = mu;
-	}
-	else if (moduli.Rows() == 6)
-	{
+		double mu = Mu();
+		double lambda = Lambda();
+		moduli = 0.0;
 		moduli(2,2) = moduli(1,1) = moduli(0,0) = lambda + 2.0*mu;
 		moduli(1,2) = moduli(0,1) = moduli(0,2) = lambda;
 		moduli(5,5) = moduli(4,4) = moduli(3,3) = mu;
-	}
-	else throw eGeneralFail;
 
-	/* symmetric */
-	moduli.CopySymmetric();
+		/* symmetric */
+		moduli.CopySymmetric();
+	}
+	else
+	{
+		cout << "\n IsotropicT::ComputeModuli: for 3D only" << endl;
+		throw eSizeMismatch;
+	}
+}
+
+void IsotropicT::ComputeModuli2D(dMatrixT& moduli, 
+	Material2DT::ConstraintOptionT constraint) const
+{
+	if (moduli.Rows() == 3)
+	{
+		double mu = Mu();
+		double lambda = Lambda();
+
+		/* plane stress correction */
+		if (constraint == Material2DT::kPlaneStress) 
+			lambda *= 2.0*mu/(lambda + 2.0*mu);	
+		
+		moduli = 0.0;
+		moduli(1,1) = moduli(0,0) = lambda + 2.0*mu;
+		moduli(0,1) = moduli(1,0) = lambda;
+		moduli(2,2) = mu;
+	}
+	else 
+		throw eSizeMismatch;
+}
+
+/* scale factor for constrained dilatation */
+double IsotropicT::DilatationFactor2D(Material2DT::ConstraintOptionT constraint) const
+{
+	if (constraint == Material2DT::kPlaneStrain)
+		return 1.0 + Poisson();
+	else
+		return 1.0;
 }

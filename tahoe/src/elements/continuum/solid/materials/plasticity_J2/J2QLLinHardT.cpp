@@ -1,4 +1,4 @@
-/* $Id: J2QLLinHardT.cpp,v 1.5 2001-06-04 23:40:17 paklein Exp $ */
+/* $Id: J2QLLinHardT.cpp,v 1.6 2001-07-03 01:35:31 paklein Exp $ */
 /* created: paklein (10/26/2000)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -14,7 +14,7 @@
 #include <math.h>
 
 #include "Constants.h"
-#include "ElasticT.h"
+
 #include "iArrayT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
@@ -60,7 +60,7 @@ static const char* Labels[kNumOutput] = {
 	    "s_min"}; // min principal stress
 
 /* constructor */
-J2QLLinHardT::J2QLLinHardT(ifstreamT& in, const ElasticT& element):
+J2QLLinHardT::J2QLLinHardT(ifstreamT& in, const FiniteStrainT& element):
 	QuadLog3D(in, element),
 	J2PrimitiveT(in),
 	fb_elastic(kNSD),
@@ -74,19 +74,10 @@ J2QLLinHardT::J2QLLinHardT(ifstreamT& in, const ElasticT& element):
 	fdev_beta(kNSD),
 	
 	/* deformation gradient stuff */
-	fLocLastDisp(element.LastDisplacements()),
 	fFtot(kNSD),
 	ffrel(kNSD),
 	fF_temp(kNSD)
 {
-	/* check last displacements */
-	if (!fLocLastDisp.IsRegistered() ||
-		 fLocLastDisp.MinorDim() != NumDOF())
-	{
-		cout << "\n J2QLLinHardT::J2QLLinHardT: last local displacement vector is invalid" << endl;
-		throw eGeneralFail;
-	}
-
 	/* for intermediate config update */
 	fa_inverse.Inverse(fEigMod);
 }
@@ -171,7 +162,7 @@ const dMatrixT& J2QLLinHardT::c_ijkl(void)
 	     fabs(fEigs[1] - 1.0) < kSmall &&
 	     fabs(fEigs[2] - 1.0) < kSmall )
 	{
-		IsotropicT::ComputeModuli(fModulus, Mu(), Lambda());
+		IsotropicT::ComputeModuli(fModulus);
 	}
 	/* compute moduli */
 	else
@@ -252,9 +243,6 @@ double J2QLLinHardT::StrainEnergyDensity(void)
 
 	return ComputeEnergy(floge);
 }
-
-/* required parameter flags */
-bool J2QLLinHardT::NeedLastDisp(void) const { return true; }
 
 /*
 * Returns the number of variables computed for nodal extrapolation
@@ -492,7 +480,7 @@ void J2QLLinHardT::ComputeGradients(void)
 {
 	/* compute relative displacement */
 	fFtot = F();
-	fF_temp.Inverse(F(fLocLastDisp));
+	fF_temp.Inverse(F_last());
 	ffrel.MultAB(fFtot,fF_temp);
 }
 

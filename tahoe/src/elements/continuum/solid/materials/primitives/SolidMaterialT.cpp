@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.2 2001-07-03 01:35:42 paklein Exp $ */
 /* created: paklein (11/20/1996)                                          */
 
 #include "SolidMaterialT.h"
@@ -9,15 +9,12 @@
 #include "fstreamT.h"
 #include "dArrayT.h"
 #include "dSymMatrixT.h"
-#include "ElasticT.h"
 #include "LocalArrayT.h"
 
 /* constructor */
 SolidMaterialT::SolidMaterialT(ifstreamT& in,
-	const ElasticT& element):
+	const ContinuumElementT& element):
 	ContinuumMaterialT(element)
-//DEV
-//	,fModuli(dSymMatrixT::NumValues(element.InitialCoordinates().MinorDim()))
 {
 	in >> fMassDamp;	if (fMassDamp  <  0.0) throw eBadInputValue;
 	in >> fStiffDamp;	if (fStiffDamp <  0.0) throw eBadInputValue;
@@ -25,6 +22,14 @@ SolidMaterialT::SolidMaterialT(ifstreamT& in,
 
 	fThermal = new ThermalDilatationT(in);
 	if (!fThermal) throw eOutOfMemory;
+
+//DEV - Rayleigh damping is being eliminated
+	if (fMassDamp > kSmall || fStiffDamp > kSmall)
+	{
+		cout << "\n SolidMaterialT::SolidMaterialT: support for Rayleigh damping is\n"
+		     <<   "     being eliminated. damping set to 0.0" << endl;
+		fMassDamp = fStiffDamp = 0.0;
+	}
 }
 
 /* destructor */
@@ -115,11 +120,6 @@ void SolidMaterialT::WaveSpeeds(const dArrayT& normal, dArrayT& speeds)
 	}
 }
 
-/* required parameter flags - (all FALSE by default) */
-bool SolidMaterialT::NeedDisp(void) const     { return false; }
-bool SolidMaterialT::NeedLastDisp(void) const { return false; }
-bool SolidMaterialT::NeedVel(void) const      { return false; }
-
 /* returns true if the material has internal forces in the unloaded
 * configuration, ie thermal strains */
 int SolidMaterialT::HasInternalStrain(void) const
@@ -137,14 +137,6 @@ void SolidMaterialT::SetThermalLTfPtr(const LoadTime* LTfPtr)
 {
 	fThermal->SetLTfPtr(LTfPtr);
 }
-
-//DEV - specific to 2D, small strain even, isotropic???
-#if 0
-double& SolidMaterialT::PlanarDilatationFactor(void)
-{
-	return fThermal->ScaleFactor();
-}	
-#endif
 
 double SolidMaterialT::ThermalElongation(void) const //percentage
 {

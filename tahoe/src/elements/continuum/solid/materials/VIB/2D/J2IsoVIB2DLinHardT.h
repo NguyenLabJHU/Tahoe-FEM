@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB2DLinHardT.h,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* $Id: J2IsoVIB2DLinHardT.h,v 1.2 2001-07-03 01:35:18 paklein Exp $ */
 /* created: paklein (10/18/1998)                                          */
 /* VIB plus principal stretch elasticity                                  */
 /* Interface for a elastoplastic material that is linearly                */
@@ -29,7 +29,7 @@ class J2IsoVIB2DLinHardT: public IsoVIB3D, public Material2DT, public J2Primitiv
 public:
 
 	/* constructor */
-	J2IsoVIB2DLinHardT(ifstreamT& in, const ElasticT& element);
+	J2IsoVIB2DLinHardT(ifstreamT& in, const FiniteStrainT& element);
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);
@@ -99,9 +99,6 @@ private:
 	void Computeddw(const dArrayT& eigs, dMatrixT& ddw);
 
 private:
-
-	/* displacements from the last time step */
-	const LocalArrayT& fLocLastDisp;
 
 //TEMP - overrides IsoVIB3D::fEigs
 	dArrayT    fEigs;

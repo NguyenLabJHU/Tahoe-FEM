@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.2 2001-07-03 01:35:30 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 #include "DPSSKStV.h"
@@ -17,16 +17,22 @@ static const char* Labels[kNumOutput] = {
 	    "press"}; // pressure
 
 /* constructor */
-DPSSKStV::DPSSKStV(ifstreamT& in, const ElasticT& element):
+DPSSKStV::DPSSKStV(ifstreamT& in, const SmallStrainT& element):
 	SSStructMatT(in, element),
-	KStV(in),	
+	IsotropicT(in),
+	HookeanMatT(3),
 	DPSSLinHardT(in, NumIP(), Mu(), Lambda()),
 	fStress(3),
-	fModulus(dSymMatrixT::NumValues(3)),
-	fElasticModulus(dSymMatrixT::NumValues(3))
+	fModulus(dSymMatrixT::NumValues(3))
+{
+
+}
+
+/* initialization */
+void DPSSKStV::Initialize(void)
 {
 	/* inherited */
-	KStV::SetModulus(fElasticModulus);
+	HookeanMatT::Initialize();
 }
 
 /* form of tangent matrix (symmetric by default) */
@@ -53,7 +59,7 @@ void DPSSKStV::Print(ostream& out) const
 {
 	/* inherited */
 	SSStructMatT::Print(out);
-	KStV::Print(out);
+	IsotropicT::Print(out);
 	DPSSLinHardT::Print(out);
 }
 
@@ -62,15 +68,16 @@ void DPSSKStV::PrintName(ostream& out) const
 {
 	/* inherited */
 	SSStructMatT::PrintName(out);
-	KStV::PrintName(out);
 	DPSSLinHardT::PrintName(out);
+	out << "    Kirchhoff-St.Venant\n";
 }
 
 /* modulus */
 const dMatrixT& DPSSKStV::c_ijkl(void)
 {
 	/* elastoplastic correction */
-	fModulus.SumOf(fElasticModulus,	ModuliCorrection(CurrentElement(), CurrIP()));
+	fModulus.SumOf(HookeanMatT::Modulus(),
+		ModuliCorrection(CurrentElement(), CurrIP()));
 	return fModulus;
 }
 
@@ -83,7 +90,7 @@ const dSymMatrixT& DPSSKStV::s_ij(void)
 	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
 
 	/* elastic stress */
-	HookeanStress(fElasticModulus, e_els, fStress);
+	HookeanStress(e_els, fStress);
 
 	/* modify Cauchy stress (return mapping) */
 	fStress += StressCorrection(e_els, element, ip);
@@ -93,8 +100,7 @@ const dSymMatrixT& DPSSKStV::s_ij(void)
 /* returns the strain energy density for the specified strain */
 double DPSSKStV::StrainEnergyDensity(void)
 {
-	return HookeanEnergy(fElasticModulus,
-		ElasticStrain(e(), CurrentElement(), CurrIP()));
+	return HookeanEnergy(ElasticStrain(e(), CurrentElement(), CurrIP()));
 }
 
 /* returns the number of variables computed for nodal extrapolation
@@ -149,6 +155,12 @@ void DPSSKStV::ComputeOutput(dArrayT& output)
 	}
 }
 
-/***********************************************************************
+/*************************************************************************
 * Protected
-***********************************************************************/
+*************************************************************************/
+
+/* set modulus */
+void DPSSKStV::SetModulus(dMatrixT& modulus)
+{
+	IsotropicT::ComputeModuli(modulus);
+}

@@ -1,4 +1,4 @@
-/* $Id: VIB.cpp,v 1.2 2001-06-11 02:05:39 paklein Exp $ */
+/* $Id: VIB.cpp,v 1.3 2001-07-03 01:35:17 paklein Exp $ */
 /* created: paklein (10/30/1997)                                          */
 /* Base class for isotropic VIB materials.                                */
 

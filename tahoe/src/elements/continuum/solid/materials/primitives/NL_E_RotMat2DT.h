@@ -1,4 +1,4 @@
-/* $Id: NL_E_RotMat2DT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: NL_E_RotMat2DT.h,v 1.2 2001-07-03 01:35:42 paklein Exp $ */
 /* created: paklein (06/13/1997)                                          */
 /* Base class for materials with 2D nonlinear elastic behavior            */
 /* with in-plane orientation with respect to global coordinate            */
@@ -18,7 +18,7 @@ class NL_E_RotMat2DT: public NL_E_Mat2DT, public Anisotropic2DT
 public:
 
 	/* constructor */
-	NL_E_RotMat2DT(ifstreamT& in, const ElasticT& element, ConstraintOptionT constraint);
+	NL_E_RotMat2DT(ifstreamT& in, const FiniteStrainT& element, ConstraintOptionT constraint);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:47 paklein Exp $
+# $Id: makefile,v 1.5 2001-07-03 01:35:43 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -8,6 +8,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	Anisotropic2DT.o \
 	ContinuumMaterialT.o \
+	DetCheckT.o \
 	DiffusionMaterialT.o \
 	FDStructMatT.o \
 	IsotropicT.o \
@@ -17,7 +18,8 @@ OBJ = \
 	NL_E_RotMat2DT.o \
 	SSStructMatT.o \
 	StructuralMaterialT.o \
-	ThermalDilatationT.o
+	ThermalDilatationT.o \
+	TensorTransformT.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -28,6 +30,7 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	Anisotropic2DT.cpp \
 	ContinuumMaterialT.cpp \
+	DetCheckT.cpp \
 	DiffusionMaterialT.cpp \
 	FDStructMatT.cpp \
 	IsotropicT.cpp \
@@ -37,12 +40,14 @@ SRC = \
 	NL_E_RotMat2DT.cpp \
 	SSStructMatT.cpp \
 	StructuralMaterialT.cpp \
-	ThermalDilatationT.cpp
+	ThermalDilatationT.cpp \
+	TensorTransformT.cpp
 
 # headers
 HDR = \
 	Anisotropic2DT.h \
 	ContinuumMaterialT.h \
+	DetCheckT.h \
 	DiffusionMaterialT.h \
 	FDStructMatT.h \
 	IsotropicT.h \
@@ -52,7 +57,9 @@ HDR = \
 	NL_E_RotMat2DT.h \
 	SSStructMatT.h \
 	StructuralMaterialT.h \
-	ThermalDilatationT.h
+	ThermalDilatationT.h \
+	TensorTransformT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
