@@ -1,10 +1,5 @@
-/* $Id: PenaltyRegionT.cpp,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
-/* created: paklein (04/30/1998)                                          */
-/* base class for moving rigid, penalty regions. contact nodes            */
-/* that enter the region are expelled by a quadratic penetration          */
-/* potential. derived classes are responsilble for computing              */
-/* the penetration depth and reaction for based on the geometry           */
-/* of the region.                                                         */
+/* $Id: PenaltyRegionT.cpp,v 1.2 2001-09-11 06:00:49 paklein Exp $ */
+/* created: paklein (04/30/1998) */
 
 #include "PenaltyRegionT.h"
 
@@ -40,6 +35,7 @@ PenaltyRegionT::PenaltyRegionT(FEManagerT& fe_manager,
 	/* wall parameters */
 	fx0(rCoords.MinorDim()),
 	fv0(rCoords.MinorDim()),
+	fMass(0.0),
 	fLTf(NULL),
 
 	/* state variables */
@@ -60,33 +56,35 @@ void PenaltyRegionT::EchoData(ifstreamT& in, ostream &out)
 	in >> fv0;
 	in >> fk;
 	in >> fSlow;
-	in >> fMass;
 
-	/* read load time information */
+	/* motion control */
 	int numLTf;
-	if (fSlow == 2)
+	if (fSlow == kSchedule)
 	{
 		in >> numLTf;
 		numLTf--;
 		fLTf = fFEManager.GetLTfPtr(numLTf);
 	}
+	else if (fSlow == kImpulse)
+		in >> fMass;
 
 	out << "\n P e n a l t y   R e g i o n   P a r a m e t e r s :\n\n";
 	out << " Initial position. . . . . . . . . . . . . . . . =\n" << fx0 << '\n';
 	out << " Initial velocity. . . . . . . . . . . . . . . . =\n" << fv0 << '\n';
 	out << " Penalty stiffness . . . . . . . . . . . . . . . = " << fk << '\n';
 	out << " Momentum option . . . . . . . . . . . . . . . . = " << fSlow << '\n';
-	out << "    eq. 0, constant velocity\n";
-	out << "    eq. 1, calculate contact impulse\n";
-	out << "    eq. 2, velocity load time function\n";
-	out << " Mass. . . . . . . . . . . . . . . . . . . . . . = " << fMass << '\n';
-	if (fSlow == 2)
+	out << "    eq. " << kConstantVelocity << ", constant velocity\n";
+	out << "    eq. " << kImpulse          << ", slow with contact impulse\n";
+	out << "    eq. " << kSchedule         << ", velocity load time function\n";
+	if (fSlow == kSchedule)
 		out << " Velocity load time function . . . . . . . . . . = " << numLTf << endl;
+	else if (fSlow == kImpulse)
+		out << " Mass. . . . . . . . . . . . . . . . . . . . . . = " << fMass << '\n';
 
 	/* checks */
 	if (fk <= 0.0) throw eBadInputValue;
-	if (fSlow != 1 && fSlow != 0 && fSlow != 2) throw eBadInputValue;
-	if (fSlow == 1 && fMass <= 0.0) throw eBadInputValue;
+	if (fSlow != kImpulse && fSlow != kConstantVelocity && fSlow != kSchedule) throw eBadInputValue;
+	if (fSlow == kImpulse && fMass <= 0.0) throw eBadInputValue;
 		
 	/* read contact nodes */
 	switch (fFEManager.InputFormat())
