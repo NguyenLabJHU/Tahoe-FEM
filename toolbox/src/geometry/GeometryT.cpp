@@ -1,4 +1,4 @@
-/* $Id: GeometryT.cpp,v 1.5 2003-11-04 01:21:18 paklein Exp $ */
+/* $Id: GeometryT.cpp,v 1.6 2004-02-12 17:17:41 paklein Exp $ */
 /* created: paklein (10/10/1999) */
 #include "GeometryT.h"
 
@@ -23,14 +23,14 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<GeometryT::CodeT>::fByteCopy = true;
 namespace Tahoe { 
 /* initialize static geometry names array */
 const char* GeometryT::fNames[8] = 
-          {"None",
-          "Point",
-           "Line",
-  "Quadrilateral",
-       "Triangle",
-     "Hexahedron",
-    "Tetrahedron",
-    "Pentahedron"};
+          {"none",
+          "point",
+           "line",
+  "quadrilateral",
+       "triangle",
+     "hexahedron",
+    "tetrahedron",
+    "pentahedron"};
 } /* namespace Tahoe */ 
 
 namespace Tahoe {
