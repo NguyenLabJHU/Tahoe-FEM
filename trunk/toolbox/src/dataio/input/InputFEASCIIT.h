@@ -1,4 +1,4 @@
-/* $Id: InputFEASCIIT.h,v 1.6 2002-02-18 08:54:45 paklein Exp $ */
+/* $Id: InputFEASCIIT.h,v 1.7 2002-03-04 06:29:09 paklein Exp $ */
 #ifndef _INPUTFEASCII_T_H_
 #define _INPUTFEASCII_T_H_
 
@@ -34,9 +34,17 @@ public:
   /* NODES */
   virtual int  NumNodes (void) const;
   virtual int  NumDimensions (void) const;
-  virtual void ReadNodeMap (iArrayT& nodemap);
-  virtual void ReadCoordinates (dArray2DT& coords);
-  virtual void ReadCoordinates (dArray2DT& coords, iArrayT& nodemap);
+
+	/** ids for all nodes. ids for all nodes in the coordinate list. ids may not be
+	 * compact or ordered */
+	virtual void ReadNodeID(iArrayT& node_id); 
+
+	/** read coordinates */
+	virtual void ReadCoordinates(dArray2DT& coords);
+	
+	/** read coordinates and ids. ids for all nodes in the coordinate list. 
+	 * ids may not be compact or ordered */
+	virtual void ReadCoordinates(dArray2DT& coords, iArrayT& node_id);
 
   /* ELEMENTS */
   virtual int  NumGlobalElements (void) const;
