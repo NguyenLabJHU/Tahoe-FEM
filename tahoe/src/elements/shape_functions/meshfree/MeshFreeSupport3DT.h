@@ -1,6 +1,5 @@
-/* $Id: MeshFreeSupport3DT.h,v 1.3 2001-07-03 01:35:50 paklein Exp $ */
-/* created: paklein (09/13/1998)                                          */
-/* meshfree shape function support for 3D                                 */
+/* $Id: MeshFreeSupport3DT.h,v 1.4 2001-07-13 02:17:36 paklein Exp $ */
+/* created: paklein (09/13/1998) */
 
 #ifndef _MF_SUPPORT_3D_T_H_
 #define _MF_SUPPORT_3D_T_H_
@@ -8,15 +7,24 @@
 /* base class */
 #include "MeshFreeSupportT.h"
 
+/** Class for support of meshfree methods in three dimensions. See
+ * documentation from base class for information about initialization. */
 class MeshFreeSupport3DT: public MeshFreeSupportT
 {
 public:
 
-	/* constructor */
+	/** constructor.
+	 * \param domain used to determine the location of integration points
+	 * \param coords array of all particle coordinates 
+	 * \param connects integration cell connectivities 
+	 * \param nongridnodes index of paricles not included in the connectivities
+	 * \param in input stream for class and window function parameters */
 	MeshFreeSupport3DT(const ParentDomainT& domain, const dArray2DT& coords,
 		const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in);
 
-	/* cutting facet functions */
+	/** set field cutting facets. 
+	 * \param facet_coords list of coordinate for each facet: [nfacets] x [num_facet_nodes*nsd] 
+	 * \param num_facet_nodes number of nodes defining each facet */
 	virtual void SetCuttingFacets(const dArray2DT& facet_coords, int num_facet_nodes);
 
 private:
