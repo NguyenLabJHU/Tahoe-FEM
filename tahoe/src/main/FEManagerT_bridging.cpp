@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.5.2.6 2003-05-25 19:26:53 hspark Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.5.2.7 2003-05-28 15:43:01 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -102,7 +102,7 @@ void FEManagerT_bridging::SetExternalForce(const StringT& field, const dArray2DT
 	
 	/* collect equation numbers */
 	iArray2DT& eqnos = fExternalForce2DEquations[group];
-	eqnos.Dimension(fNodeManager->NumNodes(), thefield->NumDOF());
+	eqnos.Dimension(activefenodes.Length(), thefield->NumDOF());
 	thefield->SetLocalEqnos(activefenodes, eqnos);	// crashes here if not nodes and atoms everywhere
 }
 
