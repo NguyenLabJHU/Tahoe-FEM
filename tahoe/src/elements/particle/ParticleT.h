@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.8.2.1 2002-12-16 09:26:31 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.8.2.2 2002-12-27 23:20:58 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -14,6 +14,7 @@ namespace Tahoe {
 /** forward declarations */
 class iGridManagerT;
 class CommManagerT;
+class ParticlePropertyT;
 
 /** base class for particle types */
 class ParticleT: public ElementBaseT
@@ -88,8 +89,11 @@ protected: /* for derived classes only */
 	virtual bool ChangingGeometry(void) const;
 
 	/** set neighborlists and any other system configuration information
-	 * based on the current information. */
-	virtual void SetConfiguration(void) = 0;
+	 * based on the current information. ParticleT::SetConfiguration
+	 * simply stores a list of coordinates in the current configuration
+	 * which is used to determine if SetConfiguration needs to be called
+	 * again. */
+	virtual void SetConfiguration(void) ;
 
 	/** generate neighborlist
 	 * \param particle_tags global tags for which to determine neighhors. If NULL, find
@@ -117,6 +121,11 @@ protected: /* for derived classes only */
 	 * \param mass mass associated with each particle type */
 	void AssembleParticleMass(const dArrayT& mass);
 
+	/** return the maximum distance between the current coordinates and those
+	 * stored in ParticleT::fReNeighborCoords. The maximum is over local atoms
+	 * only. */
+	double MaxDisplacement(void) const;
+
 protected:
 
 	/** reference ID for sending output */
@@ -137,7 +146,13 @@ protected:
 	iArray2DT fPointConnectivities;
 	/*@}*/
 
-	/** number of steps between reseting neighbor lists */
+	/** the neighboring cut-off distance */
+	double fNeighborDistance;
+
+	/** maximum distance an atom can displace before the neighbor lists are reset */
+	double fReNeighborDisp;
+
+	/** maximum number of steps between reseting neighbor lists */
 	int fReNeighborIncr;
 
 	/** \name particle properties */
@@ -150,6 +165,9 @@ protected:
 	
 	/** map of particle types to properties: {type_a, type_b} -> property number */
 	nMatrixT<int> fPropertiesMap;
+
+	/** particle properties list */
+	ArrayT<ParticlePropertyT*> fParticleProperties;
 	/*@}*/
 
 	/** \name cached calculated values */
@@ -168,6 +186,13 @@ protected:
 	
 	/** the search grid */
 	iGridManagerT* fGrid;
+
+	/** coordinates of partition nodes at the last re-neighbor. The list of coordinares
+	 * is collected during ParticleT::SetConfiguration */
+	dArray2DT fReNeighborCoords;
+	double fDmax;  /**< maximum distance between the current
+	                    coordinates and the coordinates in ParticleT::fReNeighborCoords.
+	                    This value is computed during ParticleT::RelaxSystem. */
 
 private:
 

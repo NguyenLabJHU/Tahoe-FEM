@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.7 2002-11-30 16:37:25 paklein Exp $ */
+/* $Id: ParticlePairT.h,v 1.7.2.1 2002-12-27 23:20:58 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -21,9 +21,6 @@ public:
 
 	/** constructor */
 	ParticlePairT(const ElementSupportT& support, const FieldT& field);
-
-	/** destructor */
-	~ParticlePairT(void);
 
 	/** collecting element group equation numbers */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -74,11 +71,8 @@ protected:
 
 private:
 
-	/** neighbor cut-off distance */
-	double fNeighborDistance;
-
-	/** particle properties list */
-	ArrayT<PairPropertyT*> fProperties;
+	/** particle pair-properties list */
+	ArrayT<PairPropertyT*> fPairProperties;
 
 	/** neighbor lists */
 	RaggedArray2DT<int> fNeighbors;

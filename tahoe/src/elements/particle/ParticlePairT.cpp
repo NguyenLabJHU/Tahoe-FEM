@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.12.2.1 2002-12-16 09:26:30 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.12.2.2 2002-12-27 23:20:58 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -21,7 +21,6 @@ ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field
 	ParticleT(support, field),
 	fNeighbors(kMemoryHeadRoom),
 	fEqnos(kMemoryHeadRoom),
-	fNeighborDistance(-1),
 	fForce_list_man(0, fForce_list)
 {
 	/* input stream */
@@ -33,14 +32,6 @@ ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field
 	/* checks */
 	if (fNeighborDistance < kSmall) 
 		ExceptionT::BadInputValue("ParticlePairT::ParticlePairT");
-}
-
-/* destructor */
-ParticlePairT::~ParticlePairT(void)
-{
-	/* free properties list */
-	for (int i = 0; i < fProperties.Length(); i++)
-		delete fProperties[i];
 }
 
 /* collecting element group equation numbers */
@@ -78,7 +69,13 @@ void ParticlePairT::WriteOutput(void)
 {
 	/* inherited */
 	ParticleT::WriteOutput();
-	
+
+	/* muli-processor information */
+	CommManagerT& comm_manager = ElementSupport().CommManager();
+	const ArrayT<int>* proc_map = comm_manager.ProcessorMap();
+	int rank = ElementSupport().Rank();
+
+	/* dimensions */
 	int ndof = NumDOF();
 	int num_output = ndof + 2; /* displacement + PE + KE */
 
@@ -103,8 +100,8 @@ void ParticlePairT::WriteOutput(void)
 	/* collect mass per particle */
 	dArrayT mass(fNumTypes);
 	for (int i = 0; i < fNumTypes; i++)
-		mass[i] = fProperties[fPropertiesMap(i,i)]->Mass();
-		
+		mass[i] = fPairProperties[fPropertiesMap(i,i)]->Mass();
+
 	/* map from partition node index */
 	const InverseMapT* inverse_map = fCommManager.PartitionNodes_inv();
 	
@@ -134,7 +131,7 @@ void ParticlePairT::WriteOutput(void)
 			velocities->RowAlias(tag_i, vec);
 			values_i[ndof+1] = 0.5*mass[type_i]*dArrayT::Dot(vec, vec);
 		}
-		
+
 		/* run though neighbors for one atom - first neighbor is self
 		 * to compute potential energy */
 		coords.RowAlias(tag_i, x_i);
@@ -143,13 +140,12 @@ void ParticlePairT::WriteOutput(void)
 			/* tags */
 			int   tag_j = neighbors[j];
 			int  type_j = fType[tag_j];		
-			int local_j = (inverse_map) ? inverse_map->Map(tag_j) : tag_j;
 			
 			/* set pair property (if not already set) */
 			int property = fPropertiesMap(type_i, type_j);
 			if (property != current_property)
 			{
-				energy_function = fProperties[property]->getEnergyFunction();
+				energy_function = fPairProperties[property]->getEnergyFunction();
 				current_property = property;
 			}
 		
@@ -163,7 +159,17 @@ void ParticlePairT::WriteOutput(void)
 			/* split interaction energy */
 			double uby2 = 0.5*energy_function(r, NULL, NULL);
 			values_i[ndof] += uby2;
-			n_values(local_j, ndof) += uby2;
+			
+			/* second node may not be on processor */
+			if (!proc_map || (*proc_map)[tag_j] == rank) {
+				int local_j = (inverse_map) ? inverse_map->Map(tag_j) : tag_j;
+				
+				if (local_j < 0 || local_j >= n_values.MajorDim())
+					cout << " out of range: " << local_j << '\n';
+				else
+					n_values(local_j, ndof) += uby2;
+
+			}
 		}
 	}	
 
@@ -210,7 +216,7 @@ void ParticlePairT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		/* collect mass per particle */
 		dArrayT mass(fNumTypes);
 		for (int i = 0; i < fNumTypes; i++)
-			mass[i] = fProperties[fPropertiesMap(i,i)]->Mass();
+			mass[i] = fPairProperties[fPropertiesMap(i,i)]->Mass();
 		mass *= constM;
 	
 		AssembleParticleMass(mass);
@@ -262,8 +268,8 @@ void ParticlePairT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				int property = fPropertiesMap(type_i, type_j);
 				if (property != current_property)
 				{
-					force_function = fProperties[property]->getForceFunction();
-					stiffness_function = fProperties[property]->getStiffnessFunction();
+					force_function = fPairProperties[property]->getForceFunction();
+					stiffness_function = fPairProperties[property]->getStiffnessFunction();
 					current_property = property;
 				}
 		
@@ -303,13 +309,13 @@ void ParticlePairT::RHSDriver(void)
 	else
 	{
 		/* version with assembly after each neighbor list */
-		RHSDriver_1();
+//		RHSDriver_1();
 
 		/* version with assembly only once */
 //		RHSDriver_2();
 
 		/* version 2 specialized to 2D */
-//		RHSDriver_3();
+		RHSDriver_3();
 	}
 }
 
@@ -368,7 +374,7 @@ if (formMa) ExceptionT::GeneralFail("ParticlePairT::RHSDriver", "inertial force 
 			int property = fPropertiesMap(type_i, type_j);
 			if (property != current_property)
 			{
-				force_function = fProperties[property]->getForceFunction();
+				force_function = fPairProperties[property]->getForceFunction();
 				current_property = property;
 			}
 		
@@ -445,7 +451,7 @@ if (formMa) ExceptionT::GeneralFail("ParticlePairT::RHSDriver", "inertial force 
 			int property = fPropertiesMap(type_i, type_j);
 			if (property != current_property)
 			{
-				force_function = fProperties[property]->getForceFunction();
+				force_function = fPairProperties[property]->getForceFunction();
 				current_property = property;
 			}
 		
@@ -525,7 +531,7 @@ if (formMa) ExceptionT::GeneralFail("ParticlePairT::RHSDriver", "inertial force 
 			int property = fPropertiesMap(type_i, type_j);
 			if (property != current_property)
 			{
-				force_function = fProperties[property]->getForceFunction();
+				force_function = fPairProperties[property]->getForceFunction();
 				current_property = property;
 			}
 		
@@ -611,8 +617,8 @@ void ParticlePairT::RHSDriver3D_3(void)
 			int property = fPropertiesMap(type_i, type_j);
 			if (property != current_property)
 			{
-				if (!fProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
-					force_function = fProperties[property]->getForceFunction();
+				if (!fPairProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
+					force_function = fPairProperties[property]->getForceFunction();
 				current_property = property;
 			}
 		
@@ -660,14 +666,15 @@ void ParticlePairT::RHSDriver3D_3(void)
 /* set neighborlists */
 void ParticlePairT::SetConfiguration(void)
 {
+	/* inherited */
+	ParticleT::SetConfiguration();
+
 	/* reset neighbor lists */
 	const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
 	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
 	
 	ofstreamT& out = ElementSupport().Output();
 	out << "\n Neighbor statistics:\n";
-	out << " Neighbor cut-off distance . . . . . . . . . . . = " << fNeighborDistance << '\n';
-
 	out << " Total number of neighbors . . . . . . . . . . . = " << fNeighbors.Length() << '\n';
 	out << " Minimum number of neighbors . . . . . . . . . . = " << fNeighbors.MinMinorDim(0) << '\n';
 	out << " Maximum number of neighbors . . . . . . . . . . = " << fNeighbors.MaxMinorDim() << '\n';
@@ -695,9 +702,9 @@ void ParticlePairT::EchoProperties(ifstreamT& in, ofstreamT& out)
 	/* read potentials */
 	int num_potentials = -1;
 	in >> num_potentials;
-	fProperties.Dimension(num_potentials);
-	fProperties = NULL;
-	for (int i = 0; i < fProperties.Length(); i++)
+	fPairProperties.Dimension(num_potentials);
+	fPairProperties = NULL;
+	for (int i = 0; i < fPairProperties.Length(); i++)
 	{
 		ParticleT::PropertyT property;
 		in >> property;
@@ -707,14 +714,14 @@ void ParticlePairT::EchoProperties(ifstreamT& in, ofstreamT& out)
 			{
 				double mass, R0, K;
 				in >> mass >> R0 >> K;
-				fProperties[i] = new HarmonicPairT(mass, R0, K);
+				fPairProperties[i] = new HarmonicPairT(mass, R0, K);
 				break;
 			}
 			case ParticleT::kLennardJonesPair:
 			{
 				double mass, eps, sigma, alpha;
 				in >> mass >> eps >> sigma >> alpha;
-				fProperties[i] = new LennardJonesPairT(mass, eps, sigma, alpha);
+				fPairProperties[i] = new LennardJonesPairT(mass, eps, sigma, alpha);
 				break;
 			}
 			case ParticleT::kParadynPair:
@@ -727,7 +734,7 @@ void ParticlePairT::EchoProperties(ifstreamT& in, ofstreamT& out)
 				path.FilePath(in.filename());				
 				file.Prepend(path);
 			
-				fProperties[i] = new ParadynPairT(file);
+				fPairProperties[i] = new ParadynPairT(file);
 				break;
 			}
 			default:
@@ -738,10 +745,15 @@ void ParticlePairT::EchoProperties(ifstreamT& in, ofstreamT& out)
 
 	/* echo particle properties */
 	out << "\n Particle properties:\n\n";
-	out << " Number of properties. . . . . . . . . . . . . . = " << fProperties.Length() << '\n';
-	for (int i = 0; i < fProperties.Length(); i++)
+	out << " Number of properties. . . . . . . . . . . . . . = " << fPairProperties.Length() << '\n';
+	for (int i = 0; i < fPairProperties.Length(); i++)
 	{
 		out << " Property: " << i+1 << '\n';
-		fProperties[i]->Write(out);
+		fPairProperties[i]->Write(out);
 	}
+	
+	/* copy into base class list */
+	fParticleProperties.Dimension(fPairProperties.Length());
+	for (int i = 0; i < fPairProperties.Length(); i++)
+		fParticleProperties[i] = fPairProperties[i];
 }

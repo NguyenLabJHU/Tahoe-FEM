@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.10.2.1 2002-12-16 09:26:31 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.10.2.2 2002-12-27 23:20:58 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -12,6 +12,7 @@
 #include "ParticlePropertyT.h"
 #include "RaggedArray2DT.h"
 #include "CommManagerT.h"
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
@@ -22,19 +23,29 @@ const int kMaxNumCells     =- 1; /* -1: no max */
 /* constructors */
 ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 	ElementBaseT(support, field),
+	fNeighborDistance(-1),
+	fReNeighborDisp(-1),
 	fReNeighborIncr(-1),
 	fNumTypes(-1),
 	fGrid(NULL),
 	fReNeighborCounter(0),
-	fCommManager(support.CommManager())
+	fCommManager(support.CommManager()),
+	fDmax(0)
 {
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
 
 	/* read class parameters */
 	ifstreamT& in = ElementSupport().Input();
-	in >> fReNeighborIncr;
-	if (fReNeighborIncr < 0) ExceptionT::GeneralFail();
+	in >> fNeighborDistance
+	   >> fReNeighborDisp
+	   >> fReNeighborIncr;
+
+	if (fNeighborDistance < 0) ExceptionT::GeneralFail();
+	
+	/* values < 0 mean ignore */
+	fReNeighborDisp = (fReNeighborDisp < kSmall) ? -1 : fReNeighborDisp;
+	fReNeighborIncr = (fReNeighborIncr <= 0) ? -1 : fReNeighborIncr;
 }
 
 /* destructor */
@@ -42,6 +53,10 @@ ParticleT::~ParticleT(void)
 {
 	/* free search grid */
 	delete fGrid;
+
+	/* free properties list */
+	for (int i = 0; i < fParticleProperties.Length(); i++)
+		delete fParticleProperties[i];
 }
 
 /* initialization */
@@ -54,10 +69,15 @@ void ParticleT::Initialize(void)
 	
 	/* allocate work space */
 	fForce.Dimension(ElementSupport().NumNodes(), NumDOF());
+
+	/* write parameters */
+	ofstreamT& out = ElementSupport().Output();
+	out << " Neighbor cut-off distance . . . . . . . . . . . = " << fNeighborDistance << '\n';
+	out << " Re-neighboring displacement trigger . . . . . . = " << fReNeighborDisp << '\n';
+	out << " Re-neighboring interval . . . . . . . . . . . . = " << fReNeighborIncr << '\n';
 	
 	/* read properties information */
 	ifstreamT& in = ElementSupport().Input();
-	ofstreamT& out = ElementSupport().Output();
 	EchoProperties(in, out);
 
 	/* map of {type_a, type_b} -> potential number */
@@ -76,7 +96,7 @@ void ParticleT::Initialize(void)
 			fPropertiesMap(a,b) = pot_num;
 	}
 	fPropertiesMap--; /* offset */
-
+	
 	/* set the neighborlists */
 	SetConfiguration();
 }
@@ -133,6 +153,10 @@ void ParticleT::RegisterOutput(void)
 
 void ParticleT::WriteOutput(void)
 {
+	/* max distance traveled since last reneighboring */
+	ofstreamT& out = ElementSupport().Output();
+	out << " Maximum displacement since last re-neighboring. = " << fDmax << '\n';
+	
 	/* reset connectivities */
 	if (ChangingGeometry())
 	{
@@ -165,6 +189,10 @@ GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
 {
 	/* inherited */
 	GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
+
+	/* compute max distance traveled since last neighboring 
+	 * (across all processes) */
+	fDmax = fCommManager.Communicator().Max(MaxDisplacement());
 
 	/* generate contact element data */
 	fReNeighborCounter++;
@@ -207,6 +235,22 @@ void ParticleT::ReadRestart(istream& in)
 bool ParticleT::ChangingGeometry(void) const
 {
 	return fCommManager.PartitionNodesChanging();
+}
+
+/* set neighborlists */
+void ParticleT::SetConfiguration(void)
+{
+	/* collect current coordinates */
+	const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
+	const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
+	if (part_nodes)
+	{
+		/* collect */
+		fReNeighborCoords.Dimension(part_nodes->Length(), curr_coords.MinorDim());
+		fReNeighborCoords.RowCollect(*part_nodes, curr_coords);
+	}
+	else /* use ALL nodes */
+		fReNeighborCoords = curr_coords;
 }
 
 /* echo element connectivity data */
@@ -295,7 +339,7 @@ void ParticleT::GenerateNeighborList(const ArrayT<int>* particle_tags,
 		/* this tag */
 		int tag_i = (particle_tags) ? (*particle_tags)[i] : i;
 		int  pr_i = (n2p_map) ? (*n2p_map)[tag_i] : 0;
-	
+
 		/* add self */
 		auto_neighbors.Append(i, tag_i);
 		
@@ -359,6 +403,88 @@ void ParticleT::AssembleParticleMass(const dArrayT& mass)
 	
 	/* assemble all */
 	ElementSupport().AssembleLHS(Group(), fForce, Field().Equations());
+}
+
+/* return the maximum distance */
+double ParticleT::MaxDisplacement(void) const
+{
+	const char caller[] = "ParticleT::MaxDisplacement";
+	const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
+	const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
+	double dmax2 = 0.0;
+	int nsd = curr_coords.MinorDim();
+	double *p_old = fReNeighborCoords.Pointer();
+	if (part_nodes)
+	{
+		int nnd = part_nodes->Length();
+		if (nnd != fReNeighborCoords.MajorDim()) ExceptionT::SizeMismatch(caller);
+		if (nsd == 3)
+		{
+			for (int i = 0; i < nnd; i++)
+			{
+				double* p_new = curr_coords((*part_nodes)[i]);
+				double d2 = (*p_old++) - (*p_new++);
+				d2 += (*p_old++) - (*p_new++);
+				d2 += (*p_old++) - (*p_new++);
+				dmax2 = (d2 > dmax2) ? d2 : dmax2;
+			}
+		}
+		else if (nsd == 2)
+		{
+			for (int i = 0; i < nnd; i++)
+			{
+				double* p_new = curr_coords((*part_nodes)[i]);
+				double d2 = (*p_old++) - (*p_new++);
+				d2 += (*p_old++) - (*p_new++);
+				dmax2 = (d2 > dmax2) ? d2 : dmax2;
+			}		
+		}
+		else if (nsd == 1)
+		{
+			for (int i = 0; i < nnd; i++)
+			{
+				double* p_new = curr_coords((*part_nodes)[i]);
+				double d2 = (*p_old++) - (*p_new++);
+				dmax2 = (d2 > dmax2) ? d2 : dmax2;
+			}		
+		}
+		else ExceptionT::GeneralFail(caller);
+	}
+	else /* use ALL nodes */
+	{
+		int nnd = curr_coords.MajorDim();
+		double *p_new = curr_coords.Pointer();
+		if (nsd == 3)
+		{
+			for (int i = 0; i < nnd; i++)
+			{
+				double d2 = (*p_old++) - (*p_new++);
+				d2 += (*p_old++) - (*p_new++);
+				d2 += (*p_old++) - (*p_new++);
+				dmax2 = (d2 > dmax2) ? d2 : dmax2;
+			}
+		}
+		else if (nsd == 2)
+		{
+			for (int i = 0; i < nnd; i++)
+			{
+				double d2 = (*p_old++) - (*p_new++);
+				d2 += (*p_old++) - (*p_new++);
+				dmax2 = (d2 > dmax2) ? d2 : dmax2;
+			}		
+		}
+		else if (nsd == 1)
+		{
+			for (int i = 0; i < nnd; i++)
+			{
+				double d2 = (*p_old++) - (*p_new++);
+				dmax2 = (d2 > dmax2) ? d2 : dmax2;
+			}		
+		}
+		else ExceptionT::GeneralFail(caller);
+	}
+	
+	return sqrt(dmax2);
 }
 
 namespace Tahoe {
