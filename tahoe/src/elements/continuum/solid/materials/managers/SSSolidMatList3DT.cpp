@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList3DT.cpp,v 1.2 2004-07-15 08:28:28 paklein Exp $ */
+/* $Id: SSSolidMatList3DT.cpp,v 1.3 2004-07-21 20:51:14 raregue Exp $ */
 #include "SSSolidMatList3DT.h"
 #include "SSMatSupportT.h"
 
@@ -38,6 +38,10 @@
 
 #ifdef PLASTICITY_DP_MATERIAL
 #include "DPSSKStV.h"
+#endif
+
+#ifdef PLASTICITY_DP_LOC_MATERIAL_DEV
+#include "DPSSKStVLoc.h"
 #endif
 
 #ifdef FOSSUM_MATERIAL_DEV
@@ -91,6 +95,10 @@ void SSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef PLASTICITY_DP_MATERIAL
 		sub_lists.AddSub("small_strain_StVenant_DP");
+#endif
+
+#ifdef PLASTICITY_DP_LOC_MATERIAL_DEV
+		sub_lists.AddSub("small_strain_StVenant_DP_Loc");
 #endif
 
 #ifdef VISCOELASTICITY
@@ -160,6 +168,11 @@ SSSolidMatT* SSSolidMatList3DT::NewSSSolidMat(const StringT& name) const
 #ifdef PLASTICITY_DP_MATERIAL
 	else if (name == "small_strain_StVenant_DP")
 		mat = new DPSSKStV;
+#endif
+
+#ifdef PLASTICITY_DP_LOC_MATERIAL_DEV
+	else if (name == "small_strain_StVenant_DP_Loc")
+		mat = new DPSSKStVLoc;
 #endif
 
 #ifdef VISCOELASTICITY
