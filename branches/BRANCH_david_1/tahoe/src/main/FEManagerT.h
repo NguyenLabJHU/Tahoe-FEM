@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.46.2.1 2004-07-29 14:59:58 d-farrell2 Exp $ */
+/* $Id: FEManagerT.h,v 1.46.2.2 2004-08-01 18:33:01 d-farrell2 Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -51,15 +51,19 @@ class CommManagerT;
 class GlobalMatrixT;
 /* forward declarations, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
 class IOManager_mpi;
-class ParitionT;
+class PartitionT;
 
 class FEManagerT: public iConsoleObjectT, public ParameterInterfaceT
 {
 public:
 
+	/** task codes, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
+	enum TaskT {kDecompose = 0,
+	                  kRun = 1};
+	                  
 	/** factory method */
 	static FEManagerT* New(const StringT& name, const StringT& input_file, ofstreamT& output, 
-		CommunicatorT& comm, const ArrayT<StringT>& argv);
+		CommunicatorT& comm, const ArrayT<StringT>& argv, TaskT task);
 
 	/** parse input file and valid */
 	static void ParseInput(const StringT& path, ParameterListT& params, bool validate, 
@@ -70,9 +74,6 @@ public:
 	      kParametersOnly = 1, /**< read top-level parameters only */
 	        kAllButSolver = 2  /**< do everything except initialize the equation system and solvers */
 	        };
-	/** task codes, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
-	enum TaskT {kDecompose = 0,
-	                  kRun = 1};
 
 	/** constructor, does serial and parallel, has new argument task */
 	FEManagerT(const StringT& input_file, ofstreamT& output, CommunicatorT& comm,
@@ -576,6 +577,16 @@ inline IOManager* FEManagerT::OutputManager(void) const { return fIOManager; }
 inline const iArrayT* FEManagerT::ElementMap(const StringT& block_ID) const
 {
 #pragma unused(block_ID)
+	if (Size() > 1)
+	{
+		if (fTask == kDecompose)
+			return NULL; // assume no map
+		else
+		{
+			if (!fPartition) throw ExceptionT::kGeneralFail;		
+			return &(fPartition->ElementMap(block_ID));
+		}
+	}
 	return NULL;
 }
 
@@ -615,7 +626,7 @@ inline void FEManagerT::SetExternalIO(IOManager_mpi* externIO)
 }
 
 /* debugging */
-inline const iArrayT* FEManagerT::ElementMap(const StringT& block_ID) const
+/*inline const iArrayT* FEManagerT::ElementMap(const StringT& block_ID) const
 {
 	if (fTask == kDecompose)
 		return NULL; // assume no map
@@ -624,7 +635,7 @@ inline const iArrayT* FEManagerT::ElementMap(const StringT& block_ID) const
 		if (!fPartition) throw ExceptionT::kGeneralFail;		
 		return &(fPartition->ElementMap(block_ID));
 	}
-}
+}*/
 
 
 } // namespace Tahoe 
