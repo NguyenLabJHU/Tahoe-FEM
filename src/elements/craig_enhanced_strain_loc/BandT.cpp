@@ -93,10 +93,12 @@ double BandT::JumpIncrement() const
   return fJumpIncrement;
 }
 
+/*
 void BandT::IncrementJump ()
 {
   fJump += fJumpIncrement;
 }
+*/
 
 void BandT::StoreJumpIncrement(double increment)
 {
@@ -110,7 +112,7 @@ void BandT::SetEffectiveSoftening(double effectiveSoftening)
 
 double BandT::EffectiveSoftening()
 {
-  cout << "EffectiveSoftening = " << fEffectiveSoftening;
+  //cout << "EffectiveSoftening = " << fEffectiveSoftening;
   return fEffectiveSoftening;
 }
 
@@ -158,6 +160,7 @@ void BandT::IncrementStress(dSymMatrixT stressIncr, int ip)
   fStress_List [ip] += stressIncr;
 }
 
+/*
 void BandT::UpdateCohesion()
 {
   fResidualCohesion += fH_delta * fabs(fJumpIncrement);
@@ -169,6 +172,7 @@ void BandT::UpdateCohesion()
       fH_delta = 0.0; //no more softening possible
     }
 }
+*/
 
 void BandT::FlipSlipDir()
 {
@@ -176,6 +180,34 @@ void BandT::FlipSlipDir()
      paraellel to perpSlipDir by -1.0 */
   fSlipDir.AddScaled(-2.0*fSlipDir.Dot(fSlipDir, fPerpSlipDir), fPerpSlipDir);
   fPerpSlipDir *= -1.0;
+
+  /* NOTE: if there is reverse loading after the first step, fJump becomes
+  a cumulative slip vector, but not a value in the direction. It does not
+  play a critical role solving the BVP (since the everything is solving in
+  terms of the incremental jump, but the strains that are output
+  are not the regular strains, as they would be for a monotonic loading 
+  problem.
+   */
+}
+
+void BandT::CloseStep()
+{
+  //update jump
+  fJump += fJumpIncrement;
+
+  //update cohesion
+  fResidualCohesion += fH_delta * fabs(fJumpIncrement);
+  //cout << "fResidualCohesion = " << fResidualCohesion << endl;
+
+  if(fResidualCohesion < 0.0)
+    {
+      fResidualCohesion = 0.0;
+      fH_delta = 0.0; //no more softening possible
+    }
+
+  //update stress list
+
+
 }
 
 /*---------------------------------------------------------------------

@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.h,v 1.6 2005-03-17 21:35:54 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.h,v 1.7 2005-03-30 00:41:32 cfoster Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_CF_T_H_
 #define _SMALL_STRAIN_ENH_LOC_CF_T_H_
 
@@ -102,6 +102,8 @@ protected:
 	double fH_delta_0;
 	bool fNoBandDilation;
 	double fLocalizedFrictionCoeff;
+	MapT<int, BandT*>* TracedElements()
+	  {return &fTracedElements;}
 	//double fJumpIncrement;
 	//dMatrixT fInitialModulus;
 	//ArrayT<dSymMatrixT> fStress_List;

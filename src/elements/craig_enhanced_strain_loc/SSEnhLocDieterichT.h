@@ -33,17 +33,42 @@ namespace Tahoe {
 				 dArrayT perpSlipDir, dArrayT coords, double residCohesion, ArrayT<dSymMatrixT>
 				 stressList);
       
-      /* to update Theta */
-      virtual void CloseStep(void);
+      //virtual void CloseStep(void);
+      virtual void LoadBand(int elementNumber);
+
+
+
+      /* math functions for jump increment */
+      virtual double DeltaTheta(double jumpIncrement, double deltaTheta);
+      virtual double DeltaG(double jumpIncr, double deltaTheta);
+      virtual double DdeltaGdJump(double jumpIncr, double deltaTheta);
+      virtual double DdeltaGdJumpGlobal(double jumpIncr, double deltaTheta);
+     virtual dSymMatrixT StressIncrOnBand(double jumpIncrement);
+      virtual dSymMatrixT LastStressOnBand();
+      virtual dSymMatrixT AvgStrainRelaxation(double jumpIncrement);
+      virtual double BigConstant(double jumpIncrement, double deltaTheta);
+
+      virtual double DdeltaGdJumpAtConstTheta(double jumpIncrement,
+					      double deltaTheta); 
+      virtual double DdeltaGdTheta(double jumpIncrement, double
+				   deltaTheta);
+      virtual double DdeltaGdThetaGlobal(double jumpIncrement, double
+				   deltaTheta);
+      virtual double DThetaDJump(double jumpIncrement, double deltaTheta);
+      virtual dSymMatrixT FormdGdSigma(int ndof, double
+					     jumpIncrement, double deltaTheta);
 
     private:
+
+      //DieterichBandT* &fDieterichBand;
+      DieterichBandT* fDieterichBand;
 
       /*band parameters*/
       double fMu_star;
       double fTheta_star;
       double fV_star;
-      double fA;
-      double fB;
+      double fFrictionA;
+      double fFrictionB;
       double fD_c;
       double fTheta_0; //perhaps same as fTheta_star?
     }; //end class declaration

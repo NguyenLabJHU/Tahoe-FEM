@@ -23,11 +23,18 @@ namespace Tahoe {
 				   SSEnhLocDieterichT* element, double
 	       theta_0);
 
-      //update for theta
+      virtual double Theta();
+      virtual double DeltaTheta();
+      virtual void StoreDeltaTheta(double deltaTheta);
+      //virtual void UpdateDieterichBand();
+      virtual double JumpIncrLast();
+      virtual void CloseStep();
 
     private:
 
       double fTheta;
+      double fDeltaTheta;
+      double fLastJumpIncrement;
 
     };
 

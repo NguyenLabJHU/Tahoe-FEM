@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.10 2005-03-17 21:35:54 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.11 2005-03-30 00:41:32 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -180,6 +180,11 @@ void SSEnhLocCraigT::FormKd(double constK)
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
 	
+
+	//double jumpIncr = CalculateJumpIncrement();
+	//SetGlobalShape();
+
+
 	/* collect incremental heat */
 	bool need_heat = fElementHeat.Length() == fShapes->NumIP();
 	
@@ -195,7 +200,35 @@ void SSEnhLocCraigT::FormKd(double constK)
 	    /* B^T * Cauchy stress */
 	    dSymMatrixT strainIncr = fStrain_List [CurrIP()];
 	    strainIncr -= fStrain_last_List [CurrIP()];
-	    //	cout << "strainIncr =\n" << strainIncr << endl;
+
+	    
+	    dSymMatrixT gradActiveTensorFlowDir =
+	    FormGradActiveTensorFlowDir(NumSD());
+	    gradActiveTensorFlowDir.ScaleOffDiagonal(0.5);
+
+	    strainIncr.AddScaled(-1.0*fBand->JumpIncrement(), gradActiveTensorFlowDir);
+
+	    if (CurrIP() == 0)
+	      {
+	      cout << "FormKd, fBand->JumpIncrement() = "
+		   << fBand->JumpIncrement() << endl;
+	      cout << "strainIncr = \n" << strainIncr;
+	cout << "Stress_List =\n" <<
+	      fBand->Stress_List(CurrIP()) << endl;
+	      }
+
+	    /*
+	    if (CurrIP() == 0)
+	      {
+	    	cout << "fStrain_List =\n" << fStrain_List[CurrIP()] <<
+	      endl;
+	    	cout << "fStrain_last_List =\n" <<
+	      fStrain_last_List[CurrIP()] << endl;
+	    	cout << "JumpIncrement() =\ " << fBand->JumpIncrement() << endl;	cout << "Stress_List =\n" <<
+	      fBand->Stress_List(CurrIP()) << endl;
+	      }
+	    */
+
 	    dSymMatrixT stressIncr(NumSD());
 	    stressIncr.A_ijkl_B_kl(fCurrMaterial->ce_ijkl(), strainIncr);
 	    stressIncr += fBand->Stress_List(CurrIP());
@@ -242,6 +275,10 @@ void SSEnhLocCraigT::FormStiffness(double constK)
     }
   else //if already localized, use localized stiffness routine
     {
+
+
+	      cout << "FormStiffness, fBand->JumpIncrement() = "
+		   << fBand->JumpIncrement() << endl;
 
       //cout << "constK =\n" << constK << endl;
 
@@ -310,7 +347,7 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 		fD.MultmBn(dGdSigma,gradActiveTensorFlowDir);
 	}
 
-	k_d_zeta *= 1.0/area;
+	k_zeta_d *= 1.0/area;
 
 	k_zeta_zeta *= 1.0/area;
 	k_zeta_zeta += fBand->EffectiveSoftening();
@@ -346,6 +383,13 @@ void SSEnhLocCraigT::SetGlobalShape(void)
 
 	    double jumpIncrement = CalculateJumpIncrement();
 
+	     
+		cout << "SetGlobalShape, fBand->JumpIncrement() = "
+		     << fBand->JumpIncrement() << endl;
+		//cout << "SetGlobalShape, jumpIncrement = " << jumpIncrement << endl;
+		//   cout << "fStrain_List[0] = " << fStrain_List[0] << endl;	      
+
+#if 0
 	    /* loop over integration points again */
 	    for (int i = 0; i < NumIP(); i++)
 	      {
@@ -389,6 +433,7 @@ void SSEnhLocCraigT::SetGlobalShape(void)
 		    
 		  }
 	      }
+#endif
 	  }
     }
 }
@@ -449,7 +494,7 @@ double SSEnhLocCraigT::CalculateJumpIncrement()
 
   jumpIncrement /= (jumpWork + area * fBand->H_delta());
 
-  cout << "jumpIncrement = " << jumpIncrement <<endl;
+  //cout << "jumpIncrement = " << jumpIncrement <<endl;
 
   double trialDeltaResidCohesion = -1.0*fabs(jumpIncrement)*fBand->H_delta();
   /* check to see that residual cohsion does not drop below 0, adjust if nec */
@@ -479,7 +524,7 @@ double SSEnhLocCraigT::CalculateJumpIncrement()
 
   fBand -> StoreJumpIncrement(jumpIncrement);
 
-  cout << "jumpIncrement = " << jumpIncrement <<endl;
+  //cout << "jumpIncrement = " << jumpIncrement <<endl;
   //cout << "fBand->Jump() = " << fBand->Jump() << endl <<endl;
 
   return jumpIncrement;
@@ -591,27 +636,29 @@ void SSEnhLocCraigT::CloseStep(void)
 	}
       else
 	{
-	  //fBand -> CloseStep();
-
-	  
-	  fBand->IncrementJump();
-	  cout << "JumpIncrement = " << fBand -> JumpIncrement() << endl;
-	  cout << "Jump = " << fBand -> Jump() << endl; 
-
 
 	  fShapes->TopIP();
 	  while (fShapes->NextIP())
 	    {
 	      dSymMatrixT strainIncr = fStrain_List [CurrIP()];
 	      strainIncr -= fStrain_last_List [CurrIP()]; 
+
+	      dSymMatrixT gradActiveTensorFlowDir =
+		FormGradActiveTensorFlowDir(NumSD());
+	      gradActiveTensorFlowDir.ScaleOffDiagonal(0.5);
+
+	      strainIncr.AddScaled(-1.0*fBand->JumpIncrement(), gradActiveTensorFlowDir);
+
 	      dSymMatrixT stressIncr(NumSD());
 	      stressIncr.A_ijkl_B_kl(fCurrMaterial->ce_ijkl(), strainIncr);
 	      fBand -> IncrementStress(stressIncr, CurrIP());
 		//fStress_List[CurrIP()] += stressIncr; 
 	    }
 	  
-	  fBand->UpdateCohesion();
-
+	  //fBand->UpdateCohesion();
+	  fBand -> CloseStep();
+	  cout << "JumpIncrement = " << fBand -> JumpIncrement() << endl;
+	  cout << "Jump = " << fBand -> Jump() << endl;
 
 	}
     }

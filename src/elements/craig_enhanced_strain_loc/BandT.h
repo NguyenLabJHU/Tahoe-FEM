@@ -21,31 +21,31 @@ class BandT
     BandT(const dArrayT normal, const dArrayT slipDir, const dArrayT
     perpSlipDir, dArrayT &coord, double h_delta, double residCohesion, ArrayT<dSymMatrixT> stressList, SSEnhLocCraigT *element); 
     
-    const iAutoArrayT& ActiveNodes() const;
-    const dArrayT& Normal() const;
-    const dArrayT& SlipDir() const;
-    const dArrayT& PerpSlipDir() const;
-    double H_delta() const;
-    double ResidualCohesion() const;
-    double Jump() const;
-    double JumpIncrement() const;
-    void IncrementJump ();
-    void StoreJumpIncrement(double increment);
+    virtual const iAutoArrayT& ActiveNodes() const;
+    virtual const dArrayT& Normal() const;
+    virtual const dArrayT& SlipDir() const;
+    virtual const dArrayT& PerpSlipDir() const;
+    virtual double H_delta() const;
+    virtual double ResidualCohesion() const;
+    virtual double Jump() const;
+    virtual double JumpIncrement() const;
+    //virtual void IncrementJump ();
+    virtual void StoreJumpIncrement(double increment);
     //void CloseStep();
-    dSymMatrixT Stress_List(int ip);
-    void IncrementStress(dSymMatrixT stressIncr, int ip);
-    void UpdateCohesion();
-    void SetEffectiveSoftening(double effectiveSoftening);
-    double EffectiveSoftening();
-    void SetActive(bool active);
-    bool IsActive();
-    void FlipSlipDir();
-
+    virtual dSymMatrixT Stress_List(int ip);
+    virtual void IncrementStress(dSymMatrixT stressIncr, int ip);
+    //virtual void UpdateCohesion();
+    virtual void SetEffectiveSoftening(double effectiveSoftening);
+    virtual double EffectiveSoftening();
+    virtual void SetActive(bool active);
+    virtual bool IsActive();
+    virtual void FlipSlipDir();
+    virtual void CloseStep();
 
   private:
 
-  void SetEndPoints(dArrayT& coord);
-  void ActivateNodes(dArrayT& coord);
+  virtual void SetEndPoints(dArrayT& coord);
+  virtual void ActivateNodes(dArrayT& coord);
 
     int kNSD;
 
