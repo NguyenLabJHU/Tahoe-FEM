@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.62.2.2 2003-09-17 01:31:23 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.62.2.3 2003-09-19 06:25:54 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -27,6 +27,7 @@
 #include "ThermalSurfaceT.h"
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
 #include "RigidCSEAnisoT.h"
+#include "NodalRigidCSEAnisoT.h"
 #endif
 #endif
 
@@ -439,6 +440,8 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
 				else if (CSEcode == CSEBaseT::RigidAnisotropic)
 					fArray[group] = new RigidCSEAnisoT(fSupport, *field, false);
+				else if (CSEcode == CSEBaseT::NodalRigidAnisotropic)
+					fArray[group] = new NodalRigidCSEAnisoT(fSupport, *field, false);
 #endif
 				else
 				{
