@@ -1,8 +1,15 @@
-/* $Id: expat_ParseT.cpp,v 1.8 2004-07-08 22:53:28 paklein Exp $ */
+/* $Id: expat_ParseT.cpp,v 1.9 2004-07-08 22:55:43 paklein Exp $ */
 #include "expat_ParseT.h"
 #ifdef __EXPAT__
 
 #include "ParameterListT.h"
+
+/* C file I/O header */
+#if defined(__SGI__)
+#include <stdio.h>
+#else
+//what do others use???
+#endif
 
 using namespace Tahoe;
 
