@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.25 2003-01-29 07:35:08 paklein Exp $ */
+/* $Id: DetCheckT.cpp,v 1.26 2003-05-05 00:58:32 paklein Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -9,16 +9,15 @@
 #include "dArrayT.h"
 #include "dTensor4DT.h"
 #include "ofstreamT.h"
-# include "AutoArrayT.h"
+#include "AutoArrayT.h"
 
 /* needed to access element information */
-//#include "ContinuumElementT.h"
 #include "SolidMatSupportT.h"
+
+using namespace Tahoe;
 
 /* initialize static variables */
 bool DetCheckT::fFirstPass = true;
-
-using namespace Tahoe;
 
 /* constants */
 const double Pi = acos(-1.0);
