@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.h,v 1.4 2004-07-15 08:31:21 paklein Exp $ */
+/* $Id: ScaledVelocityNodesT.h,v 1.5 2005-02-17 00:50:40 cjkimme Exp $ */
 #ifndef _SCALED_VELOCITY_NODES_T_H_
 #define _SCALED_VELOCITY_NODES_T_H_
 
@@ -72,6 +72,9 @@ protected:
 	
 	/** true if allNodes needs to be initialized or rescaled */
 	bool qAllNodes;
+
+        /** true if velocities get random directions in addition to scaling as a BC */
+	bool qRandomize;
 
 	/** rescale every fIncs timesteps */
 	int fIncs, fIncCt;

@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.cpp,v 1.9 2005-02-16 23:30:20 cjkimme Exp $ */
+/* $Id: ScaledVelocityNodesT.cpp,v 1.10 2005-02-17 00:50:40 cjkimme Exp $ */
 #include "ScaledVelocityNodesT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -23,6 +23,7 @@ ScaledVelocityNodesT::ScaledVelocityNodesT(const BasicSupportT& support, BasicFi
 	qIConly(false),
 	qFirstTime(false),
 	qAllNodes(false),
+	qRandomize(false),
 	fIncs(0),
 	fIncCt(0),
 	fTempSchedule(NULL),
@@ -199,6 +200,9 @@ ParameterInterfaceT* ScaledVelocityNodesT::NewSub(const StringT& name) const
 		bc.AddParameter(ParameterT::Double, "scale");
 		bc.AddParameter(ParameterT::Integer, "schedule");
 		bc.AddParameter(ParameterT::Integer, "increments");
+		ParameterT randomize(qRandomize,"randomize");
+		randomize.SetDefault(qRandomize);
+		bc.AddParameter(randomize);
 		bc_or_ic->AddSub(bc);
 
 		ParameterContainerT ic("scale_as_IC");
@@ -279,6 +283,7 @@ void ScaledVelocityNodesT::TakeParameterList(const ParameterListT& list)
 		if (!fTempSchedule) ExceptionT::BadInputValue(caller);
 		qIConly = false;
 		fIncs = bc_or_ic.GetParameter("increments");
+		qRandomize = bc_or_ic.GetParameter("randomize");
 	}
 	else if (bc_or_ic.Name() == "scale_as_IC") {
 		fT_0 = bc_or_ic.GetParameter("temperature");
@@ -356,13 +361,24 @@ void ScaledVelocityNodesT::SetBCCards(void)
 	int n_scaled = 0; 
 	int ndof = fField.NumDOF();
 
-	/* grab the velocities */
-	const dArray2DT* velocities = NULL;
-	if (fField.Order() > 0)
-		velocities = &fField[1];		
-	if (!velocities)
-		ExceptionT::GeneralFail("ScaledVelocityNodesT::SetBCCards","Cannot get velocity field ");
-		
+			
+	/* workspace to generate velocities */
+	dArray2DT velocities(fSupport.NumNodes(), ndof); 
+
+	if (!qRandomize) {
+	  /* grab the velocities */
+	  const dArray2DT* field_vs = NULL;
+	  if (fField.Order() > 0)
+	    field_vs = &fField[1];		
+	  if (!field_vs)
+	    ExceptionT::GeneralFail("ScaledVelocityNodesT::SetBCCards","Cannot get velocity field ");
+
+	  velocities = *field_vs;
+	} else {
+	  /* generate gaussian dist of random vels */
+	  fRandom.RandomArray(velocities);
+	}
+
 	/* get MPI stuff */
 	const CommunicatorT& communicator = fSupport.Communicator();
 	int nProcs = fSupport.Size();
@@ -398,7 +414,7 @@ void ScaledVelocityNodesT::SetBCCards(void)
 		{	
 			if (myNodes[i] >= 0)
 			{
-				const double* v_i = (*velocities)(myNodes[i]);
+				double* v_i = velocities(myNodes[i]);
 			
 				for (int j = 0; j < ndof; j++)
 				{	
@@ -430,19 +446,16 @@ void ScaledVelocityNodesT::SetBCCards(void)
 		/* generate BC cards */
 		fKBC_Cards.Dimension(n_scaled*ndof);
 		KBC_CardT* pcard = fKBC_Cards.Pointer();
-		for (int i = 0; i < myNodes.Length(); i++)
-		{
-			if (myNodes[i] >= 0)
-			{
-				const double* v_i = (*velocities)(myNodes[i]);	
-				
-		    	for (int j = 0; j < ndof; j++)
-				{	
-					/* set values */
-					pcard->SetValues(myNodes[i], j, KBC_CardT::kVel, &fDummySchedule, (*v_i++-vCOM[j])*vscale);
-					pcard++;
-				}
-			} 
+		for (int i = 0; i < myNodes.Length(); i++) {
+		  if (myNodes[i] >= 0) {
+		    double* v_i = velocities(myNodes[i]);	
+		    
+		    for (int j = 0; j < ndof; j++) {	
+		      /* set values */
+		      pcard->SetValues(myNodes[i], j, KBC_CardT::kVel, &fDummySchedule, (*v_i++-vCOM[j])*vscale);
+		      pcard++;
+		    }
+		  } 
 		}
 	}
 }
