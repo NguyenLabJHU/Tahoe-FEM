@@ -1,4 +1,4 @@
-/* $Id: ParameterUtils.cpp,v 1.7 2004-05-20 14:56:22 paklein Exp $ */
+/* $Id: ParameterUtils.cpp,v 1.8 2004-05-21 19:45:01 paklein Exp $ */
 #include "ParameterUtils.h"
 
 using namespace Tahoe;
@@ -116,15 +116,17 @@ StringParameterT::StringParameterT(const StringT& name):
  * VectorParameterT implementation
  **********************************************************************/
 
-VectorParameterT::VectorParameterT(const StringT& name, int dim):
+VectorParameterT::VectorParameterT(const StringT& name, char variable, int dim):
 	ParameterInterfaceT(name),
+	fVariable(variable),
 	fVector(dim)
 {
 	fVector = 0.0;
 }
 
-VectorParameterT::VectorParameterT(int dim):
+VectorParameterT::VectorParameterT(char variable, int dim):
 	ParameterInterfaceT("vector"),
+	fVariable(variable),
 	fVector(dim)
 {
 	fVector = 0.0;
@@ -132,7 +134,8 @@ VectorParameterT::VectorParameterT(int dim):
 
 /* construct extracting length from the name */
 VectorParameterT::VectorParameterT(const StringT& name_N):
-	ParameterInterfaceT(name_N)
+	ParameterInterfaceT(name_N),
+	fVariable('v')
 {
 	const char caller[] = "VectorParameterT::VectorParameterT";
 	const char msg[] = "could not extract length from \"%s\"";
@@ -159,6 +162,7 @@ void VectorParameterT::DefineParameters(ParameterListT& list) const
 	/* define components */
 	for (int i = 0; i < fVector.Length(); i++) {
 		StringT v = "v_";
+		v[0] = fVariable;
 		v.Append(i+1);
 		ParameterT v_i = ParameterT(ParameterT::Double, v);
 		v_i.SetDefault(0.0);
@@ -177,7 +181,7 @@ void VectorParameterT::TakeParameterList(const ParameterListT& list)
 	const ArrayT<ParameterT>& parameters = list.Parameters();
 	for (int i = 0; i < parameters.Length(); i++) {
 		const StringT& name = parameters[i].Name();
-		if (name.StringLength() > 2 && name[0] == 'v' && name[1] == '_') {
+		if (name.StringLength() > 2 && name[0] == fVariable && name[1] == '_') {
 			int component = atoi(name.Pointer(2)) - 1;
 			if (component < 0 || component >= fVector.Length())
 				ExceptionT::OutOfRange("VectorParameterT::TakeParameterList",
@@ -199,15 +203,17 @@ void VectorParameterT::Extract(const ParameterListT& list, dArrayT& array)
  * MatrixParameterT implementation
  **********************************************************************/
 
-MatrixParameterT::MatrixParameterT(const StringT& name, int row, int col):
+MatrixParameterT::MatrixParameterT(const StringT& name, char variable, int row, int col):
 	ParameterInterfaceT(name),
+	fVariable(variable),
 	fMatrix(row, col)
 {
 	fMatrix = 0.0;
 }
 
-MatrixParameterT::MatrixParameterT(int row, int col):
+MatrixParameterT::MatrixParameterT(char variable, int row, int col):
 	ParameterInterfaceT("matrix"),
+	fVariable(variable),
 	fMatrix(row, col)
 {
 	fMatrix = 0.0;
@@ -215,7 +221,8 @@ MatrixParameterT::MatrixParameterT(int row, int col):
 
 /* construct extracting dimensions from the name */
 MatrixParameterT::MatrixParameterT(const StringT& name_NxM):
-	ParameterInterfaceT(name_NxM)
+	ParameterInterfaceT(name_NxM),
+	fVariable('A')	
 {
 	const char caller[] = "MatrixParameterT::MatrixParameterT";
 	const char msg[] = "could not extract %s dimensions from \"%s\"";
@@ -258,6 +265,7 @@ void MatrixParameterT::DefineParameters(ParameterListT& list) const
 	for (int i = 0; i < fMatrix.Cols(); i++)
 		for (int j = 0; j < fMatrix.Rows(); j++) {
 			StringT A = "A_";
+			A[0] = fVariable;
 			A.Append(j+1);
 			A.Append("_", i+1);
 			ParameterT A_ji = ParameterT(ParameterT::Double, A);
@@ -281,7 +289,7 @@ void MatrixParameterT::TakeParameterList(const ParameterListT& list)
 	const ArrayT<ParameterT>& parameters = list.Parameters();
 	for (int i = 0; i < parameters.Length(); i++) {
 		const StringT& name = parameters[i].Name();
-		if (name.StringLength() > 4 && name[0] == 'A' && name[1] == '_') {
+		if (name.StringLength() > 4 && name[0] == fVariable && name[1] == '_') {
 			buffer = name;
 			num.Suffix(buffer, '_');
 			int col = atoi(num.Pointer(1)) - 1;
