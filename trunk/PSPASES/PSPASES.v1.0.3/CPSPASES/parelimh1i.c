@@ -1,4 +1,4 @@
-/* $Id: parelimh1i.c,v 1.5 2005-01-15 00:22:29 paklein Exp $ */
+/* $Id: parelimh1i.c,v 1.6 2005-01-15 01:09:51 paklein Exp $ */
 /* parelimh1i.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -64,7 +64,7 @@ static integer c__27 = 27;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: parelimh1i.c,v 1.5 2005-01-15 00:22:29 paklein Exp $ +/ */
+/* /+ $Id: parelimh1i.c,v 1.6 2005-01-15 01:09:51 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -147,6 +147,13 @@ static integer min(integer a, integer b) {
 /* debugging */
 #ifdef __DO_DEBUG__
 	printf("parelimh1_: IN\n");
+	printf("myid = %d\n", *myid);
+	printf("myup = %d\n", *myup);
+	printf("mydown = %d\n", *mydown);
+	printf("myleft = %d\n", *myleft);
+	printf("myright = %d\n", *myright);
+	printf("diagproc = %d\n", *diagproc);
+
 	fflush(stdout);
 #endif
 
