@@ -1,4 +1,4 @@
-/* $Id: GroupAverageT.cpp,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
+/* $Id: GroupAverageT.cpp,v 1.2 2001-02-13 17:49:37 paklein Exp $ */
 /* created: paklein (10/03/1996)                                          */
 
 #include "GroupAverageT.h"
@@ -17,7 +17,7 @@ GroupAverageT::GroupAverageT(void):
 	fNumRows(0),
 	fIsAveraged(0),
 	fCurrRow(0),
-	fMemory(0, true)
+	fMemory(0)
 {
 
 }

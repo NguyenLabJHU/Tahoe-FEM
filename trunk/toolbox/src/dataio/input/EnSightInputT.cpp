@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: EnSightInputT.cpp,v 1.2 2001-02-13 17:50:44 paklein Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #include "EnSightInputT.h"
@@ -157,7 +157,7 @@ return;
 }
 
 AutoArrayT<bool> nvector, evector;
-AutoArrayT<StringT> nl (20, false), el (20, false);
+AutoArrayT<StringT> nl(20), el(20);
 fData.ReadVariableSection (incase, nl, el, nvector, evector, false);
 
 nlabels.Allocate (nl.Length());
@@ -191,7 +191,7 @@ if (!AdvanceStream (incase, "VARIABLE"))  return;
 
 // read variable filenames;
 AutoArrayT<bool> nvector, evector;
-AutoArrayT<StringT> nl (20, false), el (20, false);
+AutoArrayT<StringT> nl (20), el (20);
 fData.ReadVariableSection (incase, nl, el, nvector, evector, true);
 
 // allocate space

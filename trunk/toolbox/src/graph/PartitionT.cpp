@@ -1,4 +1,4 @@
-/* $Id: PartitionT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: PartitionT.cpp,v 1.2 2001-02-13 17:50:13 paklein Exp $ */
 /* created: paklein (11/16/1999)                                          */
 /* graph partition information (following NEMESIS data model)             */
 
@@ -192,8 +192,8 @@ void PartitionT::SetElements(int blockID, const iArray2DT& connects)
 	//TEMP
 	MapStatus(  kBorder, fNodes_e, node_map, min); // temp fix 1
 	
-	AutoArrayT<int> elements_i(20, true);
-	AutoArrayT<int> elements_b(20, true);
+	AutoArrayT<int> elements_i(20);
+	AutoArrayT<int> elements_b(20);
 	
 	/* sort elements into internal/external */
 	int nel = connects.MajorDim();
@@ -542,7 +542,7 @@ void PartitionT::ReturnPartitionNodes(const iArrayT& global_nodes,
 	int shift;
 	MakeInverseMap(fNodeMap, inv_map, shift);
 
-	AutoArrayT<int> tmp(20, true);
+	AutoArrayT<int> tmp(20);
 	for (int i = 0; i < global_nodes.Length(); i++)
 	{
 		int snode = global_nodes[i] - shift;
@@ -567,7 +567,7 @@ void PartitionT::ReturnPartitionElements(int blockID,
 	int shift;
 	MakeInverseMap(ElementMap(blockID), inv_map, shift);
 
-	AutoArrayT<int> tmp(20, true);
+	AutoArrayT<int> tmp(20);
 	for (int i = 0; i < global_elements.Length(); i++)
 	{
 		int selement = global_elements[i] - shift;
@@ -663,10 +663,10 @@ void PartitionT::ClassifyNodes(const iArrayT& part_map,
 	const GraphT& graph)
 {
 	/* work space */
-	AutoArrayT<int> nodes_i(kHeadRoom, true);
-	AutoArrayT<int> nodes_b(kHeadRoom, true);
-	AutoArrayT<int> nodes_e(kHeadRoom, true);
-	AutoArrayT<int> commID(kHeadRoom, true);
+	AutoArrayT<int> nodes_i(kHeadRoom);
+	AutoArrayT<int> nodes_b(kHeadRoom);
+	AutoArrayT<int> nodes_e(kHeadRoom);
+	AutoArrayT<int> commID(kHeadRoom);
 
 	/* resolve internal/boundary nodes */
 	int nnd = part_map.Length();
