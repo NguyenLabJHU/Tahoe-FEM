@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.cpp,v 1.18 2004-01-31 07:19:11 paklein Exp $ */
+/* $Id: dMatrixT.cpp,v 1.19 2004-11-09 23:23:48 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "dMatrixT.h"
 #include <iostream.h>
@@ -25,11 +25,18 @@ dMatrixT::dMatrixT(const dMatrixT& source): nMatrixT<double>(source) { }
 /* matrix inverse functions */
 dMatrixT& dMatrixT::Inverse(const dMatrixT& matrix)
 {
+	const char caller[] = "dMatrixT::Inverse";
+
 	/* must be square */
-	if (fRows != fCols) throw ExceptionT::kSizeMismatch;
-	
+	if (fRows != fCols) ExceptionT::SizeMismatch(caller, "matrix must be square");
+
+	/* (1 x 1) */
+	if (fRows == 1)
+	{
+		fArray[0] = 1.0/fArray[0];
+	}
 	/* (2 x 2) */
-	if (fRows == 2)
+	else if (fRows == 2)
 	{
 		/* temps - incase matrix is *this */
 		double A0 = matrix.fArray[0];
@@ -145,7 +152,7 @@ dMatrixT& dMatrixT::Inverse(const dMatrixT& matrix)
             			a_n = a;
             			for (int j = 0; j < fRows; j++)
             			{
-                			if(n != j) *a_ji += *(a_ni)*(*a_n);
+                			if(n != j) *a_ji += (*a_ni)*(*a_n);
                 			a_ji++;
                 			a_n++;
                 		}
@@ -159,7 +166,7 @@ dMatrixT& dMatrixT::Inverse(const dMatrixT& matrix)
           		a += fRows;
 			}
 			else 
-				ExceptionT::GeneralFail("dMatrixT::Inverse", "zero pivot in row %d", n);
+				ExceptionT::GeneralFail(caller, "zero pivot in row %d", n);
 		}
 	}
 
