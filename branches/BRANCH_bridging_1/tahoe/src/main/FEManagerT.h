@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.32.2.3 2003-02-14 02:49:04 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.32.2.4 2003-02-27 07:57:46 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -188,7 +188,7 @@ public:
 
 	/** compute RHS-side, residual force vector and assemble to solver
 	 * \param group equation group to solve */
-	void FormRHS(int group) const;
+	virtual void FormRHS(int group) const;
 
 	/** send update of the solution to the NodeManagerT */
 	virtual void Update(int group, const dArrayT& update);
@@ -349,7 +349,7 @@ protected:
 	void SetIntegrator(void);
 	virtual void SetNodeManager(void);
 	virtual void SetElementGroups(void);
-	void SetSolver(void);
+	virtual void SetSolver(void);
 	virtual void SetOutput(void);
 	/*@}*/
 

@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.36.2.11 2003-02-23 02:41:23 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.36.2.12 2003-02-27 07:57:46 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -306,6 +306,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		continuum.Initialize();
 
 		/* configure ghost nodes */
+		int group = 0;
 		StringT bridging_field = "displacement";
 		atoms.InitGhostNodes();
 		continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
@@ -316,6 +317,8 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		int neq_C = continuum.NodeManager()->Field(bridging_field)->NumEquations();
 		dSPMatrixT K_AC(neq_A, neq_C, 0), K_G_NG;
 		dSPMatrixT K_CA(neq_C, neq_A, 0), G_Interpolation;
+		dArrayT F_A(neq_A), F_C(neq_C);
+		continuum.InterpolationMatrix(bridging_field, G_Interpolation);
 
 		t1 = clock();
 
@@ -360,7 +363,14 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 				/* solver phase status */
 				const iArray2DT& atom_phase_status = atoms.SolverPhasesStatus();
 				const iArray2DT& continuum_phase_status = continuum.SolverPhasesStatus();
-			
+
+				/* set cross-coupling */
+#if 0
+				atoms.Form_G_NG_Stiffness(bridging_field, K_G_NG);
+				K_AC.MultAB(K_G_NG, G_Interpolation);
+				K_CA.Transpose(K_AC);
+#endif
+		
 				/* loop until both solved */
 				int group_num = 0;
 				double atoms_res, continuum_res, combined_res_0 = 0.0;
@@ -376,26 +386,41 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 					count++;
 
 					/* solve atoms */
-					if (1 || error == ExceptionT::kNoError) error = atoms.SolveStep();
+					if (1 || error == ExceptionT::kNoError) {
+						atoms.ResetCumulativeUpdate(group);
+						error = atoms.SolveStep();
+					}
+
+					/* set cross-coupling */
+					atoms.Form_G_NG_Stiffness(bridging_field, K_G_NG);
+					K_AC.MultAB(K_G_NG, G_Interpolation);
+					K_CA.Transpose(K_AC);
 					
 					/* apply solution to continuum */
 					continuum.ProjectField(bridging_field, *atoms.NodeManager());
+					K_CA.Multx(atoms.CumulativeUpdate(group_num), F_C);
+					F_C *= -1.0;
+					continuum.SetExternalForce(group_num, F_C);
 					continuum.FormRHS(group_num);
 					continuum_res = continuum.Residual(group_num).Magnitude(); //serial
 					
-					/* set cross-coupling */
-					atoms.Form_G_NG_Stiffness(bridging_field, K_G_NG);
-					
 					/* solve continuum */
-					if (1 || error == ExceptionT::kNoError) error = continuum.SolveStep();
+					if (1 || error == ExceptionT::kNoError) {
+						continuum.ResetCumulativeUpdate(group);
+						error = continuum.SolveStep();
+					}
 				
 					/* apply solution to atoms */
 					continuum.InterpolateField(bridging_field, field_at_ghosts);
 					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
+					K_AC.Multx(continuum.CumulativeUpdate(group_num), F_A);
+					F_A *= -1.0;
+					atoms.SetExternalForce(group_num, F_A);
 					atoms.FormRHS(group_num);
 					atoms_res = atoms.Residual(group_num).Magnitude(); //serial
 
-					/* set cross-coupling */					
+					/* set cross-coupling */
+					//assume K_AC = (K_CA)^T
 
 					/* reset the reference errors */
 					if (count == 1) {

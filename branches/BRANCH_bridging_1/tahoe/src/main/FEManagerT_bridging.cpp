@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.1.2.11 2003-02-23 02:41:23 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.1.2.12 2003-02-27 07:57:46 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #include "ModelManagerT.h"
 #include "NodeManagerT.h"
@@ -21,6 +21,40 @@ FEManagerT_bridging::FEManagerT_bridging(ifstreamT& input, ofstreamT& output, Co
 	fSolutionDriver(NULL)
 {
 
+}
+
+/* send update of the solution to the NodeManagerT */
+void FEManagerT_bridging::Update(int group, const dArrayT& update)
+{
+	/* accumulative */
+	dArrayT& cumulative_update = fCumulativeUpdate[group];
+	if (cumulative_update.Length() == update.Length())
+		cumulative_update += update;
+	
+	/* inherited */
+	FEManagerT::Update(group, update);
+}
+
+/* compute RHS-side, residual force vector and assemble to solver */
+void FEManagerT_bridging::FormRHS(int group) const
+{
+	/* inherited */
+	FEManagerT::FormRHS(group);
+
+	/* assemble external contribution */
+	const dArrayT* external_force = fExternalForce[group];
+	if (external_force != NULL) {
+		fSolvers[group]->UnlockRHS();
+		fSolvers[group]->AssembleRHS(*external_force);
+		fSolvers[group]->LockRHS();
+	}
+}
+
+/* reset the cumulative update vector */
+void FEManagerT_bridging::ResetCumulativeUpdate(int group)
+{
+	fCumulativeUpdate[group].Dimension(fNodeManager->NumEquations(group));
+	fCumulativeUpdate[group] = 0.0;
 }
 
 /* initialize the ghost node information */
@@ -117,6 +151,7 @@ void FEManagerT_bridging::Form_G_NG_Stiffness(const StringT& field, dSPMatrixT& 
 		fGhostNodesEquations += 1;
 		
 		fGhostIdToIndex.SetMap(fGhostNodes);
+		fGhostIdToIndex.SetOutOfRange(InverseMapT::MinusOne);
 	}
 
 	/* clear values */
@@ -319,6 +354,24 @@ void FEManagerT_bridging::SetReferenceError(int group, double error) const
 
 	/* silent in failuer */
 	if (solver) solver->SetReferenceError(error);
+}
+
+/*************************************************************************
+ * Protected
+ *************************************************************************/
+
+/* initialize solver information */
+void FEManagerT_bridging::SetSolver(void)
+{
+	/* inherited */
+	FEManagerT::SetSolver();
+
+	/* dimension list of cumulative update vectors */
+	fCumulativeUpdate.Dimension(NumGroups());
+	
+	/* dimension list of pointers to external force vectors */
+	fExternalForce.Dimension(NumGroups());
+	fExternalForce = NULL;
 }
 
 /*************************************************************************
