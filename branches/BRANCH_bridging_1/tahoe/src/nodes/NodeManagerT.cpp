@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.21.2.3 2003-02-17 17:11:42 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.21.2.4 2003-03-31 03:48:21 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -368,7 +368,7 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 		}
 
 	/* update current configurations */
-	if (fCoordUpdate->Group() == group)
+	if (fCoordUpdate && fCoordUpdate->Group() == group)
 		UpdateCurrentCoordinates();
 	
 	/* inherited - update external DOF */
