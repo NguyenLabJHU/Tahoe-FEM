@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.5 2004-01-02 02:40:56 paklein Exp $
+# $Id: makefile.template,v 1.6 2004-01-02 02:45:59 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -12,10 +12,10 @@
 # (6) "make build" to (re-)compiler binaries.
 
 # full path to the top level of this module
-HOME_DIR = /Users/paklein/Code/tahoe/testing/aztec
+HOME_DIR =
 
 # build architecture - see macros directory for choices $(ARCH).macros
-ARCH = DARWIN-3.3
+ARCH =
 
 # destination for the build 
 BLD_DIR = $(HOME_DIR)
