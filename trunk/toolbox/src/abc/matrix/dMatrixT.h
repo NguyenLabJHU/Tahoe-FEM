@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.h,v 1.5 2001-09-21 06:09:10 paklein Exp $ */
+/* $Id: dMatrixT.h,v 1.6 2002-03-02 19:33:17 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _DMATRIX_T_H_
@@ -80,15 +80,6 @@ public:
 	/** set this to its part.
 	 * \return reference to *this */
 	dMatrixT& Symmetrize(void);
-
-	/** set this to the matrix transpose.
-	 * \param matrix source matrix to transpose
-	 * \return reference to *this */
-	dMatrixT& Transpose(const dMatrixT& matrix);
-
-	/** set this its matrix transpose.
-	 * \return reference to *this */
-	dMatrixT& Transpose(void);
 
 	/** special matrix multiplication.
 	 * \author thao */
