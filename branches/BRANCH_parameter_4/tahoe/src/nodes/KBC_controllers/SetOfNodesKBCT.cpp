@@ -1,4 +1,4 @@
-/* $Id: SetOfNodesKBCT.cpp,v 1.3.28.2 2004-07-07 15:28:47 paklein Exp $ */
+/* $Id: SetOfNodesKBCT.cpp,v 1.3.28.3 2004-07-08 07:41:16 paklein Exp $ */
 #include "SetOfNodesKBCT.h"
 
 #include "NodeManagerT.h"
@@ -54,7 +54,9 @@ void SetOfNodesKBCT::Initialize(ifstreamT& in)
 			in >> dof[i];
 			dof[i]--;
 	
-			in >> code[i];
+			int i_code;
+			in >> i_code;
+			code[i] = KBC_CardT::int2CodeT(i_code);
 	
 			in >> fScheduleNum[i] >> fScale[i]; 
 		
@@ -149,7 +151,9 @@ void SetOfNodesKBCT::Initialize(ifstreamT& in)
 			in >> dof[i];
 			dof[i]--;
 	
-			in >> code[i];
+			int i_code;
+			in >> i_code;
+			code[i] = KBC_CardT::int2CodeT(i_code);
 	
 			in >> fScheduleNum[i] >> fScale[i]; 
 		
