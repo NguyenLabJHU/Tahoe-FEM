@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.36 2003-04-05 19:51:56 thao Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.37 2003-04-07 18:13:43 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 #include "fstreamT.h"
@@ -350,7 +350,6 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 			}
 			case kSSLinearVE:
 			{
-			{
 #ifdef VISCOELASTICITY
 				/* check */
 				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
@@ -375,6 +374,8 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				ExceptionT::BadInputValue(caller, "VISCOELASTICITY not enabled: %d", matcode);
 #endif
 			}
+			case kThermoViscoPlastic:
+			{
 #ifdef THERMO_VISCO_PLASTIC_MATERIAL
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
