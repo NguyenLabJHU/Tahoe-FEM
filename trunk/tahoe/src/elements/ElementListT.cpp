@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.76 2003-12-28 08:22:54 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.77 2004-01-05 07:37:04 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -26,9 +26,14 @@
 #include "CSESymAnisoT.h"
 #include "MeshFreeCSEAnisoT.h"
 #include "ThermalSurfaceT.h"
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
+#include "RigidCSEAnisoT.h"
+#include "NodalRigidCSEAnisoT.h"
+#endif
 #endif
 
 #ifdef CONTINUUM_ELEMENT
+#include "ViscousDragT.h"
 #include "SmallStrainT.h"
 #include "UpdatedLagrangianT.h"
 #include "UpLagAdaptiveT.h"
@@ -264,6 +269,15 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				ExceptionT::BadInputValue(caller, "SPRING_ELEMENT not enabled: %d", code);
 #endif
 			}
+			case ElementT::kViscousDrag:
+			{
+#ifdef CONTINUUM_ELEMENT
+				fArray[group] = new ViscousDragT(fSupport, *field);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
 			case ElementT::kElastic:
 			{
 #ifdef CONTINUUM_ELEMENT
@@ -464,6 +478,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				out << "    eq. " << CSEBaseT::Anisotropic << ", anisotropic\n";
 				out << "    eq. " << CSEBaseT::NoRotateAnisotropic << ", fixed-frame anisotropic\n";
 				out << "    eq. " << CSEBaseT::ModeIAnisotropic << ", anisotropic mode I\n";
+				out << "    eq. " << CSEBaseT::RigidAnisotropic << ", anisotropic with rigid constraints\n";
 
 				if (CSEcode == CSEBaseT::Isotropic)
 					fArray[group] = new CSEIsoT(fSupport, *field);	
@@ -473,6 +488,12 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 					fArray[group] = new CSEAnisoT(fSupport, *field, false);
 				else if (CSEcode == CSEBaseT::ModeIAnisotropic)
 					fArray[group] = new CSESymAnisoT(fSupport, *field, false);
+#ifdef COHESIVE_SURFACE_ELEMENT_DEV
+				else if (CSEcode == CSEBaseT::RigidAnisotropic)
+					fArray[group] = new RigidCSEAnisoT(fSupport, *field, false);
+				else if (CSEcode == CSEBaseT::NodalRigidAnisotropic)
+					fArray[group] = new NodalRigidCSEAnisoT(fSupport, *field, false);
+#endif
 				else
 				{
 					ExceptionT::BadInputValue(caller, "unknown CSE formulation: %d", CSEcode);
