@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.52 2005-01-27 17:53:28 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.53 2005-01-28 02:47:41 paklein Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -103,6 +103,10 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 
 		//get nodes from ModelManagerT
 		model.ManyNodeSets(particle_ID_list, fNodes);
+		
+		/* set inverse map */
+		fNodes_inv.SetOutOfRange(InverseMapT::MinusOne);
+		fNodes_inv.SetMap(fNodes);
 	}
 	
 	// get the cell geometry parameters
@@ -682,14 +686,15 @@ void SCNIMFT::RHSDriver(void)
 	}
 }
 
-int SCNIMFT::GlobalToLocalNumbering(iArrayT& nodes) const
+int SCNIMFT::GlobalToLocalNumbering(ArrayT<int>& nodes) const
 {
-	InverseMapT inv_map;
-	inv_map.SetMap(fNodes);
-	for (int i = 0; i < nodes.Length(); i++)
-	  nodes[i] = inv_map.Map(nodes[i]);
-	
-	return 1;
+	int OK = 1;
+	for (int i = 0; i < nodes.Length(); i++) {
+		int local = fNodes_inv.Map(nodes[i]);
+		if (local == -1) OK = 0;
+		nodes[i] = local;
+	}
+	return OK;
 }
 
 int SCNIMFT::GlobalToLocalNumbering(RaggedArray2DT<int>& nodes)
@@ -704,7 +709,7 @@ int SCNIMFT::GlobalToLocalNumbering(RaggedArray2DT<int>& nodes)
 	return 1;
 }
 
-void SCNIMFT::InterpolatedFieldAtNodes(const iArrayT& nodes, dArray2DT& fieldAtNodes) const
+void SCNIMFT::InterpolatedFieldAtNodes(const ArrayT<int>& nodes, dArray2DT& fieldAtNodes) const
 {
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
