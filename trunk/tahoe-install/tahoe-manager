@@ -10,18 +10,47 @@
 #
 use Cwd; # $home = cwd();
 
-# maps & constants
+# prefix on macros in the makefiles
 %module2define = qw(
 expat	EXPAT_
 toolbox	TB_
 tahoe	NODEFINE
 macros	NODEFINE
 spooles SPOOLES_
-f2c	F2C_
+sppolesMPI SPOOLESMPI_
+metis   METIS_
+aztec   AZ_
+f2c	    F2C_
 blas	BLAS_
 access	AX_
+development DEV_
+Sierra SIERRA_
+qhull  QHULL_
 );
 
+# location of module on the server
+%module2repo = qw(
+expat /cvs/protected/tahoe
+toolbox /cvs/protected/tahoe
+tahoe /cvs/protected/tahoe
+macros /cvs/protected/tahoe
+spooles /cvs/protected/tahoe
+sppolesMPI /cvs/protected/tahoe
+metis /cvs/protected/tahoe
+aztec /cvs/protected/tahoe
+f2c /cvs/protected/tahoe
+blas /cvs/protected/tahoe
+access /cvs/protected/tahoe
+development /cvs/private/tahoe
+Sierra /cvs/private/tahoe
+qhull /cvs/private/tahoe
+benchmark_XML /cvs/protected/tahoe
+);
+
+# modules in the UP_TO_DATE macro
+@up_to_date_modules = ("development", "Sierra");
+
+# minimum required installation
 @defaultmodules = ("macros","expat","toolbox","tahoe");
 
 %syslib2module = qw(
@@ -33,10 +62,10 @@ cvs     cvs
 http	curl
 );
 
-#default repository
-$cvsrep = "tahoe.ca.sandia.gov:/cvs/protected/tahoe"; 
+# tahoe server
+$ tahoe = "tahoe.ca.sandia.gov"; 
 
-#default configuration file
+# default configuration file
 $config_file = "./.tahoe_config";
 
 # initialization
@@ -50,9 +79,9 @@ ARG: while (@ARGV) {
 		$count = @ARGV;
 		if ($script_status > 0 )   { failed();}
 		if (/^u|update/i)          { update(); next ARG; }
-		if (/^i|init/i)            { config(); next ARG; }
+		if (/^co|config/i)         { config(); next ARG; }
 		if (/^b|build/i)           { build(); next ARG; }
-		if (/^c|clean/i)           { clean(); next ARG; }
+		if (/^cl|clean/i)          { clean(); next ARG; }
 		if (/^t|test/i)            { test(); next ARG; }
 		if (/^a|all/i)             { update(); config(); build(); next ARG; }
 		if (/^u|usage|help|^h/i)   { usage();}
@@ -147,7 +176,7 @@ foreach $core (@defaultmodules) {
  		if($module =~ $core) { $found = 1;}
 	}
 	unless($found){
-		print "* adding : $core, to modules\n";
+		print "* adding : $core to modules\n";
  		push(@modules,$core);
  	}
 }
@@ -207,7 +236,8 @@ unless(-d "macros") {
 	if ($connection =~ /cvs/) {
 		print "checking out macros\n";
 		unlink("cvs.log");
-		system("cvs -d $username\@$cvsrep checkout macros > cvs.log 2>&1");
+		$repo = $module2repo{"macros"};
+		system("cvs -d $username\@$tahoe:$repo checkout macros > cvs.log 2>&1");
 	} elsif ($connection =~ /http/) {
 	
 		# grab new copy
@@ -293,13 +323,14 @@ sub update_cvs{
 	unlink("cvs.log");
 	foreach $dir (@modules) {
 		if(-d $dir) {
-			print "\tupdating $dir";
+			print "\tupdating $dir...";
 			system("cd $dir; cvs update -Pd > ../cvs.log 2>&1");
-			print " ...done\n";
+			print "done\n";
 		} else {
-			print "\tchecking out $dir";
-			system("cvs -d $username\@$cvsrep checkout $dir > cvs.log 2>&1");
-			print " ...done\n";
+			print "\tchecking out $dir...";
+			$repo = $module2repo{$dir};
+			system("cvs -d $username\@$tahoe:$repo checkout $dir > cvs.log 2>&1");
+			print "done\n";
 		}
 		# check for failures
 		open(IN,"cvs.log");
@@ -344,13 +375,14 @@ sub update_http{
 		
 		# clean up
 		system("rm $dir.tar");
+		print "done\n";
 	}
 }
 
 ##############################################################################
 sub build{
 	$time = localtime();
-# need to sort modules based on dependencies
+	# need to sort modules based on dependencies
 	@tmp_modules = @modules;
 	@modules = sort by_depend @tmp_modules;
 	print "($count) building: @modules, at $time\n";
@@ -358,11 +390,13 @@ sub build{
 		if (-e $dir) {
 			chdir $dir;
 			if (!(-e "makefile") && (-e "makefile.template")) {
+				print "\tinitializing $dir...";
 				fillin_makefile();
 				system("make init > build.log 2>&1");
+				print "done\n";
 			}
 			if (-e "makefile") {
-				print "\tmaking $dir";
+				print "\tmaking $dir...";
 				unlink("build.log");
 				system("make build > build.log 2>&1");
 				# check for errors	
@@ -370,8 +404,8 @@ sub build{
 				@lines = <IN>; $file = "@lines"; close(IN); 
 				$errors = ($file =~ / error /i);
                 		if($errors > 0) 
-					{print " ...ERROR\n";$script_status++;}
-				else	{print " ...done\n";}
+					{print "ERROR\n";$script_status++;}
+				else	{print "done\n";}
 			}
 			chdir "..";
 		} else {
@@ -388,10 +422,16 @@ sub config{
 		if (-e $dir) { 
 			chdir $dir; 
 			if (-e "makefile.template") {
-				print "\tcreating makefile in $dir";
+
+				# generate makefile
+				print "\tcreating makefile in $dir...";
 				fillin_makefile();
+				print "done\n";
+				
+				# run "make init"
+				print "\tinitializing $dir...";
 				system("make init > build.log 2>&1");
-				print " ...done\n";
+				print "done\n";
 			}
 		 	chdir "..";
 		}
@@ -401,14 +441,14 @@ sub config{
 ##############################################################################
 sub clean{
 	$time = localtime();
-	print "($count) config'ing: @modules, at $time\n";
+	print "($count) cleaning: @modules, at $time\n";
 	foreach $dir (@modules) {
 		if (-e $dir) { 
 			chdir $dir; 
 			if (-e "makefile") {
-				print "\tcleaning $dir";
+				print "\tcleaning $dir...";
 				system("make clean >&! clean.log");
-				print " ...done\n";
+				print "done\n";
 			}
 		 	chdir "..";
 		}
@@ -422,22 +462,26 @@ sub test{
  	unless(-d "benchmark_XML"){
 		print "checking out benchmark\n";
 		unlink("cvs.log");
-		system("cvs -d $username\@$cvsrep checkout benchmark_XML > cvs.log 2>&1");
+		$repo = $module2repo{"benchmark_XML"};
+		system("cvs -d $username\@$tahoe:$repo checkout benchmark_XML > cvs.log 2>&1");
  	} else {
 		system("cd benchmark_XML; cvs update -Pd > cvs.log 2>&1");
 	}
 	chdir("benchmark_XML/comparator");
-	print("\tbuilding comparator");
+	print("\tbuilding comparator...");
 	fillin_makefile(); system("make init build > build.log 2>&1");
-	print(" ...done\n");
+	print("done\n");
 	chdir("..");
 	print("\trunning benchmarks");
+	print("\tremoving previous results...");
 	system("make clean > build.log 2>&1");
+	print("done\n");
+	print("\trunning benchmark cases...");
 	system("../tahoe/tahoe -f run.batch > run.out 2>&1");
-	print(" ...done\n");
-	print("\tcomparing benchmarks");
+	print("done\n");
+	print("\tcomparing benchmarks...");
 	system("./comparator/compare -f run.batch > compare.out 2>&1");
-	print(" ...done\n");
+	print("done\n");
 	open(IN,"compare.summary");
 	<IN>; 
 	$_ = <IN>; chomp(); s/^\s+//; s/\s+$//; $pass = $_;   
@@ -454,7 +498,7 @@ sub failed{
 sub usage{
 	print "\nusage: tahoe-manager [list of keywords and options]\n";
 	print "       update  : updates or checks out modules\n";
-	print "       config  : creates makefiles \n";
+	print "       config  : creates makefiles and initializes modules\n";
 	print "       build   : builds modules\n";
 	print "       test    : runs regression tests\n";
 	print "       clean   : cleans modules\n";
@@ -494,6 +538,18 @@ sub by_depend {
 
 ##############################################################################
 sub fillin_makefile{
+
+	# if makefile exists, preserve MOD_ macros in makefile
+	@mod_macros = {"MOD_CFLAGS_C =", "MOD_CFLAGS_CC =", "MOD_CFLAGS_F =", "MOD_LFLAGS ="};
+	if (-e "makefile") {
+		open(IN, "makefile");
+		while (defined($line = <IN>)) {
+		
+		
+		}
+		close (IN);
+	}
+
 	unlink("makefile");
 	$path = cwd();
 	open(IN,"makefile.template");
