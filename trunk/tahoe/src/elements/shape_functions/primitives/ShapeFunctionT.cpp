@@ -1,9 +1,10 @@
-/* $Id: ShapeFunctionT.cpp,v 1.4 2001-08-20 06:53:54 paklein Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.5 2001-08-21 01:10:32 paklein Exp $ */
 /* created: paklein (06/26/1996)                                          */
 
 #include "ShapeFunctionT.h"
 #include "ParentDomainT.h"
 #include "LocalArrayT.h"
+#include "dSymMatrixT.h"
 
 /* constructor */
 ShapeFunctionT::ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
@@ -83,9 +84,9 @@ void ShapeFunctionT::InterpolateU(const LocalArrayT& nodal,
 void ShapeFunctionT::B(const dArray2DT& DNa, dMatrixT& B_matrix) const
 {
 #if __option(extended_errorcheck)
-	if (DNa.MajorDim() != (*pDNaU)[fCurrIP].MajorDim() ||
-	    DNa.MinorDim() != (*pDNaU)[fCurrIP].MinorDim())
-	    throw eGeneralFail;
+	if (B_matrix.Rows() != dSymMatrixT::NumValues(DNa.MajorDim()) ||
+	    B_matrix.Cols() != DNa.Length())
+	    throw eSizeMismatch;
 #endif
 
 	int numnodes = DNa.MinorDim();
@@ -232,12 +233,12 @@ void ShapeFunctionT::B(const dArray2DT& DNa, dMatrixT& B_matrix) const
 void ShapeFunctionT::GradNa(const dArray2DT& DNa, dMatrixT& grad_Na) const
 {
 #if __option(extended_errorcheck)
-	if (DNa.MajorDim() != (*pDNaU)[fCurrIP].MajorDim() ||
-	    DNa.MinorDim() != (*pDNaU)[fCurrIP].MinorDim())
-	    throw eGeneralFail;
+	if (DNa.MajorDim() != grad_Na.Rows() ||
+	    DNa.MinorDim() != grad_Na.Cols())
+	    throw eSizeMismatch;
 #endif
 
-int numsd    = DNa.MajorDim();
+	int numsd    = DNa.MajorDim();
 	int numnodes = DNa.MinorDim();
 	double* p    = grad_Na.Pointer();
 
