@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeShapeFunctionT.h,v 1.1 2004-09-28 23:13:59 raregue Exp $ */
+/* $Id: D3MeshFreeShapeFunctionT.h,v 1.2 2004-09-29 00:42:55 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D3_MF_SHAPE_T_H_
 #define _D3_MF_SHAPE_T_H_

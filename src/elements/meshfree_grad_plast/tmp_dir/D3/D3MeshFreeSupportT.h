@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeSupportT.h,v 1.1 2004-09-28 23:13:59 raregue Exp $ */
+/* $Id: D3MeshFreeSupportT.h,v 1.2 2004-09-29 00:42:55 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D3_MF_SUPPORT_T_H_
 #define _D3_MF_SUPPORT_T_H_
@@ -34,7 +34,7 @@ public:
 	 * \param phi returns with the shape function values of neighbors at node: [nnd]
 	 * \param Dphi returns with neighbors shape function derivatives at node: [nsd] x [nnd]
 	 * \param DDphi returns with neighbors shape function second derivatives at node: [nstr] x [nnd]
-	 * \param DDDphi returns with neighbors shape function second derivatives at node: [?nstr] x [nnd] */	
+	 * \param DDDphi returns with neighbors shape function second derivatives at node: [nsd*nsd] x [nnd] */	
 	void LoadNodalData(int node, iArrayT& neighbors, dArrayT& phi,
 		dArray2DT& Dphi, dArray2DT& DDphi, dArray2DT& DDDphi);
 
