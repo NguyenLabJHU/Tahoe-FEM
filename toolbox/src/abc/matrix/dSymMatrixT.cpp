@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.21 2003-08-05 18:33:07 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.22 2003-08-06 00:04:07 thao Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -40,7 +40,7 @@ void dSymMatrixT::Dimension(DimensionT nsd)
 {
 	/* check  */
 	fNumSD = int2DimensionT(nsd);
-	if (fNumSD < 1 || fNumSD > 3) 
+	if (fNumSD < 1 || fNumSD > 4) 
 		ExceptionT::GeneralFail("dSymMatrixT::Dimension", "invalid dimension %d", nsd);
 
 	/* inherited */
@@ -51,7 +51,7 @@ void dSymMatrixT::Dimension(DimensionT nsd)
 void dSymMatrixT::Set(DimensionT nsd, double* array)
 {
 	fNumSD = int2DimensionT(nsd);
-	if (fNumSD < 1 || fNumSD > 3) 
+	if (fNumSD < 1 || fNumSD > 4) 
 		ExceptionT::GeneralFail("dSymMatrixT::Set", "invalid dimension %d", nsd);
 	
 	/* inherited */
@@ -63,11 +63,11 @@ double& dSymMatrixT::operator()(int row, int col) const
 {
 	const char caller[] = "dSymMatrixT::operator()";
 #if __option (extended_errorcheck)
-	if (row < 0 || row >= fNumSD ||
-	    col < 0 || col >= fNumSD) 
+	if (row < 0 || row >= Rows() ||
+	    col < 0 || col >= Cols()) 
 	    ExceptionT::OutOfRange(caller,
 	    	"row !(0 <= %d < %d) || col !(0 <= %d < %d)",
-	    	row, fNumSD, col, fNumSD);
+	    	row, Rows(), col, Cols());
 #endif
 	int map1D[1][1] = {{0}};
 
@@ -79,12 +79,20 @@ double& dSymMatrixT::operator()(int row, int col) const
 	                   {4,3,2}};
 
 	if (fNumSD == 0) ExceptionT::GeneralFail(caller, "NumSD == 0");
-	if (fNumSD == 1)
-		return fArray[map1D[row][col]];
-	else if (fNumSD == 2)
+	if (fNumSD == 2)
 		return fArray[map2D[row][col]];		
-	else
+	else if (fNumSD == 3)
 		return fArray[map3D[row][col]];		
+	else if (fNumSD == dSymMatrixT::k3D_plane) {
+#if __option (extended_errorcheck)       
+	  if (row!=col && (col==2||row==2)) 
+	    ExceptionT::OutOfRange(caller, "col != row && (col==2||row==2)");
+#endif
+	        return ( (row<2 && col<2) ? 
+		  fArray[map2D[row][col]] : fArray[3]);
+	}
+	else
+		return fArray[map1D[row][col]];
 }
 
 void dSymMatrixT::ExpandIndex(DimensionT nsd, int dex, int& dex_1, int& dex_2)
@@ -137,9 +145,19 @@ ostream& operator<<(ostream& out, const dSymMatrixT& array)
 		out << setw(d_width) << array.fArray[3];
 		out << setw(d_width) << array.fArray[2] << '\n';
 	}
+	else if (array.fNumSD == dSymMatrixT::k3D_plane) {
+		out << setw(d_width) << array.fArray[0];
+		out << setw(d_width) << array.fArray[2];
+		out << setw(d_width) << 0.0 << '\n';
+		out << setw(d_width) << array.fArray[2];
+		out << setw(d_width) << array.fArray[1]; 
+		out << setw(d_width) << 0.0 << '\n';
+		out << setw(d_width) << 0.0;
+		out << setw(d_width) << 0.0;
+		out << setw(d_width) << array.fArray[3]; 
+	}
 	else
 		out << setw(d_width) << array.fArray[0] << '\n';
-
 	return out;
 }
 
@@ -192,7 +210,7 @@ void dSymMatrixT::Eigenvalues(dArrayT& val, bool sort_descending) const
 #pragma unused(sort_descending)
 	if (fNumSD == 1)
 		val[0] = fArray[0];
-	else if (fNumSD == 2)
+	else if (fNumSD == 2 || fNumSD == dSymMatrixT:: k3D_plane)
 	{
 	double mean = 0.5*(fArray[0] + fArray[1]);
 	double diff = 0.5*(fArray[0] - fArray[1]);
@@ -228,7 +246,7 @@ void dSymMatrixT::Eigensystem(dArrayT& val, dMatrixT& vec, bool sort_descending)
 		vec[0] = 1.0;
 	}
 //Modified by TDN 3/23/01:  2x2 symmetric schur decomposition for Classical Jacobi Algorithm
-	else if (fNumSD == 2)
+	else if (fNumSD == 2 || fNumSD == dSymMatrixT::k3D_plane)
 	{
 	double a = fArray[0];
 	double c = fArray[1];
@@ -304,7 +322,6 @@ void dSymMatrixT::Eigensystem(dArrayT& val, dMatrixT& vec, bool sort_descending)
 		vec[3] = vec[0];
 #endif
 	}
-
 	else if (fNumSD == 3)
 		Eigensystem3D(val, vec, sort_descending);
 	else
@@ -336,6 +353,11 @@ double dSymMatrixT::ScalarProduct(void) const
 		  2.0*(fArray[3]*fArray[3] +
 		       fArray[4]*fArray[4] +
 		       fArray[5]*fArray[5]);
+	else if (fNumSD == dSymMatrixT::k3D_plane)
+		return fArray[0]*fArray[0] +
+		       fArray[1]*fArray[1] +
+		   2.0*fArray[2]*fArray[2] +
+		       fArray[3]*fArray[3];	  
 	else
 		return fArray[0]*fArray[0];
 }
@@ -358,6 +380,11 @@ double dSymMatrixT::ScalarProduct(const dSymMatrixT& matrix) const
 		  2.0*(fArray[3]*matrix.fArray[3] +
 		       fArray[4]*matrix.fArray[4] +
 		       fArray[5]*matrix.fArray[5]);
+	else if (fNumSD == dSymMatrixT::k3D_plane)   
+	        return fArray[0]*matrix.fArray[0] +
+		       fArray[1]*matrix.fArray[1] +
+		   2.0*fArray[2]*matrix.fArray[2] +
+		       fArray[3]*matrix.fArray[3];
 	else
 		return fArray[0]*matrix.fArray[0];
 }
@@ -399,14 +426,12 @@ double dSymMatrixT::Det(void) const
 		return fArray[0]*(fArray[1]*fArray[2] - fArray[3]*fArray[3])
 			 - fArray[5]*(fArray[5]*fArray[2] - fArray[3]*fArray[4])
 			 + fArray[4]*(fArray[5]*fArray[3] - fArray[1]*fArray[4]);
+	else if (fNumSD == dSymMatrixT::k3D_plane)
+	        return fArray[3]*(fArray[0]*fArray[1] - fArray[2]*fArray[2]);
 	else
 		return fArray[0];
 }
 
-/* returns the trace of *this.  For 2D, the out-of-plane
-* component is assumed to be zero, ie if *this represents stress,
-* then plane stress is assumed and if *this is strain then plane
-* strain is assumed. */
 double dSymMatrixT::Trace(void) const
 {
 #if __option(extended_errorcheck)
@@ -417,9 +442,10 @@ double dSymMatrixT::Trace(void) const
 		return fArray[0] + fArray[1];
 	else if (fNumSD == 3)
 		return fArray[0] + fArray[1] + fArray[2];
+	else if (fNumSD == dSymMatrixT::k3D_plane)
+                return fArray[0]+fArray[1]+fArray[3];
 	else
-		return fArray[0];
-	
+		return fArray[0];	
 }
 
 /* identity operations */
@@ -439,6 +465,12 @@ void dSymMatrixT::PlusIdentity(double value)
 		fArray[0] += value;
 		fArray[1] += value;
 		fArray[2] += value;
+	}
+	else if (fNumSD == dSymMatrixT::k3D_plane)
+        {
+		fArray[0] += value;
+		fArray[1] += value;
+		fArray[3] += value;
 	}
 	else
 		fArray[0] += value;
@@ -465,9 +497,15 @@ dSymMatrixT& dSymMatrixT::Identity(double value)
 		fArray[4] = 0.0;
 		fArray[5] = 0.0;		
 	}
+	else if (fNumSD == dSymMatrixT::k3D_plane)
+        {
+		fArray[0] = value;
+		fArray[1] = value;
+		fArray[2] = 0.0;
+		fArray[3] = value;
+	}
 	else
 		fArray[0] = value;
-		
 	return *this;
 }
 
@@ -479,8 +517,9 @@ dSymMatrixT& dSymMatrixT::Identity(double value)
 dSymMatrixT& dSymMatrixT::Deviatoric(const dSymMatrixT& tensor)
 {
 	/* dimension checks */
-	if (fNumSD != 3) ExceptionT::GeneralFail("dSymMatrixT::Deviatoric", "3D only");
+	if (fNumSD < 3) ExceptionT::GeneralFail("dSymMatrixT::Deviatoric", "3D only");
 
+#if 0
 	double* pLHS = fArray;
 	double* pRHS = tensor.fArray;
 	double trace = (pRHS[0] + pRHS[1] + pRHS[2])/3.0;
@@ -491,6 +530,26 @@ dSymMatrixT& dSymMatrixT::Deviatoric(const dSymMatrixT& tensor)
 	*pLHS++ = *pRHS++;
 	*pLHS++ = *pRHS++;
 	*pLHS   = *pRHS;
+#endif
+	
+	if (fNumSD == dSymMatrixT::k3D_plane)
+	{
+	  double mean = (tensor[0]+tensor[1]+tensor[3])/3.0;
+	  fArray[0] = tensor[0]-mean;
+	  fArray[1] = tensor[1]-mean;
+	  fArray[2] = tensor[2];
+	  fArray[3] = tensor[3]-mean;
+	}
+	else 
+        {
+	  double mean = (tensor[0]+tensor[1]+tensor[2])/3.0;
+	  fArray[0] = tensor[0] - mean;
+	  fArray[1] = tensor[1] - mean;
+	  fArray[2] = tensor[2] - mean;
+	  fArray[3] = tensor[3];
+	  fArray[4] = tensor[4];
+	  fArray[5] = tensor[5];	
+	}
 
 	return *this;
 }
@@ -566,9 +625,21 @@ dSymMatrixT& dSymMatrixT::Inverse(const dSymMatrixT& matrix)
 		fArray[4] = z6;
 		fArray[5] = z7;
 	}
+	else if (fNumSD == dSymMatrixT::k3D_plane)
+        {
+		double a0 = matrix.fArray[0];
+		double a1 = matrix.fArray[1];
+		double a2 = matrix.fArray[2];
+		double a3 = matrix.fArray[3];
+		double det = a3*(a0*a1 - a2*a2);
+
+		fArray[0] = a1/det;
+		fArray[1] = a0/det;
+		fArray[2] =-a2/det;
+		fArray[3] = a3/det;
+	}	
 	else
 		fArray[0] = 1.0/matrix.fArray[0];
-		
 	return *this;
 }
 
@@ -634,7 +705,6 @@ dSymMatrixT& dSymMatrixT::Symmetrize(const dMatrixT& matrix)
 	}
 	else
 		fArray[0] = pmat[0];
-
 	return *this;
 }
 
