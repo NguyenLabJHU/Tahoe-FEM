@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.15 2002-11-25 07:03:21 paklein Exp $ */
+/* $Id: nArray2DT.h,v 1.16 2002-12-05 08:23:01 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NARRAY2D_T_H_
@@ -303,10 +303,10 @@ inline nTYPE& nArray2DT<nTYPE>::operator()(int majordim, int minordim) const
 	/* range checking */
 	if (majordim < 0 || majordim >= fMajorDim ||
 		minordim < 0 || minordim >= fMinorDim) {
-			cout << "\n nArray2DT<TYPE>::operator(int,int): out of range\n"
-			     <<   "    major {0," << fMajorDim-1 << "}: " << majordim << '\n'
-			     <<   "    minor {0," << fMinorDim-1 << "}: " << minordim << endl;
-			ExceptionT::OutOfRange();
+			ExceptionT::OutOfRange("nArray2DT<TYPE>::operator(int,int)",
+				"majordim ! (0 <= %d <= %d), minordim ! (0 <= %d <= %d)", 
+				majordim, fMajorDim-1,
+				minordim, fMinorDim-1);
 		}
 #endif
 	return fArray[majordim*fMinorDim + minordim];
@@ -318,9 +318,8 @@ inline nTYPE* nArray2DT<nTYPE>::operator()(int majordim) const
 #if __option (extended_errorcheck)
 	/* range checking */
 	if (majordim < 0 || majordim >= fMajorDim) {
-		cout << "\n nArray2DT<TYPE>::operator(int): major dimension " << majordim 
-		     << " is out of range {0," << fMajorDim-1 << "}" << endl;
-		ExceptionT::OutOfRange();
+		ExceptionT::OutOfRange("nArray2DT<TYPE>::operator(int)",
+			"majordim ! (0 <= %d <= %d)", majordim, fMajorDim-1);
 	}
 #endif
 	return fArray + majordim*fMinorDim;

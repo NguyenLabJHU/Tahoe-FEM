@@ -1,16 +1,14 @@
-/* $Id: dMatrixT.cpp,v 1.13 2002-10-20 22:38:54 paklein Exp $ */
+/* $Id: dMatrixT.cpp,v 1.14 2002-12-05 08:23:02 paklein Exp $ */
 /* created: paklein (05/24/1996) */
-
 #include "dMatrixT.h"
 #include <iostream.h>
 #include <iomanip.h>
 #include "toolboxConstants.h"
 #include "dSymMatrixT.h"
 
-/* copy behavior for arrays of dMatrixT's */
-
 using namespace Tahoe;
 
+/* copy behavior for arrays of dMatrixT's */
 namespace Tahoe {
 const bool ArrayT<dMatrixT*>::fByteCopy = true;
 const bool ArrayT<dMatrixT>::fByteCopy = false;
@@ -160,11 +158,8 @@ dMatrixT& dMatrixT::Inverse(const dMatrixT& matrix)
           		a[n] = d;          		
           		a += fRows;
 			}
-			else
-			{
-				cout << "\n dMatrixT::Inverse: zero pivot in row " << n << endl;
-				throw ExceptionT::kGeneralFail;
-			}
+			else 
+				ExceptionT::GeneralFail("dMatrixT::Inverse", "zero pivot in row %d", n);
 		}
 	}
 

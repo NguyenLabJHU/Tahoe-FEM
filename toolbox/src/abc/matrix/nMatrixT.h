@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.17 2002-10-20 22:38:54 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.18 2002-12-05 08:23:02 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _NMATRIX_T_H_
 #define _NMATRIX_T_H_
@@ -682,11 +682,8 @@ nMatrixT<nTYPE>& nMatrixT<nTYPE>::Transpose(const nMatrixT<nTYPE>& matrix, int f
 			}
 		}
 	}
-	else
-	{
-		cout << "\n nMatrixT<nTYPE>::Transpose: unrecognized fill mode: " << fillmode << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	else ExceptionT::GeneralFail("nMatrixT<nTYPE>::Transpose", "unrecognized fill mode: %d", fillmode);
+
 	return *this;
 }
 
@@ -729,11 +726,7 @@ nMatrixT<nTYPE>& nMatrixT<nTYPE>::Transpose(int fillmode)
 			}
 		}
 	}
-	else
-	{
-		cout << "\n nMatrixT<nTYPE>::Transpose: unrecognized fill mode: " << fillmode << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	else ExceptionT::GeneralFail("nMatrixT<nTYPE>::Transpose", "unrecognized fill mode: %d", fillmode);
 
 	return *this;
 }
