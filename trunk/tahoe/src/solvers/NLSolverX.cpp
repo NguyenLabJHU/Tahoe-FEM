@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.cpp,v 1.6 2002-10-20 22:49:47 paklein Exp $ */
+/* $Id: NLSolverX.cpp,v 1.7 2002-11-28 17:30:31 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #include "NLSolverX.h"
 
@@ -182,7 +182,7 @@ double NLSolverX::SolveAndForm(bool newtangent)
 	if (newtangent)
 	{
 		fLHS->Clear();
-		fFEManager.FormLHS(Group());
+		fFEManager.FormLHS(Group(), GlobalT::kNonSymmetric);
 	}
 		 		
 	/* solve equation system */

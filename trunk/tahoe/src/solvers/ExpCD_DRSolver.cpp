@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.cpp,v 1.6 2002-10-20 22:49:47 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.cpp,v 1.7 2002-11-28 17:30:31 paklein Exp $ */
 /* created: paklein (08/19/1998) */
 
 #include "ExpCD_DRSolver.h"
@@ -376,7 +376,7 @@ void ExpCD_DRSolver::SetMass(void)
 {
 	/* get diagonal stiffness */
 	fLHS->Clear();
-	fFEManager.FormLHS(Group());
+	fFEManager.FormLHS(Group(), GlobalT::kDiagonal);
 	
 	/* get the matrix - should be safe */
 	DiagonalMatrixT* lhs = (DiagonalMatrixT*) fLHS;

@@ -1,4 +1,4 @@
-/* $Id: NOXSolverT.cpp,v 1.6 2002-10-20 22:49:48 paklein Exp $ */
+/* $Id: NOXSolverT.cpp,v 1.7 2002-11-28 17:30:32 paklein Exp $ */
 #include "NOXSolverT.h"
 
 /* optional */
@@ -331,7 +331,7 @@ bool NOXSolverT::computeJacobian(GlobalMatrixT& jacobian)
 	/* calculate */
 	try {
 		fLHS->Clear();
-		fFEManager.FormLHS(Group());	
+		fFEManager.FormLHS(Group(), GlobalT::kNonSymmetric);	
 	}
 	catch (ExceptionT::CodeT exception) {
 		cout << "\n NOXSolverT::computeJacobian: exception: "

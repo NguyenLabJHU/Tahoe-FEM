@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.27 2002-11-26 00:17:33 cjkimme Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.28 2002-11-28 17:30:30 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -113,8 +113,9 @@ void ElementBaseT::ElementBlockIDs(ArrayT<StringT>& IDs) const
 }
 
 /* solution calls */
-void ElementBaseT::FormLHS(void)
+void ElementBaseT::FormLHS(GlobalT::SystemTypeT sys_type)
 {
+#pragma unused(sys_type)
 	try { LHSDriver(); }
 	catch (ExceptionT::CodeT error)
 	{

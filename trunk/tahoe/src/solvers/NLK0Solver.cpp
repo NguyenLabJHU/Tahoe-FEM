@@ -1,4 +1,4 @@
-/* $Id: NLK0Solver.cpp,v 1.7 2002-10-20 22:49:47 paklein Exp $ */
+/* $Id: NLK0Solver.cpp,v 1.8 2002-11-28 17:30:31 paklein Exp $ */
 /* created: paklein (10/01/1996) */
 
 #include "NLK0Solver.h"
@@ -47,7 +47,7 @@ double NLK0Solver::SolveAndForm(bool junk)
 	if (fFormTangent)
 	{
 		pCCSLHS->Clear();
-		fFEManager.FormLHS(Group());
+		fFEManager.FormLHS(Group(), GlobalT::kNonSymmetric);
 
 		/* solve equation system */
 		fUpdate = fRHS;
