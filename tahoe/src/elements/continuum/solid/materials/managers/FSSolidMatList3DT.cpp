@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.1.4.9 2004-06-17 07:54:24 paklein Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.1.4.10 2004-06-19 23:28:09 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -109,6 +109,8 @@ FSSolidMatList3DT::FSSolidMatList3DT(void):
 /* read material data from the input stream */
 void FSSolidMatList3DT::ReadMaterialData(ifstreamT& in)
 {
+ExceptionT::GeneralFail("FSSolidMatList3DT::ReadMaterialData");
+#if 0
 	const char caller[] = "FSSolidMatList3DT::ReadMaterialData";
 
 	int i, matnum;
@@ -546,6 +548,7 @@ void FSSolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		ExceptionT::Throw(error, caller, "exception constructing material %d, index %d, code %d",
 			i+1, matnum+1, matcode);
 	}
+#endif
 }
 
 /* information about subordinate parameter lists */
@@ -578,11 +581,18 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& sub, ParameterListT::List
 #endif
 
 #ifdef CAUCHY_BORN_MATERIAL
-		sub_sub_list.AddSub("FCC_EAM");
+		sub_sub_list.AddSub("FCC_3D");
+		sub_sub_list.AddSub("FCC_EAM");		
 #endif
 
 #ifdef MODCBSW_MATERIAL
 		sub_sub_list.AddSub("Cauchy-Born_diamond");
+#endif
+
+#ifdef VIB_MATERIAL
+		sub_sub_list.AddSub("VIB");
+		sub_sub_list.AddSub("isotropic_VIB");
+		sub_sub_list.AddSub("Ogden_isotropic_VIB");
 #endif
 	}
 	else /* inherited */
@@ -654,6 +664,8 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #endif
 
 #ifdef CAUCHY_BORN_MATERIAL
+	else if (name == "FCC_3D")
+		mat = new FCC3D;
 	else if (name == "FCC_EAM")
 		mat = new EAMFCC3DMatT;
 #endif
@@ -661,6 +673,15 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #ifdef MODCBSW_MATERIAL
 	else if (name == "Cauchy-Born_diamond")
 		mat= new ModCB3DT;
+#endif
+
+#ifdef VIB_MATERIAL
+	else if (name == "VIB")
+		mat= new VIB3D;
+	else if (name == "isotropic_VIB")
+		mat= new IsoVIB3D;
+	else if (name == "Ogden_isotropic_VIB")
+		mat= new OgdenIsoVIB3D;
 #endif
 
 	/* set support */

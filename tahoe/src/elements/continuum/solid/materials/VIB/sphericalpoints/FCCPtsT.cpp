@@ -1,13 +1,9 @@
-/* $Id: FCCPtsT.cpp,v 1.4.50.1 2004-06-09 23:17:50 paklein Exp $ */
-/* created: paklein (03/26/1999)                                          */
-/* FCC lattice of points                                                  */
-
+/* $Id: FCCPtsT.cpp,v 1.4.50.2 2004-06-19 23:28:07 paklein Exp $ */
+/* created: paklein (03/26/1999) */
 #include "FCCPtsT.h"
 #include <math.h>
-#include <iostream.h>
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
-
 
 using namespace Tahoe;
 
@@ -18,8 +14,10 @@ FCCPtsT::FCCPtsT(int num_shells, double bond_length):
 	fNumShells(num_shells),
 	fBondLength(bond_length)
 {
+	const char caller[] = "FCCPtsT::FCCPtsT";
+
 	/* number of nearest neighbor shells */
-	if (fBondLength < 0.0) throw ExceptionT::kBadInputValue;
+	if (fBondLength < 0.0) ExceptionT::BadInputValue(caller);
 	
 	int num_bonds;
 	switch (fNumShells)
@@ -28,8 +26,7 @@ FCCPtsT::FCCPtsT(int num_shells, double bond_length):
 			num_bonds = 6;
 			break;
 		default:
-			cout << "\n FCCPtsT::FCCPtsT: currently only support nearest neighbor bonds" << endl;
-			throw ExceptionT::kBadInputValue;			
+			ExceptionT::BadInputValue(caller, "currently only support nearest neighbor bonds");
 	}	
 
 	/* set weights */
@@ -74,7 +71,7 @@ void FCCPtsT::SetCoords(void)
 			temp.Set(6,3,p6);
 			break;
 		default:
-			throw ExceptionT::kGeneralFail;
+			ExceptionT::GeneralFail("FCCPtsT::SetCoords", "unsupported number of shells %d", fNumShells);
 	}
 
 	/* copy data */

@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.h,v 1.8.46.1 2004-06-09 23:17:46 paklein Exp $ */
+/* $Id: IsoVIB3D.h,v 1.8.46.2 2004-06-19 23:28:04 paklein Exp $ */
 /* created: paklein (03/15/1998) */
 #ifndef _ISO_VIB_3D_H_
 #define _ISO_VIB_3D_H_
@@ -22,6 +22,7 @@ public:
 
 	/* constructor */
 	IsoVIB3D(ifstreamT& in, const FSMatSupportT& support);
+	IsoVIB3D(void);
 
 	/* destructor */
 	virtual ~IsoVIB3D(void);
@@ -48,6 +49,18 @@ public:
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/	
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

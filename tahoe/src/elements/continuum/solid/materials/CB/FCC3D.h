@@ -1,4 +1,4 @@
-/* $Id: FCC3D.h,v 1.3.12.1 2004-06-09 23:17:30 paklein Exp $ */
+/* $Id: FCC3D.h,v 1.3.12.2 2004-06-19 23:27:58 paklein Exp $ */
 #ifndef _FCC_3D_H_
 #define _FCC_3D_H_
 
@@ -18,10 +18,30 @@ public:
 
 	/** constructor */
 	FCC3D(ifstreamT& in, const FSMatSupportT& support);
+	FCC3D(void);	
 	
 	/** destructor */
 	~FCC3D(void);
-	
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/** compute the symetric Cij reduced index matrix */
@@ -43,7 +63,6 @@ private:
 	double fNearestNeighbor;
 
 	/** bond information */
-	dMatrixT fQ;
 	FCCLatticeT* fFCCLattice;
 
 	/** pair interaction potential */

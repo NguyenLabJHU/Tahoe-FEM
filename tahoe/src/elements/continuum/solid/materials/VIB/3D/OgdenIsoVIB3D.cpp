@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB3D.cpp,v 1.9.20.2 2004-06-09 23:17:46 paklein Exp $ */
+/* $Id: OgdenIsoVIB3D.cpp,v 1.9.20.3 2004-06-19 23:28:04 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "OgdenIsoVIB3D.h"
 
@@ -11,18 +11,21 @@
 #include "ifstreamT.h"
 
 /* point generators */
+#include "VIB3D.h"
 #include "LatLongPtsT.h"
 #include "IcosahedralPtsT.h"
+#include "FCCPtsT.h"
 
 using namespace Tahoe;
 
 /* constructors */
 OgdenIsoVIB3D::OgdenIsoVIB3D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("Ogden_isotropic_VIB_3D"),
+	ParameterInterfaceT("Ogden_isotropic_VIB"),
 	OgdenIsotropicT(in, support),
-	VIB(in, 3, 3, 6),
+	VIB(3, 3, 6),
 	fSphere(NULL)
 {
+#if 0
 	/* construct point generator */
 	int gencode;
 	in >> gencode;
@@ -43,6 +46,15 @@ OgdenIsoVIB3D::OgdenIsoVIB3D(ifstreamT& in, const FSMatSupportT& support):
 
 	/* set tables */
 	Construct();
+#endif
+}
+
+OgdenIsoVIB3D::OgdenIsoVIB3D(void):
+	ParameterInterfaceT("Ogden_isotropic_VIB"),
+	VIB(3, 3, 6),
+	fSphere(NULL)
+{
+
 }
 
 /* destructor */
@@ -73,9 +85,71 @@ double OgdenIsoVIB3D::StrainEnergyDensity(void)
 	return energy;
 }
 
+/* information about subordinate parameter lists */
+void OgdenIsoVIB3D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	OgdenIsotropicT::DefineSubs(sub_list);
+	VIB::DefineSubs(sub_list);
+
+	/* choice of integration schemes */
+	sub_list.AddSub("sphere_integration_choice", ParameterListT::Once, true);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* OgdenIsoVIB3D::NewSub(const StringT& list_name) const
+{
+	/* inherited */
+	ParameterInterfaceT* sub = OgdenIsotropicT::NewSub(list_name);
+	if (sub) 
+		return sub;
+	else if (list_name == "sphere_integration_choice")
+	{
+		/* use other VIB material to construct point generator */
+		VIB3D vib;
+		return vib.NewSub(list_name);
+	}
+	else 
+		return VIB::NewSub(list_name);
+}
+
+/* accept parameter list */
+void OgdenIsoVIB3D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	OgdenIsotropicT::TakeParameterList(list);
+	VIB::TakeParameterList(list);
+
+	/* use other VIB material to construct integration rule */
+	VIB3D vib;
+	const ParameterListT& points = list.GetListChoice(vib, "sphere_integration_choice");
+	if (points.Name() == "latitude_longitude")
+	{
+		int n_phi = points.GetParameter("n_phi");
+		int n_theta = points.GetParameter("n_theta");
+		fSphere = new LatLongPtsT(n_phi, n_theta);
+	}
+	else if (points.Name() == "icosahedral")
+	{
+		int np = points.GetParameter("points");
+		fSphere = new IcosahedralPtsT(np);
+	}
+	else if (points.Name() == "fcc_points")
+	{
+		int num_shells = points.GetParameter("shells");
+		double bond_length = points.GetParameter("nearest_neighbor_distance");
+		fSphere = new FCCPtsT(num_shells, bond_length);
+	}
+	else
+		ExceptionT::GeneralFail("OgdenIsoVIB3D::TakeParameterList", "unrecognized point scheme \"%s\"", points.Name().Pointer());	
+
+	/* set tables */
+	Construct();	
+}
+
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* principal values given principal values of the stretch tensors,
  * i.e., the principal stretches squared */

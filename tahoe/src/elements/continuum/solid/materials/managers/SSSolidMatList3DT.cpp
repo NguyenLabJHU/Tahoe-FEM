@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList3DT.cpp,v 1.1.4.4 2004-06-11 01:38:15 paklein Exp $ */
+/* $Id: SSSolidMatList3DT.cpp,v 1.1.4.5 2004-06-19 23:28:09 paklein Exp $ */
 #include "SSSolidMatList3DT.h"
 #include "SSMatSupportT.h"
 
@@ -70,6 +70,8 @@ void SSSolidMatList3DT::ReadMaterialData(ifstreamT& in)
 {
 	const char caller[] = "SSSolidMatList3DT::ReadMaterialData";
 
+ExceptionT::GeneralFail(caller);
+#if 0
 	int i, matnum;
 	SolidT::TypeT matcode;
 	try {
@@ -236,6 +238,7 @@ void SSSolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		ExceptionT::Throw(error, caller, "exception constructing material %d, index %d, code %d",
 			i+1, matnum+1, matcode);
 	}
+#endif
 }
 
 /* information about subordinate parameter lists */

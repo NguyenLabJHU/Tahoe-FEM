@@ -1,16 +1,14 @@
-/* $Id: FCCPtsT.h,v 1.2.56.1 2004-06-09 23:17:50 paklein Exp $ */
-/* created: paklein (03/26/1999)                                          */
-/* FCC lattice of points                                                  */
-
+/* $Id: FCCPtsT.h,v 1.2.56.2 2004-06-19 23:28:07 paklein Exp $ */
+/* created: paklein (03/26/1999) */
 #ifndef _FCC_PTS_T_H_
 #define _FCC_PTS_T_H_
 
 /* base class */
 #include "SpherePointsT.h"
 
-
 namespace Tahoe {
 
+/** FCC lattice of points */
 class FCCPtsT: public SpherePointsT
 {
 public:

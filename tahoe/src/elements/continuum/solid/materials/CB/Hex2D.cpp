@@ -1,4 +1,4 @@
-/* $Id: Hex2D.cpp,v 1.2.42.5 2004-06-16 07:13:38 paklein Exp $ */
+/* $Id: Hex2D.cpp,v 1.2.42.6 2004-06-19 23:27:58 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"
@@ -96,7 +96,8 @@ Hex2D::Hex2D(void):
 	fHexLattice2D(NULL),
 	fPairProperty(NULL),
 	fBondTensor4(dSymMatrixT::NumValues(2)),
-	fBondTensor2(dSymMatrixT::NumValues(2))	
+	fBondTensor2(dSymMatrixT::NumValues(2)),
+	fCellVolume(0.0)
 {
 
 }
@@ -131,7 +132,7 @@ void Hex2D::DefineSubs(SubListT& sub_list) const
 	NL_E_MatT::DefineSubs(sub_list);
 
 	/* pair potential choice */
-	sub_list.AddSub("pair_potential_choice", ParameterListT::Once, true);
+	sub_list.AddSub("hex_2D_potential_choice", ParameterListT::Once, true);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
@@ -149,7 +150,7 @@ ParameterInterfaceT* Hex2D::NewSub(const StringT& list_name) const
 void Hex2D::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
 	SubListT& sub_sub_list) const
 {
-	if (sub == "pair_potential_choice")
+	if (sub == "hex_2D_potential_choice")
 	{
 		order = ParameterListT::Choice;
 
@@ -175,7 +176,7 @@ void Hex2D::TakeParameterList(const ParameterListT& list)
 	int nshells = list.GetParameter("shells");
 
 	/* construct pair property */
-	const ParameterListT& pair_prop = list.GetListChoice(*this, "pair_potential_choice");
+	const ParameterListT& pair_prop = list.GetListChoice(*this, "hex_2D_potential_choice");
 	fPairProperty = PairPropertyT::New(pair_prop.Name(), &(MaterialSupport()));
 	if (!fPairProperty) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", pair_prop.Name().Pointer());
 	fPairProperty->TakeParameterList(pair_prop);

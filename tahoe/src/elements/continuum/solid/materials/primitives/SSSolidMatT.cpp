@@ -1,7 +1,6 @@
-/* $Id: SSSolidMatT.cpp,v 1.8.18.2 2004-06-09 23:18:07 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.8.18.3 2004-06-19 23:28:10 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
-#include <iostream.h>
 #include "SSMatSupportT.h"
 #include "dSymMatrixT.h"
 #include "ThermalDilatationT.h"
