@@ -1,4 +1,4 @@
-/* $Id: BoxT.cpp,v 1.6 2002-09-09 23:10:29 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.7 2002-10-16 22:15:51 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -54,7 +54,6 @@ BoxT::BoxT(int dim, iArrayT cel,
     }
 }
 
-
 BoxT::BoxT(const BoxT& source) : VolumeT(source.nSD) 
 {
   ncells.Dimension(source.nSD);
@@ -78,106 +77,40 @@ BoxT::BoxT(const BoxT& source) : VolumeT(source.nSD)
   atom_connectivities = source.atom_connectivities;
 }
 
+
 void BoxT::CreateLattice(CrystalLatticeT* pcl) 
 {
   int nlsd = pcl->GetNLSD();
   int nuca = pcl->GetNUCA();
-  const dArrayT& vLP = pcl->GetLatticeParameters();
-  const dArray2DT& vB = pcl->GetBasis();
-  const dArray2DT& vA = pcl->GetAxis();
 
-  int natoms,a = 0;
+  int natoms=0;
   int temp_nat=0;
   dArray2DT temp_atom;
-  double x,y,z;
-  double eps = 1.e-6;
 
-  // Define a slightly shorter box
-  double l00,l01,l10,l11;
-  if(length(0,0) >= 0.0) l00 = length(0,0) + eps; else l00 = length(0,0) - eps;
-  if(length(0,1) >= 0.0) l01 = length(0,1) + eps; else l01 = length(0,1) - eps;
-  if(length(1,0) >= 0.0) l10 = length(1,0) + eps; else l10 = length(1,0) - eps;
-  if(length(1,1) >= 0.0) l11 = length(1,1) + eps; else l11 = length(1,1) - eps;
+  // irotate = 0: rotate atoms in box
+  //         = 1: rotate box of atoms
 
-  if (nlsd==2) temp_nat = 16*nuca*ncells[0]*ncells[1];
-  if (nlsd==3) temp_nat = 64*nuca*ncells[0]*ncells[1]*ncells[2];
+  int irotate = 1;
 
+
+  if(irotate == 0) 
+    {
+      if (nlsd==2) temp_nat = 16*nuca*ncells[0]*ncells[1];
+      if (nlsd==3) temp_nat = 64*nuca*ncells[0]*ncells[1]*ncells[2];
+    }
+  else
+    {
+      if (nlsd==2) temp_nat = 4*nuca*ncells[0]*ncells[1];
+      if (nlsd==3) temp_nat = 16*nuca*ncells[0]*ncells[1]*ncells[2];
+    }
   temp_atom.Dimension(temp_nat,nlsd);
 
-  if (nlsd==2) 
-    {
-      // Rotate coordinates
-      for (int p=-2*ncells[1];p<2*ncells[1];p++) 
-      	for (int q=-2*ncells[0];q<2*ncells[0];q++)    
-	  {
-	    dArrayT c(nlsd);
-	    c[0] = (double)q; c[1] = (double)p;
-	    for (int m=0;m<nuca;m++) 
-	      {
-		if (a >= temp_nat) {throw eSizeMismatch;}
-		
-		x = length(0,0);
-		y = length(1,0);
-		
-		for (int k=0;k<nlsd;k++) 
-		  {
-		    x += (c[k] + vB(k,m))*vA(k,0);
-		    y += (c[k] + vB(k,m))*vA(k,1);
-		  }
-
-		//		cout << x << "  " << y << "\n";
-
-		if(x >= l00 && x <= l01 && y >= l10 && y <= l11 )
-		  {
-		    temp_atom(a)[0] = x;
-		    temp_atom(a)[1] = y;
-		    a++;
-		  }
-	      }
-	  }
-    }
-  else if (nlsd==3) 
-    {
-      double l20,l21;
-      if(length(2,0) >= 0.0) l20 = length(2,0) + eps; else l20 = length(2,0) - eps;
-      if(length(2,1) >= 0.0) l21 = length(2,1) + eps; else l21 = length(2,1) - eps;
-
-      // Rotate coordinates
-      for (int p=-2*ncells[2];p<2*ncells[2];p++) 
-	for (int q=-2*ncells[1];q<2*ncells[1];q++)    
-	  for (int r=-2*ncells[0];r<2*ncells[0];r++) 
-	    {
-	      dArrayT c(nlsd);
-	      c[0] = (double)r; c[1] = (double)q; c[2] = (double)p;
-	      for (int m=0;m<nuca;m++) 
-		{
-		  if (a > temp_nat) {throw eSizeMismatch;}
-
-		  x = length(0,0);
-		  y = length(1,0);
-		  z = length(2,0);
-		  
-		  for (int k=0;k<nlsd;k++) 
-		    {
-		      x += (c[k] + vB(k,m))*vA(k,0);
-		      y += (c[k] + vB(k,m))*vA(k,1);
-		      z += (c[k] + vB(k,m))*vA(k,2);
-		    }
-		  
-		  if(x >= l00 && x <= l01 && y >= l10 && y <= l11 &&
-		     z >= l20 && z <= l21)
-		    {
-		      temp_atom(a)[0] = x;
-		      temp_atom(a)[1] = y;
-		      temp_atom(a)[2] = z;
-		      a++;                     
-		    }
-		}
-	    }
-    }
+  if(irotate == 0)
+    nATOMS = RotateAtomInBox(pcl,&temp_atom,temp_nat);
+  else
+    nATOMS = RotateBoxOfAtom(pcl,&temp_atom,temp_nat);
 
   // Get atoms coordinates
-  nATOMS = a;
   atom_ID.Dimension(nATOMS);
   atom_coord.Dimension(nATOMS,nlsd);
   atom_connectivities.Dimension(nATOMS,1);
@@ -210,6 +143,172 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
     break;
   }
 }
+
+int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat)
+{
+  int nlsd = pcl->GetNLSD();
+  int nuca = pcl->GetNUCA();
+
+  const dArrayT& vLP = pcl->GetLatticeParameters();
+  const dArray2DT& vB = pcl->GetBasis();
+  const dArray2DT& vA = pcl->GetAxis();
+
+  double x,y,z;
+  double eps = 1.e-6;
+
+  int natom= 0;
+
+  // Define a slightly shorter box
+  double l00,l01,l10,l11;
+  if(length(0,0) >= 0.0) l00 = length(0,0) + eps; else l00 = length(0,0) - eps;
+  if(length(0,1) >= 0.0) l01 = length(0,1) + eps; else l01 = length(0,1) - eps;
+  if(length(1,0) >= 0.0) l10 = length(1,0) + eps; else l10 = length(1,0) - eps;
+  if(length(1,1) >= 0.0) l11 = length(1,1) + eps; else l11 = length(1,1) - eps;
+
+  if (nlsd==2) 
+    {
+      // Rotate coordinates in tmp; Determine number of atoms
+      for (int p=-2*ncells[1];p<2*ncells[1];p++) 
+      	for (int q=-2*ncells[0];q<2*ncells[0];q++)    
+	  {
+	    dArrayT c(nlsd);
+	    c[0] = (double)q; c[1] = (double)p;
+	    for (int m=0;m<nuca;m++) 
+	      {
+		if ( natom >= temp_nat) {throw eSizeMismatch;}
+		
+		x = length(0,0);
+		y = length(1,0);
+		
+		for (int k=0;k<nlsd;k++) 
+		  {
+		    x += (c[k] + vB(k,m))*vA(k,0);
+		    y += (c[k] + vB(k,m))*vA(k,1);
+		  }
+
+		if(x >= l00 && x <= l01 && y >= l10 && y <= l11 )
+		  {
+		    (*temp_atom)(natom)[0] = x;
+		    (*temp_atom)(natom)[1] = y;
+		    natom++;
+		  }
+	      }
+	  }
+    }
+  else if (nlsd==3) 
+    {
+      double l20,l21;
+      if(length(2,0) >= 0.0) l20 = length(2,0) + eps; else l20 = length(2,0) - eps;
+      if(length(2,1) >= 0.0) l21 = length(2,1) + eps; else l21 = length(2,1) - eps;
+
+      // Rotate coordinates
+      for (int p=-2*ncells[2];p<2*ncells[2];p++) 
+	for (int q=-2*ncells[1];q<2*ncells[1];q++)    
+	  for (int r=-2*ncells[0];r<2*ncells[0];r++) 
+	    {
+	      dArrayT c(nlsd);
+	      c[0] = (double)r; c[1] = (double)q; c[2] = (double)p;
+	      for (int m=0;m<nuca;m++) 
+		{
+		  if (natom > temp_nat) {cout << "natoms wrong";throw eSizeMismatch;}
+
+		  x = length(0,0);
+		  y = length(1,0);
+		  z = length(2,0);
+		  
+		  for (int k=0;k<nlsd;k++) 
+		    {
+		      x += (c[k] + vB(k,m))*vA(k,0);
+		      y += (c[k] + vB(k,m))*vA(k,1);
+		      z += (c[k] + vB(k,m))*vA(k,2);
+		    }
+		  
+		  if(x >= l00 && x <= l01 && y >= l10 && y <= l11 &&
+		     z >= l20 && z <= l21)
+		    {
+		      (*temp_atom)(natom)[0] = x;
+		      (*temp_atom)(natom)[1] = y;
+		      (*temp_atom)(natom)[2] = z;
+		      natom++;                     
+		    }
+		}
+	    }
+    }
+
+  return natom;
+}
+
+int BoxT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat)
+{
+  int natom= 0;
+
+  int nlsd = pcl->GetNLSD();
+  int nuca = pcl->GetNUCA();
+  const dArrayT& vLP = pcl->GetLatticeParameters();
+  const dArray2DT& vA = pcl->GetAxis();
+  const dArray2DT& vB = pcl->GetBasis();
+
+  if (nSD==2) 
+    {
+      for (int p=-ncells[1];p<ncells[1]+1;p++) 
+	for (int q=-ncells[0];q<ncells[0]+1;q++) 
+	  {
+	    dArrayT c(nlsd);
+	    c[0] = (double)q; c[1] = (double)p;
+	    for (int m=0;m<nuca;m++) 
+	      {
+		if (natom > temp_nat) {cout << "natoms wrong";throw eSizeMismatch;}
+		
+		  (*temp_atom)(natom)[0] = length(0,0);
+		  (*temp_atom)(natom)[1] = length(1,0);
+
+
+		for (int k=0;k<nlsd;k++) 
+		  {
+		    (*temp_atom)(natom)[0] += (c[k] + vB(k,m))*vA(k,0);
+		    (*temp_atom)(natom)[1] += (c[k] + vB(k,m))*vA(k,1);
+		  }
+		
+		natom++;
+	      }
+	    
+	  }
+    }
+  else if (nSD==3) 
+    {
+      for (int p=-ncells[2];p<ncells[2]+1;p++) 
+	for (int q=-ncells[1];q<ncells[1]+1;q++) 
+	  for (int r=-ncells[0];r<ncells[0]+1;r++) 
+	    {
+	      dArrayT c(nlsd);
+	      c[0] = (double)r; c[1] = (double)q; c[2] = (double)p;
+	      for (int m=0;m<nuca;m++) 
+		{
+		  
+		  if (natom > temp_nat) {cout << "natoms wrong";throw eSizeMismatch;}
+		  
+		  (*temp_atom)(natom)[0] = length(0,0);
+		  (*temp_atom)(natom)[1] = length(1,0);
+		  (*temp_atom)(natom)[2] = length(2,0);
+		  
+		  for (int k=0;k<nlsd;k++) 
+		    {
+		      (*temp_atom)(natom)[0] += (c[k] + vB(k,m))*vA(k,0);
+		      (*temp_atom)(natom)[1] += (c[k] + vB(k,m))*vA(k,1);
+		      (*temp_atom)(natom)[2] += (c[k] + vB(k,m))*vA(k,2);
+		    }
+		  
+		  natom++;        
+		}
+	      
+	    }
+    }
+  
+
+  return natom;
+}
+
+
 
 void BoxT::CalculateBounds(iArrayT per,CrystalLatticeT* pcl)
 {
