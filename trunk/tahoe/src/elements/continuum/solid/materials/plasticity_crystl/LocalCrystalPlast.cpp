@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.3 2001-07-03 01:35:35 paklein Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.4 2001-10-02 00:31:19 ebmarin Exp $ */
 /*
   File: LocalCrystalPlast.cpp
 */
@@ -57,12 +57,9 @@ LocalCrystalPlast::LocalCrystalPlast(ifstreamT& in, const FiniteStrainT& element
   // crystal Cauchy stress
   fs_ij (kNSD),
 
-  // crystal consistent tangent
-  fc_ijkl (dSymMatrixT::NumValues(kNSD)),
-
-  // anisotropic (cubic) part of elastic matrix
-  fCanisoLat (dSymMatrixT::NumValues(kNSD)),   // lattice axes
-  fCanisoBar (dSymMatrixT::NumValues(kNSD)),   // sample axes (Bbar)
+  // crystal consistent tangent 
+  fcBar_ijkl (dSymMatrixT::NumValues(kNSD)),  // Bbar config
+  fc_ijkl    (dSymMatrixT::NumValues(kNSD)),  // current config
 
   // Schmidt tensors in sample coords
   fZ (fNumSlip),
@@ -92,6 +89,7 @@ LocalCrystalPlast::LocalCrystalPlast(ifstreamT& in, const FiniteStrainT& element
   fRank4    (dSymMatrixT::NumValues(kNSD)),
   fsymmatx1 (kNSD),
   fsymmatx2 (kNSD),
+  fsymmatx3 (kNSD),
 
   // temp arrays
   fLHS   (fNumSlip),
@@ -120,10 +118,6 @@ LocalCrystalPlast::LocalCrystalPlast(ifstreamT& in, const FiniteStrainT& element
       fB[i].Allocate(kNSD);
       farray[i].Allocate(kNSD,kNSD);
     }
-
-  // set anisotropic (cubic) part of elasticity matrix (lattice axes)
-  fCanisoLat = 0.;
-  fCanisoLat(0,0) = fCanisoLat(1,1) = fCanisoLat(2,2) = 1.;
 
   // set 2nd order unit tensor (sym matrix)
   fISym.Identity();
@@ -192,34 +186,48 @@ const dSymMatrixT& LocalCrystalPlast::s_ij()
 	  // recover local data
 	  LoadCrystalData(element, intpt, igrn);
 	  
-	  // Schmidt tensors in sample coordinates (Bbar configuration)
+	  // Schmidt tensor in sample coordinates (Bbar configuration)
 	  for (int i = 0; i < fNumSlip; i++)
-	    {
-	      fZ[i].MultQBQT(fRotMat, fZc[i]);
-	      fP[i].Symmetrize(fZ[i]);
-	    }
-	  
-	  // fCanisoLat -> fCanisoBar (for anisotropic elasticity)
-	  if (!fElasticity->IsIsotropic()) FFFFC_3D(fCanisoBar, fCanisoLat, fRotMat);
+            {
+              fZ[i].MultQBQT(fRotMat, fZc[i]);
+              fP[i].Symmetrize(fZ[i]);
+            }
+
+          // elasticity matrix in Bbar configuration
+          if (!fElasticity->IsIsotropic())
+             {
+                fElasticity->ComputeModuli(fRank4);
+                FFFFC_3D(fcBar_ijkl, fRank4, fRotMat);
+             }
+          else
+                fElasticity->ComputeModuli(fcBar_ijkl);
+          //cout << " fcBar_ijkl " << endl << fcBar_ijkl << endl;
 
 	  // compute crystal state
 	  SolveCrystalState();
 	  
-	  // compute crystal Cauchy stress
-	  CrystalS_ij();
-	  
 	  // compute plastic deformation gradient
 	  FPInverse();
 
-	  // compute crystal moduli
-	  fc_ijkl = 0.;
-          CrystalC_ijkl_Elastic();    // elastic part
-	  CrystalC_ijkl_Plastic();    // plastic part
+	  // compute crystal Cauchy stress
+	  CrystalS_ij();
+	  
+	  // compute crystal moduli (consistent tangent)
+	  CrystalC_ijkl();  
 
 	  // add stress and moduli to corresponding averaged quantities
 	  fsavg_ij.AddScaled(1./fNumGrain, fs_ij);
 	  fcavg_ijkl.AddScaled(1./fNumGrain, fc_ijkl);
 	}
+
+       // CHECKS
+       if (CurrIP() == -1) {
+          const int& step = fContinuumElement.FEManager().StepNumber();
+          cout << "\n\n" <<"**********" << endl;
+          cout << "   Step # "   << step
+               << ";  IP #   "   << CurrIP() << endl;
+          cout << " fc_ijkl E-P " << endl << fc_ijkl << endl;
+       }
     }
 
   // return averaged stress
@@ -247,8 +255,16 @@ void LocalCrystalPlast::FormRHS(const dArrayT& dgamma, dArrayT& rhs)
   // elastic right Cauchy-Green tensor 
   fCeBar.MultQTBQ(fDFpi, fCeBarTr);
 
-  // resolved shear stress
-  ResolveShearStress(fCeBar);
+  // 2nd Piola Kirchhoff Stress
+  fEeBar.SetToCombination(0.5, fCeBar, -0.5, fISym);
+  fSBar.A_ijkl_B_kl(fcBar_ijkl, fEeBar);
+
+  // Resolve Shear Stress on Slip Systems
+  fCeBar.ToMatrix(fmatx3);
+  fSBar.ToMatrix(fmatx4);
+  fmatx1.MultAB(fmatx3, fmatx4); 
+  for (int i = 0; i < fNumSlip; i++)
+     fTau[i] = dArrayT::Dot(fmatx1, fZ[i]);
 
   // compute residual
   for (int i = 0; i < fNumSlip; i++)
@@ -267,48 +283,58 @@ void LocalCrystalPlast::FormLHS(const dArrayT& dgamma, dMatrixT& lhs)
   // elastic right Cauchy-Green tensor 
   //  fCeBar.MultQTBQ(fDFpi, fCeBarTr);
 
-  // preliminary computations
-  fdeltaI = 0.5 * fMatProp[1] * (fCeBar.Trace() - 3.) - fMatProp[0] + fMatProp[2];
-  fCeBarTr.ToMatrix(fmatx1);
-  fmatx4.MultATB(fDFpi, fmatx1); 
-  dDFpidDGamma(dgamma, farray);
+  // term: X_b = 2*DFp*dDFpi/dDgamma_b = 2*DFp*(-Z_b)
+  // (assumes backward Euler integration for FpDot)
+  fDFp.Inverse(fDFpi);     
+  for (int i = 0; i < fNumSlip; i++)
+    {
+      farray[i].MultAB(fDFp, fZ[i]);
+      farray[i] *= -2.0;       
+    }
 
-  // initialize jacobian
+  // initialize local Jacobian
   lhs = 0.;
 
-  // contribution of dTau/dDGamma to lhs(i,j)
+  // term: dTau/dDGamma = dTau/dCe : dCe/dDGamma
+  fCeBar.ToMatrix(fmatx3);
+  fSBar.ToMatrix(fmatx4);
   for (int i = 0; i < fNumSlip; i++)
     {
       // dTau/dCe
-      dTaudCe(fZ[i], fP[i], fsymmatx1); 
+      fmatx1.MultAB(fmatx3, fZ[i]);   // (CeBar*Z)
+      fmatx2.MultAB(fZ[i], fmatx4);   // (Z*SBar)
+      fsymmatx1.Symmetrize(fmatx1);   // (CeBar*Z)_s
+      fsymmatx2.Symmetrize(fmatx2);   // (Z*SBar)_s
+
+      fsymmatx3.A_ijkl_B_kl(fcBar_ijkl, fsymmatx1); // (Cijkl*(CeBar*Z)_s)
+      fsymmatx2.AddScaled(0.5, fsymmatx3);   // (Z*SBar)_s + 0.5*(Cijkl*(CeBar*Z)_s)
+      fsymmatx2.ToMatrix(fmatx2);
 
       for (int j = 0; j < fNumSlip; j++)
 	{
 	  // dCe/dDGamma
-	  dMatrixT& matx = farray[j];
-	  fmatx3.MultAB(fmatx4, matx);
-	  fsymmatx2.Symmetrize(fmatx3);
-	  fsymmatx2 *= 2.;
-
-	  // dTau/dCe : dCe/dDGamma
+	  dMatrixT& Xbeta = farray[j];   // Xb
+	  fmatx1.MultAB(fmatx3, Xbeta);  // (CeBar*Xb)
+	  fsymmatx1.Symmetrize(fmatx1);  // (CeBar*Xb)_s
 	  fsymmatx1.ToMatrix(fmatx1);
-	  fsymmatx2.ToMatrix(fmatx2);
-	  lhs(i,j) = dArrayT::Dot(fmatx1, fmatx2);
+
+	  // A_ab = dTau/dDGamma = (Z*SBar)_s+0.5*(Cijkl*(CeBar*Z)_s):(CeBar*Xb)_s
+	  lhs(i,j) = dArrayT::Dot(fmatx2, fmatx1);
 	}
     }
 
-  // contribution of dPsi/dGamma to lhs(i,i) 
-  /*for (int i = 0; i < fNumSlip; i++)
-    {
-      lhs(i,i) -= (fKinetics->DPsiDGamdot(dgamma[i]/fdt, i) / fdt);
-      }*/
-
+  // local Jacobian: SUM_b ( delta_ab - dt * dPhi_a/dTau_a * A_ab )
   for (int i = 0; i < fNumSlip; i++)
     {
       double tmp = fdt * fKinetics->DPhiDTau(fTau[i], i);
       for (int j = 0; j < fNumSlip; j++) lhs(i,j) *= -tmp;
       lhs(i,i) += 1.;
     }
+
+  /*for (int i = 0; i < fNumSlip; i++)
+    {
+      lhs(i,i) -= (fKinetics->DPsiDGamdot(dgamma[i]/fdt, i) / fdt);
+      }*/
 
   // contribution of dRes/dHard*dHard/dDGamma to lhs(i,j)
   //  if (fAlgorCode == 3)
@@ -791,24 +817,6 @@ void LocalCrystalPlast::TrialDeformation()
   fCeBarTr.MultATA(fFeTr);
 }
 
-/*void LocalCrystalPlast::ForwardGradientEstimate()
-{
-  // fDGamma_ini(t) computed for incr = 1
-  // fDGamma_ini(t) = FDGamma(t_n) for incr > 1
-  if (ftime <= fdt) 
-    {
-      // shear stress on slip systems
-      ResolveShearStress(fCeBarTr);
-      
-      // initial shear deformation
-      for (int i = 0; i < fNumSlip; i++)
-	{
-	  //fDGamma[i] = 0.0;
-	  fDGamma[i] = fdt * fKinetics->Phi(fTau[i], i);
-	}
-    }
-}*/
-
 void LocalCrystalPlast::ForwardGradientEstimate()
 {
   // reference to hardening/kinetics material properties
@@ -907,25 +915,6 @@ bool LocalCrystalPlast::Converged(double toler)
   return test;
 }
 
-void LocalCrystalPlast::CrystalS_ij()
-{
-  // incremental plastic deformation gradient ^ (-1)
-  DeltaFPInverse(fDGamma);
-
-  // Elastic Deformation Gradient
-  fFe.MultAB(fFeTr, fDFpi);
-
-  // elastic rigth Cauchy-Green tensor
-  fCeBar.MultATA(fFe);
-
-  // 2nd Piola Kirchhoff Stress
-  CrystalPKIIStress(fCeBar);
-
-  // Cauchy Stress
-  fs_ij.MultQBQT(fFe, fSBar);
-  fs_ij /= fFe.Det();
-}
-
 void LocalCrystalPlast::FPInverse()
 {
   // Incremental Plastic Deformation Gradient 
@@ -940,32 +929,31 @@ void LocalCrystalPlast::FPInverse()
   fFpi /= pow(fFpi.Det(), 1./3.);
 }
 
-void LocalCrystalPlast::CrystalC_ijkl_Elastic()
+void LocalCrystalPlast::CrystalS_ij()
 {
-  // elastic left Cauchy-Green tensor (b_e)
-  fsymmatx1.MultAAT(fFe);
+  // incremental plastic deformation gradient ^ (-1)
+  DeltaFPInverse(fDGamma);
 
-  // I_b tensor
-  Set_I_b_Tensor(fsymmatx1, fc_ijkl);
-  
-  // b_e (x) b_e
-  fRank4.Outer(fsymmatx1, fsymmatx1);
+  // Elastic Deformation Gradient
+  fFe.MultAB(fFeTr, fDFpi);
 
-  // isotropic elastic contribution to spatial moduli
-  fc_ijkl *= 2.*fMatProp[0];
-  fc_ijkl.AddScaled(fMatProp[1], fRank4);
+  // elastic rigth Cauchy-Green tensor
+  fCeBar.MultATA(fFe);
 
-  // anisotropic (cubic) elastic contribution to spatial moduli
-  if (!fElasticity->IsIsotropic()) 
-    {
-      FFFFC_3D(fRank4, fCanisoBar, fFe);
-      fc_ijkl.AddScaled(-2.*fMatProp[2], fRank4);
-    }
+  // 2nd Piola Kirchhoff Stress
+  fEeBar.SetToCombination(0.5, fCeBar, -0.5, fISym);
+  fSBar.A_ijkl_B_kl(fcBar_ijkl, fEeBar);
+
+  // Cauchy Stress
+  fs_ij.MultQBQT(fFe, fSBar);
+  fs_ij /= fFe.Det();
 }
 
-/* implements a rough approximation to consistent tangent */
-/*void LocalCrystalPlast::CrystalC_ijkl_Plastic()
+/*void LocalCrystalPlast::CrystalC_ijkl()
 {
+  // elastic contribution to spatial moduli
+  FFFFC_3D(fc_ijkl, fcBar_ijkl, fFe);
+
   // temp matrices
   dMatrixT fcp (dSymMatrixT::NumValues(kNSD));
   dMatrixT fcei (dSymMatrixT::NumValues(kNSD));
@@ -982,124 +970,87 @@ void LocalCrystalPlast::CrystalC_ijkl_Elastic()
       fmatx3.MultAB(fmatx2, fmatx1);     // Z = Fe Z0 Fe^(-1)
       fsymmatx1.Symmetrize(fmatx3);      // P = (Z)_sym
       fRank4.Outer(fsymmatx1, fsymmatx1);
-      double tmp = fdt * fKinetics->dPhidTau(fTau[i], i);
+      double tmp = fdt * fKinetics->DPhiDTau(fTau[i], i);
       fcp.AddScaled(tmp, fRank4);         // dDp/dSig
     }
 
   // tangent stiffness
   fRank4.SetToCombination(1., fcei, fdt, fcp);
   fc_ijkl = MatrixInversion(fRank4);
-  }*/
+}*/
 
-/*void LocalCrystalPlast::CrystalC_ijkl_Plastic()
+void LocalCrystalPlast::CrystalC_ijkl()
 {
-  // inverse of plastic right C-G tensor
-  dSymMatrixT fCpi(kNSD);
-  fCpi.MultAAT(fDFpi);
+  // incremental plastic deformation gradient ^ (-1)
+  DeltaFPInverse(fDGamma);
 
-  // shear stress on slip systems
-  ResolveShearStress(fCeBar);
-  
-  // SECOND TERM : (Fe_tr) (dDGamma/dCe_tr) (Fe_tr)^T
+  // elastic right Cauchy-Green tensor 
+  fCeBar.MultQTBQ(fDFpi, fCeBarTr);
+
+  // 2nd Piola Kirchhoff Stress
+  fEeBar.SetToCombination(0.5, fCeBar, -0.5, fISym);
+  fSBar.A_ijkl_B_kl(fcBar_ijkl, fEeBar);
+
+  // Resolve Shear Stress on Slip Systems
+  fCeBar.ToMatrix(fmatx3);
+  fSBar.ToMatrix(fmatx4);
+  fmatx1.MultAB(fmatx3, fmatx4); 
+  for (int i = 0; i < fNumSlip; i++)
+     fTau[i] = dArrayT::Dot(fmatx1, fZ[i]);
+
+  // SECOND TERM
   FormLHS(fDGamma, fLHS);
-  dMatrixT Jaci = MatrixInversion(fLHS);
+  dMatrixT JacInv = MatrixInversion(fLHS);
 
+  fCeBar.ToMatrix(fmatx3);
+  fSBar.ToMatrix(fmatx4);
   for (int i = 0; i < fNumSlip; i++)
     {
-      dTaudCe(fZ[i], fP[i], fsymmatx1);
-      fA[i].MultQBQT(fDFpi, fsymmatx1);
+      // dTau/dCe
+      fmatx1.MultAB(fmatx3, fZ[i]);   // (CeBar*Z)
+      fmatx2.MultAB(fZ[i], fmatx4);   // (Z*SBar)
+      fsymmatx1.Symmetrize(fmatx1);   // (CeBar*Z)_s
+      fsymmatx2.Symmetrize(fmatx2);   // (Z*SBar)_s
+
+      fsymmatx3.A_ijkl_B_kl(fcBar_ijkl, fsymmatx1); // (Cijkl*(CeBar*Z)_s)
+      fsymmatx2.AddScaled(0.5, fsymmatx3);   // (Z*SBar)_s + 0.5*(Cijkl*(CeBar*Z)_s)
 
       double tmp = fdt * fKinetics->DPhiDTau(fTau[i], i);
-      fA[i] *= -tmp;
+      fA[i].SetToScaled(tmp, fsymmatx2);
     }
-
-  for (int i = 0; i < fNumSlip; i++) {
-    fB[i] = 0.;
-    for (int j = 0; j < fNumSlip; j++)
-      fB[i].AddScaled(-Jaci(i,j), fA[j]);
-  }
 
   for (int i = 0; i < fNumSlip; i++) 
     {
-      dSymMatrixT& matx = fB[i]; 
-      fsymmatx2.MultQBQT(fFeTr, matx);
-      fB[i] = fsymmatx2;
+      fB[i] = 0.;
+      for (int j = 0; j < fNumSlip; j++)
+         fB[i].AddScaled(JacInv(i,j), fA[j]);
     }
 
-  // FIRST TERM : (Fe_tr) (dS/dDGamma) (Fe_tr)^T
-  fCeBarTr.ToMatrix(fmatx2);
-  fCpi.ToMatrix(fmatx3);
+  // FIRST TERM
   for (int i = 0; i < fNumSlip; i++)
     {
-      dMatrixT& matx = farray[i];      // dDFpi/dDGamma from FormLHS()
-      fmatx1.MultABT(matx, fDFpi);
-      fsymmatx1.Symmetrize(fmatx1);
-      fsymmatx1 *= 2.;
+      // dTau/dCe
+      dMatrixT& Xbeta = farray[i];    // farray from formLHS
+      fmatx1.MultAB(fmatx3, Xbeta);   // (CeBar*X)
+      fmatx2.MultAB(Xbeta, fmatx4);   // (X*SBar)
+      fsymmatx1.Symmetrize(fmatx1);   // (CeBar*X)_s
+      fsymmatx2.Symmetrize(fmatx2);   // (X*SBar)_s
 
-      fsymmatx1.ToMatrix(fmatx1);
-      fmatx4.MultAB(fmatx1, fmatx2);
-      fmatx1.MultAB(fmatx4, fmatx3);
-      fsymmatx2.Symmetrize(fmatx1);
-      fsymmatx2 *= 2.*fMatProp[0];
-      
-      fsymmatx1.ToMatrix(fmatx1);
-      fsymmatx2.AddCombination(fdeltaI, fsymmatx1, 
-                               0.5*fMatProp[1]*dArrayT::Dot(fmatx2,fmatx1), fCpi);
-      fA[i].MultQBQT(fFeTr, fsymmatx2);
+      fsymmatx3.A_ijkl_B_kl(fcBar_ijkl, fsymmatx1); // (Cijkl*(CeBar*X)_s)
+      fsymmatx2.AddScaled(0.5, fsymmatx3);   // (X*SBar)_s + 0.5*(Cijkl*(CeBar*X)_s)
+      fA[i].SetToScaled(1.0, fsymmatx2);
     }
-	
-  // PLASTIC CONTRIBUTION TO MODULI : 2 * Sum(fA[i] (x) fB[i])
+
+  // consistent tangent in Bbar:  CepBar = CeBar + 2 * SUM(fA[i] (x) fB[i])
   for (int i = 0; i < fNumSlip; i++)
     {
       fRank4.Outer(fA[i], fB[i]);
-      fc_ijkl.AddScaled(2., fRank4);
-    }
-}*/
-
-void LocalCrystalPlast::CrystalC_ijkl_Plastic()
-{
-  // compute inverse of fDFpi
-  fDFp.Inverse(fDFpi);
-
-  // shear stress on slip systems
-  ResolveShearStress(fCeBar);
-  
-  // SECOND TERM : (Fe_tr) (dDGamma/dCe_tr) (Fe_tr)^T
-  FormLHS(fDGamma, fLHS);
-  dMatrixT Jaci = MatrixInversion(fLHS);
-
-  for (int i = 0; i < fNumSlip; i++)
-    {
-      dTaudCe(fZ[i], fP[i], fsymmatx1);
-      fA[i].MultQBQT(fFe, fsymmatx1);
-
-      double tmp = fdt * fKinetics->DPhiDTau(fTau[i], i);
-      fA[i] *= -tmp;
+      fcBar_ijkl.AddScaled(2.0, fRank4);
     }
 
-  for (int i = 0; i < fNumSlip; i++) {
-    fB[i] = 0.;
-    for (int j = 0; j < fNumSlip; j++)
-      fB[i].AddScaled(-Jaci(i,j), fA[j]);
-  }
-
-  // FIRST TERM : (Fe_tr) (dS/dDGamma) (Fe_tr)^T
-  for (int i = 0; i < fNumSlip; i++)
-    {
-      dMatrixT& matx = farray[i];      // dDFpi/dDGamma from FormLHS()
-      fmatx4.MultAB(fDFp, matx);
-      fmatx4 *= 2.;
-      fsymmatx1.Symmetrize(fmatx4);
-      dTaudCe(fmatx4, fsymmatx1, fsymmatx2);
-      fA[i].MultQBQT(fFe, fsymmatx2);
-    }
-	
-  // PLASTIC CONTRIBUTION TO MODULI : 2 * Sum(fA[i] (x) fB[i])
-  for (int i = 0; i < fNumSlip; i++)
-    {
-      fRank4.Outer(fA[i], fB[i]);
-      fc_ijkl.AddScaled(2., fRank4);
-    }
+  // consistent tangent in current config: c_ijkl = Fe_iI*Fe_jJ*Fe_kK*Fe_lL*CepBar_IJKL
+  FFFFC_3D(fc_ijkl, fcBar_ijkl, fFe);
+  //cout << " fc_ijkl E-P (New) " << endl << fc_ijkl << endl;
 }
 
 void LocalCrystalPlast::SolveForDGamma(int& ierr)
@@ -1123,16 +1074,15 @@ void LocalCrystalPlast::SolveForDGamma(int& ierr)
 void LocalCrystalPlast::ResolveShearStress(const dSymMatrixT& Ce)
 {
   // 2nd Piola Kirchhoff Stress
-  CrystalPKIIStress(Ce);
+  fEeBar.SetToCombination(0.5, Ce, -0.5, fISym);
+  fSBar.A_ijkl_B_kl(fcBar_ijkl, fEeBar);
 
   // Resolve Shear Stress on Slip Systems
   Ce.ToMatrix(fmatx2);
   fSBar.ToMatrix(fmatx3);
   fmatx1.MultAB(fmatx2, fmatx3); 
-  for(int i = 0; i < fNumSlip; i++)
-    {
-      fTau[i] = dArrayT::Dot(fmatx1, fZ[i]);
-    }
+  for (int i = 0; i < fNumSlip; i++)
+     fTau[i] = dArrayT::Dot(fmatx1, fZ[i]);
 }
 
 /* mid-point rule to compute fDFpi */
@@ -1154,25 +1104,6 @@ void LocalCrystalPlast::DeltaFPInverse(const dArrayT& dgamma)
 
   // incremental plastic deformation gradient ^ (-1)
   fDFpi.MultAB(fmatx3, fmatx2);
-}
-
-void LocalCrystalPlast::CrystalPKIIStress(const dSymMatrixT& Ce)
-{
-  // elastic Green strain 
-  fEeBar.SetToCombination(0.5, Ce, -0.5, fISym);
-
-  // isotropic contribution to 2nd P-K stress: 2*mu*Ee + lambda*tr(Ee)*I
-  fSBar.SetToCombination(2.*fMatProp[0], fEeBar, fMatProp[1]*fEeBar.Trace(), fISym);
-
-  // anisotropic contribution to 2nd P-K stress: -2*beta*Caniso[Ee]
-  if (!fElasticity->IsIsotropic()) 
-    {
-      dSymMatrixT symmatx3(kNSD), symmatx4(kNSD);
-      //symmatx3.DoubleOffDiags(fEeBar);
-      //fCanisoBar.Multx(symmatx3, symmatx4);
-      symmatx4.A_ijkl_B_kl(fCanisoBar, fEeBar);
-      fSBar.AddScaled(-2.*fMatProp[2], symmatx4 );
-    }
 }
 
 /* dDFpi/dDGamma for mid-point rule */
@@ -1198,39 +1129,6 @@ void LocalCrystalPlast::dDFpidDGamma(const dArrayT& dgamma, ArrayT<dMatrixT>& ar
       fmatx1.MultAB(fmatx3, fZ[i]);
       array[i].MultAB(fmatx1, fmatx2);
       array[i] *= -1.;
-    }
-}
-
-void LocalCrystalPlast::dTaudCe(const dMatrixT& Z, const dSymMatrixT& P, 
-				dSymMatrixT& symmatx)
-{
-  // isotropic contribution to dTau/dCe
-  P.ToMatrix(fmatx2);
-  fCeBar.ToMatrix(fmatx3);
-  fmatx1.MultAB(fmatx2, fmatx3);
-  symmatx.Symmetrize(fmatx1);
-  symmatx *= 2. * fMatProp[0];
-  symmatx.AddCombination(fdeltaI, P, 0.5*fMatProp[1]*dArrayT::Dot(fmatx3,fmatx2), fISym);
-
-  // anisotropic contribution to dTau/dCe
-  if (!fElasticity->IsIsotropic())
-    {
-      dSymMatrixT symmatx3(kNSD), symmatx4(kNSD), symmatx5(kNSD);
-      //symmatx3.DoubleOffDiags(fCeBar);
-      //fCanisoBar.Multx(symmatx3, symmatx4);
-      symmatx4.A_ijkl_B_kl(fCanisoBar, fCeBar);
-      symmatx4.ToMatrix(fmatx1);
-      fmatx2.MultAB(Z, fmatx1);
-      symmatx3.Symmetrize(fmatx2);             // (X*C[CeBar])_sym
-    
-      fmatx1.MultAB(fmatx3, Z);
-      //symmatx4.Symmetrize(fmatx1);
-      //symmatx5.DoubleOffDiags(symmatx4);
-      //fCanisoBar.Multx(symmatx5, symmatx4);   // C[(CeBar*X)_sym]
-      symmatx5.Symmetrize(fmatx1);
-      symmatx4.A_ijkl_B_kl(fCanisoBar, symmatx5);
-      
-      symmatx.AddCombination(-fMatProp[2], symmatx3, -fMatProp[2], symmatx4);
     }
 }
 
@@ -1320,81 +1218,6 @@ void LocalCrystalPlast::Compute_Ftot_last_3D(dMatrixT& F_3D) const
 		throw eGeneralFail;
 }
 
-void LocalCrystalPlast::Set_I_b_Tensor(const dSymMatrixT& b, dMatrixT& c)
-{
-  double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12;
-  double z13, z14, z15, z16, z17, z18, z19, z20, z21;
-  
-  z1 = b[0];
-  z2 = b[1];
-  z3 = b[2];
-  z4 = b[3];
-  z5 = b[4];
-  z6 = b[5];
-  z7 = z1*z1;
-  z8 = z1*z2;
-  z9 = z2*z2;
-  z10 = z1*z3;
-  z11 = z2*z3;
-  z12 = z3*z3;
-  z13 = z1*z4;
-  z14 = z2*z4;
-  z15 = z3*z4;
-  z16 = z4*z4;
-  z17 = z1*z5;
-  z18 = z2*z5;
-  z19 = z3*z5;
-  z20 = z4*z5;
-  z21 = z5*z5;
-  z1 = z1*z6;
-  z2 = z2*z6;
-  z3 = z3*z6;
-  z4 = z4*z6;
-  z5 = z5*z6;
-  z6 = z6*z6;
-  z11 = z11 + z16;
-  z10 = z10 + z21;
-  z3 = z20 + z3;
-  z18 = z18 + z4;
-  z13 = z13 + z5;
-  z8 = z6 + z8;
-  z11 = 0.5*z11;
-  z10 = 0.5*z10;
-  z3 = 0.5*z3;
-  z18 = 0.5*z18;
-  z13 = 0.5*z13;
-  z8 = 0.5*z8;
-  
-  //{{z7, z6, z21, z5, z17, z1}, 
-  // {z6, z9, z16, z14, z4, z2}, 
-  // {z21, z16, z12, z15, z19, z20}, 
-  // {z5, z14, z15, z11, z3, z18}, 
-  // {z17, z4, z19, z3, z10, z13}, 
-  // {z1, z2, z20, z18, z13, z8}}
-  
-  c(0,0) = z7;
-  c(0,1) = c(1,0) = z6;
-  c(0,2) = c(2,0) = z21;
-  c(0,3) = c(3,0) = z5;
-  c(0,4) = c(4,0) = z17;
-  c(0,5) = c(5,0) = z1;
-  c(1,1) = z9;
-  c(1,2) = c(2,1) = z16;
-  c(1,3) = c(3,1) = z14;
-  c(1,4) = c(4,1) = z4;
-  c(1,5) = c(5,1) = z2;
-  c(2,2) = z12;
-  c(2,3) = c(3,2) = z15;
-  c(2,4) = c(4,2) = z19;
-  c(2,5) = c(5,2) = z20;
-  c(3,3) = z11;
-  c(3,4) = c(4,3) = z3;
-  c(3,5) = c(5,3) = z18;
-  c(4,4) = z10;
-  c(4,5) = c(5,4) = z13;
-  c(5,5) = z8;
-}
-
 void LocalCrystalPlast::FFFFC_3D(dMatrixT& Co, dMatrixT& Ci, const dMatrixT& F)
 {
   int nsd = F.Rows();
@@ -1439,4 +1262,21 @@ void LocalCrystalPlast::FFFFC_3D(dMatrixT& Co, dMatrixT& Ci, const dMatrixT& F)
 	
   // compute transformed tensor
   Co.MultQBQT(transform, Ci);
+}
+
+void LocalCrystalPlast::dTaudCe(const dMatrixT& Z, const dSymMatrixT& P,
+                                dSymMatrixT& symmatx)
+{
+
+}
+
+void LocalCrystalPlast::CrystalC_ijkl_Elastic()
+{
+
+}
+
+/* implements a rough approximation to consistent tangent */
+void LocalCrystalPlast::CrystalC_ijkl_Plastic()
+{
+
 }

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.h,v 1.2 2001-07-03 01:35:35 paklein Exp $ */
+/* $Id: LocalCrystalPlast.h,v 1.3 2001-10-02 00:31:19 ebmarin Exp $ */
 /*
   File: LocalCrystalPlast.h
 */
@@ -95,7 +95,10 @@ class LocalCrystalPlast : public PolyCrystalMatT
   // crystal Cauchy stress
   virtual void CrystalS_ij();
 
-  // elastic contribution to crystal moduli
+  // crystal consistent moduli
+  virtual void CrystalC_ijkl();
+
+ // elastic contribution to crystal moduli
   virtual void CrystalC_ijkl_Elastic();
 
   //plastic contribution to crystal moduli
@@ -133,9 +136,6 @@ class LocalCrystalPlast : public PolyCrystalMatT
 	void Compute_Ftot_3D(dMatrixT& F_3D, int ip) const;	
 	void Compute_Ftot_last_3D(dMatrixT& F_3D) const;	
 
-  // 4th order tensor: c_ijkl=0.5*(b_ik b_jl + b_il b_jk)
-  void Set_I_b_Tensor(const dSymMatrixT& b, dMatrixT& c);
-
   // 4th order tensor transformation: Co_ijkl = F_iI F_jJ F_kK f_lL Ci_IJKL
   void FFFFC_3D(dMatrixT& Co, dMatrixT& Ci, const dMatrixT& F);
 
@@ -172,12 +172,9 @@ class LocalCrystalPlast : public PolyCrystalMatT
   // crystal Cauchy stress
   dSymMatrixT fs_ij;
   
-  // crystal (spatial) consistent tangent operator
-  dMatrixT fc_ijkl;
-
-  // anisotropic contribution to crystal elasticity matrix
-  dMatrixT fCanisoLat;    // lattice frame
-  dMatrixT fCanisoBar;    // intermediate configuration
+  // crystal consistent tangent operator
+  dMatrixT fcBar_ijkl;   // intermediate configuration
+  dMatrixT fc_ijkl;      // current configuration
 
   // Schmidt tensors in sample coords
   ArrayT<dMatrixT> fZ;
@@ -208,6 +205,7 @@ class LocalCrystalPlast : public PolyCrystalMatT
   dMatrixT fRank4;
   dSymMatrixT fsymmatx1;
   dSymMatrixT fsymmatx2;
+  dSymMatrixT fsymmatx3;
 
   // workspaces for computing moduli 
   LAdMatrixT fLHS;
