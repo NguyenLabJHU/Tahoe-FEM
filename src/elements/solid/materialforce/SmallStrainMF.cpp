@@ -1,4 +1,4 @@
-/* $Id: SmallStrainMF.cpp,v 1.7 2003-04-14 22:30:46 thao Exp $ */
+/* $Id: SmallStrainMF.cpp,v 1.8 2003-04-15 00:26:03 thao Exp $ */
 #include "SmallStrainMF.h"
 
 #include "OutputSetT.h"
@@ -501,7 +501,6 @@ void SmallStrainMF::MatForceVolMech(dArrayT& elem_val)
     const double* pQa = fShapes->IPShapeX();
     const double* pQaU = fShapes->IPShapeU();
     const dArray2DT& DQa = fShapes->Derivatives_X();
-
     /*gather material data*/
     double energy = fCurrSSMat->StrainEnergyDensity();
     const dSymMatrixT& sig = fCurrSSMat->s_ij();
@@ -706,18 +705,19 @@ void SmallStrainMF::MatForceDissip(dArrayT& elem_val, const dArrayT& statev)
 
       /*Interpolate grad of iverse inelastic stretch to ip*/
       double* pGradX = fgrad_viscstretch.Pointer();
-      double* pGradY = pGradX+numstress;
+       double* pGradY = pGradX+numstress;
       for (int i = 0; i<nen; i++)
       {
 	    dSymMatrixT& nodal_val = nodal_viscstretch[i];
-        for (int cnt = 0; cnt < numstress; cnt++)
+         for (int cnt = 0; cnt < numstress; cnt++)
         {
           pGradX[cnt] += (*pDQaX)*nodal_val[cnt];
-	      pGradY[cnt] += (*pDQaY)*nodal_val[cnt];
-	    }
+          pGradY[cnt] += (*pDQaY)*nodal_val[cnt];
+	}
+	pDQaX++;
+	pDQaY++;
       }
-      
-      /*integrate material force*/
+       /*integrate material force*/
       double* pelem_val = elem_val.Pointer();
       for (int i = 0; i<nen; i++)
       {
@@ -749,6 +749,9 @@ void SmallStrainMF::MatForceDissip(dArrayT& elem_val, const dArrayT& statev)
 	      pGradY[cnt] += (*pDQaY)*nodal_val[cnt];
 	      pGradZ[cnt] += (*pDQaZ)*nodal_val[cnt];
 	    }
+	pDQaX++;
+	pDQaY++;
+	pDQaZ++;
       }
             
       /*integrate material force*/
