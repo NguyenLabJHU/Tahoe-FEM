@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.11 2004-11-18 16:41:01 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.11.4.1 2004-12-26 06:27:57 d-farrell2 Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -164,7 +164,14 @@ public:
 	void AllGather(int id, nArray2DT<int>& values);
 	/*@}*/
 
+	// some accessors
+	int GetPartStartNum(void) { return fPartStartNum;};
+	int GetPartEndNum(void) { return fPartEndNum;};
+	int GetPartFieldStart(void) { return fPartFieldStart;};
+	int GetPartFieldEnd(void) { return fPartFieldEnd;};
+
 private:
+
 
 	/** return the partition or throw an exception if it's not set */
 	PartitionT& Partition(void) const;	
@@ -316,6 +323,10 @@ private:
 	/** send nodes for each phase of shift */
 	ArrayT<AutoArrayT<int> > fSendNodes;
 	ArrayT<AutoArrayT<int> > fRecvNodes;
+	
+	// some 'constants' for the index decomposition
+	int fPartStartNum, fPartEndNum, fPartFieldStart, fPartFieldEnd;
+	
 	/*@}*/
 };
 

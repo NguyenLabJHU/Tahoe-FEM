@@ -1,4 +1,4 @@
-/* $Id: DecomposeT.cpp,v 1.7 2004-11-19 22:51:39 paklein Exp $ */
+/* $Id: DecomposeT.cpp,v 1.7.2.1 2004-12-26 06:27:57 d-farrell2 Exp $ */
 #include "DecomposeT.h"
 
 #include "ofstreamT.h"
@@ -140,7 +140,7 @@ void DecomposeT::CheckDecompose(const StringT& input_file, int size, const Param
 		x.Free();
 
 		/* decompose */
-		Decompose_spatial(input_file, grid_dims, min_max, model_file, format);	
+		Decompose_spatial(input_file, grid_dims, min_max, model_file, format);
 	}
 	else
 		ExceptionT::GeneralFail("DecomposeT::CheckDecompose", "unrecognized method \"%s\"",

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.25 2004-10-14 20:24:17 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.25.4.1 2004-12-26 06:27:59 d-farrell2 Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -343,6 +343,9 @@ protected:
 
 	/** ID for the field exchange obtained from NodeManagerT::fCommManager */
 	iArrayT fMessageID;
+	
+	/** ID for the Current Coordinate Exchange */
+	int fMessageCurrCoordsID;
 	/*@}*/
 
 	/** \name history nodes information */
@@ -360,6 +363,11 @@ protected:
 	 *    the "connectivitities" associated with the set. */
 	iArray2DT fHistoryOutputID;
 	/*@}*/
+	
+	// some more information, needed for the index decomposition
+	int fCommSize;
+	int fDecomp_Type; // this will be the integer, have to check it against PartitionT::kInex
+	int fPartFieldStart, fPartFieldEnd ;
 	
 private:
 
