@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.21 2004-05-06 18:47:37 cjkimme Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.22 2004-11-04 14:29:21 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 #ifndef _RAGGED_ARRAY_2D_T_H_
 #define _RAGGED_ARRAY_2D_T_H_
@@ -465,11 +465,11 @@ void RaggedArray2DT<TYPE>::Alias(const nArray2DT<TYPE>& source)
 {
 	/* dimensions */
 	fMajorDim    = source.MajorDim();
-	fMinMinorDim = fMaxMinorDim = source.MinorDim;
+	fMinMinorDim = fMaxMinorDim = source.MinorDim();
 	
 	/* configure memory */
 	fPtrs.Dimension(fMajorDim + 1);
-	fData.Set(source.Length(), source.Pointer());
+	fData.Alias(source.Length(), source.Pointer());
 	
 	/* set pointers */
 	SetEvenPointers(source.MinorDim());
