@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.9 2001-06-04 22:50:17 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.9.2.1 2001-06-29 01:21:14 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #include "SolidElementT.h"
@@ -69,11 +69,7 @@ void SolidElementT::Initialize(void)
 	/* override */
 	if (fController->ImplicitExplicit() == eControllerT::kExplicit &&
 	    fMassType != kNoMass &&
-	    fMassType != kLumpedMass)
-//{	
-//cout << "\n SolidElementT::Initialize: SKIPPING lumped mass override for explicit dynamics" << endl;
-		fMassType = kLumpedMass;
-//}
+	    fMassType != kLumpedMass) fMassType = kLumpedMass;
 
 	/* setup for material output */
 	if (fNodalOutputCodes[iMaterialData] || fElementOutputCodes[iIPMaterialData])
@@ -294,6 +290,31 @@ void SolidElementT::SendOutput(int kincode)
 * Protected
 ***********************************************************************/
 
+/* construct list of materials from the input stream */
+void SolidElementT::ReadMaterialData(ifstreamT& in)
+{
+	/* inherited */
+	ContinuumElementT::ReadMaterialData(in);
+	
+	/* generate list of material needs */
+	fMaterialNeeds.Allocate(fMaterialList->Length());
+	for (int i = 0; i < fMaterialNeeds.Length(); i++)
+	{
+		/* allocate */
+		ArrayT<bool>& needs = fMaterialNeeds[i];
+		needs.Allocate(3);
+
+		/* casts are safe since class contructs materials list */
+		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
+		StructuralMaterialT* mat = (StructuralMaterialT*) pcont_mat;
+
+		/* collect needs */
+		needs[kNeedDisp] = mat->NeedDisp();
+		needs[kNeedVel] = mat->NeedVel();
+		needs[KNeedLastDisp] = mat->NeedLastDisp();
+	}
+}
+
 /* print element group data */
 void SolidElementT::PrintControlData(ostream& out) const
 {
@@ -479,9 +500,12 @@ void SolidElementT::SetGlobalShape(void)
 	/* inherited */
 	ContinuumElementT::SetGlobalShape();
 
+	/* material needs */
+	const ArrayT<bool>& needs = fMaterialNeeds[CurrentElement().MaterialNumber()];
+
 	/* material dependent local arrays */
-	if (fCurrMaterial->NeedLastDisp()) SetLocalU(fLocLastDisp);	
-	if (fCurrMaterial->NeedVel())
+	if (needs[KNeedLastDisp]) SetLocalU(fLocLastDisp);	
+	if (needs[kNeedVel])
 	{
 		/* have velocity */
 		if (fLocVel.IsRegistered())

@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.1.2.2 2001-06-28 01:24:12 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.1.2.3 2001-06-29 01:21:15 paklein Exp $ */
 /* created: paklein (07/03/1996)                                          */
 
 #include "UpdatedLagrangianT.h"
@@ -89,7 +89,7 @@ void UpdatedLagrangianT::SetShape(void)
 void UpdatedLagrangianT::SetGlobalShape(void)
 {
 	/* inherited */
-	ElasticT::SetGlobalShape();
+	FiniteStrainT::SetGlobalShape();
 
 	/* shape function wrt current config */
 	SetLocalX(fLocCurrCoords);

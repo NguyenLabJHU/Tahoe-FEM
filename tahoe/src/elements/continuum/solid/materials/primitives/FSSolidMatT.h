@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.1.1.1.2.5 2001-06-28 01:24:14 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.1.1.1.2.6 2001-06-29 01:21:18 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 /* Defines the interface large strain materials which account             */
 /* for thermal strains with the multiplicative split:                     */
@@ -29,9 +29,6 @@ public:
 	/** write name to output stream */
 	virtual void PrintName(ostream& out) const;
 
-	/** required parameter flags. \return true */
-	virtual bool NeedDisp(void) const { return true; };
-
 	/** initialization. call immediately after constructor */
 	virtual void Initialize(void);
 	
@@ -49,8 +46,8 @@ public:
 //	const ShapeFunctionT& ShapeFunction(void) const;
 //DEV
 
-	/* required parameter flags - all false by default */
-	virtual bool Need_F(void) const      { return false; };
+	/** required parameter flags */
+	virtual bool Need_F(void) const { return true; };
 	virtual bool Need_F_last(void) const { return false; };
 
 	/** deformation gradient */

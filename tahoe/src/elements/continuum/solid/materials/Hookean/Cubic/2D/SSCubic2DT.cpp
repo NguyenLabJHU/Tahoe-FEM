@@ -1,4 +1,4 @@
-/* $Id: SSCubic2DT.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:01 paklein Exp $ */
+/* $Id: SSCubic2DT.cpp,v 1.1.1.1.2.3 2001-06-29 01:21:17 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #include "SSCubic2DT.h"
@@ -7,6 +7,7 @@
 /* constructor */
 SSCubic2DT::SSCubic2DT(ifstreamT& in, const SmallStrainT& element):
 	SSCubicT(in, element),
+	Anisotropic2DT(in),
 	Material2DT(in)
 {
 	/* account for thickness */
@@ -18,6 +19,7 @@ void SSCubic2DT::Print(ostream& out) const
 {
 	/* inherited */
 	SSCubicT::Print(out);
+	Anisotropic2DT::Print(out);
 	Material2DT::Print(out);
 }
 
@@ -28,8 +30,12 @@ void SSCubic2DT::Print(ostream& out) const
 /* set (material) tangent modulus */
 void SSCubic2DT::SetModulus(dMatrixT& modulus)
 {
+	/* compute modulus in crystal coordinates */
 	CubicT::ComputeModuli2D(modulus, fConstraintOption);
 	modulus *= fThickness;
+	
+	/* transform modulus into global coords */
+	TransformOut(modulus);
 }
 
 /*************************************************************************

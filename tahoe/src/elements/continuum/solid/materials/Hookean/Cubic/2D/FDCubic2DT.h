@@ -1,4 +1,4 @@
-/* $Id: FDCubic2DT.h,v 1.1.1.1.2.2 2001-06-22 14:18:01 paklein Exp $ */
+/* $Id: FDCubic2DT.h,v 1.1.1.1.2.3 2001-06-29 01:21:17 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #ifndef _FD_CUBIC_2D_T_H_
@@ -6,9 +6,10 @@
 
 /* base classes */
 #include "FDCubicT.h"
+#include "Anisotropic2DT.h"
 #include "Material2DT.h"
 
-class FDCubic2DT: public FDCubicT, public Material2DT
+class FDCubic2DT: public FDCubicT, public Anisotropic2DT, public Material2DT
 {
 public:
 

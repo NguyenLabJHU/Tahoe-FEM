@@ -1,69 +1,158 @@
-/* $Id: SmallStrainT.cpp,v 1.1.2.2 2001-06-26 07:17:33 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.1.2.3 2001-06-29 01:21:15 paklein Exp $ */
 
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
+#include "SSStructMatT.h"
+#include "MaterialListT.h"
 
 /* constructor */
 SmallStrainT::SmallStrainT(FEManagerT& fe_manager):
 	ElasticT(fe_manager),
-	fMatrixList(4),
-	fIPSet(4)
-{
-	/* allocate return values */
-	for (int i = 0; i < fMatrixList.Length(); i++)
-		fMatrixList[i].Allocate(NumSD());
-
-	/* initialize */
-	fIPSet = -1;
-}
-
-/* total strain */
-const dSymMatrixT& SmallStrainT::LinearStrain(void) const
-{
-bug
-
-//finish implementation of strain
-}
-
-/* total strain */
-const dSymMatrixT& SmallStrainT::LinearStrain(int ip) const
+	fNeedsOffset(-1),
+	fGradU(NumSD())
 {
 
 }
 
-/* total strain from the end of the previous time step */
-const dSymMatrixT& SmallStrainT::LinearStrain_last(void) const
+/* called immediately after constructor */
+void SmallStrainT::Initialize(void)
 {
+	/* inherited */
+	ElasticT::Initialize();
 
-}
+	/* what's needed */
+	bool need_strain = false;
+	bool need_strain_last = false;
+	for (int i = 0; i < fMaterialNeeds.Length(); i++)
+	{
+		const ArrayT<bool>& needs = fMaterialNeeds[i];
+		need_strain = need_strain || needs[fNeedsOffset + kstrain];
+		need_strain_last = need_strain_last || needs[fNeedsOffset + kstrain_last];
+	}
 
-/* total strain from the end of the previous time step */
-const dSymMatrixT& SmallStrainT::LinearStrain_last(int ip) const
-{
-
+	/* allocate deformation gradient list */
+	if (need_strain)
+	{
+		fStrain_List.Allocate(NumIP());
+		for (int i = 0; i < NumIP(); i++)
+			fStrain_List[i].Allocate(NumSD());
+	}
+	
+	/* allocate "last" deformation gradient list */
+	if (need_strain_last)
+	{
+		fStrain_last_List.Allocate(NumIP());
+		for (int i = 0; i < NumIP(); i++)
+			fStrain_last_List[i].Allocate(NumSD());
+	}
 }
 
 /* compute field gradients */
 void SmallStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u) const
 {
-
+#pragma unused(u)
+#pragma unused(grad_u)
+	cout << "\n SmallStrainT::ComputeGradient: not implemented" << endl;
+	throw;
 }
 
 /* compute field gradients */
 void SmallStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u, int ip) const
 {
-
+#pragma unused(u)
+#pragma unused(grad_u)
+#pragma unused(ip)
+	cout << "\n SmallStrainT::ComputeGradient: not implemented" << endl;
+	throw;
 }
 
 /* compute field gradients from the end of the previous time step */
 void SmallStrainT::ComputeGradient_last(const LocalArrayT& u, dMatrixT& grad_u) const
 {
-
+#pragma unused(u)
+#pragma unused(grad_u)
+	cout << "\n SmallStrainT::ComputeGradient_last: not implemented" << endl;
+	throw;
 }
 
 /* compute field gradients from the end of the previous time step */
 void SmallStrainT::ComputeGradient_last(const LocalArrayT& u, dMatrixT& grad_u, 
 	int ip) const
 {
+#pragma unused(u)
+#pragma unused(grad_u)
+#pragma unused(ip)
+	cout << "\n SmallStrainT::ComputeGradient_last: not implemented" << endl;
+	throw;
+}
 
+/***********************************************************************
+* Protected
+***********************************************************************/
+
+/* construct list of materials from the input stream */
+void SmallStrainT::ReadMaterialData(ifstreamT& in)
+{
+	/* inherited */
+	ElasticT::ReadMaterialData(in);
+
+	/* offset to class needs flags */
+	fNeedsOffset = fMaterialNeeds[0].Length();
+	
+	/* set material needs */
+	for (int i = 0; i < fMaterialNeeds.Length(); i++)
+	{
+		/* needs array */
+		ArrayT<bool>& needs = fMaterialNeeds[i];
+
+		/* resize array */
+		needs.Resize(needs.Length() + 2, true);
+
+		/* casts are safe since class contructs materials list */
+		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
+		SSStructMatT* mat = (SSStructMatT*) pcont_mat;
+
+		/* collect needs */
+		needs[fNeedsOffset + kstrain     ] = mat->Need_Strain();
+		needs[fNeedsOffset + kstrain_last] = mat->Need_Strain_last();
+		
+		/* consistency */
+		needs[kNeedDisp] = needs[kNeedDisp] || needs[fNeedsOffset + kstrain];
+		needs[KNeedLastDisp] = needs[KNeedLastDisp] || needs[fNeedsOffset + kstrain_last];
+	}
+}
+
+/* increment current element */
+void SmallStrainT::SetGlobalShape(void)
+{
+	/* inherited */
+	ElasticT::SetGlobalShape();
+
+	/* material information */
+	int material_number = CurrentElement().MaterialNumber();
+	const ArrayT<bool>& needs = fMaterialNeeds[material_number];
+	
+	/* loop over integration points */
+	for (int i = 0; i < NumIP(); i++)
+	{
+		/* deformation gradient */
+		if (needs[fNeedsOffset + kstrain])
+		{
+			/* displacement gradient */
+			fShapes->GradU(fLocDisp, fGradU, i);
+
+			/* symmetric part */
+			 fStrain_List[i].Symmetrize(fGradU);
+		}
+
+		/* "last" deformation gradient */
+		if (needs[fNeedsOffset + kstrain_last])
+		{
+			/* displacement gradient */
+			fShapes->GradU(fLocLastDisp, fGradU, i);
+
+			/* symmetric part */
+			 fStrain_last_List[i].Symmetrize(fGradU);
+		}
+	}
 }

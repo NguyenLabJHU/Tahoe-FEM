@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:30 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.1.1.1.2.3 2001-06-29 01:21:18 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 
 #include "SSSolidMatT.h"
@@ -33,9 +33,6 @@ void SSSolidMatT::PrintName(ostream& out) const
 	out << "    Small strain\n";
 }
 
-/* required parameter flags */
-bool SSSolidMatT::NeedDisp(void) const { return true; }
-
 /* strain - returns the elastic strain, ie. thermal removed */
 const dSymMatrixT& SSSolidMatT::e(void)
 {
@@ -64,6 +61,32 @@ const dSymMatrixT& SSSolidMatT::e(int ip)
 	}
 	else
 		return fSmallStrain.LinearStrain(ip);
+}
+
+/* strain - returns the elastic strain, ie. thermal removed */
+const dSymMatrixT& SSSolidMatT::e_last(void)
+{
+	/* cannot have thermal strain */
+	if (fHasThermalStrain)
+	{
+		cout << "\n SSSolidMatT::e_last: not available with thermal strains" << endl;
+		throw eGeneralFail;
+	}
+	
+	return fSmallStrain.LinearStrain_last();
+}
+
+/* elastic strain at the given integration point */
+const dSymMatrixT& SSSolidMatT::e_last(int ip)
+{
+	/* cannot have thermal strain */
+	if (fHasThermalStrain)
+	{
+		cout << "\n SSSolidMatT::e_last: not available with thermal strains" << endl;
+		throw eGeneralFail;
+	}
+	
+	return fSmallStrain.LinearStrain_last(ip);
 }
 
 /* material description */
