@@ -1,4 +1,4 @@
-/* $Id: SSLinearVE3D.h,v 1.1 2003-04-05 20:05:37 thao Exp $ */
+/* $Id: SSLinearVE3D.h,v 1.2 2003-05-12 16:50:29 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_LINEAR_VE_3D_H_
 #define _SS_LINEAR_VE_3D_H_
@@ -21,18 +21,18 @@ class SSLinearVE3D: public SSViscoelasticityT
 	SSLinearVE3D(ifstreamT& in, const SSMatSupportT& support);
 		
 	/*print parameters*/
-	void Print(ostream& out) const;
-	void PrintName(ostream& out) const;
+	virtual void Print(ostream& out) const;
+	virtual void PrintName(ostream& out) const;
 
 	virtual double StrainEnergyDensity(void);
  
 	/* spatial description */ 
-	const dMatrixT& c_ijkl(void); // spatial tangent moduli 
-	const dSymMatrixT& s_ij(void); // Cauchy stress 
+	virtual const dMatrixT& c_ijkl(void); // spatial tangent moduli 
+	virtual const dSymMatrixT& s_ij(void); // Cauchy stress 
  
 	/* material description */ 
-	const dMatrixT& C_IJKL(void); // material tangent moduli 
-	const dSymMatrixT& S_IJ(void); // PK2 stress 
+	virtual const dMatrixT& C_IJKL(void); // material tangent moduli 
+	virtual const dSymMatrixT& S_IJ(void); // PK2 stress 
 	
 	/*compute output variables*/
 	virtual int NumOutputVariables() const;
