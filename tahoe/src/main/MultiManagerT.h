@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.h,v 1.3.16.3 2004-04-03 03:19:59 paklein Exp $ */
+/* $Id: MultiManagerT.h,v 1.3.16.4 2004-04-06 01:01:09 paklein Exp $ */
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
 
@@ -113,6 +113,7 @@ private:
 	bool fFineToCoarse; /**< fine scale contribution to coarse scale equations */ 
 	bool fCoarseToFine; /**< coarse scale contribution to fine scale equations */ 
 	bool fCorrectOverlap; /**< adjust C-B bond densities to account for overlap */ 
+	double fCBTikhonov; /** regularization used to solve C-B bond densities in the overlap. */
 	/*@}*/
 };
 
