@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* $Id: IOManager.h,v 1.2 2001-05-30 23:25:10 paklein Exp $ */
 /* created: sawimme (10/12/1999)                                          */
 
 #ifndef _IOMANAGER_H_
@@ -51,8 +51,9 @@ public:
 	/* output functions */
 	void WriteGeometry(void);
 	void WriteGeometryFile(const StringT& file_name, IOBaseT::FileTypeT format) const;
-	virtual void WriteOutput(double time, int ID, const dArray2DT& n_values,
-		const dArray2DT& e_values);
+	
+	void SetOutputTime(double time);
+	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
 
 	/* (temporarily) re-route output */
 	void DivertOutput(const StringT& outfile);
@@ -131,8 +132,14 @@ protected:
 	
 private:
 
+	/* run time */
+	double fOutputTime;
+
 	/* store main out during diverions */
 	OutputBaseT* fOutput_tmp;	
 };
+
+/* inlines */
+inline void IOManager::SetOutputTime(double time) { fOutputTime = time; }
 
 #endif
