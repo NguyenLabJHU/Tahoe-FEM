@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.20 2004-06-26 06:26:40 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.21 2004-08-03 06:32:39 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #include "CCNSMatrixT.h"
 
@@ -103,6 +103,7 @@ void CCNSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	try {
 		d_memory.Dimension(fLocNumEQ);
 		d_memory.ReleasePointer(&fu);
+		d_memory.Dimension(0); /* reset */
 
 		d_memory.Dimension(fNumberOfTerms);
 		d_memory.ReleasePointer(&fMatrix);
