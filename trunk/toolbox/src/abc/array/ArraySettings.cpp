@@ -1,4 +1,4 @@
-/* $Id: ArraySettings.cpp,v 1.10 2003-11-04 01:10:24 paklein Exp $ */
+/* $Id: ArraySettings.cpp,v 1.11 2004-04-27 07:23:24 paklein Exp $ */
 /* created: paklein (01/23/2001) */
 #include "ArrayT.h"
 
@@ -26,10 +26,12 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<ArrayT<double>*>::fByteCopy = true;
 } /* namespace Tahoe */
 
 #include "RaggedArray2DT.h"
+#include "nVariArray2DT.h"
 
 namespace Tahoe {
 
 DEFINE_TEMPLATE_STATIC const bool ArrayT<const RaggedArray2DT<int>*>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<nVariArray2DT<int>*>::fByteCopy = true;
 
 } /* namespace Tahoe */
 
