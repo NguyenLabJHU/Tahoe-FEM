@@ -1,8 +1,7 @@
-/* $Id: StringT.cpp,v 1.20 2002-04-07 19:12:28 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.19 2002-02-27 16:47:13 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 
 #include "StringT.h"
-#include "ifstreamT.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -16,6 +15,9 @@
 #else
 #include <strstream.h>
 #endif
+
+#include "Constants.h"
+#include "ExceptionCodes.h"
 
 /* array behavior */
 const bool ArrayT<StringT>::fByteCopy = false;
@@ -147,14 +149,8 @@ int num_chars = strlen(*this);
 void StringT::GetLineFromStream(istream& in)
 {
 	char string[kLineLength];
-	in.getline(string, kLineLength-1);	
-	operator=(string);
-}
-
-void StringT::GetLineFromStream(ifstreamT& in)
-{
-	char string[kLineLength];
-	in.getline(string, kLineLength-1);	
+	in.getline(string, kLineLength-1);
+	
 	operator=(string);
 }
 

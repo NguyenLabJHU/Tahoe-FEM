@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.cpp,v 1.8 2002-04-21 06:41:49 paklein Exp $ */
+/* $Id: SpectralDecompT.cpp,v 1.7 2002-01-06 06:57:54 cbhovey Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -582,8 +582,8 @@ const dMatrixT& SpectralDecompT::SpatialTensor3D(const dSymMatrixT& b, int A)
 	/* checks */
 	if (fabs(dA) < kSmall)
 	{
-//		cout << "\n SpectralDecompT::SpatialTensor3D: detected repeated roots:\n"
-//		     << fEigs << endl;
+		cout << "\n SpectralDecompT::SpatialTensor3D: detected repeated roots:\n"
+		     << fEigs << endl;
 		fSpatTensor.Identity();
 		return fSpatTensor;
 	}

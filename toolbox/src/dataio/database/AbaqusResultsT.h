@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.h,v 1.11 2002-04-10 12:08:55 sawimme Exp $ */
+/* $Id: AbaqusResultsT.h,v 1.10 2002-02-22 15:45:25 sawimme Exp $ */
 /*
    CREATED: S. Wimmer 9 Nov 2000
 
@@ -257,11 +257,9 @@ class AbaqusResultsT
 
   int TranslateElementName (const char *, GeometryT::CodeT &, int &) const; /**< translate element name into geometry code */
   int TranslateContinuum (const char *, GeometryT::CodeT &, int &) const; /**< translate continuum elements */
-  int TranslateSpring (const char *name, GeometryT::CodeT &type, int &numintpts) const; /**< translate spring elements */
   int Translate2D (const char *, GeometryT::CodeT &, int &) const; /** translate 2D continuum elements */
   int Translate3D (const char *, GeometryT::CodeT &, int &) const; /** translate 3D continuum elements */
   int TranslateShell (const char *, GeometryT::CodeT &, int &) const; /** translate shell elements to quad or tris */
-  int TranslateRigid (const char *name, GeometryT::CodeT &type, int &numintpts) const; /**< translate rigid elements */
   /** generate element name and determine number of element nodes to write */
   void GetElementName (GeometryT::CodeT geometry_code, int elemnodes, 
 		       int& num_output_nodes, StringT& elem_name) const;

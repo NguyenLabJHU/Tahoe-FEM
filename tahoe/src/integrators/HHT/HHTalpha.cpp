@@ -1,5 +1,5 @@
-/* $Id: HHTalpha.cpp,v 1.2 2002-04-02 23:19:20 paklein Exp $ */
-/* created: paklein (10/14/1996) */
+/* $Id: HHTalpha.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (10/14/1996)                                          */
 
 #include "HHTalpha.h"
 
@@ -9,16 +9,19 @@
 #include "dArrayT.h"
 
 /* constructor */
-HHTalpha::HHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder):
+HHTalpha::HHTalpha(ifstreamT& in, ostream& out, int auto2ndorder):
 	fAuto2ndOrder(auto2ndorder),
 	fgamma(0.5),
 	fbeta(0.25)
 {
+	if (fAuto2ndOrder != 0 &&
+	    fAuto2ndOrder != kHHTalphaAuto_O2) throw eGeneralFail;
+
 	/* read parameter */
 	in >> falpha;
 		
 	/* reduce to single parameter fanmily */
-	if (fAuto2ndOrder) Set2ndOrder(falpha);
+	if (fAuto2ndOrder == kHHTalphaAuto_O2) Set2ndOrder(falpha);
 
 	/* echo */
 	out << " HHT-alpha time integration parameters:\n\n";

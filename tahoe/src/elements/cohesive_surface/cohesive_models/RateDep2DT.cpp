@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.cpp,v 1.6 2002-04-16 21:19:33 cjkimme Exp $  */
+/* $Id: RateDep2DT.cpp,v 1.5 2002-03-12 21:29:58 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "RateDep2DT.h"
@@ -34,11 +34,11 @@ RateDep2DT::RateDep2DT(ifstreamT& in, const double& time_step):
 	in >> fpenalty; if (fpenalty < 0) throw eBadInputValue;
 	in >> L_2_b;
 	in >> L_2_m;
-        in >> fslope;	
-	
-        /* penetration stiffness */
+
+	/* penetration stiffness */
 	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
 
+	//initiationQ = false;
 }
 
 /*initialize state variables with values from the rate-independent model */
@@ -75,7 +75,7 @@ void RateDep2DT::InitStateVariables(ArrayT<double>& state)
 }
 
 /* return the number of state variables needed by the model */
-int RateDep2DT::NumStateVariables(void) const { return 11; }
+int RateDep2DT::NumStateVariables(void) const { return 12; }
 
 /* surface potential */ 
 double RateDep2DT::FractureEnergy(const ArrayT<double>& state) 
@@ -118,7 +118,7 @@ double RateDep2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
+const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
@@ -152,27 +152,21 @@ const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state
 		/* make sure new length scale is greater than current
 		 * gap vector 
                  */
-	        state[0] *= fd_c_n/state[6];
-	        r_n = u_n/state[6];
-	        L = sqrt(r_t*r_t+r_n*r_n);
-	        sigbyL = state[4]*(1+fslope*(L-state[0]))/L;
 		if (state[6] < u_n || state[6] < fd_c_n*fL_1)
 		{
-		  cout <<  "\n RateDep2DT::Traction: rate-dependent length scale " << state[6] << " " << fTimeStep << " is incompatible with rate-independent one. Check input parameters. \n ";
-	          state[6] = fd_c_n;
-	          state[2] = state[0]; /* start unloading now */
-	          r_n = u_n/state[6];
-	          L = sqrt(r_t*r_t+r_n*r_n);
-                  sigbyL = state[4]*(1-(L-state[2])/(1-state[2]))/L;
-		  //throw eBadInputValue;
+		  cout <<  "\n RateDep2DT::Traction: rate-dependent length scale is incompatible with rate-independent one. Check input parameters. \n ";
+		  throw eBadInputValue;
 		}
+		/*recalculate state[0] to keep state[0]*state[6] constant */
+		state[0] *= fd_c_n/state[6];
+		r_n = u_n/state[6];
+		L = sqrt(r_t*r_t+r_n*r_n);
 	      }
 	  }
-	  else 
-	    sigbyL = state[4]*(1+fslope*(L-state[0]))/L;
+	  sigbyL = state[4]/L;
 	}
 	else if (L < 1)
-		sigbyL = state[4]*(1+fslope*(state[2]-state[0]))*(1 - (L - state[2])/(1 - state[2]))/L;
+		sigbyL = state[4]*(1 - (L - state[2])/(1 - state[2]))/L;
 	else
 		sigbyL = 0.0;	
 
@@ -190,13 +184,14 @@ const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state
 }
 
 /* potential stiffness */
-const dMatrixT& RateDep2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
+const dMatrixT& RateDep2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
-#endif	
+#endif
 
+	
 	double u_t = jump_u[0];
 	double u_n = jump_u[1];
 
@@ -226,7 +221,7 @@ const dMatrixT& RateDep2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double
 		z3 *= z4;
 		z2 += z3;
 		z2 = pow(z2,-1.5);
-		z2 *= state[4]*(1+fslope*(L-state[0]))*z5;
+		z2 *= state[4]*z5;
 		z3 *= z2;
 		z2 *= z4;
 		z4 = -u_n*u_t*z2;
@@ -264,16 +259,16 @@ const dMatrixT& RateDep2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double
 		z16 = 1./sqrt(z2);
 		z2 = sqrt(z2);
 		z9 += z12;
-		z12 = -state[4]*(1+fslope*(state[2]-state[0]))*z1*z15*z6*z7;
+		z12 = -state[4]*z1*z15*z6*z7;
 		z2 = -z2;
 		z9 = 1./z9;
 		z2 += state[2];
-		z5 *= state[4]*(1+fslope*(state[2]-state[0]))*z9;
+		z5 *= state[4]*z9;
 		z9 = u_n*state[6]*u_t*z5;
 		z5 *= z10*z13;
 		z2 *= z6;
 		z2 += 1.;
-		z2 *= state[4]*(1+fslope*(state[2]-state[0]));
+		z2 *= state[4];
 		z1 *= -z14*z2*z7;
 		z6 = z16*z2*z8;
 		z3 *= -state[6]*z11*z14*z2;
@@ -387,7 +382,6 @@ int RateDep2DT::NodalQuantityNeeded(void)
         return 2; 
 }
 
-/*
 double RateDep2DT::ComputeNodalValue(const dArrayT& nodalRow) 
 {
         return (nodalRow[0]+nodalRow[1])/3;
@@ -397,11 +391,10 @@ void RateDep2DT::UpdateStateVariables(const dArrayT& IPdata, ArrayT<double>& sta
 {
   //state[7] = IPdata[0];
 }
-*/
 
 int RateDep2DT::ElementGroupNeeded(void) 
 {
-	return 0;//fGroup-1;
+	return fGroup-1;
 }
 
 bool RateDep2DT::CompatibleOutput(const SurfacePotentialT& potential) const

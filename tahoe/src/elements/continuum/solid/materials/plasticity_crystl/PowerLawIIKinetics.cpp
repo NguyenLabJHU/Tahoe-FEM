@@ -60,8 +60,7 @@ double PowerLawIIKinetics::Psi(double gamdot, int is)
   // compute Psi
   double tauIso = fHard.IsoHardeningStress(is);
   double tauKin = fHard.KinHardeningStress(is);
-//  double qnt = pow(fabs(gamdot)/fMatProp[1], fMatProp[0]-1.);
-  double qnt = Power(fabs(gamdot)/fMatProp[1], fMatProp[0]-1.);
+  double qnt = pow(fabs(gamdot)/fMatProp[1], fMatProp[0]-1.);
   return  tauKin + tauIso*(gamdot/fMatProp[1])*qnt;
 }
 
@@ -69,8 +68,7 @@ double PowerLawIIKinetics::DPsiDGamdot(double gamdot, int is)
 {
   // compute d(Psi)/d(gamdot)
   double tauIso = fHard.IsoHardeningStress(is);
-//  double qnt = pow(fabs(gamdot)/fMatProp[1], fMatProp[0]-1.);
-  double qnt = Power(fabs(gamdot)/fMatProp[1], fMatProp[0]-1.);
+  double qnt = pow(fabs(gamdot)/fMatProp[1], fMatProp[0]-1.);
   return  (fMatProp[0]*tauIso)/fMatProp[1] * qnt;
 }
 
@@ -78,8 +76,7 @@ double PowerLawIIKinetics::DPsiDIso(double gamdot, int is)
 {
   // compute d(Psi)/d(Iso)
   #pragma unused(is)
-//  double qnt = pow(fabs(gamdot)/fMatProp[1], fMatProp[0]-1.);
-  double qnt = Power(fabs(gamdot)/fMatProp[1], fMatProp[0]-1.);
+  double qnt = pow(fabs(gamdot)/fMatProp[1], fMatProp[0]-1.);
   return  gamdot/fMatProp[1]*qnt;
 }
 
@@ -106,6 +103,5 @@ void PowerLawIIKinetics::PrintName(ostream& out) const
 double PowerLawIIKinetics::ComputeInternalQnts(double& tau, double tauIso, int is)
 {
   tau = tau - fHard.KinHardeningStress(is);
-//  return  pow(fabs(tau)/tauIso, 1./fMatProp[0]-1.);
-  return  Power(fabs(tau)/tauIso, 1./fMatProp[0]-1.);
+  return  pow(fabs(tau)/tauIso, 1./fMatProp[0]-1.);
 }

@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.3 2002-04-16 16:35:59 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.2 2001-07-03 01:34:51 paklein Exp $ */
 
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
@@ -38,9 +38,6 @@ class SmallStrainT: public ElasticT
 	/** construct list of materials from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);
 
-	/** initialize local field arrays. Allocate B-bar workspace if needed. */
-	virtual void SetLocalArrays(void);
-
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);
   	           
@@ -59,11 +56,8 @@ class SmallStrainT: public ElasticT
   	ArrayT<dSymMatrixT> fStrain_List;
   	ArrayT<dSymMatrixT> fStrain_last_List;
   	
-  	/** \name work space */
-  	/*@{*/
+  	/** work space */
   	dMatrixT fGradU;
-  	dArrayT  fLocDispTranspose; /**< used for B-bar method */
-  	/*@}*/
 };
 
 /* inlines */

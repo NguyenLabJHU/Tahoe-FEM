@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.h,v 1.5 2002-04-16 16:32:49 paklein Exp $ */
+/* $Id: dSymMatrixT.h,v 1.4 2002-02-18 08:48:41 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _DSYM_MATRIX_T_H_
@@ -130,9 +130,6 @@ public:
 	/* symmetric rank-(2-4-2) contraction with this */
 	double B_ij_A_ijkl_B_kl(const dMatrixT& A) const;
 
-	/** scale off-diagonal value by the given factor */
-	void ScaleOffDiagonal(double factor);
-
 private:
 
 	/* iterative eigensystem routines */
@@ -184,17 +181,5 @@ inline int dSymMatrixT::Rows(void) const { return fNumSD; }
 inline int dSymMatrixT::Cols(void) const { return fNumSD; }
 inline dSymMatrixT& dSymMatrixT::Deviatoric(void) { return Deviatoric(*this); }
 inline dSymMatrixT& dSymMatrixT::Inverse(void) { return Inverse(*this); }
-
-/* scale off-diagonal value by the given factor */
-inline void dSymMatrixT::ScaleOffDiagonal(double factor)
-{
-	if (fNumSD == 2)
-		fArray[2] *= factor;
-	else if (fNumSD == 3) {
-		fArray[3] *= factor;
-		fArray[4] *= factor;	
-		fArray[5] *= factor;	
-	}
-}
 
 #endif /* _DSYM_MATRIX_T_H_ */

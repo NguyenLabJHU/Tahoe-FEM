@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.16 2002-04-19 17:18:43 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.12 2002-02-27 16:47:14 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleT.h"
@@ -21,15 +21,13 @@
 const bool ArrayT<iConsoleT::CommandScope>::fByteCopy = true;
 
 /* constructor */
-iConsoleT::iConsoleT(const StringT& log_file, iConsoleObjectT& current,
-	const ArrayT<StringT>* arguments):
+iConsoleT::iConsoleT(const StringT& log_file, iConsoleObjectT& current):
 	flog(log_file, true),
 	fmax_recursion_depth(25),
 	fhistory_size(10),
 	fCurrent(NULL),
 	fInputStack(0),
 	fHistory(fhistory_size + 1, 0), /* shift size by 1 */
-	fHistoryCount(0),
 	
 	/* dictionary */
 	fWord(20),
@@ -41,8 +39,9 @@ iConsoleT::iConsoleT(const StringT& log_file, iConsoleObjectT& current,
 {
 	/* check log file is open */
 	if (!flog.is_open()) {
-		cout << "\n iConsoleT::iConsoleT: unable to open log file: \"" << log_file << "\"\n"
-		     <<   "     will not log commands\n" << endl;
+		cout << "\n iConsoleT::iConsoleT: unable to open log file: \"" << log_file 
+		     << '\"' << endl;
+		throw eGeneralFail;
 	}
 
 	/* set commands */
@@ -66,11 +65,7 @@ iConsoleT::iConsoleT(const StringT& log_file, iConsoleObjectT& current,
 	CommandSpecT read_command("read");
 	ArgSpecT read_file(ArgSpecT::string_);
 	read_file.SetPrompt("command file name");
-	ArgSpecT stop_on_error(ArgSpecT::bool_);
-	stop_on_error.SetPrompt("terminate read on error");
-	stop_on_error.SetDefault(true);
 	read_command.AddArgument(read_file);
-	read_command.AddArgument(stop_on_error);
 	iAddCommand(read_command);
 
 	CommandSpecT alias_command("alias");
@@ -78,8 +73,8 @@ iConsoleT::iConsoleT(const StringT& log_file, iConsoleObjectT& current,
 	alias_name.SetPrompt("alias name");
 	alias_command.AddArgument(alias_name);
 	ArgSpecT alias_target(ArgSpecT::string_);
-	alias_target.SetPrompt("target of alias, <DELETE> to remove");
-	alias_target.SetDefault("<ShowMe>");
+	alias_target.SetPrompt("target of alias");
+	alias_target.SetDefault("");
 	alias_command.AddArgument(alias_target);	
 	iAddCommand(alias_command);
 
@@ -88,20 +83,6 @@ iConsoleT::iConsoleT(const StringT& log_file, iConsoleObjectT& current,
 	arg.SetDefault("all");
 	help_command.AddArgument(arg);
 	iAddCommand(help_command);
-
-	CommandSpecT wait_command("wait");
-	ArgSpecT delay(ArgSpecT::double_);
-	delay.SetDefault(0.0);
-	delay.SetPrompt("pause length in seconds");
-	wait_command.AddArgument(delay);
-	iAddCommand(wait_command);
-	
-	CommandSpecT echo_command("echo");
-	ArgSpecT mesg(ArgSpecT::string_);
-	mesg.SetDefault(" ");
-	mesg.SetPrompt("message to echo to standard out");
-	echo_command.AddArgument(mesg);
-	iAddCommand(echo_command);
 
 	/* set variables */
 	iAddVariable("max_recursion_depth", fmax_recursion_depth);
@@ -133,18 +114,6 @@ iConsoleT::iConsoleT(const StringT& log_file, iConsoleObjectT& current,
 	
 	/* clear history */
 	fHistory = NULL;
-	
-	/* pull read command line arguments */
-	StringT command_line;
-	if (arguments) {
-		for (int i = arguments->Length() - 2;  i > -1; i--)
-			if ((*arguments)[i] == "-r")
-			{
-				StringT command;
-				command.Append("read ", (*arguments)[i+1], ";");	
-				fDanglingInput.Append(command);
-			}
-	}
 	
 	/* run */
 	DoInteractive();
@@ -280,8 +249,7 @@ bool iConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 	{
 		StringT file_name;
 		command.Argument(0).GetValue(file_name);
-		command.Argument(1).GetValue(fstop_read_on_error);		
-
+	
 		ifstreamT* new_stream = new ifstreamT('#');
 		new_stream->open(file_name);
 		if (new_stream->is_open())
@@ -314,8 +282,10 @@ bool iConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 		command.Argument(0).GetValue(alias);
 		command.Argument(1).GetValue(target);
 		
-		/* show/create/delete alias */
-		if (target == "<ShowMe>")
+		/* trying to create new alias */
+		if (target.StringLength() > 0)
+			return MakeAlias(alias, target);
+		else
 		{
 			int index = fAlias.PositionOf(alias);
 			if (index == -1)
@@ -324,34 +294,13 @@ bool iConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 				cout << alias << " -> \"'" << fAliasCommand[index] << '\"' << endl;
 			return true;
 		}
-		else return MakeAlias(alias, target);
 	}
 	else if (command.Name() == "history")
 	{
 		for (int i = fHistory.Length() - 2; i > -1; i--)
 			if (fHistory[i] != NULL)
-				cout << setw(5) << fHistoryCount-i << ": " << *(fHistory[i]) << '\n';
+				cout << setw(5) << i << ": " << *(fHistory[i]) << '\n';
 		cout.flush();
-		return true;
-	}
-	else if (command.Name() == "wait")
-	{
-		double delay;
-		command.Argument(0).GetValue(delay);
-		delay = (delay < 0.0) ? 0.0 : delay;
-		
-		/* time delay */
-		clock_t start_time;
-		start_time = clock();
-		while((clock() - start_time) < delay * CLOCKS_PER_SEC) { }
-
-		return true;
-	}
-	else if (command.Name() == "echo")
-	{
-		StringT message;
-		command.Argument(0).GetValue(message);
-		cout << " " << message << endl;
 		return true;
 	}
 	else
@@ -403,11 +352,9 @@ void iConsoleT::DoInteractive(void)
 	flog << "\n###################################################\n"
 	     << "# open: " << ctime(&the_time)
 	     << "###################################################\n";
-
-	/* strings that act as command stacks */
+	
 	StringT line, log_line;
-
-	/* run interactive */
+	GetCommandLine(line);
 	bool end = false;
 	bool line_OK = true;
 	bool do_log = false;
@@ -442,58 +389,30 @@ void iConsoleT::DoInteractive(void)
 				int count;
 				first.FirstWord(line, count, false);
 				
-				/* find by name */
 				if (first.StringLength() > 0)
 				{
 					line.Drop(count);
-
-					/* find by index */
-					if (isdigit(first[0]))
-					{
 #ifdef _MSC_VER
-						istrstream s((char*) first);
+					istrstream s((char*) first);
 #else
-						istrstream s((const char*) first);
+					istrstream s((const char*) first);
 #endif
-						int dex = -99199;
-						s >> dex;
-						dex = fHistoryCount - dex;
-						if (dex < 0 || dex >= fHistory.Length() - 1)
-						{
-							cout << "out of range: " << dex << endl;
-							line_OK = false;	
-						}
-						else
-						{
-							StringT* command = fHistory[dex];
-							if (command != NULL)
-								line.Prepend(*command, " ");
-							line_OK = true;
-						}
-					}
-					else /* find by name */
+					int dex = -99199;
+					s >> dex;
+					if (dex < 0 || dex >= fHistory.Length() - 1)
 					{
-						StringT* command = NULL;
-						int hint_length = first.StringLength();
-						for (int i = 0; !command && i < fHistory.Length(); i++)
+						cout << "out of range" << endl;
+						line_OK = false;	
+					}
+					else
+					{
+						StringT* command = fHistory[dex + 1];
+						if (command != NULL)
 						{
-							StringT* test = fHistory[i];
-							if (test != NULL) {
-								int test_length = test->StringLength();
-								int n = (hint_length < test_length) ? hint_length : test_length;
-								if (strncmp(first, *test, n) == 0)  command = test;
-							}
-						}
-						
-						/* match */
-						if (command) {
 							line.Prepend(*command, " ");
-							line_OK = true;
+							//PushHistory(line); don't include re-runs in history
 						}
-						else {
-							cout << "no match in history: \"" << first << '\"' << endl;
-							line_OK = false;
-						}
+						line_OK = true;
 					}
 				}
 				else
@@ -501,14 +420,10 @@ void iConsoleT::DoInteractive(void)
 			}
 			else if (line[0] == ':') /* scope change vs command */
 			{
-				/* look for separator */
-				StringT command_line;
-				NextCommand(line, command_line);
-			
 				/* take scope specifier */
 				int count;
 				StringT scope_line;
-				scope_line.FirstWord(command_line, count, false);
+				scope_line.FirstWord(line, count, false);
 				line.Drop(count);
 			
 				/* try scope change */
@@ -520,7 +435,7 @@ void iConsoleT::DoInteractive(void)
 					SetScope(*scope);
 				
 					/* log (but not if read from external) */
-					if (do_log) flog << ':' << fScope << '\n';
+					if (do_log) flog << fScope << '\n';
 				}
 				else
 					line_OK = false;
@@ -540,24 +455,20 @@ void iConsoleT::DoInteractive(void)
 						{
 							/* fetch command specification */
 							const CommandSpecT* command_spec = iResolveCommand(command_name, line);
-							if (!command_spec) {
-								cout << "missing reply (y/n)" << endl;
-								line_OK = false;
-							} else {
-								/* verify */
-								StringT confirm;
-								command_spec->Argument(0).GetValue(confirm);
-								if (confirm[0] == 'y')
-									end = true;
-							}
+							
+							/* verify */
+							StringT confirm;
+							command_spec->Argument(0).GetValue(confirm);
+							if (confirm[0] == 'y')
+								end = true;
 						}
 						else
 						{
 							/* look for separator */
 							StringT command_line;
-							NextCommand(line, command_line);
+							command_line.Root(line, ';');
 							line.Drop(command_line.StringLength());
-
+						
 							/* fetch command specification */
 							const CommandSpecT* command_spec = iResolveCommand(command_name, command_line);
 
@@ -683,7 +594,7 @@ void iConsoleT::GetCommandLine(StringT& line)
 	bool done = false;
 	while (!done)
 	{
-		if (fInputStack.Length() == 0 && fDanglingInput.Length() == 0)
+		if (fInputStack.Length() == 0)
 		{
 			/* prompt */
 			cout << fCurrent->iName();
@@ -704,27 +615,21 @@ void iConsoleT::GetCommandLine(StringT& line)
 		}
 		else
 		{
-			/* try read from stream */
-			if (fInputStack.Length() > 0)
+			ifstreamT* in = fInputStack.Last();
+			if (in->good())
 			{
-				ifstreamT* in = fInputStack.Last();
-				if (in->good())
-				{
-					line.GetLineFromStream(*in);
-					done = true;
-				}
-				else
-				{
-					cout << "closing stream: \"" << in->filename()  << "\"" << endl;
-					
-					/* free stream */
-					delete in;
-					in = NULL;
-					fInputStack.DeleteAt(fInputStack.Length() - 1);
-				}	
+				line.GetLineFromStream(*in);
+				done = true;
 			}
-			else /* grab from dangling input */
+			else
 			{
+				cout << "closing stream: \"" << in->filename()  << "\"" << endl;
+				
+				/* free stream */
+				delete in;
+				in = NULL;
+				fInputStack.DeleteAt(fInputStack.Length() - 1);
+				
 				/* restore rest of line */
 				line = fDanglingInput.Last();
 				fDanglingInput.DeleteAt(fDanglingInput.Length() - 1);
@@ -855,22 +760,9 @@ iConsoleObjectT* iConsoleT::GetScope(iConsoleObjectT& start,
 		/* no match */
 		else
 		{
-			/* try root */
-			iConsoleObjectT* scope = &start;
-			while (scope->iSuper() != NULL)
-				scope = scope->iSuper();
-			if (strncmp(line, scope->iName(), length) == 0)
-			{
-				line.Drop(length);
-				line.Prepend(":root");
-				return GetScope(start, line);
-			}
-			else /* failed to find any matches */ 
-			{
-				cout << "could not resolve scope: \""
-				     << line << "\"" << endl;
-				return NULL;
-			}
+			cout << "could not resolve scope: \""
+			     << line << "\"" << endl;
+			return NULL;
 		}
 	}
 }
@@ -1105,28 +997,22 @@ void iConsoleT::FlushInput(StringT& line)
 	line.Drop(strlen(line));
 
 	/* flush input streams */
-	if (fstop_read_on_error) {
-		for (int i = 0; i < fInputStack.Length(); i++)
-		{
-			cout << "closing stream: \"" << fInputStack[i]->filename()  << "\"" << endl;
-			delete fInputStack[i];
-			fInputStack[i] = NULL;
-		}
-		fInputStack.Allocate(0);
-		fDanglingInput.Allocate(0);
+	for (int i = 0; i < fInputStack.Length(); i++)
+	{
+		cout << "closing stream: \"" << fInputStack[i]->filename()  << "\"" << endl;
+		delete fInputStack[i];
+		fInputStack[i] = NULL;
 	}
+	fInputStack.Allocate(0);
+	fDanglingInput.Allocate(0);
 }
 
 /* make an alias - returns false on fail */
 bool iConsoleT::MakeAlias(const StringT& alias, StringT& line)
 {				
 	/* remove alias */
-	if (line == "<DELETE>")
+	if (strlen(line) == 0)
 	{
-		/* clear line */
-		line.Drop(strlen(line));
-	
-		/* find alias */
 		int index = fAlias.PositionOf(alias);
 		if (index == -1) throw eGeneralFail;
 		
@@ -1166,8 +1052,7 @@ void iConsoleT::PushHistory(const StringT& line)
 {
 	if (fHistory.Length() == 0)
 		return;
-	else if (fHistory[0] == NULL || /* history is empty */
-	     (*(fHistory[0]) != line && line[0] != '!')) /* no repeats, no '!' commands */
+	else if (fHistory[0] == NULL || *(fHistory[0]) != line)
 	{
 		/* free tail */
 		StringT** last = &(fHistory.Last());
@@ -1184,9 +1069,6 @@ void iConsoleT::PushHistory(const StringT& line)
 		StringT* new_line = new StringT(line);
 		new_line->DropTrailingSpace();
 		fHistory.Push(new_line);
-		
-		/* increment count */
-		fHistoryCount++;
 	}
 }
 
@@ -1203,9 +1085,6 @@ void iConsoleT::PopHistory(void)
 
 		/* fill end */
 		fHistory.Append(NULL);
-
-		/* increment count */
-		fHistoryCount--;
 	}
 }
 
@@ -1216,35 +1095,4 @@ void iConsoleT::TopHistory(StringT& line)
 	else if (fHistory[0] != NULL)
 		line = *(fHistory[0]);
 
-}
-
-/* pull the next command from the line */
-void iConsoleT::NextCommand(const StringT& source, StringT& next) const
-{
-	const char* a = source;
-	int len = source.StringLength();
-	bool cut = false, in_quote = false;
-	int dex = -1;
-	while (dex < len && !cut) {
-
-		/* next */
-		dex++;
-	
-		if (in_quote) {
-			if (a[dex] == '"')
-				in_quote = false;
-		}
-		else if (a[dex] == '"')
-			in_quote = true;
-		else if (a[dex] == ';')
-			cut = true;
-	}
-	
-	/* copy */
-	if (cut)
-		next.Take(source, dex);
-	else if (dex > 0)
-		next = source;
-	else
-		next.Clear();
 }

@@ -1,15 +1,15 @@
-/* $Id: nTrapezoid.h,v 1.3 2002-04-02 23:19:25 paklein Exp $ */
+/* $Id: nTrapezoid.h,v 1.2 2001-08-27 17:12:17 paklein Exp $ */
 /* created: paklein (10/03/1999) */
 
 #ifndef _N_TRAPEZOID_H_
 #define _N_TRAPEZOID_H_
 
 /* base class */
-#include "Trapezoid.h"
+#include "ControllerT.h"
 #include "nControllerT.h"
 
 /** trapezoidal integration for first order systems */
-class nTrapezoid: public virtual Trapezoid, public nControllerT
+class nTrapezoid: public virtual ControllerT, public nControllerT
 {
 public:
 

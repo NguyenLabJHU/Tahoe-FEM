@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.cpp,v 1.5 2002-04-10 16:48:24 paklein Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.4 2002-01-27 18:51:11 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #include "KBC_ControllerT.h"
@@ -33,6 +33,11 @@ void KBC_ControllerT::WriteRestart(ostream& out) const
 {
 #pragma unused(out)
 }
+
+/* initialize/finalize step */
+void KBC_ControllerT::InitStep(void) { }
+void KBC_ControllerT::CloseStep(void) { }
+void KBC_ControllerT::Reset(void) { }
 
 /* returns true if the internal force has been changed since
 * the last time step */

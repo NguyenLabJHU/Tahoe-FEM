@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.h,v 1.7 2002-04-16 21:19:33 cjkimme Exp $ */
+/* $Id: Tijssens2DT.h,v 1.6 2002-02-18 19:09:43 cjkimme Exp $ */
 
 #ifndef _TIJSSENS_2D_T_H_
 #define _TIJSSENS_2D_T_H_
@@ -35,10 +35,10 @@ public:
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma);
+	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state);
 
 	/** tangent stiffness */
-	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);
+	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state);
 
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump_u, const ArrayT<double>& state);
@@ -65,8 +65,8 @@ public:
 	/** For Tijssens2DT, returns true to compute nodal tractions. */
 	virtual bool NeedsNodalInfo(void);
 	virtual int NodalQuantityNeeded(void);
-	//        virtual double ComputeNodalValue(const dArrayT &);
-	//	virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
+        virtual double ComputeNodalValue(const dArrayT &);
+	virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
 	virtual int ElementGroupNeeded(void);
 
 protected:

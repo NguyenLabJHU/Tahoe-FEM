@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.cpp,v 1.12 2002-04-17 23:51:55 paklein Exp $ */
+/* $Id: FE_ASCIIT.cpp,v 1.11 2002-03-11 16:24:53 sawimme Exp $ */
 /* created: sawimme (05/20/1999) */
 
 #include "FE_ASCIIT.h"
@@ -221,7 +221,15 @@ void FE_ASCIIT::InitResultsFile(ostream& out, int ID)
 		int count = 0;
 		const ArrayT<StringT>& n_labels = set.NodeOutputLabels();
 		for (int i = 0; i < n_labels.Length(); i++)
-			out << '\t' << n_labels[i] << '\n';
+		{
+			/* wrap */
+			if (count++ == 5) {
+				out << '\n';
+				count = 0;
+			}
+			out << setw(10) << n_labels[i];
+		}
+		out << '\n';
 	}
 	out << " Number of element values. . . . . . . . . . . . = "
 	    << set.NumElementValues() << '\n';
@@ -231,7 +239,15 @@ void FE_ASCIIT::InitResultsFile(ostream& out, int ID)
 		int count = 0;
 		const ArrayT<StringT>& e_labels = set.ElementOutputLabels();
 		for (int i = 0; i < e_labels.Length(); i++)
-			out << '\t' << e_labels[i] << '\n';
+		{
+			/* wrap */
+			if (count++ == 5) {
+				out << '\n';
+				count = 0;
+			}
+			out << setw(10) << e_labels[i];
+		}
+		out << '\n';
 	}
 	out << " Number of blocks. . . . . . . . . . . . . . . . = "
 	    << set.NumBlocks() << '\n';

@@ -1,4 +1,4 @@
-/* $Id: InputFEASCIIT.cpp,v 1.15 2002-04-07 19:13:27 paklein Exp $ */
+/* $Id: InputFEASCIIT.cpp,v 1.14 2002-03-06 08:21:05 paklein Exp $ */
 
 #include "InputFEASCIIT.h"
 
@@ -242,18 +242,13 @@ void InputFEASCIIT::ReadGlobalElementMap (const StringT& name, iArrayT& elemmap)
   if (!AdvanceToBlock (geo, name, "Connectivities") ||
       !geo.FindString ("Number of elements", s) ||
       !s.Tail ('=', numelms)) throw eDatabaseFail;
+
   if (elemmap.Length() != numelms) throw eSizeMismatch;
 
-	/* advance to the start of the connectivity block */
-	if (!geo.FindString("index", s)) throw eDatabaseFail;
-	
-	/* read map */
-	elemmap = 0;
-	for (int i=0; i < numelms; i++)
-	{
-		int index;
-		geo >> index >> elemmap[i];
-		geo.getline (line, 254);
+  for (int i=0; i < numelms; i++)
+    {
+      geo >> elemmap[i];
+      geo.getline (line, 254);
     }
 }
 

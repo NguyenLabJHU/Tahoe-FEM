@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.4 2002-04-02 23:27:27 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.3 2002-01-06 06:58:46 cbhovey Exp $ */
 /* created: paklein (08/19/1999)                                          */
 
 #include "PCGSolver_LS.h"
@@ -128,7 +128,7 @@ void PCGSolver_LS::CGSearch(void)
 	if (fmod(double(fNumIteration), fRestart) < kSmall)
 	{
 		fR_last = fRHS;
-		if (!fLHS->Solve(fRHS)) throw eBadJacobianDet;
+		fLHS->Solve(fRHS);
 		fu_last = fRHS;
 		
 		/* reform preconditioner */
@@ -150,10 +150,10 @@ void PCGSolver_LS::CGSearch(void)
 //		              InnerProduct(fR_last, fR_last);
 
 		/* with scaling matrix Bertsekas (6.32) */
-		if (!fLHS->Solve(fdiff_R)) throw eBadJacobianDet; /* apply scaling */
+		fLHS->Solve(fdiff_R);  /* apply scaling */
 		double beta = InnerProduct(fRHS, fdiff_R);
 		fdiff_R = fR_last;     /* copy */
-		if (!fLHS->Solve(fdiff_R)) throw eBadJacobianDet; /* apply scaling */
+		fLHS->Solve(fdiff_R);  /* apply scaling */
 		beta /= InnerProduct(fR_last, fdiff_R);
 		
 		/* limit beta */
@@ -161,7 +161,7 @@ void PCGSolver_LS::CGSearch(void)
 		
 		/* compute new update (in last update) */
 		fR_last = fRHS;
-		if (!fLHS->Solve(fRHS)) throw eBadJacobianDet; /* apply preconditioner */
+		fLHS->Solve(fRHS); /* apply preconditioner */
 		fRHS.AddScaled(beta, fu_last);
 		fu_last = fRHS;
 

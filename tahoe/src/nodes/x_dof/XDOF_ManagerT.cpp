@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.cpp,v 1.8 2002-04-05 22:15:47 rjones Exp $ */
+/* $Id: XDOF_ManagerT.cpp,v 1.7 2001-09-10 23:26:19 rjones Exp $ */
 /* created: paklein (06/01/1998) */
 /* base class which defines the interface for a manager */
 /* of DOF's comprised of FE DOF's plus constrain DOF's */
@@ -95,8 +95,6 @@ bool XDOF_ManagerT::ResetTags(void)
 	{
 		/* query (all) groups to reconfigure */
 		int relax = 0;
-		/* loop over groups */
-		int index = 0;
 		for (int j = 0; j < fDOFElements.Length(); j++)
 		{
 			if (fDOFElements[j]->Reconfigure() == 1)
@@ -123,9 +121,7 @@ bool XDOF_ManagerT::ResetTags(void)
 				ConfigureElementGroup(i, fNumTags);
 				
 				/* restore values */
-				/* loop over tag sets */
-				for (int j = 0; j < fNumTagSets[i]; j++)
-					fDOFElements[i]->ResetDOF(*fXDOFs[index++], j);
+				fDOFElements[i]->ResetDOF(*fXDOFs[i], 0);
 			}
 			return true;
 		}

@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.h,v 1.7 2002-04-02 23:38:44 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.h,v 1.6 2002-03-28 16:42:46 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #ifndef _SPOOLES_MATRIX_T_H_
@@ -34,9 +34,6 @@ public:
 	
 	/* destructor */
 	virtual ~SPOOLESMatrixT(void);
-
-	/** SPOOLESMatrixT::Solve does preserve the data in the matrix */
-	virtual bool SolvePreservesData(void) const { return true; };	  
 
 	/* set the internal matrix structure.
 	 * NOTE: do not call Initialize() equation topology has been set

@@ -1,5 +1,5 @@
-/* $Id: SolidElementT.h,v 1.8 2002-04-02 23:32:59 paklein Exp $ */
-/* created: paklein (05/28/1996) */
+/* $Id: SolidElementT.h,v 1.7 2001-07-17 00:12:52 paklein Exp $ */
+/* created: paklein (05/28/1996)                                          */
 
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
@@ -70,7 +70,7 @@ public:
 
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
-
+	
 protected:
 
 	/** construct list of materials from the input stream */
@@ -100,6 +100,28 @@ protected:
 	
 	/* form the element stiffness matrix */
 	virtual void FormStiffness(double constK);
+	
+//DEV - Rayleigh damping should be added to the constitutive level
+#if 0
+	/* compute the effective acceleration and velocities based
+	 * on the algorithmic flags formXx and the given constants
+	 * constXx.
+	 *
+	 *		acc_eff  = constMa acc  + constCv a vel
+	 *      vel_eff  = 0
+	 *      disp_eff = constKd disp + constCv b vel
+	 *
+	 * where a and b are the Rayleigh damping coefficients.  No
+	 * effective velocity since it's accounted for in the effective
+	 * a and d.
+	 *
+	 * Note: In the process, the function collects the required
+	 *       local arrays.
+	 */
+	virtual void ComputeEffectiveDVA(int formBody,
+		int formMa, double constMa, int formCv, double constCv,
+		int formKd, double constKd);
+#endif
 
 	/* body force */
 	void FormRayleighMassDamping(double constM);
@@ -149,9 +171,9 @@ protected:
 	ArrayT<ArrayT<bool> > fMaterialNeeds;
 
 	/* work space */
-	dMatrixT    fD;      /**< constitutive matrix        */
-	dMatrixT    fB;      /**< strain-displacement matrix */
-	dSymMatrixT fStress; /**< stress vector              */	
+	dMatrixT    fD;      /* constitutive matrix        */
+	dMatrixT    fB;      /* strain-displacement matrix */
+	dSymMatrixT fStress; /* stress vector              */	
 
 	/* parameters */
 	static const int NumNodalOutputCodes;

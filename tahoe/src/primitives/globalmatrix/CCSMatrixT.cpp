@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.10 2002-04-10 01:11:24 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.8 2002-03-28 16:42:44 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 
 #include "CCSMatrixT.h"
@@ -233,11 +233,8 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_e
 	/* element matrix format */
 	ElementMatrixT::FormatT format = elMat.Format();
 
-	if (format == ElementMatrixT::kNonSymmetric) 
-	{
-		cout << "\n CCSMatrixT::Assemble(m, r, c): element matrix is not symmetric" << endl;
-		throw eGeneralFail;	
-	}
+	if (format == ElementMatrixT::kNonSymmetric)
+		throw eGeneralFail;
 	else if (format == ElementMatrixT::kDiagonal)
 	{
 		cout << "\n CCSMatrixT::Assemble(m, r, c): cannot assemble diagonal matrix" << endl;
@@ -305,6 +302,64 @@ double CCSMatrixT::AbsRowSum(int rownum) const
 	
 	return rowsum;
 }
+	
+/* multiply the matrix with d and return the result in Kd.
+* Note: do not call if the matrix is already factorized */
+void CCSMatrixT::MultKd(const dArrayT& d, dArrayT& Kd) const
+{
+	/* consistency check */
+	if (fIsFactorized) throw eGeneralFail;
+
+	/* dimension checks */
+	if ( d.Length() != Kd.Length() ||
+	     d.Length() != fLocNumEQ ) throw eGeneralFail;
+
+	Kd = 0.0;
+	
+	/* diagonal */
+	for (int j = 0; j < fLocNumEQ; j++)
+		Kd[j] += d[j]*fMatrix[ fDiags[j] ];
+		
+	/* upper triangle */
+	int dexd = 1;
+	for (int i = 1; i < fLocNumEQ; i++)
+	{
+		int height = fDiags[i] - fDiags[i-1] - 1;
+		
+		if (height > 0)
+		{
+			int dexK = fDiags[i] - height;
+			int eqK  = i - height;
+			
+			while (eqK < i)
+			{
+				Kd[eqK] += d[dexd]*fMatrix[dexK];
+				dexK++;
+				eqK++;
+			}
+		}
+		dexd++;
+	}
+			
+	/* lower triangle */		
+	for (int eqK = 1; eqK < fLocNumEQ; eqK++)
+	{
+		int height = fDiags[eqK] - fDiags[eqK-1] - 1;
+		
+		if (height > 0)
+		{
+			int dexK = fDiags[eqK] - height;
+			int dexd = eqK - height;
+			
+			while (dexd < eqK)
+			{
+				Kd[eqK] += d[dexd]*fMatrix[dexK];
+				dexK++;
+				dexd++;
+			}
+		}
+	}
+}									
 
 /* return the value of p_i K_ij p_j */
 double CCSMatrixT::pTKp(const dArrayT& p) const
@@ -331,7 +386,7 @@ double CCSMatrixT::pTKp(const dArrayT& p) const
 	else /* not factorized */
 	{
 		dArrayT Kp(fLocNumEQ);
-		Multx(p, Kp);
+		MultKd(p, Kp);
 		return dArrayT::Dot(Kp,p);
 	}
 }
@@ -354,11 +409,6 @@ int CCSMatrixT::HasNegativePivot(void) const
 /* assignment operator */
 GlobalMatrixT& CCSMatrixT::operator=(const CCSMatrixT& RHS)
 {
-/* NOTE: when called by the copy constructor, GlobalMatrixT::operator=
- *       will be called before entering this subroutine; hence the
- *       inherited data will already be copied. This is my a more
- *       complicated test is needed to synch the memory below. */
-
 	/* no copies of self */
 	if (this != &RHS)
 	{
@@ -367,7 +417,7 @@ GlobalMatrixT& CCSMatrixT::operator=(const CCSMatrixT& RHS)
 		fRaggedEqnos = RHS.fRaggedEqnos;
 	
 		/* sync memory */
-		if (!fDiags || fLocNumEQ != RHS.fLocNumEQ)
+		if (fLocNumEQ != RHS.fLocNumEQ)
 		{
 			/* free existing */
 			delete[] fDiags;
@@ -382,7 +432,7 @@ GlobalMatrixT& CCSMatrixT::operator=(const CCSMatrixT& RHS)
 		memcpy(fDiags, RHS.fDiags, sizeof(int)*fLocNumEQ);	
 	
 		/* sync memory */
-		if (!fMatrix || fNumberOfTerms != RHS.fNumberOfTerms)
+		if (fNumberOfTerms != RHS.fNumberOfTerms)
 		{
 			/* free existing */
 			delete[] fMatrix;
@@ -753,86 +803,6 @@ if (fCheckCode != GlobalMatrixT::kPrintLHS) return;
 //az_out.setf(ios::right, ios::adjustfield);
 //az_out.setf(ios::scientific, ios::floatfield);
 //WriteAztecFormat(az_out);
-}
-
-
-/* matrix-vector product */
-bool CCSMatrixT::Multx(const dArrayT& d, dArrayT& Kd) const
-{
-	/* consistency check */
-	if (fIsFactorized) return false;
-
-	/* dimension checks */
-	if ( d.Length() != Kd.Length() ||
-	     d.Length() != fLocNumEQ ) throw eGeneralFail;
-
-	Kd = 0.0;
-	
-	/* diagonal */
-	for (int j = 0; j < fLocNumEQ; j++)
-		Kd[j] += d[j]*fMatrix[ fDiags[j] ];
-		
-	/* upper triangle */
-	int dexd = 1;
-	for (int i = 1; i < fLocNumEQ; i++)
-	{
-		int height = fDiags[i] - fDiags[i-1] - 1;
-		
-		if (height > 0)
-		{
-			int dexK = fDiags[i] - height;
-			int eqK  = i - height;
-			
-			while (eqK < i)
-			{
-				Kd[eqK] += d[dexd]*fMatrix[dexK];
-				dexK++;
-				eqK++;
-			}
-		}
-		dexd++;
-	}
-			
-	/* lower triangle */		
-	for (int eqK = 1; eqK < fLocNumEQ; eqK++)
-	{
-		int height = fDiags[eqK] - fDiags[eqK-1] - 1;
-		
-		if (height > 0)
-		{
-			int dexK = fDiags[eqK] - height;
-			int dexd = eqK - height;
-			
-			while (dexd < eqK)
-			{
-				Kd[eqK] += d[dexd]*fMatrix[dexK];
-				dexK++;
-				dexd++;
-			}
-		}
-	}
-	
-	/* OK */
-	return true;
-}									
-
-/* return the values along the diagonal of the matrix */
-bool CCSMatrixT::CopyDiagonal(dArrayT& diags) const
-{
-	/* cannot be factorized */
-	if (fIsFactorized)
-		return false;
-	else
-	{
-		/* dimension */
-		diags.Dimension(fLocNumEQ);
-
-		/* collect */
-		for (int j = 0; j < fLocNumEQ; j++)
-			diags[j] = fMatrix[fDiags[j]];
-	
-		return true;		
-	}
 }
 
 /**************************************************************************

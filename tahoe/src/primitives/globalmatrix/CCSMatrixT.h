@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.h,v 1.6 2002-04-02 23:38:43 paklein Exp $ */
+/* $Id: CCSMatrixT.h,v 1.5 2002-03-28 16:42:45 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 /* This is the interface for a Symmetric matrix stored in                 */
 /* Compact Column form.                                                   */
@@ -64,6 +64,10 @@ public:
 	/* compute the sum of the elements on the prescribed row/col,
 	 * where rownum = 0...fNumEQ-1 */
 	double AbsRowSum(int rownum) const;
+	
+	/* multiply the matrix with d and return the result in Kd.
+	 * Note: do not call if the matrix is already factorized */
+	void MultKd(const dArrayT& d, dArrayT& Kd) const;
 
 	/* return the value of p_i K_ij p_j */
 	double pTKp(const dArrayT& p) const;
@@ -92,28 +96,6 @@ public:
 	
 	/** return a clone of self. Caller is responsible for disposing of the matrix */
 	virtual GlobalMatrixT* Clone(void) const;
-
-	/** matrix-vector product. Works only if called before the matrix has been
-	 * factorized. 
-	 * \param x vector to use for calculating the product
-	 * \param b destination for the result 
-	 * \return true if the product was calculated successful */
-	virtual bool Multx(const dArrayT& x, dArrayT& b) const;
-
-	/** Tranpose[matrix]-vector product. Works only if called before the matrix 
-	 * has been factorized. 
-	 * \param x vector to use for calculating the product
-	 * \param b destination for the result
-	 * \return true if the product was calculated successful */
-	virtual bool MultTx(const dArrayT& x, dArrayT& b) const;
-
-	/** return the values along the diagonal of the matrix. Derived classes
-	 * must reimplement this function to extrat the diagonals from the
-	 * matrix-specific storage schemes.
-	 * \param diags returns with the diagonals of the matrix if the function
-	 *        is supported. Otherwise is left unchanged.
-	 * \return true if the diagonal values where collected successfully */
-	virtual bool CopyDiagonal(dArrayT& diags) const;
 
 protected:
 
@@ -171,12 +153,6 @@ inline int CCSMatrixT::ColumnHeight(int col) const
 #endif
 
 	return ( (col > 0) ? (fDiags[col] - fDiags[col-1] - 1) : 0);
-}
-
-/* Tranpose[matrix]-vector product */
-inline bool CCSMatrixT::MultTx(const dArrayT& x, dArrayT& b) const
-{
-	return CCSMatrixT::Multx(x, b);
 }
 
 #endif /* _CCSMATRIX_T_H_ */

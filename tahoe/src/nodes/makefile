@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2002-04-21 07:13:33 paklein Exp $
+# $Id: makefile,v 1.6 2001-12-17 00:09:17 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,7 +6,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	FieldT.o \
 	DuNodeManager.o \
 	DynNodeManager.o \
 	FDDynNodeManagerT.o \
@@ -21,7 +20,6 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	FieldT.cpp \
 	DuNodeManager.cpp \
 	DynNodeManager.cpp \
 	FDDynNodeManagerT.cpp \
@@ -31,7 +29,6 @@ SRC = \
 
 # headers
 HDR = \
-	FieldT.h \
 	DuNodeManager.h \
 	DynNodeManager.h \
 	FDDynNodeManagerT.h \

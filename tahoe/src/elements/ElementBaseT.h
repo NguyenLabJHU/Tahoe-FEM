@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.8 2002-04-17 23:55:55 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.7 2002-01-27 18:51:01 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -84,9 +84,6 @@ public:
 
 	/** form of tangent matrix, symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const = 0;
-
-	/** the iteration number for the current time increment */
-	const int& IterationNumber(void) const;
 		
 	/** call to trigger calculation and assembly of the tangent stiffness */
 	void FormLHS(void);

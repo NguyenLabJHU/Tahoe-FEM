@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.21 2002-04-02 23:32:59 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.20 2002-02-03 02:06:51 paklein Exp $ */
 /* created: paklein (05/28/1996) */
 
 #include "SolidElementT.h"
@@ -98,7 +98,7 @@ void SolidElementT::SetController(eControllerT* controller)
 	
 	/* check consistency */
 	int is_explicit = (fController->ImplicitExplicit() == eControllerT::kExplicit);
-	int is_dynamic  = (fController->Order() > 0);
+	int is_dynamic  = (fController->StaticDynamic() == eControllerT::kDynamic);
 
 	/* warning about no mass */
 	if (is_dynamic && is_explicit)
@@ -418,7 +418,7 @@ void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 		}	
 
 		/* defaults */
-		if (fController->Order() == 0)
+		if (fController->StaticDynamic() == eControllerT::kStatic)
 		{
 			fElementOutputCodes[iKineticEnergy] = IOBaseT::kAtNever;
 			fElementOutputCodes[iLinearMomentum] = IOBaseT::kAtNever;
@@ -802,7 +802,7 @@ void SolidElementT::ComputeEffectiveDVA(int formBody,
 GlobalT::SystemTypeT SolidElementT::TangentType(void) const
 {
 	/* special case */
-	if (fController->Order() > 0 &&
+	if (fController->StaticDynamic() == eControllerT::kDynamic &&
 	    fController->ImplicitExplicit() ==  eControllerT::kExplicit &&
 	    (fMassType == kNoMass ||
 	     fMassType == kLumpedMass))

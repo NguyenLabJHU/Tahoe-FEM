@@ -1,5 +1,5 @@
-/* $Id: nNLHHTalpha.cpp,v 1.4 2002-04-02 23:19:20 paklein Exp $ */
-/* created: paklein (10/17/1996) */
+/* $Id: nNLHHTalpha.cpp,v 1.3 2002-03-25 16:42:26 paklein Exp $ */
+/* created: paklein (10/17/1996)                                          */
 
 #include "nNLHHTalpha.h"
 #include "dArrayT.h"
@@ -9,7 +9,7 @@
 #include "KBC_CardT.h"
 
 /* constructor */
-nNLHHTalpha::nNLHHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder):
+nNLHHTalpha::nNLHHTalpha(ifstreamT& in, ostream& out, int auto2ndorder):
 	HHTalpha(in, out, auto2ndorder),
 	nControllerT(2)
 {

@@ -1,15 +1,15 @@
-/* $Id: nStaticIntegrator.h,v 1.3 2002-04-02 23:19:24 paklein Exp $ */
+/* $Id: nStaticIntegrator.h,v 1.2 2001-08-27 17:12:15 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _N_STATIC_CONTROLLER_H_
 #define _N_STATIC_CONTROLLER_H_
 
 /* base classes */
-#include "StaticT.h"
+#include "IntegratorT.h"
 #include "nIntegratorT.h"
 
 /** nodal integrator for quasistatic systems */
-class nStaticIntegrator: public virtual StaticT, public nIntegratorT
+class nStaticIntegrator: public virtual IntegratorT, public nIntegratorT
 {
 public:
 

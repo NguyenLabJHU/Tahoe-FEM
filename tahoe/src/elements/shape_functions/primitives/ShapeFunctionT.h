@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.9 2002-04-16 16:35:01 paklein Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.8 2001-08-20 06:53:54 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -91,14 +91,10 @@ public:
 	 *        dimensioned during the call: [nsd] x [num_modes] */
 	void TransformDerivatives(const dMatrixT& changeofvar, dArray2DT& derivatives);
 
-	/** set strain displacement matrix as in Hughes (2.8.20). If ShapeFunctionT::kMeanDilBbar
-	 * passed in during construction, the mean dilatations calculated with the last call to
-	 * ShapeFunctionT::SetMeanDilatation are used to compute B-bar using Hughes (4.5.11-16). */
+	/** set strain displacement matrix as in Hughes (2.8.20) */
 	void B(dMatrixT& B_matrix) const;
 
-	/** set strain displacement matrix as in Hughes (2.8.20). If ShapeFunctionT::kMeanDilBbar
-	 * passed in during construction, the mean dilatations calculated with the last call to
-	 * ShapeFunctionT::SetMeanDilatation are used to compute B-bar using Hughes (4.5.11-16).
+	/** set strain displacement matrix as in Hughes (2.8.20)
 	 * \param derivatives shape function derivatives: [nsd] x [nnd] */
 	void B(const dArray2DT& derivatives, dMatrixT& B_matrix) const;
 
@@ -118,9 +114,6 @@ public:
 
 	/** print the shape function values to the output stream */
 	virtual void Print(ostream& out) const;
-
-	/** compute mean dilatation for the current element, Hughes (4.5.23) */
-	const dArray2DT& SetMeanDilatation(void);
 
 protected:
 
@@ -147,6 +140,9 @@ private:
 	
 	/** hide access to DomainIntegrationT function */
 	const double* IPShape(void) const;
+
+	/** compute mean dilatation, Hughes (4.5.23) */
+	void SetMeanDilatation(void);
 
 protected:
 

@@ -1,5 +1,5 @@
-/* $Id: NLSolver.cpp,v 1.9 2002-04-02 23:27:27 paklein Exp $ */
-/* created: paklein (07/09/1996) */
+/* $Id: NLSolver.cpp,v 1.8 2001-09-15 01:12:17 paklein Exp $ */
+/* created: paklein (07/09/1996)                                          */
 
 #include "NLSolver.h"
 
@@ -389,7 +389,7 @@ double NLSolver::SolveAndForm(bool newtangent)
 	}
 		 		
 	/* solve equation system */
-	if (!fLHS->Solve(fRHS)) throw eBadJacobianDet;
+	fLHS->Solve(fRHS);
 
 	/* apply update to system */
 	Update(fRHS, NULL);

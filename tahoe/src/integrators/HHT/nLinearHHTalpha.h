@@ -1,4 +1,4 @@
-/* $Id: nLinearHHTalpha.h,v 1.3 2002-04-02 23:19:20 paklein Exp $ */
+/* $Id: nLinearHHTalpha.h,v 1.2 2001-08-27 17:12:11 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _N_LINEARHHT_A_H_
@@ -12,12 +12,12 @@
 #include "dArray2DT.h"
 
 /** HHT alpha integration for linear systems */
-class nLinearHHTalpha: virtual public HHTalpha, public nControllerT
+class nLinearHHTalpha: public virtual HHTalpha, public nControllerT
 {
 public:
 
-	/** constructor */
-	nLinearHHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder);
+	/* constructor */
+	nLinearHHTalpha(ifstreamT& in, ostream& out, int auto2ndorder = kHHTalphaAuto_O2);
 
 	/* consistent BC's - updates predictors and acceleration only */
 	virtual void ConsistentKBC(const KBC_CardT& KBC);

@@ -1,11 +1,8 @@
-/* $Id: nIntegratorT.h,v 1.3 2002-04-02 23:19:22 paklein Exp $ */
+/* $Id: nIntegratorT.h,v 1.2 2001-08-27 17:12:13 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _N_CONTROLLERT_H_
 #define _N_CONTROLLERT_H_
-
-/* base class */
-#include "IntegratorT.h"
 
 /* direct members */
 #include "KBC_CardT.h"
@@ -23,7 +20,7 @@ class iArrayT;
  * calculations. Note that the predictor is applied to all
  * degrees of freedom, while the correctors are only applied to
  * the \a active degrees of freedom */
-class nIntegratorT: virtual public IntegratorT
+class nIntegratorT
 {
 public:
 
@@ -33,7 +30,7 @@ public:
 	 *        assumed to exist. */
 	nIntegratorT(int order);
 
-	/** destructor */
+	/* destructor */
 	virtual ~nIntegratorT(void);
 
 	/** pseudo-boundary conditions for external nodes. For parallel
@@ -84,5 +81,7 @@ protected:
 	/** field data and derivatives */
 	ArrayT<dArray2DT*> fU;
 };
+
+/* inlines */
 
 #endif /* _N_CONTROLLERT_H_ */

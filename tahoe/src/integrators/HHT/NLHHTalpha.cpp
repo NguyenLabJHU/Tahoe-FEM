@@ -1,5 +1,5 @@
-/* $Id: NLHHTalpha.cpp,v 1.2 2002-04-02 23:19:20 paklein Exp $ */
-/* created: paklein (10/11/1996) */
+/* $Id: NLHHTalpha.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (10/11/1996)                                          */
 
 #include "NLHHTalpha.h"
 
@@ -12,7 +12,7 @@
 
 /* constructor */
 NLHHTalpha::NLHHTalpha(TimeManagerT& TM, ifstreamT& in, ostream& out,
-	bool auto2ndorder):
+	int auto2ndorder):
 	HHTalpha(in, out, auto2ndorder),
 	nNLHHTalpha(in, out, auto2ndorder),
 	eNLHHTalpha(in, out, auto2ndorder),

@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.7 2002-04-10 01:12:03 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.5 2002-03-28 16:42:45 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 
 #include "FullMatrixT.h"
@@ -136,40 +136,12 @@ void FullMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqno
 void FullMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 	const nArrayT<int>& col_eqnos)
 {
-#if __option(extended_errorcheck)
-	/* dimension check */
-	if (elMat.Rows() != row_eqnos.Length() ||
-	    elMat.Cols() != col_eqnos.Length()) throw eSizeMismatch;
-#endif
+#pragma unused(elMat)
+#pragma unused(row_eqnos)
+#pragma unused(col_eqnos)
 
-	/* element matrix format */
-	ElementMatrixT::FormatT format = elMat.Format();
-
-	if (format == ElementMatrixT::kDiagonal)
-	{
-		cout << "\n FullMatrixT::Assemble(m, r, c): cannot assemble diagonal matrix" << endl;
-		throw eGeneralFail;
-	}
-	else
-	{
-		/* copy to full symmetric */
-		if (elMat.Format() == ElementMatrixT::kSymmetricUpper) elMat.CopySymmetric();
-
-		/* assemble active degrees of freedom */
-		int n_c = col_eqnos.Length();
-		int n_r = row_eqnos.Length();
-		for (int col = 0; col < n_c; col++)
-		{
-			int ceqno = col_eqnos[col] - 1;	
-			if (ceqno > -1)	
-				for (int row = 0; row < n_r; row++)
-				{
-					int reqno = row_eqnos[row] - 1;
-					if (reqno > -1)
-						fMatrix(reqno,ceqno) += elMat(row,col);
-				}
-		}
-	}
+	cout << "\n FullMatrixT::Assemble(m,r,c): not implemented" << endl;
+	throw eGeneralFail;
 }
 
 /* strong manipulation functions */
@@ -306,30 +278,28 @@ GlobalMatrixT* FullMatrixT::Clone(void) const
 	return new_mat;
 }
 
-bool FullMatrixT::Multx(const dArrayT& x, dArrayT& b) const
+void FullMatrixT::Multx(const dArrayT& x, dArrayT& b) const
 {
 	/* already factorized */
 	if (fIsFactorized) {
 		cout << "\n FullMatrixT::Multx: cannot calculate product with factorized matrix" << endl;
-		return false;
-	} else {
-		/* calculate product */
-		fMatrix.Multx(x, b);
-		return true;
+		throw eGeneralFail;
 	}
+	
+	/* calculate product */
+	fMatrix.Multx(x, b);
 }
 
-bool FullMatrixT::MultTx(const dArrayT& x, dArrayT& b) const
+void FullMatrixT::MultTx(const dArrayT& x, dArrayT& b) const
 {
 	/* already factorized */
 	if (fIsFactorized) {
 		cout << "\n FullMatrixT::MultTx: cannot calculate product with factorized matrix" << endl;
-		return false;
-	} else {
-		/* calculate product */
-		fMatrix.MultTx(x, b);
-		return true;
+		throw eGeneralFail;
 	}
+	
+	/* calculate product */
+	fMatrix.MultTx(x, b);
 }
 
 /**************************************************************************

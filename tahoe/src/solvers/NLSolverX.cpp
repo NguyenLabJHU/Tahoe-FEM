@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.cpp,v 1.2 2002-04-02 23:27:27 paklein Exp $ */
+/* $Id: NLSolverX.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
 /* created: paklein (08/25/1996)                                          */
 /* NLSolverX with selective tangent reformation                           */
 
@@ -189,7 +189,7 @@ double NLSolverX::SolveAndForm(bool newtangent)
 	}
 		 		
 	/* solve equation system */
-	if (!fLHS->Solve(fRHS)) throw eBadJacobianDet;
+	fLHS->Solve(fRHS);
 	//double updatemag = fRHS.Magnitude(); //for alternate error measures
 
 	/* update system */

@@ -1,5 +1,5 @@
-/* $Id: TimeManagerT.h,v 1.2 2002-04-21 07:16:32 paklein Exp $ */
-/* created: paklein (05/23/1996) */
+/* $Id: TimeManagerT.h,v 1.1.1.1 2001-01-29 08:20:21 paklein Exp $ */
+/* created: paklein (05/23/1996)                                          */
 
 #ifndef _TIMEMANAGER_T_H_
 #define _TIMEMANAGER_T_H_
@@ -21,7 +21,6 @@ class FEManagerT;
 class CoordinatorT;
 class nLinearHHTalpha;
 class NodeManagerT;
-class ControllerT;
 
 class TimeManagerT: public iConsoleObjectT
 {
@@ -30,16 +29,6 @@ class TimeManagerT: public iConsoleObjectT
 	friend class NLHHTalpha;
 
 public:
-
-	/** enum of integrator types */
-	enum CodeT {
-		kLinearStatic = 0,
-		      kStatic = 1,
-           kTrapezoid = 2,
-           kLinearHHT = 3,
-		kNonlinearHHT = 4,
-		  kExplicitCD = 5
-	};
 
 	/* constructor */
 	TimeManagerT(FEManagerT& FEM);
@@ -80,9 +69,6 @@ public:
 
 	/* finalize step (trigger output) */
 	void CloseStep(void); //TEMP? - let FEManager control/monitor output?
-
-	/** return a pointer to a integrator of the specified type */
-	ControllerT* New_Controller(CodeT type) const;
 
 private:	
 	

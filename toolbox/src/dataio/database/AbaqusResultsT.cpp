@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.cpp,v 1.17 2002-04-10 12:08:54 sawimme Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.16 2002-02-22 19:29:16 xiang Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
@@ -464,7 +464,6 @@ void AbaqusResultsT::GeometryCode (const StringT& name, GeometryT::CodeT& code)
   if (TranslateElementName (elname.Pointer(), code, numintpts) == BAD)
     {
       fMessage << "\n AbaqusResultsT::GeometryCode Unable to translate element name" << endl;
-      fMessage << "Name " << elname.Pointer() << endl;
       throw eDatabaseFail;
     }
 }
@@ -753,7 +752,6 @@ bool AbaqusResultsT::NextElement (int &number, GeometryT::CodeT &type, iArrayT &
   if (TranslateElementName (name.Pointer(), type, numintpts) == BAD) 
     {
       fMessage << "\n AbaqusResultsT::NextElement Unable to translate element name" << endl;
-      fMessage << "Name " << name.Pointer() << endl;
       throw eDatabaseFail;
     }
 
@@ -1099,7 +1097,6 @@ void AbaqusResultsT::ScanElement (void)
   if (TranslateElementName (name.Pointer(), type, numintpts) == BAD) 
     {
       fMessage << "\n AbaqusResultsT::ScanElement Encountered unknown element type" << endl;
-      fMessage << "Name " << name.Pointer() << endl;
       throw eDatabaseFail;
     }
   fNumElements++;
@@ -1396,12 +1393,8 @@ int AbaqusResultsT::TranslateElementName (const char *name, GeometryT::CodeT &ty
     return TranslateContinuum (name+2, type, numintpts);
   else if (strncmp (name, "DCC", 3) == 0)
     return TranslateContinuum (name+3, type, numintpts);
-  else if (strncmp (name, "SPRING", 6) == 0)
-    return TranslateSpring (name+6, type, numintpts);
-  else if (strncmp (name, "S", 1) == 0) 
+  else if (strncmp (name, "S", 1) == 0)
     return TranslateShell (name+1, type, numintpts);
-  else if (strncmp (name, "R", 1) == 0)
-    return TranslateRigid (name+1, type, numintpts);
   return BAD;
 }
 
@@ -1417,23 +1410,6 @@ int AbaqusResultsT::TranslateContinuum (const char *name, GeometryT::CodeT &type
     return Translate2D (name+3, type, numintpts);
   else if (strncmp (name, "3D", 2) == 0)
     return Translate3D (name+2, type, numintpts);
-  return BAD;
-}
-
-int AbaqusResultsT::TranslateSpring (const char *name, GeometryT::CodeT &type, int &numintpts) const
-{
-  if (name[0] == '1')
-    {
-      type = GeometryT::kPoint;
-      numintpts = 1;
-      return OKAY;
-    }
-  else if (name[0] == '2' || name[0] == 'A')
-    {
-      type = GeometryT::kLine;
-      numintpts = 2;
-      return OKAY;
-    }
   return BAD;
 }
 
@@ -1535,25 +1511,6 @@ int AbaqusResultsT::TranslateShell (const char *name, GeometryT::CodeT &type, in
     {
       type = GeometryT::kQuadrilateral;
       numintpts = 4;
-      return OKAY;
-    }
-  return BAD;
-}
-
-int AbaqusResultsT::TranslateRigid (const char *name, GeometryT::CodeT &type, int &numintpts) const
-{
-  if (strncmp (name, "3D", 2) == 0) // send to 2D because it is rigid
-    return Translate2D (name+2, type, numintpts);
-  else if (strncmp (name, "2D", 2) == 0)
-    {
-      type = GeometryT::kPoint;
-      numintpts = 1;
-      return OKAY;
-    }
-  else if (strncmp (name, "AX", 2) == 0)
-    {
-      type = GeometryT::kPoint;
-      numintpts = 1;
       return OKAY;
     }
   return BAD;

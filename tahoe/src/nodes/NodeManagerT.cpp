@@ -1,5 +1,6 @@
-/* $Id: NodeManagerT.cpp,v 1.7 2002-04-19 21:12:57 cjkimme Exp $ */
-/* created: paklein (05/23/1996) */
+/* $Id: NodeManagerT.cpp,v 1.5 2002-01-22 02:14:23 paklein Exp $ */
+/* created: paklein (05/23/1996)                                          */
+/* Field variables plus averging                                          */
 
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -8,8 +9,6 @@
 #include "K_FieldT.h"
 #include "BimaterialK_FieldT.h"
 #include "MappedPeriodicT.h"
-#include "TiedNodesT.h"
-#include "SymmetricNodesT.h"
 
 /* constructor */
 NodeManagerT::NodeManagerT(FEManagerT& fe_manager):
@@ -56,20 +55,6 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(int code)
 		case KBC_ControllerT::kMappedPeriodic:	
 			return new MappedPeriodicT(*this);
 
-		case KBC_ControllerT::kTiedNodes:
-		{
-			TiedNodesT* kbc = new TiedNodesT(*this);
-			kbc->SetEquations(fEqnos);
-			kbc->AddKinematics(fDisp);
-			return kbc;
-		}
-	        case KBC_ControllerT::kSymmetricNodes:
-		{
-		        SymmetricNodesT* kbc = new SymmetricNodesT(*this);
-			kbc->SetEquations(fEqnos);
-			kbc->AddKinematics(fDisp);
-			return kbc;
-		}
 		default:
 			/* inherited */
 			return NodeManagerPrimitive::NewKBC_Controller(code);

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2002-04-02 23:19:23 paklein Exp $
+# $Id: makefile,v 1.4 2001-02-22 23:46:10 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -23,7 +23,6 @@ SRC = \
 
 # headers
 HDR = \
-	ExplicitCD.h \
 	eExplicitCD.h \
 	ExplicitCDController.h \
 	nExplicitCD.h

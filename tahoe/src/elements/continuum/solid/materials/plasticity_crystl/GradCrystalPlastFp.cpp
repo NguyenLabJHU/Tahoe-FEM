@@ -304,8 +304,7 @@ void GradCrystalPlastFp::ComputeOutput(dArrayT& output)
   if (elem == (NumElements()-1) && intpt == (NumIP()-1))
      cerr << " step # " << ContinuumElement().FEManager().StepNumber()
           << "    S_eq_avg = " 
-          << sqrt(fSymMatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23
-          << "    Savg_12 = " << fAvgStress(0,1) << endl; 
+          << sqrt(fSymMatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23 << endl; 
 
   // iteration counters
   output[1] = fIterCount;
@@ -765,13 +764,8 @@ void GradCrystalPlastFp::LatticeCurvature(ElementCardT& element, int igrn)
   if (XTAL_MESSAGES && CurrElementNumber() == ELprnt) {
      cout << "\n\n   === Lattice Curvature ===" << endl;
      for (int i=0; i<fNumNodes; i++)
-        cout << " FpNodes at node # " << i << endl 
-             << fFpNodes[i] << "    Det(Fp) = " << fFpNodes[i].Det() << endl;
+        cout << " FpNodes at node # " << i << endl << fFpNodes[i] << endl;
   }
-
-  // normalize Fp at nodes such that Det(Fp)=1
-  for (int i = 0; i < fNumNodes; i++) 
-    fFpNodes[i] /= pow(fFpNodes[i].Det(), 1./3.);
 
   for(int intpt = 0; intpt < NumIP(); intpt++)
     {
@@ -783,7 +777,7 @@ void GradCrystalPlastFp::LatticeCurvature(ElementCardT& element, int igrn)
 
       // curvature tensor fKe at IP (dislocation tensor aBar^p)
       fMatx1.MultAB(fFpIP[intpt], fCurlFpT);
-      fKe.SetToScaled(1./fFpIP[intpt].Det(), fMatx1);
+      fKe.SetToScaled(1./fFp.Det(), fMatx1);
 
       if (XTAL_MESSAGES && CurrElementNumber() == ELprnt) {
          cout << " IP # " << intpt << "\n";

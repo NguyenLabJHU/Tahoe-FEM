@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.h,v 1.6 2002-04-02 23:38:43 paklein Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.5 2002-03-28 16:42:45 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _GLOBAL_MATRIX_H_
@@ -39,14 +39,8 @@ public:
 	/** copy constructor */
 	GlobalMatrixT(const GlobalMatrixT& source);
 
-	/** destructor */	
+	/* destructor */	
 	virtual ~GlobalMatrixT(void);
-
-	/** return true if GlobalMatrixT::Solve preserves the data in the matrix or
-	 * false if the solution procedure overwrites this data. Preserving the data
-	 * implies that all of the operations in the matrix are valid both before and
-	 * after a call to GlobalMatrixT::Solve even if the matrix is not refilled. */
-	virtual bool SolvePreservesData(void) const { return false; };	  
 
 	/* set the internal matrix structure.
 	 * NOTE: do not call Initialize() equation topology has been set
@@ -57,7 +51,7 @@ public:
 	virtual void Clear(void) = 0;
 	
 	/* solve for rhs passed in result and overwritten with solution */
-	bool Solve(dArrayT& result);
+	void Solve(dArrayT& result);
 	
 	/* add element group equations to the overall topology.
 	 * NOTE: assembly positions (equation numbers) = 1...fDimension
@@ -96,27 +90,21 @@ public:
 	/** return a clone of self. Caller is responsible for disposing of the matrix */
 	virtual GlobalMatrixT* Clone(void) const = 0;
 
-	/** matrix-vector product. Derived classes should reimplement this
-	 * function if the product is supported. 
+	/** matrix-vector product. Derived classes may through exceptions if called
+	 * after the matrix has been factorized, depending on whether the implementation
+	 * allows the product to be calculated using only the factorized matrix 
 	 * \param x vector to use for calculating the product
-	 * \param b destination for the result 
-	 * \return true if the product was calculated successful */
-	virtual bool Multx(const dArrayT& x, dArrayT& b) const;
+	 * \param b destination for the result */
+	virtual void Multx(const dArrayT& x, dArrayT& b) const;// = 0;
+	//TEMP - should be pure virtual
 
-	/** Tranpose[matrix]-vector product. Derived classes should reimplement this
-	 * function if the product is supported.
+	/** Tranpose[matrix]-vector product. Derived classes may through exceptions if called
+	 * after the matrix has been factorized, depending on whether the implementation
+	 * allows the product to be calculated using only the factorized matrix
 	 * \param x vector to use for calculating the product
-	 * \param b destination for the result
-	 * \return true if the product was calculated successful */
-	virtual bool MultTx(const dArrayT& x, dArrayT& b) const;
-
-	/** return the values along the diagonal of the matrix. Derived classes
-	 * must reimplement this function to extrat the diagonals from the
-	 * matrix-specific storage schemes.
-	 * \param diags returns with the diagonals of the matrix if the function
-	 *        is supported. Otherwise is left unchanged.
-	 * \return true if the diagonal values where collected successfully */
-	virtual bool CopyDiagonal(dArrayT& diags) const;
+	 * \param b destination for the result */
+	virtual void MultTx(const dArrayT& x, dArrayT& b) const;// = 0;
+	//TEMP - should be pure virtual
 	
 protected:
 

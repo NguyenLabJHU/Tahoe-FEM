@@ -1,9 +1,5 @@
-// $Id: NOX_Tahoe_Vector.cpp,v 1.3 2002-04-03 00:21:46 paklein Exp $
-#include "NOX_Tahoe_Vector.h"
-
-/* optional */
-#ifdef __NOX__
-
+// $Id: NOX_Tahoe_Vector.cpp,v 1.1 2002-03-28 16:40:35 paklein Exp $
+#include "NOX_Tahoe_Vector.H"
 #include "dArrayT.h"
 
 using namespace NOX;
@@ -11,8 +7,7 @@ using namespace NOX::Tahoe;
 
 Vector::Vector(void) { fArray = new dArrayT; }
 
-Vector::Vector(const dArrayT& source, CopyType type):
-	fArray(NULL)
+Vector::Vector(const dArrayT& source, CopyType type)
 {
 	switch (type) {
 
@@ -187,14 +182,6 @@ int Vector::length() const
 /* dimension the vector based on the source. Copies the shape of the source. */
 void Vector::DimensionTo(const dArrayT& source)
 {
-	/* dimension */
-	if (!fArray)
-		fArray = new dArrayT(source.Length());
-	else
-		fArray->Dimension(source.Length());
-
-	/* clear values */
+	fArray->Dimension(source.Length());
 	*fArray = 0.0;
 }
-
-#endif /* __NOX__ */

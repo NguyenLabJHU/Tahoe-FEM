@@ -1,5 +1,5 @@
-/* $Id: IntegratorT.cpp,v 1.2 2002-04-02 23:19:22 paklein Exp $ */
-/* created: paklein (10/14/1996) */
+/* $Id: IntegratorT.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (10/14/1996)                                          */
 
 #include "IntegratorT.h"
 

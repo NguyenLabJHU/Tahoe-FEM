@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.h,v 1.6 2002-04-02 23:38:43 paklein Exp $ */
+/* $Id: CCNSMatrixT.h,v 1.5 2002-03-28 16:42:44 paklein Exp $ */
 /* created: paklein (03/04/1998)                                          */
 /* This is the interface for a non-symmetric matrix stored in             */
 /* Compact Column form.                                                   */
@@ -103,14 +103,6 @@ public:
 
 	/** return a clone of self. Caller is responsible for disposing of the matrix */
 	virtual GlobalMatrixT* Clone(void) const;
-
-	/** return the values along the diagonal of the matrix. Derived classes
-	 * must reimplement this function to extrat the diagonals from the
-	 * matrix-specific storage schemes.
-	 * \param diags returns with the diagonals of the matrix if the function
-	 *        is supported. Otherwise is left unchanged.
-	 * \return true if the diagonal values where collected successfully */
-	virtual bool CopyDiagonal(dArrayT& diags) const;
 
 protected:
 	

@@ -1,16 +1,16 @@
-/* $Id: nExplicitCD.h,v 1.3 2002-04-02 23:19:23 paklein Exp $ */
+/* $Id: nExplicitCD.h,v 1.2 2001-08-27 17:12:13 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _N_EXP_CD_H_
 #define _N_EXP_CD_H_
 
 /* base class */
-#include "ExplicitCD.h"
+#include "ControllerT.h"
 #include "nControllerT.h"
 
 /** Node controller for an explicit 2nd order accurate, central 
  * difference time-stepping algorithm. */
-class nExplicitCD: public virtual ExplicitCD, public nControllerT
+class nExplicitCD: public virtual ControllerT, public nControllerT
 {
 public:
 
@@ -41,20 +41,18 @@ public:
 
 protected:  	
 	
-	/** recalculate time stepping constants */
+	/* recalculate time stepping constants */
 	virtual void nComputeParameters(void);
 	
 private:
 
-	/** \name predictor constants*/
-	/*@{*/
-	double dpred_v;
-	double dpred_a;
-	double vpred_a;
-	/*@}*/
+	/* predictor */
+	double	dpred_v;
+	double	dpred_a;
+	double	vpred_a;
 	
-	/** corrector constant, also used for consistent BC*/  	
-	double vcorr_a;
+	/* corrector */  	
+	double	vcorr_a; //also used for consistent BC
 	  	  	
 };
 
