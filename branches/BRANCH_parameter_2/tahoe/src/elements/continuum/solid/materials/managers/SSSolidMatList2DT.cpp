@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList2DT.cpp,v 1.1.2.3 2004-02-11 16:39:01 paklein Exp $ */
+/* $Id: SSSolidMatList2DT.cpp,v 1.1.2.4 2004-02-18 16:33:48 paklein Exp $ */
 #include "SSSolidMatList2DT.h"
 #include "SSMatSupportT.h"
 
@@ -366,10 +366,15 @@ void SSSolidMatList2DT::TakeParameterList(const ParameterListT& list)
 /* construct the specified material or NULL if the request cannot be completed */
 SSSolidMatT* SSSolidMatList2DT::NewSSSolidMat(const StringT& list_name) const
 {
+	SSSolidMatT* mat = NULL;
+
 	if (list_name == "small_strain_cubic_2D")
-		return new SSCubic2DT;
+		mat = new SSCubic2DT;
 	else if (list_name == "small_strain_StVenant_2D")
-		return new SSKStV2D;
-	else
-		return NULL;
+		mat = new SSKStV2D;
+
+	/* set support */
+	mat->SetSSMatSupport(fSSMatSupport);
+
+	return mat;
 }

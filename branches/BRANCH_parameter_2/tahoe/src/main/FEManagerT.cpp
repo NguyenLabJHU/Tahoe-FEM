@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.70.2.4 2004-02-12 17:19:14 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.70.2.5 2004-02-18 16:33:52 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -104,9 +104,6 @@ FEManagerT::~FEManagerT(void)
 	
 	for (int i = 0; i < fSolvers.Length(); i++)
 		delete fSolvers[i];
-	
-	for (int i = 0; i < fIntegrators.Length(); i++)
-		delete fIntegrators[i];
 
 	delete fIOManager;
 	delete fModelManager;
@@ -942,6 +939,8 @@ int FEManagerT::GetGlobalNumEquations(int group) const
 	return fNodeManager->NumEquations(group);
 }
 
+#pragma message("delete me")
+#if 0
 /* access to integrators */
 const eIntegratorT* FEManagerT::eIntegrator(int index) const
 {
@@ -954,15 +953,15 @@ const nIntegratorT* FEManagerT::nIntegrator(int index) const
 	/* cast to nIntegratorT */
   return &(fIntegrators[index]->nIntegrator());
 }
+#endif
 
 void FEManagerT::SetTimeStep(double dt) const
 {
 	/* update the time manager */
 	fTimeManager->SetTimeStep(dt);
 
-	/* update all integrators */
-	for (int i = 0; i < fIntegrators.Length(); i++)
-		fIntegrators[i]->SetTimeStep(dt);
+	/* update all fields */
+	fNodeManager->SetTimeStep(dt);
 
 	/* update all solvers */
 	for (int i = 0; i < fSolvers.Length(); i++)
@@ -1189,6 +1188,9 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 void FEManagerT::TakeParameterList(const ParameterListT& list)
 {
 	const char caller[] = "FEManagerT::TakeParameterList";
+
+	/* state */
+	fStatus = GlobalT::kInitialization;
 
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);

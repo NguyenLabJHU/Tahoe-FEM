@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.23.2.1 2004-02-05 18:47:13 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.23.2.2 2004-02-18 16:33:43 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -94,6 +94,15 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
@@ -175,7 +184,7 @@ protected:
 protected:
 
 	/** mass type */
-	MassTypeT     fMassType;	
+	MassTypeT fMassType;	
 
 	/* propagation direction for wave speeds */
 	dArrayT fNormal;

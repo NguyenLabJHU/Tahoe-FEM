@@ -1,4 +1,4 @@
-/* $Id: FieldSupportT.h,v 1.5.16.1 2004-02-05 18:47:16 paklein Exp $ */
+/* $Id: FieldSupportT.h,v 1.5.16.2 2004-02-18 16:33:54 paklein Exp $ */
 #ifndef _FIELD_SUPPORT_T_H_
 #define _FIELD_SUPPORT_T_H_
 
@@ -15,6 +15,7 @@ class FBC_ControllerT;
 class KBC_ControllerT;
 class FieldT;
 class NodeManagerT;
+class ModelManagerT;
 
 /** support for FieldT. Limited interface to get information out
  * of a FieldT. Wrapper for functions in FEManagerT. */
@@ -32,6 +33,9 @@ public:
 
 	/** the nodes */
 	const NodeManagerT& NodeManager(void) const { return fNodeManager; };
+
+	/** the model */
+	ModelManagerT& ModelManager(void) const;
 	/*@}*/
 
 	/** \name assembly functions */

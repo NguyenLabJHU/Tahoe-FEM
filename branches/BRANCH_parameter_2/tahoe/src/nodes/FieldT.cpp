@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.24.2.3 2004-02-12 17:19:15 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.24.2.4 2004-02-18 16:33:54 paklein Exp $ */
 #include "FieldT.h"
 
 #include "fstreamT.h"
@@ -9,6 +9,7 @@
 #include "LocalArrayT.h"
 #include "FieldSupportT.h"
 #include "ParameterContainerT.h"
+#include "ModelManagerT.h"
 
 using namespace Tahoe;
 
@@ -132,6 +133,9 @@ void FieldT::EquationSets(AutoArrayT<const iArray2DT*>& eq_1,
 	for (int i = 0; i < fFBC_Controllers.Length(); i++)
 		fFBC_Controllers[i]->Equations(eq_1, eq_2);
 }
+
+/* set the time step */
+void FieldT::SetTimeStep(double dt) { Integrator().SetTimeStep(dt); }
 
 /* append connectivities */
 void FieldT::Connectivities(AutoArrayT<const iArray2DT*>& connects_1,
@@ -899,18 +903,28 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 		
 		/* look for other sublists */
 		if (!resolved) {
-			if (name == "initial_condition")
-				num_IC++;
-			else if (name == "kinematic_BC")
-				num_KBC++;
-			else if (name == "force_BC")
-				num_FBC++;
+			if (name == "initial_condition") {			
+				const StringT& node_ID = subs[i].GetParameter("node_ID");
+				ModelManagerT& model_manager = fFieldSupport.ModelManager();
+				num_IC += model_manager.NodeSet(node_ID).Length();
+			}
+			else if (name == "kinematic_BC") {
+				const StringT& node_ID = subs[i].GetParameter("node_ID");
+				ModelManagerT& model_manager = fFieldSupport.ModelManager();
+				num_KBC += model_manager.NodeSet(node_ID).Length();
+			}
+			else if (name == "force_BC") {
+				const StringT& node_ID = subs[i].GetParameter("node_ID");
+				ModelManagerT& model_manager = fFieldSupport.ModelManager();
+				num_FBC += model_manager.NodeSet(node_ID).Length();
+			}
 		}
 	}
 
 	/* construct controllers and count numbers of IC, KBC, and FBC */
 	if (num_IC > 0 || num_KBC > 0 || num_FBC > 0)
 	{
+		ModelManagerT& model_manager = fFieldSupport.ModelManager();
 		fIC.Dimension(num_IC);
 		fKBC.Dimension(num_KBC);
 		fFBC.Dimension(num_FBC);
@@ -923,27 +937,29 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 
 				/* extract values */
 				const StringT& node_ID = sub.GetParameter("node_ID");
-				int node = atoi(node_ID);
 				int dof = sub.GetParameter("dof"); dof--;
 				int order = sub.GetParameter("type");
 				double value = sub.GetParameter("value");
 			
-				/* set card */
-				fIC[num_IC++].SetValues(node, dof, order, value);
+				/* set cards */
+				const iArrayT& set = model_manager.NodeSet(node_ID);
+				for (int i = 0; i < set.Length(); i++)
+					fIC[num_IC++].SetValues(set[i], dof, order, value);
 			}
 			else if (name == "kinematic_BC") {
 
 				/* extract values */
 				const StringT& node_ID = sub.GetParameter("node_ID");
-				int node = atoi(node_ID);
 				int dof = sub.GetParameter("dof"); dof--;
 				int typ = sub.GetParameter("type");
 				KBC_CardT::CodeT code = KBC_CardT::int_to_CodeT(typ + 1);
 				int schedule = sub.GetParameter("schedule"); schedule--;
 				double value = sub.GetParameter("value");
 
-				/* set card */
-				fKBC[num_KBC++].SetValues(node, dof, code, schedule, value);
+				/* set cards */
+				const iArrayT& set = model_manager.NodeSet(node_ID);
+				for (int i = 0; i < set.Length(); i++)
+					fKBC[num_KBC++].SetValues(set[i], dof, code, schedule, value);
 			}
 			else if (name == "force_BC") {
 		
@@ -956,7 +972,9 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 		
 				/* set card */
 				const NodeManagerT& node_man = fFieldSupport.NodeManager();
-				fFBC[num_FBC++].SetValues(node_man, node, dof, schedule, value);
+				const iArrayT& set = model_manager.NodeSet(node_ID);
+				for (int i = 0; i < set.Length(); i++)
+					fFBC[num_FBC++].SetValues(node_man, set[i], dof, schedule, value);
 			}
 		}
 	}

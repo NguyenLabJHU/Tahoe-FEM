@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.21.2.1 2004-01-21 19:10:20 paklein Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.21.2.2 2004-02-18 16:33:49 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV.h"
 #include "SSMatSupportT.h"
@@ -240,6 +240,33 @@ void DPSSKStV::ComputeOutput(dArrayT& output)
 	}
 
 	
+}
+
+/* information about subordinate parameter lists */
+void DPSSKStV::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	SSSolidMatT::DefineSubs(sub_list);
+	IsotropicT::DefineSubs(sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* DPSSKStV::NewSub(const StringT& list_name) const
+{
+	/* inherited */
+	ParameterInterfaceT* params = SSSolidMatT::NewSub(list_name);
+	if (params)
+		return params;
+	else
+		return IsotropicT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void DPSSKStV::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SSSolidMatT::TakeParameterList(list);
+	IsotropicT::TakeParameterList(list);
 }
 
 /*************************************************************************

@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.cpp,v 1.8.30.1 2004-01-21 19:10:12 paklein Exp $ */
+/* $Id: QuadLog3D.cpp,v 1.8.30.2 2004-02-18 16:33:47 paklein Exp $ */
 /* created: paklein (06/27/1997) */
 #include "QuadLog3D.h"
 
@@ -94,9 +94,36 @@ double QuadLog3D::StrainEnergyDensity(void)
 	return ComputeEnergy(floge);
 }
 
+/* information about subordinate parameter lists */
+void QuadLog3D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	FSSolidMatT::DefineSubs(sub_list);
+	IsotropicT::DefineSubs(sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* QuadLog3D::NewSub(const StringT& list_name) const
+{
+	/* inherited */
+	ParameterInterfaceT* params = FSSolidMatT::NewSub(list_name);
+	if (params)
+		return params;
+	else
+		return IsotropicT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void QuadLog3D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	FSSolidMatT::TakeParameterList(list);
+	IsotropicT::TakeParameterList(list);
+}
+
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* computation routines */
 void QuadLog3D::ComputeModuli(const dSymMatrixT& b, dMatrixT& moduli)

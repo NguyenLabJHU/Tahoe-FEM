@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.40.2.1 2004-01-28 01:34:11 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.40.2.2 2004-02-18 16:33:52 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -276,11 +276,13 @@ public:
 
 	/** \name access to integrators */
 	/*@{*/
+#if 0
 	int NumIntegrators(void) const { return fIntegrators.Length(); };
 	IntegratorT* Integrator(int index) { return fIntegrators[index]; };
 	const IntegratorT* Integrator(int index) const { return fIntegrators[index]; };
 	const eIntegratorT* eIntegrator(int index) const;
 	const nIntegratorT* nIntegrator(int index) const;
+#endif
 	/*@}*/
 
 	/** debugging */
@@ -460,7 +462,6 @@ protected:
 	NodeManagerT* fNodeManager;
 	ElementListT* fElementGroups;
 	ArrayT<SolverT*> fSolvers;
-	ArrayT<IntegratorT*> fIntegrators;
 	IOManager*    fIOManager;
 	ModelManagerT* fModelManager;
 	CommManagerT* fCommManager;

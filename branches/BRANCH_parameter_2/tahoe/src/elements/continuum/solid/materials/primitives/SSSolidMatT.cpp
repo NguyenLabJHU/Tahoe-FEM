@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.8.2.2 2004-02-10 07:17:55 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.8.2.3 2004-02-18 16:33:51 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
 #include <iostream.h>
@@ -37,6 +37,22 @@ SSSolidMatT::SSSolidMatT(void):
 	fHasThermalStrain(false)
 {
 
+}
+
+/* set the material support or pass NULL to clear */
+void SSSolidMatT::SetSSMatSupport(const SSMatSupportT* support)
+{
+	/* set inherited material support */
+	SetMaterialSupport(support);
+
+	fSSMatSupport = support;
+
+	/* dimension */
+	int nsd = NumSD();
+	fModulus.Dimension(dSymMatrixT::NumValues(nsd));
+	fStrainTemp.Dimension(dSymMatrixT::int2DimensionT(nsd));
+	fQ.Dimension(dSymMatrixT::int2DimensionT(nsd));
+	fThermalStrain.Dimension(dSymMatrixT::int2DimensionT(nsd));
 }
 
 /* I/O */

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.45.2.3 2004-02-11 16:39:02 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.45.2.4 2004-02-18 16:33:54 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -390,6 +390,12 @@ GlobalT::RelaxCodeT NodeManagerT::RelaxSystem(int group)
 	GlobalT::RelaxCodeT code_XDOF = (reset_XDOF) ? GlobalT::kReEQ : GlobalT::kNoRelax;
 
 	return GlobalT::MaxPrecedence(relax, code_XDOF);
+}
+
+/* set the time step */
+void NodeManagerT::SetTimeStep(double dt) {
+	for (int i = 0; i < fFields.Length(); i++)
+		fFields[i]->SetTimeStep(dt);
 }
 
 /* update the active degrees of freedom */

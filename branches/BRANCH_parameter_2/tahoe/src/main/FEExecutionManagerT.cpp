@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.53.2.2 2004-02-05 18:47:15 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.53.2.3 2004-02-18 16:33:52 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -381,7 +381,10 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 
 		/* split here depending on whether integrators are explicit or implicit
 		 * check only one integrator assuming they both are the same */
-		const IntegratorT* mdintegrate = continuum.Integrator(0);
+//		const IntegratorT* mdintegrate = continuum.Integrator(0);
+		const IntegratorT* mdintegrate = NULL;
+#pragma message("get integrator")
+
 		IntegratorT::ImpExpFlagT impexp = mdintegrate->ImplicitExplicit();
 
 		if (impexp == IntegratorT::kImplicit)
@@ -1355,9 +1358,7 @@ void FEExecutionManagerT::RunJob_serial_XML(ifstreamT& in,
 		/* construction */
 		FEManagerT analysis1(in, out, fComm);
 		analysis1.TakeParameterList(valid_list);
-
-#if 0
-		analysis1.Initialize();
+//		analysis1.Initialize();
 		t1 = clock();
 
 #if defined(__MWERKS__) && __option(profile)
@@ -1372,8 +1373,6 @@ void FEExecutionManagerT::RunJob_serial_XML(ifstreamT& in,
 #if defined(__MWERKS__) && __option(profile)
 		/* stop recording profiler information */
 		ProfilerSetStatus(0);
-#endif
-
 #endif
 
 		t2 = clock();
