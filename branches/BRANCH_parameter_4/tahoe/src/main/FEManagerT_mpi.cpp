@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.35.2.3 2004-07-12 05:10:57 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.35.2.4 2004-07-12 05:42:01 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -314,6 +314,15 @@ void FEManagerT_mpi::TakeParameterList(const ParameterListT& list)
 	/* collect model file and input format from ModelManager */
 	fInputFormat = fModelManager->DatabaseFormat();
 	fModelFile = fModelManager->DatabaseName();
+
+	/* correct restart file name */
+	if (fReadRestart) {
+		StringT suffix;
+		suffix.Suffix(fRestartFile);
+		fRestartFile.Root();
+		fRestartFile.Append(".p", Rank());
+		fRestartFile.Append(suffix);
+	}
 }
 
 /*************************************************************************
