@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.cpp,v 1.2.2.2 2001-10-31 20:59:40 sawimme Exp $ */
+/* $Id: FE_ASCIIT.cpp,v 1.2.2.3 2001-11-01 19:56:06 sawimme Exp $ */
 /* created: sawimme (05/20/1999)                                          */
 
 #include "FE_ASCIIT.h"
@@ -198,19 +198,22 @@ void FE_ASCIIT::WriteGeometryData(ostream& out, int ID)
 		coord_labels[i].Append(i+1);
 	}
 
-	/* write coordinates */
-	const iArrayT& nodes_used = fElementSets[ID]->NodesUsed();
-	dArray2DT local_coordinates(nodes_used.Length(), nsd);
-	local_coordinates.RowCollect(nodes_used, *fCoordinates);
-	
-	out << "\n Nodal coordinates:\n";	
-	WriteNodeHeader(out, local_coordinates.MajorDim(), coord_labels);
-	WriteNodeValues(out, nodes_used, local_coordinates);
-	
-	/* write connectivities */
 	const iArrayT& blockIDs = fElementSets[ID]->BlockID();
 	for (int b=0; b < fElementSets[ID]->NumBlocks(); b++)
 	  {
+	    /* write coordinates */
+	    iArrayT nodes_used;
+	    fElementSets[ID]->BlockNodesUsed(b, nodes_used);
+	    dArray2DT local_coordinates(nodes_used.Length(), nsd);
+	    local_coordinates.RowCollect(nodes_used, *fCoordinates);
+	
+	    out << "\n Nodal coordinates:\n";	
+	    out << " Block number . . . .  . . . . . . . . . . . . . = "
+		<< blockIDs[b] << '\n';
+	    WriteNodeHeader(out, local_coordinates.MajorDim(), coord_labels);
+	    WriteNodeValues(out, nodes_used, local_coordinates);
+	
+	    /* write connectivities */
 	    const iArray2DT* c = fElementSets[ID]->Connectivities(b);
 	    out << "\n Connectivities:\n";
 	    out << " Block number . . . .  . . . . . . . . . . . . . = "
@@ -239,15 +242,35 @@ void FE_ASCIIT::WriteGeometryData(ostream& out, int ID)
 void FE_ASCIIT::WriteOutputData(ostream& out, int ID, const dArray2DT& n_values,
 	const dArray2DT& e_values)
 {
-	out << "\n Nodal data:\n";	
-	const ArrayT<StringT>& node_labels = fElementSets[ID]->NodeOutputLabels();
-	WriteNodeHeader(out, n_values.MajorDim(), node_labels);
-	WriteNodeValues(out, fElementSets[ID]->NodesUsed(), n_values);
+	const iArrayT& blockIDs = fElementSets[ID]->BlockID();
+	for (int b=0; b < fElementSets[ID]->NumBlocks(); b++)
+	  {
+	    /* write node header */
+	    out << "\n Nodal data:\n";	
+	    out << " Block number . . . .  . . . . . . . . . . . . . = "
+		<< blockIDs[b] << '\n';
+	    const ArrayT<StringT>& node_labels = fElementSets[ID]->NodeOutputLabels();
+	    WriteNodeHeader(out, n_values.MajorDim(), node_labels);
+
+	    /* write node vars */
+	    iArrayT nodes_used;
+	    fElementSets[ID]->BlockNodesUsed(b, nodes_used);
+	    dArray2DT local_vars (nodes_used.Length(), n_values.MinorDim());
+	    local_vars.RowCollect (nodes_used, n_values);
+	    WriteNodeValues(out, nodes_used, local_vars);
 	
-	out << "\n Element data:\n";
-	const ArrayT<StringT>& elem_labels = fElementSets[ID]->ElementOutputLabels();
-	WriteElementHeader(out, e_values.MajorDim(), elem_labels);
-	WriteElementValues(out, e_values);
+	    /* write element header */
+	    out << "\n Element data:\n";
+	    out << " Block number . . . .  . . . . . . . . . . . . . = "
+		<< blockIDs[b] << '\n';
+	    const ArrayT<StringT>& elem_labels = fElementSets[ID]->ElementOutputLabels();
+	    WriteElementHeader(out, e_values.MajorDim(), elem_labels);
+
+	    /* write element values */
+	    dArray2DT local_vals (fElementSets[ID]->NumBlockElements (b), e_values.MinorDim());
+	    ElementBlockValues (ID, b, e_values, local_vals);
+	    WriteElementValues(out, local_vals);
+	  }
 	out.flush();
 }
 
@@ -258,7 +281,7 @@ void FE_ASCIIT::WriteNodeHeader(ostream& out, int num_output_nodes,
 	int d_width = OutputWidth(out, junk);
 
 	out << " Number of nodal points. . . . . . . . . . . . . = "
-<< num_output_nodes << '\n';
+	    << num_output_nodes << '\n';
 	out << " Number of values. . . . . . . . . . . . . . . . = "
 		<< labels.Length() << "\n\n";
 
@@ -278,7 +301,7 @@ void FE_ASCIIT::WriteElementHeader(ostream& out, int num_output_elems,
 	int d_width = OutputWidth(out, junk);
 
 	out << " Number of elements. . . . . . . . . . . . . . . = "
-<< num_output_elems << '\n';
+	    << num_output_elems << '\n';
 	out << " Number of values. . . . . . . . . . . . . . . . = "
 	    << labels.Length() << "\n\n";
 
