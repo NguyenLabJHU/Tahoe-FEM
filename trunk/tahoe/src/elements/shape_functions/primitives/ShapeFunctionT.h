@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.23 2005-01-24 06:59:21 paklein Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.24 2005-01-26 19:55:54 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -21,6 +21,8 @@ class ShapeFunctionT: public DomainIntegrationT
 public:
 
 	/** constructor. 
+     * The constructor needs to be followed with a call to ShapeFunctionT::Initialize
+     * to set the internal data structures.
 	 * \param geometry_code geometry of the parent domain
 	 * \param numIP number of integration points 
 	 * \param coords array of nodal coordinates in local ordering
@@ -29,6 +31,8 @@ public:
 		const LocalArrayT& coords);
 	
 	/** constructor. 
+     * The constructor needs to be followed with a call to ShapeFunctionT::Initialize
+     * to set the internal data structures.
 	 * \param link shared parent domain and "synch-ed" CurrIP
 	 * \param coords array of nodal coordinates in local ordering */
 	ShapeFunctionT(const ShapeFunctionT& link, const LocalArrayT& coords);
