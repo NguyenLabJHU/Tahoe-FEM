@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.7 2001-11-08 00:42:35 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.8 2001-11-09 20:11:13 recampb Exp $ */
 
 #include "VTKBodyT.h"
 
@@ -58,7 +58,7 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
 
   
 //   // ArrayT<dArray2DT> coordinates(num_time_steps);
-  exo.ReadCoordinates(coordinates); //******???
+  exo.ReadCoordinates(coordinates); 
   if (coordinates.MinorDim() == 2) 
     { 
       /* temp space */ 
@@ -119,6 +119,9 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
   /* read nodal data */
   dArray2DT nodal_data(num_nodes, num_node_variables);
   dArrayT ndata(num_nodes);
+  cout << "num node vars: "<< num_node_variables << endl;
+  cout << "num nodes: " << num_nodes << endl;
+  cout << "num time steps: " << num_time_steps << endl;
   //num_time_steps =1; //num_node_variables =1; // used to test data
   if (num_time_steps > 0)
     {
@@ -134,7 +137,7 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
 	      scalars[i][j] =  vtkScalars::New(VTK_DOUBLE);
 	      
 	      /* instantiate displacement vector if needed */
-	      if (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z")
+	      if (node_labels.Length() > 0 && (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z"))
 		vectors[i][j] = vtkVectors::New(VTK_DOUBLE);
 	      
 	      /* initialize min and max scalar range values */
@@ -149,11 +152,11 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
 		scalars[i][j]->InsertScalar(k+1, nodal_data(k,j));
 		//InsertVector(k,...)?????
 		/* if displacement vector needed then insert vector at each node for each time step */
-		if (node_labels[0] == "D_X" && node_labels[1] == "D_Y" && node_labels[2] == "D_Z")              
+		if (node_labels.Length() > 0 &&(node_labels[0] == "D_X" && node_labels[1] == "D_Y" && node_labels[2] == "D_Z"))              
 		  vectors[i][j]->InsertVector(k+1, nodal_data(k,0),nodal_data(k,1),nodal_data(k,2));
-		else if (node_labels[0] == "D_X" && node_labels[1] == "D_Y") 
+		else if (node_labels.Length() > 0 &&(node_labels[0] == "D_X" && node_labels[1] == "D_Y"))
 		  vectors[i][j]->InsertVector(k+1, nodal_data(k,0), nodal_data(k,1),0);
-		else if (node_labels[0] == "D_X")
+		else if (node_labels.Length() > 0 &&(node_labels[0] == "D_X"))
 		  vectors[i][j]->InsertVector(k+1, nodal_data(k,0),0,0);
 		else;
 		
@@ -219,8 +222,10 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
   
 
   /* set default variable to be displayed */ 
-  currentVarNum = num_node_variables-1;
-  
+  if (num_node_variables > 0)  
+    currentVarNum = num_node_variables-1;
+  else
+   currentVarNum = 0;
   
   //read model data
   //set up grid
@@ -229,40 +234,43 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
   /* insert cells in the grid */
   ugrid->SetCells(cell_types.Pointer(), vtk_cell_array);
   ugrid->SetPoints(points);
-  ugrid->GetPointData()->SetScalars(scalars[currentStepNum][currentVarNum]); 
+  if (num_node_variables > 0) 
+    ugrid->GetPointData()->SetScalars(scalars[currentStepNum][currentVarNum]); 
   if (node_labels.Length() > 0 && (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z"))
     ugrid->GetPointData()->SetVectors(vectors[currentStepNum][currentVarNum]);
   
  
   scalarBar = vtkScalarBarActor::New();
   warp = vtkWarpVector::New();
-  warp->SetInput(ugrid);
+  if (num_node_variables > 0)
+    warp->SetInput(ugrid);
   scale_factor = 1;
-
+  
   //set up mapper
   ugridMapper = vtkDataSetMapper::New();
-  ugridMapper->SetInput(warp->GetOutput());
- /* set warping vector if needed */  
-  if (node_labels.Length() > 0 && (node_labels[0] == "D_X" ||node_labels[0] == "D_Y" || node_labels[0] == "D_Z"))
-    ugridMapper->SetInput(warp->GetOutput());
-  else
-    ugridMapper->SetInput(ugrid);
-  
+    /* set warping vector if needed */  
+    if (node_labels.Length() > 0 && (node_labels[0] == "D_X" ||node_labels[0] == "D_Y" || node_labels[0] == "D_Z"))
+      ugridMapper->SetInput(warp->GetOutput());
+    else
+      ugridMapper->SetInput(ugrid);
+
   //set up actor
   ugridActor = vtkActor::New();
+   if (num_node_variables == 0) 
+    ugridActor->GetProperty()->SetColor(1,0,0);
   ugridActor->SetMapper(ugridMapper);
   ugridActor->AddPosition(0,0.001,0);
 
 
   /* color mapping variables */
-  DefaultValues();
-  
-  /* color mapping stuff */  
-  lut = vtkLookupTable::New();
-  UpdateData();
-  lut->Build();
-  SetLookupTable();
-
+  if (num_node_variables >0){
+    DefaultValues();
+    /* color mapping stuff */  
+    lut = vtkLookupTable::New();
+    UpdateData();
+    lut->Build();
+    SetLookupTable();
+  }
   /* assemble a string that is a list of all the variables */
   varList = "";
   for (int i = 0; i<num_node_variables; i++){
@@ -274,6 +282,26 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
   }
 
   
+  /* add variables to the console */
+  iAddVariable("min_Hue_Range", hueRange1);
+  iAddVariable("max_Hue_Range", hueRange2);
+  iAddVariable("min_Value_Range", valRange1);
+  iAddVariable("max_Value_Range", valRange2);
+  iAddVariable("min_Saturation_Range", satRange1);
+  iAddVariable("max_Saturation_Range", satRange2);
+  iAddVariable("min_Alpha_Range", alphaRange1);
+  iAddVariable("max_Alpha_Range", alphaRange2);
+  iAddVariable("min_Scalar_Range", scalarRange1[currentVarNum]);
+  iAddVariable("max_Scalar_Range", scalarRange2[currentVarNum]);
+  iAddVariable("numColors", numColors);
+  iAddVariable("scale_factor", scale_factor);
+  //iAddVariable("source_file", source_file);
+  //iAddVariable("output_file", output_file);
+
+
+
+
+
 }
 
 /* destructor */
@@ -296,9 +324,10 @@ void VTKBodyT::SetLookupTable(void)
 {
   if (node_labels.Length() > 0) {
 	sbTitle.Append(node_labels[currentVarNum]); 
-	sbTitle.Append(" for frame 000");
+	sbTitle.Append(" for time step 000");
   }
   scalarBar->SetLookupTable(ugridMapper->GetLookupTable());
+
   scalarBar->SetTitle(sbTitle);
   scalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
   scalarBar->GetPositionCoordinate()->SetValue(0.1,0.01);
@@ -309,14 +338,16 @@ void VTKBodyT::SetLookupTable(void)
 
 void VTKBodyT::UpdateData(void)
 {
-  lut->SetHueRange(hueRange1, hueRange2);
-  lut->SetSaturationRange(satRange1, satRange2);
-  lut->SetValueRange(valRange1, valRange2);
-  lut->SetAlphaRange(alphaRange1, alphaRange2);
-  lut->SetNumberOfColors(numColors);
-  warp->SetScaleFactor(scale_factor);
-  ugridMapper->SetScalarRange(scalarRange1[currentVarNum], scalarRange2[currentVarNum]);
-  ugridMapper->SetLookupTable(lut);
+  if (num_node_variables >0){
+    lut->SetHueRange(hueRange1, hueRange2);
+    lut->SetSaturationRange(satRange1, satRange2);
+    lut->SetValueRange(valRange1, valRange2);
+    lut->SetAlphaRange(alphaRange1, alphaRange2);
+    lut->SetNumberOfColors(numColors);
+    warp->SetScaleFactor(scale_factor);
+    ugridMapper->SetScalarRange(scalarRange1[currentVarNum], scalarRange2[currentVarNum]);
+    ugridMapper->SetLookupTable(lut);
+  }
 }
 
 void VTKBodyT::DefaultValues(void)
@@ -328,28 +359,37 @@ void VTKBodyT::DefaultValues(void)
   alphaRange1 = 1; alphaRange2 = 1;
 }
 
-void VTKBodyT::ChangeVars(const int varNum)
+void VTKBodyT::ChangeVars(int varNum)
 {
   ugrid->GetPointData()->SetScalars(scalars[currentStepNum][varNum]);
   ugridMapper->SetScalarRange(scalarRange1[varNum],scalarRange2[varNum]);
   if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
 	ugrid->GetPointData()->SetVectors(vectors[currentStepNum][varNum]);
-  sbTitle = "";
-  sbTitle.Append(node_labels[varNum]); 
-  sbTitle.Append(" for frame 000 ");
-  //sbTitle.Append(currentStepNum,3);
-  scalarBar->SetTitle(sbTitle);
-  currentVarNum = varNum;
+
+      sbTitle = "";
+      sbTitle.Append(node_labels[varNum]); 
+      sbTitle.Append(" for time step 000 ");
+      //sbTitle.Append(currentStepNum,3);
+      scalarBar->SetTitle(sbTitle);
+      currentVarNum = varNum;
+
 }
 
-void VTKBodyT::SelectTimeStep(const int stepNum)
+void VTKBodyT::SelectTimeStep(int stepNum)
 {
-  sbTitle.Drop(-3);
-  sbTitle.Append(stepNum,3);
-  scalarBar->SetTitle(sbTitle);
-  // ugrid->GetPointData()->SetScalars(scalars[currentStepNum]);
-  ugrid->GetPointData()->SetScalars(scalars[stepNum][currentVarNum]);
-  if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
-    ugrid->GetPointData()->SetVectors(vectors[stepNum][currentVarNum]);
-  currentStepNum= stepNum;
+  if (num_node_variables >0){
+    sbTitle.Drop(-3);
+    sbTitle.Append(stepNum,3);
+    scalarBar->SetTitle(sbTitle);
+    // ugrid->GetPointData()->SetScalars(scalars[currentStepNum]);
+    ugrid->GetPointData()->SetScalars(scalars[stepNum][currentVarNum]);
+    if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
+      ugrid->GetPointData()->SetVectors(vectors[stepNum][currentVarNum]);
+    currentStepNum= stepNum;
+  }
+}
+
+void VTKBodyT::ChangeDataColor(int color)
+{
+ugridActor->GetProperty()->SetColor(1,0,0);
 }

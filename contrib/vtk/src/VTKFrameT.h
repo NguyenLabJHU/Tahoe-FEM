@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.h,v 1.10 2001-11-07 19:51:29 recampb Exp $ */
+/* $Id: VTKFrameT.h,v 1.11 2001-11-09 20:11:13 recampb Exp $ */
 
 #ifndef _VTK_FRAME_T_H_
 #define _VTK_FRAME_T_H_
@@ -15,6 +15,9 @@
 class vtkRenderer;
 class vtkRenderWindow;
 class vtkRenderWindowInteractor;
+class vtkActor2D;
+class vtkSelectVisisblePoints;
+class vtkLabeledDataMapper;
 
 /* forward declarations */
 class VTKBodyT;
@@ -64,6 +67,8 @@ class VTKFrameT: public iConsoleObjectT
    void setIren(vtkRenderWindowInteractor* iren) {fIren = iren; };
 
    StringT getName(void) {return bodies[0]->inFile;};
+
+
    
  private:
 
@@ -75,11 +80,13 @@ class VTKFrameT: public iConsoleObjectT
   vtkRenderWindow *fRenWin;
   vtkRenderWindowInteractor *fIren;
   AutoArrayT<VTKBodyT*> bodies;
+  vtkActor2D* pointLabels;
+  vtkSelectVisiblePoints* visPts;
+  vtkLabeledDataMapper* ldm;
   
+
  /*  vtkIdFilter *ids; */
-/*   vtkSelectVisiblePoints *visPts; */
-/*   vtkLabeledDataMapper *ldm; */
-/*   vtkActor2D *pointLabels; */
+
 /*   vtkUnstructuredGrid *ugrid; */
 /*   vtkScalars *scalars [1000][100]; */
 /*   vtkVectors *vectors [1000][100]; */
