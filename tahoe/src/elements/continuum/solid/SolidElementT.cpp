@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.58.14.1 2004-04-08 07:32:34 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.58.14.2 2004-04-09 05:25:48 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -162,6 +162,7 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 	/* temp for nodal force */
 	dArrayT nodalforce;
 	
+	bool axisymmetric = Axisymmetric();
 	Top();
 	while (NextElement())
 	{
@@ -191,7 +192,7 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 				if (formBody) AddBodyForce(fLocAcc);
 				
 				/* calculate inertial forces */
-				FormMa(fMassType, constMa*fCurrMaterial->Density(), &fLocAcc, NULL);
+				FormMa(fMassType, constMa*fCurrMaterial->Density(), axisymmetric, &fLocAcc, NULL);
 			}
 
 			/* loop over nodes (double-noding OK) */
@@ -1020,6 +1021,7 @@ void SolidElementT::ElementLHSDriver(void)
 	     fabs(constK) < kSmall)) return;
 
 	/* loop over elements */
+	bool axisymmetric = Axisymmetric();
 	Top();
 	while (NextElement())
 		if (CurrentElement().Flag() != kOFF)
@@ -1035,7 +1037,7 @@ void SolidElementT::ElementLHSDriver(void)
 
 			/* element mass */
 			if (fabs(constMe) > kSmall)
-				FormMass(fMassType, constMe*(fCurrMaterial->Density()));
+				FormMass(fMassType, constMe*(fCurrMaterial->Density()), axisymmetric);
 
 			/* element stiffness */
 			if (fabs(constKe) > kSmall)
@@ -1106,6 +1108,7 @@ void SolidElementT::ElementRHSDriver(void)
 	/* override controller */
 	if (fMassType == kNoMass) formMa = 0;
 
+	bool axisymmetric = Axisymmetric();
 	int block_count = 0, block_dex = 0;
 	Top();
 	while (NextElement())
@@ -1143,7 +1146,7 @@ void SolidElementT::ElementRHSDriver(void)
 				/* body force contribution */
 				if (formBody) AddBodyForce(fLocAcc);
 		
-				FormMa(fMassType, -constMa*fCurrMaterial->Density(), &fLocAcc, NULL);
+				FormMa(fMassType, -constMa*fCurrMaterial->Density(), axisymmetric, &fLocAcc, NULL);
 			}
 		
 			/* store incremental heat */

@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.19.18.1 2004-04-08 07:32:31 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.19.18.2 2004-04-09 05:25:47 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -284,6 +284,7 @@ void DiffusionElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	int formK = fIntegrator->FormK(constK);
 
 	/* loop over elements */
+	bool axisymmetric = Axisymmetric();
 	Top();
 	while (NextElement())
 	{
@@ -294,7 +295,7 @@ void DiffusionElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		SetGlobalShape();
 
 		/* element mass */
-		if (formC) FormMass(kConsistentMass, constC*(fCurrMaterial->Capacity()));
+		if (formC) FormMass(kConsistentMass, constC*(fCurrMaterial->Capacity()), axisymmetric);
 
 		/* element stiffness */
 		if (formK) FormStiffness(constK);
@@ -333,6 +334,7 @@ void DiffusionElementT::RHSDriver(void)
 	if (block_source) ip_source.Dimension(NumIP(), 1);
 	int block_count = 0;
 
+	bool axisymmetric = Axisymmetric();
 	double dt = ElementSupport().TimeStep();
 	Top();
 	while (NextElement())
@@ -374,7 +376,7 @@ void DiffusionElementT::RHSDriver(void)
 			else fLocVel = 0.0;
 			if (formBody) AddBodyForce(fLocVel);
 
-			FormMa(kConsistentMass, -constCv*fCurrMaterial->Capacity(), 
+			FormMa(kConsistentMass, -constCv*fCurrMaterial->Capacity(), axisymmetric,
 				&fLocVel,
 				(block_source) ? &ip_source : NULL);			  		
 		}
