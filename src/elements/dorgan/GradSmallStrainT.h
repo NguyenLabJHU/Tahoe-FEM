@@ -1,4 +1,4 @@
-/* $Id: GradSmallStrainT.h,v 1.7 2004-06-17 00:45:11 rdorgan Exp $ */ 
+/* $Id: GradSmallStrainT.h,v 1.8 2004-06-24 03:08:35 rdorgan Exp $ */ 
 #ifndef _GRAD_SMALL_STRAIN_T_H_ 
 #define _GRAD_SMALL_STRAIN_T_H_ 
 
@@ -7,7 +7,7 @@
 
 /* direct members */
 #include "LocalArrayT.h"
-#include "GeometryT.h"
+//#include "GeometryT.h"
 #include "dSymMatrixT.h"
 
 namespace Tahoe {
@@ -16,7 +16,7 @@ namespace Tahoe {
 class GradSSSolidMatT;
 class GradSSMatSupportT;
 class ShapeFunctionT;
-class C1ShapeTools; 
+class ShapeTools; 
  
 /** element formulation with gradient plasticity constitutive model */
 class GradSmallStrainT: public SmallStrainT
@@ -47,15 +47,16 @@ public:
 	/** number of nodes per element for the field.
 	 * This value will initially be taken to be the number
 	 * of nodes per element for the displacement field. */
-	int NumElementNodes_Field(void) const { return NumElementNodes();} ;
+	int NumElementNodes_Field(void) const { return fNumElementNodes_Field;} ;
 
 	/** reference to element shape functions */
-	const C1ShapeTools& ShapeFunction(void) const;
-	
-	/** return the geometry code */
-	GeometryT::CodeT GeometryCode_Field(void) const;
+	const ShapeTools& ShapeFunction(void) const;
 	
 protected:
+	
+	/** echo element connectivity data. Calls ElementBaseT::ReadConnectivity
+	 * to read the data and ElementBaseT::WriteConnectivity to write it. */
+	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
 	
 	/** construct a new material support and return a pointer. Recipient is responsible for
 	 * for freeing the pointer.
@@ -115,6 +116,11 @@ protected:
 	/*@}*/
 	
 private:
+
+	/** connectivities for the multiplier */
+	ArrayT<iArray2DT> fConnectivities_Field;
+	iArray2DT fConnectivities_All;
+
 	/* \name fields */
 	/*@{*/
 	const FieldT& fDisplacement; /**< displacement field */
@@ -122,7 +128,7 @@ private:
 	/*@}*/
 	
 	/** \name shape functions for field */
-	C1ShapeTools* fShapes_Field;
+	ShapeTools* fShapes_Field;
 	
 	/** the material support used to construct materials lists. This pointer
 	 * is only set the first time GradSmallStrainT::NewMaterialList is called. */
@@ -134,29 +140,33 @@ private:
 	/** \name work space */
 	/*@{*/
 	/** shape functions for Field */
-	dMatrixT fh;      /**<  shape functions */
-	dMatrixT fhT;     /**<  shape functions (Transpose) */
-	dMatrixT fp;      /**<  gradient shape functions */
-	dMatrixT fq;      /**<  Laplacian shape functions */
+	dMatrixT fh, fhT; /**<  shape functions */
+	dMatrixT fp;      /**<  gradient of shape functions */
+	dMatrixT fq;      /**<  Laplacian of shape functions */
 	
 	/** stiffnesses */
 	ElementMatrixT fK_bb;               /**< elastic stiffness matrix */
 	ElementMatrixT fK_bh;               /**< off-diagonal matrices */
 	ElementMatrixT fK_hb;               /**< off-diagonal matrices */
-	ElementMatrixT fK_hh, fK_hp, fK_hq; /**< Gradient matrices */
-	ElementMatrixT fK_ct;  /**< constraint matrix */
+	ElementMatrixT fK_hh, fK_hp, fK_hq; /**< Gradient dependent matrices */
+	ElementMatrixT fK_ct;               /**< plastic multiplier constraint matrix */
 
-	/** returned matrices */
-	dMatrixT fDM_bb;
-	dMatrixT fOM_hb, fOM_bh;
-	dMatrixT fGM_hh, fGM_hp, fGM_hq;
+	/** returned matrices obtained from material model */
+	dMatrixT fDM_bb;                    /**< elastic stiffness modulus */
+	dMatrixT fOM_hb, fOM_bh;            /**< off-diagonal moduli */
+	dMatrixT fGM_hh, fGM_hp, fGM_hq;    /**< gradient dependent moduli */
 	dMatrixT fI;
+	/*@}*/
+	
+	/** array of nodes for the hardening field */
+	iArrayT fNodesField;
 	/*@}*/
 	
 	/** \name dimensions */
 	/*@{*/
-	int fNumIP_Disp;            /**< number of integration points */
 	int fNumSD;                 /**< number of spatial dimensions */
+	int fNumIP_Disp;            /**< number of integration points for displacement field*/
+	int fNumElementNodes_Disp;  /**< number of nodes per element for displacement field */
 	int fNumDOF_Disp;           /**< number of degrees of freedom for displacement field */
 	int fNumDOF_Field;          /**< number of degrees of freedom for field */
 	int fNumEQ_Total;           /**< number of total equations */
@@ -164,9 +174,8 @@ private:
 
 	/** \name input data for Field */
 	/*@{*/
-	GeometryT::CodeT fGeometryCode_Field; /**< element parameter */
 	int fNumIP_Field;                     /**< number of integration points for field */
-	int fNumElementNodes_Field;           /**< number of integration points */
+	int fNumElementNodes_Field;           /**< number of nodes per element for field */
 	int fDegreeOfContinuity_Field;        /**< degree of continuity of Field shape functions */
 	double fNodalConstraint;              /**< constraint constants */
 	/*@}*/
@@ -181,19 +190,13 @@ private:
 	/*@}*/
 
 	/* element degree of continuity types */
-	enum TypeT {
-		C0 = 0,
-		C1 = 1};
+	enum TypeT {C0 = 0,	C1 = 1};
 };
 
 /* inlines */
 
-/* return the geometry code */
-inline GeometryT::CodeT GradSmallStrainT::GeometryCode_Field(void) const
-{ return fGeometryCode_Field; }
-
 /* accessors */
-inline const C1ShapeTools& GradSmallStrainT::ShapeFunction(void) const
+inline const ShapeTools& GradSmallStrainT::ShapeFunction(void) const
 {
 #if __option(extended_errorcheck)
 	if (!fShapes_Field)
