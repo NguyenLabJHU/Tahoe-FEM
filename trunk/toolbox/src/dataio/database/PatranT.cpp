@@ -1,4 +1,4 @@
-/* $Id: PatranT.cpp,v 1.13 2002-07-02 19:57:01 cjkimme Exp $ */
+/* $Id: PatranT.cpp,v 1.14 2002-07-23 11:39:12 sawimme Exp $ */
 /* created sawimme (05/17/2001) */
 
 #include "PatranT.h"
@@ -9,6 +9,7 @@
 #include "dArray2DT.h"
 #include "ExceptionCodes.h"
 #include "iAutoArrayT.h"
+#include "ofstreamT.h"
 #include <time.h>
 
 
@@ -498,7 +499,7 @@ bool PatranT::ReadNodeSets (const ArrayT<StringT>& title, iArrayT& nodes) const
     return true;
 }
 
-bool PatranT::WriteHeader (ostream& out, int numnodes, int numelems, StringT& title) const
+bool PatranT::WriteHeader (ostream& out, int numnodes, int numelems, const StringT& title) const
 {
   iArrayT n (5);
   n = 0;
@@ -534,7 +535,7 @@ bool PatranT::WriteHeader (ostream& out, int numnodes, int numelems, StringT& ti
   return true;
 }
 
-bool PatranT::WriteCoordinates (ostream& out, dArray2DT& coords, int firstnodeID) const
+bool PatranT::WriteCoordinates (ostream& out, const dArray2DT& coords, int firstnodeID) const
 {
   iArrayT n (5);
   n = 0;
@@ -572,7 +573,7 @@ bool PatranT::WriteCoordinates (ostream& out, dArray2DT& coords, int firstnodeID
   return true;
 }
 
-bool PatranT::WriteElements (ostream& out, iArray2DT& elems, iArrayT& elemtypes, int firstelemID) const
+bool PatranT::WriteElements (ostream& out, const iArray2DT& elems, const iArrayT& elemtypes, int firstelemID) const
 {
   iArrayT n (5);
   n = 0;
@@ -610,7 +611,7 @@ bool PatranT::WriteElements (ostream& out, iArray2DT& elems, iArrayT& elemtypes,
   return true;
 }
 
-bool PatranT::WriteNamedComponent (ostream& out, StringT& name, int ID, iArray2DT& comps) const
+bool PatranT::WriteNamedComponent (ostream& out, const StringT& name, int ID, const iArray2DT& comps) const
 {
   iArrayT n (5);
   n = 0;
@@ -624,7 +625,7 @@ bool PatranT::WriteNamedComponent (ostream& out, StringT& name, int ID, iArray2D
   out << "\n";
   int *pc = comps.Pointer();
   int w = 1;
-  for (int i=0, w=0; i < IV; i++, w++)
+  for (int i=0; i < IV; i++, w++)
     {
       out << setw (hwidth) << *pc++;
       if (w == 10) 
@@ -642,7 +643,7 @@ bool PatranT::WriteNamedComponent (ostream& out, StringT& name, int ID, iArray2D
   return true;
 }
 
-bool PatranT::WriteGeometryPoints (ostream& out, dArray2DT& points, int firstptID) const
+bool PatranT::WriteGeometryPoints (ostream& out, const dArray2DT& points, int firstptID) const
 {
   iArrayT n (5);
   n = 0;
@@ -663,6 +664,37 @@ bool PatranT::WriteGeometryPoints (ostream& out, dArray2DT& points, int firstptI
   return true;
 }
 
+bool PatranT::WritePairPointCurve (ostream& out, int curveID, int ID1, int ID2, const dArrayT& coord1, const dArrayT& coord2) const
+{
+  dArrayT origin (3);
+  origin = 0;
+  
+  dArrayT distance (3);
+  for (int k=0; k < 3; k++)
+    distance[k] = coord2[k] - coord1[k];
+
+  iArrayT n (5);
+  n = 0;
+  int p = out.precision ();
+  out.precision (prec);
+  out.setf (ios::scientific);
+
+  if (!WritePacketHeader (out, kLineData, curveID, 0, 3, n))
+    return false;
+  for (int i=0; i < 3; i++)
+    {
+      out << setw (cwidth) << coord1[i];
+      if (i==1) out << "\n";
+      out << setw (cwidth) << coord2[i];
+	  if (i==2) out << "\n";
+	  out << setw (cwidth) << distance[i];
+	  out << setw (cwidth) << origin[i];
+    }
+  out << setw (hwidth) << ID1 << setw (hwidth) << ID2 << "\n";
+  out.precision (p);
+  return true;
+}
+
 bool PatranT::WriteClosure (ostream& out) const
 {
   int tag = 99;
@@ -672,6 +704,83 @@ bool PatranT::WriteClosure (ostream& out) const
   if (!WritePacketHeader (out, tag, ID, IV, KC, n)) return false;
   return true;
 }
+
+bool PatranT::WriteNodalVariables (const StringT& filename, const iArrayT& ids, const dArray2DT& values, const ArrayT<StringT>& titles) const
+{
+  ofstreamT out (filename);
+  if (!out)
+    {
+      fMessage << "\n PatranT::WriteNodalVariables, unable to create: "
+	       << filename << "\n\n";
+      return false;
+    }
+  out.setf (ios::scientific);
+  
+  int num = values.MajorDim();
+  int maxnode = ids.Max();
+  int maxposition = -2;
+  double maxdef = values.Max(maxposition);
+  int dof = values.MinorDim();
+
+  out.precision (6);
+  out << setw (80) << titles[0] << "\n";
+  out << setw (9) << num << setw(9) << maxnode ;
+  out << setw (15) << maxdef;
+  out << setw (9) << maxposition << setw (9) << dof << "\n";
+  out << setw (80) << titles[1] << "\n";
+  out << setw (80) << titles[2] << "\n";
+
+  out.precision (7);
+  double *pv = values.Pointer();
+  for (int i=0, *pi=ids.Pointer(); i < num; i++)
+    {
+      out << setw (8) << *pi++;
+      for (int j=0; j < dof; j++)
+	{
+	  out << setw (13) << *pv++;
+	  if (j == 4) out << "\n";
+	}
+      out << "\n";
+    }
+
+  return true;
+}
+
+bool PatranT::WriteElementVariables (const StringT& filename, const iArrayT& ids, const ArrayT<PatranT::ElementTypes>& shapes, const dArray2DT& values, const ArrayT<StringT>& titles) const
+{
+  ofstreamT out (filename);
+  if (!out)
+    {
+      fMessage << "\n PatranT::WriteElementalVariables, unable to create: "
+	       << filename << "\n\n";
+      return false;
+    }
+  out.setf (ios::scientific);
+  out.precision (7);
+  
+  int nume = values.MajorDim();
+  int numv = values.MinorDim();
+  out << setw (80) << titles[0] << "\n";
+  out << setw (5) << numv << "\n";
+  out << setw (80) << titles[1] << "\n";
+  out << setw (80) << titles[2] << "\n";
+
+  double *pv = values.Pointer();
+  int *pi = ids.Pointer();
+  PatranT::ElementTypes *ps = shapes.Pointer();
+  for (int i=0; i < nume; i++)
+    {
+      out << setw (8) << *pi++ << setw (8) << *ps++ << "\n";
+      for (int j=0; j < numv; j++)
+	{
+	  out << setw (13) << *pv++;
+	  if ((j+1)%6 == 0) out << "\n";
+	}
+      out << "\n";
+    }
+
+  return true;
+} 
 
 /**************************************************************************
 * Private

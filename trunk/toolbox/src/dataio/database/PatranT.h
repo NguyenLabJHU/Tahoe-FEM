@@ -1,4 +1,4 @@
-/* $Id: PatranT.h,v 1.9 2002-07-05 22:26:25 paklein Exp $ */
+/* $Id: PatranT.h,v 1.10 2002-07-23 11:39:12 sawimme Exp $ */
 /* created: sawimme (05/17/2001)  */
 
 #ifndef _PATRAN_T_H_
@@ -15,10 +15,28 @@ namespace Tahoe {
 /* forward declarations */
 class iArrayT;
 class dArray2DT;
+class dArrayT;
 
 class PatranT
 {
  public:
+  enum NamedTypes { kNCPoint = 1, kNCCurve = 2,
+		    kNCPatch = 3, kNCHyperPatch = 4,
+		    kNCNode = 5, 
+		    kNCLine = 6, kNCLine2 = 106, kNCLine3 = 206,
+		    kNCTriangle = 7, kNCTriangle2 = 107, kNCTriangle3 = 207,
+		    kNCQuad = 8, kNCQuad2 = 108, kNCQuad3 = 208,
+		    kNCTet = 9, kNCTet2 = 109, kNCTet3 = 209,
+		    kNCWedge = 11, kNCWedge2 = 111, kNCWedge3 = 211,
+		    kNCHex = 12, kNCHex2 = 112, kNCHex3 = 212 };
+
+  enum ElementTypes { kLine = 2,
+		      kTriangle = 3,
+		      kQuadrilateral = 4,
+		      kTetrahedron = 5,
+		      kPentahedron = 7,
+		      kHexahedron = 8 };
+
   PatranT (ostream &messge_out);
   ~PatranT (void);
 
@@ -35,7 +53,6 @@ class PatranT
   bool NumNodesInSet (const StringT& title, int& num) const;
   bool ReadGlobalNodeMap (iArrayT& map) const;
   bool ReadGlobalElementMap (iArrayT& map) const;
-  /* dof is user defined to allow 3D data with z=0 to shrink to 2D */
   bool ReadCoordinates (dArray2DT& coords, int dof) const;
   bool ReadElementBlockDims (const StringT& title, int& num_elems, int& num_elem_nodes) const;
   bool ReadConnectivity (const StringT& title, int& namedtype, iArray2DT& connects) const;
@@ -47,27 +64,18 @@ class PatranT
   bool ReadNodeSet (const StringT& title, iArrayT& nodes) const;
   bool ReadNodeSets (const ArrayT<StringT>& title, iArrayT& nodes) const;
 
-  bool WriteHeader (ostream& out, int numnodes, int numelems, StringT& title) const;
-  bool WriteCoordinates (ostream& out, dArray2DT& coords, int firstnodeID) const;
-  bool WriteElements (ostream& out, iArray2DT& elems, iArrayT& elemtypes, int firstelemID) const;
-  bool WriteNamedComponent (ostream& out, StringT& name, int ID, iArray2DT& comps) const;
-  bool WriteGeometryPoints (ostream& out, dArray2DT& points, int firstptiD) const;
+  /* write geometry file */
+  bool WriteHeader (ostream& out, int numnodes, int numelems, const StringT& title) const;
+  bool WriteCoordinates (ostream& out, const dArray2DT& coords, int firstnodeID) const;
+  bool WriteElements (ostream& out, const iArray2DT& elems, const iArrayT& elemtypes, int firstelemID) const;
+  bool WriteNamedComponent (ostream& out, const StringT& name, int ID, const iArray2DT& comps) const;
+  bool WriteGeometryPoints (ostream& out, const dArray2DT& points, int firstptiD) const;
+  bool WritePairPointCurve (ostream& out, int curveID, int ID1, int ID2, const dArrayT& coord1, const dArrayT& coord2) const;
   bool WriteClosure (ostream& out) const;
 
-  enum NamedTypes { kNCNode = 5, 
-		    kNCLine = 6, kNCLine2 = 106, kNCLine3 = 206,
-		    kNCTriangle = 7, kNCTriangle2 = 107, kNCTriangle3 = 207,
-		    kNCQuad = 8, kNCQuad2 = 108, kNCQuad3 = 208,
-		    kNCTet = 9, kNCTet2 = 109, kNCTet3 = 209,
-		    kNCWedge = 11, kNCWedge2 = 111, kNCWedge3 = 211,
-		    kNCHex = 12, kNCHex2 = 112, kNCHex3 = 212 };
-
-  enum ElementTypes { kLine = 2,
-		      kTriangle = 3,
-		      kQuadrilateral = 4,
-		      kTetrahedron = 5,
-		      kPentahedron = 7,
-		      kHexahedron = 8 };
+  /* write results data files */
+  bool WriteNodalVariables (const StringT& filename, const iArrayT& ids, const dArray2DT& values, const ArrayT<StringT>& titles) const;
+  bool WriteElementVariables (const StringT& filename, const iArrayT& ids, const ArrayT<PatranT::ElementTypes>& shapes, const dArray2DT& values, const ArrayT<StringT>& titles) const; 
 
  private:
   enum PacketT { kTitle = 25,
@@ -81,7 +89,8 @@ class PatranT
 		 kNodeForce = 7,
 		 kNodeDisp = 8,
 		 kNamedComponents = 21,
-		 kGridData = 31 };
+		 kGridData = 31,
+		 kLineData = 32 };
 
   enum ShapeT { kBarShape = 2,
 		kTriShape = 3,
@@ -110,7 +119,10 @@ class PatranT
 		kWedgeTypeB = 211, 
 		kHexTypeB = 212 };
 
-  enum PrintFormatT { hwidth = 8, cwidth = 16, prec = 9 };
+  enum GeometryFormatT { hwidth = 8, cwidth = 16, prec = 9};
+  enum ResultsFormatT { kString = 80, kHeaderInt = 9, kDataInt = 8,
+			kHeaderDouble = 15, kDataDouble=13,
+			kHeaderPrec = 6, kDataPrec = 7 };
 
   void ScanFile (void);
   int LocateNamedComponent (const StringT &title) const;
