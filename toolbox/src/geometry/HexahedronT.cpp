@@ -1,4 +1,4 @@
-/* $Id: HexahedronT.cpp,v 1.4 2004-02-28 21:52:26 paklein Exp $ */
+/* $Id: HexahedronT.cpp,v 1.5 2004-05-12 22:20:15 paklein Exp $ */
 /* created: paklein (10/22/1997) */
 #include "HexahedronT.h"
 #include <math.h>
@@ -983,6 +983,35 @@ void HexahedronT::SetExtrapolation(dMatrixT& extrap) const
 		default:		
 			ExceptionT::GeneralFail(caller, "no nodal extrapolation with Gauss rule: %d", numint);
 	}
+}
+
+/* integration point gradient matrix */
+void HexahedronT::IPGradientTransform(int ip, dMatrixT& transform) const
+{
+	const char caller[] = "HexahedronT::IPGradientTransform";
+
+	/* dimensions */
+	int nsd = transform.Rows();
+	int nip = transform.Cols();
+	if (nsd != 3) ExceptionT::SizeMismatch(caller);
+	
+	if (nip == 8) {
+		double a = sqrt(3.0)/2.0;
+		double m0[3*8] = {-a, -a, -a, a, 0, 0, 0, 0, 0, 0, a, 0, 0, 0, a, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		double m1[3*8] = {-a, 0, 0, a, -a, -a, 0, a, 0, 0, 0, 0, 0, 0, 0, 0, 0, a, 0, 0, 0, 0, 0, 0};
+		double m2[3*8] = {0, 0, 0, 0, -a, 0, a, a, -a, -a, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, a, 0, 0, 0};
+		double m3[3*8] = {0, -a, 0, 0, 0, 0, a, 0, 0, -a, a, -a, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, a};
+		double m4[3*8] = {0, 0, -a, 0, 0, 0, 0, 0, 0, 0, 0, 0, -a, -a, a, a, 0, 0, 0, 0, 0, 0, a, 0};
+		double m5[3*8] = {0, 0, 0, 0, 0, -a, 0, 0, 0, 0, 0, 0, -a, 0, 0, a, -a, a, 0, a, 0, 0, 0, 0};
+		double m6[3*8] = {0, 0, 0, 0, 0, 0, 0, 0, -a, 0, 0, 0, 0, 0, 0, 0, -a, 0, a, a, a, -a, 0, 0};
+		double m7[3*8] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -a, 0, -a, 0, 0, 0, 0, a, 0, 0, -a, a, a};
+		double* m[8] = {m0, m1, m2, m3, m4, m5, m6, m7};
+		ArrayT<double*> m_array(8, m);
+		dMatrixT trans(3, 8, m_array[ip]);
+		transform = trans;		
+	}
+	else
+		ExceptionT::GeneralFail(caller, "unsupported number of integration points %d", nip);	
 }
 
 /* return true if the given point is within the domain */
