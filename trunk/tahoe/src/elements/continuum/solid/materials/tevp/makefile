@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2001-06-25 20:48:14 hspark Exp $
+# $Id: makefile,v 1.3 2001-09-10 16:38:11 hspark Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,7 +7,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	tevp2D.o \
-        tevp3D.o
+        tevp3D.o \
+        povirk2D.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -18,12 +19,14 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	tevp2D.cpp \
-	tevp3D.cpp
+	tevp3D.cpp \
+	povirk2D.cpp
 
 # headers
 HDR = \
 	tevp2D.h \
-	tevp3D.h
+	tevp3D.h \
+	povirk2D.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
