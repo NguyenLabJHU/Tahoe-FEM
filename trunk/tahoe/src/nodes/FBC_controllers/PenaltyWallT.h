@@ -1,6 +1,5 @@
-/* $Id: PenaltyWallT.h,v 1.7 2002-11-28 16:44:20 paklein Exp $ */
+/* $Id: PenaltyWallT.h,v 1.8 2003-08-18 03:44:36 paklein Exp $ */
 /* created: paklein (02/25/1997) */
-
 #ifndef _PENATLY_WALL_T_H_
 #define _PENATLY_WALL_T_H_
 
@@ -9,7 +8,6 @@
 
 /* direct members */
 #include "ElementMatrixT.h"
-
 
 namespace Tahoe {
 
@@ -33,6 +31,15 @@ public:
 	 *        enum is ordered by generality. The solver should indicate the most general
 	 *        system type that is actually needed. */
 	virtual void ApplyLHS(GlobalT::SystemTypeT sys_type);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	/*@}*/
 
 private:
 

@@ -1,6 +1,5 @@
-/* $Id: PenaltySphereT.h,v 1.4 2002-11-28 16:44:20 paklein Exp $ */
+/* $Id: PenaltySphereT.h,v 1.5 2003-08-18 03:44:36 paklein Exp $ */
 /* created: paklein (04/30/1998) */
-
 #ifndef _PENATLY_SPHERE_T_H_
 #define _PENATLY_SPHERE_T_H_
 
@@ -35,6 +34,12 @@ public:
 	 *        enum is ordered by generality. The solver should indicate the most general
 	 *        system type that is actually needed. */
 	virtual void ApplyLHS(GlobalT::SystemTypeT sys_type);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 	
 protected:
 
