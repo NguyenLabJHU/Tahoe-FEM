@@ -7,7 +7,7 @@
 using namespace Tahoe;
 
 VMF_Virtual_Work_EqT::VMF_Virtual_Work_EqT	( FEA_ShapeFunctionT &Shapes,VMF_MaterialT *Iso_Matl,VMS_VariableT &np1,VMS_VariableT &n, 
-											int Integration_Scheme=kBackward_Euler) 
+											int Integration_Scheme) 
 {
 	Construct (Shapes,Iso_Matl,np1,n,Integration_Scheme);
 }
@@ -20,7 +20,7 @@ VMF_Virtual_Work_EqT::VMF_Virtual_Work_EqT	( FEA_ShapeFunctionT &Shapes,VMF_Mate
 //---------------------------------------------------------------------
 
 void VMF_Virtual_Work_EqT::Construct ( 	FEA_ShapeFunctionT &Shapes,VMF_MaterialT *Iso_Matl,VMS_VariableT &np1,VMS_VariableT &n, 
-														int Integration_Scheme=kBackward_Euler) 
+														int Integration_Scheme) 
 {
 	n_ip 		= np1.fVars[0].IPs(); 
 	n_rows	= np1.fVars[0].Rows(); 
@@ -65,7 +65,7 @@ void VMF_Virtual_Work_EqT::Construct ( 	FEA_ShapeFunctionT &Shapes,VMF_MaterialT
 
 //---------------------------------------------------------------------
 
-void VMF_Virtual_Work_EqT::Form_LHS_Ka_Kb	( dMatrixT &Ka, dMatrixT &Kb,double delta_t=0.0 )  // Untested
+void VMF_Virtual_Work_EqT::Form_LHS_Ka_Kb	( dMatrixT &Ka, dMatrixT &Kb, double delta_t)  // Untested
 {
 
 	/* Term I. 		*/		Ka 	= Integral.of( 	B[kB_1hat], B[kBI_tau_3hat] 					);  	
@@ -77,7 +77,7 @@ void VMF_Virtual_Work_EqT::Form_LHS_Ka_Kb	( dMatrixT &Ka, dMatrixT &Kb,double de
 
 //---------------------------------------------------------------------
 
-void VMF_Virtual_Work_EqT::Form_RHS_F_int ( dArrayT &F_int,double delta_t=0.0 ) // Untested
+void VMF_Virtual_Work_EqT::Form_RHS_F_int ( dArrayT &F_int, double delta_t) // Untested
 {
 	FEA_dVectorT sigma_vec	( n_ip, n_sd_x_n_sd 		); // <-- Dimensionality problem
 	Data_Pro.Reduce_Order		(	A[kSigma], sigma_vec 	); 
@@ -109,15 +109,15 @@ void VMF_Virtual_Work_EqT::Form_B_List (void)
 //NOTE: np1 := "n+1" time step; n := "n" time step; npt := "n+theta" time step
 //      *** No subscript implies n+theta time step ***
 
-void VMF_Virtual_Work_EqT::Form_A_S_Lists (VMS_VariableT &np1,VMS_VariableT &n,int Integration_Scheme=kBackward_Euler )
+void VMF_Virtual_Work_EqT::Form_A_S_Lists (VMS_VariableT &np1,VMS_VariableT &n,int Integration_Scheme)
 {
 	//---- Developer cheat: put npt in function door in-lieu-of np1 or np for speed
 
 VMS_VariableT npt(	n.Get(VMS::kGRAD_ua), n.Get(VMS::kGRAD_ub)	);  
 
-	if 			(	Integration_Scheme == kForward_Euler		)		npt = n;
-	else if (	Integration_Scheme == kBackward_Euler		)		npt = np1;
-	else if (	Integration_Scheme == kCrank_Nicholson	) { npt.SumOf(np1,n); npt *= 0.5; }
+	if 			(	Integration_Scheme == FEA::kForward_Euler		)		npt = n;
+	else if (	Integration_Scheme == FEA::kBackward_Euler		)		npt = np1;
+	else if (	Integration_Scheme == FEA::kCrank_Nicholson	) { npt.SumOf(np1,n); npt *= 0.5; }
 	else 	cout << " ...ERROR >> VMF_Virtual_Work_EqT::Form_A_List() : Bad theta value for time stepping \n";
 		
 	A.Construct ( kNUM_A_TERMS, n_ip, n_sd, n_sd);

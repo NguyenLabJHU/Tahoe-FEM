@@ -57,15 +57,15 @@ class VMF_Virtual_Work_EqT	: public CoarseScaleT
 		VMF_Virtual_Work_EqT 	( void ) { } 
 
 		VMF_Virtual_Work_EqT 	( FEA_ShapeFunctionT &Shapes,VMF_MaterialT *Iso_Matl, VMS_VariableT &np1, VMS_VariableT &n, 
-														int Integration_Scheme=kBackward_Euler);
+														int Integration_Scheme=FEA::kBackward_Euler);
 
 		void 	Construct 			( FEA_ShapeFunctionT &Shapes,VMF_MaterialT *Iso_Matl, VMS_VariableT &np1, VMS_VariableT &n, 
-														int Integration_Scheme=kBackward_Euler); 
+														int Integration_Scheme=FEA::kBackward_Euler); 
 
   	void 	Form_LHS_Ka_Kb	(	dMatrixT &Ka, dMatrixT &Kb, double delta_t =0.0	); // add delta_t for dynamics
   	void 	Form_RHS_F_int	(	dArrayT  &F_int, double delta_t =0.0	); 
 		void 	Form_B_List 		( void );  // Strain Displacement Matricies
-		void 	Form_A_S_Lists 	( VMS_VariableT &np1, VMS_VariableT &n,int Integration_Scheme=kBackward_Euler ); // BCDE ---> A 
+		void 	Form_A_S_Lists 	( VMS_VariableT &np1, VMS_VariableT &n,int Integration_Scheme=FEA::kBackward_Euler ); // BCDE ---> A 
 
 	protected:
 

@@ -17,18 +17,18 @@ class FEA_Data_ProcessorT
 		FEA_Data_ProcessorT 			( FEA_dMatrixT &fdNdx );
 		void Construct 						( FEA_dMatrixT &fdNdx ); 
 
-		void grad_u     			(FEA_dMatrixT &B,int T_flag=kNonSymetric);
+		void grad_u     			(FEA_dMatrixT &B,int T_flag=FEA::kNonSymmetric);
 
 		void grad_u_A   			(FEA_dMatrixT &A, 	FEA_dMatrixT &B);
 		void A_grad_u_T  		  (FEA_dMatrixT &A, 	FEA_dMatrixT &B);
 
-		void A_grad_u 				(FEA_dMatrixT &A, 	FEA_dMatrixT &B,int T_flag=kNonSymetric);
-		void grad_u_T_A 			(FEA_dMatrixT &A, 	FEA_dMatrixT &B) { A_grad_u (A,B,kNonSymTranspose); }
+		void A_grad_u 				(FEA_dMatrixT &A, 	FEA_dMatrixT &B,int T_flag=FEA::kNonSymmetric);
+		void grad_u_T_A 			(FEA_dMatrixT &A, 	FEA_dMatrixT &B) { A_grad_u (A,B,FEA::kNonSymTranspose); }
 
 
 		void A_grad_u_B 			(FEA_dMatrixT &A, 	FEA_dMatrixT &B, FEA_dMatrixT &B_3hat) { AikBlj_Ukl(A,B,B_3hat); }
-		void A_grad_u_T_B 		(FEA_dMatrixT &A, 	FEA_dMatrixT &B, FEA_dMatrixT &B_3hat) { AikBlj_Ukl(A,B,B_3hat, kNonSymTranspose); }
-		void AikBlj_Ukl 			(FEA_dMatrixT &A, 	FEA_dMatrixT &B, FEA_dMatrixT &B_3hat, int T_flag=kNonSymetric); 
+		void A_grad_u_T_B 		(FEA_dMatrixT &A, 	FEA_dMatrixT &B, FEA_dMatrixT &B_3hat) { AikBlj_Ukl(A,B,B_3hat, FEA::kNonSymTranspose); }
+		void AikBlj_Ukl 			(FEA_dMatrixT &A, 	FEA_dMatrixT &B, FEA_dMatrixT &B_3hat, int T_flag=FEA::kNonSymmetric); 
 
 
 		void A_o_B_grad_u 		(FEA_dMatrixT &A, 	FEA_dMatrixT &B, FEA_dMatrixT &B_sharp); 
@@ -40,7 +40,7 @@ class FEA_Data_ProcessorT
 		void Identity					(FEA_dMatrixT &I_mat) { I_mat=I; }
 		void Identity					(FEA_dVectorT &I_vec, double scale=1.0); 
 	 	
-	  void C_IJKL 					(const double &lamda,const double &mu,FEA_dMatrixT &D,int kine=kPlaneStrain);
+	  void C_IJKL 					(const double &lamda,const double &mu,FEA_dMatrixT &D,int kine=FEA::kPlaneStrain);
 		void C_IJKL_E_KL			(double &lamda,double &mu, FEA_dMatrixT &E, FEA_dMatrixT &S); // Hooke's Law
 		void c_ijkl						(double &lamda,double &mu, FEA_dScalarT &J, FEA_dMatrixT &F, FEA_dMatrixT &D);
 		void c_ijkl_Alt				(double &lamda,double &mu, FEA_dScalarT &J, FEA_dMatrixT &F, FEA_dMatrixT &D);
@@ -64,9 +64,9 @@ class FEA_Data_ProcessorT
 		//   These methods were original formulations, replaced by faster/ more streamlined ones/
 		
 		void A_grad_U_Alt 		(FEA_dMatrixT &A, 	FEA_dMatrixT &B_1bar) { AikBlj_Ukl ( A,I, B_1bar); } 
-		void A_grad_U_T_Alt 	(FEA_dMatrixT &A, 	FEA_dMatrixT &B_1bar) { AikBlj_Ukl ( A,I, B_1bar, kNonSymTranspose); } 
+		void A_grad_U_T_Alt 	(FEA_dMatrixT &A, 	FEA_dMatrixT &B_1bar) { AikBlj_Ukl ( A,I, B_1bar, FEA::kNonSymTranspose); } 
 		void grad_U_A_Alt 		(FEA_dMatrixT &A, 	FEA_dMatrixT &B_2hat) { AikBlj_Ukl ( I,A,	B_2hat); } 
-		void grad_U_T_A_Alt 	(FEA_dMatrixT &A, 	FEA_dMatrixT &B_2hat) { AikBlj_Ukl ( I,A,	B_2hat, kNonSymTranspose); } 
+		void grad_U_T_A_Alt 	(FEA_dMatrixT &A, 	FEA_dMatrixT &B_2hat) { AikBlj_Ukl ( I,A,	B_2hat, FEA::kNonSymTranspose); } 
 
 		void sym_grad_u 				(FEA_dMatrixT &B);
 		void grad_u_T    				(FEA_dMatrixT &B);

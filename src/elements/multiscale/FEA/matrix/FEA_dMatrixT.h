@@ -111,7 +111,7 @@ class FEA_dMatrixT: public ArrayT <dMatrixT>
 
 		// special operations
 		
-	  /** rc:  kRow or kCol, it indicates whether a row or column is selected for dotting. */
+	  /** rc:  FEA::kRow or FEA::kCol, it indicates whether a row or column is selected for dotting. */
 		/** ij:  i or j. parameter is the "index" specifying which row i or column j is desired for dotting. */
 
 	  FEA_EquateT&       Dot (int rc,int ij,const FEA_dMatrixT &a,int a_rc,int a_ij); 

@@ -87,14 +87,14 @@ void FEA_Data_ProcessorT::grad_u	(FEA_dMatrixT &B,const int T_flag)
 
 			j1 = n_sd*a;     j2 = n_sd*a +1;  // Columns of B for node "a"
 
-			if (T_flag == kSymetric) {
+			if (T_flag == FEA::kSymmetric) {
 
     		B(0,j1) = dN(dx1,a);   	B(0,j2) = 0.0;           // u1,1  
 				B(1,j1) = 0.0;     			B(1,j2) = dN(dx2,a);     // u2,2 
 				B(2,j1) = dN(dx2,a);    B(2,j2) = dN(dx1,a);     // u1,2 + u2,1
       	// u 1                     u 2    
 			}	
-			else if (T_flag == kNonSymetric) {
+			else if (T_flag == FEA::kNonSymmetric) {
 
     		B(0,j1) = dN(dx1,a);   	B(0,j2) = 0.0;           // u1,1  
 				B(1,j1) = 0.0;     			B(1,j2) = dN(dx2,a);     // u2,2 
@@ -102,7 +102,7 @@ void FEA_Data_ProcessorT::grad_u	(FEA_dMatrixT &B,const int T_flag)
 				B(3,j1) = 0.0;     			B(3,j2) = dN(dx1,a);     // u2,1
       	// u 1                     u 2             
 			}
-			else if (T_flag == kNonSymTranspose) {
+			else if (T_flag == FEA::kNonSymTranspose) {
 
     		B(0,j1) = dN(dx1,a);   	B(0,j2) = 0.0;           // u1,1  
 				B(1,j1) = 0.0;     			B(1,j2) = dN(dx2,a);     // u2,2 
@@ -120,7 +120,7 @@ void FEA_Data_ProcessorT::grad_u	(FEA_dMatrixT &B,const int T_flag)
 
 			j1 = n_sd*a;     j2 = n_sd*a +1;     j3 = n_sd*a +2; 	// Columns of B for node a
 
-			if (T_flag == kSymetric) {
+			if (T_flag == FEA::kSymmetric) {
 
      		B(0,j1) = dN(dx1,a);  		B(0,j2) = 0.0;          	B(0,j3) = 0.0;         	 // u1,1
 		 		B(1,j1) = 0.0;     				B(1,j2) = dN(dx2,a);			B(1,j3) = 0.0;         	 // u2,2
@@ -130,7 +130,7 @@ void FEA_Data_ProcessorT::grad_u	(FEA_dMatrixT &B,const int T_flag)
 		 		B(5,j1) = dN(dx2,a); 		  B(5,j2) = dN(dx1,a);			B(5,j3) = 0.0;       		 // u1,2 + u2,1
      		// u 1                 		   u 2                       u 3
 			}
-			else if (T_flag == kNonSymetric) {
+			else if (T_flag == FEA::kNonSymmetric) {
 
     		B(0,j1) = dN(dx1,a);  		B(0,j2) = 0.0;            B(0,j3) = 0.0;           // u1,1  -> u0,0
 				B(1,j1) = 0.0;     				B(1,j2) = dN(dx2,a);			B(1,j3) = 0.0;           // u2,2  -> u1,1
@@ -145,7 +145,7 @@ void FEA_Data_ProcessorT::grad_u	(FEA_dMatrixT &B,const int T_flag)
 				B(8,j1) = 0.0;						B(8,j2) = dN(dx1,a);			B(8,j3) = 0.0;           // u2,1  -> u1,0
     		// u 1                  		 u 2                       u 3
 			}		
-			else if (T_flag == kNonSymTranspose) {
+			else if (T_flag == FEA::kNonSymTranspose) {
 
 	    	B(0,j1) = dN(dx1,a);  		B(0,j2) = 0.0;            B(0,j3) = 0.0;           // u1,1  -> u0,0
 				B(1,j1) = 0.0;     				B(1,j2) = dN(dx2,a);			B(1,j3) = 0.0;           // u2,2  -> u1,1
@@ -189,10 +189,10 @@ int j1,j2,j3;
 
 		 	j1 = n_sd*a;     j2 = n_sd*a +1; 
 
-	    B(k1,j1) = dN.Dot(kCol,a,A,kCol,k1);   		B(k1,j2) = 0.0;           							// u1,1 
-		 	B(k2,j1) = 0.0;     												B(k2,j2) = dN.Dot(kCol,a,A,kCol,k2); 		// u2,2
-		 	B(k3,j1) = dN.Dot(kCol,a,A,kCol,k2);   		B(k3,j2) = 0.0;           							// u1,2
-		 	B(k4,j1) = 0.0;     												B(k4,j2) = dN.Dot(kCol,a,A,kCol,k1);  	// u2,1
+	    B(k1,j1) = dN.Dot(FEA::kCol,a,A,FEA::kCol,k1);   		B(k1,j2) = 0.0;           							// u1,1 
+		 	B(k2,j1) = 0.0;     												B(k2,j2) = dN.Dot(FEA::kCol,a,A,FEA::kCol,k2); 		// u2,2
+		 	B(k3,j1) = dN.Dot(FEA::kCol,a,A,FEA::kCol,k2);   		B(k3,j2) = 0.0;           							// u1,2
+		 	B(k4,j1) = 0.0;     												B(k4,j2) = dN.Dot(FEA::kCol,a,A,FEA::kCol,k1);  	// u2,1
 
    	}
 	}
@@ -202,17 +202,17 @@ int j1,j2,j3;
 
 		 	j1 = n_sd*a;     j2 = n_sd*a +1;     j3 = n_sd*a +2;
 		 
-     	B(0,j1) = dN.Dot(kCol,a,A,kCol,k1);   	B(0,j2) = 0.0;            						B(0,j3) = 0.0;          							// u1,1   
-		 	B(1,j1) = 0.0;     											B(1,j2) = dN.Dot(kCol,a,A,kCol,k2);		B(1,j3) = 0.0;         								// u2,2   
-		 	B(2,j1) = 0.0;     											B(2,j2) = 0.0;            						B(2,j3) = dN.Dot(kCol,a,A,kCol,k3);	 	// u3,3 
+     	B(0,j1) = dN.Dot(FEA::kCol,a,A,FEA::kCol,k1);   	B(0,j2) = 0.0;            						B(0,j3) = 0.0;          							// u1,1   
+		 	B(1,j1) = 0.0;     											B(1,j2) = dN.Dot(FEA::kCol,a,A,FEA::kCol,k2);		B(1,j3) = 0.0;         								// u2,2   
+		 	B(2,j1) = 0.0;     											B(2,j2) = 0.0;            						B(2,j3) = dN.Dot(FEA::kCol,a,A,FEA::kCol,k3);	 	// u3,3 
 
-		 	B(3,j1) = 0.0;     											B(3,j2) = dN.Dot(kCol,a,A,kCol,k3);  	B(3,j3) = 0.0;      									// u2,3
-		 	B(4,j1) = dN.Dot(kCol,a,A,kCol,k3);   	B(4,j2) = 0.0;      									B(4,j3) = 0.0;												// u1,3
-		 	B(5,j1) = dN.Dot(kCol,a,A,kCol,k2);   	B(5,j2) = 0.0;												B(5,j3) = 0.0;          							// u1,2 
+		 	B(3,j1) = 0.0;     											B(3,j2) = dN.Dot(FEA::kCol,a,A,FEA::kCol,k3);  	B(3,j3) = 0.0;      									// u2,3
+		 	B(4,j1) = dN.Dot(FEA::kCol,a,A,FEA::kCol,k3);   	B(4,j2) = 0.0;      									B(4,j3) = 0.0;												// u1,3
+		 	B(5,j1) = dN.Dot(FEA::kCol,a,A,FEA::kCol,k2);   	B(5,j2) = 0.0;												B(5,j3) = 0.0;          							// u1,2 
 
-		 	B(6,j1) = 0.0;     											B(6,j2) = 0.0;				    						B(6,j3) = dN.Dot(kCol,a,A,kCol,k2); 	// u3,2
-		 	B(7,j1) = 0.0;   												B(7,j2) = 0.0;      									B(7,j3) = dN.Dot(kCol,a,A,kCol,k1);		// u3,1
-		 	B(8,j1) = 0.0;				 									B(8,j2) = dN.Dot(kCol,a,A,kCol,k1); 	B(8,j3) = 0.0;          							// u2,1
+		 	B(6,j1) = 0.0;     											B(6,j2) = 0.0;				    						B(6,j3) = dN.Dot(FEA::kCol,a,A,FEA::kCol,k2); 	// u3,2
+		 	B(7,j1) = 0.0;   												B(7,j2) = 0.0;      									B(7,j3) = dN.Dot(FEA::kCol,a,A,FEA::kCol,k1);		// u3,1
+		 	B(8,j1) = 0.0;				 									B(8,j2) = dN.Dot(FEA::kCol,a,A,FEA::kCol,k1); 	B(8,j3) = 0.0;          							// u2,1
 
    	}
 	}
@@ -242,10 +242,10 @@ int j1,j2,j3;
 
 			j1 = n_sd*a;     j2 = n_sd*a +1; 
 
-	    B(k1,j1) = dN.Dot(kCol,a,A,kRow,k1);   		B(k1,j2) = 0.0;           							
-			B(k2,j1) = 0.0;     											B(k2,j2) = dN.Dot(kCol,a,A,kRow,k2); 	
-			B(k3,j1) = 0.0;     											B(k3,j2) = dN.Dot(kCol,a,A,kRow,k1);  	
-			B(k4,j1) = dN.Dot(kCol,a,A,kRow,k2);   		B(k4,j2) = 0.0;           							
+	    B(k1,j1) = dN.Dot(FEA::kCol,a,A,FEA::kRow,k1);   		B(k1,j2) = 0.0;           							
+			B(k2,j1) = 0.0;     											B(k2,j2) = dN.Dot(FEA::kCol,a,A,FEA::kRow,k2); 	
+			B(k3,j1) = 0.0;     											B(k3,j2) = dN.Dot(FEA::kCol,a,A,FEA::kRow,k1);  	
+			B(k4,j1) = dN.Dot(FEA::kCol,a,A,FEA::kRow,k2);   		B(k4,j2) = 0.0;           							
 
    	}
 	}
@@ -255,17 +255,17 @@ int j1,j2,j3;
 
 			j1 = n_sd*a;     j2 = n_sd*a +1;     j3 = n_sd*a +2;
 		 
-    	B(0,j1) = dN.Dot(kCol,a,A,kRow,k1);   	B(0,j2) = 0.0;            						B(0,j3) = 0.0;          								// u1,1   
-			B(1,j1) = 0.0;     											B(1,j2) = dN.Dot(kCol,a,A,kRow,k2);		B(1,j3) = 0.0;         								 	// u2,2   
-			B(2,j1) = 0.0;     											B(2,j2) = 0.0;            						B(2,j3) = dN.Dot(kCol,a,A,kRow,k3);	 		// u3,3 
+    	B(0,j1) = dN.Dot(FEA::kCol,a,A,FEA::kRow,k1);   	B(0,j2) = 0.0;            						B(0,j3) = 0.0;          								// u1,1   
+			B(1,j1) = 0.0;     											B(1,j2) = dN.Dot(FEA::kCol,a,A,FEA::kRow,k2);		B(1,j3) = 0.0;         								 	// u2,2   
+			B(2,j1) = 0.0;     											B(2,j2) = 0.0;            						B(2,j3) = dN.Dot(FEA::kCol,a,A,FEA::kRow,k3);	 		// u3,3 
 
-			B(3,j1) = 0.0;     											B(3,j2) = 0.0;				    						B(3,j3) = dN.Dot(kCol,a,A,kRow,k2); 		// u3,2
-			B(4,j1) = 0.0;   												B(4,j2) = 0.0;      									B(4,j3) = dN.Dot(kCol,a,A,kRow,k1);			// u3,1
-			B(5,j1) = 0.0;				 									B(5,j2) = dN.Dot(kCol,a,A,kRow,k1); 	B(5,j3) = 0.0;          								// u2,1
+			B(3,j1) = 0.0;     											B(3,j2) = 0.0;				    						B(3,j3) = dN.Dot(FEA::kCol,a,A,FEA::kRow,k2); 		// u3,2
+			B(4,j1) = 0.0;   												B(4,j2) = 0.0;      									B(4,j3) = dN.Dot(FEA::kCol,a,A,FEA::kRow,k1);			// u3,1
+			B(5,j1) = 0.0;				 									B(5,j2) = dN.Dot(FEA::kCol,a,A,FEA::kRow,k1); 	B(5,j3) = 0.0;          								// u2,1
 
-			B(6,j1) = 0.0;     											B(6,j2) = dN.Dot(kCol,a,A,kRow,k3);  	B(6,j3) = 0.0;      										// u2,3
-			B(7,j1) = dN.Dot(kCol,a,A,kRow,k3);   	B(7,j2) = 0.0;      									B(7,j3) = 0.0;													// u1,3
-			B(8,j1) = dN.Dot(kCol,a,A,kRow,k2);   	B(8,j2) = 0.0;												B(8,j3) = 0.0;          								// u1,2 
+			B(6,j1) = 0.0;     											B(6,j2) = dN.Dot(FEA::kCol,a,A,FEA::kRow,k3);  	B(6,j3) = 0.0;      										// u2,3
+			B(7,j1) = dN.Dot(FEA::kCol,a,A,FEA::kRow,k3);   	B(7,j2) = 0.0;      									B(7,j3) = 0.0;													// u1,3
+			B(8,j1) = dN.Dot(FEA::kCol,a,A,FEA::kRow,k2);   	B(8,j2) = 0.0;												B(8,j3) = 0.0;          								// u1,2 
 
    	}
 	}
@@ -276,14 +276,14 @@ int j1,j2,j3;
 
 //---------------------------------------------------------------------
 
-void FEA_Data_ProcessorT::A_grad_u (FEA_dMatrixT &A, FEA_dMatrixT &B,int T_flag=kNonSymetric) 
+void FEA_Data_ProcessorT::A_grad_u (FEA_dMatrixT &A, FEA_dMatrixT &B, int T_flag) 
 {
 	int a,i,j; 
 	FEA_dMatrixT Ba_1hat;
 	FEA_dMatrixT AT; 
 	FEA_dMatrixT Ba_2	(n_ip, n_sd_x_n_sd, n_sd);
 
-	if (T_flag==kNonSymTranspose) {
+	if (T_flag==FEA::kNonSymTranspose) {
 		AT.FEA_Dimension (n_ip, n_sd, n_sd);
 		AT.Transpose ( A );
 	}
@@ -295,7 +295,7 @@ void FEA_Data_ProcessorT::A_grad_u (FEA_dMatrixT &A, FEA_dMatrixT &B,int T_flag=
   	i = k1;  j = n_sd*a;     
 		
   	Ba_1hat.FEA_Set 		(n_sd_x_n_sd,n_sd, B,i,j); 	// Construction with shallow copy of sub-matrix of B
-		if (T_flag==kNonSymTranspose) 
+		if (T_flag==FEA::kNonSymTranspose) 
 			Ba_2.MultAB 			( Ba_1hat, AT  ); 					// Ba_2 is Ba_tau_2hat 
 		else
 			Ba_2.MultAB 			( Ba_1hat, A   ); 					// Ba_2 is Ba_2bar 
@@ -323,7 +323,7 @@ void FEA_Data_ProcessorT::Reduce_Order	(	FEA_dMatrixT &A, 	FEA_dVectorT &a )
 
 // NOTE: A_grad_U_B <==> AikUk,lBlj = AikBljUki,l =: AAijklUkl = AA:grad_U = [ B_3hat.d ]^matrix
 
-void FEA_Data_ProcessorT::AikBlj_Ukl (FEA_dMatrixT &A, 	FEA_dMatrixT &B, 	FEA_dMatrixT &B_3hat,int T_flag=kNonSymetric) 
+void FEA_Data_ProcessorT::AikBlj_Ukl (FEA_dMatrixT &A, 	FEA_dMatrixT &B, 	FEA_dMatrixT &B_3hat, int T_flag) 
 {
   FEA_dMatrixT C (n_ip, n_sd_x_n_sd, n_sd_x_n_sd);
   FEA_dMatrixT B_1hat (n_ip, n_sd_x_n_sd, n_sd_x_n_en);
@@ -410,7 +410,7 @@ void FEA_Data_ProcessorT::IIsym	(FEA_dMatrixT &II)
 // 1st Order Idenity Vector (This is an order reduction of the Identity Matrix,
 // saves hassle of using Map.)
 
-void FEA_Data_ProcessorT::Identity	(FEA_dVectorT &I_vec,double scale=1.0)
+void FEA_Data_ProcessorT::Identity	(FEA_dVectorT &I_vec, double scale)
 {
 	int l,i;
 	double *p = I_vec[0].Pointer();
@@ -427,7 +427,7 @@ void FEA_Data_ProcessorT::Identity	(FEA_dVectorT &I_vec,double scale=1.0)
 // 4th Order Elasticity Tensor CC (Reduced to 2nd Order)
 // CC |---> [CC]^matrix =: D 
 
-void FEA_Data_ProcessorT::C_IJKL (const double &lamda,const double &mu,FEA_dMatrixT &D,int kine = kPlaneStrain) 
+void FEA_Data_ProcessorT::C_IJKL (const double &lamda,const double &mu,FEA_dMatrixT &D, int kine) 
 {
 	double Lamda, two_mu = 2.0*mu;
 	int i,j, dim = D[0].Rows(); // A Smart method, detects a 3x3,4x4,6x6 or 9x9 ?
@@ -435,7 +435,7 @@ void FEA_Data_ProcessorT::C_IJKL (const double &lamda,const double &mu,FEA_dMatr
 
 	if (n_sd==1) { D(0,0) = mu*(3*lamda+2*mu) / (lamda + mu);  return; } // This is Youngs Modulus E
 
-	if (kine==kPlaneStress)  // 2D Plane Stress
+	if (kine==FEA::kPlaneStress)  // 2D Plane Stress
 		Lamda = lamda*two_mu / (lamda + two_mu);
 	else  // 2D Plane Strain or 3D
     Lamda = lamda;

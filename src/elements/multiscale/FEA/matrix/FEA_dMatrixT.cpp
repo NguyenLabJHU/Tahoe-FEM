@@ -103,14 +103,14 @@ void FEA_dMatrixT::Print(char *c) { // overload << later
 
 //----------------------------------------------------
 
-void FEA_dMatrixT::Random (int seed=1) 
+void FEA_dMatrixT::Random (int seed) 
 {
 	for (int i=0; i<fLength; i++) (*this)[i].Random (seed++); 
 }
 
 //----------------------------------------------------
 
-void FEA_dMatrixT::Random	(double high_val,double low_val=0, int seed=1) 
+void FEA_dMatrixT::Random	(double high_val,double low_val, int seed) 
 {
 	Random(seed);
 	double *p = (*this)[0].Pointer();
@@ -187,7 +187,7 @@ void FEA_dMatrixT::DiffOf(const FEA_dMatrixT &a, const FEA_dMatrixT &b) {
 
 //----------------------------------------------------
 
-void FEA_dMatrixT::Identity (double value=1.0) {
+void FEA_dMatrixT::Identity (double value) {
 
 	for (int i=0; i<fLength; i++)
     (*this)[i].Identity(value);
@@ -195,7 +195,7 @@ void FEA_dMatrixT::Identity (double value=1.0) {
 
 //----------------------------------------------------
 
-void FEA_dMatrixT::PlusIdentity (double value=1.0 ) {
+void FEA_dMatrixT::PlusIdentity (double value) {
 
 	for (int i=0; i<fLength; i++)
     (*this)[i].PlusIdentity(value);
@@ -334,7 +334,7 @@ FEA_EquateT& FEA_dMatrixT::operator()(const int i, const int j)
 
 //------------ Matrix-Matrix Operations ---------------
 
-void FEA_dMatrixT::MultAB (const FEA_dMatrixT &a, const FEA_dMatrixT &b, int upper=0) {
+void FEA_dMatrixT::MultAB (const FEA_dMatrixT &a, const FEA_dMatrixT &b, int upper) {
 				
   if (fLength==0) FEA_Dimension (a);
 	for (int i=0; i<fLength; i++)
@@ -343,7 +343,7 @@ void FEA_dMatrixT::MultAB (const FEA_dMatrixT &a, const FEA_dMatrixT &b, int upp
 
 //----------------------------------------------------
 
-void FEA_dMatrixT::MultATB (const FEA_dMatrixT &a, const FEA_dMatrixT &b, int upper=0) {
+void FEA_dMatrixT::MultATB (const FEA_dMatrixT &a, const FEA_dMatrixT &b, int upper) {
 				
   if (fLength==0) FEA_Dimension (a);
 	for (int i=0; i<fLength; i++)
@@ -353,7 +353,7 @@ void FEA_dMatrixT::MultATB (const FEA_dMatrixT &a, const FEA_dMatrixT &b, int up
 
 //----------------------------------------------------
 
-void FEA_dMatrixT::MultABT (const FEA_dMatrixT &a, const FEA_dMatrixT &b, int upper=0) {
+void FEA_dMatrixT::MultABT (const FEA_dMatrixT &a, const FEA_dMatrixT &b, int upper) {
 				
   if (fLength==0) FEA_Dimension (a);
 	for (int i=0; i<fLength; i++)
@@ -374,7 +374,7 @@ void FEA_dMatrixT::MultATBT (const FEA_dMatrixT &a, const FEA_dMatrixT &b) {
 //------------- Matrix-Matrix-Matrix Operations ------
 
 void FEA_dMatrixT::MultABC  (const FEA_dMatrixT &a, const FEA_dMatrixT &b, 
-								const FEA_dMatrixT &c,int range=dMatrixT::kWhole,int fillmode=dMatrixT::kOverwrite) {
+								const FEA_dMatrixT &c, int range, int fillmode) {
 				
   if (fLength==0) FEA_Dimension (a);
 	for (int i=0; i<fLength; i++)
@@ -385,7 +385,7 @@ void FEA_dMatrixT::MultABC  (const FEA_dMatrixT &a, const FEA_dMatrixT &b,
 //----------------------------------------------------
 
 void FEA_dMatrixT::MultABCT (const FEA_dMatrixT &a, const FEA_dMatrixT &b, 
-								const FEA_dMatrixT &c,int range=dMatrixT::kWhole,int fillmode=dMatrixT::kOverwrite) {
+								const FEA_dMatrixT &c, int range, int fillmode) {
 				
   if (fLength==0) FEA_Dimension (a);
 	for (int i=0; i<fLength; i++)
@@ -396,7 +396,7 @@ void FEA_dMatrixT::MultABCT (const FEA_dMatrixT &a, const FEA_dMatrixT &b,
 //----------------------------------------------------
 
 void FEA_dMatrixT::MultATBC (const FEA_dMatrixT &a, const FEA_dMatrixT &b, 
-								const FEA_dMatrixT &c,int range=dMatrixT::kWhole,int fillmode=dMatrixT::kOverwrite) {
+								const FEA_dMatrixT &c, int range, int fillmode) {
 				
   if (fLength==0) FEA_Dimension (a);
 	for (int i=0; i<fLength; i++)
@@ -513,22 +513,22 @@ FEA_EquateT& FEA_dMatrixT::Dot (int rc,int ij,const FEA_dMatrixT &a,int a_rc,int
   if (dim_check) {
   	if (fLength==0 || a.fLength==0) 
 			cout <<"..ERROR>> FEA_dMAtrixT: Matrix unallocated"; 
-		if (rc==kCol && a_rc==kCol)  
+		if (rc==FEA::kCol && a_rc==FEA::kCol)  
 			if (n_rows != a.n_rows)
    			cout <<"...ERROR >> FEA_dMatrixT::Dot incompatible dimensions. ";
-	  else if (rc==kRow && a_rc==kRow) 
+	  else if (rc==FEA::kRow && a_rc==FEA::kRow) 
 			if (n_cols != a.n_cols)
    			cout <<"...ERROR >> FEA_dMatrixT::Dot incompatible dimensions. ";
-		else if (rc==kCol && a_rc==kRow) 
+		else if (rc==FEA::kCol && a_rc==FEA::kRow) 
 			if (n_rows != a.n_cols)
    			cout <<"...ERROR >> FEA_dMatrixT::Dot incompatible dimensions. ";
-		else if (rc==kRow && a_rc==kCol) 
+		else if (rc==FEA::kRow && a_rc==FEA::kCol) 
 			if (n_cols != a.n_rows)
    			cout <<"...ERROR >> FEA_dMatrixT::Dot incompatible dimensions. ";
 	}
 	//------------------
 
-	if (rc==kCol && a_rc==kCol)  
+	if (rc==FEA::kCol && a_rc==FEA::kCol)  
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(n_rows*ij); // ij = { 0 < ij < n-1 }
 			double *q = a[l].Pointer(a.n_rows*a_ij);
@@ -536,7 +536,7 @@ FEA_EquateT& FEA_dMatrixT::Dot (int rc,int ij,const FEA_dMatrixT &a,int a_rc,int
    	  for (i=0; i<n_rows; i++) 
       	(*fStack.Stack[n].vec_ptrs[l]) += (*p++)*(*q++);   // think of as two ops *p; then p++;
 		}
-	else if (rc==kRow && a_rc==kRow) 
+	else if (rc==FEA::kRow && a_rc==FEA::kRow) 
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(ij);
 			double *q = a[l].Pointer(a_ij);
@@ -547,7 +547,7 @@ FEA_EquateT& FEA_dMatrixT::Dot (int rc,int ij,const FEA_dMatrixT &a,int a_rc,int
 				q+=a.n_rows;
 			}
 		}
-	else if (rc==kCol && a_rc==kRow) 
+	else if (rc==FEA::kCol && a_rc==FEA::kRow) 
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(n_rows*ij);
 			double *q = a[l].Pointer(a_ij);
@@ -558,7 +558,7 @@ FEA_EquateT& FEA_dMatrixT::Dot (int rc,int ij,const FEA_dMatrixT &a,int a_rc,int
 				q+=a.n_rows;
 			}
 		}
-	else if (rc==kRow && a_rc==kCol) 
+	else if (rc==FEA::kRow && a_rc==FEA::kCol) 
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(ij);
 			double *q = a[l].Pointer(a.n_rows*a_ij);
@@ -570,7 +570,7 @@ FEA_EquateT& FEA_dMatrixT::Dot (int rc,int ij,const FEA_dMatrixT &a,int a_rc,int
 			}
 		}
 	else 	
-		cout <<"...ERROR >> FEA_dMatrixT::Dot() : either kRow or kCol must be sent. ";
+		cout <<"...ERROR >> FEA_dMatrixT::Dot() : either FEA::kRow or FEA::kCol must be sent. ";
 
 return fStack.Stack[n]; 
 } 
@@ -588,16 +588,16 @@ FEA_EquateT& FEA_dMatrixT::Dot_Aij (int rc,int ij,const FEA_dMatrixT &a,int a_rc
   if (dim_check) {
   	if (fLength==0 || a.fLength==0) 
 			cout <<"..ERROR>> FEA_dMAtrixT: Matrix unallocated"; 
-		if (rc==kCol && a_rc==kCol)  
+		if (rc==FEA::kCol && a_rc==FEA::kCol)  
 			if (n_rows != a.n_rows)
    			cout <<"...ERROR >> FEA_dMatrixT::Dot incompatible dimensions. ";
-	  else if (rc==kRow && a_rc==kRow) 
+	  else if (rc==FEA::kRow && a_rc==FEA::kRow) 
 			if (n_cols != a.n_cols)
    			cout <<"...ERROR >> FEA_dMatrixT::Dot incompatible dimensions. ";
-		else if (rc==kCol && a_rc==kRow) 
+		else if (rc==FEA::kCol && a_rc==FEA::kRow) 
 			if (n_rows != a.n_cols)
    			cout <<"...ERROR >> FEA_dMatrixT::Dot incompatible dimensions. ";
-		else if (rc==kRow && a_rc==kCol) 
+		else if (rc==FEA::kRow && a_rc==FEA::kCol) 
 			if (n_cols != a.n_rows)
    			cout <<"...ERROR >> FEA_dMatrixT::Dot incompatible dimensions. ";
 	}
@@ -605,7 +605,7 @@ FEA_EquateT& FEA_dMatrixT::Dot_Aij (int rc,int ij,const FEA_dMatrixT &a,int a_rc
 
 	double *r = c[0].Pointer(n_rows*j + i);
 
-	if (rc==kCol && a_rc==kCol)  
+	if (rc==FEA::kCol && a_rc==FEA::kCol)  
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(n_rows*ij);
 			double *q = a[l].Pointer(a.n_rows*a_ij);
@@ -615,7 +615,7 @@ FEA_EquateT& FEA_dMatrixT::Dot_Aij (int rc,int ij,const FEA_dMatrixT &a,int a_rc
 			(*fStack.Stack[n].vec_ptrs[l]) *= (*r);
 			r += c.n_rows_x_n_cols;
 		}
-	else if (rc==kRow && a_rc==kRow) 
+	else if (rc==FEA::kRow && a_rc==FEA::kRow) 
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(ij);
 			double *q = a[l].Pointer(a_ij);
@@ -628,7 +628,7 @@ FEA_EquateT& FEA_dMatrixT::Dot_Aij (int rc,int ij,const FEA_dMatrixT &a,int a_rc
 			(*fStack.Stack[n].vec_ptrs[l]) *= (*r);
 			r += c.n_rows_x_n_cols;
 		}
-	else if (rc==kCol && a_rc==kRow) 
+	else if (rc==FEA::kCol && a_rc==FEA::kRow) 
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(n_rows*ij);
 			double *q = a[l].Pointer(a_ij);
@@ -641,7 +641,7 @@ FEA_EquateT& FEA_dMatrixT::Dot_Aij (int rc,int ij,const FEA_dMatrixT &a,int a_rc
 			(*fStack.Stack[n].vec_ptrs[l]) *= (*r);
 			r += c.n_rows_x_n_cols;
 		}
-	else if (rc==kRow && a_rc==kCol) 
+	else if (rc==FEA::kRow && a_rc==FEA::kCol) 
 		for (l=0; l<n_ip; l++) {
 			double *p = (*this)[l].Pointer(ij);
 			double *q = a[l].Pointer(a.n_rows*a_ij);
@@ -655,7 +655,7 @@ FEA_EquateT& FEA_dMatrixT::Dot_Aij (int rc,int ij,const FEA_dMatrixT &a,int a_rc
 			r += c.n_rows_x_n_cols;
 		}
 	else 	
-		cout <<"...ERROR >> FEA_dMatrixT::Dot() : either kRow or kCol must be sent. ";
+		cout <<"...ERROR >> FEA_dMatrixT::Dot() : either FEA::kRow or FEA::kCol must be sent. ";
 
 return fStack.Stack[n]; 
 } 

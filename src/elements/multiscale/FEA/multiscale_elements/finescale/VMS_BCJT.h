@@ -180,10 +180,10 @@ class VMS_BCJT : public FineScaleT
  					VMS_BCJT				(	) { }
 								
 				 	VMS_BCJT	( FEA_ShapeFunctionT&, VMF_MaterialT*, VMS_VariableT&, VMS_VariableT&, 
-														int =kBackward_Euler);
+														int =FEA::kBackward_Euler);
 
 		void 	Construct ( FEA_ShapeFunctionT&, VMF_MaterialT*, VMS_VariableT&, VMS_VariableT&, 
-											int =kBackward_Euler); 
+											int =FEA::kBackward_Euler); 
 
   	void 	Form_LHS_Ka_Kb	(	dMatrixT &Ka, dMatrixT &Kb,double delta_t=0.0	); 
   	void 	Form_RHS_F_int	(	dArrayT &F_int, double delta_t=0.0 ); 

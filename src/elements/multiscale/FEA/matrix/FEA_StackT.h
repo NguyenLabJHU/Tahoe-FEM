@@ -7,13 +7,13 @@ namespace Tahoe {
 
 class FEA_StackT 
 {
-  friend FEA_dMatrixT;             // a  *  b   *  c
-  friend FEA_dVectorT;             //  \   / \    /
-  friend FEA_dScalarT;             //   \ /   \  /
-  friend FEA_EquateT;              //    d  *   e
- 																	 //			\    /
-	public:                          //      \  /
-                                   //       f    
+  friend class FEA_dMatrixT;             // a  *  b   *  c
+  friend class FEA_dVectorT;             //  \   / \    /
+  friend class FEA_dScalarT;             //   \ /   \  /
+  friend class FEA_EquateT;              //    d  *   e
+                                         //     \    /
+    public:                              //      \  /
+                                         //       f    
   	FEA_StackT(void);
 
 		/** Circular, alternates 0,1,0,1,0,1,... */
