@@ -1,4 +1,4 @@
-/* $Id: RootedLevelT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: RootedLevelT.cpp,v 1.2 2001-12-14 19:24:55 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "RootedLevelT.h"
@@ -86,6 +86,11 @@ void RootedLevelT::MakeRootedLevel(const GraphT& graph, int rootnode)
 		if (newonlevel == 0)
 		{
 			cout << "\n RootedLevelT::MakeRootedLevel: structure is disconnected" << endl;
+			
+			/* write node numbers along the cut */
+			iArrayT nodes;
+			NodesOnLevel(nodes, fNumLevels-1);
+			cout << " nodes along cut:\n" << nodes.wrap(10) << endl;
 			throw eGeneralFail;
 		}
 		else
