@@ -1,4 +1,4 @@
-/* $Id: AutoArrayT.h,v 1.7 2002-02-20 09:35:40 paklein Exp $ */
+/* $Id: AutoArrayT.h,v 1.8 2002-03-04 01:38:09 paklein Exp $ */
 /* created: paklein (12/05/1997)                                          */
 /* Array that automatically increases its dimensions when                 */
 /* elements are inserted using Append() or AppendUnique.                  */
@@ -40,7 +40,10 @@ public:
 	 * not preserved. To preserve the array contents while changing the dimension
 	 * use AutoArrayT::Resize. */
 	void Dimension(int length);
-
+	
+	/** dimensions this array to the same length as the source, but no data is copied */
+	void Dimension(const ArrayT<TYPE>& source) { Dimension(source.Length()); };
+	
 	/** \deprecated replaced by AutoArrayT::Dimension on 02/13/2002 */
 	void Allocate(int length) { Dimension(length); };
 

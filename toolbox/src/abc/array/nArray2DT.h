@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.9 2002-02-18 08:45:33 paklein Exp $ */
+/* $Id: nArray2DT.h,v 1.10 2002-03-04 01:38:09 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NARRAY2D_T_H_
@@ -30,7 +30,10 @@ public:
 	 * not preserved. To preserve the array contents while changing the dimension
 	 * use nArray2DT::Resize. */
 	void Dimension(int majordim, int minordim);
-
+	
+	/** dimensions this array to the same length as the source, but no data is copied */
+	void Dimension(const nArray2DT& source) { Dimension(source.MajorDim(), source.MinorDim()); };
+	
 	/** \deprecated replaced by nArray2DT::Dimension on 02/13/2002 */
 	void Allocate(int majordim, int minordim) { Dimension(majordim, minordim); };
 

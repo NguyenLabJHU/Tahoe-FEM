@@ -1,6 +1,5 @@
-/* $Id: nMatrixT.h,v 1.10 2002-03-02 19:33:17 paklein Exp $ */
-/* created: paklein (05/24/1996)                                          */
-/* 2 dimensional matrix mathematics template object.                      */
+/* $Id: nMatrixT.h,v 1.11 2002-03-04 01:38:10 paklein Exp $ */
+/* created: paklein (05/24/1996) */
 
 #ifndef _NMATRIX_T_H_
 #define _NMATRIX_T_H_
@@ -8,8 +7,7 @@
 /* base class */
 #include "nArrayT.h"
 
-/* control flags */
-
+/** 2 dimensional matrix mathematics template object */
 template <class nTYPE>
 class nMatrixT: public nArrayT<nTYPE>
 {
@@ -34,6 +32,9 @@ public:
 
 	/** dimension square matrix */
 	void Dimension(int squaredim);
+
+	/** dimensions this matrix to the same dimensions as the source, but no data is copied */
+	void Dimension(const nMatrixT& source) { Dimension(source.Rows(), source.Cols()); };
 
 	/** \deprecated replaced by nMatrixT::Dimension on 02/13/2002 */
 	void Allocate(int numrows, int numcols) { Dimension(numrows, numcols); } ;
