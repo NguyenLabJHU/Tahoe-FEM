@@ -1,4 +1,4 @@
-/* $Id: FDSV_KStV3D.cpp,v 1.6 2002-11-14 17:06:14 paklein Exp $ */
+/* $Id: FDSV_KStV3D.cpp,v 1.7 2003-01-29 07:34:50 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "FDSV_KStV3D.h"
@@ -10,7 +10,7 @@
 
 using namespace Tahoe;
 
-FDSV_KStV3D::FDSV_KStV3D(ifstreamT& in, const FDMatSupportT& support):
+FDSV_KStV3D::FDSV_KStV3D(ifstreamT& in, const FSMatSupportT& support):
 	FDSimoViscoBaseT(in, support),
 	fStress(3),
 	fModulus(6),
@@ -115,7 +115,7 @@ const dMatrixT& FDSV_KStV3D::C_IJKL(void)
 
 const dSymMatrixT& FDSV_KStV3D::S_IJ(void)
 {
-	double dt = fFDMatSupport.TimeStep();
+	double dt = fFSMatSupport.TimeStep();
 	double taudtS = dt/ftauS;
 	double taudtB = dt/ftauB;
 
@@ -150,7 +150,7 @@ const dSymMatrixT& FDSV_KStV3D::S_IJ(void)
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
 
-	if(fFDMatSupport.RunState() == GlobalT::kFormRHS)
+	if(fFSMatSupport.RunState() == GlobalT::kFormRHS)
 	{
 	        double& mu = fMu[kNonEquilibrium];
 		double& kappa = fKappa[kEquilibrium];

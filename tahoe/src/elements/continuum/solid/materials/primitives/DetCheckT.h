@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.h,v 1.13 2002-11-14 17:06:39 paklein Exp $ */
+/* $Id: DetCheckT.h,v 1.14 2003-01-29 07:35:08 paklein Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _DETCHECK_T_H_
@@ -19,7 +19,7 @@ class dMatrixEXT;
 class dArrayT;
 class dTensor4DT;
 //class ContinuumElementT;
-class StructuralMatSupportT;
+class SolidMatSupportT;
 
 /** class to support checks of loss of ellipticity.  \note this class does 
  * not dynamically allocate memory on construction */
@@ -49,7 +49,7 @@ public:
 //	void SetElementGroup(const ContinuumElementT& element) { fElement = &element; };
 
 	/** set pointer to the support of the calling material */
-	void SetfStructuralMatSupport(const StructuralMatSupportT& support) { fStructuralMatSupport = &support; };
+	void SetfStructuralMatSupport(const SolidMatSupportT& support) { fStructuralMatSupport = &support; };
 
 private:
 
@@ -90,7 +90,7 @@ private:
 	double A0, A2, A4;	/* amplitudes   */
 
 	/** pointer to the support of the calling material */
-	const StructuralMatSupportT* fStructuralMatSupport;
+	const SolidMatSupportT* fStructuralMatSupport;
 	
 	/** pointer to calling element group */
 //	const ContinuumElementT* fElement;

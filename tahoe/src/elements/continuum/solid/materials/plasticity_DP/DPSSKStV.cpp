@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.19 2002-11-14 17:06:24 paklein Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.20 2003-01-29 07:35:01 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV.h"
 #include "SSMatSupportT.h"
@@ -31,7 +31,7 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 DPSSKStV::DPSSKStV(ifstreamT& in, const SSMatSupportT& support):
-	SSStructMatT(in, support),
+	SSSolidMatT(in, support),
 	IsotropicT(in),
 	HookeanMatT(3),
 	DPSSLinHardT(in, NumIP(), Mu(), Lambda()),
@@ -72,7 +72,7 @@ void DPSSKStV::ResetHistory(void)
 void DPSSKStV::Print(ostream& out) const
 {
 	/* inherited */
-	SSStructMatT::Print(out);
+	SSSolidMatT::Print(out);
 	IsotropicT::Print(out);
 	DPSSLinHardT::Print(out);
 }
@@ -81,7 +81,7 @@ void DPSSKStV::Print(ostream& out) const
 void DPSSKStV::PrintName(ostream& out) const
 {
 	/* inherited */
-	SSStructMatT::PrintName(out);
+	SSSolidMatT::PrintName(out);
 	DPSSLinHardT::PrintName(out);
 	out << "    Kirchhoff-St.Venant\n";
 }

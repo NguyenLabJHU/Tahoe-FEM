@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.20 2003-01-27 07:00:29 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.21 2003-01-29 07:35:21 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -12,8 +12,8 @@
 #include "ModelManagerT.h"
 #include "CommManagerT.h"
 #include "LocalArrayT.h"
-#include "nControllerT.h"
-#include "eControllerT.h"
+#include "nIntegratorT.h"
+#include "eIntegratorT.h"
 #include "AutoArrayT.h"
 #include "RaggedArray2DT.h"
 #include "PartitionT.h"
@@ -221,14 +221,14 @@ void NodeManagerT::ConnectsU(int group,
 }
 
 /* return the implicit-explicit flag for the given group */
-ControllerT::ImpExpFlagT NodeManagerT::ImplicitExplicit(int group) const
+IntegratorT::ImpExpFlagT NodeManagerT::ImplicitExplicit(int group) const
 {
-	ControllerT::ImpExpFlagT flag = ControllerT::kExplicit;
+	IntegratorT::ImpExpFlagT flag = IntegratorT::kExplicit;
 
 	/* loop over fields in the group */
-	for (int i = 0; flag == ControllerT::kExplicit && i < fFields.Length(); i++)
+	for (int i = 0; flag == IntegratorT::kExplicit && i < fFields.Length(); i++)
 		if (fFields[i]->Group() == group)
-			flag = fFields[i]->nController().ImplicitExplicit();
+			flag = fFields[i]->nIntegrator().ImplicitExplicit();
 
 	return flag;
 }
@@ -1264,7 +1264,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 				in >> labels[j];
 			
 			/* get integrator */
-			nControllerT* controller = fFEManager.nController(cont_num);
+			nIntegratorT* controller = fFEManager.nIntegrator(cont_num);
 			if (!controller) throw ExceptionT::kGeneralFail;
 
 			/* new field */			
@@ -1309,7 +1309,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 		fFields.Dimension(1);
 		fFields = NULL;
 		fMessageID.Dimension(1);
-		nControllerT* controller = fFEManager.nController(0);
+		nIntegratorT* controller = fFEManager.nIntegrator(0);
 		if (!controller) throw ExceptionT::kGeneralFail;
 		
 		/* field config set by analysis type */
@@ -1780,8 +1780,8 @@ FBC_ControllerT* NodeManagerT::NewFBC_Controller(FieldT& field, int code)
 	
 	/* set time integrator */
 	if (fbc) {
-		const nControllerT& n_cont = field.nController();
-		const eControllerT* e_cont = dynamic_cast<const eControllerT*>(&n_cont);
+		const nIntegratorT& n_cont = field.nIntegrator();
+		const eIntegratorT* e_cont = dynamic_cast<const eIntegratorT*>(&n_cont);
 		fbc->SetController(e_cont);
 	}
 	

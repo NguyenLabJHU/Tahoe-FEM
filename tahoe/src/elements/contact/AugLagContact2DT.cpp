@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.12 2003-01-27 07:00:25 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.13 2003-01-29 07:34:30 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 
 #include "AugLagContact2DT.h"
@@ -8,7 +8,7 @@
 #include <iomanip.h>
 
 #include "fstreamT.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 #include "ElementSupportT.h"
 #include "XDOF_ManagerT.h"
 
@@ -258,7 +258,7 @@ void AugLagContact2DT::PrintControlData(ostream& out) const
 void AugLagContact2DT::LHSDriver(GlobalT::SystemTypeT)
 {
 	double constK = 0.0;
-	int formK = fController->FormK(constK);
+	int formK = fIntegrator->FormK(constK);
 	if (!formK) return;
 
 	/* get reference to global coordinates and constrain force vector */
@@ -377,7 +377,7 @@ void AugLagContact2DT::RHSDriver(void)
 {
 	/* time-stepping parameters */
 	double constKd = 0.0;
-	int     formKd = fController->FormKd(constKd);
+	int     formKd = fIntegrator->FormKd(constKd);
 	if (!formKd) return;
 
 	/* get reference to global coordinates and constrain force vector */

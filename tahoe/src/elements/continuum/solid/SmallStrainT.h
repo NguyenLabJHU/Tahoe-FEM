@@ -1,9 +1,9 @@
-/* $Id: SmallStrainT.h,v 1.10 2002-11-14 17:05:51 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.11 2003-01-29 07:34:34 paklein Exp $ */
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
 
 /* base class */
-#include "ElasticT.h"
+#include "SolidElementT.h"
 
 namespace Tahoe {
 
@@ -11,7 +11,7 @@ namespace Tahoe {
 class SSMatSupportT;
 
 /** Interface for linear strain deformation and field gradients */
-class SmallStrainT: public ElasticT
+class SmallStrainT: public SolidElementT
 {
   public:
       

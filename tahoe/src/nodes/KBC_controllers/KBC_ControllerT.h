@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.12 2002-11-28 16:44:21 paklein Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.13 2003-01-29 07:35:23 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #ifndef _KBC_CONTROLLER_T_H_
@@ -18,7 +18,7 @@ namespace Tahoe {
 /* forward declarations */
 class ifstreamT;
 class NodeManagerT;
-class nControllerT;
+class nIntegratorT;
 class iArrayT;
 class StringT;
 class dArrayT;

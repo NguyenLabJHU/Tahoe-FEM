@@ -1,17 +1,17 @@
-/* $Id: FiniteStrainT.h,v 1.14 2002-11-14 17:05:51 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.15 2003-01-29 07:34:34 paklein Exp $ */
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
 
 /* base class */
-#include "ElasticT.h"
+#include "SolidElementT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
-class FDMatSupportT;
+class FSMatSupportT;
 
 /** Interface for linear strain deformation and field gradients */
-class FiniteStrainT: public ElasticT
+class FiniteStrainT: public SolidElementT
 {
   public:
       
@@ -113,7 +113,7 @@ class FiniteStrainT: public ElasticT
   
   	/** the material support used to construct materials lists. This pointer
   	 * is only set the first time FiniteStrainT::NewMaterialList is called. */
-	FDMatSupportT* fFDMatSupport;
+	FSMatSupportT* fFSMatSupport;
   
 	/** offset to material needs */
 	int fNeedsOffset; //NOTE - better to have this or a separate array?

@@ -1,10 +1,10 @@
-/* $Id: EVPFDBaseT.cpp,v 1.10 2002-11-14 17:06:36 paklein Exp $ */
+/* $Id: EVPFDBaseT.cpp,v 1.11 2003-01-29 07:35:06 paklein Exp $ */
 #include "EVPFDBaseT.h"
 #include "NLCSolver.h"
 #include "NLCSolver_LS.h"
 #include "Utils.h"
 
-#include "FDMatSupportT.h"
+#include "FSMatSupportT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
 
@@ -16,7 +16,7 @@ const int kIsInit = 1;
 /* spatial dimensions of the problem */
 const int kNSD = 3;
 
-EVPFDBaseT::EVPFDBaseT(ifstreamT& in, const FDMatSupportT& support) :
+EVPFDBaseT::EVPFDBaseT(ifstreamT& in, const FSMatSupportT& support) :
   FDHookeanMatT(in, support),
   IsotropicT  (in),
   //fdt         (element.FEManager().TimeStep()),

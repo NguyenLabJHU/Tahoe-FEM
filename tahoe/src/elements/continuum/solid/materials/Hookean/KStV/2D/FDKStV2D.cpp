@@ -1,4 +1,4 @@
-/* $Id: FDKStV2D.cpp,v 1.6 2002-11-14 17:06:06 paklein Exp $ */
+/* $Id: FDKStV2D.cpp,v 1.7 2003-01-29 07:34:42 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "FDKStV2D.h"
 #include "ThermalDilatationT.h"
@@ -6,7 +6,7 @@
 using namespace Tahoe;
 
 /* constructor */
-FDKStV2D::FDKStV2D(ifstreamT& in, const FDMatSupportT& support):
+FDKStV2D::FDKStV2D(ifstreamT& in, const FSMatSupportT& support):
 	FDKStV(in, support),
 	Material2DT(in)
 {

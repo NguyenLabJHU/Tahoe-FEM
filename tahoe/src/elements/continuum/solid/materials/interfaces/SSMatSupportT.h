@@ -1,9 +1,9 @@
-/* $Id: SSMatSupportT.h,v 1.2 2002-11-14 17:06:21 paklein Exp $ */
+/* $Id: SSMatSupportT.h,v 1.3 2003-01-29 07:34:57 paklein Exp $ */
 #ifndef _SS_MAT_SUPPORT_T_H_
 #define _SS_MAT_SUPPORT_T_H_
 
 /* base class */
-#include "StructuralMatSupportT.h"
+#include "SolidMatSupportT.h"
 
 /* direct members */
 #include "dArrayT.h"
@@ -15,7 +15,7 @@ namespace Tahoe {
 class SmallStrainT;
 
 /** support for the small strain Tahoe materials classes */
-class SSMatSupportT: public StructuralMatSupportT
+class SSMatSupportT: public SolidMatSupportT
 {
 public:
 

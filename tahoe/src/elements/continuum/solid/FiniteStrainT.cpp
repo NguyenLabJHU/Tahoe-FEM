@@ -1,23 +1,23 @@
-/* $Id: FiniteStrainT.cpp,v 1.15 2003-01-27 07:00:25 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.16 2003-01-29 07:34:34 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
-#include "FDStructMatT.h"
-#include "FDMatSupportT.h"
+#include "FSSolidMatT.h"
+#include "FSMatSupportT.h"
 
 /* materials lists */
-#include "MaterialList1DT.h"
-#include "MaterialList2DT.h"
-#include "MaterialList3DT.h"
+#include "SolidMatList1DT.h"
+#include "SolidMatList2DT.h"
+#include "SolidMatList3DT.h"
 
 using namespace Tahoe;
 
 /* constructor */
 FiniteStrainT::FiniteStrainT(const ElementSupportT& support, const FieldT& field):
-	ElasticT(support, field),
+	SolidElementT(support, field),
 	fNeedsOffset(-1),
 	fCurrShapes(NULL),
-	fFDMatSupport(NULL)
+	fFSMatSupport(NULL)
 {
 	/* disable any strain-displacement options */
 	if (fStrainDispOpt != kStandardB)
@@ -30,14 +30,14 @@ FiniteStrainT::FiniteStrainT(const ElementSupportT& support, const FieldT& field
 /* destructor */
 FiniteStrainT::~FiniteStrainT(void)
 {
-	delete fFDMatSupport;
+	delete fFSMatSupport;
 }
 
 /* called immediately after constructor */
 void FiniteStrainT::Initialize(void)
 {
 	/* inherited */
-	ElasticT::Initialize();
+	SolidElementT::Initialize();
 
 	/* what's needed */
 	bool need_F = false;
@@ -75,10 +75,10 @@ void FiniteStrainT::Initialize(void)
 void FiniteStrainT::InitialCondition(void)
 {
 	/* inherited */
-	ElasticT::InitialCondition();
+	SolidElementT::InitialCondition();
 	
 	/* set the source for the iteration number */
-	fFDMatSupport->SetIterationNumber(ElementSupport().IterationNumber(Group()));
+	fFSMatSupport->SetIterationNumber(ElementSupport().IterationNumber(Group()));
 }
 
 /* compute field gradients with respect to current coordinates */
@@ -120,13 +120,13 @@ void FiniteStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u,
 MaterialSupportT* FiniteStrainT::NewMaterialSupport(MaterialSupportT* p) const
 {
 	/* allocate */
-	if (!p) p = new FDMatSupportT(NumSD(), NumDOF(), NumIP());
+	if (!p) p = new FSMatSupportT(NumSD(), NumDOF(), NumIP());
 
 	/* inherited initializations */
-	ElasticT::NewMaterialSupport(p);
+	SolidElementT::NewMaterialSupport(p);
 	
 	/* set FiniteStrainT fields */
-	FDMatSupportT* ps = dynamic_cast<FDMatSupportT*>(p);
+	FSMatSupportT* ps = dynamic_cast<FSMatSupportT*>(p);
 	if (ps) {
 		ps->SetDeformationGradient(&fF_List);
 		ps->SetDeformationGradient_last(&fF_last_List);
@@ -139,17 +139,17 @@ MaterialSupportT* FiniteStrainT::NewMaterialSupport(MaterialSupportT* p) const
 MaterialListT* FiniteStrainT::NewMaterialList(int size)
 {
 	/* material support */
-	if (!fFDMatSupport) {
-		fFDMatSupport = dynamic_cast<FDMatSupportT*>(NewMaterialSupport());
-		if (!fFDMatSupport) throw ExceptionT::kGeneralFail;
+	if (!fFSMatSupport) {
+		fFSMatSupport = dynamic_cast<FSMatSupportT*>(NewMaterialSupport());
+		if (!fFSMatSupport) throw ExceptionT::kGeneralFail;
 	}
 
 	if (NumSD() == 1)
-		return new MaterialList1DT(size, *fFDMatSupport);
+		return new SolidMatList1DT(size, *fFSMatSupport);
 	else if (NumSD() == 2)
-		return new MaterialList2DT(size, *fFDMatSupport);
+		return new SolidMatList2DT(size, *fFSMatSupport);
 	else if (NumSD() == 3)
-		return new MaterialList3DT(size, *fFDMatSupport);
+		return new SolidMatList3DT(size, *fFSMatSupport);
 	else
 		return NULL;			
 }
@@ -158,7 +158,7 @@ MaterialListT* FiniteStrainT::NewMaterialList(int size)
 void FiniteStrainT::ReadMaterialData(ifstreamT& in)
 {
 	/* inherited */
-	ElasticT::ReadMaterialData(in);
+	SolidElementT::ReadMaterialData(in);
 
 	/* offset to class needs flags */
 	fNeedsOffset = fMaterialNeeds[0].Length();
@@ -174,7 +174,7 @@ void FiniteStrainT::ReadMaterialData(ifstreamT& in)
 
 		/* casts are safe since class contructs materials list */
 		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
-		FDStructMatT* mat = (FDStructMatT*) pcont_mat;
+		FSSolidMatT* mat = (FSSolidMatT*) pcont_mat;
 
 		/* collect needs */
 		needs[fNeedsOffset + kF     ] = mat->Need_F();
@@ -190,7 +190,7 @@ void FiniteStrainT::ReadMaterialData(ifstreamT& in)
 void FiniteStrainT::SetGlobalShape(void)
 {
 	/* inherited */
-	ElasticT::SetGlobalShape();
+	SolidElementT::SetGlobalShape();
 
 	/* what needs to get computed */
 	int material_number = CurrentElement().MaterialNumber();
@@ -230,7 +230,7 @@ void FiniteStrainT::SetGlobalShape(void)
 void FiniteStrainT::CurrElementInfo(ostream& out) const
 {
 	/* inherited */
-	ElasticT::CurrElementInfo(out);
+	SolidElementT::CurrElementInfo(out);
 	
 	/* write deformation gradients */
 	out << "\n i.p. deformation gradients:\n";

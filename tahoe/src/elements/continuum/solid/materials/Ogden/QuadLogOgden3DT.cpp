@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden3DT.cpp,v 1.4 2002-11-14 17:06:07 paklein Exp $ */
+/* $Id: QuadLogOgden3DT.cpp,v 1.5 2003-01-29 07:34:43 paklein Exp $ */
 /* created: paklein (02/17/2001) */
 #include "QuadLogOgden3DT.h"
 
@@ -9,7 +9,7 @@
 using namespace Tahoe;
 
 /* constructor */
-QuadLogOgden3DT::QuadLogOgden3DT(ifstreamT& in, const FDMatSupportT& support):
+QuadLogOgden3DT::QuadLogOgden3DT(ifstreamT& in, const FSMatSupportT& support):
 	OgdenIsotropicT(in, support),
 	flogE(3)
 {

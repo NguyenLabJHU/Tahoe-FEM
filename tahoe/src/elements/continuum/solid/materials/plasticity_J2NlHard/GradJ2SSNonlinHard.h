@@ -1,9 +1,9 @@
-/* $Id: GradJ2SSNonlinHard.h,v 1.7 2002-11-14 17:06:29 paklein Exp $ */
+/* $Id: GradJ2SSNonlinHard.h,v 1.8 2003-01-29 07:35:03 paklein Exp $ */
 #ifndef _GRAD_J2_SS_NONLIN_HARD_H_
 #define _GRAD_J2_SS_NONLIN_HARD_H_
 
 /* base classes */
-#include "SSStructMatT.h"
+#include "SSSolidMatT.h"
 #include "IsotropicT.h"
 #include "HookeanMatT.h"
 
@@ -21,7 +21,7 @@ namespace Tahoe {
 class ElementCardT;
 class ifstreamT;
 
-class GradJ2SSNonlinHard: public SSStructMatT,
+class GradJ2SSNonlinHard: public SSSolidMatT,
 	    public IsotropicT,
 	    public HookeanMatT
 {
@@ -55,7 +55,7 @@ public:
 	virtual const dSymMatrixT& s_ij(void);
 
 	/** return the pressure associated with the last call to 
-	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
 	 * for more information. */
 	virtual double Pressure(void) const { return fStress.Trace()/3.0; };
 	/*@}*/

@@ -1,4 +1,4 @@
-/* $Id: FDCrystalElast.cpp,v 1.7 2002-11-14 17:06:19 paklein Exp $ */
+/* $Id: FDCrystalElast.cpp,v 1.8 2003-01-29 07:34:56 paklein Exp $ */
 #include "FDCrystalElast.h"
 
 #include <stdlib.h>
@@ -8,7 +8,7 @@
 #include "ifstreamT.h"
 #include "Utils.h"
 #include "UpLagr_ExternalFieldT.h"
-#include "FDMatSupportT.h"
+#include "FSMatSupportT.h"
 #include "SpectralDecompT.h"
 
 /* spatial dimensions of the problem */
@@ -21,7 +21,7 @@ const double sqrt23 = sqrt(2.0/3.0);
 
 using namespace Tahoe;
 
-FDCrystalElast::FDCrystalElast(ifstreamT& in, const FDMatSupportT& support):CrystalElast(in, support),
+FDCrystalElast::FDCrystalElast(ifstreamT& in, const FSMatSupportT& support):CrystalElast(in, support),
   // deformation gradient 
 	fF    (kNSD,kNSD),
   // elastic and thermal (inverse) deformation gradients
@@ -69,7 +69,7 @@ FDCrystalElast::FDCrystalElast(ifstreamT& in, const FDMatSupportT& support):Crys
   // set 2nd order unit tensor (sym matrix)
   fISym.Identity();
 
-  fExFieldElement = dynamic_cast<const UpLagr_ExternalFieldT*>(FDMatSupport().FiniteStrain());
+  fExFieldElement = dynamic_cast<const UpLagr_ExternalFieldT*>(FSMatSupport().FiniteStrain());
   if (!fExFieldElement)
     {
       cout << "\n FDCrystalElast::FDCrystalElast: could not cast element group to \n"

@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.cpp,v 1.8 2002-11-28 16:44:20 paklein Exp $ */
+/* $Id: AugLagWallT.cpp,v 1.9 2003-01-29 07:35:22 paklein Exp $ */
 #include "AugLagWallT.h"
 
 #include <iostream.h>
@@ -7,7 +7,7 @@
 #include "toolboxConstants.h"
 #include "FEManagerT.h"
 #include "XDOF_ManagerT.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 #include "FieldT.h"
 
 /* parameters */
@@ -158,7 +158,7 @@ void AugLagWallT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 
 	/* time integration */
 	double constK = 0.0;
-	int formK = fController->FormK(constK);
+	int formK = fIntegrator->FormK(constK);
 	if (!formK) return;
 
 	/* get current values of constraints */

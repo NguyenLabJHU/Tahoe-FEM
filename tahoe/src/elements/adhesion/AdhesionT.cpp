@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.11 2003-01-27 07:00:25 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.12 2003-01-29 07:34:28 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -6,7 +6,7 @@
 #include "SurfaceShapeT.h"
 #include "iArrayT.h"
 #include "iNodeT.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 #include "iGridManagerT.h"
 #include "OutputSetT.h"
 #include "ScheduleT.h"
@@ -305,7 +305,7 @@ void AdhesionT::LHSDriver(GlobalT::SystemTypeT)
 {
 	/* time-stepping parameters */
 	double constK = 0.0;
-	int     formK = fController->FormK(constK);
+	int     formK = fIntegrator->FormK(constK);
 	if (!formK) return;
 	
 	/* dimensions */
@@ -442,7 +442,7 @@ void AdhesionT::RHSDriver(void)
 {
 	/* time-stepping parameters */
 	double constKd = 0.0;
-	int     formKd = fController->FormKd(constKd);
+	int     formKd = fIntegrator->FormKd(constKd);
 	if (!formKd) return;
 	
 	/* dimensions */

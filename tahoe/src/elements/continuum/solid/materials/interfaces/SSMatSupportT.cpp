@@ -1,4 +1,4 @@
-/* $Id: SSMatSupportT.cpp,v 1.3 2003-01-27 07:00:28 paklein Exp $ */
+/* $Id: SSMatSupportT.cpp,v 1.4 2003-01-29 07:34:57 paklein Exp $ */
 #include "SSMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -10,7 +10,7 @@ using namespace Tahoe;
 
 /* constructor */
 SSMatSupportT::SSMatSupportT(int nsd, int ndof, int nip):
-	StructuralMatSupportT(nsd, ndof, nip),
+	SolidMatSupportT(nsd, ndof, nip),
 	fStrain_List(NULL),
 	fStrain_last_List(NULL),
 	fSmallStrain(NULL)
@@ -62,7 +62,7 @@ void SSMatSupportT::SetLinearStrain_last(const ArrayT<dSymMatrixT>* strain_last_
 void SSMatSupportT::SetContinuumElement(const ContinuumElementT* p)
 {
 	/* inherited */
-	StructuralMatSupportT::SetContinuumElement(p);
+	SolidMatSupportT::SetContinuumElement(p);
 
 #ifdef CONTINUUM_ELEMENT
 	/* cast to small strain pointer */

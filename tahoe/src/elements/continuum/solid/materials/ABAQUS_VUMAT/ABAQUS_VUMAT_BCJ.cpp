@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BCJ.cpp,v 1.8 2002-11-14 17:05:59 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BCJ.cpp,v 1.9 2003-01-29 07:34:36 paklein Exp $ */
 /* created: paklein (05/09/2000) */
 #include "ABAQUS_VUMAT_BCJ.h"
 
@@ -38,7 +38,7 @@ int cycdmg7_([full argument list]);
 #endif
 
 /* constructor */
-ABAQUS_VUMAT_BCJ::ABAQUS_VUMAT_BCJ(ifstreamT& in, const FDMatSupportT& support):
+ABAQUS_VUMAT_BCJ::ABAQUS_VUMAT_BCJ(ifstreamT& in, const FSMatSupportT& support):
 	ABAQUS_VUMAT_BaseT(in, support)
 {
 

@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.cpp,v 1.7 2002-11-14 17:06:15 paklein Exp $ */
+/* $Id: IsoVIB2D.cpp,v 1.8 2003-01-29 07:34:52 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoVIB2D.h"
 
@@ -15,8 +15,8 @@
 using namespace Tahoe;
 
 /* constructors */
-IsoVIB2D::IsoVIB2D(ifstreamT& in, const FDMatSupportT& support):
-	FDStructMatT(in, support),
+IsoVIB2D::IsoVIB2D(ifstreamT& in, const FSMatSupportT& support):
+	FSSolidMatT(in, support),
 	Material2DT(in, kPlaneStress),
 	VIB(in, 2, 2, 3),
 	fCircle(NULL),
@@ -41,7 +41,7 @@ IsoVIB2D::~IsoVIB2D(void) { delete fCircle; }
 void IsoVIB2D::Print(ostream& out) const
 {
 	/* inherited */
-	FDStructMatT::Print(out);
+	FSSolidMatT::Print(out);
 	Material2DT::Print(out);
 	VIB::Print(out);
 
@@ -310,7 +310,7 @@ double IsoVIB2D::StrainEnergyDensity(void)
 void IsoVIB2D::PrintName(ostream& out) const
 {
 	/* inherited */
-	FDStructMatT::PrintName(out);
+	FSSolidMatT::PrintName(out);
 	VIB::PrintName(out);
 
 	out << "    Isotropic/Principal Stretch Formulation\n";

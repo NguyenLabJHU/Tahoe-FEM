@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.h,v 1.6 2003-01-27 07:00:26 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.h,v 1.7 2003-01-29 07:35:11 paklein Exp $ */
 /* created: paklein (02/15/2000)                                          */
 
 #ifndef _MESHFREE_FRACTURE_T_H_
@@ -15,7 +15,7 @@
 namespace Tahoe {
 
 /* forward declarations */
-class StructuralMaterialT;
+class SolidMaterialT;
 class FrontT;
 class SamplingSurfaceT;
 
@@ -74,7 +74,7 @@ protected:
 	 *        the material pointer is also NULL.
 	 * \param verbose pass as true to write debugging data to cout
 	 * \return true of new facets have been inserted */
-	bool CheckGrowth(StructuralMaterialT* material, LocalArrayT* disp,
+	bool CheckGrowth(SolidMaterialT* material, LocalArrayT* disp,
 		bool verbose);
 
 private:
@@ -90,8 +90,8 @@ private:
 	void InitializeFronts(ifstreamT& in, ostream& out);
 
 	/* steps in checking growth */
-	bool CheckFronts(StructuralMaterialT& material, LocalArrayT& disp, bool verbose);
-	bool CheckSurfaces(StructuralMaterialT& material, LocalArrayT& disp, bool verbose);
+	bool CheckFronts(SolidMaterialT& material, LocalArrayT& disp, bool verbose);
+	bool CheckSurfaces(SolidMaterialT& material, LocalArrayT& disp, bool verbose);
 
 	/* initialize the cutting facet database */
 	void InitFacetDatabase(int num_facet_nodes);
@@ -102,7 +102,7 @@ private:
 	 * global frame. Call only after configuring the meshfree field
 	 * at the current point. Return value has sign convention that
 	 * "more positive" is closer to failed */
-	double ComputeCriterion(StructuralMaterialT& material, const dMatrixT& Q,
+	double ComputeCriterion(SolidMaterialT& material, const dMatrixT& Q,
 		const dArrayT& n, FractureCriterionT criterion, double critical_value,
 		dArrayT& t_local);
 

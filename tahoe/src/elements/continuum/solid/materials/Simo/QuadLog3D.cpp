@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.cpp,v 1.7 2002-11-14 17:06:11 paklein Exp $ */
+/* $Id: QuadLog3D.cpp,v 1.8 2003-01-29 07:34:48 paklein Exp $ */
 /* created: paklein (06/27/1997) */
 #include "QuadLog3D.h"
 
@@ -8,8 +8,8 @@
 using namespace Tahoe;
 
 /* constructor */
-QuadLog3D::QuadLog3D(ifstreamT& in, const FDMatSupportT& support):
-	FDStructMatT(in, support), //in principal stress space
+QuadLog3D::QuadLog3D(ifstreamT& in, const FSMatSupportT& support):
+	FSSolidMatT(in, support), //in principal stress space
 	IsotropicT(in),
 	fSpectral(3),
 	fb(3),
@@ -34,14 +34,14 @@ QuadLog3D::QuadLog3D(ifstreamT& in, const FDMatSupportT& support):
 void QuadLog3D::Print(ostream& out) const
 {
 	/* inherited */
-	FDStructMatT::Print(out);
+	FSSolidMatT::Print(out);
 	IsotropicT::Print(out);
 }
 
 void QuadLog3D::PrintName(ostream& out) const
 {
 	/* inherited */
-	FDStructMatT::PrintName(out);
+	FSSolidMatT::PrintName(out);
 
 	out << "    Quadratic logarithmic isotropic model\n";
 }

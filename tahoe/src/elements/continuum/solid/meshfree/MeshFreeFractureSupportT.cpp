@@ -1,12 +1,12 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.8 2003-01-27 07:00:26 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.9 2003-01-29 07:35:11 paklein Exp $ */
 /* created: paklein (02/15/2000) */
 #include "MeshFreeFractureSupportT.h"
 
 #include "StringT.h"
 #include "fstreamT.h"
 #include "MeshFreeShapeFunctionT.h"
-#include "StructuralMaterialT.h"
-#include "FDStructMatT.h"
+#include "SolidMaterialT.h"
+#include "FSSolidMatT.h"
 
 /* crack growth */
 #include "Front2DT.h"
@@ -141,7 +141,7 @@ void MeshFreeFractureSupportT::InitSupport(ifstreamT& in, ostream& out,
 	}
 }
 
-bool MeshFreeFractureSupportT::CheckGrowth(StructuralMaterialT* material, 
+bool MeshFreeFractureSupportT::CheckGrowth(SolidMaterialT* material, 
 	LocalArrayT* disp, bool verbose)
 {
 	/* clear facets to reset */
@@ -452,7 +452,7 @@ void MeshFreeFractureSupportT::InitializeFronts(ifstreamT& in, ostream& out)
 }
 
 /* steps in checking growth */
-bool MeshFreeFractureSupportT::CheckFronts(StructuralMaterialT& material,
+bool MeshFreeFractureSupportT::CheckFronts(SolidMaterialT& material,
 	LocalArrayT& disp, bool verbose)
 {
 #pragma unused(verbose)
@@ -467,7 +467,7 @@ bool MeshFreeFractureSupportT::CheckFronts(StructuralMaterialT& material,
 #endif
 
 	/* check for finite deformation */
-	FDStructMatT* FD_material = dynamic_cast<FDStructMatT*>(&material);
+	FSSolidMatT* FD_material = dynamic_cast<FSSolidMatT*>(&material);
 	
 	/* dimensions */
 	int nsd = fMFShapes->NumSD();
@@ -636,7 +636,7 @@ bool MeshFreeFractureSupportT::CheckFronts(StructuralMaterialT& material,
 	return growth;
 }
 
-bool MeshFreeFractureSupportT::CheckSurfaces(StructuralMaterialT& material,
+bool MeshFreeFractureSupportT::CheckSurfaces(SolidMaterialT& material,
 	LocalArrayT& disp, bool verbose)
 {
 #pragma unused(verbose)
@@ -651,7 +651,7 @@ bool MeshFreeFractureSupportT::CheckSurfaces(StructuralMaterialT& material,
 #endif
 
 	/* check for finite deformation */
-	FDStructMatT* FD_material = dynamic_cast<FDStructMatT*>(&material);
+	FSSolidMatT* FD_material = dynamic_cast<FSSolidMatT*>(&material);
 
 	/* sampling point data */
 	iArrayT neighbors;
@@ -761,7 +761,7 @@ void MeshFreeFractureSupportT::InitFacetDatabase(int num_facet_nodes)
 * global frame. Call only after configuring the meshfree field
 * at the current point. Return value has sign convention that
 * "more positive" is closer to failed */
-double MeshFreeFractureSupportT::ComputeCriterion(StructuralMaterialT& material,
+double MeshFreeFractureSupportT::ComputeCriterion(SolidMaterialT& material,
 	const dMatrixT& Q, const dArrayT& n, FractureCriterionT criterion,
 	double critical_value, dArrayT& t_local)
 {

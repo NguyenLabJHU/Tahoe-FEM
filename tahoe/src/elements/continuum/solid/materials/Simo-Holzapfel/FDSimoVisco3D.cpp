@@ -1,7 +1,7 @@
-/* $Id: FDSimoVisco3D.cpp,v 1.6 2002-11-14 17:06:12 paklein Exp $ */
+/* $Id: FDSimoVisco3D.cpp,v 1.7 2003-01-29 07:34:49 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 #include "FDSimoVisco3D.h"
-#include "FDMatSupportT.h"
+#include "FSMatSupportT.h"
 
 #include <math.h>
 #include <iostream.h>
@@ -10,7 +10,7 @@
 
 using namespace Tahoe;
 
-FDSimoVisco3D::FDSimoVisco3D(ifstreamT& in, const FDMatSupportT& support):
+FDSimoVisco3D::FDSimoVisco3D(ifstreamT& in, const FSMatSupportT& support):
 	FDSimoViscoBaseT(in, support),
 	fStress(3),
 	fModulus(6),
@@ -85,7 +85,7 @@ const dMatrixT& FDSimoVisco3D::c_ijkl(void)
        
 const dSymMatrixT& FDSimoVisco3D::s_ij(void)
 {
-	double dt = fFDMatSupport.TimeStep();
+	double dt = fFSMatSupport.TimeStep();
 	double taudtS = dt/ftauS;
 	double taudtB = dt/ftauB;
 
@@ -114,7 +114,7 @@ const dSymMatrixT& FDSimoVisco3D::s_ij(void)
 	Load(element, CurrIP());
 
 	/*overstress*/
-	if(fFDMatSupport.RunState() == GlobalT::kFormRHS)
+	if(fFSMatSupport.RunState() == GlobalT::kFormRHS)
 	{
 	        fJ_I = fJ;
 		fFbar_I = fF;

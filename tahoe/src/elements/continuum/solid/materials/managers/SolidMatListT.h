@@ -1,4 +1,4 @@
-/* $Id: SolidMatListT.h,v 1.5 2002-11-14 17:06:22 paklein Exp $ */
+/* $Id: SolidMatListT.h,v 1.6 2003-01-29 07:34:58 paklein Exp $ */
 #ifndef _STRUCT_MAT_LIST_T_H_
 #define _STRUCT_MAT_LIST_T_H_
 
@@ -10,7 +10,7 @@ namespace Tahoe {
 /* forward declarations */
 class SolidMatSupportT;
 class SSMatSupportT;
-class FDMatSupportT;
+class FSMatSupportT;
 
 /** list of materials for structural analysis */
 class SolidMatListT: public MaterialListT
@@ -53,7 +53,7 @@ protected:
 	const SSMatSupportT* fSSMatSupport;
 
 	/** support for finite strain materials */
-	const FDMatSupportT* fFDMatSupport;
+	const FSMatSupportT* fFSMatSupport;
 	/*@}*/
 };
 

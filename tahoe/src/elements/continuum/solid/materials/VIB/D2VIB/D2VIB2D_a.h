@@ -1,4 +1,4 @@
-/* $Id: D2VIB2D_a.h,v 1.3 2002-11-14 17:06:18 paklein Exp $ */
+/* $Id: D2VIB2D_a.h,v 1.4 2003-01-29 07:34:55 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D2_VIB_2D_A_H_
 #define _D2_VIB_2D_A_H_
@@ -13,7 +13,7 @@ class D2VIB2D_a: public D2VIB2D
 public:
 
 	/* constructor */
-	D2VIB2D_a(ifstreamT& in, const D2FDMatSupportT& support);
+	D2VIB2D_a(ifstreamT& in, const D2FSMatSupportT& support);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

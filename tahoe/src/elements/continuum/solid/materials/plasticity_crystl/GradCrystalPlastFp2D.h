@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp2D.h,v 1.3 2002-11-14 17:06:32 paklein Exp $ */
+/* $Id: GradCrystalPlastFp2D.h,v 1.4 2003-01-29 07:35:04 paklein Exp $ */
 #ifndef _GRAD_CRYSTAL_PLAST_FP_2D_H_
 #define _GRAD_CRYSTAL_PLAST_FP_2D_H_
 
@@ -15,7 +15,7 @@ class GradCrystalPlastFp2D: public GradCrystalPlastFp, public Material2DT
 {
  public:
   // constructor
-  GradCrystalPlastFp2D(ifstreamT& in, const FDMatSupportT& support);
+  GradCrystalPlastFp2D(ifstreamT& in, const FSMatSupportT& support);
 
   // destructor
   ~GradCrystalPlastFp2D();

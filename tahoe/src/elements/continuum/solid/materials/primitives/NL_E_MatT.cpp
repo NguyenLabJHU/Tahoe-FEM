@@ -1,12 +1,12 @@
-/* $Id: NL_E_MatT.cpp,v 1.5 2002-11-14 17:06:39 paklein Exp $ */
+/* $Id: NL_E_MatT.cpp,v 1.6 2003-01-29 07:35:08 paklein Exp $ */
 /* created: paklein (06/13/1997) */
 #include "NL_E_MatT.h"
 
 using namespace Tahoe;
 
 /* constructors */
-NL_E_MatT::NL_E_MatT(ifstreamT& in, const FDMatSupportT& support):
-	FDStructMatT(in, support),
+NL_E_MatT::NL_E_MatT(ifstreamT& in, const FSMatSupportT& support):
+	FSSolidMatT(in, support),
 	fE(NumSD()),
 	fPK2(NumSD()),
 	fModuli(dSymMatrixT::NumValues(NumSD()))

@@ -1,4 +1,4 @@
-/* $Id: NL_E_RotMat2DT.h,v 1.4 2002-11-14 17:06:39 paklein Exp $ */
+/* $Id: NL_E_RotMat2DT.h,v 1.5 2003-01-29 07:35:08 paklein Exp $ */
 /* created: paklein (06/13/1997) */
 #ifndef _NL_E_ROTMAT_2D_T_H_
 #define _NL_E_ROTMAT_2D_T_H_
@@ -20,7 +20,7 @@ class NL_E_RotMat2DT: public NL_E_Mat2DT, public Anisotropic2DT
 public:
 
 	/* constructor */
-	NL_E_RotMat2DT(ifstreamT& in, const FDMatSupportT& support, ConstraintOptionT constraint);
+	NL_E_RotMat2DT(ifstreamT& in, const FSMatSupportT& support, ConstraintOptionT constraint);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

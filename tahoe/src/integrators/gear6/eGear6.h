@@ -3,13 +3,13 @@
 
 /* base classes */
 #include "Gear6.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 
 namespace Tahoe {
 
 /** Element controller for an explicit 4th order velocity verlet
   * algorithm */
-class eGear6: public virtual Gear6, public eControllerT
+class eGear6: public virtual Gear6, public eIntegratorT
 {
 public:
 

@@ -1,4 +1,4 @@
-/* $Id: FDCubic2DT.cpp,v 1.7 2002-11-14 17:06:05 paklein Exp $ */
+/* $Id: FDCubic2DT.cpp,v 1.8 2003-01-29 07:34:41 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #include "FDCubic2DT.h"
 #include "ThermalDilatationT.h"
@@ -6,7 +6,7 @@
 using namespace Tahoe;
 
 /* constructor */
-FDCubic2DT::FDCubic2DT(ifstreamT& in, const FDMatSupportT& support):
+FDCubic2DT::FDCubic2DT(ifstreamT& in, const FSMatSupportT& support):
 	FDCubicT(in, support),
 	Anisotropic2DT(in),
 	Material2DT(in)

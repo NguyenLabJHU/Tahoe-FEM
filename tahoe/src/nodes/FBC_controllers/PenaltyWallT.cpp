@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.8 2002-11-28 16:44:20 paklein Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.9 2003-01-29 07:35:22 paklein Exp $ */
 /* created: paklein (02/25/1997)                                          */
 
 #include "PenaltyWallT.h"
@@ -10,7 +10,7 @@
 #include "toolboxConstants.h"
 #include "fstreamT.h"
 #include "FEManagerT.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 #include "Vector3T.h"
 
 
@@ -52,7 +52,7 @@ void PenaltyWallT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 #endif
 
 	double constK = 0.0;
-	int formK = fController->FormK(constK);
+	int formK = fIntegrator->FormK(constK);
 	if (!formK) return;
 
 	/* node by node */

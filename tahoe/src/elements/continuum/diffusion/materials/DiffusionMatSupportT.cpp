@@ -1,9 +1,9 @@
-/* $Id: DiffusionMatSupportT.cpp,v 1.3 2003-01-27 07:00:28 paklein Exp $ */
+/* $Id: DiffusionMatSupportT.cpp,v 1.4 2003-01-29 07:34:33 paklein Exp $ */
 #include "DiffusionMatSupportT.h"
 #include "ElementsConfig.h"
 
 #ifdef CONTINUUM_ELEMENT
-#include "DiffusionT.h"
+#include "DiffusionElementT.h"
 #endif
 
 using namespace Tahoe;
@@ -43,6 +43,6 @@ void DiffusionMatSupportT::SetContinuumElement(const ContinuumElementT* p)
 
 #ifdef CONTINUUM_ELEMENT
 	/* cast to small strain pointer */
-	fDiffusion = dynamic_cast<const DiffusionT*>(p);
+	fDiffusion = dynamic_cast<const DiffusionElementT*>(p);
 #endif
 }

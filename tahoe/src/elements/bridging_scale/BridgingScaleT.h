@@ -1,9 +1,9 @@
-/* $Id: BridgingScaleT.h,v 1.21 2002-11-30 16:41:25 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.22 2003-01-29 07:34:28 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
 /* direct members */
-#include "ElasticT.h"
+#include "SolidElementT.h"
 #include "RaggedArray2DT.h"
 #include "ElementMatrixT.h"
 #include "CCSMatrixT.h"
@@ -21,7 +21,7 @@ public:
 	/** constructor */
 	BridgingScaleT(const ElementSupportT& support, const FieldT& field,
 		const RodT& particle,
-		const ElasticT& solid);
+		const SolidElementT& solid);
 
 	/** destructor */
 	virtual ~BridgingScaleT(void);
@@ -106,7 +106,7 @@ protected:
 	iArray2DT fParticlesUsed;
 	
 	/** continuum group solving displacements */
-	const ElasticT& fSolid;
+	const SolidElementT& fSolid;
 	iArray2DT fSolidNodesUsed;
 
 	/** list of particles per element: [n_cell] x [n_part_i] */

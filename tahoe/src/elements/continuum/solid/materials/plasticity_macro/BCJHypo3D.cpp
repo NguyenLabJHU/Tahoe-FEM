@@ -1,4 +1,4 @@
-/* $Id: BCJHypo3D.cpp,v 1.13 2002-11-14 17:06:36 paklein Exp $ */
+/* $Id: BCJHypo3D.cpp,v 1.14 2003-01-29 07:35:06 paklein Exp $ */
 #include "BCJHypo3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -29,7 +29,7 @@ const int kNumMatProp = 6;
 const int kNumOutput = 4;
 static const char* Labels[kNumOutput] = {"EQP","VMISES","PRESS","KAPPA"};
 
-BCJHypo3D::BCJHypo3D(ifstreamT& in, const FDMatSupportT& support) :
+BCJHypo3D::BCJHypo3D(ifstreamT& in, const FSMatSupportT& support) :
   EVPFDBaseT(in, support),  
 
   // some constants

@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.cpp,v 1.7 2002-11-14 17:06:17 paklein Exp $ */
+/* $Id: IsoVIB3D.cpp,v 1.8 2003-01-29 07:34:53 paklein Exp $ */
 /* created: paklein (03/15/1998) */
 #include "IsoVIB3D.h"
 
@@ -17,8 +17,8 @@
 using namespace Tahoe;
 
 /* constructors */
-IsoVIB3D::IsoVIB3D(ifstreamT& in, const FDMatSupportT& support):
-	FDStructMatT(in, support),
+IsoVIB3D::IsoVIB3D(ifstreamT& in, const FSMatSupportT& support):
+	FSSolidMatT(in, support),
 	VIB(in, 3, 3, 6),
 	fEigs(3),
 	fEigmods(3),
@@ -56,7 +56,7 @@ IsoVIB3D::~IsoVIB3D(void) { delete fSphere; }
 void IsoVIB3D::Print(ostream& out) const
 {
 	/* inherited */
-	FDStructMatT::Print(out);
+	FSSolidMatT::Print(out);
 	VIB::Print(out);
 
 	fSphere->Print(out);
@@ -66,7 +66,7 @@ void IsoVIB3D::Print(ostream& out) const
 void IsoVIB3D::PrintName(ostream& out) const
 {
 	/* inherited */
-	FDStructMatT::PrintName(out);
+	FSSolidMatT::PrintName(out);
 	VIB::PrintName(out);
 
 	out << "    Isotropic/Principal Stretch Formulation\n";

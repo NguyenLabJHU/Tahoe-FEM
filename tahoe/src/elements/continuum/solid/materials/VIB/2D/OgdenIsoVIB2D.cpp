@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB2D.cpp,v 1.8 2002-11-14 17:06:15 paklein Exp $ */
+/* $Id: OgdenIsoVIB2D.cpp,v 1.9 2003-01-29 07:34:52 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "OgdenIsoVIB2D.h"
 
@@ -15,7 +15,7 @@
 using namespace Tahoe;
 
 /* constructors */
-OgdenIsoVIB2D::OgdenIsoVIB2D(ifstreamT& in, const FDMatSupportT& support):
+OgdenIsoVIB2D::OgdenIsoVIB2D(ifstreamT& in, const FSMatSupportT& support):
 	OgdenIsotropicT(in, support),
 	Material2DT(in, kPlaneStress),
 	VIB(in, 2, 2, 3),

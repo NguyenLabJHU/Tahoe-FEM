@@ -1,9 +1,9 @@
-/* $Id: SimoQ1P0.cpp,v 1.6 2002-10-20 22:48:23 paklein Exp $ */
+/* $Id: SimoQ1P0.cpp,v 1.7 2003-01-29 07:34:34 paklein Exp $ */
 #include "SimoQ1P0.h"
 
 #include "ShapeFunctionT.h"
-#include "StructuralMaterialT.h"
-#include "StructuralMatListT.h"
+#include "SolidMaterialT.h"
+#include "SolidMatListT.h"
 
 using namespace Tahoe;
 

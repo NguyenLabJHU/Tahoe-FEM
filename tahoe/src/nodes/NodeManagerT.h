@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.11 2003-01-27 07:00:29 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.12 2003-01-29 07:35:21 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -16,7 +16,7 @@
 #include "pArrayT.h"
 #include "IOBaseT.h"
 #include "GlobalT.h"
-#include "ControllerT.h"
+#include "IntegratorT.h"
 #include "nVariArray2DT.h"
 
 namespace Tahoe {
@@ -26,7 +26,7 @@ class FEManagerT;
 class CommManagerT;
 class ScheduleT;
 class LocalArrayT;
-class nControllerT;
+class nIntegratorT;
 template <class TYPE> class AutoArrayT;
 template <class TYPE> class RaggedArray2DT;
 class ExodusT;
@@ -91,7 +91,7 @@ public:
 	/** return the implicit-explicit flag for the given group. If the group contains
 	 * fields with both implicit and explicit time integrators, the group is considered
 	 * implicit */
-	ControllerT::ImpExpFlagT ImplicitExplicit(int group) const;
+	IntegratorT::ImpExpFlagT ImplicitExplicit(int group) const;
 	/*@}*/
 
 	/** \name writing output */

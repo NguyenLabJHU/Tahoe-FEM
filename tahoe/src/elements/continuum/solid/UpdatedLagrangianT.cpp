@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.10 2002-10-20 22:48:23 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.11 2003-01-29 07:34:34 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpdatedLagrangianT.h"
 
@@ -8,7 +8,7 @@
 
 #include "fstreamT.h"
 #include "toolboxConstants.h"
-#include "StructuralMaterialT.h"
+#include "SolidMaterialT.h"
 #include "ShapeFunctionT.h"
 
 using namespace Tahoe;

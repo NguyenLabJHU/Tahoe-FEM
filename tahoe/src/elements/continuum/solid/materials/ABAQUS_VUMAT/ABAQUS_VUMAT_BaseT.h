@@ -1,9 +1,9 @@
-/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.10 2002-11-14 17:05:59 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.11 2003-01-29 07:34:36 paklein Exp $ */
 #ifndef _ABAQUS_VUMAT_BASE_T_H_
 #define _ABAQUS_VUMAT_BASE_T_H_
 
 /* base class */
-#include "FDStructMatT.h"
+#include "FSSolidMatT.h"
 #include "IsotropicT.h"
 
 /* library support options */
@@ -28,12 +28,12 @@ class SpectralDecompT;
 /** interface for ABAQUS/Explicit VUMAT's. The class is derived
  * from IsotropicT because the VUMAT interface assumes elastic
  * response is approximately isotropic */
-class ABAQUS_VUMAT_BaseT: public FDStructMatT, public IsotropicT
+class ABAQUS_VUMAT_BaseT: public FSSolidMatT, public IsotropicT
 {
 public:
 
 	/* constructor */
-	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FDMatSupportT& support);
+	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FSMatSupportT& support);
 
 	/* destructor */
 	~ABAQUS_VUMAT_BaseT(void);
@@ -68,7 +68,7 @@ public:
 	virtual const dSymMatrixT& s_ij(void);
 
 	/** return the pressure associated with the last call to 
-	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
 	 * for more information. */
 	virtual double Pressure(void) const { return fPressure; };
 	/*@}*/

@@ -1,8 +1,8 @@
-/* $Id: ParticlePairT.cpp,v 1.13 2003-01-27 07:00:26 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.14 2003-01-29 07:35:12 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 #include "InverseMapT.h"
 #include "CommManagerT.h"
 
@@ -199,8 +199,8 @@ void ParticlePairT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	/* time integration parameters */
 	double constK = 0.0;
 	double constM = 0.0;
-	int formK = fController->FormK(constK);
-	int formM = fController->FormM(constM);
+	int formK = fIntegrator->FormK(constK);
+	int formM = fIntegrator->FormM(constM);
 
 	/* assemble particle mass */
 	if (formM) {
@@ -316,8 +316,8 @@ void ParticlePairT::RHSDriver2D(void)
 	/* time integration parameters */
 	double constMa = 0.0;
 	double constKd = 0.0;
-	int formMa = fController->FormMa(constMa);
-	int formKd = fController->FormKd(constKd);
+	int formMa = fIntegrator->FormMa(constMa);
+	int formKd = fIntegrator->FormKd(constKd);
 
 	//TEMP - interial force not implemented
 	if (formMa) ExceptionT::GeneralFail(caller, "inertial force not implemented");
@@ -416,8 +416,8 @@ void ParticlePairT::RHSDriver3D(void)
 	/* time integration parameters */
 	double constMa = 0.0;
 	double constKd = 0.0;
-	int formMa = fController->FormMa(constMa);
-	int formKd = fController->FormKd(constKd);
+	int formMa = fIntegrator->FormMa(constMa);
+	int formKd = fIntegrator->FormKd(constKd);
 
 	//TEMP - interial force not implemented
 	if (formMa) ExceptionT::GeneralFail(caller, "inertial force not implemented");

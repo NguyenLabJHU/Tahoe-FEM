@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.cpp,v 1.8 2002-11-21 01:13:37 paklein Exp $ */
+/* $Id: LocalizerT.cpp,v 1.9 2003-01-29 07:34:34 paklein Exp $ */
 /* created: paklein (02/19/1998) */
 
 #include "LocalizerT.h"
@@ -9,16 +9,16 @@
 
 #include "fstreamT.h"
 #include "toolboxConstants.h"
-#include "StructuralMaterialT.h"
-#include "MaterialList2DT.h"
-#include "MaterialList3DT.h"
+#include "SolidMaterialT.h"
+#include "SolidMatList2DT.h"
+#include "SolidMatList3DT.h"
 #include "ShapeFunctionT.h"
 #include "EdgeFinderT.h"
 #include "iAutoArrayT.h"
 #include "ExodusT.h"
 
 //for strain check below
-#include "FDStructMatT.h"
+#include "FSSolidMatT.h"
 
 /* flag parameter to mark localized elements */
 
@@ -581,7 +581,7 @@ void LocalizerT::Localization(void)
 
 			/* cast is safe since class contructs materials list */
 			ContinuumMaterialT* pcont_mat = (*fMaterialList)[element.MaterialNumber()];
-			fCurrMaterial = (StructuralMaterialT*) pcont_mat;
+			fCurrMaterial = (SolidMaterialT*) pcont_mat;
 	
 			/* check for localization */
 			numlocip[i] = CheckLocalization(fLocOut);

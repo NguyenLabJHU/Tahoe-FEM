@@ -1,16 +1,14 @@
-/* $Id: SolidT.cpp,v 1.21 2002-10-20 22:49:02 paklein Exp $ */
+/* $Id: SolidT.cpp,v 1.22 2003-01-29 07:34:58 paklein Exp $ */
 /* created: paklein (03/10/2001) */
-
 #include "SolidT.h"
 
 #include <iostream.h>
 #include "ExceptionT.h"
 
-/* stream extraction operator */ 
-
 namespace Tahoe {
 
-istream& operator>>(istream& in, SolidT::SolidT& code)
+/* stream extraction operator */ 
+istream& operator>>(istream& in, SolidT::TypeT& code)
 {
 	int i_code;
 	in >> i_code;
@@ -146,7 +144,7 @@ istream& operator>>(istream& in, SolidT::SolidT& code)
 					code = SolidT::kOgdenViscVIB;
 					break;*/
 		default:
-			cout << "\n operator>>SolidT::SolidT: unknown code: "
+			cout << "\n operator>>SolidT::TypeT: unknown code: "
 			<< i_code<< endl;
 			throw ExceptionT::kBadInputValue;	
 	}

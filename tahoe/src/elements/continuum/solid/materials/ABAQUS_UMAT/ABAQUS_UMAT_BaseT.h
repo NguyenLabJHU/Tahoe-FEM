@@ -1,10 +1,10 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.5 2002-11-14 17:05:58 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.6 2003-01-29 07:34:35 paklein Exp $ */
 /* created: paklein (05/09/2000) */
 #ifndef _ABAQUS_UMAT_BASE_T_H_
 #define _ABAQUS_UMAT_BASE_T_H_
 
 /* base class */
-#include "FDStructMatT.h"
+#include "FSSolidMatT.h"
 
 /* library support options */
 #ifdef __F2C__
@@ -25,12 +25,12 @@ namespace Tahoe {
 /* forward declarations */
 class SpectralDecompT;
 
-class ABAQUS_UMAT_BaseT: public FDStructMatT
+class ABAQUS_UMAT_BaseT: public FSSolidMatT
 {
 public:
 
 	/* constructor */
-	ABAQUS_UMAT_BaseT(ifstreamT& in, const FDMatSupportT& support);
+	ABAQUS_UMAT_BaseT(ifstreamT& in, const FSMatSupportT& support);
 
 	/* destructor */
 	~ABAQUS_UMAT_BaseT(void);
@@ -65,7 +65,7 @@ public:
 	virtual const dSymMatrixT& s_ij(void);
 
 	/** return the pressure associated with the last call to 
-	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
 	 * for more information. */
 	virtual double Pressure(void) const { return fPressure; };
 	/*@}*/

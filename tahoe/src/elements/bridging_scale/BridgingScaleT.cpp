@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.29 2002-11-25 07:16:24 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.30 2003-01-29 07:34:28 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -21,7 +21,7 @@ using namespace Tahoe;
 BridgingScaleT::BridgingScaleT(const ElementSupportT& support, 
 	const FieldT& field,
 	const RodT& particle,
-	const ElasticT& solid):
+	const SolidElementT& solid):
 	ElementBaseT(support, field),
 	fParticle(particle),
 	fSolid(solid),

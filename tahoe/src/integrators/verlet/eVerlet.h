@@ -3,13 +3,13 @@
 
 /* base classes */
 #include "Verlet.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 
 namespace Tahoe {
 
 /** Element controller for an explicit 4th order velocity verlet
   * algorithm */
-class eVerlet: public virtual Verlet, public eControllerT
+class eVerlet: public virtual Verlet, public eIntegratorT
 {
 public:
 

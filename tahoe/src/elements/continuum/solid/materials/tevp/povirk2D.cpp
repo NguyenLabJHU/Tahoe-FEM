@@ -1,11 +1,11 @@
-/* $Id: povirk2D.cpp,v 1.7 2002-11-14 17:06:43 paklein Exp $ */
+/* $Id: povirk2D.cpp,v 1.8 2003-01-29 07:35:09 paklein Exp $ */
 /* Created:  Harold Park (09/10/2001) */
 #include "povirk2D.h"
 
 #include <iostream.h>
 #include <math.h>
 #include "ifstreamT.h"
-#include "FDMatSupportT.h"
+#include "FSMatSupportT.h"
 #include "ElementCardT.h"
 
 using namespace Tahoe;
@@ -22,8 +22,8 @@ static const char* Labels[kNumOutput] = {
   "Eff._Strain_Rate"};   // effective stress
 
 /* constructor */
-povirk2D::povirk2D(ifstreamT& in, const FDMatSupportT& support):
-  FDStructMatT(in, support),
+povirk2D::povirk2D(ifstreamT& in, const FSMatSupportT& support):
+  FSSolidMatT(in, support),
   IsotropicT(in),
   Material2DT(in),        // Currently reads in plane strain from file...
   /* initialize references */
@@ -131,7 +131,7 @@ void povirk2D::ResetHistory(void)
 void povirk2D::Print(ostream& out) const
 {
   /* inherited */
-  FDStructMatT::Print(out);
+  FSSolidMatT::Print(out);
   IsotropicT::Print(out);
   Material2DT::Print(out);
 }
@@ -139,7 +139,7 @@ void povirk2D::Print(ostream& out) const
 void povirk2D::PrintName(ostream& out) const
 {
   /* inherited */
-  FDStructMatT::PrintName(out);
+  FSSolidMatT::PrintName(out);
   out << "    Thermo-Elasto-Viscoplastic without fluid/damage model\n";
 }
 
@@ -319,7 +319,7 @@ void povirk2D::ComputeD(void)
 	/* Compute rate of deformation */
 	fDtot = 0.0;
 	dMatrixT* tempd = &fDtot;
-	if (!FDMatSupport().ComputeGradient_reference(*fLocVel, fGradV_2D)) throw ExceptionT::kGeneralFail;
+	if (!FSMatSupport().ComputeGradient_reference(*fLocVel, fGradV_2D)) throw ExceptionT::kGeneralFail;
 	fGradV.Rank2ExpandFrom2D(fGradV_2D);
 	(*tempd).MultAB(fGradV, fF_temp, 0);
 	(*tempd).Symmetrize();
@@ -331,7 +331,7 @@ double povirk2D::ComputeSpin(void)
 
 	/* Compute the spin scalar */
 	fSpin = 0.0;
-	if (!FDMatSupport().ComputeGradient_reference(*fLocVel, fGradV_2D)) throw ExceptionT::kGeneralFail;
+	if (!FSMatSupport().ComputeGradient_reference(*fLocVel, fGradV_2D)) throw ExceptionT::kGeneralFail;
 	fGradV.Rank2ExpandFrom2D(fGradV_2D);
 	fSpin = fGradV(0,0) * fF_temp(0,1) + fGradV(0,1) * fF_temp(1,1);
 	fSpin = fSpin - fGradV(1,0) * fF_temp(0,0) - fGradV(1,1) * fF_temp(1,0);

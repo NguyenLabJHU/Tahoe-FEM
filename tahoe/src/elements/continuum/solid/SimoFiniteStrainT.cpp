@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.24 2002-11-14 17:05:51 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.25 2003-01-29 07:34:34 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -7,7 +7,7 @@
 
 #include "fstreamT.h"
 #include "toolboxConstants.h"
-#include "StructuralMaterialT.h"
+#include "SolidMaterialT.h"
 #include "MaterialListT.h" //NOTE - only needed for check in Initialize?
 #include "SimoShapeFunctionT.h"
 #include "FieldT.h"
@@ -911,7 +911,7 @@ void SimoFiniteStrainT::ModifiedEnhancedDeformation(void)
 	
 	/* skip base class implementation because the deformation gradient
 	 * modification are not simply additive */
-	ElasticT::SetGlobalShape();
+	SolidElementT::SetGlobalShape();
 	
 	cout << "\n SimoFiniteStrainT::ModifiedEnhancedDeformation: not done" << endl;
 	throw ExceptionT::kGeneralFail;

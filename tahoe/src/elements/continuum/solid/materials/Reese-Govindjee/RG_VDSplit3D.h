@@ -1,4 +1,4 @@
-/* $Id: RG_VDSplit3D.h,v 1.3 2002-11-14 17:06:09 paklein Exp $ */
+/* $Id: RG_VDSplit3D.h,v 1.4 2003-01-29 07:34:45 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #ifndef _RG_VDSplit_3D_
@@ -17,7 +17,7 @@ class RG_VDSplit3D: public RGBaseT
    public:
   
 	/* constructor */
-	RG_VDSplit3D(ifstreamT& in, const FDMatSupportT& support);
+	RG_VDSplit3D(ifstreamT& in, const FSMatSupportT& support);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

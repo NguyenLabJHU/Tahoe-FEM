@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.16 2002-11-14 17:05:59 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.17 2003-01-29 07:34:36 paklein Exp $ */
 #include "ABAQUS_VUMAT_BaseT.h"
 
 #ifdef __F2C__
@@ -17,8 +17,8 @@
 using namespace Tahoe;
 
 /* constructor */
-ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FDMatSupportT& support):
-	FDStructMatT(in, support),
+ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FSMatSupportT& support):
+	FSSolidMatT(in, support),
 	fTangentType(GlobalT::kSymmetric),
 	fModulus(dSymMatrixT::NumValues(NumSD())),
 	fStress(NumSD()),
@@ -139,7 +139,7 @@ ABAQUS_VUMAT_BaseT::~ABAQUS_VUMAT_BaseT(void)
 void ABAQUS_VUMAT_BaseT::Print(ostream& out) const
 {
 	/* inherited */
-	FDStructMatT::Print(out);
+	FSSolidMatT::Print(out);
 	
 	/* write properties array */
 	out << " Number of ABAQUS VUMAT internal variables. . . . = " << nstatv << '\n';
@@ -151,7 +151,7 @@ void ABAQUS_VUMAT_BaseT::Print(ostream& out) const
 void ABAQUS_VUMAT_BaseT::Initialize(void)
 {
 	/* inherited */
-	FDStructMatT::Initialize();
+	FSSolidMatT::Initialize();
 
 	/* notify */
 	if (fThermal->IsActive())
@@ -178,7 +178,7 @@ void ABAQUS_VUMAT_BaseT::PointInitialize(void)
 	}
 
 	/* call UMAT - time signals initialization */
-	double dt = fFDMatSupport.TimeStep();
+	double dt = fFSMatSupport.TimeStep();
 	Call_VUMAT(0.0, dt, 0, 0);
 
 	/* store results as last converged */
@@ -238,10 +238,10 @@ const dSymMatrixT& ABAQUS_VUMAT_BaseT::s_ij(void)
 	/* call VUMAT */
 	if (MaterialSupport().RunState() == GlobalT::kFormRHS)
 	{
-		double  t = fFDMatSupport.Time();
-		double dt = fFDMatSupport.TimeStep();
-		int  step = fFDMatSupport.StepNumber();
-		int  iter = fFDMatSupport.IterationNumber();
+		double  t = fFSMatSupport.Time();
+		double dt = fFSMatSupport.TimeStep();
+		int  step = fFSMatSupport.StepNumber();
+		int  iter = fFSMatSupport.IterationNumber();
 		Call_VUMAT(t, dt, step, iter);
 	}
 	else
@@ -336,7 +336,7 @@ void ABAQUS_VUMAT_BaseT::ComputeOutput(dArrayT& output)
 void ABAQUS_VUMAT_BaseT::PrintName(ostream& out) const
 {
 	/* inherited */
-	FDStructMatT::PrintName(out);
+	FSSolidMatT::PrintName(out);
 	out << "    ABAQUS user material: " << fVUMAT_name << '\n';
 }
 

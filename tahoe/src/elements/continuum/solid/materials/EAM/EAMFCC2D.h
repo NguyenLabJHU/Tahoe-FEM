@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.h,v 1.6 2002-11-14 17:06:01 paklein Exp $ */
+/* $Id: EAMFCC2D.h,v 1.7 2003-01-29 07:34:38 paklein Exp $ */
 /* created: paklein (12/09/1996) */
 #ifndef _EAMFCC2D_H_
 #define _EAMFCC2D_H_
@@ -22,7 +22,7 @@ public:
                      kFCC111 = 2};
 
 	/* constructor */
-	EAMFCC2D(ifstreamT& in, const FDMatSupportT& support, PlaneCodeT plane_code);
+	EAMFCC2D(ifstreamT& in, const FSMatSupportT& support, PlaneCodeT plane_code);
 
 	/* destructor */
 	virtual ~EAMFCC2D(void);

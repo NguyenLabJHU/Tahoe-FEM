@@ -1,4 +1,4 @@
-/* $Id: ModCB2DT.h,v 1.6 2002-11-14 17:06:24 paklein Exp $ */
+/* $Id: ModCB2DT.h,v 1.7 2003-01-29 07:34:59 paklein Exp $ */
 /* created: paklein (05/31/1997) */
 #ifndef _MODCB_2DT_H_
 #define _MODCB_2DT_H_
@@ -24,7 +24,7 @@ public:
                      kDC111 = 2};
 
 	/* constructor */
-	ModCB2DT(ifstreamT& in, const FDMatSupportT& support, bool equilibrate, 
+	ModCB2DT(ifstreamT& in, const FSMatSupportT& support, bool equilibrate, 
 		PlaneCodeT plane_code);
 
 	/* destructor */

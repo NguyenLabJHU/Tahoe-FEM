@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.10 2002-11-14 17:05:58 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.11 2003-01-29 07:34:35 paklein Exp $ */
 /* created: paklein (05/14/2000) */
 #include "ABAQUS_UMAT_BaseT.h"
 
@@ -16,8 +16,8 @@
 using namespace Tahoe;
 
 /* constructor */
-ABAQUS_UMAT_BaseT::	ABAQUS_UMAT_BaseT(ifstreamT& in, const FDMatSupportT& support):
-	FDStructMatT(in, support),
+ABAQUS_UMAT_BaseT::	ABAQUS_UMAT_BaseT(ifstreamT& in, const FSMatSupportT& support):
+	FSSolidMatT(in, support),
 	fTangentType(GlobalT::kSymmetric),
 	fModulus(dSymMatrixT::NumValues(NumSD())),
 	fStress(NumSD()),
@@ -122,7 +122,7 @@ ABAQUS_UMAT_BaseT::~ABAQUS_UMAT_BaseT(void)
 void ABAQUS_UMAT_BaseT::Print(ostream& out) const
 {
 	/* inherited */
-	FDStructMatT::Print(out);
+	FSSolidMatT::Print(out);
 	
 	/* write properties array */
 	out << " Number of ABAQUS UMAT internal variables. . . . = " << nstatv << '\n';
@@ -134,7 +134,7 @@ void ABAQUS_UMAT_BaseT::Print(ostream& out) const
 void ABAQUS_UMAT_BaseT::Initialize(void)
 {
 	/* inherited */
-	FDStructMatT::Initialize();
+	FSSolidMatT::Initialize();
 
 	/* notify */
 	if (fThermal->IsActive())
@@ -293,10 +293,10 @@ const dSymMatrixT& ABAQUS_UMAT_BaseT::s_ij(void)
 	/* call UMAT */
 	if (MaterialSupport().RunState() == GlobalT::kFormRHS)
 	{
-		double  t = fFDMatSupport.Time();
-		double dt = fFDMatSupport.TimeStep();
-		int  step = fFDMatSupport.StepNumber();
-		int  iter = fFDMatSupport.IterationNumber();
+		double  t = fFSMatSupport.Time();
+		double dt = fFSMatSupport.TimeStep();
+		int  step = fFSMatSupport.StepNumber();
+		int  iter = fFSMatSupport.IterationNumber();
 		Call_UMAT(t, dt, step, iter);
 	}
 	else
@@ -390,7 +390,7 @@ void ABAQUS_UMAT_BaseT::ComputeOutput(dArrayT& output)
 void ABAQUS_UMAT_BaseT::PrintName(ostream& out) const
 {
 	/* inherited */
-	FDStructMatT::PrintName(out);
+	FSSolidMatT::PrintName(out);
 	out << "    ABAQUS user material: " << fUMAT_name << '\n';
 }
 

@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.h,v 1.6 2002-11-14 17:06:11 paklein Exp $ */
+/* $Id: SimoIso2D.h,v 1.7 2003-01-29 07:34:48 paklein Exp $ */
 /* created: paklein (03/04/1997) */
 #ifndef _SIMO_ISO_2D_H_
 #define _SIMO_ISO_2D_H_
@@ -15,7 +15,7 @@ class SimoIso2D: public SimoIso3D, public Material2DT
 public:
 
 	/** constructor */
-	SimoIso2D(ifstreamT& in, const FDMatSupportT& support);
+	SimoIso2D(ifstreamT& in, const FSMatSupportT& support);
 
 	/** print parameters */
 	virtual void Print(ostream& out) const;
@@ -40,7 +40,7 @@ public:
 protected:
 
 	/** compute 3D stretch tensor \b b from the 2D deformation state. 
-	 * \todo Make this a FDStructMatT function? */
+	 * \todo Make this a FSSolidMatT function? */
 	void Compute_b_3D(dSymMatrixT& b_3D);
 
 protected:

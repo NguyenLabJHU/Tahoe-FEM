@@ -1,11 +1,11 @@
-/* $Id: nLinearHHTalpha.h,v 1.7 2003-01-27 07:00:22 paklein Exp $ */
+/* $Id: nLinearHHTalpha.h,v 1.8 2003-01-29 07:35:14 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 #ifndef _N_LINEARHHT_A_H_
 #define _N_LINEARHHT_A_H_
 
 /* base class */
 #include "HHTalpha.h"
-#include "nControllerT.h"
+#include "nIntegratorT.h"
 
 /* direct members */
 #include "dArray2DT.h"
@@ -13,7 +13,7 @@
 namespace Tahoe {
 
 /** HHT alpha integration for linear systems */
-class nLinearHHTalpha: virtual public HHTalpha, public nControllerT
+class nLinearHHTalpha: virtual public HHTalpha, public nIntegratorT
 {
 public:
 
@@ -32,17 +32,17 @@ public:
 	/** corrector. Maps ALL degrees of freedom forward. */
 	virtual void Corrector(BasicFieldT& field, const dArray2DT& update);
 
-	/** corrector - map ACTIVE. See nControllerT::Corrector for more
+	/** corrector - map ACTIVE. See nIntegratorT::Corrector for more
 	 * documentation */
 	virtual void Corrector(BasicFieldT& field, const dArrayT& update, 
 		int eq_start, int num_eq);
 
 	/** corrector with node number map - map ACTIVE. See 
-	 * nControllerT::MappedCorrector for more documentation */
+	 * nIntegratorT::MappedCorrector for more documentation */
 	virtual void MappedCorrector(BasicFieldT& field, const iArrayT& map,
 		const iArray2DT& flags, const dArray2DT& update);
 
-	/** return the field array needed by nControllerT::MappedCorrector. */
+	/** return the field array needed by nIntegratorT::MappedCorrector. */
 	virtual const dArray2DT& MappedCorrectorField(BasicFieldT& field) const;
 
 protected:  	

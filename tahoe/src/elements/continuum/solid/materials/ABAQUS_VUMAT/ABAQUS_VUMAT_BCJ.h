@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BCJ.h,v 1.5 2002-11-14 17:05:59 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BCJ.h,v 1.6 2003-01-29 07:34:36 paklein Exp $ */
 #ifndef _ABAQUS_VUMAT_BCJ_H_
 #define _ABAQUS_VUMAT_BCJ_H_
 
@@ -15,7 +15,7 @@ class ABAQUS_VUMAT_BCJ: public ABAQUS_VUMAT_BaseT
 public:
 
 	/* constructor */
-	ABAQUS_VUMAT_BCJ(ifstreamT& in, const FDMatSupportT& support);
+	ABAQUS_VUMAT_BCJ(ifstreamT& in, const FSMatSupportT& support);
 
 private:
 

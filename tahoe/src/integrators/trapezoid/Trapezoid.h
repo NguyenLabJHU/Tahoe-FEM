@@ -1,15 +1,15 @@
-/* $Id: Trapezoid.h,v 1.4 2002-07-05 22:27:55 paklein Exp $ */
+/* $Id: Trapezoid.h,v 1.5 2003-01-29 07:35:18 paklein Exp $ */
 
 #ifndef _TRAPEZOID_H_
 #define _TRAPEZOID_H_
 
 /* base class */
-#include "ControllerT.h"
+#include "IntegratorT.h"
 
 namespace Tahoe {
 
 /** implicit, first-order time integrator */
-class Trapezoid: virtual public ControllerT
+class Trapezoid: virtual public IntegratorT
 {
 public:
 

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.23 2002-12-11 23:13:15 cjkimme Exp $ */
+/* $Id: ElementBaseT.h,v 1.24 2003-01-29 07:34:26 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -30,7 +30,7 @@ namespace Tahoe {
 class ifstreamT;
 class LocalArrayT;
 class ScheduleT;
-class eControllerT;
+class eIntegratorT;
 template <class TYPE> class RaggedArray2DT;
 class iAutoArrayT;
 class dArray2DT;
@@ -358,7 +358,7 @@ private:
 protected:
 
 	/** time integrator */
-	const eControllerT* fController;
+	const eIntegratorT* fIntegrator;
 
 	/** element-by-element info */
 	AutoArrayT<ElementCardT> fElementCards;

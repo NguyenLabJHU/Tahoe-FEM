@@ -1,4 +1,4 @@
-/* $Id: ModCB3DT.cpp,v 1.6 2002-11-14 17:06:24 paklein Exp $ */
+/* $Id: ModCB3DT.cpp,v 1.7 2003-01-29 07:34:59 paklein Exp $ */
 /* created: paklein (10/14/1998) */
 #include "ModCB3DT.h"
 
@@ -26,7 +26,7 @@ const int 	kDC110		= 1;
 const int	kDC111		= 2;
 
 /* constructor */
-ModCB3DT::ModCB3DT(ifstreamT& in, const FDMatSupportT& support, bool equilibrate):
+ModCB3DT::ModCB3DT(ifstreamT& in, const FSMatSupportT& support, bool equilibrate):
 	NL_E_MatT(in, support),
 	fModCBSolver(NULL),
 	fXsi(kNDOF),

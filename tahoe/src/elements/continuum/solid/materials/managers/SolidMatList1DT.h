@@ -2,18 +2,18 @@
 #define _MATLIST_1D_T_H_
 
 /* base classes */
-#include "StructuralMatListT.h"
-#include "MaterialT.h"
+#include "SolidMatListT.h"
+#include "SolidT.h"
 
 namespace Tahoe {
 
 /** materials list for 1D structural analysis */
-class SolidMatList1DT: public StructuralMatListT, public MaterialT
+class SolidMatList1DT: public SolidMatListT, public SolidT
 {
 public:
 
 	/** constructor */
-	SolidMatList1DT(int length, const StructuralMatSupportT& support);
+	SolidMatList1DT(int length, const SolidMatSupportT& support);
 
 	/** read material data from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);

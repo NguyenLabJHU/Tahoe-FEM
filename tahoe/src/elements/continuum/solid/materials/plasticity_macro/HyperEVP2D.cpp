@@ -1,4 +1,4 @@
-/* $Id: HyperEVP2D.cpp,v 1.4 2002-11-14 17:06:36 paklein Exp $ */
+/* $Id: HyperEVP2D.cpp,v 1.5 2003-01-29 07:35:06 paklein Exp $ */
 #include "HyperEVP2D.h"
 #include "ifstreamT.h"
 #include "Utils.h"
@@ -8,7 +8,7 @@ using namespace Tahoe;
 /* spatial dimension of problem */
 const int kNSD = 2;
 
-HyperEVP2D::HyperEVP2D(ifstreamT& in, const FDMatSupportT& support) :
+HyperEVP2D::HyperEVP2D(ifstreamT& in, const FSMatSupportT& support) :
   HyperEVP3D  (in, support),  
   Material2DT (in, Material2DT::kPlaneStrain),
   f2Ds_ij   (kNSD),

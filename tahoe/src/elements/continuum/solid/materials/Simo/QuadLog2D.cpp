@@ -1,4 +1,4 @@
-/* $Id: QuadLog2D.cpp,v 1.4 2002-11-14 17:06:11 paklein Exp $ */
+/* $Id: QuadLog2D.cpp,v 1.5 2003-01-29 07:34:48 paklein Exp $ */
 /* created: paklein (06/28/1997) */
 #include "QuadLog2D.h"
 #include <math.h>
@@ -7,7 +7,7 @@
 using namespace Tahoe;
 
 /* constructor */
-QuadLog2D::QuadLog2D(ifstreamT& in, const FDMatSupportT& support):
+QuadLog2D::QuadLog2D(ifstreamT& in, const FSMatSupportT& support):
 	QuadLog3D(in, support),
 	Material2DT(in, kPlaneStrain),
 	fb_2D(2),

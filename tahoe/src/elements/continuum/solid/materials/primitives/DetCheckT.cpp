@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.24 2002-11-14 17:06:39 paklein Exp $ */
+/* $Id: DetCheckT.cpp,v 1.25 2003-01-29 07:35:08 paklein Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -13,7 +13,7 @@
 
 /* needed to access element information */
 //#include "ContinuumElementT.h"
-#include "StructuralMatSupportT.h"
+#include "SolidMatSupportT.h"
 
 /* initialize static variables */
 bool DetCheckT::fFirstPass = true;

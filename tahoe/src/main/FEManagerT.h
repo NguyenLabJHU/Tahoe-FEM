@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.31 2003-01-27 07:00:27 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.32 2003-01-29 07:35:20 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -26,9 +26,9 @@ class ofstreamT;
 class ModelManagerT;
 class TimeManagerT;
 class NodeManagerT;
-class ControllerT;
-class nControllerT;
-class eControllerT;
+class IntegratorT;
+class nIntegratorT;
+class eIntegratorT;
 class ScheduleT;
 class SolverT;
 class dMatrixT;
@@ -253,13 +253,13 @@ public:
 	void InternalForceOnNode(const FieldT& field, int node, dArrayT& force) const;
 	/*@}*/
 
-	/** \name access to controllers */
+	/** \name access to integrators */
 	/*@{*/
-	int NumControllers(void) const { return fControllers.Length(); };
-	ControllerT* Controller(int index) { return fControllers[index]; };
-	const ControllerT* Controller(int index) const { return fControllers[index]; };
-	eControllerT* eController(int index) const;
-	nControllerT* nController(int index) const;
+	int NumIntegrators(void) const { return fIntegrators.Length(); };
+	IntegratorT* Integrator(int index) { return fIntegrators[index]; };
+	const IntegratorT* Integrator(int index) const { return fIntegrators[index]; };
+	eIntegratorT* eIntegrator(int index) const;
+	nIntegratorT* nIntegrator(int index) const;
 	/*@}*/
 
 	/** debugging */
@@ -304,7 +304,7 @@ protected:
 	/*@{*/
 	virtual void ReadParameters(InitCodeT init);
 	void WriteParameters(void) const;
-	void SetController(void);
+	void SetIntegrator(void);
 	virtual void SetNodeManager(void);
 	virtual void SetElementGroups(void);
 	void SetSolver(void);
@@ -397,7 +397,7 @@ protected:
 	NodeManagerT* fNodeManager;
 	ElementListT fElementGroups;
 	ArrayT<SolverT*> fSolvers;
-	ArrayT<ControllerT*> fControllers;
+	ArrayT<IntegratorT*> fIntegrators;
 	IOManager*    fIOManager;
 	ModelManagerT* fModelManager;
 	CommManagerT* fCommManager;

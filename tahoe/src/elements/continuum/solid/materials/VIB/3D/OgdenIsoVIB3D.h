@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB3D.h,v 1.6 2002-11-14 17:06:17 paklein Exp $ */
+/* $Id: OgdenIsoVIB3D.h,v 1.7 2003-01-29 07:34:54 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _OGDEN_ISO_VIB_3D_H_
 #define _OGDEN_ISO_VIB_3D_H_
@@ -18,7 +18,7 @@ class OgdenIsoVIB3D: public OgdenIsotropicT, public VIB
 public:
 
 	/* constructor */
-	OgdenIsoVIB3D(ifstreamT& in, const FDMatSupportT& support);
+	OgdenIsoVIB3D(ifstreamT& in, const FSMatSupportT& support);
 
 	/* destructor */
 	~OgdenIsoVIB3D(void);

@@ -1,4 +1,4 @@
-/* $Id: FDCrystalElast.h,v 1.4 2002-11-14 17:06:19 paklein Exp $ */
+/* $Id: FDCrystalElast.h,v 1.5 2003-01-29 07:34:56 paklein Exp $ */
 #ifndef _FD_CRYSTAL_ELAST_H_
 #define _FD_CRYSTAL_ELAST_H_
 
@@ -13,7 +13,7 @@
 namespace Tahoe {
 
 class ifstreamT;
-class ElasticT;
+class SolidElementT;
 class ElementCardT;
 class StringT;
 class UpLagr_ExternalFieldT;
@@ -22,7 +22,7 @@ class FDCrystalElast : public CrystalElast
 {
  public:
   // constructor
-  FDCrystalElast(ifstreamT& in, const FDMatSupportT& support);
+  FDCrystalElast(ifstreamT& in, const FSMatSupportT& support);
 
   // destructor
   ~FDCrystalElast();

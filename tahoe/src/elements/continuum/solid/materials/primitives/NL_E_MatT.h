@@ -1,10 +1,10 @@
-/* $Id: NL_E_MatT.h,v 1.5 2002-11-14 17:06:39 paklein Exp $ */
+/* $Id: NL_E_MatT.h,v 1.6 2003-01-29 07:35:08 paklein Exp $ */
 /* created: paklein (06/13/1997) */
 #ifndef _NL_E_MAT_T_H_
 #define _NL_E_MAT_T_H_
 
 /* base classes */
-#include "FDStructMatT.h"
+#include "FSSolidMatT.h"
 
 namespace Tahoe {
 
@@ -23,12 +23,12 @@ namespace Tahoe {
  * Note: The particular material orientation with respect to the
  * global axes is also assumed to be taken care of by the
  * derived material classes. */
-class NL_E_MatT: public FDStructMatT
+class NL_E_MatT: public FSSolidMatT
 {
   public:
 
 	/** constructor */
-	NL_E_MatT(ifstreamT& in, const FDMatSupportT& support);
+	NL_E_MatT(ifstreamT& in, const FSMatSupportT& support);
 	
 	/** \name spatial description */
 	/*@{*/
@@ -39,7 +39,7 @@ class NL_E_MatT: public FDStructMatT
 	virtual const dSymMatrixT& s_ij(void);
 
 	/** return the pressure associated with the last call to 
-	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
 	 * for more information. \note only correct if NL_E_MatT::s_ij
 	 * called previously, otherwise get the trace of S_IJ. */
 	virtual double Pressure(void) const { return fPK2.Trace()/3.0; };

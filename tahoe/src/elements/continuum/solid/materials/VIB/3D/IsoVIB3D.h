@@ -1,10 +1,10 @@
-/* $Id: IsoVIB3D.h,v 1.7 2002-11-14 17:06:17 paklein Exp $ */
+/* $Id: IsoVIB3D.h,v 1.8 2003-01-29 07:34:53 paklein Exp $ */
 /* created: paklein (03/15/1998) */
 #ifndef _ISO_VIB_3D_H_
 #define _ISO_VIB_3D_H_
 
 /* base classes */
-#include "FDStructMatT.h"
+#include "FSSolidMatT.h"
 #include "VIB.h"
 
 /* direct members */
@@ -16,12 +16,12 @@ namespace Tahoe {
 class SpherePointsT;
 
 /** 3D Isotropic VIB solver using spectral decomposition formulation */
-class IsoVIB3D: public FDStructMatT, public VIB
+class IsoVIB3D: public FSSolidMatT, public VIB
 {
 public:
 
 	/* constructor */
-	IsoVIB3D(ifstreamT& in, const FDMatSupportT& support);
+	IsoVIB3D(ifstreamT& in, const FSMatSupportT& support);
 
 	/* destructor */
 	virtual ~IsoVIB3D(void);
@@ -39,7 +39,7 @@ public:
 	virtual const dSymMatrixT& s_ij(void);
 
 	/** return the pressure associated with the last call to 
-	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
 	 * for more information. */
 	virtual double Pressure(void) const { return fEigs.Sum()/3.0; };
 	/*@}*/

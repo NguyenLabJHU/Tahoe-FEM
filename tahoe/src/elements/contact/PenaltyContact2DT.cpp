@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact2DT.cpp,v 1.7 2002-11-30 16:41:27 paklein Exp $ */
+/* $Id: PenaltyContact2DT.cpp,v 1.8 2003-01-29 07:34:30 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 
 #include "PenaltyContact2DT.h"
@@ -8,7 +8,7 @@
 #include <iomanip.h>
 
 #include "fstreamT.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 
 /* parameters (duplicated from Contact2DT) */
 const int kNumFacetNodes = 2;
@@ -61,7 +61,7 @@ void PenaltyContact2DT::PrintControlData(ostream& out) const
 void PenaltyContact2DT::LHSDriver(GlobalT::SystemTypeT)
 {
 	double constK = 0.0;
-	int formK = fController->FormK(constK);
+	int formK = fIntegrator->FormK(constK);
 	if (!formK) return;
 
 	/* get reference to global coordinates */
@@ -156,7 +156,7 @@ void PenaltyContact2DT::RHSDriver(void)
 {
 	/* time integration parameters */
 	double constKd = 0.0;
-	int     formKd = fController->FormKd(constKd);
+	int     formKd = fIntegrator->FormKd(constKd);
 	if (!formKd) return;
 
 	/* references to global nodal data */

@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.10 2003-01-27 07:00:30 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.11 2003-01-29 07:35:22 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltyRegionT.h"
@@ -15,7 +15,7 @@
 #include "CommManagerT.h"
 #include "fstreamT.h"
 #include "ScheduleT.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 #include "IOBaseT.h"
 
 using namespace Tahoe;
@@ -239,7 +239,7 @@ void PenaltyRegionT::WriteRestart(ostream& out) const
 void PenaltyRegionT::ApplyRHS(void)
 {
 	double constKd = 0.0;
-	int formKd = fController->FormKd(constKd);
+	int formKd = fIntegrator->FormKd(constKd);
 	if (!formKd) return;
 
 	/* recompute contact forces */

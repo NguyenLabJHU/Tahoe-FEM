@@ -1,4 +1,4 @@
-/* $Id: LocalJ2SSNonlinHard.cpp,v 1.6 2002-11-14 17:06:29 paklein Exp $ */
+/* $Id: LocalJ2SSNonlinHard.cpp,v 1.7 2003-01-29 07:35:03 paklein Exp $ */
 #include "LocalJ2SSNonlinHard.h"
 
 #include "iArrayT.h"
@@ -27,7 +27,7 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 LocalJ2SSNonlinHard::LocalJ2SSNonlinHard(ifstreamT& in, const SSMatSupportT& support):
-	SSStructMatT (in, support),
+	SSSolidMatT (in, support),
 	IsotropicT   (in),
 	HookeanMatT  (kNSD),
 	fNumIP       (NumIP()),
@@ -123,7 +123,7 @@ void LocalJ2SSNonlinHard::ResetHistory(void)
 void LocalJ2SSNonlinHard::Print(ostream& out) const
 {
 	/* inherited */
-	SSStructMatT::Print(out);
+	SSSolidMatT::Print(out);
 	IsotropicT::Print(out);
 
         /* hardening coefficients */
@@ -139,7 +139,7 @@ void LocalJ2SSNonlinHard::Print(ostream& out) const
 void LocalJ2SSNonlinHard::PrintName(ostream& out) const
 {
 	/* inherited */
-	SSStructMatT::PrintName(out);
+	SSSolidMatT::PrintName(out);
 	out << "    Local small strain J2 plasticity\n";
 	out << "      with nonlinear isotropic/kinematic\n";
         out << "      hardening\n";

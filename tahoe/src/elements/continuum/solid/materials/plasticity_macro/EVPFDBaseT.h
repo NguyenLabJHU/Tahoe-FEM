@@ -1,4 +1,4 @@
-/* $Id: EVPFDBaseT.h,v 1.7 2002-11-14 17:06:36 paklein Exp $ */
+/* $Id: EVPFDBaseT.h,v 1.8 2003-01-29 07:35:06 paklein Exp $ */
 #ifndef _EVP_FD_BASE_T_H_
 #define _EVP_FD_BASE_T_H_
 
@@ -19,13 +19,13 @@
 namespace Tahoe {
 
 class NLCSolver;
-class ElasticT;
+class SolidElementT;
 
 class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
 {
  public:
   // constructor
-  EVPFDBaseT(ifstreamT& in, const FDMatSupportT& support);
+  EVPFDBaseT(ifstreamT& in, const FSMatSupportT& support);
 
   // destructor
   virtual ~EVPFDBaseT();

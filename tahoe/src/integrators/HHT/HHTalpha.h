@@ -1,4 +1,4 @@
-/* $Id: HHTalpha.h,v 1.4 2002-07-05 22:27:52 paklein Exp $ */
+/* $Id: HHTalpha.h,v 1.5 2003-01-29 07:35:14 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _HHT_ALPHA_H_
@@ -7,7 +7,7 @@
 #include "Environment.h"
 
 /* base class */
-#include "ControllerT.h"
+#include "IntegratorT.h"
 
 #include "ios_fwd_decl.h"
 
@@ -18,7 +18,7 @@ class ifstreamT;
 class dArrayT;
 
 /** HHT-\f$\alpha\f$ time integrator */
-class HHTalpha: virtual public ControllerT
+class HHTalpha: virtual public IntegratorT
 {
 public:
 

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast_C.cpp,v 1.8 2002-11-14 17:06:32 paklein Exp $ */
+/* $Id: LocalCrystalPlast_C.cpp,v 1.9 2003-01-29 07:35:05 paklein Exp $ */
 #include "LocalCrystalPlast_C.h"
 #include "LatticeOrient.h"
 #include "VoceHardening.h"
@@ -17,7 +17,7 @@ const double sqrt23 = sqrt(2.0/3.0);
 const int kNumOutput = 2;
 static const char* Labels[kNumOutput] = {"VM_stress", "Hardness"};
 
-LocalCrystalPlast_C::LocalCrystalPlast_C(ifstreamT& in, const FDMatSupportT& support) :
+LocalCrystalPlast_C::LocalCrystalPlast_C(ifstreamT& in, const FSMatSupportT& support) :
   LocalCrystalPlast(in, support),
   fLocInitX (ContinuumElement().InitialCoordinates()),
   //fNNodes   (element.NumElemNodes()),
@@ -76,7 +76,7 @@ const dSymMatrixT& LocalCrystalPlast_C::s_ij()
   LoadAggregateData(element, intpt);
 
   // compute state, stress and moduli at center of element
-  if (fFDMatSupport.RunState() == GlobalT::kFormRHS && CurrIP() == 0)
+  if (fFSMatSupport.RunState() == GlobalT::kFormRHS && CurrIP() == 0)
     {
       // reset iteration counter to check NLCSolver
       fIterCount = 0;
@@ -210,8 +210,8 @@ void LocalCrystalPlast_C::ComputeOutput(dArrayT& output)
       output[1] = fIterCount;
 
       // compute texture of aggregate, if requested
-	int step = fFDMatSupport.StepNumber();
-	int nsteps = fFDMatSupport.NumberOfSteps();
+	int step = fFSMatSupport.StepNumber();
+	int nsteps = fFSMatSupport.NumberOfSteps();
 
       if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
 	{

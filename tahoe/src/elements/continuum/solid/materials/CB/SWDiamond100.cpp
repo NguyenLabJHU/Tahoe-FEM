@@ -1,4 +1,4 @@
-/* $Id: SWDiamond100.cpp,v 1.4 2002-11-14 17:06:00 paklein Exp $ */
+/* $Id: SWDiamond100.cpp,v 1.5 2003-01-29 07:34:37 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #include "SWDiamond100.h"
 #include <math.h>
@@ -7,7 +7,7 @@
 using namespace Tahoe;
 
 /* constructor */
-SWDiamond100::SWDiamond100(ifstreamT& in, const FDMatSupportT& support):
+SWDiamond100::SWDiamond100(ifstreamT& in, const FSMatSupportT& support):
 	SWMaterial2D(in, support)
 {
 

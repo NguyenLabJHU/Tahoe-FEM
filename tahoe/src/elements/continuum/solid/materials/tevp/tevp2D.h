@@ -1,10 +1,10 @@
-/* $Id: tevp2D.h,v 1.21 2002-11-14 17:06:43 paklein Exp $ */
+/* $Id: tevp2D.h,v 1.22 2003-01-29 07:35:09 paklein Exp $ */
 /* Created:  Harold Park (04/04/2001) */
 #ifndef _TEVP_2D_H_
 #define _TEVP_2D_H_
 
 /* base classes */
-#include "FDStructMatT.h"
+#include "FSSolidMatT.h"
 #include "IsotropicT.h"
 #include "iArrayT.h"
 #include "Material2DT.h"
@@ -15,11 +15,11 @@ namespace Tahoe {
 class ElementCardT;
 
 /** Thermoelasto-viscoplastic material used to generate shear bands */
-class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
+class tevp2D: public FSSolidMatT, public IsotropicT, public Material2DT
 {
  public:
   /* constructor */
-  tevp2D(ifstreamT& in, const FDMatSupportT& support);
+  tevp2D(ifstreamT& in, const FSMatSupportT& support);
   
   /* materials initialization */
   virtual bool NeedsPointInitialization(void) const { return true; }
@@ -47,7 +47,7 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
 	virtual const dSymMatrixT& s_ij(void);
 
 	/** return the pressure associated with the last call to 
-	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
 	 * for more information. */
 	virtual double Pressure(void) const { return fInternal[kPressure]; };
 	/*@}*/

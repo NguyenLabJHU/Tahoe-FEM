@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.14 2002-12-11 23:13:18 cjkimme Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.15 2003-01-29 07:34:29 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -12,7 +12,7 @@
 #include "SurfaceShapeT.h"
 #include "C1FunctionT.h"
 #ifndef _SIERRA_TEST_
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 #endif
 
 /* potential functions */
@@ -139,7 +139,7 @@ void CSEIsoT::LHSDriver(GlobalT::SystemTypeT)
 	/* time-stepping parameters */
 	double constK = 0.0;
 #ifndef _SIERRA_TEST_
-	int     formK = fController->FormK(constK);
+	int     formK = fIntegrator->FormK(constK);
 	if (!formK) return;
 #endif
 
@@ -207,7 +207,7 @@ void CSEIsoT::RHSDriver(void)
 	/* time-stepping parameters */
 	double constKd = 0.0;
 #ifndef _SIERRA_TEST_
-	int     formKd = fController->FormKd(constKd);
+	int     formKd = fIntegrator->FormKd(constKd);
 	if (!formKd) return;
 #endif
 	

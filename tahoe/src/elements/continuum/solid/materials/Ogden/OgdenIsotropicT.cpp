@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.cpp,v 1.10 2002-11-14 17:06:07 paklein Exp $ */
+/* $Id: OgdenIsotropicT.cpp,v 1.11 2003-01-29 07:34:43 paklein Exp $ */
 /* created: paklein (10/01/2000) */
 #include "OgdenIsotropicT.h"
 
@@ -8,8 +8,8 @@
 using namespace Tahoe;
 
 /* constructor */
-OgdenIsotropicT::OgdenIsotropicT(ifstreamT& in, const FDMatSupportT& support):
-	FDStructMatT(in, support),
+OgdenIsotropicT::OgdenIsotropicT(ifstreamT& in, const FSMatSupportT& support):
+	FSSolidMatT(in, support),
 	fSpectralDecomp(NumSD()),
 	fC(NumSD()),
 	fEigs(NumSD()),
@@ -25,14 +25,14 @@ OgdenIsotropicT::OgdenIsotropicT(ifstreamT& in, const FDMatSupportT& support):
 void OgdenIsotropicT::Print(ostream& out) const
 {
 	/* inherited */
-	FDStructMatT::Print(out);
+	FSSolidMatT::Print(out);
 	IsotropicT::Print(out);
 }
 
 void OgdenIsotropicT::PrintName(ostream& out) const
 {
 	/* inherited */
-	FDStructMatT::PrintName(out);
+	FSSolidMatT::PrintName(out);
 
 	out << "    Ogden spectral formulation\n";
 }

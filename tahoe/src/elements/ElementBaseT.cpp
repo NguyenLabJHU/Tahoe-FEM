@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.31 2003-01-27 07:00:24 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.32 2003-01-29 07:34:26 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -12,7 +12,7 @@
 
 #ifndef _SIERRA_TEST_
 #include "FieldT.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 #endif
 
 #include "LocalArrayT.h"
@@ -24,17 +24,17 @@ using namespace Tahoe;
 ElementBaseT::ElementBaseT(const ElementSupportT& support, const FieldT& field):
 	fSupport(support),
 	fField(field),
-	fController(NULL),
+	fIntegrator(NULL),
 	fElementCards(0),
 	fLHS(ElementMatrixT::kSymmetric)
 {
 	/* just cast it */
-	fController = fSupport.eController(field);
+	fIntegrator = fSupport.eIntegrator(field);
 }
 #else
 ElementBaseT::ElementBaseT(ElementSupportT& support):
 	fSupport(support),
-	fController(NULL),
+	fIntegrator(NULL),
 	fElementCards(0),
 	fLHS(ElementMatrixT::kSymmetric)
 {

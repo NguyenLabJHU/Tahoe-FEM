@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.16 2003-01-27 07:00:25 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.17 2003-01-29 07:34:29 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -11,7 +11,7 @@
 #include "fstreamT.h"
 #include "toolboxConstants.h"
 #include "ElementSupportT.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 #include "MeshFreeSurfaceShapeT.h"
 
 /* potential functions */
@@ -556,7 +556,7 @@ void MeshFreeCSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 {
 	/* time-integration parameters */
 	double constK = 0.0;
-	int formK = fController->FormK(constK);
+	int formK = fIntegrator->FormK(constK);
 	if (!formK) return;
 
 	/* facet data */
@@ -636,7 +636,7 @@ void MeshFreeCSEAnisoT::RHSDriver(void)
 {
 	/* time-integration parameters */
 	double constKd = 0.0;
-	int formKd = fController->FormKd(constKd);
+	int formKd = fIntegrator->FormKd(constKd);
 	if (!formKd) return;
 
 	/* set state to start of current step */

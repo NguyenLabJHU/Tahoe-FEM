@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.26 2002-12-01 19:53:39 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.27 2003-01-29 07:34:31 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -7,9 +7,9 @@
 
 #include "fstreamT.h"
 #include "ModelManagerT.h"
-#include "StructuralMaterialT.h"
+#include "SolidMaterialT.h"
 #include "ShapeFunctionT.h"
-#include "eControllerT.h"
+#include "eIntegratorT.h"
 #include "Traction_CardT.h"
 #include "iAutoArrayT.h"
 #include "OutputSetT.h"

@@ -1,4 +1,4 @@
-/* $Id: BCJHypoIsoDamageYC3D.h,v 1.3 2002-11-14 17:06:36 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageYC3D.h,v 1.4 2003-01-29 07:35:06 paklein Exp $ */
 #ifndef _BCJ_HYPO_ISO_DAMAGE_YC_3D_H_
 #define _BCJ_HYPO_ISO_DAMAGE_YC_3D_H_
 
@@ -15,7 +15,7 @@
 namespace Tahoe {
 
 class ifstreamT;
-class ElasticT;
+class SolidElementT;
 class ElementCardT;
 class StringT;
 
@@ -23,7 +23,7 @@ class BCJHypoIsoDamageYC3D : public BCJHypo3D
 {
  public:
   // constructor
-  BCJHypoIsoDamageYC3D(ifstreamT& in, const FDMatSupportT& support);
+  BCJHypoIsoDamageYC3D(ifstreamT& in, const FSMatSupportT& support);
 
   // destructor
   ~BCJHypoIsoDamageYC3D();

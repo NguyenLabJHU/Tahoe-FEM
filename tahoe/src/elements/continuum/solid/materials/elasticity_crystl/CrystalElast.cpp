@@ -1,10 +1,10 @@
-/* $Id: CrystalElast.cpp,v 1.8 2002-11-14 17:06:19 paklein Exp $ */
+/* $Id: CrystalElast.cpp,v 1.9 2003-01-29 07:34:56 paklein Exp $ */
 #include "CrystalElast.h"
 #include "CrystalElastMat.h"
 #include "CrystalElastLat.h"
 #include "Utils.h"
 
-#include "FDStructMatT.h"
+#include "FSSolidMatT.h"
 #include "StringT.h"
 
 using namespace Tahoe;
@@ -18,7 +18,7 @@ const int kIsInit = 1;
 /* spatial dimensions of the problem */
 const int kNSD = 3;
 
-CrystalElast::CrystalElast(ifstreamT& in, const FDMatSupportT& support) :
+CrystalElast::CrystalElast(ifstreamT& in, const FSMatSupportT& support) :
   FDHookeanMatT(in, support),
   // pointers to supporting classes
   	fCrystalElastLat (NULL),

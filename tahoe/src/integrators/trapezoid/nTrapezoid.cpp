@@ -1,4 +1,4 @@
-/* $Id: nTrapezoid.cpp,v 1.6 2003-01-27 07:00:24 paklein Exp $ */
+/* $Id: nTrapezoid.cpp,v 1.7 2003-01-29 07:35:18 paklein Exp $ */
 /* created: paklein (10/03/1999) */
 #include "nTrapezoid.h"
 #include "dArrayT.h"
@@ -128,7 +128,7 @@ void nTrapezoid::MappedCorrector(BasicFieldT& field, const iArrayT& map,
 	}
 }
 
-/* return the field array needed by nControllerT::MappedCorrector. */
+/* return the field array needed by nIntegratorT::MappedCorrector. */
 const dArray2DT& nTrapezoid::MappedCorrectorField(BasicFieldT& field) const
 {
 	return field[1];

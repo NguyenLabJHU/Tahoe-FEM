@@ -1,10 +1,10 @@
-/* $Id: J2SSKStV.h,v 1.6 2002-11-14 17:06:25 paklein Exp $ */
+/* $Id: J2SSKStV.h,v 1.7 2003-01-29 07:35:02 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #ifndef _J2_SS_KSTV_H_
 #define _J2_SS_KSTV_H_
 
 /* base classes */
-#include "SSStructMatT.h"
+#include "SSSolidMatT.h"
 #include "IsotropicT.h"
 #include "HookeanMatT.h"
 //#include "J2SSLinHardT.h"
@@ -12,7 +12,7 @@
 
 namespace Tahoe {
 
-class J2SSKStV: public SSStructMatT,
+class J2SSKStV: public SSSolidMatT,
 				public IsotropicT,
 				public HookeanMatT,
 //				public J2SSLinHardT
@@ -45,7 +45,7 @@ public:
 	virtual const dSymMatrixT& s_ij(void);
 
 	/** return the pressure associated with the last call to 
-	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure
 	 * for more information. */
 	virtual double Pressure(void) const { return fStress.Trace()/3.0; };
 	/*@}*/

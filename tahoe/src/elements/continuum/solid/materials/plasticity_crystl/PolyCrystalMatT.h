@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.h,v 1.7 2002-11-14 17:06:32 paklein Exp $ */
+/* $Id: PolyCrystalMatT.h,v 1.8 2003-01-29 07:35:05 paklein Exp $ */
 #ifndef _POLY_CRYSTAL_MAT_T_H_
 #define _POLY_CRYSTAL_MAT_T_H_
 
@@ -24,13 +24,13 @@ class SlipKinetics;
 class SlipHardening;
 class NLCSolver;
 
-class ElasticT;
+class SolidElementT;
 
 class PolyCrystalMatT : public FDHookeanMatT
 {
  public:
   // constructor
-  PolyCrystalMatT(ifstreamT& in, const FDMatSupportT& support);
+  PolyCrystalMatT(ifstreamT& in, const FSMatSupportT& support);
 
   // destructor
   virtual ~PolyCrystalMatT();

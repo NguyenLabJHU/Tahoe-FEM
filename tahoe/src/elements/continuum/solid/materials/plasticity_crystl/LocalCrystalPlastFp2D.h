@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp2D.h,v 1.3 2002-11-14 17:06:32 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp2D.h,v 1.4 2003-01-29 07:35:05 paklein Exp $ */
 #ifndef _LOCAL_CRYSTAL_PLAST_FP_2D_H_
 #define _LOCAL_CRYSTAL_PLAST_FP_2D_H_
 
@@ -12,13 +12,13 @@
 namespace Tahoe {
 
 class ifstreamT;
-class ElasticT;
+class SolidElementT;
 
 class LocalCrystalPlastFp2D : public LocalCrystalPlastFp, public Material2DT
 {
  public:
   // constructor
-  LocalCrystalPlastFp2D(ifstreamT& in, const FDMatSupportT& support);
+  LocalCrystalPlastFp2D(ifstreamT& in, const FSMatSupportT& support);
 
   // destructor
   ~LocalCrystalPlastFp2D();

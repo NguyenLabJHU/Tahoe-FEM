@@ -1,4 +1,4 @@
-/* $Id: RG_VDSplit3D.cpp,v 1.3 2002-11-14 17:06:09 paklein Exp $ */
+/* $Id: RG_VDSplit3D.cpp,v 1.4 2003-01-29 07:34:45 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "fstreamT.h"
@@ -19,7 +19,7 @@ static const char* Labels[kNumOutputVar] = {"dW_visc"};
  ***********************************************************************/
 
 /* constructors */
-RG_VDSplit3D::RG_VDSplit3D(ifstreamT& in, const FDMatSupportT& support):
+RG_VDSplit3D::RG_VDSplit3D(ifstreamT& in, const FSMatSupportT& support):
 	RGBaseT(in, support),
 	fb(3),
 	fEigs(3),
@@ -206,7 +206,7 @@ const dSymMatrixT& RG_VDSplit3D::s_ij(void)
 	/*load the viscoelastic principal stretches from state variable arrays*/
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
-	if (fFDMatSupport.RunState() == GlobalT::kFormRHS)
+	if (fFSMatSupport.RunState() == GlobalT::kFormRHS)
 	{
 		dSymMatrixT iCvn = fC_vn;
 		iCvn.Inverse();
@@ -313,7 +313,7 @@ void RG_VDSplit3D::ComputeOutput(dArrayT& output)
 
 	/*put in planestress option*/
 
-	output[0] = rate_visc_disp*fFDMatSupport.TimeStep();
+	output[0] = rate_visc_disp*fFSMatSupport.TimeStep();
 	
 }
 /***********************************************************************
@@ -369,7 +369,7 @@ void RG_VDSplit3D::ComputeEigs_e(const dArrayT& eigenstretch,
  	  	ComputeiKAB(eigenmodulus,cm);
 		
 	   	/*calculate the residual*/
-	   	double dt = fFDMatSupport.TimeStep();
+	   	double dt = fFSMatSupport.TimeStep();
 	 	double res0 = ep_e0 + dt*(0.5*fietaS*s0 +
 					fthird*fietaB*sm) - ep_tr0;
 	 	double res1 = ep_e1 + dt*(0.5*fietaS*s1 +
@@ -420,7 +420,7 @@ void RG_VDSplit3D::ComputeiKAB(dSymMatrixT& eigenmodulus, double& bulkmodulus)
 		
 	/*calculates  KAB = 1+dt*D(dWdE_Idev/nD+isostress/nV)/Dep_e*/
 
-	double dt = fFDMatSupport.TimeStep();
+	double dt = fFSMatSupport.TimeStep();
 	KAB(0,0) = 1+0.5*fietaS*dt*c0+fthird*fietaB*dt*cm;
 	KAB(1,1) = 1+0.5*fietaS*dt*c1+fthird*fietaB*dt*cm;
 	KAB(2,2) = 1+0.5*fietaS*dt*c2+fthird*fietaB*dt*cm;

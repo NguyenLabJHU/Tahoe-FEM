@@ -1,6 +1,6 @@
-/* $Id: SolidMatList1DT.cpp,v 1.5 2002-11-14 17:06:22 paklein Exp $ */
+/* $Id: SolidMatList1DT.cpp,v 1.6 2003-01-29 07:34:58 paklein Exp $ */
 #include "SolidMatList1DT.h"
-#include "StructuralMatSupportT.h"
+#include "SolidMatSupportT.h"
 #include "fstreamT.h"
 
 /* 1D material types codes */
@@ -8,8 +8,8 @@
 #include "SSHookean1D.h"
 
 /* constructor */
-SolidMatList1DT::SolidMatList1DT(int length, const StructuralMatSupportT& support):
-	StructuralMatListT(length, support)
+SolidMatList1DT::SolidMatList1DT(int length, const SolidMatSupportT& support):
+	SolidMatListT(length, support)
 {
 
 }
@@ -18,7 +18,7 @@ SolidMatList1DT::SolidMatList1DT(int length, const StructuralMatSupportT& suppor
 void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 {
 	int i, matnum;
-	MaterialT::SolidT matcode;
+	SolidT::TypeT matcode;
 	try {
 
 	/* read material data */
@@ -56,7 +56,7 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 		}
 
 		/* safe cast since all structural */
-		StructuralMaterialT* pmat = (StructuralMaterialT*) fArray[matnum];
+		SolidMaterialT* pmat = (SolidMaterialT*) fArray[matnum];
 		/* verify construction */
 		if (!pmat) throw ExceptionT::kOutOfMemory;
 		
@@ -64,7 +64,7 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 		int LTfnum = pmat->ThermalStrainSchedule();
 		if (LTfnum > -1)
 		{
-			pmat->SetThermalSchedule(fStructuralMatSupport.Schedule(LTfnum));
+			pmat->SetThermalSchedule(fSolidMatSupport.Schedule(LTfnum));
 			
 			/* set flag */
 			fHasThermal = true;
