@@ -1,8 +1,10 @@
-/* $Id: window.cpp,v 1.1.2.1 2003-05-03 09:08:27 paklein Exp $ */
+/* $Id: window.cpp,v 1.1.2.2 2003-05-03 17:45:23 paklein Exp $ */
 #include "window.h"
 
 window::window(void):
-	ParameterInterfaceT("window")
+  ParameterInterfaceT("window"),
+	width_(0.0),
+	height_(0.0)
 {
 
 }
