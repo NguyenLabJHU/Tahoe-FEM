@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.cpp,v 1.16 2004-07-15 08:29:59 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.cpp,v 1.17 2005-02-16 21:41:29 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 #include "MeshFreeShapeFunctionT.h"
 
@@ -20,14 +20,14 @@ MeshFreeShapeFunctionT::MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, i
 	fDNaU(numIP),
 	fXConnects(connects)
 {
-	/* construct MLS support */
-	if (all_coords.MinorDim() == 2)
+	/* construct MLS support - otherwise must be set by constructor of derived classes */
+	if (mf_support_params.Name() == "meshfree_support_2D")
 		fMFSupport = new MeshFreeSupport2DT(fDomain, all_coords, connects, nongridnodes);
-	else
+	else if (mf_support_params.Name() == "meshfree_support_3D")
 		fMFSupport = new MeshFreeSupport3DT(fDomain, all_coords, connects, nongridnodes);
 
 	/* initialize */
-	fMFSupport->TakeParameterList(mf_support_params);
+	if (fMFSupport) fMFSupport->TakeParameterList(mf_support_params);
 
 	/* set as field shape function */
 	SetUShapeFunctions(fNaU, fDNaU);
@@ -35,6 +35,18 @@ MeshFreeShapeFunctionT::MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, i
 
 /* destructor */
 MeshFreeShapeFunctionT::~MeshFreeShapeFunctionT(void) { delete fMFSupport; }
+
+/* class-dependent initializations */
+void MeshFreeShapeFunctionT::Initialize(void)
+{
+	/* inherited */
+	ShapeFunctionT::Initialize();
+	
+	/* check */
+	if (!fMFSupport)
+		ExceptionT::GeneralFail("MeshFreeShapeFunctionT::Initialize",
+			"meshfree support not set");
+}
 
 /* initialization - modifications to the support size must
 * occur before setting the neighbor data. Coordinates and

@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeShapeFunctionT.h,v 1.7 2004-08-14 00:09:54 raregue Exp $ */
+/* $Id: D2MeshFreeShapeFunctionT.h,v 1.8 2005-02-16 21:41:36 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D2_MF_SHAPE_T_H_
 #define _D2_MF_SHAPE_T_H_
@@ -15,11 +15,14 @@ class D2MeshFreeShapeFunctionT: public MeshFreeShapeFunctionT
 {
 public:
 
-/* constructors */
+	/* constructors */
 	D2MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 		const LocalArrayT& coords, const dArray2DT& all_coords,
 		const iArray2DT& connects, const iArrayT& nongridnodes,
 		const int& currelement, const ParameterListT& mf_support_params);
+
+	/** class-dependent initializations */
+	virtual void Initialize(void);
 
 	/* compute global shape derivatives */ 	
 	virtual void SetDerivatives(void);
