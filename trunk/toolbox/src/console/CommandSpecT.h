@@ -1,4 +1,4 @@
-/* $Id: CommandSpecT.h,v 1.2 2001-12-10 12:41:07 paklein Exp $ */
+/* $Id: CommandSpecT.h,v 1.3 2001-12-12 19:29:00 paklein Exp $ */
 
 #ifndef _COMMAND_SPEC_T_H_
 #define _COMMAND_SPEC_T_H_
@@ -9,6 +9,7 @@
 
 /* forward declarations */
 class ArgSpecT;
+class iConsoleBaseT;
 
 /** definition of console commands */
 class CommandSpecT
@@ -57,6 +58,12 @@ class CommandSpecT
 	 * using CommandSpecT::AddArgument. Works with named arguments
 	 * only. Throws exception if argument not found. */
 	const ArgSpecT& Argument(const char* name) const;
+	
+	/** set the argument prompter */
+	void SetPrompter(const iConsoleBaseT* prompter) { fPrompter = prompter; };
+
+	/** return the prompter */
+	const iConsoleBaseT* Prompter(void) const { return fPrompter; };
 
 	/** clear all argument values */
 	void ClearValues(void);
@@ -76,6 +83,9 @@ class CommandSpecT
   
   	/** command name */
   	const StringT fName;
+
+	/** command prompter */
+	const iConsoleBaseT* fPrompter;
   	
   	/** true if function arguments have fixed order */
   	const bool fOrdered;

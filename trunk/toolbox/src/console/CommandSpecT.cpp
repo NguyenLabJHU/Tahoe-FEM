@@ -1,4 +1,4 @@
-/* $Id: CommandSpecT.cpp,v 1.2 2001-12-10 12:41:07 paklein Exp $ */
+/* $Id: CommandSpecT.cpp,v 1.3 2001-12-12 19:29:00 paklein Exp $ */
 
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
@@ -10,7 +10,8 @@ const bool ArrayT<CommandSpecT>::fByteCopy = false;
 CommandSpecT::CommandSpecT(const StringT& name, bool ordered_args):
 	fName(name),
 	fOrdered(ordered_args),
-	fArguments(0)
+	fArguments(0),
+	fPrompter(NULL)
 {
 
 }
@@ -19,7 +20,8 @@ CommandSpecT::CommandSpecT(const StringT& name, bool ordered_args):
 CommandSpecT::CommandSpecT(const CommandSpecT& command):
 	fName(command.Name()),
 	fOrdered(command.Ordered()),
-	fArguments(0)
+	fArguments(0),
+	fPrompter(NULL)
 {
 	/* copy argument list */
 	const ArrayT<ArgSpecT*>& args = command.Arguments();
@@ -92,9 +94,18 @@ void CommandSpecT::Write(ostream& out) const
 	/* function name */
 	out << fName << ": " << fArguments.Length();
 	if (fArguments.Length() == 1)
-		out << " argument\n";
+		out << " argument";
 	else
-		out << " arguments\n";
+		out << " arguments";
+		
+	if (fArguments.Length() > 1)
+	{
+		if (fOrdered)
+			out << ": ordered\n";
+		else
+			out << ": not ordered\n";
+	}
+	else out << '\n';	
 		
 	/* arguments */
 	for (int i = 0; i < fArguments.Length(); i++)

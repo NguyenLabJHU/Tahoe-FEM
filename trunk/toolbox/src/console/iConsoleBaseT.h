@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.h,v 1.5 2001-12-10 12:41:07 paklein Exp $ */
+/* $Id: iConsoleBaseT.h,v 1.6 2001-12-12 19:29:00 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_BASE_T_H_
@@ -58,6 +58,13 @@ public:
 
 protected:
 
+	/** write prompt for the specific argument of the command
+	 * to the output stream. A simple value prompt always appears 
+	 * <i>after</i> any information written during this call. By
+	 * default, no additional information is written to the output
+	 * stream. */
+	virtual void ValuePrompt(const CommandSpecT& command, int index, ostream& out) const;
+
 	/** resolve command arguments. Look in line passed in for required
 	 * function arguments. If not present in line, use default argument
 	 * values. Otherwise, prompt for argument values interactively.
@@ -84,13 +91,6 @@ protected:
 	bool ResolveValue(CommandSpecT& command, int index, StringT& line, ostream& out, 
 		istream& in, bool prompt) const;
 
-	/** write prompt for the specific argument of the command
-	 * to the output stream. A simple value prompt always appears 
-	 * <i>after</i> any information written during this call. By
-	 * default, no additional information is written to the output
-	 * stream. */
-	virtual void ValuePrompt(const CommandSpecT& command, int index, ostream& out) const;
-
 	/** clear the input stream. Remove the next 254 characters from the
 	 * stream including any trailing newline. This is useful for clearing
 	 * any leftovers from the command line when values are read using
@@ -116,6 +116,10 @@ protected:
 
 	bool iAddVariable(const StringT& name, StringT& variable);
 	bool iAddVariable(const StringT& name, const StringT& variable);
+	
+	/** remove named variable. \return true if found and removed,
+	 * false otherwise */
+	bool iDeleteVariable(const StringT& name);
 
 	/** alphabetize the list */
 	void Sort(ArrayT<StringT>& list) const;
@@ -145,6 +149,9 @@ protected:
 	/** copy variables from the source. \return true if all variables added. */
 	bool AddVariables(const iConsoleBaseT& source);
 
+	/** remove all variables */
+	void DeleteVariables(void);
+	
 private:
 
 	/** find first position.

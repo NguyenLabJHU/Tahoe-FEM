@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.cpp,v 1.6 2001-12-10 12:41:07 paklein Exp $ */
+/* $Id: iConsoleBaseT.cpp,v 1.7 2001-12-12 19:29:00 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleBaseT.h"
@@ -133,6 +133,43 @@ CommandSpecT* iConsoleBaseT::iCommand(const StringT& command_name) const
 * Protected
 ************************************************************************/
 
+/* write prompt for the specific argument */
+void iConsoleBaseT::ValuePrompt(const CommandSpecT& command, int index, 
+	ostream& out) const
+{
+#pragma unused(command)
+#pragma unused(index)
+#pragma unused(out)
+}
+
+/* add command to the dictionary - true if added */
+bool iConsoleBaseT::iAddCommand(const CommandSpecT& command)
+{
+	/* check for duplicate name */
+	bool dup = false;
+	for (int i = 0; !dup && i < fCommands.Length(); i++)
+		dup = command.Name() == fCommands[i]->Name(); 
+
+	if (!dup)
+	{
+		/* copy command spec */
+		CommandSpecT* new_command = new CommandSpecT(command);
+
+		/* add */
+		fCommands.Append(new_command);
+		
+		/* alphabetize */
+		SortCommands(fCommands);
+		return true;
+	}
+	else
+	{
+		cout << " iConsoleBaseT::iAddCommand: duplicate command not added: "
+		     << command.Name() << endl;
+		return false;
+	}
+}
+
 /* resolve command arguments */
 bool iConsoleBaseT::ResolveArguments(CommandSpecT& command, StringT& line, 
 	ostream& out, istream& in) const
@@ -261,7 +298,8 @@ bool iConsoleBaseT::ResolveNamedValue(CommandSpecT& command, int index, StringT&
 			else /* prompt */
 			{
 				/* user-defined prompt */
-				ValuePrompt(command, index, out);
+				const iConsoleBaseT* prompter = command.Prompter();
+				if (prompter) prompter->ValuePrompt(command, index, out);
 			
 				out << "?" << arg.Name() << " ";
 				out.flush();
@@ -341,7 +379,8 @@ bool iConsoleBaseT::ResolveValue(CommandSpecT& command, int index, StringT& line
 	else if (prompt && !found_arg) {
 	
 		/* user-defined prompt */
-		ValuePrompt(command, index, out);
+		const iConsoleBaseT* prompter = command.Prompter();
+		if (prompter) prompter->ValuePrompt(command, index, out);
 	
 		/* prompt */
 		if (arg.Prompt().StringLength() > 0)
@@ -371,43 +410,6 @@ bool iConsoleBaseT::ResolveValue(CommandSpecT& command, int index, StringT& line
 		if (arg.Name().StringLength() > 0) 
 			out << '\"' << arg.Name() << "\" ";
 		out << '(' << arg.TypeName() << ')' << endl;
-		return false;
-	}
-}
-
-/* write prompt for the specific argument */
-void iConsoleBaseT::ValuePrompt(const CommandSpecT& command, int index, 
-	ostream& out) const
-{
-#pragma unused(command)
-#pragma unused(index)
-#pragma unused(out)
-}
-
-/* add command to the dictionary - true if added */
-bool iConsoleBaseT::iAddCommand(const CommandSpecT& command)
-{
-	/* check for duplicate name */
-	bool dup = false;
-	for (int i = 0; !dup && i < fCommands.Length(); i++)
-		dup = command.Name() == fCommands[i]->Name(); 
-
-	if (!dup)
-	{
-		/* copy command spec */
-		CommandSpecT* new_command = new CommandSpecT(command);
-
-		/* add */
-		fCommands.Append(new_command);
-		
-		/* alphabetize */
-		SortCommands(fCommands);
-		return true;
-	}
-	else
-	{
-		cout << " iConsoleBaseT::iAddCommand: duplicate command not added: "
-		     << command.Name() << endl;
 		return false;
 	}
 }
@@ -461,6 +463,22 @@ bool iConsoleBaseT::iAddVariable(const StringT& name, StringT& variable)
 bool iConsoleBaseT::iAddVariable(const StringT& name, const StringT& variable)
 {
 	return AddVariable(name, string_, (void*) &variable, true);
+}
+
+/* remove named variable */
+bool iConsoleBaseT::iDeleteVariable(const StringT& name)
+{
+	int index = fVariables.PositionOf(name);
+	if (index > -1)
+	{
+		fVariables.DeleteAt(index);
+		fVariableTypes.DeleteAt(index);
+		fVariableValues.DeleteAt(index);
+		fVariableIsConst.DeleteAt(index);
+		return true;
+	}
+	else
+		return false;
 }
 
 /* alphabetize the list */
@@ -613,6 +631,15 @@ bool iConsoleBaseT::AddVariables(const iConsoleBaseT& source)
 		if (AddVariable(source.fVariables[i], source.fVariableTypes[i], source.fVariableValues[i], source.fVariableIsConst[i]))
 			count++;
 	return count == source.fVariables.Length();
+}
+
+/* remove all variables */
+void iConsoleBaseT::DeleteVariables(void)
+{
+	fVariables.Allocate(0);
+	fVariableTypes.Allocate(0);
+	fVariableValues.Allocate(0);
+	fVariableIsConst.Allocate(0);
 }
 
 /************************************************************************
