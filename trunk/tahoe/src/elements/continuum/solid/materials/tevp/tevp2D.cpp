@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.18 2001-07-22 21:25:11 hspark Exp $ */
+/* $Id: tevp2D.cpp,v 1.19 2001-07-23 01:38:47 hspark Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (04/04/2001) */
 /* Last Updated:  Harold Park (06/12/2001) */
@@ -247,6 +247,7 @@ const dSymMatrixT& tevp2D::s_ij(void)
       fInternal[kTemp] = Temp_0;
       fInternal[kEb] = 0.0;
       fTempKirchoff = 0.0;
+      fTempCauchy = 0.0;
     }
     else {
       /* Incremental stress update part - if critical strain criteria not
@@ -296,7 +297,11 @@ const dSymMatrixT& tevp2D::s_ij(void)
     CheckCriticalCriteria(element, ip);
     /* add if statement here to 0 stress if crack initiation criteria is met */
     if (flags[ip + fNumIP] == kCrack)       
+    {
       fStress = 0.0;
+      fTempCauchy = 0.0;
+      fTempKirchoff = 0.0;
+    }
   }
   else
   {
