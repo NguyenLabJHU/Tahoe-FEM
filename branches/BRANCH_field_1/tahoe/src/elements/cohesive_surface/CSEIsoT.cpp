@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.6.8.2 2002-05-03 07:16:25 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.6.8.3 2002-05-04 20:19:20 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEIsoT.h"
@@ -28,7 +28,7 @@ CSEIsoT::CSEIsoT(const ElementSupportT& support, const FieldT& field):
 /* form of tangent matrix */
 GlobalT::SystemTypeT CSEIsoT::TangentType(void) const
 {
-	/* tangent matrix is not symmetric */
+	/* tangent matrix is symmetric */
 	return GlobalT::kSymmetric;
 }
 
