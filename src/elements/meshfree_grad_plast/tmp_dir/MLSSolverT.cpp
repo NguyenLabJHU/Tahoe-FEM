@@ -1,11 +1,11 @@
-/* $Id: MLSSolverT.cpp,v 1.6 2004-09-29 01:00:06 kyonten Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.7 2004-10-20 03:26:58 kyonten Exp $ */
 /* created: paklein (12/08/1999) */
 #include "MLSSolverT.h"
 
 #include "ExceptionT.h"
 #include "dSymMatrixT.h"
 
-#include "MF_dMatrixT.h"  //kyonten
+#include "MFGP_ToolsT.h"  //kyonten
 
 /* basis functions */
 #include "PolyBasis1DT.h"
@@ -595,8 +595,8 @@ void MLSSolverT::ComputeDDDM(const dArrayT& volume) // kyonten (DDDM)
 
 		/* resolve components */
 		int r, s, t, rs, st, rt;
-		MF_dMatrixT::ExpandIndex3(fNumSD, rst, r, s, t);
-		MF_dMatrixT::ExpandIndex2(fNumSD, r, s, t, rs, st, rt);
+		MFGP_ToolsT::ExpandIndex3(fNumSD, rst, r, s, t);
+		MFGP_ToolsT::ExpandIndex2(fNumSD, r, s, t, rs, st, rt);
 		
 		const dArray2DT& Dbasis_r = fBasis->DP(r);
 		const dArray2DT& Dbasis_s = fBasis->DP(s);
@@ -709,8 +709,8 @@ void MLSSolverT::SetCorrectionCoefficient(void)
 				{
 					/* resolve indices */
 					int i, j, k, ij, jk, ik;
-					MF_dMatrixT::ExpandIndex3(fNumSD, ijk, i, j, k);
-					MF_dMatrixT::ExpandIndex2(fNumSD, i, j, k, ij, jk, ik);
+					MFGP_ToolsT::ExpandIndex3(fNumSD, ijk, i, j, k);
+					MFGP_ToolsT::ExpandIndex2(fNumSD, i, j, k, ij, jk, ik);
 		
 					fDDM[ijk].Multx(fb, fbtemp1);
 					fDDM[ij].Multx(fDb[k], fbtemp2);
@@ -812,8 +812,8 @@ void MLSSolverT::SetCorrection(void)
 				{
 					/* expand index */
 					int i, j, k, ij, jk, ik;
-					MF_dMatrixT::ExpandIndex3(fNumSD, ijk, i, j, k);
-					MF_dMatrixT::ExpandIndex2(fNumSD, i, j, k, ij, jk, ik);
+					MFGP_ToolsT::ExpandIndex3(fNumSD, ijk, i, j, k);
+					MFGP_ToolsT::ExpandIndex2(fNumSD, i, j, k, ij, jk, ik);
 					
 					const dArray2DT& Dbasis_i = fBasis->DP(i);
 					const dArray2DT& Dbasis_j = fBasis->DP(j);
@@ -916,8 +916,8 @@ void MLSSolverT::SetShapeFunctions(const dArrayT& volume)
 				{
 					/* resolve index */
 					int i, j, k, ij, jk, ik;
-					MF_dMatrixT::ExpandIndex3(fNumSD, ijk, i, j, k);
-					MF_dMatrixT::ExpandIndex2(fNumSD, i, j, k, ij, jk, ik);
+					MFGP_ToolsT::ExpandIndex3(fNumSD, ijk, i, j, k);
+					MFGP_ToolsT::ExpandIndex2(fNumSD, i, j, k, ij, jk, ik);
 			
 					double* DDDphi = fDDDphi(ijk);
 					double*     C = fC.Pointer();
