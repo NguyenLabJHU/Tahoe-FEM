@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.14 2005-03-04 23:12:42 cfoster Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.15 2005-03-08 06:36:48 raregue Exp $ */
 /* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
 #include "SSMatSupportT.h"
@@ -155,7 +155,7 @@ void SSSolidMatT::InitStep(void)
 * for the current conditions (current integration point and strain
 * state). If localization is detected, the normals (current config)
 * to the surface and slip directions are returned */
-bool SSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double detA)
+bool SSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &detA)
 {
   /* elastic modulus */
   /* this uses same space as c_ijkl(), so save separatley first */

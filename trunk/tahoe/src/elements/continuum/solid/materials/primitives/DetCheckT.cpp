@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.39 2005-03-04 04:06:07 cfoster Exp $ */
+/* $Id: DetCheckT.cpp,v 1.40 2005-03-08 06:36:48 raregue Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -111,11 +111,11 @@ bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 */
 
 bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
-							AutoArrayT <dArrayT> &slipdirs, double detA)
+							AutoArrayT <dArrayT> &slipdirs, double &detA)
 {
-  cout << "in DetCheckT::IsLocalized_SS\n"; 
+	//cout << "in DetCheckT::IsLocalized_SS\n"; 
 
-  int nsd =fs_jl.Rows();
+	int nsd =fs_jl.Rows();
 	dArrayT normal(nsd), slipdir(nsd);
 	dTensor4DT C(nsd, nsd, nsd, nsd);
 	dMatrixEXT A(nsd); //acoustic tensor 
@@ -293,7 +293,7 @@ int DetCheckT::DetCheck2D(dArrayT& normal)
 /* assumes small strain formulation */
 bool DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
 //							AutoArrayT <dArrayT> &slipdirs)
-							AutoArrayT <dArrayT> &slipdirs, double detAmin)
+							AutoArrayT <dArrayT> &slipdirs, double &detAmin)
 {
 	int i,j,k,l,m,n; // counters 
 	
@@ -321,7 +321,7 @@ bool DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
 	int newtoncounter=0; //makes sure Newton iteration doesn't take too long
   
 	/* for choosing normals w/ least determinant */
-	double setTol=1.0e-5; //setTol=1.0e-7 // tolerance for if normals should be in normal set 
+	double setTol=1.0e-7; //setTol=1.0e-7 // tolerance for if normals should be in normal set 
 	double leastmin=2.0*setTol; 
 	double leastdetAe;
 
