@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.1.1.1 2001-01-29 08:20:21 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.2 2001-03-10 01:51:04 paklein Exp $ */
 /* created: paklein (05/23/1996)                                          */
 
 #include "TimeManagerT.h"
@@ -245,16 +245,27 @@ void TimeManagerT::ReadRestart(istream& restart_in)
 	restart_in >> sequencenumber;
 	if (sequencenumber != fCurrentSequence) throw eBadInputValue;
 
-	/* total desired simulation time */
-	double tot_time = fTimeStep*fNumSteps;
-	
-	restart_in >> fTime >> fNumStepCuts >> fTimeStep;
+#if 0 
+	/* total desired simulation time */ 
+	double tot_time = fTimeStep*fNumSteps; 
+         
+	restart_in >> fTime >> fNumStepCuts >> fTimeStep; 
 	cout << " Restarting from time: " << fTime << '\n';
 
-	/* reset number of steps to preserve the total time */
-	double float_steps = tot_time/fTimeStep;
-	fNumSteps = int((2.0*float_steps + 1.0)/2.0);
-	
+	/* reset number of steps to preserve the total time */ 
+	double float_steps = tot_time/fTimeStep; 
+	fNumSteps = int((2.0*float_steps + 1.0)/2.0); 
+#endif 
+ 
+	//TEMP - do no use the time step written in the restart file
+	//       will become restart option
+	double time_step; 
+	restart_in >> fTime >> fNumStepCuts >> time_step; 
+	cout << " Restarting from time: " << fTime << '\n';  
+	cout << "   Previous step cuts: " << fNumStepCuts << '\n';  
+	cout << "   Previous step size: " << time_step << '\n';  
+	cout << "    Current step size: " << fTimeStep << '\n';
+        
 	/* set load factors */
 	for (int i = 0; i < fLTf.Length(); i++)
 		fLTf[i]->SetLoadFactor(fTime);
