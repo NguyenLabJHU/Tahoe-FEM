@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.7.2.3 2001-10-25 20:23:38 sawimme Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.7.2.4 2001-10-26 19:13:18 sawimme Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "ElementBaseT.h"
@@ -182,17 +182,17 @@ void ElementBaseT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 #pragma unused(eq_2)
 
 	/* get local equations numbers */
-	fNodes->SetLocalEqnos(fConnectivities, fEqnos);
+        fNodes->SetLocalEqnos(fConnectivities, fEqnos);
 
 	/* add to list */
-	eq_1.Append(&fEqnos);
+        eq_1.Append(&fEqnos);
 }
 
 /* appends group connectivities to the array (X -> geometry, U -> field) */
 void ElementBaseT::ConnectsX(AutoArrayT<const iArray2DT*>& connects) const
 {
 	/* append connectivities */
-	connects.AppendUnique(&fConnectivities);
+        connects.AppendUnique(&fConnectivities);
 }
 
 void ElementBaseT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
@@ -272,15 +272,14 @@ int ElementBaseT::ElementBlockID(int element) const
 void ElementBaseT::WeightNodalCost(iArrayT& weight) const
 {
 	int base_weight = 1;
-	for (int b=0; b < fBlockData.MajorDim(); b++)
+
+	for (int i=0; i < fNumElements; i++)
 	  {
-	    const iArray2DT* conn = fConnectivities[b];
-	    int *p = conn->Pointer();
-	    for (int i = 0; i < conn->Length(); i++)
-	      {
-		if (weight[*p] < base_weight) weight[*p] = base_weight;
-		p++;
-	      }
+	    const iArrayT& elemnodes = fElementCards[i].NodesX();
+	    int* p = elemnodes.Pointer();
+	    for (int n=0; n < elemnodes.Length(); n++)
+	      if (weight[*p] < base_weight) 
+		weight[*p] = base_weight;
 	  }
 }
 
