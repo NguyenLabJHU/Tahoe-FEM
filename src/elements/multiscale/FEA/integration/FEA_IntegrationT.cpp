@@ -1,4 +1,4 @@
-// $Id: FEA_IntegrationT.cpp,v 1.4 2003-09-16 16:41:22 raregue Exp $
+// $Id: FEA_IntegrationT.cpp,v 1.5 2003-10-06 18:31:52 raregue Exp $
 #include "FEA.h" 
 
 using namespace Tahoe;
@@ -283,6 +283,7 @@ dArrayT FEA_IntegrationT::of ( FEA_dVectorT &B1, double c)
 	n_rows = B1.Rows();
 	FEA_dVectorT 	F	(n_ip,n_rows); 
 	dArrayT 		f	(n_rows); 
+	F = B1;
 	F *= c;
 	F *= J;
 	F *= W;

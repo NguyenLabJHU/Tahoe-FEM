@@ -16,8 +16,10 @@ class	FEA_FormatT {
 		FEA_FormatT (void) { }
 
 		void Shapes				(	ShapeFunctionT *fShapes, FEA_ShapeFunctionT &FEA_Shapes 				);
+		void SurfShapes			(	ShapeFunctionT *fSurfShapes, FEA_SurfShapeFunctionT &FEA_SurfShapes 	);
 		void Na					(	int n_en, ShapeFunctionT *fShapes, FEA_ShapeFunctionT &FEA_Shapes 		);
 		void Gradients 			(	ShapeFunctionT*,LocalArrayT&,LocalArrayT&,FEA_dMatrixT&,FEA_dMatrixT&	);
+		//void GradientSurface 	(	ShapeFunctionT*,LocalArrayT&,LocalArrayT&,FEA_dMatrixT&,FEA_dMatrixT&	);
 		//void Gradients 		(	ShapeFunctionT*,LocalArrayT&,LocalArrayT&,FEA_dVectorT&,FEA_dVectorT&	);
 		void Displacements 		(	LocalArrayT &u_mat, dArrayT &u_vec 										);
 		void Interpolate 		(	ShapeFunctionT*,LocalArrayT&,LocalArrayT&,FEA_dVectorT&,FEA_dVectorT&  	);

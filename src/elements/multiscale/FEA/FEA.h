@@ -1,4 +1,4 @@
-// $Id: FEA.h,v 1.5 2003-03-17 22:05:27 creigh Exp $
+// $Id: FEA.h,v 1.6 2003-10-06 18:31:50 raregue Exp $
 #ifndef _FEA_H_
 #define _FEA_H_
 
@@ -40,6 +40,8 @@ public:
 #include "FEA_StackT.h"
 #include "FEA_IntegrationT.h"
 #include "FEA_ShapeFunctionT.h"
+#include "FEA_SurfIntegrationT.h"
+#include "FEA_SurfShapeFunctionT.h"
 #include "FEA_ArraysT.h"
  
 #endif

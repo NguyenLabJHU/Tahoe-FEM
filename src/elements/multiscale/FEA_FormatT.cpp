@@ -1,4 +1,4 @@
-// $Id: FEA_FormatT.cpp,v 1.14 2003-10-02 19:12:05 raregue Exp $
+// $Id: FEA_FormatT.cpp,v 1.15 2003-10-06 18:31:48 raregue Exp $
 #include "FEA_FormatT.h"
 
 using namespace Tahoe;
@@ -16,6 +16,21 @@ void FEA_FormatT::Shapes	(ShapeFunctionT *fShapes, FEA_ShapeFunctionT &FEA_Shape
 	}
 
 }
+
+//---------------------------------------------------------------------
+
+void FEA_FormatT::SurfShapes	(ShapeFunctionT *fSurfShapes, FEA_SurfShapeFunctionT &FEA_SurfShapes )
+{
+	FEA_SurfShapes.j = fSurfShapes->IPDets(); 		// IPDets() returns double*
+	FEA_SurfShapes.W = fSurfShapes->IPWeights(); 	// IPWeights() returns double*
+	
+	for	(int l=0; l<fSurfShapes->NumIP(); l++) {
+		fSurfShapes->SetIP(l);
+		fSurfShapes->GradNa		( FEA_SurfShapes.dNdx[l] 	); 
+	}
+
+}
+
 
 //---------------------------------------------------------------------
 
@@ -68,6 +83,7 @@ void FEA_FormatT::Copy	( int n_ip, int num_state, FEA_dVectorT& state, dArray2DT
 		for (i=0; i<num_state; i++)
 			fState[a*num_state+i] = state[a][i];
 }
+
 
 
 
