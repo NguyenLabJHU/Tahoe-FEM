@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.25 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.26 2002-10-16 22:55:05 cjkimme Exp $ */
 
 #include "LineL2FaceT.h"
 
@@ -66,6 +66,7 @@ LineL2FaceT::ComputeRadius(void) const
 void
 LineL2FaceT::NodeNormal(int local_node_number, double* normal) const
 { // could just retrieve face normal
+#pragma unused(local_node_number)
 	/* right to left */
 	double t1[2];
 	Diff(fx[0],fx[1],t1);
@@ -86,6 +87,7 @@ void
 LineL2FaceT::ComputeNormal
 (const double* local_coordinates, double* normal) const
 {
+#pragma unused(local_coordinates)
 	double t1[2];
 	Diff(fx[0],fx[1],t1);
 	/* this assumes a CW parameterization of the boundary */
@@ -97,6 +99,8 @@ void
 LineL2FaceT::ComputeTangent1
 (const double* local_coordinates,double* tangent1) const
 {
+#pragma unused(local_coordinates)
+
 	Diff(fx[0],fx[1],tangent1);
 	Scale(0.5,tangent1);
 }
@@ -216,6 +220,8 @@ const
 double
 LineL2FaceT::ComputeJacobian (const double* local_coordinates) const
 {
+#pragma unused(local_coordinates)
+
 	double t1[2];
 	Diff(fx[0],fx[1],t1);
 	return 0.5*Mag(t1);

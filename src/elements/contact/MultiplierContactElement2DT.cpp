@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.cpp,v 1.10 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: MultiplierContactElement2DT.cpp,v 1.11 2002-10-16 22:55:05 cjkimme Exp $ */
 // created by : rjones 2001
 #include "MultiplierContactElement2DT.h"
 
@@ -139,7 +139,7 @@ void MultiplierContactElement2DT::RHSDriver(void)
   int opp_surf_tag=-1, status=-1;
   int num_nodes;
   ContactNodeT* node;
-  double gap, pen, pre, opp_pre=0.0;
+  double gap, /*pen,*/ pre, opp_pre=0.0;
 
 	int nsd = NumSD();
   for(int surf_tag = 0; surf_tag < fSurfaces.Length(); surf_tag++) {

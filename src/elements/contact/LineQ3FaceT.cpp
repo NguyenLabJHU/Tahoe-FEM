@@ -1,4 +1,4 @@
-/* $Id: LineQ3FaceT.cpp,v 1.10 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: LineQ3FaceT.cpp,v 1.11 2002-10-16 22:55:05 cjkimme Exp $ */
 
 #include "LineQ3FaceT.h"
 
@@ -239,6 +239,8 @@ const
 double
 LineQ3FaceT::ComputeJacobian (const double* local_coordinates) const
 {
+#pragma unused(local_coordinates)
+
 	//HACK
 	// mag of tangent
 	return 1.0;

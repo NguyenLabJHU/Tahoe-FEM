@@ -1,4 +1,4 @@
-/* $Id: TriaL3FaceT.cpp,v 1.8 2002-09-12 17:45:19 paklein Exp $ */
+/* $Id: TriaL3FaceT.cpp,v 1.9 2002-10-16 22:55:05 cjkimme Exp $ */
 #include "TriaL3FaceT.h"
 
 /* suppress CW warning messages */
@@ -245,7 +245,7 @@ TriaL3FaceT::Projection
 	  x2 = Dot(x0,t2);
 	  a1 = Dot(a,t1); b1 = Dot(b,t1); c1 = Dot(c,t1); 
 	  a2 = Dot(a,t2); b2 = Dot(b,t2); c2 = Dot(c,t2); 
-	  double p0,p1,p2,p3,m0,m1,m2,m3;
+	  double p0,p1,p2,/*p3,*/m0,m1,m2;//,m3;
 	  /*difference*/
 	  m0 = a1 - a2 - x1 + x2;
 	  m1 = b1 - b2; m2 = c1 - c2; 
@@ -264,7 +264,7 @@ TriaL3FaceT::Projection
   	  if( (xi[0]                > -tol_xi) 
        && (xi[1]                > -tol_xi) 
        && ((1.0 - xi[0] -xi[1]) > -tol_xi) ) { 
-	    double a3,b3,c3,d3,x3;
+	    double a3,b3,c3,/*d3,*/x3;
 	    x3 = Dot(x0,nm);
 	    a3 = Dot(a,nm); b3 = Dot(b,nm); c3 = Dot(c,nm);
 	    /* compute gap */

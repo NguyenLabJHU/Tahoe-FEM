@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.29 2002-10-05 19:23:55 paklein Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.30 2002-10-16 22:55:05 cjkimme Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
@@ -164,7 +164,7 @@ ContactSurfaceT::SetMultiplierConnectivity(void)
             	throw eGeneralFail;
             }
 
-			int local_multiplier_node;
+//			int local_multiplier_node;
 			/* all nodes in associated primary faces */
 			for (j = 0; j < fNodeNeighbors.MinorDim(i) ; j++) {
 				face = fNodeNeighbors(i)[j];
@@ -315,7 +315,7 @@ ContactSurfaceT::MultiplierValues
 iArray2DT& 
 ContactSurfaceT::DisplacementMultiplierNodePairs(void)
 { // for ConnectsDOF ONLY
-	int ghostnode;
+//	int ghostnode;
 	for (int i = 0; i < fDisplacementMultiplierNodePairs.MajorDim(); i++) {
 	     if(fMultiplierMap[i] > -1) {
 		fDisplacementMultiplierNodePairs(i,1) = fMultiplierTags[fMultiplierMap[i]]; 
