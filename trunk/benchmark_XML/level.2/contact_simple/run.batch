@@ -1,5 +1,8 @@
 @
-# $Id: run.batch,v 1.1 2004-04-21 07:40:20 paklein Exp $
+# $Id: run.batch,v 1.2 2004-04-21 16:54:32 paklein Exp $
+3_grain.xml
 cubes.1.xml
+cubes.2.xml
+ring.penalty.xml
 squares.2.xml
 
