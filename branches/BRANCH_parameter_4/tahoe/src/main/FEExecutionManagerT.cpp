@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.65.2.7 2004-07-13 16:42:41 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.65.2.8 2004-07-15 06:26:36 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -477,7 +477,7 @@ ExceptionT::Stop(caller, "not updated");
 #ifdef __DEVELOPMENT__
 			/* initialize FEManager_THK using atom values */
 			atom_in >> job_char;
-			FEManagerT_THK atoms(atom_in, atom_out, fComm, fCommandLineOptions, bridge_atom_in);
+			FEManagerT_THK atoms(atom_in.filename(), atom_out, fComm, fCommandLineOptions, bridge_atom_in);
 			atoms.Initialize();
 		
 			t1 = clock();
@@ -1140,7 +1140,7 @@ void FEExecutionManagerT::RunTHK(ifstreamT& in, ostream& status) const
 		phase = 0;
 		in.set_marker('#');
 		ifstreamT dummy_bridging_input; // TEMP - this would normally be input about ghost nodes
-		FEManagerT_THK thk(in, out, fComm, fCommandLineOptions, dummy_bridging_input);
+		FEManagerT_THK thk(in.filename(), out, fComm, fCommandLineOptions, dummy_bridging_input);
 		thk.Initialize();
 
 		t1 = clock();
@@ -1903,7 +1903,7 @@ void FEExecutionManagerT::Decompose(const StringT& input_file, int size, int dec
 void FEExecutionManagerT::Decompose_atom(const StringT& input_file, int size,
 	const StringT& model_file, IOBaseT::FileTypeT format) const
 {
-#pragma unused(in)
+#pragma unused(input_file)
 	const char caller[] = "FEExecutionManagerT::Decompose_atom";
 
 	/* files exist */
