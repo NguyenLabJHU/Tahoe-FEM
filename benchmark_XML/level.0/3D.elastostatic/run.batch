@@ -1,5 +1,5 @@
 @
-# $Id: run.batch,v 1.5 2004-09-09 23:56:18 paklein Exp $
+# $Id: run.batch,v 1.6 2004-10-05 17:21:49 paklein Exp $
 MPS.0.xml
 beam.B_bar.xml
 beam.Newton.xml
@@ -9,3 +9,5 @@ beam.PCG.K.xml
 beam.quasi-Newton.xml
 traction.a.xml
 traction.b.xml
+tet4.xml
+tet10.xml
