@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.7 2002-02-05 15:26:54 dzeigle Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.8 2002-02-06 20:46:01 dzeigle Exp $ */
 
 #include "PenaltyContactElement2DT.h"
 
@@ -26,6 +26,55 @@ PenaltyContactElement2DT::PenaltyContactElement2DT(FEManagerT& fe_manager):
 	ContactElementT(fe_manager, kNumEnfParameters)
 {
 }
+
+/******/
+void PenaltyContactElement2DT::Initialize(void)
+{
+	/* inherited, calls EchoConnectivityData */
+	ContactElementT::Initialize();
+
+	/* initialize surfaces, connect nodes to coordinates */
+	for (int i = 0; i < fSurfaces.Length(); i++) {
+		fSurfaces[i].Initialize(ContactElementT::fNodes,fNumMultipliers);
+	}
+#if 0
+        /* set console access */
+        iAddVariable("penalty_parameter", fpenalty);
+#endif
+
+	/* create search object */
+	fContactSearch = 
+	  new ContactSearchT(fSurfaces, fSearchParameters);
+
+	/* workspace matrices */
+	SetWorkspace();
+
+	/* for bandwidth reduction in the case of no contact 
+	 * make node-to-node pseudo-connectivities to link all bodies */
+	int num_surfaces = fSurfaces.Length();
+	if (num_surfaces > 1)
+	{
+		fSurfaceLinks.Allocate(num_surfaces - 1, 2);
+		for (int i = 0; i < num_surfaces - 1; i++)
+		{
+			fSurfaceLinks(i,0) = fSurfaces[i  ].GlobalNodes()[0];
+			fSurfaceLinks(i,1) = fSurfaces[i+1].GlobalNodes()[0];
+		}
+	}
+
+	if (fXDOF_Nodes) {
+		iArrayT numDOF(fSurfaces.Length());
+		numDOF = fNumMultipliers;
+		/* this calls GenerateElementData */
+		/* register with node manager */
+		fNodes->XDOF_Register(this, numDOF);
+	}
+	else {
+		/* set initial contact configuration */
+		bool changed = SetContactConfiguration();	
+	}
+}
+/******/
 
 /* print/compute element output quantities */
 void PenaltyContactElement2DT::WriteOutput(IOBaseT::OutputModeT mode)
@@ -83,7 +132,9 @@ void PenaltyContactElement2DT::RHSDriver(void)
   ContactNodeT* node;
   double gap, pen, pre;
   double gw_m,gw_s;
+  double realArea=0.0;
   double material_coeff=kAsperityDensity*kHertzianModulus*sqrt(kAsperityTipRadius)/(6.0*sqrt(PI));
+  double area_coeff = PI*kAsperityDensity*kAsperityTipRadius*kAsperityHeightStandardDeviation;
 
   /* residual */
   for(int s = 0; s < fSurfaces.Length(); s++) {
@@ -126,6 +177,7 @@ void PenaltyContactElement2DT::RHSDriver(void)
                   GreenwoodWilliamson GW(gw_m,gw_s);
 		  /* First derivative of Greenwood-Williamson represents force */
                   pre  = material_coeff*GW.DFunction(gap);
+                  realArea = area_coeff*GW.ContactArea(gap);
 
 		  face->ComputeShapeFunctions(points(i),N1);
 		  for (int j =0; j < fNumSD; j++) {n1[j] = node->Normal()[j];}

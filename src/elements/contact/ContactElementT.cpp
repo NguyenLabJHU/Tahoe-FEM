@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.24 2002-01-27 18:51:03 paklein Exp $ */
+/* $Id: ContactElementT.cpp,v 1.25 2002-02-06 20:46:00 dzeigle Exp $ */
 
 #include "ContactElementT.h"
 
@@ -343,7 +343,7 @@ void ContactElementT::WriteOutput(IOBaseT::OutputModeT mode)
 				surface.PrintMultipliers(cout);
            }
 
-//              surface.PrintContactArea(cout);
+              surface.PrintContactArea(cout);
   }
 
 }

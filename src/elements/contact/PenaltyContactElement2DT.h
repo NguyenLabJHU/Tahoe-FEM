@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.h,v 1.4 2002-01-30 18:58:12 dzeigle Exp $ */
+/* $Id: PenaltyContactElement2DT.h,v 1.5 2002-02-06 20:46:01 dzeigle Exp $ */
 
 #ifndef _PENALTY_CONTACT_ELEMENT_2D_T_H_
 #define _PENALTY_CONTACT_ELEMENT_2D_T_H_
@@ -12,6 +12,9 @@ class PenaltyContactElement2DT: public ContactElementT
 
 	/* constructor */
 	PenaltyContactElement2DT(FEManagerT& fe_manager);
+	
+	/* initialize */
+	virtual void Initialize(void);
 
 	/* writing output */
 	virtual void WriteOutput(IOBaseT::OutputModeT mode);
@@ -37,6 +40,7 @@ class PenaltyContactElement2DT: public ContactElementT
 	
 	/* construct the effective mass matrix */
 	virtual void LHSDriver(void);
+	
 
 };
 

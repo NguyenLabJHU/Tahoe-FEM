@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.18 2002-01-28 18:43:16 dzeigle Exp $ */
+/* $Id: ContactElementT.h,v 1.19 2002-02-06 20:46:00 dzeigle Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
