@@ -1,4 +1,4 @@
-/* $Id: BasicFieldT.cpp,v 1.3 2002-07-02 19:56:26 cjkimme Exp $ */
+/* $Id: BasicFieldT.cpp,v 1.4 2002-09-20 16:14:06 paklein Exp $ */
 #include "BasicFieldT.h"
 #include "iArrayT.h"
 
@@ -49,6 +49,7 @@ void BasicFieldT::WriteEquationNumbers(ostream& out, const iArrayT* node_map) co
 	for (int k = 0; k < columns; k++)
 	{
 		out << setw(kIntWidth) << "node";
+		out << setw(kIntWidth) << "map";
 		for (int j = 0; j < ndof; j++)
 		{
 			out << setw(kIntWidth - 2) << "d[";
@@ -62,6 +63,7 @@ void BasicFieldT::WriteEquationNumbers(ostream& out, const iArrayT* node_map) co
 	int colcount = 0;
 	for (int i = 0; i < nnd; i++)
 	{
+		out << setw(kIntWidth) << i+1;
 		out << setw(kIntWidth) << ((node_map != NULL) ? (*node_map)[i]: i) + 1;
 		for (int j = 0; j < ndof; j++)
 			out << setw(kIntWidth) << fEqnos(i,j);
