@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.h,v 1.3 2002-10-23 05:03:29 paklein Exp $ */
+/* $Id: AdhesionT.h,v 1.4 2002-10-25 05:31:22 paklein Exp $ */
 #ifndef _ADHESION_T_H_
 #define _ADHESION_T_H_
 
@@ -23,6 +23,7 @@ namespace Tahoe {
 class SurfaceShapeT;
 class C1FunctionT;
 class iGridManagerT;
+class ScheduleT;
 
 /** class to calculate surface adhesion forces between bodies */
 class AdhesionT: public ElementBaseT
@@ -147,6 +148,13 @@ protected:
 	/** current coordinates. Current coordinates in local ordering 
 	 * particular to the topology of faces in each surface. */
 	ArrayT<LocalArrayT> fLocCurrCoords;
+
+	/** time scaling functions. Allows the interaction associated with
+	 * a given surface to scale in time. This allows adaptive solution
+	 * methods to introduce the effects of surface interactions gradually.
+	 * The interaction of a surface pair is scaled by the average of the
+	 * scaling functions for each surface */
+	ArrayT<const ScheduleT*> fScaling;
 
 	/** IDs for writing output data. Because each surface may have
 	 * its own face geometry, they each need a separate output ID. */
