@@ -1,11 +1,13 @@
 // DEVELOPMENT
-/* $Id: PerTabEntryT.h,v 1.2 2002-11-14 01:47:33 saubry Exp $ */
+/* $Id: PerTabEntryT.h,v 1.3 2003-05-04 23:17:30 paklein Exp $ */
 
 #ifndef _PER_TAB_ENTRY_T_H_
 #define _PER_TAB_ENTRY_T_H_
 
 #include "dArrayT.h"
 #include "StringT.h"
+
+using namespace Tahoe;
 
 class PerTabEntryT {
 private:
