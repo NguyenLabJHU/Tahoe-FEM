@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.38 2004-07-15 08:25:31 paklein Exp $
+# $Id: makefile.template,v 1.39 2004-07-29 20:28:00 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (1) copy makefile.template to a local makefile
@@ -91,6 +91,15 @@ EXPAT_LFLAGS   = -L$(EXPAT_PREFIX)/lib -l$(EXPAT_LIB_NAME)
 #FOSSUM_LIB_NAME = fossum
 #FOSSUM_LIB      = $(FOSSUM_DIR)/lib/lib$(FOSSUM_LIB_NAME).a
 #FOSSUM_LFLAGS   = -L$(FOSSUM_DIR)/lib -l$(FOSSUM_LIB_NAME)
+
+##### Sierra models module
+#SIERRA_DIR      = $(HOME_DIR)/../Sierra
+#SIERRA_INC      = -I$(SIERRA_DIR)/inc
+#SIERRA_DEFINES  = -D__SIERRA__
+#SIERRA_CFLAGS   = $(SIERRA_INC) $(SIERRA_DEFINES)
+#SIERRA_LIB_NAME = Sierra
+#SIERRA_LIB      = $(SIERRA_DIR)/lib/lib$(SIERRA_LIB_NAME).a
+#SIERRA_LFLAGS   = -L$(SIERRA_DIR)/lib -l$(SIERRA_LIB_NAME)
 
 ##### F2C 1.4.3
 #F2C_DIR      = $(HOME_DIR)/../f2c
@@ -215,7 +224,7 @@ EXPAT_LFLAGS   = -L$(EXPAT_PREFIX)/lib -l$(EXPAT_LIB_NAME)
 
 ##### keeping optional modules up to date
 UP_TO_DATE = NONE
-#UP_TO_DATE = $(DEV_DIR) $(FOSSUM_DIR)
+#UP_TO_DATE = $(DEV_DIR) $(FOSSUM_DIR) $(SIERRA_DIR)
 
 ############################### build options ###########################
 
