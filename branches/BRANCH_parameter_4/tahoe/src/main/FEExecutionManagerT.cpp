@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.65.2.4 2004-07-08 07:50:19 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.65.2.5 2004-07-08 16:10:39 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -83,6 +83,11 @@ FEExecutionManagerT::FEExecutionManagerT(int argc, char* argv[], char job_char,
 void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 {
 	const char caller[] = "FEExecutionManagerT::RunJob";
+	
+	/* set the path to the root file */
+	StringT root;
+	root.FilePath(in.filename());
+	fstreamT::SetRoot(root);
 
 	/* mode - job by default */
 	ModeT mode = kJob;
@@ -185,6 +190,9 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 		default:
 			ExceptionT::GeneralFail("FEExecutionManagerT::RunJob", "unknown mode: %d", mode);
 	}
+
+	/* clear the path to the root file */
+	fstreamT::SetRoot(NULL);
 }
 
 /**********************************************************************
