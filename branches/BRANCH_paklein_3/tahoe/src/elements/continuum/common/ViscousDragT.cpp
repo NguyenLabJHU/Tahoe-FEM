@@ -1,4 +1,4 @@
-/* $Id: ViscousDragT.cpp,v 1.1.2.2 2003-09-10 17:56:19 paklein Exp $ */
+/* $Id: ViscousDragT.cpp,v 1.1.2.3 2003-09-10 18:54:43 paklein Exp $ */
 #include "ViscousDragT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -51,6 +51,7 @@ void ViscousDragT::Initialize(void)
 	const double* Na = shape.IPShapeU();
 
 	/* calculate nodal mass */
+	fGlobalToLocal.SetOutOfRange(InverseMapT::MinusOne);
 	fGlobalToLocal.SetMap(fNodesUsed);
 	int nel = connects.MajorDim();
 	int nen = connects.MinorDim();
@@ -220,7 +221,7 @@ void ViscousDragT::RHSDriver(void)
 	{
 		/* incremental displacement */
 		int node = fNodesUsed[i];
-		inc_disp.DiffOf(disp(i), disp_last(i));
+		inc_disp.DiffOf(disp(node), disp_last(node));
 		
 		/* viscosity */
 		double viscosity = fNodalMass[i]*fViscosity/dt;
