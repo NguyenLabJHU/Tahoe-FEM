@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.3.8.6 2002-05-03 23:05:59 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.3.8.7 2002-05-11 20:43:41 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -300,29 +300,43 @@ void DiffusionElementT::RHSDriver(void)
 		if (!formCv) constCv = 1.0; // correct value ??
 	}
 
+	/* block info - needed for source terms */
+	int block_dex = 0;
+	const ElementBlockDataT* block_data = fBlockData.Pointer(block_dex);
+	const dArray2DT* block_source = Field().Source(block_data->ID());
+	dArray2DT ip_source;
+	if (block_source) ip_source.Dimension(NumIP(), 1);
+	int block_count = 0;
+
 	Top();
 	while (NextElement())
 	{
-		/* nodal temperature */
-		if (formKd)
-		{
-			SetLocalU(fLocDisp);
-			fLocDisp *= constKd;
+		/* reset block info */
+		if (block_count++ == block_data->Dimension()) {
+			block_data = fBlockData.Pointer(++block_dex);
+			block_source = Field().Source(block_data->ID());
+			block_count = 0;
 		}
+		
+		/* convert heat increment/volume to rate */
+		if (block_source) {
+			block_source->RowCopy(CurrElementNumber(), ip_source);
+			ip_source /= ElementSupport().TimeStep();
+		}
+
+		/* nodal temperature */
+		if (formKd) 
+			SetLocalU(fLocDisp);
 		else
 			fLocDisp = 0.0;
 
 		/* nodal temperature rate */
 		fLocVel = 0.0;
-		if (formBody)
-		{
-			AddBodyForce(fLocVel);
-			fLocVel *= constCv/fCurrMaterial->SpecificHeat();
-		}
+		if (formBody) AddBodyForce(fLocVel);
 
 		/* last check w/ effective v and d - override controller */
-		int eformCv = fLocVel.AbsMax() > 0.0;
-		int eformKd = fLocDisp.AbsMax() > 0.0;
+		bool eformCv = fLocVel.AbsMax() > 0.0 || block_source;
+		bool eformKd = fLocDisp.AbsMax() > 0.0;
 		if (eformCv || eformKd)
 		{
 			/* initialize */
@@ -332,10 +346,13 @@ void DiffusionElementT::RHSDriver(void)
 			SetGlobalShape();
 			
 			/* internal force contribution */	
-			if (eformKd) FormKd(-1.0);
+			if (eformKd) FormKd(-constKd);
 
 			/* inertia forces */
-			if (eformCv) FormMa(kConsistentMass, -fCurrMaterial->Capacity(), fLocVel);			  		
+			if (eformCv) 
+				FormMa(kConsistentMass, -constCv*fCurrMaterial->Capacity(), 
+					&fLocVel,
+					(block_source) ? &ip_source : NULL);			  		
 								
 			/* assemble */
 			AssembleRHS();
