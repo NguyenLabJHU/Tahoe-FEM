@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.6 2003-05-06 19:06:18 saubry Exp $ */
+/* $Id: EAMT.h,v 1.7 2003-05-07 16:54:20 saubry Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -82,7 +82,13 @@ private:
 	void GetRho2D(const dArray2DT& coords,dArray2DT& rho);
 	void GetRho3D(const dArray2DT& coords,dArray2DT& rho);
 
-	void GetEmb(const dArray2DT& coords,const dArray2DT rho,
+	void GetRhoForce2D(const dArray2DT& coords,dArray2DT& rho);
+	void GetRhoForce3D(const dArray2DT& coords,dArray2DT& rho);
+
+
+	void GetEmbEnergy(const dArray2DT& coords,const dArray2DT rho,
+		    dArray2DT& Emb);
+	void GetEmbForce(const dArray2DT& coords,const dArray2DT rho,
 		    dArray2DT& Emb);
 
 	/** particle pair-properties list */
@@ -99,10 +105,20 @@ private:
 	nVariArray2DT<double> fElectronDensity_man;
 	int fElectronDensityMessageID;
 
+	/** electron density force*/
+	dArray2DT fElectronDensityForce;
+	nVariArray2DT<double> fElectronDensityForce_man;
+	int fElectronDensityForceMessageID;
+
 	/** embedding energy */
 	dArray2DT fEmbeddingEnergy;
 	nVariArray2DT<double> fEmbeddingEnergy_man;
 	int fEmbeddingEnergyMessageID;
+
+	/** embedding force */
+	dArray2DT fEmbeddingForce;
+	nVariArray2DT<double> fEmbeddingForce_man;
+	int fEmbeddingForceMessageID;
 
 
 	/** \name workspace for EAMT::RHSDriver. Used to accumulate the force for
