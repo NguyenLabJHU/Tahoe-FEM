@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.cpp,v 1.7.2.2 2004-03-04 20:12:16 paklein Exp $ */
+/* $Id: DiffusionMaterialT.cpp,v 1.7.2.3 2004-03-06 17:30:13 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionMaterialT.h"
 #include "DiffusionMatSupportT.h"
@@ -18,7 +18,7 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<DiffusionMaterialT*>::fByteCopy = true;
 
 /* constructor */
 DiffusionMaterialT::DiffusionMaterialT(ifstreamT& in, const DiffusionMatSupportT& support):
-	ParameterInterfaceT("linear_diffusion"),
+	ParameterInterfaceT("linear_diffusion_material"),
 	ContinuumMaterialT(support),
 	fDiffusionMatSupport(&support),
 	fConductivity(NumSD()),
@@ -32,7 +32,7 @@ DiffusionMaterialT::DiffusionMaterialT(ifstreamT& in, const DiffusionMatSupportT
 }
 
 DiffusionMaterialT::DiffusionMaterialT(void):
-	ParameterInterfaceT("linear_diffusion"),
+	ParameterInterfaceT("linear_diffusion_material"),
 	fDiffusionMatSupport(NULL),
 	fDensity(0.0),
 	fSpecificHeat(0.0)

@@ -1,4 +1,4 @@
-/* $Id: DiffusionMatListT.cpp,v 1.8.2.1 2004-03-04 20:12:15 paklein Exp $ */
+/* $Id: DiffusionMatListT.cpp,v 1.8.2.2 2004-03-06 17:30:13 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "DiffusionMatListT.h"
 #include "DiffusionMatSupportT.h"
@@ -85,8 +85,8 @@ void DiffusionMatListT::DefineInlineSub(const StringT& sub, ParameterListT::List
 		order = ParameterListT::Choice;
 	
 		/* diffusion materials */
-		sub_sub_list.AddSub("linear_diffusion");
-		sub_sub_list.AddSub("nonlinear_diffusion");
+		sub_sub_list.AddSub("linear_diffusion_material");
+		sub_sub_list.AddSub("nonlinear_diffusion_material");
 	}	
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
@@ -95,10 +95,10 @@ void DiffusionMatListT::DefineInlineSub(const StringT& sub, ParameterListT::List
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* DiffusionMatListT::NewSub(const StringT& list_name) const
 {
-	if (list_name == "linear_diffusion")
-		return new DiffusionMaterialT;	
-	else if (list_name == "nonlinear_diffusion")
-		return new NLDiffusionMaterialT;
+	/* try to construct material */
+	DiffusionMaterialT* material = NewDiffusionMaterial(list_name);
+	if (material)
+		return material;
 	else /* inherited */
 		return MaterialListT::NewSub(list_name);
 }
@@ -134,9 +134,9 @@ DiffusionMaterialT* DiffusionMatListT::NewDiffusionMaterial(const StringT& list_
 {
 	DiffusionMaterialT* mat = NULL;
 
-	if (list_name == "linear_diffusion")
+	if (list_name == "linear_diffusion_material")
 		mat = new DiffusionMaterialT;	
-	else if (list_name == "nonlinear_diffusion")
+	else if (list_name == "nonlinear_diffusion_material")
 		mat = new NLDiffusionMaterialT;
 
 	/* set support */

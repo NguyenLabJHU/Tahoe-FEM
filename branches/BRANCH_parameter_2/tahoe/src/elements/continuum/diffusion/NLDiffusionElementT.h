@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.h,v 1.3 2003-12-10 07:14:24 paklein Exp $ */
+/* $Id: NLDiffusionElementT.h,v 1.3.2.1 2004-03-06 17:30:12 paklein Exp $ */
 #ifndef _NL_DIFFUSE_T_H_
 #define _NL_DIFFUSE_T_H_
 
@@ -29,6 +29,12 @@ public:
 	/** form of tangent matrix, symmetric by default. The tangent for nonlinear
 	 * diffusion is generally nonsymmetric */
 	virtual GlobalT::SystemTypeT TangentType(void) const { return GlobalT::kNonSymmetric; };
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

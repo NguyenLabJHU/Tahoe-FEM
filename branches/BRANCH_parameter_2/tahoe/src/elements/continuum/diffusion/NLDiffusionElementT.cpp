@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.cpp,v 1.4 2003-12-28 08:23:11 paklein Exp $ */
+/* $Id: NLDiffusionElementT.cpp,v 1.4.2.1 2004-03-06 17:30:12 paklein Exp $ */
 #include "NLDiffusionElementT.h"
 
 #include <iostream.h>
@@ -66,6 +66,15 @@ void NLDiffusionElementT::Equations(AutoArrayT<const iArray2DT*>& eq_1, AutoArra
 	/* collect equation numbers for nonlinear boundary conditions */
 	fBCEqnos.Dimension(fBCFaces);
 	Field().SetLocalEqnos(fBCFaces, fBCEqnos);
+}
+
+/* accept parameter list */
+void NLDiffusionElementT::TakeParameterList(const ParameterListT& list)
+{
+	DiffusionElementT::TakeParameterList(list);
+
+	/* dimension work space */
+	fField_list.Dimension(NumIP());
 }
 
 /***********************************************************************
