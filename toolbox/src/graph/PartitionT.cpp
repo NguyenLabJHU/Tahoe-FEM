@@ -1,4 +1,4 @@
-/* $Id: PartitionT.cpp,v 1.3 2001-07-09 17:21:39 paklein Exp $ */
+/* $Id: PartitionT.cpp,v 1.4 2001-09-25 01:29:10 paklein Exp $ */
 /* created: paklein (11/16/1999)                                          */
 /* graph partition information (following NEMESIS data model)             */
 
@@ -672,6 +672,13 @@ istream& operator>>(istream& in, PartitionT::NumberScopeT& scope)
 void PartitionT::MakeInverseMap(const iArrayT& map, iArrayT& inv_map,
 	int& shift) const
 {
+  if (map.Length() == 0)
+	{
+	  shift = 0;
+	  inv_map.Allocate(0);
+	}
+  else
+	{
 	/* range */
 	int max;
 	map.MinMax(shift, max);
@@ -684,7 +691,8 @@ void PartitionT::MakeInverseMap(const iArrayT& map, iArrayT& inv_map,
 	/* make map */
 	int dim = map.Length();
 	for (int i = 0; i < dim; i++)
-		inv_map[map[i] - shift] = i;	
+		inv_map[map[i] - shift] = i;
+	}
 }
 
 /* set node info */
