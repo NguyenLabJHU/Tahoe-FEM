@@ -1,5 +1,5 @@
-/* $Id: ExodusOutputT.cpp,v 1.7 2002-03-02 19:43:46 paklein Exp $ */
-/* created: sawimme (05/18/1999)                                          */
+/* $Id: ExodusOutputT.cpp,v 1.8 2002-03-04 06:33:36 paklein Exp $ */
+/* created: sawimme (05/18/1999) */
 
 #include "ExodusOutputT.h"
 #include "ExodusT.h"
@@ -18,9 +18,9 @@ OutputBaseT(out, out_strings)
 /* print geometry from multiple element groups to one file */
 void ExodusOutputT::WriteGeometry(void)
 {
-ExodusT exo(cout);
-CreateGeometryFile (exo);
-exo.Close ();
+	ExodusT exo(cout);
+	CreateGeometryFile (exo);
+	exo.Close ();
 }
 
 void ExodusOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
@@ -229,13 +229,24 @@ void ExodusOutputT::AssembleQA (ArrayT<StringT>& qa) const
 	qa[3] = time;
 }
 
-void ExodusOutputT::WriteCoordinates (ExodusT& exo, iArrayT& nodes_used)
+void ExodusOutputT::WriteCoordinates (ExodusT& exo, const iArrayT& nodes_used)
 {
 	dArray2DT local_coords(nodes_used.Length(), fCoordinates->MinorDim());
 	local_coords.RowCollect(nodes_used, *fCoordinates);
-	nodes_used++;
-	exo.WriteCoordinates(local_coords, &nodes_used);
-	nodes_used--;
+
+	/* collect set ids */
+	iArrayT node_id;
+	if (!fNodeID) {
+		node_id = nodes_used;
+		node_id++;
+	}
+	else {
+		node_id.Dimension(nodes_used.Length());
+		node_id.Collect(nodes_used, *fNodeID);
+	}
+
+	/* write */
+	exo.WriteCoordinates(local_coords, &node_id);
 }
 
 void ExodusOutputT::WriteConnectivity (int ID, ExodusT& exo, const iArrayT& nodes_used)
@@ -247,7 +258,7 @@ void ExodusOutputT::WriteConnectivity (int ID, ExodusT& exo, const iArrayT& node
 		const iArray2DT& connects = *(fElementSets[ID]->Connectivities(blockIDs[i]));
 
 		/* generate connectivities in block-local numbering */
-		local_connects.Dimension(connects.MajorDim(), connects.MinorDim());
+		local_connects.Dimension(connects);
 		LocalConnectivity(nodes_used, connects, local_connects);
 
 		local_connects++;
