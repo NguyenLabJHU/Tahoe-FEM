@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.h,v 1.1 2004-08-14 00:02:27 raregue Exp $ */
+/* $Id: MLSSolverT.h,v 1.2 2004-08-25 00:33:19 kyonten Exp $ */
 /* created: paklein (12/08/1999) */
 
 #ifndef _MLS_SOLVER_T_H_
@@ -132,7 +132,7 @@ private:
 	void Dimension(void);
 
 	/* set moment matrix, inverse, and derivatives */
-	int SetMomentMatrix(const dArrayT& volume);
+	int SetMomentMartrix(const dArrayT& volume);
 	void ComputeM(const dArrayT& volume);
 	void ComputeDM(const dArrayT& volume);
 	void ComputeDDM(const dArrayT& volume);
@@ -220,9 +220,8 @@ private:
 	/* work space */
 	dSymMatrixT fNSDsym;
 	dMatrixT    fMtemp;
-	dArrayT 	fNSDvec; // kyonten (for DDDw)
 	dArrayT     fbtemp1, fbtemp2, fbtemp3, fbtemp4;
-	dArrayT     fbtemp5, fbtemp6, fbtemp7, fbtemp8; // kyonten (DDDb)
+	dArrayT     fbtemp5, fbtemp6, fbtemp7, fbtemp8, fbtemp9, fbtemp10;// kyonten (DDDb)
 };
 
 /* inlines */

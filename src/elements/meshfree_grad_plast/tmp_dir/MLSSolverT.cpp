@@ -1,9 +1,10 @@
-/* $Id: MLSSolverT.cpp,v 1.1 2004-08-14 00:02:27 raregue Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.2 2004-08-25 00:33:19 kyonten Exp $ */
 /* created: paklein (12/08/1999) */
 #include "MLSSolverT.h"
 
 #include "ExceptionT.h"
 #include "dSymMatrixT.h"
+#include "MF_dMatrixT.h"  //kyonten
 
 /* basis functions */
 #include "PolyBasis1DT.h"
@@ -33,12 +34,10 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 	fOrder(0),
 	fDb(fNumSD),
 	fDDb(dSymMatrixT::NumValues(fNumSD)),
-	//fDDDb(dSymMatrixT::NumValues(fNumSD)),// kyonten //is this symmetric??
-	fDDDb(fNumSD*fNumSD),// kyonten //is this symmetric??
+	fDDDb(fNumSD*fNumSD),// kyonten 
 	fDM(fNumSD),
 	fDDM(dSymMatrixT::NumValues(fNumSD)),
-	fDDDM(fNumSD*fNumSD), // kyonten //is this symmetric??
-	//fDDDM(dSymMatrixT::NumValues(fNumSD)), // kyonten //is this symmetric??
+	fDDDM(fNumSD*fNumSD), // kyonten 
 	/* variable memory managers */
 	fArrayGroup(0, true),
 	fArray2DGroup2(0, 0),
@@ -47,8 +46,7 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 	fLocCoords_man(0, fLocCoords, fNumSD),
 	
 	/* work space */
-	fNSDsym(fNumSD),
-	fNSDvec(fNumSD) // kyonten (for DDDw)
+	fNSDsym(fNumSD)
 {
 	const char caller[] = "MLSSolverT::MLSSolverT";
 	
@@ -154,6 +152,8 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 	fbtemp6.Dimension(m);
 	fbtemp7.Dimension(m);
 	fbtemp8.Dimension(m);
+	fbtemp9.Dimension(m);
+	fbtemp10.Dimension(m);
 }
 	
 /* destructor */
@@ -234,7 +234,7 @@ int MLSSolverT::SetField(const dArray2DT& coords, const dArray2DT& nodal_param,
 	fBasis->SetBasis(fLocCoords, fOrder);
 	
 	/* set moment matrix, inverse, and derivatives */
-	if (!SetMomentMatrix(volume))
+	if (!SetMomentMartrix(volume))
 	{
 		cout << "\n MLSSolverT::SetField: error in momentum matrix: ";
 		return 0;
@@ -288,13 +288,12 @@ void MLSSolverT::Dimension(void)
 	if (fOrder > 0) fArray2DGroup2.Dimension(fNumSD, fNumNeighbors);
 	if (fOrder > 1) fArray2DGroup3.Dimension(dSymMatrixT::NumValues(fNumSD),
 		fNumNeighbors);
-	//if (fOrder > 2) fArray2DGroup3.Dimension(dSymMatrixT::NumValues(fNumSD),
 	if (fOrder > 2) fArray2DGroup3.Dimension(fNumSD*fNumSD,	
 		fNumNeighbors); // kyonten
 }
 
 /* set moment matrix, inverse, and derivatives */
-int MLSSolverT::SetMomentMatrix(const dArrayT& volume)
+int MLSSolverT::SetMomentMartrix(const dArrayT& volume)
 {
 	/* moment matrix */
 	ComputeM(volume);
@@ -590,79 +589,81 @@ void MLSSolverT::ComputeDDDM(const dArrayT& volume) // kyonten (DDDM)
 {
 	int dim = fBasis->BasisDimension();
 	const dArray2DT& basis = fBasis->P();
-	for (int xyz = 0; xyz < dSymMatrixT::NumValues(fNumSD); xyz++)
+	for (int rst = 0; rst < (fNumSD*fNumSD); rst++)
 	{
-		dMatrixT& DDDM = fDDDM[xyz];
+		dMatrixT& DDDM = fDDDM[rst];
 
 		/* resolve components */
-		int x, y, z, xy, yz, xz;
-		//Karma, following line is invalid
-		//dSymMatrixT::ExpandIndex(fNumSD, xyz, xy, yz, xz, x, y, z);
+		int r, s, t, rs, st, rt;
+		MF_dMatrixT::ExpandIndex3(fNumSD, rst, r, s, t);
+		MF_dMatrixT::ExpandIndex2(r, s, rs);
+		MF_dMatrixT::ExpandIndex2(s, t, st);
+		MF_dMatrixT::ExpandIndex2(r, t, rt);
 		
-		const dArray2DT& Dbasis_x = fBasis->DP(x);
-		const dArray2DT& Dbasis_y = fBasis->DP(y);
-		const dArray2DT& Dbasis_z = fBasis->DP(z);
-		const dArray2DT& DDbasis_xy  = fBasis->DDP(xy);
-		const dArray2DT& DDbasis_yz  = fBasis->DDP(yz);
-		const dArray2DT& DDbasis_xz  = fBasis->DDP(xz);
-		const dArray2DT& DDDbasis_xyz  = fBasis->DDDP(xyz);
+		const dArray2DT& Dbasis_r = fBasis->DP(r);
+		const dArray2DT& Dbasis_s = fBasis->DP(s);
+		const dArray2DT& Dbasis_t = fBasis->DP(t);
+		const dArray2DT& DDbasis_rs  = fBasis->DDP(rs);
+		const dArray2DT& DDbasis_st  = fBasis->DDP(st);
+		const dArray2DT& DDbasis_rt  = fBasis->DDP(rt);
+		const dArray2DT& DDDbasis  = fBasis->DDDP(rst);
 
 		for (int i = 0; i < dim; i++)
 			for (int j = i; j < dim; j++)
 			{
 				double*   w = fw.Pointer();
-				double*  Dw_x = fDw(x);
-				double*  Dw_y = fDw(y);
-				double*  Dw_z = fDw(z);
-				double*  DDw_xy  = fDDw(xy);
-				double*  DDw_yz  = fDDw(yz);
-				double*  DDw_xz  = fDDw(xz);
-				double*  DDDw_xyz  = fDDDw(xyz);
+				double*  Dw_r = fDw(r);
+				double*  Dw_s = fDw(s);
+				double*  Dw_t = fDw(t);
+				double*  DDw_rs  = fDDw(rs);
+				double*  DDw_st  = fDDw(st);
+				double*  DDw_rt  = fDDw(rt);
+				double*  DDDw  = fDDDw(rst);
 				
 				const double*    pi = basis(i);
 				const double*    pj = basis(j);
-				const double* Dpi_x = Dbasis_x(i);
-				const double* Dpi_y = Dbasis_y(i);
-				const double* Dpi_z = Dbasis_z(i);
-				const double* Dpj_x = Dbasis_x(j);
-				const double* Dpj_y = Dbasis_y(j);
-				const double* Dpj_z = Dbasis_z(j);
-				const double* DDpi_xy = DDbasis_xy(i);
-				const double* DDpi_yz = DDbasis_yz(i);
-				const double* DDpi_xz = DDbasis_xz(i);
-				const double* DDpj_xy = DDbasis_xy(j);
-				const double* DDpj_yz = DDbasis_yz(j);
-				const double* DDpj_xz = DDbasis_xz(j);
-				const double* DDDpi_xyz = DDDbasis_xyz(i);
-				const double* DDDpj_xyz = DDDbasis_xyz(j);
+				const double* Dpi_r = Dbasis_r(i);
+				const double* Dpi_s = Dbasis_s(i);
+				const double* Dpi_t = Dbasis_t(i);
+				const double* Dpj_r = Dbasis_r(j);
+				const double* Dpj_s = Dbasis_s(j);
+				const double* Dpj_t = Dbasis_t(j);
+				const double* DDpi_rs = DDbasis_rs(i);
+				const double* DDpi_st = DDbasis_st(i);
+				const double* DDpi_rt = DDbasis_rt(i);
+				const double* DDpj_rs = DDbasis_rs(j);
+				const double* DDpj_st = DDbasis_st(j);
+				const double* DDpj_rt = DDbasis_rt(j);
+				const double* DDDpi = DDDbasis(i);
+				const double* DDDpj = DDDbasis(j);
 
 				const double* vol = volume.Pointer();
 				double DDDmij = 0.0;
 				for (int k = 0; k < fNumNeighbors; k++)
 				{
-					DDDmij += ((*DDDpi_xyz)*(*w)*(*pj) + (*DDpi_xy)*(*w)*(*Dpj_z) 
-							+ (*DDpi_xy)*(*Dw_z)*(*pj) + (*DDpi_xz)*(*w)*(*Dpj_y) 
-							+ (*Dpi_x)*(*w)*(*DDpj_yz) + (*Dpi_x)*(*Dw_z)*(*Dpj_y)
-					        + (*DDpi_xz)*(*Dw_y)*(*pj) + (*Dpi_x)*(*Dw_y)*(*Dpj_z) 
-					        + (*Dpi_x)*(*DDw_yz)*(*pj) + (*DDpi_xy)*(*w)*(*Dpj_x) 
-					        + (*Dpi_y)*(*w)*(*DDpj_xy) + (*Dpi_y)*(*Dw_z)*(*Dpj_x)
-					        + (*Dpi_z)*(*w)*(*DDpj_xy) + (*pi)*(*w)*(*DDDpj_xyz) 
-					        + (*pi)*(*Dw_z)*(*DDpj_xy) + (*Dpi_z)*(*Dw_y)*(*Dpj_x) 
-					        + (*pi)*(*Dw_y)*(*DDpj_xz) + (*pi)*(*DDw_yz)*(*Dpj_x)
-					        + (*DDpi_yz)*(*Dw_x)*(*pj) + (*Dpi_y)*(*Dw_x)*(*Dpj_z) 
-					        + (*Dpi_y)*(*DDw_xz)*(*pj) + (*Dpi_z)*(*Dw_x)*(*Dpj_z) 
-					        + (*pi)*(*Dw_x)*(*DDpj_yz) + (*pi)*(*DDw_xy)*(*Dpj_y)
-					        + (*Dpi_z)*(*DDw_xy)*(*pj) + (*pi)*(*DDw_xy)*(*Dpj_z) 
-					        + (*pi)*(*DDDw_xyz)*(*pj))*(*vol);
+					DDDmij += ((*DDDpi)*(*w)*(*pj) + (*DDpi_rs)*(*w)*(*Dpj_t) 
+							+ (*DDpi_rs)*(*Dw_t)*(*pj) + (*DDpi_rt)*(*w)*(*Dpj_s) 
+							+ (*Dpi_r)*(*w)*(*DDpj_st) + (*Dpi_r)*(*Dw_t)*(*Dpj_s)
+					        + (*DDpi_rt)*(*Dw_s)*(*pj) + (*Dpi_r)*(*Dw_s)*(*Dpj_t) 
+					        + (*Dpi_r)*(*DDw_rt)*(*pj) + (*DDpi_rs)*(*w)*(*Dpj_r) 
+					        + (*Dpi_s)*(*w)*(*DDpj_rs) + (*Dpi_s)*(*Dw_t)*(*Dpj_r)
+					        + (*Dpi_t)*(*w)*(*DDpj_rs) + (*pi)*(*w)*(*DDDpj) 
+					        + (*pi)*(*Dw_t)*(*DDpj_rs) + (*Dpi_t)*(*Dw_s)*(*Dpj_r) 
+					        + (*pi)*(*Dw_s)*(*DDpj_rt) + (*pi)*(*DDw_st)*(*Dpj_r)
+					        + (*DDpi_st)*(*Dw_r)*(*pj) + (*Dpi_s)*(*Dw_r)*(*Dpj_t) 
+					        + (*Dpi_s)*(*DDw_rt)*(*pj) + (*Dpi_t)*(*Dw_r)*(*Dpj_t) 
+					        + (*pi)*(*Dw_r)*(*DDpj_st) + (*pi)*(*DDw_rs)*(*Dpj_s)
+					        + (*Dpi_t)*(*DDw_rs)*(*pj) + (*pi)*(*DDw_rs)*(*Dpj_t) 
+					        + (*pi)*(*DDDw)*(*pj))*(*vol);
 					
-					w++; Dw_x++; Dw_y++; Dw_z++; 
-					DDw_xy++; DDw_yz++; DDw_xz++; DDDw_xyz++;
+					w++; Dw_r++; Dw_s++; Dw_t++; 
+					DDw_rs++; DDw_st++; DDw_rt++; DDDw++;
 					pi++; pj++;
-					Dpi_x++; Dpi_y++; Dpi_z++;
-					Dpj_x++; Dpj_y++; Dpj_z++;
-					DDpi_xy++; DDpi_yz++; DDpi_xz++; 
-					DDpj_xy++; DDpj_yz++; DDpj_xz++;
-					DDDpi_xyz++; DDDpj_xyz;
+					Dpi_r++; Dpi_s++; Dpi_t++;
+					Dpj_r++; Dpj_s++; Dpj_t++;
+					DDpi_rs++; DDpi_st++; DDpi_rt++; 
+					DDpj_rs++; DDpj_st++; DDpj_rt++;
+					DDDpi++; DDDpj;
 					vol++;
 				}
 				DDDM(i,j) = DDDM(j,i) = DDDmij;
@@ -706,32 +707,33 @@ void MLSSolverT::SetCorrectionCoefficient(void)
 			if (fOrder > 2)
 			{
 				/* third derivative */ // kyonten
-				int nstr = dSymMatrixT::NumValues(fNumSD);
+				int nstr = fNumSD*fNumSD;
 				for (int ijk = 0; ijk < nstr; ijk++)
 				{
 					/* resolve indices */
 					int i, j, k, ij, jk, ik;
-					//Karma, following is invalid
-					//dSymMatrixT::ExpandIndex(fNumSD, ijk, ij, jk, ik, i, j);
+					MF_dMatrixT::ExpandIndex3(fNumSD, ijk, i, j, k);
+					MF_dMatrixT::ExpandIndex2(i, j, ij);
+					MF_dMatrixT::ExpandIndex2(j, k, jk);
+					MF_dMatrixT::ExpandIndex2(i, k, ik);
 		
 					fDDM[ijk].Multx(fb, fbtemp1);
 					fDDM[ij].Multx(fDb[k], fbtemp2);
 					fDDM[ik].Multx(fDb[j], fbtemp3);
-					fDM[i].Multx(fDDb[jk], fbtemp4);
-					fDM[i].Multx(fDb[j], fbtemp5);
-					// Karma, should this be fDb?
-					//fMinv.Multx(fDm[k], fbtemp6);
-					fMinv.Multx(fDb[k], fbtemp6);
-					//fbtemp5 is an ArrayT, cannot Multx
-					//fbtemp5.Multx(fbtemp6, fbtemp7);
-					//SetToCombination takes 4 or 6 arguments, not 10
-					/* fbtemp8.SetToCombination(-1.0, fbtemp1,
-				                         -2.0, fbtemp2,
-				                         -2.0, fbtemp3,
-				                         -2.0, fbtemp4,
-				                         +2.0, fbtemp7);
-				                         */
-					fMinv.Multx(fbtemp8, fDDDb[ijk]);
+					fDDM[j].Multx(fDb[ik], fbtemp4);
+					fDM[i].Multx(fDDb[jk], fbtemp5);
+					fDM[jk].Multx(fDDb[i], fbtemp6);
+					fDM[k].Multx(fDDb[ij], fbtemp7);
+					fbtemp8.SetToCombination(-1.0, fbtemp1,
+				                         -1.0, fbtemp2,
+				                         -1.0, fbtemp3);
+				    fbtemp9.SetToCombination(-1.0, fbtemp4,
+				                         -1.0, fbtemp5,
+				                         -1.0, fbtemp6);
+				    fbtemp10 = fbtemp8;
+				    fbtemp10 += fbtemp9;
+				    fbtemp10 -= fbtemp7;                        
+					fMinv.Multx(fbtemp10, fDDDb[ijk]);
 				}
 			}
 		}
@@ -811,12 +813,15 @@ void MLSSolverT::SetCorrection(void)
 			{
 				/* 3rd derivative */
 				fDDDC = 0.0;
-				for (int ijk = 0; ijk < dSymMatrixT::NumValues(fNumSD); ijk++)
+				for (int ijk = 0; ijk < (fNumSD*fNumSD); ijk++)
 				{
 					/* expand index */
 					int i, j, k, ij, jk, ik;
-					//Karma, invalid
-					//dSymMatrixT::ExpandIndex(fNumSD, ijk, ij, jk, ik, i, j, k);
+					MF_dMatrixT::ExpandIndex3(fNumSD, ijk, i, j, k);
+					MF_dMatrixT::ExpandIndex2(i, j, ij);
+					MF_dMatrixT::ExpandIndex2(j, k, jk);
+					MF_dMatrixT::ExpandIndex2(i, k, ik);
+					
 					const dArray2DT& Dbasis_i = fBasis->DP(i);
 					const dArray2DT& Dbasis_j = fBasis->DP(j);
 					const dArray2DT& Dbasis_k = fBasis->DP(k);
@@ -914,13 +919,14 @@ void MLSSolverT::SetShapeFunctions(const dArrayT& volume)
 			}
 			if (fOrder > 2) // kyonten
 			{
-				//for (int ijk = 0; ijk < dSymMatrixT::NumValues(fNumSD); ijk++)
 				for (int ijk = 0; ijk < fNumSD*fNumSD; ijk++)
 				{
 					/* resolve index */
 					int i, j, k, ij, jk, ik;
-					//Karma, invalid
-					//dSymMatrixT::ExpandIndex(fNumSD, ijk, ij, jk, ik, i, j, k);
+					MF_dMatrixT::ExpandIndex3(fNumSD, ijk, i, j, k);
+					MF_dMatrixT::ExpandIndex2(i, j, ij);
+					MF_dMatrixT::ExpandIndex2(j, k, jk);
+					MF_dMatrixT::ExpandIndex2(i, k, ik);
 			
 					double* DDDphi = fDDDphi(ijk);
 					double*     C = fC.Pointer();
