@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.30 2004-05-12 16:46:14 raregue Exp $ */
+/* $Id: DetCheckT.cpp,v 1.31 2004-05-12 17:06:50 raregue Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -315,7 +315,7 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 	FindApproxLocalMins(detA, localmin, C);
   
 	/* sweep angle increments and use Newton iteration to refine minima */
-	int maxcount = 100;
+	int maxcount = 1000;
 	for (i=0; i<numThetaChecks; i++)
 	{
 		for (j=0 ;j<numPhiChecks; j++)
