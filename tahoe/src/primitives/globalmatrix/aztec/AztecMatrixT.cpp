@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.21 2005-02-25 15:41:47 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.22 2005-02-26 19:30:34 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 #include "AztecMatrixT.h"
 
@@ -59,7 +59,7 @@ void AztecMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 #ifndef __TAHOE_MPI__
 	/* check */
 	if (fTotNumEQ != fLocNumEQ)
-		ExceptionT::GeneralFail(caller,
+		ExceptionT::GeneralFail("AztecMatrixT::Initialize",
 			"no MPI: total equations %d != local equations %d", fTotNumEQ, fLocNumEQ);
 #endif
 	
