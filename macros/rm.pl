@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: rm.pl,v 1.2 2004-08-10 01:06:47 paklein Exp $
+# $Id: rm.pl,v 1.3 2004-08-10 05:27:12 paklein Exp $
 if (scalar(@ARGV) < 1 || $ARGV[0] =~ /-h/) {
     print STDOUT "\tusage : rm.pl [files or file patterns to remove]\n";
     exit 1;
@@ -17,7 +17,7 @@ for ($i = 0; $i < scalar(@ARGV); $i++) {
     $pattern =~ s/\*/\.\*/g;
 
     # report
-    print STDOUT "regex pattern = \"$pattern\"\n";
+    #print STDOUT "regex pattern = \"$pattern\"\n";
 
     # run through files in the current directory
     open(LS, "ls -1 |");
@@ -31,7 +31,7 @@ for ($i = 0; $i < scalar(@ARGV); $i++) {
     }
     
     # report
-    print STDOUT "removed $count files\n";
+    print STDOUT "removed $count files matching regex \"$pattern\"\n";
 
     close(LS);
 }
