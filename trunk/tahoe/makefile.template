@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.13 2002-10-04 23:35:34 paklein Exp $
+# $Id: makefile.template,v 1.14 2003-01-16 22:41:24 thao Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -43,7 +43,7 @@ MACRO_DIR = $(HOME_DIR)/../macros
 # uncomment macros for installed models
 
 ##### any additional user C, C++, fortran, or linker flags
-MY_CFLAGS  =
+#MY_CFLAGS  =
 MY_CCFLAGS =
 MY_FFLAGS  =
 MY_LFLAGS  =
