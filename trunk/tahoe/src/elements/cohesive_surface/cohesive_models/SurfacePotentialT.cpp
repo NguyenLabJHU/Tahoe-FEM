@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.cpp,v 1.13 2002-10-23 00:18:03 cjkimme Exp $ */
+/* $Id: SurfacePotentialT.cpp,v 1.14 2003-01-25 22:08:39 paklein Exp $ */
 /* created: paklein (06/20/1999) */
 
 #include "SurfacePotentialT.h"
@@ -99,8 +99,8 @@ int SurfacePotentialT::ElementGroupNeeded(void)
 
 
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* return true if the potential has compatible (type and sequence)
 * nodal output - FALSE by default */
