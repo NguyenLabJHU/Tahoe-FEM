@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.13 2002-11-14 01:47:32 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.14 2002-11-27 00:35:02 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -59,7 +59,7 @@ BoxT::BoxT(int dim, iArrayT cel,
   for(int i=0;i<nSD;i++)
     {
       length(i,0) = -cel[i]*lattice_parameter[i]*0.5;
-      length(i,1) =  cel[i]*lattice_parameter[i]*0.5;
+      length(i,1) =  (cel[i]-1.0)*lattice_parameter[i]*0.5;
     }
 }
 
@@ -182,59 +182,8 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
       if (nlsd == 3)  new_coord(m)[WhichSort[2]] = z[Map[m]];
     } 
 
-  /*for(int m=0; m < nATOMS ; m++) 
-    {
-      cout << m << "  (" <<  atom_coord(m)[0] << "," << atom_coord(m)[1] << ")"
-	   << " =>  (" <<  new_coord(m)[0] << "," << new_coord(m)[1] << ")\n";
-    }
-
-  for(int m=0; m < nATOMS ; m++) 
-    cout << "Map[" << m << "]=" << Map[m] << "\n";
-  */
-
   atom_coord = new_coord;
 }
-
-/*void BoxT::SortLattice(CrystalLatticeT* pcl) 
-{
-  int nlsd = pcl->GetNLSD();
-  
-  dArray2DT new_coord(atom_coord.MajorDim(),atom_coord.MinorDim());   
-  dArrayT x(atom_coord.MajorDim());
-  dArrayT y(atom_coord.MajorDim());
-  dArrayT z(atom_coord.MajorDim());
-  iArrayT Map(atom_coord.MajorDim());
-
-  for(int m=0; m < nATOMS ; m++) 
-    {
-      x[m] = atom_coord(m)[0];
-      y[m] = atom_coord(m)[1];
-      if (nlsd == 3) z[m] = atom_coord(m)[2];
-
-    }
-  Map.SetValueToPosition();
-  Map.SortAscending(x);
-
-  for(int m=0; m < nATOMS ; m++) 
-    {
-      new_coord(m)[0] = x[m];
-      new_coord(m)[1] = y[Map[m]];
-      if (nlsd == 3)  new_coord(m)[2] = z[Map[m]];
-    } 
-
-  for(int m=0; m < nATOMS ; m++) 
-    {
-      cout << m << "  (" <<  atom_coord(m)[0] << "," << atom_coord(m)[1] << ")"
-	   << " =>  (" <<  new_coord(m)[0] << "," << new_coord(m)[1] << ")\n";
-    }
-
-  for(int m=0; m < nATOMS ; m++) 
-    cout << "Map[" << m << "]=" << Map[m] << "\n";
-
-  atom_coord = new_coord;
-}
-*/
-
 
 void BoxT::CalculateBounds(iArrayT per,CrystalLatticeT* pcl)
 {
@@ -256,11 +205,8 @@ void BoxT::CalculateBounds(iArrayT per,CrystalLatticeT* pcl)
       else if (per[i]==1)
 	{
 	  // periodic conditions
-	  //	  atom_bounds(i,0) = MinMax(i)[0];
-	  //	  atom_bounds(i,1) = MinMax(i)[1] + 0.5*vLP[1];
-
-	  	  atom_bounds(i,0) = length(i)[0];
-	  	  atom_bounds(i,1) = length(i)[1] + 0.5*vLP[1];
+	  atom_bounds(i,0) = length(i)[0];
+	  atom_bounds(i,1) = length(i)[1] + 0.5*vLP[1];
 	}
       else
 	throw eBadInputValue;
