@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.9 2001-08-13 23:24:02 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.10 2001-09-05 22:03:48 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 
 #include "ContinuumElementT.h"
@@ -228,9 +228,12 @@ void ContinuumElementT::ReadRestart(istream& in)
 		Top();
 		while (NextElement())
 		{
-			int isallocated;
-			in >> isallocated;
-			if (isallocated) CurrentElement().ReadRestart(in);
+			for (int i = 0; i < fElementCards.Length(); i++)
+			{
+				int isallocated;
+				in >> isallocated;
+				if (isallocated) fElementCards[i].ReadRestart(in);
+			}
 		}
 	}
 }
@@ -246,7 +249,7 @@ void ContinuumElementT::WriteRestart(ostream& out) const
 		for (int i = 0; i < fElementCards.Length(); i++)
 		{
 			const ElementCardT& element = fElementCards[i];
-			out << setw(kIntWidth) << element.IsAllocated() << '\n';
+			out << element.IsAllocated() << '\n';
 			if (element.IsAllocated()) element.WriteRestart(out);
 		}
 	}
