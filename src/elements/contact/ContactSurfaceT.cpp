@@ -1,10 +1,15 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.17 2001-09-19 15:27:15 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.18 2001-09-24 20:37:24 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
 #include "ofstreamT.h"
 
 #include "ContactNodeT.h"
+#include "ContactFaceT.h"
+#include "ContactLineL2FaceT.h"
+#include "ContactLineQ3FaceT.h"
+#include "ContactQuadL4FaceT.h"
+
 
 /* parameters */
 
@@ -19,13 +24,20 @@ ContactSurfaceT::~ContactSurfaceT(void)
                 delete fContactNodes[i];
         }
 
+		for (int i=0 ; i < fContactFaces.Length() ; i++) {
+                delete fContactFaces[i];
+        }
 }
 
 void
-ContactSurfaceT::Initialize(const NodeManagerT* node_manager)
+ContactSurfaceT::Initialize
+(const NodeManagerT* node_manager, int num_multipliers)
 {
+
 	/* inherited */
 	SurfaceT::Initialize(node_manager);
+
+	fNumMultipliers = num_multipliers;
 
 	/* allocate contact nodes */
 	fContactNodes.Allocate(fGlobalNodes.Length());
@@ -33,18 +45,68 @@ ContactSurfaceT::Initialize(const NodeManagerT* node_manager)
 		fContactNodes[i] = new ContactNodeT(*this,i);
 	}
 
-	fMultiplierMap.Allocate(fGlobalNodes.Length());
-	fLastMultiplierMap.Allocate(fGlobalNodes.Length());
-	fRealGhostNodePairs.Allocate(fGlobalNodes.Length(),2);
-	/* fill real node column */
-	for(int i = 0; i < fContactNodes.Length(); i++){
-		fRealGhostNodePairs(i,0) = fGlobalNodes[i];
+	/* allocate contact faces */
+	fContactFaces.Allocate(fFaces.Length());
+	/* attach them to the geometry faces */
+    for (int i = 0 ; i < fContactFaces.Length() ; i++)
+    {
+      switch (fGeometryType)
+      {
+        case GeometryT::kLine :
+          switch (fNumNodesPerFace)
+          {
+            case 2: fContactFaces[i] = new ContactLineL2FaceT(fFaces[i]);
+            break;
+            case 3: fContactFaces[i] = new ContactLineQ3FaceT(fFaces[i]);
+            break;
+            default: throw eGeneralFail;
+          }
+          break;
+        case GeometryT::kTriangle :
+          switch (fNumNodesPerFace)
+          {
+#if 0
+			case 3: fContactFaces[i] = new ContactTriaL3FaceT(fFaces[i]);
+			break;
+#endif
+			default: throw eGeneralFail;
+          }
+          break;
+        case GeometryT::kQuadrilateral :
+          switch (fNumNodesPerFace)
+          {
+            case 4: fContactFaces[i] = new ContactQuadL4FaceT(fFaces[i]);
+            break;
+            default: throw eGeneralFail;
+          }
+          break;
+        default: throw eGeneralFail;
+      }
+	}
+
+	if (fNumMultipliers) {
+		fMultiplierMap.Allocate(fGlobalNodes.Length());
+		fLastMultiplierMap.Allocate(fGlobalNodes.Length());
+		fRealGhostNodePairs.Allocate(fGlobalNodes.Length(),2);
+		/* fill real node column */
+		for(int i = 0; i < fContactNodes.Length(); i++){
+			fRealGhostNodePairs(i,0) = fGlobalNodes[i];
+		}
 	}
 }
 
+void 
+ContactSurfaceT::SetMultiplierConnectivity(void)
+{
+	ContactFaceT* face = NULL;
+	for (int i = 0; i < fContactFaces.Length(); i++){
+		face = fContactFaces[i];
+		face->SetMultiplierConnectivity();
+	}
+}
 
 void 
-ContactSurfaceT::SetPotentialConnectivity(int num_multipliers)
+ContactSurfaceT::SetPotentialConnectivity(void)
 {
 	int i,j,k,count;
 	ContactNodeT* node;
@@ -75,9 +137,9 @@ ContactSurfaceT::SetPotentialConnectivity(int num_multipliers)
 		}
 	}
 
-	if (num_multipliers) {
+	if (fNumMultipliers) {
 		fConnectivities.Configure(node_face_counts,2);
-	 	fEqNums.Configure(node_face_counts,fNumSD+num_multipliers);
+	 	fEqNums.Configure(node_face_counts,fNumSD+fNumMultipliers);
 	} else {
 		/* configure connectivity and equation numbers */
 		fConnectivities.Configure(node_face_counts);
@@ -124,7 +186,7 @@ ContactSurfaceT::SetPotentialConnectivity(int num_multipliers)
 			cout <<" count " << count <<" "<<  node_face_counts[i] <<'\n';
 			throw eGeneralFail;
 		    }
-			if (num_multipliers) {
+			if (fNumMultipliers) {
 				int* node_face_connectivity = fConnectivities(i);
 				int local_multiplier_node;
                 /* all nodes in associated primary faces */
@@ -259,6 +321,25 @@ ContactSurfaceT::PrintStatus(ostream& out) const
 
 
 void
+ContactSurfaceT::PrintMultipliers(ostream& out) const
+{
+        out << "#Surface " << this->Tag() << '\n';
+
+        for (int n = 0 ; n < fMultiplierMap.Length(); n++) {
+			int tag = fMultiplierMap[n];
+			if (tag > -1) {
+                out << n << " ";
+                out << " pressure " << fMultiplierValues(tag,0) << "\n";
+			}
+			else {
+                out << fContactNodes[n]->Tag()<< " ";
+                out << " no multipliers " << "\n";
+			}
+        }
+}
+
+
+void
 ContactSurfaceT::DetermineMultiplierExtent(void)
 {
     ContactNodeT* node = NULL;
@@ -300,11 +381,11 @@ ContactSurfaceT::TagMultiplierMap(const ArrayT<FaceT*>&  faces)
 }
 
 void
-ContactSurfaceT::AllocateMultiplierTags(dArray2DT& multiplier_values) 
+ContactSurfaceT::AllocateMultiplierTags(void) 
 {
 	/* set last muliplier array to local node map and store values */
-	fLastMultiplierMap = fMultiplierMap; 
-	fLastMultiplierValues = multiplier_values;
+	fLastMultiplierMap = fMultiplierMap; // these should be "copy"s
+	fLastMultiplierValues = fMultiplierValues;
 
 	/* assign active numbering and total */
 	int count = 0;
@@ -335,14 +416,14 @@ ContactSurfaceT::ResetMultipliers(dArray2DT& multiplier_values)
 }
 
 void
-ContactSurfaceT::MultiplierTags(iArrayT& local_nodes, iArrayT& multiplier_tags)
+ContactSurfaceT::MultiplierTags
+(const iArrayT& local_nodes, iArrayT& multiplier_tags)
 {
 	for (int i = 0; i < local_nodes.Length(); i++)
-        {
+	{
 		multiplier_tags[i] 
 			= fMultiplierTags[fMultiplierMap[local_nodes[i]]];
 	}
-
 }
 
 iArray2DT& 

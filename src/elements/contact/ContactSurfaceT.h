@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.15 2001-09-19 15:27:15 rjones Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.16 2001-09-24 20:37:25 rjones Exp $ */
 
 
 #ifndef _CONTACT_SURFACE_T_H_
@@ -9,12 +9,14 @@
 
 /* direct members */
 #include "ArrayT.h"
+#include "dArray2DT.h"
 #include "nMatrixT.h"
 
 /* forward declarations */
 class ofstreamT;
 class FEManagerT;
 class ContactNodeT;
+class ContactFaceT;
 
 /* 
 a ContactSurface will only have one opposing face per
@@ -32,10 +34,13 @@ class ContactSurfaceT : public SurfaceT
 	~ContactSurfaceT(void);
 
 	/* allocate contact node array */
-	void Initialize(const NodeManagerT* node_manager);
+	void Initialize(const NodeManagerT* node_manager, int num_multipliers);
+
+	/* multiplier connectivities */
+	void SetMultiplierConnectivity(void);
 
 	/* potential connectivities based on growing/sliding contact */
-	void SetPotentialConnectivity(int num_multipliers);
+	void SetPotentialConnectivity(void);
 
 	/* access functions */
 	inline ArrayT<ContactNodeT*>& ContactNodes(void) 
@@ -52,6 +57,7 @@ class ContactSurfaceT : public SurfaceT
 	void PrintGap(ofstream& out) const;
 	void PrintNormals(ofstream& out) const;
 	void PrintStatus(ostream& out) const;
+	void PrintMultipliers(ostream& out) const;
 
 	inline void InitializeMultiplierMap(void)
 		{fMultiplierMap = -1;}
@@ -63,18 +69,25 @@ class ContactSurfaceT : public SurfaceT
 		{return fMultiplierTags;} 
 	inline const iArrayT&  MultiplierMap(void) const
 		{return fMultiplierMap;}	
-	void AllocateMultiplierTags(dArray2DT& multiplier_values);
+	void AllocateMultiplierTags(void);
 	void ResetMultipliers(dArray2DT& multiplier_values);
-	void MultiplierTags(iArrayT& local_nodes, iArrayT& multiplier_tags);
+	void MultiplierTags(const iArrayT& local_nodes, iArrayT& multiplier_tags);
 	iArray2DT& RealGhostNodePairs(void);
 	inline bool HasMultiplier(int i) 
 		{return fMultiplierMap[i] > -1;} 
-
+	inline void AliasMultipliers(const dArray2DT& multipliers)
+		{fMultiplierValues.Alias(multipliers);}
+	inline double& Multiplier(int tag, int i) 
+		{return fMultiplierValues(fMultiplierMap[tag],i);} 
 
   protected:
-	/* nodal arrays */
+	/* contact nodes */
 	ArrayT <ContactNodeT*>  fContactNodes ; 
 
+	/* contact faces */
+	ArrayT <ContactFaceT*>  fContactFaces ; 
+
+	int fNumMultipliers;
 	int fNumPotentialContactNodes;
 
 	/* potential connectivities for the time step */
@@ -87,6 +100,7 @@ class ContactSurfaceT : public SurfaceT
 	ArrayT <ContactNodeT*>  fPreviousContactNodes;
 #endif
 	/* Multiplier Data, which is variable size */
+	dArray2DT fMultiplierValues; 
 	/* global multiplier "node" tags for active nodes */
 	iArrayT fMultiplierTags; 
 	/* hash for local node to active nodes */

@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.h,v 1.15 2001-08-06 20:55:13 rjones Exp $ */
+/* $Id: LineL2FaceT.h,v 1.16 2001-09-24 20:37:25 rjones Exp $ */
 
 #ifndef _LINEL2_FACE_T_H_
 #define _LINEL2_FACE_T_H_
@@ -18,29 +18,29 @@ class LineL2FaceT : public FaceT
 {
 public:
 
-        /* constructor */
-        LineL2FaceT
+	/* constructor */
+	LineL2FaceT
 		(SurfaceT& surface,
 		dArray2DT& surface_coordinates,
 		int num_face_nodes,
 		int* connectivity);
 
         /* destructor */
-        ~LineL2FaceT(void);
+	~LineL2FaceT(void);
 
-        /* initialization after construction */
-        void Initialize(void);
+	/* initialization after construction */
+	void Initialize(void);
 
-        /* geometric computation */
-        void ComputeCentroid(double* centroid) const; 
+	/* geometric computation */
+	void ComputeCentroid(double* centroid) const; 
 	double ComputeRadius(void) const;
-        void ComputeNormal
+	void ComputeNormal
 		(const double* local_coordinates, double* normal) const; 
-        void ComputeTangent1 
+	void ComputeTangent1 
 		(const double* local_coordinates, double* tangent1) const;
-        void ComputeTangent2 
+	void ComputeTangent2 
 		(const double* local_coordinates, double* tangent2) const;
-        void NodeNormal(int local_node_number, double* normal) const; 
+	void NodeNormal(int local_node_number, double* normal) const; 
 	void CalcFaceNormal(void);
 	void LocalBasis
 		(double* normal, double* tangent1, double* tangent2) const;
@@ -50,26 +50,26 @@ public:
 	void ComputeShapeFunctions
 	  	(const double* local_coordinates, dMatrixT& shape_functions) 
 		const;
-        void ComputeShapeFunctionDerivatives
+	void ComputeShapeFunctionDerivatives
                 (const double* local_coordinates, dArrayT& shape_derivatives) 
 		const;
-        void ComputeShapeFunctionDerivatives
+	void ComputeShapeFunctionDerivatives
                 (const double* local_coordinates, dMatrixT& shape_derivatives) 
 		const;
-        void InterpolatePosition 
+	void InterpolatePosition 
 		(const double* local_coordinates, double* x) const;
-        double Interpolate 
+	double Interpolate 
 		(const double* local_coordinates, dArrayT& nodal_values) 
 		const;
-        void InterpolateVector 
+	void InterpolateVector 
 		(const double* local_coordinates, dArray2DT& nodal_vectors, 
 		double* vector) const;
 	double ComputeJacobian (const double* local_coordinates) const;
-        bool Projection (ContactNodeT* node, dArrayT& parameters) const ;
-        void Quadrature (dArray2DT& points, dArrayT& weights) const;
+	bool Projection (ContactNodeT* node, dArrayT& parameters) const ;
+	void Quadrature (dArray2DT& points, dArrayT& weights) const;
 		// points should be const
 
-        inline void Polynomial
+	inline void Polynomial
                 (double* a, double* b) const ;
 protected:
 

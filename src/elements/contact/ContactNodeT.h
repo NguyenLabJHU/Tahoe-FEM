@@ -1,4 +1,4 @@
-/* $Id: ContactNodeT.h,v 1.10 2001-09-19 15:27:15 rjones Exp $ */
+/* $Id: ContactNodeT.h,v 1.11 2001-09-24 20:37:24 rjones Exp $ */
 
 
 #ifndef _CONTACT_NODE_T_H_
@@ -28,20 +28,21 @@ class ContactNodeT
 	enum ContactNodeStatusT { 	kNoProjection = -1,
 								kProjection};
 
-	/* clear opposing data */
+	/** clear opposing data */
 	inline void ClearOpposing(void) 
 		{ fStatus = kNoProjection; fOpposingSurface = NULL; 
 		fOpposingFace= NULL; fGap = 1.0e8;}
 
-	/* assign opposing point on surface */
+	/** assign opposing point on surface */
 	bool AssignOpposing
 		(const SurfaceT& opposing_surface, 
 		const FaceT& opposing_face,
 		double* xi, double g) ;
 
-	/* can't jump surfaces */
+	/** assign status at the beginning of the time step */
 	void AssignOriginal(void);
 
+	/** reset (current) status when node loses contact */
 	inline void ResetStatus(void)
 		{fStatus = kNoProjection; fGap = 1.0e8;}
 
@@ -51,21 +52,24 @@ class ContactNodeT
   protected:
 	/* data */
 	ContactSurfaceT&  fSurface;
+	/* local node number in surface */
 	int        fNodeTag; // need to protect the value of the tag?
 	const ContactSurfaceT*  fOpposingSurface ; 
 	const FaceT*     fOpposingFace ; 
 	double     fxi[2] ;
 	double     fGap ;
 	int	   fStatus;
+	int	   fOriginalStatus;
+	int	   fEnforcementStatus;
 	const FaceT*     fOriginalOpposingFace ; 
 	double     fxiO[2] ;
-	int	   fOriginalStatus;
 	
 
   public:
 	/* access functions */ 
 	bool HasProjection(void) {return fStatus > kNoProjection;}
 	bool HasMultiplier(void) {return fSurface.HasMultiplier(fNodeTag);}
+	double& Pressure(void) {return fSurface.Multiplier(fNodeTag,0);}
 	inline const int Tag(void) const
 		{return fNodeTag;}
 	inline const double* Position(void) const
@@ -92,6 +96,8 @@ class ContactNodeT
 		{return fxiO;}
 	inline const int OriginalStatus(void) const 		
 		{return fOriginalStatus;}
+	inline int& EnforcementStatus(void) 
+		{return fEnforcementStatus;}
 
   private:
 

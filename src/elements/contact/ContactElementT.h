@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.16 2001-09-19 15:27:15 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.17 2001-09-24 20:37:24 rjones Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -87,6 +87,7 @@ public:
 	enum OutputFlagsT {kGaps = 0,
 			kNormals,
 			kStatus,
+			kMultipliers,
 			kNumOutputFlags};
 
 	/* returns the array for the DOF tags needed for the current config */
@@ -110,6 +111,8 @@ public:
 	
    	/* returns 1 if group needs to reconfigure DOF's, else 0 */
    	virtual int Reconfigure(void);
+
+	inline bool HasMultipliers (void) {return fXDOF_Nodes;}
 
 protected:
 	/* contact surfaces */

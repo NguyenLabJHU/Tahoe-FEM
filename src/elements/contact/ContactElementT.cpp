@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.22 2001-09-19 15:27:15 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.23 2001-09-24 20:37:24 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -70,7 +70,7 @@ void ContactElementT::Initialize(void)
 
 	/* initialize surfaces, connect nodes to coordinates */
 	for (int i = 0; i < fSurfaces.Length(); i++) {
-		fSurfaces[i].Initialize(ElementBaseT::fNodes);
+		fSurfaces[i].Initialize(ElementBaseT::fNodes,fNumMultipliers);
 	}
 #if 0
         /* set console access */
@@ -195,13 +195,11 @@ void ContactElementT::SetDOFTags(void)
 		fSurfaces[i].DetermineMultiplierExtent();
 	}
 	
-	dArray2DT multiplier_values; 
 	for (int i = 0; i < fSurfaces.Length(); i++) {
 		/* number active nodes and total */
         /* store last dof tag and value */
         /* resize DOF tags array for number of potential contacts */
-        multiplier_values.Alias(fXDOF_Nodes->XDOF(this,i));
-	    fSurfaces[i].AllocateMultiplierTags(multiplier_values);
+	    fSurfaces[i].AllocateMultiplierTags();
 	}
 }
 
@@ -215,8 +213,15 @@ iArrayT& ContactElementT::DOFTags(int tag_set)
 void ContactElementT::GenerateElementData(void)
 { 
 	for (int i = 0; i < fSurfaces.Length(); i++) {
-                /* form potential connectivity for step */
- 		fSurfaces[i].SetPotentialConnectivity(fNumMultipliers);
+		/* hand off location of multipliers */
+		const dArray2DT& multipliers = fNodes->XDOF(this, i);
+		fSurfaces[i].AliasMultipliers(multipliers);
+
+		/* set multiplier connectivity on faces */
+		fSurfaces[i].SetMultiplierConnectivity();
+
+		/* form potential connectivity for step */
+ 		fSurfaces[i].SetPotentialConnectivity();
  	}
 }
 
@@ -332,6 +337,9 @@ void ContactElementT::WriteOutput(IOBaseT::OutputModeT mode)
 				surface.PrintStatus(cout);
            }
 
+           if (fOutputFlags[kMultipliers]) {
+				surface.PrintMultipliers(cout);
+           }
 
 //              surface.PrintContactArea(cout);
   }
@@ -477,7 +485,7 @@ bool ContactElementT::SetContactConfiguration(void)
         if (changed) { 
 		/* form potential connectivity for step */
   		for (int i = 0; i < fSurfaces.Length(); i++) {
-			fSurfaces[i].SetPotentialConnectivity(fNumMultipliers);
+			fSurfaces[i].SetPotentialConnectivity();
   		}
 	}
 
