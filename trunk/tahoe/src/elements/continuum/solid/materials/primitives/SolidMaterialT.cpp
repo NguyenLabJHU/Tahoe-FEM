@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.12 2004-07-15 08:29:20 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.13 2004-08-01 00:54:59 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
@@ -8,6 +8,10 @@
 #include "ParameterContainerT.h"
 
 using namespace Tahoe;
+
+/* dummy return values */
+iArrayT ijunk;
+dArrayT djunk;
 
 /* constructor */
 SolidMaterialT::SolidMaterialT(void):
@@ -200,3 +204,18 @@ void SolidMaterialT::TakeParameterList(const ParameterListT& list)
 		ExceptionT::BadInputValue("SolidMaterialT::Initialize", 
 			"material does not support imposed thermal strain");
 }
+
+const iArrayT& SolidMaterialT::InternalDOF(void) const {
+	ExceptionT::GeneralFail("SolidMaterialT::InternalDOF", "not implemented");
+	return ijunk;
+}
+
+const dArrayT& SolidMaterialT::InternalStressVars(void) {
+	ExceptionT::GeneralFail("SolidMaterialT::InternalStressVars", "not implemented");
+	return djunk;
+};
+
+const dArrayT& SolidMaterialT::InternalStrainVars(void) {
+	ExceptionT::GeneralFail("SolidMaterialT::InternalStrainVars", "not implemented");
+	return djunk;
+};

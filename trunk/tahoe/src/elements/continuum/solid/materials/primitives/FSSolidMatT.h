@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.15 2004-07-15 08:29:19 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.16 2004-08-01 00:54:59 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -38,6 +38,20 @@ public:
 
 	/** finite strain materials support */
 	const FSMatSupportT& FSMatSupport(void) const;
+
+	/** \name tangent moduli 
+	 * FSSolidMatT::c_ijkl computes the tangent moduli in the spatial representation
+	 * using the finite difference approximation developed by Miehe, CMAME \b 134, 1996.
+	 * FSSolidMatT::C_IJKL calls FSSolidMatT::c_ijkl and pulls the result back to the
+	 * material representation. */
+	/*@{*/
+	virtual const dMatrixT& c_ijkl(void);
+	virtual const dMatrixT& C_IJKL(void);
+	/*@}*/
+
+	/** compute the 2nd Piola-Kirchhoff stress by pulling back the result computed with
+	 * SolidMaterialT::s_ij */
+	const dSymMatrixT& S_IJ(void);
 	
 	/** test for localization. check for bifurvation using current
 	 * Cauchy stress and the spatial tangent moduli.
@@ -116,21 +130,6 @@ public:
 	 * Returns the Green-Lagrangian strain. */
 	virtual void Strain(dSymMatrixT& strain) { Compute_E(F_mechanical(), strain);}
 	virtual void Stretch(dSymMatrixT& stretch) {Compute_C(F_mechanical(), stretch);}
-
-	virtual const iArrayT& InternalDOF(void) const {
-		cout << "\n InternalDOF not implement";
-		throw ExceptionT::kGeneralFail;
-		return  ijunk;};
-
-	virtual const dArrayT& InternalStressVars(void) {
-		cout << "\n InternalStressVars not implemented";
-		throw ExceptionT::kGeneralFail;
-		return  djunk;};
-
-	virtual const dArrayT& InternalStrainVars(void) {
-		cout << "\n InternalStressVars not implemented.";
-		throw ExceptionT::kGeneralFail;
-		return  djunk;};
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -217,6 +216,12 @@ protected:
 	/** support for finite strain materials */
 	const FSMatSupportT* fFSMatSupport;
 
+	/** \name return values */
+	/*@{*/
+	dSymMatrixT fStress;
+	dMatrixT fModulus;
+	/*@}*/
+
 private:
 
 	/** return value for FSSolidMatT::AcousticalTensor */
@@ -237,10 +242,6 @@ private:
 	/** true if temperature field found during FSSolidMatT::Initialize */
 	bool fTemperatureField;
 	dArrayT fTemperature;
-
-	/*junk arrays*/
-	iArrayT ijunk;
-	dArrayT djunk;
 };
 
 /* finite strain materials support */

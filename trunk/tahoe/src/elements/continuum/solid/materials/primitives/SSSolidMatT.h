@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.13 2004-07-15 08:29:20 paklein Exp $ */
+/* $Id: SSSolidMatT.h,v 1.14 2004-08-01 00:54:59 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
@@ -64,18 +64,6 @@ public:
 	/*inquire if dissipation variables used in material force calculation are needed*/
 	virtual bool HasDissipVar(void) const {return false;};
 
-	virtual const iArrayT& InternalDOF(void) const {
-		ExceptionT::GeneralFail("SSSolidMatT::InternalDOF", "not implemented");
-		return ijunk;};
-
-	virtual const dArrayT& InternalStressVars(void) {
-		ExceptionT::GeneralFail("SSSolidMatT::InternalStressVars", "not implemented");
-		return djunk;};
-
-	virtual const dArrayT& InternalStrainVars(void) {
-		ExceptionT::GeneralFail("SSSolidMatT::InternalStrainVars", "not implemented");
-		return djunk;};
-
 protected:
 
 	/* return the acoustical tensor and wave speeds */
@@ -107,10 +95,6 @@ private:
 	/* thermal strain: e_elastic = e_total - e_thermal */
 	bool        fHasThermalStrain;
 	dSymMatrixT fThermalStrain;
-
-	/*junk arrays*/
-	iArrayT ijunk;
-	dArrayT djunk;
 };
 
 } // namespace Tahoe 
