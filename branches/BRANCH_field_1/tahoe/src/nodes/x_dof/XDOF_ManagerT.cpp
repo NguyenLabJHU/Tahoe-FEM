@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.cpp,v 1.8.2.2 2002-04-25 01:35:16 paklein Exp $ */
+/* $Id: XDOF_ManagerT.cpp,v 1.8.2.3 2002-04-29 17:19:28 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 /* base class which defines the interface for a manager */
 /* of DOF's comprised of FE DOF's plus constrain DOF's */
@@ -399,7 +399,7 @@ int XDOF_ManagerT::TagSetIndex(const DOFElementT* group, int tag_set) const
 }
 
 /* resolve tag into its tag set and tag offset */
-bool XDOF_ManagerT::ResolveTagSet(int tag, int& tag_set, int& tag_set_start)
+bool XDOF_ManagerT::ResolveTagSet(int tag, int& tag_set, int& tag_set_start) const
 {
 	tag_set = tag_set_start = -1;
 	int offset = fStartTag;
