@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.1.2.5 2002-12-19 03:12:36 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.1.2.6 2002-12-27 23:12:08 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -19,11 +19,6 @@ CommManagerT::CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager):
 	fPeriodicBoundaries(0,2),
 	fFirstConfigure(true)
 {
-//TEMP
-//cout << "\n CommManagerT::CommManagerT: setting CommunicatorT log level to kLow"<< endl;
-//fComm.SetLogLevel(CommunicatorT::kLow);
-//TEMP
-
 	//TEMP - with inline coordinate information (serial) this map
 	//       need to be set ASAP
 	if (fComm.Size() == 1)
@@ -59,7 +54,7 @@ void CommManagerT::SetPartition(PartitionT* partition)
 		fExternalNodes.Alias(fPartition->Nodes_External());
 		
 		/* border nodes */
-		fExternalNodes.Alias(fPartition->Nodes_Border());
+		fBorderNodes.Alias(fPartition->Nodes_Border());
 	}
 	else /* clear partition information */
 	{
@@ -102,6 +97,50 @@ ExceptionT::Stop("CommManagerT::SetPeriodicBoundaries", "not supported yet");
 
 /* unset boundaries */
 void CommManagerT::ClearPeriodicBoundaries(int i) { fIsPeriodic[i] = false; }
+
+/* enforce the periodic boundary conditions */
+void CommManagerT::EnforcePeriodicBoundaries(dArray2DT& displacement, double skin)
+{
+	const char caller[] = "CommManagerT::EnforcePeriodicBoundaries";
+
+	/* only implemented for atom decomposition */
+	if (fPartition->DecompType() != PartitionT::kAtom) return;
+
+	/* reference coordinates */
+	const dArray2DT& reference_coords = fModelManager.Coordinates();
+	if (reference_coords.MinorDim() > fIsPeriodic.Length()) ExceptionT::SizeMismatch(caller);
+
+	/* nodes owned by this partition */
+	const ArrayT<int>* partition_nodes = PartitionNodes();
+	int nnd = (partition_nodes) ? partition_nodes->Length() : reference_coords.MajorDim();
+	
+	/* loop over directions */
+	bool has_periodic = false;
+	for (int i = 0; i < fIsPeriodic.Length(); i++)
+		if (fIsPeriodic[i])
+		{
+			has_periodic = true;
+		
+			/* coordinate limits */
+			double x_min = fPeriodicBoundaries(i,0);
+			double x_max = fPeriodicBoundaries(i,1);
+			double x_len = x_max - x_min;
+
+			for (int j = 0; j < nnd; j++)
+			{
+				int nd = (partition_nodes) ? (*partition_nodes)[j] : j;
+				double& X = reference_coords(nd,i);
+				double& d = displacement(nd,i);
+				double  x = X + d;
+			
+				/* shift displacements */
+				if (x > x_max) 
+					d -= x_len;
+				else if (x < x_min)
+					d += x_len;
+			}
+		}
+}
 
 /* configure local environment */
 void CommManagerT::Configure(void)
@@ -156,9 +195,12 @@ const InverseMapT* CommManagerT::PartitionNodes_inv(void) const
 }
 
 /* set up */
-int CommManagerT::Init_AllGather(int num_vals)
+int CommManagerT::Init_AllGather(MessageT::TypeT t, int num_vals)
 {
 	const char caller[] = "CommManagerT::Init_AllGather";
+
+	/* not multiprocessor - return dummy id */
+	if (!fPartition) return -1;
 
 	PartitionT::DecompTypeT decomp_type = fPartition->DecompType();
 	if (decomp_type == PartitionT::kGraph) /* non-blocking send-receive */
@@ -167,7 +209,7 @@ int CommManagerT::Init_AllGather(int num_vals)
 		PointToPointT* p2p = new PointToPointT(fComm, *fPartition);
 
 		/* allocate buffers */
-		p2p->Initialize(num_vals);
+		p2p->Initialize(t, num_vals);
 	
 		/* store */
 		fCommunications.Append(p2p);
@@ -197,6 +239,9 @@ int CommManagerT::Init_AllGather(int num_vals)
 /* clear the persistent communication */
 void CommManagerT::Clear_AllGather(int id)
 {
+	/* ignore dummy id (not multiprocessor) */
+	if (id == -1) return;
+
 	/* check */
 	if (id < 0 || id >= fCommunications.Length())
 		ExceptionT::OutOfRange("CommManagerT::Clear_AllGather");
@@ -205,13 +250,16 @@ void CommManagerT::Clear_AllGather(int id)
 	delete fCommunications[id];
 	
 	/* purge from array */
-	fCommunications.DeleteAt(id);
+	fCommunications[id] = NULL;
 }
 
-/** perform the all gather */
-void CommManagerT::AllGather(int id, dArray2DT& values)
+/* perform the all gather */
+void CommManagerT::AllGather(int id, nArray2DT<double>& values)
 {
 	const char caller[] = "CommManagerT::AllGather";
+
+	/* not multiprocessor - nothing to do yet */
+	if (!fPartition) return;
 
 	PartitionT::DecompTypeT decomp_type = fPartition->DecompType();
 	if (decomp_type == PartitionT::kGraph) /* non-blocking send-receive */
@@ -232,7 +280,41 @@ void CommManagerT::AllGather(int id, dArray2DT& values)
 		/* do it */
 		all_gather->AllGather(values);
 	}
-	else if (decomp_type == PartitionT::kAtom) /* shifts */
+	else if (decomp_type == PartitionT::kSpatial) /* shifts */
+	{
+		ExceptionT::GeneralFail(caller, "not implemented yet");
+	}
+	else
+		ExceptionT::GeneralFail(caller, "unrecognized decomp type: %d", decomp_type);
+}
+
+void CommManagerT::AllGather(int id, nArray2DT<int>& values)
+{
+	const char caller[] = "CommManagerT::AllGather";
+
+	/* not multiprocessor - nothing to do yet */
+	if (!fPartition) return;
+
+	PartitionT::DecompTypeT decomp_type = fPartition->DecompType();
+	if (decomp_type == PartitionT::kGraph) /* non-blocking send-receive */
+	{
+		/* retrieve pointer */
+		PointToPointT* p2p = dynamic_cast<PointToPointT*>(fCommunications[id]);
+		if (!p2p) ExceptionT::GeneralFail(caller);
+
+		/* do it */
+		p2p->AllGather(values);
+	}
+	else if (decomp_type == PartitionT::kAtom) /* all gather */
+	{
+		/* retrieve pointer */
+		AllGatherT* all_gather = dynamic_cast<AllGatherT*>(fCommunications[id]);
+		if (!all_gather) ExceptionT::GeneralFail(caller);
+		
+		/* do it */
+		all_gather->AllGather(values);
+	}
+	else if (decomp_type == PartitionT::kSpatial) /* shifts */
 	{
 		ExceptionT::GeneralFail(caller, "not implemented yet");
 	}
@@ -364,6 +446,23 @@ void CommManagerT::FirstConfigure(void)
 		
 		/* clear the inverse map */
 		fPartitionNodes_inv.ClearMap();
+		
+		/* (potentially) all are adjacent to external nodes */
+		fBorderNodes.Alias(fPartitionNodes);
+		
+		/* all the rest are external */
+		fExternalNodes.Dimension(ntn - fPartitionNodes.Length());
+		int lower, upper;
+		lower = upper = ntn;
+		if (fPartitionNodes.Length() > 0) {
+			lower = fPartitionNodes.First();
+			upper = fPartitionNodes.Last();
+		}
+		int dex = 0;
+		for (int i = 0; i < lower; i++)
+			fExternalNodes[dex++] = i;
+		for (int i = upper+1; i < ntn; i++)
+			fExternalNodes[dex++] = i;
 	}
 }
 
@@ -441,57 +540,3 @@ void CommManagerT::GetBounds(const dArray2DT& coords_all, const iArrayT& local,
 	}
 	else ExceptionT::OutOfRange("CommManagerT::SetBounds");
 }
-
-#if 0
-/* return the local node to processor map */
-void FEManagerT_mpi::NodeToProcessorMap(const iArrayT& node, iArrayT& processor) const
-{
-	/* initialize */
-	processor.Dimension(node);
-	processor = -1;
-	
-	/* empty list */
-	if (node.Length() == 0) return;
-	
-	/* no parition data */
-	if (!fPartition) {
-		processor = Rank();
-		return;
-	}
-	
-	/* range of node numbers */
-	int shift, max;
-	node.MinMax(shift, max);
-	int range = max - shift + 1;
-
-	/* node to index-in-node-array map */
-	iArrayT index(range);
-	index = -1;
-	for (int i = 0; i < range; i++)
-		index[node[i] - shift] = i;
-	
-	/* mark external */
-	const iArrayT& comm_ID = Partition().CommID();
-	for (int i = 0; i < comm_ID.Length(); i++)
-	{	
-		int proc = comm_ID[i];
-		const iArrayT* comm_nodes = Partition().NodesIn(proc);
-		if (!comm_nodes) throw ExceptionT::kGeneralFail;
-		for (int j = 0; j < comm_nodes->Length(); j++)
-		{
-			int nd = (*comm_nodes)[j] - shift;
-			if (nd > -1 && nd < range) /* in the list range */
-			{
-				int dex = index[nd];
-				if (dex != -1) /* in the list */
-					processor[dex] = proc;
-			}
-		}
-	}
-	
-	/* assume all others are from this proc */
-	int rank = Rank();
-	for (int i = 0; i < range; i++)
-		if (processor[i] == -1) processor[i] = rank;
-}
-#endif
