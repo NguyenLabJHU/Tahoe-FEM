@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.23 2003-03-08 04:57:50 paklein Exp $
+# $Id: make.targets,v 1.24 2003-03-15 16:54:31 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -104,20 +104,20 @@ DEPEND_PATH = -I$(INC_DIR) $(OPT_INC) $(DEFINES) $(OPT_DEFINES) $(DEPENDFLAGS) $
 
 # default target
 help:
-	@ $(ECHO) " make targets:"
-	@ $(ECHO) "   init - (re-)initialize headers and file dependencies"
-	@ $(ECHO) "  build - (re-)build binaries"
-	@ $(ECHO) "objects - (re-)compile object file, but don't link"
-	@ $(ECHO) "  clean - remove object files and build temporaries"
-	@ $(ECHO) "   help - display this list"
+	@ $(PRINTF) " make targets:\n"
+	@ $(PRINTF) "   init - (re-)initialize headers and file dependencies\n"
+	@ $(PRINTF) "  build - (re-)build binaries\n"
+	@ $(PRINTF) "objects - (re-)compile object file, but don't link\n"
+	@ $(PRINTF) "  clean - remove object files and build temporaries\n"
+	@ $(PRINTF) "   help - display this list\n"
 
 # instructions
 build: objects $(BUILD)
 
 $(TARGET): $(OPT_LIB) $(LIBRARY)
-	@ $(ECHO) " linking..."	
+	@ $(PRINTF) " linking...\n"	
 	@ $(LINK) $(MAIN) -o $(TARGET) -L$(HOME_DIR)/lib -l$(TARGET) $(OPT_LFLAGS) $(MY_LFLAGS) $(LFLAGS)
-	@ $(ECHO) "    ...wrote $(TARGET)"; $(ECHO) " "
+	@ $(PRINTF) "    ...wrote $(TARGET)\n"
 
 # include object list and create archive
 $(LIBRARY): $(LIB_DIR)/lib.junk
@@ -128,18 +128,18 @@ $(LIBRARY): $(LIB_DIR)/lib.junk
 	"RANLIB = $(RANLIB)" \
 	"RANLIBFLAGS = $(RANLIBFLAGS)" \
 	"LIBRARY = $(LIBRARY)" \
-	"ECHO = $(ECHO)"
+	"PRINTF = $(PRINTF)"
 
 # create archive
 BUILD_LIBRARY_AR:
-	@ $(ECHO) " building archive..."; \
+	@ $(PRINTF) " building archive...\n"; \
 	cd $(OBJ_DIR); $(AR) $(ARFLAGS) $(LIBRARY) $(OBJ)	
 
 BUILD_LIBRARY_RANLIB:
 	@ cd $(OBJ_DIR); \
-	$(ECHO) " building archive..."; \
+	$(PRINTF) " building archive...\n"; \
 	$(AR) $(ARFLAGS) $(LIBRARY) $(OBJ); \
-	$(ECHO) " running ranlib..."; \
+	$(PRINTF) " running ranlib...\n"; \
 	$(RANLIB) $(RANLIBFLAGS) $(LIBRARY)
 
 # initialization
@@ -164,8 +164,8 @@ clean:
 
 # build object file list
 object_list: FORCE
-	@ $(ECHO) "collecting list of object files"
-	@ $(ECHO) "OBJ = \c" > object_list
+	@ $(PRINTF) "collecting list of object files\n"
+	@ $(PRINTF) "OBJ = " > object_list
 	@ cd $(SRC_DIR); \
 	$(MAKE) library \
 	"ARCH = $(ARCH)" \
@@ -173,12 +173,12 @@ object_list: FORCE
 	"LIBRARY = $(HOME_DIR)/object_list" \
 	"SRC_DIR = $(SRC_DIR)" \
 	"LIB_DIR = $(LIB_DIR)"
-	@ $(ECHO) "" >> object_list
+	@ $(PRINTF) "\n" >> object_list
 
 # set symbolic links to all header files
 headers: $(MAKE_HEADERS_XTRAS)
 	@- rm $(INC_DIR)/*.h
-	@ $(ECHO) "cd $(SRC_DIR)"; \
+	@ $(PRINTF) "cd $(SRC_DIR)\n"; \
 	cd $(SRC_DIR); \
 	$(MAKE) $(MAKE_OPTS) headers \
 	"ARCH = $(ARCH)" \
@@ -189,7 +189,7 @@ headers: $(MAKE_HEADERS_XTRAS)
 
 # initialize dependency files
 depend_init: $(MAKE_DEPEND_INIT_XTRAS)
-	@ $(ECHO) "cd $(SRC_DIR)"; \
+	@ $(PRINTF) "cd $(SRC_DIR)\n"; \
 	cd $(SRC_DIR); \
 	$(MAKE) $(MAKE_OPTS) depend_init \
 	"ARCH = $(ARCH)" \
@@ -199,7 +199,7 @@ depend_init: $(MAKE_DEPEND_INIT_XTRAS)
 
 # build objects
 objects: $(MAKE_BUILD_XTRAS)
-	@ $(ECHO) "cd $(SRC_DIR)"; \
+	@ $(PRINTF) "cd $(SRC_DIR)\n"; \
 	cd $(SRC_DIR); \
 	$(MAKE) $(MAKE_OPTS) objects \
 	"ARCH = $(ARCH)" \

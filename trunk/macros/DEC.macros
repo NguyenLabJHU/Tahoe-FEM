@@ -1,4 +1,4 @@
-# $Id: DEC.macros,v 1.12 2003-02-08 17:33:14 paklein Exp $
+# $Id: DEC.macros,v 1.13 2003-03-15 16:54:30 paklein Exp $
 # DEC
 MAKE        = make
 MAKE_DEPEND = makedepend
@@ -26,6 +26,7 @@ LN          = ln -sf
 ECHO        = echo
 CAT         = cat
 PERL        = perl -w
+PRINTF      = printf
 
 # command needed build library
 #BUILD_LIBRARY = BUILD_LIBRARY_RANLIB

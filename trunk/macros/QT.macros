@@ -1,8 +1,4 @@
-# $Id: DEC.mpi.macros,v 1.15 2003-03-15 16:54:30 paklein Exp $
-# MPI
-MPI_CFLAGS = -D__TAHOE_MPI__  -DAZTEC_MPI
-MPI_LFLAGS = -lmpi
-
+# $Id: QT.macros,v 1.2 2003-03-15 16:54:31 paklein Exp $
 # DEC
 MAKE        = make
 MAKE_DEPEND = makedepend
@@ -11,15 +7,16 @@ COMP_C      = cxx
 COMP_CC     = cxx
 COMP_F      = f77
 TR          = $(MACRO_DIR)/cxx_repository
-DEFINES     = -D__DEC__ -D__USE_STD_IOSTREAM
 MORE_CFLAGS = -O3 -DNDEBUG 
 #MORE_CFLAGS = -g 
+DEFINES     = -D__DEC__ -D__USE_STD_IOSTREAM
 LOC_CFLAGS  = -c -arch host -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
-CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS)
-CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -ptr $(TR) -distinguish_nested_enums -msg_disable 161,111
-CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)
+CFLAGS_C    = $(LOC_CFLAGS)
+CFLAGS_CC   = $(LOC_CFLAGS) -ptr $(TR) -distinguish_nested_enums -msg_disable 161,111
+CFLAGS_F    = $(LOC_CFLAGS)
+F2C_LFLAG   = -lfor
 LINK        = $(COMP_CC)
-LFLAGS      = $(MPI_LFLAGS) -lm -ptr $(TR)
+LFLAGS      = $(F2C_LFLAG) -lm -ptr $(TR)
 AR          = ar
 ARFLAGS     = -cruv
 MAKE_OPTS   =

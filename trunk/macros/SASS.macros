@@ -1,4 +1,4 @@
-# $Id: SASS.macros,v 1.1 2003-02-27 01:33:27 cjkimme Exp $
+# $Id: SASS.macros,v 1.2 2003-03-15 16:54:31 paklein Exp $
 #
 ## Load GNU file utilities to get ln -sf to work properly (sunfreeware.com)
 #
@@ -42,6 +42,7 @@ LN          = /usr/local/bin/ln -sf
 ECHO        = echo
 CAT         = cat
 PERL        = perl -w
+PRINTF      = printf
 
 # command needed build library
 #BUILD_LIBRARY = BUILD_LIBRARY_RANLIB
