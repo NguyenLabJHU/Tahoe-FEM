@@ -1,4 +1,4 @@
-/* $Id: EdgeFinderT.cpp,v 1.5 2002-10-20 22:39:06 paklein Exp $ */
+/* $Id: EdgeFinderT.cpp,v 1.6 2002-11-25 07:10:31 paklein Exp $ */
 /* created: paklein (02/14/1998) */
 #include "EdgeFinderT.h"
 #include "AutoArrayT.h"
@@ -361,7 +361,7 @@ void EdgeFinderT::SetInverseConnects(void)
 		fCurrent[kInvConnect] = 1;
 		
 		/* workspace */
-		AutoFill2DT<int> invconnects(fNumNodes, 25, fNumFacets);
+		AutoFill2DT<int> invconnects(fNumNodes, 1, 25, fNumFacets);
 
 		/* generate map */
 		int  nen = fConnects[0]->MinorDim();
