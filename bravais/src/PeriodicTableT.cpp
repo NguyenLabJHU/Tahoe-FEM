@@ -1,4 +1,5 @@
-/* $Id: PeriodicTableT.cpp,v 1.6 2002-10-31 00:41:42 saubry Exp $ */
+// DEVELOPMENT
+/* $Id: PeriodicTableT.cpp,v 1.7 2002-11-14 01:47:33 saubry Exp $ */
 
 #include "PeriodicTableT.h"
 

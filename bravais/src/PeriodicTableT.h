@@ -1,4 +1,5 @@
-/* $Id: PeriodicTableT.h,v 1.3 2002-09-09 23:10:29 saubry Exp $ */
+// DEVELOPMENT
+/* $Id: PeriodicTableT.h,v 1.4 2002-11-14 01:47:33 saubry Exp $ */
 
 #ifndef _PERIODIC_TABLE_T_H_
 #define _PERIODIC_TABLE_T_H_
