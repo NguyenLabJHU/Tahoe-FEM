@@ -1,4 +1,4 @@
-/* $Id: FCCLatticeT.cpp,v 1.3 2004-07-15 08:26:42 paklein Exp $ */
+/* $Id: FCCLatticeT.cpp,v 1.4 2005-02-18 02:30:48 paklein Exp $ */
 #include "FCCLatticeT.h"
 #include "ParameterContainerT.h"
 
@@ -43,7 +43,11 @@ ParameterInterfaceT* FCCLatticeT::NewSub(const StringT& name) const
 		orientation->AddSub(natural);
 		
 		ParameterContainerT FCC110("FCC_110");
-		FCC110.SetDescription("xy-plane into [110]");
+		ParameterT FCC110_type(ParameterT::Enumeration, "sense");
+		FCC110_type.AddEnumeration("[1 0 0][0 1 1][0 -1 1]", 0);
+		FCC110_type.AddEnumeration("[1 1 0][-1 1 0][0 0 1]", 0);
+		FCC110_type.SetDefault(0);
+		FCC110.AddParameter(FCC110_type);
 		orientation->AddSub(FCC110);
 
 		ParameterContainerT FCC111("FCC_111");
@@ -86,6 +90,8 @@ void FCCLatticeT::TakeParameterList(const ParameterListT& list)
 /* set the transformation matrix for the given orientation */
 void FCCLatticeT::SetQ(const ParameterListT& list, dMatrixT& Q)
 {
+	const char caller[] = "FCCLatticeT::SetQ";
+
 	/* dimension */
 	Q.Dimension(3);
 	Q = 0.0;
@@ -96,12 +102,22 @@ void FCCLatticeT::SetQ(const ParameterListT& list, dMatrixT& Q)
 	else if (list.Name() == "FCC_110")
 	{
 		double cos45 = 0.5*sqrt2;
-			
-		/* transform global xy-plane into [110] */
-		Q(0,0) = 1.0;
-		Q(1,1) = Q(2,2) = cos45;
-		Q(1,2) =-cos45;
-		Q(2,1) = cos45;
+
+		int sense = list.GetParameter("sense");
+		if (sense == 0) /* [1 0 0][0 1 1][0 -1 1] */ {
+			Q(0,0) = 1.0;
+			Q(1,1) = Q(2,2) = cos45;
+			Q(1,2) =-cos45;
+			Q(2,1) = cos45;	
+		}
+		else if (sense == 1) /* [1 1 0][-1 1 0][0 0 1] */ {
+			Q(0,0) = Q(1,1) = cos45;
+			Q(0,1) =-cos45;
+			Q(1,0) = cos45;
+			Q(2,2) = 1.0;
+		}
+		else
+			ExceptionT::GeneralFail(caller, "unrecognized 110 sense %d", sense);
 	}
 	else if (list.Name() == "FCC_111")
 	{
@@ -142,7 +158,7 @@ void FCCLatticeT::SetQ(const ParameterListT& list, dMatrixT& Q)
 		}
 	}
 	else
-		ExceptionT::GeneralFail("FCCLatticeT::SetQ", "unrecognized orientation \"%s\"", list.Name().Pointer());
+		ExceptionT::GeneralFail(caller, "unrecognized orientation \"%s\"", list.Name().Pointer());
 }
 
 /*************************************************************************
