@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.9.4.9 2004-04-18 01:07:13 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.9.4.10 2004-04-19 03:31:10 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -115,7 +115,8 @@ void MultiManagerT::Initialize(InitCodeT)
 		const dArray2DT& fine_init_coords = fine_node_manager.InitialCoordinates();
 		const ParticlePairT* particle_pair = fFine->ParticlePair();
 		if (!particle_pair) ExceptionT::GeneralFail(caller, "could not resolve ParticlePairT");
-		fCoarse->CorrectOverlap(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2);
+		//fCoarse->CorrectOverlap_ghost(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2);
+		fCoarse->CorrectOverlap_all(particle_pair->Neighbors(), fine_init_coords, fCBTikhonov, fK2);
 	}
 
 //TEMP - debugging
