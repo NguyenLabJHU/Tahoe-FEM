@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.h,v 1.5 2004-09-09 16:19:03 paklein Exp $ */
+/* $Id: ConveyorT.h,v 1.6 2004-12-21 17:24:51 thao Exp $ */
 #ifndef _CONVEYOR_T_H_
 #define _CONVEYOR_T_H_
 
@@ -83,7 +83,7 @@ protected:
 
 	/** reset system to new center
 	 * \return true if the system focus has been changed */
-	bool SetSystemFocus(double focus);
+	virtual bool SetSystemFocus(double focus);
 
 	/** mark elements linking left to right edge as inactive */
 	void MarkElements(void);
