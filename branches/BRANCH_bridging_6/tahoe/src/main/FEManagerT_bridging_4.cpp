@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_4.cpp,v 1.1.2.5 2004-05-25 23:06:38 paklein Exp $ */
+/* $Id: FEManagerT_bridging_4.cpp,v 1.1.2.6 2004-05-25 23:44:17 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -417,13 +417,6 @@ void FEManagerT_bridging::CorrectOverlap_4(const RaggedArray2DT<int>& point_neig
 				for (int j = 0; j < nip; j++)
 					bond_densities(cell, (bond_density_offset+b) + j*nb) = p_i(k, b*nip + j);
 		}
-#if 0
-		for (int k = 0; k < overlap_cell_i.Length(); k++) {
-			int cell = overlap_cell_all_map.Map(overlap_cell_i[k]);
-			for (int j = 0; j < nip; j++)
-				bond_densities(cell, i+j*nb) = p_i(k,j);
-		}
-#endif
 
 		/* next shell of bonds */
 		bond_density_offset += num_shell_bonds;
