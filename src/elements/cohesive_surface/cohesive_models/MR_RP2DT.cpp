@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.cpp,v 1.8 2003-04-10 20:02:22 manzari Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.9 2003-04-15 17:15:43 manzari Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -160,22 +160,24 @@ if (state[nTiedFlag] == -10.)
 	
 int i; int j; int kk; int iplastic;
 
-dMatrixT AA(6,6); dMatrixT KE(2,2); dMatrixT KE_Inv(2,2); dMatrixT I_mat(4,4); 
-dMatrixT CMAT(6,6); dMatrixT A_qq(4,4); dMatrixT A_uu(2,2); dMatrixT A_uq(2,4);
-dMatrixT A_qu(4,2); dMatrixT ZMAT(2,4); dMatrixT ZMATP(4,2);
-dMatrixT dQdSig2(2,2); dMatrixT dqbardq(4,4); dMatrixT dQdSigdq(2,4);
-dMatrixT dqbardSig(4,2); dMatrixT AA_inv(6,6);
+dMatrixT AA(6,6); dMatrixT KE(2,2); dMatrixT KE_Inv(2,2); 
+dMatrixT I_mat(4,4); dMatrixT CMAT(6,6); dMatrixT A_qq(4,4);
+dMatrixT A_uu(2,2); dMatrixT A_uq(2,4); dMatrixT A_qu(4,2); 
+dMatrixT ZMAT(2,4); dMatrixT ZMATP(4,2); dMatrixT dQdSig2(2,2); 
+dMatrixT dqbardq(4,4); dMatrixT dQdSigdq(2,4); 
+dMatrixT dqbardSig(4,2); dMatrixT AA_inv(6,6); 
+dMatrixT X(6,1); dMatrixT Y(6,1); 
 
 dArrayT up(2); dArrayT dup(2); dArrayT dSig(2); dArrayT qn(4);
 dArrayT qo(4); dArrayT Rvec(6); dArrayT Cvec(6); dArrayT upo(2);
 dArrayT R(6); dArrayT Rmod(6); dArrayT Sig(2); dArrayT Sig_I(2);
 dArrayT dQdSig(2); dArrayT dfdq(4); dArrayT qbar(4);
-dArrayT R2(6); dMatrixT X(6,1); dArrayT V_sig(2); dArrayT V_q(4); 
-dArrayT dfdSig(2); dArrayT dq(4); dArrayT Y(6);
+dArrayT R2(6); dArrayT V_sig(2); dArrayT V_q(4); 
+dArrayT dfdSig(2); dArrayT dq(4);
 
 
-double ff; double bott; double topp; double dlam; double dlam2; double normr;
-double normflow; double normdup;
+double ff; double bott; double topp; double dlam; double dlam2; 
+double normr; double normflow; double normdup;
 
 /* initialize the neecessary vectors */
 	I_mat = 0.;
@@ -252,8 +254,8 @@ double normflow; double normdup;
              AA_inv(i,j) *= dlam;
             } 
             if(i>1 & j >1) {
-             AA_inv(i,j)  = I_mat(i-2,j-2);
-             AA_inv(i,j) *= -1.; 
+             AA_inv(i,j)  = -I_mat(i-2,j-2);
+             AA_inv(i,j) *= -1.;
              AA_inv(i,j) += dlam*A_qq(i-2,j-2);
             } 
           }
