@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.37 2004-01-06 01:43:28 paklein Exp $
+# $Id: make.targets,v 1.38 2004-01-23 22:47:54 cjkimme Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -145,10 +145,10 @@ archive:
 
 # initialization
 init: $(MAKE_INIT_XTRAS) $(MOD_MAKE_INIT_XTRAS)
-	@ $(MAKE) setup
-	@ $(MAKE) headers
-	@ $(MAKE) depend_init
-	@ $(MAKE) object_list
+	@ $(MAKE) setup "ARCH = $(ARCH)" "HOME_DIR = $(HOME_DIR)" "MACRO_DIR = $(MACRO_DIR)"
+	@ $(MAKE) headers "ARCH = $(ARCH)" "HOME_DIR = $(HOME_DIR)" "MACRO_DIR = $(MACRO_DIR)"
+	@ $(MAKE) depend_init "ARCH = $(ARCH)" "HOME_DIR = $(HOME_DIR)" "MACRO_DIR = $(MACRO_DIR)"
+	@ $(MAKE) object_list "ARCH = $(ARCH)" "HOME_DIR = $(HOME_DIR)" "MACRO_DIR = $(MACRO_DIR)"
 
 # clean up - restore to unpacked state
 clean: $(MAKE_CLEAN_XTRAS) $(MOD_MAKE_CLEAN_XTRAS)
