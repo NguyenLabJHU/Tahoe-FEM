@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.16.2.1 2004-04-08 07:33:29 paklein Exp $ */
+/* $Id: ParticlePairT.h,v 1.16.2.2 2004-04-08 15:59:41 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -99,10 +99,6 @@ protected:
 	/** generate labels for output data */
 	virtual void GenerateOutputLabels(ArrayT<StringT>& labels) const;
 
-	/*nearest neighbor list*/
-	RaggedArray2DT<int> NearestNeighbors;
-	RaggedArray2DT<int> RefNearestNeighbors;
-
 	/** return a new pair property or NULL if the name is invalid */
 	PairPropertyT* New_PairProperty(const StringT& name, bool throw_on_fail) const;
 
@@ -116,6 +112,13 @@ private:
 
 	/** equation numbers */
 	RaggedArray2DT<int> fEqnos;
+
+	/** \name nearest neighbor lists needed for calculation slip vector
+	 * and strain */
+	/*@{*/
+	RaggedArray2DT<int> fNearestNeighbors;
+	RaggedArray2DT<int> fRefNearestNeighbors;
+	/*@}*/
 
 	/** \name workspace for ParticlePairT::RHSDriver. Used to accumulate the force for
 	 * a single row of ParticlePairT::fNeighbors. */

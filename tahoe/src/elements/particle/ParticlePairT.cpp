@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.33.2.1 2004-04-08 07:33:29 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.33.2.2 2004-04-08 15:59:41 paklein Exp $ */
 #include "ParticlePairT.h"
 
 #include "PairPropertyT.h"
@@ -34,8 +34,8 @@ const int kMemoryHeadRoom = 15; /* percent */
 ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field):
 	ParticleT(support, field),
 	fNeighbors(kMemoryHeadRoom),
-	NearestNeighbors(kMemoryHeadRoom),
-	RefNearestNeighbors(kMemoryHeadRoom),
+	fNearestNeighbors(kMemoryHeadRoom),
+	fRefNearestNeighbors(kMemoryHeadRoom),
 	fEqnos(kMemoryHeadRoom),
 	fForce_list_man(0, fForce_list)
 {
@@ -47,8 +47,8 @@ ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field
 ParticlePairT::ParticlePairT(const ElementSupportT& support):
 	ParticleT(support),
 	fNeighbors(kMemoryHeadRoom),
-	NearestNeighbors(kMemoryHeadRoom),
-	RefNearestNeighbors(kMemoryHeadRoom),
+	fNearestNeighbors(kMemoryHeadRoom),
+	fRefNearestNeighbors(kMemoryHeadRoom),
 	fEqnos(kMemoryHeadRoom),
 	fForce_list_man(0, fForce_list)
 {
@@ -211,8 +211,7 @@ void ParticlePairT::WriteOutput(void)
 #endif
 		
 		/* kinetic energy */
-		if (velocities) 
-		{
+		if (velocities) {
 			velocities->RowAlias(tag_i, vec);
 			values_i[ndof+1] = 0.5*mass[type_i]*dArrayT::Dot(vec, vec);
 		}
@@ -229,8 +228,7 @@ void ParticlePairT::WriteOutput(void)
 			
 			/* set pair property (if not already set) */
 			int property = fPropertiesMap(type_i, type_j);
-			if (property != current_property) 
-			{
+			if (property != current_property) {
 				energy_function = fPairProperties[property]->getEnergyFunction();
 				force_function = fPairProperties[property]->getForceFunction();
 				current_property = property;
@@ -295,10 +293,10 @@ void ParticlePairT::WriteOutput(void)
     /* flag for specifying Lagrangian (0) or Eulerian (1) strain */ 
     const int kEulerLagr = 0;
 	/* calculate slip vector and strain */
-	Calc_Slip_and_Strain(non,num_s_vals,s_values,RefNearestNeighbors,kEulerLagr);
+	Calc_Slip_and_Strain(non, num_s_vals, s_values, fRefNearestNeighbors, kEulerLagr);
 
     /* calculate centrosymmetry parameter */
-	Calc_CSP(non,num_s_vals,s_values,NearestNeighbors);
+	Calc_CSP(non,num_s_vals,s_values, fNearestNeighbors);
 
 	/* combine strain, slip vector and centrosymmetry parameter into n_values list */
 	for (int i = 0; i < fNeighbors.MajorDim(); i++)
@@ -313,19 +311,18 @@ void ParticlePairT::WriteOutput(void)
 									            
 		int valuep = 0;
 		for (int is = 0; is < num_stresses; is++)
-		{
-			n_values(local_i,ndof+2+num_stresses+valuep++) = s_values(local_i,is);
-		}
+			n_values(local_i, ndof+2+num_stresses+valuep++) = s_values(local_i,is);
 
 		/* recover J, the determinant of the deformation gradient, for atom i
 		 * and divide stress values by it */
 		double J = s_values(local_i,num_stresses);
-	    for (int is = 0; is < num_stresses; is++) n_values(local_i,ndof+2+is) /= J;
+	    for (int is = 0; is < num_stresses; is++) 
+	    	n_values(local_i, ndof+2+is) /= J;
 
 		for (int n = 0; n < ndof; n++)
-			n_values(local_i, ndof+2+num_stresses+num_stresses+n) = s_values(local_i,num_stresses+1+n);
+			n_values(local_i, ndof+2+num_stresses+num_stresses+n) = s_values(local_i, num_stresses+1+n);
 
-		n_values(local_i, num_output-1) = s_values(local_i,num_s_vals-1);
+		n_values(local_i, num_output-1) = s_values(local_i, num_s_vals-1);
 	}
 #endif
 
@@ -596,6 +593,9 @@ void ParticlePairT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
 	ParticleT::TakeParameterList(list);
+
+	/* set the list of reference nearest neighbors */
+	SetRefNN(fNearestNeighbors, fRefNearestNeighbors);
 
 	/* dimension */
 	int ndof = NumDOF();
@@ -1120,7 +1120,7 @@ void ParticlePairT::SetConfiguration(void)
 	const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
 	if (fActiveParticles) 
 		part_nodes = fActiveParticles;
-	GenerateNeighborList(part_nodes, fNearestNeighborDistance, NearestNeighbors, true, true);
+	GenerateNeighborList(part_nodes, fNearestNeighborDistance, fNearestNeighbors, true, true);
 	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
 
 
