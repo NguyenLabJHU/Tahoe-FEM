@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.2 2001-02-19 23:20:06 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #include "StringT.h"
@@ -10,6 +10,7 @@
 #include <iostream.h>
 #include <fstream.h>
 #include <iomanip.h>
+#include <strstream.h>
 
 #include "Constants.h"
 #include "ExceptionCodes.h"
@@ -711,6 +712,68 @@ void StringT::PrintCodes(ostream& out) const
 	for (int i = 0; i < Length(); i++)
 		out << setw(5) << int((*this)[i]);
 	out << '\n';
+}
+
+/* version number comparison - returns 0 if the versions numbers are
+ * the same, -1 if v1 is older than v2, 1 if v1 is newer than v2 */
+int StringT::versioncmp(const char* v1, const char* v2)
+{
+	while (!isdigit(*v1) && !isdigit(*v2))
+	{
+		if (*v1 != *v2)
+		{
+			cout << "\n StringT::versioncmp: incompatible version numbers:\n" 
+			     << '\t' << v1 << '\n'
+			     << '\t' << v2 << endl;
+			throw eGeneralFail;
+		}
+		v1++; v2++;
+	}
+
+	istrstream s1(v1), s2(v2);
+	while (true)
+	{
+		int i1 = -9999, i2 = -9999;
+		s1 >> i1;
+		s2 >> i2;
+		
+		/* error reading */
+		if (i1 == -9999)
+		{
+			cout << "\n StringT::versioncmp: error reading version number: "
+			     << v1 << endl;
+			throw eGeneralFail;
+		}
+		if (i2 == -9999)
+		{
+			cout << "\n StringT::versioncmp: error reading version number: "
+			     << v2 << endl;
+			throw eGeneralFail;
+		}
+		
+		/* resolve */
+		if (i1 > i2)
+			return 1;
+		else if (i2 > i1)
+			return -1;
+		else if (!s1.good() && !s2.good()) /* the same */
+			return 0;
+		else /* the same so far */
+		{
+			/* end of string */
+			if (!s1.good())
+				return -1;
+			else if (!s2.good())
+				return 1;
+			else /* next branch */
+			{
+				/* clear "." */
+				char a;
+				s1.get(a); if (a != '.') throw eGeneralFail;
+				s2.get(a); if (a != '.') throw eGeneralFail;
+			}
+		}
+	}
 }
 
 /**********************************************************************

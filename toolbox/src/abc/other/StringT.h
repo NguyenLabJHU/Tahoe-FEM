@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.2 2001-02-07 22:01:01 paklein Exp $ */
+/* $Id: StringT.h,v 1.3 2001-02-19 23:20:06 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #ifndef _STRING_T_H_
@@ -113,6 +113,10 @@ public:
 
 	/* print ASCII codes */
 	void PrintCodes(ostream& out) const;
+
+	/* version number comparison - returns 0 if the versions numbers are
+	 * the same, -1 if v1 is older than v2, 1 if v1 is newer than v2 */
+	static int versioncmp(const char* v1, const char* v2);
 
 private:
 	
