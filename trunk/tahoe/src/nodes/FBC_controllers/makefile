@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:49 paklein Exp $
+# $Id: makefile,v 1.5 2001-09-11 23:43:48 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,6 +7,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	AugLagSphereT.o \
+	AugLagWallT.o \
 	FBC_ControllerT.o \
 	MFPenaltySphereT.o \
 	PenaltyRegionT.o \
@@ -21,6 +22,7 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	AugLagSphereT.cpp \
+	AugLagWallT.cpp \
 	FBC_ControllerT.cpp \
 	MFPenaltySphereT.cpp \
 	PenaltyRegionT.cpp \
@@ -30,6 +32,7 @@ SRC = \
 # headers
 HDR = \
 	AugLagSphereT.h \
+	AugLagWallT.h \
 	FBC_ControllerT.h \
 	MFPenaltySphereT.h \
 	PenaltyRegionT.h \
