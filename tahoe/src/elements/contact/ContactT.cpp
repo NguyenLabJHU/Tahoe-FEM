@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.16.18.3 2004-04-21 07:37:34 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.16.18.4 2004-04-27 07:49:02 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -339,7 +339,7 @@ void ContactT::ExtractContactGeometry(const ParameterListT& list)
 
 	/* register with the model manager and let it set the ward */
 	int nen = fNumFacetNodes + 1; /* facet nodes + 1 striker */
-	if (!model.RegisterVariElements (name, fConnectivities_man, GeometryT::kLine, nen, 0)) 
+	if (!model.RegisterElementGroup(name, GeometryT::kLine, nen)) 
 		ExceptionT::GeneralFail(caller, "could not register contact facets");
 
 	/* set up fConnectivities */
@@ -425,15 +425,18 @@ bool ContactT::SetContactConfiguration(void)
 		int nel = fActiveStrikers.Length();
 		fActiveStrikersForce.Dimension(nel);
 		fActiveStrikersForce = 0.0;
-		fConnectivities_man.SetMajorDimension(nel, false);
 		fEqnos_man.SetMajorDimension(nel, false);
-
-		/* generate connectivities */
-		SetConnectivities();	
 
 		/* update dimensions */
 		ElementBlockDataT& block = fBlockData[0];
 		block.Set(block.ID(), block.StartNumber(), fConnectivities[0]->MinorDim(), block.MaterialID());
+		
+		/* reset the model manager */
+		ModelManagerT& model = ElementSupport().ModelManager();
+		model.ResizeElementGroup(block.ID(), nel);
+
+		/* generate connectivities */
+		SetConnectivities();
 	}
 
 	/* write list of active strikers */
