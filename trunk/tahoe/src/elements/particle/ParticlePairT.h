@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.5 2002-11-26 01:55:36 paklein Exp $ */
+/* $Id: ParticlePairT.h,v 1.6 2002-11-28 01:10:30 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -55,6 +55,10 @@ protected:
 
 	/** form group contribution to the residual */
 	virtual void RHSDriver(void);
+	void RHSDriver_1(void);
+	void RHSDriver_2(void);
+	void RHSDriver_3(void);
+	void RHSDriver3D_3(void);
 	/*@}*/
 	
 	/** set neighborlists and any other system configuration information
@@ -85,8 +89,8 @@ private:
 	/** \name workspace for ParticlePairT::RHSDriver. Used to accumulate the force for
 	 * a single row of ParticlePairT::fNeighbors. */
 	/*@{*/
-	dArrayT fForce;
-	VariArrayT<double> fForce_man;
+	dArrayT fForce_list;
+	VariArrayT<double> fForce_list_man;
 	/*@}*/
 };
 
