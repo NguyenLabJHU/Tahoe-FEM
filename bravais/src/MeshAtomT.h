@@ -64,6 +64,7 @@ class MeshAtomT {
   double Volume_of_Mesh();
   dArray2DT Length();
   iArrayT NumberOFCells();
+  StringT TypeOfVolume();
 
   dArray2DT* ReturnCoordinates();
   dArray2DT* ReturnBounds();

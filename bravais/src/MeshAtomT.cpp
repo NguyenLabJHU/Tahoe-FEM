@@ -94,6 +94,11 @@ double MeshAtomT::Volume_of_Mesh()
   return Shape->GetVolume();
 }
 
+StringT MeshAtomT::TypeOfVolume()
+{
+  return Shape->GetTypeOfVolume();
+}
+
 dArray2DT MeshAtomT::Length()
 {
   return Shape->GetLength();

@@ -296,6 +296,9 @@ void MakeCrystalT::Run()
     }
 
   int nb_atoms = mesh_atom.CreateMeshAtom();
+
+  out << "Type of the domain is " ; 
+  out << mesh_atom.TypeOfVolume();
   out << "Total number of atoms in the domain is " ;
   out << nb_atoms  << "\n";
 
