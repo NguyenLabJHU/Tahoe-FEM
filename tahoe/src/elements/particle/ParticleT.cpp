@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.36.2.2 2004-04-09 05:26:52 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.36.2.3 2004-04-13 16:01:55 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -1071,6 +1071,7 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 	fReNeighborDisp = list.GetParameter("re-neighbor_displacement");
 	fReNeighborIncr = list.GetParameter("re-neighbor_increment");
 
+	/* derived parameters */
 	if (NumSD() == 1)
 		fNearestNeighborDistance = fLatticeParameter*1.1;
     else if (NumSD() == 2)
@@ -1079,6 +1080,7 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 		fNearestNeighborDistance = fLatticeParameter*.78;
 	else
 		ExceptionT::GeneralFail(caller);
+	fPeriodicSkin = fNeighborDistance;
 
 	/* allocate work space */
 	fForce_man.Dimension(ElementSupport().NumNodes(), NumDOF());
@@ -1119,6 +1121,9 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 		fPeriodicBounds(direction,0) = x_min;
 		fPeriodicBounds(direction,1) = x_max;
 		fStretchSchedule[direction] = schedule;
+
+		/* send to CommManagerT */
+		ElementSupport().CommManager().SetPeriodicBoundaries(direction, x_min, x_max);
 	}
 
 	/* set up communication of type information */
@@ -1140,19 +1145,18 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 					j+1, i+1, fTypeNames[i].Pointer());
 					
 		/* check "all" particles */
-		const ParameterT* all_particles = particle_type.Parameter("all_partices");
+		const ParameterT* all_particles = particle_type.Parameter("all_particles");
 		bool all = false;
 		if (all_particles) {
 			all = *all_particles;
-			if (all && num_types > 1) {
 			
-				/* only one type can be "all" */
+			/* only one type can be "all" */
+			if (all && num_types > 1)			
 				ExceptionT::GeneralFail(caller, "\"all\" particles in \"%s\" conflicts with %d other types",
 					fTypeNames[i].Pointer(), num_types-1);
 					
-				/* mark particles with type 0 */
-				fType = 0;
-			}
+			/* mark particles with type 0 */
+			fType = 0;
 		}
 		
 		/* look for node list */
