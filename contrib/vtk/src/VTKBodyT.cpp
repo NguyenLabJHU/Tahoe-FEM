@@ -1,14 +1,9 @@
-/* $Id: VTKBodyT.cpp,v 1.2 2001-10-25 21:40:19 recampb Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.3 2001-10-26 02:14:53 paklein Exp $ */
 
 #include "VTKBodyT.h"
 
 #include "vtkPoints.h"
 
-#include "VTKConsoleT.h"
-#include "VTKFrameT.h"
-#include "vtkRenderer.h"
-#include "vtkRenderWindow.h"
-#include "vtkRenderWindowInteractor.h"
 #include "vtkUnstructuredGrid.h"
 #include "vtkUnstructuredGridReader.h"
 #include "vtkDataSetMapper.h"
@@ -16,7 +11,6 @@
 #include "vtkScalarBarActor.h"
 #include "vtkCubeAxesActor2D.h"
 #include "vtkRendererSource.h"
-#include "vtkTIFFWriter.h"
 #include "vtkWindowToImageFilter.h"
 #include "vtkLookupTable.h"
 #include "vtkIdFilter.h"
@@ -35,6 +29,9 @@
 #include "iArray2DT.h"
 #include "dArrayT.h"
 #include "GeometryT.h"
+
+/* array behavior */
+const bool ArrayT<VTKBodyT*>::fByteCopy = true;
 
 /* constructor */
 VTKBodyT::VTKBodyT(const StringT& file_name): 

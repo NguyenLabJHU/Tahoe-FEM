@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.4 2001-10-25 21:40:19 recampb Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.5 2001-10-26 02:14:53 paklein Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -34,8 +34,14 @@
 #include "GeometryT.h"
 
 /* constructor */
-VTKFrameT::VTKFrameT(void)
+VTKFrameT::VTKFrameT(void):
+  renderer(NULL),
+  renSrc(NULL)
 {
+  /* set up display classes */
+  renderer = vtkRenderer::New();
+  renSrc = vtkRendererSource::New();
+
   /* set up console modifiable variables */
 //   iAddVariable("age", fAge);
 //   iAddVariable("str_len", (const int) fLength);
@@ -74,23 +80,19 @@ VTKFrameT::VTKFrameT(void)
   iAddCommand("Show_axes");
   iAddCommand("Hide_axes");
   iAddCommand("Choose_variable");
-
-  bodies.Allocate(1);
-  for (int i = 0; i<1; i++)
-    {
-      StringT temp;
-      temp.Append("body", i,2);
-      bodies[i].iSetName(temp);
-      iAddSub(bodies[i]);
-    }
-
 }
 
+/* destructor */
+VTKFrameT::~VTKFrameT(void)
+{
+  /* free display classes */
+  renderer->Delete(); renderer = NULL;
+  renSrc->Delete(); renSrc = NULL;
+}
 
 /* execute given command - returns false on fail */
 bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 {
-
   int sfbTest;
   int  varNum;
   double xRot, yRot, zRot;

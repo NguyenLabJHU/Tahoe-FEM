@@ -1,29 +1,12 @@
-/* $Id: VTKConsoleT.cpp,v 1.19 2001-10-25 21:40:19 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.20 2001-10-26 02:14:53 paklein Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkPoints.h"
-#include "vtkUnstructuredGrid.h"
-#include "vtkUnstructuredGridReader.h"
-#include "vtkDataSetMapper.h"
-#include "vtkActor.h"
-#include "vtkScalarBarActor.h"
-#include "vtkCubeAxesActor2D.h"
 #include "vtkRendererSource.h"
+#include "vtkRenderWindowInteractor.h"
 #include "vtkTIFFWriter.h"
-#include "vtkWindowToImageFilter.h"
-#include "vtkLookupTable.h"
-#include "vtkIdFilter.h"
-#include "vtkSelectVisiblePoints.h"
-#include "vtkLabeledDataMapper.h"
-#include "vtkActor2D.h"
-#include "vtkFieldData.h"
-#include "vtkCamera.h"
-#include "vtkWarpVector.h"
-#include "vtkVectors.h"
 
 #include <iostream.h>
 #include <iomanip.h>
@@ -32,6 +15,7 @@
 #include "iArray2DT.h"
 #include "dArrayT.h"
 #include "GeometryT.h"
+#include "VTKBodyT.h"
 
 VTKConsoleT::VTKConsoleT(void)
 {
@@ -57,9 +41,6 @@ VTKConsoleT::VTKConsoleT(void)
   iAddCommand("Show_axes");
   iAddCommand("Hide_axes");
   iAddCommand("Choose_variable");
- 
- 
-
 
  /* prompt for input file */
   // StringT file;
@@ -68,6 +49,7 @@ VTKConsoleT::VTKConsoleT(void)
     cin >> test;
     cin.getline(line, 254);
     
+	StringT inFile;
     if (test == 1) inFile = "../../example_files/heat/heat.io0.exo";
     else if (test ==2) inFile ="test.io0.exo";
     else if (test == 3) inFile = "test2.io0.exo";
@@ -79,7 +61,15 @@ VTKConsoleT::VTKConsoleT(void)
     }
     else cout << "bad entry";
   
- 
+	//TEMP - construct one body
+	try {
+	VTKBodyT* body = new VTKBodyT(inFile);
+	fBodies.Append(body);
+	}
+	catch (int) {
+	  cout << "\n exception constructing body" << endl;
+	}
+
   //TEMP - adding sub-scopes to the console
   fFrames.Allocate(4);
   for (int i = 0; i < 4; i++)
@@ -91,11 +81,11 @@ VTKConsoleT::VTKConsoleT(void)
     }
 
 	  
-	  fFrames[0].renderer = vtkRenderer::New();
+  //	  fFrames[0].renderer = vtkRenderer::New();
 
 // 	  scalarBar = vtkScalarBarActor::New();
 	  //writer = vtkTIFFWriter::New();
-	  fFrames[0].renSrc = vtkRendererSource::New();
+  //  fFrames[0].renSrc = vtkRendererSource::New();
 // 	  ids = vtkIdFilter::New();
 // 	  visPts = vtkSelectVisiblePoints::New();
 // 	  ldm = vtkLabeledDataMapper::New();
@@ -133,14 +123,14 @@ VTKConsoleT::VTKConsoleT(void)
   //  renSrc = vtkRendererSource::New();
   /* divide window into 4 parts */
   //     if (numRen ==4){
-	         fFrames[0].renderer->SetViewport(0,0,.5,.5);
-	         fFrames[1].renderer->SetViewport(.5,0,1,.5);
-	         fFrames[2].renderer->SetViewport(0,.5,.5,1);
-	         fFrames[3].renderer->SetViewport(.5,.5,1,1);
-	         fFrames[0].renderer->GetActiveCamera()->Zoom(0.85);
-	         fFrames[1].renderer->GetActiveCamera()->Zoom(0.85);
-	         fFrames[2].renderer->GetActiveCamera()->Zoom(0.85);
-		 fFrames[3].renderer->GetActiveCamera()->Zoom(0.85);
+	         fFrames[0].Renderer()->SetViewport(0,0,.5,.5);
+	         fFrames[1].Renderer()->SetViewport(.5,0,1,.5);
+	         fFrames[2].Renderer()->SetViewport(0,.5,.5,1);
+	         fFrames[3].Renderer()->SetViewport(.5,.5,1,1);
+	         fFrames[0].Renderer()->GetActiveCamera()->Zoom(0.85);
+	         fFrames[1].Renderer()->GetActiveCamera()->Zoom(0.85);
+	         fFrames[2].Renderer()->GetActiveCamera()->Zoom(0.85);
+			 fFrames[3].Renderer()->GetActiveCamera()->Zoom(0.85);
 	  //       }
 	  
 	  
@@ -149,11 +139,11 @@ VTKConsoleT::VTKConsoleT(void)
 	
 
 
-  renWin->AddRenderer(fFrames[0].renderer);
+  renWin->AddRenderer(fFrames[0].Renderer());
   // if (numRen==4){   
-    renWin->AddRenderer(fFrames[1].renderer);
-    renWin->AddRenderer(fFrames[2].renderer);
-    renWin->AddRenderer(fFrames[3].renderer);
+    renWin->AddRenderer(fFrames[1].Renderer());
+    renWin->AddRenderer(fFrames[2].Renderer());
+    renWin->AddRenderer(fFrames[3].Renderer());
   // }
   iren->SetRenderWindow(renWin);
   
@@ -162,6 +152,17 @@ VTKConsoleT::VTKConsoleT(void)
   renWin->SetSize(600,700);
 
 
+}
+
+/* destructor*/
+VTKConsoleT::~VTKConsoleT(void)
+{
+  /* free data for remaining bodies */
+  for (int i = 0; i < fBodies.Length(); i++)
+	{
+	  delete fBodies[i];
+	  fBodies[i] = NULL;
+	}
 }
 
 /* execute given command - returns false on fail */
