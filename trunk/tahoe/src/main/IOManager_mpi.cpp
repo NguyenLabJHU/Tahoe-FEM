@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.18 2002-03-02 20:38:30 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.19 2002-03-04 06:56:31 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #include "IOManager_mpi.h"
@@ -859,26 +859,39 @@ void IOManager_mpi::GlobalSetNodes(const iArrayT& local_set_nodes, iArrayT& node
 {
 	/* assumes local nodes numbered sequentially through _i, _b, _e */
 	const iArrayT& external_nodes = fPartition.Nodes_External();
-	int cut_off = external_nodes[0];
-
-	/* count non-external nodes */
-	int count = 0;
-	int   length = local_set_nodes.Length();
-	int* p_local = local_set_nodes.Pointer();
-	for (int i = 0; i < length; i++)
-		if (*p_local++ < cut_off)
-			count++;
-			
-	/* collect (global node numbers) */
-	const iArrayT& to_global_nodes = fPartition.NodeMap();
-	nodes.Allocate(count);
-	int dex = 0;
-	p_local = local_set_nodes.Pointer();
-	for (int j = 0; j < length; j++)
+	if (external_nodes.Length() > 0)
 	{
-		if (*p_local < cut_off)
-			nodes[dex++] = to_global_nodes[*p_local];
-		p_local++;
+		int cut_off = external_nodes[0];
+
+		/* count non-external nodes */
+		int count = 0;
+		int   length = local_set_nodes.Length();
+		int* p_local = local_set_nodes.Pointer();
+		for (int i = 0; i < length; i++)
+			if (*p_local++ < cut_off)
+				count++;
+				
+		/* collect (global node numbers) */
+		const iArrayT& to_global_nodes = fPartition.NodeMap();
+		nodes.Allocate(count);
+		int dex = 0;
+		p_local = local_set_nodes.Pointer();
+		for (int j = 0; j < length; j++)
+		{
+			if (*p_local < cut_off)
+				nodes[dex++] = to_global_nodes[*p_local];
+			p_local++;
+		}
+	}
+	else /* no external nodes => all nodes resident */
+	{
+		int length = local_set_nodes.Length();
+		nodes.Allocate(length);
+
+		/* collect (global node numbers) */
+		const iArrayT& to_global_nodes = fPartition.NodeMap();
+		for (int j = 0; j < length; j++)
+			nodes[j] = to_global_nodes[local_set_nodes[j]];
 	}
 }
 
@@ -1157,8 +1170,7 @@ void IOManager_mpi::ReadOutputGeometry(const StringT& model_file,
 	}
 	
 	/* set global coordinates */
-//	SetCoordinates(fOutputGeometry->Coordinates(), NULL);
-	SetCoordinates(fOutputGeometry->Coordinates());
+	SetCoordinates(fOutputGeometry->Coordinates(), NULL);
 
 	/* read connectivities needed for the local output sets */
 	for (int i = 0; i < fIO_map.Length(); i++)
