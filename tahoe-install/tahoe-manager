@@ -14,10 +14,10 @@ use Cwd; # $home = cwd();
 %module2define = qw(
 expat	EXPAT_
 toolbox	TB_
-tahoe	NODEFINE
+tahoe	TAHOE_
 macros	NODEFINE
 spooles SPOOLES_
-sppolesMPI SPOOLESMPI_
+spoolesMPI SPOOLESMPI_
 metis   METIS_
 aztec   AZ_
 f2c	    F2C_
@@ -35,7 +35,7 @@ toolbox /cvs/protected/tahoe
 tahoe /cvs/protected/tahoe
 macros /cvs/protected/tahoe
 spooles /cvs/protected/tahoe
-sppolesMPI /cvs/protected/tahoe
+spoolesMPI /cvs/protected/tahoe
 metis /cvs/protected/tahoe
 aztec /cvs/protected/tahoe
 f2c /cvs/protected/tahoe
@@ -48,7 +48,23 @@ benchmark_XML /cvs/protected/tahoe
 );
 
 # modules in the UP_TO_DATE macro
-@up_to_date_modules = ("development", "Sierra");
+%up_to_date_modules = qw(
+development 1
+Sierra 1
+);
+
+# modules available via http
+%http_modules = qw(
+macros 1
+expat 1
+toolbox 1
+tahoe 1
+benchmark_XML 1
+metis 1
+spooles 1
+spoolesMPI 1
+spoolesMT 1
+);
 
 # minimum required installation
 @defaultmodules = ("macros","expat","toolbox","tahoe");
@@ -79,11 +95,12 @@ ARG: while (@ARGV) {
 		$count = @ARGV;
 		if ($script_status > 0 )   { failed();}
 		if (/^u|update/i)          { update(); next ARG; }
-		if (/^co|config/i)         { config(); next ARG; }
+		if (/^co|config/i)          { config(); next ARG; }
+		if (/^i|init/i)            { init(); next ARG; }
 		if (/^b|build/i)           { build(); next ARG; }
 		if (/^cl|clean/i)          { clean(); next ARG; }
 		if (/^t|test/i)            { test(); next ARG; }
-		if (/^a|all/i)             { update(); config(); build(); next ARG; }
+		if (/^a|all/i)             { update(); init(); build(); next ARG; }
 		if (/^u|usage|help|^h/i)   { usage();}
 		print "ERROR: unknown option: $_ \n"; usage();
 	}
@@ -93,8 +110,6 @@ exit 0;
 
 ###############################################################################
 sub initialize{
-# username
-$username = getlogin();
 
 # classify modules
 %tmp = %module2define;
@@ -119,9 +134,10 @@ foreach $key (sort(keys %ENV)) {
 if(-e "$config_file") { read_config();}
 else                  { write_default_config();}
 
-print ">   connection: $connection \n";
+print ">   tahoe name: $tahoe_login\n";
+print ">   connection: $connection\n";
 if ($proxy !~ /NONE/) {
-	print ">        proxy: $proxy \n";
+	print ">        proxy: $proxy\n";
 }
 print "> architecture: $arch \n"; 
 
@@ -148,6 +164,33 @@ if ($connection =~ /cvs/) {
 }
 }
 
+sub config {
+	@config_options = ("add optional modules", "remove optional modules", "configure options within modules");
+	print "\nconfiguration options:\n";
+	$i = 0;
+	foreach $option (@config_options) {
+		print "$i $option\n"; 
+		$i++
+	}
+	print "choice ? ";
+	$choice = <STDIN>;
+	if ($choice =~ /0/) {
+		add_optional_modules();
+		write_config();
+		print "\n* \"init\" needs to be re-run after adding optional modules\n\n";
+	} elsif ($choice =~ /1/) {
+		remove_optional_modules();
+		write_config();
+		print "\n* \"init\" needs to be re-run after removing optional modules\n\n";
+	} else {
+		module_config();
+		print "\n* \"init\" needs to be re-run changing module options\n\n";
+	}
+	
+	# rewrite configuration file
+	write_config();
+}
+
 ##############################################################################
 sub read_config{
 print "* reading config file $config_file\n";
@@ -157,8 +200,8 @@ while(<CONFIG>) {
 	s/^\s+//; s/\s+$//; @list = split(/ +/);
  	if (defined($list[0])){
         	if (/^\#/ ){ 
-			if     ($type  =~ /CONNECTION/)
-				{$connection = $tmp_list[0];}
+			if ($type  =~ /CONNECTION/) {$connection = $tmp_list[0];}
+			elsif ($type =~ /TAHOE_LOGIN/) { $tahoe_login = $tmp_list[0]; }
 			elsif  ($type  =~ /PROXY/){$proxy = $tmp_list[0];}
 			elsif  ($type  =~ /ARCH/){$arch = $tmp_list[0];}
  			elsif  ($type  =~ /MODU/){@modules = @tmp_list;}
@@ -200,6 +243,14 @@ foreach $key (sort(keys %ENV)) {
 		$connection = "cvs"; }
 }
 
+# Tahoe server login name
+$tahoe_login = getlogin();
+print "Tahoe server username? [$tahoe_login]: ";
+$name = <STDIN>; chomp($name);
+if (length($name) > 0) {
+	$tahoe_login = $name;
+}
+
 # connection type
 $proxy = "NONE";
 unless(defined($connection)){ 
@@ -237,7 +288,7 @@ unless(-d "macros") {
 		print "checking out macros\n";
 		unlink("cvs.log");
 		$repo = $module2repo{"macros"};
-		system("cvs -d $username\@$tahoe:$repo checkout macros > cvs.log 2>&1");
+		system("cvs -d $tahoe_login\@$tahoe:$repo checkout macros > cvs.log 2>&1");
 	} elsif ($connection =~ /http/) {
 	
 		# grab new copy
@@ -260,15 +311,21 @@ unless(-d "macros") {
 }
 
 # architecture
-unless(defined($arch)){
-chdir "macros"; 
-@macros = glob("*.macros"); 
-foreach $choice (@macros) { $choice =~ s/\.macros//; push(@choices,$choice);}
-chdir "..";
-print "no default build architecture, choices:\n";
-$i=0;foreach $choice (@choices) { print "$i $choice\n"; $i++;}
-print "macro ? "; $i = <STDIN>; $arch = $choices[$i]; 
-print "* you chose : $arch\n";
+unless(defined($arch))	{
+	chdir "macros"; 
+	@macros = glob("*.macros"); 
+	foreach $choice (@macros) { 
+		$choice =~ s/\.macros//; 
+		push(@choices,$choice);
+	}
+	chdir "..";
+	print "no default build architecture, choices:\n";
+	$i=0;
+	foreach $choice (@choices) { print "$i $choice\n"; $i++;}
+	print "macro ? "; 
+	$i = <STDIN>; 
+	$arch = $choices[$i]; 
+	print "* you chose : $arch\n";
 }
 
 # modules
@@ -278,29 +335,19 @@ foreach $key (sort(keys %ENV)) {
 	if ($key =~ /TAHOE_BUILD/ && $ENV{$key} =~ /default/) { $choice = 1; }
 }
 if ($choice != 1) {
-print "* default modules : @defaultmodules\n";
-print "do want to add optional modules ? (y/n) [n] :"; $choice = <STDIN>;
-if ( $choice =~ /y/ ) {
-print "\noptional modules:\n";
-$i=0;foreach $choice (@optionalmodules) { print "$i $choice\n"; $i++;}
-print "modules ? "; $choice = <STDIN>; chomp($choice);
-@choices = split(/ +|,/,$choice);
-foreach $choice (@choices) { push (@modules,$optionalmodules[$choice]) ;}
-print "* you chose : @modules \n";
-}
-}
+	print "* default modules : @defaultmodules\n";
 
+	# add optional modules
+	print "do want to add optional modules ? (y/n) [n] :"; 
+	$choice = <STDIN>;
+	if ( $choice =~ /y/ ) {
+		add_optional_modules();
+	}
+}
 print "\n";
 
-
-open(CONFIG,">$config_file") || die "cannot open file $config_file for writing : $!";
-print CONFIG  "# CONNECTION\n$connection\n\n";
-print CONFIG  "# PROXY\n$proxy\n\n";
-print CONFIG  "# ARCHITECTURE\n$arch\n\n";
-print CONFIG  "# MODULES\n@modules\n\n";
-print CONFIG  "# EOF";
-close(CONFIG);
-
+# write configuration file
+write_config();
 }
 
 ##############################################################################
@@ -329,7 +376,7 @@ sub update_cvs{
 		} else {
 			print "\tchecking out $dir...";
 			$repo = $module2repo{$dir};
-			system("cvs -d $username\@$tahoe:$repo checkout $dir > cvs.log 2>&1");
+			system("cvs -d $tahoe_login\@$tahoe:$repo checkout $dir > cvs.log 2>&1");
 			print "done\n";
 		}
 		# check for failures
@@ -345,6 +392,13 @@ sub update_http{
 	$time = localtime();
 	print "($count) updating: @modules, at $time\n";
 	foreach $dir (@modules) {
+	
+		# check
+		if (!defined($http_modules{$dir})) {
+			print "ERROR: module $dir is not available via http\n";
+			exit;
+		}
+	
 		print "\tupdating $dir...\n";
 		
 		# grab new copy
@@ -392,10 +446,12 @@ sub build{
 			if (!(-e "makefile") && (-e "makefile.template")) {
 				print "\tinitializing $dir...";
 				fillin_makefile();
-				system("make init > build.log 2>&1");
+				if (!defined($up_to_date_modules{$dir})) {
+					system("make init > build.log 2>&1");
+				}
 				print "done\n";
 			}
-			if (-e "makefile") {
+			if (-e "makefile" && !defined($up_to_date_modules{$dir})) {
 				print "\tmaking $dir...";
 				unlink("build.log");
 				system("make build > build.log 2>&1");
@@ -415,10 +471,14 @@ sub build{
 }
 
 ##############################################################################
-sub config{
+sub init{
 	$time = localtime();
-	print "($count) initializing: @modules, at $time\n";
-	foreach $dir (@modules) {
+	
+	# need to sort modules based on dependencies
+	@tmp_modules = sort by_depend @modules;
+	
+	print "($count) initializing: @tmp_modules, at $time\n";
+	foreach $dir (@tmp_modules) {
 		if (-e $dir) { 
 			chdir $dir; 
 			if (-e "makefile.template") {
@@ -429,9 +489,11 @@ sub config{
 				print "done\n";
 				
 				# run "make init"
-				print "\tinitializing $dir...";
-				system("make init > build.log 2>&1");
-				print "done\n";
+				if (!defined($up_to_date_modules{$dir})) {
+					print "\tinitializing $dir...";
+					system("make init > build.log 2>&1");
+					print "done\n";
+				}
 			}
 		 	chdir "..";
 		}
@@ -463,7 +525,7 @@ sub test{
 		print "checking out benchmark\n";
 		unlink("cvs.log");
 		$repo = $module2repo{"benchmark_XML"};
-		system("cvs -d $username\@$tahoe:$repo checkout benchmark_XML > cvs.log 2>&1");
+		system("cvs -d $tahoe_login\@$tahoe:$repo checkout benchmark_XML > cvs.log 2>&1");
  	} else {
 		system("cd benchmark_XML; cvs update -Pd > cvs.log 2>&1");
 	}
@@ -495,20 +557,22 @@ sub failed{
 }
 
 ##############################################################################
-sub usage{
+sub usage {
 	print "\nusage: tahoe-manager [list of keywords and options]\n";
 	print "       update  : updates or checks out modules\n";
-	print "       config  : creates makefiles and initializes modules\n";
+	print "       config  : change build options\n";
+	print "       init    : creates makefiles and initializes modules\n";
 	print "       build   : builds modules\n";
 	print "       test    : runs regression tests\n";
 	print "       clean   : cleans modules\n";
-	print "       all     : updates, config's and builds \n";
+	print "       all     : updates, init's and builds \n";
 	print "\n ... to build tahoe the first time type \" tahoe-manager all \"\n";
 	exit 1;
 }
 
 ##############################################################################
 sub by_depend {
+
 	$filename = "$a/makefile.template";
 	$a_on_b = -1;
 	if (-e $filename) {
@@ -531,21 +595,40 @@ sub by_depend {
 		unless($b_on_a > 0) {$b_on_a = 0;}
 	}
 
+	# bi-directional dependency with tahoe => tahoe goes last
+	if ($a_on_b == $b_on_a && ($a =~ /^tahoe$/ || $b =~ /^tahoe$/) ) {
+		if ($a =~ /^tahoe$/) {
+			$a_on_b = $b_on_a + 1;
+		} else {
+			$b_on_a = $a_on_b + 1;
+		}
+	}
+
 	#print " $a $a_on_b $b $b_on_a \n";
 
-        ($a_on_b <=> $b_on_a);
+	($a_on_b <=> $b_on_a);
 }
 
 ##############################################################################
 sub fillin_makefile{
 
 	# if makefile exists, preserve MOD_ macros in makefile
-	@mod_macros = {"MOD_CFLAGS_C =", "MOD_CFLAGS_CC =", "MOD_CFLAGS_F =", "MOD_LFLAGS ="};
+	%mod_macros = qw(
+		MOD_CFLAGS_C 0
+		MOD_CFLAGS_CC 0
+		MOD_CFLAGS_F 0
+		MOD_LFLAGS 0
+	);
+	@mod_macros_keys = ();
 	if (-e "makefile") {
 		open(IN, "makefile");
+		@mod_macros_keys = keys(%mod_macros);
 		while (defined($line = <IN>)) {
-		
-		
+			foreach $key (@mod_macros_keys) {
+				if ($line =~ /$key\s*=/) {
+					$mod_macros{$key} = $line;
+				}
+			}
 		}
 		close (IN);
 	}
@@ -555,8 +638,19 @@ sub fillin_makefile{
 	open(IN,"makefile.template");
 	open(OUT,">makefile");
 	while (defined($line = <IN>)){
+	
+		# configuration
 		$line =~ s/HOME_DIR =/HOME_DIR = $path/;
 		$line =~ s/ARCH =/ARCH = $arch/;
+		
+		# restore MOD_ macros
+		foreach $key (@mod_macros_keys) {
+			if ($line =~ /$key\s*=/) {
+				$line = $mod_macros{$key};
+			}
+		}
+		
+		# optional modules
 		foreach $module (@modules) {
 			$define = $module2define{$module};
 			$line =~ s/\#$define/$define/;
@@ -565,6 +659,20 @@ sub fillin_makefile{
 			$define = $module2define{$syslib2module{$syslib}};
 			$line =~ s/\#$define/$define/;
 		}
+		
+		# UP_TO_DATE modules - tahoe module only
+		if ($path =~ /tahoe-install\/tahoe/ && $line =~ /UP_TO_DATE\ =\ NONE/) {
+			$up_to_date = "";
+			foreach $module (@modules) {
+				if (defined($up_to_date_modules{$module})) {
+					$up_to_date = $up_to_date." \$(".$module2define{$module}."DIR)";
+				}
+			}
+			if (length($up_to_date) > 0) {
+				$line =~ s/=\ NONE/=$up_to_date/;
+			}
+		}
+		
 		print OUT "$line";
  	}
 	close(IN);
@@ -580,4 +688,171 @@ sub my_which{
                 if(-x "$path/$cmd") { $location = $path; last;}
         }
         return $location;
+}
+
+##############################################################################
+sub write_config {
+	open(CONFIG,">$config_file") || die "cannot open file $config_file for writing : $!";
+	print CONFIG  "# TAHOE_LOGIN\n$tahoe_login\n\n";
+	print CONFIG  "# CONNECTION\n$connection\n\n";
+	print CONFIG  "# PROXY\n$proxy\n\n";
+	print CONFIG  "# ARCHITECTURE\n$arch\n\n";
+	print CONFIG  "# MODULES\n@modules\n\n";
+	print CONFIG  "# EOF";
+	close(CONFIG);
+}
+
+##############################################################################
+sub add_optional_modules {
+
+	# collect optional modules not currently included
+	my @newoptionalmodules = ();
+	foreach $opt_module (@optionalmodules) {
+		my $found = 0;
+		foreach $module (@modules) {
+			if ($module =~ /$opt_module/) {
+				$found = 1;
+			}
+		}
+		if ($found == 0) {
+			push(@newoptionalmodules, $opt_module);
+		}
+	}
+
+	print "\noptional modules:\n";
+	my $i=0;
+	foreach $choice (@newoptionalmodules) { 
+		print "$i $choice\n"; 
+		$i++;
+	}
+	print "module numbers to add ? "; 
+	my $choice = <STDIN>; 
+	chomp($choice);
+	my @choices = split(/ +|,/,$choice);
+	foreach $choice (@choices) { 
+		push (@modules,$newoptionalmodules[$choice]);
+	}
+	print "* modules : @modules \n";
+}
+
+##############################################################################
+sub remove_optional_modules {
+
+	# collect optional modules currently included
+	my @curr_optionalmodules = ();
+	foreach $opt_module (@optionalmodules) {
+		my $found = 0;
+		foreach $module (@modules) {
+			if ($module =~ /$opt_module/) {
+				$found = 1;
+			}
+		}
+		if ($found == 1) {
+			push(@curr_optionalmodules, $opt_module);
+		}
+	}
+	
+	print "\noptional modules:\n";
+	my $i=0;
+	foreach $choice (@curr_optionalmodules) { 
+		print "$i $choice\n"; 
+		$i++;
+	}
+	print "module numbers to remove ? "; 
+	my $choice = <STDIN>; 
+	chomp($choice);
+	my @choices = split(/ +|,/,$choice);
+	foreach $choice (@choices) {
+		my @modules_tmp = @modules;
+		@modules = ();
+		foreach $module (@modules_tmp) {
+			if ($module !~ /$curr_optionalmodules[$choice]/) {
+				push(@modules, $module);
+			}
+		}
+	}
+	print "* modules : @modules \n";
+}
+
+##############################################################################
+sub module_config {
+
+	# collect list of configurable modules
+	my @config_modules = ();
+	foreach $module (@modules) {
+		if (-d "$module/config") {
+			open(CHECK, "ls -1 $module/config | grep -c \.conf |");
+			my $count = <CHECK>;
+			chomp($count);
+			close(CHECK);
+			if ($count > 0) {
+				push(@config_modules, $module);
+			}
+		}
+	}
+	
+	if (scalar(@config_modules) == 0) {
+		print "\nThere are no modules with configurable options\n";
+	}
+	else {
+		print "\nconfigurable modules:\n";
+		my $i=0;
+		foreach $choice (@config_modules) { 
+			print "$i $choice\n"; 
+			$i++;
+		}
+		print "modules to configure? ";
+		my $choice = <STDIN>; 
+		chomp($choice);				
+		my @choices = split(/ +|,/,$choice);
+		foreach $choice (@choices) {	
+			configure_module($config_modules[$choice]);
+		}
+	}
+}
+
+##############################################################################
+sub configure_module {
+	my $module = shift(@_);
+	
+	# regenerate the configuration headers
+	chdir $module;
+	fillin_makefile();
+	system("make update_config > build.log 2>&1");
+	
+	# find configuration headers
+	@config_headers = ();
+	open(LS, "ls -1 src-mirror/config |");
+	while (defined($file = <LS>)) {
+		chomp($file);
+		if ($file =~ /\.h$/) {
+			push(@config_headers, $file);
+		}
+	}
+
+	if (scalar(@config_headers) == 0) {
+		print "\nThere are no headers with configurable options\n";	
+	} else {
+		print "\nconfigurable headers in module $module:\n";
+		$i=0;
+		foreach $choice (@config_headers) { 
+			print "$i $choice\n"; 
+			$i++;
+		}	print "headers to configure ? ";
+		$choice = <STDIN>; 
+		chomp($choice);
+		@choices = split(/ +|,/,$choice);
+		foreach $choice (@choices) {	
+			configure_header($config_headers[$choice]);
+		}
+	}
+
+	# up
+	chdir "..";
+}
+
+##############################################################################
+sub configure_header {
+	my $header = shift(@_);
+	print "configuring header $header\n";
 }
