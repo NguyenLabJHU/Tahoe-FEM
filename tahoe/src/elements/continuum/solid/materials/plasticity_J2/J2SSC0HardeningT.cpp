@@ -1,4 +1,4 @@
-/* $Id: J2SSC0HardeningT.cpp,v 1.5.30.1 2005-04-05 23:29:02 thao Exp $ */
+/* $Id: J2SSC0HardeningT.cpp,v 1.5.30.2 2005-04-06 23:14:55 thao Exp $ */
 #include "J2SSC0HardeningT.h"
 
 #include <iostream.h>
@@ -38,6 +38,21 @@ J2SSC0HardeningT::J2SSC0HardeningT(ifstreamT& in, int num_ip, double mu):
 {
 	/* construct hardening function from stream */
 	ConstructHardeningFunction(in);
+
+	int dofcount = 0;
+	fInternalDOF.Dimension(3);
+	fInternalDOF[0] = 1; //alpha, -K*alpha
+	dofcount++;
+	fInternalDOF[1] = dSymMatrixT::NumValues(kNSD); //plasticstrain, -beta
+	dofcount += dSymMatrixT::NumValues(kNSD);
+	fInternalDOF[2] = dSymMatrixT::NumValues(kNSD); //plasticstrain, stress
+	dofcount += dSymMatrixT::NumValues(kNSD);
+	
+	fInternalStressVars.Dimension(dofcount);
+	fInternalStressVars = 0.0;
+	
+	fInternalStrainVars.Dimension(dofcount);
+	fInternalStrainVars = 0.0;
 }
 
 /* destructor */
@@ -195,21 +210,6 @@ void J2SSC0HardeningT::AllocateElement(ElementCardT& element)
 	/* initialize values */
 	element.IntegerData() = kIsElastic;
 	element.DoubleData()  = 0.0;
-
-	int dofcount = 0;
-	fInternalDOF.Dimension(3);
-	fInternalDOF[0] = 1; //alpha, -K*alpha
-	dofcount++;
-	fInternalDOF[1] = dSymMatrixT::NumValues(kNSD); //plasticstrain, -beta
-	dofcount += dSymMatrixT::NumValues(kNSD);
-	fInternalDOF[2] = dSymMatrixT::NumValues(kNSD); //plasticstrain, stress
-	dofcount += dSymMatrixT::NumValues(kNSD);
-	
-	fInternalStressVars.Dimension(dofcount);
-	fInternalStressVars = 0.0;
-	
-	fInternalStrainVars.Dimension(dofcount);
-	fInternalStrainVars = 0.0;
 }
 
 /***********************************************************************
@@ -307,21 +307,21 @@ void J2SSC0HardeningT::Reset(ElementCardT& element)
 const dSymMatrixT& J2SSC0HardeningT::Get_PlasticStrain(const ElementCardT& element, int ip)
 {
          LoadData(element, ip);
-         return (fPlasticStrain);
+         return fPlasticStrain;
 }
 
 /* load element data for the specified integration point */
 const dSymMatrixT& J2SSC0HardeningT::Get_Beta(const ElementCardT& element, int ip)
 {
          LoadData(element, ip);
-         return (fBeta);
+         return fBeta;
 }
 
 /* load element data for the specified integration point */
 const dArrayT& J2SSC0HardeningT::Get_Internal(const ElementCardT& element, int ip)
 {
          LoadData(element, ip);
-         return (fInternal);
+         return fInternal;
 }
 
 /***********************************************************************
@@ -332,7 +332,10 @@ const dArrayT& J2SSC0HardeningT::Get_Internal(const ElementCardT& element, int i
 void J2SSC0HardeningT::LoadData(const ElementCardT& element, int ip)
 {
 	/* check */
-	if (!element.IsAllocated()) throw ExceptionT::kGeneralFail;
+	if (!element.IsAllocated()) { 
+		cout << "\nElement is not allocated: ";	
+		throw ExceptionT::kGeneralFail;
+	}
 
 	/* fetch arrays */
 	const dArrayT& d_array = element.DoubleData();
