@@ -1,4 +1,4 @@
-/* $Id: SSMF.cpp,v 1.6 2003-11-21 22:54:46 paklein Exp $ */
+/* $Id: SSMF.cpp,v 1.7 2003-11-21 23:05:04 thao Exp $ */
 #include "SSMF.h"
 
 #include "OutputSetT.h"
@@ -364,7 +364,7 @@ void SSMF::MatForceVolMech(dArrayT& elem_val)
 	fShapes->InterpolateU(fLocVel, fVel);
 	fEshelby(0,0) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]);
 	fEshelby(1,1) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]);
-	if (elem ==6) { 
+	if (elem ==6 && 0) { 
 	  cout << "\nstress: "<<Cauchy;
 	  cout << "\nenergy: "<<energy;
 	  cout << "\nfVel: "<<fVel; 
@@ -378,15 +378,13 @@ void SSMF::MatForceVolMech(dArrayT& elem_val)
       for (int j = 0; j<nen; j++)
       {
 	/*add nEshelby volume integral contribution*/
-       	*(pforce++) += (Cauchy(0,0)*(*pDQaX) + Cauchy(0,1)*(*pDQaY)
-               + (gradU(0,0)*fip_body[0]+gradU(1,0)*fip_body[1])*(*pQa))*(*jac)*(*weight);
-	*(pforce++) += (fEshelby(1,0)*(*pDQaX++) + fEshelby(1,1)*(*pDQaY++)
-	       + (gradU(0,1)*fip_body[0]+gradU(1,1)*fip_body[1])*(*pQa++))*(*jac)*(*weight); 
 
-	/*	*(pforce++) += (fEshelby(0,0)*(*pDQaX) + fEshelby(0,1)*(*pDQaY)
-               + (gradU(0,0)*fip_body[0]+gradU(1,0)*fip_body[1])*(*pQa))*(*jac)*(*weight);
+       	*(pforce++) += (fEshelby(0,0)*(*pDQaX) + fEshelby(0,1)*(*pDQaY)
+          +(gradU(0,0)*fip_body[0]+gradU(1,0)*fip_body[1])*(*pQa))
+          *(*jac)*(*weight);
 	*(pforce++) += (fEshelby(1,0)*(*pDQaX++) + fEshelby(1,1)*(*pDQaY++)
-	+ (gradU(0,1)*fip_body[0]+gradU(1,1)*fip_body[1])*(*pQa++))*(*jac)*(*weight); */
+	  +(gradU(0,1)*fip_body[0]+gradU(1,1)*fip_body[1])*(*pQa++))
+          *(*jac)*(*weight); 
       }
     }
     else if (NumSD() ==3)
@@ -438,24 +436,24 @@ void SSMF::MatForceVolMech(dArrayT& elem_val)
       
       for (int j = 0; j<nen; j++)
       {
-	    /*add Eshelby volume integral contribution*/
-	    *(pforce++) += (fEshelby[0]*(*pDQaX) + fEshelby[3]*(*pDQaY) + fEshelby[6]*(*pDQaZ) 
-	        +(gradU[0]*fip_body[0] + gradU[1]*fip_body[1] + gradU[2]*fip_body[2])
-	        *(*pQa) )*(*jac)*(*weight);
+	/*add Eshelby volume integral contribution*/
+	*(pforce++) += (fEshelby[0]*(*pDQaX) + fEshelby[3]*(*pDQaY) 
+	 +fEshelby[6]*(*pDQaZ)+(gradU[0]*fip_body[0] + gradU[1]*fip_body[1] 
+         +gradU[2]*fip_body[2])*(*pQa) )*(*jac)*(*weight);
 
-    	*(pforce++) += (fEshelby[1]*(*pDQaX) + fEshelby[4]*(*pDQaY) + fEshelby[7]*(*pDQaZ)
-	        +(gradU[3]*fip_body[0] + gradU[4]*fip_body[1] + gradU[5]*fip_body[2])
-	        *(*pQa) )*(*jac)*(*weight);
+    	*(pforce++) += (fEshelby[1]*(*pDQaX) + fEshelby[4]*(*pDQaY) 
+	 +fEshelby[7]*(*pDQaZ)+(gradU[3]*fip_body[0] + gradU[4]*fip_body[1] 
+	 +gradU[5]*fip_body[2])*(*pQa) )*(*jac)*(*weight);
 
-	    *(pforce++) += (fEshelby[2]*(*pDQaX++) + fEshelby[5]*(*pDQaY++) + 
-	        fEshelby[8]*(*pDQaZ++) + (gradU[6]*fip_body[0]+gradU[7]*fip_body[1]
-	        +gradU[8]*fip_body[2])*(*pQa++))*(*jac)*(*weight);
+	*(pforce++) += (fEshelby[2]*(*pDQaX++) + fEshelby[5]*(*pDQaY++) 
+	 +fEshelby[8]*(*pDQaZ++) + (gradU[6]*fip_body[0]+gradU[7]*fip_body[1]
+	 +gradU[8]*fip_body[2])*(*pQa++))*(*jac)*(*weight);
       }
     }
     weight++;
     jac++;
   }
-  if (elem ==6) cout << "VolElem: "<<elem_val;
+  if (elem ==6 && 0) cout << "VolElem: "<<elem_val;
 }
 
 void SSMF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch)
@@ -563,7 +561,7 @@ void SSMF::MatForceDynamic(dArrayT& elem_val)
   /*intialize shape function data*/
   const double* jac = fShapes->IPDets();
   const double* weight = fShapes->IPWeights();
-    if (elem ==6) {
+    if (elem ==6 && 0) {
       cout << "\nAcc: "<<fLocAcc;
       cout << "\nVel: "<<fLocVel;
       cout <<"\n fDisp: "<<fLocDisp;
@@ -582,7 +580,7 @@ void SSMF::MatForceDynamic(dArrayT& elem_val)
     fShapes->GradU(fLocVel,fGradVel); 
     fShapes->InterpolateU(fLocVel, fVel);
     fShapes->InterpolateU(fLocAcc, fAcc);
-    if (elem ==6)
+    if (elem ==6 && 0)
     {
       cout << "\nelem "<<elem<<" ip "<<CurrIP()<<endl; 
       cout << "\nfGradVel: "<<fGradVel;
@@ -595,13 +593,10 @@ void SSMF::MatForceDynamic(dArrayT& elem_val)
     {
       for (int i = 0; i<nen; i++)
       {
-	/*       	double xval = density*(-fGradVel[0]*fVel[0]-fGradVel[1]*fVel[1]
+	double xval = density*(-fGradVel[0]*fVel[0]-fGradVel[1]*fVel[1]
 			       +gradU[0]*fAcc[0]+gradU[1]*fAcc[1]);
 	double yval = density*(-fGradVel[2]*fVel[0]-fGradVel[3]*fVel[1]
-	+gradU[2]*fAcc[0]+gradU[3]*fAcc[1]);*/
-
-       	double xval = density*(fAcc[0]);
-	double yval = density*(fAcc[1]);
+			       +gradU[2]*fAcc[0]+gradU[3]*fAcc[1]);
 
     	*pelem_val++ += xval*(*pQa)*(*jac)*(*weight);
 	*pelem_val++ += yval*(*pQa++)*(*jac)*(*weight);      
@@ -628,7 +623,7 @@ void SSMF::MatForceDynamic(dArrayT& elem_val)
     jac++;
     weight++;
   }
-    if (elem ==6) cout<<"\nDynElem: "<<elem_val;
+    if (elem ==6 && 0) cout<<"\nDynElem: "<<elem_val;
 }
 
 void SSMF::MatForceSurfMech(dArrayT& global_val)
@@ -863,16 +858,21 @@ void SSMF::Extrapolate(void)
   const char caller[] = "SSMF::Extrapolate";   
 
   int nen = NumElementNodes();
+
+  /****************************************
   if (nen != ElementBaseT::fLHS.Rows()) {
     cout<<"\nSSMF::Extrapolate: Dimension mismatch with fLHS and NumElementNodes()";
     throw ExceptionT::kGeneralFail;
   }
+  ****************************************/
 
   Top();
   while (NextElement())
   {
     /*initialize element mass matrix*/
-    //    felem_mass = 0.0;
+    felem_mass = 0.0;
+
+    /*****************************
     ElementBaseT::fLHS = 0.0;
     ContinuumElementT::FormMass(ContinuumElementT::kLumpedMass, 1.0);
 
@@ -882,7 +882,7 @@ void SSMF::Extrapolate(void)
       felem_mass[i] = *plhs;
       plhs += nen+1;
     }
-
+    ********************************/
     ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
     fCurrSSMat = dynamic_cast<SSSolidMatT*>(pmat);
     if (!fCurrSSMat) throw ExceptionT::kGeneralFail;

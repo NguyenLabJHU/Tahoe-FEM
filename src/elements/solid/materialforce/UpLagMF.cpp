@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.cpp,v 1.10 2003-11-21 22:54:46 paklein Exp $ */
+/* $Id: UpLagMF.cpp,v 1.11 2003-11-21 23:05:04 thao Exp $ */
 #include <ctype.h>
 
 #include "UpLagMF.h"
@@ -665,6 +665,18 @@ void UpLagMF::MatForceDynamic(dArrayT& elem_val)
 
   double density = fCurrFSMat->Density();
 
+  /*calculate element mass*/
+  fLHS = 0.0;
+  ContinuumElementT::FormMass(ContinuumElementT::kLumpedMass, 1.0);  
+  double* pelem_val = elem_val.Pointer();
+  double* paccx = fLocAcc(0);
+  double* paccy = fLocAcc(1);
+  for (int i=0; i<nen; i++)
+  {
+    *pelem_val++ = density*fLHS(i,i)*(*paccx++);    
+    *pelem_val++ = density*fLHS(i,i)*(*paccy++);    
+  }  
+
   /*intialize shape function data*/
   const double* jac = fShapes->IPDets();
   const double* weight = fShapes->IPWeights();
@@ -700,9 +712,9 @@ void UpLagMF::MatForceDynamic(dArrayT& elem_val)
       for (int i = 0; i<nen; i++)
       {
 	double xval = density*(-fGradVel[0]*fVel[0]-fGradVel[1]*fVel[1]
-			       +F[0]*fAcc[0]+F[1]*fAcc[1]);
+			       +(F[0]-1.0)*fAcc[0]+F[1]*fAcc[1]);
 	double yval = density*(-fGradVel[2]*fVel[0]-fGradVel[3]*fVel[1]
-			       +F[2]*fAcc[0]+F[3]*fAcc[1]);
+			       +F[2]*fAcc[0]+(F[3]-1.0)*fAcc[1]);
     	*pelem_val++ += xval*(*pQa)*(*jac)*(*weight);
 	*pelem_val++ += yval*(*pQa++)*(*jac)*(*weight);      
       }
@@ -712,14 +724,14 @@ void UpLagMF::MatForceDynamic(dArrayT& elem_val)
       for (int i = 0; i<nen; i++)
       {
 	double xval = density*(-fGradVel(0,0)*fVel[0]-fGradVel(1,0)*fVel[1]
-			       -fGradVel(2,0)*fVel[2]
-			       +F(0,0)*fAcc[0]+F(1,0)*fAcc[1]+F(2,0)*fAcc[2]);
+			       -fGradVel(2,0)*fVel[2]+(F(0,0)-1.0)*fAcc[0]
+			       +F(1,0)*fAcc[1]+F(2,0)*fAcc[2]);
 	double yval = density*(-fGradVel(0,1)*fVel[0]-fGradVel(1,1)*fVel[1]
-			       -fGradVel(2,1)*fVel[2]
-			       +F(0,1)*fAcc[0]+F(1,1)*fAcc[1]+F(2,1)*fAcc[2]);
+			       -fGradVel(2,1)*fVel[2]+F(0,1)*fAcc[0]
+			       +(F(1,1)-1.0)*fAcc[1]+F(2,1)*fAcc[2]);
 	double zval = density*(-fGradVel(0,2)*fVel[0]-fGradVel(1,2)*fVel[1]
-			       -fGradVel(2,2)*fVel[2]
-			       +F(0,2)*fAcc[0]+F(1,2)*fAcc[1]+F(2,2)*fAcc[2]); 
+			       -fGradVel(2,2)*fVel[2] + F(0,2)*fAcc[0]
+			       +F(1,2)*fAcc[1]+(F(2,2)-1.0)*fAcc[2]); 
     	*pelem_val++ += xval*(*pQa)*(*jac)*(*weight);
 	*pelem_val++ += yval*(*pQa)*(*jac)*(*weight);      
 	*pelem_val++ += zval*(*pQa++)*(*jac)*(*weight);      
@@ -728,7 +740,7 @@ void UpLagMF::MatForceDynamic(dArrayT& elem_val)
     jac++;
     weight++;
   }
-  if (elem == 0)  cout<<"\nDynnElem: "<<elem_val;
+  if (elem == 0 && 0)  cout<<"\nDynnElem: "<<elem_val;
 }
 
 void UpLagMF::MatForceSurfMech(dArrayT& global_val)
