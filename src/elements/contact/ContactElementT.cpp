@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.12 2001-05-31 00:37:26 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.13 2001-06-04 17:03:12 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -135,28 +135,25 @@ void ContactElementT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	/* Connectivities generated in SetConfiguration */
         ElementBaseT::fNodes->
 		SetLocalEqnos(connectivities, equation_numbers);
-#if 0
-cout << " in Equations \n";
+cout << "\n connectivities \n" ;//<< connectivities <<"\n";
 for (int k = 0; k < connectivities.MajorDim(); k++) {
+cout << "(" << k << ")";
 for (int j = 0; j < connectivities.MinorDim(k); j++) {
-cout << connectivities(k)[j] <<", ";
-if (j%4 == 0) cout << "_";
+cout << connectivities(k)[j] <<" ";
+if ((j+1) == 1) cout << ",";
 }
 cout << "\n";
 }
-cout << "\n";
-cout << "\n";
 
+cout << "\n eq numbers \n" ; // << equation_numbers << "\n";
 for (int k = 0; k < equation_numbers.MajorDim(); k++) {
+cout << "(" << k << ")";
 for (int j = 0; j < equation_numbers.MinorDim(k); j++) {
-cout << equation_numbers(k)[j] <<", ";
-if ((j+1) == 3) cout << "\n";
-if ((j-2)%12 == 0) cout << "_";
+cout << equation_numbers(k)[j] <<" ";
+if ((j+1) == fNumSD) cout << ",";
 }
 cout << "\n";
 }
-cout << "\n";
-#endif
         /* add to list */
         eq_2.Append(&equation_numbers);
   }

@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.5 2001-04-30 19:30:19 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.6 2001-06-04 17:03:12 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include "SurfaceT.h"
@@ -54,7 +54,12 @@ ContactSurfaceT::SetPotentialConnectivity(void)
           face = node->OpposingFace();
           /* connectivities for potential interactions, based on search tol */
           if (face) {
-	    node_face_counts[i] = 1;
+//	    node_face_counts[i] = 1;
+            /* all nodes in associated primary faces */
+            for (j = 0; j <  fNodeNeighbors.MinorDim(i) ; j++) {
+                face = fNodeNeighbors(i)[j]; 
+                node_face_counts[i] += face->Connectivity().Length();
+            }
             /* inclusive of opposing face */
             const ArrayT<FaceT*>&  faces 
 		= node->OpposingFace()->Neighbors();
@@ -77,19 +82,31 @@ ContactSurfaceT::SetPotentialConnectivity(void)
 	  /* connectivities for potential interactions, based on search tol */
 	  if (face) {
 	    int* node_face_connectivity = fConnectivities(i);
-            node_face_connectivity[count] 
-		= fGlobalNodes[i]; // node
-	    count++;
+            /* all nodes in associated primary faces */
+	    const iArrayT& global_nodes = this->GlobalNodes();
+            for (j = 0; j < fNodeNeighbors.MinorDim(i) ; j++) {
+                face = fNodeNeighbors(i)[j]; 
+                const iArrayT& face_connectivity = face->Connectivity();
+                for (k = 0; k < face_connectivity.Length(); k++ ) {
+                  node_face_connectivity[count] 
+		    = global_nodes[face_connectivity[k]];// face nodes
+		  count++;
+		}
+            }
+//            node_face_connectivity[count] 
+//		= fGlobalNodes[i]; // node
+//	    count++;
 	    /* inclusive of opposing face */
-	    const iArrayT& global_nodes=node->OpposingSurface()->GlobalNodes();
+	    const iArrayT& opp_global_nodes
+		= node->OpposingSurface()->GlobalNodes();
             const ArrayT<FaceT*>&  faces 
 		= node->OpposingFace()->Neighbors();
 	    for (j = 0; j < faces.Length() ; j++) {
 		face = faces[j] ; // this is cast
-                const iArrayT& face_connectvity = face->Connectivity();
-                for (int k = 0; k < face_connectvity.Length(); k++ ) {
+                const iArrayT& face_connectivity = face->Connectivity();
+                for (k = 0; k < face_connectivity.Length(); k++ ) {
                   node_face_connectivity[count] 
-		    = global_nodes[face_connectvity[k]];// face nodes
+		    = opp_global_nodes[face_connectivity[k]];// face nodes
 		  count++;
                 }
 	    }
