@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.7 2001-09-11 05:54:50 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.8 2001-11-14 21:51:22 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 /* 2 dimensional matrix mathematics template object.                      */
 
@@ -84,6 +84,8 @@ public:
 	void MultATBT(const nMatrixT& a, const nMatrixT& b);
 
 	/* matrix-matrix-matrix operations */
+	void MultABC(const nMatrixT& a, const nMatrixT& b, const nMatrixT& c,
+		int range = kWhole, int fillmode = kOverwrite);
 	void MultABCT(const nMatrixT& a, const nMatrixT& b, const nMatrixT& c,
 		int range = kWhole, int fillmode = kOverwrite);
 	void MultATBC(const nMatrixT& a, const nMatrixT& b, const nMatrixT& c,
@@ -895,6 +897,65 @@ A.fRows != B.fCols) throw eSizeMismatch;
 }
 
 /* matrix-matrix-matrix operations, ie. tensor basis transformations */
+
+/* this_ij = p_iI b_IJ q_Ji */
+template <class nTYPE>
+void nMatrixT<nTYPE>::MultABC(const nMatrixT& p, const nMatrixT& b, const nMatrixT& q,
+	int range, int fillmode)
+{
+	/* dimension checks */
+#if __option (extended_errorcheck)	
+	if (fRows != p.fRows ||
+	    fCols != q.fCols ||
+	  b.fRows != p.fCols ||
+	  b.fCols != q.fRows) throw eSizeMismatch;
+#endif
+
+	/* initialize */
+	if (fillmode == kOverwrite) *this = 0;
+
+	register nTYPE temp;
+	register nTYPE bq_Ji;
+	
+	nTYPE* pthisj =   Pointer();
+	nTYPE* pqj    = q.Pointer();
+	for (int j = 0; j < fCols; j++)
+	{
+		int istop = (range == kUpperOnly) ? j + 1 : fRows;
+	
+		nTYPE* pbI = b.Pointer();
+		nTYPE* ppI = p.Pointer();
+		for (int I = 0; I < b.fRows; I++)
+		{			
+			nTYPE* pbJ = pbI++;
+			nTYPE* pqJ = pqj;
+			bq_Ji = 0.0;
+			for (int J = 0; J < b.fCols; J++)
+			{
+				temp  = *pbJ;
+				temp *= *pqJ;
+				
+				bq_Ji += temp;
+				
+				pbJ += b.fRows;
+				pqJ++;
+			}
+
+			nTYPE* ppi    = ppI;
+			nTYPE* pthisi = pthisj;
+			for (int i = 0; i < istop; i++)
+			{
+				temp  = *ppi++;
+				temp *= bq_Ji;
+				
+				*pthisi++ += temp;
+			}
+			ppI += p.fRows;
+		}
+		pthisj += fRows;
+		pqj    += q.fRows;
+	}
+}
 
 /* this_ij = p_iI b_IJ q_jJ */
 template <class nTYPE>
