@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.2 2003-01-27 07:00:27 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.3 2003-08-23 20:10:11 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -32,6 +32,12 @@ public:
 
 	/** destructor */
 	~CommManagerT(void);
+
+	/** number of processes */
+	int Size(void) const { return fSize; };
+
+	/** rank of this process */
+	int Rank(void) const { return fRank; };
 
 	/** set or clear partition information */
 	void SetPartition(PartitionT* partition);
@@ -175,6 +181,9 @@ private:
 
 	/** the model manager */
 	ModelManagerT& fModelManager;
+
+	int fSize;
+	int fRank;
 
 	/** \name periodic boundaries */
 	/*@{*/
