@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.11.4.1 2005-02-24 01:14:19 thao Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.11.4.2 2005-04-05 23:34:47 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
 #include <iostream.h>
@@ -6,6 +6,7 @@
 #include "FSMatSupportT.h"
 #include "ThermalDilatationT.h"
 #include "iArray2DT.h"
+#include "dArray2DT.h"
 
 using namespace Tahoe;
 
