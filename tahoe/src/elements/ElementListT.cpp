@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.20.2.5 2002-05-04 20:22:02 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.20.2.6 2002-05-05 23:37:15 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
@@ -75,8 +75,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 	for (int i = 0; i < Length(); i++)
 	{
 		int	group;
-		ElementT::TypeT code;
-		in >> group >> code;
+		in >> group;
 		group--;
 		
 		/* no predefined field names */
@@ -128,7 +127,12 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			throw eGeneralFail;
 		}
 
+		/* read code */
+		ElementT::TypeT code;
+		in >> code;
+
 		out << "\n Group number. . . . . . . . . . . . . . . . . . = " << group + 1 << '\n';
+		out <<   " Associated field. . . . . . . . . . . . . . . . = \"" << field->Name() << "\"\n";
 		out <<   " Element type code . . . . . . . . . . . . . . . = " <<      code << '\n';
 		out << "    eq. " << ElementT::kRod                << ", rod\n";
 		out << "    eq. " << ElementT::kElastic            << ", elastic\n";
