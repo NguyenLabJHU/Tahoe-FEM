@@ -1,6 +1,5 @@
-/* $Id: NodeManagerT.h,v 1.8 2002-11-14 17:06:45 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.9 2002-11-26 00:34:20 paklein Exp $ */
 /* created: paklein (05/23/1996) */
-
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
 
@@ -17,11 +16,11 @@
 #include "pArrayT.h"
 #include "IOBaseT.h"
 #include "GlobalT.h"
-
-/* forward declarations */
+#include "ControllerT.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class FEManagerT;
 class ScheduleT;
 class LocalArrayT;
@@ -68,7 +67,6 @@ public:
 
 	int NumEquations(int group) const;
 	int NumNodes(void) const;
-//	int NumDOF(void) const;
 	int NumSD(void) const;
 	int NumFields(void) const { return fFields.Length(); };
 	
@@ -87,6 +85,11 @@ public:
 	virtual void ConnectsU(int group, 
 		AutoArrayT<const iArray2DT*>& connects_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
+
+	/** return the implicit-explicit flag for the given group. If the group contains
+	 * fields with both implicit and explicit time integrators, the group is considered
+	 * implicit */
+	ControllerT::ImpExpFlagT ImplicitExplicit(int group) const;
 	/*@}*/
 
 	/** \name writing output */

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.15 2002-10-23 05:01:23 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.16 2002-11-26 00:34:20 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -204,6 +204,19 @@ void NodeManagerT::ConnectsU(int group,
 	for (int i = 0; i < fFields.Length(); i++)
 		if (fFields[i]->Group() == group)
 			fFields[i]->Connectivities(connects_1, connects_2);
+}
+
+/* return the implicit-explicit flag for the given group */
+ControllerT::ImpExpFlagT NodeManagerT::ImplicitExplicit(int group) const
+{
+	ControllerT::ImpExpFlagT flag = ControllerT::kExplicit;
+
+	/* loop over fields in the group */
+	for (int i = 0; flag == ControllerT::kExplicit && i < fFields.Length(); i++)
+		if (fFields[i]->Group() == group)
+			flag = fFields[i]->nController().ImplicitExplicit();
+
+	return flag;
 }
 
 /* return a pointer to the field with the specified name */
