@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.28 2003-04-24 20:40:23 cjkimme Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.29 2003-05-20 10:21:16 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -425,6 +425,9 @@ void NodeManagerT::InitialCondition(void)
 		for (int j = 0; j <= field.Order(); j++)
 			fCommManager.AllGather(fMessageID[i], field[j]);
 	}
+
+	/* update current configurations */
+	if (fCoordUpdate) fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
 }
 
 void NodeManagerT::ReadRestart(ifstreamT& in)
