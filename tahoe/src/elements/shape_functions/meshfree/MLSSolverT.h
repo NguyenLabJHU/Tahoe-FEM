@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.h,v 1.1.1.1.4.2 2001-06-19 08:58:43 paklein Exp $ */
+/* $Id: MLSSolverT.h,v 1.1.1.1.4.3 2001-06-19 18:27:48 paklein Exp $ */
 /* created: paklein (12/08/1999)                                          */
 /* base class for moving least squares, interpolants                      */
 
@@ -110,7 +110,7 @@ private:
 
 	/* set window functions and derivatives - returns the number
 	 * of active neighbors */
-	int SetWindow(const dArrayT& dmax);
+	int SetWindow(const dArray2DT& support_params);
 
 	/* set moment matrix, inverse, and derivatives */
 	int SetMomentMartrix(const dArrayT& volume);

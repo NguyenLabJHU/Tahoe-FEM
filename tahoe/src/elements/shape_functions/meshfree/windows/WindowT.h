@@ -1,4 +1,4 @@
-/* $Id: WindowT.h,v 1.5.2.2 2001-06-19 08:58:45 paklein Exp $ */
+/* $Id: WindowT.h,v 1.5.2.3 2001-06-19 18:27:53 paklein Exp $ */
 
 #ifndef _WINDOW_T_H_
 #define _WINDOW_T_H_
@@ -51,7 +51,7 @@ class WindowT
 	virtual const char* Name(void) const = 0;
 
 	/** write parameters to output stream */
-	virtual void WriteParameters(ostream& out) const;
+	virtual void WriteParameters(ostream& out) const { };
 
 	/* single point evaluations */
 	

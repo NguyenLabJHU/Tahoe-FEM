@@ -1,4 +1,4 @@
-/* $Id: D2OrthoMLSSolverT.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: D2OrthoMLSSolverT.h,v 1.1.1.1.4.1 2001-06-19 18:27:51 paklein Exp $ */
 /* created: paklein (10/10/1999)                                          */
 /* base class for orthogonal basis, moving least squares, interpolants    */
 /* (from Lu et al, Comp Meth App Mech Eng, 126, 1995, 131-153)            */
@@ -24,7 +24,7 @@ public:
 	
 	/* set MLS at coords given sampling points and influence of each, returns 1
 	 * if successful and 0 if not */
-	int SetField(const dArray2DT& nodalcoords, const dArrayT& dmax,
+	int SetField(const dArray2DT& nodalcoords, const ArrayT<double>& dmax,
 		const dArrayT& samplept);
 	
 	/* return field value and derivatives - valid AFTER SetField() */

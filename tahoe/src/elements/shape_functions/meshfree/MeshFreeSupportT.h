@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.h,v 1.1.1.1.4.2 2001-06-19 08:58:44 paklein Exp $ */
+/* $Id: MeshFreeSupportT.h,v 1.1.1.1.4.3 2001-06-19 18:27:49 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #ifndef _MF_SUPPORT_T_H_
@@ -146,6 +146,10 @@ protected:
 	virtual int Visible(const double* x1, const double* x2) = 0;
 
 private:
+
+	/* test coverage - temporary function until OrthoMLSSolverT class
+	 * is brought up to date */
+	bool Covers(const dArrayT& field_x, const dArrayT& node_x, int node) const;
 
 	/* computing the MLS fits */
 	void ComputeElementData(int element, iArrayT& neighbors, dArray2DT& phi,

@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.cpp,v 1.6.2.1 2001-06-19 00:54:48 paklein Exp $ */
+/* $Id: GaussianWindowT.cpp,v 1.6.2.2 2001-06-19 18:27:52 paklein Exp $ */
 
 #include "GaussianWindowT.h"
 #include "ExceptionCodes.h"
@@ -10,9 +10,9 @@ static double Max(double a, double b) { return (a > b) ? a : b; };
 /* constructor */
 GaussianWindowT::GaussianWindowT(double dilation_scaling, double sharpening_factor):
 	fDilationScaling(dilation_scaling),
-	fSharpeningFudgeFactor(sharpening_factor)
+	fSharpeningFactor(sharpening_factor)
 {
-	if (fDilationScaling < 0.0 || fSharpeningFudgeFactor < 0.0)
+	if (fDilationScaling < 0.0 || fSharpeningFactor < 0.0)
 		throw eBadInputValue;
 }
 
@@ -41,11 +41,18 @@ void GaussianWindowT::SynchronizeNodalParameters(dArray2DT& params_1,
 	}
 }
 
+/* modify nodal shape function parameters */
+void GaussianWindowT::ModifyNodalParameters(dArray2DT& nodal_params) const
+{
+	/* scale supports */
+	nodal_params *= fDilationScaling;
+}
+
 void GaussianWindowT::WriteParameters(ostream& out) const
 {
-	/* Not sure what to do here */
-	out << "Dilation scaling factor = " << fDilationScaling << '\n';
-	out << "Fudge factor used = " << fSharpeningFudgeFactor << '\n';
+	/* window function parameters */
+	out << " Dilation scaling factor . . . . . . . . . . . . = " << fDilationScaling << '\n';
+	out << " Window function sharpening factor . . . . . . . = " << fSharpeningFactor << '\n';
 }
 
 /* Single point evaluations */
@@ -71,7 +78,7 @@ void GaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const d
   }
   else
   {
-    double adm = param_n[0] * fSharpeningFudgeFactor;
+    double adm = param_n[0] * fSharpeningFactor;
     double adm2 = adm * adm;
     double q = dist / adm;
     w = exp(-q * q) / (sqrtPi * adm);
@@ -119,7 +126,7 @@ int GaussianWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, cons
     }
     else
     {
-      double adm = param_n[i] * fSharpeningFudgeFactor;
+      double adm = param_n[i] * fSharpeningFactor;
       double q = dist / adm;
       double adm2 = adm * adm;
       w[i] = (-q * q) / (sqrtPi * adm);

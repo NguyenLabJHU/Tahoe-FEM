@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.2 2001-02-20 00:42:14 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.2.4.1 2001-06-19 18:27:47 paklein Exp $ */
 /* created: paklein (09/11/1998)                                          */
 /* small strain elasticity with MLS shapefunctions for the                */
 /* field (displacement) representation                                    */
@@ -66,18 +66,15 @@ fEqnos.Free(); // is this OK ? can't be freed earlier b/c of
 	if (nodes_in.Length() > 0)
 	{
 		/* send all */
-		const dArrayT& d_max = fMFShapes->Dmax();
-		dArray2DT all_data_out(d_max.Length(), 1, d_max.Pointer());
-		fFEManager.SendExternalData(all_data_out);
+		const dArray2DT& nodal_params = fMFShapes->NodalParameters();
+		fFEManager.SendExternalData(nodal_params);
 
 		/* receive */
-		dArray2DT all_data_in(nodes_in.Length(), 1);
-		fFEManager.RecvExternalData(all_data_in);
+		dArray2DT all_params_in(nodes_in.Length(), nodal_params.MinorDim());
+		fFEManager.RecvExternalData(all_params_in);
 	
 		/* set values */
-		dArrayT d_max_in;
-		d_max_in.Alias(all_data_in);
-		fMFShapes->SetDmax(nodes_in, d_max_in);
+		fMFShapes->SetNodalParameters(nodes_in, all_params_in);
 
 		/* skip MLS fit at external nodes */
 		fMFShapes->SetSkipNodes(nodes_in);
@@ -86,8 +83,8 @@ fEqnos.Free(); // is this OK ? can't be freed earlier b/c of
 	/* set nodal neighborhoods */
 	fMFShapes->SetNeighborData();
 
-/* initialize support data */
-iArrayT surface_nodes;
+	/* initialize support data */
+	iArrayT surface_nodes;
 	if (fAutoBorder) SurfaceNodes(surface_nodes);
 	MeshFreeFractureSupportT::InitSupport(fFEManager.Input(), fFEManager.Output(),
 		fElementCards, surface_nodes, NumDOF(), fNodes->NumNodes(),
@@ -116,23 +113,29 @@ iArrayT surface_nodes;
 		throw eBadInputValue;
 	}
 
-//TEMP - Dmax
+//TEMP - write nodal parameters
 #if 0
 ostream& out = FEManager().Output();
 out << "\n MeshFreeFDSolidT::Initialize: d_max:\n";
-const dArrayT& Dmax = fMFShapes->Dmax();
+const dArray2DT& nodal_params = fMFShapes->NodalParameters();
 const iArrayT* node_map = FEManager().NodeMap();
 int d_width = out.precision() + kDoubleExtra;
 out << setw(kIntWidth) << "node"
-<< setw(  d_width) << "d_max" << '\n';
+<< setw(nodal_params.MinorDim()*d_width) << "d_max" << '\n';
 if (node_map)
-	for (int i = 0; i < Dmax.Length(); i++)
-		out << setw(kIntWidth) << (*node_map)[i] + 1
-		    << setw(  d_width) << Dmax[i] << '\n';
+	for (int i = 0; i < nodal_params.MajorDim(); i++)
+	{
+		out << setw(kIntWidth) << (*node_map)[i] + 1;
+		nodal_params.PrintRow(i, out);
+		out << '\n';
+	}
 else
-	for (int j = 0; j < Dmax.Length(); j++)
-		out << setw(kIntWidth) << j + 1
-		    << setw(  d_width) << Dmax[j] << '\n';
+	for (int j = 0; j < nodal_params.MajorDim(); j++)
+	{
+		out << setw(kIntWidth) << j + 1;
+		nodal_params.PrintRow(j, out);
+		out << '\n';
+	}
 #endif
 
 //TEMP - U connectivities
@@ -311,7 +314,7 @@ void MeshFreeSSSolidT::SetShape(void)
 /* constructors */
 	fMFShapes = new MeshFreeShapeFunctionT(fGeometryCode, fNumIP,
 		fLocInitCoords, fNodes->InitialCoordinates(), fConnectivities, fOffGridNodes,
-		fMeshFreeCode, fd_max, fComplete, fStoreShape, fElementCards.Position());
+		fElementCards.Position(), fFEManager.Input());
 
 	if (!fMFShapes) throw eOutOfMemory;
 	

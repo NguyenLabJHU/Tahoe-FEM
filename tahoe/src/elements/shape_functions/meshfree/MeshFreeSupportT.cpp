@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.1.1.1.4.2 2001-06-19 08:58:43 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.1.1.1.4.3 2001-06-19 18:27:49 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -593,7 +593,11 @@ int MeshFreeSupportT::SetFieldUsing(const dArrayT& x, const ArrayT<int>& nodes)
 			OK = fEFG->SetField(fcoords, fnodal_param, x);
 		else
 		{
+			/* nodal volumes */
+			fvolume_man.SetLength(fneighbors.Length(), false);
 			fvolume.Collect(fneighbors, fVolume);
+			
+			/* compute field */
 			OK = fRKPM->SetField(fcoords, fnodal_param, fvolume, x, 1);
 		}
 
@@ -927,23 +931,7 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 					{
 						/* fetch ip coordinates */
 						x_ip_table.RowAlias(k, x_ip);
-
-						/* check coverage */
-						if (fMeshfreeType == kEFG)
-						{
-							/* distance */
-							double dist_ab = dArrayT::Distance(x_node, x_ip);
-							if (dist_ab < fNodalParameters(neigh,0))
-								hit = 1;
-						}
-						else if (fMeshfreeType == kRKPM)
-						{
-							fNodalParameters.RowAlias(neigh, nodal_params);
-							if (fRKPM->Covers(x_node, x_ip, nodal_params))
-								hit = 1;
-						}
-						else
-							throw eGeneralFail;
+						if (Covers(x_ip, x_node, neigh)) hit = 1;
 					}
 				
 					/* within the neighborhood */	
@@ -1086,6 +1074,40 @@ void MeshFreeSupportT::SetElementShapeFunctions(void)
 * Private
 *************************************************************************/
 
+/* test coverage - temporary function until OrthoMLSSolverT class
+ * is brought up to date */
+bool MeshFreeSupportT::Covers(const dArrayT& field_x, const dArrayT& node_x, 
+	int node) const
+{
+	bool covers = false;
+	if (fMeshfreeType == kEFG)
+	{
+		double dist = 0.0;
+		for (int j = 0; j < field_x.Length(); j++)
+		{
+			double dx = node_x[j] - field_x[j];
+			dist += dx*dx;
+		}
+				
+		/* covers */
+		double dmax_i = fNodalParameters(node, 0);
+		if (dist < dmax_i*dmax_i) covers = true;
+	}
+	else if (fMeshfreeType == kRKPM)
+	{
+		dArrayT nodal_params;
+		fNodalParameters.RowAlias(node, nodal_params);
+		covers = fRKPM->Covers(node_x, field_x, nodal_params);
+	}
+	else
+	{
+		cout << "\n MeshFreeSupportT::Covers: unexpected meshfree type: " 
+		     << fMeshfreeType << endl;
+		throw eGeneralFail;
+	}
+	return covers;
+}
+
 void MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 	dArray2DT& phi, ArrayT<dArray2DT>& Dphi)
 {
@@ -1108,6 +1130,7 @@ void MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 	/* set dimensions */
 	fnodal_param_man.Dimension(nnd, false);
 	fcoords_man.SetMajorDimension(nnd, false);
+	fvolume_man.SetLength(nnd, false);
 
 	/* collect neighbor data */
 	fcoords.RowCollect(neighbors, fCoords);
@@ -1139,7 +1162,7 @@ void MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 		int OK;
 		if (fMeshfreeType == kEFG)
 		{
-			OK = fEFG->SetField(fcoords, fnodal_param_ip[0], x_ip);
+			OK = fEFG->SetField(fcoords, fnodal_param_ip, x_ip);
 	
 			/* store field data */
 			phi.SetRow(i, fEFG->phi());
@@ -1218,7 +1241,7 @@ void MeshFreeSupportT::ComputeNodalData(int node, const iArrayT& neighbors,
 	int OK;
 	if (fEFG)
 	{
-		OK = fEFG->SetField(fcoords, fnodal_param[0], x_node);
+		OK = fEFG->SetField(fcoords, fnodal_param, x_node);
 		
 		/* copy field data */
 		phi  = fEFG->phi();
@@ -1535,7 +1558,7 @@ void MeshFreeSupportT::SetSupport_Cartesian_Connectivities(void)
 					fCoords.RowAlias(pelem[k], x_i);
 
 					/* check visibility */
-					if (Visible(x_0, x_i))
+					if (Visible(x_0.Pointer(), x_i.Pointer()))
 					{
 						/* fetch support size */
 						fNodalParameters.RowAlias(node, support);
@@ -1584,9 +1607,6 @@ void MeshFreeSupportT::SetNodesUsed(void)
 		if (*pused++) *pnused++ = k;
 }
 
-/************** HERE
-// better to write separate BuildNeighborhood functions?
-
 /* collect all nodes covering the point x */
 int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes)
 {
@@ -1630,13 +1650,13 @@ int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes
 		for (int ii = 0; ii < inodes->Length(); ii++)
 		{
 			int tag = ((*inodes)[ii]).Tag();
-			double dmax = fNodalParameters(tag,0);
-			support_max = (dmax > support_max) ? dmax : support_max;
+			fNodalParameters.RowAlias(tag, support);
+			for (int i = 0; i < support.Length(); i++)
+				support_max[i] = Max(support_max[i], support[i]);
 		}
 	
-		/* need to re-collect nodes */
-		if (fGrid->CellSpan(cell_span) < support_max)
-			inodes = &fGrid->HitsInRegion(target, support_max);
+		/* re-collect using max support */
+		inodes = &fGrid->HitsInRegion(target, support_max);
 	}
 	else throw eGeneralFail;
 
@@ -1649,10 +1669,11 @@ int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes
 	out_nodes.Allocate(0);
 				
 	/* run through nodes */
+	dArrayT x_node, nodal_params;
 	for (int i = 0; i < inodes->Length(); i++)
 	{
 		int tag = ((*inodes)[i]).Tag();
-		double* x_node = fCoords(tag);
+		fCoords.RowAlias(tag, x_node);
 
 //NOTE - reverse this. finding the r^2 is probably cheaper than
 //       determining whether the node is visible
@@ -1660,18 +1681,10 @@ int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes
 		/* check node */
 		if (!nodes.HasValue(tag) &&     // redundant?
 		    !out_nodes.HasValue(tag) && // redundant?
-		     Visible(target, x_node))
+		     Visible(target, x_node.Pointer()))
 		{
-			double dist = 0.0;
-			for (int j = 0; j < nsd; j++)
-			{
-				double dx = x_node[j] - target[j];
-				dist += dx*dx;
-			}
-				
 			/* add to list */
-			double dmax_i = fDmax[tag];
-			if (dist < dmax_i*dmax_i)
+			if (Covers(x, x_node, tag))
 				nodes.Append(tag);
 			else
 				out_nodes.Append(tag);
@@ -1695,26 +1708,26 @@ int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes
 		     << setw(5) << "vis"
 		     << setw(5) << "cov"
 		     << setw(d_width) << "dist"
-		     << setw(d_width) << "dmax"
-		     << setw(d_width) << "x" << '\n';
+		     << setw(fNodalParameters.MinorDim()*d_width) << "dmax"
+		     << setw(x.Length()*d_width) << "x" << '\n';
 
 		/* work space */
-		dArrayT xn, r(nsd);
+		dArrayT xn, nodal_params;
 		
 		/* write nodes */
 		for (int i = 0; i < inodes->Length(); i++)
 		{
 			int tag = ((*inodes)[i]).Tag();
 			fCoords.RowAlias(tag, xn);
-			r.DiffOf(x, xn);
-			double dist = r.Magnitude();
+			double dist = dArrayT::Distance(x, xn);
+
 			cout << setw(kIntWidth) << tag+1
 		         << setw(5) << nodes.HasValue(tag)
 		         << setw(5) << Visible(x.Pointer(), xn.Pointer())
-		         << setw(5) << (dist < fDmax[tag])
-		         << setw(  d_width) << dist
-		         << setw(  d_width) << fDmax[tag]
-		         << setw(  d_width) << xn.no_wrap() << '\n';		
+		         << setw(5) << Covers(x, xn, tag)
+		         << setw(  d_width) << dist;
+			fNodalParameters.PrintRow(tag, cout);
+			cout << xn.no_wrap() << '\n';		
 		}
 		return 0;
 	}
