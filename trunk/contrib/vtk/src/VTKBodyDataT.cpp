@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.12 2002-02-01 18:08:39 paklein Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.13 2002-02-28 16:27:58 sawimme Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -62,6 +62,7 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
     /* read the node numbering map */
     fPointNumberMap.Allocate(coords.MajorDim());
 	model.AllNodeMap(fPointNumberMap);
+	fPointNumberMap++; // modelmanagerT offsets map to zero
 
 	//TEMP
 	//cout << "node number map:\n" << fPointNumberMap.wrap(10) << endl;
