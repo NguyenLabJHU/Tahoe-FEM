@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.36 2005-01-19 08:53:34 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.37 2005-01-24 06:53:34 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -363,6 +363,7 @@ void NLSolver::DefineParameters(ParameterListT& list) const
 
 	ParameterT reform_tangent_its(fReformTangentIterations, "reform_tangent_iterations");
 	reform_tangent_its.SetDefault(fReformTangentIterations);
+	reform_tangent_its.AddLimit(fReformTangentIterations, LimitT::LowerInclusive);
 	list.AddParameter(reform_tangent_its);
 
 	list.AddParameter(fZeroTolerance, "abs_tolerance");
