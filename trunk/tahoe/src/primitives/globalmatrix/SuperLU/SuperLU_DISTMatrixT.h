@@ -1,4 +1,4 @@
-/* $Id: SuperLU_DISTMatrixT.h,v 1.4 2005-01-07 21:23:08 paklein Exp $ */
+/* $Id: SuperLU_DISTMatrixT.h,v 1.5 2005-01-07 22:02:06 paklein Exp $ */
 #ifndef _SUPER_LU_DIST_MATRIX_T_H_
 #define _SUPER_LU_DIST_MATRIX_T_H_
 
@@ -28,6 +28,9 @@ public:
 
 	/** constructor */
 	SuperLU_DISTMatrixT(ostream& out, int check_code, CommunicatorT& comm);
+
+	/** copy constructor */
+	SuperLU_DISTMatrixT(const SuperLU_DISTMatrixT& rhs);
 
 	/** destructor */
 	~SuperLU_DISTMatrixT(void);
@@ -89,9 +92,6 @@ protected:
 	double* operator()(int row, int col);
 
 private:
-
-	/** no copy constructor */
-	SuperLU_DISTMatrixT(const SuperLU_DISTMatrixT&);
 
 	/** \name clean up methods */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: SuperLU_DISTMatrixT.cpp,v 1.4 2005-01-07 21:23:08 paklein Exp $ */
+/* $Id: SuperLU_DISTMatrixT.cpp,v 1.5 2005-01-07 22:02:06 paklein Exp $ */
 #include "SuperLU_DISTMatrixT.h"
 
 /* library support options */
@@ -88,6 +88,15 @@ SuperLU_DISTMatrixT::SuperLU_DISTMatrixT(ostream& out, int check_code, Communica
 	if (npcol*nprow != size)
 		ExceptionT::GeneralFail(caller, "number of processes must be even %d", size);
     superlu_gridinit(fComm.Comm(), nprow, npcol, &fgrid);
+}
+
+/* copy constructor */
+SuperLU_DISTMatrixT::SuperLU_DISTMatrixT(const SuperLU_DISTMatrixT& rhs):
+	GlobalMatrixT(rhs),
+	fComm(rhs.fComm),
+	fBuilder(NULL)
+{
+	SuperLU_DISTMatrixT::operator=(rhs);
 }
 
 /* Destructor */	

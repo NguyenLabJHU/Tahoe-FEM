@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.cpp,v 1.14 2005-01-07 21:22:56 paklein Exp $ */
+/* $Id: PSPASESMatrixT.cpp,v 1.15 2005-01-07 22:02:00 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "PSPASESMatrixT.h"
 
@@ -219,7 +219,7 @@ void PSPASESMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const Array
 }
 
 /* assignment operator */
-GlobalMatrixT& PSPASESMatrixT::operator=(const GlobalMatrixT& rhs)
+PSPASESMatrixT& PSPASESMatrixT::operator=(const PSPASESMatrixT&)
 {
 	const char caller[] = "PSPASESMatrixT::operator=";
 	ExceptionT::GeneralFail(caller, "not implemented");
