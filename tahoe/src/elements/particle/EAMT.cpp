@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.51.4.1 2004-03-16 19:34:28 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.51.4.2 2004-04-07 15:38:06 paklein Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -14,7 +14,6 @@
 #include "ParadynEAMT.h"
 
 using namespace Tahoe;
-
 
 static int ipair = 1;
 static int iEmb  = 1;
@@ -1618,7 +1617,7 @@ void EAMT::SetConfiguration(void)
   const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
   if (fActiveParticles) 
     part_nodes = fActiveParticles;
-  GenerateNeighborList(part_nodes, NearestNeighborDistance, NearestNeighbors, true, true);
+  GenerateNeighborList(part_nodes, 0.8*fLatticeParameter, NearestNeighbors, true, true);
   GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
 	
   ofstreamT& out = ElementSupport().Output();
