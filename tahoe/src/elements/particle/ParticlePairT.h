@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.8.2.1 2003-02-21 20:13:44 paklein Exp $ */
+/* $Id: ParticlePairT.h,v 1.8.2.2 2003-02-23 02:40:26 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -46,6 +46,12 @@ public:
 	 * ParticleT::fGlobalTag. The values per node are those specified
 	 * by ParticlePairT::GenerateOutputLabels. */
 	virtual void WriteOutput(void);
+
+	/** compute the part of the stiffness matrix associated with rows of the given 
+	 * particles. This is the mixed part of the stiffness matrix involving free
+	 * particles and ghost particles which have prescribed motion. */
+	virtual void FormStiffness(const InverseMapT& col_to_col_eq_row_map,
+		const iArray2DT& col_eq, dSPMatrixT& stiffness);
 
 protected:
 
