@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.2 2001-02-20 00:42:13 paklein Exp $ */
 /* created: paklein (10/02/1999)                                          */
 
 #include "DiffusionElementT.h"
@@ -18,6 +18,7 @@
 #include "eControllerT.h"
 #include "MaterialListT.h"
 #include "iAutoArrayT.h"
+//#include "OutputSetT.h"
 
 /* materials lists */
 #include "DiffusionMatListT.h"
@@ -42,30 +43,27 @@ DiffusionElementT::DiffusionElementT(FEManagerT& fe_manager):
 /* data initialization */
 void DiffusionElementT::Initialize(void)
 {
-/* inherited */
-ContinuumElementT::Initialize();
+	/* inherited */
+	ContinuumElementT::Initialize();
 
-/* allocate */
-fB.Allocate(fNumSD, fNumElemNodes);
+	/* allocate */
+	fB.Allocate(fNumSD, fNumElemNodes);
 
 	/* setup for material output */
-	if (fOutputCodes[iMaterialData])
+	if (fNodalOutputCodes[iMaterialData])
 	{
-		/* only 1 material allowed for the group */
-		if (fMaterialList->Length() > 1)
+		/* check compatibility of output */
+		if (!CheckMaterialOutput())
 		{
-			cout << "\n DiffusionElementT::ReadMaterialData: if the material output flag is set,\n";
-			cout <<   " there can be only 1 material defined for the element group."<< endl;
-
-			throw eGeneralFail;
+			cout << "\n DiffusionElementT::Initialize: error with material output" << endl;
+			throw eBadInputValue;
 		}
 		/* no material output variables */
 	 	else if ((*fMaterialList)[0]->NumOutputVariables() == 0)
 		{
-			cout << "\n DiffusionElementT::ReadMaterialData: there are no material outputs. ";
-			cout << endl;
-
-			fOutputCodes[iMaterialData] = 0;
+			cout << "\n DiffusionElementT::ReadMaterialData: there are no material outputs"
+			     << endl;
+			fNodalOutputCodes[iMaterialData] = 0;
 		}
 	}
 }
@@ -123,8 +121,8 @@ double DiffusionElementT::InternalEnergy(void)
 
 void DiffusionElementT::SendOutput(int kincode)
 {
-/* output flags */
-iArrayT flags(fOutputCodes.Length());
+	/* output flags */
+	iArrayT flags(fNodalOutputCodes.Length());
 
 	/* set flags to get desired output */
 	flags = IOBaseT::kAtNever;
@@ -139,15 +137,16 @@ iArrayT flags(fOutputCodes.Length());
 	}
 
 	/* number of output values */
-	iArrayT counts;
-	SetOutputCodes(IOBaseT::kAtInc, flags, counts);
-	int num_out = counts.Sum();
+	iArrayT n_counts;
+	SetNodalOutputCodes(IOBaseT::kAtInc, flags, n_counts);
 
 	/* reset averaging workspace */
-	fNodes->ResetAverage(num_out);
+	fNodes->ResetAverage(n_counts.Sum());
 
 	/* generate nodal values */
-	ComputeNodalValues(counts);
+	iArrayT e_counts;
+	dArray2DT e_values, n_values;
+	ComputeOutput(n_counts, n_values, e_counts, e_values);
 }
 
 /***********************************************************************
@@ -166,32 +165,32 @@ void DiffusionElementT::PrintControlData(ostream& out) const
 void DiffusionElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 {
 	/* allocate */
-	fOutputCodes.Allocate(NumOutputCodes);
+	fNodalOutputCodes.Allocate(NumOutputCodes);
 
 	/* read in at a time to allow comments */
-	for (int i = 0; i < fOutputCodes.Length(); i++)
+	for (int i = 0; i < fNodalOutputCodes.Length(); i++)
 	{
-		in >> fOutputCodes[i];
+		in >> fNodalOutputCodes[i];
 		
 		/* convert all to "at print increment" */
-		if (fOutputCodes[i] != IOBaseT::kAtNever)
-			fOutputCodes[i] = IOBaseT::kAtInc;
+		if (fNodalOutputCodes[i] != IOBaseT::kAtNever)
+			fNodalOutputCodes[i] = IOBaseT::kAtInc;
 	}		
 
 	/* checks */
-	if (fOutputCodes.Min() < IOBaseT::kAtFail ||
-	    fOutputCodes.Max() > IOBaseT::kAtInc) throw eBadInputValue;
+	if (fNodalOutputCodes.Min() < IOBaseT::kAtFail ||
+	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw eBadInputValue;
 
 	/* default behavior with output formats */
-//	fOutputCodes[iNodalCoord] = IOBaseT::kAtNever;
-//	fOutputCodes[iNodalDisp ] = IOBaseT::kAtNever;
+//	fNodalOutputCodes[iNodalCoord] = IOBaseT::kAtNever;
+//	fNodalOutputCodes[iNodalDisp ] = IOBaseT::kAtNever;
 // what to do about default behavior
 
 	/* control parameters */
 	out << " Number of nodal output codes. . . . . . . . . . = " << NumOutputCodes << '\n';
-	out << "    [" << fOutputCodes[iNodalCoord   ] << "]: initial nodal coordinates\n";
-	out << "    [" << fOutputCodes[iNodalDisp    ] << "]: nodal displacements\n";
-	out << "    [" << fOutputCodes[iMaterialData ] << "]: nodal material output parameters\n";
+	out << "    [" << fNodalOutputCodes[iNodalCoord   ] << "]: initial nodal coordinates\n";
+	out << "    [" << fNodalOutputCodes[iNodalDisp    ] << "]: nodal displacements\n";
+	out << "    [" << fNodalOutputCodes[iMaterialData ] << "]: nodal material output parameters\n";
 }
 
 /* initialize local arrays */
@@ -208,8 +207,8 @@ void DiffusionElementT::SetLocalArrays(void)
 }
 
 /* construct output labels array */
-void DiffusionElementT::SetOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
-	iArrayT& counts)
+void DiffusionElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+	iArrayT& counts) const
 {
 	/* initialize */
 	counts.Allocate(flags.Length());
@@ -223,13 +222,24 @@ void DiffusionElementT::SetOutputCodes(IOBaseT::OutputModeT mode, const iArrayT&
 		counts[iMaterialData ] = (*fMaterialList)[0]->NumOutputVariables();
 }
 
+void DiffusionElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+	iArrayT& counts) const
+{
+#pragma unused(mode)
+#pragma unused(flags)
+	if (counts.Sum() != 0)
+	{
+		cout << "\n DiffusionElementT::SetElementOutputCodes: not yet supported" << endl;
+		throw eBadInputValue;
+	}
+}
+
 /* set the correct shape functions */
 void DiffusionElementT::SetShape(void)
 {
 	fShapes = new ShapeFunctionT(fGeometryCode, fNumIP,
 		fLocInitCoords, ShapeFunctionT::kStandardB);
 	if (!fShapes ) throw eOutOfMemory;
-
 	fShapes->Initialize();
 }
 
@@ -408,37 +418,50 @@ MaterialListT* DiffusionElementT::NewMaterialList(int size) const
 	return new DiffusionMatListT(size, *this);
 }
 
-/* extrapolate the integration point stresses and strains and extrapolate */
-void DiffusionElementT::ComputeNodalValues(const iArrayT& codes)
+/* driver for calculating output values */
+void DiffusionElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+	const iArrayT& e_codes, dArray2DT& e_values)
 {
-/* number of nodally smoothed values */
-int num_out = codes.Sum();
+	/* number of output values */
+	int n_out = n_codes.Sum();
+	int e_out = e_codes.Sum();
 
 	/* nothing to output */
-	if (num_out == 0) return;
+	if (n_out == 0 && e_out == 0) return;
+
+//TEMP
+#pragma unused(e_values)
+if (e_out > 0)
+{
+	cout << "\n DiffusionElementT::ComputeOutput: element output not yet supported" << endl;
+	throw eGeneralFail;
+}
+
+	/* reset averaging workspace */
+	fNodes->ResetAverage(n_out);
 
 	/* work arrays */
-	dArray2DT nodal_space(fNumElemNodes, num_out);
-	dArray2DT nodal_all(fNumElemNodes, num_out);
+	dArray2DT nodal_space(fNumElemNodes, n_out);
+	dArray2DT nodal_all(fNumElemNodes, n_out);
 	dArray2DT coords, disp;
 	dArray2DT nodalstress, princstress, matdat;
 	dArray2DT energy, speed;
 
 	/* ip values */
 	dSymMatrixT cauchy(fNumSD);
-	dArrayT ipmat(codes[iMaterialData]), ipenergy(1);
+	dArrayT ipmat(n_codes[iMaterialData]), ipenergy(1);
 	dArrayT ipspeed(fNumSD), ipprincipal(fNumSD);
 
 	/* set shallow copies */
 	double* pall = nodal_space.Pointer();
-	coords.Set(fNumElemNodes, codes[iNodalCoord], pall);
+	coords.Set(fNumElemNodes, n_codes[iNodalCoord], pall);
 	pall += coords.Length();
-	disp.Set(fNumElemNodes, codes[iNodalDisp], pall);
+	disp.Set(fNumElemNodes, n_codes[iNodalDisp], pall);
 	pall += disp.Length();
-	matdat.Set(fNumElemNodes, codes[iMaterialData], pall);
+	matdat.Set(fNumElemNodes, n_codes[iMaterialData], pall);
 
 	Top();
-	while ( NextElement() )
+	while (NextElement())
 	{
 		/* initialize */
 	    nodal_space = 0.0;
@@ -448,15 +471,15 @@ int num_out = codes.Sum();
 		SetLocalU(fLocDisp);
 		
 		/* coordinates and displacements all at once */
-		if (codes[iNodalCoord]) fLocInitCoords.ReturnTranspose(coords);
-		if (codes[iNodalDisp])  fLocDisp.ReturnTranspose(disp);
+		if (n_codes[iNodalCoord]) fLocInitCoords.ReturnTranspose(coords);
+		if (n_codes[iNodalDisp])  fLocDisp.ReturnTranspose(disp);
 
 		/* integrate */
 		fShapes->TopIP();
 		while (fShapes->NextIP())
 		{
 			/* material stuff */
-			if (codes[iMaterialData])
+			if (n_codes[iMaterialData])
 			{
 				fCurrMaterial->ComputeOutput(ipmat);
 				fShapes->Extrapolate(ipmat,matdat);
@@ -472,6 +495,12 @@ int num_out = codes.Sum();
 		/* accumulate - extrapolation done from ip's to corners => X nodes */
 		fNodes->AssembleAverage(CurrentElement().NodesX(), nodal_all);
 	}
+	
+	/* get nodally averaged values */
+	//was:
+	//const iArrayT& node_used = fFEManager.OutputSet(fOutputID).NodesUsed();
+	//fNodes->OutputAverage(node_used, n_values);
+	fNodes->OutputUsedAverage(n_values);
 }
 
 /***********************************************************************
@@ -479,35 +508,45 @@ int num_out = codes.Sum();
 ***********************************************************************/
 
 /* construct output labels array */
-void DiffusionElementT::GenerateOutputLabels(const iArrayT& codes,
-	ArrayT<StringT>& labels) const
+void DiffusionElementT::GenerateOutputLabels(const iArrayT& n_codes,
+	ArrayT<StringT>& n_labels, const iArrayT& e_codes, 
+	ArrayT<StringT>& e_labels) const
 {
-	/* allocate */
-	labels.Allocate(codes.Sum());
-
+	/* allocate node labels */
+	n_labels.Allocate(n_codes.Sum());
 	int count = 0;	
-	if (codes[iNodalDisp])
+
+	if (n_codes[iNodalDisp])
 	{
 		if (fNumDOF > 6) throw eGeneralFail;
 		const char* dlabels[] = {"d1", "d2", "d3", "d4", "d5", "d6"};
 		for (int i = 0; i < fNumDOF; i++)
-			labels[count++] = dlabels[i];
+			n_labels[count++] = dlabels[i];
 	}
 
-	if (codes[iNodalCoord])
+	if (n_codes[iNodalCoord])
 	{
 		const char* xlabels[] = {"x1", "x2", "x3"};
 		for (int i = 0; i < fNumSD; i++)
-			labels[count++] = xlabels[i];
+			n_labels[count++] = xlabels[i];
 	}
 
 	/* material output labels */
-	if (codes[iMaterialData])
+	if (n_codes[iMaterialData])
 	{
 		ArrayT<StringT> matlabels;
 		(*fMaterialList)[0]->OutputLabels(matlabels);	
 		
-		for (int i = 0; i < codes[iMaterialData]; i++)
-			labels[count++] = matlabels[i];
+		for (int i = 0; i < n_codes[iMaterialData]; i++)
+			n_labels[count++] = matlabels[i];
+	}
+	
+//TEMP - no element labels for now
+#pragma unused(e_labels)
+	if (e_codes.Sum() != 0)
+	{
+		cout << "\n DiffusionElementT::GenerateOutputLabels: not expecting any element\n"
+		     <<   "     output codes:\n" << e_codes << endl;	
+		throw eGeneralFail;
 	}
 }
