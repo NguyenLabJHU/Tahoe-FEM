@@ -31,29 +31,28 @@ void nVerlet::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		case KBC_CardT::kDsp: /* prescribed displacement */
 		{
 			d = KBC.Value();
-			a = 0.0; //correct?	
+			v_next = v + vcorr_a*(a + a_next);	
 			break;
 		}
 		
 		case KBC_CardT::kVel: /* prescribed velocity */
 		{
-			double v_next = KBC.Value();
-	
-			a = (v_next - v)/vcorr_a;
-			v = v_next;
-			break;
+			v = KBC.Value();
+	                break;
 		}
 		
 		case KBC_CardT::kAcc: /* prescribed acceleration */
 		{
-			a  = KBC.Value();
-			v += vcorr_a*a;
+			double a_next  = KBC.Value();
+			double v_next = v + vcorr_a*(a_next + a);
+                        a = a_next;
+			v = v_next;
 			break;
 		}
 
 		default:
 		
-			cout << "\n nExplicitCD::ConsistentKBC:unknown BC code\n" << endl;
+			cout << "\n nVerlet::ConsistentKBC:unknown BC code\n" << endl;
 			throw eBadInputValue;
 	}
 }		
