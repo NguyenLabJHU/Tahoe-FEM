@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.h,v 1.1.4.3 2004-05-25 16:37:24 paklein Exp $ */
+/* $Id: BasicSupportT.h,v 1.1.4.4 2004-06-07 13:51:21 paklein Exp $ */
 #ifndef _TAHOE_SUPPORT_T_H_
 #define _TAHOE_SUPPORT_T_H_
 
@@ -116,6 +116,9 @@ public:
 
 	/** low-level global communicator */
 	const CommunicatorT& Communicator(void) const;
+
+	/** the local node to home processor map */
+	const ArrayT<int>* ProcessorMap(void) const;
 
 	/** the nodes not native to this processor. Returns NULL if there is no 
 	 * list, indicating \e all nodes are owned by this partition */
