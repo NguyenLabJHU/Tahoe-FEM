@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.3 2001-08-29 07:12:02 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.4 2001-08-29 07:41:13 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 
 #include "AugLagContact2DT.h"
@@ -55,28 +55,8 @@ void AugLagContact2DT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 {
 #pragma unused(eq_2)
 
-//this arrangement was needed because the node manager
-//does not differentiate between displacement dof's and
-//other types of dof's when collecting local equation
-//equation numbers -> change this?
-
 	/* collect using method allowing mixed node/tag numbers */
 	fNodes->XDOF_SetLocalEqnos(fXDOFConnectivities, fXDOFEqnos);
-
-#if 0
-	/* get local equations numbers */
-	fNodes->SetLocalEqnos(fConnectivities, fXDOFEqnos);
-	const iArray2DT& auglageqs = fNodes->XDOF_Eqnos(this, 0);
-	
-	/* add last equation to each element */
-	int* pauglageqns = auglageqs.Pointer();
-	int* pelemeqnos  = fXDOFEqnos.Pointer() + fNumElemEqnos - 1;
-	for (int j = 0; j < fXDOFEqnos.MajorDim(); j++)
-	{
-		*pelemeqnos = *pauglageqns++;
-		pelemeqnos += fNumElemEqnos;
-	}
-#endif
 
 	/* add to list */
 	eq_1.Append(&fXDOFEqnos);
