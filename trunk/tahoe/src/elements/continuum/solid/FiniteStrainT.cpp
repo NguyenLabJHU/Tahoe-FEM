@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.4 2001-07-11 01:02:15 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.5 2001-07-19 01:05:25 paklein Exp $ */
 
 #include "FiniteStrainT.h"
 #include "ShapeFunctionT.h"
@@ -33,17 +33,23 @@ void FiniteStrainT::Initialize(void)
 	/* allocate deformation gradient list */
 	if (need_F)
 	{
-		fF_List.Allocate(NumIP());
-		for (int i = 0; i < NumIP(); i++)
-			fF_List[i].Allocate(NumSD());
+		int nip = NumIP();
+		int nsd = NumSD();
+		fF_all.Allocate(nip*nsd*nsd);
+		fF_List.Allocate(nip);
+		for (int i = 0; i < nip; i++)
+			fF_List[i].Set(nsd, nsd, fF_all.Pointer(i*nsd*nsd));
 	}
 	
 	/* allocate "last" deformation gradient list */
 	if (need_F_last)
 	{
-		fF_last_List.Allocate(NumIP());
-		for (int i = 0; i < NumIP(); i++)
-			fF_last_List[i].Allocate(NumSD());
+		int nip = NumIP();
+		int nsd = NumSD();
+		fF_last_all.Allocate(nip*nsd*nsd);
+		fF_last_List.Allocate(nip);
+		for (int i = 0; i < nip; i++)
+			fF_last_List[i].Set(nsd, nsd, fF_last_all.Pointer(i*nsd*nsd));
 	}
 }
 
