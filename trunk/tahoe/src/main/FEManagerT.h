@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.49 2005-03-11 20:41:46 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.50 2005-03-12 08:41:35 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -278,6 +278,11 @@ public:
 	 * \param n_values nodal output values
 	 * \param e_values element output values */
 	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const;
+
+	/** write results for a single output set
+	 * \param ID output set ID for the given data
+	 * \param n_values nodal output values */
+	virtual void WriteOutput(int ID, const dArray2DT& n_values) const;
 
 	/** write a snapshot */
 	virtual void WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
