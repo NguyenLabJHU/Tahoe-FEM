@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.8 2001-06-03 21:31:39 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.9 2001-06-04 22:50:17 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #include "SolidElementT.h"
@@ -875,6 +875,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	{
 		ip_material_data.Set(fNumIP, e_codes[iIPMaterialData]/fNumIP, pall);
 		pall += ip_material_data.Length();
+		ipmat.Allocate(ip_material_data.MinorDim());
 	}
 
 	/* check that degrees are displacements */
