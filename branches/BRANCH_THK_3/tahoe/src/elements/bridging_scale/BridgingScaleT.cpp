@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.34.4.2 2003-08-15 15:41:39 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.34.4.3 2003-09-19 02:48:23 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -536,6 +536,8 @@ out << "\n residual =\n" << projection << endl;
 		fGlobalMass.Solve(u_tmp);
 		projection.SetColumn(i, u_tmp);
 	}	
+
+#if 0
 	ofstream project, fenodes1, fenodes2;
 	project.open("project.dat");
 	fenodes1.open("fenodes1.dat");
@@ -554,6 +556,8 @@ out << "\n residual =\n" << projection << endl;
 	project.close();
 	fenodes1.close();
 	fenodes2.close();
+#endif
+	
 	u_tmp.Free();
 
 	fFineScale.Dimension(point_values);
