@@ -1,4 +1,4 @@
-/* $Id: MajumdarBhushan.cpp,v 1.1 2003-04-25 20:01:39 dzeigle Exp $ */
+/* $Id: MajumdarBhushan.cpp,v 1.2 2003-05-12 22:01:28 dzeigle Exp $ */
 #include "MajumdarBhushan.h"
 #include <math.h>
 #include <iostream.h>
@@ -16,8 +16,8 @@ const double PI = 2.0*acos(0.0);
 /*
 * constructors
 */
-MajumdarBhushan::MajumdarBhushan(double FRACDIM, double SIGMA):
-fD(FRACDIM), fS(SIGMA) { }
+MajumdarBhushan::MajumdarBhushan(double FRACDIM, double SIGMA, double C):
+fD(FRACDIM), fS(SIGMA), fC(C) { }
 
 /*
 * destructors
@@ -35,6 +35,7 @@ void MajumdarBhushan::Print(ostream& out) const
 	out << " MajumdarBhushan parameters:\n";
 	out << "      FRACTAL DIMENSION = " << fD << '\n';
 	out << "      SIGMA = " << fS << '\n';
+	out << "	  C = " << fC << '\n';
 }
 
 void MajumdarBhushan::PrintName(ostream& out) const
@@ -50,7 +51,7 @@ double MajumdarBhushan::Function(double x) const
 {
 	double value=0.0;
 
-	if ((fD>0.0) && (fS>0.0))
+	if ((fD>0.0) && (fS>0.0) && (fC>0.0))
 	{
 		ErrorFunc f;
 		value = (1.0/(2.0*fD))*(1.0-f.Function(x/(sqrt(2.0)*fS)));		
@@ -82,17 +83,16 @@ double MajumdarBhushan::DFunction(double x) const
 {
 	double value=0.0;
 	
-	if ((fD>0.0) && (fS>0.0))
+	if ((fD>0.0) && (fS>0.0) && (fC>0.0))
 	{			
 		ErrorFunc f;
 			
-		double c = 1.0;
 		double c0 = fD/(3.0-2.0*fD);
 		double c1 = (2.0-fD)/(2.0*fD);
 		double ratio = x/(fS*sqrt(2.0));
 			
 		double amax = c1*(1.0-f.Function(ratio));
-		double amin = c;
+		double amin = fC;
 			
 		value = pow(amax,fD/2.0)*c0*(pow(amax,1.5-fD)-pow(amin,1.5-fD));
 	}
@@ -125,12 +125,12 @@ double MajumdarBhushan::DDFunction(double x) const
 {
 	double value = 0.0;
 
-	if ((fD>0.0) && (fS>0.0))
+	if ((fD>0.0) && (fS>0.0) && (fC>0.0))
 	{
 		ErrorFunc f;
 		
-		double c = 1.0, ratio = x/(fS*sqrt(2.0)), c0 = fD/(3.0-2.0*fD);
-		double amin = c;
+		double ratio = x/(fS*sqrt(2.0)), c0 = fD/(3.0-2.0*fD);
+		double amin = fC;
 		double amax = ((2.0-fD)/(2.0*fD))*(1.0-f.Function(ratio));
 		double damax = ((2.0-fD)/(fS*fD*sqrt(2.0*PI)))*exp(-ratio*ratio);
 		
@@ -184,7 +184,7 @@ dArrayT& MajumdarBhushan::MapFunction(const dArrayT& in, dArrayT& out) const
 	{
 		r = *pl++;
 		
-		if ((fD>0.0) && (fS>0.0))
+		if ((fD>0.0) && (fS>0.0) && (fC>0.0))
 		{
 			ErrorFunc f;
 			value = (1.0/(2.0*fD))*(1.0-f.Function(r/(sqrt(2.0)*fS)));		
@@ -224,19 +224,18 @@ dArrayT& MajumdarBhushan::MapDFunction(const dArrayT& in, dArrayT& out) const
 	
 	for (int i = 0; i < in.Length(); i++)
 	{	
-		if ((fD>0.0) && (fS>0.0))
+		if ((fD>0.0) && (fS>0.0) && (fC>0.0))
 		{
 			r = *pl++;
 			
 			ErrorFunc f;
 			
-			double c = 1.0;
 			double c0 = fD/(3.0-2.0*fD);
 			double c1 = (2.0-fD)/(2.0*fD);
 			double ratio = r/(fS*sqrt(2.0));
 			
 			double amax = c1*(1.0-f.Function(ratio));
-			double amin = c;
+			double amin = fC;
 			
 			value = pow(amax,fD/2.0)*c0*(pow(amax,1.5-fD)-pow(amin,1.5-fD));
 		}
@@ -275,13 +274,13 @@ dArrayT& MajumdarBhushan::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	
 	for (int i = 0; i < in.Length(); i++)
 	{
-		if ((fD>0.0) && (fS>0.0))
+		if ((fD>0.0) && (fS>0.0) && (fC>0.0))
 		{
 			r = *pl++;
 			ErrorFunc f;
 		
-			double c = 1.0, ratio = r/(fS*sqrt(2.0)), c0 = fD/(3.0-2.0*fD);
-			double amin = c;
+			double ratio = r/(fS*sqrt(2.0)), c0 = fD/(3.0-2.0*fD);
+			double amin = fC;
 			double amax = ((2.0-fD)/(2.0*fD))*(1.0-f.Function(ratio));
 			double damax = ((2.0-fD)/(fS*fD*sqrt(2.0*PI)))*exp(-ratio*ratio);
 		

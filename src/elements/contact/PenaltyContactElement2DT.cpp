@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.35 2003-04-25 20:01:40 dzeigle Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.36 2003-05-12 22:01:29 dzeigle Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -78,10 +78,11 @@ void PenaltyContactElement2DT::Initialize(void)
                 double mb_g = parameters[kRoughnessScale];
                 double mb_mod = parameters[kEPrime];
                 double mb_f = parameters[kFractalDimension];
+                double mb_c = parameters[kAreaFraction];
                 double material_coeff=(4.0/3.0)*sqrt(2.0*PI)*mb_mod*pow(mb_g,mb_f-1);
 				parameters[kPenalty] *= material_coeff; // overwrite pen value
 				fPenaltyFunctions[LookUp(i,j,num_surfaces)]
-                                        = new MajumdarBhushan(mb_f,mb_s);
+                                        = new MajumdarBhushan(mb_f,mb_s,mb_c);
 				}
 				break;
 			default:
@@ -182,6 +183,8 @@ void PenaltyContactElement2DT::PrintControlData(ostream& out) const
 			  		<< enf_parameters[kFractalDimension] << '\n';
 			  	out << "  Hertzian Modulus                   : "
 					<< enf_parameters[kEPrime] << '\n';
+				out << "  Area Fraction                   : "
+					<< enf_parameters[kAreaFraction] << '\n';
 			  default:
 				throw ExceptionT::kBadInputValue;
 		  	  }
@@ -243,6 +246,12 @@ void PenaltyContactElement2DT::RHSDriver(void)
 		  for (int j =0; j < nsd; j++) {n1[j] = node->Normal()[j];}
 		  N1.Multx(n1, tmp_RHS);
 		  /* pressure = -e <g> and t = - p n   */
+		  if (parameters[kPenaltyType] == PenaltyContactElement2DT::kMajumdarBhushan)
+		  {
+			double frdim = parameters[kFractalDimension];
+			double jac = face->ComputeJacobian(points(i));
+			pre *= pow(jac,0.5*(1.0-frdim));
+		  }
 		  tmp_RHS.SetToScaled(-pre*weights[i], tmp_RHS);
 		  RHS += tmp_RHS;
 
@@ -265,8 +274,9 @@ void PenaltyContactElement2DT::RHSDriver(void)
 				== PenaltyContactElement2DT::kMajumdarBhushan) {
 			double mb_s = parameters[kAsperityHeightStandardDeviation];
 			double mb_f = parameters[kFractalDimension];
+			double mb_c = parameters[kAreaFraction];
 
-			MajumdarBhushan MBArea(mb_f,mb_s); 	
+			MajumdarBhushan MBArea(mb_f,mb_s,mb_c); 	
 		  	fRealArea[s] += (MBArea.Function(gap)*weights[i]);
 		  }
 		}

@@ -1,4 +1,4 @@
-/* $Id: MajumdarBhushan.h,v 1.1 2003-04-25 20:01:39 dzeigle Exp $ */
+/* $Id: MajumdarBhushan.h,v 1.2 2003-05-12 22:01:28 dzeigle Exp $ */
 #ifndef _MAJUMDAR_BHUSHAN_H_
 #define _MAJUMDAR_BHUSHAN_H_
 
@@ -14,7 +14,7 @@ public:
 	/*
 	 * Constructor
 	 */
-	MajumdarBhushan(double FRACDIM, double SIGMA);
+	MajumdarBhushan(double FRACDIM, double SIGMA, double C);
 	
 	/*
 	 * Destructor
@@ -50,6 +50,7 @@ private:
 	/* potential parameters */
 	double fD;
 	double fS;
+	double fC;
 };
 
 } // namespace Tahoe 

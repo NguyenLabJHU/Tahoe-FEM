@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.h,v 1.17 2003-04-25 20:01:40 dzeigle Exp $ */
+/* $Id: PenaltyContactElement2DT.h,v 1.18 2003-05-12 22:01:29 dzeigle Exp $ */
 // created by : rjones 2001
 #ifndef _PENALTY_CONTACT_ELEMENT_2D_T_H_
 #define _PENALTY_CONTACT_ELEMENT_2D_T_H_
@@ -59,7 +59,8 @@ class PenaltyContactElement2DT: public ContactElementT
 								kSigma=3,
 								kFractalDimension,
 								kRoughnessScale,
-								kEPrime
+								kEPrime,
+								kAreaFraction
 						};
 	 	
   protected:
