@@ -1,0 +1,21 @@
+brick x 6.0 y 5.7 z 2 
+volume 1 size 1
+preview mesh volume 1 
+mesh volume 1 
+block 1 volume 1 
+
+sideset 1 surface 1 
+nodeset 1 surface 1 
+nodeset 2 surface 2 
+sideset 2 surface 2 
+nodeset 3 surface 3 
+sideset 3 surface 3 
+nodeset 4 surface 4 
+sideset 4 surface 4 
+sideset 5 surface 5 
+nodeset 5 surface 5 
+nodeset 6 surface 6 
+sideset 6 surface 6 
+nodeset 12 curve 2
+
+export genesis "cornea.g"
