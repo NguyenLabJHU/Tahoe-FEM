@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainAxiT.h,v 1.3 2004-02-04 07:34:32 paklein Exp $ */
+/* $Id: FiniteStrainAxiT.h,v 1.4 2004-02-06 18:01:40 paklein Exp $ */
 #ifndef _FINITE_STRAIN_AXI_T_H_
 #define _FINITE_STRAIN_AXI_T_H_
 
@@ -19,6 +19,9 @@ class FiniteStrainAxiT: public FiniteStrainT
 	virtual void Initialize(void);
 
   protected:
+
+	/** indicate elements are axisymmetric */
+	virtual bool Axisymmetric(void) const { return true; };
 
 	/** allocate and initialize local arrays */
 	virtual void SetLocalArrays(void);
