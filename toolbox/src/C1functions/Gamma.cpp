@@ -1,5 +1,4 @@
-/* $Id: Gamma.cpp,v 1.1 2002-04-22 16:09:23 dzeigle Exp $ */
-/* created: dzeigle (4/18/2002) */
+/* $Id: Gamma.cpp,v 1.2 2002-04-24 17:52:32 dzeigle Exp $ */
 
 #include "Gamma.h"
 #include <math.h>
@@ -40,31 +39,47 @@ void Gamma::PrintName(ostream& out) const
 */
 double Gamma::Function(double xx) const
 {
-	double x, y, tmp, ser;
-	static double cof[6] = {76.18009172947146, -86.50532032941677,
-	24.01409824083091, -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5};
-
-	y = x = xx;
-	tmp = x+5.5;
-	tmp -= (x+0.5)*log(tmp);
-	ser = 1.000000000190015;
-	for (int j=0; j<=5; j++)
+	double val;
+	
+	if (xx > 0)
 	{
-		ser += cof[j]/++y;
+		double x, y, tmp, ser;
+		static double cof[6] = {76.18009172947146, -86.50532032941677,
+		24.01409824083091, -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5};
+
+		y = x = xx;
+		tmp = x+5.5;
+		tmp -= (x+0.5)*log(tmp);
+		ser = 1.000000000190015;
+		for (int j=0; j<=5; j++)
+		{
+			ser += cof[j]/++y;
+		}
+		val = exp(-tmp+log(2.5066282746310005*ser/x));
 	}
-	return exp(-tmp+log(2.5066282746310005*ser/x));
+	else if (xx < 0)		
+		val = (Function(1.0+xx)/xx);
+	else
+	{
+		cout << "\n Gamma is infinite at 0.\n";
+		throw eBadInputValue;
+	}
+	
+	return val;
 }
 
 double Gamma::DFunction(double x) const
 {
 	cout << "\n First derivative of the Gamma Function not tabulated!\n";
-	return 0*x;
+	throw eBadInputValue;
+	return 0*x;	// to avoid generating warning messages
 }
 
 double Gamma::DDFunction(double x) const
 {
 	cout << "\n Second derivative of the Gamma Function not tabulated!\n";
-	return 0.0*x;
+	throw eBadInputValue;
+	return 0.0*x;	// to avoid generating warning messages
 }
 
 /*
@@ -135,6 +150,7 @@ dArrayT& Gamma::MapDDFunction(const dArrayT& in,  dArrayT& out) const
 	}
 	return out;
 }
+
 
 
 

@@ -1,4 +1,4 @@
-/* $Id: ErrorFunc.h,v 1.1 2002-02-05 15:26:56 dzeigle Exp $ */
+/* $Id: ErrorFunc.h,v 1.2 2002-04-24 17:52:32 dzeigle Exp $ */
 
 #ifndef _ERR_FUN_H_
 #define _ERR_FUN_H_
@@ -13,7 +13,19 @@ public:
 	/*
 	 * Constructor
 	 */
-	ErrorFunc(double fS);
+	ErrorFunc();
+	
+	/*
+	 * Destructor
+	 */
+	~ErrorFunc();
+	
+	/*
+	* Methods
+	*/
+	double gammp(double a, double x) const;
+	void gcf(double *gammcf, double a, double x, double *gln) const;
+	void gser(double *gamser, double a, double x, double *gln) const;
 
 	/*
 	 * I/O
@@ -39,11 +51,9 @@ public:
 	virtual dArrayT& MapDFunction(const dArrayT& in, dArrayT& out) const;
 	virtual dArrayT& MapDDFunction(const dArrayT& in, dArrayT& out) const;
 
-private:
-	double fS;
-
 };
 
 #endif /* _ERR_FUN_H_ */
+
 
 
