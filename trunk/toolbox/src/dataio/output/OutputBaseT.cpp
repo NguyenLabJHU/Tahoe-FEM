@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.11 2002-07-02 19:57:07 cjkimme Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.12 2002-09-12 16:07:13 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "OutputBaseT.h"
@@ -82,9 +82,12 @@ int OutputBaseT::AddElementSet(const OutputSetT& output_set)
 {
 	OutputSetT* copy = new OutputSetT(output_set);
 	if (!copy) throw eOutOfMemory;
-	fElementSets.Append(copy);
 
 	/* ID is just position in array */
+	StringT ID;
+	ID.Append(fElementSets.Length());
+	copy->SetID(ID);
+	fElementSets.Append(copy);
 	return fElementSets.Length() - 1;
 }
 
