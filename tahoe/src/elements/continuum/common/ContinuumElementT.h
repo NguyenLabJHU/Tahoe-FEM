@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.31 2004-12-21 17:21:55 thao Exp $ */
+/* $Id: ContinuumElementT.h,v 1.32 2005-01-05 01:24:02 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -168,8 +168,12 @@ protected:
 	/** compute shape functions and derivatives */
 	virtual void SetGlobalShape(void);
 
-	/** accumulate the element mass matrix */
-	void FormMass(int mass_type, double constM, bool axisymmetric);
+	/** accumulate the element mass matrix
+	 * \param ip_weight array of weights per integration point or NULL
+	 *        if no additional weighting is needed beyond those defined by
+	 *        the integration scheme */
+	void FormMass(MassTypeT mass_type, double constM, bool axisymmetric,
+		const double* ip_weight);
 
 	/** add contribution from the body force */
 	void AddBodyForce(LocalArrayT& body_force) const;
@@ -179,10 +183,14 @@ protected:
 	 * \param constM pre-factor for the element integral
 	 * \param nodal nodal values. Pass NULL for no nodal values: [nen] x [ndof]
 	 * \param ip_values integration point source terms. Pass NULL for no integration
-	 *        point values : [nip] x [ndof] */
+	 *        point values : [nip] x [ndof]
+	 * \param ip_weight array of weights per integration point or NULL
+	 *        if no additional weighting is needed beyond those defined by
+	 *        the integration scheme */
 	void FormMa(MassTypeT mass_type, double constM, bool axisymmetric,
 		const LocalArrayT* nodal_values,
-		const dArray2DT* ip_values);
+		const dArray2DT* ip_values,
+		const double* ip_weight);
 
 	/** extract natural boundary condition information */
 	void TakeNaturalBC(const ParameterListT& list);
