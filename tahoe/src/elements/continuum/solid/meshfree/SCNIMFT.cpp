@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.4 2004-02-10 01:28:50 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.5 2004-02-10 17:45:11 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -65,11 +65,10 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support):
 SCNIMFT::~SCNIMFT(void)
 {
 	delete fSSMatSupport;
-	
-	if (fElementConnectivities[0])
-		delete fElementConnectivities[0];
-		
-	delete fVoronoi;
+#ifdef __QHULL__		
+	if (fVoronoi) 
+	  delete fVoronoi;
+#endif
 	delete fMaterialList;
 	delete fNodalShapes;
 }
@@ -136,9 +135,9 @@ void SCNIMFT::Initialize(void)
     else 
     {	// read in Voronoi information from a file
 	  	StringT vCellFile;
-	    in >> vCellFile;
+		in >> vCellFile;
 	    
-	    ifstreamT vin(vCellFile);
+		ifstreamT vin(vCellFile);
 
     	if (!vin.is_open())
 	    	ExceptionT::GeneralFail(caller,"Unable to open file for reading");
@@ -151,10 +150,7 @@ void SCNIMFT::Initialize(void)
 	/* shape functions */
 	/* only support single list of integration cells for now */
 	if (fElementConnectivities.Length() > 1) {
-		cout << "\n MeshFreeSSSolidT::SetShape: multiple element blocks within an\n"
-		     <<   "     element group not supported. Number of blocks: " 
-		     << fConnectivities.Length() << endl;
-		throw ExceptionT::kGeneralFail;
+	       ExceptionT::GeneralFail(caller,"Multiple ElementConnectivities not yet supported\n");
 	}
 
 	/* construct shape functions */
