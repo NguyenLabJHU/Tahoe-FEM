@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.11.20.1 2004-04-20 17:41:46 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.11.20.2 2004-04-21 07:38:08 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 #include "PenaltyContact3DT.h"
 
@@ -107,6 +107,66 @@ void PenaltyContact3DT::DefineParameters(ParameterListT& list) const
 	ParameterT stiffness(ParameterT::Double, "penalty_stiffness");
 	stiffness.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(stiffness);
+}
+
+/* accept parameter list */
+void PenaltyContact3DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	Contact3DT::TakeParameterList(list);
+
+	/* contact stiffness */
+	fK = list.GetParameter("penalty_stiffness");
+
+	/* dimension workspace */
+	fElCoord.Dimension(fNumFacetNodes + 1, NumSD());
+	fElRefCoord.Dimension(fNumFacetNodes + 1, NumSD());
+	fElDisp.Dimension(fNumFacetNodes + 1, NumDOF());
+
+	fdc_du.Dimension(NumSD(), fElDisp.Length());
+	fdn_du.Dimension(NumSD(), fElDisp.Length());
+	fM1.Dimension(NumSD());
+	fM2.Dimension(NumSD(), fElDisp.Length());
+	fV1.Dimension(fElDisp.Length());
+
+	double third = 1.0/3.0;
+	double* p = fdc_du.Pointer();
+	*p++ =-third;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-third;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-third;
+	*p++ =-third;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-third;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-third;
+	*p++ =-third;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-third;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-third;
+	*p++ = 1;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 1;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p   = 1;
 }
 
 /***********************************************************************

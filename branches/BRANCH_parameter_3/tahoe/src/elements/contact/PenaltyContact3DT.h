@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.h,v 1.6.44.1 2004-04-20 17:41:46 paklein Exp $ */
+/* $Id: PenaltyContact3DT.h,v 1.6.44.2 2004-04-21 07:38:08 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 #ifndef _PENALTY_CONTACT3D_T_H_
 #define _PENALTY_CONTACT3D_T_H_
@@ -21,6 +21,9 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
