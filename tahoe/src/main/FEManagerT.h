@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.43 2004-06-26 18:38:08 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.43.2.1 2004-07-06 06:30:29 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -11,6 +11,7 @@
 #include "ParameterInterfaceT.h"
 
 /* direct members */
+#include "iArrayT.h"
 #include "StringT.h"
 #include "ElementListT.h"
 #include "IOBaseT.h"
@@ -33,7 +34,6 @@ class ScheduleT;
 class SolverT;
 class dMatrixT;
 class LocalArrayT;
-class iArrayT;
 class dArrayT;
 class iArray2DT;
 class ElementMatrixT;
@@ -63,7 +63,7 @@ public:
 	virtual ~FEManagerT(void);
 
 	/** initialize members */
-	virtual void Initialize(InitCodeT init = kFull);
+//	virtual void Initialize(InitCodeT init = kFull);
 	
 	/** solve all the time sequences */
 	void Solve(void);
@@ -259,7 +259,7 @@ public:
 	 * \param ID output set ID for the given data
 	 * \param n_values nodal output values
 	 * \param e_values element output values */
-	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
+	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const;
 
 	/** write a snapshot */
 	void WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
@@ -280,11 +280,13 @@ public:
 
 	/** \name access to integrators */
 	/*@{*/
+#if 0
 	int NumIntegrators(void) const { return fIntegrators.Length(); };
 	IntegratorT* Integrator(int index) { return fIntegrators[index]; };
 	const IntegratorT* Integrator(int index) const { return fIntegrators[index]; };
 	const eIntegratorT* eIntegrator(int index) const;
 	const nIntegratorT* nIntegrator(int index) const;
+#endif
 	/*@}*/
 
 	/** debugging */
@@ -360,13 +362,19 @@ public:
 	bool WriteRestart(const StringT* file_name = NULL) const;
 	/*@}*/
 
+	/** \name command line flags */
+	/*@{*/
+	const ArrayT<StringT>& Argv(void) const;
+	bool CommandLineOption(const char* str) const;
+
+	/** returns the index of the requested option or -1 if not bound */
+	bool CommandLineOption(const char* str, int& index) const;
+	/*@}*/
+
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
 
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
@@ -379,15 +387,9 @@ public:
 	/** return the description of the given inline subordinate parameter list */
 	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
 		SubListT& sub_sub_list) const;
-	/*@}*/
 
-	/** \name command line flags */
-	/*@{*/
-	const ArrayT<StringT>& Argv(void) const;
-	bool CommandLineOption(const char* str) const;
-
-	/** returns the index of the requested option or -1 if not bound */
-	bool CommandLineOption(const char* str, int& index) const;
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
@@ -438,13 +440,19 @@ private:
 	 * FEManagerT is passed to the solvers. */
 	/*@{*/
 	SolverT* New_Solver(int code, int group);
-	SolverT* New_Solver(GlobalT::SolverTypeT solver_type);
 	/*@}*/
 		
 protected:
 
 	/** command line options */
 	const ArrayT<StringT>& fArgv;
+
+	/** temporary flag to control how much of the FEManagerT is constructed
+	 * during FEManagerT::TakeParameterListT. This value will be initialized
+	 * to FEManagerT::kFull. Derived classes should redefine the value before
+	 * FEManagerT::TakeParameterListT is called. This will be eliminated when
+	 * procedure for initializing the global equation system is revised. */
+	InitCodeT fInitCode;
 
 	/** \name I/O streams */
 	/*@{*/
@@ -477,7 +485,6 @@ protected:
 	NodeManagerT* fNodeManager;
 	ElementListT* fElementGroups;
 	ArrayT<SolverT*> fSolvers;
-	ArrayT<IntegratorT*> fIntegrators;
 	IOManager*    fIOManager;
 	ModelManagerT* fModelManager;
 	CommManagerT* fCommManager;
@@ -555,8 +562,10 @@ inline int FEManagerT::IterationNumber(void) const
 	int curr_group = CurrentGroup();
 	if (curr_group >= 0)
 		return IterationNumber(curr_group);
-	else
+	else {
+		ExceptionT::GeneralFail("FEManagerT::IterationNumber", "no group is current"); 
 		return -1;
+	}
 }
 
 inline int FEManagerT::GlobalEquationStart(int group) const { return fGlobalEquationStart[group]; }
