@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.30 2002-12-05 08:31:13 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.30.2.1 2002-12-10 17:13:02 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -269,8 +269,8 @@ public:
 	int Rank(void) const;
 	int Size(void) const;
 	
-	/** return the local node to processor map */
-	virtual void NodeToProcessorMap(const iArrayT& node, iArrayT& processor) const;
+	/** the local node to home processor map */
+	const iArrayT& ProcessorMap(void) const;
 
 	/* external nodes functions (parallel execution) */
 	virtual void IncomingNodes(iArrayT& nodes_in) const;

@@ -1,9 +1,10 @@
-/* $Id: CommManagerT.h,v 1.1.2.1 2002-12-05 21:48:17 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.1.2.2 2002-12-10 17:13:02 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
 /* direct members */
 #include "dArray2DT.h"
+#include "iArrayT.h";
 
 namespace Tahoe {
 
@@ -11,7 +12,6 @@ namespace Tahoe {
 class PartitionT;
 class CommunicatorT;
 class ModelManagerT;
-class iArrayT;
 
 /** manage processor to processor transactions. Manages partition information.
  * Creates ghosts nodes. Manages communication lists. Manipulates the
@@ -35,7 +35,10 @@ public:
 	/** configure the current local coordinate list and register it with the
 	 * model manager. The first time this method is called, it will call
 	 * CommManagerT::FirstConfigure before performing the usual operations. */
-	void Configure(double range);
+	void Configure(void);
+
+	/** the local node to home processor map */
+	const iArrayT& ProcessorMap(void) const { return fProcessor; };
 
 private:
 
@@ -73,6 +76,9 @@ private:
 	
 	/** true if CommManagerT::Configure has not been called yet */
 	bool fFirstConfigure;
+
+	/** native processor per node */
+	iArrayT fProcessor;
 };
 
 } /* namespace Tahoe */

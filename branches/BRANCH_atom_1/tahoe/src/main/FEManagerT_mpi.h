@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.16 2002-12-05 08:31:13 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.16.2.1 2002-12-10 17:13:02 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #ifndef _FE_MANAGER_MPI_H_
 #define _FE_MANAGER_MPI_H_
@@ -69,9 +69,6 @@ public:
 	/* return list of ID's of external nodes */
 	virtual void IncomingNodes(iArrayT& nodes_in) const;
 	virtual void OutgoingNodes(iArrayT& nodes_out) const;
-
-	/** return the local node to processor map */
-	virtual void NodeToProcessorMap(const iArrayT& node, iArrayT& processor) const;
 
 	/** synchronize */
 	virtual void Wait(void);

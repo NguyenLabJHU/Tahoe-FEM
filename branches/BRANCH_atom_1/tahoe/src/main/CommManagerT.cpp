@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.1.2.1 2002-12-05 21:48:17 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.1.2.2 2002-12-10 17:13:02 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -15,7 +15,18 @@ CommManagerT::CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager):
 	fPeriodicBoundaries(0,2),
 	fFirstConfigure(true)
 {
+//TEMP
+cout << "\n CommManagerT::CommManagerT: setting CommunicatorT log level to kLow"<< endl;
+fComm.SetLogLevel(CommunicatorT::kLow);
+//TEMP
 
+	//TEMP - with inline coordinate information (serial) this map
+	//       need to be set ASAP
+	if (fComm.Size() == 1)
+	{
+		fProcessor.Dimension(fModelManager.NumNodes());
+		fProcessor = fComm.Rank();
+	}
 }
 
 /* set boundaries */
@@ -42,7 +53,7 @@ ExceptionT::Stop("CommManagerT::SetPeriodicBoundaries", "not supported yet");
 void CommManagerT::ClearPeriodicBoundaries(int i) { fIsPeriodic[i] = false; }
 
 /* configure local environment */
-void CommManagerT::Configure(double range)
+void CommManagerT::Configure(void)
 {
 	/* nothing to do */
 	if (fComm.Size() == 1)
@@ -68,10 +79,21 @@ void CommManagerT::Configure(double range)
 void CommManagerT::FirstConfigure(void)
 {
 	/* nothing to do in serial */
-	if (!fPartition) return;
+	if (!fPartition) {
+		fProcessor.Dimension(fModelManager.NumNodes());
+		fProcessor = fComm.Rank();
+		return;
+	}
+	
+	//TEMP
+	if (fPartition->DecompType() == PartitionT::kGraph)
+		ExceptionT::GeneralFail("CommManagerT::FirstConfigure", "not yet implemented for kGraph");
 	
 	if (fPartition->DecompType() == PartitionT::kAtom)
 	{
+		/* change the numbering scope of partition data to global */
+		fPartition->SetScope(PartitionT::kGlobal);
+	
 		/* number of nodes owned by this partition */
 		int npn = fPartition->NumPartitionNodes();
 
@@ -125,12 +147,79 @@ void CommManagerT::FirstConfigure(void)
 		const ArrayT<StringT>& ss_id = fModelManager.SideSetIDs();
 		//TEMP
 		if (ss_id.Length() > 0) cout << "\n CommManagerT::FirstConfigure: skipping size sets" << endl;
+
+		/* set node-to-processor map - could also get from n/(part size) */
+		fProcessor.Dimension(fModelManager.NumNodes());
+		const iArrayT& counts = all_gather.Counts();
+		int proc = 0;
+		int* p = fProcessor.Pointer();
+		for (int i = 0; i < counts.Length(); i++)
+		{
+			int n_i = counts[i]/nsd;
+			for (int j = 0; j < n_i; j++)
+				*p++ = proc;
+			proc++;
+		}
 	}
 }
 
 /*************************************************************************
  * Protected
  *************************************************************************/
+
+#if 0
+/* return the local node to processor map */
+void FEManagerT_mpi::NodeToProcessorMap(const iArrayT& node, iArrayT& processor) const
+{
+	/* initialize */
+	processor.Dimension(node);
+	processor = -1;
+	
+	/* empty list */
+	if (node.Length() == 0) return;
+	
+	/* no parition data */
+	if (!fPartition) {
+		processor = Rank();
+		return;
+	}
+	
+	/* range of node numbers */
+	int shift, max;
+	node.MinMax(shift, max);
+	int range = max - shift + 1;
+
+	/* node to index-in-node-array map */
+	iArrayT index(range);
+	index = -1;
+	for (int i = 0; i < range; i++)
+		index[node[i] - shift] = i;
+	
+	/* mark external */
+	const iArrayT& comm_ID = Partition().CommID();
+	for (int i = 0; i < comm_ID.Length(); i++)
+	{	
+		int proc = comm_ID[i];
+		const iArrayT* comm_nodes = Partition().NodesIn(proc);
+		if (!comm_nodes) throw ExceptionT::kGeneralFail;
+		for (int j = 0; j < comm_nodes->Length(); j++)
+		{
+			int nd = (*comm_nodes)[j] - shift;
+			if (nd > -1 && nd < range) /* in the list range */
+			{
+				int dex = index[nd];
+				if (dex != -1) /* in the list */
+					processor[dex] = proc;
+			}
+		}
+	}
+	
+	/* assume all others are from this proc */
+	int rank = Rank();
+	for (int i = 0; i < range; i++)
+		if (processor[i] == -1) processor[i] = rank;
+}
+#endif
 
 /** determine the local coordinate bounds */
 void CommManagerT::GetBounds(const dArray2DT& coords_all, const iArrayT& local, 
