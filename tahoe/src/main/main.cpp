@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.14 2002-10-20 22:48:32 paklein Exp $ */
+/* $Id: main.cpp,v 1.15 2002-11-28 01:11:35 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>
@@ -120,7 +120,11 @@ if (getcwd(cwd, 255)) cout << " cwd: " << cwd << endl;
 #endif
 
 #if __option (profile)
-	ProfilerInit(collectDetailed,bestTimeBase,100,20);
+	pascal OSErr err = ProfilerInit(collectDetailed, bestTimeBase, 1000, 25);
+	if (err == memFullErr)
+		cout << "\n ProfilerInit: memory full" << endl;
+	else if	(err == paramErr)
+		cout << "\n ProfilerInit: parameter error" << endl;
 	ProfilerSetStatus(0);
 	cout << "\n P r o f i l i n g   i s   a c t i v e\n" << endl;
 #endif
