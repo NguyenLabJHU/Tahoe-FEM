@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BaseT.cpp,v 1.1.2.4 2003-11-24 22:53:05 paklein Exp $ */
+/* $Id: ABAQUS_BaseT.cpp,v 1.1.2.5 2003-12-05 17:08:37 paklein Exp $ */
 #include "ABAQUS_BaseT.h"
 
 #ifdef __F2C__
@@ -57,45 +57,47 @@ void ABAQUS_BaseT::dMatrixT_to_ABAQUS(const dMatrixT& A,
 }
 
 void ABAQUS_BaseT::ABAQUS_to_dSymMatrixT(const doublereal* pA,
-	dSymMatrixT& B) const
+	dSymMatrixT& B, bool convert_shear) const
 {
+	double shear_factor = (convert_shear) ? 0.5 : 1.0;
 	double* pB = B.Pointer();
 	if (B.Rows() == 2)
 	{
 		*pB++ = double(pA[0]); // 11
 		*pB++ = double(pA[1]); // 22
-		*pB   = double(pA[3]); // 12
+		*pB   = double(pA[3])*shear_factor; // 12
 	}
 	else
 	{
 		*pB++ = double(pA[0]); // 11
 		*pB++ = double(pA[1]); // 22
 		*pB++ = double(pA[2]); // 33
-		*pB++ = double(pA[5]); // 23
-		*pB++ = double(pA[4]); // 13
-		*pB   = double(pA[3]); // 12
+		*pB++ = double(pA[5])*shear_factor; // 23
+		*pB++ = double(pA[4])*shear_factor; // 13
+		*pB   = double(pA[3])*shear_factor; // 12
 	}
 }
 
 void ABAQUS_BaseT::dSymMatrixT_to_ABAQUS(const dSymMatrixT& A,
-	doublereal* pB) const
+	doublereal* pB, bool convert_shear) const
 {
+	doublereal shear_factor = (convert_shear) ? 2.0 : 1.0;
 	double* pA = A.Pointer();
 	if (A.Rows() == 2)
 	{
 		*pB++ = doublereal(pA[0]); // 11
 		*pB++ = doublereal(pA[1]); // 22
 		*pB++;                     // 33 - leave unchanged
-		*pB   = doublereal(pA[2]); // 12
+		*pB   = doublereal(pA[2])*shear_factor; // 12
 	}
 	else
 	{
 		*pB++ = doublereal(pA[0]); // 11
 		*pB++ = doublereal(pA[1]); // 22
 		*pB++ = doublereal(pA[2]); // 33
-		*pB++ = doublereal(pA[5]); // 12
-		*pB++ = doublereal(pA[4]); // 13
-		*pB   = doublereal(pA[3]); // 23
+		*pB++ = doublereal(pA[5])*shear_factor; // 12
+		*pB++ = doublereal(pA[4])*shear_factor; // 13
+		*pB   = doublereal(pA[3])*shear_factor; // 23
 	}
 }
 

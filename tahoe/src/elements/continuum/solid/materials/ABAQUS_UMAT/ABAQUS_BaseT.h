@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BaseT.h,v 1.1.2.3 2003-11-24 19:17:09 paklein Exp $ */
+/* $Id: ABAQUS_BaseT.h,v 1.1.2.4 2003-12-05 17:08:37 paklein Exp $ */
 #ifndef _ABAQUS_BASE_T_H_
 #define _ABAQUS_BASE_T_H_
 
@@ -34,8 +34,8 @@ protected:
 	/** name stress conversion functions */
 	/*@{*/
 	void dMatrixT_to_ABAQUS(const dMatrixT& A, nMatrixT<doublereal>& B) const;
-	void ABAQUS_to_dSymMatrixT(const doublereal* pA, dSymMatrixT& B) const;
-	void dSymMatrixT_to_ABAQUS(const dSymMatrixT& A, doublereal* pB) const;
+	void ABAQUS_to_dSymMatrixT(const doublereal* pA, dSymMatrixT& B, bool convert_shear = false) const;
+	void dSymMatrixT_to_ABAQUS(const dSymMatrixT& A, doublereal* pB, bool convert_shear = false) const;
 	/*@}*/
 
 	/** \name read ABAQUS-format input */
