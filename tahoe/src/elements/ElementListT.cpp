@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.34.2.1 2002-12-10 17:08:49 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.34.2.2 2002-12-27 23:24:14 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -513,6 +513,18 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		if (!fArray[group]) ExceptionT::OutOfMemory();
 		fArray[group]->Initialize();
 	}
+
+#ifdef PARTICLE_ELEMENT
+	/* can only have one particle group */
+	int count = 0;
+	for (int i = 0; i < Length(); i++)
+	{
+		ElementBaseT* e_group = fArray[i];
+		ParticleT* particle = dynamic_cast<ParticleT*>(e_group);
+		if (particle) count++;
+	}
+	if (count > 0) ExceptionT::BadInputValue(caller, "only one particle group allowed: %d", count);
+#endif
 }
 
 /* returns true of ALL element groups have interpolant DOF's */
