@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.h,v 1.17 2002-07-02 21:23:00 cjkimme Exp $ */
+/* $Id: VTKFrameT.h,v 1.18 2002-09-03 07:10:36 paklein Exp $ */
 
 #ifndef _VTK_FRAME_T_H_
 #define _VTK_FRAME_T_H_
@@ -63,12 +63,15 @@ class VTKFrameT: public iConsoleObjectT
 
 	/** execute console command. \return true is executed normally */
 	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
-   
+
+	/** update data. Only updates data managed directly by the frame. */
+	void UpdateData(void);
+
  protected:
 
 	/** call to re-render the window contents. Call goes through the console,
 	 * so all window contents will be brought up to date and re-drawn. */
-	void Render(void) const;
+	void Render(void);
 
 	/** write prompt for the specific argument of the command */
 	virtual void ValuePrompt(const CommandSpecT& command, int index, ostream& out) const;  
@@ -80,6 +83,9 @@ class VTKFrameT: public iConsoleObjectT
 	/** transform from world to display coordinates.
 	 * \param displayPt has to be allocated as 3 vector */
 	void ComputeWorldToDisplay(double x, double y, double z, double *displayPt);
+
+	/** get the current time string */
+	void GetCurrentTime(StringT& string) const;
 
  private:
 
@@ -96,8 +102,14 @@ class VTKFrameT: public iConsoleObjectT
 	vtkScalarBarActor* scalarBar;
 	
 	/** frame label */
+	StringT        fFrameLabel;
 	vtkTextMapper* fLabelMapper;
 	vtkActor2D*    fLabelActor;
+
+	/** time label */
+	StringT        fTimeLabel;
+	vtkTextMapper* fTimeLabelMapper;
+	vtkActor2D*    fTimeLabelActor;
 };
 
 #endif

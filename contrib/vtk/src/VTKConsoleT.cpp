@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.55 2002-07-02 21:23:00 cjkimme Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.56 2002-09-03 07:10:36 paklein Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -265,8 +265,14 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 	{
 		if (!fRenderHold)
 		{
+			/* update bodies */
 			for (int i = 0; i < fBodies.Length(); i++)
 				fBodies[i]->UpdateData();
+
+			/* update frames */
+			for (int i = 0; i < fFrames.Length(); i++)
+				fFrames[i]->UpdateData();
+
 			renWin->Render();
 		}
 		return true;
@@ -610,8 +616,13 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 		/* assume all the bodies have the same number of steps as body 0 */
 		for (int j = 0; j < fBodies[0]->NumTimeSteps(); j++) {
 	
+			/* update bodies */
 			for (int i = 0; i < fBodies.Length(); i++)
 				fBodies[i]->SelectTimeStep(j);
+
+			/* update frames */
+			for (int i = 0; i < fFrames.Length(); i++)
+				fFrames[i]->UpdateData();
 	
 			renWin->Render();  
 			StringT frame_name = name;
