@@ -1,8 +1,5 @@
 //DEVELOPMENT
-
-
-#include "FEA.h" 
-#include "APS.h"
+#include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
 

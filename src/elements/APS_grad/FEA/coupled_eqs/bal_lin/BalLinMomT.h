@@ -6,7 +6,9 @@
 
 #include "StringT.h"
 #include "Shear_MatlT.h"
-
+#include "APS_FEA.h"
+#include "APS_EnumT.h"
+#include "APS_VariableT.h"
 
 namespace Tahoe {
 

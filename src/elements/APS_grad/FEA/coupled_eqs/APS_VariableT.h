@@ -1,6 +1,9 @@
-// $Id: APS_VariableT.h,v 1.1 2003-07-10 17:20:21 raregue Exp $
+// $Id: APS_VariableT.h,v 1.2 2003-09-02 23:57:54 raregue Exp $
 #ifndef _APS_VARIABLE_T_H_ 
 #define _APS_VARIABLE_T_H_ 
+
+#include "APS_FEA.h"
+#include "APS_EnumT.h"
 
 namespace Tahoe {
 
@@ -27,7 +30,7 @@ class APS_VariableT
 		void Print  (char*);
 
  	 	/** Retrieve either grad_u, gammap from class workspace **/
-		const FEA_dVectorT& Get(APS::VarT variable); 
+		//const FEA_dVectorT& Get(APS::VarT variable); 
 
 		/** Fill (*this) with a+b */
 		void SumOf (APS_VariableT &a, APS_VariableT &b); 

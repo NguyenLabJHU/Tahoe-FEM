@@ -1,11 +1,17 @@
-// $Id: PlastT.h,v 1.1 2003-07-10 17:23:53 raregue Exp $
+// $Id: PlastT.h,v 1.2 2003-09-02 23:57:57 raregue Exp $
 #ifndef _PLAST_T_H_ 
 #define _PLAST_T_H_ 
 
-#include "APS_MatlT.h"
 #include "StringT.h"
+#include "APS_MatlT.h"
+#include "APS_FEA.h"
+#include "APS_EnumT.h"
+#include "APS_VariableT.h"
 
 namespace Tahoe {
+
+/* forward declaration */
+class FEA_ShapeFunctionT;
 
 class PlastT
 {
@@ -13,8 +19,8 @@ public:
 
 	enum Eqn_TypeT 	{ kAPS_BCJ };
 
-	PlastT ( void ) { }
-	virtual ~PlastT ( void ) { }
+	PlastT ( void ) { };
+	virtual ~PlastT ( void ) { };
 
 	/** Pure virtual functions */
 

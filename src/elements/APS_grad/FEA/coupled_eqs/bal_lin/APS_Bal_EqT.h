@@ -4,7 +4,6 @@
 #define _APS_BALEQ_T_H_ 
 
 #include "BalLinMomT.h"
-#include "Shear_MatlT.h"
 
 namespace Tahoe {
 
@@ -50,11 +49,13 @@ class APS_Bal_EqT	: public BalLinMomT
   		void 	Form_RHS_F_int		(	dArrayT  &F_int ); 
 		void 	Form_B_List 		( void );  // Strain Displacement Matricies
 		void 	Form_VB_List 		( void );  // Strain Matricies
- 		void 	Form_C_List 		( VMF_MaterialT *Shear_Matl );  // Constant List
+ 		void 	Form_C_List 		( APS_MaterialT *Shear_Matl );  // Constant List
 
 		void  	Get ( StringT &Name, FEA_dMatrixT &tensor );
 		void  	Get ( StringT &Name, FEA_dScalarT &scalar );
-		void 	Get ( int scalar_code, FEA_dScalarT &scalar  ) { scalar = S[scalar_code]; } 
+		
+		//TEMP - not needed?
+		//void 	Get ( int scalar_code, FEA_dScalarT &scalar  ) { scalar = S[scalar_code]; } 
 
 	protected:
 

@@ -1,6 +1,5 @@
-// $Id: APS_VariableT.cpp,v 1.1 2003-07-10 17:20:21 raregue Exp $
-#include "FEA.h"
-#include "APS.h"
+// $Id: APS_VariableT.cpp,v 1.2 2003-09-02 23:57:54 raregue Exp $
+#include "APS_VariableT.h"
 
 //---------------------------------------------------------------------
 /** constructor */
@@ -54,7 +53,7 @@ void APS_VariableT::Print(char *c) { // overload << later
 
 //---------------------------------------------------------------------
 //** Retrieve/Fetch/Get either grad_u or gammap from class work space
-const FEA_dMatrixT& APS_VariableT::Get(APS::VarT variable)  
+/*const FEA_dMatrixT& APS_VariableT::Get(APS::VarT variable)  
 {
 
   if (!fVars[variable].Length())  // 0 rows indicated un-allocation
@@ -62,7 +61,7 @@ const FEA_dMatrixT& APS_VariableT::Get(APS::VarT variable)
 
   return fVars[variable];
   
-}
+}*/
 
 //---------------------------------------------------------------------
 
