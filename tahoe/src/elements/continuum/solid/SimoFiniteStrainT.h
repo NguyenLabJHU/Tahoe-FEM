@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.h,v 1.8 2001-09-06 02:13:14 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.h,v 1.9 2001-09-06 08:49:09 paklein Exp $ */
 
 #ifndef _SIMO_FINITE_STRAIN_T_H_
 #define _SIMO_FINITE_STRAIN_T_H_
@@ -122,7 +122,7 @@ private:
 
 	/** form the contribution to the stiffness associated with the Galerkin
 	 * part of the deformation gradient */
-	void FormStiffness_Galerkin(double constK);
+	void FormStiffness_staggered(double constK);
 
 	/** form the stiffness associated with the enhanced modes
 	 * \param K_22 destination for the 2,2 block of the stiffness matrix
@@ -136,7 +136,7 @@ private:
 
 	/** form the contribution to the the residual force associated with the 
 	 * Galerkin part of the deformation gradient */
-	void FormKd_Galerkin(double constK);
+	void FormKd_staggered(double constK);
 
 	/** compute and assemble the residual force for the monolithic
 	 * solution scheme */
@@ -155,6 +155,7 @@ protected:
 	int fLocalIterationMax;  /**< sub-iterations to solve for the element modes */
 	double fAbsTol; /**< absolute tolerance on residual of enhanced modes */
 	double fRelTol; /**< relative tolerance on residual of enhanced modes */
+	bool fModesConverged; /**< true if local iteration satisfies convergence tolerances */
 	
 	/* derived parameters */
 	int fNumModeShapes; /**< number of mode shapes per element */
@@ -173,12 +174,6 @@ protected:
 
 	/** modes for current element */
 	LocalArrayT fCurrElementModes; 
-
-	/** increment in the element modes. Total increment in the element modes
-	 * over the local iteration phase. The incement is used by the local 
-	 * iteration solution method. The array is set to the negative of the
-	 * increment during SimoFiniteStrainT::SetGlobalShape. */
-	dArrayT fElementModesInc;
 
 	/* element degrees of freedom from last time step */
 	dArray2DT   fElementModes_last;     /**< all element modes stored in \a local \a ordering */
