@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile2DT.h,v 1.9 2003-08-08 16:03:18 paklein Exp $ */
+/* $Id: InelasticDuctile2DT.h,v 1.10 2003-08-18 01:05:59 paklein Exp $ */
 #ifndef _INELASTIC_DUCTILE_2D_T_H_
 #define _INELASTIC_DUCTILE_2D_T_H_
 
@@ -102,8 +102,6 @@ protected:
 	 * nodal output - FALSE by default */
 	virtual bool CompatibleOutput(const SurfacePotentialT& potential) const;
 
-	/** \name BCJ-like kinetic equations */
-	/*@{*/
 	/** evaluate the rates */
 	void Rates(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
 		dArrayT& dD, dArrayT& dq);
@@ -111,10 +109,7 @@ protected:
 	/** evaluate the Jacobian of the local iteration */
 	void Jacobian(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
 		const dArrayT& dq, dMatrixT& K);
-	/*@}*/
 
-	/** \name soft version */
-	/*@{*/
 	/** evaluate the rates */
 	void Rates_1(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
 		dArrayT& dD, dArrayT& dq);
@@ -122,18 +117,6 @@ protected:
 	/** evaluate the Jacobian of the local iteration */
 	void Jacobian_1(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
 		const dArrayT& dq, dMatrixT& K);
-	/*@}*/
-
-	/** \name old relations */
-	/*@{*/
-	/** evaluate the rates */
-	void Rates_2(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
-		dArrayT& dD, dArrayT& dq);
-
-	/** evaluate the Jacobian of the local iteration */
-	void Jacobian_2(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
-		const dArrayT& dq, dMatrixT& K);
-	/*@}*/
 
 private:
 
@@ -144,6 +127,9 @@ private:
 	/*@{*/
 	/** initial width of the localized zone */
 	double fw_0;
+	
+	/** rate-independent strain rate limit */
+	double feps_0;
 
 	/** critical void volume fraction */
 	double fphi_init;
@@ -153,20 +139,6 @@ private:
 
 	/** true if damage is reversible */
 	bool fReversible;
-	/*@}*/
-
-	/** \name BCJ model kinetic parameters */
-	/*@{*/
-	double fTemperature;
-	double fC1, fC2, fC3, fC4, fC5, fC6;
-	double fC19, fC20, fC21;
-	/*@}*/
-
-	/** \name BCJ model derived parameters */
-	/*@{*/
-	/** rate-independent strain rate limit */
-	double feps_0;
-	double fV, fY;
 	/*@}*/
 
 	/** \name work space */

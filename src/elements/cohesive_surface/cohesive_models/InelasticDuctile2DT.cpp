@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile2DT.cpp,v 1.10 2003-08-08 16:03:18 paklein Exp $  */
+/* $Id: InelasticDuctile2DT.cpp,v 1.11 2003-08-18 01:05:59 paklein Exp $  */
 #include "InelasticDuctile2DT.h"
 #include "ifstreamT.h"
 #include "dArrayT.h"
@@ -72,29 +72,14 @@ InelasticDuctile2DT::InelasticDuctile2DT(ifstreamT& in, const double& time_step)
 	fTraction.Set(2, fState.Pointer(k_dex_T_n));
 
 	/* traction potential parameters */
-	int reverse = -1;
 	in >> fw_0; if (fw_0 < 0.0) ExceptionT::BadInputValue(caller);
+	in >> feps_0; if (feps_0 < 0.0) ExceptionT::BadInputValue(caller);
 	in >> fphi_init; if (fphi_init < 0.0) ExceptionT::BadInputValue(caller);
 	in >> fkappa_scale; if (fkappa_scale < 0.0) ExceptionT::BadInputValue(caller);
+
+	int reverse = -1;
 	in >> reverse; if (reverse != 0 && reverse != 1) ExceptionT::BadInputValue(caller);
 	fReversible = bool(reverse);
-
-	/* BCJ model kinetic parameters */
-	in >> fTemperature
-	   >> fC1
-	   >> fC2
-	   >> fC3
-	   >> fC4
-	   >> fC5
-	   >> fC6
-	   >> fC19
-	   >> fC20
-	   >> fC21;
-
-	/* BCJ model derived parameters */
-	fV = fC1*exp(-fC2/fTemperature);
-	fY = (fC3/(fC21 + exp(-fC4/fTemperature)))*0.5*(1.0 + tanh(fC19*(fC20 - fTemperature)));
-	feps_0 = fC5*exp(-fC6/fTemperature);
 
 	/* bulk group information for TiedPotentialBaseT */
 	int num_bulk_groups = -99;
@@ -184,16 +169,9 @@ const dArrayT& InelasticDuctile2DT::Traction(const dArrayT& jump_u, ArrayT<doubl
 		/* integrate traction and state variables */
 		if (qIntegrate)
 		{
-			double kappa = state[k_dex_kappa];
-			double phi_s = state[k_dex_phi_s];
-
-			/* supply initial guess (for T_t) */
-			if (fabs(fTraction[0]) < kSmall)
-				fTraction[0] = 1.0001*(kappa + fY)*(1.0 - phi_s); // just a little more than the resistance
-
 			/* supply initial guess (for T_n) */
-			if (fabs(fTraction[1]) < kSmall)
-				fTraction[1] = 1.01*(kappa + fY)*(1.0 - phi_s); // just a little more than the resistance
+			if (fabs(fTraction[1]) < kSmall) 
+				fTraction[1] = state[k_dex_kappa];
 		
 			/* compute rates */
 			double& phi_n = state[k_dex_phi];
@@ -369,22 +347,9 @@ void InelasticDuctile2DT::Print(ostream& out) const
 {
 #ifndef _SIERRA_TEST_
 	out << " Initial width of the process zone . . . . . . . = " << fw_0 << '\n';
+	out << " Rate-independent strain rate limit. . . . . . . = " << feps_0 << '\n';
 	out << " Critical void volume fraction . . . . . . . . . = " << fphi_init << '\n';
 	out << " Reversible damage . . . . . . . . . . . . . . . = " << ((fReversible) ? "true" : "false") << '\n';
-	out << " BCJ model kinetic parameters:\n";
-	out << "     temperature = " << fTemperature << '\n';
-	out << "              C1 = " << fC1 << '\n';
-	out << "              C2 = " << fC2 << '\n';
-	out << "              C3 = " << fC3 << '\n';
-	out << "              C4 = " << fC4 << '\n';
-	out << "              C5 = " << fC5 << '\n';
-	out << "              C6 = " << fC6 << '\n';
-	out << "             C19 = " << fC19 << '\n';
-	out << "             C20 = " << fC20 << '\n';
-	out << "             C21 = " << fC21 << '\n';
-	out << " Rate-independent strain rate limit (f). . . . . = " << feps_0 << '\n';
-	out << " Strain rate sensitivity (V) . . . . . . . . . . = " << fV << '\n';
-	out << " Initial yield stress (Y). . . . . . . . . . . . = " << fY << '\n';
 	out << " Number of element groups for bulk information . = " << iBulkGroups.Length() << '\n';
 	iArrayT tmp;
 	tmp.Alias(iBulkGroups); /* non-const alias */
@@ -458,88 +423,6 @@ void InelasticDuctile2DT::Rates(const ArrayT<double>& q, const dArrayT& D,
 	double   phi = q[k_dex_phi];
 	double phi_s = q[k_dex_phi_s];
 
-	double k1 = 1.0 - phi;
-	double k2 = 1.0 - phi_s;
-
-	double kY = (kappa + fY)*k2;
-	double kV = fV*k2;
-
-	double sign_T_t = 0.0;
-	if (T[0] > 0.0) sign_T_t = 1.0;
-	else if (T[0] < 0.0) sign_T_t = -1.0;
-
-	dq[0] = feps_0*sinh((fabs(T[0]) + T[1] - kY)/kV);
-	dq[1] = (dq[0] > 0.0) ? dq[0] : 0.0;
-	
-	dD[0] = fw_0*feps_0*sinh(sign_T_t*(fabs(T[0]) - kY)/kV);
-	dD[1] = fw_0*dq[0]/(k1*k1);
-}
-
-void InelasticDuctile2DT::Jacobian(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
-	const dArrayT& dq, dMatrixT& K)
-{
-#pragma unused(D)
-
-	/* state variables */
-	double kappa = q[k_dex_kappa];
-	double   phi = q[k_dex_phi];
-	double phi_s = q[k_dex_phi_s];
-
-	double k1 = 1.0 - phi;
-	double k2 = 1.0 - phi_s;
-
-	double kY = (kappa + fY)*(1.0 - phi_s);
-	double kV = fV*(1.0 - phi_s);
-
-	double sign_T_t = 0.0;
-	if (T[0] > 0.0) sign_T_t = 1.0;
-	else if (T[0] < 0.0) sign_T_t = -1.0;
-
-	double k3 = feps_0*cosh((fabs(T[0]) + T[1] - kY)/kV);
-	double k4 = fw_0*feps_0*cosh(sign_T_t*(fabs(T[0]) - kY)/kV);
-
-	/* irreversible damage - phi_s is changing */
-	if (phi_s < phi_max && (fReversible || dq[0] > 0.0))
-	{
-		K(0,0) = k4/kV;
-		K(0,1) = 0.0;
-		K(0,2) = sign_T_t*k4*((kappa + kY)/kV + (fabs(T[0]) - kY)/(kV*k2));
-
-		K(2,0) = sign_T_t*k3/kV;
-		K(2,1) = k3/kV;
-		K(2,2) = k3*((kappa + kY)/kV + (fabs(T[0]) + T[1] - kY)/(kV*k2));
-	} 
-	else /* phi_s not changing */
-	{
-		K(0,0) = fw_0*feps_0*cosh(T[0]/(kappa*k2))/(kappa*k2);
-		K(0,1) = 0.0;
-		K(0,2) = 0.0;
-
-		K(2,0) = sign_T_t*k3/kV;
-		K(2,1) = k3/kV;
-		K(2,2) = 0.0;
-	}
-
-	/* d_delta_dot_n */
-	K(1,0) = fw_0*K(2,0)/(k1*k1);
-	K(1,1) = fw_0*K(2,1)/(k1*k1);
-	K(1,2) = fw_0*(K(2,2) + 2.0*dq[0]/k1)/(k1*k1);
-
-	/* because: R_q = q_dot - 1/dt (q_n+1 - q_n) */ 
-	if (fabs(fTimeStep) > kSmall) K(2,2) -= 1.0/fTimeStep;
-}
-
-/* evaluate the rates */
-void InelasticDuctile2DT::Rates_1(const ArrayT<double>& q, const dArrayT& D, 
-	const dArrayT& T, dArrayT& dD, dArrayT& dq)
-{
-#pragma unused(D)
-
-	/* state variables */
-	double kappa = q[k_dex_kappa];
-	double   phi = q[k_dex_phi];
-	double phi_s = q[k_dex_phi_s];
-
 	dq[0] = feps_0*sinh((fabs(T[0]) + T[1])/(kappa*(1 - phi_s)));
 	dq[1] = (dq[0] > 0.0) ? dq[0] : 0.0;
 	
@@ -547,7 +430,7 @@ void InelasticDuctile2DT::Rates_1(const ArrayT<double>& q, const dArrayT& D,
 	dD[1] = fw_0*dq[0]/((1.0 - phi)*(1.0 - phi));
 }
 
-void InelasticDuctile2DT::Jacobian_1(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
+void InelasticDuctile2DT::Jacobian(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
 	const dArrayT& dq, dMatrixT& K)
 {
 #pragma unused(D)
@@ -597,7 +480,7 @@ void InelasticDuctile2DT::Jacobian_1(const ArrayT<double>& q, const dArrayT& D, 
 }
 
 /* evaluate the rates */
-void InelasticDuctile2DT::Rates_2(const ArrayT<double>& q, const dArrayT& D, 
+void InelasticDuctile2DT::Rates_1(const ArrayT<double>& q, const dArrayT& D, 
 	const dArrayT& T, dArrayT& dD, dArrayT& dq)
 {
 	/* state variables */
@@ -616,7 +499,7 @@ void InelasticDuctile2DT::Rates_2(const ArrayT<double>& q, const dArrayT& D,
 	dD[1] = fw_0*dq[0]/((1.0 - phi)*(1.0 - phi));
 }
 
-void InelasticDuctile2DT::Jacobian_2(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
+void InelasticDuctile2DT::Jacobian_1(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
 	const dArrayT& dq, dMatrixT& K)
 {
 	/* state variables */
