@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.cpp,v 1.7 2002-07-02 19:56:59 cjkimme Exp $ */
+/* $Id: IOBaseT.cpp,v 1.8 2002-07-23 11:33:42 sawimme Exp $ */
 /* created: sawimme (09/28/1999) */
 
 #include "IOBaseT.h"
@@ -95,7 +95,7 @@ void IOBaseT::OutputFormats (ostream& log) const
   log << "    eq. " << setw (2) << IOBaseT::kAbaqusBinary  << ". ABAQUS Binary (.fil)\n";
   log << "    eq. " << setw (2) << IOBaseT::kAVS           << ". AVS UCD ASCII\n";
   //log << "    eq. " << setw (2) << IOBaseT::kAVSBinary     << ". AVS UCD Binary\n";
-  //log << "    eq. " << setw (2) << IOBaseT::kPatranNeutral << ". PATRAN Neutral\n";
+  log << "    eq. " << setw (2) << IOBaseT::kPatranNeutral << ". PATRAN Neutral\n";
 }
 
 /* try to guess the file format based on the file extension */
