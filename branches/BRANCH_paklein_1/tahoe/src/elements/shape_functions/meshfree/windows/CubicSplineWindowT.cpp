@@ -1,5 +1,5 @@
 #include "CubicSplineWindowT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include <math.h>
 
 
@@ -16,7 +16,7 @@ CubicSplineWindowT::CubicSplineWindowT(double dilation_scaling, double sharpenin
 	fCutOffFactor(cut_off_factor)
 {
 	if (fDilationScaling || fSharpeningFactor < 0.0)
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 }
 
 /* "synchronization" of nodal field parameters. */
@@ -30,7 +30,7 @@ void CubicSplineWindowT::SynchronizeSupportParameters(dArray2DT& params_1,
 	{
 		cout << "\n CubicSplineWindowT::SynchronizeSupportParameters: nodal\n"
 		     << " parameters dimension mismatch" << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 		
 	/* "synchronize" means take max of dmax */
@@ -289,7 +289,7 @@ bool CubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, cons
       }
     }
     else
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
       
     return true;
   }

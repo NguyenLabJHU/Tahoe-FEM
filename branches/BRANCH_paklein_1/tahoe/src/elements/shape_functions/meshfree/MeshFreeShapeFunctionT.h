@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.h,v 1.6 2002-07-05 22:28:36 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.h,v 1.6.4.1 2002-10-17 04:22:34 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 
 #ifndef _MF_SHAPE_FUNCTION_T_H_
@@ -141,7 +141,7 @@ protected:
 /* inlines */
 inline MeshFreeSupportT& MeshFreeShapeFunctionT::MeshFreeSupport(void) const
 {
-	if (!fMFSupport) throw eGeneralFail;
+	if (!fMFSupport) throw ExceptionT::kGeneralFail;
 	return *fMFSupport;
 }
 inline const iArrayT& MeshFreeShapeFunctionT::Neighbors(void) const { return fNeighbors; }

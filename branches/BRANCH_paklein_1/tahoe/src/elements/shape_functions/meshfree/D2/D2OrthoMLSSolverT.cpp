@@ -1,9 +1,9 @@
-/* $Id: D2OrthoMLSSolverT.cpp,v 1.4 2002-07-02 19:57:02 cjkimme Exp $ */
+/* $Id: D2OrthoMLSSolverT.cpp,v 1.4.4.1 2002-10-17 04:22:36 paklein Exp $ */
 /* created: paklein (10/17/1999)                                          */
 
 #include "D2OrthoMLSSolverT.h"
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dSymMatrixT.h"
 
 /* constants */
@@ -61,8 +61,8 @@ int D2OrthoMLSSolverT::SetField(const dArray2DT& nodalcoords,
 	const ArrayT<double>& dmax, const dArrayT& samplept)
 {
 #if __option(extended_errorcheck)
-	if (dmax.Length() != nodalcoords.MajorDim()) throw eSizeMismatch;
-	if (samplept.Length() != fNumSD) throw eSizeMismatch;
+	if (dmax.Length() != nodalcoords.MajorDim()) throw ExceptionT::kSizeMismatch;
+	if (samplept.Length() != fNumSD) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* set size of current working set */
@@ -85,7 +85,7 @@ int D2OrthoMLSSolverT::SetField(const dArray2DT& nodalcoords,
 		//TEMP - will handle externally later
 		cout << "\n D2OrthoMLSSolverT::SetField: not enough nodes for fit: ";
 		cout << numactive << '/' << NumberOfMonomials(fComplete) << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 		
 		return 0;
 	}

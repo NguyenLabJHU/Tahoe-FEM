@@ -1,4 +1,4 @@
-/* $Id: SamplingSurfaceT.cpp,v 1.3 2002-07-02 19:56:56 cjkimme Exp $ */
+/* $Id: SamplingSurfaceT.cpp,v 1.3.4.1 2002-10-17 04:22:35 paklein Exp $ */
 /* created: paklein (10/19/2000)                                          */
 
 #include "SamplingSurfaceT.h"
@@ -21,7 +21,7 @@ SamplingSurfaceT::SamplingSurfaceT(GeometryT::CodeT code, int num_facet_nodes,
 	/* set surface geometry */
 	fSurfaceShape = new SurfaceShapeT(fCode, fNumSamples, 2*fNumFacetNodes,
 		fLocFacetCoords.MinorDim(), fLocFacetCoords);
-	if (!fSurfaceShape) throw eOutOfMemory;
+	if (!fSurfaceShape) throw ExceptionT::kOutOfMemory;
 	fSurfaceShape->Initialize();
 	
 	/* work space */
@@ -59,14 +59,14 @@ void SamplingSurfaceT::SetSamplingPoints(const dArray2DT& facet_coords,
 		     <<   "     " << fFacetCoords.MinorDim()
 		     << " does not match dimension of surface " << fSurfaceShape->NumSD() + 1
 		     << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	if (fFacetConnects.MinorDim() != fNumFacetNodes)
 	{
 		cout << "\n SamplingSurfaceT::SetSamplingPoints: dimension of facet connectivites\n"
 		     <<   "     " << fFacetConnects.MinorDim()
 		     << " does not match dimension of surface " << fNumFacetNodes << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}	
 
 	/* set source of facet coordinates */
@@ -95,7 +95,7 @@ void SamplingSurfaceT::SetSamplingPoints(const dArray2DT& facet_coords,
 			if (!fMFSupport.BuildNeighborhood(coords, neighbors))
 			{
 				cout << "\n SamplingSurfaceT::SetSamplingPoints: BuildNeighborhood: failed" << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}		
 			neighbor_count[dex] = neighbors.Length();
 			all_neighbors.Append(neighbors);
@@ -172,7 +172,7 @@ void SamplingSurfaceT::LoadSamplingPoint(int facet, int point, iArrayT& nodes,
 	if (facet < 0 ||
 	    facet >= fNumFacets ||
 	    point < 0 ||
-	    point >= fNumSamples) throw eOutOfRange;
+	    point >= fNumSamples) throw ExceptionT::kOutOfRange;
 #endif
 
 	int dex = fNumSamples*facet + point;
@@ -292,7 +292,7 @@ void SamplingSurfaceT::SetFieldData(const ArrayT<int>* facets)
 				cout << "\n SamplingSurfaceT::SetSamplingPoints: failed to build field at\n"
 				     <<   "     point " << fSurfaceShape->CurrIP()+1
 				     << " of facet " << k+1 << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 			
 			/* store */

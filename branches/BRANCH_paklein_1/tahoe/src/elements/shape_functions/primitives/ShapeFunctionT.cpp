@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.10 2002-09-23 06:58:29 paklein Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.10.2.1 2002-10-17 04:21:56 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #include "ShapeFunctionT.h"
@@ -22,7 +22,7 @@ ShapeFunctionT::ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 		     << geometry_code << " does not match\n"
 		     <<   "     the number of spatial dimensions of the coordinates "
 		     << fCoords.MinorDim() << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* configure workspace */
@@ -52,7 +52,7 @@ void ShapeFunctionT::GradU(const LocalArrayT& nodal, dMatrixT& grad_U,
 #pragma unused(grad_U)
 #pragma unused(coord)
 	cout << "\n ShapeFunctionT::GradU: not implemented yet" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 /************************ for the current integration point *********************/
@@ -61,7 +61,7 @@ void ShapeFunctionT::InterpolateU(const LocalArrayT& nodal,
 {
 #if __option(extended_errorcheck)
 	if (nodal.MinorDim() != u.Length() ||
-	    nodal.NumberOfNodes() != pNaU->MinorDim()) throw eSizeMismatch;
+	    nodal.NumberOfNodes() != pNaU->MinorDim()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	int num_u = nodal.MinorDim();
@@ -74,7 +74,7 @@ void ShapeFunctionT::InterpolateU(const LocalArrayT& nodal,
 {
 #if __option(extended_errorcheck)
 	if (nodal.MinorDim() != u.Length() ||
-	    nodal.NumberOfNodes() != pNaU->MinorDim()) throw eSizeMismatch;
+	    nodal.NumberOfNodes() != pNaU->MinorDim()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	int num_u = nodal.MinorDim();
@@ -88,7 +88,7 @@ void ShapeFunctionT::GradNa(const dArray2DT& DNa, dMatrixT& grad_Na) const
 #if __option(extended_errorcheck)
 	if (DNa.MajorDim() != grad_Na.Rows() ||
 	    DNa.MinorDim() != grad_Na.Cols())
-	    throw eSizeMismatch;
+	    throw ExceptionT::kSizeMismatch;
 #endif
 
 	int numsd    = DNa.MajorDim();
@@ -183,7 +183,7 @@ void ShapeFunctionT::Construct(void)
 {
 	/* check local array type (ambiguous for linear geometry) */
 	if (fCoords.Type() != LocalArrayT::kInitCoords &&
-	    fCoords.Type() != LocalArrayT::kCurrCoords) throw eGeneralFail;
+	    fCoords.Type() != LocalArrayT::kCurrCoords) throw ExceptionT::kGeneralFail;
 
 	/* dimensions */
 	int numXnodes = fCoords.NumberOfNodes();

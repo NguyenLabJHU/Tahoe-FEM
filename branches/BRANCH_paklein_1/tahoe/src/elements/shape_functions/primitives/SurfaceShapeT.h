@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.h,v 1.7 2002-07-05 22:28:40 paklein Exp $ */
+/* $Id: SurfaceShapeT.h,v 1.7.4.1 2002-10-17 04:21:56 paklein Exp $ */
 /* created: paklein (11/21/1997) */
 
 #ifndef _SURFACE_SHAPE_T_H_
@@ -133,7 +133,7 @@ public:
 
 	/** local node numbers on each facet */
 	const iArray2DT& NodesOnFacets(void) const;
-
+	
 private:
 
 	/* configure work space arrays */

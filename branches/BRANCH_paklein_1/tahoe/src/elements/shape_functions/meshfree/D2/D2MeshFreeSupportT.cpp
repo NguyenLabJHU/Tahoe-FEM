@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.cpp,v 1.7 2002-09-12 17:50:11 paklein Exp $ */
+/* $Id: D2MeshFreeSupportT.cpp,v 1.7.4.1 2002-10-17 04:22:36 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupportT.h"
@@ -6,7 +6,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "toolboxConstants.h"
 #include "dArray2DT.h"
 #include "LocalArrayT.h"
@@ -40,9 +40,9 @@ D2MeshFreeSupportT::D2MeshFreeSupportT(const ParentDomainT& domain, const dArray
 		else
 		{
 			cout << "\n D2MeshFreeSupportT::D2MeshFreeSupportT: no 3D yet" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
-		if (!fD2EFG) throw eOutOfMemory;	
+		if (!fD2EFG) throw ExceptionT::kOutOfMemory;	
 		fD2EFG->Initialize();
 	
 	//TEMP - this will be better later
@@ -104,7 +104,7 @@ void D2MeshFreeSupportT::LoadNodalData(int node, iArrayT& neighbors, dArrayT& ph
 		{
 			cout << "\n D2MeshFreeSupportT::LoadNodalData: requesting empty data for node: ";
 			cout << node + 1 << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 #endif
 
@@ -136,7 +136,7 @@ void D2MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 	dArray2DT& phi, ArrayT<dArray2DT>& Dphi, ArrayT<dArray2DT>& DDphi)
 {
 #if __option(extended_errorcheck)
-	if (Dphi.Length() != fDomain.NumIP()) throw eSizeMismatch;
+	if (Dphi.Length() != fDomain.NumIP()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* element neighbors */

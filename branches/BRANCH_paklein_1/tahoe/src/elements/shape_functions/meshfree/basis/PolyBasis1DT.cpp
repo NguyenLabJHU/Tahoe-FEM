@@ -1,4 +1,4 @@
-/* $Id: PolyBasis1DT.cpp,v 1.2 2002-07-02 19:57:05 cjkimme Exp $ */
+/* $Id: PolyBasis1DT.cpp,v 1.2.4.1 2002-10-17 04:22:37 paklein Exp $ */
 /* created: paklein (12/11/1999)                                          */
 /* base class for basis functions                                         */
 
@@ -14,7 +14,7 @@ PolyBasis1DT::PolyBasis1DT(int complete):
 	if (fComplete < 0 || fComplete > 1)
 	{
 		cout << "\n PolyBasis1DT::PolyBasis1DT: completeness must be [0,1]" << endl;
-		throw eBadInputValue;	
+		throw ExceptionT::kBadInputValue;	
 	}
 }
 	
@@ -29,8 +29,8 @@ void PolyBasis1DT::SetBasis(const dArray2DT& coords, int order)
 {
 #if __option(extended_errorcheck)
 	/* dimension checking */
-	if (coords.MinorDim() != fNumSD) throw eGeneralFail;
-	if (order > 2) throw eOutOfRange;
+	if (coords.MinorDim() != fNumSD) throw ExceptionT::kGeneralFail;
+	if (order > 2) throw ExceptionT::kOutOfRange;
 #endif
 
 	/* dimensions */

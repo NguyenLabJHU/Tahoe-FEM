@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupport3DT.cpp,v 1.6 2002-09-12 17:50:10 paklein Exp $ */
+/* $Id: MeshFreeSupport3DT.cpp,v 1.6.4.1 2002-10-17 04:22:34 paklein Exp $ */
 /* created: paklein (09/13/1998) */
 
 #include "MeshFreeSupport3DT.h"
@@ -6,7 +6,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "toolboxConstants.h"
 #include "dArray2DT.h"
 #include "iArray2DT.h"
@@ -36,13 +36,13 @@ void MeshFreeSupport3DT::SetCuttingFacets(const dArray2DT& facet_coords,
 	{
 		cout << "\n MeshFreeSupport3DT::SetCuttingFacets: 3D cutting facets must\n"
 		     <<   "     have 3 or 4 nodes: " << fNumFacetNodes << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 	if (fNumFacetNodes == 0 && facet_coords.MajorDim() != 0) {
 		cout << "\n MeshFreeSupport3DT::SetCuttingFacets: found facets nodes = 0 with\n" 
 		     <<   "     non-zero number of facets (" << facet_coords.MajorDim()
 		     << ")" << endl;
-		throw eSizeMismatch;	
+		throw ExceptionT::kSizeMismatch;	
 	}
 }	
 
@@ -57,8 +57,8 @@ void MeshFreeSupport3DT::ProcessBoundaries(const dArray2DT& coords,
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
-	if (coords.MajorDim() != nodal_params.MajorDim()) throw eSizeMismatch;
-	if (coords.MinorDim() != x_node.Length()) throw eSizeMismatch;
+	if (coords.MajorDim() != nodal_params.MajorDim()) throw ExceptionT::kSizeMismatch;
+	if (coords.MinorDim() != x_node.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* quick exit if there are no facets */
@@ -104,7 +104,7 @@ int MeshFreeSupport3DT::Visible(const double* x1, const double* x2)
 	{
 		cout << "\n MeshFreeSupport3DT::Visible: unsupported number of\n"
 		     <<   "     facet nodes: " << fNumFacetNodes << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 	return 1;
 }
@@ -223,7 +223,7 @@ void MeshFreeSupport3DT::CutCircle(const dArray2DT& coords, const dArrayT& x_nod
 			if (fabs(z_c - v_a0[2]) > kSmall)
 			{
 				cout << "\n MeshFreeSupport3DT::CutCircle: project error" << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 	
 			if ((v_a0[0]*v_a0[0] + v_a0[1]*v_a0[1]) < r*r) dmax[i] = -1.0;
@@ -273,7 +273,7 @@ void MeshFreeSupport3DT::CutEllipse(const dArray2DT& coords, const dArrayT& x_no
 			if (fabs(z_c - v_a0[2]) > kSmall)
 			{
 				cout << "\n MeshFreeSupport3DT::CutEllipse: project error" << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 	
 			if ((v_a0[0]*v_a0[0]/(a_x*a_x) +

@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.4 2002-07-02 19:57:02 cjkimme Exp $ */
+/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.4.4.1 2002-10-17 04:22:36 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeShapeFunctionT.h"
@@ -26,9 +26,9 @@ D2MeshFreeShapeFunctionT::D2MeshFreeShapeFunctionT(GeometryT::CodeT geometry_cod
 	else
 	{
 		cout << "\n D2MeshFreeShapeFunctionT::D2MeshFreeShapeFunctionT: no 3D yet" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
-	if (!fD2MFSupport) throw eOutOfMemory;
+	if (!fD2MFSupport) throw ExceptionT::kOutOfMemory;
 
 	/* delete MLS support for base class */
 	delete fMFSupport;
