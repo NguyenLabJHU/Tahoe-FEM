@@ -1,10 +1,11 @@
-/* $Id: FEExecutionManagerT.h,v 1.27.2.1 2004-08-03 00:08:40 d-farrell2 Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.27.2.2 2004-08-04 22:33:53 d-farrell2 Exp $ */
 /* created: paklein (09/21/1997) */
 #ifndef _FE_EXECMAN_T_H_
 #define _FE_EXECMAN_T_H_
 
 /* base class */
 #include "ExecutionManagerT.h"
+#include "FEDecomposeT.h" // DEF 4 Aug 04
 
 /* direct members */
 #include "IOBaseT.h"
@@ -79,17 +80,18 @@ private:
 	void RunWriteDescription(int doc_type) const;
 	/*@}*/
 
+	// These have been moved to FEDecomposeT.h DEF 3 Aug 04
 	/** \name generate decomposition data */
 	/*@{*/
 	/** name calls one of decomposition methods below based on user input */
-	void Decompose(const StringT& input_file, int size, int decomp_type, CommunicatorT& comm,
-		const StringT& model_file, IOBaseT::FileTypeT format) const;
-
+	//void Decompose(const StringT& input_file, int size, int decomp_type, CommunicatorT& comm,
+	//	const StringT& model_file, IOBaseT::FileTypeT format) const;
+	
 	/** graph-based decomposition. Partition model based on the connectivites
 	 * in the model files and those generated at run time. The actual
 	 * decomposition is calculated by a FEManagerT_mpi. */
-	void Decompose_graph(const StringT& input_file, int size, CommunicatorT& comm, 
-		const StringT& model_file, IOBaseT::FileTypeT format) const;
+	//void Decompose_graph(const StringT& input_file, int size, CommunicatorT& comm, 
+	//	const StringT& model_file, IOBaseT::FileTypeT format) const;
 
 	/** "atom" decomposition. Partition model by dividing global list
 	 * of coordinates into sequential, nearly equal length lists. The
@@ -101,19 +103,19 @@ private:
 	 	p_i = floor \left( \frac{i n_p}{N} \right).
 	 \f]
 	 */
-	void Decompose_atom(const StringT& input_file, int size, const StringT& model_file,
-		IOBaseT::FileTypeT format) const;
+	//void Decompose_atom(const StringT& input_file, int size, const StringT& model_file,
+	//	IOBaseT::FileTypeT format) const;
 
 	/** spatial decomposition. Partition model based on a grid. */
-	void Decompose_spatial(const StringT& input_file, int size, const StringT& model_file,
-		IOBaseT::FileTypeT format) const;
+	//void Decompose_spatial(const StringT& input_file, int size, const StringT& model_file,
+	//	IOBaseT::FileTypeT format) const;
 	/*@}*/
 
 	/** returns true if a new decomposition is needed */
-	bool NeedDecomposition(const StringT& model_file, int size) const;
+	//bool NeedDecomposition(const StringT& model_file, int size) const;
 
 	/** returns true if the global output model file is not found */
-	bool NeedModelFile(const StringT& model_file, IOBaseT::FileTypeT format) const;
+	//bool NeedModelFile(const StringT& model_file, IOBaseT::FileTypeT format) const;
 
 	/** construct and return the local IOManager */
 	IOManager* NewLocalIOManager(const FEManagerT* global_FEman,
@@ -126,8 +128,8 @@ private:
 	 */
 	/*@{*/
 	/** write partial file for the given format */
-	void EchoPartialGeometry(const PartitionT& partition, ModelManagerT& model_ALL,
-		const StringT& partial_file, IOBaseT::FileTypeT format) const;
+	//void EchoPartialGeometry(const PartitionT& partition, ModelManagerT& model_ALL,
+	//	const StringT& partial_file, IOBaseT::FileTypeT format) const;
 
 	/** write partial model file in ExodusII format */
 	void EchoPartialGeometry_ExodusII(const PartitionT& partition,
