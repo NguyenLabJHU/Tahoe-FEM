@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.cpp,v 1.7 2002-01-05 06:36:47 paklein Exp $ */
+/* $Id: EnSightInputT.cpp,v 1.8 2002-01-07 03:06:02 paklein Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #include "EnSightInputT.h"
@@ -50,8 +50,10 @@ void EnSightInputT::ElementGroupNames (ArrayT<StringT>& groupnames) const
       fData.ReadPart (in, ids[i]);
       fData.SkipPart (in, nodemap, elementmap, numnodes, numelems, numelemnodes);
     }
-  for (int j=0; j < ids.Length(); j++)
-    groupnames[j].Append (ids[j]);
+  for (int j=0; j < ids.Length(); j++) {
+  	groupnames[j].Clear();
+    groupnames[j].Append(ids[j]);
+    }
 }
 
 int EnSightInputT::NumElementGroups (void) const
