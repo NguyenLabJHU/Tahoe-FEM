@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.11 2004-06-17 07:41:14 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.10.20.1 2004-06-19 04:33:15 hspark Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.72 2004-06-17 07:41:45 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.71.14.1 2004-06-19 04:33:24 hspark Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 

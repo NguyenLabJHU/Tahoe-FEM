@@ -1,10 +1,12 @@
-/* $Id: SurfacePotentialT.cpp,v 1.18 2004-06-17 07:13:28 paklein Exp $ */
+/* $Id: SurfacePotentialT.cpp,v 1.17 2004-03-02 23:50:32 raregue Exp $ */
 /* created: paklein (06/20/1999) */
+
 #include "SurfacePotentialT.h"
+
+/* constructor */
 
 using namespace Tahoe;
 
-/* constructor */
 SurfacePotentialT::SurfacePotentialT(int ndof):
 	fTraction(ndof),
 	fStiffness(ndof)

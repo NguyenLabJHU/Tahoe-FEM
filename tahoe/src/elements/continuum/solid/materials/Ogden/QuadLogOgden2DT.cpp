@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden2DT.cpp,v 1.6 2004-06-17 07:40:30 paklein Exp $ */
+/* $Id: QuadLogOgden2DT.cpp,v 1.5.48.1 2004-06-19 04:33:12 hspark Exp $ */
 /* created: paklein (02/18/2001) */
 #include "QuadLogOgden2DT.h"
 #include <math.h>

@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.20 2004-06-17 07:13:20 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.18 2003-11-21 22:45:50 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -7,7 +7,7 @@
 #include <iomanip.h>
 
 #include "ElementSupportT.h"
-#include "ifstreamT.h"
+#include "fstreamT.h"
 #include "toolboxConstants.h"
 #include "SurfaceShapeT.h"
 #include "C1FunctionT.h"
@@ -93,12 +93,12 @@ void CSEIsoT::Initialize(void)
 		{
 			case C1FunctionT::kLennardJones:
 			{	
-				double A, B;
+				double A;
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-				in >> A >> B;
+				in >> A;
 #else
 #endif				
-				fSurfPots[num] = new LennardJones612(A,B);
+				fSurfPots[num] = new LennardJones612(A);
 				break;
 			}	
 			case C1FunctionT::kSmithFerrante:

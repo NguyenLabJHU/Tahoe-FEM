@@ -1,5 +1,6 @@
-/* $Id: ThermalDilatationT.cpp,v 1.5 2004-06-17 07:41:14 paklein Exp $ */
+/* $Id: ThermalDilatationT.cpp,v 1.4.58.1 2004-06-19 04:33:15 hspark Exp $ */
 /* created: paklein (08/25/1996) */
+
 #include "ThermalDilatationT.h"
 
 #include <iostream.h>
@@ -7,9 +8,10 @@
 #include "ifstreamT.h"
 #include "ScheduleT.h"
 
+/* constructor */
+
 using namespace Tahoe;
 
-/* constructor */
 ThermalDilatationT::ThermalDilatationT(ifstreamT& in):
 	LTfPtr(NULL)
 {

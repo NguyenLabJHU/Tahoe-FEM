@@ -1,4 +1,4 @@
-/* $Id: MixedSWDiamondT.cpp,v 1.5 2004-06-17 07:41:37 paklein Exp $ */
+/* $Id: MixedSWDiamondT.cpp,v 1.4.52.1 2004-06-19 04:33:21 hspark Exp $ */
 /* created: paklein (03/22/1997) */
 
 #include "MixedSWDiamondT.h"

@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.cpp,v 1.8 2004-06-17 07:40:04 paklein Exp $ */
+/* $Id: DiffusionMaterialT.cpp,v 1.7.20.1 2004-06-19 04:33:05 hspark Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionMaterialT.h"
 #include "DiffusionMatSupportT.h"

@@ -1,4 +1,4 @@
-/* $Id: tahoePrefix.h,v 1.6 2004-06-17 07:43:23 paklein Exp $ */
+/* $Id: tahoePrefix.h,v 1.3 2004-02-05 18:45:18 paklein Exp $ */
 #ifdef __cplusplus
 
 /* environment */
@@ -18,8 +18,7 @@
 #include "dArrayT.h"
 #include "dMatrixT.h"
 #include "dArray2DT.h"
-#include "ifstreamT.h"
-#include "ofstreamT.h"
+#include "fstreamT.h"
 #include "RaggedArray2DT.h"
 
 #endif /* __cplusplus */

@@ -1,4 +1,4 @@
-/* $Id: TvergHutch3DT.cpp,v 1.12 2004-06-17 07:13:28 paklein Exp $ */
+/* $Id: TvergHutch3DT.cpp,v 1.11 2003-05-28 23:15:27 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch3DT.h"
@@ -7,12 +7,13 @@
 #include <math.h>
 
 #include "ExceptionT.h"
-#include "ifstreamT.h"
+#include "fstreamT.h"
 #include "StringT.h"
+
+/* class parameters */
 
 using namespace Tahoe;
 
-/* class parameters */
 const int knumDOF = 3;
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_

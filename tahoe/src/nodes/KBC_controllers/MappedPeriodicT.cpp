@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.cpp,v 1.8 2004-06-17 07:41:57 paklein Exp $ */
+/* $Id: MappedPeriodicT.cpp,v 1.7.52.1 2004-06-19 04:33:28 hspark Exp $ */
 /* created: paklein (04/07/1997) */
 
 #include "MappedPeriodicT.h"

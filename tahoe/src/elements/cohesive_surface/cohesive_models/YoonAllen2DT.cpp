@@ -1,16 +1,16 @@
-/* $Id: YoonAllen2DT.cpp,v 1.14 2004-06-17 07:13:28 paklein Exp $ */
+/* $Id: YoonAllen2DT.cpp,v 1.13 2003-11-21 22:45:53 paklein Exp $ */
 #include "YoonAllen2DT.h"
 
 #include <iostream.h>
 #include <math.h>
 
 #include "ExceptionT.h"
-#include "ifstreamT.h"
+#include "fstreamT.h"
 #include "StringT.h"
+/* class parameters */
 
 using namespace Tahoe;
 
-/* class parameters */
 const int knumDOF = 2;
 
 /* constructor */

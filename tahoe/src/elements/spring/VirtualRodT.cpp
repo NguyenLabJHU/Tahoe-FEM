@@ -1,4 +1,4 @@
-/* $Id: VirtualRodT.cpp,v 1.7 2004-06-17 07:41:37 paklein Exp $ */
+/* $Id: VirtualRodT.cpp,v 1.6.52.1 2004-06-19 04:33:21 hspark Exp $ */
 /* created: paklein (05/01/1997) */
 
 #include "VirtualRodT.h"

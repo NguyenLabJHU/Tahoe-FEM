@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.23 2004-06-17 07:13:28 paklein Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.22 2003-11-21 22:45:53 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -7,13 +7,14 @@
 #include <math.h>
 
 #include "ExceptionT.h"
-#include "ifstreamT.h"
+#include "fstreamT.h"
 #include "StringT.h"
 #include "SecantMethodT.h"
 
+/* class parameters */
+
 using namespace Tahoe;
 
-/* class parameters */
 const int knumDOF = 2;
 const int ku_c = 5;
 const int kIntShift = 6;

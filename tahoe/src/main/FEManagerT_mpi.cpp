@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.33 2004-06-17 07:41:45 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.32.24.1 2004-06-19 04:33:24 hspark Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>

@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LS.cpp,v 1.13 2004-06-17 07:42:05 paklein Exp $ */
+/* $Id: NLSolver_LS.cpp,v 1.12.20.1 2004-06-19 04:33:31 hspark Exp $ */
 /* created: paklein (08/18/1999) */
 
 #include "NLSolver_LS.h"

@@ -1,12 +1,11 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.8 2004-06-17 07:13:39 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.6 2004-02-06 03:42:53 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "ifstreamT.h"
-#include "ofstreamT.h"
+#include "fstreamT.h"
 #include "eIntegratorT.h"
 #include "InverseMapT.h"
 #include "iGridManager2DT.h"
@@ -335,8 +334,8 @@ void MFPenaltyContact2DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 
 	/* register with the model manager and let it set the ward */
 	int nen = fNumFacetNodes + 1; /* facet nodes + 1 striker */
-	if (!model.RegisterElementGroup(name, GeometryT::kLine, nen)) 
-		ExceptionT::GeneralFail(caller, "could not register contact facets");
+	if (!model.RegisterVariElements (name, fConnectivities_man, GeometryT::kLine, nen, 0)) 
+		ExceptionT::GeneralFail(caller);
 
 	/* set up fConnectivities */
 	fConnectivities.Dimension(1);

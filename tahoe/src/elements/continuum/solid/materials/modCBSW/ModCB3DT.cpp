@@ -1,4 +1,4 @@
-/* $Id: ModCB3DT.cpp,v 1.8 2004-06-17 07:41:03 paklein Exp $ */
+/* $Id: ModCB3DT.cpp,v 1.7 2003-01-29 07:34:59 paklein Exp $ */
 /* created: paklein (10/14/1998) */
 #include "ModCB3DT.h"
 
@@ -7,7 +7,7 @@
 
 #include "toolboxConstants.h"
 
-#include "ifstreamT.h"
+#include "fstreamT.h"
 #include "ModCBSolverT.h"
 #include "dMatrixT.h"
 

@@ -1,5 +1,6 @@
-/* $Id: LocalizerT.h,v 1.7 2004-06-17 07:40:07 paklein Exp $ */
+/* $Id: LocalizerT.h,v 1.6.20.1 2004-06-19 04:33:06 hspark Exp $ */
 /* created: paklein (02/19/1998) */
+
 #ifndef _LOCALIZER_T_H_
 #define _LOCALIZER_T_H_
 
@@ -7,10 +8,12 @@
 #include "UpdatedLagrangianT.h"
 
 /* direct members */
+#include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "MonitorT.h"
 #include "AutoArrayT.h"
 #include "dMatrixEXT.h"
+
 
 namespace Tahoe {
 

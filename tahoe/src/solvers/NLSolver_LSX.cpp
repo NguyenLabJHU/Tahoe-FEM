@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LSX.cpp,v 1.4 2004-06-17 07:42:05 paklein Exp $ */
+/* $Id: NLSolver_LSX.cpp,v 1.3.20.1 2004-06-19 04:33:31 hspark Exp $ */
 #include "NLSolver_LSX.h"
 #include "FEManagerT.h"
 

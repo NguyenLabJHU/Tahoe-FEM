@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact2DT.cpp,v 1.13 2004-06-17 07:13:39 paklein Exp $ */
+/* $Id: PenaltyContact2DT.cpp,v 1.12 2003-11-21 22:45:57 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContact2DT.h"
 
@@ -6,8 +6,7 @@
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "ifstreamT.h"
-#include "ofstreamT.h"
+#include "fstreamT.h"
 #include "eIntegratorT.h"
 
 /* parameters (duplicated from Contact2DT) */

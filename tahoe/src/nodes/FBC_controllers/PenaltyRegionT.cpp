@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.16 2004-06-17 07:41:53 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.15.22.1 2004-06-19 04:33:27 hspark Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltyRegionT.h"
 

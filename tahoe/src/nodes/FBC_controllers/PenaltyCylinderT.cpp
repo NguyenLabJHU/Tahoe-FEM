@@ -1,4 +1,4 @@
-/* $Id: PenaltyCylinderT.cpp,v 1.3 2004-06-17 07:41:53 paklein Exp $ */
+/* $Id: PenaltyCylinderT.cpp,v 1.2.30.1 2004-06-19 04:33:27 hspark Exp $ */
 #include "PenaltyCylinderT.h"
 
 #include <iostream.h>

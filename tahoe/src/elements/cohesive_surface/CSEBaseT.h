@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.20 2004-06-17 06:42:48 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.19 2004-03-19 17:16:53 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -10,7 +10,7 @@
 #include "iArrayT.h"
 #include "LocalArrayT.h"
 #include "GeometryT.h"
-#include "ofstreamT.h"
+#include "fstreamT.h"
 
 namespace Tahoe {
 

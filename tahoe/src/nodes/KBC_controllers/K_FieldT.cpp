@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.19 2004-06-17 07:41:57 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.18.4.1 2004-06-19 04:33:28 hspark Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 

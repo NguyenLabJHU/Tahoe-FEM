@@ -1,14 +1,13 @@
-/* $Id: ParticlePairT.cpp,v 1.36 2004-04-21 08:14:39 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.34.2.1 2004-06-19 04:33:18 hspark Exp $ */
 
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "eIntegratorT.h"
 #include "InverseMapT.h"
 #include "CommManagerT.h"
 #include "dSPMatrixT.h"
 #include "ofstreamT.h"
-#include "ifstreamT.h"
 #include "ModelManagerT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -200,7 +199,7 @@ void ParticlePairT::WriteOutput(void)
 			temp.Outer(vec);
 		 	for (int cc = 0; cc < num_stresses; cc++) {
 				int ndex = ndof+2+cc;
-		   		values_i[ndex] = (fabs(V0) > kSmall) ? -mass[type_i]*temp[cc]/V0 : 0.0;
+		   		values_i[ndex] = -mass[type_i]*temp[cc]/V0;
 		 	}
 		}
 #endif
@@ -292,7 +291,7 @@ void ParticlePairT::WriteOutput(void)
 			 		/* accumulate into stress into array */
 		 			for (int cc = 0; cc < num_stresses; cc++) {
 						int ndex = ndof+2+cc;
-		   				n_values(local_j, ndex) += (fabs(V0) > kSmall) ? 0.5*Fbyr*temp[cc]/V0 : 0.0;
+		   				n_values(local_j, ndex) += 0.5*Fbyr*temp[cc]/V0;		   
 		 			}
 #endif
 				}
@@ -304,7 +303,7 @@ void ParticlePairT::WriteOutput(void)
 		/* copy stress into array */
 		for (int cc = 0; cc < num_stresses; cc++) {
 		  int ndex = ndof+2+cc;
-		  values_i[ndex] += (fabs(V0) > kSmall) ? vs_i[cc]/V0 : 0.0;
+		  values_i[ndex] += (vs_i[cc]/V0);
 		}
 #endif
 	}
@@ -316,10 +315,10 @@ void ParticlePairT::WriteOutput(void)
     /* flag for specifying Lagrangian (0) or Eulerian (1) strain */ 
     const int kEulerLagr = 0;
 	/* calculate slip vector and strain */
-	Calc_Slip_and_Strain(s_values,RefNearestNeighbors,kEulerLagr);
+	Calc_Slip_and_Strain(non,num_s_vals,s_values,RefNearestNeighbors,kEulerLagr);
 
     /* calculate centrosymmetry parameter */
-	Calc_CSP(s_values,NearestNeighbors);
+	Calc_CSP(non,num_s_vals,s_values,NearestNeighbors);
 
 	/* combine strain, slip vector and centrosymmetry parameter into n_values list */
 	for (int i = 0; i < fNeighbors.MajorDim(); i++)
@@ -341,8 +340,7 @@ void ParticlePairT::WriteOutput(void)
 		/* recover J, the determinant of the deformation gradient, for atom i
 		 * and divide stress values by it */
 		double J = s_values(local_i,num_stresses);
-	    for (int is = 0; is < num_stresses; is++) 
-	    	n_values(local_i,ndof+2+is) /= J;
+	    for (int is = 0; is < num_stresses; is++) n_values(local_i,ndof+2+is) /= J;
 
 		for (int n = 0; n < ndof; n++)
 			n_values(local_i, ndof+2+num_stresses+num_stresses+n) = s_values(local_i,num_stresses+1+n);
@@ -1098,7 +1096,6 @@ void ParticlePairT::RHSDriver3D(void)
 			f_j[2] +=-r_ij_2;
 		}
 	}
-
 }
 
 /* set neighborlists */

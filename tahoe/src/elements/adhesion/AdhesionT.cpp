@@ -1,9 +1,8 @@
-/* $Id: AdhesionT.cpp,v 1.18 2004-06-17 07:39:52 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.16 2003-11-13 22:16:14 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
-#include "ifstreamT.h"
-#include "ofstreamT.h"
+#include "fstreamT.h"
 #include "SurfaceShapeT.h"
 #include "iArrayT.h"
 #include "iNodeT.h"
@@ -60,9 +59,9 @@ AdhesionT::AdhesionT(const ElementSupportT& support, const FieldT& field):
 	{
 		case C1FunctionT::kLennardJones:
 		{	
-			double A, B;
-			in >> A >> B;
-			fAdhesion = new LennardJones612(A,B);
+			double A;
+			in >> A;
+			fAdhesion = new LennardJones612(A);
 			break;
 		}	
 		case C1FunctionT::kSmithFerrante:

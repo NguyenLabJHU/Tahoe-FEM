@@ -1,18 +1,20 @@
-/* $Id: TiedPotentialT.cpp,v 1.23 2004-06-17 07:13:28 paklein Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.22 2003-06-09 06:44:36 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
+
 #include "TiedPotentialT.h"
 
 #include <iostream.h>
 #include <math.h>
 
 #include "ExceptionT.h"
-#include "ifstreamT.h"
+#include "fstreamT.h"
 #include "StringT.h"
 #include "iArrayT.h"
 
+/* class parameters */
+
 using namespace Tahoe;
 
-/* class parameters */
 const int    knumDOF = 2;
 const double kExpMax = 100;
 const int nTiedFlag = 0;

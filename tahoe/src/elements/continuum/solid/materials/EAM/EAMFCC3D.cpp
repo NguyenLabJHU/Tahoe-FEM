@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.cpp,v 1.6 2004-06-17 07:40:19 paklein Exp $ */
+/* $Id: EAMFCC3D.cpp,v 1.5.2.1 2004-06-19 04:33:09 hspark Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAMFCC3D.cpp                                                           */
 

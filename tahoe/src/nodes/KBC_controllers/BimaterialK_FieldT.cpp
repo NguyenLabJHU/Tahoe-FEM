@@ -1,4 +1,4 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.10 2004-06-17 07:41:57 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.9.4.1 2004-06-19 04:33:28 hspark Exp $ */
 /* created: paklein (09/05/2000) */
 #include "BimaterialK_FieldT.h"
 

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.19 2004-06-17 07:41:26 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.18.20.1 2004-06-19 04:33:16 hspark Exp $ */
 /* created: paklein (09/16/1998) */
 #include "MeshFreeFSSolidT.h"
 

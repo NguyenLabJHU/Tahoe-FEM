@@ -1,11 +1,10 @@
-/* $Id: NOXSolverT.cpp,v 1.9 2004-06-17 15:41:29 paklein Exp $ */
+/* $Id: NOXSolverT.cpp,v 1.8 2002-12-13 02:42:57 paklein Exp $ */
 #include "NOXSolverT.h"
 
 /* optional */
 #ifdef __NOX__
 
-#include "ifstreamT.h"
-#include "ofstreamT.h"
+#include "fstreamT.h"
 #include "FEManagerT.h"
 #include "NOX_Solver_Manager.H"
 #include "NOX_Tahoe_Group.h"

@@ -1,4 +1,4 @@
-/* $Id: VIB.cpp,v 1.13 2004-06-17 07:40:37 paklein Exp $ */
+/* $Id: VIB.cpp,v 1.11 2003-08-04 01:33:30 thao Exp $ */
 /* created: paklein (10/30/1997) */
 #include "VIB.h"
 
@@ -8,7 +8,7 @@
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
 
-#include "ifstreamT.h"
+#include "fstreamT.h"
 #include "dSymMatrixT.h"
 
 /* potential functions */
@@ -37,9 +37,9 @@ VIB::VIB(ifstreamT& in, int nsd, int numstress, int nummoduli):
 	{
 		case C1FunctionT::kLennardJones:
 		{	
-			double A, B;
-			in >> A >> B;
-			fPotential = new LennardJones612(A,B);
+			double A;
+			in >> A;
+			fPotential = new LennardJones612(A);
 			break;
 		}	
 		case C1FunctionT::kSmithFerrante:

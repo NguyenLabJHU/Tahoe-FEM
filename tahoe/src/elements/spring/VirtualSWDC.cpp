@@ -1,4 +1,4 @@
-/* $Id: VirtualSWDC.cpp,v 1.6 2004-06-17 07:41:37 paklein Exp $ */
+/* $Id: VirtualSWDC.cpp,v 1.5.52.1 2004-06-19 04:33:21 hspark Exp $ */
 /* created: paklein (05/05/1997) */
 #include "VirtualSWDC.h"
 

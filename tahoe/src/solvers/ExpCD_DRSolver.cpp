@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.cpp,v 1.10 2004-06-17 07:42:05 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.cpp,v 1.9.20.1 2004-06-19 04:33:31 hspark Exp $ */
 /* created: paklein (08/19/1998) */
 
 #include "ExpCD_DRSolver.h"
@@ -7,6 +7,7 @@
 #include <math.h>
 
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
 #include "FEManagerT.h"

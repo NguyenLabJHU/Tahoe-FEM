@@ -1,21 +1,23 @@
-/* $Id: From2Dto3DT.cpp,v 1.4 2004-06-17 07:13:28 paklein Exp $ */
+/* $Id: From2Dto3DT.cpp,v 1.3 2004-03-02 18:44:15 cjkimme Exp $ */
 /* created: paklein (06/23/1999)*/
+
 #include "From2Dto3DT.h"
 
 #include <iostream.h>
 #include <math.h>
 
 #include "ExceptionT.h"
-#include "ifstreamT.h"
+#include "fstreamT.h"
 
 #include "XuNeedleman2DT.h"
 #include "TvergHutch2DT.h"
 #include "ViscTvergHutch2DT.h"
 #include "YoonAllen2DT.h"
 
+/* class parameters */
+
 using namespace Tahoe;
 
-/* class parameters */
 const int    knumDOF = 3;
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_

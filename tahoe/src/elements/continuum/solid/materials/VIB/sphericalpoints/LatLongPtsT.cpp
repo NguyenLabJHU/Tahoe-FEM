@@ -1,4 +1,4 @@
-/* $Id: LatLongPtsT.cpp,v 1.5 2004-06-17 07:40:56 paklein Exp $ */
+/* $Id: LatLongPtsT.cpp,v 1.4 2002-10-20 22:48:59 paklein Exp $ */
 /* created: paklein (10/31/1997)                                          */
 /* Base class for spherical point generators.                             */
 
@@ -9,7 +9,7 @@
 
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
-#include "ifstreamT.h"
+#include "fstreamT.h"
 
 
 using namespace Tahoe;

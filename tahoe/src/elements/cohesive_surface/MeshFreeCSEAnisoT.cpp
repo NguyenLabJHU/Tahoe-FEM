@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.23 2004-06-17 07:13:20 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.21 2004-01-05 07:34:30 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -8,8 +8,7 @@
 #include <iomanip.h>
 #include <fstream.h>
 
-#include "ifstreamT.h"
-#include "ofstreamT.h"
+#include "fstreamT.h"
 #include "toolboxConstants.h"
 #include "ElementSupportT.h"
 #include "eIntegratorT.h"
@@ -32,7 +31,7 @@
 using namespace Tahoe;
 
 namespace Tahoe {
-DEFINE_TEMPLATE_STATIC const bool ArrayT<MeshFreeCSEAnisoT::StatusFlagT>::fByteCopy = true;
+const bool ArrayT<MeshFreeCSEAnisoT::StatusFlagT>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* parameters */

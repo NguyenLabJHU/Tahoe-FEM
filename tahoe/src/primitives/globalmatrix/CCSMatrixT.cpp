@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.21 2004-05-14 01:05:22 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.20 2004-03-16 06:56:28 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "CCSMatrixT.h"
 
@@ -264,7 +264,7 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eq
 				for (int row = 0; row < n_r; row++)
 				{
 					int reqno = row_eqnos[row] - 1;
-					if (reqno > -1 && ceqno >= reqno)
+					if ( reqno > -1)
 						(*this)(reqno,ceqno) += elMat(row,col);
 				}
 		}

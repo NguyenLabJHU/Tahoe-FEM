@@ -1,4 +1,4 @@
-/* $Id: PenaltySphereT.cpp,v 1.10 2004-06-17 07:41:53 paklein Exp $ */
+/* $Id: PenaltySphereT.cpp,v 1.9.30.1 2004-06-19 04:33:27 hspark Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltySphereT.h"
 

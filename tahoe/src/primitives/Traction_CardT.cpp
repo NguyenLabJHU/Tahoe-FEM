@@ -1,4 +1,4 @@
-/* $Id: Traction_CardT.cpp,v 1.7 2004-06-17 07:14:05 paklein Exp $ */
+/* $Id: Traction_CardT.cpp,v 1.6.4.1 2004-06-19 04:33:29 hspark Exp $ */
 /* created: paklein (05/29/1996) */
 #include "Traction_CardT.h"
 

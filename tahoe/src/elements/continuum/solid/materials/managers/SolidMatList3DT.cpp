@@ -1,8 +1,8 @@
-/* $Id: SolidMatList3DT.cpp,v 1.43 2004-04-26 23:06:30 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.42.20.1 2004-06-19 04:33:14 hspark Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "SolidMaterialsConfig.h"
 
 #ifdef __DEVELOPMENT__
@@ -142,9 +142,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		in >> matcode;
 		
 		/* checks */
-		if (matnum < 0 || matnum >= fLength) 
-			ExceptionT::BadInputValue(caller, "material number %d is out of range [1, %d]",
-				matnum+1, fLength);
+		if (matnum < 0  || matnum >= fLength) throw ExceptionT::kBadInputValue;
 
 		/* repeated material number */
 		if (fArray[matnum] != NULL)

@@ -1,11 +1,11 @@
-/* $Id: RGSplitT.cpp,v 1.3 2004-06-17 07:41:18 paklein Exp $ */
+/* $Id: RGSplitT.cpp,v 1.2 2003-11-21 22:47:01 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplitT.h"
 #include "PotentialT.h"
 #include "NeoHookean.h"
 
-#include "ifstreamT.h"
+#include "fstreamT.h"
 #include "ExceptionT.h"
 #include <math.h>
 #include <iostream.h>

@@ -1,11 +1,11 @@
-/* $Id: IsoVIB3D.cpp,v 1.10 2004-06-17 07:40:44 paklein Exp $ */
+/* $Id: IsoVIB3D.cpp,v 1.9 2003-11-21 22:46:38 paklein Exp $ */
 /* created: paklein (03/15/1998) */
 #include "IsoVIB3D.h"
 
 #include <math.h>
 #include <iostream.h>
 #include "toolboxConstants.h"
-#include "ifstreamT.h"
+#include "fstreamT.h"
 #include "C1FunctionT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"

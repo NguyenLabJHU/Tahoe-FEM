@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.cpp,v 1.8 2004-06-17 07:40:19 paklein Exp $ */
+/* $Id: EAMFCC3DMatT.cpp,v 1.7.48.1 2004-06-19 04:33:09 hspark Exp $ */
 /* created: paklein (10/25/1998) */
 #include "EAMFCC3DMatT.h"
 

@@ -1,4 +1,4 @@
-/* $Id: VIB3D.cpp,v 1.9 2004-06-17 07:40:45 paklein Exp $ */
+/* $Id: VIB3D.cpp,v 1.8 2003-11-21 22:46:38 paklein Exp $ */
 /* created: paklein (04/20/1997) */
 #include "VIB3D.h"
 
@@ -8,7 +8,7 @@
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
 
-#include "ifstreamT.h"
+#include "fstreamT.h"
 #include "C1FunctionT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"

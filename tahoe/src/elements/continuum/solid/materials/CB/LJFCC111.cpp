@@ -1,4 +1,4 @@
-/* $Id: LJFCC111.cpp,v 1.7 2004-06-17 07:40:15 paklein Exp $ */
+/* $Id: LJFCC111.cpp,v 1.6.48.1 2004-06-19 04:33:08 hspark Exp $ */
 /* created: paklein (07/31/1996) */
 #include "LJFCC111.h"
 

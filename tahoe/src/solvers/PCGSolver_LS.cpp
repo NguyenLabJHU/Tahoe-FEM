@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.20 2004-06-17 07:42:05 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.19.20.1 2004-06-19 04:33:31 hspark Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 

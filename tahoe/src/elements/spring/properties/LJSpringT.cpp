@@ -1,4 +1,4 @@
-/* $Id: LJSpringT.cpp,v 1.5 2004-06-17 07:41:41 paklein Exp $ */
+/* $Id: LJSpringT.cpp,v 1.4.50.1 2004-06-19 04:33:22 hspark Exp $ */
 /* created: paklein (5/28/1996) */
 #include "LJSpringT.h"
 

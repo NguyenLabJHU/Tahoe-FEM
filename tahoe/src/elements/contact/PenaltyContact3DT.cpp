@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.12 2004-06-17 07:13:39 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.11 2003-11-21 22:45:57 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 #include "PenaltyContact3DT.h"
 
@@ -6,7 +6,7 @@
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "ifstreamT.h"
+#include "fstreamT.h"
 #include "eIntegratorT.h"
 
 using namespace Tahoe;

@@ -1,4 +1,4 @@
-/* $Id: J2PrimitiveT.cpp,v 1.4 2004-06-17 07:41:11 paklein Exp $ */
+/* $Id: J2PrimitiveT.cpp,v 1.3 2002-10-20 22:49:05 paklein Exp $ */
 /* created: paklein (02/17/1997)                                          */
 /* Base class for a J2 plastic material with linear kinematic/            */
 /* isotropic hardening laws defined by:                                   */
@@ -11,7 +11,7 @@
 #include <iostream.h>
 #include <math.h>
 
-#include "ifstreamT.h"
+#include "fstreamT.h"
 #include "dSymMatrixT.h"
 
 

@@ -96,26 +96,6 @@ public:
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 						AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
-	/** Translate global node numbers to local ones -- communication routine for MFLagMultT */
-	/** returns 0 if unsucessful, i.e. nodes not contained in fNodes */
-	int GlobalToLocalNumbering(iArrayT& nodes);
-	
-	/* Translate global node numbers to local ones -- communication routine for MFLagMultT */
-	int GlobalToLocalNumbering(RaggedArray2DT<int>& nodes);
-
-	/** Return interpolated displacement field at selected nodes -- communication routine for MFLagMultT */
-	void InterpolatedFieldAtNodes(const iArrayT& nodes, dArray2DT& fieldAtNodes);
-
-	/** Return the data structure holding the support of the localNode and it's window function values 
-		-- communication routine for for MFLagMultT */
-	void NodalSupportAndPhi(int localNode, LinkedListT<int>& support, LinkedListT<double>& phi);
-	
-	/** Return the data structure holding the supports of the localNodes and their window function values 
-		-- communication routine for for MFLagMultT */
-	void NodalSupportAndPhi(iArrayT& localNodes, RaggedArray2DT<int>& support, RaggedArray2DT<double>& phi);
-	
-	int SupportSize(int localNode);
-
 	/** \name types needed for the Voronoi diagram calculation */
 	/*@{*/
 #ifndef __QHULL__
@@ -145,8 +125,9 @@ protected: /* for derived classes only */
 	/** return true if connectivities are changing */
 	virtual bool ChangingGeometry(void) const;
 
-	/** assemble particle mass matrix into LHS of global equation system */
-	void AssembleParticleMass(const double rho);
+	/** assemble particle mass matrix into LHS of global equation system
+	 * \param mass mass associated with each particle type */
+	void AssembleParticleMass(const dArrayT& mass);
 	
 	/** compute B matrices for strain smoothing/nodal integration */
 	virtual void ComputeBMatrices(void);
@@ -202,32 +183,32 @@ protected:
 	iArray2DT fDeloneEdges;
 
 	/** Voronoi facets dual to the Delone Edges */
-	iArray2DT fDualFacets; // Tag for Deletion
+	iArray2DT fDualFacets;
 
 	/** Self-dual facet information. I.E. facets that contribute only to one integral over one boundary node's cell */
 #ifdef __QHULL__
 	CompGeomT::ConvexHullMap fSelfDuals;
 #else
-	ConvexHullMap fSelfDuals; // Tag for Deletion
+	ConvexHullMap fSelfDuals;
 #endif
 	int fNumSelfDuals;
 	int fNumClippedFacets;
 
 	/** connectivity of boundary nodes. Currently determined from an underlying 
 	    element connectivity */
-	iArray2DT fBoundaryConnectivity; // Tag for Deletion
+	iArray2DT fBoundaryConnectivity;
 	
 	/** union of nodes in fBoundaryConnectivity */
-	iArrayT fBoundaryNodes; // Tag for Deletion
+	iArrayT fBoundaryNodes;
 	
 	/** true if boundary connectivity is simplicial */
-	bool fBoundaryIsTriangulated; // Tag for Deletion
+	bool fBoundaryIsTriangulated;
 	
 	/** centroids of the facets dual to Delone edges */
 	dArray2DT fDualFacetCentroids;
 	
 	/** additional edges associated only with one node */
-	iArrayT fNonDeloneEdges; // Tag for Deletion
+	iArrayT fNonDeloneEdges;
 	
 	/** centroids of the facets for those edges */
 	dArray2DT fNonDeloneCentroids;
@@ -246,16 +227,15 @@ protected:
 	CompGeomT::VoronoiDiagramMap fVoronoiFacetIndices;
 #else
 	void* fVoronoi;
-	ConvexHullMap fVoronoiCells; // Tag for Deletion
-	VoronoiDiagramMap fVoronoiFacetIndices; // Tag for Deletion
+	ConvexHullMap fVoronoiCells;
+	VoronoiDiagramMap fVoronoiFacetIndices;
 #endif
 
-	ArrayT<dArrayT> fVoronoiFacetAreas; // Tag for Deletion
-	ArrayT<dArray2DT> fVoronoiFacetNormals; // Tag for Deletion
-
+	ArrayT<dArrayT> fVoronoiFacetAreas;
+	ArrayT<dArray2DT> fVoronoiFacetNormals;
 	/** Volume associated with each node -- integration weight for nodal integration */
 	dArrayT fVoronoiCellVolumes;
-	dArray2DT fVoronoiVertices; // Tag for Deletion
+	dArray2DT fVoronoiVertices;
 	/*@}*/
 
 	/** list of materials */
@@ -265,13 +245,6 @@ protected:
 	/** workspaces for strain smoothing */
 	ArrayT< LinkedListT<int> > nodeWorkSpace;
 	ArrayT< LinkedListT<dArrayT> > facetWorkSpace;
-
-	RaggedArray2DT<int> nodalCellSupports;
-	RaggedArray2DT<dArrayT> bVectorArray;
-	
-	/** workspace for nodal shape functions */
-	ArrayT< LinkedListT<double> > fNodalPhi;
-	ArrayT< LinkedListT<int> > fNodalSupports;
 	  	
 	/* body force vector */
 	const ScheduleT* fBodySchedule; /**< body force schedule */

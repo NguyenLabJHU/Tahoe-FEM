@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.28 2004-04-19 22:08:07 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.27 2004-04-02 16:48:22 jzimmer Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -303,11 +303,11 @@ protected:
 	double NearestNeighborDistance; 
 	
 	/* calculate slip vector and strain tensor */
-	void Calc_Slip_and_Strain(dArray2DT &s_values, RaggedArray2DT<int> &RefNearestNeighbors, const int &kEulerLagr) ;
+	void Calc_Slip_and_Strain(int non, int num_s_vals,dArray2DT &s_values, RaggedArray2DT<int> &RefNearestNeighbors, const int &kEulerLagr) ;
 
 	int Combination(int n, int k);
 
-	void Calc_CSP(dArray2DT &s_values, RaggedArray2DT<int> &NearestNeighbors);
+	void Calc_CSP(int non, int num_s_vals,dArray2DT &s_values, RaggedArray2DT<int> &NearestNeighbors);
     
 	void SetRefNN(RaggedArray2DT<int> &NearestNeighbors,RaggedArray2DT<int> &RefNearestNeighbors);
 

@@ -1,4 +1,4 @@
-/* $Id: ModCBSolverT.cpp,v 1.5 2004-06-17 07:41:03 paklein Exp $ */
+/* $Id: ModCBSolverT.cpp,v 1.4 2003-11-21 22:46:41 paklein Exp $ */
 /* created: paklein (05/27/1997)                                          */
 /* Q defines the orientation of the crystals' natural coordinates         */
 /* and the global coordinate frame. Q is defined as:                      */
@@ -12,7 +12,7 @@
 
 #include "ExceptionT.h"
 
-#include "ifstreamT.h"
+#include "fstreamT.h"
 #include "dSymMatrixT.h"
 #include "SW2BodyT.h"
 #include "SW3BodyT.h"

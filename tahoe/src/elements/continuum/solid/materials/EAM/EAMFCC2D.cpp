@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.cpp,v 1.9 2004-06-17 07:40:19 paklein Exp $ */
+/* $Id: EAMFCC2D.cpp,v 1.8.48.1 2004-06-19 04:33:09 hspark Exp $ */
 /* created: paklein (12/09/1996) */
 #include "EAMFCC2D.h"
 

@@ -1,4 +1,4 @@
-/* $Id: LinearSpringT.cpp,v 1.5 2004-06-17 07:41:41 paklein Exp $ */
+/* $Id: LinearSpringT.cpp,v 1.4.52.1 2004-06-19 04:33:22 hspark Exp $ */
 /* created: paklein (05/28/1996) */
 #include "LinearSpringT.h"
 

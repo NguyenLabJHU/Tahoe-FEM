@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.90 2004-06-17 06:42:45 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.85.14.1 2004-06-19 04:33:01 hspark Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -9,6 +9,7 @@
 
 #include <iostream.h>
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "StringT.h"
 #include "ElementT.h"
 #include "ElementSupportT.h"
@@ -114,18 +115,9 @@
 #include "APS_V_AssemblyT.h"
 #endif
 
-#ifdef MESHFREE_GRAD_PLAST_DEV
-#include "MeshfreeGradP_AssemblyT.h"
-#endif
-
-#ifdef ENHANCED_STRAIN_LOC_DEV
-#include "SmallStrainEnhLocT.h"
-#endif
-
 #ifdef GRAD_SMALL_STRAIN_DEV
 #include "GradSmallStrainT.h"
 #include "GradC0SmallStrainT.h"
-#include "GradSmallStrainMixedT.h"
 #endif
 
 #ifdef SOLID_ELEMENT_DEV
@@ -265,8 +257,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		out << "    eq. " << ElementT::kMFCohesiveSurface  << ", meshfree cohesive surface element\n";
 		out << "    eq. " << ElementT::kStaggeredMultiScale << ", Staggered MultiScale Element (for VMS) \n";
 		out << "    eq. " << ElementT::kAPSgrad 			<< ", Strict Anti-plane Shear gradient plasticity \n";
-		out << "    eq. " << ElementT::kMeshfreeGradP 		<< ", Meshfree gradient plasticity \n";
-		out << "    eq. " << ElementT::kSS_EnhStrainLoc 	<< ", Enhanced strain embedded discontinuity \n";
 		out << "    eq. " << ElementT::kSS_SCNIMF 			<< ", Small Strain Stabilized, Conforming Nodally-Integrated Galerkin Mesh-free \n";
 		out << "    eq. " << ElementT::kFS_SCNIMF           << ", Finite Strain Stabilized Conforming Nodally-Integrated Galerkin Mesh-free \n";
 		out << "    eq. " << ElementT::kACME_Contact       << ", 3D contact using ACME\n";
@@ -478,38 +468,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "MULTISCALE_APS_V_DEV not enabled: %d", code);
-#endif
-			}
-			case ElementT::kMeshfreeGradP:
-			{
-#ifdef MESHFREE_GRAD_PLAST_DEV
-				/* must be using multi-field solver */
-				if (fSupport.Analysis() != GlobalT::kMultiField)				
-					ExceptionT::BadInputValue(caller, "multi field required");
-			
-				/* displacement field read above */
-				const FieldT* displ = field;
-
-				/* plastic multiplier field */				
-				StringT plast_name;
-				in >> plast_name;
-				const FieldT* plast = fSupport.Field(plast_name);
-				if (!displ || !plast)
-					ExceptionT::BadInputValue(caller, "error resolving field names");
-			
-				fArray[group] = new MeshfreeGradP_AssemblyT(fSupport, *displ, *plast);
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "MESHFREE_GRAD_PLAST_DEV not enabled: %d", code);
-#endif
-			}
-			case ElementT::kSS_EnhStrainLoc:
-			{
-#ifdef ENHANCED_STRAIN_LOC_DEV
-				fArray[group] = new SmallStrainEnhLocT(fSupport, *field);
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "ENHANCED_STRAIN_LOC_DEV not enabled: %d", code);
 #endif
 			}
 			case ElementT::kMeshFreeFDElastic:
@@ -931,23 +889,20 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or SPLIT_INTEGRATION_DEV not enabled: %d", code);
 #endif				
 		}			
-		case ElementT::kGradC0SmallStrain:
+		case ElementT::kGradSmallStrain:
 		{
 #ifdef GRAD_SMALL_STRAIN_DEV
 		  /* displacement field read above */
 		  const FieldT* disp = field;
 		  
 		  /* hardness field */				
-		  StringT hardness_field_name1;
-		  StringT hardness_field_name2;
-		  in >> hardness_field_name1;
-		  in >> hardness_field_name2;
-		  const FieldT* hardness1 = fSupport.Field(hardness_field_name1);
-		  const FieldT* hardness2 = fSupport.Field(hardness_field_name2);
-		  if (!disp || !hardness1 || !hardness2)
+		  StringT hardness_field_name;
+		  in >> hardness_field_name;
+		  const FieldT* hardness = fSupport.Field(hardness_field_name);
+		  if (!disp || !hardness)
 		    ExceptionT::BadInputValue(caller, "error resolving field names");
 		  
-		  fArray[group] = new GradC0SmallStrainT(fSupport, *disp, *hardness1, *hardness2);
+		  fArray[group] = new GradSmallStrainT(fSupport, *disp, *hardness);
 		  break;
 #else
 		  ExceptionT::BadInputValue(caller, "GRAD_SMALL_STRAIN_DEV not enabled: %d", code);
@@ -971,7 +926,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
 #endif		
 		}		
-		case ElementT::kGradSmallStrain:
+		case ElementT::kGradC0SmallStrain:
 		{
 #ifdef GRAD_SMALL_STRAIN_DEV
 		  /* displacement field read above */
@@ -984,26 +939,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		  if (!disp || !hardness)
 		    ExceptionT::BadInputValue(caller, "error resolving field names");
 		  
-		  fArray[group] = new GradSmallStrainT(fSupport, *disp, *hardness);
-		  break;
-#else
-		  ExceptionT::BadInputValue(caller, "GRAD_SMALL_STRAIN_DEV not enabled: %d", code);
-#endif			
-		}
-		case ElementT::kGradSmallStrainMixed:
-		{
-#ifdef GRAD_SMALL_STRAIN_DEV
-		  /* displacement field read above */
-		  const FieldT* disp = field;
-		  
-		  /* hardness field */				
-		  StringT hardness_field_name;
-		  in >> hardness_field_name;
-		  const FieldT* hardness = fSupport.Field(hardness_field_name);
-		  if (!disp || !hardness)
-		    ExceptionT::BadInputValue(caller, "error resolving field names");
-		  
-		  fArray[group] = new GradSmallStrainMixedT(fSupport, *disp, *hardness);
+		  fArray[group] = new GradC0SmallStrainT(fSupport, *disp, *hardness);
 		  break;
 #else
 		  ExceptionT::BadInputValue(caller, "GRAD_SMALL_STRAIN_DEV not enabled: %d", code);

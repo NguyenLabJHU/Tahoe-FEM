@@ -1,4 +1,4 @@
-/* $Id: Material2DT.cpp,v 1.6 2004-06-17 07:41:14 paklein Exp $ */
+/* $Id: Material2DT.cpp,v 1.5.42.1 2004-06-19 04:33:15 hspark Exp $ */
 /* created: paklein (02/15/1997) */
 #include "Material2DT.h"
 

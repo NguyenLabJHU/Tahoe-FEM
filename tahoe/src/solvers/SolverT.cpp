@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.21 2004-06-17 07:42:05 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.20.6.1 2004-06-19 04:33:31 hspark Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 

@@ -1,4 +1,4 @@
-/* $Id: Hex2D.cpp,v 1.3 2004-06-17 07:40:15 paklein Exp $ */
+/* $Id: Hex2D.cpp,v 1.2.44.1 2004-06-19 04:33:08 hspark Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"

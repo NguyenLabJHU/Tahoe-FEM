@@ -1,4 +1,4 @@
-/* $Id: NLK0Solver.cpp,v 1.12 2004-06-17 07:42:05 paklein Exp $ */
+/* $Id: NLK0Solver.cpp,v 1.11.20.1 2004-06-19 04:33:31 hspark Exp $ */
 /* created: paklein (10/01/1996) */
 #include "NLK0Solver.h"
 #include <iostream.h>

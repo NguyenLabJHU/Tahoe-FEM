@@ -1,4 +1,4 @@
-/* $Id: HHTalpha.cpp,v 1.6 2004-06-17 07:13:57 paklein Exp $ */
+/* $Id: HHTalpha.cpp,v 1.5.34.1 2004-06-19 04:33:23 hspark Exp $ */
 /* created: paklein (10/14/1996) */
 #include "HHTalpha.h"
 

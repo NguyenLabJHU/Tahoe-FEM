@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.5 2004-06-17 07:40:11 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.4 2004-01-10 04:41:10 paklein Exp $ */
 #include "ABAQUS_UMAT_SS_BaseT.h"
 
 #ifdef __F2C__
@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <float.h>
 
-#include "ifstreamT.h"
+#include "fstreamT.h"
 #include "ContinuumElementT.h" //needed for ip coordinates
 #include "SSMatSupportT.h"
 

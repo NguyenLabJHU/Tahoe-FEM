@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.60 2004-06-17 07:40:07 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.59.2.1 2004-06-19 04:33:06 hspark Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -8,6 +8,7 @@
 #include "toolboxConstants.h"
 
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"
 #include "eIntegratorT.h"
@@ -46,8 +47,8 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	/* check base class initializations */
 	if (NumDOF() != NumSD()) throw ExceptionT::kGeneralFail;
 
-	ifstreamT&  in = ElementSupport().Input();
-	ofstreamT& out = ElementSupport().Output();
+	ifstreamT& in = ElementSupport().Input();
+	ostream&  out = ElementSupport().Output();
 	
 	/* control parameters */
 	in >> fMassType;		

@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.12 2004-06-17 07:41:53 paklein Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.11.30.1 2004-06-19 04:33:27 hspark Exp $ */
 /* created: paklein (02/25/1997) */
 #include "PenaltyWallT.h"
 

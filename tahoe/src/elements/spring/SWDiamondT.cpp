@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.cpp,v 1.12 2004-06-17 07:41:37 paklein Exp $ */
+/* $Id: SWDiamondT.cpp,v 1.11.50.1 2004-06-19 04:33:21 hspark Exp $ */
 /* created: paklein (03/19/1997) */
 
 #include "SWDiamondT.h"
