@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.8 2002-04-17 23:53:44 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.6 2002-02-27 16:47:48 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -21,8 +21,6 @@
 #include "XuNeedleman3DT.h"
 #include "TvergHutch2DT.h"
 #include "LinearDamageT.h"
-#include "Tijssens2DT.h"
-#include "RateDep2DT.h"
 
 /* meshfree domain element types */
 #include "MeshFreeFractureSupportT.h"
@@ -219,30 +217,6 @@ void MeshFreeCSEAnisoT::Initialize(void)
 			/* cast down */
 			fSurfacePotential = lin_damage;
 			break;
-		}
-		case SurfacePotentialT::kTijssens:
-		{	
-		       if (fNumDOF == 2)
-			 fSurfacePotential = new Tijssens2DT(in,FEManager().TimeStep(),fFEManager);
-		       else
-		       {
-			  cout << "MeshFreeCSEAnisoT::Initialize potential not implemented for 3D: " << code << endl;
-
-	                 throw eBadInputValue;
-		       }
-		       break;
-		}
-	        case SurfacePotentialT::kRateDep:
-		{
-		       if (fNumDOF == 2)
-			 fSurfacePotential = new RateDep2DT(in,FEManager().TimeStep());
-		       else
-		       {
-			 cout << "\n MeshFreeCSEAnisoT::Initialize potential not implemented for 3D: " << code << endl;
-
-			 throw eBadInputValue;
-		       }
-		       break;
 		}
 		default:
 			cout << "\n MeshFreeCSEAnisoT::Initialize: unknown potential code: " << code << endl;
@@ -479,12 +453,10 @@ void MeshFreeCSEAnisoT::WriteOutput(IOBaseT::OutputModeT mode)
 	
 					/* gap vector (from side 1 to 2) */
 					const dArrayT& delta = fMFSurfaceShape->InterpolateJumpU(fLocDisp);
-
-					dArrayT tensorIP(3);
 		
 					/* gap -> traction, in/out of local frame */
 					fQ.MultTx(delta, fdelta);
-					fQ.Multx(fSurfacePotential->Traction(fdelta, state, tensorIP), fT);
+					fQ.Multx(fSurfacePotential->Traction(fdelta, state), fT);
 
 					/* coordinates */
 					out << fMFSurfaceShape->IPCoords().no_wrap();
@@ -598,13 +570,12 @@ void MeshFreeCSEAnisoT::LHSDriver(void)
 			/* gap -> {traction, stiffness} in local frame */
 			fQ.MultTx(delta, fdelta);
 
-			dArrayT tensorIP(3);
-			const dMatrixT& K = fSurfacePotential->Stiffness(fdelta, state,tensorIP);
+			const dMatrixT& K = fSurfacePotential->Stiffness(fdelta, state);
 			fddU_l.SetToScaled(j0*w*constK, K);
 			fddU_g.MultQBQT(fQ, K);
 			fddU_g *= j0*w*constK;
-		
-			const dArrayT& T = fSurfacePotential->Traction(fdelta, state,tensorIP);
+			
+			const dArrayT& T = fSurfacePotential->Traction(fdelta, state);
 			fT.SetToScaled(j0*w*constK, T);
 
 			/* shape function table */
@@ -688,11 +659,10 @@ void MeshFreeCSEAnisoT::RHSDriver(void)
 	
 				/* gap vector (from side 1 to 2) */
 				const dArrayT& delta = fMFSurfaceShape->InterpolateJumpU(fLocDisp);
-
-				dArrayT tensorIP(3);	
+	
 				/* gap -> traction, in/out of local frame */
 				fQ.MultTx(delta, fdelta);
-				fQ.Multx(fSurfacePotential->Traction(fdelta, state,tensorIP), fT);
+				fQ.Multx(fSurfacePotential->Traction(fdelta, state), fT);
 
 				/* expand */
 				fMFSurfaceShape->Grad_d().MultTx(fT, fNEEvec);

@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.cpp,v 1.3 2002-04-19 19:21:52 paklein Exp $ */
+/* $Id: AugLagWallT.cpp,v 1.1 2001-09-11 23:43:47 paklein Exp $ */
 
 #include "AugLagWallT.h"
 
@@ -34,13 +34,11 @@ void AugLagWallT::Initialize(void)
 	
 	/* set dimensions */
 	int numDOF = rEqnos.MinorDim() + 1; // additional DOF
-	fContactEqnos.Dimension(fNumContactNodes*numDOF);
+	fContactEqnos.Allocate(fNumContactNodes*numDOF);
 	fContactEqnos2D.Set(fNumContactNodes, numDOF, fContactEqnos.Pointer());
-	fFloatingDOF.Dimension(fNumContactNodes);
-	fFloatingDOF = 0;
 	
 	/* allocate memory for force vector */
-	fContactForce2D.Dimension(fNumContactNodes, numDOF);
+	fContactForce2D.Allocate(fNumContactNodes, numDOF);
 	fContactForce.Set(fNumContactNodes*numDOF, fContactForce2D.Pointer());
 	fContactForce2D = 0.0;
 
@@ -74,22 +72,11 @@ void AugLagWallT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	iArrayT eq_temp(fContactNodes.Length());
 
 	/* displacement equations */
-	fFloatingDOF = 0;
 	for (int i = 0; i < ndof_u; i++)
 	{
 		disp_eq.ColumnCopy(i, eq_temp);
 		fContactEqnos2D.SetColumn(eq_col++, eq_temp);
-
-		/* check for floating DOF's */
-		for (int j = 0; j < eq_temp.Length(); j++)
-			if (eq_temp[j] < 1)
-				fFloatingDOF[j] = 1; /* mark */
 	}
-
-	/* warning */
-	if (fFloatingDOF.HasValue(1))
-		cout << "\n AugLagWallT::Equations: node with constraint has prescribed DOF\n" 
-		     <<   "     Stiffness may be approximate." << endl;	
 
 	/* constraint equations */
 	const iArray2DT& auglageqs = fXDOF_Nodes->XDOF_Eqnos(this, 0);
@@ -161,6 +148,7 @@ void AugLagWallT::ApplyLHS(void)
 
 	/* workspace */
 	int nsd = rCoords.MinorDim();
+	//dArrayT norm(nsd);
 	dArrayT vec;
 	dMatrixT ULblock(nsd);
 	dMatrixT mat;
@@ -190,12 +178,6 @@ void AugLagWallT::ApplyLHS(void)
 
 			mat.Set(nsd, 1, fnormal.Pointer());
 			fLHS.SetBlock(0, nsd, mat);
-
-			/* augmented Lagrangian DOF */
-			if (fFloatingDOF[i] && fabs(g) < kSmall) {
-				int dex = fLHS.Rows() - 1;
-				fLHS(dex,dex) = -1.0/fk;							
-			}
 		}
 		/* gap */
 		else

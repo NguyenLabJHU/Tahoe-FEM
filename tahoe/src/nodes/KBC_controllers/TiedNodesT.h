@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.5 2002-04-19 21:12:58 cjkimme Exp $ */
+/* $Id: TiedNodesT.h,v 1.3 2002-04-13 15:40:31 paklein Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -61,9 +61,6 @@ public:
 	 * Methods signaling different stages of the solution process for
 	 * a single time step. */
 	/*@{*/
-	/** initialize the current step */
-	virtual void InitStep(void);
-	
 	/** computing residual force */
 	virtual void FormRHS(void);
 
@@ -99,7 +96,7 @@ protected:
 	 * \return true if the status of any pair has changed */
 	virtual bool ChangeStatus(void);
 
-//private:
+private:
 
 	/** pair status */
 	enum StatusT {
@@ -111,7 +108,7 @@ protected:
 	void SetBCCards(void);
 
 	/** copy kinematic information from the leader nodes to the follower nodes */
-	virtual void CopyKinematics(void);
+	void CopyKinematics(void);
 
 protected:
 

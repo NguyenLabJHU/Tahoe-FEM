@@ -1,7 +1,7 @@
-/* $Id: ModBessel.h,v 1.2 2002-04-19 18:55:09 dzeigle Exp $ */
+/* $Id: ModBessel.h,v 1.1 2002-01-28 18:39:47 dzeigle Exp $ */
 
-#ifndef _MOD_BESSEL_H_
-#define _MOD_BESSEL_H_
+#ifndef _MOD_BESS_H_
+#define _MOD_BESS_H_
 
 /* base class */
 #include "C1FunctionT.h"
@@ -13,18 +13,8 @@ public:
 	/*
 	 * Constructor
 	 */
-	ModBessel(double p);
-	
-	/*
-	 * Destructor
-	 */
-	~ModBessel();
-	
-	/*
-	 * Evaluation function
-	 */
-	 double Eval(int d, double x) const;
-	
+	ModBessel(double P);
+
 	/*
 	 * I/O
 	 */
@@ -52,13 +42,11 @@ public:
 private:
 
 	/* potential parameters */
-	double power;
-    double chebev(double a, double b, double c[], int m, double x) const;
-    void beschb(double x, double *gam1, double *gam2, double *gampl, double *gammi) const;
-    void bessk(double x, double xnu, double *rk, double *rkp) const;
+	double fP;
+	
+	//could add more parameters
 
 };
 
-#endif /* _MOD_BESSEL_H_ */
-
+#endif /* _MOD_BESS_H_ */
 

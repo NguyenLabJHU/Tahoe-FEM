@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.11 2002-04-16 21:19:33 cjkimme Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.10 2002-02-18 22:26:51 paklein Exp $ */
 /* created: paklein (06/20/1999) */
 
 #ifndef _SURFACE_POTENTIAL_T_H_
@@ -28,8 +28,7 @@ public:
 	           kLinearDamage = 2, /**< irreversible linear decay */
 	kViscTvergaardHutchinson = 3, /**< T-H with viscous dissipation */
 	               kTijssens = 4, /**< Tjissens rate dependent model */
-	                kRateDep = 5, /**< simplified Tijssens' model */
-                  kTiedPotential = 6  /**< wrapper for models w/o initial load-up */};
+	                kRateDep = 5  /**< simplified Tijssens' model */};
 
 	/** surface element status codes */
 	enum StatusT {Precritical = 0, /**< loading phase */
@@ -57,10 +56,10 @@ public:
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump, ArrayT<double>& state, const dArrayT& sigma) = 0;
+	virtual const dArrayT& Traction(const dArrayT& jump, ArrayT<double>& state) = 0;
 
 	/** tangent stiffness */
-	virtual const dMatrixT& Stiffness(const dArrayT& jump, const ArrayT<double>& state, const dArrayT& sigma) = 0;
+	virtual const dMatrixT& Stiffness(const dArrayT& jump, const ArrayT<double>& state) = 0;
 
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump, const ArrayT<double>& state) = 0;
@@ -88,8 +87,8 @@ public:
 at the nodes. Returns false by default. */
 	virtual bool NeedsNodalInfo(void);
 	virtual int NodalQuantityNeeded(void);
-//	virtual double ComputeNodalValue(const dArrayT &); 
-//      virtual void UpdateStateVariables(const dArrayT & IPdata, ArrayT<double> &);
+	virtual double ComputeNodalValue(const dArrayT &); 
+        virtual void UpdateStateVariables(const dArrayT & IPdata, ArrayT<double> &);
 	virtual int ElementGroupNeeded(void);
 
 	/** returns true if two materials have compatible nodal outputs */

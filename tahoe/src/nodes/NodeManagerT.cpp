@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.7 2002-04-19 21:12:57 cjkimme Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.6 2002-04-10 16:48:22 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "NodeManagerT.h"
@@ -9,7 +9,6 @@
 #include "BimaterialK_FieldT.h"
 #include "MappedPeriodicT.h"
 #include "TiedNodesT.h"
-#include "SymmetricNodesT.h"
 
 /* constructor */
 NodeManagerT::NodeManagerT(FEManagerT& fe_manager):
@@ -59,13 +58,6 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(int code)
 		case KBC_ControllerT::kTiedNodes:
 		{
 			TiedNodesT* kbc = new TiedNodesT(*this);
-			kbc->SetEquations(fEqnos);
-			kbc->AddKinematics(fDisp);
-			return kbc;
-		}
-	        case KBC_ControllerT::kSymmetricNodes:
-		{
-		        SymmetricNodesT* kbc = new SymmetricNodesT(*this);
 			kbc->SetEquations(fEqnos);
 			kbc->AddKinematics(fDisp);
 			return kbc;

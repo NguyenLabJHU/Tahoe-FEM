@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.3 2002-04-16 16:35:59 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.2 2001-07-03 01:34:50 paklein Exp $ */
 
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
@@ -122,17 +122,6 @@ void SmallStrainT::ReadMaterialData(ifstreamT& in)
 	}
 }
 
-/* initialize local field arrays. Allocate B-bar workspace if needed. */
-void SmallStrainT::SetLocalArrays(void)
-{
-	/* inherited */
-	ElasticT::SetLocalArrays();
-
-	/* using B-bar */
-	if (fStrainDispOpt == ShapeFunctionT::kMeanDilBbar)
-		fLocDispTranspose.Allocate(fLocDisp.Length());
-}
-
 /* increment current element */
 void SmallStrainT::SetGlobalShape(void)
 {
@@ -143,68 +132,27 @@ void SmallStrainT::SetGlobalShape(void)
 	int material_number = CurrentElement().MaterialNumber();
 	const ArrayT<bool>& needs = fMaterialNeeds[material_number];
 	
-	/* using B-bar */
-	if (fStrainDispOpt == ShapeFunctionT::kMeanDilBbar)
+	/* loop over integration points */
+	for (int i = 0; i < NumIP(); i++)
 	{
-		/* compute mean dilatation */
-		fShapes->SetMeanDilatation();
-
-		/* loop over integration points */
-		fShapes->TopIP();
-		while (fShapes->NextIP())
+		/* deformation gradient */
+		if (needs[fNeedsOffset + kstrain])
 		{
-			/* get B-bar */
-			fShapes->B(fB);
-		
-			/* deformation gradient */
-			if (needs[fNeedsOffset + kstrain])
-			{
-				/* transpose displacement array */
-				fLocDisp.ReturnTranspose(fLocDispTranspose);
+			/* displacement gradient */
+			fShapes->GradU(fLocDisp, fGradU, i);
 
-				/* compute strain using B-bar */
-				dSymMatrixT& strain = fStrain_List[fShapes->CurrIP()];
-				fB.Multx(fLocDispTranspose, strain);
-				strain.ScaleOffDiagonal(0.5);
-			}
+			/* symmetric part */
+			 fStrain_List[i].Symmetrize(fGradU);
+		}
 
-			/* "last" deformation gradient */
-			if (needs[fNeedsOffset + kstrain_last])
-			{
-				/* transpose displacement array */
-				fLocLastDisp.ReturnTranspose(fLocDispTranspose);
-
-				/* compute strain using B-bar */
-				dSymMatrixT& strain = fStrain_last_List[fShapes->CurrIP()];
-				fB.Multx(fLocDispTranspose, strain);
-				strain.ScaleOffDiagonal(0.5);
-			}
-		}		
-	}
-	else
-	{
-		/* loop over integration points */
-		for (int i = 0; i < NumIP(); i++)
+		/* "last" deformation gradient */
+		if (needs[fNeedsOffset + kstrain_last])
 		{
-			/* deformation gradient */
-			if (needs[fNeedsOffset + kstrain])
-			{
-				/* displacement gradient */
-				fShapes->GradU(fLocDisp, fGradU, i);
+			/* displacement gradient */
+			fShapes->GradU(fLocLastDisp, fGradU, i);
 
-				/* symmetric part */
-				 fStrain_List[i].Symmetrize(fGradU);
-			}
-
-			/* "last" deformation gradient */
-			if (needs[fNeedsOffset + kstrain_last])
-			{
-				/* displacement gradient */
-				fShapes->GradU(fLocLastDisp, fGradU, i);
-
-				/* symmetric part */
-				 fStrain_last_List[i].Symmetrize(fGradU);
-			}
+			/* symmetric part */
+			 fStrain_last_List[i].Symmetrize(fGradU);
 		}
 	}
 }

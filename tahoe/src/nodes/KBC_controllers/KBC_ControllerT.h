@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.5 2002-04-19 21:12:58 cjkimme Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.4 2002-04-10 21:20:54 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #ifndef _KBC_CONTROLLER_T_H_
@@ -32,8 +32,7 @@ public:
 	enum CodeT {kK_Field = 0,
       kBimaterialK_Field = 1,
          kMappedPeriodic = 2,
-              kTiedNodes = 3,
-	 kSymmetricNodes = 4};
+              kTiedNodes = 3};
 
 	/** constructor */
 	KBC_ControllerT(NodeManagerT& node_manager);
