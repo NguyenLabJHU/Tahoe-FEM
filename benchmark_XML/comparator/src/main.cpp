@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.1 2001-06-11 02:10:12 paklein Exp $ */
+/* $Id: main.cpp,v 1.2 2001-06-12 19:01:40 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include <iostream.h>
@@ -21,9 +21,6 @@ extern "C" int ccommand(char ***arg);
 static void StartUp(int* argc, char*** argv);
 static void ShutDown(void);
 
-/* redirect of cout for parallel execution */
-ofstream console;
-
 void main(int argc, char* argv[])
 {
 	StartUp(&argc, &argv);
@@ -40,7 +37,7 @@ static void StartUp(int* argc, char*** argv)
 #pragma unused(argv)
 
 #if defined(__MWERKS__) && defined (macintosh)
-	/* get command-line arguments - MacOS no MPI */
+	/* get command-line arguments */
 	*argc = ccommand(argv);
 #endif
 
