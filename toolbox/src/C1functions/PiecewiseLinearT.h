@@ -1,4 +1,4 @@
-/* $Id: PiecewiseLinearT.h,v 1.1 2004-01-27 19:07:23 paklein Exp $ */
+/* $Id: PiecewiseLinearT.h,v 1.2 2004-07-12 21:48:02 paklein Exp $ */
 #ifndef _PIECEWISE_LINEAR_T_H_
 #define _PIECEWISE_LINEAR_T_H_
 
@@ -62,6 +62,11 @@ protected:
 	double Dfunction(double x) const;
 	double DDfunction(double x) const;
 	void all_functions(double x, double& f, double& Df, double& DDf) const;
+
+private:
+
+	/** make sure knots are valid */
+	void CheckKnots(const dRangeArrayT& x, const dArrayT& y) const;
 
 protected:   	
 
