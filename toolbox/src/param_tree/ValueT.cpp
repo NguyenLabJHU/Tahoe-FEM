@@ -1,4 +1,4 @@
-/* $Id: ValueT.cpp,v 1.13 2004-04-04 03:04:17 paklein Exp $ */
+/* $Id: ValueT.cpp,v 1.14 2004-07-20 06:12:38 paklein Exp $ */
 #include "ValueT.h"
 #include <stdlib.h>
 #include <ctype.h>
@@ -214,9 +214,12 @@ ValueT& ValueT::operator=(const char* s)
 		/* checks */
 		if (fString.StringLength() == 0)
 			ExceptionT::GeneralFail(caller, "enumeration name cannot be empty");
+#if 0
+//TEMP - why is this name invalid?
 		if (isdigit(fString[0]))
 			ExceptionT::GeneralFail(caller, "enumeration name cannot start with [0-9]: \"%s\"",
 				fString.Pointer());
+#endif
 	}
 	else
 		ExceptionT::TypeMismatch(caller);	
