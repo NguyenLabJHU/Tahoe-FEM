@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.9 2001-10-11 16:32:25 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.10 2002-02-07 23:36:17 paklein Exp $ */
 
 #include "ComparatorT.h"
 
@@ -337,8 +337,11 @@ bool ComparatorT::PassOrFail(const StringT& file_1, const StringT& file_2,
 	/* termination */
 	if (b_OK == c_OK) 
 		return true;
-	else 
-		return false;
+	else { 
+		if (!b_OK) 	cout << "error reading block data from: " << bench_in.filename() << '\n';
+		if (!c_OK) 	cout << "error reading block data from: " << current_in.filename() << '\n';
+		return false;	
+	}
 }
 
 /* read data block header */
