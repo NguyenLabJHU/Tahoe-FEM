@@ -24,9 +24,6 @@ class GRAD_MRSSKStV: public SSIsotropicMatT, public HookeanMatT
 	
 	/* destructor */
 	~GRAD_MRSSKStV(void);
-	
-	/* pass necessary gradients of kinematics */
-	//void GrabGradients ( );
 
 	/* form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
