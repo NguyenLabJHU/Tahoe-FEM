@@ -1,11 +1,10 @@
-/* $Id: BasicFieldT.cpp,v 1.4 2002-09-20 16:14:06 paklein Exp $ */
+/* $Id: BasicFieldT.cpp,v 1.4.8.1 2002-12-16 09:16:55 paklein Exp $ */
 #include "BasicFieldT.h"
 #include "iArrayT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 BasicFieldT::BasicFieldT(const StringT& name, int ndof, int order):
 	fName(name),
 	fField(order+1),
@@ -37,7 +36,7 @@ void BasicFieldT::Dimension(int nnd)
 	fEqnos.Dimension(nnd, ndof);
 }
 
-void BasicFieldT::WriteEquationNumbers(ostream& out, const iArrayT* node_map) const
+void BasicFieldT::WriteEquationNumbers(ostream& out, const ArrayT<int>* node_map) const
 {
 	/* dimensions */
 	int nnd  = NumNodes();

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.18.2.2 2002-12-10 17:09:37 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.18.2.3 2002-12-16 09:16:55 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -252,7 +252,7 @@ void NodeManagerT::RegisterCoordinates(LocalArrayT& array) const
 }
 
 /* the local node to home processor map */
-const iArrayT& NodeManagerT::ProcessorMap(void) const { return fFEManager.ProcessorMap(); }
+const ArrayT<int>* NodeManagerT::ProcessorMap(void) const { return fFEManager.ProcessorMap(); }
 
 GlobalT::SystemTypeT NodeManagerT::TangentType(int group) const
 {
@@ -1115,14 +1115,14 @@ void NodeManagerT::EchoCoordinates(ifstreamT& in, ostream& out)
 		out << '\n';
 
 		/* arrays */
-		const iArrayT& processor = ProcessorMap();
+		const ArrayT<int>* processor = ProcessorMap();
 		const dArray2DT& init_coords = InitialCoordinates();
-		const iArrayT* node_map = fFEManager.NodeMap();
+		const ArrayT<int>* node_map = fFEManager.NodeMap();
 		for (int i = 0; i < init_coords.MajorDim(); i++)
 		{
 			out << setw(kIntWidth) << i+1
 			    << setw(kIntWidth) << ((node_map) ? (*node_map)[i]+1 : i+1)
-			    << setw(kIntWidth) << processor[i];		
+			    << setw(kIntWidth) << ((processor) ? (*processor)[i] : 0);		
 			for (int j = 0; j < NumSD(); j++)
 				out << setw(d_width) << init_coords(i,j);
 			out << '\n';
