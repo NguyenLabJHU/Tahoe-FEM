@@ -1,0 +1,4 @@
+@
+# $Id: run.batch,v 1.1 2004-05-13 16:24:15 paklein Exp $
+torsion.z.xml
+torsion.y.xml
