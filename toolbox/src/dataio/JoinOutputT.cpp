@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.4 2002-01-10 00:00:25 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.5 2002-01-27 18:38:10 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 
 #include "JoinOutputT.h"
@@ -25,7 +25,7 @@ JoinOutputT::JoinOutputT(const StringT& param_file, const StringT& model_file,
 {
 	/* set model database manager */
 	fModel = new ModelManagerT(cout);
-	if (!fModel->Initialize(model_file_type, model_file)) {
+	if (!fModel->Initialize(model_file_type, model_file, true)) {
 		cout << "\n JoinOutputT::JoinOutputT: error opening geometry file: " 
 		     << fModel->DatabaseName() << endl;
 		throw eDatabaseFail;
@@ -128,7 +128,7 @@ void JoinOutputT::Join(void)
 					{
 						/* open the database file */
 						ModelManagerT results(cout);
-						if (!results.Initialize(fResultsFileType, filename)) {
+						if (!results.Initialize(fResultsFileType, filename, true)) {
 							cout << "\n JoinOutputT::Join: error opening partial results file \""
 							     << results.DatabaseName() << '\"' << endl;
 							throw eDatabaseFail;
@@ -185,7 +185,7 @@ void JoinOutputT::Join(void)
 							part_e_man.Dimension(element_map.Length(), all_e_values.MinorDim());
 
 							/* block ID's in the set */
-							const iArrayT& block_ID = output_set.BlockID();
+							const ArrayT<StringT>& block_ID = output_set.BlockID();
 							
 							/* read data by block - one block after the next */
 							int row_offset = 0;
@@ -195,12 +195,9 @@ void JoinOutputT::Join(void)
 								StringT block_name;
 								block_name.Append(block_ID[l]);
 								
-								/* block index */
-								int block_index = results.ElementGroupIndex(block_name);
-								
 								/* block dimensions */
 								int nel, nen;
-								results.ElementGroupDimensions(block_index, nel, nen);
+								results.ElementGroupDimensions(block_name, nel, nen);
 
 								/* weak check */
 								if (nel > element_map.Length())
@@ -263,8 +260,9 @@ void JoinOutputT::SetOutput(void)
 	{
 		int num_ID = -99;
 		io >> num_ID;
-		iArrayT block_ID(num_ID);
-		io >> block_ID;
+		ArrayT<StringT> block_ID(num_ID);
+		for (int i = 0; i < block_ID.Length(); i++)
+			io >> block_ID[i];
 	
 		/* get output labels */
 		ArrayT<StringT> n_labels;
@@ -279,26 +277,20 @@ void JoinOutputT::SetOutput(void)
 			/* block ID as string */
 			StringT block_name;
 			block_name.Append(block_ID[i]);
-			
-			/* element group index */
-			int index = fModel->ElementGroupIndex(block_name);
-			if (index < 0) {
-				cout << "\n JoinOutputT::SetOutput: error trying to read element block ID " 
-				     << block_ID[i] << endl;
-				throw eDatabaseFail;
-			}
 
 			/* geometry code */
-			geometry_code = fModel->ElementGroupGeometry(index);
+			geometry_code = fModel->ElementGroupGeometry(block_name);
 			
 			/* load element group */
-			const iArray2DT& connects = fModel->ElementGroup(index);
+			const iArray2DT& connects = fModel->ElementGroup(block_name);
 			connects_list[i] = &connects;
 		}
 
 		/* construct output set */
 		bool changing = false; // changing geometry not supported
-		OutputSetT output_set(++count, geometry_code, block_ID, connects_list, n_labels, e_labels, changing);
+		StringT set_ID;
+		set_ID.Append(++count);
+		OutputSetT output_set(set_ID, geometry_code, block_ID, connects_list, n_labels, e_labels, changing);
 	
 		/* register */
 		fOutput->AddElementSet(output_set);
@@ -379,7 +371,7 @@ void JoinOutputT::SetMaps(void)
 		MapSetT& map_set = fMapSets[i];
 		if (map_set.NumElementMaps() > 0)
 		{
-			const iArrayT& block_ID = output_set.BlockID();
+			const ArrayT<StringT>& block_ID = output_set.BlockID();
 			if (block_ID.Length() > 0)
 			{
 				/* get block sizes from max element number 
@@ -607,7 +599,7 @@ void JoinOutputT::OutputLabels(int group, ArrayT<StringT>& node_labels,
 		{
 			/* database  */
 			ModelManagerT model(cout);
-			if (!model.Initialize(fModel->DatabaseFormat(), filename)) {
+			if (!model.Initialize(fModel->DatabaseFormat(), filename, true)) {
 				cout << "\n JoinOutputT::OutputLabels: error opening database file \""
 				     << fModel->DatabaseName() << '\"' << endl;
 				throw eDatabaseFail;

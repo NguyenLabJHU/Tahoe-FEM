@@ -84,7 +84,7 @@ StringT AVSOutputT::CreateFileName (int index) const
   if (fSequence > 0) var.Append (".sq", fSequence + 1);
   
   /* tack on output set */
-  var.Append (".io", fElementSets[index]->ID() + 1);
+  var.Append (".io", fElementSets[index]->ID());
 
   /* tack on print increment */
   var.Append (".ps", fElementSets[index]->PrintStep() + 1);
@@ -110,6 +110,8 @@ void AVSOutputT::CountVariables (int &num, const ArrayT<StringT>& labels) const
 
 void AVSOutputT::WriteCoordinates (ostream &avsout, AVST &avs, int index, iArrayT &nodes_used) const
 {
+#pragma unused(index)
+
   dArray2DT local (nodes_used.Length(), fCoordinates->MinorDim());
   for (int i=0; i < nodes_used.Length(); i++)
     local.SetRow (i, (*fCoordinates)(nodes_used[i]));
@@ -124,12 +126,13 @@ void AVSOutputT::WriteConnectivity (ostream &avsout, AVST &avs, int index, iArra
   int firstelemID = 1;
   for (int i=0; i < num_blocks; i++)
     {
-      const iArray2DT* connects = fElementSets[index]->Connectivities(i);
+      const iArray2DT* connects = fElementSets[index]->Connectivities(fElementSets[index]->BlockID(i));
       iArray2DT localconn (connects->MajorDim(), connects->MinorDim());
       LocalConnectivity (nodes_used, *connects, localconn);
       localconn++;
 
-      avs.WriteCells (avsout, fElementSets[index]->Geometry(), localconn, fElementSets[index]->ID(), firstelemID);
+      avs.WriteCells (avsout, fElementSets[index]->Geometry(), localconn, 
+      	atoi(fElementSets[index]->ID()), firstelemID);
       firstelemID += connects->MajorDim();
     }
 }

@@ -1,4 +1,4 @@
-/* $Id: InputBaseT.h,v 1.9 2002-01-23 20:01:59 sawimme Exp $ */
+/* $Id: InputBaseT.h,v 1.10 2002-01-27 18:38:12 paklein Exp $ */
 /* created: sawimme (08/12/1999) */
 
 #ifndef _INPUTBASE_T_H_
@@ -41,10 +41,16 @@ class ModelManagerT;
 class InputBaseT : public IOBaseT
 {
 public:
-  InputBaseT (ostream& out);
+
+  /** constructor */
+  InputBaseT(ostream& out);
+
+  /** destructor */
   virtual ~InputBaseT (void);
 
-  /** open the input source. \return true if successful, false otherwisa */
+  /** return the database string version of the element block ID */
+
+  /** open the input source. \return true if successful, false otherwise */
   virtual bool Open (const StringT& filename) = 0;
 
   /** close the input source */
@@ -73,23 +79,23 @@ public:
 
   /* ELEMENTS */
   virtual int  NumGlobalElements (void) const = 0; /**< for all element sets */
-  virtual int  NumElements (StringT& name) = 0; /**< for the set specified */
-  virtual int  NumElementNodes (StringT& name) = 0; /**< typically for the first element in the set */
-  virtual int  NumElementQuadPoints (StringT& name) = 0; /**< typically for the first element in the set */
+  virtual int  NumElements (const StringT& name) = 0; /**< for the set specified */
+  virtual int  NumElementNodes (const StringT& name) = 0; /**< typically for the first element in the set */
+  virtual int  NumElementQuadPoints (const StringT& name) = 0; /**< typically for the first element in the set */
   virtual void ReadAllElementMap (iArrayT& elemmap) = 0; /**< all elements, not offset, can be discontinuous */
-  virtual void ReadGlobalElementMap (StringT& name, iArrayT& elemmap) = 0; /**< set elements, not offset, can be discontinuous */
-  virtual void ReadGlobalElementSet (StringT& name, iArrayT& set) = 0; /**< offset, continuous */
-  virtual void ReadConnectivity (StringT& name, iArray2DT& connects) = 0; /**< offset nodes, continuous */
-  virtual void ReadGeometryCode (StringT& name, GeometryT::CodeT& geocode) = 0;
+  virtual void ReadGlobalElementMap (const StringT& name, iArrayT& elemmap) = 0; /**< set elements, not offset, can be discontinuous */
+  virtual void ReadGlobalElementSet (const StringT& name, iArrayT& set) = 0; /**< offset, continuous */
+  virtual void ReadConnectivity (const StringT& name, iArray2DT& connects) = 0; /**< offset nodes, continuous */
+  virtual void ReadGeometryCode (const StringT& name, GeometryT::CodeT& geocode) = 0;
 
-  virtual int  NumNodesInSet (StringT& name) = 0;
-  virtual void ReadNodeSet (StringT& name, iArrayT& nodes) = 0; /**< offset nodes, continuous */
+  virtual int  NumNodesInSet (const StringT& name) = 0;
+  virtual void ReadNodeSet (const StringT& name, iArrayT& nodes) = 0; /**< offset nodes, continuous */
 
   virtual bool AreSideSetsLocal (void) const = 0;
-  virtual int  NumSidesInSet (StringT& setname) const = 0;
-  virtual StringT SideSetGroupName (StringT& setname) const = 0;
-  virtual void ReadSideSetLocal (StringT& setname, iArray2DT& sides) const = 0; /**< offset elements & facets, continuous */
-  virtual void ReadSideSetGlobal (StringT& setname, iArray2DT& sides) const = 0; /**< offset elements & facets, continuous */
+  virtual int  NumSidesInSet (const StringT& setname) const = 0;
+  virtual StringT SideSetGroupName (const StringT& setname) const = 0;
+  virtual void ReadSideSetLocal (const StringT& setname, iArray2DT& sides) const = 0; /**< offset elements & facets, continuous */
+  virtual void ReadSideSetGlobal (const StringT& setname, iArray2DT& sides) const = 0; /**< offset elements & facets, continuous */
   
   /** record[0] = progname, record[1] = version, record[2] = date, record[3] = time */
   virtual void QARecords (ArrayT<StringT>& records) = 0;
@@ -103,9 +109,9 @@ public:
   virtual int  NumQuadratureVariables (void) const = 0;
 
   /** for only the nodes or elements in the block */
-  virtual void NodeVariablesUsed (StringT& name, iArrayT& used) = 0;
-  virtual void ElementVariablesUsed (StringT& name, iArrayT& used) = 0;
-  virtual void QuadratureVariablesUsed (StringT& name, iArrayT& used) = 0;  
+  virtual void NodeVariablesUsed (const StringT& name, iArrayT& used) = 0;
+  virtual void ElementVariablesUsed (const StringT& name, iArrayT& used) = 0;
+  virtual void QuadratureVariablesUsed (const StringT& name, iArrayT& used) = 0;  
 
   /** for all nodes or elements */
   virtual void ReadNodeLabels (ArrayT<StringT>& nlabels) const = 0;
@@ -115,20 +121,20 @@ public:
   /** step starts at zero and increases by one,
    * varindex refers to the variables index position in the Label list */
   virtual void ReadAllNodeVariable (int step, int varindex, dArrayT& values) = 0; /**< one variables for all nodes */
-  virtual void ReadNodeVariable (int step, StringT& name, int varindex, dArrayT& values) = 0; /**< one variable for nodes in an element set */
+  virtual void ReadNodeVariable (int step, const StringT& name, int varindex, dArrayT& values) = 0; /**< one variable for nodes in an element set */
   virtual void ReadAllNodeVariables (int step, dArray2DT& nvalues) = 0; /**< all variables for all nodes */
-  virtual void ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues) = 0; /**< all variables for nodes in an element set */
-  virtual void ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues) = 0; /**< all variables for nodes in a node set */
+  virtual void ReadNodeVariables (int step, const StringT& name, dArray2DT& nvalues) = 0; /**< all variables for nodes in an element set */
+  virtual void ReadNodeSetVariables (int step, const StringT& nsetname, dArray2DT& nvalues) = 0; /**< all variables for nodes in a node set */
 
   virtual void ReadAllElementVariable (int step, int varindex, dArrayT& values) = 0; /** < one variable for all elements */
-  virtual void ReadElementVariable (int step, StringT& name, int varindex, dArrayT& values) = 0; /** < one variable for an element set */
+  virtual void ReadElementVariable (int step, const StringT& name, int varindex, dArrayT& values) = 0; /** < one variable for an element set */
   virtual void ReadAllElementVariables (int step, dArray2DT& evalues) = 0; /**< all variables for all elements */
-  virtual void ReadElementVariables (int step, StringT& name, dArray2DT& evalues) = 0; /**< all variables for elements in set */
+  virtual void ReadElementVariables (int step, const StringT& name, dArray2DT& evalues) = 0; /**< all variables for elements in set */
 
   virtual void ReadAllQuadratureVariable (int step, int varindex, dArrayT& values) = 0; /** < one variable for all elements */
-  virtual void ReadQuadratureVariable (int step, StringT& name, int varindex, dArrayT& values) = 0; /** < one variable for an element set */
+  virtual void ReadQuadratureVariable (int step, const StringT& name, int varindex, dArrayT& values) = 0; /** < one variable for an element set */
   virtual void ReadAllQuadratureVariables (int step, dArray2DT& qvalues) = 0; /**< all variables for all quad points */
-  virtual void ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues) = 0; /**< all variables for elements in set */
+  virtual void ReadQuadratureVariables (int step, const StringT& name, dArray2DT& qvalues) = 0; /**< all variables for elements in set */
 
 };
 

@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.cpp,v 1.3 2002-01-09 12:16:31 paklein Exp $ */
+/* $Id: ExodusOutputT.cpp,v 1.4 2002-01-27 18:38:14 paklein Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "ExodusOutputT.h"
@@ -64,13 +64,13 @@ void ExodusOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 	}
 
 	/* write element data */
-	const iArrayT& blockIDs = fElementSets[ID]->BlockID ();
+	const ArrayT<StringT>& blockIDs = fElementSets[ID]->BlockID ();
 	if (e_values.Length() > 0)
 	{
 		/* separate values by block */
 		for (int b=0; b < blockIDs.Length(); b++)
 	    {
-			dArray2DT e_block (fElementSets[ID]->NumBlockElements(b), e_values.MinorDim());
+			dArray2DT e_block (fElementSets[ID]->NumBlockElements(blockIDs[b]), e_values.MinorDim());
 			ElementBlockValues (ID, b, e_values, e_block);
 	      
 			/* separate values by variable */
@@ -78,7 +78,7 @@ void ExodusOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 			for (int i = 0; i < e_block.MinorDim(); i++)
 			{
 				e_block.ColumnCopy(i, values);
-				exo.WriteElementVariable(fElementSets[ID]->PrintStep() + 1, blockIDs[b], 
+				exo.WriteElementVariable(fElementSets[ID]->PrintStep() + 1, atoi(blockIDs[b]),
 					i + 1, values);
 			}
 	    }
@@ -185,7 +185,6 @@ void ExodusOutputT::CreateGeometryFile(ExodusT& exo)
   exo.Create (filename, fTitle, info, qa, dim, num_nodes,
 	      num_elem, num_blks, num_node_sets, num_side_sets);
   
-  
   // write coordinates
   iArrayT nodes_used (num_nodes);
   nodes_used.SetValueToPosition();
@@ -211,7 +210,7 @@ void ExodusOutputT::CreateGeometryFile(ExodusT& exo)
     {
       iArray2DT& set = *((iArray2DT*) fSideSets[s]);
       set++;
-      int block_ID = fElementSets[fSSGroupID[s]]->ID();
+      int block_ID = atoi(fElementSets[fSSGroupID[s]]->ID()); //NOTE: sending the output set ID?
       exo.WriteSideSet (fSideSetIDs[s], block_ID, set);
       set--;
     }
@@ -243,15 +242,15 @@ void ExodusOutputT::WriteCoordinates (ExodusT& exo, iArrayT& nodes_used)
 
 void ExodusOutputT::WriteConnectivity (int ID, ExodusT& exo, const iArrayT& nodes_used)
 {
-  const iArrayT& blockIDs = fElementSets[ID]->BlockID ();
+  const ArrayT<StringT>& blockIDs = fElementSets[ID]->BlockID ();
   for (int i=0; i < fElementSets[ID]->NumBlocks (); i++)
     {
-	const iArray2DT* c = fElementSets[ID]->Connectivities(i);
+	const iArray2DT* c = fElementSets[ID]->Connectivities(blockIDs[i]);
 	iArray2DT local_connects(c->MajorDim(), c->MinorDim());
 	LocalConnectivity(nodes_used, *c, local_connects);
 
 	local_connects++;
-	exo.WriteConnectivities(blockIDs[i], fElementSets[ID]->Geometry(), local_connects);
+	exo.WriteConnectivities(atoi(blockIDs[i]), fElementSets[ID]->Geometry(), local_connects);
 	local_connects--;
     }
 }

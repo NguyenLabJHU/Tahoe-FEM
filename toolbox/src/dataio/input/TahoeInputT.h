@@ -1,4 +1,4 @@
-/* $Id: TahoeInputT.h,v 1.9 2002-01-23 20:01:59 sawimme Exp $ */
+/* $Id: TahoeInputT.h,v 1.10 2002-01-27 18:38:12 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _TAHOEINPUT_T_H_
@@ -32,23 +32,23 @@ class TahoeInputT : public InputBaseT
   virtual void ReadCoordinates (dArray2DT& coords, iArrayT& nodemap);
 
   virtual int NumGlobalElements (void) const;
-  virtual int NumElements (StringT& name);
-  virtual int NumElementNodes (StringT& name);
-  virtual int  NumElementQuadPoints (StringT& name);
+  virtual int NumElements (const StringT& name);
+  virtual int NumElementNodes (const StringT& name);
+  virtual int  NumElementQuadPoints (const StringT& name);
   virtual void ReadAllElementMap (iArrayT& elemmap);
-  virtual void ReadGlobalElementMap (StringT& name, iArrayT& elemmap);
-  virtual void ReadGlobalElementSet (StringT& name, iArrayT& set);
-  virtual void ReadConnectivity (StringT& name, iArray2DT& connects);
-  virtual void ReadGeometryCode (StringT& name, GeometryT::CodeT& code);
+  virtual void ReadGlobalElementMap (const StringT& name, iArrayT& elemmap);
+  virtual void ReadGlobalElementSet (const StringT& name, iArrayT& set);
+  virtual void ReadConnectivity (const StringT& name, iArray2DT& connects);
+  virtual void ReadGeometryCode (const StringT& name, GeometryT::CodeT& code);
 
-  virtual int  NumNodesInSet (StringT& name);
-  virtual void ReadNodeSet (StringT& name, iArrayT& nodes);
+  virtual int  NumNodesInSet (const StringT& name);
+  virtual void ReadNodeSet (const StringT& name, iArrayT& nodes);
 
   virtual bool AreSideSetsLocal (void) const;
-  virtual int  NumSidesInSet (StringT& name) const;
-  virtual StringT SideSetGroupName (StringT& name) const;
-  virtual void ReadSideSetLocal (StringT& name, iArray2DT& sides) const;
-  virtual void ReadSideSetGlobal (StringT& name, iArray2DT& sides) const;
+  virtual int  NumSidesInSet (const StringT& name) const;
+  virtual StringT SideSetGroupName (const StringT& name) const;
+  virtual void ReadSideSetLocal (const StringT& name, iArray2DT& sides) const;
+  virtual void ReadSideSetGlobal (const StringT& name, iArray2DT& sides) const;
 
   virtual void QARecords (ArrayT<StringT>& records);
   virtual int  NumTimeSteps (void) const;
@@ -60,22 +60,22 @@ class TahoeInputT : public InputBaseT
   virtual void ReadNodeLabels (ArrayT<StringT>& nlabels) const;
   virtual void ReadElementLabels (ArrayT<StringT>& elabels) const;
   virtual void ReadQuadratureLabels (ArrayT<StringT>& qlabels) const;  
-  virtual void NodeVariablesUsed (StringT& name, iArrayT& used);
-  virtual void ElementVariablesUsed (StringT& name, iArrayT& used);
-  virtual void QuadratureVariablesUsed (StringT& name, iArrayT& used);  
+  virtual void NodeVariablesUsed (const StringT& name, iArrayT& used);
+  virtual void ElementVariablesUsed (const StringT& name, iArrayT& used);
+  virtual void QuadratureVariablesUsed (const StringT& name, iArrayT& used);  
   virtual void ReadAllNodeVariable (int step, int varindex, dArrayT& values);
-  virtual void ReadNodeVariable (int step, StringT& name, int varindex, dArrayT& values);
+  virtual void ReadNodeVariable (int step, const StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllNodeVariables (int step, dArray2DT& nvalues);
-  virtual void ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues);
-  virtual void ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues);
+  virtual void ReadNodeVariables (int step, const StringT& name, dArray2DT& nvalues);
+  virtual void ReadNodeSetVariables (int step, const StringT& nsetname, dArray2DT& nvalues);
   virtual void ReadAllElementVariable (int step, int varindex, dArrayT& values);
-  virtual void ReadElementVariable (int step, StringT& name, int varindex, dArrayT& values);
+  virtual void ReadElementVariable (int step, const StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllElementVariables (int step, dArray2DT& evalues);
-  virtual void ReadElementVariables (int step, StringT& name, dArray2DT& evalues);
+  virtual void ReadElementVariables (int step, const StringT& name, dArray2DT& evalues);
   virtual void ReadAllQuadratureVariable (int step, int varindex, dArrayT& values);
-  virtual void ReadQuadratureVariable (int step, StringT& name, int varindex, dArrayT& values);
+  virtual void ReadQuadratureVariable (int step, const StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllQuadratureVariables (int step, dArray2DT& qvalues);
-  virtual void ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues);
+  virtual void ReadQuadratureVariables (int step, const StringT& name, dArray2DT& qvalues);
 
 
  private:
@@ -88,7 +88,7 @@ class TahoeInputT : public InputBaseT
 inline bool TahoeInputT::AreSideSetsLocal (void) const
 { return true; }
 
-inline int TahoeInputT::NumElementQuadPoints (StringT& name)
+inline int TahoeInputT::NumElementQuadPoints (const StringT& name)
 {
 #pragma unused (name)
   return (0);
@@ -109,17 +109,17 @@ inline int  TahoeInputT::NumElementVariables (void) const
 { return 0; }
 inline int  TahoeInputT::NumQuadratureVariables (void) const
 { return 0; }
-inline void TahoeInputT::NodeVariablesUsed (StringT& name, iArrayT& used)
+inline void TahoeInputT::NodeVariablesUsed (const StringT& name, iArrayT& used)
 {
 #pragma unused (name)
   used = 0;
 }
-inline void TahoeInputT::ElementVariablesUsed (StringT& name, iArrayT& used)
+inline void TahoeInputT::ElementVariablesUsed (const StringT& name, iArrayT& used)
 {
 #pragma unused (name)
   used = 0;
 }
-inline void TahoeInputT::QuadratureVariablesUsed (StringT& name, iArrayT& used)
+inline void TahoeInputT::QuadratureVariablesUsed (const StringT& name, iArrayT& used)
 {
 #pragma unused (name)
   used = 0;
@@ -136,7 +136,7 @@ inline void TahoeInputT::ReadAllNodeVariable (int step, int varindex, dArrayT& v
 #pragma unused (varindex)
   values.Free();
 }
-inline void TahoeInputT::ReadNodeVariable (int step, StringT& name, int varindex, dArrayT& values)
+inline void TahoeInputT::ReadNodeVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
 #pragma unused (step)
 #pragma unused (name)
@@ -148,13 +148,13 @@ inline void TahoeInputT::ReadAllNodeVariables (int step, dArray2DT& nvalues)
 #pragma unused (step)
   nvalues.Free (); 
 }
-inline void TahoeInputT::ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues)
+inline void TahoeInputT::ReadNodeVariables (int step, const StringT& name, dArray2DT& nvalues)
 {
 #pragma unused (step)
 #pragma unused (name)
   nvalues.Free (); 
 }
-inline void TahoeInputT::ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues)
+inline void TahoeInputT::ReadNodeSetVariables (int step, const StringT& nsetname, dArray2DT& nvalues)
 {
 #pragma unused (step)
 #pragma unused (nsetname)
@@ -166,7 +166,7 @@ inline void TahoeInputT::ReadAllElementVariable (int step, int varindex, dArrayT
 #pragma unused (varindex)
   values.Free();
 }
-inline void TahoeInputT::ReadElementVariable (int step, StringT& name, int varindex, dArrayT& values)
+inline void TahoeInputT::ReadElementVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
 #pragma unused (step)
 #pragma unused (name)
@@ -178,7 +178,7 @@ inline void TahoeInputT::ReadAllElementVariables (int step, dArray2DT& evalues)
 #pragma unused (step)
   evalues.Free (); 
 }
-inline void TahoeInputT::ReadElementVariables (int step, StringT& name, dArray2DT& evalues)
+inline void TahoeInputT::ReadElementVariables (int step, const StringT& name, dArray2DT& evalues)
 {
 #pragma unused (step)
 #pragma unused (name)
@@ -190,7 +190,7 @@ inline void TahoeInputT::ReadAllQuadratureVariable (int step, int varindex, dArr
 #pragma unused (varindex)
   values.Free();
 }
-inline void TahoeInputT::ReadQuadratureVariable (int step, StringT& name, int varindex, dArrayT& values)
+inline void TahoeInputT::ReadQuadratureVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
 #pragma unused (step)
 #pragma unused (name)
@@ -202,7 +202,7 @@ inline void TahoeInputT::ReadAllQuadratureVariables (int step, dArray2DT& qvalue
 #pragma unused (step)
   qvalues.Free (); 
 }
-inline void TahoeInputT::ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues)
+inline void TahoeInputT::ReadQuadratureVariables (int step, const StringT& name, dArray2DT& qvalues)
 {
 #pragma unused (step)
 #pragma unused (name)

@@ -1,4 +1,4 @@
-/* $Id: TahoeInputT.cpp,v 1.7 2002-01-07 03:06:02 paklein Exp $ */
+/* $Id: TahoeInputT.cpp,v 1.8 2002-01-27 18:38:12 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "TahoeInputT.h"
@@ -106,6 +106,7 @@ void TahoeInputT::ReadNodeMap (iArrayT& nodemap)
 {
   if (nodemap.Length() != NumNodes()) throw eSizeMismatch;
   nodemap.SetValueToPosition ();
+  nodemap++;
 }
 
 void TahoeInputT::ReadCoordinates (dArray2DT& coords)
@@ -138,7 +139,7 @@ int TahoeInputT::NumGlobalElements (void) const
   return numelems;
 }
 
-int TahoeInputT::NumElements (StringT& name)
+int TahoeInputT::NumElements (const StringT& name)
 {
   int ID = atoi (name.Pointer());
   int numelems, dims;
@@ -147,7 +148,7 @@ int TahoeInputT::NumElements (StringT& name)
   return numelems;
 }
 
-int TahoeInputT::NumElementNodes (StringT& name)
+int TahoeInputT::NumElementNodes (const StringT& name)
 {
   int ID = atoi (name.Pointer());
   int numelems, dims;
@@ -163,7 +164,7 @@ void TahoeInputT::ReadAllElementMap (iArrayT& elemmap)
   elemmap += 1;
 }
 
-void TahoeInputT::ReadGlobalElementMap (StringT& name, iArrayT& elemmap)
+void TahoeInputT::ReadGlobalElementMap (const StringT& name, iArrayT& elemmap)
 {
   int ID = atoi (name.Pointer());
   if (elemmap.Length() != NumElements (name)) throw eSizeMismatch;
@@ -172,12 +173,11 @@ void TahoeInputT::ReadGlobalElementMap (StringT& name, iArrayT& elemmap)
   iArrayT ids;
   if (fModel.GetElementSetID (ids) == ModelFileT::kFail)
     throw eDatabaseFail;
-  int nume, dims;
+  int nume = 0, dims;
   for (int i=0; i < ids.Length(); i++)
     {
-      if (fModel.GetElementSetDimensions (ids[i], nume, dims) == ModelFileT::kFail)
-	throw eDatabaseFail;
       numelems += nume;
+      if (fModel.GetElementSetDimensions (ids[i], nume, dims) == ModelFileT::kFail) throw eDatabaseFail;
       if (ids[i] == ID) break;
     }
 
@@ -185,13 +185,13 @@ void TahoeInputT::ReadGlobalElementMap (StringT& name, iArrayT& elemmap)
   elemmap += 1 + numelems;
 }
 
-void TahoeInputT::ReadGlobalElementSet (StringT& name, iArrayT& set)
+void TahoeInputT::ReadGlobalElementSet (const StringT& name, iArrayT& set)
 {
   ReadGlobalElementMap (name, set);
   set += -1;
 }
 
-void TahoeInputT::ReadConnectivity (StringT& name, iArray2DT& connects)
+void TahoeInputT::ReadConnectivity (const StringT& name, iArray2DT& connects)
 {
   int ID = atoi (name.Pointer());
   if (fModel.GetElementSet (ID, connects) == ModelFileT::kFail) 
@@ -200,7 +200,7 @@ void TahoeInputT::ReadConnectivity (StringT& name, iArray2DT& connects)
   connects += -1;
 }
 
-void TahoeInputT::ReadGeometryCode (StringT& name, GeometryT::CodeT& code)
+void TahoeInputT::ReadGeometryCode (const StringT& name, GeometryT::CodeT& code)
 {
   int ID = atoi (name.Pointer());
   int length, numelemnodes;
@@ -212,7 +212,7 @@ void TahoeInputT::ReadGeometryCode (StringT& name, GeometryT::CodeT& code)
   SetCode (numelemnodes, dims, code);
 }
 
-int TahoeInputT::NumNodesInSet (StringT& name)
+int TahoeInputT::NumNodesInSet (const StringT& name)
 {
   int id = atoi (name.Pointer());
   int num;
@@ -221,7 +221,7 @@ int TahoeInputT::NumNodesInSet (StringT& name)
   return num;
 }
 
-void TahoeInputT::ReadNodeSet (StringT& name, iArrayT& nodes)
+void TahoeInputT::ReadNodeSet (const StringT& name, iArrayT& nodes)
 {
   int id = atoi (name.Pointer());
   if (fModel.GetNodeSet (id, nodes) == ModelFileT::kFail) 
@@ -230,7 +230,7 @@ void TahoeInputT::ReadNodeSet (StringT& name, iArrayT& nodes)
   nodes += -1;
 }
 
-int TahoeInputT::NumSidesInSet (StringT& name) const
+int TahoeInputT::NumSidesInSet (const StringT& name) const
 {
   int id = atoi (name.Pointer());
   int num;
@@ -239,7 +239,7 @@ int TahoeInputT::NumSidesInSet (StringT& name) const
   return num;
 }
 
-StringT TahoeInputT::SideSetGroupName (StringT& name) const
+StringT TahoeInputT::SideSetGroupName (const StringT& name) const
 {
   int id = atoi (name.Pointer());
   int elsetid;
@@ -252,7 +252,7 @@ StringT TahoeInputT::SideSetGroupName (StringT& name) const
   return elname;
 }
 
-void TahoeInputT::ReadSideSetLocal (StringT& name, iArray2DT& sides) const
+void TahoeInputT::ReadSideSetLocal (const StringT& name, iArray2DT& sides) const
 {
   int id = atoi (name.Pointer());
   int elsetid;
@@ -262,7 +262,7 @@ void TahoeInputT::ReadSideSetLocal (StringT& name, iArray2DT& sides) const
   sides += -1;
 }
 
-void TahoeInputT::ReadSideSetGlobal (StringT& name, iArray2DT& sides) const
+void TahoeInputT::ReadSideSetGlobal (const StringT& name, iArray2DT& sides) const
 {
   int id = atoi (name.Pointer());
   int elsetid;

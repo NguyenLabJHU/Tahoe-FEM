@@ -1,4 +1,4 @@
-/* $Id: InputFEASCIIT.cpp,v 1.8 2002-01-23 20:01:59 sawimme Exp $ */
+/* $Id: InputFEASCIIT.cpp,v 1.9 2002-01-27 18:38:12 paklein Exp $ */
 #include "InputFEASCIIT.h"
 #include "ifstreamT.h"
 #include "dArrayT.h"
@@ -121,7 +121,7 @@ void InputFEASCIIT::ReadCoordinates (dArray2DT& coords, iArrayT& nodemap)
     }
 }
 
-int InputFEASCIIT::NumElements (StringT& name)
+int InputFEASCIIT::NumElements (const StringT& name)
 {
   ifstreamT geo;
   OpenFile (geo, ".geo");
@@ -136,7 +136,7 @@ int InputFEASCIIT::NumElements (StringT& name)
   return numels;
 }
 
-int InputFEASCIIT::NumElementNodes (StringT& name)
+int InputFEASCIIT::NumElementNodes (const StringT& name)
 {
   ifstreamT geo;
   OpenFile (geo, ".geo");
@@ -177,7 +177,7 @@ void InputFEASCIIT::ReadAllElementMap (iArrayT& elemmap)
     }
 }
 
-void InputFEASCIIT::ReadGlobalElementMap (StringT& name, iArrayT& elemmap)
+void InputFEASCIIT::ReadGlobalElementMap (const StringT& name, iArrayT& elemmap)
 {
   ifstreamT geo;
   OpenFile (geo, ".geo");
@@ -198,7 +198,7 @@ void InputFEASCIIT::ReadGlobalElementMap (StringT& name, iArrayT& elemmap)
     }
 }
 
-void InputFEASCIIT::ReadGlobalElementSet (StringT& name, iArrayT& set)
+void InputFEASCIIT::ReadGlobalElementSet (const StringT& name, iArrayT& set)
 {
   if (set.Length() != fNumElements) throw eSizeMismatch;
 
@@ -225,7 +225,7 @@ void InputFEASCIIT::ReadGlobalElementSet (StringT& name, iArrayT& set)
   set += count;
 }
 
-void InputFEASCIIT::ReadConnectivity (StringT& name, iArray2DT& connects)
+void InputFEASCIIT::ReadConnectivity (const StringT& name, iArray2DT& connects)
 {
   if (connects.Length() == 0) throw eSizeMismatch;
 
@@ -254,7 +254,7 @@ void InputFEASCIIT::ReadConnectivity (StringT& name, iArray2DT& connects)
   connects--;
 }
 
-void InputFEASCIIT::ReadGeometryCode (StringT& name, GeometryT::CodeT& geocode)
+void InputFEASCIIT::ReadGeometryCode (const StringT& name, GeometryT::CodeT& geocode)
 {
   ifstreamT geo;
   OpenFile (geo, ".geo");
@@ -294,7 +294,7 @@ void InputFEASCIIT::ReadElementLabels (ArrayT<StringT>& elabels) const
     elabels[i] = fElementVariable[i];
 }
 
-void InputFEASCIIT::NodeVariablesUsed (StringT& name, iArrayT& used)
+void InputFEASCIIT::NodeVariablesUsed (const StringT& name, iArrayT& used)
 { 
   if (used.Length() != fNodeVariable.Length()) throw eSizeMismatch;
   used = 0;
@@ -309,7 +309,7 @@ void InputFEASCIIT::NodeVariablesUsed (StringT& name, iArrayT& used)
   DataBlock (run, used, ids, vals, true);
 }
 
-void InputFEASCIIT::ElementVariablesUsed (StringT& name, iArrayT& used)
+void InputFEASCIIT::ElementVariablesUsed (const StringT& name, iArrayT& used)
 { 
   if (used.Length() != fElementVariable.Length()) throw eSizeMismatch;
   used = 0;
@@ -360,7 +360,7 @@ void InputFEASCIIT::ReadAllNodeVariable (int step, int varindex, dArrayT& values
   throw eGeneralFail;
 }
 
-void InputFEASCIIT::ReadNodeVariable (int step, StringT& name, int varindex, dArrayT& values)
+void InputFEASCIIT::ReadNodeVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
 #pragma unused (step)
 #pragma unused (name)
@@ -370,7 +370,7 @@ void InputFEASCIIT::ReadNodeVariable (int step, StringT& name, int varindex, dAr
   throw eGeneralFail;
 }
 
-void InputFEASCIIT::ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues)
+void InputFEASCIIT::ReadNodeVariables (int step, const StringT& name, dArray2DT& nvalues)
 {
 #pragma unused(step)
 
@@ -401,7 +401,7 @@ void InputFEASCIIT::ReadAllElementVariable (int step, int varindex, dArrayT& val
   throw eGeneralFail;
 }
 
-void InputFEASCIIT::ReadElementVariable (int step, StringT& name, int varindex, dArrayT& values)
+void InputFEASCIIT::ReadElementVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
 #pragma unused (step)
 #pragma unused (name)
@@ -438,7 +438,7 @@ void InputFEASCIIT::ReadAllElementVariables (int step, dArray2DT& evalues)
     }
 }
 
-void InputFEASCIIT::ReadElementVariables (int step, StringT& name, dArray2DT& evalues)
+void InputFEASCIIT::ReadElementVariables (int step, const StringT& name, dArray2DT& evalues)
 {
 #pragma unused(step)
 

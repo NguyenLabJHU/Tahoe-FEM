@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.cpp,v 1.9 2002-01-23 20:01:58 sawimme Exp $ */
+/* $Id: AbaqusInputT.cpp,v 1.10 2002-01-27 18:38:11 paklein Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #include "AbaqusInputT.h"
@@ -70,7 +70,7 @@ void AbaqusInputT::ReadCoordinates (dArray2DT& coords)
     }
 }
 
-void AbaqusInputT::ReadNodeSet (StringT& name, iArrayT& nodes)
+void AbaqusInputT::ReadNodeSet (const StringT& name, iArrayT& nodes)
 {
   if (nodes.Length() != NumNodesInSet (name)) 
     {
@@ -98,13 +98,13 @@ void AbaqusInputT::ReadAllElementMap (iArrayT& elemmap)
   fData.ElementMap (elemmap);
 }
 
-void AbaqusInputT::ReadGlobalElementMap (StringT& name, iArrayT& elemmap)
+void AbaqusInputT::ReadGlobalElementMap (const StringT& name, iArrayT& elemmap)
 {
   if (elemmap.Length() != NumElements (name)) throw eSizeMismatch;
   fData.ElementSet (name, elemmap);
 }
 
-void AbaqusInputT::ReadGlobalElementSet (StringT& name, iArrayT& set)
+void AbaqusInputT::ReadGlobalElementSet (const StringT& name, iArrayT& set)
 {
   ReadGlobalElementMap (name, set);
 
@@ -115,7 +115,7 @@ void AbaqusInputT::ReadGlobalElementSet (StringT& name, iArrayT& set)
   MapOffset (set, map);
 }
 
-void AbaqusInputT::ReadConnectivity (StringT& name, iArray2DT& connects)
+void AbaqusInputT::ReadConnectivity (const StringT& name, iArray2DT& connects)
 {
   iArrayT ellist (connects.MajorDim());
   ReadGlobalElementMap (name, ellist);
@@ -206,19 +206,19 @@ void AbaqusInputT::ReadQuadratureLabels (ArrayT<StringT>& qlabels) const
   SetLabelName (keys, dims, qlabels);
 }
 
-void AbaqusInputT::NodeVariablesUsed (StringT& name, iArrayT& used)
+void AbaqusInputT::NodeVariablesUsed (const StringT& name, iArrayT& used)
 {
   if (used.Length() != NumNodeVariables()) throw eSizeMismatch;
   fData.VariablesUsed (name, AbaqusVariablesT::kNode, used);
 }
 
-void AbaqusInputT::ElementVariablesUsed (StringT& name, iArrayT& used)
+void AbaqusInputT::ElementVariablesUsed (const StringT& name, iArrayT& used)
 { 
   if (used.Length() != NumElementVariables()) throw eSizeMismatch;
   fData.VariablesUsed (name, AbaqusVariablesT::kElement, used);
 }
 
-void AbaqusInputT::QuadratureVariablesUsed (StringT& name, iArrayT& used)
+void AbaqusInputT::QuadratureVariablesUsed (const StringT& name, iArrayT& used)
 { 
   if (used.Length() != NumQuadratureVariables()) throw eSizeMismatch;
   fData.VariablesUsed (name, AbaqusVariablesT::kQuadrature, used);
@@ -230,7 +230,7 @@ void AbaqusInputT::ReadAllNodeVariable (int step, int varindex, dArrayT& value)
   throw eDatabaseFail;
 }
 
-void AbaqusInputT::ReadNodeVariable (int step, StringT& elsetname, int varindex, dArrayT& value)
+void AbaqusInputT::ReadNodeVariable (int step, const StringT& elsetname, int varindex, dArrayT& value)
 {
   cout << "AbaqusInptuT::ReadNodeVariable not yet programmed \n\n";
   throw eDatabaseFail;
@@ -244,7 +244,7 @@ void AbaqusInputT::ReadAllNodeVariables (int step, dArray2DT& values)
   fData.ReadVariables (AbaqusVariablesT::kNode, step, values, name);
 }
 
-void AbaqusInputT::ReadNodeVariables (int step, StringT& elsetname, dArray2DT& values)
+void AbaqusInputT::ReadNodeVariables (int step, const StringT& elsetname, dArray2DT& values)
 {
   iArray2DT connects (NumElements (elsetname), NumElementNodes (elsetname));
   ReadConnectivity (elsetname, connects);
@@ -260,7 +260,7 @@ void AbaqusInputT::ReadNodeVariables (int step, StringT& elsetname, dArray2DT& v
   values.RowCollect (nodesused, temp);
 }
 
-void AbaqusInputT::ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& values)
+void AbaqusInputT::ReadNodeSetVariables (int step, const StringT& nsetname, dArray2DT& values)
 {
   int numv = NumNodeVariables ();
   if (values.MinorDim() != numv) throw eSizeMismatch;
@@ -273,7 +273,7 @@ void AbaqusInputT::ReadAllElementVariable (int step, int varindex, dArrayT& valu
   throw eDatabaseFail;
 }
 
-void AbaqusInputT::ReadElementVariable (int step, StringT& elsetname, int varindex, dArrayT& value)
+void AbaqusInputT::ReadElementVariable (int step, const StringT& elsetname, int varindex, dArrayT& value)
 {
   cout << "AbaqusInptuT::ReadElementVariable not yet programmed \n\n";
   throw eDatabaseFail;
@@ -287,7 +287,7 @@ void AbaqusInputT::ReadAllElementVariables (int step, dArray2DT& values)
   fData.ReadVariables (AbaqusVariablesT::kElement, step, values, name);
 }
 
-void AbaqusInputT::ReadElementVariables (int step, StringT& name, dArray2DT& evalues)
+void AbaqusInputT::ReadElementVariables (int step, const StringT& name, dArray2DT& evalues)
 {
   int numv = NumElementVariables ();
   if (evalues.MinorDim() != numv) throw eSizeMismatch;
@@ -300,7 +300,7 @@ void AbaqusInputT::ReadAllQuadratureVariable (int step, int varindex, dArrayT& v
   throw eDatabaseFail;
 }
 
-void AbaqusInputT::ReadQuadratureVariable (int step, StringT& elsetname, int varindex, dArrayT& value)
+void AbaqusInputT::ReadQuadratureVariable (int step, const StringT& elsetname, int varindex, dArrayT& value)
 {
   cout << "AbaqusInptuT::ReadQuadratureVariable not yet programmed \n\n";
   throw eDatabaseFail;
@@ -314,7 +314,7 @@ void AbaqusInputT::ReadAllQuadratureVariables (int step, dArray2DT& values)
   fData.ReadVariables (AbaqusVariablesT::kQuadrature, step, values, name);
 }
 
-void AbaqusInputT::ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues)
+void AbaqusInputT::ReadQuadratureVariables (int step, const StringT& name, dArray2DT& qvalues)
 {
   int numv = NumQuadratureVariables ();
   if (qvalues.MinorDim() != numv) throw eSizeMismatch;

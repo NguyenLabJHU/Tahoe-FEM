@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.h,v 1.9 2002-01-23 20:01:59 sawimme Exp $ */
+/* $Id: ExodusInputT.h,v 1.10 2002-01-27 18:38:12 paklein Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _EXODUSINPUT_T_H_
@@ -40,23 +40,23 @@ public:
   virtual void ReadCoordinates (dArray2DT& coords, iArrayT& nodemap);
 
   virtual int  NumGlobalElements (void) const;
-  virtual int  NumElements (StringT& name);
-  virtual int  NumElementNodes (StringT& name);
-  virtual int  NumElementQuadPoints (StringT& name);
+  virtual int  NumElements (const StringT& name);
+  virtual int  NumElementNodes (const StringT& name);
+  virtual int  NumElementQuadPoints (const StringT& name);
   virtual void ReadAllElementMap (iArrayT& elemmap);
-  virtual void ReadGlobalElementMap (StringT& name, iArrayT& elemmap);
-  virtual void ReadGlobalElementSet (StringT& name, iArrayT& set);
-  virtual void ReadConnectivity (StringT& name, iArray2DT& connects);
-  virtual void ReadGeometryCode (StringT& name, GeometryT::CodeT& geocode);
+  virtual void ReadGlobalElementMap (const StringT& name, iArrayT& elemmap);
+  virtual void ReadGlobalElementSet (const StringT& name, iArrayT& set);
+  virtual void ReadConnectivity (const StringT& name, iArray2DT& connects);
+  virtual void ReadGeometryCode (const StringT& name, GeometryT::CodeT& geocode);
 
-  virtual int  NumNodesInSet (StringT& name);
-  virtual void ReadNodeSet (StringT& name, iArrayT& nodes);
+  virtual int  NumNodesInSet (const StringT& name);
+  virtual void ReadNodeSet (const StringT& name, iArrayT& nodes);
 
   virtual bool AreSideSetsLocal (void) const;
-  virtual int  NumSidesInSet (StringT& setname) const;
-  virtual StringT SideSetGroupName (StringT& setname) const;
-  virtual void ReadSideSetLocal (StringT& setname, iArray2DT& sides) const;
-  virtual void ReadSideSetGlobal (StringT& setname, iArray2DT& sides) const;
+  virtual int  NumSidesInSet (const StringT& setname) const;
+  virtual StringT SideSetGroupName (const StringT& setname) const;
+  virtual void ReadSideSetLocal (const StringT& setname, iArray2DT& sides) const;
+  virtual void ReadSideSetGlobal (const StringT& setname, iArray2DT& sides) const;
 
   virtual void QARecords (ArrayT<StringT>& records);
 
@@ -67,29 +67,29 @@ public:
   virtual int  NumElementVariables (void) const;
   virtual int  NumQuadratureVariables (void) const;
 
-  virtual void NodeVariablesUsed (StringT& name, iArrayT& used);
-  virtual void ElementVariablesUsed (StringT& name, iArrayT& used);
-  virtual void QuadratureVariablesUsed (StringT& name, iArrayT& used);  
+  virtual void NodeVariablesUsed (const StringT& name, iArrayT& used);
+  virtual void ElementVariablesUsed (const StringT& name, iArrayT& used);
+  virtual void QuadratureVariablesUsed (const StringT& name, iArrayT& used);  
 
   virtual void ReadNodeLabels (ArrayT<StringT>& labels) const;
   virtual void ReadElementLabels (ArrayT<StringT>& elabels) const;
   virtual void ReadQuadratureLabels (ArrayT<StringT>& qlabels) const;
 
   virtual void ReadAllNodeVariable (int step, int varindex, dArrayT& values);
-  virtual void ReadNodeVariable (int step, StringT& name, int varindex, dArrayT& values);
+  virtual void ReadNodeVariable (int step, const StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllNodeVariables (int step, dArray2DT& nvalues);
-  virtual void ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues);
-  virtual void ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues);
+  virtual void ReadNodeVariables (int step, const StringT& name, dArray2DT& nvalues);
+  virtual void ReadNodeSetVariables (int step, const StringT& nsetname, dArray2DT& nvalues);
 
   virtual void ReadAllElementVariable (int step, int varindex, dArrayT& values);
-  virtual void ReadElementVariable (int step, StringT& name, int varindex, dArrayT& values);
+  virtual void ReadElementVariable (int step, const StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllElementVariables (int step, dArray2DT& evalues);
-  virtual void ReadElementVariables (int step, StringT& name, dArray2DT& evalues);
+  virtual void ReadElementVariables (int step, const StringT& name, dArray2DT& evalues);
 
   virtual void ReadAllQuadratureVariable (int step, int varindex, dArrayT& values);
-  virtual void ReadQuadratureVariable (int step, StringT& name, int varindex, dArrayT& values);
+  virtual void ReadQuadratureVariable (int step, const StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllQuadratureVariables (int step, dArray2DT& qvalues);
-  virtual void ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues);
+  virtual void ReadQuadratureVariables (int step, const StringT& name, dArray2DT& qvalues);
 
  private:
   void NodesUsed(const nArrayT<int>& connects, iArrayT& nodesused) const;
@@ -116,12 +116,12 @@ inline int ExodusInputT::NumNodes (void) const
 inline int ExodusInputT::NumDimensions (void) const
 { return fData.NumDimensions (); }
 
-inline int ExodusInputT::NumElementQuadPoints (StringT& name)
+inline int ExodusInputT::NumElementQuadPoints (const StringT& name)
 {
 #pragma unused (name)
   return (0);
 }
-inline int ExodusInputT::NumNodesInSet (StringT& name)
+inline int ExodusInputT::NumNodesInSet (const StringT& name)
 { 
   int setnum = atoi (name.Pointer());
   return fData.NumNodesInSet (setnum); 
@@ -130,7 +130,7 @@ inline int ExodusInputT::NumNodesInSet (StringT& name)
 inline bool ExodusInputT::AreSideSetsLocal (void) const
 { return true; }
 
-inline int ExodusInputT::NumSidesInSet (StringT& name) const
+inline int ExodusInputT::NumSidesInSet (const StringT& name) const
 {  
   int setnum = atoi (name.Pointer());
   return fData.NumSidesInSet (setnum); 
@@ -151,7 +151,7 @@ inline int ExodusInputT::NumElementVariables (void) const
 inline int ExodusInputT::NumQuadratureVariables (void) const
 { return 0; }
 
-inline void ExodusInputT::QuadratureVariablesUsed (StringT& name, iArrayT& used)
+inline void ExodusInputT::QuadratureVariablesUsed (const StringT& name, iArrayT& used)
 {
 #pragma unused (name)
   used = 0;
@@ -172,7 +172,7 @@ inline void ExodusInputT::ReadAllQuadratureVariable (int step, int varindex, dAr
 #pragma unused (varindex)
   values.Free();
 }
-inline void ExodusInputT::ReadQuadratureVariable (int step, StringT& name, int varindex, dArrayT& values)
+inline void ExodusInputT::ReadQuadratureVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
 #pragma unused (step)
 #pragma unused (name)
@@ -185,7 +185,7 @@ inline void ExodusInputT::ReadAllQuadratureVariables (int step, dArray2DT& vals)
   vals.Free ();
 }
 
-inline void ExodusInputT::ReadQuadratureVariables (int step, StringT& name, dArray2DT& vals)
+inline void ExodusInputT::ReadQuadratureVariables (int step, const StringT& name, dArray2DT& vals)
 {
 #pragma unused (step)
 #pragma unused (name)

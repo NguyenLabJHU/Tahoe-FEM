@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.10 2002-01-23 20:01:59 sawimme Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.11 2002-01-27 18:38:11 paklein Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #include "ExodusInputT.h"
@@ -89,7 +89,7 @@ int ExodusInputT::NumGlobalElements (void) const
   return count;
 }
 
-int ExodusInputT::NumElements (StringT& name)
+int ExodusInputT::NumElements (const StringT& name)
 {
   int ID = atoi (name.Pointer());
   int numelems, numelemnodes;
@@ -97,7 +97,7 @@ int ExodusInputT::NumElements (StringT& name)
   return numelems;
 }
 
-int ExodusInputT::NumElementNodes (StringT& name)
+int ExodusInputT::NumElementNodes (const StringT& name)
 {
   int ID = atoi (name.Pointer());
   int numelems, numelemnodes;
@@ -112,7 +112,7 @@ void ExodusInputT::ReadAllElementMap (iArrayT& elemmap)
   elemmap += 1;
 }
 
-void ExodusInputT::ReadGlobalElementMap (StringT& name, iArrayT& elemmap)
+void ExodusInputT::ReadGlobalElementMap (const StringT& name, iArrayT& elemmap)
 {
   if (elemmap.Length() != NumElements (name)) throw eSizeMismatch;
   int id = atoi (name.Pointer());
@@ -121,7 +121,7 @@ void ExodusInputT::ReadGlobalElementMap (StringT& name, iArrayT& elemmap)
   ElementGroupNames (eid);
   for (int i=0; i < eid.Length(); i++)
     {
-      if (eid[i] == id) break;
+      if (eid[i] == name) break;
       offset += NumElements (eid[i]);
     }
 
@@ -129,13 +129,13 @@ void ExodusInputT::ReadGlobalElementMap (StringT& name, iArrayT& elemmap)
   elemmap += offset + 1;
 }
 
-void ExodusInputT::ReadGlobalElementSet (StringT& name, iArrayT& set)
+void ExodusInputT::ReadGlobalElementSet (const StringT& name, iArrayT& set)
 {
   ReadGlobalElementMap (name, set);
   set += -1;
 }
 
-void ExodusInputT::ReadConnectivity (StringT& name, iArray2DT& connects)
+void ExodusInputT::ReadConnectivity (const StringT& name, iArray2DT& connects)
 {
   int group = atoi (name.Pointer());
   int numelems, numelemnodes;
@@ -149,7 +149,7 @@ void ExodusInputT::ReadConnectivity (StringT& name, iArray2DT& connects)
   connects += -1;
 }
 
-void ExodusInputT::ReadGeometryCode (StringT& name, GeometryT::CodeT& code)
+void ExodusInputT::ReadGeometryCode (const StringT& name, GeometryT::CodeT& code)
 {
   int group = atoi (name.Pointer());
   int numelems, numelemnodes;
@@ -158,7 +158,7 @@ void ExodusInputT::ReadGeometryCode (StringT& name, GeometryT::CodeT& code)
   fData.ReadConnectivities (group, code, connects);
 }
 
-void ExodusInputT::ReadNodeSet (StringT& name, iArrayT& nodes)
+void ExodusInputT::ReadNodeSet (const StringT& name, iArrayT& nodes)
 {
   int set_num = atoi (name.Pointer());
   if (nodes.Length() != fData.NumNodesInSet(set_num)) throw eSizeMismatch;
@@ -167,7 +167,7 @@ void ExodusInputT::ReadNodeSet (StringT& name, iArrayT& nodes)
   nodes += -1;
 }
 
-StringT ExodusInputT::SideSetGroupName (StringT& name) const
+StringT ExodusInputT::SideSetGroupName (const StringT& name) const
 {
   int setnum = atoi (name.Pointer());
   int block_ID;
@@ -179,7 +179,7 @@ StringT ExodusInputT::SideSetGroupName (StringT& name) const
   return elname;
 }
 
-void ExodusInputT::ReadSideSetLocal (StringT& name, iArray2DT& sides) const
+void ExodusInputT::ReadSideSetLocal (const StringT& name, iArray2DT& sides) const
 {
   int set_num = atoi (name.Pointer());
   if (sides.MajorDim() != fData.NumSidesInSet (set_num) ||
@@ -190,7 +190,7 @@ void ExodusInputT::ReadSideSetLocal (StringT& name, iArray2DT& sides) const
   sides += -1;
 }
 
-void ExodusInputT::ReadSideSetGlobal (StringT& name, iArray2DT& sides) const
+void ExodusInputT::ReadSideSetGlobal (const StringT& name, iArray2DT& sides) const
 {
   int set_num = atoi (name.Pointer());
   if (sides.MajorDim() != fData.NumSidesInSet (set_num) ||
@@ -222,7 +222,7 @@ void ExodusInputT::ReadTimeSteps (dArrayT& steps)
     fData.ReadTime (i+1, steps[i]);
 }
 
-void ExodusInputT::NodeVariablesUsed (StringT& name, iArrayT& used)
+void ExodusInputT::NodeVariablesUsed (const StringT& name, iArrayT& used)
 { 
 #pragma unused(name)
 #pragma unused(used)
@@ -230,7 +230,7 @@ void ExodusInputT::NodeVariablesUsed (StringT& name, iArrayT& used)
   used = 1;
 }
 
-void ExodusInputT::ElementVariablesUsed (StringT& name, iArrayT& used)
+void ExodusInputT::ElementVariablesUsed (const StringT& name, iArrayT& used)
 { 
 #pragma unused(name)
 #pragma unused(used)
@@ -244,7 +244,7 @@ void ExodusInputT::ReadAllNodeVariable (int step, int varindex, dArrayT& values)
   fData.ReadNodalVariable (step+1, varindex+1, values);
 }
 
-void ExodusInputT::ReadNodeVariable (int step, StringT& name, int varindex, dArrayT& values)
+void ExodusInputT::ReadNodeVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
   iArray2DT connects (NumElements (name), NumElementNodes (name));
   ReadConnectivity (name, connects);
@@ -272,7 +272,7 @@ void ExodusInputT::ReadAllNodeVariables (int step, dArray2DT& values)
 }
 
 
-void ExodusInputT::ReadNodeVariables (int step, StringT& name, dArray2DT& values)
+void ExodusInputT::ReadNodeVariables (int step, const StringT& name, dArray2DT& values)
 {
   iArray2DT connects (NumElements (name), NumElementNodes (name));
   ReadConnectivity (name, connects);
@@ -295,7 +295,7 @@ void ExodusInputT::ReadNodeVariables (int step, StringT& name, dArray2DT& values
   values.RowCollect (nodesused, temp2);
 }
 
-void ExodusInputT::ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& values)
+void ExodusInputT::ReadNodeSetVariables (int step, const StringT& nsetname, dArray2DT& values)
 {
   iArrayT ns (NumNodesInSet (nsetname));
   ReadNodeSet (nsetname, ns);
@@ -337,7 +337,7 @@ void ExodusInputT::ReadAllElementVariable (int step, int varindex, dArrayT& valu
     }
 }
 
-void ExodusInputT::ReadElementVariable (int step, StringT& name, int varindex, dArrayT& values)
+void ExodusInputT::ReadElementVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
   int group_id = atoi (name.Pointer());
   int numelems, dim;
@@ -374,7 +374,7 @@ void ExodusInputT::ReadAllElementVariables (int step, dArray2DT& values)
   values.Transpose (vt);
 }
 
-void ExodusInputT::ReadElementVariables (int step, StringT& name, dArray2DT& evalues)
+void ExodusInputT::ReadElementVariables (int step, const StringT& name, dArray2DT& evalues)
 {
   int group_id = atoi (name.Pointer());
   int num = NumElementVariables ();

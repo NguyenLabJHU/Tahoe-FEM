@@ -1,4 +1,4 @@
-/* $Id: PatranInputT.cpp,v 1.7 2002-01-05 06:36:48 paklein Exp $ */
+/* $Id: PatranInputT.cpp,v 1.8 2002-01-27 18:38:12 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "PatranInputT.h"
@@ -103,7 +103,7 @@ void PatranInputT::ReadCoordinates (dArray2DT& coords, iArrayT& nodemap)
   ReadNodeMap (nodemap);
 }
 
-int PatranInputT::NumElements (StringT& name)
+int PatranInputT::NumElements (const StringT& name)
 {
   int num, numnodes;
   if (!fPatran.ReadElementBlockDims (name, num, numnodes))
@@ -111,7 +111,7 @@ int PatranInputT::NumElements (StringT& name)
   return num;
 }
 
-int PatranInputT::NumElementNodes (StringT& name)
+int PatranInputT::NumElementNodes (const StringT& name)
 {
   int num, numnodes;
   if (!fPatran.ReadElementBlockDims (name, num, numnodes))
@@ -125,14 +125,14 @@ void PatranInputT::ReadAllElementMap (iArrayT& elemmap)
   elemmap = -1;
 }
 
-void PatranInputT::ReadGlobalElementMap (StringT& name, iArrayT& elemmap)
+void PatranInputT::ReadGlobalElementMap (const StringT& name, iArrayT& elemmap)
 {
   int namedtype;
   if (!fPatran.ReadElementSet (name, namedtype, elemmap))
     throw eDatabaseFail;
 }
 
-void PatranInputT::ReadGlobalElementSet (StringT& name, iArrayT& set)
+void PatranInputT::ReadGlobalElementSet (const StringT& name, iArrayT& set)
 {
   ReadGlobalElementMap (name, set);
 
@@ -149,7 +149,7 @@ void PatranInputT::ReadGlobalElementSet (StringT& name, iArrayT& set)
     }  
 }
 
-void PatranInputT::ReadConnectivity (StringT& name, iArray2DT& connects)
+void PatranInputT::ReadConnectivity (const StringT& name, iArray2DT& connects)
 {
   int namedtype;
   if (!fPatran.ReadConnectivity (name, namedtype, connects))
@@ -169,7 +169,7 @@ void PatranInputT::ReadConnectivity (StringT& name, iArray2DT& connects)
     }
 }
 
-void PatranInputT::ReadGeometryCode (StringT& name, GeometryT::CodeT& code)
+void PatranInputT::ReadGeometryCode (const StringT& name, GeometryT::CodeT& code)
 {
   iArrayT elems;
   int namedtype;
@@ -180,14 +180,14 @@ void PatranInputT::ReadGeometryCode (StringT& name, GeometryT::CodeT& code)
 }
 
 
-int PatranInputT::NumNodesInSet (StringT& name)
+int PatranInputT::NumNodesInSet (const StringT& name)
 {
   int num;
   if (!fPatran.NumNodesInSet (name, num)) throw eDatabaseFail;
   return num;
 }
 
-void PatranInputT::ReadNodeSet (StringT& name, iArrayT& nodes)
+void PatranInputT::ReadNodeSet (const StringT& name, iArrayT& nodes)
 {
   if (!fPatran.ReadNodeSet (name, nodes)) throw eDatabaseFail;
 
@@ -204,14 +204,14 @@ void PatranInputT::ReadNodeSet (StringT& name, iArrayT& nodes)
     }
 }
 
-int PatranInputT::NumSidesInSet (StringT& anme) const
+int PatranInputT::NumSidesInSet (const StringT& anme) const
 {
 #pragma unused(anme)
   cout << "\n\n PatranInputT::Not programmed to read side sets\n\n";
   return 0;
 }
 
-StringT PatranInputT::SideSetGroupName (StringT& name) const
+StringT PatranInputT::SideSetGroupName (const StringT& name) const
 {
 #pragma unused(name)
   cout << "\n\n PatranInputT::Not programmed to read side sets\n\n";
@@ -219,7 +219,7 @@ StringT PatranInputT::SideSetGroupName (StringT& name) const
   return elname; 
 }
 
-void PatranInputT::ReadSideSetLocal (StringT& name, iArray2DT& sides) const
+void PatranInputT::ReadSideSetLocal (const StringT& name, iArray2DT& sides) const
 {
 #pragma unused(name)
 #pragma unused(sides)
@@ -227,7 +227,7 @@ void PatranInputT::ReadSideSetLocal (StringT& name, iArray2DT& sides) const
   throw eDatabaseFail;
 }
 
-void PatranInputT::ReadSideSetGlobal (StringT& name, iArray2DT& sides) const
+void PatranInputT::ReadSideSetGlobal (const StringT& name, iArray2DT& sides) const
 {
 #pragma unused(name)
 #pragma unused(sides)

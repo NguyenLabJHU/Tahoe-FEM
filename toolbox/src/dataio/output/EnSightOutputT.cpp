@@ -1,4 +1,4 @@
-/* $Id: EnSightOutputT.cpp,v 1.5 2001-12-16 23:57:06 paklein Exp $ */
+/* $Id: EnSightOutputT.cpp,v 1.6 2002-01-27 18:38:14 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "EnSightOutputT.h"
@@ -32,8 +32,8 @@ void EnSightOutputT::WriteGeometry (void)
       for (int i=0; i < fElementSets.Length(); i++)
 	{
 	  WritePart (geo, ens, i);
-	  if (partID < fElementSets[i]->ID())
-	    partID = fElementSets[i]->ID() + 1;
+	  if (partID < atoi(fElementSets[i]->ID()))
+	    partID = atoi(fElementSets[i]->ID()) + 1;
 	}
       // node sets
       for (int n=0; n < fNodeSets.Length(); n++)
@@ -82,7 +82,7 @@ void EnSightOutputT::WriteOutput (double time, int ID, const dArray2DT& n_values
   
   // write case file
   StringT label = "case";
-  StringT casefile = CreateFileName (label, kNoIncFile, fElementSets[ID]->ID());
+  StringT casefile = CreateFileName (label, kNoIncFile, atoi(fElementSets[ID]->ID()));
   ofstream out (casefile);
   ens.WriteCaseFormat (out);
   ens.WriteCaseGeometry (out, fSequence + 1, geocase);
@@ -107,12 +107,12 @@ StringT EnSightOutputT::OpenGeometryFile (EnSightT& ens, ofstream& geo, int ID) 
     if (fElementSets[j]->Changing()) change = true;
   if (change)
     {
-      geofile = CreateFileName (label, fElementSets[0]->PrintStep(), fElementSets[ID]->ID());
-      geocase = CreateFileName (label, kWildFile, fElementSets[ID]->ID());
+      geofile = CreateFileName (label, fElementSets[0]->PrintStep(), atoi(fElementSets[ID]->ID()));
+      geocase = CreateFileName (label, kWildFile, atoi(fElementSets[ID]->ID()));
     }
   else
     {
-      geofile = CreateFileName (label, kNoIncFile, fElementSets[ID]->ID());
+      geofile = CreateFileName (label, kNoIncFile, atoi(fElementSets[ID]->ID()));
       geocase = geofile;
     }
   
@@ -170,15 +170,15 @@ StringT EnSightOutputT::CreateFileName (const StringT& Label, int increment, int
 
 void EnSightOutputT::WritePart (ostream& geo, EnSightT& ens, int index) const
 {
-  const iArrayT& blockIDs = fElementSets[index]->BlockID();
+  const ArrayT<StringT>& blockIDs = fElementSets[index]->BlockID();
   for (int b=0; b < fElementSets[index]->NumBlocks(); b++)
     {
       StringT description = fOutroot;
       description.Append (" Grp ", fElementSets[index]->ID());
       description.Append (".", blockIDs[b]);
-      ens.WritePartInfo (geo, blockIDs[b], description);
+      ens.WritePartInfo (geo, atoi(blockIDs[b]), description);
   
-      const iArrayT& nodes_used = fElementSets[index]->BlockNodesUsed(b);
+      const iArrayT& nodes_used = fElementSets[index]->BlockNodesUsed(blockIDs[b]);
       WriteCoordinates (geo, ens, nodes_used);
       WriteConnectivity (geo, ens, nodes_used, index, b);
     }
@@ -195,7 +195,7 @@ void EnSightOutputT::WriteCoordinates (ostream& geo, EnSightT& ens, const iArray
 
 void EnSightOutputT::WriteConnectivity (ostream& geo, EnSightT& ens, const iArrayT& nodes_used, int i, int block) const
 {
-  const iArray2DT* connects = fElementSets[i]->Connectivities(block);
+  const iArray2DT* connects = fElementSets[i]->Connectivities(fElementSets[i]->BlockID(block));
   int outputnodes = ens.WriteConnectivityHeader (geo, fElementSets[i]->Geometry(), 
 						 connects->MajorDim(), connects->MinorDim());
   
@@ -211,6 +211,7 @@ void EnSightOutputT::WriteVariable (EnSightT& ens, bool nodal, int ID,
 				    AutoArrayT<EnSightT::VariableTypeT>& vtypes) const
 {
   // extract block values from output set
+  const ArrayT<StringT>& block_ID = fElementSets[ID]->BlockID();
   ArrayT<dArray2DT> blockvalues(fElementSets[ID]->NumBlocks());
   for (int block=0; block < fElementSets[ID]->NumBlocks(); block++)
     {
@@ -221,11 +222,10 @@ void EnSightOutputT::WriteVariable (EnSightT& ens, bool nodal, int ID,
 	}
       else
 	{
-	  blockvalues[block].Allocate (fElementSets[ID]->NumBlockElements(block), values.MinorDim());
+	  blockvalues[block].Allocate (fElementSets[ID]->NumBlockElements(block_ID[block]), values.MinorDim());
 	  ElementBlockValues (ID, block, values, blockvalues[block]);
 	}
     }
-  const iArrayT& blockIDs = fElementSets[ID]->BlockID();
 
   // print each variable to a separate file
   int dof = fCoordinates->MinorDim();
@@ -238,8 +238,8 @@ void EnSightOutputT::WriteVariable (EnSightT& ens, bool nodal, int ID,
       names.Append (extension);
       
       // create variable file name
-      StringT varfile = CreateFileName (extension, fElementSets[ID]->PrintStep(), fElementSets[ID]->ID());
-      StringT varcase = CreateFileName (extension, kWildFile, fElementSets[ID]->ID());
+      StringT varfile = CreateFileName (extension, fElementSets[ID]->PrintStep(), atoi(fElementSets[ID]->ID()));
+      StringT varcase = CreateFileName (extension, kWildFile, atoi(fElementSets[ID]->ID()));
       
       // account for only one time step being written. 
       if (fTimeValues.Length() < 2)
@@ -261,11 +261,11 @@ void EnSightOutputT::WriteVariable (EnSightT& ens, bool nodal, int ID,
 	  StringT name = "coordinates";
 	  if (!nodal)
 	    {
-	      const iArray2DT* connects = fElementSets[ID]->Connectivities(block);
+	      const iArray2DT* connects = fElementSets[ID]->Connectivities(block_ID[block]);
 	      int numelemnodes = connects->MinorDim();
 	      ens.GetElementName (name, numelemnodes, fElementSets[ID]->Geometry());
 	    }
-	  ens.WritePartInfo (var, blockIDs[block], name);
+	  ens.WritePartInfo (var, atoi(block_ID[block]), name);
 
 	  // write values
 	  if (vector)
