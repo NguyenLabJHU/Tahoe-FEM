@@ -14,6 +14,7 @@ public:
 
 	/** constructor */
 	SolidMatList1DT(int length, const SolidMatSupportT& support);
+	SolidMatList1DT(void);
 
 	/** read material data from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);

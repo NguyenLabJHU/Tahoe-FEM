@@ -1,4 +1,4 @@
-/* $Id: SolidMatListT.cpp,v 1.11 2003-11-19 20:36:55 rdorgan Exp $ */
+/* $Id: SolidMatListT.cpp,v 1.12 2003-12-02 17:12:22 paklein Exp $ */
 #include "SolidMatListT.h"
 
 #ifdef __DEVELOPMENT__
@@ -20,7 +20,7 @@ SolidMatListT::SolidMatListT(int length, const SolidMatSupportT& support):
 	MaterialListT(length),
 	fHasLocalizers(false),
 	fHasThermal(false),
-	fSolidMatSupport(support),
+	fSolidMatSupport(&support),
 	fSSMatSupport(NULL),
 	fFSMatSupport(NULL),
 	fGradSSMatSupport(NULL)
@@ -30,19 +30,19 @@ SolidMatListT::SolidMatListT(int length, const SolidMatSupportT& support):
 	     <<   "    consistency checking is disabled" << endl;
 
 	/* cast and hope for the best */
-	fSSMatSupport = (const SSMatSupportT*) &fSolidMatSupport;
-	fFSMatSupport = (const FSMatSupportT*) &fSolidMatSupport;
-	fGradSSMatSupport = (const GradSSMatSupportT*) &fSolidMatSupport;
+	fSSMatSupport = (const SSMatSupportT*) fSolidMatSupport;
+	fFSMatSupport = (const FSMatSupportT*) fSolidMatSupport;
+	fGradSSMatSupport = (const GradSSMatSupportT*) fSolidMatSupport;
 #else
 
 	/* cast to small strain support */
-	fSSMatSupport = dynamic_cast<const SSMatSupportT*>(&fSolidMatSupport);
+	fSSMatSupport = dynamic_cast<const SSMatSupportT*>(fSolidMatSupport);
 
 	/* cast to finite strain support */
-	fFSMatSupport = dynamic_cast<const FSMatSupportT*>(&fSolidMatSupport);
+	fFSMatSupport = dynamic_cast<const FSMatSupportT*>(fSolidMatSupport);
 #ifdef GRAD_SMALL_STRAIN_DEV
 	/* cast to gradient enhanced small strain support */
-	fGradSSMatSupport = dynamic_cast<const GradSSMatSupportT*>(&fSolidMatSupport);
+	fGradSSMatSupport = dynamic_cast<const GradSSMatSupportT*>(fSolidMatSupport);
 #endif
 
 	/* must have at least one */
@@ -53,6 +53,17 @@ SolidMatListT::SolidMatListT(int length, const SolidMatSupportT& support):
 		throw ExceptionT::kGeneralFail;
 	}
 #endif
+}
+
+SolidMatListT::SolidMatListT(void):
+	fHasLocalizers(false),
+	fHasThermal(false),
+	fSolidMatSupport(NULL),
+	fSSMatSupport(NULL),
+	fFSMatSupport(NULL),
+	fGradSSMatSupport(NULL)
+{
+
 }
 
 /* return true if the contains materials that generate heat */
