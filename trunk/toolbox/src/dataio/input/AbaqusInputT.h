@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.h,v 1.11 2002-01-27 18:38:11 paklein Exp $ */
+/* $Id: AbaqusInputT.h,v 1.12 2002-03-04 06:25:30 paklein Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _ABAQUSINPUT_T_H_
@@ -36,9 +36,17 @@ class AbaqusInputT : public InputBaseT
 
   int  NumNodes (void) const;
   int  NumDimensions (void) const;
-  void ReadNodeMap (iArrayT& nodemap);
-  void ReadCoordinates (dArray2DT& coords);
-  void ReadCoordinates (dArray2DT& coords, iArrayT& nodemap);
+
+	/** ids for all nodes. ids for all nodes in the coordinate list. ids may not be
+	 * compact or ordered */
+	virtual void ReadNodeID(iArrayT& node_id); 
+
+	/** read coordinates */
+	virtual void ReadCoordinates(dArray2DT& coords);
+	
+	/** read coordinates and ids. ids for all nodes in the coordinate list. 
+	 * ids may not be compact or ordered */
+	virtual void ReadCoordinates(dArray2DT& coords, iArrayT& node_id);
 
   int  NumGlobalElements (void) const;
   int  NumElements (const StringT& name);

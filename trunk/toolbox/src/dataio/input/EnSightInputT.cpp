@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.cpp,v 1.10 2002-01-27 18:38:11 paklein Exp $ */
+/* $Id: EnSightInputT.cpp,v 1.11 2002-03-04 06:25:30 paklein Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #include "EnSightInputT.h"
@@ -73,9 +73,9 @@ int EnSightInputT::NumNodes (void) const
   return num;
 }
 
-void EnSightInputT::ReadNodeMap (iArrayT& nodemap)
+void EnSightInputT::ReadNodeID(iArrayT& node_id)
 {
-  if (nodemap.Length() != NumNodes()) throw eSizeMismatch;
+  if (node_id.Length() != NumNodes()) throw eSizeMismatch;
 
   ScanGeometryFile();
 
@@ -96,7 +96,7 @@ void EnSightInputT::ReadNodeMap (iArrayT& nodemap)
 	  
 	  // read coordinate data
 	  fData.ReadCoordinates (in, tempcoords, map, nodemapgiven);
-	  nodemap.CopyPart (num, map, 0, map.Length());
+	  node_id.CopyPart (num, map, 0, map.Length());
 	  num += tempcoords.MajorDim();
 
 	  // skip connectivity
@@ -105,8 +105,8 @@ void EnSightInputT::ReadNodeMap (iArrayT& nodemap)
     }
   else
     {
-      nodemap.SetValueToPosition ();
-      nodemap += 1;
+      node_id.SetValueToPosition ();
+      node_id += 1;
     }
 }
 

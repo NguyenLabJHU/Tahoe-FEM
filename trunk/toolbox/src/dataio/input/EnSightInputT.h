@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.h,v 1.9 2002-01-27 18:38:11 paklein Exp $ */
+/* $Id: EnSightInputT.h,v 1.10 2002-03-04 06:25:30 paklein Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _ENSIGHTINPUT_T_H_
@@ -39,9 +39,17 @@ public:
 
   virtual int  NumNodes (void) const;
   virtual int  NumDimensions (void) const;
-  virtual void ReadNodeMap (iArrayT& nodemap);
-  virtual void ReadCoordinates (dArray2DT& coords);
-  virtual void ReadCoordinates (dArray2DT& coords, iArrayT& nodemap);
+
+	/** ids for all nodes. ids for all nodes in the coordinate list. ids may not be
+	 * compact or ordered */
+	virtual void ReadNodeID(iArrayT& node_id); 
+
+	/** read coordinates */
+	virtual void ReadCoordinates(dArray2DT& coords);
+	
+	/** read coordinates and ids. ids for all nodes in the coordinate list. 
+	 * ids may not be compact or ordered */
+	virtual void ReadCoordinates(dArray2DT& coords, iArrayT& node_id);
 
   virtual int  NumGlobalElements (void) const;
   virtual int  NumElements (const StringT& name);

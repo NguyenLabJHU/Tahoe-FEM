@@ -1,4 +1,4 @@
-/* $Id: InputBaseT.h,v 1.10 2002-01-27 18:38:12 paklein Exp $ */
+/* $Id: InputBaseT.h,v 1.11 2002-03-04 06:25:30 paklein Exp $ */
 /* created: sawimme (08/12/1999) */
 
 #ifndef _INPUTBASE_T_H_
@@ -73,9 +73,17 @@ public:
   /* NODES */
   virtual int  NumNodes (void) const = 0;
   virtual int  NumDimensions (void) const = 0; /**< should return num dims to be used */
-  virtual void ReadNodeMap (iArrayT& nodemap) = 0; /**< all nodes, not offset, can be discontinuous */
-  virtual void ReadCoordinates (dArray2DT& coords) = 0;
-  virtual void ReadCoordinates (dArray2DT& coords, iArrayT& nodemap) = 0;
+
+	/** ids for all nodes. ids for all nodes in the coordinate list. ids may not be
+	 * compact or ordered */
+	virtual void ReadNodeID(iArrayT& node_id) = 0; 
+
+	/** read coordinates */
+	virtual void ReadCoordinates(dArray2DT& coords) = 0;
+	
+	/** read coordinates and ids. ids for all nodes in the coordinate list. 
+	 * ids may not be compact or ordered */
+	virtual void ReadCoordinates(dArray2DT& coords, iArrayT& node_id) = 0;
 
   /* ELEMENTS */
   virtual int  NumGlobalElements (void) const = 0; /**< for all element sets */
