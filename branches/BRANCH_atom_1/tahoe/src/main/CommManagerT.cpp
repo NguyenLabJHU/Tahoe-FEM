@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.1.2.12 2003-01-13 19:59:43 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.1.2.13 2003-01-14 01:35:58 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -119,6 +119,10 @@ void CommManagerT::EnforcePeriodicBoundaries(double skin)
 	const char caller[] = "CommManagerT::EnforcePeriodicBoundaries";
 	if (!fNodeManager) ExceptionT::GeneralFail(caller, "node manager node set");
 
+	//TEMP
+	cout << caller << ": start" << endl;
+	cout << "nrn = " << fNumRealNodes << endl;
+
 	/* only implemented for atom decomposition (or serial) */
 	if (fPartition && fPartition->DecompType() != PartitionT::kAtom) return;
 	
@@ -128,6 +132,10 @@ void CommManagerT::EnforcePeriodicBoundaries(double skin)
 	/* reference coordinates */
 	const dArray2DT& reference_coords = fModelManager.Coordinates();
 	if (reference_coords.MinorDim() > fIsPeriodic.Length()) ExceptionT::SizeMismatch(caller);
+
+	//TEMP
+	cout << "reference coordinates:\n" << "major = " << reference_coords.MajorDim() << '\n'
+		 << "minor = " << reference_coords.MinorDim() << endl;
 
 	/* the coordinate update field */
 	dArray2DT* field = fNodeManager->CoordinateUpdate();
@@ -140,6 +148,9 @@ void CommManagerT::EnforcePeriodicBoundaries(double skin)
 
 	/* current number of "ghost" nodes */
 	int ngn = fComm.Sum(fPBCNodes.Length());
+
+	//TEMP
+	cout << "total num ghosts = " << ngn << endl;
 
 	/* reset ghost nodes */
 	fPBCNodes.Dimension(0);
@@ -226,10 +237,17 @@ void CommManagerT::EnforcePeriodicBoundaries(double skin)
 		fComm.AllGather(fPBCNodes.Length(), ghost_count);
 		ngn = ghost_count.Sum();
 
+		//TEMP
+		cout << "new num local ghosts = " << fPBCNodes.Length() << endl;
+		cout << "new num total ghosts = " << ngn << endl;
+
 		/* local numbering of ghost nodes */
 		int ghost_num_start = fNumRealNodes;
 		for (int i = 0; i < fComm.Rank(); i++)
 			ghost_num_start += ghost_count[i];
+
+		//TEMP
+		cout << "my first ghost = " << ghost_num_start << endl;
 
 		fPBCNodes_ghost.Dimension(fPBCNodes.Length());
 		int ghost_num = ghost_num_start;
@@ -243,8 +261,9 @@ void CommManagerT::EnforcePeriodicBoundaries(double skin)
 		 * model manager, not from the node manager. The node manager does not change
 		 * the initial coordinates during CopyNodeToNode */
 		const dArray2DT& coords = fModelManager.Coordinates();
-		if (ngn > 0) {
-			dArray2DT ghost_coords(fPBCNodes_ghost.Length(), coords.MinorDim(), coords(ghost_num_start));
+		dArray2DT ghost_coords;
+		if (fPBCNodes_ghost.Length() > 0) {
+			ghost_coords.Set(fPBCNodes_ghost.Length(), coords.MinorDim(), coords(ghost_num_start));
 
 			/* copy coordinates */
 			for (int i = 0; i < fPBCNodes_ghost.Length(); i++)
@@ -274,13 +293,19 @@ void CommManagerT::EnforcePeriodicBoundaries(double skin)
 				x_lower <<= 2;
 				x_upper <<= 2;
 			}
-
-			/* exchange */
-			AllGatherT all_gather(fComm);
-			all_gather.Initialize(ghost_coords);
-			dArray2DT ghost_coords_all(ngn, coords.MinorDim(), coords(fNumRealNodes));
-			all_gather.AllGather(ghost_coords_all);
 		}
+		else ghost_coords.Set(0, coords.MinorDim(), NULL);
+
+		/* exchange */
+		if (ngn > 0) {
+		AllGatherT all_gather(fComm);
+		all_gather.Initialize(ghost_coords);
+		dArray2DT ghost_coords_all(ngn, coords.MinorDim(), coords(fNumRealNodes));
+		all_gather.AllGather(ghost_coords_all);
+		}
+
+		//TEMP
+		cout << "new reference coordinates =\n" << coords << endl;
 
 		/* persistent communications */
 		for (int i = 0; i < fGhostCommunications.Length(); i++)
@@ -295,7 +320,7 @@ void CommManagerT::EnforcePeriodicBoundaries(double skin)
 		
 		/* reset the node-to-processor map */
 		fProcessor.Resize(coords.MajorDim());
-		int* n2p = fProcessor.Pointer(ghost_num_start);
+		int* n2p = fProcessor.Pointer(fNumRealNodes);
 		for (int i = 0; i < ghost_count.Length(); i++)
 			for (int j = 0; j < ghost_count[i]; j++)
 				*n2p++ = -(i+1);
