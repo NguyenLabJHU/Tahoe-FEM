@@ -1,4 +1,4 @@
-/* $Id: pMatrixT.h,v 1.1 2002-03-19 18:59:20 paklein Exp $ */
+/* $Id: pMatrixT.h,v 1.1.4.1 2002-06-27 18:00:51 cjkimme Exp $ */
 
 #ifndef _P_MATRIX_T_H_
 #define _P_MATRIX_T_H_
@@ -8,6 +8,9 @@
 
 /** A class to help working with a matrix of pointers. See pArrayT
  * for details of how the class handles the pointers. */
+
+namespace Tahoe {
+
 template <class TYPEPtr>
 class pMatrixT: public pArrayT<TYPEPtr>
 {
@@ -130,4 +133,5 @@ inline ProxyTYPEPtr<TYPEPtr> pMatrixT<TYPEPtr>::operator()(int nrow, int ncol) c
 	return const_this->operator[](ncol*fRows + nrow);
 }
 
+} // namespace Tahoe 
 #endif /* _P_MATRIX_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.9 2002-02-12 02:10:03 paklein Exp $ */
+/* $Id: OutputSetT.h,v 1.9.4.1 2002-06-27 18:01:03 cjkimme Exp $ */
 /* created: paklein (03/07/2000) */
 
 #ifndef _OUTPUTSET_T_H_
@@ -10,6 +10,9 @@
 #include "iArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class iArray2DT;
 
 /** class to act as specifier for output data. A class that would
@@ -242,4 +245,5 @@ inline const StringT& OutputSetT::BlockID(int index) const
 
 }
 
+} // namespace Tahoe 
 #endif /* _OUTPUTSET_T_H_ */

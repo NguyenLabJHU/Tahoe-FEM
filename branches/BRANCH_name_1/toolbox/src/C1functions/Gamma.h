@@ -1,10 +1,13 @@
-/* $Id: Gamma.h,v 1.1 2002-04-22 16:09:23 dzeigle Exp $ */
+/* $Id: Gamma.h,v 1.1.2.1 2002-06-27 18:00:39 cjkimme Exp $ */
 
 #ifndef _GAMMA_H_
 #define _GAMMA_H_
 
 /* base class */
 #include "C1FunctionT.h"
+
+
+namespace Tahoe {
 
 class Gamma: public C1FunctionT
 {
@@ -51,6 +54,7 @@ private:
 
 };
 
+} // namespace Tahoe 
 #endif /* _GAMMA_H_ */
 
 

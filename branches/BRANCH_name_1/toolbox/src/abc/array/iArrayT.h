@@ -1,4 +1,4 @@
-/* $Id: iArrayT.h,v 1.4 2002-03-06 02:04:46 paklein Exp $ */
+/* $Id: iArrayT.h,v 1.4.4.1 2002-06-27 18:00:45 cjkimme Exp $ */
 /* created: paklein (08/10/1996) */
 
 #ifndef _IARRAY_T_H_
@@ -6,6 +6,8 @@
 
 /* base class */
 #include "nArrayT.h"
+
+namespace Tahoe {
 
 /* integer array class. Most functionality is inherited from nArrayT. */
 class iArrayT: public nArrayT<int>
@@ -61,6 +63,9 @@ public:
 	/** determine the union of the given arrays */
 	iArrayT& Union(const ArrayT<const nArrayT<int>*>& source);
 };
+}//namespace Tahoe
+
+using namespace Tahoe;
 
 /* inlines */
 

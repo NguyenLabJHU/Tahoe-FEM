@@ -1,4 +1,4 @@
-/* $Id: GaoVicky.cpp,v 1.1 2002-05-28 06:55:01 bhji Exp $ */
+/* $Id: GaoVicky.cpp,v 1.1.2.1 2002-06-27 18:00:40 cjkimme Exp $ */
 /* created: paklein (12/26/1998)                                          */
 
 #include "GaoVicky.h"
@@ -8,6 +8,9 @@
 #include "dArrayT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 GaoVicky::GaoVicky(double A, double B, double C, double D, double L):
 	fA(A),
 	fB(B),

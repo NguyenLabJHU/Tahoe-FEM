@@ -1,4 +1,4 @@
-/* $Id: MemoryGroupT.h,v 1.1.1.1 2001-01-25 20:56:22 paklein Exp $ */
+/* $Id: MemoryGroupT.h,v 1.1.1.1.6.1 2002-06-27 18:00:48 cjkimme Exp $ */
 /* created: paklein (04/17/1998)                                          */
 /* Base class to handle memory (re-/de-) allocation for                   */
 /* derived classes managing grouped arrays with memory                    */
@@ -19,6 +19,9 @@
 /* direct members */
 #include "ArrayT.h"
 #include "AutoArrayT.h"
+
+
+namespace Tahoe {
 
 template <class TYPE>
 class MemoryGroupT
@@ -197,4 +200,5 @@ void MemoryGroupT<TYPE>::SetBlockSize(int newblocksize, bool copy_in)
 	fBlockSize = newblocksize;
 }
 
+} // namespace Tahoe 
 #endif /* _MEMORYGROUP_T_H_ */

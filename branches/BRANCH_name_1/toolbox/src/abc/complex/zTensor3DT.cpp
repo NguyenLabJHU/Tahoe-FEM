@@ -1,10 +1,13 @@
-/* $Id: zTensor3DT.cpp,v 1.3 2002-02-18 08:48:40 paklein Exp $ */
+/* $Id: zTensor3DT.cpp,v 1.3.4.1 2002-06-27 18:00:47 cjkimme Exp $ */
 /* created: PAK (05/19/97) */
 
 #include "zTensor3DT.h"
 #include "dTensor3DT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 zTensor3DT::zTensor3DT(void) { }
 zTensor3DT::zTensor3DT(int dim0, int dim1, int dim2):
 	Tensor3DT<ComplexT>(dim0,dim1,dim2) { }

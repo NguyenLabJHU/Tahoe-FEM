@@ -1,10 +1,13 @@
-/* $Id: PhiSplineT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: PhiSplineT.cpp,v 1.1.1.1.6.1 2002-06-27 18:00:40 cjkimme Exp $ */
 /* created: paklein (01/30/2000)                                          */
 /* PhiSplineT.h                                                           */
 
 #include "PhiSplineT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 PhiSplineT::PhiSplineT(const dArray2DT& points, FixityT fixity, double r_cut):
 	CubicSplineT(points, fixity),
 	fr_cut(r_cut)

@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.h,v 1.10 2002-04-09 17:20:51 paklein Exp $ */
+/* $Id: ifstreamT.h,v 1.10.4.1 2002-06-27 18:01:08 cjkimme Exp $ */
 /* created: paklein (03/03/1999) */
 
 #ifndef _IFSTREAM_T_H_
@@ -15,6 +15,9 @@
 #include "StringT.h"
 
 /** input file stream with extended capabilities */
+
+namespace Tahoe {
+
 class ifstreamT: public ifstream
 {
 public:
@@ -146,4 +149,5 @@ ifstreamT& operator>>(ifstreamT& str, TYPE& data)
 	return str;
 };
 
+} // namespace Tahoe 
 #endif /* _IFSTREAM_X_H_ */

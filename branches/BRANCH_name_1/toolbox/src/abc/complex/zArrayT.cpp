@@ -1,4 +1,4 @@
-/* $Id: zArrayT.cpp,v 1.5 2002-02-18 08:48:40 paklein Exp $ */
+/* $Id: zArrayT.cpp,v 1.5.4.1 2002-06-27 18:00:46 cjkimme Exp $ */
 /* created: PAK/AFLP (05/19/1997)                                         */
 
 #include "zArrayT.h"
@@ -11,6 +11,9 @@
 /*
 * constructor
 */
+
+using namespace Tahoe;
+
 zArrayT::zArrayT(void) { }
 zArrayT::zArrayT(int length): nArrayT<ComplexT>(length) { }
 zArrayT::zArrayT(int length, ComplexT* p): nArrayT<ComplexT>(length,p) { }

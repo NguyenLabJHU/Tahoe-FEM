@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.11 2002-02-27 16:47:16 paklein Exp $ */
+/* $Id: OutputSetT.cpp,v 1.11.4.1 2002-06-27 18:01:03 cjkimme Exp $ */
 /* created: paklein (03/07/2000) */
 
 #include "OutputSetT.h"
@@ -6,6 +6,9 @@
 #include "iArray2DT.h"
 
 /* array behavior */
+
+using namespace Tahoe;
+
 const bool ArrayT<OutputSetT*>::fByteCopy = true;
 
 /* constructor */

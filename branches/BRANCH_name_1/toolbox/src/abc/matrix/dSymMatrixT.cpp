@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.9 2002-02-22 19:27:42 xiang Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.9.4.1 2002-06-27 18:00:49 cjkimme Exp $ */
 /* created: paklein (03/03/1997)                                          */
 
 #include "dSymMatrixT.h"
@@ -7,6 +7,9 @@
 #include <math.h>
 #include "Constants.h"
 #include "dMatrixT.h"
+
+
+using namespace Tahoe;
 
 const double Pi = acos(-1.0);
 inline double d_sign(double a, double b)
@@ -85,6 +88,8 @@ void dSymMatrixT::ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2)
 	dex_1 = p[0];
 	dex_2 = p[1];
 }
+
+namespace Tahoe {
 	
 /* I/O operators */
 ostream& operator<<(ostream& out, const dSymMatrixT& array)
@@ -149,6 +154,7 @@ istream& operator>>(istream& in, dSymMatrixT& array)
 	return in;
 }
 
+} // namespace Tahoe
 
 /* return eigenvalues and eigenvectors (in columns) */
 void dSymMatrixT::PrincipalValues(dArrayT& val) const // will get phased out

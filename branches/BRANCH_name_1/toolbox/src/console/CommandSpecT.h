@@ -1,4 +1,4 @@
-/* $Id: CommandSpecT.h,v 1.4 2001-12-13 02:58:38 paklein Exp $ */
+/* $Id: CommandSpecT.h,v 1.4.4.1 2002-06-27 18:00:56 cjkimme Exp $ */
 
 #ifndef _COMMAND_SPEC_T_H_
 #define _COMMAND_SPEC_T_H_
@@ -8,6 +8,9 @@
 #include "AutoArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ArgSpecT;
 class iConsoleBaseT;
 
@@ -94,4 +97,5 @@ class CommandSpecT
   	AutoArrayT<ArgSpecT*> fArguments;
 };
 
+} // namespace Tahoe 
 #endif /* _COMMAND_SPEC_T_H_ */

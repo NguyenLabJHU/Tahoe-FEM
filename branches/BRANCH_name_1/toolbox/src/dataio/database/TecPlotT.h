@@ -1,4 +1,4 @@
-/* $Id: TecPlotT.h,v 1.2 2001-07-06 17:08:33 sawimme Exp $ */
+/* $Id: TecPlotT.h,v 1.2.6.1 2002-06-27 18:00:59 cjkimme Exp $ */
 /* created: saw (06.06.2000)                                              */
 
 #ifndef _TECPLOT_T_H_
@@ -10,6 +10,9 @@
 #include "ArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class StringT;
 class dArray2DT;
 class iArray2DT;
@@ -40,4 +43,5 @@ ostream& fOut;
 bool fPoint; // data can be written in point or block format
 };
 
+} // namespace Tahoe 
 #endif

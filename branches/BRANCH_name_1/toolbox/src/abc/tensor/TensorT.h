@@ -20,6 +20,9 @@
 /* direct members */
 #include "iArrayT.h"
 
+
+namespace Tahoe {
+
 template <class MATHTYPE>
 class TensorT: public nArrayT<MATHTYPE>
 {
@@ -204,4 +207,5 @@ int SameDimensions(const TensorT<MATHTYPE1>& t1, const TensorT<MATHTYPE2>& t2)
 	return (1);
 }
 
+} // namespace Tahoe 
 #endif /* _TENSORBASET_H_ */

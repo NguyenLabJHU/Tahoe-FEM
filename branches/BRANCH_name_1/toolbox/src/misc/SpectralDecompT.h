@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.h,v 1.6 2001-06-23 00:49:16 thao Exp $ */
+/* $Id: SpectralDecompT.h,v 1.6.6.1 2002-06-27 18:01:12 cjkimme Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -10,6 +10,9 @@
 #include "dSymMatrixT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dArrayT;
 
 class SpectralDecompT
@@ -180,4 +183,5 @@ inline const dArrayT& SpectralDecompT::Eigenvalues(void) const { return fEigs; }
 inline const ArrayT<dArrayT>& SpectralDecompT::Eigenvectors(void) const { return fEvecs; }
 inline const dMatrixT& SpectralDecompT::Eigenmatrix(void) const { return fEvecMatrix; }
 
+} // namespace Tahoe 
 #endif /* _SPECTRAL_DECOMP_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.h,v 1.4 2002-06-25 14:17:06 sawimme Exp $ */
+/* $Id: ExodusOutputT.h,v 1.4.2.1 2002-06-27 18:01:03 cjkimme Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #ifndef _EXODUSOUTPUT_T_H_
@@ -8,6 +8,9 @@
 #include "OutputBaseT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ExodusT;
 
 class ExodusOutputT: public OutputBaseT
@@ -45,4 +48,5 @@ private:
 	iArrayT fSideSetIntIDs; /**< integer ID values for side sets */
 };
 
+} // namespace Tahoe 
 #endif

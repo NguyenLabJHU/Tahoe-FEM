@@ -1,4 +1,4 @@
-/* $Id: PhiSplineT.h,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: PhiSplineT.h,v 1.1.1.1.6.1 2002-06-27 18:00:40 cjkimme Exp $ */
 /* created: paklein (01/30/2000)                                          */
 /* PhiSplineT.h                                                           */
 /* cubic spline form of the EAM pair potential from PRL v##, n##, 1986.   */
@@ -12,6 +12,9 @@
 
 /* base class */
 #include "CubicSplineT.h"
+
+
+namespace Tahoe {
 
 class PhiSplineT: public CubicSplineT
 {
@@ -45,4 +48,5 @@ private:
 	double fr_cut;
 };
 
+} // namespace Tahoe 
 #endif /* _EAM_PHI_SPLINE_T_H_ */

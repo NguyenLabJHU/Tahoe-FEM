@@ -1,4 +1,4 @@
-/* $Id: Vector3T.h,v 1.3 2002-01-03 23:10:32 paklein Exp $ */
+/* $Id: Vector3T.h,v 1.3.4.1 2002-06-27 18:00:51 cjkimme Exp $ */
 /* created: paklein (02/11/2000) */
 
 #ifndef _VECTOR_3_T_H_
@@ -9,6 +9,9 @@
 
 /** utility class for 3D vector functions.
  * \note some functions do create temporary nTYPE instances */
+
+namespace Tahoe {
+
 template <class nTYPE>
 class Vector3T
 {
@@ -272,4 +275,5 @@ inline Vector3T<nTYPE>& Vector3T<nTYPE>::
 	return *this;
 }
 
+} // namespace Tahoe 
 #endif /* _VECTOR_3_T_H_ */

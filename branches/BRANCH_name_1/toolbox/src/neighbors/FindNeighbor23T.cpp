@@ -1,4 +1,4 @@
-/* $Id: FindNeighbor23T.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: FindNeighbor23T.cpp,v 1.1.1.1.6.1 2002-06-27 18:01:13 cjkimme Exp $ */
 /* created: paklein (03/21/1997)                                          */
 /* FindNeighbor23T.cpp                                                    */
 
@@ -6,6 +6,9 @@
 #include <iostream.h>
 
 /* Constructors */
+
+using namespace Tahoe;
+
 FindNeighbor23T::FindNeighbor23T(const dArray2DT& coords, int maxneighbors):
 	FindNeighborT(coords, maxneighbors)
 {

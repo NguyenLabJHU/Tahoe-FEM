@@ -1,7 +1,10 @@
-/* $Id: TahoeInputT.cpp,v 1.9 2002-03-04 06:25:30 paklein Exp $ */
+/* $Id: TahoeInputT.cpp,v 1.9.4.1 2002-06-27 18:01:01 cjkimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "TahoeInputT.h"
+
+
+using namespace Tahoe;
 
 TahoeInputT::TahoeInputT (ostream& out) :
   InputBaseT (out),

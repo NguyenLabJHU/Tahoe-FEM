@@ -1,7 +1,10 @@
-/* $Id: ArraySettings.cpp,v 1.3 2002-02-27 16:47:11 paklein Exp $ */
+/* $Id: ArraySettings.cpp,v 1.3.4.1 2002-06-27 18:00:44 cjkimme Exp $ */
 /* created: paklein (01/23/2001) */
 
 #include "ArrayT.h"
+
+
+using namespace Tahoe;
 
 /* built-in types */
 const bool ArrayT<int>::fByteCopy = true;

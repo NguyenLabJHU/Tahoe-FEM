@@ -1,4 +1,4 @@
-/* $Id: pArrayT.h,v 1.3 2002-03-19 18:57:50 paklein Exp $ */
+/* $Id: pArrayT.h,v 1.3.4.1 2002-06-27 18:00:51 cjkimme Exp $ */
 /* created: paklein (11/21/1996) */
 
 #ifndef _P_ARRAY_T_H_
@@ -8,6 +8,9 @@
 #include "ArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 template <class TYPEPtr> class ProxyTYPEPtr;
 
 /** A class to help working with arrays of pointers. The data in the
@@ -215,4 +218,5 @@ void pArrayT<TYPEPtr>::DeleteAll(void)
 	}
 }
 
+} // namespace Tahoe 
 #endif /* _P_ARRAY_T_H_ */

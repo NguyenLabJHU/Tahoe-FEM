@@ -1,4 +1,4 @@
-/* $Id: ConstQuadT.cpp,v 1.1 2002-05-31 07:17:12 thao Exp $ */
+/* $Id: ConstQuadT.cpp,v 1.1.2.1 2002-06-27 18:00:39 cjkimme Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #include "ConstQuadT.h"
@@ -7,6 +7,9 @@
 #include "dArrayT.h"
 
 /* constructors */
+
+using namespace Tahoe;
+
 ConstQuadT::ConstQuadT(double A, double B, double C): 
 	fA(A),
 	fB(B),

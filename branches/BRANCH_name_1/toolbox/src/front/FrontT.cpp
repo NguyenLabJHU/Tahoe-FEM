@@ -1,4 +1,4 @@
-/* $Id: FrontT.cpp,v 1.2 2001-02-13 17:51:15 paklein Exp $ */
+/* $Id: FrontT.cpp,v 1.2.6.1 2002-06-27 18:01:07 cjkimme Exp $ */
 /* created: paklein (02/11/2000)                                          */
 
 #include "FrontT.h"
@@ -6,6 +6,9 @@
 #include "FrontNodeT.h"
 
 /* constants */
+
+using namespace Tahoe;
+
 const double     Pi = acos(-1.0);
 const int kHeadRoom = 20;
 

@@ -1,4 +1,4 @@
-/* $Id: LAdMatrixT.h,v 1.2 2001-05-31 19:28:47 pecore Exp $ */
+/* $Id: LAdMatrixT.h,v 1.2.6.1 2002-06-27 18:00:49 cjkimme Exp $ */
 /* created: paklein (12/05/1996)                                          */
 /* dMatrixT with some linear algebra functions                            */
 
@@ -9,6 +9,9 @@
 #include "dMatrixT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dArrayT;
 
 class LAdMatrixT: public dMatrixT
@@ -98,4 +101,5 @@ inline LAdMatrixT& LAdMatrixT::operator=(const double value)
 	return *this;
 }
 
+} // namespace Tahoe 
 #endif /* _LA_DMATRIX_T_H_ */

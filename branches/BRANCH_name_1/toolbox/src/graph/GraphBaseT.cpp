@@ -1,4 +1,4 @@
-/* $Id: GraphBaseT.cpp,v 1.6 2002-02-27 16:47:17 paklein Exp $ */
+/* $Id: GraphBaseT.cpp,v 1.6.4.1 2002-06-27 18:01:09 cjkimme Exp $ */
 /* created: paklein (04/13/1999) */
 
 #include "GraphBaseT.h"
@@ -19,6 +19,9 @@
 #endif
 
 /* rounding floating point numbers */
+
+using namespace Tahoe;
+
 static inline int rnd(double number) { return int((2.0*number + 1.0)/2); }
 
 /* array behavior */

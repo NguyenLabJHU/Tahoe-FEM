@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.h,v 1.5 2002-04-16 16:32:49 paklein Exp $ */
+/* $Id: dSymMatrixT.h,v 1.5.4.1 2002-06-27 18:00:49 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _DSYM_MATRIX_T_H_
@@ -8,6 +8,9 @@
 #include "dArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dMatrixT;
 
 /* interface for a 1D/2D/3D reduced index symmetric matrix stored as 
@@ -197,4 +200,5 @@ inline void dSymMatrixT::ScaleOffDiagonal(double factor)
 	}
 }
 
+} // namespace Tahoe 
 #endif /* _DSYM_MATRIX_T_H_ */

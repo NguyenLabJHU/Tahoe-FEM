@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.20 2002-06-08 19:33:38 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.20.2.1 2002-06-27 18:00:58 cjkimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -15,6 +15,9 @@
 
 /* forward */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 template <class TYPE> class nVariArray2DT;
 
@@ -697,4 +700,5 @@ inline const StringT& ModelManagerT::ElementGroupID(int index) const {
 	return fElementNames[index]; 
 };
 
+} // namespace Tahoe 
 #endif

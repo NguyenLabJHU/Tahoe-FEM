@@ -1,4 +1,4 @@
-/* $Id: EdgeFinderT.h,v 1.2 2001-12-16 23:48:12 paklein Exp $ */
+/* $Id: EdgeFinderT.h,v 1.2.4.1 2002-06-27 18:01:13 cjkimme Exp $ */
 /* created: paklein (02/14/1998)                                          */
 /* Class to determine element neighbors based on the connectivies.        */
 
@@ -9,6 +9,9 @@
 #include "iArray2DT.h"
 #include "iArrayT.h"
 #include "RaggedArray2DT.h"
+
+
+namespace Tahoe {
 
 class EdgeFinderT
 {
@@ -67,4 +70,5 @@ protected:
 	RaggedArray2DT<int> fInvConnects; // 1: elements(node)
 };
 
+} // namespace Tahoe 
 #endif /* _EDGE_FINDER_T_H_ */

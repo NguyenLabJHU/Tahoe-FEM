@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.cpp,v 1.11 2002-06-25 14:17:06 sawimme Exp $ */
+/* $Id: ExodusOutputT.cpp,v 1.11.2.1 2002-06-27 18:01:03 cjkimme Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "ExodusOutputT.h"
@@ -8,6 +8,9 @@
 #include "iArray2DT.h"
 #include "dArrayT.h"
 #include <time.h>
+
+
+using namespace Tahoe;
 
 ExodusOutputT::ExodusOutputT(ostream& out, const ArrayT<StringT>& out_strings):
 OutputBaseT(out, out_strings)

@@ -1,4 +1,4 @@
-/* $Id: LinearT.cpp,v 1.1 2002-05-31 07:17:13 thao Exp $ */
+/* $Id: LinearT.cpp,v 1.1.2.1 2002-06-27 18:00:40 cjkimme Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #include "LinearT.h"
@@ -7,6 +7,9 @@
 #include "dArrayT.h"
 
 /* constructors */
+
+using namespace Tahoe;
+
 LinearT::LinearT(double A, double B): 
   fA(A),
   fB(B)

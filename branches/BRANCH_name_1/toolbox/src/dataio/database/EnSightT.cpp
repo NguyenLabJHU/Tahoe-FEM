@@ -1,4 +1,4 @@
-/* $Id: EnSightT.cpp,v 1.6 2002-02-27 16:47:15 paklein Exp $ */
+/* $Id: EnSightT.cpp,v 1.6.4.1 2002-06-27 18:00:59 cjkimme Exp $ */
 /* created: sawimme (05/13/1999) */
 
 #include "EnSightT.h"
@@ -15,6 +15,9 @@
 #include "AutoArrayT.h"
 
 /* array behavior */
+
+using namespace Tahoe;
+
 const bool ArrayT<EnSightT::VariableTypeT>::fByteCopy = true;
 
 EnSightT::EnSightT (ostream& out, bool binary, int dof) :

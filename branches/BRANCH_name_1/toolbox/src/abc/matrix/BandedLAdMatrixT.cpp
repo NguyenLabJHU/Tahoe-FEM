@@ -1,4 +1,4 @@
-/* $Id: BandedLAdMatrixT.cpp,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: BandedLAdMatrixT.cpp,v 1.1.1.1.6.1 2002-06-27 18:00:48 cjkimme Exp $ */
 /* created: MLK (05/21/1997)                                              */
 /* square banded matrix operations                                        */
 /* banded matrix elements stored in columns                               */
@@ -12,6 +12,9 @@
 #include "dMatrixT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 BandedLAdMatrixT::BandedLAdMatrixT(int squaredim, int leftbandsize, int rightbandsize):
 	nArrayT<double>((leftbandsize+rightbandsize+1)*squaredim),
 	fRows(squaredim),
@@ -38,6 +41,8 @@ double BandedLAdMatrixT::GetElement(int row, int col) const
 		return (fArray[col*(fLband + fRband + 1) + fRband + row - col]);
 };
 
+namespace Tahoe {
+
 /* I/O operators */
 ostream& operator<<(ostream& out, const BandedLAdMatrixT& matrix)
 {
@@ -53,6 +58,10 @@ ostream& operator<<(ostream& out, const BandedLAdMatrixT& matrix)
 	
 	return (out);
 }
+
+} // namespace Tahoe
+
+using namespace Tahoe;
 
 /* assemble beginning with row and col in the upper left. */
 void BandedLAdMatrixT::AddBlock(int row, int col, const dMatrixT& block)

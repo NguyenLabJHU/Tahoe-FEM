@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.h,v 1.1 2002-02-12 02:04:07 paklein Exp $ */
+/* $Id: CommunicatorT.h,v 1.1.4.1 2002-06-27 18:01:15 cjkimme Exp $ */
 
 #ifndef _COMMUNICATOR_T_H_
 #define _COMMUNICATOR_T_H_
@@ -13,6 +13,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 template <class TYPE> class ArrayT;
 
 /** interface to handle process to process communication. If compiled
@@ -110,4 +113,5 @@ class CommunicatorT
   	ostream*  fLog;
 };
 
+} // namespace Tahoe 
 #endif /* _COMMUNICATOR_T_H_ */

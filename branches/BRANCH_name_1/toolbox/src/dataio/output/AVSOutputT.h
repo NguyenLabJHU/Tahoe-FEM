@@ -7,6 +7,9 @@
 #include "OutputBaseT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class AVST;
 
 class AVSOutputT : public OutputBaseT
@@ -28,4 +31,5 @@ class AVSOutputT : public OutputBaseT
   bool fBinary;
 };
  
+} // namespace Tahoe 
 #endif

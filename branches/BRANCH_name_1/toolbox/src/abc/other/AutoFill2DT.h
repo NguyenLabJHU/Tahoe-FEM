@@ -1,4 +1,4 @@
-/* $Id: AutoFill2DT.h,v 1.3 2001-11-14 21:50:45 paklein Exp $ */
+/* $Id: AutoFill2DT.h,v 1.3.4.1 2002-06-27 18:00:50 cjkimme Exp $ */
 /* created: paklein (01/19/1999)                                          */
 /* NOTE: going to use this with a manager to help count and               */
 /* store edges in a graph. There have to be 2 modes of                    */
@@ -21,6 +21,9 @@
 
 #include "Environment.h"
 #include "ExceptionCodes.h"
+
+
+namespace Tahoe {
 
 template <class TYPE>
 class AutoFill2DT
@@ -433,4 +436,5 @@ void AutoFill2DT<TYPE>::Allocate(int maxminordim, int headroom)
 	fMaxMinorDim = memsize;
 }
 
+} // namespace Tahoe 
 #endif /* _AUTO_ARRAY2D_T_H_ */

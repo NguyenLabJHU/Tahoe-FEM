@@ -1,4 +1,4 @@
-/* $Id: TahoeInputT.h,v 1.11 2002-03-04 06:25:30 paklein Exp $ */
+/* $Id: TahoeInputT.h,v 1.11.4.1 2002-06-27 18:01:01 cjkimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _TAHOEINPUT_T_H_
@@ -8,6 +8,9 @@
 #include "ModelFileT.h"
 #include "dArrayT.h"
 #include "dArray2DT.h"
+
+
+namespace Tahoe {
 
 class TahoeInputT : public InputBaseT
 {
@@ -216,4 +219,5 @@ inline void TahoeInputT::ReadQuadratureVariables (int step, const StringT& name,
 #pragma unused (name)
   qvalues.Free (); 
 }
+} // namespace Tahoe 
 #endif

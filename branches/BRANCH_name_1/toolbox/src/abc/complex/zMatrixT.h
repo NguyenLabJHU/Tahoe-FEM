@@ -1,4 +1,4 @@
-/* $Id: zMatrixT.h,v 1.4 2001-06-20 23:39:30 pecore Exp $ */
+/* $Id: zMatrixT.h,v 1.4.6.1 2002-06-27 18:00:47 cjkimme Exp $ */
 /* created: paklein (05/19/1997)                                          */
 /* 2 dimensional matrix mathematics object.                               */
 
@@ -12,6 +12,9 @@
 #include "ComplexT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dMatrixT;
 
 class zMatrixT: public nMatrixT<ComplexT>
@@ -75,4 +78,5 @@ inline zMatrixT& zMatrixT::operator=(const ComplexT& value)
 	return(*this);
 }
 
+} // namespace Tahoe 
 #endif /* _ZMATRIX_T_H_ */

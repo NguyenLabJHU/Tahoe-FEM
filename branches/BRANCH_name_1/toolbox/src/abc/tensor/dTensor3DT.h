@@ -14,6 +14,9 @@
 /* base class */
 #include "Tensor3DT.h"
 
+
+namespace Tahoe {
+
 class dTensor3DT: public Tensor3DT<double>
 {
   public:
@@ -52,4 +55,5 @@ inline dTensor3DT& dTensor3DT::operator=(const double value)
 	return (*this);
 }
 
+} // namespace Tahoe 
 #endif /* _Z_TENSOR3D_T_H_ */

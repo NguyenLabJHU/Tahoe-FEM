@@ -1,4 +1,4 @@
-/* $Id: Tensor4DT.h,v 1.3 2002-06-26 00:59:55 paklein Exp $ */
+/* $Id: Tensor4DT.h,v 1.3.2.1 2002-06-27 18:00:52 cjkimme Exp $ */
 /* created paklein (12/19/96) */
 #ifndef _TENSOR4D_T_H_
 #define _TENSOR4D_T_H_
@@ -7,6 +7,9 @@
 #include "TensorT.h"
 
 /** templated base class for fourth order tensors */
+
+namespace Tahoe {
+
 template <class MATHTYPE>
 class Tensor4DT: public TensorT<MATHTYPE>
 {
@@ -159,4 +162,5 @@ inline Tensor4DT<MATHTYPE>& Tensor4DT<MATHTYPE>::operator=(const MATHTYPE& value
 	return *this;
 }
 
+} // namespace Tahoe 
 #endif /* _TENSOR4D_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.9 2002-03-06 08:22:34 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.9.4.1 2002-06-27 18:00:57 cjkimme Exp $ */
 /* created: paklein (03/24/2000) */
 
 #include "JoinOutputT.h"
@@ -14,6 +14,9 @@
 #include "dArrayT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 JoinOutputT::JoinOutputT(const StringT& param_file, const StringT& model_file,
 	IOBaseT::FileTypeT model_file_type, IOBaseT::FileTypeT results_file_type, 
 	OutputBaseT* output, int size):

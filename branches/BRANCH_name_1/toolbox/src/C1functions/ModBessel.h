@@ -1,10 +1,13 @@
-/* $Id: ModBessel.h,v 1.2 2002-04-19 18:55:09 dzeigle Exp $ */
+/* $Id: ModBessel.h,v 1.2.4.1 2002-06-27 18:00:40 cjkimme Exp $ */
 
 #ifndef _MOD_BESSEL_H_
 #define _MOD_BESSEL_H_
 
 /* base class */
 #include "C1FunctionT.h"
+
+
+namespace Tahoe {
 
 class ModBessel: public C1FunctionT
 {
@@ -59,6 +62,7 @@ private:
 
 };
 
+} // namespace Tahoe 
 #endif /* _MOD_BESSEL_H_ */
 
 

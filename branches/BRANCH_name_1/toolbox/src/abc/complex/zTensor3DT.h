@@ -1,4 +1,4 @@
-/* $Id: zTensor3DT.h,v 1.2 2002-02-18 08:48:40 paklein Exp $ */
+/* $Id: zTensor3DT.h,v 1.2.4.1 2002-06-27 18:00:47 cjkimme Exp $ */
 /* created : PAK (05/19/97) */
 
 #ifndef _Z_TENSOR3D_T_H_
@@ -11,6 +11,9 @@
 #include "ComplexT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dTensor3DT;
 
 class zTensor3DT: public Tensor3DT<ComplexT>
@@ -50,4 +53,5 @@ inline zTensor3DT& zTensor3DT::operator=(const ComplexT& value)
 	return(*this);
 }
 
+} // namespace Tahoe 
 #endif /* _Z_TENSOR3D_T_H_ */

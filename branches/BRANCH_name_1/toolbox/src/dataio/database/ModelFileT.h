@@ -1,4 +1,4 @@
-/* $Id: ModelFileT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: ModelFileT.h,v 1.1.1.1.6.1 2002-06-27 18:00:59 cjkimme Exp $ */
 /* created: paklein (12/15/1999)                                          */
 
 #ifndef _MODEL_FILE_T_H_
@@ -12,6 +12,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 class ExodusT;
 
@@ -125,4 +128,5 @@ private:
 	ArrayT<iArray2DT*> fSideSets;
 };
 
+} // namespace Tahoe 
 #endif /* _MODEL_FILE_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.9 2002-03-04 01:38:09 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.9.4.1 2002-06-27 18:00:44 cjkimme Exp $ */
 /* created: paklein (06/19/1996) */
 
 #ifndef _ARRAY_T_H_
@@ -16,6 +16,8 @@
 #endif
 
 #include "ExceptionCodes.h"
+
+namespace Tahoe {
 
 /** templated class for arrays. Memory is dynamically allocated and freed.
  * Contents of the array is copied and moved using memcpy and memmove if
@@ -185,6 +187,10 @@ private:
 	 * copying operations are instantiated */
 	static const bool fByteCopy;
 };
+
+} // namespace Tahoe
+
+using namespace Tahoe;
 
 /*************************************************************************
 * Implementation

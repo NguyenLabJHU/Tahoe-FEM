@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.h,v 1.5 2002-06-25 14:17:06 sawimme Exp $ */
+/* $Id: FE_ASCIIT.h,v 1.5.2.1 2002-06-27 18:01:03 cjkimme Exp $ */
 /* created: sawimme (05/20/1999) */
 
 #ifndef _FE_ASCII_T_H_
@@ -11,6 +11,9 @@
 #include <fstream.h>
 
 /** text file output */
+
+namespace Tahoe {
+
 class FE_ASCIIT: public OutputBaseT
 {
 public:
@@ -68,4 +71,5 @@ private:
 	iArrayT fSideSetIntIDs;
 };
 
+} // namespace Tahoe 
 #endif // _FE_ASCII_T_H_
