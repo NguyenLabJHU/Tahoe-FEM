@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.31.2.2 2003-05-06 04:40:58 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.31.2.3 2003-05-06 22:14:04 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -234,13 +234,10 @@ void BridgingScaleT::InitInterpolation(const iArrayT& points_used,
 		
 					/* evaluate shape functions */
 					parent.EvaluateShapeFunctions(point_coords, Na);
-					//cout << "mapped_coords = " << mapped_coords << endl;
-					//cout << "weights = " << weights << endl;
 				}
 			}
 		}
 	}
-	//cout << "weights at end of initinterpolation = " << weights << endl; 
 }
 
 void BridgingScaleT::InterpolateField(const StringT& field, const PointInCellDataT& cell_data,
@@ -377,13 +374,10 @@ void BridgingScaleT::ProjectField(const StringT& field, const PointInCellDataT& 
 			
 				/* fetch interpolation weights */
 				int point_dex = global_to_local.Map(point);
-				//cout << "point_dex = " << point_dex << endl;
 				weights.RowAlias(point_dex, Na);
-				//cout << "shape =" << Na << endl;
 
 				/* source values of the point */
 				values.RowAlias(point, point_value);
-				//cout << "values = " << point_value << endl;
 			
 				/* rhs during projection - calculating part of w */
 				Nd.Outer(Na, point_value, 1.0, dMatrixT::kAccumulate);
@@ -397,7 +391,7 @@ void BridgingScaleT::ProjectField(const StringT& field, const PointInCellDataT& 
 				projection.Accumulate(j, cell_eq, Nd(j));
 		}
 	}
-	//cout << "projection1 = " << projection << endl;
+	
 //TEMP - write mass matrix to file
 #if 0
 ostream& out = ElementSupport().Output();
@@ -407,7 +401,7 @@ out << "\n residual =\n" << projection << endl;
 //TEMP
 
 	/* calculate projection - requires global matrix that supports 
-	 * multiple solves - projection2 = w here */
+	 * multiple solves - projection = w after operations within this loop */
 	dArrayT u_tmp(projection.MajorDim());
 	for (int i = 0; i < projection.MinorDim(); i++)
 	{
@@ -416,7 +410,6 @@ out << "\n residual =\n" << projection << endl;
 		projection.SetColumn(i, u_tmp);
 	}
 	u_tmp.Free();
-	//cout << "projection2 =" << projection << endl;
 
 	/* initialize return values */
 	fFineScale.Dimension(values);
@@ -448,17 +441,149 @@ out << "\n residual =\n" << projection << endl;
 				/* interpolate to point */
 				for (int k = 0; k < projection.MinorDim(); k++)
 				{
-					/* interpolate coarse scale to point */
+					/* interpolate coarse scale to point (gives Nw) */
 					fCoarseScale(point, k) = cell_projection.DotColumn(k, Na);
 
-					/* error = source - projection */
+					/* error = source - projection = q-Nw*/
 					fFineScale(point, k) = values(point, k) - fCoarseScale(point, k);
 				}
 			}
 		}
 	}
-	//cout << "values = " << values << endl;
-	//cout << "coarse scale = " << fCoarseScale << endl;
+}
+
+/* calculate the fine scale part of MD solution as well as total solution u - same as project Field
+ * except for those changes */
+void BridgingScaleT::BridgingFields(const StringT& field, const PointInCellDataT& cell_data,
+	const dArray2DT& values, const dArray2DT& values2, dArray2DT& fine_scale,
+	dArray2DT& projection, dArray2DT& totalu)
+{
+#pragma unused(field)
+
+	/* projected part of the mesh */
+	const iArrayT& cell_nodes = cell_data.CellNodes();
+	const iArray2DT& cell_connects = cell_data.CellConnectivities();
+
+	/* points in cell data */
+	const RaggedArray2DT<int>& point_in_cell = cell_data.PointInCell();
+	const dArray2DT& weights = cell_data.InterpolationWeights();
+	const InverseMapT& global_to_local = cell_data.GlobalToLocal();
+	
+	/* initialize return value */
+	projection.Dimension(cell_nodes.Length(), values.MinorDim());
+	projection = 0.0;
+	
+	/* loop over mesh */
+	int cell_dex = 0;
+	iArrayT cell_eq;
+	dArrayT Na, point_value;
+	dMatrixT Nd(cell_connects.MinorDim(), values.MinorDim());
+	for (int i = 0; i < point_in_cell.MajorDim(); i++)
+	{
+		int np = point_in_cell.MinorDim(i);
+		if (np > 0)
+		{
+			int* points = point_in_cell(i);
+			Nd = 0.0;
+			for (int j = 0; j < np; j++)
+			{
+				int point = points[j];
+			
+				/* fetch interpolation weights */
+				int point_dex = global_to_local.Map(point);
+				weights.RowAlias(point_dex, Na);
+
+				/* source values of the point */
+				values.RowAlias(point, point_value);
+			
+				/* rhs during projection - calculating part of w */
+				Nd.Outer(Na, point_value, 1.0, dMatrixT::kAccumulate);
+			}
+
+			/* equations of cell in projector */
+			cell_connects.RowAlias(cell_dex++, cell_eq);
+
+			/* assemble */
+			for (int j = 0; j < Nd.Cols(); j++)
+				projection.Accumulate(j, cell_eq, Nd(j));
+		}
+	}
+	
+//TEMP - write mass matrix to file
+#if 0
+ostream& out = ElementSupport().Output();
+out << "\n values =\n" << values << endl;
+out << "\n residual =\n" << projection << endl;
+#endif
+//TEMP
+
+	/* calculate projection - requires global matrix that supports 
+	 * multiple solves - projection = w after operations within this loop */
+	dArrayT u_tmp(projection.MajorDim());
+	for (int i = 0; i < projection.MinorDim(); i++)
+	{
+		projection.ColumnCopy(i, u_tmp);
+		fGlobalMass.Solve(u_tmp);
+		projection.SetColumn(i, u_tmp);
+	}
+	u_tmp.Free();
+
+	/* initialize return values */
+	fine_scale.Dimension(values);
+	fine_scale = 0.0;
+	totalu.Dimension(values);
+	totalu = 0.0;
+	fCoarseScale.Dimension(values);
+	fCoarseScale = 0.0;
+	dArray2DT coarse_scale;
+	dArray2DT coarse(cell_connects.MinorDim(), projection.MinorDim());
+	coarse_scale.Dimension(values);
+	coarse_scale = 0.0;
+
+	cell_dex = 0;
+	iArrayT cell_connect;
+	dArray2DT cell_projection(cell_connects.MinorDim(), projection.MinorDim());
+	for (int i = 0; i < point_in_cell.MajorDim(); i++)
+	{
+		int np = point_in_cell.MinorDim(i);
+		if (np > 0)
+		{
+			/* gather cell information */
+			cell_connects.RowAlias(cell_dex++, cell_connect);
+			cell_projection.RowCollect(cell_connect, projection);
+			coarse.RowCollect(cell_connect, values2);
+		
+			int* points = point_in_cell(i);
+			for (int j = 0; j < np; j++)
+			{
+				int point = points[j];
+			
+				/* fetch interpolation weights */
+				int point_dex = global_to_local.Map(point);
+				weights.RowAlias(point_dex, Na);
+
+				/* interpolate to point */
+				for (int k = 0; k < projection.MinorDim(); k++)
+				{
+					/* interpolate projected coarse scale to point (gives Nw) */
+					fCoarseScale(point, k) = cell_projection.DotColumn(k, Na);
+					
+					/* interpolate actual FEM solution to atoms (point) */
+					coarse_scale(point,k) = coarse.DotColumn(k,Na);
+
+					/* error = source - projection = q-Nw*/
+					fine_scale(point, k) = values(point, k) - fCoarseScale(point, k);
+					
+					/* compute total displacement u = FEM + fine scale */
+					totalu(point,k) = coarse_scale(point,k) + fine_scale(point,k);
+				}
+			}
+		}
+	}
+	cout << "totalu = " << totalu << endl;
+	cout << "fem displacements = " << values2 << endl;
+	cout << "fine scale = " << fine_scale << endl;
+	cout << "weights = " << weights << endl;
 }
 
 /* writing output */
