@@ -1,4 +1,4 @@
-/* $Id: ParameterT.cpp,v 1.7.2.2 2003-04-28 08:41:57 paklein Exp $ */
+/* $Id: ParameterT.cpp,v 1.7.2.3 2003-05-03 09:06:52 paklein Exp $ */
 #include "ParameterT.h"
 
 /* array behavior */
@@ -9,7 +9,7 @@ const bool ArrayT<ParameterT>::fByteCopy = false;
 using namespace Tahoe;
 
 /* constructors */
-ParameterT::ParameterT(int a, const StringT& name):
+ParameterT::ParameterT(int a, const char* name):
 	ValueT(a),
 	fName(name),
 	fDefault(NULL)
@@ -17,7 +17,7 @@ ParameterT::ParameterT(int a, const StringT& name):
 
 }
 
-ParameterT::ParameterT(double x, const StringT& name):
+ParameterT::ParameterT(double x, const char* name):
 	ValueT(x),
 	fName(name),
 	fDefault(NULL)
@@ -25,7 +25,7 @@ ParameterT::ParameterT(double x, const StringT& name):
 
 }
 
-ParameterT::ParameterT(const StringT& s, const StringT& name):
+ParameterT::ParameterT(const char* s, const char* name):
 	ValueT(s),
 	fName(name),
 	fDefault(NULL)
@@ -33,7 +33,7 @@ ParameterT::ParameterT(const StringT& s, const StringT& name):
 
 }
 
-ParameterT::ParameterT(bool b, const StringT& name):
+ParameterT::ParameterT(bool b, const char* name):
 	ValueT(b),
 	fName(name),
 	fDefault(NULL)
@@ -41,7 +41,7 @@ ParameterT::ParameterT(bool b, const StringT& name):
 
 }
 
-ParameterT::ParameterT(TypeT t, const StringT& name):
+ParameterT::ParameterT(TypeT t, const char* name):
 	ValueT(t),
 	fName(name),
 	fDefault(NULL)
@@ -67,10 +67,16 @@ ParameterT::~ParameterT(void) { delete fDefault; }
 /* add limit to parameter */
 void ParameterT::AddLimit(const LimitT& limit)
 {
+	const char caller[] = "ParameterT::AddLimit";
+
 	/* check for enumerations */
 	if (fType == Enumeration && limit.Bound() != LimitT::Only)
-		ExceptionT::GeneralFail("ParameterT::AddLimit", 
-			"limits on enumerations must be type \"only\"");
+		ExceptionT::GeneralFail(caller, 
+			"limits on enumerations for \"%s\" must be type \"only\"", fName.Pointer());
+
+	/* no limits for booleans */
+	if (fType == Boolean)
+		ExceptionT::GeneralFail(caller, "no limits for boolean \"%s\"", fName.Pointer());	
 
 	fLimits.Append(limit);
 }
@@ -80,6 +86,40 @@ void ParameterT::AddLimits(const ArrayT<LimitT>& limits)
 {
 	for (int i = 0; i < limits.Length(); i++)
 		AddLimit(limits[i]);
+}
+
+/* correct string-value pair */
+void ParameterT::FixEnumeration(ValueT& value) const
+{
+	const char caller[] = "ParameterT::FixEnumeration";
+	if (fType != Enumeration || value.Type() != Enumeration)
+		ExceptionT::TypeMismatch(caller);
+
+	/* run through limits */
+	for (int i = 0; i < fLimits.Length(); i++) {
+		const LimitT& limit = fLimits[i];
+		if (limit.InBound(value))
+		{
+			const StringT& value_s = value;
+
+			/* fix integer value */ 
+			if (value_s.StringLength() > 0) 
+			{
+				int limit_i = limit;
+				value = limit_i;
+			}
+			/* fix string value */
+			else 
+			{
+				const StringT& limit_s = limit;
+				value = limit_s;
+			}
+			return;
+		}
+	}
+			
+	/* error on passing through */
+	ExceptionT::GeneralFail(caller, "no matching value found");
 }
 
 /* assess if the value satisties all limits */
@@ -128,7 +168,7 @@ bool ParameterT::InBounds(const ValueT& value, bool verbose) const
 
 void ParameterT::SetDefault(int a)
 {
-	const char caller[] = "ParameterT::SetDefault";
+	const char caller[] = "ParameterT::SetDefault(int)";
 
 	switch (fType)
 	{
@@ -162,7 +202,8 @@ void ParameterT::SetDefault(int a)
 			}
 			
 			/* error on fall through */
-			ExceptionT::GeneralFail(caller, "value %d does not appear in enumeration");
+			ExceptionT::GeneralFail(caller, "value %d does not appear in enumeration \"%s\"",
+				fName.Pointer());
 			break;
 		}
 		case Double:
@@ -174,7 +215,7 @@ void ParameterT::SetDefault(int a)
 			break;
 		}
 		default:
-			ExceptionT::GeneralFail(caller, "type mismatch");	
+			ExceptionT::TypeMismatch(caller, "no conversion to %s for \"%s\"", TypeName(fType), fName.Pointer());
 	}
 }
 
@@ -188,7 +229,7 @@ void ParameterT::SetDefault(double x)
 			fDefault = new ValueT(x);
 	}
 	else
-		ExceptionT::GeneralFail("ParameterT::SetDefault(double)", "type mismatch");
+		ExceptionT::TypeMismatch("ParameterT::SetDefault(double)", "no conversion to %s for \"%s\"", TypeName(fType), fName.Pointer());
 }
 
 void ParameterT::SetDefault(bool b)
@@ -201,10 +242,10 @@ void ParameterT::SetDefault(bool b)
 			fDefault = new ValueT(b);
 	}
 	else
-		ExceptionT::GeneralFail("ParameterT::SetDefault(bool)", "type mismatch");
+		ExceptionT::TypeMismatch("ParameterT::SetDefault(bool)", "no conversion to %s for \"%s\"", TypeName(fType), fName.Pointer());
 }
 
-void ParameterT::SetDefault(const StringT& s)
+void ParameterT::SetDefault(const char* s)
 {
 	const char caller[] = "ParameterT::SetDefault(StringT)";
 
@@ -221,8 +262,7 @@ void ParameterT::SetDefault(const StringT& s)
 			
 		/* error */
 		if (!found)
-			ExceptionT::GeneralFail(caller, "value \"%s\" does not appear in enumeration",
-				s.Pointer());
+			ExceptionT::GeneralFail(caller, "value \"%s\" does not appear in enumeration \"%s\"", s, fName.Pointer());
 	}
 
 	/* assign */
@@ -239,7 +279,7 @@ void ParameterT::SetDefault(const StringT& s)
 		fDefault->FromString(s);
 	}
 	else
-		ExceptionT::GeneralFail(caller, "type mismatch");
+		ExceptionT::TypeMismatch(caller, "no conversion to %s for \"%s\"", TypeName(fType), fName.Pointer());
 }
 
 /* assignment operator */

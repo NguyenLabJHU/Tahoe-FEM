@@ -1,4 +1,4 @@
-/* $Id: ParameterT.h,v 1.8.2.2 2003-04-28 08:41:57 paklein Exp $ */
+/* $Id: ParameterT.h,v 1.8.2.3 2003-05-03 09:06:52 paklein Exp $ */
 #ifndef _PARAMETER_T_H_
 #define _PARAMETER_T_H_
 
@@ -18,13 +18,13 @@ public:
 
 	/** \name constructors */
 	/*@{*/
-	ParameterT(int a, const StringT& name);
-	ParameterT(double x, const StringT& name);
-	ParameterT(const StringT& s, const StringT& name);
-	ParameterT(bool b, const StringT& name);
+	ParameterT(int a, const char* name);
+	ParameterT(double x, const char* name);
+	ParameterT(const char* s, const char* name);
+	ParameterT(bool b, const char* name);
 
 	/** set type without assigning value */
-	ParameterT(TypeT t, const StringT& name);
+	ParameterT(TypeT t, const char* name);
 	
 	/** copy constructor */
 	ParameterT(const ParameterT& source);
@@ -46,10 +46,10 @@ public:
 
 	void AddLimit(int a, LimitT::BoundT bound);
 	void AddLimit(double x, LimitT::BoundT bound);
-	void AddLimit(const StringT& s, LimitT::BoundT bound);
+	void AddLimit(const char* s, LimitT::BoundT bound);
 
 	/** define a valid string-value pair */
-	void AddEnumeration(const StringT& name, int value);
+	void AddEnumeration(const char* name, int value);
 
 	/** add list of limits */
 	void AddLimits(const ArrayT<LimitT>& limits);
@@ -59,6 +59,11 @@ public:
 	
 	/** assess if the value satisties all limits */
 	bool InBounds(const ValueT& value, bool verbose = false) const;
+	
+	/** correct string-value pair. Fill in the missing string or value in
+	 * the string-value pair in the given parameter using the enumerations 
+	 * registered with ParameterT::AddEnumeration. */
+	void FixEnumeration(ValueT& value) const;
 	/*@}*/
 
 	/** \name set values with assignment operators 
@@ -67,7 +72,7 @@ public:
 	/*@{*/
 	ParameterT& operator=(int a);
 	ParameterT& operator=(double x);
-	ParameterT& operator=(const StringT& s);
+	ParameterT& operator=(const char* s);
 	ParameterT& operator=(bool b);
 	ParameterT& operator=(const ValueT& rhs);
 	ParameterT& operator=(const ParameterT& rhs);
@@ -75,7 +80,7 @@ public:
 
 	/** \name description */
 	/*@{*/
-	void SetDescription(const StringT& description) { fDescription = description; };
+	void SetDescription(const char* description) { fDescription = description; };
 	const StringT& Description(void) const { return fDescription; };
 	/*@}*/
 
@@ -83,7 +88,7 @@ public:
 	/*@{*/
 	void SetDefault(int a);
 	void SetDefault(double x);
-	void SetDefault(const StringT& s);
+	void SetDefault(const char* s);
 	void SetDefault(bool b);
 
 	/** return a pointer to the default value or NULL if there isn't one */
@@ -116,12 +121,12 @@ inline void ParameterT::AddLimit(double x, LimitT::BoundT bound)
 	LimitT limit(x, bound);
 	AddLimit(limit);
 }
-inline void ParameterT::AddLimit(const StringT& s, LimitT::BoundT bound)
+inline void ParameterT::AddLimit(const char* s, LimitT::BoundT bound)
 {
 	LimitT limit(s, bound);
 	AddLimit(limit);
 }
-inline void ParameterT::AddEnumeration(const StringT& name, int value)
+inline void ParameterT::AddEnumeration(const char* name, int value)
 {
 	LimitT limit(name, value);
 	AddLimit(limit);
@@ -135,7 +140,7 @@ inline ParameterT& ParameterT::operator=(double x) {
 	ValueT::operator=(x); 
 	return *this;
 }
-inline ParameterT& ParameterT::operator=(const StringT& s) { 
+inline ParameterT& ParameterT::operator=(const char* s) { 
 	ValueT::operator=(s); 
 	return *this;
 }
