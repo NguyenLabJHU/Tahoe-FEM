@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.h,v 1.5 2002-02-25 17:21:12 paklein Exp $ */
+/* $Id: dMatrixEXT.h,v 1.6 2002-02-26 01:46:19 raregue Exp $ */
 /* created: paklein (03/06/1998) */
 
 #ifndef _DMATRIXEX_T_H_
@@ -10,6 +10,7 @@
 /* direct members */
 #include "dArrayT.h"
 #include "iArrayT.h"
+#include "dTensor4DT.h"
 
 /** interface for dMatrixT plus special matrix functions */
 class dMatrixEXT: public dMatrixT
@@ -39,10 +40,12 @@ public:
 	/* returns eigenvalues of a general matrix by first putting it in 
 	 * Hessian form */
 	void eigvalfinder (dMatrixEXT& matrix, dArrayT& realev, dArrayT& imev);
-        void eigenvalue3x3(dMatrixEXT& J, dArrayT& reroot, dArrayT& imroot);
+    void eigenvalue3x3(dMatrixEXT& J, dArrayT& reroot, dArrayT& imroot);
 	void eigenvector3x3(dMatrixEXT& J, double value, int numvector,  dArrayT& vector, dArrayT& vector2, dArrayT& vector3);
-        /*forms acoustic tensor from rank 4 tangent modulus, normal */
-	void formacoustictensor(dMatrixEXT& A, double C [3] [3] [3] [3], dArrayT& normal);
+	/*forms acoustic tensor from rank 4 tangent modulus, normal */
+	//void formacoustictensor(dMatrixEXT& A, double C [3] [3] [3] [3], dArrayT& normal);
+	void formacoustictensor(dMatrixEXT& A, dTensor4DT& C, dArrayT& normal);
+
 
 	/** generate singular value decomposition of *this = U*W*V^T. 
 	 * \param U return matrix: [n_rows] x [n_cols]
