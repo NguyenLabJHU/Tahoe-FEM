@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* $Id: main.cpp,v 1.2 2001-02-22 23:21:36 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include <iostream.h>
@@ -7,8 +7,13 @@
 #include "Environment.h"
 #include "ExceptionCodes.h"
 
-#if defined(__MWERKS__) && __option(profile)
+#ifdef __MWERKS__
+#if __option(profile)
 #include <profiler.h>
+#endif
+#ifdef macintosh
+extern "C" int ccommand(char ***arg);
+#endif
 #endif
 
 #ifdef __MPI__
@@ -44,7 +49,6 @@ void main(int argc, char* argv[])
 
 static void StartUp(int* argc, char*** argv)
 {
-
 #ifdef __MPI__
 #ifdef __MWERKS__
 	cout << " Initializing MPI..." << endl;
@@ -72,9 +76,9 @@ static void StartUp(int* argc, char*** argv)
 		cerr = console;
 	}
 #endif /* __MACOS__ */
-#else
-#pragma unused(argc)
-#pragma unused(argv)
+#elif defined(__MWERKS__) && defined (macintosh)
+	/* get command-line arguments - MacOS no MPI */
+	*argc = ccommand(argv);
 #endif /* __MPI__ */
 
 #ifndef _MACOS_
