@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.h,v 1.7 2004-07-22 08:20:19 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.h,v 1.8 2005-03-11 20:36:48 paklein Exp $ */
 #ifndef _MESHFREE_BRIDGING_SCALE_T_H_
 #define _MESHFREE_BRIDGING_SCALE_T_H_
 
@@ -56,6 +56,20 @@ public:
 	/** return list of projected nodes */
 	virtual void CollectProjectedNodes(const PointInCellDataT& cell_data, iArrayT& nodes) const;
 	/*@}*/
+
+	/** write projection-interpolation matrix from projection_data into cell_data
+	 * \param cell_data result written into PointInCellDataT::fPointToPoint
+	 * \param projection_data data initialized such that PointInCellDataT::fPointToNode contains
+	 *        the projection weights, while PointInCellDataT::fInterpolationWeights containts
+	 *        weights for interpolating from the 
+	 * \param projection_source list of points acting as source for the projection
+	 * \param projection_dest list of points onto which the projection is computed
+	 */
+	virtual void ComputeProjectionInterpolation(
+		const PointInCellDataT& cell_data,
+		const PointInCellDataT& projection_data,
+		const iArrayT& projection_source,
+		const iArrayT& projection_dest) const;
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
