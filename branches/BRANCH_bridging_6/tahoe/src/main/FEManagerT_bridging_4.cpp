@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_4.cpp,v 1.1.2.2 2004-05-24 06:42:01 paklein Exp $ */
+/* $Id: FEManagerT_bridging_4.cpp,v 1.1.2.3 2004-05-24 07:54:02 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -226,12 +226,9 @@ void FEManagerT_bridging::CorrectOverlap_4(const RaggedArray2DT<int>& point_neig
 		
 		/* compute residual - add Cauchy-Born contribution */
 		f_a = sum_R_N;
-#if 0
-//you are here!!!!!!
-		Compute_df_dp_4(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map, 
-			bond_densities_i_eq, inv_connects_i, inv_equations_i, inv_equations_i,
+		Compute_df_dp_4(shell_bonds, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map, 
+			bond_densities_i_eq, inv_connects_i, inv_equations_i,
 			p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
-#endif
 		if (fPrintInput) {
 			fMainOut << "residual =\n" << df_dp_i << endl;
 		}
@@ -273,11 +270,9 @@ void FEManagerT_bridging::CorrectOverlap_4(const RaggedArray2DT<int>& point_neig
 
 				/* recompute residual */			
 				f_a = sum_R_N;
-#if 0
-				Compute_df_dp(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map,
-					bond_densities_i_eq, inv_connects_i, inv_equations_i, inv_equations_i,
+				Compute_df_dp_4(shell_bonds, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map,
+					bond_densities_i_eq, inv_connects_i, inv_equations_i,
 					p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
-#endif			
 				error = sqrt(dArrayT::Dot(df_dp_i,df_dp_i));
 				cout << "iteration = " << iter 
 				     << "\n e/e_0 = " << error/error_0 
@@ -558,7 +553,7 @@ void FEManagerT_bridging::ComputeSum_signR_Na_4(double R_i, const RaggedArray2DT
 void FEManagerT_bridging::Compute_df_dp_4(const dArray2DT& shell_bonds, double V_0, const ArrayT<char>& cell_type, 
 	const InverseMapT& overlap_cell_map, const ArrayT<int>& overlap_node, const InverseMapT& overlap_node_map,
 	const iArray2DT& cell_eq_active_i,
-	const RaggedArray2DT<int>& inv_connects_i, const RaggedArray2DT<int>& inv_equations_all_i, const RaggedArray2DT<int>& inv_equations_active_i,
+	const RaggedArray2DT<int>& inv_connects_i, const RaggedArray2DT<int>& inv_equations_i,
 	const dArray2DT& rho, dArray2DT& f_a, double smoothing, double k2, dArray2DT& df_dp, GlobalMatrixT& ddf_dpdp) const
 {
 	const char caller[] = "FEManagerT_bridging::Compute_df_dp_4";
@@ -571,7 +566,8 @@ void FEManagerT_bridging::Compute_df_dp_4(const dArray2DT& shell_bonds, double V
 	NodeManagerT* node_manager = NodeManager();
 	int nsd = node_manager->NumSD();
 	int nen = coarse->NumElementNodes();
-	int nip = rho.MinorDim();
+	int nsh = shell_bonds.MajorDim();
+	int nip = rho.MinorDim()/nsh;
 
 	/* element coordinates */
 	LocalArrayT element_coords(LocalArrayT::kInitCoords, nen, nsd);
@@ -626,7 +622,7 @@ void FEManagerT_bridging::Compute_df_dp_4(const dArray2DT& shell_bonds, double V
 					if (overlap_node_index > -1) /* node is in overlap */ {
 				
 						/* loop over shell bonds */
-						for (int b = 0; b < shell_bonds.MajorDim(); b++)
+						for (int b = 0; b < nsh; b++)
 						{
 							/* bond */
 							shell_bonds.RowAlias(b, R_i);
@@ -709,23 +705,27 @@ void FEManagerT_bridging::Compute_df_dp_4(const dArray2DT& shell_bonds, double V
 			}
 
 			/* regularization contribution to force */
-			df_dp.RowAlias(overlap_cell_index, element_force);
-			rho.RowAlias(overlap_cell_index, element_rho);		
-			ATA_int.Multx(element_rho, element_force, 1.0, dMatrixT::kAccumulate);
+			for (int b = 0; b < nsh; b++) /* loop over bonds */ {
+				element_force.Alias(nip, df_dp(overlap_cell_index) + b*nip);
+				element_rho.Alias(nip, rho(overlap_cell_index) + b*nip);
+				ATA_int.Multx(element_rho, element_force, 1.0, dMatrixT::kAccumulate);
+			}
 
 			/* penalty regularization */
 			ATA_int += ddp_i_dpdp;
 		
 			/* assemble stiffness contribution */
-			cell_eq_active_i.RowAlias(overlap_cell_index, eqnos);
-			ddf_dpdp.Assemble(ATA_int, eqnos);
+			for (int b = 0; b < nsh; b++) /* loop over bonds */ {
+				eqnos.Alias(nip, cell_eq_active_i(overlap_cell_index) + b*nip);
+				ddf_dpdp.Assemble(ATA_int, eqnos);
+			}
 		}
 
 	/* work space */
-	dArray2DT df_a_dp_all; /* [nnd] x [nsd*nip] */
-	nVariArray2DT<double> df_a_dp_man(0, df_a_dp_all, nsd*nip);
+	dArray2DT df_a_dp_all; /* [nnd] x [nsd*(nsh*nip)] */
+	nVariArray2DT<double> df_a_dp_man(0, df_a_dp_all, nsd*nsh*nip);
 	dMatrixT df_a_dp;
-	dArrayT dp(nip);
+	dArrayT dp(nsh*nip);
 	ElementMatrixT df_a_dp_2(ElementMatrixT::kSymmetric);
 	nVariMatrixT<double> df_a_dp_2_man(0, df_a_dp_2);
 
@@ -748,7 +748,7 @@ void FEManagerT_bridging::Compute_df_dp_4(const dArray2DT& shell_bonds, double V
 		for (int e = 0; e < node_elements.Length(); e++) {
 
 			int element = node_elements[e];
-			df_a_dp.Alias(nsd, nip, df_a_dp_all(e));
+			df_a_dp.Alias(nsd, inv_connects_i.MinorDim(i)/nsd, df_a_dp_all(e));
 
 			/* index within list of overlap cells */
 			int overlap_cell_index = overlap_cell_map.Map(element);
@@ -783,23 +783,32 @@ void FEManagerT_bridging::Compute_df_dp_4(const dArray2DT& shell_bonds, double V
 				/* get shape function gradients */
 				shapes.GradNa(grad_Na);
 
-				/* inner product of bond and shape function gradient */
-				double R_dot_dN = grad_Na.DotCol(local_node, R_i);
-				
-				/* assemble */
-				df_a_dp(e, ip) += R_dot_dN*jw_by_V;
+				/* loop over shell bonds */
+				for (int b = 0; b < nsh; b++)
+				{
+					/* bond */
+					shell_bonds.RowAlias(b, R_i);
+
+					/* inner product of bond and shape function gradient */
+					double R_dot_dN = grad_Na.DotCol(local_node, R_i);
+
+#pragma message("check this")
+					/* assemble */
+					for (int l = 0; l < nsd; l++)
+						df_a_dp(l, b*nip + ip) += R_i[l]*R_dot_dN*jw_by_V;
+				}
 			}		
 		}
 
 		/* assemble stiffness */
-		df_a_dp_2_man.SetDimensions(inv_equations_active_i.MinorDim(i));
+		df_a_dp_2_man.SetDimensions(inv_equations_i.MinorDim(i));
 		df_a_dp_2.MultATB(df_a_dp, df_a_dp);
-		inv_equations_active_i.RowAlias(i, eqnos);
+		inv_equations_i.RowAlias(i, eqnos);
 		ddf_dpdp.Assemble(df_a_dp_2, eqnos);
 		
 		/* force contribution */
 		df_a_dp.Multx(f_a(node_index), dp.Pointer());
-		inv_equations_all_i.RowAlias(i, eqnos);
+		inv_equations_i.RowAlias(i, eqnos);
 		for (int j = 0; j < eqnos.Length(); j++) {
 			df_dp[eqnos[j]-1] += dp[j];
 		}
