@@ -1,12 +1,12 @@
-/* $Id: gen_lc.c,v 1.1 2004-12-12 23:27:33 paklein Exp $ */
+/* $Id: gen_lc.c,v 1.2 2004-12-13 00:19:35 paklein Exp $ */
 /* gen_lc.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
 */
 
 /* debugging */
-#undef __DO_DEBUG__
-/* #define __DO_DEBUG__ 1 */
+/* #undef __DO_DEBUG__ */
+#define __DO_DEBUG__ 1
 
 #include "pspases_f2c.h"
 
@@ -51,10 +51,15 @@
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: gen_lc.c,v 1.1 2004-12-12 23:27:33 paklein Exp $ +/ */
+/* /+ $Id: gen_lc.c,v 1.2 2004-12-13 00:19:35 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 /*     recursive */
 /*<    >*/
+
+static integer my_max(integer a, integer b) {
+	return (a > b) ? a : b;
+};
+
 /* Subroutine */ int gen_lc_(integer *root, integer *lc, integer *linds, 
 	integer *lptrs, integer *tinds, integer *tptrs, integer *sup, integer 
 	*iptrs, integer *lcsize, integer *wa1, integer *wa2, integer *lctr, 
@@ -64,10 +69,10 @@
     integer i__1, i__2, i__3;
 
     /* Local variables */
-    static integer maxwstri, i__, j, ln, it, kid, jbot, kbot, kptr;
+    integer maxwstri, i__, j, ln, it, kid, jbot, kbot, kptr;
     extern /* Subroutine */ int gen_l_(integer *, integer *, integer *, 
 	    integer *, integer *, integer *);
-    static integer itbot, itptr, kwstri;
+    integer itbot, itptr, kwstri;
 
 /*<       integer root,lcsize,lctr,lc(*),linds(*),lptrs(3,0:*),sup(*) >*/
 /*<       integer tinds(*),tptrs(3,0:*),iptrs(2,0:*), wsmy, wstot, wstri >*/
@@ -113,7 +118,7 @@
 /*<         j = lptrs(2,kbot) >*/
 	j = lptrs[kbot * 3 + 2];
 /*<         wsmy = max(wsmy,j) >*/
-	*wsmy = max(*wsmy,j);
+	*wsmy = my_max(*wsmy,j);
 /*<         wstri = wstri + j >*/
 	*wstri += j;
 /*<       end do >*/
@@ -148,7 +153,7 @@
 		tptrs[1], &sup[1], &iptrs[1], lcsize, &wa1[itptr], &wa2[itptr]
 		, lctr, &wa1[i__], &wa2[i__], &kwstri);
 /*<         maxwstri = max(maxwstri,kwstri) >*/
-	maxwstri = max(maxwstri,kwstri);
+	maxwstri = my_max(maxwstri,kwstri);
 /*<       end do >*/
     }
 /*<       wstri = wstri + maxwstri >*/
@@ -185,7 +190,7 @@
 /*<        end do >*/
 	}
 /*<        wsmy = max(wsmy, wa1(0)) >*/
-	*wsmy = max(*wsmy,wa1[0]);
+	*wsmy = my_max(*wsmy,wa1[0]);
 /*<        wstot = wa2(0) >*/
 	*wstot = wa2[0];
 /*<        do i = 1, itptr - 1 >*/
@@ -194,7 +199,7 @@
 /*<         wstot = max(wstot, wa1(i)*wa1(i)+wa2(i)) >*/
 /* Computing MAX */
 	    i__2 = *wstot, i__3 = wa1[i__] * wa1[i__] + wa2[i__];
-	    *wstot = max(i__2,i__3);
+	    *wstot = my_max(i__2,i__3);
 /*<        end do >*/
 	}
 /*<       end if >*/
@@ -211,7 +216,7 @@
 /* Subroutine */ int gen_l_(integer *par, integer *kid, integer *ln, integer 
 	*lc, integer *linds, integer *lptrs)
 {
-    static integer i__, j, k, kl, ilim, jlim;
+    integer i__, j, k, kl, ilim, jlim;
 
 /*<       integer par,kid,ln,lc(0:*),linds(*),lptrs(3,0:*) >*/
 /*<       i = lptrs(3,par) >*/
