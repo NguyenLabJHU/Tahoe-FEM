@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.9 2002-03-25 19:55:32 paklein Exp $
+# $Id: makefile.template,v 1.10 2002-04-02 23:40:38 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -118,6 +118,14 @@ TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 #AX_INC    = -I$(ACCESS)/inc
 #AX_CFLAGS = $(AX_INC) -D__ACCESS__
 #AX_LFLAGS = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
+
+#### NOX nonlinear solver
+#NOX_DIR      = $(HOME_DIR)/../nox
+#NOX_INC      = -I$(NOX_DIR)/include -I$(NOX_DIR)/include/nox
+#NOX_CFLAGS   = $(NOX_INC) -D__NOX__
+#NOX_LIB_NAME = nox
+#NOX_LIB      = $(NOX_DIR)/lib/lib$(NOX_LIB_NAME).a
+#NOX_LFLAGS   = -L$(NOX_DIR)/lib -l$(NOX_LIB_NAME)
 ############################### build options ###########################
 
 # extra macros for specific modules
