@@ -1,11 +1,5 @@
-/* $Id: NL_E_Mat2DT.h,v 1.3 2002-07-02 19:56:22 cjkimme Exp $ */
-/* created: paklein (06/13/1997)                                          */
-/* Base class for materials with 2D nonlinear elastic behavior.           */
-/* (See notes in NL_E_MatT.h)                                             */
-/* Note: The 2D deformation constraint is assumed to be prescribed        */
-/* by the derived material classes, ie. it is not specified               */
-/* by an input file parameter.                                            */
-
+/* $Id: NL_E_Mat2DT.h,v 1.4 2002-11-14 17:06:39 paklein Exp $ */
+/* created: paklein (06/13/1997) */
 #ifndef _NL_E_MAT_2D_T_H_
 #define _NL_E_MAT_2D_T_H_
 
@@ -13,15 +7,20 @@
 #include "NL_E_MatT.h"
 #include "Material2DT.h"
 
-
 namespace Tahoe {
 
+/** base class for materials with 2D nonlinear elastic behavior.
+ * See documentation for NL_E_MatT.
+ * \note The 2D deformation constraint is assumed to be prescribed
+ * by the derived material classes, ie. it is not specified
+ * by an input file parameter.
+ */
 class NL_E_Mat2DT: public NL_E_MatT, public Material2DT
 {
 public:
 
 	/* constructor */
-	NL_E_Mat2DT(ifstreamT& in, const FiniteStrainT& element, ConstraintOptionT constraint);
+	NL_E_Mat2DT(ifstreamT& in, const FDMatSupportT& support, ConstraintOptionT constraint);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

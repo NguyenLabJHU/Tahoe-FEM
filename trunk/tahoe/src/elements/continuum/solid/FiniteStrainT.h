@@ -1,5 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.13 2002-10-20 22:48:23 paklein Exp $ */
-
+/* $Id: FiniteStrainT.h,v 1.14 2002-11-14 17:05:51 paklein Exp $ */
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
 
@@ -7,6 +6,9 @@
 #include "ElasticT.h"
 
 namespace Tahoe {
+
+/* forward declarations */
+class FDMatSupportT;
 
 /** Interface for linear strain deformation and field gradients */
 class FiniteStrainT: public ElasticT
@@ -16,8 +18,16 @@ class FiniteStrainT: public ElasticT
 	/** constructor */
 	FiniteStrainT(const ElementSupportT& support, const FieldT& field);
 
+	/** destructor */
+	~FiniteStrainT(void);
+
 	/** initialization. called immediately after constructor */
 	virtual void Initialize(void);
+
+	/** TEMPORARY. Need this extra call here to set the source for the iteration number
+	 * in SmallStrainT::fSSMatSupport. The solvers are not constructed when the material
+	 * support is initialized */
+	virtual void InitialCondition(void);
 
 	/** \name deformation gradients */
 	/*@{*/
@@ -51,9 +61,16 @@ class FiniteStrainT: public ElasticT
 
   protected:
 
-	/** return a pointer to a new material list.
+	/** construct a new material support and return a pointer. Recipient is responsible for
+	 * for freeing the pointer.
+	 * \param p an existing MaterialSupportT to be initialized. If NULL, allocate
+	 *        a new MaterialSupportT and initialize it. */
+	virtual MaterialSupportT* NewMaterialSupport(MaterialSupportT* p = NULL) const;
+
+	/** return a pointer to a new material list. Recipient is responsible for
+	 * for freeing the pointer.
 	 * \param size number of materials in the list */
-	virtual MaterialListT* NewMaterialList(int size) const;
+	virtual MaterialListT* NewMaterialList(int size);
 
 	/** construct list of materials from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);
@@ -93,6 +110,10 @@ class FiniteStrainT: public ElasticT
 	ShapeFunctionT* fCurrShapes;
   
   private:
+  
+  	/** the material support used to construct materials lists. This pointer
+  	 * is only set the first time FiniteStrainT::NewMaterialList is called. */
+	FDMatSupportT* fFDMatSupport;
   
 	/** offset to material needs */
 	int fNeedsOffset; //NOTE - better to have this or a separate array?

@@ -1,10 +1,11 @@
+/* $Id: LocalJ2SSNonlinHard.cpp,v 1.6 2002-11-14 17:06:29 paklein Exp $ */
 #include "LocalJ2SSNonlinHard.h"
 
 #include "iArrayT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
 #include "ifstreamT.h"
-#include "ContinuumElementT.h"
+#include "SSMatSupportT.h"
 
 using namespace Tahoe;
 
@@ -25,13 +26,12 @@ static const char* Labels[kNumOutput] = {
         "IsoHard"};  // isotropic hardening
 
 /* constructor */
-LocalJ2SSNonlinHard::LocalJ2SSNonlinHard(ifstreamT& in, const SmallStrainT& element):
-	SSStructMatT (in, element),
+LocalJ2SSNonlinHard::LocalJ2SSNonlinHard(ifstreamT& in, const SSMatSupportT& support):
+	SSStructMatT (in, support),
 	IsotropicT   (in),
 	HookeanMatT  (kNSD),
-	fStatus      (ContinuumElement().RunState()),
-        fNumIP       (NumIP()),
-        fmu          (Mu()),
+	fNumIP       (NumIP()),
+	fmu          (Mu()),
 
 	/* return values */
 	fElasticStrain (kNSD),
@@ -42,7 +42,7 @@ LocalJ2SSNonlinHard::LocalJ2SSNonlinHard(ifstreamT& in, const SmallStrainT& elem
 	/* general workspaces */
 	fRelStress (kNSD),
 	fsymmatx1  (kNSD),
-        fmatx1     (kNSD,kNSD),
+	fmatx1     (kNSD,kNSD),
 	fmatx2     (kNSD,kNSD),
 	fmatx3     (kNSD,kNSD),
 	ftnsr1     (dSymMatrixT::NumValues(kNSD))
@@ -166,9 +166,9 @@ const dSymMatrixT& LocalJ2SSNonlinHard::s_ij(void)
 	int fCurrIP = CurrIP();
 	ElementCardT& element = CurrentElement();
 
-	int iteration = ContinuumElement().IterationNumber();
+	int iteration = fSSMatSupport.IterationNumber();
 
-	if (fStatus == GlobalT::kFormRHS)
+	if (fSSMatSupport.RunState() == GlobalT::kFormRHS)
 	{
 	        if (iteration > -1)
 	                /* solve state at current integration point */

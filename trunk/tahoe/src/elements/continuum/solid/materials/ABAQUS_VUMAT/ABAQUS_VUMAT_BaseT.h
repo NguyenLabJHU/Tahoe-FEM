@@ -1,5 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.9 2002-10-05 20:04:10 paklein Exp $ */
-
+/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.10 2002-11-14 17:05:59 paklein Exp $ */
 #ifndef _ABAQUS_VUMAT_BASE_T_H_
 #define _ABAQUS_VUMAT_BASE_T_H_
 
@@ -34,7 +33,7 @@ class ABAQUS_VUMAT_BaseT: public FDStructMatT, public IsotropicT
 public:
 
 	/* constructor */
-	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FiniteStrainT& element);
+	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FDMatSupportT& support);
 
 	/* destructor */
 	~ABAQUS_VUMAT_BaseT(void);
@@ -128,11 +127,6 @@ private:
 	void Skip_ABAQUS_Comments(ifstreamT& in);
 	void Read_ABAQUS_Word(ifstreamT& in, StringT& word, bool to_upper = true) const;
 	
-protected:
-
-	/* execution stage */
-	const GlobalT::StateT& fRunState;
-
 private:
 
 	//debugging

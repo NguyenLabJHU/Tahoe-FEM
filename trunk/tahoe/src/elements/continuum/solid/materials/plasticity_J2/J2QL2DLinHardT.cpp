@@ -1,13 +1,5 @@
-/* $Id: J2QL2DLinHardT.cpp,v 1.10 2002-10-20 22:49:05 paklein Exp $ */
-/* created: paklein (06/29/1997)                                          */
-/* Interface for a elastoplastic material that is linearly                */
-/* isotropically elastic subject to the Huber-von Mises yield             */
-/* condition as fYield with kinematic/isotropic hardening laws            */
-/* given by:                                                              */
-/* 		H(a) = (1 - ftheta) fH_bar a                                         */
-/* K(a) = fYield + ftheta fH_bar a                                        */
-/* 		where a is the internal hardening variable                           */
-
+/* $Id: J2QL2DLinHardT.cpp,v 1.11 2002-11-14 17:06:25 paklein Exp $ */
+/* created: paklein (06/29/1997) */
 #include "J2QL2DLinHardT.h"
 
 #include <iostream.h>
@@ -19,10 +11,9 @@
 #include "ElementCardT.h"
 #include "StringT.h"
 
-/* flags */
-
 using namespace Tahoe;
 
+/* flags */
 const int kNumFlags = 2;
 const int kEP   = 0;
 const int kInit = 1;
@@ -63,8 +54,8 @@ static const char* Labels[kNumOutput] = {
 	    "s_min"}; // min in-plane principal stress
 
 /* constructor */
-J2QL2DLinHardT::J2QL2DLinHardT(ifstreamT& in, const FiniteStrainT& element):
-	QuadLog2D(in, element),
+J2QL2DLinHardT::J2QL2DLinHardT(ifstreamT& in, const FDMatSupportT& support):
+	QuadLog2D(in, support),
 	J2PrimitiveT(in),
 	fb_elastic(kNSD),
 	fEPModuli(kNSD),

@@ -1,6 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.2 2002-10-20 22:48:27 paklein Exp $ */
-/* created: paklein (10/22/1996) */
-
+/* $Id: ParticleT.cpp,v 1.3 2002-11-14 17:05:56 paklein Exp $ */
 #include "ParticleT.h"
 
 #include <math.h>
@@ -26,9 +24,6 @@ ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 /* initialization */
 void ParticleT::Initialize(void)
 {
-/* allocates space and reads connectivity data */
-void ElementBaseT::Initialize(void)
-{
 	/* set console variables */
 	int index = fSupport.ElementGroupNumber(this) + 1;
 	StringT name;
@@ -50,8 +45,7 @@ void ElementBaseT::Initialize(void)
 	int neq = NumElementNodes()*NumDOF();
 	fLHS.Allocate(neq);	
 	fRHS.Allocate(neq);
-}
-	
+
 	/* constant matrix needed to calculate stiffness */
 	fOneOne.Dimension(fLHS);
 	dMatrixT one(NumDOF());
@@ -82,25 +76,6 @@ void ParticleT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 #pragma unused(field)
 #pragma unused(node)
 #pragma unused(force)
-}
-
-/* returns the energy as defined by the derived class types */
-double ParticleT::InternalEnergy(void)
-{
-	double energy = 0.0;
-
-	Top();
-	while (NextElement())
-	{
-		/* local arrays */
-		SetLocalX(fLocInitCoords);
-		SetLocalU(fLocDisp);
-		
-		/* form element stiffness */
-		energy += ElementEnergy();
-	}
-
-	return(energy);
 }
 
 /* writing output */
@@ -156,6 +131,17 @@ void ParticleT::SendOutput(int kincode)
 /***********************************************************************
 * Protected
 ***********************************************************************/
+
+/* return true if connectivities are changing */
+bool ParticleT::ChangingGeometry(void) const
+{
+	/* assume that for a single processor calculation, the geometry
+	 * is not changing */
+	if (ElementSupport.Size() > 1)
+		return true;
+	else
+		return false;
+}
 
 /* construct the element stiffness matrix */
 void ParticleT::LHSDriver(void)

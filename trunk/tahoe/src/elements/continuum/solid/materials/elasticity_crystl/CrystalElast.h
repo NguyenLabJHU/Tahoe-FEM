@@ -1,7 +1,4 @@
-/* $Id: CrystalElast.h,v 1.5 2002-07-02 19:56:03 cjkimme Exp $ */
-/*
-  File: CrystalElast.h
-*/
+/* $Id: CrystalElast.h,v 1.6 2002-11-14 17:06:19 paklein Exp $ */
 #ifndef _CRYSTAL_ELAST_H_
 #define _CRYSTAL_ELAST_H_
 
@@ -17,7 +14,6 @@
 
 #include "LocalArrayT.h"
 
-
 namespace Tahoe {
 
 class CrystalElastLat;
@@ -29,7 +25,7 @@ class CrystalElast : public FDHookeanMatT
 {
  public:
   // constructor
-  CrystalElast(ifstreamT& in, const FiniteStrainT& element);
+  CrystalElast(ifstreamT& in, const FDMatSupportT& support);
 
   // destructor
   virtual ~CrystalElast();
@@ -81,9 +77,6 @@ class CrystalElast : public FDHookeanMatT
   // initial and final temperature
   double fInit_Temp_DegC;
   double fTemp_DegC;
-
-  // status flag
-  const GlobalT::StateT& fStatus;
 
   // stream for crystal input data
   ifstreamT fInput;

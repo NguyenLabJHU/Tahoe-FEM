@@ -1,15 +1,5 @@
-/* $Id: J2IsoVIB3DLinHardT.cpp,v 1.6 2002-10-20 22:48:56 paklein Exp $ */
-/* created: paklein (10/12/1998)                                          */
-/* VIB plus principal stretch elasticity                                  */
-/* Interface for a elastoplastic material that is linearly                */
-/* isotropically elastic subject to the Huber-von Mises yield             */
-/* condition as fYield with kinematic/isotropic hardening laws            */
-/* given by:                                                              */
-/* 		H(a) = (1 - ftheta) fH_bar a                                         */
-/* K(a) = fYield + ftheta fH_bar a                                        */
-/* 		where a is the internal hardening variable                           */
-/* 	Note: all calculations are peformed in 3D.                            */
-
+/* $Id: J2IsoVIB3DLinHardT.cpp,v 1.7 2002-11-14 17:06:17 paklein Exp $ */
+/* created: paklein (10/12/1998) */
 #include "J2IsoVIB3DLinHardT.h"
 
 #include <iostream.h>
@@ -21,10 +11,9 @@
 #include "StringT.h"
 #include "C1FunctionT.h"
 
-/* flags */
-
 using namespace Tahoe;
 
+/* flags */
 const int kNumFlags = 2;
 const int kEP   = 0;
 const int kInit = 1;
@@ -60,8 +49,8 @@ const int kNumOutput = 4;
 static const char* Labels[kNumOutput] = {"s_max", "s_min", "VM stress", "alpha"};
 
 /* constructor */
-J2IsoVIB3DLinHardT::J2IsoVIB3DLinHardT(ifstreamT& in, const FiniteStrainT& element):
-	IsoVIB3D(in, element),
+J2IsoVIB3DLinHardT::J2IsoVIB3DLinHardT(ifstreamT& in, const FDMatSupportT& support):
+	IsoVIB3D(in, support),
 	J2PrimitiveT(in),
 
 //TEMP

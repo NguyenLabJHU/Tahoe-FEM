@@ -1,5 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.9 2002-10-20 22:48:23 paklein Exp $ */
-
+/* $Id: SmallStrainT.h,v 1.10 2002-11-14 17:05:51 paklein Exp $ */
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
 
@@ -7,6 +6,9 @@
 #include "ElasticT.h"
 
 namespace Tahoe {
+
+/* forward declarations */
+class SSMatSupportT;
 
 /** Interface for linear strain deformation and field gradients */
 class SmallStrainT: public ElasticT
@@ -16,18 +18,40 @@ class SmallStrainT: public ElasticT
 	/** constructor */
 	SmallStrainT(const ElementSupportT& support, const FieldT& field);
 
+	/** destructor */
+	~SmallStrainT(void);
+
 	/** initialization. called immediately after constructor */
 	virtual void Initialize(void);
 
-	/** total strain */
+	/** \name total strain */
+	/*@{*/
 	const dSymMatrixT& LinearStrain(void) const;
 	const dSymMatrixT& LinearStrain(int ip) const;
+	/*@}*/
 
 	/** total strain from the end of the previous time step */
+	/*@{*/
 	const dSymMatrixT& LinearStrain_last(void) const;
 	const dSymMatrixT& LinearStrain_last(int ip) const;
+	/*@}*/
+
+	/** TEMPORARY. Need this extra call here to set the source for the iteration number
+	 * in SmallStrainT::fSSMatSupport. The solvers are not constructed when the material
+	 * support is initialized */
+	virtual void InitialCondition(void);
 
   protected:
+
+	/** construct a new material support and return a pointer. Recipient is responsible for
+	 * for freeing the pointer.
+	 * \param p an existing MaterialSupportT to be initialized. If NULL, allocate
+	 *        a new MaterialSupportT and initialize it. */
+	virtual MaterialSupportT* NewMaterialSupport(MaterialSupportT* p = NULL) const;
+
+	/** return a pointer to a new material list. Recipient is responsible for
+	 * for freeing the pointer. */
+	virtual MaterialListT* NewMaterialList(int size);
 
 	/** construct list of materials from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);
@@ -58,9 +82,11 @@ class SmallStrainT: public ElasticT
 	/** offset to material needs */
 	int fNeedsOffset; //NOTE - better to have this or a separate array?
   
-  	/** return values */
+  	/** \name return values */
+	/*@{*/
   	ArrayT<dSymMatrixT> fStrain_List;
   	ArrayT<dSymMatrixT> fStrain_last_List;
+	/*@}*/
   	
   	/** \name work space */
   	/*@{*/
@@ -68,6 +94,10 @@ class SmallStrainT: public ElasticT
   	dArrayT fLocDispTranspose; /**< used for B-bar method */
 	dArray2DT fMeanGradient;   /**< store mean shape function gradient */
   	/*@}*/
+
+  	/** the material support used to construct materials lists. This pointer
+  	 * is only set the first time SmallStrainT::NewMaterialList is called. */
+	SSMatSupportT* fSSMatSupport;
 };
 
 /* inlines */

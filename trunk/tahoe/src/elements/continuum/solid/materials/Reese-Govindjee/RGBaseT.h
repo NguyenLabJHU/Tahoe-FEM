@@ -1,6 +1,5 @@
-/* $Id: RGBaseT.h,v 1.3 2002-10-20 22:48:45 paklein Exp $ */
+/* $Id: RGBaseT.h,v 1.4 2002-11-14 17:06:09 paklein Exp $ */
 /* created : TDN (1/22/2001) */
-
 #ifndef _RG_BASE_T_H_
 #define _RG_BASE_T_H_
 
@@ -11,7 +10,6 @@
 /* direct members */
 #include "SpectralDecompT.h"
 
-
 namespace Tahoe {
 
 /** base class for large deformation isotropic material following
@@ -21,7 +19,7 @@ class RGBaseT: public FDStructMatT, public IsotropicT
   public:
   
 	/* constructor */
-	RGBaseT(ifstreamT& in, const FiniteStrainT& element);
+	RGBaseT(ifstreamT& in, const FDMatSupportT& support);
 
 	/** return the pressure associated with the last call to 
 	 * StructuralMaterialT::s_ij. \note NOT IMPLEMENTED */
@@ -67,7 +65,6 @@ class RGBaseT: public FDStructMatT, public IsotropicT
 	/* spectral operations */
 	SpectralDecompT fSpectralDecompSpat;
 	SpectralDecompT fSpectralDecompRef;
-	const GlobalT::StateT& fRunState;
 
 	/*Internal state variables*/
 	dSymMatrixT     fC_v;
@@ -78,9 +75,6 @@ class RGBaseT: public FDStructMatT, public IsotropicT
 	
 	/* internal state variables array*/
 	dArrayT fstatev;
-
-  	/*Time increment*/
-  	const double& fdt;
 };
 }
 

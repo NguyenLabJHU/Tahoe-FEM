@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.h,v 1.6 2002-07-02 19:56:14 cjkimme Exp $ */
+/* $Id: LocalCrystalPlast.h,v 1.7 2002-11-14 17:06:32 paklein Exp $ */
 #ifndef _LOCAL_CRYSTAL_PLAST_H_
 #define _LOCAL_CRYSTAL_PLAST_H_
 
@@ -9,7 +9,6 @@
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
 #include "LAdMatrixT.h"
-
 
 namespace Tahoe {
 
@@ -22,7 +21,7 @@ class LocalCrystalPlast : public PolyCrystalMatT
 {
  public:
   // constructor
-  LocalCrystalPlast(ifstreamT& in, const FiniteStrainT& element);
+  LocalCrystalPlast(ifstreamT& in, const FDMatSupportT& support);
 
   // destructor
   ~LocalCrystalPlast();

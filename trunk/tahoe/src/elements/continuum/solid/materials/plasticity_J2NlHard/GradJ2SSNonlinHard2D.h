@@ -1,3 +1,4 @@
+/* $Id: GradJ2SSNonlinHard2D.h,v 1.2 2002-11-14 17:06:29 paklein Exp $ */
 #ifndef _GRAD_J2_SS_NONLIN_HARD_2D_H_
 #define _GRAD_J2_SS_NONLIN_HARD_2D_H_
 
@@ -5,15 +6,14 @@
 #include "GradJ2SSNonlinHard.h"
 #include "Material2DT.h"
 
-
 namespace Tahoe {
 
 class GradJ2SSNonlinHard2D : public GradJ2SSNonlinHard, public Material2DT
 {
 public:
 
-        /* constructor */
-  	GradJ2SSNonlinHard2D(ifstreamT& in, const SmallStrainT& element);
+	/* constructor */
+	GradJ2SSNonlinHard2D(ifstreamT& in, const SSMatSupportT& support);
 
 	/* initialization */
 	virtual void Initialize(void);

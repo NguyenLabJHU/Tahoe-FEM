@@ -1,4 +1,4 @@
-/* $Id: SV_NeoHookean2D.h,v 1.3 2002-10-09 18:01:05 sawimme Exp $ */
+/* $Id: SV_NeoHookean2D.h,v 1.4 2002-11-14 17:06:15 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #ifndef _SV_NEOHOOKEAN2D_H_
@@ -16,7 +16,7 @@ class SV_NeoHookean2D: public FDSimoVisco2D
 	public:
 
 	/*constructor*/
-        SV_NeoHookean2D(ifstreamT& in, const FiniteStrainT& element);
+        SV_NeoHookean2D(ifstreamT& in, const FDMatSupportT& support);
 	
 	/*print parameters*/
 	virtual void Print(ostream& out) const;

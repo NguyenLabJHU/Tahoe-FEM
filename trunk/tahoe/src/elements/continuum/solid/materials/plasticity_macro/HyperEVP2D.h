@@ -1,8 +1,4 @@
-/* $Id: HyperEVP2D.h,v 1.3 2002-07-02 19:56:19 cjkimme Exp $ */
-/*
-  File: HyperEVP2D.h
-*/
-
+/* $Id: HyperEVP2D.h,v 1.4 2002-11-14 17:06:36 paklein Exp $ */
 #ifndef _HYPER_EVP_2D_H_
 #define _HYPER_EVP_2D_H_
 
@@ -13,7 +9,6 @@
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
 
-
 namespace Tahoe {
 
 class ifstreamT;
@@ -23,7 +18,7 @@ class HyperEVP2D : public HyperEVP3D, public Material2DT
 {
  public:
   // constructor
-  HyperEVP2D(ifstreamT& in, const FiniteStrainT& element);
+  HyperEVP2D(ifstreamT& in, const FDMatSupportT& support);
 
   // destructor
   ~HyperEVP2D();

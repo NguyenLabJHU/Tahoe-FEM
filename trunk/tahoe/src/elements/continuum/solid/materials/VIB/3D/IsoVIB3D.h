@@ -1,7 +1,5 @@
-/* $Id: IsoVIB3D.h,v 1.6 2002-10-20 22:48:56 paklein Exp $ */
-/* created: paklein (03/15/1998)                                          */
-/* 3D Isotropic VIB solver using spectral decomposition formulation       */
-
+/* $Id: IsoVIB3D.h,v 1.7 2002-11-14 17:06:17 paklein Exp $ */
+/* created: paklein (03/15/1998) */
 #ifndef _ISO_VIB_3D_H_
 #define _ISO_VIB_3D_H_
 
@@ -17,12 +15,13 @@ namespace Tahoe {
 /* forward declarations */
 class SpherePointsT;
 
+/** 3D Isotropic VIB solver using spectral decomposition formulation */
 class IsoVIB3D: public FDStructMatT, public VIB
 {
 public:
 
 	/* constructor */
-	IsoVIB3D(ifstreamT& in, const FiniteStrainT& element);
+	IsoVIB3D(ifstreamT& in, const FDMatSupportT& support);
 
 	/* destructor */
 	virtual ~IsoVIB3D(void);

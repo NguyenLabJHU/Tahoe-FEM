@@ -1,4 +1,4 @@
-/* $Id: HyperEVP3D.h,v 1.4 2002-07-02 19:56:19 cjkimme Exp $ */
+/* $Id: HyperEVP3D.h,v 1.5 2002-11-14 17:06:36 paklein Exp $ */
 #ifndef _HYPER_EVP_3D_H_
 #define _HYPER_EVP_3D_H_
 
@@ -23,7 +23,7 @@ class HyperEVP3D : public EVPFDBaseT
 {
  public:
   // constructor
-  HyperEVP3D(ifstreamT& in, const FiniteStrainT& element);
+  HyperEVP3D(ifstreamT& in, const FDMatSupportT& support);
 
   // destructor
   ~HyperEVP3D();

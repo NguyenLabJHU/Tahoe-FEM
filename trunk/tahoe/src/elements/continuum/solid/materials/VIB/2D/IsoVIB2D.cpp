@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.cpp,v 1.6 2002-10-20 22:48:55 paklein Exp $ */
+/* $Id: IsoVIB2D.cpp,v 1.7 2002-11-14 17:06:15 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoVIB2D.h"
 
@@ -15,8 +15,8 @@
 using namespace Tahoe;
 
 /* constructors */
-IsoVIB2D::IsoVIB2D(ifstreamT& in, const FiniteStrainT& element):
-	FDStructMatT(in, element),
+IsoVIB2D::IsoVIB2D(ifstreamT& in, const FDMatSupportT& support):
+	FDStructMatT(in, support),
 	Material2DT(in, kPlaneStress),
 	VIB(in, 2, 2, 3),
 	fCircle(NULL),

@@ -1,8 +1,4 @@
-/* $Id: FDCrystalElast.h,v 1.3 2002-07-02 19:56:03 cjkimme Exp $ */
-/*
-  File: FDCrystalElast.h
-*/
-
+/* $Id: FDCrystalElast.h,v 1.4 2002-11-14 17:06:19 paklein Exp $ */
 #ifndef _FD_CRYSTAL_ELAST_H_
 #define _FD_CRYSTAL_ELAST_H_
 
@@ -13,7 +9,6 @@
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
 #include "LAdMatrixT.h"
-
 
 namespace Tahoe {
 
@@ -27,7 +22,7 @@ class FDCrystalElast : public CrystalElast
 {
  public:
   // constructor
-  FDCrystalElast(ifstreamT& in, const FiniteStrainT& element);
+  FDCrystalElast(ifstreamT& in, const FDMatSupportT& support);
 
   // destructor
   ~FDCrystalElast();

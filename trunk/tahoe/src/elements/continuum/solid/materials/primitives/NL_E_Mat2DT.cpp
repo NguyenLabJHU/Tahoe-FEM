@@ -1,17 +1,13 @@
-/* $Id: NL_E_Mat2DT.cpp,v 1.3 2002-07-02 19:56:22 cjkimme Exp $ */
-/* created: paklein (06/13/1997)                                          */
-/* Base class for materials with 2D nonlinear elastic behavior.           */
-/* (See notes in NL_E_MatT.h)                                             */
-
+/* $Id: NL_E_Mat2DT.cpp,v 1.4 2002-11-14 17:06:39 paklein Exp $ */
+/* created: paklein (06/13/1997) */
 #include "NL_E_Mat2DT.h"
-
-/* constructors */
 
 using namespace Tahoe;
 
-NL_E_Mat2DT::NL_E_Mat2DT(ifstreamT& in, const FiniteStrainT& element,
+/* constructors */
+NL_E_Mat2DT::NL_E_Mat2DT(ifstreamT& in, const FDMatSupportT& support,
 	ConstraintOptionT constraint):
-	NL_E_MatT(in, element),
+	NL_E_MatT(in, support),
 	Material2DT(in, constraint)
 {
 	fDensity *= fThickness;

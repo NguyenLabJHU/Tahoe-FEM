@@ -1,29 +1,29 @@
-/* $Id: EVPFDBaseT.cpp,v 1.9 2002-10-20 22:49:09 paklein Exp $ */
+/* $Id: EVPFDBaseT.cpp,v 1.10 2002-11-14 17:06:36 paklein Exp $ */
 #include "EVPFDBaseT.h"
 #include "NLCSolver.h"
 #include "NLCSolver_LS.h"
 #include "Utils.h"
 
-#include "FiniteStrainT.h"
+#include "FDMatSupportT.h"
+#include "ElementCardT.h"
 #include "StringT.h"
-
-/* initialization flag value */
 
 using namespace Tahoe;
 
+/* initialization flag value */
 const int kIsInit = 1;
 
 /* spatial dimensions of the problem */
 const int kNSD = 3;
 
-EVPFDBaseT::EVPFDBaseT(ifstreamT& in, const FiniteStrainT& element) :
-  FDHookeanMatT(in, element),
+EVPFDBaseT::EVPFDBaseT(ifstreamT& in, const FDMatSupportT& support) :
+  FDHookeanMatT(in, support),
   IsotropicT  (in),
   //fdt         (element.FEManager().TimeStep()),
-  ftime       (element.ElementSupport().Time()),
-  fStatus     (element.RunState()),
-  fLocDisp    (element.Displacements()),
-  fLocLastDisp(element.LastDisplacements()),
+  //ftime       (element.ElementSupport().Time()),
+  //fStatus     (element.RunState()),
+  fLocDisp    (support.LocalArray(LocalArrayT::kDisp)),
+  fLocLastDisp(support.LocalArray(LocalArrayT::kLastDisp)),
   fKineticEqn (NULL),
   fSolver     (NULL),
   fSolverPtr  (new SolverWrapperEVPBase(*this)),
@@ -71,6 +71,16 @@ void EVPFDBaseT::Initialize()
 
   // initialize selected variables in all elements
   //InitializeVariables();
+}
+
+/* apply initialize current time step */
+void EVPFDBaseT::InitStep(void)
+{
+	/* inherited */
+	FDHookeanMatT::InitStep();
+	
+	/* cache the time step */
+	fdt = MaterialSupport().TimeStep();
 }
 
 bool EVPFDBaseT::NeedLastDisp() const { return true; }

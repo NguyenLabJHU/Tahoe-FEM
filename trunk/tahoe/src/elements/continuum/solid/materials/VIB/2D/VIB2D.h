@@ -1,7 +1,5 @@
-/* $Id: VIB2D.h,v 1.4 2002-07-05 22:28:17 paklein Exp $ */
-/* created: paklein (04/09/1997)                                          */
-/* 2D VIB solver                                                          */
-
+/* $Id: VIB2D.h,v 1.5 2002-11-14 17:06:16 paklein Exp $ */
+/* created: paklein (04/09/1997) */
 #ifndef _VIB_2D_H_
 #define _VIB_2D_H_
 
@@ -15,6 +13,7 @@ namespace Tahoe {
 class dMatrixT;
 class CirclePointsT;
 
+/** 2D VIB solver */
 class VIB2D: public NL_E_Mat2DT, public VIB_E_MatT
 {
 public:
@@ -24,7 +23,7 @@ public:
 	                     KGaussRule = 1};
 
 	/* constructor */
-	VIB2D(ifstreamT& in, const FiniteStrainT& element);
+	VIB2D(ifstreamT& in, const FDMatSupportT& support);
 
 	/* destructor */
 	virtual ~VIB2D(void);

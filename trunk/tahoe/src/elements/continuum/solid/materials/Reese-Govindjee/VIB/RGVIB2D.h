@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.h,v 1.4 2002-10-14 18:28:07 thao Exp $ */
+/* $Id: RGVIB2D.h,v 1.5 2002-11-14 17:06:11 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #ifndef _RG_VIB_2D_H_
@@ -20,7 +20,7 @@ class RGVIB2D: public RGBaseT, public Material2DT, public ViscVIB
   public:
   
 	/* constructor */
-	RGVIB2D(ifstreamT& in, const FiniteStrainT& element);
+	RGVIB2D(ifstreamT& in, const FDMatSupportT& support);
 
 	/* destructor */
 	~RGVIB2D(void);

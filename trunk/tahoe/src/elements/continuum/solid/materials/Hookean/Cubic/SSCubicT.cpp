@@ -1,14 +1,12 @@
-/* $Id: SSCubicT.cpp,v 1.3 2002-07-02 19:55:39 cjkimme Exp $ */
-/* created: paklein (06/11/1997)                                          */
-
+/* $Id: SSCubicT.cpp,v 1.4 2002-11-14 17:06:04 paklein Exp $ */
+/* created: paklein (06/11/1997) */
 #include "SSCubicT.h"
-
-/* constructor */
 
 using namespace Tahoe;
 
-SSCubicT::SSCubicT(ifstreamT& in, const SmallStrainT& element):
-	SSHookeanMatT(in, element),
+/* constructor */
+SSCubicT::SSCubicT(ifstreamT& in, const SSMatSupportT& support):
+	SSHookeanMatT(in, support),
 	CubicT(in)
 {
 

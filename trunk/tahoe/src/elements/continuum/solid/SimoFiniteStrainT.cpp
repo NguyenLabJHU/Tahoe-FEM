@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.23 2002-11-09 18:15:20 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.24 2002-11-14 17:05:51 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>

@@ -1,6 +1,5 @@
-/* $Id: SolverT.cpp,v 1.8 2002-10-20 22:49:47 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.9 2002-11-14 17:06:47 paklein Exp $ */
 /* created: paklein (05/23/1996) */
-
 #include "SolverT.h"
 
 #include <iostream.h>

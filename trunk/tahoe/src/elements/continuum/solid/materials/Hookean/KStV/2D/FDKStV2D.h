@@ -1,13 +1,11 @@
-/* $Id: FDKStV2D.h,v 1.3 2002-07-02 19:55:46 cjkimme Exp $ */
-/* created: paklein (06/10/97)                                            */
-
+/* $Id: FDKStV2D.h,v 1.4 2002-11-14 17:06:06 paklein Exp $ */
+/* created: paklein (06/10/97) */
 #ifndef _FD_KSTV_2D_H_
 #define _FD_KSTV_2D_H_
 
 /* base classes */
 #include "FDKStV.h"
 #include "IsotropicT.h"
-
 
 namespace Tahoe {
 
@@ -16,7 +14,7 @@ class FDKStV2D: public FDKStV, public Material2DT
 public:
 
 	/* constructor */
-	FDKStV2D(ifstreamT& in, const FiniteStrainT& element);
+	FDKStV2D(ifstreamT& in, const FDMatSupportT& support);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

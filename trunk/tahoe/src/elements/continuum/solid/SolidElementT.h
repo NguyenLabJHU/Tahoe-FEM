@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.17 2002-10-09 16:25:22 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.18 2002-11-14 17:05:51 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -106,6 +106,12 @@ protected:
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);
 
+	/** construct a new material support and return a pointer. Recipient is responsible for
+	 * for freeing the pointer.
+	 * \param p an existing MaterialSupportT to be initialized. If NULL, allocate
+	 *        a new MaterialSupportT and initialize it. */
+	virtual MaterialSupportT* NewMaterialSupport(MaterialSupportT* p = NULL) const;
+
 	/** set the \e B matrix using the given shape function derivatives
 	 * Set strain displacement matrix as in Hughes (2.8.20)
 	 * \param derivatives of shape function derivatives: [nsd] x [nnd]
@@ -137,14 +143,11 @@ protected:
 
 	/** internal force */
 	virtual void FormKd(double constK) = 0;
-
-	/* return a pointer to a new material list */
-	virtual MaterialListT* NewMaterialList(int size) const;
 	
 	/** return the materials list. \return NULL if fail. */
 	const StructuralMatListT& StructuralMaterialList(void) const;
 
-	/* driver for calculating output values */
+	/** driver for calculating output values */
 	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	                           const iArrayT& e_codes, dArray2DT& e_values);
 	
@@ -153,13 +156,15 @@ protected:
 	                     kNeedVel  = 1,
 	                 KNeedLastDisp = 2};
 
-	/* construct output labels array */
+	/** \name construct output labels array */
+	/*@{*/
 	virtual void SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 		iArrayT& counts) const;
 	virtual void SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 		iArrayT& counts) const;
 	virtual void GenerateOutputLabels(const iArrayT& n_counts, ArrayT<StringT>& n_labels, 
 		const iArrayT& e_counts, ArrayT<StringT>& e_labels) const;
+	/*@}*/
 
 protected:
 
@@ -179,13 +184,13 @@ protected:
 	LocalArrayT fLocAcc;      /**< nodal accelerations */
 
 	/** Multiscale data */
-	LocalArrayT fLocLastDispAlpha; /**< u^alpha last converged displacements */
-	LocalArrayT fLocVelAlpha;      /**< u^alpha nodal velocities */
-	LocalArrayT fLocAccAlpha;      /**< u^alpha nodal accelerations */
+//	LocalArrayT fLocLastDispAlpha; /**< u^alpha last converged displacements */
+//	LocalArrayT fLocVelAlpha;      /**< u^alpha nodal velocities */
+//	LocalArrayT fLocAccAlpha;      /**< u^alpha nodal accelerations */
 
-	LocalArrayT fLocLastDispBeta; /**< u^beta last converged displacements */
-	LocalArrayT fLocVelBeta;      /**< u^beta nodal velocities */
-	LocalArrayT fLocAccBeta;      /**< u^beta nodal accelerations */
+//	LocalArrayT fLocLastDispBeta; /**< u^beta last converged displacements */
+//	LocalArrayT fLocVelBeta;      /**< u^beta nodal velocities */
+//	LocalArrayT fLocAccBeta;      /**< u^beta nodal accelerations */
 
 	LocalArrayT* fLocTemp;      /**< (optional) nodal temperatures */
 	LocalArrayT* fLocTemp_last; /**< (optional) last nodal temperatures */
@@ -202,7 +207,6 @@ protected:
 	/*@{*/
 	dArrayT fElementHeat; /**< destination for heat generation. If not length nip, heat not needed */
 	dMatrixT fD; /**< constitutive matrix */
-	//ArrayT<dMatrixT> fB_list; /**< strain-displacement matricies: [nip] */
 	dMatrixT fB; /**< strain-displacement matrix */
 	dSymMatrixT fStress; /**< stress vector */	
 	/*@}*/

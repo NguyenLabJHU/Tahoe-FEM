@@ -1,13 +1,10 @@
-/* $Id: HyperEVP3D.cpp,v 1.8 2002-10-20 22:49:09 paklein Exp $ */
+/* $Id: HyperEVP3D.cpp,v 1.9 2002-11-14 17:06:36 paklein Exp $ */
 #include "HyperEVP3D.h"
-
-#include "ContinuumElementT.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
 #include "ifstreamT.h"
 #include "Utils.h"
 #include "SimplePowerLaw.h"
-
 
 using namespace Tahoe;
 
@@ -26,8 +23,8 @@ const int kNumInternal = 5;
 const int kNumOutput = 4;
 static const char* Labels[kNumOutput] = {"EQP_strain","VM_stress","Pressure","Hardness"};
 
-HyperEVP3D::HyperEVP3D(ifstreamT& in, const FiniteStrainT& element) :
-  EVPFDBaseT(in, element),  
+HyperEVP3D::HyperEVP3D(ifstreamT& in, const FDMatSupportT& support) :
+  EVPFDBaseT(in, support),  
 
   // elastic def gradients
   fFeTr (kNSD,kNSD),
@@ -105,10 +102,10 @@ const dSymMatrixT& HyperEVP3D::s_ij()
   LoadElementData(element, intpt);
 
   // compute state, stress and moduli 
-  if (fStatus == GlobalT::kFormRHS)
+  if (MaterialSupport().RunState() == GlobalT::kFormRHS)
     {
       // reset iteration counter to check NLCSolver
-      if (CurrIP() == 0) fIterCount = 0;
+      if (intpt == 0) fIterCount = 0;
 
       // total deformation gradient
       // fFtot = F();
@@ -119,7 +116,7 @@ const dSymMatrixT& HyperEVP3D::s_ij()
       Compute_Ftot_3D(fFtot);
 
       // time step
-      fdt = ContinuumElement().ElementSupport().TimeStep();
+      fdt = fFDMatSupport.TimeStep();
 
       // compute state (stress and state variables)
       IntegrateConstitutiveEqns();
@@ -241,7 +238,7 @@ void HyperEVP3D::ComputeOutput(dArrayT& output)
   output[3] = fIterCount;
 
   if (Hyper_MESSAGES && intpt == 0)
-     cerr << " step # " << ContinuumElement().ElementSupport().StepNumber()
+     cerr << " step # " << fFDMatSupport.StepNumber()
           << " EQP-strain  "  << output[0] 
           << " VM-stress  "   << output[1] 
           << " pressure  "    << output[2] 

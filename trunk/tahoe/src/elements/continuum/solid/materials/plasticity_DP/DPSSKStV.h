@@ -1,8 +1,5 @@
-/* $Id: DPSSKStV.h,v 1.8 2002-10-05 20:04:17 paklein Exp $ */
-/* created: myip (06/01/1999)                                  */
-/* $Id: DPSSKStV.h,v 1.8 2002-10-05 20:04:17 paklein Exp $ */
-/* created: myip (06/01/1999)                                             */
-
+/* $Id: DPSSKStV.h,v 1.9 2002-11-14 17:06:24 paklein Exp $ */
+/* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_H_
 #define _DP_SS_KSTV_H_
 
@@ -11,7 +8,6 @@
 #include "IsotropicT.h"
 #include "HookeanMatT.h"
 #include "DPSSLinHardT.h"
-
 
 namespace Tahoe {
 
@@ -23,7 +19,7 @@ class DPSSKStV: public SSStructMatT,
   public:
 
 	/* constructor */
-	DPSSKStV(ifstreamT& in, const SmallStrainT& element);
+	DPSSKStV(ifstreamT& in, const SSMatSupportT& support);
 
 	/* initialization */
 	virtual void Initialize(void);
@@ -78,7 +74,6 @@ class DPSSKStV: public SSStructMatT,
 protected:
 
 	/* set modulus */
-
  	virtual void SetModulus(dMatrixT& modulus); 
          int loccheck;
  

@@ -1,16 +1,15 @@
-/* $Id: LocalCrystalPlastFp2D.cpp,v 1.3 2002-07-02 19:56:14 cjkimme Exp $ */
+/* $Id: LocalCrystalPlastFp2D.cpp,v 1.4 2002-11-14 17:06:32 paklein Exp $ */
 #include "LocalCrystalPlastFp2D.h"
 #include "ElementCardT.h"
 #include "ifstreamT.h"
 
-/* spatial dimensions of the problem */
-
 using namespace Tahoe;
 
+/* spatial dimensions of the problem */
 const int kNSD = 2;
 
-LocalCrystalPlastFp2D::LocalCrystalPlastFp2D(ifstreamT& in, const FiniteStrainT& element) :
-  LocalCrystalPlastFp (in, element),  
+LocalCrystalPlastFp2D::LocalCrystalPlastFp2D(ifstreamT& in, const FDMatSupportT& support) :
+  LocalCrystalPlastFp (in, support),  
   Material2DT         (in, Material2DT::kPlaneStrain),
   f2Dsavg_ij   (kNSD),
   f2Dcavg_ijkl (dSymMatrixT::NumValues(kNSD))

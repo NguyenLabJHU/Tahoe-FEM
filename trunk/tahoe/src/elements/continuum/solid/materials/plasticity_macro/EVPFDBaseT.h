@@ -1,4 +1,4 @@
-/* $Id: EVPFDBaseT.h,v 1.6 2002-07-02 19:56:19 cjkimme Exp $ */
+/* $Id: EVPFDBaseT.h,v 1.7 2002-11-14 17:06:36 paklein Exp $ */
 #ifndef _EVP_FD_BASE_T_H_
 #define _EVP_FD_BASE_T_H_
 
@@ -16,7 +16,6 @@
 #include "dSymMatrixT.h"
 #include "ifstreamT.h" 
 
-
 namespace Tahoe {
 
 class NLCSolver;
@@ -26,7 +25,7 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
 {
  public:
   // constructor
-  EVPFDBaseT(ifstreamT& in, const FiniteStrainT& element);
+  EVPFDBaseT(ifstreamT& in, const FDMatSupportT& support);
 
   // destructor
   virtual ~EVPFDBaseT();
@@ -44,6 +43,9 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
 	 * to initialize the state variable space. */
 	virtual void PointInitialize(void);
 
+	/** apply initialize current time step */
+	virtual void InitStep(void);
+
   // required parameter flag
   virtual bool NeedLastDisp() const;
   
@@ -57,7 +59,7 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
   virtual void FormRHS(const dArrayT& variab, dArrayT& rhs) = 0;
   virtual void FormLHS(const dArrayT& variab, dMatrixT& lhs) = 0;
 
-  // general accesors
+  // general accessors
   ifstreamT& Input();
   double Temperature();
 
@@ -99,19 +101,17 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
   void SetConstitutiveSolver();
 
  protected:
-  // current time & time step
-  const double& ftime;
-  double fdt;
 
-  // temperature
-  double fTheta;
+	// current time & time step
+	// const double& ftime;
+	double fdt;
 
-  // status flag
-  const GlobalT::StateT& fStatus;
+	// temperature
+	double fTheta;
 
-  // reference to displacements
-  const LocalArrayT& fLocDisp;
-  const LocalArrayT& fLocLastDisp;
+  // pointers to displacements
+  const LocalArrayT* fLocDisp;
+  const LocalArrayT* fLocLastDisp;
 
   // stream for input data
   ifstreamT fInput;

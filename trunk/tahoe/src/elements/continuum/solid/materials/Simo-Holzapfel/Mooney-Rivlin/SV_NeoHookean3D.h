@@ -1,6 +1,5 @@
-/* $Id: SV_NeoHookean3D.h,v 1.2 2002-10-09 18:01:05 sawimme Exp $ */
-/* created:   TDN (5/31/2001) */
-
+/* $Id: SV_NeoHookean3D.h,v 1.3 2002-11-14 17:06:15 paklein Exp $ */
+/* created: TDN (5/31/2001) */
 #ifndef _SV_NEOHOOKEAN3D_H_
 #define _SV_NEOHOOKEAN3D_H_
 
@@ -10,13 +9,13 @@ namespace Tahoe {
 
 class ifstreamT;
 
-/*Compressible Neo-Hookean3D Potential*/
+/** compressible Neo-Hookean3D Potential */
 class SV_NeoHookean3D: public FDSimoVisco3D
 {
 	public:
 
 	/*constructor*/
-        SV_NeoHookean3D(ifstreamT& in, const FiniteStrainT& element);
+        SV_NeoHookean3D(ifstreamT& in, const FDMatSupportT& support);
 	
 	/*print parameters*/
 	virtual void Print(ostream& out) const;

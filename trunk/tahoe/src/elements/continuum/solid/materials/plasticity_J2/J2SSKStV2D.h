@@ -1,13 +1,11 @@
-/* $Id: J2SSKStV2D.h,v 1.3 2002-07-02 19:56:11 cjkimme Exp $ */
-/* created: paklein (06/18/1997)                                          */
-
+/* $Id: J2SSKStV2D.h,v 1.4 2002-11-14 17:06:25 paklein Exp $ */
+/* created: paklein (06/18/1997) */
 #ifndef _J2_SS_KSTV_2D_H_
 #define _J2_SS_KSTV_2D_H_
 
 /* base classes */
 #include "J2SSKStV.h"
 #include "Material2DT.h"
-
 
 namespace Tahoe {
 
@@ -16,7 +14,7 @@ class J2SSKStV2D: public J2SSKStV, public Material2DT
 public:
 
 	/* constructor */
-	J2SSKStV2D(ifstreamT& in, const SmallStrainT& element);
+	J2SSKStV2D(ifstreamT& in, const SSMatSupportT& support);
 
 	/* initialization */
 	virtual void Initialize(void);

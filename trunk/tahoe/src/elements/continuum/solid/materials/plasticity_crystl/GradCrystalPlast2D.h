@@ -1,8 +1,4 @@
-/* $Id: GradCrystalPlast2D.h,v 1.3 2002-07-02 19:56:14 cjkimme Exp $ */
-/*
-  File: GradCrystalPlast2D.h
-*/
-
+/* $Id: GradCrystalPlast2D.h,v 1.4 2002-11-14 17:06:32 paklein Exp $ */
 #ifndef _GRAD_CRYSTAL_PLAST_2D_H_
 #define _GRAD_CRYSTAL_PLAST_2D_H_
 
@@ -13,14 +9,13 @@
 #include "dArray2DT.h"
 #include "LocalArrayT.h"
 
-
 namespace Tahoe {
 
 class GradCrystalPlast2D: public GradCrystalPlast, public Material2DT
 {
  public:
   // constructor
-  GradCrystalPlast2D(ifstreamT& in, const FiniteStrainT& element);
+  GradCrystalPlast2D(ifstreamT& in, const FDMatSupportT& support);
 
   // destructor
   ~GradCrystalPlast2D();

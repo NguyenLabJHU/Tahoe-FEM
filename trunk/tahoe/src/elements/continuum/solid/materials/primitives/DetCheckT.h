@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.h,v 1.12 2002-07-18 00:46:52 paklein Exp $ */
+/* $Id: DetCheckT.h,v 1.13 2002-11-14 17:06:39 paklein Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _DETCHECK_T_H_
@@ -18,7 +18,8 @@ class dMatrixT;
 class dMatrixEXT;
 class dArrayT;
 class dTensor4DT;
-class ContinuumElementT;
+//class ContinuumElementT;
+class StructuralMatSupportT;
 
 /** class to support checks of loss of ellipticity.  \note this class does 
  * not dynamically allocate memory on construction */
@@ -45,7 +46,10 @@ public:
 	int IsLocalized_SS(dArrayT& normal);
 	
 	/** set pointer to the calling element group */
-	void SetElementGroup(const ContinuumElementT& element) { fElement = &element; };
+//	void SetElementGroup(const ContinuumElementT& element) { fElement = &element; };
+
+	/** set pointer to the support of the calling material */
+	void SetfStructuralMatSupport(const StructuralMatSupportT& support) { fStructuralMatSupport = &support; };
 
 private:
 
@@ -84,9 +88,12 @@ private:
 
 	double phi2, phi4;	/* phase shifts */
 	double A0, A2, A4;	/* amplitudes   */
+
+	/** pointer to the support of the calling material */
+	const StructuralMatSupportT* fStructuralMatSupport;
 	
 	/** pointer to calling element group */
-	const ContinuumElementT* fElement;
+//	const ContinuumElementT* fElement;
 	
 	/** flag to indicate first pass */
 	static bool fFirstPass;

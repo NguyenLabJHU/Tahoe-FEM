@@ -1,4 +1,4 @@
-/* $Id: RG_VDSplit3D.cpp,v 1.2 2002-10-20 22:48:45 paklein Exp $ */
+/* $Id: RG_VDSplit3D.cpp,v 1.3 2002-11-14 17:06:09 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "fstreamT.h"
@@ -19,8 +19,8 @@ static const char* Labels[kNumOutputVar] = {"dW_visc"};
  ***********************************************************************/
 
 /* constructors */
-RG_VDSplit3D::RG_VDSplit3D(ifstreamT& in, const FiniteStrainT& element):
-	RGBaseT(in, element),
+RG_VDSplit3D::RG_VDSplit3D(ifstreamT& in, const FDMatSupportT& support):
+	RGBaseT(in, support),
 	fb(3),
 	fEigs(3),
 	fEigs_e(3),
@@ -206,7 +206,7 @@ const dSymMatrixT& RG_VDSplit3D::s_ij(void)
 	/*load the viscoelastic principal stretches from state variable arrays*/
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
-	if (fRunState == GlobalT::kFormRHS)
+	if (fFDMatSupport.RunState() == GlobalT::kFormRHS)
 	{
 		dSymMatrixT iCvn = fC_vn;
 		iCvn.Inverse();
@@ -313,7 +313,7 @@ void RG_VDSplit3D::ComputeOutput(dArrayT& output)
 
 	/*put in planestress option*/
 
-	output[0] = rate_visc_disp*fdt;
+	output[0] = rate_visc_disp*fFDMatSupport.TimeStep();
 	
 }
 /***********************************************************************
@@ -369,11 +369,12 @@ void RG_VDSplit3D::ComputeEigs_e(const dArrayT& eigenstretch,
  	  	ComputeiKAB(eigenmodulus,cm);
 		
 	   	/*calculate the residual*/
-	 	double res0 = ep_e0 + fdt*(0.5*fietaS*s0 +
+	   	double dt = fFDMatSupport.TimeStep();
+	 	double res0 = ep_e0 + dt*(0.5*fietaS*s0 +
 					fthird*fietaB*sm) - ep_tr0;
-	 	double res1 = ep_e1 + fdt*(0.5*fietaS*s1 +
+	 	double res1 = ep_e1 + dt*(0.5*fietaS*s1 +
 					fthird*fietaB*sm) - ep_tr1;
-	 	double res2 = ep_e2 + fdt*(0.5*fietaS*s2 +
+	 	double res2 = ep_e2 + dt*(0.5*fietaS*s2 +
 					fthird*fietaB*sm) - ep_tr2;
 		
 		//	cout << "\n residual1 "<< res0;
@@ -419,13 +420,14 @@ void RG_VDSplit3D::ComputeiKAB(dSymMatrixT& eigenmodulus, double& bulkmodulus)
 		
 	/*calculates  KAB = 1+dt*D(dWdE_Idev/nD+isostress/nV)/Dep_e*/
 
-	KAB(0,0) = 1+0.5*fietaS*fdt*c0+fthird*fietaB*fdt*cm;
-	KAB(1,1) = 1+0.5*fietaS*fdt*c1+fthird*fietaB*fdt*cm;
-	KAB(2,2) = 1+0.5*fietaS*fdt*c2+fthird*fietaB*fdt*cm;
+	double dt = fFDMatSupport.TimeStep();
+	KAB(0,0) = 1+0.5*fietaS*dt*c0+fthird*fietaB*dt*cm;
+	KAB(1,1) = 1+0.5*fietaS*dt*c1+fthird*fietaB*dt*cm;
+	KAB(2,2) = 1+0.5*fietaS*dt*c2+fthird*fietaB*dt*cm;
 
-	KAB(1,2) = 0.5*fietaS*fdt*c12+fthird*fietaB*fdt*cm;
-	KAB(0,2) = 0.5*fietaS*fdt*c02+fthird*fietaB*fdt*cm;
-	KAB(0,1) = 0.5*fietaS*fdt*c01+fthird*fietaB*fdt*cm;
+	KAB(1,2) = 0.5*fietaS*dt*c12+fthird*fietaB*dt*cm;
+	KAB(0,2) = 0.5*fietaS*dt*c02+fthird*fietaB*dt*cm;
+	KAB(0,1) = 0.5*fietaS*dt*c01+fthird*fietaB*dt*cm;
        
 	KAB(2,1) = KAB(1,2);
 	KAB(2,0) = KAB(0,2);

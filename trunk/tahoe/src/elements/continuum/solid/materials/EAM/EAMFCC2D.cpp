@@ -1,7 +1,5 @@
-/* $Id: EAMFCC2D.cpp,v 1.6 2002-10-20 22:48:39 paklein Exp $ */
-/* created: paklein (12/09/1996)                                          */
-/* Plane strain EAM material                                              */
-
+/* $Id: EAMFCC2D.cpp,v 1.7 2002-11-14 17:06:01 paklein Exp $ */
+/* created: paklein (12/09/1996) */
 #include "EAMFCC2D.h"
 
 #include <math.h>
@@ -13,18 +11,17 @@
 #include "EAMFCC3DSym.h"
 #include "dMatrixT.h"
 
-/* material parameters */
-
 using namespace Tahoe;
 
+/* material parameters */
 const int knsd = 2;
 
 const double sqrt2 = sqrt(2.0);
 const double sqrt3 = sqrt(3.0);
 
 /* constructor */
-EAMFCC2D::EAMFCC2D(ifstreamT& in, const FiniteStrainT& element, PlaneCodeT plane_code):
-	NL_E_Mat2DT(in, element, kPlaneStrain),
+EAMFCC2D::EAMFCC2D(ifstreamT& in, const FDMatSupportT& support, PlaneCodeT plane_code):
+	NL_E_Mat2DT(in, support, kPlaneStrain),
 	fPlaneCode(plane_code),
 	fEAM(NULL)
 {

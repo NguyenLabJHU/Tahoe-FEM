@@ -1,20 +1,18 @@
-/* $Id: SSSolidMatT.cpp,v 1.4 2002-10-20 22:49:11 paklein Exp $ */
-/* created: paklein (06/09/1997)                                          */
-
+/* $Id: SSSolidMatT.cpp,v 1.5 2002-11-14 17:06:39 paklein Exp $ */
+/* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
 #include <iostream.h>
-#include "SmallStrainT.h"
+#include "SSMatSupportT.h"
 #include "dSymMatrixT.h"
 #include "ThermalDilatationT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
-SSSolidMatT::SSSolidMatT(ifstreamT& in, const SmallStrainT& element):
-	StructuralMaterialT(in, element),
-	fSmallStrain(element),
-	fLocDisp(fSmallStrain.Displacements()),	
+/* constructor */
+SSSolidMatT::SSSolidMatT(ifstreamT& in,const SSMatSupportT& support):
+	StructuralMaterialT(in, support),
+	fSSMatSupport(support),
+//	fLocDisp(fSmallStrain.Displacements()),	
 	fStrainTemp(NumSD()),
 	fQ(NumSD()),
 	fThermalStrain(NumSD())
@@ -38,12 +36,12 @@ const dSymMatrixT& SSSolidMatT::e(void)
 	if (fHasThermalStrain)
 	{
 		/* thermal strain is purely dilatational */
-		fStrainTemp  = fSmallStrain.LinearStrain();
+		fStrainTemp  = fSSMatSupport.LinearStrain();
 		fStrainTemp -= fThermalStrain;
 		return fStrainTemp;
 	}
 	else
-		return fSmallStrain.LinearStrain();
+		return fSSMatSupport.LinearStrain();
 }
 
 /* elastic strain at the given integration point */
@@ -53,12 +51,12 @@ const dSymMatrixT& SSSolidMatT::e(int ip)
 	if (fHasThermalStrain)
 	{
 		/* thermal strain is purely dilatational */
-		fStrainTemp  = fSmallStrain.LinearStrain(ip);
+		fStrainTemp  = fSSMatSupport.LinearStrain(ip);
 		fStrainTemp -= fThermalStrain;
 		return fStrainTemp;
 	}
 	else
-		return fSmallStrain.LinearStrain(ip);
+		return fSSMatSupport.LinearStrain(ip);
 }
 
 /* strain - returns the elastic strain, ie. thermal removed */
@@ -71,7 +69,7 @@ const dSymMatrixT& SSSolidMatT::e_last(void)
 		throw ExceptionT::kGeneralFail;
 	}
 	
-	return fSmallStrain.LinearStrain_last();
+	return fSSMatSupport.LinearStrain_last();
 }
 
 /* elastic strain at the given integration point */
@@ -84,7 +82,7 @@ const dSymMatrixT& SSSolidMatT::e_last(int ip)
 		throw ExceptionT::kGeneralFail;
 	}
 	
-	return fSmallStrain.LinearStrain_last(ip);
+	return fSSMatSupport.LinearStrain_last(ip);
 }
 
 /* material description */

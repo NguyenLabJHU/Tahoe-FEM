@@ -1,20 +1,13 @@
-/* $Id: NL_E_RotMat2DT.cpp,v 1.4 2002-10-20 22:49:11 paklein Exp $ */
-/* created: paklein (06/13/1997)                                          */
-/* Base class for materials with 2D nonlinear elastic behavior            */
-/* with in-plane orientation with respect to global coordinate            */
-/* axes, ie. the moduli, stress, and strain energy density functions      */
-/* are formulated in the material's natural coordinates.                  */
-/* (See notes in NL_E_Mat2DT.h)                                           */
-
+/* $Id: NL_E_RotMat2DT.cpp,v 1.5 2002-11-14 17:06:39 paklein Exp $ */
+/* created: paklein (06/13/1997) */
 #include "NL_E_RotMat2DT.h"
-
-/* constructor */
 
 using namespace Tahoe;
 
-NL_E_RotMat2DT::NL_E_RotMat2DT(ifstreamT& in, const FiniteStrainT& element,
+/* constructor */
+NL_E_RotMat2DT::NL_E_RotMat2DT(ifstreamT& in, const FDMatSupportT& support,
 	ConstraintOptionT constraint):
-	NL_E_Mat2DT(in, element, constraint),
+	NL_E_Mat2DT(in, support, constraint),
 	Anisotropic2DT(in)
 {
 

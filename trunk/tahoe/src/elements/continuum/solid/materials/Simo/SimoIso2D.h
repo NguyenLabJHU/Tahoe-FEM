@@ -1,6 +1,5 @@
-/* $Id: SimoIso2D.h,v 1.5 2002-07-05 22:28:15 paklein Exp $ */
+/* $Id: SimoIso2D.h,v 1.6 2002-11-14 17:06:11 paklein Exp $ */
 /* created: paklein (03/04/1997) */
-
 #ifndef _SIMO_ISO_2D_H_
 #define _SIMO_ISO_2D_H_
 
@@ -16,7 +15,7 @@ class SimoIso2D: public SimoIso3D, public Material2DT
 public:
 
 	/** constructor */
-	SimoIso2D(ifstreamT& in, const FiniteStrainT& element);
+	SimoIso2D(ifstreamT& in, const FDMatSupportT& support);
 
 	/** print parameters */
 	virtual void Print(ostream& out) const;

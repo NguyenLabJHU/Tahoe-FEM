@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.10 2002-11-09 18:20:46 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.11 2002-11-14 17:05:49 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -76,7 +76,6 @@ public:
 
 	/** set the number of nodes in the fracture interface */
 	void SetNumNodes(int nn);	
-
 	
 	void SetInitialCoordinates(double *InitialCoords);
 

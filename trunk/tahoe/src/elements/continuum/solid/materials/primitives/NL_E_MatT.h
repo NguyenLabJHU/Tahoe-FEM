@@ -1,4 +1,4 @@
-/* $Id: NL_E_MatT.h,v 1.4 2002-10-05 20:04:19 paklein Exp $ */
+/* $Id: NL_E_MatT.h,v 1.5 2002-11-14 17:06:39 paklein Exp $ */
 /* created: paklein (06/13/1997) */
 #ifndef _NL_E_MAT_T_H_
 #define _NL_E_MAT_T_H_
@@ -28,7 +28,7 @@ class NL_E_MatT: public FDStructMatT
   public:
 
 	/** constructor */
-	NL_E_MatT(ifstreamT& in, const FiniteStrainT& element);
+	NL_E_MatT(ifstreamT& in, const FDMatSupportT& support);
 	
 	/** \name spatial description */
 	/*@{*/

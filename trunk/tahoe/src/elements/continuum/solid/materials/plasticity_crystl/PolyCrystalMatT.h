@@ -1,7 +1,4 @@
-/*
-  File: PolyCrystalMatT.h
-*/
-
+/* $Id: PolyCrystalMatT.h,v 1.7 2002-11-14 17:06:32 paklein Exp $ */
 #ifndef _POLY_CRYSTAL_MAT_T_H_
 #define _POLY_CRYSTAL_MAT_T_H_
 
@@ -18,7 +15,6 @@
 #include "ifstreamT.h" 
 #include "LocalArrayT.h"
 
-
 namespace Tahoe {
 
 class SlipGeometry;
@@ -34,7 +30,7 @@ class PolyCrystalMatT : public FDHookeanMatT
 {
  public:
   // constructor
-  PolyCrystalMatT(ifstreamT& in, const FiniteStrainT& element);
+  PolyCrystalMatT(ifstreamT& in, const FDMatSupportT& support);
 
   // destructor
   virtual ~PolyCrystalMatT();
@@ -139,11 +135,8 @@ class PolyCrystalMatT : public FDHookeanMatT
 
  protected:
   // current time & time step
-  const double& ftime;
+//  const double& ftime;
   double fdt;
-
-  // status flag
-  const GlobalT::StateT& fStatus;
 
   // references to displacements 
   const LocalArrayT& fLocLastDisp;
