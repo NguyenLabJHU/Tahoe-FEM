@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.10 2004-02-28 00:09:35 paklein Exp $
+# $Id: makefile,v 1.7 2004-01-27 01:26:19 cjkimme Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -25,10 +25,7 @@ OBJ = \
 	MeshFreeSSSolidT.o \
 	MeshFreeFSSolidT.o \
 	D2MeshFreeFSSolidT.o \
-	SCNIMFT.o \
-	MeshFreeFSSolidAxiT.o \
-	SS_SCNIMFT.o \
-	FS_SCNIMFT.o
+	SCNIMFT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -53,10 +50,7 @@ SRC = \
 	MeshFreeSSSolidT.cpp \
 	MeshFreeFSSolidT.cpp \
 	D2MeshFreeFSSolidT.cpp \
-	SCNIMFT.cpp \
-	MeshFreeFSSolidAxiT.cpp \
-	SS_SCNIMFT.cpp \
-	FS_SCNIMFT.cpp
+	SCNIMFT.cpp
 
 ##################### (3) headers
 #
@@ -73,10 +67,7 @@ HDR = \
 	MeshFreeSSSolidT.h \
 	MeshFreeFSSolidT.h \
 	D2MeshFreeFSSolidT.h \
-	SCNIMFT.h \
-	MeshFreeFSSolidAxiT.h \
-	SS_SCNIMFT.h \
-	FS_SCNIMFT.h
+	SCNIMFT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

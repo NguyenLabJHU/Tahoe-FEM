@@ -1,4 +1,4 @@
-/* $Id: MeshFreeNodalShapeFunctionT.h,v 1.2 2004-02-10 01:27:38 cjkimme Exp $ */
+/* $Id: MeshFreeNodalShapeFunctionT.h,v 1.1 2004-01-27 01:21:11 cjkimme Exp $ */
 #ifndef _MF_NODAL_SHAPE_FUNCTION_T_H_
 #define _MF_NODAL_SHAPE_FUNCTION_T_H_
 
@@ -33,7 +33,7 @@ public:
 	 * \param nonNodes evaluate shape functions here, but they're not nodes
 	 * \param currelement reference to the current cell of evaluation
 	 * \param in input stream */
-	MeshFreeNodalShapeFunctionT(int numSD,/* const LocalArrayT& nodes,*/ const dArray2DT& all_coords,
+	MeshFreeNodalShapeFunctionT(int numSD, const LocalArrayT& nodes, const dArray2DT& all_coords,
 		const iArray2DT& connects, const dArray2DT& nonNodes, ifstreamT& in);
 
 	/** destructor */
@@ -52,7 +52,6 @@ public:
 	void SetNodalParameters(const iArrayT& node, const dArray2DT& nodal_params);
 	void GetNodalParameters(const iArrayT& node, dArray2DT& nodal_params) const;
 	dArray2DT& NodalParameters(void);
-	dArrayT& NodalVolumes(void);
 
 	/* compute shape function at arbitrary point */
 	virtual int SetFieldAt(const dArrayT& x, const dArrayT* shift); // returns 0 if MLS fails

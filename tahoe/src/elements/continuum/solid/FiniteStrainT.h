@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.17 2004-02-02 23:48:38 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.16 2003-12-02 17:13:36 paklein Exp $ */
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
 
@@ -110,12 +110,12 @@ class FiniteStrainT: public SolidElementT
 	 * set by sub-classes to enable calculation wrt current coordinates */
 	ShapeFunctionT* fCurrShapes;
   
+  private:
+  
   	/** the material support used to construct materials lists. This pointer
   	 * is only set the first time FiniteStrainT::NewMaterialList is called. */
 	FSMatSupportT* fFSMatSupport;
-
-  private:
-    
+  
 	/** offset to material needs */
 	int fNeedsOffset; //NOTE - better to have this or a separate array?
 };

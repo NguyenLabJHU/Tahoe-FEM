@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2004-03-04 08:54:20 paklein Exp $
+# $Id: makefile,v 1.4 2003-05-23 22:57:46 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,8 +22,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	BridgingScaleT.o \
 	MeshfreeBridgingT.o \
-	PointInCellDataT.o \
-	InterpolationDataT.o
+	PointInCellDataT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -45,8 +44,7 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	BridgingScaleT.cpp \
 	MeshfreeBridgingT.cpp \
-	PointInCellDataT.cpp \
-	InterpolationDataT.cpp
+	PointInCellDataT.cpp
 
 ##################### (3) headers
 #
@@ -60,8 +58,7 @@ SRC = \
 HDR = \
 	BridgingScaleT.h \
 	MeshfreeBridgingT.h \
-	PointInCellDataT.h \
-	InterpolationDataT.h
+	PointInCellDataT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

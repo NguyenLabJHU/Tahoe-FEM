@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.28 2004-03-04 08:54:17 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.27 2004-01-10 17:15:03 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -7,7 +7,6 @@
 #include "ExceptionT.h"
 
 /* direct members */
-#include "IOBaseT.h"
 #include "GlobalT.h"
 #include "dArray2DT.h"
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
@@ -292,9 +291,6 @@ public:
 	/** the echo file */
 	ofstreamT& Output(void) const;
 
-	/** format of the output files */
-	IOBaseT::FileTypeT OutputFormat(void) const;
-
 	/** register the output set. returns the ID that should be used with
 	 * ElementSupport::WriteOutput */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
@@ -312,10 +308,6 @@ public:
 	
 	/** return true if output is going to be written for the current time step */
 	bool WriteOutput(void) const;
-
-	/** write a snapshot */
-	void WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
-		const dArray2DT& values, const ArrayT<StringT>& labels) const;
 	
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/** return a reference to the output set with the given ID */

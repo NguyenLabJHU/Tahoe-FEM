@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.11 2004-03-04 08:54:38 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.9.2.4 2004-03-07 05:25:00 hspark Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -20,6 +20,8 @@ class ParticleT;
 class BridgingScaleT;
 class KBC_PrescribedT;
 class dSPMatrixT;
+class EAMFCC3D;
+class EAMT;
 
 /** extension of FEManagerT for bridging scale calculations */
 class FEManagerT_bridging: public FEManagerT
@@ -29,6 +31,9 @@ public:
 	/** constructor */
 	FEManagerT_bridging(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
 		ifstreamT& bridging_input);
+
+	/** destructor */
+	~FEManagerT_bridging(void);
 
 	/** \name solution update */
 	/*@{*/
@@ -60,10 +65,8 @@ public:
 	 * The ghost node database must be initialized by calling
 	 * FEManagerT_bridging::InitGhostNodes before accessing the lists.*/
 	/*@{*/
-	/** initialize the ghost node information 
-	 * \param include_image_nodes flag to indicate whether image nodes should be
-	 *        included in the list of non-ghost nodes */
-	void InitGhostNodes(bool include_image_nodes);
+	/** initialize the ghost node information */
+	void InitGhostNodes(void);
 
 	/** prescribe the motion of ghost nodes. Generate KBC cards to control the
 	 * ghost node motion. Assumes all components of the ghost node motion are
@@ -112,11 +115,8 @@ public:
 	/** initialize projection data. Initialize data structures needed to project
 	 * field values to the given list of points. Requires that this FEManagerT has
 	 * a BridgingScaleT in its element list. */
-	void InitProjection(CommManagerT& comm, const iArrayT& nodes, const StringT& field,
-		NodeManagerT& node_manager, bool make_inactive);
-
-	/** indicate whether image nodes should be included in the projection */
-	virtual bool ProjectImagePoints(void) const;
+	void InitProjection(const iArrayT& nodes, const StringT& field,
+		NodeManagerT& node_manager, bool make_inactive, int length);
 
 	/** project the point values onto the mesh. Project to the nodes using
 	 * projection initialized with the latest call to FEManagerT_bridging::InitProjection. */
@@ -152,6 +152,15 @@ public:
 	 * a particle type; otherwise, an exception will be thrown. */
 	nMatrixT<int>& PropertiesMap(int element_group);
 
+	/** calculate EAM total electron density at ghost atoms */
+	void ElecDensity(int length, dArray2DT& elecdens, dArray2DT& embforce);
+
+	/** add external electron density contribution to ghost atoms */
+	void SetExternalElecDensity(const dArray2DT& elecdens, const iArrayT& ghostatoms);
+	
+	/** add external embedding force contribution to ghost atoms */
+	void SetExternalEmbedForce(const dArray2DT& embforce, const iArrayT& ghostatoms);
+
 protected:
 
 	/** initialize solver information */
@@ -164,6 +173,9 @@ protected:
 
 	/** the bridging scale element group */
 	BridgingScaleT& BridgingScale(void) const;
+	
+	/** the EAMT element group */
+	EAMT& EAM(void) const;
 
 private:
 
@@ -188,6 +200,12 @@ private:
 	/** projection/interpolation operator */
 	BridgingScaleT* fBridgingScale;
 	
+	/** EAMFCC class */
+	EAMFCC3D* fEAMFCC3D;
+	
+	/** EAMT class */
+	EAMT* fEAMT;
+	
 	/** \name follower node information */
 	/*@{*/
 	/** map data of follower points into the mesh */
@@ -211,8 +229,7 @@ private:
 	
 	/** \name external force vector by group */
 	/*@{*/
-	ArrayT<const dArrayT*> fExternalForce;
-	
+	ArrayT<const dArrayT*> fExternalForce;	
 	ArrayT<const dArray2DT*> fExternalForce2D;
 	ArrayT<const iArrayT*>   fExternalForce2DNodes;
 	ArrayT<iArray2DT>        fExternalForce2DEquations;

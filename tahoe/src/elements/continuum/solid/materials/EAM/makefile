@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2003-03-04 07:37:10 paklein Exp $
+# $Id: makefile,v 1.6.30.1 2004-02-25 16:08:00 hspark Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -24,7 +24,8 @@ OBJ = \
 	EAMFCC2D.o \
 	EAMFCC3D.o \
 	EAMFCC3DMatT.o \
-	EAMFCC3DSym.o
+	EAMFCC3DSym.o \
+	EAM_particle.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -48,7 +49,8 @@ SRC = \
 	EAMFCC2D.cpp \
 	EAMFCC3D.cpp \
 	EAMFCC3DMatT.cpp \
-	EAMFCC3DSym.cpp
+	EAMFCC3DSym.cpp \
+	EAM_particle.cpp
 
 ##################### (3) headers
 #
@@ -64,7 +66,8 @@ HDR = \
 	EAMFCC3D.h \
 	EAMFCC3DMatT.h \
 	EAMFCC3DSym.h \
-	EAM.h
+	EAM.h \
+	EAM_particle.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

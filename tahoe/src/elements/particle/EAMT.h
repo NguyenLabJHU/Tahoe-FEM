@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.18 2004-01-23 19:47:37 paklein Exp $ */
+/* $Id: EAMT.h,v 1.18.2.2 2004-03-07 05:24:59 hspark Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -59,6 +59,12 @@ public:
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
 	/*@}*/
+
+	/** set external electron density pointers */
+	void SetExternalElecDensity(const dArray2DT& elecdens, const iArrayT& ghostatoms);
+	
+	/** set external embedding force pointers */
+	void SetExternalEmbedForce(const dArray2DT& embforce, const iArrayT& ghostatoms);
 
 protected:
 
@@ -133,6 +139,12 @@ private:
 	dArray2DT frhop_r;
 	nVariArray2DT<double> frhop_r_man;
 	int frhop_rMessageID;
+
+	/** external electron density, embedding force */
+	const dArray2DT* fExternalElecDensity;
+	const dArray2DT* fExternalEmbedForce;
+	const iArrayT* fExternalElecDensityNodes;
+	const iArrayT* fExternalEmbedForceNodes;
 
 	/** \name workspace for EAMT::RHSDriver. Used to accumulate the force for
 	 * a single row of EAMT::fNeighbors. */

@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.cpp,v 1.12 2004-02-04 07:35:45 paklein Exp $ */
+/* $Id: SimoQ1P0.cpp,v 1.10 2004-01-05 07:27:58 paklein Exp $ */
 #include "SimoQ1P0.h"
 
 #include "ShapeFunctionT.h"
@@ -152,6 +152,9 @@ void SimoQ1P0::SetGlobalShape(void)
 			/* "replace" dilatation */
 			dMatrixT& F = fF_List[i];
 			double J = F.Det();
+			
+			double tmp = v/(H*J);
+			
 			F *= pow(v/(H*J), 1.0/3.0);
 			
 			/* store Jacobian */
@@ -207,6 +210,8 @@ void SimoQ1P0::FormStiffness(double constK)
 		
 		/* detF correction */
 		double J_correction = J_bar/fJacobian[CurrIP()];
+
+		//double p = fCurrMaterial->Pressure()*J_correction;
 		double p = J_correction*cauchy.Trace()/3.0;
 
 		/* get shape function gradients matrix */
@@ -287,6 +292,7 @@ void SimoQ1P0::FormKd(double constK)
 		double J_correction = J_bar/fJacobian[CurrIP()];
 		
 		/* integrate pressure */
+		//p_bar += (*Weight)*(*Det)*fCurrMaterial->Pressure()*J_correction;
 		p_bar += (*Weight)*(*Det)*J_correction*cauchy.Trace()/3.0;
 		
 		/* accumulate */

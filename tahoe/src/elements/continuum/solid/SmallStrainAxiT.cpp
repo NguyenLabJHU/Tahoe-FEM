@@ -1,4 +1,4 @@
-/* $Id: SmallStrainAxiT.cpp,v 1.2 2004-02-02 23:48:04 paklein Exp $ */
+/* $Id: SmallStrainAxiT.cpp,v 1.1 2004-01-31 07:20:48 paklein Exp $ */
 #include "SmallStrainAxiT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -45,7 +45,7 @@ void SmallStrainAxiT::Initialize(void)
 		ExceptionT::GeneralFail("SmallStrainAxiT::Initialize", "no B-bar");
 
 	/* redimension with out-of-plane component */
-	int nstrs = dSymMatrixT::NumValues(kNSD) + 1;
+	int nstrs = dSymMatrixT::NumValues(NumSD()) + 1;
 	fD.Dimension(nstrs);
 	fB.Dimension(nstrs, NumSD()*NumElementNodes());
 
@@ -225,7 +225,7 @@ void SmallStrainAxiT::SetGlobalShape(void)
 		/* loop over integration points */
 		for (int i = 0; i < NumIP(); i++)
 		{
-			/* integration point coordinates */
+			/* integration point ccoordinates */
 			fShapes->IPCoords(fIPInterp, i);
 			double r = fIPInterp[kRadialDirection];
 		

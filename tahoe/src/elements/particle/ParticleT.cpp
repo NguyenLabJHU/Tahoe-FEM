@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.35 2004-03-04 08:54:26 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.34 2004-01-27 15:31:52 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -63,8 +63,6 @@ ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 	/* values < 0 mean ignore */
 	fReNeighborDisp = (fReNeighborDisp < kSmall) ? -1 : fReNeighborDisp;
 	fReNeighborIncr = (fReNeighborIncr <= 0) ? -1 : fReNeighborIncr;
-
-	fPeriodicSkin = fNeighborDistance;
 }
 
 ParticleT::ParticleT(const ElementSupportT& support):
@@ -72,7 +70,6 @@ ParticleT::ParticleT(const ElementSupportT& support):
 	fNeighborDistance(-1),
 	fReNeighborDisp(-1),
 	fReNeighborIncr(-1),
-	fPeriodicSkin(-1),
 	fNumTypes(-1),
 	fGrid(NULL),
 	fReNeighborCounter(0),
@@ -188,13 +185,13 @@ void ParticleT::Initialize(void)
 
 	StringT key;
 	in>>key;
-	if (key =="lattice") in >> fLatticeParameter;
+	if (key =="lattice") in >> latticeParameter;
 	else
 	  {
 	    in.rewind();
-	    fLatticeParameter = 4.08; //defaults to gold
+	    latticeParameter = 4.08; //defaults to gold
 	  }
-	NearestNeighborDistance = fLatticeParameter*.79;
+	NearestNeighborDistance = latticeParameter*.79;
 
 	/* set up communication of type information */
 	fTypeMessageID = ElementSupport().CommManager().Init_AllGather(MessageT::Integer, 1);
@@ -331,11 +328,8 @@ GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
 		const ScheduleT* stretch = fStretchSchedule[i];
 		if (stretch)
 		{
-			/* time during next solution step */
-			double next_time = ElementSupport().Time() + ElementSupport().TimeStep();
-		
 			has_moving = true;
-			double scale = stretch->Value(next_time);
+			double scale = stretch->Value();
 			double x_min = scale*fPeriodicBounds(i,0);
 			double x_max = scale*fPeriodicBounds(i,1);
 	
@@ -451,7 +445,7 @@ void ParticleT::SetConfiguration(void)
 {
 	/* set periodic boundary conditions */
 	CommManagerT& comm_manager = ElementSupport().CommManager();
-	comm_manager.EnforcePeriodicBoundaries(fPeriodicSkin);
+	comm_manager.EnforcePeriodicBoundaries(fNeighborDistance);
 	
 	/* reset the types array */
 	int nnd = ElementSupport().NumNodes();
@@ -1057,14 +1051,12 @@ double ParticleT::GenCSymmValue (CSymmParamNode *CSymmParam, int ndof)
     CSymmParam = CSymmParam->Next;
     delete CurrentAlias;
   }
-  CSymmValue /= fLatticeParameter;
+  CSymmValue /=latticeParameter;
   return CSymmValue;
 }
 
 
-void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CParamStart, dMatrixT *Strain, 
-	dArrayT *SlipVector, RaggedArray2DT<int> *NearestNeighbors, double& J) 
-{
+void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CParamStart, dMatrixT *Strain, dArrayT *SlipVector, RaggedArray2DT<int> *NearestNeighbors) {
   int ndof = NumDOF();
   /* run through neighbor list */
   iArrayT neighbors;
@@ -1132,9 +1124,7 @@ void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CPara
       dMatrixT EtaInverse = Eta.Inverse();
       F_iI.MultAB(Omega, EtaInverse);
       b_ij.MultABT(F_iI, F_iI);
-      double J2 = b_ij.Det();
-      if(fabs(J2) > kSmall) {
-      J = sqrt(J2);
+      if(fabs(b_ij.Det())>kSmall) {
 	dMatrixT Id(ndof);
 	Id=0.0;
 	for(int i=0; i<ndof;i++) Id(i,i)=1.0;

@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.20 2004-02-02 23:45:00 paklein Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.19 2004-01-31 07:20:50 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -35,9 +35,6 @@ public:
 
 	/** type of the domain coordinates */
 	LocalArrayT::TypeT DomainCoordType(void) const;
-	
-	/** domain coordinates */
-	const LocalArrayT& Coordinates(void) const { return fCoords; };
 
 	/** compute global shape derivatives */ 	
 	virtual void SetDerivatives(void);
@@ -82,20 +79,11 @@ public:
 	/* Allow stand-alone use of class ShapeFunctionT */
 	void InitializeDomain(void) const;
 	
-	/** \name shape function values */
-	/*@{*/
-	/** shape functions defining the geometry at the current integration point */
+	/** array of shape function values defining the geometry */
 	const double* IPShapeX(void) const;
 
-	/** shape functions defining the geometry at the given integration point */
-	const double* IPShapeX(int ip) const;
-
-	/** shape functions defining the field at the current integration point */
+	/** array of shape function values defining the field */
 	const double* IPShapeU(void) const;
-
-	/** shape functions defining the field at the given integration point */
-	const double* IPShapeU(int ip) const;
-	/*@}*/
 
 	/** \name field gradients */
 	/*@{*/
@@ -253,19 +241,9 @@ inline const double* ShapeFunctionT::IPShapeX(void) const
 	return fDomain->Shape(fCurrIP);
 }
 
-inline const double* ShapeFunctionT::IPShapeX(int ip) const
-{
-	return fDomain->Shape(ip);
-}
-
 inline const double* ShapeFunctionT::IPShapeU(void) const
 {
 	return (*pNaU)(fCurrIP);
-}
-
-inline const double* ShapeFunctionT::IPShapeU(int ip) const
-{
-	return (*pNaU)(ip);
 }
 
 inline void ShapeFunctionT::IPCoords(dArrayT& coordinates) const

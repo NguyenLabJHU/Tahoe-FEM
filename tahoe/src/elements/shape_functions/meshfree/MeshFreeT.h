@@ -1,9 +1,11 @@
-/* $Id: MeshFreeT.h,v 1.7 2004-03-04 08:54:29 paklein Exp $ */
-/* created: paklein (12/08/1999) */
+/* $Id: MeshFreeT.h,v 1.6 2002-07-05 22:28:37 paklein Exp $ */
+/* created: paklein (12/08/1999)                                          */
+
 #ifndef _MESHFREE_T_H_
 #define _MESHFREE_T_H_
 
 #include "ios_fwd_decl.h"
+
 
 namespace Tahoe {
 
@@ -21,14 +23,12 @@ public:
 
 	/** window types */
 	enum WindowTypeT {kGaussian = 0, /**< Guassian with spherical support */
-	           kRectCubicSpline = 1, /**< cubic spline with rectangular support */
-	                     kBrick = 2, /**< product of Gaussians with quad/hex support */
-                   kCubicSpline = 3  /**< cubic spline with spherical support */};	                 
+	               kCubicSpline = 1, /**< cubic spline with spherical support */
+	                     kBrick = 2  /**< product of Gaussians with quad/hex support */ };	                 
 
 	/** input extraction operator */
 	friend istream& operator>>(istream& in, MeshFreeT::WindowTypeT& code);
 };
 
-} /* namespace Tahoe */
-
+} // namespace Tahoe 
 #endif /* _MESHFREE_T_H_ */

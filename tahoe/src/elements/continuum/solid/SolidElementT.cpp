@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.58 2004-02-16 19:30:55 rdorgan Exp $ */
+/* $Id: SolidElementT.cpp,v 1.56 2004-01-31 07:20:48 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -728,9 +728,7 @@ void SolidElementT::Set_B_axi(const dArrayT& Na, const dArray2DT& DNa,
 {
 #if __option(extended_errorcheck)
 	if (B.Rows() != 4 || /* (number of stress 2D components) + 1 */
-	    B.Cols() != DNa.Length() ||
-    DNa.MajorDim() != 2 ||
-    DNa.MinorDim() != Na.Length())
+	    B.Cols() != DNa.Length())
 			ExceptionT::SizeMismatch("SolidElementT::Set_B_axi");
 #endif
 
@@ -757,7 +755,7 @@ void SolidElementT::Set_B_axi(const dArrayT& Na, const dArray2DT& DNa,
 
 /* set B-bar as given by Hughes (4.5.11-16) */
 void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradient, 
-	dMatrixT& B) const
+	dMatrixT& B)
 {
 #if __option(extended_errorcheck)
 	if (B.Rows() != dSymMatrixT::NumValues(DNa.MajorDim()) ||
@@ -843,50 +841,6 @@ void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradie
 				
 			pNax++; pNay++; pNaz++;
 		}
-	}
-}
-
-void SolidElementT::Set_B_bar_axi(const dArrayT& Na, const dArray2DT& DNa, const dArray2DT& mean_gradient, 
-	double r, dMatrixT& B) const
-{
-	const char caller[] = "SolidElementT::Set_B_bar_axi";
-	
-#if __option(extended_errorcheck)
-	if (B.Rows() != 4 || /* (number of stress 2D components) + 1 */
-	    B.Cols() != DNa.Length() ||
-	    DNa.MajorDim() != 2 ||
-	    DNa.MinorDim() != Na.Length() ||
-	    mean_gradient.MinorDim() != DNa.MinorDim() ||
-	    mean_gradient.MajorDim() != DNa.MajorDim())
-		ExceptionT::SizeMismatch("SolidElementT::Set_B_axi");
-#endif
-
-	int nnd = DNa.MinorDim();
-	double* pB = B.Pointer();
-
-	const double* pNax = DNa(0);
-	const double* pNay = DNa(1);			
-	const double* pNa  = Na.Pointer();
-
-	const double* pBmx = mean_gradient(0);
-	const double* pBmy = mean_gradient(1);			
-	for (int i = 0; i < nnd; i++)
-	{
-		/* exchange volumetric part: b_bar_vol - b_vol */
-		double factx = ((*pBmx++) - (*pNax + *pNa/r))/3.0;
-		double facty = ((*pBmy++) - (*pNay))/3.0;
-			
-		*pB++ = *pNax + factx;
-		*pB++ = factx;
-		*pB++ = *pNay; /* shear */
-		*pB++ = *pNa/r + factx; /* about y-axis: u_r = u_x */
-	
-		*pB++ = facty;
-		*pB++ = *pNay + facty;
-		*pB++ = *pNax; /* shear */
-		*pB++ = facty;
-				
-		pNax++; pNay++; pNa++;
 	}
 }
 
@@ -1534,15 +1488,12 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 
 	if (n_codes[iNodalStress])
 	{
-		const char* slabels1D[] = {"s11"};
 		const char* slabels2D[] = {"s11", "s22", "s12"};
 		const char* slabels2D_axi[] = {"srr", "szz", "srz", "stt"};
 		const char* slabels3D[] = {"s11", "s22", "s33", "s23", "s13", "s12"};
 		int nstrs = fB.Rows();
 		const char** slabels = NULL;
-		if (nstrs == 1)
-			slabels = slabels1D;
-		else if (nstrs == 3)
+		if (nstrs == 3)
 			slabels = slabels2D;
 		else if (nstrs == 4)
 			slabels = slabels2D_axi;
@@ -1612,15 +1563,12 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 	}
 	if (e_codes[iIPStress])
 	{
-		const char* slabels1D[] = {"s11", "e11"};
 		const char* slabels2D[] = {"s11", "s22", "s12","e11", "e22", "e12"};
 		const char* slabels2D_axi[] = {"srr", "szz", "srz", "stt", "err", "ezz", "erz", "ett"};
 		const char* slabels3D[] = {"s11", "s22", "s33", "s23", "s13", "s12", "e11", "e22", "e33", "e23", "e13", "e12"};
 		int nstrs = fB.Rows();
 		const char** slabels = NULL;
-		if (nstrs == 1)
-			slabels = slabels1D;
-		else if (nstrs == 3)
+		if (nstrs == 3)
 			slabels = slabels2D;
 		else if (nstrs == 4)
 			slabels = slabels2D_axi;

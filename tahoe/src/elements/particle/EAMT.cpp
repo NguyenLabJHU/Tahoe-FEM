@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.54 2004-03-16 06:58:51 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.52.2.5 2004-03-21 16:41:28 hspark Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -31,7 +31,11 @@ EAMT::EAMT(const ElementSupportT& support, const FieldT& field):
   fEmbeddingEnergy_man(kMemoryHeadRoom, fEmbeddingEnergy, 1),
   fEmbeddingForce_man(kMemoryHeadRoom, fEmbeddingForce, 1),
   fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1),
-  frhop_r_man(kMemoryHeadRoom, frhop_r,NumDOF())
+  frhop_r_man(kMemoryHeadRoom, frhop_r,NumDOF()),
+  fExternalEmbedForce(NULL),
+  fExternalElecDensity(NULL),
+  fExternalEmbedForceNodes(NULL),
+  fExternalElecDensityNodes(NULL)
 {
 	SetName("particle_eam");
 }
@@ -44,7 +48,11 @@ EAMT::EAMT(const ElementSupportT& support):
   fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1),
   fEmbeddingEnergy_man(kMemoryHeadRoom, fEmbeddingEnergy, 1),
   fEmbeddingForce_man(kMemoryHeadRoom, fEmbeddingForce, 1),
-  fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1)
+  fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1),
+  fExternalEmbedForce(NULL),
+  fExternalElecDensity(NULL),
+  fExternalEmbedForceNodes(NULL),
+  fExternalElecDensityNodes(NULL)
 {
 	SetName("particle_eam");
 }
@@ -176,15 +184,6 @@ void EAMT::WriteOutput(void)
   const dArray2DT* velocities = NULL;
   if (field.Order() > 0) velocities = &(field[1]);
 
-  	/* atomic volume */
-  	double V0 = 0.0;
-  	if (NumSD() == 1)
-    	V0 = fLatticeParameter;
-	else if (NumSD() == 2)
-		V0 = sqrt(3.0)*fLatticeParameter*fLatticeParameter/2.0; /* 2D hex */
-	else /* 3D */
-		V0 = fLatticeParameter*fLatticeParameter*fLatticeParameter/4.0; /* FCC */  
-	
   /* collect mass per particle */
   dArrayT mass(fNumTypes);
   for (int i = 0; i < fNumTypes; i++)
@@ -212,7 +211,7 @@ void EAMT::WriteOutput(void)
 			temp.Outer(vec);
 		 	for (int cc = 0; cc < num_stresses; cc++) {
 				int ndex = ndof+2+cc;
-		   		values_i[ndex] = -mass[type_i]*temp[cc]/V0;
+		   		values_i[ndex] = -mass[type_i]*temp[cc];
 		 	}
 		}
 #endif /* NO_PARTICLE_STRESS_OUTPUT */
@@ -258,7 +257,7 @@ void EAMT::WriteOutput(void)
 
   int current_property_i = -1;
   int current_property_j = -1;
-      
+		
   /* Loop i : run through neighbor list */
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
     {
@@ -295,7 +294,7 @@ void EAMT::WriteOutput(void)
 
       /* Embedding Energy: E_i(rho_i) */
       if(iEmb == 1) values_i[ndof] += fEmbeddingEnergy(tag_i,0);
-      
+      	  
       for (int j = 1; j < neighbors.Length(); j++)
 	{
 	  /* tags */
@@ -311,7 +310,7 @@ void EAMT::WriteOutput(void)
 	      ed_force_i    = fEAMProperties[property_i]->getElecDensForce();
 	      current_property_i = property_i;
 	    }
-	  
+	 
 	  int property_j = fPropertiesMap(type_j, type_i);
 	  if (property_j != current_property_j)
 	    {
@@ -387,7 +386,7 @@ void EAMT::WriteOutput(void)
 				/* accumulate into stress into array */
 				for (int cc = 0; cc < num_stresses; cc++) {
 					int ndex = ndof+2+cc;
-					n_values(local_j, ndex) += 0.5*Fbyr*temp[cc]/V0;
+					n_values(local_j, ndex) += 0.5*Fbyr*temp[cc];		   
 				}
 #endif /* NO_PARTICLE_STRESS_OUTPUT */
 			}	  
@@ -395,16 +394,13 @@ void EAMT::WriteOutput(void)
 	}
 
 #ifndef NO_PARTICLE_STRESS_OUTPUT
-	/* calculate strain */
-	double J = 1.0;
-	CalcValues(i, coords, CParamStart, &Strain, &SlipVector, &NearestNeighbors, J);
-
 	/*copy stress into array*/
 	for (int cc = 0; cc < num_stresses; cc++) {
 		int ndex = ndof+2+cc;
-		values_i[ndex] += vs_i[cc]/V0;
+		values_i[ndex] += vs_i[cc];
 	}
 	   
+	CalcValues(i, coords, CParamStart, &Strain, &SlipVector, &NearestNeighbors);
 	int valuep=0;
 	Strain /=2;
 	for(int n=0; n<ndof;n++)
@@ -748,6 +744,20 @@ void EAMT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
 	ParticleT::DefineParameters(list);
+}
+
+/* set external electron density pointers */
+void EAMT::SetExternalElecDensity(const dArray2DT& elecdensity, const iArrayT& ghostatoms)
+{
+	fExternalElecDensity = &elecdensity;
+	fExternalElecDensityNodes = &ghostatoms;
+}
+
+/* set external embedding force pointers */
+void EAMT::SetExternalEmbedForce(const dArray2DT& embedforce, const iArrayT& ghostatoms)
+{
+	fExternalEmbedForce = &embedforce;
+	fExternalEmbedForceNodes = &ghostatoms;
 }
 
 /***********************************************************************
@@ -1485,20 +1495,40 @@ void EAMT::RHSDriver3D(void)
 
 	/* communication */
 	CommManagerT& comm_manager = support.CommManager();
-  
+
   if(iEmb == 1)
     {
       /* get electron density */
       fElectronDensity = 0.0;
       GetRho3D(coords,fElectronDensity);
 	  
+	  if (fExternalElecDensity)
+	  {
+		dArrayT asdf(1);
+		for (int i = 0; i < fExternalElecDensityNodes->Length(); i++)
+		{
+			fExternalElecDensity->RowAlias(i, asdf);
+			fElectronDensity.SetRow((*fExternalElecDensityNodes)[i], asdf);
+		}
+	  }
+
       /* exchange electron density information */
       comm_manager.AllGather(fElectronDensityMessageID, fElectronDensity);
-      
+
       /* get embedding force */
       fEmbeddingForce = 0.0;
       GetEmbForce(coords,fElectronDensity,fEmbeddingForce);
-      
+	  
+	  if (fExternalEmbedForce)
+	  {
+		dArrayT asdf(1);
+		for (int i = 0; i < fExternalElecDensityNodes->Length(); i++)
+		{
+			fExternalEmbedForce->RowAlias(i, asdf);
+			fEmbeddingForce.SetRow((*fExternalEmbedForceNodes)[i], asdf);
+		}
+	  }
+	  
 	  /* exchange embedding energy information */
       comm_manager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
     }
@@ -1518,7 +1548,7 @@ void EAMT::RHSDriver3D(void)
 
   iArrayT neighbors;
   fForce = 0.0;
-
+	
   /* Loop i : run through neighbor list */
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
     {
@@ -1539,7 +1569,7 @@ void EAMT::RHSDriver3D(void)
 	  int  type_j = fType[tag_j];
 	  double* f_j = fForce(tag_j);
 	  const double* x_j = coords(tag_j);
-
+		
 	  /* set EAM property (if not already set) */
 	  int property_i = fPropertiesMap(type_i, type_j);
 	  if (property_i != current_property_i)
@@ -1550,7 +1580,7 @@ void EAMT::RHSDriver3D(void)
 
 	      current_property_i = property_i;
 	    }
-
+		
 	  int property_j = fPropertiesMap(type_j, type_i);
 	  if (property_j != current_property_j)
 	    {
@@ -1926,18 +1956,25 @@ void EAMT::GetEmbForce(const dArray2DT& coords,const dArray2DT rho,
 {
 #pragma unused(coords)
 
+  int current_property = -1;
   EAMPropertyT::EmbedForceFunction emb_force = NULL;
   iArrayT neighbors;
   Emb = 0.0;
   
-  for (int i = 0; i < fNeighbors.MajorDim(); i++)
+    for (int i = 0; i < fNeighbors.MajorDim(); i++)
     {
       fNeighbors.RowAlias(i, neighbors);
       
       int   tag_i = neighbors[0]; 
       int  type_i = fType[tag_i];
-
-      emb_force  = fEAMProperties[type_i]->getEmbedForce();
+	  
+	  int property = fPropertiesMap(type_i, type_i);
+      if (property != current_property)
+	  {
+		emb_force  = fEAMProperties[property]->getEmbedForce();
+		current_property = property;
+	  }
+      //emb_force  = fEAMProperties[type_i]->getEmbedForce();
       Emb(tag_i,0) = emb_force(rho(tag_i,0),NULL,NULL); 
     }  
 }

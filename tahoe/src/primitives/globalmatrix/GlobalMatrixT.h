@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.h,v 1.15 2004-03-16 06:56:28 paklein Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.13 2003-11-01 16:09:24 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #ifndef _GLOBAL_MATRIX_H_
 #define _GLOBAL_MATRIX_H_
@@ -57,8 +57,8 @@ public:
 	 * with AddEquationSet() for all equation sets */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
 	
-	/** clear values for next assembly */
-	virtual void Clear(void) {};
+	/** set all matrix values to 0.0 */
+	virtual void Clear(void) = 0;
 	
 	/** solve for rhs passed in result and overwritten with solution */
 	bool Solve(dArrayT& result);
@@ -157,7 +157,7 @@ public:
 protected:
 
 	/** precondition matrix */
-	virtual void Factorize(void) {};
+	virtual void Factorize(void) = 0;
 	
 	/** solution driver */
 	virtual void BackSubstitute(dArrayT& result) = 0;
@@ -189,6 +189,9 @@ protected:
 	int	fLocNumEQ;
 	int fStartEQ; //1,...
 	/*@}*/
+	
+	/** runtime flag */
+	int fIsFactorized;
 };
 
 /* return the check code */

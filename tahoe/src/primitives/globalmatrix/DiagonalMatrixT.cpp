@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.17 2004-03-16 06:56:28 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.16 2003-12-28 08:24:00 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "DiagonalMatrixT.h"
 #include <iostream.h>
@@ -11,8 +11,7 @@ using namespace Tahoe;
 
 /* constructor */
 DiagonalMatrixT::DiagonalMatrixT(ostream& out, int check_code, AssemblyModeT mode):
-	GlobalMatrixT(out, check_code),
-	fIsFactorized(false)
+	GlobalMatrixT(out, check_code)
 {
 	try { SetAssemblyMode(mode); }
 	catch (ExceptionT::CodeT) { throw ExceptionT::kBadInputValue; }
@@ -22,8 +21,7 @@ DiagonalMatrixT::DiagonalMatrixT(ostream& out, int check_code, AssemblyModeT mod
 DiagonalMatrixT::DiagonalMatrixT(const DiagonalMatrixT& source):
 	GlobalMatrixT(source),
 	fMatrix(source.fMatrix),
-	fMode(source.fMode),
-	fIsFactorized(source.fIsFactorized)
+	fMode(source.fMode)
 {
 
 
@@ -51,7 +49,6 @@ void DiagonalMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 
 	/* allocate work space */
 	fMatrix.Dimension(fLocNumEQ);
-	fIsFactorized = false;
 }
 
 /* set all matrix values to 0.0 */
@@ -62,7 +59,6 @@ void DiagonalMatrixT::Clear(void)
 
 	/* clear data */
 	fMatrix = 0.0;
-	fIsFactorized = false;
 }
 
 /* add element group equations to the overall topology.
@@ -212,7 +208,6 @@ GlobalMatrixT& DiagonalMatrixT::operator=(const DiagonalMatrixT& rhs)
 
 	fMatrix = rhs.fMatrix;
 	fMode   = rhs.fMode;
-	fIsFactorized = rhs.fIsFactorized;
 	return *this;
 }
 
@@ -257,47 +252,40 @@ bool DiagonalMatrixT::Multx(const dArrayT& x, dArrayT& b) const
 /* precondition matrix */
 void DiagonalMatrixT::Factorize(void)
 {
-	/* quick exit */
-	if (fIsFactorized)
-		return;
-	else {
-	
-		double* pMatrix = fMatrix.Pointer();
+	double* pMatrix = fMatrix.Pointer();
 
-		/* inverse of a diagonal matrix */
-		bool first = true;
-		for (int i = 0; i < fLocNumEQ; i++)
+	/* inverse of a diagonal matrix */
+	bool first = true;
+	for (int i = 0; i < fLocNumEQ; i++)
+	{
+		/* check for zero pivots */
+		if (fabs(*pMatrix) > kSmall)
+			*pMatrix = 1.0/(*pMatrix);
+		else
 		{
-			/* check for zero pivots */
-			if (fabs(*pMatrix) > kSmall)
-				*pMatrix = 1.0/(*pMatrix);
-			else
+			if (first)
 			{
-				if (first)
-				{
-					cout << "\n DiagonalMatrixT::Factorize: WARNING: skipping small pivots. See out file."
-					     << endl;
+				cout << "\n DiagonalMatrixT::Factorize: WARNING: skipping small pivots. See out file."
+				     << endl;
 				
-					fOut << "\n DiagonalMatrixT::Factorize: small pivots\n";
-					fOut << setw(kIntWidth) << "eqn"
-					     << setw(OutputWidth(fOut, pMatrix)) << "pivot" << '\n';
-					first = false;		
-				}
-			
-				fOut << setw(kIntWidth) << i+1
-				     << setw(OutputWidth(fOut, pMatrix)) << *pMatrix << '\n';
+				fOut << "\n DiagonalMatrixT::Factorize: small pivots\n";
+				fOut << setw(kIntWidth) << "eqn"
+				     << setw(OutputWidth(fOut, pMatrix)) << "pivot" << '\n';
+				first = false;		
 			}
-	
-			/* next */
-			pMatrix++;
+		
+			fOut << setw(kIntWidth) << i+1
+			     << setw(OutputWidth(fOut, pMatrix)) << *pMatrix << '\n';
 		}
 
-		/* flush */
-		if (!first) fOut.flush();
-		
-		/* set flag */
-		fIsFactorized = true;
+		/* next */
+		pMatrix++;
 	}
+
+	/* flush */
+	if (!first) fOut.flush();
+
+	fIsFactorized = 1;
 }
 	
 /* solution driver */

@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.42 2004-03-18 01:16:19 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.40.2.1 2004-03-05 15:06:44 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -69,12 +69,6 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 	iGridManagerT grid(10, 100, point_coordinates, &points_used);
 	grid.Reset();
 	
-	/* verbose output */
-	if (ElementSupport().PrintInput()) {
-		grid.WriteStatistics(out);
-		grid.DumpGrid(out);
-	}
-		
 	/* track cell containing each point, so only one cell is associated with each point */
 	iArrayT found_in_cell(points_used.Length());
 	found_in_cell = -1;
@@ -257,7 +251,7 @@ void BridgingScaleT::InterpolateField(const StringT& field, int order, const Poi
 	/* get the field */
 	const FieldT* the_field = ElementSupport().Field(field);
 	LocalArrayT loc_field(LocalArrayT::kDisp, nen, the_field->NumDOF());
-	loc_field.SetGlobal((*the_field)[order]); /* change order so can accomodate any field */
+	loc_field.SetGlobal((*the_field)[order]); /* change orde so can accomodate any field */
 	
 	/* interpolation data */
 	const dArray2DT& weights = cell_data.InterpolationWeights();
@@ -265,7 +259,7 @@ void BridgingScaleT::InterpolateField(const StringT& field, int order, const Poi
 	
 	/* dimension return value */
 	point_values.Dimension(weights.MajorDim(), the_field->NumDOF());
-
+	
 	/* loop over points */
 	for (int i = 0; i < point_values.MajorDim(); i++)
 	{
@@ -283,10 +277,11 @@ void BridgingScaleT::InterpolateField(const StringT& field, int order, const Poi
 }
 
 /* compute the projection matrix */
-void BridgingScaleT::InitProjection(CommManagerT& comm, const iArrayT& points_used, const dArray2DT* init_coords, 
+void BridgingScaleT::InitProjection(const iArrayT& points_used, const dArray2DT* init_coords, 
 	const dArray2DT* curr_coords, PointInCellDataT& cell_data)
 {
-#pragma unused(comm)
+	/* initialize point-in-cell data */
+	MaptoCells(points_used, init_coords, curr_coords, cell_data);
 
 	/* compute interpolation data */
 	InitInterpolation(points_used, init_coords, curr_coords, cell_data);

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeNodalShapeFunctionT.cpp,v 1.2 2004-02-10 01:27:38 cjkimme Exp $ */
+/* $Id: MeshFreeNodalShapeFunctionT.cpp,v 1.1 2004-01-27 01:21:11 cjkimme Exp $ */
 #include "MeshFreeNodalShapeFunctionT.h"
 #include "toolboxConstants.h"
 #include "MeshFreeSupport2DT.h"
@@ -9,15 +9,14 @@
 using namespace Tahoe;
 
 /* constructor */
-MeshFreeNodalShapeFunctionT::MeshFreeNodalShapeFunctionT(int numSD, 
-	const dArray2DT& all_coords, const iArray2DT& connects,
+MeshFreeNodalShapeFunctionT::MeshFreeNodalShapeFunctionT(int numSD,
+	const LocalArrayT& nodes, const dArray2DT& all_coords, const iArray2DT& connects,
 	const dArray2DT& nonNodes, ifstreamT& in):
 	fSD(numSD),
 	fMFSupport(NULL),
 	fDNaU(1),
 	fNonGridNodes()
 {
-#pragma unused(nonNodes)
 	/* store auxiliary points for shape function evaluation */
 
 	/* construct MLS support */
@@ -125,7 +124,6 @@ int MeshFreeNodalShapeFunctionT::SetDerivativesAt(const dArrayT& x)
 void MeshFreeNodalShapeFunctionT::UseDerivatives(const iArrayT& neighbors,
 	const dArray2DT& Dfield) // load external values
 {
-#pragma unused(Dfield)
 	/*set neighbors */
 	fNeighbors.Alias(neighbors);
 
@@ -378,16 +376,6 @@ void MeshFreeNodalShapeFunctionT::WriteStatistics(ostream& out) const
 	fMFSupport->WriteStatistics(out);
 }
 
-dArray2DT& MeshFreeNodalShapeFunctionT::NodalParameters(void) 
-{ 
-	return fMFSupport->NodalParameters(); 
-}
-
-dArrayT& MeshFreeNodalShapeFunctionT::NodalVolumes(void)
-{
-	return fMFSupport->NodalVolumes();
-}
-
 /***********************************************************************
 * Private
 ***********************************************************************/
@@ -403,3 +391,7 @@ void MeshFreeNodalShapeFunctionT::GetNodalParameters(const iArrayT& node, dArray
 	fMFSupport->GetSupportParameters(node, nodal_params);
 }
 
+dArray2DT& MeshFreeNodalShapeFunctionT::NodalParameters(void) 
+{ 
+	return fMFSupport->NodalParameters(); 
+}

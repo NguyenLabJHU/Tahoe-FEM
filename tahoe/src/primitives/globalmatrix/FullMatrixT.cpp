@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.16 2004-03-16 06:56:28 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.14 2003-12-28 08:24:01 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 #include "FullMatrixT.h"
 #include <iostream.h>
@@ -12,8 +12,7 @@ using namespace Tahoe;
 
 /* constructor */
 FullMatrixT::FullMatrixT(ostream& out,int check_code):
-	GlobalMatrixT(out, check_code),
-	fIsFactorized(false)
+	GlobalMatrixT(out, check_code)
 {
 
 }
@@ -21,8 +20,7 @@ FullMatrixT::FullMatrixT(ostream& out,int check_code):
 /* copy constructor */
 FullMatrixT::FullMatrixT(const FullMatrixT& source):
 	GlobalMatrixT(source),
-	fMatrix(source.fMatrix),
-	fIsFactorized(source.fIsFactorized)
+	fMatrix(source.fMatrix)
 {
 
 }
@@ -46,7 +44,6 @@ void FullMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	
 	/* allocate work space */
 	fMatrix.Dimension(fLocNumEQ);
-	fIsFactorized = false;
 }
 
 /* set all matrix values to 0.0 */
@@ -57,9 +54,6 @@ void FullMatrixT::Clear(void)
 	
 	/* clear values */
 	fMatrix = 0.0;	
-
-	/* set flag */
-	fIsFactorized = false;
 }
 
 /* add element group equations to the overall topology.
@@ -297,7 +291,6 @@ GlobalMatrixT& FullMatrixT::operator=(const FullMatrixT& rhs)
 	GlobalMatrixT::operator=(rhs);
 
 	fMatrix = rhs.fMatrix;
-	fIsFactorized = rhs.fIsFactorized;
 	return *this;
 }
 
@@ -351,14 +344,21 @@ bool FullMatrixT::MultTx(const dArrayT& x, dArrayT& b) const
 }
 
 /**************************************************************************
- * Protected
- **************************************************************************/
+* Protected
+**************************************************************************/
 
+/* precondition matrix */
+void FullMatrixT::Factorize(void)
+{
+//TEMP: no full, nonsymmetric factorization implemented
+	fIsFactorized = 0; // undo GlobalMatrixT flag set
+}
+	
 /* determine new search direction and put the results in result */
 void FullMatrixT::BackSubstitute(dArrayT& result)
 {
-	if (fIsFactorized)
-		ExceptionT::GeneralFail("FullMatrixT::BackSubstitute", "no multiple solves");
+//TEMP: no full, nonsymmetric factorization implemented
+	if (fIsFactorized) throw ExceptionT::kGeneralFail;
 
 	fMatrix.LinearSolve(result);
 	fIsFactorized = true;

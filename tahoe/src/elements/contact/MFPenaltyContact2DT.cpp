@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.6 2004-02-06 03:42:53 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.5 2003-11-21 22:45:57 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
@@ -14,7 +14,6 @@
 /* meshfree element group types */
 #include "MeshFreeSSSolidT.h"
 #include "MeshFreeFSSolidT.h"
-#include "MeshFreeFSSolidAxiT.h"
 #include "MeshFreeSupportT.h"
 
 /* parameters (duplicated from Contact2DT) */
@@ -44,13 +43,10 @@ MFPenaltyContact2DT::MFPenaltyContact2DT(const ElementSupportT& support, const F
 	/* cast to meshfree element types */
 	const MeshFreeSSSolidT* mf_ss_solid = dynamic_cast<const MeshFreeSSSolidT*>(fElementGroup);
 	const MeshFreeFSSolidT* mf_fs_solid = dynamic_cast<const MeshFreeFSSolidT*>(fElementGroup);
-	const MeshFreeFSSolidAxiT* mf_fs_axi_solid = dynamic_cast<const MeshFreeFSSolidAxiT*>(fElementGroup);
 	if (mf_ss_solid)
 		fMeshFreeSupport = &(mf_ss_solid->MeshFreeSupport());	
 	else if (mf_fs_solid)
 		fMeshFreeSupport = &(mf_fs_solid->MeshFreeSupport());	
-	else if (mf_fs_axi_solid)
-		fMeshFreeSupport = &(mf_fs_axi_solid->MeshFreeSupport());	
 	else
 		ExceptionT::GeneralFail("MFPenaltyContact2DT::MFPenaltyContact2DT",
 			"element group %d is not meshfree", fGroupNumber+1);

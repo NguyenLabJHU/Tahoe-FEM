@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.cpp,v 1.12 2004-03-16 06:58:54 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.cpp,v 1.11.2.1 2004-03-18 18:27:35 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 
 #include "MeshFreeShapeFunctionT.h"
@@ -522,7 +522,7 @@ void MeshFreeShapeFunctionT::BlendElementData(void)
 	int nnd = fNeighbors.Length();
 	
 	fR  = 0.0;
-	fDR = 0.0;			
+	fDR = 0;			
 	int* pelem_flags = fElemFlags(fElemHasExactNode[fCurrElement]);
 	for (int ii = 0; ii < nip; ii++)
 	{

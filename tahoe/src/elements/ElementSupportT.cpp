@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.31 2004-03-04 08:54:17 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.30 2004-01-05 07:36:22 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -654,9 +654,6 @@ ofstreamT& ElementSupportT::Output(void) const
 #endif
 }
 
-/* format of the output files */
-IOBaseT::FileTypeT ElementSupportT::OutputFormat(void) const { return FEManager().OutputFormat(); }
-
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 int ElementSupportT::RegisterOutput(const OutputSetT& output_set) const
 {
@@ -705,13 +702,6 @@ bool ElementSupportT::WriteOutput(void) const
 #else
 	return false;
 #endif
-}
-
-/* write a snapshot */
-void ElementSupportT::WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
-	const dArray2DT& values, const ArrayT<StringT>& labels) const
-{
-	FEManager().WriteOutput(file, coords, node_map, values, labels);
 }
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_

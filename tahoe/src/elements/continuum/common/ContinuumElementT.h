@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.26 2004-02-02 23:46:43 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.25 2004-01-31 07:20:45 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -284,9 +284,6 @@ private:
 
 	/** element parameter */
 	GeometryT::CodeT fGeometryCode;
-	
-	/** cached results from ContinuumElementT::Axisymmetric */
-	bool fAxisymmetric;
 };
 
 /* inlines */

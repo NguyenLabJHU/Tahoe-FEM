@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.45 2004-01-05 07:12:36 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.45.4.2 2004-03-21 16:41:31 hspark Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 

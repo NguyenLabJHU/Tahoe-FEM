@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.19 2004-02-17 18:00:50 cjkimme Exp $ */
+/* $Id: FieldT.h,v 1.18 2004-01-05 07:12:36 paklein Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -23,7 +23,6 @@ class nIntegratorT;
 class KBC_ControllerT;
 class FBC_ControllerT;
 template <class TYPE> class RaggedArray2DT;
-template <class TYPE> class LinkedListT;
 class ifstreamT;
 class ofstreamT;
 class FieldSupportT;
@@ -228,12 +227,6 @@ public:
 	 * \param nodes element connectivities: [nel] x [nen_i]
 	 * \param eqnos destination for equation numbers: [nel] x [nen_i*ndof] */
 	void SetLocalEqnos(const RaggedArray2DT<int>& nodes, RaggedArray2DT<int>& eqnos) const;
-
-	/** collect equation numbers. Connectivities are passed in a LinkedListT
-	 * which allows an arbitrary number of nodes per element. 
-	 * \param nodes element connectivities: [nel] x [nen_i]
-	 * \param eqnos destination for equation numbers: [nel] x [nen_i*ndof] */
-	void SetLocalEqnos(ArrayT< LinkedListT<int> >& nodes, RaggedArray2DT<int>& eqnos) const;
 
 	/** collect equation numbers */
 	void SetLocalEqnos(const ArrayT<int>& tags, iArray2DT& eqnos) const;

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.38 2004-03-17 22:47:02 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.36 2004-01-27 15:31:05 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -39,11 +39,6 @@ class SubListT;
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 class FieldT;
-#endif
-
-#ifdef __NO_RTTI__
-class ParticleT;
-class BridgingScaleT;
 #endif
 
 /** base class for element types. Initialization of the element classes
@@ -311,17 +306,6 @@ public:
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
 	/*@}*/
 
-#ifdef __NO_RTTI__
-	/** \name fixes for environments without working RTTI */
-	/*@{*/
-	/** cast this to ParticleT */
-	virtual ParticleT* dynamic_cast_ParticleT(void) { return NULL; };
-
-	/** cast this to BridgingScaleT* */
-	virtual BridgingScaleT* dynamic_cast_BridgingScaleT(void) { return NULL; };
-	/*@}*/
-#endif
-
 protected: /* for derived classes only */
 
 	/** map the element numbers from block to group numbering */
@@ -409,9 +393,8 @@ protected: /* for derived classes only */
 	virtual void CurrElementInfo(ostream& out) const;
 
 	/** (re-)set element cards array */
-	void SetElementCards(const ArrayT<ElementBlockDataT>& block_data, const ArrayT<const iArray2DT*>& connectivities,		
-		const ArrayT<iArray2DT>& eqnos, AutoArrayT<ElementCardT>& element_cards) const;
-	
+	void SetElementCards(void);
+
 private:
 
 	/** return the default number of element nodes. This function is needed
