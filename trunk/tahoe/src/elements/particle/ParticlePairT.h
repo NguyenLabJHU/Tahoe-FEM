@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.6 2002-11-28 01:10:30 paklein Exp $ */
+/* $Id: ParticlePairT.h,v 1.7 2002-11-30 16:37:25 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -51,7 +51,7 @@ protected:
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
 	/*@{*/
 	/** form group contribution to the LHS matrix */
-	virtual void LHSDriver(void);
+	virtual void LHSDriver(GlobalT::SystemTypeT);
 
 	/** form group contribution to the residual */
 	virtual void RHSDriver(void);
