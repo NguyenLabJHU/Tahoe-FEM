@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2001-01-31 04:08:35 paklein Exp $
+# $Id: makefile,v 1.3 2001-02-01 17:42:05 paklein Exp $
 # object directory makefile - compilation instructions
 
 .SUFFIXES: .c .cpp .C .f .F .o .d .h .h_link
@@ -23,8 +23,6 @@ HDR = \
 	dRangeArrayT.h \
 	LocalArrayT.h \
 	pArrayT.h \
-	SmartListT.h \
-	SmartPtrListT.h \
 	StringT.h \
 	Vector3T.h
 
