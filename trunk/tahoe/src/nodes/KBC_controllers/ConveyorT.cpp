@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.9 2004-12-21 17:24:51 thao Exp $ */
+/* $Id: ConveyorT.cpp,v 1.10 2004-12-27 07:00:55 paklein Exp $ */
 #include "ConveyorT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -14,6 +14,10 @@
 #include "CSEAnisoT.h"
 
 using namespace Tahoe;
+
+const int knum_uY_samples = 10;
+
+#define _FIX_RIGHT_EDGE_ 1
 
 /* constructor */
 ConveyorT::ConveyorT(const BasicSupportT& support, FieldT& field):
@@ -32,7 +36,9 @@ ConveyorT::ConveyorT(const BasicSupportT& support, FieldT& field):
 	fDampingCoefficient(0.0),
 	fDampingReset(true),
 	fTipOutputCode(-1),
-	fTipColumnNum(-1)
+	fTipColumnNum(-1),
+	fUy_node_upper(-1),
+	fUy_node_lower(-1)
 {
 	SetName("conveyor");
 }
@@ -69,7 +75,18 @@ void ConveyorT::InitStep(void)
 	/* inherited */
 	KBC_ControllerT::InitStep();
 	fTrackingCount++;
-	
+
+	/* update running average of interface compliance */
+	dArray2DT& u_field = fField[0];
+	if (fUy_node_upper != -1) {
+		fUy_samples_upper.Push(u_field(fUy_node_upper,1));
+		fUy_samples_upper.Resize(knum_uY_samples);
+	}
+	if (fUy_node_lower != -1) {
+		fUy_samples_lower.Push(u_field(fUy_node_lower,1));
+		fUy_samples_lower.Resize(knum_uY_samples);
+	}
+
 	/* create pre-crack */
 	if (fSupport.FEManager().Time() < kSmall)
 		CreatePrecrack();
@@ -164,12 +181,12 @@ void ConveyorT::CloseStep(void)
 		dArray2DT& u_field = fField[0];
 
 		/* nodes to get reference stretch */
-		double uY_bottom = u_field(fBottomNodes[0], 1);
-		double uY_top = u_field(fTopNodes[0], 1);
+		double uY_bot = (fBottomNodes.Length() > 0) ? u_field(fBottomNodes[0], 1) : 0.0;
+		double uY_top = (   fTopNodes.Length() > 0) ? u_field(   fTopNodes[0], 1) : 0.0;
 		
 		fTrackingOutput << fSupport.Time() << ' ' 
 		                << fTrackingPoint << ' '
-		                << uY_top - uY_bottom <<'\n';
+		                << uY_top - uY_bot <<'\n';
 		fTrackingCount = 0;
 	}
 
@@ -225,20 +242,23 @@ void ConveyorT::ReadRestart(ifstreamT& in)
 	int num_shifted = -1;
 	my_in >> num_shifted;
 
-        ArrayT<KBC_CardT>& cards = fRightEdge->KBC_Cards();
-	//      cards.Dimension(fShiftedNodes.Length());
-        if (num_shifted > 0) {
-	  tmp.Dimension(num_shifted);
-	  my_in >> tmp;
-	  fShiftedNodes = tmp;
+	if (num_shifted > 0) {
+		tmp.Dimension(num_shifted);
+		my_in >> tmp;
+		fShiftedNodes = tmp;
 
-	  /*reset cards for right edge*/
-	  for (int i=0; i< cards.Length(); i++) {
-	    KBC_CardT& card = cards[i];
-	    //              card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, NULL, 0.0);
-	    card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, 0, 0.0);
-	  }
-        }
+#if _FIX_RIGHT_EDGE_
+		/* reset cards for right edge*/
+		const dArray2DT& u_field = fField[0];
+		ArrayT<KBC_CardT>& cards = fRightEdge->KBC_Cards();
+		cards.Dimension(2*num_shifted);
+		for (int i = 0; i < num_shifted; i++) {
+			int nd = fShiftedNodes[i];
+			cards[2*i  ].SetValues(nd, 0, KBC_CardT::kFix, NULL, 0.0);
+			cards[2*i+1].SetValues(nd, 1, KBC_CardT::kDsp, NULL, u_field(nd,1));
+	  	}
+#endif
+	}
 
 	int reset, num_damped = -1;
 	my_in >> reset;
@@ -254,6 +274,14 @@ void ConveyorT::ReadRestart(ifstreamT& in)
 	fDampingCoeff.Dimension(ndn, ndof);
 	fDampingEqnos.Dimension(ndn, ndof);
 	my_in >> fDampingCoeff >> fDampingEqnos;
+
+	/* interface displacement history */
+	my_in >> fUy_node_upper >> fUy_node_lower;
+	dArrayT samples_tmp;
+	samples_tmp.Alias(fUy_samples_upper);
+	my_in >> samples_tmp;
+	samples_tmp.Alias(fUy_samples_lower);
+	my_in >> samples_tmp;
 
 	/* shifted reference coordinates */
 	ModelManagerT& model = fSupport.ModelManager();
@@ -304,6 +332,14 @@ void ConveyorT::WriteRestart(ofstreamT& out) const
 	my_out << tmp.Length() << '\n' << tmp.wrap(10) << '\n';
 	my_out << fDampingCoeff << '\n';
 	my_out << fDampingEqnos << '\n';
+
+	/* interface displacement history */
+	my_out << fUy_node_upper << ' ' << fUy_node_lower << '\n';
+	dArrayT samples_tmp;
+	samples_tmp.Alias(fUy_samples_upper);
+	my_out << samples_tmp << '\n';
+	samples_tmp.Alias(fUy_samples_lower);
+	my_out << samples_tmp << '\n';
 
 	/* write the modified reference coordinates */
 	my_out << fSupport.InitialCoordinates() << '\n';
@@ -414,8 +450,8 @@ ParameterInterfaceT* ConveyorT::NewSub(const StringT& name) const
 		kbc->AddParameter(value);
 
 		/* the nodes */
-		kbc->AddSub("lower_ID_list");
-		kbc->AddSub("upper_ID_list");
+		kbc->AddSub("lower_ID_list", ParameterListT::ZeroOrOnce);
+		kbc->AddSub("upper_ID_list", ParameterListT::ZeroOrOnce);
 
 		return kbc;
 	}
@@ -450,12 +486,18 @@ void ConveyorT::TakeParameterList(const ParameterListT& list)
 	if (!fULBC_Schedule) ExceptionT::BadInputValue(caller, "could not resolve schedule %d", fULBC_ScheduleNumber+1);
 	
 	ArrayT<StringT> id_list;
-	const ParameterListT& lower_nodes = ul_kbc.GetList("lower_ID_list");
-	StringListT::Extract(lower_nodes,  id_list);	
-	GetNodes(id_list, fBottomNodes);
-	const ParameterListT& upper_nodes = ul_kbc.GetList("upper_ID_list");
-	StringListT::Extract(upper_nodes,  id_list);	
-	GetNodes(id_list, fTopNodes);
+	const ParameterListT* lower_nodes = ul_kbc.List("lower_ID_list");
+	if (lower_nodes) {
+		StringListT::Extract(*lower_nodes, id_list);	
+		GetNodes(id_list, fBottomNodes);
+	}
+	const ParameterListT* upper_nodes = ul_kbc.List("upper_ID_list");
+	if (upper_nodes) {
+		StringListT::Extract(*upper_nodes,  id_list);	
+		GetNodes(id_list, fTopNodes);
+	}
+	if (!upper_nodes && !lower_nodes)
+		ExceptionT::GeneralFail(caller, "expecting at least \"lower_ID_list\" or \"lower_ID_list\"");
 
 	/* tracking */
 	fTrackingInterval = list.GetParameter("focus_tracking_increment");
@@ -502,11 +544,11 @@ void ConveyorT::TakeParameterList(const ParameterListT& list)
 	/* set stretching tangent cards */
 	for (int i = 0; i < fBottomNodes.Length(); i++) {
 		KBC_CardT& card = fKBC_Cards[node++];
-		card.SetValues(fBottomNodes[i], 0, KBC_CardT::kFix, 0, 0);
+		card.SetValues(fBottomNodes[i], 0, KBC_CardT::kFix, NULL, 0.0);
 	}
 	for (int i = 0; i < fTopNodes.Length(); i++) {
 		KBC_CardT& card = fKBC_Cards[node++];
-		card.SetValues(fTopNodes[i], 0, KBC_CardT::kFix, 0, 0);
+		card.SetValues(fTopNodes[i], 0, KBC_CardT::kFix, NULL, 0.0);
 	}
 
 	/* find boundaries */
@@ -531,27 +573,42 @@ void ConveyorT::TakeParameterList(const ParameterListT& list)
 	fRightEdge = new KBC_ControllerT(fSupport);
 	fField.AddKBCController(fRightEdge);
 
-	/*find the right edge*/
-	int nnd = init_coords.MajorDim();
-	iAutoArrayT rightnodes(0);
-	const double* px = init_coords.Pointer();
-	//double rightmost = TrackPoint(kRightMost,kSmall);
 	/* find and store right edge */
-	for (int i = 0; i < nnd; i++)
-	  {
-	    //if (fabs(*px - rightmost) < kSmall) rightnodes.Append(i);
-	    if (fabs(*px - fX_Right) < kSmall) rightnodes.Append(i);
+	int nnd = init_coords.MajorDim();
+	iAutoArrayT rightnodes(25);
+	AutoArrayT<double> rightnodes_Y(25);
+	const double* px = init_coords.Pointer();
+	for (int i = 0; i < nnd; i++) {
+	    if (fabs(*px - fX_Right) < kSmall) {
+	    	rightnodes.Append(i);
+	    	rightnodes_Y.Append(px[1]);
+	    }
 	    px += nsd;
-	  }
-	/*fix the right edge*/
-	ArrayT<KBC_CardT>& cards = fRightEdge->KBC_Cards();
-	cards.Dimension(rightnodes.Length());
-	for (int i=0; i< cards.Length(); i++) {
-	  KBC_CardT& card = cards[i];
-	  card.SetValues(rightnodes[i], 0, KBC_CardT::kFix, 0, 0.0);
 	}
-        fShiftedNodes.Dimension(rightnodes);
-        rightnodes.CopyInto(fShiftedNodes);
+	fShiftedNodes.Dimension(rightnodes);
+	rightnodes.CopyInto(fShiftedNodes);
+
+	/* sort in ascending y-coordinates */
+	iArrayT shifted_nodes_tmp;
+	shifted_nodes_tmp.Alias(fShiftedNodes);
+	shifted_nodes_tmp.SortAscending(rightnodes_Y);
+
+	/* initialize running average */
+	fUy_samples_upper.Dimension(knum_uY_samples);
+	fUy_samples_upper = 0.0;
+	fUy_samples_lower.Dimension(knum_uY_samples);
+	fUy_samples_lower = 0.0;
+
+#if _FIX_RIGHT_EDGE_
+	/* fix the right edge */
+	ArrayT<KBC_CardT>& cards = fRightEdge->KBC_Cards();
+	cards.Dimension(2*fShiftedNodes.Length());
+	for (int i = 0; i < fShiftedNodes.Length(); i++) {
+		int nd = fShiftedNodes[i];
+		cards[2*i  ].SetValues(nd, 0, KBC_CardT::kFix, NULL, 0.0);
+		cards[2*i+1].SetValues(nd, 1, KBC_CardT::kDsp, NULL, 0.0);
+	}
+#endif
 }
 
 /**********************************************************************
@@ -659,8 +716,9 @@ bool ConveyorT::SetSystemFocus(double focus)
 	/* model information */
 	ModelManagerT& model = fSupport.ModelManager();
 
-	/* reference coordinates */
+	/* coordinates */
 	const dArray2DT& initial_coords = fSupport.InitialCoordinates();
+	const dArray2DT& current_coords = fSupport.CurrentCoordinates();
 
 	/* fields */
 	dArray2DT& u_field = fField[0];
@@ -669,12 +727,77 @@ bool ConveyorT::SetSystemFocus(double focus)
 	dArray2DT* DDu_field = NULL;
 	if (fField.Order() > 1) DDu_field = &(fField[2]);
 
+	/* deformation of right edge - allow compliance in the interfacial layer 
+	 * and "pull-in" of the right edge */
+	AutoArrayT<int> upper_nodes(25), lower_nodes(25);
+	double y_U_LB = (   fTopNodes.Length() > 0) ? current_coords(   fTopNodes[0],1) : fTipY_0;
+	double y_L_UB = (fBottomNodes.Length() > 0) ? current_coords(fBottomNodes[0],1) : fTipY_0;
+	int y_U_LB_node = -1;
+	int y_L_UB_node = -1;
+	for (int i = 0; i < fShiftedNodes.Length(); i++) {
+		int node = fShiftedNodes[i];
+		double y_node = current_coords(node,1);
+		if (y_node > fTipY_0) {
+			upper_nodes.Append(node);
+			if (y_node < y_U_LB) {
+				y_U_LB = y_node;
+				y_U_LB_node = node;			
+			}
+		}
+		else if (y_node < fTipY_0) {
+			lower_nodes.Append(node);
+			if (y_node > y_L_UB) {
+				y_L_UB = y_node;
+				y_L_UB_node = node;
+			}
+		}
+	}
+	
+	/* reset x-displacement functions */
+	dArray2DT points;
+	points.Dimension(upper_nodes.Length(), 2);
+	for (int i = 0; i < upper_nodes.Length(); i++) {
+		int nd = upper_nodes[i];
+		points(i, 0) = initial_coords(nd, 1);
+		points(i, 1) = u_field(nd, 0);
+	}
+	fUx_upper.SetPoints(points);	
+
+	points.Dimension(lower_nodes.Length(), 2);
+	for (int i = 0; i < lower_nodes.Length(); i++) {
+		int nd = lower_nodes[i];
+		points(i, 0) = initial_coords(nd, 1);
+		points(i, 1) = u_field(nd, 0);
+	}
+	fUx_lower.SetPoints(points);	
+
 	/* nodes to get reference stretch */
-	double  Y_bottom = initial_coords(fBottomNodes[0], 1);
-	double uY_bottom = u_field(fBottomNodes[0], 1);
-	double  Y_top = initial_coords(fTopNodes[0], 1);
-	double uY_top = u_field(fTopNodes[0], 1);
-	double duY_dY = (uY_top - uY_bottom)/(Y_top - Y_bottom);
+	double Y_top = (   fTopNodes.Length() > 0) ? initial_coords(   fTopNodes[0], 1) : fTipY_0;
+	double Y_bot = (fBottomNodes.Length() > 0) ? initial_coords(fBottomNodes[0], 1) : fTipY_0;
+	double Y_U_LB = (y_U_LB_node != -1) ? initial_coords(y_U_LB_node, 1) : Y_bot;
+	double Y_L_UB = (y_L_UB_node != -1) ? initial_coords(y_L_UB_node, 1) : Y_top;
+
+	double uY_top = (   fTopNodes.Length() > 0) ? u_field(   fTopNodes[0], 1) : 0.0;
+	double uY_bot = (fBottomNodes.Length() > 0) ? u_field(fBottomNodes[0], 1) : 0.0;
+	double uY_U_LB = (y_U_LB_node != -1) ? u_field(y_U_LB_node, 1) : 0.0;
+	double uY_L_UB = (y_L_UB_node != -1) ? u_field(y_L_UB_node, 1) : 0.0;
+	if (fUy_node_upper != -1) /* use running average */{
+		dArrayT tmp;
+		tmp.Alias(fUy_samples_upper);
+		uY_U_LB = tmp.Sum()/knum_uY_samples;
+	}
+	if (fUy_node_lower != -1) /* use running average */{
+		dArrayT tmp;
+		tmp.Alias(fUy_samples_lower);
+		uY_L_UB = tmp.Sum()/knum_uY_samples;
+	}
+
+	/* reset tracking node */
+	fUy_node_upper = y_U_LB_node;
+	fUy_node_lower = y_L_UB_node;
+
+	double duY_dY_U = (uY_top - uY_U_LB)/(Y_top - Y_U_LB);
+	double duY_dY_L = (uY_L_UB - uY_bot)/(Y_L_UB - Y_bot);
 
 	/* has damping */
 	bool has_damping = (fabs(fDampingWidth) > kSmall && fabs(fDampingCoefficient) > kSmall) ? true : false;
@@ -686,6 +809,7 @@ bool ConveyorT::SetSystemFocus(double focus)
 	dArrayT new_coords(nsd);
 	fShiftedNodes.Dimension(0);
 	fDampingNodes.Dimension(0);
+	AutoArrayT<double> shifter_nodes_Y(25);	
 	for (int i = 0; i < nnd; i++)
 	{
 		/* node outside the window */
@@ -693,6 +817,7 @@ bool ConveyorT::SetSystemFocus(double focus)
 		{ 
 			/* store */
 			fShiftedNodes.Append(i);
+			shifter_nodes_Y.Append(px[1]);
 		
 			/* shift reference coordinates */
 			new_coords[0] = initial_coords(i,0) + fX_PeriodicLength;
@@ -700,8 +825,21 @@ bool ConveyorT::SetSystemFocus(double focus)
 			model.UpdateNode(new_coords, i);
 
 			/* correct displacements */
-			u_field(i,0) = 0.0;
-			u_field(i,1) = uY_bottom + duY_dY*(initial_coords(i,1) - Y_bottom); /* interpolate between lower and upper boundary */
+			if (current_coords(i,1) > fTipY_0) {
+#if _FIX_RIGHT_EDGE_
+				u_field(i,0) = 0.0;
+#else
+				u_field(i,0) = fUx_upper.Function(initial_coords(i,1));
+#endif
+				u_field(i,1) = uY_U_LB + duY_dY_U*(initial_coords(i,1) - Y_U_LB); /* interpolate between interface and upper boundary */
+			} else {
+#if _FIX_RIGHT_EDGE_
+				u_field(i,0) = 0.0;
+#else
+				u_field(i,0) = fUx_lower.Function(initial_coords(i,1));
+#endif
+				u_field(i,1) = uY_bot + duY_dY_L*(initial_coords(i,1) - Y_bot); /* interpolate between lower boundary and interface */
+			}
 			
 			/* zero higher order components */
 			if (Du_field) {
@@ -722,14 +860,22 @@ bool ConveyorT::SetSystemFocus(double focus)
 		px += nsd;
 	}
 	fSupport.NodeManager().UpdateCurrentCoordinates();
-	
+
+	/* sort shifted nodes in ascending y-coordinate */
+	iArrayT right_nodes_tmp;
+	right_nodes_tmp.Alias(fShiftedNodes);
+	right_nodes_tmp.SortAscending(shifter_nodes_Y);
+
+#if _FIX_RIGHT_EDGE_
 	/* reset cards for right edge */
 	ArrayT<KBC_CardT>& cards = fRightEdge->KBC_Cards();
-	cards.Dimension(fShiftedNodes.Length());
-	for (int i = 0; i < cards.Length(); i++) {
-		KBC_CardT& card = cards[i];
-		card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, 0, 0.0);
+	cards.Dimension(2*fShiftedNodes.Length());
+	for (int i = 0; i < fShiftedNodes.Length(); i++) {
+		int nd = fShiftedNodes[i];
+		cards[2*i  ].SetValues(nd, 0, KBC_CardT::kFix, NULL, 0.0);
+		cards[2*i+1].SetValues(nd, 1, KBC_CardT::kDsp, NULL, u_field(nd,1));
 	}
+#endif
 
 	/* mark elements linking left to right edge as inactive */
 	MarkElements();
@@ -741,6 +887,8 @@ bool ConveyorT::SetSystemFocus(double focus)
 /* mark elements linking left to right edge as inactive */
 void ConveyorT::MarkElements(void)
 {
+	const char caller[] = "ConveyorT::MarkElements";
+
 	/* system information */
 	const FEManagerT& fe = fSupport.FEManager();
 	const dArray2DT& current_coords = fSupport.CurrentCoordinates();
@@ -762,7 +910,7 @@ void ConveyorT::MarkElements(void)
 		curr_coords.SetGlobal(current_coords);
 	
 		//TEMP
-		if (!element_group->InGroup(fField.Group())) ExceptionT::GeneralFail();
+		if (!element_group->InGroup(fField.Group())) ExceptionT::GeneralFail(caller);
 	
 		ArrayT<ElementBaseT::StatusT> status(nel);
 		for (int j = 0; j < nel; j++)
@@ -795,15 +943,15 @@ void ConveyorT::MarkElements(void)
 				status[j] = ElementBaseT::kON;
 		}
 		
-                ContinuumElementT* cont_elem = TB_DYNAMIC_CAST(ContinuumElementT*, element_group);
-                if (!cont_elem) {
-                        CSEAnisoT* cse_aniso_elem = TB_DYNAMIC_CAST(CSEAnisoT*, element_group);
-                        if (!cse_aniso_elem)
-                                ExceptionT::GeneralFail("ConveyorT::MarkElements", "could not cast element group %d to ContinuumEleme\
-ntT", element_group+1);
-                        else cse_aniso_elem->SetStatus(status);
-                }
-                else cont_elem->SetStatus(status);
+		ContinuumElementT* cont_elem = TB_DYNAMIC_CAST(ContinuumElementT*, element_group);
+		if (!cont_elem) {
+			CSEAnisoT* cse_aniso_elem = TB_DYNAMIC_CAST(CSEAnisoT*, element_group);
+			if (!cse_aniso_elem)
+				ExceptionT::GeneralFail(caller,  "could not cast element group %d to ContinuumElementT", 
+					element_group+1);
+			else cse_aniso_elem->SetStatus(status);
+		}
+		else cont_elem->SetStatus(status);
  	}
 }
 
