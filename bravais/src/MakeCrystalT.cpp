@@ -33,6 +33,7 @@
 void MakeCrystalT::Run() 
 {
   // Get name of input data file
+  cout << "Enter the name of the input date file:" << endl;
   StringT inputfile;
   cin >> inputfile;
 
