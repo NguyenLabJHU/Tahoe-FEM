@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2003-03-05 02:27:52 paklein Exp $
+# $Id: makefile,v 1.2 2003-03-08 03:13:30 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,7 +20,12 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-	SIERRA_Material_BaseT.o
+	SIERRA_HypoElastic.o \
+	SIERRA_HypoElasticT.o \
+	SIERRA_Material_BaseT.o \
+	SIERRA_Material_DB.o \
+	SIERRA_Material_Data.o \
+	SIERRA_Material_Interface.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -40,7 +45,12 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	SIERRA_Material_BaseT.cpp
+	SIERRA_HypoElastic.c \
+	SIERRA_HypoElasticT.cpp \
+	SIERRA_Material_BaseT.cpp \
+	SIERRA_Material_DB.cpp \
+	SIERRA_Material_Data.cpp \
+	SIERRA_Material_Interface.cpp
 
 ##################### (3) headers
 #
@@ -52,7 +62,11 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	SIERRA_Material_BaseT.h
+	SIERRA_HypoElasticT.h \
+	SIERRA_Material_BaseT.h \
+	SIERRA_Material_DB.h \
+	SIERRA_Material_Data.h \
+	SIERRA_Material_Interface.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

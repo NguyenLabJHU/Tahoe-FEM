@@ -1,6 +1,6 @@
-/* $Id: SIERRA_HypoElastic.c,v 1.1 2003-03-08 01:56:20 paklein Exp $ */
+/* $Id: SIERRA_HypoElastic.c,v 1.2 2003-03-08 03:13:30 paklein Exp $ */
 #include "SIERRA_Material_Interface.h"
-#include <iostream.h>
+#include <stdio.h>
 
 /* function prototypes */
 void SIERRA_HypoElastic_reg(void);

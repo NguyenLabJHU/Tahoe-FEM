@@ -1,9 +1,10 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.3 2003-03-08 01:56:20 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.4 2003-03-08 03:13:30 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
 #include "SpectralDecompT.h"
 #include "ParameterListT.h"
+#include "ifstreamT.h"
 
 using namespace Tahoe;
 
