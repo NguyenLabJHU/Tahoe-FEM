@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.cpp,v 1.2 2003-04-11 16:13:11 saubry Exp $ */
+/* $Id: ParadynEAMT.cpp,v 1.3 2003-04-11 23:07:03 paklein Exp $ */
 #include "ParadynEAMT.h"
 
 #include "toolboxConstants.h"
@@ -204,6 +204,17 @@ ParadynEAMT::EDStiffnessFunction ParadynEAMT::getElecDensStiffness(void)
   
   /* return function pointer */
   return ParadynEAMT::ElecDensStiffness;
+}
+
+/* return Paradyn-style coefficients table */
+bool ParadynEAMT::getParadynTable(const double** coeff, double& dr, 
+		int& row_size, int& num_rows) const
+{
+#pragma unused(coeff)
+#pragma unused(dr)
+#pragma unused(row_size)
+#pragma unused(num_rows)
+  return false;
 }
 
 /***********************************************************************
