@@ -3,6 +3,9 @@
 #include "ContactFaceT.h"
 
 /*constructor*/
+
+using namespace Tahoe;
+
 ContactFaceT::ContactFaceT
 (FaceT* face):
 	fFace(face)

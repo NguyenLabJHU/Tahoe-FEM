@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.h,v 1.16 2002-06-17 17:15:07 rjones Exp $ */
+/* $Id: QuadL4FaceT.h,v 1.17 2002-07-02 19:55:20 cjkimme Exp $ */
 
 #ifndef _QUADL4_FACE_T_H_
 #define _QUADL4_FACE_T_H_
@@ -15,6 +15,9 @@
  *  |  |    (outward normal out-of-plane)
  *  1--2
  */
+
+
+namespace Tahoe {
 
 class QuadL4FaceT : public FaceT
 {
@@ -108,5 +111,6 @@ QuadL4FaceT::Polynomial
         d[2] = 0.25*( fx[0][2]-fx[1][2]+fx[2][2]-fx[3][2]);
 }
 
+} // namespace Tahoe 
 #endif /* _QUADL4_FACE_T_H_ */
 

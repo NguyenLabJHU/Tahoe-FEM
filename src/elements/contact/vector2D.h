@@ -1,10 +1,13 @@
-/* $Id: vector2D.h,v 1.5 2002-07-01 18:22:41 rjones Exp $ */
+/* $Id: vector2D.h,v 1.6 2002-07-02 19:55:20 cjkimme Exp $ */
 
 #ifndef _VECTOR_2D_H_
 #define _VECTOR_2D_H_
 
 
 /* 2D vector functions */
+
+namespace Tahoe {
+
 inline static void LCross(const double* v,  double* vXe3)
 {
         vXe3[0] = -v[1];
@@ -82,7 +85,9 @@ inline static void Permutation(dMatrixT& p_mat)
 	p_mat[0][0] = 0.0; p_mat[0][1] =-1.0;
 	p_mat[1][0] = 1.0; p_mat[1][1] = 0.0;
 };
+} // namespace Tahoe 
 #endif
 
 
+} // namespace Tahoe 
 #endif /* _VECTOR_2D_H_ */

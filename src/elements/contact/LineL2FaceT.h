@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.h,v 1.19 2002-07-01 18:22:41 rjones Exp $ */
+/* $Id: LineL2FaceT.h,v 1.20 2002-07-02 19:55:19 cjkimme Exp $ */
 
 #ifndef _LINEL2_FACE_T_H_
 #define _LINEL2_FACE_T_H_
@@ -13,6 +13,9 @@
 /*  connectivity
  * L  1--2  R  (outward normal up)
  */
+
+
+namespace Tahoe {
 
 class LineL2FaceT : public FaceT
 {
@@ -93,5 +96,6 @@ LineL2FaceT::Polynomial
 }
 
 
+} // namespace Tahoe 
 #endif /* _LINEL2_FACE_T_H_ */
 

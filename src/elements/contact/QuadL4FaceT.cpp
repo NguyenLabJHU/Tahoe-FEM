@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.22 2002-06-18 14:25:34 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.23 2002-07-02 19:55:20 cjkimme Exp $ */
 
 #include "QuadL4FaceT.h"
 
@@ -12,6 +12,9 @@
 #include "vector3D.h"
 
 /* parameters */
+
+using namespace Tahoe;
+
 static const double kTol_Quad = 0.00000001;
 static const double kTol_One  = 1.00000001;
 

@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement3DT.cpp,v 1.4 2002-07-01 18:22:41 rjones Exp $ */
+/* $Id: PenaltyContactElement3DT.cpp,v 1.5 2002-07-02 19:55:20 cjkimme Exp $ */
 #include "PenaltyContactElement3DT.h"
 
 #include <math.h>
@@ -19,6 +19,8 @@ const double PI = 2.0*acos(0.0);
 /* parameters */
 static const int kMaxNumFaceNodes = 4;
 static const int kMaxNumFaceDOF   = 12;
+
+using namespace Tahoe;
 
 /* constructor */
 PenaltyContactElement3DT::PenaltyContactElement3DT(const ElementSupportT& support, const FieldT& field):

@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.28 2002-07-01 18:22:41 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.29 2002-07-02 19:55:19 cjkimme Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -19,6 +19,8 @@ const double PI = 2.0*acos(0.0);
 /* parameters */
 static const int kMaxNumFaceNodes = 4;
 static const int kMaxNumFaceDOF   = 12;
+
+using namespace Tahoe;
 
 /* constructor */
 PenaltyContactElement2DT::PenaltyContactElement2DT(const ElementSupportT& support, const FieldT& field):

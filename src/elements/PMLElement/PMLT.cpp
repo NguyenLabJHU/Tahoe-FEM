@@ -1,4 +1,4 @@
-/* $Id: PMLT.cpp,v 1.5 2002-06-08 20:20:15 paklein Exp $ */
+/* $Id: PMLT.cpp,v 1.6 2002-07-02 19:55:14 cjkimme Exp $ */
 
 #include "PMLT.h"
 
@@ -18,6 +18,9 @@
 #include "SSStructMatT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 PMLT::PMLT(const ElementSupportT& support, const FieldT& field):
 	ElasticT(support, field),
 	fNeedsOffset(-1),

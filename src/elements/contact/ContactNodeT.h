@@ -1,4 +1,4 @@
-/* $Id: ContactNodeT.h,v 1.12 2002-05-10 00:13:50 rjones Exp $ */
+/* $Id: ContactNodeT.h,v 1.13 2002-07-02 19:55:19 cjkimme Exp $ */
 
 
 #ifndef _CONTACT_NODE_T_H_
@@ -10,6 +10,9 @@
 #include "nMatrixT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ofstreamT;
 
 class ContactNodeT 
@@ -105,4 +108,5 @@ class ContactNodeT
 
 };
 
+} // namespace Tahoe 
 #endif /* _CONTACT_NODE_T_H_ */

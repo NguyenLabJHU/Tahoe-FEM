@@ -1,9 +1,12 @@
-/*  $Id: ContactNodeT.cpp,v 1.14 2002-05-10 00:13:50 rjones Exp $ */
+/*  $Id: ContactNodeT.cpp,v 1.15 2002-07-02 19:55:19 cjkimme Exp $ */
 #include "ContactNodeT.h"
 
 #include "FaceT.h"
 
 /* parameters */
+
+
+using namespace Tahoe;
 
 ContactNodeT::ContactNodeT(ContactSurfaceT& surface, int node_tag):
 	fSurface(surface)

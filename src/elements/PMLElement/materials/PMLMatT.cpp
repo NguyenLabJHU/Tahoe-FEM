@@ -1,4 +1,4 @@
-/* $Id: PMLMatT.cpp,v 1.2 2002-06-08 20:20:33 paklein Exp $ */
+/* $Id: PMLMatT.cpp,v 1.3 2002-07-02 19:55:49 cjkimme Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "PMLMatT.h"
@@ -15,6 +15,9 @@
 
 
 /* constructor */
+
+using namespace Tahoe;
+
 PMLMatT::PMLMatT(ifstreamT& in, const PMLT& element):
 	StructuralMaterialT(in, element),
 	Material2DT(in),

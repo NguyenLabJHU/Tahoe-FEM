@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.h,v 1.3 2002-06-08 20:20:19 paklein Exp $ */
+/* $Id: MultiplierContactElement2DT.h,v 1.4 2002-07-02 19:55:19 cjkimme Exp $ */
 // created by : rjones 2001
 
 #ifndef _MULTIPLIER_CONTACT_ELEMENT_2D_T_H_
@@ -6,6 +6,9 @@
 
 /* base classes */
 #include "ContactElementT.h"
+
+
+namespace Tahoe {
 
 class MultiplierContactElement2DT: public ContactElementT
 {
@@ -45,4 +48,5 @@ class MultiplierContactElement2DT: public ContactElementT
 
 };
 
+} // namespace Tahoe 
 #endif /* _MULTIPLIER_CONTACT_ELEMENT_2D_T_H_ */

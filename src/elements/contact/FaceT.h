@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.22 2002-07-01 18:22:41 rjones Exp $ */
+/* $Id: FaceT.h,v 1.23 2002-07-02 19:55:19 cjkimme Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
@@ -12,6 +12,9 @@
 
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class SurfaceT;
 class ContactNodeT;
 class iArrayT;
@@ -143,8 +146,8 @@ protected:
         const dArray2DT& fSurfaceCoordinates;
 
 	/* connectivity, in node numbers local to surface */
-	iArrayT fConnectivity;
-	iArrayT fGlobalConnectivity;
+	Tahoe::iArrayT fConnectivity;
+	Tahoe::iArrayT fGlobalConnectivity;
 
 	/* adjacent faces */
 	ArrayT<FaceT*> fNeighborFaces;
@@ -159,5 +162,6 @@ protected:
 private:
 };
 
+} // namespace Tahoe 
 #endif /* _FACE_T_H_ */
 

@@ -1,8 +1,11 @@
-/* $Id: PMLT.h,v 1.3 2002-06-08 20:20:15 paklein Exp $ */
+/* $Id: PMLT.h,v 1.4 2002-07-02 19:55:14 cjkimme Exp $ */
 #ifndef _PML_T_H_
 #define _PML_T_H_
 
 #include "ElasticT.h"
+
+
+namespace Tahoe {
 
 class PMLT: public ElasticT
 {
@@ -133,6 +136,7 @@ inline const dMatrixT& PMLT::GradU(void) const
 		     << " did not specify this need" << endl;
 		throw eGeneralFail;
 	}
+} // namespace Tahoe 
 #endif
 
 	return fGradU_List[CurrIP()];
@@ -150,6 +154,7 @@ inline const dMatrixT& PMLT::GradU(int ip) const
 		     << " did not specify this need" << endl;
 		throw eGeneralFail;
 	}
+} // namespace Tahoe 
 #endif
 
 	return fGradU_List[ip];
@@ -167,6 +172,7 @@ inline const dMatrixT& PMLT::GradU_last(void) const
 		     << " did not specify this need" << endl;
 		throw eGeneralFail;
 	}
+} // namespace Tahoe 
 #endif
 
 	return fGradU_last_List[CurrIP()];
@@ -184,10 +190,12 @@ inline const dMatrixT& PMLT::GradU_last(int ip) const
 		     << " did not specify this need" << endl;
 		throw eGeneralFail;
 	}
+} // namespace Tahoe 
 #endif
 
 	return fGradU_last_List[ip];
 }
 
 
+} // namespace Tahoe 
 #endif /* _PML_T_H_ */

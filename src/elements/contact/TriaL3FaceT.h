@@ -1,4 +1,4 @@
-/* $Id: TriaL3FaceT.h,v 1.4 2002-03-25 16:11:43 rjones Exp $ */
+/* $Id: TriaL3FaceT.h,v 1.5 2002-07-02 19:55:20 cjkimme Exp $ */
 
 #ifndef _TRIAL3_FACE_T_H_
 #define _TRIAL3_FACE_T_H_
@@ -15,6 +15,9 @@
  *  |  |    (outward normal out-of-plane)
  *  1--2
  */
+
+
+namespace Tahoe {
 
 class TriaL3FaceT : public FaceT
 {
@@ -101,5 +104,6 @@ TriaL3FaceT::Polynomial
         c[2] = (fx[1][2]-fx[2][2]);
 }
 
+} // namespace Tahoe 
 #endif /* _TRIAL3_FACE_T_H_ */
 

@@ -1,4 +1,4 @@
-/* $Id: LineQ3FaceT.h,v 1.5 2002-07-01 18:22:41 rjones Exp $ */
+/* $Id: LineQ3FaceT.h,v 1.6 2002-07-02 19:55:19 cjkimme Exp $ */
 
 #ifndef _LINEQ3_FACE_T_H_
 #define _LINEQ3_FACE_T_H_
@@ -13,6 +13,9 @@
 /*  connectivity
  * L  1-3-2  R  (outward normal up)
  */
+
+
+namespace Tahoe {
 
 class LineQ3FaceT : public FaceT
 {
@@ -95,5 +98,6 @@ LineQ3FaceT::Polynomial
 }
 
 
+} // namespace Tahoe 
 #endif /* _LINEQ3_FACE_T_H_ */
 

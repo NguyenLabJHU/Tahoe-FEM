@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.27 2002-07-01 18:22:41 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.28 2002-07-02 19:55:19 cjkimme Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
@@ -8,6 +8,9 @@
 
 
 /* parameters */
+
+
+using namespace Tahoe;
 
 ContactSurfaceT::ContactSurfaceT(void):
 	fNumPotentialContactNodes(0)

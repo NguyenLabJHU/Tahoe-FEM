@@ -1,4 +1,4 @@
-/* $Id: LineQ3FaceT.cpp,v 1.9 2002-07-01 18:22:41 rjones Exp $ */
+/* $Id: LineQ3FaceT.cpp,v 1.10 2002-07-02 19:55:19 cjkimme Exp $ */
 
 #include "LineQ3FaceT.h"
 
@@ -11,6 +11,9 @@
 #include "vector2D.h"
 
 /* parameters */
+
+using namespace Tahoe;
+
 dArray2DT LineQ3FaceT::fIntegrationPoints;
 static const double kTol_Zero  = 0.00000001;
 

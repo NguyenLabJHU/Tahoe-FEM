@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.35 2002-07-01 18:22:41 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.36 2002-07-02 19:55:19 cjkimme Exp $ */
 
 #include "ContactElementT.h"
 
@@ -18,6 +18,9 @@
 #include "ContactNodeT.h"
 
 /* parameters */ // unfortunately these are also in the derived classes
+
+using namespace Tahoe;
+
 static const int kMaxNumFaceNodes = 4; // 4node quads
 static const int kMaxNumFaceDOF   = 12; // 4node quads in 3D
 

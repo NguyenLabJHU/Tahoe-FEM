@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.cpp,v 1.9 2002-07-01 18:22:41 rjones Exp $ */
+/* $Id: MultiplierContactElement2DT.cpp,v 1.10 2002-07-02 19:55:19 cjkimme Exp $ */
 // created by : rjones 2001
 #include "MultiplierContactElement2DT.h"
 
@@ -16,6 +16,9 @@
 #include "vector2D.h"
 
 /* parameters */
+
+using namespace Tahoe;
+
 static const int kMaxNumFaceNodes = 4;
 static const int kMaxNumFaceDOF   = 12;
 

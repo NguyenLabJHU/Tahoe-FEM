@@ -1,10 +1,13 @@
-/* $Id: FaceT.cpp,v 1.5 2001-05-23 14:45:04 rjones Exp $ */
+/* $Id: FaceT.cpp,v 1.6 2002-07-02 19:55:19 cjkimme Exp $ */
 
 #include "FaceT.h"
 
 #include "SurfaceT.h" // this is for global nodes
 
 /*constructor*/
+
+using namespace Tahoe;
+
 FaceT::FaceT
 (SurfaceT& surface,dArray2DT& surface_coordinates,	
 int num_face_nodes, int* connectivity):

@@ -1,4 +1,4 @@
-/* $Id: BEMelement.cpp,v 1.2 2002-06-08 20:20:14 paklein Exp $ */
+/* $Id: BEMelement.cpp,v 1.3 2002-07-02 19:55:13 cjkimme Exp $ */
 /* created: AFLP (02/28/1998) */
 
 #include "BEMelement.h"
@@ -6,6 +6,9 @@
 #include <iomanip.h>
 #include "Constants.h"
 #include "StringT.h"
+
+
+using namespace Tahoe;
 
 BEMelement::BEMelement(const ElementSupportT& support, const FieldT& field, 
 	const StringT& infile):

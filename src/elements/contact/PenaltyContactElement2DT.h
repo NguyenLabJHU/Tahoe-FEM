@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.h,v 1.11 2002-06-17 17:15:07 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.h,v 1.12 2002-07-02 19:55:19 cjkimme Exp $ */
 // created by : rjones 2001
 
 #ifndef _PENALTY_CONTACT_ELEMENT_2D_T_H_
@@ -8,6 +8,8 @@
 #include "ContactElementT.h"
 
 #include "pArrayT.h"
+
+namespace Tahoe {
 
 class C1FunctionT;
 
@@ -75,6 +77,8 @@ class PenaltyContactElement2DT: public ContactElementT
 
 
 };
+
+} // namespace Tahoe
 
 #endif /* _PENALTY_CONTACT_ELEMENT_2D_T_H_ */
 

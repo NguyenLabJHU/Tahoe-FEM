@@ -1,4 +1,4 @@
-/* $Id: PMLMatT.h,v 1.1 2002-01-21 06:49:02 thao Exp $ */
+/* $Id: PMLMatT.h,v 1.2 2002-07-02 19:55:49 cjkimme Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #ifndef _PML_H_
@@ -9,6 +9,9 @@
 #include "IsotropicT.h"
 #include "Material2DT.h"
 #include "C1FunctionT.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 
 /** base class for small strain linear elastic viscoelastic 
@@ -108,4 +111,5 @@ class PMLMatT: public StructuralMaterialT,IsotropicT,Material2DT
 	
   };
 
+} // namespace Tahoe 
 #endif /*_PML_H_*/

@@ -1,10 +1,13 @@
-/* $Id: vector3D.h,v 1.5 2002-06-27 16:00:53 rjones Exp $ */
+/* $Id: vector3D.h,v 1.6 2002-07-02 19:55:20 cjkimme Exp $ */
 
 #ifndef _VECTOR_3D_H_
 #define _VECTOR_3D_H_
 
 // need only basic ops: dot,scale,cross,add
 /* 3D vector functions */
+
+namespace Tahoe {
+
 inline static void Cross(const double* v, const double* w, double* vXw)
 {
         vXw[0] = v[1]*w[2] - v[2]*w[1];
@@ -82,4 +85,5 @@ inline static void Proj(const double* v,const double* n, double* proj_v)
 
 };
 
+} // namespace Tahoe 
 #endif /* _VECTOR_3D_H_ */

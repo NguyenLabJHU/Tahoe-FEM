@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.25 2002-06-19 16:27:26 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.26 2002-07-02 19:55:20 cjkimme Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -17,6 +17,9 @@
 #include "AutoFill2DT.h"
 
 /* parameters */
+
+using namespace Tahoe;
+
 const int kHeadroom = 10; // this is a percentage
 const int kMaxNumFacesAtNode = 8;
 const int kMaxNumFaceNeighbors = 10;

@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.24 2002-07-01 18:22:41 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.25 2002-07-02 19:55:19 cjkimme Exp $ */
 
 #include "LineL2FaceT.h"
 
@@ -11,6 +11,9 @@
 #include "vector2D.h"
 
 /* parameters */
+
+using namespace Tahoe;
+
 dArray2DT LineL2FaceT::fIntegrationPoints;
 
 LineL2FaceT::LineL2FaceT

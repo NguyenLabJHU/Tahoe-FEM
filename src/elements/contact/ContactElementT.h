@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.24 2002-07-01 18:22:41 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.25 2002-07-02 19:55:19 cjkimme Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -22,6 +22,9 @@
 #include "ContactSearchT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class XDOF_ManagerT;
 
 /**
@@ -227,4 +230,5 @@ private:
 	enum SurfaceSpecModeT { kSideSets = 1};
 };
 
+} // namespace Tahoe 
 #endif /* _CONTACT_ELEMENT_T_H_ */

@@ -1,5 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.22 2002-07-01 18:22:41 rjones Exp $ */
-
+/* $Id: ContactSurfaceT.h,v 1.23 2002-07-02 19:55:19 cjkimme Exp $ */
 
 #ifndef _CONTACT_SURFACE_T_H_
 #define _CONTACT_SURFACE_T_H_
@@ -13,6 +12,9 @@
 #include "nMatrixT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ofstreamT;
 class ContactNodeT;
 
@@ -99,6 +101,7 @@ class ContactSurfaceT : public SurfaceT
 #if 0
 	/* for frictional slip */
 	ArrayT <ContactNodeT*>  fPreviousContactNodes;
+} // namespace Tahoe 
 #endif
 	/* Multiplier Data, which is variable size */
 	dArray2DT fMultiplierValues; 
@@ -115,4 +118,5 @@ class ContactSurfaceT : public SurfaceT
 
 };
 
+} // namespace Tahoe 
 #endif /* _CONTACT_SURFACE_T_H_ */

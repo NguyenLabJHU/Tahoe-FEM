@@ -1,4 +1,4 @@
-/* $Id: TriaL3FaceT.cpp,v 1.6 2002-06-17 17:15:07 rjones Exp $ */
+/* $Id: TriaL3FaceT.cpp,v 1.7 2002-07-02 19:55:20 cjkimme Exp $ */
 
 #include "TriaL3FaceT.h"
 
@@ -12,6 +12,9 @@
 #include "vector3D.h"
 
 /* parameters */
+
+
+using namespace Tahoe;
 
 dArray2DT TriaL3FaceT::fIntegrationPoints;
 
