@@ -407,7 +407,8 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 			AutoArrayT <dArrayT> slipdirs;
 			normals.Dimension(3);
 			slipdirs.Dimension(3);
-			output[10] = checker.IsLocalized_SS(normals,slipdirs);
+			double dummy;
+			output[10] = checker.IsLocalized_SS(normals,slipdirs, dummy);
 
 		}
 		else
