@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardLocT.cpp,v 1.1 2004-03-20 23:35:32 raregue Exp $ */
+/* $Id: DPSSLinHardLocT.cpp,v 1.2 2004-05-11 22:01:13 raregue Exp $ */
 /* created: myip (06/01/1999)                                        */
 /*
  * Interface for Drucker-Prager, nonassociative, small strain,
@@ -168,8 +168,7 @@ const dSymMatrixT& DPSSLinHardLocT::StressCorrection(
  * Note: Return mapping occurs during the call to StressCorrection.
  *       The element passed in is already assumed to carry current
  *       internal variable values */
-const dMatrixT& DPSSLinHardLocT::ModuliCorrection(const ElementCardT& element, 
-	int ip)
+const dMatrixT& DPSSLinHardLocT::ModuliCorrection(const ElementCardT& element, int ip)
 {
 	/* initialize */
 	fModuliCorr = 0.0;
@@ -194,7 +193,7 @@ const dMatrixT& DPSSLinHardLocT::ModuliCorrection(const ElementCardT& element,
 		fTensorTemp.Outer(One, One);
 		fModuliCorr.AddScaled(c1, fTensorTemp);
 
- 	    	fTensorTemp.ReducedIndexI();
+ 	    fTensorTemp.ReducedIndexI();
 		fModuliCorr.AddScaled(2.0*c2, fTensorTemp);
 
 		fTensorTemp.Outer(fUnitNorm,fUnitNorm);
@@ -260,29 +259,23 @@ const dMatrixT& DPSSLinHardLocT::ModuliCorrection(const ElementCardT& element,
  *   bifurcation */
 
 
-const dMatrixT& DPSSLinHardLocT::ModuliCorrDisc(const ElementCardT& element, 
-	int ip)
+const dMatrixT& DPSSLinHardLocT::ModuliCorrDisc(const ElementCardT& element, int ip)
 {
 	/* initialize */
-
-fModuliCorrDisc = 0.0;
+	fModuliCorrDisc = 0.0;
 
 	if (element.IsAllocated() && 
 	   (element.IntegerData())[ip] == kIsPlastic)
 	{
-
-
-
-
 		/* load internal state variables */
-	  	LoadData(element,ip);
+		LoadData(element,ip);
 		
-	double c1d  = -3.0*ffriction*fdilation*fkappa*fkappa/fX;
-	       c1d += (4.0/3.0)*sqrt32*fmu*fmu*fInternal[kdgamma]/fInternal[kstressnorm];
-	double c2d  = -sqrt(6.0)*fmu*fmu*fInternal[kdgamma]/fInternal[kstressnorm];
-	double c3d  = -(3.0/2.0)/fX + sqrt32*fInternal[kdgamma]/fInternal[kstressnorm];
-	       c3d *= 4.0*fmu*fmu;
-	double c4d  = -3.0*sqrt(2.0)*fkappa*fmu/fX; 
+		double c1d  = -3.0*ffriction*fdilation*fkappa*fkappa/fX;
+		c1d += (4.0/3.0)*sqrt32*fmu*fmu*fInternal[kdgamma]/fInternal[kstressnorm];
+		double c2d  = -sqrt(6.0)*fmu*fmu*fInternal[kdgamma]/fInternal[kstressnorm];
+		double c3d  = -(3.0/2.0)/fX + sqrt32*fInternal[kdgamma]/fInternal[kstressnorm];
+		c3d *= 4.0*fmu*fmu;
+		double c4d  = -3.0*sqrt(2.0)*fkappa*fmu/fX; 
 
 		fTensorTemp.Outer(One, One);
 		fModuliCorrDisc.AddScaled(c1d, fTensorTemp);

@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.h,v 1.1 2004-03-20 23:35:32 raregue Exp $ */
+/* $Id: DPSSKStVLoc.h,v 1.2 2004-05-11 22:01:13 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_LOC_H_
 #define _DP_SS_KSTV_LOC_H_
@@ -81,7 +81,7 @@ private:
   
   	/* return values */
   	dSymMatrixT	fStress;
-  	dMatrixT	fModulus;
+  	dMatrixT	fModulus, fModulusCe;
 	dMatrixT	fModulusdisc;
 
 };

@@ -80,7 +80,7 @@ protected:
   
   	/* return values */
   	dSymMatrixT	fStress;
-  	dMatrixT	fModulus;
+  	dMatrixT	fModulus, fModulusCe;
     dMatrixT    fModulusdisc;
 
 };

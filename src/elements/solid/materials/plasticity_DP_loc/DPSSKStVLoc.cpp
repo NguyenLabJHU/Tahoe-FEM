@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.1 2004-03-20 23:35:32 raregue Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.2 2004-05-11 22:01:13 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 #include "SSMatSupportT.h"
@@ -16,17 +16,17 @@ const double sqrt23 = sqrt(2.0/3.0);
 /* element output data */
 const int kNumOutput = 11;
 static const char* Labels[kNumOutput] = {
-	    "alpha",  // stress-like internal state variable (isotropic linear hardening)
-	    "VM",  // Von Mises stress
-	    "press", // pressure
-	    "loccheck",
-	    "loccheckd", // localization check
-	    "n1", // x1 component of normal n for contbif
-	    "n2", // x2 component of normal n for contbif
-	    "n3", // x3 component of normal n for contbif
-	    "nd1", // x1 component of normal n for discbif	
-	    "nd2", // x2 component of normal n for discbif	
-	    "nd3"}; // x3 component of normal n for discbif	    
+	"alpha",  // stress-like internal state variable (isotropic linear hardening)
+	"VM",  // Von Mises stress
+	"press", // pressure
+	"loccheck",
+	"loccheckd", // localization check
+	"n1", // x1 component of normal n for contbif
+	"n2", // x2 component of normal n for contbif
+	"n3", // x3 component of normal n for contbif
+	"nd1", // x1 component of normal n for discbif	
+	"nd2", // x2 component of normal n for discbif	
+	"nd3"}; // x3 component of normal n for discbif	    
 
 /* constructor */
 DPSSKStVLoc::DPSSKStVLoc(ifstreamT& in, const SSMatSupportT& support):
@@ -91,7 +91,7 @@ const dMatrixT& DPSSKStVLoc::c_ijkl(void)
 
 	fModulus.SumOf(HookeanMatT::Modulus(),
 	ModuliCorrection(CurrentElement(), CurrIP()));
-	
+
 	return fModulus;
 }
 
@@ -130,11 +130,11 @@ const dSymMatrixT& DPSSKStVLoc::s_ij(void)
 */
 int DPSSKStVLoc::IsLocalized(dArrayT& normal)
 {
-        DetCheckT checker(fStress, fModulus);
-        checker.SetfStructuralMatSupport(*fSSMatSupport);
+	DetCheckT checker(fStress, fModulus, fModulusCe);
+	checker.SetfStructuralMatSupport(*fSSMatSupport);
 
-        int loccheck= checker.IsLocalized(normal);
-        return loccheck;
+	int loccheck = checker.IsLocalized(normal);
+	return loccheck;
 }
 
 
@@ -148,18 +148,20 @@ double DPSSKStVLoc::StrainEnergyDensity(void)
  * during for element output, ie. internal variables. Returns 0
  * by default. */
 int DPSSKStVLoc::NumOutputVariables(void) const  { return kNumOutput; } 
+
 void DPSSKStVLoc::OutputLabels(ArrayT<StringT>& labels) const
 {
 	/* set size */
 	labels.Dimension(kNumOutput);
 	
 	/* copy labels */
-	for (int i = 0; i < kNumOutput; i++)
-		labels[i] = Labels[i];
+	for (int i = 0; i < kNumOutput; i++) labels[i] = Labels[i];
 }
 
 void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 {
+
+	dMatrixT Ce = HookeanMatT::Modulus();
 	
 	/* stress tensor (load state) */
 	const dSymMatrixT& stress = s_ij();
@@ -180,7 +182,7 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 		output[0] = fInternal[kalpha];
 		const iArrayT& flags = element.IntegerData();
 		if (flags[CurrIP()] == kIsPlastic)
-		  {
+		{
 			output[0] -= fH_prime*fInternal[kdgamma];
 			
 			// check for localization
@@ -188,7 +190,7 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 			const dMatrixT& modulus = c_ijkl();
 
 			// continuous localization condition checker
-			/*DetCheckT checker(stress, modulus);
+			/*DetCheckT checker(stress, modulus, Ce);
 			dArrayT normal(stress.Rows());
 			output[3] = checker.IsLocalized_SS(normal);
 			output[5] = normal[0];
@@ -207,7 +209,7 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 			const dMatrixT& modulusdisc = cdisc_ijkl();
 
 			/* discontinuous localization condition checker */
-			DetCheckT checkerdisc(stress, modulusdisc);
+			DetCheckT checkerdisc(stress, modulusdisc, Ce);
 			dArrayT normaldisc(stress.Rows());
 			output[4] = checkerdisc.IsLocalized_SS(normaldisc);
 			output[8] = normaldisc[0];
@@ -237,7 +239,6 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 		output[10] = 0.0;
 	}
 
-	
 }
 
 /*************************************************************************
