@@ -1,5 +1,5 @@
-/* $Id: ExodusInputT.h,v 1.6 2001-10-15 17:48:55 sawimme Exp $ */
-/* created: sawimme (05/18/1998)                                          */
+/* $Id: ExodusInputT.h,v 1.7 2001-12-16 23:53:45 paklein Exp $ */
+/* created: sawimme (05/18/1998) */
 
 #ifndef _EXODUSINPUT_T_H_
 #define _EXODUSINPUT_T_H_
@@ -9,10 +9,10 @@
 /* direct members */
 #include "ExodusT.h"
 #include "dArray2DT.h"
+#include "iArrayT.h"
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
-template <class TYPE> class ArrayT;
 class iArray2DT;
 
 class ExodusInputT : public InputBaseT
@@ -64,8 +64,11 @@ public:
 
   virtual int  NumNodeVariables (void) const;
   virtual int  NumElementVariables (void) const;
-
   virtual int  NumQuadratureVariables (void) const;
+
+  virtual void NodeVariablesUsed (StringT& name, iArrayT& used);
+  virtual void ElementVariablesUsed (StringT& name, iArrayT& used);
+  virtual void QuadratureVariablesUsed (StringT& name, iArrayT& used);  
 
   virtual void ReadNodeLabels (ArrayT<StringT>& labels) const;
   virtual void ReadElementLabels (ArrayT<StringT>& elabels) const;
@@ -140,6 +143,12 @@ inline int ExodusInputT::NumElementVariables (void) const
 
 inline int ExodusInputT::NumQuadratureVariables (void) const
 { return 0; }
+
+inline void ExodusInputT::QuadratureVariablesUsed (StringT& name, iArrayT& used)
+{
+#pragma unused (name)
+  used = 0;
+}
 
 inline void ExodusInputT::ReadNodeLabels (ArrayT<StringT>& labels) const
 { fData.ReadNodeLabels (labels); }

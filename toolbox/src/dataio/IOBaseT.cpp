@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.cpp,v 1.3 2001-09-04 14:48:25 sawimme Exp $ */
+/* $Id: IOBaseT.cpp,v 1.4 2001-12-16 23:52:02 paklein Exp $ */
 /* created: sawimme (09/28/1999)                                          */
 
 #include "IOBaseT.h"
@@ -39,6 +39,8 @@ IOBaseT::FileTypeT IOBaseT::int_to_FileTypeT(int i)
 	                return IOBaseT::kAVSBinary;
 	       case 10:
 	                return IOBaseT::kPatranNeutral;
+	       case 11:
+	                return IOBaseT::kTahoeResults;
 		default:
 			cout << "\n int_to_IOFileType: could not convert: " << i << endl;
 			throw eOutOfRange;
@@ -70,6 +72,7 @@ void IOBaseT::InputFormats (ostream& log) const
   //log << "    eq. " << setw (2) << IOBaseT::kAVS           << ". AVS UCD ASCII\n";
   //log << "    eq. " << setw (2) << IOBaseT::kAVSBinary     << ". AVS UCD Binary\n";
   log << "    eq. " << setw (2) << IOBaseT::kPatranNeutral << ". PATRAN Neutral\n";
+  log << "    eq. " << setw (2) << IOBaseT::kTahoeResults  << ". Tahoe Results (.geo/.run)\n";
 }
 
 void IOBaseT::OutputFormats (ostream& log) const

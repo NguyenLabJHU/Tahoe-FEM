@@ -1,4 +1,4 @@
-/* $Id: TahoeInputT.cpp,v 1.4 2001-10-15 17:48:55 sawimme Exp $ */
+/* $Id: TahoeInputT.cpp,v 1.5 2001-12-16 23:53:45 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "TahoeInputT.h"
@@ -11,7 +11,14 @@ TahoeInputT::TahoeInputT (ostream& out) :
 
 void TahoeInputT::Open (const StringT& file)
 {
-  fModel.OpenRead (file);
+  if (fModel.OpenRead (file) == ModelFileT::kFail)
+    {
+      fout << "\n\nTahoeInputT::Open unable to open file: ";
+      fout << file << "\n\n";
+      cout << "\n\nTahoeInputT::Open unable to open file: ";
+      cout << file << "\n\n";
+      throw eDatabaseFail;
+    }
 }
 
 void TahoeInputT::Close (void)
@@ -264,7 +271,8 @@ void TahoeInputT::ReadSideSetGlobal (StringT& name, iArray2DT& sides) const
   for (int i=0; i < ids.Length(); i++)
     {
       if (ids[i] == elsetid) break;
-      fModel.GetElementSetDimensions (ids[i], num_elems, dim);
+      if (fModel.GetElementSetDimensions (ids[i], num_elems, dim) == ModelFileT::kFail)
+	throw eDatabaseFail;
       offset += num_elems;
     }
 

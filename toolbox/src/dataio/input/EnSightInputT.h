@@ -1,5 +1,5 @@
-/* $Id: EnSightInputT.h,v 1.5 2001-10-15 17:48:55 sawimme Exp $ */
-/* created: sawimme (05/18/1998)                                          */
+/* $Id: EnSightInputT.h,v 1.6 2001-12-16 23:53:45 paklein Exp $ */
+/* created: sawimme (05/18/1998) */
 
 #ifndef _ENSIGHTINPUT_T_H_
 #define _ENSIGHTINPUT_T_H_
@@ -73,6 +73,10 @@ public:
   virtual void ReadElementLabels (ArrayT<StringT>& elabels) const;
   virtual void ReadQuadratureLabels (ArrayT<StringT>& qlabels) const;  
   
+  virtual void NodeVariablesUsed (StringT& name, iArrayT& used);
+  virtual void ElementVariablesUsed (StringT& name, iArrayT& used);
+  virtual void QuadratureVariablesUsed (StringT& name, iArrayT& used);  
+
   virtual void ReadAllNodeVariables (int step, dArray2DT& nvalues);
   virtual void ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues);
   virtual void ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues);
@@ -89,7 +93,8 @@ public:
   
   StringT CreateVariableFile (const StringT& old, int inc) const;
   void ReadVariableData (ArrayT<bool>& vector, ArrayT<StringT>& labels, int group_id, dArray2DT& values, int currentinc, bool nodal) const;
-  
+  void VariableUsed (StringT& name, iArrayT& used, ArrayT<StringT>& labels, ArrayT<bool>& vector, bool nodal) const;  
+
  private:
   EnSightT fData;
   StringT fGeometryFile;
@@ -112,7 +117,11 @@ inline int EnSightInputT::NumElementQuadPoints (StringT& name)
 inline int EnSightInputT::NumSideSets (void) const { return 0; }
 inline int EnSightInputT::NumNodeSets (void) const { return 0; }
 inline int EnSightInputT::NumDimensions (void) const { return 3; }
-inline int EnSightInputT::NumNodesInSet (StringT& name) { return 0; }
+inline int EnSightInputT::NumNodesInSet (StringT& name) 
+{ 
+#pragma unused(name)
+	return 0; 
+}
 inline void EnSightInputT::ReadNodeSet (StringT& name, iArrayT& nodes)
 {
 #pragma unused (name)
@@ -141,6 +150,11 @@ inline void EnSightInputT::ReadSideSetGlobal (StringT& setname, iArray2DT& sides
   sides.Free ();
 }
 inline int EnSightInputT::NumQuadratureVariables (void) const { return 0; }
+inline void EnSightInputT::QuadratureVariablesUsed (StringT& name, iArrayT& used)
+{
+#pragma unused (name)
+  used = 0;
+}
 inline void EnSightInputT::ReadQuadratureLabels (ArrayT<StringT>& qlabels) const
 { qlabels.Free (); }
 inline void EnSightInputT::ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues)

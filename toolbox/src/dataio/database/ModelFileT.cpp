@@ -1,4 +1,4 @@
-/* $Id: ModelFileT.cpp,v 1.3 2001-06-27 23:04:13 paklein Exp $ */
+/* $Id: ModelFileT.cpp,v 1.4 2001-12-16 23:52:41 paklein Exp $ */
 /* created: paklein (12/15/1999)                                          */
 
 #include "ModelFileT.h"
@@ -337,7 +337,8 @@ ModelFileT::StatusT ModelFileT::GetElementSetID(iArrayT& ID) const
 	else
 	{
 		ID.Allocate(fElementID.MajorDim());
-		fElementID.ColumnCopy(0, ID);
+		if (fElementID.MajorDim() > 0)
+		  fElementID.ColumnCopy(0, ID);
 		return kOK;
 	}
 }

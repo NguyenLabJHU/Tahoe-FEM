@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.cpp,v 1.6 2001-09-10 15:41:59 sawimme Exp $ */
+/* $Id: AbaqusInputT.cpp,v 1.7 2001-12-16 23:53:44 paklein Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #include "AbaqusInputT.h"
@@ -172,7 +172,7 @@ void AbaqusInputT::ReadNodeLabels (ArrayT<StringT>& nlabels) const
 {
   if (nlabels.Length() != NumNodeVariables()) throw eSizeMismatch;
 
-  ArrayT<AbaqusResultsT::VariableKeyT> keys (nlabels.Length());
+  iArrayT keys (nlabels.Length());
   iArrayT dims (nlabels.Length());
   fData.NodeVariables (keys, dims);
   SetLabelName (keys, dims, nlabels);
@@ -182,7 +182,7 @@ void AbaqusInputT::ReadElementLabels (ArrayT<StringT>& elabels) const
 {
   if (elabels.Length() != NumElementVariables()) throw eSizeMismatch;
 
-  ArrayT<AbaqusResultsT::VariableKeyT> keys (elabels.Length());
+  iArrayT keys (elabels.Length());
   iArrayT dims (elabels.Length());
   fData.ElementVariables (keys, dims);
   SetLabelName (keys, dims, elabels);
@@ -192,10 +192,28 @@ void AbaqusInputT::ReadQuadratureLabels (ArrayT<StringT>& qlabels) const
 {
   if (qlabels.Length() != NumQuadratureVariables()) throw eSizeMismatch;
 
-  ArrayT<AbaqusResultsT::VariableKeyT> keys (qlabels.Length());
+  iArrayT keys (qlabels.Length());
   iArrayT dims (qlabels.Length());
   fData.QuadratureVariables (keys, dims);
   SetLabelName (keys, dims, qlabels);
+}
+
+void AbaqusInputT::NodeVariablesUsed (StringT& name, iArrayT& used)
+{
+  if (used.Length() != NumNodeVariables()) throw eSizeMismatch;
+  fData.VariablesUsed (name, AbaqusVariablesT::kNode, used);
+}
+
+void AbaqusInputT::ElementVariablesUsed (StringT& name, iArrayT& used)
+{ 
+  if (used.Length() != NumElementVariables()) throw eSizeMismatch;
+  fData.VariablesUsed (name, AbaqusVariablesT::kElement, used);
+}
+
+void AbaqusInputT::QuadratureVariablesUsed (StringT& name, iArrayT& used)
+{ 
+  if (used.Length() != NumQuadratureVariables()) throw eSizeMismatch;
+  fData.VariablesUsed (name, AbaqusVariablesT::kQuadrature, used);
 }
 
 void AbaqusInputT::ReadAllNodeVariables (int step, dArray2DT& values)
@@ -203,7 +221,7 @@ void AbaqusInputT::ReadAllNodeVariables (int step, dArray2DT& values)
   StringT name ("\0");
   int numv = NumNodeVariables ();
   if (values.MinorDim() != numv) throw eSizeMismatch;
-  fData.ReadVariables (AbaqusResultsT::kNodeVar, step, values, name);
+  fData.ReadVariables (AbaqusVariablesT::kNode, step, values, name);
 }
 
 void AbaqusInputT::ReadNodeVariables (int step, StringT& elsetname, dArray2DT& values)
@@ -226,7 +244,7 @@ void AbaqusInputT::ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT&
 {
   int numv = NumNodeVariables ();
   if (values.MinorDim() != numv) throw eSizeMismatch;
-  fData.ReadVariables (AbaqusResultsT::kNodeVar, step, values, nsetname);
+  fData.ReadVariables (AbaqusVariablesT::kNode, step, values, nsetname);
 }
 
 void AbaqusInputT::ReadAllElementVariables (int step, dArray2DT& values)
@@ -234,14 +252,14 @@ void AbaqusInputT::ReadAllElementVariables (int step, dArray2DT& values)
   StringT name ("\0");
   int numv = NumNodeVariables ();
   if (values.MinorDim() != numv) throw eSizeMismatch;
-  fData.ReadVariables (AbaqusResultsT::kElemVar, step, values, name);
+  fData.ReadVariables (AbaqusVariablesT::kElement, step, values, name);
 }
 
 void AbaqusInputT::ReadElementVariables (int step, StringT& name, dArray2DT& evalues)
 {
   int numv = NumElementVariables ();
   if (evalues.MinorDim() != numv) throw eSizeMismatch;
-  fData.ReadVariables (AbaqusResultsT::kElemVar, step, evalues, name);
+  fData.ReadVariables (AbaqusVariablesT::kElement, step, evalues, name);
 }
 
 void AbaqusInputT::ReadAllQuadratureVariables (int step, dArray2DT& values)
@@ -249,14 +267,14 @@ void AbaqusInputT::ReadAllQuadratureVariables (int step, dArray2DT& values)
   int numv = NumQuadratureVariables ();
   if (values.MinorDim() != numv) throw eSizeMismatch;
   StringT name ("\0");
-  fData.ReadVariables (AbaqusResultsT::kQuadVar, step, values, name);
+  fData.ReadVariables (AbaqusVariablesT::kQuadrature, step, values, name);
 }
 
 void AbaqusInputT::ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues)
 {
   int numv = NumQuadratureVariables ();
   if (qvalues.MinorDim() != numv) throw eSizeMismatch;
-  fData.ReadVariables (AbaqusResultsT::kQuadVar, step, qvalues, name);
+  fData.ReadVariables (AbaqusVariablesT::kQuadrature, step, qvalues, name);
 }
 
 /*************************************************************************
@@ -265,7 +283,7 @@ void AbaqusInputT::ReadQuadratureVariables (int step, StringT& name, dArray2DT& 
 *
 *************************************************************************/
 
-void AbaqusInputT::SetLabelName (const ArrayT<AbaqusResultsT::VariableKeyT>& key, const iArrayT& dims, ArrayT<StringT>& name) const
+void AbaqusInputT::SetLabelName (const iArrayT& key, const iArrayT& dims, ArrayT<StringT>& name) const
 {
   int u=1;
   for (int i=0; i < name.Length();)

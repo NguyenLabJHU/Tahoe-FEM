@@ -1,4 +1,4 @@
-/* $Id: PatranT.cpp,v 1.6 2001-09-06 17:27:10 sawimme Exp $ */
+/* $Id: PatranT.cpp,v 1.7 2001-12-16 23:52:41 paklein Exp $ */
 /* created sawimme (05/17/2001) */
 
 #include "PatranT.h"
@@ -199,7 +199,7 @@ bool PatranT::NumNodesInSet (StringT& title, int& num) const
   num = 0;
   int *it = list.Pointer();
   int *il = list.Pointer() + 1;
-  for (int i=0; i < list.Length(); i++, it += 2, il += 2)
+  for (int i=0; i < list.Length()/2; i++, it += 2, il += 2)
     if (*it == kNodeType)
       num++;
 
