@@ -1,4 +1,4 @@
-/* $Id: GWPlastic.cpp,v 1.3 2003-07-03 00:04:36 rjones Exp $ */
+/* $Id: GWPlastic.cpp,v 1.4 2003-07-17 20:32:49 rjones Exp $ */
 #include "GWPlastic.h"
 #include <math.h>
 #include <iostream.h>
@@ -41,7 +41,7 @@ double MODULUS, double YIELD, double LENGTHSCALE, double ASPERITYAREA):
 {	
 		fmoment0 = new PolyDistributionT(0,fM,fS);
 		fmoment1 = new PolyDistributionT(1,fM,fS);
-		fdc = fY/fE;
+		fdc = fL*fY/fE;
 }
 
 /*
@@ -125,14 +125,14 @@ double GWPlastic::DFunction(double d) const
 	double Fvalue=0.0;
 	// calculate plastic area as function of *current* dmin
 	if (d < fdmin) { // plastic loading
-		Fvalue = fa0*fE*(fmoment1->Function(d)
+		Fvalue = fa0*fE/fL*(fmoment1->Function(d)
 						-fmoment1->Function(d+fdc) )
 				+fY*PlasticArea(d);
 	} else {
 		if (d-fdmin < fdc) { // elastic
-			Fvalue = fE*fa0*(fmoment1->Function(d)
+			Fvalue = fE/fL*fa0*(fmoment1->Function(d)
 							-fmoment1->Function(fdmin+fdc) )
-				   + fE*(fdc-(d-fdmin))*PlasticArea(fdmin);
+				   + fE/fL*(fdc-(d-fdmin))*PlasticArea(fdmin);
 		} else { // no contact
 			Fvalue = 0.0;
 		}
@@ -144,13 +144,13 @@ double GWPlastic::DDFunction(double d) const
 { // returns the load gradient
 	double dFvalue = 0.0;
 	if (d < fdmin) { // plastic loading
-		dFvalue = fa0*fE*(fmoment1->DFunction(d)
+		dFvalue = fa0*fE/fL*(fmoment1->DFunction(d)
 						- fmoment1->DFunction(d+fdc) )
 				+fY*DPlasticArea(d);
 	} else {
 		if (d-fdmin < fdc) { // elastic
-			dFvalue = fE*fa0*fmoment1->DFunction(d)
-					- fE*PlasticArea(fdmin);
+			dFvalue = fE/fL*fa0*fmoment1->DFunction(d)
+					- fE/fL*PlasticArea(fdmin);
 		} else { // no contact
 			dFvalue = 0.0;
 		}

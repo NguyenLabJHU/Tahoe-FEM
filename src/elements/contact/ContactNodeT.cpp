@@ -1,7 +1,9 @@
-/*  $Id: ContactNodeT.cpp,v 1.19 2003-07-03 00:04:38 rjones Exp $ */
+/*  $Id: ContactNodeT.cpp,v 1.20 2003-07-17 20:32:50 rjones Exp $ */
 #include "ContactNodeT.h"
 
 #include "FaceT.h"
+
+static const double BIG = 1.e8;
 
 using namespace Tahoe;
 
@@ -9,6 +11,9 @@ ContactNodeT::ContactNodeT(ContactSurfaceT& surface, int node_tag):
 	fSurface(surface)
 {
 	fNodeTag         = node_tag;
+	// history vars
+	fMinGap = BIG;
+	fLastGap = BIG;
 	Initialize();
 }
 

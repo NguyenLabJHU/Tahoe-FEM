@@ -1,4 +1,4 @@
-/* $Id: ContactNodeT.h,v 1.18 2003-07-03 00:04:38 rjones Exp $ */
+/* $Id: ContactNodeT.h,v 1.19 2003-07-17 20:32:50 rjones Exp $ */
 #ifndef _CONTACT_NODE_T_H_
 #define _CONTACT_NODE_T_H_
 
@@ -35,8 +35,6 @@ class ContactNodeT
 			fOpposingSurface = NULL; 
 			fOpposingFace= NULL; 
 			fGap = 1.0e8;
-			fLastGap = 1.e8;
-			fMinGap = 1.e8;
 			fOriginalOpposingFace    = NULL;
 			fxi[0]           = 0.0 ;
 			fxi[1]           = 0.0 ;

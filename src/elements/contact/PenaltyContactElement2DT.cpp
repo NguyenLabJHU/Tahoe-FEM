@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.46 2003-07-03 22:58:12 dzeigle Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.47 2003-07-17 20:32:50 rjones Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -131,13 +131,15 @@ void PenaltyContactElement2DT::WriteOutput(void)
 	/* call base class */
 	ContactElementT::WriteOutput();
 
+	int step_num = ElementSupport().StepNumber();
+
 	StringT filename;
 	filename.Root(ElementSupport().Input().filename());
 	filename.Append(".contact_data");
 	ofstreamT data_file;
 	if (fFirstPass) {
 		data_file.open(filename);
-        data_file << "#  gap gmin pre \n";
+        data_file << "# 1.step 2.surf 3.node 4.x 5.y 6.gap 7.gmin 8.f 9.df \n";
 		fFirstPass = false;
 	}
 	else
@@ -150,23 +152,27 @@ void PenaltyContactElement2DT::WriteOutput(void)
 			cout << "real contact area = " << fRealArea[i] << "\n";
 	}
 
-    if (fOutputFlags[kGaps] )
- 	{
+    if (fOutputFlags[kGaps] ) {
     for(int s = 0; s < fSurfaces.Length(); s++) {
         ContactSurfaceT& surface = fSurfaces[s];
 	    const ArrayT<ContactNodeT*>& nodes = surface.ContactNodes();
         for (int j = 0; j < nodes.Length(); j++) {
             ContactNodeT* node = nodes[j];
-			int s2 = node->OpposingFace()->Surface().Tag();
-			dArrayT& enf_parameters = fEnforcementParameters(s,s2);
-			C1FunctionT*  pen_function 
+			if (node->Status() > ContactNodeT::kNoProjection) {
+				int s2 = node->OpposingFace()->Surface().Tag();
+				dArrayT& enf_parameters = fEnforcementParameters(s,s2);
+				C1FunctionT*  pen_function 
 				  = fPenaltyFunctions[LookUp(s,s2,fSurfaces.Length())];
-			double gap = node->Gap();
-			double f = -enf_parameters[kPenalty]*pen_function->DFunction(gap);
-			double df = -enf_parameters[kPenalty]*pen_function->DDFunction(gap);
-            double gmin = node->MinGap();
-            data_file <<  gap << " " << gmin << " " << f << " " << df 
+				double gap = node->Gap();
+				double f = -enf_parameters[kPenalty]*pen_function->DFunction(gap);
+				double df = -enf_parameters[kPenalty]*pen_function->DDFunction(gap);
+            	double gmin = node->MinGap();
+				int node_num = surface.NodeNumber(j);
+            	data_file <<  step_num << " " << s << " " << ++node_num << " "   // node->Tag()
+					<< node->Position()[0] << " " << node->Position()[1] << "       "
+					<< gap << " " << gmin << " " << f << " " << df 
 					<< "\n";
+			}
 
         }
 	}

@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.35 2003-07-03 00:04:38 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.36 2003-07-17 20:32:50 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
@@ -389,6 +389,7 @@ ContactSurfaceT::PrintContactArea(ostream& out) const
 	    << ", contact " << contact_area 
 	    << ", " << cn << " / " << fContactNodes.Length()
 		<< '\n';
+	out << "Surface " << this->Tag() << ":" ;
 	out << " REACTION: X " << reaction[0] 
                  << ", Y " << reaction[1]
                  << ", Z " << reaction[2] << "\n";

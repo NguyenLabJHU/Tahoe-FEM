@@ -1,4 +1,4 @@
-/* $Id: SurfaceT.h,v 1.20 2003-07-03 00:04:38 rjones Exp $ */
+/* $Id: SurfaceT.h,v 1.21 2003-07-17 20:32:50 rjones Exp $ */
 #ifndef _SURFACE_T_H_
 #define _SURFACE_T_H_
 
@@ -48,6 +48,7 @@ class SurfaceT
 	inline const int NumNodes(void) const {return fGlobalNodes.Length();}
 	inline const int NumFaces(void) const {return fFaces.Length();}
 	inline const int NumSD(void) const {return fNumSD;}
+	inline const int NodeNumber(int local_num) const {return fGlobalNodes[local_num];}
 	inline const iArrayT&   GlobalNodes(void) const {return fGlobalNodes;}
 	// NOTE this copy of fGlobalNodes
 	inline const iArray2DT& GlobalNodeNumbers(void) const 
