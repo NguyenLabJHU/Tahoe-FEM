@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.h,v 1.5 2003-07-11 16:45:19 hspark Exp $ */
+/* $Id: FEManagerT_THK.h,v 1.6 2004-02-01 20:38:16 hspark Exp $ */
 #ifndef _FE_MANAGER_THK_H_
 #define _FE_MANAGER_THK_H_
 
@@ -26,6 +26,12 @@ public:
 
 	/** initialize members */
 	virtual void Initialize(InitCodeT init = kFull);
+
+	/** 2D Bridging Scale Initialization */
+	void Initialize2D(void);
+
+	/** 3D Bridging Scale Initialization */
+	void Initialize3D(void);
 
 	/** \name solution steps. 
 	 * See FEManagerT for more information */

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.cpp,v 1.9 2003-11-21 22:54:56 paklein Exp $ */
+/* $Id: FEManagerT_THK.cpp,v 1.10 2004-02-01 20:38:16 hspark Exp $ */
 #include "FEManagerT_THK.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -33,6 +33,20 @@ void FEManagerT_THK::Initialize(InitCodeT init)
 	/* inherited */
 	FEManagerT_bridging::Initialize(init);
 	
+	ModelManagerT* model = FEManagerT::ModelManager();
+	int nsd = model->NumDimensions();
+
+	//if (nsd == 2)
+	//	Initialize2D();
+	//else if (nsd == 3)
+	//	Initialize3D();
+	//else
+	//{
+	//	const char caller[] = "FEManagerT_THK::Initialize";
+	//	ExceptionT::GeneralFail(caller, "1D BRIDGING SCALE NOT ENABLED");
+	//}
+
+	
 	// read other parameters and initialize data
 	ifstreamT& in = Input();
 	in >> fNcrit;
@@ -40,8 +54,6 @@ void FEManagerT_THK::Initialize(InitCodeT init)
 		  
 	/* obtain list of atoms on which BC's will be applied in FEManagerT_THK */
 	ArrayT<StringT> id_list;
-        
-	ModelManagerT* model = FEManagerT::ModelManager();
         
 	/* read node set indexes */
 	model->NodeSetList(in, id_list);
@@ -99,6 +111,22 @@ void FEManagerT_THK::Initialize(InitCodeT init)
 	data_file.ToNativePathName();
 	data_file.Prepend(path);
 	ComputeThetaTables(data_file);
+}
+
+/* 2D Bridging Scale Initialization */
+void Initialize2D(void)
+{
+
+
+}
+
+/* Bridging Scale 3D Initialization */
+void Initialize3D(void)
+{
+	/* Implement 3D version of initialize here */
+
+
+
 }
 
 /* initialize the current time increment for all groups */
