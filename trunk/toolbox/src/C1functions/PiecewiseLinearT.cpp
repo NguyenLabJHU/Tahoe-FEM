@@ -1,4 +1,4 @@
-/* $Id: PiecewiseLinearT.cpp,v 1.2 2004-07-12 21:48:02 paklein Exp $ */
+/* $Id: PiecewiseLinearT.cpp,v 1.3 2004-09-02 18:40:11 rdorgan Exp $ */
 #include "PiecewiseLinearT.h"
 #include "dArray2DT.h"
 
@@ -44,6 +44,8 @@ void PiecewiseLinearT::PrintName(ostream& out) const
 double PiecewiseLinearT::Function(double x) const { return function(x); }
 double PiecewiseLinearT::DFunction(double x) const { return Dfunction(x); }
 double PiecewiseLinearT::DDFunction(double x) const { return DDfunction(x); }
+double PiecewiseLinearT::DDDFunction(double x) const { return DDfunction(x); }
+double PiecewiseLinearT::DDDDFunction(double x) const { return DDfunction(x); }
 
 /* returning values in groups - returns refence to out to allow:
  *
@@ -86,6 +88,28 @@ dArrayT& PiecewiseLinearT::MapDFunction(const dArrayT& in, dArrayT& out) const
 }
 
 dArrayT& PiecewiseLinearT::MapDDFunction(const dArrayT& in, dArrayT& out) const
+{
+#if __option(extended_errorcheck)
+	/* dimension check */
+	if (in.Length() != out.Length()) ExceptionT::SizeMismatch("PiecewiseLinearT::MapDDFunction");
+#endif
+	
+	out = 0.0;
+	return out;
+}
+
+dArrayT& PiecewiseLinearT::MapDDDFunction(const dArrayT& in, dArrayT& out) const
+{
+#if __option(extended_errorcheck)
+	/* dimension check */
+	if (in.Length() != out.Length()) ExceptionT::SizeMismatch("PiecewiseLinearT::MapDDFunction");
+#endif
+	
+	out = 0.0;
+	return out;
+}
+
+dArrayT& PiecewiseLinearT::MapDDDDFunction(const dArrayT& in, dArrayT& out) const
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
@@ -167,6 +191,18 @@ double PiecewiseLinearT::Dfunction(double x) const
 }
 
 double PiecewiseLinearT::DDfunction(double x) const	
+{ 
+#pragma unused(x)
+	return 0.0;
+}
+
+double PiecewiseLinearT::DDDfunction(double x) const	
+{ 
+#pragma unused(x)
+	return 0.0;
+}
+
+double PiecewiseLinearT::DDDDfunction(double x) const	
 { 
 #pragma unused(x)
 	return 0.0;
