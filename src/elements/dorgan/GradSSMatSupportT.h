@@ -1,4 +1,4 @@
-/* $Id: GradSSMatSupportT.h,v 1.8 2004-06-09 00:25:53 rdorgan Exp $ */
+/* $Id: GradSSMatSupportT.h,v 1.9 2004-07-20 23:16:50 rdorgan Exp $ */
 #ifndef _GRAD_SS_MAT_SUPPORT_T_H_
 #define _GRAD_SS_MAT_SUPPORT_T_H_
 
@@ -11,83 +11,81 @@
 
 namespace Tahoe {
 
+/* forward declarations */
+class GradSmallStrainT;
+
 /** support for the small strain Tahoe materials classes */
 class GradSSMatSupportT: public SSMatSupportT
 {
 public:
 
 	/** constructor */
-	GradSSMatSupportT(int nsd, int ndof_disp, int ndor_field, int nip_disp, int nip_field);
+	GradSSMatSupportT(int ndof_disp, int ndof_field, int nip_disp, int nip_field);
 	
 	/** destructor */
 	~GradSSMatSupportT(void);
 	
 	/** \name field */
 	/*@{*/
-	const double& LinearField(void) const;
-	const double& LinearField(int ip) const;
+	const double& LinearPMultiplier(void) const;
+	const double& LinearPMultiplier(int ip) const;
 	/*@}*/
 	
 	/** \name field from the end of the previous time step */
 	/*@{*/
-	const double& LinearField_last(void) const;
-	const double& LinearField_last(int ip) const;
+	const double& LinearPMultiplier_last(void) const;
+	const double& LinearPMultiplier_last(int ip) const;
 	/*@}*/
 	
 	/** \name gradient field */
 	/*@{*/
-	const double& LinearGradField(void) const;
-	const double& LinearGradField(int ip) const;
+	const double& LinearGradPMultiplier(void) const;
+	const double& LinearGradPMultiplier(int ip) const;
 	/*@}*/
 	
 	/** \name gradient field from the end of the previous time step */
 	/*@{*/
-	const double& LinearGradField_last(void) const;
-	const double& LinearGradField_last(int ip) const;
+	const double& LinearGradPMultiplier_last(void) const;
+	const double& LinearGradPMultiplier_last(int ip) const;
 	/*@}*/
 	
 	/** \name Laplacian field */
 	/*@{*/
-	const double& LinearLapField(void) const;
-	const double& LinearLapField(int ip) const;
+	const double& LinearLapPMultiplier(void) const;
+	const double& LinearLapPMultiplier(int ip) const;
 	/*@}*/
 	
 	/** \name Laplacian field from the end of the previous time step */
 	/*@{*/
-	const double& LinearLapField_last(void) const;
-	const double& LinearLapField_last(int ip) const;
+	const double& LinearLapPMultiplier_last(void) const;
+	const double& LinearLapPMultiplier_last(int ip) const;
 	/*@}*/
 	
 	/** set source for the field */
-	void SetLinearField(const dArrayT* field_List);
+	void SetLinearPMultiplier(const dArrayT* pmultiplier_List);
 	
 	/** set source for the field from the end of the previous time step */
-	void SetLinearField_last(const dArrayT* field_last_List);
+	void SetLinearPMultiplier_last(const dArrayT* pmultiplier_last_List);
 	
 	/** set source for the gradient of field */
-	void SetLinearGradField(const dArrayT* gradfield_List);
+	void SetLinearGradPMultiplier(const dArrayT* gradpmultiplier_List);
 	
 	/** set source for the gradient of field from the end of the previous time step */
-	void SetLinearGradField_last(const dArrayT* gradfield_last_List);
+	void SetLinearGradPMultiplier_last(const dArrayT* gradpmultiplier_last_List);
 	
 	/** set source for the Laplacian of field */
-	void SetLinearLapField(const dArrayT* lapfield_List);
+	void SetLinearLapPMultiplier(const dArrayT* lappmultiplier_List);
 	
 	/** set source for the Laplacian of field from the end of the previous time step */
-	void SetLinearLapField_last(const dArrayT* lapfield_last_List);
+	void SetLinearLapPMultiplier_last(const dArrayT* lappmultiplier_last_List);
 	
-	/** \name dimensions */
+	/** \name host code information */
 	/*@{*/
-	/** number of degrees of freedom of field (per node) */
-	int NumDOF_Field(void) const { return fNumDOF_Field; };
-	
-	/** total number of degrees of freedom (per node) */
-	int NumDOF_Total(void) const { return fNumDOF_Total; };
-	
-	/** stress evaluation points per element for field */
-	int NumIP_Field(void) const { return fNumIP_Field; };
-	/*@}*/
-	
+	/** return a pointer to the host element. Returns NULL if no
+	 * no element information in available. The ContinuumElementT
+	 * pointer is set using MaterialSupportT::SetContinuumElement. */
+	const GradSmallStrainT* GradSmallStrain(void) const { return fGradSmallStrain; };
+
 	/** set the element group pointer */
 	virtual void SetContinuumElement(const ContinuumElementT* p);
 	/*@}*/
@@ -96,100 +94,91 @@ private:
 	
 	/** \name return values */
 	/*@{*/
-	const dArrayT* fField_List;
-	const dArrayT* fField_last_List;
+	const dArrayT* fPMultiplier_List;
+	const dArrayT* fPMultiplier_last_List;
 	
-	const dArrayT* fGradField_List;
-	const dArrayT* fGradField_last_List;
+	const dArrayT* fGradPMultiplier_List;
+	const dArrayT* fGradPMultiplier_last_List;
 
-	const dArrayT* fLapField_List;
-	const dArrayT* fLapField_last_List;
+	const dArrayT* fLapPMultiplier_List;
+	const dArrayT* fLapPMultiplier_last_List;
 	/*@}*/
 	
-	/** \name dimensions */
-	/*@{*/
-	/** number of degrees of freedom for field */
-	int fNumDOF_Field;
-	
-	/** total number of degrees of freedom */
-	int fNumDOF_Total;
-	
-	/** number of integration points for field */
-	int fNumIP_Field;
-	/*@}*/
+  	/** pointer to the small strain element */
+	const GradSmallStrainT* fGradSmallStrain;	
 };
 
 /* inlines */
-inline const double& GradSSMatSupportT::LinearField(void) const
+inline const double& GradSSMatSupportT::LinearPMultiplier(void) const
 {
-	if (!fField_List) throw ExceptionT::kGeneralFail;
-	return (*fField_List)[CurrIP()]; 
+	if (!fPMultiplier_List) throw ExceptionT::kGeneralFail;
+	return (*fPMultiplier_List)[CurrIP()]; 
 }
 
-inline const double& GradSSMatSupportT::LinearField(int ip) const
+inline const double& GradSSMatSupportT::LinearPMultiplier(int ip) const
 {
-	if (!fField_List) throw ExceptionT::kGeneralFail;
-	return (*fField_List)[ip]; 
+	if (!fPMultiplier_List) throw ExceptionT::kGeneralFail;
+	return (*fPMultiplier_List)[ip]; 
 }
 
-inline const double& GradSSMatSupportT::LinearField_last(void) const
+inline const double& GradSSMatSupportT::LinearPMultiplier_last(void) const
 {
-	if (!fField_last_List) throw ExceptionT::kGeneralFail;
-	return (*fField_last_List)[CurrIP()]; 
+	if (!fPMultiplier_last_List) throw ExceptionT::kGeneralFail;
+	return (*fPMultiplier_last_List)[CurrIP()]; 
 }
 
-inline const double& GradSSMatSupportT::LinearField_last(int ip) const
+inline const double& GradSSMatSupportT::LinearPMultiplier_last(int ip) const
 {
-	if (!fField_last_List) throw ExceptionT::kGeneralFail;
-	return (*fField_last_List)[ip]; 
+	if (!fPMultiplier_last_List) throw ExceptionT::kGeneralFail;
+	return (*fPMultiplier_last_List)[ip]; 
 }
 
-inline const double& GradSSMatSupportT::LinearGradField(void) const
+inline const double& GradSSMatSupportT::LinearGradPMultiplier(void) const
 {
-	if (!fGradField_List) throw ExceptionT::kGeneralFail;
-	return (*fGradField_List)[CurrIP()]; 
+	if (!fGradPMultiplier_List) throw ExceptionT::kGeneralFail;
+	return (*fGradPMultiplier_List)[CurrIP()]; 
 }
 
-inline const double& GradSSMatSupportT::LinearGradField(int ip) const
+inline const double& GradSSMatSupportT::LinearGradPMultiplier(int ip) const
 {
-	if (!fGradField_List) throw ExceptionT::kGeneralFail;
-	return (*fGradField_List)[ip]; 
+	if (!fGradPMultiplier_List) throw ExceptionT::kGeneralFail;
+	return (*fGradPMultiplier_List)[ip]; 
 }
 
-inline const double& GradSSMatSupportT::LinearGradField_last(void) const
+inline const double& GradSSMatSupportT::LinearGradPMultiplier_last(void) const
 {
-	if (!fGradField_last_List) throw ExceptionT::kGeneralFail;
-	return (*fGradField_last_List)[CurrIP()]; 
+	if (!fGradPMultiplier_last_List) throw ExceptionT::kGeneralFail;
+	return (*fGradPMultiplier_last_List)[CurrIP()]; 
 }
 
-inline const double& GradSSMatSupportT::LinearGradField_last(int ip) const
+inline const double& GradSSMatSupportT::LinearGradPMultiplier_last(int ip) const
 {
-	if (!fGradField_last_List) throw ExceptionT::kGeneralFail;
-	return (*fGradField_last_List)[ip]; 
+	if (!fGradPMultiplier_last_List) throw ExceptionT::kGeneralFail;
+	return (*fGradPMultiplier_last_List)[ip]; 
 }
 
-inline const double& GradSSMatSupportT::LinearLapField(void) const
+inline const double& GradSSMatSupportT::LinearLapPMultiplier(void) const
 {
-	if (!fLapField_List) throw ExceptionT::kGeneralFail;
-	return (*fLapField_List)[CurrIP()]; 
+	if (!fLapPMultiplier_List) throw ExceptionT::kGeneralFail;
+	return (*fLapPMultiplier_List)[CurrIP()]; 
 }
 
-inline const double& GradSSMatSupportT::LinearLapField(int ip) const
+inline const double& GradSSMatSupportT::LinearLapPMultiplier(int ip) const
 {
-	if (!fLapField_List) throw ExceptionT::kGeneralFail;
-	return (*fLapField_List)[ip]; 
+	if (!fLapPMultiplier_List) throw ExceptionT::kGeneralFail;
+	return (*fLapPMultiplier_List)[ip]; 
 }
 
-inline const double& GradSSMatSupportT::LinearLapField_last(void) const
+inline const double& GradSSMatSupportT::LinearLapPMultiplier_last(void) const
 {
-	if (!fLapField_last_List) throw ExceptionT::kGeneralFail;
-	return (*fLapField_last_List)[CurrIP()]; 
+	if (!fLapPMultiplier_last_List) throw ExceptionT::kGeneralFail;
+	return (*fLapPMultiplier_last_List)[CurrIP()]; 
 }
 
-inline const double& GradSSMatSupportT::LinearLapField_last(int ip) const
+inline const double& GradSSMatSupportT::LinearLapPMultiplier_last(int ip) const
 {
-	if (!fLapField_last_List) throw ExceptionT::kGeneralFail;
-	return (*fLapField_last_List)[ip]; 
+	if (!fLapPMultiplier_last_List) throw ExceptionT::kGeneralFail;
+	return (*fLapPMultiplier_last_List)[ip]; 
 }
 
 } /* namespace Tahoe */

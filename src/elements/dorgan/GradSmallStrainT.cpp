@@ -1,8 +1,9 @@
 /* $id: GradSmallStrainT.cpp,v 1.10 2004/06/17 20:45:13 rdorgan Exp $ */ 
 #include "GradSmallStrainT.h"
+#include "ShapeFunctionT.h"
+#include "GradSSSolidMatT.h"
 
 /* shape functions */
-#include "ShapeFunctionT.h"
 #include "ShapeTools.h"
 #include "C0ShapeTools.h"
 #include "C1ShapeTools.h"
@@ -11,10 +12,11 @@
 #include "ifstreamT.h"
 #include "ofstreamT.h"
 
-/* materials */
-#include "GradSSSolidMatT.h"
+/* materials lists */
+#include "GradSSSolidMatList1DT.h"
 #include "GradSSMatSupportT.h"
-#include "SolidMatListT.h"
+#include "ParameterContainerT.h"
+#include "ModelManagerT.h"
 
 #include "FieldT.h"
 #include "FieldSupportT.h"
@@ -25,17 +27,10 @@ using namespace Tahoe;
 const double kYieldTol    = 1.0e-10;
 
 /* constructor */
-GradSmallStrainT::GradSmallStrainT(const ElementSupportT& support, 
-									   const FieldT& disp, const FieldT& field):
+GradSmallStrainT::GradSmallStrainT(const ElementSupportT& support):
 	SmallStrainT(support), //pass the displacement field to the base class
-	fDisplacement(disp),
-	fField(field),
-	
-	fLocField(LocalArrayT::kDisp),
-	fLocLastField(LocalArrayT::kLastDisp),
+	fGradSSMatSupport(NULL),
 
-	fShapes_Field (NULL),
-	
 	fK_bb(ElementMatrixT::kNonSymmetric),
 	fK_bh(ElementMatrixT::kNonSymmetric),
 	fK_hb(ElementMatrixT::kNonSymmetric),
@@ -44,141 +39,76 @@ GradSmallStrainT::GradSmallStrainT(const ElementSupportT& support,
 	fK_hq(ElementMatrixT::kNonSymmetric),
 	fK_ct(ElementMatrixT::kNonSymmetric),
 
-	fDM_bb(dSymMatrixT::NumValues(NumSD())),
-	fOM_bh(dSymMatrixT::NumValues(NumSD()), 1),
-	fOM_hb(1, dSymMatrixT::NumValues(NumSD())),
-	fGM_hh(1),
-	fGM_hp(1, NumSD()),
-	fGM_hq(1),
+	fLocPMultiplier(LocalArrayT::kDisp),
+	fLocLastPMultiplier(LocalArrayT::kLastDisp),
 
-	fNumSD(NumSD()),
-	fNumIP_Disp(NumIP()),
-	fNumIP_Field(fNumIP_Disp),
-	fNumDOF_Disp(fDisplacement.NumDOF()),
-	fNumDOF_Field(fField.NumDOF()),
+	fDisplacement(NULL),
+	fPMultiplier(NULL),
 	
+	fShapes_PMultiplier(NULL),
+	
+	fNumSD(-1),
+	fNumIP_Disp(-1),
+	fNumElementNodes_Disp(-1),
+	fNumDOF_Disp(-1),
+	fNumDOF_PMultiplier(-1),
+	fNumEQ_Total(-1),
+
+	fNumIP_PMultiplier(-1),
+	fNumElementNodes_PMultiplier(-1),
+	fDegreeOfContinuity_PMultiplier(-1),
+	fNodalConstraint(-1),
+
+	fprint_GlobalShape(false),
+	fprint_Kd(false),
+	fprint_KdMatrix(false),
+	fprint_Stiffness(false),
+	fprint_StiffnessMatrix(false),
+
 	fI(1)
 {
-ExceptionT::GeneralFail("GradSmallStrainT::GradSmallStrainT", "out of date");
-#if 0
-	const char caller[] = "GradSmallStrainT::GradSmallStrainT";
-
-	ifstreamT& in = ElementSupport().Input();
-
-	/* control parameters for field mesh */
-	in >> fNumElementNodes_Field;
-	in >> fNodalConstraint;
- 
-	/********DEBUG*******/
-	in >> print_GlobalShape;
-	in >> print_Kd;
-	in >> print_KdMatrix;
-	in >> print_Stiffness;
-	in >> print_StiffnessMatrix;
-	/*******************/
-
-	/* plastic multiplier element type */
-	if (fNumSD == 1) {
-		if (fNumDOF_Field == 1)              // lambda
-			fDegreeOfContinuity_Field = C0;
-		else if (fNumDOF_Field == 2) {       // lambda, lambda_x
-			if (fNumElementNodes_Field == 2) // vertex nodes only
-				fDegreeOfContinuity_Field = C1;
-			else
-				ExceptionT::BadInputValue(caller, "fNumElementNodes_Field != 2 (fNumSD == 1, fNumDOF_Field == 2)");
-		}
-		else
-			ExceptionT::BadInputValue(caller, "fNumDOF_Field != 1 && fNumDOF_Field != 2 (fNumSD == 1)");
-	}	
-	else
-		ExceptionT::BadInputValue(caller, "fNumSD != 1");
-#endif
+	SetName("grad_small_strain");
 }
 
 /* destructor */
 GradSmallStrainT::~GradSmallStrainT(void) 
 {  
-	delete fShapes_Field;
+	delete fGradSSMatSupport;
+	delete fShapes_PMultiplier;
 }
-
-
-void GradSmallStrainT::Initialize(void)
-{
-ExceptionT::GeneralFail("GradSmallStrainT::Initialize", "out of date");
-#if 0	
-	const char caller[] = "GradSmallStrainT::Initialize";
-
-	/* inherited */
-	SmallStrainT::Initialize();
-
-	/* element dimensions */
-	fNumElementNodes_Disp = NumElementNodes();
-
-	/* allocate lists */
-	fField_List.Dimension(fNumIP_Field);           // field
-	fField_last_List.Dimension(fNumIP_Field);      // "last" field
-
-	fGradField_List.Dimension(fNumIP_Field);       // gradient field
-	fGradField_last_List.Dimension(fNumIP_Field);  // "last" gradient field
-
-	fLapField_List.Dimension(fNumIP_Field);        // Laplacian field
-	fLapField_last_List.Dimension(fNumIP_Field);   // "last" Laplacian field
-
-	fYield_List.Dimension(fNumIP_Disp);            // yield condition field
-	
-	/* dimension work space */
-	fK_bb.Dimension(fNumElementNodes_Disp *fNumDOF_Disp,  fNumElementNodes_Disp *fNumDOF_Disp );
-	fK_bh.Dimension(fNumElementNodes_Disp *fNumDOF_Disp,  fNumElementNodes_Field*fNumDOF_Field);
-	fK_hb.Dimension(fNumElementNodes_Field*fNumDOF_Field, fNumElementNodes_Disp *fNumDOF_Disp );
-	fK_hh.Dimension(fNumElementNodes_Field*fNumDOF_Field, fNumElementNodes_Field*fNumDOF_Field);
-	fK_hp.Dimension(fNumElementNodes_Field*fNumDOF_Field, fNumElementNodes_Field*fNumDOF_Field);
-	fK_hq.Dimension(fNumElementNodes_Field*fNumDOF_Field, fNumElementNodes_Field*fNumDOF_Field);
-	fK_ct.Dimension(fNumElementNodes_Field*fNumDOF_Field, fNumElementNodes_Field*fNumDOF_Field);
-
-	/* resize work arrays */
-	fNumEQ_Total = fNumElementNodes_Disp*fNumDOF_Disp+fNumElementNodes_Field*fNumDOF_Field;
-	fRHS.Dimension(fNumEQ_Total);
-	fLHS.Dimension(fRHS.Length());
-
-	/* allocate shape functions */
-	fh.Dimension (1, fNumElementNodes_Field*fNumDOF_Field);
-	fhT.Dimension(fNumElementNodes_Field*fNumDOF_Field, 1);
-
-	/* allocate gradient of shape functions */
-	fp.Dimension (fNumSD, fNumElementNodes_Field*fNumDOF_Field);
-
-	/* allocate Laplacian shape functions */
-	fq.Dimension (1, fNumElementNodes_Field*fNumDOF_Field);
-#endif
-}
-
 
 void GradSmallStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 								 AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
 {
 #pragma unused(eq_2)
+
 	const char caller[] = "GradSmallStrainT::Equations";
+
+#if __option(extended_errorcheck)
+	if (fConnectivities.Length() != fEqnos.Length()) throw ExceptionT::kSizeMismatch;
+	if (fConnectivities_PMultiplier.Length() != fEqnos.Length()) throw ExceptionT::kSizeMismatch;
+#endif
 
 	/* loop over connectivity blocks */
 	for (int i = 0; i < fEqnos.Length(); i++)
 	{
 		/* connectivities */
 		const iArray2DT& connects = *(fConnectivities[i]);
-		const iArray2DT& connects_field = fConnectivities_Field[i];
+		const iArray2DT& connects_lambda = fConnectivities_PMultiplier[i];
 		int fNumElements = connects.MajorDim();
 
 		/* dimension */
 		fEqnos[i].Dimension   (fNumElements, fNumEQ_Total);
 		iArray2DT fEqnos_Disp (fNumElements, fNumElementNodes_Disp *fNumDOF_Disp );
-		iArray2DT fEqnos_Field(fNumElements, fNumElementNodes_Field*fNumDOF_Field);
+		iArray2DT fEqnos_PMultiplier(fNumElements, fNumElementNodes_PMultiplier*fNumDOF_PMultiplier);
 
 		/* get equation numbers */
-		fDisplacement.SetLocalEqnos(connects, fEqnos_Disp);
-		fField.SetLocalEqnos(connects_field, fEqnos_Field);
+		fDisplacement->SetLocalEqnos(connects, fEqnos_Disp);
+		fPMultiplier->SetLocalEqnos(connects_lambda, fEqnos_PMultiplier);
 
 		/* write into one array */
 		fEqnos[i].BlockColumnCopyAt(fEqnos_Disp, 0);
-		fEqnos[i].BlockColumnCopyAt(fEqnos_Field, fEqnos_Disp.MinorDim());
+		fEqnos[i].BlockColumnCopyAt(fEqnos_PMultiplier, fEqnos_Disp.MinorDim());
 
 		/* add to list of equation numbers */
 		eq_1.Append(&fEqnos[i]);
@@ -188,23 +118,280 @@ void GradSmallStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	SetElementCards(fBlockData, fConnectivities, fEqnos, fElementCards);
 }
 
+/* implementation of the ParameterInterfaceT interface */
+void GradSmallStrainT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SmallStrainT::DefineParameters(list);
+
+	/* associate field */
+	list.AddParameter(ParameterT::Word, "grad_plasticity_field_name");
+
+	ParameterT degree_of_continuity_lambda(ParameterT::Enumeration, "degree_of_continuity_lambda");
+	degree_of_continuity_lambda.AddEnumeration("C0", kC0);
+	degree_of_continuity_lambda.AddEnumeration("C1", kC1);
+    degree_of_continuity_lambda.SetDefault(kC1);
+	list.AddParameter(degree_of_continuity_lambda);
+
+	ParameterT nodal_constraint(fNodalConstraint, "nodal_constraint");
+	nodal_constraint.SetDefault(0.0);
+	list.AddParameter(nodal_constraint);
+
+	ParameterT print_globalShape(fprint_GlobalShape, "print_globalShape");
+	print_globalShape.SetDefault(fprint_GlobalShape);
+	list.AddParameter(print_globalShape);
+
+	ParameterT print_kd(fprint_Kd, "print_kd");
+	print_kd.SetDefault(fprint_Kd);
+	list.AddParameter(print_kd);
+
+	ParameterT print_kd_matrix(fprint_KdMatrix, "print_kd_matrix");
+	print_kd_matrix.SetDefault(fprint_KdMatrix);
+	list.AddParameter(print_kd_matrix);
+
+	ParameterT print_stiffness(fprint_Stiffness, "print_stiffness");
+	print_stiffness.SetDefault(fprint_Stiffness);
+	list.AddParameter(print_stiffness);
+
+	ParameterT print_stiffness_matrix(fprint_StiffnessMatrix, "print_stiffness_matrix");
+	print_stiffness_matrix.SetDefault(fprint_StiffnessMatrix);
+	list.AddParameter(print_stiffness_matrix);
+}
+
+/* information about subordinate parameter lists */
+void GradSmallStrainT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	SolidElementT::DefineSubs(sub_list);	
+
+	/* element block/material specification */
+	sub_list.AddSub("grad_small_strain_element_block", ParameterListT::OnePlus);
+}
+
+/* return the description of the given inline subordinate parameter list */
+ParameterInterfaceT* GradSmallStrainT::NewSub(const StringT& name) const
+{
+	if (name == "grad_small_strain_element_block")
+	{
+		ParameterContainerT* block = new ParameterContainerT(name);
+		
+		/* list of element block ID's (defined by ElementBaseT) */
+		block->AddSub("block_ID_list", ParameterListT::Once);
+	
+		/* choice of materials lists (inline) */
+		block->AddSub("grad_small_strain_material_choice", ParameterListT::Once, true);
+	
+		/* set this as source of subs */
+		block->SetSubSource(this);
+		
+		return block;
+	}
+	else /* inherited */
+		return SolidElementT::NewSub(name);
+}
+
+/* return the description of the given inline subordinate parameter list. */
+void GradSmallStrainT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
+{
+	if (name == "grad_small_strain_material_choice")
+	{
+		order = ParameterListT::Choice;
+		
+		/* list of choices */
+		sub_lists.AddSub("grad_small_strain_material_1D");
+	}
+	else /* inherited */
+		SolidElementT::DefineInlineSub(name, order, sub_lists);
+}
+
+void GradSmallStrainT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "GradSmallStrainT::TakeParameterList";
+
+	/* get the displacement field */
+	const StringT& field_name = list.GetParameter("field_name");
+	fDisplacement = ElementSupport().Field(field_name);
+	if (!fDisplacement)
+		ExceptionT::GeneralFail(caller, "could not resolve \"%s\" field", field_name.Pointer());
+
+	/* get the plastic multiplier field */
+	const StringT& grad_plasticity_field_name = list.GetParameter("grad_plasticity_field_name");
+	fPMultiplier = ElementSupport().Field(grad_plasticity_field_name);
+	if (!fPMultiplier)
+		ExceptionT::GeneralFail(caller, "could not resolve \"%s\" grad_plasticity_field", grad_plasticity_field_name.Pointer());
+
+	/* get the element parameters */
+	int b = list.GetParameter("degree_of_continuity_lambda");
+	fDegreeOfContinuity_PMultiplier = (b == kC1) ? kC1 : kC0;
+	fNodalConstraint           = list.GetParameter("nodal_constraint");
+	fprint_GlobalShape         = list.GetParameter("print_globalShape");
+	fprint_Kd                  = list.GetParameter("print_kd");
+	fprint_KdMatrix            = list.GetParameter("print_kd_matrix");
+	fprint_Stiffness           = list.GetParameter("print_stiffness");
+	fprint_StiffnessMatrix     = list.GetParameter("print_stiffness_matrix");
+
+	/* dimensions */
+	fNumSD = NumSD();
+	fNumDOF_Disp = fDisplacement->NumDOF();
+	fNumDOF_PMultiplier = fPMultiplier->NumDOF();
+
+	if (fNumSD == 1 && fDegreeOfContinuity_PMultiplier == kC1) fNumElementNodes_PMultiplier = 2;
+	else if (fNumSD == 1 && fDegreeOfContinuity_PMultiplier == kC0) fNumElementNodes_PMultiplier = fNumElementNodes_Disp;
+	else ExceptionT::GeneralFail(caller, " Bad fNumSD or fDegreeOfContinuity_PMultiplier. Unable to assign fNumElementNodes_PMultiplier");
+	
+	/* inherited */
+	SmallStrainT::TakeParameterList(list);
+	
+	/* dimensions */
+	fNumElementNodes_Disp = NumElementNodes();
+	fNumIP_Disp = NumIP();
+	fNumIP_PMultiplier = fNumIP_Disp;
+
+	/* allocate lists */
+	fPMultiplier_List.Dimension(fNumIP_PMultiplier);           // lambda
+	fPMultiplier_last_List.Dimension(fNumIP_PMultiplier);      // "last" lambda
+	fGradPMultiplier_List.Dimension(fNumIP_PMultiplier);       // gradient lambda
+	fGradPMultiplier_last_List.Dimension(fNumIP_PMultiplier);  // "last" gradient lambda
+	fLapPMultiplier_List.Dimension(fNumIP_PMultiplier);        // Laplacian lambda
+	fLapPMultiplier_last_List.Dimension(fNumIP_PMultiplier);   // "last" Laplacian lambda
+	fYield_List.Dimension(fNumIP_Disp);              // yield condition lambda
+
+	/* dimension moduli in workspace */
+	fDM_bb.Dimension(dSymMatrixT::NumValues(fNumSD));
+	fODM_bh.Dimension(dSymMatrixT::NumValues(fNumSD), 1);
+	fODM_hb.Dimension(1, dSymMatrixT::NumValues(fNumSD));
+	fGM_hh.Dimension(1);
+	fGM_hp.Dimension(1, fNumSD);
+	fGM_hq.Dimension(1);
+
+	/* dimension stiffness matrices in workspace */
+	fK_bb.Dimension(fNumElementNodes_Disp *fNumDOF_Disp,  fNumElementNodes_Disp *fNumDOF_Disp );
+	fK_bh.Dimension(fNumElementNodes_Disp *fNumDOF_Disp,  fNumElementNodes_PMultiplier*fNumDOF_PMultiplier);
+	fK_hb.Dimension(fNumElementNodes_PMultiplier*fNumDOF_PMultiplier, fNumElementNodes_Disp *fNumDOF_Disp );
+	fK_hh.Dimension(fNumElementNodes_PMultiplier*fNumDOF_PMultiplier, fNumElementNodes_PMultiplier*fNumDOF_PMultiplier);
+	fK_hp.Dimension(fNumElementNodes_PMultiplier*fNumDOF_PMultiplier, fNumElementNodes_PMultiplier*fNumDOF_PMultiplier);
+	fK_hq.Dimension(fNumElementNodes_PMultiplier*fNumDOF_PMultiplier, fNumElementNodes_PMultiplier*fNumDOF_PMultiplier);
+	fK_ct.Dimension(fNumElementNodes_PMultiplier*fNumDOF_PMultiplier, fNumElementNodes_PMultiplier*fNumDOF_PMultiplier);
+
+	/* resize work arrays */
+	fNumEQ_Total = fNumElementNodes_Disp*fNumDOF_Disp+fNumElementNodes_PMultiplier*fNumDOF_PMultiplier;
+	fRHS.Dimension(fNumEQ_Total);
+	fLHS.Dimension(fRHS.Length());
+
+	/* allocate shape functions */
+	fh.Dimension (1, fNumElementNodes_PMultiplier*fNumDOF_PMultiplier);
+	fhT.Dimension(fNumElementNodes_PMultiplier*fNumDOF_PMultiplier, 1);
+	fp.Dimension (fNumSD, fNumElementNodes_PMultiplier*fNumDOF_PMultiplier);
+	fq.Dimension (1, fNumElementNodes_PMultiplier*fNumDOF_PMultiplier);
+}
+
+/* extract the list of material parameters */
+void GradSmallStrainT::CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const
+{
+	const char caller[] = "GradSmallStrainT::CollectMaterialInfo";
+	
+	/* initialize */
+	mat_params.Clear();
+	
+	/* collected material parameters */
+	int num_blocks = all_params.NumLists("grad_small_strain_element_block");
+	for (int i = 0; i < num_blocks; i++) {
+
+		/* block information */	
+		const ParameterListT& block = all_params.GetList("grad_small_strain_element_block", i);
+		
+		/* resolve material list name */
+		if (i == 0) {
+			const ParameterListT& mat_list_params = block.GetListChoice(*this, "grad_small_strain_material_choice");
+			mat_params.SetName(mat_list_params.Name());
+		}
+		
+		/* collect material parameters */
+		const ParameterListT& mat_list = block.GetList(mat_params.Name());
+		const ArrayT<ParameterListT>& mat = mat_list.Lists();
+		mat_params.AddList(mat[0]);
+	}
+}
+
 /***********************************************************************
 * Protected
 ***********************************************************************/
 
-/* echo element connectivity data. Calls ElementBaseT::ReadConnectivity */
-void GradSmallStrainT::EchoConnectivityData(ifstreamT& in, ostream& out)
+/* construct a new material support and return a pointer */
+MaterialSupportT* GradSmallStrainT::NewMaterialSupport(MaterialSupportT* p) const
 {
-	const char caller[] = "GradSmallStrainT::EchoConnectivityData";
+	const char caller[] = "GradSmallStrainT::NewMaterialSupport";
+
+	/* allocate */
+	if (!p) p = new GradSSMatSupportT(fDisplacement->NumDOF(), fPMultiplier->NumDOF(), NumIP(), NumIP());
+
+	/* inherited initializations */
+	SmallStrainT::NewMaterialSupport(p);
+	
+	/* set SolidMatSupportT fields */
+	GradSSMatSupportT* ps = TB_DYNAMIC_CAST(GradSSMatSupportT*, p);
+	if (ps) {
+		ps->SetLinearPMultiplier(&fPMultiplier_List);
+		ps->SetLinearPMultiplier_last(&fPMultiplier_last_List);
+
+		ps->SetLinearGradPMultiplier(&fGradPMultiplier_List);
+		ps->SetLinearGradPMultiplier_last(&fGradPMultiplier_last_List);
+
+		ps->SetLinearLapPMultiplier(&fLapPMultiplier_List);
+		ps->SetLinearLapPMultiplier_last(&fLapPMultiplier_last_List);
+	}
+
+	return p;
+}
+
+/* return a pointer to a new material list */
+MaterialListT* GradSmallStrainT::NewMaterialList(const StringT& name, int size)
+{
+	/* resolve dimension */
+	int nsd = -1;
+	if (name == "grad_small_strain_material_1D") nsd = 1;
+	
+	/* no match */
+	if (nsd == -1) return NULL;
+
+	/* full list */
+	if (size > 0)
+	{
+		/* material support */
+		if (!fGradSSMatSupport)
+		{
+			fGradSSMatSupport = TB_DYNAMIC_CAST(GradSSMatSupportT*, NewMaterialSupport());
+			if (!fGradSSMatSupport)
+				ExceptionT::GeneralFail("GradSmallStrainT::NewMaterialList");
+		}
+
+		if (nsd == 1)
+			return new GradSSSolidMatList1DT(size, *fGradSSMatSupport);
+	}
+	else
+	{
+		if (nsd == 1)
+			return new GradSSSolidMatList1DT;
+	}
+	
+	/* no match */
+	return NULL;
+}
+
+/* define the elements blocks for the element group */
+void GradSmallStrainT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index)
+{
+	const char caller[] = "GradSmallStrainT::DefineElements";
 
 	/* initialize displacement connectivities */
-	SmallStrainT::EchoConnectivityData(in, out);
+	SmallStrainT::DefineElements(block_ID, mat_index);
 
 	/* depending whether you need separate connectivities */
 	bool need_separate_connectivities = true;
-	//bool need_separate_connectivities = fNumElementNodes_Disp - fNumElementNodes_Field;
+	//bool need_separate_connectivities = fNumElementNodes_Disp - fNumElementNodes_PMultiplier;
 	
-	fConnectivities_Field.Dimension(fConnectivities.Length());
+	fConnectivities_PMultiplier.Dimension(fConnectivities.Length());
 	if (need_separate_connectivities) {
 	
 		//number of vertex nodes (fNumSD == 1)
@@ -222,12 +409,12 @@ void GradSmallStrainT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		for (int i = 0; i < fConnectivities.Length(); i++)
 		{
 			const iArray2DT& connects = *(fConnectivities[i]);
-			iArray2DT& connects_field = fConnectivities_Field[i];
-			connects_field.Alias(connects.MajorDim(), num_vertex_nodes, fConnectivities_All(count));
+			iArray2DT& connects_lambda = fConnectivities_PMultiplier[i];
+			connects_lambda.Alias(connects.MajorDim(), num_vertex_nodes, fConnectivities_All(count));
 		
 			/* extract */
 			for (int j = 0; j < vertex_nodes.Length(); j++)
-				connects_field.ColumnCopy(j, connects, vertex_nodes[j]);
+				connects_lambda.ColumnCopy(j, connects, vertex_nodes[j]);
 				
 			/* next block */
 			count += connects.MajorDim();
@@ -236,35 +423,8 @@ void GradSmallStrainT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	else /* same connectivities - make aliases */
 	{
 		for (int i = 0; i < fConnectivities.Length(); i++)
-			fConnectivities_Field[i].Alias(*(fConnectivities[i]));
+			fConnectivities_PMultiplier[i].Alias(*(fConnectivities[i]));
 	}
-}
-
-/* construct a new material support and return a pointer */
-MaterialSupportT* GradSmallStrainT::NewMaterialSupport(MaterialSupportT* p) const
-{
-	const char caller[] = "GradSmallStrainT::NewMaterialSupport";
-
-	/* allocate new */
-	if (!p) p = new GradSSMatSupportT(fNumSD, fNumDOF_Disp, fNumDOF_Field, fNumIP_Disp, fNumIP_Field);
-
-	/* inherited initializations */
-	SmallStrainT::NewMaterialSupport(p);
-
-	/* set GradSSMatSupportT fields */
-	GradSSMatSupportT* pss = dynamic_cast<GradSSMatSupportT*>(p);
-	if (pss) {
-		pss->SetLinearField(&fField_List);
-		pss->SetLinearField_last(&fField_last_List);
-
-		pss->SetLinearGradField(&fGradField_List);
-		pss->SetLinearGradField_last(&fGradField_last_List);
-
-		pss->SetLinearLapField(&fLapField_List);
-		pss->SetLinearLapField_last(&fLapField_last_List);
-	}
-
-	return p;
 }
 
 /* initialize local arrays */
@@ -276,14 +436,14 @@ void GradSmallStrainT::SetLocalArrays(void)
 	SmallStrainT::SetLocalArrays();
 
 	/* dimension local arrays */
-	fLocField.Dimension(fNumElementNodes_Field, fNumDOF_Field);
-	fLocLastField.Dimension(fNumElementNodes_Field, fNumDOF_Field);
+	fLocPMultiplier.Dimension(NumElementNodes(), fPMultiplier->NumDOF());
+	fLocLastPMultiplier.Dimension(fNumElementNodes_PMultiplier, fPMultiplier->NumDOF());
 
-	fLocFieldTranspose.Dimension(fLocField.Length());
+	fLocPMultiplierTranspose.Dimension(fLocPMultiplier.Length());
 	
 	/* register local arrays */
-	fField.RegisterLocal(fLocField);
-	fField.RegisterLocal(fLocLastField);
+	fPMultiplier->RegisterLocal(fLocPMultiplier);
+	fPMultiplier->RegisterLocal(fLocLastPMultiplier);
 }
 
 /* initialization functions */
@@ -294,26 +454,24 @@ void GradSmallStrainT::SetShape(void)
 	/* inherited */
 	SmallStrainT::SetShape();
 
-	
 	/* select shape function tools to use */
-	switch(fDegreeOfContinuity_Field)
+	switch(fDegreeOfContinuity_PMultiplier)
 	{
-		case C0:
+		case kC0:
 		{
-			fShapes_Field = new C0ShapeTools(GeometryCode(), fNumIP_Disp, fNumElementNodes_Field, fNumDOF_Field, fLocInitCoords);
+			fShapes_PMultiplier = new C0ShapeTools(GeometryCode(), NumIP(), fNumElementNodes_PMultiplier, fPMultiplier->NumDOF(), fLocInitCoords);
 			break;
 		}
-		case C1:
+		case kC1:
 		{
-			fShapes_Field = new C1ShapeTools(GeometryCode(), fNumIP_Disp, fNumElementNodes_Field, fNumDOF_Field, fLocInitCoords);
+			fShapes_PMultiplier = new C1ShapeTools(GeometryCode(), NumIP(), fNumElementNodes_PMultiplier, fPMultiplier->NumDOF(), fLocInitCoords);
 			break;
 		}
-		default:
-			ExceptionT::GeneralFail(caller, "Bad fDegreeOfContinuity_Field");
 	}
+	if (!fShapes_PMultiplier) throw ExceptionT::kOutOfMemory;
 
-	if (!fShapes_Field) throw ExceptionT::kOutOfMemory;
-	fShapes_Field->Initialize();
+	/* initialize */
+	fShapes_PMultiplier->Initialize();
 }
 
 /* form shape functions and derivatives */
@@ -324,16 +482,16 @@ void GradSmallStrainT::SetGlobalShape(void)
 	/* inherited */
 	SmallStrainT::SetGlobalShape();
 
-	/* collect element values of Field */
-	fConnectivities_All.RowAlias(CurrElementNumber(), fNodesField);
-	fLocField.SetLocal(fNodesField);
-	fLocLastField.SetLocal(fNodesField);
+	/* collect element values of PMultiplier */
+	fConnectivities_All.RowAlias(CurrElementNumber(), fNodesPMultiplier);
+	fLocPMultiplier.SetLocal(fNodesPMultiplier);
+	fLocLastPMultiplier.SetLocal(fNodesPMultiplier);
 
 	/* compute shape function derivatives */
-	fShapes_Field->SetDerivatives();
+	fShapes_PMultiplier->SetDerivatives();
 
 	/********DEBUG*******/
-	if (print_GlobalShape)
+	if (fprint_GlobalShape)
 	{
 		cout << caller << endl;
 		cout << "  element: " << CurrElementNumber() << endl;
@@ -354,43 +512,43 @@ void GradSmallStrainT::SetGlobalShape(void)
 		/* setup workspace */
 		dArrayT temp(1);
 
-		/* compute current fields using field shape functions */
-		fLocField.ReturnTranspose(fLocFieldTranspose);
+		/* compute current fields using lambda shape functions */
+		fLocPMultiplier.ReturnTranspose(fLocPMultiplierTranspose);
 
-		fh.Multx(fLocFieldTranspose, temp);
-		fField_List[ip] = temp[0];
+		fh.Multx(fLocPMultiplierTranspose, temp);
+		fPMultiplier_List[ip] = temp[0];
 
-		fp.Multx(fLocFieldTranspose, temp);
-		fGradField_List[ip] = temp[0];
+		fp.Multx(fLocPMultiplierTranspose, temp);
+		fGradPMultiplier_List[ip] = temp[0];
 
-		fq.Multx(fLocFieldTranspose, temp);
-		fLapField_List[ip] = temp[0];
+		fq.Multx(fLocPMultiplierTranspose, temp);
+		fLapPMultiplier_List[ip] = temp[0];
 
-		/* compute "last" fields using field shape functions */
-		fLocLastField.ReturnTranspose(fLocFieldTranspose);
+		/* compute "last" fields using lambda shape functions */
+		fLocLastPMultiplier.ReturnTranspose(fLocPMultiplierTranspose);
 
-		fh.Multx(fLocFieldTranspose, temp);
-		fField_last_List[ip] = temp[0];
+		fh.Multx(fLocPMultiplierTranspose, temp);
+		fPMultiplier_last_List[ip] = temp[0];
 
-		fp.Multx(fLocFieldTranspose, temp);
-		fGradField_last_List[ip] = temp[0];
+		fp.Multx(fLocPMultiplierTranspose, temp);
+		fGradPMultiplier_last_List[ip] = temp[0];
 
-		fq.Multx(fLocFieldTranspose, temp);
-		fLapField_last_List[ip] = temp[0];
+		fq.Multx(fLocPMultiplierTranspose, temp);
+		fLapPMultiplier_last_List[ip] = temp[0];
 	}
 
 	/********DEBUG*******/
-	if (print_GlobalShape)
+	if (fprint_GlobalShape)
 	{
-		for (int nd_dof = 0; nd_dof < fNumElementNodes_Field*fNumDOF_Field; nd_dof++)
-			cout << "                 fLocField[" << nd_dof << "]  : " << fLocField[nd_dof] << " * " << fh[nd_dof] << endl;
+		for (int nd_dof = 0; nd_dof < fNumElementNodes_PMultiplier*fNumDOF_PMultiplier; nd_dof++)
+			cout << "                 fLocPMultiplier[" << nd_dof << "]  : " << fLocPMultiplier[nd_dof] << " * " << fh[nd_dof] << endl;
 		cout << endl;
 		for (int ip = 0; ip < fNumIP_Disp; ip++)
-			cout << "                 fField_List[" << ip << "]: " << fField_List[ip] << endl;
+			cout << "                 fPMultiplier_List[" << ip << "]: " << fPMultiplier_List[ip] << endl;
 		for (int ip = 0; ip < fNumIP_Disp; ip++)
-			cout << "                 fGradField_List[" << ip << "]: " << fGradField_List[ip] << endl;
+			cout << "                 fGradPMultiplier_List[" << ip << "]: " << fGradPMultiplier_List[ip] << endl;
 		for (int ip = 0; ip < fNumIP_Disp; ip++)
-			cout << "                 fLapField_List[" << ip << "]: " << fLapField_List[ip] << endl;
+			cout << "                 fLapPMultiplier_List[" << ip << "]: " << fLapPMultiplier_List[ip] << endl;
 	}
 	/*******************/
 }
@@ -415,7 +573,7 @@ void GradSmallStrainT::FormStiffness(double constK)
 	const double* Weight = fShapes->IPWeights();
 
 	/********DEBUG*******/
-	if (print_Stiffness)
+	if (fprint_Stiffness)
 	{
 		cout << caller << endl;
 		cout << "  element: " << CurrElementNumber() << endl;
@@ -432,7 +590,6 @@ void GradSmallStrainT::FormStiffness(double constK)
 	fK_ct = 0.0;
 
 	fShapes->TopIP();
-
 	/* integrate stiffness over the elements */
 	while(fShapes->NextIP())
 	{
@@ -451,15 +608,15 @@ void GradSmallStrainT::FormStiffness(double constK)
 		Set_q(fq);
 
 		/* compute elastic stiffness matrix */
-		fDM_bb.SetToScaled(scale, fCurrMaterial_Grad->dm_bb_ijkl());
+		fDM_bb.SetToScaled(scale, fCurrMaterial_Grad->c_ijkl());
 		fK_bb.MultQTBQ(fB, fDM_bb, format, dMatrixT::kAccumulate);
 
 		/* compute off-diagonal matrics */
-		fOM_bh.SetToScaled(scale, fCurrMaterial_Grad->om_bh_ij());
-		fK_bh.MultATBC(fB, fOM_bh, fh, format, dMatrixT::kAccumulate);
+		fODM_bh.SetToScaled(scale, fCurrMaterial_Grad->odm_bh_ij());
+		fK_bh.MultATBC(fB, fODM_bh, fh, format, dMatrixT::kAccumulate);
 
-		fOM_hb.SetToScaled(scale, fCurrMaterial_Grad->om_hb_ij());
-		fK_hb.MultATBC(fh, fOM_hb, fB, format, dMatrixT::kAccumulate);
+		fODM_hb.SetToScaled(scale, fCurrMaterial_Grad->odm_hb_ij());
+		fK_hb.MultATBC(fh, fODM_hb, fB, format, dMatrixT::kAccumulate);
 
 		/* compute non-symmetric, gradient dependent matrix */
 		fGM_hh.SetToScaled(scale, fCurrMaterial_Grad->gm_hh());
@@ -475,22 +632,28 @@ void GradSmallStrainT::FormStiffness(double constK)
 		fYield_List[CurrIP()] = fCurrMaterial_Grad->yc();
 
 		/********DEBUG*******/
-		if (print_Stiffness)
+		if (fprint_Stiffness)
 		{
 			cout<<"            ip: "             << CurrIP()                                           <<endl;
-			cout<<"                 om_bh_ij : " << (fCurrMaterial_Grad->om_hb_ij())[0]                <<endl;
-			cout<<"                 om_hb_ij : " << (fCurrMaterial_Grad->om_bh_ij())[0]                <<endl;
+          		cout<<"                 PMultiplier    : " << fPMultiplier_List[CurrIP()]                              <<endl;
+            		cout<<"                 del_PMultiplier: " << fPMultiplier_List[CurrIP()] - fPMultiplier_last_List[CurrIP()] <<endl;
+			cout<<"                 odm_bh_ij : " << (fCurrMaterial_Grad->odm_hb_ij())[0]                <<endl;
+			cout<<"                 odm_hb_ij : " << (fCurrMaterial_Grad->odm_bh_ij())[0]                <<endl;
 			cout<<"                 gm_hh    : " << fCurrMaterial_Grad->gm_hh()                        <<endl;
 			cout<<"                 gm_hp    : " << fCurrMaterial_Grad->gm_hp()                        <<endl;
 			cout<<"                 gm_hq    : " << fCurrMaterial_Grad->gm_hq()                        <<endl;
-			for (int i = 0; i < fNumElementNodes_Field*fNumDOF_Field; i++)
-				cout<<"                 h[" << i << "]     : " << fh[i]                                <<endl;
-			for (int i = 0; i < fNumElementNodes_Field*fNumDOF_Field; i++)
-				cout<<"                 p[" << i << "]     : " << fp[i]                                <<endl;
-			for (int i = 0; i < fNumElementNodes_Field*fNumDOF_Field; i++)
-				cout<<"                 q[" << i << "]     : " << fq[i]                                <<endl;
-			for (int i = 0; i < fNumElementNodes_Disp; i++)
-				cout<<"                 B[" << i << "]     : " << fB[i]                                <<endl;
+			cout<<"                 h        : " << fh                                                 <<endl;
+			cout<<"                 p        : " << fp                                                 <<endl;
+			cout<<"                 q        : " << fq                                                 <<endl;
+			cout<<"                 B        : " << fB                                                 <<endl;
+			//			for (int i = 0; i < fNumElementNodes_PMultiplier*fNumDOF_PMultiplier; i++)
+			//				cout<<"                 h[" << i << "]     : " << fh[i]                                <<endl;
+			//			for (int i = 0; i < fNumElementNodes_PMultiplier*fNumDOF_PMultiplier; i++)
+			//				cout<<"                 p[" << i << "]     : " << fp[i]                                <<endl;
+			//			for (int i = 0; i < fNumElementNodes_PMultiplier*fNumDOF_PMultiplier; i++)
+			//				cout<<"                 q[" << i << "]     : " << fq[i]                                <<endl;
+			//			for (int i = 0; i < fNumElementNodes_Disp; i++)
+			//				cout<<"                 B[" << i << "]     : " << fB[i]                                <<endl;
 			cout<<"                 scale    : " << scale                                              <<endl;
 		}
 		/*******************/
@@ -510,23 +673,23 @@ void GradSmallStrainT::FormStiffness(double constK)
 	/* add constraint to Krr if elastic */
 	fK_ct = 0.;
 
-	for (int nd = 0; nd < fNumElementNodes_Field ; nd++)
+	for (int nd = 0; nd < fNumElementNodes_PMultiplier ; nd++)
 
 		// BEST CONVERGENCE / BETTER TOLERANCE CONVERGENCE
-		if (fLocField[nd] <= 0. || fLocField[nd] <= fLocLastField[nd])
+		if (fLocPMultiplier[nd] <= 0. || fLocPMultiplier[nd] <= fLocLastPMultiplier[nd])
 
 		// 20ELEMENT KILLS EARLY / OTHER SOLUTIONS TAKE LONGER WITH WORSE TOLERANCE CONVERGENCE
-		//		if (fLocField1[nd] <= 0. || fLocField1[nd] <= fLocLastField1[nd] || fabs(fLocYield[nd]) < kYieldTol) 
+		// if (fLocPMultiplier1[nd] <= 0. || fLocPMultiplier1[nd] <= fLocLastPMultiplier1[nd] || fabs(fLocYield[nd]) < kYieldTol) 
 
 		// TAKES LONGER / WORSE TOLERANCE CONVERGENCE
-		//		if (fabs(fLocYield[nd]) < kYieldTol)
+		// if (fabs(fLocYield[nd]) < kYieldTol)
 
-			fK_ct(nd*fNumDOF_Field)[nd*fNumDOF_Field] = fNodalConstraint;
+			fK_ct(nd*fNumDOF_PMultiplier)[nd*fNumDOF_PMultiplier] = fNodalConstraint;
 
 	fLHS.AddBlock(fK_bb.Rows(), fK_bb.Cols(), fK_ct);
 
 	/********DEBUG*******/
-	if (print_StiffnessMatrix)
+	if (fprint_StiffnessMatrix)
 	{
 		cout << caller << " Stiffness Matrix" << endl;
 		cout << "  element: " << CurrElementNumber() << endl;
@@ -535,16 +698,16 @@ void GradSmallStrainT::FormStiffness(double constK)
 			cout<<"                 K("<< i << ",j): ";
 			for (int j=0; j < fNumElementNodes_Disp * fNumDOF_Disp; j++)
 				cout << fK_bb(j)[i] << "     ";
-			for (int j=0; j < fNumElementNodes_Field * fNumDOF_Field; j++)
+			for (int j=0; j < fNumElementNodes_PMultiplier * fNumDOF_PMultiplier; j++)
 				cout << fK_bh(j)[i] << "         ";
 			cout << endl;
 		}
-		for (int i=0; i < fNumElementNodes_Field * fNumDOF_Field; i++)
+		for (int i=0; i < fNumElementNodes_PMultiplier * fNumDOF_PMultiplier; i++)
 		{
 			cout<<"                 K("<< i << ",j): ";
 			for (int j=0; j < fNumElementNodes_Disp * fNumDOF_Disp; j++)
 				cout << fK_hb(j)[i] << "     ";
-			for (int j=0; j < fNumElementNodes_Field * fNumDOF_Field; j++)
+			for (int j=0; j < fNumElementNodes_PMultiplier * fNumDOF_PMultiplier; j++)
 			{
 				cout << fK_hh(j)[i] << "+";
 				if (fK_ct(j)[i] != 0)
@@ -566,17 +729,17 @@ void GradSmallStrainT::FormKd(double constK)
 
 	/* partition residual force vector */
 	int neq_Disp = fNumElementNodes_Disp*fNumDOF_Disp;
-	int neq_Field = fNumElementNodes_Field*fNumDOF_Field;
+	int neq_PMultiplier = fNumElementNodes_PMultiplier*fNumDOF_PMultiplier;
 
 	dArrayT RHS_Disp(neq_Disp, fRHS.Pointer());
-	dArrayT RHS_Field(neq_Field, fRHS.Pointer(neq_Disp));
+	dArrayT RHS_PMultiplier(neq_PMultiplier, fRHS.Pointer(neq_Disp));
 
 	/* integration rules (same for both fields)*/
 	const double* Det = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
 
 	/********DEBUG*******/
-	if (print_Kd)
+	if (fprint_Kd)
 	{
 		cout << caller << endl;
 		cout<<"	 element: "<<CurrElementNumber()<<endl;
@@ -612,42 +775,41 @@ void GradSmallStrainT::FormKd(double constK)
 		/* obtain yield condition residual */
 		double yield = fCurrMaterial_Grad->yc();
 
-		/* accumulate in rhs field equations */
-		RHS_Field.AddScaled(-scale*yield, fhT.Transpose(fh));
+		/* accumulate in rhs lambda equations */
+		RHS_PMultiplier.AddScaled(-scale*yield, fhT.Transpose(fh));
 
 		/********DEBUG*******/
-		if (print_Kd)
+		if (fprint_Kd)
 		{
 			cout<<"            ip: "             << CurrIP()                                           <<endl;
-			cout<<"                 om_bh_ij : " << (fCurrMaterial_Grad->om_hb_ij())[0]                <<endl;
-			cout<<"                 om_hb_ij : " << (fCurrMaterial_Grad->om_bh_ij())[0]                <<endl;
+                        cout<<"                 PMultiplier    : " << fPMultiplier_List[CurrIP()]                              <<endl;
+                        cout<<"                 del_PMultiplier: " << fPMultiplier_List[CurrIP()] - fPMultiplier_last_List[CurrIP()] <<endl;
+			cout<<"                 odm_bh_ij : " << (fCurrMaterial_Grad->odm_hb_ij())[0]                <<endl;
+			cout<<"                 odm_hb_ij : " << (fCurrMaterial_Grad->odm_bh_ij())[0]                <<endl;
 			cout<<"                 gm_hh    : " << fCurrMaterial_Grad->gm_hh()                        <<endl;
 			cout<<"                 gm_hp    : " << fCurrMaterial_Grad->gm_hp()                        <<endl;
-			for (int i = 0; i < fNumElementNodes_Field*fNumDOF_Field; i++)
-				cout<<"                 h[" << i << "]     : " << fh[i]                                <<endl;
-			for (int i = 0; i < fNumElementNodes_Field*fNumDOF_Field; i++)
-				cout<<"                 p[" << i << "]     : " << fp[i]                                <<endl;
-			for (int i = 0; i < fNumElementNodes_Field*fNumDOF_Field; i++)
-				cout<<"                 q[" << i << "]     : " << fq[i]                                <<endl;
-			for (int i = 0; i < fNumElementNodes_Disp; i++)
-				cout<<"                 B[" << i << "]     : " << fB[i]                                <<endl;
+			cout<<"                 gm_hq    : " << fCurrMaterial_Grad->gm_hq()                        <<endl;
+			cout<<"                 h        : " << fh                                                 <<endl;
+			cout<<"                 p        : " << fp                                                 <<endl;
+			cout<<"                 q        : " << fq                                                 <<endl;
+			cout<<"                 B        : " << fB                                                 <<endl;
 			cout<<"                 scale    : " << scale                                              <<endl;
 			for (int i=0; i < neq_Disp; i++)
 				cout<<"                 RHS_Disp["<< i << "] : " << scale*fNEEvec[i] << endl;
-			for (int i=0; i < neq_Field; i++)
-				cout<<"                 RHS_Field["<< i << "]: " << -scale*yield*fhT[i] << endl;
+			for (int i=0; i < neq_PMultiplier; i++)
+				cout<<"                 RHS_PMultiplier["<< i << "]: " << -scale*yield*fhT[i] << endl;
 		}
 		/*******************/
 	}
 	/********DEBUG*******/
-	if (print_KdMatrix)
+	if (fprint_KdMatrix)
 	{
 		cout << caller << " Kd Matrix" << endl;
 		cout << "  element: " << CurrElementNumber() << endl;
 		for (int i=0; i < neq_Disp; i++)
 			cout<<"                 RHS_Disp["<< i << "]: " << RHS_Disp[i] << endl;
-		for (int i=0; i < neq_Field; i++)
-			cout<<"                 RHS_Field["<< i << "]: " << RHS_Field[i] << endl;
+		for (int i=0; i < neq_PMultiplier; i++)
+			cout<<"                 RHS_PMultiplier["<< i << "]: " << RHS_PMultiplier[i] << endl;
 		cout << endl;
 	}
 	/*******************/
@@ -657,7 +819,7 @@ void GradSmallStrainT::FormKd(double constK)
 bool GradSmallStrainT::NextElement(void)
 {
 	/* inherited */
-	bool result = SolidElementT::NextElement();
+	bool result = SmallStrainT::NextElement();
 	
 	/* get material pointer */
 	if (result)
@@ -674,26 +836,8 @@ bool GradSmallStrainT::NextElement(void)
 /* form of tangent matrix */
 GlobalT::SystemTypeT GradSmallStrainT::TangentType(void) const
 {
-	// should be obtained from material through SolidElementT::TangentType
 	return GlobalT::kNonSymmetric;
 }
-
-#if 0
-/* print element group data */
-void GradSmallStrainT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	SmallStrainT::PrintControlData(out);
-
-	out << " Associated field. . . . . . . . . . . . . . . . = \"" << fField.Name() << "\"\n";
-
-	out << " Element degree of continuity. . . . . . . . . . = " << fDegreeOfContinuity_Field << '\n';
-	out << " Number of element nodes . . . . . . . . . . . . = " << fNumElementNodes_Field    << '\n';
-	out << " Number of integration points. . . . . . . . . . = " << fNumIP_Field              << '\n';
-	out << " Number of degrees of freedom. . . . . . . . . . = " << fNumDOF_Field             << '\n';
-	out << " Nodal constraint. . . . . . . . . . . . . . . . = " << fNodalConstraint          << '\n';
-}
-#endif
 
 /***********************************************************************
 * Private
@@ -704,14 +848,14 @@ void GradSmallStrainT::Set_h(dMatrixT& h) const
 {
 	const char caller[] = "GradSmallStrainT::Set_h";
 
-	const double* pShapes_Field = fShapes_Field->IPShapeU(fShapes->CurrIP());
+	const double* pShapes_PMultiplier = fShapes_PMultiplier->IPShapeU(fShapes->CurrIP());
 	double* ph = h.Pointer();
 
 	/* 1D */
 	if (fNumSD == 1)
 	{
-		for (int i = 0; i < fNumElementNodes_Field*fNumDOF_Field; i++)
-			*ph++ = *pShapes_Field++;
+		for (int i = 0; i < fNumElementNodes_PMultiplier*fNumDOF_PMultiplier; i++)
+			*ph++ = *pShapes_PMultiplier++;
 	}
 	else
 		ExceptionT::GeneralFail(caller, "implemented for 1d only");
@@ -727,8 +871,8 @@ void GradSmallStrainT::Set_p(dMatrixT& p) const
 	/* 1D */
 	if (fNumSD == 1)
 	{
-		const double* pNax = fShapes_Field->IPDShapeU(fShapes->CurrIP())(0);
-		for (int i = 0; i < fNumElementNodes_Field*fNumDOF_Field; i++)
+		const double* pNax = fShapes_PMultiplier->IPDShapeU(fShapes->CurrIP())(0);
+		for (int i = 0; i < fNumElementNodes_PMultiplier*fNumDOF_PMultiplier; i++)
 			*pp++ = *pNax++;
 	}
 	else
@@ -740,14 +884,14 @@ void GradSmallStrainT::Set_q(dMatrixT& q) const
 {
 	const char caller[] = "GradSmallStrainT::Set_q";
 
-	const double* pShapes_LapField = fShapes_Field->IPDDShapeU(fShapes->CurrIP());
+	const double* pShapes_LapPMultiplier = fShapes_PMultiplier->IPDDShapeU(fShapes->CurrIP());
 	double* pq = q.Pointer();
 
 	/* 1D */
 	if (fNumSD == 1)
 	{
-		for (int i = 0; i < fNumElementNodes_Field*fNumDOF_Field; i++)
-			*pq++ = *pShapes_LapField++;
+		for (int i = 0; i < fNumElementNodes_PMultiplier*fNumDOF_PMultiplier; i++)
+			*pq++ = *pShapes_LapPMultiplier++;
 	}
 	else
 		ExceptionT::GeneralFail(caller, "implemented for 1d only");

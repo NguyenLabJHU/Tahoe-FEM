@@ -1,99 +1,97 @@
-/* $Id: GradSSSolidMatT.cpp,v 1.10 2004-07-15 08:28:12 paklein Exp $ */ 
+/* $Id: GradSSSolidMatT.cpp,v 1.11 2004-07-20 23:16:50 rdorgan Exp $ */ 
 #include "GradSSSolidMatT.h"
-#include <iostream.h>
 #include "GradSSMatSupportT.h"
 #include "dSymMatrixT.h"
 
 using namespace Tahoe;
 
+/* array behavior */
+namespace Tahoe {
+DEFINE_TEMPLATE_STATIC const bool ArrayT<GradSSSolidMatT>::fByteCopy = false;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<GradSSSolidMatT*>::fByteCopy = true;
+} /* namespace Tahoe */
+
 /* constructor */
-GradSSSolidMatT::GradSSSolidMatT(ifstreamT& in, const GradSSMatSupportT& support):
-	ParameterInterfaceT("gradient_small_strain_solid_material"),
-//	SSSolidMatT(support),
-	fGradSSMatSupport(&support),
-
-	fNumDOF_Field(support.NumDOF_Field()),
-	fNumDOF_Total(support.NumDOF() + fNumDOF_Field),
-
-	fNumIP_Field(support.NumIP_Field())
-{
-
-}
-
 GradSSSolidMatT::GradSSSolidMatT(void):
-	ParameterInterfaceT("gradient_small_strain_solid_material"),
+	ParameterInterfaceT("grad_small_strain_solid_material"),
 	fGradSSMatSupport(NULL)
 {
 
 }
 
-/* destructor */
-GradSSSolidMatT::~GradSSSolidMatT(void) { }
-
-/* field */
-const double& GradSSSolidMatT::Field(void) const
+/* set the material support or pass NULL to clear */
+void GradSSSolidMatT::SetGradSSMatSupport(const GradSSMatSupportT* support)
 {
-	return fGradSSMatSupport->LinearField(); 
+	/* set inherited material support */
+	SetMaterialSupport(support);
+
+	fGradSSMatSupport = support;
 }
 
-const double& GradSSSolidMatT::Field(int ip) const
+/* field */
+const double& GradSSSolidMatT::Lambda(void) const
 {
-	return fGradSSMatSupport->LinearField(ip); 
+	return fGradSSMatSupport->LinearPMultiplier(); 
+}
+
+const double& GradSSSolidMatT::Lambda(int ip) const
+{
+	return fGradSSMatSupport->LinearPMultiplier(ip); 
 }
 
 /* field from the end of the previous time step */
-const double& GradSSSolidMatT::Field_last(void) const
+const double& GradSSSolidMatT::Lambda_last(void) const
 {
-	return fGradSSMatSupport->LinearField_last(); 
+	return fGradSSMatSupport->LinearPMultiplier_last(); 
 }
 
-const double& GradSSSolidMatT::Field_last(int ip) const
+const double& GradSSSolidMatT::Lambda_last(int ip) const
 {
-	return fGradSSMatSupport->LinearField_last(ip); 
+	return fGradSSMatSupport->LinearPMultiplier_last(ip); 
 }
 
 /* gradient field */
-const double& GradSSSolidMatT::GradField(void) const
+const double& GradSSSolidMatT::GradLambda(void) const
 {
-	return fGradSSMatSupport->LinearGradField(); 
+	return fGradSSMatSupport->LinearGradPMultiplier(); 
 }
 
-const double& GradSSSolidMatT::GradField(int ip) const
+const double& GradSSSolidMatT::GradLambda(int ip) const
 {
-	return fGradSSMatSupport->LinearGradField(ip); 
+	return fGradSSMatSupport->LinearGradPMultiplier(ip); 
 }
 
 /* gradient field from the end of the previous time step */
-const double& GradSSSolidMatT::GradField_last(void) const
+const double& GradSSSolidMatT::GradLambda_last(void) const
 {
-	return fGradSSMatSupport->LinearGradField_last(); 
+	return fGradSSMatSupport->LinearGradPMultiplier_last(); 
 }
 
-const double& GradSSSolidMatT::GradField_last(int ip) const
+const double& GradSSSolidMatT::GradLambda_last(int ip) const
 {
-	return fGradSSMatSupport->LinearGradField_last(ip); 
+	return fGradSSMatSupport->LinearGradPMultiplier_last(ip); 
 }
 
 /* Laplacian field */
-const double& GradSSSolidMatT::LapField(void) const
+const double& GradSSSolidMatT::LapLambda(void) const
 {
-	return fGradSSMatSupport->LinearLapField(); 
+	return fGradSSMatSupport->LinearLapPMultiplier(); 
 }
 
-const double& GradSSSolidMatT::LapField(int ip) const
+const double& GradSSSolidMatT::LapLambda(int ip) const
 {
-	return fGradSSMatSupport->LinearLapField(ip); 
+	return fGradSSMatSupport->LinearLapPMultiplier(ip); 
 }
 
 /* Laplacian field from the end of the previous time step */
-const double& GradSSSolidMatT::LapField_last(void) const
+const double& GradSSSolidMatT::LapLambda_last(void) const
 {
-	return fGradSSMatSupport->LinearLapField_last(); 
+	return fGradSSMatSupport->LinearLapPMultiplier_last(); 
 }
 
-const double& GradSSSolidMatT::LapField_last(int ip) const
+const double& GradSSSolidMatT::LapLambda_last(int ip) const
 {
-	return fGradSSMatSupport->LinearLapField_last(ip); 
+	return fGradSSMatSupport->LinearLapPMultiplier_last(ip); 
 }
 
 /* apply pre-conditions at the current time step */

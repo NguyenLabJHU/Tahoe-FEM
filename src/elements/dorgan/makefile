@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.9 2004-06-24 03:08:35 rdorgan Exp $
+# $Id: makefile,v 1.10 2004-07-20 23:16:50 rdorgan Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,14 +21,19 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
+        J2SSKStV1D.o\
+        J2_C0Hardening1DT.o\
+        J2SSC0Hardening1DT.o\
+	GradJ2SSKStV1D.o\
+        GradJ2_C0Hardening1DT.o\
+        GradJ2SSC0Hardening1DT.o\
 	ShapeTools.o\
 	C0ShapeTools.o\
 	C1ShapeTools.o\
 	GradSmallStrainT.o\
-        J2SSKStV1D.o\
-        GradJ2SS1D.o\
 	GradSSSolidMatT.o\
-	GradSSMatSupportT.o
+	GradSSMatSupportT.o \
+	GradSSSolidMatList1DT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -48,14 +53,19 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-        ShapeTools.cpp\
-        C0ShapeTools.cpp\
-        C1ShapeTools.cpp\
-	GradSmallStrainT.cpp\
         J2SSKStV1D.cpp\
-        GradJ2SS1D.cpp\
+        J2_C0Hardening1DT.cpp\
+        J2SSC0Hardening1DT.cpp\
+	GradJ2SSKStV1D.cpp\
+        GradJ2_C0Hardening1DT.cpp\
+        GradJ2SSC0Hardening1DT.cpp\
+	ShapeTools.cpp\
+	C0ShapeTools.cpp\
+	C1ShapeTools.cpp\
+	GradSmallStrainT.cpp\
 	GradSSSolidMatT.cpp\
-	GradSSMatSupportT.cpp
+	GradSSMatSupportT.cpp \
+	GradSSSolidMatList1DT.cpp
 
 ##################### (3) headers
 #
@@ -67,14 +77,19 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-        ShapeTools.h\
-        C0ShapeTools.h\
-        C1ShapeTools.h\
-	GradSmallStrainT.h\
         J2SSKStV1D.h\
-        GradJ2SS1D.h\
+        J2_C0Hardening1DT.h\
+        J2SSC0Hardening1DT.h\
+	GradJ2SSKStV1D.h\
+        GradJ2_C0Hardening1DT.h\
+        GradJ2SSC0Hardening1DT.h\
+	ShapeTools.h\
+	C0ShapeTools.h\
+	C1ShapeTools.h\
+	GradSmallStrainT.h\
 	GradSSSolidMatT.h\
-	GradSSMatSupportT.h
+	GradSSMatSupportT.h \
+	GradSSSolidMatList1DT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
