@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.16 2004-02-11 16:34:45 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.17 2004-02-12 17:18:21 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -8,6 +8,9 @@
 #include "enum2int.h"
 
 namespace Tahoe {
+
+/* forward declarations */
+class ParameterInterfaceT;
 
 /** list of parameters.
  * A ParameterListT can contain three types of entries:
@@ -141,6 +144,14 @@ public:
 	 * the given search string or NULL if the list is not found or the instance is out 
 	 * of range. */
 	const ParameterListT* FindList(const char* search_name, int instance = 0) const;
+
+	/** return the list associated a choice. Returns a pointer to the nth instance of the
+	 * given list resulting from a choice or NULL if the list is not found or the instance 
+	 * is out of range. 
+	 * \param source ParameterInterfaceT which defined the choice
+	 * \param choice_name name of the choice defined by ParameterInterfaceT::DefineInlineSub 
+	 * \param instance occurrence within the list */
+	const ParameterListT* ResolveListChoice(const ParameterInterfaceT& source, const char* choice_name, int instance = 0) const;
 
 	/** return the index to the given list. Returns index of the nth instance of the
 	 * given list or -1 if the list is not found or the instance is out of range. */
