@@ -1,4 +1,4 @@
-/* $Id: ParameterT.h,v 1.1 2002-09-03 07:04:33 paklein Exp $ */
+/* $Id: ParameterT.h,v 1.2 2002-09-03 07:54:08 paklein Exp $ */
 #ifndef _PARAMETER_T_H_
 #define _PARAMETER_T_H_
 
@@ -24,7 +24,14 @@ public:
 
 	/** set type without assigning value */
 	ParameterT(TypeT t, const StringT& name);
+	
+	/** default constructor. Should be used only to allow defining
+	 * arrays of ParameterT's */
+	ParameterT(void);
 	/*@}*/
+
+	/** parameter name */
+	const StringT& Name(void) const { return fName; };
 
 	/** \name limits */
 	/*@{*/
@@ -32,7 +39,7 @@ public:
 	void AddLimit(const LimitT& limit);
 
 	/** return the list of limits */
-	const LinkedListT<LimitT>& Limits(void) { return fLimits; } ;
+	const LinkedListT<LimitT>& Limits(void) const { return fLimits; } ;
 
 	/** assess if the value satisties all limits */
 	bool InBounds(const ValueT& value) const;

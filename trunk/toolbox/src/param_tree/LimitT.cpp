@@ -1,5 +1,8 @@
-/* $Id: LimitT.cpp,v 1.1 2002-09-03 07:04:33 paklein Exp $ */
+/* $Id: LimitT.cpp,v 1.2 2002-09-03 07:54:08 paklein Exp $ */
 #include "LimitT.h"
+
+/* array behavior */
+const bool ArrayT<LimitT>::fByteCopy = false;
 
 /* constructors */
 LimitT::LimitT(int a, BoundT bound):
