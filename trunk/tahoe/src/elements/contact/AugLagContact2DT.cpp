@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.18 2004-07-15 08:26:08 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.19 2005-03-12 08:38:08 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 #include "AugLagContact2DT.h"
 
@@ -287,8 +287,11 @@ void AugLagContact2DT::LHSDriver(GlobalT::SystemTypeT)
 		/* augmented Lagragian multiplier */
 		double g = force[i] + fr*h;
 
-		/* store for output */
-		fActiveStrikersForce[i] = force[i];
+		/* store force vector output */
+		int index = fStrikerTags_map.Map(pelem[2]);
+		double f_by_t = -force[i]/magtan;
+		fStrikerForce2D(index,0) = f_by_t*tangent[1];
+		fStrikerForce2D(index,1) =-f_by_t*tangent[0];
 
 		/* contact */
 		if (g < 0.0)

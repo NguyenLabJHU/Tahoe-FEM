@@ -1,4 +1,4 @@
-/* $Id: ContactT.h,v 1.14 2004-07-15 08:26:08 paklein Exp $ */
+/* $Id: ContactT.h,v 1.15 2005-03-12 08:38:09 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #ifndef _CONTACT_T_H_
 #define _CONTACT_T_H_
@@ -11,6 +11,7 @@
 #include "LocalArrayT.h"
 #include "dArray2DT.h"
 #include "nVariArray2DT.h"
+#include "InverseMapT.h"
 
 namespace Tahoe {
 
@@ -147,7 +148,8 @@ protected:
 	ArrayT<iArray2DT> fSurfaces;
 
 	/* database info */
-	iArrayT	  fStrikerTags; // should be variable
+	iArrayT fStrikerTags; // should be variable
+	InverseMapT fStrikerTags_map;
 	dArray2DT fStrikerCoords; // should be variable
 		// only used for search grid
 
@@ -159,14 +161,16 @@ protected:
 	AutoArrayT<int> fActiveStrikers; /**< global numbers of active strikers       */
 	AutoArrayT<int> fHitSurface;     /**< contact surface for each active striker */
 	AutoArrayT<int> fHitFacets;      /**< facet of contact surface                */
-	AutoArrayT<double> fActiveStrikersForce; /**< contact force on active strikers */
 	/*@}*/
 
 	/** link surfaces in ConnectsU needed for graph */
 	iArray2DT fSurfaceLinks;
 
-	/** \name dynamic memory manager for equations array */
+	/** dynamic memory manager for equations array */
 	nVariArray2DT<int> fEqnos_man;
+
+	/** contact force on strikers for output */
+	dArray2DT fStrikerForce2D; 
 
 private:
 

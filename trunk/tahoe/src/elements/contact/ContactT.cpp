@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.21 2005-03-11 20:42:03 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.22 2005-03-12 08:38:08 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -10,6 +10,7 @@
 #include "ofstreamT.h"
 #include "ParentDomainT.h"
 #include "InverseMapT.h"
+#include "OutputSetT.h"
 #include "ParameterContainerT.h"
 #include "ParameterUtils.h"
 
@@ -75,9 +76,53 @@ double ContactT::InternalEnergy(void)
 	return 0.0;
 }
 
-/* writing output - nothing to write */
-void ContactT::RegisterOutput(void) {}
-void ContactT::WriteOutput(void) {}
+/* register output */
+void ContactT::RegisterOutput(void)
+{
+	/* check */
+	if (NumDOF() > 3)
+		ExceptionT::GeneralFail("ContactT::RegisterOutput", "ndof %d > 3", NumDOF());
+	
+	/* output labels */
+	ArrayT<StringT> n_labels(2*NumDOF()); /* displacements + force */
+	
+	/* displacements */
+	int count = 0;
+	const ArrayT<StringT>& labels = Field().Labels();
+	for (int i = 0; i < labels.Length(); i++)
+		n_labels[count++] = labels[i];
+	
+	/* forces */
+	const char *force[] = {"F_X", "F_Y", "F_Z"};
+	for (int i = 0; i < NumDOF(); i++)
+		n_labels[count++] = force[i];
+	
+	/* output record */
+	OutputSetT output_set(fStrikerTags, n_labels);
+
+	/* register */
+	fOutputID = ElementSupport().RegisterOutput(output_set);
+}
+
+/* write output */
+void ContactT::WriteOutput(void) 
+{
+	/* work space */
+	dArray2DT n_values(fStrikerTags.Length(), 2*NumDOF());
+
+	/* displacements */
+	const dArray2DT& disp = (Field())[0];
+	dArray2DT disp_tmp(fStrikerTags.Length(), NumDOF());
+	disp_tmp.RowCollect(fStrikerTags, disp);
+	n_values.BlockColumnCopyAt(disp_tmp, 0);
+
+	/* forces */
+	for (int i = 0; i < NumDOF(); i++)
+		n_values.ColumnCopy(i + NumDOF(), fStrikerForce2D, i);
+
+	/* send it */
+	ElementSupport().WriteOutput(fOutputID, n_values);
+}
 
 /* compute specified output parameter and send for smoothing */
 void ContactT::SendOutput(int kincode)
@@ -291,8 +336,15 @@ void ContactT::ExtractContactGeometry(const ParameterListT& list)
 		fStrikerTags--;	
 	}
 	
+	/* global ID to local index */
+	fStrikerTags_map.SetMap(fStrikerTags);
+
 	/* allocate striker coords */
 	fStrikerCoords.Dimension(fStrikerTags.Length(), NumSD());
+
+	/* space for output */
+	fStrikerForce2D.Dimension(fStrikerTags.Length(), NumDOF());
+	fStrikerForce2D = 0.0;
 	
 	/* set connectivity name */
 	ModelManagerT& model = ElementSupport().ModelManager();
@@ -341,10 +393,11 @@ void ContactT::SetWorkSpace(void)
 void ContactT::WriteContactInfo(ostream& out) const
 {
 	/* contact statistics */
-	int d_width = OutputWidth(out, fActiveStrikersForce.Pointer());
+	int d_width = OutputWidth(out, fStrikerForce2D.Pointer());
 	out << "\n Contact tracking: group " << ElementSupport().ElementGroupNumber(this) + 1 << '\n';
 	out << " Time                           = " << ElementSupport().Time() << '\n';
 	out << " Active strikers                = " << fActiveStrikers.Length() << '\n';
+	dArrayT f_c;
 	if (fActiveStrikers.Length() > 0 && ElementSupport().Logging() == GlobalT::kVerbose)
 	{
 		out << setw(kIntWidth) << "striker" 
@@ -359,7 +412,8 @@ void ContactT::WriteContactInfo(ostream& out) const
 			out << setw(kIntWidth) << hit_facet + 1;
 			for (int j = 0; j < fNumFacetNodes; j++)
 				out << setw(kIntWidth) << fSurfaces[fHitSurface[i]](hit_facet, j) + 1;
-			out << setw(d_width) << fActiveStrikersForce[i];				
+			fStrikerForce2D.RowAlias(fActiveStrikers[i], f_c);
+			out << setw(d_width) << f_c.Magnitude();
 			out << '\n';
 		}
 		out << endl;
@@ -385,8 +439,6 @@ bool ContactT::SetContactConfiguration(void)
 	{
 		/* resize */
 		int nel = fActiveStrikers.Length();
-		fActiveStrikersForce.Dimension(nel);
-		fActiveStrikersForce = 0.0;
 		fEqnos_man.SetMajorDimension(nel, false);
 
 		/* update dimensions */
@@ -523,6 +575,7 @@ void ContactT::StrikersFromNodeSets(const ParameterListT& list)
 
 	/* collect nodes from those indexes */
 	ModelManagerT& model = ElementSupport().ModelManager();
+	iArrayT tmp;
 	model.ManyNodeSets(ns_ID, fStrikerTags);
 }
 
