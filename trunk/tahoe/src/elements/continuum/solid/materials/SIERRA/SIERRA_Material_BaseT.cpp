@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.23 2004-09-22 06:11:19 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.24 2004-09-27 18:24:06 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -148,10 +148,11 @@ const dSymMatrixT& SIERRA_Material_BaseT::s_ij(void)
 		if (fDebug) {
 			ofstreamT& out = MaterialSupport().Output();
 			out << "\n SIERRA_Material_BaseT::s_ij: IN\n"
+				 << "    time: " << fFSMatSupport->Time() << '\n'
 				 << " element: " << CurrElementNumber()+1 << '\n'
 				 << "      ip: " << CurrIP()+1 << '\n';
 			
-			out << " rot strain inc = " << fdstran.no_wrap() << '\n';
+			out << " deform meas = " << fdstran.no_wrap() << '\n';
 			out << " old stress = " << fstress_old.no_wrap() << '\n';
 			out << " old state =\n" << fstate_old.wrap(5) << '\n';
 		}
@@ -698,13 +699,10 @@ void SIERRA_Material_BaseT::Set_Calc_Arguments(void)
 		if (fabs(dt) > kSmall)
 		{
 			/* compute h (Simo: 8.1.7) */
-			fdudX = F_n;
-			fdudX(0,0) -= 1.0;
-			fdudX(1,1) -= 1.0;
-			fdudX(2,2) -= 1.0;
+			fdudX.DiffOf(F_n, F_total_last()); /* (8.1.9) */
 			fhTh.Inverse(F_n);
 			fh.MultAB(fdudX, fhTh);
-		
+
 			/* compute velocity gradient (Simo: 8.1.22) and (Simo: 8.3.13) */
 			fhTh.MultATB(fh, fh);
 			double by_dt = 1.0/dt;
