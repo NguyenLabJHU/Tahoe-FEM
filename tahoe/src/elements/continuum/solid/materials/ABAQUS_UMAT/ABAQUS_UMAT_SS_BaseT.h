@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.1.2.4 2003-12-05 17:57:49 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.1.2.5 2003-12-05 19:07:47 paklein Exp $ */
 #ifndef _ABAQUS_UMAT_SS_BASE_T_H_
 #define _ABAQUS_UMAT_SS_BASE_T_H_
 
@@ -7,6 +7,7 @@
 #include "SSSolidMatT.h"
 #include "IsotropicT.h"
 #include "Material2DT.h"
+#include "ofstreamT.h"
 
 /* library support options */
 #ifdef __F2C__
@@ -15,9 +16,6 @@
 #include "StringT.h"
 #include "iArrayT.h"
 #include "dArray2DT.h"
-
-//TEMP - debugging
-#include <fstream.h>
 
 /* f2c */
 #include "f2c.h"
@@ -123,7 +121,7 @@ protected:
 	nArrayT<doublereal> fProperties;
 
 	/** debugging */
-	ofstream flog;
+	ofstreamT flog;
 
 private:
 
