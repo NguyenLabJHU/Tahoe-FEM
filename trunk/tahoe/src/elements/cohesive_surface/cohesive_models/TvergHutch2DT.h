@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.h,v 1.11 2004-07-15 08:26:02 paklein Exp $ */
+/* $Id: TvergHutch2DT.h,v 1.12 2004-09-16 16:37:00 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #ifndef _TVERG_HUTCH_2D_T_H_
@@ -85,6 +85,9 @@ private:
 	double fpenalty; /**< stiffening multiplier */
 	double fK;       /**< penetration stiffness calculated as a function of penalty
 	                  * and the initial stiffness of the cohesive potential */
+	                  
+	/** return the secant instead of the tangent stiffness */
+	bool fSecantStiffness;
 };
 
 } // namespace Tahoe 

@@ -1,4 +1,4 @@
-/* $Id: TvergHutch3DT.cpp,v 1.13 2004-07-15 08:26:02 paklein Exp $ */
+/* $Id: TvergHutch3DT.cpp,v 1.14 2004-09-16 16:37:00 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 #include "TvergHutch3DT.h"
 
@@ -13,7 +13,9 @@ using namespace Tahoe;
 const int knumDOF = 3;
 
 /* constructor */
-TvergHutch3DT::TvergHutch3DT(dArrayT& params): SurfacePotentialT(knumDOF)
+TvergHutch3DT::TvergHutch3DT(dArrayT& params): 
+	SurfacePotentialT(knumDOF),
+	fSecantStiffness(false)
 {
 	SetName("Tvergaard-Hutchinson_3D");
 	
@@ -42,7 +44,8 @@ TvergHutch3DT::TvergHutch3DT(void):
 	fL_2(0.0),
 	fL_fail(0.0),
 	fpenalty(0.0),
-	fK(0.0)
+	fK(0.0),
+	fSecantStiffness(false)
 {
 	SetName("Tvergaard-Hutchinson_3D");
 }
@@ -139,8 +142,9 @@ const dMatrixT& TvergHutch3DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 #pragma unused(state)
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
+	const char caller[] = "TvergHutch3DT::Stiffness";
+	if (jump_u.Length() != knumDOF) ExceptionT::SizeMismatch(caller);
+	if (state.Length() != NumStateVariables()) ExceptionT::GeneralFail(caller);
 #endif
 
 	double u_t1 = jump_u[0];
@@ -151,54 +155,76 @@ const dMatrixT& TvergHutch3DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 	double dnm1 = 1./fd_c_n/fd_c_n;
 	double L = sqrt((u_t1*u_t1 + u_t2*u_t2)*dtm1 + u_n*u_n*dnm1);
 
-	if (L < fL_1) // K1
+	if (fSecantStiffness) /* positive-definite approximation */
 	{
-		fStiffness[0] = fStiffness[4] = fd_c_n/fd_c_t*fsigma_max/(fL_1*fd_c_t);
+		/* slope */
+		double sigbyL;
+		if (L < fL_1)
+			sigbyL = fsigma_max/fL_1;
+		else if (L < fL_2)
+			sigbyL = fsigma_max/L;
+		else if (L < 1.)
+			sigbyL = fsigma_max*(1. - L)/(1. - fL_2)/L;
+		else
+			sigbyL = 0.0;	
+	
+		/* stiffness */
+		fStiffness[0] = fStiffness[4] = fd_c_n/fd_c_t*sigbyL/fd_c_t;
 		fStiffness[1] = fStiffness[2] = fStiffness[3] = fStiffness[5] = 0.0;
 		fStiffness[6] = fStiffness[7] = 0.0;
-		fStiffness[8] = fsigma_max/(fL_1*fd_c_n);
+		fStiffness[8] = sigbyL/fd_c_n;
 	}
-	else 
+	else /* tangent stiffness */
 	{
-		double lt_0 = jump_u[0]*dtm1;
-		double lt_1 = jump_u[1]*dtm1;
-		double lt_2 = jump_u[2]*dnm1;
-			
-		if (L < fL_2) // K2
+		if (L < fL_1) // K1
 		{
-			double dijTerm = fsigma_max/L*fd_c_n;
-			
-			fStiffness[0] = fStiffness[4] = dijTerm*dtm1;
-			fStiffness[8] = dijTerm*dnm1;
-			dijTerm /= -L*L;
-			fStiffness[0] += dijTerm*lt_0*lt_0;
-			fStiffness[1] = fStiffness[3] = dijTerm*lt_0*lt_1;
-			fStiffness[2] = fStiffness[6] = dijTerm*lt_0*lt_2;
-			fStiffness[4] += dijTerm*lt_1*lt_1;
-			fStiffness[5] = fStiffness[7] = dijTerm*lt_1*lt_2;
-			fStiffness[8] += dijTerm*lt_2*lt_2;
-		} 
+			fStiffness[0] = fStiffness[4] = fd_c_n/fd_c_t*fsigma_max/(fL_1*fd_c_t);
+			fStiffness[1] = fStiffness[2] = fStiffness[3] = fStiffness[5] = 0.0;
+			fStiffness[6] = fStiffness[7] = 0.0;
+			fStiffness[8] = fsigma_max/(fL_1*fd_c_n);
+		}
 		else 
 		{
-			if (L < 1.) // K3
+			double lt_0 = jump_u[0]*dtm1;
+			double lt_1 = jump_u[1]*dtm1;
+			double lt_2 = jump_u[2]*dnm1;
+			
+			if (L < fL_2) // K2
 			{
-				double dijTerm = fsigma_max*(1./L-1.)/(1.-fL_2)*fd_c_n;
-
+				double dijTerm = fsigma_max/L*fd_c_n;
+			
 				fStiffness[0] = fStiffness[4] = dijTerm*dtm1;
 				fStiffness[8] = dijTerm*dnm1;
-				dijTerm = -fsigma_max/(1.-fL_2)*fd_c_n/L/L/L;
+				dijTerm /= -L*L;
 				fStiffness[0] += dijTerm*lt_0*lt_0;
-				fStiffness[4] += dijTerm*lt_1*lt_1;
-				fStiffness[8] += dijTerm*lt_2*lt_2;
 				fStiffness[1] = fStiffness[3] = dijTerm*lt_0*lt_1;
 				fStiffness[2] = fStiffness[6] = dijTerm*lt_0*lt_2;
+				fStiffness[4] += dijTerm*lt_1*lt_1;
 				fStiffness[5] = fStiffness[7] = dijTerm*lt_1*lt_2;
-			}
-			else /*Failure*/
+				fStiffness[8] += dijTerm*lt_2*lt_2;
+			} 
+			else 
 			{
-				fStiffness[0] = fStiffness[1] = fStiffness[2] = fStiffness[3] = 0.0;
-				fStiffness[4] = fStiffness[5] = fStiffness[6] = fStiffness[7] = 0.;
-				fStiffness[8] = 0.0;
+				if (L < 1.) // K3
+				{
+					double dijTerm = fsigma_max*(1./L-1.)/(1.-fL_2)*fd_c_n;
+
+					fStiffness[0] = fStiffness[4] = dijTerm*dtm1;
+					fStiffness[8] = dijTerm*dnm1;
+					dijTerm = -fsigma_max/(1.-fL_2)*fd_c_n/L/L/L;
+					fStiffness[0] += dijTerm*lt_0*lt_0;
+					fStiffness[4] += dijTerm*lt_1*lt_1;
+					fStiffness[8] += dijTerm*lt_2*lt_2;
+					fStiffness[1] = fStiffness[3] = dijTerm*lt_0*lt_1;
+					fStiffness[2] = fStiffness[6] = dijTerm*lt_0*lt_2;
+					fStiffness[5] = fStiffness[7] = dijTerm*lt_1*lt_2;
+				}
+				else /*Failure*/
+				{
+					fStiffness[0] = fStiffness[1] = fStiffness[2] = fStiffness[3] = 0.0;
+					fStiffness[4] = fStiffness[5] = fStiffness[6] = fStiffness[7] = 0.;
+					fStiffness[8] = 0.0;
+				}
 			}
 		}
 	}
@@ -266,6 +292,10 @@ void TvergHutch3DT::DefineParameters(ParameterListT& list) const
 	ParameterT penalty(fpenalty, "penalty");
 	penalty.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(penalty);
+
+	ParameterT secant(fSecantStiffness, "secant_stiffness");
+	secant.SetDefault(fSecantStiffness);
+	list.AddParameter(secant);
 }
 
 /* accept parameter list */
@@ -288,6 +318,9 @@ void TvergHutch3DT::TakeParameterList(const ParameterListT& list)
 
 	/* penetration stiffness */
 	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
+
+	/* secant stiffness */
+	fSecantStiffness = list.GetParameter("secant_stiffness");
 }
 
 /* returns the number of variables computed for nodal extrapolation
