@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.3.30.8 2004-11-12 19:27:13 thao Exp $ */
+/* $Id: ConveyorT.cpp,v 1.3.30.9 2005-02-22 00:02:21 thao Exp $ */
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
@@ -39,6 +39,9 @@ void ConveyorT::InitialCondition(void)
 	/* reset */
 	fTrackingCount = 0;
 	fTrackingPoint = fX_Left;
+        fTrackingPoint_last = fTrackingPoint;
+        fX_Left_last = fX_Left;
+        fX_Right_last = fX_Right;
 
 	/* mark elements linking left to right edge as inactive */
 	MarkElements();	
@@ -47,12 +50,12 @@ void ConveyorT::InitialCondition(void)
 /* initialize data - called immediately after construction */
 void ConveyorT::Initialize(ifstreamT& in)
 {
-	const char caller[] = "ConveyorT::Initialize";
+        const char caller[] = "ConveyorT::Initialize";
 
 	/* only 2D for now */
 	int nsd = fNodeManager.NumSD();
 	if (nsd != 2) ExceptionT::GeneralFail(caller, "only tested for 2D: %d", nsd);
-
+	
 	/* prescribed dimensions */
 	in >> fMeshRepeatLength;
 	in >> fWindowShiftDistance;
@@ -60,36 +63,35 @@ void ConveyorT::Initialize(ifstreamT& in)
 	in >> fTrackingInterval;
 	if (fMeshRepeatLength < kSmall) ExceptionT::BadInputValue(caller, "%g < 0", fMeshRepeatLength);
 	if (fTrackingInterval < 0) ExceptionT::BadInputValue(caller);
-
+	
 	/* boundary stretching */
 	int schedule_number = -1;
 	in >> fULBC_Code;
 	in >> fULBC_Value;
 	in >> fULBC_ScheduleNumber; fULBC_ScheduleNumber--;
-	fULBC_Schedule = fNodeManager.Schedule(fULBC_ScheduleNumber);	
+	fULBC_Schedule = fNodeManager.Schedule(fULBC_ScheduleNumber);
 	if (!fULBC_Schedule) ExceptionT::BadInputValue(caller, "could not resolve schedule %d", fULBC_ScheduleNumber+1);
-
+	
 	/* initial crack tip position */
-	in >> fTipElementGroup 
-	   >> fTipX_0 
+	in >> fTipElementGroup
+	   >> fTipX_0
 	   >> fTipY_0
 	   >> fTipOutputCode
 	   >> fTipColumnNum
 	   >> fTipThreshold;
 	fTipElementGroup--;
 	fTipColumnNum--;
-
+	
 	/* damping */
 	in >> fDampingWidth
 	   >> fDampingCoefficient;
 	if (fDampingWidth < 0.0 || fDampingCoefficient < 0.0) ExceptionT::BadInputValue(caller, "improper damping");
-
+	
 	/* read lower/upper boundary nodes */
 	ArrayT<StringT> id_list;
 	ReadNodes(in, id_list, fBottomNodes);
 	ReadNodes(in, id_list, fTopNodes);
-
-	/* set stretching BC cards */
+	
 	fKBC_Cards.Dimension(nsd*(fBottomNodes.Length() + fTopNodes.Length()));
 //	fKBC_Cards.Dimension(fBottomNodes.Length() + fTopNodes.Length());
 	int node = 0;
@@ -115,8 +117,8 @@ void ConveyorT::Initialize(ifstreamT& in)
 		KBC_CardT& card = fKBC_Cards[node++];
 		card.SetValues(fTopNodes[i], 0, KBC_CardT::kFix, 0, 0);
 	} 
- 
- 
+
+     
 	/* find boundaries */
 	const dArray2DT& init_coords = fNodeManager.InitialCoordinates();
 	dArrayT X2(init_coords.MajorDim());
@@ -124,44 +126,43 @@ void ConveyorT::Initialize(ifstreamT& in)
 	X2.MinMax(fX_Left, fX_Right);
 	X2.Free();
 	
-	/* set the periodic distance */
-	fX_PeriodicLength = fX_Right - fX_Left + fMeshRepeatLength;
-	fWidthDeadZone = fMeshRepeatLength*1.5;
-	if (fWidthDeadZone > fRightMinSpacing) ExceptionT::GeneralFail(caller);
+        /* set the periodic distance */
+        fX_PeriodicLength = fX_Right - fX_Left + fMeshRepeatLength;
+        fWidthDeadZone = fMeshRepeatLength*1.5;
+        if (fWidthDeadZone > fRightMinSpacing) ExceptionT::GeneralFail(caller);
 
-	/* open file for tracking information */
-	StringT file;
-	file.Root(in.filename());				
-	file.Append(".tracking");
-	fTrackingOutput.open(file);
-	
-	
-	/* create controller for the right and left edge of the domain */
-	fRightEdge = new KBC_PrescribedT(fNodeManager);
-	fField.AddKBCController(fRightEdge);
-	
-	/*find the right edge*/
-	const dArray2DT& initial_coords = fNodeManager.InitialCoordinates();
-	int nnd = initial_coords.MajorDim();
-	iAutoArrayT rightnodes(0);
-	const double* px = initial_coords.Pointer();
-//	double rightmost = TrackPoint(kRightMost,kSmall);
-	/* find and store right edge */
-	for (int i = 0; i < nnd; i++)
-	{
-//		if (fabs(*px - rightmost) < kSmall) rightnodes.Append(i);
-		if (fabs(*px - fX_Right) < kSmall) 
-			rightnodes.Append(i);
-		px += nsd;
-	}
-	/*fix the right edge*/
-	ArrayT<KBC_CardT>& cards = fRightEdge->KBC_Cards();
-	cards.Dimension(rightnodes.Length());
-	for (int i=0; i< cards.Length(); i++) {
-		KBC_CardT& card = cards[i];
-//		card.SetValues(rightnodes[i], 0, KBC_CardT::kFix, NULL, 0.0); 
-		card.SetValues(rightnodes[i], 0, KBC_CardT::kFix, 0, 0.0); 
-	}
+        /* open file for tracking information */
+        StringT file;
+        file.Root(in.filename());
+        file.Append(".tracking");
+        fTrackingOutput.open(file);
+
+
+        /* create controller for the right and left edge of the domain */
+        fRightEdge = new KBC_PrescribedT(fNodeManager);
+        fField.AddKBCController(fRightEdge);
+
+        /*find the right edge*/
+        int nnd = init_coords.MajorDim();
+        iAutoArrayT rightnodes(0);
+        const double* px = init_coords.Pointer();
+        for (int i = 0; i < nnd; i++)
+        {
+                if (fabs(*px - fX_Right) < kSmall)
+                        rightnodes.Append(i);
+                px += nsd;
+        }
+
+        /*fix the right edge*/
+        ArrayT<KBC_CardT>& cards = fRightEdge->KBC_Cards();
+        cards.Dimension(rightnodes.Length());
+        for (int i=0; i< cards.Length(); i++) {
+                KBC_CardT& card = cards[i];
+                card.SetValues(rightnodes[i], 0, KBC_CardT::kFix, 0, 0.0);
+        }
+
+        fShiftedNodes.Dimension(rightnodes);
+        rightnodes.CopyInto(fShiftedNodes);
 }
 
 void ConveyorT::WriteParameters(ostream& out) const
@@ -284,6 +285,8 @@ void ConveyorT::CloseStep(void)
 
 	/* update history */
 	fTrackingPoint_last = fTrackingPoint;
+        fX_Left_last = fX_Left;
+        fX_Right_last = fX_Right;
 }
 
 /* returns true if the internal force has been changed since
@@ -300,11 +303,10 @@ GlobalT::RelaxCodeT ConveyorT::RelaxSystem(void)
 	fTrackingPoint = TrackPoint(kRightMost, fTipThreshold);
 	if (SetSystemFocus(fTrackingPoint)) 
 	{
-		fDampingReset = true;
-		relax = GlobalT::MaxPrecedence(relax, GlobalT::kReEQ);
-		
+		fDampingReset = true;		
 		/* message */
 		cout << "\n ConveyorT::RelaxSystem: setting system focus = " << fTrackingPoint << endl;
+		relax = GlobalT::MaxPrecedence(relax, GlobalT::kReEQ);
 	}
 	return relax;
 }
@@ -524,7 +526,7 @@ bool ConveyorT::SetSystemFocus(double focus)
 	for (int i = 0; i < nnd; i++)
 	{
 		/* node outside the window */
-		if (*px < fX_Left)
+		if (*px < fX_Left-fMeshRepeatLength/10.0)
 		{
 			/* store */
 			fShiftedNodes.Append(i);
@@ -535,6 +537,7 @@ bool ConveyorT::SetSystemFocus(double focus)
 			model->UpdateNode(new_coords, i);
 
 			/* correct displacements */
+			u_field(i,0) = 0.0;
 			u_field(i,1) = uY_bottom + duY_dY*(initial_coords(i,1) - Y_bottom); /* interpolate between lower and upper boundary */
 			
 			/* zero higher order components */
@@ -625,7 +628,7 @@ void ConveyorT::MarkElements(void)
 			
 			/* goes end to end */
 			if (x_max - x_min > fX_PeriodicLength/2.0)
-				status[j] = ElementBaseT::kMarkOFF;
+				status[j] = ElementBaseT::kOFF;
 			else if (x_min > X_R_on) /* in reactivation zone */
 				if (status[j] == ElementBaseT::kOFF)
 					status[j] = ElementBaseT::kMarkON;
