@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: main.cpp,v 1.9 2004-08-18 19:53:00 bsun Exp $ */
+/* $Id: main.cpp,v 1.10 2005-02-04 00:59:27 rjones Exp $ */
 #include <iostream.h>
 #include "ExceptionCodes.h"
 #include "PeriodicTableT.h"
@@ -10,12 +10,24 @@
 #include "MeshAtomT.h"
 
 
-    int main()
+    int main(int argc, char* argv[])
    {
+	StringT input_file;
+	if (argc != 2)  {
+//		cerr << "usage: " << argv[0] << " <infile> \n";
+//		abort();
+		cout << "Enter the name of the input date file:" << endl;
+		cin >> input_file;
+	} else {
+		input_file = argv[1];
+	}
+
+	cout << " using input file : " << input_file << "\n"; 
+
       MakeCrystalT MC;
       try
       {
-         MC.Run();
+         MC.Run(input_file);
       }
       
       
