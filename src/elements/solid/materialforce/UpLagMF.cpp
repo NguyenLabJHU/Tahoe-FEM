@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.cpp,v 1.2 2003-11-10 19:57:38 thao Exp $ */
+/* $Id: UpLagMF.cpp,v 1.3 2003-11-10 21:58:40 thao Exp $ */
 #include "UpLagMF.h"
 
 #include "OutputSetT.h"
@@ -136,6 +136,7 @@ void UpLagMF::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
       }
     }
     /*Q:Does fExtendedConnect need to be split into element groups?*/
+    //    fXConnects.Copy(fill);    
     fXConnects->Copy(fill);
     connects_2.Append(fXConnects);
   }

@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.h,v 1.1 2003-11-10 18:51:27 thao Exp $ */
+/* $Id: UpLagMF.h,v 1.2 2003-11-10 21:58:40 thao Exp $ */
 
 #ifndef _UpLagMF_H_
 #define _UpLagMF_H_
@@ -7,7 +7,7 @@
 #include "UpdatedLagrangianT.h"
 #include "MFSupportT.h"
 #include "ofstreamT.h"
-
+//#include "RaggedArray2DT.h"
 namespace Tahoe {
 
 /* forward declarations */
@@ -52,7 +52,9 @@ class UpLagMF: public UpdatedLagrangianT, public MFSupportT
 
     /*current material*/
     FSSolidMatT* fCurrFSMat;
+
     /*connectivities*/
+    //    RaggedArray2DT<int> fXConnects;
     RaggedArray2DT<int>* fXConnects;
 
  private:
