@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.15 2002-01-27 18:51:04 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.16 2002-03-26 17:26:10 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "ContinuumElementT.h"
@@ -1287,6 +1287,7 @@ bool ContinuumElementT::CheckMaterialOutput(void) const
 				OK = ContinuumMaterialT::CompatibleOutput(*m_i, *m_j);
 			}
 		}
+		i--; j--;
 			
 		/* output not compatible */
 		if (!OK)	
