@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.21 2005-02-06 01:24:16 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.22 2005-02-13 22:16:25 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -14,6 +14,7 @@
 #include "nMatrixT.h"
 #include "KBC_CardT.h"
 #include "dArrayT.h"
+#include "ElementCardT.h"
 
 namespace Tahoe {
 
@@ -199,8 +200,7 @@ public:
 	/** solve bond densities one at a time enforcing constraints on bond densities using a
 	 * penalty method */
 	void CorrectOverlap_22(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords,
-		const StringT& overlap_file, double smoothing, double k2, double bound_tol, 
-		double stiffness_jump, int nip);
+		const StringT& overlap_file, double smoothing, double k2, double bound_tol, double stiffness_jump, int nip);
 
 	/** solve bond densities one at a time activating unknowns at integration points only if
 	 * the associated domain contains the terminus of a ghost node bond. */
@@ -238,6 +238,20 @@ public:
 
 	/** return the given instance of the ParticlePairT element group or NULL if not found */
 	const ParticlePairT* ParticlePair(int instance = 0) const;
+
+	/** \name writing output */
+	/*@{*/
+	/** initiate the process of writing output from all output sets 
+	 * \param time time label associated with the output data */
+	virtual void WriteOutput(double time);
+
+	/** write results for a single output set */
+	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const;
+
+	/* write a snapshot */
+	virtual void WriteOutput(const StringT& file, const dArray2DT& coords, const iArrayT& node_map,
+		const dArray2DT& values, const ArrayT<StringT>& labels) const;
+	/*@}*/
 
 protected:
 
@@ -401,6 +415,10 @@ private:
 	
 	/** cumulative update for each solver group */
 	ArrayT<dArrayT> fCumulativeUpdate;
+
+	/** active element map. Skip calculation of element without active nodes
+	 * and not participating in the overlap layer. */
+	ArrayT<ElementCardT::StatusT> fElementStatus;
 	/*@}*/
 	
 	/** \name external force vector by group */
