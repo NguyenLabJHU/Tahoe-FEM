@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT_dev.h,v 1.1 2003-02-11 23:31:10 thao Exp $ */
+/* $Id: FiniteStrainT_dev.h,v 1.2 2003-02-12 01:48:10 paklein Exp $ */
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
 
@@ -59,6 +59,12 @@ class FiniteStrainT: public SolidElementT
 	/** compute field gradients with respect to reference coordinates at the specified integration point */
 	void ComputeGradient_reference(const LocalArrayT& u, dMatrixT& grad_u, int ip) const;
 	/*@}*/
+
+	/** register self for output */
+	virtual void RegisterOutput(void);
+
+	/** send output */
+	virtual void WriteOutput(void);
 
   protected:
 
@@ -133,6 +139,10 @@ class FiniteStrainT: public SolidElementT
   
 	/** offset to material needs */
 	int fNeedsOffset; //NOTE - better to have this or a separate array?
+	
+	/** material force output ID */
+	int fMatForceOutputID;
+	OutputSetT fOutputSet;
 };
 
 /* inlines */

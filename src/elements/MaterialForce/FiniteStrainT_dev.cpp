@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT_dev.cpp,v 1.2 2003-02-12 00:36:50 thao Exp $ */
+/* $Id: FiniteStrainT_dev.cpp,v 1.3 2003-02-12 01:48:10 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ScheduleT.h"
@@ -20,7 +20,8 @@ FiniteStrainT::FiniteStrainT(const ElementSupportT& support, const FieldT& field
 	SolidElementT(support, field),
 	fNeedsOffset(-1),
 	fCurrShapes(NULL),
-	fFSMatSupport(NULL)
+	fFSMatSupport(NULL),
+	fMatForceOutputID(-1)
 {
 	/* disable any strain-displacement options */
 	if (fStrainDispOpt != kStandardB)
@@ -113,6 +114,60 @@ void FiniteStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u,
 		cout << "\n FiniteStrainT::ComputeGradient: shape functions wrt current coords not defined" << endl;
 		throw ExceptionT::kGeneralFail;
 	}
+}
+
+/* register self for output */
+void FiniteStrainT::RegisterOutput(void)
+{
+	/* inherited */
+	SolidElementT::RegisterOutput();
+
+	ArrayT<StringT> n_labels(2*NumSD());
+	ArrayT<StringT> e_labels;
+	
+	StringT mf_label = "mF";
+	StringT mfd_label = "mF_dissip";
+	const char suffix[] = {"_X", "_Y", "_Z"};
+	dex = 0;
+	for (int i = 0; i < NumSD(); i++)
+		n_labels[dex++].Append(mf_label, suffix[i]);
+	for (int i = 0; i < NumSD(); i++)
+		n_labels[dex++].Append(mfd_label, suffix[i]);
+
+	/* collect ID's of the element blocks in the group */
+	ArrayT<StringT> block_ID(fBlockData.Length());
+	for (int i = 0; i < block_ID.Length(); i++)
+		block_ID[i] = fBlockData[i].ID();
+
+	/* set output specifier */
+	OutputSetT fOutputSet(fGeometryCode, block_ID, fConnectivities, n_labels, e_labels, false);
+		
+	/* register and get output ID */
+	fMatForceOutputID = ElementSupport().RegisterOutput(fOutputSet);
+}
+
+/* send output */
+void FiniteStrainT::WriteOutput(void)
+{
+	/* inherited */
+	SolidElementT::WriteOutput();
+
+	/* calculate output values */
+	dArray2DT n_values; // dimension: [num nodes used] x [num values]
+	dArray2DT e_values;
+
+	const iArrayT& nodes_used = fOutputSet.NodesUsed();
+
+	//
+	//
+	//ComputeOutput(n_counts, n_values, e_counts, e_values);
+	//
+	// dimension arrays and fill with values, the size and order
+	// of the node numbers returned by NodesUsed
+	//
+
+	/* send to output */
+	ElementSupport().WriteOutput(fMatForceOutputID, n_values, e_values);
 }
 
 /***********************************************************************
@@ -249,6 +304,8 @@ void FiniteStrainT::CurrElementInfo(ostream& out) const
 /*****************************************************************************/
 bool FiniteStrainT::MatForceDriver(void)
 {
+  const char caller[] = "FiniteStrainT::MatForceDriver";
+
   /*obtain dimensions*/
   ModelManagerT& model = ElementSupport().Model();
   int nnd = model.NumNodes();
@@ -265,10 +322,12 @@ bool FiniteStrainT::MatForceDriver(void)
   int dissip = 0;
   
   Top();
-  while (ContinuumElementT::NextElement())
+  while (NextElement())
   {
     ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
-    FSSolidMatT* CurrMaterial = (FSSolidMatT*)pmat; //Q:cast OK?
+    FSSolidMatT* CurrMaterial = dynamic_cast<FSSolidMatT*>(pmat);
+    if (!CurrMaterial) ExceptionT::GeneralFail(caller);
+    
     /*Set Global Shape Functions for current element*/
     SetGlobalShape();
 
@@ -296,11 +355,10 @@ void FiniteStrainT::AssembleMatForce(const dArrayT& elem_val,
   int num_entries = global_val.Length();
   int nen = ndnos.Length();
   int nsd = elem_val.Length()/nen;
-  int first_node = 1; //Q:assume first node number is 1
   for(int i = 0; i < nen; i++)
   {
     int node = ndnos[i];
-    double* p = global_val.Pointer()+(node-first_node);
+    double* p = global_val.Pointer()+(node);
     for (int j = 0; j<nsd; j++)
       (*p++) += elem_val[i*nsd+j];
   }
@@ -322,15 +380,15 @@ void FiniteStrainT::MatForceVolMech(FSSolidMatT* CurrMaterial,
   dArrayT ip_body(nsd);
  
   MatForce = 0;
+  bodyforce = 0.0;
   
   /*get density*/
   double density = CurrMaterial->Density();
   
-  /*obtain local nodal data*/
-  SetLocalArrays();
-  //Q:Is fLocAcc initialized to zero?
   if (fLocAcc.IsRegistered())
     SetLocalU(fLocAcc);
+  else
+  	fLocAcc = 0.0;
 
   /*copy acceleration and body force data into body force vector*/
   double* pbody = bodyforce.Pointer();    
@@ -517,7 +575,7 @@ void FiniteStrainT::MatForceDissip(FSSolidMatT* CurrMaterial,dArrayT& MatForce,
   }
   while(fShapes->NextIP())
   {
-    dSymMatrixT InStretch(numstress, pInStretch);  //Q:Is this sufficient?
+    dSymMatrixT InStretch(numstress, pInStretch);
     dSymMatrixT iInStretch = InStretch;
     iInStretch.Inverse();
 
@@ -668,16 +726,13 @@ void FiniteStrainT::MatForceSurfMech(void)
     double ip_energy;
     dMatrixT Q(nsd);
  
-    /*update eqnos*/
-    //Q:need to set tractions: i.e. SetTractionBC()?
-  
     for (int k = 0; k<fTractionList.Length(); k++)
     {
       /*retrieve ith traction card*/
       const Traction_CardT& BC_card = fTractionList[k];
 
       /*dimension of ith traction card*/
-      const iArrayT& surf_nodes = BC_card.Nodes(); //Q:global node numbers
+      const iArrayT& surf_nodes = BC_card.Nodes();
       int nsn = surf_nodes.Length();
       /*LocalArrayT: nenxnsd F=[F1X|F2X|F3X|...||F1Y|F2Y|F3Y|....]*/
       /*retrieve coordinates of nodes in local ordering*/
@@ -689,8 +744,8 @@ void FiniteStrainT::MatForceSurfMech(void)
       nArrayT<dMatrixT> Nodal_F(nsn);
       for (int i = 0; i<nsn; i++)
       {
-	dMatrixT& nodal_val = Nodal_F[i];
-	nodal_val.Allocate(nsd);
+		dMatrixT& nodal_val = Nodal_F[i];
+		nodal_val.Allocate(nsd);
       }
       dArrayT nodal_energy(nsn);  
 
@@ -708,15 +763,15 @@ void FiniteStrainT::MatForceSurfMech(void)
       
       const ElementCardT& elem_card = fElementCards[elem];
       ContinuumMaterialT* pmat = (*fMaterialList)[elem_card.MaterialNumber()];
-      FSSolidMatT* CurrMaterial = (FSSolidMatT*) pmat; //Q: is this right?
+      FSSolidMatT* CurrMaterial = dynamic_cast<FSSolidMatT*>(pmat);
+      if (!CurrMaterial) ExceptionT::GeneralFail();
 
       /*get element coords*/
       const iArrayT& elem_nodes=elem_card.NodesX();
-      LocalArrayT elem_coords(LocalArrayT::kInitCoords,nen,nsd);
-      ElementSupport().RegisterCoordinates(elem_coords);
-      elem_coords.SetLocal(elem_nodes);    
+      fLocInitCoords.SetLocal(elem_nodes);
+      LocalArrayT& elem_coords = fLocInitCoords;
 
-      /*Set element shapefunctions*/    //Q:How do we do this? 
+      /*Set element shapefunctions*/
       fShapes->SetDerivatives(); 
       const double* jac = fShapes->IPDets();
       const double* weight = fShapes->IPWeights();
