@@ -1,4 +1,4 @@
-/* $Id: EnSightT.cpp,v 1.9 2002-07-23 11:28:38 sawimme Exp $ */
+/* $Id: EnSightT.cpp,v 1.10 2002-07-23 11:42:54 sawimme Exp $ */
 /* created: sawimme (05/13/1999) */
 
 #include "EnSightT.h"
@@ -148,8 +148,8 @@ void EnSightT::WriteConnectivity (ostream& fgeo, int numelemnodes, const iArray2
       for (int ic = 0; ic < connects.MajorDim(); ic++)
 	{
 	  for (int j=0; j < numelemnodes; j++)
-	    out << setw (iwidth) << *pc + j;
-	  out << '\n';
+	    fgeo << setw (iwidth) << *pc + j;
+	  fgeo << '\n';
 
 	  pc += connects.MinorDim();
 	}
