@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.25 2003-06-13 17:27:28 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.26 2003-06-24 17:53:20 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -137,6 +137,14 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
       atom_ID[p] = p;
       atom_connectivities(p)[0] = p;
     }
+
+  // Create types
+  atom_types.Dimension(nATOMS);
+  atom_types = 1;
+
+  // Create parts
+  atom_parts.Dimension(nATOMS);
+  atom_parts = 1;
 
   // Update lengths
   length = ComputeMinMax();
