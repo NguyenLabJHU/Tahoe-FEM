@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.24 2003-01-29 07:34:26 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.25 2003-02-07 21:50:50 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -316,6 +316,7 @@ protected: /* for derived classes only */
 	virtual bool NextElement(void);
 	/*@}*/
 
+#ifndef _SIERRA_TEST_
 	/* print element group data */
 	virtual void PrintControlData(ostream& out) const;
 	
@@ -337,6 +338,12 @@ protected: /* for derived classes only */
 	 * is set, determined from FEManagerT::PrintInput, this function writes the
 	 * connectivity data to the output stream in text format. */
 	virtual void WriteConnectivity(ostream& out) const;
+#else
+	/* For SIERRA, we don't need ifstreamT to exist */
+	virtual void EchoConnectivityData(void);
+	
+	virtual void ReadConnectivity(void);
+#endif
 
 	/** return pointer to block data given the ID */
 	const ElementBlockDataT& BlockData(const StringT& ID) const;

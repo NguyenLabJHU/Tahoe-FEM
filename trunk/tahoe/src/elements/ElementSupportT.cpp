@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.22 2003-01-29 07:34:26 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.23 2003-02-07 21:50:51 cjkimme Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -529,7 +529,7 @@ void ElementSupportT::AssembleLHS(int group, const ElementMatrixT& elMat,
 	}
 	fp = fStiffness->Pointer();
 	for (int i = 0;i < fStiffness->Length(); i++)
-		std::cout <<"i = "<<i<<" "<<*fp++<<"\n";
+		cout <<"i = "<<i<<" "<<*fp++<<"\n";
 #endif
 }
 
@@ -567,14 +567,14 @@ void ElementSupportT::AssembleRHS(int group, const nArrayT<double>& elRes,
 #else
 #pragma unused(eqnos)
 /* NB that group is really the element number; it's an offset in my eq array */
-	std::cout <<"elRes.Length() = "<<group<<"\n";
+	cout <<"elRes.Length() = "<<group<<"\n";
 	double *fp = elRes.Pointer();
 	int *ip = ieqnos->Pointer() + group*elRes.Length();
 	for (int i = 0;i < elRes.Length();i++)
 		(*fResidual)[*ip++] += *fp++;
 	fp = fResidual->Pointer();
 	for (int i = 0;i < fResidual->Length(); i++)
-		std::cout <<"i = "<<i<<" "<<*fp++<<"\n";
+		cout <<"i = "<<i<<" "<<*fp++<<"\n";
 #endif
 }
 
