@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.12 2002-03-18 19:16:55 rjones Exp $
+# $Id: makefile,v 1.13 2002-04-22 16:06:44 dzeigle Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -11,6 +11,7 @@ OBJ = \
 	ConHyperGeom.o \
 	ErrorFunc.o \
 	GaoKlein.o \
+	Gamma.o \
 	GenHyperGeom.o \
 	GreenwoodWilliamson.o \
 	LennardJones612.o \
@@ -37,6 +38,7 @@ SRC = \
 	C1FunctionT.cpp \
 	CONHyperGeom.cpp \
 	ErrorFunc.cpp \
+	Gamma.cpp \
 	GaoKlein.cpp \
 	GenHyperGeom.cpp \
 	GreenwoodWilliamson.cpp \
@@ -58,6 +60,7 @@ HDR = \
 	C1FunctionT.h \
 	ConHyperGeom.h \
 	ErrorFunc.h \
+	Gamma.h \
 	GaoKlein.h \
 	GenHyperGeom.h \
 	GreenwoodWilliamson.h \
