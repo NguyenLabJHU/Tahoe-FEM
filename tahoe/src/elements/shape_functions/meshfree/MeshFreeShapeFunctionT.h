@@ -1,20 +1,13 @@
-/* $Id: MeshFreeShapeFunctionT.h,v 1.3 2001-07-03 01:35:50 paklein Exp $ */
-/* created: paklein (09/10/1998)                                          */
-/* MLS shape functions for the displacement interpolation - for           */
-/* small strain or total Lagrangian finite deformation. DO NOT            */
-/* USE for updated Lagrangian finite deformation.                         */
+/* $Id: MeshFreeShapeFunctionT.h,v 1.4 2001-12-17 00:03:36 paklein Exp $ */
+/* created: paklein (09/10/1998) */
 
 #ifndef _MF_SHAPE_FUNCTION_T_H_
 #define _MF_SHAPE_FUNCTION_T_H_
-
-//TEMP
-#include <fstream.h>
 
 /* base class */
 #include "ShapeFunctionT.h"
 
 /* direct members */
-//#include "MeshFreeT.h"
 #include "iArray2DT.h"
 #include "iAutoArrayT.h"
 #include "iArrayT.h"
@@ -24,17 +17,27 @@ class MeshFreeSupportT;
 class ifstreamT;
 template <class TYPE> class RaggedArray2DT;
 
+/** interface for meshfree shape functions. See ShapeFunctionT
+ * for documentation. */
 class MeshFreeShapeFunctionT: public ShapeFunctionT
 {
 public:
 
-	/* constructors */
+	/** constructors
+	 * \param geometry_code geometry of the integration cells 
+	 * \param numIP number of integration points per cell
+	 * \param coords array of cell nodal coordinates in local ordering
+	 * \param all_coords reference to the entire coordinate list
+	 * \param connectivities of the integration grid and declares on-grid nodes
+	 * \param nongridnodes list of nodes not on the grid
+	 * \param currelement reference to the current cell of evaluation
+	 * \param in input stream */
 	MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 		const LocalArrayT& coords, const dArray2DT& all_coords,
 		const iArray2DT& connects, const iArrayT& nongridnodes,
 		const int& currelement, ifstreamT& in);
 
-	/* destructor */
+	/** destructor */
 	~MeshFreeShapeFunctionT(void);
 
 	/* initialization - modifications to the support size must
@@ -101,10 +104,10 @@ private:
 
 protected:
 
-	/* MLS database support */
+	/** MLS database support */
 	MeshFreeSupportT* fMFSupport;
 	
-	/* current element number */
+	/** reference to the current element number */
 	const int& fCurrElement;
 	
 	/* ip data loaded from meshfree */
@@ -112,8 +115,8 @@ protected:
 	dArray2DT         fNaU;
 	ArrayT<dArray2DT> fDNaU;
 
-	/* interpolant nodes */
-	const iArray2DT& fXConnects; // integration grid cell nodes
+	/** list of integration grid cell connectivities */
+	const iArray2DT& fXConnects; 
 	iArrayT   fExactNodes; // 1...
 	                       // should this be a copy of a reference to
 	                       // a dynamically changing list? would have
