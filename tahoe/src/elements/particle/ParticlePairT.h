@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.9.10.2 2003-07-02 04:06:08 hspark Exp $ */
+/* $Id: ParticlePairT.h,v 1.9.10.3 2003-07-03 21:04:04 hspark Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -104,8 +104,8 @@ private:
 	
 	/** new variables for file I/O */
 	bool fopen;
-	ofstreamT fout;
-	StringT fsummary_file;
+	ofstreamT fout, fout2;
+	StringT fsummary_file, fsummary_file2;
 	/*@}*/
 };
 
