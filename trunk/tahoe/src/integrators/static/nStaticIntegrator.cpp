@@ -1,4 +1,4 @@
-/* $Id: nStaticIntegrator.cpp,v 1.6 2003-01-27 07:00:23 paklein Exp $ */
+/* $Id: nStaticIntegrator.cpp,v 1.7 2003-04-16 18:07:39 cjkimme Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "nStaticIntegrator.h"
@@ -32,6 +32,10 @@ void nStaticIntegrator::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		case KBC_CardT::kDsp: /* prescribed displacement */
 		{
 			d = KBC.Value();
+			break;
+		}
+		case KBC_CardT::kNull: /* do nothing and like it */
+		{
 			break;
 		}
 		default:
