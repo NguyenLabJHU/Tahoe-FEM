@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.23 2003-04-16 18:09:07 cjkimme Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.24 2003-04-24 20:40:24 cjkimme Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -36,9 +36,6 @@ TiedNodesT::TiedNodesT(NodeManagerT& node_manager, BasicFieldT& field):
 /* initialize data. Must be called immediately after construction */
 void TiedNodesT::Initialize(ifstreamT& in)
 {
-	/* inherited */
-	KBC_ControllerT::Initialize(in);
-	
 	/* read "leader" nodes */
 	iArrayT leader_nodes;
 	ReadNodes(in, fLeaderIds, leader_nodes);
@@ -136,10 +133,7 @@ void TiedNodesT::WriteParameters(ostream& out) const
 
 /* set to initial conditions. Reset all conditions to tied. */
 void TiedNodesT::InitialCondition(void)
-{
-	/* inherited */
-	KBC_ControllerT::InitialCondition();
-	
+{	
 	/* tie all */
 	fPairStatus = kTied;
 }
@@ -430,6 +424,12 @@ bool TiedNodesT::ChangeStatus(void)
 			  	fPairStatus[i] = kFree;
 			  	changeQ = true;
 			}
+			else  // check for retie 
+				if (fPairStatus[i] == kFree && freeNodeQ(fNodePairs(i,1),0) == 0.)
+				{
+					fPairStatus[i] = kTied;
+					changeQ = true;
+				}
 	   	}   
 	     
         return changeQ;

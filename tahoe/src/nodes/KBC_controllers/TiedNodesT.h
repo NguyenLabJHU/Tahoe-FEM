@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.18 2003-04-16 18:09:07 cjkimme Exp $ */
+/* $Id: TiedNodesT.h,v 1.19 2003-04-24 20:40:24 cjkimme Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -12,9 +12,6 @@
 #include "iArrayT.h"
 #include "ScheduleT.h"
 #include "AutoArrayT.h"
-//#ifdef COHESIVE_SURFACE_ELEMENT
-//#include "SurfacePotentialT.h"
-//#endif
 
 namespace Tahoe {
 

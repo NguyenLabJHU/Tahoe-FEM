@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.27 2003-04-16 18:09:05 cjkimme Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.28 2003-04-24 20:40:23 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -37,6 +37,7 @@
 #include "TiedNodesT.h"
 #include "SymmetricNodesT.h"
 #include "PeriodicNodesT.h"
+#include "ScaledVelocityNodesT.h"
 
 using namespace Tahoe;
 
@@ -1749,6 +1750,11 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 		case KBC_ControllerT::kPeriodicNodes:
 		{
 			PeriodicNodesT* kbc = new PeriodicNodesT(*this, field);
+			return kbc;
+		}
+		case KBC_ControllerT::kScaledVelocityNodes:
+		{
+			ScaledVelocityNodesT* kbc = new ScaledVelocityNodesT(*this, field);
 			return kbc;
 		}
 		default:
