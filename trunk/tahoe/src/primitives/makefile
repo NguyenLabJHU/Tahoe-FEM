@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.10 2004-07-15 08:31:36 paklein Exp $
+# $Id: makefile,v 1.11 2004-07-22 08:41:02 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -27,7 +27,6 @@ OBJ = \
 	KBC_CardT.o \
 	ScheduleT.o \
 	SWDataT.o \
-	TimeSequence.o \
 	Traction_CardT.o \
 	ElementBlockDataT.o \
 	BasicSupportT.o
@@ -57,7 +56,6 @@ SRC = \
 	KBC_CardT.cpp \
 	ScheduleT.cpp \
 	SWDataT.cpp \
-	TimeSequence.cpp \
 	Traction_CardT.cpp \
 	ElementBlockDataT.cpp \
 	BasicSupportT.cpp
@@ -79,7 +77,6 @@ HDR = \
 	KBC_CardT.h \
 	ScheduleT.h \
 	SWDataT.h \
-	TimeSequence.h \
 	Traction_CardT.h \
 	ElementBlockDataT.h \
 	BasicSupportT.h
