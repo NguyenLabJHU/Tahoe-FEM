@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.42 2005-02-04 22:03:55 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.43 2005-02-06 18:27:30 paklein Exp $ */
 
 #include "FieldT.h"
 
@@ -416,7 +416,9 @@ void FieldT::CloseStep(void)
 		}
 
 		/* write output */
-		if (fTotalEnergyOutputInc > 0 && FieldSupport().StepNumber() % fTotalEnergyOutputInc == 0) {
+		if (fTotalEnergyOutputInc > 0 && 
+			FieldSupport().Time() > kSmall && 
+			FieldSupport().StepNumber() % fTotalEnergyOutputInc == 0) {
 			double dat[2] = {w, ke};
 			dArray2DT n_values(1, 2, dat), e_values;
 			FieldSupport().WriteOutput(fTotalEnergyOutputID, n_values, e_values);
@@ -572,11 +574,20 @@ void FieldT::FinalizeEquations(int eq_start, int num_eq)
 	fNumEquations = num_eq;
 
 	/* storage */
-	if (fTrackTotalEnergy) {
-		fActiveForce.Dimension(fNumEquations);
-		fActiveForce = 0.0;
-		fActiveVel.Dimension(fNumEquations);
-		fActiveVel = 0.0;
+	if (fTrackTotalEnergy) 
+	{
+//TEMP - need to see if the number of equations has actually changed
+//       because changing contact (penalty method) will change the
+//       structure of the stiffness matrix without changing the number
+//       of equations		
+		if (fActiveForce.Length() != fNumEquations) {
+			fActiveForce.Dimension(fNumEquations);
+			fActiveForce = 0.0;
+		}
+		if (fActiveVel.Length() != fNumEquations) {
+			fActiveVel.Dimension(fNumEquations);
+			fActiveVel = 0.0;
+		}
 	}
 
 	/* set force boundary condition destinations */
