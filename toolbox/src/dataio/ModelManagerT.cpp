@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.4.2.6 2001-10-15 19:04:43 sawimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.4.2.7 2001-10-16 22:11:06 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -28,12 +28,30 @@ ModelManagerT::~ModelManagerT (void)
   delete fInput;
 }
 
-void ModelManagerT::Initialize (ifstreamT& in)
+void ModelManagerT::Initialize (ifstreamT& in, bool readonly)
 {
   StringT database;
   in >> fFormat;
-  in >> database;
-  ScanModel (database);
+
+  if (fFormat != IOBaseT::kTahoe)
+    {
+      in >> database;
+
+      /* prepend full path name to database file */
+      database.ToNativePathName();
+      
+      /* patch from input file */
+      StringT path;
+      path.FilePath (in.filename());
+
+      /* prepend path */
+      database.Prepend (path);
+    }
+  else
+    database = "\0";
+
+  if (!readonly)
+    ScanModel (database);
 }
 
 void ModelManagerT::Initialize (const IOBaseT::FileTypeT format, const StringT& database)
@@ -49,9 +67,23 @@ void ModelManagerT::Initialize (void)
   StringT database;
   cout << "\n Enter the Model Format Type: ";
   cin >> fFormat;
-  cout << "\n Enter the Model File Name: ";
-  cin >> database;
+  if (fFormat != IOBaseT::kTahoe)
+    {
+      cout << "\n Enter the Model File Name: ";
+      cin >> database;
+    }
+  else
+    database = "\0";
   ScanModel (database);
+}
+
+void ModelManagerT::EchoData (ostream& o) const
+{
+  IOBaseT temp (o);
+  o << " Input format. . . . . . . . . . . . . . . . . . = " << fFormat  << '\n';
+  temp.InputFormats (o);
+  if (fFormat != IOBaseT::kTahoe)
+    o << " Geometry file . . . . . . . . . . . . . . . . . = " << fInputName  << '\n';
 }
 
 bool ModelManagerT::RegisterNodes (int length, int dof)
@@ -197,7 +229,7 @@ bool ModelManagerT::RegisterSideSet (const StringT& name, iArray2DT& set, bool l
 bool ModelManagerT::RegisterNodes (ifstreamT& in)
 {
   ifstreamT tmp;
-  ifstreamT& in2 = OpenExternal (in, tmp, fMessage, true, "ModelManagerT::RegisterNodes: count not open file");
+  ifstreamT& in2 = OpenExternal (in, tmp, fMessage, true, "ModelManagerT::RegisterNodes(ifstreamT): count not open file");
 
   in2 >> fCoordinateDimensions[0] >> fCoordinateDimensions[1];
   fCoordinates.Allocate (fCoordinateDimensions[0], fCoordinateDimensions[1]);
@@ -209,7 +241,7 @@ bool ModelManagerT::RegisterNodes (ifstreamT& in)
 bool ModelManagerT::RegisterElementGroup (ifstreamT& in, const StringT& name, GeometryT::CodeT code)
 {
   ifstreamT tmp;
-  ifstreamT& in2 = OpenExternal (in, tmp, fMessage, true, "ModelManagerT::RegisterNodes: count not open file");
+  ifstreamT& in2 = OpenExternal (in, tmp, fMessage, true, "ModelManagerT::RegisterElementGroup(ifstreamT): count not open file");
 
   int length, numnodes;
   in2 >> length >> numnodes;
@@ -223,7 +255,7 @@ bool ModelManagerT::RegisterElementGroup (ifstreamT& in, const StringT& name, Ge
 bool ModelManagerT::RegisterNodeSet (ifstreamT& in, const StringT& name)
 {
   ifstreamT tmp;
-  ifstreamT& in2 = OpenExternal (in, tmp, fMessage, true, "ModelManagerT::RegisterNodes: count not open file");
+  ifstreamT& in2 = OpenExternal (in, tmp, fMessage, true, "ModelManagerT::RegisterNodeSet(ifstreamT): count not open file");
 
   int length;
   in2 >> length;
@@ -242,7 +274,7 @@ bool ModelManagerT::RegisterNodeSet (ifstreamT& in, const StringT& name)
 bool ModelManagerT::RegisterSideSet (ifstreamT& in, const StringT& name, bool local, int groupindex)
 {
   ifstreamT tmp;
-  ifstreamT& in2 = OpenExternal (in, tmp, fMessage, true, "ModelManagerT::RegisterNodes: count not open file");
+  ifstreamT& in2 = OpenExternal (in, tmp, fMessage, true, "ModelManagerT::RegisterSideSet (ifstreamT): count not open file");
 
   int length;
   in2 >> length;
@@ -297,9 +329,9 @@ void ModelManagerT::ElementBlockList (ifstreamT& in, iArrayT& indexes, iArrayT& 
       indexes[i] = ElementGroupIndex (name);
       if (indexes[i] < 0)
 	{
-	  cout << "\n ModelManagerT::ElementBlockList: "
-	       << " block " << i+1 << ": " << name << '\n';
-	  cout << "      does not match Model database " << endl;
+	  fMessage << "\n ModelManagerT::ElementBlockList: "
+		   << " block " << i+1 << ": " << name << '\n';
+	  fMessage << "      does not match Model database " << endl;
 	  throw eBadInputValue;
 	}
     }
@@ -349,8 +381,61 @@ void ModelManagerT::NodeSetList (ifstreamT& in, iArrayT& indexes)
     }
 }
 
-void ModelManagerT::SideSetList (ifstreamT& in, iArrayT& indexes)
+void ModelManagerT::SideSetList (ifstreamT& in, iArrayT& indexes, bool multidatabasesets)
 {
+  if (fFormat == IOBaseT::kTahoe)
+    {
+      bool local = true;
+
+      int blockID;
+      in >> blockID;
+      int groupindex = ElementGroupIndex (blockID);
+
+      StringT name = "InlineSS";
+      name.Append (fNumSideSets+1);
+      RegisterSideSet (in, name, local, groupindex);
+
+      indexes.Allocate (1);
+      indexes[0] = SideSetIndex (name);
+
+      /* account for no sets */
+      if (indexes[0] > -1)
+	{
+	  fMessage << " Side Set Name . . . . . . . . . . . . . . . . . = ";
+	  fMessage << name << '\n';
+	  fMessage << " Side Set Index. . . . . . . . . . . . . . . . . = ";
+	  fMessage << indexes[0] << '\n';
+	  fMessage << " Side Set Element Group Name . . . . . . . . . . = ";
+	  fMessage << blockID << '\n';
+	  fMessage << " Side Set Length . . . . . . . . . . . . . . . . = ";
+	  fMessage << fSideSetDimensions[indexes[0]] << '\n';
+	}
+    }
+  else
+    {
+      int num_sets;
+      if (multidatabasesets)
+	in >> num_sets;
+      else
+	num_sets = 1;
+
+      indexes.Allocate (num_sets);
+      for (int i=0; i < num_sets; i++)
+	{
+	  StringT name;
+	  in >> name;
+	  indexes[i] = SideSetIndex (name);
+
+	  fMessage << " Side Set Name . . . . . . . . . . . . . . . . . = ";
+	  fMessage << name << '\n';
+	  fMessage << " Side Set Index. . . . . . . . . . . . . . . . . = ";
+	  fMessage << indexes[0] << '\n';
+	  fMessage << " Side Set Element Group Name . . . . . . . . . . = ";
+	  fMessage << fInput->SideSetGroupName (name) << '\n';
+	  fMessage << " Side Set Length . . . . . . . . . . . . . . . . = ";
+	  fMessage << fSideSetDimensions[indexes[i]] << '\n';
+	}
+    }
 }
 
 /* return the total number of nodes, read node lists, integer data and double values */
@@ -712,7 +797,7 @@ void ModelManagerT::SideSetGlobalToLocal (int& localelemindex, iArray2DT& local,
 #pragma unused(localelemindex)
 #pragma unused(local)
 #pragma unused(global)
-  cout << "\n\n ModelManagerT not programmed SideSetGlobalToLocal\n\n";
+  fMessage << "\n\n ModelManagerT not programmed SideSetGlobalToLocal\n\n";
   throw eGeneralFail;
 }
 
@@ -790,7 +875,7 @@ ifstreamT& ModelManagerT::OpenExternal (ifstreamT& in, ifstreamT& in2, ostream& 
 		in2.open(file);
 		if (!in2.is_open())
 		{
-			if (verbose && fail) cout << "\n " << fail << ": " << file << endl;
+			if (verbose && fail) fMessage << "\n " << fail << ": " << file << endl;
 			throw eBadInputValue;
 		}
 
@@ -919,7 +1004,7 @@ bool ModelManagerT::ScanSideSets (void)
       if (fSideSetIsLocal[i])
 	{
 	  StringT name = fInput->SideSetGroupName (fSideSetNames[i]);
-	  fSideSetGroupIndex = ElementGroupIndex (name);
+	  fSideSetGroupIndex[i] = ElementGroupIndex (name);
 	}
     }
   return true;
