@@ -1,10 +1,12 @@
-/* $Id: BridgingScaleT.h,v 1.13 2002-08-14 02:30:34 hspark Exp $ */
+/* $Id: BridgingScaleT.h,v 1.14 2002-08-15 16:31:45 hspark Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
 /* direct members */
 #include "ElasticT.h"
 #include "RaggedArray2DT.h"
+#include "ElementMatrixT.h"
+#include "CCSMatrixT.h"
 
 namespace Tahoe {
 
@@ -93,12 +95,11 @@ private:
 
 	/** \name bridging scale-related computational functions */
 	/*@{*/
-	/** computes coarse scale (FEM) solution via projecting the 
-	    fine scale (MD) solution onto the FEM basis space */
-	void ComputeU(const dArray2DT& field1, const dArray2DT& field2, const dArray2DT& field3);
+	/** compute fine scale fields */
+	void ComputeFineScaleFields(void);
 
-	/** compute coarse scale mass matrix */
-	void ComputeMass(void);
+	/** compute coarse scale fields */
+	void ComputeCoarseScaleFields(void);
 	/*@}*/
 
 protected:
@@ -130,6 +131,8 @@ protected:
 
 	int fTotalNodes;
 	iArray2DT fConnect;
+	ElementMatrixT fElMat;
+	CCSMatrixT fGlobal;
 
 	/* output control */
 	iArrayT	fNodalOutputCodes;
