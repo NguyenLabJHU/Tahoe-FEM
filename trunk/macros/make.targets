@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.43 2004-03-21 16:14:08 paklein Exp $
+# $Id: make.targets,v 1.44 2004-08-10 05:27:12 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -195,8 +195,8 @@ clean: $(MAKE_CLEAN_XTRAS) $(MOD_MAKE_CLEAN_XTRAS)
 			else \
 				$(RM) -rf $(LIB_DIR); \
 			fi; \
-		fi		
-	-@ cd $(MACRO_DIR)/cxx_repository; ls -1 | $(GREP) "\.o$$\|\.DB$$" | $(XARGS) $(RM)
+		fi
+	@ cd $(MACRO_DIR)/cxx_repository; $(PERL) $(MACRO_DIR)/rm.pl "*.o" "*.DB"
 
 # set-up directories
 setup:
@@ -226,7 +226,7 @@ object_list: FORCE
 
 # set symbolic links to all header files
 headers: $(MAKE_HEADERS_XTRAS) $(MOD_MAKE_HEADERS_XTRAS)
-	-@ cd $(INC_DIR); ls -1 | $(GREP) '\.h$$' | $(XARGS) $(RM)
+	-@ cd $(INC_DIR); $(PERL) $(MACRO_DIR)/rm.pl "*.h"
 	@ $(PRINTF) "cd $(SRC_DIR)\n"
 	cd $(SRC_DIR); \
 	$(MAKE) $(MAKE_OPTS) headers \
