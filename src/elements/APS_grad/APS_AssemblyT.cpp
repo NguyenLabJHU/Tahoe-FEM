@@ -1,5 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.45 2004-02-04 00:40:42 raregue Exp $ */
-
+/* $Id: APS_AssemblyT.cpp,v 1.46 2004-02-09 08:25:50 paklein Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -208,22 +207,59 @@ void APS_AssemblyT::Echo_Input_Data(void) {
 
 void APS_AssemblyT::Initialize(void)
 {
+	const char caller[] = "APS_AssemblyT::Initialize";
+
 	/* inherited */
 	ElementBaseT::Initialize();
 	
 	/* dimensions (notation as per Hughes' Book) */
-	n_ip_displ = fNumIP_displ;
-	n_ip_plast = fNumIP_plast;
+	int& n_ip_displ = fNumIP_displ;
+	int& n_ip_plast = fNumIP_plast;
 	n_sd = NumSD();
 	//n_df = NumDOF(); 
-	//n_df = 1+n_sd; 
-	n_en_displ = NumElementNodes();
-	//n_en_plast = ??;
-	#pragma message("APS_AssemblyT::Initialize: n_en_plast=n_en_displ hardcoded ")
-	n_en_plast = n_en_displ;
+	//n_df = 1+n_sd; 		
+	int nen = NumElementNodes(); /* number of nodes/element in the mesh */
+	n_en_plast = n_en_displ = nen;
 	//n_np = ElementSupport().NumNodes();
-	n_el = NumElements();
-	
+
+	/* initialize connectivities */
+	fConnectivities_displ.Alias(fConnectivities);
+	fConnectivities_plast.Alias(fConnectivities);
+
+	/* pick element interpolations based on available number of element nodes
+	 * and the specified number of integration points */
+	if (n_sd == 2 && nen == 8 && fGeometryCode_displ == GeometryT::kQuadrilateral) /* only implemented for 2D, quadratic quads */
+	{
+		/* don't expect reduced integration for both fields */
+		if (n_ip_displ == 4 && n_ip_plast == 4)
+			ExceptionT::GeneralFail(caller, "not expecting 4 ips for both fields");
+		else if (n_ip_displ == 4 || n_ip_plast == 4) /* create reduced connectivities */
+		{
+			/* reduce the number of element nodes based on the number ip's */
+			int& nen_red = (n_ip_displ == 4) ? n_en_displ : n_en_plast;
+			nen_red = 4;
+			ArrayT<const iArray2DT*>& connects_red = (n_ip_displ == 4) ? 
+				fConnectivities_displ : 
+				fConnectivities_plast;
+		
+			/* create reduced connectivities */
+			connects_red.Dimension(0);
+			connects_red.Dimension(fConnectivities.Length());
+			fConnectivities_reduced.Dimension(fConnectivities.Length());
+			for (int i = 0; i < fConnectivities_reduced.Length(); i++) {
+				iArray2DT& connects_red_store = fConnectivities_reduced[i];
+				const iArray2DT& connects = *(fConnectivities[i]);
+				connects_red_store.Dimension(connects.MajorDim(), nen_red);				
+				connects_red[i] = &connects_red_store;
+				
+				/* take 1st four element nodes (columns) */
+				for (int j = 0; j < nen_red; j++)
+					connects_red_store.ColumnCopy(j, connects, j);
+			}
+		}
+	}
+
+	n_el = NumElements();	
 	n_sd_surf = n_sd;
 
 	/* set local arrays for coarse scale */
@@ -268,15 +304,19 @@ void APS_AssemblyT::Initialize(void)
 	fiState_new.Dimension(n_el, num_ip*knum_i_state);
 	fiState.Dimension(n_el, num_ip*knum_i_state);
 	
-	/* storage for the fine scale equation numbers */
-	fEqnos_plast.Dimension(n_el, n_en_plast*n_sd);
-	fEqnos_plast = -1;
+	/* initialize equations */
+	fEqnos_displ.Alias(fEqnos_displ);
+	fEqnos_plast.Dimension(fConnectivities_plast.Length());
 
 	/* initialize state variables */
 	fdState = 0;
 	fdState_new = 0;
 	fiState = 0;
 	fiState_new = 0;
+
+	/* initialize element cards */
+	fElementCards_displ.Alias(fElementCards);
+	fElementCards_plast.Dimension(fElementCards.Length());
 	
 	/* set cards to data in array - NOT NEEDED IF YOU'RE NOT
 	 * GOING TO USE THE ElementCardT ARRAY? */
@@ -379,26 +419,29 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
 	/* doing monolithic solution */
 	if (fDispl.Group() == fPlast.Group())
 	{
-		#pragma message("APS_AssemblyT::Equations: how determine NumDOF for each field?")
 		int ndof_plast = fPlast.NumDOF();
 		int ndof_displ = fDispl.NumDOF();
-		//int nen = NumElementNodes();
 	
 		/* loop over connectivity blocks */
+		fEqnos_displ.Dimension(fEqnos.Length());
+		fEqnos_plast.Dimension(fEqnos.Length());
 		for (int i = 0; i < fEqnos.Length(); i++)
 		{
 			/* connectivities */
-			const iArray2DT& connects = *(fConnectivities[i]);
-			int nel = connects.MajorDim();
+			const iArray2DT& connects_displ = *(fConnectivities_displ[i]);
+			const iArray2DT& connects_plast = *(fConnectivities_plast[i]);
+			int nel = connects_displ.MajorDim();
 		
 			/* dimension */ 
 			fEqnos[i].Dimension(nel, n_en_displ*ndof_displ + n_en_plast*ndof_plast);
-			iArray2DT displ_eq(nel, n_en_displ*ndof_displ);
-			iArray2DT plast_eq(nel, n_en_plast*ndof_plast);
+			iArray2DT& displ_eq = fEqnos_displ[i];
+			iArray2DT& plast_eq = fEqnos_plast[i];
+			displ_eq.Dimension(nel, n_en_displ*ndof_displ);
+			plast_eq.Dimension(nel, n_en_plast*ndof_plast);
 			
 			/* get equation numbers */
-			fDispl.SetLocalEqnos(connects, displ_eq);
-			fPlast.SetLocalEqnos(connects, plast_eq);
+			fDispl.SetLocalEqnos(connects_displ, displ_eq);
+			fPlast.SetLocalEqnos(connects_plast, plast_eq);
 			
 			/* write into one array */
 			fEqnos[i].BlockColumnCopyAt(displ_eq, 0);
@@ -409,21 +452,24 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
 		}
 	
 		/* reset pointers to element cards */
-		SetElementCards();	
+		SetElementCards(fBlockData, fConnectivities_displ, fEqnos_displ, fElementCards_displ);
+		SetElementCards(fBlockData, fConnectivities_plast, fEqnos_plast, fElementCards_plast);
 	}
 	else
 	{
+#pragma message("correct initialization for staggered solution")
+	
 		/* ElementBaseT handles equation array for the coarse scale */
 		if (ElementSupport().CurrentGroup() == fDispl.Group())
-			ElementBaseT::Equations(eq_d,eq_eps);
+			ElementBaseT::Equations(eq_d, eq_eps);
 
 		/* fine scale equations */
 		if (ElementSupport().CurrentGroup() == fPlast.Group())
 		{
 			/* collect local equation numbers */
-			fPlast.SetLocalEqnos(fConnectivities, fEqnos_plast);
+			//fPlast.SetLocalEqnos(fConnectivities_plast, fEqnos_plast);
 		
-			eq_d.Append(&fEqnos_plast);
+			//eq_d.Append(&fEqnos_plast);
 		}
 	}
 	
@@ -924,7 +970,6 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 	double delta_t = ElementSupport().TimeStep();
 	time = ElementSupport().Time();
 	step_number = ElementSupport().StepNumber();
-	iArrayT plast_eq;
 
  	/* has (coarse scale) body forces */
 	int formBody = 0;
@@ -937,22 +982,24 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 	while (NextElement())
 	{
 		e = CurrElementNumber();
+		const iArrayT& nodes_displ = fElementCards_displ[e].NodesU();
+		const iArrayT& nodes_plast = fElementCards_plast[e].NodesU();
 
-		SetLocalU (u);			 
-		SetLocalU (u_n);
-		SetLocalU (gamma_p);			 
-		SetLocalU (gamma_p_n);
+		u.SetLocal(nodes_displ);
+		u_n.SetLocal(nodes_displ);
+		gamma_p.SetLocal(nodes_plast);
+		gamma_p_n.SetLocal(nodes_plast);
 
 		del_u.DiffOf (u, u_n);
 		del_gamma_p.DiffOf (gamma_p, gamma_p_n);
 		
 		// coordinates do not change for anti-plane shear
 		//fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
-	 	SetLocalX(fInitCoords_displ); 
+	 	fInitCoords_displ.SetLocal(nodes_displ);
 		fCurrCoords_displ = fInitCoords_displ;
 		fShapes_displ->SetDerivatives(); 
 		//
-		SetLocalX(fInitCoords_plast); 
+		fInitCoords_plast.SetLocal(nodes_plast); 
 		fCurrCoords_plast = fInitCoords_plast;
 		fShapes_plast->SetDerivatives(); 
 		
@@ -1059,7 +1106,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 				fRHS *= -1.0; 
 		
 				/* fine scale equation numbers */
-				fEqnos_plast.RowAlias ( CurrElementNumber(), plast_eq );
+				const iArrayT& plast_eq = fElementCards_plast[e].Equations();
 
 				/* add to global equations */
 				ElementSupport().AssembleLHS ( fPlast.Group(), fLHS, plast_eq );
@@ -1090,7 +1137,6 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 	double delta_t = ElementSupport().TimeStep();
 	time = ElementSupport().Time();
 	step_number = ElementSupport().StepNumber();
-	iArrayT displ_eq, plast_eq;
 
 	/* work space for integration over faces */
 	LocalArrayT face_coords(LocalArrayT::kInitCoords, n_en_surf, NumSD());
@@ -1112,22 +1158,24 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 	while (NextElement())
 	{
 		e = CurrElementNumber();
+		const iArrayT& nodes_displ = fElementCards_displ[e].NodesU();
+		const iArrayT& nodes_plast = fElementCards_plast[e].NodesU();
 
-		SetLocalU (u);			 
-		SetLocalU (u_n);
-		SetLocalU (gamma_p);			 
-		SetLocalU (gamma_p_n);
+		u.SetLocal(nodes_displ);
+		u_n.SetLocal(nodes_displ);
+		gamma_p.SetLocal(nodes_plast);
+		gamma_p_n.SetLocal(nodes_plast);
 
 		del_u.DiffOf (u, u_n);
 		del_gamma_p.DiffOf (gamma_p, gamma_p_n);
 		
 		// coordinates do not change for anti-plane shear
 		//fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
-	 	SetLocalX(fInitCoords_displ); 
+	 	fInitCoords_displ.SetLocal(nodes_displ); 
 		fCurrCoords_displ = fInitCoords_displ;
 		fShapes_displ->SetDerivatives(); 
 		//
-		SetLocalX(fInitCoords_plast); 
+		fInitCoords_plast.SetLocal(nodes_plast); 
 		fCurrCoords_plast = fInitCoords_plast;
 		fShapes_plast->SetDerivatives(); 
 		
@@ -1240,9 +1288,8 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 			Convert.Copy ( fNumIP_plast, knum_d_state, fstate, fdstatenew_all );
 
 			/* equations numbers */
-			const iArrayT& all_eq = CurrentElement().Equations();
-			displ_eq.Alias(fFd_int.Length(), all_eq.Pointer());
-			plast_eq.Alias(fFeps_int.Length(), all_eq.Pointer(fFd_int.Length()));
+			const iArrayT& displ_eq = fElementCards_displ[e].Equations();
+			const iArrayT& plast_eq = fElementCards_plast[e].Equations();
 
 			/* assemble residuals */
 			ElementSupport().AssembleRHS(curr_group, fFd_int, displ_eq);

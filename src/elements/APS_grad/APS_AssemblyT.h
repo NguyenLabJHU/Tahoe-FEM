@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.23 2004-02-04 00:40:42 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.24 2004-02-09 08:25:50 paklein Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -183,7 +183,8 @@ private:
 	dArrayT		del_gamma_p_vec;	// vector form
 	/*@}*/
 
-	int n_ip_displ, n_ip_plast, n_en_displ, n_en_plast, n_en_plast_x_n_sd;
+	//int n_ip_displ, n_ip_plast;
+	int n_en_displ, n_en_plast, n_en_plast_x_n_sd;
 	int n_el, n_sd, n_sd_surf, n_en_surf;
 	//int step_number_last_iter;
 	//bool New_Step;
@@ -251,10 +252,6 @@ private:
 	/** the plastic gradient field */
 	const FieldT& fPlast;	
 
-	/** equations per element for gradient plasticity. The balance equation is
-	 * in ElementBaseT::fEqnos and is handled by ElementBaseT. */
-	iArray2DT fEqnos_plast;
-
 	/** \name state variable storage *
 	 * State variables are handled ABAQUS-style. For every iteration, the state 
 	 * variables from the previous increment are passed to the element, which 
@@ -267,12 +264,31 @@ private:
 	iArray2DT fiState_new;
 	iArray2DT fiState;
 	/*@}*/
-	
+
+	/** \name connectivities */
+	/*@{*/
+	ArrayT<const iArray2DT*> fConnectivities_displ;
+	ArrayT<const iArray2DT*> fConnectivities_plast;
+	ArrayT<iArray2DT> fConnectivities_reduced;
+	/*@}*/
+
+	/** \name equations */
+	/*@{*/
+	ArrayT<iArray2DT> fEqnos_displ;
+	ArrayT<iArray2DT> fEqnos_plast;
+	/*@}*/
+
+	/** \name element cards */
+	/*@{*/
+	AutoArrayT<ElementCardT> fElementCards_displ;
+	AutoArrayT<ElementCardT> fElementCards_plast;
+	/*@}*/
+
 	/** \name output */
 	/*@{*/
 	/** output ID */
 	int fOutputID;
-	
+
 	/** integration point stresses. Calculated and stored during 
 	 * APS_AssemblyT::RHSDriver */
 	dArray2DT fIPVariable;
