@@ -1,4 +1,4 @@
-/* $Id: nVariMatrixT.h,v 1.5 2002-10-20 22:38:57 paklein Exp $ */
+/* $Id: nVariMatrixT.h,v 1.6 2002-10-23 04:58:54 paklein Exp $ */
 /* created: paklein (07/05/1998) */
 #ifndef _N_VARI_MATRIX_T_H_
 #define _N_VARI_MATRIX_T_H_
@@ -12,8 +12,8 @@
 namespace Tahoe {
 
 /** wrapper for nMatrixT<>'s for dynamic re-sizing.
-/* Manage changing memory using some headroom to cut down calls for
-/* memory de/re-allocation */
+ * Manage changing memory using some headroom to cut down calls for
+ * memory de/re-allocation */
 template <class nTYPE>
 class nVariMatrixT: public VariBaseT<nTYPE>
 {
