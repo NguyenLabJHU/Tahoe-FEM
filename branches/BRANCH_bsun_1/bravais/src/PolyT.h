@@ -31,16 +31,17 @@
       dArrayT PeriodicLength;
       bool IsPeriodic;
       double Tolerance;
+      int kRandomSeed;
       
    
    public:
    
    //Constructor
       PolyT(int dim, dArray2DT len, dArrayT lattice_parameter,
-       iArrayT which_sort, StringT slt, iArrayT per, int NumGrains);
+       iArrayT which_sort, StringT slt, iArrayT per, int NumGrains, int random_seed);
    
       PolyT(int dim, iArrayT cel, dArrayT lattice_parameter,
-       iArrayT which_sort, StringT slt, iArrayT per, int NumGrains);
+       iArrayT which_sort, StringT slt, iArrayT per, int NumGrains, int random_seed);
    
    //Destructor
        ~PolyT(){};

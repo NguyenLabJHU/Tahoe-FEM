@@ -54,7 +54,7 @@
          MeshAtomT(StringT which_latticetype,int nsd,int nuca,
          dArrayT latticeparameter,StringT which_shape,
          int whichunit,dArray2DT len, iArrayT cel,int irot,
-         dArray2DT mat_rot,double angle,iArrayT isort,iArrayT per, int NumberofGrains);
+         dArray2DT mat_rot,double angle,iArrayT isort,iArrayT per, int NumberofGrains, int random_seed);
       
       // Destructor: not done yet. 
          ~MeshAtomT();

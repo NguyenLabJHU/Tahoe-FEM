@@ -27,6 +27,7 @@
 #include "OutPutLatticeT.h"
 
 #include "MeshAtomT.h"
+#include "time.h"
 
     void MakeCrystalT::Run() 
    {
@@ -200,7 +201,9 @@
    
       iArrayT isort(nsd);
       isort = 0;
-   
+      
+      int random_seed = time(0);
+
       while (misc!="#")
       {
          if (misc=="PERIODICITY")
@@ -245,6 +248,10 @@
                out << "\n";
             }
          }
+         else if (misc == "SEED") {
+         	in >> random_seed;
+         }
+         	
          else if (misc=="SORT")
          {
             if(nsd == 2) 
@@ -277,7 +284,7 @@
    
       MeshAtomT mesh_atom(latticetype,nsd,b,alat,
             shape,whichunit,len,cel,irot,mat_rot,
-            angle,isort,per,NumberofGrains);
+            angle,isort,per,NumberofGrains, random_seed);
    
       StringT program = "bravais";
       StringT version = "v1.0";
