@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.18 2003-11-10 22:14:22 cjkimme Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.19 2004-05-07 22:34:12 paklein Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #include "ExodusInputT.h"
@@ -357,38 +357,38 @@ void ExodusInputT::ReadElementVariable (int step, const StringT& name, int varin
   fData.ReadElementVariable (step+1, group_id, varindex+1, values);
 }
 
-void ExodusInputT::ReadAllElementVariables (int step, dArray2DT& values)
+void ExodusInputT::ReadAllElementVariables(int step, dArray2DT& values)
 {
-  int num = values.MinorDim();
-  if (values.MajorDim() != NumGlobalElements () ||
-      num != NumElementVariables ()) throw ExceptionT::kSizeMismatch;
-  dArray2DT vt (num, values.MajorDim());
+	int nvar = values.MinorDim();
+	if (values.MajorDim() != NumGlobalElements() || nvar != NumElementVariables())
+		ExceptionT::SizeMismatch("ExodusInputT::ReadAllElementVariables");
 
-  if (num ==0)
-    {
-      values = 0;
-      return;
-    }
+	/* quick exit */
+	if (nvar == 0) return;
 
-  int ng = NumElementGroups ();
-  iArrayT ids (ng);
-  fData.ElementBlockID (ids);
+	/* collect all element block id's */
+	int ng = NumElementGroups();
+	iArrayT ids(ng);
+	fData.ElementBlockID(ids);
   
-  for (int i=0, offset = 0; i < ng; i++)
-    {
-      int numelems, dim;
-      fData.ReadElementBlockDims (ids[i], numelems, dim);
-
-      dArrayT temp (numelems);
-      for (int e=0; e < num; e++)
+	dArray2DT vt(nvar, values.MajorDim());
+	int offset = 0;
+	for (int i = 0; i < ng; i++)
 	{
-	  fData.ReadElementVariable (step+1, ids[i], e+1, temp);
-	  vt.CopyPart (e*num + offset, temp, 0, numelems);
-	}
+		int numelems, dim;
+      	fData.ReadElementBlockDims (ids[i], numelems, dim);
 
-      offset += numelems;
+		dArrayT var(numelems);
+		for (int e = 0; e < nvar; e++) {
+			fData.ReadElementVariable(step+1, ids[i], e+1, var);
+			vt.CopyPart(e*numelems + offset, var, 0, numelems);
+		}
+
+		offset += numelems;
     }
-  values.Transpose (vt);
+    
+    /* copy/transpose to return */
+  	values.Transpose(vt);
 }
 
 void ExodusInputT::ReadElementVariables (int step, const StringT& name, dArray2DT& evalues)
