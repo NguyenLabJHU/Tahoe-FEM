@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.9 2002-11-28 17:30:31 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.10 2002-11-30 16:27:57 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 
 #include "PCGSolver_LS.h"
@@ -99,7 +99,7 @@ double PCGSolver_LS::SolveAndForm(bool newtangent)
 	if (fNumIteration == 0 || fPreconditioner)
 	{
 		fLHS->Clear();
-		fFEManager.FormLHS(Group(), GlobalT::kNonSymmetric);
+		fFEManager.FormLHS(Group(), fLHS->MatrixType());
 		fPreconditioner = 0;
 	}
 
