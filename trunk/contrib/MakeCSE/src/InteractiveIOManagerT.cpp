@@ -1,4 +1,4 @@
-// $Id: InteractiveIOManagerT.cpp,v 1.4 2002-10-28 21:36:33 sawimme Exp $
+// $Id: InteractiveIOManagerT.cpp,v 1.5 2003-09-05 19:48:55 paklein Exp $
 #include "InteractiveIOManagerT.h"
 #include "ExceptionT.h"
 
@@ -14,7 +14,6 @@ void InteractiveIOManagerT::Initialize (void)
   /* echoing an input file */
   StringT filename (81);
   StringT answer (81);
-  if (fEchoInput) fEchoInput.close();
   cout << "\n Do you want to write an input file? (1 or y)? ";
   cin.getline (answer.Pointer(), 80, '\n');
   if (answer[0] == 'y' || answer[0] == 'Y' || answer[0] == '1') 
@@ -22,7 +21,7 @@ void InteractiveIOManagerT::Initialize (void)
       cout << " Enter file name for input file: ";
       cin.getline (filename.Pointer(), 80, '\n');
       fEchoInput.open (filename);
-      fEchoInput << '%\n';
+      fEchoInput << "%\n";
       fEcho = true;
     }
   else
@@ -46,6 +45,8 @@ void InteractiveIOManagerT::OutputFormat (IOBaseT::FileTypeT &f, StringT& s)
   cin >> f;
   cout << "\n Enter the root of the output files: ";
   cin >> s;
+  
+  if (fEcho) fEchoInput << "*OUTPUT " << f << '\n';
 }
 
 bool InteractiveIOManagerT::Verbose (void)
@@ -339,10 +340,9 @@ void  InteractiveIOManagerT::ReadIDValues (const sArrayT& q, sArrayT& names)
 
 void InteractiveIOManagerT::ReadID_Parameter (const sArrayT& q, sArrayT& names, iArrayT& vals)
 {
-  if (q.Length() != names.Length() ||
-      q.Length() != vals.Length() ) throw ExceptionT::kSizeMismatch;
+  if (vals.Length() != names.Length()) ExceptionT::SizeMismatch("InteractiveIOManagerT::ReadID_Parameter");
 
-  int num = q.Length();
+  int num = vals.Length();
   StringT answer (81);
   for (int i=0; i < num; i++)
     {
@@ -354,7 +354,6 @@ void InteractiveIOManagerT::ReadID_Parameter (const sArrayT& q, sArrayT& names, 
       cin >> vals[i];
       cin.getline (answer.Pointer(), 80, '\n'); // clear line
       
-      if (fEcho)
-	fEchoInput << names[i] << "  " << vals[i];
+      if (fEcho) fEchoInput << names[i] << " " << vals[i] << '\n';
     }
 }

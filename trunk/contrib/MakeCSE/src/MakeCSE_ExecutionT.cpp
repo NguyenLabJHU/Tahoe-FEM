@@ -112,7 +112,7 @@ void MakeCSE_ExecutionT::RunJob (ifstreamT& in)
       StringT outfile (81);
       if (fInteractive)
 	{
-	  cout << "\n Enter output file: ";
+	  cout << "\n Enter log file: ";
 	  cin >> outfile;
 	  StringT line (81);
 	  cin.getline (line.Pointer(), 80, '\n'); // clear away end line char

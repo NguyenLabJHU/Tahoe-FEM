@@ -1,4 +1,4 @@
-// $Id: MakeCSE_FEManager.cpp,v 1.5 2002-11-05 13:26:26 sawimme Exp $
+// $Id: MakeCSE_FEManager.cpp,v 1.6 2003-09-05 19:48:55 paklein Exp $
 // created: 11/10/99 SAW
 #include "MakeCSE_FEManager.h"
 #include "ExceptionT.h"
@@ -30,9 +30,10 @@ MakeCSE_FEManager::MakeCSE_FEManager (ostream& out) :
 
 MakeCSE_FEManager::~MakeCSE_FEManager (void)
 {
-  delete fNodeBoss;
-  for (int i=0; i < fElementGroups.Length(); i++)
-    delete fElementGroups[i];
+	delete fNodeBoss;
+	for (int i=0; i < fElementGroups.Length(); i++)
+    	delete fElementGroups[i];
+    delete fParameters;
 }
 
 void MakeCSE_FEManager::InitializeInput (ifstreamT& in, bool interactive)
