@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.67 2003-10-28 07:27:13 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.68 2003-10-28 23:30:53 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -859,14 +859,36 @@ void ElementListT::SetActiveElementGroupMask(const ArrayT<bool>& mask)
 /* information about subordinate parameter lists */
 void ElementListT::DefineSubs(SubListT& sub_list) const
 {
+	/* inherited */
+	ParameterInterfaceT::DefineSubs(sub_list);
+
+	/* the element groups - an array of choices */
+	sub_list.AddSub("element_groups", ParameterListT::OnePlus, true);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void ElementListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	if (sub == "element_groups")
+	{
+		order = ParameterListT::Choice;
+
 #ifdef COHESIVE_SURFACE_ELEMENT
-	sub_list.AddSub("isotropic_CSE", ParameterListT::Any);
-	sub_list.AddSub("anisotropic_CSE", ParameterListT::Any);
+		sub_sub_list.AddSub("isotropic_CSE");
+		sub_sub_list.AddSub("anisotropic_CSE");
 #endif
 
 #ifdef ADHESION_ELEMENT
-	sub_list.AddSub("adhesion", ParameterListT::Any);
+		sub_sub_list.AddSub("adhesion");
 #endif
+
+#ifdef PARTICLE_ELEMENT
+		sub_sub_list.AddSub("particle_pair");
+#endif
+	}
+	else /* inherited */
+		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
@@ -886,6 +908,11 @@ ParameterInterfaceT* ElementListT::NewSub(const StringT& list_name) const
 #ifdef ADHESION_ELEMENT
 	else if (list_name == "adhesion")
 		return new AdhesionT(fSupport);
+#endif
+
+#ifdef PARTICLE_ELEMENT
+	else if (list_name == "particle_pair")
+		return new ParticlePairT(fSupport);
 #endif
 
 	/* inherited */	
