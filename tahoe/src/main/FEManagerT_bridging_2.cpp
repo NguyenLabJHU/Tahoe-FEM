@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_2.cpp,v 1.8 2005-02-13 22:16:25 paklein Exp $ */
+/* $Id: FEManagerT_bridging_2.cpp,v 1.9 2005-02-18 02:37:21 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -216,6 +216,9 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 		GhostNodeBonds_2(R_i, point_coords, ghost_neighbors_all, ghost_neighbors_i, overlap_cell_i, overlap_node_i);
 		overlap_cell_i_map.SetMap(overlap_cell_i);
 		overlap_node_i_map.SetMap(overlap_node_i);
+
+		/* report */
+		cout << i+1 << '/' << bonds.MajorDim() << ": " << ghost_neighbors_i.Length() << " bonds\n";
 		if (fPrintInput) {
 			iArrayT tmp;
 			
