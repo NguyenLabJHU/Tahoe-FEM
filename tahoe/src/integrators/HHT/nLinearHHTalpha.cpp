@@ -1,4 +1,4 @@
-/* $Id: nLinearHHTalpha.cpp,v 1.8 2003-01-29 07:35:14 paklein Exp $ */
+/* $Id: nLinearHHTalpha.cpp,v 1.9 2003-04-16 20:34:00 cjkimme Exp $ */
 /* created: paklein (10/14/1996) */
 #include "nLinearHHTalpha.h"
 #include "dArrayT.h"
@@ -56,6 +56,10 @@ void nLinearHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 			d += dalpha_a*a;
 			v += valpha_a*a;
 
+			break;
+		}
+		case KBC_CardT::kNull: /* do nothing */
+		{
 			break;
 		}
 		default:
