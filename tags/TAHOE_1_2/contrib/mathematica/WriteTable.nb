@@ -1,0 +1,470 @@
+(***********************************************************************
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used on any computer system with Mathematica 3.0,
+MathReader 3.0, or any compatible application. The data for the notebook 
+starts with the line of stars above.
+
+To get the notebook into a Mathematica-compatible application, do one of 
+the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing the 
+word CacheID, otherwise Mathematica-compatible applications may try to 
+use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+***********************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[      7425,        350]*)
+(*NotebookOutlinePosition[      8083,        374]*)
+(*  CellTagsIndexPosition[      8039,        370]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+Cell["$Id: WriteTable.nb,v 1.2 2002-11-18 20:07:01 thao Exp $", 
+  "Subsubsection",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell[CellGroupData[{
+
+Cell["utilities:", "Subsubsection",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell["\<\
+Routines that convert numbers to strings with a specific format for \
+writing to plain text files.\
+\>", "Text"],
+
+Cell[CellGroupData[{
+
+Cell["kPrecision = 10;", "Input",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell["\<\
+General::spell1: Possible spelling error: new symbol name \
+\"kPrecision\"
+     is similar to existing symbol \"Precision\".\
+\>", "Message"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+CPPString[man_,exp_] := \
+StringJoin[ToString[PaddedForm[man,{kPrecision+3,kPrecision}]],\"e\",
+\tToString[PaddedForm[exp,2,NumberSigns -> {\"-\",\"+\"},
+\tSignPadding -> True,
+\tNumberPadding -> {\"0\",\"0\"}]]]\
+\>", "Input",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell["\<\
+General::spell1: Possible spelling error: new symbol name \"exp\" \
+is similar to existing symbol 
+    \"Exp\".\
+\>", "Message"]
+}, Open  ]],
+
+Cell["CPPForm[num_Integer] := CPPForm[num + 0.]", "Input",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell["\<\
+CPPForm[0.] := Module[ 
+
+\t{man, exp},
+
+\texp = 0;
+\tman = 0;
+\t
+\tCPPString[man,exp]
+\t];\
+\>", "Input",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell["\<\
+CPPForm[num_Real] := Module[ 
+
+\t{man, exp},
+
+\texp = Floor[Log[10,Abs[num]]];
+\tman = num/(10^exp) //N;
+\t
+\tCPPString[man,exp]
+\t];\
+\>", "Input",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell["\<\
+ToDataLine[data_List] := StringJoin[Append[Map[StringJoin[#, \"  \
+\"]& ,Map[CPPForm, data]],\"\\n\"]]\
+\>", "Input",
+  ImageRegion->{{0, 1}, {0, 1}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["functions:", "Subsubsection",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell["Write the table to a file with the given name:", "Text"],
+
+Cell["\<\
+WriteTable[data_List,filename_String] := Module[
+
+\t{fp},
+\t
+\tIf[Length[Dimensions[data]]==1,
+\t\tWriteTable[{data},filename],
+\t\tfp = OpenWrite[filename];
+\t\tMap[WriteString[fp,ToDataLine[#]]&, data];
+\t\tClose[fp]
+\t\t]
+\t];\
+\>", "Input",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell["\<\
+Write list to a file wrapped at the given number of entries per \
+line:\
+\>", "Text"],
+
+Cell["\<\
+WriteWrappedStream[ostream_OutputStream,data_List, wrap_Integer] := \
+Module[
+{count, i, datflat},
+datflat = Flatten[data];
+count=0;
+Do[\t\t
+\t\tWriteString[ostream, ToString[ PaddedForm[datflat[[i]],8] ] ];
+\t\tIf[++count == wrap, WriteString[ostream, \"\\n\"]; count = 0],
+\t
+\t\t{i, Length[datflat]} ];
+]\
+\>", "Input"],
+
+Cell["\<\
+WriteWrapped[data_List, file_String, wrap_Integer] := Module[
+
+\t{fp},
+\t
+\tfp = OpenWrite[file];
+\tWriteWrappedStream[fp,data,wrap];
+\tClose[fp];
+]\
+\>", "Input",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell["\<\
+WriteNode[ostream_OutputStream,data_List] := Module[
+
+\t{row,col,i,subdat},
+\t
+\t{row,col}=Dimensions[data];
+\tDo[
+\t\t\tsubdat=Flatten[{PaddedForm[data[[i,1]],8],Map[CPPForm,Delete[data[[i]],\
+1]]}];
+\t\t\tWriteString[ostream,StringJoin[Append[Map[ToString,subdat],\"\\n\"]]],
+\t\t\t{i,row}];
+]\
+\>", "Input"],
+
+Cell["\<\
+WriteElem[ostream_OutputStream,data_List] := Module[
+
+\t{row,col,i,subdat},
+\t
+\t{row,col}=Dimensions[data];
+\tDo[
+\t\t\tsubdat=Map[PaddedForm[#,8]&,data[[i]]];
+\t\t\tWriteString[ostream,StringJoin[Append[Map[ToString,subdat],\"\\n\"]]],
+\t\t\t{i,row}];
+]\
+\>", "Input"],
+
+Cell[TextData[{
+  "Like ",
+  StyleBox["Partition", "Input"],
+  " but it doesn't drop the remainder if the number of elements isn't a \
+multiple of ",
+  StyleBox["wrap", "Input"],
+  "."
+}], "Text"],
+
+Cell["\<\
+Wrap[data_List, wrap_Integer] := Module[
+
+\t{wrapped, remainder},
+\t
+\twrapped = Partition[data, wrap];
+\tremainder = Mod[Length[data], wrap];
+\tIf[ remainder != 0,
+\t\twrapped = Append[wrapped, Take[data,-remainder]]
+\t\t];
+\twrapped
+\t]\
+\>", "Input",
+  ImageRegion->{{0, 1}, {0, 1}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["examples:", "Subsubsection"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Directory[]\)], "Input"],
+
+Cell[OutputFormData["\<\
+\"/scr_essi/tdnguye/tahoe/runs/tests\"\
+\>", 
+"\<\
+/scr_essi/tdnguye/tahoe/runs/tests\
+\>"], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Length[test1\  = \ Range[100]]\)], "Input"],
+
+Cell[OutputFormData["\<\
+100\
+\>", "\<\
+100\
+\>"], "Output"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(WriteWrapped[test1, "\<test1.dat\>", 8]\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Dimensions[
+      test2\  = Partition[Table[Cos[i]\  // N, \ {i, 0, \ Pi, \ Pi/19}], \ 5]]
+      \)], "Input"],
+
+Cell[OutputFormData["\<\
+{4, 5}\
+\>", "\<\
+{4, 5}\
+\>"], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(WriteTable[test2, \ "\<test2.dat\>"]\)], "Input"],
+
+Cell[OutputFormData["\<\
+\"test2.dat\"\
+\>", "\<\
+test2.dat\
+\>"], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(WriteTable[test2[\([1]\)], \ "\<test2_1.dat\>"]\)], "Input"],
+
+Cell[OutputFormData["\<\
+\"test2_1.dat\"\
+\>", 
+"\<\
+test2_1.dat\
+\>"], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["g=OpenWrite[\"test3.dat\"];", "Input"],
+
+Cell[CellGroupData[{
+
+Cell["test3={{2,1.0,20.},{3,10.,23.}}", "Input"],
+
+Cell[OutputFormData["\<\
+{{2, 1., 20.}, {3, 10., 22.99999999999999}}\
+\>", 
+"\<\
+{{2, 1., 20.}, {3, 10., 23.}}\
+\>"], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["test4={{1,2,3,4},{5,6,7,8}}", "Input"],
+
+Cell[OutputFormData["\<\
+{{1, 2, 3, 4}, {5, 6, 7, 8}}\
+\>", 
+"\<\
+{{1, 2, 3, 4}, {5, 6, 7, 8}}\
+\>"], "Output"]
+}, Open  ]],
+
+Cell["WriteNode[g,test3]", "Input"],
+
+Cell["WriteElem[g,test4]", "Input"],
+
+Cell[CellGroupData[{
+
+Cell["Close[g]", "Input"],
+
+Cell[OutputFormData["\<\
+\"test3.dat\"\
+\>", "\<\
+test3.dat\
+\>"], "Output"]
+}, Open  ]]
+}, Open  ]]
+},
+FrontEndVersion->"X 3.0",
+ScreenRectangle->{{0, 1280}, {0, 1024}},
+CellGrouping->Manual,
+WindowSize->{753, 727},
+WindowMargins->{{Automatic, 62}, {43, Automatic}}
+]
+
+
+(***********************************************************************
+Cached data follows.  If you edit this Notebook file directly, not using
+Mathematica, you must remove the line containing CacheID at the top of 
+the file.  The cache data will then be recreated when you save this file 
+from within Mathematica.
+***********************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+Cell[1709, 49, 119, 2, 42, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[1853, 55, 68, 1, 42, "Subsubsection"],
+Cell[1924, 58, 122, 3, 32, "Text"],
+
+Cell[CellGroupData[{
+Cell[2071, 65, 66, 1, 27, "Input"],
+Cell[2140, 68, 151, 4, 38, "Message"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[2328, 77, 270, 7, 72, "Input"],
+Cell[2601, 86, 138, 4, 38, "Message"]
+}, Open  ]],
+Cell[2754, 93, 91, 1, 27, "Input"],
+Cell[2848, 96, 148, 11, 147, "Input"],
+Cell[2999, 109, 191, 11, 147, "Input"],
+Cell[3193, 122, 160, 4, 27, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3390, 131, 68, 1, 42, "Subsubsection"],
+Cell[3461, 134, 62, 0, 32, "Text"],
+Cell[3526, 136, 287, 13, 177, "Input"],
+Cell[3816, 151, 95, 3, 32, "Text"],
+Cell[3914, 156, 332, 12, 162, "Input"],
+Cell[4249, 170, 206, 10, 132, "Input"],
+Cell[4458, 182, 320, 12, 162, "Input"],
+Cell[4781, 196, 280, 11, 162, "Input"],
+Cell[5064, 209, 196, 7, 32, "Text"],
+Cell[5263, 218, 296, 13, 177, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[5596, 236, 34, 0, 42, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[5655, 240, 44, 1, 27, "Input"],
+Cell[5702, 243, 127, 5, 26, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[5866, 253, 63, 1, 27, "Input"],
+Cell[5932, 256, 60, 4, 26, "Output"]
+}, Open  ]],
+Cell[6007, 263, 72, 1, 27, "Input"],
+
+Cell[CellGroupData[{
+Cell[6104, 268, 130, 3, 27, "Input"],
+Cell[6237, 273, 66, 4, 26, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[6340, 282, 69, 1, 27, "Input"],
+Cell[6412, 285, 76, 4, 26, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[6525, 294, 80, 1, 27, "Input"],
+Cell[6608, 297, 81, 5, 26, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[6738, 308, 44, 0, 27, "Input"],
+
+Cell[CellGroupData[{
+Cell[6807, 312, 48, 0, 27, "Input"],
+Cell[6858, 314, 127, 5, 26, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[7022, 324, 44, 0, 27, "Input"],
+Cell[7069, 326, 111, 5, 26, "Output"]
+}, Open  ]],
+Cell[7195, 334, 35, 0, 27, "Input"],
+Cell[7233, 336, 35, 0, 27, "Input"],
+
+Cell[CellGroupData[{
+Cell[7293, 340, 25, 0, 27, "Input"],
+Cell[7321, 342, 76, 4, 26, "Output"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+
+(***********************************************************************
+End of Mathematica Notebook file.
+***********************************************************************)
+

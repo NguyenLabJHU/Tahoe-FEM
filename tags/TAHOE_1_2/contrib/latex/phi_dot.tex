@@ -1,0 +1,29 @@
+\documentclass[12pt]{article}
+\usepackage[mtbold]{mathtime} %-- Times fonts
+\usepackage{amsmath} %-- good stuff for math
+\usepackage{bm} %-- bold math
+
+%-------------------------- macros ----------------------
+\newcommand{\mathvec}[1]{\mbox{\boldmath $#1$}}
+\newcommand{\rbrkt}[1]{\left(#1\right)}
+\newcommand{\sbrkt}[1]{\left[#1\right]}
+\newcommand{\cbrkt}[1]{\left\{#1\right\}}
+\newcommand{\abrkt}[1]{\left<#1\right>}
+\newcommand{\farg}[1]{\hspace{-0.2em}\rbrkt{#1}}
+\newcommand{\dbyd}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\ddbydd}[3]{\frac{\partial^{2}#1}{\partial#2\partial#3}}
+%-------------------------- macros ----------------------
+
+%-------------------------- main ------------------------
+\begin{document}                                                                                
+\pagestyle{empty}
+\begin{Huge}
+
+\[
+\dot{\phi} = \dot{\epsilon}_0 \farg{\theta} 
+\sinh\sbrkt{\frac{T_n + \left| T_t \right|}{\kappa\,\rbrkt{1 - \phi^*}}}
+\]
+
+\end{Huge}
+\end{document}
+%-------------------------- main ------------------------

@@ -1,0 +1,30 @@
+# $Id: GNU.cksun.macros,v 1.4 2003-03-15 16:54:30 paklein Exp $
+# GNU
+MAKE        = make
+MAKE_DEPEND = makedepend
+COMP_C      = gcc
+COMP_CC     = g++
+COMP_F      = g77
+DEFINES     = -D__GNU__ -D__SUN__
+MORE_CFLAGS = -O3 -DNDEBUG
+#MORE_CFLAGS = -g
+#LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -Wunused -Wuninitialized
+LOC_CFLAGS  = -c -I$(INC_DIR) -I/usr/local/mpich/include $(DEFINES) $(MORE_CFLAGS)
+CFLAGS_C    = $(LOC_CFLAGS)
+CFLAGS_CC   = $(LOC_CFLAGS)
+CFLAGS_F    = $(LOC_CFLAGS)
+LINK        = $(COMP_CC)
+LFLAGS      = -static
+AR          = ar
+ARFLAGS     = -cruv
+MAKE_OPTS   = -s
+RM          = /bin/rm
+RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
+LN          = /home/cjkimme/ln -sf
+ECHO        = /usr/bin/echo
+CAT         = cat
+PERL        = perl -w
+PRINTF      = printf
+
+INC_FLAGS   = -I/usr/local/include/g++-3 -I/usr/include/g++-2 -I/usr/include -I/usr/local/sparc-sun-solaris2.7/include 
+BUILD_LIBRARY = BUILD_LIBRARY_AR
