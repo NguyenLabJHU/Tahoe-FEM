@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.4 2002-04-15 16:09:10 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.5 2002-04-18 21:20:25 cjkimme Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -222,7 +222,8 @@ void TiedNodesT::AddKinematics(dArray2DT& u)
 bool TiedNodesT::ChangeStatus(void)
 {
 //TEMP - no check implemented
-	return false;
+
+  return false;
 
   bool changeQ;
   ElementBaseT* surroundingGroup = fFEManager.ElementGroup(0);
@@ -235,9 +236,9 @@ bool TiedNodesT::ChangeStatus(void)
   surroundingGroup->SendOutput(3);
   dArray2DT fNodalQs = fNodeManager.OutputAverage();
 
-  for (int i = 0; i < fNodePairs.MajorDim();i++)
+  for (int i = 0; i < fNodePairs.MajorDim();i++) 
     {
-
+      
       if (fNodalQs.RowSum(fNodePairs(i,0)) + fNodalQs.RowSum(fNodePairs(i,1)) > 1000) 
 	{ 
 	  fPairStatus[i] = kFree;
@@ -265,18 +266,18 @@ void TiedNodesT::SetBCCards(void)
 	/* generate BC cards */
 	if (n_tied > 0)
 	{
-		KBC_CardT* pcard = fKBC_Cards.Pointer();
+	        KBC_CardT* pcard = fKBC_Cards.Pointer();
 		for (int i = 0; i < fNodePairs.MajorDim(); i++)
 		{
 			if (fPairStatus[i] == kTied)
 				for (int j = 0; j < ndof; j++)
 				{
 					/* set values */
-					pcard->SetValues(fNodePairs(i,0), j, KBC_CardT::kDsp, 0, 0.0);
+				  pcard->SetValues(fNodePairs(i,0), j, KBC_CardT::kFixDsp, 0, 0.0);
 	
 					/* dummy schedule */
-					pcard->SetSchedule(&fDummySchedule);
-					pcard++;
+				  pcard->SetSchedule(&fDummySchedule);
+				  pcard++;
 				}	
 		}
 	}
@@ -285,6 +286,7 @@ void TiedNodesT::SetBCCards(void)
 /* copy kinematic information from the leader nodes to the follower nodes */
 void TiedNodesT::CopyKinematics(void)
 {
+
 	for (int i = 0; i < fPairStatus.Length(); i++)
 		if (fPairStatus[i] == kTied)
 		{
@@ -299,6 +301,7 @@ void TiedNodesT::CopyKinematics(void)
 
 				/* copy data from the leader */				
 				u.CopyRowFromRow(follower, leader);
+				u(follower,1) = -u(leader,1);
 			}
 		}
 }
