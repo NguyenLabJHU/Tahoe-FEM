@@ -1,4 +1,4 @@
-/* $Id: QuadT.cpp,v 1.4 2003-06-05 18:46:11 thao Exp $ */
+/* $Id: QuadT.cpp,v 1.5 2003-10-15 23:54:36 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 
 #include "QuadT.h"
@@ -38,8 +38,10 @@ void QuadT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
 	/* coordinates */	
 	double r = coords[0];
 	double s = coords[1];
+#if 0
 	if (r < -1.0 || r > 1.0) throw ExceptionT::kOutOfRange;
 	if (s < -1.0 || s > 1.0) throw ExceptionT::kOutOfRange;
+#endif
 
 	/* destinations */
 	double* na  = Na.Pointer();
@@ -124,8 +126,10 @@ void QuadT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT
 	/* coordinates */	
 	double r = coords[0];
 	double s = coords[1];
+#if 0
 	if (r < -1.0 || r > 1.0) throw ExceptionT::kOutOfRange;
 	if (s < -1.0 || s > 1.0) throw ExceptionT::kOutOfRange;
+#endif
 
 	/* destinations */
 	double* na  = Na.Pointer();
