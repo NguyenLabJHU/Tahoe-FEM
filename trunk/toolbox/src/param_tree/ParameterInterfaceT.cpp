@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.15 2004-03-27 04:06:46 paklein Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.16 2004-04-07 15:31:24 paklein Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
 #include "ParameterUtils.h"
@@ -213,6 +213,14 @@ void ParameterInterfaceT::DefineInlineSub(const StringT& sub, ParameterListT::Li
 ParameterInterfaceT* ParameterInterfaceT::NewSub(const StringT& list_name) const
 {
 	const char caller[] = "ParameterInterfaceT::NewSub";
+
+	/* look for names ending in "_ID_list" */
+	const char* find = strstr(list_name, "_ID_list");
+	if (find && strlen(find) == 8) {
+		StringListT* id_list = new StringListT(list_name);
+		id_list->SetMinLength(1);
+		return id_list;
+	}
 
 	if (list_name == "Integer")
 		return new IntegerParameterT;
