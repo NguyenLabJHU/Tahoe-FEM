@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.h,v 1.9 2004-09-28 15:35:37 paklein Exp $ */
+/* $Id: MultiManagerT.h,v 1.9.8.1 2005-01-21 03:27:45 d-farrell2 Exp $ */
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
 
@@ -158,6 +158,9 @@ protected:
 	bool fFineToCoarse; /**< fine scale contribution to coarse scale equations */ 
 	bool fCoarseToFine; /**< coarse scale contribution to fine scale equations */ 
 	/*@}*/
+	
+	// Dave Added these
+	bool fignore;	// ignore continuum (true, false)
 };
 
 } /* namespace Tahoe */
