@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.1.6.2 2004-07-07 15:28:19 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.1.6.3 2004-07-08 07:50:17 paklein Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -23,8 +23,6 @@
 
 #ifdef MODCBSW_MATERIAL
 #include "ModCB2DT.h"
-#include "SWDiamond110.h"
-#include "SWDiamond100.h"
 #endif
 
 #ifdef VIB_MATERIAL

@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.29.2.1 2004-07-06 06:54:39 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.29.2.2 2004-07-08 07:50:21 paklein Exp $ */
 #include "FieldT.h"
 
 #include "ifstreamT.h"
@@ -837,6 +837,7 @@ void FieldT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& ord
 		sub_sub_list.AddSub("wall_penalty");
 		sub_sub_list.AddSub("wall_augmented_Lagrangian");
 		sub_sub_list.AddSub("cylinder_penalty");
+		sub_sub_list.AddSub("augmented_Lagrangian_KBC_meshfree");
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
@@ -1069,7 +1070,7 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 				const StringT& node_ID = sub.GetParameter("node_ID");
 				int dof = sub.GetParameter("dof"); dof--;
 				int typ = sub.GetParameter("type");
-				KBC_CardT::CodeT code = KBC_CardT::int_to_CodeT(typ + 1);
+				KBC_CardT::CodeT code = KBC_CardT::int2CodeT(typ + 1);
 				int schedule_no = sub.GetParameter("schedule"); schedule_no--;
 				double value = sub.GetParameter("value");
 

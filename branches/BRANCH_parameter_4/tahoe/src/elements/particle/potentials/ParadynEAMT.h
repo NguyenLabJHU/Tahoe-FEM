@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.h,v 1.4.8.1 2004-07-06 06:54:18 paklein Exp $ */
+/* $Id: ParadynEAMT.h,v 1.4.8.2 2004-07-08 07:50:18 paklein Exp $ */
 #ifndef _PARADYN_EAM_T_H_
 #define _PARADYN_EAM_T_H_
 
@@ -21,8 +21,8 @@ public:
 
 	/** constructor. Reads parameters from file and computes the
 	 * coefficients of a cubic spline through the evenly spaced
-	 * values of the potential,electron density read from the 
-         * file. */
+	 * values of the potential,electron density read from the
+	 * file. */
 	ParadynEAMT(const BasicSupportT& support, const StringT& param_file);
 	ParadynEAMT(const BasicSupportT& support);
 
@@ -138,14 +138,11 @@ private:
 	static double  s_f_inc;
 	static double* s_Paircoeff;
 
-
 	static int     s_np;
 	static double  s_e_inc;
 	static double* s_Embcoeff;
 
-
 	static double* s_ElecDenscoeff;
-
 	/*@}*/
 };
 

@@ -1,4 +1,4 @@
-/* $Id: BondLatticeT.cpp,v 1.5.2.1 2004-07-06 06:53:23 paklein Exp $ */
+/* $Id: BondLatticeT.cpp,v 1.5.2.2 2004-07-08 07:50:14 paklein Exp $ */
 /* created: paklein (01/07/1997) */
 #include "BondLatticeT.h"
 #include <math.h>
@@ -19,11 +19,8 @@ void BondLatticeT::Initialize(const dMatrixT* Q)
 	/* pure virtual */
 	LoadBondTable();
 
-	/* dimension check */
-	int nsd = fBonds.MinorDim();
-	if (nsd != 2 && nsd != 3) ExceptionT::GeneralFail(caller);
-
 	/* dimension work space */
+	int nsd = fBonds.MinorDim();
 	fBondDp.Dimension(nsd);
 	fLatDimMatrix.Dimension(nsd);
 	fStrain.Dimension(nsd);

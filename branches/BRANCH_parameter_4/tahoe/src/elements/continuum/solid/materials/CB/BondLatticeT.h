@@ -1,4 +1,4 @@
-/* $Id: BondLatticeT.h,v 1.4.2.2 2004-07-07 15:28:10 paklein Exp $ */
+/* $Id: BondLatticeT.h,v 1.4.2.3 2004-07-08 07:50:15 paklein Exp $ */
 /* created: paklein (01/07/1997) */
 #ifndef _BONDLATTICET_H_
 #define _BONDLATTICET_H_
@@ -43,8 +43,8 @@ public:
 	const iArrayT& BondCounts(void) const;
 	const dArrayT& DeformedLengths(void) const;
 	const dArray2DT& Bonds(void) const;
-	int NumberOfLatticeDim(void) const;
-	int NumberOfSpatialDim(void) const;
+//	int NumberOfLatticeDim(void) const;
+//	int NumberOfSpatialDim(void) const;
 	int NumberOfBonds(void) const { return fBonds.MajorDim(); };
 	/*@}*/
 

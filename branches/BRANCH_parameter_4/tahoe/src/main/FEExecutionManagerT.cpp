@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.65.2.3 2004-07-08 00:02:08 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.65.2.4 2004-07-08 07:50:19 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -156,7 +156,7 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 			CommunicatorT comm(fComm, (rank == 0) ? rank : CommunicatorT::kNoColor);
 
 			/* join using rank 0 */
-			if (rank == 0) RunJoin_serial(in, status, comm);
+			if (rank == 0) RunJoin_serial(in, status);
 
 			/* synch */
 			fComm.Barrier();
