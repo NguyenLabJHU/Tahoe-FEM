@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.35 2003-03-31 23:14:40 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.36 2003-04-05 19:51:56 thao Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 #include "fstreamT.h"
@@ -32,8 +32,12 @@
 #include "OgdenIsoVIB3D.h"
 #endif
 
+#ifdef VISCOELASTICITY
+#include "SSLinearVE3D.h"
+#include "RGSplitT.h"
+#endif
+
 #ifdef VISCOELASTIC_MATERIALS_DEV
-#include "SV_NeoHookean3D.h"
 #include "SSSV_KStV3D.h"
 #include "FDSV_KStV3D.h"
 #include "RGSplit3D.h"
@@ -344,8 +348,33 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				ExceptionT::BadInputValue(caller, "FOSSUM_MATERIAL not enabled: %d", matcode);
 #endif
 			}
-			case kThermoViscoPlastic:
+			case kSSLinearVE:
 			{
+			{
+#ifdef VISCOELASTICITY
+				/* check */
+				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
+			
+				fArray[matnum] = new SSLinearVE3D(in, *fSSMatSupport);
+				fHasHistory = true;
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "VISCOELASTICITY not enabled: %d", matcode);
+#endif
+			}
+			case kRGSplitVE:
+			{
+#ifdef VISCOELASTICITY
+				/* check */
+				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
+			
+				fArray[matnum] = new RGSplitT(in, *fFSMatSupport);
+				fHasHistory = true;
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "VISCOELASTICITY not enabled: %d", matcode);
+#endif
+			}
 #ifdef THERMO_VISCO_PLASTIC_MATERIAL
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
@@ -566,19 +595,6 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 
 				fArray[matnum] = new RGSplit3D(in, *fFSMatSupport);
-				fHasHistory = true;
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "VISCOELASTIC_MATERIALS_DEV not enabled: %d", matcode);
-#endif
-			}
-			case kSVNeoHookean:
-			{
-#if VISCOELASTIC_MATERIALS_DEV
-				/* check */
-				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
-
-				fArray[matnum] = new SV_NeoHookean3D(in, *fFSMatSupport);
 				fHasHistory = true;
 				break;
 #else
