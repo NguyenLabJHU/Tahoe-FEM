@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp.cpp,v 1.15 2004-04-13 20:37:32 ebmarin Exp $ */
+/* $Id: GradCrystalPlastFp.cpp,v 1.16 2004-04-14 19:52:20 ebmarin Exp $ */
 #include "GradCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -491,7 +491,7 @@ void GradCrystalPlastFp::SolveCrystalState()
   int igrn = 0;
 
   // get coordinates of IPs at initial configuration
-  for (int intpt = 1; intpt < NumIP(); intpt++)
+  for (int intpt = 0; intpt < NumIP(); intpt++)
     { 
 //      dummy = fFSMatSupport.Interpolate(fLocInitX, fX_IP, intpt);
       ContinuumElement().IP_Interpolate(fLocInitX, fX_IP, intpt);
