@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.68 2003-12-28 08:23:46 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.69 2003-12-28 10:02:06 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -931,20 +931,16 @@ int FEManagerT::GetGlobalNumEquations(int group) const
 }
 
 /* access to integrators */
-eIntegratorT* FEManagerT::eIntegrator(int index) const
+const eIntegratorT* FEManagerT::eIntegrator(int index) const
 {
 	/* cast to eIntegratorT */
-	eIntegratorT* e_integrator = TB_DYNAMIC_CAST(eIntegratorT*, fIntegrators[index]);
-	if (!e_integrator) ExceptionT::GeneralFail();
-	return e_integrator;
+  return &(fIntegrators[index]->eIntegrator());
 }
 
-nIntegratorT* FEManagerT::nIntegrator(int index) const
+const nIntegratorT* FEManagerT::nIntegrator(int index) const
 {
 	/* cast to nIntegratorT */
-	nIntegratorT* n_integrator = TB_DYNAMIC_CAST(nIntegratorT*, fIntegrators[index]);
-	if (!n_integrator) ExceptionT::GeneralFail();
-	return n_integrator;
+  return &(fIntegrators[index]->nIntegrator());
 }
 
 void FEManagerT::SetTimeStep(double dt) const

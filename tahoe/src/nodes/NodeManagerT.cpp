@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.43 2003-12-28 08:23:52 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.44 2003-12-28 10:02:31 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -1335,7 +1335,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 				in >> labels[j];
 			
 			/* get integrator */
-			nIntegratorT* controller = fFEManager.nIntegrator(cont_num);
+			const nIntegratorT* controller = fFEManager.nIntegrator(cont_num);
 			if (!controller) ExceptionT::GeneralFail(caller);
 
 			/* new field */			
@@ -1377,7 +1377,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 		fFields.Dimension(1);
 		fFields = NULL;
 		fMessageID.Dimension(1);
-		nIntegratorT* controller = fFEManager.nIntegrator(0);
+		const nIntegratorT* controller = fFEManager.nIntegrator(0);
 		if (!controller) ExceptionT::GeneralFail(caller);
 		
 		/* field config set by analysis type */
@@ -1866,11 +1866,8 @@ FBC_ControllerT* NodeManagerT::NewFBC_Controller(FieldT& field, int code)
 	
 	/* set time integrator */
 	if (fbc) {
-		const nIntegratorT& n_integrator = field.nIntegrator();
-		const IntegratorT* integrator = &n_integrator;
-		const eIntegratorT* e_integrator = TB_DYNAMIC_CAST(const eIntegratorT*, integrator);
-		if (!e_integrator) ExceptionT::GeneralFail(caller, "could not resolve eIntegratorT");
-		fbc->SetController(e_integrator);
+		const eIntegratorT& e_integrator = field.nIntegrator().eIntegrator();
+		fbc->SetController(&e_integrator);
 	}
 	
 	return fbc;

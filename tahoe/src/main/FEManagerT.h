@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.38 2003-10-28 07:45:12 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.39 2003-12-28 10:02:06 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -279,8 +279,8 @@ public:
 	int NumIntegrators(void) const { return fIntegrators.Length(); };
 	IntegratorT* Integrator(int index) { return fIntegrators[index]; };
 	const IntegratorT* Integrator(int index) const { return fIntegrators[index]; };
-	eIntegratorT* eIntegrator(int index) const;
-	nIntegratorT* nIntegrator(int index) const;
+	const eIntegratorT* eIntegrator(int index) const;
+	const nIntegratorT* nIntegrator(int index) const;
 	/*@}*/
 
 	/** debugging */
