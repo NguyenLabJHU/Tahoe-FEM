@@ -1,4 +1,4 @@
-/* $Id: J2SimoC0HardeningT.h,v 1.6 2002-07-05 22:28:25 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.h,v 1.6.40.1 2004-03-30 07:50:33 paklein Exp $ */
 /* created: paklein (05/01/2001) */
 
 #ifndef _J2_SIMO_C0_HARD_T_H_
@@ -24,12 +24,13 @@ class ifstreamT;
 
 /** finite strain, J2 elastoplasticity following framework in
  * Simo, J.C. (1988) CMAME v66 and v68. */
-class J2SimoC0HardeningT
+class J2SimoC0HardeningT: virtual public ParameterInterfaceT
 {
 public:
 
 	/** constructor */
 	J2SimoC0HardeningT(ifstreamT& in, int num_ip, double mu);
+	J2SimoC0HardeningT(void);
 
 	/** destructor */
 	~J2SimoC0HardeningT(void);
