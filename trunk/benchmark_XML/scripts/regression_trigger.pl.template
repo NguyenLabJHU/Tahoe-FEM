@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-# $Id: regression_trigger.pl,v 1.1 2003-04-01 18:43:39 paklein Exp $
+# $Id: regression_trigger.pl.template,v 1.1 2003-04-01 18:47:40 paklein Exp $
 
 # configurations that must be defines
-$TAHOE_USER = "paklein";
-$HOST = "DARWIN-3.3.LAM";
+$TAHOE_USER = !!!!!!!;
+$HOST = !!!!!!!;
 
 # configurations that should not need changes
 $TAHOE_HOST = "tahoe.ca.sandia.gov";
@@ -15,7 +15,7 @@ $MESG_FILE = $THE_SCRIPT;
 $MESG_FILE =~ s/pl$/msg/;
 $LOCK_FILE = $THE_SCRIPT;
 $LOCK_FILE =~ s/pl$/lock/;
-$BENCHMARK_SCRIPT = "dummy.csh";
+$BENCHMARK_SCRIPT = "benchmark.csh";
 
 # check if this script is already running
 if (-e $LOCK_FILE) 
