@@ -1,3 +1,4 @@
+/* $Id: GridManager1DT.h,v 1.3 2002-06-30 03:07:17 paklein Exp $ */
 #ifndef _GRIDMANAGER1D_T_H_
 #define _GRIDMANAGER1D_T_H_
 
@@ -185,29 +186,6 @@ void GridManager1DT<sTYPE>::Reset(const dArray2DT& coords,
 
 	/* grid spacings */
 	fdx = (fxmax - fxmin)/fnx;
-	
-	/* NOT FINISHED YET! */
-	double fny = 0.0;
-	double fdy = 0.0;
-	double fymax = 0.0;
-	double fymin = 0.0;
-	
-	/* limit grid stretch */
-	double stretch_limit = 2.0;
-	if (fdx < fdy && fdy/fdx > stretch_limit)
-	{
-		double r = fdy/fdx/stretch_limit;
-		fny = int((2.0*r*fny + 1.0)/2);
-		fny = (fny > n_max) ? n_max : fny;
-		fdy = (fymax - fymin)/fny;
-	}
-	else if (fdy < fdx && fdx/fdy > stretch_limit)
-	{
-		double r = fdx/fdy/stretch_limit;
-		fnx = int((2.0*r*fnx + 1.0)/2);
-		fnx = (fnx > n_max) ? n_max : fnx;
-		fdx = (fxmax - fxmin)/fnx;
-	}
 
 	/* set grid parameters */
 	fGrid.Allocate(fnx);
@@ -235,11 +213,9 @@ void GridManager1DT<sTYPE>::Add(const sTYPE& data)
 template <class sTYPE>
 const sTYPE& GridManager1DT<sTYPE>::Closest(double* target)
 {
-  /* NOT FINISHED YET! */
 	/* broaden search */
-  //double distance = (fdx + fdy)/8.0; //so initial is 1/2 of average
-        double distance = fdx;
-        do {
+	double distance = fdx/4.0; //so initial is 1/2 of spacing
+	do {
 	
 		distance *= 2;
 		HitsInRegion(target, distance);
@@ -284,7 +260,6 @@ const sTYPE& GridManager1DT<sTYPE>::Closest(double* target)
 template <class sTYPE>
 inline double GridManager1DT<sTYPE>::CellSpan(int cell_span) const
 {
-  /* NO CHANGE YET!! */
 	/* max cell dimension */
 	double dmax = fdx;
 	return (cell_span*dmax)/2.0;
@@ -314,66 +289,45 @@ const AutoArrayT<sTYPE>& GridManager1DT<sTYPE>::
 	/* keep within grid */
 	ixstart = (ixstart < 0) ? 0 : ixstart;
 	ixstop = (ixstop >= fnx) ? fnx - 1 : ixstop;
-	double fny = 0.0;
-	double iystart = 0.0;
-	double iystop = 0.0;
 	bool out_of_range = ixstart > ixstop;
 	if (!out_of_range)
 	{
 		/* scan section of grid */
+		AutoArrayT<sTYPE>** griddata = fGrid.Pointer(ixstart);
 		for (int ix = ixstart; ix <= ixstop; ix++)
 		{
-			/* column top */
-			AutoArrayT<sTYPE>** griddata = fGrid.Pointer(ix*fny + iystart);
-		
-			/* copy contents from cells */
-			for (int iy = iystart; iy <= iystop; iy++)
-			{
-				if (*griddata) fHits.Append(**griddata);
-				griddata++;
-			}
+			if (*griddata) fHits.Append(**griddata);
+			griddata++;
 		}
-	}
-	
+	}	
 	return fHits;
 }	
 
 template <class sTYPE>
 const AutoArrayT<sTYPE>& GridManager1DT<sTYPE>::
-	HitsInRegion(double* coords, const ArrayT<double>& dist_xy)
+	HitsInRegion(double* coords, const ArrayT<double>& dist_x)
 {
-  /* NOT FINISHED YET! */
 	/* empty hit list */
 	fHits.Allocate(0);
 
 	/* grid indices */
-	int ixstart = int((coords[0] - fxmin - dist_xy[0])/fdx);
-	int ixstop  = int((coords[0] - fxmin + dist_xy[0])/fdx);
+	int ixstart = int((coords[0] - fxmin - dist_x[0])/fdx);
+	int ixstop  = int((coords[0] - fxmin + dist_x[0])/fdx);
 
 	/* keep within grid */
 	ixstart = (ixstart < 0) ? 0 : ixstart;
 	ixstop = (ixstop >= fnx) ? fnx - 1 : ixstop;
-	double fny = 0.0;
-	double iystart = 0.0;
-	double iystop = 0.0;
 	bool out_of_range = ixstart > ixstop;
 	if (!out_of_range)
 	{
 		/* scan section of grid */
+		AutoArrayT<sTYPE>** griddata = fGrid.Pointer(ixstart);
 		for (int ix = ixstart; ix <= ixstop; ix++)
 		{
-			/* column top */
-			AutoArrayT<sTYPE>** griddata = fGrid.Pointer(ix*fny + iystart);
-		
-			/* copy contents from cells */
-			for (int iy = iystart; iy <= iystop; iy++)
-			{
-				if (*griddata) fHits.Append(**griddata);
-				griddata++;
-			}
+			if (*griddata) fHits.Append(**griddata);
+			griddata++;
 		}
 	}
-	
 	return fHits;
 }	
 
@@ -433,9 +387,6 @@ void GridManager1DT<sTYPE>::WriteStatistics(ostream& out) const
 template <class sTYPE>
 AutoArrayT<sTYPE>** GridManager1DT<sTYPE>::FetchGrid(double* coords)
 {
-  /* NOT FINISHED YET! */
-  double fny = 0.0;
-  int iy = 0.0;
 	/* grid indices */
 	int ix = int((coords[0] - fxmin)/fdx);
 	
@@ -443,7 +394,7 @@ AutoArrayT<sTYPE>** GridManager1DT<sTYPE>::FetchGrid(double* coords)
 	if (ix < 0 || ix >= fnx) throw eGeneralFail;		
 	
 	/* stored column major */
-	return fGrid.Pointer(ix*fny + iy);
+	return fGrid.Pointer(ix);
 }
 
 #endif /* _GRIDMANAGER1D_T_H_ */
