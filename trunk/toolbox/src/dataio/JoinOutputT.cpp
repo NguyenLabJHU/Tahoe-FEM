@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.15 2003-01-27 06:42:47 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.16 2003-01-27 22:52:51 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 #include "JoinOutputT.h"
 
@@ -342,31 +342,37 @@ void JoinOutputT::SetOutput(void)
 				}
 			}
 			
-			/* concat connectivities (no check for redundancy for now) */
-			iArray2DT all_connects(num_elem, num_elem_nodes);
-			num_elem = 0;
-			for (int i = 0; i < part_elems.Length(); i++) {
-				all_connects.BlockRowCopyAt(part_elems[i], num_elem);
-				num_elem += part_elems[i].MajorDim();
-			}
+			/* register free set */
+			if (block_ID.Length() == 1) {
+				/* concat connectivities (no check for redundancy for now) */
+				iArray2DT all_connects(num_elem, num_elem_nodes);
+				num_elem = 0;
+				for (int i = 0; i < part_elems.Length(); i++) {
+					all_connects.BlockRowCopyAt(part_elems[i], num_elem);
+					num_elem += part_elems[i].MajorDim();
+				}
 
-			/* generate dummy block ID for "connectivities" of free set nodes */			
-			StringT sID = "900"; /* NOTE: same convention used by IOManager_mpi::IOManager_mpi for run time assembly */
-			sID.Append(block_ID[0]);
+				/* generate dummy block ID for "connectivities" of free set nodes */			
+				StringT sID = "900"; /* NOTE: same convention used by IOManager_mpi::IOManager_mpi for run time assembly */
+				sID.Append(block_ID[0]);
 
-			/* store connectivities in the model manager */
-			if (!fModel->RegisterElementGroup(sID, all_connects, geometry_code, true)) {
-				cout << "\n JoinOutputT::SetOutput: error registering free set with the model manager: " << sID << endl;
-				throw ExceptionT::kDatabaseFail;	
-			}
-		
-			/* construct output set */
-			const iArray2DT& connects = fModel->ElementGroup(sID);
-			bool changing = false; // changing geometry not supported
-			OutputSetT output_set(geometry_code, connects, n_labels);
+				/* store connectivities in the model manager */
+				if (!fModel->RegisterElementGroup(sID, all_connects, geometry_code, true)) {
+					cout << "\n JoinOutputT::SetOutput: error registering free set with the model manager: " << sID << endl;
+					throw ExceptionT::kDatabaseFail;	
+				}
 	
-			/* register */
-			fOutput->AddElementSet(output_set);
+				/* construct output set */
+				const iArray2DT& connects = fModel->ElementGroup(sID);
+				bool changing = false; // changing geometry not supported
+				OutputSetT output_set(geometry_code, connects, n_labels);
+
+				/* register */
+				fOutput->AddElementSet(output_set);
+			}
+			else
+				cout << "\n JoinOutputT::SetOutput: ERROR configuring free set: " << ID 
+				     << ": SKIPPING"<< endl;
 		}
 		else
 		{
