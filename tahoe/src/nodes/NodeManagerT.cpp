@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.33 2003-06-09 07:03:14 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.34 2003-08-08 00:34:11 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -9,6 +9,7 @@
 
 #include "fstreamT.h"
 #include "FEManagerT.h"
+#include "IOManager.h"
 #include "ModelManagerT.h"
 #include "CommManagerT.h"
 #include "LocalArrayT.h"
@@ -40,6 +41,7 @@
 #include "ScaledVelocityNodesT.h"
 #include "SetOfNodesKBCT.h"
 #include "TorsionKBCT.h"
+#include "ConveyorT.h"
 
 using namespace Tahoe;
 
@@ -1771,6 +1773,11 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 			TorsionKBCT* kbc = new TorsionKBCT(*this, fFEManager.Time());
 			return kbc;
 		}
+		case KBC_ControllerT::kConyevor:
+		{
+			ConveyorT* kbc = new ConveyorT(*this, field);
+			return kbc;
+		}
 		default:
 			ExceptionT::BadInputValue("NodeManagerT::NewKBC_Controller", 
 				"KBC controller code %d is not supported", code);
@@ -1873,17 +1880,24 @@ void NodeManagerT::EchoKinematicBCControllers(FieldT& field, ifstreamT& in, ostr
 	/* construct */
 	for (int i = 0; i < numKBC; i++)
 	{
-		int num, type;
-		in2 >> num >> type; num--;
+		int num, KBC_type;
+		in2 >> num >> KBC_type; num--;
 		
 		/* construct */
-		KBC_ControllerT* controller = NewKBC_Controller(field, type);
+		KBC_ControllerT* controller = NewKBC_Controller(field, KBC_type);
 		
 		/* initialize */
 		controller->Initialize(in2);
 		
 		/* store */
 		field.AddKBCController(controller);
+		
+		/* special handling of conveyor */
+		if (false && KBC_type == KBC_ControllerT::kConyevor) {
+		
+			/* force all geometry to be changing */
+			fFEManager.OutputManager()->SetChangingFlag(IOManager::kForceChanging);
+		}
 	}
 
 	/* echo parameters */
