@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.cpp,v 1.14 2003-11-20 19:46:29 cjkimme Exp $ */
+/* $Id: IOBaseT.cpp,v 1.15 2003-11-25 19:45:30 paklein Exp $ */
 /* created: sawimme (09/28/1999) */
 #include "IOBaseT.h"
 
@@ -81,6 +81,23 @@ istream& operator>>(istream& in, IOBaseT::FileTypeT& file_type)
 	return in;
 }
 
+}
+
+/* open new stream with path defined relative to the given file */
+void IOBaseT::OpenRelative(ifstreamT& in, const StringT& file, const StringT& root_file)
+{
+	/* build file path */
+	StringT filename(file);
+	filename.ToNativePathName();
+	StringT path;
+	path.FilePath(root_file);
+	filename.Prepend(path);
+
+	/* open stream */
+	in.open(filename);
+	if (!in.is_open())
+		ExceptionT::DatabaseFail("IOBaseT::OpenRelative", 
+			"could not open file \"%s\"", filename.Pointer());
 }
 
 void IOBaseT::InputFormats (ostream& log)
