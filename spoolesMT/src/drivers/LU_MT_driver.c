@@ -2,7 +2,6 @@
 
 #include "MT.spoolesMT.h"
 #include "misc.h"
-//#include "FrontMtx.h"
 #include "SymbFac.h"
 
 /* MT driver provided by in SPOOLES documentation */
@@ -38,7 +37,7 @@ DenseMtx        *mtxY, *mtxX ;
 Chv             *rootchv ;
 ChvManager      *chvmanager ;
 double          droptol = 0.0, tau = 100. ;
-double          cpus[10] ;
+double          cpus[11] ;
 DV              *cumopsDV ;
 ETree           *frontETree ;
 FrontMtx        *frontmtx ;
@@ -49,7 +48,7 @@ int             error, ient, irow, jcol, jrhs, jrow, lookahead=0,
                 msglvl, ncol,  nedges, nent, neqns, nfront, nrhs, nrow, 
                 pivotingflag, seed, symmetryflag, type, nthread;
 int             *newToOld, *oldToNew ;
-int             stats[20] ;
+int             stats[16] ;
 IV              *newToOldIV, *oldToNewIV, *ownersIV ;
 IVL             *adjIVL, *symbfacIVL ;
 SolveMap        *solvemap ;
@@ -60,19 +59,6 @@ SubMtxManager   *mtxmanager  ;
    open message file
    --------------------
 */
- fprintf(stderr, 
-        "\n\n input data"
-        "\n msglvl       = %d"
-        "\n msgFile      = %s"
-        "\n type         = %d"
-        "\n symmetryflag = %d"
-        "\n pivotingflag = %d"
-        "\n seed         = %d"
-        "\n num threads  = %d"
-	"\n num. eq.     = %d\n\n",
-        msg_lvl, message_file, matrix_type, symmetry_flag, pivoting_flag, rand_seed, n_thread,num_eq) ;
-
-
 
 if ( (msgFile = fopen(message_file, "a")) == NULL )
 {
@@ -88,8 +74,8 @@ pivotingflag = pivoting_flag;
 seed = rand_seed;
 nthread = n_thread;
 
-IVzero(20, stats);
-DVzero(10, cpus);
+IVzero(16, stats);
+DVzero(11, cpus);
 
 if (msglvl > 0) {
   fprintf(msgFile, 
@@ -347,7 +333,6 @@ else
    free memory
    -----------
 */
-fprintf(stderr, "\n SPOOLES:LU_MT_driver: freeing memory\n");
 
 FrontMtx_free(frontmtx) ;
 DenseMtx_free(mtxX) ;
