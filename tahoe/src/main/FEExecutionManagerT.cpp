@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.62 2004-06-26 06:14:26 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.63 2004-06-26 18:38:08 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -367,10 +367,11 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		/* construction */
 		phase = 0;
 		char job_char;
+		ArrayT<StringT> argv;
 
 		/* construct continuum solver */
 		continuum_in >> job_char;
-		FEManagerT_bridging continuum(continuum_in, continuum_out, fComm, bridge_continuum_in);
+		FEManagerT_bridging continuum(continuum_in, continuum_out, fComm, argv, bridge_continuum_in);
 		continuum.Initialize();
 
 		/* split here depending on whether integrators are explicit or implicit
@@ -382,7 +383,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		{
 			/* construct atomistic solver */
 			atom_in >> job_char;
-			FEManagerT_bridging atoms(atom_in, atom_out, fComm, bridge_atom_in);
+			FEManagerT_bridging atoms(atom_in, atom_out, fComm, argv, bridge_atom_in);
 			atoms.Initialize();
 
 			t1 = clock();
@@ -1140,7 +1141,7 @@ void FEExecutionManagerT::RunWriteDescription(int doc_type) const
 //TEMP
 
 	/* parameter source */
-	FEManagerT fe_man(input, output, comm);
+	FEManagerT fe_man(input, output, comm, fCommandLineOptions);
 
 	/* collect parameters */
 	cout << " collecting parameters..." << endl;
@@ -1214,7 +1215,7 @@ void FEExecutionManagerT::RunJob_serial(ifstreamT& in,
 		/* construction */
 		phase = 0;
 		in.set_marker('#');
-		FEManagerT analysis1(in, out, fComm);
+		FEManagerT analysis1(in, out, fComm, fCommandLineOptions);
 		analysis1.Initialize();
 
 		t1 = clock();
@@ -1403,7 +1404,7 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status, Communi
 
 		/* to read file parameters */
 		ofstreamT out;
-		FEManagerT fe_man(in, out, comm);
+		FEManagerT fe_man(in, out, comm, fCommandLineOptions);
 		fe_man.Initialize(FEManagerT::kParametersOnly);
 		
 		/* model file parameters */
@@ -1588,7 +1589,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		char filetypechar;
 		in_loc >> filetypechar;
 	}
-	FEManagerT_mpi FEman(in_loc, out, fComm, &partition, FEManagerT_mpi::kRun);
+	FEManagerT_mpi FEman(in_loc, out, fComm, fCommandLineOptions, &partition, FEManagerT_mpi::kRun);
 	try { FEman.Initialize(); }
 	catch (ExceptionT::CodeT code)
 	{
@@ -1761,7 +1762,7 @@ void FEExecutionManagerT::GetModelFile(ifstreamT& in, StringT& model_file,
 	}
 
 	ofstreamT out;
-	FEManagerT fe_temp(in_temp, out, fComm);
+	FEManagerT fe_temp(in_temp, out, fComm, fCommandLineOptions);
 	fe_temp.Initialize(FEManagerT::kParametersOnly);
 
 	ModelManagerT* model = fe_temp.ModelManager();
@@ -1926,7 +1927,7 @@ void FEExecutionManagerT::Decompose_graph(ifstreamT& in, int size,
 		}
 
 		/* construct global problem */
-		FEManagerT_mpi global_FEman(in_decomp, decomp_out, comm, NULL, FEManagerT_mpi::kDecompose);
+		FEManagerT_mpi global_FEman(in_decomp, decomp_out, comm, fCommandLineOptions, NULL, FEManagerT_mpi::kDecompose);
 		try { global_FEman.Initialize(FEManagerT::kAllButSolver); }
 		catch (ExceptionT::CodeT code)
 		{

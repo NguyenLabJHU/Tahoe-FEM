@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.10 2004-06-26 06:23:36 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.11 2004-06-26 18:38:09 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -17,7 +17,7 @@ using namespace Tahoe;
 /* constructor */
 MultiManagerT::MultiManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
 	FEManagerT_bridging* fine, FEManagerT_bridging* coarse):
-	FEManagerT(input, output, comm),
+	FEManagerT(input, output, comm, fArgv),
 	fFine(fine),
 	fCoarse(coarse),
 	fDivertOutput(false),
