@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.27 2003-11-21 22:41:36 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.28 2004-01-31 07:19:11 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _NMATRIX_T_H_
 #define _NMATRIX_T_H_
@@ -1570,7 +1570,7 @@ inline void nMatrixT<nTYPE>::MultTx(const nArrayT<nTYPE>& x, nArrayT<nTYPE>& b,
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)
-	if (fRows != x.Length() && fCols != b.Length()) ExceptionT::SizeMismatch("nMatrixT::MultTx");
+	if (fRows != x.Length() || fCols != b.Length()) ExceptionT::SizeMismatch("nMatrixT::MultTx");
 #endif
 
 	MultTx(x.Pointer(), b.Pointer(), scale, fillmode);

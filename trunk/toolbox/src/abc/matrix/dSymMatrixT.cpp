@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.28 2003-11-21 22:41:36 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.29 2004-01-31 07:19:11 paklein Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -742,17 +742,27 @@ dSymMatrixT& dSymMatrixT::ExpandFrom2D(const dSymMatrixT& vec2D) /* assumed plan
 {
 /* dimension check */
 #if __option (extended_errorcheck)
-	if (fNumSD != 3 ||
+	if ((fNumSD != k3D && fNumSD != k3D_plane) ||
 	    vec2D.fNumSD != 2) ExceptionT::SizeMismatch("dSymMatrixT::ExpandFrom2D");
 #endif
 
-	/* translation */
-	fArray[0] = vec2D.fArray[0];
-	fArray[1] = vec2D.fArray[1];
-	fArray[2] = 0.0;
-	fArray[3] = 0.0;
-	fArray[4] = 0.0;
-	fArray[5] = vec2D.fArray[2];
+	/* 3D */
+	if (fNumSD == k3D)
+	{
+		fArray[0] = vec2D.fArray[0];
+		fArray[1] = vec2D.fArray[1];
+		fArray[2] = 0.0;
+		fArray[3] = 0.0;
+		fArray[4] = 0.0;
+		fArray[5] = vec2D.fArray[2];
+	}
+	else /* 3D plane */
+	{
+		fArray[0] = vec2D.fArray[0];
+		fArray[1] = vec2D.fArray[1];
+		fArray[2] = vec2D.fArray[2];
+		fArray[3] = 0.0; /* just clear the out-of-plane value */
+	}
 	
 	return *this;
 }
@@ -761,15 +771,107 @@ dSymMatrixT& dSymMatrixT::ReduceFrom3D(const dSymMatrixT& vec3D)
 {
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (fNumSD != 2 ||
+	if ((fNumSD != k2D && fNumSD != k3D_plane) ||
 	    vec3D.fNumSD != 3) ExceptionT::SizeMismatch("dSymMatrixT::ReduceFrom3D");
 #endif
 
-	/* translation */
-	fArray[0] = vec3D.fArray[0];
-	fArray[1] = vec3D.fArray[1];
-	fArray[2] = vec3D.fArray[5];
+	/* 2D */
+	if (fNumSD == k2D)
+	{
+		fArray[0] = vec3D.fArray[0];
+		fArray[1] = vec3D.fArray[1];
+		fArray[2] = vec3D.fArray[5];
+	}
+	else /* 3D plane */
+	{
+		fArray[0] = vec3D.fArray[0];
+		fArray[1] = vec3D.fArray[1];
+		fArray[2] = vec3D.fArray[5];
+		fArray[3] = vec3D.fArray[2]; /* out-of-plane value */
+	}
 	
+	return *this;
+}
+
+/* ? <-> ? translations */
+dSymMatrixT& dSymMatrixT::Translate(const dSymMatrixT& matrix)
+{
+	double* rhs = matrix.fArray;
+	if (fNumSD == matrix.fNumSD)
+		operator=(matrix);
+	else if (fNumSD == k1D)
+	{
+		if (matrix.fNumSD != kNone)
+			fArray[0] = 0.0;
+		else
+			fArray[0] = rhs[0];
+	}
+	else if (fNumSD == k2D)
+	{
+		if (matrix.fNumSD == k1D) {
+			fArray[0] = rhs[0];
+			fArray[1] = 0.0;
+			fArray[2] = 0.0;
+		}		
+		else if (matrix.fNumSD == k3D) {
+			fArray[0] = rhs[0];
+			fArray[1] = rhs[1];
+			fArray[2] = rhs[5];
+		}
+		else if (matrix.fNumSD == k3D_plane) {
+			fArray[0] = rhs[0];
+			fArray[1] = rhs[1];
+			fArray[2] = rhs[2];
+		}
+	}
+	else if (fNumSD == k3D)
+	{
+		if (matrix.fNumSD == k1D) {
+			fArray[0] = rhs[0];
+			fArray[1] = 0.0;
+			fArray[2] = 0.0;
+			fArray[3] = 0.0;
+			fArray[4] = 0.0;
+			fArray[5] = 0.0;		
+		}		
+		else if (matrix.fNumSD == k2D) {
+			fArray[0] = rhs[0];
+			fArray[1] = rhs[1];
+			fArray[2] = 0.0;
+			fArray[3] = 0.0;
+			fArray[4] = 0.0;
+			fArray[5] = rhs[2];
+		}
+		else if (matrix.fNumSD == k3D_plane) {
+			fArray[0] = rhs[0];
+			fArray[1] = rhs[1];
+			fArray[2] = rhs[3];
+			fArray[3] = 0.0;
+			fArray[4] = 0.0;
+			fArray[5] = rhs[2];
+		}
+	}
+	else if (fNumSD == k3D_plane)
+	{
+		if (matrix.fNumSD == k1D) {
+			fArray[0] = rhs[0];
+			fArray[1] = 0.0;
+			fArray[2] = 0.0;
+			fArray[3] = 0.0;
+		}
+		else if (matrix.fNumSD == k2D) {
+			fArray[0] = rhs[0];
+			fArray[1] = rhs[1];
+			fArray[2] = rhs[2];
+			fArray[3] = 0.0;
+		}
+		else if (matrix.fNumSD == k3D) {
+			fArray[0] = rhs[0];
+			fArray[1] = rhs[1];
+			fArray[2] = rhs[5];
+			fArray[3] = rhs[2];
+		}
+	}
 	return *this;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.h,v 1.10 2003-11-21 22:41:36 paklein Exp $ */
+/* $Id: dMatrixT.h,v 1.11 2004-01-31 07:19:11 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _DMATRIX_T_H_
 #define _DMATRIX_T_H_
@@ -84,11 +84,12 @@ public:
 	 * \return reference to *this */
 	dMatrixT& Symmetrize(void);
 
-/***********************************************
-* Symmetric matrix specializations
-**********************************************/
-	
-	/** reduced index Rank 4 translations */
+	/** \name symmetric matrix specializations */
+	/*@{*/
+	/** reduced index rank 4 translations. Extracts the 2D values from the 3D symmetric,
+	 * fourth order tensor. The 2D values are extracted if this has dimensions 3x3, or
+	 * the 2D-axisymmmetric values if this has dimensions 4x4. 
+	 * \param mat3D 6x6, reduced index representation of 3D, fourth order tensor */
 	void Rank4ReduceFrom3D(const dMatrixT& mat3D);
 
 	/** returns the Rank 4 devatoric operator in reduced index form and
@@ -115,6 +116,7 @@ public:
 	\f]
 	 */
 	dMatrixT& ReducedIndexII(void);
+	/*@}*/
 
 /***********************************************
  * Specializations added for element stiffness matrices - new class?

@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.cpp,v 1.17 2003-11-21 22:41:36 paklein Exp $ */
+/* $Id: dMatrixT.cpp,v 1.18 2004-01-31 07:19:11 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "dMatrixT.h"
 #include <iostream.h>
@@ -261,25 +261,52 @@ dMatrixT& dMatrixT::Symmetrize(const dMatrixT& matrix)
 /* reduced index Rank 4 translations */
 void dMatrixT::Rank4ReduceFrom3D(const dMatrixT& mat3D)
 {
+#if __option(extended_errorcheck)
+	const char caller[] = "dMatrixT::Rank4ReduceFrom3D";
 	/* dimension checks */
-#if __option(extended_errorcheck)	
-	if (fRows != fCols || fRows != 3) throw ExceptionT::kGeneralFail;
-	if (mat3D.fRows != mat3D.fCols || mat3D.fRows != 6) throw ExceptionT::kSizeMismatch;
+	if (fRows != fCols || (fRows != 3 && fRows != 4)) ExceptionT::SizeMismatch(caller);
+	if (mat3D.fRows != mat3D.fCols || mat3D.fRows != 6) ExceptionT::SizeMismatch(caller);
 #endif
 
 	double* pthis = fArray;
 	
-	*pthis++ = mat3D.fArray[0];	//1,1
-	*pthis++ = mat3D.fArray[1]; //2,1
-	*pthis++ = mat3D.fArray[5]; //3,1
+	/* 2D */
+	if (fRows == 3)
+	{	
+		*pthis++ = mat3D.fArray[0];	//1,1
+		*pthis++ = mat3D.fArray[1]; //2,1
+		*pthis++ = mat3D.fArray[5]; //3,1
 
-	*pthis++ = mat3D.fArray[6]; //1,2
-	*pthis++ = mat3D.fArray[7]; //2,2
-	*pthis++ = mat3D.fArray[11]; //3,2
+		*pthis++ = mat3D.fArray[6]; //1,2
+		*pthis++ = mat3D.fArray[7]; //2,2
+		*pthis++ = mat3D.fArray[11]; //3,2
 
-	*pthis++ = mat3D.fArray[30]; //3,1
-	*pthis++ = mat3D.fArray[31]; //3,2
-	*pthis   = mat3D.fArray[35]; //3,3
+		*pthis++ = mat3D.fArray[30]; //3,1
+		*pthis++ = mat3D.fArray[31]; //3,2
+		*pthis   = mat3D.fArray[35]; //3,3
+	}
+	else /* 2D-axisymmetric */
+	{
+		*pthis++ = mat3D.fArray[0];
+		*pthis++ = mat3D.fArray[1];
+		*pthis++ = mat3D.fArray[5];
+		*pthis++ = mat3D.fArray[2];
+
+		*pthis++ = mat3D.fArray[6];
+		*pthis++ = mat3D.fArray[7];
+		*pthis++ = mat3D.fArray[11];
+		*pthis++ = mat3D.fArray[8];
+
+		*pthis++ = mat3D.fArray[30];
+		*pthis++ = mat3D.fArray[31];
+		*pthis++ = mat3D.fArray[35];
+		*pthis++ = mat3D.fArray[32];
+
+		*pthis++ = mat3D.fArray[12];
+		*pthis++ = mat3D.fArray[13];
+		*pthis++ = mat3D.fArray[17];
+		*pthis   = mat3D.fArray[14];
+	}
 }
 
 /* returns the Rank 4 devatoric operator in reduced index form and
