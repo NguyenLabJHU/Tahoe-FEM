@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.9 2002-11-04 16:52:17 cjkimme Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.10 2002-11-06 21:53:48 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -18,6 +18,7 @@ const int    knumDOF = 2;
 const double kExpMax = 100;
 
 /* initialize static variables */
+int TiedPotentialT::iBulkGroup = 0;
 double TiedPotentialT::fsigma_critical = 0.;
 double TiedPotentialT::fnvec1 = 0.;
 double TiedPotentialT::fnvec2 = 0.;
@@ -31,12 +32,17 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in, const double& time_step):
 
     in >> fnvec1; /* read in direction to sample stress state at */
     in >> fnvec2;
-    
+ 
     /*make it a unit vector */
     double mag = sqrt(fnvec1*fnvec1+fnvec2*fnvec2);
     
     fnvec1 /= mag;
     fnvec2 /= mag;
+ 
+    int nBulkGroups;
+    in >> nBulkGroups;
+    in >> iBulkGroup; if (iBulkGroup < 0) throw ExceptionT::kBadInputValue;
+    iBulkGroup--;
     
 	in >> qTv; /* 0 for Xu-Needleman. 1 for TvergHutch */
 	
@@ -361,6 +367,11 @@ bool TiedPotentialT::InitiationQ(const double* sigma)
 	double t2 = sigma[2]*fnvec1+sigma[1]*fnvec2;
 	
 	return t1*t1 + t2*t2 >= fsigma_critical;
+}
+
+int TiedPotentialT::BulkGroup(void)
+{
+  return iBulkGroup;
 }
 
 /*void TiedPotentialT::AllocateSpace(int MajorDim, int MinorDim) 
