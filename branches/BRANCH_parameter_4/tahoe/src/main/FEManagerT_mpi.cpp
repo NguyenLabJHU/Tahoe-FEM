@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.35.2.2 2004-07-07 15:28:43 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.35.2.3 2004-07-12 05:10:57 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -22,7 +22,7 @@
 using namespace Tahoe;
 
 /* constructor */
-FEManagerT_mpi::FEManagerT_mpi(ifstreamT& input, ofstreamT& output, 
+FEManagerT_mpi::FEManagerT_mpi(const StringT& input, ofstreamT& output, 
 	CommunicatorT& comm, const ArrayT<StringT>& argv, PartitionT* partition, TaskT task):
 	FEManagerT(input, output, comm, argv),
 	fPartition(partition),
@@ -32,7 +32,14 @@ FEManagerT_mpi::FEManagerT_mpi(ifstreamT& input, ofstreamT& output,
 	if (fTask == kRun)
 	{
 		const char caller[] = "FEManagerT_mpi::FEManagerT_mpi";
-	
+
+		/* revise input file name */
+		StringT suffix;
+		suffix.Suffix(fInputFile);
+		fInputFile.Root();
+		fInputFile.Append(".p", Rank());
+		fInputFile.Append(suffix);
+
 		/* checks */
 		if (!fPartition)
 			ExceptionT::BadInputValue(caller, "partition information required for task %d", kRun);
@@ -41,8 +48,8 @@ FEManagerT_mpi::FEManagerT_mpi(ifstreamT& input, ofstreamT& output,
 				fPartition->ID(), Rank());
 		
 		StringT log_file;
-		log_file.Root(input.filename());
-		log_file.Append(".p", Rank());
+		log_file.Root(input);
+		//log_file.Append(".p", Rank());
 		log_file.Append(".log");
 		flog.open(log_file);
 		
@@ -315,11 +322,13 @@ void FEManagerT_mpi::TakeParameterList(const ParameterListT& list)
 
 void FEManagerT_mpi::ReadParameters(InitCodeT init)
 {
+#pragma unused(init)
+#if 0
 	/* log */
 	TimeStamp("FEManagerT_mpi::ReadParameters");
 
 	/* inherited */
-	FEManagerT::ReadParameters(init);
+//	FEManagerT::ReadParameters(init);
 
 	/* collect model file and input format from ModelManager */
 	fInputFormat = fModelManager->DatabaseFormat();
@@ -331,8 +340,8 @@ void FEManagerT_mpi::ReadParameters(InitCodeT init)
 		StringT name, suffix;
 		
 		/* input file name */
-		name.Root(fMainIn.filename());
-		suffix.Suffix(fMainIn.filename());
+		name.Root(fInputFile);
+		suffix.Suffix(fInputFile);
 		name.Append(".p", Rank());
 		name.Append(suffix);
 		fMainIn.set_filename(name);
@@ -359,6 +368,7 @@ void FEManagerT_mpi::ReadParameters(InitCodeT init)
 			fRestartFile.Append(suffix);
 		}
 	}
+#endif
 }
 
 void FEManagerT_mpi::SetElementGroups(void)
