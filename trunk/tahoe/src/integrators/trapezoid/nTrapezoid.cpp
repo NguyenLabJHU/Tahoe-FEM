@@ -1,4 +1,4 @@
-/* $Id: nTrapezoid.cpp,v 1.7 2003-01-29 07:35:18 paklein Exp $ */
+/* $Id: nTrapezoid.cpp,v 1.8 2003-04-16 20:34:06 cjkimme Exp $ */
 /* created: paklein (10/03/1999) */
 #include "nTrapezoid.h"
 #include "dArrayT.h"
@@ -36,6 +36,10 @@ void nTrapezoid::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		{
 			v  = KBC.Value();
 			d += dcorr_v*v;
+			break;
+		}
+		case KBC_CardT::kNull:
+		{
 			break;
 		}
 		default:

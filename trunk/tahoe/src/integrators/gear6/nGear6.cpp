@@ -70,6 +70,11 @@ void nGear6::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 			break;
 		}
 
+		case KBC_CardT::kNull: /* do nothing */
+		{
+			break;
+		}
+
 		default:
 			ExceptionT::BadInputValue(caller, "unknown BC code: %d", KBC.Code() );
 	}

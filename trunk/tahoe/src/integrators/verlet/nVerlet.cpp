@@ -53,6 +53,11 @@ void nVerlet::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 			v += vcorr_a*a;
                  	break;
 		}
+		
+		case KBC_CardT::kNull: /* do nothing */
+		{
+			break;
+		}
 
 		default:
 		
