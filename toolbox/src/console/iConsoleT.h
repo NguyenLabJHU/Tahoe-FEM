@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.h,v 1.6 2002-04-07 19:15:00 paklein Exp $ */
+/* $Id: iConsoleT.h,v 1.7 2002-04-11 17:05:52 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_T_H_
@@ -13,13 +13,14 @@
 /* forward declaration */
 class iConsoleObjectT;
 
-/** base class for interactive consoles */
+/** interactive console. */
 class iConsoleT: public iConsoleBaseT
 {
   public:
 
 	/* constructor */
-	iConsoleT(const StringT& log_file, iConsoleObjectT& current);
+	iConsoleT(const StringT& log_file, iConsoleObjectT& current,
+		const ArrayT<StringT>* arguments = NULL);
 
 	/* destructor */
 	~iConsoleT(void);
@@ -41,7 +42,7 @@ class iConsoleT: public iConsoleBaseT
   private:
 
 	/* main event loop */
-	void DoInteractive(void);
+	void DoInteractive(const StringT& first_line);
 
 	/* get command line */
 	void GetCommandLine(StringT& line);
