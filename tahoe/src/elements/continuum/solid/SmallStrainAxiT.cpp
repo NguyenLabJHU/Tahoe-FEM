@@ -1,4 +1,4 @@
-/* $Id: SmallStrainAxiT.cpp,v 1.2.14.2 2004-06-14 04:56:30 paklein Exp $ */
+/* $Id: SmallStrainAxiT.cpp,v 1.2.14.3 2004-06-24 04:48:04 paklein Exp $ */
 #include "SmallStrainAxiT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -127,8 +127,11 @@ void SmallStrainAxiT::CollectMaterialInfo(const ParameterListT& all_params, Para
 /* construct a new material support and return a pointer */
 MaterialSupportT* SmallStrainAxiT::NewMaterialSupport(MaterialSupportT* p) const
 {
-	/* allocate 3D support */
-	if (!p) p = new SSMatSupportT(NumDOF(), NumIP());
+	/* construct 3D support */
+	if (!p) {
+		p = new SSMatSupportT(NumDOF(), NumIP());
+		p->SetNumSD(3);
+	}
 
 	/* inherited initializations */
 	SmallStrainT::NewMaterialSupport(p);
