@@ -15,7 +15,7 @@
 #[blk ID] [split method]
 1-2 1
 *VERBOSE 1
-*OUTPUTFORMAT 1
+*OUTPUT 1
 *input 1 ../geometry/quad4sidesn.geom
 
 

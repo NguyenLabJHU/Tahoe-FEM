@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2002-11-05 14:29:03 sawimme Exp $
+# $Id: makefile,v 1.2 2004-06-22 00:05:33 paklein Exp $
 #
 # type "make clean" to remove test results
 #
@@ -20,4 +20,4 @@ clean:
 			echo "*** WARNING: missing directory: $(CURR_DIR)/$$n"; \
 			fi; \
 	done    
-	-@rm *.out *_db*
+	-@rm *.out *_db* defaultoutput.*

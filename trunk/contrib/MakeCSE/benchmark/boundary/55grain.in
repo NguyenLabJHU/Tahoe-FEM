@@ -2,10 +2,10 @@
 *VERBOSE
 1	# write extra to log file
 
-*outputformat
+*output
 1	# output file format
 
-*inputformat
+*input
 1 ../geometry/c55grain.geom
 
 *boundary

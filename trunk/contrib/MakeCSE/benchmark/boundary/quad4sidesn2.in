@@ -22,7 +22,7 @@ experimental input file
 *VERBOSE
 1	# write node set translation to log file
 
-*OUTPUTFORMAT
+*OUTPUT
 1	# output file format
 
 *input 1 ../geometry/quad4sidesn.geom
