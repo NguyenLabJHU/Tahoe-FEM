@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.2 2001-04-27 10:50:11 paklein Exp $ */
 /* created: paklein (01/12/2000)                                          */
 
 #include "FEManagerT_mpi.h"
@@ -75,7 +75,7 @@ FEManagerT_mpi::FEManagerT_mpi(ifstreamT& input, ofstreamT& output, const Partit
 
 		StringT log_file;
 		log_file.Root(input.filename());
-		log_file.Append(".p", fRank);
+		log_file.Append(".p", Rank());
 		log_file.Append(".log");
 		flog.open(log_file);
 		
