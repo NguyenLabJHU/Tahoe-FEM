@@ -1,4 +1,4 @@
-/* $Id: FDSimoVisco3D.cpp,v 1.2 2002-10-05 03:44:32 paklein Exp $ */
+/* $Id: FDSimoVisco3D.cpp,v 1.3 2002-10-14 16:04:06 thao Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "FDSimoVisco3D.h"
@@ -22,8 +22,8 @@ FDSimoVisco3D::FDSimoVisco3D(ifstreamT& in, const FiniteStrainT& element):
 	in >> ftauS;
 	in >> ftauB;
 
-	int taudtS = fdt/ftauS;
-	int taudtB = fdt/ftauB;
+	double taudtS = fdt/ftauS;
+	double taudtB = fdt/ftauB;
 
 	falphaS = exp(-0.5*taudtS);
 	falphaB = exp(-0.5*taudtB);
