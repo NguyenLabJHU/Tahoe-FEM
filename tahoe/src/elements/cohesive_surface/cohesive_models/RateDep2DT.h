@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.h,v 1.1 2002-02-18 19:11:32 cjkimme Exp $ */
+/* $Id: RateDep2DT.h,v 1.2 2002-02-25 19:37:42 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #ifndef _RATE_DEP_2D_T_H_
@@ -90,7 +90,9 @@ private:
 	                  * and the initial stiffness of the cohesive potential */
 	const double& fTimeStep;
 	int fGroup;
-	bool initiationQ;
+	//bool initiationQ;
+	double L_2_b, L_2_m;/* fitting constants for rate dependence of L_2 */
+	
 };
 
 #endif /* _RATE_DEP_2D_T_H_ */

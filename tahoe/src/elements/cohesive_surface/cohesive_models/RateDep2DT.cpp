@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.cpp,v 1.1 2002-02-18 19:11:32 cjkimme Exp $  */
+/* $Id: RateDep2DT.cpp,v 1.2 2002-02-25 19:37:42 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "RateDep2DT.h"
@@ -32,11 +32,13 @@ RateDep2DT::RateDep2DT(ifstreamT& in, const double& time_step):
 
 	/* stiffness multiplier */
 	in >> fpenalty; if (fpenalty < 0) throw eBadInputValue;
+	in >> L_2_b;
+	in >> L_2_m;
 
 	/* penetration stiffness */
 	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
 
-	initiationQ = false;
+	//initiationQ = false;
 }
 
 /*initialize state variables with values from the rate-independent model */
@@ -129,10 +131,16 @@ const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state
 	    * as a function of rate. 
 	    */
 	    if (state[3] == 0.)
-	    {
-	      //state[6] += log((u_n-state[7])/fTimeStep/.00006) 
-	      state[3] = 1.;
-	      //state[2] *= (.00006-(u_n - state[7])/fTimeStep)/.00006;
+	    { 
+	      double u_n_dot = (u_n-state[9])/fTimeStep;
+	      if (u_n_dot > kSmall) 
+	      {
+		state[2] = L_2_b + L_2_m * log(u_n_dot);
+		if (state[2] > 1.) 
+		  state[2] = 1.;
+		//		cout << "state[2] = " << state[2] << " d_dot " << u_n_dot << " " << fTimeStep <<  "\n";
+		state[3] = 1.;
+	      }
 	    }
 		sigbyL = state[4]/L;
 	}
@@ -204,19 +212,6 @@ const dMatrixT& RateDep2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double
 		fStiffness[1] = z4;
 		fStiffness[2] = z4;
 		fStiffness[3] = z3;
-		
-
-/*		Keeping tangent stiffness 
-		
-		if (fabs(z1) < kSmall)
-			fStiffness[0] = (fd_c_n/fd_c_t)*fsigma_max/(L*fd_c_t); // secant stiffness
-		else
-			fStiffness[0] = z1;
-
-		if (fabs(z3) < kSmall)
-			fStiffness[3] = fsigma_max/(L*fd_c_n); // secant stiffness
-		else
-			fStiffness[3] = z3;  */
 	}
 	else if (L < 1 && state[2] < 1.) // K3
 	{
