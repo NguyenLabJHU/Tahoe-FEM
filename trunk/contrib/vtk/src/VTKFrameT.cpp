@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.15 2001-11-29 21:22:43 recampb Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.16 2001-12-08 00:17:19 recampb Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -62,8 +62,8 @@ VTKFrameT::VTKFrameT(void):
   rot_y.SetDefault(0.0);
   rot_y.SetPrompt("y-axis rotation");
   ArgSpecT rot_z(ArgSpecT::double_, "z");
-  rot_z.SetDefault(0.0);
-  rot_z.SetPrompt("y-axis rotation");
+  rot_z.SetDefault(30.0);
+  rot_z.SetPrompt("z-axis rotation");
   rotate.AddArgument(rot_x);
   rotate.AddArgument(rot_y);
   rotate.AddArgument(rot_z);
@@ -113,7 +113,6 @@ bool VTKFrameT::AddBody(VTKBodyDataT* body_data)
   if (bodies.AppendUnique(body_data))
     {
       renderer->AddActor(body_data->Actor());
-      // renderer->AddActor(body->SBActor());
       // frame needs to keep track of the current visible scalar bar
       // so that at most one is visible and SBActors() can be exhanged
       // in renderer
@@ -122,6 +121,7 @@ bool VTKFrameT::AddBody(VTKBodyDataT* body_data)
       int index = bodies.PositionOf(body_data);
       name.Append(index);
       bodies[index]->iSetName(name);
+      cout << name << endl;
       iAddSub(bodies[index]);
       return true;
     }
@@ -142,7 +142,8 @@ bool VTKFrameT::RemoveBody(VTKBodyDataT* body_data)
 
       /* remove from renderer */
       renderer->RemoveActor(body->Actor());
-      renderer->RemoveActor(body->SBActor()); // if added to the renderer earlier
+      renderer->RemoveActor(body->SBActor());// if added to the renderer earlier
+      
       ResetView();
 
       /* remove from body list */
@@ -345,11 +346,13 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 	renderer->GetActiveCamera()->Elevation(x);
 
       if (fabs(y) > 1.0e-6)
-	renderer->GetActiveCamera()->Azimuth(y);
+	renderer->GetActiveCamera()->Azimuth(-y);
 
       if (fabs(z) > 1.0e-6)
 	renderer->GetActiveCamera()->Roll(z);
-
+      renderer->GetActiveCamera()->ComputeViewPlaneNormal();
+      renderer->GetActiveCamera()->OrthogonalizeViewUp();
+      
       fRenWin->Render();
       return true;
     }
@@ -362,6 +365,7 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
       char line[255];
       cin.getline(line, 254);
       renderer->GetActiveCamera()->Zoom(zoom);
+
       fRenWin->Render();
       return true;
     }
