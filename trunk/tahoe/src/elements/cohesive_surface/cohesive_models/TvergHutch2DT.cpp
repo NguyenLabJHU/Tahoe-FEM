@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.cpp,v 1.6 2001-12-17 00:15:51 paklein Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.7 2002-02-05 18:35:31 jwfoulk Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch2DT.h"
@@ -155,12 +155,14 @@ const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 
 		//{{z1, z4},
 		// {z4, z3}}
-		//fStiffness[0] = z1;
+		fStiffness[0] = z1;
 		fStiffness[1] = z4;
 		fStiffness[2] = z4;
-		//fStiffness[3] = z3;
+		fStiffness[3] = z3;
+		
 
-		/* don't allow zero tangent stiffness */
+/*		Keeping tangent stiffness 
+		
 		if (fabs(z1) < kSmall)
 			fStiffness[0] = (fd_c_n/fd_c_t)*fsigma_max/(L*fd_c_t); // secant stiffness
 		else
@@ -169,7 +171,7 @@ const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 		if (fabs(z3) < kSmall)
 			fStiffness[3] = fsigma_max/(L*fd_c_n); // secant stiffness
 		else
-			fStiffness[3] = z3;
+			fStiffness[3] = z3;  */
 	}
 	else if (L < 1) // K3
 	{
