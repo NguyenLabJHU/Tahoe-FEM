@@ -1,4 +1,4 @@
-/* $Id: PointPlots.cpp,v 1.11 2002-10-28 14:19:02 sawimme Exp $ */
+/* $Id: PointPlots.cpp,v 1.12 2003-02-25 14:34:36 sawimme Exp $ */
 #include "PointPlots.h"
 #include "ExceptionT.h"
 #include "TecPlotT.h"
@@ -23,6 +23,7 @@ void PointPlots::Translate (const StringT& program, const StringT& version, cons
       if (fWrite)
 	cout << "\n Enter the root of the output files: ";
       fIn >> fOutputName;
+      if (fEcho) fEchoOut << fOutputName << "\n";
       cout << "\n Output Format: " << fOutputFormat << " File: " << fOutputName << endl;
 
       InitializeQuadVariables ();
@@ -59,6 +60,7 @@ void PointPlots::SetOutput (const StringT& program, const StringT& version, cons
       cout << "\n Enter the Output Format: ";
     }
   fIn >> fOutputFormat;
+  if (fEcho) fEchoOut << fOutputFormat << "\n";
 }
 
 void PointPlots::TranslateVariables (void)

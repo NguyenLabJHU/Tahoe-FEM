@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.16 2003-02-18 08:47:23 paklein Exp $ */
+/* $Id: main.cpp,v 1.17 2003-02-25 14:34:36 sawimme Exp $ */
 #include "ExceptionT.h"
 #include "TranslateIOManager.h"
 #include "ExtractNode.h"
@@ -20,6 +20,8 @@ int main (int c, char* a [])
   try 
     {
       bool write = true;
+      bool echo = false;
+      StringT echofile;
       AutoArrayT<StringT> filelist;
       ifstreamT tmp;
 
@@ -27,7 +29,18 @@ int main (int c, char* a [])
       if (c >= 2)
 	ReadArgs (a[1], filelist);
       else
-	filelist.Free();
+	{
+	  filelist.Free();
+	  StringT answer;
+	  cout << "\n Echo answers to file (y/n) ? ";
+	  cin >> answer;
+	  if (answer[0] == 'y' || answer[0] == 'Y')
+	    {
+	      echo = true;
+	      cout << "\n Enter file to echo parameters to: ";
+	      cin >> echofile;
+	    }
+	}
 
       int numruns = 1;
       if (filelist.Length() > 0) 
@@ -54,6 +67,7 @@ int main (int c, char* a [])
 	    }
 	  in >> selection;
 	  cout << "\n Type of translation: " << selection << ".";
+
 	  
 	  TranslateIOManager *dataio;
 	  StringT program, version;
@@ -110,6 +124,7 @@ int main (int c, char* a [])
 	    default:
 	      throw ExceptionT::kGeneralFail;
 	    }
+	  if (echo) dataio->SetEcho (selection, echofile);
 	  dataio->Translate (program, version, program);
 	}
       cout << "\n\n Progam Complete.\n\n";

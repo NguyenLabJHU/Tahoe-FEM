@@ -1,4 +1,4 @@
-/* $Id: ExtractElement.cpp,v 1.1 2003-02-18 08:47:23 paklein Exp $ */
+/* $Id: ExtractElement.cpp,v 1.2 2003-02-25 14:34:36 sawimme Exp $ */
 #include "ExtractElement.h"
 
 using namespace Tahoe;
@@ -30,6 +30,7 @@ void ExtractElement::Initialize (void)
 		fMessage << "\n Index of the element group: ";
 
 		fIn >> elem_dex;
+		if (fEcho) fEchoOut << elem_dex << "\n";
 	}
 	elem_dex--;
 	fExtract_ID = elem_ID[elem_dex];
