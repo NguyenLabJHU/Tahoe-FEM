@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.6 2002-11-21 01:13:36 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.7 2002-11-30 16:41:27 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 
 #include "PenaltyContact3DT.h"
@@ -120,7 +120,7 @@ void PenaltyContact3DT::PrintControlData(ostream& out) const
 }
 
 /* called by FormRHS and FormLHS */
-void PenaltyContact3DT::LHSDriver(void)
+void PenaltyContact3DT::LHSDriver(GlobalT::SystemTypeT)
 {
 	double constK = 0.0;
 	int formK = fController->FormK(constK);

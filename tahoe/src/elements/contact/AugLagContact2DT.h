@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.h,v 1.8 2002-10-20 22:48:21 paklein Exp $ */
+/* $Id: AugLagContact2DT.h,v 1.9 2002-11-30 16:41:26 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 
 #ifndef _AUGLAG_CONTACT2D_T_H_
@@ -78,7 +78,7 @@ protected:
 	virtual void PrintControlData(ostream& out) const;
 		 	
 	/* construct the effective mass matrix */
-	virtual void LHSDriver(void);
+	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
 
 	/* construct the residual force vector */
 	virtual void RHSDriver(void);

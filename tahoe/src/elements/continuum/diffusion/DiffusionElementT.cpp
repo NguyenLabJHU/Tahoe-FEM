@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.10 2002-11-14 17:05:51 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.11 2002-11-30 16:41:28 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -256,10 +256,10 @@ void DiffusionElementT::SetShape(void)
 }
 
 /* construct the effective mass matrix */
-void DiffusionElementT::LHSDriver(void)
+void DiffusionElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 {
 	/* inherited */
-	ContinuumElementT::LHSDriver();
+	ContinuumElementT::LHSDriver(sys_type);
 
 	/* set components and weights */
 	double constC = 0.0;

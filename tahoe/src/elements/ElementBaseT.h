@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.21 2002-11-28 17:30:30 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.22 2002-11-30 16:41:22 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -282,7 +282,7 @@ protected: /* for derived classes only */
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
 	/*@{*/
 	/** form group contribution to the stiffness matrix */
-	virtual void LHSDriver(void) = 0;
+	virtual void LHSDriver(GlobalT::SystemTypeT sys_type) = 0;
 
 	/** form group contribution to the residual */
 	virtual void RHSDriver(void) = 0;
@@ -398,7 +398,7 @@ inline ElementCardT& ElementBaseT::CurrentElement(void) const { return fElementC
 inline ElementCardT& ElementBaseT::ElementCard(int card) const { return fElementCards[card]; }
 
 /* called by FormRHS and FormLHS */
-inline void ElementBaseT::LHSDriver(void) { }
+inline void ElementBaseT::LHSDriver(GlobalT::SystemTypeT) { }
 inline void ElementBaseT::RHSDriver(void) { }
 
 /* number of nodes per element */

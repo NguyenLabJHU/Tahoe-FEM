@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.25 2002-11-21 01:13:41 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.26 2002-11-30 16:41:30 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -226,7 +226,7 @@ void RodT::CloseStep(void)
 ***********************************************************************/
 
 /* construct the element stiffness matrix */
-void RodT::LHSDriver(void)
+void RodT::LHSDriver(GlobalT::SystemTypeT)
 {
 	/* time integration dependent */
 	double constK = 0.0;

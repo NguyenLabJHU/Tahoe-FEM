@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.20 2002-11-21 01:13:34 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.21 2002-11-30 16:41:25 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -78,7 +78,7 @@ protected:
 	virtual void EchoConnectivityData(ifstreamT&, ostream&) {};
 
 	/* called by FormRHS and FormLHS */
-	virtual void LHSDriver(void) {};
+	virtual void LHSDriver(GlobalT::SystemTypeT) {};
 	virtual void RHSDriver(void) {};
 
 	/** allocate and initialize local arrays */

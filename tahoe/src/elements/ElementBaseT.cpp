@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.28 2002-11-28 17:30:30 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.29 2002-11-30 16:41:22 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -116,7 +116,7 @@ void ElementBaseT::ElementBlockIDs(ArrayT<StringT>& IDs) const
 void ElementBaseT::FormLHS(GlobalT::SystemTypeT sys_type)
 {
 #pragma unused(sys_type)
-	try { LHSDriver(); }
+	try { LHSDriver(sys_type); }
 	catch (ExceptionT::CodeT error)
 	{
 		cout << "\n ElementBaseT::FormLHS: " << fSupport.Exception(error);

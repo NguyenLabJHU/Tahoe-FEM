@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.10 2002-10-20 22:48:20 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.11 2002-11-30 16:41:26 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 
 #include "AugLagContact2DT.h"
@@ -256,7 +256,7 @@ void AugLagContact2DT::PrintControlData(ostream& out) const
 }
 
 /* called by FormRHS and FormLHS */
-void AugLagContact2DT::LHSDriver(void)
+void AugLagContact2DT::LHSDriver(GlobalT::SystemTypeT)
 {
 	double constK = 0.0;
 	int formK = fController->FormK(constK);

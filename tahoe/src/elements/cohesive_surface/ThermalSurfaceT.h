@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.h,v 1.4 2002-07-05 22:27:59 paklein Exp $ */
+/* $Id: ThermalSurfaceT.h,v 1.5 2002-11-30 16:41:25 paklein Exp $ */
 
 #ifndef _THERMAL_SURFACE_T_H_
 #define _THERMAL_SURFACE_T_H_
@@ -31,7 +31,7 @@ public:
 protected:
 
 	/** tangent matrix */
-	virtual void LHSDriver(void);
+	virtual void LHSDriver(GlobalT::SystemTypeT);
 
 	/** force vector */
 	virtual void RHSDriver(void);

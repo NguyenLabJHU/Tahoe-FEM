@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.h,v 1.7 2002-11-21 01:13:35 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.h,v 1.8 2002-11-30 16:41:25 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #ifndef _MF_CSE_ANISO_T_H_
@@ -95,7 +95,7 @@ protected:
 	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
 
 	/* tangent matrix and force vector */
-	virtual void LHSDriver(void);
+	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
 	virtual void RHSDriver(void);
 
 	/* write all current element information to the stream */

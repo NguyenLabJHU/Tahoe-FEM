@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.h,v 1.5 2002-11-21 01:13:33 paklein Exp $ */
+/* $Id: AdhesionT.h,v 1.6 2002-11-30 16:41:24 paklein Exp $ */
 #ifndef _ADHESION_T_H_
 #define _ADHESION_T_H_
 
@@ -80,7 +80,7 @@ protected:
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
 	/*@{*/
 	/** form group contribution to the stiffness matrix */
-	virtual void LHSDriver(void);
+	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
 
 	/** form group contribution to the residual */
 	virtual void RHSDriver(void);

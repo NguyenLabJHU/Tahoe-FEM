@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.cpp,v 1.10 2002-11-21 01:13:40 paklein Exp $ */
+/* $Id: SWDiamondT.cpp,v 1.11 2002-11-30 16:41:29 paklein Exp $ */
 /* created: paklein (03/19/1997) */
 
 #include "SWDiamondT.h"
@@ -171,7 +171,7 @@ void SWDiamondT::SendOutput(int kincode)
 ***********************************************************************/
 
 /* construct the element stiffness matrix */
-void SWDiamondT::LHSDriver(void)
+void SWDiamondT::LHSDriver(GlobalT::SystemTypeT)
 {
 	/* 3 body contribution */
 	List_3Body.Top();

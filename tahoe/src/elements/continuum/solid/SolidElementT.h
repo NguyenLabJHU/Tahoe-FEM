@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.19 2002-11-14 23:00:45 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.20 2002-11-30 16:41:28 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -124,7 +124,7 @@ protected:
 
 	/** \name construct the effective mass matrix */
 	/*@{*/
-	virtual void LHSDriver(void);
+	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
 	void ElementLHSDriver(void);
 	/*@}*/
 
