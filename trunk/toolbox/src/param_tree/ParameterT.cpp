@@ -1,4 +1,4 @@
-/* $Id: ParameterT.cpp,v 1.14 2004-04-04 03:03:12 paklein Exp $ */
+/* $Id: ParameterT.cpp,v 1.15 2004-08-09 16:28:21 paklein Exp $ */
 #include "ParameterT.h"
 
 /* array behavior */
@@ -35,6 +35,14 @@ ParameterT::ParameterT(const char* s, const char* name):
 
 ParameterT::ParameterT(bool b, const char* name):
 	ValueT(b),
+	fName(name),
+	fDefault(NULL)
+{
+
+}
+
+ParameterT::ParameterT(const StringT& s, const char* name):
+	ValueT(s.Pointer()),
 	fName(name),
 	fDefault(NULL)
 {

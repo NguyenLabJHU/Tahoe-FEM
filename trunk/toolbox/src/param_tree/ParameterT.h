@@ -1,4 +1,4 @@
-/* $Id: ParameterT.h,v 1.11 2004-02-18 16:29:10 paklein Exp $ */
+/* $Id: ParameterT.h,v 1.12 2004-08-09 16:28:21 paklein Exp $ */
 #ifndef _PARAMETER_T_H_
 #define _PARAMETER_T_H_
 
@@ -22,6 +22,7 @@ public:
 	ParameterT(double x, const char* name);
 	ParameterT(const char* s, const char* name);
 	ParameterT(bool b, const char* name);
+	ParameterT(const StringT& s, const char* name);
 
 	/** set type without assigning value */
 	ParameterT(TypeT t, const char* name);
