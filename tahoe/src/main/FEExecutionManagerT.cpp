@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.41.2.13 2003-06-02 13:24:58 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.41.2.14 2003-06-03 20:16:45 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -602,12 +602,6 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
 	while (atom_time->NextSequence() && continuum_time->NextSequence())
 	{	
-		/* apply gaussian wave displacement */
-		gaussdisp = atoms.GaussianWave();
-		
-		/* write displacement into field */
-		atoms.SetFieldValues(bridging_field, atoms.NonGhostNodes(), order1, gaussdisp);
-	
 		/* set to initial condition */
 		atoms.InitialCondition();
 	
