@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.8 2005-01-21 18:13:11 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.9 2005-02-24 23:00:17 thao Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -81,6 +81,10 @@
 #ifdef THERMO_VISCO_PLASTIC_MATERIAL
 #include "tevp2D.h"
 #include "povirk2D.h"
+#endif
+
+#ifdef FINITE_ANISOTROPY
+#include "WLC.h"
 #endif
 
 using namespace Tahoe;
@@ -288,6 +292,11 @@ FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& name) const
 #ifdef VISCOELASTICITY
 	else if (name == "Reese-Govindjee_split")
 		mat= new RGSplitT;
+#endif
+
+#ifdef FINITE_ANISOTROPY
+	else if (name == "Bischoff-Arruda_WLC")
+		mat= new WLC;
 #endif
 
 #ifdef ABAQUS_MATERIAL

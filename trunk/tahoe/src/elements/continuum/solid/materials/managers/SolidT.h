@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.42 2005-01-07 21:23:16 kyonten Exp $ */
+/* $Id: SolidT.h,v 1.43 2005-02-24 23:00:17 thao Exp $ */
 /* created: paklein (03/10/2001) */
 #ifndef _MATERIAL_T_H_
 #define _MATERIAL_T_H_
@@ -67,7 +67,8 @@ kLocXtalPlastFp_C = 56,
 kABAQUS_VUMAT_BCJ = 90,
 kGRAD_MRSSKStV = 108, /* mfgp material */
 kSIERRA_Hypoelastic = 110,
- kSIERRA_Iso_Geomat = 111
+	 kSIERRA_Iso_Geomat = 111,
+	 kBischoff_Arruda_WLC = 120 
 };
 
 	/** convert integer to SolidT::TypeT */
